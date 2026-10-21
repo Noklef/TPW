@@ -66,6 +66,13 @@ void __fastcall ResearchLab_FillProjects(u8 *lab);
 // Else 0 (in AL only).
 u8 __cdecl Research_AllDone();
 
+// 0x4ca630 / 0x4ca650 / 0x4ca670 / 0x4ca690 (cdecl; names unconfirmed): ResearchLab_CountNotDone of category 0 / 1 / 2 / 3 on the lab
+// (GameTable7cfb90_Get1da722_519550 of the game object [0x80239c]).
+u32 __cdecl Research_CountNotDoneCat0();
+u32 __cdecl Research_CountNotDoneCat1();
+u32 __cdecl Research_CountNotDoneCat2();
+u32 __cdecl Research_CountNotDoneCat3();
+
 // 0x5034f0 / 0x5036a0 (thiscall (group), pops 4; names unconfirmed): the group's current project moved to the next / previous one it can
 // take up: of the group's category (mCat == group), its mResearchGroup at most the group's highestGroupAvailable (bytes, unsigned), not
 // done; for the group 4 also the object control record (ObjectControls_Find, not quiet; none faults) of the id (the word +0x284 of the

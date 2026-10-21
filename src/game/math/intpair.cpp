@@ -175,4 +175,20 @@ s32 *__cdecl IntPair_Normalize(s32 *out, const s32 *pair) {
 }
 
 void __cdecl IntPair_ZeroAtExit() {}
+
+namespace {
+void markDestroyed(u8 bit) {
+    u8 &flags = *reinterpret_cast<u8 *>(0x007cdbe0);
+    if (!(flags & bit)) flags = (u8)(flags | bit);
+}
+}  // namespace
+
+void __cdecl IntPair_NorthAtExit() { markDestroyed(0x1); }
+void __cdecl IntPair_NorthEastAtExit() { markDestroyed(0x2); }
+void __cdecl IntPair_EastAtExit() { markDestroyed(0x4); }
+void __cdecl IntPair_SouthEastAtExit() { markDestroyed(0x8); }
+void __cdecl IntPair_SouthAtExit() { markDestroyed(0x10); }
+void __cdecl IntPair_SouthWestAtExit() { markDestroyed(0x20); }
+void __cdecl IntPair_WestAtExit() { markDestroyed(0x40); }
+void __cdecl IntPair_NorthWestAtExit() { markDestroyed(0x80); }
 }

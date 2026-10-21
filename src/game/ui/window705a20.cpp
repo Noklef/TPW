@@ -142,4 +142,26 @@ void __fastcall Window705a20_SetInsertMode(u8 *window, void *edx, u32 mode) {
     }
     if (*reinterpret_cast<u32 *>((uintptr_t)0x00faa5d4)) Window_PostMessage(window, 3, 0, 0);
 }
+
+u32 __fastcall Window705a20_SetBuffer(u8 *window, void *, u32 buffer, u32 size) {
+    const u32 high = (u32)(uintptr_t)window & 0xffff0000u;
+    if ((at<u32>(window, 0x48) & 0x40) || !buffer || !size) return high;
+    at<u32>(window, 0x138) = buffer;
+    at<u32>(window, 0x13c) = size;
+    at<u8>(window, 0x160) = 1;
+    return high | 1;
+}
+
+u32 __fastcall Window705a20_SelectionStart(u8 *window) {
+    const s16 anchor = at<s16>(window, 0x14c);
+    if (anchor == -1) return ((u32)(uintptr_t)window & 0xffff0000u) | at<u16>(window, 0x14a);
+    if (anchor < at<s16>(window, 0x14a)) return ((u32)(uintptr_t)window & 0xffff0000u) | (u16)anchor;
+    return ((u32)(s32)anchor & 0xffff0000u) | at<u16>(window, 0x14a);  // (the anchor's sign above, sic)
+}
+
+void __fastcall Window705a20_Selection(u8 *window, void *, u16 *from, u16 *to) {
+    const s16 anchor = at<s16>(window, 0x14c), cursor = at<s16>(window, 0x14a);
+    if (from) *from = anchor != -1 && anchor < cursor ? anchor : cursor;
+    if (to) *to = anchor > cursor ? anchor : cursor;
+}
 }

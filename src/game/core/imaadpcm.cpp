@@ -40,4 +40,24 @@ void __cdecl ImaAdpcm_DecodeStereo(const u8 *data, s16 *out, s32 count, u32 *sam
     *samples = global<u32>(0x0077dd24) << 16 | (global<u32>(0x0077dd20) & 0xffff);
     *indices = global<u32>(0x0077dd2c) << 16 | (global<u32>(0x0077dd28) & 0xffff);
 }
+
+void __cdecl ImaAdpcm_DecodeMono(s32 start, const u8 *data, s16 *out, s32 count, s32 *sample_io, s32 *index_io) {
+    const s32 end = (s32)((u32)count + (u32)start);
+    s32 index = *index_io;
+    s32 sample = (s16)*sample_io;
+    s32 i = start;
+    do {
+        const u32 nibble = (i & 1) ? *data++ & 0xfu : (u32)*data >> 4;
+        sample = (s32)((u32)sample + global<u32>(0x0077c6c0 + (u32)index + nibble * 4));
+        if (sample > 0x7fff) sample = 0x7fff;
+        else if (sample < -0x8000) sample = -0x8000;
+        *out++ = (s16)sample;
+        ++i;
+        index = (s32)((u32)index + global<u32>(0x0077dd00 + (nibble & 7) * 4));
+        if (index > 0x1600) index = 0x1600;
+        else if (index < 0) index = 0;
+    } while (i < end);
+    *sample_io = sample;
+    *index_io = index;
+}
 }

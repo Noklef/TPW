@@ -37,4 +37,10 @@ u16 __fastcall Window705c28_SetValue(u8 *window, void *, s32 value) {
     if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 8u, event);
     return 1;
 }
+
+u32 __fastcall Window705c28_Dtor(u8 *window) {
+    at<u32>(window, 0) = 0x705c28;
+    GuiRect_Dtor(window + 0x148);
+    return Window_Dtor(window);
+}
 }

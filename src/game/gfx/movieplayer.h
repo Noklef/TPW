@@ -2,7 +2,7 @@
 // (+0x60 height, +0x64 width (unconfirmed which), +0x78 the brightness in percent, +0x88 a flag that skips the header, +0xb4 the palette:
 // three bytes an entry), +0x1e8 the current chunk's data, +0x1f4 its kind, +0x3a8 the kind read, +0x40 / +0x44 / +0x48 the kind 4 / 3
 // header's flags and depth, +0x628 / +0x62c the palette header's first entry and count. Reimplementation of 0x670860, 0x670930,
-// 0x670ab0, 0x677930, 0x677640, 0x6776c0, 0x6711a0, 0x6779e0, 0x67862f, 0x6786d8 and 0x670900.
+// 0x670ab0, 0x677930, 0x677640, 0x6776c0, 0x6711a0, 0x6779e0, 0x67862f, 0x6786d8, 0x670900, 0x6708e0, 0x670890 and 0x66ee80.
 #pragma once
 
 #include "../../../re/types.h"
@@ -60,6 +60,20 @@ void __fastcall MoviePlayer_DrawFrame(u8 *player, u8 *out, u32 unused, u32 pitch
 // data and data + 2 into the settings' +0x64 / +0x60 (the settings read again for each), the depth byte 4 into +0x48, and byte 7's bits
 // 1 and 0 into +0x40 / +0x44 (the byte read again for each).
 void __fastcall MoviePlayer_ReadSizeFlags(u8 *player, const u8 *data);
+
+// 0x6708e0 (fastcall (player, data); name unconfirmed; the kind 3 header, jumped to): the size from the signed words at data and
+// data + 2 into the settings' +0x64 / +0x60 (the settings read again for each), the depth byte 4 into +0x48.
+void __fastcall MoviePlayer_ReadSize(u8 *player, const u8 *data);
+
+// 0x670890 (fastcall (player, data); name unconfirmed): the header of the kind read (+0x3a8): 1 MoviePlayer_ReadPalette, 3
+// MoviePlayer_ReadSize, 4 MoviePlayer_ReadSizeFlags, 5-7 MoviePlayer_ReadSizeAt8 (each jumped to); 2 and any other kind nothing.
+// EAX not kept.
+void __fastcall MoviePlayer_ReadByKind(u8 *player, const u8 *data);
+
+// 0x66ee80 (thiscall on a cursor; name unconfirmed): a number of the movie's sound header (0x66ed60's tags): the cursor's byte
+// after the tag the count, then that many bytes big-endian (wrapping past four); one to three bytes sign-extended (above 0x7f,
+// 0x7fff, 0x7fffff signed). The cursor left past them. Returns the number.
+s32 __fastcall MovieTags_ReadNumber(const u8 **cursor);
 
 void __cdecl MoviePlayer_UnpackIndices(u32 *out, const u8 *source, s32 count, u32 bits);
 

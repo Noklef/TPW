@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/gameclock.h"
+#include "../core/gameheap.h"
 #include "../core/voices.h"
 #include "../files/file.h"
 #include "../files/vfs.h"
@@ -871,6 +872,24 @@ void __cdecl ParticleSystem_FreeDrawList(u8 *list) {
     if (!global<u32>(0x00816d40) || !list) return;
     if (list == global<u8 *>(0x00816d38)) global<u32>(0x00816d3c) = 0;
     else Mem_GlobalFree(list);
+}
+
+void __cdecl Particles_Init(u32 callback, u32 flag, s32 count) {
+    if (global<u32>(0x00816d40)) return;
+    if (count > 0x7fff) count = 0x7fff;
+    if (count < 0x64) count = 0x64;
+    for (u32 i = 0; i < 0x279a; ++i) (&global<u32>(0x0080ced0))[i] = 0;
+    global<u32>(0x0080cef0) = flag ? flag : 1;
+    global<u32>(0x0080cee0) = 1;
+    global<u32>(0x0080ceec) = (u32)(uintptr_t)ParticleSines_Build();
+    global<s32>(0x0080cedc) = count;
+    global<u32>(0x0080ced8) = 0;
+    global<u32>(0x0080cef4) = callback ? callback : 0x005d60c0;
+    global<u32>(0x0080cef8) = Mem_AllocChecked((u32)count * 0x34);
+    global<u32>(0x00816d40) = 1;
+    Emitters_Reset();
+    global<u32>(0x00816d38) = Mem_AllocChecked(0xaf0);
+    global<u32>(0x00816d3c) = 0;
 }
 
 u32 *__cdecl ParticleSines_Build() {

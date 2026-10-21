@@ -17,8 +17,9 @@
 # always multiples of 16, sometimes 0), types mostly 3, 6 and 0xc, else 0-0xc (skipped); in a few cases one coded one (above 0xc), whose
 # 0x673fee / 0x67380f faults in both (they cannot run to the end: see tgqvideo.h). Pitches odd now and then.
 # Lanes (0x670090): the four values -1, 0 or 1 mostly (the borrows' edges), else -0x100-0x100 or any.
+# LaneTables (0x66ffa0, fastcall (alpha)): the alpha -1, 0, 1, 0x7f, 0x80 or any; the three tables random before.
 # usage: tgqvideo.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Fill16,Fill32,Pack,Tables,Quality,Row16,Row32,Coefficients,Frame16,Frame32,
-# Lanes)
+# Lanes,LaneTables)
 import os
 import struct
 import sys
@@ -27,9 +28,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import RAM, Bench, Call  # noqa: E402
 
 CALLS = {'Fill16': 0x671340, 'Fill32': 0x671650, 'Pack': 0x66fd70, 'Tables': 0x66fc10, 'Quality': 0x671000, 'Row16': 0x673574, 'Row32': 0x6732e9, 'Coefficients': 0x672e60, 'Frame16': 0x671230,
-         'Frame32': 0x671540, 'Lanes': 0x670090}
+         'Frame32': 0x671540, 'Lanes': 0x670090, 'LaneTables': 0x66ffa0}
 B = Bench([(0x671340, 0x671532), (0x671650, 0x6717fc), (0x66fd70, 0x66ff96), (0x66fc10, 0x66fd69), (0x671000, 0x6710b9), (0x673574, 0x67380f), (0x672e60, 0x673000), (0x6732e9, 0x673574),
-           (0x671230, 0x671340), (0x671540, 0x671650), (0x67380f, 0x6747cd), (0x67673c, 0x676965), (0x670090, 0x6700d0)])
+           (0x671230, 0x671340), (0x671540, 0x671650), (0x67380f, 0x6747cd), (0x67673c, 0x676965), (0x670090, 0x6700d0), (0x66ffa0, 0x670090)])
 # 0x672e60's jump-table targets 0x672ecc and 0x672f36, missing from the listing (no fall-through or jump reaches them): from the exe's bytes
 B.emu.code.update({0x672ecc: ('MOV', 'EAX,dword ptr [EBX*0x4 + 0xfb7820]'), 0x672ed3: ('NEG', 'EAX'),
                    0x672ed5: ('MOV', 'dword ptr [EBX*0x4 + 0xfb7600],EAX'), 0x672edc: ('JMP', '0x00672f09'),
@@ -135,6 +136,9 @@ def case(r):
         return Call(CALLS[op], [luma, OUT, chroma], regions, conv='esiediebx', ret='v')
     if op == 'Pack':
         return Call(CALLS[op], [channel(r), channel(r), channel(r), r.getrandbits(32)] + pixel_format(r), {}, conv='f', ret='a')
+    if op == 'LaneTables':
+        return Call(CALLS[op], [r.choice([-1, 0, 1, 0x7f, 0x80, r.getrandbits(32)]) & 0xffffffff], {0xfb7930: r.bytes(0x600)}, conv='f',
+                    ret='v')
     if op == 'Tables':
         return Call(CALLS[op], [r.getrandbits(32)] + pixel_format(r), {0xfb7930: r.bytes(0x600)}, conv='f', ret='v')
     wide = op == 'Fill32'

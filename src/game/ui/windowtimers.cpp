@@ -117,6 +117,12 @@ u32 __fastcall Window_StopTimer(u8 *window, void *, u32 id) {
     return 1;
 }
 
+u32 __fastcall Window_KillTimer(u8 *window, void *, u32 id) {
+    if ((id & 0x80080) == 0x80080) id -= 0x80080;
+    if (!at<u8 *>(window, 0x120 + 4 * id)) return (u32)(uintptr_t)window & 0xffff0000u;
+    return WindowTimers_Kill((u32)(uintptr_t)window, id + 0x80080);
+}
+
 s32 __fastcall WindowTimer_Fire(u8 *node) {
     s32 elapsed = (s32)(GuiClock_Now() - at<u32>(node, 4));
     s32 fired = 0;

@@ -235,4 +235,34 @@ void __cdecl Dialog7cc4c4_Create() {
     dressText(Window_FindChild(window(0x007cc4c4), nullptr, 0x16c12), 8);
     *reinterpret_cast<u32 *>(0x007cc4e4) = 0;
 }
+
+void __cdecl Dialog7cdb0c_Create(u32 flag) {
+    if (window(0x007cdb0c) || !*reinterpret_cast<u8 **>(window(0x00f82884) + 4)) return;
+    *reinterpret_cast<u8 **>(0x007cdb0c) =
+        WindowScript_Build(*reinterpret_cast<u8 **>(window(0x00f82884) + 4), nullptr, reinterpret_cast<u8 *>(0x007596b0), 0x004c53f0);
+    Window_SetDwordA0(window(0x007cdb0c), nullptr, 0, flag & 0xff);
+    if ((u8)flag) {
+        Window_SetShown(Window_FindChild(window(0x007cdb0c), nullptr, 0x16007), nullptr, 0);
+        vcall<void>(Window_FindChild(window(0x007cdb0c), nullptr, 0x16003), 0x14, 0u);
+        vcall<void>(Window_FindChild(window(0x007cdb0c), nullptr, 0x16000), 0x14, 0u);
+    } else {
+        u8 *const box = Window_FindChild(window(0x007cdb0c), nullptr, 0x16007);
+        vcall<void>(box, 0x14, 1u);
+        for (u32 i = 0; i < 5; ++i) {
+            u8 *const text = Window_FindChild(box, nullptr, 0x16008 + i);
+            u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
+            Window_SetImpl(text, nullptr, memory ? TextPart6ff350_Ctor(memory, nullptr, 0) : nullptr);
+            Window_Set4c(text, nullptr, Language_Font(6));
+            vcall<void>(text, 0x1c, 0u);
+            Window_NotifyC00(text, nullptr, 1, 1);
+            vcall<void>(text, 0x1c, 0u);
+            Window_SetHandler(text, nullptr, 0x004c56e0);
+            Window_SetDwordA0(text, nullptr, 0, i + 1);
+            vcall<void>(text, 0x14, 1u);
+        }
+        *reinterpret_cast<u32 *>(0x007cdb10) = 1;
+    }
+    static const u32 kPairs[] = {0x16002, 0x16004, 0x16005, 0x16001};
+    for (u32 id : kPairs) Window705a50_SetPair(Window_FindChild(window(0x007cdb0c), nullptr, id), nullptr, 0, 10);
+}
 }

@@ -125,4 +125,14 @@ void __cdecl Window7ca2e8_ClearButtons(u32 mode);
 // GameHeap_Alloc; none when that fails; Window_SetImpl), the bytes 1, 1 as 0xc00 and 0x3000, the font 5 / 8 (Language_Font), the bytes
 // 0xff and the text 0; then [0x7cc4e4] = 0.
 void __cdecl Dialog7cc4c4_Create();
+
+// 0x4c4fb0 (cdecl (flag: a byte); called by 0x5dd650 / 0x5dd910 before Dialog7cc4c4_Create; name unconfirmed): unless the dialog [0x7cdb0c]
+// is made or the frame [0xf82884] has no window +4, it is built from the window script 0x7596b0 on that window (WindowScript_Build: the
+// last child it makes) with the handler 0x4c53f0 and its dword +0xa0 0 set to the flag (Window_SetDwordA0). With a flag its child 0x16007
+// is hidden (Window_SetShown 0) and its children 0x16003 and 0x16000 told slot 5 (0). Without one the child 0x16007 is told slot 5 (1) and
+// its own children 0x16008-0x1600c each get a 0x6ff350 text part (0x1a4 bytes, GameHeap_Alloc; TextPart6ff350_Ctor(0), none when that
+// fails; Window_SetImpl), font 6 (Language_Font; Window_Set4c), slot 7 (0), the bytes 1, 1 as 0xc00 (Window_NotifyC00), slot 7 (0) again,
+// the handler 0x4c56e0 (Window_SetHandler), the dword +0xa0 0 set to 1-5 in turn (Window_SetDwordA0) and slot 5 (1); then [0x7cdb10] = 1.
+// Either way the children 0x16002, 0x16004, 0x16005 and 0x16001 get the pair 0, 10 (Window705a50_SetPair). No child is checked.
+void __cdecl Dialog7cdb0c_Create(u32 flag);
 }

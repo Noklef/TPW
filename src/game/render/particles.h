@@ -194,4 +194,11 @@ void __cdecl ParticleSystem_FreeDrawList(u8 *list);
 // 0x51f320 (cdecl; name unconfirmed): the particles' own sine table (0x803b68, 0x200 dwords), built as IntSin_BuildTable builds its own
 // (256 sin(2i * 0.00613591796875) through the x87, truncated). Returns the table.
 u32 *__cdecl ParticleSines_Build();
+
+// 0x51faa0 (cdecl (callback, flag, count); name unconfirmed): nothing when the particles are set up (0x816d40); else the count clamped to
+// 100..0x7fff (signed), the globals 0x80ced0-0x816d37 zeroed, 0x80cef0 = flag (1 for 0), 0x80cee0 = 1, 0x80ceec = the sine table
+// (ParticleSines_Build), 0x80cedc = the count, 0x80ced8 = 0, 0x80cef4 = callback (0x5d60c0 for none), 0x80cef8 = the count's 0x34-byte
+// emitters (Mem_AllocChecked), 0x816d40 = 1, the emitters reset (Emitters_Reset), 0x816d38 = a 0xaf0-byte block (Mem_AllocChecked) and
+// 0x816d3c = 0.
+void __cdecl Particles_Init(u32 callback, u32 flag, s32 count);
 }

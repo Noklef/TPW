@@ -318,6 +318,7 @@ add_library(tpw_game STATIC
     src/game/terrain/normals.cpp
     src/game/terrain/nodecells.cpp
     src/game/terrain/tct.cpp
+    src/game/terrain/attrmap.cpp
     src/game/model/parts.cpp
     src/game/model/holder.cpp
     src/game/model/remap.cpp
@@ -447,6 +448,12 @@ add_library(tpw_game STATIC
     src/game/ui/panel7cc3b0.cpp
     src/game/ui/panel7cc408.cpp
     src/game/ui/guifont.cpp
+    src/game/ui/panel7cc3e0.cpp
+    src/game/ui/guitoken.cpp
+    src/game/ui/levelmeter.cpp
+    src/game/ui/dialog7cca94.cpp
+    src/game/ui/hoverlabel.cpp
+    src/game/ui/dialog7cb25c.cpp
 )
 # The libraries whose functions replace the exe's copies (src/game/lib); their headers stay private to those units.
 target_link_libraries(tpw_game PRIVATE tpw_zlib tpw_jpeg6b tpw_jpeg6a)

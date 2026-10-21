@@ -7,6 +7,7 @@
 #include "../world/ridesweep.h"
 #include "../world/staff.h"
 #include "../world/things.h"
+#include "panelparts.h"
 #include "window.h"
 #include "window7059f0.h"
 
@@ -55,5 +56,10 @@ s32 __cdecl Panel7cc328_OnMessage(u8 *window, u32 message, u32 id, u32 b) {
         vcall<void>(reinterpret_cast<u8 *>((uintptr_t)0x007cc328), 0x20);
     }
     return Window_CallDefault(window, nullptr, message, id, b);
+}
+
+void __fastcall Panel7cc328_Dress(u8 *self) {
+    panelparts::text(at<u8 *>(self, 0x14), 0x1e8b, 0x38);
+    panelparts::part(at<u8 *>(self, 0x14), TextPart6ff3b0_Ctor, 0x1e8a, 0);
 }
 }  // extern "C"

@@ -7,7 +7,8 @@
 # Mechanic (0x4da370): Staff_SetState's cases now and then (any state), else the states 0xc and 0xd: the grade +0x1e4 small or any
 # into the skill table 0x78542c, the handle +0x218's thing (its +0x19c 2 or not, byte +0x50 small or any, float +0x44 0-100, past it,
 # negative, huge or NaN) and its definition (gObjectDefs as object.py's: 1-3 of 0x4000 bytes, the cache hit or not).
-# usage: staffstate.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetState,Mechanic)
+# Handyman (0x4d7330): Staff_SetState's cases now and then, else the states 8-0xb: the word 0x75c7f2 and the world's tick any.
+# usage: staffstate.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetState,Mechanic,Handyman)
 import os
 import struct
 import sys
@@ -27,11 +28,11 @@ B = Bench(wctimage.merged(MODES + [
     (0x5054d0, 0x5056f0), (0x505ea0, 0x505f60), (0x509af0, 0x509b50), (0x50b350, 0x50b370), (0x50c0d0, 0x50c110), (0x519450, 0x5194e0),
     (0x540c60, 0x540da0), (0x550ca0, 0x550d90), (0x5f5660, 0x5f56a0), (0x6590f7, 0x6591e4), (0x65f11d, 0x65f160), (0x67a740, 0x67a800),
     (0x67fa20, 0x67fa40), (0x5d1410, 0x5d1416), (0x5d1750, 0x5d1751), (0x5da3c0, 0x5da3c1),
-    (0x4da370, 0x4da483), (0x4e03e0, 0x4e03f0), (0x4dd4e0, 0x4dd4fb), (0x412e90, 0x412eea)]))
+    (0x4da370, 0x4da483), (0x4e03e0, 0x4e03f0), (0x4dd4e0, 0x4dd4fb), (0x412e90, 0x412eea), (0x4d7330, 0x4d73b4)]))
 STAFF, WORLD, MODE, MODE_VT, HOLDER = RAM + 0x20000, RAM + 0x21000, RAM + 0xc000, RAM + 0xc100, RAM + 0xc200
 
 
-CALLS = {'SetState': 0x5054d0, 'Mechanic': 0x4da370}
+CALLS = {'SetState': 0x5054d0, 'Mechanic': 0x4da370, 'Handyman': 0x4d7330}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 TARGET, ITEMS = RAM + 0x38000, RAM + 0x40000
 
@@ -64,6 +65,10 @@ def case(r):
     op = r.deal(OPS)
     if op == 'Mechanic' and r.random() < 0.7:
         return mechanic(r)
+    if op == 'Handyman' and r.random() < 0.7:
+        staff = bytearray(r.bytes(0x240))
+        regions = {STAFF: staff, 0x75c7f0: r.bytes(8), 0x80239c: struct.pack('<I', WORLD - 0x1da70c), WORLD: r.bytes(4)}
+        return Call(0x4d7330, [STAFF, r.choice([8, 9, 0xa, 0xb])], regions, conv='t', ret='v')
     regions = dict(assign(r, 'AssignDrop').regions)
     regions[HEAP] = heap(fail=r.choice([0] * 8 + [1, 2, 3]))
     regions.pop(RAM)   # (assign()'s mode)

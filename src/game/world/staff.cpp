@@ -558,4 +558,17 @@ void __fastcall Mechanic_SetState(u8 *mechanic, void *, u32 state) {
     }
     at<u32>(mechanic, 0x19c) = state;
 }
+
+void __fastcall Handyman_SetState(u8 *handyman, void *, u32 state) {
+    if (state == 8 || state == 0xa) {
+        at<u16>(handyman, 0xc2) = global<u16>(0x0075c7f2);
+        Set4_4217f0(handyman + 0xc, nullptr, 9);
+    } else if (state == 9 || state == 0xb) {
+        at<u32>(handyman, 0x214) = global<u32>(global<u32>(0x0080239c) + 0x1da70c);
+        Set4_4217f0(handyman + 0xc, nullptr, 0x11);
+    } else {
+        Staff_SetState(handyman, nullptr, state);
+    }
+    at<u32>(handyman, 0x19c) = state;
+}
 }

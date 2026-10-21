@@ -60,6 +60,21 @@ u32 __fastcall ObjectControls_Serialize(u8 *table, void *, Stream *stream, u32 s
 // first is 0.
 s32 __cdecl ObjectDefs_PercentWithControls();
 
+// The counts over the object definitions (First / Next on 0x7890a0) by their map kind (+0x4ac) and their control records
+// (ObjectControls_FindUncached, quiet, in the game's table: at +0x1d943c of the object [0x80239c] points to; the record must exist). Names
+// unconfirmed.
+// 0x4ca4c0 (stdcall; an argument, unused): those of kind 0 whose record's dword +0x14 is above 0 (signed).
+s32 __stdcall ObjectDefs_CountKind0WithControls14(u32 unused);
+// 0x4ca510 / 0x4ca570 / 0x4ca5d0 (stdcall; an argument, unused): those of kind 1 / 2 / 3 whose record's byte +0x10 is set.
+s32 __stdcall ObjectDefs_CountKind1WithControls10(u32 unused);
+s32 __stdcall ObjectDefs_CountKind2WithControls10(u32 unused);
+s32 __stdcall ObjectDefs_CountKind3WithControls10(u32 unused);
+// 0x4ca450 (stdcall; flag): those of kind 0 whose record's byte +0x10 is set and whose dword +0xc4 is 0 or, with the flag's low byte set, any.
+s32 __stdcall ObjectDefs_CountKind0WithControls10(u32 flag);
+// 0x4ca7b0 (stdcall; kind, flag): those of the kind whose record's dword +0x18 is above 0 (signed) and whose dword +0xc4 is 0 or, with the
+// flag's low byte set, any.
+s32 __stdcall ObjectDefs_CountKindWithControls18(u32 kind, u32 flag);
+
 // 0x4ca8c0 (stdcall; id): the dword at +0x18 of the record ObjectControls_FindUncached finds for the id (quiet) in the game's table (at +0x1d943c of
 // the object [0x80239c] points to); the record must exist.
 u32 __stdcall ObjectControls_GetWord18(u32 id);

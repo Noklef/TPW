@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "vcall.h"
+#include "../world/ridelist.h"
 
 namespace {
 
@@ -60,4 +61,8 @@ u32 __cdecl KidSound_PlayGraded(s32 level, s32 a, s32 b, s32 x, s32 y, s32 z) {
     return Sound_PlayAt(0, global<u32>(0x00803a24), base + (u32)grade, x, y, z);
 }
 
+u32 __cdecl Sound_PlayRideElement(s32 id, u32 owner, u32 category, s32 index, s32 x, s32 y, s32 z) {
+    const u32 sound = Rides_GetLinkedElement(id, index);
+    return sound ? Sound_PlayAt(owner, category, sound, x, y, z) : 0;
+}
 }

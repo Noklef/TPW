@@ -19,4 +19,6 @@ void __fastcall Panel7ca178_Dress(u8 *self) {
     bar(window(self), kRideStatBar, 0x15bbb, 0x32);
     part(window(self), TextPart6ff3b0_Ctor, 0x15bc0, 0);
 }
+
+void __fastcall Panel7ca178_DressTip(u8 *self) { panelparts::tip(self); }
 }

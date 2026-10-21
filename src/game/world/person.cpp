@@ -249,6 +249,15 @@ u32 __fastcall Visitor_Serialize(u8 *visitor, void *, Stream *stream, u32 save, 
     return Save_StatFields(stream, save, visitor, kTail, 14) ? 0 : 1;
 }
 
+s32 __fastcall Visitor_RatingGap(const u8 *visitor, void *, u8 *object) {
+    if (Object_InPoorCondition(object)) return 100;
+    const u8 wanted = *reinterpret_cast<const u8 *>(0x007850e4 + 12 * (u32)at<u8>(visitor, 0x1f0));
+    const s32 gap = (s32)wanted - (s32)Object_Rating(object, nullptr, 0);
+    const s32 sign = gap >= 0 ? -1 : 1;
+    const s32 size = gap < 0 ? -gap : gap;
+    return (size > 50 ? 50 : size) * sign;
+}
+
 u32 __fastcall Visitor_WontPay(const u8 *visitor, void *, u8 *object) {
     const u32 price = Obj_Get194(object);
     if (price == 0)

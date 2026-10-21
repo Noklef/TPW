@@ -752,4 +752,59 @@ u16 __fastcall Window7059f0_NthItemCell(u8 *window, void *, s32 n, s32 column, u
     else *out = *cell;
     return 1;
 }
+
+u32 __fastcall Window7059f0_NthItemData(u8 *window, void *, s32 n, u32 *out) {
+    const s32 item = Window7059f0_NthItem(window, nullptr, n);
+    if (item == -1) return 0xffff0000u;
+    if (!out) return ((u32)item & 0xffff0000u) | 1;
+    *out = at<u32 *>(window, 0x144)[item + 1];
+    return ((u32)(uintptr_t)out & 0xffff0000u) | 1;
+}
+
+void __fastcall Window7059f0_OnKey(u8 *window, void *, u32 key, u32) {
+    if (!(at<u32>(window, 0x48) & 0x200)) return;
+    switch ((s16)key) {
+    case 0x2400: Window7059f0_ScrollTo(window, nullptr, 0); break;
+    case 0x2300: Window7059f0_ScrollTo(window, nullptr, at<s32>(window, 0x150) - 1); break;
+    case 0x2600: Window7059f0_ScrollTo(window, nullptr, at<s32>(window, 0x14c) - 1); break;
+    case 0x2800: Window7059f0_ScrollTo(window, nullptr, at<s32>(window, 0x14c) + 1); break;
+    }
+}
+
+u32 __fastcall Window7059f0_PostSelection(u8 *window) {
+    const s32 selection = at<s32>(window, 0x14c);
+    if (selection < 0) return (u32)(uintptr_t)window;   // (EAX still the window the compare went through)
+    return Window_PostMessage(at<u8 *>(window, 0x60), 0x400, at<u32>(window, 0x8c), (u32)selection);
+}
+
+s32 __fastcall Window7059f0_NotifySort(u8 *window) {
+    s32 value = at<s16>(window, 0x168) + 1;
+    if (at<s16>(window, 0x16a) == 1) value = -value;
+    return Window_SendMessage(at<u8 *>(window, 0x60), 0x406, at<u32>(window, 0x8c), (u32)value);
+}
+
+u32 __fastcall Window7059f0_ColumnSpan(u8 *window, void *, s32 column, u16 *first, u16 *second) {
+    if (!at<u8 *>(window, 0x16c) || !first || !second || column >= at<s16>(window, 0x164)) return (u32)(uintptr_t)window & 0xffff0000u;
+    *first = at<u16>(at<u8 *>(window, 0x16c) + column * 12, 4);
+    *second = at<u16>(at<u8 *>(window, 0x16c) + column * 12, 8);
+    return ((u32)column * 12 & 0xffff0000u) | 1;
+}
+
+u32 __fastcall Window7059f0_SetSortColumn(u8 *window, void *, u32 column) {
+    if ((s16)column == at<s16>(window, 0x168)) return (u32)(s32)(s16)column & 0xffff0000u;
+    at<s16>(window, 0x168) = (s16)column;
+    return ((u32)Window7059f0_NotifySort(window) & 0xffff0000u) | 1;
+}
+
+u32 __fastcall Window7059f0_SetSortOrder(u8 *window, void *, u32 order) {
+    if ((s16)order == at<s16>(window, 0x16a)) return (u32)(s32)(s16)order & 0xffff0000u;
+    at<s16>(window, 0x16a) = (s16)order == -1 ? (s16)(at<s16>(window, 0x16a) == 0) : (s16)order;
+    return ((u32)Window7059f0_NotifySort(window) & 0xffff0000u) | 1;
+}
+
+u8 *__fastcall Window7059f0_DeletingDtor(u8 *window, void *, u32 flags) {
+    Window7059f0_Dtor(window);
+    if (flags & 1) GameHeap_Free(window);
+    return window;
+}
 }
