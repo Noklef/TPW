@@ -106,4 +106,25 @@ void __fastcall MsgQueue_Clear(u8 *queue) {
     at<u32>(queue, 0x10) = 0;
     std::memset(at<u8 *>(queue, 0), 0, at<u32>(queue, 4) << 4);
 }
+
+s32 __cdecl MsgQueue_Pump(s32 most) {
+    using Hook = void(__cdecl *)(u32, u32, u32, u32);
+    u8 *&queue = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f0);
+    const Hook &hook = *reinterpret_cast<Hook *>((uintptr_t)0x00faa5fc);
+    s32 done = 0;
+    if (!queue) return 0;
+    if (!hook) {
+        while ((s16)MsgQueue_DispatchOne(queue) != 0 && done < most) ++done;  // sic: one more taken than counted once `most` is reached
+        return done;
+    }
+    s32 more = 1;
+    while (more && done < most) {
+        if (hook) {
+            if (const u32 *const entry = MsgQueue_Peek(queue)) hook(entry[0], entry[1], entry[2], entry[3]);
+        }
+        more = (s16)MsgQueue_DispatchOne(queue);
+        if (more) ++done;
+    }
+    return done;
+}
 }
