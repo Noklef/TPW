@@ -37,8 +37,22 @@ void Finish(u32 n, u32 tag) {
     global<u32>(kCount) = n + 1;
 }
 
-// a + b on the x87 (fld a; fadd b: b the memory operand), stored as a float.
-float Sum(float a, float b) { return static_cast<float>(X87Reg(a) + b); }
+// The memory forms (fadd / fsub / fsubr m32) with m read through a reference as bits, so that a signalling NaN m reaches the x87's
+// rule intact (a float passed or returned by value can be quieted on the way): a signalling NaN m gives way to a NaN st.
+bool GivesWay(X87Reg st, const float &m) {
+    u32 b;
+    std::memcpy(&b, &m, 4);
+    return st.v != st.v && (b & 0x7f800000) == 0x7f800000 && (b & 0x7fffff) && !(b & 0x400000);
+}
+X87Reg AddM(X87Reg st, const float &m) { return GivesWay(st, m) ? st : st + X87Reg(m); }
+X87Reg SubM(X87Reg st, const float &m) { return GivesWay(st, m) ? st : st - X87Reg(m); }
+X87Reg SubRM(X87Reg st, const float &m) { return GivesWay(st, m) ? st : X87Reg(m) - st; }
+
+// a + m on the x87 (fld a; fadd m: m the memory operand), stored as a float.
+float Sum(float a, const float &m) { return static_cast<float>(AddM(a, m)); }
+
+// A dword of a vertex array as the float memory operand it is.
+const float &F(const u32 &bits) { return *reinterpret_cast<const float *>(&bits); }
 
 float AsFloat(u32 bits) {
     float f;
@@ -74,9 +88,9 @@ void SinCos(float angle, float a, float &s, float &c) {
 // dx, dy, dz added to the four vertices (dx + x, on the x87).
 void Move(u32 *v, float dx, float dy, float dz) {
     for (int k = 0; k < 4; ++k) {
-        v[3 * k] = Bits(Sum(dx, AsFloat(v[3 * k])));
-        v[3 * k + 1] = Bits(Sum(dy, AsFloat(v[3 * k + 1])));
-        v[3 * k + 2] = Bits(Sum(dz, AsFloat(v[3 * k + 2])));
+        v[3 * k] = Bits(Sum(dx, F(v[3 * k])));
+        v[3 * k + 1] = Bits(Sum(dy, F(v[3 * k + 1])));
+        v[3 * k + 2] = Bits(Sum(dz, F(v[3 * k + 2])));
     }
 }
 
@@ -217,7 +231,7 @@ void __cdecl DynFaces_AddTurnedGrid(float dx, float dy, float dz, float xoff, s3
                 u32 corners[12], colours[12], uvs[12] = {};
                 float s, c;
                 for (int k = 0; k < 4; ++k) {
-                    corners[3 * k] = Bits(Sum(xoff, AsFloat(p[at1[k]])));
+                    corners[3 * k] = Bits(Sum(xoff, F(p[at1[k]])));
                     corners[3 * k + 1] = p[at1[k] + 1];
                     corners[3 * k + 2] = p[at1[k] + 2];
                 }
@@ -357,7 +371,7 @@ void __cdecl DynFaces_ReleaseModels() {
 }
 
 void __cdecl DynFaces_Frame() {
-    const float moveX = (float)(X87Reg(X87_MulDouble((double)global<s32>(0x008186b8), global<float>(0x00700de0))) - global<float>(0x00820afc));
+    const float moveX = (float)SubM(X87_MulDouble((double)global<s32>(0x008186b8), global<float>(0x00700de0)), global<float>(0x00820afc));
     const u32 t = global<u32>(0x00790a38);
     static const u32 kConstants[][2] = {{0x871ee8, 0}, {0x871eec, 0}, {0x871ef4, 0x3f800000}, {0x871ef8, 0}, {0x871f00, 0},
                                         {0x871f04, 0x3f800000}, {0x871f0c, 0x3f800000}, {0x871f10, 0x3f800000}, {0x871f18, 0x3f000000},
@@ -366,7 +380,7 @@ void __cdecl DynFaces_Frame() {
                                         {0x871f4c, 0x3ecccccd}};
     for (const auto &c : kConstants)
         global<u32>(c[0]) = c[1];
-    const float moveZ = (float)(X87Reg(X87_MulDouble((double)global<s32>(0x008186b4), global<float>(0x00700de0))) - global<float>(0x00820af8));
+    const float moveZ = (float)SubM(X87_MulDouble((double)global<s32>(0x008186b4), global<float>(0x00700de0)), global<float>(0x00820af8));
     const float scale = global<float>(0x007b095c);
     const u32 mask = global<u32>(0x007b0960);
     const s32 i1 = Fistp((float)(X87Reg(scale) * of(t)));
@@ -387,8 +401,8 @@ void __cdecl DynFaces_Frame() {
         p[0] = (float)(X87Reg(p[0]) - global<float>(0x00700df4));
         p[1] = (float)(X87Reg(p[1]) - global<float>(0x00700df4));
     }
-    global<float>(0x00820afc) = (float)(X87Reg(moveX) * global<float>(0x00700de4) + global<float>(0x00820afc));
-    global<float>(0x00820af8) = (float)(X87Reg(moveZ) * global<float>(0x00700de4) + global<float>(0x00820af8));
+    global<float>(0x00820afc) = (float)AddM(X87Reg(moveX) * global<float>(0x00700de4), global<float>(0x00820afc));
+    global<float>(0x00820af8) = (float)AddM(X87Reg(moveZ) * global<float>(0x00700de4), global<float>(0x00820af8));
     DynFaces_WaveGrid(0x10, 0x13, 20.0f, wavePhase);
     DynFaces_AddGrid(global<float>(0x00870ec8), global<float>(0x00870ecc), global<float>(0x00870ed0), 10, 11, 0, 0);
     DynFaces_AddGrid(global<float>(0x00870ec8), global<float>(0x00870ecc), global<float>(0x00870ed0), 4, 6, 10, 0);
@@ -409,8 +423,8 @@ void __cdecl DynFaces_Frame() {
     if (Wrap_Obj_Get30_402df0(clock))
         return;
     global<float>(0x00874fc0) = (float)(X87Reg(global<float>(0x00874fc0)) - global<float>(0x00700df8));
-    global<float>(0x00871f60) = (float)X87_SubR(X87_MulDouble(GameClock_Double20(clock), global<float>(0x00700de8)), global<float>(0x00871f60));
-    global<float>(0x00871ed0) = (float)X87_SubR(X87_MulDouble(GameClock_Double20(clock), global<float>(0x00700de8)), global<float>(0x00871ed0));
+    global<float>(0x00871f60) = (float)SubRM(X87_MulDouble(GameClock_Double20(clock), global<float>(0x00700de8)), global<float>(0x00871f60));
+    global<float>(0x00871ed0) = (float)SubRM(X87_MulDouble(GameClock_Double20(clock), global<float>(0x00700de8)), global<float>(0x00871ed0));
     const s32 count = (s32)(global<u32>(0x00874fc8) + (u32)Ftol(GameClock_Double20(clock)));
     global<s32>(0x00874fc8) = count;
     if (global<u8>(0x00763c98) != 0) {

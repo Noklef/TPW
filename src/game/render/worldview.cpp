@@ -16,9 +16,9 @@ float Held(X87Reg t, float zero, X87Reg lim) {
     return !(t.v >= zero) || f > lim.v ? (float)lim : f;
 }
 
-// fld end; fsub start; fdiv step; __ftol: the count of steps (low half of the 64-bit truncation).
-s32 steps(float start, float end, float step) {
-    const X87Reg n = (X87Reg(end) - X87Reg(start)) / X87Reg(step);
+// fld end; fsub start; fdiv step (start and step the memory operands); __ftol: the count of steps (low half of the 64-bit truncation).
+s32 steps(const float &start, const float &end, const float &step) {
+    const X87Reg n = (X87Reg(end) - start) / step;
     return (s32)(u32)(long long)n.v;
 }
 
@@ -30,8 +30,8 @@ bool counts(float step) { return step == step && step != 0.0f; }
 extern "C" {
 
 void __fastcall WorldView_UpdateDiagonal(u8 *view) {
-    const X87Reg dx = X87Reg(at<float>(view, 0x40)) - X87Reg(at<float>(view, 0x3c));
-    const X87Reg dy = X87Reg(at<float>(view, 0x48)) - X87Reg(at<float>(view, 0x44));
+    const X87Reg dx = X87Reg(at<float>(view, 0x40)) - at<float>(view, 0x3c);   // (fsub m32: the memory form)
+    const X87Reg dy = X87Reg(at<float>(view, 0x48)) - at<float>(view, 0x44);
     const float stored = (float)dx;  // fst [esp]
     at<float>(view, 0x38) = (float)X87_Sqrt(dx * X87Reg(stored) + dy * dy);
 }
@@ -73,8 +73,8 @@ float *__fastcall WorldView_RayPoint(const u8 *view, void *, float *out, const f
     if (!(d[1] < zero || d[1] > zero))   // (equal or unordered)
         d[1] = global<float>(0x00701488);
     const X87Reg lim = X87Reg(global<float>(0x008bd4c0)) * global<float>(0x0070149c);
-    const float first = Held(X87_SubR(at<float>(m, 0x34), at<float>(view, 0x30)) / d[1], zero, lim);
-    const float second = Held(X87_SubR(at<float>(m, 0x34), at<float>(view, 0x34)) / d[1], zero, lim);
+    const float first = Held((at<float>(view, 0x30) - X87Reg(at<float>(m, 0x34))) / d[1], zero, lim);
+    const float second = Held((at<float>(view, 0x34) - X87Reg(at<float>(m, 0x34))) / d[1], zero, lim);
     X87Reg s = second;
     if (first < second || first > second) {
         s = (X87Reg(second) + first) * global<float>(0x0070149c);
@@ -85,9 +85,9 @@ float *__fastcall WorldView_RayPoint(const u8 *view, void *, float *out, const f
         (void)*reinterpret_cast<const volatile u32 *>(origin + 0xc);
         (void)*reinterpret_cast<const volatile u32 *>(grid + 0x14);
     }
-    out[0] = (float)(s * d[0] + at<float>(m, 0x30));
+    out[0] = (float)(s * d[0] + X87Reg(at<float>(m, 0x30)));   // (m +0x30 and +0x38 loaded, faddp; +0x34 fadd m32)
     out[1] = (float)(s * d[1] + at<float>(m, 0x34));
-    out[2] = (float)(s * d[2] + at<float>(m, 0x38));
+    out[2] = (float)(s * d[2] + X87Reg(at<float>(m, 0x38)));
     return out;
 }
 }  // extern "C"
