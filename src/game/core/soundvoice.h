@@ -18,6 +18,11 @@ void __fastcall SoundVoice_EnsureParams(u8 *voice);
 // Returns out.
 u32 *__fastcall SoundVoice_SetPending(u8 *voice, void *, u32 *out, u32 value);
 
+// 0x6bcb80 (thiscall): unless flag 0x4000, the byte at +0x44 handed to the sound system in a record as 0x6bc900's: 100 as
+// SetThenFlag28_14 (0), handed on even without a sound; else, with a sound, SetThenFlag9c_14 (the byte). Returns 0 when the sound
+// system left the record's +0x18 bit 1 set and +0x9c nonzero (a sound still there); else flag 0x400 cleared, 0x100 set and returns 1.
+u32 __fastcall SoundVoice_SendByte44(u8 *voice);
+
 // The voice's sound definition (+4): +4 its variations' count, +8 the variations (0x2a bytes each), +0x10 flags. A variation (the
 // current one at +8): +0 its samples' count (the low word: SfxVariation_SampleCount), +8 the samples (0x10 bytes each, +4 a rising
 // threshold), +0x16 / +0x1a words for the parameter block, +0x1e its weight, +0x22 its radius (a float). +0x10 the voice's position

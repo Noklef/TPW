@@ -44,6 +44,22 @@ void stop_sound(u32 sound) {
     vcall<void>(system(), 0x10, &out, functor);
 }
 
+// The record that 0x6bc900 and 0x6bcb80 hand to the sound system: the fields it reads cleared, three floats set (the others left unset,
+// sic).
+void start_record(u32 *record) {
+    static const u8 kCleared[] = {0, 1, 3, 4, 5, 0xb, 0xc, 0xe, 0xf, 0x10, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f, 0x22};
+    for (const u8 i : kCleared) record[i] = 0;
+    record[0x20] = 0x3e800000;   // 0.25f
+    record[0x21] = 0x3f000000;   // 0.5f
+    record[0x23] = 0x3f800000;   // 1.0f
+}
+
+// The record handed to the sound system's slot 4 (out, a stack functor: vtable 0x70a850, the voice's sound, the record).
+void send_record(const u8 *voice, u32 *out, u32 *record) {
+    u32 functor[3] = {0x0070a850, at<u32>(voice, 0x24), static_cast<u32>(reinterpret_cast<uintptr_t>(record))};
+    vcall<void>(global<u8 *>(0x00fb1f24), 0x10, out, functor);
+}
+
 }  // namespace
 
 extern "C" {
@@ -66,16 +82,32 @@ u32 *__fastcall SoundVoice_SetPending(u8 *voice, void *, u32 *out, u32 value) {
         *out = 0xffffffff;
         return out;
     }
-    u32 record[0x27];   // (the fields not named here are left unset, sic)
-    static const u8 kCleared[] = {0, 1, 3, 4, 5, 0xb, 0xc, 0xe, 0xf, 0x10, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f, 0x22};
-    for (const u8 i : kCleared) record[i] = 0;
-    record[0x20] = 0x3e800000;   // 0.25f
-    record[0x21] = 0x3f000000;   // 0.5f
-    record[0x23] = 0x3f800000;   // 1.0f
+    u32 record[0x27];
+    start_record(record);
     SetThenFlag28_14_6c5130(reinterpret_cast<u8 *>(record), nullptr, value);
-    u32 functor[3] = {0x0070a850, at<u32>(voice, 0x24), static_cast<u32>(reinterpret_cast<uintptr_t>(record))};
-    vcall<void>(global<u8 *>(0x00fb1f24), 0x10, out, functor);
+    send_record(voice, out, record);
     return out;
+}
+
+u32 __fastcall SoundVoice_SendByte44(u8 *voice) {
+    if (!(at<u32>(voice, 0x30) & 0x4000)) {
+        u32 record[0x28];
+        start_record(record);
+        const u8 value = voice[0x44];
+        u32 result;   // (dropped)
+        if (value == 0x64) {
+            SetThenFlag28_14_6c5130(reinterpret_cast<u8 *>(record), nullptr, 0);
+            send_record(voice, &result, record);
+        } else {
+            if (at<u32>(voice, 0x24)) {
+                SetThenFlag9c_14_6c50d0(reinterpret_cast<u8 *>(record), nullptr, value);
+                send_record(voice, &result, record);
+            }
+            if (at<u32>(voice, 0x24) && (record[6] & 2) && record[0x27]) return 0;
+        }
+    }
+    at<u32>(voice, 0x30) = (at<u32>(voice, 0x30) & ~0x400u) | 0x100;
+    return 1;
 }
 
 void __fastcall SoundVoice_ApplyVariation(u8 *voice) {

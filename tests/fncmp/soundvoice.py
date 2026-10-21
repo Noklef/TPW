@@ -5,21 +5,23 @@
 # by its vtable and sound and the record's value bytes (+0x28; +0xc-+0x17 for the listener's record; the record's other set fields fall
 # outside the recorder's 15-byte window), its +0x44-+0x47 category bytes, +0x60 the listener (floats about the box, equal to its bounds
 # now and then). The game's random number any; a command whose slot 0 answers 1-3 or else; timeGetTime a recorder (the clock disabled).
+# The byte +0x44 sent (100 now and then): slot 4 fills the record's +0x18 through the functor (its +8), any bits.
 # usage: soundvoice.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import (HEAP, LOG, RAM, Bench, Call, blob_bytes, fb, heap, log_region, recorder, set_float_return, set_return, strings,  # noqa: E402
+from fncmp import (HEAP, LOG, RAM, Bench, Call, blob_bytes, fb, fill, heap, log_region, recorder, set_float_return, set_return, strings,  # noqa: E402
                    vtable)
 
 # name: (address, returns)
 CALLS = {'ensure': (0x6b7150, 'v'), 'pending': (0x6bc900, 'a'), 'apply': (0x6bbf00, 'v'), 'radius': (0x6bc650, 'd'),
          'sample': (0x6bc680, 'a'), 'category': (0x6bc760, 'b'), 'variation': (0x6bc810, 'b'), 'audible': (0x6bca10, 'b'),
-         'cull': (0x6bca70, 'v'), 'command': (0x6bcab0, 'a'), 'follow': (0x6bd5f0, 'v')}
+         'cull': (0x6bca70, 'v'), 'command': (0x6bcab0, 'a'), 'follow': (0x6bd5f0, 'v'), 'byte44': (0x6bcb80, 'a')}
 B = Bench([(0x6b7150, 0x6b7190), (0x6bc900, 0x6bcb56), (0x6c5130, 0x6c5150), (0x6bbf00, 0x6bbf56), (0x6bc650, 0x6bc674), (0x6bc680, 0x6bc806),
-           (0x6bc810, 0x6bc8f0), (0x6bd5f0, 0x6bd781), (0x6bd7a0, 0x6bd7ac), (0x6bb220, 0x6bb237), (0x5f5f10, 0x5f5f7d), (0x5f5fa0, 0x5f5faa)])
+           (0x6bc810, 0x6bc8f0), (0x6bd5f0, 0x6bd781), (0x6bd7a0, 0x6bd7ac), (0x6bb220, 0x6bb237), (0x5f5f10, 0x5f5f7d), (0x5f5fa0, 0x5f5faa),
+           (0x6bcb80, 0x6bcce1), (0x6c50d0, 0x6c50e8)])
 VOICE, OUT, SYS, SVT, VVT, DEF, VARS, SAMPLES, PARAMS, LISTENER, CMD, CVT = (RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x500,
                                                                             RAM + 0x600, RAM + 0xa00, RAM + 0xb00, RAM + 0xb40, RAM + 0xb80, RAM + 0xbc0)
 SYSTEM, RANDOM, CLOCK, TIME_GET_TIME = 0xfb1f24, 0xfb1f20, 0xfa71e0, 0x6fd3ec
@@ -76,6 +78,9 @@ def case(r):
     log = log_region()
     if name == 'follow':
         blob_bytes(log, 4, 1, 0xff, inner=(8, 0xfff, 12))   # the functor: its vtable, the sound; the record's +0xc-+0x17
+    elif name == 'byte44':
+        blob_bytes(log, 4, 1, 0xff, inner=(8, 0xfff, 12))   # the functor; the record's +0xc-+0x17 (its +0x28 / +0x9c out of reach)
+        fill(log, 4, 1, struct.pack('<I', r.choice([0, 2, 3, 0xfffffffd, r.getrandbits(32)])), offset=0x18, through=8)   # its +0x18
     elif name != 'command':
         blob_bytes(log, 4, 1, 0xff, inner=(8, 0x7000, 28) if name == 'pending' else None)   # (the stop's functor: two dwords)
     if name != 'pending':
@@ -98,6 +103,8 @@ def case(r):
     struct.pack_into('<I', voice, 0x40, r.f() if r.random() < 0.3 else fb(r.uniform(0, 10)))
     voice[0x45], voice[0x46] = r.choice([0, 1, 2, r.getrandbits(8)]), r.choice([0, 1, 2, r.getrandbits(8)])
     voice[0x47] = r.choice([0, r.getrandbits(4), r.getrandbits(8)])
+    if name == 'byte44':
+        voice[0x44] = r.choice([0x64, 0x64, 0, r.getrandbits(8)])
     params = bytearray(r.bytes(0x20))
     lo_x, lo_z = r.randrange(-100, 100), r.randrange(-100, 100)
     box = [lo_x, lo_z + r.randrange(0, 100), lo_x + r.randrange(0, 100), lo_z]   # +8 x min, +0xc z max, +0x10 x max, +0x14 z min
