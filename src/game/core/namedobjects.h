@@ -50,4 +50,32 @@ void __fastcall NamedObjects_SetThemeLabel(u8 *self, void *, const WString *them
 // 0x4099b0 (thiscall; theme, a String, label; pops 8; name unconfirmed): the theme name widened into a local WString
 // (WString_AssignFromAnsi); when that converts anything, NamedObjects_SetThemeLabel with it.
 void __fastcall NamedObjects_SetThemeLabelAnsi(u8 *self, void *, const String *theme, u8 *label);
+
+// 0x4088a0 (thiscall on the owner 0x786b68; root, a WString; pops 4; name unconfirmed): the 14 named objects of the globals in
+// NamedObjects_RemoveGlobals' order are made and registered: for each a new block (Mem_Alloc 0x48 / 0x40 / 0x50) is constructed with
+// the global as its name and a local String as its folder (0x41d8a0 for 0x786b68, 0x785f80, 0x786aa8, 0x786040 and 0x7867d8; 0x41d7c0
+// for 0x785e78 and 0x785f98; 0x41db70 for 0x7862c8, 0x785f68, 0x7862f8, 0x786d10 and 0x7866e8; 0x41da70 for 0x7862e0; 0x41dfc0 for
+// 0x785ed8; none when the allocation fails), given that folder and its WAD (Class6fd9d8_AddFolderAndWad, a null object too) and added
+// to the registry at +0x34 (Obj_SetAt8AndAdd for the second and third, else ObserverList0_Add). The folder is the root (the String
+// vtable's +0x18, String_AssignWide) for the first; before each later one it is assigned the root again, ends in "\"
+// (String_EnsureTrailingBackslash) and gets the next of the Strings 0x7869d0, 0x7864f0, 0x7865f8, 0x786640, 0x786388, 0x785f38,
+// 0x7868e0, 0x786778, 0x786af0, 0x7863b8, 0x786850, 0x7869a0 and 0x7869b8 appended (vtable +0x28).
+void __fastcall NamedObjects_AddFolders(u8 *self, void *, const WString *root);
+
+// 0x4081e0 (thiscall on the owner; name unconfirmed): for each node {name, next} of the list at [0x786b90] (the names MakeFolders makes
+// folders for), three objects (Mem_Alloc 0x40, Class6fda68_Ctor; none when the allocation fails) are made and added to the registry at
+// +0x34 (ObserverList0_Add). Each gets a folder String: the WString 0x785e48 assigned (the String vtable's +0x18), "\" ensured
+// (String_EnsureTrailingBackslash), the name appended (vtable +0x28), "\" ensured, then 0x786430 / 0x785e90 / 0x786670 appended; and
+// a name String: 0x786a48 / 0x786ce0 / 0x7860e8 assigned (+0x18), the node's name appended. The folder and its WAD are added to the first
+// two (Class6fd9d8_AddFolderAndWad), also under the second root to the third (Class6fd9d8_AddFolderAndWadBoth), a null object too. Both
+// Strings are made and destroyed per node.
+void __fastcall NamedObjects_AddListedFolders(u8 *self);
+
+// 0x408470 (thiscall, plain RET; name unconfirmed): the fixed folder objects. Thirteen objects, each allocated (Mem_Alloc 0x40, 0x48 or
+// 0x50) and constructed with a global name and folder String (Class6fda58 / 6fdaf8 / 6fda68 / 6fdaa8 / 6fdac8 / 6fdab8 / 6fdae8 /
+// 6fda88_Ctor; none when the allocation fails), given that folder (Class6fd9d8_AddFolderAndWad; Class6fd9d8_AddFolderAndWadBoth for the
+// third; Class6fd9d8_AddFolder for the seventh on, with a WAD String added (Class6fd9d8_AddWad) for the 7th, 8th, 11th and 13th; the
+// 12th AddFolderAndWad again), a null object too, and added to the registry at +0x34 (ObserverList0_Add). The listed folders
+// (NamedObjects_AddListedFolders) come between the seventh and the eighth.
+void __fastcall NamedObjects_AddFixedFolders(u8 *self);
 }

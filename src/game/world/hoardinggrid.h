@@ -20,4 +20,16 @@ void __cdecl HoardingGrid_Fill();
 // 0x5321d0 makes: from (row, col), while both are 0 to 0x41 and the char is ' ' or '@', it becomes the fill's low byte and the fill
 // recurses up, down and left, then steps right. pass is handed on unused. A fill of ' ' or '@' recurses until the stack runs out (sic).
 void __cdecl HoardingGrid_Flood(s32 row, s32 col, u32 pass, u32 fill);
+
+// 0x531a50 (cdecl; x1, y1, x2, y2, charge; name unconfirmed): whether hoardings can enclose the rectangle the two corners span. Its four
+// side lists (0x81eb10 top, 0x81ec18 bottom, 0x81eb98 left, 0x81ea78 right: 0x80 bytes of 0xff, counts at 0x81b484 / 0x81edec /
+// 0x81aeec / 0x81b73c, and 0x81af4c the cost, all cleared first) get a byte for every second cell of each side (0 a flag 0x40 cell that
+// is not type 0x19). 0 when either corner is off the map or a side spans 2 or less, when a side meets one of the two points at 0x7639f0
+// / 0x7639f8, when two cells in a row on a side are type 7 / 0x1e (not 2), when both ends are hoarded (type 0x19) and the straight
+// hoarding counts (corrected at the corners) all come to 0, when the area is all of one kind (flag 0x40 cells not hoarded, or the rest)
+// and no side has two hoarded cells, or when the grid copy (0x81eeb0 into 0x81d7c8, a border of ' ', the area '#', flooded from the
+// outside with '#') leaves a ' ' or '@' inside. With charge, each flag 0x40 cell inside the border adds the price at 0x78560c to the cost;
+// when the game is not free (0x785a2c) and the cost exceeds the money (Source_Field0c of the world's table entry) 0x816d5c is set and the
+// answer is 0. Else 1.
+s32 __cdecl HoardingGrid_CheckArea(s32 x1, s32 y1, s32 x2, s32 y2, u8 charge);
 }

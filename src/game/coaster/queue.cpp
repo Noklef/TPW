@@ -4,6 +4,9 @@
 
 #include "../core/globalmem.h"
 #include "../model/partstate.h"
+#include "../world/ridelist.h"
+#include "../world/things.h"
+#include "../world/thingscan.h"
 
 namespace {
 
@@ -102,4 +105,34 @@ void __cdecl CoasterRing_Init(u8 *ring, u32 capacity) {
 }
 
 void __cdecl CoasterRing_Free(u8 *ring) { GlobalMem_Free(at<u32 *>(ring, 4)); }
+
+void __cdecl Coaster_RequeueWaitingPeeps(s32 id) {
+    u8 *coaster = *reinterpret_cast<u8 **>((uintptr_t)0x00790fe0);
+    while (coaster && at<s32>(coaster, 0x10) != id) coaster = at<u8 *>(coaster, 0x18);
+    if (!coaster) return;
+    u16 handle;
+    const u16 target = *Thing_GetHandle(at<u8 *>(coaster, 0x28), nullptr, &handle);
+    u32 first = 0, second = 0;   // (sic: uninitialised in the original when there is no record)
+    if (const u8 *record = Rides_FindById(at<s32>(coaster, 0x24))) {
+        first = Rides_GetElement(record, 0);
+        second = Rides_GetElement(record, 1);
+    }
+    for (u8 *peep = Things_FindNextOfCategory(0x40, nullptr); peep; peep = Things_FindNextOfCategory(0x40, peep)) {
+        if (at<u16>(peep, 0x1dc) != target || at<u32>(peep, 0x220) != 0x10) continue;
+        const u16 self = *Thing_GetHandle(peep, nullptr, &handle);
+        if (self == first || self == second) continue;
+        bool riding = false;
+        const u8 *train = at<u8 *>(coaster, 0x128);
+        for (u32 t = 0; t < at<u32>(coaster, 0xf4) && !riding; ++t, train += 0x80) {
+            const u8 *car = at<u8 *>(train, 0x28);
+            for (u32 c = 0; c < at<u32>(train, 0xc) && !riding; ++c, car += 0x60) {
+                for (u32 k = 0; k < at<u32>(car, 0x30) && !riding; ++k)
+                    riding = at<u16>(at<u8 *>(car, 0x28), 4 * k) == self;
+                for (u32 k = 0; k < at<u32>(car, 0x34) && !riding; ++k)
+                    riding = at<u16>(at<u8 *>(car, 0x2c), 4 * k) == self;
+            }
+        }
+        if (!riding) CoasterQueue_Add(coaster, self);
+    }
+}
 }

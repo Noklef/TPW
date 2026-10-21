@@ -17,4 +17,9 @@ extern "C" {
 // set). Any vertex (on the base, or all without a map) left outside 0..1 sets *warned once (the Debug_Printf naming the model, +0x18,
 // is left out). The three scratch blocks are GlobalMem_Alloc'd (zeroed) and freed.
 void __cdecl RideBase_TidyUVs(const u8 *model, u8 *part, float tolerance, const u8 *map, const float *positions, u32 *warned);
+
+// 0x4679d0 (cdecl (holder, part, tolerance, map, positions); name unconfirmed): RideBase_TidyUVs on the holder's model ([[+8] +4]) for the
+// part, or with none for each of the model's parts (+0x42 of them, u16: the first +0x44 0xa0 bytes apart at +0x70, the rest 0x58 apart
+// at +0x74) whose flags (+0) lack bit 0x200; one warned flag (from 0) shared by them all.
+void __cdecl RideBase_TidyAllUVs(const u8 *holder, u8 *part, float tolerance, const u8 *map, const float *positions);
 }

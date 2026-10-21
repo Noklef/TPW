@@ -44,4 +44,11 @@ void __cdecl CoasterRing_Init(u8 *ring, u32 capacity);
 
 // 0x43b0c0: frees the ring's buffer (the pointer is left as it was).
 void __cdecl CoasterRing_Free(u8 *ring);
+
+// 0x4379a0: the coaster with this id in the list at 0x790fe0 (+0x10 the id, +0x18 the next): every peep (Things_FindNextOfCategory
+// 0x40) heading for its thing (+0x28; the peep's +0x1dc its handle) in state 0x10 (+0x220), its handle neither element 0 nor 1 of the
+// coaster's ride record (Rides_FindById of +0x24) and not riding any car (+0x128 the trains, 0x80 each, +0xf4 of them; a train's +0xc
+// cars at its +0x28, 0x60 each, two rider lists at +0x28 / +0x2c, +0x30 / +0x34 of them, dwords compared by their low words) is added
+// to its queue (CoasterQueue_Add). sic: with no ride record the original compares against two uninitialised stack slots.
+void __cdecl Coaster_RequeueWaitingPeeps(s32 id);
 }

@@ -15,6 +15,38 @@ namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
+// Flag 0x10's rectangle: the four words at desc [+0x14] + 4 to +0x18..+0x1e, copied to +0x24..+0x2a.
+void CopyRect(u8 *overlay, const u8 *desc) {
+    const u8 *const rect = at<const u8 *>(desc, 0x14);
+    for (u32 k = 0; k < 8; k += 2) at<u16>(overlay, 0x18 + k) = at<u16>(rect, 4 + k);
+    for (u32 k = 0; k < 8; k += 2) at<u16>(overlay, 0x24 + k) = at<u16>(overlay, 0x18 + k);
+}
+
+// The node's quad (+0x60) stretched to the overlay's rectangle (see Overlay_ApplyResized): count vertices, x moved too when wide.
+void Stretch(const u8 *overlay, u8 *node, u32 count, bool wide) {
+    float low[3], high[3];
+    std::memcpy(low, node + 0x78, sizeof low);
+    std::memcpy(high, node + 0x84, sizeof high);
+    const X87Reg a = X87Reg((double)(at<s16>(overlay, 0x1c) - at<s16>(overlay, 0x18))) - (X87Reg(high[0]) - X87Reg(low[0]));
+    const X87Reg dy = X87Reg((double)(at<s16>(overlay, 0x1e) - at<s16>(overlay, 0x1a))) - (X87Reg(high[1]) - X87Reg(low[1]));
+    const X87Reg b(-dy.v);   // (fchs)
+    for (u32 i = 0; i < count; ++i) {
+        float *const v = reinterpret_cast<float *>(at<u8 *>(node, 0x60) + (i >> 2) * 0x30 + (i & 3) * 4);
+        const float x = v[0], y = v[4], z = v[8];
+        v[0] = wide && x > 0.0f ? (float)(X87Reg(x) + a) : X87_Through(x);   // (0x6fedec: 0)
+        v[4] = y >= 0.0f ? X87_Through(y) : (float)(X87Reg(y) + b);
+        v[8] = X87_Through(z);
+    }
+    std::memcpy(node + 0x78, &low[0], 4);
+    at<float>(node, 0x7c) = (float)(b + X87Reg(low[1]));
+    std::memcpy(node + 0x80, &low[2], 4);
+    if (wide)
+        at<float>(node, 0x84) = (float)(a + X87Reg(high[0]));
+    else
+        std::memcpy(node + 0x84, &high[0], 4);
+    std::memcpy(node + 0x88, &high[1], 8);
+}
+
 }  // namespace
 
 extern "C" {
@@ -128,5 +160,23 @@ void __fastcall Overlay_SetShown(u8 *overlay, void *, u32 shown32) {
         Holder_Sleep(holder);
     }
     at<u16>(overlay, 8) = shown;
+}
+
+void __fastcall Overlay_ApplyResized(u8 *overlay, void *, u32 flags, const u8 *desc) {
+    if (!desc) return;
+    if (u8 *const node = const_cast<u8 *>(Overlay_ShowFrame(overlay, nullptr, flags, desc))) {
+        if (flags & 0x10) CopyRect(overlay, desc);
+        Stretch(overlay, node, 0x10, true);
+    }
+    Overlay_Apply(overlay, nullptr, flags, desc);
+}
+
+void __fastcall Overlay_ApplyResizedHeight(u8 *overlay, void *, u32 flags, const u8 *desc) {
+    u8 *const node = at<u8 *>(at<u8 *>(at<u8 *>(overlay, 4), 4), 0x78);
+    if (desc && (flags & 0x10) && node) {
+        CopyRect(overlay, desc);
+        Stretch(overlay, node, 8, false);
+    }
+    Overlay_Apply(overlay, nullptr, flags, desc);
 }
 }

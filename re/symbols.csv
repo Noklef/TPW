@@ -497,6 +497,7 @@ address,name,kind,confidence,notes
 0x00585ce0,Landscape_SampleColours,function,low,"reimplemented (src/game/terrain/landscape); thiscall: 16 x 16 colours sampled from the texture at +0x1fd4 (Texture_Lock) into +0xf60, copied to +0x400, +0x800, +0xc00 after them"
 0x005720d0,TerrainTexCache_Ctor,function,high,"reimplemented (src/game/terrain/texcache); the tile cache cleared, 0x40 tiles"
 0x00572350,TerrainTexCache_Dtor,function,low,"reimplemented (src/game/terrain/texcache); thiscall: the tiles' texture arrays, the tiles and the landscape freed (name unconfirmed)"
+0x00572110,TerrainTexCache_Init,function,low,"reimplemented (src/game/terrain/texcache); the tile cache set up: the landscape, count tiles in a ring each with a texture of the size (capped by the video and texture memory)"
 0x00536490,MapCell_Reset,function,high,"default type/flags from the attribute byte: outside park 2/0x1e/7, inside 1 (path, bit 0x08) or 0; 0x10 -> flags 0x80, 0x04 -> flags 0x400"
 0x00527ee0,Path_CheckDeadEnds,function,low,"counts path neighbours; attribute bit 0x08 exempts a cell"
 0x0080239c,gWorld,data,medium,"world structure; map cells at +0x2d8 (0x44 each, 1-based ids), track cells at +0x1102d8"
@@ -4123,6 +4124,9 @@ address,name,kind,confidence,notes
 0x00409620,NamedObjects_AddName,function,low,reimplemented (src/game/core/namedobjects); thiscall (name String): a new String assigned the name goes into the owned list +0x24 sorted case blind; nothing when already held
 0x00409a30,NamedObjects_SetThemeLabel,function,low,"reimplemented (src/game/core/namedobjects); thiscall (theme WString, label; owner unused): fantasy/halloween/jungle/space -> the record table [0x78bad4]'s text 2/1/0/3 widened to the label's vtable +0x14"
 0x004099b0,NamedObjects_SetThemeLabelAnsi,function,low,"reimplemented (src/game/core/namedobjects); thiscall (theme String, label): the name widened (WString_AssignFromAnsi), then NamedObjects_SetThemeLabel when that converted anything"
+0x004088a0,NamedObjects_AddFolders,function,low,"reimplemented (src/game/core/namedobjects); the 14 named objects made (their classes' constructors on the global names), given their folders and WADs under a root, registered"
+0x004081e0,NamedObjects_AddListedFolders,function,low,"reimplemented (src/game/core/namedobjects); three objects per listed name made with folders under the root 0x785e48, given their folders and WADs, registered"
+0x00408470,NamedObjects_AddFixedFolders,function,low,"reimplemented (src/game/core/namedobjects); the 13 fixed folder objects made on global names and folders, given their folders (and WADs), registered; the listed folders between the 7th and 8th"
 0x00407b20,FloatConsts_InitOne_407b20,function,low,reimplemented (src/game/core/floatconsts); cdecl static initialiser: unused 0x78639c = 1.0f (unit unknown)
 0x00407b40,FloatConsts_InitEpsilon_407b40,function,low,reimplemented (src/game/core/floatconsts); cdecl static initialiser: unused 0x786aec = 1 / 2^23 (unit unknown)
 0x00409f60,FloatConsts_InitOne_409f60,function,low,reimplemented (src/game/core/floatconsts); cdecl static initialiser: unused 0x78736c = 1.0f (unit unknown)
@@ -4392,6 +4396,7 @@ address,name,kind,confidence,notes
 0x005276d0,FocusCell_Update,function,low,"reimplemented (src/game/world/focuscell); cdecl (record): the focus cell from the set cell (game modes 0x19 / 0x1a) or the selected object (or the thing its handle names), stepped both ways; the move recorded (action 0x32)"
 0x00532960,HoardingGrid_Fill,function,low,"reimplemented (src/game/world/hoardinggrid); cdecl: the coarse char grid at 0x81eeb0 (rows of 0x43, one char per 2 x 2 cells) of the width x depth area (0x81d740 / 0x81b1b0): space, @ for a type 0x19 cell, # for a cell whose 0x44-byte cell lacks flag 0x40"
 0x005328e0,HoardingGrid_Flood,function,low,"reimplemented (src/game/world/hoardinggrid); cdecl (row, col, pass, fill): flood fill of ' ' / '@' chars in the 0x42 x 0x42 grid copy at 0x81d7c8 (rows of 0x43) with the fill byte"
+0x00531a50,HoardingGrid_CheckArea,function,low,"reimplemented (src/game/world/hoardinggrid); whether hoardings can enclose a rectangle: its sides walked, the grid copied and flooded, the cost charged"
 0x0053aac0,Map_ApplyLine,function,low,"reimplemented (src/game/world/mapline); cdecl (arg, x, y, &xEnd, &yEnd): the cell operation 0x5370e0 on every second map cell from (x, y) along the longer axis to the end (pulled in to an even distance); 0 when one answers 0"
 0x00539220,MapLine_LinkCell,function,low,"reimplemented (src/game/world/mapline); thiscall (cell; kind, stepX, stepY), pops 12: a line's cell of a track kind or 0x19 linked by neighbour bits to the one two back along the step (the last step on the first cell), when both are of a linking type with fewer than 4 neighbours and the other is unowned or the focus cell's; the step kept at 0x763b00"
 0x00523230,MapCell_PathLines,function,low,"reimplemented (src/game/world/mapline); cdecl (x, y): the path cell (or its parent) and its matching neighbours two cells away give a run; Map_ApplyLine over it with 0x85, 0x86 and 0x81"
@@ -4457,6 +4462,8 @@ address,name,kind,confidence,notes
 0x004775a0,Overlay_ScalarDtor_4775a0,function,low,"reimplemented (src/game/gfx/overlay); thiscall (flags), pops 4: its scalar deleting destructor"
 0x00476f10,Overlay_Apply,function,low,"reimplemented (src/game/gfx/overlay); thiscall (flags, desc), pops 8: the overlay set from a descriptor: corners, frame, screen matrix from the node bounds, scale"
 0x00476bf0,Overlay_SetShown,function,low,"reimplemented (src/game/gfx/overlay); thiscall (shown), pops 4: the holder woken with the overlay matrix or put to sleep, the shown node flagged"
+0x00477310,Overlay_ApplyResized,function,low,"reimplemented (src/game/gfx/overlay); slot 3 of 0x6fee38: the shown node's quad stretched to the overlay's rectangle (x and y), then Overlay_Apply"
+0x00477640,Overlay_ApplyResizedHeight,function,low,"reimplemented (src/game/gfx/overlay); slot 3 of 0x6fee60: the first node's quad stretched in y to the rectangle with flag 0x10, then Overlay_Apply"
 0x0047e2f0,ScreenSurfaces_Ctor,function,high,reimplemented (src/game/gfx/screensurfaces); the screen surfaces source: both Surfaces cleared and their infos constructed
 0x0047e390,SurfaceSource_Dtor,function,high,reimplemented (src/game/gfx/screensurfaces); the abstract surface source's destructor (vtable 0x6fef90 back)
 0x0047e570,ScreenSurfaces_Bounds,function,high,"reimplemented (src/game/gfx/screensurfaces); virtual: out = {0, 0, width - 1, height - 1}"
@@ -4743,6 +4750,7 @@ address,name,kind,confidence,notes
 0x0043b480,CoasterTrain_Unload,function,high,"reimplemented (src/game/coaster/queue); empties one side of the train's cars into the boarding queue (riders dropped when full, sic), releasing their seat parts"
 0x0043b080,CoasterRing_Init,function,high,"reimplemented (src/game/coaster/queue); an empty ring of capacity slots (zeroed), limit 0, head/tail/buffer the first slot, no stop slot"
 0x0043b0c0,CoasterRing_Free,function,high,reimplemented (src/game/coaster/queue); frees the ring's buffer (the pointer is left)
+0x004379a0,Coaster_RequeueWaitingPeeps,function,low,reimplemented (src/game/coaster/queue); the waiting peeps of a coaster (by id) not riding a car added to its queue
 0x00440ad0,TrackCursor_Next,function,high,"reimplemented (src/game/coaster/cursor); cdecl (cursor): steps the cursor (start index +0, piece +4; end +8, +0xc) one node on, onto the next piece (+0x64) at its end"
 0x00440b50,TrackCursor_Prev,function,high,"reimplemented (src/game/coaster/cursor); cdecl (cursor): steps the cursor one node back, onto the previous piece (+0x68) at its start"
 0x00440bc0,TrackCursor_Point,function,high,"reimplemented (src/game/coaster/cursor); cdecl (cursor, t, out): TrackSpline_Point between the cursor's two nodes (0x58 bytes, piece+0x90 -> {count, nodes})"
@@ -5118,6 +5126,7 @@ address,name,kind,confidence,notes
 0x00579e00,ObjModel_Load,function,low,"reimplemented (src/game/model/objmodel); thiscall (model), pops 4: an engine object's model loaded (procedural textures set up, BlueprintMesh parts flagged, texture sets made and set up, sharp textures flagged, waiting loads run, the tracked mesh block laid out, a loading step); unloaded and 0 on failure"
 0x0057a260,ObjModel_SetMatrices,function,low,"reimplemented (src/game/model/objmodel); thiscall (which, matrix): the matrix (with a flip) through the vertex transformer slot 6 into the static 0xfb3400, copied to the object +0x10 (bit 1) / +0x50 (bit 2)"
 0x00467310,RideBase_TidyUVs,function,low,"reimplemented (src/game/model/baseuvs); cdecl (model, part, tolerance, map, positions, warned): a ride base's texture coordinates snapped to whole numbers, moved down by their triangles' floors, groups on the base marked"
+0x004679d0,RideBase_TidyAllUVs,function,low,"reimplemented (src/game/model/baseuvs); RideBase_TidyUVs on the holder's model for the given part, or for each part not flagged 0x200; one warned flag shared"
 0x0045aee0,Online_ApplyBalance,function,high,reimplemented (src/game/online/servers); copies Online.sam (gBalanceOnline) into the servers object 0x7a14f0
 0x005b6450,Online_LoggedIn,function,high,"reimplemented (src/game/online/session); thiscall u32: the online session's (0xf7d88c) +0x60, set while logged in"
 0x005b6460,Online_Restricted,function,high,reimplemented (src/game/online/session); thiscall u32: 1 unless logged in (+0x60) with the user's flag 0x20 (+0x58) clear

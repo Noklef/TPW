@@ -125,3 +125,17 @@ extern "C" void __cdecl RideBase_TidyUVs(const u8 *, u8 *part, float tolerance, 
     GlobalMem_Free(leastU);
     GlobalMem_Free(done);
 }
+
+extern "C" void __cdecl RideBase_TidyAllUVs(const u8 *holder, u8 *part, float tolerance, const u8 *map, const float *positions) {
+    const u8 *const model = at<const u8 *>(at<const u8 *>(holder, 8), 4);
+    u32 warned = 0;
+    if (part != nullptr) {
+        RideBase_TidyUVs(model, part, tolerance, map, positions, &warned);
+        return;
+    }
+    for (u32 i = 0; i < at<u16>(model, 0x42); ++i) {
+        const u32 first = at<u16>(model, 0x44);
+        u8 *const each = i < first ? at<u8 *>(model, 0x70) + i * 0xa0 : at<u8 *>(model, 0x74) + (i - first) * 0x58;
+        if ((at<u32>(each, 0) & 0x200) == 0) RideBase_TidyUVs(model, each, tolerance, map, positions, &warned);
+    }
+}
