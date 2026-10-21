@@ -5,6 +5,8 @@
 # (0xfbc018: Q31 0.7071, 0.5412, 1.3066, 0.3827, 1.5 * 2^52) or with random multipliers, and the rounding constant sometimes
 # 1.5 * 2^23 (so that at 24-bit precision the low dword carries the rounded value) or random; a tenth of the cases built so that
 # fild; fmul's product sits just above a 24-bit midpoint the double product lands on (rounding()).
+# Block (0x67832e, cdecl (out, pitch)): 0xfbc000-0xfbc24c random but for the constants (as above) and the 8 input rows (as the blocks
+# above), the pitch 8, 16, 32 or 8-64 dwords, out random over its 8 rows.
 # usage: movieidct.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=DctColumn,...)
 import os
 import struct
@@ -13,8 +15,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import RAM, Bench, Call, fb  # noqa: E402
 
-CALLS = {'DctColumn': 0x6780c1, 'DctRow': 0x678224, 'Column': 0x67673c, 'Row': 0x67687b, 'RowShift': 0x676965}
-B = Bench([(0x6780c1, 0x678224), (0x678224, 0x67832e), (0x67673c, 0x67687b), (0x67687b, 0x676965), (0x676965, 0x676a6e)])
+CALLS = {'DctColumn': 0x6780c1, 'DctRow': 0x678224, 'Column': 0x67673c, 'Row': 0x67687b, 'RowShift': 0x676965, 'Block': 0x67832e}
+B = Bench([(0x6780c1, 0x678224), (0x678224, 0x67832e), (0x67673c, 0x67687b), (0x67687b, 0x676965), (0x676965, 0x676a6e), (0x67832e, 0x6784c1)])
 BLOCK, OUT = RAM, RAM + 0x1000
 DCT, MOVIE = 0xfbc000, 0xfbb598  # (the out pointer, the scratch and the constants; the constants)
 
@@ -60,6 +62,10 @@ def rounding(r):
 
 def case(r):
     op = r.deal(OPS)
+    if op == 'Block':
+        pitch = r.choice([8, 0x10, 0x20, r.randrange(8, 0x41)])
+        state = r.bytes(0x18) + constants(r) + r.bytes(0x120) + b''.join(block(r, False) for _ in range(8))
+        return Call(CALLS[op], [OUT, pitch], {DCT: state, OUT: r.bytes(pitch * 4 * 7 + 0x20)}, ret='v')
     column = op in ('DctColumn', 'Column')
     regions = {BLOCK: block(r, column), OUT: r.bytes(0x120 if column else 0x20)}
     consts = constants(r)

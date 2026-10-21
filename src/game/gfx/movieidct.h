@@ -30,4 +30,10 @@ void __cdecl MovieIdct_Row(const s32 *block, s32 *out);
 
 // 0x676965 (block in ESI, out in EDI; name unconfirmed): as MovieIdct_Row, each result shifted right 17 (arithmetic).
 void __cdecl MovieIdct_RowShift(const s32 *block, s32 *out);
+
+// 0x67832e (cdecl (out, pitch in dwords); name unconfirmed): the TGQ video's 8x8 IDCT: [0xfbc000] = pitch * 4; the rows of the block
+// 0xfbc14c (0x20 bytes apart) through DctIdct_Column down the columns of 0xfbc02c ([0xfbc004] = 0xfbc02c + 4i), then that buffer's rows
+// (0x24 bytes apart) through DctIdct_Row into out's rows, [0xfbc004] = out and then [0xfbc004] + [0xfbc000] (both read again) for
+// each. It keeps every register but EAX (left as the last row's value 6: no caller reads it).
+void __cdecl DctIdct_Block(s32 *out, s32 pitch);
 }
