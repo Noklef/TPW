@@ -199,6 +199,7 @@ def case(r):
         key = r.choice([params[r.randrange(4)], params[r.randrange(4)], r.getrandbits(8)]) | r.choice([0, r.getrandbits(32) & ~0xff])
         struct.pack_into('<I', voice, 0x30, r.getrandbits(32))
         set_return(log, 14, r.choice([0, 0x100, 1, r.getrandbits(32)]))
+        struct.pack_into('<I', voice, 8, r.choice([VARS, VARS + 0x2a, 0]))   # (no current variation: +0xc left)
         regions[HEAP] = heap(0x40, fail=r.choice([0] * 7 + [1]))
         return Call(address, [VOICE, key, r.getrandbits(32)], regions, conv='t', ret=ret)
     if name in ('flags', 'init', 'swcreate', 'seqcreate'):
