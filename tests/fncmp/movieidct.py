@@ -3,7 +3,8 @@
 # EDI for 0x67673c / 0x676965; tools/fncmp.py conv 'esi' / 'esiedi'): a random block (small, medium or any dwords, a third of the
 # column ones with dwords 1-7 zero), the out buffer random, the scratch 0xfbc008-0xfbc017 random, the constants the game's
 # (0xfbc018: Q31 0.7071, 0.5412, 1.3066, 0.3827, 1.5 * 2^52) or with random multipliers, and the rounding constant sometimes
-# 1.5 * 2^23 (so that at 24-bit precision the low dword carries the rounded value) or random.
+# 1.5 * 2^23 (so that at 24-bit precision the low dword carries the rounded value) or random; a tenth of the cases built so that
+# fild; fmul's product sits just above a 24-bit midpoint the double product lands on (rounding()).
 # usage: movieidct.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=DctColumn,...)
 import os
 import struct
@@ -40,14 +41,34 @@ def block(r, column):
     return out
 
 
+def rounding(r):
+    """A block and constants where fild a; fmul c1 is a hair above a 24-bit midpoint that the double product a * c1 lands on exactly (so
+    rounding the double product again would tie to even, down): c1's significand m odd, a = (2^30 + t) / m mod 2^31 (t 1 or 2, under
+    the double's last place), the 55-bit product's kept 24 bits even. B = -A and the rounding constant 0, so U is the product alone."""
+    while True:
+        m = r.getrandbits(23) | (1 << 23) | 1
+        t = r.choice([1, 2])
+        a = ((1 << 30) + t) * pow(m, -1, 1 << 31) % (1 << 31)
+        p = a * m
+        if p.bit_length() == 55 and not (p >> 31) & 1:
+            break
+    s = [r.randrange(-2048, 2048) for _ in range(8)]
+    s[3], s[5], s[7], s[1] = 0, a, 0, -a
+    k, c1, c2, c3, _ = struct.unpack('<iIIII', constants(r))
+    return struct.pack('<8i', *s), struct.pack('<iIIII', k, (127 << 23) | (m & 0x7fffff), c2, c3, 0)
+
+
 def case(r):
     op = r.deal(OPS)
     column = op in ('DctColumn', 'Column')
     regions = {BLOCK: block(r, column), OUT: r.bytes(0x120 if column else 0x20)}
+    consts = constants(r)
+    if r.random() < 0.1:
+        regions[BLOCK], consts = rounding(r)
     if op.startswith('Dct'):
-        regions[DCT] = r.bytes(4) + struct.pack('<I', OUT) + r.bytes(16) + constants(r)
+        regions[DCT] = r.bytes(4) + struct.pack('<I', OUT) + r.bytes(16) + consts
         return Call(CALLS[op], [BLOCK], regions, conv='esi', ret='v')
-    regions[MOVIE] = constants(r)
+    regions[MOVIE] = consts
     return Call(CALLS[op], [BLOCK, OUT], regions, conv='esi' if op == 'Row' else 'esiedi', ret='v')
 
 
