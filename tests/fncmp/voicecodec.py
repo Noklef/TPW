@@ -65,7 +65,7 @@ def case(r):
         return Call(0x6d61c0, [CHANNEL, OUT], {CHANNEL: k, OUT: r.bytes(0x30)}, conv='c', ret='v')
     if name in ('decode', 'frame'):
         decoder = bytearray(state(r, BITS + r.randrange(0, 0x40)))
-        decoder[0xc:0x14] = struct.pack('<2I', r.choice([0, 1, r.getrandbits(32)]), r.choice([0, 1, r.getrandbits(32)]))
+        decoder[0xc:0x14] = struct.pack('<2I', r.choice([0, 1, r.getrandbits(32)]), r.choice([0, 1, 0x100, r.getrandbits(32)]))
         for _ in range(2):
             decoder += struct.pack('<I', r.choice([r.randrange(0, 0x48), r.getrandbits(32)])) + finite(r, 64, r.choice([1.0, 100.0]))
             decoder += finite(r, 12, r.choice([1.0, 0.5])) + finite(r, 0x300, r.choice([1.0, 100.0, 30000.0]))
