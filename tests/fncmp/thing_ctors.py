@@ -25,6 +25,7 @@ B = Bench([(0x4d91f0, 0x4d9290), (0x502d20, 0x502d70), (0x50afe0, 0x50b090), (0x
            (0x4da920, 0x4da970), (0x5089c0, 0x508a21), (0x50c620, 0x50c650), (0x509b40, 0x509bb6), (0x50c9b0, 0x50ca44), (0x599e70, 0x599f55), (0x4f8940, 0x4f8ad0), (0x4d3ed0, 0x4d3ee0), (0x5100f0, 0x510100), (0x510160, 0x510180),
            (0x516330, 0x516370)] + CENTRE_RANGES, hooks=CENTRE_HOOKS)
 OBJ = RAM + 0x8000
+SPRITE_CELLS = RAM + 0x80000   # (Sprite's map cells, 0x100 of them)
 CENTRE = RAM + 0x20000   # the message centre's slots, then the maps' heads, nil node and nodes
 # name: (address, object size)
 MODELS = {'MechanicHQ': (0x4da920, 0x10), 'StaffHQ': (0x5089c0, 0x68), 'TagSystem': (0x509b40, 0x40), 'UIMsgReceiver': (0x50c9b0, 0x40), 'Advisor': (0x599e70, 0x16e8)}
@@ -83,13 +84,17 @@ def case(r):
     if name == 'Parts':
         return Call(0x518e00, [OBJ, r.getrandbits(32)], {OBJ: r.bytes(0x200)}, conv='t', ret='a')
     if name == 'Sprite':
-        regions = thing_regions(r)
+        regions = thing_regions(r, SPRITE_CELLS)
+        more = bytearray(r.bytes(0x44 * 0xbf))   # (cells 0x42-0x100 too: the nav's column takes 7 bits of the cell's)
+        for k in range(0xbf):
+            more[0x44 * k + 0x24:0x44 * k + 0x26] = bytes(2)
+        regions[SPRITE_CELLS + 0x44 * 0x41] = more
         regions[OBJ] = r.bytes(0x200)
         regions[RAM + 0x1da708] = r.bytes(4)   # (the world's random state)
         regions[0x75c7f0] = r.bytes(0x14)       # (the words it picks from)
         while regions.get(0x788d3c, b'') in (b'', bytes(4)):   # (the centre made already: its inlined making copies uninitialised stack bytes into
             centre(r, regions)                                # each slot (sic), here the caller's, so the two differ; staffinit.py's way)
-        cell = r.choice([1, 2, 3, 0x40, 0x41, 0x20, r.randrange(1, 0x41)]) | r.choice([0, 0, 0x10000, r.getrandbits(16) << 16])
+        cell = r.choice([1, 2, 3, 0x40, 0x41, 0x20, r.randrange(1, 0x41), 0x80, 0x81, 0xc0, 0x100, r.randrange(0x42, 0x101)]) | r.choice([0, 0, 0x10000, r.getrandbits(16) << 16])
         return Call(0x4f8940, [OBJ, cell, r.getrandbits(32)], regions, conv='t', ret='a')
     address, size = MODELS[name]
     regions = thing_regions(r)
