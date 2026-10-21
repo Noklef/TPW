@@ -104,6 +104,30 @@ u32 __fastcall Window705b20_SetPos(u8 *window, void *, s32 mode, s32 value) {
     return 1;
 }
 
+void __fastcall Window705b20_PosFromThumb(u8 *window) {
+    u8 rect[12];
+    GuiRect_Ctor(rect);
+    u8 *const thumb = Window_FindChild(window, nullptr, 3);
+    Window_GetRect(thumb, nullptr, rect, 1);
+    const s32 range = (s32)(at<u32>(window, 0x138) - at<u32>(window, 0x13c));
+    const s32 before = at<s32>(window, 0x140);
+    if (at<s16>(window, 0x14c) & 2) {   // across: from the left end +0x30
+        const s32 width = (s32)at<s16>(rect, 8) - at<s16>(rect, 4);
+        const s32 room = (s32)at<s16>(window, 0x34) - width - at<s16>(window, 0x30);
+        const s32 off = (s32)at<s16>(rect, 4) - at<s16>(window, 0x30);
+        at<u32>(window, 0x140) = (u32)Idiv((s32)((u32)off * (u32)range), room) + at<u32>(window, 0x13c);
+    } else {   // down: from the bottom end +0x36
+        const s32 height = (s32)at<s16>(rect, 0xa) - at<s16>(rect, 6);
+        const s32 room = (s32)at<s16>(window, 0x36) - height - at<s16>(window, 0x32);
+        const s32 off = (s32)at<s16>(window, 0x36) - at<s16>(rect, 0xa);
+        at<u32>(window, 0x140) = (u32)Idiv((s32)((u32)off * (u32)range), room) + at<u32>(window, 0x13c);
+    }
+    if (before != at<s32>(window, 0x140)) {
+        Window_PostMessage(at<u8 *>(window, 0x60), 0x800, at<u32>(window, 0x8c), at<u32>(window, 0x140));
+    }
+    GuiRect_Dtor(rect);
+}
+
 u16 __fastcall Window705b20_SetEnabled(u8 *window, void *, u32 enabled) {
     const s16 e = (s16)enabled;
     const bool disabled = (at<u32>(window, 0x48) & 2) != 0;

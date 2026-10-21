@@ -3,8 +3,9 @@
 # apart, the sign bit) or any. SetEnabled: window.py's tree and hover (Window_UpdateHover), the root the window, the others windows of
 # the vtables 0x705980, 0x705a50 (+0x98 / +0x9c recorders of slot 3 or 0, their events masked to the look word +4) and 0x705b20, flag 2 of
 # each +0x48 either way, the handlers +0x114 fncmp's logger or 0, [0xfaa5d4] set or not; enabled 0, 1 or any (upper bytes random).
-# SetPos (0x66b088): see set_pos(); the modes the callers pass (0-3, -1, -2), the value near the range or any.
-# usage: window705b20.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetRange,SetEnabled,SetPos)
+# SetPos (0x66b088): see set_pos(); the modes the callers pass (0-3, -1, -2), the value near the range or any. PosFromThumb (0x66af19):
+# set_pos()'s (a room of 0 faults in both).
+# usage: window705b20.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetRange,SetEnabled,SetPos,PosFromThumb)
 import os
 import struct
 import sys
@@ -15,16 +16,16 @@ sys.path.insert(0, HERE)
 from fncmp import CDECL_LOG4, LOG, RAM, Bench, Call, blob_bytes, log_region, put, recorder, vtable  # noqa: E402
 from window import RANGES as WINDOW_RANGES, hover, tree  # noqa: E402
 
-CALLS = {'SetRange': 0x66b47d, 'SetEnabled': 0x66ae83, 'SetPos': 0x66b088}
+CALLS = {'SetRange': 0x66b47d, 'SetEnabled': 0x66ae83, 'SetPos': 0x66b088, 'PosFromThumb': 0x66af19}
 B = Bench(sorted(set(WINDOW_RANGES + [(0x66b47d, 0x66b508), (0x66ae83, 0x66af19), (0x65d56b, 0x65d57c), (0x65da8d, 0x65db25),
                                       (0x668a23, 0x668aad), (0x668820, 0x6688b3),
                                       (0x66b088, 0x66b438), (0x661525, 0x661596), (0x65c9bd, 0x65cd95), (0x661700, 0x66176a),
-                                      (0x659e3e, 0x659e83), (0x659d43, 0x659d90)])))
+                                      (0x659e3e, 0x659e83), (0x659d43, 0x659d90), (0x66af19, 0x66b088)])))
 OBJ98, OBJ9C, VT98, VT9C = RAM + 0xa000, RAM + 0xa040, RAM + 0xa080, RAM + 0xa100
 BAR, BAR98, BAR9C, BARVT98, BARVT9C = RAM + 0xa200, RAM + 0xa380, RAM + 0xa3c0, RAM + 0xa400, RAM + 0xa480
 
 
-def set_pos(r):
+def set_pos(r, op):
     """windowtree.py's rect_env tree, its root the thumb (id 3, else now and then another id) and the bar's only child (no
     thumb faults in both: Window_SetRect reads null + 8); the bar's own objects +0x98 /
     +0x9c recorders of slot 3 (k 24 / 25, their event's dword +0 hashed) or 0, the parent +0x60 one of the tree's windows or 0; the range
@@ -52,6 +53,8 @@ def set_pos(r):
     put(bar, 0x144, 'II', r.choice([1, 1, -1, 2, -3, 0, 10, 0x7fffffff, 0x80000000]) & 0xffffffff, r.choice([1, 5, 20, -4, 0, 1000]) & 0xffffffff)
     put(bar, 0x14c, 'H', r.choice([1, 2, 3, 5, 6, 0x8002, r.getrandbits(16)]))
     regions[BAR] = bar
+    if op == 'PosFromThumb':
+        return Call(CALLS[op], [BAR], regions, conv='t', ret='v')
     mode = r.choice([0, 1, 2, 3, 0xffffffff, 0xffffffff, 0xfffffffe])
     value = r.choice([lo, hi, pos, lo + 1, hi - 1, r.randrange(-200, 300), r.getrandbits(32)]) & 0xffffffff
     return Call(CALLS['SetPos'], [BAR, mode, value], regions, conv='t', ret='a')
@@ -81,8 +84,8 @@ def case(r):
     op = r.deal(OPS)
     if op == 'SetEnabled':
         return set_enabled(r)
-    if op == 'SetPos':
-        return set_pos(r)
+    if op in ('SetPos', 'PosFromThumb'):
+        return set_pos(r, op)
     w = bytearray(r.bytes(0x160))
     a = r.choice([0, 1, 0x3ff, 0x7fffffff, 0x80000000, 0xffffffff, r.getrandbits(32)])
     b = r.choice([a, (a + 1) & 0xffffffff, (a - 1) & 0xffffffff, 0, 0x3ff, 0x80000000, 0x7fffffff, r.getrandbits(32)])

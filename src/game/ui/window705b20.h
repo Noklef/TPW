@@ -24,6 +24,12 @@ void __fastcall Window705b20_SetRange(u8 *window, void *, s32 from, s32 to);
 // parent +0x60 sent 0x800 (id +0x8c, pos) (Window_SendMessage). Returns 1.
 u32 __fastcall Window705b20_SetPos(u8 *window, void *, s32 mode, s32 value);
 
+// 0x66af19 (thiscall; name unconfirmed): the position +0x140 read back from the thumb (child id 3; Window_FindChild, its inner rectangle
+// by Window_GetRect): by bit 2 of the word +0x14c its left's offset from +0x30, else its bottom's from +0x36, times the range +0x138 -
+// +0x13c over the room left (+0x34 - +0x30, or +0x36 - +0x32, less the thumb's length; one IDIV that faults, sic, on a room of 0), plus
+// +0x13c. When the position changed the parent +0x60 is posted 0x800 (id +0x8c, pos) (Window_PostMessage). EAX not kept.
+void __fastcall Window705b20_PosFromThumb(u8 *window);
+
 // 0x66ae83 (thiscall (enabled: a word), pops 4; slot 5 of the vtable 0x705b20; name unconfirmed): 0 (AX) when flag 2 of +0x48 (disabled)
 // already says so. Otherwise Window_SetEnabled, each child (from +0x5c, the next by Fn_65d56b) gets slot 5 (enabled), the window is
 // posted 1 (0, 0) (Window_PostMessage) when the dword [0xfaa5d4] is set, and 1 (AX).
