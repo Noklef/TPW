@@ -70,6 +70,10 @@ void __fastcall World_QueueDelete(void *world, void *edx, u32 handle);
 void __fastcall World_DeleteAllThings(u8 *world);
 // 0x518ea0 (cdecl): while the delete queue has handles, the head's handle is popped (inlined) and its slot released (ThingSlot_Release).
 void __cdecl Things_ReleaseDeleted();
+// 0x5153c0 (cdecl; the atexit entry the static initialiser 0x515390 registers; name unconfirmed): once (bit 1 of the byte 0x7cf6d4), the
+// delete queue destroyed: its vtable 0x700a9c, its tail 0, its nodes freed (operator delete) from the head on (each one's next read
+// first), the head (cleared before) and the count 0.
+void __cdecl ThingsToDelete_AtExit();
 // 0x51ad40 (__thiscall; handle): a new node (operator new, 0x67acc0) at the head; the
 // original writes through a null node when that fails.
 void __fastcall HandleQueue_Push(HandleQueue *queue, void *edx, u32 handle);
