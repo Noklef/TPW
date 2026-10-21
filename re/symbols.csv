@@ -4381,6 +4381,8 @@ address,name,kind,confidence,notes
 0x00477270,Overlay_ScalarDtor_477270,function,low,"reimplemented (src/game/gfx/overlay); thiscall (flags), pops 4: its scalar deleting destructor"
 0x004775c0,Overlay_Dtor_4775c0,function,low,"reimplemented (src/game/gfx/overlay); thiscall: the 0x6fee60 overlay's destructor, as Overlay_Dtor"
 0x004775a0,Overlay_ScalarDtor_4775a0,function,low,"reimplemented (src/game/gfx/overlay); thiscall (flags), pops 4: its scalar deleting destructor"
+0x00476f10,Overlay_Apply,function,low,"reimplemented (src/game/gfx/overlay); thiscall (flags, desc), pops 8: the overlay set from a descriptor: corners, frame, screen matrix from the node bounds, scale"
+0x00476bf0,Overlay_SetShown,function,low,"reimplemented (src/game/gfx/overlay); thiscall (shown), pops 4: the holder woken with the overlay matrix or put to sleep, the shown node flagged"
 0x0047e2f0,ScreenSurfaces_Ctor,function,high,reimplemented (src/game/gfx/screensurfaces); the screen surfaces source: both Surfaces cleared and their infos constructed
 0x0047e390,SurfaceSource_Dtor,function,high,reimplemented (src/game/gfx/screensurfaces); the abstract surface source's destructor (vtable 0x6fef90 back)
 0x0047e570,ScreenSurfaces_Bounds,function,high,"reimplemented (src/game/gfx/screensurfaces); virtual: out = {0, 0, width - 1, height - 1}"

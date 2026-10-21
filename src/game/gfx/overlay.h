@@ -1,6 +1,6 @@
 // The base of the model-backed screen overlays (vtable 0x6fee10, built at 0x476a90; the bar
 // mesh 0x6fee88 and others derive from it; itself a GUI dialog, ui/guidialog): reimplementation of
-// 0x476e80 and the destructors 0x476b50 / 0x476b70, 0x477270 / 0x477290 and 0x4775a0 / 0x4775c0.
+// 0x476bf0, 0x476e80, 0x476f10 and the destructors 0x476b50 / 0x476b70, 0x477270 / 0x477290 and 0x4775a0 / 0x4775c0.
 // +4 its holder (whose +4 model's +0x78 starts the node list, linked through +0xc), +0xa / +0xc
 // (u16) the shown node's index as base + frame, +0x10 (u16) set when the holder is only
 // destroyed, not disposed of, +0x7c the shown node.
@@ -35,4 +35,19 @@ void __fastcall Overlay_Dtor_4775c0(u8 *overlay);
 u8 *__fastcall Overlay_ScalarDtor_477270(u8 *overlay, void *, u32 flags);
 
 u8 *__fastcall Overlay_ScalarDtor_4775a0(u8 *overlay, void *, u32 flags);
+
+// 0x476f10 (thiscall (flags, desc), pops 8; name unconfirmed): nothing without a holder, a descriptor or flags. Flag 0x40: the
+// pivot +0x34 / +0x36 from desc +0xc / +0xe. Then Overlay_ShowFrame; nothing more when it shows no node. Flag 0x10: the rectangle
+// +0x18..+0x1e from the four words at desc [+0x14] + 4, copied to +0x24..+0x2a. Flag 4: the angle +0x30 from desc +8. Any of 0x55:
+// the node's bounds (+0x78 low, +0x84 high) through its matrix (+0x10) times its parents' (+4 chain), x and y put in order (below
+// or unordered swapped, the new low through the x87), the screen matrix (+0x3c) for the rectangle (x, the bottom +0x1e, width,
+// height +0x1e - +0x1a) showing low .. high with the pivot and angle (Sprite_ScreenMatrix), and with a rate (+0x80) +0x64 = rate /
+// 40 / |high z - low z|. Flag 2: the height +0x38 from desc +6 and the scale (+0x74) 1 - height / 40. With either the scale is
+// stored, the matrix set on the holder's object (+0x1c; ObjModel_SetMatrices, 1) and bit 31 of 0x8bd508 set.
+void __fastcall Overlay_Apply(u8 *overlay, void *, u32 flags, const u8 *desc);
+
+// 0x476bf0 (thiscall (shown, a word), pops 4; name unconfirmed): nothing without a holder or when +8 is shown already. Shown: the
+// shown node (+0x7c) has 0x8010 cleared and the holder wakes with the screen matrix (+0x3c; Holder_WakeWithMatrix, grid 0); else
+// the node gets 0x8010 and the holder sleeps. +8 = shown.
+void __fastcall Overlay_SetShown(u8 *overlay, void *, u32 shown);
 }
