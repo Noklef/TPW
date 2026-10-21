@@ -1,7 +1,7 @@
 // The sound object's channel (its +0x24; vtable 0x70a5d8, made by 0x6b8ed0 / 0x6b9c00; the class name is invented): +0x28 flags
 // (0x400: its voices are run through the mixer), +0x2c a float, +0x44 four bytes, +0x48 an array of floats. Settings reach it as stack
 // functors (a vtable whose slot 0 is thiscall (out, channel), pops 8, and the functor's data); +0x14 a source's info (+0 and +8 read),
-// +0x18 its source object, +0x20 its EAX buffer (soundeax). Reimplementation of 0x6b7d70 and 0x6b8b40; the names are unconfirmed.
+// +0x18 its source object, +0x20 its EAX buffer (soundeax). Reimplementation of 0x6b7d70, 0x6b8b40 and 0x6b5e40; the names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -10,6 +10,10 @@ extern "C" {
 
 // 0x6b8b40 (thiscall (out, functor), pops 8): the functor's slot 0 (out, channel). Returns out.
 u32 *__fastcall SoundChannel_Apply(u8 *channel, void *, u32 *out, u8 *functor);
+
+// 0x6b5e40 (the stack functor 0x70a260's slot 0: thiscall (out, channel), pops 8; the functor is not read): the channel's source
+// (+0x18)'s slot 1; *out = 0. Returns out.
+u32 *__fastcall SoundChannelFn70a260_Run(const u8 *functor, void *, u32 *out, u8 *channel);
 
 // 0x6b7d70 (thiscall (out, settings), pops 8): fills a settings record (made by Init_6b9c50: +4 and +8 the asked-for flags, +0x4c the
 // flags of what was filled) from the channel: +4 bit 8 cleared with an EAX buffer, or with a source whose slot 0x13 answers 0; +4 bit 9
