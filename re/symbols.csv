@@ -5765,3 +5765,5 @@ address,name,kind,confidence,notes
 0x006530f4,jpeg6a_jcphuff_encode_mcu_AC_refine,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcphuff.c encode_mcu_AC_refine: an AC band's refinement, newly nonzero coefficients and correction bits (the library's)"
 0x00653498,jpeg6a_jcphuff_finish_pass_phuff,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcphuff.c finish_pass_phuff: the EOB run and the last bits out (the library's)
 0x006534fe,jpeg6a_jcphuff_finish_pass_gather_phuff,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcphuff.c finish_pass_gather_phuff: each table the scan uses made optimal for its counts (the library's)
+0x0064ca90,jpeg6a_jpeg_start_compress,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcapistd.c jpeg_start_compress: a compression started, the modules chosen and the first pass set up (the library's)"
+0x006500f0,jpeg6a_jinit_compress_master,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcinit.c jinit_compress_master: every compression module's init, the virtual arrays realized, SOI written (the library's)"

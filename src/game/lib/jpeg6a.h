@@ -43,6 +43,15 @@ unsigned int __cdecl jpeg6a_jpeg_write_raw_data(jpeg6a_compress_struct *cinfo, u
 // 0x64c9f4: a tables-only datastream (JERR_BAD_STATE outside CSTATE_START): reset_error_mgr, init_destination, jinit_marker_writer,
 // its write_tables_only, term_destination, jpeg_abort.
 void __cdecl jpeg6a_jpeg_write_tables(jpeg6a_compress_struct *cinfo);
+// 0x64ca90: a compression started (JERR_BAD_STATE outside CSTATE_START): the tables all marked to be written when
+// write_all_tables, reset_error_mgr, init_destination, jinit_compress_master, the master's prepare_for_pass; next_scanline 0,
+// global_state CSTATE_SCANNING (101), or CSTATE_RAW_OK (102) for raw data.
+void __cdecl jpeg6a_jpeg_start_compress(jpeg6a_compress_struct *cinfo, int write_all_tables);
+// jcinit.c. 0x6500f0: every module's init (master control, then unless raw data the colour converter, downsampler and preprocessor,
+// the forward DCT, the Huffman or progressive Huffman encoder (JERR_ARITH_NOTIMPL 0x1 for arithmetic coding), the coefficient
+// controller with a whole-image buffer for several scans or optimised coding, the main controller, the marker writer), then the
+// memory manager's realize_virt_arrays and the marker writer's write_file_header (SOI).
+void __cdecl jpeg6a_jinit_compress_master(jpeg6a_compress_struct *cinfo);
 
 // jcmarker.c, the marker writer, through third_party/wrap/jpeg-6a/jcmarker.c. Bytes go to cinfo->dest (next_output_byte +0,
 // free_in_buffer +4, empty_output_buffer +0xc: JERR_CANT_SUSPEND 0x16 when it answers FALSE).
