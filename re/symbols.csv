@@ -4538,6 +4538,25 @@ address,name,kind,confidence,notes
 0x005ee580,AaLine_Draw16,function,low,"reimplemented (src/game/gfx/aaline); cdecl (unused, surface info, clip, colour, from, to): an antialiased line of 2-byte pixels, three pixels a step blended by their distance from it"
 0x005ef040,AaLine_Draw24,function,low,"reimplemented (src/game/gfx/aaline); cdecl (unused, surface info, clip, colour, from, to): an antialiased line of 3-byte pixels, three pixels a step blended by their distance from it"
 0x005efb10,AaLine_Draw32,function,low,"reimplemented (src/game/gfx/aaline); cdecl (unused, surface info, clip, colour, from, to): an antialiased line of 4-byte pixels, three pixels a step blended by their distance from it"
+0x006b0430,Vtbl70a148_DeletingDtor,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (flags): the deleting destructor of vtable 0x70a148 (Vtbl70a078_Set_6add30, freed for flags bit 0); returns this"
+0x006b0450,Vtbl70a160_DeletingDtor,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (flags): the deleting destructor of vtable 0x70a160 (Wrap_Vtbl70a078_Set_6b4a50_6b0470, freed for flags bit 0); returns this"
+0x006b0730,GlyphBlend_DeletingDtor,function,low,reimplemented (src/game/gfx/glyphrender); thiscall (flags): the anti-aliased glyph renderer's deleting destructor (vtable 0x70a188); returns this
+0x006b0760,GlyphBlend_Span1555,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span): a 4-bit glyph blended toward the colour on a 1555 surface; *status 0"
+0x006b0c50,GlyphBlend_Span565,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span): a 4-bit glyph blended toward the colour on a 565 surface; *status 0"
+0x006b1130,GlyphBlend_Span4444,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span): a 4-bit glyph blended toward the colour on a 4444 surface; *status 0"
+0x006b15f0,GlyphBlend_Span8888,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span): a 4-bit glyph blended toward the colour on an 8888 surface (unsigned channel steps); *status 0"
+0x006b19f0,GlyphBlend_SpanBgra,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span): a 4-bit glyph blended toward the colour on a blue-high 32-bit surface (unsigned channel steps); *status 0"
+0x006b1e00,GlyphSolid_DeletingDtor,function,low,reimplemented (src/game/gfx/glyphrender); thiscall (flags): the solid glyph renderer's deleting destructor (vtable 0x70a1a8); returns this
+0x006b1e30,GlyphSolid_Span1555,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span): 0x8000 | the colour where the glyph's coverage is 8 or more, 1555; *status 0"
+0x006b2100,GlyphSolid_Span565,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span): the glyph's rectangle filled with the colour (byte counts, no alpha or glyph), 565; *status 0"
+0x006b21f0,GlyphSolid_Span4444,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span): coverage << 12 | the colour where it is not 0, 4444; *status 0"
+0x006b24b0,GlyphSolid_Span8888,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span): coverage * 0x11 << 24 | the colour where it is not 0, 8888; *status 0"
+0x006b2770,GlyphSolid_SpanBgra,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span): coverage * 0x11 | green << 16 | red << 8 where it is not 0 (blue shifted out, sic), blue-high 32-bit; *status 0"
+0x006b2a30,GlyphPattern1_DeletingDtor,function,low,reimplemented (src/game/gfx/glyphrender); thiscall (flags): the first patterned glyph renderer's deleting destructor (vtable 0x70a1c8); returns this
+0x006b3c20,GlyphPattern2_DeletingDtor,function,low,reimplemented (src/game/gfx/glyphrender); thiscall (flags): the second patterned glyph renderer's deleting destructor (vtable 0x70a1e8); returns this
+0x006b4a30,Vtbl70a210_DeletingDtor,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (flags): the deleting destructor of vtable 0x70a210 (Vtbl70a078_Set_6b4a50, freed for flags bit 0); returns this"
+0x006b4a70,GlyphRenderer_DeletingDtor,function,low,reimplemented (src/game/gfx/glyphrender); thiscall (flags): the glyph renderer base's deleting destructor (vtable 0x70a238; Vtbl70a258_Set_6b4a90); returns this
+0x006b5410,Vtbl70a258_DeletingDtor,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (flags): vtable 0x70a258 stored, freed for flags bit 0; returns this"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"
