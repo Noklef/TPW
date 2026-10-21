@@ -4448,6 +4448,9 @@ address,name,kind,confidence,notes
 0x006d4f30,VoiceBitsBuffered_Read,function,low,reimplemented (src/game/core/voicecodec); the voice codec's bit read over a 0x2000-byte buffer refilled through its stream
 0x006d4fe0,VoiceBitsBuffered_Skip,function,low,reimplemented (src/game/core/voicecodec); the voice codec's bit skip over the refilled buffer
 0x006d5200,VoiceCodec_InitChannel,function,low,"reimplemented (src/game/core/voicecodec); a voice codec channel's first value, scale and its powers of the factor, the filters' memory cleared"
+0x006d5040,VoiceCodec_Excitation,function,low,"reimplemented (src/game/core/voicecodec); a voice codec subframe's excitation: two-bit codes, or a state machine's values, zero runs and escapes"
+0x006d5260,VoiceCodec_ReadHeader,function,low,"reimplemented (src/game/core/voicecodec); a voice codec frame header from memory: the stereo and one more bit, the channels set up by shift, level and decay"
+0x006d5350,VoiceCodec_ReadHeaderBuffered,function,low,"reimplemented (src/game/core/voicecodec); a voice codec frame header from the reader's buffer, refilled first"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

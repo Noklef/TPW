@@ -21,8 +21,21 @@ u32 *__fastcall VoiceBits_Skip(void *, void *, u32 *state, u32 n);
 u32 __fastcall VoiceBitsBuffered_Read(u8 *self, void *, u32 *state, u32 n);
 // 0x6d4fe0 (thiscall state, n; pops 8): as 0x6d4f30 without the value (EAX left as it was, or the stream's answer: none).
 void __fastcall VoiceBitsBuffered_Skip(u8 *self, void *, u32 *state, u32 n);
-// 0x6d5200 (thiscall unused, channel, first, scale, factor; pops 0x14; this unused): the channel's +0 first, +4 scale (its bits) and +8 to +0x100
+// 0x6d5200 (thiscall unused, channel, first, scale, factor; pops 0x14; this unused): the channel's +0 first, +4 scale and +8 to +0x100 (floats, as bits)
 // the scale times factor, factor squared, ... (each the last times factor, x87 floats); +0x104 to +0x674 (the filters' memory) cleared.
-void __fastcall VoiceCodec_InitChannel(void *, void *, void *, u8 *channel, u32 first, u32 scale, float factor);
+void __fastcall VoiceCodec_InitChannel(void *, void *, void *, u8 *channel, u32 first, u32 scale, u32 factor);
+
+// 0x6d5040 (thiscall state, coded, out, stride; pops 0x10): one subframe's excitation, floats at out every stride for positions below 108.
+// Not coded: by the bit buffer's low two bits 0 (and skipped 1 bit) for 0 or 2, -2 for 1 and 2 for 3 (skipped 2). Coded: a state machine,
+// the byte of 0x783ca8 at (the last entry's next state << 8) + the bit buffer's low byte picking an entry of 0x783ea8 {next, bits to
+// skip, value}: past 3 its value; 2 and 3 a run of read(6) + 7 zeros (cut to what fits, (108 - position) / stride, signed; none when that
+// is not positive, the position then kept); 0 and 1 an escape: 7 plus the 1 bits read one by one up to a 0, signed by one more bit (1 +).
+void __fastcall VoiceCodec_Excitation(void *reader, void *, u32 *state, u32 coded, u32 *out, s32 stride);
+// 0x6d5260 (thiscall data, state, stereo; pops 0xc): a frame header from memory: the state started at the first byte (pointer past it,
+// count 8); +0x10 a stereo bit (read when stereo, else 0), +0xc one bit, then the channels (+0x14, and +0xd48 when stereo) set up by
+// 0x6d5200 with 32 - read(4), (read(4) + 1) * 8 and 1.04 - read(6) * 0.001 (x87 floats).
+void __fastcall VoiceCodec_ReadHeader(void *reader, void *, const u8 *data, u32 *state, u32 stereo);
+// 0x6d5350 (thiscall state, stereo; pops 8): as 0x6d5260 from the reader's buffer, refilled first (the stream's slot 1, (+8, 0x2000)).
+void __fastcall VoiceCodec_ReadHeaderBuffered(u8 *reader, void *, u32 *state, u32 stereo);
 
 }  // extern "C"
