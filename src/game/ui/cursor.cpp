@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/accessors.h"
+#include "../core/gameheap.h"
 #include "../core/vcall.h"
 
 namespace {
@@ -18,6 +19,33 @@ u8 *__fastcall CursorTable_Get(const u8 *table, void *, u32 index) {
     const u32 i = index & 0xffff;
     if (i < at<u16>(table, 4)) return at<u8 **>(table, 0)[i];
     return nullptr;
+}
+
+void __fastcall CursorTable_Clear(u8 *table) {
+    if (at<u8 **>(table, 0)) {
+        for (s32 i = 0; i < (s32)at<u16>(table, 4); ++i) {
+            if (u8 *const cursor = at<u8 **>(table, 0)[i]) vcall<void>(cursor, 0, 1u);
+        }
+        GameHeap_Free(at<u8 **>(table, 0));
+    }
+    at<u16>(table, 4) = 0;
+}
+
+u16 __fastcall CursorTable_Init(u8 *table, void *, u32 count) {
+    at<u8 **>(table, 0) = static_cast<u8 **>(GameHeap_Alloc((count & 0xffff) << 2));
+    if (!at<u8 **>(table, 0)) return 0;
+    for (s32 i = 0; i < (s32)(count & 0xffff); ++i) at<u8 **>(table, 0)[i] = nullptr;
+    at<u16>(table, 4) = (u16)count;
+    return 1;
+}
+
+void __cdecl Gui_SetCursorTable(u8 *table) {
+    if (!table || table == global<u8 *>(0x00faa604)) return;
+    if (global<u8 *>(0x00faa608)) vcall<void>(global<u8 *>(0x00faa608), 0x10, 0u);
+    global<u8 *>(0x00faa604) = table;
+    u8 *const cursor = CursorTable_Get(global<u8 *>(0x00faa604), nullptr, global<u16>(0x0077c484));
+    if (cursor) vcall<void>(cursor, 0x10, 1u);
+    global<u8 *>(0x00faa608) = cursor;
 }
 
 void __cdecl Gui_SetCursor(u32 id) {

@@ -5,18 +5,21 @@
 # window the hovered one [0xfaa5e0] or not. ApplyCursor (0x65f150): the same with the window's word +0x50 the id. Set / ObjSet (0x4a2aa0,
 # 0x4814a0): the windows [0x7cb2ac] (mostly), [0x7cc8c0] and [0x7cc8bc] each set or not (one of them now and then the hovered one). Update
 # (0x52f950): that, the game mode 0x81ae2c each of the switch's (others too) and the dwords 0x816d48, 0x816d4c, 0x816d5c, 0x816d60 0 (mostly) or not.
-# usage: cursor.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Get,SetCursor,WindowSetCursor,ApplyCursor,Set,ObjSet,Update)
+# Clear (0x661c36): Get's table (its entries' slot 0 a recorder), the entries now and then none; the heap (Mem_Free). Init (0x661cca): a
+# table of random bytes, the count 0 to 0x3ff0 (upper half random), the allocation failing now and then. SetTable (0x659248):
+# SetCursor's globals, the current cursor [0xfaa608] one of the objects or 0, the new table that one, another (its count 0-6) or none.
+# usage: cursor.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Get,SetCursor,WindowSetCursor,ApplyCursor,Set,ObjSet,Update,Clear,Init,SetTable)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import LOG, RAM, Bench, Call, log_region, put, vtable  # noqa: E402
+from fncmp import HEAP, LOG, RAM, Bench, Call, heap, log_region, put, vtable  # noqa: E402
 
 CALLS = {'Get': 0x661d96, 'SetCursor': 0x6590f7, 'WindowSetCursor': 0x65f11d, 'ApplyCursor': 0x65f150, 'Set': 0x4a2aa0, 'ObjSet': 0x4814a0,
-         'Update': 0x52f950}
+         'Update': 0x52f950, 'Clear': 0x661c36, 'Init': 0x661cca, 'SetTable': 0x659248}
 RANGES = [(0x661d96, 0x661dca), (0x6590f7, 0x6591d4), (0x65f11d, 0x65f14e), (0x66190a, 0x66191b), (0x65f150, 0x65f16b),
-          (0x4a2aa0, 0x4a2abf), (0x4814a0, 0x4814e3), (0x52f950, 0x52fa1a), (0x527950, 0x527956)]
+          (0x4a2aa0, 0x4a2abf), (0x4814a0, 0x4814e3), (0x52f950, 0x52fa1a), (0x527950, 0x527956), (0x661c36, 0x661cca), (0x661cca, 0x661d3f), (0x659248, 0x6592b6)]
 B = Bench(RANGES)
 TABLE, ENTRIES, CURSORS, CVTABLE, WINDOW = RAM + 0x100, RAM + 0x200, RAM + 0x400, RAM + 0x800, RAM + 0x1000
 
@@ -65,9 +68,25 @@ def case(r):
         n = table(r, regions)
         index = r.choice([r.randrange(n + 2), r.randrange(n + 2), r.randrange(n + 2) | r.randrange(1, 256) << 8, r.getrandbits(16)]) | r.choice([0, r.getrandbits(16)]) << 16
         return Call(CALLS[op], [TABLE, index], regions, conv='t', ret='a')
+    if op == 'Init':
+        regions = {TABLE: r.bytes(8), HEAP: heap(0x10000, r.choice([0] * 5 + [1]))}
+        count = r.choice([0, 1, 2, 6, 0x100, 0x3ff0, r.randrange(0x3ff0)]) | r.choice([0, r.getrandbits(16)]) << 16
+        return Call(CALLS[op], [TABLE, count], regions, conv='t', ret='w')
+    if op == 'Clear':
+        table(r, regions)
+        regions[CVTABLE] = vtable({0: 1, 4: 1})
+        regions[HEAP] = heap()
+        if r.random() < 0.15:
+            put(regions[TABLE], 0, 'I', 0)
+        return Call(CALLS[op], [TABLE], regions, conv='t', ret='v')
     n, current, default = cursor_env(r, regions)
     if op == 'SetCursor':
         return Call(CALLS[op], [ident(r, n, current, default)], regions, ret='v')
+    if op == 'SetTable':
+        other = RAM + 0x180
+        regions[other] = put(put(bytearray(r.bytes(8)), 0, 'I', ENTRIES), 4, 'H', r.choice([0, 1, 3, 6]))
+        put(regions[0xfaa5e0], 0x28, 'I', r.choice([CURSORS, CURSORS + 0x20, 0]))
+        return Call(CALLS[op], [r.choice([other, other, TABLE, 0])], regions, ret='v')
     if op in ('Set', 'ObjSet', 'Update'):
         wins = [WINDOW + 0x80 * i for i in range(3)]
         for w in wins:

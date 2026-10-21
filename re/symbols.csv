@@ -5484,6 +5484,9 @@ address,name,kind,confidence,notes
 0x004a2aa0,GameCursor_Set,function,low,"reimplemented (src/game/ui/cursor); cdecl (id): with the window [0x7cb2ac] set, Window_SetCursor on it and 0x7cb2d8 = the id's word sign-extended"
 0x004814a0,Obj7b51f0_SetCursor,function,low,"reimplemented (src/game/ui/cursor); thiscall on 0x7b51f0, this not used (id), pops 4: GameCursor_Set with [0x7cb2ac] set, else Window_SetCursor on [0x7cc8c0] and [0x7cc8bc] when set"
 0x0052f950,GameCursor_Update,function,low,"reimplemented (src/game/ui/cursor); cdecl: GameCursor_Set with the cursor for the game mode [0x81ae2c] (5 / 0x12 by the dwords 0x816d60 / 0x816d4c), then 8 with Global816d48_Get() and 0x14 with 0x816d5c set"
+0x00661c36,CursorTable_Clear,function,low,"reimplemented (src/game/ui/cursor); thiscall: each cursor entry deleted (slot 0 (1)), the array freed, the count word 0"
+0x00661cca,CursorTable_Init,function,low,"reimplemented (src/game/ui/cursor); thiscall (count: word), pops 4: a zeroed array of count entries (Mem_Alloc) and the count set; 1 in AX, 0 when the allocation fails"
+0x00659248,Gui_SetCursorTable,function,low,"reimplemented (src/game/ui/cursor); cdecl (table): a new cursor table made current: the old cursor hidden (slot 4 (0)), the current id's entry shown (slot 4 (1)) and made current"
 0x00492d80,TextButton_Handler,function,low,"reimplemented (src/game/ui/textbutton); cdecl (window, message, a, b): 0x10006 plays the interface sound 0xc1 and sends the parent 0x100001 (id +0x8c, 0), 0; 0x14 releases the text row (Window_DwordA0 1); else Window_CallDefault"
 0x0048c8d0,Global7c2534_HasSource,function,low,reimplemented (src/game/ui/focus); whether the object at 0x7c2534 has its +0xc set (name unconfirmed)
 0x004862a0,Focus_Restore,function,low,reimplemented (src/game/ui/focus); the focus given back to the first shown of the game's windows (name unconfirmed)
