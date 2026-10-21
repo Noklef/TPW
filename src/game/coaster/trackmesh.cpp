@@ -5,7 +5,9 @@
 #include <cstring>
 
 #include "../math/x87.h"
+#include "helpers.h"
 #include "lists.h"
+#include "nodes.h"
 #include "spline.h"
 #include "xsection.h"
 
@@ -35,6 +37,28 @@ void advance(const u8 *section) {
 void emit(float blend, float yaw, float pitch, float roll, const Vec3 *at_, u32 separate, const u8 *record) {
     CrossSection_Emit(blend, yaw, pitch, roll, &at_->x, kMax, kMin, separate, at<u8 *>(record, 0xc),
                       reinterpret_cast<const float *>(record));
+}
+
+// The spline value at a node index and fraction as 0x4402d0 inlines it: CoasterNodes_SplineAt's, but the spline node's +0 read
+// unsigned (fild of it and a zero dword).
+float splineValue(float at_) {
+    const u8 *const nodes = at<u8 *>(global<u8 *>(0x00792218), 0x9c);
+    s32 whole;
+    Float_SplitWhole(at_, &whole);
+    const u8 *node = at<u8 *>(nodes, whole * 0x38 + 0x2c);
+    for (const u8 *next = at<u8 *>(node, 0x18); next && !(at<float>(next, 8) >= at_); next = at<u8 *>(node, 0x18)) node = next;
+    const u8 *const next = at<u8 *>(node, 0x18);
+    const X87Reg fraction =
+        next ? (X87Reg(at_) - X87Reg(at<float>(node, 8))) / (X87Reg(at<float>(next, 8)) - X87Reg(at<float>(node, 8))) : X87Reg(0.0);
+    return (float)(X87Reg((double)at<u32>(node, 0)) + fraction);
+}
+
+float splineAt(float at_) { return (float)CoasterNodes_SplineAt(at<u8 *>(global<u8 *>(0x00792218), 0x9c), at_); }
+
+u32 bits(float f) {
+    u32 b;
+    std::memcpy(&b, &f, 4);
+    return b;
 }
 
 }  // namespace
@@ -212,5 +236,121 @@ void __cdecl TrackMesh_EmitPiece(u8 *piece, u8 *next, s32 count, const float *po
         std::memcpy(&prev, &cur, sizeof prev);
         ++position;
     } while (--left != 0);
+}
+
+void __cdecl TrackMesh_PlaceSections() {
+    u8 *const track = global<u8 *>(0x00790fe4);
+    for (u32 o = 0x38; o <= 0x54; o += 4) at<u32>(track, o) = 0;
+    at<u32>(track, 0x58) = 0x7f7fffff;
+    TrackOrientation *const orient = orientation();
+    u8 *const coaster = global<u8 *>(0x00792218);
+    u8 *const build = at<u8 *>(coaster, 4);
+    global<u32>(0x00792600) = 0;
+    global<u32>(0x00792604) = 0;
+    const u32 first = at<u32>(at<u8 *>(build, 0x78), 0x20);
+    global<u32>(0x007925ec) = 0x4b189680;   // 1e7
+    global<u32>(0x0079260c) = first;
+    global<u32>(0x007925e8) = 0x4b189680;
+    global<u32>(0x007925f4) = at<u32>(build, 0x80);
+    global<u32>(0x007925f0) = 0;
+    global<u32>(0x007923f4) = 0x4b189680;
+    global<u32>(0x007923f0) = 0x4b189680;
+    global<u32>(0x007923f8) = 0;
+    global<u32>(0x007923fc) = at<u32>(build, 0x84);
+
+    u8 *cur = reinterpret_cast<u8 *>((uintptr_t)0x00792600);
+    u8 *open = nullptr;
+    u32 blending = 0, previous = first;
+    float p = 0.0f;
+    if (!Coaster_IsPastEnd(coaster, 0.0f)) {
+        do {
+            Vec3 point;
+            Coaster_FrameAt(coaster, p, &point, orient);
+            orient->roll = (float)std::fmod((double)orient->roll, 3.1415927410125732);   // _CIfmod (0x6fe158)
+            const u32 zone = Coaster_FindZone(build, bits(p), reinterpret_cast<const float *>(orient), 0.0f);
+            if (zone != previous) {
+                u32 tag = zone;
+                if (build[0x74] & 1) {
+                    u8 *found = nullptr;
+                    const u8 *box = at<u8 *>(build, 0x78);
+                    const u32 boxes = at<u32>(build, 0x7c);
+                    for (u32 i = 0; i < boxes; ++i, box += 0x2c) {
+                        if (at<u32>(box, 0x24) == previous && at<u32>(box, 0x28) == zone) {
+                            found = at<u8 *>(box, 0x20);
+                            break;
+                        }
+                    }
+                    at<float>(cur, 4) = p;
+                    at<float>(cur, 0) = splineAt(p);
+                    cur += 0x10;
+                    if (found) {
+                        if (at<float>(found, 0x14) > 0.0f) {
+                            tag = (u32)(uintptr_t)found;
+                            if (blending) {
+                                at<float>(open, 4) = p;
+                                at<float>(open, 0) = splineValue(p);
+                            }
+                            const float ahead = (float)(X87Reg(p) + X87Reg(at<float>(found, 0x14)));
+                            at<float>(cur, 4) = ahead;
+                            blending = 1;
+                            at<u32>(cur, 8) = 0x3f800000;
+                            at<float>(cur, 0) = splineValue(ahead);
+                            open = cur;
+                        } else {
+                            at<u8 *>(cur, 0xc) = found;
+                            const X87Reg ahead = X87Reg(p) + X87Reg(at<float>(found, 0x14));
+                            if (open && !(ahead.v >= (double)at<float>(open, 4))) {
+                                if (blending) {
+                                    const X87Reg before = X87Reg(std::fabs(at<float>(at<u8 *>(open, 0xc), 0x14)));
+                                    const X87Reg length = X87Reg(std::fabs(at<float>(found, 0x14)));
+                                    X87Reg share = X87_SubR(X87Reg(at<float>(open, 4)) - before, X87Reg(p)) / (length + before);
+                                    if (!(share.v > 0.0)) share = X87Reg(0.0);
+                                    if (!(share.v < 1.0)) share = X87Reg(1.0);
+                                    at<float>(open, 8) = (float)share;
+                                    at<float>(cur, 8) = (float)share;
+                                    const float start = (float)X87_SubR(before * (X87Reg(1.0f) - share), X87Reg(at<float>(open, 4)));
+                                    at<float>(open, 4) = start;
+                                    at<float>(open, 0) = splineAt(start);
+                                    at<float>(cur, 4) = p;
+                                    at<float>(cur, 0) = splineValue(p);
+                                } else {
+                                    at<float>(cur, 4) = p;
+                                    at<u32>(cur, 8) = 0x3f800000;
+                                    at<float>(cur, 0) = splineValue(p);
+                                }
+                            } else {
+                                const float end = (float)(X87Reg(p) + X87Reg(at<float>(found, 0x14)));
+                                at<float>(cur, -0xc) = end;
+                                at<float>(cur, -0x10) = splineValue(end);
+                                at<float>(cur, 4) = p;
+                                at<float>(cur, 0) = splineAt(p);
+                                at<u32>(cur, 8) = 0x3f800000;
+                            }
+                            cur += 0x10;
+                            blending = 0;
+                            open = cur;
+                        }
+                    }
+                } else {
+                    at<float>(cur, 4) = p;
+                    at<float>(cur, 0) = splineValue(p);
+                    cur += 0x10;
+                }
+                previous = zone;
+                at<u32>(cur, 0xc) = tag;
+            }
+            if (blending && p >= at<float>(open, 4)) {
+                at<float>(cur, 4) = p;
+                const float value = splineValue(p);
+                cur += 0x10;
+                blending = 0;
+                at<float>(cur, -0x10) = value;
+                at<u32>(cur, 0xc) = zone;
+            }
+            p = (float)(X87Reg(p) - X87Reg(-0.25f));   // 0x6fe160
+        } while (!Coaster_IsPastEnd(coaster, p));
+    }
+    at<u32>(cur, 0) = 0x47c35000;   // 1e5
+    at<float>(cur, 4) = (float)(X87Reg(p) - X87Reg(-0.25f) - X87Reg(-1.0f));   // 0x6fe160, 0x6fe140
 }
 }

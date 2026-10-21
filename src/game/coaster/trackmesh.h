@@ -28,4 +28,17 @@ extern "C" {
 // the list ([0x7925dc] + 0x1c * the entry's word +4; its +0x14 / +0x18 the least / most vertex index), wound one way or the other by
 // the toggle 0x7923e4; the counts moved on (0x7923e8 and 0x792410 by the indices x2), the blend stored at the track's +0x34.
 void __cdecl TrackMesh_EmitPiece(u8 *piece, u8 *next, s32 count, const float *positions, u32 restart);
+
+// 0x4402d0 (cdecl; name unconfirmed): the section records laid along the track by zone. The track's +0x38-+0x54 zeroed and +0x58
+// FLT_MAX; the fixed records 0x7925e8 (1e7, 1e7, 0, the build's +0x80) and 0x7923f0 (the same with +0x84); the records from 0x792600
+// (the first's +0xc the first zone box's +0x20). Then from position 0 in quarter steps until Coaster_IsPastEnd: the frame there
+// (Coaster_FrameAt into the track's orientation; its roll fmod pi, the CRT's _CIfmod), the zone (Coaster_FindZone of the build with
+// t 0). A zone change ends a record (+4 the position, +0 the spline value: CoasterNodes_SplineAt or its inlined copy, which reads the
+// spline node's +0 unsigned) and with the build's flag +0x74 bit 0 looks for a transition box (+0x24 / +0x28 the zones from and to)
+// whose +0x20 zone has a blend length (+0x14): positive, a blend record opened that far ahead (+8 1.0) and closed when the position
+// gets there; else (0 or below, or a NaN) the records adjusted: with an open record ahead of where the length reaches, a blend share
+// clamped to 0..1 (an open blend) moving the open one's start back, or a plain record of 1.0; otherwise the record before moved to
+// the length's end. The record's +0xc the zone (or the transition's). Last: (1e5, the end position + 1). The frame's highest y is
+// tracked in a local the original never reads.
+void __cdecl TrackMesh_PlaceSections();
 }
