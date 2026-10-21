@@ -72,7 +72,35 @@ X87Reg Mirrored(u32 w, u32 b) {
     return X87Reg(-sum.v);
 }
 
+// The fixed-point form's (0x6ca580): the window of 16-bit taps (0x70c9e8 for the first half and the even taps, 0x70c5e8 for the mirrored
+// ones, both less twice the ring position; already signed, so every tap is added), its sums kept in 32 bits as the MMX code does them.
+constexpr u32 kWindowFixed = 0x70c9e8, kWindowFixedMirror = 0x70c5e8;
+const Mp2SynthEnv kGameEnv = {reinterpret_cast<void(__cdecl *)(s16 *, s16 *, const s16 *)>((uintptr_t)0x006d62c0)};
+const Mp2SynthEnv *g_env = &kGameEnv;
+
+// The 16 taps window[k] * buffer[k] (pmaddwd and paddd: wrapping in 32 bits).
+u32 TapsFixed(u32 w, u32 b) {
+    u32 sum = 0;
+    for (u32 k = 0; k < 0x20; k += 2) sum += static_cast<u32>(static_cast<s32>(Get<s16>(w + k)) * Get<s16>(b + k));
+    return sum;
+}
+
+// The even taps' products without their low halfwords (pmulhw, then pslld 16).
+u32 EvenFixed(u32 w, u32 b) {
+    u32 sum = 0;
+    for (u32 k = 0; k < 0x20; k += 4) sum += static_cast<u32>(static_cast<s32>(Get<s16>(w + k)) * Get<s16>(b + k)) & 0xffff0000u;
+    return sum;
+}
+
+// psrad 13 and packssdw.
+s16 PcmFixed(u32 sum) {
+    const s32 n = static_cast<s32>(sum) >> 13;
+    return static_cast<s16>(n > 0x7fff ? 0x7fff : n < -0x8000 ? -0x8000 : n);
+}
+
 }  // namespace
+
+void Mp2Synth_SetEnv(const Mp2SynthEnv *env) { g_env = env ? env : &kGameEnv; }
 
 extern "C" {
 
@@ -345,6 +373,28 @@ void __fastcall Mp2Decoder_Synth(u8 *decoder_, void *, s16 *out, const float *fr
         w = w - wstep + 8 * bo1;
         b -= bstep;
         for (u32 n = count - 1; n; --n, o += stride, w -= wstep, b -= bstep) Put<s16>(o, Pcm(Mirrored(w, b)));
+    }
+}
+
+void __fastcall Mp2Decoder_SynthFixed(u8 *decoder_, void *, s16 *out, const s16 *fraction) {
+    const u32 decoder = Addr(decoder_);
+    const u32 bo = (Get<u8>(decoder + 0x243d) - 1u) & 0xf;
+    Put<u8>(decoder + 0x243d, static_cast<u8>(bo));
+    const u32 odd = bo & 1, bo1 = bo + (odd ^ 1);
+    for (s32 c = 0; c < Get<s32>(decoder + 0x244c); ++c) {
+        const u32 buffers = decoder + 4 + 0x480 * static_cast<u32>(c), b = buffers + 0x240 * (odd ^ 1);
+        g_env->transform(reinterpret_cast<s16 *>(static_cast<uintptr_t>(buffers + 2 * (((bo + odd) & 0xf) + 0x120 * odd))),
+                         reinterpret_cast<s16 *>(static_cast<uintptr_t>(b + 2 * bo1)), fraction + 0x20 * c);
+        if (!out) continue;
+        const bool half = Get<u32>(kHalfRate) != 0;
+        const u32 count = half ? 8 : 16, wstep = half ? 0x80 : 0x40, bstep = half ? 0x40 : 0x20;
+        const u32 stride = Get<s32>(decoder + 0x244c) == 2 ? 4 : 2;
+        const u32 w = kWindowFixed - 2 * bo1, wm = kWindowFixedMirror - 2 * bo1;
+        u32 o = Addr(out) + 2 * static_cast<u32>(c);
+        for (u32 n = 0; n < count; ++n, o += stride) Put<s16>(o, PcmFixed(TapsFixed(w + wstep * n, b + bstep * n)));
+        Put<s16>(o, PcmFixed(EvenFixed(w + 0x400, b + 0x200)));
+        o += stride;
+        for (u32 n = 1; n < count; ++n, o += stride) Put<s16>(o, PcmFixed(TapsFixed(wm + wstep * (n - 1), b + 0x200 - bstep * n)));
     }
 }
 

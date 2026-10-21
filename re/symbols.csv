@@ -4360,6 +4360,7 @@ address,name,kind,confidence,notes
 0x006338d0,Class703770_Release,function,low,"reimplemented (src/game/core/refcounted); thiscall: its Release: InterlockedDecrement (+4), at 0 deleted (vtable +8 (1)) and 0, else the count re-read"
 0x006c9580,Mp2_Dct64,function,low,"reimplemented (src/game/core/mp2synth); cdecl (out0, out1, in): the MP2 synthesis's 32-point DCT (dct64), 17 values to out0 and 16 to out1 at a stride of 16 floats"
 0x006c9270,Mp2Decoder_Synth,function,low,"reimplemented (src/game/core/mp2synth); thiscall (out, fraction): the polyphase synthesis of one granule per channel into interleaved 16-bit PCM (the DCT into the ring buffers, the window, fistp, clip)"
+0x006ca580,Mp2Decoder_SynthFixed,function,low,"reimplemented (src/game/core/mp2synth); thiscall (out, fraction): the fixed-point (MMX) polyphase synthesis: the transform into the ring buffers, the 16-bit window sums in 32 bits, shift and saturate"
 0x006ccc20,Mp2Decoder_Dequantize,function,low,"reimplemented (src/game/core/mp2layer2); thiscall (alloc bits, out, scale index, scale factors, allocation table): layer II samples dequantised to floats (II_step_two)"
 0x006cd220,Mp2Decoder_DequantizeFixed,function,low,"reimplemented (src/game/core/mp2layer2); thiscall (alloc bits, out, scale index, scale factors, allocation table): layer II samples dequantised to 16-bit fixed point"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs

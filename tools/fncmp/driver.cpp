@@ -68,6 +68,7 @@
 #include "../../src/game/model/holder.h"
 #include "../../src/game/model/objmodel.h"
 #include "../../src/game/core/sharedglobals.h"
+#include "../../src/game/core/mp2synth.h"
 #include "../../src/game/world/mapline.h"
 #include "../../src/game/world/mousemode.h"
 #include "crt.h"
@@ -1060,6 +1061,10 @@ int main(int argc, char **argv) {
         (uintptr_t)(kStubs + 0xb000 + 0x400 * 6 + 0x20 * 30));
     pointer.endThread = reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)(kStubs + 0xb000 + 0x400 * 1 + 0x20 * 31));
     AsyncPointer_SetEnv(&pointer);
+    // The fixed-point MP2 synthesis's transform (LbMpeg_MmxTransform, 0x6d62c0, not ported): cdecl recorder 3 with three arguments, as
+    // tests/fncmp/mp2synth.py hooks it (fncmp.recorder(3, 3, cdecl=True)).
+    static const Mp2SynthEnv mp2Synth = {reinterpret_cast<void(__cdecl *)(s16 *, s16 *, const s16 *)>((uintptr_t)(kStubs + 0xb000 + 0x400 * 3 + 0x20 * 3))};
+    Mp2Synth_SetEnv(&mp2Synth);
     // A region of up to 8 MB, as hex. Mapped rather than static: a static this size grew the driver's .bss by 12 MB past the game's
     // addresses, where a case's wild pointer read memory natively that the emulator (the original's side) does not have. At 0x5a000000,
     // not top-down: that put it at 0x7ef00000-0x7fef0000, under the bits of +inf, NaN and big floats (0x7f800000, 0x7fc00000, 3e38),
