@@ -29,6 +29,7 @@ from fncmp import hooked_addresses  # noqa: E402
 SUITES = os.path.join(ROOT, 'tests', 'fncmp')
 BASELINE = os.path.join(ROOT, 're', 'unverified.csv')
 OUT = os.path.join(ROOT, '_re', 'coverage.json')
+CASES, BUDGET = 400, 90   # the defaults of --cases and --budget (tools/port.py previews a bench's gate run with them)
 
 
 def arg(a, flag, default):
@@ -95,7 +96,7 @@ def write_baseline(rows):
 
 def main():
     a = sys.argv[1:]
-    cases, budget, jobs = int(arg(a, '--cases', 400)), float(arg(a, '--budget', 90)), int(arg(a, '--jobs', 2))   # (each job is a driver process: kept low by default, see --jobs)
+    cases, budget, jobs = int(arg(a, '--cases', CASES)), float(arg(a, '--budget', BUDGET)), int(arg(a, '--jobs', 2))   # (each job is a driver process: kept low by default, see --jobs)
     only = [x for x in arg(a, '--only', '').split(',') if x]
     hooks, names = hooked_addresses(), modules()
     direct, indirect, by_suite, failed = {}, set(), {}, []

@@ -79,18 +79,19 @@ def git(*args):
 
 
 def gate_cover(suite):
-    """address -> direct, matching cases of the suite run as tools/coverage.py runs it (10 cases seed 5, then 400 seed 6)."""
-    fd, cover = tempfile.mkstemp(suffix='.jsonl')
-    os.close(fd)
-    for n, seed in [(10, 5), (400, 6)]:
-        subprocess.run([sys.executable, '-I', os.path.join(ROOT, suite) if not os.path.isabs(suite) else suite, str(n), str(seed)], capture_output=True,
-                       stdin=subprocess.DEVNULL, cwd=ROOT, env=dict(os.environ, FNCMP_COVER=cover))
+    """address -> direct, matching cases of the suite run as tools/coverage.py runs it: its own run() at its defaults (10 cases seed 5,
+    then as many of 400 seed 6 as its 90 s budget allows from that timing), so a slow bench takes the gate's time here too, not 400
+    cases' (an hour for a heavy x87 bench), and gets the cases it will get there."""
+    spec_ = importlib.util.spec_from_file_location('tpw_coverage', os.path.join(ROOT, 'tools', 'coverage.py'))   # (by path: never pip's coverage)
+    coverage = importlib.util.module_from_spec(spec_)
+    spec_.loader.exec_module(coverage)
+    _name, lines, _secs, err = coverage.run(suite if os.path.isabs(suite) else os.path.join(ROOT, suite), coverage.CASES, coverage.BUDGET)
+    if err:
+        print("port: the coverage gate's run of %s: %s" % (os.path.basename(suite), err))
     out = {}
-    for line in open(cover):
-        if line.strip():
-            for k, v in json.loads(line)['direct'].items():
-                out[int(k, 16)] = out.get(int(k, 16), 0) + v
-    os.remove(cover)
+    for line in lines:
+        for k, v in line['direct'].items():
+            out[int(k, 16)] = out.get(int(k, 16), 0) + v
     return out
 
 
