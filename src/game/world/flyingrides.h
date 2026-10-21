@@ -87,4 +87,16 @@ void __cdecl FlyingRides_ReclaimRides();
 // square root << 5 under 10000 (signed); 0 outside the bounds themselves; else Terrain_SurfaceHeight (no slot) of the cell x / 3000,
 // y / 3000 (truncated, then clamped to 0 and to below the grid sizes at 0x7a0314 and 0x7a0374) by __ftol, times 300.
 s32 __cdecl FlyingRides_FloorAt(s32 x, s32 y);
+
+// 0x55ce60 (cdecl; t, a float capped at 2.0; name unconfirmed): each record's (0x8791fc-0x879388) slots in use (+0x80 set) placed at t
+// between their old and new positions. A slot's position (+4, +8, +0xc; old +0x1c, +0x20, +0x24) and three 12-bit angles (+0x10, +0x18,
+// +0x14; old +0x28, +0x30, +0x2c) go to the globals 0x8791e0, 0x8791f4, 0x8791d8 and 0x8791e8, 0x8791c4, 0x8791c0: when +0xc8 is set
+// (cleared then) the new ones (the position / 300), else (old + (new - old) * t) / 300 and old + the angle's step (12-bit, from 0x800 less
+// 0xfff, sic) * t, the position then eased from the last (+0x34, +0x38, +0x3c) as (p + 3 * last) / 4, and the angles from theirs (+0x48,
+// +0x40, +0x44; __ftol, 12-bit, brought within 0x800) as (a + 3 * last) / 4, the third (a + 7 * last) / 8 (signed). The six stored as the
+// slot's last. A slot with a ride (+0xc0, an index in 0x7a4610) gets its matrix (+8 -> +4 -> +0x78, +0x10) rotation reset, the position as
+// its translation, and Matrix_RotateEulerFast(order 0xe) by (-pi * b / 2048, -pi * c / 512, pi * (1 + (3072 - a) / 2048)); then with a
+// particle system (+0xc4) and a part keyed 1 among its flag-0x100 parts (Model_FindPartByKey4; none: skipped) the system's vector A set to
+// the part's +0x30, +0x34 and +0x38 (+8 -> +0x28 -> +4, 0x14 each, +4; a null part: 0, 0, 0), each __ftol'd and << 10.
+void __cdecl FlyingRides_LerpSlots(float t);
 }
