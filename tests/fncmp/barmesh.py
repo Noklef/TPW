@@ -67,6 +67,9 @@ def apply(r, address):
     put(mesh, 0x4c, '6f', *bounds)
     if r.random() < 0.05:
         put(mesh, 0x4c + 4 * r.randrange(6), 'I', r.choice([0x7fc00000, 0x7f800001, 0xffc00000]))
+    elif r.random() < 0.1:   # (a NaN low or high bound of x or y, now and then both of one axis)
+        for k in r.choice([[0], [1], [3], [4], [0, 3], [1, 4]]):
+            put(mesh, 0x4c + 4 * k, 'I', r.choice([0x7fc00000, 0x7f800001, 0xffc00000, 0x7fc12345, 0xff812345]))
     for k in range(4):
         put(mesh, 0x18 + 2 * k, 'h', r.choice([r.randrange(0, 2048), r.randrange(-100, 100), r.getrandbits(15)]))
     for off in (0x7c, 0x84):
