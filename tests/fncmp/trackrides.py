@@ -25,7 +25,7 @@ def find_thing(r):
     ride = r.choice([0, 1, 0x105, 0xff, r.getrandbits(32)])
     pool = regions[thingenv.POOL]
     for i in range(len(handles)):
-        put(pool, thingenv.THING * i + 0x28, 'I', ride if r.random() < 0.4 else r.choice([ride ^ 1, ride ^ 0x100, 0, r.getrandbits(32)]))
+        put(pool, thingenv.THING * i + 0x28, 'I', ride if r.random() < 0.4 else r.choice([ride ^ 1, ride ^ 0x100, ride ^ 0x10000, ride ^ 0x80000000, 0, r.getrandbits(32)]))
     regions[RAM] = r.bytes(4)
     return Call(0x54bbe0, [RAM, ride], regions, ret='a')
 
