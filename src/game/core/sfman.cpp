@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include "crt.h"
+#include "vcall.h"
 
 namespace {
 
@@ -32,7 +33,7 @@ u32 __stdcall SfMan_PackMsg(u32 status, u32 data1, u32 data2) {
     return ((data2 & 0x7f) << 8 | (data1 & 0x7f)) << 8 | status | 0x82;
 }
 
-u32 __fastcall SfMan_SetLoad(u8 *self) {
+u32 __fastcall SfMan_UnloadBank(u8 *self) {
     if (!at<u8 *>(self, 8)) return 0;
     u16 pair[2] = {1, 0};
     return api<s32(__cdecl *)(u16, u16 *)>(self, 0x38)(at<u16>(self, 0xc), pair) == 0 ? 1 : 0;
@@ -129,6 +130,39 @@ u32 *__fastcall SfMan_OpenOut(u8 *self, void *, u32 *out) {
         return out;
     }
     return Answer(out, 0xffffffff);
+}
+
+u32 *__fastcall SfMan_GetName(u8 *self, void *, u32 *out, u32 index, u8 *sink) {
+    if (!at<u8 *>(self, 8)) return Answer(out, 0xffffffff);
+    char name[0x40];
+    u16 pair[2] = {1, static_cast<u16>(index)};
+    u32 buffer[2] = {0x40, static_cast<u32>(reinterpret_cast<uintptr_t>(name))};
+    if (api<s32(__cdecl *)(u16, u16 *, u32 *)>(self, 0x40)(at<u16>(self, 0xc), pair, buffer)) return Answer(out, 0xffffffff);
+    vcall<void>(sink, 0x14, name);
+    return Answer(out, 0);
+}
+
+u32 __fastcall SfMan_CountPresets(u8 *self) {
+    if (!at<u8 *>(self, 8)) return 0;
+    const char *const empty = reinterpret_cast<const char *>((uintptr_t)0x00786de4u);
+    for (u16 i = 0;;) {
+        char name[0x40];
+        std::memcpy(name, empty, std::strlen(empty) + 1);   // (no bound, sic)
+        u16 pair[2] = {1, i};
+        u32 buffer[2] = {0x40, static_cast<u32>(reinterpret_cast<uintptr_t>(name))};
+        if (api<s32(__cdecl *)(u16, u16 *, u32 *)>(self, 0x40)(at<u16>(self, 0xc), pair, buffer)) return 0;
+        if (!std::strcmp(name, empty)) return at<u32>(self, 0x18);
+        const u32 count = ++at<u32>(self, 0x18);
+        if (++i >= 0x80) return count;
+    }
+}
+
+u32 *__fastcall SfMan_LoadBank(u8 *self, void *, u32 *out, u32 path, u32) {
+    if (!(at<u8>(self, 0x14) & 1) || !at<u8 *>(self, 8)) return Answer(out, 0xffffffff);
+    u16 pair[2] = {1, 0};
+    u32 file[2] = {0x80, path};
+    if (api<s32(__cdecl *)(u16, u16 *, u32 *)>(self, 0x2c)(at<u16>(self, 0xc), pair, file)) return Answer(out, 0xffffffff);
+    return Answer(out, SfMan_CountPresets(self) ? 0 : 0xffffffff);
 }
 
 }  // extern "C"

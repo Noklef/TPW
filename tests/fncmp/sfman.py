@@ -4,18 +4,20 @@
 # register's high half is not the callee's), the stack word pair of slot 14 by its bytes. The system-exclusive messages' header on the stack
 # is logged by its bytes 4-31 and the message it points to by the bytes the case's type sends (midiOutPrepareHeader the first 15,
 # midiOutLongMsg bytes 4-18). midiOutGetDevCapsA fills the devices' names at +8 in turn (records: "SoundFont", near misses, others),
-# midiOutOpen the handle.
+# midiOutOpen the handle. Slot 16's names land in the buffer its third argument's structure points to (fill(through=4); per call for
+# the presets' count, some of them the string at 0x786de4 that ends it), the sink's slot 5 logs the name by its text; slots 11 and 16
+# log their word pairs by bytes or as 0, the bank's {0x80, path} by its dwords.
 # usage: sfman.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import (IMPORT_TABLE, LOG, LOG_BYTES, RAM, Bench, Call, blob_bytes, fail_mask, fill, import_table, log_region, set_return,  # noqa: E402
-                   vtable)
+from fncmp import (IMPORT_TABLE, LOG, LOG_BYTES, RAM, Bench, Call, blob, blob_bytes, fail_mask, fill, import_table, log_region, recorder,  # noqa: E402
+                   set_return, strings, vtable)
 
 B = Bench([(0x6d3f80, 0x6d3fa1), (0x6d4530, 0x6d4565), (0x6d4570, 0x6d4595), (0x6d45a0, 0x6d46da), (0x6d3fb0, 0x6d41a8), (0x6d4240, 0x6d4339),
-           (0x67c250, 0x67c2a0)])
+           (0x67c250, 0x67c2a0), (0x6d4340, 0x6d43b2), (0x6d43c0, 0x6d449c), (0x6d44a0, 0x6d4522)])
 SELF, API, OUT, MSG = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300
 SHORT_K, PREP_K, LONG_K, OPEN_K, CAPS_K, DEVS_K = 40, 41, 42, 44, 45, 46
 IMPORTS = {'midiOutShortMsg': (SHORT_K, 0x6fd3cc, 2, 0, 0), 'midiOutPrepareHeader': (PREP_K, 0x6fd3b8, 3, 0, 0),
@@ -23,8 +25,11 @@ IMPORTS = {'midiOutShortMsg': (SHORT_K, 0x6fd3cc, 2, 0, 0), 'midiOutPrepareHeade
            'midiOutGetDevCapsA': (CAPS_K, 0x6fd3c4, 3, 0, 2), 'midiOutGetNumDevs': (DEVS_K, 0x6fd3c8, 0, 0, 0)}
 NAMES = [b'SoundFont\0\0\0', b'SoundFont 2\0', b'Soundfont\0\0\0', b'SoundFon\0\0\0\0', b'MPU-401\0\0\0\0\0', b'SoundFontXYZ']
 LENGTHS = {0: 0xc, 2: 0xd, 4: 0x13, 0x7f: 8}
-API_ARGS = {0: 1, 1: 2, 2: 2, 4: 1, 5: 1, 7: 3, 14: 2}
-CALLS = {'pack': 0x6d3f80, 'setload': 0x6d4530, 'notesoff': 0x6d4570, 'send': 0x6d45a0, 'sysex': 0x6d3fb0, 'openout': 0x6d4240}
+API_ARGS = {0: 1, 1: 2, 2: 2, 4: 1, 5: 1, 7: 3, 11: 3, 14: 2, 16: 3}
+SINK, EMPTY, PATH = RAM + 0x400, 0x786de4, RAM + 0x500
+SINK_K = 25   # (the sink's slot 5)
+CALLS = {'pack': 0x6d3f80, 'unload': 0x6d4530, 'notesoff': 0x6d4570, 'send': 0x6d45a0, 'sysex': 0x6d3fb0, 'openout': 0x6d4240,
+         'getname': 0x6d4340, 'count': 0x6d43c0, 'loadbank': 0x6d44a0}
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
@@ -87,7 +92,7 @@ def case(r):
     if name == 'openout':
         if r.random() < 0.85:
             struct.pack_into('<I', me, 0x10, 0)
-        set_return(log, DEVS_K, r.choice([0, 0x10000, r.getrandbits(32)] + [r.randrange(1, 12)] * 6 + [0x10000 | r.randrange(1, 5)]))
+        set_return(log, DEVS_K, r.choice([0, 0x10000, r.getrandbits(16) << 16 | r.randrange(1, 40)] + [r.randrange(1, 12)] * 6 + [0x10000 | r.randrange(1, 5)]))
         names = [r.choice(NAMES + [r.bytes(12)]) for _ in range(r.randrange(1, 10))]
         fill(log, CAPS_K, 1, b''.join(names), 0, offset=8, records=len(names))
         fill(log, OPEN_K, 0, struct.pack('<I', r.choice([0, r.getrandbits(32), r.getrandbits(32)])), 1)
@@ -96,6 +101,38 @@ def case(r):
         answers(r, log, PREP_K)
         answers(r, log, LONG_K)
         return Call(0x6d4240, [SELF, OUT], regions, conv='t', ret='a')
+    if name in ('getname', 'count', 'loadbank'):
+        word(log, 16, 0)
+        blob_bytes(log, 16, 1, 0xf)
+        strings(log, 16, 0, out=4)
+        if name == 'getname':
+            data = r.bytes(r.randrange(0, 0x3f)).replace(b'\0', b'a') + b'\0'
+            fill(log, 16, 2, data[:0x40], 2, through=4)
+            set_return(log, 16, r.choice([0, 0, 0, 1, r.getrandbits(32)]))
+            sink = bytearray(vtable({}))
+            struct.pack_into('<I', sink, 0x14, recorder(SINK_K, 1))
+            strings(log, SINK_K, 1)
+            regions.update({SINK: struct.pack('<I', SINK + 4) + sink})
+            return Call(0x6d4340, [SELF, OUT, r.getrandbits(32), SINK], regions, conv='t', ret='a')
+        empty = r.choice([b'', b'Empty', b'none', r.bytes(r.randrange(1, 8)).replace(b'\0', b'x')]) + b'\0'
+        regions[EMPTY] = empty + r.bytes(0x40 - len(empty))
+        names = [r.choice([empty, empty, b'Piano\0', b'Organ 2\0', b'Empty\0', b'\0']) for _ in range(r.randrange(1, 15))]
+        names = [(n + bytes(8))[:8] for n in names]
+        fill(log, 16, 2, b''.join(names), 2, records=len(names), through=4)
+        how = r.randrange(3)
+        if how == 0:
+            set_return(log, 16, 0)
+        elif how == 1:
+            fail_mask(log, 16, 1 << r.randrange(40))
+        if name == 'count':
+            return Call(0x6d43c0, [SELF], regions, conv='t', ret='a')
+        word(log, 11, 0)
+        strings(log, 11, 0, out=2)
+        blob(log, 11, 2, 3)
+        set_return(log, 11, r.choice([0, 0, 0, 1, r.getrandbits(32)]))
+        me[0x14] = r.choice([1, 1, 1, 0, r.getrandbits(8)])
+        regions[PATH] = r.bytes(0x10)
+        return Call(0x6d44a0, [SELF, OUT, PATH, r.getrandbits(32)], regions, conv='t', ret='a')
     if name == 'send':
         program = r.choice([r.randrange(0, 0x100), r.getrandbits(32), struct.unpack_from('<I', me, 0x18)[0]])
         flags = r.choice([1 << r.randrange(7), r.getrandbits(8), r.getrandbits(32), 0])

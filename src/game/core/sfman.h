@@ -12,9 +12,9 @@ extern "C" {
 // 0x6d3f80 (stdcall status, data1, data2; ECX unused): a short MIDI message on channel 2: status | 0x82 (all of it, sic) | (data1 & 0x7f)
 // << 8 | (data2 & 0x7f) << 16.
 u32 __stdcall SfMan_PackMsg(u32 status, u32 data1, u32 data2);
-// 0x6d4530: with the API table, its slot 14 (+0x38) on the device and a word pair {1, 0} on the stack: 1 when it answers 0, else 0;
+// 0x6d4530: with the API table, its slot 14 (+0x38; the bank unload) on the device and the bank, a word pair {1, 0} on the stack: 1 when it answers 0, else 0;
 // without one, 0.
-u32 __fastcall SfMan_SetLoad(u8 *self);
+u32 __fastcall SfMan_UnloadBank(u8 *self);
 // 0x6d4570: with the MIDI out handle, all notes off (controller 0x7b) through midiOutShortMsg, its answer; else 0.
 u32 __fastcall SfMan_NotesOff(u8 *self);
 // 0x6d45a0 (thiscall out, program, flags, data2, data1; pops 0x14): -1 without the handle or for program >= +0x18; else bank 1
@@ -31,5 +31,16 @@ u32 *__fastcall SfMan_Sysex(u8 *self, void *, u32 *out, u32 value, const u32 *me
 // midiOutOpen opens (into +0x10), then the system-exclusive message 0x7f through it (its answer in out); -1 when none (or no devices,
 // their count taken as a word). Returns out.
 u32 *__fastcall SfMan_OpenOut(u8 *self, void *, u32 *out);
+// 0x6d4340 (thiscall out, preset, sink; pops 0xc): -1 without the API table; else its slot 16 (+0x40) on the device, the word pair {1,
+// preset} and {0x40, a 0x40-byte name buffer on the stack}: -1 when it fails, else the sink's slot 5 (+0x14) on the name and 0. Returns out.
+u32 *__fastcall SfMan_GetName(u8 *self, void *, u32 *out, u32 preset, u8 *sink);
+// 0x6d43c0: 0 without the API table; else for presets 0 to 0x7f the name buffer set to the string at 0x786de4 (unbounded, sic) and slot
+// 16 asked for the preset's name: 0 when it fails; the count at +0x18 when the name is still that string, else the count incremented
+// (from what it held), which is returned after preset 0x7f.
+u32 __fastcall SfMan_CountPresets(u8 *self);
+// 0x6d44a0 (thiscall out, path, unused; pops 0xc): -1 unless open (+0x14 bit 0) with the API table; else slot 11 (+0x2c, the bank
+// load) on the device, the word pair {1, 0} and {0x80, path}: -1 when it fails, else 0 when the presets counted are not 0, -1 when they
+// are. Returns out.
+u32 *__fastcall SfMan_LoadBank(u8 *self, void *, u32 *out, u32 path, u32);
 
 }  // extern "C"
