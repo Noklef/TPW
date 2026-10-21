@@ -225,4 +225,15 @@ void __fastcall Window7059f0_ScrollFromBar(u8 *window);
 // first child (Fn_65d547) and then column times the next sibling (Fn_65d56b; 0 stays 0): the cell's window (sic: column 1 is the first
 // child's sibling).
 u8 *__fastcall Window7059f0_Cell(u8 *window, void *, s32 row, u32 column);
+
+// 0x665494 (thiscall (x, y: words; y unread), pops 8; name unconfirmed): with a selection (+0x14c not negative), the first column (of
+// +0x164, signed; the array +0x16c, 0xc bytes each) whose words +4 / +8 hold x strictly between them: the parent +0x60 posted 0x404 (the
+// id +0x8c, the column) (Window_PostMessage). EAX not kept.
+void __fastcall Window7059f0_PostColumnAt(u8 *window, void *, u32 x, u32 y);
+
+// 0x664bf0 (thiscall (n, column, out), pops 12; name unconfirmed): 0 in AX when the n-th item (Window7059f0_NthItem) is none (negative)
+// or the column (signed) is not below the columns +0x164; else *out = the item's cell (its dword 4 + column): in a column whose bottom
+// (Window7059f0_ColumnBottom) is 0 the text of the counted string there (Obj_Get4Or6fd6c4), else the dword itself; 1 in AX. The rest of
+// EAX not kept.
+u16 __fastcall Window7059f0_NthItemCell(u8 *window, void *, s32 n, s32 column, u32 *out);
 }

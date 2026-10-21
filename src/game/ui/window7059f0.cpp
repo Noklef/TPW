@@ -732,4 +732,24 @@ u8 *__fastcall Window7059f0_Cell(u8 *window, void *, s32 row, u32 column) {
     }
     return cell;
 }
+
+void __fastcall Window7059f0_PostColumnAt(u8 *window, void *, u32 x, u32) {
+    if (at<s32>(window, 0x14c) < 0) return;
+    for (s32 column = 0; column < at<s16>(window, 0x164); ++column) {
+        const u8 *const col = at<u8 *>(window, 0x16c) + column * 0xc;
+        if ((s16)x > at<s16>(const_cast<u8 *>(col), 4) && (s16)x < at<s16>(const_cast<u8 *>(col), 8)) {
+            Window_PostMessage(at<u8 *>(window, 0x60), 0x404, at<u32>(window, 0x8c), (u32)column);
+            return;
+        }
+    }
+}
+
+u16 __fastcall Window7059f0_NthItemCell(u8 *window, void *, s32 n, s32 column, u32 *out) {
+    const s32 item = Window7059f0_NthItem(window, nullptr, n);
+    if (item < 0 || column >= at<s16>(window, 0x164)) return 0;
+    const u32 *const cell = &at<u32 *>(window, 0x144)[item + 4 + column];
+    if (Window7059f0_ColumnBottom(window, nullptr, (u32)column) == 0) *out = Obj_Get4Or6fd6c4(reinterpret_cast<const u8 *>((uintptr_t)*cell));
+    else *out = *cell;
+    return 1;
+}
 }

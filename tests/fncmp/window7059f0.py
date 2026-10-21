@@ -38,8 +38,12 @@
 # list's length, the first shown its head; the sort column 0 to the last (now and then -1: the parent dword), the mode +0x16a 0 or 1
 # (now and then 2), the column bottoms 1 (numbers: a few values, ties included, or the extremes) or 0 / 2 (counted wide strings of
 # short texts from ALPHA, ties and prefixes included, or none); the columns 0 now and then.
-# Cell (0x663d56): RefreshRows' list and rows (now and then one 0), the row 0 to the rows shown (only 0 without the row array), the
+# Cell (0x663d56): RefreshRows' list and rows (now and then one 0 or one without children), the row 0 to the rows shown (only 0 without the row array), the
 # column a word 0 to past the columns (upper half random).
+# NthItemCell (0x664bf0): NthItem's items eight dwords apart, their cells strings of CELLS (text or none); 0-4 columns (or -1), the
+# bottoms 0 mostly, 1 or -1; the column 0 to past them.
+# PostColumnAt (0x665494): the selection +0x14c -1, 0, small or any, 0-4 columns (or -1) of edges small or any, x on them, between or
+# any (upper half random); the parent +0x60 a window (its byte +4 mostly clear) or 0, window.py's queues.
 # ScrollFromBar (0x664ea3): RefreshRows' list, its children (+0x5c) a bar of id 1 (a recorder vtable: slot 8 answers the first row
 # shown RefreshRows' set-up chose; the list's +0x154 then another value mostly, or the same), one of another id before it, or none;
 # window.py's queues and [0xfaa5d4] set or not, the list's byte +4 mostly clear.
@@ -60,7 +64,8 @@ CALLS = {'ColumnBottom': 0x6636f6, 'NextItem': 0x663a93, 'NthItem': 0x663ba2, 'S
          'ScrollTo': 0x665739, 'Grow': 0x66316b, 'SortsBefore': 0x663edc, 'CopyCells': 0x663dfa,
          'AddItem': 0x66403b, 'SetRowSize': 0x663718, 'SetRow': 0x663864,
          'SetHighlight': 0x662eee, 'ShowRows': 0x664fde, 'SendToRows': 0x6650d4, 'NthChild': 0x663c11, 'Sort': 0x6628f4,
-         'ScrollFromBar': 0x664ea3, 'Cell': 0x663d56}
+         'ScrollFromBar': 0x664ea3, 'Cell': 0x663d56,
+         'PostColumnAt': 0x665494, 'NthItemCell': 0x664bf0}
 LIST_RANGES = (RANGES + [(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 0x664bf0), (0x664d2a, 0x664db7), (0x663324, 0x663554),
                     (0x4f0240, 0x4f0250), (0x65d547, 0x65d56b), (0x65d56b, 0x65d57c), (0x65c672, 0x65c707),
                     (0x663085, 0x66316b), (0x663cb8, 0x663d56), (0x664495, 0x6644ea), (0x66b47d, 0x66b508),
@@ -71,7 +76,7 @@ LIST_RANGES = (RANGES + [(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 
                     (0x67d3a0, 0x67d400), (0x6918f0, 0x691a30), (0x691ba0, 0x691ce0),
                     (0x663718, 0x663864), (0x663864, 0x6639cb), (0x65d865, 0x65d8e7), (0x659e3e, 0x659e83), (0x65cf5e, 0x65cfd4),
                     (0x65c9bd, 0x65cd95), (0x661700, 0x66176a), (0x65f16b, 0x65f246), (0x662eee, 0x663085), (0x664fde, 0x6650d2), (0x6650d4, 0x6651ee),
-                    (0x663c11, 0x663cb8), (0x6628f4, 0x662eee), (0x4f76b0, 0x4f7718), (0x664ea3, 0x664f6d), (0x663d56, 0x663dfa)])
+                    (0x663c11, 0x663cb8), (0x6628f4, 0x662eee), (0x4f76b0, 0x4f7718), (0x664ea3, 0x664f6d), (0x663d56, 0x663dfa), (0x665494, 0x66552c), (0x664bf0, 0x664c71)])
 B = Bench(LIST_RANGES)
 WINDOW, COLUMNS, LINKS, OUT = RAM, RAM + 0x200, RAM + 0x400, RAM + 0x800
 LIST, LINKS2, COLS2, CELLS, ROWS2, ROWWINS = RAM + 0x9000, RAM + 0x9420, RAM + 0x9e00, RAM + 0x9f00, RAM + 0x9c00, RAM + 0xb000
@@ -800,6 +805,23 @@ def case(r):
         return refresh_case(r)
     if op == 'ScrollFromBar':
         return bar_scroll_case(r)
+    if op == 'PostColumnAt':
+        window = bytearray(r.bytes(0x180))
+        regions = {LIST: window, OWNER: put(bytearray(r.bytes(0x20)), 4, 'B', r.choice([0, 0, 0, 1]))}
+        put(window, 0x14c, 'i', r.choice([-1, 0, 0, 2, r.randrange(-0x80000000, 0x80000000)]))
+        ncols = r.choice([0, 1, 2, 3, 4, 4, -1])
+        put(window, 0x164, 'h', ncols)
+        edges = []
+        for _ in range(4):
+            left = r.choice([r.randrange(-20, 200), r.randrange(-0x8000, 0x8000)])
+            edges.append((left, (r.choice([left + r.randrange(-2, 60), r.randrange(-0x8000, 0x8000)]) + 0x8000 & 0xffff) - 0x8000))
+        regions[COLS2] = b''.join(struct.pack('<Ihhhh', r.getrandbits(32), left, r.getrandbits(15), right, r.getrandbits(15)) for left, right in edges)
+        put(window, 0x16c, 'I', COLS2)
+        put(window, 0x60, 'I', r.choice([OWNER, OWNER, 0]))
+        queues(r, regions)
+        left, right = r.choice(edges)
+        x = r.choice([left, right, left + 1, right - 1, (left + right) // 2, r.getrandbits(16)]) & 0xffff
+        return Call(CALLS[op], [LIST, x | r.getrandbits(16) << 16, r.getrandbits(32)], regions, conv='t', ret='v')
     if op == 'Cell':
         c = refresh_case(r)
         window = c.regions[LIST]
@@ -807,6 +829,10 @@ def case(r):
         arr = bytearray(c.regions[ROWS2])
         if nrows > 0 and r.random() < 0.2:
             put(arr, 4 * r.randrange(nrows), 'I', 0)
+        for k in range(max(nrows, 0)):   # (now and then a row without children: its walk reaches 0 early)
+            w = struct.unpack_from('<I', arr, 4 * k)[0]
+            if w in c.regions and r.random() < 0.25:
+                put(c.regions[w], 0x5c, 'I', 0)
         c.regions[ROWS2] = arr
         has = struct.unpack_from('<I', window, 0x148)[0] != 0
         row = r.choice([r.randrange(max(nrows, 0) + 1), 0, nrows if nrows > 0 else 0]) if has else 0
@@ -898,6 +924,25 @@ def case(r):
             put(window, 0x144, 'I', 0)
         regions[HEAP] = heap(fail=r.choice([0] * 9 + [1]))
         return Call(CALLS[op], [WINDOW, r.choice([1, 2, 3, 10, 20, 20, 0, -1]) & 0xffffffff], regions, conv='t', ret='a')
+    if op == 'NthItemCell':
+        idx = items(r, window, regions, stride=8)
+        links = bytearray(regions[LINKS])
+        cells = [CELLS + 8 * j for j in range(8)]
+        regions[CELLS] = b''.join(struct.pack('<II', r.getrandbits(32), r.choice([0, r.getrandbits(32)])) for _ in cells)
+        for i in idx:
+            for c in range(4):
+                put(links, 4 * (i + 4 + c), 'I', r.choice(cells))
+        regions[LINKS] = links
+        regions[COLS2] = b''.join(put(bytearray(r.bytes(0xc)), 0xa, 'h', r.choice([0, 0, 0, 1, -1])) for _ in range(4))
+        put(window, 0x16c, 'I', COLS2)
+        put(window, 0x164, 'h', r.choice([0, 1, 2, 3, 4, 4, -1]))
+        put(window, 0x150, 'i', r.choice([0, 1, len(idx), len(idx) + 3, r.randrange(len(idx) + 1), -1]))
+        put(window, 0x160, 'i', r.choice(idx + [idx[0], -1]))
+        if r.random() < 0.1:
+            put(window, 0x144, 'I', 0)
+        regions[OUT] = r.bytes(4)
+        n = r.choice([-1, 0, 1, 2, r.randrange(len(idx) + 2), len(idx) - 1, len(idx)])
+        return Call(CALLS[op], [WINDOW, n & 0xffffffff, r.choice([0, 1, 2, 3, 4]), OUT], regions, conv='t', ret='w')
     idx = items(r, window, regions)
     if op == 'RootEnd':   # (some items free: their parent -2; the outputs' old values random)
         links = bytearray(regions[LINKS])
