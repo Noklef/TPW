@@ -4395,6 +4395,16 @@ address,name,kind,confidence,notes
 0x0059f710,AdvisorScoring_StaffHigh5,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: entry +0xc above 0, kind 5 count above +0x45c, average above +0x460: +0x464, else 0 (name unconfirmed)"
 0x0059f780,AdvisorScoring_StaffHigh6,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: entry +0x14 above 0, kind 6 count above +0x468, average above +0x46c: +0x470, else 0 (name unconfirmed)"
 0x0059f7f0,AdvisorScoring_StaffHigh4,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: entry +0x10 above 0, kind 4 count above +0x474, average above +0x478: +0x47c, else 0 (name unconfirmed)"
+0x0059efa0,AdvisorScoring_StaffAtLimit5,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: kind 5 at its limit (+0x38c): +0x390, else 0 (name unconfirmed)"
+0x0059f020,AdvisorScoring_StaffAtLimit6,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: kind 6 at its limit (+0x398): +0x39c, else 0 (name unconfirmed)"
+0x0059f0a0,AdvisorScoring_StaffAtLimit4,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: kind 4 at its limit (+0x3a4): +0x3a8, else 0 (name unconfirmed)"
+0x0059f120,AdvisorScoring_StaffAtLimit7,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: kind 7 at its limit (+0x3b0): +0x3b4, else 0 (name unconfirmed)"
+0x0059f1a0,AdvisorScoring_StaffAtLimit8,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: kind 7 limit at +0x3b0 (sic), kind 8 count at least +0x3bc: +0x3c0, else 0 (name unconfirmed)"
+0x0059efe0,AdvisorScoring_StaffFull5,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: kind 5 limit not +0x38c, exactly the limit hired: +0x394, else 0 (name unconfirmed)"
+0x0059f060,AdvisorScoring_StaffFull6,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: kind 6 limit not +0x398, exactly the limit hired: +0x3a0, else 0 (name unconfirmed)"
+0x0059f0e0,AdvisorScoring_StaffFull4,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: kind 4 limit not +0x3a4, exactly the limit hired: +0x3ac, else 0 (name unconfirmed)"
+0x0059f160,AdvisorScoring_StaffFull7,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: kind 7 limit not +0x3b0, exactly the limit hired: +0x3b8, else 0 (name unconfirmed)"
+0x0059f1e0,AdvisorScoring_StaffFull8,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: kind 8 limit not +0x3bc, exactly the limit hired: +0x3c4, else 0 (name unconfirmed)"
 0x00418da0,ParkInfo_Serialize,function,low,"reimplemented (src/game/core/parkinfo); thiscall (stream, save, version, unused), pops 0x10: the save's park information (strings, three dwords, the author's name and e-mail, the description, the publishing date) written or read field by field (name unconfirmed)"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
