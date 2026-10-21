@@ -53,4 +53,9 @@ void __fastcall Window705950_Scrolled(u8 *window);
 // (Window705950_ClickAt), 0x11007 the chosen row posted (Window705950_PostChosen), 0x800 the scroll bar followed (Window705950_Scrolled);
 // then every message (those too) goes on to the default handler (Window_DefaultProc), whose answer it returns.
 u32 __cdecl Window705950_Proc(u8 *window, u32 message, u32 a, u32 b);
+
+// 0x65ada4 (thiscall (n), pops 4; name unconfirmed): 0 unless n (signed) is below the count +0x14c and there is a first node +0x144;
+// else the n-th node from that one in a depth-first walk (a node's first child +0x48, else the next +0x44 of it or of its nearest
+// parent (+0x4c) with one); negative n the first.
+u8 *__fastcall Window705950_NthNode(u8 *window, void *, s32 n);
 }
