@@ -402,12 +402,15 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
         const u32 *blob = log + 0x340 + 2 * (k & 63);  // (LOG_BLOBS)
         if ((blob[0] & 0x1f) == i + 1 && args[i]) {
             const u8 *const p = reinterpret_cast<const u8 *>((uintptr_t)args[i]);
-            u32 blob_mask = blob[1];
-            for (u32 w = 0; w < 4; ++w) {  // (at + 0xf80, fncmp.blob_when(): (k | 0x80000000, argument, value, mask), the mask for this call's argument)
+            u32 blob_mask = blob[1], how = blob[0];
+            for (u32 w = 0; w < 4; ++w) {  // (at + 0xf80, fncmp.blob_when(): (k | 0x80000000, argument, value, mask), the mask for this call's argument;
+                                           // fncmp.blob_when_inner(): k | 0xc0000000 and the second structure's selection, bits 5-30 of how)
                 const u32 *const when = log + 0x3e0 + 4 * w;
-                if (when[0] == ((k & 63) | 0x80000000u) && when[1] < n && stack[1 + when[1]] == when[2]) blob_mask = when[3];
+                if (when[1] >= n || stack[1 + when[1]] != when[2]) continue;
+                if (when[0] == ((k & 63) | 0x80000000u)) blob_mask = when[3];
+                else if (when[0] == ((k & 63) | 0xc0000000u)) how = (how & 0x8000001fu) | (when[3] & 0x7fffffe0u);
             }
-            args[i] = blob[0] & 0x80000000u ? blob_bytes_hash(p, blob[0], blob_mask) : blob_hash(p, blob_mask);
+            args[i] = how & 0x80000000u ? blob_bytes_hash(p, how, blob_mask) : blob_hash(p, blob_mask);
         }
         if (mask >> i & 1) args[i] = string_hash(reinterpret_cast<const u8 *>((uintptr_t)args[i]));
         if (mask >> (16 + i) & 1) args[i] = 0;
