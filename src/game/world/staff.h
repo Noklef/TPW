@@ -187,6 +187,11 @@ void __fastcall Staff_SetState(u8 *staff, void *, u32 state);
 // (signed; both products wrapping). Others: Staff_SetState. The state is then +0x19c.
 void __fastcall Mechanic_SetState(u8 *mechanic, void *, u32 state);
 
+// 0x4d7330 (thiscall (state), pops 4; name unconfirmed): a handyman's state. 8 and 0xa: the word +0xc2 = the word 0x75c7f2 and the
+// reference's animation (+0xc, Set4_4217f0) 9. 9 and 0xb: +0x214 = the world's tick ([0x80239c] +0x1da70c) and the animation 0x11. Others:
+// Staff_SetState. The state is then +0x19c.
+void __fastcall Handyman_SetState(u8 *handyman, void *, u32 state);
+
 // 0x4d7880 (thiscall; out, pops 4; name unconfirmed: Handyman_Update's, which keeps the result at +0x21a): the handyman's next job, by the world's
 // object list (head +0x1da746 of [0x80239c], the thing table 0x7cfb90, next +0xc). An object with flag 0 of +0x32 that tracks nobody or this
 // handyman (Obj_GetTrackedHandle; asked twice) is a candidate at squared cell distance d2 (bytes +5 / +7 of both) when its +0x64 is set
