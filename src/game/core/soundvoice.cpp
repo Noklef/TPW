@@ -60,6 +60,13 @@ void send_record(const u8 *voice, u32 *out, u32 *record) {
     vcall<void>(global<u8 *>(0x00fb1f24), 0x10, out, functor);
 }
 
+// 0x6be610 / 0x6be680's end: the voice's slot 4 (out: the factory's memory argument's own stack slot, sic).
+u8 *init_voice(u8 *voice, u32 *out, u8 *owner, u8 *definition, u8 *info) {
+    if (!voice) return nullptr;
+    if (static_cast<s32>(*vcall<u32 *>(voice, 0x10, out, owner, definition, info + 0xc, at<u32>(info, 0x18))) < 0) return nullptr;
+    return voice;
+}
+
 }  // namespace
 
 extern "C" {
@@ -372,6 +379,37 @@ u32 *__fastcall SoundVoice_Init(u8 *voice, void *, u32 *out, u8 *owner, u8 *defi
     at<u32>(voice, 0x28) = 0;
     *out = 0xffffffff;
     return out;
+}
+
+void __fastcall SoundVoice_SetParam(u8 *voice, void *, u32 key, u32 value) {
+    if (!at<u8 *>(voice, 0x4c)) SoundVoice_EnsureParams(voice);
+    bool changed = false;
+    for (u8 i = 0; i < 4; ++i) {
+        u8 *const slot = at<u8 *>(voice, 0x4c) + i;
+        if (static_cast<u8>(key) != slot[0]) continue;
+        slot[4] = static_cast<u8>(value);
+        if (i) changed = true;   // (the switch's own byte 0 not counted, sic)
+    }
+    if (changed && !(at<u32>(voice, 0x30) & 0x4000)) vcall<void>(voice, 0x34);
+}
+
+void __fastcall SwitchVoice_SetParam(u8 *voice, void *, u32 key, u32 value) {
+    SoundVoice_SetParam(voice, nullptr, key, value);
+    if (!(voice[0x30] & 0x40) || at<u8 *>(voice, 0x4c)[4] == 0x7f) return;
+    if (!vcall<u8>(voice, 0x38, 1u) || !at<u32>(voice, 8)) return;
+    u8 *const sample = SoundVoice_PickSample(voice, nullptr, 1);
+    at<u8 *>(voice, 0xc) = sample;
+    if (sample) at<u32>(voice, 0x30) &= ~0x40u;
+}
+
+u8 *__cdecl SwitchVoice_Create(u8 *owner, u8 *memory, u8 *definition, u8 *info) {
+    u8 *const voice = memory ? SwitchVoice_Ctor(memory) : nullptr;
+    return init_voice(voice, reinterpret_cast<u32 *>(&memory), owner, definition, info);
+}
+
+u8 *__cdecl SequenceVoice_Create(u8 *owner, u8 *memory, u8 *definition, u8 *info) {
+    u8 *const voice = memory ? SequenceVoice_Ctor(memory) : nullptr;
+    return init_voice(voice, reinterpret_cast<u32 *>(&memory), owner, definition, info);
 }
 
 u8 *__fastcall SwitchVoice_Ctor(u8 *voice) {

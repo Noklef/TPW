@@ -24,16 +24,18 @@ CALLS = {'ensure': (0x6b7150, 'v'), 'pending': (0x6bc900, 'a'), 'apply': (0x6bbf
          'sample': (0x6bc680, 'a'), 'category': (0x6bc760, 'b'), 'variation': (0x6bc810, 'b'), 'audible': (0x6bca10, 'b'),
          'cull': (0x6bca70, 'v'), 'command': (0x6bcab0, 'a'), 'follow': (0x6bd5f0, 'v'), 'byte44': (0x6bcb80, 'a'),
          'branch': (0x6be450, 'b'), 'switch': (0x6be5e0, 'b'), 'next': (0x6be6d0, 'b'), 'swctor': (0x6be660, 'a'), 'seqctor': (0x6be730, 'a'),
-         'flags': (0x6bbe90, 'v'), 'init': (0x6bbf60, 'a')}
+         'flags': (0x6bbe90, 'v'), 'init': (0x6bbf60, 'a'),
+         'setparam': (0x6bbb80, 'v'), 'swsetparam': (0x6be580, 'v'), 'swcreate': (0x6be610, 'a'), 'seqcreate': (0x6be680, 'a')}
 B = Bench([(0x6b7150, 0x6b7190), (0x6bc900, 0x6bcb56), (0x6c5130, 0x6c5150), (0x6bbf00, 0x6bbf56), (0x6bc650, 0x6bc674), (0x6bc680, 0x6bc806),
            (0x6bc810, 0x6bc8f0), (0x6bd5f0, 0x6bd781), (0x6bd7a0, 0x6bd7ac), (0x6bb220, 0x6bb237), (0x5f5f10, 0x5f5f7d), (0x5f5fa0, 0x5f5faa),
            (0x6bcb80, 0x6bcce1), (0x6c50d0, 0x6c50e8), (0x6be450, 0x6be573), (0x6be5e0, 0x6be608), (0x6be6d0, 0x6be727), (0x6be660, 0x6be672),
-           (0x6be730, 0x6be742), (0x6bb950, 0x6bb98e), (0x6bbe90, 0x6bbef9), (0x6bbf60, 0x6bc034)])
+           (0x6be730, 0x6be742), (0x6bb950, 0x6bb98e), (0x6bbe90, 0x6bbef9), (0x6bbf60, 0x6bc034),
+           (0x6bbb80, 0x6bbbde), (0x6be580, 0x6be5d3), (0x6be610, 0x6be657), (0x6be680, 0x6be6c7)])
 VOICE, OUT, SYS, SVT, VVT, DEF, VARS, SAMPLES, PARAMS, LISTENER, CMD, CVT = (RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x500,
                                                                             RAM + 0x600, RAM + 0xa00, RAM + 0xb00, RAM + 0xb40, RAM + 0xb80, RAM + 0xbc0)
 SYSTEM, RANDOM, CLOCK, TIME_GET_TIME = 0xfb1f24, 0xfb1f20, 0xfa71e0, 0x6fd3ec
 NODE, ENTRIES, BRANCHES, DEF2 = RAM + 0xc00, RAM + 0xc40, RAM + 0xc80, RAM + 0xe00
-OWNER, OVT, OINFO, POS = RAM + 0xe40, RAM + 0xe80, RAM + 0xf00, RAM + 0xf20
+OWNER, OVT, OINFO, POS, MEM, INFO = RAM + 0xe40, RAM + 0xe80, RAM + 0xf00, RAM + 0xf20, RAM + 0xf40, RAM + 0xfa0
 CMD_K, TIME_K = 9, 12
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
@@ -191,10 +193,24 @@ def case(r):
         struct.pack_into('<I', voice, 8, r.choice([0, VARS + 0x2a * r.randrange(n + 2), VARS + 0x2a * max(n - 1, 0), VARS - 0x54, VARS + r.randrange(1, 0x2a)]))
         struct.pack_into('<I', voice, 0x30, r.getrandbits(32))
         return Call(address, [VOICE, r.getrandbits(32)], regions, conv='t', ret=ret)
-    if name in ('flags', 'init'):
+    if name in ('setparam', 'swsetparam'):   # (a key that one of the parameter block's bytes 0-3 has, now and then two of them)
+        params[:4] = bytes(r.choice([0, 1, 2, 3, r.getrandbits(8)]) for _ in range(4))
+        params[4] = r.choice([0, 0x7f, r.getrandbits(8)])
+        key = r.choice([params[r.randrange(4)], params[r.randrange(4)], r.getrandbits(8)]) | r.choice([0, r.getrandbits(32) & ~0xff])
+        struct.pack_into('<I', voice, 0x30, r.getrandbits(32))
+        set_return(log, 14, r.choice([0, 0x100, 1, r.getrandbits(32)]))
+        regions[HEAP] = heap(0x40, fail=r.choice([0] * 7 + [1]))
+        return Call(address, [VOICE, key, r.getrandbits(32)], regions, conv='t', ret=ret)
+    if name in ('flags', 'init', 'swcreate', 'seqcreate'):
         struct.pack_into('<I', voice, 4, DEF)
-        struct.pack_into('<H', d, 0x12, r.choice([0, 0, r.getrandbits(16), r.getrandbits(8) << 8]))
+        struct.pack_into('<H', d, 0x12, r.choice([0, 0, r.getrandbits(16), r.getrandbits(8) << 8] if name != 'swcreate' else [0] + [r.getrandbits(16) | 1] * 9))
         scale = r.choice([0, 0x80000000, 0x7fc00000, 0xffc00000, 0x7f800001, fb(r.uniform(0, 10)), fb(r.uniform(-10, 0)), r.f(), 1])
+        if name in ('swcreate', 'seqcreate'):
+            info = bytearray(r.bytes(0x1c))
+            struct.pack_into('<I', info, 0x18, scale)
+            regions.update({OWNER: struct.pack('<II', OVT, r.getrandbits(32)) + struct.pack('<I', OINFO), OVT: vtable({}), OINFO: r.bytes(0x10),
+                            MEM: r.bytes(0x50), INFO: info, HEAP: heap(0x40, fail=r.choice([0] * 9 + [1]))})
+            return Call(address, [OWNER, r.choice([MEM] * 9 + [0]), DEF, INFO], regions, conv='c', ret=ret)
         if name == 'flags':
             return Call(address, [VOICE, scale], regions, conv='t', ret=ret)
         current = r.choice([VARS, VARS + 0x2a, 0])

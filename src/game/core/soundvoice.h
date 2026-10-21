@@ -98,4 +98,17 @@ u8 __fastcall SoundVoice_NextVariation(u8 *voice, void *, u32 unused);
 u8 *__fastcall SwitchVoice_Ctor(u8 *voice);
 u8 *__fastcall SequenceVoice_Ctor(u8 *voice);
 
+// 0x6bbb80 (thiscall (key, value: bytes), pops 8; slot 10 of 0x70a7e0 / 0x70a440): with no parameter block one made (EnsureParams),
+// then each of its bytes 0-3 equal to the key gets the value at +4 on; when one of bytes 1-3 did (byte 0 not counted, sic) and flag
+// 0x4000 is clear, slot 13.
+void __fastcall SoundVoice_SetParam(u8 *voice, void *, u32 key, u32 value);
+// 0x6be580 (thiscall (key, value), pops 8; slot 10 of 0x70a498): SoundVoice_SetParam; then with flag 0x40 and the block's byte +4 not
+// 0x7f, slot 14 (1) answering nonzero with a current variation: SoundVoice_PickSample (1) becomes +0xc, and a sample clears flag 0x40.
+void __fastcall SwitchVoice_SetParam(u8 *voice, void *, u32 key, u32 value);
+// 0x6be610 / 0x6be680 (cdecl (owner, memory, definition, info)): with memory, SwitchVoice_Ctor / SequenceVoice_Ctor there, then slot 4
+// (out: the memory argument's own stack slot, sic; the owner, the definition, info + 0xc as the position, info's +0x18 as the scale);
+// the voice, or 0 without memory or when *out is negative (the voice left as it is).
+u8 *__cdecl SwitchVoice_Create(u8 *owner, u8 *memory, u8 *definition, u8 *info);
+u8 *__cdecl SequenceVoice_Create(u8 *owner, u8 *memory, u8 *definition, u8 *info);
+
 }  // extern "C"
