@@ -109,6 +109,26 @@ StreamBase *__cdecl VFS_Open(const char *name) {
     return opened ? stream : nullptr;
 }
 
+bool __cdecl VFS_ArchiveName(const String *name, String *out) {
+    if (!VFS_Open(name->data)) return false;
+    u8 *const source = reinterpret_cast<u8 *>(static_cast<std::uintptr_t>(StreamBase_GetSource(*at<u8 **>(0x00786b9c))));
+    u8 *const archive = reinterpret_cast<u8 *>(static_cast<std::uintptr_t>(Get38_41ce90(source)));
+    String root, path;
+    String_CtorCopy(&root, nullptr, reinterpret_cast<const StringView *>(source + 0x18));
+    String_CtorCopy(&path, nullptr, reinterpret_cast<const StringView *>(name));
+    if (Path_StripBase(&path, &root, out) == 1) {
+        vcall<void>(&path, 0x18, out);
+        s32 result;
+        vcall<s32 *>(archive, 0x10, &result, out, &path);
+        String_Dtor(&path);
+        String_Dtor(&root);
+        return true;
+    }
+    String_Dtor(&path);
+    String_Dtor(&root);
+    return false;
+}
+
 u32 __cdecl VFS_FileExists(const char *name) {
     StreamBase *const stream = VFS_Open(name);
     if (!stream) return 0;
