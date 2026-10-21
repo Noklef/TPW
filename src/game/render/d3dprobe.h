@@ -54,4 +54,10 @@ u32 __fastcall D3dProbe_FogTest(u8 *probe);
 void __fastcall D3dProbe_SetTextureStages(u8 *probe, void *, u32 mode, const u8 *textures);
 // 0x567620 (thiscall on the probe + 0x2c; flags, pops 4): 1.
 u32 __fastcall D3dProbe_SetFlags(u8 *self, void *, u32 flags);
+// 0x567130 (thiscall on the probe + 0x2c, the base's slot 0x11; size, diffuse, specular, u0, v0, u1, v1 (floats but the colours); pops
+// 0x1c; name unconfirmed): the base's slot 7, then one triangle through the device (DrawPrimitive, COM slot 0x70: TRIANGLELIST, FVF 0x1c4
+// (xyzrhw, diffuse, specular, one uv pair), three vertices, flags 1): (-0.5, -0.5) uv (u0, v0), (size - 0.5, -0.5) uv (u1, v0) and
+// (-0.5, size - 0.5) uv (u0, v1), each at z 50, rhw 0.02, with the colours; then the base's slot 8. 1. The floats go through the x87 (a
+// signalling NaN comes out quiet) but the first vertex's x, a plain -0.5.
+u32 __fastcall D3dProbe_Draw(u8 *self, void *, u32 size, u32 diffuse, u32 specular, u32 u0, u32 v0, u32 u1, u32 v1);
 }

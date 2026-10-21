@@ -5,6 +5,7 @@
 
 #include "../core/vcall.h"
 #include "../core/vregs.h"
+#include "../math/x87.h"
 
 namespace {
 
@@ -188,6 +189,23 @@ u32 __fastcall D3dProbe_SetFlags(u8 *self, void *, u32 flags) {
         Shadow_SetByte(probe, nullptr, static_cast<s32>(flags));
         Shadow_SetBits2(probe, nullptr, flags, 0x100, 0x1b, 1, 0);
     }
+    return 1;
+}
+
+u32 __fastcall D3dProbe_Draw(u8 *self, void *, u32 size, u32 diffuse, u32 specular, u32 u0, u32 v0, u32 u1, u32 v1) {
+    u8 *const probe = self - 0x2c;
+    vcall<u32>(base(probe), 0x1c);
+    float s;
+    std::memcpy(&s, &size, 4);
+    const float edgeF = static_cast<float>(X87Reg(s) - X87Reg(0.5f));
+    u32 edge;
+    std::memcpy(&edge, &edgeF, 4);
+    const u32 half = 0xbf000000, z = 0x42480000, rhw = 0x3ca3d70a;   // -0.5, 50.0, 0.02
+    u32 vertices[24] = {half, half, z, rhw, diffuse, specular, X87_FloatThrough(u0), X87_FloatThrough(v0),
+                        edge, half, z, rhw, diffuse, specular, X87_FloatThrough(u1), X87_FloatThrough(v0),
+                        half, edge, z, rhw, diffuse, specular, X87_FloatThrough(u0), X87_FloatThrough(v1)};
+    comcall<u32>(at<u8 *>(probe, 0x24), 0x70, 4u, 0x1c4u, vertices, 3u, 1u);
+    vcall<u32>(base(probe), 0x20);
     return 1;
 }
 
