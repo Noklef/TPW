@@ -81,8 +81,8 @@ void __cdecl Model_FillVertexScratch(const u8 *view, s32 mainOnly) {
             for (const u8 *p = parent; p;) {
                 const u8 *const up = at<const u8 *>(p, 4);
                 if (up) {
-                    x = x + at<float>(p, 0x40);
-                    y = y + at<float>(p, 0x44);
+                    x = x + X87Reg(at<float>(p, 0x40));   // (fld, faddp: x and y register forms, z a memory operand)
+                    y = y + X87Reg(at<float>(p, 0x44));
                     z = z + at<float>(p, 0x48);
                 }
                 p = up;

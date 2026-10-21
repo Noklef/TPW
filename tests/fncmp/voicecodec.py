@@ -1,11 +1,11 @@
 # The voice codec (src/game/core/voicecodec) against the originals: its bit readers over a state {pointer, bit buffer, count} (the count mostly 8
 # to 32, now and then any; n mostly 0 to 8, now and then up to 31 and wild past the mask table, into the data after it) over random bytes, the
 # buffered ones over a reader whose 0x2000-byte buffer ends where the pointer stands now and then (the stream's slot 1 a recorder filling the
-# buffer's first bytes); the channel set-up over random channel bytes with floats (now and then special; signalling NaNs made quiet) for the
+# buffer's first bytes); the channel set-up over random channel bytes with floats (now and then special) for the
 # scale and factor. A subframe's excitation (coded or not) and the frame headers (from memory, or the refilled buffer) through the game's
 # readers (their vtables 0x70adb8 and 0x70ae28) over random bits, the strides positive (0 would loop for ever). The impulse response of
-# 12 coefficients mostly within -1..1, and the synthesis filter over blocks of 12 samples (the history and samples random finite floats);
-# a channel's frame and a frame's channels (a memory reader over random bits, the channels' tables and past random finite floats).
+# 12 coefficients mostly within -1..1, and the synthesis filter over blocks of 12 samples (the history and samples random floats, special ones now and then);
+# a channel's frame and a frame's channels (a memory reader over random bits, the channels' tables and past random floats, special ones now and then).
 # usage: voicecodec.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -38,21 +38,17 @@ def state(r, pointer):
     return struct.pack('<3I', pointer, r.getrandbits(32), count) + r.bytes(4)
 
 
-def quiet(x):
-    """A signalling NaN made quiet: x87emu loads one quiet before the multiply, where the x87 then answers with the other (quiet) NaN."""
-    return x | 0x400000 if x & 0x7f800000 == 0x7f800000 and x & 0x7fffff else x
-
-
-def finite(r, n, scale):
-    """n finite floats in -scale..scale (x87emu's NaNs of equal significands are not the x87's: no NaNs in, only its default one made)."""
-    return b''.join(struct.pack('<f', r.uniform(-scale, scale)) for _ in range(n))
+def floats(r, n, scale):
+    """n floats in -scale..scale, now and then special ones (NaNs quiet and signalling, of either sign) among them in a block."""
+    special = r.choice([0, 0, 0.02, 0.2])
+    return struct.pack('<%dI' % n, *[r.f(scale, special) for _ in range(n)])
 
 
 def case(r):
     name = r.deal(OPS)
     if name == 'init':
         channel = r.bytes(0x680)
-        args = [r.getrandbits(32), r.getrandbits(32), CHANNEL, r.getrandbits(32), quiet(r.f(r.choice([1.0, 100.0]))), quiet(r.f(r.choice([1.0, 1.1])))]
+        args = [r.getrandbits(32), r.getrandbits(32), CHANNEL, r.getrandbits(32), r.f(r.choice([1.0, 100.0])), r.f(r.choice([1.0, 1.1]))]
         return Call(0x6d5200, args, {CHANNEL: channel}, conv='t', ret='v')
     if name == 'excite':
         regions = {MEMORY: struct.pack('<I', MEMORY_VTABLE), STATE: state(r, BITS + r.randrange(0, 0x40)), BITS: r.bytes(0x800), OUT: r.bytes(0x1c0)}
@@ -61,20 +57,20 @@ def case(r):
         return Call(0x6d5040, [MEMORY, STATE, coded, OUT, stride], regions, conv='t', ret='v')
     if name == 'impulse':
         scale = r.choice([1.0, 1.0, 0.5, 4.0])
-        k = finite(r, 12, scale)
+        k = floats(r, 12, scale)
         return Call(0x6d61c0, [CHANNEL, OUT], {CHANNEL: k, OUT: r.bytes(0x30)}, conv='c', ret='v')
     if name in ('decode', 'frame'):
         decoder = bytearray(state(r, BITS + r.randrange(0, 0x40)))
         decoder[0xc:0x14] = struct.pack('<2I', r.choice([0, 1, r.getrandbits(32)]), r.choice([0, 1, 0x100, r.getrandbits(32)]))
         for _ in range(2):
-            decoder += struct.pack('<I', r.choice([r.randrange(0, 0x48), r.getrandbits(32)])) + finite(r, 64, r.choice([1.0, 100.0]))
-            decoder += finite(r, 12, r.choice([1.0, 0.5])) + finite(r, 0x300, r.choice([1.0, 100.0, 30000.0]))
+            decoder += struct.pack('<I', r.choice([r.randrange(0, 0x48), r.getrandbits(32)])) + floats(r, 64, r.choice([1.0, 100.0]))
+            decoder += floats(r, 12, r.choice([1.0, 0.5])) + floats(r, 0x300, r.choice([1.0, 100.0, 30000.0]))
         regions = {MEMORY: struct.pack('<I', MEMORY_VTABLE), BITS: r.bytes(0x800), FRAME: decoder}
         if name == 'frame':
             return Call(0x6d6290, [MEMORY, FRAME], regions, conv='t', ret='v')
         return Call(0x6d5450, [MEMORY, FRAME, FRAME + r.choice([0x14, 0xd48])], regions, conv='t', ret='v')
     if name == 'synth':
-        channel = r.bytes(0x104) + finite(r, 12, r.choice([1.0, 1.0, 0.5])) + finite(r, 0x300, r.choice([1.0, 100.0, 30000.0]))
+        channel = r.bytes(0x104) + floats(r, 12, r.choice([1.0, 1.0, 0.5])) + floats(r, 0x300, r.choice([1.0, 100.0, 30000.0]))
         first = r.choice([0, 12, 24, 36, r.randrange(0, 0x30)])
         blocks = r.choice([1, 1, 2, (0x1b0 - first) // 12, r.randrange(-2, 1)])
         return Call(0x6d57e0, [FRAME, first, blocks & 0xffffffff], {FRAME: channel}, conv='c', ret='v')
