@@ -85,7 +85,7 @@ address,name,kind,confidence,notes
 0x005584b0,RSSE_CheckLeaks,function,medium,'Something malloced but not freed'
 0x005573d0,RSSE_TriggerCustomEvent,function,medium,'Tried to trigger a custom event'
 0x00551130,RSSE_StartScream,function,medium,'Started screaming without ...'
-0x00556f40,RSSE_SetupWalkNodes,function,low,"walk/head node validation, 'Walknodes need a setwalk'"
+0x00556f40,Rsse_StartWalker,function,low,"reimplemented (src/game/rsse/rsse_vm); cdecl (vm, value, from, to, a, b, kind, last): a walker slot filled between two ride parts, its time 100 times their distance, its octant the direction between them"
 0x00572780,Engine_Init,function,high,"'Initializing engine internals'; logs a checkpoint after each renderer subsystem (… 'wavelet/printf ok')"
 0x00564b20,Wavelet_Init,function,medium,creates the global wavelet codec (DAT_00879a64) during Engine_Init
 0x005985c0,WaveletCodec_Create,function,medium,allocates 0x58 bytes and constructs; returns the IWaveletCodec interface pointer

@@ -43,4 +43,16 @@ u32 __cdecl Rsse_GetVector(const u8 *frame, u32 *x, u32 *y, u32 *z);
 // 0x557110 (cdecl; vm): over the +0x7c entries of 0x20 bytes at +0x2c, the dword at +0x10 of the first whose
 // word at +0x18 is 4 is returned and the entry's word +0x18 and dword +0x10 are cleared; 0 for none.
 u32 __cdecl Rsse_TakeFinished(u8 *vm);
+
+// 0x556f40 (cdecl; vm, value, from, to, two words, kind, a word; called at 0x555af9 by a walk opcode; name unconfirmed): a walker
+// started between two of the ride's parts. The places of the parts with keys from (mask 0x800) and to (mask 0x80 when kind is 4, else
+// 0x800) as Ride_PartPlace has them (no direction); the walk's time is 100 times the distance between them (each difference, its
+// square, and the sums (x + y) + z at the x87's 24 bits, x and z squared through their stored floats; its root through __ftol), 100
+// when that is 0 (as u32). The first of the +0x7c walker slots (0x20 bytes at +0x2c) whose word +0x18 is 0 gets the words from (+0),
+// to (+2), the two words (+4, +6), kind (+0x16) and the last word (+0x1a), value (+0x10), the game clock's time (Clocks_Now of
+// 0x785970; +8) and, read again, that plus the walk's time (+0xc), +0x18 = 1, and as +0x14 the octant (C's % 8, signed) of __ftol(0.5
+// - (6.28318 - (atan2(to z - from z, to x - from x) - 1.570795)) * -1.27324...) (the doubles 0x700fe8..0x701000), which it returns.
+// With no free slot it returns the slot count (0 when it is not above 0). The original's Debug_Printf calls (empty) are left out, as
+// is its overwriting of the stack argument to with the stored floats.
+s32 __cdecl Rsse_StartWalker(u8 *vm, u32 value, s32 from, s32 to, u32 a, u32 b, u32 kind, u32 last);
 }

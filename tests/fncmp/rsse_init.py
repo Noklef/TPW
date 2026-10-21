@@ -2,15 +2,18 @@
 # of every length and sign (and empty strings ending it), the initialised flag set or clear, globals of random content; scripts with twelve event tables of up to three
 # entries, keys that match (or not) and outputs given or null; a timer's start (0x557160) on a vm of random content, the game clock paused; an
 # object's vector read through a frame's chain (0x556a80); the first finished entry taken from up to five, or a negative count (0x557110).
-# usage: rsse_init.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Init,Event,Timer,GetVec,TakeDone)
+# A walker started (0x556f40) on ridebounds.py's pose() world: two parts' places, the slots free or not, the game clock paused.
+# usage: rsse_init.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Init,Event,Timer,GetVec,TakeDone,Walk)
 import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
-CALLS = {'Init': 0x551600, 'Event': 0x468600, 'Timer': 0x557160, 'GetVec': 0x556a80, 'TakeDone': 0x557110}
-B = Bench([(0x551600, 0x5516a3), (0x468600, 0x468708), (0x557160, 0x557197), (0x556a80, 0x556aac), (0x557110, 0x55715b),(0x402d70, 0x402d75), (0x402f10, 0x402f2d), (0x4031e0, 0x4031ef), (0x5da3c0, 0x5da3c1)])
+CALLS = {'Init': 0x551600, 'Event': 0x468600, 'Timer': 0x557160, 'GetVec': 0x556a80, 'TakeDone': 0x557110, 'Walk': 0x556f40}
+B = Bench([(0x551600, 0x5516a3), (0x468600, 0x468708), (0x557160, 0x557197), (0x556a80, 0x556aac), (0x557110, 0x55715b),(0x402d70, 0x402d75), (0x402f10, 0x402f2d), (0x4031e0, 0x4031ef), (0x5da3c0, 0x5da3c1),
+           (0x556f40, 0x557108), (0x466b70, 0x466c7f), (0x556af0, 0x556b8c), (0x556b90, 0x556ddb), (0x44b220, 0x44b267), (0x67a830, 0x67a860)])
 STRINGS, SCRIPT, KEYS, TABLES, OUT = RAM + 0x100, RAM + 0x1000, RAM + 0x1400, RAM + 0x1500, RAM + 0x1800
 
 
@@ -76,8 +79,36 @@ def finished_case(r):
     return Call(CALLS['TakeDone'], [RAM], {RAM: obj}, ret='a')
 
 
+def walk_case(r):
+    """0x556f40 (cdecl; vm, value, from, to, a, b, kind, last): the vm is pose()'s object (its ride, parts and nodes), its walker slots
+    (+0x2c, +0x7c of them: up to 5, or a negative count) free or not; the keys the parts' own (their masks given 0x880, so both lookups
+    find them) or -1: a key the ride has no part for leaves the original's position locals unwritten (uninitialised stack, sic), so
+    none is dealt; kind 4 now and then; the game clock (0x785970) paused, as timer_case() has it."""
+    from ridebounds import pose
+    c = pose(r)
+    ram = bytearray(c.regions[RAM])
+    vm = c.args[0]
+    walkers = RAM + 0x2000
+    put(ram, vm - RAM + 0x2c, 'I', walkers)
+    put(ram, vm - RAM + 0x7c, 'i', r.choice([0, 1, 3, 5, 5, -1]))
+    slots = bytearray(r.bytes(0xc0))
+    for i in range(6):
+        put(slots, 0x20 * i + 0x18, 'H', r.choice([0, 1, 1, 4]))
+    n = int.from_bytes(ram[0x268:0x26a], 'little')   # (the model's part count, MODEL + 0x48)
+    keys = [int.from_bytes(ram[0x600 + 0x14 * i + 4:0x600 + 0x14 * i + 8], 'little') for i in range(min(n, 4))]
+    for i in range(min(n, 4)):   # (masks 0x800 and 0x80 find them all)
+        put(ram, 0x600 + 0x14 * i, 'I', int.from_bytes(ram[0x600 + 0x14 * i:0x604 + 0x14 * i], 'little') | 0x880)
+    key = lambda: r.choice(keys + [0xffffffff]) if keys else 0xffffffff  # noqa: E731
+    clock = bytearray(r.bytes(0x80))
+    put(clock, 0x38, 'I', r.choice([1, 2, 0x80000000]))
+    regions = {RAM: bytes(ram), walkers: bytes(slots), 0x7a4610: c.regions[0x7a4610], 0x785970: clock}
+    args = [vm, r.getrandbits(32), key(), key(), r.getrandbits(32), r.getrandbits(32), r.choice([4, 4, 0, 1, r.getrandbits(32)]), r.getrandbits(32)]
+    return Call(CALLS['Walk'], args, regions, conv='c', ret='a')
+
+
 def case(r):
-    return {'Init': init_case, 'Event': event_case, 'Timer': timer_case, 'GetVec': vector_case, 'TakeDone': finished_case}[r.deal(OPS)](r)
+    return {'Init': init_case, 'Event': event_case, 'Timer': timer_case, 'GetVec': vector_case, 'TakeDone': finished_case,
+            'Walk': walk_case}[r.deal(OPS)](r)
 
 
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
