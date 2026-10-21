@@ -132,6 +132,7 @@
 #include "../game/gfx/tvstatic.h"
 #include "../game/gfx/aaline.h"
 #include "../game/gfx/glyphrender.h"
+#include "../game/gfx/movieplayer.h"
 #include "../game/gfx/signstyle.h"
 #include "../game/gfx/tgqvideo.h"
 #include "../game/gfx/wctimage.h"
@@ -4373,6 +4374,12 @@ const Hook kHooks[] = {
     {"TgqVideo_FillBlocks32",     0x00671650, (void *)&TgqVideo_FillBlocks32, {0x55, 0x8b, 0xec, 0x0f, 0xbe}},
     {"TgqVideo_PackColour",       0x0066fd70, (void *)&TgqVideo_PackColour, {0x83, 0xec, 0x10, 0x53, 0x55}},
     {"TgqVideo_BuildTables",      0x0066fc10, (void *)&TgqVideo_BuildTables, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"MoviePlayer_ReadHeader",    0x00670860, (void *)&MoviePlayer_ReadHeader, {0x8b, 0x01, 0x8b, 0x90, 0x88}},
+    {"MoviePlayer_ReadPalette",   0x00670930, (void *)&MoviePlayer_ReadPalette, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"MoviePlayer_ReadSizeAt8",   0x00670ab0, (void *)&MoviePlayer_ReadSizeAt8, {0x0f, 0xbf, 0x42, 0x08, 0x56}},
+    {"MoviePlayer_BuildPixels",   0x00677930, (void *)&MoviePlayer_BuildPixels, {0x83, 0xec, 0x0c, 0x8b, 0x01}},
+    {"MoviePlayer_UnpackFields",  0x00677640, (void *)&MoviePlayer_UnpackFields, {0x51, 0x8b, 0x44, 0x24, 0x08}},
+    {"MoviePlayer_ExpandBlocks",  0x006776c0, (void *)&MoviePlayer_ExpandBlocks, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
