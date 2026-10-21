@@ -30,7 +30,8 @@
 # sets (sic), different in the two runs: allocator_masks() leaves those bytes of the heap out (the strings' first byte; the listing reads
 # no string's allocator: CopyCells only stores the new string, StdWString_CtorChars writes the byte and nothing after it reads one).
 # SetRowSize / SetRow (0x663718, 0x663864): see row_case(). SetHighlight (0x662eee): see highlight_case().
-# ShowRows (0x664fde): see show_case().
+# ShowRows (0x664fde): see show_case(). SendToRows (0x6650d4): RefreshRows' list, rows and items; the message 0x1e mostly (else 3,
+# 0x15, 7 or one with the top bit), a and b any (the row windows' handlers fncmp's logger or none).
 # usage: window7059f0.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ColumnBottom,NextItem,...)
 import os
 import struct
@@ -47,7 +48,7 @@ CALLS = {'ColumnBottom': 0x6636f6, 'NextItem': 0x663a93, 'NthItem': 0x663ba2, 'S
          'FreeItem': 0x664605, 'Select': 0x66525c, 'FindText': 0x664db7, 'RemoveItem': 0x6647cb, 'Clear': 0x6649d5,
          'ScrollTo': 0x665739, 'Grow': 0x66316b, 'SortsBefore': 0x663edc, 'CopyCells': 0x663dfa,
          'AddItem': 0x66403b, 'SetRowSize': 0x663718, 'SetRow': 0x663864,
-         'SetHighlight': 0x662eee, 'ShowRows': 0x664fde}
+         'SetHighlight': 0x662eee, 'ShowRows': 0x664fde, 'SendToRows': 0x6650d4}
 LIST_RANGES = (RANGES + [(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 0x664bf0), (0x664d2a, 0x664db7), (0x663324, 0x663554),
                     (0x4f0240, 0x4f0250), (0x65d547, 0x65d56b), (0x65d56b, 0x65d57c), (0x65c672, 0x65c707),
                     (0x663085, 0x66316b), (0x663cb8, 0x663d56), (0x664495, 0x6644ea), (0x66b47d, 0x66b508),
@@ -57,7 +58,7 @@ LIST_RANGES = (RANGES + [(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 
                     (0x67acd0, 0x67ad00), (0x45b380, 0x45b5f0), (0x45b680, 0x45b9b0), (0x67bb90, 0x67bd98), (0x67d250, 0x67d2c0),
                     (0x67d3a0, 0x67d400), (0x6918f0, 0x691a30), (0x691ba0, 0x691ce0),
                     (0x663718, 0x663864), (0x663864, 0x6639cb), (0x65d865, 0x65d8e7), (0x659e3e, 0x659e83), (0x65cf5e, 0x65cfd4),
-                    (0x65c9bd, 0x65cd95), (0x661700, 0x66176a), (0x65f16b, 0x65f246), (0x662eee, 0x663085), (0x664fde, 0x6650d2)])
+                    (0x65c9bd, 0x65cd95), (0x661700, 0x66176a), (0x65f16b, 0x65f246), (0x662eee, 0x663085), (0x664fde, 0x6650d2), (0x6650d4, 0x6651ee)])
 B = Bench(LIST_RANGES)
 WINDOW, COLUMNS, LINKS, OUT = RAM, RAM + 0x200, RAM + 0x400, RAM + 0x800
 LIST, LINKS2, COLS2, CELLS, ROWS2, ROWWINS = RAM + 0x9000, RAM + 0x9420, RAM + 0x9e00, RAM + 0x9f00, RAM + 0x9c00, RAM + 0xb000
@@ -629,6 +630,43 @@ def highlight_case(r):
     return Call(CALLS['SetHighlight'], [WINDOW, r.choice([HL_A, HL_B, HL_B, HL_B, 0])], regions, conv='t', ret='v')
 
 
+def send_walk(regions):
+    """SendToRows' reads of the items for 0x1e in Python (the first shown item +0x160, then one per row while not -1): False when one
+    leaves the links"""
+    window = regions[LIST]
+    arr = list(struct.unpack('<%di' % (len(regions[LINKS2 - 4 * PAD]) // 4), regions[LINKS2 - 4 * PAD]))
+    if not struct.unpack_from('<I', window, 0x148)[0]:
+        return True
+
+    def get(i):
+        if not -PAD <= i < len(arr) - PAD:
+            raise IndexError
+        return arr[i + PAD]
+
+    def nxt(i):
+        if get(i + 2) >= 0:
+            return get(i + 2)
+        if get(i) >= 0:
+            return get(i)
+        if get(i + 3) < 0:
+            return -2
+        n = get(i + 3)
+        for _ in range(64):
+            if not (get(n) < 0 and get(n + 3) >= 0):
+                return get(n)
+            n = get(n + 3)
+        raise IndexError
+    item = struct.unpack_from('<i', window, 0x160)[0]
+    try:
+        for _ in range(struct.unpack_from('<h', window, 0x172)[0]):
+            if item != -1:
+                get(item + 1)
+                item = nxt(item)
+    except IndexError:
+        return False
+    return True
+
+
 def show_case(r):
     """ShowRows (0x664fde): window.py's shown_env windows as the rows (some 0) of a list of its own (0x180 random bytes): the rows shown
     +0x172 0-5 (or -1), the array +0x148 there or not, the first shown +0x154 and count +0x150 about each other (the edges too), the
@@ -658,6 +696,12 @@ def case(r):
         return highlight_case(r)
     if op == 'ShowRows':
         return show_case(r)
+    if op == 'SendToRows':
+        c = refresh_case(r)
+        message = r.choice([0x1e] * 5 + [3, 0x15, 7, 0x80000001])
+        if message == 0x1e and not send_walk(c.regions):   # (an item read off the links: a wild read the emulator faults on, not the driver)
+            message = 3
+        return Call(CALLS[op], [LIST, message, r.getrandbits(32), r.getrandbits(32)], c.regions, conv='t', ret='v')
     if op in ('SetRowSize', 'SetRow'):
         return row_case(r, op)
     if op == 'AddItem':

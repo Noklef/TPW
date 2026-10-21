@@ -230,6 +230,24 @@ void __fastcall Window7059f0_ShowRows(u8 *window, void *, u32 shown) {
     if (u8 *const highlight = at<u8 *>(window, 0x174)) vcall<void>(highlight, 0x14, (at<s32>(window, 0x14c) != -1 && on) ? 1u : 0u);
 }
 
+void __fastcall Window7059f0_SendToRows(u8 *window, void *, u32 message, u32 a, u32 b) {
+    if (!at<u32>(window, 0x148)) return;
+    s32 item = Window7059f0_NthItem(window, nullptr, 0);
+    for (s32 i = 0; i < at<s16>(window, 0x172); ++i) {
+        u8 *w = at<u8 **>(window, 0x148)[i];
+        if (!w) continue;
+        if (message == 0x1e && item != -1) {
+            b = (u32)at<s32 *>(window, 0x144)[item + 1];
+            item = Window7059f0_NextItem(window, nullptr, item, nullptr);
+        }
+        for (s32 column = 0; column < at<s16>(window, 0x164); ++column) {
+            if (message == 0x1e) a = (u32)i << 16 | (u32)column;
+            Window_SendMessage(w, message, a, b);
+            w = reinterpret_cast<u8 *>((uintptr_t)(column == 0 ? Fn_65d547(w, nullptr, 0) : Fn_65d56b(w)));
+        }
+    }
+}
+
 s32 __fastcall Window7059f0_FindItemData(u8 *window, void *, u32 data) {
     s32 item = Window7059f0_NthItem(window, nullptr, 0), position = -1;
     bool found = false;

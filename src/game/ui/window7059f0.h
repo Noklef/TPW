@@ -93,6 +93,13 @@ void __fastcall Window7059f0_SetHighlight(u8 *window, void *, u8 *highlight);
 // else 0). EAX not kept.
 void __fastcall Window7059f0_ShowRows(u8 *window, void *, u32 shown);
 
+// 0x6650d4 (thiscall (message, a, b), pops 12; name unconfirmed): with the row array +0x148, the message sent (Window_SendMessage) to
+// every window of each row there (up to the rows shown +0x172, signed; 0 skipped): the row, its first child (Fn_65d547), that one's
+// siblings (Fn_65d56b), one per column (+0x164, signed). For 0x1e, a is row << 16 | column and b the data dword (+1) of the row's item:
+// from the first shown one (Window7059f0_NthItem(0)) on, one per row given while there is one (not -1; Window7059f0_NextItem), b kept
+// from the row before when the items have run out. EAX not kept.
+void __fastcall Window7059f0_SendToRows(u8 *window, void *, u32 message, u32 a, u32 b);
+
 // 0x664d2a (thiscall (data), pops 4; name unconfirmed): the position (from 0) of the first item from the first shown one whose data
 // dword (+1) is data, stepping (Window7059f0_NextItem) until -1 or the position reaches the count +0x150 - 1 (signed); -1 when none.
 s32 __fastcall Window7059f0_FindItemData(u8 *window, void *, u32 data);
