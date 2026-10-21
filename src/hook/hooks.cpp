@@ -171,6 +171,7 @@
 #include "../game/core/keyactions.h"
 #include "../game/core/sharedglobals.h"
 #include "../game/core/soundbank.h"
+#include "../game/core/soundcategory.h"
 #include "../game/core/soundchannel.h"
 #include "../game/core/soundcmd.h"
 #include "../game/core/soundeax.h"
@@ -4187,6 +4188,12 @@ const Hook kHooks[] = {
     {"SoundVoice_EnsureParams",   0x006b7150, (void *)&SoundVoice_EnsureParams, {0x53, 0x56, 0x8b, 0xf1, 0x33}},
     {"SoundVoice_SetPending",     0x006bc900, (void *)&SoundVoice_SetPending, {0x81, 0xec, 0xac, 0x00, 0x00}},
     {"EaxBuffer_QueryAll",        0x006c4760, (void *)&EaxBuffer_QueryAll, {0x8b, 0x41, 0x04, 0x83, 0xec}},
+    {"SfxVariation_SampleCount",  0x006bd7a0, (void *)&SfxVariation_SampleCount, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"SfxMap_MarkSimpleSound",    0x006c0550, (void *)&SfxMap_MarkSimpleSound, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"SfxMap_FixVariation",       0x006c06e0, (void *)&SfxMap_FixVariation, {0x83, 0xec, 0x30, 0x55, 0x8b}},
+    {"SfxMap_FixSound",           0x006c0610, (void *)&SfxMap_FixSound, {0x51, 0x53, 0x8b, 0x5c, 0x24}},
+    {"SfxMap_FixCategory",        0x006c05b0, (void *)&SfxMap_FixCategory, {0x51, 0x53, 0x55, 0x8b, 0x5c}},
+    {"SfxMap_Fixup",              0x006c0510, (void *)&SfxMap_Fixup, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
