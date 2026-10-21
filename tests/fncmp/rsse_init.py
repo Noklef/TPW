@@ -81,8 +81,9 @@ def finished_case(r):
 
 def walk_case(r):
     """0x556f40 (cdecl; vm, value, from, to, a, b, kind, last): the vm is pose()'s object (its ride, parts and nodes), its walker slots
-    (+0x2c, +0x7c of them: up to 5, or a negative count) free or not; the keys the parts' own (their masks given 0x880, so both lookups
-    find them) or -1: a key the ride has no part for leaves the original's position locals unwritten (uninitialised stack, sic), so
+    (+0x2c, +0x7c of them: up to 5, or a negative count) free or not (the busy word's high byte alone now and then); the keys the parts'
+    own (their masks given 0x880, or now and then 0x80 or 0x800 alone, one key on two parts now and then, each key dealt one its lookup's
+    mask finds) or -1: a key the ride has no part for leaves the original's position locals unwritten (uninitialised stack, sic), so
     none is dealt; kind 4 now and then; the game clock (0x785970) paused, as timer_case() has it."""
     from ridebounds import pose
     c = pose(r)
@@ -93,16 +94,21 @@ def walk_case(r):
     put(ram, vm - RAM + 0x7c, 'i', r.choice([0, 1, 3, 5, 5, -1]))
     slots = bytearray(r.bytes(0xc0))
     for i in range(6):
-        put(slots, 0x20 * i + 0x18, 'H', r.choice([0, 1, 1, 4]))
+        put(slots, 0x20 * i + 0x18, 'H', r.choice([0, 1, 1, 4, 0x100, 0x400]))
     n = int.from_bytes(ram[0x268:0x26a], 'little')   # (the model's part count, MODEL + 0x48)
+    if n >= 2 and r.random() < 0.4:   # (a key twice: the first lookup's mask may find one part, the other mask the other)
+        put(ram, 0x600 + 0x14 + 4, 'I', int.from_bytes(ram[0x604:0x608], 'little'))
     keys = [int.from_bytes(ram[0x600 + 0x14 * i + 4:0x600 + 0x14 * i + 8], 'little') for i in range(min(n, 4))]
-    for i in range(min(n, 4)):   # (masks 0x800 and 0x80 find them all)
-        put(ram, 0x600 + 0x14 * i, 'I', int.from_bytes(ram[0x600 + 0x14 * i:0x604 + 0x14 * i], 'little') | 0x880)
-    key = lambda: r.choice(keys + [0xffffffff]) if keys else 0xffffffff  # noqa: E731
+    alone = r.random() < 0.5
+    bits = [r.choice([0x880, 0x80, 0x800]) if alone else 0x880 for _ in range(min(n, 4))]
+    for i in range(min(n, 4)):   # (masks 0x880, or now and then 0x80 or 0x800 alone; the keys dealt are found under the lookup's mask)
+        put(ram, 0x600 + 0x14 * i, 'I', int.from_bytes(ram[0x600 + 0x14 * i:0x604 + 0x14 * i], 'little') & ~0x880 | bits[i])
+    kind = r.choice([4, 4, 0, 1, r.getrandbits(32)])
+    key = lambda m: r.choice([k for k, b in zip(keys, bits) if b & m] + [0xffffffff])  # noqa: E731
     clock = bytearray(r.bytes(0x80))
     put(clock, 0x38, 'I', r.choice([1, 2, 0x80000000]))
     regions = {RAM: bytes(ram), walkers: bytes(slots), 0x7a4610: c.regions[0x7a4610], 0x785970: clock}
-    args = [vm, r.getrandbits(32), key(), key(), r.getrandbits(32), r.getrandbits(32), r.choice([4, 4, 0, 1, r.getrandbits(32)]), r.getrandbits(32)]
+    args = [vm, r.getrandbits(32), key(0x800), key(0x80 if kind == 4 else 0x800), r.getrandbits(32), r.getrandbits(32), kind, r.getrandbits(32)]
     return Call(CALLS['Walk'], args, regions, conv='c', ret='a')
 
 
