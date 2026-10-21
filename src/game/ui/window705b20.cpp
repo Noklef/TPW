@@ -135,6 +135,34 @@ u32 __cdecl Window705b20_MoveInside(u8 *rect, GuiRectByValue bounds, u32 dx, u32
     return GuiRect_Dtor(bounds.bytes);
 }
 
+u32 __cdecl Window705b20_Proc(u8 *bar, u32 message, u32 a, u32 b) {
+    switch (message) {
+    case 3:
+        vcall<u32>(bar, 0x10);
+        if (u8 *const thumb = Window_FindChild(bar, nullptr, 3)) Window_OpenTree(thumb);
+        return 0;
+    case 0x10008:
+    case 0x10009:
+    case 0x100:
+        if (a == 1) {
+            Window705b20_SetPos(bar, nullptr, 1, 0);
+        } else if (a == 2) {
+            Window705b20_SetPos(bar, nullptr, 0, 0);
+        }
+        break;
+    case 0x1000d: vcall<u32>(bar, 0x1c, vcall<u32>(bar, 0x20) - a); break;
+    case 0x11006: Window705b20_PageToward(bar, nullptr, (u32)((s32)b >> 16), b & 0xffff); break;
+    case 0xffffffffu:
+        if (*reinterpret_cast<u32 *>((uintptr_t)0x00faa5d4)) {
+            Window_PostMessage(Window_FindChild(bar, nullptr, 3), 1, 0, 0);
+            vcall<u32>(bar, 0x10);
+        }
+        break;
+    default: break;
+    }
+    return Window_DefaultProc(bar, message, a, b);
+}
+
 void __fastcall Window705b20_PosFromThumb(u8 *window) {
     u8 rect[12];
     GuiRect_Ctor(rect);

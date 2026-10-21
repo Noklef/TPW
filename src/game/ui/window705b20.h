@@ -47,6 +47,12 @@ struct GuiRectByValue {
 // destroyed (GuiRect_Dtor), whose EAX is left.
 u32 __cdecl Window705b20_MoveInside(u8 *rect, GuiRectByValue bounds, u32 dx, u32 dy, u32 across);
 
+// 0x66ba22 (cdecl (bar, message, a, b); the bar's handler; name unconfirmed): 3: the bar's slot 4, the thumb (child id 3) opened
+// (Window_OpenTree) when there is one, and 0 without the default handler. 0x10008, 0x10009 and 0x100: a 1 steps the position (SetPos(1, 0)),
+// a 2 steps it back (SetPos(0, 0)). 0x1000d: slot 7 (slot 8's answer - a). 0x11006: Window705b20_PageToward(b >> 16 (signed), b & 0xffff).
+// -1: with [0xfaa5d4] set, the thumb (or 0) posted 1 (0, 0) and the bar's slot 4. Then (all but 3) Window_DefaultProc, whose answer it returns.
+u32 __cdecl Window705b20_Proc(u8 *bar, u32 message, u32 a, u32 b);
+
 // 0x66ae83 (thiscall (enabled: a word), pops 4; slot 5 of the vtable 0x705b20; name unconfirmed): 0 (AX) when flag 2 of +0x48 (disabled)
 // already says so. Otherwise Window_SetEnabled, each child (from +0x5c, the next by Fn_65d56b) gets slot 5 (enabled), the window is
 // posted 1 (0, 0) (Window_PostMessage) when the dword [0xfaa5d4] is set, and 1 (AX).

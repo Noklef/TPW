@@ -6,7 +6,9 @@
 # SetPos (0x66b088): see set_pos(); the modes the callers pass (0-3, -1, -2), the value near the range or any. PosFromThumb (0x66af19):
 # set_pos()'s (a room of 0 faults in both). PageToward (0x66b8aa): set_pos()'s, the point about the thumb's edges or any. MoveInside
 # (0x66b771): a rectangle and by-value bounds of small words (now and then the edges or any), the move small or any, across either way.
-# usage: window705b20.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetRange,SetEnabled,SetPos,PosFromThumb,PageToward,MoveInside)
+# Proc (0x66ba22): set_pos()'s with the bar's vtable a recorder's (slot 7 one argument), window.py's queues, [0xfaa5d4] set or 0;
+# the handled messages and a few others, a 1, 2 or any, b any.
+# usage: window705b20.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetRange,SetEnabled,SetPos,PosFromThumb,PageToward,MoveInside,Proc)
 import os
 import struct
 import sys
@@ -15,16 +17,18 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 from fncmp import CDECL_LOG4, LOG, RAM, Bench, Call, blob_bytes, log_region, put, recorder, vtable  # noqa: E402
-from window import RANGES as WINDOW_RANGES, hover, tree  # noqa: E402
+from window import RANGES as WINDOW_RANGES, hover, queues, tree  # noqa: E402
 
-CALLS = {'SetRange': 0x66b47d, 'SetEnabled': 0x66ae83, 'SetPos': 0x66b088, 'PosFromThumb': 0x66af19, 'PageToward': 0x66b8aa, 'MoveInside': 0x66b771}
+CALLS = {'SetRange': 0x66b47d, 'SetEnabled': 0x66ae83, 'SetPos': 0x66b088, 'PosFromThumb': 0x66af19, 'PageToward': 0x66b8aa, 'MoveInside': 0x66b771, 'Proc': 0x66ba22}
 B = Bench(sorted(set(WINDOW_RANGES + [(0x66b47d, 0x66b508), (0x66ae83, 0x66af19), (0x65d56b, 0x65d57c), (0x65da8d, 0x65db25),
                                       (0x668a23, 0x668aad), (0x668820, 0x6688b3),
                                       (0x66b088, 0x66b438), (0x661525, 0x661596), (0x65c9bd, 0x65cd95), (0x661700, 0x66176a),
                                       (0x659e3e, 0x659e83), (0x659d43, 0x659d90), (0x66af19, 0x66b088), (0x66b8aa, 0x66b9ba),
-                                      (0x66b771, 0x66b8aa), (0x659d90, 0x659dac), (0x66bff7, 0x66c00b)])))
+                                      (0x66b771, 0x66b8aa), (0x659d90, 0x659dac), (0x66bff7, 0x66c00b),
+                                      (0x66ba22, 0x66bb9b), (0x65f6d1, 0x65fba8), (0x680050, 0x68005b), (0x65c707, 0x65c778), (0x65dcaf, 0x65dd18)])))
 OBJ98, OBJ9C, VT98, VT9C = RAM + 0xa000, RAM + 0xa040, RAM + 0xa080, RAM + 0xa100
 BAR, BAR98, BAR9C, BARVT98, BARVT9C = RAM + 0xa200, RAM + 0xa380, RAM + 0xa3c0, RAM + 0xa400, RAM + 0xa480
+BARVT = RAM + 0xa600
 
 
 def set_pos(r, op):
@@ -57,6 +61,16 @@ def set_pos(r, op):
     regions[BAR] = bar
     if op == 'PosFromThumb':
         return Call(CALLS[op], [BAR], regions, conv='t', ret='v')
+    if op == 'Proc':
+        regions[BARVT] = vtable({7: 1})
+        put(bar, 0, 'I', BARVT)
+        queues(r, regions)
+        regions[0xfaa5d4] = struct.pack('<I', r.choice([0, 1]))
+        regions[0x77c480] = r.bytes(0x10)
+        message = r.choice([3, 0x10008, 0x10009, 0x100, 0x1000d, 0x11006, 0xffffffff] * 3 + [0x1000a, 0x101, 0x10007, 0x80000100])
+        a = r.choice([1, 1, 2, 2, 0, 3, r.getrandbits(32)])
+        b = r.getrandbits(32) if r.random() < 0.3 else (r.randrange(-60, 180) & 0xffff) << 16 | (r.randrange(-60, 180) & 0xffff)
+        return Call(CALLS[op], [BAR, message, a, b], regions, ret='a')
     if op == 'PageToward':   # (the point now and then at the thumb's inner right / bottom edge: d 0 there)
         t = regions[wins[0]]
         edges = [struct.unpack_from('<h', t, 0x10)[0] - struct.unpack_from('<h', t, 0xfc)[0],
@@ -109,7 +123,7 @@ def case(r):
         return move_inside(r)
     if op == 'SetEnabled':
         return set_enabled(r)
-    if op in ('SetPos', 'PosFromThumb', 'PageToward'):
+    if op in ('SetPos', 'PosFromThumb', 'PageToward', 'Proc'):
         return set_pos(r, op)
     w = bytearray(r.bytes(0x160))
     a = r.choice([0, 1, 0x3ff, 0x7fffffff, 0x80000000, 0xffffffff, r.getrandbits(32)])
