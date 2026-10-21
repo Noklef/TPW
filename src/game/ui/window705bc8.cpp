@@ -42,4 +42,17 @@ u8 *__fastcall Window705bc8_SetRange(u8 *window, void *, const s32 *low, const s
     at<s32>(window, 0x140) = at<s32>(window, 0x13c) - at<s32>(window, 0x138);
     return window;
 }
+
+u8 *__fastcall Window705bc8_SetRange2(u8 *window, void *, const s32 *low, const s32 *high) {
+    if (low) at<s32>(window, 0x14c) = *low;
+    if (high) at<s32>(window, 0x150) = *high;
+    if (at<s32>(window, 0x14c) > at<s32>(window, 0x150)) {
+        at<s32>(window, 0x14c) = at<s32>(window, 0x150);
+        at<s32>(window, 0x150) = at<s32>(window, 0x14c);  // sic
+    }
+    if (at<s32>(window, 0x158) < at<s32>(window, 0x14c)) at<s32>(window, 0x158) = at<s32>(window, 0x14c);
+    else if (at<s32>(window, 0x158) > at<s32>(window, 0x150)) at<s32>(window, 0x158) = at<s32>(window, 0x150);
+    at<s32>(window, 0x154) = at<s32>(window, 0x150) - at<s32>(window, 0x14c);
+    return window;
+}
 }
