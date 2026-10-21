@@ -69,4 +69,20 @@ void __cdecl MoviePixels_FromYuv(const u32 *source, u32 *out, u32 count) {
         *out++ = (second & 0xffff0000) | (first & 0xffff);
     } while (--count);
 }
+
+u32 __fastcall MoviePixels_MaskBits(u32 mask) {
+    u32 bits = 0;
+    for (u32 k = 0; k < 0x1f; ++k)
+        if (mask & 1u << k) ++bits;
+    return bits;
+}
+
+u32 __fastcall MoviePixels_MaskShift(s32 mask) {
+    u32 shift = 0;
+    while (!(mask & 1)) {   // (0 loops for ever, sic)
+        mask >>= 1;
+        ++shift;
+    }
+    return shift;
+}
 }

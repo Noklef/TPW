@@ -1,5 +1,5 @@
 // The video library's pixel row writers (hand-written assembly; they keep every register but EAX) and the YUV tables they use.
-// Reimplementation of 0x676478, 0x6764bc and 0x670350. The names are unconfirmed.
+// Reimplementation of 0x676478, 0x6764bc, 0x670350, 0x6702d0 and 0x6702f0. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -25,4 +25,11 @@ void __cdecl MoviePixels_FromYuv(const u32 *source, u32 *out, u32 count);
 // at the top) at its shift, plus the truncated level at shift + 16 when the depth is 16 or less. The brightness, bits, shifts and depth
 // are read again for each entry.
 void __fastcall MoviePixels_BuildTables(const u32 *format, u8 *player);
+
+// 0x6702d0 (fastcall (mask); name unconfirmed): a channel mask's bits: how many of bits 0-30 are set (bit 31 is not tested).
+u32 __fastcall MoviePixels_MaskBits(u32 mask);
+
+// 0x6702f0 (fastcall (mask); name unconfirmed): a channel mask's shift: its lowest set bit's place, the mask shifted right (arithmetic)
+// until its low bit is set; a mask of 0 never ends (sic).
+u32 __fastcall MoviePixels_MaskShift(s32 mask);
 }
