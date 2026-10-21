@@ -2,7 +2,9 @@
 
 #include <cstdint>
 
+#include "streampool.h"
 #include "vcall.h"
+#include "vtables.h"
 
 namespace {
 
@@ -43,6 +45,12 @@ u32 __fastcall LoopStream_Read(u8 *stream, void *, u8 *buffer, u32 count, u32 *d
     }
     if (ended) vcall<void>(stream, 0xc);
     return 0;
+}
+
+u8 *__fastcall LoopStream_Dtor(u8 *stream, void *, u32 flags) {
+    Vtbl70a778_Set_6c7090(stream);
+    if (flags & 1) LoopStreamPool_Delete(stream, 0x24);
+    return stream;
 }
 
 }  // extern "C"

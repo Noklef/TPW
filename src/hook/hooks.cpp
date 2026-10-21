@@ -215,6 +215,7 @@
 #include "../game/core/soundvoice.h"
 #include "../game/core/startcheck.h"
 #include "../game/core/streamfilter.h"
+#include "../game/core/streampool.h"
 #include "../game/core/stringmapsrecord.h"
 #include "../game/core/voicecodec.h"
 #include "../game/core/wscanner.h"
@@ -4446,6 +4447,7 @@ const Hook kHooks[] = {
     {"ChannelVoice_SetFlag",      0x006b8330, (void *)&ChannelVoice_SetFlag, {0x8a, 0x44, 0x24, 0x04, 0x84}},
     {"SoundOccluders_Occlusion",  0x006c4c80, (void *)&SoundOccluders_Occlusion, {0x83, 0xec, 0x2c, 0x53, 0x8b}},
     {"LoopStream_Read",           0x006c6a60, (void *)&LoopStream_Read, {0x6a, 0xff, 0x68, 0xf8, 0x64}},
+    {"LoopStream_Dtor",           0x006c6a40, (void *)&LoopStream_Dtor, {0x56, 0x8b, 0xf1, 0xe8, 0x48}},
     {"StreamFilter_SampleRate",   0x006bb130, (void *)&StreamFilter_SampleRate, {0x8b, 0x01, 0xff, 0x50, 0x48}},
     {"StreamFilter_Restart",      0x006bb160, (void *)&StreamFilter_Restart, {0x8b, 0x01, 0xff, 0x50, 0x48}},
     {"StreamFilter_Position",     0x006bb0f0, (void *)&StreamFilter_Position, {0x8b, 0x01, 0xff, 0x50, 0x48}},
@@ -4458,6 +4460,8 @@ const Hook kHooks[] = {
     {"StreamFilter_Describe",     0x006c64f0, (void *)&StreamFilter_Describe, {0x56, 0x8b, 0xf1, 0x57, 0x8b}},
     {"StreamFilter_QueryLoops",   0x006c64a0, (void *)&StreamFilter_QueryLoops, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"StreamFilter_Read",         0x006c6520, (void *)&StreamFilter_Read, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
+    {"StreamFilter_Dtor",         0x006bb170, (void *)&StreamFilter_Dtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"Stream70abf8_Dtor",         0x006c6d50, (void *)&Stream70abf8_Dtor, {0x56, 0x8b, 0xf1, 0xe8, 0x38}},
     {"SoundStream_Dtor",          0x006bab30, (void *)&SoundStream_Dtor, {0x8a, 0x44, 0x24, 0x04, 0x56}},
     {"SoundStream_SetNext",       0x006c61e0, (void *)&SoundStream_SetNext, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"SoundStream_Chain",         0x006c6210, (void *)&SoundStream_Chain, {0x8b, 0x4c, 0x24, 0x04, 0x56}},
@@ -4468,6 +4472,11 @@ const Hook kHooks[] = {
     {"SoundStream_Send",          0x006c6260, (void *)&SoundStream_Send, {0x8b, 0x49, 0x04, 0x85, 0xc9}},
     {"SoundStream_SampleRate",    0x006ba9a0, (void *)&SoundStream_SampleRate, {0x8b, 0x49, 0x04, 0x85, 0xc9}},
     {"SoundStream_Query",         0x006c6280, (void *)&SoundStream_Query, {0x8b, 0x49, 0x04, 0x85, 0xc9}},
+    {"Stream70a6c8_Dtor",         0x006baab0, (void *)&Stream70a6c8_Dtor, {0x56, 0x8b, 0xf1, 0xe8, 0xd8}},
+    {"StreamFilterPool_Delete",   0x006c6450, (void *)&StreamFilterPool_Delete, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"LoopStreamPool_Delete",     0x006c69b0, (void *)&LoopStreamPool_Delete, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"Stream70abf8Pool_Delete",   0x006c6ce0, (void *)&Stream70abf8Pool_Delete, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"Stream70a6c8Pool_Delete",   0x006c7410, (void *)&Stream70a6c8Pool_Delete, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

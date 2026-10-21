@@ -1,7 +1,8 @@
 # The sound stream filter (src/game/core/streamfilter) against the originals: a stream at STREAM (a recorder vtable: slot 18 answers the
 # inner stream INNER, now and then the stream itself) whose inner is a recorder vtable (slots 12 and 15 one argument, 9 two); the
 # forwarders' arguments any dword, the query's out a dword in RAM. The describe's record: bit 6 of +0x18 now and then. The loops' query:
-# the status the inner's slot 9 writes through the local (logged as 0) negative now and then, bit 6 of the record's +0x14 now and then.
+# the status the inner's slot 9 writes through the local (logged as 0) negative now and then (unwritten now and then: the record's address, past 0x80000000 now and then), bit 6 of the
+# record's +0x14 now and then.
 # The read: the next stream (+4, the inner too or another recorder) reads (slot 7) gots filled from up to 8 records (never 0; the
 # count for a count past 0x200), answering 1 after 0-3 calls, now and then up to 23 (fncmp counts them past the log's room); the loops 1-3, 9999, 0 or any.
 # usage: streamfilter.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
@@ -48,7 +49,9 @@ def case(r):
         strings(log, 9, 0, out=1)   # (the status: a local)
         if r.random() < 0.8:
             fill(log, 9, 0, struct.pack('<I', r.choice([0, 1, 0x7fffffff, 0x80000000, 0xffffffff, r.getrandbits(32)])))
-        args = [OUT, RECORD]
+            args = [OUT, RECORD]
+        else:   # (unwritten, the status is the record's address: a negative one is never read)
+            args = [OUT, r.choice([RECORD, r.getrandbits(32) | 0x80000000])]
     elif name == 'read':
         count = r.choice([0, 1, r.randrange(2, 0x40), r.randrange(0x40, 0x200), r.getrandbits(32)])
         records = r.randrange(1, 9)

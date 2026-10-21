@@ -3,7 +3,9 @@
 #include <cstdint>
 
 #include "gameheap.h"
+#include "streampool.h"
 #include "vcall.h"
+#include "vtables.h"
 
 namespace {
 
@@ -82,6 +84,12 @@ u32 *__fastcall SoundStream_Query(u8 *stream, void *, u32 *out, u8 *record) {
     }
     *out = local;
     return out;
+}
+
+u8 *__fastcall Stream70a6c8_Dtor(u8 *stream, void *, u32 flags) {
+    Vtbl70a778_Set_6c7090(stream);
+    if (flags & 1) Stream70a6c8Pool_Delete(stream, 0x1c);
+    return stream;
 }
 
 }  // extern "C"

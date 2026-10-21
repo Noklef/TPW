@@ -3,6 +3,8 @@
 #include <cstdint>
 
 #include "fieldops.h"
+#include "streampool.h"
+#include "vtables.h"
 #include "vcall.h"
 
 namespace {
@@ -67,6 +69,18 @@ u32 __fastcall StreamFilter_Read(u8 *stream, void *, u8 *buffer, u32 count, u32 
         *done += got;
     } while (*done < count);
     return 0;
+}
+
+u8 *__fastcall StreamFilter_Dtor(u8 *stream, void *, u32 flags) {
+    Vtbl70a778_Set_6c7090(stream);
+    if (flags & 1) StreamFilterPool_Delete(stream, 0x18);
+    return stream;
+}
+
+u8 *__fastcall Stream70abf8_Dtor(u8 *stream, void *, u32 flags) {
+    Vtbl70a778_Set_6c7090(stream);
+    if (flags & 1) Stream70abf8Pool_Delete(stream, 0x14);
+    return stream;
 }
 
 }  // extern "C"

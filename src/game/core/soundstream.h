@@ -30,5 +30,8 @@ u32 __fastcall SoundStream_SampleRate(u8 *stream);
 // 0x6c6280 (thiscall (out, record), pops 8; slot 9): *out = the dword at the pointer the next's slot 9 (a local, the record) answers (the
 // local is the record's own stack slot), or 0 without a next. Returns the out.
 u32 *__fastcall SoundStream_Query(u8 *stream, void *, u32 *out, u8 *record);
+// 0x6baab0 (thiscall (flags), pops 4; slot 0 of 0x70a6c8): the base's vtable (Vtbl70a778_Set_6c7090), then, when flags bit 0, the
+// pool's delete (Stream70a6c8Pool_Delete, 0x1c). Returns the stream.
+u8 *__fastcall Stream70a6c8_Dtor(u8 *stream, void *, u32 flags);
 
 }  // extern "C"

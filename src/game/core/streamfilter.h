@@ -33,5 +33,12 @@ u32 *__fastcall StreamFilter_QueryLoops(u8 *stream, void *, u32 *out, u8 *record
 // next stream's (+4) read (slot 7: buffer + *done, the count left, a local got and 1); its answer 1 takes a loop (9999 stays): none
 // left returns 1 (got not added), else the inner stream's (slot 18) slot 8 restarts it. *done += got. Returns 0.
 u32 __fastcall StreamFilter_Read(u8 *stream, void *, u8 *buffer, u32 count, u32 *done, u32 unused);
+// 0x6bb170 (thiscall (flags), pops 4; slot 0 of 0x70a678): the base's vtable (Vtbl70a778_Set_6c7090), then, when flags bit 0, the
+// pool's delete (StreamFilterPool_Delete, 0x18). Returns the stream.
+u8 *__fastcall StreamFilter_Dtor(u8 *stream, void *, u32 flags);
+
+// 0x6c6d50 (thiscall (flags), pops 4; slot 0 of 0x70abf8): the base's vtable (Vtbl70a778_Set_6c7090), then, when flags bit 0, the
+// pool's delete (Stream70abf8Pool_Delete, 0x14). Returns the stream.
+u8 *__fastcall Stream70abf8_Dtor(u8 *stream, void *, u32 flags);
 
 }  // extern "C"
