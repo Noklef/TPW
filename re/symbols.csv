@@ -5718,6 +5718,7 @@ address,name,kind,confidence,notes
 0x00664cb9,Window7059f0_ColumnSpan,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (column, first, second): with the columns +0x16c, both outs and the column below the count word +0x164, the column's words +4 / +8 into the outs; 1 in AX, else 0"
 0x0066590f,Window7059f0_SetSortColumn,function,low,reimplemented (src/game/ui/window7059f0); thiscall (word): a new sort column +0x168 set and told (Window7059f0_NotifySort): 1 in AX; the same one: 0
 0x0066594d,Window7059f0_SetSortOrder,function,low,reimplemented (src/game/ui/window7059f0); thiscall (word): a new sort order +0x16a (-1 flips it) set and told (Window7059f0_NotifySort): 1 in AX; the same one: 0
+0x00665e80,Window7059f0_DeletingDtor,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (flags): slot 2 of the vtable 0x7059f0: Window7059f0_Dtor, the block freed for flags bit 0; returns the window"
 0x0065fbf0,WindowScript_ReadDword,function,low,reimplemented (src/game/ui/windowscript); a window script's next dword (two words)
 0x0065fc18,WindowScript_ReadWord,function,low,reimplemented (src/game/ui/windowscript); a window script's next word
 0x0065fc38,WindowScript_ReadRect,function,low,reimplemented (src/game/ui/windowscript); a window script's next four words to four outputs

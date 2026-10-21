@@ -5431,6 +5431,7 @@ const Hook kHooks[] = {
     {"Window7059f0_ColumnSpan",   0x00664cb9, (void *)&Window7059f0_ColumnSpan, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window7059f0_SetSortColumn", 0x0066590f, (void *)&Window7059f0_SetSortColumn, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window7059f0_SetSortOrder", 0x0066594d, (void *)&Window7059f0_SetSortOrder, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window7059f0_DeletingDtor", 0x00665e80, (void *)&Window7059f0_DeletingDtor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window705950_Layout",       0x0065aac0, (void *)&Window705950_Layout, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window705950_Ctor",         0x0065ab64, (void *)&Window705950_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Window705950_SetInner",     0x0065bb10, (void *)&Window705950_SetInner, {0x55, 0x8b, 0xec, 0x51, 0x89}},
