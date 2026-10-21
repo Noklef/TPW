@@ -134,6 +134,7 @@
 #include "../game/gfx/aaline.h"
 #include "../game/gfx/dctvlc.h"
 #include "../game/gfx/glyphrender.h"
+#include "../game/gfx/movieidct.h"
 #include "../game/gfx/moviepixels.h"
 #include "../game/gfx/movieplayer.h"
 #include "../game/gfx/refblock.h"
@@ -4408,6 +4409,11 @@ const Hook kHooks[] = {
     {"MoviePixels_Double",        0x00676478, (void *)&MoviePixels_Double, {0x53, 0x51, 0x52, 0x56, 0x57}},
     {"MoviePixels_FromYuv",       0x006764bc, (void *)&MoviePixels_FromYuv, {0x53, 0x51, 0x52, 0x56, 0x57}},
     {"MoviePixels_BuildTables",   0x00670350, (void *)&MoviePixels_BuildTables, {0x83, 0xec, 0x0c, 0x53, 0x55}},
+    {"DctIdct_Column",            0x006780c1, (void *)&RegThunk_DctIdct_Column, {0x8b, 0x5e, 0x14, 0x8b, 0x46}},
+    {"DctIdct_Row",               0x00678224, (void *)&RegThunk_DctIdct_Row, {0x8b, 0x5e, 0x14, 0x8b, 0x46}},
+    {"MovieIdct_Column",          0x0067673c, (void *)&RegThunk_MovieIdct_Column, {0x57, 0x8b, 0x5e, 0x14, 0x8b}},
+    {"MovieIdct_Row",             0x0067687b, (void *)&RegThunk_MovieIdct_Row, {0x8b, 0x5e, 0x14, 0x8b, 0x46}},
+    {"MovieIdct_RowShift",        0x00676965, (void *)&RegThunk_MovieIdct_RowShift, {0x57, 0x8b, 0x5e, 0x14, 0x8b}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

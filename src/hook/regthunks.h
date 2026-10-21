@@ -4,5 +4,12 @@
 // conventions (conv='esi', 'esiedi') call them as the game does. The originals clobber the registers their callers
 // reload; a port keeps EBX ESI EDI EBP and leaves EAX ECX EDX as the C++ does.
 #pragma once
+
 extern "C" {
+
+void RegThunk_DctIdct_Column();     // 0x6780c1: block in ESI
+void RegThunk_DctIdct_Row();        // 0x678224: block in ESI
+void RegThunk_MovieIdct_Column();   // 0x67673c: block in ESI, out in EDI
+void RegThunk_MovieIdct_Row();      // 0x67687b: block in ESI, out on the stack
+void RegThunk_MovieIdct_RowShift(); // 0x676965: block in ESI, out in EDI
 }
