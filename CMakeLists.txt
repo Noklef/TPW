@@ -438,6 +438,7 @@ add_library(tpw_hook SHARED
     src/hook/dinput_proxy.cpp
     src/hook/hooks.cpp
     src/hook/patch.cpp
+    src/hook/regthunks.cpp
     src/hook/dinput.def
 )
 set_target_properties(tpw_hook PROPERTIES OUTPUT_NAME dinput)
@@ -471,6 +472,7 @@ add_executable(tpw_tests
     tests/test_main.cpp
     src/hook/hooks.cpp
     src/hook/patch.cpp
+    src/hook/regthunks.cpp
 )
 target_link_libraries(tpw_tests PRIVATE tpw_game)
 
@@ -481,6 +483,7 @@ add_executable(tpw_fncmp
     tools/fncmp/crt.cpp
     src/hook/hooks.cpp
     src/hook/patch.cpp
+    src/hook/regthunks.cpp
 )
 target_link_libraries(tpw_fncmp PRIVATE tpw_game)
 # Not incremental: an incremental link keeps an old, larger .bss when a static shrinks, and a case's wild pointer reads the driver's own

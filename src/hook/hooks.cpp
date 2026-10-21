@@ -1,6 +1,7 @@
 // The hook registry: every original function we have reimplemented.
 // Add a row here when a reimplementation is ready; mark it in re/symbols.csv too.
 #include "hooks.h"
+#include "regthunks.h"
 
 #include "../game/core/app.h"
 #include "../game/core/cheatmodule.h"

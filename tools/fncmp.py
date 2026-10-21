@@ -12,10 +12,13 @@ A test script defines a case generator and calls run():
         return Call(0x43e1b0, [A, B_, r.f(), OUT], {A: node, ...})
     B.main(case)                                # cmd line: CASES SEED [--wild] [--show N]
 
-Call(address, args, regions, conv='c'|'s'|'t'|'f', ret='v'|'a'|'b'|'w'|'i'|'d'): ret 'a' compares
+Call(address, args, regions, conv='c'|'s'|'t'|'f'|'esi'|'esiedi'..., ret='v'|'a'|'b'|'w'|'i'|'d'): ret 'a' compares
 EAX, 'b' AL (a flag returned over whatever EAX held), 'w' AX (likewise a u16), 'c' the x87 control word left (Call(cw=) going in, 0x7f; 'wc' AX too), 'i' EAX and EDX, 'd' the double left in
 st0. Call(ignore=[(address, count), ...]): those bytes of the regions are left out of the comparison in both (a stack address's low byte that
-the original stores, which the two sides' stacks cannot share). Region addresses must be in the game's data (0x6e7000-0xfc5200) or at 0x10000000 and up (RAM, ALLOC.. are free slots); anything a case
+the original stores, which the two sides' stacks cannot share). A register convention (hand-written assembly taking
+its arguments in registers) names the registers, three letters each, in argument order: conv='esi' puts args[0] in ESI and the rest on the
+stack, 'esiedi' args[0] in ESI and args[1] in EDI (of EAX EBX ECX EDX ESI EDI); the hook row's replacement is then the port's naked thunk
+(src/hook/regthunks.h), which pushes the registers as the port's ordinary cdecl arguments. Region addresses must be in the game's data (0x6e7000-0xfc5200) or at 0x10000000 and up (RAM, ALLOC.. are free slots); anything a case
 does not set reads as the exe image there, else zero, in both. No region may be empty (the driver reads its bytes as one hex token, so an
 empty one would desynchronise every later case): Bench.cases refuses such a case, naming the bench, the case and the region. The emulator is strict, like
 the driver: an access outside the regions' 64 KB chunks, the stack and the game's data (the
@@ -259,9 +262,25 @@ def off_code(buf):
     return buf
 
 
+REGISTER_ARGS = ('EAX', 'EBX', 'ECX', 'EDX', 'ESI', 'EDI')
+
+
+def register_args(conv):
+    """The registers of a register convention, conv a run of register names ('esi', 'esiedi'): each takes the next argument, in
+    order, before the stack ones (driver.cpp reads the same; the hook row points at a naked thunk, src/hook/regthunks.h)."""
+    if len(conv) < 3 or conv[0] != 'e':
+        return ()
+    regs = tuple(conv[i:i + 3].upper() for i in range(0, len(conv), 3))
+    if len(conv) % 3 or len(conv) > 15 or not all(r in REGISTER_ARGS for r in regs):
+        raise ValueError('register convention %r: names of %s, at most five' % (conv, '/'.join(REGISTER_ARGS)))
+    return regs
+
+
 class Call:
     def __init__(self, address, args, regions, conv='c', ret='v', cw=0x7f, masks=(), ignore=()):
         self.address, self.args, self.regions, self.conv, self.ret = address, list(args), dict(regions), conv, ret
+        if len(register_args(conv)) > len(self.args):
+            raise ValueError('register convention %r needs %d arguments' % (conv, len(register_args(conv))))
         self.cw, self.ignore = cw, list(ignore)
         self.masks = list(masks)
         for m in self.masks:
@@ -820,6 +839,9 @@ class Bench:
             if c.conv == 'f' and args:
                 e.r['EDX'] = args[0]
                 args = args[1:]
+        for reg in register_args(c.conv):
+            e.r[reg] = args[0]
+            args = args[1:]
         for a in reversed(args):
             e.push(a & 0xffffffff)
         e.push(x87emu.SENTINEL)
