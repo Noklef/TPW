@@ -5050,6 +5050,7 @@ address,name,kind,confidence,notes
 0x00583080,View_ResetWindow,function,low,reimplemented (src/game/render/viewport); thiscall: the window set to the whole screen
 0x00583220,View_SetProjection,function,low,"reimplemented (src/game/render/viewport); thiscall (unused, a, b): the projection's terms at +0x60-+0x70 from +0x40-+0x54"
 0x00583280,View_SetDepthRange,function,low,"reimplemented (src/game/render/viewport); thiscall (near, far): the depth range, its reciprocal span and their squares at +0x8c8"
+0x00582d90,View_Defaults,function,low,"reimplemented (src/game/render/viewport); thiscall: the render view's defaults (flags, projection inputs, the depth range 100..130 and its constants); returns the view"
 0x0057c190,HeightGrid_HeightAt,function,low,"reimplemented (src/game/render/heightgrid); thiscall (x, z): the height of the plane through the cell corner and its two neighbours, in st0"
 0x005747d0,VertexFog_Colour,function,low,"reimplemented (src/game/render/vertexfog); stdcall (vertices, count, stride): the fog blended into each vertex's diffuse and specular colours by its depth"
 0x00574960,VertexFog_Alpha,function,low,"reimplemented (src/game/render/vertexfog); stdcall (vertices, count, stride): the fog by depth into each vertex's specular alpha"

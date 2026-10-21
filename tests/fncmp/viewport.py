@@ -1,6 +1,7 @@
 # The render view's geometry (src/game/render/viewport: 0x582eb0-0x5832dc) against the originals: screen sizes of any sign and size (and the
 # 32-bit ones that round twice through a double quotient), windows as fractions (and any floats), the projection's and depth range's floats
 # (special values now and then), the driver kind 0x8bd524 4 or not. The view is random bytes; the depth range maps only its 0x18 bytes.
+# The defaults (0x582d90) on a view of random bytes.
 # usage: viewport.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import struct
@@ -9,8 +10,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import RAM, Bench, Call, fb  # noqa: E402
 
-B = Bench([(0x582eb0, 0x5830f0), (0x583220, 0x5832f0)])
-OPS = [k for k in os.environ.get('OPS', 'SetScreen,SetWindow,ResetWindow,SetProjection,SetDepthRange').split(',') if k]
+B = Bench([(0x582eb0, 0x5830f0), (0x583220, 0x5832f0), (0x582d90, 0x582ea2)])
+OPS = [k for k in os.environ.get('OPS', 'SetScreen,SetWindow,ResetWindow,SetProjection,SetDepthRange,Defaults').split(',') if k]
 VIEW = RAM
 FAR = RAM + 0x2000  # the depth range's view: only +0x8c8..+0x8e0 mapped
 
@@ -71,6 +72,8 @@ def case(r):
             width, args[2] = tie_product(r)
             struct.pack_into('<I', regions[VIEW], 8, width)
         return Call(0x582f70, [VIEW] + args, regions, conv='t')
+    if op == 'Defaults':
+        return Call(0x582d90, [VIEW], {VIEW: r.bytes(0x930)}, conv='t', ret='a')
     if op == 'ResetWindow':
         return Call(0x583080, [VIEW], regions, conv='t')
     if op == 'SetProjection':
