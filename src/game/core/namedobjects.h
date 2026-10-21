@@ -70,4 +70,12 @@ void __fastcall NamedObjects_AddFolders(u8 *self, void *, const WString *root);
 // two (Class6fd9d8_AddFolderAndWad), also under the second root to the third (Class6fd9d8_AddFolderAndWadBoth), a null object too. Both
 // Strings are made and destroyed per node.
 void __fastcall NamedObjects_AddListedFolders(u8 *self);
+
+// 0x408470 (thiscall, plain RET; name unconfirmed): the fixed folder objects. Thirteen objects, each allocated (Mem_Alloc 0x40, 0x48 or
+// 0x50) and constructed with a global name and folder String (Class6fda58 / 6fdaf8 / 6fda68 / 6fdaa8 / 6fdac8 / 6fdab8 / 6fdae8 /
+// 6fda88_Ctor; none when the allocation fails), given that folder (Class6fd9d8_AddFolderAndWad; Class6fd9d8_AddFolderAndWadBoth for the
+// third; Class6fd9d8_AddFolder for the seventh on, with a WAD String added (Class6fd9d8_AddWad) for the 7th, 8th, 11th and 13th; the
+// 12th AddFolderAndWad again), a null object too, and added to the registry at +0x34 (ObserverList0_Add). The listed folders
+// (NamedObjects_AddListedFolders) come between the seventh and the eighth.
+void __fastcall NamedObjects_AddFixedFolders(u8 *self);
 }

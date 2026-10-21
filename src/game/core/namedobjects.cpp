@@ -255,4 +255,43 @@ void __fastcall NamedObjects_AddListedFolders(u8 *self) {
         String_Dtor(&folder);
     }
 }
+
+void __fastcall NamedObjects_AddFixedFolders(u8 *self) {
+    using Ctor = u8 *(__fastcall *)(u8 *, void *, const WString *, const WString *);
+    enum : u8 { kFolderAndWad, kBoth, kFolder };
+    struct Entry {
+        u32 size;
+        Ctor ctor;
+        u32 name, folder;
+        u8 add;
+        u32 wad;   // (a WAD String added after the folder, kFolder only; 0 for none)
+    };
+    static const Entry kEntries[] = {
+        {0x48, &Class6fda58_Ctor, 0x00786940, 0x007861a8, kFolderAndWad, 0}, {0x48, &Class6fda58_Ctor, 0x00786b38, 0x00786088, kFolderAndWad, 0},
+        {0x40, &Class6fdaf8_Ctor, 0x00786cc8, 0x007866a0, kBoth, 0},         {0x40, &Class6fda68_Ctor, 0x00786358, 0x00785f20, kFolderAndWad, 0},
+        {0x40, &Class6fda68_Ctor, 0x007867f0, 0x00786bf0, kFolderAndWad, 0}, {0x40, &Class6fdaa8_Ctor, 0x00785fc8, 0x00786a00, kFolderAndWad, 0},
+        {0x50, &Class6fdac8_Ctor, 0x00786610, 0x00786bc0, kFolder, 0x00786028},
+        {0x40, &Class6fdab8_Ctor, 0x00786c08, 0x00786520, kFolder, 0x007860a0}, {0x48, &Class6fda58_Ctor, 0x00786298, 0x00786598, kFolder, 0},
+        {0x40, &Class6fdae8_Ctor, 0x00786d88, 0x00786dd0, kFolder, 0},        {0x48, &Class6fda58_Ctor, 0x00786310, 0x00786cb0, kFolder, 0x007860b8},
+        {0x50, &Class6fda88_Ctor, 0x00786ba8, 0x00786208, kFolderAndWad, 0}, {0x48, &Class6fda58_Ctor, 0x00786d40, 0x00786988, kFolder, 0x00786d28},
+    };
+    for (u32 i = 0; i < sizeof kEntries / sizeof kEntries[0]; ++i) {
+        const Entry &e = kEntries[i];
+        if (i == 7) NamedObjects_AddListedFolders(self);
+        const auto *const folder = reinterpret_cast<const StringView *>((uintptr_t)e.folder);
+        void *const block = GameHeap_Alloc(e.size);
+        u8 *const object = block ? e.ctor(static_cast<u8 *>(block), nullptr, reinterpret_cast<const WString *>((uintptr_t)e.name),
+                                          reinterpret_cast<const WString *>(folder))
+                                 : nullptr;
+        if (e.add == kFolderAndWad)
+            Class6fd9d8_AddFolderAndWad(object, nullptr, folder);
+        else if (e.add == kBoth)
+            Class6fd9d8_AddFolderAndWadBoth(object, nullptr, folder);
+        else {
+            Class6fd9d8_AddFolder(object, nullptr, reinterpret_cast<const String *>(folder));
+            if (e.wad) Class6fd9d8_AddWad(object, nullptr, reinterpret_cast<const String *>((uintptr_t)e.wad));
+        }
+        ObserverList0_Add(at<u8 *>(self, 0x34), nullptr, object);
+    }
+}
 }

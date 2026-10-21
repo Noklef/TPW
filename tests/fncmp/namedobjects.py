@@ -7,8 +7,9 @@
 # And its sorted add 0x409620: a name (a String) into an owned list of 0 to 5 named Strings (sorted or not, near misses, the count short of it
 # or not, now and then holding the block the new String will get, now and then a count with no head), allocations failing now and then.
 # And the owner's frame update 0x409260 (the game clock's step and the flags 0x7a1a14), and its theme labels 0x409a30 / 0x4099b0 (see theme()).
-# And its folders 0x4088a0 and 0x4081e0 (see mounts(): the whole chain below runs, the constructors, AddFolderAndWad with fileopen.py's imports, the adds).
-# usage: namedobjects.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Remove,Ctor,Dtor,Static,Add,Flags,Theme,ThemeAnsi,Folders,Listed)
+# And its folders 0x4088a0 and 0x4081e0 (see mounts(): the whole chain below runs, the constructors, AddFolderAndWad with fileopen.py's imports, the adds),
+# and the fixed ones 0x408470 (see fixed()).
+# usage: namedobjects.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Remove,Ctor,Dtor,Static,Add,Flags,Theme,ThemeAnsi,Folders,Listed,Fixed)
 import os
 import struct
 import sys
@@ -30,7 +31,7 @@ B = Bench([(0x408f00, 0x40914f), (0x421770, 0x4217e0), (0x421690, 0x421720), (0x
            (0x409620, 0x40978d), (0x424cc0, 0x424ce2), (0x5e2a30, 0x5e2a7e),
            (0x409260, 0x409296), (0x402ef0, 0x402f10), (0x4030c0, 0x4030c4),
            (0x4099b0, 0x409b0b), (0x424d10, 0x424d2e), (0x424e10, 0x424e6e), (0x485ac0, 0x485af4), (0x6ace60, 0x6acea0), (0x6adc80, 0x6add25), (0x5f5660, 0x5f5690),
-           (0x4088a0, 0x408ef8), (0x4081e0, 0x408464), (0x41d7c0, 0x41e250), (0x421590, 0x421630), (0x421680, 0x421690)] + fileopen.RANGES,
+           (0x4088a0, 0x408ef8), (0x4081e0, 0x408464), (0x408470, 0x408899), (0x41d7c0, 0x41e250), (0x421590, 0x421630), (0x421680, 0x421690)] + fileopen.RANGES,
           hooks={0x691de0: lock, 0x691ea0: lambda e: None})
 NAMES = [0x786b68, 0x785e78, 0x785f98, 0x7862c8, 0x785f68, 0x7862f8, 0x786d10, 0x7866e8, 0x7862e0, 0x785ed8, 0x785f80, 0x786aa8, 0x786040, 0x7867d8]
 WORDS = [b'Font', b'Sky', b'Rides', b'Shops', b'Staff', b'Water', b'Lake', b'Paths', b'Fence', b'Trees', b'Rock', b'Hint', b'Map', b'Sound']
@@ -247,6 +248,11 @@ def listed(r):
     """0x4081e0 (mounts()): a list at [0x786b90] of 0-3 names (Strings), the root at 0x785e48 (a WString, assigned to a String: its
     bytes, sic), the three folder parts and names (Strings) and the second root 0xf816d4 (a String) for the third object's add."""
     regions = mounts(r)
+    listed_regions(r, regions)
+    return Call(0x4081e0, [OWNER], regions, conv='t', ret='v')
+
+
+def listed_regions(r, regions):
     n = r.choice([0, 1, 1, 2, 3])
     nodes = bytearray(r.bytes(0x20))
     for k in range(n):
@@ -258,7 +264,28 @@ def listed(r):
     for at in (0x786430, 0x785e90, 0x786670, 0x786a48, 0x786ce0, 0x7860e8):
         string(regions, at, r.choice(PARTS))
     string(regions, fileopen.ROOT2, r.choice([b'', b'C:\\tp', b'C:\\tp\\', b'data']))
-    return Call(0x4081e0, [OWNER], regions, conv='t', ret='v')
+
+
+FIXED = [(0x786940, 0x7861a8), (0x786b38, 0x786088), (0x786cc8, 0x7866a0), (0x786358, 0x785f20), (0x7867f0, 0x786bf0), (0x785fc8, 0x786a00),
+         (0x786610, 0x786bc0), (0x786c08, 0x786520), (0x786298, 0x786598), (0x786d88, 0x786dd0), (0x786310, 0x786cb0), (0x786ba8, 0x786208),
+         (0x786d40, 0x786988)]
+FIXED_WADS = [0x786028, 0x7860a0, 0x7860b8, 0x786d28]
+FIXED_TEXTS, SL = RAM + 0x6000, bytes([0x5c])
+PATH_A = b'C:' + SL + b'tp' + SL
+
+
+def fixed(r):
+    """0x408470 (mounts() and listed()'s regions, as it runs 0x4081e0): the 13 objects' names and folders and the 4 WADs (Strings, folders
+    now and then empty)."""
+    regions = mounts(r)
+    listed_regions(r, regions)
+    texts = [varied(r, r.choice(WORDS)).rstrip(bytes(1)) for _ in FIXED] + [r.choice([PATH_A, b'data' + SL + b'Fonts', b'Rides' + SL, b'', b'x'])
+                                                                         for _ in FIXED] + [r.choice([PATH_A + b'a.wad', b'b.wad', b'']) for _ in FIXED_WADS]
+    for k, (at, text) in enumerate(zip([n for n, _ in FIXED] + [f for _, f in FIXED] + FIXED_WADS, texts)):
+        # (the Strings are 0x18 apart: their texts in a pool at FIXED_TEXTS)
+        regions[at] = struct.pack('<5I', 0x703090, len(text), FIXED_TEXTS + 0x20 * k, len(text) + 1, 8) + bytes(4)
+        regions[FIXED_TEXTS + 0x20 * k] = text + bytes(0x20 - len(text))
+    return Call(0x408470, [OWNER], regions, conv='t', ret='v')
 
 
 def case(r):
@@ -267,6 +294,8 @@ def case(r):
         return folders(r)
     if op == 'Listed':
         return listed(r)
+    if op == 'Fixed':
+        return fixed(r)
     if op in ('Theme', 'ThemeAnsi'):
         return theme(r, op)
     if op == 'Ctor':
@@ -284,7 +313,7 @@ def case(r):
     return remove(r)
 
 
-OPS = [k for k in os.environ.get('OPS', 'Remove,Ctor,Dtor,Static,Add,Flags,Theme,ThemeAnsi,Folders,Listed').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Remove,Ctor,Dtor,Static,Add,Flags,Theme,ThemeAnsi,Folders,Listed,Fixed').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)
