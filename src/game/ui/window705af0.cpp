@@ -65,4 +65,37 @@ u16 __fastcall Window705af0_SetValue(u8 *window, void *, s32 value) {
     Window_PostMessage(at<u8 *>(window, 0x60), 0x800, at<u32>(window, 0x8c), at<u32>(window, 0x140));
     return 1;
 }
+
+void __fastcall Window705af0_Nudge(u8 *window, void *, u32 mode) {
+    s32 &value = at<s32>(window, 0x140), &step = at<s32>(window, 0x148), &count = at<s32>(window, 0x14c), &fast = at<s32>(window, 0x150);
+    switch ((s16)mode) {
+    case 0: Window705af0_SetValue(window, nullptr, value - step); break;
+    case 1: Window705af0_SetValue(window, nullptr, value + step); break;
+    case 2:
+    case 3:
+        if (step == 1) {
+            count = 0x14;
+            fast = 1;
+        } else {
+            count = 5;
+        }
+        if ((s16)mode == 3) Window705af0_SetValue(window, nullptr, value + step);
+        break;
+    case 4:
+    case 5: {
+        const bool up = (s16)mode == 5;
+        if (step == 1) {
+            Window705af0_SetValue(window, nullptr, up ? value + fast : value - fast);
+            if (--count == 0) {
+                fast *= 10;
+                count = 0x14;
+            }
+        } else if (--count == 0) {
+            Window705af0_SetValue(window, nullptr, up ? value + step : value - step);
+            count = 5;
+        }
+        break;
+    }
+    }
+}
 }

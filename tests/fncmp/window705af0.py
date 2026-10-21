@@ -1,12 +1,14 @@
 # The GUI library's kind 12 window (vtable 0x705af0, a slider going by its fields) against the originals (src/game/ui/window705af0:
-# 0x66a5c4, 0x66a68d, 0x66a6db, 0x66a71c). The window's range +0x138 / +0x13c and value +0x140 small (-3 to 12), equal or crossed now and
+# 0x66a5c4, 0x66a68d, 0x66a6db, 0x66a71c, 0x66a7e1). The window's range +0x138 / +0x13c and value +0x140 small (-3 to 12), equal or crossed now and
 # then, or any.
 # SetRange: the low and high pointers each a dword (small or any) or 0. SetStep: a dword or 0. Distance: another window of the same kind,
 # both with a recorder vtable whose slot 3 answers its own value (fncmp.set_return: the two the same or not).
 # SetValue: the new value in or near the range, equal to +0x140 now and then, the byte +0x154 0, 1 or any; the objects +0x98 / +0x9c
 # recorders (slot 3: k 3 and 22) or 0, each logging its event as the hash of its dword +0 (the rest is stack garbage); the parent +0x60
-# a window or 0 and window.py's message queues (Window_PostMessage).
-# usage: window705af0.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetRange,SetStep,Distance,SetValue)
+# a window (its byte +4 mostly clear) or 0 and window.py's message queues (Window_PostMessage).
+# Nudge (0x66a7e1): SetValue's set-up, the step +0x148 1 mostly or small, the count +0x14c 1, 2 or any, the speed +0x150 small or any;
+# the mode 0-5 mostly (the pushed register's upper half random).
+# usage: window705af0.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetRange,SetStep,Distance,SetValue,Nudge)
 import os
 import sys
 
@@ -16,8 +18,8 @@ sys.path.insert(0, HERE)
 from fncmp import LOG, RAM, Bench, Call, blob_bytes, log_region, put, recorder, set_return, vtable  # noqa: E402
 from window import queues  # noqa: E402
 
-CALLS = {'SetRange': 0x66a5c4, 'SetStep': 0x66a68d, 'Distance': 0x66a6db, 'SetValue': 0x66a71c}
-B = Bench([(0x658ccc, 0x658daf), (0x659710, 0x659740), (0x661525, 0x6615a6), (0x6697e3, 0x6698b4), (0x66a5c4, 0x66a7e1)])
+CALLS = {'SetRange': 0x66a5c4, 'SetStep': 0x66a68d, 'Distance': 0x66a6db, 'SetValue': 0x66a71c, 'Nudge': 0x66a7e1}
+B = Bench([(0x658ccc, 0x658daf), (0x659710, 0x659740), (0x661525, 0x6615a6), (0x6697e3, 0x6698b4), (0x66a5c4, 0x66aa61)])
 WINDOW, OTHER, OBJ98, OBJ9C, VT98, VT9C = RAM, RAM + 0x180, RAM + 0x300, RAM + 0x340, RAM + 0x380, RAM + 0x400
 PARENT, VTW, VTO, PTRS = RAM + 0x480, RAM + 0x500, RAM + 0x580, RAM + 0x600
 
@@ -57,7 +59,7 @@ def case(r):
     vt9c = vtable({}, size=8)
     put(vt9c, 0xc, 'I', recorder(22, 2))
     regions.update({VT98: vtable({3: 2}, size=8), VT9C: vt9c, OBJ98: put(bytearray(r.bytes(0x20)), 0, 'I', VT98),
-                    OBJ9C: put(bytearray(r.bytes(0x20)), 0, 'I', VT9C), PARENT: r.bytes(0x120)})
+                    OBJ9C: put(bytearray(r.bytes(0x20)), 0, 'I', VT9C), PARENT: put(bytearray(r.bytes(0x120)), 4, 'B', r.choice([0, 0, 0, 1]))})
     for off, obj in ((0x98, OBJ98), (0x9c, OBJ9C)):
         put(w, off, 'I', obj if r.random() < 0.8 else 0)
     put(w, 0x60, 'I', r.choice([PARENT, PARENT, 0]))
@@ -65,6 +67,12 @@ def case(r):
     blob_bytes(log, 3, 1, 0xf)
     blob_bytes(log, 22, 1, 0xf)
     queues(r, regions)
+    if op == 'Nudge':
+        put(w, 0x148, 'I', r.choice([1, 1, 1, small(r)]))
+        put(w, 0x14c, 'I', r.choice([1, 1, 2, r.randrange(1, 25), r.getrandbits(32)]))
+        put(w, 0x150, 'I', r.choice([1, 10, 100, small(r)]))
+        mode = r.choice([0, 1, 2, 3, 4, 4, 5, 5, r.randrange(6, 0x10000)]) | r.choice([0, r.getrandbits(16)]) << 16
+        return Call(CALLS[op], [WINDOW, mode], regions, conv='t', ret='v')
     value = w[0x140] | w[0x141] << 8 | w[0x142] << 16 | w[0x143] << 24 if r.random() < 0.3 else small(r)
     return Call(CALLS[op], [WINDOW, value], regions, conv='t', ret='w')
 
