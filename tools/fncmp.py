@@ -39,6 +39,9 @@ call through slot k with n stack arguments (thiscall, the callee pops them) appe
 them, in both the driver and the emulator, so a function that calls virtual methods can be compared without the game's classes. A case can make slot k return a value
 of its own instead of the hash: set_return(log, k, value) on the log region.
 
+A slot can be a sequenced read (seq_read(log, k, ...)): each call copies the next slice of a byte string the case maps to its buffer argument, as
+a file's ReadFile or a source's read would, so code that reads a file record by record can be compared.
+
 COM-style slots (stdcall, `this` the first stack argument, ECX undefined) are vtable(com={slot: stack arguments including this}): they log this as 0 and k | 0x100.
 
 A case can hand the code a heap (heap() is its region at HEAP): the same bump allocator in
@@ -471,6 +474,31 @@ LOG_FILL = 0xb00  # two fills (+ 0x80 the second): (k | 0x80000000, argument, le
 LOG_BYTES = 0xc00  # from here a mask for each slot: BYTE arguments, logged as their low byte (the rest of the pushed register is not the callee's)
 LOG_BLOBS = 0xd00  # from here two dwords for each slot: an argument + 1 and a dword mask; that argument is logged as a hash of the dwords it selects (see blob())
 LOG_ZLIB = 0xf00  # the zlib stand-ins' overrides: the inits', deflate's, inflate's (a flag and a value each, see zlib_results())
+LOG_SEQ = 0xf40  # a sequenced read: (k | 0x80000000, buffer argument, count argument, done argument + 1, data address, length, cursor, flags) (see seq_read())
+
+
+def seq_read(log, k, data_at, length, buffer=0, count=1, done=None, returns=True):
+    """Makes slot k's recorder a sequenced read (a file's ReadFile, a source's read): each call copies the next `count` argument's bytes of the data
+    (length bytes at data_at, a region the case maps; fewer at its end, none for a negative count or a null buffer) to its `buffer` argument, moves the
+    cursor (the log's LOG_SEQ + 0x18) on, writes the bytes copied through its `done` argument (unless None or null) and, when `returns`, answers them."""
+    struct.pack_into('<8I', log, LOG_SEQ, (k & 63) | 0x80000000, buffer, count, 0 if done is None else done + 1, data_at, length, 0, int(returns))
+
+
+def _seq_read(e, k, raw):
+    """(driver.cpp record_call) Slot k's sequenced read, if it has one: (applied, the bytes copied)."""
+    fk, buf_i, count_i, done_i, at, length, cursor, flags = struct.unpack('<8I', e.read(LOG + LOG_SEQ, 32))
+    n = len(raw)
+    if fk != (k & 63) | 0x80000000 or buf_i >= n or count_i >= n:
+        return False, flags
+    buffer, count = raw[buf_i], raw[count_i]
+    copied = 0
+    if buffer and 0 < count < 0x80000000 and cursor < length:
+        copied = min(count, length - cursor)
+        e.write(buffer, e.read(at + cursor, copied))
+    e.write(LOG + LOG_SEQ + 0x18, struct.pack('<I', (cursor + copied) & 0xffffffff))
+    if done_i and done_i <= n and raw[done_i - 1]:
+        e.write(raw[done_i - 1], struct.pack('<I', copied))
+    return bool(flags & 1), copied
 
 
 def strings(log, k, mask, out=0):
@@ -610,6 +638,7 @@ def _recorder(k, n, com=False, cdecl=False):
         this = 0 if com or cdecl else e.r['ECX']
         kk = k | 0x100 if com else k | 0x200 if cdecl else k
         args = _log_args(e, k, raw)
+        returns_copied, copied = _seq_read(e, k, raw)
         earlier = logged_calls(e.read, kk)
         count = e.u32(LOG)
         if count < LOG_ENTRIES:
@@ -617,7 +646,7 @@ def _recorder(k, n, com=False, cdecl=False):
             e.write(entry, struct.pack('<%dI' % LOG_ENTRY, kk, n, this, *(args + [0] * 7)[:7], tail_hash(args), 0))
             e.write(LOG, struct.pack('<I', count + 1))
         flag, value = struct.unpack('<2I', e.read(LOG + LOG_RETURNS + 8 * k, 8))
-        e.r['EAX'] = answer(flag, value, raw, n, vhash(kk, n, this, args), earlier)
+        e.r['EAX'] = copied if returns_copied else answer(flag, value, raw, n, vhash(kk, n, this, args), earlier)
         if cdecl:  # (the caller pops them)
             return
         if e.tail:  # the return address goes up over the arguments the callee would have popped

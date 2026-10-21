@@ -397,6 +397,19 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
         if (mask >> (16 + i) & 1) args[i] = 0;
         if (log[0x300 + (k & 63)] >> i & 1) args[i] &= 0xff;
     }
+    // A sequenced read at + 0xf40 (fncmp.seq_read()): (k | 0x80000000, the buffer argument, the count argument, the done argument + 1 or 0, the data's
+    // address, its length, the cursor, flags): each call copies the next count bytes of the data (fewer at its end, none for a negative count or a null
+    // buffer) to the buffer, moves the cursor on, writes the bytes copied through the done argument (unless null) and, with flags bit 0, returns them.
+    u32 *const seq = log + 0x3d0;
+    u32 copied = 0;
+    const bool sequenced = seq[0] == ((k & 63) | 0x80000000u) && seq[1] < n && seq[2] < n;
+    if (sequenced) {
+        const u32 buffer = stack[1 + seq[1]], count = stack[1 + seq[2]];
+        if (buffer && (s32)count > 0 && seq[6] < seq[5]) copied = count < seq[5] - seq[6] ? count : seq[5] - seq[6];
+        if (copied) std::memcpy(reinterpret_cast<void *>((uintptr_t)buffer), reinterpret_cast<const void *>((uintptr_t)(seq[4] + seq[6])), copied);
+        seq[6] += copied;
+        if (seq[3] && seq[3] <= n && stack[seq[3]]) std::memcpy(reinterpret_cast<void *>((uintptr_t)stack[seq[3]]), &copied, 4);
+    }
     u32 earlier = 0;  // (this slot's calls in the log so far: fncmp.fail_after())
     for (u32 i = 0; i < log[0] && i < 40; ++i) earlier += log[1 + 12 * i] == k;
     if (log[0] < 40) {
@@ -417,6 +430,7 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
     u32 h = self * 0x9e3779b1u + (k + 1) * 0x10001u + n;
     for (u32 i = 0; i < n; ++i) h = h * 33 ^ args[i];
     const u32 *override = log + 0x200 + 2 * (k & 63);  // (LOG_RETURNS: a flag and a value for the slot; flag 2: argument value, as passed;
+    if (sequenced && (seq[7] & 1)) return copied;
     if (override[0] == 3)                               //  3: the first value & 0xffff calls unanswered, then value >> 16 sign-extended)
         return earlier < (override[1] & 0xffff) ? h : (u32)(s32)(s16)(override[1] >> 16);
     return override[0] == 2 && override[1] < n ? stack[1 + override[1]] : override[0] ? override[1] : h;
