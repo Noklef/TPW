@@ -7,18 +7,21 @@
 # Surface (Terrain_SurfaceHeight 0x452ae0, over Terrain_HeightAt 0x4527f0): that world with a slot (null, 0, a ride or a bad index), the
 # rides' records present or not, with height maps or not, their origins about the cell's position (now and then NaN or off by a little
 # more), turned 0, 90, 180, 270 or otherwise; the ground a 16 x 8 grid of 10-unit cells.
-# usage: rideat.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
+# Rounded (Terrain_RoundedCellHeight 0x536ca0, over Map_StepCell): Surface's world and heights, the 0x44-byte cells' first words their own
+# ids mostly, their types the counted ones or others; the pairs at 0x7cdba0-0x7cdbd8 steps of -1 to 1; a cell in rows 1-2 (its own x and y
+# mostly), any height; Map_StepCell's world pointer (0x80239c) the same world.
+# usage: rideat.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Index,At,Surface,Rounded)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from fncmp import RAM, Bench, Call, put  # noqa: E402
+from fncmp import RAM, Bench, Call, fb, put  # noqa: E402
 
 B = Bench([(0x452a60, 0x452ad7), (0x450ac0, 0x450b00), (0x53bf30, 0x53bfa0), (0x527e80, 0x527ed8), (0x527d60, 0x527e76),
            (0x4d99e0, 0x4d9a5b), (0x4d8300, 0x4d8328), (0x5da3c0, 0x5da3c1), (0x452ae0, 0x452c97),
-           (0x4527f0, 0x452a70)])
+           (0x4527f0, 0x452a70), (0x536ca0, 0x5370dd), (0x4d96f0, 0x4d97b0), (0x4d97b0, 0x4d97e0), (0x4d99c0, 0x4d99e0)])
 WORLD = 0x32000000
 IDS = 0x220   # cell ids 0 - 0x21f: rows 0 - 3 and a little past
 THINGS, MAP, GRID = RAM, RAM + 0x4000, RAM + 0x4100
@@ -126,7 +129,25 @@ def surface(r):
     return Call(0x452ae0, [x & 0xffffffff, y, slot], regions, ret='d')
 
 
-CASES = {'Index': ride_index, 'At': ride_at, 'Surface': surface}
+def rounded(r):
+    c = surface(r)
+    regions = c.regions
+    c44 = regions[WORLD + 0x294]
+    for k in range(IDS):
+        if r.random() < 0.9:
+            put(c44, 0x44 * k, 'H', k)
+        put(c44, 0x44 * k + 8, 'I', r.choice([4, 9, 0xa, 0xb, 7, 0x10, 0x19, 0, 3, 0x11, r.getrandbits(32)]))
+    pairs = bytearray(0x38)
+    for k in range(0, 0x38, 4):
+        put(pairs, k, 'i', r.choice([-1, 0, 1, 1, -1]))
+    regions[0x7cdba0] = pairs
+    regions[0x80239c] = struct.pack('<I', WORLD)   # (Map_StepCell's world)
+    x, y = r.choice([0, 1, 5, 0x7e, 0x7f, r.randrange(0x80), r.randrange(0x12)]), r.choice([1, 2])
+    cx, cy = (x, y) if r.random() < 0.8 else cell(r)
+    return Call(0x536ca0, [WORLD + 0x294 + 0x44 * ((y << 7) + x + 1), r.f() if r.random() < 0.3 else fb(r.uniform(-500, 500)), cx & 0xffffffff, cy], regions, ret='d')
+
+
+CASES = {'Index': ride_index, 'At': ride_at, 'Surface': surface, 'Rounded': rounded}
 
 
 def case(r):

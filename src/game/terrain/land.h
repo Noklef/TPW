@@ -139,4 +139,11 @@ double __cdecl Terrain_FootprintHeight(s32 x, s32 y, const u8 *cells, s32 width,
 // times __ftol(v -0.1) less __ftol(u -0.1), times 100 / 255 plus the origin's +0x44. Otherwise *slot = 0 and 0 when slot is given, else
 // Terrain_HeightAt of the position.
 double __cdecl Terrain_SurfaceHeight(s32 x, s32 y, u32 *slot);
+
+// 0x536ca0 (cdecl; cell, height, x, y; float in st0; name unconfirmed): the height a 0x44-byte cell and three of its neighbours give,
+// rounded up to tens. When the cell's type (+8) is 0xb, 0x10, 0x19, 7, 4, 9 or 0xa, height = ((__ftol(Terrain_SurfaceHeight(x, y, null)) + 9)
+// / 10 (signed)) * 10 (0x700d94; fild, fmul). Then for the (dx, dy) pairs at 0x7cdba8, 0x7cdbc8 and 0x7cdbb8 in turn, the cell
+// Map_StepCell(cell, dx, dy, 1) gives (none: skipped) does the same with its own id's x and y ((id - 1) & 0x7f, (id - 1) >> 7, 32-bit).
+// Returns the last height.
+float __cdecl Terrain_RoundedCellHeight(const u8 *cell, float height, s32 x, s32 y);
 }

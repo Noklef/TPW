@@ -517,4 +517,23 @@ double __cdecl Terrain_SurfaceHeight(s32 x, s32 y, u32 *slot) {
     }
     return Terrain_HeightAt(fx, fy);
 }
+
+float __cdecl Terrain_RoundedCellHeight(const u8 *cell, float height, s32 x, s32 y) {
+    const auto counts = [](u32 type) { return type == 0xb || type == 0x10 || type == 0x19 || type == 7 || type == 4 || type == 9 || type == 0xa; };
+    const auto rounded = [](s32 cx, s32 cy) {
+        const s32 n = (s32)(long long)Terrain_SurfaceHeight(cx, cy, nullptr);   // (__ftol)
+        const s32 tens = (s32)((u32)n + 9) / 10;
+        return (float)(X87Reg((double)tens) * X87Reg(10.0f));   // 0x700d94
+    };
+    if (counts(at<u32>(cell, 8))) height = rounded(x, y);
+    const uintptr_t pairs[3] = {0x007cdba8, 0x007cdbc8, 0x007cdbb8};
+    for (const uintptr_t pair : pairs) {
+        const s32 *const step = reinterpret_cast<const s32 *>(pair);
+        const u8 *const next = Map_StepCell(reinterpret_cast<const u16 *>(cell), nullptr, step[0], step[1], 1);
+        if (!next) continue;
+        const u32 id = (u32)*reinterpret_cast<const u16 *>(next) - 1;
+        if (counts(at<u32>(next, 8))) height = rounded((s32)(id & 0x7f), (s32)(id >> 7));
+    }
+    return height;
+}
 }
