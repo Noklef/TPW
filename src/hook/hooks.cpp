@@ -141,6 +141,7 @@
 #include "../game/gfx/refblock.h"
 #include "../game/gfx/signstyle.h"
 #include "../game/gfx/tgqvideo.h"
+#include "../game/gfx/tqivideo.h"
 #include "../game/gfx/wctimage.h"
 #include "../game/core/crt.h"
 #include "../game/core/gameheap.h"
@@ -4429,6 +4430,7 @@ const Hook kHooks[] = {
     {"MmxBlit_Copy32",            0x00678c20, (void *)&MmxBlit_Copy32, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
     {"MmxBlit_Dither16",          0x00678d70, (void *)&MmxBlit_Dither16, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
     {"MmxBlit_Convert16",         0x006787f0, (void *)&MmxBlit_Convert16, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"TqiVideo_SetQuality",       0x006710c0, (void *)&TqiVideo_SetQuality, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
