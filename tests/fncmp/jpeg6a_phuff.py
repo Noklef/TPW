@@ -163,6 +163,10 @@ def mcu(addr):
     def op(r):
         regs = common(r)
         mcu_blocks(r, regs)
+        if addr == 0x6530f4 and r.random() < 0.2:
+            # (BE at its limit and blocks with nothing to code: the EOB run grows, BE stays 937, the flush test's boundary)
+            struct.pack_into('<I', regs[ENT], 0x3c, 937)
+            regs[BLOCKS] = bytes(0x80 * 10)
         return Call(addr, [CINFO, MCUP], regs, ret='a')
     return op
 
