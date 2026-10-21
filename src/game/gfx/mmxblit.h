@@ -1,6 +1,6 @@
 // The software renderer's picture copies to the screen surface (hand-written MMX assembly: MOVQ moves, EMMS at the end; called from
-// 0x573d00's present). The MMX arithmetic is done on 64-bit integers lane by lane. Reimplementation of 0x678790, 0x678c20 and
-// 0x678d70. The names are unconfirmed.
+// 0x573d00's present). The MMX arithmetic is done on 64-bit integers lane by lane. Reimplementation of 0x678790, 0x678c20,
+// 0x678d70 and 0x6787f0. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -28,4 +28,16 @@ void __cdecl MmxBlit_Copy32(u8 *source, u8 *out, u32 width, u32 rows, s32 source
 // (dwords; the three masks read once), each dword's low word paired with the next's (q | q >> 16) and the two qwords' low dwords
 // written. The next pass's 16 bytes are read before this pass's 8 are written, so each row reads 16 bytes past its end (sic).
 void __cdecl MmxBlit_Dither16(const u8 *source, u8 *out, u32 width, u32 rows, s32 sourcePitch, s32 outPitch);
+
+// 0x6787f0 (cdecl (source, out, width, rows, source pitch, out pitch, depth, depth pitch, clear, fill); name unconfirmed): 32-bit
+// pixels to 16 bits, dithered, as MmxBlit_Dither16 but with the source, out and depth pointers moved to the row's end (by width * 4,
+// * 2, * 2) and indexed by a count from -width (0xfab4d8, read again each row) up by 4 while below 0 (signed, tested after each pass);
+// rows until the count from 0 equals 0xfab4fc (read again each row; 0 runs 2^32 times, sic); 0xfab4b4 the depth pitch. With
+// [0xfbe058] = 5 (read once) the halves (q & [0xfbe1a0]) | (q & [0xfbe198]) PMADDWD [0xfbe190], >> 6, PACKSSDW, one pass behind its
+// reads: the last pass's group written over the row's last 8 bytes, so with a width of 4 or less that is the group past the row's end
+// (sic); else (q & [0xfbe198]) PMADDWD >> 6 | (q & [0xfbe1a0]) >> 5, paired as in MmxBlit_Dither16, each pass reading the next group.
+// With clear's low byte set the fill (into 0xfac51c and 0xfac518, read back as the qword) is written over each source group read and
+// the qword 0x77e580 into the depth's 8 bytes a pass, the dither then going through 0xfab4e0 / 0xfab4e8 as in MmxBlit_Dither16.
+void __cdecl MmxBlit_Convert16(u8 *source, u8 *out, u32 width, u32 rows, s32 sourcePitch, s32 outPitch, u8 *depth, u32 depthPitch,
+                               u32 clear, u32 fill);
 }
