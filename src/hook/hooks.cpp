@@ -332,6 +332,7 @@
 #include "../game/render/worldview.h"
 #include "../game/online/servers.h"
 #include "../game/frontend/helpbg.h"
+#include "../game/frontend/islandcamera.h"
 #include "../game/frontend/lobbymodel.h"
 #include "../game/frontend/lobbyscene.h"
 #include "../game/frontend/viewcontrols.h"
@@ -4754,6 +4755,7 @@ const Hook kHooks[] = {
     {"Scene702dd0_HideDialog",    0x005e2640, (void *)&Scene702dd0_HideDialog, {0xe9, 0xeb, 0x61, 0xed, 0xff}},
     {"Scene702dd0_ShowDialogCallback", 0x005e2650, (void *)&Scene702dd0_ShowDialogCallback, {0xe9, 0xbb, 0x61, 0xed, 0xff}},
     {"Scene702dd0_DialogDone",    0x005e2660, (void *)&Scene702dd0_DialogDone, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"IslandCamera_LoadSettings", 0x005e2cc0, (void *)&IslandCamera_LoadSettings, {0x6a, 0xff, 0x68, 0x8b, 0x16}},
     {"RSSE_Init",                 0x00551600, (void *)&RSSE_Init, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
     {"RsseScript_EventName",      0x00468600, (void *)&RsseScript_EventName, {0x53, 0x55, 0x56, 0x8b, 0x74}},
     {"RSSE_StartTimer",           0x00557160, (void *)&RSSE_StartTimer, {0xb9, 0x70, 0x59, 0x78, 0x00}},

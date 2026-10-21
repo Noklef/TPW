@@ -5081,6 +5081,7 @@ address,name,kind,confidence,notes
 0x005e2640,Scene702dd0_HideDialog,function,low,"reimplemented (src/game/frontend/viewcontrols); Class702dd0 slot 11 (thiscall, self unused): Dialog7cc47c_Message6Off's result"
 0x005e2650,Scene702dd0_ShowDialogCallback,function,low,reimplemented (src/game/frontend/viewcontrols); cdecl callback of Class702dd0 slot 17 for 0x4c0ae0: Dialog7cc47c_Message6On's result
 0x005e2660,Scene702dd0_DialogDone,function,low,"reimplemented (src/game/frontend/viewcontrols); cdecl (accepted, self) callback of Class702dd0 slot 17: 0 calls self slot 0x44; else state +0x14 2 plays the +0xc +8 lobby model, +0x14 = 0, Dialog7cc47c_Message6On"
+0x005e2cc0,IslandCamera_LoadSettings,function,low,"reimplemented (src/game/frontend/islandcamera); thiscall: the lobby island camera settings read from a text file (FOV, spin, radii, ten camera positions)"
 0x0065d7d0,Window_FindChild,function,low,"reimplemented (src/game/ui/window); thiscall (id), pops 4: the first child of the window (list +0x5c, next +0x54) whose id (+0x8c) is id, or 0"
 0x0065f697,Window_CallHandler,function,low,"reimplemented (src/game/ui/window); thiscall (message, a, b), pops 12: the cdecl handler at +0x114 called with (window, message, a, b), its result; -1 when none"
 0x00658d9f,Window_SendMessage,function,low,"reimplemented (src/game/ui/window); cdecl (window, message, a, b): -1 for no window or byte +4 set; else the hook [0xfaa5fc] (if set) then Window_CallHandler"

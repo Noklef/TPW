@@ -357,6 +357,7 @@ add_library(tpw_game STATIC
     src/game/online/chat.cpp
     src/game/frontend/lobbymodel.cpp
     src/game/frontend/helpbg.cpp
+    src/game/frontend/islandcamera.cpp
     src/game/frontend/lobbyscene.cpp
     src/game/frontend/viewcontrols.cpp
     src/game/input/mouse.cpp
