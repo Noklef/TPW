@@ -169,6 +169,7 @@
 #include "../game/core/timesig.h"
 #include "../game/core/countedpair.h"
 #include "../game/core/keyactions.h"
+#include "../game/core/refcounted.h"
 #include "../game/core/sharedglobals.h"
 #include "../game/core/soundbank.h"
 #include "../game/core/soundcategory.h"
@@ -4204,6 +4205,10 @@ const Hook kHooks[] = {
     {"SoundCategory_FindBank",    0x006bfa60, (void *)&SoundCategory_FindBank, {0x6a, 0xff, 0x68, 0x8b, 0x5f}},
     {"Bank_Dtor",                 0x006c01b0, (void *)&Bank_Dtor, {0x6a, 0xff, 0x68, 0xf3, 0x5f}},
     {"Bank_DeletingDtor",         0x006c0190, (void *)&Bank_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"SoundCategory_ReadBankMap", 0x006bfe40, (void *)&SoundCategory_ReadBankMap, {0x6a, 0xff, 0x68, 0xce, 0x5f}},
+    {"SoundCategory_LoadBankMap", 0x006c0210, (void *)&SoundCategory_LoadBankMap, {0x6a, 0xff, 0x68, 0x18, 0x60}},
+    {"Class703770_AddRef",        0x006338c0, (void *)&Class703770_AddRef, {0x83, 0xc1, 0x04, 0x51, 0xff}},
+    {"Class703770_Release",       0x006338d0, (void *)&Class703770_Release, {0x56, 0x8b, 0xf1, 0x57, 0x8d}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

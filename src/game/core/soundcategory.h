@@ -1,5 +1,5 @@
 // A sound category (the statically linked sound library's: cat_<name>BANK.map and cat_<name>SFX.map, tools/sndmap.py): reimplementation of its
-// map loading, 0x6bd7a0, 0x6bf150-0x6bf31b, 0x6bf850-0x6bfe0d, 0x6c0190-0x6c01ff and 0x6c0360-0x6c0850 (the SFX.map header check 0x6c0310 is Obj_CheckId, core/methods).
+// map loading, 0x6bd7a0, 0x6bf150-0x6bf31b, 0x6bf850-0x6c017f, 0x6c0190-0x6c0302 and 0x6c0360-0x6c0850 (the SFX.map header check 0x6c0310 is Obj_CheckId, core/methods).
 //
 // The category object: +0x30 a Handle (the folder its maps are opened in), three std::deque<u32> (dequeiter.h's layout) at +0x38 (A: each
 // category's record, a 0x34-byte object whose +0x24 is a PtrList of the banks its sounds use), +0x68 (B: the banks) and +0x98 (C: the BANK.map's
@@ -76,6 +76,19 @@ s32 *__fastcall SoundCategory_SetFolder(u8 *category, void *, s32 *result, const
 // AssignWide): equal, found gets that Handle (found->found = 1; found->found is cleared first). Then the bank's name (+0xc) is appended to its path
 // and path to the folder: equal, the bank's index is pushed onto deque C, *index = it and the result is false. True when no bank matched.
 bool __fastcall SoundCategory_FindBank(u8 *category, void *, u32 *index, const char *path, const String *folder, BankFolder *found);
+
+// 0x6bfe40 (thiscall; &result, stream, folder (chars), pops 0xc; name unconfirmed): BANK.map read: its 0x14-byte header (the BANK GUID at
+// 0x70a938, else nothing more), 8 bytes (a dword and the entry count), then the entries (SoundCategory_ReadBankEntries). For each entry a String of
+// the folder (with its flag 0x20: the String at the sound system's (*0xfb1ffc) +0x30 and "Global\") is given to SoundCategory_FindBank with the
+// entry's path: a bank found is AddRef'd (its vtable +4); else a new bank (vtable 0x70a960; its name the path, its flags the entry's +9) gets the
+// folder opened (SoundCategory_OpenBankFolder) and, when that worked, the Handle, the first free slot of deque B (or the back) and that slot's index
+// pushed onto deque C (a bank whose folder did not open is left, sic). The entries' block is freed. *result = 0 always. Returns result.
+s32 *__fastcall SoundCategory_ReadBankMap(u8 *category, void *, s32 *result, StreamBase *stream, const char *folder);
+
+// 0x6c0210 (thiscall; &result, name, unused, pops 0xc; name unconfirmed): a stream opened on name through the Handle at +0x30 (its vtable +0xc:
+// &status, &stream, name, 0x80000001, 0); when the status is not negative, the Handle's path (vtable +0x10 into a String, an empty String the
+// second argument) is the folder SoundCategory_ReadBankMap reads it in, and the stream is closed. *result = 0 always. Returns result.
+s32 *__fastcall SoundCategory_LoadBankMap(u8 *category, void *, s32 *result, const char *name, u32);
 
 // 0x6c01b0 (thiscall; name unconfirmed): a bank (0x2c bytes, vtable 0x70a960: Release 0x6338d0, AddRef 0x6338c0 and this; +4 its count, +8, +0xc
 // its name (a String), +0x20 its BANK.map flags, +0x24 its folder's Handle) destroyed: the Handle, the name, then the base vtable 0x703770.

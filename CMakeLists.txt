@@ -158,6 +158,7 @@ add_library(tpw_game STATIC
     src/game/core/soundvoice.cpp
     src/game/core/soundeax.cpp
     src/game/core/soundcategory.cpp
+    src/game/core/refcounted.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
