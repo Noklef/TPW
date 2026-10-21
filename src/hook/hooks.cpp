@@ -3899,6 +3899,8 @@ const Hook kHooks[] = {
     {"NamedObjects_AddName",      0x00409620, (void *)&NamedObjects_AddName, {0x6a, 0xff, 0x68, 0xdb, 0x7b}},
     {"NamedObjects_SetThemeLabel", 0x00409a30, (void *)&NamedObjects_SetThemeLabel, {0x6a, 0xff, 0x68, 0x18, 0x7c}},
     {"NamedObjects_SetThemeLabelAnsi", 0x004099b0, (void *)&NamedObjects_SetThemeLabelAnsi, {0x6a, 0xff, 0x68, 0xf8, 0x7b}},
+    {"NamedObjects_AddFolders",   0x004088a0, (void *)&NamedObjects_AddFolders, {0x6a, 0xff, 0x68, 0x72, 0x7b}},
+    {"NamedObjects_AddListedFolders", 0x004081e0, (void *)&NamedObjects_AddListedFolders, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Save_FieldName",            0x00416e10, (void *)&Save_FieldName, {0x33, 0xc0, 0xc2, 0x0c, 0x00}},
     {"Save_InitUnusedOne",        0x00416e20, (void *)&Save_InitUnusedOne, {0x51, 0xc7, 0x44, 0x24, 0x00}},
     {"Save_InitUnusedEpsilon",    0x00416e40, (void *)&Save_InitUnusedEpsilon, {0xd9, 0x05, 0x8c, 0xd9, 0x6f}},

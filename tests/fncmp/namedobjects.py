@@ -7,12 +7,16 @@
 # And its sorted add 0x409620: a name (a String) into an owned list of 0 to 5 named Strings (sorted or not, near misses, the count short of it
 # or not, now and then holding the block the new String will get, now and then a count with no head), allocations failing now and then.
 # And the owner's frame update 0x409260 (the game clock's step and the flags 0x7a1a14), and its theme labels 0x409a30 / 0x4099b0 (see theme()).
-# usage: namedobjects.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Remove,Ctor,Dtor,Static,Add,Flags,Theme,ThemeAnsi)
+# And its folders 0x4088a0 and 0x4081e0 (see mounts(): the whole chain below runs, the constructors, AddFolderAndWad with fileopen.py's imports, the adds).
+# usage: namedobjects.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Remove,Ctor,Dtor,Static,Add,Flags,Theme,ThemeAnsi,Folders,Listed)
 import os
 import struct
 import sys
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
+sys.path.insert(0, HERE)
+import fileopen  # noqa: E402
 from fncmp import HEAP, IMPORT_TABLE, LOG, Bench, Call, RAM, fill, global_heap, heap, import_table, log_region, put, set_return, vtable  # noqa: E402
 
 
@@ -25,7 +29,8 @@ B = Bench([(0x408f00, 0x40914f), (0x421770, 0x4217e0), (0x421690, 0x421720), (0x
            (0x407b80, 0x407b8a), (0x407b90, 0x407c2e), (0x407c90, 0x407d79), (0x421510, 0x421588), (0x5da3c0, 0x5da3c1),
            (0x409620, 0x40978d), (0x424cc0, 0x424ce2), (0x5e2a30, 0x5e2a7e),
            (0x409260, 0x409296), (0x402ef0, 0x402f10), (0x4030c0, 0x4030c4),
-           (0x4099b0, 0x409b0b), (0x424d10, 0x424d2e), (0x424e10, 0x424e6e), (0x485ac0, 0x485af4), (0x6ace60, 0x6acea0), (0x6adc80, 0x6add25), (0x5f5660, 0x5f5690)],
+           (0x4099b0, 0x409b0b), (0x424d10, 0x424d2e), (0x424e10, 0x424e6e), (0x485ac0, 0x485af4), (0x6ace60, 0x6acea0), (0x6adc80, 0x6add25), (0x5f5660, 0x5f5690),
+           (0x4088a0, 0x408ef8), (0x4081e0, 0x408464), (0x41d7c0, 0x41e250), (0x421590, 0x421630), (0x421680, 0x421690)] + fileopen.RANGES,
           hooks={0x691de0: lock, 0x691ea0: lambda e: None})
 NAMES = [0x786b68, 0x785e78, 0x785f98, 0x7862c8, 0x785f68, 0x7862f8, 0x786d10, 0x7866e8, 0x7862e0, 0x785ed8, 0x785f80, 0x786aa8, 0x786040, 0x7867d8]
 WORDS = [b'Font', b'Sky', b'Rides', b'Shops', b'Staff', b'Water', b'Lake', b'Paths', b'Fence', b'Trees', b'Rock', b'Hint', b'Map', b'Sound']
@@ -186,8 +191,82 @@ def theme(r, op):
     return Call(0x4099b0, [0x786b68, NAME, LABEL], regions, conv='t', ret='v')
 
 
+APPENDS = [0x7869d0, 0x7864f0, 0x7865f8, 0x786640, 0x786388, 0x785f38, 0x7868e0, 0x786778, 0x786af0, 0x7863b8, 0x786850, 0x7869a0, 0x7869b8]
+ROOT, SEEN, LISTED = RAM + 0x5000, RAM + 0x5100, RAM + 0x5200
+PARTS = [b'Fonts', b'data\\sky', b'Rides', b'x', b'', b'Lake\\']
+
+
+def mounts(r):
+    """The regions both folder ops share: the file imports as fileopen.py's, mostly failing (CreateFileA / GetFileAttributesA /
+    FindFirstFileA), now and then finding a folder or a WAD; the heap now and then failing an allocation (a failed object block:
+    AddFolderAndWad on a null object faults in both); ".wad", "\\" and the owner, whose registry ({list, cached}) has a list of 0-2
+    nodes or none (made by the first add)."""
+    log = log_region()
+    for imp, k in fileopen.K.items():
+        set_return(log, k, r.choice({'CreateFileA': [0xffffffff] * 3 + [0x77], 'GetFileAttributesA': [0xffffffff] * 3 + [0x10, 0x20],
+                                     'FindFirstFileA': [0xffffffff] * 3 + [0x99], 'ReadFile': [1, 0], 'GetFileSize': [0, 0x58],
+                                     'InterlockedDecrement': [0, 1], 'InterlockedIncrement': [1, 2], 'CreateSemaphoreA': [0, 0x44],
+                                     'mmioOpenA': [0, 0x66], 'IsDBCSLeadByte': [0], 'GetCommandLineA': [0]}.get(imp, [0, 1])))
+    fill(log, fileopen.K['ReadFile'], 1, bytes(fileopen.wad_header(r)), 0)
+    globals_ = bytearray(r.bytes(0x318))
+    globals_[0:8] = b'tp.exe\0\0'
+    globals_[0x108:0x10f] = b'C:\\tp\\\0'
+    regions = {HEAP: heap(0x40000, fail=r.randrange(1, 16) if r.random() < 0.08 else 0), LOG: log, IMPORT_TABLE: import_table(log, fileopen.IMPORTS),
+               fileopen.GLOBALS: globals_, fileopen.PATHS: r.bytes(0x210), 0xfb1440: bytes(4)}
+    string(regions, fileopen.WAD_EXT, b'.wad')
+    string(regions, fileopen.SLASH, b'\\' if r.random() < 0.95 else b'/')
+    n = r.choice([0, 0, 1, 2])
+    lst = bytearray(r.bytes(0x10))
+    put(lst, 0, 'IIII', 0x6fdb0c, NODES if n else 0, NODES + 0x10 * (n - 1) if n else 0, n)
+    nodes = bytearray(r.bytes(0x20))
+    for k in range(n):
+        put(nodes, 0x10 * k, 'III', SEEN + 0x40 * k, NODES + 0x10 * (k + 1) if k + 1 < n else 0, NODES + 0x10 * (k - 1) if k else 0)
+    ref = put(bytearray(r.bytes(0xc)), 0, 'I', LST if r.random() < 0.8 else 0)
+    o = put(bytearray(r.bytes(0x40)), 0x34, 'I', REF)
+    regions.update({REF: bytes(ref), LST: bytes(lst), NODES: bytes(nodes), SEEN: r.bytes(0x80), OWNER: bytes(o)})
+    return regions
+
+
+def wstring(regions, at, text):
+    regions[at] = struct.pack('<5I', 0x7030c8, len(text), at + 0x20, len(text) + 8, 8) + bytes(0xc) + wide(text) + bytes(8)
+
+
+def folders(r):
+    """0x4088a0 (mounts()): a root (a WString: a path ending in "\\" or not, or empty) and the globals' names and folder parts (Strings,
+    now and then empty)."""
+    regions = mounts(r)
+    for k, (at, word) in enumerate(zip(NAMES, WORDS)):
+        string(regions, at, varied(r, word).rstrip(bytes(1)) if r.random() < 0.95 else b'')
+    for at in APPENDS:
+        string(regions, at, r.choice(PARTS))
+    wstring(regions, ROOT, r.choice([b'C:\\tp\\data', b'C:\\tp\\data\\', b'data', b'', b'\\']))
+    return Call(0x4088a0, [OWNER, ROOT], regions, conv='t', ret='v')
+
+
+def listed(r):
+    """0x4081e0 (mounts()): a list at [0x786b90] of 0-3 names (Strings), the root at 0x785e48 (a WString, assigned to a String: its
+    bytes, sic), the three folder parts and names (Strings) and the second root 0xf816d4 (a String) for the third object's add."""
+    regions = mounts(r)
+    n = r.choice([0, 1, 1, 2, 3])
+    nodes = bytearray(r.bytes(0x20))
+    for k in range(n):
+        put(nodes, 8 * k, 'II', LISTED + 0x40 + 0x40 * k, LISTED + 8 * (k + 1) if k + 1 < n else 0)
+        string(regions, LISTED + 0x40 + 0x40 * k, r.choice([b'users', b'online', b'', b'a\\b']))
+    regions[LISTED] = bytes(nodes)
+    regions[0x786b90] = struct.pack('<I', LISTED if n else 0)
+    wstring(regions, 0x785e48, r.choice([b'C:\\tp', b'save\\', b'']))
+    for at in (0x786430, 0x785e90, 0x786670, 0x786a48, 0x786ce0, 0x7860e8):
+        string(regions, at, r.choice(PARTS))
+    string(regions, fileopen.ROOT2, r.choice([b'', b'C:\\tp', b'C:\\tp\\', b'data']))
+    return Call(0x4081e0, [OWNER], regions, conv='t', ret='v')
+
+
 def case(r):
     op = r.choice(OPS)
+    if op == 'Folders':
+        return folders(r)
+    if op == 'Listed':
+        return listed(r)
     if op in ('Theme', 'ThemeAnsi'):
         return theme(r, op)
     if op == 'Ctor':
@@ -205,7 +284,7 @@ def case(r):
     return remove(r)
 
 
-OPS = [k for k in os.environ.get('OPS', 'Remove,Ctor,Dtor,Static,Add,Flags,Theme,ThemeAnsi').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Remove,Ctor,Dtor,Static,Add,Flags,Theme,ThemeAnsi,Folders,Listed').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)
