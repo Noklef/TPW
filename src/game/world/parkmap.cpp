@@ -91,6 +91,15 @@ u8 *new_inline_sprite(u32 image, u32 a, u32 c, float size) {
     return sprite;
 }
 
+
+// One coordinate of the origin kept for ParkMap_Scroll: below the floor [0x703010] or a NaN the floor, past limit (the integer, compared
+// exactly) the limit rounded to a float.
+float clamp_scroll(float v, s32 limit) {
+    const float floor = global<float>(0x00703010);
+    if (!(v >= floor)) return X87_Through(floor);
+    return (double)v <= (double)limit ? v : (float)limit;
+}
+
 }  // namespace
 
 extern "C" {
@@ -298,6 +307,20 @@ void __fastcall ParkMap_AddSprites(u8 *map) {
         }
         h = at<u16>(t, 0xc);
     }
+}
+
+void __fastcall ParkMap_Scroll(u8 *map, void *, u32 direction, float amount) {
+    float &x = at<float>(map, 0x54), &y = at<float>(map, 0x58);
+    switch (direction) {
+    case 0: x = static_cast<float>(X87Reg(x) - amount); break;
+    case 1: x = static_cast<float>(X87Reg(amount) + x); break;
+    case 2: y = static_cast<float>(X87Reg(amount) + y); break;
+    case 3: y = static_cast<float>(X87Reg(y) - amount); break;
+    default: break;
+    }
+    x = clamp_scroll(x, (s32)(at<u32>(map, 0x24) - 1));
+    y = clamp_scroll(y, (s32)(at<u32>(map, 0x28) - 1));
+    ParkMap_LayOut(map);
 }
 
 }  // extern "C"

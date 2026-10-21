@@ -4,8 +4,8 @@
 # thing lists (heads at +0x24, linked by +0xa without cycles) over the park of thingenv (things of models 3 mostly, definitions found by id whose
 # map kind +0x4ac is 0 to 3 mostly) and the entries' old contents random. The sprite placed on it (0x5f4180): see place(). The view
 # origin applied (0x5f1050): see view(). The overview laid out (0x5f3230): see lay_out(). Its sprites added (0x5f3940): see
-# add_sprites().
-# usage: parkmap.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Classify,PlaceSprite,ApplyView,LayOut,AddSprites)
+# add_sprites(). The view scrolled (0x5f35b0): see scroll().
+# usage: parkmap.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Classify,PlaceSprite,ApplyView,LayOut,AddSprites,Scroll)
 import os
 import struct
 import sys
@@ -20,10 +20,10 @@ B = Bench([(0x5f2050, 0x5f2363), (0x536310, 0x536490), (0x535db0, 0x535dd0), (0x
            (0x5f1050, 0x5f1123), (0x42aab0, 0x42ab1d), (0x658d9f, 0x658e04), (0x659710, 0x659740), (0x67a830, 0x67a860),
            (0x65d7bc, 0x65d832), (0x65f697, 0x65f6e1), (0x5f3230, 0x5f35aa), (0x577940, 0x577990),
            (0x5f3940, 0x5f4175), (0x516130, 0x516160), (0x516160, 0x5161b0), (0x50b350, 0x50b360), (0x56af20, 0x56afa0), (0x4e2650, 0x4e266d), (0x5f4370, 0x5f43fa), (0x56b4c0, 0x56b56e),
-           (0x588d70, 0x588d90), (0x5e42d0, 0x5e4320), (0x5f4490, 0x5f44d0), (0x67a830, 0x67a860)])
+           (0x588d70, 0x588d90), (0x5e42d0, 0x5e4320), (0x5f4490, 0x5f44d0), (0x67a830, 0x67a860), (0x5f35b0, 0x5f366c)])
 MAP = RAM + 0x40000
 SPRITE, FRAME, ARRAY, KEYS, WINDOW = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400
-OPS = [k for k in os.environ.get('OPS', 'Classify,PlaceSprite,ApplyView,LayOut,AddSprites').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Classify,PlaceSprite,ApplyView,LayOut,AddSprites,Scroll').split(',') if k]
 WORLD = RAM + 0x80000
 CELL_TYPES = [0, 1, 2, 3, 4, 9, 0xa, 0x15, 0xb, 0xd, 0x10, 0x19, 0xc, 0x5, 0x1e, 0x104]
 ENTRY_TYPES = [0xb, 0xd, 0x10, 0x12, 0x19, 0xc, 0x11, 0xc, 0x11, 0x19, 0, 1, 0xe, 0x10b]
@@ -91,6 +91,22 @@ def lay_out(r):
     regions[MAP + 0x20080] = struct.pack('<I', LIST)
     regions[0x87aee8] = r.bytes(0x40)
     return Call(0x5f3230, [MAP], regions, conv='t', ret='v')
+
+
+def scroll(r):
+    # Scroll: lay_out()'s case, the width and height (+0x24, +0x28) now and then small or anything, the origin about 0 and the limits; a
+    # direction 0-3 mostly, the amount small, about the edges, NaN or infinite.
+    c = lay_out(r)
+    regions = dict(c.regions)
+    m = bytearray(regions[MAP])
+    if r.random() < 0.5:
+        w, h = (r.choice([1, 2, 0x80, 0x81, 0, 0x1000003, r.getrandbits(32)]) for _ in range(2))
+        put(m, 0x24, 'II', w, h)
+        put(m, 0x54, 'II', *(r.choice([fb(0.0), fb(-0.0), fb(-0.5), fb(n - 1), fb(n - 1.5), fb(n - 0.75), fb(n), r.f()]) for n in (w, h)))
+    regions[MAP] = m
+    amount = r.choice([fb(1.0), fb(0.5), fb(4.0), fb(r.uniform(-3, 3)), fb(r.uniform(-200, 200)), 0x7fc00000, 0x7f800000, 0xff800000,
+                       fb(3e38), r.getrandbits(32)])
+    return Call(0x5f35b0, [MAP, r.choice([0, 1, 2, 3, 0, 1, 2, 3, 4, r.getrandbits(32)]), amount], regions, conv='t', ret='v')
 
 
 def view(r):
@@ -172,6 +188,8 @@ def case(r):
         return view(r)
     if op == 'LayOut':
         return lay_out(r)
+    if op == 'Scroll':
+        return scroll(r)
     if op == 'AddSprites':
         return add_sprites(r)
     w = r.choice([r.randrange(1, 9), r.randrange(1, 9), r.randrange(1, 4), 0])

@@ -39,6 +39,12 @@ s32 __fastcall ParkMap_ApplyView(u8 *map);
 // first node: sprite, next) is placed (ParkMap_PlaceSprite). x87 at the game's precision (X87Reg), floats where the original stores them.
 void __fastcall ParkMap_LayOut(const u8 *map);
 
+// 0x5f35b0 (thiscall on the map; direction, amount, pops 8; name unconfirmed): the view origin moved: direction 0 x (+0x54) less the amount,
+// 1 x plus it, 2 y (+0x58) plus it, 3 y less it (any other: neither), each stored as a float; then each kept to [0x703010] (below it or a
+// NaN: it) to width - 1 (+0x24; height - 1, +0x28: signed, compared as the integer, stored rounded to a float) and the overview laid out
+// again (ParkMap_LayOut). x87 at the game's precision (X87Reg).
+void __fastcall ParkMap_Scroll(u8 *map, void *, u32 direction, float amount);
+
 // 0x5f3940 (thiscall on the park map; name unconfirmed): its sprites added. For each thing in use (World_FirstThing / World_NextThing, the
 // world at 0x7cf83c) by its kind (+2): 1 a sprite of image +0x2006c (TexSprite_Ctor 1, 1, 0x20, 1.0f) and one of +0x20068 (0, 3, 1, 1.0f);
 // 4 / 5 one of +0x20070 (2, 2, 2 / 1, 1.0f); 6 / 7 one of +0x20070 (2, 2, 4 / 3, 1.0f) and one of +0x20078 / +0x2007c (4 / 5, 2, 4 / 3, the
