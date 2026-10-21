@@ -6,6 +6,7 @@
 #include "../core/language.h"
 #include "../core/vcall.h"
 #include "../world/object.h"
+#include "panelparts.h"
 #include "window.h"
 #include "window705a50.h"
 
@@ -15,6 +16,8 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
 using Slot = void(__fastcall *)(u8 *, void *, u32);
+
+u8 *window14(u8 *self) { return at<u8 *>(self, 0x14); }
 
 u8 *child(u8 *self, u32 id) { return Window_FindChild(at<u8 *>(self, 0x10), nullptr, id); }
 
@@ -48,5 +51,26 @@ void __fastcall Panel7cc298_Update(u8 *self) {
     c = child(self, 0xa0a5);
     table = at<void *const *>(c, 0);
     reinterpret_cast<Slot>(table[9])(c, nullptr, (u32)(uintptr_t)Language_WideText(hidden ? 0x34 : 0x33));
+}
+
+void __fastcall Panel7cc298_Dress(u8 *self) {
+    using namespace panelparts;
+    if (!window14(self)) return;
+    text(window14(self), 0xa09c, 0x29);
+    text(window14(self), 0xa095, 0x2a);
+    text(window14(self), 0xa09a, 0x2b);
+    text(window14(self), 0xa098, 0x2c);
+    text(window14(self), 0xa09b, 0x2d);
+    text(window14(self), 0xa097, 0x2e);
+    text(window14(self), 0xa0a1, 0x2f);
+    text(window14(self), 0xa09f, 0x30);
+    textNone(window14(self), 0xa09d);
+    bar(window14(self), kRideStatBar, 0xa096, 0x32);
+    part(window14(self), TextPart6ff3b0_Ctor, 0xa093, 0);
+    part(window14(self), TextPart6ff3b0_Ctor, 0xa092, 0);
+    bar(window14(self), kRideStatBar, 0xa099, 0x64);
+    bar(window14(self), kRideStatBar, 0xa094, 0x32);
+    part(window14(self), TextPart6ff3b0_Ctor, 0xa0a0, 0);
+    bar(window14(self), kHappyGrad, 0xa09e, 0x64);
 }
 }

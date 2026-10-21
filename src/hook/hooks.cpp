@@ -383,6 +383,8 @@
 #include "../game/ui/buttontext.h"
 #include "../game/ui/msgboxbutton.h"
 #include "../game/ui/msgtags.h"
+#include "../game/ui/panel7cc218.h"
+#include "../game/ui/panel7cc258.h"
 #include "../game/ui/thingbrowser.h"
 #include "../game/ui/windowtimers.h"
 #include "../game/lib/jpeg6b.h"
@@ -4982,6 +4984,7 @@ const Hook kHooks[] = {
     {"RadioGroup_SetSelectedState", 0x0066a1b0, (void *)&RadioGroup_SetSelectedState, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"RadioGroup_Ctor",           0x0066a1e8, (void *)&RadioGroup_Ctor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Panel7cc298_Update",        0x004b1ee0, (void *)&Panel7cc298_Update, {0x53, 0x55, 0x56, 0x8b, 0xf1}},
+    {"Panel7cc298_Dress",         0x004b1040, (void *)&Panel7cc298_Dress, {0x6a, 0xff, 0x68, 0xf0, 0xaf}},
     {"Dialog7cb2fc_SetToggle",    0x004a3960, (void *)&Dialog7cb2fc_SetToggle, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Window705b20_SetRange",     0x0066b47d, (void *)&Window705b20_SetRange, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Dialog_BaseHandler",        0x0047ee90, (void *)&Dialog_BaseHandler, {0x56, 0x8b, 0x74, 0x24, 0x08}},
@@ -5203,6 +5206,8 @@ const Hook kHooks[] = {
     {"ThingBrowser_ShowName",     0x004b3490, (void *)&ThingBrowser_ShowName, {0xa1, 0x08, 0xc3, 0x7c, 0x00}},
     {"ThingBrowser_ShowDetail",   0x004b3580, (void *)&ThingBrowser_ShowDetail, {0x8b, 0x0d, 0x08, 0xc3, 0x7c}},
     {"ThingBrowser_GroupHandler", 0x004b3b90, (void *)&ThingBrowser_GroupHandler, {0x8b, 0x44, 0x24, 0x08, 0x3d}},
+    {"Panel7cc218_Dress",         0x004ad890, (void *)&Panel7cc218_Dress, {0x6a, 0xff, 0x68, 0x8a, 0xac}},
+    {"Panel7cc258_Dress",         0x004afc10, (void *)&Panel7cc258_Dress, {0x6a, 0xff, 0x68, 0xaa, 0xae}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
