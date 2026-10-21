@@ -4428,6 +4428,8 @@ address,name,kind,confidence,notes
 0x006c90f0,Mp2StreamPool_Purge,function,low,"reimplemented (src/game/core/mp2pool); the stream decoders' pool: every free block freed, under the lock"
 0x006c9140,Mp2StreamPool_New,function,low,reimplemented (src/game/core/mp2pool); the stream decoder's operator new: a pooled block for its size
 0x006c91c0,Mp2StreamPool_Delete,function,low,reimplemented (src/game/core/mp2pool); the stream decoder's operator delete: its size's blocks back to the pool
+0x006c84e0,Mp2BufferSample_Open,function,low,"reimplemented (src/game/core/mp2sample); the buffered MP2 sample's open: its decoder from the pool, opened over the data, the length and rate checked"
+0x006c88c0,Mp2StreamSample_Open,function,low,"reimplemented (src/game/core/mp2sample); the streamed MP2 sample's open: its decoder from the pool, opened over the stream, the length and rate checked"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

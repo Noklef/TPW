@@ -187,6 +187,7 @@
 #include "../game/core/mp2layer1.h"
 #include "../game/core/mp2layer2.h"
 #include "../game/core/mp2pool.h"
+#include "../game/core/mp2sample.h"
 #include "../game/core/mp2synth.h"
 #include "../game/core/refcounted.h"
 #include "../game/core/sharedglobals.h"
@@ -4313,6 +4314,8 @@ const Hook kHooks[] = {
     {"Mp2StreamPool_Purge",       0x006c90f0, (void *)&Mp2StreamPool_Purge, {0xa1, 0x18, 0x27, 0xfb, 0x00}},
     {"Mp2StreamPool_New",         0x006c9140, (void *)&Mp2StreamPool_New, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mp2StreamPool_Delete",      0x006c91c0, (void *)&Mp2StreamPool_Delete, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"Mp2BufferSample_Open",      0x006c84e0, (void *)&Mp2BufferSample_Open, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"Mp2StreamSample_Open",      0x006c88c0, (void *)&Mp2StreamSample_Open, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
