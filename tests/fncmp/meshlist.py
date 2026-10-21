@@ -3,7 +3,8 @@
 # directions (zero, tiny, huge and NaN (signalling ones too) now and then) made unit length. View (0x5743a0): a matrix of floats (sometimes
 # with a zero or NaN, or a rotation and translation) inverted and 0-4 listed meshes with flags 2 / 4 either way, their vectors floats
 # (unit length, zero or NaN now and then); the object's direction.
-# usage: meshlist.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Ready,Direction,View)
+# Light (0x5741b0): the light at a point, see light().
+# usage: meshlist.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Ready,Direction,View,Light)
 import os
 import struct
 import sys
@@ -11,9 +12,31 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
 
-B = Bench([(0x574110, 0x5741a7), (0x5744d0, 0x574526), (0x5743a0, 0x5744e0), (0x578820, 0x578bd0), (0x578d20, 0x579020)])
-OPS = [k for k in os.environ.get('OPS', 'Ready,Direction,View').split(',') if k]
+B = Bench([(0x574110, 0x5741a7), (0x5744d0, 0x574526), (0x5741b0, 0x57439b), (0x5743a0, 0x5744e0), (0x578820, 0x578bd0), (0x578d20, 0x579020)])
+OPS = [k for k in os.environ.get('OPS', 'Ready,Direction,View,Light').split(',') if k]
 MESHES, LIST = RAM + 0x1000, RAM + 0x2000
+LIGHTS, VEC = RAM + 0x3000, RAM + 0x3800
+
+
+def light(r):
+    """0x5741b0 ((normal, x, y, z), pops 16; ECX any: it seeds the kind 6 factor before a kind 4): the ambient any, 0-5 lights of kinds 2,
+    4, 6 or others (the flags' other bits any), colours and directions small floats (special now and then), positions near the point or
+    not, +0x48 a squared radius (now and then negative or any bits), +0x4c a fall-off; the normal unit-ish or any."""
+    lights = bytearray(r.bytes(0x400))
+    n = r.choice([0, 1, 2, 3, 4, 5])
+    p = [r.uniform(-20, 20) for _ in range(3)]
+    for k in range(n):
+        o = 0x60 * k
+        put(lights, o + 0x50, 'I', r.getrandbits(32) & ~0xf | r.choice([2, 4, 6, 2, 4, 6, r.randrange(16)]))
+        put(lights, o + 0x58, 'I', LIGHTS + 0x60 * (k + 1) if k + 1 < n else 0)
+        put(lights, o + 4, '4I', *(r.f(2) for _ in range(4)))
+        put(lights, o + 0x20, '3I', *(r.choice([fb(c + r.uniform(-10, 10)), r.f(30)]) for c in p))
+        put(lights, o + 0x38, '3I', *(r.f(1) for _ in range(3)))
+        put(lights, o + 0x48, 'II', r.choice([fb(r.uniform(0, 300)), fb(r.uniform(-50, 50)), r.getrandbits(32), r.f(100)]), r.f(1))
+    vec = bytearray(b''.join(struct.pack('<I', r.f(1)) for _ in range(3)))
+    regions = {LIGHTS: lights, VEC: vec, 0x879db0: r.bytes(0x3c), 0x879dec: struct.pack('<I', LIGHTS if n else 0)}
+    point = [r.choice([fb(c), r.f(30)]) for c in p]
+    return Call(0x5741b0, [r.choice([r.getrandbits(32), fb(r.uniform(0, 300))]), VEC] + point, regions, conv='t')
 
 
 def view(r):
@@ -47,6 +70,8 @@ def view(r):
 
 def case(r):
     op = r.deal(OPS)
+    if op == 'Light':
+        return light(r)
     if op == 'View':
         return view(r)
     if op == 'Direction':

@@ -27,4 +27,12 @@ void __fastcall Meshes_SetDirection(u8 *object, void *, u32 x, u32 y, u32 z);
 // len = (y y + z z) + x x stored as a float, unless len is 0, 1 or a NaN, inv = 1 / sqrt(len) and (x inv, inv y, inv z); flag 4
 // transforms the point +0x14 into +0x20 (mode 2). Last the object's direction +0x34 in place (mode 3). Returns 1.
 u32 __fastcall Meshes_SetView(u8 *object, void *, const u32 *matrix, u32 unused);
+
+// 0x5741b0 ((normal, x, y, z), pops 16; ECX only seeds a spill slot; name unconfirmed): the light at a point. 0x879db0-0x879dbc =
+// the ambient 0x879dd8-0x879de4; then for each entry on the list (0x879dec, through +0x58) by its kind (+0x50 & 0xf), its colour
+// (+4-+0x10) times a factor added in (x87, each sum stored): kind 2 f = (-(+0x38 nx) - +0x3c ny) - nz +0x40, when f's sign is clear;
+// kind 4 d = (dz dz + (dy dy + dx dx)) (each partial stored as a float; dx = +0x20 - x and so on), the factor (+0x48 - d) * +0x4c when
+// d's bits are below +0x48's as signed ints (sic); kind 6 f = (dy ny + dz nz) + dx nx, when f's sign is clear the factor
+// ((+0x48 - d) * +0x4c) * f with d the last kind 4 entry's (before any: ECX's bits, sic).
+void __fastcall Meshes_LightAt(u32 seed, void *, const float *normal, float x, float y, float z);
 }
