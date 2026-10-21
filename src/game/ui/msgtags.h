@@ -59,6 +59,14 @@ void __cdecl MsgTags_AddVersion();
 // reads' results are not checked: a short record keeps what the buffer held. Returns 0 (the count run down).
 u32 __cdecl MsgTags_Load(Stream *stream);
 
+// 0x48ee50 (cdecl (stream); called from UI_Save 0x4816a0; name unconfirmed): the count of the ten records [0x7c26b0] whose word +4 is
+// set written (Stream_Write of 4 bytes), then for each such record one 0x21c-byte record from a buffer on the stack (the layout
+// MsgTags_Load reads): its window's dwords +0xa0 slots 1 (+0), 7 (+0x204), 4 (+0x208, a word), 5 (+0x20c), 6 (+0x210), 3 (+0x214, a
+// word) and 8 (+0x218) stored first, then the record's text +6 copied to +4 (wcscpy, unbounded: a 256-character text's end lands on
+// +0x204, sic). The bytes +0x20a-0x20b, +0x216-0x217 and those past the text's end are the stack's (sic). Returns Stream_Write's answer
+// (its result pointer, on this frame).
+s32 *__cdecl MsgTags_Save(Stream *stream);
+
 // 0x481680 (stdcall (stream); the UI module's load, ECX unused): message 5 to the tags' windows (Windows7c26b0_Message5), then MsgTags_Load;
 // its 0 returned.
 u32 __stdcall UI_Load(Stream *stream);

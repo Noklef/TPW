@@ -182,6 +182,29 @@ u32 __cdecl MsgTags_Load(Stream *stream) {
     return 0;
 }
 
+s32 *__cdecl MsgTags_Save(Stream *stream) {
+    s32 count = 0;
+    for (u32 entry = 0x007c26b4; entry < 0x007c3b04; entry += 0x208)
+        if (*reinterpret_cast<u16 *>((uintptr_t)entry)) ++count;
+    s32 result, done;
+    s32 *answer = Stream_Write(&result, stream, &count, 4, &done);
+    u8 record[0x21c];
+    for (u8 *entry = reinterpret_cast<u8 *>((uintptr_t)0x007c26b0); entry < reinterpret_cast<u8 *>((uintptr_t)0x007c3b00); entry += 0x208) {
+        if (!at<u16>(entry, 4)) continue;
+        u8 *const window = at<u8 *>(entry, 0);
+        *reinterpret_cast<u32 *>(record + 0) = Window_DwordA0(window, nullptr, 1);
+        *reinterpret_cast<u32 *>(record + 0x204) = Window_DwordA0(window, nullptr, 7);
+        *reinterpret_cast<u16 *>(record + 0x208) = (u16)Window_DwordA0(window, nullptr, 4);
+        *reinterpret_cast<u32 *>(record + 0x20c) = Window_DwordA0(window, nullptr, 5);
+        *reinterpret_cast<u32 *>(record + 0x210) = Window_DwordA0(window, nullptr, 6);
+        *reinterpret_cast<u16 *>(record + 0x214) = (u16)Window_DwordA0(window, nullptr, 3);
+        *reinterpret_cast<u32 *>(record + 0x218) = Window_DwordA0(window, nullptr, 8);
+        Crt().wcscpy(reinterpret_cast<u16 *>(record + 4), reinterpret_cast<const u16 *>(entry + 6));   // (unbounded, sic)
+        answer = Stream_Write(&result, stream, record, 0x21c, &done);
+    }
+    return answer;
+}
+
 u32 __stdcall UI_Load(Stream *stream) {
     Windows7c26b0_Message5();
     return MsgTags_Load(stream);

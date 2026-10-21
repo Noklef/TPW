@@ -18,7 +18,16 @@
 # message 5), a record stream holding a count of 0-3 and that many whole records (a short one would leave the stack's bytes in the
 # buffer), each of the kind 0x17f's tags' dwords now and then, its id 0x17f or not, its text 0-0x120 characters long (no end within
 # 0xff of them included).
-# usage: msgtags.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=NewWindow,Create,Open,Add,Post,AddVersion,Thunk,PostThunk,Load,UILoad)
+# Save (0x48ee50): the ten records, each word +4 in use or not, each text +6 0-0x100 characters ended there, or 0x101 running on over
+# the next record's window pointer (whose word +4 is then 0); their windows' dwords +0xa0 as Open's; a record stream over a sink with
+# room for the count and every record, or 0x10 / a record short. EAX is not compared: it is Stream_Write's result pointer, a slot of
+# the frame (ESP+0x14), which the two sides' stacks cannot share. The sink is compared with, per record written (rec = ESP+0x18, the
+# 0x21c bytes Stream_Write copies), these bytes masked, never stored by 0x48ee50 before the copy (the listing stores only +0 (MOV
+# [ESP+0x1c] after PUSH 7), +0x204 (dword), +0x208 (word, MOV [ESP+0x224],AX after PUSH 5), +0x20c, +0x210 (dwords), +0x214 (word),
+# +0x218 (dword) and wcscpy's rec+4 .. rec+4+2*(len+1)), so they hold the stack's bytes, which differ between the two sides: +0x20a-
+# 0x20b and +0x216-0x217, and from the text's end rec+4+2*(len+1) up to +0x203, each less any of them the text covers. Nothing reads
+# the sink.
+# usage: msgtags.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=NewWindow,Create,Open,Add,Post,AddVersion,Thunk,PostThunk,Load,UILoad,Save)
 import os
 import struct
 import sys
@@ -32,7 +41,7 @@ from fncmp import CDECL_LOG4, HEAP, LOG, RAM, Bench, Call, Mask, blob, blob_byte
 from window import RANGES, queues, tree  # noqa: E402
 
 CALLS = {'NewWindow': 0x48ea00, 'Create': 0x48eaa0, 'Open': 0x48d9c0, 'Add': 0x48eb20, 'Post': 0x48ede0, 'AddVersion': 0x48f090,
-         'Thunk': 0x481b70, 'PostThunk': 0x481580, 'Load': 0x48ef70, 'UILoad': 0x481680}
+         'Thunk': 0x481b70, 'PostThunk': 0x481580, 'Load': 0x48ef70, 'UILoad': 0x481680, 'Save': 0x48ee50}
 TIMER_RANGES = [(0x661f9b, 0x661fe5), (0x6620e2, 0x66213e), (0x662306, 0x662384), (0x662500, 0x66252c), (0x661ece, 0x661f2b),
                 (0x661f2b, 0x661f9b), (0x66220d, 0x6622d2), (0x65968e, 0x6596a2), (0x6620ac, 0x6620cc), (0x6620cc, 0x6620e2),
                 (0x662097, 0x6620ac), (0x65ef90, 0x65f024), (0x65f024, 0x65f077), (0x65f077, 0x65f0ca)]
@@ -80,7 +89,7 @@ B = Bench(sorted(set(RANGES + listrows.REG_RANGES + TIMER_RANGES + ADVISOR_RANGE
     (0x48d9c0, 0x48dad2), (0x48eb20, 0x48edd1), (0x48ede0, 0x48ee18), (0x48f090, 0x48f10a), (0x481b70, 0x481b75),
     (0x481580, 0x481590), (0x48ef70, 0x48f08f), (0x481680, 0x481695), (0x5f5e20, 0x5f5e4d),
     (0x65d865, 0x65d8e7), (0x659e3e, 0x659e83), (0x65d3a3, 0x65d40c), (0x65d56b, 0x65d57c), (0x5222e0, 0x52231b), (0x51feb0, 0x51ff06),
-    (0x51bfc0, 0x51c048), (0x67a400, 0x6902c0)])), hooks={0x67a7d0: advisor._cdecl_log, 0x67af00: _swprintf})
+    (0x51bfc0, 0x51c048), (0x67a400, 0x6902c0), (0x48ee50, 0x48ef67), (0x5f5e50, 0x5f5e7d)])), hooks={0x67a7d0: advisor._cdecl_log, 0x67af00: _swprintf})
 X = RAM + 0x20000
 TAGS, NODES, MSG, MTEXT, BOX, BOXKIDS, DIALOG, CHILD21, TAGSWIN = X, X + 0x1400, X + 0x1800, X + 0x1900, X + 0x1c00, X + 0x1e00, X + 0x2200, X + 0x2400, X + 0x2600
 OBJ, OVT, KVT, CLOCK, CVT, POOL, SNDMGR, SNDVT = X + 0x2800, X + 0x2840, X + 0x2900, X + 0x2a00, X + 0x2a10, X + 0x2b00, X + 0x2c00, X + 0x2c20
@@ -280,8 +289,48 @@ def tags_case(r, op):
     return Call(CALLS[op], [message(r, regions, wins)], regions, ret='a', masks=masks)
 
 
+SAVED = {0, 1, 2, 3, 0x204, 0x205, 0x206, 0x207, 0x208, 0x209, 0x20c, 0x20d, 0x20e, 0x20f, 0x210, 0x211, 0x212, 0x213, 0x214, 0x215,
+         0x218, 0x219, 0x21a, 0x21b}   # (the record's bytes 0x48ee50 stores before wcscpy)
+
+
+def save_case(r):
+    """Save (see the header): the records, their windows and the sink, the stack's bytes of each written record masked"""
+    regions = {}
+    records = bytearray(r.bytes(0x208 * 10))
+    lengths = []
+    for i in range(10):
+        put(records, 0x208 * i, 'IH', TAGS + 0x200 * i, r.choice([0, 0, 1, 1, 1, r.getrandbits(16)]))
+        regions[TAGS + 0x200 * i] = tag_window(r, i)
+    for i in range(10):
+        on = i < 9 and r.random() < 0.15
+        n = 0x101 if on else r.choice([0, 1, 5, 0x40, 0xfe, 0xff, 0x100])
+        text = b''.join(struct.pack('<H', r.randrange(1, 0x10000)) for _ in range(n))
+        records[0x208 * i + 6:0x208 * i + 6 + len(text)] = text
+        if on:   # (over the next record's window pointer, both halves nonzero, to its word +4, 0)
+            put(records, 0x208 * (i + 1) + 4, 'H', 0)
+            lengths.append(n + 2)
+        else:
+            put(records, 0x208 * i + 6 + 2 * n, 'H', 0)
+            lengths.append(n)
+    regions[RECORDS] = records
+    offsets, k = [], 0
+    for i in range(10):
+        if not struct.unpack_from('<H', records, 0x208 * i + 4)[0]:
+            continue
+        written = SAVED | set(range(4, 4 + 2 * (lengths[i] + 1)))
+        offsets += [4 + 0x21c * k + b for b in range(0x21c) if b not in written]
+        k += 1
+    size = 4 + 0x21c * k
+    regions[SINK] = r.bytes(size + 4)
+    regions[STREAM] = record_stream(STREAM, SINK, max(0, size - r.choice([0, 0, 0, 0x10, 0x21c])))
+    masks = [Mask(SINK, offsets, "0x48ee50's stack record's bytes never stored before Stream_Write copies them (the header's proof)")] if offsets else []
+    return Call(CALLS['Save'], [STREAM], regions, ret='v', masks=masks)
+
+
 def case(r):
     op = r.deal(OPS)
+    if op == 'Save':
+        return save_case(r)
     if op not in ('NewWindow', 'Create'):
         return tags_case(r, op)
     log = log_region()
