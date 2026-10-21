@@ -557,6 +557,13 @@ class Emu:
                 res = a if not m else ((a >> m) | (a << (bits - m)) if mn == 'ROR' else (a << m) | (a >> (bits - m))) & mask
                 self.cf = bool(res >> (bits - 1)) if mn == 'ROR' else bool(res & 1)
                 self.put(o[0], res)
+        elif mn in ('SHRD', 'SHLD'):  # the destination shifted with the source's bits filling in (a count mod 32; 0 changes nothing); CF the last bit out
+            a, b, n, bits = self.get(o[0]), self.get(o[1]), self.get(o[2]) & 31, 8 * self.size(o[0])
+            if n:
+                w = b << bits | a if mn == 'SHRD' else a << bits | b
+                res = w >> n if mn == 'SHRD' else w << n >> bits
+                cf = bool(a >> (n - 1) & 1) if mn == 'SHRD' else bool(a >> (bits - n) & 1)
+                self.put(o[0], self.flags(res, bits, cf))
         elif mn in ('RCR', 'RCL'):  # through CF: a rotate of the operand's size + 1 bits with CF above it; CF set, SF/ZF kept (_alldiv's)
             a, n, bits = self.get(o[0]), self.get(o[1]) & 31, 8 * self.size(o[0])
             n %= bits + 1
