@@ -4456,6 +4456,13 @@ address,name,kind,confidence,notes
 0x006d57e0,VoiceCodec_Synthesize,function,low,reimplemented (src/game/core/voicecodec); the voice codec's synthesis filter over blocks of 12 samples (its 12-sample history)
 0x006d5450,VoiceCodec_DecodeChannel,function,low,"reimplemented (src/game/core/voicecodec); the voice codec's frame of one channel: coefficient steps, four subframes of excitation and long-term prediction, then the synthesis"
 0x006d6290,VoiceCodec_DecodeFrame,function,low,"reimplemented (src/game/core/voicecodec); the voice codec's frame: its channel, and the second when stereo"
+0x006d7370,ReleaseList_Dtor,function,low,"reimplemented (src/game/core/releaselist); the release list's destructor: its nodes popped and freed, the lock deleted, the base list's destructor"
+0x006d7420,ReleaseList_BaseDtor,function,low,"reimplemented (src/game/core/releaselist); the base list's destructor: the chain freed, all cleared"
+0x006d7460,ReleaseList_Get,function,low,"reimplemented (src/game/core/releaselist); the release list's instance, made first (its destructor registered with atexit)"
+0x006d74a0,ReleaseList_AtExit,function,low,reimplemented (src/game/core/releaselist); the release list's destructor on its instance
+0x006d74b0,ReleaseList_Ctor,function,low,"reimplemented (src/game/core/releaselist); an empty release list, its lock initialised"
+0x006d7500,ReleaseList_BaseDeletingDtor,function,low,"reimplemented (src/game/core/releaselist); the base list's destructor, then the list freed with flags bit 0"
+0x006d7520,ReleaseList_Push,function,low,"reimplemented (src/game/core/releaselist); under the lock, a node of a value pushed at the head of the release list"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

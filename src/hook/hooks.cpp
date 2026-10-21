@@ -190,6 +190,7 @@
 #include "../game/core/mp2sample.h"
 #include "../game/core/mp2synth.h"
 #include "../game/core/refcounted.h"
+#include "../game/core/releaselist.h"
 #include "../game/core/sfman.h"
 #include "../game/core/sharedglobals.h"
 #include "../game/core/sndreverb.h"
@@ -4344,6 +4345,13 @@ const Hook kHooks[] = {
     {"VoiceCodec_Synthesize",     0x006d57e0, (void *)&VoiceCodec_Synthesize, {0x83, 0xec, 0x30, 0x8d, 0x44}},
     {"VoiceCodec_DecodeChannel",  0x006d5450, (void *)&VoiceCodec_DecodeChannel, {0x81, 0xec, 0x2c, 0x02, 0x00}},
     {"VoiceCodec_DecodeFrame",    0x006d6290, (void *)&VoiceCodec_DecodeFrame, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"ReleaseList_Dtor",          0x006d7370, (void *)&ReleaseList_Dtor, {0x6a, 0xff, 0x68, 0x03, 0x6a}},
+    {"ReleaseList_BaseDtor",      0x006d7420, (void *)&ReleaseList_BaseDtor, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"ReleaseList_Get",           0x006d7460, (void *)&ReleaseList_Get, {0x8a, 0x0d, 0x28, 0x27, 0xfb}},
+    {"ReleaseList_AtExit",        0x006d74a0, (void *)&ReleaseList_AtExit, {0xb9, 0x30, 0x27, 0xfb, 0x00}},
+    {"ReleaseList_Ctor",          0x006d74b0, (void *)&ReleaseList_Ctor, {0x6a, 0xff, 0x68, 0x18, 0x6a}},
+    {"ReleaseList_BaseDeletingDtor", 0x006d7500, (void *)&ReleaseList_BaseDeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"ReleaseList_Push",          0x006d7520, (void *)&ReleaseList_Push, {0x6a, 0xff, 0x68, 0x38, 0x6a}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
