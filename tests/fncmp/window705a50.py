@@ -14,7 +14,8 @@
 # vtable whose slot 0 answers a time near the time +0x144 (or any), the delay / interval +0x13c / +0x140 near the difference (or any),
 # the window +0x60 the window itself, another or 0, and window.py's message queues.
 # usage: window705a50.py [CASES [SEED]] [--wild|--both] [--show N]
-#   (env OPS=Look,NotifyLook,SetState,SetPair,Set14c,Set154,SetEnabled,Repeat)
+# SetFlag139 (0x668c99): SetState's cases for the byte +0x139, both objects' events masked to the look and the dword +0x18.
+#   (env OPS=Look,NotifyLook,SetState,SetPair,Set14c,Set154,SetEnabled,Repeat,SetFlag139)
 import os
 import struct
 import sys
@@ -25,10 +26,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from window import RANGES as WINDOW_RANGES, hover, queues, tree  # noqa: E402
 
 CALLS = {'Look': 0x668820, 'NotifyLook': 0x668ad3, 'SetState': 0x668bec, 'SetPair': 0x668f35, 'Set14c': 0x668f5a, 'Set154': 0x668f7b,
-         'SetEnabled': 0x668a23, 'Repeat': 0x668dd9}
+         'SetEnabled': 0x668a23, 'Repeat': 0x668dd9, 'SetFlag139': 0x668c99}
 RANGES = [(0x668820, 0x6688b3), (0x668ad3, 0x668bd4), (0x668bec, 0x668c89), (0x668f35, 0x668f9c), (0x6693d0, 0x669407),
           (0x658ccc, 0x658d9f), (0x6697e3, 0x6698a4), (0x659710, 0x659721)]
-B = Bench(sorted(set(RANGES + WINDOW_RANGES + [(0x668a23, 0x668aad), (0x65da8d, 0x65db25), (0x668dd9, 0x668ecf),
+B = Bench(sorted(set(RANGES + WINDOW_RANGES + [(0x668a23, 0x668aad), (0x65da8d, 0x65db25), (0x668dd9, 0x668ecf), (0x668c99, 0x668d5f),
                                            (0x65968e, 0x6596a2)])))
 WINDOW, OBJ98, OBJ9C, VT98, VT9C = RAM, RAM + 0x200, RAM + 0x240, RAM + 0x280, RAM + 0x300
 OTHER, CLOCK, CLOCK_VT = RAM + 0x380, RAM + 0x3c0, RAM + 0x400
@@ -114,11 +115,12 @@ def case(r):
     if op in ('Set14c', 'Set154'):   # (NotifyLook's, the value it hands on for some looks set first)
         objects(r, regions, log, w, [(0x9c, OBJ9C)])
         return Call(CALLS[op], [WINDOW, r.choice([0, 0xffffffff, r.getrandbits(32)])], regions, conv='t', ret='v')
-    state = w[0x138] if r.random() < 0.25 else r.choice([0, 1, 2, 3, r.getrandbits(8)])
+    at = 0x139 if op == 'SetFlag139' else 0x138
+    state = w[at] if r.random() < 0.25 else r.choice([0, 1, 2, 3, r.getrandbits(8)])
     objects(r, regions, log, w, [(0x98, OBJ98), (0x9c, OBJ9C)])
     w2 = bytearray(w)   # the look the notification sees: after the state is set
     w2[0x138] = state
-    blob_bytes(log, 22, 1, NOTIFY_MASK, None if look(w2) == 1 else INNER)
+    blob_bytes(log, 22, 1, EVENT_MASK if op == 'SetFlag139' else NOTIFY_MASK, None if look(w2) == 1 or op == 'SetFlag139' else INNER)
     blob_bytes(log, 3, 1, EVENT_MASK)
     queues(r, regions)
     regions[0xfaa5d4] = put(bytearray(4), 0, 'I', r.choice([0, 1, 0x80000000]))

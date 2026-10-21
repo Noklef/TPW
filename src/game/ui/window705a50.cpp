@@ -124,6 +124,18 @@ void __fastcall Window705a50_Repeat(u8 *window) {
     }
 }
 
+u16 __fastcall Window705a50_SetFlag139(u8 *window, void *, u8 flag, u8 notify) {
+    if (flag == at<u8>(window, 0x139)) return 0;
+    u8 event[0x1c];  // (only the look +4 and the dword +0x18 set)
+    at<u32>(event, 0x18) = 1;
+    at<u8>(window, 0x139) = flag;
+    if (notify && global<u32>(0x00faa5d4)) Window_PostMessage(window, 1, 0, 0);
+    at<u16>(event, 4) = Window705a50_Look(window);
+    if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 1u, event);
+    if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 1u, event);
+    return 1;
+}
+
 u16 __fastcall Window705a50_SetState(u8 *window, void *, u8 state, u8 notify) {
     if (state == at<u8>(window, 0x138)) return 0;
     u8 event[0x1c];  // (only the look +4 and the dword +0x18 set)
