@@ -2533,6 +2533,7 @@ address,name,kind,confidence,notes
 0x00579cd0,LiveObject7019f8_Construct,function,low,"reimplemented (src/game/core/liveobjects); thiscall (most derived): two identity matrices, fields cleared, the virtual base's vtable 0x7019f8 set and the base added to the live objects"
 0x0057ca00,LiveObject701b30_DeletingDtor,function,low,"reimplemented (src/game/core/liveobjects); thiscall on the virtual base (flags): its vtable 0x701b30 set, taken out of the live objects, the base's vtable 0x6fdce8, freed with flag 1"
 0x0057abf0,LiveObject7019f8_DeletingDtor,function,low,"reimplemented (src/game/core/liveobjects); thiscall on the virtual base (flags; pops 4): vtable 0x7019f8 set, taken out of the live objects, model unloaded, +0x154 = 0x6fdce8, freed with flag 1; returns the object"
+0x005407a0,LiveObject6ff308_Construct,function,low,"reimplemented (src/game/core/liveobjects); thiscall (most derived), pops 4: the sprite set's constructor: tables 0x6ff318 / 0x6fdce8 when most derived, the base's vtable 0x6ff308, fields cleared (+0xc = -1), the base added to the live objects; returns this"
 0x005b96a0,Obj_Get3e4,function,high,reimplemented (src/game/core/trivial); the dword at +0x3e4
 0x005b96b0,Obj_Get3a4,function,high,reimplemented (src/game/core/trivial); the dword at +0x3a4
 0x005c5520,Obj_Self,function,high,reimplemented (src/game/core/trivial); returns the object itself
