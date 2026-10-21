@@ -6,7 +6,9 @@
 # (now and then any), the flags random. Unpack: the count 0-40, the field bits 1-32 (now and then 0), the data random. Expand:
 # the count -1-6 (now and then -0x80000000), the records random.
 # Place: the view's sizes random (small or any), the settings' flags random (each bit about half the time).
-# usage: movieplayer.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Header,Palette,Size,Pixels,Unpack,Expand,Place)
+# Draw (0x6779e0): depth 8 half the time (else 16 / 24 / 32 / any), the flags random, height 0-6, width 0-40 (often a multiple of 8),
+# pitch from a little under to well over the row (not always a multiple of 4), the source and built pixels random.
+# usage: movieplayer.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Header,Palette,Size,Pixels,Unpack,Expand,Place,Draw)
 import os
 import struct
 import sys
@@ -14,9 +16,9 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import RAM, Bench, Call  # noqa: E402
 
-CALLS = {'Header': 0x670860, 'Palette': 0x670930, 'Size': 0x670ab0, 'Pixels': 0x677930, 'Unpack': 0x677640, 'Expand': 0x6776c0, 'Place': 0x6711a0}
+CALLS = {'Header': 0x670860, 'Palette': 0x670930, 'Size': 0x670ab0, 'Pixels': 0x677930, 'Unpack': 0x677640, 'Expand': 0x6776c0, 'Place': 0x6711a0, 'Draw': 0x6779e0}
 B = Bench([(0x670860, 0x67092e), (0x670930, 0x670aa2), (0x670ab0, 0x670ac5), (0x677930, 0x6779dc), (0x677640, 0x6776b8),
-           (0x6776c0, 0x6777ce), (0x6711a0, 0x67122f)])
+           (0x6776c0, 0x6777ce), (0x6711a0, 0x67122f), (0x6779e0, 0x677bf3), (0x676478, 0x6764bc)])
 PLAYER, SETTINGS, DATA = RAM, RAM + 0x1000, RAM + 0x2000
 
 
@@ -49,8 +51,28 @@ def place_case(r):
     return Call(CALLS['Place'], [PLAYER], {PLAYER: view + r.bytes(8), SETTINGS: bytes(s)}, conv='t', ret='v')
 
 
+def draw_case(r):
+    source, out = RAM + 0x4000, RAM + 0x8000
+    s = bytearray(r.bytes(0x7b4))
+    s[0x48:0x4c] = struct.pack('<I', 8 if r.random() < 0.5 else r.choice([16, 24, 32, r.getrandbits(32)]))
+    height = r.choice([0, 1, 2, 3, 6])
+    width = r.choice([0, 8, 16, 24, 40, r.randrange(41)])
+    if s[0x48] == 8 and s[4] & 0x40 and r.random() < 0.9:  # (MoviePixels_Double runs on past a count of 0 or short of 4s)
+        height, width = r.choice([1, 2, 3, 6]), r.choice([8, 16, 24, 40])
+    s[0x60:0x68] = struct.pack('<II', height, width)
+    pitch = width * r.choice([1, 2, 4]) + r.choice([0, 0, 4, 1, 2, 3, 0x20])
+    player = bytearray(r.bytes(0x650))
+    player[0:4] = struct.pack('<I', SETTINGS)
+    player[0x648:0x64c] = struct.pack('<I', source)
+    regions = {PLAYER: bytes(player), SETTINGS: bytes(s), source: r.bytes(height * (width + 8) + 8),
+               out: r.bytes(height * max(pitch, width * 4 + 0x20) + 2 * height * width + 0x40)}
+    return Call(CALLS['Draw'], [PLAYER, out, r.getrandbits(32), pitch], regions, conv='f', ret='v')
+
+
 def case(r):
     op = r.deal(OPS)
+    if op == 'Draw':
+        return draw_case(r)
     if op == 'Place':
         return place_case(r)
     if op == 'Pixels':

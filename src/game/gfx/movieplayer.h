@@ -7,6 +7,8 @@
 
 #include "../../../re/types.h"
 
+#include "moviepixels.h"
+
 extern "C" {
 
 // 0x670860 (thiscall; name unconfirmed): with the settings' +0x88 clear, the kind +0x1f4 copied to +0x3a8 and, with a chunk, its
@@ -40,4 +42,12 @@ void __fastcall MoviePlayer_ExpandBlocks(const u8 *records, u8 *out, s32 count);
 // 4-5; centred by bits 2 / 3 ((surface - picture) / 2, arithmetic), moved by +0x68 / +0x6c with bits 0 / 1; the width +0x70 with bit 7
 // and the height +0x74 with bit 8. The flags are read again for each test.
 void __fastcall MoviePlayer_PlaceView(u8 *view, void *edx);
+
+// 0x6779e0 (fastcall (player, out; unused, pitch in bytes), pops 8; name unconfirmed): the frame's bytes (the player's +0x648) to out.
+// At depth 8 (the settings' +0x48): with the flags' bit 6 MoviePixels_Double of height * width bytes (+0x60 * +0x64), else row by row
+// width bytes copied (dwords then bytes, forward), the source moving by width and out by pitch & ~3. At any other depth each byte through
+// the built pixels (the settings' +0x3b4, dwords): with bit 6 as a dword, else its low word; eight a pass while x (by 8) is below
+// width, so a width short of a multiple of 8 runs past it, then out moves on by (pitch - width * 4) / 4 dwords (2 / 2 words: unsigned).
+// The settings are read again at each test, the width after each row's copy.
+void __fastcall MoviePlayer_DrawFrame(u8 *player, u8 *out, u32 unused, u32 pitch);
 }
