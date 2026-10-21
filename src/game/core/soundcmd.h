@@ -2,7 +2,8 @@
 // 0x700b58 and the value at +4, the poster then its own one-slot vtable) is posted to the sound manager [0x802bcc], whose engine
 // calls the slot as thiscall (out, target), pops 8, and the run applies the value to the target (a sound object: +0x20 and +0x24 its
 // parts) and returns out. Reimplementation of the runs whose callees are ported: 0x6b5640, 0x6b5670, 0x6b56a0, 0x6b5770, 0x6b5790,
-// 0x6b5840, 0x6b58b0, 0x6b5990, 0x6b59f0 and 0x6b5a50. The names are the vtables' (the commands' meanings are unconfirmed).
+// 0x6b5840, 0x6b58b0, 0x6b5990, 0x6b59f0 and 0x6b5a50, and of the runs on the sound object (soundobject) and its mixer:
+// 0x6b5600, 0x6b5620, 0x6b56c0, 0x6b58d0, 0x6b5930 and 0x6b5a90 (the second value at +8). The names are the vtables' (the commands' meanings are unconfirmed).
 #pragma once
 
 #include "../../../re/types.h"
@@ -35,5 +36,24 @@ u32 *__fastcall SoundCmd700b78_Run(const u8 *command, void *, u32 *out, u8 *targ
 
 // 0x6b58b0 (vtable 0x700ba8): target's slot 6 (out, the value).
 u32 *__fastcall SoundCmd700ba8_Run(const u8 *command, void *, u32 *out, u8 *target);
+
+// 0x6b5600 (vtable 0x700b5c): SoundObject_Broadcast (out) on the target. The command's values are not read.
+u32 *__fastcall SoundCmd700b5c_Run(const u8 *command, void *, u32 *out, u8 *target);
+
+// 0x6b5620 (vtable 0x700b60): SoundObject_BroadcastValue (out, the value).
+u32 *__fastcall SoundCmd700b60_Run(const u8 *command, void *, u32 *out, u8 *target);
+
+// 0x6b56c0 (vtable 0x700bbc): *out = -1 for an id (+4) of 0; else SoundMixer_SetVoiceParams on target's +0x20 (out, the id, a stack
+// copy of the 16 bytes at +8).
+u32 *__fastcall SoundCmd700bbc_Run(const u8 *command, void *, u32 *out, u8 *target);
+
+// 0x6b58d0 (vtable 0x700ba4): SoundMixer_SetVoicePending on target's +0x20 (out, the id at +8, the value at +4).
+u32 *__fastcall SoundCmd700ba4_Run(const u8 *command, void *, u32 *out, u8 *target);
+
+// 0x6b5930 (vtable 0x700bac): SoundObject_SendVoice (out, the id at +4, the value at +8).
+u32 *__fastcall SoundCmd700bac_Run(const u8 *command, void *, u32 *out, u8 *target);
+
+// 0x6b5a90 (vtable 0x700bb8): SoundObject_VoiceInfo (out, the id at +8, the result pointer at +4).
+u32 *__fastcall SoundCmd700bb8_Run(const u8 *command, void *, u32 *out, u8 *target);
 
 }  // extern "C"

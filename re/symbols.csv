@@ -4284,6 +4284,12 @@ address,name,kind,confidence,notes
 0x006b5a50,SoundCmd700b74_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b74, thiscall (out, target), pops 8: Bytes44_Set(target's +0x24, out, 1, the value)"
 0x006b5990,SoundCmd700b78_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b78, thiscall (out, target), pops 8: Bytes44_Set(target's +0x24, out, 2, the value)"
 0x006b58b0,SoundCmd700ba8_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700ba8, thiscall (out, target), pops 8: target's slot 6 (out, the value)"
+0x006b5600,SoundCmd700b5c_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b5c, thiscall (out, target), pops 8: SoundObject_Broadcast (out) on the target; returns out"
+0x006b5620,SoundCmd700b60_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b60, thiscall (out, target), pops 8: SoundObject_BroadcastValue (out, the value at +4); returns out"
+0x006b56c0,SoundCmd700bbc_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700bbc, thiscall (out, target), pops 8: *out = -1 for an id (+4) of 0, else SoundMixer_SetVoiceParams on target's mixer (out, id, a stack copy of the 16 bytes at +8); returns out"
+0x006b58d0,SoundCmd700ba4_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700ba4, thiscall (out, target), pops 8: SoundMixer_SetVoicePending on target's mixer (out, the id at +8, the value at +4); returns out"
+0x006b5930,SoundCmd700bac_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700bac, thiscall (out, target), pops 8: SoundObject_SendVoice (out, the id at +4, the value at +8); returns out"
+0x006b5a90,SoundCmd700bb8_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700bb8, thiscall (out, target), pops 8: SoundObject_VoiceInfo (out, the id at +8, the result pointer at +4); returns out"
 0x006b5ab0,SoundManager_Dtor,function,low,reimplemented (src/game/core/soundmanager); thiscall: vtable reset to 0x70a288; the engine at +4 (if any) destroyed through its slot 0 (1) and +4 cleared
 0x006b5ad0,SoundManager_Call1,function,low,"reimplemented (src/game/core/soundmanager); slot 4, thiscall (out, a), pops 8: the engine's slot 1 (out, a); returns out"
 0x006b5af0,SoundManager_Release,function,low,"reimplemented (src/game/core/soundmanager); slot 0, thiscall (out), pops 4: the manager (unless null) destroyed through its slot 3 (1); *out = 0"
