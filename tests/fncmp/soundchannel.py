@@ -5,19 +5,28 @@
 # The functor 0x70a260's run (0x6b5e40): the channel's source a recorder vtable (slot 1), null now and then (a fault in both).
 # The EAX settings' sets (0x6b7910, 0x6b7970): the channel's EAX buffer (its set's Set a COM recorder) or else its source (slot 0x13
 # answering a byte, slot 0x14 logged), each null now and then.
+# The voices' occlusion (0x6b7b60), the position's set (0x6b79d0) and the functor 0x70a278's run (0x6b5e60): see voices_case().
 # usage: soundchannel.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import LOG, RAM, Bench, Call, blob, fill, log_region, set_return, strings, vtable  # noqa: E402
+from fncmp import (IMPORT_TABLE, LOG, RAM, Bench, Call, blob, echo, fb, fill, import_table, log_region, recorder, set_return,  # noqa: E402
+                   strings, vtable)
 
-CALLS = {'apply': 0x6b8b40, 'settings': 0x6b7d70, 'fn260': 0x6b5e40, 'eax0b': 0x6b7910, 'eaxall': 0x6b7970}
+CALLS = {'apply': 0x6b8b40, 'settings': 0x6b7d70, 'fn260': 0x6b5e40, 'eax0b': 0x6b7910, 'eaxall': 0x6b7970, 'occlusion': 0x6b7b60,
+         'position': 0x6b79d0, 'fn278': 0x6b5e60}
 B = Bench([(0x6b8b40, 0x6b8b60), (0x6b7d70, 0x6b7e5b), (0x6c4760, 0x6c47a3), (0x6b5e40, 0x6b5e59), (0x6b7910, 0x6b796b),
-           (0x6b7970, 0x6b79cb), (0x6c4670, 0x6c46a7), (0x6c46b0, 0x6c475a)])
+           (0x6b7970, 0x6b79cb), (0x6c4670, 0x6c46a7), (0x6c46b0, 0x6c475a), (0x6b7b60, 0x6b7d6e), (0x6b79d0, 0x6b7a6b), (0x6b5e60, 0x6b5fb4),
+           (0x6c4c80, 0x6c4eff), (0x6c4f00, 0x6c4f54), (0x6b8330, 0x6b8358), (0x6bb7a0, 0x6bb7bd), (0x6bb7c0, 0x6bb856), (0x6babc0, 0x6bac04),
+           (0x6bac30, 0x6bac5c), (0x6b7e60, 0x6b7ea5), (0x6c5080, 0x6c5088), (0x6bb240, 0x6bb265), (0x6baa10, 0x6baa20), (0x6d1bc0, 0x6d1bca)])
 CHAN, OUT, FUNCTOR, FVT, REC, INFO, SRC, SVT, EAXB, KSET, KVT = (RAM + 0x100 * i for i in range(11))
 GLOBAL = 0xfb2058
+VOICES, VVT, SND, SNDVT, POOL, NODES, OCCS, VEC, VEC2 = (RAM + 0x1000 + 0x200 * i for i in range(9))
+OCCLUDERS, SHIFT, GLOBAL2708 = 0xfb2038, 0x782db8, 0xfb2708   # (the occluders' list, the voices' count at 0xfb2058 its +0x20)
+IMPORTS = {'InterlockedDecrement': (41, 0x6fd12c, 1, 0, 0), 'EnterCriticalSection': (42, 0x6fd140, 1, 0, 0),
+           'LeaveCriticalSection': (43, 0x6fd130, 1, 0, 0)}
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
@@ -26,6 +35,8 @@ def case(r):
     log = log_region()
     if name == 'settings':
         return settings_case(r, log)
+    if name in ('occlusion', 'position', 'fn278'):
+        return voices_case(r, log, name)
     if name in ('eax0b', 'eaxall'):
         blob(log, 4, 5, 1 if name == 'eax0b' else 0x3fff)   # (Set's data)
         set_return(log, 4, r.getrandbits(32))
@@ -69,6 +80,82 @@ def settings_case(r, log):
                EAXB: r.bytes(4) + struct.pack('<I', KSET), KSET: struct.pack('<I', KVT) + r.bytes(4), KVT: vtable({}, com={3: 8}),
                GLOBAL: r.bytes(4), LOG: log}
     return Call(0x6b7d70, [CHAN, OUT, REC], regions, conv='t', ret='a')
+
+
+def voices_case(r, log, name):
+    """SoundChannel_UpdateOcclusion (0x6b7b60), SoundChannel_SetPosition (0x6b79d0) and the functor 0x70a278's run (0x6b5e60): a channel (its
+    position small integers) with 0-3 voices (channelvoice.py's layout; +0x10 / +0x14 flags with bits 0 and 5 any way, +0x28 0, 0.5, NaN or
+    any; a sound or null) in a pool, its source a recorder vtable (slot 0x1e fills a voice's position, small integers; slot 0x22 (recorder 6) a status,
+    negative now and then; slot 0x13 a byte; slot 10 ReleaseVoice's status), an EAX buffer now and then, 0-3 occluders at 0xfb2038 near the
+    voices (soundoccluders.py's layout); a settings record with random flags (+4, +0x4c), +0x50 a vector or null, +0x54 a vector (+0x58,
+    +0x5c, +0x68 random)."""
+    def ints(k=6):
+        return fb(float(r.randint(-k, k)))
+
+    def status():
+        return b''.join(struct.pack('<I', r.choice([0, 1, 0x80000000, 0xffffffff, r.getrandbits(32)])) for _ in range(4))
+
+    def vec():
+        return struct.pack('<3I', *[r.choice([ints(), r.f(), r.f(), 0x7fc00000, 0]) for _ in range(3)])
+
+    for k in (0x10, 0x13):
+        set_return(log, k, r.choice([0, 1, 0x100, r.getrandbits(32)]))   # (0x13: a byte, AL)
+    set_return(log, 11, r.getrandbits(32))
+    set_return(log, 41, r.getrandbits(32))
+    strings(log, 0x1e, 0, out=5)   # (a local out, the position on the stack)
+    fill(log, 0x1e, 2, b''.join(struct.pack('<3I', ints(), r.getrandbits(32), ints()) for _ in range(4)), which=0, records=4)
+    for k in (5, 0x10, 0x15, 0x19, 0x14):
+        strings(log, k, 0, out=1)
+    blob(log, 0x12, 1, 0xfff)   # (the EAX properties on the stack)
+    blob(log, 7, 1, 7)   # (the scaled copy on the stack: slot 0x23's recorder)
+    for k, which in ((6, 1), (10, 2)):   # (6: slot 0x22's recorder)
+        strings(log, k, 0, out=1)
+        fill(log, k, 0, status(), which=which, records=4)
+        echo(log, k, 0)
+    n = r.choice([0, 1, 1, 2, 3])
+    voices = bytearray()
+    for _ in range(max(n, 1)):
+        v = bytearray(r.bytes(0x8c))
+        struct.pack_into('<II', v, 0, VVT, r.choice([SND, SND, SND, 0]))
+        for at in (0x10, 0x14):
+            struct.pack_into('<I', v, at, r.getrandbits(32) & ~0x21 | r.choice([0x20, 0x20, 0x21, 0, 1]))
+        struct.pack_into('<II', v, 0x28, r.choice([0, fb(0.5), 0x7fc00000, fb(r.random()), r.getrandbits(32)]),
+                         r.choice([r.getrandbits(32), r.getrandbits(8)]))
+        voices += v
+    pool = struct.pack('<IIII', r.choice([0, 1, 2, 4, r.getrandbits(32)]), r.choice([VOICES] * 8 + [0]), n, CHAN)
+    chan = bytearray(r.bytes(0x60))
+    struct.pack_into('<3I', chan, 8, ints(), r.getrandbits(32), ints())
+    struct.pack_into('<III', chan, 0x14, POOL, r.choice([SRC] * 12 + [0]), r.getrandbits(32))
+    struct.pack_into('<I', chan, 0x20, r.choice([EAXB, 0, 0]))
+    m = r.choice([0, 1, 2, 3])
+    occs = b''.join(struct.pack('<4I', ints(), ints(), r.getrandbits(32), fb(float(r.randint(0, 6)))) for _ in range(max(m, 1)))
+    nodes = b''.join(struct.pack('<II', OCCS + 0x10 * i, NODES + 8 * (i + 1) if i + 1 < m else 0) for i in range(max(m, 1)))
+    occluders = bytearray(r.bytes(0x24))
+    struct.pack_into('<I', occluders, 4, NODES if m else r.choice([0, NODES]))
+    struct.pack_into('<I', occluders, 0xc, m if m else r.choice([0, 1]))
+    struct.pack_into('<I', occluders, 0x14, r.choice([0, 0, fb(1.0), fb(3.0)]))
+    rec = bytearray(r.bytes(0x70))
+    struct.pack_into('<I', rec, 4, r.getrandbits(32) & r.choice([0xffffffff, 0x840, 0x800, 0]))
+    struct.pack_into('<I', rec, 0x40, r.choice([0, 1, 2, 3, r.getrandbits(32)]))
+    flags = r.getrandbits(32) & r.choice([0xffffffff, 0x2f4, 0x2fc, 0x274]) if r.random() < 0.9 else 0
+    if flags & 0x60 == 0x60 and (struct.unpack_from('<I', chan, 0x20)[0] or r.random() < 0.5):   # (one blob mask for both of the EAX buffer's sets: one of them)
+        flags &= ~r.choice([0x20, 0x40])
+    struct.pack_into('<I', rec, 0x4c, flags)
+    struct.pack_into('<II', rec, 0x50, r.choice([VEC, 0]), VEC2)
+    blob(log, 4, 5, 1 if flags & 0x60 == 0x20 else 0x3fff)   # (IKsPropertySet::Set's data)
+    set_return(log, 4, r.getrandbits(32))
+    svt = vtable({5: 2, 10: 2, 0x10: 2, 0x12: 2, 0x14: 2, 0x15: 3, 0x19: 2, 0x1e: 3}, size=36)
+    struct.pack_into('<II', svt, 0x88, recorder(6, 5), recorder(7, 3))   # (slots 0x22 and 0x23: recorders 6 and 7, past the 32 a vtable() has)
+    regions = {CHAN: chan, OUT: r.bytes(4), REC: rec, SRC: struct.pack('<I', SVT) + r.bytes(0xc), SVT: svt,
+               EAXB: r.bytes(4) + struct.pack('<I', r.choice([KSET] * 6 + [0])), KSET: struct.pack('<I', KVT) + r.bytes(4), KVT: vtable({}, com={4: 7}),
+               VOICES: voices, VVT: vtable({11: 1}), SND: struct.pack('<I', SNDVT) + r.bytes(0xc), SNDVT: vtable({}), POOL: pool, NODES: nodes,
+               OCCS: occs, VEC: vec(), VEC2: vec(), OCCLUDERS: occluders, SHIFT: bytes([r.choice([0, 1, 4, r.getrandbits(8)])]) + r.bytes(3),
+               GLOBAL2708: r.bytes(4), FUNCTOR: struct.pack('<II', 0x70a278, REC), IMPORT_TABLE: import_table(log, IMPORTS), LOG: log}
+    if name == 'occlusion':
+        return Call(0x6b7b60, [CHAN, r.choice([0, 1, 0x100, r.getrandbits(32)])], regions, conv='t', ret='v')
+    if name == 'position':
+        return Call(0x6b79d0, [CHAN, OUT, REC], regions, conv='t', ret='a')
+    return Call(0x6b5e60, [FUNCTOR, OUT, CHAN], regions, conv='t', ret='a')
 
 
 if __name__ == '__main__':

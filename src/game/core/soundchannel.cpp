@@ -2,8 +2,14 @@
 
 #include <cstdint>
 
+#include <emmintrin.h>
+
+#include "../math/vector.h"
+#include "../math/x87.h"
 #include "channelvoice.h"
 #include "soundeax.h"
+#include "soundoccluders.h"
+#include "thunks.h"
 #include "vcall.h"
 
 namespace {
@@ -22,6 +28,12 @@ u32 *source_eax(u8 *channel, u32 *out, u8 *settings) {
     *out = 0xffffffff;
     return out;
 }
+
+// A voice's id as the source knows it: +0x2c shifted right by the byte at 0x782db8.
+u32 voice_id(const u8 *voice) { return at<u32>(voice, 0x2c) >> (global<u8>(0x00782db8) & 31); }
+
+// fld; fistp (to nearest; out of range 0x80000000, as cvtss2si).
+s32 fistp(float x) { return _mm_cvtss_si32(_mm_set_ss(x)); }
 
 }  // namespace
 
@@ -101,6 +113,101 @@ u32 *__fastcall SoundChannel_ReleaseVoice(u8 *channel, void *, u32 *out, u8 *voi
     }
     *out = 0xffffffff;
     return out;
+}
+
+u32 *__fastcall SoundChannelFn70a278_Run(const u8 *functor, void *, u32 *out, u8 *channel) {
+    u32 local;   // (the original's is the channel argument's own slot)
+    auto record = [functor] { return at<u8 *>(functor, 4); };
+    if (at<u32>(record(), 4)) vcall<void>(at<u8 *>(channel, 0x18), 0x14, &local, at<u32>(record(), 4));
+    const u32 flags = at<u32>(record(), 0x4c);
+    if (flags) {
+        if (flags & 0x80) ChannelVoices_SetCount(at<u8 *>(channel, 0x14), nullptr, record());
+        if (at<u8>(record(), 0x4c) & 4) SoundChannel_SetPosition(channel, nullptr, &local, record());
+        if (at<u32>(record(), 0x4c) & 8) {
+            const float *const v = at<const float *>(record(), 0x54);
+            const X87Reg x = v[0], y = v[1], z = v[2];
+            float copy[3] = {v[0], v[1], v[2]};
+            const float scale = (float)(1.0f / X87_Sqrt(x * x + y * y + z * z));
+            Vec3_Scale(copy, nullptr, scale);
+            vcall<void>(at<u8 *>(channel, 0x18), 0x8c, out, copy, at<u32>(record(), 0x58));
+            return out;   // (sic: *out not set)
+        }
+        if (at<u32>(record(), 0x4c) & 0x10) vcall<void>(at<u8 *>(channel, 0x18), 0x64, &local, at<u32>(record(), 0x5c));
+        if (at<u32>(record(), 0x4c) & 0x200) {
+            Wrap_Globalfb2708_Set_6d1bc0_6baa10(at<u32>(record(), 0x68));
+            vcall<void>(at<u8 *>(channel, 0x18), 0x40, &local, at<u32>(record(), 0x68));
+        }
+        if (at<u8>(record(), 0x4c) & 0x20) SoundChannel_SetEaxProperty0b(channel, nullptr, &local, record());
+        if (at<u8>(record(), 0x4c) & 0x40) SoundChannel_SetEaxAll(channel, nullptr, &local, record());
+    }
+    *out = 0;
+    return out;
+}
+
+u32 *__fastcall SoundChannel_SetPosition(u8 *channel, void *, u32 *out, u8 *settings) {
+    u32 local;   // (the original's is the settings argument's own slot)
+    const u32 *const status = vcall<u32 *>(at<u8 *>(channel, 0x18), 0x88, &local, channel + 8, at<u32>(settings, 0x50), 0u,
+                                           (~at<u32>(settings, 4) >> 6) & 1);
+    if (static_cast<s32>(*status) < 0) {
+        *out = 0xffffffff;
+        return out;
+    }
+    if (const u32 *const p = at<const u32 *>(settings, 0x50)) {
+        at<u32>(channel, 8) = p[0];
+        at<u32>(channel, 0xc) = p[1];
+        at<u32>(channel, 0x10) = p[2];
+    }
+    if (at<u32>(settings, 4) & 0x800) {
+        const u8 eax = at<u32>(channel, 0x20) != 0;
+        if (eax || vcall<u8>(at<u8 *>(channel, 0x18), 0x4c)) SoundChannel_UpdateOcclusion(channel, nullptr, eax);
+    }
+    *out = 0;
+    return out;
+}
+
+void __fastcall SoundChannel_UpdateOcclusion(u8 *channel, void *, u8 eax) {
+    u8 *const pool = at<u8 *>(channel, 0x14);
+    u8 *voice = at<u8 *>(pool, 4);
+    u8 *const end = voice + at<u32>(pool, 8) * 0x8c;
+    if (!voice) return;
+    do {
+        if (ChannelVoice_Sound(voice) && (at<u32>(voice, 0x14) & 0x21) == 0x20) {
+            u32 local;
+            float position[3] = {0.0f, 0.0f, 0.0f};
+            vcall<void>(at<u8 *>(channel, 0x18), 0x78, &local, voice_id(voice), position);
+            u32 properties[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0x3e800000, 0x3f000000, 0, 0x3f800000};   // (0.25, 0.5, 1.0)
+            float occlusion;
+            bool changed = false;
+            if (SoundOccluders_Occlusion(reinterpret_cast<u8 *>((uintptr_t)0x00fb2038), nullptr, reinterpret_cast<const float *>(channel + 8),
+                                         position, &occlusion)) {
+                const float was = at<float>(voice, 0x28);
+                if (was < occlusion || was > occlusion) {
+                    at<float>(voice, 0x28) = occlusion;
+                    properties[5] = static_cast<u32>(fistp((float)(X87Reg(occlusion) * -2000.0f)));
+                    properties[7] = static_cast<u32>(fistp((float)(X87Reg(occlusion) * -1000.0f)));
+                    ChannelVoice_SetFlag(voice, nullptr, 1, 1);
+                    changed = true;
+                }
+            } else if (at<u8>(voice, 0x10) & 1) {
+                const float was = at<float>(voice, 0x28);
+                if (was < 0.0f || was > 0.0f) {
+                    at<u32>(voice, 0x28) = 0;
+                    ChannelVoice_SetFlag(voice, nullptr, 0, 1);
+                    changed = true;
+                }
+            }
+            if (changed) {
+                if (eax) {
+                    vcall<void>(at<u8 *>(channel, 0x18), 0x48, voice_id(voice), properties);
+                } else {
+                    const float half = 0.5f, level = (float)(X87Reg(1.0f) - occlusion);
+                    const float *const pick = half > level ? &half : &level;   // (by address: no maxss)
+                    vcall<void>(at<u8 *>(channel, 0x18), 0x54, &local, voice_id(voice), *pick);
+                }
+            }
+        }
+        voice += 0x8c;
+    } while (voice < end);
 }
 
 }  // extern "C"
