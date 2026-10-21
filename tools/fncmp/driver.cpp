@@ -377,16 +377,24 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
     u32 *log = reinterpret_cast<u32 *>((uintptr_t)kLog);
     u32 args[16];
     const u32 mask = log[0x280 + (k & 63)];
+    u32 earlier = 0;  // (this slot's calls in the log so far: fncmp.fail_after(), a fill's records)
+    for (u32 i = 0; i < log[0] && i < 40; ++i) earlier += log[1 + 12 * i] == k;
     for (u32 i = 0; i < n; ++i) {  // (stack[0] is the thunk's own return address)
         args[i] = stack[1 + i];
-        for (u32 f = 0; f < 2; ++f) {
-            const u32 *fill = log + 0x2c0 + 0x20 * f;
+        // Eight fills: two at + 0xb00, six more from + 0x1000 (0x80 each; a log region that sets them is that much longer). Dword 3: bits 0-7 an offset
+        // into the out structure, bits 8-15 records: with 2 or more the length is one record's, and call j (earlier) writes record j % records.
+        for (u32 f = 0; f < 8; ++f) {
+            const u32 *fill = log + (f < 2 ? 0x2c0 + 0x20 * f : 0x400 + 0x20 * (f - 2));
             if (fill[0] != ((k & 63) | 0x80000000u) || fill[1] != i || !args[i]) continue;
+            u8 *const to = reinterpret_cast<u8 *>((uintptr_t)args[i]) + (fill[3] & 0xff);
+            const u32 records = fill[3] >> 8 & 0xff;
             if (fill[2] & 0x80000000u) {  // (fncmp.fill_arg(): an argument's value, as passed)
                 const u32 value = (fill[2] & 0xff) < n ? stack[1 + (fill[2] & 0xff)] : 0;
-                std::memcpy(reinterpret_cast<void *>((uintptr_t)args[i]), &value, 4);
+                std::memcpy(to, &value, 4);
             } else {
-                std::memcpy(reinterpret_cast<void *>((uintptr_t)args[i]), fill + 4, fill[2] < 0x70 ? fill[2] : 0x70);
+                const u32 length = fill[2] < 0x70 ? fill[2] : 0x70;
+                const u32 skip = records > 1 ? earlier % records * length : 0;
+                if (skip + length <= 0x70) std::memcpy(to, reinterpret_cast<const u8 *>(fill + 4) + skip, length);
             }
         }
         const u32 *blob = log + 0x340 + 2 * (k & 63);  // (LOG_BLOBS)
@@ -397,6 +405,7 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
         if (mask >> i & 1) args[i] = string_hash(reinterpret_cast<const u8 *>((uintptr_t)args[i]));
         if (mask >> (16 + i) & 1) args[i] = 0;
         if (log[0x300 + (k & 63)] >> i & 1) args[i] &= 0xff;
+        if (log[0x300 + (k & 63)] >> (16 + i) & 1) args[i] &= 0xffff;  // (bits 16-31: WORD arguments)
     }
     // A sequenced read at + 0xf40 (fncmp.seq_read()): (k | 0x80000000, the buffer argument, the count argument, the done argument + 1 or 0, the data's
     // address, its length, the cursor, flags): each call copies the next count bytes of the data (fewer at its end, none for a negative count or a null
@@ -419,8 +428,6 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
         const u32 origin = stack[1 + seek[2]];
         seq[6] = (origin == 1 ? seq[6] : origin == 2 ? seq[5] : 0) + stack[1 + seek[1]];
     }
-    u32 earlier = 0;  // (this slot's calls in the log so far: fncmp.fail_after())
-    for (u32 i = 0; i < log[0] && i < 40; ++i) earlier += log[1 + 12 * i] == k;
     if (log[0] < 40) {
         u32 *entry = log + 1 + 12 * log[0];
         entry[0] = k;
@@ -449,8 +456,10 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
         }
         return override[1];
     }
-    if (override[0] == 3)                               //  3: the first value & 0xffff calls unanswered, then value >> 16 sign-extended)
+    if (override[0] == 3)                               //  3: the first value & 0xffff calls unanswered, then value >> 16 sign-extended;
         return earlier < (override[1] & 0xffff) ? h : (u32)(s32)(s16)(override[1] >> 16);
+    if (override[0] == 5)                               //  5: call j unanswered when bit j of the value is set, else 0: fncmp.fail_mask())
+        return earlier < 32 && (override[1] >> earlier & 1) ? h : 0;
     return override[0] == 2 && override[1] < n ? stack[1 + override[1]] : override[0] ? override[1] : h;
 }
 
