@@ -18,7 +18,7 @@
 // nibble * alpha / 255 for an alpha other than 0xff. *status = 0 at the end. Returns status.
 // Reimplementation of 0x6b0430, 0x6b0450, 0x6b0730, 0x6b0760, 0x6b0c50, 0x6b1130, 0x6b15f0, 0x6b19f0, 0x6b1e00, 0x6b1e30, 0x6b2100,
 // 0x6b21f0, 0x6b24b0, 0x6b2770, 0x6b2a30, 0x6b2a60, 0x6b2e20, 0x6b31e0, 0x6b3540, 0x6b3890, 0x6b3c20, 0x6b3c50, 0x6b3f40, 0x6b4140,
-// 0x6b4420, 0x6b4700, 0x6b4a30, 0x6b4a70, 0x6b4aa0, 0x6b5340 and 0x6b5410. The names are unconfirmed.
+// 0x6b4420, 0x6b4700, 0x6b4a30, 0x6b4a70, 0x6b4aa0, 0x6b5340, 0x6b5410 and 0x6b5560. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -58,6 +58,10 @@ struct GlyphRenderEnv {
     s32(__cdecl *atExit)(void(__cdecl *fn)());   // crt_atexit (0x67a7d0)
 };
 void GlyphRender_SetEnv(const GlyphRenderEnv *env);
+
+// 0x6b5560 (cdecl; the draw call hands it to atexit): frees the shared glyph buffer (0xfb4cd4); the pointer and size are left as they
+// are.
+void __cdecl GlyphRender_FreeBuffer();
 
 // 0x6b4aa0 (slot 1; thiscall (status, point, index, out, style), pops 0x14): draws glyph `index` of the style's font
 // (TextStyle_GetFont, released through its slot 0 before returning) with its top left at point on the display's surface (the draw

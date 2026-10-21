@@ -221,6 +221,8 @@ extern "C" {
 
 void GlyphRender_SetEnv(const GlyphRenderEnv *env) { g_env = env ? env : &kGameEnv; }
 
+void __cdecl GlyphRender_FreeBuffer() { GameHeap_Free(Buffer()); }
+
 s32 *__fastcall GlyphRenderer_Draw(u8 *renderer, void *, s32 *status, const s32 *point, u32 index, Rect *out, u8 *style) {
     const u8 *const surface = *reinterpret_cast<const u8 *const *>((uintptr_t)0x00fa76e8);
     u8 *const font = TextStyle_GetFont(style);

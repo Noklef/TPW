@@ -33,7 +33,7 @@ SPANS = {'blend1555': (0x6b0760, 2), 'blend565': (0x6b0c50, 2), 'blend4444': (0x
 DTORS = {'del70a148': 0x6b0430, 'del70a160': 0x6b0450, 'delblend': 0x6b0730, 'delsolid': 0x6b1e00, 'delpattern1': 0x6b2a30,
          'delpattern2': 0x6b3c20, 'del70a210': 0x6b4a30, 'delbase': 0x6b4a70, 'del70a258': 0x6b5410}
 CLIP = 0xfa76c0   # the display's clip (Display_GetClip)
-OPS = [n for n in list(SPANS) + list(DTORS) + ['clipspan', 'draw'] if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
+OPS = [n for n in list(SPANS) + list(DTORS) + ['clipspan', 'draw', 'free'] if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
 def glyph_bytes(r, n):
@@ -187,6 +187,10 @@ def case(r):
         return clipspan(r)
     if name == 'draw':
         return draw(r)
+    if name == 'free':   # GlyphRender_FreeBuffer: the buffer a heap block, null or anything
+        buffer = bytearray(r.bytes(16))
+        struct.pack_into('<I', buffer, 0xc, r.choice([0, HEAP + 0x10, HEAP + 0x40, r.getrandbits(32)]))
+        return Call(0x6b5560, [], {BUFFER: buffer, HEAP: heap(0x100), LOG: log_region()}, conv='c', ret='v')
     if name in SPANS:
         return span(r, name)
     regions = {OBJ: r.bytes(0x20), LOG: log_region(), HEAP: heap(0x40)}
