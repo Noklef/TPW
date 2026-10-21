@@ -1,5 +1,5 @@
 // The thing browser's panel (the thing shown [0x7cc308], the panel window [0x7cc304]): its labels filled for the thing, and the handler of
-// its windows' radio groups. Reimplementation of 0x4b3490, 0x4b3580, 0x4b3b90 and 0x4b3cf0. The names are unconfirmed.
+// its windows' radio groups. Reimplementation of 0x4b3490, 0x4b3580, 0x4b3b90, 0x4b3cf0 and 0x4b3f60. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -32,4 +32,15 @@ u32 __cdecl ThingBrowser_GroupHandler(u8 *group, u32 message, u32 a, u32 b);
 // given 0; 0x149 the registered window "hilight" (GuiWindows_FindByName) as its object +0x98 (Window_SetObject98), slot 5 given 0 and
 // hidden; the panel hidden and [0x7cc2f0] 0.
 void __cdecl ThingBrowser_Create();
+
+// 0x4b3f60 (cdecl (thing); name unconfirmed): the browser opened on a thing (or none): the window [0x7cc300] for kind 1 ([0x7cc2f0] 2),
+// else [0x7cc2fc] ([0x7cc2f0] 1), posted to the dialog's child 0x21 (Dialog7cb2b8_Child21Post); with a thing: it shown [0x7cc308], the
+// kinds 1, 4-8 the page [0x7cc30c] 6, 2, 1, 4, 3, 5 and their button 0x964, 0x95f, 0x95e, 0x961, 0x962, 0x960 selected in the window's
+// child 0x95d (RadioGroup_Select; other kinds keep the page and select none), the panel [0x7cc304] added to the dialog [0x7cb2b8] (depth
+// and words, Window_AddChild) and shown, its labels filled (ThingBrowser_ShowName) and the flag 0x1000 of [0x790ab0] set; without one
+// none shown, the page 0 and the group's selection cleared (-1). Then for the page 6 the panel's child 0x148 hidden, 0x14a shown and the
+// advisor told 0x11f, else the reverse and 0xc6 (Advisor_PostId); the window [0x7c24c8] closed (Window7c24c8_Close); the mode holder
+// [0x7b05e8] made when missing and, when the current mode [0x7b05d8] answers 9 from its slot 9, a new CMMOnline base set (as
+// Window7c24c8_Set's).
+void __cdecl ThingBrowser_Open(u8 *thing);
 }

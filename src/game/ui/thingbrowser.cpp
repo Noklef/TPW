@@ -9,9 +9,13 @@
 #include "../core/textarg.h"
 #include "../core/vcall.h"
 #include "../render/textparts.h"
+#include "../world/advisor.h"
 #include "../world/camera.h"
+#include "../world/mousemode.h"
 #include "../world/staff.h"
 #include "cursor.h"
+#include "dialogs.h"
+#include "focus.h"
 #include "radiogroup.h"
 #include "window.h"
 #include "window705a50.h"
@@ -110,5 +114,52 @@ void __cdecl ThingBrowser_Create() {
     Window_SetShown(hilight, nullptr, 0);
     Window_SetShown(global<u8 *>(0x007cc304), nullptr, 0);
     global<u32>(0x007cc2f0) = 0;
+}
+
+void __cdecl ThingBrowser_Open(u8 *thing) {
+    u8 *window;
+    if (thing && thing[2] == 1) {
+        window = global<u8 *>(0x007cc300);
+        global<u32>(0x007cc2f0) = 2;
+    } else {
+        window = global<u8 *>(0x007cc2fc);
+        global<u32>(0x007cc2f0) = 1;
+    }
+    Dialog7cb2b8_Child21Post((u32)(uintptr_t)window);   // (a second argument 0 pushed, unread)
+    u8 *const group = Window_FindChild(window, nullptr, 0x95d);
+    if (thing) {
+        global<u8 *>(0x007cc308) = thing;
+        u32 id = 0;
+        switch (thing[2]) {
+        case 1: global<u32>(0x007cc30c) = 6; id = 0x964; break;
+        case 4: global<u32>(0x007cc30c) = 2; id = 0x95f; break;
+        case 5: global<u32>(0x007cc30c) = 1; id = 0x95e; break;
+        case 6: global<u32>(0x007cc30c) = 4; id = 0x961; break;
+        case 7: global<u32>(0x007cc30c) = 3; id = 0x962; break;
+        case 8: global<u32>(0x007cc30c) = 5; id = 0x960; break;
+        }
+        if (id) RadioGroup_Select(group, nullptr, id);
+        Window_AddChild(global<u8 *>(0x007cb2b8), nullptr, global<u8 *>(0x007cc304), 1, 1);
+        Window_SetShown(global<u8 *>(0x007cc304), nullptr, 1);
+        ThingBrowser_ShowName();
+        global<u32>(0x00790ab0) |= 0x1000;
+    } else {
+        global<u8 *>(0x007cc308) = nullptr;
+        global<u32>(0x007cc30c) = 0;
+        RadioGroup_Select(group, nullptr, 0xffffffffu);
+    }
+    const bool six = global<u32>(0x007cc30c) == 6;
+    Window_SetShown(Window_FindChild(global<u8 *>(0x007cc304), nullptr, 0x148), nullptr, six ? 0 : 1);
+    Window_SetShown(Window_FindChild(global<u8 *>(0x007cc304), nullptr, 0x14a), nullptr, six ? 1 : 0);
+    Advisor_PostId(six ? 0x11f : 0xc6);
+    Window7c24c8_Close();
+    MouseModes_EnsureHolder();
+    u8 *const current = global<u8 *>(0x007b05d8);
+    if ((current ? vcall<s32>(current, 0x24) : 0) == 9) {
+        u8 *const block = static_cast<u8 *>(GameHeap_Alloc(8));
+        u8 *const mode = block ? MouseModeOnlineBase_Ctor(block) : nullptr;
+        MouseModes_EnsureHolder();
+        MouseMode_Set(mode);
+    }
 }
 }
