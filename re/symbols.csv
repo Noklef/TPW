@@ -452,11 +452,11 @@ address,name,kind,confidence,notes
 0x00804370,gParticleEffects,data,high,0x69 x 0x140-byte effect definitions from Tp2.plb
 0x0080c6b0,gParticleEffectors,data,high,20 x 0x68-byte effector definitions
 0x0080cefc,gParticleSystems,data,high,live systems: 0x140-byte copies of an effect definition
-0x006bf330,SoundCategory_Load,function,medium,"loads cat_<name>BANK.map, then cat_<name>SFX.map"
-0x006c0450,SoundCategory_ReadSfxMap,function,medium,reads the SFX.map header and image
-0x006c0360,SoundCategory_ReadSfxImage,function,medium,checks the GUID and loads the rest as one block
-0x006c0510,SfxMap_Fixup,function,medium,"relocates the image: categories 0x18, sounds 0x14, variations 0x2a, samples 0x10, links 8"
-0x006c5d20,SndReverb_Load,function,medium,"SndReverb.map: version 2000, 32 slots of (u8 present, 13 dwords)"
+0x006bf330,SoundCategory_Load,function,medium,"reimplemented (src/game/core/soundcategory); thiscall (&result, folder, name, &index): the folder set, a loaded name AddRef'd, else a record made and BANK.map / SFX.map read; deque C emptied"
+0x006c0450,SoundCategory_ReadSfxMap,function,medium,"reimplemented (src/game/core/soundcategory); thiscall (&result, name, &index): opened through the Handle at +0x30 and read by SoundCategory_ReadSfxImage; 0 or -1"
+0x006c0360,SoundCategory_ReadSfxImage,function,medium,"reimplemented (src/game/core/soundcategory); thiscall (&result, stream, &index): GUID checked, the rest of SFX.map read into a heap block and fixed up for the current category's record"
+0x006c0510,SfxMap_Fixup,function,medium,"reimplemented (src/game/core/soundcategory); thiscall (data, out, count): *out = data; each category record fixed from the end of the records"
+0x006c5d20,SndReverb_Load,function,medium,"reimplemented (src/game/core/sndreverb); thiscall: SndReverb.map (version 2000, a count, records of a byte and 13 dwords) read from the system's folder into +0x68 / +0x6c"
 0x00450900,TerrainAttrMap_Load,function,medium,"formats %s\Terrain\Base.map and reads it through TP2M_ReadChunks"
 0x005192d0,TP2M_ReadChunks,function,medium,"TP2M chunk reader set up with one handler for the MAP chunk (vtable 0x700aa8)"
 0x00519390,AttrMapHandler_MatchTag,function,medium,"MAP chunk handler: tag test"
@@ -2563,6 +2563,7 @@ address,name,kind,confidence,notes
 0x006c3010,Deque32_Copy,function,low,"reimplemented (src/game/core/dequeiter); cdecl (out, first, last, dest; iterators by value): copy across blocks, returns out"
 0x006c2f80,Deque32_CopyBackward,function,low,"reimplemented (src/game/core/dequeiter); cdecl (out, first, last, dest; iterators by value): copy_backward across blocks, returns out"
 0x006c15f0,Deque32_Erase,function,low,"reimplemented (src/game/core/dequeiter); thiscall (out, first, last; iterators by value), pops 0x24: erase(first, last) of a deque of dwords"
+0x00632150,Deque32_PopBack,function,low,"reimplemented (src/game/core/dequeiter); thiscall: pop_back of a deque of dwords: the end position back, the count lowered; at 0 or the block's start the back block freed"
 0x00423720,Obj_Get24,function,high,reimplemented (src/game/core/accessors); the dword at +0x24
 0x00423730,Obj_Get2c,function,high,reimplemented (src/game/core/accessors); the dword at +0x2c
 0x004030c0,Obj_Get30,function,high,reimplemented (src/game/core/accessors); the dword at +0x30
@@ -4365,6 +4366,30 @@ address,name,kind,confidence,notes
 0x006b7150,SoundVoice_EnsureParams,function,low,"reimplemented (src/game/core/soundvoice); thiscall: with no block at +0x4c, a 0x20-byte one (Mem_Alloc; the byte and +4-+0x18 cleared) stored there, or 0 when the allocation fails"
 0x006bc900,SoundVoice_SetPending,function,low,"reimplemented (src/game/core/soundvoice); thiscall (out, value), pops 8: with a sound at +0x24, a stack record (SetThenFlag28_14 value) handed to the sound system [0xfb1f24]'s slot 4 in a functor 0x70a850; else the value's low word at +0x48, flag 0x8000, *out = -1; returns out"
 0x006c4760,EaxBuffer_QueryAll,function,low,"reimplemented (src/game/core/soundeax); thiscall (out, unused), pops 8: IKsPropertySet::Get of the EAX 2.0 buffer properties (id 1, 0x38 bytes) into a stack block that is also the size out, dropped; *out = 0 on success, else -1; returns out"
+0x006bd7a0,SfxVariation_SampleCount,function,low,"reimplemented (src/game/core/soundcategory); cdecl (variation): its sample count, the low word of its first dword"
+0x006c0550,SfxMap_MarkSimpleSound,function,low,"reimplemented (src/game/core/soundcategory); thiscall (sound): flagged 4 and 2, one variation of one sample, no links: flagged 8 instead of 4"
+0x006c06e0,SfxMap_FixVariation,function,low,"reimplemented (src/game/core/soundcategory); thiscall (data, variation): samples and links placed, sample banks remapped through deque C and listed on the category's record"
+0x006c0610,SfxMap_FixSound,function,low,"reimplemented (src/game/core/soundcategory); thiscall (data, sound): variations placed and fixed, weights delta-decoded with +0xcc, links' next numbers made pointers"
+0x006c05b0,SfxMap_FixCategory,function,low,"reimplemented (src/game/core/soundcategory); thiscall (data, record): the record's sounds placed and fixed, each then SfxMap_MarkSimpleSound"
+0x006bf150,SoundCategory_FreeCategorySlot,function,low,"reimplemented (src/game/core/soundcategory); thiscall: the first index below deque A's count whose entry is 0, else the count"
+0x006bf1c0,SoundCategory_FreeBankSlot,function,low,reimplemented (src/game/core/soundcategory); thiscall: how many of deque B's entries from its start are not 0
+0x006bf9e0,SoundCategory_ReadBankEntries,function,low,"reimplemented (src/game/core/soundcategory); thiscall (stream, table): the rest of BANK.map read into a heap block, each entry's path pointer set"
+0x006bf850,SoundCategory_OpenBankFolder,function,low,"reimplemented (src/game/core/soundcategory); thiscall (found, &folder): unless found, the folder opened as a WAD (its .wad there) or a folder into found"
+0x006bf260,SoundCategory_SetFolder,function,low,"reimplemented (src/game/core/soundcategory); thiscall (&result, folder): the Handle at +0x30 reset, then the folder opened into it; 0 or -1"
+0x006bfa60,SoundCategory_FindBank,function,low,"reimplemented (src/game/core/soundcategory); thiscall (&index, path, &folder, found): the banks searched for the folder (found its Handle) and for folder + path (index pushed onto deque C, false)"
+0x006c01b0,Bank_Dtor,function,low,"reimplemented (src/game/core/soundcategory); thiscall: a bank's Handle and name destroyed, the base vtable 0x703770"
+0x006c0190,Bank_DeletingDtor,function,low,"reimplemented (src/game/core/soundcategory); thiscall (flags): Bank_Dtor, freed with bit 0"
+0x006bfe40,SoundCategory_ReadBankMap,function,low,"reimplemented (src/game/core/soundcategory); thiscall (&result, stream, folder): BANK.map's GUID checked, its entries read; each one's bank found (AddRef) or made, its folder opened and slotted into deques B and C; 0"
+0x006c0210,SoundCategory_LoadBankMap,function,low,"reimplemented (src/game/core/soundcategory); thiscall (&result, name, unused): BANK.map opened through the Handle at +0x30 and read in its folder; 0"
+0x006338c0,Class703770_AddRef,function,low,"reimplemented (src/game/core/refcounted); thiscall: the counted base class's AddRef, InterlockedIncrement (+4)"
+0x006338d0,Class703770_Release,function,low,"reimplemented (src/game/core/refcounted); thiscall: its Release: InterlockedDecrement (+4), at 0 deleted (vtable +8 (1)) and 0, else the count re-read"
+0x006c9580,Mp2_Dct64,function,low,"reimplemented (src/game/core/mp2synth); cdecl (out0, out1, in): the MP2 synthesis's 32-point DCT (dct64), 17 values to out0 and 16 to out1 at a stride of 16 floats"
+0x006c9270,Mp2Decoder_Synth,function,low,"reimplemented (src/game/core/mp2synth); thiscall (out, fraction): the polyphase synthesis of one granule per channel into interleaved 16-bit PCM (the DCT into the ring buffers, the window, fistp, clip)"
+0x006ca580,Mp2Decoder_SynthFixed,function,low,"reimplemented (src/game/core/mp2synth); thiscall (out, fraction): the fixed-point (MMX) polyphase synthesis: the transform into the ring buffers, the 16-bit window sums in 32 bits, shift and saturate"
+0x006ccc20,Mp2Decoder_Dequantize,function,low,"reimplemented (src/game/core/mp2layer2); thiscall (alloc bits, out, scale index, scale factors, allocation table): layer II samples dequantised to floats (II_step_two)"
+0x006cd220,Mp2Decoder_DequantizeFixed,function,low,"reimplemented (src/game/core/mp2layer2); thiscall (alloc bits, out, scale index, scale factors, allocation table): layer II samples dequantised to 16-bit fixed point"
+0x006cdf50,Mp2Decoder_DecodeLayer2,function,low,"reimplemented (src/game/core/mp2layer2); thiscall (pcm) -> 1: one layer II frame: the allocation table, allocations, scale factor selections and scale factors read, then 12 groups dequantised and synthesised (float or fixed point)"
+0x006ce5a0,Mp2Decoder_DecodeLayer1,function,low,"reimplemented (src/game/core/mp2layer1); thiscall (pcm) -> 1: one layer I frame: allocations, scale factors, 12 granules of samples dequantised (float, or fixed point all first) and synthesised"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

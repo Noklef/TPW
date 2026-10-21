@@ -182,8 +182,14 @@
 #include "../game/core/countedpair.h"
 #include "../game/core/imaadpcm.h"
 #include "../game/core/keyactions.h"
+#include "../game/core/mp2layer1.h"
+#include "../game/core/mp2layer2.h"
+#include "../game/core/mp2synth.h"
+#include "../game/core/refcounted.h"
 #include "../game/core/sharedglobals.h"
+#include "../game/core/sndreverb.h"
 #include "../game/core/soundbank.h"
+#include "../game/core/soundcategory.h"
 #include "../game/core/soundchannel.h"
 #include "../game/core/soundcmd.h"
 #include "../game/core/soundeax.h"
@@ -2303,6 +2309,7 @@ const Hook kHooks[] = {
     {"Deque32_Copy",              0x006c3010, (void *)&Deque32_Copy, {0x8b, 0x44, 0x24, 0x10, 0x53}},
     {"Deque32_CopyBackward",      0x006c2f80, (void *)&Deque32_CopyBackward, {0x8b, 0x44, 0x24, 0x20, 0x53}},
     {"Deque32_Erase",             0x006c15f0, (void *)&Deque32_Erase, {0x8b, 0x44, 0x24, 0x24, 0x83}},
+    {"Deque32_PopBack",           0x00632150, (void *)&Deque32_PopBack, {0x53, 0x56, 0x8b, 0xf1, 0x33}},
     {"Obj_Get24",                 0x00423720, (void *)&Obj_Get24, {0x8b, 0x41, 0x24, 0xc3, 0x90}},
     {"Obj_Get2c",                 0x00423730, (void *)&Obj_Get2c, {0x8b, 0x41, 0x2c, 0xc3, 0x90}},
     {"Obj_Get30",                 0x004030c0, (void *)&Obj_Get30, {0x8b, 0x41, 0x30, 0xc3, 0x90}},
@@ -4235,6 +4242,35 @@ const Hook kHooks[] = {
     {"SoundVoice_EnsureParams",   0x006b7150, (void *)&SoundVoice_EnsureParams, {0x53, 0x56, 0x8b, 0xf1, 0x33}},
     {"SoundVoice_SetPending",     0x006bc900, (void *)&SoundVoice_SetPending, {0x81, 0xec, 0xac, 0x00, 0x00}},
     {"EaxBuffer_QueryAll",        0x006c4760, (void *)&EaxBuffer_QueryAll, {0x8b, 0x41, 0x04, 0x83, 0xec}},
+    {"SfxVariation_SampleCount",  0x006bd7a0, (void *)&SfxVariation_SampleCount, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"SfxMap_MarkSimpleSound",    0x006c0550, (void *)&SfxMap_MarkSimpleSound, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"SfxMap_FixVariation",       0x006c06e0, (void *)&SfxMap_FixVariation, {0x83, 0xec, 0x30, 0x55, 0x8b}},
+    {"SfxMap_FixSound",           0x006c0610, (void *)&SfxMap_FixSound, {0x51, 0x53, 0x8b, 0x5c, 0x24}},
+    {"SfxMap_FixCategory",        0x006c05b0, (void *)&SfxMap_FixCategory, {0x51, 0x53, 0x55, 0x8b, 0x5c}},
+    {"SfxMap_Fixup",              0x006c0510, (void *)&SfxMap_Fixup, {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"SoundCategory_ReadSfxImage", 0x006c0360, (void *)&SoundCategory_ReadSfxImage, {0x83, 0xec, 0x2c, 0x53, 0x56}},
+    {"SoundCategory_ReadSfxMap",  0x006c0450, (void *)&SoundCategory_ReadSfxMap, {0x6a, 0xff, 0x68, 0x38, 0x60}},
+    {"SoundCategory_FreeCategorySlot", 0x006bf150, (void *)&SoundCategory_FreeCategorySlot, {0x83, 0xec, 0x10, 0x33, 0xc0}},
+    {"SoundCategory_FreeBankSlot", 0x006bf1c0, (void *)&SoundCategory_FreeBankSlot, {0x83, 0xec, 0x10, 0x53, 0x55}},
+    {"SoundCategory_ReadBankEntries", 0x006bf9e0, (void *)&SoundCategory_ReadBankEntries, {0x53, 0x55, 0x56, 0x8b, 0x74}},
+    {"SoundCategory_OpenBankFolder", 0x006bf850, (void *)&SoundCategory_OpenBankFolder, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"SoundCategory_SetFolder",   0x006bf260, (void *)&SoundCategory_SetFolder, {0x6a, 0xff, 0x68, 0x00, 0x5f}},
+    {"SoundCategory_FindBank",    0x006bfa60, (void *)&SoundCategory_FindBank, {0x6a, 0xff, 0x68, 0x8b, 0x5f}},
+    {"Bank_Dtor",                 0x006c01b0, (void *)&Bank_Dtor, {0x6a, 0xff, 0x68, 0xf3, 0x5f}},
+    {"Bank_DeletingDtor",         0x006c0190, (void *)&Bank_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"SoundCategory_ReadBankMap", 0x006bfe40, (void *)&SoundCategory_ReadBankMap, {0x6a, 0xff, 0x68, 0xce, 0x5f}},
+    {"SoundCategory_LoadBankMap", 0x006c0210, (void *)&SoundCategory_LoadBankMap, {0x6a, 0xff, 0x68, 0x18, 0x60}},
+    {"SoundCategory_Load",        0x006bf330, (void *)&SoundCategory_Load, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Class703770_AddRef",        0x006338c0, (void *)&Class703770_AddRef, {0x83, 0xc1, 0x04, 0x51, 0xff}},
+    {"Class703770_Release",       0x006338d0, (void *)&Class703770_Release, {0x56, 0x8b, 0xf1, 0x57, 0x8d}},
+    {"SndReverb_Load",            0x006c5d20, (void *)&SndReverb_Load, {0x6a, 0xff, 0x68, 0xa0, 0x64}},
+    {"Mp2_Dct64",                 0x006c9580, (void *)&Mp2_Dct64, {0x81, 0xec, 0x00, 0x01, 0x00}},
+    {"Mp2Decoder_Synth",          0x006c9270, (void *)&Mp2Decoder_Synth, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Mp2Decoder_SynthFixed",     0x006ca580, (void *)&Mp2Decoder_SynthFixed, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Mp2Decoder_Dequantize",     0x006ccc20, (void *)&Mp2Decoder_Dequantize, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Mp2Decoder_DequantizeFixed", 0x006cd220, (void *)&Mp2Decoder_DequantizeFixed, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Mp2Decoder_DecodeLayer2",   0x006cdf50, (void *)&Mp2Decoder_DecodeLayer2, {0x55, 0x8b, 0xec, 0x81, 0xec}},
+    {"Mp2Decoder_DecodeLayer1",   0x006ce5a0, (void *)&Mp2Decoder_DecodeLayer1, {0x55, 0x8b, 0xec, 0x81, 0xec}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

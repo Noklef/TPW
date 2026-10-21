@@ -770,6 +770,13 @@ MMX = {'PADDW': lambda d, s: _join([a + b for a, b in zip(_lanes(d, 16), _lanes(
        'PUNPCKLBW': lambda d, s: _join([x for p in zip(_lanes(d, 8)[:4], _lanes(s, 8)[:4]) for x in p], 8),
        'PUNPCKLWD': lambda d, s: _join([x for p in zip(_lanes(d, 16)[:2], _lanes(s, 16)[:2]) for x in p], 16),
        'PUNPCKLDQ': lambda d, s: _join([d & 0xffffffff, s & 0xffffffff], 32),
+       'PUNPCKHDQ': lambda d, s: _join([d >> 32, s >> 32], 32),
+       'PADDD': lambda d, s: _join([a + b for a, b in zip(_lanes(d, 32), _lanes(s, 32))], 32),
+       'PSLLD': _shift(lambda x, s: x << s, 32),
+       'PSRAD': lambda d, s: _join([_signed(x, 32) >> min(s, 31) for x in _lanes(d, 32)], 32),
+       'PMADDWD': lambda d, s: _join([_signed(a[0], 16) * _signed(b[0], 16) + _signed(a[1], 16) * _signed(b[1], 16)
+                                      for a, b in zip(zip(*[iter(_lanes(d, 16))] * 2), zip(*[iter(_lanes(s, 16))] * 2))], 32),
+       'PACKSSDW': lambda d, s: _join([min(0x7fff, max(-0x8000, _signed(x, 32))) for x in _lanes(d, 32) + _lanes(s, 32)], 16),
        'PXOR': lambda d, s: d ^ s, 'PAND': lambda d, s: d & s, 'POR': lambda d, s: d | s,
        'MOVD': lambda d, s: s & 0xffffffff, 'MOVQ': lambda d, s: s}
 

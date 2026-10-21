@@ -68,6 +68,7 @@
 #include "../../src/game/model/holder.h"
 #include "../../src/game/model/objmodel.h"
 #include "../../src/game/core/sharedglobals.h"
+#include "../../src/game/core/mp2synth.h"
 #include "../../src/game/world/mapline.h"
 #include "../../src/game/world/mousemode.h"
 #include "crt.h"
@@ -247,6 +248,15 @@ void __fastcall stub_mark(u32 *self) { *self = 0x006fd800; }
 u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack);
 
 // A callback the code under test calls through a function pointer, cdecl with one argument (kStubs + 0x50, tools/fncmp.py CDECL_LOG): logged as the COM-style entry k 0x13f.
+// The fixed-point MP2 transform's stand-in (fncmp._mp2_transform): in's 32 halfwords to out0, then reversed to out1, so where the caller
+// points them shows in the buffers (the inputs are on the caller's stack, whose address the two sides cannot share).
+void __cdecl stub_mp2_transform(s16 *out0, s16 *out1, const s16 *in) {
+    s16 v[32];
+    std::memcpy(v, in, sizeof v);
+    std::memcpy(out0, v, sizeof v);
+    for (u32 k = 0; k < 32; ++k) std::memcpy(out1 + k, v + 31 - k, 2);
+}
+
 u32 __cdecl stub_cdecl_log(u32 arg) {
     const u32 stack[2] = {0, arg};
     return record_call(0x13f, 1, 0, stack);
@@ -397,6 +407,27 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
         if (mask >> (16 + i) & 1) args[i] = 0;
         if (log[0x300 + (k & 63)] >> i & 1) args[i] &= 0xff;
     }
+    // A sequenced read at + 0xf40 (fncmp.seq_read()): (k | 0x80000000, the buffer argument, the count argument, the done argument + 1 or 0, the data's
+    // address, its length, the cursor, flags): each call copies the next count bytes of the data (fewer at its end, none for a negative count or a null
+    // buffer) to the buffer, moves the cursor on, writes the bytes copied through the done argument (unless null) and, with flags bit 0, returns them.
+    u32 *const seq = log + 0x3d0;
+    u32 copied = 0;
+    const bool sequenced = seq[0] == ((k & 63) | 0x80000000u) && seq[1] < n && seq[2] < n;
+    if (sequenced) {
+        const u32 buffer = stack[1 + seq[1]], count = stack[1 + seq[2]];
+        if (buffer && (s32)count > 0 && seq[6] < seq[5]) copied = count < seq[5] - seq[6] ? count : seq[5] - seq[6];
+        if (copied) std::memcpy(reinterpret_cast<void *>((uintptr_t)buffer), reinterpret_cast<const void *>((uintptr_t)(seq[4] + seq[6])), copied);
+        seq[6] += copied;
+        if (seq[3] && seq[3] <= n && stack[seq[3]]) std::memcpy(reinterpret_cast<void *>((uintptr_t)stack[seq[3]]), &copied, 4);
+    }
+    // A seek on that data at + 0xf60 (fncmp.seq_seek()): (k | 0x80000000, the offset argument, the origin argument): the cursor moves to the offset
+    // from the data's start, the cursor or its end (origin 0 / 1 / 2, any other as 0) and is returned.
+    const u32 *const seek = log + 0x3d8;
+    const bool seeking = seek[0] == ((k & 63) | 0x80000000u) && seek[1] < n && seek[2] < n;
+    if (seeking) {
+        const u32 origin = stack[1 + seek[2]];
+        seq[6] = (origin == 1 ? seq[6] : origin == 2 ? seq[5] : 0) + stack[1 + seek[1]];
+    }
     u32 earlier = 0;  // (this slot's calls in the log so far: fncmp.fail_after())
     for (u32 i = 0; i < log[0] && i < 40; ++i) earlier += log[1 + 12 * i] == k;
     if (log[0] < 40) {
@@ -417,6 +448,8 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
     u32 h = self * 0x9e3779b1u + (k + 1) * 0x10001u + n;
     for (u32 i = 0; i < n; ++i) h = h * 33 ^ args[i];
     const u32 *override = log + 0x200 + 2 * (k & 63);  // (LOG_RETURNS: a flag and a value for the slot; flag 2: argument value, as passed;
+    if (sequenced && (seq[7] & 1)) return copied;
+    if (seeking) return seq[6];
     if (override[0] == 3)                               //  3: the first value & 0xffff calls unanswered, then value >> 16 sign-extended)
         return earlier < (override[1] & 0xffff) ? h : (u32)(s32)(s16)(override[1] >> 16);
     return override[0] == 2 && override[1] < n ? stack[1 + override[1]] : override[0] ? override[1] : h;
@@ -620,6 +653,8 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x006fdcc8, 4},   // the light parts' (directional, point: slot 2 the thunk to Stub_One the renderer's sorted add calls)
                                    {0x006fdcd8, 5},   // and a light's virtual base made by Obj_CtorVirtual (slot 2 the same; 5-7 are _purecall)
                                    {0x006fe548, 4},
+                                   {0x0070a960, 3},   // the sound library's bank (Release, AddRef, deleting destructor: SoundCategory_ReadBankMap's)
+                                   {0x0070a950, 3},   // and category record (the same; slot 2 0x6c1110)
                                    {0x006fe980, 12},   // CMMOnline's (slot 10 Debug_Nop_46cfb0, which MouseMode_Set calls on the new mode; 11 its leave)
                                    {0x006fea10, 12},   // CMMOnline's base (slots 0, 9 and 11 MouseMode_Set's; 0x481a10 / 0x485b70 make it)
                                    {0x006fea70, 12},   // MMStaffDrop's (slots 9, 10 AssignDrop: MouseMode_Set's on the mode 0x5054d0 makes)
@@ -1042,6 +1077,10 @@ int main(int argc, char **argv) {
         (uintptr_t)(kStubs + 0xb000 + 0x400 * 6 + 0x20 * 30));
     pointer.endThread = reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)(kStubs + 0xb000 + 0x400 * 1 + 0x20 * 31));
     AsyncPointer_SetEnv(&pointer);
+    // The fixed-point MP2 synthesis's transform (LbMpeg_MmxTransform, 0x6d62c0, not ported): stub_mp2_transform, as tests/fncmp/mp2synth.py
+    // and mp2layer2.py hook it with fncmp._mp2_transform.
+    static const Mp2SynthEnv mp2Synth = {&stub_mp2_transform};
+    Mp2Synth_SetEnv(&mp2Synth);
     // A region of up to 8 MB, as hex. Mapped rather than static: a static this size grew the driver's .bss by 12 MB past the game's
     // addresses, where a case's wild pointer read memory natively that the emulator (the original's side) does not have. At 0x5a000000,
     // not top-down: that put it at 0x7ef00000-0x7fef0000, under the bits of +inf, NaN and big floats (0x7f800000, 0x7fc00000, 3e38),
