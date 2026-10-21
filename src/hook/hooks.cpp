@@ -418,6 +418,7 @@
 #include "../game/ui/dialog7cb25c.h"
 #include "../game/ui/dialog7cc1f8.h"
 #include "../game/ui/dialog7cc444.h"
+#include "../game/ui/dialog7cc5f4.h"
 #include "../game/ui/dialog7cca94.h"
 #include "../game/ui/guifont.h"
 #include "../game/ui/guitoken.h"
@@ -5678,6 +5679,8 @@ const Hook kHooks[] = {
     {"HoverLabel_Bind",           0x0048d290, (void *)&HoverLabel_Bind, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"Dialog7cb25c_SetTexts",     0x0049f860, (void *)&Dialog7cb25c_SetTexts, {0x8b, 0x0d, 0x5c, 0xb2, 0x7c}},
     {"Dialog7cc444_Create",       0x004b7b00, (void *)&Dialog7cc444_Create, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Dialog7cc5f4_Create",       0x004bb070, (void *)&Dialog7cc5f4_Create, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Dialog7cc5f4_CreateFrom",   0x004ba200, (void *)&Dialog7cc5f4_CreateFrom, {0x6a, 0xff, 0x68, 0x17, 0xb7}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
