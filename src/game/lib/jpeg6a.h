@@ -141,6 +141,153 @@ void __cdecl jpeg6a_jcprepct_pre_process_context(jpeg6a_compress_struct *cinfo, 
 // and last the wraparound's.
 void __cdecl jpeg6a_jcprepct_create_context_buffer(jpeg6a_compress_struct *cinfo);
 
+// jccoefct.c, the coefficient buffer controller, through third_party/wrap/jpeg-6a/jccoefct.c (with FULL_COEF_BUFFER_SUPPORTED, as
+// the exe's). Blocks are 64 shorts (JBLOCK).
+// 0x650700: cinfo->coef (alloc_small of the image pool, 0x68) and start_pass (through the method shim, jpeg6a.cpp); a full buffer is
+// a virtual block array for each component, padded to whole MCUs (request_virt_barray), else ten blocks (alloc_large) behind
+// MCU_buffer and whole_image[0] null.
+void __cdecl jpeg6a_jinit_c_coef_controller(jpeg6a_compress_struct *cinfo, int need_full_buffer);
+// 0x650818 (static, through its own shim): iMCU_row_num 0, the row's counters; compress_data for JBUF_PASS_THRU (no virtual arrays),
+// compress_first_pass for JBUF_SAVE_AND_PASS, compress_output for JBUF_CRANK_DEST (with them), else JERR_BAD_BUFFER_MODE 4.
+void __cdecl jpeg6a_jccoefct_start_pass_coef(jpeg6a_compress_struct *cinfo, int pass_mode);
+// 0x650908 (static): MCU_rows_per_iMCU_row (1 for an interleaved scan, else the component's v_samp_factor, or last_row_height in
+// the last iMCU row), mcu_ctr and MCU_vert_offset 0.
+void __cdecl jpeg6a_jccoefct_start_iMCU_row(jpeg6a_compress_struct *cinfo);
+// 0x650982 (static): an iMCU row's MCUs, each block row through the forward DCT into MCU_buffer (dummy blocks past the right and
+// bottom edges: zeroed, the previous block's DC), each MCU to the entropy encoder; FALSE when it suspends, the counters kept.
+int __cdecl jpeg6a_jccoefct_compress_data(jpeg6a_compress_struct *cinfo, unsigned char ***input_buf);
+// 0x650c30 (static): every component's iMCU row through the forward DCT into its virtual array (dummy blocks at the right edge and,
+// in the last iMCU row, dummy block rows, the DC of each MCU's last real block), then compress_output.
+int __cdecl jpeg6a_jccoefct_compress_first_pass(jpeg6a_compress_struct *cinfo, unsigned char ***input_buf);
+// 0x650ee3 (static): the scan's MCUs of the iMCU row from the virtual arrays to the entropy encoder (MCU_buffer pointing into them).
+int __cdecl jpeg6a_jccoefct_compress_output(jpeg6a_compress_struct *cinfo, unsigned char ***input_buf);
+
+// jccolor.c, the input colour converter, through third_party/wrap/jpeg-6a/jccolor.c. J_COLOR_SPACE: JCS_UNKNOWN 0, GRAYSCALE 1,
+// RGB 2, YCbCr 3, CMYK 4, YCCK 5.
+// 0x6554d0: cinfo->cconvert (alloc_small of the image pool, 0xc) and its methods (through the method shim, jpeg6a.cpp):
+// input_components checked against in_color_space (JERR_BAD_IN_COLORSPACE 7), num_components against jpeg_color_space
+// (JERR_BAD_J_COLORSPACE 8), the converter for the pair (JERR_CONVERSION_NOTIMPL 0x19 for another); start_pass the empty null_method
+// (0x655e8d, the exe's) or rgb_ycc_start.
+void __cdecl jpeg6a_jinit_color_converter(jpeg6a_compress_struct *cinfo);
+// 0x65586f (static): the RGB to YCbCr table, eight parts of 256 INT32s (alloc_small of the image pool).
+void __cdecl jpeg6a_jccolor_rgb_ycc_start(jpeg6a_compress_struct *cinfo);
+// 0x655980, 0x655ae4, 0x655bbf, 0x655d55, 0x655ddc (static): num_rows rows of image_width pixels from input_buf to output_buf's
+// components from output_row: RGB to YCbCr, RGB to Y, CMYK to YCCK (K as it is), the first of input_components samples, each of
+// num_components samples to its own component.
+void __cdecl jpeg6a_jccolor_rgb_ycc_convert(jpeg6a_compress_struct *cinfo, unsigned char **input_buf, unsigned char ***output_buf,
+                                            unsigned int output_row, int num_rows);
+void __cdecl jpeg6a_jccolor_rgb_gray_convert(jpeg6a_compress_struct *cinfo, unsigned char **input_buf, unsigned char ***output_buf,
+                                             unsigned int output_row, int num_rows);
+void __cdecl jpeg6a_jccolor_cmyk_ycck_convert(jpeg6a_compress_struct *cinfo, unsigned char **input_buf,
+                                              unsigned char ***output_buf, unsigned int output_row, int num_rows);
+void __cdecl jpeg6a_jccolor_grayscale_convert(jpeg6a_compress_struct *cinfo, unsigned char **input_buf,
+                                              unsigned char ***output_buf, unsigned int output_row, int num_rows);
+void __cdecl jpeg6a_jccolor_null_convert(jpeg6a_compress_struct *cinfo, unsigned char **input_buf, unsigned char ***output_buf,
+                                         unsigned int output_row, int num_rows);
+// The empty start_pass (built, unhooked: 0x655e8d stays the exe's hand port).
+void __cdecl jpeg6a_jccolor_null_method(jpeg6a_compress_struct *cinfo);
+
+// jcsample.c, the downsampler, through third_party/wrap/jpeg-6a/jcsample.c (with INPUT_SMOOTHING_SUPPORTED, as the exe's).
+// jpeg6a_component_info is jpeg_component_info (untagged in jpeglib.h), 0x54 bytes.
+struct jpeg6a_component_info;
+// 0x6547f0: cinfo->downsample (alloc_small of the image pool, 0x34) and its methods (through the method shim, jpeg6a.cpp):
+// JERR_CCIR601_NOTIMPL 0x17 for CCIR601_sampling; for each component by its factors against the maxima fullsize (smoothed with a
+// smoothing_factor), h2v1, h2v2 (smoothed likewise), int for integral ratios, else JERR_FRACT_SAMPLE_NOTIMPL 0x25; smoothing asked
+// for with a ratio it cannot smooth is a trace (JTRC_SMOOTH_NOTIMPL). start_pass is the empty start_pass_downsample (0x654a1d, the
+// exe's).
+void __cdecl jpeg6a_jinit_downsampler(jpeg6a_compress_struct *cinfo);
+// 0x654a22 (static): each component's method on its rows from in_row_index, to its row group out_row_group_index.
+void __cdecl jpeg6a_jcsample_sep_downsample(jpeg6a_compress_struct *cinfo, unsigned char ***input_buf, unsigned int in_row_index,
+                                            unsigned char ***output_buf, unsigned int out_row_group_index);
+// 0x654c1d (static): num_rows rows widened from input_cols to output_cols with their last sample.
+void __cdecl jpeg6a_jcsample_expand_right_edge(unsigned char **image_data, int num_rows, unsigned int input_cols,
+                                               unsigned int output_cols);
+// 0x654ab1, 0x654c94, 0x654ce5, 0x654db3, 0x654ebf, 0x65527e (static): a row group of one component to width_in_blocks * 8
+// samples (the input edge-expanded first): the rounded average of each h x v box; copied; 2:1 horizontally, 2:1 both ways (an
+// alternating bias of 0, 1 / 1, 2); 2:1 both ways and full size smoothed with the neighbouring rows and columns
+// (smoothing_factor / 1024).
+void __cdecl jpeg6a_jcsample_int_downsample(jpeg6a_compress_struct *cinfo, jpeg6a_component_info *compptr,
+                                            unsigned char **input_data, unsigned char **output_data);
+void __cdecl jpeg6a_jcsample_fullsize_downsample(jpeg6a_compress_struct *cinfo, jpeg6a_component_info *compptr,
+                                                 unsigned char **input_data, unsigned char **output_data);
+void __cdecl jpeg6a_jcsample_h2v1_downsample(jpeg6a_compress_struct *cinfo, jpeg6a_component_info *compptr,
+                                             unsigned char **input_data, unsigned char **output_data);
+void __cdecl jpeg6a_jcsample_h2v2_downsample(jpeg6a_compress_struct *cinfo, jpeg6a_component_info *compptr,
+                                             unsigned char **input_data, unsigned char **output_data);
+void __cdecl jpeg6a_jcsample_h2v2_smooth_downsample(jpeg6a_compress_struct *cinfo, jpeg6a_component_info *compptr,
+                                                    unsigned char **input_data, unsigned char **output_data);
+void __cdecl jpeg6a_jcsample_fullsize_smooth_downsample(jpeg6a_compress_struct *cinfo, jpeg6a_component_info *compptr,
+                                                        unsigned char **input_data, unsigned char **output_data);
+// The empty start_pass (built, unhooked: 0x654a1d stays the exe's hand port).
+void __cdecl jpeg6a_jcsample_start_pass_downsample(jpeg6a_compress_struct *cinfo);
+
+// jcdctmgr.c, the forward DCT manager, through third_party/wrap/jpeg-6a/jcdctmgr.c (compiled /arch:IA32: the float divisors are x87
+// code in the exe). forward_DCT_float (0x653d32) stays the exe's, as jpeg_fdct_float (0x657110): its (int) of an out-of-range
+// product (a zero quantval) is the low half of _ftol's 64-bit FISTP in the exe, 0x80000000 in the library's build.
+// 0x653610: cinfo->fdct (alloc_small of the image pool, 0x30) and its methods (through the method shim, jpeg6a.cpp): forward_DCT
+// with jpeg_fdct_islow or jpeg_fdct_ifast, forward_DCT_float with jpeg_fdct_float, by dct_method (else JERR_NOT_COMPILED 0x2f); no
+// divisor tables yet.
+void __cdecl jpeg6a_jinit_forward_dct(jpeg6a_compress_struct *cinfo);
+// 0x6536f7 (static): for each component's quantization table (JERR_NO_QUANT_TABLE 0x33 when it is missing) its divisors for the
+// DCT method, allocated once (alloc_small): quantval * 8 (JDCT_ISLOW), scaled by the AA&N factors (JDCT_IFAST), or the float
+// reciprocals of those (JDCT_FLOAT).
+void __cdecl jpeg6a_jcdctmgr_start_pass_fdctmgr(jpeg6a_compress_struct *cinfo);
+// 0x65398f (static): num_blocks blocks of samples from (start_row, start_col), less 128, through do_dct, each coefficient divided by
+// its divisor rounding half away from zero, into coef_blocks.
+void __cdecl jpeg6a_jcdctmgr_forward_DCT(jpeg6a_compress_struct *cinfo, jpeg6a_component_info *compptr,
+                                         unsigned char **sample_data, short (*coef_blocks)[64], unsigned int start_row,
+                                         unsigned int start_col, unsigned int num_blocks);
+// (built, unhooked: 0x653d32 stays the exe's)
+void __cdecl jpeg6a_jcdctmgr_forward_DCT_float(jpeg6a_compress_struct *cinfo, jpeg6a_component_info *compptr,
+                                               unsigned char **sample_data, short (*coef_blocks)[64], unsigned int start_row,
+                                               unsigned int start_col, unsigned int num_blocks);
+void __cdecl jpeg6a_jpeg_fdct_float(float *data);  // (jfdctflt.c: built, unhooked)
+
+// jchuff.c, the sequential Huffman encoder, through third_party/wrap/jpeg-6a/jchuff.c (with ENTROPY_OPT_SUPPORTED, as the exe's).
+// jpeg6a_c_derived_tbl is jchuff.h's c_derived_tbl (untagged), 0x500 bytes (ehufco[256], ehufsi[256]); jpeg6a_huff_working_state
+// jchuff.c's working_state (untagged), 0x24 bytes: next_output_byte, free_in_buffer, put_buffer +8, put_bits +0xc, last_dc_val[4]
+// +0x10, cinfo +0x20.
+struct jpeg6a_c_derived_tbl;
+struct jpeg6a_huff_working_state;
+// 0x6510e0: htbl's codes and lengths by symbol (codes assigned in order of length, from bits[1..16]) into *pdtbl, allocated
+// (alloc_small of the image pool) when null; ehufsi zeroed first, so a symbol without a code has length 0.
+void __cdecl jpeg6a_jpeg_make_c_derived_tbl(jpeg6a_compress_struct *cinfo, jpeg6a_huff_tbl *htbl, jpeg6a_c_derived_tbl **pdtbl);
+// 0x6512ad: the optimal table for the symbol counts freq[0..255] (freq[256] set to 1 and the counts merged as it goes): code
+// lengths over 16 folded into shorter ones (JERR_HUFF_CLEN_OVERFLOW 0x26 past 32), the reserved code removed, bits and huffval
+// into htbl, sent_table FALSE.
+void __cdecl jpeg6a_jpeg_gen_optimal_table(jpeg6a_compress_struct *cinfo, jpeg6a_huff_tbl *htbl, long *freq);
+// 0x651772: cinfo->entropy (alloc_small of the image pool, 0x6c), start_pass start_pass_huff (through the method shim, jpeg6a.cpp),
+// no derived tables or counts yet.
+void __cdecl jpeg6a_jinit_huff_encoder(jpeg6a_compress_struct *cinfo);
+// 0x6517f9 (static, through the shim as jinit_huff_encoder): encode_mcu and finish_pass for gathering statistics or encoding; for
+// each component in the scan its DC and AC tables checked (JERR_NO_HUFF_TABLE 0x31 out of range, or missing when encoding) and
+// derived, or its counts allocated once and zeroed; the DC predictions, the bit buffer and the restart count reset.
+void __cdecl jpeg6a_jchuff_start_pass_huff(jpeg6a_compress_struct *cinfo, int gather_statistics);
+// 0x651f05 (static): dest->empty_output_buffer and the state's buffer from dest; FALSE when it suspends.
+int __cdecl jpeg6a_jchuff_dump_buffer(jpeg6a_huff_working_state *state);
+// 0x651db5 (static): size bits of code into the bit buffer (JERR_HUFF_MISSING_CODE 0x27 for size 0), whole bytes out with a 0
+// stuffed after each 0xFF; FALSE when the destination suspends.
+int __cdecl jpeg6a_jchuff_emit_bits(jpeg6a_huff_working_state *state, unsigned int code, int size);
+// 0x652030 (static): the partial byte filled with ones, the bit buffer emptied.
+int __cdecl jpeg6a_jchuff_flush_bits(jpeg6a_huff_working_state *state);
+// 0x651bb5 (static): a block's DC difference from last_dc_val and its AC coefficients in zigzag order (runs of 16 zeros as 0xF0,
+// the trailing zeros as EOB), coded with dctbl and actbl.
+int __cdecl jpeg6a_jchuff_encode_one_block(jpeg6a_huff_working_state *state, short *block, int last_dc_val,
+                                           jpeg6a_c_derived_tbl *dctbl, jpeg6a_c_derived_tbl *actbl);
+// 0x651f4c (static): the bits flushed, the marker RST0 + restart_num, the scan's DC predictions reset.
+int __cdecl jpeg6a_jchuff_emit_restart(jpeg6a_huff_working_state *state, int restart_num);
+// 0x651a21 (static): the MCU's blocks encoded (a restart marker first when the interval is up), the state back to the entropy
+// encoder and the destination unless the destination suspends.
+int __cdecl jpeg6a_jchuff_encode_mcu_huff(jpeg6a_compress_struct *cinfo, short (**MCU_data)[64]);
+// 0x652066 (static): the last bits flushed (JERR_CANT_SUSPEND 0x16 if the destination suspends).
+void __cdecl jpeg6a_jchuff_finish_pass_huff(jpeg6a_compress_struct *cinfo);
+// 0x652210 (static): encode_one_block's symbols counted instead of emitted.
+void __cdecl jpeg6a_jchuff_htest_one_block(short *block, int last_dc_val, long *dc_counts, long *ac_counts);
+// 0x6520fe (static): the MCU's blocks counted (the DC predictions reset at a restart).
+int __cdecl jpeg6a_jchuff_encode_mcu_gather(jpeg6a_compress_struct *cinfo, short (**MCU_data)[64]);
+// 0x652345 (static): each table the scan uses, once, the optimal one for its counts (allocated, jpeg_alloc_huff_table, when null).
+void __cdecl jpeg6a_jchuff_finish_pass_gather(jpeg6a_compress_struct *cinfo);
+
 // jcomapi.c: what compression and decompression share.
 // 0x64f3c0: the image pool freed (mem->free_pool of pool 1), global_state back to the start (DSTATE_START 200 for a decompressor,
 // else CSTATE_START 100).

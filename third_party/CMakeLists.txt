@@ -58,6 +58,9 @@ tpw_jpeg(tpw_jpeg6b jpeg-6b jmemansi)
 set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/wrap/jpeg-6b/jddctmgr.c PROPERTIES COMPILE_OPTIONS /arch:IA32)
 tpw_jpeg(tpw_jpeg6a jpeg-6a jmemansi)
 set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/wrap/jpeg-6a/jmemansi.c PROPERTIES COMPILE_DEFINITIONS DEFAULT_MAX_MEM=10000000L)
+# 6a's jcdctmgr.c likewise: start_pass_fdctmgr's JDCT_FLOAT divisors, 1.0 / ((double) quantval * aanscalefactor[row] *
+# aanscalefactor[col] * 8.0) stored to a float, are x87 code in the exe (FILD, FMUL, FMUL, FMUL, FDIVR, FSTP).
+set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/wrap/jpeg-6a/jcdctmgr.c PROPERTIES COMPILE_OPTIONS /arch:IA32)
 target_compile_options(tpw_jpeg6a PRIVATE /FI${CMAKE_CURRENT_SOURCE_DIR}/config/jpeg6a_prefix.h)
 # 6a's jconfig.h (boolean an int, as in the exe's 6a) before the shared one; src/game/lib/jpeg6a.cpp includes it by path
 target_include_directories(tpw_jpeg6a BEFORE PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/config/jpeg-6a)

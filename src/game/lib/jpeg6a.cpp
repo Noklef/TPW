@@ -65,6 +65,13 @@ extern "C" void __cdecl jpeg6a_jcmaster_lib_jinit_c_master_control(jpeg6a_compre
 extern "C" void __cdecl jpeg6a_jcmainct_lib_jinit_c_main_controller(jpeg6a_compress_struct *cinfo, int need_full_buffer);
 extern "C" void __cdecl jpeg6a_jcmainct_lib_start_pass_main(jpeg6a_compress_struct *cinfo, int pass_mode);
 extern "C" void __cdecl jpeg6a_jcprepct_lib_jinit_c_prep_controller(jpeg6a_compress_struct *cinfo, int need_full_buffer);
+extern "C" void __cdecl jpeg6a_jccoefct_lib_jinit_c_coef_controller(jpeg6a_compress_struct *cinfo, int need_full_buffer);
+extern "C" void __cdecl jpeg6a_jccoefct_lib_start_pass_coef(jpeg6a_compress_struct *cinfo, int pass_mode);
+extern "C" void __cdecl jpeg6a_jccolor_lib_jinit_color_converter(jpeg6a_compress_struct *cinfo);
+extern "C" void __cdecl jpeg6a_jcsample_lib_jinit_downsampler(jpeg6a_compress_struct *cinfo);
+extern "C" void __cdecl jpeg6a_jcdctmgr_lib_jinit_forward_dct(jpeg6a_compress_struct *cinfo);
+extern "C" void __cdecl jpeg6a_jchuff_lib_jinit_huff_encoder(jpeg6a_compress_struct *cinfo);
+extern "C" void __cdecl jpeg6a_jchuff_lib_start_pass_huff(jpeg6a_compress_struct *cinfo, int gather_statistics);
 
 namespace {
 struct ExeMethod {
@@ -106,6 +113,41 @@ const ExeMethod kExeMethods[] = {
     {fn(&jpeg6a_jcprepct_start_pass_prep), 0x654188},
     {fn(&jpeg6a_jcprepct_pre_process_data), 0x6541ed},
     {fn(&jpeg6a_jcprepct_pre_process_context), 0x654440},
+    // jccoefct.c (the library's start_pass_coef, behind its shim)
+    {fn(&jpeg6a_jccoefct_lib_start_pass_coef), 0x650818},
+    {fn(&jpeg6a_jccoefct_compress_data), 0x650982},
+    {fn(&jpeg6a_jccoefct_compress_first_pass), 0x650c30},
+    {fn(&jpeg6a_jccoefct_compress_output), 0x650ee3},
+    // jccolor.c (the empty null_method to the exe's hand port of its own)
+    {fn(&jpeg6a_jccolor_null_method), 0x655e8d},
+    {fn(&jpeg6a_jccolor_rgb_ycc_start), 0x65586f},
+    {fn(&jpeg6a_jccolor_rgb_ycc_convert), 0x655980},
+    {fn(&jpeg6a_jccolor_rgb_gray_convert), 0x655ae4},
+    {fn(&jpeg6a_jccolor_cmyk_ycck_convert), 0x655bbf},
+    {fn(&jpeg6a_jccolor_grayscale_convert), 0x655d55},
+    {fn(&jpeg6a_jccolor_null_convert), 0x655ddc},
+    // jcsample.c (the empty start_pass_downsample to the exe's hand port of its own)
+    {fn(&jpeg6a_jcsample_start_pass_downsample), 0x654a1d},
+    {fn(&jpeg6a_jcsample_sep_downsample), 0x654a22},
+    {fn(&jpeg6a_jcsample_int_downsample), 0x654ab1},
+    {fn(&jpeg6a_jcsample_fullsize_downsample), 0x654c94},
+    {fn(&jpeg6a_jcsample_h2v1_downsample), 0x654ce5},
+    {fn(&jpeg6a_jcsample_h2v2_downsample), 0x654db3},
+    {fn(&jpeg6a_jcsample_h2v2_smooth_downsample), 0x654ebf},
+    {fn(&jpeg6a_jcsample_fullsize_smooth_downsample), 0x65527e},
+    // jcdctmgr.c and the DCT routines it stores (forward_DCT_float and jpeg_fdct_float to the exe's own, which stay)
+    {fn(&jpeg6a_jcdctmgr_start_pass_fdctmgr), 0x6536f7},
+    {fn(&jpeg6a_jcdctmgr_forward_DCT), 0x65398f},
+    {fn(&jpeg6a_jcdctmgr_forward_DCT_float), 0x653d32},
+    {fn(&jpeg6a_jpeg_fdct_islow), 0x657810},
+    {fn(&jpeg6a_jpeg_fdct_ifast), 0x657480},
+    {fn(&jpeg6a_jpeg_fdct_float), 0x657110},
+    // jchuff.c (the library's start_pass_huff, behind its shim)
+    {fn(&jpeg6a_jchuff_lib_start_pass_huff), 0x6517f9},
+    {fn(&jpeg6a_jchuff_encode_mcu_huff), 0x651a21},
+    {fn(&jpeg6a_jchuff_finish_pass_huff), 0x652066},
+    {fn(&jpeg6a_jchuff_encode_mcu_gather), 0x6520fe},
+    {fn(&jpeg6a_jchuff_finish_pass_gather), 0x652345},
 };
 
 bool g_native_methods = false;  // (Jpeg6a_SetNativeMethods: the tests' driver, which cannot call the exe's addresses)
@@ -175,6 +217,55 @@ void __cdecl jpeg6a_jinit_c_prep_controller(j_compress_ptr cinfo, boolean need_f
     jpeg6a_jcprepct_lib_jinit_c_prep_controller(cinfo, need_full_buffer);
     exe_method(cinfo->prep->start_pass);
     exe_method(cinfo->prep->pre_process_data);
+}
+
+void __cdecl jpeg6a_jinit_c_coef_controller(j_compress_ptr cinfo, boolean need_full_buffer) {
+    jpeg6a_jccoefct_lib_jinit_c_coef_controller(cinfo, need_full_buffer);
+    exe_method(cinfo->coef->start_pass);
+}
+
+// start_pass_coef stores compress_data (a method that stores a method).
+void __cdecl jpeg6a_jccoefct_start_pass_coef(j_compress_ptr cinfo, int pass_mode) {  // (a J_BUF_MODE)
+    jpeg6a_jccoefct_lib_start_pass_coef(cinfo, pass_mode);
+    exe_method(cinfo->coef->compress_data);
+}
+
+void __cdecl jpeg6a_jinit_color_converter(j_compress_ptr cinfo) {
+    jpeg6a_jccolor_lib_jinit_color_converter(cinfo);
+    exe_method(cinfo->cconvert->start_pass);
+    exe_method(cinfo->cconvert->color_convert);
+}
+
+// jinit_downsampler also stores a method for each component in my_downsampler's private methods[10] (+0xc, wrap/jpeg-6a/jcsample.c
+// pins the layout).
+void __cdecl jpeg6a_jinit_downsampler(j_compress_ptr cinfo) {
+    jpeg6a_jcsample_lib_jinit_downsampler(cinfo);
+    exe_method(cinfo->downsample->start_pass);
+    exe_method(cinfo->downsample->downsample);
+    for (int ci = 0; ci < cinfo->num_components; ci++)
+        exe_method_at(reinterpret_cast<char *>(cinfo->downsample) + 0xc + 4 * ci);
+}
+
+// jinit_forward_dct also stores the DCT routine in my_fdct_controller's private do_dct (+8) or do_float_dct (+0x1c)
+// (wrap/jpeg-6a/jcdctmgr.c pins the layout).
+void __cdecl jpeg6a_jinit_forward_dct(j_compress_ptr cinfo) {
+    jpeg6a_jcdctmgr_lib_jinit_forward_dct(cinfo);
+    exe_method(cinfo->fdct->start_pass);
+    exe_method(cinfo->fdct->forward_DCT);
+    exe_method_at(reinterpret_cast<char *>(cinfo->fdct) + 0x8);
+    exe_method_at(reinterpret_cast<char *>(cinfo->fdct) + 0x1c);
+}
+
+void __cdecl jpeg6a_jinit_huff_encoder(j_compress_ptr cinfo) {
+    jpeg6a_jchuff_lib_jinit_huff_encoder(cinfo);
+    exe_method(cinfo->entropy->start_pass);
+}
+
+// start_pass_huff stores encode_mcu and finish_pass (a method that stores methods).
+void __cdecl jpeg6a_jchuff_start_pass_huff(j_compress_ptr cinfo, boolean gather_statistics) {
+    jpeg6a_jchuff_lib_start_pass_huff(cinfo, gather_statistics);
+    exe_method(cinfo->entropy->encode_mcu);
+    exe_method(cinfo->entropy->finish_pass);
 }
 }
 
