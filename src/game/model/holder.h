@@ -154,6 +154,16 @@ u32 __cdecl Animator_Create(u8 *animator, u8 *record, const char *name, u32 flag
 // the nodes' +0x28 and +0x2c the parts' matrices and +0x6c (from the model's +0x70, the first skipped for more than one node); the
 // record's (+0x3c) use count +0x1c raised. *out = the copy; returns Holder_Clone's result.
 u32 __cdecl Animator_Clone(const u8 *animator, u32 unused, u32 flags, u8 **out);
+
+// 0x4557c0 (cdecl; instance, heap, flags, out, mask; name unconfirmed): 0 for a null instance. Otherwise flag 0x800 cleared, the holder (+8)
+// cloned (Holder_Clone with heap, flags, mask) and the animator (+0xb4) when set (Animator_Clone with heap, 0x21df); one block
+// (GlobalMem_Alloc, not zeroed) of 0xfc bytes, the u16 count (+0xe) of 0x38-byte entries and, with parts (+0xa8), 12 bytes a part (sic: the
+// index arrays may need more): the 0xfc bytes copied, +8 / +0xb4 the clones, +0xe0 the block, +0 the instance, +0x10 the entries after the
+// header (copied when +0x10 and the count are set). With parts, the table after the entries (aligned to 4, at +0xac) gets each non-null
+// part cloned (ModelPiece_Clone with heap, [0x79fb2c] for 0, and flags), and each of the twelve (count, entries) arrays from +0x1c with a
+// count is copied after it (unless its entries are null) and its entries' second dwords set to the parts their first dwords index.
+// Holder_Create (through the mesh env) on the new holder for flag 0x2000. *out = the block; returns 1.
+u32 __cdecl Instance_Clone(const u8 *instance, u32 heap, u32 flags, u8 **out, u32 mask);
 }
 
 // Animator_Create's calls out (and Animator_Clone's holder) (the game's, i.e. the ports', unless swapped; tools/fncmp's driver logs them).

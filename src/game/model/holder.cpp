@@ -1,6 +1,7 @@
 #include "holder.h"
 
 #include <cstdint>
+#include <cstring>
 
 #include "../math/matrix.h"
 #include "../render/renderer.h"
@@ -536,6 +537,65 @@ u32 __cdecl Animator_Clone(const u8 *animator, u32 unused, u32 flags, u8 **out) 
     at<u32>(at<u8 *>(copy, 0x3c), 0x1c) += 1;
     *out = copy;
     return result;
+}
+
+u32 __cdecl Instance_Clone(const u8 *instance, u32 heap, u32 flags, u8 **out, u32 mask) {
+    if (!instance)
+        return 0;
+    flags &= ~0x800u;   // (so the original's 0x800 branches never run)
+    u8 *holder;
+    Holder_Clone(at<const u8 *>(instance, 8), heap, flags, &holder, mask);
+    u8 *animator = nullptr;
+    if (at<u32>(instance, 0xb4))
+        Animator_Clone(at<const u8 *>(instance, 0xb4), heap, 0x21df, &animator);
+    const u32 entries = at<u16>(instance, 0xe) * 0x38u;
+    const u32 parts = at<u32>(instance, 0xa8);
+    // The size: the header and entries, then the parts' table and 8 bytes a part for the twelve index arrays (which may need more, sic);
+    // each section's padding to 4 counted on top (sic; always 0 here).
+    const u32 size = 0xfc + entries + parts * 12;
+    if (!heap)
+        heap = global<u32>(0x0079fb2c);   // (for the parts only)
+    u8 *const block = static_cast<u8 *>(GlobalMem_Alloc(size, 0));
+    for (u32 k = 0; k < 0xfc; k += 4)   // (REP MOVSD)
+        at<u32>(block, k) = at<u32>(instance, k);
+    at<u8 *>(block, 8) = holder;
+    at<u8 *>(block, 0xb4) = animator;
+    at<u8 *>(block, 0xe0) = block;
+    at<const u8 *>(block, 0) = instance;
+    at<u8 *>(block, 0x10) = block + 0xfc;
+    if (at<u32>(instance, 0x10) && at<u16>(instance, 0xe))
+        std::memcpy(block + 0xfc, at<const u8 *>(instance, 0x10), entries);
+    if (parts) {
+        u8 *const table = reinterpret_cast<u8 *>(((uintptr_t)block + 0xfc + entries + 3) & ~(uintptr_t)3);
+        at<u8 *>(block, 0xac) = table;
+        u8 *next = table + parts * 4;
+        for (u32 i = 0; i < at<u32>(instance, 0xa8); ++i) {
+            const u32 piece = at<u32>(at<const u8 *>(instance, 0xac), 4 * i);
+            if (piece)
+                ModelPiece_Clone(piece, heap, flags, reinterpret_cast<u32 *>(at<u8 *>(block, 0xac) + 4 * i));
+        }
+        // The twelve (count, entries) arrays from +0x1c: each copied after the table, its entries' second dwords made the copied parts
+        // their first dwords index.
+        for (u32 k = 0; k < 12; ++k) {
+            const u32 off = 0x1c + 0xc * k;
+            if (!at<u32>(instance, off))
+                continue;
+            const u8 *const from = at<const u8 *>(instance, off + 4);
+            if (next && from)
+                std::memcpy(next, from, at<u32>(instance, off) * 8);
+            at<u8 *>(block, off + 4) = next;
+            u8 *const end = next + at<u32>(instance, off) * 8;
+            for (u32 j = 0; j < at<u32>(instance, off); ++j) {
+                u8 *const entry = at<u8 *>(block, off + 4) + 8 * j;
+                at<u32>(entry, 4) = at<u32>(at<u8 *>(block, 0xac), at<u32>(entry, 0) * 4);
+            }
+            next = end;
+        }
+    }
+    if (flags & 0x2000)
+        g_animatorMeshEnv->createHolder(at<u8 *>(block, 8));
+    *out = block;
+    return 1;
 }
 }
 
