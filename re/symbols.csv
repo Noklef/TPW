@@ -5007,6 +5007,7 @@ address,name,kind,confidence,notes
 0x005839f0,TexFormat_FillTables,function,high,reimplemented (src/game/render/texformat); the settings colour tables from the four formats masks
 0x00562f70,TexFormat_ConvertSquare,function,low,"reimplemented (src/game/render/texformat); cdecl (to, from, side): side * side ARGB pixels put into the current texture format 0x8bd554 (565, 1555, 4444 as the original lays them out, or a copy of only side dwords); another format pushes the error (2, 0xb0754003)"
 0x00573820,TexFormat_Record,function,low,"reimplemented (src/game/render/texformat); thiscall (out, index), this unused: for an index below 4 whose format record (0x20 bytes each from 0x8bd558) has a non-zero first dword, *out = the record, 1; else error (2, 0xb0754003) pushed, 0"
+0x00583900,TexSettings_Init,function,low,"reimplemented (src/game/render/texformat); thiscall: the renderer settings' defaults (flags 0x17a, format -1, records and tables zeroed, the identity rows at +0x3088, the floats at +0x40c8..); returns them"
 0x00584b10,LightList_Clear,function,high,reimplemented (src/game/render/lightlist); count and cursor = 0
 0x00584e30,LightList_First,function,high,reimplemented (src/game/render/lightlist); cursor = 0; the first entry or null
 0x00584e50,LightList_Next,function,high,reimplemented (src/game/render/lightlist); the next entry or null
