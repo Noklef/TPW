@@ -4470,6 +4470,14 @@ address,name,kind,confidence,notes
 0x006d6e40,SoundSlot_Set,function,low,"reimplemented (src/game/core/soundslot); the slot's object replaced, the old one stopped and handed to the release list"
 0x006d6e70,SoundSlot_Call59,function,low,"reimplemented (src/game/core/soundslot); the slot's COM object's slot 59 (two values) into an out, -1 without one"
 0x006d6eb0,SoundSlot_IsSet,function,low,reimplemented (src/game/core/soundslot); whether the slot has its COM object
+0x006d6ec0,SoundSlot_Restart,function,low,"reimplemented (src/game/core/soundslot); thiscall (out), pops 4: with an object, the stored settings replayed by their flags (+0x24: 4 distances, 2 position, 1 pitch, 8 gain, 0x20 +0x28), then the object's slot 13 (1) into *out; -1 without one"
+0x006d7060,SoundSlotGuard_Dtor,function,low,"reimplemented (src/game/core/soundslot); a guard's destructor: when +4 is set, the sound system's ([0xfb2724]) slot 10 (&answer, +8)"
+0x006d7080,SoundSlot_Free,function,low,"reimplemented (src/game/core/soundslot); thiscall (out), pops 4: with an object, its slot 14 and the object pushed on the release list, +0 cleared; *out = 0"
+0x006d7130,SoundSlot_SetPosition,function,low,"reimplemented (src/game/core/soundslot); thiscall (out, vector), pops 8: flag 2; without an object the vector stored at +4 and -1; -1 when a component is a NaN; else the object's slot 20 (x, 0, z; y dropped, sic)"
+0x006d71f0,SoundSlot_SetPitch,function,low,"reimplemented (src/game/core/soundslot); thiscall (out, steps), pops 8: flag 1; without an object steps stored at +0x10 and -1; else the object's slot 42 with the ratio from the tables at 0x784010 (up) / 0x784610 (down), 0 for 0 steps"
+0x006d7260,SoundSlot_SetDistances,function,low,"reimplemented (src/game/core/soundslot); thiscall (out, vector), pops 8: flag 4; without an object the vector stored at +0x14 and -1; else the object's slots 38 (x, y, 1) and 46 (z), *out = 0"
+0x006d72d0,SoundSlot_SetGain,function,low,"reimplemented (src/game/core/soundslot); thiscall (out, gain), pops 8: flag 8; without an object gain stored at +0x20 and -1; else the object's slot 40 with gain / 127 as a float"
+0x006d7330,SoundSlot_Set48,function,low,"reimplemented (src/game/core/soundslot); thiscall (out, value), pops 8: flag 0x20; without an object value stored at +0x28 and -1; else the object's slot 48 (value)"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
