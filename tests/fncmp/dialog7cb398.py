@@ -194,11 +194,14 @@ def create(r):
 
 def top_handler(r):
     """0x4a4700: a window whose slot 8 (a recorder) answers about the record table's indexes 0-5 (or any), its default handler +0x118
-    fncmp's logger; panelparts.py's texts() with [0x78ba9c] its table too; the message 0xc mostly"""
+    fncmp's logger; panelparts.py's texts() with [0x78ba9c] a copy of its table counting 0, 1, 3 or 6; the message 0xc mostly"""
     log = log_region()
     regions = {LOG: log, 0x78b530: r.bytes(0x600)}
     panelparts.texts(r, regions, [0, 1, 2, 3, 4, 5])
-    put(regions[0x78b530], 0x56c, 'I', struct.unpack_from('<I', regions[0x78b530], 0x564)[0])
+    table = bytearray(regions[panelparts.TEXTS + 0xa00])   # ([0x78ba9c]: a copy of [0x78ba94]'s table with another count, mostly none)
+    put(table, 8, 'I', r.choice([0, 0, 0, 1, 3, 6]))
+    regions[panelparts.TEXTS + 0xa40] = table
+    put(regions[0x78b530], 0x56c, 'I', panelparts.TEXTS + 0xa40)
     w = bytearray(r.bytes(NODE))
     put(w, 0, 'I', KVTABLE)
     put(w, 0x118, 'I', CDECL_LOG4)
