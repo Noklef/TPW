@@ -169,6 +169,7 @@
 #include "../game/core/timesig.h"
 #include "../game/core/countedpair.h"
 #include "../game/core/keyactions.h"
+#include "../game/core/mp2layer1.h"
 #include "../game/core/mp2layer2.h"
 #include "../game/core/mp2synth.h"
 #include "../game/core/refcounted.h"
@@ -4221,6 +4222,7 @@ const Hook kHooks[] = {
     {"Mp2Decoder_Dequantize",     0x006ccc20, (void *)&Mp2Decoder_Dequantize, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Mp2Decoder_DequantizeFixed", 0x006cd220, (void *)&Mp2Decoder_DequantizeFixed, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Mp2Decoder_DecodeLayer2",   0x006cdf50, (void *)&Mp2Decoder_DecodeLayer2, {0x55, 0x8b, 0xec, 0x81, 0xec}},
+    {"Mp2Decoder_DecodeLayer1",   0x006ce5a0, (void *)&Mp2Decoder_DecodeLayer1, {0x55, 0x8b, 0xec, 0x81, 0xec}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
