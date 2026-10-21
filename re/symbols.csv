@@ -3897,6 +3897,7 @@ address,name,kind,confidence,notes
 0x00506550,Staff_GradeLevel,function,low,"reimplemented (src/game/world/staff); thiscall, x87: __ftol((the pay grade + the training progress over 100) * 20), its low dword"
 0x005054d0,Staff_SetState,function,low,"reimplemented (src/game/world/staff); thiscall (state), pops 4: the staff member's state entered (the reference's animation, stamps, words +0xc2; 3 and 7 kill its scripts, 7 sets an MMStaffDrop mouse mode); +0x19c = state"
 0x004d7880,Handyman_FindJob,function,low,"reimplemented (src/game/world/staff); thiscall (out), pops 4: the handyman's next job from the world's object list (free or its own; with +0x64 set the nearest, else in poor condition within the grade's radius and reachable), tracked by it; the handle to out"
+0x004da370,Mechanic_SetState,function,low,"reimplemented (src/game/world/staff); thiscall (state): a mechanic's state; 0xc and 0xd set its animation (0xd also its repair time +0x214 from its target's definition or condition and its grade's skill), others Staff_SetState; then +0x19c"
 0x00520d60,FreeList_Take,function,high,reimplemented (src/game/core/voices); takes a record off the free list into a table entry
 0x00521890,FreeList_Return,function,high,reimplemented (src/game/core/voices); puts a record back on the free list
 0x00521d60,Voice_ScaleLevels,function,high,reimplemented (src/game/core/voices); scales a voice's levels by the factor over 1024
