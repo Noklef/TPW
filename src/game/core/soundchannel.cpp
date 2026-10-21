@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "channelvoice.h"
 #include "soundeax.h"
 #include "vcall.h"
 
@@ -89,6 +90,17 @@ u32 *__fastcall SoundChannel_SetEaxAll(u8 *channel, void *, u32 *out, u8 *settin
         return out;
     }
     return source_eax(channel, out, settings);
+}
+
+u32 *__fastcall SoundChannel_ReleaseVoice(u8 *channel, void *, u32 *out, u8 *voice, u32 value) {
+    u8 *const target = voice;   // (the argument's slot is the source's out below)
+    if (target) {
+        const u32 id = at<u32>(target, 0x2c) >> (global<u8>(0x00782db8) & 31);
+        if (static_cast<s32>(*vcall<u32 *>(at<u8 *>(channel, 0x18), 0x28, reinterpret_cast<u32 *>(&voice), id)) >= 0)
+            ChannelVoice_Release(target, nullptr, value);
+    }
+    *out = 0xffffffff;
+    return out;
 }
 
 }  // extern "C"

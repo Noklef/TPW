@@ -177,6 +177,7 @@
 #include "../game/core/stdwstring.h"
 #include "../game/core/sync.h"
 #include "../game/core/balancefile.h"
+#include "../game/core/channelvoice.h"
 #include "../game/core/cmdline.h"
 #include "../game/core/gameerror.h"
 #include "../game/core/timesig.h"
@@ -4259,6 +4260,7 @@ const Hook kHooks[] = {
     {"SoundChannelFn70a260_Run",  0x006b5e40, (void *)&SoundChannelFn70a260_Run, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"SoundChannel_SetEaxProperty0b", 0x006b7910, (void *)&SoundChannel_SetEaxProperty0b, {0x56, 0x8b, 0xf1, 0x8b, 0x4e}},
     {"SoundChannel_SetEaxAll",    0x006b7970, (void *)&SoundChannel_SetEaxAll, {0x56, 0x8b, 0xf1, 0x8b, 0x4e}},
+    {"SoundChannel_ReleaseVoice", 0x006b7e60, (void *)&SoundChannel_ReleaseVoice, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
     {"SoundObject_Broadcast",     0x006b85f0, (void *)&SoundObject_Broadcast, {0x83, 0xec, 0x08, 0x56, 0x8b}},
     {"SoundObject_BroadcastValue", 0x006b8640, (void *)&SoundObject_BroadcastValue, {0x8b, 0x41, 0x24, 0x85, 0xc0}},
     {"SoundObject_VoiceInfo",     0x006b8b00, (void *)&SoundObject_VoiceInfo, {0x8b, 0x49, 0x20, 0x85, 0xc9}},
@@ -4414,6 +4416,13 @@ const Hook kHooks[] = {
     {"SoundMapIndex_Unmap",       0x006d4860, (void *)&SoundMapIndex_Unmap, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
     {"SoundMapIndex_Dtor",        0x006c5520, (void *)&SoundMapIndex_Dtor, {0x6a, 0xff, 0x68, 0xcb, 0x63}},
     {"SoundMapIndex_DeletingDtor", 0x006c5500, (void *)&SoundMapIndex_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"ChannelVoiceCount_Reset",   0x006c5060, (void *)&ChannelVoiceCount_Reset, {0xc7, 0x05, 0x58, 0x20, 0xfb}},
+    {"ChannelVoiceCount_Increment", 0x006c5070, (void *)&ChannelVoiceCount_Increment, {0x51, 0xff, 0x15, 0xc0, 0xd0}},
+    {"ChannelVoiceCount_Decrement", 0x006c5080, (void *)&ChannelVoiceCount_Decrement, {0x51, 0xff, 0x15, 0x2c, 0xd1}},
+    {"ChannelVoice_Sound",        0x006bb7a0, (void *)&ChannelVoice_Sound, {0x56, 0x8b, 0xf1, 0x57, 0x8d}},
+    {"ChannelVoice_Release",      0x006bb7c0, (void *)&ChannelVoice_Release, {0x6a, 0xff, 0x68, 0x08, 0x5d}},
+    {"ChannelVoices_ReleaseAll",  0x006babc0, (void *)&ChannelVoices_ReleaseAll, {0x51, 0x53, 0x56, 0x57, 0x8b}},
+    {"ChannelVoices_SetCount",    0x006bac30, (void *)&ChannelVoices_SetCount, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

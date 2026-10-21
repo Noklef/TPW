@@ -4371,6 +4371,7 @@ address,name,kind,confidence,notes
 0x006b5e40,SoundChannelFn70a260_Run,function,low,"reimplemented (src/game/core/soundchannel); the stack functor 0x70a260's run on a channel: its source's slot 1, then the out zeroed"
 0x006b7910,SoundChannel_SetEaxProperty0b,function,low,"reimplemented (src/game/core/soundchannel); thiscall (out, settings), pops 8: with an EAX buffer EaxBuffer_SetProperty0b (the settings' +0x60), else the source's slot 0x14 (settings + 0xc) when its slot 0x13 answers, else *out = -1"
 0x006b7970,SoundChannel_SetEaxAll,function,low,"reimplemented (src/game/core/soundchannel); thiscall (out, settings), pops 8: with an EAX buffer EaxBuffer_SetAll (settings + 0xc), else the source's slot 0x14 (settings + 0xc) when its slot 0x13 answers, else *out = -1"
+0x006b7e60,SoundChannel_ReleaseVoice,function,low,"reimplemented (src/game/core/soundchannel); thiscall (out, voice, value), pops 0xc: the source's slot 10 (out the voice argument's slot, sic; the voice's id shifted); not negative: ChannelVoice_Release (value); *out = -1 (sic)"
 0x006b85f0,SoundObject_Broadcast,function,low,"reimplemented (src/game/core/soundobject); thiscall (out), pops 4: the mixer's active voices run (ForEachActive 0), then the channel's slot 4 with a stack functor 0x70a5b0; *out = -1 without a channel; returns out"
 0x006b8640,SoundObject_BroadcastValue,function,low,"reimplemented (src/game/core/soundobject); thiscall (out, value), pops 8: with a channel flagged 0x400 the mixer's ForEachActive (value), else SoundObject_Broadcast; *out = 0; returns out"
 0x006b8b00,SoundObject_VoiceInfo,function,low,"reimplemented (src/game/core/soundobject); thiscall (out, id, result), pops 0xc: the mixer's voice for the id; its +0xc's +8 into *result and *out = 0, else *out = -1; returns out"
@@ -4520,6 +4521,13 @@ address,name,kind,confidence,notes
 0x006d4860,SoundMapIndex_Unmap,function,low,"reimplemented (src/game/core/soundindex); thiscall: the stream closed, the slots' block freed"
 0x006c5520,SoundMapIndex_Dtor,function,low,"reimplemented (src/game/core/soundindex); thiscall: Unmap, the StreamBase destroyed, then the resource's destructor"
 0x006c5500,SoundMapIndex_DeletingDtor,function,low,"reimplemented (src/game/core/soundindex); thiscall (flags), pops 4: the destructor, freed for bit 0"
+0x006c5060,ChannelVoiceCount_Reset,function,low,reimplemented (src/game/core/channelvoice); the voices' count (0xfb2058) = 0
+0x006c5070,ChannelVoiceCount_Increment,function,low,reimplemented (src/game/core/channelvoice); thiscall on the count: InterlockedIncrement; returns what it answers
+0x006c5080,ChannelVoiceCount_Decrement,function,low,reimplemented (src/game/core/channelvoice); thiscall on the count: InterlockedDecrement; returns what it answers
+0x006bb7a0,ChannelVoice_Sound,function,low,"reimplemented (src/game/core/channelvoice); thiscall: the voice's sound (+4), read inside its critical section (+0x74)"
+0x006bb7c0,ChannelVoice_Release,function,low,"reimplemented (src/game/core/channelvoice); thiscall (value), pops 4: inside its critical section, with a sound slot 11 (value), the sound's slot 2, +4 = 0, the count decremented (1); flag 2 cleared, +0x58 = 0"
+0x006babc0,ChannelVoices_ReleaseAll,function,low,"reimplemented (src/game/core/channelvoice); thiscall: SoundChannel_ReleaseVoice (local out, voice, 1) for each voice of the pool in use, the first even with none in use (sic)"
+0x006bac30,ChannelVoices_SetCount,function,low,"reimplemented (src/game/core/channelvoice); thiscall (settings), pops 4: the settings' +0x40 or the capacity, the smaller, becomes the count in use after ChannelVoices_ReleaseAll"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

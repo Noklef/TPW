@@ -1,8 +1,8 @@
 // The sound object's channel (its +0x24; vtable 0x70a5d8, made by 0x6b8ed0 / 0x6b9c00; the class name is invented): +0x28 flags
 // (0x400: its voices are run through the mixer), +0x2c a float, +0x44 four bytes, +0x48 an array of floats. Settings reach it as stack
 // functors (a vtable whose slot 0 is thiscall (out, channel), pops 8, and the functor's data); +0x14 a source's info (+0 and +8 read),
-// +0x18 its source object, +0x20 its EAX buffer (soundeax). Reimplementation of 0x6b7d70, 0x6b8b40, 0x6b5e40, 0x6b7910 and 0x6b7970; the names
-// are unconfirmed.
+// +0x18 its source object, +0x20 its EAX buffer (soundeax). Reimplementation of 0x6b7d70, 0x6b8b40, 0x6b5e40, 0x6b7910, 0x6b7970 and 0x6b7e60;
+// the names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -28,5 +28,10 @@ u32 *__fastcall SoundChannel_GetSettings(u8 *channel, void *, u32 *out, u8 *sett
 // 0xc), both; else *out = -1. Returns out.
 u32 *__fastcall SoundChannel_SetEaxProperty0b(u8 *channel, void *, u32 *out, u8 *settings);
 u32 *__fastcall SoundChannel_SetEaxAll(u8 *channel, void *, u32 *out, u8 *settings);
+
+// 0x6b7e60 (thiscall (out, voice, value), pops 0xc): with a voice (channelvoice), the source's slot 10 (out: the voice argument's own
+// stack slot, sic; the voice's id +0x2c shifted right by the byte at 0x782db8); when the dword it returns a pointer to is not negative,
+// the voice released (value). *out = -1 either way (sic). Returns out.
+u32 *__fastcall SoundChannel_ReleaseVoice(u8 *channel, void *, u32 *out, u8 *voice, u32 value);
 
 }  // extern "C"
