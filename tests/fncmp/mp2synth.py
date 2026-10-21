@@ -1,6 +1,9 @@
 # The MP2 decoder's polyphase synthesis (src/game/core/mp2synth) against the originals: the 32-point DCT (0x6c9580) over 32 subband samples of
 # a decoder's range, now and then all near the float limits (sums that overflow in a register but not after the next scaling, products below the
-# normal range that a store makes denormal) or with NaNs, infinities and random bits; the two output buffers start as random bits.
+# normal range that a store makes denormal) or with NaNs, infinities and random bits; the two output buffers start as random bits. The
+# synthesis filter (0x6c9270) over a decoder of 0 to 3 channels (mostly 1 or 2) at any ring position, its buffers and the window (0x70bd48)
+# random floats of a decoded stream's range (now and then large enough to clip or overflow the fistp), half rate (0xfb2708) now and then, the
+# output none now and then.
 # usage: mp2synth.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -9,9 +12,11 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import RAM, Bench, Call, fb  # noqa: E402
 
-CALLS = {'dct64': 0x6c9580}
-B = Bench([(0x6c9580, 0x6ca574)])
+CALLS = {'dct64': 0x6c9580, 'synth': 0x6c9270}
+B = Bench([(0x6c9580, 0x6ca574), (0x6c9270, 0x6c957d)])
 OUT0, OUT1, IN = RAM, RAM + 0x1000, RAM + 0x2000
+DECODER, PCM = RAM + 0x4000, RAM + 0x3000
+WINDOW, HALF = 0x70bd48, 0xfb2708
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
@@ -23,8 +28,28 @@ def sample(r, kind):
     return r.f(r.choice([1.0, 1.0, 32768.0]))
 
 
+def floats(r, n, scale):
+    return b''.join(struct.pack('<I', r.f(scale)) for _ in range(n))
+
+
+def case_synth(r):
+    channels = r.choice([1, 2, 2, 2]) if r.random() < 0.95 else r.choice([0, 3])
+    loud = r.random() < 0.15
+    decoder = bytearray(r.bytes(0x2460))
+    decoder[4:0x1204] = floats(r, 0x480, 30000.0 if loud else r.choice([0.3, 1.0]))
+    decoder[0x243d] = r.getrandbits(8)
+    struct.pack_into('<i', decoder, 0x244c, channels)
+    window = floats(r, 0x300, r.choice([1.0, 30000.0]) if loud else r.choice([0.5, 1.0]))
+    fraction = floats(r, 32 * 3, r.choice([0.1, 1.0, 30000.0]))
+    out = 0 if r.random() < 0.05 else PCM
+    regions = {DECODER: decoder, PCM: r.bytes(0x200), IN: fraction, WINDOW - 0x100: window, HALF: struct.pack('<I', r.choice([0, 0, 0, 1, r.getrandbits(32)]))}
+    return Call(CALLS['synth'], [DECODER, out, IN], regions, conv='t', ret='v')
+
+
 def case(r):
     name = r.deal(OPS)
+    if name == 'synth':
+        return case_synth(r)
     kind = r.choice(['plain', 'plain', 'plain', 'big', 'tiny', 'mixed'])
     data = bytearray(0x80)
     for i in range(32):

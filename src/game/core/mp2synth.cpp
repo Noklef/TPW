@@ -1,6 +1,8 @@
 #include "mp2synth.h"
 
+#include <cstdint>
 #include <cstring>
+#include <emmintrin.h>
 
 #include "../math/x87.h"
 
@@ -20,6 +22,55 @@ constexpr float kC[31] = {
 
 // A float moved through an integer register: its bits, a signalling NaN included.
 void CopyBits(float *to, const float &from) { std::memcpy(to, &from, 4); }
+
+template <typename T> T Get(u32 address) {
+    T v;
+    std::memcpy(&v, reinterpret_cast<const void *>(static_cast<uintptr_t>(address)), sizeof v);
+    return v;
+}
+template <typename T> void Put(u32 address, T v) { std::memcpy(reinterpret_cast<void *>(static_cast<uintptr_t>(address)), &v, sizeof v); }
+u32 Addr(const void *p) { return static_cast<u32>(reinterpret_cast<uintptr_t>(p)); }
+
+constexpr u32 kWindow = 0x70bd48;   // float[]: the synthesis window
+constexpr u32 kHalfRate = 0xfb2708;  // (a dword: nonzero, half the samples)
+
+// A window tap times a buffer value (fld window; fmul buffer).
+X87Reg Tap(u32 window, u32 buffer) { return X87Reg(Get<float>(window)) * Get<float>(buffer); }
+
+// fistp (round to nearest; 0x80000000 out of range or NaN) and the clip to a halfword.
+s16 Pcm(X87Reg sum) {
+    s32 n = _mm_cvtsd_si32(_mm_set_sd(sum.v));
+    if (n > 0x7fff) n = 0x7fff;
+    if (n < -0x8000) n = -0x8000;
+    return static_cast<s16>(n);
+}
+
+// The 16 taps window[k] * buffer[k], the odd ones subtracted: four partial sums (0 8 -1 -9, 2 12 -5 -13, 4 10 -3 -11, 6 14 -7 -15).
+X87Reg Alternating(u32 w, u32 b) {
+    X87Reg a = Tap(w, b) + Tap(w + 0x20, b + 0x20), c = Tap(w + 8, b + 8) + Tap(w + 0x30, b + 0x30);
+    X87Reg e = Tap(w + 0x10, b + 0x10) + Tap(w + 0x28, b + 0x28), g = Tap(w + 0x18, b + 0x18) + Tap(w + 0x38, b + 0x38);
+    a = a - Tap(w + 4, b + 4), c = c - Tap(w + 0x14, b + 0x14), e = e - Tap(w + 0xc, b + 0xc), g = g - Tap(w + 0x1c, b + 0x1c);
+    a = a - Tap(w + 0x24, b + 0x24), c = c - Tap(w + 0x34, b + 0x34), e = e - Tap(w + 0x2c, b + 0x2c), g = g - Tap(w + 0x3c, b + 0x3c);
+    return (a + c) + (g + e);
+}
+
+// The even taps only.
+X87Reg Even(u32 w, u32 b) {
+    const X87Reg a = Tap(w, b) + Tap(w + 0x20, b + 0x20), c = Tap(w + 8, b + 8) + Tap(w + 0x30, b + 0x30);
+    const X87Reg e = Tap(w + 0x10, b + 0x10) + Tap(w + 0x28, b + 0x28), g = Tap(w + 0x18, b + 0x18) + Tap(w + 0x38, b + 0x38);
+    return (a + c) + (g + e);
+}
+
+// The mirrored taps window[-1 - k] * buffer[k] (window[0] * buffer[15] last), all added: partial sums (0 4 8 12, 1 6 10 14, 2 5 9 13,
+// 3 7 11 15), negated.
+X87Reg Mirrored(u32 w, u32 b) {
+    auto q = [&](u32 k) { return Tap(k == 15 ? w : w - 4 * (k + 1), b + 4 * k); };
+    X87Reg a = q(0) + q(4), c = q(1) + q(6), e = q(2) + q(5), g = q(3) + q(7);
+    a = a + q(8), c = c + q(10), e = e + q(9), g = g + q(11);
+    a = a + q(12), c = c + q(14), e = e + q(13), g = g + q(15);
+    const X87Reg sum = (a + c) + (g + e);
+    return X87Reg(-sum.v);
+}
 
 }  // namespace
 
@@ -269,6 +320,32 @@ void __cdecl Mp2_Dct64(float *out0, float *out1, const float *in) {
     out1[176] = (float)(X87Reg(x189) + x159);
     out1[208] = (float)(X87Reg(x172) + x159);
     out1[240] = X87_Through(x172);
+}
+
+void __fastcall Mp2Decoder_Synth(u8 *decoder_, void *, s16 *out, const float *fraction) {
+    const u32 decoder = Addr(decoder_);
+    Put<u8>(decoder + 0x243d, static_cast<u8>((Get<u8>(decoder + 0x243d) - 1) & 0xf));
+    const s32 channels = Get<s32>(decoder + 0x244c);
+    u32 samples = Addr(fraction), pcm = Addr(out);
+    for (s32 c = 0; c < channels; ++c, samples += 0x80, pcm += 2) {
+        const u32 bo = Get<u8>(decoder + 0x243d), odd = bo & 1;
+        const u32 buffers = decoder + 4 + 0x900 * (~static_cast<u32>(c) & 1);
+        const u32 bo1 = bo + (odd ^ 1);
+        const u32 b0 = buffers + 0x480 * (odd ^ 1);
+        Mp2_Dct64(reinterpret_cast<float *>(static_cast<uintptr_t>(buffers + 4 * (((bo + odd) & 0xf) + 0x120 * odd))),
+                  reinterpret_cast<float *>(static_cast<uintptr_t>(b0 + 4 * bo1)), reinterpret_cast<const float *>(static_cast<uintptr_t>(samples)));
+        if (!out) continue;
+        const bool half = Get<u32>(kHalfRate) != 0;
+        const u32 count = half ? 8 : 16, wstep = half ? 0x100 : 0x80, bstep = half ? 0x80 : 0x40;
+        const u32 stride = 2 * static_cast<u32>(channels);
+        u32 w = kWindow - 4 * bo1, b = b0, o = pcm;
+        for (u32 n = count; n; --n, o += stride, w += wstep, b += bstep) Put<s16>(o, Pcm(Alternating(w, b)));
+        Put<s16>(o, Pcm(Even(w, b)));
+        o += stride;
+        w = w - wstep + 8 * bo1;
+        b -= bstep;
+        for (u32 n = count - 1; n; --n, o += stride, w -= wstep, b -= bstep) Put<s16>(o, Pcm(Mirrored(w, b)));
+    }
 }
 
 }  // extern "C"
