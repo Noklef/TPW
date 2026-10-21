@@ -245,6 +245,18 @@ void __fastcall Window_SetWordE2(u8 *window, void *, u32 value);
 // event on the stack whose only word set, +4, is the value). EAX not kept.
 void __fastcall Window_Notify1(u8 *window, void *, u32 value);
 
+// 0x6615a3 (thiscall (value: a word), pops 4; name unconfirmed): a second copy of Window_Notify1: the objects +0x98 and +0x9c (when set)
+// told through their slot 3 (1, an event on the stack whose only word set, +4, is the value). EAX not kept.
+void __fastcall Window_Notify1b(u8 *window, void *, u32 value);
+
+// 0x661525 (thiscall (value), pops 4; name unconfirmed): the objects +0x98 and +0x9c (when set) told through their slot 3 (0x80, an event
+// on the stack whose only dword set, +0, is the value). 1 in AX (the rest of EAX left).
+u32 __fastcall Window_Notify80(u8 *window, void *, u32 value);
+
+// 0x66160c (thiscall (value: a word), pops 4; name unconfirmed): the objects +0x98 and +0x9c (when set) told through their slot 3
+// (0x80000, an event on the stack whose only word set, +0xa, is the value). EAX not kept.
+void __fastcall Window_Notify80000(u8 *window, void *, u32 value);
+
 // 0x65d865 (thiscall (width, height: word pointers, each may be 0; inner: a word), pops 12; name unconfirmed): the size of the rectangle
 // +8 (GuiRect_GetSize); with inner not 0 each one set less the margins: width less +0xfc - +0xf8, height less +0xfe - +0xfa. 1 in AX (the
 // rest of EAX left).

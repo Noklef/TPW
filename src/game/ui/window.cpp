@@ -621,6 +621,28 @@ void __fastcall Window_Notify1(u8 *window, void *, u32 value) {
     if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 1u, event);
 }
 
+void __fastcall Window_Notify1b(u8 *window, void *, u32 value) {
+    u8 event[0x18];  // (only the word +4 set)
+    at<u16>(event, 4) = (u16)value;
+    if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 1u, event);
+    if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 1u, event);
+}
+
+u32 __fastcall Window_Notify80(u8 *window, void *, u32 value) {
+    u8 event[0x18];  // (only the dword +0 set)
+    at<u32>(event, 0) = value;
+    if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 0x80u, event);
+    if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 0x80u, event);
+    return 1;
+}
+
+void __fastcall Window_Notify80000(u8 *window, void *, u32 value) {
+    u8 event[0x18];  // (only the word +0xa set)
+    at<u16>(event, 0xa) = (u16)value;
+    if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 0x80000u, event);
+    if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 0x80000u, event);
+}
+
 u32 __fastcall Window_GetSize(u8 *window, void *, s16 *width, s16 *height, u32 inner) {
     GuiRect_GetSize(window + 8, nullptr, (u16 *)width, (u16 *)height);
     if ((s16)inner != 0) {
