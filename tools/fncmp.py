@@ -496,6 +496,7 @@ LOG_BLOBS = 0xd00  # from here two dwords for each slot: an argument + 1 and a d
 LOG_ZLIB = 0xf00  # the zlib stand-ins' overrides: the inits', deflate's, inflate's (a flag and a value each, see zlib_results())
 LOG_SEQ = 0xf40  # a sequenced read: (k | 0x80000000, buffer argument, count argument, done argument + 1, data address, length, cursor, flags) (see seq_read())
 LOG_SEEK = 0xf60  # a seek on the sequenced read's data: (k | 0x80000000, offset argument, origin argument) (see seq_seek())
+LOG_BLOB_WHEN = 0xf80  # four (k | 0x80000000, argument, value, mask): a blob's mask for the calls whose argument is value (see blob_when())
 
 
 def seq_read(log, k, data_at, length, buffer=0, count=1, done=None, returns=True):
@@ -563,6 +564,14 @@ def blob(log, k, arg, mask):
     """Makes slot k's recorder log its argument `arg` (unless null) as a hash of the dwords it points to that `mask` selects (bit i: dword i), not its
     address: a structure on the stack that the code under test only partly sets (the rest is stack garbage that differs between the sides)."""
     struct.pack_into('<II', log, LOG_BLOBS + 8 * (k & 63), arg + 1, mask)
+
+
+def blob_when(log, k, arg, value, mask, entry=0):
+    """Gives slot k's blob() / blob_bytes() hash the mask `mask` in place of its own for the calls whose argument `arg` (as passed) is `value`: a slot
+    called with events of different layouts (one message's event, another's), each only partly set. Four entries (`entry` 0-3), the last that
+    matches wins."""
+    assert 0 <= entry < 4
+    struct.pack_into('<4I', log, LOG_BLOB_WHEN + 16 * entry, (k & 63) | 0x80000000, arg, value & 0xffffffff, mask)
 
 
 def blob_bytes(log, k, arg, mask, inner=None):
@@ -643,6 +652,10 @@ def _log_args(e, k, raw):
     low = e.u32(LOG + LOG_BYTES + 4 * (k & 63))
     fills = [(LOG + LOG_FILL + 0x80 * f,) + struct.unpack('<3I', e.read(LOG + LOG_FILL + 0x80 * f, 12)) for f in range(2)]
     blob_arg, blob_mask = struct.unpack('<2I', e.read(LOG + LOG_BLOBS + 8 * (k & 63), 8))
+    for w in range(4):   # (blob_when(): the mask for this call's argument)
+        wk, wa, wv, wm = struct.unpack('<4I', e.read(LOG + LOG_BLOB_WHEN + 16 * w, 16))
+        if wk == (k & 63) | 0x80000000 and wa < n and raw[wa] == wv:
+            blob_mask = wm
     for i in range(n):
         for at, fk, fa, fn in fills:
             if fk == (k & 63) | 0x80000000 and fa == i and args[i]:
