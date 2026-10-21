@@ -454,6 +454,19 @@ s32 __stdcall Things_CountStaffOfKind(u32 kind) {
     return count;
 }
 
+s32 __stdcall Things_CountStaffWithPatrol(u32 kind) {
+    s32 count = 0;
+    u16 handle;
+    World_FirstThing(world(), nullptr, &handle);
+    while (handle) {
+        const u8 *thing = thing_of(handle);
+        const u8 k = at<u8>(thing, 2);
+        if ((k == 4 || k == 5 || k == 6 || k == 8 || k == 7) && (k == kind || kind == 0) && Staff_HasPatrolRegion(thing)) ++count;
+        World_NextThing(world(), nullptr, &handle, thing);
+    }
+    return count;
+}
+
 s32 __stdcall Things_AverageOfKind(u32 kind) {
     s32 sum = 0;
     s32 count = 0;
