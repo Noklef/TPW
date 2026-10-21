@@ -44,7 +44,7 @@ void __fastcall Window705af0_Nudge(u8 *window, void *, u32 mode);
 // window's slot 7 (its slot 8's answer + a). Then Window_DefaultProc (message, a, b), whose answer it returns.
 u32 __cdecl Window705af0_Proc(u8 *window, u32 message, u32 a, u32 b);
 
-// 0x66abcf (thiscall (flags), pops 4; slot 2 of the vtable 0x705af0; name unconfirmed): the deleting destructor: Window705af0_Dtor, then
+// 0x66abd0 (thiscall (flags), pops 4; slot 2 of the vtable 0x705af0; name unconfirmed): the deleting destructor: Window705af0_Dtor, then
 // with flag 1 the window freed (Mem_Free). Returns the window.
 u8 *__fastcall Window705af0_DeletingDtor(u8 *window, void *, u32 flags);
 }

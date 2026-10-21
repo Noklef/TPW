@@ -1,6 +1,6 @@
 # The GUI library's kind 13 window (vtable 0x705b98) against the originals (src/game/ui/window705b98: 0x66c85a).
 # SetBits: the old bits +0x138 and the new mask each few bits (of the low five, the top one, any), equal now and then; the children
-# (+0x5c, next +0x54) 0-6 windows whose ids (+0x8c) are 0x11100000 | a bit number (0-31, or another id now and then), each with its
+# (+0x5c, next +0x54) 0-6 windows whose ids (+0x8c) are 0x11100000 | a bit number (0-4, 30, 31, any or another id), each with its
 # objects +0x98 / +0x9c recorders (slot 3: k 4 and 23) or 0, the window's own others (k 3 and 22). Each recorder logs its event as the
 # hash of the bytes set: the children's (Window_Notify1) the word +4, the window's (Window_Notify80) the dword +0 (the rest is stack
 # garbage, not compared).
@@ -47,7 +47,7 @@ def case(r):
     for i in range(n):
         kid = bytearray(r.bytes(KID))
         put(kid, 0x54, 'I', KIDS + KID * (i + 1) if i + 1 < n else 0)
-        put(kid, 0x8c, 'I', r.choice([0x11100000 | r.randrange(5)] * 3 + [0x11100000 | r.randrange(32), r.getrandbits(32)]))
+        put(kid, 0x8c, 'I', r.choice([0x11100000 | r.randrange(5)] * 3 + [0x1110001e, 0x1110001f, 0x11100000 | r.randrange(32), r.getrandbits(32)]))
         objects(r, kid, (KOBJ98, KOBJ9C))
         regions[KIDS + KID * i] = kid
     regions[WINDOW] = w
