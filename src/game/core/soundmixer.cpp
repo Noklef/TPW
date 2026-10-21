@@ -5,6 +5,7 @@
 #include "fieldops.h"
 #include "gameheap.h"
 #include "selectors.h"
+#include "soundvoice.h"
 #include "vcall.h"
 
 namespace {
@@ -115,6 +116,41 @@ u32 __fastcall SoundMixer_ClearLevels(u8 *mixer) {
     for (u32 i = 0; i < 0x1f; ++i) levels[i] = 0;
     at<u32>(mixer, 0x48) = 0;
     return 0;
+}
+
+u32 *__fastcall SoundMixer_SetVoiceParams(u8 *mixer, void *, u32 *out, u32 id, const u32 *params) {
+    u8 *const voice = SoundMixer_FindVoice(mixer, nullptr, id);
+    if (!voice) {
+        *out = 0xffffffff;
+        return out;
+    }
+    SoundVoice_EnsureParams(voice);
+    u32 *const to = reinterpret_cast<u32 *>(at<u8 *>(voice, 0x4c) + 8);
+    for (u32 i = 0; i < 4; ++i) to[i] = params[i];
+    at<u32>(voice, 0x30) |= 0x1000;
+    *out = 0;
+    return out;
+}
+
+u32 *__fastcall SoundMixer_SetVoicePending(u8 *mixer, void *, u32 *out, u32 id, u32 value) {
+    u8 *const voice = SoundMixer_FindVoice(mixer, nullptr, id);
+    if (!voice) {
+        *out = 0xffffffff;
+        return out;
+    }
+    SoundVoice_SetPending(voice, nullptr, out, value);
+    return out;
+}
+
+u32 *__fastcall SoundMixer_SendVoice(u8 *mixer, void *, u32 *out, u32 id, u32 value) {
+    u8 *const voice = SoundMixer_FindVoice(mixer, nullptr, id);
+    if (!voice) {
+        *out = 0xffffffff;
+        return out;
+    }
+    vcall<void>(voice, 0x30, value);
+    *out = 0;
+    return out;
 }
 
 }  // extern "C"

@@ -25,7 +25,7 @@ def case(r):
     set_return(log, 4, r.getrandbits(32))
     voice = bytearray(r.bytes(0x50))
     struct.pack_into('<I', voice, 0x4c, r.choice([0, 0, 0, r.getrandbits(32) | 1]))
-    struct.pack_into('<I', voice, 0x24, r.choice([0, r.getrandbits(32) | 1, r.getrandbits(32) | 1]))
+    struct.pack_into('<I', voice, 0x24, r.choice([0, r.getrandbits(32) | 1, r.getrandbits(16) + 1 << 16]))   # (a sound whose low word is 0 too)
     regions = {VOICE: voice, OUT: r.bytes(4), SYSTEM: struct.pack('<I', SYS), SYS: struct.pack('<I', SVT) + r.bytes(0xc), SVT: vtable({4: 2}),
                LOG: log}
     if name == 'ensure':
