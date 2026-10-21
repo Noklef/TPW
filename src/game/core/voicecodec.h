@@ -42,5 +42,11 @@ void __fastcall VoiceCodec_ReadHeaderBuffered(u8 *reader, void *, u32 *state, u3
 // k[10] (its state starting as k[0] to k[10], the sum's first term -state[10] * k[11]), each step's output s[j] fed back as the next input
 // and out[j] = s[j] - the sum of s[j - 1 - i] * out[i] for i < j (x87, the sums kept on its stack).
 void __cdecl VoiceCodec_Impulse(const float *k, float *out);
+// 0x6d57e0 (cdecl channel, first, blocks): the synthesis filter over blocks of 12 samples from the float at +0x674 + first * 4 (blocks
+// signed: none when not positive): its terms k from 0x6d61c0 over the coefficients at +0x104, the history at +0x134 (12 floats, written
+// from the last back, so that after a block it is in order again); each sample becomes itself plus the sum of k[(j + n) % 12] * history[j]
+// (n its place in the block; the products added in the order of history slots 7, 8, 5, 11, 9, 10, 1, 2, 0, 6, 3, 4, on the x87's stack)
+// and goes to history[11 - n] too.
+void __cdecl VoiceCodec_Synthesize(u8 *channel, u32 first, s32 blocks);
 
 }  // extern "C"

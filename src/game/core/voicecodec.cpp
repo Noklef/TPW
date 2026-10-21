@@ -51,6 +51,42 @@ void Header(void *reader, u32 *state, u32 stereo) {
     if (state[4]) VoiceCodec_InitChannel(reader, nullptr, state, self + 0xd48, first, level, decay);
 }
 
+// 0x6d57e0's order of the products (by history slot) in each output's sum.
+const u8 kSynthesisOrder[12] = {7, 8, 5, 11, 9, 10, 1, 2, 0, 6, 3, 4};
+
+// One output of 0x6d57e0: the 12 products k[(j + n) % 12] * slot[j] summed in kSynthesisOrder (x87, on its stack), plus *x, stored to
+// slot[11 - n] and *x.
+void SynthesisOutput(const float *k, float *slot, u32 n, float *x) {
+    __asm {
+        mov esi, k
+        mov edi, slot
+        mov ecx, n
+        xor ebx, ebx
+    term:
+        movzx eax, byte ptr kSynthesisOrder[ebx]
+        lea edx, [eax + ecx]
+        cmp edx, 12
+        jb inside
+        sub edx, 12
+    inside:
+        fld dword ptr [esi + edx * 4]
+        fmul dword ptr [edi + eax * 4]
+        test ebx, ebx
+        jz next
+        faddp st(1), st(0)
+    next:
+        inc ebx
+        cmp ebx, 12
+        jb term
+        mov eax, x
+        fadd dword ptr [eax]
+        mov edx, 11
+        sub edx, ecx
+        fst dword ptr [edi + edx * 4]
+        fstp dword ptr [eax]
+    }
+}
+
 }  // namespace
 
 extern "C" {
@@ -235,6 +271,16 @@ void __cdecl VoiceCodec_Impulse(const float *k, float *out) {
         inc edi
         cmp edi, 12
         jl step
+    }
+}
+
+void __cdecl VoiceCodec_Synthesize(u8 *channel, u32 first, s32 blocks) {
+    float k[12];
+    VoiceCodec_Impulse(reinterpret_cast<const float *>(channel + 0x104), k);
+    float *slot = reinterpret_cast<float *>(channel + 0x134);
+    float *x = reinterpret_cast<float *>(channel + 0x674) + first;
+    for (; blocks > 0; --blocks, x += 12) {
+        for (u32 n = 0; n < 12; ++n) SynthesisOutput(k, slot, n, x + n);
     }
 }
 
