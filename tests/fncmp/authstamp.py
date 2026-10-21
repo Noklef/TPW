@@ -25,6 +25,10 @@ def case(r):
     if r.random() < 0.5:
         phrase[1:] = bytes(r.randrange(1, 256) for _ in range(0x7f))
     phrase[0] = r.randrange(256)
+    if r.random() < 0.08:   # (the phrase after its first byte empty, the plain one empty too or not)
+        phrase[1] = 0
+        plain[0] = r.choice([0, 0, plain[0]])
+        regions[0x774bd8] = bytes(plain)
     run = r.choice([0, 1, 2, r.randrange(0x47), r.randrange(0x47)])
     key = bytearray(0x48)
     for i in range(0x48):
