@@ -88,4 +88,28 @@ void __fastcall Window705a20_SetCaret(u8 *window, void *, u8 *caret) {
     if ((s16)Window_IsShown(window) != 0) vcall<void>(at<u8 *>(window, 0x15c), 0x14, 1u);
     GuiRect_Dtor(rect);
 }
+
+void __fastcall Window705a20_MoveCaret(u8 *window, void *, u32, u32) {
+    u8 *const caret = at<u8 *>(window, 0x15c);
+    if (!caret) return;
+    const s32 left = (s32)at<s16>(window, 0x30) + at<s16>(window, 0x150), top = (s32)at<s16>(window, 0x32) + at<s16>(window, 0x154);
+    u8 rect[12], event[0x18];  // (only the event's +0x14 set: the rectangle)
+    GuiRect_CtorWith(rect, nullptr, (u32)left, (u32)top, (u32)(left + 8), (u32)(top + at<s16>(window, 0x156)));
+    at<u8 *>(event, 0x14) = rect;
+    vcall<void>(caret, 0xc, 0x10u, event);
+    GuiRect_Dtor(rect);
+}
+
+u32 __fastcall Window705a20_KeyToParent(u8 *window, void *, u32 key, u32 value) {
+    u8 *const parent = at<u8 *>(window, 0x60);
+    const u32 id = at<u32>(window, 0x8c);
+    switch ((s16)key) {
+    case 9: return (u32)Window_SendMessage(parent, 0x803, id, value);
+    case 0xd:
+        if (at<u32>(window, 0x48) & 0x80) return (u32)(uintptr_t)window;  // sic: EAX the window
+        return (u32)Window_SendMessage(parent, 0x802, id, value);
+    case 0x1b: return (u32)Window_SendMessage(parent, 0x804, id, value);
+    default: return (u32)Window_SendMessage(parent, 0x806, id, (u32)(s32)(s16)key);
+    }
+}
 }
