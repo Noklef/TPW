@@ -12,8 +12,9 @@
 #   costs small or any, the controls' figure (cached), the park analyser's rings;
 #   Rating, RatingOf (0x4e0560 Object_ComputeRating, 0x4e0860 Object_Rating): definitions of kinds 0-3 and track types with bases and row limits,
 #   the ride list's coaster index, the coasters' floats, a track ride's pieces; the arguments (the object's goods and settings) about the limits; Poor (0x4e0390 Object_InPoorCondition): Reset's fields.
+#   Gap (0x4fd4e0 Visitor_RatingGap): RatingOf's object with Poor's fields, a visitor whose byte +0x1f0 picks its row of wanted ratings (0x7850e4).
 # usage: object_checks.py [CASES [SEED]] [--wild|--both] [--show N]
-#   (env OPS=Capacity,Track,Score,Percent,Stand,History,Fill,Pay,Settings,Current,Diff,Average,Reset,WontPay,Rating,RatingOf,Poor)
+#   (env OPS=Capacity,Track,Score,Percent,Stand,History,Fill,Pay,Settings,Current,Diff,Average,Reset,WontPay,Rating,RatingOf,Poor,Gap)
 import os
 import struct
 import sys
@@ -30,7 +31,7 @@ B = Bench([(0x412e90, 0x412f00), (0x4dd4e0, 0x4dd510), (0x4d8c00, 0x4d8c30), (0x
            (0x495cf0, 0x495d50), (0x4dedf0, 0x4df160), (0x4e1f20, 0x4e2190),
            (0x4dda40, 0x4ddb70), (0x4e1910, 0x4e1a00), (0x4e1a30, 0x4e1e10), (0x4e1e30, 0x4e1f30), (0x409cd0, 0x409cf0), (0x4d01f0, 0x4d0270),
            (0x4d27a0, 0x4d2850), (0x519510, 0x519560), (0x5195d0, 0x519660), (0x4dfd80, 0x4dfe30), (0x4d8440, 0x4d8480), (0x4d8480, 0x4d8620),
-           (0x4fde50, 0x4fe1b0), (0x4c74b0, 0x4c7500), (0x4d3d10, 0x4d3d90), (0x4e1a00, 0x4e1a30), (0x4e21b0, 0x4e21d0), (0x4e2740, 0x4e2780),
+           (0x4fde50, 0x4fe1b0), (0x4fd4e0, 0x4fd560), (0x4c74b0, 0x4c7500), (0x4d3d10, 0x4d3d90), (0x4e1a00, 0x4e1a30), (0x4e21b0, 0x4e21d0), (0x4e2740, 0x4e2780),
            (0x4e0560, 0x4e0860), (0x4e0860, 0x4e0900), (0x43e0b0, 0x43e0f0), (0x545310, 0x545460), (0x55a4e0, 0x55a540), (0x4e0390, 0x4e03c4)])
 OBJ, WORLD = RAM, RAM + 0x10000
 
@@ -390,6 +391,21 @@ def rating_of(r):
     return Call(0x4e0860, [OBJ, flag & 0xffffffff], regions, conv='t', ret='b')
 
 
+def gap(r):
+    """0x4fd4e0: rating_of()'s object with poor()'s flag byte and condition, a visitor's row (+0x1f0) 0-9 or any, the rows' first bytes any"""
+    call = rating_of(r)
+    obj = call.regions[OBJ]
+    obj[0x32] = r.choice([0, 0, 0, 1, 0xfe])
+    put(obj, 0x44, 'I', fb(r.choice([10.0, 24.0, 25.0, 100.0, 255.0, 256.0])))
+    visitor = bytearray(r.bytes(0x200))
+    visitor[0x1f0] = r.choice([0, 1, 2, 3, 9, r.getrandbits(8)])
+    rows = bytearray(r.bytes(12 * 256))
+    for k in range(256):
+        rows[12 * k] = r.choice([0, 1, 5, 10, 50, 60, 100, 200, 255, r.getrandbits(8)])
+    call.regions.update({RAM + 0x6000: visitor, 0x7850e4: rows})
+    return Call(0x4fd4e0, [RAM + 0x6000, OBJ], call.regions, conv='t', ret='a')
+
+
 def poor(r):
     """0x4e0390: reset()'s flag byte and condition float about 25 (its __ftol's low byte wraps from 256)"""
     obj = bytearray(r.bytes(0x60))
@@ -401,7 +417,7 @@ def poor(r):
 
 CASES = {'Capacity': capacity, 'Track': track, 'Score': score, 'Percent': percent, 'Stand': stand, 'History': history, 'Fill': fill, 'Pay': pay,
          'Settings': settings, 'Current': current, 'Diff': diff, 'Average': average, 'Reset': reset,
-         'WontPay': wont_pay, 'Rating': rating, 'RatingOf': rating_of, 'Poor': poor}
+         'WontPay': wont_pay, 'Rating': rating, 'RatingOf': rating_of, 'Poor': poor, 'Gap': gap}
 
 
 def case(r):
