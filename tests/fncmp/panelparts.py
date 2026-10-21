@@ -45,6 +45,8 @@ DRESSERS = {
     'Panel7ca228_Dress': (0x499890, (0x1587, 0x1586, 0x1585, 0x1584), (0x35, 0x36), 'panel'),
     'Panel7cc3e0_Dress': (0x4b6540, (0x5211, 0x5210, 0x520f, 0x520e), (0x37, 0x38), 'panel'),
     'Panel7cc328_Dress': (0x4b46a0, (0x1e8b, 0x1e8a), (0x38,), 'panel'),
+    'Dialog7cb2fc_DressRow': (0x4a43b0, (0x1d4c9,), (), 'row7cb2fc'),
+    'Dialog7cb2fc_DressSlider': (0x4a4490, (0x1d4c9,), (), 'row7cb2fc'),
 }
 CHECKED = {'Panel7ca228_Dress', 'Panel7cc3e0_Dress'}   # (they dress only the children found: any missing now and then)
 # each row initialiser: (its address, its children, its font dword, the name it looks up)
@@ -57,7 +59,7 @@ ALL_RANGES = sorted(set(window.RANGES + listrows.PART_RANGES + listrows.REG_RANG
     (0x485e30, 0x485ed0), (0x48f150, 0x48f290), (0x48f6a0, 0x48f750), (0x48fde0, 0x48fe90), (0x490250, 0x490300), (0x490e60, 0x490f10),
     (0x497100, 0x497391), (0x494690, 0x494c60), (0x4939d0, 0x493c03), (0x496d20, 0x496f21), (0x490c30, 0x490ce0),
     (0x65c388, 0x65c55a), (0x65d547, 0x65d58c), (0x4ab6b0, 0x4abb10), (0x4ad890, 0x4ade50), (0x4afc10, 0x4b01e0), (0x4b1040, 0x4b16d0), (0x4b53c0, 0x4b58c0), (0x4b6c20, 0x4b72b0),
-    (0x499890, 0x499a6a), (0x4b6540, 0x4b671a), (0x4b46a0, 0x4b479c),
+    (0x499890, 0x499a6a), (0x4b6540, 0x4b671a), (0x4b46a0, 0x4b479c), (0x4a43b0, 0x4a4484), (0x4a4490, 0x4a457b), (0x66b47d, 0x66b508),
     (0x5775d0, 0x577610), (0x588320, 0x588360), (0x588d70, 0x588da0), (0x6597b0, 0x659896), (0x659d00, 0x659d53), (0x659d90, 0x659dbc),
     (0x65a43e, 0x65a4a3), (0x65c388, 0x65c438), (0x65cfd4, 0x65d00f), (0x65d1c8, 0x65d333), (0x65d42e, 0x65d4b0), (0x65d773, 0x65d832),
     (0x65f5b7, 0x65f60e), (0x6616b0, 0x661710), (0x6617f0, 0x661820), (0x6ace60, 0x6aceb0), (0x6adc80, 0x6add40), (0x6ade00, 0x6adea0)]))
@@ -129,9 +131,10 @@ def case(r):
     if op in ROWS:
         return row_case(r, op)
     address, ids, indexes, reach = DRESSERS[op]
-    regions = dialogbuild.chain(r, op, 0)
+    regions = dialogbuild.chain(r, op, 0, font=0x7537b4 if reach == 'row7cb2fc' else None)
     surroundings(r, regions)
-    texts(r, regions, indexes)
+    if indexes:
+        texts(r, regions, indexes)
     root = dialogbuild.ROW
     items = [(KIDS + KID * k, ident) for k, ident in enumerate(ids)]
     if r.random() < (0.3 if op in CHECKED else 0.03):
@@ -144,17 +147,28 @@ def case(r):
     if reach == 'panel':
         regions[PANEL] = put(bytearray(r.bytes(0x20)), 0x14, 'I', root if r.random() < 0.95 else 0)
         return Call(address, [PANEL], regions, conv='t', ret='v')
-    # the dialog [0x7cc1f8]: a window whose children are the window dressed (its id 0x1ed; now and then missing) among 0-2 decoys
+    # the dialog [0x7cc1f8] (or [0x7cb2fc]): a window whose children are the window dressed (its id 0x1ed, or the row asked for; now
+    # and then missing) among 0-2 decoys
+    rowed = reach == 'row7cb2fc'
+    ident = r.choice([0x1d4cb, 0x1d4cc, 0x1d4cd, 0x1d4d0, r.getrandbits(32)]) if rowed else 0x1ed
+    if rowed:   # (the row a 0x705b20 slider: its range +0x138 / +0x13c and step +0x144 past a kid()'s bytes)
+        regions[root] = put(bytearray(regions[root]) + bytearray(r.bytes(0x160 - len(regions[root]))), 0x138, 'iiii',
+                            r.choice([100, 100, 0, r.getrandbits(31)]), r.choice([0, 0, 1, r.getrandbits(31)]), r.getrandbits(31),
+                            r.choice([1, -1, 5, -5, 0, r.getrandbits(31)]))
     dialog = regions[DIALOG] = dialogbuild.kid(r, 0)
-    put(regions[root], 0x8c, 'I', 0x1ed)
-    tops = [(root, 0x1ed)] if r.random() < 0.95 else []
-    tops += [(DIALOG + 0x200 * (k + 1), r.choice([0, 0x1ec, 0x1f4, r.getrandbits(32)])) for k in range(r.choice([0, 1, 2]))]
+    put(regions[root], 0x8c, 'I', ident)
+    tops = [(root, ident)] if r.random() < 0.95 else []
+    tops += [(DIALOG + 0x200 * (k + 1), r.choice([0, ident - 1, ident + 7, r.getrandbits(32)])) for k in range(r.choice([0, 1, 2]))]
     r.shuffle(tops)
-    for i, (at, ident) in enumerate(tops):
+    for i, (at, top) in enumerate(tops):
         if at != root:
-            regions[at] = put(dialogbuild.kid(r, DIALOG), 0x8c, 'I', ident)
+            regions[at] = put(dialogbuild.kid(r, DIALOG), 0x8c, 'I', top)
         put(regions[at], 0x54, 'I', tops[i + 1][0] if i + 1 < len(tops) else 0)
     put(dialog, 0x5c, 'I', tops[0][0] if tops else 0)
+    if rowed:
+        regions[0x7cb2fc] = struct.pack('<I', DIALOG)
+        return Call(address, [ident] + ([r.choice([r.randrange(0, 101), r.getrandbits(32)])] if op.endswith('Slider') else []), regions,
+                    ret='v')
     regions[0x7cc1f8] = struct.pack('<I', DIALOG)
     return Call(address, [], regions, ret='v')
 
