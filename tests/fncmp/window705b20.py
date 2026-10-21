@@ -6,7 +6,7 @@
 # SetPos (0x66b088): see set_pos(); the modes the callers pass (0-3, -1, -2), the value near the range or any. PosFromThumb (0x66af19):
 # set_pos()'s (a room of 0 faults in both). PageToward (0x66b8aa): set_pos()'s, the point about the thumb's edges or any. MoveInside
 # (0x66b771): a rectangle and by-value bounds of small words (now and then the edges or any), the move small or any, across either way.
-# Proc (0x66ba22): set_pos()'s with the bar's vtable a recorder's (slot 7 one argument), window.py's queues, [0xfaa5d4] set or 0;
+# Proc (0x66ba22): set_pos()'s with the bar's and the tree's vtable a recorder's (slot 7 one argument), window.py's queues, [0xfaa5d4] set or 0;
 # the handled messages and a few others, a 1, 2 or any, b any.
 # usage: window705b20.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetRange,SetEnabled,SetPos,PosFromThumb,PageToward,MoveInside,Proc)
 import os
@@ -64,10 +64,12 @@ def set_pos(r, op):
     if op == 'Proc':
         regions[BARVT] = vtable({7: 1})
         put(bar, 0, 'I', BARVT)
+        for w in wins:   # (Window_OpenTree calls the thumb's slot 0)
+            put(regions[w], 0, 'I', BARVT)
         queues(r, regions)
         regions[0xfaa5d4] = struct.pack('<I', r.choice([0, 1]))
         regions[0x77c480] = r.bytes(0x10)
-        message = r.choice([3, 0x10008, 0x10009, 0x100, 0x1000d, 0x11006, 0xffffffff] * 3 + [0x1000a, 0x101, 0x10007, 0x80000100])
+        message = r.choice([3, 0x10008, 0x10009, 0x100, 0x1000d, 0x11006, 0xffffffff] * 3 + [0x1000a, 0x101, 0x1000b, 0x80000100])
         a = r.choice([1, 1, 2, 2, 0, 3, r.getrandbits(32)])
         b = r.getrandbits(32) if r.random() < 0.3 else (r.randrange(-60, 180) & 0xffff) << 16 | (r.randrange(-60, 180) & 0xffff)
         return Call(CALLS[op], [BAR, message, a, b], regions, ret='a')
