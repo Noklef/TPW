@@ -4616,6 +4616,7 @@ address,name,kind,confidence,notes
 0x0043b480,CoasterTrain_Unload,function,high,"reimplemented (src/game/coaster/queue); empties one side of the train's cars into the boarding queue (riders dropped when full, sic), releasing their seat parts"
 0x0043b080,CoasterRing_Init,function,high,"reimplemented (src/game/coaster/queue); an empty ring of capacity slots (zeroed), limit 0, head/tail/buffer the first slot, no stop slot"
 0x0043b0c0,CoasterRing_Free,function,high,reimplemented (src/game/coaster/queue); frees the ring's buffer (the pointer is left)
+0x004379a0,Coaster_RequeueWaitingPeeps,function,low,reimplemented (src/game/coaster/queue); the waiting peeps of a coaster (by id) not riding a car added to its queue
 0x00440ad0,TrackCursor_Next,function,high,"reimplemented (src/game/coaster/cursor); cdecl (cursor): steps the cursor (start index +0, piece +4; end +8, +0xc) one node on, onto the next piece (+0x64) at its end"
 0x00440b50,TrackCursor_Prev,function,high,"reimplemented (src/game/coaster/cursor); cdecl (cursor): steps the cursor one node back, onto the previous piece (+0x68) at its start"
 0x00440bc0,TrackCursor_Point,function,high,"reimplemented (src/game/coaster/cursor); cdecl (cursor, t, out): TrackSpline_Point between the cursor's two nodes (0x58 bytes, piece+0x90 -> {count, nodes})"
