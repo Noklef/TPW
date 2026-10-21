@@ -67,6 +67,10 @@ def case(r):
     if op in ('strrchr', 'strchr'):
         c = r.choice([r.choice(a) if a else 0, 0, r.randrange(256), r.getrandbits(32), ord('.')])
         return Call(0x67b5f0 if op == 'strrchr' else 0x67bfc0, [A, c], regions, ret='a')
+    if op == 'strcmp':   # (the first string read a dword at a time once aligned: it starts 0-3 bytes in; the second now and then the same)
+        off = r.randrange(4)
+        b = a if r.random() < 0.2 else z
+        return Call(0x680060, [A + off, Z], {A: r.bytes(off) + a + b'\0' + junk(), Z: b + b'\0' + junk()}, ret='a')
     if op == 'strncmp':
         return Call(0x67c250, [A, Z, r.choice([0, 1, 3, r.randrange(50), 0xffffffff])], regions, ret='a')
     if op == 'strstr':
@@ -151,7 +155,8 @@ def case(r):
 
 CLASSES = {'isalpha': 0x67a530, 'isdigit': 0x67a560, 'isspace': 0x67a590, 'isalnum': 0x67a5c0}
 KINDS = ['stricmp', 'strrchr', 'strchr', 'strncmp', 'strstr', 'toupper', 'tolower', 'atoi', 'wcslen', 'sprintf', 'strncpy', 'iswspace',
-         'isalpha', 'isdigit', 'isspace', 'isalnum', 'atof', 'swprintf', 'wcsncpy', 'wcsicmp', 'wcscpy', 'wcscat', 'wcscmp']
+         'isalpha', 'isdigit', 'isspace', 'isalnum', 'atof', 'swprintf', 'wcsncpy', 'wcsicmp', 'wcscpy', 'wcscat', 'wcscmp',
+         'strcmp']
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 if __name__ == '__main__':
