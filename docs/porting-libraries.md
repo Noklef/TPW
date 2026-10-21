@@ -200,26 +200,30 @@ and asserts the struct size, the version, the boolean and the offsets the exe's 
 its own (jpeg6a_common_struct, jpeg6a_compress_struct, jpeg6a_quant_tbl, ...), since jpeg6b.h has the same tags laid out differently
 (6a has no client_data: is_decompressor +0xc, global_state +0x10; its my_memory_mgr is 0x50, without max_alloc_chunk); jpeg6a.cpp
 renames jpeglib.h's tags to them. Statics go through wrap/jpeg-6a/ units as 6b's, named jpeg6a_<module>_<name> (jcparam, jmemmgr,
-jerror, jcmarker, jcmaster, jcmainct, jcprepct, jccoefct, jccolor, jcsample, jcdctmgr, jchuff), and an init that stores methods is
+jerror, jcmarker, jcmaster, jcmainct, jcprepct, jccoefct, jccolor, jcsample, jcdctmgr, jchuff, jcphuff), and an init that stores methods is
 built as jpeg6a_<module>_lib_<name> behind a shim in jpeg6a.cpp (kExeMethods: jinit_memory_mgr's eleven, jinit_marker_writer's six,
-jinit_c_master_control's three, jinit_c_prep_controller's three, jinit_color_converter's seven; a start_pass that stores methods has
+jinit_c_master_control's three, jinit_c_prep_controller's three, jinit_color_converter's seven, jinit_phuff_encoder's
+start_pass_phuff; a start_pass that stores methods has
 a shim of its own: start_pass_main (process_data_simple_main), start_pass_coef (one of the three compress methods), start_pass_huff
-(encode_mcu and finish_pass, the encoding or the gathering pair)). A private method slot past the public ones is swapped by its
+(encode_mcu and finish_pass, the encoding or the gathering pair), start_pass_phuff (encode_mcu, DC or AC, first or refinement, and
+finish_pass)). A private method slot past the public ones is swapped by its
 offset (exe_method_at), the layout pinned in the wrapper: my_downsampler's methods[] (+0xc, a component each), my_fdct_controller's
 do_dct (+8) and do_float_dct (+0x1c, both mapped to the exe's DCT routines). A method whose name is also a member's (jcmaster's
 prepare_for_pass / pass_startup, jcprepct's pre_process_data, jccoefct's compress_data, jcdctmgr's forward_DCT) gets its #define
 before the headers, which renames the member with it in that unit alone. The driver's native-methods mode is 6b's
 (FNCMP_JPEG6A_NATIVE: Jpeg6a_SetNativeMethods leaves the library's addresses in place, and the heap is reported with
-Jpeg6a_ExeMethod's): jpeg6a_api.py sets it for jpeg_write_tables, which calls the write_tables_only jinit_marker_writer stored. Jpeg6aCrtEnv is 6b's Jpeg6bCrtEnv again (malloc / free in wrap/jpeg-6a/jmemansi.c, which now carries the
+Jpeg6a_ExeMethod's): jpeg6a_api.py sets it for jpeg_write_tables, which calls the write_tables_only jinit_marker_writer stored, and jpeg6a_init.py
+for jinit_compress_master and jpeg_start_compress, which run every init and then the methods they stored (write_file_header,
+prepare_for_pass and the first pass's start_pass methods). Jpeg6aCrtEnv is 6b's Jpeg6bCrtEnv again (malloc / free in wrap/jpeg-6a/jmemansi.c, which now carries the
 DEFAULT_MAX_MEM define; getenv / sscanf / jpeg_open_backing_store in wrap/jpeg-6a/jmemmgr.c, the exe's 6a backing store 0x650265;
 sprintf in wrap/jpeg-6a/jerror.c), and the fncmp driver's kJpeg6aCrtEnv uses the same recorders 24-28. Replaced so far: jutils.c
 (all five), jpeg_fdct_islow and jpeg_fdct_ifast, jcomapi.c (all four), jcparam.c (all thirteen), jmemansi.c's allocation and
-jpeg_mem_available, jmemmgr.c (all fifteen), jerror.c's emit_message / format_message / reset_error_mgr, jcapimin.c / jcapistd.c
-but jpeg_start_compress, jcmarker.c (all but emit_dac), jcmaster.c, jcmainct.c, jcprepct.c, jccoefct.c, jccolor.c (all but
-null_method), jcsample.c (all but start_pass_downsample), jcdctmgr.c (all but forward_DCT_float) and jchuff.c (benches
+jpeg_mem_available, jmemmgr.c (all fifteen), jerror.c's emit_message / format_message / reset_error_mgr, jcapimin.c, jcapistd.c,
+jcinit.c, jcmarker.c (all but emit_dac), jcmaster.c, jcmainct.c, jcprepct.c, jccoefct.c, jccolor.c (all but
+null_method), jcsample.c (all but start_pass_downsample), jcdctmgr.c (all but forward_DCT_float), jchuff.c and jcphuff.c (benches
 jpeg6a_utils.py, jpeg6a_fdct.py, jpeg6a_comapi.py, jpeg6a_param.py, jpeg6a_memansi.py, jpeg6a_memmgr.py, jpeg6a_error.py,
 jpeg6a_api.py, jpeg6a_marker.py, jpeg6a_master.py, jpeg6a_mainct.py, jpeg6a_prepct.py, jpeg6a_coefct.py, jpeg6a_color.py,
-jpeg6a_sample.py, jpeg6a_dctmgr.py, jpeg6a_huff.py; their benches run ERREXIT as a recorder that returns, so
+jpeg6a_sample.py, jpeg6a_dctmgr.py, jpeg6a_huff.py, jpeg6a_phuff.py, jpeg6a_init.py; their benches run ERREXIT as a recorder that returns, so
 each header says which edges its cases stay inside). jpeg6a_param.py masks
 huffval past each standard table's symbols: add_huff_table copies 256 bytes from 12- or 162-byte lists, so the bytes past them are
 each build's neighbouring data, and nothing reads past the count (jpeg_make_c_derived_tbl and emit_dht stop at it,
@@ -231,9 +235,9 @@ IDCT; forward_DCT_float's (int) of an out-of-range product, a zero quantval, is 
 jpeg_open_backing_store and its read / write / close methods (a FILE of the exe's C runtime), error_exit and output_message (the exe's
 exit and fprintf(stderr)), and the hand ports jpeg_std_error (0x64dd60, which stores those and the exe's 6a table 0x7054b8), emit_dac,
 jpeg_mem_init / term, start_pass_downsample, null_method (src/game/core/framestubs; the library's copies are mapped to them in
-kExeMethods). Next: jcphuff (jinit_phuff_encoder stores start_pass_phuff, which stores the encode_mcu / finish_pass pairs: a shim
-each, as jchuff's), then jcinit's jinit_compress_master and jpeg_start_compress last, since they run every module's init (a case of
-theirs needs all of them shimmed, and native mode). The two jerror.h lists differ: 6b added JERR_BAD_DCT_COEF (code 8) and
+kExeMethods). That finishes 6a: everything else in 0x64c5f0..0x657cb4 is the library's, and what stays the exe's is the list above,
+for its reasons: the float DCT pair (x87 rounding), the backing store and error_exit / output_message (the exe's C runtime), and the
+hand ports (the exe's tables and stubs the library's copies are mapped to). The two jerror.h lists differ: 6b added JERR_BAD_DCT_COEF (code 8) and
 JERR_BAD_HUFF_TABLE (10), dropped 6a's JERR_DHT_COUNTS (6a's 30) and added three JTRC_THUMB_* traces at the end, so most codes are
 one apart (two between 10 and 30) and a 6a bench takes its numbers from jpeg-6a's.
 

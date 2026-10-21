@@ -4538,6 +4538,25 @@ address,name,kind,confidence,notes
 0x005ee580,AaLine_Draw16,function,low,"reimplemented (src/game/gfx/aaline); cdecl (unused, surface info, clip, colour, from, to): an antialiased line of 2-byte pixels, three pixels a step blended by their distance from it"
 0x005ef040,AaLine_Draw24,function,low,"reimplemented (src/game/gfx/aaline); cdecl (unused, surface info, clip, colour, from, to): an antialiased line of 3-byte pixels, three pixels a step blended by their distance from it"
 0x005efb10,AaLine_Draw32,function,low,"reimplemented (src/game/gfx/aaline); cdecl (unused, surface info, clip, colour, from, to): an antialiased line of 4-byte pixels, three pixels a step blended by their distance from it"
+0x006b0430,Vtbl70a148_DeletingDtor,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (flags): the deleting destructor of vtable 0x70a148 (Vtbl70a078_Set_6add30, freed for flags bit 0); returns this"
+0x006b0450,Vtbl70a160_DeletingDtor,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (flags): the deleting destructor of vtable 0x70a160 (Wrap_Vtbl70a078_Set_6b4a50_6b0470, freed for flags bit 0); returns this"
+0x006b0730,GlyphBlend_DeletingDtor,function,low,reimplemented (src/game/gfx/glyphrender); thiscall (flags): the anti-aliased glyph renderer's deleting destructor (vtable 0x70a188); returns this
+0x006b0760,GlyphBlend_Span1555,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span): a 4-bit glyph blended toward the colour on a 1555 surface; *status 0"
+0x006b0c50,GlyphBlend_Span565,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span): a 4-bit glyph blended toward the colour on a 565 surface; *status 0"
+0x006b1130,GlyphBlend_Span4444,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span): a 4-bit glyph blended toward the colour on a 4444 surface; *status 0"
+0x006b15f0,GlyphBlend_Span8888,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span): a 4-bit glyph blended toward the colour on an 8888 surface (unsigned channel steps); *status 0"
+0x006b19f0,GlyphBlend_SpanBgra,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span): a 4-bit glyph blended toward the colour on a blue-high 32-bit surface (unsigned channel steps); *status 0"
+0x006b1e00,GlyphSolid_DeletingDtor,function,low,reimplemented (src/game/gfx/glyphrender); thiscall (flags): the solid glyph renderer's deleting destructor (vtable 0x70a1a8); returns this
+0x006b1e30,GlyphSolid_Span1555,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span): 0x8000 | the colour where the glyph's coverage is 8 or more, 1555; *status 0"
+0x006b2100,GlyphSolid_Span565,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span): the glyph's rectangle filled with the colour (byte counts, no alpha or glyph), 565; *status 0"
+0x006b21f0,GlyphSolid_Span4444,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span): coverage << 12 | the colour where it is not 0, 4444; *status 0"
+0x006b24b0,GlyphSolid_Span8888,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span): coverage * 0x11 << 24 | the colour where it is not 0, 8888; *status 0"
+0x006b2770,GlyphSolid_SpanBgra,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span): coverage * 0x11 | green << 16 | red << 8 where it is not 0 (blue shifted out, sic), blue-high 32-bit; *status 0"
+0x006b2a30,GlyphPattern1_DeletingDtor,function,low,reimplemented (src/game/gfx/glyphrender); thiscall (flags): the first patterned glyph renderer's deleting destructor (vtable 0x70a1c8); returns this
+0x006b3c20,GlyphPattern2_DeletingDtor,function,low,reimplemented (src/game/gfx/glyphrender); thiscall (flags): the second patterned glyph renderer's deleting destructor (vtable 0x70a1e8); returns this
+0x006b4a30,Vtbl70a210_DeletingDtor,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (flags): the deleting destructor of vtable 0x70a210 (Vtbl70a078_Set_6b4a50, freed for flags bit 0); returns this"
+0x006b4a70,GlyphRenderer_DeletingDtor,function,low,reimplemented (src/game/gfx/glyphrender); thiscall (flags): the glyph renderer base's deleting destructor (vtable 0x70a238; Vtbl70a258_Set_6b4a90); returns this
+0x006b5410,Vtbl70a258_DeletingDtor,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (flags): vtable 0x70a258 stored, freed for flags bit 0; returns this"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"
@@ -5750,3 +5769,20 @@ address,name,kind,confidence,notes
 0x006520fe,jpeg6a_jchuff_encode_mcu_gather,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jchuff.c encode_mcu_gather: an MCU's symbols counted (the library's)
 0x00652210,jpeg6a_jchuff_htest_one_block,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jchuff.c htest_one_block: a block's DC and AC symbols counted (the library's)
 0x00652345,jpeg6a_jchuff_finish_pass_gather,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jchuff.c finish_pass_gather: each table the scan uses made optimal for its counts (the library's)
+0x00652480,jpeg6a_jinit_phuff_encoder,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcphuff.c jinit_phuff_encoder: the progressive Huffman encoder (the library's, through the method shim)"
+0x006524f5,jpeg6a_jcphuff_start_pass_phuff,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcphuff.c start_pass_phuff: the scan's encode_mcu and finish_pass, each scan component's table derived or counts zeroed (the library's, through the method shim)"
+0x0065278f,jpeg6a_jcphuff_encode_mcu_DC_first,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcphuff.c encode_mcu_DC_first: an MCU's point-transformed DC differences coded (the library's)
+0x00652957,jpeg6a_jcphuff_emit_bits,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcphuff.c emit_bits: bits into the bit buffer, whole bytes out with 0xFF stuffing, nothing when gathering (the library's)"
+0x00652aa5,jpeg6a_jcphuff_dump_buffer,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcphuff.c dump_buffer: the destination emptied, JERR_CANT_SUSPEND if it suspends (the library's)"
+0x00652b07,jpeg6a_jcphuff_emit_symbol,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcphuff.c emit_symbol: a Huffman symbol counted or emitted (the library's)
+0x00652b6f,jpeg6a_jcphuff_emit_restart,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcphuff.c emit_restart: the EOB run and bits out, an RSTn marker, the predictions reset (the library's)"
+0x00652c74,jpeg6a_jcphuff_flush_bits,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcphuff.c flush_bits: the partial byte padded with ones (the library's)
+0x00652c9d,jpeg6a_jcphuff_emit_eobrun,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcphuff.c emit_eobrun: a pending EOB run and its correction bits out (the library's)
+0x00652d42,jpeg6a_jcphuff_emit_buffered_bits,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcphuff.c emit_buffered_bits: buffered correction bits out (the library's)
+0x00652d82,jpeg6a_jcphuff_encode_mcu_AC_first,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcphuff.c encode_mcu_AC_first: a block's AC band coded as runs and EOB runs (the library's)
+0x00652fcc,jpeg6a_jcphuff_encode_mcu_DC_refine,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcphuff.c encode_mcu_DC_refine: bit Al of each block's DC (the library's)
+0x006530f4,jpeg6a_jcphuff_encode_mcu_AC_refine,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcphuff.c encode_mcu_AC_refine: an AC band's refinement, newly nonzero coefficients and correction bits (the library's)"
+0x00653498,jpeg6a_jcphuff_finish_pass_phuff,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcphuff.c finish_pass_phuff: the EOB run and the last bits out (the library's)
+0x006534fe,jpeg6a_jcphuff_finish_pass_gather_phuff,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcphuff.c finish_pass_gather_phuff: each table the scan uses made optimal for its counts (the library's)
+0x0064ca90,jpeg6a_jpeg_start_compress,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcapistd.c jpeg_start_compress: a compression started, the modules chosen and the first pass set up (the library's)"
+0x006500f0,jpeg6a_jinit_compress_master,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcinit.c jinit_compress_master: every compression module's init, the virtual arrays realized, SOI written (the library's)"

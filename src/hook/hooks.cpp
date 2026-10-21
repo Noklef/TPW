@@ -131,6 +131,7 @@
 #include "../game/gfx/textlayout.h"
 #include "../game/gfx/tvstatic.h"
 #include "../game/gfx/aaline.h"
+#include "../game/gfx/glyphrender.h"
 #include "../game/gfx/signstyle.h"
 #include "../game/gfx/wctimage.h"
 #include "../game/core/crt.h"
@@ -4251,6 +4252,25 @@ const Hook kHooks[] = {
     {"AaLine_Draw24",             0x005ef040, (void *)&AaLine_Draw24, {0x83, 0xec, 0x54, 0x8b, 0x44}},
     {"AaLine_Draw32",             0x005efb10, (void *)&AaLine_Draw32, {0x83, 0xec, 0x54, 0x8b, 0x44}},
     {"SignStyle_Load",            0x005ec3a0, (void *)&SignStyle_Load, {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"Vtbl70a148_DeletingDtor",   0x006b0430, (void *)&Vtbl70a148_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0xf8}},
+    {"Vtbl70a160_DeletingDtor",   0x006b0450, (void *)&Vtbl70a160_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"GlyphBlend_DeletingDtor",   0x006b0730, (void *)&GlyphBlend_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"GlyphBlend_Span1555",       0x006b0760, (void *)&GlyphBlend_Span1555, {0x83, 0xec, 0x44, 0x53, 0x55}},
+    {"GlyphBlend_Span565",        0x006b0c50, (void *)&GlyphBlend_Span565, {0x83, 0xec, 0x44, 0x53, 0x55}},
+    {"GlyphBlend_Span4444",       0x006b1130, (void *)&GlyphBlend_Span4444, {0x83, 0xec, 0x4c, 0x53, 0x55}},
+    {"GlyphBlend_Span8888",       0x006b15f0, (void *)&GlyphBlend_Span8888, {0x83, 0xec, 0x3c, 0x53, 0x55}},
+    {"GlyphBlend_SpanBgra",       0x006b19f0, (void *)&GlyphBlend_SpanBgra, {0x83, 0xec, 0x38, 0x53, 0x55}},
+    {"GlyphSolid_DeletingDtor",   0x006b1e00, (void *)&GlyphSolid_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"GlyphSolid_Span1555",       0x006b1e30, (void *)&GlyphSolid_Span1555, {0x83, 0xec, 0x28, 0x53, 0x55}},
+    {"GlyphSolid_Span565",        0x006b2100, (void *)&GlyphSolid_Span565, {0x83, 0xec, 0x08, 0x53, 0x55}},
+    {"GlyphSolid_Span4444",       0x006b21f0, (void *)&GlyphSolid_Span4444, {0x83, 0xec, 0x28, 0x53, 0x55}},
+    {"GlyphSolid_Span8888",       0x006b24b0, (void *)&GlyphSolid_Span8888, {0x83, 0xec, 0x28, 0x53, 0x55}},
+    {"GlyphSolid_SpanBgra",       0x006b2770, (void *)&GlyphSolid_SpanBgra, {0x83, 0xec, 0x28, 0x53, 0x55}},
+    {"GlyphPattern1_DeletingDtor", 0x006b2a30, (void *)&GlyphPattern1_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"GlyphPattern2_DeletingDtor", 0x006b3c20, (void *)&GlyphPattern2_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"Vtbl70a210_DeletingDtor",   0x006b4a30, (void *)&Vtbl70a210_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"GlyphRenderer_DeletingDtor", 0x006b4a70, (void *)&GlyphRenderer_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"Vtbl70a258_DeletingDtor",   0x006b5410, (void *)&Vtbl70a258_DeletingDtor, {0x8a, 0x44, 0x24, 0x04, 0x56}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
@@ -5432,6 +5452,23 @@ const Hook kHooks[] = {
     {"jpeg6a_jinit_huff_encoder", 0x00651772, (void *)&jpeg6a_jinit_huff_encoder, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"jpeg6a_jpeg_gen_optimal_table", 0x006512ad, (void *)&jpeg6a_jpeg_gen_optimal_table, {0x55, 0x8b, 0xec, 0x81, 0xec}},
     {"jpeg6a_jpeg_make_c_derived_tbl", 0x006510e0, (void *)&jpeg6a_jpeg_make_c_derived_tbl, {0x55, 0x8b, 0xec, 0x81, 0xec}},
+    {"jpeg6a_jcphuff_finish_pass_gather_phuff", 0x006534fe, (void *)&jpeg6a_jcphuff_finish_pass_gather_phuff, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcphuff_finish_pass_phuff", 0x00653498, (void *)&jpeg6a_jcphuff_finish_pass_phuff, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
+    {"jpeg6a_jcphuff_encode_mcu_AC_refine", 0x006530f4, (void *)&jpeg6a_jcphuff_encode_mcu_AC_refine, {0x55, 0x8b, 0xec, 0x81, 0xec}},
+    {"jpeg6a_jcphuff_encode_mcu_DC_refine", 0x00652fcc, (void *)&jpeg6a_jcphuff_encode_mcu_DC_refine, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcphuff_encode_mcu_AC_first", 0x00652d82, (void *)&jpeg6a_jcphuff_encode_mcu_AC_first, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcphuff_emit_buffered_bits", 0x00652d42, (void *)&jpeg6a_jcphuff_emit_buffered_bits, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"jpeg6a_jcphuff_emit_eobrun", 0x00652c9d, (void *)&jpeg6a_jcphuff_emit_eobrun, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcphuff_flush_bits", 0x00652c74, (void *)&jpeg6a_jcphuff_flush_bits, {0x55, 0x8b, 0xec, 0x6a, 0x07}},
+    {"jpeg6a_jcphuff_emit_restart", 0x00652b6f, (void *)&jpeg6a_jcphuff_emit_restart, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
+    {"jpeg6a_jcphuff_emit_symbol", 0x00652b07, (void *)&jpeg6a_jcphuff_emit_symbol, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
+    {"jpeg6a_jcphuff_dump_buffer", 0x00652aa5, (void *)&jpeg6a_jcphuff_dump_buffer, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
+    {"jpeg6a_jcphuff_emit_bits",  0x00652957, (void *)&jpeg6a_jcphuff_emit_bits, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcphuff_encode_mcu_DC_first", 0x0065278f, (void *)&jpeg6a_jcphuff_encode_mcu_DC_first, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcphuff_start_pass_phuff", 0x006524f5, (void *)&jpeg6a_jcphuff_start_pass_phuff, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jinit_phuff_encoder", 0x00652480, (void *)&jpeg6a_jinit_phuff_encoder, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jinit_compress_master", 0x006500f0, (void *)&jpeg6a_jinit_compress_master, {0x55, 0x8b, 0xec, 0x51, 0x6a}},
+    {"jpeg6a_jpeg_start_compress", 0x0064ca90, (void *)&jpeg6a_jpeg_start_compress, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 
