@@ -1,8 +1,8 @@
 # The MP2 decoder's layer I frame decoder (src/game/core/mp2layer1) against the original (0x6ce5a0): a decoder of 1 or 2 channels (now
 # and then 0) with a frame of random bits read from a random position (whole bytes for the fixed-point allocations), the synthesis's
-# buffers random, float or fixed point (0xfb2704), half rate (0xfb2708) now and then, the output moving on +0x2450 samples a granule (none
-# with no advance now and then); the factor tables, windows and the rest as tests/fncmp/mp2layer2.py's frame cases (its tables()), the
-# fixed-point transform (0x6d62c0) fncmp's stand-in.
+# buffers random, float or fixed point (0xfb2704; the transform 0x6d62c0 too), half rate (0xfb2708) now and then, the output moving on
+# +0x2450 samples a granule (none with no advance now and then); the factor tables, windows and the rest as tests/fncmp/mp2layer2.py's frame
+# cases (its tables()).
 # usage: mp2layer1.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -11,9 +11,9 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import mp2layer2  # noqa: E402  (the tables)
-from fncmp import RAM, Bench, Call, _mp2_transform  # noqa: E402
+from fncmp import RAM, Bench, Call  # noqa: E402
 
-B = Bench([(0x6ce5a0, 0x6d17a4), (0x6c9270, 0x6c957d), (0x6c9580, 0x6ca574), (0x6ca580, 0x6cc735)], hooks={0x6d62c0: _mp2_transform})
+B = Bench([(0x6ce5a0, 0x6d17a4), (0x6c9270, 0x6c957d), (0x6c9580, 0x6ca574), (0x6ca580, 0x6cc735), (0x6d62c0, 0x6d6c4c)])
 DECODER, FRAME, PCM = RAM, RAM + 0x3000, RAM + 0x6000
 
 

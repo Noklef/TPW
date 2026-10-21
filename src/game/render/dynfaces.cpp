@@ -19,8 +19,8 @@ void Finish(u32 n, u32 tag) {
     global<u32>(kCount) = n + 1;
 }
 
-// a + b on the x87, stored as a float.
-float Sum(float a, float b) { return static_cast<float>(X87Reg(a) + X87Reg(b)); }
+// a + b on the x87 (fld a; fadd b: b the memory operand), stored as a float.
+float Sum(float a, float b) { return static_cast<float>(X87Reg(a) + b); }
 
 }  // namespace
 

@@ -816,6 +816,55 @@ static void test_animator_reset() {
     CHECK(X87_FloatThrough(0x7f800001) == 0x7fc00001 && X87_FloatThrough(0x7f800000) == 0x7f800000);
 }
 
+// The x87's choice of NaN on this machine's hardware, against the same rows as tools/x87emu.py's NAN_RULE (whose selftest runs the
+// emulator over them), and X87Reg following it: fld a; then b as a memory operand (fadd / fmul / fsubr m32), or fld b and
+// a register form (faddp / fsubrp / fmulp); fstp. X87Reg's operations take a float as a memory operand, an X87Reg as a register.
+static u32 x87_nan_form(int form, u32 a, u32 b) {
+    u32 r;
+    switch (form) {
+    case 0: __asm { fld dword ptr a
+                    fadd dword ptr b
+                    fstp dword ptr r } break;
+    case 1: __asm { fld dword ptr a
+                    fmul dword ptr b
+                    fstp dword ptr r } break;
+    case 2: __asm { fld dword ptr a
+                    fsubr dword ptr b
+                    fstp dword ptr r } break;
+    case 3: __asm { fld dword ptr a
+                    fld dword ptr b
+                    faddp st(1), st
+                    fstp dword ptr r } break;
+    case 4: __asm { fld dword ptr a
+                    fld dword ptr b
+                    fsubrp st(1), st
+                    fstp dword ptr r } break;
+    default: __asm { fld dword ptr a
+                     fld dword ptr b
+                     fmulp st(1), st
+                     fstp dword ptr r } break;
+    }
+    return r;
+}
+
+static void test_x87_nan_rule() {
+    static const u32 rows[][4] = {  // a, b, the memory forms' result, the register forms'
+        {0x7fc00000, 0xff812345, 0x7fc00000, 0xffc12345}, {0x7fc00000, 0x7f800001, 0x7fc00000, 0x7fc00001},
+        {0xffc00001, 0x7f812345, 0xffc00001, 0x7fc12345}, {0x3f800000, 0xff812345, 0xffc12345, 0xffc12345},
+        {0x7fc00000, 0xffc00000, 0x7fc00000, 0x7fc00000}, {0xffc00000, 0x7fc00000, 0x7fc00000, 0x7fc00000},
+        {0x7fc00001, 0xffc00002, 0xffc00002, 0xffc00002}, {0xffc12345, 0x7fc12345, 0x7fc12345, 0x7fc12345}};
+    auto bits = [](X87Reg x) { const float f = (float)x; u32 b; std::memcpy(&b, &f, 4); return b; };
+    for (const auto &row : rows) {
+        float a, b;
+        std::memcpy(&a, &row[0], 4);
+        std::memcpy(&b, &row[1], 4);
+        for (int form = 0; form < 6; ++form) CHECK(x87_nan_form(form, row[0], row[1]) == row[form < 3 ? 2 : 3]);
+        const X87Reg ra(X87_Through(a)), rb(X87_Through(b));
+        CHECK(bits(ra + rb) == row[3] && bits(ra * rb) == row[3] && bits(X87_SubR(ra, rb)) == row[3]);
+        CHECK(bits(ra + b) == row[2] && bits(ra * b) == row[2] && bits(b - ra) == row[2] && bits(b / ra) == row[2]);
+    }
+}
+
 static void test_sprite_script() {
     // fild n; fadd f rounds the exact sum once: 2^30 + 64 is a 24-bit midpoint, and a tiny
     // f says which way it goes, where the double sum alone would tie to even.
@@ -1134,6 +1183,7 @@ int main(int argc, char **argv) {
     test_animator_update();
     test_animator_reset();
     test_sprite_script();
+    test_x87_nan_rule();
     test_patcher();
     if (argc > 1) test_hook_table(argv[1]);
     std::printf(g_failures ? "%d FAILED\n" : "all tests passed\n", g_failures);

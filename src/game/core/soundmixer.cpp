@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../files/file.h"
 #include "fieldops.h"
 #include "gameheap.h"
 #include "selectors.h"
@@ -22,6 +23,30 @@ void Unlock(u8 *mixer) { Import<OnObject>(0x006fd130)(mixer + 4); }   // LeaveCr
 }  // namespace
 
 extern "C" {
+
+void __fastcall SoundMixer_Update(u8 *mixer) {
+    SoundMixer_ClearLevels(mixer);
+    u8 *voice = at<u8 *>(mixer, 0x24);
+    const u32 now = Time_GetMs();
+    while (voice) {
+        u8 *const next = at<u8 *>(voice, 0x34);
+        if (voice[0x30] & 0x10 || Obj_PastEnd(voice, nullptr, now)) {
+            SoundMixer_Retire(mixer, nullptr, voice);
+        } else if (at<u32>(voice, 0x30) & 0x100) {
+            u32 out;
+            u32 functor[2] = {0x0070a2d0, at<u32>(voice, 0x24)};
+            vcall<void>(voice, 0x18, &out, functor);
+        } else if (!(voice[0x30] & 0x40) && SoundVoice_CategoryEnabled(voice)) {
+            if (mixer[0x50] && at<u32>(voice, 0x30) & 0x400) vcall<void>(voice, 0x2c);
+            if (SoundVoice_UpdateAudible(voice)) Top_Insert(mixer, nullptr, voice);
+        }
+        voice = next;
+    }
+    for (u32 i = 0; at<u8 **>(mixer, 0x44)[i]; ++i) {
+        u32 out;
+        vcall<void>(at<u8 **>(mixer, 0x44)[i], 0x14, &out, now);
+    }
+}
 
 void __fastcall SoundMixer_Dtor(u8 *mixer) {
     at<u32>(mixer, 0) = 0x0070a2cc;

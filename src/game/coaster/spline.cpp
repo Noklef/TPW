@@ -16,54 +16,57 @@ float field(const u8 *p, u32 offset) { return *reinterpret_cast<const float *>(p
 // A node's piece (node +0x10).
 const u8 *piece(const u8 *node) { return *reinterpret_cast<const u8 *const *>(node + 0x10); }
 
+// One axis of the four control points, as the x87 code's memory operands (references: a signalling NaN stays one).
 struct Points {
-    X87Reg a, b, c, d;  // from.position, from.ahead, to.behind, to.position
+    const float &a, &b, &c, &d;  // from.position, from.ahead, to.behind, to.position
 };
 
 Points component(const u8 *from, const u8 *to, u32 axis) {
-    auto f = [](const u8 *node, u32 offset) { return (double)*reinterpret_cast<const float *>(node + offset); };
+    auto f = [](const u8 *node, u32 offset) -> const float & { return *reinterpret_cast<const float *>(node + offset); };
     return {f(from, 0x40 + axis), f(from, 0x4c + axis), f(to, 0x34 + axis), f(to, 0x40 + axis)};
 }
+
+const float k3 = 3.0f, km3 = -3.0f, km6 = -6.0f, km2 = -2.0f;   // 0x6fe110, 0x6fe114, 0x6fe118, 0x6fe11c
 
 }  // namespace
 
 extern "C" {
 
+// The listings' operand forms (x87.h: X87Reg op float is a memory operand, X87Reg(f) a load): a NaN in a register keeps
+// its place against a signalling one from memory.
 void __cdecl TrackSpline_Point(const u8 *from, const u8 *to, float t, Vec3 *out) {
-    const X87Reg u = t;
     {
         const Points p = component(from, to, 0);
-        out->x = (float)((((p.d - ((p.c * 3.0 + p.b * -3.0) + p.a)) * u + (p.b * -6.0 - (p.a + p.c) * -3.0)) * u +
-                          (p.a * -3.0 - p.b * -3.0)) * u + p.a);
+        out->x = (float)((((p.d - ((X87Reg(p.c) * k3 + X87Reg(p.b) * km3) + p.a)) * t + (X87Reg(p.b) * km6 - (X87Reg(p.a) + p.c) * km3)) * t +
+                          (X87Reg(p.a) * km3 - X87Reg(p.b) * km3)) * t + p.a);
     }
     {
         const Points p = component(from, to, 4);
-        out->y = (float)((((((p.b * 3.0 - p.a) - p.c * 3.0) + p.d) * u + (p.b * -6.0 - (p.c + p.a) * -3.0)) * u +
-                          (p.b * 3.0 - p.a * 3.0)) * u + p.a);
+        out->y = (float)((((((X87Reg(p.b) * k3 - p.a) - X87Reg(p.c) * k3) + p.d) * t + (X87Reg(p.b) * km6 - (X87Reg(p.c) + p.a) * km3)) * t +
+                          (X87Reg(p.b) * k3 - X87Reg(p.a) * k3)) * t + p.a);
     }
     {
         const Points p = component(from, to, 8);
-        out->z = (float)((((((p.b * 3.0 - p.a) - p.c * 3.0) + p.d) * u + (p.b * -6.0 - (p.a + p.c) * -3.0)) * u +
-                          (p.b * 3.0 - p.a * 3.0)) * u + p.a);
+        out->z = (float)((((((X87Reg(p.b) * k3 - p.a) - X87Reg(p.c) * k3) + p.d) * t + (X87Reg(p.b) * km6 - (X87Reg(p.a) + p.c) * km3)) * t +
+                          (X87Reg(p.b) * k3 - X87Reg(p.a) * k3)) * t + p.a);
     }
 }
 
 void __cdecl TrackSpline_Tangent(const u8 *from, const u8 *to, float t, Vec3 *out) {
-    const X87Reg u = t;
     {
         const Points p = component(from, to, 0);
-        out->x = (float)((p.a * -3.0 - p.b * -3.0) -
-                         ((p.b * -6.0 - (p.c + p.a) * -3.0) * -2.0 - ((p.d - ((p.c * 3.0 + p.b * -3.0) + p.a)) * u) * 3.0) * u);
+        out->x = (float)((X87Reg(p.a) * km3 - X87Reg(p.b) * km3) -
+                         ((X87Reg(p.b) * km6 - (X87Reg(p.c) + p.a) * km3) * km2 - ((p.d - ((X87Reg(p.c) * k3 + X87Reg(p.b) * km3) + p.a)) * t) * k3) * t);
     }
     {
         const Points p = component(from, to, 4);
-        out->y = (float)((p.a * -3.0 - p.b * -3.0) -
-                         ((p.b * -6.0 - (p.c + p.a) * -3.0) * -2.0 - ((p.d - ((p.c * 3.0 + p.b * -3.0) + p.a)) * u) * 3.0) * u);
+        out->y = (float)((X87Reg(p.a) * km3 - X87Reg(p.b) * km3) -
+                         ((X87Reg(p.b) * km6 - (X87Reg(p.c) + p.a) * km3) * km2 - ((p.d - ((X87Reg(p.c) * k3 + X87Reg(p.b) * km3) + p.a)) * t) * k3) * t);
     }
     {
         const Points p = component(from, to, 8);
-        out->z = (float)((p.b * 3.0 - p.a * 3.0) -
-                         ((p.b * -6.0 - (p.c + p.a) * -3.0) * -2.0 - (((((p.b * 3.0 - p.a) - p.c * 3.0) + p.d) * u) * 3.0)) * u);
+        out->z = (float)((X87Reg(p.b) * k3 - X87Reg(p.a) * k3) -
+                         ((X87Reg(p.b) * km6 - (X87Reg(p.c) + p.a) * km3) * km2 - ((((X87Reg(p.b) * k3 - p.a) - X87Reg(p.c) * k3) + p.d) * t) * k3) * t);
     }
 }
 

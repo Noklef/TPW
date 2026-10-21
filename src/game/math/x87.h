@@ -8,14 +8,17 @@
 // order of operations, storing to float only where it stores, so that results match bit for
 // bit for every input, including overflow past float range and NaNs. Plain float or double
 // is fine only where the bench (tools/fncmp.py, normal and --wild) shows no difference.
-// Which of two NaNs comes out depends on operand order; keep the original's order where it
-// costs nothing, but don't contort code for it (a commuted operand that differs only in
-// NaN payloads is an accepted difference, noted in the function's header). A float moved
-// with fld/fstp quiets a signalling NaN where a compiler's copy would not: X87_FloatThrough.
+// Of two NaNs the x87 gives the one with the larger significand, the positive one of equal
+// significands, whatever the operand order (SSE, which plain float code compiles to, gives
+// the first operand); a signalling NaN memory operand gives way to a NaN in the register (an
+// X87Reg's operation with a float: see X87Reg). A float moved with fld/fstp quiets a signalling NaN where a compiler's copy
+// would not: X87_FloatThrough. (Measured on the hardware: tests/test_main.cpp's
+// test_x87_nan_rule; tools/x87emu.py follows the same rule.)
 #pragma once
 
 #include <cmath>
 #include <cstring>
+#include <type_traits>
 
 #include "../../../re/types.h"
 
@@ -107,15 +110,18 @@ inline double X87_MulFloatDouble(float f, double d) {
 // fild n; fadd f does. The double sum can round onto a 24-bit midpoint and then tie the
 // wrong way; its exact error (TwoSum) says which side of the midpoint the true sum is on.
 // A NaN operand comes through as the x87 has it: both NaNs, the one with the larger
-// significand (a, the destination, on a tie), where SSE would take the first operand.
+// significand (the positive one of equal significands), where SSE would take the first operand.
+inline double X87_NanPick(double a, double b) {
+    unsigned long long ma, mb;
+    std::memcpy(&ma, &a, 8);
+    std::memcpy(&mb, &b, 8);
+    const unsigned long long sa = ma & ((1ull << 52) - 1), sb = mb & ((1ull << 52) - 1);
+    if (sa != sb) return sa > sb ? a : b;
+    return (ma >> 63) == 0 ? a : b;
+}
 inline double X87_Add(double a, double b) {
     if (a != a || b != b) {
-        if (a != a && b != b) {
-            unsigned long long ma, mb;
-            std::memcpy(&ma, &a, 8);
-            std::memcpy(&mb, &b, 8);
-            return (ma & ((1ull << 52) - 1)) >= (mb & ((1ull << 52) - 1)) ? a : b;
-        }
+        if (a != a && b != b) return X87_NanPick(a, b);
         return a != a ? a : b;
     }
     const double s = a + b;
@@ -140,7 +146,7 @@ inline double X87_MulDouble(double a, double b) {
 }
 
 // fpatan (y in st1, the destination; x in st0): atan2, except that NaNs come through as the
-// x87 has them (two: the larger significand, y on a tie), where the CRT's may not.
+// x87 has them (two: X87_NanPick), where the CRT's may not.
 inline double X87_Atan2(double y, double x) { return y != y || x != x ? X87_Add(y, x) : std::atan2(y, x); }
 
 // A float loaded and stored by the x87 (fld m32; fstp m32), as bits: the value is kept,
@@ -153,9 +159,11 @@ inline u32 X87_FloatThrough(u32 bits) {
 // An x87 register at the game's precision, for writing an original's expression as it
 // stands: + - * round the exact result once to a 24-bit significand, keeping the register's
 // wide exponent (a float rounds again, or overflows, only when stored). Of two NaN operands
-// the result is the one with the larger significand, the left operand (the destination) on
-// a tie, so keep each operation's operands in the original's order. At least one operand
-// of each operation has to be an X87Reg, or C++ does it in float.
+// the result is X87_NanPick's, whatever the order. At least one operand of each operation
+// has to be an X87Reg, or C++ does it in float. A float operand (not an X87Reg) stands for a
+// memory operand (fadd m32 and the like): a signalling NaN there gives way to a NaN X87Reg as
+// it is, with no significands compared; X87Reg(f) is f loaded with fld (quiet) first, for a
+// register form (faddp and the like).
 struct X87Reg {
     double v;
     X87Reg(double x) : v(x) {}
@@ -171,11 +179,43 @@ inline X87Reg operator*(X87Reg a, X87Reg b) {
 inline X87Reg operator/(X87Reg a, X87Reg b) {
     return a.v != a.v && b.v != b.v ? X87_Add(a.v, b.v) : X87_Round(a.v / b.v);
 }
-// fsubr / fdivr (and their p forms): src - dst and src / dst. Between two NaNs of equal
-// significand src, the left operand, wins, as in x87emu (which the hardware's tie rule has
-// not been checked against).
+// fsubr / fdivr (and their p forms): src - dst and src / dst.
 inline X87Reg X87_SubR(X87Reg dst, X87Reg src) { return src - dst; }
 inline X87Reg X87_DivR(X87Reg dst, X87Reg src) { return src / dst; }
+
+// An X87Reg's + - * / with a float memory operand, either side (fadd / fsub / fsubr / fmul /
+// fdiv / fdivr m32): a signalling NaN m gives way to a NaN st as it is; otherwise the register
+// operation on m (quiet, as the conversion to double makes it). (Templates, so that only a
+// float takes them: an int or a double converts to an X87Reg as before.)
+inline bool X87_MemGivesWay(X87Reg st, float m) {
+    u32 b;
+    std::memcpy(&b, &m, 4);
+    return st.v != st.v && (b & 0x7f800000) == 0x7f800000 && (b & 0x7fffff) && !(b & 0x400000);
+}
+template <class F, class = std::enable_if_t<std::is_same<F, float>::value>> X87Reg operator+(X87Reg a, F m) {
+    return X87_MemGivesWay(a, m) ? a : a + X87Reg(m);
+}
+template <class F, class = std::enable_if_t<std::is_same<F, float>::value>> X87Reg operator+(F m, X87Reg a) {
+    return X87_MemGivesWay(a, m) ? a : X87Reg(m) + a;
+}
+template <class F, class = std::enable_if_t<std::is_same<F, float>::value>> X87Reg operator-(X87Reg a, F m) {
+    return X87_MemGivesWay(a, m) ? a : a - X87Reg(m);
+}
+template <class F, class = std::enable_if_t<std::is_same<F, float>::value>> X87Reg operator-(F m, X87Reg a) {
+    return X87_MemGivesWay(a, m) ? a : X87Reg(m) - a;
+}
+template <class F, class = std::enable_if_t<std::is_same<F, float>::value>> X87Reg operator*(X87Reg a, F m) {
+    return X87_MemGivesWay(a, m) ? a : a * X87Reg(m);
+}
+template <class F, class = std::enable_if_t<std::is_same<F, float>::value>> X87Reg operator*(F m, X87Reg a) {
+    return X87_MemGivesWay(a, m) ? a : X87Reg(m) * a;
+}
+template <class F, class = std::enable_if_t<std::is_same<F, float>::value>> X87Reg operator/(X87Reg a, F m) {
+    return X87_MemGivesWay(a, m) ? a : a / X87Reg(m);
+}
+template <class F, class = std::enable_if_t<std::is_same<F, float>::value>> X87Reg operator/(F m, X87Reg a) {
+    return X87_MemGivesWay(a, m) ? a : X87Reg(m) / a;
+}
 
 // fsin / fcos (unaffected by the precision control): infinity is invalid and gives the
 // indefinite (negative quiet NaN), a NaN comes through, and from 2^63 on st0 is left as it is

@@ -69,6 +69,7 @@
 #include "../../src/game/model/holder.h"
 #include "../../src/game/model/objmodel.h"
 #include "../../src/game/core/sharedglobals.h"
+#include "../../src/game/core/releaselist.h"
 #include "../../src/game/core/mp2synth.h"
 #include "../../src/game/world/mapline.h"
 #include "../../src/game/world/mousemode.h"
@@ -249,15 +250,6 @@ void __fastcall stub_mark(u32 *self) { *self = 0x006fd800; }
 u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack);
 
 // A callback the code under test calls through a function pointer, cdecl with one argument (kStubs + 0x50, tools/fncmp.py CDECL_LOG): logged as the COM-style entry k 0x13f.
-// The fixed-point MP2 transform's stand-in (fncmp._mp2_transform): in's 32 halfwords to out0, then reversed to out1, so where the caller
-// points them shows in the buffers (the inputs are on the caller's stack, whose address the two sides cannot share).
-void __cdecl stub_mp2_transform(s16 *out0, s16 *out1, const s16 *in) {
-    s16 v[32];
-    std::memcpy(v, in, sizeof v);
-    std::memcpy(out0, v, sizeof v);
-    for (u32 k = 0; k < 32; ++k) std::memcpy(out1 + k, v + 31 - k, 2);
-}
-
 u32 __cdecl stub_cdecl_log(u32 arg) {
     const u32 stack[2] = {0, arg};
     return record_call(0x13f, 1, 0, stack);
@@ -308,6 +300,7 @@ const AdvisorScoreEnv kAdvisorScoreEnv = {reinterpret_cast<s32(__cdecl *)(void(_
 const GlyphRenderEnv kGlyphRenderEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const ObjModelEnv kObjModelEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const SharedGlobalsEnv kSharedGlobalsEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
+const ReleaseListEnv kReleaseListEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const PtrListEnv kPtrListEnv = {&heap_alloc};
 const GameHeapEnv kGameHeapEnv = {&heap_alloc, &heap_free};
 // libjpeg 6b's calls outside itself (src/game/lib/jpeg6b.h): jmemansi.c's malloc / free the heap; jmemmgr.c's getenv, sscanf and
@@ -345,7 +338,7 @@ constexpr u32 recorder(u32 k, u32 n) { return kStubs + 0x1000 + 0x400 * n + 0x20
 
 // Optional settings in the log region: at + 0xa00 a mask per slot (k & 63): bits 0-15 the arguments that are C strings, logged and hashed as a hash of the string
 // (so that a path in a stack buffer, whose address differs between the sides, compares by its text), bits 16-31 out arguments, logged as 0 (a stack address;
-// what is written through them is a fill's, and shows in what the code does with it); at + 0xb00, + 0xb80 and + 0xf80 three fills (k | 0x80000000, the argument, the
+// what is written through them is a fill's, and shows in what the code does with it); at + 0xb00 and + 0xb80 two fills and from + 0x1000 six more (k | 0x80000000, the argument, the
 // length; the bytes from + 0x10, at most 0x70; length bit 31: argument length & 0xff's value, fncmp.fill_arg()) written through that argument before the
 // recorder returns (an out structure, FindFirstFile's); at + 0xc00 a mask per slot of BYTE arguments, logged as their low byte (fncmp.LOG_BYTES); at + 0xd00
 // two dwords per slot, an argument + 1 (bits 0-4) and a dword mask: that argument (unless null) logged as a hash of the dwords it points to that the mask
@@ -387,16 +380,31 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
     u32 *log = reinterpret_cast<u32 *>((uintptr_t)kLog);
     u32 args[16];
     const u32 mask = log[0x280 + (k & 63)];
+    u32 earlier = 0;  // (this slot's calls in the log so far: fncmp.fail_after(), a fill's records)
+    for (u32 i = 0; i < log[0] && i < 40; ++i) earlier += log[1 + 12 * i] == k;
     for (u32 i = 0; i < n; ++i) {  // (stack[0] is the thunk's own return address)
         args[i] = stack[1 + i];
-        for (u32 f = 0; f < 3; ++f) {
-            const u32 *fill = log + (f < 2 ? 0x2c0 + 0x20 * f : 0x3e0);  // (the third past the zlib overrides, fncmp.LOG_FILL3)
+        // Eight fills: two at + 0xb00, six more from + 0x1000 (0x80 each; a log region that sets them is that much longer). Dword 3: bits 0-7 an offset
+        // into the out structure, bits 8-15 records: with 2 or more the length is one record's, and call j (earlier) writes record j % records;
+        // bits 16-23 an offset + 1 in the argument's structure of a pointer to the out structure (unless that pointer is null): a buffer that a
+        // structure argument points to.
+        for (u32 f = 0; f < 8; ++f) {
+            const u32 *fill = log + (f < 2 ? 0x2c0 + 0x20 * f : 0x400 + 0x20 * (f - 2));
             if (fill[0] != ((k & 63) | 0x80000000u) || fill[1] != i || !args[i]) continue;
+            u32 base = args[i];
+            if (const u32 through = fill[3] >> 16 & 0xff) {
+                std::memcpy(&base, reinterpret_cast<const u8 *>((uintptr_t)args[i]) + through - 1, 4);
+                if (!base) continue;
+            }
+            u8 *const to = reinterpret_cast<u8 *>((uintptr_t)base) + (fill[3] & 0xff);
+            const u32 records = fill[3] >> 8 & 0xff;
             if (fill[2] & 0x80000000u) {  // (fncmp.fill_arg(): an argument's value, as passed)
                 const u32 value = (fill[2] & 0xff) < n ? stack[1 + (fill[2] & 0xff)] : 0;
-                std::memcpy(reinterpret_cast<void *>((uintptr_t)args[i]), &value, 4);
+                std::memcpy(to, &value, 4);
             } else {
-                std::memcpy(reinterpret_cast<void *>((uintptr_t)args[i]), fill + 4, fill[2] < 0x70 ? fill[2] : 0x70);
+                const u32 length = fill[2] < 0x70 ? fill[2] : 0x70;
+                const u32 skip = records > 1 ? earlier % records * length : 0;
+                if (skip + length <= 0x70) std::memcpy(to, reinterpret_cast<const u8 *>(fill + 4) + skip, length);
             }
         }
         const u32 *blob = log + 0x340 + 2 * (k & 63);  // (LOG_BLOBS)
@@ -412,6 +420,7 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
         if (mask >> i & 1) args[i] = string_hash(reinterpret_cast<const u8 *>((uintptr_t)args[i]));
         if (mask >> (16 + i) & 1) args[i] = 0;
         if (log[0x300 + (k & 63)] >> i & 1) args[i] &= 0xff;
+        if (log[0x300 + (k & 63)] >> (16 + i) & 1) args[i] &= 0xffff;  // (bits 16-31: WORD arguments)
     }
     // A sequenced read at + 0xf40 (fncmp.seq_read()): (k | 0x80000000, the buffer argument, the count argument, the done argument + 1 or 0, the data's
     // address, its length, the cursor, flags): each call copies the next count bytes of the data (fewer at its end, none for a negative count or a null
@@ -434,8 +443,6 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
         const u32 origin = stack[1 + seek[2]];
         seq[6] = (origin == 1 ? seq[6] : origin == 2 ? seq[5] : 0) + stack[1 + seek[1]];
     }
-    u32 earlier = 0;  // (this slot's calls in the log so far: fncmp.fail_after())
-    for (u32 i = 0; i < log[0] && i < 40; ++i) earlier += log[1 + 12 * i] == k;
     if (log[0] < 40) {
         u32 *entry = log + 1 + 12 * log[0];
         entry[0] = k;
@@ -456,8 +463,18 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
     const u32 *override = log + 0x200 + 2 * (k & 63);  // (LOG_RETURNS: a flag and a value for the slot; flag 2: argument value, as passed;
     if (sequenced && (seq[7] & 1)) return copied;
     if (seeking) return seq[6];
-    if (override[0] == 3)                               //  3: the first value & 0xffff calls unanswered, then value >> 16 sign-extended)
+    if (override[0] == 4) {                             //  (4: a float, its bits in EAX and pushed in st0)
+        const u32 *bits = override + 1;
+        __asm {
+            mov eax, bits
+            fld dword ptr [eax]
+        }
+        return override[1];
+    }
+    if (override[0] == 3)                               //  3: the first value & 0xffff calls unanswered, then value >> 16 sign-extended;
         return earlier < (override[1] & 0xffff) ? h : (u32)(s32)(s16)(override[1] >> 16);
+    if (override[0] == 5)                               //  5: call j unanswered when bit j of the value is set, else 0: fncmp.fail_mask())
+        return earlier < 32 && (override[1] >> earlier & 1) ? h : 0;
     return override[0] == 2 && override[1] < n ? stack[1 + override[1]] : override[0] ? override[1] : h;
 }
 
@@ -618,6 +635,11 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x00702800, 2},   // a theme's (Table73f8a8_At, BalanceFile_GetValues)
                                    {0x00702250, 10},   // the texture surface B's virtual base (its thunks; slot 1 FreePixels' the destructor calls)
                                    {0x00705920, 4},   // the GUI rectangle (GuiRect_Contains, _Centre, _Offset, _Adjust)
+                                   {0x0070a260, 1},   // the sound channel's stack functor (SoundChannelFn70a260_Run; SoundCmd700b6c_Run's)
+                                   {0x007118e0, 6},   // the MP2 buffer decoder (Mp2BufferDecoder_DeletingDtor, _Open, Mp2Decoder_Close, ...)
+                                   {0x0070af00, 6},   // the MP2 stream decoder (Mp2StreamDecoder_DeletingDtor, Mp2BufferDecoder_Open, ...)
+                                   {0x0070adb8, 2},   // the voice codec's bit readers over memory (VoiceBits_Skip, _Read)
+                                   {0x0070ae28, 2},   // and over a refilled buffer (VoiceBitsBuffered_Skip, _Read)
                                    {0x00703630, 4},   // the TGA reader (Begin, ReadRow, RowBytes, RowReader_CopyRow)
                                    {0x006fefa8, 4},   // the TGA codec (slot 0 the game's: no hook), GetInfo, Load, IsTga
                                    {0x007035e0, 9},   // the image loaders' file stream,
@@ -884,6 +906,7 @@ int main(int argc, char **argv) {
     AdvisorScore_SetEnv(&kAdvisorScoreEnv);
     ObjModel_SetEnv(&kObjModelEnv);
     SharedGlobals_SetEnv(&kSharedGlobalsEnv);
+    ReleaseList_SetEnv(&kReleaseListEnv);
     GlyphRender_SetEnv(&kGlyphRenderEnv);   // (tests/fncmp/glyphrender.py hooks 0x67a7d0 with fncmp._cdecl_log)
     PtrList_SetEnv(&kPtrListEnv);
     GameHeap_SetEnv(&kGameHeapEnv);
@@ -1083,10 +1106,6 @@ int main(int argc, char **argv) {
         (uintptr_t)(kStubs + 0xb000 + 0x400 * 6 + 0x20 * 30));
     pointer.endThread = reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)(kStubs + 0xb000 + 0x400 * 1 + 0x20 * 31));
     AsyncPointer_SetEnv(&pointer);
-    // The fixed-point MP2 synthesis's transform (LbMpeg_MmxTransform, 0x6d62c0, not ported): stub_mp2_transform, as tests/fncmp/mp2synth.py
-    // and mp2layer2.py hook it with fncmp._mp2_transform.
-    static const Mp2SynthEnv mp2Synth = {&stub_mp2_transform};
-    Mp2Synth_SetEnv(&mp2Synth);
     // The game cursors' file loaders (.ani / .cur and .tga) the cdecl recorders k 28 and 29 (one argument), as tests/fncmp/cursor.py hooks
     // 0x4895b0 and 0x489670 (fncmp.recorder(k, 1, cdecl=True)).
     static GameCursorsEnv gameCursors = *GameCursors_GetEnv();

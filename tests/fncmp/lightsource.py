@@ -78,7 +78,7 @@ def case(r):
     if op == 'Scaled':   # Colour's part from {object, colour}; a scale about 0..1, beyond, huge or not a number
         d = r.choice([0, 8, 0x20, 0x40])
         obj = put(bytearray(r.bytes(0xa0)), 0, 'I', TABLES)
-        nan = lambda: r.choice([0x7fc00000, 0xffc00000, 0x7fc00000, 0xffc00000,   # (ties: only the sign differs, the operand order shows)
+        nan = lambda: r.choice([0x7fc00000, 0xffc00000, 0x7fc00000, 0xffc00000,   # (ties: only the sign differs, the NaN rule shows)
                                 r.choice([0x7fc00000, 0x7f800000, 0xff800000]) | r.getrandbits(22) | 1])  # noqa: E731  (quiet or signalling, either sign)
         chans = [fb(r.choice([0.0, 1.0, 0.5, r.random(), r.random(), r.uniform(-1, 2), 1e10, -1e10, 1e-30, float('nan')])) if r.random() < 0.8 else
                  nan() if r.random() < 0.5 else r.getrandbits(32) for _ in range(3)]

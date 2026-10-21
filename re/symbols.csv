@@ -219,7 +219,7 @@ address,name,kind,confidence,notes
 0x004d0f90,Challenge_Serialize,function,high,reimplemented (src/game/world/challenges); a challenge's 15 fields
 0x006c58f0,SoundBank_OpenSdt,function,medium,"reimplemented (src/game/core/soundbank); thiscall (opener, path, hdFirst), pops 0xc, this unused: appends HD.sdt / HW.sdt to the path and opens it through the opener's slot 1; on failure the path set back and given the other suffix (not opened)"
 0x006c5a00,SoundBank_Open,function,low,calls SoundBank_OpenSdt and returns 0 / -1
-0x006d62c0,LbMpeg_MmxTransform,function,low,"MMX int16 transform over 8 qwords using the Q14 cosine table in section lbmpeg_d (0xfc0000); likely MPEG decoder matrixing"
+0x006d62c0,LbMpeg_MmxTransform,function,low,reimplemented (src/game/core/mp2synth); the fixed-point MP2 DCT (MMX): 16 sums and 16 differences of mirrored halfwords times two Q14 tables
 0x004e2c10,CircBufU32_30_Serialize,function,high,"reimplemented (src/game/core/circbuf); ring buffer of 30 u32 (mTemp, mData[30], mCurrentEntry, mNumEntries, mWrappedAround); 6 per Object; the entries while i < mNumEntries (unbounded, sic)"
 0x00516380,World_Tick,function,medium,"increments the tick counter at +0x1da70c and calls Thing_Update for every live thing (skips things whose byte +3 is set)"
 0x0050b360,Thing_Update,function,high,per-tick dispatch on Thing.model (byte +2); most models call an Update and a PostUpdate method
@@ -2924,6 +2924,11 @@ address,name,kind,confidence,notes
 0x004d3860,ChunkFile_ReadStream,function,low,"reimplemented (src/game/files/chunkfile); thiscall (stream, name), pops 8: the stream read whole into a GlobalAlloc block; the magic +0x10 checked; each chunk from +0x24 (tag, length, data) offered to the handlers on the list +4 until ""END "" or the end"
 0x0041cff0,Path_StripBase,function,low,"reimplemented (src/game/files/vfs); cdecl (path, base, out); the path taken relative to a base folder (an archive's pattern dropped), leading backslashes dropped; 1 when under it, else out empty and 0"
 0x0067850c,RefPack_DecodeIf,function,low,"reimplemented (src/game/files/refpack); cdecl (src, dst, decode): the video library's RefPack decoder (hand-written assembly): src decoded into dst when src is not null and decode is nonzero (EAX restored by its POPAD: no result)"
+0x006d4d10,SubStream_Ctor,function,low,"reimplemented (src/game/files/substream); thiscall (stream), pops 4: a window at 0 on a shared copy of the stream, its semaphore created; vtable 0x70ad50"
+0x006d4d80,SubStream_CtorAt,function,low,"reimplemented (src/game/files/substream); thiscall (stream, start), pops 8: as SubStream_Ctor, the window at start"
+0x006d4df0,SubStream_Read,function,low,"reimplemented (src/game/files/substream); thiscall (buffer, count), pops 8, slot 1: under the semaphore, seek to the position unless the stream is there, read, the position advanced; returns it"
+0x006d4e90,SubStream_Seek,function,low,"reimplemented (src/game/files/substream); thiscall (offset), pops 4, slot 2: the stream sought to start + offset, the position from its answer; returns the answer"
+0x006d4ec0,SubStream_Rewind,function,low,reimplemented (src/game/files/substream); thiscall: the position 0 and the stream sought to the start; returns its answer
 0x005c9040,Class70295c_Ctor,function,high,"reimplemented (src/game/core/vdtor); Init_5d36c0, vtable 0x70295c and four zeroed dwords"
 0x005d03b0,Obj_SwapPair,function,high,reimplemented (src/game/core/stdlist); the dwords at +4 and +8 swapped with another object's
 0x005dd3d0,Obj_ChooseVector,function,high,reimplemented (src/game/frontend/viewcontrols); the vector at +0x10 taken from one of two others
@@ -4042,6 +4047,7 @@ address,name,kind,confidence,notes
 0x0056b210,PtrArray_ReleaseAll,function,low,"reimplemented (src/game/core/ptrlist); thiscall: leaves the renderer's tag 0x60 list (bit 0 of +0), releases and frees the images at +0xc, frees the frames at +8 and deletes the object at +4 through its virtual base; returns 1 (name unconfirmed)"
 0x0056b0c0,PtrArray_Init,function,low,"reimplemented (src/game/core/ptrlist); thiscall (frames, images), pops 8: the sprite set at +4, its tracked array of frames at +8, an image block at +0xc, the counts at +0x10 / +0x14; errors pushed, everything released on a failure"
 0x005f42f0,ListRemove20080_5f42f0,function,low,"reimplemented (src/game/core/ptrlist); thiscall (value, pops 4); removes the first node with a value from the linked list at +0x20080 (unlinks it, counts it off, frees it); the park map's (0xf86db8) vtable 0x703078 slot 1 (new in the listing)"
+0x006c49b0,PtrList_InsertCopyByKey,function,low,reimplemented (src/game/core/ptrlist); inserts a copy of a 16-byte record into a pointer list before the first node whose float key at +0xc is below its own
 0x005f4400,Class703088_ScalarDtor,function,high,reimplemented (src/game/core/vdel); scalar deleting destructor leaving the global list of its kind
 0x00618110,Class7037b8_ScalarDtor,function,high,reimplemented (src/game/core/vdel); scalar deleting destructor of the 0x7037b8 class
 0x0051af00,ListScalarDelete700aa0_51af00,function,low,"reimplemented (src/game/core/vdel); a linked list scalar deleting destructor: sets the vtable pointer 0x700aa0, frees every node and, when bit 0 of the flags is set, the list"
@@ -4371,6 +4377,7 @@ address,name,kind,confidence,notes
 0x006b58d0,SoundCmd700ba4_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700ba4, thiscall (out, target), pops 8: SoundMixer_SetVoicePending on target's mixer (out, the id at +8, the value at +4); returns out"
 0x006b5930,SoundCmd700bac_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700bac, thiscall (out, target), pops 8: SoundObject_SendVoice (out, the id at +4, the value at +8); returns out"
 0x006b5a90,SoundCmd700bb8_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700bb8, thiscall (out, target), pops 8: SoundObject_VoiceInfo (out, the id at +8, the result pointer at +4); returns out"
+0x006b55c0,SoundCmd700b6c_Run,function,low,"reimplemented (src/game/core/soundcmd); the command 0x700b6c's run: the channel functor 0x70a260 applied to the target's channel, then its mixer's update"
 0x006b5ab0,SoundManager_Dtor,function,low,reimplemented (src/game/core/soundmanager); thiscall: vtable reset to 0x70a288; the engine at +4 (if any) destroyed through its slot 0 (1) and +4 cleared
 0x006b5ad0,SoundManager_Call1,function,low,"reimplemented (src/game/core/soundmanager); slot 4, thiscall (out, a), pops 8: the engine's slot 1 (out, a); returns out"
 0x006b5af0,SoundManager_Release,function,low,"reimplemented (src/game/core/soundmanager); slot 0, thiscall (out), pops 4: the manager (unless null) destroyed through its slot 3 (1); *out = 0"
@@ -4413,15 +4420,33 @@ address,name,kind,confidence,notes
 0x006b64b0,SoundMixer_SetVoiceParams,function,low,"reimplemented (src/game/core/soundmixer); thiscall (out, id, params), pops 0xc: the voice for the id gets a parameter block (SoundVoice_EnsureParams), the 16 bytes at params at its +8, flag 0x1000; *out 0 / -1; returns out"
 0x006b6510,SoundMixer_SetVoicePending,function,low,"reimplemented (src/game/core/soundmixer); thiscall (out, id, value), pops 0xc: SoundVoice_SetPending (out, value) on the voice for the id, else *out = -1; returns out"
 0x006b65a0,SoundMixer_SendVoice,function,low,"reimplemented (src/game/core/soundmixer); thiscall (out, id, value), pops 0xc: the voice for the id's slot 0xc (value), *out = 0, else *out = -1; returns out"
+0x006b62b0,SoundMixer_Update,function,low,"reimplemented (src/game/core/soundmixer); the mixer worker's step: retires ended voices, stops or culls the rest, keeps the audible loudest and updates them"
 0x006b8b40,SoundChannel_Apply,function,low,"reimplemented (src/game/core/soundchannel); thiscall (out, functor), pops 8: the functor's slot 0 (out, channel); returns out"
 0x006b7d70,SoundChannel_GetSettings,function,low,"reimplemented (src/game/core/soundchannel); thiscall (out, settings), pops 8: fills a settings record from the channel per its asked-for flags (+4, +8): the info at +0x14, the source at +0x18 (slots 0x13, 3), the EAX buffer at +0x20 (EaxBuffer_QueryAll), [0xfb2058]; the filled flags at +0x4c; *out = 0; returns out"
+0x006b5e40,SoundChannelFn70a260_Run,function,low,"reimplemented (src/game/core/soundchannel); the stack functor 0x70a260's run on a channel: its source's slot 1, then the out zeroed"
 0x006b85f0,SoundObject_Broadcast,function,low,"reimplemented (src/game/core/soundobject); thiscall (out), pops 4: the mixer's active voices run (ForEachActive 0), then the channel's slot 4 with a stack functor 0x70a5b0; *out = -1 without a channel; returns out"
 0x006b8640,SoundObject_BroadcastValue,function,low,"reimplemented (src/game/core/soundobject); thiscall (out, value), pops 8: with a channel flagged 0x400 the mixer's ForEachActive (value), else SoundObject_Broadcast; *out = 0; returns out"
 0x006b8b00,SoundObject_VoiceInfo,function,low,"reimplemented (src/game/core/soundobject); thiscall (out, id, result), pops 0xc: the mixer's voice for the id; its +0xc's +8 into *result and *out = 0, else *out = -1; returns out"
 0x006b8930,SoundObject_SendVoice,function,low,"reimplemented (src/game/core/soundobject); thiscall (out, id, value), pops 0xc: *out = -1 for id 0; with a channel flagged 0x400 the mixer's SoundMixer_SendVoice, else the object's own slot 6 (out, id); returns out"
 0x006b7150,SoundVoice_EnsureParams,function,low,"reimplemented (src/game/core/soundvoice); thiscall: with no block at +0x4c, a 0x20-byte one (Mem_Alloc; the byte and +4-+0x18 cleared) stored there, or 0 when the allocation fails"
 0x006bc900,SoundVoice_SetPending,function,low,"reimplemented (src/game/core/soundvoice); thiscall (out, value), pops 8: with a sound at +0x24, a stack record (SetThenFlag28_14 value) handed to the sound system [0xfb1f24]'s slot 4 in a functor 0x70a850; else the value's low word at +0x48, flag 0x8000, *out = -1; returns out"
+0x006bbf00,SoundVoice_ApplyVariation,function,low,"reimplemented (src/game/core/soundvoice); copies the current variation's two parameter words' low bytes into the voice's parameter block (creating it), or clears them"
+0x006bc650,SoundVoice_Radius,function,low,"reimplemented (src/game/core/soundvoice); the voice's audible radius: the sound system's scale times its own, or the current variation's, as a float in st0"
+0x006bc680,SoundVoice_PickSample,function,low,"reimplemented (src/game/core/soundvoice); picks a sample of the current variation by the game's random number against rising thresholds, avoiding a repeat"
+0x006bc760,SoundVoice_CategoryEnabled,function,low,"reimplemented (src/game/core/soundvoice); whether the voice's categories are all enabled in the sound system; if not, stops and forgets its sound"
+0x006bc810,SoundVoice_PickVariation,function,low,"reimplemented (src/game/core/soundvoice); picks a variation of the voice's definition by the game's random number against the weights' running sum, avoiding a repeat"
+0x006bca10,SoundVoice_UpdateAudible,function,low,"reimplemented (src/game/core/soundvoice); culls the voice when its squared distance (slot 7) is past its squared radius, else starts it (slot 8)"
+0x006bca70,SoundVoice_Cull,function,low,reimplemented (src/game/core/soundvoice); marks the voice culled and stops its sound when playing
+0x006bcab0,SoundVoice_Command,function,low,"reimplemented (src/game/core/soundvoice); hands a command to the sound system for the voice's sound, then notes its kind (ended, started, resumed) in the voice"
+0x006bd5f0,SoundVoice_FollowListener,function,low,"reimplemented (src/game/core/soundvoice); puts the voice at the listener's position kept within its parameter box, and sends the position to the sound system when playing"
+0x006bcb80,SoundVoice_SendByte44,function,low,"reimplemented (src/game/core/soundvoice); a sound voice's byte +0x44 sent to the sound system in a record (100 as a cleared value), refused when the system marks the record"
+0x006be450,SoundVoice_PickBranch,function,low,"reimplemented (src/game/core/soundvoice); thiscall (value), pops 4: the switch voice's branch whose byte range holds the value, picked at random by weight; none: the parameter byte 0x7f, flag 0x40, 0"
+0x006be5e0,SoundVoice_SwitchVariation,function,low,"reimplemented (src/game/core/soundvoice); thiscall (unused), pops 4, slot 14 of 0x70a498: PickBranch by the parameter block's byte +4, then ApplyVariation"
+0x006be6d0,SoundVoice_NextVariation,function,low,"reimplemented (src/game/core/soundvoice); thiscall (unused), pops 4, slot 14 of 0x70a440: the next variation, wrapping with flag 4, else 0 past the end"
+0x006be660,SwitchVoice_Ctor,function,low,"reimplemented (src/game/core/soundvoice); thiscall: Class70a7e0_Ctor, vtable 0x70a498"
+0x006be730,SequenceVoice_Ctor,function,low,"reimplemented (src/game/core/soundvoice); thiscall: Class70a7e0_Ctor, vtable 0x70a440"
 0x006c4760,EaxBuffer_QueryAll,function,low,"reimplemented (src/game/core/soundeax); thiscall (out, unused), pops 8: IKsPropertySet::Get of the EAX 2.0 buffer properties (id 1, 0x38 bytes) into a stack block that is also the size out, dropped; *out = 0 on success, else -1; returns out"
+0x006d6cf0,EaxListener_SetAll,function,low,reimplemented (src/game/core/soundeax); an object's buffer (its slot 4 for a key) asked for IKsPropertySet and handed all the EAX 2.0 listener properties
 0x006bd7a0,SfxVariation_SampleCount,function,low,"reimplemented (src/game/core/soundcategory); cdecl (variation): its sample count, the low word of its first dword"
 0x006c0550,SfxMap_MarkSimpleSound,function,low,"reimplemented (src/game/core/soundcategory); thiscall (sound): flagged 4 and 2, one variation of one sample, no links: flagged 8 instead of 4"
 0x006c06e0,SfxMap_FixVariation,function,low,"reimplemented (src/game/core/soundcategory); thiscall (data, variation): samples and links placed, sample banks remapped through deque C and listed on the category's record"
@@ -4459,6 +4484,100 @@ address,name,kind,confidence,notes
 0x0059f780,AdvisorScoring_StaffHigh6,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: entry +0x14 above 0, kind 6 count above +0x468, average above +0x46c: +0x470, else 0 (name unconfirmed)"
 0x0059f7f0,AdvisorScoring_StaffHigh4,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: entry +0x10 above 0, kind 4 count above +0x474, average above +0x478: +0x47c, else 0 (name unconfirmed)"
 0x00418da0,ParkInfo_Serialize,function,low,"reimplemented (src/game/core/parkinfo); thiscall (stream, save, version, unused), pops 0x10: the save's park information (strings, three dwords, the author's name and e-mail, the description, the publishing date) written or read field by field (name unconfirmed)"
+0x006cc7b0,Mp2Decoder_ParseHeader,function,low,"reimplemented (src/game/core/mp2frame); parses an MPEG audio frame header into the decoder's fields, rate, bitrate and frame length; -1 without sync or bitrate"
+0x006cca00,Mp2StreamDecoder_ReadFrame,function,low,"reimplemented (src/game/core/mp2frame); stream decoder slot 4: reads and parses the header, then the frame into +0x247c"
+0x006ccac0,Mp2StreamDecoder_ReadHeader,function,low,reimplemented (src/game/core/mp2frame); stream decoder slot 5: reads and parses a header
+0x006cca60,Mp2BufferDecoder_NextFrame,function,low,reimplemented (src/game/core/mp2frame); buffer decoder slot 4: parses the header at the next frame's bit position and moves past it
+0x006ccaf0,Mp2BufferDecoder_ReadHeader,function,low,reimplemented (src/game/core/mp2frame); buffer decoder slot 5: parses the buffer's first dword
+0x006cc740,Mp2Decoder_ClearBuffers,function,low,"reimplemented (src/game/core/mp2decoder); zeroes the synthesis buffers from +4 (0x240 dwords fixed point, else 0x480)"
+0x006ccb10,Mp2Decoder_SetupOutput,function,low,"reimplemented (src/game/core/mp2decoder); from the parsed header: granules, frame bytes and rest, samples a frame, ring position 1"
+0x006d1980,Mp2_MulDiv,function,low,"reimplemented (src/game/core/mp2decoder); cdecl a * b / c with the 64-bit product (imul, idiv)"
+0x006cc780,Mp2StreamDecoder_Seek,function,low,"reimplemented (src/game/core/mp2decoder); stream decoder slot 3: the stream's seek, bit position 0"
+0x006d1a80,Mp2Decoder_Close,function,low,reimplemented (src/game/core/mp2decoder); slot 2: clears the open flag (Zero_5d60c0)
+0x006d18e0,Mp2BufferDecoder_Open,function,low,"reimplemented (src/game/core/mp2decoder); opens over a buffer: header, setup, rewind, frame and sample counts"
+0x006d1990,Mp2StreamDecoder_Open,function,low,"reimplemented (src/game/core/mp2decoder); opens over a stream: header, setup, rewind, counts, seek to 0"
+0x006c9210,Mp2Decoder_Dtor,function,low,"reimplemented (src/game/core/mp2decoder); the decoder's destructor: the buffer decoder's vtable, closed if open"
+0x006c9230,Mp2BufferDecoder_DeletingDtor,function,low,reimplemented (src/game/core/mp2decoder); the buffer decoder's deleting destructor (its pool)
+0x006c8a20,Mp2StreamDecoder_DeletingDtor,function,low,reimplemented (src/game/core/mp2decoder); the stream decoder's deleting destructor (its pool)
+0x006c8f00,Mp2BufferPool_Init,function,low,reimplemented (src/game/core/mp2pool); the buffer decoders' pool: its lock allocated and initialised
+0x006c8f30,Mp2BufferPool_Shutdown,function,low,"reimplemented (src/game/core/mp2pool); the buffer decoders' pool purged, its lock deleted and freed"
+0x006c8f60,Mp2BufferPool_Purge,function,low,"reimplemented (src/game/core/mp2pool); the buffer decoders' pool: every free block freed, under the lock"
+0x006c8fb0,Mp2BufferPool_New,function,low,reimplemented (src/game/core/mp2pool); the buffer decoder's operator new: a pooled block for its size
+0x006c9030,Mp2BufferPool_Delete,function,low,reimplemented (src/game/core/mp2pool); the buffer decoder's operator delete: its size's blocks back to the pool
+0x006c9090,Mp2StreamPool_Init,function,low,reimplemented (src/game/core/mp2pool); the stream decoders' pool: its lock allocated and initialised
+0x006c90c0,Mp2StreamPool_Shutdown,function,low,"reimplemented (src/game/core/mp2pool); the stream decoders' pool purged, its lock deleted and freed"
+0x006c90f0,Mp2StreamPool_Purge,function,low,"reimplemented (src/game/core/mp2pool); the stream decoders' pool: every free block freed, under the lock"
+0x006c9140,Mp2StreamPool_New,function,low,reimplemented (src/game/core/mp2pool); the stream decoder's operator new: a pooled block for its size
+0x006c91c0,Mp2StreamPool_Delete,function,low,reimplemented (src/game/core/mp2pool); the stream decoder's operator delete: its size's blocks back to the pool
+0x006c84e0,Mp2BufferSample_Open,function,low,"reimplemented (src/game/core/mp2sample); the buffered MP2 sample's open: its decoder from the pool, opened over the data, the length and rate checked"
+0x006c88c0,Mp2StreamSample_Open,function,low,"reimplemented (src/game/core/mp2sample); the streamed MP2 sample's open: its decoder from the pool, opened over the stream, the length and rate checked"
+0x006d3f80,SfMan_PackMsg,function,low,"reimplemented (src/game/core/sfman); the SoundFont synthesiser's short MIDI message on channel 2 (stdcall status, data1, data2)"
+0x006d4530,SfMan_UnloadBank,function,low,"reimplemented (src/game/core/sfman); the SoundFont API's slot 14 (unload bank) on the device with the pair {1, 0}: 1 when it answers 0"
+0x006d4570,SfMan_NotesOff,function,low,"reimplemented (src/game/core/sfman); all notes off on the SoundFont MIDI out device, midiOutShortMsg's answer"
+0x006d45a0,SfMan_Send,function,low,"reimplemented (src/game/core/sfman); bank 1, the program, then a note or controller message by flags on the SoundFont MIDI out device, resent after all notes off when it fails"
+0x006d3fb0,SfMan_Sysex,function,low,"reimplemented (src/game/core/sfman); Creative's system-exclusive message by type (0, 2, 4, 0x7f) through midiOutPrepareHeader and midiOutLongMsg"
+0x006d4240,SfMan_OpenOut,function,low,"reimplemented (src/game/core/sfman); the first ""SoundFont"" MIDI out device that opens, then the system-exclusive message 0x7f through it"
+0x006d4340,SfMan_GetName,function,low,"reimplemented (src/game/core/sfman); a preset's name from the SoundFont API's slot 16 into a stack buffer, handed to the sink's slot 5"
+0x006d43c0,SfMan_CountPresets,function,low,reimplemented (src/game/core/sfman); the SoundFont bank's presets counted at +0x18 until a name stays the string at 0x786de4 (up to 0x80)
+0x006d44a0,SfMan_LoadBank,function,low,"reimplemented (src/game/core/sfman); the SoundFont API's bank load (slot 11) of a path, then the presets counted"
+0x006d3bb0,SfMan_Dtor,function,low,reimplemented (src/game/core/sfman); the SoundFont synthesiser's destructor (a jump to its close)
+0x006d3bc0,SfMan_Open,function,low,"reimplemented (src/game/core/sfman); SFMAN32.DLL loaded, its SFManager export asked for the API table, the MIDI out device opened and the best SoundFont device selected"
+0x006d3c90,SfMan_SelectDevice,function,low,"reimplemented (src/game/core/sfman); the SoundFont devices scored by their capabilities and free memory, the best that opens selected, its version sent as a system-exclusive message"
+0x006d3f20,SfMan_Close,function,low,"reimplemented (src/game/core/sfman); all notes off, the bank unloaded, the MIDI out handle and the device closed, the library freed"
+0x006d4ee0,VoiceBits_Read,function,low,"reimplemented (src/game/core/voicecodec); the voice codec's bit read over memory: the low n bits through the mask table, a byte loaded when fewer than 8 are left"
+0x006d4fa0,VoiceBits_Skip,function,low,reimplemented (src/game/core/voicecodec); the voice codec's bit skip over memory
+0x006d4f30,VoiceBitsBuffered_Read,function,low,reimplemented (src/game/core/voicecodec); the voice codec's bit read over a 0x2000-byte buffer refilled through its stream
+0x006d4fe0,VoiceBitsBuffered_Skip,function,low,reimplemented (src/game/core/voicecodec); the voice codec's bit skip over the refilled buffer
+0x006d5200,VoiceCodec_InitChannel,function,low,"reimplemented (src/game/core/voicecodec); a voice codec channel's first value, scale and its powers of the factor, the filters' memory cleared"
+0x006d5040,VoiceCodec_Excitation,function,low,"reimplemented (src/game/core/voicecodec); a voice codec subframe's excitation: two-bit codes, or a state machine's values, zero runs and escapes"
+0x006d5260,VoiceCodec_ReadHeader,function,low,"reimplemented (src/game/core/voicecodec); a voice codec frame header from memory: the stereo and one more bit, the channels set up by shift, level and decay"
+0x006d5350,VoiceCodec_ReadHeaderBuffered,function,low,"reimplemented (src/game/core/voicecodec); a voice codec frame header from the reader's buffer, refilled first"
+0x006d61c0,VoiceCodec_Impulse,function,low,reimplemented (src/game/core/voicecodec); the voice codec's synthesis filter terms from its 12 coefficients: an impulse through their lattice
+0x006d57e0,VoiceCodec_Synthesize,function,low,reimplemented (src/game/core/voicecodec); the voice codec's synthesis filter over blocks of 12 samples (its 12-sample history)
+0x006d5450,VoiceCodec_DecodeChannel,function,low,"reimplemented (src/game/core/voicecodec); the voice codec's frame of one channel: coefficient steps, four subframes of excitation and long-term prediction, then the synthesis"
+0x006d6290,VoiceCodec_DecodeFrame,function,low,"reimplemented (src/game/core/voicecodec); the voice codec's frame: its channel, and the second when stereo"
+0x006d7370,ReleaseList_Dtor,function,low,"reimplemented (src/game/core/releaselist); the release list's destructor: its nodes popped and freed, the lock deleted, the base list's destructor"
+0x006d7420,ReleaseList_BaseDtor,function,low,"reimplemented (src/game/core/releaselist); the base list's destructor: the chain freed, all cleared"
+0x006d7460,ReleaseList_Get,function,low,"reimplemented (src/game/core/releaselist); the release list's instance, made first (its destructor registered with atexit)"
+0x006d74a0,ReleaseList_AtExit,function,low,reimplemented (src/game/core/releaselist); the release list's destructor on its instance
+0x006d74b0,ReleaseList_Ctor,function,low,"reimplemented (src/game/core/releaselist); an empty release list, its lock initialised"
+0x006d7500,ReleaseList_BaseDeletingDtor,function,low,"reimplemented (src/game/core/releaselist); the base list's destructor, then the list freed with flags bit 0"
+0x006d7520,ReleaseList_Push,function,low,"reimplemented (src/game/core/releaselist); under the lock, a node of a value pushed at the head of the release list"
+0x006d6dd0,SoundSlot_Init,function,low,reimplemented (src/game/core/soundslot); a sound object's slot cleared (all but +0x10 and +0x20)
+0x006d6df0,SoundSlot_Call7,function,low,"reimplemented (src/game/core/soundslot); the slot's COM object's slot 7 (a value), 0 without one"
+0x006d6e10,SoundSlot_Call5,function,low,"reimplemented (src/game/core/soundslot); the slot's COM object's slot 5 (a value) into an out, -1 without one"
+0x006d6e40,SoundSlot_Set,function,low,"reimplemented (src/game/core/soundslot); the slot's object replaced, the old one stopped and handed to the release list"
+0x006d6e70,SoundSlot_Call59,function,low,"reimplemented (src/game/core/soundslot); the slot's COM object's slot 59 (two values) into an out, -1 without one"
+0x006d6eb0,SoundSlot_IsSet,function,low,reimplemented (src/game/core/soundslot); whether the slot has its COM object
+0x006d6ec0,SoundSlot_Restart,function,low,"reimplemented (src/game/core/soundslot); thiscall (out), pops 4: with an object, the stored settings replayed by their flags (+0x24: 4 distances, 2 position, 1 pitch, 8 gain, 0x20 +0x28), then the object's slot 13 (1) into *out; -1 without one"
+0x006d7060,SoundSlotGuard_Dtor,function,low,"reimplemented (src/game/core/soundslot); a guard's destructor: when +4 is set, the sound system's ([0xfb2724]) slot 10 (&answer, +8)"
+0x006d7080,SoundSlot_Free,function,low,"reimplemented (src/game/core/soundslot); thiscall (out), pops 4: with an object, its slot 14 and the object pushed on the release list, +0 cleared; *out = 0"
+0x006d7130,SoundSlot_SetPosition,function,low,"reimplemented (src/game/core/soundslot); thiscall (out, vector), pops 8: flag 2; without an object the vector stored at +4 and -1; -1 when a component is a NaN; else the object's slot 20 (x, 0, z; y dropped, sic)"
+0x006d71f0,SoundSlot_SetPitch,function,low,"reimplemented (src/game/core/soundslot); thiscall (out, steps), pops 8: flag 1; without an object steps stored at +0x10 and -1; else the object's slot 42 with the ratio from the tables at 0x784010 (up) / 0x784610 (down), 0 for 0 steps"
+0x006d7260,SoundSlot_SetDistances,function,low,"reimplemented (src/game/core/soundslot); thiscall (out, vector), pops 8: flag 4; without an object the vector stored at +0x14 and -1; else the object's slots 38 (x, y, 1) and 46 (z), *out = 0"
+0x006d72d0,SoundSlot_SetGain,function,low,"reimplemented (src/game/core/soundslot); thiscall (out, gain), pops 8: flag 8; without an object gain stored at +0x20 and -1; else the object's slot 40 with gain / 127 as a float"
+0x006d7330,SoundSlot_Set48,function,low,"reimplemented (src/game/core/soundslot); thiscall (out, value), pops 8: flag 0x20; without an object value stored at +0x28 and -1; else the object's slot 48 (value)"
+0x006d4970,SoundResource_LengthMs,function,low,"reimplemented (src/game/core/sfbank); slot 7 of vtables 0x70ab00 / 0x711ba8, thiscall (a), pops 4: the format from slot 6 into a stack buffer; 0 when its answer < 0, else the length in ms (+4 halved for +0x1b bit 0 and for 16 bits, over the rate +0x18, times 1000; fistp)"
+0x006d4aa0,SfBank_Load,function,low,"reimplemented (src/game/core/sfbank); slot 3 of 0x711ba8, thiscall (out, path, b), pops 0xc: 0 when loaded (+0x18 bit 0); else the synthesiser's SfMan_LoadBank (path, 0), loaded and 0 when it answers >= 0; else -1"
+0x006d4cd0,SfBank_Unload,function,low,"reimplemented (src/game/core/sfbank); slot 4 of 0x711ba8: with a synthesiser (+0x14), its SfMan_UnloadBank, then +0x14 and +0x18 cleared"
+0x006d4b50,SfBank_Play,function,low,"reimplemented (src/game/core/sfbank); thiscall (out, voice), pops 8, slot 15: the voice's program (voice[0] - 1, modulo the count when above it) sent with its controllers by flags, then a note picked by the preset name's ""_1ol"" / ""_2ol"" / ""_3ol""; *out = 0, or -1 without a synthesiser"
+0x006d49f0,SfBank_Ctor,function,low,"reimplemented (src/game/core/sfbank); thiscall (source, synth), pops 8: SoundResource_Ctor, the synthesiser kept, flags 0; vtable 0x711ba8"
+0x006d4a40,SfBank_Dtor,function,low,"reimplemented (src/game/core/sfbank); thiscall: SfBank_Unload, then the sound resource's destructor"
+0x006d4a20,SfBank_DeletingDtor,function,low,"reimplemented (src/game/core/sfbank); thiscall (flags), pops 4, slot 2: the destructor, freed for bit 0"
+0x006c0dc0,SoundNames_Save,function,low,"reimplemented (src/game/core/soundnames); thiscall (out, stream), pops 8: the table at 0xfb1f28 saved: the count (+0x64) twice, that many zero dwords, each deque element's name as a length + 1 byte and that many bytes, then the size less 8 written back at the start; *out = 0"
+0x006d4910,SoundResource_Ctor,function,low,"reimplemented (src/game/core/soundindex); thiscall (source), pops 4: the base class, +8 = +0xc = 0, the source kept and AddRef'd; vtable 0x70ab00"
+0x006c5450,SoundResource_Dtor,function,low,"reimplemented (src/game/core/soundindex); thiscall: the source's Release, back to the base vtable"
+0x006c54e0,SoundResource_DeletingDtor,function,low,"reimplemented (src/game/core/soundindex); thiscall (flags), pops 4: the destructor, freed for bit 0"
+0x006d46e0,SoundStreamIndex_Load,function,low,"reimplemented (src/game/core/soundindex); thiscall (out, a, b), pops 0xc: the offsets' count and block read from the stream's start; on failure Unload and -1"
+0x006d4760,SoundStreamIndex_Unload,function,low,"reimplemented (src/game/core/soundindex); thiscall: the stream closed, the offsets' block freed"
+0x006d4790,SoundStreamIndex_Offset,function,low,"reimplemented (src/game/core/soundindex); thiscall (i), pops 4: the offset i - 1"
+0x006d47a0,SoundStreamIndex_ReadRecord,function,low,"reimplemented (src/game/core/soundindex); thiscall (out, record, i), pops 0xc: a 0x28-byte record read from offset i - 1 into *record; -1 past the count"
+0x006c55c0,SoundStreamIndex_Dtor,function,low,"reimplemented (src/game/core/soundindex); thiscall: Unload, the StreamBase destroyed, then the resource's destructor"
+0x006c55a0,SoundStreamIndex_DeletingDtor,function,low,"reimplemented (src/game/core/soundindex); thiscall (flags), pops 4: the destructor, freed for bit 0"
+0x006d47f0,SoundMapIndex_Map,function,low,"reimplemented (src/game/core/soundindex); thiscall (out, a, b), pops 0xc: the stream mapped, its count kept and a cleared block of as many slots; on failure Unmap and -1"
+0x006d4860,SoundMapIndex_Unmap,function,low,"reimplemented (src/game/core/soundindex); thiscall: the stream closed, the slots' block freed"
+0x006c5520,SoundMapIndex_Dtor,function,low,"reimplemented (src/game/core/soundindex); thiscall: Unmap, the StreamBase destroyed, then the resource's destructor"
+0x006c5500,SoundMapIndex_DeletingDtor,function,low,"reimplemented (src/game/core/soundindex); thiscall (flags), pops 4: the destructor, freed for bit 0"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

@@ -71,6 +71,7 @@ add_library(tpw_game STATIC
     src/game/files/userslots.cpp
     src/game/files/chunkfile.cpp
     src/game/files/vfs.cpp
+    src/game/files/substream.cpp
     src/game/core/regkey.cpp
     src/game/core/stdstring.cpp
     src/game/core/globalmem.cpp
@@ -167,6 +168,17 @@ add_library(tpw_game STATIC
     src/game/core/mp2layer1.cpp
     src/game/core/advisorscoring.cpp
     src/game/core/parkinfo.cpp
+    src/game/core/mp2frame.cpp
+    src/game/core/mp2decoder.cpp
+    src/game/core/mp2pool.cpp
+    src/game/core/mp2sample.cpp
+    src/game/core/sfman.cpp
+    src/game/core/voicecodec.cpp
+    src/game/core/releaselist.cpp
+    src/game/core/soundslot.cpp
+    src/game/core/sfbank.cpp
+    src/game/core/soundnames.cpp
+    src/game/core/soundindex.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp

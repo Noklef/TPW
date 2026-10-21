@@ -435,7 +435,8 @@ VSTUBS = STUBS + 0x1000  # the recorders: slot k (0-31) with n (0-15) stack argu
 LOG = STUBS + 0x100000  # their log (the case maps it, see log_region()): a count, then 12 dwords an entry (k, n, this, up to 7 arguments), room for 80
 LOG_ENTRY = 12
 LOG_ENTRIES = 40  # (the room: 4 + 48 * 40 bytes)
-LOG_RETURNS = 0x800  # from here an override for each slot: a flag and a value (flag 2: the value is an argument's index, see echo(); 3: see fail_after())
+LOG_RETURNS = 0x800  # from here an override for each slot: a flag and a value (flag 2: the value is an argument's index, see echo(); 3: see fail_after();
+#                      4: see set_float_return())
 
 
 def recorder(k, n, com=False, cdecl=False):
@@ -463,12 +464,23 @@ def set_return(log, k, value):
     struct.pack_into('<II', log, LOG_RETURNS + 8 * k, 1, value & 0xffffffff)
 
 
+def set_float_return(log, k, x):
+    """Makes slot k's recorder return the float x in st0 (pushed: a function returning a float), its bits in EAX."""
+    struct.pack_into('<If', log, LOG_RETURNS + 8 * k, 4, x)
+
+
 def fail_after(log, k, n, value=0xffffffff):
     """Makes slot k's recorder answer its first n calls (as counted in the log) as it would without an override, and every later one `value`
     (a 16-bit value sign-extended: INVALID_HANDLE_VALUE by default), so that a loop that runs until a call fails ends: a CreateFileA that opens
     n files."""
     assert 0 <= n < 0x10000 and (value >> 15 == 0 or value | 0x7fff == 0xffffffff)
     struct.pack_into('<II', log, LOG_RETURNS + 8 * k, 3, (value & 0xffff) << 16 | n)
+
+
+def fail_mask(log, k, mask):
+    """Makes slot k's call j (its calls in the log so far) answer as it would without an override (the hash: a failure, for an import that answers
+    0 on success) when bit j of `mask` is set, else 0; calls 32 and later 0. A message that fails after two that succeed."""
+    struct.pack_into('<II', log, LOG_RETURNS + 8 * k, 5, mask & 0xffffffff)
 
 
 def logged_calls(read, kk):
@@ -483,6 +495,8 @@ def answer(flag, value, raw, n, h, earlier):
         return raw[value]
     if flag == 3:
         return h if earlier < (value & 0xffff) else (value >> 16) - (0x10000 if value >> 31 else 0) & 0xffffffff
+    if flag == 5:
+        return h if earlier < 32 and value >> earlier & 1 else 0
     return value if flag else h
 
 
@@ -492,9 +506,15 @@ def echo(log, k, arg):
 
 
 LOG_STRINGS = 0xa00  # from here a mask for each slot: the arguments that are C strings, and out arguments (see strings())
-LOG_FILL = 0xb00  # two fills (+ 0x80 the second): (k | 0x80000000, argument, length), the bytes from + 0x10 (see fill())
-LOG_FILL3 = 0xf80  # a third fill (which=2), past the zlib overrides
-LOG_BYTES = 0xc00  # from here a mask for each slot: BYTE arguments, logged as their low byte (the rest of the pushed register is not the callee's)
+LOG_FILL = 0xb00  # two fills (+ 0x80 the second): (k | 0x80000000, argument, length, offset | records << 8), the bytes from + 0x10 (see fill())
+LOG_FILL2 = 0x1000  # six more fills, 0x80 each (fill(which=2..7): a log region that sets them is that much longer)
+FILLS = 8
+
+
+def _fill_at(which):
+    return LOG + (LOG_FILL + 0x80 * which if which < 2 else LOG_FILL2 + 0x80 * (which - 2))
+LOG_BYTES = 0xc00  # from here a mask for each slot: BYTE arguments, logged as their low byte (the rest of the pushed register is not the callee's);
+# bits 16-31 WORD arguments (bit 16 + i: argument i), logged as their low word
 LOG_BLOBS = 0xd00  # from here two dwords for each slot: an argument + 1 and a dword mask; that argument is logged as a hash of the dwords it selects (see blob())
 LOG_ZLIB = 0xf00  # the zlib stand-ins' overrides: the inits', deflate's, inflate's (a flag and a value each, see zlib_results())
 LOG_SEQ = 0xf40  # a sequenced read: (k | 0x80000000, buffer argument, count argument, done argument + 1, data address, length, cursor, flags) (see seq_read())
@@ -551,21 +571,27 @@ def strings(log, k, mask, out=0):
     struct.pack_into('<I', log, LOG_STRINGS + 4 * (k & 63), mask | out << 16)
 
 
-def fill_at(which):
-    return LOG_FILL3 if which == 2 else LOG_FILL + 0x80 * which
-
-
-def fill(log, k, arg, data, which=0):
-    """Makes slot k's recorder write `data` (at most 0x70 bytes) through its argument `arg` (unless null), as an import fills an out structure; which: 0, 1
-    or 2 (three fills: a key's handle, then a value's type and its data, say)."""
-    at = fill_at(which)
-    struct.pack_into('<3I', log, at, (k & 63) | 0x80000000, arg, len(data))
+def fill(log, k, arg, data, which=0, offset=0, records=1, through=None):
+    """Makes slot k's recorder write `data` (at most 0x70 bytes) through its argument `arg` (unless null) + offset (< 0x100), as an import fills an
+    out structure; which: 0-7 (2-7 lengthen the log region). With records > 1, data is that many records of equal length and the slot's call j (its
+    calls in the log so far) writes record j % records: a device's capabilities, asked for each device in turn. With through (an offset < 0xff),
+    the out structure is the one the pointer at that offset in the argument's structure points to (nothing when it is null): a buffer that a
+    structure argument names."""
+    assert 0 <= which < FILLS and 0 <= offset < 0x100 and 0 < records < 0x100 and len(data) % records == 0 and len(data) <= 0x70
+    assert through is None or 0 <= through < 0xff
+    at = _fill_at(which) - LOG
+    if len(log) < at + 0x80:
+        log.extend(bytearray(at + 0x80 - len(log)))
+    struct.pack_into('<4I', log, at, (k & 63) | 0x80000000, arg, len(data) // records, offset | records << 8 | (0 if through is None else through + 1) << 16)
     log[at + 0x10:at + 0x10 + len(data)] = data
 
 
 def fill_arg(log, k, arg, source, which=0):
     """Makes slot k's recorder write its argument `source` (a dword, as passed) through its argument `arg`: ReadFile's bytes read, all it was asked for."""
-    struct.pack_into('<3I', log, fill_at(which), (k & 63) | 0x80000000, arg, 0x80000000 | source)
+    at = _fill_at(which) - LOG
+    if len(log) < at + 0x80:
+        log.extend(bytearray(at + 0x80 - len(log)))
+    struct.pack_into('<3I', log, at, (k & 63) | 0x80000000, arg, 0x80000000 | source)
 
 
 def blob(log, k, arg, mask):
@@ -651,26 +677,36 @@ def vhash(k, n, this, args):
     return h
 
 
-def _log_args(e, k, raw):
+def _log_args(e, k, raw, kk):
     """A recorder's arguments as driver.cpp's record_call logs them: slot k's fills written through them (fill(), fill_arg()), then each turned into a
-    blob's hash (blob()), a string's hash or 0 for an out argument (strings()), or its low byte (LOG_BYTES)."""
+    blob's hash (blob()), a string's hash or 0 for an out argument (strings()), or its low byte (LOG_BYTES). kk: k as logged (a fill's records)."""
     n = len(raw)
     args = list(raw)
     mask = e.u32(LOG + LOG_STRINGS + 4 * (k & 63))
     low = e.u32(LOG + LOG_BYTES + 4 * (k & 63))
-    fills = [(LOG + fill_at(f),) + struct.unpack('<3I', e.read(LOG + fill_at(f), 12)) for f in range(3)]
+    earlier = logged_calls(e.read, kk)
+    fills = [(_fill_at(f),) + struct.unpack('<4I', e.read(_fill_at(f), 16)) for f in range(FILLS)]
     blob_arg, blob_mask = struct.unpack('<2I', e.read(LOG + LOG_BLOBS + 8 * (k & 63), 8))
     for w in range(4):   # (blob_when(): the mask for this call's argument)
         wk, wa, wv, wm = struct.unpack('<4I', e.read(LOG + LOG_BLOB_WHEN + 16 * w, 16))
         if wk == (k & 63) | 0x80000000 and wa < n and raw[wa] == wv:
             blob_mask = wm
     for i in range(n):
-        for at, fk, fa, fn in fills:
+        for at, fk, fa, fn, how in fills:
             if fk == (k & 63) | 0x80000000 and fa == i and args[i]:
+                base = args[i]
+                if how >> 16 & 0xff:
+                    base = e.u32(args[i] + (how >> 16 & 0xff) - 1)
+                    if not base:
+                        continue
+                to, records = (base + (how & 0xff)) & 0xffffffff, how >> 8 & 0xff
                 if fn & 0x80000000:   # (fill_arg())
-                    e.write(args[i], struct.pack('<I', raw[fn & 0xff] if (fn & 0xff) < n else 0))
+                    e.write(to, struct.pack('<I', raw[fn & 0xff] if (fn & 0xff) < n else 0))
                 else:
-                    e.write(args[i], e.read(at + 0x10, min(fn, 0x70)))
+                    length = min(fn, 0x70)
+                    skip = earlier % records * length if records > 1 else 0
+                    if skip + length <= 0x70:
+                        e.write(to, e.read(at + 0x10 + skip, length))
         if (blob_arg & 0x1f) == i + 1 and args[i]:
             args[i] = blob_bytes_hash(e.read, args[i], blob_arg, blob_mask) if blob_arg & 0x80000000 else blob_hash(e.read, args[i], blob_mask)
         if mask >> i & 1:
@@ -679,6 +715,8 @@ def _log_args(e, k, raw):
             args[i] = 0
         if low >> i & 1:
             args[i] &= 0xff
+        if low >> (16 + i) & 1:
+            args[i] &= 0xffff
     return args
 
 
@@ -698,7 +736,7 @@ def _recorder(k, n, com=False, cdecl=False):
         raw = [e.u32(sp + 4 * i) for i in range(n)]
         this = 0 if com or cdecl else e.r['ECX']
         kk = k | 0x100 if com else k | 0x200 if cdecl else k
-        args = _log_args(e, k, raw)
+        args = _log_args(e, k, raw, kk)
         returns_copied, copied = _seq_read(e, k, raw)
         seeked, cursor = _seq_seek(e, k, raw)
         earlier = logged_calls(e.read, kk)
@@ -709,6 +747,8 @@ def _recorder(k, n, com=False, cdecl=False):
             e.write(LOG, struct.pack('<I', count + 1))
         flag, value = struct.unpack('<2I', e.read(LOG + LOG_RETURNS + 8 * k, 8))
         e.r['EAX'] = copied if returns_copied else cursor if seeked else answer(flag, value, raw, n, vhash(kk, n, this, args), earlier)
+        if flag == 4 and not returns_copied and not seeked:
+            e.st.insert(0, struct.unpack('<f', struct.pack('<I', value))[0])
         if cdecl:  # (the caller pops them)
             return
         if e.tail:  # the return address goes up over the arguments the callee would have popped
@@ -764,7 +804,7 @@ CDECL_LOG4 = STUBS + 0x90  # a callback of four cdecl arguments that logs them (
 def _cdecl_log4(e):  # (driver.cpp stub_cdecl_log4)
     sp = e.r['ESP'] + (4 if e.tail else 0)
     raw = [e.u32(sp + 4 * i) for i in range(4)]
-    args = _log_args(e, 0x3d, raw)
+    args = _log_args(e, 0x3d, raw, 0x13d)
     count = e.u32(LOG)
     if count < LOG_ENTRIES:
         e.write(LOG + 4 + 4 * LOG_ENTRY * count, struct.pack('<%dI' % LOG_ENTRY, 0x13d, 4, 0, *args, *([0] * 5)))
@@ -836,14 +876,6 @@ def _memmove(e):  # cdecl (to, from, n) -> to
     if n:
         e.write(to, e.read(frm, n))
     e.r['EAX'] = to
-
-
-def _mp2_transform(e):  # cdecl (out0, out1, in): the fixed-point MP2 transform's stand-in (driver.cpp stub_mp2_transform)
-    sp = e.r['ESP'] + (4 if e.tail else 0)
-    out0, out1, src = e.u32(sp), e.u32(sp + 4), e.u32(sp + 8)
-    v = e.read(src, 0x40)
-    e.write(out0, v)
-    e.write(out1, b''.join(v[2 * k:2 * k + 2] for k in range(31, -1, -1)))
 
 
 def _throw(name):

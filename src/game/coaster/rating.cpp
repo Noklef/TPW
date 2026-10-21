@@ -38,7 +38,7 @@ bool atMost(double a, double b) { return !(a > b); }
 
 // The x87's arithmetic on its registers (24-bit significands, a wide exponent, as doubles;
 // see x87.h), a being the destination: two NaNs give the one with the larger significand,
-// a on a tie. Only a store to a float rounds (or overflows) again.
+// the positive one on a tie (either order). Only a store to a float rounds (or overflows) again.
 double add(double a, double b) { return X87_Add(a, b); }
 double sub(double a, double b) { return a != a || b != b ? X87_Add(a, b) : X87_Add(a, -b); }
 double mul(double a, double b) { return a != a && b != b ? X87_Add(a, b) : X87_Round(a * b); }

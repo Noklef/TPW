@@ -2,6 +2,7 @@
 # FVT, slot 0 (out, channel)) the channel at CHAN and the out dword at OUT. SoundChannel_GetSettings: a settings record at REC (random
 # flags), the channel's info (+0x14), source (+0x18: a recorder vtable, slot 0x13 answering a byte) and EAX buffer (+0x20: its +4 an
 # IKsPropertySet, a COM recorder whose Get succeeds or not) each null now and then, [0xfb2058] random.
+# The functor 0x70a260's run (0x6b5e40): the channel's source a recorder vtable (slot 1), null now and then (a fault in both).
 # usage: soundchannel.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -10,8 +11,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import LOG, RAM, Bench, Call, fill, log_region, set_return, strings, vtable  # noqa: E402
 
-CALLS = {'apply': 0x6b8b40, 'settings': 0x6b7d70}
-B = Bench([(0x6b8b40, 0x6b8b60), (0x6b7d70, 0x6b7e5b), (0x6c4760, 0x6c47a3)])
+CALLS = {'apply': 0x6b8b40, 'settings': 0x6b7d70, 'fn260': 0x6b5e40}
+B = Bench([(0x6b8b40, 0x6b8b60), (0x6b7d70, 0x6b7e5b), (0x6c4760, 0x6c47a3), (0x6b5e40, 0x6b5e59)])
 CHAN, OUT, FUNCTOR, FVT, REC, INFO, SRC, SVT, EAXB, KSET, KVT = (RAM + 0x100 * i for i in range(11))
 GLOBAL = 0xfb2058
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
@@ -22,6 +23,13 @@ def case(r):
     log = log_region()
     if name == 'settings':
         return settings_case(r, log)
+    if name == 'fn260':
+        set_return(log, 1, r.getrandbits(32))
+        chan = bytearray(r.bytes(0x60))
+        struct.pack_into('<I', chan, 0x18, r.choice([SRC] * 9 + [0]))
+        regions = {CHAN: chan, OUT: r.bytes(4), FUNCTOR: struct.pack('<I', 0x70a260), SRC: struct.pack('<I', SVT) + r.bytes(0xc), SVT: vtable({}),
+                   LOG: log}
+        return Call(CALLS[name], [FUNCTOR, OUT, CHAN], regions, conv='t', ret='a')
     set_return(log, 0, r.getrandbits(32))
     regions = {CHAN: r.bytes(0x60), OUT: r.bytes(4), FUNCTOR: struct.pack('<I', FVT) + r.bytes(8), FVT: vtable({0: 2}), LOG: log}
     return Call(CALLS[name], [r.choice([CHAN, CHAN, 0, r.getrandbits(32)]), OUT, FUNCTOR], regions, conv='t', ret='a')

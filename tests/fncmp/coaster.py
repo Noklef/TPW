@@ -118,7 +118,7 @@ def frame(r, op):
 
 
 def nan_pair(r, buf, offsets, p=0.25):
-    """Two NaNs alike but for the sign, which an add or multiply picks between by operand order."""
+    """Two NaNs alike but for the sign: an add or multiply gives the positive one (a signalling one from memory gives way to the register's)."""
     if r.random() < p:
         for o in r.sample(list(offsets), 2):
             put(buf, o, 'I', r.choice([0x7fc00000, 0xffc00000]))
@@ -1145,7 +1145,7 @@ def bounds(r, op):
     else:
         r.floats(points, range(0, len(points), 4))
     nan_pair(r, points, range(4, 30 * 0x38, 0x38), 0.2)
-    if r.random() < 0.2:  # NaN pads against NaN boxes, for the operand order
+    if r.random() < 0.2:  # NaN pads against NaN boxes, for the NaN rule (see x87.h)
         for o in (0x58, 0x98):
             put(types, o, 'I', r.choice([0x7fc00000, 0xffc00000]))
         for o in range(4, len(points), 0x38):
@@ -1182,7 +1182,7 @@ def segments(r, op):
         r.floats(box, range(0, 0x18, 4))
         r.floats(types, (0x58, 0x98))
     nan_pair(r, points, range(4, 30 * 0x38, 4), 0.2)
-    if r.random() < 0.15:  # NaN pads and ends, for the operand order
+    if r.random() < 0.15:  # NaN pads and ends, for the NaN rule (see x87.h)
         for o in (0x58, 0x98):
             put(types, o, 'I', r.choice([0x7fc00000, 0xffc00000]))
         for o in range(4, len(points), 4):

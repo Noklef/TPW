@@ -75,8 +75,19 @@ X87Reg Mirrored(u32 w, u32 b) {
 // The fixed-point form's (0x6ca580): the window of 16-bit taps (0x70c9e8 for the first half and the even taps, 0x70c5e8 for the mirrored
 // ones, both less twice the ring position; already signed, so every tap is added), its sums kept in 32 bits as the MMX code does them.
 constexpr u32 kWindowFixed = 0x70c9e8, kWindowFixedMirror = 0x70c5e8;
-const Mp2SynthEnv kGameEnv = {reinterpret_cast<void(__cdecl *)(s16 *, s16 *, const s16 *)>((uintptr_t)0x006d62c0)};
+const Mp2SynthEnv kGameEnv = {&LbMpeg_MmxTransform};
 const Mp2SynthEnv *g_env = &kGameEnv;
+
+// The fixed-point transform's two tables of 16 rows of 16 Q14 halfwords (section lbmpeg_d): the sums' rows at 0xfc0200, the differences'
+// at 0xfc0000.
+constexpr u32 kTransformSums = 0xfc0200, kTransformDiffs = 0xfc0000;
+
+// A row times 16 halfwords (pmaddwd, paddd: wrapping in 32 bits), shifted right 14 (psrad), its low halfword.
+s16 TransformRow(u32 row, const s16 *x) {
+    u32 sum = 0;
+    for (u32 j = 0; j < 16; ++j) sum += static_cast<u32>(static_cast<s32>(Get<s16>(row + 2 * j))) * static_cast<u32>(static_cast<s32>(x[j]));
+    return static_cast<s16>(static_cast<s32>(sum) >> 14);
+}
 
 // The 16 taps window[k] * buffer[k] (pmaddwd and paddd: wrapping in 32 bits).
 u32 TapsFixed(u32 w, u32 b) {
@@ -373,6 +384,25 @@ void __fastcall Mp2Decoder_Synth(u8 *decoder_, void *, s16 *out, const float *fr
         w = w - wstep + 8 * bo1;
         b -= bstep;
         for (u32 n = count - 1; n; --n, o += stride, w -= wstep, b -= bstep) Put<s16>(o, Pcm(Mirrored(w, b)));
+    }
+}
+
+void __cdecl LbMpeg_MmxTransform(s16 *out0, s16 *out1, const s16 *in) {
+    s16 sum[16], diff[16];
+    for (u32 j = 0; j < 16; ++j) {
+        const u16 a = static_cast<u16>(in[j]), b = static_cast<u16>(in[31 - j]);
+        sum[j] = static_cast<s16>(static_cast<u16>(a + b));  // paddw / psubw: wrapping
+        diff[j] = static_cast<s16>(static_cast<u16>(a - b));
+    }
+    const u32 o0 = Addr(out0), o1 = Addr(out1);
+    for (u32 k = 0; k < 16; ++k) {
+        const s16 v = TransformRow(kTransformSums + 0x20 * k, sum);
+        if (k <= 8) Put<s16>(o0 + 0x200 - 0x40 * k, v);
+        if (k >= 8) Put<s16>(o1 + 0x40 * (k - 8), v);
+    }
+    for (u32 k = 0; k < 16; ++k) {
+        const s16 v = TransformRow(kTransformDiffs + 0x20 * k, diff);
+        Put<s16>(k < 8 ? o0 + 0x1e0 - 0x40 * k : o1 + 0x20 + 0x40 * (k - 8), v);
     }
 }
 
