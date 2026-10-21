@@ -92,6 +92,22 @@ void __fastcall MoviePlayer_UnpackFields(s32 *out, const u8 *data, u32 count, u3
     }
 }
 
+void __fastcall MoviePlayer_PlaceView(u8 *view, void *) {
+    at<u32>(view, 0x14) = 0;
+    at<u32>(view, 0x18) = 0;
+    u8 *s = settings(view);
+    at<u32>(view, 0xc) = at<u32>(s, 0x64);
+    at<u32>(view, 0x10) = at<u32>(s, 0x60);
+    if (s[4] & 0x40) at<u32>(view, 0xc) <<= 1;
+    if (s[4] & 0x30) at<u32>(view, 0x10) <<= 1;
+    if (s[4] & 4) at<s32>(view, 0x14) = (s32)(at<u32>(view, 4) - at<u32>(view, 0xc)) >> 1;
+    if (s[4] & 8) at<s32>(view, 0x18) = (s32)(at<u32>(view, 8) - at<u32>(view, 0x10)) >> 1;
+    if (s[4] & 1) at<u32>(view, 0x14) += at<u32>(s, 0x68);
+    if (s[4] & 2) at<u32>(view, 0x18) += at<u32>(s, 0x6c);
+    if (s[4] & 0x80) at<u32>(view, 0xc) = at<u32>(s, 0x70);
+    if (s[5] & 1) at<u32>(view, 0x10) = at<u32>(s, 0x74);
+}
+
 void __fastcall MoviePlayer_ExpandBlocks(const u8 *records, u8 *out, s32 count) {
     for (; count > 0; --count, records += 8, out += 0x10) {
         const u32 indices = *reinterpret_cast<const u32 *>(records + 4);

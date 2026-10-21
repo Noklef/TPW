@@ -34,4 +34,10 @@ void __fastcall MoviePlayer_UnpackFields(s32 *out, const u8 *data, u32 count, u3
 // 0x6776c0 (fastcall (records, out; count), pops 4; name unconfirmed): for count above 0 records of 8 bytes (four colours, then 16
 // two-bit indices in a dword), 16 bytes each into out: out[15 - k] the colour of index k (the low bits first).
 void __fastcall MoviePlayer_ExpandBlocks(const u8 *records, u8 *out, s32 count);
+
+// 0x6711a0 (thiscall on the view: +0 the settings, +4 / +8 the surface's width and height, +0xc / +0x10 the picture's, +0x14 / +0x18
+// its place; name unconfirmed): the picture's size from the settings' +0x64 / +0x60, doubled across by the flags' bit 6 and down by bits
+// 4-5; centred by bits 2 / 3 ((surface - picture) / 2, arithmetic), moved by +0x68 / +0x6c with bits 0 / 1; the width +0x70 with bit 7
+// and the height +0x74 with bit 8. The flags are read again for each test.
+void __fastcall MoviePlayer_PlaceView(u8 *view, void *edx);
 }

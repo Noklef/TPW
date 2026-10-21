@@ -5,7 +5,8 @@
 # 0-255 or any: products wrapping), the palette data random. Pixels: the channel bits mostly 4-8 (now and then any) and shifts 0-31
 # (now and then any), the flags random. Unpack: the count 0-40, the field bits 1-32 (now and then 0), the data random. Expand:
 # the count -1-6 (now and then -0x80000000), the records random.
-# usage: movieplayer.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Header,Palette,Size,Pixels,Unpack,Expand)
+# Place: the view's sizes random (small or any), the settings' flags random (each bit about half the time).
+# usage: movieplayer.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Header,Palette,Size,Pixels,Unpack,Expand,Place)
 import os
 import struct
 import sys
@@ -13,9 +14,9 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import RAM, Bench, Call  # noqa: E402
 
-CALLS = {'Header': 0x670860, 'Palette': 0x670930, 'Size': 0x670ab0, 'Pixels': 0x677930, 'Unpack': 0x677640, 'Expand': 0x6776c0}
+CALLS = {'Header': 0x670860, 'Palette': 0x670930, 'Size': 0x670ab0, 'Pixels': 0x677930, 'Unpack': 0x677640, 'Expand': 0x6776c0, 'Place': 0x6711a0}
 B = Bench([(0x670860, 0x67092e), (0x670930, 0x670aa2), (0x670ab0, 0x670ac5), (0x677930, 0x6779dc), (0x677640, 0x6776b8),
-           (0x6776c0, 0x6777ce)])
+           (0x6776c0, 0x6777ce), (0x6711a0, 0x67122f)])
 PLAYER, SETTINGS, DATA = RAM, RAM + 0x1000, RAM + 0x2000
 
 
@@ -41,8 +42,17 @@ def pixels_case(r):
     return Call(CALLS['Pixels'], [PLAYER], {PLAYER: struct.pack('<I', SETTINGS), SETTINGS: bytes(s)}, conv='t', ret='v')
 
 
+def place_case(r):
+    view = struct.pack('<I', SETTINGS) + b''.join(struct.pack('<I', r.choice([r.randrange(0x400), r.getrandbits(32)])) for _ in range(6))
+    s = bytearray(r.bytes(0x80))
+    s[4:8] = struct.pack('<I', r.getrandbits(32))
+    return Call(CALLS['Place'], [PLAYER], {PLAYER: view + r.bytes(8), SETTINGS: bytes(s)}, conv='t', ret='v')
+
+
 def case(r):
     op = r.deal(OPS)
+    if op == 'Place':
+        return place_case(r)
     if op == 'Pixels':
         return pixels_case(r)
     if op == 'Unpack':
@@ -56,7 +66,10 @@ def case(r):
     player[0:4] = struct.pack('<I', SETTINGS)
     player[0x1f4:0x1f8] = struct.pack('<I', r.randrange(9) if r.random() < 0.9 else r.getrandbits(32))
     player[0x1e8:0x1ec] = struct.pack('<I', DATA if r.random() < 0.9 else 0)
-    regions = {PLAYER: bytes(player), SETTINGS: settings(r), DATA - 0x10: r.bytes(0x10) + data(r)}
+    chunk = bytearray(data(r))
+    if op == 'Header' and player[0x1f4] != 1:   # (byte 7 the kind 4 header's flags: any, for Header only)
+        chunk[7] = r.getrandbits(8)
+    regions = {PLAYER: bytes(player), SETTINGS: settings(r), DATA - 0x10: r.bytes(0x10) + bytes(chunk)}
     if op == 'Header':
         return Call(CALLS[op], [PLAYER], regions, conv='t', ret='v')
     return Call(CALLS[op], [PLAYER, DATA], regions, conv='f', ret='v')
