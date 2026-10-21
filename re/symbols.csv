@@ -4379,6 +4379,11 @@ address,name,kind,confidence,notes
 0x006bcab0,SoundVoice_Command,function,low,"reimplemented (src/game/core/soundvoice); hands a command to the sound system for the voice's sound, then notes its kind (ended, started, resumed) in the voice"
 0x006bd5f0,SoundVoice_FollowListener,function,low,"reimplemented (src/game/core/soundvoice); puts the voice at the listener's position kept within its parameter box, and sends the position to the sound system when playing"
 0x006bcb80,SoundVoice_SendByte44,function,low,"reimplemented (src/game/core/soundvoice); a sound voice's byte +0x44 sent to the sound system in a record (100 as a cleared value), refused when the system marks the record"
+0x006be450,SoundVoice_PickBranch,function,low,"reimplemented (src/game/core/soundvoice); thiscall (value), pops 4: the switch voice's branch whose byte range holds the value, picked at random by weight; none: the parameter byte 0x7f, flag 0x40, 0"
+0x006be5e0,SoundVoice_SwitchVariation,function,low,"reimplemented (src/game/core/soundvoice); thiscall (unused), pops 4, slot 14 of 0x70a498: PickBranch by the parameter block's byte +4, then ApplyVariation"
+0x006be6d0,SoundVoice_NextVariation,function,low,"reimplemented (src/game/core/soundvoice); thiscall (unused), pops 4, slot 14 of 0x70a440: the next variation, wrapping with flag 4, else 0 past the end"
+0x006be660,SwitchVoice_Ctor,function,low,"reimplemented (src/game/core/soundvoice); thiscall: Class70a7e0_Ctor, vtable 0x70a498"
+0x006be730,SequenceVoice_Ctor,function,low,"reimplemented (src/game/core/soundvoice); thiscall: Class70a7e0_Ctor, vtable 0x70a440"
 0x006c4760,EaxBuffer_QueryAll,function,low,"reimplemented (src/game/core/soundeax); thiscall (out, unused), pops 8: IKsPropertySet::Get of the EAX 2.0 buffer properties (id 1, 0x38 bytes) into a stack block that is also the size out, dropped; *out = 0 on success, else -1; returns out"
 0x006d6cf0,EaxListener_SetAll,function,low,reimplemented (src/game/core/soundeax); an object's buffer (its slot 4 for a key) asked for IKsPropertySet and handed all the EAX 2.0 listener properties
 0x006bd7a0,SfxVariation_SampleCount,function,low,"reimplemented (src/game/core/soundcategory); cdecl (variation): its sample count, the low word of its first dword"

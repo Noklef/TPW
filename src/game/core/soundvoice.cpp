@@ -268,4 +268,80 @@ void __fastcall SoundVoice_FollowListener(u8 *voice) {
     vcall<void>(system(), 0x10, &out, functor);
 }
 
+u8 __fastcall SoundVoice_PickBranch(u8 *voice, void *, u32 value) {
+    if (!at<u8 *>(voice, 8) && at<u8 *>(voice, 4)) {
+        at<u8 *>(voice, 8) = at<u8 *>(at<u8 *>(voice, 4), 8);
+        if (SfxVariation_SampleCount(at<u8 *>(voice, 8))) return 1;
+    }
+    const u8 *node = at<u8 *>(voice, 8);
+    const u32 count = at<u32>(node, 4);
+    if (!count) {
+        at<u32>(voice, 8) = 0;
+        return 0;
+    }
+    auto within = [value](const u8 *entry) { return entry[6] <= value && entry[7] >= value; };
+    u32 matches = 0, sum = 0;
+    for (const u8 *entry = at<const u8 *>(node, 0x26), *const end = entry + 8 * count; entry != end; entry += 8)
+        if (within(entry)) {
+            ++matches;
+            sum += at<u32>(at<const u8 *>(entry, 0), 0x1e);
+        }
+    if (!matches) {
+        at<u8>(at<u8 *>(voice, 0x4c), 4) = 0x7f;
+        at<u32>(voice, 0x30) |= 0x40;
+        return 0;
+    }
+    const u32 seed = global<u32>(0x00fb1f20) * 0x19660d + 0x3c6ef35f;
+    global<u32>(0x00fb1f20) = seed;
+    const u32 target = (seed >> 13 | seed << 19) % sum;
+    node = at<u8 *>(voice, 8);
+    const u8 *const entries = at<const u8 *>(node, 0x26);
+    u32 run = 0;
+    for (u32 i = 0; i < at<u32>(node, 4); ++i) {
+        const u8 *const entry = entries + 8 * i;
+        if (!within(entry)) continue;
+        run += at<u32>(at<const u8 *>(entry, 0), 0x1e);
+        if (run >= target) {
+            at<u32>(voice, 8) = at<u32>(entry, 0);
+            return 1;
+        }
+    }
+    return 1;
+}
+
+u8 __fastcall SoundVoice_SwitchVariation(u8 *voice, void *, u32) {
+    if (!SoundVoice_PickBranch(voice, nullptr, at<u8>(at<u8 *>(voice, 0x4c), 4))) return 0;
+    SoundVoice_ApplyVariation(voice);
+    return 1;
+}
+
+u8 __fastcall SoundVoice_NextVariation(u8 *voice, void *, u32) {
+    const u8 *const definition = at<u8 *>(voice, 4);
+    if (!definition) return 1;
+    u8 *variation = at<u8 *>(voice, 8);
+    if (!variation) {
+        at<u8 *>(voice, 8) = at<u8 *>(definition, 8);
+        return 1;
+    }
+    variation += 0x2a;
+    at<u8 *>(voice, 8) = variation;
+    const s32 index = static_cast<s32>(variation - at<u8 *>(definition, 8)) / 0x2a;
+    if ((u32)index < at<u32>(definition, 4)) return 1;
+    if (!(voice[0x30] & 4)) return 0;
+    at<u8 *>(voice, 8) = at<u8 *>(definition, 8);
+    return 1;
+}
+
+u8 *__fastcall SwitchVoice_Ctor(u8 *voice) {
+    Class70a7e0_Ctor(voice);
+    at<u32>(voice, 0) = 0x0070a498;
+    return voice;
+}
+
+u8 *__fastcall SequenceVoice_Ctor(u8 *voice) {
+    Class70a7e0_Ctor(voice);
+    at<u32>(voice, 0) = 0x0070a440;
+    return voice;
+}
+
 }  // extern "C"

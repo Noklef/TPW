@@ -5,7 +5,11 @@
 # by its vtable and sound and the record's value bytes (+0x28; +0xc-+0x17 for the listener's record; the record's other set fields fall
 # outside the recorder's 15-byte window), its +0x44-+0x47 category bytes, +0x60 the listener (floats about the box, equal to its bounds
 # now and then). The game's random number any; a command whose slot 0 answers 1-3 or else; timeGetTime a recorder (the clock disabled).
-# The byte +0x44 sent (100 now and then): slot 4 fills the record's +0x18 through the functor (its +8), any bits.
+# The byte +0x44 sent (100 now and then): slot 4 fills the record's +0x18 through the functor (its +8), any bits. The switch voice's
+# branch pick: a node at NODE (its sample count 0 now and then, 0-8 branches at ENTRIES, each a variation in BRANCHES of weight 1 or more
+# and a byte range around small values), the voice's +8 that node or null (the definition DEF2's first variation then the node), the
+# value small, 0xff or any (the parameter block's byte +4 for the switch). The sequence voice's next: +8 null, on any variation up to
+# past the last, or off the stride; flag 4 either way. The constructors run Class70a7e0_Ctor.
 # usage: soundvoice.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -18,13 +22,16 @@ from fncmp import (HEAP, LOG, RAM, Bench, Call, blob_bytes, fb, fill, heap, log_
 # name: (address, returns)
 CALLS = {'ensure': (0x6b7150, 'v'), 'pending': (0x6bc900, 'a'), 'apply': (0x6bbf00, 'v'), 'radius': (0x6bc650, 'd'),
          'sample': (0x6bc680, 'a'), 'category': (0x6bc760, 'b'), 'variation': (0x6bc810, 'b'), 'audible': (0x6bca10, 'b'),
-         'cull': (0x6bca70, 'v'), 'command': (0x6bcab0, 'a'), 'follow': (0x6bd5f0, 'v'), 'byte44': (0x6bcb80, 'a')}
+         'cull': (0x6bca70, 'v'), 'command': (0x6bcab0, 'a'), 'follow': (0x6bd5f0, 'v'), 'byte44': (0x6bcb80, 'a'),
+         'branch': (0x6be450, 'b'), 'switch': (0x6be5e0, 'b'), 'next': (0x6be6d0, 'b'), 'swctor': (0x6be660, 'a'), 'seqctor': (0x6be730, 'a')}
 B = Bench([(0x6b7150, 0x6b7190), (0x6bc900, 0x6bcb56), (0x6c5130, 0x6c5150), (0x6bbf00, 0x6bbf56), (0x6bc650, 0x6bc674), (0x6bc680, 0x6bc806),
            (0x6bc810, 0x6bc8f0), (0x6bd5f0, 0x6bd781), (0x6bd7a0, 0x6bd7ac), (0x6bb220, 0x6bb237), (0x5f5f10, 0x5f5f7d), (0x5f5fa0, 0x5f5faa),
-           (0x6bcb80, 0x6bcce1), (0x6c50d0, 0x6c50e8)])
+           (0x6bcb80, 0x6bcce1), (0x6c50d0, 0x6c50e8), (0x6be450, 0x6be573), (0x6be5e0, 0x6be608), (0x6be6d0, 0x6be727), (0x6be660, 0x6be672),
+           (0x6be730, 0x6be742), (0x6bb950, 0x6bb98e)])
 VOICE, OUT, SYS, SVT, VVT, DEF, VARS, SAMPLES, PARAMS, LISTENER, CMD, CVT = (RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x500,
                                                                             RAM + 0x600, RAM + 0xa00, RAM + 0xb00, RAM + 0xb40, RAM + 0xb80, RAM + 0xbc0)
 SYSTEM, RANDOM, CLOCK, TIME_GET_TIME = 0xfb1f24, 0xfb1f20, 0xfa71e0, 0x6fd3ec
+NODE, ENTRIES, BRANCHES, DEF2 = RAM + 0xc00, RAM + 0xc40, RAM + 0xc80, RAM + 0xe00
 CMD_K, TIME_K = 9, 12
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
@@ -70,6 +77,29 @@ def definition(r, target):
             struct.pack_into('<I', variations, o + 0x1e, weights[i])
         struct.pack_into('<I', variations, o + 0x22, r.choice([r.f(), fb(r.uniform(0, 100)), fb(r.uniform(0, 100)), fb(float(r.randrange(100)))]))
     return d, variations
+
+
+def branch(r, voice, params, regions):
+    """The switch voice's node, its branches and the definition whose first variation it is; the voice's +8 and +4, its parameter block."""
+    n = r.choice([0, 1, 2, 3, 4, 6, 8, 8])
+    node = bytearray(r.bytes(0x40))
+    struct.pack_into('<HHI', node, 0, r.choice([0, 0, 1, r.getrandbits(16)]), r.getrandbits(16), n)
+    struct.pack_into('<I', node, 0x26, ENTRIES)
+    entries, branches = bytearray(r.bytes(0x40)), bytearray(r.bytes(0x2a * 8))
+    for i in range(8):
+        lo = r.randrange(0, 0x20)
+        hi = r.randrange(lo, 0x40) if r.random() < 0.9 else r.getrandbits(8)
+        struct.pack_into('<I', entries, 8 * i, BRANCHES + 0x2a * i)
+        entries[8 * i + 6], entries[8 * i + 7] = lo, hi
+        struct.pack_into('<I', branches, 0x2a * i + 0x1e, r.choice([r.randrange(1, 100), r.randrange(1, 0x10000), r.getrandbits(28) | 1]))
+        for at in (0x16, 0x1a):
+            struct.pack_into('<H', branches, 0x2a * i + at, r.choice([0, 0, r.getrandbits(16)]))
+    current = r.choice([NODE, NODE, NODE, 0])
+    struct.pack_into('<II', voice, 4, DEF2 if not current or r.random() < 0.7 else 0, current)
+    struct.pack_into('<I', voice, 0x4c, PARAMS)
+    definition = bytearray(r.bytes(0x20))
+    struct.pack_into('<I', definition, 8, NODE)
+    regions.update({NODE: node, ENTRIES: entries, BRANCHES: branches, DEF2: definition})
 
 
 def case(r):
@@ -137,6 +167,16 @@ def case(r):
                SAMPLES: samples, PARAMS: params, LISTENER: listener, CMD: struct.pack('<I', CVT) + r.bytes(0xc),
                CVT: struct.pack('<I', recorder(CMD_K, 0)), SYSTEM: struct.pack('<I', SYS), RANDOM: struct.pack('<I', seed), CLOCK: bytes(0x20),
                TIME_GET_TIME: struct.pack('<I', recorder(TIME_K, 0, True)), LOG: log, HEAP: heap(0x40, fail=r.choice([0, 0, 0, 1]))}
+    if name in ('branch', 'switch'):
+        branch(r, voice, params, regions)
+        value = r.choice([r.randrange(0, 0x40), r.randrange(0, 0x40), 0, 0xff, r.getrandbits(8), r.getrandbits(32)])
+        params[4] = value & 0xff
+        return Call(address, [VOICE, value if name == 'branch' else r.getrandbits(32)], regions, conv='t', ret=ret)
+    if name == 'next':
+        n = struct.unpack_from('<I', d, 4)[0]
+        struct.pack_into('<I', voice, 8, r.choice([0, VARS + 0x2a * r.randrange(n + 2), VARS + 0x2a * max(n - 1, 0), VARS - 0x2a, VARS + r.randrange(1, 0x2a)]))
+        struct.pack_into('<I', voice, 0x30, r.getrandbits(32))
+        return Call(address, [VOICE, r.getrandbits(32)], regions, conv='t', ret=ret)
     if name == 'pending':
         return Call(address, [VOICE, OUT, r.choice([0, 1, 0xffff, 0x10000, r.getrandbits(32)])], regions, conv='t', ret=ret)
     if name in ('sample', 'variation'):
