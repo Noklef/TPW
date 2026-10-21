@@ -55,6 +55,7 @@
 #include "../../src/game/gfx/canvasdraw.h"
 #include "../../src/game/gfx/convert.h"
 #include "../../src/game/gfx/draw.h"
+#include "../../src/game/gfx/glyphrender.h"
 #include "../../src/game/gfx/imagecodec.h"
 #include "../../src/game/gfx/invmap.h"
 #include "../../src/game/gfx/pixconv.h"
@@ -293,6 +294,7 @@ void __cdecl heap_throw() { RaiseException(0xe0000001, 0, 0, nullptr); }
 const StdStringEnv kStdStringEnv = {&heap_alloc, &heap_free, &heap_throw, &heap_throw};
 const MouseModeEnv kMouseModeEnv = {&heap_free, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const AdvisorScoreEnv kAdvisorScoreEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
+const GlyphRenderEnv kGlyphRenderEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const ObjModelEnv kObjModelEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const SharedGlobalsEnv kSharedGlobalsEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const PtrListEnv kPtrListEnv = {&heap_alloc};
@@ -834,6 +836,7 @@ int main(int argc, char **argv) {
     AdvisorScore_SetEnv(&kAdvisorScoreEnv);
     ObjModel_SetEnv(&kObjModelEnv);
     SharedGlobals_SetEnv(&kSharedGlobalsEnv);
+    GlyphRender_SetEnv(&kGlyphRenderEnv);   // (tests/fncmp/glyphrender.py hooks 0x67a7d0 with fncmp._cdecl_log)
     PtrList_SetEnv(&kPtrListEnv);
     GameHeap_SetEnv(&kGameHeapEnv);
     Jpeg6b_SetCrtEnv(&kJpeg6bCrtEnv);

@@ -217,7 +217,7 @@ address,name,kind,confidence,notes
 0x004cf920,BankAccount_Serialize,function,high,"reimplemented (src/game/world/bankaccount); thiscall (stream, save, version, unused): the bank account's serializer (thing model 16: the head dwords, eight loans of eight dwords; loads past the third through Save_ReadU32)"
 0x004d2320,Challenges_Serialize,function,high,"reimplemented (src/game/world/challenges); thing model 19: thing, 0x14 challenges, then 7 fields"
 0x004d0f90,Challenge_Serialize,function,high,reimplemented (src/game/world/challenges); a challenge's 15 fields
-0x006c58f0,SoundBank_OpenSdt,function,medium,"appends HD.sdt or HW.sdt to the bank path and opens it, falling back to the other; arg3 == 0 tries HW first"
+0x006c58f0,SoundBank_OpenSdt,function,medium,"reimplemented (src/game/core/soundbank); thiscall (opener, path, hdFirst), pops 0xc, this unused: appends HD.sdt / HW.sdt to the path and opens it through the opener's slot 1; on failure the path set back and given the other suffix (not opened)"
 0x006c5a00,SoundBank_Open,function,low,calls SoundBank_OpenSdt and returns 0 / -1
 0x006d62c0,LbMpeg_MmxTransform,function,low,"MMX int16 transform over 8 qwords using the Q14 cosine table in section lbmpeg_d (0xfc0000); likely MPEG decoder matrixing"
 0x004e2c10,CircBufU32_30_Serialize,function,high,"reimplemented (src/game/core/circbuf); ring buffer of 30 u32 (mTemp, mData[30], mCurrentEntry, mNumEntries, mWrappedAround); 6 per Object; the entries while i < mNumEntries (unbounded, sic)"
@@ -3255,6 +3255,7 @@ address,name,kind,confidence,notes
 0x006b5450,Nibble_Write,function,high,reimplemented (src/game/core/cursors); writes a nibble to a packed stream
 0x006b54c0,Nibble_Next,function,high,reimplemented (src/game/core/cursors); steps a nibble cursor and returns the old state
 0x006b54f0,Bit_Next,function,high,reimplemented (src/game/core/cursors); steps a bit cursor and returns the old state
+0x006b5540,Cursor_CopyState,function,low,"reimplemented (src/game/core/cursors); thiscall (out), pops 4: a cursor's state (+0 byte, +4 dword) copied to out; returns out"
 0x006a01a0,Checksum_Words,function,high,reimplemented (src/game/core/seqs); a rolling checksum over 16-bit values
 0x006a7240,Checksum_SignedBytes,function,high,reimplemented (src/game/core/seqs); a rolling checksum over signed bytes
 0x006ae2b0,Char_BracketClass,function,high,reimplemented (src/game/core/seqs); 1 for an opening and 2 for a closing bracket
@@ -4273,6 +4274,32 @@ address,name,kind,confidence,notes
 0x006995d0,Globalfb1dc0_Set,function,low,"reimplemented (src/game/core/sharedglobals); cdecl; the global 0xfb1dc0 set to the counted object given, which gains a use; its release 0x699650 to atexit; returns the object"
 0x006996f0,Globalfb1dbc_Set,function,low,"reimplemented (src/game/core/sharedglobals); cdecl; the global 0xfb1dbc set to the counted object given, which gains a use; its release 0x699770 to atexit; returns the object"
 0x00699810,Globalfb1dc4_Set,function,low,"reimplemented (src/game/core/sharedglobals); cdecl; the global 0xfb1dc4 set to the counted object given, which gains a use; its release 0x699890 to atexit; returns the object"
+0x006b5770,SoundCmd700b2c_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b2c (posted by SoundCategory_Release 0x51b620), thiscall (out, target), pops 8: target's slot 8 (out, the value)"
+0x006b56a0,SoundCmd700b34_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b34, thiscall (out, target), pops 8: the value as a float (fld / fstp) to +0x2c of target's +0x24; *out = 0"
+0x006b5790,SoundCmd700b48_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b48, thiscall (out, target), pops 8: target's slot 7 (out, the value)"
+0x006b5840,SoundCmd700b50_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b50, thiscall (out, target), pops 8: slot 9 of target's +0x24 (out, the value)"
+0x006b5640,SoundCmd700b64_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b64, thiscall (out, target), pops 8: slot 4 of target's +0x24 (out, a stack functor with vtable 0x70a268)"
+0x006b5670,SoundCmd700b68_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b68, thiscall (out, target), pops 8: slot 4 of target's +0x24 (out, a stack functor with vtable 0x70a270)"
+0x006b59f0,SoundCmd700b70_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b70, thiscall (out, target), pops 8: Bytes44_Set(target's +0x24, out, 3, the value)"
+0x006b5a50,SoundCmd700b74_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b74, thiscall (out, target), pops 8: Bytes44_Set(target's +0x24, out, 1, the value)"
+0x006b5990,SoundCmd700b78_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b78, thiscall (out, target), pops 8: Bytes44_Set(target's +0x24, out, 2, the value)"
+0x006b58b0,SoundCmd700ba8_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700ba8, thiscall (out, target), pops 8: target's slot 6 (out, the value)"
+0x006b5ab0,SoundManager_Dtor,function,low,reimplemented (src/game/core/soundmanager); thiscall: vtable reset to 0x70a288; the engine at +4 (if any) destroyed through its slot 0 (1) and +4 cleared
+0x006b5ad0,SoundManager_Call1,function,low,"reimplemented (src/game/core/soundmanager); slot 4, thiscall (out, a), pops 8: the engine's slot 1 (out, a); returns out"
+0x006b5af0,SoundManager_Release,function,low,"reimplemented (src/game/core/soundmanager); slot 0, thiscall (out), pops 4: the manager (unless null) destroyed through its slot 3 (1); *out = 0"
+0x006b5b10,SoundManager_Query,function,low,"reimplemented (src/game/core/soundmanager); slot 1, thiscall (out, a, b, c), pops 0x10: the engine's slot 2 (out, a, b, c); returns out"
+0x006b5b40,SoundManager_Post,function,low,"reimplemented (src/game/core/soundmanager); slot 2, thiscall (owner, command), pops 8: the engine's slot 4, its result returned"
+0x006b5b60,SoundManager_Call5,function,low,"reimplemented (src/game/core/soundmanager); thiscall (a, b), pops 8: the engine's slot 5, its result returned"
+0x006b5b80,SoundManager_Call3,function,low,"reimplemented (src/game/core/soundmanager); thiscall (a, b, c), pops 0xc: the engine's slot 3, its result returned"
+0x006b6120,SoundMixer_DeletingDtor,function,low,"reimplemented (src/game/core/soundmixer); thiscall (flags), pops 4: SoundMixer_Dtor, then freed for flags bit 0; returns the mixer"
+0x006b6170,SoundMixer_Dtor,function,low,"reimplemented (src/game/core/soundmixer); thiscall: stops the worker (+0x38 set, spins on +0x34), active voices' slot 3, frees the page list and the +0x44 / +0x40 blocks, +0x3c's slot 2 (3), deletes the critical section"
+0x006b6260,SoundMixer_TouchFlagged,function,low,reimplemented (src/game/core/soundmixer); thiscall: active voices with flag 0x400 counted (InterlockedIncrement) and their slot 0xb called; returns the count
+0x006b6440,SoundMixer_Retire,function,low,"reimplemented (src/game/core/soundmixer); thiscall (voice), pops 4: under the lock the voice's slot 3 and Chain24_MoveTo20"
+0x006b6550,SoundMixer_ForEachActive,function,low,"reimplemented (src/game/core/soundmixer); thiscall (arg), pops 4: each active voice's slot 0xc (arg), or with arg 0 its slot 6 (&arg, a stack functor 0x70a2d0 with the voice's +0x24)"
+0x006b6830,SoundMixer_FindVoice,function,low,"reimplemented (src/game/core/soundmixer); thiscall (id), pops 4: under the lock the voice at the id's slot when its id matches, else 0 (0 for id 0)"
+0x006b6990,SoundMixer_StampVoice,function,low,"reimplemented (src/game/core/soundmixer); thiscall (voice), pops 4: the voice's id += Obj_Inc30(mixer) << 16; returns it"
+0x006b6ab0,VoicePage_New,function,low,"reimplemented (src/game/core/soundmixer); cdecl (status, out, count): a block of count * 0x50 + 0xc bytes, vtable 0x70a2d8, +4 the size, +8 0, in *out; *status 0 / -1; returns status"
+0x006b6ba0,SoundMixer_ClearLevels,function,low,reimplemented (src/game/core/soundmixer); thiscall: the 0x1f dwords at [+0x44] and +0x48 cleared; returns 0
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
@@ -4585,6 +4612,19 @@ address,name,kind,confidence,notes
 0x006b4a30,Vtbl70a210_DeletingDtor,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (flags): the deleting destructor of vtable 0x70a210 (Vtbl70a078_Set_6b4a50, freed for flags bit 0); returns this"
 0x006b4a70,GlyphRenderer_DeletingDtor,function,low,reimplemented (src/game/gfx/glyphrender); thiscall (flags): the glyph renderer base's deleting destructor (vtable 0x70a238; Vtbl70a258_Set_6b4a90); returns this
 0x006b5410,Vtbl70a258_DeletingDtor,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (flags): vtable 0x70a258 stored, freed for flags bit 0; returns this"
+0x006b2a60,GlyphPattern1_Span1555,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span), pops 0xc: the blended pattern's 1555 span writer (pattern format must be gFormatArgb8888, else status -1)"
+0x006b2e20,GlyphPattern1_Span565,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span), pops 0xc: the blended pattern's 565 span writer"
+0x006b31e0,GlyphPattern1_Span4444,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span), pops 0xc: the blended pattern's 4444 span writer (unsigned divisions)"
+0x006b3540,GlyphPattern1_Span8888,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span), pops 0xc: the blended pattern's 8888 span writer"
+0x006b3890,GlyphPattern1_SpanBgra,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span), pops 0xc: the blended pattern's byte-reversed 32-bit span writer"
+0x006b3c50,GlyphPattern2_Span1555,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span), pops 0xc: the solid pattern's 1555 span writer (coverage bit 0 -> bit 12, sic)"
+0x006b3f40,GlyphPattern2_Span565,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span), pops 0xc: the solid pattern's 565 span writer (fills the rectangle, packed 555, sic)"
+0x006b4140,GlyphPattern2_Span4444,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span), pops 0xc: the solid pattern's 4444 span writer"
+0x006b4420,GlyphPattern2_Span8888,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span), pops 0xc: the solid pattern's 8888 span writer"
+0x006b4700,GlyphPattern2_SpanBgra,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span), pops 0xc: the solid pattern's byte-reversed 32-bit span writer"
+0x006b5340,GlyphRenderer_ClipSpan,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (out, glyph, point, unused), pops 0x10: the glyph rectangle's part that shows at point inside the display's clip; returns out"
+0x006b4aa0,GlyphRenderer_Draw,function,low,"reimplemented (src/game/gfx/glyphrender); slot 1, thiscall (status, point, index, out, style), pops 0x14: decodes the font's glyph (run-length nibbles or bits) into the shared buffer, clips it and hands the span to the surface format's span writer"
+0x006b5560,GlyphRender_FreeBuffer,function,low,"reimplemented (src/game/gfx/glyphrender); cdecl, handed to atexit by the draw call: Mem_Free of the shared glyph buffer [0xfb4cd4]"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"

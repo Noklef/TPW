@@ -149,6 +149,10 @@ add_library(tpw_game STATIC
     src/game/core/startcheck.cpp
     src/game/core/keyactions.cpp
     src/game/core/sharedglobals.cpp
+    src/game/core/soundcmd.cpp
+    src/game/core/soundmanager.cpp
+    src/game/core/soundbank.cpp
+    src/game/core/soundmixer.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp

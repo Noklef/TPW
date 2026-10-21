@@ -1,5 +1,5 @@
-// Table lookups and the cursors over packed data: reimplementation of 0x6b0620, 0x6b0650, 0x6b0510, 0x6b5450, 0x6b54c0 and
-// 0x6b54f0. Named by what they do until the classes are known.
+// Table lookups and the cursors over packed data: reimplementation of 0x6b0620, 0x6b0650, 0x6b0510, 0x6b5450, 0x6b54c0,
+// 0x6b54f0 and 0x6b5540. Named by what they do until the classes are known.
 #pragma once
 
 #include "../../../re/types.h"
@@ -30,5 +30,8 @@ u8 *__fastcall Nibble_Next(u8 *object, void *, u8 *out, u32 unused);  // (pops 8
 // 0x6b54f0 (thiscall; out, pops 8): the same for a bit cursor (+0 = the mask, +4 = the byte): the old state to out, then the
 // mask rotated right by one, the byte moving on when the mask becomes 0x80. Returns out.
 u8 *__fastcall Bit_Next(u8 *object, void *, u8 *out, u32 unused);
+
+// 0x6b5540 (thiscall; out, pops 4): a cursor's state (+0 the byte-sized flag or mask, +4 the byte) copied to out. Returns out.
+u8 *__fastcall Cursor_CopyState(const u8 *object, void *, u8 *out);
 
 }  // extern "C"
