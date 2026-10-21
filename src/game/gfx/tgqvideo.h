@@ -61,4 +61,28 @@ void __cdecl TgqVideo_PixelRow32(const u32 *luma, u32 *out, const u32 *chroma);
 // The table in the exe has 0x672ede, 0x672f49, 0x672ebc, 0x672f7a, 0x672eeb and then three dwords that are not code: codes 5-7 jump there
 // (called here, so the port faults as the original does, sic). Returns the counter (0 or below).
 s32 __cdecl TgqVideo_DecodeCoefficients();
+
+// 0x673fee (cdecl (data, out, pitch in bytes); name unconfirmed): a coded 16x16 macroblock at 16 bits a pixel. The bit reader set to
+// data (its first byte in, 8 bits, the source past it), then six blocks, each TgqVideo_DecodeCoefficients, the 8 columns of 0xfb7600
+// (0x20 bytes apart) through MovieIdct_Column and the 8 rows of 0xfb7700 (0x24 apart) through MovieIdct_Row: the luma squares into
+// 0xfb7000, 0xfb7020, 0xfb7200 and 0xfb7220 (rows 0x40 bytes apart), the chroma into 0xfb7400 and 0xfb7500 (rows 0x20 apart); then
+// 16 rows of TgqVideo_PixelRow16 (luma 0xfb7000 + 0x40 j, chroma 0xfb7400 + 0x20 (j / 2), out + pitch * j). As the original runs, the
+// columns' out is EDI: 0xfb7700 + 4i goes on the stack, where 0x67673c never looks, and EDI is the counter TgqVideo_DecodeCoefficients
+// left there (0 or below), so the first column write faults (sic) and nothing after it is reached.
+void __cdecl TgqVideo_DecodeMacroblock16(const u8 *data, u16 *out, u32 pitch);
+
+// 0x67380f (cdecl (data, out, pitch in bytes); name unconfirmed): as TgqVideo_DecodeMacroblock16 at 32 bits a pixel (the rows through
+// TgqVideo_PixelRow32): the same fault (sic).
+void __cdecl TgqVideo_DecodeMacroblock32(const u8 *data, u32 *out, u32 pitch);
+
+// 0x671230 (fastcall (player, data; out, unused, pitch in bytes), pops 12; name unconfirmed): a frame's macroblocks at 16 bits a
+// pixel, rows of them while y (from 0, by 16) is below the settings' +0x60, in each while x is below +0x64 (both unsigned, read again
+// each pass; the settings are the player's dword +0): a type byte, then by type (signed) above 0xc TgqVideo_DecodeMacroblock16 (data
+// past the byte), 3 TgqVideo_FillBlocks16 (b0 four times, b1, b2), 6 (b0-b5), 0xc (b0, b2, b4, b6, b8, b10), any other nothing; data
+// then moves past the byte and type more, out 0x20 bytes right, and each row starts (pitch >> 1) << 5 bytes below the last.
+void __fastcall TgqVideo_DecodeFrame16(u8 *player, const u8 *data, u8 *out, u32 unused, u32 pitch);
+
+// 0x671540 (fastcall, as TgqVideo_DecodeFrame16; name unconfirmed): the same at 32 bits a pixel: TgqVideo_DecodeMacroblock32 and
+// TgqVideo_FillBlocks32, out 0x40 bytes right, rows (pitch >> 2) << 6 bytes apart.
+void __fastcall TgqVideo_DecodeFrame32(u8 *player, const u8 *data, u8 *out, u32 unused, u32 pitch);
 }

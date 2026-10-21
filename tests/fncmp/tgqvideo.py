@@ -13,7 +13,10 @@
 # reached only through the table are not in the listing, their instructions are added from the exe's bytes below): symbols
 # drawn while the counter stays in the zigzag table (runs of 1 to counter / 2 pairs), then random bytes; a few cases with the exe's table
 # use a code 5-7 (a jump to its non-code dwords: crash in both). The coefficients and the dequantiser random (small or any).
-# usage: tgqvideo.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Fill16,Fill32,Pack,Tables,Quality,Row16,Row32,Coefficients)
+# Frame16 / Frame32 (0x671230 / 0x671540, fastcall (player, data; out, unused, pitch)): a frame of up to 3 x 3 macroblocks (sizes not
+# always multiples of 16, sometimes 0), types mostly 3, 6 and 0xc, else 0-0xc (skipped); in a few cases one coded one (above 0xc), whose
+# 0x673fee / 0x67380f faults in both (they cannot run to the end: see tgqvideo.h). Pitches odd now and then.
+# usage: tgqvideo.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Fill16,Fill32,Pack,Tables,Quality,Row16,Row32,Coefficients,Frame16,Frame32)
 import os
 import struct
 import sys
@@ -21,8 +24,10 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import RAM, Bench, Call  # noqa: E402
 
-CALLS = {'Fill16': 0x671340, 'Fill32': 0x671650, 'Pack': 0x66fd70, 'Tables': 0x66fc10, 'Quality': 0x671000, 'Row16': 0x673574, 'Row32': 0x6732e9, 'Coefficients': 0x672e60}
-B = Bench([(0x671340, 0x671532), (0x671650, 0x6717fc), (0x66fd70, 0x66ff96), (0x66fc10, 0x66fd69), (0x671000, 0x6710b9), (0x673574, 0x67380f), (0x672e60, 0x673000), (0x6732e9, 0x673574)])
+CALLS = {'Fill16': 0x671340, 'Fill32': 0x671650, 'Pack': 0x66fd70, 'Tables': 0x66fc10, 'Quality': 0x671000, 'Row16': 0x673574, 'Row32': 0x6732e9, 'Coefficients': 0x672e60, 'Frame16': 0x671230,
+         'Frame32': 0x671540}
+B = Bench([(0x671340, 0x671532), (0x671650, 0x6717fc), (0x66fd70, 0x66ff96), (0x66fc10, 0x66fd69), (0x671000, 0x6710b9), (0x673574, 0x67380f), (0x672e60, 0x673000), (0x6732e9, 0x673574),
+           (0x671230, 0x671340), (0x671540, 0x671650), (0x67380f, 0x6747cd), (0x67673c, 0x676965)])
 # 0x672e60's jump-table targets 0x672ecc and 0x672f36, missing from the listing (no fall-through or jump reaches them): from the exe's bytes
 B.emu.code.update({0x672ecc: ('MOV', 'EAX,dword ptr [EBX*0x4 + 0xfb7820]'), 0x672ed3: ('NEG', 'EAX'),
                    0x672ed5: ('MOV', 'dword ptr [EBX*0x4 + 0xfb7600],EAX'), 0x672edc: ('JMP', '0x00672f09'),
@@ -92,10 +97,29 @@ def coefficients(r):
     return Call(CALLS['Coefficients'], [], regions, ret='edi')
 
 
+def frame(r, wide):
+    player, settings, data = RAM + 0x10000, RAM + 0x10100, RAM + 0x11000
+    height, width = [r.choice([0, 16, 32, 48, r.randrange(1, 49)]) for _ in range(2)]
+    across, down = (width + 15) // 16, (height + 15) // 16
+    pitch = across * (0x40 if wide else 0x20) + r.choice([0, 0, 2, 0x20, 1, 3])
+    coded = r.randrange(across * down) if across * down and r.random() < 0.04 else -1
+    stream = bytearray()
+    for k in range(across * down):
+        kind = r.randrange(0xd, 0x100) if k == coded else r.choice([3, 6, 0xc] * 3 + list(range(13)))
+        # (a coded one's first block decodes with the exe's table, to the column write that faults)
+        stream += bytes([kind]) + (coefficient_stream(r, EXE_TABLE + [None] * 3) if k == coded else r.bytes(kind))
+    regions = {player: struct.pack('<I', settings), settings: bytes(0x60) + struct.pack('<II', height, width), data: stream + r.bytes(16),
+               0xfb7820: struct.pack('<I', r.choice([0x10000, 0x8000, 0x18000, r.getrandbits(20), r.getrandbits(32)])) + r.bytes(0xfc),
+               0xfb7600: r.bytes(0x100), 0xfb7920: r.bytes(12), 0xfb7930: r.bytes(0x600), OUT: r.bytes(down * 16 * pitch + 0x40)}
+    return Call(CALLS['Frame32' if wide else 'Frame16'], [player, data, OUT, r.getrandbits(32), pitch], regions, conv='f', ret='v')
+
+
 def case(r):
     op = r.deal(OPS)
     if op == 'Coefficients':
         return coefficients(r)
+    if op in ('Frame16', 'Frame32'):
+        return frame(r, op == 'Frame32')
     if op == 'Quality':
         quality = r.randrange(101) if r.random() < 0.85 else r.choice([-1, 101, 200, r.getrandbits(32)])
         return Call(CALLS[op], [quality], {0xfb7820: r.bytes(0x100)}, ret='v')

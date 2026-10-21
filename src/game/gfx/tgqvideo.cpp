@@ -1,5 +1,7 @@
 #include "tgqvideo.h"
 
+#include "movieidct.h"
+
 #include <cstdint>
 
 namespace {
@@ -70,6 +72,60 @@ void fill16(u8 *at, u32 colour, u32 step) {
 void fill32(u8 *at, u32 colour, u32 step) {
     for (s32 row = 0; row < 8; ++row, at += step)
         for (s32 k = 0; k < 8; ++k) reinterpret_cast<u32 *>(at)[k] = colour;
+}
+
+// A coded macroblock's six blocks (TgqVideo_DecodeMacroblock16 / 32): where each block's rows go and how far apart.
+struct BlockPlace {
+    u32 at, stride;
+};
+const BlockPlace kBlockPlaces[6] = {{0x00fb7000, 0x40}, {0x00fb7020, 0x40}, {0x00fb7200, 0x40},
+                                    {0x00fb7220, 0x40}, {0x00fb7400, 0x20}, {0x00fb7500, 0x20}};
+
+void decodeBlocks(const u8 *data) {
+    global<const u8 *>(0x00fb7920) = data + 1;
+    global<u32>(0x00fb7928) = data[0];
+    global<u32>(0x00fb7924) = 8;
+    for (const BlockPlace &place : kBlockPlaces) {
+        // EDI as the decoder leaves it (the counter): the columns' out, so the first write faults (sic).
+        s32 *const edi = reinterpret_cast<s32 *>((uintptr_t)(u32)TgqVideo_DecodeCoefficients());
+        for (u32 i = 0; i < 8; ++i) MovieIdct_Column(reinterpret_cast<const s32 *>((uintptr_t)(0x00fb7600 + i * 0x20)), edi);
+        for (u32 i = 0; i < 8; ++i)
+            MovieIdct_Row(reinterpret_cast<const s32 *>((uintptr_t)(0x00fb7700 + i * 0x24)),
+                          reinterpret_cast<s32 *>((uintptr_t)(place.at + i * place.stride)));
+    }
+}
+
+const u32 *rowLuma(u32 j) { return reinterpret_cast<const u32 *>((uintptr_t)(0x00fb7000 + j * 0x40)); }
+const u32 *rowChroma(u32 j) { return reinterpret_cast<const u32 *>((uintptr_t)(0x00fb7400 + (j >> 1) * 0x20)); }
+
+template <typename T> T &at(u8 *base, u32 offset) { return *reinterpret_cast<T *>(base + offset); }
+
+// TgqVideo_DecodeFrame16 / 32: wide for 32 bits a pixel. The settings (the player's dword +0) read again at each test.
+void decodeFrame(u8 *player, const u8 *data, u8 *out, u32 pitch, bool wide) {
+    u8 *row = out;
+    for (u32 y = 0; y < at<u32>(at<u8 *>(player, 0), 0x60); y += 0x10) {
+        u8 *place = row;
+        for (u32 x = 0; x < at<u32>(at<u8 *>(player, 0), 0x64); x += 0x10) {
+            const u32 type = *data++;
+            auto fill = wide ? TgqVideo_FillBlocks32 : TgqVideo_FillBlocks16;
+            if ((s32)type > 0xc) {
+                if (wide) {
+                    TgqVideo_DecodeMacroblock32(data, reinterpret_cast<u32 *>(place), pitch);
+                } else {
+                    TgqVideo_DecodeMacroblock16(data, reinterpret_cast<u16 *>(place), pitch);
+                }
+            } else if (type == 3) {
+                fill(data[0], data[0], data[0], data[0], data[1], data[2], place, pitch);
+            } else if (type == 6) {
+                fill(data[0], data[1], data[2], data[3], data[4], data[5], place, pitch);
+            } else if (type == 0xc) {
+                fill(data[0], data[2], data[4], data[6], data[8], data[10], place, pitch);
+            }
+            data += type;
+            place += wide ? 0x40 : 0x20;
+        }
+        row += wide ? (pitch >> 2) << 6 : (pitch >> 1) << 5;
+    }
 }
 
 }  // namespace
@@ -221,6 +277,26 @@ s32 __cdecl TgqVideo_DecodeCoefficients() {
     global<u32>(0x00fb7928) = in.bits;
     global<u32>(0x00fb7924) = in.count;
     return at;
+}
+
+void __cdecl TgqVideo_DecodeMacroblock16(const u8 *data, u16 *out, u32 pitch) {
+    decodeBlocks(data);
+    u8 *row = reinterpret_cast<u8 *>(out);
+    for (u32 j = 0; j < 16; ++j, row += pitch) TgqVideo_PixelRow16(rowLuma(j), reinterpret_cast<u16 *>(row), rowChroma(j));
+}
+
+void __cdecl TgqVideo_DecodeMacroblock32(const u8 *data, u32 *out, u32 pitch) {
+    decodeBlocks(data);
+    u8 *row = reinterpret_cast<u8 *>(out);
+    for (u32 j = 0; j < 16; ++j, row += pitch) TgqVideo_PixelRow32(rowLuma(j), reinterpret_cast<u32 *>(row), rowChroma(j));
+}
+
+void __fastcall TgqVideo_DecodeFrame16(u8 *player, const u8 *data, u8 *out, u32, u32 pitch) {
+    decodeFrame(player, data, out, pitch, false);
+}
+
+void __fastcall TgqVideo_DecodeFrame32(u8 *player, const u8 *data, u8 *out, u32, u32 pitch) {
+    decodeFrame(player, data, out, pitch, true);
 }
 
 void __cdecl TgqVideo_FillBlocks16(s32 y0, s32 y1, s32 y2, s32 y3, s32 c0, s32 c1, u8 *out, u32 pitch) {
