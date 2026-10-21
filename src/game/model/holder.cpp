@@ -165,8 +165,10 @@ void __cdecl Holder_Wake(u8 *holder) {
     at<u32>(holder, 0) = at<u32>(holder, 0) | 1;
 }
 
+void __cdecl Holder_SetMatrix(u8 *holder, const u32 *matrix) { ObjModel_SetMatrices(at<u8 *>(holder, 0x1c), nullptr, 1, matrix); }
+
 void __cdecl Holder_WakeWithMatrix(u8 *holder, const u32 *matrix, u32 grid) {
-    ObjModel_SetMatrices(at<u8 *>(holder, 0x1c), nullptr, 1, matrix);
+    Holder_SetMatrix(holder, matrix);
     u8 *part = nullptr;
     if (u8 *const sub = at<u8 *>(holder, 0x1c))
         part = sub + at<s32>(at<u8 *>(sub, 0), 4);

@@ -38,6 +38,10 @@ u32 __cdecl Animator_Sleep(u8 *animator);
 // result ignored); the count at +0x34 of the owner (the holder at +8, else itself) raised and the part stored at +0x1c.
 void __cdecl Holder_Create(u8 *holder);
 
+// 0x45bda0 (cdecl; holder, matrix; name unconfirmed): the holder's part (+0x1c, unadjusted) gets the matrix as its first
+// (ObjModel_SetMatrices with 1).
+void __cdecl Holder_SetMatrix(u8 *holder, const u32 *matrix);
+
 // 0x45bd30 (cdecl; holder, matrix, grid): the holder's part (+0x1c, unadjusted) gets the matrix as its first (ObjModel_SetMatrices with
 // 1); then it is added to the renderer ([0x87a6d0]; Renderer_Add, the part reached through the virtual base offset in the word at +4 of
 // its vtable, none for no part) under the tag 0x10 and the holder's flags get 0x11 (grid set), else under 0x20 with 9.
