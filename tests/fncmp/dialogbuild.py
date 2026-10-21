@@ -16,9 +16,10 @@
 # windowfactory.py's flags, small rectangles, no opcodes of their own), then the dialog (kind 1, up to 160 wide) whose children are the
 # texts it looks for (kind 1, inside it: other kinds' rectangles or edges outside give parts more pixels than the heap holds), in any
 # order, among 0-2 others, now and then one of them missing (a fault in both). The new windows' fields are compared through the heap.
-# Not given: HelpBg_Build 0x492180 (its slot 5 with 0 on its new window calls that window's default handler 0x65f6d1, unported; the
-# driver cannot run it natively).
-# usage: dialogbuild.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=List7cc94c_InitRow,...)
+# HelpBg_Build (0x492180, src/game/frontend/helpbg), helpbg(): the dialogs' surroundings without the script, the GUI root [0xfaa5d8]
+# windowfactory.py's (or none: a fault in both), font 7's vtable a recorder whose slot 1 gives its height (0-40 mostly, edges too), the
+# GUI's registered windows of listrows.py's register() with "f_helpbg" among them or not, the background's bytes random.
+# usage: dialogbuild.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=List7cc94c_InitRow,HelpBg_Build,...)
 import os
 import struct
 import sys
@@ -33,7 +34,7 @@ import windowscript  # noqa: E402
 from fncmp import HEAP, LOG, RAM, Bench, Call, heap, put, recorder, set_return, vtable  # noqa: E402
 
 CALLS = {'List7cc94c_InitRow': 0x4c03e0, 'List7cca90_InitRow': 0x4c1c30, 'List7cc200_InitRow': 0x4ad340, 'List7cb264_InitRow': 0x4a03d0,
-         'Dialog7cc4c4_Create': 0x4b9a70}
+         'Dialog7cc4c4_Create': 0x4b9a70, 'HelpBg_Build': 0x492180}
 # each list row's initialiser: (the children it dresses, the GUI name it looks up or None, the font dword it reads or None)
 SHAPES = {'List7cc94c_InitRow': (5, None, None), 'List7cca90_InitRow': (4, None, None), 'List7cc200_InitRow': (2, 'i_boxtick', 0x755134),
           'List7cb264_InitRow': (5, None, 0x752934)}
@@ -41,11 +42,14 @@ SHAPES = {'List7cc94c_InitRow': (5, None, None), 'List7cca90_InitRow': (4, None,
 DIALOGS = {'Dialog7cc4c4_Create': (0x7cc4c4, 0x7581a0, (0x16c11, 0x16c12), (0x7cc4e4,))}
 B = Bench(sorted(set(window.RANGES + listrows.PART_RANGES + listrows.REG_RANGES + windowscript.RANGES + [
     (0x48f6a0, 0x491aac), (0x65c388, 0x65c55a), (0x65d56b, 0x65d58c), (0x65d773, 0x65d7cc), (0x6616b0, 0x661710), (0x6617f0, 0x661820),
-    (0x65e526, 0x65e549), (0x4c03e0, 0x4c0653), (0x4c1c30, 0x4c1e33), (0x4ad340, 0x4ad46d), (0x4a03d0, 0x4a06a4), (0x4b9a70, 0x4b9bf6)])))
+    (0x65e526, 0x65e549), (0x4c03e0, 0x4c0653), (0x4c1c30, 0x4c1e33), (0x4ad340, 0x4ad46d), (0x4a03d0, 0x4a06a4), (0x4b9a70, 0x4b9bf6), (0x492180, 0x4922d0),
+    (0x65e6d5, 0x65e705), (0x65f16b, 0x65f246), (0x65f6d1, 0x65fba8), (0x65b8dc, 0x65bb10), (0x65bb3f, 0x65bc24), (0x65dcaf, 0x65dd18),
+    (0x680050, 0x68005b)])))
 ROW = listrows.ROW
 KIDS, KIDVT = RAM + 0xb000, RAM + 0xbc00
 KID = 0x140
 FRAME = RAM + 0xc000
+HELPBG, FONTVT = RAM + 0xc100, RAM + 0xc200
 PART_KINDS = (0x6ff320, 0x6ff350, 0x6ff380, 0x6ff3b0, 0x6ff3e0, 0x6ff410, 0x6ff440, 0x6ff470, 0x6ff4a0, 0x6ff4d0, 0x6ff500, 0x6ff530)
 
 
@@ -152,8 +156,40 @@ def scripted(r, op):
     return regions
 
 
+def helpbg(r):
+    """HelpBg_Build's surroundings (above); returns the regions"""
+    regions = dict(listrows.init_case(r, 'HilightList_InitRow').regions)
+    for k in (ROW, listrows.OLD, listrows.VTOLD, listrows.PARENTS, listrows.PARENTS + 0x80):
+        regions.pop(k)
+    log = regions[LOG]
+    regions[window.VTABLE] = vtable({5: 1})
+    windowfactory.ctor_args(r, regions)
+    root = struct.unpack_from('<I', regions[0xfaa5d8])[0]
+    if root in (0, window.WINDOW2) and r.random() < 0.95:   # (the root WINDOW2 with no children, as scripted()'s; none now and then)
+        regions[0xfaa5d8] = put(bytearray(regions[0xfaa5d8]), 0, 'I', window.WINDOW2)
+    win = regions[window.WINDOW2] = bytearray(regions[window.WINDOW2])
+    put(win, 0, 'I', window.VTABLE)
+    put(win, 0x48, 'I', r.choice([1, 0x401, 0x400, 0]))
+    put(win, 0x5c, 'I', 0)
+    put(win, 0x60, 'I', 0)
+    windowfactory.timer_env(r, regions, log)
+    regions[HEAP] = heap(0x14000, r.choice([0] * 16 + [r.randrange(1, 8)]))
+    regions[0x6ff320 + 0x24] = struct.pack('<I', recorder(9, 1))
+    lang = regions[0x78b530] = bytearray(regions[0x78b530])
+    group = struct.unpack_from('<I', lang, 4)[0]
+    put(lang, 0x1c + (7 + 13 * group) * 0x18, 'I', FONTVT)
+    regions[FONTVT] = vtable({1: 0})
+    height = r.choice([r.randrange(0, 24)] * 30 +[0, 0x7fff, 0x8000, 0xffff, 0xfff0, r.getrandbits(16)])   # (big ones: pixels past the heap, a fault in both)
+    set_return(log, 1, height | (r.getrandbits(16) << 16 if r.random() < 0.5 else 0))
+    listrows.register(r, regions, 'f_helpbg')
+    regions[HELPBG] = r.bytes(0x20)
+    return regions
+
+
 def case(r):
     op = r.deal(OPS)
+    if op == 'HelpBg_Build':
+        return Call(CALLS[op], [HELPBG], helpbg(r), conv='t', ret='v')
     if op in DIALOGS:
         return Call(CALLS[op], [], scripted(r, op), ret='v')
     kids, name, font = SHAPES[op]

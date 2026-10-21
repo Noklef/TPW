@@ -169,6 +169,7 @@
 #include "../game/core/timesig.h"
 #include "../game/core/countedpair.h"
 #include "../game/core/keyactions.h"
+#include "../game/core/sharedglobals.h"
 #include "../game/core/soundplay.h"
 #include "../game/core/startcheck.h"
 #include "../game/core/stringmapsrecord.h"
@@ -383,8 +384,14 @@
 #include "../game/ui/windowfactory.h"
 #include "../game/ui/windowscript.h"
 #include "../game/ui/buttontext.h"
+#include "../game/ui/dialog7cc1f8.h"
 #include "../game/ui/msgboxbutton.h"
 #include "../game/ui/msgtags.h"
+#include "../game/ui/panel7ca178.h"
+#include "../game/ui/panel7cc218.h"
+#include "../game/ui/panel7cc258.h"
+#include "../game/ui/panel7cc3b0.h"
+#include "../game/ui/panel7cc408.h"
 #include "../game/ui/thingbrowser.h"
 #include "../game/ui/windowtimers.h"
 #include "../game/lib/jpeg6b.h"
@@ -4076,6 +4083,34 @@ const Hook kHooks[] = {
     {"KeyAction_FlagResearchControls", 0x0040c430, (void *)&KeyAction_FlagResearchControls, {0x8b, 0x0d, 0x3c, 0xf8, 0x7c}},
     {"KeyAction_ToggleOverlay",   0x0040c4b0, (void *)&KeyAction_ToggleOverlay, {0xb9, 0xf0, 0x51, 0x7b, 0x00}},
     {"KeyAction_GuiManagerSlotAndFlag", 0x0040c5d0, (void *)&KeyAction_GuiManagerSlotAndFlag, {0xb9, 0xf0, 0x51, 0x7b, 0x00}},
+    {"Global7ced48_Release",      0x004f7a10, (void *)&Global7ced48_Release, {0x6a, 0xff, 0x68, 0x28, 0xde}},
+    {"Globalfb1dc0_Release",      0x00699650, (void *)&Globalfb1dc0_Release, {0x6a, 0xff, 0x68, 0x68, 0x41}},
+    {"Globalfb1dbc_Release",      0x00699770, (void *)&Globalfb1dbc_Release, {0x6a, 0xff, 0x68, 0xa8, 0x41}},
+    {"Globalfb1dc4_Release",      0x00699890, (void *)&Globalfb1dc4_Release, {0x6a, 0xff, 0x68, 0xe8, 0x41}},
+    {"Globalfb1e54_Release",      0x006a5ae0, (void *)&Globalfb1e54_Release, {0x6a, 0xff, 0x68, 0xc8, 0x4b}},
+    {"Globalfb1e30_Release",      0x006a5c00, (void *)&Globalfb1e30_Release, {0x6a, 0xff, 0x68, 0x08, 0x4c}},
+    {"Globalfb1e58_Release",      0x006a5d20, (void *)&Globalfb1e58_Release, {0x6a, 0xff, 0x68, 0x48, 0x4c}},
+    {"Globalfb1e34_Release",      0x006a5e40, (void *)&Globalfb1e34_Release, {0x6a, 0xff, 0x68, 0x88, 0x4c}},
+    {"Globalfb1e38_Release",      0x006a5f60, (void *)&Globalfb1e38_Release, {0x6a, 0xff, 0x68, 0xc8, 0x4c}},
+    {"Globalfb1e5c_Release",      0x006a6080, (void *)&Globalfb1e5c_Release, {0x6a, 0xff, 0x68, 0x08, 0x4d}},
+    {"Globalfb1e60_Release",      0x006a61a0, (void *)&Globalfb1e60_Release, {0x6a, 0xff, 0x68, 0x48, 0x4d}},
+    {"Globalfb1e64_Release",      0x006a62c0, (void *)&Globalfb1e64_Release, {0x6a, 0xff, 0x68, 0x88, 0x4d}},
+    {"Globalfb1e3c_Release",      0x006a6360, (void *)&Globalfb1e3c_Release, {0x6a, 0xff, 0x68, 0xa8, 0x4d}},
+    {"Globalfb1e44_Release",      0x006a6400, (void *)&Globalfb1e44_Release, {0x6a, 0xff, 0x68, 0xc8, 0x4d}},
+    {"Globalfb1e4c_Release",      0x006a64a0, (void *)&Globalfb1e4c_Release, {0x6a, 0xff, 0x68, 0xe8, 0x4d}},
+    {"Globalfb1ecc_Release",      0x006ac0b0, (void *)&Globalfb1ecc_Release, {0x6a, 0xff, 0x68, 0x78, 0x53}},
+    {"Globalfb1eb4_Release",      0x006ac1d0, (void *)&Globalfb1eb4_Release, {0x6a, 0xff, 0x68, 0xb8, 0x53}},
+    {"Globalfb1eb8_Release",      0x006ac2f0, (void *)&Globalfb1eb8_Release, {0x6a, 0xff, 0x68, 0xf8, 0x53}},
+    {"Globalfb1ed0_Release",      0x006ac410, (void *)&Globalfb1ed0_Release, {0x6a, 0xff, 0x68, 0x38, 0x54}},
+    {"Globalfb1ed4_Release",      0x006ac530, (void *)&Globalfb1ed4_Release, {0x6a, 0xff, 0x68, 0x78, 0x54}},
+    {"Globalfb1ed8_Release",      0x006ac650, (void *)&Globalfb1ed8_Release, {0x6a, 0xff, 0x68, 0xb8, 0x54}},
+    {"Globalfb1ebc_Release",      0x006ac6f0, (void *)&Globalfb1ebc_Release, {0x6a, 0xff, 0x68, 0xd8, 0x54}},
+    {"Globalfb1ec4_Release",      0x006ac790, (void *)&Globalfb1ec4_Release, {0x6a, 0xff, 0x68, 0xf8, 0x54}},
+    {"Global7ced44_Set",          0x004f7770, (void *)&Global7ced44_Set, {0x6a, 0xff, 0x68, 0xc8, 0xdd}},
+    {"Global7ced48_Set",          0x004f77f0, (void *)&Global7ced48_Set, {0x6a, 0xff, 0x68, 0xe8, 0xdd}},
+    {"Globalfb1dc0_Set",          0x006995d0, (void *)&Globalfb1dc0_Set, {0x6a, 0xff, 0x68, 0x48, 0x41}},
+    {"Globalfb1dbc_Set",          0x006996f0, (void *)&Globalfb1dbc_Set, {0x6a, 0xff, 0x68, 0x88, 0x41}},
+    {"Globalfb1dc4_Set",          0x00699810, (void *)&Globalfb1dc4_Set, {0x6a, 0xff, 0x68, 0xc8, 0x41}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
@@ -4749,6 +4784,7 @@ const Hook kHooks[] = {
     {"HelpBg_Hide",               0x00492300, (void *)&HelpBg_Hide, {0x56, 0x8b, 0xf1, 0x66, 0x83}},
     {"HelpBg_MoveTo",             0x00492330, (void *)&HelpBg_MoveTo, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"HelpBg_SetText",            0x004924b0, (void *)&HelpBg_SetText, {0x66, 0x83, 0x3d, 0xcc, 0xa0}},
+    {"HelpBg_Build",              0x00492180, (void *)&HelpBg_Build, {0x6a, 0xff, 0x68, 0xbb, 0x9b}},
     {"Class702af0_AcquireModels", 0x005da120, (void *)&Class702af0_AcquireModels, {0x53, 0x8b, 0xd9, 0x8b, 0x43}},
     {"Class702ca8_AcquireModels", 0x005dfca0, (void *)&Class702ca8_AcquireModels, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
     {"Class702cb0_StartPendingPlay", 0x005e1350, (void *)&Class702cb0_StartPendingPlay, {0x56, 0x8b, 0xf1, 0x33, 0xc0}},
@@ -4982,6 +5018,10 @@ const Hook kHooks[] = {
     {"List7cca90_InitRow",        0x004c1c30, (void *)&List7cca90_InitRow, {0x6a, 0xff, 0x68, 0x67, 0xbe}},
     {"List7cc200_InitRow",        0x004ad340, (void *)&List7cc200_InitRow, {0x6a, 0xff, 0x68, 0xa6, 0xab}},
     {"List7cb264_InitRow",        0x004a03d0, (void *)&List7cb264_InitRow, {0x6a, 0xff, 0x68, 0xd2, 0xa3}},
+    {"List7ca158_InitRow",        0x00494690, (void *)&List7ca158_InitRow, {0x6a, 0xff, 0x68, 0xc5, 0x9d}},
+    {"List7ca140_InitRow",        0x004939d0, (void *)&List7ca140_InitRow, {0x6a, 0xff, 0x68, 0xef, 0x9c}},
+    {"List7ca170_InitRow",        0x00496d20, (void *)&List7ca170_InitRow, {0x6a, 0xff, 0x68, 0x6f, 0x9e}},
+    {"List7ca170_NewRow",         0x00496c10, (void *)&List7ca170_NewRow, {0x6a, 0xff, 0x68, 0x1b, 0x9e}},
     {"Frame_SetInterval",         0x0066a084, (void *)&Frame_SetInterval, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Frame_Stop",                0x0066a016, (void *)&Frame_Stop, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Dialog7cb398_ShowTopThree", 0x004a4ab0, (void *)&Dialog7cb398_ShowTopThree, {0x8b, 0x0d, 0x98, 0xb3, 0x7c}},
@@ -5008,6 +5048,7 @@ const Hook kHooks[] = {
     {"RadioGroup_SetSelectedState", 0x0066a1b0, (void *)&RadioGroup_SetSelectedState, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"RadioGroup_Ctor",           0x0066a1e8, (void *)&RadioGroup_Ctor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Panel7cc298_Update",        0x004b1ee0, (void *)&Panel7cc298_Update, {0x53, 0x55, 0x56, 0x8b, 0xf1}},
+    {"Panel7cc298_Dress",         0x004b1040, (void *)&Panel7cc298_Dress, {0x6a, 0xff, 0x68, 0xf0, 0xaf}},
     {"Dialog7cb2fc_SetToggle",    0x004a3960, (void *)&Dialog7cb2fc_SetToggle, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Window705b20_SetRange",     0x0066b47d, (void *)&Window705b20_SetRange, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Dialog_BaseHandler",        0x0047ee90, (void *)&Dialog_BaseHandler, {0x56, 0x8b, 0x74, 0x24, 0x08}},
@@ -5229,6 +5270,12 @@ const Hook kHooks[] = {
     {"ThingBrowser_ShowName",     0x004b3490, (void *)&ThingBrowser_ShowName, {0xa1, 0x08, 0xc3, 0x7c, 0x00}},
     {"ThingBrowser_ShowDetail",   0x004b3580, (void *)&ThingBrowser_ShowDetail, {0x8b, 0x0d, 0x08, 0xc3, 0x7c}},
     {"ThingBrowser_GroupHandler", 0x004b3b90, (void *)&ThingBrowser_GroupHandler, {0x8b, 0x44, 0x24, 0x08, 0x3d}},
+    {"Panel7cc218_Dress",         0x004ad890, (void *)&Panel7cc218_Dress, {0x6a, 0xff, 0x68, 0x8a, 0xac}},
+    {"Panel7cc258_Dress",         0x004afc10, (void *)&Panel7cc258_Dress, {0x6a, 0xff, 0x68, 0xaa, 0xae}},
+    {"Panel7ca178_Dress",         0x00497100, (void *)&Panel7ca178_Dress, {0x6a, 0xff, 0x68, 0x02, 0x9f}},
+    {"Dialog7cc1f8_DressStats",   0x004ab6b0, (void *)&Dialog7cc1f8_DressStats, {0x6a, 0xff, 0x68, 0x7e, 0xaa}},
+    {"Panel7cc408_Dress",         0x004b6c20, (void *)&Panel7cc408_Dress, {0x6a, 0xff, 0x68, 0x90, 0xb4}},
+    {"Panel7cc3b0_Dress",         0x004b53c0, (void *)&Panel7cc3b0_Dress, {0x6a, 0xff, 0x68, 0x04, 0xb3}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},

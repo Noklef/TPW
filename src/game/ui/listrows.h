@@ -1,7 +1,7 @@
 // The row windows the GUI library's list controls (0x6639cb) are given factories and initialisers for: reimplementation of 0x480d30,
 // 0x480dd0, 0x4a8380, 0x4a8420, 0x4b4c70, 0x4bacc0, 0x4bad70 and of the row factories 0x4938c0, 0x4944d0, 0x49bbb0, 0x49f0b0, 0x4a02b0,
-// 0x4ad240, 0x4ae700 and 0x4bcbc0 (named after the dword their height is cached in, or 0x4bcbc0 after its list's window), the jump
-// 0x49c870 and the initialisers 0x49c880, 0x49f170, 0x4ae7d0 and 0x4bcca0 of the same lists.
+// 0x4ad240, 0x4ae700, 0x496c10 and 0x4bcbc0 (named after the dword their height is cached in, or 0x4bcbc0 after its list's window), the
+// jump 0x49c870 and the initialisers 0x49c880, 0x49f170, 0x4ae7d0, 0x4bcca0, 0x494690, 0x4939d0 and 0x496d20 of the same lists.
 // The names are unconfirmed.
 #pragma once
 
@@ -51,6 +51,10 @@ u8 *__cdecl List7ca140_NewRow();
 // checked); when made, by the dword [0x7ca154]: 0: (1, 1, 4), (9, 0x11, 5), (9, 0x11, 6), (9, 0x11, 3); 1: (1, 1, 3), (1, 1, 4),
 // (1, 1, 5), (9, 0x11, 6); 2: (1, 1, 2), (9, 0x11, 3), (1, 1, 4), (1, 1, 5), (9, 0x11, 6); 3: (1, 1, 4); none past 3.
 u8 *__cdecl List7ca158_NewRow();
+
+// 0x496c10 (with the initialiser 0x496d20, the list built at 0x496680): the cache [0x7ca170] (font [0x751184]); flags 0, right 0;
+// when made, the children (1, 1, 0x3e7) twice (sic), (9, 0x11, 4), (9, 0x11, 5).
+u8 *__cdecl List7ca170_NewRow();
 
 // 0x49bbb0 (reached through the jump 0x49c870): the cache [0x7ca314] (font [0x7523dc]); flags 0, right 100; when made, the child
 // (1, 1, 1, (100, 0, 200, 50)).
@@ -127,4 +131,24 @@ void __cdecl List7cc200_InitRow(u8 *row);
 // 0x6ff3b0, 0x6ff3b0), the font [0x752934] (read each time), its slot 7 called with 0 and the bytes as 0xc00: 2, 1 for the 0x6ff3b0
 // parts (told before the font), 1, 1 for the others (told last).
 void __cdecl List7cb264_InitRow(u8 *row);
+
+// The initialisers below read their font index (Language_Font) from their dword each time; a bar (ui/panelparts) is a child whose
+// rectangle is inset (Window_SaveInsetRect, by 0 and 10 unless said) and whose impl is a MeshOverlay_Construct mesh of 0x124 bytes
+// with the .wct name (none when the allocation fails).
+// 0x494690 (with 0x4944d0): the row a TextPart_Ctor part, the font [0x750d54] and the text 0 (Window_NotifyImpl100); its first child
+// (read before the state) then, with the dword [0x7ca154] 0-3 (nothing more past 3), a TextPart6ff350_Ctor part, the font, its slot 7
+// called with 0 and the bytes 1, 1 as 0xc00; then its next siblings by the state, each with its slot 7 called with 0 last: 0: three
+// ridestatbar bars; 1: two 0x6ff3b0 parts (the bytes 2, 1 as 0xc00, then the font) and a bar; 2: a bar, two such parts, a bar; 3: none.
+void __cdecl List7ca158_InitRow(u8 *row);
+
+// 0x4939d0 (with 0x4938c0): the row a TextPart6ff470_Ctor part, the font [0x7508b4] and the bytes 1, 1 as 0xc00; its first child a
+// 0x6ff3b0 part, the font, slot 7 with 0 and the bytes 2, 1; the next a 0x6ff4a0 part, the font and the bytes 1, 1; the next a 0x6ff350
+// part, the font and slot 7 with 0; the next inset by 4 and 0 and given the GUI window registered as "ti_hungry" (GuiWindows_FindByName,
+// or 0) as its impl (Window_SetImpl, sic); the next a happygrad bar inset by 0 and 8.
+void __cdecl List7ca140_InitRow(u8 *row);
+
+// 0x496d20 (with 0x496c10): the row a TextPart_Ctor part, the font [0x751184] and the text 0; its first child the same; the next a
+// 0x6ff3b0 part, the bytes 2, 1 as 0xc00, the font and slot 7 with 0; the next a ridestatbar bar inset by 0 and 8 with slot 7 given
+// 0x1f4; the next a happygrad bar inset by 0 and 8.
+void __cdecl List7ca170_InitRow(u8 *row);
 }

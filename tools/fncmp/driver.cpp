@@ -66,6 +66,7 @@
 #include "../../src/game/world/advisorscore.h"
 #include "../../src/game/model/holder.h"
 #include "../../src/game/model/objmodel.h"
+#include "../../src/game/core/sharedglobals.h"
 #include "../../src/game/world/mapline.h"
 #include "../../src/game/world/mousemode.h"
 #include "crt.h"
@@ -293,6 +294,7 @@ const StdStringEnv kStdStringEnv = {&heap_alloc, &heap_free, &heap_throw, &heap_
 const MouseModeEnv kMouseModeEnv = {&heap_free, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const AdvisorScoreEnv kAdvisorScoreEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const ObjModelEnv kObjModelEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
+const SharedGlobalsEnv kSharedGlobalsEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const PtrListEnv kPtrListEnv = {&heap_alloc};
 const GameHeapEnv kGameHeapEnv = {&heap_alloc, &heap_free};
 // libjpeg 6b's calls outside itself (src/game/lib/jpeg6b.h): jmemansi.c's malloc / free the heap; jmemmgr.c's getenv, sscanf and
@@ -621,6 +623,22 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x006fea70, 12},   // MMStaffDrop's (slots 9, 10 AssignDrop: MouseMode_Set's on the mode 0x5054d0 makes)
                                    {0x006fead0, 12}};  // the 0x6fead0 mode's (slots 9, 10: MouseMode_Set's on the mode 0x481a10 makes)
 
+// Hooked game functions that ported code stores by their address and that are later called through it (a new window's handlers +0x114 /
+// +0x118: Window_DefaultProc). Below the game's data the driver's g_game lies, not its code, so each gets a jump there to its replacement,
+// as the hooked game's original jumps to it. (One inside the driver's own code could not.)
+const u32 kRawCalled[] = {0x0065f6d1};  // Window_DefaultProc (src/game/ui/window's Window_Ctor; tests/fncmp/dialogbuild.py's helpbg())
+
+void map_raw_called() {
+    for (u32 a : kRawCalled) {
+        void *const fn = find(a);
+        if (!fn || a < (u32)(uintptr_t)g_game || a + 5 > kGameLow) fail("cannot jump from", a);
+        DWORD was;
+        const u32 page = a & ~0xfffu;
+        if (!VirtualProtect((void *)(uintptr_t)page, ((a + 4) & ~0xfffu) + 0x1000 - page, PAGE_EXECUTE_READWRITE, &was)) fail("cannot run at", a);
+        jump(reinterpret_cast<u8 *>((uintptr_t)a), fn);
+    }
+}
+
 void __cdecl debug_printf(const char *, ...) {}  // Debug_Printf 0x5da3c0 (RefObject's teardown slot among others)
 
 // Each slot once: a resolved slot holds a driver address, and the driver's code lies at the game's .text addresses, so resolving it again (two entries
@@ -809,11 +827,13 @@ int main(int argc, char **argv) {
     }
     load_exe(argv[1]);
     map_stubs();
+    map_raw_called();
     resolve_vtables();
     StdStrings_SetEnv(&kStdStringEnv);
     MouseModes_SetEnv(&kMouseModeEnv);
     AdvisorScore_SetEnv(&kAdvisorScoreEnv);
     ObjModel_SetEnv(&kObjModelEnv);
+    SharedGlobals_SetEnv(&kSharedGlobalsEnv);
     PtrList_SetEnv(&kPtrListEnv);
     GameHeap_SetEnv(&kGameHeapEnv);
     Jpeg6b_SetCrtEnv(&kJpeg6bCrtEnv);

@@ -1,5 +1,5 @@
 // The help background (f_helpbg; vtable 0x6ff598, base 0x705a80): a frame-library window behind the help text. Reimplementation of 0x492320, 0x4922d0
-// 0x491fe0, 0x492160, 0x492130, 0x4922e0 and 0x492300.
+// 0x491fe0, 0x492180, 0x492160, 0x492130, 0x4922e0 and 0x492300.
 #pragma once
 
 #include "../../../re/types.h"
@@ -39,4 +39,12 @@ u32 __fastcall HelpBg_MoveTo(u8 *self, void *, u32 x, u32 y);
 // window +0x18 told Window_NotifyC00(1, 1 when the text has no '\n' (wcschr), else 0); an empty text (wcslen 0) then only calls the
 // background's slot 1 (its close); any other shows the window (Window_SetShown(1)) and hands it the text through the window's slot 9.
 void __cdecl HelpBg_SetText(const u16 *text);
+
+// 0x492180 (thiscall; slot 14 of 0x6ff598): the help background's window +0x18 made: a child of the GUI root [0xfaa5d8]
+// (Window_CreateChild kind 1, flags 1, id 0xfff355e4) from (0x23e, 0x5f0 - h) to (0x5c2, 0x5f0), h = font 7's height (its slot 1, a
+// signed word) * 0xc00 / the signed word [0xfaa5c0] + 10; then (the window +0x18 read again for each, not checked) a TextPart_Ctor part
+// (none when the allocation fails), the bytes 1, 1 as 0xc00 and as 0x3000, font 7, the bytes 0xff as 0x40000, the text 0
+// (Window_NotifyImpl100), the GUI window registered as "f_helpbg" (or 0) as its object +0x98, the dword A0[0] the background, the depth
+// 0x26, the window's slot 5 with 0 and the handler 0x491fe0 (HelpBg_WindowHandler); the word +0xc = 1.
+void __fastcall HelpBg_Build(u8 *self);
 }  // extern "C"
