@@ -175,6 +175,7 @@
 #include "../game/core/soundcmd.h"
 #include "../game/core/soundmanager.h"
 #include "../game/core/soundmixer.h"
+#include "../game/core/soundobject.h"
 #include "../game/core/soundplay.h"
 #include "../game/core/startcheck.h"
 #include "../game/core/stringmapsrecord.h"
@@ -4146,6 +4147,9 @@ const Hook kHooks[] = {
     {"VoicePage_New",             0x006b6ab0, (void *)&VoicePage_New, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"SoundMixer_ClearLevels",    0x006b6ba0, (void *)&SoundMixer_ClearLevels, {0x8b, 0xd1, 0x57, 0xb9, 0x1f}},
     {"SoundChannel_Apply",        0x006b8b40, (void *)&SoundChannel_Apply, {0x8b, 0xc1, 0x56, 0x8b, 0x4c}},
+    {"SoundObject_Broadcast",     0x006b85f0, (void *)&SoundObject_Broadcast, {0x83, 0xec, 0x08, 0x56, 0x8b}},
+    {"SoundObject_BroadcastValue", 0x006b8640, (void *)&SoundObject_BroadcastValue, {0x8b, 0x41, 0x24, 0x85, 0xc0}},
+    {"SoundObject_VoiceInfo",     0x006b8b00, (void *)&SoundObject_VoiceInfo, {0x8b, 0x49, 0x20, 0x85, 0xc9}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
