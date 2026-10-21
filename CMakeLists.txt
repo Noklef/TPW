@@ -198,6 +198,7 @@ add_library(tpw_game STATIC
     src/game/gfx/tqivideo.cpp
     src/game/gfx/dderrors.cpp
     src/game/gfx/moviesurface.cpp
+    src/game/gfx/moviesound.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp
     src/game/math/rect.cpp

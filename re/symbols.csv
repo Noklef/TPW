@@ -4700,6 +4700,10 @@ address,name,kind,confidence,notes
 0x00670300,MovieSurface_ReadSize,function,low,reimplemented (src/game/gfx/moviesurface); thiscall on the player: the primary surface's description read (GetSurfaceDesc); on success its width and height into the player's +4 / +8
 0x00670660,MovieSurface_PickMode,function,low,"reimplemented (src/game/gfx/moviesurface); thiscall on the player, returns the mode: 1 unless the flags allow and the IDirectDraw's GetCaps succeeds; then 4 or 2 by the flags +8 and the driver caps' bits 8-9 / 13-14, else 1"
 0x00671fa0,MovieSurface_Restore,function,low,"reimplemented (src/game/gfx/moviesurface); thiscall on the player, returns 1 when a Restore failed: each of the four surfaces (two by flag) that IsLost answers lost restored; a restored third or fourth sets +0x50 when +0x4c is 2"
+0x00672950,MovieSound_BufferBytes,function,low,"reimplemented (src/game/gfx/moviesound); thiscall on an IDirectSoundBuffer: its size, GetCaps' DSBCAPS dwBufferBytes (returned whatever GetCaps answers)"
+0x006729e0,MovieSound_Release,function,low,"reimplemented (src/game/gfx/moviesound); thiscall on a COM pointer's place, returns 0: the object released and the place cleared unless null"
+0x00672bf0,MovieSound_ReleaseStream,function,low,"reimplemented (src/game/gfx/moviesound); thiscall on the player, returns 0: the settings' streaming buffer (+0x5c) released and cleared unless null"
+0x00672730,MovieSound_PlayDistance,function,low,"reimplemented (src/game/gfx/moviesound); thiscall on the player: the play position (simulated, moved by 0x372 and wrapped, or the stream's play cursor) past the last write (+0x370), wrapped by the stream's size (+0x36c)"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"

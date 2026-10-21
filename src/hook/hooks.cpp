@@ -139,6 +139,7 @@
 #include "../game/gfx/movieidct.h"
 #include "../game/gfx/moviepixels.h"
 #include "../game/gfx/movieplayer.h"
+#include "../game/gfx/moviesound.h"
 #include "../game/gfx/moviesurface.h"
 #include "../game/gfx/refblock.h"
 #include "../game/gfx/signstyle.h"
@@ -4443,6 +4444,10 @@ const Hook kHooks[] = {
     {"MovieSurface_ReadSize",     0x00670300, (void *)&MovieSurface_ReadSize, {0x83, 0xec, 0x6c, 0x56, 0x8b}},
     {"MovieSurface_PickMode",     0x00670660, (void *)&MovieSurface_PickMode, {0x81, 0xec, 0xf8, 0x02, 0x00}},
     {"MovieSurface_Restore",      0x00671fa0, (void *)&MovieSurface_Restore, {0x56, 0x8b, 0xf1, 0x8b, 0x0e}},
+    {"MovieSound_BufferBytes",    0x00672950, (void *)&MovieSound_BufferBytes, {0x83, 0xec, 0x14, 0x33, 0xc0}},
+    {"MovieSound_Release",        0x006729e0, (void *)&MovieSound_Release, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
+    {"MovieSound_ReleaseStream",  0x00672bf0, (void *)&MovieSound_ReleaseStream, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
+    {"MovieSound_PlayDistance",   0x00672730, (void *)&MovieSound_PlayDistance, {0x83, 0xec, 0x08, 0x56, 0x8b}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
