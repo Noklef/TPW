@@ -57,6 +57,16 @@ u8 *__fastcall Window705a20_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 
     return window;
 }
 
+u32 __fastcall Window705a20_Dtor(u8 *window) {
+    at<u32>(window, 0) = 0x705a20;
+    if (at<u32>(window, 0x138) && (at<u32>(window, 0x48) & 0x40)) GameHeap_Free(at<void *>(window, 0x138));
+    if (at<u32>(window, 0x164)) WindowTimers_Kill((u32)(uintptr_t)window, 0x75e88);
+    if (u8 *const caret = at<u8 *>(window, 0x15c)) {
+        if ((s16)WindowImpl_Release(caret) == -1) vcall<u32>(caret, 0, 1u);
+    }
+    return Window_Dtor(window);
+}
+
 void __fastcall Window705a20_SetCaret(u8 *window, void *, u8 *caret) {
     if (caret == at<u8 *>(window, 0x15c)) return;
     if (u8 *const old = at<u8 *>(window, 0x15c)) {

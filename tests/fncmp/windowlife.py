@@ -12,6 +12,8 @@
 # same, 0x180 bytes, no items (the count +0x150 0: Clear is window7059f0.py's), the column array +0x16c a recorder object (slot 4) or 0,
 # the row array +0x148 of 0-3 recorder objects (slot 2) or 0s (the rows shown +0x172 now and then -1) or none, the items +0x144 any or
 # 0 (only freed: Mem_Free hashes the pointer), the highlight +0x174 a counted recorder object (its counts near letting go) or 0.
+# Dtor705a20 (0x6661bc): the same, 0x170 bytes, the buffer +0x138 any or 0 (flag 0x40 of +0x48 either way), the timer +0x164 set or 0
+# (one of the timer nodes now and then the window's 0x75e88), the caret +0x15c a counted recorder object or 0.
 # usage: windowlife.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Ctor,Dtor,...)
 import os
 import struct
@@ -26,8 +28,8 @@ from window import (CHILDREN, MANAGER, MISC, PARENT, RANGES, RECT, ROWS, TNODES,
 
 CALLS = {'Ctor': 0x65bcad, 'ForgetGlobals': 0x6592b6, 'DropModal': 0x65e672, 'Destroying': 0x65c2d8,
          'Dtor': 0x65c025, 'DeletingDtor': 0x661680, 'Dtor705a50': 0x6689bc, 'DeletingDtor705a50': 0x6693a0,
-         'Dtor7059f0': 0x66274e}
-B = Bench(RANGES + [(0x66274e, 0x6628e4), (0x6649d5, 0x664b68)])
+         'Dtor7059f0': 0x66274e, 'Dtor705a20': 0x6661bc}
+B = Bench(RANGES + [(0x66274e, 0x6628e4), (0x6649d5, 0x664b68), (0x6661bc, 0x6662a7)])
 COLS7, ROWS7, OBJS7 = RAM + 0xa000, RAM + 0xa100, RAM + 0xa200
 
 
@@ -36,7 +38,7 @@ def destructor(r, regions, op):
     wins = tree(r, regions)
     x, y = point(r, regions, wins)
     regions[0xfaa540] = struct.pack('<II', x, y)
-    win = bytearray(r.bytes(0x180 if op == 'Dtor7059f0' else 0x150))
+    win = bytearray(r.bytes({'Dtor7059f0': 0x180, 'Dtor705a20': 0x170}.get(op, 0x150)))
     win[4] = 0 if r.random() < 0.7 else 1
     put(win, 0x148, 'I', r.choice([ROWS, ROWS, 0]))
     regions[ROWS] = r.bytes(0x40)
@@ -66,6 +68,8 @@ def destructor(r, regions, op):
         if i:
             put(nodes[-1], 0x18, 'I', TNODES + 0x20 * i)
         nodes.append(node)
+    if op == 'Dtor705a20' and nodes and r.random() < 0.7:
+        put(r.choice(nodes), 0xc, 'I', 0x75e88)
     if nodes:
         regions[TNODES] = b''.join(nodes)
     regions[0xfaa634] = struct.pack('<I', TNODES if nodes and r.random() < 0.9 else 0)
@@ -115,6 +119,15 @@ def destructor(r, regions, op):
         put(hl, 0x10, 'HH', r.choice([0, 1, 1, 2]), r.choice([0, 1, 1, 2, 3]))
         regions[OBJS7 + 0x180] = hl
         put(win, 0x174, 'I', r.choice([OBJS7 + 0x180, OBJS7 + 0x180, 0]))
+    if op == 'Dtor705a20':
+        put(win, 0x138, 'I', r.choice([0, r.getrandbits(32)]))
+        put(win, 0x48, 'I', struct.unpack_from('<I', win, 0x48)[0] & ~0x40 | r.choice([0, 0x40]))
+        put(win, 0x164, 'I', r.choice([0, 1, r.getrandbits(32)]))
+        caret = bytearray(r.bytes(0x20))
+        put(caret, 0, 'I', VTABLE)
+        put(caret, 0x10, 'HH', r.choice([0, 1, 1, 2]), r.choice([0, 1, 1, 2, 3]))
+        regions[OBJS7 + 0x1c0] = caret
+        put(win, 0x15c, 'I', r.choice([OBJS7 + 0x1c0, OBJS7 + 0x1c0, 0]))
     regions[WINDOW2] = win
     timers(r, regions, WINDOW2)
 
