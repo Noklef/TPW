@@ -4273,6 +4273,20 @@ address,name,kind,confidence,notes
 0x006995d0,Globalfb1dc0_Set,function,low,"reimplemented (src/game/core/sharedglobals); cdecl; the global 0xfb1dc0 set to the counted object given, which gains a use; its release 0x699650 to atexit; returns the object"
 0x006996f0,Globalfb1dbc_Set,function,low,"reimplemented (src/game/core/sharedglobals); cdecl; the global 0xfb1dbc set to the counted object given, which gains a use; its release 0x699770 to atexit; returns the object"
 0x00699810,Globalfb1dc4_Set,function,low,"reimplemented (src/game/core/sharedglobals); cdecl; the global 0xfb1dc4 set to the counted object given, which gains a use; its release 0x699890 to atexit; returns the object"
+0x006a5a60,Globalfb1e54_Set,function,low,"reimplemented (src/game/core/sharedglobals); cdecl (shared): the global 0xfb1e54 set to the counted object, a use gained, its release 0x6a5ae0 to atexit; returns it"
+0x006a5b80,Globalfb1e30_Set,function,low,"reimplemented (src/game/core/sharedglobals); cdecl (shared): the global 0xfb1e30 set to the counted object, a use gained, its release 0x6a5c00 to atexit; returns it"
+0x006a5ca0,Globalfb1e58_Set,function,low,"reimplemented (src/game/core/sharedglobals); cdecl (shared): the global 0xfb1e58 set to the counted object, a use gained, its release 0x6a5d20 to atexit; returns it"
+0x006a5dc0,Globalfb1e34_Set,function,low,"reimplemented (src/game/core/sharedglobals); cdecl (shared): the global 0xfb1e34 set to the counted object, a use gained, its release 0x6a5e40 to atexit; returns it"
+0x006a5ee0,Globalfb1e38_Set,function,low,"reimplemented (src/game/core/sharedglobals); cdecl (shared): the global 0xfb1e38 set to the counted object, a use gained, its release 0x6a5f60 to atexit; returns it"
+0x006a6000,Globalfb1e5c_Set,function,low,"reimplemented (src/game/core/sharedglobals); cdecl (shared): the global 0xfb1e5c set to the counted object, a use gained, its release 0x6a6080 to atexit; returns it"
+0x006a6120,Globalfb1e60_Set,function,low,"reimplemented (src/game/core/sharedglobals); cdecl (shared): the global 0xfb1e60 set to the counted object, a use gained, its release 0x6a61a0 to atexit; returns it"
+0x006a6240,Globalfb1e64_Set,function,low,"reimplemented (src/game/core/sharedglobals); cdecl (shared): the global 0xfb1e64 set to the counted object, a use gained, its release 0x6a62c0 to atexit; returns it"
+0x006ac030,Globalfb1ecc_Set,function,low,"reimplemented (src/game/core/sharedglobals); cdecl (shared): the global 0xfb1ecc set to the counted object, a use gained, its release 0x6ac0b0 to atexit; returns it"
+0x006ac150,Globalfb1eb4_Set,function,low,"reimplemented (src/game/core/sharedglobals); cdecl (shared): the global 0xfb1eb4 set to the counted object, a use gained, its release 0x6ac1d0 to atexit; returns it"
+0x006ac270,Globalfb1eb8_Set,function,low,"reimplemented (src/game/core/sharedglobals); cdecl (shared): the global 0xfb1eb8 set to the counted object, a use gained, its release 0x6ac2f0 to atexit; returns it"
+0x006ac390,Globalfb1ed0_Set,function,low,"reimplemented (src/game/core/sharedglobals); cdecl (shared): the global 0xfb1ed0 set to the counted object, a use gained, its release 0x6ac410 to atexit; returns it"
+0x006ac4b0,Globalfb1ed4_Set,function,low,"reimplemented (src/game/core/sharedglobals); cdecl (shared): the global 0xfb1ed4 set to the counted object, a use gained, its release 0x6ac530 to atexit; returns it"
+0x006ac5d0,Globalfb1ed8_Set,function,low,"reimplemented (src/game/core/sharedglobals); cdecl (shared): the global 0xfb1ed8 set to the counted object, a use gained, its release 0x6ac650 to atexit; returns it"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

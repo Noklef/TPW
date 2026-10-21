@@ -1,7 +1,8 @@
 // The counted shared objects kept in globals (each set by a setter that gives it a use and its release to atexit): their releases and setters.
 // Reimplementation of 0x4f7a10, 0x699650, 0x699770, 0x699890, 0x6a5ae0, 0x6a5c00, 0x6a5d20, 0x6a5e40, 0x6a5f60, 0x6a6080, 0x6a61a0,
 // 0x6a62c0, 0x6a6360, 0x6a6400, 0x6a64a0, 0x6ac0b0, 0x6ac1d0, 0x6ac2f0, 0x6ac410, 0x6ac530, 0x6ac650, 0x6ac6f0, 0x6ac790, and of the
-// setters 0x4f7770, 0x4f77f0, 0x6995d0, 0x6996f0, 0x699810. The names are unconfirmed.
+// setters 0x4f7770, 0x4f77f0, 0x6995d0, 0x6996f0, 0x699810, 0x6a5a60, 0x6a5b80, 0x6a5ca0, 0x6a5dc0, 0x6a5ee0, 0x6a6000, 0x6a6120,
+// 0x6a6240, 0x6ac030, 0x6ac150, 0x6ac270, 0x6ac390, 0x6ac4b0, 0x6ac5d0. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -27,6 +28,20 @@ u8 *__cdecl Global7ced48_Set(u8 *shared);   // 0x4f77f0
 u8 *__cdecl Globalfb1dc0_Set(u8 *shared);   // 0x6995d0
 u8 *__cdecl Globalfb1dbc_Set(u8 *shared);   // 0x6996f0
 u8 *__cdecl Globalfb1dc4_Set(u8 *shared);   // 0x699810
+u8 *__cdecl Globalfb1e54_Set(u8 *shared);   // 0x6a5a60
+u8 *__cdecl Globalfb1e30_Set(u8 *shared);   // 0x6a5b80
+u8 *__cdecl Globalfb1e58_Set(u8 *shared);   // 0x6a5ca0
+u8 *__cdecl Globalfb1e34_Set(u8 *shared);   // 0x6a5dc0
+u8 *__cdecl Globalfb1e38_Set(u8 *shared);   // 0x6a5ee0
+u8 *__cdecl Globalfb1e5c_Set(u8 *shared);   // 0x6a6000
+u8 *__cdecl Globalfb1e60_Set(u8 *shared);   // 0x6a6120
+u8 *__cdecl Globalfb1e64_Set(u8 *shared);   // 0x6a6240
+u8 *__cdecl Globalfb1ecc_Set(u8 *shared);   // 0x6ac030
+u8 *__cdecl Globalfb1eb4_Set(u8 *shared);   // 0x6ac150
+u8 *__cdecl Globalfb1eb8_Set(u8 *shared);   // 0x6ac270
+u8 *__cdecl Globalfb1ed0_Set(u8 *shared);   // 0x6ac390
+u8 *__cdecl Globalfb1ed4_Set(u8 *shared);   // 0x6ac4b0
+u8 *__cdecl Globalfb1ed8_Set(u8 *shared);   // 0x6ac5d0
 void __cdecl Globalfb1dc0_Release();   // 0x699650
 void __cdecl Globalfb1dbc_Release();   // 0x699770
 void __cdecl Globalfb1dc4_Release();   // 0x699890
