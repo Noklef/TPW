@@ -4390,6 +4390,11 @@ address,name,kind,confidence,notes
 0x006cd220,Mp2Decoder_DequantizeFixed,function,low,"reimplemented (src/game/core/mp2layer2); thiscall (alloc bits, out, scale index, scale factors, allocation table): layer II samples dequantised to 16-bit fixed point"
 0x006cdf50,Mp2Decoder_DecodeLayer2,function,low,"reimplemented (src/game/core/mp2layer2); thiscall (pcm) -> 1: one layer II frame: the allocation table, allocations, scale factor selections and scale factors read, then 12 groups dequantised and synthesised (float or fixed point)"
 0x006ce5a0,Mp2Decoder_DecodeLayer1,function,low,"reimplemented (src/game/core/mp2layer1); thiscall (pcm) -> 1: one layer I frame: allocations, scale factors, 12 granules of samples dequantised (float, or fixed point all first) and synthesised"
+0x006cc7b0,Mp2Decoder_ParseHeader,function,low,"reimplemented (src/game/core/mp2frame); parses an MPEG audio frame header into the decoder's fields, rate, bitrate and frame length; -1 without sync or bitrate"
+0x006cca00,Mp2StreamDecoder_ReadFrame,function,low,"reimplemented (src/game/core/mp2frame); stream decoder slot 4: reads and parses the header, then the frame into +0x247c"
+0x006ccac0,Mp2StreamDecoder_ReadHeader,function,low,reimplemented (src/game/core/mp2frame); stream decoder slot 5: reads and parses a header
+0x006cca60,Mp2BufferDecoder_NextFrame,function,low,reimplemented (src/game/core/mp2frame); buffer decoder slot 4: parses the header at the next frame's bit position and moves past it
+0x006ccaf0,Mp2BufferDecoder_ReadHeader,function,low,reimplemented (src/game/core/mp2frame); buffer decoder slot 5: parses the buffer's first dword
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

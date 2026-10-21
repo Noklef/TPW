@@ -165,6 +165,7 @@ add_library(tpw_game STATIC
     src/game/core/mp2synth.cpp
     src/game/core/mp2layer2.cpp
     src/game/core/mp2layer1.cpp
+    src/game/core/mp2frame.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp

@@ -182,6 +182,7 @@
 #include "../game/core/countedpair.h"
 #include "../game/core/imaadpcm.h"
 #include "../game/core/keyactions.h"
+#include "../game/core/mp2frame.h"
 #include "../game/core/mp2layer1.h"
 #include "../game/core/mp2layer2.h"
 #include "../game/core/mp2synth.h"
@@ -4272,6 +4273,11 @@ const Hook kHooks[] = {
     {"Mp2Decoder_DequantizeFixed", 0x006cd220, (void *)&Mp2Decoder_DequantizeFixed, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Mp2Decoder_DecodeLayer2",   0x006cdf50, (void *)&Mp2Decoder_DecodeLayer2, {0x55, 0x8b, 0xec, 0x81, 0xec}},
     {"Mp2Decoder_DecodeLayer1",   0x006ce5a0, (void *)&Mp2Decoder_DecodeLayer1, {0x55, 0x8b, 0xec, 0x81, 0xec}},
+    {"Mp2Decoder_ParseHeader",    0x006cc7b0, (void *)&Mp2Decoder_ParseHeader, {0x83, 0xec, 0x0c, 0x53, 0x56}},
+    {"Mp2StreamDecoder_ReadFrame", 0x006cca00, (void *)&Mp2StreamDecoder_ReadFrame, {0x55, 0x8b, 0xec, 0x51, 0x56}},
+    {"Mp2StreamDecoder_ReadHeader", 0x006ccac0, (void *)&Mp2StreamDecoder_ReadHeader, {0x55, 0x8b, 0xec, 0x51, 0x56}},
+    {"Mp2BufferDecoder_NextFrame", 0x006cca60, (void *)&Mp2BufferDecoder_NextFrame, {0x55, 0x8b, 0xec, 0x51, 0x56}},
+    {"Mp2BufferDecoder_ReadHeader", 0x006ccaf0, (void *)&Mp2BufferDecoder_ReadHeader, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
