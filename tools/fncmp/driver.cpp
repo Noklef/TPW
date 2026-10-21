@@ -132,7 +132,10 @@ void reset_memory() {
         std::memcpy(p, s.raw.data(), s.raw.size());
         std::memset(p + s.raw.size(), 0, s.size - s.raw.size());
     }
-    for (u32 c : g_chunks) std::memset(reinterpret_cast<void *>((uintptr_t)c), 0, 0x10000);
+    // Released, not zeroed: a chunk an earlier case mapped stayed reachable natively where the emulator, which maps only this case's
+    // chunks, faults (dialogbuild.py's HelpBg_Build wrote 0x2e020000, just past its case's heap, into an earlier case's bigger one).
+    for (u32 c : g_chunks) VirtualFree(reinterpret_cast<void *>((uintptr_t)c), 0, MEM_RELEASE);
+    g_chunks.clear();
 }
 
 void map(u32 addr, u32 size) {
