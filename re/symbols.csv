@@ -4415,6 +4415,19 @@ address,name,kind,confidence,notes
 0x006d1a80,Mp2Decoder_Close,function,low,reimplemented (src/game/core/mp2decoder); slot 2: clears the open flag (Zero_5d60c0)
 0x006d18e0,Mp2BufferDecoder_Open,function,low,"reimplemented (src/game/core/mp2decoder); opens over a buffer: header, setup, rewind, frame and sample counts"
 0x006d1990,Mp2StreamDecoder_Open,function,low,"reimplemented (src/game/core/mp2decoder); opens over a stream: header, setup, rewind, counts, seek to 0"
+0x006c9210,Mp2Decoder_Dtor,function,low,"reimplemented (src/game/core/mp2decoder); the decoder's destructor: the buffer decoder's vtable, closed if open"
+0x006c9230,Mp2BufferDecoder_DeletingDtor,function,low,reimplemented (src/game/core/mp2decoder); the buffer decoder's deleting destructor (its pool)
+0x006c8a20,Mp2StreamDecoder_DeletingDtor,function,low,reimplemented (src/game/core/mp2decoder); the stream decoder's deleting destructor (its pool)
+0x006c8f00,Mp2BufferPool_Init,function,low,reimplemented (src/game/core/mp2pool); the buffer decoders' pool: its lock allocated and initialised
+0x006c8f30,Mp2BufferPool_Shutdown,function,low,"reimplemented (src/game/core/mp2pool); the buffer decoders' pool purged, its lock deleted and freed"
+0x006c8f60,Mp2BufferPool_Purge,function,low,"reimplemented (src/game/core/mp2pool); the buffer decoders' pool: every free block freed, under the lock"
+0x006c8fb0,Mp2BufferPool_New,function,low,reimplemented (src/game/core/mp2pool); the buffer decoder's operator new: a pooled block for its size
+0x006c9030,Mp2BufferPool_Delete,function,low,reimplemented (src/game/core/mp2pool); the buffer decoder's operator delete: its size's blocks back to the pool
+0x006c9090,Mp2StreamPool_Init,function,low,reimplemented (src/game/core/mp2pool); the stream decoders' pool: its lock allocated and initialised
+0x006c90c0,Mp2StreamPool_Shutdown,function,low,"reimplemented (src/game/core/mp2pool); the stream decoders' pool purged, its lock deleted and freed"
+0x006c90f0,Mp2StreamPool_Purge,function,low,"reimplemented (src/game/core/mp2pool); the stream decoders' pool: every free block freed, under the lock"
+0x006c9140,Mp2StreamPool_New,function,low,reimplemented (src/game/core/mp2pool); the stream decoder's operator new: a pooled block for its size
+0x006c91c0,Mp2StreamPool_Delete,function,low,reimplemented (src/game/core/mp2pool); the stream decoder's operator delete: its size's blocks back to the pool
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

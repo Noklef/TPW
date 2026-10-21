@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include "initializers.h"
+#include "mp2pool.h"
 #include "trivial.h"
 
 namespace {
@@ -126,6 +127,23 @@ s32 __fastcall Mp2StreamDecoder_Open(u8 *decoder, void *, u32 stream, s32 bytes)
     Put<s32>(d + 0x2414, frames);
     Call1(Get<u32>(d + 0x2c7c), 2, 0);
     return 0;
+}
+
+void __fastcall Mp2Decoder_Dtor(u8 *decoder, void *) {
+    *reinterpret_cast<u32 *>(decoder) = 0x007118e0;
+    if (decoder[0x243c]) Mp2Decoder_Close(decoder, nullptr);
+}
+
+u8 *__fastcall Mp2BufferDecoder_DeletingDtor(u8 *decoder, void *, u32 flags) {
+    Mp2Decoder_Dtor(decoder, nullptr);
+    if (flags & 1) Mp2BufferPool_Delete(decoder, 0x2478);
+    return decoder;
+}
+
+u8 *__fastcall Mp2StreamDecoder_DeletingDtor(u8 *decoder, void *, u32 flags) {
+    Mp2Decoder_Dtor(decoder, nullptr);
+    if (flags & 1) Mp2StreamPool_Delete(decoder, 0x2c80);
+    return decoder;
 }
 
 }  // extern "C"

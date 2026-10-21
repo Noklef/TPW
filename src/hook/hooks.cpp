@@ -186,6 +186,7 @@
 #include "../game/core/mp2frame.h"
 #include "../game/core/mp2layer1.h"
 #include "../game/core/mp2layer2.h"
+#include "../game/core/mp2pool.h"
 #include "../game/core/mp2synth.h"
 #include "../game/core/refcounted.h"
 #include "../game/core/sharedglobals.h"
@@ -4299,6 +4300,19 @@ const Hook kHooks[] = {
     {"Mp2Decoder_Close",          0x006d1a80, (void *)&Mp2Decoder_Close, {0x56, 0x8b, 0xf1, 0x8a, 0x86}},
     {"Mp2BufferDecoder_Open",     0x006d18e0, (void *)&Mp2BufferDecoder_Open, {0x56, 0x8b, 0xf1, 0x57, 0x8a}},
     {"Mp2StreamDecoder_Open",     0x006d1990, (void *)&Mp2StreamDecoder_Open, {0x56, 0x8b, 0xf1, 0x57, 0x8a}},
+    {"Mp2Decoder_Dtor",           0x006c9210, (void *)&Mp2Decoder_Dtor, {0x8a, 0x81, 0x3c, 0x24, 0x00}},
+    {"Mp2BufferDecoder_DeletingDtor", 0x006c9230, (void *)&Mp2BufferDecoder_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0xd8}},
+    {"Mp2StreamDecoder_DeletingDtor", 0x006c8a20, (void *)&Mp2StreamDecoder_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x28}},
+    {"Mp2BufferPool_Init",        0x006c8f00, (void *)&Mp2BufferPool_Init, {0x6a, 0x18, 0xe8, 0xb9, 0x1d}},
+    {"Mp2BufferPool_Shutdown",    0x006c8f30, (void *)&Mp2BufferPool_Shutdown, {0xe8, 0x2b, 0x00, 0x00, 0x00}},
+    {"Mp2BufferPool_Purge",       0x006c8f60, (void *)&Mp2BufferPool_Purge, {0xa1, 0x10, 0x27, 0xfb, 0x00}},
+    {"Mp2BufferPool_New",         0x006c8fb0, (void *)&Mp2BufferPool_New, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"Mp2BufferPool_Delete",      0x006c9030, (void *)&Mp2BufferPool_Delete, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"Mp2StreamPool_Init",        0x006c9090, (void *)&Mp2StreamPool_Init, {0x6a, 0x18, 0xe8, 0x29, 0x1c}},
+    {"Mp2StreamPool_Shutdown",    0x006c90c0, (void *)&Mp2StreamPool_Shutdown, {0xe8, 0x2b, 0x00, 0x00, 0x00}},
+    {"Mp2StreamPool_Purge",       0x006c90f0, (void *)&Mp2StreamPool_Purge, {0xa1, 0x18, 0x27, 0xfb, 0x00}},
+    {"Mp2StreamPool_New",         0x006c9140, (void *)&Mp2StreamPool_New, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"Mp2StreamPool_Delete",      0x006c91c0, (void *)&Mp2StreamPool_Delete, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

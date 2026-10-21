@@ -33,5 +33,11 @@ s32 __fastcall Mp2BufferDecoder_Open(u8 *decoder, void *, u32 buffer, s32 bytes)
 // 0x6d1990 (thiscall; stream, bytes, pops 8): the same over a stream (+0x2c7c; the frame buffer +0x247c as +0x2428), the counts in the
 // other order, then the stream's slot 2 (seek) to 0.
 s32 __fastcall Mp2StreamDecoder_Open(u8 *decoder, void *, u32 stream, s32 bytes);
+// 0x6c9210 (thiscall; the stream decoder's through the thunk 0x6c8a50): the buffer decoder's vtable 0x7118e0 set, then closed if open.
+void __fastcall Mp2Decoder_Dtor(u8 *decoder, void *);
+// 0x6c9230 / 0x6c8a20 (thiscall; flags, pops 4; slot 0 of the buffer / stream decoder): destroyed, then (flags bit 0) back to its pool
+// (Mp2BufferPool_Delete 0x2478 / Mp2StreamPool_Delete 0x2c80). Returns the decoder.
+u8 *__fastcall Mp2BufferDecoder_DeletingDtor(u8 *decoder, void *, u32 flags);
+u8 *__fastcall Mp2StreamDecoder_DeletingDtor(u8 *decoder, void *, u32 flags);
 
 }  // extern "C"
