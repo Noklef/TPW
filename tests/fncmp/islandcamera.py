@@ -1,6 +1,6 @@
 # The lobby island's camera settings read (0x5e2cc0 IslandCamera_LoadSettings, src/game/frontend/islandcamera) against the original: the
 # path the two global Strings (0xf855b8 + 0xf855d0) under vfs.py's mounts, the file from its memory source (particlelib.py's way): lines of
-# the seven keys (case varied now and then, other lines between) with numbers, odd text, missing ',' or ')' and camera indexes 0-9 or past
+# the seven keys (case varied now and then, other lines between) with numbers, odd text, now and then a missing ',' or ')' (a token then read on to a later line's or past the block) and camera indexes 0-9 or past
 # them, mostly '\n' ended ("\r\n" now and then); the size answer the data's length mostly, else short or into the source's random tail.
 # usage: islandcamera.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
@@ -32,11 +32,11 @@ def line(r):
     k = r.random()
     if k < 0.45:
         key = r.choice(KEYS)
-        tail = number(r) + r.choice([b')', b')', b')', b'', b',1)'])
+        tail = number(r) + (b'' if r.random() < 0.03 else r.choice([b')', b')', b')', b',1)']))
     elif k < 0.85:
         key = CAMERA
         index = r.choice([b'0', b'1', b'5', b'9', b'10', b'-1', b'11', b'x', b' 3', str(r.randrange(10)).encode()])
-        tail = index + b',' + number(r) + r.choice([b',', b',', b')']) + number(r) + r.choice([b')', b')', b''])
+        tail = index + b',' + number(r) + (b')' if r.random() < 0.03 else b',') + number(r) + (b'' if r.random() < 0.03 else b')')
     else:
         return r.choice([b'', b'// comment', b'ISLAND', b'SPIN(1)', b'islandfov(3)', b'  ISLANDFOV(2)', r.bytes(r.randrange(8)).replace(b'\n', b'')])
     if r.random() < 0.1:
@@ -50,7 +50,7 @@ def case(r):
     root = vfs.mounts(r, log, regions)
     lines = [line(r) for _ in range(r.choice([0, 1, 2, 4, 8, 16, 30]))]
     data = b''.join(x + (b'\r\n' if r.random() < 0.1 else b'\n') for x in lines)
-    if lines and r.random() < 0.15:   # (a last line without '\n': read on past the block, sic)
+    if lines and r.random() < 0.04:   # (a last line without '\n': read on past the block, sic)
         data = data.rstrip(b'\n')
     vfs.memory_source(r, log, regions, data)
     set_return(log, 8, r.choice([len(data)] * 8 + [len(data) // 2, len(data) + r.randrange(1, 0x40)]))
