@@ -44,6 +44,11 @@ u32 __cdecl Quickload_HasStem(const char *path, u32 index, u32 second);
 // the buffer with flag 1, else the directory read.
 char *__cdecl Quickload_Locate(const char *name, u32 flags, s32 *index);
 
+// 0x44a220 (cdecl; name, flags; name unconfirmed): with flag 2 the name's last part (after its last '\') looked up (Quickload_Has, the
+// second directory's with flag 8, at the current texture directory TexDirs_Current) is the answer (-1 too) unless flag 4 and it is 0.
+// Else (or then) VFS_FileExists(name). No loaded check, unlike Quickload_Locate.
+s32 __cdecl Quickload_Exists(const char *name, u32 flags);
+
 // 0x461a60 (cdecl; name, folder, c; name unconfirmed): a ride's quickload indexes read and its texture directories set. Loaded
 // indexes first freed (both tables' names and text, from the last index down) and the mark cleared. The located path "folder\name"
 // (with no folder the name alone, as the format, sic) goes to Quickload_Locate (flags 0); index -1 fails (0). With the second

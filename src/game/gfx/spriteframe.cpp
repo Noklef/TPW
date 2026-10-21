@@ -71,6 +71,63 @@ u32 __fastcall SpriteImage_AllocPixels(u8 *image, void *, u32 width, u32 height)
     return 1;
 }
 
+u32 __fastcall SpriteImage_SetTexture(u8 *image, void *, u32 pixels, u32 palette, u32 source, u32 width, u32 height, u8 *texture,
+                                      u32 flags) {
+    if (texture == nullptr) {
+        if (u8 *const array = static_cast<u8 *>(GameHeap_Alloc(100))) {
+            at<s32>(array, 0) = 1;
+            texture = array + 4;
+            CRT_VectorVbaseCtorIterator(texture, 0x60, 1, reinterpret_cast<void(__fastcall *)(void *, void *, u32)>(&Texture_Ctor),
+                                        reinterpret_cast<void *>((uintptr_t)0x00590a70));
+        }
+        at<u8 *>(image, 0) = texture;
+        if (texture == nullptr) {
+            EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 2, 0xb0754000);
+            return 0;
+        }
+    } else {
+        at<u8 *>(image, 0) = texture;
+    }
+    at<u32>(at<u8 *>(image, 0), 0x40) = source != 0 ? source : pixels;
+    at<u32>(at<u8 *>(image, 0), 0x3c) = palette;
+    at<u32>(at<u8 *>(image, 0), 8) = (palette != 0 ? 0x1000440u : 0x1000040u) | flags | 0x100;
+    Texture_SetSize(at<u8 *>(image, 0), nullptr, width, height);
+    at<u16>(at<u8 *>(image, 0), 0x34) = (u16)width;
+    return 1;
+}
+
+u32 __fastcall SpriteImage_MakeTextures(u8 *image, void *, u32 x, u32 y) {
+    const s32 tile = at<s32>(global<u8 *>(0x008c4b44), 0x18f0);
+    const s32 across = (s32)(tile + at<u16>(image, 0x10) - 1) / tile;
+    const s32 down = (s32)(tile + at<u16>(image, 0x12) - 1) / tile;
+    const s32 count = down * across;
+    u8 *textures = nullptr;
+    if (u8 *const array = static_cast<u8 *>(GameHeap_Alloc((u32)count * 0x60 + 4))) {
+        at<s32>(array, 0) = count;
+        textures = array + 4;
+        CRT_VectorVbaseCtorIterator(textures, 0x60, count, reinterpret_cast<void(__fastcall *)(void *, void *, u32)>(&Texture_Ctor),
+                                    reinterpret_cast<void *>((uintptr_t)0x00590a70));
+    }
+    at<u8 *>(image, 0) = textures;
+    if (textures == nullptr)
+        return 0;
+    at<u16>(image, 0x16) = (u16)(down * across);
+    u32 offset = 0;
+    for (s32 row = 0; row < down; ++row, y += (u32)tile) {
+        const u32 height = row < down - 1 ? (u32)tile : (((u32)tile - 1) & ((u32)at<u16>(image, 0x12) - 1)) + 1;
+        u32 column = 0;
+        for (s32 col = 0; col < across; ++col, column += (u32)tile, offset += 0x60) {
+            const u32 width = col < across - 1 ? (u32)tile : (((u32)tile - 1) & ((u32)at<u16>(image, 0x10) - 1)) + 1;
+            at<u32>(at<u8 *>(image, 0) + offset, 8) = 0x5180200;
+            Texture_SetSize(at<u8 *>(image, 0) + offset, nullptr, width, height);
+            at<u16>(at<u8 *>(image, 0) + offset, 0x34) = at<u16>(image, 0xc);
+            const u32 pixel = reinterpret_cast<const u32 *>((uintptr_t)0x00701fe0)[global<u32>(0x008bd554)];
+            at<u32>(at<u8 *>(image, 0) + offset, 0x40) = (y * at<u16>(image, 0xc) + x + column) * pixel + at<u32>(image, 4);
+        }
+    }
+    return 1;
+}
+
 u8 *__fastcall SpriteImage_Init(u8 *image) {
     for (u32 offset = 0xc; offset < 0x18; offset += 2)
         at<u16>(image, offset) = 0;

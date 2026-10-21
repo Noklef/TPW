@@ -18,7 +18,8 @@ st0, 'edi' EDI (an original that leaves a result there, its port's naked thunk m
 the original stores, which the two sides' stacks cannot share). A register convention (hand-written assembly taking
 its arguments in registers) names the registers, three letters each, in argument order: conv='esi' puts args[0] in ESI and the rest on the
 stack, 'esiedi' args[0] in ESI and args[1] in EDI (of EAX EBX ECX EDX ESI EDI); the hook row's replacement is then the port's naked thunk
-(src/hook/regthunks.h), which pushes the registers as the port's ordinary cdecl arguments. Region addresses must be in the game's data (0x6e7000-0xfc5200) or at 0x10000000 and up (RAM, ALLOC.. are free slots); anything a case
+(src/hook/regthunks.h), which pushes the registers as the port's ordinary cdecl arguments. Call(steps=) the emulator's step limit (5 000 000: a case past it is a
+"step limit"; raise it only for a function whose smallest real input runs that long). Region addresses must be in the game's data (0x6e7000-0xfc5200) or at 0x10000000 and up (RAM, ALLOC.. are free slots); anything a case
 does not set reads as the exe image there, else zero, in both. No region may be empty (the driver reads its bytes as one hex token, so an
 empty one would desynchronise every later case): Bench.cases refuses such a case, naming the bench, the case and the region. The emulator is strict, like
 the driver: an access outside the regions' 64 KB chunks, the stack and the game's data (the
@@ -281,11 +282,12 @@ def register_args(conv):
 
 
 class Call:
-    def __init__(self, address, args, regions, conv='c', ret='v', cw=0x7f, masks=(), ignore=()):
+    def __init__(self, address, args, regions, conv='c', ret='v', cw=0x7f, masks=(), ignore=(), steps=5_000_000):
         self.address, self.args, self.regions, self.conv, self.ret = address, list(args), dict(regions), conv, ret
         if len(register_args(conv)) > len(self.args):
             raise ValueError('register convention %r needs %d arguments' % (conv, len(register_args(conv))))
         self.cw, self.ignore = cw, list(ignore)
+        self.steps = steps   # (the emulator's step limit: raise it only for a case that must run that long)
         self.masks = list(masks)
         for m in self.masks:
             if m.region not in self.regions or (m.offsets and m.offsets[-1] >= len(self.regions[m.region])):
@@ -491,6 +493,7 @@ def echo(log, k, arg):
 
 LOG_STRINGS = 0xa00  # from here a mask for each slot: the arguments that are C strings, and out arguments (see strings())
 LOG_FILL = 0xb00  # two fills (+ 0x80 the second): (k | 0x80000000, argument, length), the bytes from + 0x10 (see fill())
+LOG_FILL3 = 0xf80  # a third fill (which=2), past the zlib overrides
 LOG_BYTES = 0xc00  # from here a mask for each slot: BYTE arguments, logged as their low byte (the rest of the pushed register is not the callee's)
 LOG_BLOBS = 0xd00  # from here two dwords for each slot: an argument + 1 and a dword mask; that argument is logged as a hash of the dwords it selects (see blob())
 LOG_ZLIB = 0xf00  # the zlib stand-ins' overrides: the inits', deflate's, inflate's (a flag and a value each, see zlib_results())
@@ -547,16 +550,21 @@ def strings(log, k, mask, out=0):
     struct.pack_into('<I', log, LOG_STRINGS + 4 * (k & 63), mask | out << 16)
 
 
+def fill_at(which):
+    return LOG_FILL3 if which == 2 else LOG_FILL + 0x80 * which
+
+
 def fill(log, k, arg, data, which=0):
-    """Makes slot k's recorder write `data` (at most 0x70 bytes) through its argument `arg` (unless null), as an import fills an out structure; which: 0 or 1."""
-    at = LOG_FILL + 0x80 * which
+    """Makes slot k's recorder write `data` (at most 0x70 bytes) through its argument `arg` (unless null), as an import fills an out structure; which: 0, 1
+    or 2 (three fills: a key's handle, then a value's type and its data, say)."""
+    at = fill_at(which)
     struct.pack_into('<3I', log, at, (k & 63) | 0x80000000, arg, len(data))
     log[at + 0x10:at + 0x10 + len(data)] = data
 
 
 def fill_arg(log, k, arg, source, which=0):
     """Makes slot k's recorder write its argument `source` (a dword, as passed) through its argument `arg`: ReadFile's bytes read, all it was asked for."""
-    struct.pack_into('<3I', log, LOG_FILL + 0x80 * which, (k & 63) | 0x80000000, arg, 0x80000000 | source)
+    struct.pack_into('<3I', log, fill_at(which), (k & 63) | 0x80000000, arg, 0x80000000 | source)
 
 
 def blob(log, k, arg, mask):
@@ -641,7 +649,7 @@ def _log_args(e, k, raw):
     args = list(raw)
     mask = e.u32(LOG + LOG_STRINGS + 4 * (k & 63))
     low = e.u32(LOG + LOG_BYTES + 4 * (k & 63))
-    fills = [(LOG + LOG_FILL + 0x80 * f,) + struct.unpack('<3I', e.read(LOG + LOG_FILL + 0x80 * f, 12)) for f in range(2)]
+    fills = [(LOG + fill_at(f),) + struct.unpack('<3I', e.read(LOG + fill_at(f), 12)) for f in range(3)]
     blob_arg, blob_mask = struct.unpack('<2I', e.read(LOG + LOG_BLOBS + 8 * (k & 63), 8))
     for i in range(n):
         for at, fk, fa, fn in fills:
@@ -910,7 +918,7 @@ class Bench:
         if c.masks:  # (the original must never read a masked byte: Mask)
             e.rb = _watching(e, {(m.region + o) & 0xffffffff for m in c.masks for o in m.offsets})
         try:
-            for _ in range(5_000_000):
+            for _ in range(c.steps):
                 if pc == x87emu.SENTINEL:
                     break
                 if hooked is not None and pc in hooked and pc not in stand_ins:

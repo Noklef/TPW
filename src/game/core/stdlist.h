@@ -20,6 +20,9 @@ void __fastcall StdListString_PushBack(u8 *list, void *, const StdString *x);
 // the port returns a static copy of the released local).
 const StdString *__fastcall StdListString_Next(u8 *list);
 
+// 0x5cd430 (thiscall; name unconfirmed): the list's cursor (+0xc) put on its first node, then StdListString_Next (a tail jump).
+const StdString *__fastcall StdListString_First(u8 *list);
+
 // 0x4a8ad0 (thiscall on the owner of a list of std::string at +0x10 (sentinel +0x14, count +0x18); chars, pops 4; name unconfirmed): a std::string
 // made of the characters (_Grow(strlen, true); its allocator byte the low byte of the chars pointer, sic) is copied (StdString_CopyCtor) into a node linked in
 // front of the sentinel, the count raised; then released.

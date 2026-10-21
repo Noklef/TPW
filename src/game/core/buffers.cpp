@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../files/file.h"
+#include "../gfx/imageops.h"
 #include "crt.h"
 #include "gameheap.h"
 #include "stdwstring.h"
@@ -256,6 +257,11 @@ void __fastcall Blocks7_Free(u8 *object) {
             at<u32>(object, base + 0xc) = 0;
         }
     }
+}
+
+u8 __fastcall Blocks7_ShrinkSurface(u8 *object, void *, const SurfaceDesc *desc) {
+    Image_ShrinkSurface(object + 0x60, nullptr, *desc);
+    return 1;
 }
 
 u8 *__fastcall Blocks7_Ctor(u8 *object) {

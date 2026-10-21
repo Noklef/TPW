@@ -34,6 +34,11 @@ u32 __cdecl TrakChunk_End(u8 *chunk);
 // Returns the total. (A Debug_Printf is left out.)
 u32 __cdecl TrakChunk_Close(u8 *chunk);
 
+// 0x54bbe0 (cdecl (&handle, ride handle); name unconfirmed): the first thing in use (World_FirstThing / World_NextThing on [0x7cf83c],
+// newest first) that is an object (+2 is 3) of the ride (its dword +0x28 the handle): its handle (Thing_GetHandle), else 0. (Each step's
+// empty Debug_Printf left out.) Returns &handle.
+u16 *__cdecl TrakRide_FindThing(u16 *out, u32 ride);
+
 // 0x54bbb0 (&result, stream, buffer, count, &done): Stream_Read; returns &result.
 s32 *__cdecl TrakStream_Read(s32 *result, Stream *stream, void *buffer, s32 count, s32 *done);
 

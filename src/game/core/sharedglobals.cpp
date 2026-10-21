@@ -36,6 +36,7 @@ void SharedGlobals_SetEnv(const SharedGlobalsEnv *env) { g_env = env ? env : &kG
 extern "C" {
 
 void __cdecl Global7ced48_Release() { release(0x007ced48); }
+void __cdecl Globalf827e8_Release() { release(0x00f827e8); }
 void __cdecl Globalfb1dc0_Release() { release(0x00fb1dc0); }
 void __cdecl Globalfb1dbc_Release() { release(0x00fb1dbc); }
 void __cdecl Globalfb1dc4_Release() { release(0x00fb1dc4); }
@@ -61,6 +62,8 @@ void __cdecl Globalfb1ec4_Release() { release(0x00fb1ec4); }
 
 u8 *__cdecl Global7ced44_Set(u8 *shared) { return set(0x007ced44, shared, 0x004f7970); }
 u8 *__cdecl Global7ced48_Set(u8 *shared) { return set(0x007ced48, shared, 0x004f7a10); }
+u8 *__cdecl Globalf827dc_Set(u8 *shared) { return set(0x00f827dc, shared, 0x005d15d0); }
+u8 *__cdecl Globalf827e8_Set(u8 *shared) { return set(0x00f827e8, shared, 0x005d1670); }
 u8 *__cdecl Globalfb1dc0_Set(u8 *shared) { return set(0x00fb1dc0, shared, 0x00699650); }
 u8 *__cdecl Globalfb1dbc_Set(u8 *shared) { return set(0x00fb1dbc, shared, 0x00699770); }
 u8 *__cdecl Globalfb1dc4_Set(u8 *shared) { return set(0x00fb1dc4, shared, 0x00699890); }

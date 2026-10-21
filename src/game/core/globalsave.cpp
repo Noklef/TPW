@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "balancefile.h"
 #include "gameheap.h"
 #include "savegame.h"
 #include "stdlist.h"
@@ -52,6 +53,24 @@ void SetSignName(u8 *info, u32 at, const u16 *name) {
         while (--count)
             *to++ = 0;
     theme[0xb8] = 1;
+}
+
+// 0x5af4a0's count (inlined in 0x5af530, 0x5af5d0 and 0x5af680): the theme map's head re-read each step.
+s32 CountSetFlags(const u8 *info) {
+    s32 count = 0;
+    for (u32 i = 0; i < 4; ++i)
+        count += info[0x18 + i] != 0;
+    u8 *node = at<u8 *>(at<u8 *const>(info, 0x3c), 0);
+    while (node != at<u8 *const>(info, 0x3c)) {
+        if (ThemeRecord_LoadGlobalSam(at<u8 *>(node, 0x20))) {
+            s32 theme = 0;
+            for (u32 i = 0; i < 6; ++i)
+                theme += at<const u8 *>(node, 0x20)[i] != 0;
+            count += theme;
+        }
+        StdTree_IncF(&node);
+    }
+    return count;
 }
 
 }  // namespace
@@ -152,4 +171,12 @@ u8 *__cdecl GlobalSave_Instance() {
 }
 
 u32 __stdcall GlobalSave_HasKey(u32 key) { return Obj_HasKey5af780(GlobalSave_Instance(), nullptr, key); }
+
+s32 __fastcall GlobalSave_CountSet4(const u8 *info) { return CountSetFlags(info); }
+
+s32 __fastcall GlobalSave_CountSet(const u8 *info) { return CountSetFlags(info) + (info[0x26] != 0) + (info[0x27] != 0); }
+
+s32 __fastcall GlobalSave_CountSetLeft(const u8 *info) { return GlobalSave_CountSet(info) - at<s32>(info, 0x1c); }
+
+s32 __fastcall GlobalSave_CountSetLevel(const u8 *info) { return GlobalSave_CountSet(info) / 3 + at<s32>(info, 0x20); }
 }

@@ -51,6 +51,45 @@ template <bool Max> u32 Filter(u32 *image, s32 radius) {
 // byte += ((target - byte) * weight) >> 8, as the compiled code: 32-bit arithmetic cut to the low byte.
 u8 Blend(u8 byte, u32 target, u32 weight) { return (u8)(((target - byte) * weight) >> 8) + byte; }
 
+// A colour mask's shifts: down by its lowest set bit, up by 8 - the run of set bits from it (as the shift count, modulo 32). A mask of 0
+// never ends, sic.
+void MaskShifts(u32 mask, u32 &down, u32 &up) {
+    u32 zeros = 0, ones = 0;
+    while ((mask & 1) == 0) {
+        mask >>= 1;
+        ++zeros;
+    }
+    while ((mask & 1) != 0) {
+        mask >>= 1;
+        ++ones;
+    }
+    down = zeros;
+    up = (8 - ones) & 31;
+}
+
+// Image_ShrinkSurface's band, averaged down into the image's pixels: 0xff, then bytes 1-3. Returns byte 0's sum for the last column.
+u32 ShrinkBandDown(const u8 *rows, u32 yc, u8 *&out) {
+    u32 sum0 = 0;
+    for (u32 i = 0; i < 320; ++i) {
+        const u8 *column = rows + i * 4;
+        u32 sum1 = 0, sum2 = 0, sum3 = 0;
+        sum0 = 0;
+        for (u32 k = yc; k != 0; --k) {
+            sum0 += column[0];
+            sum1 += column[1];
+            sum2 += column[2];
+            sum3 += column[3];
+            column += 0x500;
+        }
+        out[0] = 0xff;
+        out[1] = (u8)((sum1 & 0xffff) / yc);  // (a count of 0 divides by 0, sic)
+        out[2] = (u8)((sum2 & 0xffff) / yc);
+        out[3] = (u8)((sum3 & 0xffff) / yc);
+        out += 4;
+    }
+    return sum0;
+}
+
 }  // namespace
 
 extern "C" {
@@ -315,5 +354,180 @@ void __fastcall Image_ErosionRamp(void *, void *, const u32 *a, u32 count, const
         out[i] |= work[2 * i];
     if (work)
         GameHeap_Free(work);
+}
+
+u8 __fastcall Image_ShrinkSurface(u8 *image, void *, SurfaceDesc desc) {
+    const u32 *const d = desc.d;
+    const u32 red = d[0x58 / 4], green = d[0x5c / 4], blue = d[0x60 / 4];
+    u32 redDown, redUp, greenDown, greenUp, blueDown, blueUp;
+    MaskShifts(red, redDown, redUp);
+    MaskShifts(green, greenDown, greenUp);
+    MaskShifts(blue, blueDown, blueUp);
+    if (void *const old = at<void *>(image, 0xc)) GameHeap_Free(old);
+    u8 *out = static_cast<u8 *>(GameHeap_Alloc(0x4b000));
+    at<u8 *>(image, 0xc) = out;
+    if (out != nullptr) {
+        at<u32>(image, 0) = 0x140;
+        at<u32>(image, 4) = 0xf0;
+        at<u32>(image, 8) = 4;
+    }
+    const u32 xstep = ((d[0xc / 4] << 16) + 0x8000) / 320;
+    const u32 ystep = ((d[8 / 4] << 16) + 0x8000) / 240;
+    u8 *const rows = static_cast<u8 *>(GameHeap_Alloc(((ystep >> 16) + 1) * 0x500));
+    if (rows == nullptr) return 0;
+    u8 *const xcounts = static_cast<u8 *>(GameHeap_Alloc(0x140));
+    u8 *const ycounts = static_cast<u8 *>(GameHeap_Alloc(0xf0));
+    if (xcounts == nullptr || ycounts == nullptr) return 0;  // (the blocks taken kept, sic)
+    u32 position = 0;
+    for (u32 i = 0; i < 0x140; ++i) {
+        const u32 before = position;
+        position += xstep;
+        xcounts[i] = (u8)((position >> 16) - (before >> 16));
+    }
+    position = 0;
+    for (u32 j = 0; j < 0xf0; ++j) {
+        const u32 before = position;
+        position += ystep;
+        ycounts[j] = (u8)((position >> 16) - (before >> 16));
+    }
+    const u32 bits = d[0x54 / 4];
+    const u8 *row = reinterpret_cast<const u8 *>((uintptr_t)d[0x24 / 4]);
+    if (bits == 16) {
+        const u32 step = (d[0x10 / 4] >> 1) * 2;
+        const u16 *source = reinterpret_cast<const u16 *>(row);
+        u32 first = 0;  // (byte 0: never reset, sic)
+        for (u32 j = 0; j < 0xf0; ++j) {
+            const u32 yc = ycounts[j];
+            u8 *band = rows;
+            if (yc != 0) {
+                for (u32 k = yc; k != 0; --k) {
+                    for (u32 i = 0; i < 0x140; ++i) {
+                        const u32 xc = xcounts[i];
+                        u32 sumR = 0, sumG = 0, sumB = 0;
+                        if (xc != 0) {
+                            first += xc * 255;
+                            for (u32 n = xc; n != 0; --n) {
+                                const u32 pixel = *source++;
+                                sumR += ((red & pixel) >> redDown) << redUp;
+                                sumG += ((green & pixel) >> greenDown) << greenUp;
+                                sumB += ((blue & pixel) >> blueDown) << blueUp;
+                            }
+                        }
+                        first = (first & 0xffff) / xc;  // (a count of 0 divides by 0, sic)
+                        band[0] = (u8)first;
+                        band[1] = (u8)((sumR & 0xffff) / xc);
+                        band[2] = (u8)((sumG & 0xffff) / xc);
+                        band[3] = (u8)((sumB & 0xffff) / xc);
+                        band += 4;
+                    }
+                    row += step;
+                    source = reinterpret_cast<const u16 *>(row);
+                }
+            }
+            first = ShrinkBandDown(rows, yc, out);
+        }
+    } else if (bits == 32) {
+        const u8 *source = row;
+        for (u32 j = 0; j < 0xf0; ++j) {
+            const u32 yc = ycounts[j];
+            u8 *band = rows;
+            if (yc != 0) {
+                for (u32 k = yc; k != 0; --k) {
+                    for (u32 i = 0; i < 0x140; ++i) {
+                        const u32 xc = xcounts[i];
+                        u32 sum0 = 0, sum1 = 0, sum2 = 0, sum3 = 0;
+                        for (u32 n = xc; n != 0; --n) {
+                            sum0 += source[0];
+                            sum1 += source[1];
+                            sum2 += source[2];
+                            sum3 += source[3];
+                            source += 4;
+                        }
+                        band[0] = (u8)((sum3 & 0xffff) / xc);
+                        band[1] = (u8)((sum2 & 0xffff) / xc);
+                        band[2] = (u8)((sum1 & 0xffff) / xc);
+                        band[3] = (u8)((sum0 & 0xffff) / xc);
+                        band += 4;
+                    }
+                    row += d[0x10 / 4];
+                    source = row;
+                }
+            }
+            ShrinkBandDown(rows, yc, out);
+        }
+    } else {
+        return bits == 24 ? 0 : 1;
+    }
+    GameHeap_Free(ycounts);
+    GameHeap_Free(xcounts);
+    GameHeap_Free(rows);
+    return 1;
+}
+
+u8 __fastcall Image_ShrinkToImage(const u8 *image, void *, u8 *dest) {
+    const s32 width = at<s32>(dest, 0), height = at<s32>(dest, 4);
+    const u32 xstep = (u32)((s32)((at<u32>(image, 0) << 16) + 0x8000) / width);  // (signed, sic)
+    const u32 ystep = (u32)((s32)((at<u32>(image, 4) << 16) + 0x8000) / height);
+    const u8 *source = at<const u8 *>(image, 0xc);
+    u8 *out = at<u8 *>(dest, 0xc);
+    u8 *const rows = static_cast<u8 *>(GameHeap_Alloc((((ystep >> 16) + 1) * (u32)width) << 2));
+    if (rows == nullptr) return 0;
+    u8 *const xcounts = static_cast<u8 *>(GameHeap_Alloc((u32)width));
+    u8 *const ycounts = static_cast<u8 *>(GameHeap_Alloc((u32)height));
+    if (xcounts == nullptr || ycounts == nullptr) return 0;  // (the blocks taken kept, sic)
+    u32 position = 0;
+    for (s32 i = 0; i < width; ++i) {
+        const u32 before = position;
+        position += xstep;
+        xcounts[i] = (u8)((position >> 16) - (before >> 16));
+    }
+    position = 0;
+    for (s32 j = 0; j < height; ++j) {
+        const u32 before = position;
+        position += ystep;
+        ycounts[j] = (u8)((position >> 16) - (before >> 16));
+    }
+    for (s32 j = 0; j < height; ++j) {
+        const u32 yc = ycounts[j];
+        u8 *band = rows;
+        for (u32 k = yc; k != 0; --k) {
+            for (s32 i = 0; i < width; ++i) {
+                const u32 xc = xcounts[i];
+                u32 sum0 = 0, sum1 = 0, sum2 = 0, sum3 = 0;
+                for (u32 n = xc; n != 0; --n) {
+                    sum0 += source[0];
+                    sum1 += source[1];
+                    sum2 += source[2];
+                    sum3 += source[3];
+                    source += 4;
+                }
+                band[0] = (u8)((sum0 & 0xffff) / xc);  // (a count of 0 divides by 0, sic)
+                band[1] = (u8)((sum1 & 0xffff) / xc);
+                band[2] = (u8)((sum2 & 0xffff) / xc);
+                band[3] = (u8)((sum3 & 0xffff) / xc);
+                band += 4;
+            }
+        }
+        for (s32 i = 0; i < width; ++i) {
+            const u8 *column = rows + i * 4;
+            u32 sum0 = 0, sum1 = 0, sum2 = 0, sum3 = 0;
+            for (u32 k = yc; k != 0; --k) {
+                sum0 += column[0];
+                sum1 += column[1];
+                sum2 += column[2];
+                sum3 += column[3];
+                column += (u32)width * 4;
+            }
+            out[0] = (u8)((sum0 & 0xffff) / yc);
+            out[1] = (u8)((sum1 & 0xffff) / yc);
+            out[2] = (u8)((sum2 & 0xffff) / yc);
+            out[3] = (u8)((sum3 & 0xffff) / yc);
+            out += 4;
+        }
+    }
+    GameHeap_Free(ycounts);
+    GameHeap_Free(xcounts);
+    GameHeap_Free(rows);
+    return 1;
 }
 }  // extern "C"

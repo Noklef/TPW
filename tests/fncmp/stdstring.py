@@ -1,5 +1,5 @@
 # The game's MSVC6 std::string members (0x45b340-0x45b998) and their users (the online
-# servers' settings 0x45aee0) against the originals; the copy constructor 0x4a9420 from x or s itself (npos 0x6fe5ac now and then small).
+# servers' settings 0x45aee0 their constructor 0x5d2a80 and destructor 0x45ad90) against the originals; the copy constructor 0x4a9420 from x or s itself (npos 0x6fe5ac now and then small).
 # usage: stdstring.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import sys
@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, HEAP, RAM, heap, put  # noqa: E402
 
-B = Bench([(0x45b340, 0x45b9a0), (0x45aee0, 0x45b1e4), (0x47b1c0, 0x47b2f6), (0x4a9420, 0x4a953c)])
+B = Bench([(0x45b340, 0x45b9a0), (0x45aee0, 0x45b1e4), (0x47b1c0, 0x47b2f6), (0x4a9420, 0x4a953c), (0x5d2a80, 0x5d2d0f), (0x45ad90, 0x45aedc)])
 STRS, BLOCKS, CHARS = RAM, RAM + 0x1000, RAM + 0x2000
 S, X = STRS, STRS + 0x10  # the string under test and a second one
 SLOT = 0x80  # a block per string in BLOCKS: count byte, then up to 0x7e characters + NUL
@@ -57,10 +57,38 @@ def online(r):
     return Call(0x45aee0, [], {BLOCKS: blocks, CHARS: chars, HEAP: heap(), 0x785828: bal, 0x7a14f0: servers})
 
 
+def servers_ctor(r):
+    """OnlineServers_Ctor on random bytes (the strings' allocator bytes, uninitialised stack in the original, left out), the heap failing one
+    of its blocks now and then."""
+    obj = RAM + 0x3000
+    regions = {obj: r.bytes(0x80), HEAP: heap(fail=r.choice([0] * 6 + [1, 2, 3, 4, 5, 6]))}
+    return Call(0x5d2a80, [obj], regions, conv='t', ret='a', ignore=[(obj + k, 1) for k in (0, 0x10, 0x20, 0x30, 0x40, 0x50, 0x6c)])
+
+
+def servers_dtor(r):
+    """OnlineServers_Dtor on seven strings as online() makes them (some sharing a block)."""
+    blocks = bytearray(r.bytes(8 * SLOT))
+    servers = bytearray(r.bytes(0x7c))
+    made = []
+    for k, at in enumerate((0, 0x10, 0x20, 0x30, 0x40, 0x50, 0x6c)):
+        x = string(r, blocks, k)
+        if made and r.random() < 0.15:
+            x = r.choice(made)
+            if x[0]:
+                blocks[x[0] - BLOCKS - 1] = r.choice([1, 2, 0xfd, 0xfe])
+        made.append(x)
+        put(servers, at + 4, '3I', *x)
+    return Call(0x45ad90, [RAM + 0x3000], {BLOCKS: blocks, HEAP: heap(), RAM + 0x3000: servers}, conv='t', ret='v')
+
+
 def case(r):
     op = r.choice(OPS)
+    if op == 'ServersDtor':
+        return servers_dtor(r)
     if op == 'Online':
         return online(r)
+    if op == 'ServersCtor':
+        return servers_ctor(r)
     blocks = bytearray(r.bytes(4 * SLOT))
     strs = bytearray(r.bytes(0x20))
     s = string(r, blocks, 0)
@@ -107,7 +135,7 @@ def case(r):
     return Call(0x45b380, [S, src, pos, count], regions, conv='t', ret='a')
 
 
-KINDS = ['Dtor', 'Tidy', 'AssignChars', 'Eos', 'Grow', 'MaxSize', 'Copy', 'Split', 'AssignSub', 'AssignSub', 'Online', 'Fill', 'Freeze', 'CopyCtor']
+KINDS = ['Dtor', 'Tidy', 'AssignChars', 'Eos', 'Grow', 'MaxSize', 'Copy', 'Split', 'AssignSub', 'AssignSub', 'Online', 'Fill', 'Freeze', 'CopyCtor', 'ServersCtor', 'ServersDtor']
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 if __name__ == '__main__':

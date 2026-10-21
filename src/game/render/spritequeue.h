@@ -28,6 +28,11 @@ u32 __fastcall SpriteQueue_Add2(u8 *queue, void *, u32 frame);
 // and cleared, the queue freed (GameHeap_Free) and [0x8c47a0] cleared: 1. Without one 0.
 u32 __cdecl SpriteQueue_Free();
 
+// 0x58a5c0 (thiscall (name), pops 4; name unconfirmed): the queue's texture array (+0x2400) destroyed when set (Texture_DestroyArray, no
+// release first) and cleared, then the name loaded by the texture manager at [0x87a268] (TexManager_Load) into it; got, its flags lose
+// 0x80 and gain 0x40040. Returns whether +0x2400 is set.
+u32 __fastcall SpriteQueue_LoadTexture(u8 *queue, void *, const char *name);
+
 // 0x491f20 (thiscall on a sprite set's +0x20 (its 0x6fdce8 part); flags; pops 4; names unconfirmed): the set's deleting destructor,
 // the 0x6ff308 class's (vtable slot 0, through the thunk 0x491f10). The set's virtual base (at the offset its table at +0 gives)
 // gets vtable 0x6ff308 and the displacement before it (offset - 0x20); the tracked array at the set's start is freed

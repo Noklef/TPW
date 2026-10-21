@@ -104,6 +104,22 @@ void __fastcall WaveletCodec_DecodeGrey(u8 *codec, void *, u32 width, u32 height
 // (rows half the side apart); then WaveletCodec_YuvToRgb (width, height, the side) and the stack array freed (Ptr_FreeIfSet).
 void __fastcall WaveletCodec_DecodeColour(u8 *codec, void *, u32 width, u32 height, const void *src, u8 *pixels, float qY, float qCb, float qCr);
 
+// 0x592000 (thiscall on the codec's interface at +0x54; width, height, colour, packed source, pixels, three quantisers; pops 0x20;
+// name unconfirmed): the colour decoder (WaveletCodec_DecodeColour) when the colour byte is set, else the grey one with the first
+// quantiser, on the codec 0x54 below. The quantisers pass on as their bits (no x87 load to quiet a NaN).
+void __fastcall WaveletCodec_DecodeColourOrGrey(u8 *face, void *, u32 width, u32 height, u32 colour, const void *src, u8 *pixels,
+                                               u32 q0, u32 q1, u32 q2);
+
+// 0x5916c0 (thiscall (most derived), pops 4; the SEH frame left out): most derived, +4 = the vbtable 0x702708 and +0x54 = 0x7026e8;
+// +8 = 1, +0xc..+0x4c cleared, +0 = 0x7026d8, the virtual base's vtable 0x7026b8 at +4 past the offset in the vbtable's second word
+// and that offset - 0x50 at the offset (as WaveletCodec_VBaseDtor). Then the decoders' tables from the current texture format's
+// (TexFormat_Table of 0x8bd550): for i 0..0x1ff the clamp c = i - 0x80 within 0..0xff at 0xc27008 + i and the u16s at +0, +4, +8,
+// +0xc of format entry c at 0xcef228, 0xcf0228, 0xcefe28 and 0xcef628 + 2i; for v -0x80..0x7f the dwords __ftol(v * the doubles at
+// 0x702640, 0x702648, 0x702650, 0x702658 (YUV to RGB's 1.772, -0.344, -0.714, 1.402; x87 at the game's precision)) at 0xbe6808,
+// 0xcefa28, 0xcf0628 and 0xc26c08. +0x4c = Mem_Alloc(0x62a39) (unchecked); +0x3c, just cleared, gets a cleared block of 0x10000
+// dwords (unchecked: none faults) and +0x40 = +0x44 = 0x10000 (the branches for a block already there are dead). Returns the codec.
+u8 *__fastcall WaveletCodec_Construct(u8 *codec, void *, u32 mostDerived);
+
 // 0x5935a0 (thiscall on the codec; width, height, the luma plane's stride in floats, the BGR pixels; pops 0x10): the planes at +0x2c (Y),
 // +0x1c (Cb) and +0xc (Cr, read at its distance from Cb rounded down to a dword) to 3-byte pixels. Its strides and the factors 1.772,
 // 1.402, 0.344136, 0.714136 and 1.5 * 2^23 + 128 go to globals at 0xfb2768-0xfb27ac first. Each 2 x 2 block (half the width by half the

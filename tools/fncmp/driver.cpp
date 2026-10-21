@@ -345,7 +345,7 @@ constexpr u32 recorder(u32 k, u32 n) { return kStubs + 0x1000 + 0x400 * n + 0x20
 
 // Optional settings in the log region: at + 0xa00 a mask per slot (k & 63): bits 0-15 the arguments that are C strings, logged and hashed as a hash of the string
 // (so that a path in a stack buffer, whose address differs between the sides, compares by its text), bits 16-31 out arguments, logged as 0 (a stack address;
-// what is written through them is a fill's, and shows in what the code does with it); at + 0xb00 and + 0xb80 two fills (k | 0x80000000, the argument, the
+// what is written through them is a fill's, and shows in what the code does with it); at + 0xb00, + 0xb80 and + 0xf80 three fills (k | 0x80000000, the argument, the
 // length; the bytes from + 0x10, at most 0x70; length bit 31: argument length & 0xff's value, fncmp.fill_arg()) written through that argument before the
 // recorder returns (an out structure, FindFirstFile's); at + 0xc00 a mask per slot of BYTE arguments, logged as their low byte (fncmp.LOG_BYTES); at + 0xd00
 // two dwords per slot, an argument + 1 (bits 0-4) and a dword mask: that argument (unless null) logged as a hash of the dwords it points to that the mask
@@ -389,8 +389,8 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
     const u32 mask = log[0x280 + (k & 63)];
     for (u32 i = 0; i < n; ++i) {  // (stack[0] is the thunk's own return address)
         args[i] = stack[1 + i];
-        for (u32 f = 0; f < 2; ++f) {
-            const u32 *fill = log + 0x2c0 + 0x20 * f;
+        for (u32 f = 0; f < 3; ++f) {
+            const u32 *fill = log + (f < 2 ? 0x2c0 + 0x20 * f : 0x3e0);  // (the third past the zlib overrides, fncmp.LOG_FILL3)
             if (fill[0] != ((k & 63) | 0x80000000u) || fill[1] != i || !args[i]) continue;
             if (fill[2] & 0x80000000u) {  // (fncmp.fill_arg(): an argument's value, as passed)
                 const u32 value = (fill[2] & 0xff) < n ? stack[1 + (fill[2] & 0xff)] : 0;

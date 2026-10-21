@@ -4,8 +4,10 @@
 # are (reading on into the array's tail), pixels at +4 or none; frames with or without an image, their sizes the ones given (as s16, or
 # only by the low words) or not; frame sets with or without a texture array, 0-3 images (the set's count theirs, fewer, one more, 0 or
 # negative) and a tracked block or none. Also the renderer part's thunks to 0x588c20 for its image at +0x9c (0x48f3c0, 0x48f410).
+# An image's texture set (0x588410: one given or a new one, the heap failing now and then) and its tiled textures (0x5889b0: sizes
+# 0-0x60 or any, tiles of 8-0x40 (or 0x18), the heap failing now and then).
 # usage: spritetextures.py [CASES [SEED]] [--wild|--both] [--show N]
-#        (env OPS=Free,FreeIfSet,Release,Dtor,FramesFree,SetSize,SetSize30,PartFree,PartFree2)
+#        (env OPS=Free,FreeIfSet,Release,Dtor,FramesFree,SetSize,SetSize30,PartFree,PartFree2,SetTexture,Make)
 import os
 import struct
 import sys
@@ -16,9 +18,10 @@ import texturemem  # noqa: E402
 from fncmp import Bench, Call, HEAP, LOG, RAM, global_heap, heap, log_region, put  # noqa: E402
 
 CALLS = {'Free': 0x588ba0, 'FreeIfSet': 0x588c20, 'Release': 0x588ca0, 'Dtor': 0x588350, 'FramesFree': 0x588230, 'SetSize': 0x588d90,
-         'SetSize30': 0x588e40, 'PartFree': 0x48f3c0, 'PartFree2': 0x48f410}
+         'SetSize30': 0x588e40, 'PartFree': 0x48f3c0, 'PartFree2': 0x48f410, 'SetTexture': 0x588410, 'Make': 0x5889b0}
 B = Bench([(0x48f3c0, 0x48f3ce), (0x48f410, 0x48f41c), (0x588ba0, 0x588d6e),(0x588d90, 0x588ee8), (0x588230, 0x5882d4), (0x588350, 0x588410), (0x590a70, 0x590a75),
-           (0x590b90, 0x590c39), (0x579b40, 0x579c13), (0x58dc50, 0x58dd5e), (0x67afa0, 0x67b0d0), (0x67acb0, 0x67acb1)])
+           (0x590b90, 0x590c39), (0x579b40, 0x579c13), (0x58dc50, 0x58dd5e), (0x67afa0, 0x67b0d0), (0x67acb0, 0x67acb1),
+           (0x588410, 0x58850d), (0x5889b0, 0x588b9c), (0x590a00, 0x590a70), (0x590d40, 0x590f7e), (0x67d830, 0x67d8f0), (0x56af20, 0x56af9c)])
 FRAME, IMAGE, ARRAY, IMAGES = RAM + 0x4000, RAM + 0x4100, RAM + 0x5000, RAM + 0x6000   # (the textures' own regions below RAM + 0x4000)
 SIZES = [0, 1, 5, 0x40, 0x7fff, 0x8000, 0xffff, 0x10005, 0xffff8000, 0xffffffff]
 BLOCKS = [0, HEAP + 0x1000, HEAP + 0x1100]
@@ -57,8 +60,36 @@ def frames(r, regions):
     regions[FRAME] = s
 
 
+def tiles(r, name):
+    """0x588410 / 0x5889b0: the image at IMAGE (its row width, sizes and pixels any or usual), the cache's tile size, the format,
+    the error list; a texture given (as texturemem.py's) or the heap failing now and then."""
+    regions = {HEAP: heap(0x20000, fail=r.choice([0] * 12 + [1])), **global_heap(), LOG: log_region()}
+    given = texturemem.textures(r, regions, ARRAY + 4, 1)
+    regions[ARRAY] = struct.pack('<I', 1) + given
+    cache = bytearray(regions[texturemem.CACHE])
+    put(cache, 0x18f0, 'i', r.choice([8, 0x10, 0x10, 0x20, 0x40, 0x18]))
+    regions[texturemem.CACHE] = bytes(cache)
+    regions[0x8bd554] = struct.pack('<I', r.randrange(4))
+    regions[0x879ad0] = put(bytearray(r.bytes(0x204)), 0x200, 'i', r.choice([r.randrange(0x40), 0, 0x3f, 0x40]))
+    regions[0x8798c8] = bytes(4)
+    img = bytearray(r.bytes(0x18))
+    size = [0, 1, 7, 8, 0x10, 0x11, 0x20, 0x40, 0x41, 0x60]
+    put(img, 0xc, 'H', r.choice(size + [r.getrandbits(16)]))   # (the row width; +0xe unused)
+    put(img, 0x10, 'HH', r.choice(size), r.choice(size))
+    regions[IMAGE] = img
+    if name == 'Make':
+        xy = [r.choice([0, 0, 1, 0x10, r.getrandbits(8), r.getrandbits(32)]) for _ in range(2)]
+        return Call(CALLS[name], [IMAGE] + xy, regions, conv='t', ret='a')
+    blocks = [0, 0, HEAP + 0x1000, r.getrandbits(32)]
+    args = [r.choice(blocks), r.choice(blocks), r.choice(blocks), r.choice(SIZES), r.choice(SIZES),
+            ARRAY + 4 if r.random() < 0.4 else 0, r.choice([0, 0, 0x8000, r.getrandbits(32)])]
+    return Call(CALLS[name], [IMAGE] + args, regions, conv='t', ret='a')
+
+
 def case(r):
     name = r.deal(OPS)
+    if name in ('SetTexture', 'Make'):
+        return tiles(r, name)
     regions = {HEAP: heap(), **global_heap(), LOG: log_region()}
     if name == 'FramesFree':
         frames(r, regions)

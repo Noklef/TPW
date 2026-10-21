@@ -5,8 +5,8 @@
 # a folder: as the game's, else both fault). The strings as gamestring.py's, their blocks from the heap region.
 # Open (0x5c4d50): a file opened through the mounts' current source and its archive, or the list of the others (see open_()); Exists
 # (0x46f120) the same, the stream got closed and deleted. Locate (0x44a280): a ride file through the quickload indexes or Exists (see
-# locate()).
-# usage: vfs.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=StripBase,Open,Exists,Locate)
+# locate()); Has (0x44a220): its sibling, whether the quickload indexes or the mounts have a file (the same case).
+# usage: vfs.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=StripBase,Open,Exists,Locate,Has)
 import os
 import struct
 import sys
@@ -21,7 +21,7 @@ from gamestring import BACKSLASH, DOT, LOCALE, SLASH2, string  # noqa: E402
 
 RANGES = gamestring.B_RANGES + [(0x41cff0, 0x41d2d0), (0x41ce90, 0x41ce94), (0x421720, 0x421780), (0x4217e0, 0x421800), (0x5c4d50, 0x5c4f70),
                                  (0x46f120, 0x46f160), (0x5c4f80, 0x5c4fb0), (0x618d30, 0x618d90), (0x44a280, 0x44a3c4), (0x461790, 0x461a60),
-                                 (0x45b9d0, 0x45ba15),
+                                 (0x45b9d0, 0x45ba15), (0x44a220, 0x44a27b), (0x46e630, 0x46e636),
                                  (0x4036a0, 0x4036e0), (0x639100, 0x639110)]   # (the last two: StreamBase's read, write and size, for memory_source())
 B = Bench(RANGES)
 TAIL, WAD, EMPTY = 0x78bf40, 0x78c810, 0x78be50
@@ -182,7 +182,7 @@ def exists(r):
     return open_(r, 0x46f120, [0x74cfb8])
 
 
-def locate(r):
+def locate(r, has=False):
     """0x44a280 (cdecl; name or 0, flags, &index or 0): mounts()'s case and files.py's quickload tables (at RAM + 0x40000 on, loaded or
     not); the name one of files.py's names, now and then under a folder, or one under the root (name_under()); flags of bits 0-3 or any;
     the directories [0x79cb4c] 64 dwords, the buffer 0x79c9d0 up to them."""
@@ -204,11 +204,14 @@ def locate(r):
     regions[RAM + 0x3d00] = r.bytes(0x100)
     regions[RAM + 0x3e00] = r.bytes(4)
     flags = r.choice([0, 1, 2, 3, 4, 6, 7, 0xa, 0xb, 0xe, 0xf, 0xc, r.getrandbits(4), r.getrandbits(32)])
+    if has:   # (0x44a220: the name and flags only, the current texture directory [0x7b0620] one of the tables' 4)
+        regions[0x7b0620] = struct.pack('<I', r.choice([0, 0, 1, 2, 3]))
+        return Call(0x44a220, [RAM + 0x60000, flags], regions, ret='a')
     args = [0 if r.random() < 0.04 else RAM + 0x60000, flags, r.choice([RAM + 0x3e00] * 4 + [0])]
     return Call(0x44a280, args, regions, ret='a')
 
 
-OPS_ALL = {'StripBase': strip_base, 'Open': open_, 'Exists': exists, 'Locate': locate}
+OPS_ALL = {'StripBase': strip_base, 'Open': open_, 'Exists': exists, 'Locate': locate, 'Has': lambda r: locate(r, has=True)}
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 

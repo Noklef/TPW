@@ -92,6 +92,19 @@ u32 __cdecl Quickload_HasStem(const char *path, u32 index, u32 second) {
     return 0;
 }
 
+s32 __cdecl Quickload_Exists(const char *name, u32 flags) {
+    const char *const slash = Crt().strrchr(name, '\\');
+    s32 found = 0;
+    if (flags & 2) {
+        found = Quickload_Has(slash ? slash + 1 : name, flags & 8, TexDirs_Current());
+        if (!(flags & 4))
+            return found;
+    }
+    if (found == 0)
+        found = (s32)VFS_FileExists(name);
+    return found;
+}
+
 char *__cdecl Quickload_Locate(const char *name, u32 flags, s32 *index) {
     if (!name) return nullptr;
     if (!loaded()) flags &= ~2u;
