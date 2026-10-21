@@ -19,7 +19,7 @@ def case(r):
     log = log_region()
     strings(log, 3, 0, out=1 << 5 | 1 << 7)   # Get's data and returned-size outs: one stack block
     if r.random() < 0.5:
-        set_return(log, 3, r.choice([0, 0, 1, 0x80004005, 0x80070057]))
+        set_return(log, 3, r.choice([0, 0, 1, 0x80004005, 0x80070057, 0x80000000, 0x10000]))   # (failures with a low word of 0 too)
     regions = {BUF: r.bytes(4) + struct.pack('<I', SET) + r.bytes(8), OUT: r.bytes(4), SET: struct.pack('<I', SVT) + r.bytes(0xc),
                SVT: vtable({}, com={3: 8}), LOG: log}
     return Call(CALLS[name], [BUF, OUT, r.getrandbits(32)], regions, conv='t', ret='a')
