@@ -133,6 +133,10 @@ def cmd_list(lo, hi, unlock=False):
         pushed = int(m.group(1), 16) if m else None
     starts |= generated & listing
     hooked = hooked | generated
+    # Ghidra's mis-splits, starts in the middle of another function (agents' reports): starts still, never listed.
+    missplit = {0x44adc0, 0x470330, 0x431ce0, 0x539490, 0x534d10, 0x538a40,   # B r21 (0x44adc0: the FADDP tail of 0x44ab90)
+                0x6c9a00, 0x6c9fd0}                                           # A r31: inside Mp2_Dct64 0x6c9580-0x6ca573
+    hooked = hooked | missplit
     for f in glob.glob(os.path.join(ROOT, '_re', 'decomp-typed', 'decomp_*.c')):
         for m in re.finditer(r'^// ==== (\S+) @ ([0-9a-f]{8}) ====', open(f, errors='replace').read(), re.M):
             starts.add(int(m.group(2), 16))
