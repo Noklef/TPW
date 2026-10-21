@@ -173,6 +173,7 @@
 #include "../game/core/gameerror.h"
 #include "../game/core/timesig.h"
 #include "../game/core/countedpair.h"
+#include "../game/core/imaadpcm.h"
 #include "../game/core/keyactions.h"
 #include "../game/core/sharedglobals.h"
 #include "../game/core/soundbank.h"
@@ -4165,6 +4166,7 @@ const Hook kHooks[] = {
     {"Globalfb1ed8_Set",          0x006ac5d0, (void *)&Globalfb1ed8_Set, {0x6a, 0xff, 0x68, 0x98, 0x54}},
     {"XaAdpcm_DecodeMono",        0x00672090, (void *)&XaAdpcm_DecodeMono, {0x8b, 0x4c, 0x24, 0x08, 0x83}},
     {"XaAdpcm_DecodeStereo",      0x00672210, (void *)&XaAdpcm_DecodeStereo, {0x83, 0xec, 0x28, 0x8b, 0x4c}},
+    {"ImaAdpcm_DecodeStereo",     0x00672cb3, (void *)&ImaAdpcm_DecodeStereo, {0x55, 0x8b, 0xec, 0x60, 0x33}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

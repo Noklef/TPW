@@ -154,6 +154,7 @@ add_library(tpw_game STATIC
     src/game/core/soundbank.cpp
     src/game/core/soundmixer.cpp
     src/game/core/xaadpcm.cpp
+    src/game/core/imaadpcm.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
