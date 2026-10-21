@@ -3546,6 +3546,7 @@ address,name,kind,confidence,notes
 0x00550ca0,Setting_ReadMode,function,high,reimplemented (src/game/core/options); reads the mode from the setting bits
 0x004c9050,Game_Field1da710IsZero,function,high,reimplemented (src/game/world/world); whether the game field at 0x1da710 is 0
 0x0051a9d0,World_BusStopBlocked,function,high,reimplemented (src/game/world/world); Checks the four cells around the bus stop for a kind 0x15 thing (name unconfirmed)
+0x00515540,World_Ctor,function,low,"reimplemented (src/game/world/world); thiscall: the world constructor: the clock at +0x2a0, the map, track and RE cells (vector constructor), the memory ranges, the records at +0x1d943c; the counters zeroed, [0x801bbc] the thing table"
 0x005cdfe0,List_EraseRangeCounted1,function,high,reimplemented (src/game/core/stdlist); erases a range of list nodes with counted buffers (count byte first)
 0x0059c570,Table76e300_LimitCheck,function,high,reimplemented (src/game/world/objectdefs); whether a limit reaches a table record's indexed object dword
 0x005b6230,Obj_HasActivity,function,high,reimplemented (src/game/world/object); whether any of an object's activity fields is set

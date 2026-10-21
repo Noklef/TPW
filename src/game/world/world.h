@@ -26,6 +26,13 @@ void __fastcall World_MarkRideBuilt(u8 *world, void *, u32 id);
 // them, else 1. Only bit 0 of each byte is ever compared (sic: (byte & bit) == 1).
 u32 __fastcall World_HasRides(u8 *world, void *, const u8 *wanted, u32 leave_out);
 
+// 0x515540 (thiscall; name unconfirmed): the world's constructor: +0 Class507800_Ctor, the calendar clock at +0x2a0 (FunnyTime_Construct), +0x2c4
+// Init_4cf030; the map's 0x4000 cells at +0x2d8 (MapCell_Ctor, 0x44 bytes each), the 0x4000 track cells 0x110000 past them (TrackCell_Ctor, 0x28
+// bytes) and the 0x4000 RE cells at map +0x1b1104 (RECell_Ctor, 10 bytes), constructed through CRT_VectorCtorIteratorNoEh, and the memory ranges
+// of the first two set (MemRanges_SetCells44 / 28); 0x96 0x20-byte records at +0x1d943c (Empty_Ctor); the words +0x1da73c..+0x1da746 0, the dword
+// +0x1da710 1, [0x7cf56c] 0 and [0x801bbc] 0x7cfb90. Returns the world.
+u8 *__fastcall World_Ctor(u8 *world);
+
 // 0x51ad30 (thiscall): an empty constructor (the vector constructor's for several types);
 // returns this.
 void *__fastcall Empty_Ctor(void *self);

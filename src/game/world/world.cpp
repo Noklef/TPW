@@ -3,7 +3,10 @@
 #include <cstdint>
 
 #include "../core/accessors.h"
+#include "../core/crt.h"
+#include "../core/funnytime.h"
 #include "../core/gameheap.h"
+#include "../core/initializers.h"
 #include "objectdefs.h"
 #include "mapcell.h"
 
@@ -20,6 +23,31 @@ void set_ride(u32 bitset, u32 n) { global<u8>(bitset + ((n - 1) >> 3)) |= (u8)(1
 }  // namespace
 
 extern "C" {
+
+u8 *__fastcall World_Ctor(u8 *world) {
+    using Ctor = void(__fastcall *)(void *);
+    Class507800_Ctor(world);
+    FunnyTime_Construct(world + 0x2a0);
+    Init_4cf030(world + 0x2c4);
+    u8 *const cells = world + 0x2d8;
+    u8 *const tracks = cells + 0x110000;
+    CRT_VectorCtorIteratorNoEh(cells, 0x44, 0x4000, reinterpret_cast<Ctor>(&MapCell_Ctor));
+    CRT_VectorCtorIteratorNoEh(tracks, 0x28, 0x4000, reinterpret_cast<Ctor>(&TrackCell_Ctor));
+    CRT_VectorCtorIteratorNoEh(cells + 0x1b1104, 0xa, 0x4000, reinterpret_cast<Ctor>(&RECell_Ctor));
+    MemRanges_SetCells44((u32)(uintptr_t)cells, 0x44);
+    MemRanges_SetCells28((u32)(uintptr_t)tracks, 0x28);
+    CRT_VectorCtorIteratorNoEh(world + 0x1d943c, 0x20, 0x96, reinterpret_cast<Ctor>(&Empty_Ctor));
+    at<u16>(world, 0x1da73c) = 0;
+    at<u16>(world, 0x1da73e) = 0;
+    at<u16>(world, 0x1da740) = 0;
+    at<u16>(world, 0x1da744) = 0;
+    at<u16>(world, 0x1da742) = 0;
+    at<u16>(world, 0x1da746) = 0;
+    at<u32>(world, 0x1da710) = 1;
+    global<u32>(0x007cf56c) = 0;
+    global<u32>(0x00801bbc) = 0x007cfb90;
+    return world;
+}
 
 u32 __fastcall World_ArrivalVehicleNotSize1(const u8 *world) {
     const u16 current = at<u16>(world, 0x1da72a);
