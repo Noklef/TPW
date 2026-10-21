@@ -57,4 +57,11 @@ void __fastcall Ptr_Ctor(u32 *p);
 // and its value named at [0x7a2358] reads as a u32 (which is dropped), else 0; the startup's
 // check (0x45f640) that the game is installed. (A second key is made and closed, unused.)
 u8 __cdecl Registry_GameInstalled();
+// 0x5c0d00 (cdecl (&out); name unconfirmed): the language id read from the company key's subkey named at [0xf7f6b8] (in
+// HKEY_LOCAL_MACHINE), its value named at [0xf7ee18] (0x809 when it can't be read as a u32). Once both succeed the id becomes a flag at
+// 0x79d868 (6: 0x100, 7: 4, 10: 8, 0x10: 0x20, 0x11: 0x200, 0x13: 0x40, 0x15: 0x80, 0x1d: 0x10, 0x404: 0x400, 0x409: 0x8000,
+// 0x40c: 2, 0x40d: 0x4000, 0x412: 0x2000, 0x41e: 0x1000, 0x804: 0x800, 0x809: 1, any other: 0x809, sic), the name of the table entry
+// [0xf7ec30 + 0x14 x its lowest set bit] is copied to the language buffer 0xf7f230, and the language object 0x78b530 takes the id as
+// read. Out = 0 always; returns &out.
+s32 *__cdecl Registry_LoadLanguage(s32 *out);
 }

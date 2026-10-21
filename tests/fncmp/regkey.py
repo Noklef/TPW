@@ -3,7 +3,8 @@
 # RegCloseKey and RegOpenKeyA succeeding or not; the subkey and value names at [0x7a2b08] / [0x7a2358] (hashed as strings). And each RegKey
 # method (0x5f8ae0-0x5f8da0) called directly on a key held or not: Open with a subkey or none, in either root, over a key it closes; Close;
 # Reg_CreateKey volatile or not; Query, GetU32 and GetU32Or with a name or none, the read filling 0-4 bytes and the type any (the size
-# passed hashed); TypeOf a value, a subkey or neither.
+# passed hashed); TypeOf a value, a subkey or neither. Language: Registry_LoadLanguage (0x5c0d00) with the imports as for Installed, the
+# value read mostly one of the ids it maps, the name table at 0xf7ec30 pointing to short strings.
 # usage: regkey.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Installed,... to pick)
 import os
 import struct
@@ -12,7 +13,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import IMPORT_TABLE, LOG, RAM, Bench, Call, blob, fill, import_table, log_region, put, set_return  # noqa: E402
 
-B = Bench([(0x45f6b0, 0x45f7b0), (0x581da0, 0x581dc0), (0x5f8ae0, 0x5f8dc0)])
+B = Bench([(0x45f6b0, 0x45f7b0), (0x581da0, 0x581dc0), (0x5f8ae0, 0x5f8dc0), (0x5c0d00, 0x5c0f07)])
 CLOSE, OPEN, QUERY, CREATE = 1, 2, 3, 4
 # {name: (slot, import address, stack arguments, string arguments, out arguments)}: the out pointers are the callers' stack slots
 IMPORTS = {'RegCloseKey': (CLOSE, 0x6fd000, 1, 0, 0), 'RegOpenKeyA': (OPEN, 0x6fd004, 3, 2, 4),
@@ -34,7 +35,32 @@ def installed(r):
     return Call(0x45f6b0, [], regions, conv='c', ret='b')
 
 
-CALLS = {'Installed': None, 'Ctor': 0x5f8da0, 'Dtor': 0x5f8b70, 'Open': 0x5f8ae0, 'Close': 0x5f8b80, 'CreateKey': 0x5f8bc0, 'Query': 0x5f8c00,
+IDS = [6, 7, 10, 0x10, 0x11, 0x13, 0x15, 0x1d, 0x404, 0x409, 0x40c, 0x40d, 0x412, 0x41e, 0x804, 0x809]
+
+
+def language(r):
+    log = log_region()
+    iat = import_table(log, IMPORTS)
+    for k, ok in ((CREATE, 0.85), (QUERY, 0.85), (CLOSE, 0.85), (OPEN, 0.5)):
+        set_return(log, k, 0 if r.random() < ok else r.choice([2, 5, r.getrandbits(32)]))
+    fill(log, CREATE, 7, struct.pack('<I', r.choice([0, 0x1234, r.getrandbits(32)])))
+    fill(log, QUERY, 3, struct.pack('<I', r.choice([4, 4, 4, 5, 6, 1, r.getrandbits(32)])))
+    fill(log, QUERY, 4, struct.pack('<I', r.choice(IDS + [0, 0x41, r.getrandbits(32)])), 1)
+    mem = bytearray(r.bytes(0x400))
+    mem[0:0x10] = r.choice([b'Theme Park World', b'Settings', b'x']).ljust(0x10, b'\0')
+    mem[0x20:0x30] = r.choice([b'Language', b'Version', b'']).ljust(0x10, b'\0')
+    table = bytearray(r.bytes(0x140))
+    for i in range(16):
+        n = r.randrange(0, 12)
+        mem[0x100 + 0x20 * i:0x100 + 0x20 * i + n + 1] = bytes(r.randrange(1, 256) for _ in range(n)) + b'\0'
+        put(table, 0x14 * i, 'I', RAM + 0x100 + 0x20 * i)
+    regions = {LOG: log, IMPORT_TABLE: iat, RAM: mem, 0xf7f6b8: struct.pack('<I', r.choice([RAM, RAM, RAM, 0])),
+               0xf7ee18: struct.pack('<I', r.choice([RAM + 0x20, RAM + 0x20, RAM + 0x20, 0])), 0x79d868: r.bytes(4), 0xf7ec30: bytes(table),
+               0xf7f230: r.bytes(0x20), 0x78b530: r.bytes(0x10)}
+    return Call(0x5c0d00, [RAM + 0x80], regions, conv='c', ret='a')
+
+
+CALLS = {'Installed': None, 'Language': None, 'Ctor': 0x5f8da0, 'Dtor': 0x5f8b70, 'Open': 0x5f8ae0, 'Close': 0x5f8b80, 'CreateKey': 0x5f8bc0, 'Query': 0x5f8c00,
          'GetU32': 0x5f8c50, 'GetU32Or': 0x5f8cf0, 'TypeOf': 0x5f8d40}
 KEY, OUT, VALUE, DATA, NAME = RAM + 0x100, RAM + 0x110, RAM + 0x118, RAM + 0x120, RAM + 0x180
 
@@ -67,7 +93,7 @@ def method(r, op):
 
 def case(r):
     op = r.deal(OPS)
-    return installed(r) if op == 'Installed' else method(r, op)
+    return installed(r) if op == 'Installed' else language(r) if op == 'Language' else method(r, op)
 
 
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
