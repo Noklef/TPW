@@ -5946,6 +5946,19 @@ address,name,kind,confidence,notes
 0x004ba200,Dialog7cc5f4_CreateFrom,function,low,"reimplemented (src/game/ui/dialog7cc5f4); as Dialog7cc5f4_Create with the script 0x7583e8 (handler 0x4b9d00), not kept; the fields 0x20 bytes, their texts data + 0x234 / + 0x436, labels 0xea / 0xeb, 0x4d's 0xe9; the dialog's dword 0 +0xa0 = value, KeyMaps_ResetAllAndSetFlag"
 0x004b8520,Dialog7cc47c_Create,function,low,"reimplemented (src/game/ui/dialog7cc47c); unless up or the frame [0xf82884] has no window, the script 0x757d88 built on it (handler 0x4b86a0) made [0x7cc47c]; its children 0x49d9 / 0x49da given TextPart6ff530s, fonts, colours, 0x49d9 the yellow"
 0x004b6320,StaffRename_Handler,function,low,"reimplemented (src/game/ui/staffrename); cdecl (window, message, a, b): 0x14 key maps enabled, dword 1 cleared, focus restored, default; 0x100 a -1 the staff member named from 0x7cc360, dword 1's slot 1, sent 4; a -2 and 0x804 sent 4; 0x802 posts 0x100 (-1) then the default; else the default"
+0x004beb60,Window7cc8bc_ListAdd,function,low,"reimplemented (src/game/ui/window7cc8bc); cdecl (text, data): with [0x7cc8bc] and mode [0x7cc8d0] 0, its list 0xc3123/0xc3124 given an item (AddItem, one text, parent -1, refreshed)"
+0x004bebb0,Window7cc8bc_ListRemove,function,low,reimplemented (src/game/ui/window7cc8bc); cdecl (text): mode 0: the list's item named text (FindText column 1) removed
+0x004bec00,Window7cc8bc_ListSetData,function,low,"reimplemented (src/game/ui/window7cc8bc); cdecl (text, data): mode 0: the list's item named text given data, the rows refreshed"
+0x004bec60,Window7cc8bc_ListAdd1,function,low,"reimplemented (src/game/ui/window7cc8bc); cdecl (text, data): as Window7cc8bc_ListAdd in mode 1"
+0x004becb0,Window7cc8bc_ListRemove1,function,low,reimplemented (src/game/ui/window7cc8bc); cdecl (text): as Window7cc8bc_ListRemove in mode 1
+0x004bed00,Window7cc8bc_ListSetData1,function,low,"reimplemented (src/game/ui/window7cc8bc); cdecl (text, data): as Window7cc8bc_ListSetData in mode 1"
+0x004bed60,Windows7cc8c4_Handler,function,low,"reimplemented (src/game/ui/window7cc8bc); cdecl (window, message, a, b): 0x14 clears [0x7cc8c4] when it is the window else [0x7cc8c8]; 0x10006 hides and unlinks [0x7cc8cc], drops [0x7cc8bc]'s focus; then the default"
+0x00481820,Window7cc8bc_ListAddStd,function,low,reimplemented (src/game/ui/window7cc8bc); stdcall wrapper of 0x4beb60
+0x00481840,Window7cc8bc_ListRemoveStd,function,low,reimplemented (src/game/ui/window7cc8bc); stdcall wrapper of 0x4bebb0
+0x00481850,Window7cc8bc_ListSetDataStd,function,low,reimplemented (src/game/ui/window7cc8bc); stdcall wrapper of 0x4bec00
+0x00481870,Window7cc8bc_ListAdd1Std,function,low,reimplemented (src/game/ui/window7cc8bc); stdcall wrapper of 0x4bec60
+0x00481890,Window7cc8bc_ListRemove1Std,function,low,reimplemented (src/game/ui/window7cc8bc); stdcall wrapper of 0x4becb0
+0x004818a0,Window7cc8bc_ListSetData1Std,function,low,reimplemented (src/game/ui/window7cc8bc); stdcall wrapper of 0x4bed00
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"

@@ -435,6 +435,7 @@
 #include "../game/ui/panel7cc408.h"
 #include "../game/ui/staffrename.h"
 #include "../game/ui/thingbrowser.h"
+#include "../game/ui/window7cc8bc.h"
 #include "../game/ui/windowtimers.h"
 #include "../game/lib/jpeg6b.h"
 #include "../game/lib/jpeg6a.h"
@@ -5687,6 +5688,19 @@ const Hook kHooks[] = {
     {"Dialog7cc5f4_CreateFrom",   0x004ba200, (void *)&Dialog7cc5f4_CreateFrom, {0x6a, 0xff, 0x68, 0x17, 0xb7}},
     {"Dialog7cc47c_Create",       0x004b8520, (void *)&Dialog7cc47c_Create, {0x6a, 0xff, 0x68, 0xa6, 0xb5}},
     {"StaffRename_Handler",       0x004b6320, (void *)&StaffRename_Handler, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
+    {"Window7cc8bc_ListAdd",      0x004beb60, (void *)&Window7cc8bc_ListAdd, {0x51, 0x8b, 0x0d, 0xbc, 0xc8}},
+    {"Window7cc8bc_ListRemove",   0x004bebb0, (void *)&Window7cc8bc_ListRemove, {0x8b, 0x0d, 0xbc, 0xc8, 0x7c}},
+    {"Window7cc8bc_ListSetData",  0x004bec00, (void *)&Window7cc8bc_ListSetData, {0x8b, 0x0d, 0xbc, 0xc8, 0x7c}},
+    {"Window7cc8bc_ListAdd1",     0x004bec60, (void *)&Window7cc8bc_ListAdd1, {0x51, 0x8b, 0x0d, 0xbc, 0xc8}},
+    {"Window7cc8bc_ListRemove1",  0x004becb0, (void *)&Window7cc8bc_ListRemove1, {0x8b, 0x0d, 0xbc, 0xc8, 0x7c}},
+    {"Window7cc8bc_ListSetData1", 0x004bed00, (void *)&Window7cc8bc_ListSetData1, {0x8b, 0x0d, 0xbc, 0xc8, 0x7c}},
+    {"Windows7cc8c4_Handler",     0x004bed60, (void *)&Windows7cc8c4_Handler, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
+    {"Window7cc8bc_ListAddStd",   0x00481820, (void *)&Window7cc8bc_ListAddStd, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"Window7cc8bc_ListRemoveStd", 0x00481840, (void *)&Window7cc8bc_ListRemoveStd, {0x8b, 0x44, 0x24, 0x04, 0x50}},
+    {"Window7cc8bc_ListSetDataStd", 0x00481850, (void *)&Window7cc8bc_ListSetDataStd, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"Window7cc8bc_ListAdd1Std",  0x00481870, (void *)&Window7cc8bc_ListAdd1Std, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"Window7cc8bc_ListRemove1Std", 0x00481890, (void *)&Window7cc8bc_ListRemove1Std, {0x8b, 0x44, 0x24, 0x04, 0x50}},
+    {"Window7cc8bc_ListSetData1Std", 0x004818a0, (void *)&Window7cc8bc_ListSetData1Std, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
