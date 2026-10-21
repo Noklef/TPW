@@ -1756,6 +1756,7 @@ address,name,kind,confidence,notes
 0x004618a0,Quickload_Find,function,high,"reimplemented (src/game/files/quickload); the first quickload index listing a name, or -1"
 0x00461920,Quickload_HasStem,function,high,"reimplemented (src/game/files/quickload); Quickload_Has comparing names without extensions (path, index, second)"
 0x0044a280,Quickload_Locate,function,low,"reimplemented (src/game/files/quickload); cdecl (name, flags, &index); a ride file through the quickload indexes (flag 2; 4 falls back, 8 the second directory) or VFS_FileExists; the buffer 0x79c9d0 (flag 1) or the directory [0x79cb4c][index]"
+0x00461a60,Quickload_LoadRide,function,low,"reimplemented (src/game/files/quickload); cdecl (name, folder, c): a ride located, its two qickload.txt indexes read into the tables and the texture directories set; 1, or 0 when not found"
 0x00427450,TextScan_IsAlpha,function,high,reimplemented (src/game/files/textscan); 1 when the scanner's character is a letter
 0x00427480,TextScan_IsDigit,function,high,reimplemented (src/game/files/textscan); 1 when the scanner's character is a digit
 0x004274a0,TextScan_IsPunct,function,high,reimplemented (src/game/files/textscan); 1 when the scanner's character is punctuation
