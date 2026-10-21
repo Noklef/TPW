@@ -3,9 +3,12 @@
 #include <cstdint>
 #include <cstring>
 
+#include "../files/handles.h"
 #include "dequeiter.h"
+#include "gameheap.h"
 #include "methods.h"
 #include "ptrlist.h"
+#include "vcall.h"
 
 namespace {
 
@@ -112,6 +115,42 @@ u8 *__fastcall SfxMap_Fixup(u8 *category, void *, u8 *data, u8 **out, u32 count)
     u8 *at = data + count * 0x18;
     for (; count; --count, record += 0x18) at = SfxMap_FixCategory(category, nullptr, at, record);
     return at;
+}
+
+s32 *__fastcall SoundCategory_ReadSfxImage(u8 *category, void *, s32 *result, StreamBase *stream, u32 *index) {
+    u32 header[5];
+    vcall<s32>(stream, 8, static_cast<void *>(header), 0x14);
+    if (!Obj_CheckId(category, nullptr, header)) {
+        *result = -1;
+        return result;
+    }
+    const u32 size = static_cast<u32>(vcall<s32>(stream, 0x14));  // the size first, then the position
+    const u32 bytes = size - static_cast<u32>(vcall<s32>(stream, 0x18));
+    u32 head[2];
+    vcall<s32>(stream, 8, static_cast<void *>(head), 8);
+    u8 *const data = static_cast<u8 *>(GameHeap_Alloc(bytes));
+    vcall<s32>(stream, 8, static_cast<void *>(data), bytes);
+    u8 *const record = Ptr(Get<u32>(Advanced(category + 0x3c, static_cast<s32>(Get<u32>(category, 0xc8))), 0));
+    SfxMap_Fixup(category, nullptr, data, reinterpret_cast<u8 **>(record + 8), head[1]);
+    *index = Get<u32>(category, 0xc8);
+    *result = 0;
+    return result;
+}
+
+s32 *__fastcall SoundCategory_ReadSfxMap(u8 *category, void *, s32 *result, const char *name, u32 *index) {
+    StreamBase stream;
+    StreamBase_Ctor(&stream);
+    // (The status is the name argument's own stack slot, which holds the name's address until a call writes it, sic.)
+    s32 status = static_cast<s32>(reinterpret_cast<uintptr_t>(name));
+    if (*vcall<s32 *>(category + 0x30, 0xc, &status, &stream, name, 0x80000001u, 0u) < 0) {
+        *result = -1;
+    } else {
+        const bool read = *SoundCategory_ReadSfxImage(category, nullptr, &status, &stream, index) >= 0;
+        StreamBase_Close(&stream);
+        *result = read ? 0 : -1;
+    }
+    StreamBase_Dtor(&stream);
+    return result;
 }
 
 }  // extern "C"

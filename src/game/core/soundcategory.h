@@ -14,6 +14,8 @@
 
 #include "../../../re/types.h"
 
+struct StreamBase;
+
 extern "C" {
 
 // 0x6bd7a0 (cdecl; a variation; name unconfirmed): its sample count, the low word of its first dword.
@@ -40,5 +42,16 @@ u8 *__fastcall SfxMap_FixCategory(u8 *category, void *, u8 *data, u8 *record);
 // 0x6c0510 (thiscall; data, out, count, pops 0xc): *out = data, then each of the count category records there is fixed up, the first from the
 // end of the records. Returns the end.
 u8 *__fastcall SfxMap_Fixup(u8 *category, void *, u8 *data, u8 **out, u32 count);
+
+// 0x6c0360 (thiscall; &result, stream, &index, pops 0xc): reads the 0x14-byte header (Obj_CheckId; another GUID: *result = -1), then 8 bytes
+// (a dword and the category record count), then the rest of the stream (its size - its position, through its vtable +0x14 / +0x18) into a block
+// from the heap, which SfxMap_Fixup fixes up with the image pointer going to the current category's record (deque A at +0xc8) +8. *index = +0xc8,
+// *result = 0. Returns result. (The reads' results are not checked: a short read leaves the locals as they were.)
+s32 *__fastcall SoundCategory_ReadSfxImage(u8 *category, void *, s32 *result, StreamBase *stream, u32 *index);
+
+// 0x6c0450 (thiscall; &result, name, &index, pops 0xc): a stream opened on name through the Handle at +0x30 (its vtable +0xc: &status, &stream,
+// name, 0x80000001, 0) and, when the status is not negative, SoundCategory_ReadSfxImage; the stream closed after that. *result = 0 when both
+// succeeded, else -1. Returns result.
+s32 *__fastcall SoundCategory_ReadSfxMap(u8 *category, void *, s32 *result, const char *name, u32 *index);
 
 }  // extern "C"

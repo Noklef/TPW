@@ -453,8 +453,8 @@ address,name,kind,confidence,notes
 0x0080c6b0,gParticleEffectors,data,high,20 x 0x68-byte effector definitions
 0x0080cefc,gParticleSystems,data,high,live systems: 0x140-byte copies of an effect definition
 0x006bf330,SoundCategory_Load,function,medium,"loads cat_<name>BANK.map, then cat_<name>SFX.map"
-0x006c0450,SoundCategory_ReadSfxMap,function,medium,reads the SFX.map header and image
-0x006c0360,SoundCategory_ReadSfxImage,function,medium,checks the GUID and loads the rest as one block
+0x006c0450,SoundCategory_ReadSfxMap,function,medium,"reimplemented (src/game/core/soundcategory); thiscall (&result, name, &index): opened through the Handle at +0x30 and read by SoundCategory_ReadSfxImage; 0 or -1"
+0x006c0360,SoundCategory_ReadSfxImage,function,medium,"reimplemented (src/game/core/soundcategory); thiscall (&result, stream, &index): GUID checked, the rest of SFX.map read into a heap block and fixed up for the current category's record"
 0x006c0510,SfxMap_Fixup,function,medium,"reimplemented (src/game/core/soundcategory); thiscall (data, out, count): *out = data; each category record fixed from the end of the records"
 0x006c5d20,SndReverb_Load,function,medium,"SndReverb.map: version 2000, 32 slots of (u8 present, 13 dwords)"
 0x00450900,TerrainAttrMap_Load,function,medium,"formats %s\Terrain\Base.map and reads it through TP2M_ReadChunks"

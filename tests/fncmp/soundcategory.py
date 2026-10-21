@@ -9,14 +9,18 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, RAM, Bench, Call, heap  # noqa: E402
+from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, echo, fill, heap, import_table, log_region, seq_read, set_return, strings, vtable  # noqa: E402
 
-CALLS = {'count': 0x6bd7a0, 'simple': 0x6c0550, 'variation': 0x6c06e0, 'sound': 0x6c0610, 'record': 0x6c05b0, 'fixup': 0x6c0510}
-B = Bench([(0x6bd7a0, 0x6bd7ac), (0x6c0310, 0x6c035f), (0x6c0510, 0x6c0844), (0x6b9b30, 0x6b9b94), (0x5e42d0, 0x5e431c), (0x67a400, 0x690000)])
+CALLS = {'count': 0x6bd7a0, 'simple': 0x6c0550, 'variation': 0x6c06e0, 'sound': 0x6c0610, 'record': 0x6c05b0, 'fixup': 0x6c0510, 'readimage': 0x6c0360,
+         'readmap': 0x6c0450}
+B = Bench([(0x6bd7a0, 0x6bd7ac), (0x6c0310, 0x6c035f), (0x6c0360, 0x6c0844), (0x5f7180, 0x5f72c0), (0x4036a0, 0x4036e0), (0x639100, 0x639120), (0x618d30, 0x618d80), (0x6b9b30, 0x6b9b94), (0x5e42d0, 0x5e431c), (0x67a400, 0x690000)])
 CAT, OUT, RECS, NODES = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x400
 MAPA, MAPC = RAM + 0x600, RAM + 0x640
 BLOCKA, BLOCKC = RAM + 0x10000, RAM + 0x20000   # (two blocks each, 0x1000 apart, only the used stretch mapped)
 IMAGE = RAM + 0x3000
+STREAM, SRC, VT_STREAM, VT_SRC, VT_HANDLE, FILE = RAM + 0x700, RAM + 0x740, RAM + 0x780, RAM + 0x800, RAM + 0x880, RAM + 0x5000
+SFX_GUID, BANK_GUID = bytes.fromhex('002c61e9d031d211b40900b0c993f203'), bytes.fromhex('012c61e9d031d211b40900a0c993f203')
+STREAM_VTABLE = 0x703100
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
@@ -134,6 +138,44 @@ def case(r):
         return Call(CALLS[name], [CAT, IMAGE], regions, conv='t', ret='v')
     banks = r.randrange(1, 7)
     regions = category(r, banks)
+    if name in ('readimage', 'readmap'):   # SFX.map's bytes, read in turn (a sequenced read)
+        top = r.choice([0, 1, 1, 2])
+        body, top = image(r, banks, 'c', top)
+        guid = r.choice([SFX_GUID, SFX_GUID, SFX_GUID, BANK_GUID, bytes(16)])
+        data = guid + struct.pack('<4I', r.choice([0, 0, 1]), 0, top, 0)[:12] + bytes(body)
+        regions[FILE] = data
+        log = log_region()
+        size, pos = r.choice([(len(data), 0x14), (len(data), 0x14), (len(data), 0x14), (len(data) - 8, 0x14), (len(data) + 0x20, 0x14), (0x1c, 0x14)])
+        regions[LOG] = log
+        regions[HEAP] = heap(0x3000)
+        if name == 'readimage':
+            seq_read(log, 2, FILE, len(data), buffer=0, count=1)
+            strings(log, 2, 0, out=1)
+            set_return(log, 5, size)
+            set_return(log, 6, pos)
+            regions[STREAM] = struct.pack('<2I', VT_STREAM, r.getrandbits(32))
+            regions[VT_STREAM] = vtable({2: 2})
+            regions[OUT] = r.bytes(8)
+            return Call(CALLS[name], [CAT, OUT, STREAM, OUT + 4], regions, conv='t', ret='a')
+        # the category's Handle (+0x30) opens the stream: its slot 3 answers &status, which it fills, and gives the stream SRC (a recorder source)
+        status = r.choice([0, 0, 0, 1, -1, -0x80000000])
+        struct.pack_into('<2I', regions[CAT], 0x30, VT_HANDLE, r.getrandbits(32))
+        regions[VT_HANDLE] = vtable({3: 5})
+        echo(log, 3, 0)
+        fill(log, 3, 0, struct.pack('<i', status), 0)
+        fill(log, 3, 1, struct.pack('<2I', STREAM_VTABLE, SRC), 1)
+        strings(log, 3, 4, out=3)
+        seq_read(log, 1, FILE, len(data), buffer=0, count=1)
+        strings(log, 1, 0, out=1)
+        set_return(log, 4, size)
+        set_return(log, 5, pos)
+        regions[VT_SRC] = vtable({0: 1, 1: 2})
+        regions[SRC] = struct.pack('<3I', VT_SRC, 0, r.choice([1, 2]))
+        regions[IMPORT_TABLE] = import_table(log, {'InterlockedDecrement': (51, 0x6fd12c, 1, 0, 0)})
+        set_return(log, 51, r.choice([0, 1]))
+        regions[OUT] = r.bytes(8)
+        regions[STREAM] = b'cat_x' + r.choice([b'SFX.map', b'']) + bytes(1)
+        return Call(CALLS[name], [CAT, OUT, STREAM, OUT + 4], regions, conv='t', ret='a')
     if name == 'fixup':
         top = r.choice([1, 1, 2])
         body, top = image(r, banks, 'c', top)
