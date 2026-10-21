@@ -61,7 +61,7 @@ def case(r):
     if name == 'releasevoice':
         return Call(address, [CHAN, OUT, r.choice([VOICES] * 6 + [0]), r.getrandbits(32)], regions, conv=conv, ret=ret)
     if name == 'setflag':   # (the byte on over random upper bytes)
-        return Call(address, [VOICES, r.choice([0, 1, 0x100, r.getrandbits(32)]), r.getrandbits(32)], regions, conv=conv, ret=ret)
+        return Call(address, [VOICES, r.choice([0, 1, 0x80, 0x100, 0xffff7f00, r.getrandbits(32)]), r.getrandbits(32)], regions, conv=conv, ret=ret)
     if name == 'reset':
         return Call(address, [], regions, conv=conv, ret=ret)
     if name in ('inc', 'dec'):
