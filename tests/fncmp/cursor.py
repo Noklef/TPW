@@ -10,8 +10,9 @@
 # SetCursor's globals, the current cursor [0xfaa608] one of the objects or 0, the new table that one, another (its count 0-6) or none.
 # TableSet (0x661d3f): Get's table, Get's indexes, the cursor one of the objects, 0 or any. LoadAni / LoadTga (0x489720, 0x4899c0): the
 # table 0x7b9e88 / 0x7b9ab0 (its count 0x16, past it, short of it or 0; its entries mostly empty); the loaders 0x4895b0 / 0x489670 the cdecl
-# recorders k 28 / 29 (the name hashed as a string; driver.cpp's GameCursors env), answering one cursor object each time, 0, their hashes
-# or their hashes for the first few then 0 (for the .tga ones never past the carry cursor's, whose +5 a hash would be).
+# recorders k 28 / 29 (the name hashed as a string; driver.cpp's GameCursors env), answering one cursor object each time, the name itself
+# (the game's string: the carry and crosshair names mapped, whose +5 / +6 then get written), 0, their hashes or their hashes for the first
+# few then 0 (for the .tga ones never past the carry cursor's, whose +5 a hash would be).
 # usage: cursor.py [CASES [SEED]] [--wild|--both] [--show N]
 #   (env OPS=Get,SetCursor,WindowSetCursor,ApplyCursor,Set,ObjSet,Update,Clear,Init,SetTable,TableSet,LoadAni,LoadTga)
 import os
@@ -19,7 +20,7 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, LOG, RAM, Bench, Call, _recorder, fail_after, heap, log_region, put, set_return, strings, vtable  # noqa: E402
+from fncmp import HEAP, LOG, RAM, Bench, Call, _recorder, echo, fail_after, heap, log_region, put, set_return, strings, vtable  # noqa: E402
 
 CALLS = {'Get': 0x661d96, 'SetCursor': 0x6590f7, 'WindowSetCursor': 0x65f11d, 'ApplyCursor': 0x65f150, 'Set': 0x4a2aa0, 'ObjSet': 0x4814a0,
          'Update': 0x52f950, 'Clear': 0x661c36, 'Init': 0x661cca, 'SetTable': 0x659248, 'TableSet': 0x661d3f, 'LoadAni': 0x489720,
@@ -104,8 +105,13 @@ def case(r):
         regions[SLOTS] = slots
         regions[LOADED] = r.bytes(0x10)
         strings(log, k, 1)
-        answer = r.choice(['one', 'one', 'zero', 'some', 'some'] + (['hash'] if op == 'LoadAni' else []))
-        if answer == 'one':
+        answer = r.choice(['one', 'echo', 'echo', 'zero', 'some', 'some'] + (['hash'] if op == 'LoadAni' else []))
+        if op == 'LoadTga':   # (the carry and crosshair cursors' names, which an echoed name has their +5 / +6 written)
+            regions[0x74fff4] = b'Ccar.tga\0'
+            regions[0x74ff58] = b'CCro.tga\0'
+        if answer == 'echo':
+            echo(log, k, 0)
+        elif answer == 'one':
             set_return(log, k, LOADED)
         elif answer == 'zero':
             set_return(log, k, 0)
