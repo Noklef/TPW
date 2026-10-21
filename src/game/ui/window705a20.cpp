@@ -112,4 +112,34 @@ u32 __fastcall Window705a20_KeyToParent(u8 *window, void *, u32 key, u32 value) 
     default: return (u32)Window_SendMessage(parent, 0x806, id, (u32)(s32)(s16)key);
     }
 }
+
+void __fastcall Window705a20_ToggleInsert(u8 *window) {
+    if (at<s16>(window, 0x14c) != -1 || at<s16>(window, 0x158) == -1) return;
+    at<u16>(window, 0x158) ^= 1;
+    if (at<u8 *>(window, 0x15c)) {
+        // (the word pushed with the window's upper half: AX loaded over EAX still holding the window)
+        vcall<void>(at<u8 *>(window, 0x15c), 0x14, ((u32)(uintptr_t)window & 0xffff0000u) | at<u16>(window, 0x158));
+    }
+    if (*reinterpret_cast<u32 *>((uintptr_t)0x00faa5d4)) Window_PostMessage(window, 3, 0, 0);
+}
+
+void __fastcall Window705a20_NotifyText(u8 *window, void *, u32 post) {
+    u8 text[0x10], event[0x18];  // (only the text's dword +0 and word +0xa and the event's +0x10 set)
+    at<u32>(text, 0) = at<u32>(window, 0x138);
+    at<u16>(text, 0xa) = at<u16>(window, 0x148);
+    at<u8 *>(event, 0x10) = text;
+    if (at<u8 *>(window, 0x9c)) vcall<void>(at<u8 *>(window, 0x9c), 0xc, 0x4100u, event);
+    if (post) Window_PostMessage(at<u8 *>(window, 0x60), 0x801, at<u32>(window, 0x8c), 0);
+}
+
+void __fastcall Window705a20_SetInsertMode(u8 *window, void *edx, u32 mode) {
+    const bool none = (s16)mode == 0;
+    at<u16>(window, 0x158) = none ? 0xffff : (u16)mode;
+    if (at<u8 *>(window, 0x15c)) {
+        // (the word pushed with the upper half of EDX: the caller's without a mode, else the window's address's; sic)
+        const u32 high = (u32)(uintptr_t)(none ? edx : window) & 0xffff0000u;
+        vcall<void>(at<u8 *>(window, 0x15c), 0x14, high | (mode & 0xffff));
+    }
+    if (*reinterpret_cast<u32 *>((uintptr_t)0x00faa5d4)) Window_PostMessage(window, 3, 0, 0);
+}
 }
