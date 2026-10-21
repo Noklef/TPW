@@ -1,9 +1,10 @@
 # The movie player's DirectDraw helpers (src/game/gfx/moviesurface: 0x670300 the surface size, 0x670660 the mode from the caps, 0x671fa0
 # the lost surfaces' restore) against the originals. The settings' IDirectDraw and four surfaces are objects over vtables of COM
 # recorders (each surface its own IsLost / Restore recorders, so their answers differ per surface); the flags random with the bits
-# tested set about half the time, the surfaces null now and then. ReadSize: GetSurfaceDesc fills the description (its size dword and
-# the cleared rest hashed) and answers 0 mostly. PickMode: GetCaps fills the driver's caps (size and caps; the emulation's pointer logged
-# as 0) and answers 0 mostly. Restore: IsLost answers DDERR_SURFACELOST mostly, Restore 0 mostly; the player's +0x4c 2 half the time.
+# tested set about half the time, the surfaces null now and then. ReadSize: GetSurfaceDesc fills the description and answers 0, or in
+# 3 cases of 10 fails (the description as passed, its size dword and the cleared rest, then shows in its hash). PickMode: GetCaps fills
+# the driver's caps (size and caps) and answers 0, or fails the same (the emulation's pointer logged as 0).
+# Restore: IsLost answers DDERR_SURFACELOST mostly, Restore 0 mostly; the player's +0x4c 2 half the time.
 # usage: moviesurface.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ReadSize,PickMode,Restore)
 import os
 import struct
@@ -48,16 +49,22 @@ def case(r):
         set_return(log, LOST + i, r.choice([SURFACELOST, SURFACELOST, SURFACELOST, 0, r.getrandbits(32)]))
         set_return(log, RESTORE + i, r.choice([0, 0, 0, 1, SURFACELOST]))
     blob(log, DESC, 1, (1 << 27) - 1)
-    fill(log, DESC, 1, struct.pack('<I', 0x6c) + r.bytes(0x68))
-    set_return(log, DESC, 0 if r.random() < 0.8 else r.choice([1, 0x80000000, r.getrandbits(32)]))
+    if r.random() < 0.7:   # (else it fails, and the description as passed shows in the hash: a fill comes before it)
+        fill(log, DESC, 1, struct.pack('<I', 0x6c) + r.bytes(0x68))
+        set_return(log, DESC, 0)
+    else:
+        set_return(log, DESC, r.choice([1, 0x80000000, r.getrandbits(32) | 1]))
     blob(log, CAPS, 1, 0xffffffff)
     strings(log, CAPS, 0, 1 << 2)
     caps = r.getrandbits(32) & ~0x6300
     for b in (0x100, 0x200, 0x2000, 0x4000):
         if r.random() < 0.7:
             caps |= b
-    fill(log, CAPS, 1, struct.pack('<II', 0x17c, caps))
-    set_return(log, CAPS, 0 if r.random() < 0.85 else r.choice([1, 0x80000000]))
+    if r.random() < 0.7:
+        fill(log, CAPS, 1, struct.pack('<II', 0x17c, caps), 1)
+        set_return(log, CAPS, 0)
+    else:
+        set_return(log, CAPS, r.choice([1, 0x80000000]))
     return Call(CALLS[op], [PLAYER], regions, conv='t', ret='v' if op == 'ReadSize' else 'a')
 
 
