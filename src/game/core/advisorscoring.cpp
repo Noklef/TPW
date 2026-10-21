@@ -11,6 +11,25 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 u8 *table() { return reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(**reinterpret_cast<u8 ***>((uintptr_t)0x007cf6ec))); }
 
+// The object criteria: Below for the fewest / unhappiest, Above for the most / happiest.
+s32 below(u8 *scoring, s32 found, u16 handle, u32 bound) {
+    if (!handle || found >= at<s32>(scoring, bound))
+        return 0;
+    at<u16>(scoring, 4) = handle;
+    const s32 score = (s32)(((u32)found - at<u32>(scoring, bound)) * at<u32>(scoring, bound + 4));
+    at<s32>(scoring, 8) = found;
+    return score;
+}
+
+s32 above(u8 *scoring, s32 found, u16 handle, u32 bound) {
+    if (!handle || found <= at<s32>(scoring, bound))
+        return 0;
+    at<s32>(scoring, 8) = found;
+    const s32 score = (s32)(((u32)found - at<u32>(scoring, bound)) * at<u32>(scoring, bound + 4));
+    at<u16>(scoring, 4) = handle;
+    return score;
+}
+
 // +0xc..+0x1c of the game table entry for +0x1da718 of [[0x7cf6ec]]: the dword of a staff kind.
 s32 entry_dword(u32 offset) {
     return at<s32>(reinterpret_cast<void *>((uintptr_t)GameTable7cfb90_Get1da718_519450(**reinterpret_cast<u8 ***>((uintptr_t)0x007cf6ec))), offset);
@@ -72,4 +91,125 @@ s32 __fastcall AdvisorScoring_StaffHigh8(const u8 *scoring) { return high(scorin
 s32 __fastcall AdvisorScoring_StaffHigh5(const u8 *scoring) { return high(scoring, 5, 0xc, 0x45c); }
 s32 __fastcall AdvisorScoring_StaffHigh6(const u8 *scoring) { return high(scoring, 6, 0x14, 0x468); }
 s32 __fastcall AdvisorScoring_StaffHigh4(const u8 *scoring) { return high(scoring, 4, 0x10, 0x474); }
+
+s32 __fastcall AdvisorScoring_FewestWalkAways2(u8 *scoring) {
+    u16 handle;
+    const s32 found = Things_FewestWalkAwaysOf(table(), nullptr, 2, &handle);
+    return below(scoring, found, handle, 0x4d8);
+}
+
+s32 __fastcall AdvisorScoring_FewestWalkAways156(u8 *scoring) {
+    u16 handle;
+    const s32 found = Things_FewestWalkAwaysOf156(table(), nullptr, &handle);
+    return below(scoring, found, handle, 0x4e0);
+}
+
+s32 __fastcall AdvisorScoring_FewestWalkAways3(u8 *scoring) {
+    u16 handle;
+    const s32 found = Things_FewestWalkAwaysOf(table(), nullptr, 3, &handle);
+    return below(scoring, found, handle, 0x4e8);
+}
+
+s32 __fastcall AdvisorScoring_FewestWalkAways4(u8 *scoring) {
+    u16 handle;
+    const s32 found = Things_FewestWalkAwaysOf(table(), nullptr, 4, &handle);
+    return below(scoring, found, handle, 0x4f0);
+}
+
+s32 __fastcall AdvisorScoring_FewestWalkAwaysDef4ac2(u8 *scoring) {
+    u16 handle;
+    const s32 found = Things_FewestWalkAwaysDef4ac2(table(), nullptr, &handle);
+    return below(scoring, found, handle, 0x4f8);
+}
+
+s32 __fastcall AdvisorScoring_Unhappiest2(u8 *scoring) {
+    u16 handle;
+    const s32 found = Things_UnhappiestOf(table(), nullptr, 2, &handle);
+    return below(scoring, found, handle, 0x500);
+}
+
+s32 __fastcall AdvisorScoring_Unhappiest156(u8 *scoring) {
+    u16 handle;
+    const s32 found = Things_UnhappiestOf156(table(), nullptr, &handle);
+    return below(scoring, found, handle, 0x508);
+}
+
+s32 __fastcall AdvisorScoring_Unhappiest3(u8 *scoring) {
+    u16 handle;
+    const s32 found = Things_UnhappiestOf(table(), nullptr, 3, &handle);
+    return below(scoring, found, handle, 0x510);
+}
+
+s32 __fastcall AdvisorScoring_Unhappiest4(u8 *scoring) {
+    u16 handle;
+    const s32 found = Things_UnhappiestOf(table(), nullptr, 4, &handle);
+    return below(scoring, found, handle, 0x518);
+}
+
+s32 __fastcall AdvisorScoring_UnhappiestDef4ac2(u8 *scoring) {
+    u16 handle;
+    const s32 found = Things_FewestWalkAwaysDef4ac2(table(), nullptr, &handle);
+    return below(scoring, found, handle, 0x520);
+}
+
+s32 __fastcall AdvisorScoring_MostWalkAways2(u8 *scoring) {
+    u16 handle;
+    const s32 found = Things_MostWalkAwaysOf(table(), nullptr, 2, &handle);
+    return above(scoring, found, handle, 0x528);
+}
+
+s32 __fastcall AdvisorScoring_MostWalkAways156(u8 *scoring) {
+    u16 handle;
+    const s32 found = Things_MostWalkAwaysOf156(table(), nullptr, &handle);
+    return above(scoring, found, handle, 0x530);
+}
+
+s32 __fastcall AdvisorScoring_MostWalkAways3(u8 *scoring) {
+    u16 handle;
+    const s32 found = Things_MostWalkAwaysOf(table(), nullptr, 3, &handle);
+    return above(scoring, found, handle, 0x538);
+}
+
+s32 __fastcall AdvisorScoring_MostWalkAways4(u8 *scoring) {
+    u16 handle;
+    const s32 found = Things_MostWalkAwaysOf(table(), nullptr, 4, &handle);
+    return above(scoring, found, handle, 0x540);
+}
+
+s32 __fastcall AdvisorScoring_MostWalkAwaysDef4ac2(u8 *scoring) {
+    u16 handle;
+    const s32 found = Things_MostWalkAwaysDef4ac2(table(), nullptr, &handle);
+    return above(scoring, found, handle, 0x548);
+}
+
+s32 __fastcall AdvisorScoring_Happiest2(u8 *scoring) {
+    u16 handle;
+    const s32 found = Things_HappiestOf(table(), nullptr, 2, &handle);
+    return above(scoring, found, handle, 0x550);
+}
+
+s32 __fastcall AdvisorScoring_Happiest156(u8 *scoring) {
+    u16 handle;
+    const s32 found = Things_HappiestOf156(table(), nullptr, &handle);
+    return above(scoring, found, handle, 0x558);
+}
+
+s32 __fastcall AdvisorScoring_Happiest3(u8 *scoring) {
+    u16 handle;
+    const s32 found = Things_HappiestOf(table(), nullptr, 3, &handle);
+    return above(scoring, found, handle, 0x560);
+}
+
+s32 __fastcall AdvisorScoring_Happiest4(u8 *scoring) {
+    u16 handle;
+    const s32 found = Things_HappiestOf(table(), nullptr, 4, &handle);
+    return above(scoring, found, handle, 0x568);
+}
+
+s32 __fastcall AdvisorScoring_HappiestDef4ac2(u8 *scoring) {
+    u16 handle;
+    const s32 found = Things_HappiestDef4ac2(table(), nullptr, &handle);
+    return above(scoring, found, handle, 0x570);
+}
+
 }  // extern "C"

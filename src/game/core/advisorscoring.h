@@ -1,5 +1,6 @@
 // The advisor scoring's (gAdvisorScoring, 0xfb3540; its file laid out by AdvisorScoring_Construct in core/balancefile) scores: the
-// criteria the table at 0x76e348 (set up at 0x5a0a51) points to. Reimplementation of 0x59c9d0 and 0x59ca00.
+// criteria the table at 0x76e348 (set up at 0x5a0a51) points to. Reimplementation of 0x59c9d0 and 0x59ca00, and of the staff and object
+// criteria listed below.
 #pragma once
 
 #include "../../../re/types.h"
@@ -51,4 +52,36 @@ s32 __fastcall AdvisorScoring_StaffHigh8(const u8 *scoring);
 s32 __fastcall AdvisorScoring_StaffHigh5(const u8 *scoring);
 s32 __fastcall AdvisorScoring_StaffHigh6(const u8 *scoring);
 s32 __fastcall AdvisorScoring_StaffHigh4(const u8 *scoring);
+
+// The object criteria (thiscall on the scoring; names unconfirmed): an object scan of world/thingscan on the game table entry
+// (GameTable7cfb90_Get1da720_519510 of [[0x7cf6ec]], which the scans do not read) with a local handle. Category 2 / 3 / 4 the scan's
+// category argument; 156 its categories 1, 5 and 6; Def4ac2 the definitions with 2 at +0x4ac.
+// 0x59fb60, 0x59fbd0, 0x59fc40, 0x59fcb0, 0x59fd20 (the fewest walk-aways per 100 customers) and 0x59fd90, 0x59fe00, 0x59fe70, 0x59fee0
+// (the unhappiest), with the bounds +0x4d8, +0x4e0, ..., +0x518 (8 apart); 0x59ff50 (bound +0x520) as 0x59fd20 (the fewest walk-aways
+// of Def4ac2, sic: there is no unhappiest of Def4ac2): with a handle found and the scan's value below the bound (signed), the handle to
+// +4 (u16), the value to +8 and (value - bound) times the s32 after the bound returned (32-bit); else 0. (The original's Debug_Printf,
+// empty, is left out.)
+s32 __fastcall AdvisorScoring_FewestWalkAways2(u8 *scoring);
+s32 __fastcall AdvisorScoring_FewestWalkAways156(u8 *scoring);
+s32 __fastcall AdvisorScoring_FewestWalkAways3(u8 *scoring);
+s32 __fastcall AdvisorScoring_FewestWalkAways4(u8 *scoring);
+s32 __fastcall AdvisorScoring_FewestWalkAwaysDef4ac2(u8 *scoring);
+s32 __fastcall AdvisorScoring_Unhappiest2(u8 *scoring);
+s32 __fastcall AdvisorScoring_Unhappiest156(u8 *scoring);
+s32 __fastcall AdvisorScoring_Unhappiest3(u8 *scoring);
+s32 __fastcall AdvisorScoring_Unhappiest4(u8 *scoring);
+s32 __fastcall AdvisorScoring_UnhappiestDef4ac2(u8 *scoring);
+
+// 0x59ffc0, 0x5a0010, 0x5a0060, 0x5a00b0, 0x5a0100 (the most walk-aways) and 0x5a0150, 0x5a01a0, 0x5a01f0, 0x5a0240, 0x5a0290 (the
+// happiest) with the bounds +0x528, +0x530, ..., +0x570: as above with the value above the bound (signed).
+s32 __fastcall AdvisorScoring_MostWalkAways2(u8 *scoring);
+s32 __fastcall AdvisorScoring_MostWalkAways156(u8 *scoring);
+s32 __fastcall AdvisorScoring_MostWalkAways3(u8 *scoring);
+s32 __fastcall AdvisorScoring_MostWalkAways4(u8 *scoring);
+s32 __fastcall AdvisorScoring_MostWalkAwaysDef4ac2(u8 *scoring);
+s32 __fastcall AdvisorScoring_Happiest2(u8 *scoring);
+s32 __fastcall AdvisorScoring_Happiest156(u8 *scoring);
+s32 __fastcall AdvisorScoring_Happiest3(u8 *scoring);
+s32 __fastcall AdvisorScoring_Happiest4(u8 *scoring);
+s32 __fastcall AdvisorScoring_HappiestDef4ac2(u8 *scoring);
 }
