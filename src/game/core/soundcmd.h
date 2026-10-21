@@ -3,7 +3,7 @@
 // calls the slot as thiscall (out, target), pops 8, and the run applies the value to the target (a sound object: +0x20 and +0x24 its
 // parts) and returns out. Reimplementation of the runs whose callees are ported: 0x6b5640, 0x6b5670, 0x6b56a0, 0x6b5770, 0x6b5790,
 // 0x6b5840, 0x6b58b0, 0x6b5990, 0x6b59f0 and 0x6b5a50, and of the runs on the sound object (soundobject) and its mixer:
-// 0x6b5600, 0x6b5620, 0x6b56c0, 0x6b58d0, 0x6b5930 and 0x6b5a90 (the second value at +8). The names are the vtables' (the commands' meanings are unconfirmed).
+// 0x6b5600, 0x6b5620, 0x6b56c0, 0x6b58d0, 0x6b5930, 0x6b5a90 (the second value at +8) and 0x6b55c0. The names are the vtables' (the commands' meanings are unconfirmed).
 #pragma once
 
 #include "../../../re/types.h"
@@ -39,6 +39,11 @@ u32 *__fastcall SoundCmd700ba8_Run(const u8 *command, void *, u32 *out, u8 *targ
 
 // 0x6b5600 (vtable 0x700b5c): SoundObject_Broadcast (out) on the target. The command's values are not read.
 u32 *__fastcall SoundCmd700b5c_Run(const u8 *command, void *, u32 *out, u8 *target);
+
+// 0x6b55c0 (vtable 0x700b6c): SoundChannel_Apply on target's +0x24 with the stack functor 0x70a260 (its run SoundChannelFn70a260_Run)
+// and the target argument's own stack slot as the out (sic: it is zeroed, the target already read), then SoundMixer_Update on its +0x20.
+// *out = 0. The command is not read.
+u32 *__fastcall SoundCmd700b6c_Run(const u8 *command, void *, u32 *out, u8 *target);
 
 // 0x6b5620 (vtable 0x700b60): SoundObject_BroadcastValue (out, the value).
 u32 *__fastcall SoundCmd700b60_Run(const u8 *command, void *, u32 *out, u8 *target);
