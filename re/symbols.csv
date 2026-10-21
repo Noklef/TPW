@@ -5402,6 +5402,8 @@ address,name,kind,confidence,notes
 0x0066d678,Window705bf8_SetAlignY,function,low,"reimplemented (src/game/ui/window705bf8); thiscall (value), pops 4: the alignment down +0x140 set when it differs"
 0x0066d69f,Window705bf8_Compare,function,low,"reimplemented (src/game/ui/window705bf8); thiscall (other), pops 4: 0 for another kind (slot 3), else wcscmp of the two labels' texts"
 0x0066d6f5,Window705bf8_Proc,function,low,"reimplemented (src/game/ui/window705bf8); cdecl (window, message, a, b): the label's handler: Window_DefaultProc only"
+0x0066d1a6,Window705bf8_Dtor,function,low,"reimplemented (src/game/ui/window705bf8); thiscall: the label's destructor: the vtable, the text freed, then Window_Dtor"
+0x0066d720,Window705bf8_DeletingDtor,function,low,"reimplemented (src/game/ui/window705bf8); thiscall (flags), pops 4: the destructor, the block freed for flags bit 0; returns the window"
 0x0066c970,Window705bc8_Ctor,function,low,"reimplemented (src/game/ui/window705bc8); thiscall (parent, flags, id, left, top, right, bottom), pops 28: kind 11 of the factory 0x65dd7b; Window_Ctor, the vtable 0x705bc8, ranges +0x138..+0x13c (0xfff) and +0x14c..+0x150 (1) with spans, +0x2c from +8, the handler 0x66d001; returns the window"
 0x0066cad3,Window705bc8_SetRange,function,low,"reimplemented (src/game/ui/window705bc8); thiscall (low*, high*): the range +0x138 / +0x13c set (both the high end when crossed, sic), the span +0x140"
 0x0066a4c0,Window705af0_Ctor,function,low,"reimplemented (src/game/ui/window705af0); thiscall (parent, flags, id, left, top, right, bottom), pops 28: kind 12 of the factory 0x65dd7b; Window_Ctor, the vtable 0x705af0, +0x138 0, +0x13c 1, +0x140 0x9708cd, +0x148 1, +0x2c from +8, the handler 0x66aa61; returns the window"
