@@ -4256,6 +4256,13 @@ address,name,kind,confidence,notes
 0x006b5a50,SoundCmd700b74_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b74, thiscall (out, target), pops 8: Bytes44_Set(target's +0x24, out, 1, the value)"
 0x006b5990,SoundCmd700b78_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b78, thiscall (out, target), pops 8: Bytes44_Set(target's +0x24, out, 2, the value)"
 0x006b58b0,SoundCmd700ba8_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700ba8, thiscall (out, target), pops 8: target's slot 6 (out, the value)"
+0x006b5ab0,SoundManager_Dtor,function,low,reimplemented (src/game/core/soundmanager); thiscall: vtable reset to 0x70a288; the engine at +4 (if any) destroyed through its slot 0 (1) and +4 cleared
+0x006b5ad0,SoundManager_Call1,function,low,"reimplemented (src/game/core/soundmanager); slot 4, thiscall (out, a), pops 8: the engine's slot 1 (out, a); returns out"
+0x006b5af0,SoundManager_Release,function,low,"reimplemented (src/game/core/soundmanager); slot 0, thiscall (out), pops 4: the manager (unless null) destroyed through its slot 3 (1); *out = 0"
+0x006b5b10,SoundManager_Query,function,low,"reimplemented (src/game/core/soundmanager); slot 1, thiscall (out, a, b, c), pops 0x10: the engine's slot 2 (out, a, b, c); returns out"
+0x006b5b40,SoundManager_Post,function,low,"reimplemented (src/game/core/soundmanager); slot 2, thiscall (owner, command), pops 8: the engine's slot 4, its result returned"
+0x006b5b60,SoundManager_Call5,function,low,"reimplemented (src/game/core/soundmanager); thiscall (a, b), pops 8: the engine's slot 5, its result returned"
+0x006b5b80,SoundManager_Call3,function,low,"reimplemented (src/game/core/soundmanager); thiscall (a, b, c), pops 0xc: the engine's slot 3, its result returned"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

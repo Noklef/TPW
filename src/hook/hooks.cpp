@@ -170,6 +170,7 @@
 #include "../game/core/countedpair.h"
 #include "../game/core/keyactions.h"
 #include "../game/core/soundcmd.h"
+#include "../game/core/soundmanager.h"
 #include "../game/core/soundplay.h"
 #include "../game/core/startcheck.h"
 #include "../game/core/stringmapsrecord.h"
@@ -4088,6 +4089,13 @@ const Hook kHooks[] = {
     {"SoundCmd700b74_Run",        0x006b5a50, (void *)&SoundCmd700b74_Run, {0x8b, 0x41, 0x04, 0x8b, 0x4c}},
     {"SoundCmd700b78_Run",        0x006b5990, (void *)&SoundCmd700b78_Run, {0x8b, 0x41, 0x04, 0x8b, 0x4c}},
     {"SoundCmd700ba8_Run",        0x006b58b0, (void *)&SoundCmd700ba8_Run, {0x8b, 0xc1, 0x56, 0x8b, 0x4c}},
+    {"SoundManager_Dtor",         0x006b5ab0, (void *)&SoundManager_Dtor, {0x56, 0x8b, 0xf1, 0x8b, 0x4e}},
+    {"SoundManager_Call1",        0x006b5ad0, (void *)&SoundManager_Call1, {0x8b, 0x49, 0x04, 0x8b, 0x54}},
+    {"SoundManager_Release",      0x006b5af0, (void *)&SoundManager_Release, {0x85, 0xc9, 0x74, 0x07, 0x8b}},
+    {"SoundManager_Query",        0x006b5b10, (void *)&SoundManager_Query, {0x8b, 0x54, 0x24, 0x10, 0x8b}},
+    {"SoundManager_Post",         0x006b5b40, (void *)&SoundManager_Post, {0x8b, 0x54, 0x24, 0x08, 0x8b}},
+    {"SoundManager_Call5",        0x006b5b60, (void *)&SoundManager_Call5, {0x8b, 0x54, 0x24, 0x08, 0x8b}},
+    {"SoundManager_Call3",        0x006b5b80, (void *)&SoundManager_Call3, {0x8b, 0x54, 0x24, 0x0c, 0x8b}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

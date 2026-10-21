@@ -1,0 +1,34 @@
+// The sound manager [0x802bcc]: a handle (vtable 0x70a288, made by 0x6b5dc0; +4 the engine object it holds, 0x34 bytes with vtable
+// 0x70a2a0) whose methods forward to the engine's slots. Reimplementation of 0x6b5ab0-0x6b5b80; the deleting destructor 0x6b5bf0 and
+// the command post 0x6b5bd0 are the exe's. Names past Release / Query / Post (the slots soundset and soundplay call) are unconfirmed.
+#pragma once
+
+#include "../../../re/types.h"
+
+extern "C" {
+
+// 0x6b5ab0 (thiscall): the destructor: the vtable reset to 0x70a288; the engine (when there is one) destroyed through its slot 0
+// (deleting: 1) and +4 cleared.
+void __fastcall SoundManager_Dtor(u8 *manager);
+
+// 0x6b5af0 (slot 0; thiscall (out), pops 4): the manager (unless null) destroyed through its own slot 3 (deleting: 1); *out = 0.
+// Returns out.
+u32 *__fastcall SoundManager_Release(u8 *manager, void *, u32 *out);
+
+// 0x6b5b10 (slot 1; thiscall (out, a, b, c), pops 0x10): the engine's slot 2 (out, a, b, c). Returns out.
+u32 *__fastcall SoundManager_Query(u8 *manager, void *, u32 *out, u32 a, u32 b, u32 c);
+
+// 0x6b5b40 (slot 2; thiscall (owner, command), pops 8): the engine's slot 4 (owner, command), whose result is returned.
+u32 __fastcall SoundManager_Post(u8 *manager, void *, u32 owner, u32 command);
+
+// 0x6b5b80 (thiscall (a, b, c), pops 0xc; called by 0x51bc40): the engine's slot 3 (a, b, c), whose result is returned.
+u32 __fastcall SoundManager_Call3(u8 *manager, void *, u32 a, u32 b, u32 c);
+
+// 0x6b5b60 (thiscall (a, b), pops 8; called by 0x51c290 with a position as floats): the engine's slot 5 (a, b), whose result is
+// returned.
+u32 __fastcall SoundManager_Call5(u8 *manager, void *, u32 a, u32 b);
+
+// 0x6b5ad0 (slot 4; thiscall (out, a), pops 8): the engine's slot 1 (out, a). Returns out.
+u32 *__fastcall SoundManager_Call1(u8 *manager, void *, u32 *out, u32 a);
+
+}  // extern "C"
