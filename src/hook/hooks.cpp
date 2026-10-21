@@ -205,6 +205,7 @@
 #include "../game/core/soundvoice.h"
 #include "../game/core/startcheck.h"
 #include "../game/core/stringmapsrecord.h"
+#include "../game/core/voicecodec.h"
 #include "../game/core/wscanner.h"
 #include "../game/core/wtraits.h"
 #include "../game/core/xaadpcm.h"
@@ -4330,6 +4331,11 @@ const Hook kHooks[] = {
     {"SfMan_Open",                0x006d3bc0, (void *)&SfMan_Open, {0x83, 0xec, 0x08, 0x56, 0x8b}},
     {"SfMan_SelectDevice",        0x006d3c90, (void *)&SfMan_SelectDevice, {0x81, 0xec, 0xd4, 0x00, 0x00}},
     {"SfMan_Close",               0x006d3f20, (void *)&SfMan_Close, {0x56, 0x8b, 0xf1, 0xf6, 0x46}},
+    {"VoiceBits_Read",            0x006d4ee0, (void *)&VoiceBits_Read, {0x8b, 0x54, 0x24, 0x04, 0x8b}},
+    {"VoiceBits_Skip",            0x006d4fa0, (void *)&VoiceBits_Skip, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"VoiceBitsBuffered_Read",    0x006d4f30, (void *)&VoiceBitsBuffered_Read, {0x53, 0x55, 0x8b, 0xe9, 0x56}},
+    {"VoiceBitsBuffered_Skip",    0x006d4fe0, (void *)&VoiceBitsBuffered_Skip, {0x55, 0x56, 0x8b, 0x74, 0x24}},
+    {"VoiceCodec_InitChannel",    0x006d5200, (void *)&VoiceCodec_InitChannel, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

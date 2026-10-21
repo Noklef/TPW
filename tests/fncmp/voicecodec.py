@@ -1,0 +1,56 @@
+# The voice codec (src/game/core/voicecodec) against the originals: its bit readers over a state {pointer, bit buffer, count} (the count mostly 8
+# to 32, now and then any; n mostly 0 to 8, now and then up to 31 and wild past the mask table, into the data after it) over random bytes, the
+# buffered ones over a reader whose 0x2000-byte buffer ends where the pointer stands now and then (the stream's slot 1 a recorder filling the
+# buffer's first bytes); the channel set-up over random channel bytes with floats (now and then special; signalling NaNs made quiet) for the
+# scale and factor.
+# usage: voicecodec.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
+import os
+import struct
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
+from fncmp import LOG, RAM, Bench, Call, fill, log_region, vtable  # noqa: E402
+
+B = Bench([(0x6d4ee0, 0x6d4f2a), (0x6d4fa0, 0x6d4fdc), (0x6d4f30, 0x6d4f99), (0x6d4fe0, 0x6d503a), (0x6d5200, 0x6d5254)])
+STATE, DATA, CHANNEL, STREAM, READER = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x900, RAM + 0x1000
+CALLS = {'read': 0x6d4ee0, 'skip': 0x6d4fa0, 'bread': 0x6d4f30, 'bskip': 0x6d4fe0, 'init': 0x6d5200}
+OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
+
+
+def bits(r):
+    n = r.choice([r.randrange(0, 9)] * 6 + [r.randrange(0, 32)])
+    if r.wild and r.random() < 0.05:
+        n = r.randrange(0, 0x100)
+    return n
+
+
+def state(r, pointer):
+    count = r.choice([r.randrange(8, 33)] * 6 + [r.randrange(0, 8), r.getrandbits(32), r.randrange(-8, 0) & 0xffffffff])
+    return struct.pack('<3I', pointer, r.getrandbits(32), count) + r.bytes(4)
+
+
+def quiet(x):
+    """A signalling NaN made quiet: x87emu loads one quiet before the multiply, where the x87 then answers with the other (quiet) NaN."""
+    return x | 0x400000 if x & 0x7f800000 == 0x7f800000 and x & 0x7fffff else x
+
+
+def case(r):
+    name = r.deal(OPS)
+    if name == 'init':
+        channel = r.bytes(0x680)
+        args = [r.getrandbits(32), r.getrandbits(32), CHANNEL, r.getrandbits(32), quiet(r.f(r.choice([1.0, 100.0]))), quiet(r.f(r.choice([1.0, 1.1])))]
+        return Call(0x6d5200, args, {CHANNEL: channel}, conv='t', ret='v')
+    if name in ('read', 'skip'):
+        regions = {STATE: state(r, DATA + r.randrange(0, 0x80)), DATA: r.bytes(0x100)}
+        return Call(CALLS[name], [r.getrandbits(32), STATE, bits(r)], regions, conv='t', ret='a')
+    log = log_region()
+    reader = r.bytes(0x2010)
+    struct.pack_into('<I', reader, 0x2008, STREAM)
+    at = r.choice([0x1fff] * 3 + [0x1ffe, r.randrange(0, 0x2000)])
+    fill(log, 1, 0, r.bytes(r.randrange(1, 0x70)))
+    regions = {STATE: state(r, READER + 8 + at), READER: reader, STREAM: struct.pack('<I', STREAM + 4) + vtable({1: 2}), LOG: log}
+    return Call(CALLS[name], [READER, STATE, bits(r)], regions, conv='t', ret='a' if name == 'bread' else 'v')
+
+
+if __name__ == '__main__':
+    B.main(case)
