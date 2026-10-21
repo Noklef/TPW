@@ -17,6 +17,7 @@ B = Bench([(0x532960, 0x532a50), (0x5328e0, 0x53295b), (0x4d8300, 0x4d8328), (0x
 CELLS44, TABLE = RAM, RAM + 0x1000  # 16 cells of 0x44 bytes; the world's 0x28-byte cells for ids 0 to 0x680
 OPS = [k for k in os.environ.get('OPS', 'Fill,Flood,Check').split(',') if k]
 WORLD = 0x31000000   # CheckArea's world: its 0x28-byte cells at +0x1102b0, the 0x44-byte cells it names inline at +0x294 (by id)
+OUTSIDE = 0xffff   # (a parent off the area, of type 0x19)
 MONEY = RAM + 0x2000  # the world's table entry (0x7cfb90 + 20 * the word at world +0x1da726): its +0xc the money
 
 
@@ -36,13 +37,25 @@ def check(r):
         y1, y2 = y2, y1
     minx, maxx, miny, maxy = min(x1, x2), max(x1, x2), min(y1, y2), max(y1, y2)
     regions = {}
+    # uniform: every 0x44-byte cell flag 0x40 (or every one without it) and none type 7 / 0x1e, few type 0x19 cells, the area all of one kind
+    # but for those; a parent now and then the type 0x19 cell OUTSIDE (id 0xffff, off the area). Without flag 0x40 the type 0x19 cells are
+    # mostly exactly two of one side's samples, neither a corner (a side with two passes the one-kind test, one with fewer does not)
+    uniform = r.random() < 0.3
+    word = r.choice([0x40, 0x40, 0])
     cells = bytearray(r.bytes(16 * 0x44))
     for i in range(16):
-        put(cells, 0x44 * i + 8, 'I', r.choice([7, 0x1e, 2, 0, 5] if i < 8 else [0, 1, 5, 2]))
-        put(cells, 0x44 * i + 0xe, 'H', r.choice([0x40, 0x40, 0, 0xffff, r.getrandbits(16)]))
+        put(cells, 0x44 * i + 8, 'I', r.choice([0, 5] if uniform else [7, 0x1e, 2, 0, 5] if i < 8 else [0, 1, 5, 2]))
+        put(cells, 0x44 * i + 0xe, 'H', word if uniform else r.choice([0x40, 0x40, 0, 0xffff, r.getrandbits(16)]))
     ids = [(y << 7) + x + 1 for y in range(miny, maxy + 1) for x in range(minx, maxx + 1)] if maxx < 128 and minx >= 0 and maxy < 128 else [1]
-    p19, p7 = r.choice([0.1, 0.4, 0.8]), r.choice([0.0, 0.1, 0.3])
+    p19, p7 = (r.choice([0.05, 0.1, 0.2] if word else [0.2, 0.35, 0.5]), 0.0) if uniform else (r.choice([0.1, 0.4, 0.8]), r.choice([0.0, 0.1, 0.3]))
     flag = r.choice([0.2, 0.5, 0.9])
+    pair = set()
+    if uniform and not word and r.random() < 0.8:
+        along = r.choice([[(minx, y) for y in range(miny, maxy + 1, 2)], [(maxx, y) for y in range(miny, maxy + 1, 2)],
+                          [(x, miny) for x in range(minx, maxx + 1, 2)], [(x, maxy) for x in range(minx, maxx + 1, 2)]])
+        inner = [q for q in along if q[0] not in (minx, maxx) or q[1] not in (miny, maxy)]
+        pair = set(r.sample(inner, 2)) if len(inner) >= 2 else set()
+        p19 = 0.0
     for y in range(miny, maxy + 1):
         if maxx >= 128 or minx < 0 or maxy >= 128:
             break
@@ -53,12 +66,14 @@ def check(r):
             handle = r.randrange(1, 9) if r.random() < p7 else r.randrange(9, 17) if r.random() < flag else r.randrange(1, 17)
             put(row, k, 'H', handle)
             row[k + 2] = r.choice([2, 2, 0, 1])
-            kind = 0x19 if r.random() < (p19 if side else 0.15) else r.choice([0xc, 0x11, 0, 3, 0x18, 0x1a])
+            kind = 0x19 if (x, y) in pair or r.random() < (p19 if side else 0.0 if pair else 0.02 if uniform else 0.15) else r.choice([0xc, 0x11, 0, 3, 0x18, 0x1a])
             put(row, k + 8, 'I', kind)
             bits = r.choice([0x11, 0x44, 0x11, 0x44, 0x55, 0x15, 0, 0x10, r.getrandbits(8)])
             row[k + 0xc], row[k + 0x22] = bits, r.choice([bits, bits, 0x11, 0x44, r.getrandbits(8)])
-            put(row, k + 0x10, 'H', r.choice(ids))
+            put(row, k + 0x10, 'H', OUTSIDE if uniform and r.random() < 0.3 else r.choice(ids))
         regions[WORLD + 0x1102b0 + 0x28 * ((y << 7) + minx + 1)] = row
+    if uniform:
+        regions[WORLD + 0x1102b0 + 0x28 * OUTSIDE] = put(bytearray(r.bytes(0x28)), 8, 'I', 0x19)
     for x, y in ((x1, y1), (x2, y2)):   # (the corners named as cells by their own ids; off the map only the first counts)
         at = WORLD + 0x1102b0 + 0x28 * ((((y << 7) + x + 1) & 0xffff))
         if not any(a <= at < a + len(v) for a, v in regions.items()):
