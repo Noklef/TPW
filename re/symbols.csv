@@ -454,6 +454,7 @@ address,name,kind,confidence,notes
 0x0051f280,ParticleSystem_Bounds,function,low,"reimplemented (src/game/render/particles); cdecl (slot, low, high): the system's +0x128 and +0x134 triples << 4 out"
 0x0051f2f0,ParticleSystem_FreeDrawList,function,low,reimplemented (src/game/render/particles); cdecl (list): the static list marked free or the list GlobalFree'd
 0x0051f320,ParticleSines_Build,function,low,"reimplemented (src/game/render/particles); cdecl: the particles' sine table 0x803b68 (0x200 dwords, 256 sin through the x87) built; returns it"
+0x0051faa0,Particles_Init,function,low,"reimplemented (src/game/render/particles); cdecl (callback, flag, count): the particle system set up once"
 0x00804370,gParticleEffects,data,high,0x69 x 0x140-byte effect definitions from Tp2.plb
 0x0080c6b0,gParticleEffectors,data,high,20 x 0x68-byte effector definitions
 0x0080cefc,gParticleSystems,data,high,live systems: 0x140-byte copies of an effect definition
