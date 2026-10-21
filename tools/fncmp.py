@@ -434,7 +434,7 @@ LOG = STUBS + 0x100000  # their log (the case maps it, see log_region()): a coun
 LOG_ENTRY = 12
 LOG_ENTRIES = 40  # (the room: 4 + 48 * 40 bytes)
 LOG_RETURNS = 0x800  # from here an override for each slot: a flag and a value (flag 2: the value is an argument's index, see echo(); 3: see fail_after();
-#                      4: see set_float_return())
+#                      4: see set_float_return(); 5: see fail_mask(); 6: fail_after(counted=True))
 
 
 def recorder(k, n, com=False, cdecl=False):
@@ -467,12 +467,13 @@ def set_float_return(log, k, x):
     struct.pack_into('<If', log, LOG_RETURNS + 8 * k, 4, x)
 
 
-def fail_after(log, k, n, value=0xffffffff):
+def fail_after(log, k, n, value=0xffffffff, counted=False):
     """Makes slot k's recorder answer its first n calls (as counted in the log) as it would without an override, and every later one `value`
     (a 16-bit value sign-extended: INVALID_HANDLE_VALUE by default), so that a loop that runs until a call fails ends: a CreateFileA that opens
-    n files."""
+    n files. The log keeps only 40 entries, and calls past them are not counted; with counted, the calls are counted down in the override
+    itself (flag 6: its value's low word, written back by both sides on each call), so n can be past the log's room."""
     assert 0 <= n < 0x10000 and (value >> 15 == 0 or value | 0x7fff == 0xffffffff)
-    struct.pack_into('<II', log, LOG_RETURNS + 8 * k, 3, (value & 0xffff) << 16 | n)
+    struct.pack_into('<II', log, LOG_RETURNS + 8 * k, 6 if counted else 3, (value & 0xffff) << 16 | n)
 
 
 def fail_mask(log, k, mask):
@@ -732,6 +733,12 @@ def _recorder(k, n, com=False, cdecl=False):
             e.write(LOG, struct.pack('<I', count + 1))
         flag, value = struct.unpack('<2I', e.read(LOG + LOG_RETURNS + 8 * k, 8))
         e.r['EAX'] = copied if returns_copied else cursor if seeked else answer(flag, value, raw, n, vhash(kk, n, this, args), earlier)
+        if flag == 6 and not returns_copied and not seeked:   # (fail_after(counted=True): the countdown in the override)
+            if value & 0xffff:
+                e.write(LOG + LOG_RETURNS + 8 * k + 4, struct.pack('<I', value - 1))
+                e.r['EAX'] = vhash(kk, n, this, args)
+            else:
+                e.r['EAX'] = (value >> 16) - (0x10000 if value >> 31 else 0) & 0xffffffff
         if flag == 4 and not returns_copied and not seeked:
             e.st.insert(0, struct.unpack('<f', struct.pack('<I', value))[0])
         if cdecl:  # (the caller pops them)
