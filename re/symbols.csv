@@ -4546,6 +4546,7 @@ address,name,kind,confidence,notes
 0x006bac30,ChannelVoices_SetCount,function,low,"reimplemented (src/game/core/channelvoice); thiscall (settings), pops 4: the settings' +0x40 or the capacity, the smaller, becomes the count in use after ChannelVoices_ReleaseAll"
 0x006b8330,ChannelVoice_SetFlag,function,low,"reimplemented (src/game/core/channelvoice); thiscall (on, mask), pops 8: the mask set in the flags (+0x10) when the byte on is set, else cleared"
 0x006c4c80,SoundOccluders_Occlusion,function,low,"reimplemented (src/game/core/soundoccluders); thiscall on the occluders (0xfb2038) (from, to, out), pops 0xc: the largest occlusion of the path, through out; returns it is neither 0 nor NaN"
+0x006c6a60,LoopStream_Read,function,low,"reimplemented (src/game/core/loopstream); thiscall (buffer, count, done, unused), pops 0x10; slot 7 of 0x70aba8: the inner stream read until the count, up to the loop's end while looping, the loops counted down and the inner seeked to the start; slot 3 once the looping ends; 1 when a read answers 1"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
