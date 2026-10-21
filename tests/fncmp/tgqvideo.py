@@ -6,7 +6,9 @@
 # 4 4 4) or each 0-9 now and then 31 / 32 (shift counts past 31: the CPU's mod 32); the shifts theirs or 0-35. Tables (0x66fc10): the
 # same formats and shifts, the three tables random before.
 # Quality: 0-100 mostly (else any: the products wrapping), the dequantiser 0xfb7820 random before.
-# usage: tgqvideo.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Fill16,Fill32,Pack,Tables,Quality)
+# Row16 (0x673574, luma in ESI, out in EDI, chroma in EBX: conv 'esiediebx'): the tables, the 16 luma and 2 x 8 chroma dwords random,
+# out random (its dwords 0 and 8 read).
+# usage: tgqvideo.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Fill16,Fill32,Pack,Tables,Quality,Row16)
 import os
 import struct
 import sys
@@ -14,8 +16,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import RAM, Bench, Call  # noqa: E402
 
-CALLS = {'Fill16': 0x671340, 'Fill32': 0x671650, 'Pack': 0x66fd70, 'Tables': 0x66fc10, 'Quality': 0x671000}
-B = Bench([(0x671340, 0x671532), (0x671650, 0x6717fc), (0x66fd70, 0x66ff96), (0x66fc10, 0x66fd69), (0x671000, 0x6710b9)])
+CALLS = {'Fill16': 0x671340, 'Fill32': 0x671650, 'Pack': 0x66fd70, 'Tables': 0x66fc10, 'Quality': 0x671000, 'Row16': 0x673574}
+B = Bench([(0x671340, 0x671532), (0x671650, 0x6717fc), (0x66fd70, 0x66ff96), (0x66fc10, 0x66fd69), (0x671000, 0x6710b9), (0x673574, 0x67380f)])
 FORMATS = [(5, 6, 5, 11, 5, 0), (5, 5, 5, 10, 5, 0), (8, 8, 8, 16, 8, 0), (4, 4, 4, 8, 4, 0), (5, 6, 5, 0, 5, 11)]
 
 
@@ -35,6 +37,10 @@ def case(r):
     if op == 'Quality':
         quality = r.randrange(101) if r.random() < 0.85 else r.choice([-1, 101, 200, r.getrandbits(32)])
         return Call(CALLS[op], [quality], {0xfb7820: r.bytes(0x100)}, ret='v')
+    if op == 'Row16':
+        luma, chroma = RAM + 0x1000, RAM + 0x2000
+        regions = {0xfb7930: r.bytes(0x600), luma: r.bytes(0x40), chroma: r.bytes(0x120), OUT: r.bytes(0x24)}
+        return Call(CALLS[op], [luma, OUT, chroma], regions, conv='esiediebx', ret='v')
     if op == 'Pack':
         return Call(CALLS[op], [channel(r), channel(r), channel(r), r.getrandbits(32)] + pixel_format(r), {}, conv='f', ret='a')
     if op == 'Tables':

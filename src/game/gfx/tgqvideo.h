@@ -36,4 +36,11 @@ void __fastcall TgqVideo_BuildTables(u32 unused, u32 red_bits, u32 green_bits, u
 // quality, base = d * 22 / 100 + 8 and step = d * 50 / 100 + 10 - base (signed, truncated), entry (row, k) = the matrix's * ((row + k)
 // * step / 14 + base) << 16, as 16.16 rounded by bit 15 (the products wrapping).
 void __cdecl TgqVideo_SetQuality(s32 quality);
+
+// 0x673574 (luma in ESI, out in EDI, chroma in EBX: hand-written assembly hooked through RegThunk_TgqVideo_PixelRow16; name
+// unconfirmed): 16 pixels at 16 bits from 16 luma dwords and 8 of each chroma (chroma[k], chroma[k + 0x40]), each value's bits 17-23 the
+// index: out word 2k = luma[2k] + 0xfb7d30[chroma[k]] + 0xfb7b30[chroma[k + 0x40]] (the low half), 2k + 1 with luma[2k + 1]. Pair by
+// pair, each pair's four dwords read before its two words are written. It reads out's dwords 0 and 8 and drops them (the first before
+// anything, the second before pair 4): kept, as reads that fault where the original's do.
+void __cdecl TgqVideo_PixelRow16(const u32 *luma, u16 *out, const u32 *chroma);
 }

@@ -102,6 +102,18 @@ void __cdecl TgqVideo_SetQuality(s32 quality) {
     }
 }
 
+void __cdecl TgqVideo_PixelRow16(const u32 *luma, u16 *out, const u32 *chroma) {
+    volatile const u32 *const dropped = reinterpret_cast<volatile const u32 *>(out);
+    (void)dropped[0];
+    for (int k = 0; k < 8; ++k) {
+        if (k == 4) (void)dropped[8];
+        const u32 y0 = luma[2 * k], y1 = luma[2 * k + 1], u = chroma[k], v = chroma[k + 0x40];
+        const u32 colour = global<u32>(0x00fb7d30 + (u >> 17 & 0x7f) * 4) + global<u32>(0x00fb7b30 + (v >> 17 & 0x7f) * 4);
+        out[2 * k] = (u16)(global<u32>(0x00fb7930 + (y0 >> 17 & 0x7f) * 4) + colour);
+        out[2 * k + 1] = (u16)(global<u32>(0x00fb7930 + (y1 >> 17 & 0x7f) * 4) + colour);
+    }
+}
+
 void __cdecl TgqVideo_FillBlocks16(s32 y0, s32 y1, s32 y2, s32 y3, s32 c0, s32 c1, u8 *out, u32 pitch) {
     const u32 chroma = entry(0x00fb7d30, c0) + entry(0x00fb7b30, c1);
     const u32 step = (pitch >> 1) * 2;

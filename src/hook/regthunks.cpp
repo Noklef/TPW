@@ -1,6 +1,7 @@
 #include "regthunks.h"
 
 #include "../game/gfx/movieidct.h"
+#include "../game/gfx/tgqvideo.h"
 
 extern "C" {
 
@@ -51,6 +52,18 @@ __declspec(naked) void RegThunk_MovieIdct_RowShift() {
         push esi
         call MovieIdct_RowShift
         add esp, 8
+        ret
+    }
+}
+
+// Luma in ESI, out in EDI, chroma in EBX.
+__declspec(naked) void RegThunk_TgqVideo_PixelRow16() {
+    __asm {
+        push ebx
+        push edi
+        push esi
+        call TgqVideo_PixelRow16
+        add esp, 12
         ret
     }
 }
