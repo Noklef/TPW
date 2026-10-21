@@ -4,10 +4,15 @@
 
 #include "../core/accessors.h"
 #include "../core/crt.h"
+#include "../core/gameheap.h"
+#include "../core/language.h"
 #include "../core/vcall.h"
 #include "../ui/frame.h"
 #include "../ui/guirect.h"
+#include "../render/textparts.h"
 #include "../ui/window.h"
+#include "../ui/windowfactory.h"
+#include "../ui/windowreg.h"
 
 namespace {
 
@@ -81,5 +86,24 @@ void __cdecl HelpBg_SetText(const u16 *text) {
     }
     Window_SetShown(at<u8 *>(bg, 0x18), nullptr, 1);
     vcall<void>(at<u8 *>(bg, 0x18), 0x24, text);
+}
+
+void __fastcall HelpBg_Build(u8 *self) {
+    const s32 height = (s16)vcall<u32>(Language_Font(7), 4) * 0xc00 / *reinterpret_cast<const s16 *>((uintptr_t)0x00faa5c0) + 10;
+    at<u8 *>(self, 0x18) = Window_CreateChild(*reinterpret_cast<u8 **>((uintptr_t)0x00faa5d8), nullptr, 1, 1, 0xfff355e4, 0x23e,
+                                              (u32)(0x5f0 - height), 0x5c2, 0x5f0);
+    u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
+    Window_SetImpl(at<u8 *>(self, 0x18), nullptr, memory ? TextPart_Ctor(memory, nullptr, 0) : nullptr);
+    Window_NotifyC00(at<u8 *>(self, 0x18), nullptr, 1, 1);
+    Window_Notify3000(at<u8 *>(self, 0x18), nullptr, 1, 1);
+    Window_Set4c(at<u8 *>(self, 0x18), nullptr, Language_Font(7));
+    Window_Notify40000(at<u8 *>(self, 0x18), nullptr, 0xff, 0xff, 0xff, 0xff);
+    Window_NotifyImpl100(at<u8 *>(self, 0x18), nullptr, 0);
+    Window_SetObject98(at<u8 *>(self, 0x18), nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName("f_helpbg")));
+    Window_SetDwordA0(at<u8 *>(self, 0x18), nullptr, 0, (u32)(uintptr_t)self);
+    Window_SetDepth(at<u8 *>(self, 0x18), nullptr, 0x26);
+    vcall<void>(at<u8 *>(self, 0x18), 0x14, 0u);
+    Window_SetHandler(at<u8 *>(self, 0x18), nullptr, 0x00491fe0);
+    at<u16>(self, 0xc) = 1;
 }
 }  // extern "C"
