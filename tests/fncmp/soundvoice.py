@@ -9,7 +9,9 @@
 # branch pick: a node at NODE (its sample count 0 now and then, 0-8 branches at ENTRIES, each a variation in BRANCHES of weight 1 or more
 # and a byte range around small values), the voice's +8 that node or null (the definition DEF2's first variation then the node), the
 # value small, 0xff or any (the parameter block's byte +4 for the switch). The sequence voice's next: +8 null, on any variation up to
-# past the last, or off the stride; flag 4 either way. The constructors run Class70a7e0_Ctor.
+# past the last, or off the stride; flag 4 either way. The constructors run Class70a7e0_Ctor. The linked voices: the parameter block's
+# +0x1c a parent voice at PARENT (its own block at PARENT_PARAMS); the linked switch's pick on the parent's node (the switch's setup moved
+# there, the value its block's byte +4); the init's slots 14, 15 and 19 answering any (0 now and then).
 # usage: soundvoice.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -25,17 +27,22 @@ CALLS = {'ensure': (0x6b7150, 'v'), 'pending': (0x6bc900, 'a'), 'apply': (0x6bbf
          'cull': (0x6bca70, 'v'), 'command': (0x6bcab0, 'a'), 'follow': (0x6bd5f0, 'v'), 'byte44': (0x6bcb80, 'a'),
          'branch': (0x6be450, 'b'), 'switch': (0x6be5e0, 'b'), 'next': (0x6be6d0, 'b'), 'swctor': (0x6be660, 'a'), 'seqctor': (0x6be730, 'a'),
          'flags': (0x6bbe90, 'v'), 'init': (0x6bbf60, 'a'),
-         'setparam': (0x6bbb80, 'v'), 'swsetparam': (0x6be580, 'v'), 'swcreate': (0x6be610, 'a'), 'seqcreate': (0x6be680, 'a')}
+         'setparam': (0x6bbb80, 'v'), 'swsetparam': (0x6be580, 'v'), 'swcreate': (0x6be610, 'a'), 'seqcreate': (0x6be680, 'a'),
+         'linkctor': (0x6c3a00, 'a'), 'linkswctor': (0x6c3de0, 'a'), 'linkinit': (0x6c3a80, 'b'), 'linkfollow': (0x6c3c70, 'v'),
+         'linkbranch': (0x6c3e00, 'b')}
+LINKED_OPS = ('linkinit', 'linkfollow', 'linkbranch')
 B = Bench([(0x6b7150, 0x6b7190), (0x6bc900, 0x6bcb56), (0x6c5130, 0x6c5150), (0x6bbf00, 0x6bbf56), (0x6bc650, 0x6bc674), (0x6bc680, 0x6bc806),
            (0x6bc810, 0x6bc8f0), (0x6bd5f0, 0x6bd781), (0x6bd7a0, 0x6bd7ac), (0x6bb220, 0x6bb237), (0x5f5f10, 0x5f5f7d), (0x5f5fa0, 0x5f5faa),
            (0x6bcb80, 0x6bcce1), (0x6c50d0, 0x6c50e8), (0x6be450, 0x6be573), (0x6be5e0, 0x6be608), (0x6be6d0, 0x6be727), (0x6be660, 0x6be672),
            (0x6be730, 0x6be742), (0x6bb950, 0x6bb98e), (0x6bbe90, 0x6bbef9), (0x6bbf60, 0x6bc034),
-           (0x6bbb80, 0x6bbbde), (0x6be580, 0x6be5d3), (0x6be610, 0x6be657), (0x6be680, 0x6be6c7)])
+           (0x6bbb80, 0x6bbbde), (0x6be580, 0x6be5d3), (0x6be610, 0x6be657), (0x6be680, 0x6be6c7),
+           (0x6c3a00, 0x6c3a80), (0x6c3de0, 0x6c3df9), (0x6c3a80, 0x6c3ad4), (0x6c3c70, 0x6c3d7e), (0x6c3e00, 0x6c3f63)])
 VOICE, OUT, SYS, SVT, VVT, DEF, VARS, SAMPLES, PARAMS, LISTENER, CMD, CVT = (RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x500,
                                                                             RAM + 0x600, RAM + 0xa00, RAM + 0xb00, RAM + 0xb40, RAM + 0xb80, RAM + 0xbc0)
 SYSTEM, RANDOM, CLOCK, TIME_GET_TIME = 0xfb1f24, 0xfb1f20, 0xfa71e0, 0x6fd3ec
 NODE, ENTRIES, BRANCHES, DEF2 = RAM + 0xc00, RAM + 0xc40, RAM + 0xc80, RAM + 0xe00
 OWNER, OVT, OINFO, POS, MEM, INFO = RAM + 0xe40, RAM + 0xe80, RAM + 0xf00, RAM + 0xf20, RAM + 0xf40, RAM + 0xfa0
+PARENT, PARENT_PARAMS = RAM + 0x1000, RAM + 0x1080
 CMD_K, TIME_K = 9, 12
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
@@ -123,7 +130,7 @@ def case(r):
     name = r.deal(OPS)
     address, ret = CALLS[name]
     log = log_region()
-    if name == 'follow':
+    if name in ('follow', 'linkfollow'):
         blob_bytes(log, 4, 1, 0xff, inner=(8, 0xfff, 12))   # the functor: its vtable, the sound; the record's +0xc-+0x17
     elif name == 'byte44':
         hundred = r.random() < 0.5
@@ -145,7 +152,7 @@ def case(r):
     struct.pack_into('<I', voice, 0, VVT)
     struct.pack_into('<I', voice, 4, r.choice([DEF] * 6 + [0]))
     struct.pack_into('<I', voice, 8, VARS + 0x2a * r.randrange(2) if name != 'radius' or r.random() < 0.7 else 0)
-    struct.pack_into('<I', voice, 0x4c, r.choice([0, PARAMS, PARAMS] if name not in ('follow', 'audible') else [PARAMS]))
+    struct.pack_into('<I', voice, 0x4c, r.choice([0, PARAMS, PARAMS] if name not in ('follow', 'audible') + LINKED_OPS else [PARAMS]))
     struct.pack_into('<I', voice, 0x24, r.choice([0, r.getrandbits(32) | 1, r.getrandbits(16) + 1 << 16]))   # (a sound whose low word is 0 too)
     struct.pack_into('<I', voice, 0x3c, r.choice([0, r.getrandbits(32)]))
     struct.pack_into('<I', voice, 0x40, r.f() if r.random() < 0.3 else fb(r.uniform(0, 10)))
@@ -184,6 +191,32 @@ def case(r):
                SAMPLES: samples, PARAMS: params, LISTENER: listener, CMD: struct.pack('<I', CVT) + r.bytes(0xc),
                CVT: struct.pack('<I', recorder(CMD_K, 0)), SYSTEM: struct.pack('<I', SYS), RANDOM: struct.pack('<I', seed), CLOCK: bytes(0x20),
                TIME_GET_TIME: struct.pack('<I', recorder(TIME_K, 0, True)), LOG: log, HEAP: heap(0x40, fail=r.choice([0, 0, 0, 1]))}
+    if name in LINKED_OPS or name in ('linkctor', 'linkswctor'):
+        parent, parent_params = bytearray(r.bytes(0x50)), bytearray(r.bytes(0x20))
+        struct.pack_into('<I', parent, 0x4c, PARENT_PARAMS)
+        struct.pack_into('<I', params, 0x1c, PARENT)
+        regions.update({PARENT: parent, PARENT_PARAMS: parent_params})
+    if name in ('linkctor', 'linkswctor'):
+        regions[HEAP] = heap(0x40, fail=r.choice([0] * 9 + [1]))
+        return Call(address, [VOICE, r.choice([PARENT, PARENT, 0, r.getrandbits(32)])], regions, conv='t', ret=ret)
+    if name == 'linkinit':
+        struct.pack_into('<I', d, 0x10, r.getrandbits(32))
+        for k, choices in ((14, [0, 0x100, 1, r.getrandbits(32)]), (15, [0, SAMPLES, r.getrandbits(32)]), (19, [0, r.getrandbits(32)])):
+            set_return(log, k, r.choice(choices))
+        return Call(address, [VOICE, DEF, r.getrandbits(32)], regions, conv='t', ret=ret)
+    if name == 'linkfollow':
+        struct.pack_into('<I', voice, 0x24, r.choice([0, r.getrandbits(32) | 1, r.getrandbits(32) | 1]))
+        struct.pack_into('<I', voice, 0x30, r.getrandbits(32))
+        return Call(address, [VOICE], regions, conv='t', ret=ret)
+    if name == 'linkbranch':
+        value = branch(r, voice, params, regions, seed)
+        parent = regions[PARENT]
+        struct.pack_into('<I', parent, 8, struct.unpack_from('<I', voice, 8)[0])
+        struct.pack_into('<I', parent, 0x30, r.getrandbits(32))
+        struct.pack_into('<I', voice, 8, r.getrandbits(32))   # (overwritten by the parent's)
+        regions[PARENT_PARAMS][4] = value & 0xff
+        params[4] = r.getrandbits(8)
+        return Call(address, [VOICE, r.getrandbits(32)], regions, conv='t', ret=ret)
     if name in ('branch', 'switch'):
         value = branch(r, voice, params, regions, seed)
         params[4] = value & 0xff
