@@ -173,6 +173,7 @@
 #include "../game/core/soundbank.h"
 #include "../game/core/soundchannel.h"
 #include "../game/core/soundcmd.h"
+#include "../game/core/soundeax.h"
 #include "../game/core/soundmanager.h"
 #include "../game/core/soundmixer.h"
 #include "../game/core/soundobject.h"
@@ -4163,6 +4164,7 @@ const Hook kHooks[] = {
     {"SoundObject_SendVoice",     0x006b8930, (void *)&SoundObject_SendVoice, {0x8b, 0x54, 0x24, 0x08, 0x56}},
     {"SoundVoice_EnsureParams",   0x006b7150, (void *)&SoundVoice_EnsureParams, {0x53, 0x56, 0x8b, 0xf1, 0x33}},
     {"SoundVoice_SetPending",     0x006bc900, (void *)&SoundVoice_SetPending, {0x81, 0xec, 0xac, 0x00, 0x00}},
+    {"EaxBuffer_QueryAll",        0x006c4760, (void *)&EaxBuffer_QueryAll, {0x8b, 0x41, 0x04, 0x83, 0xec}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
