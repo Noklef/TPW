@@ -969,6 +969,13 @@ u32 __fastcall ParkAnalyser_CountKind1OnPlainCell(u8 *analyser, void *, u32 maxA
     return cachedCount(analyser, 0x1f0b8, maxAge, [](const u8 *thing) { return at<u8>(thing, 2) == 1 && AnalyserCell_TypePlain(thing); });
 }
 
+s32 __fastcall ParkAnalyser_Kind1OnPlainHalfClamped(u8 *analyser) {
+    const auto half = [analyser] { return (s32)ParkAnalyser_CountKind1OnPlainCell(analyser, nullptr, 0) / 2; };
+    const s32 first = half() < 0 ? 0 : half();
+    if (first >= 100) return 100;
+    return half() < 0 ? 0 : half();
+}
+
 u32 __fastcall ParkAnalyser_CountDef4ac0(u8 *analyser, void *, u32 maxAge) {
     return cachedCount(analyser, 0x1f0c4, maxAge, [](const u8 *thing) {
         return at<u8>(thing, 2) == 3 && !at<u32>(ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, at<u16>(thing, 0xe)), 0x4ac);

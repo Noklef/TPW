@@ -1096,6 +1096,7 @@ address,name,kind,confidence,notes
 0x004c9cc0,Things_AverageStat1f8OfKind,function,low,"reimplemented (src/game/world/thingscan); The average of the low bytes of float +0x1f8 of the things of a kind, 0 when none"
 0x004ca160,Things_AverageKind3Flag1Of100Minus44,function,low,"reimplemented (src/game/world/thingscan); The average of 100 less the low byte of float +0x44 of the objects with +0x32 bit 0, 0 when none"
 0x004c9b40,Things_CountStaffWithPatrol,function,low,reimplemented (src/game/world/thingscan); stdcall (kind): the staff of the kind (0 any) with a patrol region counted
+0x004c81e0,ParkAnalyser_Kind1OnPlainHalfClamped,function,low,"reimplemented (src/game/world/thingscan); thiscall: half the kept count of kind 1 on plain cells held to 0..100, the count taken for each look"
 0x0054b130,Buoy_FindFree,function,high,"reimplemented (src/game/world/trackpools); the first free buoy record, its index stored in it"
 0x0054b170,Buoy_Alloc,function,high,reimplemented (src/game/world/trackpools); takes the first free buoy record
 0x0054b1e0,CollNode_FindFree,function,high,reimplemented (src/game/world/trackpools); the first free collision node

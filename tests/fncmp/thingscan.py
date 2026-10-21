@@ -9,7 +9,8 @@
 # quarters before the game time (or after it, wrapping), the age asked for about that. Avg1f8 (0x4c9cc0): the staff mostly, a kind asked
 # for (or with high bits), their floats +0x1f8; Avg44 (0x4ca160): objects with +0x32 bit 0 or not, their floats +0x44; the floats 0..100
 # mostly (else negative, past 255, huge or NaN). Patrol (0x4c9b40, on the analyser, not read): the staff mostly, a kind asked for or any (0),
-# their patrol regions +0x20a / +0x20c the none (1, 0x4000) now and then.
+# their patrol regions +0x20a / +0x20c the none (1, 0x4000) now and then. Half (0x4c81e0): CPlain's analyser, its kept count (+0x1f0bc)
+# about 0, 200 and negative, kept for age 0 mostly.
 # usage: thingscan.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=C1,C2,Max,...)
 import os
 import struct
@@ -35,7 +36,8 @@ CALLS = {'C1': (0x4c9f90, 'c', 0xa0, 'n'), 'C2': (0x4ca0c0, 'c', 0xa0, 'n'), 'Ma
          'Step': (0x4b3340, 'c', 0x14c, 'kp'), 'Group': (0x48caf0, 't', 0xe4, 'kp'),
          'GroupB': (0x48cbe0, 't', 0xe4, 'kp'), 'Score': (0x4cceb0, 't', 0x449, 'a'),
          'CPlain': (0x4c7fa0, 't', 0xc6, 'gc'), 'C4ac0': (0x4c8070, 't', 0xde, 'gc'),
-         'Avg1f8': (0x4c9cc0, 's', 0xb3, 'v'), 'Avg44': (0x4ca160, 'c', 0xb4, 'n'), 'Patrol': (0x4c9b40, 's', 0xba, 'v')}   # (Step's and Group's ranges take in their jump tables)
+         'Avg1f8': (0x4c9cc0, 's', 0xb3, 'v'), 'Avg44': (0x4ca160, 'c', 0xb4, 'n'), 'Patrol': (0x4c9b40, 's', 0xba, 'v'),
+         'Half': (0x4c81e0, 't', 0x53, 'gh')}   # (Step's and Group's ranges take in their jump tables)
 B = Bench([(a, a + n) for (a, _c, n, _s) in CALLS.values()] + [(0x516130, 0x516160), (0x516160, 0x5161b0), (0x50b350, 0x50b360), (0x4e0440, 0x4e0450),
                                                               (0x4e2710, 0x4e2740), (0x4dd4e0, 0x4dd500), (0x412e90, 0x412eea), (0x5da3c0, 0x5da3c1), (0x41a960, 0x41a970), (0x5161b0, 0x516200), (0x4fa990, 0x4fa9fa), (0x536300, 0x53644c), (0x519510, 0x519550),
                                                               (0x481f80, 0x481fa0), (0x481fc0, 0x482030), (0x4cd300, 0x4cd331), (0x41a990, 0x41a9a7),
@@ -52,9 +54,9 @@ def case(r):
         return category(r, address)
     regions, handles, things = park(r, count=r.choice([1, 2, 3, 4, 6]) if shape in ('o', 'u') or name.startswith('B') else None,
                                     defs=name not in ('C1', 'C2', 'Max', 'C3', 'Staff', 'Avg', 'Re', 'P1', 'P2', 'P3', 'Sum', 'Cs', 'Avg1f8', 'Avg44', 'Patrol') and shape != 'u',
-                                    kinds=(4, 5, 6, 7, 8, 3, 1, 0) if name in ('Staff', 'S5', 'S6', 'S4', 'S7', 'S8', 'Cs', 'Avg1f8', 'Patrol') else (1, 1, 1, 3, 0, 0xff) if name[0] == 'P' or name == 'CPlain' else
+                                    kinds=(4, 5, 6, 7, 8, 3, 1, 0) if name in ('Staff', 'S5', 'S6', 'S4', 'S7', 'S8', 'Cs', 'Avg1f8', 'Patrol') else (1, 1, 1, 3, 0, 0xff) if name[0] == 'P' or name in ('CPlain', 'Half') else
                                     (4, 5, 5, 6, 7, 8, 1, 1, 3, 3, 3, 0) if name == 'Score' else (3, 3, 3, 1, 2, 0xff, 0),
-                                    cells=name[0] == 'P' or name in ('Score', 'CPlain'))
+                                    cells=name[0] == 'P' or name in ('Score', 'CPlain', 'Half'))
     if name == 'Score':   # (the definitions' +0x4ac the values it counts by, mostly)
         for i in range(NITEMS):
             struct.pack_into('<I', regions[ITEMS], ITEM * i + 0x4ac, r.choice([0, 1, 2, 3, 3, 5]))
@@ -74,14 +76,16 @@ def case(r):
         regions[0x80239c] = struct.pack('<I', RAM + 0x20000 - 0x1da70c)
         regions[RAM + 0x20000] = r.bytes(0x20)
         regions[RAM + 0x4000 + 0x1f0d0] = r.bytes(0x20)
-    if shape == 'gc':  # the game time and the analyser's kept count (the module comment)
+    if shape in ('gc', 'gh'):  # the game time and the analyser's kept count (the module comment)
         now = r.getrandbits(32)
-        ago = r.choice([0, 1, 3, 4, 7, 8, 40, 400, r.getrandbits(32)])
+        ago = r.choice([0, 1, 3, 4, 7, 8, 40, 400, r.getrandbits(32)] if shape == 'gc' else [0, 0, 0, 1, 3, 4, 400])
         regions[0x80239c] = struct.pack('<I', RAM + 0x20000 - 0x1da70c)
         regions[RAM + 0x20000] = struct.pack('<I', now) + r.bytes(0x1c)
         kept = bytearray(r.bytes(0x20))
-        at = 8 if name == 'CPlain' else 0x14
+        at = 0x14 if name == 'C4ac0' else 8
         struct.pack_into('<I', kept, at, (now - ago) & 0xffffffff)
+        if shape == 'gh':
+            struct.pack_into('<I', kept, at + 4, r.choice([0, 1, 2, 3, 198, 199, 200, 201, 203, 0x7fffffff, -1, -2, -3, -0x80000000]) & 0xffffffff)
         kept[at + 8] = r.choice([0, 1, 1, 1, 0xff])
         regions[RAM + 0x4000 + 0x1f0b0] = kept
         q = ((now >> 2) - (((now - ago) & 0xffffffff) >> 2)) & 0xffffffff
@@ -122,7 +126,7 @@ def case(r):
         value = r.choice([3, 1, 2, 0xff, 0, 0x103])
     if name in ('D4', 'D5'):
         value = r.choice([0, 3, 3, 5])
-    args = {'n': [], 'a': [r.getrandbits(32)], 'p': [prev], 'v': [value], 'vp': [r.choice([0, 3, 5, value]), prev], 'o': [OUT], 'g': [RAM + 0x4000], 'gc': [RAM + 0x4000, value], 's': [RAM + 0x4000],
+    args = {'n': [], 'a': [r.getrandbits(32)], 'p': [prev], 'v': [value], 'vp': [r.choice([0, 3, 5, value]), prev], 'o': [OUT], 'g': [RAM + 0x4000], 'gc': [RAM + 0x4000, value], 'gh': [RAM + 0x4000], 's': [RAM + 0x4000],
             'vv': [value, r.choice([0, 1, 5, 0x7f, 0x80, 0xff, 0xffffffff, 0x80000000])]}[shape]
     regions[OUT] = r.bytes(4)
     return Call(address, args, regions, conv=conv, ret='a')

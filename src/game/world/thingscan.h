@@ -241,6 +241,11 @@ u32 __fastcall ParkAnalyser_CountKind1OnPlainCell(u8 *analyser, void *, u32 maxA
 // +0x4ac.
 u32 __fastcall ParkAnalyser_CountDef4ac0(u8 *analyser, void *, u32 maxAge);
 
+// 0x4c81e0 (thiscall on the analyser; name unconfirmed): half the count of kind 1 on plain cells (ParkAnalyser_CountKind1OnPlainCell, age
+// 0; a signed halving towards 0) held to 0..100, the count taken again for each look as the original's expanded clamp does: once, below 0
+// giving 0, else again, 100 when at least 100; then once more, below 0 giving 0, else the fourth.
+s32 __fastcall ParkAnalyser_Kind1OnPlainHalfClamped(u8 *analyser);
+
 // 0x4c9340 / 0x4c93f0 (thiscall, the analyser unused (least), pops 4; names unconfirmed): how many things of kind 1 on a plain analyser
 // cell (AnalyserCell_TypePlain) have the low byte of their float +0x1a8 / +0x1a4 cut to an integer above least's low byte (unsigned).
 // The debug prints of the slot check are left out.
