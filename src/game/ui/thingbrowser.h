@@ -1,5 +1,5 @@
 // The thing browser's panel (the thing shown [0x7cc308], the panel window [0x7cc304]): its labels filled for the thing, and the handler of
-// its windows' radio groups. Reimplementation of 0x4b3490, 0x4b3580 and 0x4b3b90. The names are unconfirmed.
+// its windows' radio groups. Reimplementation of 0x4b3490, 0x4b3580, 0x4b3b90 and 0x4b3cf0. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -22,4 +22,14 @@ void __cdecl ThingBrowser_ShowDetail();
 // than 1 the child set to state 1, notifying (Window705a50_SetState(1, 1); not checked for 0), and the group's parent (+0x60, Fn_65d55a)
 // posted 0x101 (a, 1); 1 returned. Other messages: Window_CallDefault's result.
 u32 __cdecl ThingBrowser_GroupHandler(u8 *group, u32 message, u32 a, u32 b);
+
+// 0x4b3cf0 (cdecl; name unconfirmed): the browser's windows built on [0xfaa5d8] (WindowScript_Build): from the script 0x756950 (no
+// handler) the windows 0x95c and 0x963 found on [0xfaa5d8] (Window_FindChild, not checked) as [0x7cc2fc] / [0x7cc300], each the handler
+// 0x4b3790, unlinked (Window_Unlink), its dword +0xa0 index 0 set to 3 (Window_SetDwordA0), its child 0x95d the handler 0x4b3b90
+// (ThingBrowser_GroupHandler) and hidden; then from the script 0x756ad8 (handler 0x4b3c10) the panel [0x7cc304], its cursor 2
+// (Window_SetCursor), unlinked, its children (not checked): 0x147 a TextPart_Ctor part (0x1a4 bytes; none when that fails), the bytes
+// 0xff x 4 as 0x40000, font 0xb (Language_Font; Window_Set4c) and no text (Window_NotifyImpl100(0)), its slot 5 given 0; 0x148's slot 5
+// given 0; 0x149 the registered window "hilight" (GuiWindows_FindByName) as its object +0x98 (Window_SetObject98), slot 5 given 0 and
+// hidden; the panel hidden and [0x7cc2f0] 0.
+void __cdecl ThingBrowser_Create();
 }

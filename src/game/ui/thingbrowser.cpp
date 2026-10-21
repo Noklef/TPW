@@ -3,14 +3,20 @@
 #include <cstdint>
 
 #include "../core/accessors.h"
+#include "../core/gameheap.h"
 #include "../core/idmaps.h"
+#include "../core/language.h"
 #include "../core/textarg.h"
 #include "../core/vcall.h"
+#include "../render/textparts.h"
 #include "../world/camera.h"
 #include "../world/staff.h"
+#include "cursor.h"
 #include "radiogroup.h"
 #include "window.h"
 #include "window705a50.h"
+#include "windowreg.h"
+#include "windowscript.h"
 
 namespace {
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
@@ -70,5 +76,39 @@ u32 __cdecl ThingBrowser_GroupHandler(u8 *group, u32 message, u32 a, u32 b) {
     if (b != 1) Window705a50_SetState(child, nullptr, 1, 1);
     Window_PostMessage(reinterpret_cast<u8 *>((uintptr_t)Fn_65d55a(group)), 0x101, a, 1);
     return 1;
+}
+
+void __cdecl ThingBrowser_Create() {
+    WindowScript_Build(global<u8 *>(0x00faa5d8), nullptr, reinterpret_cast<u8 *>(0x00756950), 0);
+    global<u8 *>(0x007cc2fc) = Window_FindChild(global<u8 *>(0x00faa5d8), nullptr, 0x95c);
+    global<u8 *>(0x007cc300) = Window_FindChild(global<u8 *>(0x00faa5d8), nullptr, 0x963);
+    Window_SetHandler(global<u8 *>(0x007cc2fc), nullptr, 0x004b3790);
+    Window_SetHandler(global<u8 *>(0x007cc300), nullptr, 0x004b3790);
+    Window_Unlink(global<u8 *>(0x007cc2fc));
+    Window_Unlink(global<u8 *>(0x007cc300));
+    Window_SetDwordA0(global<u8 *>(0x007cc2fc), nullptr, 0, 3);
+    Window_SetDwordA0(global<u8 *>(0x007cc300), nullptr, 0, 3);
+    Window_SetHandler(Window_FindChild(global<u8 *>(0x007cc2fc), nullptr, 0x95d), nullptr, 0x004b3b90);
+    Window_SetHandler(Window_FindChild(global<u8 *>(0x007cc300), nullptr, 0x95d), nullptr, 0x004b3b90);
+    Window_SetShown(global<u8 *>(0x007cc2fc), nullptr, 0);
+    Window_SetShown(global<u8 *>(0x007cc300), nullptr, 0);
+    u8 *const panel = WindowScript_Build(global<u8 *>(0x00faa5d8), nullptr, reinterpret_cast<u8 *>(0x00756ad8), 0x004b3c10);
+    global<u8 *>(0x007cc304) = panel;
+    Window_SetCursor(panel, nullptr, 2);
+    Window_Unlink(global<u8 *>(0x007cc304));
+    u8 *const name = Window_FindChild(global<u8 *>(0x007cc304), nullptr, 0x147);
+    u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
+    Window_SetImpl(name, nullptr, memory ? TextPart_Ctor(memory, nullptr, 0) : nullptr);
+    Window_Notify40000(name, nullptr, 0xff, 0xff, 0xff, 0xff);
+    Window_Set4c(name, nullptr, Language_Font(0xb));
+    Window_NotifyImpl100(name, nullptr, 0);
+    vcall<void>(name, 0x14, 0u);
+    vcall<void>(Window_FindChild(global<u8 *>(0x007cc304), nullptr, 0x148), 0x14, 0u);
+    u8 *const hilight = Window_FindChild(global<u8 *>(0x007cc304), nullptr, 0x149);
+    Window_SetObject98(hilight, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>(0x0074fa84))));   // "hilight"
+    vcall<void>(hilight, 0x14, 0u);
+    Window_SetShown(hilight, nullptr, 0);
+    Window_SetShown(global<u8 *>(0x007cc304), nullptr, 0);
+    global<u32>(0x007cc2f0) = 0;
 }
 }
