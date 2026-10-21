@@ -4,7 +4,8 @@
 # method (0x5f8ae0-0x5f8da0) called directly on a key held or not: Open with a subkey or none, in either root, over a key it closes; Close;
 # Reg_CreateKey volatile or not; Query, GetU32 and GetU32Or with a name or none, the read filling 0-4 bytes and the type any (the size
 # passed hashed); TypeOf a value, a subkey or neither. Language: Registry_LoadLanguage (0x5c0d00) with the imports as for Installed, the
-# value read mostly one of the ids it maps, the name table at 0xf7ec30 pointing to short strings.
+# value read mostly one of the ids it maps (three fills: the keys' handles, the value's type and its data), the name table at 0xf7ec30
+# pointing to short strings.
 # usage: regkey.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Installed,... to pick)
 import os
 import struct
@@ -13,7 +14,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import IMPORT_TABLE, LOG, RAM, Bench, Call, blob, fill, import_table, log_region, put, set_return  # noqa: E402
 
-B = Bench([(0x45f6b0, 0x45f7b0), (0x581da0, 0x581dc0), (0x5f8ae0, 0x5f8dc0), (0x5c0d00, 0x5c0f07)])
+B = Bench([(0x45f6b0, 0x45f7b0), (0x581da0, 0x581dc0), (0x5f8ae0, 0x5f8dc0), (0x5c0d00, 0x5c0f07), (0x41a840, 0x41a850)])
 CLOSE, OPEN, QUERY, CREATE = 1, 2, 3, 4
 # {name: (slot, import address, stack arguments, string arguments, out arguments)}: the out pointers are the callers' stack slots
 IMPORTS = {'RegCloseKey': (CLOSE, 0x6fd000, 1, 0, 0), 'RegOpenKeyA': (OPEN, 0x6fd004, 3, 2, 4),
@@ -41,11 +42,13 @@ IDS = [6, 7, 10, 0x10, 0x11, 0x13, 0x15, 0x1d, 0x404, 0x409, 0x40c, 0x40d, 0x412
 def language(r):
     log = log_region()
     iat = import_table(log, IMPORTS)
-    for k, ok in ((CREATE, 0.85), (QUERY, 0.85), (CLOSE, 0.85), (OPEN, 0.5)):
+    for k, ok in ((CREATE, 0.93), (QUERY, 0.93), (CLOSE, 0.85), (OPEN, 0.5)):
         set_return(log, k, 0 if r.random() < ok else r.choice([2, 5, r.getrandbits(32)]))
-    fill(log, CREATE, 7, struct.pack('<I', r.choice([0, 0x1234, r.getrandbits(32)])))
-    fill(log, QUERY, 3, struct.pack('<I', r.choice([4, 4, 4, 5, 6, 1, r.getrandbits(32)])))
-    fill(log, QUERY, 4, struct.pack('<I', r.choice(IDS + [0, 0x41, r.getrandbits(32)])), 1)
+    fill(log, CREATE, 7, struct.pack('<I', r.choice([0x1234, 0x1234, 0x1234, r.getrandbits(32), 0])))   # (the keys' handles)
+    kind = r.choice([4, 4, 4, 4, 5, 6, 1, r.getrandbits(32)])
+    fill(log, QUERY, 3, struct.pack('<I', kind), 1)   # (the type, for TypeOf's query)
+    value = r.choice(IDS + [0, 0x41, r.getrandbits(32)])
+    fill(log, QUERY, 4, struct.pack('<I' if kind != 6 else '>I', value), 2)   # (the data: big-endian for type 6, which GetU32 swaps)
     mem = bytearray(r.bytes(0x400))
     mem[0:0x10] = r.choice([b'Theme Park World', b'Settings', b'x']).ljust(0x10, b'\0')
     mem[0x20:0x30] = r.choice([b'Language', b'Version', b'']).ljust(0x10, b'\0')
