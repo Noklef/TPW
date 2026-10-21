@@ -169,6 +169,13 @@ void __fastcall TgqVideo_BuildTables(u32 unused, u32 red_bits, u32 green_bits, u
     }
 }
 
+u32 __fastcall TgqVideo_PackLanes(s32 a, s32 b, s32 c, s32 d) {
+    if (c < 0) b = (s32)((u32)b - 1);
+    if (b < 0) a = (s32)((u32)a - 1);
+    if (a < 0) d = (s32)((u32)d - 1);
+    return (u32)d << 24 | ((u32)a & 0xff) << 16 | ((u32)b & 0xff) << 8 | ((u32)c & 0xff);
+}
+
 void __cdecl TgqVideo_SetQuality(s32 quality) {
     const u32 d = 100u - (u32)quality;
     const s32 base = (s32)(d * 22) / 100 + 8;

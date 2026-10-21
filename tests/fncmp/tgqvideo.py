@@ -16,7 +16,9 @@
 # Frame16 / Frame32 (0x671230 / 0x671540, fastcall (player, data; out, unused, pitch)): a frame of up to 3 x 3 macroblocks (sizes not
 # always multiples of 16, sometimes 0), types mostly 3, 6 and 0xc, else 0-0xc (skipped); in a few cases one coded one (above 0xc), whose
 # 0x673fee / 0x67380f faults in both (they cannot run to the end: see tgqvideo.h). Pitches odd now and then.
-# usage: tgqvideo.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Fill16,Fill32,Pack,Tables,Quality,Row16,Row32,Coefficients,Frame16,Frame32)
+# Lanes (0x670090): the four values -0x100-0x100 mostly (else any).
+# usage: tgqvideo.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Fill16,Fill32,Pack,Tables,Quality,Row16,Row32,Coefficients,Frame16,Frame32,
+# Lanes)
 import os
 import struct
 import sys
@@ -25,9 +27,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import RAM, Bench, Call  # noqa: E402
 
 CALLS = {'Fill16': 0x671340, 'Fill32': 0x671650, 'Pack': 0x66fd70, 'Tables': 0x66fc10, 'Quality': 0x671000, 'Row16': 0x673574, 'Row32': 0x6732e9, 'Coefficients': 0x672e60, 'Frame16': 0x671230,
-         'Frame32': 0x671540}
+         'Frame32': 0x671540, 'Lanes': 0x670090}
 B = Bench([(0x671340, 0x671532), (0x671650, 0x6717fc), (0x66fd70, 0x66ff96), (0x66fc10, 0x66fd69), (0x671000, 0x6710b9), (0x673574, 0x67380f), (0x672e60, 0x673000), (0x6732e9, 0x673574),
-           (0x671230, 0x671340), (0x671540, 0x671650), (0x67380f, 0x6747cd), (0x67673c, 0x676965)])
+           (0x671230, 0x671340), (0x671540, 0x671650), (0x67380f, 0x6747cd), (0x67673c, 0x676965), (0x670090, 0x6700d0)])
 # 0x672e60's jump-table targets 0x672ecc and 0x672f36, missing from the listing (no fall-through or jump reaches them): from the exe's bytes
 B.emu.code.update({0x672ecc: ('MOV', 'EAX,dword ptr [EBX*0x4 + 0xfb7820]'), 0x672ed3: ('NEG', 'EAX'),
                    0x672ed5: ('MOV', 'dword ptr [EBX*0x4 + 0xfb7600],EAX'), 0x672edc: ('JMP', '0x00672f09'),
@@ -116,6 +118,9 @@ def frame(r, wide):
 
 def case(r):
     op = r.deal(OPS)
+    if op == 'Lanes':
+        return Call(CALLS[op], [(r.randrange(-0x100, 0x101) if r.random() < 0.85 else r.getrandbits(32)) & 0xffffffff for _ in range(4)], {},
+                    conv='f', ret='a')
     if op == 'Coefficients':
         return coefficients(r)
     if op in ('Frame16', 'Frame32'):

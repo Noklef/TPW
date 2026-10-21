@@ -85,4 +85,9 @@ void __fastcall TgqVideo_DecodeFrame16(u8 *player, const u8 *data, u8 *out, u32 
 // 0x671540 (fastcall, as TgqVideo_DecodeFrame16; name unconfirmed): the same at 32 bits a pixel: TgqVideo_DecodeMacroblock32 and
 // TgqVideo_FillBlocks32, out 0x40 bytes right, rows (pitch >> 2) << 6 bytes apart.
 void __fastcall TgqVideo_DecodeFrame32(u8 *player, const u8 *data, u8 *out, u32 unused, u32 pitch);
+
+// 0x670090 (fastcall (a, b; c, d), pops 8; name unconfirmed): four signed values packed into a dword's bytes (d the top, c the bottom)
+// so that adding the dword adds each: a borrow taken from the byte above each negative one (c's from b, then b's from a, a's from d,
+// each tested after its own borrow).
+u32 __fastcall TgqVideo_PackLanes(s32 a, s32 b, s32 c, s32 d);
 }
