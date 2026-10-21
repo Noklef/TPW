@@ -89,4 +89,18 @@ void __fastcall SpriteFrame_SetSize30(u8 *frame, void *, s32 width, s32 height);
 // (Quad_TurnXZ). Otherwise 0 and 1 get y = top + y0, 2 and 3 bottom + y2, flag 0x80 turns it in x and y by +0x30 (Quad_TurnXY about
 // its middle) and flag 0x1000 by [0x87af60] about vertex 0 as it came. Returns 0 or 1.
 u32 __fastcall SpriteFrame_PlaceQuad(u8 *frame, void *, float *quad, float width, float height);
+
+// 0x589b50 (thiscall (item), pops 4; returns 1; name unconfirmed): a draw item filled from the frame, unless the frame lacks flag
+// 0x10000000 (+0x10). The texture (*+0x28; none: +0x10 = 0, +0xc = 0x1256, +0x18-+0x24 = 0): +0x10 its +0x1c with its flag 0x1000
+// (+8) else 0, +0xc Texture_FormatBits, +0x18 / +0x1c its +0x28 / +0x2c (x87), +0x20 / +0x24 those plus its +0x20 / +0x24, +0 |= 4 for
+// its flag 0x100000; then +0 = 0 in any case (sic). Flag 0x400: +0x18 of the frame (y) raised by the ground under x, z (+0x14, +0x1c:
+// the procedural terrain [0x879d60]'s heights (its grid +0x28), cell __ftol((x - grid +8) * +0x10), __ftol((z - grid +0xc) * +0x14),
+// the next cell clamped to 0..+8 / +0xc, the cell's own not) plus [0x8bd4ec]. The item's quad (+4, read again each time) then: flag
+// 0x40000: x, y, z from +0x14 (y negated, through the x87), w 1, z less 0.00125 when above it, +0x28 = 2, the vertex copied to the other
+// three, SpriteFrame_PlaceQuad with (scale +0x2c * 0.05) * [0x8bcbcc] and scale * 0.05. Else +0x28 = 0 and flag 0x80000: x, y, z from
+// +0x14 (w as it is), copied on, PlaceQuad with 0, 0, the transformer ([0x87b1d8]) slot 1 (cdecl: it, [0x87b088], the quad twice,
+// 0x10, 0x10, 4, 0), +0xc |= 0x800; otherwise the vertex +0 copied in and on, PlaceQuad with 0, 0, and with flag 0x200 and no 0x2000 in
+// 0x8bcbc8 the last z (+0x38) less 0.2 / (it + 1), copied to the other three. +8 = the frame's +0x24; +0 |= 2 for PlaceQuad's 1; flag
+// 0x8000 swaps +0x1c and +0x24 (the first through the x87).
+u32 __fastcall SpriteFrame_FillItem(u8 *frame, void *, u8 *item);
 }

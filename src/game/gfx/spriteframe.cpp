@@ -15,6 +15,17 @@ namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
+s32 Ftol(X87Reg x) { return (s32)(long long)x.v; }   // __ftol (0x67a830)
+
+// The item's quad (+4, read again for each vertex): vertex 0 copied to 1, 1 to 2, 2 to 3, a dword at a time.
+void SpreadVertex(u8 *item) {
+    for (u32 v = 0; v < 3; ++v) {
+        u8 *const quad = at<u8 *>(item, 4);
+        for (u32 k = 0; k < 0x10; k += 4)
+            at<u32>(quad, 0x10 * v + 0x10 + k) = at<u32>(quad, 0x10 * v + k);
+    }
+}
+
 // Not 0 and not a NaN (fcomp against 0: neither equal nor unordered).
 bool NonZero(X87Reg x) { return x.v < 0.0 || x.v > 0.0; }
 
@@ -293,5 +304,119 @@ u32 __fastcall SpriteFrame_PlaceQuad(u8 *frame, void *, float *quad, float width
     if (at<u32>(frame, 0x10) & 0x1000)
         Quad_TurnXY(quad, global<float>(0x0087af60), corner);
     return result;
+}
+
+u32 __fastcall SpriteFrame_FillItem(u8 *frame, void *, u8 *item) {
+    if (!(at<u32>(frame, 0x10) & 0x10000000))
+        return 1;
+    const u8 *const texture = *at<u8 **>(frame, 0x28);
+    if (texture) {
+        at<u32>(item, 0x10) = (at<u32>(texture, 8) & 0x1000) ? at<u32>(texture, 0x1c) : 0;
+        at<u32>(item, 0xc) = Texture_FormatBits(texture);
+        at<u32>(item, 0x18) = X87_FloatThrough(at<u32>(texture, 0x28));
+        at<u32>(item, 0x1c) = X87_FloatThrough(at<u32>(texture, 0x2c));
+        at<float>(item, 0x20) = (float)(X87Reg(at<float>(texture, 0x20)) + X87Reg(at<float>(item, 0x18)));
+        at<float>(item, 0x24) = (float)(X87Reg(at<float>(texture, 0x24)) + X87Reg(at<float>(item, 0x1c)));
+        if (at<u32>(texture, 8) & 0x100000)
+            at<u32>(item, 0) |= 4;
+    } else {
+        at<u32>(item, 0x10) = 0;
+        at<u32>(item, 0xc) = 0x1256;
+        at<u32>(item, 0x24) = 0;
+        at<u32>(item, 0x20) = 0;
+        at<u32>(item, 0x1c) = 0;
+        at<u32>(item, 0x18) = 0;
+    }
+    at<u32>(item, 0) = 0;   // (sic: the flag 4 just set is lost)
+    const u32 flags = at<u32>(frame, 0x10);
+    if (flags & 0x400) {
+        const X87Reg x = at<float>(frame, 0x14), z = at<float>(frame, 0x1c);
+        const u8 *const terrain = global<u8 *>(0x00879d60);
+        const u8 *const grid = at<u8 *>(terrain, 0);
+        const s32 ix = Ftol((x - at<float>(grid, 8)) * at<float>(terrain, 0x10));
+        const s32 iz = Ftol((z - at<float>(grid, 0xc)) * at<float>(terrain, 0x14));
+        const s32 width = at<s32>(terrain, 8), depth = at<s32>(terrain, 0xc);
+        s32 ix1 = ix + 1, iz1 = iz + 1;
+        if (ix1 > width)
+            ix1 = width;
+        else if (ix1 < 0)
+            ix1 = 0;
+        if (iz1 > depth)
+            iz1 = depth;
+        else if (iz1 < 0)
+            iz1 = 0;
+        const X87Reg dz = z - (X87Reg((double)iz) * at<float>(grid, 0x14) + at<float>(grid, 0xc));
+        const X87Reg dx = x - (X87Reg((double)ix) * at<float>(grid, 0x10) + at<float>(grid, 8));
+        const u8 *const heights = at<u8 *>(grid, 0x28);
+        const u32 row = (u32)iz * (u32)width;
+        const X87Reg h00 = at<float>(heights, ((u32)ix + row) * 4);
+        const X87Reg across = X87Reg(at<float>(heights, ((u32)ix1 + row) * 4)) - h00;
+        const X87Reg down = X87Reg(at<float>(heights, ((u32)iz1 * (u32)width + (u32)ix) * 4)) - h00;
+        const X87Reg zpart = dz * at<float>(terrain, 0x14) * down;
+        const X87Reg xpart = dx * at<float>(terrain, 0x10) * across;
+        at<float>(frame, 0x18) = (float)((zpart + xpart) + at<float>(heights, ((u32)ix + row) * 4) + global<float>(0x008bd4ec) +
+                                         at<float>(frame, 0x18));
+    }
+    u32 placed;
+    if (flags & 0x40000) {
+        u8 *quad = at<u8 *>(item, 4);
+        at<u32>(quad, 0) = at<u32>(frame, 0x14);
+        at<u32>(quad, 4) = at<u32>(frame, 0x18);
+        at<u32>(quad, 8) = at<u32>(frame, 0x1c);
+        quad = at<u8 *>(item, 4);
+        at<u32>(quad, 4) = X87_FloatThrough(at<u32>(quad, 4)) ^ 0x80000000u;
+        at<u32>(at<u8 *>(item, 4), 0xc) = 0x3f800000;   // 1.0
+        quad = at<u8 *>(item, 4);
+        if (at<float>(quad, 8) > global<float>(0x00702040))
+            at<float>(quad, 8) = (float)(X87Reg(at<float>(quad, 8)) - global<float>(0x00702040));
+        at<u32>(item, 0x28) = 2;
+        SpreadVertex(item);
+        const float scale = (float)(X87Reg(at<float>(frame, 0x2c)) * global<float>(0x00702008));
+        const float wide = (float)(X87Reg(global<float>(0x008bcbcc)) * scale);
+        placed = SpriteFrame_PlaceQuad(frame, nullptr, at<float *>(item, 4), wide, scale);
+    } else {
+        at<u32>(item, 0x28) = 0;
+        if (at<u32>(frame, 0x10) & 0x80000) {
+            u8 *const quad = at<u8 *>(item, 4);
+            at<u32>(quad, 0) = at<u32>(frame, 0x14);
+            at<u32>(quad, 4) = at<u32>(frame, 0x18);
+            at<u32>(quad, 8) = at<u32>(frame, 0x1c);
+            SpreadVertex(item);
+            placed = SpriteFrame_PlaceQuad(frame, nullptr, at<float *>(item, 4), 0.0f, 0.0f);
+            using Slot = void(__cdecl *)(void *, u32, void *, void *, u32, u32, u32, u32);
+            void *const transformer = global<void *>(0x0087b1d8);
+            void *const out = at<void *>(item, 4);
+            const Slot slot = reinterpret_cast<Slot>((*static_cast<void *const *const *>(transformer))[1]);
+            slot(transformer, global<u32>(0x0087b088), out, out, 0x10, 0x10, 4, 0);
+            at<u32>(item, 0xc) |= 0x800;
+        } else {
+            u8 *const quad = at<u8 *>(item, 4);
+            for (u32 k = 0; k < 0x10; k += 4)
+                at<u32>(quad, k) = at<u32>(frame, k);
+            SpreadVertex(item);
+            placed = SpriteFrame_PlaceQuad(frame, nullptr, at<float *>(item, 4), 0.0f, 0.0f);
+            if ((at<u32>(frame, 0x10) & 0x200) && !(global<u32>(0x008bcbc8) & 0x2000)) {
+                u8 *q = at<u8 *>(item, 4);
+                const X87Reg last = at<float>(q, 0x38);
+                at<float>(q, 0x38) = (float)X87_SubR(X87_DivR(last - global<float>(0x00702038), global<float>(0x00702044)), last);
+                q = at<u8 *>(item, 4);
+                at<u32>(q, 0x28) = at<u32>(q, 0x38);
+                q = at<u8 *>(item, 4);
+                at<u32>(q, 0x18) = at<u32>(q, 0x28);
+                q = at<u8 *>(item, 4);
+                at<u32>(q, 8) = at<u32>(q, 0x18);
+            }
+        }
+    }
+    at<u32>(item, 8) = at<u32>(frame, 0x24);
+    if (placed)
+        at<u32>(item, 0) |= 2;
+    if (at<u32>(frame, 0x10) & 0x8000) {
+        const u32 low = at<u32>(item, 0x1c);
+        const u32 high = at<u32>(item, 0x24);
+        at<u32>(item, 0x24) = X87_FloatThrough(low);
+        at<u32>(item, 0x1c) = high;
+    }
+    return 1;
 }
 }
