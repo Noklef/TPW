@@ -48,7 +48,9 @@
 # shown RefreshRows' set-up chose; the list's +0x154 then another value mostly, or the same), one of another id before it, or none;
 # window.py's queues and [0xfaa5d4] set or not, the list's byte +4 mostly clear.
 # NthItemData (0x664c71): SetNthItemData's set-up, the out a dword or 0. OnKey (0x665b51): ScrollTo's, flag 0x200 of +0x48 mostly set,
-# the keys Home / End / Up / Down or others. PostSelection / SendScroll (0x6656fa, 0x6658b9): notify_case() below.
+# the keys Home / End / Up / Down or others. PostSelection / NotifySort (0x6656fa, 0x6658b9), SetSortColumn / SetSortOrder (0x66590f,
+# 0x66594d: the word the current one a third of the time, -1, small or any, the dword's upper half random): notify_case() below.
+# ColumnSpan (0x664cb9): column_case() below.
 # usage: window7059f0.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ColumnBottom,NextItem,...)
 import os
 import struct
@@ -68,7 +70,7 @@ CALLS = {'ColumnBottom': 0x6636f6, 'NextItem': 0x663a93, 'NthItem': 0x663ba2, 'S
          'SetHighlight': 0x662eee, 'ShowRows': 0x664fde, 'SendToRows': 0x6650d4, 'NthChild': 0x663c11, 'Sort': 0x6628f4,
          'ScrollFromBar': 0x664ea3, 'Cell': 0x663d56,
          'PostColumnAt': 0x665494, 'NthItemCell': 0x664bf0, 'NthItemData': 0x664c71, 'OnKey': 0x665b51, 'PostSelection': 0x6656fa,
-         'SendScroll': 0x6658b9}
+         'NotifySort': 0x6658b9, 'ColumnSpan': 0x664cb9, 'SetSortColumn': 0x66590f, 'SetSortOrder': 0x66594d}
 LIST_RANGES = (RANGES + [(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 0x664bf0), (0x664d2a, 0x664db7), (0x663324, 0x663554),
                     (0x4f0240, 0x4f0250), (0x65d547, 0x65d56b), (0x65d56b, 0x65d57c), (0x65c672, 0x65c707),
                     (0x663085, 0x66316b), (0x663cb8, 0x663d56), (0x664495, 0x6644ea), (0x66b47d, 0x66b508),
@@ -80,7 +82,7 @@ LIST_RANGES = (RANGES + [(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 
                     (0x663718, 0x663864), (0x663864, 0x6639cb), (0x65d865, 0x65d8e7), (0x659e3e, 0x659e83), (0x65cf5e, 0x65cfd4),
                     (0x65c9bd, 0x65cd95), (0x661700, 0x66176a), (0x65f16b, 0x65f246), (0x662eee, 0x663085), (0x664fde, 0x6650d2), (0x6650d4, 0x6651ee),
                     (0x663c11, 0x663cb8), (0x6628f4, 0x662eee), (0x4f76b0, 0x4f7718), (0x664ea3, 0x664f6d), (0x663d56, 0x663dfa), (0x665494, 0x66552c), (0x664bf0, 0x664c71),
-                    (0x664c71, 0x664cb9), (0x665b51, 0x665bfb), (0x6656fa, 0x665739), (0x6658b9, 0x66590f)])
+                    (0x664c71, 0x664cb9), (0x665b51, 0x665bfb), (0x6656fa, 0x665739), (0x6658b9, 0x66590f), (0x664cb9, 0x664d2a), (0x66590f, 0x66594d), (0x66594d, 0x6659ad)])
 B = Bench(LIST_RANGES)
 WINDOW, COLUMNS, LINKS, OUT = RAM, RAM + 0x200, RAM + 0x400, RAM + 0x800
 LIST, LINKS2, COLS2, CELLS, ROWS2, ROWWINS = RAM + 0x9000, RAM + 0x9420, RAM + 0x9e00, RAM + 0x9f00, RAM + 0x9c00, RAM + 0xb000
@@ -497,7 +499,7 @@ def list_case(r, op):
 
 
 def notify_case(r, op):
-    """PostSelection (0x6656fa) / SendScroll (0x6658b9): the selection +0x14c and the words +0x168 / +0x16a small, -1 or any, the parent
+    """PostSelection (0x6656fa) / NotifySort (0x6658b9) / SetSortColumn / SetSortOrder: the selection +0x14c and the words +0x168 / +0x16a small, -1 or any, the parent
     +0x60 a window (byte +4 mostly clear, its handler +0x114 fncmp's logger or 0) or none; window.py's queues, the hook [0xfaa5fc]"""
     regions = {LOG: log_region()}
     w = bytearray(r.bytes(0x180))
@@ -511,7 +513,24 @@ def notify_case(r, op):
     regions[WINDOW], regions[PARENT] = w, parent
     regions[0xfaa5fc] = put(bytearray(4), 0, 'I', r.choice([0, CDECL_LOG4]))
     queues(r, regions)
+    if op in ('SetSortColumn', 'SetSortOrder'):
+        current = struct.unpack_from('<h', w, 0x168 if op == 'SetSortColumn' else 0x16a)[0]
+        value = r.choice([current] * 4 + [-1, -1, 0, 1, 2, r.getrandbits(16)]) & 0xffff
+        return Call(CALLS[op], [WINDOW, value | r.choice([0, r.getrandbits(16)]) << 16], regions, conv='t', ret='a')
     return Call(CALLS[op], [WINDOW], regions, conv='t', ret='a')
+
+
+def column_case(r):
+    """ColumnSpan (0x664cb9): the columns +0x16c (12 bytes each, random, after 0x30 bytes of room) or none, their count word +0x164 0-4
+    (now and then negative), the column -2 to past the count, the two word outs each set or 0"""
+    w = bytearray(r.bytes(0x180))
+    count = r.choice([0, 1, 2, 3, 4, -1])
+    put(w, 0x164, 'h', count)
+    put(w, 0x16c, 'I', r.choice([COLUMNS + 0x30] * 5 + [0]))
+    column = r.choice([-2, -1, 0, 0, 1, 2, 3, 4, 5, r.getrandbits(32)]) & 0xffffffff
+    regions = {WINDOW: w, COLUMNS: r.bytes(0x30 + 12 * 6), OUT: r.bytes(8)}
+    return Call(CALLS['ColumnSpan'], [WINDOW, column, r.choice([OUT, OUT, OUT, 0]), r.choice([OUT + 4, OUT + 4, OUT + 4, 0])], regions,
+                conv='t', ret='a')
 
 
 ACHARS, ATEXTS = RAM + 0xfd00, RAM + 0xfe00
@@ -827,8 +846,10 @@ def case(r):
         return row_case(r, op)
     if op == 'AddItem':
         return add_case(r)
-    if op in ('PostSelection', 'SendScroll'):
+    if op in ('PostSelection', 'NotifySort', 'SetSortColumn', 'SetSortOrder'):
         return notify_case(r, op)
+    if op == 'ColumnSpan':
+        return column_case(r)
     if op in ('RemoveItem', 'Clear', 'ScrollTo', 'OnKey'):
         return list_case(r, op)
     if op == 'RefreshRows':

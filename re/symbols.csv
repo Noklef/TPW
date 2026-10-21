@@ -5711,7 +5711,10 @@ address,name,kind,confidence,notes
 0x00664c71,Window7059f0_NthItemData,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (n, out): the n-th item's data dword into out (when given); 1 in AX, 0 for none"
 0x00665b51,Window7059f0_OnKey,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (key, unused): with flag 0x200, Home / End / Up / Down scroll the list (Window7059f0_ScrollTo)"
 0x006656fa,Window7059f0_PostSelection,function,low,"reimplemented (src/game/ui/window7059f0); thiscall: with a selection the parent posted 0x400 (id, selection)"
-0x006658b9,Window7059f0_SendScroll,function,low,"reimplemented (src/game/ui/window7059f0); thiscall: the parent sent 0x406 (id, the word +0x168 plus one, negated when +0x16a is 1)"
+0x006658b9,Window7059f0_NotifySort,function,low,"reimplemented (src/game/ui/window7059f0); thiscall: the parent sent 0x406 (id, the sort column word +0x168 plus one, negated when the order +0x16a is 1)"
+0x00664cb9,Window7059f0_ColumnSpan,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (column, first, second): with the columns +0x16c, both outs and the column below the count word +0x164, the column's words +4 / +8 into the outs; 1 in AX, else 0"
+0x0066590f,Window7059f0_SetSortColumn,function,low,reimplemented (src/game/ui/window7059f0); thiscall (word): a new sort column +0x168 set and told (Window7059f0_NotifySort): 1 in AX; the same one: 0
+0x0066594d,Window7059f0_SetSortOrder,function,low,reimplemented (src/game/ui/window7059f0); thiscall (word): a new sort order +0x16a (-1 flips it) set and told (Window7059f0_NotifySort): 1 in AX; the same one: 0
 0x0065fbf0,WindowScript_ReadDword,function,low,reimplemented (src/game/ui/windowscript); a window script's next dword (two words)
 0x0065fc18,WindowScript_ReadWord,function,low,reimplemented (src/game/ui/windowscript); a window script's next word
 0x0065fc38,WindowScript_ReadRect,function,low,reimplemented (src/game/ui/windowscript); a window script's next four words to four outputs

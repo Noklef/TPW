@@ -251,7 +251,24 @@ void __fastcall Window7059f0_OnKey(u8 *window, void *, u32 key, u32);
 // id +0x8c, the selection). EAX the post's, or the window when none (sic).
 u32 __fastcall Window7059f0_PostSelection(u8 *window);
 
-// 0x6658b9 (thiscall; name unconfirmed): the parent +0x60 sent 0x406 (Window_SendMessage: the id +0x8c and the word +0x168 plus one,
-// sign-extended, negated when the word +0x16a is 1). Returns the send's.
-s32 __fastcall Window7059f0_SendScroll(u8 *window);
+// 0x6658b9 (thiscall; name unconfirmed): the parent +0x60 sent 0x406 (Window_SendMessage: the id +0x8c and the sort column word +0x168
+// plus one, sign-extended, negated when the sort order word +0x16a is 1). Returns the send's.
+s32 __fastcall Window7059f0_NotifySort(u8 *window);
+
+// 0x664cb9 (thiscall (column, first, second), pops 12; name unconfirmed): with the columns +0x16c set, both outs given and the column
+// below the count word +0x164 (signed), the column's (12 bytes each) words +4 and +8 into the outs: 1 in AX (EAX's upper half the
+// column times 12's), else 0 (the window's upper half).
+u32 __fastcall Window7059f0_ColumnSpan(u8 *window, void *, s32 column, u16 *first, u16 *second);
+
+// 0x66590f (thiscall (a word), pops 4; name unconfirmed): a new sort column word +0x168 set and told (Window7059f0_NotifySort): 1 in AX
+// (the send's upper half); the same one: 0 (the word sign-extended's upper half).
+u32 __fastcall Window7059f0_SetSortColumn(u8 *window, void *, u32 column);
+
+// 0x66594d (thiscall (a word), pops 4; name unconfirmed): as Window7059f0_SetSortColumn for the sort order word +0x16a, -1 flipping it
+// (1 when it was 0, else 0).
+u32 __fastcall Window7059f0_SetSortOrder(u8 *window, void *, u32 order);
+
+// 0x665e80 (thiscall (flags), pops 4; slot 2 of the vtable 0x7059f0; name unconfirmed): the destructor (Window7059f0_Dtor), the block
+// freed (Mem_Free) for flags bit 0; returns the window.
+u8 *__fastcall Window7059f0_DeletingDtor(u8 *window, void *, u32 flags);
 }
