@@ -213,6 +213,7 @@
 #include "../game/core/soundslot.h"
 #include "../game/core/soundvoice.h"
 #include "../game/core/startcheck.h"
+#include "../game/core/streamfilter.h"
 #include "../game/core/stringmapsrecord.h"
 #include "../game/core/voicecodec.h"
 #include "../game/core/wscanner.h"
@@ -4444,6 +4445,15 @@ const Hook kHooks[] = {
     {"ChannelVoice_SetFlag",      0x006b8330, (void *)&ChannelVoice_SetFlag, {0x8a, 0x44, 0x24, 0x04, 0x84}},
     {"SoundOccluders_Occlusion",  0x006c4c80, (void *)&SoundOccluders_Occlusion, {0x83, 0xec, 0x2c, 0x53, 0x8b}},
     {"LoopStream_Read",           0x006c6a60, (void *)&LoopStream_Read, {0x6a, 0xff, 0x68, 0xf8, 0x64}},
+    {"StreamFilter_SampleRate",   0x006bb130, (void *)&StreamFilter_SampleRate, {0x8b, 0x01, 0xff, 0x50, 0x48}},
+    {"StreamFilter_Restart",      0x006bb160, (void *)&StreamFilter_Restart, {0x8b, 0x01, 0xff, 0x50, 0x48}},
+    {"StreamFilter_Position",     0x006bb0f0, (void *)&StreamFilter_Position, {0x8b, 0x01, 0xff, 0x50, 0x48}},
+    {"StreamFilter_Length",       0x006bb100, (void *)&StreamFilter_Length, {0x8b, 0x01, 0xff, 0x50, 0x48}},
+    {"StreamFilter_Bits",         0x006bb140, (void *)&StreamFilter_Bits, {0x8b, 0x01, 0xff, 0x50, 0x48}},
+    {"StreamFilter_Channels",     0x006bb150, (void *)&StreamFilter_Channels, {0x8b, 0x01, 0xff, 0x50, 0x48}},
+    {"StreamFilter_Seek",         0x006bb0d0, (void *)&StreamFilter_Seek, {0x8b, 0x01, 0xff, 0x50, 0x48}},
+    {"StreamFilter_SetFormat",    0x006bb110, (void *)&StreamFilter_SetFormat, {0x8b, 0x01, 0xff, 0x50, 0x48}},
+    {"StreamFilter_Query",        0x006d4cf0, (void *)&StreamFilter_Query, {0x8b, 0x01, 0x56, 0xff, 0x50}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

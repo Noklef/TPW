@@ -4547,6 +4547,15 @@ address,name,kind,confidence,notes
 0x006b8330,ChannelVoice_SetFlag,function,low,"reimplemented (src/game/core/channelvoice); thiscall (on, mask), pops 8: the mask set in the flags (+0x10) when the byte on is set, else cleared"
 0x006c4c80,SoundOccluders_Occlusion,function,low,"reimplemented (src/game/core/soundoccluders); thiscall on the occluders (0xfb2038) (from, to, out), pops 0xc: the largest occlusion of the path, through out; returns it is neither 0 nor NaN"
 0x006c6a60,LoopStream_Read,function,low,"reimplemented (src/game/core/loopstream); thiscall (buffer, count, done, unused), pops 0x10; slot 7 of 0x70aba8: the inner stream read until the count, up to the loop's end while looping, the loops counted down and the inner seeked to the start; slot 3 once the looping ends; 1 when a read answers 1"
+0x006bb130,StreamFilter_SampleRate,function,low,"reimplemented (src/game/core/streamfilter); thiscall; slot 6 of 0x70a678 / 0x70aba8 / 0x70abf8: the inner stream's (slot 18) slot 6, a tail jump"
+0x006bb160,StreamFilter_Restart,function,low,"reimplemented (src/game/core/streamfilter); thiscall; slot 8 of 0x70a678 / 0x70aba8 / 0x70abf8 / 0x70ac50: the inner stream's slot 8, a tail jump"
+0x006bb0f0,StreamFilter_Position,function,low,"reimplemented (src/game/core/streamfilter); thiscall; slot 13 of 0x70a678 / 0x70aba8 / 0x70abf8: the inner stream's slot 13, a tail jump"
+0x006bb100,StreamFilter_Length,function,low,"reimplemented (src/game/core/streamfilter); thiscall; slot 14 of 0x70a678 / 0x70aba8 / 0x70abf8: the inner stream's slot 14, a tail jump"
+0x006bb140,StreamFilter_Bits,function,low,"reimplemented (src/game/core/streamfilter); thiscall; slot 16 of 0x70a678 / 0x70aba8 / 0x70abf8: the inner stream's slot 16, a tail jump"
+0x006bb150,StreamFilter_Channels,function,low,"reimplemented (src/game/core/streamfilter); thiscall; slot 17 of 0x70a678 / 0x70aba8 / 0x70abf8: the inner stream's slot 17, a tail jump"
+0x006bb0d0,StreamFilter_Seek,function,low,"reimplemented (src/game/core/streamfilter); thiscall (position), pops 4; slot 12 of 0x70a678 / 0x70aba8 / 0x70abf8: the inner stream's slot 12"
+0x006bb110,StreamFilter_SetFormat,function,low,"reimplemented (src/game/core/streamfilter); thiscall (format), pops 4; slot 15 of 0x70a678 / 0x70aba8 / 0x70abf8: the inner stream's slot 15"
+0x006d4cf0,StreamFilter_Query,function,low,"reimplemented (src/game/core/streamfilter); thiscall (out, record), pops 8; slot 9 of 0x70abf8: the inner stream's slot 9 (out, record); returns the out"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
