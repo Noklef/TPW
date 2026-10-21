@@ -160,6 +160,7 @@ def case(r):
         regions[MANAGER + 0x40] = vtable({13: 1})
         regions[0xfaa540] = r.bytes(8)   # (the hover: no root, or one busy (+0x10))
         regions[0xfaa5d8] = struct.pack('<5I', r.choice([0, root]), r.getrandbits(32), 0, r.getrandbits(32), r.randrange(1, 1 << 32))
+        regions[0x6ff320 + 0xc] = struct.pack('<I', recorder(3, 2))   # (the new text part told: its slot 3 a recorder too)
         regions[PANEL] = put(bytearray(r.bytes(0x20)), 0x1c, 'I', root if r.random() < 0.95 else 0)
         return Call(address, [PANEL], regions, conv='t', ret='v')
     if reach == 'panel':
