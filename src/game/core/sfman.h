@@ -1,4 +1,4 @@
-// The SoundFont synthesiser (Creative's SoundFont Manager, SFMAN32.DLL): a 0x1c-byte object (built by 0x6d3b90) that loads the library,
+// The SoundFont synthesiser (Creative's SoundFont Manager, SFMAN32.DLL): a 0x1c-byte object (built by 0x6d3b90, initializers.h Fn_6d3b90) that loads the library,
 // gets its API table through the "SFManager" export's query (slot 0, cdecl (0x10001, &table)), and opens the "SoundFont" MIDI out device
 // to send it General MIDI messages and Creative's system-exclusive ones (F0 00 20 21 5F ...). +0 the library, +4 the export, +8 the API
 // table (cdecl function pointers; +0xc the device, a word), +0x10 the MIDI out handle, +0x14 bit 0 open, +0x18 the programs' count.
@@ -42,5 +42,24 @@ u32 __fastcall SfMan_CountPresets(u8 *self);
 // load) on the device, the word pair {1, 0} and {0x80, path}: -1 when it fails, else 0 when the presets counted are not 0, -1 when they
 // are. Returns out.
 u32 *__fastcall SfMan_LoadBank(u8 *self, void *, u32 *out, u32 path, u32);
+
+// 0x6d3c90 (thiscall out, count; pops 8): -1 for a count of 0 (as a word) or without the API table; else a score for each of the count
+// devices (one byte each in a 16-byte array; past 16 the original writes over its other locals, sic): from slot 1's capabilities (a
+// 0x66-byte structure, its flags at +6) 0x20 for flag 0x40000000, 0x80 for 0x80000000, else after slot 4 (+0x10, open) slot 7 (+0x1c)'s
+// third out word >> 19 + 0x40 (as a byte; 0x40 counts as 0) and slot 5 (+0x14, close). Then the best device (the first of the highest)
+// opened through slot 4 until that answers 0, each refusal scoring it 0, for at most count (as a word) tries; -1 when it scores 0; else its
+// capabilities again, slot 7 unless flag 0x80000000, slot 2 (+8)'s version (four bytes & 0x7f) in Creative's system-exclusive message
+// F0 00 20 21 5F 00 00 v v v v F7 sent with midiOutPrepareHeader and midiOutLongMsg: -1 when either fails, else 0. Returns out.
+u32 *__fastcall SfMan_SelectDevice(u8 *self, void *, u32 *out, u32 count);
+// 0x6d3bc0 (thiscall out; pops 4): 0 when open (+0x14 bit 0); else SFMAN32.DLL loaded (into +0), its "SFManager" export (+4) asked for the
+// API table (slot 0, cdecl (0x10001, &table at +8)), the devices counted (the table's slot 0), the MIDI out device opened (0x6d4240) and the
+// best device selected (0x6d3c90): open and 0; when a step fails the table cleared, the library freed (even when it did not load) and -1.
+// Returns out.
+u32 *__fastcall SfMan_Open(u8 *self, void *, u32 *out);
+// 0x6d3f20: 0 unless open; else all notes off, the bank unloaded, the MIDI out handle closed (and cleared), the device closed with the
+// table's slot 5 (+0x14, the device word) and the table cleared, the library freed, the flags cleared: 1.
+u32 __fastcall SfMan_Close(u8 *self);
+// 0x6d3bb0: the destructor, a jump to 0x6d3f20.
+u32 __fastcall SfMan_Dtor(u8 *self);
 
 }  // extern "C"

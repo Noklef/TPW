@@ -165,4 +165,97 @@ u32 *__fastcall SfMan_LoadBank(u8 *self, void *, u32 *out, u32 path, u32) {
     return Answer(out, SfMan_CountPresets(self) ? 0 : 0xffffffff);
 }
 
+u32 *__fastcall SfMan_SelectDevice(u8 *self, void *, u32 *out, u32 count) {
+    using Caps = s32(__cdecl *)(u32, u8 *);
+    using Device = s32(__cdecl *)(u32);
+    using Memory = s32(__cdecl *)(u32, u32 *, u32 *);
+    using Header = u32(__stdcall *)(u32, u32 *, u32);   // midiOutPrepareHeader, midiOutLongMsg
+    u8 data[0xc] = {0xf0, 0, 0x20, 0x21, 0x5f, 0, 0, 0, 0, 0, 0, 0xf7};
+    u8 score[0x10] = {};   // (one byte a device: past 16 devices the original writes over its other locals and its frame, sic)
+    u16 tries = static_cast<u16>(count);
+    if (!tries || !at<u8 *>(self, 8)) return Answer(out, 0xffffffff);
+    const u32 devices = count & 0xffff;
+    for (u32 i = 0; i < devices; ++i) {
+        u8 caps[0x66] = {0x66};
+        api<Caps>(self, 4)(i, caps);
+        const u32 flags = at<u32>(caps, 6);
+        if (flags & 0x40000000) {
+            score[i] = 0x20;
+        } else if (flags & 0x80000000) {
+            score[i] = 0x80;
+        } else {
+            api<Device>(self, 0x10)(i);
+            u32 used, free;
+            api<Memory>(self, 0x1c)(i, &used, &free);
+            const u8 s = static_cast<u8>(static_cast<u8>(free >> 0x13) + 0x40);
+            score[i] = s == 0x40 ? 0 : s;
+            api<Device>(self, 0x14)(i);
+        }
+    }
+    u32 best;
+    for (;;) {
+        best = 0;
+        for (u32 j = 1; j < devices; ++j)
+            if (score[j] > score[best & 0xffff]) best = j;
+        if (!api<Device>(self, 0x10)(best)) break;
+        score[best & 0xffff] = 0;
+        if (!--tries) break;
+    }
+    if (!score[best & 0xffff]) return Answer(out, 0xffffffff);
+    u8 caps[0x66] = {0x66};
+    api<Caps>(self, 4)(best, caps);
+    u32 used, free;
+    if (!(at<u32>(caps, 6) & 0x80000000)) api<Memory>(self, 0x1c)(best, &used, &free);
+    u32 version;
+    api<s32(__cdecl *)(u32, u32 *)>(self, 8)(best, &version);
+    for (u32 i = 0; i < 4; ++i) data[7 + i] = static_cast<u8>(version >> 8 * i & 0x7f);
+    u32 header[0x10] = {};
+    header[0] = static_cast<u32>(reinterpret_cast<uintptr_t>(data));
+    header[1] = 0xc;
+    if (Import<Header>(0x006fd3b8u)(at<u32>(self, 0x10), header, 0x40)) return Answer(out, 0xffffffff);
+    if (Import<Header>(0x006fd3d0u)(at<u32>(self, 0x10), header, 0x40)) return Answer(out, 0xffffffff);
+    return Answer(out, 0);
+}
+
+u32 *__fastcall SfMan_Open(u8 *self, void *, u32 *out) {
+    if (at<u8>(self, 0x14) & 1) return Answer(out, 0);
+    for (;;) {
+        at<u32>(self, 0) = Import<u32(__stdcall *)(const char *)>(0x006fd0b4u)("SFMAN32.DLL");   // LoadLibraryA
+        if (!at<u32>(self, 0)) break;
+        at<u32>(self, 4) = Import<u32(__stdcall *)(u32, const char *)>(0x006fd0b0u)(at<u32>(self, 0), "SFManager");   // GetProcAddress
+        const u8 *const manager = at<u8 *>(self, 4);
+        if (!manager) break;
+        if (at<s32(__cdecl *)(u32, u8 **)>(manager, 0)(0x10001, &at<u8 *>(self, 8))) break;
+        u32 devices;
+        api<s32(__cdecl *)(u32 *)>(self, 0)(&devices);
+        u32 result;
+        if (static_cast<s32>(*SfMan_OpenOut(self, nullptr, &result)) < 0) break;
+        if (static_cast<s32>(*SfMan_SelectDevice(self, nullptr, &result, devices)) < 0) break;
+        at<u32>(self, 0x14) |= 1;
+        return Answer(out, 0);
+    }
+    at<u32>(self, 8) = 0;
+    Import<u32(__stdcall *)(u32)>(0x006fd0a8u)(at<u32>(self, 0));   // FreeLibrary
+    return Answer(out, 0xffffffff);
+}
+
+u32 __fastcall SfMan_Close(u8 *self) {
+    if (!(at<u8>(self, 0x14) & 1)) return 0;
+    SfMan_NotesOff(self);
+    SfMan_UnloadBank(self);
+    if (at<u32>(self, 0x10)) {
+        Import<u32(__stdcall *)(u32)>(0x006fd3bcu)(at<u32>(self, 0x10));   // midiOutClose
+        at<u32>(self, 0x10) = 0;
+    }
+    if (at<u8 *>(self, 8)) {
+        api<s32(__cdecl *)(u16)>(self, 0x14)(at<u16>(self, 0xc));
+        at<u32>(self, 8) = 0;
+    }
+    Import<u32(__stdcall *)(u32)>(0x006fd0a8u)(at<u32>(self, 0));   // FreeLibrary
+    at<u32>(self, 0x14) = 0;
+    return 1;
+}
+
+u32 __fastcall SfMan_Dtor(u8 *self) { return SfMan_Close(self); }
+
 }  // extern "C"

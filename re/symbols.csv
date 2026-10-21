@@ -4439,6 +4439,10 @@ address,name,kind,confidence,notes
 0x006d4340,SfMan_GetName,function,low,"reimplemented (src/game/core/sfman); a preset's name from the SoundFont API's slot 16 into a stack buffer, handed to the sink's slot 5"
 0x006d43c0,SfMan_CountPresets,function,low,reimplemented (src/game/core/sfman); the SoundFont bank's presets counted at +0x18 until a name stays the string at 0x786de4 (up to 0x80)
 0x006d44a0,SfMan_LoadBank,function,low,"reimplemented (src/game/core/sfman); the SoundFont API's bank load (slot 11) of a path, then the presets counted"
+0x006d3bb0,SfMan_Dtor,function,low,reimplemented (src/game/core/sfman); the SoundFont synthesiser's destructor (a jump to its close)
+0x006d3bc0,SfMan_Open,function,low,"reimplemented (src/game/core/sfman); SFMAN32.DLL loaded, its SFManager export asked for the API table, the MIDI out device opened and the best SoundFont device selected"
+0x006d3c90,SfMan_SelectDevice,function,low,"reimplemented (src/game/core/sfman); the SoundFont devices scored by their capabilities and free memory, the best that opens selected, its version sent as a system-exclusive message"
+0x006d3f20,SfMan_Close,function,low,"reimplemented (src/game/core/sfman); all notes off, the bank unloaded, the MIDI out handle and the device closed, the library freed"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
