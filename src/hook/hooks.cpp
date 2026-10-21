@@ -179,6 +179,7 @@
 #include "../game/core/stringmapsrecord.h"
 #include "../game/core/wscanner.h"
 #include "../game/core/wtraits.h"
+#include "../game/core/xaadpcm.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
 #include "../game/motion/curve.h"
@@ -4157,6 +4158,8 @@ const Hook kHooks[] = {
     {"Globalfb1ed0_Set",          0x006ac390, (void *)&Globalfb1ed0_Set, {0x6a, 0xff, 0x68, 0x18, 0x54}},
     {"Globalfb1ed4_Set",          0x006ac4b0, (void *)&Globalfb1ed4_Set, {0x6a, 0xff, 0x68, 0x58, 0x54}},
     {"Globalfb1ed8_Set",          0x006ac5d0, (void *)&Globalfb1ed8_Set, {0x6a, 0xff, 0x68, 0x98, 0x54}},
+    {"XaAdpcm_DecodeMono",        0x00672090, (void *)&XaAdpcm_DecodeMono, {0x8b, 0x4c, 0x24, 0x08, 0x83}},
+    {"XaAdpcm_DecodeStereo",      0x00672210, (void *)&XaAdpcm_DecodeStereo, {0x83, 0xec, 0x28, 0x8b, 0x4c}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
