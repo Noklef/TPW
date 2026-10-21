@@ -109,6 +109,9 @@ def case(r):
         count = r.choice([0, 1, 1, 2, 2, 3, 3, 4, r.randrange(5, 9), r.getrandbits(8)])
         body = bytearray(r.bytes(2 + count + 4))
         body[1] = count
+        if 1 <= count <= 3 and r.random() < 0.5:   # (the sign's edges: the number big-endian)
+            top = 1 << (8 * count - 1)
+            body[2:2 + count] = ((r.choice([top - 1, top, top + 1, 0, 2 * top - 1]) % (2 * top)).to_bytes(count, 'big'))
         return Call(CALLS[op], [PLAYER], {PLAYER: struct.pack('<I', DATA), DATA: bytes(body)}, conv='t', ret='a')
     if op in ('SizeFlags', 'Size3'):
         regions = {PLAYER: struct.pack('<I', SETTINGS) + r.bytes(0x4c), SETTINGS: r.bytes(0x70), DATA: r.bytes(8)}
