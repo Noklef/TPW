@@ -13,6 +13,7 @@ import glob
 import json
 import os
 import re
+import struct
 import sys
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
@@ -93,13 +94,45 @@ def cmd_list(lo, hi, unlock=False):
         if base <= 0x401000 < base + len(data):
             text, tbase = data, base
             break
-    listing = set()
+    listing, prev = set(), {}  # prev: an address's previous listed instruction
+    last = None
     for line in asm_lines():
         try:
-            listing.add(int(line[:8], 16))
+            va = int(line[:8], 16)
         except ValueError:
-            pass
+            continue
+        listing.add(va)
+        if last is not None:
+            prev[va] = last
+        last = (va, line[8:].strip())
     starts = {va for va in listing if va % 16 == 0 and 0 < va - tbase < len(text) and text[va - tbase - 1] == 0xCC and text[va - tbase] != 0xCC}  # (aligned: x87 code ends instructions in CC bytes, FXCH ST4 = D9 CC)
+    # NOP padding (0x90, which the listing leaves out) after a RET or a direct JMP, up to an aligned address: a start too (the top of
+    # the exe's .text has such functions reached only through vtables, with no Ghidra entry). The terminator's length is exact (RET 1,
+    # RET n 3, JMP EB 2 / E9 5), so a 0x90 inside an instruction is never taken for padding.
+    for va in listing:
+        if va % 16 or va in starts or va not in prev:
+            continue
+        p, ins = prev[va]
+        n = 1 if ins == 'RET' else 3 if ins.startswith('RET ') else {0xEB: 2, 0xE9: 5}.get(text[p - tbase]) if ins.startswith('JMP 0x') else None
+        if n and p + n < va and all(b in (0x90, 0xCC) for b in text[p + n - tbase:va - tbase]):
+            starts.add(va)
+    # Compiler-generated, deliberately not ported (the compiler makes them again from the static objects): the dynamic initialisers
+    # _initterm runs from the CRT's tables (0x67f8fb: 0x72e0ec..0x72e0fc, 0x67f90d: __xc_a 0x727000..0x72e0e8) and the atexit stubs
+    # they register (`PUSH stub; CALL atexit 0x67a7d0`). Starts still (they end the function before them), never listed.
+    generated = set()
+    for t0, t1 in ((0x72e0ec, 0x72e0fc), (0x727000, 0x72e0e8)):
+        for b, d in x87emu.exe_sections():
+            if b <= t0 < b + len(d):
+                generated |= {x for x in struct.unpack_from('<%dI' % ((t1 - t0) // 4), d, t0 - b) if x}
+    pushed = None
+    for line in asm_lines():
+        ins = line[8:].strip()
+        if ins == 'CALL 0x0067a7d0' and pushed:
+            generated.add(pushed)
+        m = re.match(r'PUSH 0x([0-9a-f]+)$', ins)
+        pushed = int(m.group(1), 16) if m else None
+    starts |= generated & listing
+    hooked = hooked | generated
     for f in glob.glob(os.path.join(ROOT, '_re', 'decomp-typed', 'decomp_*.c')):
         for m in re.finditer(r'^// ==== (\S+) @ ([0-9a-f]{8}) ====', open(f, errors='replace').read(), re.M):
             starts.add(int(m.group(2), 16))
