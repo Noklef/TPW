@@ -94,7 +94,8 @@ def fill(r):
     put(frame, 0, '4I', *(r.f(r.choice([1, 50, 600])) for _ in range(4)))
     x, z = terrain(r, regions)
     off = r.choice([fb(r.uniform(-300, 300)), 0x7fc00000, 0xff800000, fb(0.00125)])   # (off the grid; far ones would index any memory)
-    put(frame, 0x14, '3I', r.choice([fb(x), fb(x), off]), r.f(50), r.choice([fb(z), fb(z), off]))
+    y = r.choice([r.f(50), r.f(50), r.f(50), r.f(50), 0x7f800001, 0xff812345])   # (signalling NaNs: the ground quad's y goes through the x87)
+    put(frame, 0x14, '3I', r.choice([fb(x), fb(x), off]), y, r.choice([fb(z), fb(z), off, fb(0.00125)]))
     regions[FRAME] = frame
     image = bytearray(regions[IMAGE])
     put(image, 0, 'I', TEX if r.random() < 0.85 else 0)
