@@ -6,6 +6,7 @@
 #include "../core/accessors.h"
 #include "../core/gameheap.h"
 #include "../core/globals.h"
+#include "../core/initializers.h"
 #include "../core/rings.h"
 #include "../core/savegame.h"
 #include "../core/soundplay.h"
@@ -14,10 +15,12 @@
 #include "../sprite/script.h"
 #include "../sprite/scriptref.h"
 #include "analyser.h"
+#include "messagecentre.h"
 #include "nav.h"
 #include "object.h"
 #include "objectdefs.h"
 #include "personscripts.h"
+#include "random.h"
 #include "things.h"
 #include "world.h"
 
@@ -129,6 +132,41 @@ u8 *__fastcall Person_BaseCtor(u8 *object, void *, u32) {
     at<u32>(object, 0x1f8) = 0;
     at<u32>(object, 0x1fc) = 0;
     return object;
+}
+
+u8 *__fastcall MovingPerson_Ctor(u8 *sprite, void *, u32 cell, u32 kind) {
+    Thing_Construct(sprite, nullptr, cell, kind);
+    Init_4d3ed0(sprite + 0xc);
+    at<u32>(sprite, 0x1c) = 0;
+    at<u32>(sprite, 0x20) = 0;
+    at<u32>(sprite, 0x24) = 0;
+    at<u32>(sprite, 0x28) = 0;
+    at<u8>(sprite, 0x2c) = 0;
+    Thoughts_Ctor(sprite + 0x30);
+    at<u16>(sprite, 0xc0) = 0;
+    at<u16>(sprite, 0xc2) = 0;
+    at<u16>(sprite, 0xc4) = 0;
+    at<u32>(sprite, 0xc8) = 0;
+    at<u16>(sprite, 0xcc) = 0;
+    at<u32>(sprite, 0xd0) = 0;
+    Nav_Ctor(sprite + 0xd4);
+    at<u32>(sprite, 0x190) = 0;
+    at<u32>(sprite, 0x194) = 0;
+    at<u32>(sprite, 0x198) = 0;
+    const u32 pick = (u32)World_Rand(global<u8 *>(0x0080239c)) % 5;
+    at<u16>(sprite, 0xc0) = global<u16>(0x0075c7f8 + pick * 2);
+    at<u16>(sprite, 0xc2) = global<u16>(0x0075c7f0);
+    MessageCentre_AddThing(MessageCentre_Instance(), nullptr, sprite, 0xa);
+    at<u16>(sprite, 0xcc) = (u16)cell;
+    const u32 id = cell & 0xffff;
+    const u32 x = (((id << 16) - 0x10000) & 0x7f0000) + 0x8000;
+    const u32 y = ((id - 1) >> 7 << 16) + 0x8000;
+    Nav_SetPosVel(sprite + 0xd4, nullptr, x, y, 0, 0);
+    Nav_GetPos(sprite + 0xd4, nullptr, &at<u32>(sprite, 0x190), &at<u32>(sprite, 0x194));
+    at<u32>(sprite, 0x28) = 0;
+    at<u32>(sprite, 0xd0) = 0;
+    at<u32>(sprite, 0x24) = 0;
+    return sprite;
 }
 
 u8 *__fastcall Person_PartsCtor(u8 *object, void *, u32) {

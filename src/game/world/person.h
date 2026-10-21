@@ -95,6 +95,15 @@ void __fastcall Sprite_InterpolatedPos(const u8 *sprite, void *, float t, u32 un
 // the original passes its uninitialised locals; the port passes 0s.
 u32 __fastcall Sprite_PlaySound(const u8 *sprite, void *, u32 category, u32 sound);
 
+// 0x4f8940 (thiscall; cell, kind, pops 8; name unconfirmed): a moving person's constructor: the thing (Thing_Construct with the cell and kind),
+// the script reference at +0xc (Init_4d3ed0), the dwords +0x1c..+0x28 and the byte +0x2c 0, the thoughts at +0x30 (Thoughts_Ctor), the words +0xc0,
+// +0xc2, +0xc4, +0xcc and the dwords +0xc8, +0xd0 0, the nav at +0xd4 (Nav_Ctor), the dwords +0x190..+0x198 0; then the word +0xc0 one of the five
+// at 0x75c7f8 by World_Rand (of [0x80239c]) % 5, +0xc2 the word 0x75c7f0, the person added to the message centre's slot 0xa (MessageCentre_Instance,
+// inlined in the original), +0xcc the cell, the nav placed at the middle of the cell (column (id - 1) & 0x7f and row (id - 1) >> 7 of the cell's
+// low word, in 1/65536 cells; no speed: Nav_SetPosVel) and the position read back to +0x190 / +0x194 (Nav_GetPos); +0x28, +0xd0 and +0x24 0 again.
+// Returns the person.
+u8 *__fastcall MovingPerson_Ctor(u8 *sprite, void *, u32 cell, u32 kind);
+
 // 0x4f8b10 (thiscall; stream, save, version, unused): a moving person: 1 when the thing (Thing_Serialize) or the script reference (+0xc,
 // SpriteAnim_Serialize) fails. Then, for a version of 0..1, saved (save nonzero) or loaded: the words +0x18, +0x1a, +0xc4, +0xc0, the byte +0x2c,
 // the dword +0x24, the word +0xcc, the nav (+0xd4: Nav_Serialize; loading Nav_SerializeFwd with save 0), the dwords +0xc8, +0x190, +0x194, +0x198,
