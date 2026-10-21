@@ -2,7 +2,8 @@
 # weight maps, ramps and overlay, the cache's +0 that Lnd and +4 its tile size; a texture for Texture_Alloc (its pixels a tracked global
 # block from the heap, failing now and then; the tracked count 0-5), the formats 0-3 at 0x8bd554 (a 2-byte one through the scratch at
 # 0x879a68 and TexFormat_ConvertSquare, else drawn in place and each pixel's bytes reversed; 4 and on are 0x100-byte pixels, past the
-# heap); the engine's error list at 0x879ad0 for a failed allocation.
+# heap); the engine's error list at 0x879ad0 for a failed allocation. The tile sizes dealt small mostly, 32 at most (a 32 tile costs four 16s; the
+# blend and its 64 tiles are terraintile.py's), unless SIZES is given.
 # usage: terraintexcache_tile.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -11,6 +12,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import terraintile  # noqa: E402
+if not terraintile.SIZES:
+    terraintile.SIZES[:] = [4] * 4 + [8] * 12 + [16] * 4 + [24, 32]
 from fncmp import HEAP, RAM, Bench, Call, _cdecl_log, global_heap, heap, put  # noqa: E402
 
 B = Bench([(0x55f780, 0x560ff0), (0x55e780, 0x55eaa0), (0x55eaa0, 0x55f060), (0x5e7840, 0x5e78b0),   # (terraintile.py's, its 0x67acb0 below)
