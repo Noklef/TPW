@@ -2,7 +2,8 @@
 # 1 or 2 categories, 0-3 sounds each, 0-3 variations, 0-3 samples and 0-3 links, built in the order the fixup walks it; the samples' banks 0 or
 # within deque C, the weights random, delta-coded or not) over a category object whose deques A (the category records, each with a PtrList of
 # 0-3 banks) and C (the bank indices) are small stretches of one or two blocks (the block boundary crossed now and then); a variation's sample
-# count (0x6bd7a0) and the simple sound mark (0x6c0550: each of its conditions met or missed).
+# count (0x6bd7a0) and the simple sound mark (0x6c0550: each of its conditions met or missed). The free slots in deques A and B (0x6bf150 with
+# holes in A, 0x6bf1c0 over bank objects and gaps, long runs crossing into the second block); the BANK.map entries read (0x6bf9e0) through a stream recorder whose reads hand out the file's bytes in turn (seq_read).
 # usage: soundcategory.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,...)
 import os
 import struct
@@ -12,11 +13,11 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, echo, fill, heap, import_table, log_region, seq_read, set_return, strings, vtable  # noqa: E402
 
 CALLS = {'count': 0x6bd7a0, 'simple': 0x6c0550, 'variation': 0x6c06e0, 'sound': 0x6c0610, 'record': 0x6c05b0, 'fixup': 0x6c0510, 'readimage': 0x6c0360,
-         'readmap': 0x6c0450}
-B = Bench([(0x6bd7a0, 0x6bd7ac), (0x6c0310, 0x6c035f), (0x6c0360, 0x6c0844), (0x5f7180, 0x5f72c0), (0x4036a0, 0x4036e0), (0x639100, 0x639120), (0x618d30, 0x618d80), (0x6b9b30, 0x6b9b94), (0x5e42d0, 0x5e431c), (0x67a400, 0x690000)])
+         'readmap': 0x6c0450, 'freecat': 0x6bf150, 'freebank': 0x6bf1c0, 'entries': 0x6bf9e0}
+B = Bench([(0x6bd7a0, 0x6bd7ac), (0x6bf150, 0x6bf253), (0x6bf9e0, 0x6bfa5c), (0x6bfe10, 0x6bfe34), (0x6c0310, 0x6c035f), (0x6c0360, 0x6c0844), (0x5f7180, 0x5f72c0), (0x4036a0, 0x4036e0), (0x639100, 0x639120), (0x618d30, 0x618d80), (0x6b9b30, 0x6b9b94), (0x5e42d0, 0x5e431c), (0x67a400, 0x690000)])
 CAT, OUT, RECS, NODES = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x400
-MAPA, MAPC = RAM + 0x600, RAM + 0x640
-BLOCKA, BLOCKC = RAM + 0x10000, RAM + 0x20000   # (two blocks each, 0x1000 apart, only the used stretch mapped)
+MAPA, MAPC, MAPB = RAM + 0x600, RAM + 0x640, RAM + 0x680
+BLOCKA, BLOCKC, BLOCKB = RAM + 0x10000, RAM + 0x20000, RAM + 0x40000   # (two blocks each, 0x1000 apart, only the used stretch mapped)
 IMAGE = RAM + 0x3000
 STREAM, SRC, VT_STREAM, VT_SRC, VT_HANDLE, FILE = RAM + 0x700, RAM + 0x740, RAM + 0x780, RAM + 0x800, RAM + 0x880, RAM + 0x5000
 SFX_GUID, BANK_GUID = bytes.fromhex('002c61e9d031d211b40900b0c993f203'), bytes.fromhex('012c61e9d031d211b40900a0c993f203')
@@ -28,7 +29,7 @@ def deque(r, at, mapat, values, regions):
     """A deque's begin iterator (16 bytes) over values starting at a random place in its first block at `at` (into the next, at + 0x1000 or + 0x3000,
     when they run past it); maps the stretch of each block they use and the map's two slots."""
     n = len(values)
-    start = max(0, min(0x3ff, r.choice([0, 0x3ff - n // 2, 0x400 - n, r.randrange(0x400 - n + 1)])))
+    start = max(0, min(0x3ff, r.choice([0, 0x3ff - n // 2, 0x400 - n, r.randrange(max(1, 0x400 - n + 1))])))
     blocks = [at, at + r.choice([0x1000, 0x3000])]
     regions[mapat] = struct.pack('<2I', *blocks)
     cells = {}
@@ -45,7 +46,18 @@ def deque(r, at, mapat, values, regions):
     return struct.pack('<4I', at, at + 0x1000, at + 4 * start, mapat)
 
 
-def category(r, banks=4):
+def deque_full(r, at, mapat, values, regions):
+    """deque() and the rest of the deque after its begin iterator: the end iterator (at the end of its block when the values fill it, as the
+    deque's push_back leaves it), the map (2 slots) and the count (0x2c bytes, for the deque + 4)."""
+    it = deque(r, at, mapat, values, regions)
+    first, _last, cur, _node = struct.unpack('<4I', it)
+    blocks = struct.unpack('<2I', regions[mapat])
+    q = (cur - first) // 4 + len(values)
+    b = q // 0x400 - 1 if q and q % 0x400 == 0 else q // 0x400
+    return it + struct.pack('<4I', blocks[b], blocks[b] + 0x1000, blocks[b] + 4 * (q - 0x400 * b), mapat + 4 * b) + struct.pack('<3I', mapat, 2, len(values))
+
+
+def category(r, banks=4, holes=False, bank_objects=None):
     """The category object with deques A (records with bank lists) and C (bank indices); returns regions."""
     regions = {HEAP: heap(0x2000)}
     nrec = r.randrange(1, 4)
@@ -61,8 +73,10 @@ def category(r, banks=4):
     regions[RECS] = recs
     regions[NODES] = nodes
     cat = bytearray(r.bytes(0xd0))
-    cat[0x3c:0x4c] = deque(r, BLOCKA, MAPA, [RECS + 0x40 * i for i in range(nrec)], regions)
-    cat[0x9c:0xac] = deque(r, BLOCKC, MAPC, [r.choice([r.randrange(1, 7), r.getrandbits(32)]) for _ in range(banks)], regions)
+    cat[0x3c:0x68] = deque_full(r, BLOCKA, MAPA, [0 if holes and r.random() < 0.3 else RECS + 0x40 * i for i in range(nrec)], regions)
+    cat[0x9c:0xc8] = deque_full(r, BLOCKC, MAPC, [r.choice([r.randrange(1, 7), r.getrandbits(32)]) for _ in range(banks)], regions)
+    if bank_objects is not None:
+        cat[0x6c:0x98] = deque_full(r, BLOCKB, MAPB, bank_objects, regions)
     struct.pack_into('<I', cat, 0xc8, r.randrange(nrec))
     cat[0xcc] = r.choice([0, 1, 1, 0x80])
     regions[CAT] = cat
@@ -176,6 +190,32 @@ def case(r):
         regions[OUT] = r.bytes(8)
         regions[STREAM] = b'cat_x' + r.choice([b'SFX.map', b'']) + bytes(1)
         return Call(CALLS[name], [CAT, OUT, STREAM, OUT + 4], regions, conv='t', ret='a')
+    if name == 'freecat':
+        regions = category(r, banks, holes=True)
+        nrec = struct.unpack_from('<I', regions[CAT], 0x64)[0]
+        struct.pack_into('<I', regions[CAT], 0x64, r.choice([nrec, nrec, max(0, nrec - 1), 0]))
+        return Call(CALLS[name], [CAT], regions, conv='t', ret='a')
+    if name == 'freebank':   # deque B of bank objects (any non-zero) and gaps; a long run crosses into the second block
+        n = r.choice([0, 1, 3, 6, r.randrange(0x3f0, 0x401)])
+        objs = [r.choice([0, RAM + 0x100, r.getrandbits(32) | 1, r.getrandbits(32) | 1]) if r.random() < 0.3 else RAM + 4 * i + 4 for i in range(n)]
+        regions = category(r, banks, bank_objects=objs)
+        return Call(CALLS[name], [CAT], regions, conv='t', ret='a')
+    if name == 'entries':   # the rest of BANK.map: the 11-byte entries, then each path (a u32 length and the chars)
+        count = r.choice([0, 1, 2, 3, 5])
+        paths = [bytes(r.choice(b'ab\/.') for _ in range(r.randrange(1, 12))) for _ in range(count)]
+        data = r.bytes(11 * count) + b''.join(struct.pack('<I', len(p)) + p for p in paths) + r.bytes(r.choice([0, 0, 3])) + bytes(4)
+        regions = {HEAP: heap(0x2000), CAT: r.bytes(0xd0), FILE: data}
+        log = log_region()
+        regions[LOG] = log
+        pos = r.choice([0x1c, 0x1c, 0, 0x100])
+        seq_read(log, 2, FILE, len(data), buffer=0, count=1)
+        strings(log, 2, 0, out=1)
+        set_return(log, 5, len(data) + pos)
+        set_return(log, 6, pos)
+        regions[STREAM] = struct.pack('<2I', VT_STREAM, r.getrandbits(32))
+        regions[VT_STREAM] = vtable({2: 2})
+        regions[OUT] = struct.pack('<2I', r.getrandbits(32), count if r.random() < 0.9 else max(0, count - 1))
+        return Call(CALLS[name], [CAT, STREAM, OUT], regions, conv='t', ret='v')
     if name == 'fixup':
         top = r.choice([1, 1, 2])
         body, top = image(r, banks, 'c', top)

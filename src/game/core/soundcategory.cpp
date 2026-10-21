@@ -8,6 +8,7 @@
 #include "gameheap.h"
 #include "methods.h"
 #include "ptrlist.h"
+#include "seqs.h"
 #include "vcall.h"
 
 namespace {
@@ -115,6 +116,52 @@ u8 *__fastcall SfxMap_Fixup(u8 *category, void *, u8 *data, u8 **out, u32 count)
     u8 *at = data + count * 0x18;
     for (; count; --count, record += 0x18) at = SfxMap_FixCategory(category, nullptr, at, record);
     return at;
+}
+
+u32 __fastcall SoundCategory_FreeCategorySlot(const u8 *category) {
+    const u32 count = Get<u32>(category, 0x64);
+    u32 i = 0;
+    for (; i < count; ++i)
+        if (!Get<u32>(DequeAt(category + 0x3c, i), 0)) break;
+    return i;
+}
+
+u32 __fastcall SoundCategory_FreeBankSlot(const u8 *category) {
+    u32 cur = Get<u32>(category, 0x74);
+    u32 last = Get<u32>(category, 0x70);
+    u32 node = Get<u32>(category, 0x78);
+    u32 n = 0;
+    while (cur != Get<u32>(category, 0x84) && Get<u32>(Ptr(cur), 0)) {
+        ++n;
+        cur += 4;
+        if (cur == last) {
+            node += 4;
+            cur = Get<u32>(Ptr(node), 0);
+            last = cur + 0x1000;
+        }
+    }
+    return n;
+}
+
+void __fastcall SoundCategory_ReadBankEntries(u8 *, void *, StreamBase *stream, u32 *table) {
+    vcall<s32>(stream, 0x18);  // (its result unused)
+    const u32 size = static_cast<u32>(vcall<s32>(stream, 0x14));
+    const u32 bytes = size - static_cast<u32>(vcall<s32>(stream, 0x18));
+    u8 *const block = static_cast<u8 *>(GameHeap_Alloc(bytes));
+    vcall<s32>(stream, 8, static_cast<void *>(block), bytes);
+    table[0] = Addr(block);
+    const u32 count = table[1];
+    u8 *path = block + count * 11;
+    u8 *entry = block;
+    for (u32 i = 0; i < count; ++i, entry += 11) {
+        const u32 length = Get<u32>(path, 0);
+        path += 4;
+        Put<u32>(entry, 5, Addr(path));
+        path += length;
+        Put<u32>(entry, 0, 0);
+        entry[4] = 0;
+        Path_AfterLastBackslash(reinterpret_cast<const char **>(entry + 5), length);
+    }
 }
 
 s32 *__fastcall SoundCategory_ReadSfxImage(u8 *category, void *, s32 *result, StreamBase *stream, u32 *index) {

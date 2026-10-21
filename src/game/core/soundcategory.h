@@ -1,5 +1,5 @@
 // A sound category (the statically linked sound library's: cat_<name>BANK.map and cat_<name>SFX.map, tools/sndmap.py): reimplementation of its
-// SFX.map loading, 0x6bd7a0 and 0x6c0360-0x6c0850 (the header check 0x6c0310 is Obj_CheckId, core/methods).
+// map loading, 0x6bd7a0, 0x6bf150-0x6bf252, 0x6bf9e0-0x6bfa59 and 0x6c0360-0x6c0850 (the SFX.map header check 0x6c0310 is Obj_CheckId, core/methods).
 //
 // The category object: +0x30 a Handle (the folder its maps are opened in), three std::deque<u32> (dequeiter.h's layout) at +0x38 (A: each
 // category's record, a 0x34-byte object whose +0x24 is a PtrList of the banks its sounds use), +0x68 (B: the banks) and +0x98 (C: the BANK.map's
@@ -42,6 +42,19 @@ u8 *__fastcall SfxMap_FixCategory(u8 *category, void *, u8 *data, u8 *record);
 // 0x6c0510 (thiscall; data, out, count, pops 0xc): *out = data, then each of the count category records there is fixed up, the first from the
 // end of the records. Returns the end.
 u8 *__fastcall SfxMap_Fixup(u8 *category, void *, u8 *data, u8 **out, u32 count);
+
+// 0x6bf150 (thiscall; name unconfirmed): the first index below deque A's count (+0x64) whose entry is 0 (a free category slot), else the count.
+u32 __fastcall SoundCategory_FreeCategorySlot(const u8 *category);
+
+// 0x6bf1c0 (thiscall; name unconfirmed): how many of deque B's entries from its start are not 0 (where the first free bank slot is), stopping at
+// its end iterator. (A step to a block's end moves to the next block before the end is compared, so an end iterator left at its block's end is
+// passed, sic.)
+u32 __fastcall SoundCategory_FreeBankSlot(const u8 *category);
+
+// 0x6bf9e0 (thiscall; stream, table, pops 8; name unconfirmed): the rest of BANK.map (the stream's size - its position, the position asked
+// twice) read into a heap block, table[0]. table[1] is the entry count: the 11-byte entries come first, then each one's path (a u32 length and
+// the chars); each entry's +5 points at its path (then past its last backslash, Path_AfterLastBackslash), +0 and +4 cleared.
+void __fastcall SoundCategory_ReadBankEntries(u8 *category, void *, StreamBase *stream, u32 *table);
 
 // 0x6c0360 (thiscall; &result, stream, &index, pops 0xc): reads the 0x14-byte header (Obj_CheckId; another GUID: *result = -1), then 8 bytes
 // (a dword and the category record count), then the rest of the stream (its size - its position, through its vtable +0x14 / +0x18) into a block

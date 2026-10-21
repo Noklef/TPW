@@ -4345,6 +4345,9 @@ address,name,kind,confidence,notes
 0x006c06e0,SfxMap_FixVariation,function,low,"reimplemented (src/game/core/soundcategory); thiscall (data, variation): samples and links placed, sample banks remapped through deque C and listed on the category's record"
 0x006c0610,SfxMap_FixSound,function,low,"reimplemented (src/game/core/soundcategory); thiscall (data, sound): variations placed and fixed, weights delta-decoded with +0xcc, links' next numbers made pointers"
 0x006c05b0,SfxMap_FixCategory,function,low,"reimplemented (src/game/core/soundcategory); thiscall (data, record): the record's sounds placed and fixed, each then SfxMap_MarkSimpleSound"
+0x006bf150,SoundCategory_FreeCategorySlot,function,low,"reimplemented (src/game/core/soundcategory); thiscall: the first index below deque A's count whose entry is 0, else the count"
+0x006bf1c0,SoundCategory_FreeBankSlot,function,low,reimplemented (src/game/core/soundcategory); thiscall: how many of deque B's entries from its start are not 0
+0x006bf9e0,SoundCategory_ReadBankEntries,function,low,"reimplemented (src/game/core/soundcategory); thiscall (stream, table): the rest of BANK.map read into a heap block, each entry's path pointer set"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
