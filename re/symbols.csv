@@ -3538,6 +3538,7 @@ address,name,kind,confidence,notes
 0x004faa60,Person_DumpActionHistory,function,low,reimplemented (src/game/world/person); thiscall: the action history's debug dump (to the empty Debug_Printf: only the reads remain); returns -1
 0x004fd4e0,Visitor_RatingGap,function,low,"reimplemented (src/game/world/person); thiscall (object): 100 for a poor object, else the visitor's wanted rating less the object's, held to 50 and negated"
 0x004f8940,MovingPerson_Ctor,function,low,"reimplemented (src/game/world/person); thiscall (cell, kind): the moving person constructor: thing, script reference, thoughts, nav; +0xc0 by World_Rand % 5; the message centre slot 0xa; the nav at the cell middle"
+0x00518f90,World_PlaceSprites,function,low,"reimplemented (src/game/world/person); thiscall on the world, unused (t): every person (kinds 1, 4-8, 0x12) in the thing table chain with byte +3 clear placed for t (Person_PlaceSprite)"
 0x00550d80,Setting_SetMode,function,high,reimplemented (src/game/core/options); stores a mode and sets its flag bits
 0x005633e0,Quad_Push,function,high,reimplemented (src/game/core/seqs); pushes four dwords into the next of four slots
 0x0059c390,Table76e300_GetObjectDword,function,high,reimplemented (src/game/world/objectdefs); a dword of the object indexed through a record of the table

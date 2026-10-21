@@ -429,6 +429,23 @@ void __fastcall Person_PlaceSprite(u8 *person, void *, float t) {
     }
 }
 
+void __fastcall World_PlaceSprites(u8 *, void *, float t) {
+    const u8 *const first = global<const u8 *>(0x007cf56c);
+    u16 handle = first ? at<u16>(first, 4) : 0;
+    while (handle) {
+        // (the debug print of the table's first thing missing is left out)
+        u8 *const thing = global<u8 *>(0x007cfb90 + handle * 20u);
+        if (thing && !thing[3]) {
+            const u8 kind = thing[2];
+            if (kind == 1 || kind == 4 || kind == 5 || kind == 6 || kind == 8 || kind == 7 || kind == 0x12) Person_PlaceSprite(thing, nullptr, t);
+        }
+        u16 own;
+        const u16 at_handle = *Thing_GetHandle(thing, nullptr, &own);
+        const u8 *const next = global<const u8 *>(0x007cfb98 + at_handle * 20u);
+        handle = next ? at<u16>(next, 4) : 0;
+    }
+}
+
 u32 __fastcall Person_DumpActionHistory(u8 *person) {
     auto read = [](const void *p, u32 offset) { (void)*reinterpret_cast<const volatile u16 *>((uintptr_t)p + offset); };
     for (s32 i = 0x1f; i >= 0; --i) {

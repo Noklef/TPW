@@ -145,6 +145,11 @@ s32 __fastcall Visitor_RatingGap(const u8 *visitor, void *, u8 *object);
 // row 0x7cedd4 moves on (modulo the count). All x87 at 24 bits.
 void __fastcall Person_PlaceSprite(u8 *person, void *, float t);
 
+// 0x518f90 (thiscall on the world [0x7cf83c], unused; t, pops 4; name unconfirmed): over the thing table's chain (the first entry [0x7cf56c]'s
+// handle +4, each thing's next by its own handle: entry +8, 0 ends it; a null thing faults at its handle as the original does) every person
+// (kind 1, 4, 5, 6, 7, 8 or 0x12) whose byte +3 is clear has its sprite placed for t (Person_PlaceSprite).
+void __fastcall World_PlaceSprites(u8 *world, void *, float t);
+
 // 0x4faa60 (thiscall; name unconfirmed; called from 0x4f8af9 before the history at +0x30 goes, 0x50bab0): a debug dump of the action history (the
 // thoughts at +0x30): from the 32nd entry from the end to the last (Ring_FromEnd), the thing its handle (+2) names (its definition id +0xe when an
 // object, its cell +5 / +7) and the action (+0, by its kind 0..0x19) to the empty Debug_Printf: only the reads remain. Returns -1 (the loop's

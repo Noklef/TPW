@@ -4,7 +4,9 @@
 # timer +0x198 about the counter 0x7cdb98 (the square face: dynfaces.py's queue), the byte +2 1 or not; the bob row 0x7cedd4 (0-20 or
 # any) and its time 0x7cedd8 about 1.0 (NaN too). CentreOnSprite (0x486860): the same sprite (or none) and the clock [0x8786bc] about
 # the last tick's [0x878a1c] (0-300 ms on, behind, or any); the camera's point and its three cleared dwords compared.
-# usage: personsprite.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=PlaceSprite,CentreOnSprite)
+# PlaceAll (0x518f90): the thing table's chain of 1-5 things (handles 1-9, [0x7cf56c] the first's entry or none), the sprite one of them (a person or
+# not, its byte +3 clear mostly), the others 0x40 bytes of kinds about the people's with byte +3 set (or no person's kind): one sprite placed or none.
+# usage: personsprite.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=PlaceSprite,CentreOnSprite,PlaceAll)
 import os
 import struct
 import sys
@@ -16,8 +18,10 @@ from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
 from personscripts import script_list  # noqa: E402
 
 B = Bench([(0x475480, 0x4754f0), (0x4d8c50, 0x4d8c70), (0x4f9f00, 0x4fa2b0), (0x4fe900, 0x4fe960), (0x50b350, 0x50b370), (0x510160, 0x510190),
-           (0x53c8d0, 0x53c9d0), (0x5da3c0, 0x5da3c1), (0x486860, 0x4868c1), (0x42aab0, 0x42ab1d)])
-CALLS = {'PlaceSprite': 0x4fa030, 'CentreOnSprite': 0x486860}
+           (0x53c8d0, 0x53c9d0), (0x5da3c0, 0x5da3c1), (0x486860, 0x4868c1), (0x42aab0, 0x42ab1d), (0x518f90, 0x51905c)])
+CALLS = {'PlaceSprite': 0x4fa030, 'CentreOnSprite': 0x486860, 'PlaceAll': 0x518f90}
+OTHERS = RAM + 0x24000   # (PlaceAll's other things, 0x40 bytes each)
+PEOPLE = [1, 4, 5, 6, 7, 8, 0x12]
 THING = RAM + 0x20000
 
 
@@ -66,6 +70,32 @@ def case(r):
     if op == 'CentreOnSprite':
         centre_env(r, regions)
         return Call(CALLS[op], [r.choice([THING] * 9 + [0])], regions, ret='v')
+    if op == 'PlaceAll':
+        thing = regions[THING]
+        handles = r.sample(range(1, 10), r.randrange(1, 6))
+        mine = r.choice(handles)
+        thing[2] = r.choice(PEOPLE + PEOPLE + [0, 2, 3, r.getrandbits(8)])
+        thing[3] = r.choice([0, 0, 0, 1])
+        table = bytearray(r.bytes(20 * 10))
+        for i, h in enumerate(handles):
+            if h == mine:
+                at = THING
+            else:
+                at = OTHERS + 0x40 * i
+                other = bytearray(r.bytes(0x40))
+                other[2] = r.choice(PEOPLE + [0, 2, 3, 9, 0x11, 0x13, r.getrandbits(8)])
+                other[3] = r.randrange(1, 256) if other[2] in PEOPLE else r.choice([0, 1])
+                put(other, 0, 'H', h)
+                regions[at] = other
+            if h == mine:
+                put(thing, 0, 'H', h)
+            nxt = 0x7cfb90 + 20 * handles[i + 1] if i + 1 < len(handles) else 0
+            put(table, 20 * h, 'I', at)
+            put(table, 20 * h + 4, 'H', h)
+            put(table, 20 * h + 8, 'I', nxt)
+        put(table, 0, 'I', r.choice([0, r.getrandbits(32)]))
+        regions[0x7cfb90] = table
+        regions[0x7cf56c] = struct.pack('<I', r.choice([0x7cfb90 + 20 * handles[0]] * 9 + [0]))
     t = r.choice([0.0, -0.0, 0.25, 0.35, 0.5, 1.0, 1.35, 1.5, 2.0, 2.5, -0.5, -1.0, 1e-40, float('nan'), float('inf'), float('-inf'),
                   r.uniform(-1.5, 2.5), r.uniform(0, 1), r.uniform(0, 1), struct.unpack('<f', r.bytes(4))[0]])
     return Call(CALLS[op], [THING, fb(t)], regions, conv='t', ret='v')
