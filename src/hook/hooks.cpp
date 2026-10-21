@@ -164,6 +164,7 @@
 #include "../game/core/vstream.h"
 #include "../game/core/vwrap.h"
 #include "../game/core/actionrec.h"
+#include "../game/core/advisorscoring.h"
 #include "../game/core/namedobjects.h"
 #include "../game/core/savegame.h"
 #include "../game/core/stdwstring.h"
@@ -4241,6 +4242,8 @@ const Hook kHooks[] = {
     {"SoundVoice_EnsureParams",   0x006b7150, (void *)&SoundVoice_EnsureParams, {0x53, 0x56, 0x8b, 0xf1, 0x33}},
     {"SoundVoice_SetPending",     0x006bc900, (void *)&SoundVoice_SetPending, {0x81, 0xec, 0xac, 0x00, 0x00}},
     {"EaxBuffer_QueryAll",        0x006c4760, (void *)&EaxBuffer_QueryAll, {0x8b, 0x41, 0x04, 0x83, 0xec}},
+    {"AdvisorScoring_PeopleAbove1a4", 0x0059c9d0, (void *)&AdvisorScoring_PeopleAbove1a4, {0x56, 0x8b, 0xf1, 0x8b, 0x0d}},
+    {"AdvisorScoring_PeopleAbove1a8", 0x0059ca00, (void *)&AdvisorScoring_PeopleAbove1a8, {0x56, 0x8b, 0xf1, 0x8b, 0x0d}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

@@ -4376,6 +4376,8 @@ address,name,kind,confidence,notes
 0x006b7150,SoundVoice_EnsureParams,function,low,"reimplemented (src/game/core/soundvoice); thiscall: with no block at +0x4c, a 0x20-byte one (Mem_Alloc; the byte and +4-+0x18 cleared) stored there, or 0 when the allocation fails"
 0x006bc900,SoundVoice_SetPending,function,low,"reimplemented (src/game/core/soundvoice); thiscall (out, value), pops 8: with a sound at +0x24, a stack record (SetThenFlag28_14 value) handed to the sound system [0xfb1f24]'s slot 4 in a functor 0x70a850; else the value's low word at +0x48, flag 0x8000, *out = -1; returns out"
 0x006c4760,EaxBuffer_QueryAll,function,low,"reimplemented (src/game/core/soundeax); thiscall (out, unused), pops 8: IKsPropertySet::Get of the EAX 2.0 buffer properties (id 1, 0x38 bytes) into a stack block that is also the size out, dropped; *out = 0 on success, else -1; returns out"
+0x0059c9d0,AdvisorScoring_PeopleAbove1a4,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: Things_CountPeopleStat1a4Above with the byte +0xb0 as the bound, times the s32 +0xac (name unconfirmed)"
+0x0059ca00,AdvisorScoring_PeopleAbove1a8,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: Things_CountPeopleStat1a8Above with the byte +0xb8 as the bound, times the s32 +0xb4 (name unconfirmed)"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
