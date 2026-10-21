@@ -88,7 +88,7 @@ def coefficients(r):
         stream = bytes([stream[0], stream[1] | 5]) + stream[2:]
     src = RAM + 0x1000
     dq = struct.pack('<64i', *[r.choice([r.randrange(-0x40000, 0x40000), r.getrandbits(32) - (1 << 31)]) for _ in range(64)])
-    regions.update({0xfb7600: r.bytes(0x100), 0xfb7820: dq + struct.pack('<III', src + 1, stream[0], 8), src: stream})
+    regions.update({0xfb7600: r.bytes(0x100), 0xfb7820: dq + struct.pack('<III', src + 1, 8, stream[0]), src: stream})  # (source, count, bits)
     return Call(CALLS['Coefficients'], [], regions, ret='edi')
 
 
