@@ -5432,6 +5432,21 @@ const Hook kHooks[] = {
     {"jpeg6a_jinit_huff_encoder", 0x00651772, (void *)&jpeg6a_jinit_huff_encoder, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"jpeg6a_jpeg_gen_optimal_table", 0x006512ad, (void *)&jpeg6a_jpeg_gen_optimal_table, {0x55, 0x8b, 0xec, 0x81, 0xec}},
     {"jpeg6a_jpeg_make_c_derived_tbl", 0x006510e0, (void *)&jpeg6a_jpeg_make_c_derived_tbl, {0x55, 0x8b, 0xec, 0x81, 0xec}},
+    {"jpeg6a_jcphuff_finish_pass_gather_phuff", 0x006534fe, (void *)&jpeg6a_jcphuff_finish_pass_gather_phuff, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcphuff_finish_pass_phuff", 0x00653498, (void *)&jpeg6a_jcphuff_finish_pass_phuff, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
+    {"jpeg6a_jcphuff_encode_mcu_AC_refine", 0x006530f4, (void *)&jpeg6a_jcphuff_encode_mcu_AC_refine, {0x55, 0x8b, 0xec, 0x81, 0xec}},
+    {"jpeg6a_jcphuff_encode_mcu_DC_refine", 0x00652fcc, (void *)&jpeg6a_jcphuff_encode_mcu_DC_refine, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcphuff_encode_mcu_AC_first", 0x00652d82, (void *)&jpeg6a_jcphuff_encode_mcu_AC_first, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcphuff_emit_buffered_bits", 0x00652d42, (void *)&jpeg6a_jcphuff_emit_buffered_bits, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"jpeg6a_jcphuff_emit_eobrun", 0x00652c9d, (void *)&jpeg6a_jcphuff_emit_eobrun, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcphuff_flush_bits", 0x00652c74, (void *)&jpeg6a_jcphuff_flush_bits, {0x55, 0x8b, 0xec, 0x6a, 0x07}},
+    {"jpeg6a_jcphuff_emit_restart", 0x00652b6f, (void *)&jpeg6a_jcphuff_emit_restart, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
+    {"jpeg6a_jcphuff_emit_symbol", 0x00652b07, (void *)&jpeg6a_jcphuff_emit_symbol, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
+    {"jpeg6a_jcphuff_dump_buffer", 0x00652aa5, (void *)&jpeg6a_jcphuff_dump_buffer, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
+    {"jpeg6a_jcphuff_emit_bits",  0x00652957, (void *)&jpeg6a_jcphuff_emit_bits, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcphuff_encode_mcu_DC_first", 0x0065278f, (void *)&jpeg6a_jcphuff_encode_mcu_DC_first, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jcphuff_start_pass_phuff", 0x006524f5, (void *)&jpeg6a_jcphuff_start_pass_phuff, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"jpeg6a_jinit_phuff_encoder", 0x00652480, (void *)&jpeg6a_jinit_phuff_encoder, {0x55, 0x8b, 0xec, 0x83, 0xec}},
 };
 const std::size_t kHookCount = sizeof(kHooks) / sizeof(kHooks[0]);
 

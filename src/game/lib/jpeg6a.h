@@ -288,6 +288,52 @@ int __cdecl jpeg6a_jchuff_encode_mcu_gather(jpeg6a_compress_struct *cinfo, short
 // 0x652345 (static): each table the scan uses, once, the optimal one for its counts (allocated, jpeg_alloc_huff_table, when null).
 void __cdecl jpeg6a_jchuff_finish_pass_gather(jpeg6a_compress_struct *cinfo);
 
+// jcphuff.c, the progressive Huffman encoder, through third_party/wrap/jpeg-6a/jcphuff.c (no output suspension: dump_buffer's
+// JERR_CANT_SUSPEND). jpeg6a_phuff_entropy_encoder is its phuff_entropy_encoder (untagged), 0x6c bytes: the public 0xc,
+// gather_statistics +0xc, next_output_byte +0x10, free_in_buffer +0x14, put_buffer +0x18, put_bits +0x1c, cinfo +0x20,
+// last_dc_val[4] +0x24, ac_tbl_no +0x34, EOBRUN +0x38, BE +0x3c, bit_buffer +0x40, restarts_to_go +0x44, next_restart_num +0x48,
+// derived_tbls[4] +0x4c, count_ptrs[4] +0x5c.
+struct jpeg6a_phuff_entropy_encoder;
+// 0x652480: cinfo->entropy (alloc_small of the image pool, 0x6c), start_pass start_pass_phuff (through the method shim, jpeg6a.cpp),
+// no derived tables, counts or correction bit buffer yet.
+void __cdecl jpeg6a_jinit_phuff_encoder(jpeg6a_compress_struct *cinfo);
+// 0x6524f5 (static, through the shim as jinit_phuff_encoder): encode_mcu by Ss (DC or AC band) and Ah (first or refinement scan),
+// the AC refinement's 1000-byte correction bit buffer allocated once; finish_pass for encoding or gathering; each scan component's
+// table checked (JERR_NO_HUFF_TABLE 0x31; none for a DC refinement) and derived, or its counts allocated once and zeroed; the DC
+// predictions, EOB run, correction bits, bit buffer and restart count reset.
+void __cdecl jpeg6a_jcphuff_start_pass_phuff(jpeg6a_compress_struct *cinfo, int gather_statistics);
+// 0x652aa5 (static): dest->empty_output_buffer (JERR_CANT_SUSPEND 0x16 when it suspends) and the encoder's buffer from dest.
+void __cdecl jpeg6a_jcphuff_dump_buffer(jpeg6a_phuff_entropy_encoder *entropy);
+// 0x652957 (static): size bits of code into the bit buffer unless gathering (JERR_HUFF_MISSING_CODE 0x27 for size 0 first), whole
+// bytes out with a 0 stuffed after each 0xFF.
+void __cdecl jpeg6a_jcphuff_emit_bits(jpeg6a_phuff_entropy_encoder *entropy, unsigned int code, int size);
+// 0x652c74 (static): the partial byte filled with ones, the bit buffer emptied.
+void __cdecl jpeg6a_jcphuff_flush_bits(jpeg6a_phuff_entropy_encoder *entropy);
+// 0x652b07 (static): a symbol counted in count_ptrs[tbl_no] when gathering, else its code from derived_tbls[tbl_no] emitted.
+void __cdecl jpeg6a_jcphuff_emit_symbol(jpeg6a_phuff_entropy_encoder *entropy, int tbl_no, int symbol);
+// 0x652d42 (static): nbits correction bits (a char each, the low bit) emitted unless gathering.
+void __cdecl jpeg6a_jcphuff_emit_buffered_bits(jpeg6a_phuff_entropy_encoder *entropy, char *bufstart, unsigned int nbits);
+// 0x652c9d (static): a pending EOB run as its symbol and length bits, then the buffered correction bits; EOBRUN and BE cleared.
+void __cdecl jpeg6a_jcphuff_emit_eobrun(jpeg6a_phuff_entropy_encoder *entropy);
+// 0x652b6f (static): the EOB run out, then (unless gathering) the bits flushed and RST0 + restart_num; the DC predictions (a DC scan)
+// or the EOB run and correction bits reset.
+void __cdecl jpeg6a_jcphuff_emit_restart(jpeg6a_phuff_entropy_encoder *entropy, int restart_num);
+// 0x65278f (static): each block's DC point-transformed by Al, its difference coded (a restart marker first when due); TRUE.
+int __cdecl jpeg6a_jcphuff_encode_mcu_DC_first(jpeg6a_compress_struct *cinfo, short (**MCU_data)[64]);
+// 0x652d82 (static): the block's AC coefficients Ss..Se point-transformed and coded as runs, trailing zeros counted into the EOB
+// run (forced out at 0x7fff); TRUE.
+int __cdecl jpeg6a_jcphuff_encode_mcu_AC_first(jpeg6a_compress_struct *cinfo, short (**MCU_data)[64]);
+// 0x652fcc (static): bit Al of each block's DC; TRUE.
+int __cdecl jpeg6a_jcphuff_encode_mcu_DC_refine(jpeg6a_compress_struct *cinfo, short (**MCU_data)[64]);
+// 0x6530f4 (static): the AC refinement: newly nonzero coefficients coded, correction bits for the others buffered, the EOB run
+// forced out at 0x7fff or past 937 buffered bits; TRUE.
+int __cdecl jpeg6a_jcphuff_encode_mcu_AC_refine(jpeg6a_compress_struct *cinfo, short (**MCU_data)[64]);
+// 0x653498 (static): the EOB run and the last bits out.
+void __cdecl jpeg6a_jcphuff_finish_pass_phuff(jpeg6a_compress_struct *cinfo);
+// 0x6534fe (static): the EOB run counted, then each table the scan uses, once, the optimal one for its counts (allocated,
+// jpeg_alloc_huff_table, when null).
+void __cdecl jpeg6a_jcphuff_finish_pass_gather_phuff(jpeg6a_compress_struct *cinfo);
+
 // jcomapi.c: what compression and decompression share.
 // 0x64f3c0: the image pool freed (mem->free_pool of pool 1), global_state back to the start (DSTATE_START 200 for a decompressor,
 // else CSTATE_START 100).

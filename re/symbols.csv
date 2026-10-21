@@ -5750,3 +5750,18 @@ address,name,kind,confidence,notes
 0x006520fe,jpeg6a_jchuff_encode_mcu_gather,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jchuff.c encode_mcu_gather: an MCU's symbols counted (the library's)
 0x00652210,jpeg6a_jchuff_htest_one_block,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jchuff.c htest_one_block: a block's DC and AC symbols counted (the library's)
 0x00652345,jpeg6a_jchuff_finish_pass_gather,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jchuff.c finish_pass_gather: each table the scan uses made optimal for its counts (the library's)
+0x00652480,jpeg6a_jinit_phuff_encoder,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcphuff.c jinit_phuff_encoder: the progressive Huffman encoder (the library's, through the method shim)"
+0x006524f5,jpeg6a_jcphuff_start_pass_phuff,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcphuff.c start_pass_phuff: the scan's encode_mcu and finish_pass, each scan component's table derived or counts zeroed (the library's, through the method shim)"
+0x0065278f,jpeg6a_jcphuff_encode_mcu_DC_first,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcphuff.c encode_mcu_DC_first: an MCU's point-transformed DC differences coded (the library's)
+0x00652957,jpeg6a_jcphuff_emit_bits,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcphuff.c emit_bits: bits into the bit buffer, whole bytes out with 0xFF stuffing, nothing when gathering (the library's)"
+0x00652aa5,jpeg6a_jcphuff_dump_buffer,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcphuff.c dump_buffer: the destination emptied, JERR_CANT_SUSPEND if it suspends (the library's)"
+0x00652b07,jpeg6a_jcphuff_emit_symbol,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcphuff.c emit_symbol: a Huffman symbol counted or emitted (the library's)
+0x00652b6f,jpeg6a_jcphuff_emit_restart,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcphuff.c emit_restart: the EOB run and bits out, an RSTn marker, the predictions reset (the library's)"
+0x00652c74,jpeg6a_jcphuff_flush_bits,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcphuff.c flush_bits: the partial byte padded with ones (the library's)
+0x00652c9d,jpeg6a_jcphuff_emit_eobrun,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcphuff.c emit_eobrun: a pending EOB run and its correction bits out (the library's)
+0x00652d42,jpeg6a_jcphuff_emit_buffered_bits,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcphuff.c emit_buffered_bits: buffered correction bits out (the library's)
+0x00652d82,jpeg6a_jcphuff_encode_mcu_AC_first,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcphuff.c encode_mcu_AC_first: a block's AC band coded as runs and EOB runs (the library's)
+0x00652fcc,jpeg6a_jcphuff_encode_mcu_DC_refine,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcphuff.c encode_mcu_DC_refine: bit Al of each block's DC (the library's)
+0x006530f4,jpeg6a_jcphuff_encode_mcu_AC_refine,function,high,"reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcphuff.c encode_mcu_AC_refine: an AC band's refinement, newly nonzero coefficients and correction bits (the library's)"
+0x00653498,jpeg6a_jcphuff_finish_pass_phuff,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcphuff.c finish_pass_phuff: the EOB run and the last bits out (the library's)
+0x006534fe,jpeg6a_jcphuff_finish_pass_gather_phuff,function,high,reimplemented (src/game/lib/jpeg6a); libjpeg 6a jcphuff.c finish_pass_gather_phuff: each table the scan uses made optimal for its counts (the library's)
