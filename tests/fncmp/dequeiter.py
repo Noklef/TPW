@@ -3,7 +3,7 @@
 # map, iterators anywhere in them, steps that stay inside, cross one block or several, either way. The command queue's post (0x47f410): the global deque
 # (0x7b4ba8) empty, or its last block with room, full, or full at the map's end (the map grown), its critical section's calls recorded. Its
 # show-next (0x47f7d0): the first element's text (a record table of 0-4 text records, some not terminated, the index about them) to a
-# recorder's slot 9, the cursor anywhere in its block or at its last element, the count 0-3 or more.
+# recorder's slot 9, the cursor anywhere in its block or at its last element (the map's blocks out of order), the count 0-3 or more.
 # usage: dequeiter.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -35,12 +35,13 @@ def show_next(r):
     set_return(log, 2, r.getrandbits(32))
     blocks = bytearray(r.bytes(0x5000))
     a = r.randrange(5)
+    order = r.sample(range(5), 5)   # (the map's blocks out of order: a block's end is not the next one's start)
     k = r.choice([0, 1, 510, 511, 511, r.randrange(512)])
     count = r.choice([0, 1, 1, 2, 3, 600, r.getrandbits(32)])
     n = r.randrange(0, 5)
-    put(blocks, 0x1000 * a + 8 * k, 'II', TABLE, r.choice([0, 1, 2, 3, 4, n, n - 1, 0xffffffff]) & 0xffffffff)
+    put(blocks, 0x1000 * order[a] + 8 * k, 'II', TABLE, r.choice([0, 1, 2, 3, 4, n, n - 1, 0xffffffff]) & 0xffffffff)
     q = bytearray(r.bytes(0x48))
-    first = BLOCKS + 0x1000 * a
+    first = BLOCKS + 0x1000 * order[a]
     put(q, 4, 'IIII', first, first + 0x1000, first + 8 * k, MAP + 4 * a)
     put(q, 0x24, 'III', MAP, 5, count)
     tab = bytearray(r.bytes(0x20))
@@ -54,7 +55,7 @@ def show_next(r):
             rec[4 + ((len(body) + 3) & ~3)] = 1   # (not terminated)
         pool += rec
     target = bytearray(struct.pack('<I', TARGET + 0x10)) + bytearray(0xc) + vtable({9: 1})
-    regions = {QUEUE: q, LOG: log, IMPORT_TABLE: table, HEAP: heap(), MAP: struct.pack('<5I', *[BLOCKS + 0x1000 * i for i in range(5)]),
+    regions = {QUEUE: q, LOG: log, IMPORT_TABLE: table, HEAP: heap(), MAP: struct.pack('<5I', *[BLOCKS + 0x1000 * i for i in order]),
                BLOCKS: blocks, TABLE: tab, RECORDS: struct.pack('<5I', *[RECORDS + 0x100 + 0x40 * i for i in range(5)]) + bytes(0xec) + bytes(pool),
                TARGET: target, 0x7b4ba0: struct.pack('<I', TARGET), 0x78ba80: bytes(4), 0x7ba058: bytes(0x10)}
     return Call(0x47f7d0, [], regions, conv='c', ret='a')
