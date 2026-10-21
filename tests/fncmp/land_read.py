@@ -3,7 +3,7 @@
 # Array3D header and bytes, then three levels of a u32, a byte and thirteen array headers with their bytes (the level the object's byte +1 names read
 # with Lnd_ReadLevel, the others skipped by seeks over their bytes); the stream now and then a few bytes short at the end (in the last level's last
 # array, which a read takes as it comes: never in a skipped level's headers, whose short reads would leave uninitialised stack). The object's
-# arrays with old blocks or none; byte +1 0-2 mostly, else any.
+# arrays with old blocks or none; byte +1 0-2 mostly, else any. The five ramp tables (0x8793a8, 0x100 bytes each) random before.
 # usage: land_read.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -58,6 +58,7 @@ def case(r):
     put(src, 0x10, 'I', len(data) - cut + 0x100 if not cut else len(data) - cut)
     regions[vfs.MEMSRC] = src
     regions[OBJ] = obj
+    regions[0x8793a8] = r.bytes(0x500)   # the five ramp tables (0x8793a8 .. 0x8797a8), compared
     regions[vfs.NAME] = vfs.name_under(r, root) + b'.lnd\0' + r.bytes(7)
     return Call(0x560ff0, [OBJ, vfs.NAME if r.random() < 0.97 else 0], regions, conv='t', ret='a')
 
