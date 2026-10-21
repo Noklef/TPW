@@ -588,6 +588,14 @@ u32 __cdecl Gui_MouseUp(u32 button, u32 x, u32 y) {
     return (mask & 0xffff0000u) | 1;
 }
 
+u32 __cdecl Gui_MouseWheel(u32 delta, u32 x, u32 y) {
+    if (*reinterpret_cast<const u32 *>((uintptr_t)0x0077c488) == 0) return 0;  // only AX is set
+    u8 *const capture = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5e8);
+    u8 *const target = capture ? capture : *reinterpret_cast<u8 **>((uintptr_t)0x00faa5e0);
+    Window_PostMessage(target, 0x1000d, delta, ((u32)(s32)(s16)x << 16) | (u32)(s32)(s16)y);
+    return 1;  // (AX; the rest the post's answer, 0)
+}
+
 u32 __cdecl Gui_MouseMove(u32 x, u32 y) {
     if (*reinterpret_cast<const u32 *>((uintptr_t)0x0077c488) == 0) return 0;  // only AX is set
     *reinterpret_cast<u16 *>((uintptr_t)0x00faa540) = (u16)x;
