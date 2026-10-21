@@ -4,6 +4,8 @@
 # null, so the panel reset runs first (its six source images empty): through the null pointer for an image that is not empty (a crash in both).
 # Surface (0x5d3ac0): an image made 320 x 240 from a surface description (see surface()). Blocks (0x5d48a0): the same on the seven-block
 # object's image (+0x60) with the description passed by address; mostly with the bit counts that do no more than the set up (fast).
+# Surface and Blocks take some 19 s a case at full size, so the ops are dealt from a weighted deck (WEIGHTS: each of them 1 in 25, the others
+# several times), and Surface's bit counts and mask layouts from a deck of their own (LAYOUTS), so that the first 400 cases reach each of them.
 # ToImage (0x5e80d0): Shrink's source shrunk into a destination image of the new size (its width now and then 0 or -1).
 # usage: imageshrink.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Shrink,Panel,Surface,Blocks,ToImage)
 import os
@@ -20,17 +22,22 @@ SURFACE = RAM + 0x10000
 MASKS16 = [(0xf800, 0x07e0, 0x001f), (0x7c00, 0x03e0, 0x001f), (0x0f00, 0x00f0, 0x000f), (0x001f, 0x07e0, 0xf800), (0xfff0, 0x000c, 0x0003),
            (0x0505, 0x8000, 0x0a0a), (0xffffffff, 0x10, 0x80000000)]
 MASKS32 = [(0xff0000, 0xff00, 0xff), (0xff, 0xff00, 0xff0000), (0xff000000, 0xff0000, 0xffff), (0x3ff00000, 0xffc00, 0x3ff)]
+# (bits, masks): each layout of each count, odd masks ('odd': three random ones) of each, and the counts that do nothing (24 returns 0, 8 and 0 1)
+LAYOUTS = [(16, m) for m in MASKS16] + [(32, m) for m in MASKS32] + [(16, 'odd'), (32, 'odd'), (24, None), (8, None), (0, None)]
+WEIGHTS = {'Shrink': 8, 'Panel': 8, 'ToImage': 7, 'Surface': 1, 'Blocks': 1}   # (a deck of 25: 400 cases deal Surface 16 times, LAYOUTS' size)
+DECK = [k for k in OPS for _ in range(WEIGHTS.get(k, 1))]
 
 
-def surface(r):
+def surface(r, dealt=True):
     """0x5d3ac0: a surface of 320 to 327 x 240 to 245 pixels (smaller ones divide by 0 in both; even these take some 6-9 million steps), 16 or 32 bits
     (now and then 24, 8 or 0: nothing done) of random bytes (many extremes), masks of the usual layouts or odd ones (gaps, more than 8 bits),
     the pitch the row's bytes or more (odd too); the image's old pixels or none; the heap failing one of the four blocks now and then (the
-    image's: written through null in both)."""
+    image's: written through null in both). dealt: the count and masks dealt from LAYOUTS, else drawn."""
     w, h = r.choice([320, 320, 321, 327]), r.choice([240, 240, 241, 245])
-    bits = r.choice([16] * 6 + [32] * 6 + [24, 8, 0])
+    bits, masks = r.deal(LAYOUTS) if dealt else r.choice(LAYOUTS)
     pitch = w * max(bits, 8) // 8 + r.choice([0, 0, 1, 2, 6, 64])
-    masks = r.choice(MASKS16 if bits == 16 else MASKS32) if r.random() < 0.85 else [r.randrange(1, 1 << 32) for _ in range(3)]
+    if masks == 'odd' or masks is None:
+        masks = [r.randrange(1, 1 << 32) for _ in range(3)]
     desc = bytearray(r.bytes(0x7c))
     put(desc, 8, 'IIII', h, w, pitch, r.getrandbits(32))
     put(desc, 0x24, 'I', SURFACE)
@@ -47,7 +54,7 @@ def surface(r):
 def blocks(r):
     """0x5d48a0: surface()'s case on an object whose image is at +0x60, the description at RAM + 0x200; three in four with 24, 8, 0 or 15
     bits (the set up alone: the blocks, the counts, the result)."""
-    c = surface(r)
+    c = surface(r, dealt=False)
     desc = list(c.args[1:])
     if r.random() < 0.75:
         desc[0x54 // 4] = r.choice([24, 8, 0, 15])
@@ -62,7 +69,7 @@ def size(r, n):
 
 
 def case(r):
-    op = r.deal(OPS)
+    op = r.deal(DECK)
     if op == 'Surface':
         return surface(r)
     if op == 'Blocks':
