@@ -382,11 +382,18 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
     for (u32 i = 0; i < n; ++i) {  // (stack[0] is the thunk's own return address)
         args[i] = stack[1 + i];
         // Eight fills: two at + 0xb00, six more from + 0x1000 (0x80 each; a log region that sets them is that much longer). Dword 3: bits 0-7 an offset
-        // into the out structure, bits 8-15 records: with 2 or more the length is one record's, and call j (earlier) writes record j % records.
+        // into the out structure, bits 8-15 records: with 2 or more the length is one record's, and call j (earlier) writes record j % records;
+        // bits 16-23 an offset + 1 in the argument's structure of a pointer to the out structure (unless that pointer is null): a buffer that a
+        // structure argument points to.
         for (u32 f = 0; f < 8; ++f) {
             const u32 *fill = log + (f < 2 ? 0x2c0 + 0x20 * f : 0x400 + 0x20 * (f - 2));
             if (fill[0] != ((k & 63) | 0x80000000u) || fill[1] != i || !args[i]) continue;
-            u8 *const to = reinterpret_cast<u8 *>((uintptr_t)args[i]) + (fill[3] & 0xff);
+            u32 base = args[i];
+            if (const u32 through = fill[3] >> 16 & 0xff) {
+                std::memcpy(&base, reinterpret_cast<const u8 *>((uintptr_t)args[i]) + through - 1, 4);
+                if (!base) continue;
+            }
+            u8 *const to = reinterpret_cast<u8 *>((uintptr_t)base) + (fill[3] & 0xff);
             const u32 records = fill[3] >> 8 & 0xff;
             if (fill[2] & 0x80000000u) {  // (fncmp.fill_arg(): an argument's value, as passed)
                 const u32 value = (fill[2] & 0xff) < n ? stack[1 + (fill[2] & 0xff)] : 0;

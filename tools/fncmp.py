@@ -568,15 +568,18 @@ def strings(log, k, mask, out=0):
     struct.pack_into('<I', log, LOG_STRINGS + 4 * (k & 63), mask | out << 16)
 
 
-def fill(log, k, arg, data, which=0, offset=0, records=1):
+def fill(log, k, arg, data, which=0, offset=0, records=1, through=None):
     """Makes slot k's recorder write `data` (at most 0x70 bytes) through its argument `arg` (unless null) + offset (< 0x100), as an import fills an
     out structure; which: 0-7 (2-7 lengthen the log region). With records > 1, data is that many records of equal length and the slot's call j (its
-    calls in the log so far) writes record j % records: a device's capabilities, asked for each device in turn."""
+    calls in the log so far) writes record j % records: a device's capabilities, asked for each device in turn. With through (an offset < 0xff),
+    the out structure is the one the pointer at that offset in the argument's structure points to (nothing when it is null): a buffer that a
+    structure argument names."""
     assert 0 <= which < FILLS and 0 <= offset < 0x100 and 0 < records < 0x100 and len(data) % records == 0 and len(data) <= 0x70
+    assert through is None or 0 <= through < 0xff
     at = _fill_at(which) - LOG
     if len(log) < at + 0x80:
         log.extend(bytearray(at + 0x80 - len(log)))
-    struct.pack_into('<4I', log, at, (k & 63) | 0x80000000, arg, len(data) // records, offset | records << 8)
+    struct.pack_into('<4I', log, at, (k & 63) | 0x80000000, arg, len(data) // records, offset | records << 8 | (0 if through is None else through + 1) << 16)
     log[at + 0x10:at + 0x10 + len(data)] = data
 
 
@@ -676,7 +679,12 @@ def _log_args(e, k, raw, kk):
     for i in range(n):
         for at, fk, fa, fn, how in fills:
             if fk == (k & 63) | 0x80000000 and fa == i and args[i]:
-                to, records = (args[i] + (how & 0xff)) & 0xffffffff, how >> 8 & 0xff
+                base = args[i]
+                if how >> 16 & 0xff:
+                    base = e.u32(args[i] + (how >> 16 & 0xff) - 1)
+                    if not base:
+                        continue
+                to, records = (base + (how & 0xff)) & 0xffffffff, how >> 8 & 0xff
                 if fn & 0x80000000:   # (fill_arg())
                     e.write(to, struct.pack('<I', raw[fn & 0xff] if (fn & 0xff) < n else 0))
                 else:
