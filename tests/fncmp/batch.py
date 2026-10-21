@@ -139,7 +139,8 @@ def triangles(r):
     reach = base + n * groups
     remap = b''.join(struct.pack('<H', r.choice([r.randrange(max(reach, 1)), r.randrange(n or 1), r.randrange(48)])) for _ in range(32))
     def coord():
-        return r.choice([fb(r.uniform(-100, 100)), fb(r.uniform(-100, 100)), fb(r.uniform(-2, 2)), r.f()])
+        return r.choice([fb(r.uniform(-100, 100)), fb(r.uniform(-100, 100)), fb(r.uniform(-2, 2)), r.f()]) if r.random() < 0.97 else \
+            r.choice([0x7f800001, 0xffa00000, 0x7fc00000])   # (a signalling NaN goes through the x87 as the first x)
     src = b''.join(struct.pack('<4I', coord(), coord(), coord(), coord()) for _ in range(12))
     verts = b''.join(struct.pack('<4I', coord(), coord(), coord(), coord()) + r.bytes(0x10) for _ in range(48))
     batch = bytearray(r.bytes(0x40))
