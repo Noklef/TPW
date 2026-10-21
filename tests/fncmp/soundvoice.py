@@ -79,8 +79,9 @@ def case(r):
     if name == 'follow':
         blob_bytes(log, 4, 1, 0xff, inner=(8, 0xfff, 12))   # the functor: its vtable, the sound; the record's +0xc-+0x17
     elif name == 'byte44':
-        blob_bytes(log, 4, 1, 0xff, inner=(8, 0xfff, 12))   # the functor; the record's +0xc-+0x17 (its +0x28 / +0x9c out of reach)
-        fill(log, 4, 1, struct.pack('<I', r.choice([0, 2, 3, 0xfffffffd, r.getrandbits(32)])), offset=0x18, through=8)   # its +0x18
+        hundred = r.random() < 0.5
+        blob_bytes(log, 4, 1, 0xff, inner=(8, 0xf000, 28) if hundred else (8, 0xfff, 12))   # the functor; the record's +0x28 (set for 100)
+        fill(log, 4, 1, struct.pack('<I', r.choice([0, 2, 3, 0xfffffffd, r.getrandbits(32)])), offset=0x18, through=8)   # or +0xc-+0x17; +0x18
     elif name != 'command':
         blob_bytes(log, 4, 1, 0xff, inner=(8, 0x7000, 28) if name == 'pending' else None)   # (the stop's functor: two dwords)
     if name != 'pending':
@@ -104,7 +105,7 @@ def case(r):
     voice[0x45], voice[0x46] = r.choice([0, 1, 2, r.getrandbits(8)]), r.choice([0, 1, 2, r.getrandbits(8)])
     voice[0x47] = r.choice([0, r.getrandbits(4), r.getrandbits(8)])
     if name == 'byte44':
-        voice[0x44] = r.choice([0x64, 0x64, 0, r.getrandbits(8)])
+        voice[0x44] = 0x64 if hundred else r.choice([0x64, 0, r.getrandbits(8)])
     params = bytearray(r.bytes(0x20))
     lo_x, lo_z = r.randrange(-100, 100), r.randrange(-100, 100)
     box = [lo_x, lo_z + r.randrange(0, 100), lo_x + r.randrange(0, 100), lo_z]   # +8 x min, +0xc z max, +0x10 x max, +0x14 z min
