@@ -35,6 +35,23 @@ void __cdecl HoardingGrid_Fill() {
     }
 }
 
+u32 __cdecl HoardingGrid_AreaBlocked(s32 x1, s32 y1, s32 x2, s32 y2) {
+    s32 fit = 0, seen = 0;
+    for (s32 y = y1; y <= y2; y++) {
+        for (s32 x = x1; x <= x2; x++) {
+            if (!Map_InBounds(x, y)) continue;
+            const u32 id = (u16)((y << 7) + x + 1);
+            const u8 *const cell44 = reinterpret_cast<const u8 *>(global<u32>(0x007cf83c) + 0x294 + id * 0x44);
+            const u8 *cell = MapHandle_Entry28(reinterpret_cast<const u16 *>(cell44));
+            if (MapCell_IsTypeCOr11(cell))
+                cell = world_cell(*reinterpret_cast<const u16 *>(cell + 0x10));
+            if (MapCell_IsType19(cell) || MapCell_HasFlags(cell44, nullptr, 0x40)) fit++;
+            seen++;
+        }
+    }
+    return seen != fit;
+}
+
 void __cdecl HoardingGrid_Flood(s32 row, s32 col, u32 pass, u32 fill) {
     for (; row >= 0 && row <= 0x41 && col >= 0 && col <= 0x41; col++) {
         u8 *const c = reinterpret_cast<u8 *>((uintptr_t)(0x0081d7c8 + row * 0x43 + col));
