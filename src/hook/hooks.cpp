@@ -171,6 +171,7 @@
 #include "../game/core/keyactions.h"
 #include "../game/core/sharedglobals.h"
 #include "../game/core/soundbank.h"
+#include "../game/core/soundchannel.h"
 #include "../game/core/soundcmd.h"
 #include "../game/core/soundmanager.h"
 #include "../game/core/soundmixer.h"
@@ -4144,6 +4145,7 @@ const Hook kHooks[] = {
     {"SoundMixer_StampVoice",     0x006b6990, (void *)&SoundMixer_StampVoice, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"VoicePage_New",             0x006b6ab0, (void *)&VoicePage_New, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"SoundMixer_ClearLevels",    0x006b6ba0, (void *)&SoundMixer_ClearLevels, {0x8b, 0xd1, 0x57, 0xb9, 0x1f}},
+    {"SoundChannel_Apply",        0x006b8b40, (void *)&SoundChannel_Apply, {0x8b, 0xc1, 0x56, 0x8b, 0x4c}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
