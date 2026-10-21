@@ -17,6 +17,13 @@ void __fastcall Window7059f0_Layout(u8 *window);
 // Window705b20_SetRange(0, 0); then the handlers +0x114 / +0x118 0x665c35. Returns the window.
 u8 *__fastcall Window7059f0_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 id, u32 left, u32 top, u32 right, u32 bottom);
 
+// 0x66274e (thiscall; name unconfirmed): the destructor: the vtable 0x7059f0, Window7059f0_Clear; the column array +0x16c (when set)
+// deleted by its slot 4 (3: the GUI rectangles' vector deleting destructor); with the row array +0x148 set, each row window there (up to
+// the rows shown +0x172, signed) deleted by its slot 2 (1) and the array freed (Mem_Free); the items +0x144 freed when set; the highlight
+// +0x174 let go (WindowImpl_Release), and when that answers -1 (as a word) its slot 0 (1) called; the rectangle +0x138 destroyed
+// (GuiRect_Dtor), then Window_Dtor, whose EAX is left.
+u32 __fastcall Window7059f0_Dtor(u8 *window);
+
 // 0x663554 (thiscall (count: a word), pops 4; name unconfirmed): only while there are no columns (the word +0x164 0): an array of count (signed)
 // GUI rectangles (Mem_Alloc of count * 12 + 4, the count first; CRT_VectorCtorIterator with GuiRect_Ctor / GuiRect_Dtor) at +0x16c (0 when the
 // allocation fails), column i set (Fn_659dac) to i * 32, 0, (i + 1) * 32, 1, and +0x164 = count.
@@ -58,6 +65,40 @@ u32 __fastcall Window7059f0_SetNthItemData(u8 *window, void *, s32 n, u32 data);
 // 0x664ba8 (thiscall (height: a word), pops 4; name unconfirmed): the row height word +0x170 = height and the rows shown +0x172 = the
 // inner rectangle's height (+0x142 - +0x13e, signed) / it (signed; 0 faults, sic).
 void __fastcall Window7059f0_SetRowHeight(u8 *window, void *, u32 height);
+
+// 0x663718 (thiscall (row: a window), pops 4; name unconfirmed): for a row given, the row height +0x170 = its inner height (Window_GetSize
+// (inner 1)), the rows shown +0x172 = (the words +0x142 - +0x13e) / it (signed; a height of 0 faults), the row window array +0x148 made
+// when there is none (Mem_Alloc of rows * 4); with the highlight +0x174 set, it is told by slot 3 (0x10, an event on the stack whose +0x14
+// points to a GUI rectangle +0x13c, +0x13e, +0x140, +0x13e + height (GuiRect_CtorWith) and whose +0x24 is 0x10; the rest unset). The rows
+// shown (AX) either way.
+u16 __fastcall Window7059f0_SetRowSize(u8 *window, void *, u8 *row);
+
+// 0x663864 (thiscall (index, row: a window), pops 8; name unconfirmed): with a row given, the array +0x148 and the columns +0x16c there
+// and index below the rows shown (+0x172, signed: a negative index writes before the array, sic), the row stored at index and laid out:
+// for each column (+0x164, signed) the window (the row, then its first child (Fn_65d547), then that one's siblings (Fn_65d56b)) set
+// (Window_SetRectTo) to the column's left / right words (+4 / +8) and from +0x13e + index * +0x170 (a word) down by +0x170, and given the
+// depth (Window_SetDepth) of the list's word +0xe0 + 3. A GUI rectangle is made and dropped unused. EAX not kept.
+void __fastcall Window7059f0_SetRow(u8 *window, void *, s32 index, u8 *row);
+
+// 0x662eee (thiscall (highlight: an object), pops 4; name unconfirmed): nothing when it is the highlight +0x174 already; else the old one
+// let go (WindowImpl_Release), and when that answers -1 (as a word) its slot 0 (1) called. +0x174 = highlight; when set: Fn_6617f0 on it,
+// then its slot 3 (0x17, an event on the stack: the words +4 = 0, +6 = the list's word +0xe0 + 2, +8 = its +0xe2, +0x14 a GUI rectangle
+// +0x13c, +0x13e, +0x140, +0x13e + the row height +0x170 (GuiRect_CtorWith), +0x24 = 0x17; the rest unset), then, with the list shown
+// (Window_IsShown) and its +0x14c not -1, its slot 5 (1). EAX not kept.
+void __fastcall Window7059f0_SetHighlight(u8 *window, void *, u8 *highlight);
+
+// 0x664fde (thiscall (shown: a word), pops 4; name unconfirmed): with the row array +0x148, each row window there (up to the rows shown
+// +0x172, signed; 0 skipped) shown (Window_SetShown) when shown is not 0 and its item (the row + the first shown +0x154, wrapping) is below
+// the count +0x150 (signed), else hidden; the highlight +0x174 (when set) told by its slot 5 (1 when +0x14c is not -1 and shown not 0,
+// else 0). EAX not kept.
+void __fastcall Window7059f0_ShowRows(u8 *window, void *, u32 shown);
+
+// 0x6650d4 (thiscall (message, a, b), pops 12; name unconfirmed): with the row array +0x148, the message sent (Window_SendMessage) to
+// every window of each row there (up to the rows shown +0x172, signed; 0 skipped): the row, its first child (Fn_65d547), that one's
+// siblings (Fn_65d56b), one per column (+0x164, signed). For 0x1e, a is row << 16 | column and b the data dword (+1) of the row's item:
+// from the first shown one (Window7059f0_NthItem(0)) on, one per row given while there is one (not -1; Window7059f0_NextItem), b kept
+// from the row before when the items have run out. EAX not kept.
+void __fastcall Window7059f0_SendToRows(u8 *window, void *, u32 message, u32 a, u32 b);
 
 // 0x664d2a (thiscall (data), pops 4; name unconfirmed): the position (from 0) of the first item from the first shown one whose data
 // dword (+1) is data, stepping (Window7059f0_NextItem) until -1 or the position reaches the count +0x150 - 1 (signed); -1 when none.

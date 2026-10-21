@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "../core/accessors.h"
+#include "../core/vcall.h"
 #include "window.h"
 #include "window705a50.h"
 
@@ -38,5 +40,32 @@ u16 __fastcall RadioGroup_Select(u8 *group, void *, u32 id) {
     at<u32>(group, 0x138) = id;
     RadioGroup_SetSelectedState(group, nullptr, 1);
     return (u16)before;
+}
+
+u32 __cdecl RadioGroup_Proc(u8 *group, u32 message, u32 a, u32 b) {
+    if (message == 0x15) {
+        if ((Fn_65d57c(group) & 0x10) && Fn_66a281(group) == 0xffffffffu) {
+            u8 *const first = reinterpret_cast<u8 *>((uintptr_t)Fn_65d547(group, nullptr, 0));
+            if (first && vcall<u32>(first, 0xc) == 2) RadioGroup_Select(group, nullptr, Fn_65d7bc(first));
+        }
+    } else if (message == 0x100) {
+        u8 *const child = Window_FindChild(group, nullptr, a);
+        if (child && group) {
+            if (b == 1) {
+                if (Fn_66a281(group) != 0xffffffffu) {
+                    Window_PostMessage(reinterpret_cast<u8 *>((uintptr_t)Fn_65d55a(group)), 0x101, Fn_66a281(group), 0);
+                }
+                RadioGroup_Select(group, nullptr, a);
+                Window_PostMessage(reinterpret_cast<u8 *>((uintptr_t)Fn_65d55a(group)), 0x101, a, 1);
+            } else if (!(Fn_65d57c(group) & 0x10)) {
+                RadioGroup_Select(group, nullptr, 0xffffffffu);
+                Window_PostMessage(reinterpret_cast<u8 *>((uintptr_t)Fn_65d55a(group)), 0x101, a, 0);
+            } else {
+                RadioGroup_Select(group, nullptr, a);
+                Window705a50_SetState(child, nullptr, 1, 1);
+            }
+        }
+    }
+    return Window_DefaultProc(group, message, a, b);
 }
 }

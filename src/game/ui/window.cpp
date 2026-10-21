@@ -30,6 +30,18 @@ u32 Slot5LeavingEcx(u8 *object, u32 arg) {
     }
     return left;
 }
+
+// a / divisor by IDIV, so that a divisor of 0 (or -0x80000000 / -1) faults as the original's does.
+s32 Idiv(s32 a, s32 divisor) {
+    s32 q;
+    __asm {
+        mov eax, a
+        cdq
+        idiv divisor
+        mov q, eax
+    }
+    return q;
+}
 }
 
 extern "C" {
@@ -575,6 +587,29 @@ u32 __cdecl Gui_MouseUp(u32 button, u32 x, u32 y) {
     *reinterpret_cast<u16 *>((uintptr_t)0x00faa5bc) &= (u16)mask;
     return (mask & 0xffff0000u) | 1;
 }
+
+u32 __cdecl Gui_MouseMove(u32 x, u32 y) {
+    if (*reinterpret_cast<const u32 *>((uintptr_t)0x0077c488) == 0) return 0;  // only AX is set
+    *reinterpret_cast<u16 *>((uintptr_t)0x00faa540) = (u16)x;
+    *reinterpret_cast<u16 *>((uintptr_t)0x00faa544) = (u16)y;
+    u8 *const root = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5d8);
+    if (!root) return 0;
+    const u32 xy = ((u32)(s32)(s16)x << 16) | (u32)(s32)(s16)y;
+    if (u8 *const capture = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5e8)) {
+        Window_PostMessage(capture, 0x10003, xy, 0);
+        return 1;
+    }
+    u8 *const hit = Window_HitTest(root, nullptr, (u16)x, (u16)y);
+    u8 *&hovered = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5e0);
+    if (hit != hovered) {
+        if (hovered) Window_PostMessage(hovered, 0x10002, 0, 0);
+        hovered = hit;
+        Window_PostMessage(hovered, 0x10001, xy, 0);
+    } else {
+        Window_PostMessage(hovered, 0x10003, xy, 0);
+    }
+    return 1;
+}
 }
 
 extern "C" {
@@ -619,6 +654,28 @@ void __fastcall Window_Notify1(u8 *window, void *, u32 value) {
     at<u16>(event, 4) = (u16)value;
     if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 1u, event);
     if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 1u, event);
+}
+
+void __fastcall Window_Notify1b(u8 *window, void *, u32 value) {
+    u8 event[0x18];  // (only the word +4 set)
+    at<u16>(event, 4) = (u16)value;
+    if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 1u, event);
+    if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 1u, event);
+}
+
+u32 __fastcall Window_Notify80(u8 *window, void *, u32 value) {
+    u8 event[0x18];  // (only the dword +0 set)
+    at<u32>(event, 0) = value;
+    if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 0x80u, event);
+    if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 0x80u, event);
+    return 1;
+}
+
+void __fastcall Window_Notify80000(u8 *window, void *, u32 value) {
+    u8 event[0x18];  // (only the word +0xa set)
+    at<u16>(event, 0xa) = (u16)value;
+    if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 0x80000u, event);
+    if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 0x80000u, event);
 }
 
 u32 __fastcall Window_GetSize(u8 *window, void *, s16 *width, s16 *height, u32 inner) {
@@ -764,6 +821,18 @@ u32 __fastcall Window_SetRectTo(u8 *window, void *, u32 left, u32 top, u32 right
     return 1;
 }
 
+u32 __fastcall Window_MoveTo(u8 *window, void *, const s16 *x, const s16 *y) {
+    const s16 width = (s16)(at<s16>(window, 0x10) - at<s16>(window, 0xc));
+    const s16 height = (s16)(at<s16>(window, 0x12) - at<s16>(window, 0xe));
+    const s16 left = x ? *x : at<s16>(window, 0xc);
+    const s16 top = y ? *y : at<s16>(window, 0xe);
+    u8 rect[0xc];
+    GuiRect_CtorWith(rect, nullptr, (u16)left, (u16)top, (u32)(left + width), (u32)(top + height));
+    Window_SetRect(window, nullptr, rect);
+    GuiRect_Dtor(rect);
+    return 1;
+}
+
 void __fastcall Window_SetWordsE4(u8 *window, void *, u32 a, u32 b) {
     at<u16>(window, 0xe4) = (u16)a;
     at<u16>(window, 0xe6) = (u16)b;
@@ -854,6 +923,19 @@ u32 __fastcall Window_SlideStep(u8 *window) {
     }
     GuiRect_Dtor(rect);
     return 0xffff;
+}
+
+u32 __fastcall Window_SlideTo(u8 *window, void *, const u8 *target, s32 time, s32 interval) {
+    at<s16>(window, 0x10c) = (s16)Idiv(time, interval);
+    GuiRect_Assign(window + 0x38, nullptr, target);
+    for (u32 i = 0; i < 4; ++i) {
+        at<s16>(window, 0x104 + 2 * i) =
+            (s16)Idiv((s32)*reinterpret_cast<const s16 *>(target + 4 + 2 * i) - at<s16>(window, 0xc + 2 * i), at<s16>(window, 0x10c));
+    }
+    if (at<u8 *>(window, 0x100)) Fn_6620cc(at<u8 *>(window, 0x100), nullptr, (u32)interval);
+    else at<u8 *>(window, 0x100) = WindowTimers_Add((u32)(uintptr_t)window, (u32)interval, 0x80085);
+    at<u8>(window, 0x136) = 1;
+    return (WindowTimer_Start(at<u8 *>(window, 0x100)) & 0xffff0000u) | 1;
 }
 
 u32 __fastcall Window_ScriptTick(u8 *window) {

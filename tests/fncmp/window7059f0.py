@@ -29,6 +29,9 @@
 # 0) any dword; the cells random; the heap, failing now and then. Each new string's allocator byte is a stack byte the original never
 # sets (sic), different in the two runs: allocator_masks() leaves those bytes of the heap out (the strings' first byte; the listing reads
 # no string's allocator: CopyCells only stores the new string, StdWString_CtorChars writes the byte and nothing after it reads one).
+# SetRowSize / SetRow (0x663718, 0x663864): see row_case(). SetHighlight (0x662eee): see highlight_case().
+# ShowRows (0x664fde): see show_case(). SendToRows (0x6650d4): RefreshRows' list, rows and items; the message 0x1e mostly (else 3,
+# 0x15, 7 or one with the top bit), a and b any (the row windows' handlers fncmp's logger or none).
 # usage: window7059f0.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ColumnBottom,NextItem,...)
 import os
 import struct
@@ -38,13 +41,14 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 from fncmp import CDECL_LOG4, HEAP, LOG, RAM, Bench, Call, Mask, blob_bytes, heap, log_region, put, recorder, set_return, vtable  # noqa: E402
-from window import MISC, OBJECT98, RANGES, VTABLE, notify_blobs, notify_env, queues  # noqa: E402
+from window import MISC, OBJECT98, RANGES, VTABLE, notify_blobs, notify_env, queues, shown_env  # noqa: E402
 
 CALLS = {'ColumnBottom': 0x6636f6, 'NextItem': 0x663a93, 'NthItem': 0x663ba2, 'SetNthItemData': 0x664b68, 'SetRowHeight': 0x664ba8,
          'FindItemData': 0x664d2a, 'RefreshRows': 0x663324, 'ResetItems': 0x663085, 'RootEnd': 0x663cb8, 'FitBar': 0x664495,
          'FreeItem': 0x664605, 'Select': 0x66525c, 'FindText': 0x664db7, 'RemoveItem': 0x6647cb, 'Clear': 0x6649d5,
          'ScrollTo': 0x665739, 'Grow': 0x66316b, 'SortsBefore': 0x663edc, 'CopyCells': 0x663dfa,
-         'AddItem': 0x66403b}
+         'AddItem': 0x66403b, 'SetRowSize': 0x663718, 'SetRow': 0x663864,
+         'SetHighlight': 0x662eee, 'ShowRows': 0x664fde, 'SendToRows': 0x6650d4}
 LIST_RANGES = (RANGES + [(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 0x664bf0), (0x664d2a, 0x664db7), (0x663324, 0x663554),
                     (0x4f0240, 0x4f0250), (0x65d547, 0x65d56b), (0x65d56b, 0x65d57c), (0x65c672, 0x65c707),
                     (0x663085, 0x66316b), (0x663cb8, 0x663d56), (0x664495, 0x6644ea), (0x66b47d, 0x66b508),
@@ -52,13 +56,17 @@ LIST_RANGES = (RANGES + [(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 
                     (0x4f23f0, 0x4f2450), (0x66403b, 0x664495),
                     (0x66525c, 0x665494), (0x659d43, 0x659d90), (0x664db7, 0x664ea3), (0x4f7870, 0x4f7910), (0x665f30, 0x665f71),
                     (0x67acd0, 0x67ad00), (0x45b380, 0x45b5f0), (0x45b680, 0x45b9b0), (0x67bb90, 0x67bd98), (0x67d250, 0x67d2c0),
-                    (0x67d3a0, 0x67d400), (0x6918f0, 0x691a30), (0x691ba0, 0x691ce0)])
+                    (0x67d3a0, 0x67d400), (0x6918f0, 0x691a30), (0x691ba0, 0x691ce0),
+                    (0x663718, 0x663864), (0x663864, 0x6639cb), (0x65d865, 0x65d8e7), (0x659e3e, 0x659e83), (0x65cf5e, 0x65cfd4),
+                    (0x65c9bd, 0x65cd95), (0x661700, 0x66176a), (0x65f16b, 0x65f246), (0x662eee, 0x663085), (0x664fde, 0x6650d2), (0x6650d4, 0x6651ee)])
 B = Bench(LIST_RANGES)
 WINDOW, COLUMNS, LINKS, OUT = RAM, RAM + 0x200, RAM + 0x400, RAM + 0x800
 LIST, LINKS2, COLS2, CELLS, ROWS2, ROWWINS = RAM + 0x9000, RAM + 0x9420, RAM + 0x9e00, RAM + 0x9f00, RAM + 0x9c00, RAM + 0xb000
 BAR, OBJS, BUFS = RAM + 0xd000, RAM + 0x1000, RAM + 0x1200
 HILITE, HVT, OWNER = RAM + 0xe000, RAM + 0xe100, RAM + 0xe400
 WSTRS, WCHARS = RAM + 0x1000, RAM + 0x1400
+ROWLIST, ROWARR, ROWCOLS, ROWHL, ROWHLVT, ROWWIN = RAM + 0x10000, RAM + 0x10200, RAM + 0x10400, RAM + 0x10600, RAM + 0x10640, RAM + 0x10800
+HL_A, HL_B, HL_VT, HL_PARENTS = RAM + 0x11000, RAM + 0x11040, RAM + 0x11080, RAM + 0x11200
 ALPHA = [0x41, 0x42, 0x100, 0xffff]
 
 
@@ -548,8 +556,154 @@ def add_case(r):
     return Call(CALLS['AddItem'], args, regions, conv='t', ret='a', masks=allocator_masks(fail, lengths, first) if args[1] else [])
 
 
+def row_case(r, op):
+    """SetRowSize (0x663718): a row window (or none) whose inner height (its rectangle's words less the insets) is small (0 now and then:
+    a fault in both), the list's words +0x13c-+0x142 near each other, the row array +0x148 there or not (the heap), the highlight +0x174 a
+    recorder (slot 3: its event's rectangle hashed through +0x14) or 0. SetRow (0x663864): windowtree.py's rect_env tree with no objects
+    +0x98 / +0x9c (SetRect's and SetDepth's events would share their recorders), the row its root (or none), the columns +0x164 up to its
+    root and children (now and then one more: a null window, a fault in both; or -1), their words any small, the array and the columns
+    there or not, the index from -2 (before the array) to past the rows shown +0x172, the list's depth word +0xe0 small or near 0x100."""
+    log = log_region()
+    regions = {LOG: log, HEAP: heap()}
+    lst = bytearray(r.bytes(0x180))
+    regions[ROWLIST] = lst
+    top = r.randrange(-40, 200)
+    put(lst, 0x13c, 'hhhh', r.randrange(-40, 200), top, r.randrange(-40, 300), top + r.choice([0, 7, 20, 64, 300, -10, r.randrange(-100, 400)]))
+    if op == 'SetRowSize':
+        row = bytearray(r.bytes(0x120))
+        t = r.randrange(-30, 100)
+        put(row, 0xc, 'hhhh', r.randrange(-30, 100), t, r.randrange(-30, 100), t + r.choice([2, 5, 12, 16, 20, 33, -6, 3]))
+        put(row, 0xf8, 'hhhh', *[r.choice([0, 0, 1, 2, -1]) for _ in range(4)])
+        regions[ROWWIN] = row
+        put(lst, 0x148, 'I', r.choice([0, 0, ROWARR]))
+        regions[ROWARR] = r.bytes(8)
+        regions[ROWHLVT] = vtable({3: 2})
+        regions[ROWHL] = struct.pack('<I', ROWHLVT)
+        put(lst, 0x174, 'I', r.choice([ROWHL, ROWHL, 0]))
+        blob_bytes(log, 3, 1, 0, (0x14, 0xfff))
+        return Call(CALLS[op], [ROWLIST, r.choice([ROWWIN] * 12 + [0])], regions, conv='t', ret='w')
+    from windowtree import rect_env
+    wins = rect_env(r, regions, log)
+    for w in wins:
+        put(regions[w], 0x98, 'II', 0, 0)
+    chain = [wins[0]]
+    c = struct.unpack_from('<I', regions[wins[0]], 0x5c)[0]
+    while c:
+        chain.append(c)
+        c = struct.unpack_from('<I', regions[c], 0x54)[0]
+    ncols = r.choice(list(range(len(chain) + 1)) * 4 + [len(chain) + 1, -1])
+    put(lst, 0x164, 'h', ncols)
+    regions[ROWCOLS] = b''.join(struct.pack('<Ihhhh', r.getrandbits(32), r.randrange(-30, 100), r.randrange(-50, 50), r.randrange(-30, 160),
+                                            r.randrange(-50, 50)) for _ in range(8))
+    put(lst, 0x16c, 'I', r.choice([ROWCOLS] * 12 + [0]))
+    regions[ROWARR - 8] = r.bytes(8 + 4 * 8)
+    put(lst, 0x148, 'I', r.choice([ROWARR] * 12 + [0]))
+    rows = r.choice([0, 1, 2, 3, 5, 7, -1])
+    put(lst, 0x170, 'hh', r.choice([1, 5, 12, 16, -3, 0, r.randrange(-100, 100)]), rows)
+    put(lst, 0xe0, 'h', r.choice([0, 1, 5, 0xfc, 0xfd, 0xff, 0x100, -1, r.randrange(-0x8000, 0x8000)]))
+    index = r.choice([-2, -1, 0, 0, 1, 2, rows - 1, rows, rows + 1, 7]) & 0xffffffff
+    return Call(CALLS[op], [ROWLIST, index, r.choice([wins[0]] * 15 + [0])], regions, conv='t', ret='v')
+
+
+def highlight_case(r):
+    """SetHighlight (0x662eee): the list a window of its own (0x180 random bytes) with 0-2 parents (+0x60), each shown or not (flag 0 of
+    +0x48), +0x14c -1 or not, the highlight +0x174 one recorder object or none; the new one that, another or none. The objects' words
+    +0x10 / +0x12 small (WindowImpl_Release answers -1 now and then: the old one's slot 0 (1) then); slot 3's event hashed by its set
+    words +4-+9 and, through its +0x14, the GUI rectangle's twelve bytes (the pointer itself is a stack address, the rest unset)."""
+    log = log_region()
+    regions = {LOG: log, HL_VT: vtable({0: 1, 3: 2, 5: 1})}
+    for obj in (HL_A, HL_B):
+        regions[obj] = put(put(bytearray(r.bytes(0x20)), 0, 'I', HL_VT), 0x10, 'hh', r.choice([0, 1, 2]), r.choice([0, 1, 1, 2, 3]))
+    w = bytearray(r.bytes(0x180))
+    w[0x48] = (w[0x48] & 0xfe) | r.choice([0, 1, 1])
+    n = r.choice([0, 1, 2])
+    put(w, 0x60, 'I', HL_PARENTS if n else 0)
+    for i in range(n):
+        p = bytearray(r.bytes(0x70))
+        p[0x48] = (p[0x48] & 0xfe) | r.choice([0, 1, 1, 1])
+        put(p, 0x60, 'I', HL_PARENTS + 0x100 * (i + 1) if i + 1 < n else 0)
+        regions[HL_PARENTS + 0x100 * i] = p
+    put(w, 0x14c, 'i', r.choice([-1, 0, 3, -1]))
+    put(w, 0x174, 'I', r.choice([HL_A, HL_A, 0]))
+    regions[WINDOW] = w
+    blob_bytes(log, 3, 1, 0x3f0, (0x14, 0xfff))
+    return Call(CALLS['SetHighlight'], [WINDOW, r.choice([HL_A, HL_B, HL_B, HL_B, 0])], regions, conv='t', ret='v')
+
+
+def send_walk(regions):
+    """SendToRows' reads of the items for 0x1e in Python (the first shown item +0x160, then one per row while not -1): False when one
+    leaves the links"""
+    window = regions[LIST]
+    arr = list(struct.unpack('<%di' % (len(regions[LINKS2 - 4 * PAD]) // 4), regions[LINKS2 - 4 * PAD]))
+    if not struct.unpack_from('<I', window, 0x148)[0]:
+        return True
+
+    def get(i):
+        if not -PAD <= i < len(arr) - PAD:
+            raise IndexError
+        return arr[i + PAD]
+
+    def nxt(i):
+        if get(i + 2) >= 0:
+            return get(i + 2)
+        if get(i) >= 0:
+            return get(i)
+        if get(i + 3) < 0:
+            return -2
+        n = get(i + 3)
+        for _ in range(64):
+            if not (get(n) < 0 and get(n + 3) >= 0):
+                return get(n)
+            n = get(n + 3)
+        raise IndexError
+    item = struct.unpack_from('<i', window, 0x160)[0]
+    try:
+        for _ in range(struct.unpack_from('<h', window, 0x172)[0]):
+            if item != -1:
+                get(item + 1)
+                item = nxt(item)
+    except IndexError:
+        return False
+    return True
+
+
+def show_case(r):
+    """ShowRows (0x664fde): window.py's shown_env windows as the rows (some 0) of a list of its own (0x180 random bytes): the rows shown
+    +0x172 0-5 (or -1), the array +0x148 there or not, the first shown +0x154 and count +0x150 about each other (the edges too), the
+    highlight +0x174 a recorder (slot 5) or none, +0x14c -1 or not; shown 0, 1 or any (the upper half random)."""
+    log = log_region()
+    regions = {LOG: log}
+    wins = shown_env(r, regions, log)
+    w = bytearray(r.bytes(0x180))
+    rows = r.choice([0, 1, 2, 3, 4, 5, -1])
+    put(w, 0x172, 'h', rows)
+    regions[ROWARR] = b''.join(struct.pack('<I', r.choice(wins + [0])) for _ in range(6))
+    put(w, 0x148, 'I', r.choice([ROWARR] * 8 + [0]))
+    first = r.choice([0, 0, 1, 3, -1, 0x7fffffff, r.getrandbits(32)])
+    put(w, 0x150, 'II', r.choice([first + 2, first, first + 5, 0, 3, -1, r.getrandbits(32)]) & 0xffffffff, first & 0xffffffff)
+    put(w, 0x14c, 'i', r.choice([-1, 0, 2]))
+    regions[ROWHLVT] = vtable({5: 1})
+    regions[ROWHL] = struct.pack('<I', ROWHLVT)
+    put(w, 0x174, 'I', r.choice([ROWHL, ROWHL, 0]))
+    regions[ROWLIST] = w
+    shown = r.choice([0, 1, 1, 0x10000, r.getrandbits(16)]) | (r.getrandbits(16) << 16 if r.random() < 0.5 else 0)
+    return Call(CALLS['ShowRows'], [ROWLIST, shown], regions, conv='t', ret='v')
+
+
 def case(r):
     op = r.deal(OPS)
+    if op == 'SetHighlight':
+        return highlight_case(r)
+    if op == 'ShowRows':
+        return show_case(r)
+    if op == 'SendToRows':
+        c = refresh_case(r)
+        message = r.choice([0x1e] * 5 + [3, 0x15, 7, 0x80000001])
+        if message == 0x1e and not send_walk(c.regions):   # (an item read off the links: a wild read the emulator faults on, not the driver)
+            message = 3
+        return Call(CALLS[op], [LIST, message, r.getrandbits(32), r.getrandbits(32)], c.regions, conv='t', ret='v')
+    if op in ('SetRowSize', 'SetRow'):
+        return row_case(r, op)
     if op == 'AddItem':
         return add_case(r)
     if op in ('RemoveItem', 'Clear', 'ScrollTo'):

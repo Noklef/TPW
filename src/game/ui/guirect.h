@@ -42,6 +42,13 @@ u8 *__fastcall GuiRect_Assign(u8 *rect, void *, const u8 *source);
 // and bottom (0x20) strictly between the top and bottom; spanning it down, its left (0x40) and right (0x80) strictly between the sides.
 u32 __fastcall GuiRect_Overlap(u8 *rect, void *, u8 *shape);
 
+// 0x65a1c3 (thiscall (shape, first, second: rectangles, each may be 0), pops 12; name unconfirmed): the rectangle split by the shape's
+// edge that crosses it (GuiRect_Overlap): its top (0x10) or bottom (0x20) into the parts above and below it, its left (0x40) or right
+// (0x80) into the parts left and right of it, the first / second given set (Fn_659dac) to (0x10) above / below, (0x20) below / above,
+// (0x40) left / right, (0x80) right / left; then 1 in AX. 0 in AX with no shape, when the shape contains it (0x100), or otherwise (a
+// corner inside, or apart): then the first given is set to the rectangle itself. Only AX is set.
+u32 __fastcall GuiRect_Split(u8 *rect, void *, u8 *shape, u8 *first, u8 *second);
+
 // 0x659e3e (thiscall (width, height: word pointers, each may be 0), pops 8; name unconfirmed): right - left and bottom - top stored through
 // each pointer given.
 void __fastcall GuiRect_GetSize(u8 *rect, void *, u16 *width, u16 *height);

@@ -66,6 +66,24 @@ u8 *__fastcall Window7059f0_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 
     return window;
 }
 
+u32 __fastcall Window7059f0_Dtor(u8 *window) {
+    at<u32>(window, 0) = 0x7059f0;
+    Window7059f0_Clear(window);
+    if (u8 *const columns = at<u8 *>(window, 0x16c)) vcall<u32>(columns, 0x10, 3u);
+    if (at<u32>(window, 0x148)) {
+        for (s32 i = 0; i < at<s16>(window, 0x172); ++i) {
+            if (u8 *const row = at<u8 **>(window, 0x148)[i]) vcall<u32>(row, 8, 1u);
+        }
+        GameHeap_Free(at<void *>(window, 0x148));
+    }
+    if (at<u32>(window, 0x144)) GameHeap_Free(at<void *>(window, 0x144));
+    if (u8 *const highlight = at<u8 *>(window, 0x174)) {
+        if ((s16)WindowImpl_Release(highlight) == -1) vcall<u32>(highlight, 0, 1u);
+    }
+    GuiRect_Dtor(window + 0x138);
+    return Window_Dtor(window);
+}
+
 void __fastcall Window7059f0_SetColumns(u8 *window, void *, u32 count) {
     if (at<s16>(window, 0x164) != 0) return;
     const s32 n = (s16)count;
@@ -138,6 +156,96 @@ u32 __fastcall Window7059f0_SetNthItemData(u8 *window, void *, s32 n, u32 data) 
 void __fastcall Window7059f0_SetRowHeight(u8 *window, void *, u32 height) {
     at<u16>(window, 0x170) = (u16)height;
     at<u16>(window, 0x172) = (u16)((at<s16>(window, 0x142) - at<s16>(window, 0x13e)) / at<s16>(window, 0x170));
+}
+
+u16 __fastcall Window7059f0_SetRowSize(u8 *window, void *, u8 *row) {
+    if (row) {
+        s16 width, height;
+        Window_GetSize(row, nullptr, &width, &height, 1);
+        at<s16>(window, 0x170) = height;
+        at<u16>(window, 0x172) = (u16)((at<s16>(window, 0x142) - at<s16>(window, 0x13e)) / at<s16>(window, 0x170));
+        if (!at<u32>(window, 0x148)) at<void *>(window, 0x148) = GameHeap_Alloc((u32)((s32)at<s16>(window, 0x172) << 2));
+        if (u8 *const highlight = at<u8 *>(window, 0x174)) {
+            u8 rect[12];
+            GuiRect_CtorWith(rect, nullptr, at<u16>(window, 0x13c), at<u16>(window, 0x13e), at<u16>(window, 0x140),
+                             (u32)((s32)at<s16>(window, 0x13e) + at<s16>(window, 0x170)));
+            u8 event[0x28];  // (only +0x14, the rectangle, and +0x24 set)
+            at<u8 *>(event, 0x14) = rect;
+            at<u32>(event, 0x24) = 0x10;
+            vcall<void>(highlight, 0xc, 0x10u, event);
+            GuiRect_Dtor(rect);
+        }
+    }
+    return at<u16>(window, 0x172);
+}
+
+void __fastcall Window7059f0_SetRow(u8 *window, void *, s32 index, u8 *row) {
+    u8 rect[12];
+    GuiRect_Ctor(rect);
+    if (row && at<u32>(window, 0x148) && at<u32>(window, 0x16c) && index < at<s16>(window, 0x172)) {
+        at<u8 **>(window, 0x148)[index] = row;
+        u8 *w = row;
+        const s16 top = (s16)(at<s16>(window, 0x13e) + (s32)at<s16>(window, 0x170) * index);
+        for (s32 i = 0; i < at<s16>(window, 0x164); ++i) {
+            u8 *const column = at<u8 *>(window, 0x16c) + 0xc * i;
+            Window_SetRectTo(w, nullptr, (u32)(s32)at<s16>(column, 4), (u32)(s32)top, (u32)(s32)at<s16>(column, 8),
+                             (u32)((s32)top + at<s16>(window, 0x170)));
+            Window_SetDepth(w, nullptr, (u32)(at<s16>(window, 0xe0) + 3));
+            w = reinterpret_cast<u8 *>((uintptr_t)(i == 0 ? Fn_65d547(w, nullptr, 0) : Fn_65d56b(w)));
+        }
+    }
+    GuiRect_Dtor(rect);
+}
+
+void __fastcall Window7059f0_SetHighlight(u8 *window, void *, u8 *highlight) {
+    if (highlight == at<u8 *>(window, 0x174)) return;
+    if (u8 *const old = at<u8 *>(window, 0x174)) {
+        if ((s16)WindowImpl_Release(old) == -1) vcall<u32>(old, 0, 1u);
+    }
+    at<u8 *>(window, 0x174) = highlight;
+    if (!highlight) return;
+    Fn_6617f0(highlight);
+    u8 event[0x28];  // (only the words +4-+9, +0x14 (the rectangle) and +0x24 set)
+    at<u16>(event, 4) = 0;
+    at<u16>(event, 6) = (u16)(at<s16>(window, 0xe0) + 2);
+    at<u16>(event, 8) = at<u16>(window, 0xe2);
+    u8 rect[12];
+    GuiRect_CtorWith(rect, nullptr, at<u16>(window, 0x13c), at<u16>(window, 0x13e), at<u16>(window, 0x140),
+                     (u32)((s32)at<s16>(window, 0x13e) + at<s16>(window, 0x170)));
+    at<u8 *>(event, 0x14) = rect;
+    at<u32>(event, 0x24) = 0x17;
+    vcall<void>(highlight, 0xc, 0x17u, event);
+    if ((s16)Window_IsShown(window) != 0 && at<s32>(window, 0x14c) != -1) vcall<void>(at<u8 *>(window, 0x174), 0x14, 1u);
+    GuiRect_Dtor(rect);
+}
+
+void __fastcall Window7059f0_ShowRows(u8 *window, void *, u32 shown) {
+    const bool on = (s16)shown != 0;
+    if (at<u32>(window, 0x148)) {
+        for (s32 i = 0; i < at<s16>(window, 0x172); ++i) {
+            const u32 show = ((s32)((u32)i + at<u32>(window, 0x154)) < at<s32>(window, 0x150) && on) ? 1 : 0;
+            if (u8 *const row = at<u8 **>(window, 0x148)[i]) Window_SetShown(row, nullptr, show);
+        }
+    }
+    if (u8 *const highlight = at<u8 *>(window, 0x174)) vcall<void>(highlight, 0x14, (at<s32>(window, 0x14c) != -1 && on) ? 1u : 0u);
+}
+
+void __fastcall Window7059f0_SendToRows(u8 *window, void *, u32 message, u32 a, u32 b) {
+    if (!at<u32>(window, 0x148)) return;
+    s32 item = Window7059f0_NthItem(window, nullptr, 0);
+    for (s32 i = 0; i < at<s16>(window, 0x172); ++i) {
+        u8 *w = at<u8 **>(window, 0x148)[i];
+        if (!w) continue;
+        if (message == 0x1e && item != -1) {
+            b = (u32)at<s32 *>(window, 0x144)[item + 1];
+            item = Window7059f0_NextItem(window, nullptr, item, nullptr);
+        }
+        for (s32 column = 0; column < at<s16>(window, 0x164); ++column) {
+            if (message == 0x1e) a = (u32)i << 16 | (u32)column;
+            Window_SendMessage(w, message, a, b);
+            w = reinterpret_cast<u8 *>((uintptr_t)(column == 0 ? Fn_65d547(w, nullptr, 0) : Fn_65d56b(w)));
+        }
+    }
 }
 
 s32 __fastcall Window7059f0_FindItemData(u8 *window, void *, u32 data) {

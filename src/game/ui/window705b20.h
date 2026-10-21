@@ -13,6 +13,46 @@ extern "C" {
 // from and +0x138 = to.
 void __fastcall Window705b20_SetRange(u8 *window, void *, s32 from, s32 to);
 
+// 0x66b088 (thiscall (mode, value), pops 8; name unconfirmed): the position +0x140 moved by mode: 1 / 0 the step +0x144 added /
+// taken, 2 / 3 the page +0x148 added / taken, -1 the value, -2 kept (sic: any other mode leaves it unset in the original; no caller
+// passes one); clamped between +0x138 and +0x13c (signed; the first bound applied first: with the step above 0 at most +0x138 then at
+// least +0x13c, else the other way round). Unchanged (and the mode not -2): 0. Else stored; the thumb (child id 3; Window_FindChild,
+// its inner rectangle by Window_GetRect) placed (Window_SetRect) by bit 2 of the word +0x14c across from +0x30 to +0x34 at
+// (pos - +0x13c) * room / range, else down from +0x32 to +0x36 at (+0x138 - pos) * room / range (single IDIVs; at the start for a range
+// of 0), its length kept; then, with the range not 0, the objects +0x98 / +0x9c (when set) told by slot 3 (8, an event on the stack
+// whose dword +0 is (pos - +0x13c) << 10 / range, its low word sign-extended), Window_Notify80 (pos), and when the position changed the
+// parent +0x60 sent 0x800 (id +0x8c, pos) (Window_SendMessage). Returns 1.
+u32 __fastcall Window705b20_SetPos(u8 *window, void *, s32 mode, s32 value);
+
+// 0x66af19 (thiscall; name unconfirmed): the position +0x140 read back from the thumb (child id 3; Window_FindChild, its inner rectangle
+// by Window_GetRect): by bit 2 of the word +0x14c its left's offset from +0x30, else its bottom's from +0x36, times the range +0x138 -
+// +0x13c over the room left (+0x34 - +0x30, or +0x36 - +0x32, less the thumb's length; one IDIV that faults, sic, on a room of 0), plus
+// +0x13c. When the position changed the parent +0x60 is posted 0x800 (id +0x8c, pos) (Window_PostMessage). EAX not kept.
+void __fastcall Window705b20_PosFromThumb(u8 *window);
+
+// 0x66b8aa (thiscall (x, y: words), pops 8; name unconfirmed): a click on the bar off the thumb pages toward it: with the thumb (child id
+// 3; Window_FindChild; none: nothing) and its inner rectangle (Window_GetRect), the distance d = x - (left + (right - left)) for bit 2 of
+// the word +0x14c, else (top + (bottom - top)) - y (a word either way); a page back (mode 2) for d < 0, else forward (3), swapped when
+// the step +0x144 is above 0 (signed); then Window705b20_SetPos(mode, 0). EAX not kept.
+void __fastcall Window705b20_PageToward(u8 *window, void *, u32 x, u32 y);
+
+// A GUI rectangle (vtable, then the words left, top, right, bottom) passed by value: the callee destroys it.
+struct GuiRectByValue {
+    u8 bytes[12];
+};
+
+// 0x66b771 (cdecl (rect, bounds by value, dx, dy, across); the thumb's drag, from 0x66bc5f; name unconfirmed): the rectangle's left and
+// right (words +4 / +8) moved by the word dx for across non-zero, else its top and bottom (+6 / +0xa) by dy; then kept inside the bounds:
+// below their low edge, put on it with its size (as moved, signed) kept; then above their high edge, put on that the same way. The bounds
+// destroyed (GuiRect_Dtor), whose EAX is left.
+u32 __cdecl Window705b20_MoveInside(u8 *rect, GuiRectByValue bounds, u32 dx, u32 dy, u32 across);
+
+// 0x66ba22 (cdecl (bar, message, a, b); the bar's handler; name unconfirmed): 3: the bar's slot 4, the thumb (child id 3) opened
+// (Window_OpenTree) when there is one, and 0 without the default handler. 0x10008, 0x10009 and 0x100: a 1 steps the position (SetPos(1, 0)),
+// a 2 steps it back (SetPos(0, 0)). 0x1000d: slot 7 (slot 8's answer - a). 0x11006: Window705b20_PageToward(b >> 16 (signed), b & 0xffff).
+// -1: with [0xfaa5d4] set, the thumb (or 0) posted 1 (0, 0) and the bar's slot 4. Then (all but 3) Window_DefaultProc, whose answer it returns.
+u32 __cdecl Window705b20_Proc(u8 *bar, u32 message, u32 a, u32 b);
+
 // 0x66ae83 (thiscall (enabled: a word), pops 4; slot 5 of the vtable 0x705b20; name unconfirmed): 0 (AX) when flag 2 of +0x48 (disabled)
 // already says so. Otherwise Window_SetEnabled, each child (from +0x5c, the next by Fn_65d56b) gets slot 5 (enabled), the window is
 // posted 1 (0, 0) (Window_PostMessage) when the dword [0xfaa5d4] is set, and 1 (AX).

@@ -1,6 +1,6 @@
 // The GUI library's window subclass with the vtable 0x705a20 (kind 5 of the factory 0x65dd7b: with flag 0x40 a 0x200-byte buffer +0x138,
 // a window timer +0x164 (0x2ee, id 0x75e88), the handler 0x66857d; what it is is unconfirmed, a text field going by the buffer and the
-// timer). Reimplementation of 0x665fb0 and 0x665fcd. The names are unconfirmed.
+// timer). Reimplementation of 0x665fb0, 0x665fcd and 0x66656c. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -17,4 +17,16 @@ void __fastcall Window705a20_SaveRect(u8 *window);
 // handler 0x66857d (Window_SetHandler) and +0x118 too, Window_SetFocus(0); the byte +0x160 1 and +0x162 whether the byte 0xfaa56c is set.
 // Returns the window.
 u8 *__fastcall Window705a20_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 id, u32 left, u32 top, u32 right, u32 bottom);
+
+// 0x6661bc (thiscall; name unconfirmed): the destructor: the vtable 0x705a20; the buffer +0x138 freed (Mem_Free) when set and the flags
+// +0x48 have 0x40; with the timer +0x164 set, the window's timer 0x75e88 killed (WindowTimers_Kill); the caret +0x15c let go
+// (WindowImpl_Release), and when that answers -1 (as a word) its slot 0 (1) called; then Window_Dtor, whose EAX is left.
+u32 __fastcall Window705a20_Dtor(u8 *window);
+
+// 0x66656c (thiscall (caret: an object), pops 4; name unconfirmed): nothing when it is +0x15c already. The old one (when set) let go
+// (WindowImpl_Release), and when that answers -1 (as a word) its slot 0 (1) called. +0x15c = caret; when set: Fn_6617f0 on it, then its
+// slot 3 (0x17, an event on the stack: the words +4 = 0, +6 = the depth word +0xe0 + 3, +8 = +0xe2, +0x14 a GUI rectangle (GuiRect_CtorWith)
+// from +0x30 + +0x150 / +0x32 + +0x154, 8 wide and +0x156 high, and +0x24 0x17) and, when the window is shown (Window_IsShown), its
+// slot 5 (1). EAX not kept.
+void __fastcall Window705a20_SetCaret(u8 *window, void *, u8 *caret);
 }

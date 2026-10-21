@@ -5,6 +5,7 @@
 # or not. NotifyShown / SetShown (0x65d90b, 0x65d9dd): window.py's shown_env. Offset (0x65c7fe): window.py's offset_env, moved by words 0 or
 # not (upper halves random). SetEnabled (0x65da8d): shown_env's, flag 2 of each window's +0x48 either way; AX compared (only AX is set).
 # ScriptStep / SlideStep / ScriptTick (0x65e9a4, 0x65ee7a, 0x65c357): see script_case().
+# MoveTo (0x65ce10): rect_env()'s windows, the new left / top near the old or any, each given or not.
 # usage: windowtree.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=FindChild,IsShown,...)
 import os
 import struct
@@ -20,9 +21,9 @@ CALLS = {'FindChild': 0x65d7d0, 'IsShown': 0x65d773, 'OffsetByParents': 0x65c979
          'NotifyShown': 0x65d90b, 'SetShown': 0x65d9dd, 'Offset': 0x65c7fe, 'SetEnabled': 0x65da8d,
          'RaiseToTop': 0x65dbf0, 'OpenTree': 0x65c707, 'CloseTree': 0x65c778, 'SetRect': 0x65cc04, 'ResizeChildren': 0x65c9bd,
          'SetRectTo': 0x65cf5e, 'AddChild': 0x65f447, 'ScriptStep': 0x65e9a4, 'SlideStep': 0x65ee7a, 'ScriptTick': 0x65c357,
-         'DefaultProc': 0x65f6d1}
+         'DefaultProc': 0x65f6d1, 'MoveTo': 0x65ce10}
 ARG = RAM + 0xb000
-B = Bench(RANGES + [(0x65da8d, 0x65db25), (0x65dbf0, 0x65dcaf), (0x65c707, 0x65c7fe), (0x65c9bd, 0x65cd95),
+B = Bench(RANGES + [(0x65ce10, 0x65cef7), (0x65da8d, 0x65db25), (0x65dbf0, 0x65dcaf), (0x65c707, 0x65c7fe), (0x65c9bd, 0x65cd95),
                        (0x65cf5e, 0x65cfd4), (0x661700, 0x66176a), (0x659e3e, 0x659e83), (0x659d43, 0x659d90),
                        (0x65f447, 0x65f538), (0x65f345, 0x65f410), (0x65f16b, 0x65f246),
                        (0x65e9a4, 0x65ecb0), (0x65ee7a, 0x65ef90), (0x65f286, 0x65f330), (0x65d3a3, 0x65d40c), (0x662097, 0x6620ac),
@@ -74,6 +75,13 @@ def case(r):
         return script_case(r, op, regions, log)
     if op == 'DefaultProc':
         return proc_case(r, regions, log)
+    if op == 'MoveTo':   # rect_env()'s; x / y words near the window's or any, each pointer given or 0
+        wins = rect_env(r, regions, log)
+        window = r.choice(wins[:1] * 3 + wins)
+        left, top = struct.unpack_from('<hh', regions[window], 0xc)
+        regions[ARG] = struct.pack('<HH', (left + r.choice([0, 0, 3, -7, r.randrange(-0x8000, 0x8000)])) & 0xffff,
+                                   (top + r.choice([0, 0, 2, -5, r.randrange(-0x8000, 0x8000)])) & 0xffff)
+        return Call(CALLS[op], [window, r.choice([ARG, ARG, 0]), r.choice([ARG + 2, ARG + 2, 0])], regions, conv='t', ret='w')
     if op in ('SetRect', 'ResizeChildren', 'SetRectTo'):   # see rect_env()
         wins = rect_env(r, regions, log)
         window = r.choice(wins[:1] * 3 + wins)
