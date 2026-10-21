@@ -4,12 +4,18 @@
 
 #include "../core/balancefile.h"
 #include "../core/options.h"
+#include "../core/savegame.h"
 #include "objectdefs.h"
 
 namespace {
 
 template <typename T> T &at(void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
+// The message's fields in save order (Save_Field each); a load reads the first the same way and the rest by size through Save_ReadU32 or
+// Save_ReadU8.
+const SaveSpec kMessage[] = {{0, 2, 0x0076e2f4}, {4, 4, 0x0076e2e8}, {0xc, 4, 0x0076e2dc}, {0x10, 4, 0x0076e2d4},
+                             {0x14, 1, 0x0075e6b8}, {8, 4, 0x0076e2c8}, {0x15, 1, 0x0076e2b4}, {0x16, 1, 0x0076e2a0}};
 
 const AdvisorScoreEnv kGameEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0)};
 const AdvisorScoreEnv *g_env = &kGameEnv;
@@ -97,5 +103,18 @@ u8 *__fastcall AdvisorMsg_Init(u8 *self, void *, u32 id, u16 type, u32 a, u32 b,
     at<u32>(self, 8) = b;
     at<u8>(self, 0x14) = 1;
     return self;
+}
+
+u32 __fastcall AdvisorMsg_Serialize(u8 *self, void *, Stream *stream, u32 save, s32 version, u32 unused) {
+    (void)unused;
+    if (version < 0 || version > 1) return 0;
+    if (save != 0) return Save_Fields(stream, save, self, kMessage, 8) ? 0 : 1;
+    if (!Save_Fields(stream, 0, self, kMessage, 1)) return 1;
+    for (u32 i = 1; i < 8; ++i) {
+        const SaveSpec &f = kMessage[i];
+        const char *const name = reinterpret_cast<const char *>(f.name);
+        if ((f.size == 4 ? Save_ReadU32(stream, self + f.at, name, 0) : Save_ReadU8(stream, self + f.at, name, 0)) != 0) return 1;
+    }
+    return 0;
 }
 }

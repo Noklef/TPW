@@ -176,6 +176,7 @@
 #include "../game/core/countedpair.h"
 #include "../game/core/imaadpcm.h"
 #include "../game/core/keyactions.h"
+#include "../game/core/parkinfo.h"
 #include "../game/core/sharedglobals.h"
 #include "../game/core/soundbank.h"
 #include "../game/core/soundchannel.h"
@@ -4248,6 +4249,7 @@ const Hook kHooks[] = {
     {"EaxBuffer_QueryAll",        0x006c4760, (void *)&EaxBuffer_QueryAll, {0x8b, 0x41, 0x04, 0x83, 0xec}},
     {"AdvisorScoring_PeopleAbove1a4", 0x0059c9d0, (void *)&AdvisorScoring_PeopleAbove1a4, {0x56, 0x8b, 0xf1, 0x8b, 0x0d}},
     {"AdvisorScoring_PeopleAbove1a8", 0x0059ca00, (void *)&AdvisorScoring_PeopleAbove1a8, {0x56, 0x8b, 0xf1, 0x8b, 0x0d}},
+    {"ParkInfo_Serialize",        0x00418da0, (void *)&ParkInfo_Serialize, {0x51, 0x8b, 0x44, 0x24, 0x0c}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
@@ -4355,6 +4357,7 @@ const Hook kHooks[] = {
     {"AdvisorScoring_Score",      0x0059bf20, (void *)&AdvisorScoring_Score, {0x53, 0x56, 0x8b, 0x74, 0x24}},
     {"AdvisorScoring_ScoreDetail", 0x0059c0a0, (void *)&AdvisorScoring_ScoreDetail, {0x53, 0x56, 0x8b, 0x74, 0x24}},
     {"AdvisorMsg_Init",           0x0059b590, (void *)&AdvisorMsg_Init, {0x66, 0x8b, 0x44, 0x24, 0x08}},
+    {"AdvisorMsg_Serialize",      0x0059ba30, (void *)&AdvisorMsg_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
     {"Visitor_ScoreOption",       0x004fcc30, (void *)&Visitor_ScoreOption, {0x83, 0xec, 0x38, 0x53, 0x55}},
     {"BankAccount_Serialize",     0x004cf920, (void *)&BankAccount_Serialize, {0x8b, 0x44, 0x24, 0x10, 0x83}},
     {"ParkGates_Serialize",       0x004cf050, (void *)&ParkGates_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x53}},

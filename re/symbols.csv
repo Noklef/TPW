@@ -201,7 +201,7 @@ address,name,kind,confidence,notes
 0x004da920,MechanicHQ_Ctor,function,low,"reimplemented (src/game/world/headquarters); thiscall: Thing_Construct (cell 1, kind 0xa), +0xc word 0, message centre slot 7; returns hq"
 0x005089c0,StaffHQ_Ctor,function,low,"reimplemented (src/game/world/headquarters); thiscall: Thing_Construct (cell 1, kind 9), StaffTraining_Ctor at +0xc, strike levels / +0x60 / +0x64 zeroed, message centre slots 0xc and 0xe; returns hq"
 0x00599f60,Advisor_Serialize,function,high,thing model 11: message queue + history
-0x0059ba30,AdvisorMsg_Serialize,function,high,
+0x0059ba30,AdvisorMsg_Serialize,function,high,"reimplemented (src/game/world/advisorscore); thiscall (stream, save, version, unused), pops 0x10: an advisor message's eight fields written or read in turn as the serializers do, the load reading all but the first through Save_ReadU32 / Save_ReadU8"
 0x004c5d70,ParkAnalyser_Serialize,function,high,"thing model 13: 32x32 analysis grid + circular-buffer statistics"
 0x004c85b0,AnalyserCell_Serialize,function,high,
 0x004cd9c0,AnalyserVal_Serialize,function,high,"reimplemented (src/game/world/analyser); thiscall (stream, save, version, unused): mVal (+4) and mWorkedOut (+8) saved or loaded"
@@ -4382,6 +4382,7 @@ address,name,kind,confidence,notes
 0x006c4760,EaxBuffer_QueryAll,function,low,"reimplemented (src/game/core/soundeax); thiscall (out, unused), pops 8: IKsPropertySet::Get of the EAX 2.0 buffer properties (id 1, 0x38 bytes) into a stack block that is also the size out, dropped; *out = 0 on success, else -1; returns out"
 0x0059c9d0,AdvisorScoring_PeopleAbove1a4,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: Things_CountPeopleStat1a4Above with the byte +0xb0 as the bound, times the s32 +0xac (name unconfirmed)"
 0x0059ca00,AdvisorScoring_PeopleAbove1a8,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: Things_CountPeopleStat1a8Above with the byte +0xb8 as the bound, times the s32 +0xb4 (name unconfirmed)"
+0x00418da0,ParkInfo_Serialize,function,low,"reimplemented (src/game/core/parkinfo); thiscall (stream, save, version, unused), pops 0x10: the save's park information (strings, three dwords, the author's name and e-mail, the description, the publishing date) written or read field by field (name unconfirmed)"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
