@@ -30,6 +30,18 @@ u32 Slot5LeavingEcx(u8 *object, u32 arg) {
     }
     return left;
 }
+
+// a / divisor by IDIV, so that a divisor of 0 (or -0x80000000 / -1) faults as the original's does.
+s32 Idiv(s32 a, s32 divisor) {
+    s32 q;
+    __asm {
+        mov eax, a
+        cdq
+        idiv divisor
+        mov q, eax
+    }
+    return q;
+}
 }
 
 extern "C" {
@@ -888,6 +900,19 @@ u32 __fastcall Window_SlideStep(u8 *window) {
     }
     GuiRect_Dtor(rect);
     return 0xffff;
+}
+
+u32 __fastcall Window_SlideTo(u8 *window, void *, const u8 *target, s32 time, s32 interval) {
+    at<s16>(window, 0x10c) = (s16)Idiv(time, interval);
+    GuiRect_Assign(window + 0x38, nullptr, target);
+    for (u32 i = 0; i < 4; ++i) {
+        at<s16>(window, 0x104 + 2 * i) =
+            (s16)Idiv((s32)*reinterpret_cast<const s16 *>(target + 4 + 2 * i) - at<s16>(window, 0xc + 2 * i), at<s16>(window, 0x10c));
+    }
+    if (at<u8 *>(window, 0x100)) Fn_6620cc(at<u8 *>(window, 0x100), nullptr, (u32)interval);
+    else at<u8 *>(window, 0x100) = WindowTimers_Add((u32)(uintptr_t)window, (u32)interval, 0x80085);
+    at<u8>(window, 0x136) = 1;
+    return (WindowTimer_Start(at<u8 *>(window, 0x100)) & 0xffff0000u) | 1;
 }
 
 u32 __fastcall Window_ScriptTick(u8 *window) {

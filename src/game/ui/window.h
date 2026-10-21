@@ -333,6 +333,13 @@ u32 __fastcall Window_ScriptStep(u8 *window);
 // moved by the words +0x104..+0x10a (Window_SetRect) and the count less 1. 0xffff in AX (the rest of EAX the rectangle's destructor's).
 u32 __fastcall Window_SlideStep(u8 *window);
 
+// 0x65ecb0 (thiscall (target: a GUI rectangle, time, interval), pops 12; name unconfirmed): a slide to the target: the count +0x10c =
+// time / interval (signed IDIV, a word; 0 or an overflow faults), the target kept at +0x38 (GuiRect_Assign), the moves +0x104..+0x10a =
+// the target's edges less the window's (+0xc..+0x12, words) / the count (signed IDIV: a count of 0 faults); the timer +0x100 given the
+// interval (Fn_6620cc) or, when there is none, made (WindowTimers_Add (window, interval, 0x80085)); +0x136 = 1 and the timer started
+// (WindowTimer_Start). 1 in AX (the rest of EAX the start's).
+u32 __fastcall Window_SlideTo(u8 *window, void *, const u8 *target, s32 time, s32 interval);
+
 // 0x65c357 (thiscall; name unconfirmed): the manager [0x77c48c]'s slot 12 (no arguments) when its +0x14 is the window; then the script's
 // step (Window_ScriptStep), whose answer it returns.
 u32 __fastcall Window_ScriptTick(u8 *window);
