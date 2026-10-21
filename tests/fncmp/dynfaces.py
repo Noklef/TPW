@@ -69,12 +69,16 @@ def turned(r):
     sines = sine_table(r.choice([64, 256]))
     if r.random() < 0.3:   # (a scale large enough that an ulp of an angle moves the index)
         sines[0:4] = struct.pack('<f', r.choice([2.0 ** 20, 2.0 ** 23, 3.0 * 2 ** 22, 2.0 ** 26]))
+    if nans and r.random() < 0.5:   # (NaN sines and cosines: the products' operand order decides between two NaNs)
+        for k in range(12, len(sines), 4):
+            if r.random() < 0.4:
+                struct.pack_into('<I', sines, k, nan())
     regions = {0x874180: pos, 0x870ed8: col_bytes, 0x871ee0: struct.pack('<I', n), 0x7b095c: sines}
     if n < 0x806:
         regions[0x820b00 + 0xa0 * n] = r.bytes(0xa0 * min(faces, 0x806 - n) or 4)
         regions[0x872168 + 4 * n] = r.bytes(4 * min(faces, 0x806 - n) or 4)
     args = [nan() if nans and r.random() < 0.5 else r.f(scale) for _ in range(3)]
-    args += [r.choice([0x3f000000, r.f(scale)]), rows & 0xffffffff, cols & 0xffffffff, r.choice([0x12, 0x13, 0x13, 0, 0x1f, r.getrandbits(32)]),
+    args += [nan() if nans and r.random() < 0.4 else r.choice([0x3f000000, r.f(scale)]), rows & 0xffffffff, cols & 0xffffffff, r.choice([0x12, 0x13, 0x13, 0, 0x1f, r.getrandbits(32)]),
              nan() if nans and r.random() < 0.3 else r.f(r.choice([1, 4, 1000]))]
     return Call(CALLS['Turned'], args, regions, ret='v')
 
