@@ -15,6 +15,11 @@ u8 *__fastcall GuiRect_CtorWith(u8 *rect, void *, u32 left, u32 top, u32 right, 
 // 0x659d90 (thiscall; name unconfirmed): the vtable 0x705920, then the base destructor (Fn_66bff7), whose EAX is left.
 u32 __fastcall GuiRect_Dtor(u8 *rect);
 
+// 0x665eb0 (thiscall (flags), pops 4; name unconfirmed): the vector deleting destructor: with flag 2 the array (the count dword before
+// it) destroyed last first (CRT_VectorDtorIterator, 12 bytes each, GuiRect_Dtor) and its block (from the count) freed (Mem_Free); else
+// the one rectangle destroyed and, with flag 1, freed. Returns the rectangle.
+u8 *__fastcall GuiRect_DeletingDtor(u8 *rect, void *, u32 flags);
+
 // 0x659e83 (thiscall (x, y: words), pops 8; slot 0; name unconfirmed): 1 in AX when left <= x < right and top <= y < bottom (signed), else
 // 0. Only AX is set.
 u32 __fastcall GuiRect_Contains(u8 *rect, void *, u32 x, u32 y);
