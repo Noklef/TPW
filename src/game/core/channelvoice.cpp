@@ -48,6 +48,13 @@ u8 __fastcall ChannelVoice_Release(u8 *voice, void *, u32 value) {
     return released;
 }
 
+void __fastcall ChannelVoice_SetFlag(u8 *voice, void *, u8 on, u32 mask) {
+    if (on)
+        at<u32>(voice, 0x10) |= mask;
+    else
+        at<u32>(voice, 0x10) &= ~mask;
+}
+
 void __fastcall ChannelVoices_ReleaseAll(u8 *pool) {
     u8 *voice = at<u8 *>(pool, 4);
     const u32 count = at<u32>(pool, 8);

@@ -4,7 +4,7 @@
 # 0-4 voices or null, +8 the count in use (0 now and then, the first voice still released), +0xc a channel whose source's slot 10 (a
 # recorder) writes a status through its out (negative now and then) and returns the out; the shift at 0x782db8 any byte). The pool's
 # count from the settings' +0x40 (below, at or above the capacity). SoundChannel_ReleaseVoice (soundchannel, 0x6b7e60) is benched here
-# ('releasevoice'): a voice or null.
+# ('releasevoice'): a voice or null. ChannelVoice_SetFlag: the byte on over random upper bytes, any mask.
 # usage: channelvoice.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -16,9 +16,9 @@ from fncmp import IMPORT_TABLE, LOG, RAM, Bench, Call, echo, fill, import_table,
 # name: (address, convention, returns)
 CALLS = {'reset': (0x6c5060, 'c', 'v'), 'inc': (0x6c5070, 't', 'a'), 'dec': (0x6c5080, 't', 'a'), 'sound': (0x6bb7a0, 't', 'a'),
          'release': (0x6bb7c0, 't', 'b'), 'releaseall': (0x6babc0, 't', 'v'), 'setcount': (0x6bac30, 't', 'v'),
-         'releasevoice': (0x6b7e60, 't', 'a')}
+         'releasevoice': (0x6b7e60, 't', 'a'), 'setflag': (0x6b8330, 't', 'v')}
 RANGES = [(0x6c5060, 0x6c506b), (0x6c5070, 0x6c5078), (0x6c5080, 0x6c5088), (0x6bb7a0, 0x6bb7bd), (0x6bb7c0, 0x6bb856), (0x6babc0, 0x6bac04),
-          (0x6bac30, 0x6bac5c), (0x6b7e60, 0x6b7ea5)]
+          (0x6bac30, 0x6bac5c), (0x6b7e60, 0x6b7ea5), (0x6b8330, 0x6b8358)]
 B = Bench(RANGES)
 VOICES, VVT, SND, SVT, POOL, CHAN, SRC, SRCVT, SETS, OUT = (RAM + 0x400 * i for i in range(10))
 COUNT, SHIFT = 0xfb2058, 0x782db8
@@ -60,6 +60,8 @@ def case(r):
     regions = common(r, log, max(n, 1))
     if name == 'releasevoice':
         return Call(address, [CHAN, OUT, r.choice([VOICES] * 6 + [0]), r.getrandbits(32)], regions, conv=conv, ret=ret)
+    if name == 'setflag':   # (the byte on over random upper bytes)
+        return Call(address, [VOICES, r.choice([0, 1, 0x100, r.getrandbits(32)]), r.getrandbits(32)], regions, conv=conv, ret=ret)
     if name == 'reset':
         return Call(address, [], regions, conv=conv, ret=ret)
     if name in ('inc', 'dec'):

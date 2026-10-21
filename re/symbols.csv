@@ -4528,6 +4528,7 @@ address,name,kind,confidence,notes
 0x006bb7c0,ChannelVoice_Release,function,low,"reimplemented (src/game/core/channelvoice); thiscall (value), pops 4: inside its critical section, with a sound slot 11 (value), the sound's slot 2, +4 = 0, the count decremented (1); flag 2 cleared, +0x58 = 0"
 0x006babc0,ChannelVoices_ReleaseAll,function,low,"reimplemented (src/game/core/channelvoice); thiscall: SoundChannel_ReleaseVoice (local out, voice, 1) for each voice of the pool in use, the first even with none in use (sic)"
 0x006bac30,ChannelVoices_SetCount,function,low,"reimplemented (src/game/core/channelvoice); thiscall (settings), pops 4: the settings' +0x40 or the capacity, the smaller, becomes the count in use after ChannelVoices_ReleaseAll"
+0x006b8330,ChannelVoice_SetFlag,function,low,"reimplemented (src/game/core/channelvoice); thiscall (on, mask), pops 8: the mask set in the flags (+0x10) when the byte on is set, else cleared"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
