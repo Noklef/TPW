@@ -154,6 +154,32 @@ u8 *__fastcall StdMapA_Ctor(u8 *map, void *, const u8 *comp, const u8 *alloc);
 // (+0x10).
 u32 *__fastcall StdMapA_Index(u8 *map, void *, const u32 *key);
 
+// Tree H, the sound code's map of dword keys to Strings (std::map<u32, String>; nil node 0xfb2008, its map counter 0xfb200c, nodes of 0x28 bytes, the colour at
+// +0x24; the value {key, String} at +0xc, the String at +0x10, released with String_Dtor): its increment 0x6c2de0, decrement 0x6c2d20, insert 0x6c29b0 (the node's
+// value made by StdPairH_Construct), erase 0x6c1b70, _Erase 0x6c20b0, erase(first, last) 0x6c1270 and destructor 0x6c11c0, as the other trees'.
+void __fastcall StdTree_IncH(u8 **it);
+void __fastcall StdTree_DecH(u8 **it);
+u8 **__fastcall StdTree_InsertH(u8 *tree, void *, u8 **out, u8 *x, u8 *y, const u8 *value);
+u8 **__fastcall StdTree_EraseH(u8 *tree, void *, u8 **out, u8 *node);
+void __fastcall StdTree_EraseSubtreeH(u8 *tree, void *, u8 *node);
+u8 **__fastcall StdTree_EraseRangeH(u8 *tree, void *, u8 **out, u8 *first, u8 *last);
+void __fastcall StdTree_DtorH(u8 *tree);
+// 0x6c1a90 (thiscall on the map; result, value, pops 8): H's insert(value) as StdMapA_Insert: result = {the found or new node, inserted byte}.
+void __fastcall StdMapH_Insert(u8 *tree, void *, u8 **result, const u8 *value);
+// 0x6c1130 (thiscall; &key, pops 4): H's operator[]: {key, an empty String} inserted (the pair's String a copy of an empty one; both released after), then
+// the found or new node's String (+0x10).
+u8 *__fastcall StdMapH_Index(u8 *map, void *, const u32 *key);
+// 0x6c30a0 (cdecl; where, value): unless where is null, StdPairH_Copy there. 0x6c3110 (thiscall; value, pops 4): the pair {key, String} copied (String_CtorCopy);
+// returns it.
+void __cdecl StdPairH_Construct(u8 *where, const u8 *value);
+u8 *__fastcall StdPairH_Copy(u8 *pair, void *, const u8 *value);
+// 0x6c0b10 (thiscall on the map; from, key, pops 8; name unconfirmed): map[key] = the WString from (String_AssignWide, the String's vtable +0x18). Returns
+// the String.
+u8 *__fastcall StdMapH_AssignWide(u8 *map, void *, const u8 *from, u32 key);
+// 0x6c0b30 (thiscall on the map; text, &index, pops 8; name unconfirmed): the first index i, from 0 while below the size (read again each time), whose
+// map[i] (StdMapH_Index: a missing key is inserted, growing the size) String_Equals text: *index = i and 1; else 0 (index untouched).
+u32 __fastcall StdMapH_FindValue(u8 *map, void *, const u8 *text, u32 *index);
+
 // 0x410be0 / 0x410c00 (cdecl; names unconfirmed): static initialisers of two floats nothing reads: 0x7899b4 = 1 and 0x78a0bc = 1 / 2^23 (as
 // camera's).
 void __cdecl StdTree_InitUnusedOne();

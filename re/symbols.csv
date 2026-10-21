@@ -3956,6 +3956,19 @@ address,name,kind,confidence,notes
 0x004f4c20,StdTree_InsertD,function,high,"reimplemented (src/game/core/stdtree); thiscall (out, x, y, value; pops 16): tree D's node insert, the wide string copied by StdWString_Construct and compared by WString_Compare"
 0x004f2810,StdMapD_Insert,function,high,"reimplemented (src/game/core/stdtree); thiscall (result, value; pops 8): tree D's set insert, the {node, inserted} result; returns result"
 0x004f0390,StdMapD_InsertCopy,function,high,"reimplemented (src/game/core/stdtree); thiscall (out, value; pops 8): StdMapD_Insert's {iterator, inserted byte} copied to out; returns out"
+0x006c2de0,StdTree_IncH,function,low,reimplemented (src/game/core/stdtree); thiscall on an iterator: tree H's ++ (the sound code's map of dword keys to Strings)
+0x006c2d20,StdTree_DecH,function,low,reimplemented (src/game/core/stdtree); thiscall on an iterator: tree H's --
+0x006c29b0,StdTree_InsertH,function,low,"reimplemented (src/game/core/stdtree); thiscall (out, x, y, value), pops 16: tree H's node insert and rebalance, the value made by StdPairH_Construct"
+0x006c1b70,StdTree_EraseH,function,low,"reimplemented (src/game/core/stdtree); thiscall (out, node), pops 8: tree H's erase, the node's String released"
+0x006c20b0,StdTree_EraseSubtreeH,function,low,"reimplemented (src/game/core/stdtree); thiscall (node), pops 4: tree H's _Erase, each String released"
+0x006c1270,StdTree_EraseRangeH,function,low,"reimplemented (src/game/core/stdtree); thiscall (out, first, last), pops 12: tree H's erase(first, last)"
+0x006c11c0,StdTree_DtorH,function,low,"reimplemented (src/game/core/stdtree); thiscall: tree H's destructor (map counter 0xfb200c, nil node 0xfb2008)"
+0x006c1a90,StdMapH_Insert,function,low,"reimplemented (src/game/core/stdtree); thiscall (result, value), pops 8: map H's insert(value)"
+0x006c1130,StdMapH_Index,function,low,"reimplemented (src/game/core/stdtree); thiscall (&key), pops 4: map H's operator[], returns the String"
+0x006c30a0,StdPairH_Construct,function,low,"reimplemented (src/game/core/stdtree); cdecl (where, value): StdPairH_Copy unless where is null"
+0x006c3110,StdPairH_Copy,function,low,"reimplemented (src/game/core/stdtree); thiscall (value), pops 4: the pair {key, String} copied"
+0x006c0b10,StdMapH_AssignWide,function,low,"reimplemented (src/game/core/stdtree); thiscall (from, key), pops 8: map[key] = a WString (String_AssignWide)"
+0x006c0b30,StdMapH_FindValue,function,low,"reimplemented (src/game/core/stdtree); thiscall (text, &index), pops 8: the first index whose String equals text (operator[] from 0 up)"
 0x00617f40,Class7037b8_Dtor,function,high,reimplemented (src/game/core/vdtor); frees the list of blocks
 0x005d48d0,Panel_Reset,function,high,reimplemented (src/game/gfx/imageops); fills the panel image and blends the six parts onto it
 0x00576620,Grid_AddObject,function,high,reimplemented (src/game/render/renderer); adds an object to every list in a rectangle of the grid
