@@ -55,9 +55,12 @@ def set_pos(r, op):
     regions[BAR] = bar
     if op == 'PosFromThumb':
         return Call(CALLS[op], [BAR], regions, conv='t', ret='v')
-    if op == 'PageToward':
-        xy = [(r.choice([r.randrange(-60, 180)] * 5 + [0x7fff, 0x8000, r.getrandbits(16)]) & 0xffff) | (r.getrandbits(16) << 16 if r.random() < 0.5
-              else 0) for _ in range(2)]
+    if op == 'PageToward':   # (the point now and then at the thumb's inner right / bottom edge: d 0 there)
+        t = regions[wins[0]]
+        edges = [struct.unpack_from('<h', t, 0x10)[0] - struct.unpack_from('<h', t, 0xfc)[0],
+                 struct.unpack_from('<h', t, 0x12)[0] - struct.unpack_from('<h', t, 0xfe)[0]]
+        xy = [(r.choice([r.randrange(-60, 180)] * 5 + [e, e, e - 1, e + 1, 0x7fff, 0x8000, r.getrandbits(16)]) & 0xffff) |
+              (r.getrandbits(16) << 16 if r.random() < 0.5 else 0) for e in edges]
         return Call(CALLS[op], [BAR] + xy, regions, conv='t', ret='v')
     mode = r.choice([0, 1, 2, 3, 0xffffffff, 0xffffffff, 0xfffffffe])
     value = r.choice([lo, hi, pos, lo + 1, hi - 1, r.randrange(-200, 300), r.getrandbits(32)]) & 0xffffffff
