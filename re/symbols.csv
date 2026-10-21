@@ -4395,6 +4395,13 @@ address,name,kind,confidence,notes
 0x006ccac0,Mp2StreamDecoder_ReadHeader,function,low,reimplemented (src/game/core/mp2frame); stream decoder slot 5: reads and parses a header
 0x006cca60,Mp2BufferDecoder_NextFrame,function,low,reimplemented (src/game/core/mp2frame); buffer decoder slot 4: parses the header at the next frame's bit position and moves past it
 0x006ccaf0,Mp2BufferDecoder_ReadHeader,function,low,reimplemented (src/game/core/mp2frame); buffer decoder slot 5: parses the buffer's first dword
+0x006cc740,Mp2Decoder_ClearBuffers,function,low,"reimplemented (src/game/core/mp2decoder); zeroes the synthesis buffers from +4 (0x240 dwords fixed point, else 0x480)"
+0x006ccb10,Mp2Decoder_SetupOutput,function,low,"reimplemented (src/game/core/mp2decoder); from the parsed header: granules, frame bytes and rest, samples a frame, ring position 1"
+0x006d1980,Mp2_MulDiv,function,low,"reimplemented (src/game/core/mp2decoder); cdecl a * b / c with the 64-bit product (imul, idiv)"
+0x006cc780,Mp2StreamDecoder_Seek,function,low,"reimplemented (src/game/core/mp2decoder); stream decoder slot 3: the stream's seek, bit position 0"
+0x006d1a80,Mp2Decoder_Close,function,low,reimplemented (src/game/core/mp2decoder); slot 2: clears the open flag (Zero_5d60c0)
+0x006d18e0,Mp2BufferDecoder_Open,function,low,"reimplemented (src/game/core/mp2decoder); opens over a buffer: header, setup, rewind, frame and sample counts"
+0x006d1990,Mp2StreamDecoder_Open,function,low,"reimplemented (src/game/core/mp2decoder); opens over a stream: header, setup, rewind, counts, seek to 0"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
