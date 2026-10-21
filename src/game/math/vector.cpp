@@ -64,6 +64,13 @@ extern "C" void __fastcall Vec3_Clamp(float *v, void *, float lo, float hi) {
     }
 }
 
+extern "C" void __fastcall Vec3_Scale(float *v, void *, float scale) {
+    const X87Reg x = X87Reg(v[0]) * scale, y = X87Reg(scale) * v[1], z = X87Reg(scale) * v[2];
+    v[0] = (float)x;
+    v[1] = (float)y;
+    v[2] = (float)z;
+}
+
 extern "C" void __fastcall Vec3_DirectionsFromAngle(float *out, void *, float angle) {
     const float pi = 3.14159274f;  // 0x7011e0
     const X87Reg a = angle;

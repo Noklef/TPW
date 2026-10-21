@@ -10,6 +10,7 @@ address,name,kind,confidence,notes
 0x004315f0,Matrix_RotateYAngle,function,high,"reimplemented (src/game/math/vector); (m, angle): Matrix_RotateY with cos/sin from gSinTable"
 0x005ebe50,Vec3_Clamp,function,low,"reimplemented (src/game/math/vector); thiscall (v, lo, hi): each of three floats above hi made hi, else one not at or above lo made lo"
 0x00565110,Vec3_DirectionsFromAngle,function,low,"reimplemented (src/game/math/vector); thiscall (angle): (sin, cos, 0) of the angle, of pi times it and of pi times (it + 1) at +4, +0x10, +0x1c"
+0x006bb240,Vec3_Scale,function,low,"reimplemented (src/game/math/vector); thiscall (scale), pops 4: each of the three floats times the scale, in the x87's operand order"
 0x005da3c0,Debug_Printf,function,high,"EMPTY in retail build: all debug/assert output compiled out. arg0 = condition or channel (0, 2, 0x499602d2)"
 0x0067a7d0,crt_atexit,function,high,registers destructor in MSVC function-static init guard pattern
 0x0067a830,CRT_ftol,function,high,"MSVC CRT __ftol: st0 truncated to a 64-bit integer in EDX:EAX, popped"
