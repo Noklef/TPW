@@ -210,6 +210,7 @@
 #include "../game/core/soundobject.h"
 #include "../game/core/soundoccluders.h"
 #include "../game/core/soundplay.h"
+#include "../game/core/soundsample.h"
 #include "../game/core/soundslot.h"
 #include "../game/core/soundstream.h"
 #include "../game/core/soundvoice.h"
@@ -218,6 +219,7 @@
 #include "../game/core/streampool.h"
 #include "../game/core/stringmapsrecord.h"
 #include "../game/core/voicecodec.h"
+#include "../game/core/voicesample.h"
 #include "../game/core/wscanner.h"
 #include "../game/core/wtraits.h"
 #include "../game/core/xaadpcm.h"
@@ -4481,6 +4483,17 @@ const Hook kHooks[] = {
     {"LoopStreamPool_Delete",     0x006c69b0, (void *)&LoopStreamPool_Delete, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Stream70abf8Pool_Delete",   0x006c6ce0, (void *)&Stream70abf8Pool_Delete, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Stream70a6c8Pool_Delete",   0x006c7410, (void *)&Stream70a6c8Pool_Delete, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"SoundSample_ScheduleEnd",   0x006c7010, (void *)&SoundSample_ScheduleEnd, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"SoundSample_Drained",       0x006c7070, (void *)&SoundSample_Drained, {0x56, 0x8b, 0xf1, 0xe8, 0x28}},
+    {"SoundSample_Describe",      0x006bb1d0, (void *)&SoundSample_Describe, {0x8b, 0x44, 0x24, 0x04, 0x50}},
+    {"VoiceSample_Decode",        0x006c7cf0, (void *)&VoiceSample_Decode, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"VoiceSample_Read",          0x006c7c20, (void *)&VoiceSample_Read, {0x56, 0x8b, 0xf1, 0x57, 0x8b}},
+    {"VoiceSample_Query",         0x006c7bc0, (void *)&VoiceSample_Query, {0x8b, 0x51, 0x10, 0x8b, 0x01}},
+    {"VoiceSample_Restart",       0x006c7ce0, (void *)&VoiceSample_Restart, {0x8b, 0x51, 0x10, 0x8b, 0x01}},
+    {"VoiceSample_Close",         0x006c7be0, (void *)&VoiceSample_Close, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"VoiceSample_Open",          0x006c7c80, (void *)&VoiceSample_Open, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"VoiceStream_Open",          0x006c80c0, (void *)&VoiceStream_Open, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"VoiceStream_Restart",       0x006c8120, (void *)&VoiceStream_Restart, {0x56, 0x8b, 0xf1, 0x8d, 0x4e}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
