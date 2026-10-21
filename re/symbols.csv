@@ -4263,6 +4263,15 @@ address,name,kind,confidence,notes
 0x006b5b40,SoundManager_Post,function,low,"reimplemented (src/game/core/soundmanager); slot 2, thiscall (owner, command), pops 8: the engine's slot 4, its result returned"
 0x006b5b60,SoundManager_Call5,function,low,"reimplemented (src/game/core/soundmanager); thiscall (a, b), pops 8: the engine's slot 5, its result returned"
 0x006b5b80,SoundManager_Call3,function,low,"reimplemented (src/game/core/soundmanager); thiscall (a, b, c), pops 0xc: the engine's slot 3, its result returned"
+0x006b6120,SoundMixer_DeletingDtor,function,low,"reimplemented (src/game/core/soundmixer); thiscall (flags), pops 4: SoundMixer_Dtor, then freed for flags bit 0; returns the mixer"
+0x006b6170,SoundMixer_Dtor,function,low,"reimplemented (src/game/core/soundmixer); thiscall: stops the worker (+0x38 set, spins on +0x34), active voices' slot 3, frees the page list and the +0x44 / +0x40 blocks, +0x3c's slot 2 (3), deletes the critical section"
+0x006b6260,SoundMixer_TouchFlagged,function,low,reimplemented (src/game/core/soundmixer); thiscall: active voices with flag 0x400 counted (InterlockedIncrement) and their slot 0xb called; returns the count
+0x006b6440,SoundMixer_Retire,function,low,"reimplemented (src/game/core/soundmixer); thiscall (voice), pops 4: under the lock the voice's slot 3 and Chain24_MoveTo20"
+0x006b6550,SoundMixer_ForEachActive,function,low,"reimplemented (src/game/core/soundmixer); thiscall (arg), pops 4: each active voice's slot 0xc (arg), or with arg 0 its slot 6 (&arg, a stack functor 0x70a2d0 with the voice's +0x24)"
+0x006b6830,SoundMixer_FindVoice,function,low,"reimplemented (src/game/core/soundmixer); thiscall (id), pops 4: under the lock the voice at the id's slot when its id matches, else 0 (0 for id 0)"
+0x006b6990,SoundMixer_StampVoice,function,low,"reimplemented (src/game/core/soundmixer); thiscall (voice), pops 4: the voice's id += Obj_Inc30(mixer) << 16; returns it"
+0x006b6ab0,VoicePage_New,function,low,"reimplemented (src/game/core/soundmixer); cdecl (status, out, count): a block of count * 0x50 + 0xc bytes, vtable 0x70a2d8, +4 the size, +8 0, in *out; *status 0 / -1; returns status"
+0x006b6ba0,SoundMixer_ClearLevels,function,low,reimplemented (src/game/core/soundmixer); thiscall: the 0x1f dwords at [+0x44] and +0x48 cleared; returns 0
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

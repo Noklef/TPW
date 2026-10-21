@@ -172,6 +172,7 @@
 #include "../game/core/soundbank.h"
 #include "../game/core/soundcmd.h"
 #include "../game/core/soundmanager.h"
+#include "../game/core/soundmixer.h"
 #include "../game/core/soundplay.h"
 #include "../game/core/startcheck.h"
 #include "../game/core/stringmapsrecord.h"
@@ -4098,6 +4099,15 @@ const Hook kHooks[] = {
     {"SoundManager_Call5",        0x006b5b60, (void *)&SoundManager_Call5, {0x8b, 0x54, 0x24, 0x08, 0x8b}},
     {"SoundManager_Call3",        0x006b5b80, (void *)&SoundManager_Call3, {0x8b, 0x54, 0x24, 0x0c, 0x8b}},
     {"SoundBank_OpenSdt",         0x006c58f0, (void *)&SoundBank_OpenSdt, {0x6a, 0xff, 0x68, 0x26, 0x64}},
+    {"SoundMixer_DeletingDtor",   0x006b6120, (void *)&SoundMixer_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x48}},
+    {"SoundMixer_Dtor",           0x006b6170, (void *)&SoundMixer_Dtor, {0x6a, 0xff, 0x68, 0xcc, 0x57}},
+    {"SoundMixer_TouchFlagged",   0x006b6260, (void *)&SoundMixer_TouchFlagged, {0x51, 0x56, 0x8b, 0x71, 0x24}},
+    {"SoundMixer_Retire",         0x006b6440, (void *)&SoundMixer_Retire, {0x6a, 0xff, 0x68, 0xe8, 0x57}},
+    {"SoundMixer_ForEachActive",  0x006b6550, (void *)&SoundMixer_ForEachActive, {0x83, 0xec, 0x08, 0x56, 0x8b}},
+    {"SoundMixer_FindVoice",      0x006b6830, (void *)&SoundMixer_FindVoice, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"SoundMixer_StampVoice",     0x006b6990, (void *)&SoundMixer_StampVoice, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"VoicePage_New",             0x006b6ab0, (void *)&VoicePage_New, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
+    {"SoundMixer_ClearLevels",    0x006b6ba0, (void *)&SoundMixer_ClearLevels, {0x8b, 0xd1, 0x57, 0xb9, 0x1f}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
