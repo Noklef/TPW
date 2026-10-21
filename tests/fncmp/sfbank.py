@@ -4,8 +4,8 @@
 # 0x10 or any, +0x1b any bits. Load (0x6d4aa0) and Unload (0x6d4cd0): a bank at BANK, loaded or not (+0x18 any), its synthesiser sfman.py's
 # (SELF, its API recorders, slots 11, 14 and 16 set up as there) or null. Play (0x6d4b50): a voice at VOICE (the program small, at or
 # past the synthesiser's count, or any; flags bits 1, 4 and 16 in any mix; +0x5c a level in [0, 1] or any float), the synthesiser's
-# messages through midiOutShortMsg as sfman.py's send; its preset names (slot 16) with "_1ol" / "_2ol" / "_3ol" in them now and then,
-# into a real String (the String code and the heap run on both sides). The constructor (0x6d49f0) and destructors (0x6d4a40, 0x6d4a20):
+# messages through midiOutShortMsg as sfman.py's send (mostly an open device answering 0); its preset names (slot 16) with "_1ol" /
+# "_2ol" / "_3ol" in them now and then, into a real String (the String code and the heap run on both sides). The constructor (0x6d49f0) and destructors (0x6d4a40, 0x6d4a20):
 # the resource's source at SOURCE (its slots 0 and 1 recorders, k 30 and 31) or null; the unload as above.
 # usage: sfbank.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
@@ -45,6 +45,9 @@ def play(r, log, me, regions):
     import sfman
     count = r.choice([r.randrange(1, 0x80), r.randrange(1, 0x10), r.getrandbits(32) | 1])
     struct.pack_into('<I', me, 0x18, count)
+    if r.random() < 0.7:   # (mostly an open device whose messages go through, so the values sent are seen)
+        struct.pack_into('<I', me, 0x10, r.getrandbits(32) | 1)
+        set_return(log, sfman.SHORT_K, 0)
     voice = bytearray(r.bytes(0x60))
     struct.pack_into('<I', voice, 0, r.choice([r.randrange(0, 0x10), count, count + 1, count + 2, 0, 1, r.getrandbits(32)]))
     flags = r.choice([0x10, 2, 0x10000, 0x10012, 0x12, 0]) | (r.getrandbits(32) & ~0x10012 if r.random() < 0.5 else 0)
@@ -58,13 +61,13 @@ def play(r, log, me, regions):
     blob_bytes(log, 16, 1, 0xf)
     strings(log, 16, 0, out=4)
     text = r.bytes(r.randrange(0, 12)).replace(b'\0', b'a')
-    if r.random() < 0.7:
+    if r.random() < 0.8:
         at = r.randrange(len(text) + 1)
         text = text[:at] + r.choice(TAGS) + text[at:]
         if r.random() < 0.3:
             text += r.choice(TAGS)
     fill(log, 16, 2, (text + b'\0')[:0x40], 2, through=4)
-    set_return(log, 16, r.choice([0, 0, 0, 1, r.getrandbits(32)]))
+    set_return(log, 16, r.choice([0, 0, 0, 0, 1, r.getrandbits(32)]))
     regions[HEAP] = heap()
     return Call(0x6d4b50, [BANK, sfman.OUT, VOICE], regions, conv='t', ret='a')
 
