@@ -247,7 +247,7 @@ address,name,kind,confidence,notes
 0x00502960,Researcher_Update,function,medium,Thing_Update case 8 (first call)
 0x005029f0,Researcher_PostUpdate,function,medium,Thing_Update case 8 (second call)
 0x00508a30,StaffHQ_HandleMessage,function,high,Thing_HandleMessage case 9
-0x004dadc0,MechanicHQ_HandleMessage,function,high,Thing_HandleMessage case 10
+0x004dadc0,MechanicHQ_HandleMessage,function,high,"reimplemented (src/game/world/headquarters); thiscall (event): a kind-7 event's mechanic (+8) looked up along the HQs' chain from the world's +0x1da73e; the advisor message 0x44, 0x45 or 0x46 posted, or nothing"
 0x0059b060,Advisor_HandleMessage,function,high,Thing_HandleMessage case 11
 0x0059a550,Advisor_Update,function,medium,Thing_Update case 11 (works on a global; skipped when DAT_00fb3b7c == 1)
 0x00509bf0,TagSystem_HandleMessage,function,high,Thing_HandleMessage case 12
