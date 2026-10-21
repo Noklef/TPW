@@ -139,6 +139,7 @@
 #include "../game/gfx/movieidct.h"
 #include "../game/gfx/moviepixels.h"
 #include "../game/gfx/movieplayer.h"
+#include "../game/gfx/moviesurface.h"
 #include "../game/gfx/refblock.h"
 #include "../game/gfx/signstyle.h"
 #include "../game/gfx/tgqvideo.h"
@@ -4439,6 +4440,9 @@ const Hook kHooks[] = {
     {"MmxBlit_Convert16",         0x006787f0, (void *)&MmxBlit_Convert16, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
     {"TqiVideo_SetQuality",       0x006710c0, (void *)&TqiVideo_SetQuality, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
     {"DdErrors_Name",             0x00672e30, (void *)&DdErrors_Name, {0x33, 0xd2, 0xb8, 0xe8, 0x5e}},
+    {"MovieSurface_ReadSize",     0x00670300, (void *)&MovieSurface_ReadSize, {0x83, 0xec, 0x6c, 0x56, 0x8b}},
+    {"MovieSurface_PickMode",     0x00670660, (void *)&MovieSurface_PickMode, {0x81, 0xec, 0xf8, 0x02, 0x00}},
+    {"MovieSurface_Restore",      0x00671fa0, (void *)&MovieSurface_Restore, {0x56, 0x8b, 0xf1, 0x8b, 0x0e}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
