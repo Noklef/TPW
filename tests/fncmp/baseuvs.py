@@ -4,7 +4,9 @@
 # the tolerance mostly small (0.001-0.2), now and then 0, negative, 0.5 or more, NaN. With a map (16 x 16 bytes, -16..+256 around it,
 # mostly set) and positions (each vertex's through the part's u16 map: x in 0..160, z in -160..0, y mostly within 0.1 of 0), or without
 # either. warned 0 or 1. The scratch blocks from fncmp's global heap.
-# usage: baseuvs.py [CASES [SEED]] [--wild|--both] [--show N]
+# All (0x4679d0): the same through a holder (+8 -> +4 the model): the part given, or none and the model's 0-3 parts of 0xa0 bytes and 0-1
+# of 0x58, their flags with bit 0x200 now and then (each part a copy of the one above: they tidy the same coordinates in turn).
+# usage: baseuvs.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Tidy,All)
 import os
 import struct
 import sys
@@ -12,8 +14,10 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, RAM, Bench, Call, fb, global_heap, heap, put  # noqa: E402
 
-B = Bench([(0x467310, 0x4679cd), (0x45b9d0, 0x45ba15), (0x45ba00, 0x45ba30), (0x5da3c0, 0x5da3c1)])
+B = Bench([(0x467310, 0x4679cd), (0x4679d0, 0x467a73), (0x45b9d0, 0x45ba15), (0x45ba00, 0x45ba30), (0x5da3c0, 0x5da3c1)])
 PART, UVS, TRIS, GROUPS, INDEX, MATS, POS, MAP, MODEL, WARNED = (RAM + 0x400 * k for k in range(10))
+APARTS, BPARTS, HOLDER = RAM + 0x3000, RAM + 0x3400, RAM + 0x3800
+OPS = [k for k in os.environ.get('OPS', 'Tidy,All').split(',') if k]
 
 
 def coord(r, tolerance):
@@ -62,6 +66,20 @@ def case(r):
     regions = {PART: part, UVS: uvs, TRIS: tri, GROUPS: group, MATS: mats, INDEX: index, POS: bytes(pos), MAP: grid, MODEL: r.bytes(0x40),
                WARNED: struct.pack('<I', r.choice([0, 0, 0, 1])), HEAP: heap(0x2000), **global_heap()}
     args = [MODEL, PART, fb(tolerance), MAP + 0x10 if with_map or r.random() < 0.2 else 0, POS if with_map or r.random() < 0.2 else 0, WARNED]
+    if r.deal(OPS) == 'All':
+        na, nb = r.choice([0, 1, 2, 3, 3]), r.choice([0, 0, 1])
+        aparts, bparts = bytearray(), bytearray()
+        for k in range(na + nb):
+            each = put(bytearray(part), 0, 'I', r.getrandbits(32) & ~0x200 | (0x200 if r.random() < 0.25 else 0))
+            if k < na:
+                aparts += each
+            else:
+                bparts += each
+        model = put(bytearray(r.bytes(0x80)), 0x42, 'HH', na + nb, na)
+        put(model, 0x70, 'II', APARTS, BPARTS)
+        regions.update({MODEL: bytes(model), APARTS: bytes(aparts) or bytes(4), BPARTS: bytes(bparts) or bytes(4),
+                        HOLDER: put(bytearray(r.bytes(0x10)), 8, 'I', HOLDER + 0x10) + put(bytearray(r.bytes(8)), 4, 'I', MODEL)})
+        return Call(0x4679d0, [HOLDER, PART if r.random() < 0.2 else 0] + args[2:5], regions, conv='c', ret='v')
     return Call(0x467310, args, regions, conv='c', ret='v')
 
 
