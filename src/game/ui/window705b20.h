@@ -36,6 +36,17 @@ void __fastcall Window705b20_PosFromThumb(u8 *window);
 // the step +0x144 is above 0 (signed); then Window705b20_SetPos(mode, 0). EAX not kept.
 void __fastcall Window705b20_PageToward(u8 *window, void *, u32 x, u32 y);
 
+// A GUI rectangle (vtable, then the words left, top, right, bottom) passed by value: the callee destroys it.
+struct GuiRectByValue {
+    u8 bytes[12];
+};
+
+// 0x66b771 (cdecl (rect, bounds by value, dx, dy, across); the thumb's drag, from 0x66bc5f; name unconfirmed): the rectangle's left and
+// right (words +4 / +8) moved by the word dx for across non-zero, else its top and bottom (+6 / +0xa) by dy; then kept inside the bounds:
+// below their low edge, put on it with its size (as moved, signed) kept; then above their high edge, put on that the same way. The bounds
+// destroyed (GuiRect_Dtor), whose EAX is left.
+u32 __cdecl Window705b20_MoveInside(u8 *rect, GuiRectByValue bounds, u32 dx, u32 dy, u32 across);
+
 // 0x66ae83 (thiscall (enabled: a word), pops 4; slot 5 of the vtable 0x705b20; name unconfirmed): 0 (AX) when flag 2 of +0x48 (disabled)
 // already says so. Otherwise Window_SetEnabled, each child (from +0x5c, the next by Fn_65d56b) gets slot 5 (enabled), the window is
 // posted 1 (0, 0) (Window_PostMessage) when the dword [0xfaa5d4] is set, and 1 (AX).

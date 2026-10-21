@@ -118,6 +118,23 @@ void __fastcall Window705b20_PageToward(u8 *window, void *, u32 x, u32 y) {
     GuiRect_Dtor(rect);
 }
 
+u32 __cdecl Window705b20_MoveInside(u8 *rect, GuiRectByValue bounds, u32 dx, u32 dy, u32 across) {
+    const u32 lo = across ? 4 : 6, hi = lo + 4;
+    const u16 d = (u16)(across ? dx : dy);
+    at<u16>(rect, lo) = (u16)(at<u16>(rect, lo) + d);
+    at<u16>(rect, hi) = (u16)(at<u16>(rect, hi) + d);
+    const s32 size = (s32)at<s16>(rect, hi) - at<s16>(rect, lo);
+    if (at<s16>(rect, lo) < at<s16>(bounds.bytes, lo)) {
+        at<s16>(rect, lo) = at<s16>(bounds.bytes, lo);
+        at<u16>(rect, hi) = (u16)(at<s16>(rect, lo) + size);
+    }
+    if (at<s16>(rect, hi) > at<s16>(bounds.bytes, hi)) {
+        at<s16>(rect, hi) = at<s16>(bounds.bytes, hi);
+        at<u16>(rect, lo) = (u16)(at<s16>(rect, hi) - size);
+    }
+    return GuiRect_Dtor(bounds.bytes);
+}
+
 void __fastcall Window705b20_PosFromThumb(u8 *window) {
     u8 rect[12];
     GuiRect_Ctor(rect);
