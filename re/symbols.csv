@@ -4544,6 +4544,8 @@ address,name,kind,confidence,notes
 0x00478370,MeshOverlay_ScalarDtor,function,low,"reimplemented (src/game/gfx/barmesh); thiscall (flags), pops 4: its scalar deleting destructor"
 0x00477870,BarMesh_Construct,function,low,"reimplemented (src/game/gfx/barmesh); thiscall (name), pops 4: the bar built over the GUI dialog base, its animator made into a two-quad mesh; returns the bar"
 0x00477d70,BarMesh_SetShown,function,low,"reimplemented (src/game/gfx/barmesh); thiscall (word), pops 4 (virtual slot 5): the animator woken or slept when the word +8 changes"
+0x00477db0,BarMesh_Apply,function,low,"reimplemented (src/game/gfx/barmesh); thiscall (flags, desc), pops 8 (slot 3 of 0x6fee88): the bar's rectangle, screen matrix, scale and level from a descriptor, the top edge redone (slots 9, 10) when the level changes, the holder given the matrix"
+0x00478400,MeshOverlay_Apply,function,low,"reimplemented (src/game/gfx/barmesh); thiscall (flags, desc), pops 8 (slot 3 of 0x6feeb8): the same for the sibling mesh overlay, its quads' level edge written in place"
 0x00476e80,Overlay_ShowFrame,function,high,"reimplemented (src/game/gfx/overlay); shows node base + frame of the holder model list; old node 0x8010 set, new cleared"
 0x00476b70,Overlay_Dtor,function,low,"reimplemented (src/game/gfx/overlay); thiscall: the overlay base's destructor (holder disposed of or destroyed, then the GUI dialog base's)"
 0x00476b50,Overlay_ScalarDtor,function,low,"reimplemented (src/game/gfx/overlay); thiscall (flags), pops 4: Overlay_Dtor, freed for flags bit 0"
