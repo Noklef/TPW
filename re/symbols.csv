@@ -200,7 +200,7 @@ address,name,kind,confidence,notes
 0x004da960,MechanicHQ_Serialize,function,high,"reimplemented (src/game/world/headquarters); thiscall (stream, save, version, unused): the thing's fields, then mNextObject"
 0x004da920,MechanicHQ_Ctor,function,low,"reimplemented (src/game/world/headquarters); thiscall: Thing_Construct (cell 1, kind 0xa), +0xc word 0, message centre slot 7; returns hq"
 0x005089c0,StaffHQ_Ctor,function,low,"reimplemented (src/game/world/headquarters); thiscall: Thing_Construct (cell 1, kind 9), StaffTraining_Ctor at +0xc, strike levels / +0x60 / +0x64 zeroed, message centre slots 0xc and 0xe; returns hq"
-0x00599f60,Advisor_Serialize,function,high,thing model 11: message queue + history
+0x00599f60,Advisor_Serialize,function,high,"reimplemented (src/game/world/advisor); thiscall (stream, save, version, unused), pops 0x10: the advisor thing's fields after Thing_Serialize (version 0..1): its time stamp, mSoundId, the 8 queued messages, the queue position and last action, the 0x15f history records, a message, mRequestedLastTutorial and the dword +0x16ec"
 0x0059ba30,AdvisorMsg_Serialize,function,high,"reimplemented (src/game/world/advisorscore); thiscall (stream, save, version, unused), pops 0x10: an advisor message's eight fields written or read in turn as the serializers do, the load reading all but the first through Save_ReadU32 / Save_ReadU8"
 0x004c5d70,ParkAnalyser_Serialize,function,high,"thing model 13: 32x32 analysis grid + circular-buffer statistics"
 0x004c85b0,AnalyserCell_Serialize,function,high,

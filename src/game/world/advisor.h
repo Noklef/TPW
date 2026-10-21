@@ -3,6 +3,7 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "../files/file.h"
 
 extern "C" {
 
@@ -48,4 +49,11 @@ u8 __fastcall Advisor_PostKindEvent(u8 *self, void *, const u8 *event);
 // 0x486b00 (cdecl (id); name unconfirmed): the same message for the id (type 0, a 0, b -1, flag 0, no score; on the stack, its bytes +2, +3
 // and +0x17 never written) posted to the advisor of the world [0x7cf83c] (GameTable7cfb90_Get1da71c_5194d0); Advisor_Post's answer.
 u8 __cdecl Advisor_PostId(u32 id);
+
+// 0x599f60 (thiscall (stream, save, version, unused), pops 0x10): the advisor thing's serializer. 1 when Thing_Serialize fails; 0 for a version
+// outside 0..1; then its time stamp at +0xc (TimeSig_Serialize), mSoundId (+0x10), the 8 queued messages from +0x14 (AdvisorMsg_Serialize, 0x18
+// bytes apart), mNextAvailableQueuePos (+0xd4), mLastActionStarted (+0xd8), mLastActionDuration (+0xdc), the 0x15f history records of 0x10
+// bytes from +0xe0 (mHistory[i]), the message at +0x16d0 (AdvisorMsg_Serialize), mRequestedLastTutorial (the byte +0x16e8) and the dword at
+// +0x16ec, each saved or loaded as a serializer's field (the last loaded through Save_ReadU32); 1 at the first that fails, else 0.
+u32 __fastcall Advisor_Serialize(u8 *self, void *, Stream *stream, u32 save, s32 version, u32 unused);
 }
