@@ -185,4 +185,57 @@ void __fastcall VoiceCodec_ReadHeaderBuffered(u8 *reader, void *, u32 *state, u3
     Header(reader, state, stereo);
 }
 
+void __cdecl VoiceCodec_Impulse(const float *k, float *out) {
+    float lattice[12];   // [0] the input (1, then each step's output), [1] to [11] the lattice's state (k[0] to k[10] at first)
+    float s[12];         // each step's output
+    at<u32>(lattice, 0) = 0x3f800000u;
+    std::memcpy(lattice + 1, k, 11 * 4);
+    __asm {   // x87, as the original (the sum kept on the stack between the stages)
+        mov esi, k
+        mov ebx, out
+        xor edi, edi
+    step:
+        lea ecx, lattice
+        fld dword ptr [ecx + 0x2c]
+        fmul dword ptr [esi + 0x2c]
+        fchs
+        lea eax, [esi + 0x28]
+        add ecx, 0x28
+        mov edx, 11
+    stage:
+        fld dword ptr [ecx]
+        fmul dword ptr [eax]
+        fsubp st(1), st(0)
+        fld st(0)
+        fmul dword ptr [eax]
+        fadd dword ptr [ecx]
+        fstp dword ptr [ecx + 4]
+        sub ecx, 4
+        sub eax, 4
+        dec edx
+        jnz stage
+        lea ecx, lattice
+        fst dword ptr [ecx]
+        lea edx, s
+        fst dword ptr [edx + edi * 4]
+        test edi, edi
+        jz store
+        lea edx, [edx + edi * 4 - 4]
+        xor eax, eax
+    tail:
+        fld dword ptr [edx]
+        fmul dword ptr [ebx + eax * 4]
+        fsubp st(1), st(0)
+        sub edx, 4
+        inc eax
+        cmp eax, edi
+        jl tail
+    store:
+        fstp dword ptr [ebx + edi * 4]
+        inc edi
+        cmp edi, 12
+        jl step
+    }
+}
+
 }  // extern "C"

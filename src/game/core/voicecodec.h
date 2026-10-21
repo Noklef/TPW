@@ -38,4 +38,9 @@ void __fastcall VoiceCodec_ReadHeader(void *reader, void *, const u8 *data, u32 
 // 0x6d5350 (thiscall state, stereo; pops 8): as 0x6d5260 from the reader's buffer, refilled first (the stream's slot 1, (+8, 0x2000)).
 void __fastcall VoiceCodec_ReadHeaderBuffered(u8 *reader, void *, u32 *state, u32 stereo);
 
+// 0x6d61c0 (cdecl k, out): the synthesis filter's first 12 terms from the 12 coefficients k: an impulse (1) through a lattice of k[0] to
+// k[10] (its state starting as k[0] to k[10], the sum's first term -state[10] * k[11]), each step's output s[j] fed back as the next input
+// and out[j] = s[j] - the sum of s[j - 1 - i] * out[i] for i < j (x87, the sums kept on its stack).
+void __cdecl VoiceCodec_Impulse(const float *k, float *out);
+
 }  // extern "C"
