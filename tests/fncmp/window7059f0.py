@@ -38,9 +38,11 @@
 # list's length, the first shown its head; the sort column 0 to the last (now and then -1: the parent dword), the mode +0x16a 0 or 1
 # (now and then 2), the column bottoms 1 (numbers: a few values, ties included, or the extremes) or 0 / 2 (counted wide strings of
 # short texts from ALPHA, ties and prefixes included, or none); the columns 0 now and then.
+# Cell (0x663d56): RefreshRows' list and rows (now and then one 0), the row 0 to the rows shown (only 0 without the row array), the
+# column a word 0 to past the columns (upper half random).
 # ScrollFromBar (0x664ea3): RefreshRows' list, its children (+0x5c) a bar of id 1 (a recorder vtable: slot 8 answers the first row
 # shown RefreshRows' set-up chose; the list's +0x154 then another value mostly, or the same), one of another id before it, or none;
-# window.py's queues and [0xfaa5d4] set or not.
+# window.py's queues and [0xfaa5d4] set or not, the list's byte +4 mostly clear.
 # usage: window7059f0.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ColumnBottom,NextItem,...)
 import os
 import struct
@@ -58,7 +60,7 @@ CALLS = {'ColumnBottom': 0x6636f6, 'NextItem': 0x663a93, 'NthItem': 0x663ba2, 'S
          'ScrollTo': 0x665739, 'Grow': 0x66316b, 'SortsBefore': 0x663edc, 'CopyCells': 0x663dfa,
          'AddItem': 0x66403b, 'SetRowSize': 0x663718, 'SetRow': 0x663864,
          'SetHighlight': 0x662eee, 'ShowRows': 0x664fde, 'SendToRows': 0x6650d4, 'NthChild': 0x663c11, 'Sort': 0x6628f4,
-         'ScrollFromBar': 0x664ea3}
+         'ScrollFromBar': 0x664ea3, 'Cell': 0x663d56}
 LIST_RANGES = (RANGES + [(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 0x664bf0), (0x664d2a, 0x664db7), (0x663324, 0x663554),
                     (0x4f0240, 0x4f0250), (0x65d547, 0x65d56b), (0x65d56b, 0x65d57c), (0x65c672, 0x65c707),
                     (0x663085, 0x66316b), (0x663cb8, 0x663d56), (0x664495, 0x6644ea), (0x66b47d, 0x66b508),
@@ -69,7 +71,7 @@ LIST_RANGES = (RANGES + [(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 
                     (0x67d3a0, 0x67d400), (0x6918f0, 0x691a30), (0x691ba0, 0x691ce0),
                     (0x663718, 0x663864), (0x663864, 0x6639cb), (0x65d865, 0x65d8e7), (0x659e3e, 0x659e83), (0x65cf5e, 0x65cfd4),
                     (0x65c9bd, 0x65cd95), (0x661700, 0x66176a), (0x65f16b, 0x65f246), (0x662eee, 0x663085), (0x664fde, 0x6650d2), (0x6650d4, 0x6651ee),
-                    (0x663c11, 0x663cb8), (0x6628f4, 0x662eee), (0x4f76b0, 0x4f7718), (0x664ea3, 0x664f6d)])
+                    (0x663c11, 0x663cb8), (0x6628f4, 0x662eee), (0x4f76b0, 0x4f7718), (0x664ea3, 0x664f6d), (0x663d56, 0x663dfa)])
 B = Bench(LIST_RANGES)
 WINDOW, COLUMNS, LINKS, OUT = RAM, RAM + 0x200, RAM + 0x400, RAM + 0x800
 LIST, LINKS2, COLS2, CELLS, ROWS2, ROWWINS = RAM + 0x9000, RAM + 0x9420, RAM + 0x9e00, RAM + 0x9f00, RAM + 0x9c00, RAM + 0xb000
@@ -768,6 +770,7 @@ def bar_scroll_case(r):
     put(window, 0x5c, 'I', kids[0] if kids else 0)
     if r.random() < 0.85:
         put(window, 0x154, 'i', r.choice([first + 1, first - 1, r.getrandbits(31)]))
+    window[4] = r.choice([0, 0, 0, 1])   # (going or not: posts to it refused)
     queues(r, regions)
     regions[0xfaa5d4] = struct.pack('<I', r.choice([0, 1]))
     return Call(CALLS['ScrollFromBar'], [LIST], regions, conv='t', ret='v')
@@ -797,6 +800,18 @@ def case(r):
         return refresh_case(r)
     if op == 'ScrollFromBar':
         return bar_scroll_case(r)
+    if op == 'Cell':
+        c = refresh_case(r)
+        window = c.regions[LIST]
+        nrows, ncols = struct.unpack_from('<h', window, 0x172)[0], struct.unpack_from('<h', window, 0x164)[0]
+        arr = bytearray(c.regions[ROWS2])
+        if nrows > 0 and r.random() < 0.2:
+            put(arr, 4 * r.randrange(nrows), 'I', 0)
+        c.regions[ROWS2] = arr
+        has = struct.unpack_from('<I', window, 0x148)[0] != 0
+        row = r.choice([r.randrange(max(nrows, 0) + 1), 0, nrows if nrows > 0 else 0]) if has else 0
+        column = r.randrange(max(ncols, 0) + 2) | r.choice([0, r.getrandbits(16)]) << 16
+        return Call(CALLS[op], [LIST, row, column], c.regions, conv='t', ret='a')
     if op == 'FitBar':
         return bar_case(r)
     if op == 'Select':

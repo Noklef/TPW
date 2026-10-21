@@ -718,4 +718,18 @@ void __fastcall Window7059f0_ScrollFromBar(u8 *window) {
     Window_SendMessage(at<u8 *>(window, 0x60), 0x405, at<u32>(window, 0x154), (u32)last);
     if (*reinterpret_cast<u32 *>((uintptr_t)0x00faa5d4)) Window_PostMessage(window, 3, 0, 0);
 }
+
+u8 *__fastcall Window7059f0_Cell(u8 *window, void *, s32 row, u32 column) {
+    s16 col = (s16)column;
+    if (col >= at<s16>(window, 0x164) || row >= at<s16>(window, 0x172)) return nullptr;
+    u8 **const slot = reinterpret_cast<u8 **>(at<uintptr_t>(window, 0x148) + (uintptr_t)row * 4);
+    if (!slot) return nullptr;
+    if (col == 0) return *slot;
+    if (!*slot) return nullptr;
+    u8 *cell = reinterpret_cast<u8 *>((uintptr_t)Fn_65d547(*slot, nullptr, 0));
+    for (; col != 0; --col) {
+        if (cell) cell = reinterpret_cast<u8 *>((uintptr_t)Fn_65d56b(cell));
+    }
+    return cell;
+}
 }

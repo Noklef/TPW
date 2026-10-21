@@ -219,4 +219,10 @@ void __fastcall Window7059f0_ScrollTo(u8 *window, void *, s32 position);
 // differs from +0x154, +0x154 = it, the rows refreshed (Window7059f0_RefreshRows), the parent +0x60 sent 0x405 (+0x154, the last row
 // shown, below the count +0x150) and, with [0xfaa5d4] set, the list posted 3 (0, 0). EAX not kept.
 void __fastcall Window7059f0_ScrollFromBar(u8 *window);
+
+// 0x663d56 (thiscall (row, column: a word), pops 8; name unconfirmed): 0 unless the column is below the columns +0x164 and the row (a
+// signed dword) below the rows shown +0x172 (both signed words). Column 0: the row's window (+0x148[row]); else, with that set, its
+// first child (Fn_65d547) and then column times the next sibling (Fn_65d56b; 0 stays 0): the cell's window (sic: column 1 is the first
+// child's sibling).
+u8 *__fastcall Window7059f0_Cell(u8 *window, void *, s32 row, u32 column);
 }
