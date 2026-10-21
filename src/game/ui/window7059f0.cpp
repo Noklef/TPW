@@ -179,6 +179,28 @@ void __fastcall Window7059f0_SetRow(u8 *window, void *, s32 index, u8 *row) {
     GuiRect_Dtor(rect);
 }
 
+void __fastcall Window7059f0_SetHighlight(u8 *window, void *, u8 *highlight) {
+    if (highlight == at<u8 *>(window, 0x174)) return;
+    if (u8 *const old = at<u8 *>(window, 0x174)) {
+        if ((s16)WindowImpl_Release(old) == -1) vcall<u32>(old, 0, 1u);
+    }
+    at<u8 *>(window, 0x174) = highlight;
+    if (!highlight) return;
+    Fn_6617f0(highlight);
+    u8 event[0x28];  // (only the words +4-+9, +0x14 (the rectangle) and +0x24 set)
+    at<u16>(event, 4) = 0;
+    at<u16>(event, 6) = (u16)(at<s16>(window, 0xe0) + 2);
+    at<u16>(event, 8) = at<u16>(window, 0xe2);
+    u8 rect[12];
+    GuiRect_CtorWith(rect, nullptr, at<u16>(window, 0x13c), at<u16>(window, 0x13e), at<u16>(window, 0x140),
+                     (u32)((s32)at<s16>(window, 0x13e) + at<s16>(window, 0x170)));
+    at<u8 *>(event, 0x14) = rect;
+    at<u32>(event, 0x24) = 0x17;
+    vcall<void>(highlight, 0xc, 0x17u, event);
+    if ((s16)Window_IsShown(window) != 0 && at<s32>(window, 0x14c) != -1) vcall<void>(at<u8 *>(window, 0x174), 0x14, 1u);
+    GuiRect_Dtor(rect);
+}
+
 s32 __fastcall Window7059f0_FindItemData(u8 *window, void *, u32 data) {
     s32 item = Window7059f0_NthItem(window, nullptr, 0), position = -1;
     bool found = false;

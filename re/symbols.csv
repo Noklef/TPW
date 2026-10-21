@@ -5431,6 +5431,7 @@ address,name,kind,confidence,notes
 0x0066403b,Window7059f0_AddItem,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (texts, data, parent, refresh), pops 16: -1 without texts; else the first free item (grown first when full) takes the cells under the parent or the roots, sorted in with flag 0x10, then the bar fitted and the parent sent 0x405; 0"
 0x00663718,Window7059f0_SetRowSize,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (row), pops 4: the row height +0x170 from a row window, the rows shown +0x172, the row array made, the highlight told; returns the rows shown"
 0x00663864,Window7059f0_SetRow,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (index, row), pops 8: the row window stored at index and its column windows laid out and given the depth"
+0x00662eee,Window7059f0_SetHighlight,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (highlight), pops 4: the highlight object +0x174 replaced (the old one let go), the new one told its row rectangle (slot 3, 0x17) and shown with the list when +0x14c is not -1"
 0x0065fbf0,WindowScript_ReadDword,function,low,reimplemented (src/game/ui/windowscript); a window script's next dword (two words)
 0x0065fc18,WindowScript_ReadWord,function,low,reimplemented (src/game/ui/windowscript); a window script's next word
 0x0065fc38,WindowScript_ReadRect,function,low,reimplemented (src/game/ui/windowscript); a window script's next four words to four outputs

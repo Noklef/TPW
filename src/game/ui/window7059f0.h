@@ -73,6 +73,13 @@ u16 __fastcall Window7059f0_SetRowSize(u8 *window, void *, u8 *row);
 // depth (Window_SetDepth) of the list's word +0xe0 + 3. A GUI rectangle is made and dropped unused. EAX not kept.
 void __fastcall Window7059f0_SetRow(u8 *window, void *, s32 index, u8 *row);
 
+// 0x662eee (thiscall (highlight: an object), pops 4; name unconfirmed): nothing when it is the highlight +0x174 already; else the old one
+// let go (WindowImpl_Release), and when that answers -1 (as a word) its slot 0 (1) called. +0x174 = highlight; when set: Fn_6617f0 on it,
+// then its slot 3 (0x17, an event on the stack: the words +4 = 0, +6 = the list's word +0xe0 + 2, +8 = its +0xe2, +0x14 a GUI rectangle
+// +0x13c, +0x13e, +0x140, +0x13e + the row height +0x170 (GuiRect_CtorWith), +0x24 = 0x17; the rest unset), then, with the list shown
+// (Window_IsShown) and its +0x14c not -1, its slot 5 (1). EAX not kept.
+void __fastcall Window7059f0_SetHighlight(u8 *window, void *, u8 *highlight);
+
 // 0x664d2a (thiscall (data), pops 4; name unconfirmed): the position (from 0) of the first item from the first shown one whose data
 // dword (+1) is data, stepping (Window7059f0_NextItem) until -1 or the position reaches the count +0x150 - 1 (signed); -1 when none.
 s32 __fastcall Window7059f0_FindItemData(u8 *window, void *, u32 data);
