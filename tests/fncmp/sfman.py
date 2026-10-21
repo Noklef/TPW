@@ -114,6 +114,30 @@ def select(r, log, length):
     sysex_log(log, length)
 
 
+def presets_env(r, log, regions):
+    """Slot 16's presets for count and loadbank: the empty preset's name at EMPTY, the names, the answers."""
+    empty = r.choice([b'', b'Empty', b'none', r.bytes(r.randrange(1, 8)).replace(b'\0', b'x')]) + b'\0'
+    regions[EMPTY] = empty + r.bytes(0x40 - len(empty))
+    names = [r.choice([empty, empty, b'Piano\0', b'Organ 2\0', b'Empty\0', b'\0']) for _ in range(r.randrange(1, 15))]
+    names = [(n + bytes(8))[:8] for n in names]
+    fill(log, 16, 2, b''.join(names), 2, records=len(names), through=4)
+    how = r.randrange(3)
+    if how == 0:
+        set_return(log, 16, 0)
+    elif how == 1:
+        fail_mask(log, 16, 1 << r.randrange(40))
+
+
+def bank_env(r, log, me, regions):
+    """Slot 11 (the bank load) for loadbank: its words and path logged, its answer; the open flag +0x14; the path at PATH."""
+    word(log, 11, 0)
+    strings(log, 11, 0, out=2)
+    blob(log, 11, 2, 3)
+    set_return(log, 11, r.choice([0, 0, 0, 1, r.getrandbits(32)]))
+    me[0x14] = r.choice([1, 1, 1, 0, r.getrandbits(8)])
+    regions[PATH] = r.bytes(0x10)
+
+
 def case(r):
     name = r.deal(OPS)
     log, me, regions = env(r)
@@ -166,24 +190,10 @@ def case(r):
             strings(log, SINK_K, 1)
             regions.update({SINK: struct.pack('<I', SINK + 4) + sink})
             return Call(0x6d4340, [SELF, OUT, r.getrandbits(32), SINK], regions, conv='t', ret='a')
-        empty = r.choice([b'', b'Empty', b'none', r.bytes(r.randrange(1, 8)).replace(b'\0', b'x')]) + b'\0'
-        regions[EMPTY] = empty + r.bytes(0x40 - len(empty))
-        names = [r.choice([empty, empty, b'Piano\0', b'Organ 2\0', b'Empty\0', b'\0']) for _ in range(r.randrange(1, 15))]
-        names = [(n + bytes(8))[:8] for n in names]
-        fill(log, 16, 2, b''.join(names), 2, records=len(names), through=4)
-        how = r.randrange(3)
-        if how == 0:
-            set_return(log, 16, 0)
-        elif how == 1:
-            fail_mask(log, 16, 1 << r.randrange(40))
+        presets_env(r, log, regions)
         if name == 'count':
             return Call(0x6d43c0, [SELF], regions, conv='t', ret='a')
-        word(log, 11, 0)
-        strings(log, 11, 0, out=2)
-        blob(log, 11, 2, 3)
-        set_return(log, 11, r.choice([0, 0, 0, 1, r.getrandbits(32)]))
-        me[0x14] = r.choice([1, 1, 1, 0, r.getrandbits(8)])
-        regions[PATH] = r.bytes(0x10)
+        bank_env(r, log, me, regions)
         return Call(0x6d44a0, [SELF, OUT, PATH, r.getrandbits(32)], regions, conv='t', ret='a')
     if name == 'send':
         program = r.choice([r.randrange(0, 0x100), r.getrandbits(32), struct.unpack_from('<I', me, 0x18)[0]])

@@ -4478,6 +4478,9 @@ address,name,kind,confidence,notes
 0x006d7260,SoundSlot_SetDistances,function,low,"reimplemented (src/game/core/soundslot); thiscall (out, vector), pops 8: flag 4; without an object the vector stored at +0x14 and -1; else the object's slots 38 (x, y, 1) and 46 (z), *out = 0"
 0x006d72d0,SoundSlot_SetGain,function,low,"reimplemented (src/game/core/soundslot); thiscall (out, gain), pops 8: flag 8; without an object gain stored at +0x20 and -1; else the object's slot 40 with gain / 127 as a float"
 0x006d7330,SoundSlot_Set48,function,low,"reimplemented (src/game/core/soundslot); thiscall (out, value), pops 8: flag 0x20; without an object value stored at +0x28 and -1; else the object's slot 48 (value)"
+0x006d4970,SoundResource_LengthMs,function,low,"reimplemented (src/game/core/sfbank); slot 7 of vtables 0x70ab00 / 0x711ba8, thiscall (a), pops 4: the format from slot 6 into a stack buffer; 0 when its answer < 0, else the length in ms (+4 halved for +0x1b bit 0 and for 16 bits, over the rate +0x18, times 1000; fistp)"
+0x006d4aa0,SfBank_Load,function,low,"reimplemented (src/game/core/sfbank); slot 3 of 0x711ba8, thiscall (out, path, b), pops 0xc: 0 when loaded (+0x18 bit 0); else the synthesiser's SfMan_LoadBank (path, 0), loaded and 0 when it answers >= 0; else -1"
+0x006d4cd0,SfBank_Unload,function,low,"reimplemented (src/game/core/sfbank); slot 4 of 0x711ba8: with a synthesiser (+0x14), its SfMan_UnloadBank, then +0x14 and +0x18 cleared"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
