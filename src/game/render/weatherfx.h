@@ -26,6 +26,11 @@ void __fastcall WeatherFx_RequestReload(u8 *fx);
 // released (Texture_Release), the array destroyed when still set (Texture_DestroyArray), the field cleared. Returns 1.
 u32 __fastcall WeatherFx_FreeTextures(u8 *fx);
 
+// 0x57d7f0 (thiscall (which, name), pops 8; name unconfirmed): slot 1 the textures at +0x3350, 2 +0x3348, 3 +0x334c, any other
+// value taken as the slot's address itself (sic). An empty slot is loaded by the texture manager at [0x87a268] (TexManager_Load)
+// and, got, its flags given 0x80200. Returns whether the slot is set.
+u32 __fastcall WeatherFx_LoadTexture(u8 *fx, void *, u32 which, const char *name);
+
 // 0x57d1a0 (cdecl; name unconfirmed): with a renderer at [0x8bcbac], its textures freed (WeatherFx_FreeTextures), it freed (GameHeap_Free)
 // and [0x8bcbac] cleared: 1. Without one 0.
 u32 __cdecl WeatherFx_Delete();
