@@ -5939,6 +5939,7 @@ address,name,kind,confidence,notes
 0x0048d2e0,HoverLabel_Handler,function,low,"reimplemented (src/game/ui/hoverlabel); the hover label's handler: lit white on 0x10001, yellow on 0x10002, the owner's slot 14 on a click"
 0x0048d290,HoverLabel_Bind,function,low,"reimplemented (src/game/ui/hoverlabel); thiscall (id): the owner's child bound as a hover label (handler, owner, shared part with the text 0x78a374)"
 0x0049f860,Dialog7cb25c_SetTexts,function,low,"reimplemented (src/game/ui/dialog7cb25c); cdecl: the dialog [0x7cb25c]'s panel texts, values and title by the flag [0x7cb260]"
+0x004b7b00,Dialog7cc444_Create,function,low,"reimplemented (src/game/ui/dialog7cc444); the window [0x7cc444] built on [0x7cb2ac] from the script 0x7579c8 and made the [0x7c24c8] one, its hover label and panel dressed, the analyser CircBufU32s 0, 1, 2, 5, 15 newest and 12-back samples as figures"
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"

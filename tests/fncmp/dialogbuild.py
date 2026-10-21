@@ -157,6 +157,33 @@ def scripted(r, op):
     return regions
 
 
+FOCUSED_KEYS, FOCUSED_HOLDER = RAM + 0x3e000, RAM + 0x3e400
+
+
+def focused(r, op):
+    """scripted()'s surroundings for the builders that build on [0x7cb2ac] (WindowScript_Build's ECX: WINDOW2, the script's parent) and
+    make the result the window [0x7c24c8]: Window7c24c8_Close's with [0x7c24c8] none (nothing closed), Window7c24c8_Set's with the mouse
+    mode [0x7b05d8] none and its holder set, the GUI cursor's default id [0xfaa600] (no table) and current 0x77c484, the three key maps
+    0-3 entries each, the dialog [0x7cb2b8] none, and Focus_Restore's with [0x7c2534] none, [0x7cb2b0] WINDOW2 (shown or not, as
+    scripted() makes it), [0x7cb2b4] none; returns the regions"""
+    regions = scripted(r, op)
+    game = bytearray(r.bytes(0x30))   # (0x7cb2ac: the parent, 0x7cb2b0, 0x7cb2b4, the dialog 0x7cb2b8; 0x7cb2cc; the cursor id 0x7cb2d8)
+    put(game, 0, '4I', window.WINDOW2, window.WINDOW2, 0, 0)
+    put(game, 0x20, 'I', 0)
+    regions[0x7cb2ac] = game
+    regions[0x7c24c8] = struct.pack('<2I', 0, 0)
+    regions[0x7c2534] = struct.pack('<I', 0)
+    regions[0x7b05d4] = put(put(bytearray(r.bytes(0x18)), 4, 'I', 0), 0x14, 'I', FOCUSED_HOLDER)
+    regions[0xfaa600] = struct.pack('<HHI', r.choice([0, 1, 0xffff, r.getrandbits(16)]), r.getrandbits(16), 0)
+    regions[0x77c484] = r.bytes(4)
+    for k, at in enumerate((0x787c14, 0x787a60, 0x78733c)):
+        m, entries = FOCUSED_KEYS + 0x10 * k, FOCUSED_KEYS + 0x40 + 0x80 * k
+        regions[at] = struct.pack('<I', m)
+        regions[m] = put(bytearray(r.bytes(8)), 0, 'IH', entries, r.choice([0, 1, 3]))
+        regions[entries] = r.bytes(3 * 0x14)
+    return regions
+
+
 def helpbg(r):
     """HelpBg_Build's surroundings (above); returns the regions"""
     regions = dict(listrows.init_case(r, 'HilightList_InitRow').regions)
