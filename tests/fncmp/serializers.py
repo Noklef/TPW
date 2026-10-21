@@ -7,15 +7,18 @@
 # 0x5070a0), circular buffers of 30, 144, 50 and 5 u32, of u16 and of 50 u8 (core/circbuf: 0x4e2c10, 0x4cdf00, 0x4ce2d0, 0x4ce660, 0x4cdb80,
 # 0x4cea00; the counts small, about the size or outside it), the sprite's nav call (world/nav: 0x4f9440)
 # a theme's save record (core/globalsave: 0x5b0d70), the bank account (world/bankaccount: 0x4cf920), the park's gates (world/parkgates:
-# 0x4cf050), an analyser value and cell (world/analyser: 0x4cd9c0, 0x4c85b0)
+# 0x4cf050), an analyser value and cell (world/analyser: 0x4cd9c0, 0x4c85b0), the park analyser (world/analyser: 0x4c5d70, see park())
 # against the originals: saves and loads through a record stream with room for all the fields, none, or up to and about each field's end;
 # versions in and out of 0..1; the object and the sink compared after.
+# park(): the park analyser (0x21c4c bytes) with its rings' counts small, about their sizes or any (saving; within the object), the stream
+# laid out as a save of those counts would be (loading: the counts in their places, the rest random), room for all of it (often), none, or up
+# to and about a field's end (the head's, the cells', each ring's, the tail's) or anywhere.
 # usage: serializers.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=5b0d70,... the functions' addresses)
 import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, RAM, record_stream  # noqa: E402
+from fncmp import Bench, Call, RAM, put, record_stream  # noqa: E402
 
 RANGES = [(0x50b090, 0x50b34c), (0x4d3aa0, 0x4d3d09), (0x4d3ee0, 0x4d4100), (0x50c640, 0x50c7f5), (0x5132a0, 0x5134c4), (0x50bad0, 0x50be40),
           (0x509bc0, 0x509be2), (0x4fae10, 0x4fae7e), (0x416e10, 0x416e15), (0x5f5e20, 0x5f5e80), (0x5da3c0, 0x5da3c1),
@@ -25,7 +28,8 @@ RANGES = [(0x50b090, 0x50b34c), (0x4d3aa0, 0x4d3d09), (0x4d3ee0, 0x4d4100), (0x5
           (0x41a860, 0x41a970), (0x504210, 0x504590), (0x5070a0, 0x5074b0), (0x4e2c10, 0x4e2fb0), (0x4f9440, 0x4f9470), (0x502dc0, 0x5031b0),
           (0x504760, 0x504a30), (0x507850, 0x507bc0), (0x5b0d70, 0x5b118f), (0x4cf920, 0x4d0182), (0x4cdf00, 0x4ce28c),
           (0x4ce2d0, 0x4ce65a), (0x4ce660, 0x4ce9da), (0x4cdb80, 0x4cdefa), (0x4cea00, 0x4ced6f), (0x4cf050, 0x4cf3c8),
-          (0x4cd9c0, 0x4cdb51), (0x4c85b0, 0x4c8add), (0x4ced70, 0x4cedf0), (0x4cee50, 0x4ceed0)]
+          (0x4cd9c0, 0x4cdb51), (0x4c85b0, 0x4c8add), (0x4c5d70, 0x4c7365),
+          (0x4ced70, 0x4cef30)]   # (Save_WriteU32, Save_Write8Bytes, Save_WriteU8, Save_WriteU16)
 B = Bench(RANGES)
 OBJ, STREAM, SINK = RAM, RAM + 0x2000, RAM + 0x3000
 CELL = [1, 2, 4, 1, 2, 2, 12, 4, 1]
@@ -55,8 +59,45 @@ SIZES = {0x4cdf00: 144, 0x4ce2d0: 50, 0x4ce660: 5, 0x4cdb80: 3, 0x4cea00: 50}   
 ELEMENTS = {0x4cdb80: 2, 0x4cea00: 1}   # (their entries' size, else 4)
 
 
+# the park analyser's rings: (offset, cursor's offset in it, its size, its entries' size, count) for its serializer's order
+PARK_RINGS = ([(0x1f068 + 0x14 * i, 8, 3, 2) for i in range(4)] + [(0x1f100 + 0x250 * i, 0x244, 144, 4) for i in range(16)] +
+              [(0x21600, 0xcc, 50, 4), (0x216d8, 0x18, 5, 4)] + [(0x216fc + 0x40 * i, 0x34, 50, 1) for i in range(20)])
+POBJ, PSINK = RAM + 0x40000, RAM + 0x70000
+
+
+def park(r):
+    obj = bytearray(r.bytes(0x21c50))
+    fields = [2] * 4 + [4] * 5 + ([4] * 4 + [4, 1] * 9) * 0x400   # (the thing's words, the head, the cells)
+    counts = {}   # (field index of each ring's count: its value)
+    marks = [len(fields)]
+    for k, (off, cursor, size, element) in enumerate(PARK_RINGS):
+        n = r.choice([0, 0, 1, 2, 3, size, r.randrange(size + 1)]) if r.random() < 0.97 else size + r.randrange(1, 4)
+        put(obj, off + cursor + 4, 'I', n)
+        counts[len(fields) + 1] = n
+        fields += [4, 4, 1, element] + [element] * n
+        if k == 3:
+            fields += [4, 1] * 6   # (the values after the CircBufU16s)
+        marks.append(len(fields))
+    fields += [4] * 4 + [8] * 6 + [4] * 3
+    ends, total = [], 0
+    for f in fields:
+        total += f
+        ends.append(total)
+    sink = bytearray(r.bytes(total + 0x40))
+    for i, n in counts.items():
+        put(sink, ends[i] - 4, 'I', n if r.random() < 0.98 else r.getrandbits(32) & 0x7fffffff)
+    end = ends[r.choice(marks + [len(fields) - 1 - r.randrange(13), r.randrange(len(fields))]) - 1]
+    left = r.choice([total] * 5 + [0, end, end - 1, end + 1, r.randrange(total)])
+    regions = {POBJ: obj, STREAM: record_stream(STREAM, PSINK, left), PSINK: sink}
+    save = r.choice([0, 1, 1, r.getrandbits(32)])
+    version = r.choice([0, 1, 0, 1, 0, 1, -1, 2, r.getrandbits(32)])
+    return Call(0x4c5d70, [POBJ, STREAM, save, version & 0xffffffff, r.getrandbits(32)], regions, conv='t', ret='a')
+
+
 def case(r):
     at = r.deal(OPS)
+    if at == 0x4c5d70:
+        return park(r)
     sizes = FIELDS[at]
     if at in RINGS:
         n = SIZES.get(at)
@@ -74,7 +115,7 @@ def case(r):
     return Call(at, [OBJ, STREAM, save, version & 0xffffffff, r.getrandbits(32)], regions, conv='t', ret='a')
 
 
-OPS = [int(k, 16) for k in os.environ.get('OPS', '').split(',') if k] or list(FIELDS)
+OPS = [int(k, 16) for k in os.environ.get('OPS', '').split(',') if k] or list(FIELDS) + [0x4c5d70]
 
 if __name__ == '__main__':
     B.main(case)

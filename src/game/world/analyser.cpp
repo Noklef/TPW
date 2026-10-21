@@ -167,6 +167,50 @@ u32 __fastcall AnalyserCell_Serialize(u8 *cell, void *, Stream *stream, u32 save
     return 0;
 }
 
+u32 __fastcall ParkAnalyser_Serialize(u8 *analyser, void *, Stream *stream, u32 save, s32 version, u32 unused) {
+    static const SaveSpec kHead[] = {{0xc, 4, 0x00759ac0}, {0x10, 4, 0x00759ab4}, {0x14, 4, 0x00759aa8}, {0x18, 4, 0x00759a9c},
+                                     {0x1c, 4, 0x00759a90}};   // mMapSquaresPerCell, mGridSizeX / Y, mMapSizeX / Y
+    static const SaveSpec kTail[] = {{0x0, 4, 0x00759a28}, {0x4, 4, 0x00759a04}, {0x8, 4, 0x007599ec}, {0xc, 4, 0x007599d8},
+                                     {0x14, 8, 0x007599cc}, {0x1c, 8, 0x007599c0}, {0x24, 8, 0x007599b4}, {0x2c, 8, 0x007599a4},
+                                     {0x34, 8, 0x00759990}, {0x3c, 8, 0x00759980}, {0x44, 4, 0x0075996c}, {0x48, 4, 0x0075995c},
+                                     {0x4c, 4, 0x0075994c}};   // from +0x21bfc: mMisbehavingKids ..., mLastStrike ...
+    if (Thing_Serialize(analyser, nullptr, stream, save, version, unused)) return 1;
+    if (version < 0 || version > 1) return 0;
+    // (saving, the original inlines the CircBufU16s, the values and the first nine CircBufU32s as their serializers write them)
+    if (save != 0) {
+        if (!Save_Fields(stream, save, analyser, kHead, 5)) return 1;
+    } else {
+        for (u32 i = 0; i < 5; ++i)
+            if (Save_ReadU32(stream, analyser + kHead[i].at, reinterpret_cast<const char *>(kHead[i].name), 0)) return 1;
+    }
+    for (u32 i = 0; i < 0x400; ++i)
+        if (AnalyserCell_Serialize(analyser + 0x20 + i * 0x7c, nullptr, stream, save, version, unused)) return 1;
+    for (u32 i = 0; i < 4; ++i)
+        if (CircBufU16_Serialize(analyser + 0x1f068 + i * 0x14, nullptr, stream, save, version, unused)) return 1;
+    for (u32 i = 0; i < 6; ++i)
+        if (AnalyserVal_Serialize(analyser + 0x1f0b8 + i * 0xc, nullptr, stream, save, version, unused)) return 1;
+    for (u32 i = 0; i < 16; ++i)
+        if (CircBufU32_144_Serialize(analyser + 0x1f100 + i * 0x250, nullptr, stream, save, version, unused)) return 1;
+    if (CircBufU32_50_Serialize(analyser + 0x21600, nullptr, stream, save, version, unused)) return 1;
+    if (CircBufU32_5_Serialize(analyser + 0x216d8, nullptr, stream, save, version, unused)) return 1;
+    for (u32 i = 0; i < 0x14; ++i)
+        if (CircBufU8_Serialize(analyser + 0x216fc + i * 0x40, nullptr, stream, save, version, unused)) return 1;
+    u8 *const tail = analyser + 0x21bfc;
+    for (u32 i = 0; i < 13; ++i) {
+        const SaveSpec &f = kTail[i];
+        const char *const name = reinterpret_cast<const char *>(f.name);
+        u32 failed;
+        if (save != 0)
+            failed = f.size == 8 ? Save_Write8Bytes(stream, tail + f.at, name, 0) : Save_WriteU32(stream, tail + f.at, name, 0);
+        else if (f.size == 8)
+            failed = Save_Read8Bytes(stream, tail + f.at, name, 0);
+        else   // sic: mMisbehavingKidsEver (+0x21c04) is written to the stream when loading, not read
+            failed = i == 2 ? Save_WriteU32(stream, tail + f.at, name, 0) : Save_ReadU32(stream, tail + f.at, name, 0);
+        if (failed) return 1;
+    }
+    return 0;
+}
+
 s32 __fastcall ParkAnalyser_AveragePersonStat19c(void *, void *, u32 cell, u32 radius) {
     const u32 id = (cell & 0xffff) - 1;
     const u32 column = id & 0x7f, row = id >> 7;

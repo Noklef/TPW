@@ -202,7 +202,7 @@ address,name,kind,confidence,notes
 0x005089c0,StaffHQ_Ctor,function,low,"reimplemented (src/game/world/headquarters); thiscall: Thing_Construct (cell 1, kind 9), StaffTraining_Ctor at +0xc, strike levels / +0x60 / +0x64 zeroed, message centre slots 0xc and 0xe; returns hq"
 0x00599f60,Advisor_Serialize,function,high,thing model 11: message queue + history
 0x0059ba30,AdvisorMsg_Serialize,function,high,
-0x004c5d70,ParkAnalyser_Serialize,function,high,"thing model 13: 32x32 analysis grid + circular-buffer statistics"
+0x004c5d70,ParkAnalyser_Serialize,function,high,"reimplemented (src/game/world/analyser); thiscall (stream, save, version, unused), pops 16: the park analyser saved or loaded (the thing, its head, cells, rings, values and tail; loading writes +0x21c04, sic); 1 at the first field that fails"
 0x004c85b0,AnalyserCell_Serialize,function,high,"reimplemented (src/game/world/analyser); thiscall (stream, save, version, unused), pops 16: an analyser cell saved (four dwords, six values inline, three as AnalyserVal_Serialize) or loaded; 1 at the first field that fails, 0 for a version outside 0..1"
 0x004cd9c0,AnalyserVal_Serialize,function,high,"reimplemented (src/game/world/analyser); thiscall (stream, save, version, unused): mVal (+4) and mWorkedOut (+8) saved or loaded"
 0x004cdb80,CircBufU16_Serialize,function,high,"reimplemented (src/game/core/circbuf); thiscall (stream, save, version, unused): a CircBufU16 saved or loaded (cursor +8, count, wrapped, the word temp, then count word entries)"

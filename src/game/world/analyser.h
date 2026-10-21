@@ -67,6 +67,14 @@ u32 __fastcall AnalyserVal_Serialize(u8 *val, void *, Stream *stream, u32 save, 
 // (AnalyserVal_Serialize, save 0). 1 at the first that fails (the debug print left out), else 0; 0 for a version outside 0..1.
 u32 __fastcall AnalyserCell_Serialize(u8 *cell, void *, Stream *stream, u32 save, s32 version, u32 unused);
 
+// 0x4c5d70 (thiscall (stream, save, version, unused), pops 16): the park analyser. Thing_Serialize first (1 when it fails); then, for versions
+// 0..1 only: +0xc-+0x1c (saved as Save_Field, loaded by Save_ReadU32), the 0x400 cells (from +0x20), the four CircBufU16s (+0x1f068, 0x14
+// apart), the six values (+0x1f0b8), the sixteen CircBufU32s of 144 (+0x1f100, 0x250 apart), the one of 50 (+0x21600) and of 5 (+0x216d8),
+// the twenty CircBufU8s (+0x216fc, 0x40 apart), each through its serializer (saving, the original inlines some: the same calls), then
+// +0x21bfc-+0x21c08, the six funny times +0x21c10-+0x21c38 (8 bytes) and +0x21c40-+0x21c48 by the Save_Write / Save_Read helpers (loading,
+// +0x21c04 is written, sic). 1 at the first that fails, else 0.
+u32 __fastcall ParkAnalyser_Serialize(u8 *analyser, void *, Stream *stream, u32 save, s32 version, u32 unused);
+
 // 0x4cd880 (thiscall on the analyser, not read (cell id, a word; radius), pops 8; name unconfirmed): the people (things of kind 1) in the
 // map's cells (gMapCells [0x8023a0], each one's first thing the word +0x24, then each thing's +0xa) within radius columns and rows of the
 // cell id (column (id - 1) & 0x7f, row (id - 1) >> 7, unsigned; the far edges cut at 0x7f as unsigned sums, the near ones signed and not
