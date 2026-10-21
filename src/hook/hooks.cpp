@@ -433,6 +433,7 @@
 #include "../game/ui/panel7cc3b0.h"
 #include "../game/ui/panel7cc3e0.h"
 #include "../game/ui/panel7cc408.h"
+#include "../game/ui/staffrename.h"
 #include "../game/ui/thingbrowser.h"
 #include "../game/ui/windowtimers.h"
 #include "../game/lib/jpeg6b.h"
@@ -5684,6 +5685,7 @@ const Hook kHooks[] = {
     {"Dialog7cc5f4_Create",       0x004bb070, (void *)&Dialog7cc5f4_Create, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Dialog7cc5f4_CreateFrom",   0x004ba200, (void *)&Dialog7cc5f4_CreateFrom, {0x6a, 0xff, 0x68, 0x17, 0xb7}},
     {"Dialog7cc47c_Create",       0x004b8520, (void *)&Dialog7cc47c_Create, {0x6a, 0xff, 0x68, 0xa6, 0xb5}},
+    {"StaffRename_Handler",       0x004b6320, (void *)&StaffRename_Handler, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
