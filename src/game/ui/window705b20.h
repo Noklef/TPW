@@ -30,6 +30,12 @@ u32 __fastcall Window705b20_SetPos(u8 *window, void *, s32 mode, s32 value);
 // +0x13c. When the position changed the parent +0x60 is posted 0x800 (id +0x8c, pos) (Window_PostMessage). EAX not kept.
 void __fastcall Window705b20_PosFromThumb(u8 *window);
 
+// 0x66b8aa (thiscall (x, y: words), pops 8; name unconfirmed): a click on the bar off the thumb pages toward it: with the thumb (child id
+// 3; Window_FindChild; none: nothing) and its inner rectangle (Window_GetRect), the distance d = x - (left + (right - left)) for bit 2 of
+// the word +0x14c, else (top + (bottom - top)) - y (a word either way); a page back (mode 2) for d < 0, else forward (3), swapped when
+// the step +0x144 is above 0 (signed); then Window705b20_SetPos(mode, 0). EAX not kept.
+void __fastcall Window705b20_PageToward(u8 *window, void *, u32 x, u32 y);
+
 // 0x66ae83 (thiscall (enabled: a word), pops 4; slot 5 of the vtable 0x705b20; name unconfirmed): 0 (AX) when flag 2 of +0x48 (disabled)
 // already says so. Otherwise Window_SetEnabled, each child (from +0x5c, the next by Fn_65d56b) gets slot 5 (enabled), the window is
 // posted 1 (0, 0) (Window_PostMessage) when the dword [0xfaa5d4] is set, and 1 (AX).

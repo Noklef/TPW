@@ -104,6 +104,20 @@ u32 __fastcall Window705b20_SetPos(u8 *window, void *, s32 mode, s32 value) {
     return 1;
 }
 
+void __fastcall Window705b20_PageToward(u8 *window, void *, u32 x, u32 y) {
+    u8 *const thumb = Window_FindChild(window, nullptr, 3);
+    if (!thumb) return;
+    u8 rect[12];
+    GuiRect_Ctor(rect);
+    Window_GetRect(thumb, nullptr, rect, 1);
+    const s32 left = at<s16>(rect, 4), top = at<s16>(rect, 6), right = at<s16>(rect, 8), bottom = at<s16>(rect, 0xa);
+    const s16 d = (at<s16>(window, 0x14c) & 2) ? (s16)((s16)x - (left + (right - left))) : (s16)(top + (bottom - top) - (s16)y);
+    s32 mode = d < 0 ? 2 : 3;
+    if (at<s32>(window, 0x144) > 0) mode = mode == 2 ? 3 : 2;
+    Window705b20_SetPos(window, nullptr, mode, 0);
+    GuiRect_Dtor(rect);
+}
+
 void __fastcall Window705b20_PosFromThumb(u8 *window) {
     u8 rect[12];
     GuiRect_Ctor(rect);
