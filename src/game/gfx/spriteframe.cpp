@@ -4,11 +4,16 @@
 
 #include "../core/crt.h"
 #include "../core/gameheap.h"
+#include "../core/initializers.h"
+#include "../core/language.h"
+#include "../core/vwrap.h"
 #include "../math/x87.h"
 #include "../render/engineerrors.h"
 #include "../render/quad.h"
 #include "texcache.h"
+#include "rleimage.h"
 #include "texture.h"
+#include "wctimage.h"
 
 namespace {
 
@@ -95,6 +100,29 @@ void ImageArray_Destroy(u8 *images) {
     GameHeap_Free(images - 4);
 }
 
+// An image's +8: its width over its height (u16 +0xc / +0xe, as the x87 divides them at 24 bits), or [0x702034] for a height of 0.
+void SetAspect(u8 *image) {
+    const u16 height = at<u16>(image, 0xe);
+    at<float>(image, 8) = height ? (float)(X87Reg((double)at<u16>(image, 0xc)) / (double)height) : global<float>(0x00702034);
+}
+
+// The virtual base of an object whose virtual base table (+0) has the base's offset at +4.
+u8 *VirtualBase(u8 *object) { return object + at<s32>(at<u8 *>(object, 0), 4); }
+
+// A source image set as the sprite image's texture (0x588510 / 0x588660 after the read): 1; when that fails the source deleted
+// through its virtual base's slot 0 (flags 1) and 0.
+u32 TextureFrom(u8 *image, u8 *source, u8 *texture) {
+    if (SpriteImage_SetTexture(image, nullptr, 0, 0, (u32)(uintptr_t)VirtualBase(source), at<u16>(image, 0xc), at<u16>(image, 0xe), texture,
+                               0x10200000))
+        return 1;
+    u8 *const base = VirtualBase(source);
+    using Slot0 = void *(__fastcall *)(u8 *, void *, u32);
+    reinterpret_cast<Slot0>(at<void *const *>(base, 0)[0])(base, nullptr, 1);
+    return 0;
+}
+
+void PushNoMemory() { EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 2, 0xb0754000); }
+
 }  // namespace
 
 extern "C" {
@@ -144,6 +172,47 @@ u32 __fastcall SpriteImage_SetTexture(u8 *image, void *, u32 pixels, u32 palette
     Texture_SetSize(at<u8 *>(image, 0), nullptr, width, height);
     at<u16>(at<u8 *>(image, 0), 0x34) = (u16)width;
     return 1;
+}
+
+u32 __fastcall SpriteImage_LoadWct(u8 *image, void *, u8 *stream, u8 *texture) {
+    void *const block = GameHeap_Alloc(0x30);
+    u8 *const wct = block ? Obj_CtorVirtual564ba0(static_cast<u8 *>(block), nullptr, 1) : nullptr;
+    if (!wct) {
+        PushNoMemory();
+        return 0;
+    }
+    WctImage_Read(wct, nullptr, stream);
+    at<u16>(image, 0xc) = global<u16>(0x00879a3c);
+    at<u16>(image, 0xe) = global<u16>(0x00879a3e);
+    at<u16>(image, 0x10) = global<u16>(0x00879a40);
+    at<u16>(image, 0x12) = global<u16>(0x00879a42);
+    at<u16>(image, 0x14) = global<u16>(0x00879a44);
+    at<u16>(image, 0x16) = global<u16>(0x00879a48);
+    SetAspect(image);
+    return TextureFrom(image, wct, texture);
+}
+
+u32 __fastcall SpriteImage_LoadRle(u8 *image, void *, u8 *stream, u32 language, u8 *texture) {
+    void *const block = GameHeap_Alloc(0x1c);
+    u8 *const rle = block ? Obj_CtorVirtual5646c0(static_cast<u8 *>(block), nullptr, 1) : nullptr;
+    if (!rle) {
+        PushNoMemory();
+        return 0;
+    }
+    u32 size = (u32)(uintptr_t)block;    // (sic: the stack slot that held the block)
+    u32 word = (u32)(uintptr_t)stream;   // (sic: the stream argument's slot)
+    Object_CallSlot8Product((u32)(uintptr_t)&size, 4, 1, stream);
+    for (u32 offset = 0xc; offset <= 0x12; offset += 2)
+        Object_CallSlot8Product((u32)(uintptr_t)(image + offset), 2, 1, stream);
+    Object_CallSlot8Product((u32)(uintptr_t)&word, 4, 1, stream);
+    at<u16>(image, 0x14) = (u16)word;
+    Object_CallSlot8Product((u32)(uintptr_t)&word, 4, 1, stream);
+    at<u16>(image, 0x16) = (u16)word;
+    RleImage_ReadCodes(rle, nullptr, stream, size);
+    Fn_564730(rle, nullptr, at<u16>(image, 0xc), at<u16>(image, 0xe));
+    Language_SetId(rle, nullptr, language);
+    SetAspect(image);
+    return TextureFrom(image, rle, texture);
 }
 
 u32 __fastcall SpriteImage_MakeTextures(u8 *image, void *, u32 x, u32 y) {

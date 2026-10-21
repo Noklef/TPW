@@ -28,6 +28,22 @@ u32 __fastcall SpriteImage_AllocPixels(u8 *image, void *, u32 width, u32 height)
 u32 __fastcall SpriteImage_SetTexture(u8 *image, void *, u32 pixels, u32 palette, u32 source, u32 width, u32 height, u8 *texture,
                                       u32 flags);
 
+// 0x588510 (thiscall (stream, texture), pops 8; called at 0x5880c3; name unconfirmed): a WCT image read for the sprite image: a new
+// one (GameHeap_Alloc(0x30), Obj_CtorVirtual564ba0 most derived; not got: the error (2, 0xb0754000) pushed, 0) read from the stream
+// (WctImage_Read, its result not looked at); the words of the header it leaves at 0x879a3c, 0x879a3e, 0x879a40, 0x879a42, 0x879a44 and
+// 0x879a48 become the image's +0xc..+0x16; +8 = +0xc / +0xe (x87, 24 bits) or [0x702034] (0) for a +0xe of 0; then
+// SpriteImage_SetTexture(0, 0, the WCT image's virtual base, +0xc, +0xe, texture, 0x10200000): 1, or when that fails the WCT image
+// deleted through its virtual base's slot 0 (1) and 0. (The original's __try frame only guards the new.)
+u32 __fastcall SpriteImage_LoadWct(u8 *image, void *, u8 *stream, u8 *texture);
+
+// 0x588660 (thiscall (stream, language, texture), pops 0xc; called at 0x587f9f; name unconfirmed): the same for a run-length image
+// (GameHeap_Alloc(0x1c), Obj_CtorVirtual5646c0): from the stream (Object_CallSlot8Product, count 1) a dword size, the words +0xc,
+// +0xe, +0x10, +0x12 and two dwords whose low words become +0x14 / +0x16. The size and the two dwords are read into stack slots that
+// held the block and the stream argument, which is what they keep where the stream writes nothing (kept here). Then
+// RleImage_ReadCodes(stream, size) (its result not looked at), Fn_564730(+0xc, +0xe) and Language_SetId(language) on it, +8 and the
+// texture as 0x588510's (an RLE image's virtual base as the source).
+u32 __fastcall SpriteImage_LoadRle(u8 *image, void *, u8 *stream, u32 language, u8 *texture);
+
 // 0x5889b0 (thiscall (x, y), pops 8; name unconfirmed): the image's width and height (u16 +0x10, +0x12) cut into tiles of the texture
 // cache's size ([0x8c4b44] +0x18f0, signed divisions rounding up): the textures' array (a count-prefixed block of 0x60 each, built by
 // CRT_VectorVbaseCtorIterator with Texture_Ctor) at +0 (not got: 0 there and 0 returned), the count's low word at +0x16. Row by row,
