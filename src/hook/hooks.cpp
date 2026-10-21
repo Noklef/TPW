@@ -190,6 +190,7 @@
 #include "../game/core/mp2sample.h"
 #include "../game/core/mp2synth.h"
 #include "../game/core/refcounted.h"
+#include "../game/core/sfman.h"
 #include "../game/core/sharedglobals.h"
 #include "../game/core/sndreverb.h"
 #include "../game/core/soundbank.h"
@@ -4316,6 +4317,10 @@ const Hook kHooks[] = {
     {"Mp2StreamPool_Delete",      0x006c91c0, (void *)&Mp2StreamPool_Delete, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mp2BufferSample_Open",      0x006c84e0, (void *)&Mp2BufferSample_Open, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Mp2StreamSample_Open",      0x006c88c0, (void *)&Mp2StreamSample_Open, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"SfMan_PackMsg",             0x006d3f80, (void *)&SfMan_PackMsg, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
+    {"SfMan_SetLoad",             0x006d4530, (void *)&SfMan_SetLoad, {0x51, 0x8b, 0x41, 0x08, 0x85}},
+    {"SfMan_NotesOff",            0x006d4570, (void *)&SfMan_NotesOff, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"SfMan_Send",                0x006d45a0, (void *)&SfMan_Send, {0x53, 0x55, 0x56, 0x8b, 0xf1}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
