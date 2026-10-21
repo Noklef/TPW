@@ -46,6 +46,18 @@ u8 *__fastcall Overlay_ScalarDtor_4775a0(u8 *overlay, void *, u32 flags);
 // stored, the matrix set on the holder's object (+0x1c; ObjModel_SetMatrices, 1) and bit 31 of 0x8bd508 set.
 void __fastcall Overlay_Apply(u8 *overlay, void *, u32 flags, const u8 *desc);
 
+// 0x477310 (thiscall (flags, desc), pops 8; slot 3 of 0x6fee38; name unconfirmed): nothing without a descriptor. Overlay_ShowFrame;
+// for a shown node (the test ((flags & 0x10) | 0x80001) is never 0), flag 0x10 the rectangle as Overlay_Apply has it; then the node's
+// quad stretched to the rectangle: a = width (+0x1c - +0x18) - (high x - low x), b = -(height (+0x1e - +0x1a) - (high y - low y))
+// (bounds +0x78 low, +0x84 high; on the x87), and of its 16 vertices (+0x60: rows of 0x30 bytes, x[4], y[4], z[4]) each x above 0 gets a,
+// each y below 0 (or unordered) gets b; low y += b, high x += a (the other four bounds written back as read). Then Overlay_Apply.
+void __fastcall Overlay_ApplyResized(u8 *overlay, void *, u32 flags, const u8 *desc);
+
+// 0x477640 (thiscall (flags, desc), pops 8; slot 3 of 0x6fee60; name unconfirmed): with a descriptor, flag 0x10 and a first node (the
+// holder's (+4) model's (+4) list head, +0x78: the holder read even without them, sic), the rectangle as Overlay_Apply has it and the
+// first 8 vertices of the node's quad stretched in y only, as Overlay_ApplyResized does (low y += b). Then Overlay_Apply.
+void __fastcall Overlay_ApplyResizedHeight(u8 *overlay, void *, u32 flags, const u8 *desc);
+
 // 0x476bf0 (thiscall (shown, a word), pops 4; name unconfirmed): nothing without a holder or when +8 is shown already. Shown: the
 // shown node (+0x7c) has 0x8010 cleared and the holder wakes with the screen matrix (+0x3c; Holder_WakeWithMatrix, grid 0); else
 // the node gets 0x8010 and the holder sleeps. +8 = shown.
