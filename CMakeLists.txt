@@ -284,6 +284,7 @@ add_library(tpw_game STATIC
     src/game/coaster/ridebounds.cpp
     src/game/coaster/tracktypes.cpp
     src/game/coaster/edittools.cpp
+    src/game/coaster/trackmesh.cpp
     src/game/terrain/terrain_blend.cpp
     src/game/terrain/land.cpp
     src/game/terrain/procedural.cpp
@@ -362,6 +363,7 @@ add_library(tpw_game STATIC
     src/game/online/chat.cpp
     src/game/frontend/lobbymodel.cpp
     src/game/frontend/helpbg.cpp
+    src/game/frontend/islandcamera.cpp
     src/game/frontend/lobbyscene.cpp
     src/game/frontend/viewcontrols.cpp
     src/game/input/mouse.cpp

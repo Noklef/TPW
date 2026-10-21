@@ -42,4 +42,13 @@ void __cdecl Track_RefreshOrientations();
 // lookups), turns v (if any) by the same angles in the same order, and copies the matrix's
 // third row to object+0x10.
 void __cdecl RideObject_Orient(u8 *object, const float *angles, float *v);
+
+// 0x468e50 (cdecl; object; name unconfirmed): a ride object swung by its angle (+0x48), which runs down with the game clock. With +0
+// set +0x70 takes the clock's time (Clocks_Now of 0x785970) and +0 is cleared; the time since +0x70 is taken and +0x70 moved on.
+// The ride's matrix (as RideObject_Orient's, the ride +4 into 0x7a4610) = the object's (+8), turned about y by the angle and about
+// x by pi/4 (Matrix_RotateY4 / Matrix_RotateX4, sine table lookups as the original pushes them); with s, c the angle's sine and
+// cosine and n1, n2 the negated +0x5c, +0x60 (floats), u = c n1 + s n2 (a float): row 3 x += +0x4c - (+0x54 * -0.5 + u * -0.75), y
+// += +0x50 - +0x58 * -0.5 - +0x64 * +0x6c * 0.35 - (c n2 - n1 s) * -0.7; the third column scaled by 0.1, the first by 0.75 (its
+// translation not); the angle less the time (ms) * -0.0004.
+void __cdecl RideObject_Swing(u8 *object);
 }

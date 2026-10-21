@@ -211,6 +211,7 @@
 #include "../game/coaster/setup.h"
 #include "../game/coaster/save.h"
 #include "../game/coaster/spline.h"
+#include "../game/coaster/trackmesh.h"
 #include "../game/coaster/train.h"
 #include "../game/coaster/xsection.h"
 #include "../game/terrain/land.h"
@@ -337,6 +338,7 @@
 #include "../game/render/worldview.h"
 #include "../game/online/servers.h"
 #include "../game/frontend/helpbg.h"
+#include "../game/frontend/islandcamera.h"
 #include "../game/frontend/lobbymodel.h"
 #include "../game/frontend/lobbyscene.h"
 #include "../game/frontend/viewcontrols.h"
@@ -1457,6 +1459,7 @@ const Hook kHooks[] = {
     {"Quickload_Find",            0x004618a0, (void *)&Quickload_Find, {0xa1, 0x5c, 0x44, 0x7a, 0x00}},
     {"Quickload_HasStem",         0x00461920, (void *)&Quickload_HasStem, {0x81, 0xec, 0x08, 0x02, 0x00}},
     {"Quickload_Locate",          0x0044a280, (void *)&Quickload_Locate, {0x83, 0xec, 0x08, 0x53, 0x55}},
+    {"Quickload_LoadRide",        0x00461a60, (void *)&Quickload_LoadRide, {0xa1, 0x5c, 0x44, 0x7a, 0x00}},
     {"TextScan_IsAlpha",          0x00427450, (void *)&TextScan_IsAlpha, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"TextScan_IsDigit",          0x00427480, (void *)&TextScan_IsDigit, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"TextScan_IsPunct",          0x004274a0, (void *)&TextScan_IsPunct, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
@@ -1553,6 +1556,7 @@ const Hook kHooks[] = {
     {"TrackOrientation_Set",      0x0043e590, (void *)&TrackOrientation_Set, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
     {"Track_RefreshOrientations", 0x00432b50, (void *)&Track_RefreshOrientations, {0xa1, 0xe4, 0x0f, 0x79, 0x00}},
     {"RideObject_Orient",         0x0043d8f0, (void *)&RideObject_Orient, {0x55, 0x8b, 0xec, 0x51, 0x53}},
+    {"RideObject_Swing",          0x00468e50, (void *)&RideObject_Swing, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"TrackSpline_Frame",         0x0043e6b0, (void *)&TrackSpline_Frame, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Coaster_FrameAt",           0x0043c0a0, (void *)&Coaster_FrameAt, {0x83, 0xec, 0x08, 0x8d, 0x44}},
     {"Float_RoundUp",             0x0043e160, (void *)&Float_RoundUp, {0xd9, 0x44, 0x24, 0x04, 0x83}},
@@ -1934,6 +1938,8 @@ const Hook kHooks[] = {
     {"Overlay_ScalarDtor_477270", 0x00477270, (void *)&Overlay_ScalarDtor_477270, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"Overlay_Dtor_4775c0",       0x004775c0, (void *)&Overlay_Dtor_4775c0, {0x6a, 0xff, 0x68, 0xe8, 0x8b}},
     {"Overlay_ScalarDtor_4775a0", 0x004775a0, (void *)&Overlay_ScalarDtor_4775a0, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"Overlay_Apply",             0x00476f10, (void *)&Overlay_Apply, {0x83, 0xec, 0x64, 0x53, 0x55}},
+    {"Overlay_SetShown",          0x00476bf0, (void *)&Overlay_SetShown, {0x56, 0x8b, 0xf1, 0x57, 0x8b}},
     {"ScreenSurfaces_Ctor",       0x0047e2f0, (void *)&ScreenSurfaces_Ctor, {0x6a, 0xff, 0x68, 0x88, 0x8f}},
     {"SurfaceSource_Dtor",        0x0047e390, (void *)&SurfaceSource_Dtor, {0xc7, 0x01, 0x90, 0xef, 0x6f}},
     {"ScreenSurfaces_Bounds",     0x0047e570, (void *)&ScreenSurfaces_Bounds, {0xa1, 0x68, 0x19, 0x7a, 0x00}},
@@ -3846,6 +3852,8 @@ const Hook kHooks[] = {
     {"CoasterEdit_ToggleAdjustAngles", 0x00442010, (void *)&CoasterEdit_ToggleAdjustAngles, {0x8b, 0x15, 0x58, 0xc6, 0x79}},
     {"CoasterEdit_ToggleAdjust",  0x004421e0, (void *)&CoasterEdit_ToggleAdjust, {0xa1, 0xec, 0x0f, 0x79, 0x00}},
     {"CoasterEdit_ToggleDrag",    0x00441a00, (void *)&CoasterEdit_ToggleDrag, {0x51, 0x56, 0x8b, 0x35, 0xec}},
+    {"TrackMesh_EmitPiece",       0x0043f4e0, (void *)&TrackMesh_EmitPiece, {0x83, 0xec, 0x5c, 0xa1, 0x18}},
+    {"TrackMesh_PlaceSections",   0x004402d0, (void *)&TrackMesh_PlaceSections, {0x81, 0xec, 0x80, 0x00, 0x00}},
     {"Thing_SpriteChoice",        0x004fcac0, (void *)&Thing_SpriteChoice, {0x51, 0x56, 0x8b, 0xf1, 0x6a}},
     {"Thing_IngredientRecord",    0x004e2200, (void *)&Thing_IngredientRecord, {0x51, 0x66, 0x8b, 0x41, 0x0e}},
     {"Class701378_Ctor",          0x005667d0, (void *)&Class701378_Ctor, {0x51, 0x8b, 0x44, 0x24, 0x08}},
@@ -4157,6 +4165,7 @@ const Hook kHooks[] = {
     {"Globalfb1ed0_Set",          0x006ac390, (void *)&Globalfb1ed0_Set, {0x6a, 0xff, 0x68, 0x18, 0x54}},
     {"Globalfb1ed4_Set",          0x006ac4b0, (void *)&Globalfb1ed4_Set, {0x6a, 0xff, 0x68, 0x58, 0x54}},
     {"Globalfb1ed8_Set",          0x006ac5d0, (void *)&Globalfb1ed8_Set, {0x6a, 0xff, 0x68, 0x98, 0x54}},
+    {"KeyAction_ShowVersion",     0x0040c820, (void *)&KeyAction_ShowVersion, {0xb9, 0xf0, 0x51, 0x7b, 0x00}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
@@ -4861,6 +4870,7 @@ const Hook kHooks[] = {
     {"Scene702dd0_HideDialog",    0x005e2640, (void *)&Scene702dd0_HideDialog, {0xe9, 0xeb, 0x61, 0xed, 0xff}},
     {"Scene702dd0_ShowDialogCallback", 0x005e2650, (void *)&Scene702dd0_ShowDialogCallback, {0xe9, 0xbb, 0x61, 0xed, 0xff}},
     {"Scene702dd0_DialogDone",    0x005e2660, (void *)&Scene702dd0_DialogDone, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"IslandCamera_LoadSettings", 0x005e2cc0, (void *)&IslandCamera_LoadSettings, {0x6a, 0xff, 0x68, 0x8b, 0x16}},
     {"RSSE_Init",                 0x00551600, (void *)&RSSE_Init, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
     {"RsseScript_EventName",      0x00468600, (void *)&RsseScript_EventName, {0x53, 0x55, 0x56, 0x8b, 0x74}},
     {"RSSE_StartTimer",           0x00557160, (void *)&RSSE_StartTimer, {0xb9, 0x70, 0x59, 0x78, 0x00}},

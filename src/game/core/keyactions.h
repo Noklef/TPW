@@ -37,4 +37,7 @@ u32 __cdecl KeyAction_ToggleOverlay();
 
 // 0x40c5d0 (control 'H'): the GUI manager's slot 4 or 3, its word to the byte 0x78d90e (Obj7b51f0_GuiManagerSlotAndFlag on 0x7b51f0).
 u32 __cdecl KeyAction_GuiManagerSlotAndFlag();
+
+// 0x40c820: the version's message tag added and opened (the thunk 0x481b70 to MsgTags_AddVersion, ECX 0x7b51f0 not used).
+u32 __cdecl KeyAction_ShowVersion();
 }

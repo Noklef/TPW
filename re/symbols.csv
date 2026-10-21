@@ -1756,6 +1756,7 @@ address,name,kind,confidence,notes
 0x004618a0,Quickload_Find,function,high,"reimplemented (src/game/files/quickload); the first quickload index listing a name, or -1"
 0x00461920,Quickload_HasStem,function,high,"reimplemented (src/game/files/quickload); Quickload_Has comparing names without extensions (path, index, second)"
 0x0044a280,Quickload_Locate,function,low,"reimplemented (src/game/files/quickload); cdecl (name, flags, &index); a ride file through the quickload indexes (flag 2; 4 falls back, 8 the second directory) or VFS_FileExists; the buffer 0x79c9d0 (flag 1) or the directory [0x79cb4c][index]"
+0x00461a60,Quickload_LoadRide,function,low,"reimplemented (src/game/files/quickload); cdecl (name, folder, c): a ride located, its two qickload.txt indexes read into the tables and the texture directories set; 1, or 0 when not found"
 0x00427450,TextScan_IsAlpha,function,high,reimplemented (src/game/files/textscan); 1 when the scanner's character is a letter
 0x00427480,TextScan_IsDigit,function,high,reimplemented (src/game/files/textscan); 1 when the scanner's character is a digit
 0x004274a0,TextScan_IsPunct,function,high,reimplemented (src/game/files/textscan); 1 when the scanner's character is punctuation
@@ -1866,6 +1867,7 @@ address,name,kind,confidence,notes
 0x0043e590,TrackOrientation_Set,function,high,"reimplemented (src/game/coaster/orient); cdecl (direction by value, unused, out, yaw or null): yaw atan2(x, z) (or *yaw), pitch of the direction turned back by it (sine table), turned round when out's flag 0 is set"
 0x00432b50,Track_RefreshOrientations,function,high,reimplemented (src/game/coaster/orient); cdecl (): clears each track piece's flag 0x800 unless 0x1000 (after TrackOrientation_Init on its nodes into a dropped local)
 0x0043d8f0,RideObject_Orient,function,high,"reimplemented (src/game/coaster/orient); cdecl (object, angles, v*): ride matrix (0x7a4610[obj+0xc] +8->+4->+0x78, +0x10) = identity turned about z, x, y by angles[3], [2], [1]; v turned alike; matrix row 2 to object+0x10"
+0x00468e50,RideObject_Swing,function,low,"reimplemented (src/game/coaster/orient); cdecl (object): the ride matrix from the object's, swung by its running-down angle on the game clock"
 0x0043e6b0,TrackSpline_Frame,function,high,"reimplemented (src/game/coaster/spline); cdecl (nodes, flags, from, to, upFrom, upTo, t, out, orient or null): the point at t and, given orient, its yaw and pitch along the tangent and roll from the up spline plus the blended bank"
 0x0043c0a0,Coaster_FrameAt,function,high,"reimplemented (src/game/coaster/spline); cdecl (coaster, position, out, orient or null): TrackSpline_Frame at a distance along the track, found by walking the spline node lists from coaster node (int)position"
 0x0043e160,Float_RoundUp,function,high,"reimplemented (src/game/coaster/helpers); cdecl (x): (int)x truncated, plus one if x has a fraction (so -1.5 -> 0); the step count for a time"
@@ -4314,6 +4316,7 @@ address,name,kind,confidence,notes
 0x006ac390,Globalfb1ed0_Set,function,low,"reimplemented (src/game/core/sharedglobals); cdecl (shared): the global 0xfb1ed0 set to the counted object, a use gained, its release 0x6ac410 to atexit; returns it"
 0x006ac4b0,Globalfb1ed4_Set,function,low,"reimplemented (src/game/core/sharedglobals); cdecl (shared): the global 0xfb1ed4 set to the counted object, a use gained, its release 0x6ac530 to atexit; returns it"
 0x006ac5d0,Globalfb1ed8_Set,function,low,"reimplemented (src/game/core/sharedglobals); cdecl (shared): the global 0xfb1ed8 set to the counted object, a use gained, its release 0x6ac650 to atexit; returns it"
+0x0040c820,KeyAction_ShowVersion,function,low,reimplemented (src/game/core/keyactions); cdecl: the version message tag added and opened (the thunk 0x481b70 to MsgTags_AddVersion); returns 1
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
@@ -4448,6 +4451,8 @@ address,name,kind,confidence,notes
 0x00477270,Overlay_ScalarDtor_477270,function,low,"reimplemented (src/game/gfx/overlay); thiscall (flags), pops 4: its scalar deleting destructor"
 0x004775c0,Overlay_Dtor_4775c0,function,low,"reimplemented (src/game/gfx/overlay); thiscall: the 0x6fee60 overlay's destructor, as Overlay_Dtor"
 0x004775a0,Overlay_ScalarDtor_4775a0,function,low,"reimplemented (src/game/gfx/overlay); thiscall (flags), pops 4: its scalar deleting destructor"
+0x00476f10,Overlay_Apply,function,low,"reimplemented (src/game/gfx/overlay); thiscall (flags, desc), pops 8: the overlay set from a descriptor: corners, frame, screen matrix from the node bounds, scale"
+0x00476bf0,Overlay_SetShown,function,low,"reimplemented (src/game/gfx/overlay); thiscall (shown), pops 4: the holder woken with the overlay matrix or put to sleep, the shown node flagged"
 0x0047e2f0,ScreenSurfaces_Ctor,function,high,reimplemented (src/game/gfx/screensurfaces); the screen surfaces source: both Surfaces cleared and their infos constructed
 0x0047e390,SurfaceSource_Dtor,function,high,reimplemented (src/game/gfx/screensurfaces); the abstract surface source's destructor (vtable 0x6fef90 back)
 0x0047e570,ScreenSurfaces_Bounds,function,high,"reimplemented (src/game/gfx/screensurfaces); virtual: out = {0, 0, width - 1, height - 1}"
@@ -4773,6 +4778,8 @@ address,name,kind,confidence,notes
 0x00442010,CoasterEdit_ToggleAdjustAngles,function,low,reimplemented (src/game/coaster/edittools); cdecl: tool 4 for the angles at +0xd8 / +0xdc (type flags 0x100 / 0x80) toggled; recorded (0x3b); ranges -pi..pi (name unconfirmed)
 0x004421e0,CoasterEdit_ToggleAdjust,function,low,"reimplemented (src/game/coaster/edittools); cdecl: with a game (+0x40 set) and a piece whose definition lacks flag 2, CoasterEdit_ToggleAdjustF8 for the piece's flag 0x40, else CoasterEdit_ToggleAdjustAngles; else 1 (name unconfirmed)"
 0x00441a00,CoasterEdit_ToggleDrag,function,low,"reimplemented (src/game/coaster/edittools); cdecl: the coaster editor's drag tool (tool 1): its value +0xe8, range and cost, the money on putting it down"
+0x0043f4e0,TrackMesh_EmitPiece,function,low,"reimplemented (src/game/coaster/trackmesh); cdecl (piece, next, count, positions, restart): a piece's samples turned into track mesh: cross sections placed by the spline frame, their triangles listed"
+0x004402d0,TrackMesh_PlaceSections,function,low,"reimplemented (src/game/coaster/trackmesh); cdecl: the section records placed along the track by zone, from 0x792600 (each the spline value and position, a blend and the zone)"
 0x0044a590,RenderMode_Size,function,high,"reimplemented (src/game/render/mode); cdecl u32 (): first of 0x2000/0x1000/0x800 in 0x79d86c, else 0x4000 if set, else 0x1000"
 0x0044a5d0,RenderMode_Depth,function,high,"reimplemented (src/game/render/mode); cdecl u32 (): first of 8/0x10 in 0x79d86c, else 0x20 if set, else 8"
 0x0044a600,RenderMode_ResetScale,function,high,reimplemented (src/game/render/mode); cdecl (): 0x79d9e4 = 1.0f
@@ -5176,6 +5183,7 @@ address,name,kind,confidence,notes
 0x005e2640,Scene702dd0_HideDialog,function,low,"reimplemented (src/game/frontend/viewcontrols); Class702dd0 slot 11 (thiscall, self unused): Dialog7cc47c_Message6Off's result"
 0x005e2650,Scene702dd0_ShowDialogCallback,function,low,reimplemented (src/game/frontend/viewcontrols); cdecl callback of Class702dd0 slot 17 for 0x4c0ae0: Dialog7cc47c_Message6On's result
 0x005e2660,Scene702dd0_DialogDone,function,low,"reimplemented (src/game/frontend/viewcontrols); cdecl (accepted, self) callback of Class702dd0 slot 17: 0 calls self slot 0x44; else state +0x14 2 plays the +0xc +8 lobby model, +0x14 = 0, Dialog7cc47c_Message6On"
+0x005e2cc0,IslandCamera_LoadSettings,function,low,"reimplemented (src/game/frontend/islandcamera); thiscall: the lobby island camera settings read from a text file (FOV, spin, radii, ten camera positions)"
 0x0065d7d0,Window_FindChild,function,low,"reimplemented (src/game/ui/window); thiscall (id), pops 4: the first child of the window (list +0x5c, next +0x54) whose id (+0x8c) is id, or 0"
 0x0065f697,Window_CallHandler,function,low,"reimplemented (src/game/ui/window); thiscall (message, a, b), pops 12: the cdecl handler at +0x114 called with (window, message, a, b), its result; -1 when none"
 0x00658d9f,Window_SendMessage,function,low,"reimplemented (src/game/ui/window); cdecl (window, message, a, b): -1 for no window or byte +4 set; else the hook [0xfaa5fc] (if set) then Window_CallHandler"

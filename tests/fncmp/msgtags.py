@@ -1,5 +1,5 @@
 # The message tags' windows (src/game/ui/msgtags: 0x48ea00, 0x48eaa0, 0x48d9c0, 0x48eb20, 0x48ede0, 0x48f090, 0x48ef70, 0x481680; the
-# thunks 0x481b70, 0x481580) against the originals. NewWindow: window.py's tree and queues (Window_Ctor's surroundings, as listrows.py's NewRow), the heap failing now and then,
+# thunks 0x481b70, 0x481580; the key action 0x40c820, src/game/core/keyactions) against the originals. NewWindow: window.py's tree and queues (Window_Ctor's surroundings, as listrows.py's NewRow), the heap failing now and then,
 # the id any; the GUI's registered windows of listrows.py's register() with "msgtag" among them or not (the object +0x98's slot 3 event:
 # its words and the window pointer hashed). Create: the same, the ten records [0x7c26b0] random bytes, an allocation of the ten (or none)
 # failing.
@@ -18,7 +18,7 @@
 # message 5), a record stream holding a count of 0-3 and that many whole records (a short one would leave the stack's bytes in the
 # buffer), each of the kind 0x17f's tags' dwords now and then, its id 0x17f or not, its text 0-0x120 characters long (no end within
 # 0xff of them included).
-# usage: msgtags.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=NewWindow,Create,Open,Add,Post,AddVersion,Thunk,PostThunk,Load,UILoad)
+# usage: msgtags.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=NewWindow,Create,Open,Add,Post,AddVersion,Thunk,KeyVersion,PostThunk,Load,UILoad)
 import os
 import struct
 import sys
@@ -32,7 +32,7 @@ from fncmp import CDECL_LOG4, HEAP, LOG, RAM, Bench, Call, Mask, blob, blob_byte
 from window import RANGES, queues, tree  # noqa: E402
 
 CALLS = {'NewWindow': 0x48ea00, 'Create': 0x48eaa0, 'Open': 0x48d9c0, 'Add': 0x48eb20, 'Post': 0x48ede0, 'AddVersion': 0x48f090,
-         'Thunk': 0x481b70, 'PostThunk': 0x481580, 'Load': 0x48ef70, 'UILoad': 0x481680}
+         'Thunk': 0x481b70, 'KeyVersion': 0x40c820, 'PostThunk': 0x481580, 'Load': 0x48ef70, 'UILoad': 0x481680}
 TIMER_RANGES = [(0x661f9b, 0x661fe5), (0x6620e2, 0x66213e), (0x662306, 0x662384), (0x662500, 0x66252c), (0x661ece, 0x661f2b),
                 (0x661f2b, 0x661f9b), (0x66220d, 0x6622d2), (0x65968e, 0x6596a2), (0x6620ac, 0x6620cc), (0x6620cc, 0x6620e2),
                 (0x662097, 0x6620ac), (0x65ef90, 0x65f024), (0x65f024, 0x65f077), (0x65f077, 0x65f0ca)]
@@ -77,7 +77,7 @@ def _swprintf(e):
 
 B = Bench(sorted(set(RANGES + listrows.REG_RANGES + TIMER_RANGES + ADVISOR_RANGES + [
     (0x48ea00, 0x48ea9b), (0x48eaa0, 0x48eae5), (0x65e526, 0x65e549), (0x65e6d5, 0x65e705),
-    (0x48d9c0, 0x48dad2), (0x48eb20, 0x48edd1), (0x48ede0, 0x48ee18), (0x48f090, 0x48f10a), (0x481b70, 0x481b75),
+    (0x48d9c0, 0x48dad2), (0x48eb20, 0x48edd1), (0x48ede0, 0x48ee18), (0x48f090, 0x48f10a), (0x481b70, 0x481b75), (0x40c820, 0x40c830),
     (0x481580, 0x481590), (0x48ef70, 0x48f08f), (0x481680, 0x481695), (0x5f5e20, 0x5f5e4d),
     (0x65d865, 0x65d8e7), (0x659e3e, 0x659e83), (0x65d3a3, 0x65d40c), (0x65d56b, 0x65d57c), (0x5222e0, 0x52231b), (0x51feb0, 0x51ff06),
     (0x51bfc0, 0x51c048), (0x67a400, 0x6902c0)])), hooks={0x67a7d0: advisor._cdecl_log, 0x67af00: _swprintf})
@@ -264,7 +264,7 @@ def tags_case(r, op):
     offsets = [0x16d0 + k for k in (2, 3, 0x17)] + [0x14 + 0x18 * s + k for s in range(8) for k in (2, 3, 0x17)]
     masks = [Mask(advisor.ADVISOR, offsets, "Advisor_PostId's stack message's bytes +2, +3, +0x17, never written (0x486b00), copied into a "
                                             "queue slot or +0x16d0 (read only for the id 0x15f)")]
-    tags, wins = tags_env(r, regions, log, version=op in ('AddVersion', 'Thunk'))
+    tags, wins = tags_env(r, regions, log, version=op in ('AddVersion', 'Thunk', 'KeyVersion'))
     if op == 'Open':
         tag = r.choice(tags)
         if r.random() < 0.15:
@@ -277,6 +277,8 @@ def tags_case(r, op):
         return Call(CALLS[op], [message(r, regions, wins)], regions, conv='s', ret='a', masks=masks)
     if op in ('AddVersion', 'Thunk'):
         return Call(CALLS[op], [], regions, ret='v', masks=masks)
+    if op == 'KeyVersion':   # (the key action 0x40c820: the thunk's call, 1 returned)
+        return Call(CALLS[op], [], regions, ret='a', masks=masks)
     return Call(CALLS[op], [message(r, regions, wins)], regions, ret='a', masks=masks)
 
 
