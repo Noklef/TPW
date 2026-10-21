@@ -381,10 +381,14 @@
 #include "../game/ui/windowfactory.h"
 #include "../game/ui/windowscript.h"
 #include "../game/ui/buttontext.h"
+#include "../game/ui/dialog7cc1f8.h"
 #include "../game/ui/msgboxbutton.h"
 #include "../game/ui/msgtags.h"
+#include "../game/ui/panel7ca178.h"
 #include "../game/ui/panel7cc218.h"
 #include "../game/ui/panel7cc258.h"
+#include "../game/ui/panel7cc3b0.h"
+#include "../game/ui/panel7cc408.h"
 #include "../game/ui/thingbrowser.h"
 #include "../game/ui/windowtimers.h"
 #include "../game/lib/jpeg6b.h"
@@ -5208,6 +5212,10 @@ const Hook kHooks[] = {
     {"ThingBrowser_GroupHandler", 0x004b3b90, (void *)&ThingBrowser_GroupHandler, {0x8b, 0x44, 0x24, 0x08, 0x3d}},
     {"Panel7cc218_Dress",         0x004ad890, (void *)&Panel7cc218_Dress, {0x6a, 0xff, 0x68, 0x8a, 0xac}},
     {"Panel7cc258_Dress",         0x004afc10, (void *)&Panel7cc258_Dress, {0x6a, 0xff, 0x68, 0xaa, 0xae}},
+    {"Panel7ca178_Dress",         0x00497100, (void *)&Panel7ca178_Dress, {0x6a, 0xff, 0x68, 0x02, 0x9f}},
+    {"Dialog7cc1f8_DressStats",   0x004ab6b0, (void *)&Dialog7cc1f8_DressStats, {0x6a, 0xff, 0x68, 0x7e, 0xaa}},
+    {"Panel7cc408_Dress",         0x004b6c20, (void *)&Panel7cc408_Dress, {0x6a, 0xff, 0x68, 0x90, 0xb4}},
+    {"Panel7cc3b0_Dress",         0x004b53c0, (void *)&Panel7cc3b0_Dress, {0x6a, 0xff, 0x68, 0x04, 0xb3}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
