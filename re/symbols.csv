@@ -5192,6 +5192,8 @@ address,name,kind,confidence,notes
 0x00467310,RideBase_TidyUVs,function,low,"reimplemented (src/game/model/baseuvs); cdecl (model, part, tolerance, map, positions, warned): a ride base's texture coordinates snapped to whole numbers, moved down by their triangles' floors, groups on the base marked"
 0x004679d0,RideBase_TidyAllUVs,function,low,"reimplemented (src/game/model/baseuvs); RideBase_TidyUVs on the holder's model for the given part, or for each part not flagged 0x200; one warned flag shared"
 0x0045aee0,Online_ApplyBalance,function,high,reimplemented (src/game/online/servers); copies Online.sam (gBalanceOnline) into the servers object 0x7a14f0
+0x005d2a80,OnlineServers_Ctor,function,low,"reimplemented (src/game/online/servers); thiscall: the online servers' settings' defaults (the server names, ports and complaints address) as the static initialiser 0x45ad60 builds them at 0x7a14f0; returns the object (name unconfirmed)"
+0x0045ad90,OnlineServers_Dtor,function,low,"reimplemented (src/game/online/servers); thiscall: the servers' destructor: the complaints address, then the six server names released (_Tidy(true)) (name unconfirmed)"
 0x005b6450,Online_LoggedIn,function,high,"reimplemented (src/game/online/session); thiscall u32: the online session's (0xf7d88c) +0x60, set while logged in"
 0x005b6460,Online_Restricted,function,high,reimplemented (src/game/online/session); thiscall u32: 1 unless logged in (+0x60) with the user's flag 0x20 (+0x58) clear
 0x005b6480,Online_String14,function,high,reimplemented (src/game/online/session); thiscall char*: the online session's C string +0x14
