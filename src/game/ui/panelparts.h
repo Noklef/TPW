@@ -48,8 +48,8 @@ inline void part(u8 *window, PartCtor ctor, u32 id, u32 value) { vcall<void>(dre
 inline void part(u8 *window, PartCtor ctor, u32 id) { dress(window, ctor, id); }
 
 // the child `id`'s saved rectangle inset and a bar of the texture `name` as its implementation; returns the child
-inline u8 *barOf(u8 *child, const char *name) {
-    Window_SaveInsetRect(child, 0, 10);
+inline u8 *barOf(u8 *child, const char *name, s32 dx = 0, s32 dy = 10) {
+    Window_SaveInsetRect(child, dx, dy);
     u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x124));
     Window_SetImpl(child, nullptr, memory ? MeshOverlay_Construct(memory, nullptr, name) : nullptr);
     return child;

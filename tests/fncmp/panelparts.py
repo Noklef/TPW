@@ -8,7 +8,11 @@
 # the dresser asks for (see texts()); the bars' meshes as barmesh.py's Overlay builds them (global_heap(), the texture directories and holder logged) with their
 # vtable 0x6feeb8's slots 3 / 5 (Window_SetImpl's) recorders. The heap fails one allocation now and then (a text part's or a bar's:
 # none set; one inside a mesh's construction faults in both). The windows', parts' and meshes' bytes after the call are compared.
-# usage: panelparts.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Panel7cc218_Dress,...)
+# The rows' initialisers of src/game/ui/listrows (ROWS below): the same surroundings with the row dialogbuild.ROW (its first child +0x5c
+# and their siblings +0x54 the kids as above, one too few now and then: a fault in both), their font dword (7 mostly, 0-12), for
+# List7ca158_InitRow the state [0x7ca154] (0-3 mostly), for List7ca140_InitRow the GUI's registered windows of listrows.py's register()
+# with "ti_hungry" among them or not.
+# usage: panelparts.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Panel7cc218_Dress,List7ca158_InitRow,...)
 import os
 import struct
 import sys
@@ -39,11 +43,16 @@ DRESSERS = {
     'Dialog7cc1f8_DressStats': (0x4ab6b0, (0x1f4, 0x1f3, 0x1f1, 0x1f6, 0x1f7, 0x1f5, 0x1f2, 0x1ee, 0x1ef, 0x1f0), (0x7d, 0x7e, 0x7f, 0x80,
         0x81, 0x88), 'dialog'),
 }
+# each row initialiser: (its address, its children, its font dword, the name it looks up)
+ROWS = {'List7ca158_InitRow': (0x494690, 4, 0x750d54, None), 'List7ca140_InitRow': (0x4939d0, 5, 0x7508b4, 'ti_hungry'),
+        'List7ca170_InitRow': (0x496d20, 4, 0x751184, None)}
 CALLS = {k: v[0] for k, v in DRESSERS.items()}
+CALLS.update({k: v[0] for k, v in ROWS.items()})
 B = Bench(sorted(set(window.RANGES + listrows.PART_RANGES + listrows.REG_RANGES + animatormesh.RANGES + [
     (0x424ec0, 0x425450), (0x46f150, 0x46f190), (0x477c00, 0x477c40), (0x477ff0, 0x478380), (0x485a70, 0x485ab0), (0x485b00, 0x485b50),
     (0x485e30, 0x485ed0), (0x48f150, 0x48f290), (0x48f6a0, 0x48f750), (0x48fde0, 0x48fe90), (0x490250, 0x490300), (0x490e60, 0x490f10),
-    (0x497100, 0x497391), (0x4ab6b0, 0x4abb10), (0x4ad890, 0x4ade50), (0x4afc10, 0x4b01e0), (0x4b1040, 0x4b16d0), (0x4b53c0, 0x4b58c0), (0x4b6c20, 0x4b72b0),
+    (0x497100, 0x497391), (0x494690, 0x494c60), (0x4939d0, 0x493c03), (0x496d20, 0x496f21), (0x490c30, 0x490ce0),
+    (0x65c388, 0x65c55a), (0x65d547, 0x65d58c), (0x4ab6b0, 0x4abb10), (0x4ad890, 0x4ade50), (0x4afc10, 0x4b01e0), (0x4b1040, 0x4b16d0), (0x4b53c0, 0x4b58c0), (0x4b6c20, 0x4b72b0),
     (0x5775d0, 0x577610), (0x588320, 0x588360), (0x588d70, 0x588da0), (0x6597b0, 0x659896), (0x659d00, 0x659d53), (0x659d90, 0x659dbc),
     (0x65a43e, 0x65a4a3), (0x65c388, 0x65c438), (0x65cfd4, 0x65d00f), (0x65d1c8, 0x65d333), (0x65d42e, 0x65d4b0), (0x65d773, 0x65d832),
     (0x65f5b7, 0x65f60e), (0x6616b0, 0x661710), (0x6617f0, 0x661820), (0x6ace60, 0x6aceb0), (0x6adc80, 0x6add40), (0x6ade00, 0x6adea0)])),
@@ -78,23 +87,8 @@ def texts(r, regions, indexes):
                     TEXTS + 0xb00: struct.pack('<%dI' % (high + 1 - low), *[TEXTS + 0xc00 + 0x40 * i for i in range(high + 1 - low)])})
 
 
-def case(r):
-    op = r.deal(OPS)
-    address, ids, indexes, reach = DRESSERS[op]
-    regions = dialogbuild.chain(r, op, 0)
-    regions[HEAP] = heap(0x8000, r.choice([0] * 12 + [r.randrange(1, 15)]))
-    regions.update(global_heap())
-    regions[MESH_VTABLE + 0xc] = struct.pack('<I', recorder(3, 2))
-    regions[MESH_VTABLE + 0x14] = struct.pack('<I', recorder(5, 1))
-    texts(r, regions, indexes)
-    root = dialogbuild.ROW
-    items = [(KIDS + KID * k, ident) for k, ident in enumerate(ids)]
-    if r.random() < 0.03:
-        items.remove(r.choice(items))
-    elif op == 'Panel7cc408_Dress' and r.random() < 0.25:   # (its 0x3732 is looked for: a bar only when found)
-        items.remove((KIDS + KID * ids.index(0x3732), 0x3732))
-    items += [(KIDS + KID * (len(ids) + k), r.choice([0, 1, ids[0] + 0x100, r.getrandbits(32)])) for k in range(r.choice([0, 0, 1, 2]))]
-    r.shuffle(items)
+def kids(r, regions, items, root):
+    """the windows `items` (their addresses and ids) children of `root` in that order (+0x5c, +0x54), each a dialogbuild.py kid()"""
     for i, (at, ident) in enumerate(items):
         w = dialogbuild.kid(r, root)
         left, top = r.randrange(-5, 20), r.randrange(-5, 20)
@@ -104,6 +98,44 @@ def case(r):
         put(w, 0x54, 'I', items[i + 1][0] if i + 1 < len(items) else 0)
         regions[at] = w
     put(regions[root], 0x5c, 'I', items[0][0] if items else 0)
+
+
+def surroundings(r, regions):
+    regions[HEAP] = heap(0x8000, r.choice([0] * 12 + [r.randrange(1, 15)]))
+    regions.update(global_heap())
+    regions[MESH_VTABLE + 0xc] = struct.pack('<I', recorder(3, 2))
+    regions[MESH_VTABLE + 0x14] = struct.pack('<I', recorder(5, 1))
+
+
+def row_case(r, op):
+    address, n, font, name = ROWS[op]
+    regions = dialogbuild.chain(r, op, 0, name=name, font=font)
+    surroundings(r, regions)
+    if op == 'List7ca158_InitRow':
+        regions[0x7ca154] = struct.pack('<I', r.choice([0, 1, 2, 3] * 3 + [4, r.getrandbits(32)]))
+        n += 1   # (its state 2's)
+    n -= r.random() < 0.03
+    kids(r, regions, [(KIDS + KID * k, r.getrandbits(32)) for k in range(n)], dialogbuild.ROW)
+    return Call(address, [dialogbuild.ROW], regions, ret='v')
+
+
+def case(r):
+    op = r.deal(OPS)
+    if op in ROWS:
+        return row_case(r, op)
+    address, ids, indexes, reach = DRESSERS[op]
+    regions = dialogbuild.chain(r, op, 0)
+    surroundings(r, regions)
+    texts(r, regions, indexes)
+    root = dialogbuild.ROW
+    items = [(KIDS + KID * k, ident) for k, ident in enumerate(ids)]
+    if r.random() < 0.03:
+        items.remove(r.choice(items))
+    elif op == 'Panel7cc408_Dress' and r.random() < 0.25:   # (its 0x3732 is looked for: a bar only when found)
+        items.remove((KIDS + KID * ids.index(0x3732), 0x3732))
+    items += [(KIDS + KID * (len(ids) + k), r.choice([0, 1, ids[0] + 0x100, r.getrandbits(32)])) for k in range(r.choice([0, 0, 1, 2]))]
+    r.shuffle(items)
+    kids(r, regions, items, root)
     if reach == 'panel':
         regions[PANEL] = put(bytearray(r.bytes(0x20)), 0x14, 'I', root if r.random() < 0.95 else 0)
         return Call(address, [PANEL], regions, conv='t', ret='v')
