@@ -71,6 +71,7 @@ add_library(tpw_game STATIC
     src/game/files/userslots.cpp
     src/game/files/chunkfile.cpp
     src/game/files/vfs.cpp
+    src/game/files/substream.cpp
     src/game/core/regkey.cpp
     src/game/core/stdstring.cpp
     src/game/core/globalmem.cpp
