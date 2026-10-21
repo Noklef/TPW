@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../math/mat4.h"
 #include "../math/x87.h"
 
 namespace {
@@ -39,5 +40,32 @@ void __fastcall Meshes_SetDirection(u8 *object, void *, u32 x, u32 y, u32 z) {
     at<u32>(object, 0x34) = x;
     at<u32>(object, 0x38) = y;
     at<u32>(object, 0x3c) = z;
+}
+
+u32 __fastcall Meshes_SetView(u8 *object, void *, const u32 *matrix, u32) {
+    u8 *mesh = *reinterpret_cast<u8 **>((uintptr_t)0x00879dec);
+    *reinterpret_cast<const u32 **>((uintptr_t)0x00879dcc) = matrix;
+    u32 *const view = reinterpret_cast<u32 *>((uintptr_t)0x00879df0);
+    for (int i = 0; i < 16; ++i) view[i] = matrix[i];
+    Mat4_Invert(view);
+    const float *const m = reinterpret_cast<const float *>(view);
+    for (; mesh; mesh = *reinterpret_cast<u8 **>(mesh + 0x58)) {
+        if (mesh[0x50] & 2) {
+            float *const d = reinterpret_cast<float *>(mesh + 0x38);
+            Mat4_Transform(m, nullptr, d, reinterpret_cast<const float *>(mesh + 0x2c), 3);
+            const X87Reg x = d[0], y = d[1], z = d[2];
+            const float len = static_cast<float>((y * y + z * z) + x * x);
+            if (!(len != len || len == 0.0f || len == 1.0f)) {
+                const X87Reg inv = X87Reg(1.0f) / X87_Sqrt(X87Reg(len));
+                d[0] = static_cast<float>(X87Reg(d[0]) * inv);
+                d[1] = static_cast<float>(inv * X87Reg(d[1]));
+                d[2] = static_cast<float>(inv * X87Reg(d[2]));
+            }
+        }
+        if (mesh[0x50] & 4)
+            Mat4_Transform(m, nullptr, reinterpret_cast<float *>(mesh + 0x20), reinterpret_cast<const float *>(mesh + 0x14), 2);
+    }
+    Mat4_Transform(m, nullptr, reinterpret_cast<float *>(object + 0x34), reinterpret_cast<const float *>(object + 0x34), 3);
+    return 1;
 }
 }
