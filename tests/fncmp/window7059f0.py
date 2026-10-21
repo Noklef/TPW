@@ -32,6 +32,12 @@
 # SetRowSize / SetRow (0x663718, 0x663864): see row_case(). SetHighlight (0x662eee): see highlight_case().
 # ShowRows (0x664fde): see show_case(). SendToRows (0x6650d4): RefreshRows' list, rows and items; the message 0x1e mostly (else 3,
 # 0x15, 7 or one with the top bit), a and b any (the row windows' handlers fncmp's logger or none).
+# NthChild (0x663c11): NthItem's forest, the n likewise, the parent -1, -2, an item's place or past them.
+# Sort (0x6628f4): sort_case(): a top list of 1-10 items 4 + 1-3 columns apart in a shuffled order (each item's parent -1, now and
+# then -2 or -5; the last's next -1), with children of their own (their first child +2) left out of the list; the count about the
+# list's length, the first shown its head; the sort column 0 to the last (now and then -1: the parent dword), the mode +0x16a 0 or 1
+# (now and then 2), the column bottoms 1 (numbers: a few values, ties included, or the extremes) or 0 / 2 (counted wide strings of
+# short texts from ALPHA, ties and prefixes included, or none); the columns 0 now and then.
 # usage: window7059f0.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ColumnBottom,NextItem,...)
 import os
 import struct
@@ -48,7 +54,7 @@ CALLS = {'ColumnBottom': 0x6636f6, 'NextItem': 0x663a93, 'NthItem': 0x663ba2, 'S
          'FreeItem': 0x664605, 'Select': 0x66525c, 'FindText': 0x664db7, 'RemoveItem': 0x6647cb, 'Clear': 0x6649d5,
          'ScrollTo': 0x665739, 'Grow': 0x66316b, 'SortsBefore': 0x663edc, 'CopyCells': 0x663dfa,
          'AddItem': 0x66403b, 'SetRowSize': 0x663718, 'SetRow': 0x663864,
-         'SetHighlight': 0x662eee, 'ShowRows': 0x664fde, 'SendToRows': 0x6650d4}
+         'SetHighlight': 0x662eee, 'ShowRows': 0x664fde, 'SendToRows': 0x6650d4, 'NthChild': 0x663c11, 'Sort': 0x6628f4}
 LIST_RANGES = (RANGES + [(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 0x664bf0), (0x664d2a, 0x664db7), (0x663324, 0x663554),
                     (0x4f0240, 0x4f0250), (0x65d547, 0x65d56b), (0x65d56b, 0x65d57c), (0x65c672, 0x65c707),
                     (0x663085, 0x66316b), (0x663cb8, 0x663d56), (0x664495, 0x6644ea), (0x66b47d, 0x66b508),
@@ -58,7 +64,8 @@ LIST_RANGES = (RANGES + [(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 
                     (0x67acd0, 0x67ad00), (0x45b380, 0x45b5f0), (0x45b680, 0x45b9b0), (0x67bb90, 0x67bd98), (0x67d250, 0x67d2c0),
                     (0x67d3a0, 0x67d400), (0x6918f0, 0x691a30), (0x691ba0, 0x691ce0),
                     (0x663718, 0x663864), (0x663864, 0x6639cb), (0x65d865, 0x65d8e7), (0x659e3e, 0x659e83), (0x65cf5e, 0x65cfd4),
-                    (0x65c9bd, 0x65cd95), (0x661700, 0x66176a), (0x65f16b, 0x65f246), (0x662eee, 0x663085), (0x664fde, 0x6650d2), (0x6650d4, 0x6651ee)])
+                    (0x65c9bd, 0x65cd95), (0x661700, 0x66176a), (0x65f16b, 0x65f246), (0x662eee, 0x663085), (0x664fde, 0x6650d2), (0x6650d4, 0x6651ee),
+                    (0x663c11, 0x663cb8), (0x6628f4, 0x662eee), (0x4f76b0, 0x4f7718)])
 B = Bench(LIST_RANGES)
 WINDOW, COLUMNS, LINKS, OUT = RAM, RAM + 0x200, RAM + 0x400, RAM + 0x800
 LIST, LINKS2, COLS2, CELLS, ROWS2, ROWWINS = RAM + 0x9000, RAM + 0x9420, RAM + 0x9e00, RAM + 0x9f00, RAM + 0x9c00, RAM + 0xb000
@@ -68,6 +75,7 @@ WSTRS, WCHARS = RAM + 0x1000, RAM + 0x1400
 ROWLIST, ROWARR, ROWCOLS, ROWHL, ROWHLVT, ROWWIN = RAM + 0x10000, RAM + 0x10200, RAM + 0x10400, RAM + 0x10600, RAM + 0x10640, RAM + 0x10800
 HL_A, HL_B, HL_VT, HL_PARENTS = RAM + 0x11000, RAM + 0x11040, RAM + 0x11080, RAM + 0x11200
 ALPHA = [0x41, 0x42, 0x100, 0xffff]
+SORTW, SORTCOLS, SORTLINKS, SORTSTRS, SORTCHARS = RAM + 0x12000, RAM + 0x12200, RAM + 0x12400, RAM + 0x12c00, RAM + 0x13000
 
 
 def none(r):
@@ -690,8 +698,58 @@ def show_case(r):
     return Call(CALLS['ShowRows'], [ROWLIST, shown], regions, conv='t', ret='v')
 
 
+def sort_case(r):
+    """Sort (see the header)"""
+    window = bytearray(r.bytes(0x180))
+    regions = {SORTW: window}
+    ncols = r.choice([1, 2, 3])
+    stride = 4 + ncols
+    k = r.randint(1, 10)
+    kids = r.randint(0, 3)
+    n = k + kids
+    idx = [stride * j for j in r.sample(range(n), n)]
+    top, rest = idx[:k], idx[k:]
+    links = [r.getrandbits(32) for _ in range(stride * n + 8)]
+    for j, i in enumerate(top):
+        links[i] = top[j + 1] if j + 1 < k else -1
+        links[i + 2] = -1
+        links[i + 3] = r.choice([-1] * 12 + [-2, -5])
+    for i in rest:   # (children of top items)
+        p = r.choice(top)
+        links[i], links[i + 2], links[i + 3] = -1, -1, p
+        links[p + 2] = i
+    bottoms = [r.choice([1, 1, 0, 2]) for _ in range(4)]
+    texts = [tuple(r.choice(ALPHA) for _ in range(r.choice([0, 1, 1, 2, 3]))) for _ in range(6)]
+    texts[1] = texts[0] + texts[1][:1]   # (a prefix)
+    chars = bytearray(0x200)
+    for j, t in enumerate(texts):
+        struct.pack_into('<%dH' % len(t), chars, 0x20 * j, *t)
+    regions[SORTCHARS] = chars
+    strs = bytearray(r.bytes(0x10 * 8))
+    for j in range(8):
+        t = r.randrange(6)
+        data = r.choice([SORTCHARS + 0x20 * t] * 5 + [0])
+        put(strs, 0x10 * j + 4, 'II', data, len(texts[t]) if data else 0)
+    regions[SORTSTRS] = strs
+    nums = r.choice([[0, 1, -1, 5], [0x7fffffff, -0x80000000, 0, 3], [2, 2, 7]])
+    for i in idx:
+        for c in range(ncols):
+            links[i + 4 + c] = r.choice(nums) if bottoms[c] == 1 else SORTSTRS + 0x10 * r.randrange(8)
+    regions[SORTLINKS - 0x40] = r.bytes(0x40) + struct.pack('<%dI' % len(links), *[v & 0xffffffff for v in links])
+    put(window, 0x144, 'I', SORTLINKS)
+    put(window, 0x150, 'i', r.choice([k, k, k, k - 1, k + 2, 0, 1, 2, 3]))
+    put(window, 0x160, 'i', top[0])
+    column = r.choice(list(range(ncols)) * 4 + [-1])   # (-1: the parents, as numbers: the column before the array's bottom 1)
+    regions[SORTCOLS - 0xc] = b''.join(put(bytearray(r.bytes(0xc)), 0xa, 'h', v) for v in [1 if column == -1 else r.choice([0, 1])] + bottoms)
+    put(window, 0x168, 'hh', column, r.choice([0, 0, 0, 1, 1, 1, 2]))
+    put(window, 0x16c, 'I', r.choice([SORTCOLS] * 12 + [0]))
+    return Call(CALLS['Sort'], [SORTW, r.choice([0xffffffff, r.getrandbits(32)])], regions, conv='t', ret='v')
+
+
 def case(r):
     op = r.deal(OPS)
+    if op == 'Sort':
+        return sort_case(r)
     if op == 'SetHighlight':
         return highlight_case(r)
     if op == 'ShowRows':
@@ -827,6 +885,9 @@ def case(r):
     n = r.choice([-1, 0, 1, 2, 3, r.randrange(len(idx) + 2), len(idx) - 1, len(idx), 0x7fffffff, -0x80000000])
     if op == 'SetNthItemData':
         return Call(CALLS[op], [WINDOW, n & 0xffffffff, r.getrandbits(32)], regions, conv='t', ret='w')
+    if op == 'NthChild':
+        parent = r.choice([-1, -1, -2, 0, 0, 1, 2, r.randrange(len(idx) + 2)])
+        return Call(CALLS[op], [WINDOW, n & 0xffffffff, parent & 0xffffffff], regions, conv='t', ret='a')
     return Call(CALLS[op], [WINDOW, n & 0xffffffff], regions, conv='t', ret='a')
 
 

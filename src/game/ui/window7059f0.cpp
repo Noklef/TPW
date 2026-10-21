@@ -285,6 +285,86 @@ void __fastcall Window7059f0_RootEnd(u8 *window, void *, s32 *end, s32 *last) {
     *last = before;
 }
 
+s32 __fastcall Window7059f0_NthChild(u8 *window, void *, s32 n, s32 parent) {
+    s32 item;
+    if (parent > -1) {
+        item = -1;
+        const s32 k = Window7059f0_NthItem(window, nullptr, parent);
+        if (k > -1) item = at<s32 *>(window, 0x144)[k + 2];
+    } else {
+        item = at<s32>(window, 0x160);
+    }
+    if (n >= 0 && n < at<s32>(window, 0x150) && at<s32 *>(window, 0x144))
+        for (s32 i = 0; i < n && item > -1; ++i) item = at<s32 *>(window, 0x144)[item];
+    return item;
+}
+
+namespace {
+// Window7059f0_Sort's order: whether the cell a comes before the cell b (numbers or the strings they point to; the mode +0x16a).
+// The cells are read only for the modes 0 and 1.
+bool sorts_first(u8 *window, bool numeric, const s32 *a, const s32 *b) {
+    const s16 mode = at<s16>(window, 0x16a);
+    if (mode != 0 && mode != 1) return false;
+    if (numeric) return mode == 0 ? *a < *b : *a > *b;
+    const s32 order = WString_Compare(reinterpret_cast<const u8 *>((uintptr_t)(u32)*a), nullptr, reinterpret_cast<const u8 *>((uintptr_t)(u32)*b));
+    return mode == 0 ? order < 0 : order > 0;
+}
+
+const s32 *cell(u8 *window, s32 item) { return &at<s32 *>(window, 0x144)[item + at<s16>(window, 0x168) + 4]; }
+}  // namespace
+
+void __fastcall Window7059f0_Sort(u8 *window, void *, s32) {
+    if (!at<u8 *>(window, 0x16c) || at<s32>(window, 0x150) < 2) return;
+    const bool numeric = at<s16>(at<u8 *>(window, 0x16c), at<s16>(window, 0x168) * 12 + 0xa) == 1;
+    s32 *items = at<s32 *>(window, 0x144);
+    s32 cur = at<s32>(window, 0x160), prev = -1, best = cur, best_prev = -1;
+    const s32 *best_cell = &items[cur + at<s16>(window, 0x168) + 4];
+    for (s32 i = 0; i < at<s32>(window, 0x150) && at<s32 *>(window, 0x144)[cur + 3] != -2 && cur != -1; ++i) {
+        if (sorts_first(window, numeric, &items[cur + at<s16>(window, 0x168) + 4], best_cell)) {
+            best_cell = &items[cur + at<s16>(window, 0x168) + 4];
+            best = cur;
+            best_prev = prev;
+        }
+        prev = cur;
+        cur = items[cur];
+    }
+    if (best < 0) return;
+    if (best != at<s32>(window, 0x160)) {
+        const s32 old = at<s32>(window, 0x160);
+        if (best_prev != -1) at<s32 *>(window, 0x144)[best_prev] = at<s32 *>(window, 0x144)[best];
+        at<s32 *>(window, 0x144)[best] = old;
+        at<s32>(window, 0x160) = best;
+    }
+    if (at<s32>(window, 0x150) <= 2) return;
+    Window7059f0_NthChild(window, nullptr, 0, -1);
+    Window7059f0_NthChild(window, nullptr, 1, -1);
+    cur = Window7059f0_NthChild(window, nullptr, 2, -1);
+    for (s32 i = 2; i < at<s32>(window, 0x150) && at<s32 *>(window, 0x144)[cur + 3] != -2 && cur >= 0; ++i) {
+        bool found = false;
+        const s32 p = Window7059f0_NthChild(window, nullptr, i - 1, -1);
+        const s32 x = at<s32 *>(window, 0x144)[p];
+        cur = at<s32 *>(window, 0x144)[x];
+        s32 q = Window7059f0_NthChild(window, nullptr, 0, -1);
+        s32 s = at<s32 *>(window, 0x144)[q];
+        s32 t = at<s32 *>(window, 0x144)[s];
+        s32 parent = at<s32 *>(window, 0x144)[s + 3];
+        while (!found && parent > -2 && s != x) {
+            found = sorts_first(window, numeric, cell(window, x), cell(window, s));
+            if (!found) {
+                q = s;
+                s = t;
+                t = at<s32 *>(window, 0x144)[s];
+                parent = at<s32 *>(window, 0x144)[s + 3];
+            }
+        }
+        if (found && q != x) {
+            at<s32 *>(window, 0x144)[p] = cur;
+            at<s32 *>(window, 0x144)[q] = x;
+            at<s32 *>(window, 0x144)[x] = s;
+        }
+    }
+}
+
 void __cdecl Window7059f0_FitBar(u8 *bar, s32 count, s32 rows, u32 first) {
     if (!bar) return;
     if (count > rows) {
