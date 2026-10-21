@@ -4,6 +4,8 @@
 # the colour at +0x44: alpha 0, 0xff or between; the row length in pixels at +0x14, at least the width), the status at STATUS, `this`
 # random (unused). Rectangles of 0..16 by 0..9 pixels; GlyphSolid_Span565's counts are the differences' low bytes, so its rectangles
 # are 256 wider or taller now and then. The coverage bytes 0, 0xff, 0x88 / 0x77 (the threshold) or random.
+# The patterned writers: the pattern (0..6 by 0..5 pixels, 0 now and then: a fault in both) at PAT, its format gFormatArgb8888's
+# or not, the global at FORMAT, the origin small or random.
 # Deleting destructors: an object of random bytes at OBJ, flags 0, 1 or random (Mem_Free counts the block in the heap region).
 # usage: glyphrender.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
@@ -13,14 +15,18 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, LOG, RAM, Bench, Call, heap, log_region  # noqa: E402
 
-B = Bench([(0x6add30, 0x6add40), (0x6b0430, 0x6b0480), (0x6b0730, 0x6b2a60), (0x6b3c20, 0x6b3c50), (0x6b4a30, 0x6b4aa0),
-           (0x6b5410, 0x6b5430)])
+B = Bench([(0x6add30, 0x6add40), (0x6b0430, 0x6b0480), (0x6b0730, 0x6b4aa0), (0x6b5410, 0x6b5430)])
 SURF, SPAN, POINT, RECT, STYLE, STATUS, OBJ = RAM, RAM + 0x40, RAM + 0x60, RAM + 0x70, RAM + 0x80, RAM + 0xd0, RAM + 0xe0
-GLYPH, DST = RAM + 0x100, RAM + 0x400
+GLYPH, PAT, DST = RAM + 0x100, RAM + 0x200, RAM + 0x400
+FORMAT = 0xfaa280   # gFormatArgb8888: the patterned writers' pattern must have its format
+ARGB8888 = (0xff0000, 0xff00, 0xff, 0xff000000, 32, 0)
 # name: (address, bytes a pixel)
 SPANS = {'blend1555': (0x6b0760, 2), 'blend565': (0x6b0c50, 2), 'blend4444': (0x6b1130, 2), 'blend8888': (0x6b15f0, 4),
          'blendbgra': (0x6b19f0, 4), 'solid1555': (0x6b1e30, 2), 'solid565': (0x6b2100, 2), 'solid4444': (0x6b21f0, 2),
-         'solid8888': (0x6b24b0, 4), 'solidbgra': (0x6b2770, 4)}
+         'solid8888': (0x6b24b0, 4), 'solidbgra': (0x6b2770, 4),
+         'pat1555': (0x6b2a60, 2), 'pat565': (0x6b2e20, 2), 'pat4444': (0x6b31e0, 2), 'pat8888': (0x6b3540, 4), 'patbgra': (0x6b3890, 4),
+         'fill1555': (0x6b3c50, 2), 'fill565': (0x6b3f40, 2), 'fill4444': (0x6b4140, 2), 'fill8888': (0x6b4420, 4),
+         'fillbgra': (0x6b4700, 4)}
 DTORS = {'del70a148': 0x6b0430, 'del70a160': 0x6b0450, 'delblend': 0x6b0730, 'delsolid': 0x6b1e00, 'delpattern1': 0x6b2a30,
          'delpattern2': 0x6b3c20, 'del70a210': 0x6b4a30, 'delbase': 0x6b4a70, 'del70a258': 0x6b5410}
 OPS = [n for n in list(SPANS) + list(DTORS) if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
@@ -61,7 +67,26 @@ def span(r, name):
     sp[0x14] = length & 0xff   # (GlyphSolid_Span565's wide rectangles: it does not read it)
     regions = {SURF: surf, SPAN: sp, POINT: struct.pack('<ii', x, y), RECT: struct.pack('<4i', left, top, right, bottom),
                STYLE: style, STATUS: r.bytes(4), GLYPH: glyph, DST: r.bytes((y + rows) * pitch + (x + cols) * bpp + 8)}
+    if name.startswith(('pat', 'fill')):
+        regions.update(pattern(r, style))
     return Call(address, [r.getrandbits(32), STATUS, SURF, SPAN], regions, conv='t', ret='a')
+
+
+def pattern(r, style):
+    """The patterned writers' pattern in the style (+0x14), and the format global it must match."""
+    game = list(ARGB8888)
+    fmt = list(ARGB8888)
+    if r.random() < 0.3:   # the paletted flags need only agree on zero
+        game[5] = r.choice([0, r.getrandbits(32) | 1])
+        fmt[5] = r.choice([0, r.getrandbits(32) | 1]) if r.random() < 0.3 else (r.getrandbits(32) | 1 if game[5] else 0)
+    if r.random() < 0.1:
+        fmt[r.randrange(5)] ^= 1 << r.randrange(32)
+    width = 0 if r.random() < 0.02 else r.randrange(1, 7)
+    height = 0 if r.random() < 0.02 else r.randrange(1, 6)
+    pitch = max(width, 1) * 4 + r.choice([0, 0, 4, 8])
+    ox, oy = (r.choice([0, r.randrange(8), r.getrandbits(32)]) for _ in range(2))
+    struct.pack_into('<12I', style, 0x14, *fmt, PAT, width, height, pitch, ox, oy)
+    return {STYLE: style, PAT: r.bytes(pitch * max(height, 1)), FORMAT: struct.pack('<6I', *game)}
 
 
 def case(r):

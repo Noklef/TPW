@@ -4557,6 +4557,16 @@ address,name,kind,confidence,notes
 0x006b4a30,Vtbl70a210_DeletingDtor,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (flags): the deleting destructor of vtable 0x70a210 (Vtbl70a078_Set_6b4a50, freed for flags bit 0); returns this"
 0x006b4a70,GlyphRenderer_DeletingDtor,function,low,reimplemented (src/game/gfx/glyphrender); thiscall (flags): the glyph renderer base's deleting destructor (vtable 0x70a238; Vtbl70a258_Set_6b4a90); returns this
 0x006b5410,Vtbl70a258_DeletingDtor,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (flags): vtable 0x70a258 stored, freed for flags bit 0; returns this"
+0x006b2a60,GlyphPattern1_Span1555,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span), pops 0xc: the blended pattern's 1555 span writer (pattern format must be gFormatArgb8888, else status -1)"
+0x006b2e20,GlyphPattern1_Span565,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span), pops 0xc: the blended pattern's 565 span writer"
+0x006b31e0,GlyphPattern1_Span4444,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span), pops 0xc: the blended pattern's 4444 span writer (unsigned divisions)"
+0x006b3540,GlyphPattern1_Span8888,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span), pops 0xc: the blended pattern's 8888 span writer"
+0x006b3890,GlyphPattern1_SpanBgra,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span), pops 0xc: the blended pattern's byte-reversed 32-bit span writer"
+0x006b3c50,GlyphPattern2_Span1555,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span), pops 0xc: the solid pattern's 1555 span writer (coverage bit 0 -> bit 12, sic)"
+0x006b3f40,GlyphPattern2_Span565,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span), pops 0xc: the solid pattern's 565 span writer (fills the rectangle, packed 555, sic)"
+0x006b4140,GlyphPattern2_Span4444,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span), pops 0xc: the solid pattern's 4444 span writer"
+0x006b4420,GlyphPattern2_Span8888,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span), pops 0xc: the solid pattern's 8888 span writer"
+0x006b4700,GlyphPattern2_SpanBgra,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span), pops 0xc: the solid pattern's byte-reversed 32-bit span writer"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"

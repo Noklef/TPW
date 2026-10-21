@@ -17,7 +17,8 @@
 // left - right + row length (unsigned: a row length under the width runs off, sic). A pixel's coverage is its nibble, scaled by
 // nibble * alpha / 255 for an alpha other than 0xff. *status = 0 at the end. Returns status.
 // Reimplementation of 0x6b0430, 0x6b0450, 0x6b0730, 0x6b0760, 0x6b0c50, 0x6b1130, 0x6b15f0, 0x6b19f0, 0x6b1e00, 0x6b1e30, 0x6b2100,
-// 0x6b21f0, 0x6b24b0, 0x6b2770, 0x6b2a30, 0x6b3c20, 0x6b4a30, 0x6b4a70 and 0x6b5410. The names are unconfirmed.
+// 0x6b21f0, 0x6b24b0, 0x6b2770, 0x6b2a30, 0x6b2a60, 0x6b2e20, 0x6b31e0, 0x6b3540, 0x6b3890, 0x6b3c20, 0x6b3c50, 0x6b3f40, 0x6b4140,
+// 0x6b4420, 0x6b4700, 0x6b4a30, 0x6b4a70 and 0x6b5410. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -80,4 +81,30 @@ s32 *__fastcall GlyphSolid_Span8888(void *self, void *, s32 *status, const u8 *s
 // 0x6b2770: green at bit 16, red at 8; the packing ((byte 0 << 16 | byte 1) << 8 | byte 2) << 8 shifts blue out, so bits 24-31 stay 0
 // (sic). A coverage other than 0 writes coverage * 0x11 | the colour.
 s32 *__fastcall GlyphSolid_SpanBgra(void *self, void *, s32 *status, const u8 *surface, const u8 *span);
+
+// The patterned kinds' span writers: the colour of each pixel is the pattern's, a 32-bit surface held in the style at +0x14 (+0x14..+0x28
+// its format, +0x2c the bits, +0x30 the width, +0x34 the height, +0x38 the pitch) and tiled from the origin at +0x3c (x, y). The format
+// must be gFormatArgb8888's (0xfaa280: the masks and bit count equal, the paletted flags both zero or both not), or *status = -1 and
+// nothing is drawn. The pattern's column is (point x - origin x) % width and its row (point y - origin y) % height, both unsigned (a width
+// or height of 0 faults, sic, the row's even with no rows to draw); the walk wraps both at the pattern's edge. The glyph is walked as
+// GlyphBlend's, its coverage the bare nibble (the style's colour and alpha not read). *status = 0 at the end. Return status.
+// 0x6b2a60, 0x6b2e20, 0x6b3540: GlyphPattern1 (vtable 0x70a1c8), GlyphBlend's 1555, 565 and 8888 blends toward the pattern's pixel.
+s32 *__fastcall GlyphPattern1_Span1555(void *self, void *, s32 *status, const u8 *surface, const u8 *span);
+s32 *__fastcall GlyphPattern1_Span565(void *self, void *, s32 *status, const u8 *surface, const u8 *span);
+s32 *__fastcall GlyphPattern1_Span8888(void *self, void *, s32 *status, const u8 *surface, const u8 *span);
+// 0x6b31e0: 4444 as GlyphBlend's but the divisions unsigned (sic).
+s32 *__fastcall GlyphPattern1_Span4444(void *self, void *, s32 *status, const u8 *surface, const u8 *span);
+// 0x6b3890: blue at bit 24, green at 16, red at 8 (unsigned, as GlyphBlend's); the old pixel's top byte ORed into the new one's and
+// the low byte cleared (sic).
+s32 *__fastcall GlyphPattern1_SpanBgra(void *self, void *, s32 *status, const u8 *surface, const u8 *span);
+// GlyphPattern2 (vtable 0x70a1e8): the pattern's pixel written over.
+// 0x6b3c50: 1555 with a coverage's bit 0 set: the pixel packed to 555 | 0x1000 (bit 12, in red; the alpha bit not set, sic).
+s32 *__fastcall GlyphPattern2_Span1555(void *self, void *, s32 *status, const u8 *surface, const u8 *span);
+// 0x6b3f40: 565. The whole rectangle filled (the glyph not walked), each pixel packed to 555 (sic).
+s32 *__fastcall GlyphPattern2_Span565(void *self, void *, s32 *status, const u8 *surface, const u8 *span);
+// 0x6b4140, 0x6b4420: GlyphSolid's 4444 and 8888 with the pattern's pixel as the colour.
+s32 *__fastcall GlyphPattern2_Span4444(void *self, void *, s32 *status, const u8 *surface, const u8 *span);
+s32 *__fastcall GlyphPattern2_Span8888(void *self, void *, s32 *status, const u8 *surface, const u8 *span);
+// 0x6b4700: a coverage other than 0 writes the pattern's bytes 0, 1, 2 at bits 24, 16, 8 | coverage * 0x11.
+s32 *__fastcall GlyphPattern2_SpanBgra(void *self, void *, s32 *status, const u8 *surface, const u8 *span);
 }
