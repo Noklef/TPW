@@ -27,20 +27,35 @@ CMD_K, TIME_K = 9, 12
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
-def thresholds(r, n):
+def picked(seed):
+    """The random number the picks compare: the seed advanced, rotated right 13, its high word."""
+    seed = (seed * 0x19660d + 0x3c6ef35f) & 0xffffffff
+    return ((seed >> 13 | seed << 19) & 0xffffffff) >> 16
+
+
+def thresholds(r, n, target):
     out = sorted(r.randrange(0x10000) for _ in range(n))
     if r.random() < 0.7 and n:
         out[-1] = 0xffff
+    if r.random() < 0.4:   # one of them the random number itself, those before it below
+        i = r.randrange(n)
+        out = [r.randrange(target) if target else 0 for _ in range(i)] + [target] + [r.randrange(target, 0x10000) for _ in range(n - i - 1)]
+        out[:i] = sorted(out[:i])
     return out
 
 
-def definition(r):
-    n = r.choice([0, 1, 1, 2, 3, 4, 5, 5, r.randrange(6, 20)])
+def definition(r, target):
+    n = r.choice([0, 1, 1, 2, 2, 3, 4, 5, 5, r.randrange(6, 20)])
     d = bytearray(r.bytes(0x20))
     struct.pack_into('<II', d, 4, n, VARS)
-    weights = [r.randrange(0x4000) for _ in range(n)]
+    weights = [r.randrange(0x20000 // max(n, 1)) for _ in range(n)]
     if r.random() < 0.3:
         weights = [r.getrandbits(32) for _ in range(n)]
+    elif r.random() < 0.4 and n:   # the running sum reaching the random number exactly at one of them
+        i = r.randrange(n)
+        before = [r.randrange(target // max(i, 1) + 1) for _ in range(i)]
+        if sum(before) <= target:
+            weights[:i + 1] = before + [target - sum(before)]
     variations = bytearray(r.bytes(0x2a * max(n, 2)))
     for i in range(max(n, 2)):
         o = 0x2a * i
@@ -70,7 +85,9 @@ def case(r):
                      else struct.unpack('<f', struct.pack('<I', r.f()))[0])
     set_return(log, CMD_K, r.choice([1, 2, 3, 0, r.getrandbits(32)]))
     set_return(log, TIME_K, r.getrandbits(32))
-    d, variations = definition(r)
+    seed = r.getrandbits(32)
+    target = picked(seed)
+    d, variations = definition(r, target)
     voice = bytearray(r.bytes(0x50))
     struct.pack_into('<I', voice, 0, VVT)
     struct.pack_into('<I', voice, 4, r.choice([DEF] * 6 + [0]))
@@ -89,21 +106,28 @@ def case(r):
     struct.pack_into('<4i', params, 8, *box)
     listener = bytearray(12)
     for i, (lo, hi) in ((0, (box[0], box[2])), (2, (box[3], box[1]))):
-        v = r.choice([fb(float(lo)), fb(float(hi)), fb(r.uniform(min(lo, hi) - 50, max(lo, hi) + 50)), r.f()])
+        v = r.choice([fb(float(lo)), fb(float(hi)), fb(r.uniform(min(lo, hi) - 50, max(lo, hi) + 50)), r.f(), r.choice([0x7fc00000, 0xffc00000])])
         struct.pack_into('<I', listener, 4 * i, v)
     struct.pack_into('<I', listener, 4, r.f())
     system = bytearray(r.bytes(0x70))
     struct.pack_into('<I', system, 0, SVT)
+    struct.pack_into('<I', system, 0x28, r.choice([0, 0x80, 0x40, 0xc0, 0x81, 0x02, r.getrandbits(32)]))   # (0x43 and 0x80: the record's 0x820)
     struct.pack_into('<I', system, 0x2c, r.f() if r.random() < 0.3 else fb(r.uniform(0, 100)))
     for i in range(4):
         system[0x44 + i] = r.choice([0, 1, r.getrandbits(8)])
     struct.pack_into('<I', system, 0x60, LISTENER)
     samples = bytearray(r.bytes(0x80))
-    for i, t in enumerate(thresholds(r, 8)):
+    for i, t in enumerate(thresholds(r, 8, target)):
         struct.pack_into('<I', samples, 0x10 * i + 4, t if r.random() < 0.95 else r.getrandbits(32))
+    if name == 'audible' and r.random() < 0.4:   # a whole radius whose square is the distance
+        radius = r.randrange(100)
+        struct.pack_into('<I', variations, struct.unpack_from('<I', voice, 8)[0] - VARS + 0x22, fb(float(radius)))
+        struct.pack_into('<I', system, 0x2c, fb(float(radius)))
+        struct.pack_into('<I', voice, 0x40, fb(1.0))
+        set_float_return(log, 7, float(radius * radius))
     regions = {VOICE: voice, OUT: r.bytes(4), SYS: system, SVT: vtable({4: 2}), VVT: vtable({7: 0, 8: 1}), DEF: d, VARS: variations,
                SAMPLES: samples, PARAMS: params, LISTENER: listener, CMD: struct.pack('<I', CVT) + r.bytes(0xc),
-               CVT: struct.pack('<I', recorder(CMD_K, 0)), SYSTEM: struct.pack('<I', SYS), RANDOM: r.bytes(4), CLOCK: bytes(0x20),
+               CVT: struct.pack('<I', recorder(CMD_K, 0)), SYSTEM: struct.pack('<I', SYS), RANDOM: struct.pack('<I', seed), CLOCK: bytes(0x20),
                TIME_GET_TIME: struct.pack('<I', recorder(TIME_K, 0, True)), LOG: log, HEAP: heap(0x40, fail=r.choice([0, 0, 0, 1]))}
     if name == 'pending':
         return Call(address, [VOICE, OUT, r.choice([0, 1, 0xffff, 0x10000, r.getrandbits(32)])], regions, conv='t', ret=ret)
