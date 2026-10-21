@@ -3545,6 +3545,12 @@ address,name,kind,confidence,notes
 0x00412fb0,ObjectDefs_GetFullName,function,low,"reimplemented (src/game/world/objectdefs); thiscall (id, out, size), pops 12: the definition's full name text, else the object texts' full name"
 0x00413020,ObjectDefs_GetName,function,low,"reimplemented (src/game/world/objectdefs); thiscall (id, out, size), pops 12: the object texts' name, else the definition's +0x4f8 text"
 0x004130b0,ObjectDefs_GetSuffix,function,low,"reimplemented (src/game/world/objectdefs); thiscall (id, out, size), pops 12: the object texts' suffix, else the definition's +0x4fc text"
+0x004ca4c0,ObjectDefs_CountKind0WithControls14,function,low,reimplemented (src/game/world/objectdefs); stdcall (unused): the definitions of map kind 0 whose control record's +0x14 is above 0
+0x004ca510,ObjectDefs_CountKind1WithControls10,function,low,reimplemented (src/game/world/objectdefs); stdcall (unused): the definitions of map kind 1 whose control record's byte +0x10 is set
+0x004ca570,ObjectDefs_CountKind2WithControls10,function,low,reimplemented (src/game/world/objectdefs); stdcall (unused): the definitions of map kind 2 whose control record's byte +0x10 is set
+0x004ca5d0,ObjectDefs_CountKind3WithControls10,function,low,reimplemented (src/game/world/objectdefs); stdcall (unused): the definitions of map kind 3 whose control record's byte +0x10 is set
+0x004ca450,ObjectDefs_CountKind0WithControls10,function,low,"reimplemented (src/game/world/objectdefs); stdcall (flag): the definitions of map kind 0 whose control record's byte +0x10 is set, with +0xc4 0 or the flag"
+0x004ca7b0,ObjectDefs_CountKindWithControls18,function,low,"reimplemented (src/game/world/objectdefs); stdcall (kind, flag): the definitions of the kind whose control record's +0x18 is above 0, with +0xc4 0 or the flag"
 0x0050c100,Ring_PushUnique,function,high,reimplemented (src/game/core/rings); pushes an id and value unless they repeat the last pair
 0x004e0220,Obj_GetTrackedHandle,function,high,"reimplemented (src/game/world/object); the tracked handle, dropped when the thing no longer has the object's handle"
 0x004dd7f0,Object_SetCapacity,function,high,reimplemented (src/game/world/object); the capacity clamped to the definition's limits and stored
@@ -3572,6 +3578,7 @@ address,name,kind,confidence,notes
 0x004e0560,Object_ComputeRating,function,low,"reimplemented (src/game/world/object); thiscall (a, b, c), x87: a sideshow's 20 + 8% of c times the root of a - b, a coaster's 50 + half its float, a ride's base (with its track's pieces) times its speed and duration over the row's limits"
 0x004e0860,Object_Rating,function,low,"reimplemented (src/game/world/object); thiscall (flag): the definition's base rating for a flag, else Object_ComputeRating of the object's goods (a sideshow) or settings"
 0x004e0390,Object_InPoorCondition,function,low,"reimplemented (src/game/world/object); thiscall, x87: with flag 1 of +0x32, whether the low byte of __ftol(the condition +0x44) is below 25"
+0x004ca310,Objects_CountKind0InState1,function,low,reimplemented (src/game/world/object); cdecl: the world's objects of map kind 0 in state 1
 0x005d46d0,Blocks7_Free,function,high,reimplemented (src/game/core/buffers); frees the seven blocks of an object and clears its groups
 0x00424cc0,Names_FirstAfter,function,high,"reimplemented (src/game/core/string); whether the first name is after the second, case blind"
 0x00424cf0,Names_Equal,function,high,"reimplemented (src/game/core/string); whether two names are equal, case blind"

@@ -154,6 +154,50 @@ s32 __cdecl ObjectDefs_PercentWithControls() {
     return counted == 0 ? 0 : withControls * 100 / counted;
 }
 
+namespace {
+// The control record of a definition (by its id +0), quiet, in the game's table.
+const u8 *controls_of(const u8 *def) {
+    u8 *game = *reinterpret_cast<u8 **>(0x0080239c);
+    return ObjectControls_FindUncached(game + 0x1d943c, nullptr, at<u16>(def, 0), 0);
+}
+
+s32 count_kind_controls10(u32 kind) {
+    u8 *defs = reinterpret_cast<u8 *>(0x007890a0);
+    s32 count = 0;
+    for (u8 *def = ObjectDefs_First(defs); def; def = ObjectDefs_Next(defs))
+        if (at<u32>(def, 0x4ac) == kind && at<u8>(controls_of(def), 0x10)) ++count;
+    return count;
+}
+}  // namespace
+
+s32 __stdcall ObjectDefs_CountKind0WithControls14(u32) {
+    u8 *defs = reinterpret_cast<u8 *>(0x007890a0);
+    s32 count = 0;
+    for (u8 *def = ObjectDefs_First(defs); def; def = ObjectDefs_Next(defs))
+        if (at<u32>(def, 0x4ac) == 0 && at<s32>(controls_of(def), 0x14) > 0) ++count;
+    return count;
+}
+
+s32 __stdcall ObjectDefs_CountKind1WithControls10(u32) { return count_kind_controls10(1); }
+s32 __stdcall ObjectDefs_CountKind2WithControls10(u32) { return count_kind_controls10(2); }
+s32 __stdcall ObjectDefs_CountKind3WithControls10(u32) { return count_kind_controls10(3); }
+
+s32 __stdcall ObjectDefs_CountKind0WithControls10(u32 flag) {
+    u8 *defs = reinterpret_cast<u8 *>(0x007890a0);
+    s32 count = 0;
+    for (u8 *def = ObjectDefs_First(defs); def; def = ObjectDefs_Next(defs))
+        if (at<u32>(def, 0x4ac) == 0 && at<u8>(controls_of(def), 0x10) && (at<u32>(def, 0xc4) == 0 || (u8)flag)) ++count;
+    return count;
+}
+
+s32 __stdcall ObjectDefs_CountKindWithControls18(u32 kind, u32 flag) {
+    u8 *defs = reinterpret_cast<u8 *>(0x007890a0);
+    s32 count = 0;
+    for (u8 *def = ObjectDefs_First(defs); def; def = ObjectDefs_Next(defs))
+        if (at<u32>(def, 0x4ac) == kind && at<s32>(controls_of(def), 0x18) > 0 && ((u8)flag || at<u32>(def, 0xc4) == 0)) ++count;
+    return count;
+}
+
 u32 __stdcall ObjectControls_GetWord18(u32 id) {
     u8 *game = *reinterpret_cast<u8 **>(0x0080239c);
     return at<u32>(ObjectControls_FindUncached(game + 0x1d943c, nullptr, id, 0), 0x18);
