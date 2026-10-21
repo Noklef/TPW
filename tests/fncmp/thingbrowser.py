@@ -53,6 +53,7 @@ PANEL, KIDS, VT, OBJ, OVT = RAM + 0x30000, RAM + 0x30200, RAM + 0x30800, RAM + 0
 PARENT = RAM + 0x3000   # (GroupHandler's: past radiogroup.py's group and children, before window.py's queues' end)
 MANAGER = RAM + 0x30c00
 BROWSER, EMPTY, DIALOG, OTHER, OPEN_KIDS = RAM + 0x31000, RAM + 0x31200, RAM + 0x31400, RAM + 0x31600, RAM + 0x34000
+CLOSING = RAM + 0x31800   # (Open's [0x7c24c8])
 SELECT = {1: 0x964, 4: 0x95f, 5: 0x95e, 6: 0x961, 7: 0x962, 8: 0x960}   # (Open: the kinds' buttons)
 dialogbuild.DIALOGS['ThingBrowser_Create'] = (0x7cc304, 0x756ad8, (0x147,), ())   # (scripted()'s script, replaced below)
 
@@ -167,7 +168,9 @@ def open_case(r):
     regions[PANEL] = panel
     regions[VT] = vtable({9: 1, 7: 1})
     dialog = plain(r, r.getrandbits(32))
-    regions[OTHER] = put(plain(r, r.choice([0x21, 0x21, 1, r.getrandbits(32)]), 0, DIALOG), 0xa8, 'I', r.choice([0, 0, 0, 1]))   # (0x21: posted to unless its dword 2 is set)
+    other = put(plain(r, r.choice([0x21, 0x21, 1, r.getrandbits(32)]), 0, DIALOG), 0xa8, 'I', r.choice([0, 0, 0, 1]))   # (0x21: posted to unless its dword 2 is set)
+    other[4] = r.choice([0, 0, 1])   # (sent to unless its byte +4 is set)
+    regions[OTHER] = other
     if r.random() < 0.5:
         put(dialog, 0x5c, 'I', OTHER)
     regions[DIALOG] = dialog
@@ -197,7 +200,12 @@ def open_case(r):
             regions[k] = v
     set_return(log, 20, r.choice([0, 1, 5, 100, -1, r.getrandbits(32)]))
     masks = [Mask(m.region, m.offsets + [0x16d0 + k for k in (2, 3, 0x17)], m.reason) for m in adv.masks]
-    regions[0x7c24c8] = struct.pack('<I', 0)
+    regions[0x7c24c8] = struct.pack('<I', r.choice([0, CLOSING]))   # (a window to close: sent 5, then the focus restored to nothing)
+    closing = put(plain(r, r.getrandbits(32)), 0x114, 'I', CDECL_LOG4)
+    closing[4] = 0
+    regions[CLOSING] = closing
+    for g in (0x7c2534, 0x7cb2ac, 0x7cb2b0, 0x7cc8bc, 0x7cc8c0, 0xf82884):
+        regions[g] = bytes(4)
     regions[HEAP] = heap(0x1000, r.choice([0] * 8 + [1, 2, 3, 4]))
     regions[focus.MODE_VT] = vtable({0: 1})
     regions[focus.MODE] = put(bytearray(r.bytes(0x10)), 0, 'I', focus.MODE_VT)
