@@ -22,5 +22,16 @@ u32 __fastcall StreamFilter_Seek(u8 *stream, void *, u32 position);
 u32 __fastcall StreamFilter_SetFormat(u8 *stream, void *, u32 format);
 // 0x6d4cf0 (slot 9 of 0x70abf8, thiscall (out, record), pops 8): the inner stream's slot 9 (out, record); returns the out.
 u32 *__fastcall StreamFilter_Query(u8 *stream, void *, u32 *out, u8 *record);
+// 0x6c64f0 (thiscall (record), pops 4; slot 5 of 0x70a678 / 0x70aba8): the inner stream's slot 5 (record), then, when the record's byte
+// +0x18 has bit 6, SetThenFlag44_14_6c5110 on it with the loops left (+0x14). Returns what the last call answered.
+u32 __fastcall StreamFilter_Describe(u8 *stream, void *, u8 *record);
+// 0x6c64a0 (thiscall (out, record), pops 8; slot 9 of 0x70a678 / 0x70aba8): StreamFilter_Query's status (into a local: the record's own
+// stack slot); negative: *out = -1. Else, when the record's +0x14 has bit 6, the loops left (+0x14) = the record's +0x44; *out = 0.
+// Returns the out.
+u32 *__fastcall StreamFilter_QueryLoops(u8 *stream, void *, u32 *out, u8 *record);
+// 0x6c6520 (thiscall (buffer, count, done, unused), pops 0x10; slot 7 of 0x70a678): *done = 0, then while it is below the count: the
+// next stream's (+4) read (slot 7: buffer + *done, the count left, a local got and 1); its answer 1 takes a loop (9999 stays): none
+// left returns 1 (got not added), else the inner stream's (slot 18) slot 8 restarts it. *done += got. Returns 0.
+u32 __fastcall StreamFilter_Read(u8 *stream, void *, u8 *buffer, u32 count, u32 *done, u32 unused);
 
 }  // extern "C"
