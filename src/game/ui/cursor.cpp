@@ -4,6 +4,7 @@
 
 #include "../core/accessors.h"
 #include "../core/gameheap.h"
+#include "../core/initializers.h"
 #include "../core/vcall.h"
 
 namespace {
@@ -11,7 +12,37 @@ namespace {
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
+const GameCursorsEnv kGameEnv = {
+    reinterpret_cast<u8 *(__cdecl *)(const char *)>((uintptr_t)0x004895b0),
+    reinterpret_cast<u8 *(__cdecl *)(const char *)>((uintptr_t)0x00489670),
+};
+const GameCursorsEnv *g_env = &kGameEnv;
+
+// A cursor file and its slot.
+struct CursorFile {
+    const char *name;
+    u16 slot;
+};
+
+const CursorFile kAniCursors[] = {
+    {"c_norm.ani", 0},     {"c_busy.ani", 1},     {"c_path.ani", 3},      {"c_queue.ani", 4},    {"c_link.ani", 5},
+    {"c_place.ani", 7},    {"c_noplace.cur", 8},  {"c_pick.ani", 2},      {"c_carry.ani", 9},    {"c_erase.ani", 0xa},
+    {"c_pylon.ani", 0xb},  {"c_cam.ani", 0x13},   {"c_cash.ani", 0x14},   {"c_track.ani", 6},    {"c_height.ani", 0xc},
+    {"c_rotate.ani", 0xd}, {"c_pivot.ani", 0xe},  {"c_swapdown.ani", 0xf}, {"c_swapup.ani", 0x10}, {"c_end.ani", 0x12},
+    {"c_move.ani", 0x11},  {"c_crosshair.ani", 0x15},
+};
+
+const CursorFile kTgaCursors[] = {
+    {"CNor.tga", 0},    {"Cbus.tga", 1},    {"Cpat.tga", 3},    {"Cque.tga", 4},    {"Clin.tga", 5},   {"Cpla.tga", 7},
+    {"Cnog.tga", 8},    {"Cpic.tga", 2},    {"Ccar.tga", 9},    {"Cera.tga", 0xa},  {"Cpyl.tga", 0xb}, {"Ccam.tga", 0x13},
+    {"Cash.tga", 0x14}, {"Ctra.tga", 6},    {"Chei.tga", 0xc},  {"Crot.tga", 0xd},  {"Cpiv.tga", 0xe}, {"Csdn.tga", 0xf},
+    {"Csup.tga", 0x10}, {"CEnd.tga", 0x12}, {"CMov.tga", 0x11}, {"CCro.tga", 0x15},
+};
+
 }  // namespace
+
+void GameCursors_SetEnv(const GameCursorsEnv *e) { g_env = e ? e : &kGameEnv; }
+const GameCursorsEnv *GameCursors_GetEnv() { return g_env; }
 
 extern "C" {
 
@@ -36,6 +67,13 @@ u16 __fastcall CursorTable_Init(u8 *table, void *, u32 count) {
     if (!at<u8 **>(table, 0)) return 0;
     for (s32 i = 0; i < (s32)(count & 0xffff); ++i) at<u8 **>(table, 0)[i] = nullptr;
     at<u16>(table, 4) = (u16)count;
+    return 1;
+}
+
+u16 __fastcall CursorTable_Set(u8 *table, void *, u32 index, u8 *cursor) {
+    const u32 i = index & 0xffff;
+    if (i >= at<u16>(table, 4) || !cursor || at<u8 **>(table, 0)[i]) return 0;
+    at<u8 **>(table, 0)[i] = cursor;
     return 1;
 }
 
@@ -109,6 +147,24 @@ void __cdecl GameCursor_Update() {
     }
     if (Global816d48_Get()) GameCursor_Set(8);
     if (global<u32>(0x00816d5c)) GameCursor_Set(0x14);
+}
+
+void __cdecl GameCursors_LoadAni() {
+    u8 *const table = reinterpret_cast<u8 *>((uintptr_t)0x007b9e88);
+    for (const CursorFile &f : kAniCursors) {
+        if (u8 *const cursor = g_env->loadAni(f.name)) CursorTable_Set(table, nullptr, f.slot, cursor);
+    }
+}
+
+void __cdecl GameCursors_LoadTga() {
+    u8 *const table = reinterpret_cast<u8 *>((uintptr_t)0x007b9ab0);
+    for (const CursorFile &f : kTgaCursors) {
+        u8 *const cursor = g_env->loadTga(f.name);
+        if (!cursor) continue;
+        CursorTable_Set(table, nullptr, f.slot, cursor);
+        if (f.slot == 9) Fn_6618c7(cursor, nullptr, 10, 0x40);
+        else if (f.slot == 0x15) Fn_6618c7(cursor, nullptr, 0x10, 0x10);
+    }
 }
 
 }

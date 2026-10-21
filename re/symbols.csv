@@ -5495,6 +5495,9 @@ address,name,kind,confidence,notes
 0x00661c36,CursorTable_Clear,function,low,"reimplemented (src/game/ui/cursor); thiscall: each cursor entry deleted (slot 0 (1)), the array freed, the count word 0"
 0x00661cca,CursorTable_Init,function,low,"reimplemented (src/game/ui/cursor); thiscall (count: word), pops 4: a zeroed array of count entries (Mem_Alloc) and the count set; 1 in AX, 0 when the allocation fails"
 0x00659248,Gui_SetCursorTable,function,low,"reimplemented (src/game/ui/cursor); cdecl (table): a new cursor table made current: the old cursor hidden (slot 4 (0)), the current id's entry shown (slot 4 (1)) and made current"
+0x00661d3f,CursorTable_Set,function,low,"reimplemented (src/game/ui/cursor); thiscall (index, cursor), pops 8: the cursor stored in an empty entry below the count; 1 or 0 in AX"
+0x00489720,GameCursors_LoadAni,function,low,reimplemented (src/game/ui/cursor); cdecl: the 22 .ani / .cur cursor files loaded (0x4895b0) into the table 0x7b9e88's slots
+0x004899c0,GameCursors_LoadTga,function,low,"reimplemented (src/game/ui/cursor); cdecl: the 22 .tga cursor files loaded (0x489670) into the table 0x7b9ab0's slots, the carry and crosshair cursors' bytes +5 / +6 set"
 0x00492d80,TextButton_Handler,function,low,"reimplemented (src/game/ui/textbutton); cdecl (window, message, a, b): 0x10006 plays the interface sound 0xc1 and sends the parent 0x100001 (id +0x8c, 0), 0; 0x14 releases the text row (Window_DwordA0 1); else Window_CallDefault"
 0x0048c8d0,Global7c2534_HasSource,function,low,reimplemented (src/game/ui/focus); whether the object at 0x7c2534 has its +0xc set (name unconfirmed)
 0x004862a0,Focus_Restore,function,low,reimplemented (src/game/ui/focus); the focus given back to the first shown of the game's windows (name unconfirmed)
