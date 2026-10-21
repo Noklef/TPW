@@ -82,6 +82,8 @@ def case(r):
         return Call(address, [SLOT, OUT, VEC], regions, conv='t', ret=ret)
     if name == 'pitch':
         steps = r.choice([0, r.randrange(-0x180, 0x181), r.randrange(-0x180, 0x181), r.randrange(-0x180, 0x181)])
+        if r.random() < 0.3:   # (the step's own entry a NaN: the positive steps' fld / fstp quietens a signalling one)
+            struct.pack_into('<I', regions[PITCH], 0x10 + 4 * steps if steps >= 0 else 0x610 + 4 * -steps, r.choice(NANS))
         return Call(address, [SLOT, OUT, steps & 0xffffffff], regions, conv='t', ret=ret)
     return Call(address, [SLOT, OUT, r.choice([r.randrange(0, 0x80), r.randrange(0, 0x80), 0x7f, r.getrandbits(32)])], regions, conv='t', ret=ret)
 
