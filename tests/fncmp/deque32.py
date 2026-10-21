@@ -1,5 +1,5 @@
 # The sound code's deques of dwords (src/game/core/dequeiter: Deque32_*) against the originals: a deque at DEQ of 0 to ~2600 dwords in
-# blocks of 0x1000 bytes at BLOCKS (its first element anywhere in the first block), the blocks' slots somewhere in a map of up to 12 at MAP
+# blocks of 0x1000 bytes at BLOCKS in any order (its first element anywhere in the first block), the blocks' slots somewhere in a map of up to 12 at MAP
 # (other slots garbage); its map allocation (0x6c2990), the block release at the front and back (0x6c2910 / 0x6c2ca0, the count 0 or not),
 # pop_front (0x6c1550), the new back block (0x6c1940: an empty deque, a slot left after the end's, or the map grown), copy and copy_backward
 # (0x6c3010 / 0x6c2f80) between positions in it, and erase(first, last) (0x6c15f0) of any stretch, nearer the front or the back.
@@ -31,17 +31,18 @@ def build(r, count=None, room=None):
     first = r.randrange(0, 3)
     slots = first + blocks + room
     m = bytearray(r.bytes(4 * slots))
+    place = r.sample(range(blocks + 1), blocks + 1)   # the blocks in any order, one spare among them (so no block is its neighbour's next)
     for i in range(blocks):
-        struct.pack_into('<I', m, 4 * (first + i), BLOCKS + 0x1000 * i)
+        struct.pack_into('<I', m, 4 * (first + i), BLOCKS + 0x1000 * place[i])
 
     def it(p):
         q = off + p
-        b = BLOCKS + 0x1000 * (q // 0x400)
+        b = BLOCKS + 0x1000 * place[q // 0x400]
         return [b, b + 0x1000, b + 4 * (q % 0x400), MAP + 4 * (first + q // 0x400)]
 
     deq = bytearray(r.bytes(0x30))
     struct.pack_into('<4I4I3I', deq, 4, *it(0), *it(count), MAP, slots, count)
-    regions = {DEQ: deq, MAP: m, BLOCKS: r.bytes(0x1000 * blocks), OUT: r.bytes(0x10), HEAP: heap(0x6000)}
+    regions = {DEQ: deq, MAP: m, BLOCKS: r.bytes(0x1000 * (blocks + 1)), OUT: r.bytes(0x10), HEAP: heap(0x6000)}
     return regions, it, count
 
 
