@@ -8,6 +8,7 @@
 #include "../math/x87.h"
 #include "../render/particles.h"
 #include "trackpools.h"
+#include "things.h"
 
 namespace {
 
@@ -688,5 +689,21 @@ s32 __cdecl TrakRide_AddSection(u32 handle, s32 x, s32 y, u32 piece, u32 a, u32 
         }
     }
     return 1;
+}
+
+u16 *__cdecl TrakRide_FindThing(u16 *out, u32 ride) {
+    void *const world = global<void *>(0x007cf83c);
+    u16 handle;
+    World_FirstThing(world, nullptr, &handle);
+    while (handle != 0) {
+        const u8 *const thing = global<const u8 *>(0x007cfb90 + handle * 20u);
+        if (thing[2] == 3 && at<u32>(thing, 0x28) == ride) {
+            *out = *Thing_GetHandle(thing, nullptr, &handle);
+            return out;
+        }
+        handle = *World_NextThing(world, nullptr, &handle, thing);
+    }
+    *out = 0;
+    return out;
 }
 }
