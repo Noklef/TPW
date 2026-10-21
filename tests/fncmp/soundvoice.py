@@ -79,8 +79,9 @@ def definition(r, target):
     return d, variations
 
 
-def branch(r, voice, params, regions):
-    """The switch voice's node, its branches and the definition whose first variation it is; the voice's +8 and +4, its parameter block."""
+def branch(r, voice, params, regions, seed):
+    """The switch voice's node, its branches and the definition whose first variation it is; the voice's +8 and +4, its parameter block.
+    Returns the value; now and then the matching branches' running sum meets the random number exactly (their sum above it)."""
     n = r.choice([0, 1, 2, 3, 4, 6, 8, 8])
     node = bytearray(r.bytes(0x40))
     struct.pack_into('<HHI', node, 0, r.choice([0, 0, 1, r.getrandbits(16)]), r.getrandbits(16), n)
@@ -94,12 +95,24 @@ def branch(r, voice, params, regions):
         struct.pack_into('<I', branches, 0x2a * i + 0x1e, r.choice([r.randrange(1, 100), r.randrange(1, 0x10000), r.getrandbits(28) | 1]))
         for at in (0x16, 0x1a):
             struct.pack_into('<H', branches, 0x2a * i + at, r.choice([0, 0, r.getrandbits(16)]))
+    value = r.choice([r.randrange(0, 0x40), r.randrange(0, 0x40), 0, 0xff, r.getrandbits(8), r.getrandbits(32)])
+    matching = [i for i in range(n) if entries[8 * i + 6] <= value <= entries[8 * i + 7]]
+    s = (seed * 0x19660d + 0x3c6ef35f) & 0xffffffff
+    target = (s >> 13 | s << 19) & 0xffffffff
+    if len(matching) >= 2 and target < 0xffff0000 and r.random() < 0.4:
+        k = r.randrange(1, len(matching))
+        cut = sorted(r.randrange(target + 1) for _ in range(k - 1))
+        weights = [b - a for a, b in zip([0] + cut, cut + [target])] + [r.randrange(1, 0x8000) for _ in matching[k:]]
+        weights[0] = weights[0] or 1   # (a zero sum before the target would leave it unreached; the total stays above the target)
+        for i, w in zip(matching, weights):
+            struct.pack_into('<I', branches, 0x2a * i + 0x1e, w)
     current = r.choice([NODE, NODE, NODE, 0])
     struct.pack_into('<II', voice, 4, DEF2 if not current or r.random() < 0.7 else 0, current)
     struct.pack_into('<I', voice, 0x4c, PARAMS)
     definition = bytearray(r.bytes(0x20))
     struct.pack_into('<I', definition, 8, NODE)
     regions.update({NODE: node, ENTRIES: entries, BRANCHES: branches, DEF2: definition})
+    return value
 
 
 def case(r):
@@ -168,13 +181,12 @@ def case(r):
                CVT: struct.pack('<I', recorder(CMD_K, 0)), SYSTEM: struct.pack('<I', SYS), RANDOM: struct.pack('<I', seed), CLOCK: bytes(0x20),
                TIME_GET_TIME: struct.pack('<I', recorder(TIME_K, 0, True)), LOG: log, HEAP: heap(0x40, fail=r.choice([0, 0, 0, 1]))}
     if name in ('branch', 'switch'):
-        branch(r, voice, params, regions)
-        value = r.choice([r.randrange(0, 0x40), r.randrange(0, 0x40), 0, 0xff, r.getrandbits(8), r.getrandbits(32)])
+        value = branch(r, voice, params, regions, seed)
         params[4] = value & 0xff
         return Call(address, [VOICE, value if name == 'branch' else r.getrandbits(32)], regions, conv='t', ret=ret)
     if name == 'next':
         n = struct.unpack_from('<I', d, 4)[0]
-        struct.pack_into('<I', voice, 8, r.choice([0, VARS + 0x2a * r.randrange(n + 2), VARS + 0x2a * max(n - 1, 0), VARS - 0x2a, VARS + r.randrange(1, 0x2a)]))
+        struct.pack_into('<I', voice, 8, r.choice([0, VARS + 0x2a * r.randrange(n + 2), VARS + 0x2a * max(n - 1, 0), VARS - 0x54, VARS + r.randrange(1, 0x2a)]))
         struct.pack_into('<I', voice, 0x30, r.getrandbits(32))
         return Call(address, [VOICE, r.getrandbits(32)], regions, conv='t', ret=ret)
     if name == 'pending':
