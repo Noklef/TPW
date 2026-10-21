@@ -2,7 +2,8 @@
 // (0x400: its voices are run through the mixer), +0x2c a float, +0x44 four bytes, +0x48 an array of floats. Settings reach it as stack
 // functors (a vtable whose slot 0 is thiscall (out, channel), pops 8, and the functor's data); +0x14 a source's info (+0 and +8 read),
 // +0x18 its source object, +0x20 its EAX buffer (soundeax); +8 its position (three floats). Reimplementation of 0x6b7d70, 0x6b8b40, 0x6b5e40,
-// 0x6b5e60, 0x6b7910, 0x6b7970, 0x6b79d0, 0x6b7b60 and 0x6b7e60; the names are unconfirmed.
+// 0x6b5e60, 0x6b7910, 0x6b7970, 0x6b79d0, 0x6b7b60, 0x6b7e60, 0x6b90d0 and 0x6b9930; the names are unconfirmed. The setters build a
+// settings record on the stack (Init_6b9c50, then its fields) and apply it with the functor 0x70a278 (SoundChannel_Apply).
 #pragma once
 
 #include "../../../re/types.h"
@@ -40,6 +41,15 @@ u32 *__fastcall SoundChannel_SetPosition(u8 *channel, void *, u32 *out, u8 *sett
 // (the id, twelve dwords of EAX 2.0 buffer properties: 0 but for the levels (the 6th and 8th) and 0.25, 0.5 and 1.0 (9th, 10th, 12th));
 // else its slot 0x15 (a local out, the id, 1 - the occlusion, 0.5 at least: 0.5 when above it, NaN kept).
 void __fastcall SoundChannel_UpdateOcclusion(u8 *channel, void *, u8 eax);
+
+// 0x6b90d0 (thiscall (out, a, b, c), pops 0x10): flags (+0x28) bit 3 set when a is nonzero, else cleared; a settings record whose +4
+// gets bit 2 (and the flags bit 8) when b is nonzero, bit 3 when c is; applied (so the source's slot 5 gets +4 when nonzero). Returns out.
+u32 *__fastcall SoundChannel_SetMode(u8 *channel, void *, u32 *out, u32 a, u32 b, u32 c);
+// 0x6b9930 (thiscall (out, position, direction, value), pops 0x10): +0x60 = the position (a vector pointer); a settings record with
+// the position (+0x50, bit 2) and the direction and value (+0x54 / +0x58, bit 3: Obj_Set54And58Flag8), +4 bit 11 when the flags (+0x28)
+// have bit 7 and one of bits 0, 1, 6; applied (SoundChannel_SetPosition, the occlusion with bit 11, the direction scaled to a unit
+// vector to the source's slot 0x23). Returns out.
+u32 *__fastcall SoundChannel_SetPlacement(u8 *channel, void *, u32 *out, u32 position, u32 direction, u32 value);
 
 // 0x6b7d70 (thiscall (out, settings), pops 8): fills a settings record (made by Init_6b9c50: +4 and +8 the asked-for flags, +0x4c the
 // flags of what was filled) from the channel: +4 bit 8 cleared with an EAX buffer, or with a source whose slot 0x13 answers 0; +4 bit 9

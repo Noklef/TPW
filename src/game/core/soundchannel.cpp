@@ -7,6 +7,8 @@
 #include "../math/vector.h"
 #include "../math/x87.h"
 #include "channelvoice.h"
+#include "fieldops.h"
+#include "initializers.h"
 #include "soundeax.h"
 #include "soundoccluders.h"
 #include "thunks.h"
@@ -31,6 +33,13 @@ u32 *source_eax(u8 *channel, u32 *out, u8 *settings) {
 
 // A voice's id as the source knows it: +0x2c shifted right by the byte at 0x782db8.
 u32 voice_id(const u8 *voice) { return at<u32>(voice, 0x2c) >> (global<u8>(0x00782db8) & 31); }
+
+// A settings record (0x70 bytes on the stack, Init_6b9c50's fields set) applied with the functor 0x70a278.
+u32 *apply_settings(u8 *channel, u32 *out, u8 *record) {
+    u32 functor[2] = {0x0070a278, (u32)(uintptr_t)record};
+    SoundChannel_Apply(channel, nullptr, out, reinterpret_cast<u8 *>(functor));
+    return out;
+}
 
 // fld; fistp (to nearest; out of range 0x80000000, as cvtss2si).
 s32 fistp(float x) { return _mm_cvtss_si32(_mm_set_ss(x)); }
@@ -208,6 +217,32 @@ void __fastcall SoundChannel_UpdateOcclusion(u8 *channel, void *, u8 eax) {
         }
         voice += 0x8c;
     } while (voice < end);
+}
+
+u32 *__fastcall SoundChannel_SetMode(u8 *channel, void *, u32 *out, u32 a, u32 b, u32 c) {
+    if (a)
+        at<u32>(channel, 0x28) |= 8;
+    else
+        at<u32>(channel, 0x28) &= ~8u;
+    u8 record[0x70];
+    Init_6b9c50(record);
+    if (b) {
+        at<u32>(channel, 0x28) |= 0x100;
+        at<u32>(record, 4) |= 4;
+    }
+    if (c) at<u32>(record, 4) |= 8;
+    return apply_settings(channel, out, record);
+}
+
+u32 *__fastcall SoundChannel_SetPlacement(u8 *channel, void *, u32 *out, u32 position, u32 direction, u32 value) {
+    u8 record[0x70];
+    Init_6b9c50(record);
+    at<u32>(channel, 0x60) = position;
+    SetThenFlag50_4c_6b9c70(record, nullptr, position);
+    Obj_Set54And58Flag8(record, nullptr, direction, value);
+    const u32 flags = at<u32>(channel, 0x28);
+    if ((flags & 0x43) && (flags & 0x80)) at<u32>(record, 4) |= 0x800;
+    return apply_settings(channel, out, record);
 }
 
 }  // extern "C"

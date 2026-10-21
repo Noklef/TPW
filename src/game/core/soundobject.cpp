@@ -2,6 +2,9 @@
 
 #include <cstdint>
 
+#include "fieldops.h"
+#include "initializers.h"
+#include "soundchannel.h"
 #include "soundmixer.h"
 #include "vcall.h"
 
@@ -60,6 +63,21 @@ u32 *__fastcall SoundObject_SendVoice(u8 *object, void *, u32 *out, u32 id, u32 
     u8 *const channel = at<u8 *>(object, 0x24);
     if (channel && (at<u32>(channel, 0x28) & 0x400)) return SoundMixer_SendVoice(at<u8 *>(object, 0x20), nullptr, out, id, value);
     vcall<void>(object, 0x18, out, id);
+    return out;
+}
+
+u32 *__fastcall SoundObject_SetVoices(u8 *object, void *, u32 *out, u32 count) {
+    if (at<u32>(object, 0x1c) == count) {
+        *out = 0;
+        return out;
+    }
+    at<u32>(object, 0x1c) = count;
+    if (u8 *const mixer = at<u8 *>(object, 0x20)) Obj_Set4cMin1e(mixer, nullptr, count);
+    u8 record[0x70];
+    Init_6b9c50(record);
+    SetThenFlag40_4c_6b9cf0(record, nullptr, at<u32>(object, 0x1c));
+    u32 functor[2] = {0x0070a278, (u32)(uintptr_t)record};
+    SoundChannel_Apply(at<u8 *>(object, 0x24), nullptr, out, reinterpret_cast<u8 *>(functor));
     return out;
 }
 
