@@ -18,6 +18,17 @@ float *matrix(const u8 *model) {
     return reinterpret_cast<float *>(at<u8 *>(at<u8 *>(at<u8 *>(entry(model), 8), 4), 0x78) + 0x10);
 }
 
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
+// v (three floats) over its length sqrt(x * x + y * y + z * z), in place.
+void Normalise(float *v) {
+    const X87Reg x = v[0], y = v[1], z = v[2];
+    const X87Reg length = X87_Sqrt(x * x + y * y + z * z);
+    v[0] = (float)(X87Reg(v[0]) / length);
+    v[1] = (float)(X87Reg(v[1]) / length);
+    v[2] = (float)(X87Reg(v[2]) / length);
+}
+
 }  // namespace
 
 extern "C" {
@@ -85,5 +96,44 @@ void __fastcall LobbyModel_AlignTo(const u8 *model, void *, const float *v) {
 u32 __fastcall LobbyModel_TimeLeft(const u8 *model) {
     if (at<u32>(model, 4) == 0) return 0;
     return Layer_GetPlayback(entry(model), nullptr, nullptr, nullptr, 0);
+}
+
+void __fastcall LobbyFlyer_Step(u8 *flyer) {
+    float *const pos = &at<float>(flyer, 0x30);
+    float *const heading = &at<float>(flyer, 0x48);
+    float *const wanted = &at<float>(flyer, 0x54);
+    float d[3];
+    for (u32 k = 0; k < 3; ++k)
+        d[k] = (float)(X87Reg(at<float>(flyer, 0x3c + 4 * k)) - pos[k]);
+    for (u32 k = 0; k < 3; ++k)
+        wanted[k] = d[k];
+    Normalise(wanted);
+    const X87Reg turn = X87Reg(at<float>(global<u8 *>(0x00f82884), 8)) * global<float>(0x00702ae4);   // 0.1
+    for (u32 k = 0; k < 3; ++k)
+        heading[k] = (float)((X87Reg(wanted[k]) - heading[k]) * turn + heading[k]);
+    Normalise(heading);
+    const X87Reg step = X87Reg(at<float>(flyer, 0x28)) * at<float>(global<u8 *>(0x00f82884), 8);
+    pos[0] = (float)(step * heading[0] + pos[0]);
+    pos[1] = (float)(X87Reg(heading[1]) * step + pos[1]);
+    pos[2] = (float)(X87Reg(heading[2]) * step + pos[2]);
+    const X87Reg dx = X87Reg(at<float>(flyer, 0x3c)) - pos[0];
+    const X87Reg dy = X87Reg(at<float>(flyer, 0x40)) - pos[1];
+    const X87Reg dz = X87Reg(at<float>(flyer, 0x44)) - pos[2];
+    const X87Reg reach = dx * dx + dy * dy + dz * dz;
+    const float limit = at<float>(flyer, 0x2c);
+    if (reach.v < limit || reach.v != reach.v || limit != limit) {   // (below or unordered)
+        for (u32 k = 0; k < 3; ++k) {
+            u8 *const scene = global<u8 *>(0x00f82884);
+            const u32 next = at<u32>(scene, 0x34) * 0x19660du + 0x3c6ef35fu;
+            at<u32>(scene, 0x34) = next;
+            const u32 turned = next >> 13 | next << 19;
+            at<u32>(scene, 0x34) = turned;
+            const float extent = at<float>(flyer, 0x1c + 4 * k);
+            const X87Reg r = X87Reg((double)(turned & 0x3fffffff)) * global<float>(0x00702adc) * extent;   // 2^-30
+            at<float>(flyer, 0x3c + 4 * k) = (float)(r - X87Reg(extent) * global<float>(0x00702ae0) + at<float>(flyer, 0x10 + 4 * k));   // 0.5
+        }
+    }
+    LobbyModel_AlignTo(at<u8 *>(flyer, 8), nullptr, heading);
+    LobbyModel_SetPosition(at<u8 *>(flyer, 8), nullptr, pos);
 }
 }
