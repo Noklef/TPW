@@ -1,11 +1,11 @@
 # The track's section records placed along it by zone (0x4402d0, src/game/coaster/trackmesh) against the original: the current coaster
 # [0x792218] as coaster.py's FrameAt one (twelve nodes over two rings of spline nodes, their +0 any sign), its length (+0xa8) mostly short
 # (a few quarter steps; the frame is costly in the emulator), its build (+4) with 1-4 zone boxes (+0x78, count +0x7c: the t range about 0,
-# the yaw / pitch / roll ranges parts of +-pi so that the zone changes along the track, +0x20 one of four zones or 0, +0x24 / +0x28 a
-# pair of them for the transitions) and the box flag +0x74 bit 0 mostly; each zone's +0x14 a blend length (positive, 0 or negative; no
-# NaN: the spline value at the position plus a NaN length walks the ring of spline nodes forever, in the original too, as does a
-# position past the ring's last distance, so the length stays below 7.25 + 1.5 < 9). The track [0x790fe4] (its +0x38-+0x58 and orientation +0x3c written), the fixed records 0x7925e8 / 0x7923f0 and the
-# records from 0x792600 (room for 0x100).
+# the yaw / pitch / roll ranges parts of +-pi so that the zone changes along the track, +0x20 one of four zones or 0, +0x24 / +0x28 a pair
+# of them for the transitions, mostly of the zones the boxes have) and the box flag +0x74 bit 0 mostly; each zone's +0x14 a blend length
+# (positive, 0 or negative; no NaN: the spline value at the position plus a NaN length walks the ring of spline nodes forever, in the
+# original too, as does a position past the ring's last distance, so the length stays below 7.25 + 1.5 < 9). The track [0x790fe4] (its
+# +0x38-+0x58 and orientation +0x3c written), the fixed records 0x7925e8 / 0x7923f0 and the records from 0x792600 (room for 0x100).
 # usage: trackzones.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -57,12 +57,15 @@ def case(r):
     pick = [ZONES + 0x20 * j for j in range(4)] + [0]
     count = r.choice([1, 2, 3, 4, 4])
     boxes = bytearray(r.bytes(0x2c * 5))
+    own = [r.choice(pick[:4] + [0] if k else pick[:4]) for k in range(count)]
+    used = [z for z in own if z]   # (the transitions mostly between zones the boxes have, so that they are found)
     for k in range(count):
         lo = r.choice([-1.0, -1.0, r.uniform(-1, 0.5)])
         put(boxes, k * 0x2c, 'ff', lo, lo + r.choice([2.0, r.uniform(0, 2)]))
         for j in range(1, 4):
             put(boxes, k * 0x2c + 8 * j, 'ff', *angle_range(r))
-        put(boxes, k * 0x2c + 0x20, 'III', r.choice(pick[:4] + [0] if k else pick[:4]), r.choice(pick), r.choice(pick))
+        pair = (r.choice(used), r.choice(used)) if r.random() < 0.7 else (r.choice(pick), r.choice(pick))
+        put(boxes, k * 0x2c + 0x20, 'III', own[k], *pair)
     regions[BOXES] = boxes
     build = bytearray(r.bytes(0x100))
     put(build, 0x74, 'I', r.choice([1, 1, 1, 0, r.getrandbits(32)]))
