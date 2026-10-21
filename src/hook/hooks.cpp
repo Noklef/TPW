@@ -134,6 +134,7 @@
 #include "../game/gfx/dctvlc.h"
 #include "../game/gfx/glyphrender.h"
 #include "../game/gfx/movieplayer.h"
+#include "../game/gfx/refblock.h"
 #include "../game/gfx/signstyle.h"
 #include "../game/gfx/tgqvideo.h"
 #include "../game/gfx/wctimage.h"
@@ -4386,6 +4387,8 @@ const Hook kHooks[] = {
     {"DctVlc_Skip",               0x006770b0, (void *)&DctVlc_Skip, {0xa1, 0x54, 0xd6, 0xfb, 0x00}},
     {"DctVlc_ReadCode",           0x00677110, (void *)&DctVlc_ReadCode, {0xa1, 0x50, 0xd6, 0xfb, 0x00}},
     {"DctVlc_FillDc",             0x00677140, (void *)&DctVlc_FillDc, {0x56, 0xb8, 0x08, 0x00, 0x00}},
+    {"RefBlock_Copy16",           0x00676a70, (void *)&RefBlock_Copy16, {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"RefBlock_Copy8",            0x00676b50, (void *)&RefBlock_Copy8, {0x8d, 0x04, 0x0a, 0x8b, 0x4c}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
