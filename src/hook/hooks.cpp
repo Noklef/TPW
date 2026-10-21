@@ -131,6 +131,7 @@
 #include "../game/gfx/textlayout.h"
 #include "../game/gfx/tvstatic.h"
 #include "../game/gfx/aaline.h"
+#include "../game/gfx/dctvlc.h"
 #include "../game/gfx/glyphrender.h"
 #include "../game/gfx/movieplayer.h"
 #include "../game/gfx/signstyle.h"
@@ -4380,6 +4381,11 @@ const Hook kHooks[] = {
     {"MoviePlayer_BuildPixels",   0x00677930, (void *)&MoviePlayer_BuildPixels, {0x83, 0xec, 0x0c, 0x8b, 0x01}},
     {"MoviePlayer_UnpackFields",  0x00677640, (void *)&MoviePlayer_UnpackFields, {0x51, 0x8b, 0x44, 0x24, 0x08}},
     {"MoviePlayer_ExpandBlocks",  0x006776c0, (void *)&MoviePlayer_ExpandBlocks, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
+    {"DctVlc_BuildTables",        0x00676c80, (void *)&DctVlc_BuildTables, {0x53, 0x55, 0x56, 0x57, 0xb9}},
+    {"DctVlc_DecodeBlock",        0x00677c00, (void *)&DctVlc_DecodeBlock, {0x53, 0x51, 0x52, 0x56, 0x57}},
+    {"DctVlc_Skip",               0x006770b0, (void *)&DctVlc_Skip, {0xa1, 0x54, 0xd6, 0xfb, 0x00}},
+    {"DctVlc_ReadCode",           0x00677110, (void *)&DctVlc_ReadCode, {0xa1, 0x50, 0xd6, 0xfb, 0x00}},
+    {"DctVlc_FillDc",             0x00677140, (void *)&DctVlc_FillDc, {0x56, 0xb8, 0x08, 0x00, 0x00}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
