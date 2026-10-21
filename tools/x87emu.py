@@ -754,6 +754,11 @@ MMX = {'PADDW': lambda d, s: _join([a + b for a, b in zip(_lanes(d, 16), _lanes(
        'PSLLW': _shift(lambda x, s: x << s, 16),
        'PSRLW': _shift(lambda x, s: x >> s, 16),
        'PSRLQ': _shift(lambda x, s: x >> s, 64),
+       'PSRLD': _shift(lambda x, s: x >> s, 32),
+       'PADDUSB': lambda d, s: _join([min(255, a + b) for a, b in zip(_lanes(d, 8), _lanes(s, 8))], 8),
+       'PMADDWD': lambda d, s: _join([_signed(d1, 16) * _signed(s1, 16) + _signed(d2, 16) * _signed(s2, 16) for d1, d2, s1, s2 in
+                                      zip(_lanes(d, 16)[0::2], _lanes(d, 16)[1::2], _lanes(s, 16)[0::2], _lanes(s, 16)[1::2])], 32),
+       'PACKSSDW': lambda d, s: _join([min(0x7fff, max(-0x8000, _signed(x, 32))) for x in _lanes(d, 32) + _lanes(s, 32)], 16),
        'PACKUSWB': lambda d, s: _join([min(255, max(0, _signed(x, 16))) for x in _lanes(d, 16) + _lanes(s, 16)], 8),
        'PUNPCKLBW': lambda d, s: _join([x for p in zip(_lanes(d, 8)[:4], _lanes(s, 8)[:4]) for x in p], 8),
        'PUNPCKLWD': lambda d, s: _join([x for p in zip(_lanes(d, 16)[:2], _lanes(s, 16)[:2]) for x in p], 16),
