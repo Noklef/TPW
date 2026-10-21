@@ -200,6 +200,7 @@
 #include "../game/core/soundchannel.h"
 #include "../game/core/soundcmd.h"
 #include "../game/core/soundeax.h"
+#include "../game/core/soundindex.h"
 #include "../game/core/soundmanager.h"
 #include "../game/core/soundmixer.h"
 #include "../game/core/soundnames.h"
@@ -4374,6 +4375,19 @@ const Hook kHooks[] = {
     {"SfBank_Load",               0x006d4aa0, (void *)&SfBank_Load, {0x56, 0x8b, 0xf1, 0xf6, 0x46}},
     {"SfBank_Unload",             0x006d4cd0, (void *)&SfBank_Unload, {0x56, 0x8b, 0xf1, 0x8b, 0x4e}},
     {"SoundNames_Save",           0x006c0dc0, (void *)&SoundNames_Save, {0x83, 0xec, 0x30, 0x53, 0x55}},
+    {"SoundResource_Ctor",        0x006d4910, (void *)&SoundResource_Ctor, {0x6a, 0xff, 0x68, 0x18, 0x69}},
+    {"SoundResource_Dtor",        0x006c5450, (void *)&SoundResource_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"SoundResource_DeletingDtor", 0x006c54e0, (void *)&SoundResource_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x68}},
+    {"SoundStreamIndex_Load",     0x006d46e0, (void *)&SoundStreamIndex_Load, {0x53, 0x56, 0x57, 0x8b, 0xf9}},
+    {"SoundStreamIndex_Unload",   0x006d4760, (void *)&SoundStreamIndex_Unload, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"SoundStreamIndex_Offset",   0x006d4790, (void *)&SoundStreamIndex_Offset, {0x8b, 0x41, 0x08, 0x8b, 0x4c}},
+    {"SoundStreamIndex_ReadRecord", 0x006d47a0, (void *)&SoundStreamIndex_ReadRecord, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
+    {"SoundStreamIndex_Dtor",     0x006c55c0, (void *)&SoundStreamIndex_Dtor, {0x6a, 0xff, 0x68, 0xfb, 0x63}},
+    {"SoundStreamIndex_DeletingDtor", 0x006c55a0, (void *)&SoundStreamIndex_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"SoundMapIndex_Map",         0x006d47f0, (void *)&SoundMapIndex_Map, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"SoundMapIndex_Unmap",       0x006d4860, (void *)&SoundMapIndex_Unmap, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"SoundMapIndex_Dtor",        0x006c5520, (void *)&SoundMapIndex_Dtor, {0x6a, 0xff, 0x68, 0xcb, 0x63}},
+    {"SoundMapIndex_DeletingDtor", 0x006c5500, (void *)&SoundMapIndex_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
