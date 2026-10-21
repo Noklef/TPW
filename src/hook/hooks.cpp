@@ -133,6 +133,7 @@
 #include "../game/gfx/aaline.h"
 #include "../game/gfx/glyphrender.h"
 #include "../game/gfx/signstyle.h"
+#include "../game/gfx/tgqvideo.h"
 #include "../game/gfx/wctimage.h"
 #include "../game/core/crt.h"
 #include "../game/core/gameheap.h"
@@ -4368,6 +4369,8 @@ const Hook kHooks[] = {
     {"GlyphRenderer_ClipSpan",    0x006b5340, (void *)&GlyphRenderer_ClipSpan, {0x83, 0xec, 0x30, 0x53, 0x55}},
     {"GlyphRenderer_Draw",        0x006b4aa0, (void *)&GlyphRenderer_Draw, {0x81, 0xec, 0x8c, 0x00, 0x00}},
     {"GlyphRender_FreeBuffer",    0x006b5560, (void *)&GlyphRender_FreeBuffer, {0xa1, 0xd4, 0x4c, 0xfb, 0x00}},
+    {"TgqVideo_FillBlocks16",     0x00671340, (void *)&TgqVideo_FillBlocks16, {0x55, 0x8b, 0xec, 0x0f, 0xbe}},
+    {"TgqVideo_FillBlocks32",     0x00671650, (void *)&TgqVideo_FillBlocks32, {0x55, 0x8b, 0xec, 0x0f, 0xbe}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

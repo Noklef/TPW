@@ -187,6 +187,7 @@ add_library(tpw_game STATIC
     src/game/gfx/aaline.cpp
     src/game/gfx/signstyle.cpp
     src/game/gfx/glyphrender.cpp
+    src/game/gfx/tgqvideo.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp
     src/game/math/rect.cpp

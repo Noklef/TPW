@@ -4641,6 +4641,8 @@ address,name,kind,confidence,notes
 0x006b5340,GlyphRenderer_ClipSpan,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (out, glyph, point, unused), pops 0x10: the glyph rectangle's part that shows at point inside the display's clip; returns out"
 0x006b4aa0,GlyphRenderer_Draw,function,low,"reimplemented (src/game/gfx/glyphrender); slot 1, thiscall (status, point, index, out, style), pops 0x14: decodes the font's glyph (run-length nibbles or bits) into the shared buffer, clips it and hands the span to the surface format's span writer"
 0x006b5560,GlyphRender_FreeBuffer,function,low,"reimplemented (src/game/gfx/glyphrender); cdecl, handed to atexit by the draw call: Mem_Free of the shared glyph buffer [0xfb4cd4]"
+0x00671340,TgqVideo_FillBlocks16,function,low,"reimplemented (src/game/gfx/tgqvideo); cdecl (y0, y1, y2, y3, c0, c1, out, pitch): a flat 16x16 macroblock at 16 bits a pixel: four 8x8 squares of luma[y] + the two chroma entries (tables 0xfb7930 / 0xfb7d30 / 0xfb7b30 indexed by value * [0xfb7820] 16.16 >> 1 & 0x7f)"
+0x00671650,TgqVideo_FillBlocks32,function,low,"reimplemented (src/game/gfx/tgqvideo); cdecl (y0, y1, y2, y3, c0, c1, out, pitch): the same at 32 bits a pixel"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"
