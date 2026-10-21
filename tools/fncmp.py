@@ -15,7 +15,8 @@ A test script defines a case generator and calls run():
 Call(address, args, regions, conv='c'|'s'|'t'|'f', ret='v'|'a'|'b'|'w'|'i'|'d'): ret 'a' compares
 EAX, 'b' AL (a flag returned over whatever EAX held), 'w' AX (likewise a u16), 'c' the x87 control word left (Call(cw=) going in, 0x7f; 'wc' AX too), 'i' EAX and EDX, 'd' the double left in
 st0. Call(ignore=[(address, count), ...]): those bytes of the regions are left out of the comparison in both (a stack address's low byte that
-the original stores, which the two sides' stacks cannot share). Region addresses must be in the game's data (0x6e7000-0xfc5200) or at 0x10000000 and up (RAM, ALLOC.. are free slots); anything a case
+the original stores, which the two sides' stacks cannot share). Call(steps=) the emulator's step limit (5 000 000: a case past it is a
+"step limit"; raise it only for a function whose smallest real input runs that long). Region addresses must be in the game's data (0x6e7000-0xfc5200) or at 0x10000000 and up (RAM, ALLOC.. are free slots); anything a case
 does not set reads as the exe image there, else zero, in both. No region may be empty (the driver reads its bytes as one hex token, so an
 empty one would desynchronise every later case): Bench.cases refuses such a case, naming the bench, the case and the region. The emulator is strict, like
 the driver: an access outside the regions' 64 KB chunks, the stack and the game's data (the
@@ -260,9 +261,10 @@ def off_code(buf):
 
 
 class Call:
-    def __init__(self, address, args, regions, conv='c', ret='v', cw=0x7f, masks=(), ignore=()):
+    def __init__(self, address, args, regions, conv='c', ret='v', cw=0x7f, masks=(), ignore=(), steps=5_000_000):
         self.address, self.args, self.regions, self.conv, self.ret = address, list(args), dict(regions), conv, ret
         self.cw, self.ignore = cw, list(ignore)
+        self.steps = steps   # (the emulator's step limit: raise it only for a case that must run that long)
         self.masks = list(masks)
         for m in self.masks:
             if m.region not in self.regions or (m.offsets and m.offsets[-1] >= len(self.regions[m.region])):
@@ -829,7 +831,7 @@ class Bench:
         if c.masks:  # (the original must never read a masked byte: Mask)
             e.rb = _watching(e, {(m.region + o) & 0xffffffff for m in c.masks for o in m.offsets})
         try:
-            for _ in range(5_000_000):
+            for _ in range(c.steps):
                 if pc == x87emu.SENTINEL:
                     break
                 if hooked is not None and pc in hooked and pc not in stand_ins:
