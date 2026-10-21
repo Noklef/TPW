@@ -43,4 +43,17 @@ void __cdecl TgqVideo_SetQuality(s32 quality);
 // pair, each pair's four dwords read before its two words are written. It reads out's dwords 0 and 8 and drops them (the first before
 // anything, the second before pair 4): kept, as reads that fault where the original's do.
 void __cdecl TgqVideo_PixelRow16(const u32 *luma, u16 *out, const u32 *chroma);
+
+// 0x672e60 (cdecl; hand-written assembly leaving the coefficient counter in EDI, which its thunk RegThunk_TgqVideo_DecodeCoefficients
+// sets from the returned value: its callers 0x67380f / 0x673fee pass EDI on to 0x67673c as the out pointer; name unconfirmed): a block's
+// 64 coefficients into 0xfb7600 from the bit reader (source 0xfb7920, bits 0xfb7928 least significant first, their count 0xfb7924:
+// read in, written back). The DC: the buffer's low byte (signed) << 16 times the dequantiser 0xfb7820[0] (16.16 rounded by bit 15), then
+// 8 bits dropped. Then for the counter 0x3f down while above 0, at the zigzag index 0xfbb5ac[counter], the jump table 0xfbbaac[bits & 7]
+// picks: 0x672ede zero; 0x672ebc the dequantiser's entry (0x672ecc its negation); 0x672eeb two zeros (the counter down one more); 0x672f49 a
+// run of (bits & 0xff) >> 3 pairs of zeros (the counter down two a pair, then up one; a run of 0 wraps, 2^32 pairs, sic), 0x672f36 a zero
+// before the same; 0x672f7a ((bits & 0xfc) << 24 >> 10 (signed) times the entry, or with bits & 0xfc = 0xfc the next byte's (signed)
+// << 16). Runs and values use 8 bits (a byte read in each time at count - 8), the rest 3 (a byte read in when fewer than 8 are left).
+// The table in the exe has 0x672ede, 0x672f49, 0x672ebc, 0x672f7a, 0x672eeb and then three dwords that are not code: codes 5-7 jump there
+// (called here, so the port faults as the original does, sic). Returns the counter (0 or below).
+s32 __cdecl TgqVideo_DecodeCoefficients();
 }

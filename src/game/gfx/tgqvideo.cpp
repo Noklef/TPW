@@ -15,6 +15,31 @@ u32 fixmul(s32 value, s32 factor) {
 
 s32 bit(u32 n) { return (s32)(1u << (n & 31)); }
 
+// The coefficient decoder's bit reader (TgqVideo_DecodeCoefficients), in registers while it runs.
+struct CoefficientReader {
+    const u8 *source;
+    u32 bits, count;
+
+    // 3 bits dropped, then a byte read in at count when fewer than 8 are left (shl's count mod 32; the compare signed).
+    void Drop3() {
+        bits >>= 3;
+        count -= 3;
+        if ((s32)count < 8) {
+            bits |= (u32)*source++ << (count & 31);
+            count += 8;
+        }
+    }
+    // 8 bits dropped and a byte read in at count - 8.
+    void Next8() {
+        bits >>= 8;
+        bits |= (u32)*source++ << ((count - 8) & 31);
+    }
+};
+
+u32 &coefficient(u32 index) { return global<u32>(0x00fb7600 + index * 4); }
+u32 dequantiser(u32 index) { return global<u32>(0x00fb7820 + index * 4); }
+u32 zigzag(s32 at) { return global<u32>(0x00fbb5ac + (u32)at * 4); }
+
 // A channel rounded to bits (TgqVideo_PackColour).
 s32 rounded(s32 v, u32 bits) {
     const s32 unit = bit(8 - bits);
@@ -112,6 +137,78 @@ void __cdecl TgqVideo_PixelRow16(const u32 *luma, u16 *out, const u32 *chroma) {
         out[2 * k] = (u16)(global<u32>(0x00fb7930 + (y0 >> 17 & 0x7f) * 4) + colour);
         out[2 * k + 1] = (u16)(global<u32>(0x00fb7930 + (y1 >> 17 & 0x7f) * 4) + colour);
     }
+}
+
+s32 __cdecl TgqVideo_DecodeCoefficients() {
+    CoefficientReader in = {global<const u8 *>(0x00fb7920), global<u32>(0x00fb7928), global<u32>(0x00fb7924)};
+    coefficient(0) = fixmul((s32)(in.bits << 24) >> 8, (s32)dequantiser(0));
+    in.Next8();
+    s32 at = 0x3f;
+    do {
+        u32 index = zigzag(at);
+        const u32 target = global<u32>(0x00fbbaac + (in.bits & 7) * 4);
+        bool wide = true;
+        switch (target) {
+        case 0x00672ede:
+            coefficient(index) = 0;
+            wide = false;
+            break;
+        case 0x00672ebc:
+            coefficient(index) = dequantiser(index);
+            wide = false;
+            break;
+        case 0x00672ecc:
+            coefficient(index) = 0u - dequantiser(index);
+            wide = false;
+            break;
+        case 0x00672eeb:
+            coefficient(index) = 0;
+            index = zigzag(at - 1);
+            --at;
+            coefficient(index) = 0;
+            wide = false;
+            break;
+        case 0x00672f36:
+            coefficient(index) = 0;
+            index = zigzag(at - 1);
+            --at;
+            [[fallthrough]];
+        case 0x00672f49: {
+            u32 pairs = (in.bits & 0xff) >> 3;
+            do {
+                coefficient(index) = 0;
+                index = zigzag(at - 1);
+                coefficient(index) = 0;
+                index = zigzag(at - 2);
+                at -= 2;
+            } while (--pairs != 0);
+            ++at;
+            break;
+        }
+        case 0x00672f7a: {
+            const u32 code = in.bits & 0xfc;
+            if (code == 0xfc) {
+                in.Next8();
+                coefficient(index) = fixmul((s32)(in.bits << 24) >> 8, (s32)dequantiser(index));
+            } else {
+                coefficient(index) = fixmul((s32)(code << 24) >> 10, (s32)dequantiser(index));
+            }
+            break;
+        }
+        default:  // not code (the exe's codes 5-7): the original jumps there and faults, sic
+            reinterpret_cast<void(__cdecl *)()>((uintptr_t)target)();
+            break;
+        }
+        if (wide) {
+            in.Next8();
+        } else {
+            in.Drop3();
+        }
+    } while (--at > 0);
+    global<const u8 *>(0x00fb7920) = in.source;
+    global<u32>(0x00fb7928) = in.bits;
+    global<u32>(0x00fb7924) = in.count;
+    return at;
 }
 
 void __cdecl TgqVideo_FillBlocks16(s32 y0, s32 y1, s32 y2, s32 y3, s32 c0, s32 c1, u8 *out, u32 pitch) {

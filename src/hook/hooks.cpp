@@ -4393,6 +4393,7 @@ const Hook kHooks[] = {
     {"TgqVideo_BuildTables",      0x0066fc10, (void *)&TgqVideo_BuildTables, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"TgqVideo_SetQuality",       0x00671000, (void *)&TgqVideo_SetQuality, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"TgqVideo_PixelRow16",       0x00673574, (void *)&RegThunk_TgqVideo_PixelRow16, {0x8b, 0x0f, 0x8b, 0x06, 0x8b}},
+    {"TgqVideo_DecodeCoefficients", 0x00672e60, (void *)&RegThunk_TgqVideo_DecodeCoefficients, {0xa1, 0x28, 0x79, 0xfb, 0x00}},
     {"MoviePlayer_ReadHeader",    0x00670860, (void *)&MoviePlayer_ReadHeader, {0x8b, 0x01, 0x8b, 0x90, 0x88}},
     {"MoviePlayer_ReadPalette",   0x00670930, (void *)&MoviePlayer_ReadPalette, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"MoviePlayer_ReadSizeAt8",   0x00670ab0, (void *)&MoviePlayer_ReadSizeAt8, {0x0f, 0xbf, 0x42, 0x08, 0x56}},
