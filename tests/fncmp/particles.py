@@ -4,12 +4,18 @@
 # about 0x69; ages and lifetimes about the quarters, negative and zero.
 # usage: particles.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Alive,Effector,...)
 # AtWindow (0x486b90): Spawn's set-up and a window (rectangle and insets random) through the GUI rectangle code.
+# DrawList (0x51ef30): a system (slot small or any) set or not, its count 1-0x200, flat or not, the scale 1000 mostly, a chain of
+# 1-12 nodes (positions small or any), a sprite sheet or none (sprite.py's sheets for Sprite_FrameEntry); the static list free or not;
+# GlobalAlloc from heap(). Count, Bounds (0x51f240, 0x51f280): such a system. FreeList (0x51f2f0): the static list, a block or 0.
+# Sines (0x51f320): the table random, with guard bytes each side.
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import CDECL_LOG2, LOG, RAM, Bench, Call, log_region, put, set_return  # noqa: E402
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from fncmp import CDECL_LOG2, HEAP, LOG, RAM, Bench, Call, global_heap, heap, log_region, put, set_return  # noqa: E402
+from sprite import FOLDERS, IMAGES, SPRITES, TABLE, WORLD, WORLD_PTR, sprite  # noqa: E402
 
 RANGES = [(0x5222e0, 0x52231b), (0x522320, 0x522356), (0x51fd80, 0x51fd8a), (0x51fa80, 0x51faa0),
           (0x51feb0, 0x51ff06), (0x51ff10, 0x51ff68), (0x51ff70, 0x51ffc6), (0x51ffd0, 0x520028),
@@ -17,11 +23,13 @@ RANGES = [(0x5222e0, 0x52231b), (0x522320, 0x522356), (0x51fd80, 0x51fd8a), (0x5
           (0x520560, 0x520d60), (0x520d60, 0x520e00), (0x521e60, 0x5222e0), (0x521d60, 0x521e60), (0x522360, 0x5224f0),
           (0x5214a0, 0x521807), (0x521890, 0x521930), (0x5da3c0, 0x5da3c1), (0x521930, 0x521d54), (0x520f10, 0x5214a0), (0x520130, 0x520469), (0x5224f0, 0x5226fa),
           (0x486b90, 0x486c70), (0x659d00, 0x659d43), (0x659d90, 0x659dbc), (0x65a9d0, 0x65aa00), (0x65aa20, 0x65aa90), (0x66bff7, 0x66c00b),
-          (0x65d42e, 0x65d49e), (0x65d773, 0x65d7bc), (0x65a43e, 0x65a493)]
+          (0x65d42e, 0x65d49e), (0x65d773, 0x65d7bc), (0x65a43e, 0x65a493),
+          (0x51ef30, 0x51f233), (0x51f240, 0x51f271), (0x51f280, 0x51f2e7), (0x51f2f0, 0x51f31e), (0x51f320, 0x51f36a), (0x5f5660, 0x5f5690), (0x5423a0, 0x542412)]
 B = Bench(RANGES)
 SYSTEMS, EFFECTS, EFFECTORS, SETUP = 0x80cefc, 0x804370, 0x816504, 0x816d40
 CALLS = {'Alive': 0x5222e0, 'Effector': 0x522320, 'Reduced': 0x51fd80, 'Clear': 0x51fa80, 'End': 0x51feb0,
-         'Age': 0x51ff70, 'Set2a': 0x51ff10, 'SetA2': 0x51ffd0, 'Quarter': 0x520470, 'VecA': 0x51fe30, 'VecB': 0x520030, 'Scaled': 0x51fd90, 'EndAll': 0x5200b0, 'Release': 0x5204c0, 'RandS': 0x521810, 'Rand': 0x521850, 'Move': 0x520e00, 'Emit': 0x520560, 'Spawn': 0x521e60, 'Update': 0x5214a0, 'SpawnVel': 0x521930, 'Effectors': 0x520f10, 'Tick': 0x520130, 'AtWindow': 0x486b90}
+         'Age': 0x51ff70, 'Set2a': 0x51ff10, 'SetA2': 0x51ffd0, 'Quarter': 0x520470, 'VecA': 0x51fe30, 'VecB': 0x520030, 'Scaled': 0x51fd90, 'EndAll': 0x5200b0, 'Release': 0x5204c0, 'RandS': 0x521810, 'Rand': 0x521850, 'Move': 0x520e00, 'Emit': 0x520560, 'Spawn': 0x521e60, 'Update': 0x5214a0, 'SpawnVel': 0x521930, 'Effectors': 0x520f10, 'Tick': 0x520130, 'AtWindow': 0x486b90,
+         'DrawList': 0x51ef30, 'Count': 0x51f240, 'Bounds': 0x51f280, 'FreeList': 0x51f2f0, 'Sines': 0x51f320}
 NODES, SINES = RAM + 0x1000, RAM + 0x2000
 
 
@@ -53,6 +61,10 @@ def case(r):
         return pull(r)
     if op == 'Tick':
         return tick(r)
+    if op in ('DrawList', 'Count', 'Bounds', 'FreeList'):
+        return draw(r, op)
+    if op == 'Sines':
+        return Call(CALLS[op], [], {0x803b60: r.bytes(0x810)}, ret='a')
     if op == 'AtWindow':  # 0x486b90: Spawn's cases at a window's centre: its rectangle and insets small or edges, shown or not (no parents)
         c = spawn(r)
         win = bytearray(r.bytes(0x120))
@@ -417,6 +429,57 @@ def tick(r):
         put(systems, e + 0x66, 'h', r.choice([0, 1, 2, -1, 5]))
     regions[0x80436c] = r.bytes(4)
     return Call(0x520130, [], regions, ret='a')
+
+
+DNODES, STATIC, LOW = RAM + 0x4000, RAM + 0x5000, RAM + 0x5c00
+
+
+def sheets(r, regions):  # sprite.py's set-up for Sprite_FrameEntry (its sprites and images below RAM + 0x1008)
+    folders = bytearray(r.bytes(12 * 16))
+    for f in range(16):
+        put(folders, 12 * f + 4, '2I', r.randrange(8), r.choice([1, 2, 3, 7, 40, r.getrandbits(32)]))
+    regions.update({FOLDERS: folders, TABLE: b''.join(struct.pack('<I', r.choice(SPRITES)) for _ in range(16 + 8)),
+                    WORLD_PTR: struct.pack('<I', WORLD), WORLD + 0x1da708: r.bytes(4), IMAGES: r.bytes(8)})
+    for s in SPRITES:
+        regions[s] = sprite(r, IMAGES)
+
+
+def draw(r, op):
+    setup = r.choice([1, 1, 1, 1, 0, r.getrandbits(32)])
+    inuse = r.choice([0, 0, 1, r.getrandbits(32)])
+    regions = {0x816d38: struct.pack('<3I', STATIC, inuse, setup), HEAP: heap(0x8000)}
+    regions.update(global_heap())
+    if op == 'FreeList':
+        return Call(CALLS[op], [r.choice([STATIC, STATIC, HEAP + 0x10, 0])], regions, ret='v')
+    slot = r.choice([0, 1, 5, 0x77, r.randrange(0x78), r.randrange(0x78)]) | (r.choice([0] * 6 + [r.getrandbits(16)]) << 16 if op == 'Count' else 0)
+    s = bytearray(r.bytes(0x140))
+    put(s, 0, 'H', r.choice([1, 1, 1, 0, r.getrandbits(16)]))
+    count = r.choice([1, 3, 12, 100, 101, 0x200, r.randrange(1, 0x200)]) if r.random() < 0.95 else 0
+    put(s, 8, 'H', count)
+    put(s, 0x2a, 'H', r.choice([0, 0, 0, 0, 1]))
+    s[5] = r.choice([0, 0, 1, 0xff, r.getrandbits(8)])
+    put(s, 0xa2, 'h', r.choice([1000, 1000, 1000, 500, 1, 0, -1000, 2000, r.randrange(-0x8000, 0x8000)]))
+    put(s, 0x94, 'h', r.randrange(16) if r.random() < 0.95 else r.randrange(16 * 8))
+    put(s, 0x96, 'H', r.choice([0, 1, 1, r.getrandbits(16)]))
+    for off in (0x14, 0x18, 0x1c):
+        put(s, off, 'i', r.choice([0, 0x1000, r.randrange(-0x100000, 0x100000), r.getrandbits(32) - 0x80000000]))
+    n = r.randrange(1, 13)
+    order = r.sample(range(12), n)
+    nodes = bytearray(r.bytes(12 * 0x34))
+    for i, k in enumerate(order):
+        for off in (0, 4, 8):
+            put(nodes, k * 0x34 + off, 'i', r.choice([0, 0xc35, r.randrange(-0x100000, 0x100000), r.getrandbits(32) - 0x80000000]))
+        put(nodes, k * 0x34 + 0x2c, 'H', r.choice([0, 1, 5, r.getrandbits(16)]))
+        put(nodes, k * 0x34 + 0x30, 'h', order[i + 1] if i + 1 < n else r.choice([-1, -1, -0x8000, r.randrange(-0x8000, 0)]))
+    put(s, 6, 'h', order[0])
+    regions.update({SYSTEMS + slot * 0x140 & 0xffffffff if op != 'Count' else SYSTEMS + (slot & 0xffff) * 0x140: s, 0x80cef8: struct.pack('<I', DNODES),
+                    DNODES: nodes, STATIC: r.bytes(12 * 0x1c), LOW: r.bytes(0x18)})
+    if op == 'Count':
+        return Call(CALLS[op], [slot], regions, ret='a')
+    if op == 'Bounds':
+        return Call(CALLS[op], [slot, LOW, LOW + 0xc], regions, ret='v')
+    sheets(r, regions)
+    return Call(CALLS[op], [slot], regions, ret='a')
 
 
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]

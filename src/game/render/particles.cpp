@@ -8,6 +8,7 @@
 #include "../files/vfs.h"
 #include "../math/intsin.h"
 #include "../math/x87.h"
+#include "../sprite/sprite.h"
 #include "../ui/guirect.h"
 #include "../ui/window.h"
 
@@ -23,6 +24,9 @@ u8 *effector(s32 index) { return reinterpret_cast<u8 *>(0x008164fc + index * 0x6
 
 // The sine table's (at [0x80ceec], 0x200 entries) entry for an angle in eighths of an entry (divided truncating toward 0); quarter 0x80: the cosine.
 s32 Sine(s32 angle, s32 quarter) { return global<s32 *>(0x0080ceec)[(u32)(angle / 8 + quarter) & 0x1ff]; }
+
+// (v - base) times the scale (wrapping) over 1000, truncating.
+s32 Scaled(s32 v, s32 base, s32 scale) { return (s32)(((u32)v - (u32)base) * (u32)scale) / 1000; }
 
 // v times a sine entry (wrapping) over 256 (arithmetic shift).
 s32 Scale(s32 sine, s32 v) { return (s32)((u32)sine * (u32)v << 2) >> 10; }
@@ -789,5 +793,93 @@ u32 __cdecl ParticleLib_Load(const char *name) {
     for (u32 i = 0; i < 0x14; ++i) global<u32>(0x0080c6b0 + 0x68 * i) = 0;
     Emitters_Reset();
     return 0;
+}
+
+u8 *__cdecl ParticleSystem_DrawList(u32 slot) {
+    if (!global<u32>(0x00816d40)) return nullptr;
+    u8 *const sys = system(slot);
+    const bool flat = (s8)sys[5] != 0;
+    const s32 scale = field<s16>(sys, 0xa2);
+    if (!field<u16>(sys, 0) || !field<u16>(sys, 8) || field<u16>(sys, 0x2a)) return nullptr;
+    const u16 sprite = field<u16>(sys, 0x96);
+    const s16 sheet = field<s16>(sys, 0x94);
+    const u16 count = field<u16>(sys, 8);
+    u8 *buf;
+    if (count <= 100 && !global<u32>(0x00816d3c)) {
+        global<u32>(0x00816d3c) = 1;
+        buf = global<u8 *>(0x00816d38);
+    } else {
+        buf = static_cast<u8 *>(Mem_GlobalAlloc((u32)count * 28));  // (count is never 0: the original's Debug_Printf for a size of 0 never runs)
+    }
+    u8 *entry = buf;
+    s16 index = field<s16>(sys, 6);
+    do {
+        u8 *const node = global<u8 *>(0x0080cef8) + index * 0x34;
+        const s32 x = field<s32>(node, 0), y = field<s32>(node, 4), z = field<s32>(node, 8);
+        const s32 bx = field<s32>(sys, 0x14), by = field<s32>(sys, 0x18), bz = field<s32>(sys, 0x1c);
+        if (flat) {
+            if (scale != 1000) {
+                field<s32>(entry, 0) = (s32)(((u32)Scaled(x, bx, scale) + (u32)bx - 0xc35) << 4) / 49;
+                field<s32>(entry, 4) = (s32)((((u32)Scaled(z, bz, scale) + (u32)bz) << 4) - 0x927c) / 37;
+            } else {
+                field<s32>(entry, 0) = (s32)(((u32)x - 0xc35) << 4) / 49;
+                field<s32>(entry, 4) = (s32)(((u32)z << 4) - 0x927c) / 37;
+            }
+            field<s32>(entry, 8) = field<s16>(sys, 0x52);
+            field<u32>(entry, 0x18) = field<u32>(sys, 0x70) | 0x54000;
+            field<s16>(entry, 0x14) = (s16)(field<s16>(node, 0x28) / 64);
+        } else {
+            if (scale != 1000) {
+                field<u32>(entry, 0) = ((u32)Scaled(x, bx, scale) + (u32)bx) << 4;
+                field<u32>(entry, 4) = ((u32)Scaled(y, by, scale) + (u32)by) << 4;
+                field<u32>(entry, 8) = ((u32)Scaled(z, bz, scale) + (u32)bz) << 4;
+            } else {
+                field<u32>(entry, 0) = (u32)x << 4;
+                field<u32>(entry, 4) = (u32)y << 4;
+                field<u32>(entry, 8) = (u32)z << 4;
+            }
+            field<u32>(entry, 0x18) = field<u32>(sys, 0x70) | 0x4000;
+            field<u16>(entry, 0x14) = (u16)(field<u16>(node, 0x28) << 1);
+        }
+        field<u32>(entry, 0xc) = field<u32>(node, 0x18);
+        if (sprite) {
+            field<u32>(entry, 0x10) = Sprite_FrameEntry(sheet, field<u16>(node, 0x2c), 0);
+            field<u16>(entry, 0x16) = field<u16>(node, 0x2e);
+        } else {
+            field<s32>(entry, 0x10) = -1;
+        }
+        index = field<s16>(node, 0x30);
+        entry += 0x1c;
+    } while (index >= 0);
+    return buf;
+}
+
+u32 __cdecl ParticleSystem_Count(u32 slot) {
+    if (!global<u32>(0x00816d40)) return 0;
+    u8 *const sys = system(slot & 0xffff);
+    return field<u16>(sys, 0) ? field<u16>(sys, 8) : 0;
+}
+
+void __cdecl ParticleSystem_Bounds(u32 slot, s32 *low, s32 *high) {
+    if (!global<u32>(0x00816d40)) return;
+    u8 *const sys = system(slot);
+    for (u32 i = 0; i < 3; ++i) low[i] = (s32)(field<u32>(sys, 0x128 + 4 * i) << 4);
+    for (u32 i = 0; i < 3; ++i) high[i] = (s32)(field<u32>(sys, 0x134 + 4 * i) << 4);
+}
+
+void __cdecl ParticleSystem_FreeDrawList(u8 *list) {
+    if (!global<u32>(0x00816d40) || !list) return;
+    if (list == global<u8 *>(0x00816d38)) global<u32>(0x00816d3c) = 0;
+    else Mem_GlobalFree(list);
+}
+
+u32 *__cdecl ParticleSines_Build() {
+    u32 *const table = &global<u32>(0x00803b68);
+    for (s32 i = 0; i < 0x200; ++i) {
+        const X87Reg angle = X87_MulIntDouble(2 * i, 0.00613591796875);  // fild; fmul qword [0x700c08]
+        const X87Reg scaled = X87Reg(X87_Sin(angle.v)) * X87Reg(256.0);  // fsin; fmul qword [0x700c10]
+        table[i] = (u32)(long long)scaled.v;                              // __ftol, low half
+    }
+    return table;
 }
 }
