@@ -181,6 +181,7 @@ add_library(tpw_game STATIC
     src/game/core/soundoccluders.cpp
     src/game/core/loopstream.cpp
     src/game/core/streamfilter.cpp
+    src/game/core/soundstream.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
