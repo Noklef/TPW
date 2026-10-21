@@ -4,7 +4,7 @@
 # (the panel's +0x14, now and then none; the dialog's child 0x1ed among 0-2 decoys, now and then missing) with the children the dresser
 # looks up, each a dialogbuild.py kid() (random bytes, a recorder vtable for slots 5 / 7, its old impl +0x9c none or an old one, +0x98 /
 # +0x4c none or objects, shown now and then) with its rectangle tiny (the parts' pixels), shuffled among 0-2 decoys (now and then one of
-# them missing: a fault in both, but for Panel7cc408_Dress's 0x3732, which it checks, missing a quarter of the time); the language texts
+# them missing: a fault in both, but for Panel7cc408_Dress's 0x3732, which it checks, missing a quarter of the time, and Panel7ca228_Dress's and Panel7cc3e0_Dress's, which check each: one missing 30% of the time); the language texts
 # the dresser asks for (see texts()); the bars' meshes as barmesh.py's Overlay builds them (global_heap(), the texture directories and holder logged) with their
 # vtable 0x6feeb8's slots 3 / 5 (Window_SetImpl's) recorders. The heap fails one allocation now and then (a text part's or a bar's:
 # none set; one inside a mesh's construction faults in both). The windows', parts' and meshes' bytes after the call are compared.
@@ -42,21 +42,26 @@ DRESSERS = {
     'Panel7ca178_Dress': (0x497100, (0x15bbe, 0x15bbc, 0x15bbf, 0x15bbd, 0x15bbb, 0x15bc0), (0x3c, 0x3d, 0x3f), 'panel'),
     'Dialog7cc1f8_DressStats': (0x4ab6b0, (0x1f4, 0x1f3, 0x1f1, 0x1f6, 0x1f7, 0x1f5, 0x1f2, 0x1ee, 0x1ef, 0x1f0), (0x7d, 0x7e, 0x7f, 0x80,
         0x81, 0x88), 'dialog'),
+    'Panel7ca228_Dress': (0x499890, (0x1587, 0x1586, 0x1585, 0x1584), (0x35, 0x36), 'panel'),
+    'Panel7cc3e0_Dress': (0x4b6540, (0x5211, 0x5210, 0x520f, 0x520e), (0x37, 0x38), 'panel'),
+    'Panel7cc328_Dress': (0x4b46a0, (0x1e8b, 0x1e8a), (0x38,), 'panel'),
 }
+CHECKED = {'Panel7ca228_Dress', 'Panel7cc3e0_Dress'}   # (they dress only the children found: any missing now and then)
 # each row initialiser: (its address, its children, its font dword, the name it looks up)
 ROWS = {'List7ca158_InitRow': (0x494690, 4, 0x750d54, None), 'List7ca140_InitRow': (0x4939d0, 5, 0x7508b4, 'ti_hungry'),
         'List7ca170_InitRow': (0x496d20, 4, 0x751184, None)}
 CALLS = {k: v[0] for k, v in DRESSERS.items()}
 CALLS.update({k: v[0] for k, v in ROWS.items()})
-B = Bench(sorted(set(window.RANGES + listrows.PART_RANGES + listrows.REG_RANGES + animatormesh.RANGES + [
+ALL_RANGES = sorted(set(window.RANGES + listrows.PART_RANGES + listrows.REG_RANGES + animatormesh.RANGES + [
     (0x424ec0, 0x425450), (0x46f150, 0x46f190), (0x477c00, 0x477c40), (0x477ff0, 0x478380), (0x485a70, 0x485ab0), (0x485b00, 0x485b50),
     (0x485e30, 0x485ed0), (0x48f150, 0x48f290), (0x48f6a0, 0x48f750), (0x48fde0, 0x48fe90), (0x490250, 0x490300), (0x490e60, 0x490f10),
     (0x497100, 0x497391), (0x494690, 0x494c60), (0x4939d0, 0x493c03), (0x496d20, 0x496f21), (0x490c30, 0x490ce0),
     (0x65c388, 0x65c55a), (0x65d547, 0x65d58c), (0x4ab6b0, 0x4abb10), (0x4ad890, 0x4ade50), (0x4afc10, 0x4b01e0), (0x4b1040, 0x4b16d0), (0x4b53c0, 0x4b58c0), (0x4b6c20, 0x4b72b0),
+    (0x499890, 0x499a6a), (0x4b6540, 0x4b671a), (0x4b46a0, 0x4b479c),
     (0x5775d0, 0x577610), (0x588320, 0x588360), (0x588d70, 0x588da0), (0x6597b0, 0x659896), (0x659d00, 0x659d53), (0x659d90, 0x659dbc),
     (0x65a43e, 0x65a4a3), (0x65c388, 0x65c438), (0x65cfd4, 0x65d00f), (0x65d1c8, 0x65d333), (0x65d42e, 0x65d4b0), (0x65d773, 0x65d832),
-    (0x65f5b7, 0x65f60e), (0x6616b0, 0x661710), (0x6617f0, 0x661820), (0x6ace60, 0x6aceb0), (0x6adc80, 0x6add40), (0x6ade00, 0x6adea0)])),
-    hooks=animatormesh.HOOKS)
+    (0x65f5b7, 0x65f60e), (0x6616b0, 0x661710), (0x6617f0, 0x661820), (0x6ace60, 0x6aceb0), (0x6adc80, 0x6add40), (0x6ade00, 0x6adea0)]))
+B = Bench(ALL_RANGES, hooks=animatormesh.HOOKS)
 KIDS, PANEL, DIALOG, TEXTS = 0x31000000, 0x31010000, 0x31020000, 0x31100000
 KID = dialogbuild.KID
 MESH_VTABLE = 0x6feeb8
@@ -129,7 +134,7 @@ def case(r):
     texts(r, regions, indexes)
     root = dialogbuild.ROW
     items = [(KIDS + KID * k, ident) for k, ident in enumerate(ids)]
-    if r.random() < 0.03:
+    if r.random() < (0.3 if op in CHECKED else 0.03):
         items.remove(r.choice(items))
     elif op == 'Panel7cc408_Dress' and r.random() < 0.25:   # (its 0x3732 is looked for: a bar only when found)
         items.remove((KIDS + KID * ids.index(0x3732), 0x3732))

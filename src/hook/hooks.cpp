@@ -422,6 +422,7 @@
 #include "../game/ui/panel7cc218.h"
 #include "../game/ui/panel7cc258.h"
 #include "../game/ui/panel7cc3b0.h"
+#include "../game/ui/panel7cc3e0.h"
 #include "../game/ui/panel7cc408.h"
 #include "../game/ui/thingbrowser.h"
 #include "../game/ui/windowtimers.h"
@@ -2594,6 +2595,7 @@ const Hook kHooks[] = {
     {"Obj_KillSlot24",            0x004b4670, (void *)&Obj_KillSlot24, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
     {"Panel7cc328_AddStaffRow",   0x004b47e0, (void *)&Panel7cc328_AddStaffRow, {0x66, 0xa1, 0x10, 0xc3, 0x7c}},
     {"Panel7cc328_OnMessage",     0x004b4850, (void *)&Panel7cc328_OnMessage, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
+    {"Panel7cc328_Dress",         0x004b46a0, (void *)&Panel7cc328_Dress, {0x6a, 0xff, 0x68, 0x16, 0xb2}},
     {"Global7cc698_Choose",       0x004bcec0, (void *)&Global7cc698_Choose, {0xa1, 0xb8, 0xc8, 0x7c, 0x00}},
     {"PairTable_Add",             0x0052fbf0, (void *)&PairTable_Add, {0xa1, 0x8c, 0x0a, 0x82, 0x00}},
     {"Obj_SmallestEntry",         0x004d09a0, (void *)&Obj_SmallestEntry, {0x53, 0x55, 0x56, 0x57, 0x83}},
@@ -5280,6 +5282,7 @@ const Hook kHooks[] = {
     {"Frame_Stop",                0x0066a016, (void *)&Frame_Stop, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Dialog7cb398_ShowTopThree", 0x004a4ab0, (void *)&Dialog7cb398_ShowTopThree, {0x8b, 0x0d, 0x98, 0xb3, 0x7c}},
     {"Panel7ca228_Update",        0x00499b40, (void *)&Panel7ca228_Update, {0x53, 0x56, 0x8b, 0xf1, 0x57}},
+    {"Panel7ca228_Dress",         0x00499890, (void *)&Panel7ca228_Dress, {0x6a, 0xff, 0x68, 0xac, 0xa0}},
     {"Window_SetCursor",          0x0065f11d, (void *)&Window_SetCursor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Gui_SetCursor",             0x006590f7, (void *)&Gui_SetCursor, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"CursorTable_Get",           0x00661d96, (void *)&CursorTable_Get, {0x55, 0x8b, 0xec, 0x51, 0x89}},
@@ -5590,6 +5593,7 @@ const Hook kHooks[] = {
     {"Panel7cc3b0_Dress",         0x004b53c0, (void *)&Panel7cc3b0_Dress, {0x6a, 0xff, 0x68, 0x04, 0xb3}},
     {"GuiFont_TextWidth",         0x00658334, (void *)&GuiFont_TextWidth, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"GuiFont_Init",              0x00658243, (void *)&GuiFont_Init, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Panel7cc3e0_Dress",         0x004b6540, (void *)&Panel7cc3e0_Dress, {0x6a, 0xff, 0x68, 0xac, 0xb3}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},

@@ -2845,6 +2845,7 @@ address,name,kind,confidence,notes
 0x004b4670,Obj_KillSlot24,function,high,reimplemented (src/game/ui/panel7cc328); the script slot at +0x24 killed and the slot fields cleared
 0x004b47e0,Panel7cc328_AddStaffRow,function,low,"reimplemented (src/game/ui/panel7cc328); cdecl (staff), returns 1: a staff member resting in the area [0x7cc310] added to the list [0x7cc314]: its name and the low byte of its float +0x1fc times 1024 / 100"
 0x004b4850,Panel7cc328_OnMessage,function,low,"reimplemented (src/game/ui/panel7cc328); cdecl (window, message, id, b): message 0x101 with b 1 from the tabs 0x1e7d-0x1e81: the list 0x1e7b cleared and filled with the resting staff of the tab's group, its rows refreshed, the panel's slot 8; then the default handler's result"
+0x004b46a0,Panel7cc328_Dress,function,low,"reimplemented (src/game/ui/panel7cc328); thiscall, slot 3 of 0x6ffdd8: the window +0x14 children 0x1e8b (text 0x38) and 0x1e8a (a 0x6ff3b0 part with 0) dressed, unchecked"
 0x004bcec0,Global7cc698_Choose,function,high,reimplemented (src/game/ui/dialogs); a global set from the first of three sources that applies
 0x0052fbf0,PairTable_Add,function,high,reimplemented (src/game/world/cellrun); a pair appended to the 8-byte entry table unless it is past 0x400
 0x004d09a0,Obj_SmallestEntry,function,high,"reimplemented (src/game/world/money); the index of the smallest non-zero entry size of eight, or -1"
@@ -5559,6 +5560,7 @@ address,name,kind,confidence,notes
 0x0066a016,Frame_Stop,function,low,"reimplemented (src/game/ui/frame); thiscall: the word +4 = 0, then with the word +6 set slot 1 (its result returned, else the frame)"
 0x004a4ab0,Dialog7cb398_ShowTopThree,function,low,"reimplemented (src/game/ui/dialog7cb398); cdecl: the window [0x7cb398]'s child 0x4a68d1, then Things_TopThreeValues shown by its children 0x4a68d4/d3/d2 (1..0x16: slot 7 with value - 1, else hidden)"
 0x00499b40,Panel7ca228_Update,function,low,"reimplemented (src/game/ui/panel7ca228); thiscall, slot 1 of 0x6ff8d0: +0x20's slot 9 (panel slot 13), the window +0x10's child 0x1581 shown by bit 4 of [0x7c2658]+0x32, then slots 6 and 5"
+0x00499890,Panel7ca228_Dress,function,low,"reimplemented (src/game/ui/panel7ca228); thiscall, slot 3 of 0x6ff8d0: with the window +0x14, its children 0x1587-0x1584 found dressed (texts 0x35 / 0x36, 0x6ff350 / 0x6ff3b0 parts with 0)"
 0x00661d96,CursorTable_Get,function,low,"reimplemented (src/game/ui/cursor); thiscall (index), pops 4: the entry at the index's low word when below the word count +4, else 0"
 0x006590f7,Gui_SetCursor,function,low,"reimplemented (src/game/ui/cursor); cdecl (id word): the current cursor's slot 4 (0), the new one (or the default) stored at 0xfaa608 and its id at 0x77c484, its slot 4 (1) and slot 2"
 0x0065f11d,Window_SetCursor,function,low,"reimplemented (src/game/ui/cursor); thiscall (id), pops 4: the word +0x50 = id; Gui_SetCursor when the window is the hovered one [0xfaa5e0]"
@@ -5862,6 +5864,7 @@ address,name,kind,confidence,notes
 0x00497100,Panel7ca178_Dress,function,low,"reimplemented (src/game/ui/panel7ca178); thiscall; slot 3 of the vtable 0x6ff740 (the panel at 0x7ca178): with the window +0x14 set, its children 0x15bbb-0x15bc0 dressed (ui/panelparts: three texts 0x3c, 0x3d, 0x3f, a 0x6ff350 part, a ridestatbar bar and a 0x6ff3b0 part)"
 0x00658334,GuiFont_TextWidth,function,low,"reimplemented (src/game/ui/guifont); thiscall (text, from, to: words), pops 12: the width (AX) of the characters from..to, each glyph width (signed) + the spacing +6; to below from means the last; 0 for a single character (sic)"
 0x00658243,GuiFont_Init,function,low,"reimplemented (src/game/ui/guifont); thiscall (count, width, spacing, height, b), pops 20: count glyphs of 8 bytes (Mem_Alloc; width, b, 0) with the count and height set when allocated; the spacing either way; returns the font"
+0x004b6540,Panel7cc3e0_Dress,function,low,"reimplemented (src/game/ui/panel7cc3e0); thiscall, slot 3 of 0x6ffec8: with the window +0x14, its children 0x5211-0x520e found dressed (texts 0x37 / 0x38, 0x6ff350 / 0x6ff3b0 parts with 0)"
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"
