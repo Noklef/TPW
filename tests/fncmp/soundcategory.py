@@ -85,7 +85,9 @@ def files(r, log, regions, wad=True):
     if r.random() < 0.8:
         echo(log, fileopen.K['SetFilePointer'], 1)
     if wad:
-        fill(log, fileopen.K['ReadFile'], 1, bytes(fileopen.wad_header(r)), 0)
+        header = fileopen.wad_header(r)
+        struct.pack_into('<I', header, 0x48, 0)   # (no entries: a record would be the header's bytes again, its name wild)
+        fill(log, fileopen.K['ReadFile'], 1, bytes(header), 0)
         fill_arg(log, fileopen.K['ReadFile'], 3, 2, 1)
     else:
         set_return(log, fileopen.K['GetFileAttributesA'], 0xffffffff)
