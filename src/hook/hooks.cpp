@@ -202,6 +202,7 @@
 #include "../game/core/soundeax.h"
 #include "../game/core/soundmanager.h"
 #include "../game/core/soundmixer.h"
+#include "../game/core/soundnames.h"
 #include "../game/core/soundobject.h"
 #include "../game/core/soundplay.h"
 #include "../game/core/soundslot.h"
@@ -4372,6 +4373,7 @@ const Hook kHooks[] = {
     {"SoundResource_LengthMs",    0x006d4970, (void *)&SoundResource_LengthMs, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"SfBank_Load",               0x006d4aa0, (void *)&SfBank_Load, {0x56, 0x8b, 0xf1, 0xf6, 0x46}},
     {"SfBank_Unload",             0x006d4cd0, (void *)&SfBank_Unload, {0x56, 0x8b, 0xf1, 0x8b, 0x4e}},
+    {"SoundNames_Save",           0x006c0dc0, (void *)&SoundNames_Save, {0x83, 0xec, 0x30, 0x53, 0x55}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
