@@ -52,4 +52,15 @@ u32 *__fastcall SoundObject_VoiceInfo(u8 *object, void *, u32 *out, u32 id, u32 
     return out;
 }
 
+u32 *__fastcall SoundObject_SendVoice(u8 *object, void *, u32 *out, u32 id, u32 value) {
+    if (!id) {
+        *out = 0xffffffff;
+        return out;
+    }
+    u8 *const channel = at<u8 *>(object, 0x24);
+    if (channel && (at<u32>(channel, 0x28) & 0x400)) return SoundMixer_SendVoice(at<u8 *>(object, 0x20), nullptr, out, id, value);
+    vcall<void>(object, 0x18, out, id);
+    return out;
+}
+
 }  // extern "C"
