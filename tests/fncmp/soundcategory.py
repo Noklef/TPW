@@ -90,6 +90,7 @@ def files(r, log, regions, wad=True):
     else:
         set_return(log, fileopen.K['GetFileAttributesA'], 0xffffffff)
     strings(log, 4, 0, out=7)   # (a recorder object's +0x10, Vfn4's target: stack addresses)
+    set_return(log, fileopen.K['InterlockedDecrement'], r.choice([1, 1, 2]))   # (a count to 0 tears the game's abstract RefObject2 down: _purecall)
     base = r.choice([b'C:\\tp\\', b'D:\\'])
     globals_ = bytearray(r.bytes(0x318))
     globals_[0:8] = b'tp.exe\0\0'
@@ -312,7 +313,8 @@ def case(r):
         paths = [r.choice([b'Bank0.bnk', b'sub\\Bank1.bnk', b'x', b'a\\b\\c.bnk']) for _ in range(count)]
         flags = [r.choice([0, 0, 0x20, 0x21, r.getrandbits(8)]) for _ in range(count)]
         entries = b''.join(r.bytes(9) + bytes([flags[i]]) + r.bytes(1) for i in range(count))
-        data = r.choice([BANK_GUID, BANK_GUID, BANK_GUID, SFX_GUID]) + r.bytes(4) + r.bytes(4) + struct.pack('<I', count) + entries
+        guid = r.choice([BANK_GUID, BANK_GUID, BANK_GUID, SFX_GUID, BANK_GUID[:12] + r.bytes(4), BANK_GUID[:8] + r.bytes(4) + BANK_GUID[12:]])   # (one dword off)
+        data = guid + r.bytes(4) + r.bytes(4) + struct.pack('<I', count) + entries
         data += b''.join(struct.pack('<I', len(p)) + p for p in paths) + bytes(4)
         n = r.choice([0, 1, 2, 3])
         names = [r.choice([p.split(b'\\')[-1] for p in paths] + [b'y']) for _ in range(n)]
@@ -323,7 +325,6 @@ def case(r):
         log = log_region()
         regions[LOG] = log
         files(r, log, regions, wad=name == 'readbankmap')
-        set_return(log, fileopen.K['InterlockedDecrement'], r.choice([1, 1, 2]))   # (a count to 0 would tear the game's abstract RefObject2 down: _purecall)
         regions[FILE] = data
         regions[FOLDERTEXT] = folder + b'\0' + r.bytes(8)
         regions[SOUND_SYSTEM] = struct.pack('<I', SOUND)
@@ -346,9 +347,9 @@ def case(r):
         struct.pack_into('<I', vt, 0x10, recorder(20, 3))
         regions[VT_HANDLE] = vt
         struct.pack_into('<2I', regions[CAT], 0x30, VT_HANDLE, r.getrandbits(32))
-        if r.random() < 0.15:
+        if r.random() < 0.3:   # (the status the open answers through: negative, or 0 / 1 at the edge)
             set_return(log, 3, NEGATIVE)
-            regions[NEGATIVE] = struct.pack('<i', r.choice([-1, -0x80000000]))
+            regions[NEGATIVE] = struct.pack('<i', r.choice([-1, -0x80000000, 0, 0, 1]))
         else:
             echo(log, 3, 0)
         fill(log, 3, 1, struct.pack('<2I', STREAM_VTABLE, SRC), 0)
@@ -388,7 +389,7 @@ def case(r):
         set_return(log, 6, pos)
         regions[STREAM] = struct.pack('<2I', VT_STREAM, r.getrandbits(32))
         regions[VT_STREAM] = vtable({2: 2})
-        regions[OUT] = struct.pack('<2I', r.getrandbits(32), count if r.random() < 0.9 else max(0, count - 1))
+        regions[OUT] = struct.pack('<2I', r.getrandbits(32), count)   # (a count the file does not hold sends the walk through a length read from an entry: wild)
         return Call(CALLS[name], [CAT, STREAM, OUT], regions, conv='t', ret='v')
     if name == 'fixup':
         top = r.choice([1, 1, 2])
