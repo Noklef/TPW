@@ -499,6 +499,7 @@ address,name,kind,confidence,notes
 0x005720d0,TerrainTexCache_Ctor,function,high,"reimplemented (src/game/terrain/texcache); the tile cache cleared, 0x40 tiles"
 0x00572350,TerrainTexCache_Dtor,function,low,"reimplemented (src/game/terrain/texcache); thiscall: the tiles' texture arrays, the tiles and the landscape freed (name unconfirmed)"
 0x00572110,TerrainTexCache_Init,function,low,"reimplemented (src/game/terrain/texcache); the tile cache set up: the landscape, count tiles in a ring each with a texture of the size (capped by the video and texture memory)"
+0x00572630,TerrainTexCache_BlendTile,function,low,"reimplemented (src/game/terrain/texcache); thiscall (texture, x, y, overlay), pops 0x10: Texture_Alloc at the cache's size, the landscape's tile blended into it (2-byte formats through the scratch at 0x879a68 and TexFormat_ConvertSquare, else in place, each pixel byte-reversed); 0 for a failed allocation, else 1 (name unconfirmed)"
 0x00536490,MapCell_Reset,function,high,"default type/flags from the attribute byte: outside park 2/0x1e/7, inside 1 (path, bit 0x08) or 0; 0x10 -> flags 0x80, 0x04 -> flags 0x400"
 0x00527ee0,Path_CheckDeadEnds,function,low,"counts path neighbours; attribute bit 0x08 exempts a cell"
 0x0080239c,gWorld,data,medium,"world structure; map cells at +0x2d8 (0x44 each, 1-based ids), track cells at +0x1102d8"
