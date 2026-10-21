@@ -44,6 +44,11 @@ void __cdecl TgqVideo_SetQuality(s32 quality);
 // anything, the second before pair 4): kept, as reads that fault where the original's do.
 void __cdecl TgqVideo_PixelRow16(const u32 *luma, u16 *out, const u32 *chroma);
 
+// 0x6732e9 (luma in ESI, out in EDI, chroma in EBX: hand-written assembly hooked through RegThunk_TgqVideo_PixelRow32; name
+// unconfirmed): as TgqVideo_PixelRow16 at 32 bits a pixel (out dwords 2k and 2k + 1, the sums whole), the same dropped reads of out's
+// dwords 0 and 8.
+void __cdecl TgqVideo_PixelRow32(const u32 *luma, u32 *out, const u32 *chroma);
+
 // 0x672e60 (cdecl; hand-written assembly leaving the coefficient counter in EDI, which its thunk RegThunk_TgqVideo_DecodeCoefficients
 // sets from the returned value: its callers 0x67380f / 0x673fee pass EDI on to 0x67673c as the out pointer; name unconfirmed): a block's
 // 64 coefficients into 0xfb7600 from the bit reader (source 0xfb7920, bits 0xfb7928 least significant first, their count 0xfb7924:

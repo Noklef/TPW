@@ -13,7 +13,7 @@
 # reached only through the table are not in the listing, their instructions are added from the exe's bytes below): symbols
 # drawn while the counter stays in the zigzag table (runs of 1 to counter / 2 pairs), then random bytes; a few cases with the exe's table
 # use a code 5-7 (a jump to its non-code dwords: crash in both). The coefficients and the dequantiser random (small or any).
-# usage: tgqvideo.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Fill16,Fill32,Pack,Tables,Quality,Row16,Coefficients)
+# usage: tgqvideo.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Fill16,Fill32,Pack,Tables,Quality,Row16,Row32,Coefficients)
 import os
 import struct
 import sys
@@ -21,8 +21,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import RAM, Bench, Call  # noqa: E402
 
-CALLS = {'Fill16': 0x671340, 'Fill32': 0x671650, 'Pack': 0x66fd70, 'Tables': 0x66fc10, 'Quality': 0x671000, 'Row16': 0x673574, 'Coefficients': 0x672e60}
-B = Bench([(0x671340, 0x671532), (0x671650, 0x6717fc), (0x66fd70, 0x66ff96), (0x66fc10, 0x66fd69), (0x671000, 0x6710b9), (0x673574, 0x67380f), (0x672e60, 0x673000)])
+CALLS = {'Fill16': 0x671340, 'Fill32': 0x671650, 'Pack': 0x66fd70, 'Tables': 0x66fc10, 'Quality': 0x671000, 'Row16': 0x673574, 'Row32': 0x6732e9, 'Coefficients': 0x672e60}
+B = Bench([(0x671340, 0x671532), (0x671650, 0x6717fc), (0x66fd70, 0x66ff96), (0x66fc10, 0x66fd69), (0x671000, 0x6710b9), (0x673574, 0x67380f), (0x672e60, 0x673000), (0x6732e9, 0x673574)])
 # 0x672e60's jump-table targets 0x672ecc and 0x672f36, missing from the listing (no fall-through or jump reaches them): from the exe's bytes
 B.emu.code.update({0x672ecc: ('MOV', 'EAX,dword ptr [EBX*0x4 + 0xfb7820]'), 0x672ed3: ('NEG', 'EAX'),
                    0x672ed5: ('MOV', 'dword ptr [EBX*0x4 + 0xfb7600],EAX'), 0x672edc: ('JMP', '0x00672f09'),
@@ -99,9 +99,9 @@ def case(r):
     if op == 'Quality':
         quality = r.randrange(101) if r.random() < 0.85 else r.choice([-1, 101, 200, r.getrandbits(32)])
         return Call(CALLS[op], [quality], {0xfb7820: r.bytes(0x100)}, ret='v')
-    if op == 'Row16':
+    if op in ('Row16', 'Row32'):
         luma, chroma = RAM + 0x1000, RAM + 0x2000
-        regions = {0xfb7930: r.bytes(0x600), luma: r.bytes(0x40), chroma: r.bytes(0x120), OUT: r.bytes(0x24)}
+        regions = {0xfb7930: r.bytes(0x600), luma: r.bytes(0x40), chroma: r.bytes(0x120), OUT: r.bytes(0x24 if op == 'Row16' else 0x44)}
         return Call(CALLS[op], [luma, OUT, chroma], regions, conv='esiediebx', ret='v')
     if op == 'Pack':
         return Call(CALLS[op], [channel(r), channel(r), channel(r), r.getrandbits(32)] + pixel_format(r), {}, conv='f', ret='a')

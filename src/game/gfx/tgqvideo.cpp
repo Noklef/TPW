@@ -139,6 +139,18 @@ void __cdecl TgqVideo_PixelRow16(const u32 *luma, u16 *out, const u32 *chroma) {
     }
 }
 
+void __cdecl TgqVideo_PixelRow32(const u32 *luma, u32 *out, const u32 *chroma) {
+    volatile const u32 *const dropped = out;
+    (void)dropped[0];
+    for (int k = 0; k < 8; ++k) {
+        if (k == 4) (void)dropped[8];
+        const u32 y0 = luma[2 * k], y1 = luma[2 * k + 1], u = chroma[k], v = chroma[k + 0x40];
+        const u32 colour = global<u32>(0x00fb7d30 + (u >> 17 & 0x7f) * 4) + global<u32>(0x00fb7b30 + (v >> 17 & 0x7f) * 4);
+        out[2 * k] = global<u32>(0x00fb7930 + (y0 >> 17 & 0x7f) * 4) + colour;
+        out[2 * k + 1] = global<u32>(0x00fb7930 + (y1 >> 17 & 0x7f) * 4) + colour;
+    }
+}
+
 s32 __cdecl TgqVideo_DecodeCoefficients() {
     CoefficientReader in = {global<const u8 *>(0x00fb7920), global<u32>(0x00fb7928), global<u32>(0x00fb7924)};
     coefficient(0) = fixmul((s32)(in.bits << 24) >> 8, (s32)dequantiser(0));

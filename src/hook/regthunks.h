@@ -13,5 +13,6 @@ void RegThunk_MovieIdct_Column();   // 0x67673c: block in ESI, out in EDI
 void RegThunk_MovieIdct_Row();      // 0x67687b: block in ESI, out on the stack
 void RegThunk_MovieIdct_RowShift(); // 0x676965: block in ESI, out in EDI
 void RegThunk_TgqVideo_PixelRow16(); // 0x673574: luma in ESI, out in EDI, chroma in EBX
+void RegThunk_TgqVideo_PixelRow32(); // 0x6732e9: luma in ESI, out in EDI, chroma in EBX
 void RegThunk_TgqVideo_DecodeCoefficients(); // 0x672e60: the counter left in EDI
 }

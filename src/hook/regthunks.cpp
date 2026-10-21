@@ -68,6 +68,17 @@ __declspec(naked) void RegThunk_TgqVideo_PixelRow16() {
     }
 }
 
+__declspec(naked) void RegThunk_TgqVideo_PixelRow32() {
+    __asm {
+        push ebx
+        push edi
+        push esi
+        call TgqVideo_PixelRow32
+        add esp, 12
+        ret
+    }
+}
+
 // No arguments; the counter left in EDI (the callers hand it to 0x67673c).
 __declspec(naked) void RegThunk_TgqVideo_DecodeCoefficients() {
     __asm {
