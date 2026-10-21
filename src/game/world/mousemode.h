@@ -22,11 +22,14 @@ struct MouseModeEnv {
 void MouseModes_SetEnv(const MouseModeEnv *env);
 
 // Inlined in 0x481a10 and 0x485b70 (not a function of the game's): the one-byte object at [0x7b05e8] made the first time (Mem_Alloc(1),
-// its byte left as it is): its constructor sets the mouse mode to a new CMMOnline base (Mem_Alloc(8), MouseModeOnlineBase_Ctor; 0 when
-// that failed; MouseMode_Set) and 0x7b05e0 and 0x7b05d4 to -1. Its allocation failing: [0x7b05e8] stays 0 and nothing else is done.
+// its byte left as it is) and constructed (MouseModeHolder_Ctor). Its allocation failing: [0x7b05e8] stays 0 and nothing else is done.
 void MouseModes_EnsureHolder();
 
 extern "C" {
+
+// 0x46d550 (thiscall; name unconfirmed): the one-byte mode holder's constructor: the mouse mode set to a new CMMOnline base
+// (Mem_Alloc(8), MouseModeOnlineBase_Ctor; 0 when that failed; MouseMode_Set), 0x7b05e0 and 0x7b05d4 = -1. Returns the holder.
+u8 *__fastcall MouseModeHolder_Ctor(u8 *holder);
 
 // 0x46c070 / 0x46c090: static initialisers of two floats nothing reads: 0x7b05a0 = 1 and
 // 0x7b05a4 = 1 / 2^23 (as camera's). 0x46c0b0: the pointer state's tile (0x7b05cc, u16) = 1
