@@ -4643,6 +4643,8 @@ address,name,kind,confidence,notes
 0x006b5560,GlyphRender_FreeBuffer,function,low,"reimplemented (src/game/gfx/glyphrender); cdecl, handed to atexit by the draw call: Mem_Free of the shared glyph buffer [0xfb4cd4]"
 0x00671340,TgqVideo_FillBlocks16,function,low,"reimplemented (src/game/gfx/tgqvideo); cdecl (y0, y1, y2, y3, c0, c1, out, pitch): a flat 16x16 macroblock at 16 bits a pixel: four 8x8 squares of luma[y] + the two chroma entries (tables 0xfb7930 / 0xfb7d30 / 0xfb7b30 indexed by value * [0xfb7820] 16.16 >> 1 & 0x7f)"
 0x00671650,TgqVideo_FillBlocks32,function,low,"reimplemented (src/game/gfx/tgqvideo); cdecl (y0, y1, y2, y3, c0, c1, out, pitch): the same at 32 bits a pixel"
+0x0066fd70,TgqVideo_PackColour,function,low,"reimplemented (src/game/gfx/tgqvideo); fastcall (r, g; b, unused, red / green / blue bits, red / green / blue shifts), pops 32: the colour rounded and clamped to the bits in the low half, truncated (after a borrow chain) in the high half; 0x80008000 when the bits do not sum to 16"
+0x0066fc10,TgqVideo_BuildTables,function,low,"reimplemented (src/game/gfx/tgqvideo); fastcall (unused, red bits; green bits, blue bits, red / green / blue shifts), pops 20: the luma table 0xfb7930 and the chroma tables 0xfb7d30 / 0xfb7b30 (YCbCr factors 16.16) packed for the pixel format"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"

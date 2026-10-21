@@ -16,4 +16,19 @@ void __cdecl TgqVideo_FillBlocks16(s32 y0, s32 y1, s32 y2, s32 y3, s32 c0, s32 c
 // 0x671650 (cdecl, as TgqVideo_FillBlocks16; name unconfirmed): the same at 32 bits a pixel: the squares 32 bytes right and pitch * 8
 // down, the rows (pitch >> 2) * 4 bytes apart.
 void __cdecl TgqVideo_FillBlocks32(s32 y0, s32 y1, s32 y2, s32 y3, s32 c0, s32 c1, u8 *out, u32 pitch);
+
+// 0x66fd70 (fastcall (r, g; b, unused, red bits, green bits, blue bits, red shift, green shift, blue shift), pops 32; name unconfirmed):
+// a colour packed twice into a pixel pair: each channel v rounded to its bits ((v + (1 << (7 - bits))) / (1 << (8 - bits)), signed;
+// below 0 (v - that) / it), clamped to 1 - (1 << bits) .. (1 << bits) - 1, into the low half at its shift; and truncated (v / (1 << (8 -
+// bits))) into the high half at shift + 16, after a borrow chain: a negative rounded blue takes one from the rounded green, that from
+// the rounded red, that from the truncated blue, that from the truncated green and that from the truncated red. Each value is masked to
+// its bits; with the bits not summing to 16 both halves get their top bit (0x80008000). Shift counts are taken mod 32, as the CPU does.
+u32 __fastcall TgqVideo_PackColour(s32 r, s32 g, s32 b, u32 unused, u32 red_bits, u32 green_bits, u32 blue_bits, u32 red_shift,
+                                   u32 green_shift, u32 blue_shift);
+
+// 0x66fc10 (fastcall (unused, red bits; green bits, blue bits, red shift, green shift, blue shift), pops 20; name unconfirmed): the
+// colour tables for a pixel format (TgqVideo_PackColour): for i 0-127 with c = (s8)(2i + 1), luma 0xfb7930[i] = (c + 0x80) as grey,
+// 0xfb7d30[i] = (0, c * -0.3441, c * 1.7720) and 0xfb7b30[i] = (c * 1.4020, c * -0.7141, 0), the products 16.16 rounded by bit 15.
+void __fastcall TgqVideo_BuildTables(u32 unused, u32 red_bits, u32 green_bits, u32 blue_bits, u32 red_shift, u32 green_shift,
+                                     u32 blue_shift);
 }
