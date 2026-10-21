@@ -4363,6 +4363,7 @@ address,name,kind,confidence,notes
 0x006ca580,Mp2Decoder_SynthFixed,function,low,"reimplemented (src/game/core/mp2synth); thiscall (out, fraction): the fixed-point (MMX) polyphase synthesis: the transform into the ring buffers, the 16-bit window sums in 32 bits, shift and saturate"
 0x006ccc20,Mp2Decoder_Dequantize,function,low,"reimplemented (src/game/core/mp2layer2); thiscall (alloc bits, out, scale index, scale factors, allocation table): layer II samples dequantised to floats (II_step_two)"
 0x006cd220,Mp2Decoder_DequantizeFixed,function,low,"reimplemented (src/game/core/mp2layer2); thiscall (alloc bits, out, scale index, scale factors, allocation table): layer II samples dequantised to 16-bit fixed point"
+0x006cdf50,Mp2Decoder_DecodeLayer2,function,low,"reimplemented (src/game/core/mp2layer2); thiscall (pcm) -> 1: one layer II frame: the allocation table, allocations, scale factor selections and scale factors read, then 12 groups dequantised and synthesised (float or fixed point)"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

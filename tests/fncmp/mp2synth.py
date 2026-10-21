@@ -4,17 +4,18 @@
 # synthesis filter (0x6c9270) over a decoder of 0 to 3 channels (mostly 1 or 2) at any ring position, its buffers and the window (0x70bd48)
 # random floats of a decoded stream's range (now and then large enough to clip or overflow the fistp), half rate (0xfb2708) now and then, the
 # output none now and then. The fixed-point filter (0x6ca580) the same over halfword buffers and windows (0x70c5c8-0x70ce08) of full range
-# (sums that wrap and saturate) or small, its transform (LbMpeg_MmxTransform, 0x6d62c0) cdecl recorder 3 (driver.cpp's Mp2Synth env).
+# (sums that wrap and saturate) or small, its transform (LbMpeg_MmxTransform, 0x6d62c0) fncmp's stand-in (copies the input to
+# both outputs, the second reversed; driver.cpp's Mp2Synth env).
 # usage: mp2synth.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import LOG, RAM, Bench, Call, _recorder, fb, log_region  # noqa: E402
+from fncmp import RAM, Bench, Call, _mp2_transform, fb  # noqa: E402
 
 CALLS = {'dct64': 0x6c9580, 'synth': 0x6c9270, 'fixed': 0x6ca580}
-B = Bench([(0x6c9580, 0x6ca574), (0x6c9270, 0x6c957d), (0x6ca580, 0x6cc735)], hooks={0x6d62c0: _recorder(3, 3, cdecl=True)})
+B = Bench([(0x6c9580, 0x6ca574), (0x6c9270, 0x6c957d), (0x6ca580, 0x6cc735)], hooks={0x6d62c0: _mp2_transform})
 OUT0, OUT1, IN = RAM, RAM + 0x1000, RAM + 0x2000
 DECODER, PCM = RAM + 0x4000, RAM + 0x3000
 WINDOW, HALF = 0x70bd48, 0xfb2708
@@ -61,7 +62,7 @@ def case_fixed(r):
     struct.pack_into('<i', decoder, 0x244c, channels)
     out = 0 if r.random() < 0.05 else PCM
     regions = {DECODER: decoder, PCM: r.bytes(0x200), IN: r.bytes(0x100), WINDOW_FIXED: halfwords(r, 0x430, big or r.random() < 0.1),
-               HALF: struct.pack('<I', r.choice([0, 0, 0, 1, r.getrandbits(32)])), LOG: log_region()}
+               HALF: struct.pack('<I', r.choice([0, 0, 0, 1, r.getrandbits(32)]))}
     return Call(CALLS['fixed'], [DECODER, out, IN], regions, conv='t', ret='v')
 
 

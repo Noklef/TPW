@@ -248,6 +248,15 @@ void __fastcall stub_mark(u32 *self) { *self = 0x006fd800; }
 u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack);
 
 // A callback the code under test calls through a function pointer, cdecl with one argument (kStubs + 0x50, tools/fncmp.py CDECL_LOG): logged as the COM-style entry k 0x13f.
+// The fixed-point MP2 transform's stand-in (fncmp._mp2_transform): in's 32 halfwords to out0, then reversed to out1, so where the caller
+// points them shows in the buffers (the inputs are on the caller's stack, whose address the two sides cannot share).
+void __cdecl stub_mp2_transform(s16 *out0, s16 *out1, const s16 *in) {
+    s16 v[32];
+    std::memcpy(v, in, sizeof v);
+    std::memcpy(out0, v, sizeof v);
+    for (u32 k = 0; k < 32; ++k) std::memcpy(out1 + k, v + 31 - k, 2);
+}
+
 u32 __cdecl stub_cdecl_log(u32 arg) {
     const u32 stack[2] = {0, arg};
     return record_call(0x13f, 1, 0, stack);
@@ -1061,9 +1070,9 @@ int main(int argc, char **argv) {
         (uintptr_t)(kStubs + 0xb000 + 0x400 * 6 + 0x20 * 30));
     pointer.endThread = reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)(kStubs + 0xb000 + 0x400 * 1 + 0x20 * 31));
     AsyncPointer_SetEnv(&pointer);
-    // The fixed-point MP2 synthesis's transform (LbMpeg_MmxTransform, 0x6d62c0, not ported): cdecl recorder 3 with three arguments, as
-    // tests/fncmp/mp2synth.py hooks it (fncmp.recorder(3, 3, cdecl=True)).
-    static const Mp2SynthEnv mp2Synth = {reinterpret_cast<void(__cdecl *)(s16 *, s16 *, const s16 *)>((uintptr_t)(kStubs + 0xb000 + 0x400 * 3 + 0x20 * 3))};
+    // The fixed-point MP2 synthesis's transform (LbMpeg_MmxTransform, 0x6d62c0, not ported): stub_mp2_transform, as tests/fncmp/mp2synth.py
+    // and mp2layer2.py hook it with fncmp._mp2_transform.
+    static const Mp2SynthEnv mp2Synth = {&stub_mp2_transform};
     Mp2Synth_SetEnv(&mp2Synth);
     // A region of up to 8 MB, as hex. Mapped rather than static: a static this size grew the driver's .bss by 12 MB past the game's
     // addresses, where a case's wild pointer read memory natively that the emulator (the original's side) does not have. At 0x5a000000,

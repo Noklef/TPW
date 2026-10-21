@@ -798,6 +798,14 @@ def _memmove(e):  # cdecl (to, from, n) -> to
     e.r['EAX'] = to
 
 
+def _mp2_transform(e):  # cdecl (out0, out1, in): the fixed-point MP2 transform's stand-in (driver.cpp stub_mp2_transform)
+    sp = e.r['ESP'] + (4 if e.tail else 0)
+    out0, out1, src = e.u32(sp), e.u32(sp + 4), e.u32(sp + 8)
+    v = e.read(src, 0x40)
+    e.write(out0, v)
+    e.write(out1, b''.join(v[2 * k:2 * k + 2] for k in range(31, -1, -1)))
+
+
 def _throw(name):
     def hook(e):
         raise RuntimeError('the original called %s' % name)
