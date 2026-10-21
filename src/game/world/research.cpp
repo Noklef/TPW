@@ -62,6 +62,9 @@ template <bool back> void chooseProject(u8 *lab, u32 group) {
     if (current >= 0 && !not_done(project(lab, current))) at<s32>(g, 8) = -1;
 }
 
+// The research lab: the game object's ([0x80239c]) entry GameTable7cfb90_Get1da722_519550.
+const u8 *labOfGame() { return reinterpret_cast<const u8 *>(GameTable7cfb90_Get1da722_519550(*reinterpret_cast<u8 *const *>(0x0080239c))); }
+
 }  // namespace
 
 extern "C" {
@@ -189,6 +192,11 @@ u8 __cdecl Research_AllDone() {
     }
     return 1;
 }
+
+u32 __cdecl Research_CountNotDoneCat0() { return ResearchLab_CountNotDone(labOfGame(), nullptr, 0); }
+u32 __cdecl Research_CountNotDoneCat1() { return ResearchLab_CountNotDone(labOfGame(), nullptr, 1); }
+u32 __cdecl Research_CountNotDoneCat2() { return ResearchLab_CountNotDone(labOfGame(), nullptr, 2); }
+u32 __cdecl Research_CountNotDoneCat3() { return ResearchLab_CountNotDone(labOfGame(), nullptr, 3); }
 
 void __fastcall ResearchLab_NextProject(u8 *lab, void *, u32 group) { chooseProject<false>(lab, group); }
 

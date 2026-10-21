@@ -944,6 +944,10 @@ address,name,kind,confidence,notes
 0x00503ff0,ResearchLab_FlagProjectControls,function,low,"reimplemented (src/game/world/research); thiscall: each project's object control record (ObjectControls_Find, not quiet) gets byte +0x10 = 1, the last project first"
 0x005034f0,ResearchLab_NextProject,function,low,reimplemented (src/game/world/research); thiscall (group): the group's current project moved to the next one it can take up (else the first before it; none: a done one dropped)
 0x005036a0,ResearchLab_PrevProject,function,low,reimplemented (src/game/world/research); thiscall (group): the same going down: the previous one it can take up (else the last after it)
+0x004ca630,Research_CountNotDoneCat0,function,low,reimplemented (src/game/world/research); cdecl: the lab's projects of category 0 not done
+0x004ca650,Research_CountNotDoneCat1,function,low,reimplemented (src/game/world/research); cdecl: the lab's projects of category 1 not done
+0x004ca670,Research_CountNotDoneCat2,function,low,reimplemented (src/game/world/research); cdecl: the lab's projects of category 2 not done
+0x004ca690,Research_CountNotDoneCat3,function,low,reimplemented (src/game/world/research); cdecl: the lab's projects of category 3 not done
 0x005100e0,Nav_SetPosVel,function,high,"reimplemented (src/game/world/nav); thiscall (x, y, vx, vy): pos (+8) and vel (+0x10) set"
 0x00510160,Nav_GetPos,function,high,"reimplemented (src/game/world/nav); thiscall (&x, &y): pos (+8, +0xc) read"
 0x0051aad0,World_ArrivalVehicleNotSize1,function,high,reimplemented (src/game/world/world); thiscall: 1 when mCurrentArrivalVehicle (+0x1da72a) is set and is not mArrivalVehicle_Size1 (+0x1da72c)
