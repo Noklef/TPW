@@ -39,23 +39,34 @@ CHOICE = struct.unpack('<96I', image(0x7114f0, 0x180))   # the allocation table 
 SUBBANDS = struct.unpack('<5i', image(0x711670, 0x14))   # each table's sblimit
 
 
+def entry(r):
+    """An allocation table's (bits, d): d < 0, samples read one by one; d 3, 5 or 9, codes into the grouping table d. Wild: any bits up to 23,
+    but a grouped code's at most 21: its three bytes (at the table's pointer, 0x70af28 to 0x70b108, + 3 code) then stay in the game's data
+    (below 0xfc5200), where 22 bits reach past it into memory only the driver has (the emulator faults where the C++ reads on)."""
+    if r.random() < 0.3:
+        d = r.choice(list(GROUPED))
+        k = GROUPED[d]
+    else:
+        k = r.randrange(2, 17)
+        d = -((1 << (k - 1)) - 1)
+    if r.wild and r.random() < 0.004:
+        d = r.choice([d, r.randrange(-0x8000, 0)])
+        k = r.randrange(0, 22 if d > 0 else 24)
+    return struct.pack('<hh', k, d)
+
+
 def table(r):
-    """Allocation tables for 32 subbands: each 1 << step entries, its first (step, 0), the rest (bits, d)."""
+    """Allocation tables for 32 subbands: each 1 << step entries, its first (step, 0), the rest (bits, d); then 16 more entries for the
+    allocations past the last table's end (random bytes there would hand the original a group pointer and code width it never sees)."""
     out, steps = bytearray(), []
     for _ in range(32):
         step = r.choice([2, 3, 4, 4])
         steps.append(step)
         out += struct.pack('<hh', step, 0)
         for _ in range((1 << step) - 1):
-            if r.random() < 0.3:
-                d = r.choice(list(GROUPED))
-                k = GROUPED[d]
-            else:
-                k = r.randrange(2, 17)
-                d = -((1 << (k - 1)) - 1)
-            if r.wild and r.random() < 0.004:
-                k, d = r.randrange(0, 24), r.choice([d, r.randrange(-0x8000, 0)])
-            out += struct.pack('<hh', k, d)
+            out += entry(r)
+    for _ in range(16):
+        out += entry(r)
     return out, steps
 
 
@@ -133,7 +144,7 @@ def case(r):
     else:
         rows = b''.join(struct.pack('<I', r.choice([r.getrandbits(16), r.getrandbits(20), r.getrandbits(32)])) for _ in range(27 * 64 + 0x80))
         regions = {FIXED - 0x100: r.bytes(0x100) + rows}
-    regions.update({DECODER: decoder, FRAME: r.bytes(0x500), BITS: bits + r.bytes(0x40), OUT: r.bytes(0x500), SCALE: scale, TABLE: tab + r.bytes(0x40),
+    regions.update({DECODER: decoder, FRAME: r.bytes(0x500), BITS: bits + r.bytes(0x40), OUT: r.bytes(0x500), SCALE: scale, TABLE: tab,
                     GROUPS: bytearray(r.choice([r.randrange(27), r.randrange(27), r.getrandbits(8)]) for _ in range(GROUPS_END - GROUPS))})
     return Call(CALLS[name], [DECODER, BITS, OUT, SCALE, r.randrange(0, 4), TABLE], regions, conv='t', ret='v')
 
