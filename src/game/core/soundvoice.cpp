@@ -60,6 +60,13 @@ void send_record(const u8 *voice, u32 *out, u32 *record) {
     vcall<void>(global<u8 *>(0x00fb1f24), 0x10, out, functor);
 }
 
+// 0x6be610 / 0x6be680's end: the voice's slot 4 (out: the factory's memory argument's own stack slot, sic).
+u8 *init_voice(u8 *voice, u32 *out, u8 *owner, u8 *definition, u8 *info) {
+    if (!voice) return nullptr;
+    if (static_cast<s32>(*vcall<u32 *>(voice, 0x10, out, owner, definition, info + 0xc, at<u32>(info, 0x18))) < 0) return nullptr;
+    return voice;
+}
+
 }  // namespace
 
 extern "C" {
@@ -332,6 +339,79 @@ u8 __fastcall SoundVoice_NextVariation(u8 *voice, void *, u32) {
     return 1;
 }
 
+void __fastcall SoundVoice_SetFlags(u8 *voice, void *, u32 scale) {
+    const u8 *const definition = at<u8 *>(voice, 4);
+    at<u32>(voice, 0x30) = 0;
+    if (definition[0x10] & 8) at<u32>(voice, 0x30) = 6;
+    if (definition[0x10] & 4) at<u32>(voice, 0x30) |= 2;
+    if (at<u16>(definition, 0x10) & 0x200) at<u32>(voice, 0x30) |= 8;
+    if (definition[0x10] & 0x20) at<u32>(voice, 0x30) |= 0x200;
+    if (definition[0x11] & 0x40) at<u32>(voice, 0x30) |= 0x20000;
+    const float s = as_float(scale);
+    if (s < 0.0f || s > 0.0f) {
+        at<u32>(voice, 0x40) = scale;
+        at<u32>(voice, 0x30) |= 0x80;
+    }
+}
+
+u32 *__fastcall SoundVoice_Init(u8 *voice, void *, u32 *out, u8 *owner, u8 *definition, const u32 *position, u32 scale) {
+    at<u8 *>(voice, 0x28) = owner;
+    vcall<void>(owner, 4);
+    at<u8 *>(voice, 4) = definition;
+    at<u32>(voice, 0x10) = position[0];
+    at<u32>(voice, 0x14) = position[1];
+    at<u32>(voice, 0x18) = position[2];
+    voice[0x47] = at<u8 *>(owner, 8)[8];
+    if (at<u16>(definition, 0x12)) {
+        SoundVoice_EnsureParams(voice);
+        at<u8 *>(voice, 0x4c)[0] = at<u8 *>(voice, 4)[0x12];
+    }
+    SoundVoice_SetFlags(voice, nullptr, scale);
+    if (vcall<u8>(voice, 0x38, 0u) || at<u32>(voice, 8)) {
+        SoundVoice_ApplyVariation(voice);
+        if (at<u32>(voice, 0xc) || (at<u32>(voice, 0xc) = vcall<u32>(voice, 0x3c, 0u)) != 0) {
+            at<u32>(voice, 0x1c) = Time_GetMs() + at<u32>(at<u8 *>(voice, 0xc), 8) + 0xfa;
+            *out = 0;
+            return out;
+        }
+    }
+    vcall<void>(at<u8 *>(voice, 0x28), 0);
+    at<u32>(voice, 0x28) = 0;
+    *out = 0xffffffff;
+    return out;
+}
+
+void __fastcall SoundVoice_SetParam(u8 *voice, void *, u32 key, u32 value) {
+    if (!at<u8 *>(voice, 0x4c)) SoundVoice_EnsureParams(voice);
+    bool changed = false;
+    for (u8 i = 0; i < 4; ++i) {
+        u8 *const slot = at<u8 *>(voice, 0x4c) + i;
+        if (static_cast<u8>(key) != slot[0]) continue;
+        slot[4] = static_cast<u8>(value);
+        if (i) changed = true;   // (the switch's own byte 0 not counted, sic)
+    }
+    if (changed && !(at<u32>(voice, 0x30) & 0x4000)) vcall<void>(voice, 0x34);
+}
+
+void __fastcall SwitchVoice_SetParam(u8 *voice, void *, u32 key, u32 value) {
+    SoundVoice_SetParam(voice, nullptr, key, value);
+    if (!(voice[0x30] & 0x40) || at<u8 *>(voice, 0x4c)[4] == 0x7f) return;
+    if (!vcall<u8>(voice, 0x38, 1u) || !at<u32>(voice, 8)) return;
+    u8 *const sample = SoundVoice_PickSample(voice, nullptr, 1);
+    at<u8 *>(voice, 0xc) = sample;
+    if (sample) at<u32>(voice, 0x30) &= ~0x40u;
+}
+
+u8 *__cdecl SwitchVoice_Create(u8 *owner, u8 *memory, u8 *definition, u8 *info) {
+    u8 *const voice = memory ? SwitchVoice_Ctor(memory) : nullptr;
+    return init_voice(voice, reinterpret_cast<u32 *>(&memory), owner, definition, info);
+}
+
+u8 *__cdecl SequenceVoice_Create(u8 *owner, u8 *memory, u8 *definition, u8 *info) {
+    u8 *const voice = memory ? SequenceVoice_Ctor(memory) : nullptr;
+    return init_voice(voice, reinterpret_cast<u32 *>(&memory), owner, definition, info);
+}
+
 u8 *__fastcall SwitchVoice_Ctor(u8 *voice) {
     Class70a7e0_Ctor(voice);
     at<u32>(voice, 0) = 0x0070a498;
@@ -342,6 +422,97 @@ u8 *__fastcall SequenceVoice_Ctor(u8 *voice) {
     Class70a7e0_Ctor(voice);
     at<u32>(voice, 0) = 0x0070a440;
     return voice;
+}
+
+u8 *__fastcall LinkedVoice_Ctor(u8 *voice, void *, u8 *parent) {
+    Class70a7e0_Ctor(voice);
+    at<u32>(voice, 0) = 0x0070a970;
+    SoundVoice_EnsureParams(voice);
+    at<u8 *>(at<u8 *>(voice, 0x4c), 0x1c) = parent;
+    return voice;
+}
+
+u8 *__fastcall LinkedSwitchVoice_Ctor(u8 *voice, void *, u8 *parent) {
+    LinkedVoice_Ctor(voice, nullptr, parent);
+    at<u32>(voice, 0) = 0x0070a9e0;
+    return voice;
+}
+
+u8 __fastcall LinkedVoice_Init(u8 *voice, void *, u8 *definition, u32 time) {
+    at<u8 *>(voice, 4) = definition;
+    SoundVoice_SetFlags(voice, nullptr, 0);
+    voice[0x47] = at<u8 *>(at<u8 *>(voice, 0x4c), 0x1c)[0x47];
+    if (!vcall<u8>(voice, 0x38, 0u)) return 0;
+    const u32 sample = vcall<u32>(voice, 0x3c, 0u);
+    at<u32>(voice, 0xc) = sample;
+    if (!sample) return 0;
+    at<u32>(voice, 0x1c) = vcall<u32>(voice, 0x4c) + time;
+    return 1;
+}
+
+void __fastcall LinkedVoice_FollowParent(u8 *voice) {
+    if (!at<u32>(voice, 0x24)) return;
+    u32 record[0x24];   // (the fields not named here are left unset, sic)
+    static const u8 kCleared[] = {0, 1, 3, 4, 5, 0xb, 0xc, 0xe, 0xf, 0x10, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f, 0x22};
+    for (const u8 i : kCleared) record[i] = 0;
+    record[0x20] = 0x3e800000;   // 0.25f
+    record[0x21] = 0x3f000000;   // 0.5f
+    record[0x23] = 0x3f800000;   // 1.0f
+    if (!(voice[0x30] & 8)) {
+        const u32 flags = at<u32>(system(), 0x28);
+        record[3] = flags & 0x43 && flags & 0x80 ? 0x820 : 0x20;
+    }
+    record[5] = 1;
+    record[0xc] = static_cast<u32>(reinterpret_cast<uintptr_t>(at<u8 *>(at<u8 *>(voice, 0x4c), 0x1c) + 0x10));
+    u32 out;
+    u32 functor[3] = {0x0070a850, at<u32>(voice, 0x24), static_cast<u32>(reinterpret_cast<uintptr_t>(record))};
+    vcall<void>(system(), 0x10, &out, functor);
+}
+
+u8 __fastcall LinkedSwitchVoice_PickBranch(u8 *voice, void *, u32) {
+    u8 *const parent = at<u8 *>(at<u8 *>(voice, 0x4c), 0x1c);
+    const u32 value = at<u8 *>(parent, 0x4c)[4];
+    at<u32>(voice, 8) = at<u32>(parent, 8);
+    if (!at<u8 *>(voice, 8) && at<u8 *>(voice, 4)) {
+        at<u8 *>(voice, 8) = at<u8 *>(at<u8 *>(voice, 4), 8);
+        if (SfxVariation_SampleCount(at<u8 *>(voice, 8))) {
+            at<u32>(parent, 8) = at<u32>(voice, 8);
+            return 1;
+        }
+    }
+    if (!at<u32>(at<u8 *>(voice, 8), 4)) {
+        at<u32>(voice, 8) = 0;
+        at<u32>(parent, 8) = 0;
+        return 0;
+    }
+    auto entry = [voice](u32 i) { return at<const u8 *>(at<u8 *>(voice, 8), 0x26) + 8 * i; };
+    auto within = [value](const u8 *e) { return e[6] <= value && e[7] >= value; };
+    u32 matches = 0, sum = 0;
+    for (u32 i = 0; i < at<u32>(at<u8 *>(voice, 8), 4); ++i)
+        if (within(entry(i))) {
+            ++matches;
+            sum += at<u32>(at<const u8 *>(entry(i), 0), 0x1e);
+        }
+    if (!matches) {
+        at<u8 *>(parent, 0x4c)[4] = 0x7f;
+        at<u32>(parent, 0x30) |= 0x40;
+        return 0;
+    }
+    const u32 seed = global<u32>(0x00fb1f20) * 0x19660d + 0x3c6ef35f;
+    global<u32>(0x00fb1f20) = seed;
+    const u32 target = (seed >> 13 | seed << 19) % sum;
+    u32 run = 0;
+    for (u32 i = 0; i < at<u32>(at<u8 *>(voice, 8), 4); ++i) {
+        if (!within(entry(i))) continue;
+        run += at<u32>(at<const u8 *>(entry(i), 0), 0x1e);
+        if (run >= target) {
+            const u32 chosen = at<u32>(entry(i), 0);
+            at<u32>(voice, 8) = chosen;
+            at<u32>(parent, 8) = chosen;
+            return 1;
+        }
+    }
+    return 0;
 }
 
 }  // extern "C"

@@ -66,6 +66,17 @@ u32 *__fastcall SoundVoice_Command(u8 *voice, void *, u32 *out, u8 *command);
 // when the sound system's +0x28 has 0x43 and 0x80; +0x14 1, +0x30 the position) goes to the sound system's slot 4 with the sound.
 void __fastcall SoundVoice_FollowListener(u8 *voice);
 
+// 0x6bbe90 (thiscall (scale, a float's bits), pops 4): the flags (+0x30) from the definition's word +0x10: 6 with 8 (else 0), then 2
+// with 4, 8 with 0x200, 0x200 with 0x20, 0x20000 with 0x4000; a scale neither 0.0 nor unordered kept at +0x40 with flag 0x80.
+void __fastcall SoundVoice_SetFlags(u8 *voice, void *, u32 scale);
+// 0x6bbf60 (thiscall (out, owner, definition, position, scale), pops 0x14; slot 4 of the voices' vtables): the owner (+0x28) kept and
+// its slot 1 called, the definition (+4) and the position (+0x10, three dwords) kept, the categories (+0x47) the byte +8 of the owner's
+// +8; the definition's word +0x12 nonzero makes the parameter block (SoundVoice_EnsureParams) and its byte 0 that word's low byte. Then
+// SoundVoice_SetFlags (scale) and slot 14 (0): answering 0 with no current variation (+8), or with no sample (+0xc, else slot 15 (0)
+// sets it) after SoundVoice_ApplyVariation, the owner's slot 0, +0x28 cleared and *out = -1; else +0x1c = Time_GetMs + the sample's +8
+// + 250 and *out = 0. Returns out.
+u32 *__fastcall SoundVoice_Init(u8 *voice, void *, u32 *out, u8 *owner, u8 *definition, const u32 *position, u32 scale);
+
 // The switch voice (vtable 0x70a498) and the sequence voice (0x70a440), on the voice class 0x70a7e0 (Class70a7e0_Ctor, fieldops.h); their
 // slot 14 picks the variation as SoundVoice_PickVariation does for the base. A switch voice's current node (+8): +4 a count, +0x26 that many
 // 8-byte branches ({a variation (its weight +0x1e), -, a low byte at +6, a high byte at +7}).
@@ -86,5 +97,40 @@ u8 __fastcall SoundVoice_NextVariation(u8 *voice, void *, u32 unused);
 // 0x6be660 / 0x6be730 (thiscall): Class70a7e0_Ctor, then the vtable 0x70a498 / 0x70a440. Return the voice.
 u8 *__fastcall SwitchVoice_Ctor(u8 *voice);
 u8 *__fastcall SequenceVoice_Ctor(u8 *voice);
+
+// 0x6bbb80 (thiscall (key, value: bytes), pops 8; slot 10 of 0x70a7e0 / 0x70a440): with no parameter block one made (EnsureParams),
+// then each of its bytes 0-3 equal to the key gets the value at +4 on; when one of bytes 1-3 did (byte 0 not counted, sic) and flag
+// 0x4000 is clear, slot 13.
+void __fastcall SoundVoice_SetParam(u8 *voice, void *, u32 key, u32 value);
+// 0x6be580 (thiscall (key, value), pops 8; slot 10 of 0x70a498): SoundVoice_SetParam; then with flag 0x40 and the block's byte +4 not
+// 0x7f, slot 14 (1) answering nonzero with a current variation: SoundVoice_PickSample (1) becomes +0xc, and a sample clears flag 0x40.
+void __fastcall SwitchVoice_SetParam(u8 *voice, void *, u32 key, u32 value);
+// 0x6be610 / 0x6be680 (cdecl (owner, memory, definition, info)): with memory, SwitchVoice_Ctor / SequenceVoice_Ctor there, then slot 4
+// (out: the memory argument's own stack slot, sic; the owner, the definition, info + 0xc as the position, info's +0x18 as the scale);
+// the voice, or 0 without memory or when *out is negative (the voice left as it is).
+u8 *__cdecl SwitchVoice_Create(u8 *owner, u8 *memory, u8 *definition, u8 *info);
+u8 *__cdecl SequenceVoice_Create(u8 *owner, u8 *memory, u8 *definition, u8 *info);
+
+// The linked voice (vtable 0x70a970) and the linked switch voice (0x70a9e0, on it): a voice whose parameter block's +0x1c is the voice it
+// follows (the parent: its position +0x10, categories +0x47, current node +8 and parameter block's byte +4); a parent's block +0x18 heads
+// the chain of its linked voices (each the next at its own block's +0x18).
+
+// 0x6c3a00 (thiscall (parent), pops 4): Class70a7e0_Ctor, the vtable 0x70a970, a parameter block made as SoundVoice_EnsureParams does
+// (the heap's null not checked after, sic) and its +0x1c = the parent. Returns the voice.
+u8 *__fastcall LinkedVoice_Ctor(u8 *voice, void *, u8 *parent);
+// 0x6c3de0 (thiscall (parent), pops 4): LinkedVoice_Ctor, then the vtable 0x70a9e0. Returns the voice.
+u8 *__fastcall LinkedSwitchVoice_Ctor(u8 *voice, void *, u8 *parent);
+// 0x6c3a80 (thiscall (definition, time), pops 8): +4 = the definition, SoundVoice_SetFlags (0), the categories (+0x47) the parent's;
+// slot 14 (0) answering 0, or slot 15 (0) (it becomes +0xc) 0: 0. Else +0x1c = slot 19 () + the time; 1.
+u8 __fastcall LinkedVoice_Init(u8 *voice, void *, u8 *definition, u32 time);
+// 0x6c3c70 (thiscall): with a sound (+0x24), a stack record (as SoundVoice_FollowListener's, +0xc and +0x14 cleared too: +0xc 0x20, or
+// 0x820 when the sound system's +0x28 has 0x43 and 0x80, both only without flag 8 (+0x30); +0x14 1, +0x30 the parent's position +0x10)
+// goes to the sound system's slot 4 with the sound.
+void __fastcall LinkedVoice_FollowParent(u8 *voice);
+// 0x6c3e00 (thiscall (unused), pops 4; slot 14 of 0x70a9e0): SoundVoice_PickBranch on the parent's node (+8, copied here first) with the
+// parent's block's byte +4, each node chosen stored at both voices' +8: with none but a definition, its first variation, 1 when that has
+// samples; a node of no branches cleared (both) and 0; no branch in range: the parent's block's byte +4 = 0x7f, its flag 0x40 and 0;
+// else the random pick (all of the rotated number) and 1, or 0 when no running sum reaches it.
+u8 __fastcall LinkedSwitchVoice_PickBranch(u8 *voice, void *, u32 unused);
 
 }  // extern "C"

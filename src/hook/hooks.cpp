@@ -178,12 +178,14 @@
 #include "../game/core/stdwstring.h"
 #include "../game/core/sync.h"
 #include "../game/core/balancefile.h"
+#include "../game/core/channelvoice.h"
 #include "../game/core/cmdline.h"
 #include "../game/core/gameerror.h"
 #include "../game/core/timesig.h"
 #include "../game/core/countedpair.h"
 #include "../game/core/imaadpcm.h"
 #include "../game/core/keyactions.h"
+#include "../game/core/loopstream.h"
 #include "../game/core/mp2decoder.h"
 #include "../game/core/mp2frame.h"
 #include "../game/core/mp2layer1.h"
@@ -208,6 +210,7 @@
 #include "../game/core/soundmixer.h"
 #include "../game/core/soundnames.h"
 #include "../game/core/soundobject.h"
+#include "../game/core/soundoccluders.h"
 #include "../game/core/soundplay.h"
 #include "../game/core/soundslot.h"
 #include "../game/core/soundvoice.h"
@@ -505,6 +508,8 @@ const Hook kHooks[] = {
     {"Matrix_RotateYAngle", 0x004315f0, (void *)&Matrix_RotateYAngle, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Vec3_Clamp",                0x005ebe50, (void *)&Vec3_Clamp, {0xd9, 0x01, 0xd8, 0x5c, 0x24}},
     {"Vec3_DirectionsFromAngle",  0x00565110, (void *)&Vec3_DirectionsFromAngle, {0xd9, 0x44, 0x24, 0x04, 0xd9}},
+    {"Vec3_Scale",                0x006bb240, (void *)&Vec3_Scale, {0xd9, 0x44, 0x24, 0x04, 0xd9}},
+    {"Float_ClampBetween",        0x006c4f00, (void *)&Float_ClampBetween, {0xd9, 0x44, 0x24, 0x08, 0xd8}},
     {"Motion_ApplyUVs", 0x004745c0, (void *)&Motion_ApplyUVs, {0x83, 0xec, 0x10, 0x8b, 0x44}},
     {"Motion_FindKeys", 0x00470b60, (void *)&Motion_FindKeys, {0x8b, 0x44, 0x24, 0x10, 0x83}},
     {"Motion_ApplyMaterial", 0x00470c90, (void *)&Motion_ApplyMaterial, {0x8b, 0x44, 0x24, 0x0c, 0x56}},
@@ -4273,6 +4278,9 @@ const Hook kHooks[] = {
     {"SoundCmd700bac_Run",        0x006b5930, (void *)&SoundCmd700bac_Run, {0x8b, 0x41, 0x08, 0x8b, 0x49}},
     {"SoundCmd700bb8_Run",        0x006b5a90, (void *)&SoundCmd700bb8_Run, {0x8b, 0x41, 0x04, 0x8b, 0x49}},
     {"SoundCmd700b6c_Run",        0x006b55c0, (void *)&SoundCmd700b6c_Run, {0x51, 0x56, 0x8b, 0x74, 0x24}},
+    {"SoundCmd700b4c_Run",        0x006b57b0, (void *)&SoundCmd700b4c_Run, {0x83, 0xec, 0x78, 0x56, 0x8b}},
+    {"SoundCmd700b3c_Run",        0x006b5720, (void *)&SoundCmd700b3c_Run, {0x8b, 0x41, 0x04, 0x8b, 0x4c}},
+    {"SoundCmd700b54_Run",        0x006b5810, (void *)&SoundCmd700b54_Run, {0x8b, 0x41, 0x0c, 0x8b, 0x51}},
     {"SoundManager_Dtor",         0x006b5ab0, (void *)&SoundManager_Dtor, {0x56, 0x8b, 0xf1, 0x8b, 0x4e}},
     {"SoundManager_Call1",        0x006b5ad0, (void *)&SoundManager_Call1, {0x8b, 0x49, 0x04, 0x8b, 0x54}},
     {"SoundManager_Release",      0x006b5af0, (void *)&SoundManager_Release, {0x85, 0xc9, 0x74, 0x07, 0x8b}},
@@ -4320,10 +4328,20 @@ const Hook kHooks[] = {
     {"SoundChannel_Apply",        0x006b8b40, (void *)&SoundChannel_Apply, {0x8b, 0xc1, 0x56, 0x8b, 0x4c}},
     {"SoundChannel_GetSettings",  0x006b7d70, (void *)&SoundChannel_GetSettings, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
     {"SoundChannelFn70a260_Run",  0x006b5e40, (void *)&SoundChannelFn70a260_Run, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"SoundChannel_SetEaxProperty0b", 0x006b7910, (void *)&SoundChannel_SetEaxProperty0b, {0x56, 0x8b, 0xf1, 0x8b, 0x4e}},
+    {"SoundChannel_SetEaxAll",    0x006b7970, (void *)&SoundChannel_SetEaxAll, {0x56, 0x8b, 0xf1, 0x8b, 0x4e}},
+    {"SoundChannel_ReleaseVoice", 0x006b7e60, (void *)&SoundChannel_ReleaseVoice, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
+    {"SoundChannelFn70a278_Run",  0x006b5e60, (void *)&SoundChannelFn70a278_Run, {0x83, 0xec, 0x0c, 0x56, 0x8b}},
+    {"SoundChannel_SetPosition",  0x006b79d0, (void *)&SoundChannel_SetPosition, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
+    {"SoundChannel_UpdateOcclusion", 0x006b7b60, (void *)&SoundChannel_UpdateOcclusion, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"SoundChannel_SetMode",      0x006b90d0, (void *)&SoundChannel_SetMode, {0x8b, 0x44, 0x24, 0x08, 0x83}},
+    {"SoundChannel_SetPlacement", 0x006b9930, (void *)&SoundChannel_SetPlacement, {0x83, 0xec, 0x78, 0x56, 0x8b}},
     {"SoundObject_Broadcast",     0x006b85f0, (void *)&SoundObject_Broadcast, {0x83, 0xec, 0x08, 0x56, 0x8b}},
     {"SoundObject_BroadcastValue", 0x006b8640, (void *)&SoundObject_BroadcastValue, {0x8b, 0x41, 0x24, 0x85, 0xc0}},
     {"SoundObject_VoiceInfo",     0x006b8b00, (void *)&SoundObject_VoiceInfo, {0x8b, 0x49, 0x20, 0x85, 0xc9}},
     {"SoundObject_SendVoice",     0x006b8930, (void *)&SoundObject_SendVoice, {0x8b, 0x54, 0x24, 0x08, 0x56}},
+    {"SoundObject_SetVoices",     0x006b84f0, (void *)&SoundObject_SetVoices, {0x8b, 0x44, 0x24, 0x08, 0x83}},
+    {"SoundObject_SetPlacement",  0x006b8b60, (void *)&SoundObject_SetPlacement, {0x83, 0xec, 0x0c, 0x53, 0x8b}},
     {"SoundVoice_EnsureParams",   0x006b7150, (void *)&SoundVoice_EnsureParams, {0x53, 0x56, 0x8b, 0xf1, 0x33}},
     {"SoundVoice_SetPending",     0x006bc900, (void *)&SoundVoice_SetPending, {0x81, 0xec, 0xac, 0x00, 0x00}},
     {"SoundVoice_ApplyVariation", 0x006bbf00, (void *)&SoundVoice_ApplyVariation, {0x53, 0x56, 0x8b, 0xf1, 0x33}},
@@ -4341,8 +4359,21 @@ const Hook kHooks[] = {
     {"SoundVoice_NextVariation",  0x006be6d0, (void *)&SoundVoice_NextVariation, {0x56, 0x8b, 0x71, 0x04, 0x85}},
     {"SwitchVoice_Ctor",          0x006be660, (void *)&SwitchVoice_Ctor, {0x56, 0x8b, 0xf1, 0xe8, 0xe8}},
     {"SequenceVoice_Ctor",        0x006be730, (void *)&SequenceVoice_Ctor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"SoundVoice_SetFlags",       0x006bbe90, (void *)&SoundVoice_SetFlags, {0x8b, 0x41, 0x04, 0xc7, 0x41}},
+    {"SoundVoice_Init",           0x006bbf60, (void *)&SoundVoice_Init, {0x53, 0x56, 0x57, 0x8b, 0x7c}},
+    {"SoundVoice_SetParam",       0x006bbb80, (void *)&SoundVoice_SetParam, {0x51, 0x53, 0x56, 0x57, 0x8b}},
+    {"SwitchVoice_SetParam",      0x006be580, (void *)&SwitchVoice_SetParam, {0x8b, 0x44, 0x24, 0x08, 0x56}},
+    {"SwitchVoice_Create",        0x006be610, (void *)&SwitchVoice_Create, {0x8b, 0x4c, 0x24, 0x08, 0x56}},
+    {"SequenceVoice_Create",      0x006be680, (void *)&SequenceVoice_Create, {0x8b, 0x4c, 0x24, 0x08, 0x56}},
+    {"LinkedVoice_Ctor",          0x006c3a00, (void *)&LinkedVoice_Ctor, {0x6a, 0xff, 0x68, 0x98, 0x62}},
+    {"LinkedSwitchVoice_Ctor",    0x006c3de0, (void *)&LinkedSwitchVoice_Ctor, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"LinkedVoice_Init",          0x006c3a80, (void *)&LinkedVoice_Init, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"LinkedVoice_FollowParent",  0x006c3c70, (void *)&LinkedVoice_FollowParent, {0x81, 0xec, 0xb0, 0x00, 0x00}},
+    {"LinkedSwitchVoice_PickBranch", 0x006c3e00, (void *)&LinkedSwitchVoice_PickBranch, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"EaxBuffer_QueryAll",        0x006c4760, (void *)&EaxBuffer_QueryAll, {0x8b, 0x41, 0x04, 0x83, 0xec}},
     {"EaxListener_SetAll",        0x006d6cf0, (void *)&EaxListener_SetAll, {0x8b, 0x01, 0x83, 0xec, 0x38}},
+    {"EaxBuffer_SetProperty0b",   0x006c4670, (void *)&EaxBuffer_SetProperty0b, {0x8b, 0x41, 0x04, 0x85, 0xc0}},
+    {"EaxBuffer_SetAll",          0x006c46b0, (void *)&EaxBuffer_SetAll, {0x8b, 0x49, 0x04, 0x83, 0xec}},
     {"SfxVariation_SampleCount",  0x006bd7a0, (void *)&SfxVariation_SampleCount, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"SfxMap_MarkSimpleSound",    0x006c0550, (void *)&SfxMap_MarkSimpleSound, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"SfxMap_FixVariation",       0x006c06e0, (void *)&SfxMap_FixVariation, {0x83, 0xec, 0x30, 0x55, 0x8b}},
@@ -4480,6 +4511,16 @@ const Hook kHooks[] = {
     {"SoundMapIndex_Unmap",       0x006d4860, (void *)&SoundMapIndex_Unmap, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
     {"SoundMapIndex_Dtor",        0x006c5520, (void *)&SoundMapIndex_Dtor, {0x6a, 0xff, 0x68, 0xcb, 0x63}},
     {"SoundMapIndex_DeletingDtor", 0x006c5500, (void *)&SoundMapIndex_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"ChannelVoiceCount_Reset",   0x006c5060, (void *)&ChannelVoiceCount_Reset, {0xc7, 0x05, 0x58, 0x20, 0xfb}},
+    {"ChannelVoiceCount_Increment", 0x006c5070, (void *)&ChannelVoiceCount_Increment, {0x51, 0xff, 0x15, 0xc0, 0xd0}},
+    {"ChannelVoiceCount_Decrement", 0x006c5080, (void *)&ChannelVoiceCount_Decrement, {0x51, 0xff, 0x15, 0x2c, 0xd1}},
+    {"ChannelVoice_Sound",        0x006bb7a0, (void *)&ChannelVoice_Sound, {0x56, 0x8b, 0xf1, 0x57, 0x8d}},
+    {"ChannelVoice_Release",      0x006bb7c0, (void *)&ChannelVoice_Release, {0x6a, 0xff, 0x68, 0x08, 0x5d}},
+    {"ChannelVoices_ReleaseAll",  0x006babc0, (void *)&ChannelVoices_ReleaseAll, {0x51, 0x53, 0x56, 0x57, 0x8b}},
+    {"ChannelVoices_SetCount",    0x006bac30, (void *)&ChannelVoices_SetCount, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"ChannelVoice_SetFlag",      0x006b8330, (void *)&ChannelVoice_SetFlag, {0x8a, 0x44, 0x24, 0x04, 0x84}},
+    {"SoundOccluders_Occlusion",  0x006c4c80, (void *)&SoundOccluders_Occlusion, {0x83, 0xec, 0x2c, 0x53, 0x8b}},
+    {"LoopStream_Read",           0x006c6a60, (void *)&LoopStream_Read, {0x6a, 0xff, 0x68, 0xf8, 0x64}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

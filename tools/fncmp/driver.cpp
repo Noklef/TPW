@@ -636,6 +636,7 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x00702250, 10},   // the texture surface B's virtual base (its thunks; slot 1 FreePixels' the destructor calls)
                                    {0x00705920, 4},   // the GUI rectangle (GuiRect_Contains, _Centre, _Offset, _Adjust)
                                    {0x0070a260, 1},   // the sound channel's stack functor (SoundChannelFn70a260_Run; SoundCmd700b6c_Run's)
+                                   {0x0070a278, 1},   // its settings functor (SoundChannelFn70a278_Run: the channel's setters')
                                    {0x007118e0, 6},   // the MP2 buffer decoder (Mp2BufferDecoder_DeletingDtor, _Open, Mp2Decoder_Close, ...)
                                    {0x0070af00, 6},   // the MP2 stream decoder (Mp2StreamDecoder_DeletingDtor, Mp2BufferDecoder_Open, ...)
                                    {0x0070adb8, 2},   // the voice codec's bit readers over memory (VoiceBits_Skip, _Read)
@@ -683,6 +684,8 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x006fe548, 4},
                                    {0x0070a960, 3},   // the sound library's bank (Release, AddRef, deleting destructor: SoundCategory_ReadBankMap's)
                                    {0x0070a950, 3},   // and category record (the same; slot 2 0x6c1110)
+                                   {0x0070a498, 21},   // the switch voice's (slot 4 SoundVoice_Init, 14 SoundVoice_SwitchVariation, 15 PickSample)
+                                   {0x0070a440, 21},   // the sequence voice's (slot 4 SoundVoice_Init, 14 SoundVoice_NextVariation, 15 PickSample)
                                    {0x006fe980, 12},   // CMMOnline's (slot 10 Debug_Nop_46cfb0, which MouseMode_Set calls on the new mode; 11 its leave)
                                    {0x006fea10, 12},   // CMMOnline's base (slots 0, 9 and 11 MouseMode_Set's; 0x481a10 / 0x485b70 make it)
                                    {0x006fea70, 12},   // MMStaffDrop's (slots 9, 10 AssignDrop: MouseMode_Set's on the mode 0x5054d0 makes)

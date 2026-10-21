@@ -2,8 +2,8 @@
 // 0x700b58 and the value at +4, the poster then its own one-slot vtable) is posted to the sound manager [0x802bcc], whose engine
 // calls the slot as thiscall (out, target), pops 8, and the run applies the value to the target (a sound object: +0x20 and +0x24 its
 // parts) and returns out. Reimplementation of the runs whose callees are ported: 0x6b5640, 0x6b5670, 0x6b56a0, 0x6b5770, 0x6b5790,
-// 0x6b5840, 0x6b58b0, 0x6b5990, 0x6b59f0 and 0x6b5a50, and of the runs on the sound object (soundobject) and its mixer:
-// 0x6b5600, 0x6b5620, 0x6b56c0, 0x6b58d0, 0x6b5930, 0x6b5a90 (the second value at +8) and 0x6b55c0. The names are the vtables' (the commands' meanings are unconfirmed).
+// 0x6b5840, 0x6b58b0, 0x6b5990, 0x6b59f0, 0x6b5a50, 0x6b57b0 and 0x6b5810, and of the runs on the sound object (soundobject) and its
+// mixer: 0x6b5600, 0x6b5620, 0x6b56c0, 0x6b58d0, 0x6b5930, 0x6b5a90 (the second value at +8), 0x6b55c0 and 0x6b5720. The names are the vtables' (the commands' meanings are unconfirmed).
 #pragma once
 
 #include "../../../re/types.h"
@@ -60,5 +60,16 @@ u32 *__fastcall SoundCmd700bac_Run(const u8 *command, void *, u32 *out, u8 *targ
 
 // 0x6b5a90 (vtable 0x700bb8): SoundObject_VoiceInfo (out, the id at +8, the result pointer at +4).
 u32 *__fastcall SoundCmd700bb8_Run(const u8 *command, void *, u32 *out, u8 *target);
+
+// 0x6b57b0 (vtable 0x700b4c): the target's channel (+0x24) given a settings record with the value at +0x68 (bit 9: the dword at 0xfb2708
+// and the source's slot 0x10) with the functor 0x70a278 (SoundChannel_Apply).
+u32 *__fastcall SoundCmd700b4c_Run(const u8 *command, void *, u32 *out, u8 *target);
+
+// 0x6b5720 (vtable 0x700b3c): the sound object's voice count set (soundobject, 0x6b84f0: out, the value).
+u32 *__fastcall SoundCmd700b3c_Run(const u8 *command, void *, u32 *out, u8 *target);
+
+// 0x6b5810 (vtable 0x700b54; three values at +4, +8, +0xc): the channel's mode set (soundchannel, 0x6b90d0) on the target's channel
+// (+0x24) (out, the values).
+u32 *__fastcall SoundCmd700b54_Run(const u8 *command, void *, u32 *out, u8 *target);
 
 }  // extern "C"
