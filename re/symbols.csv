@@ -3936,6 +3936,7 @@ address,name,kind,confidence,notes
 0x004a8ad0,TokenList_PushChars,function,low,reimplemented (src/game/core/stdlist); thiscall (chars; pops 4): a std::string of the characters pushed onto the owner's list of strings at +0x10
 0x005ca220,StringList34_PushChars,function,low,"reimplemented (src/game/core/stdlist); thiscall on an owner (chars; pops 4): a std::string of the characters pushed onto the owner's list of std::string at +0x30 (sentinel +0x34, count +0x38); TokenList_PushChars (0x4a8ad0) at +0x30 instead of +0x10"
 0x005cd440,StdListString_Next,function,low,"reimplemented (src/game/core/stdlist); thiscall: the string at the list cursor, the cursor moved on; at the sentinel an empty string made and released, its dead address returned"
+0x005cd430,StdListString_First,function,low,"reimplemented (src/game/core/stdlist); thiscall: the list's cursor put on its first node, then StdListString_Next (name unconfirmed)"
 0x0041e2c0,Class6fda48_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor
 0x0041e320,Class6fda68_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor
 0x0041e4d0,Class6fdaa8_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor

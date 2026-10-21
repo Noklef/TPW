@@ -2,7 +2,8 @@
 # (null, shared, frozen, short and long), the new nodes from the heap region. A record's destructor (0x5caf20): three such strings and a list of
 # counted-buffer nodes (as Pair's). Swap (0x5d03b0): two lists' head and size exchanged. Chars (0x4a8ad0): a list at +0x10 of the owner, given characters (none to 0x7e, at any address: its low byte
 # becomes the allocator byte) made into a string and pushed. Chars34 (0x5ca220): the same for a list at +0x30.
-# Next (0x5cd440): the cursor (+0xc) at the sentinel or a node; the text at 0x786de4 empty, short or longer than 31.
+# Next (0x5cd440): the cursor (+0xc) at the sentinel or a node; the text at 0x786de4 empty, short or longer than 31. First (0x5cd430): the
+# same after the cursor put on the first node (the sentinel for an empty list).
 # usage: stdlist.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import sys
@@ -16,7 +17,7 @@ from fncmp import Bench, Call, HEAP, RAM, heap, put  # noqa: E402
 CALLS = {'Clear': (0x5cde80, 't', 'v', 0x80), 'Push': (0x5cdf00, 't', 'v', 0x70), 'Insert': (0x5d0330, 't', 'v', 0x80), 'Dword': (0x618160, 't', 'v', 0x50),
          'Pair': (0x5af0e0, 't', 'v', 0xf4), 'Record': (0x5caf20, 't', 'v', 0x110),
          'Chars': (0x4a8ad0, 't', 'v', 0xfc), 'Swap': (0x5d03b0, 't', 'v', 0x1f), 'Chars34': (0x5ca220, 't', 'v', 0xfc),
-         'Next': (0x5cd440, 't', 'a', 0xc9)}
+         'Next': (0x5cd440, 't', 'a', 0xc9), 'First': (0x5cd430, 't', 'a', 0xe)}
 B = Bench([(a, a + n) for (a, _c, _r, n) in CALLS.values()] + [(0x45b340, 0x45b9a0), (0x67acb0, 0x67acb1), (0x4f54e0, 0x4f5560), (0x47db20, 0x47db80),
                                                                 (0x5cdf70, 0x5cdfdd), (0x4a9420, 0x4a953c)])
 NODES, LIST, X = RAM + 0x3000, RAM, RAM + 0x2000
@@ -86,9 +87,11 @@ def case(r):
     obj = bytearray(r.bytes(0x40))
     put(obj, {'Chars': 0x14, 'Chars34': 0x34}.get(name, 4), 'II', at[0], n)
     regions = {LIST: obj, NODES: nodes, stdstring.BLOCKS: blocks, HEAP: heap()}
-    if name == 'Next':   # the cursor (+0xc) at the sentinel (the text at 0x786de4 made a string and released) or a node
+    if name in ('Next', 'First'):   # the cursor (+0xc) at the sentinel (the text at 0x786de4 made a string and released) or a node
         cursor = r.choice([at[0], r.choice(at)])
         put(obj, 0xc, 'I', cursor)
+        if name == 'First':   # (the cursor any: First puts it on the first node, the sentinel when empty)
+            cursor = at[1 % (n + 1)]
         regions[0x786de4] = bytes(r.randrange(1, 0x100) for _ in range(r.choice([0, 0, 1, 5, 31, 32, 40]))) + b'\0'
         return Call(address, [LIST], regions, conv=conv, ret='v' if cursor == at[0] else 'a')   # (at the sentinel: a dead stack address)
     if name == 'Clear':

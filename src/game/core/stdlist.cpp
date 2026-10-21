@@ -489,6 +489,11 @@ void __fastcall Obj_SwapPair(u8 *object, void *, u8 *other) {
     at<u32>(other, 8) = own;
 }
 
+const StdString *__fastcall StdListString_First(u8 *list) {
+    at<u8 *>(list, 0xc) = at<u8 *>(at<const u8 *>(list, 4), 0);
+    return StdListString_Next(list);
+}
+
 const StdString *__fastcall StdListString_Next(u8 *list) {
     u8 *const node = at<u8 *>(list, 0xc);
     if (node != at<u8 *>(list, 4)) {
