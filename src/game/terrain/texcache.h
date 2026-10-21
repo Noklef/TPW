@@ -19,4 +19,14 @@ u8 *__fastcall TerrainTexCache_Ctor(u8 *cache);
 // gfx/texture; the pointer kept), the tiles freed and the count cleared; the landscape at +0 (when set) destroyed (Lnd_Dtor), freed and
 // cleared. Returns 1.
 u32 __fastcall TerrainTexCache_Dtor(u8 *cache);
+
+// 0x572110 (thiscall (count, size), pops 8; name unconfirmed): the cache set up for count tiles of size (0: the cache's +4). The size is
+// 0x10 when the video memory ([0x8bd520], signed) is under 0x3000000 or the texture memory ([0x8c1624]) under 3 MB times the format's
+// unit (0x701548 indexed by [0x8bd554]); a size of 0x40 is 0x20 under 0x4000000 or 5 units. Nothing more with the renderer kind
+// [0x8bd524] 4 (returns 1). Else the landscape (Mem_Alloc 0x2ac, Lnd_Ctor) at +0 (none: the error (2, 0xb0754000) pushed onto
+// 0x879ad0 and 0), +8..+0x10008 cleared, the tiles (Mem_Alloc count x 0x10, zeroed) at +0x10008, the count at +0x10010 and the size
+// at +4; each tile linked in a ring (+0 the one before, +4 the one after) and given a texture (a block of 100: a count of 1, one texture
+// built by CRT_VectorVbaseCtorIterator with Texture_Ctor) with Texture_Alloc(size, 0) at +0xc. A failed block or texture: the error
+// pushed, TerrainTexCache_Dtor and 0. Last +0x1000c = the middle tile (count >> 1, signed). Returns 1.
+u32 __fastcall TerrainTexCache_Init(u8 *cache, void *, s32 count, u32 size);
 }
