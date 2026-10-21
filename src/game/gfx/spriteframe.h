@@ -103,4 +103,15 @@ u32 __fastcall SpriteFrame_PlaceQuad(u8 *frame, void *, float *quad, float width
 // 0x8bcbc8 the last z (+0x38) less 0.2 / (it + 1), copied to the other three. +8 = the frame's +0x24; +0 |= 2 for PlaceQuad's 1; flag
 // 0x8000 swaps +0x1c and +0x24 (the first through the x87).
 u32 __fastcall SpriteFrame_FillItem(u8 *frame, void *, u8 *item);
+
+// 0x589410 (thiscall (quad, matrix, width, height), pops 16; name unconfirmed): the frame's image laid on the ground: S = scale +0x2c *
+// 20 (x87; as a float from the third use on), left / right = offset x (+ size x) / full width * S * [0x8bcbcc] * width (the image's
+// fields as SpriteFrame_PlaceQuad reads them), top / bottom = offset y (+ size y) / full height * S * height * 1; flag 0x10 negates
+// left and right, 0x20 top and bottom. With the axis entry at 0x8c1798 + 12 * [0x8c181c] (its x and z): vertices 0 and 3 x = ax * left
+// + x, z = left * az + z (the frame's +0x14, +0x1c), 1 and 2 with right; y bottom + y (+0x18) for 0 and 1, top + y for 2 and 3; then
+// every y less the least of them (vertex 0's, 1's, 3's, 2's, NaNs as the compares fall). Flag 0x80 turns it (Quad_TurnXY by -+0x30);
+// the transformer ([0x87b1d8]) slot 1 (cdecl: it, matrix, the quad twice, 0x10, 0x10, 4, 0); then vertices 3, 2, 1, 0 raised by the
+// ground under their x, z (as SpriteFrame_FillItem's) plus +0x20 (flag 0x800) or 0, plus [0x8bd4ec]; the transformer's slot 1 again
+// with [0x87b088] for the matrix. Returns the dword at 0x8c1808 + 4 * [0x8c181c] (read again).
+u32 __fastcall SpriteFrame_GroundQuad(u8 *frame, void *, float *quad, u32 matrix, float width, float height);
 }

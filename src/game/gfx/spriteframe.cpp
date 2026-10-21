@@ -18,6 +18,45 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 s32 Ftol(X87Reg x) { return (s32)(long long)x.v; }   // __ftol (0x67a830)
 
 // The item's quad (+4, read again for each vertex): vertex 0 copied to 1, 1 to 2, 2 to 3, a dword at a time.
+// The procedural terrain's ([0x879d60]) ground under x, z, less what the caller adds: of its grid (+0; its heights +0x28, a row the
+// terrain's +8 cells wide), cell __ftol((x - grid +8) * +0x10), __ftol((z - grid +0xc) * +0x14), the next cell's clamped to 0..+8 /
+// +0xc; (dz * +0x14 * (h(ix, iz + 1) - h) + dx * +0x10 * (h(ix + 1, iz) - h)) + h, dx and dz from the cell's corner (cell * grid +0x10
+// / +0x14 + grid +8 / +0xc).
+X87Reg GroundAt(X87Reg x, X87Reg z) {
+    const u8 *const terrain = global<u8 *>(0x00879d60);
+    const u8 *const grid = at<u8 *>(terrain, 0);
+    const s32 ix = Ftol((x - at<float>(grid, 8)) * at<float>(terrain, 0x10));
+    const s32 iz = Ftol((z - at<float>(grid, 0xc)) * at<float>(terrain, 0x14));
+    const s32 width = at<s32>(terrain, 8), depth = at<s32>(terrain, 0xc);
+    s32 ix1 = ix + 1, iz1 = iz + 1;
+    if (ix1 > width)
+        ix1 = width;
+    else if (ix1 < 0)
+        ix1 = 0;
+    if (iz1 > depth)
+        iz1 = depth;
+    else if (iz1 < 0)
+        iz1 = 0;
+    const X87Reg dz = z - (X87Reg((double)iz) * at<float>(grid, 0x14) + at<float>(grid, 0xc));
+    const X87Reg dx = x - (X87Reg((double)ix) * at<float>(grid, 0x10) + at<float>(grid, 8));
+    const u8 *const heights = at<u8 *>(grid, 0x28);
+    const u32 row = (u32)iz * (u32)width;
+    const X87Reg h00 = at<float>(heights, ((u32)ix + row) * 4);
+    const X87Reg across = X87Reg(at<float>(heights, ((u32)ix1 + row) * 4)) - h00;
+    const X87Reg down = X87Reg(at<float>(heights, ((u32)iz1 * (u32)width + (u32)ix) * 4)) - h00;
+    const X87Reg zpart = dz * at<float>(terrain, 0x14) * down;
+    const X87Reg xpart = dx * at<float>(terrain, 0x10) * across;
+    return (zpart + xpart) + h00;
+}
+
+// The transformer's ([0x87b1d8]) slot 1 (cdecl) on a quad in place.
+void TransformQuad(u32 matrix, void *quad) {
+    using Slot = void(__cdecl *)(void *, u32, void *, void *, u32, u32, u32, u32);
+    void *const transformer = global<void *>(0x0087b1d8);
+    const Slot slot = reinterpret_cast<Slot>((*static_cast<void *const *const *>(transformer))[1]);
+    slot(transformer, matrix, quad, quad, 0x10, 0x10, 4, 0);
+}
+
 void SpreadVertex(u8 *item) {
     for (u32 v = 0; v < 3; ++v) {
         u8 *const quad = at<u8 *>(item, 4);
@@ -329,34 +368,9 @@ u32 __fastcall SpriteFrame_FillItem(u8 *frame, void *, u8 *item) {
     }
     at<u32>(item, 0) = 0;   // (sic: the flag 4 just set is lost)
     const u32 flags = at<u32>(frame, 0x10);
-    if (flags & 0x400) {
-        const X87Reg x = at<float>(frame, 0x14), z = at<float>(frame, 0x1c);
-        const u8 *const terrain = global<u8 *>(0x00879d60);
-        const u8 *const grid = at<u8 *>(terrain, 0);
-        const s32 ix = Ftol((x - at<float>(grid, 8)) * at<float>(terrain, 0x10));
-        const s32 iz = Ftol((z - at<float>(grid, 0xc)) * at<float>(terrain, 0x14));
-        const s32 width = at<s32>(terrain, 8), depth = at<s32>(terrain, 0xc);
-        s32 ix1 = ix + 1, iz1 = iz + 1;
-        if (ix1 > width)
-            ix1 = width;
-        else if (ix1 < 0)
-            ix1 = 0;
-        if (iz1 > depth)
-            iz1 = depth;
-        else if (iz1 < 0)
-            iz1 = 0;
-        const X87Reg dz = z - (X87Reg((double)iz) * at<float>(grid, 0x14) + at<float>(grid, 0xc));
-        const X87Reg dx = x - (X87Reg((double)ix) * at<float>(grid, 0x10) + at<float>(grid, 8));
-        const u8 *const heights = at<u8 *>(grid, 0x28);
-        const u32 row = (u32)iz * (u32)width;
-        const X87Reg h00 = at<float>(heights, ((u32)ix + row) * 4);
-        const X87Reg across = X87Reg(at<float>(heights, ((u32)ix1 + row) * 4)) - h00;
-        const X87Reg down = X87Reg(at<float>(heights, ((u32)iz1 * (u32)width + (u32)ix) * 4)) - h00;
-        const X87Reg zpart = dz * at<float>(terrain, 0x14) * down;
-        const X87Reg xpart = dx * at<float>(terrain, 0x10) * across;
-        at<float>(frame, 0x18) = (float)((zpart + xpart) + at<float>(heights, ((u32)ix + row) * 4) + global<float>(0x008bd4ec) +
+    if (flags & 0x400)
+        at<float>(frame, 0x18) = (float)(GroundAt(at<float>(frame, 0x14), at<float>(frame, 0x1c)) + global<float>(0x008bd4ec) +
                                          at<float>(frame, 0x18));
-    }
     u32 placed;
     if (flags & 0x40000) {
         u8 *quad = at<u8 *>(item, 4);
@@ -383,11 +397,7 @@ u32 __fastcall SpriteFrame_FillItem(u8 *frame, void *, u8 *item) {
             at<u32>(quad, 8) = at<u32>(frame, 0x1c);
             SpreadVertex(item);
             placed = SpriteFrame_PlaceQuad(frame, nullptr, at<float *>(item, 4), 0.0f, 0.0f);
-            using Slot = void(__cdecl *)(void *, u32, void *, void *, u32, u32, u32, u32);
-            void *const transformer = global<void *>(0x0087b1d8);
-            void *const out = at<void *>(item, 4);
-            const Slot slot = reinterpret_cast<Slot>((*static_cast<void *const *const *>(transformer))[1]);
-            slot(transformer, global<u32>(0x0087b088), out, out, 0x10, 0x10, 4, 0);
+            TransformQuad(global<u32>(0x0087b088), at<void *>(item, 4));
             at<u32>(item, 0xc) |= 0x800;
         } else {
             u8 *const quad = at<u8 *>(item, 4);
@@ -418,5 +428,67 @@ u32 __fastcall SpriteFrame_FillItem(u8 *frame, void *, u8 *item) {
         at<u32>(item, 0x1c) = high;
     }
     return 1;
+}
+
+u32 __fastcall SpriteFrame_GroundQuad(u8 *frame, void *, float *quad, u32 matrix, float width, float height) {
+    const float *const axis = reinterpret_cast<const float *>((uintptr_t)(0x008c1798 + 12 * global<u32>(0x008c181c)));
+    const u8 *const image = at<u8 *>(frame, 0x28);
+    const X87Reg big = X87Reg(at<float>(frame, 0x2c)) * global<float>(0x0070200c);   // 20
+    const float bigf = (float)big;
+    const X87Reg wide = big * global<float>(0x008bcbcc);
+    const s32 offX = at<s16>(image, 0x14), offY = at<s16>(image, 0x16);
+    const u32 fullW = at<u16>(image, 0x10), fullH = at<u16>(image, 0x12);
+    float left = (float)(X87Reg((double)offX) / (double)(s32)fullW * wide * width);
+    float right = (float)(X87Reg((double)(offX + (s32)at<u16>(image, 0xc))) / (double)(s32)fullW * wide * width);
+    X87Reg bottom = X87Reg((double)(offY + (s32)at<u16>(image, 0xe))) / (double)(s32)fullH * bigf * height * global<float>(0x00768ab4);
+    X87Reg top = X87Reg((double)offY) / (double)(s32)fullH * bigf * height * global<float>(0x00768ab4);   // (* 1)
+    if (at<u8>(frame, 0x10) & 0x10) {
+        left = -left;
+        right = -right;
+    }
+    const float x0 = (float)(X87Reg(axis[0]) * left + at<float>(frame, 0x14));
+    quad[0] = x0;
+    quad[12] = x0;
+    const float x1 = (float)(X87Reg(axis[0]) * right + at<float>(frame, 0x14));
+    quad[4] = x1;
+    quad[8] = x1;
+    const float z0 = (float)(X87Reg(left) * axis[2] + at<float>(frame, 0x1c));
+    quad[2] = z0;
+    quad[14] = z0;
+    const float z1 = (float)(X87Reg(right) * axis[2] + at<float>(frame, 0x1c));
+    quad[6] = z1;
+    quad[10] = z1;
+    if (at<u8>(frame, 0x10) & 0x20) {
+        top = -top.v;
+        bottom = -bottom.v;
+    }
+    const float yb = (float)(bottom + at<float>(frame, 0x18));
+    quad[1] = yb;
+    quad[5] = yb;
+    const float yt = (float)(top + at<float>(frame, 0x18));
+    quad[13] = yt;
+    quad[9] = yt;
+    float least = quad[1];
+    if (!(quad[5] >= least))   // (below or unordered)
+        least = quad[5];
+    if (!(yt >= least))
+        least = yt;
+    if (least > quad[13])
+        least = quad[13];
+    for (u32 k = 0; k < 4; ++k)
+        quad[4 * k + 1] = (float)(X87Reg(quad[4 * k + 1]) - least);
+    if (at<u8>(frame, 0x10) & 0x80) {
+        const u32 turn = X87_FloatThrough(at<u32>(frame, 0x30)) ^ 0x80000000u;
+        float angle;
+        std::memcpy(&angle, &turn, 4);
+        Quad_TurnXY(quad, angle, nullptr);
+    }
+    TransformQuad(matrix, quad);
+    const X87Reg base = X87Reg((at<u32>(frame, 0x10) & 0x800) ? at<float>(frame, 0x20) : global<float>(0x00702034)) +
+                        global<float>(0x008bd4ec);
+    for (s32 k = 3; k >= 0; --k)
+        quad[4 * k + 1] = (float)(GroundAt(quad[4 * k], quad[4 * k + 2]) + base + quad[4 * k + 1]);
+    TransformQuad(global<u32>(0x0087b088), quad);
+    return global<u32>(0x008c1808 + 4 * global<u32>(0x008c181c));
 }
 }
