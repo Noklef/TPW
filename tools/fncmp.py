@@ -433,7 +433,8 @@ VSTUBS = STUBS + 0x1000  # the recorders: slot k (0-31) with n (0-15) stack argu
 LOG = STUBS + 0x100000  # their log (the case maps it, see log_region()): a count, then 12 dwords an entry (k, n, this, up to 7 arguments), room for 80
 LOG_ENTRY = 12
 LOG_ENTRIES = 40  # (the room: 4 + 48 * 40 bytes)
-LOG_RETURNS = 0x800  # from here an override for each slot: a flag and a value (flag 2: the value is an argument's index, see echo(); 3: see fail_after())
+LOG_RETURNS = 0x800  # from here an override for each slot: a flag and a value (flag 2: the value is an argument's index, see echo(); 3: see fail_after();
+#                      4: see set_float_return())
 
 
 def recorder(k, n, com=False, cdecl=False):
@@ -459,6 +460,11 @@ def log_region():
 def set_return(log, k, value):
     """Makes slot k's recorder return `value` (in the log region the case hands over)."""
     struct.pack_into('<II', log, LOG_RETURNS + 8 * k, 1, value & 0xffffffff)
+
+
+def set_float_return(log, k, x):
+    """Makes slot k's recorder return the float x in st0 (pushed: a function returning a float), its bits in EAX."""
+    struct.pack_into('<If', log, LOG_RETURNS + 8 * k, 4, x)
 
 
 def fail_after(log, k, n, value=0xffffffff):
@@ -688,6 +694,8 @@ def _recorder(k, n, com=False, cdecl=False):
             e.write(LOG, struct.pack('<I', count + 1))
         flag, value = struct.unpack('<2I', e.read(LOG + LOG_RETURNS + 8 * k, 8))
         e.r['EAX'] = copied if returns_copied else cursor if seeked else answer(flag, value, raw, n, vhash(kk, n, this, args), earlier)
+        if flag == 4 and not returns_copied and not seeked:
+            e.st.insert(0, struct.unpack('<f', struct.pack('<I', value))[0])
         if cdecl:  # (the caller pops them)
             return
         if e.tail:  # the return address goes up over the arguments the callee would have popped
