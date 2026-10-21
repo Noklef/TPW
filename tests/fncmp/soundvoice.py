@@ -23,15 +23,17 @@ from fncmp import (HEAP, LOG, RAM, Bench, Call, blob_bytes, fb, fill, heap, log_
 CALLS = {'ensure': (0x6b7150, 'v'), 'pending': (0x6bc900, 'a'), 'apply': (0x6bbf00, 'v'), 'radius': (0x6bc650, 'd'),
          'sample': (0x6bc680, 'a'), 'category': (0x6bc760, 'b'), 'variation': (0x6bc810, 'b'), 'audible': (0x6bca10, 'b'),
          'cull': (0x6bca70, 'v'), 'command': (0x6bcab0, 'a'), 'follow': (0x6bd5f0, 'v'), 'byte44': (0x6bcb80, 'a'),
-         'branch': (0x6be450, 'b'), 'switch': (0x6be5e0, 'b'), 'next': (0x6be6d0, 'b'), 'swctor': (0x6be660, 'a'), 'seqctor': (0x6be730, 'a')}
+         'branch': (0x6be450, 'b'), 'switch': (0x6be5e0, 'b'), 'next': (0x6be6d0, 'b'), 'swctor': (0x6be660, 'a'), 'seqctor': (0x6be730, 'a'),
+         'flags': (0x6bbe90, 'v'), 'init': (0x6bbf60, 'a')}
 B = Bench([(0x6b7150, 0x6b7190), (0x6bc900, 0x6bcb56), (0x6c5130, 0x6c5150), (0x6bbf00, 0x6bbf56), (0x6bc650, 0x6bc674), (0x6bc680, 0x6bc806),
            (0x6bc810, 0x6bc8f0), (0x6bd5f0, 0x6bd781), (0x6bd7a0, 0x6bd7ac), (0x6bb220, 0x6bb237), (0x5f5f10, 0x5f5f7d), (0x5f5fa0, 0x5f5faa),
            (0x6bcb80, 0x6bcce1), (0x6c50d0, 0x6c50e8), (0x6be450, 0x6be573), (0x6be5e0, 0x6be608), (0x6be6d0, 0x6be727), (0x6be660, 0x6be672),
-           (0x6be730, 0x6be742), (0x6bb950, 0x6bb98e)])
+           (0x6be730, 0x6be742), (0x6bb950, 0x6bb98e), (0x6bbe90, 0x6bbef9), (0x6bbf60, 0x6bc034)])
 VOICE, OUT, SYS, SVT, VVT, DEF, VARS, SAMPLES, PARAMS, LISTENER, CMD, CVT = (RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x500,
                                                                             RAM + 0x600, RAM + 0xa00, RAM + 0xb00, RAM + 0xb40, RAM + 0xb80, RAM + 0xbc0)
 SYSTEM, RANDOM, CLOCK, TIME_GET_TIME = 0xfb1f24, 0xfb1f20, 0xfa71e0, 0x6fd3ec
 NODE, ENTRIES, BRANCHES, DEF2 = RAM + 0xc00, RAM + 0xc40, RAM + 0xc80, RAM + 0xe00
+OWNER, OVT, OINFO, POS = RAM + 0xe40, RAM + 0xe80, RAM + 0xf00, RAM + 0xf20
 CMD_K, TIME_K = 9, 12
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
@@ -176,7 +178,7 @@ def case(r):
         struct.pack_into('<I', system, 0x2c, fb(float(radius)))
         struct.pack_into('<I', voice, 0x40, fb(1.0))
         set_float_return(log, 7, float(radius * radius))
-    regions = {VOICE: voice, OUT: r.bytes(4), SYS: system, SVT: vtable({4: 2}), VVT: vtable({7: 0, 8: 1}), DEF: d, VARS: variations,
+    regions = {VOICE: voice, OUT: r.bytes(4), SYS: system, SVT: vtable({4: 2}), VVT: vtable({7: 0, 8: 1, 14: 1, 15: 1}), DEF: d, VARS: variations,
                SAMPLES: samples, PARAMS: params, LISTENER: listener, CMD: struct.pack('<I', CVT) + r.bytes(0xc),
                CVT: struct.pack('<I', recorder(CMD_K, 0)), SYSTEM: struct.pack('<I', SYS), RANDOM: struct.pack('<I', seed), CLOCK: bytes(0x20),
                TIME_GET_TIME: struct.pack('<I', recorder(TIME_K, 0, True)), LOG: log, HEAP: heap(0x40, fail=r.choice([0, 0, 0, 1]))}
@@ -189,6 +191,20 @@ def case(r):
         struct.pack_into('<I', voice, 8, r.choice([0, VARS + 0x2a * r.randrange(n + 2), VARS + 0x2a * max(n - 1, 0), VARS - 0x54, VARS + r.randrange(1, 0x2a)]))
         struct.pack_into('<I', voice, 0x30, r.getrandbits(32))
         return Call(address, [VOICE, r.getrandbits(32)], regions, conv='t', ret=ret)
+    if name in ('flags', 'init'):
+        struct.pack_into('<I', voice, 4, DEF)
+        struct.pack_into('<H', d, 0x12, r.choice([0, 0, r.getrandbits(16), r.getrandbits(8) << 8]))
+        scale = r.choice([0, 0x80000000, 0x7fc00000, 0xffc00000, 0x7f800001, fb(r.uniform(0, 10)), fb(r.uniform(-10, 0)), r.f(), 1])
+        if name == 'flags':
+            return Call(address, [VOICE, scale], regions, conv='t', ret=ret)
+        current = r.choice([VARS, VARS + 0x2a, 0])
+        struct.pack_into('<II', voice, 8, current, r.choice([0, 0, SAMPLES + 0x10 * r.randrange(8)]))
+        set_return(log, 14, r.choice([0, 0x100, 0xffffff00] + ([1, r.getrandbits(32)] if current else [])))
+        set_return(log, 15, r.choice([0, SAMPLES + 0x10 * r.randrange(8)]))
+        info = bytearray(r.bytes(0x10))
+        regions.update({OWNER: struct.pack('<II', OVT, r.getrandbits(32)) + struct.pack('<I', OINFO), OVT: vtable({}), OINFO: info,
+                        POS: r.bytes(12)})
+        return Call(address, [VOICE, OUT, OWNER, DEF, POS, scale], regions, conv='t', ret=ret)
     if name == 'pending':
         return Call(address, [VOICE, OUT, r.choice([0, 1, 0xffff, 0x10000, r.getrandbits(32)])], regions, conv='t', ret=ret)
     if name in ('sample', 'variation'):

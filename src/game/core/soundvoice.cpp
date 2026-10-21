@@ -332,6 +332,48 @@ u8 __fastcall SoundVoice_NextVariation(u8 *voice, void *, u32) {
     return 1;
 }
 
+void __fastcall SoundVoice_SetFlags(u8 *voice, void *, u32 scale) {
+    const u8 *const definition = at<u8 *>(voice, 4);
+    at<u32>(voice, 0x30) = 0;
+    if (definition[0x10] & 8) at<u32>(voice, 0x30) = 6;
+    if (definition[0x10] & 4) at<u32>(voice, 0x30) |= 2;
+    if (at<u16>(definition, 0x10) & 0x200) at<u32>(voice, 0x30) |= 8;
+    if (definition[0x10] & 0x20) at<u32>(voice, 0x30) |= 0x200;
+    if (definition[0x11] & 0x40) at<u32>(voice, 0x30) |= 0x20000;
+    const float s = as_float(scale);
+    if (s < 0.0f || s > 0.0f) {
+        at<u32>(voice, 0x40) = scale;
+        at<u32>(voice, 0x30) |= 0x80;
+    }
+}
+
+u32 *__fastcall SoundVoice_Init(u8 *voice, void *, u32 *out, u8 *owner, u8 *definition, const u32 *position, u32 scale) {
+    at<u8 *>(voice, 0x28) = owner;
+    vcall<void>(owner, 4);
+    at<u8 *>(voice, 4) = definition;
+    at<u32>(voice, 0x10) = position[0];
+    at<u32>(voice, 0x14) = position[1];
+    at<u32>(voice, 0x18) = position[2];
+    voice[0x47] = at<u8 *>(owner, 8)[8];
+    if (at<u16>(definition, 0x12)) {
+        SoundVoice_EnsureParams(voice);
+        at<u8 *>(voice, 0x4c)[0] = at<u8 *>(voice, 4)[0x12];
+    }
+    SoundVoice_SetFlags(voice, nullptr, scale);
+    if (vcall<u8>(voice, 0x38, 0u) || at<u32>(voice, 8)) {
+        SoundVoice_ApplyVariation(voice);
+        if (at<u32>(voice, 0xc) || (at<u32>(voice, 0xc) = vcall<u32>(voice, 0x3c, 0u)) != 0) {
+            at<u32>(voice, 0x1c) = Time_GetMs() + at<u32>(at<u8 *>(voice, 0xc), 8) + 0xfa;
+            *out = 0;
+            return out;
+        }
+    }
+    vcall<void>(at<u8 *>(voice, 0x28), 0);
+    at<u32>(voice, 0x28) = 0;
+    *out = 0xffffffff;
+    return out;
+}
+
 u8 *__fastcall SwitchVoice_Ctor(u8 *voice) {
     Class70a7e0_Ctor(voice);
     at<u32>(voice, 0) = 0x0070a498;

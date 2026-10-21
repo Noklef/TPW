@@ -66,6 +66,17 @@ u32 *__fastcall SoundVoice_Command(u8 *voice, void *, u32 *out, u8 *command);
 // when the sound system's +0x28 has 0x43 and 0x80; +0x14 1, +0x30 the position) goes to the sound system's slot 4 with the sound.
 void __fastcall SoundVoice_FollowListener(u8 *voice);
 
+// 0x6bbe90 (thiscall (scale, a float's bits), pops 4): the flags (+0x30) from the definition's word +0x10: 6 with 8 (else 0), then 2
+// with 4, 8 with 0x200, 0x200 with 0x20, 0x20000 with 0x4000; a scale neither 0.0 nor unordered kept at +0x40 with flag 0x80.
+void __fastcall SoundVoice_SetFlags(u8 *voice, void *, u32 scale);
+// 0x6bbf60 (thiscall (out, owner, definition, position, scale), pops 0x14; slot 4 of the voices' vtables): the owner (+0x28) kept and
+// its slot 1 called, the definition (+4) and the position (+0x10, three dwords) kept, the categories (+0x47) the byte +8 of the owner's
+// +8; the definition's word +0x12 nonzero makes the parameter block (SoundVoice_EnsureParams) and its byte 0 that word's low byte. Then
+// SoundVoice_SetFlags (scale) and slot 14 (0): answering 0 with no current variation (+8), or with no sample (+0xc, else slot 15 (0)
+// sets it) after SoundVoice_ApplyVariation, the owner's slot 0, +0x28 cleared and *out = -1; else +0x1c = Time_GetMs + the sample's +8
+// + 250 and *out = 0. Returns out.
+u32 *__fastcall SoundVoice_Init(u8 *voice, void *, u32 *out, u8 *owner, u8 *definition, const u32 *position, u32 scale);
+
 // The switch voice (vtable 0x70a498) and the sequence voice (0x70a440), on the voice class 0x70a7e0 (Class70a7e0_Ctor, fieldops.h); their
 // slot 14 picks the variation as SoundVoice_PickVariation does for the base. A switch voice's current node (+8): +4 a count, +0x26 that many
 // 8-byte branches ({a variation (its weight +0x1e), -, a low byte at +6, a high byte at +7}).
