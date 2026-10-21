@@ -35,4 +35,15 @@ u32 __fastcall Meshes_SetView(u8 *object, void *, const u32 *matrix, u32 unused)
 // d's bits are below +0x48's as signed ints (sic); kind 6 f = (dy ny + dz nz) + dx nx, when f's sign is clear the factor
 // ((+0x48 - d) * +0x4c) * f with d the last kind 4 entry's (before any: ECX's bits, sic).
 void __fastcall Meshes_LightAt(u32 seed, void *, const float *normal, float x, float y, float z);
+
+// 0x574530 (thiscall on the object (colours, normals, points, count), pops 16; called at 0x56f040; name unconfirmed): a colour for each
+// of count points (x, y, z at 0x10 bytes a point, the normals 12 bytes apart): with flag 0x800 in [0x8bcbc8] each is the object's +0x2c;
+// else the light at it (Meshes_LightAt, the object as the seed) as red, green and blue: 0x879db4-0x879dbc * [0x7016e4], each
+// rounded (fistp through 0xfb34a4, which keeps the last) and held to 0-0xff, alpha 0xff, the whole masked by the object's +0x2c.
+void __fastcall Meshes_LightPoints(u8 *object, void *, u32 *colours, const float *normals, const float *points, u32 count);
+
+// 0x574660 (thiscall on the object (colours, mesh), pops 8; called at 0x57ab6e and 0x57ab92; name unconfirmed): Meshes_LightPoints for
+// the word +0x5e vertices of a mesh: vertex i the word i of the index list +0x94 into the positions +0x60 (x, y, z each four floats
+// a group of four), its normal the i-th of +0x64.
+void __fastcall Meshes_LightMesh(u8 *object, void *, u32 *colours, const u8 *mesh);
 }

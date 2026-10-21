@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <cstring>
+#include <xmmintrin.h>
 
 #include "../math/mat4.h"
 #include "../math/x87.h"
@@ -21,6 +22,26 @@ float of(u32 b) {
     float f;
     std::memcpy(&f, &b, 4);
     return f;
+}
+
+// fld m32; fistp [0xfb34a4]: rounded to nearest even, 0x80000000 when out of range (as cvtss2si does), kept in the dword.
+s32 Fistp(float f) {
+    const s32 n = _mm_cvtss_si32(_mm_set_ss(f));
+    global<s32>(0x00fb34a4) = n;
+    return n;
+}
+
+// The light Meshes_LightAt summed as a colour: 0x879db4-0x879dbc * [0x7016e4] rounded, held to 0-0xff, alpha 0xff, masked.
+u32 LitColour(u32 mask) {
+    s32 c[3];
+    for (u32 k = 0; k < 3; ++k) {
+        c[k] = Fistp((float)(X87Reg(global<float>(0x00879db4 + 4 * k)) * global<float>(0x007016e4)));
+        if (c[k] < 0)
+            c[k] = 0;
+        if (c[k] > 0xff)
+            c[k] = 0xff;
+    }
+    return (0xff000000u | (u32)c[0] << 16 | (u32)c[1] << 8 | (u32)c[2]) & mask;
 }
 
 // The colour (+4-+0x10) of a light times the factor added into 0x879db0-0x879dbc.
@@ -125,6 +146,34 @@ void __fastcall Meshes_LightAt(u32 seed, void *, const float *normal, float x, f
             if (!(bits(f) & 0x80000000))
                 AddLight(light, (X87Reg(at<float>(light, 0x48)) - of(spill)) * at<float>(light, 0x4c) * f);
         }
+    }
+}
+void __fastcall Meshes_LightPoints(u8 *object, void *, u32 *colours, const float *normals, const float *points, u32 count) {
+    if (global<u32>(0x008bcbc8) & 0x800) {
+        for (u32 i = 0; i < count; ++i)
+            colours[i] = at<u32>(object, 0x2c);
+        return;
+    }
+    for (u32 i = 0; i < count; ++i) {
+        Meshes_LightAt((u32)(uintptr_t)object, nullptr, normals + 3 * i, points[4 * i], points[4 * i + 1], points[4 * i + 2]);
+        colours[i] = LitColour(at<u32>(object, 0x2c));
+    }
+}
+
+void __fastcall Meshes_LightMesh(u8 *object, void *, u32 *colours, const u8 *mesh) {
+    const u32 count = at<u16>(mesh, 0x5e);
+    if (global<u32>(0x008bcbc8) & 0x800) {
+        for (u32 i = 0; i < count; ++i)
+            colours[i] = at<u32>(object, 0x2c);
+        return;
+    }
+    const u8 *const positions = at<u8 *>(mesh, 0x60);
+    const float *const normals = at<float *>(mesh, 0x64);
+    for (u32 i = 0; i < count; ++i) {
+        const u32 v = at<u16>(at<u8 *>(mesh, 0x94), 2 * i);
+        const float *const p = reinterpret_cast<const float *>(positions + 0x30 * (v >> 2)) + (v & 3);
+        Meshes_LightAt((u32)(uintptr_t)object, nullptr, normals + 3 * i, p[0], p[4], p[8]);
+        colours[i] = LitColour(at<u32>(object, 0x2c));
     }
 }
 }
