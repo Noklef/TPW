@@ -1,6 +1,7 @@
 # The EAX 2.0 wrappers (src/game/core/soundeax) against the originals: a buffer at BUF whose +4 is an IKsPropertySet at SET (a COM
 # recorder vtable; Get answers 0 or a failure now and then, else its hash); the stack block (data and returned size) is logged as 0. The
-# listener's set: an object at OBJ whose slot 4 (a recorder) fills its out with a buffer at BUFFER (or null); the buffer's QueryInterface
+# buffer's sets (one property, its value; all, the properties at PROPS reordered): the set's +4 null now and then, Set logged with its data
+# hashed and answering anything. The listener's set: an object at OBJ whose slot 4 (a recorder) fills its out with a buffer at BUFFER (or null); the buffer's QueryInterface
 # (a COM recorder) filling its out with SET and answering 0 or a failure; Set's data logged as a hash of its 13 dwords.
 # usage: soundeax.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
@@ -10,8 +11,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import LOG, RAM, Bench, Call, blob, fill, log_region, recorder, set_return, strings, vtable  # noqa: E402
 
-CALLS = {'query': 0x6c4760, 'listener': 0x6d6cf0}
-B = Bench([(0x6c4760, 0x6c47a3), (0x6d6cf0, 0x6d6db0)])
+CALLS = {'query': 0x6c4760, 'listener': 0x6d6cf0, 'set0b': 0x6c4670, 'setall': 0x6c46b0}
+B = Bench([(0x6c4760, 0x6c47a3), (0x6d6cf0, 0x6d6db0), (0x6c4670, 0x6c46a7), (0x6c46b0, 0x6c475a)])
 BUF, OUT, SET, SVT = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300
 OBJ, OVT, BUFFER, BVT, PROPS = RAM + 0x400, RAM + 0x500, RAM + 0x600, RAM + 0x700, RAM + 0x800
 SLOT_K, QUERY_K, RELEASE_K, SET_K = 20, 21, 22, 23
@@ -23,6 +24,12 @@ def case(r):
     log = log_region()
     if name == 'listener':
         return listener(r, log)
+    if name in ('set0b', 'setall'):
+        blob(log, SET_K, 5, 1 if name == 'set0b' else 0x3fff)
+        set_return(log, SET_K, r.choice([0, 0x80004005, r.getrandbits(32)]))
+        regions = {BUF: r.bytes(4) + struct.pack('<I', r.choice([SET] * 6 + [0])) + r.bytes(8), OUT: r.bytes(4),
+                   SET: struct.pack('<I', SVT) + r.bytes(0xc), SVT: table({4: (SET_K, 7, True)}), PROPS: r.bytes(0x34), LOG: log}
+        return Call(CALLS[name], [BUF, OUT, r.getrandbits(32) if name == 'set0b' else PROPS], regions, conv='t', ret='a')
     strings(log, 3, 0, out=1 << 5 | 1 << 7)   # Get's data and returned-size outs: one stack block
     if r.random() < 0.5:
         set_return(log, 3, r.choice([0, 0, 1, 0x80004005, 0x80070057, 0x80000000, 0x10000]))   # (failures with a low word of 0 too)
