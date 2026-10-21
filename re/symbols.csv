@@ -4245,6 +4245,29 @@ address,name,kind,confidence,notes
 0x0040c430,KeyAction_FlagResearchControls,function,low,reimplemented (src/game/core/keyactions); cdecl: ResearchLab_FlagProjectControls on the lab of the game [0x7cf83c] (GameTable7cfb90_Get1da722_519550); returns 1 (alt 'R')
 0x0040c4b0,KeyAction_ToggleOverlay,function,low,reimplemented (src/game/core/keyactions); cdecl: Obj7b51f0_ToggleOverlay on 0x7b51f0; returns 1 (F3)
 0x0040c5d0,KeyAction_GuiManagerSlotAndFlag,function,low,reimplemented (src/game/core/keyactions); cdecl: Obj7b51f0_GuiManagerSlotAndFlag on 0x7b51f0; returns 1 (control 'H')
+0x004f7a10,Global7ced48_Release,function,low,reimplemented (src/game/core/sharedglobals); cdecl (at exit): the counted object [0x7ced48] loses a use (deleted with none left) and the global is cleared
+0x00699650,Globalfb1dc0_Release,function,low,reimplemented (src/game/core/sharedglobals); cdecl (at exit): the counted object [0xfb1dc0] loses a use (deleted with none left) and the global is cleared
+0x00699770,Globalfb1dbc_Release,function,low,reimplemented (src/game/core/sharedglobals); cdecl (at exit): the counted object [0xfb1dbc] loses a use (deleted with none left) and the global is cleared
+0x00699890,Globalfb1dc4_Release,function,low,reimplemented (src/game/core/sharedglobals); cdecl (at exit): the counted object [0xfb1dc4] loses a use (deleted with none left) and the global is cleared
+0x006a5ae0,Globalfb1e54_Release,function,low,reimplemented (src/game/core/sharedglobals); cdecl (at exit): the counted object [0xfb1e54] loses a use (deleted with none left) and the global is cleared
+0x006a5c00,Globalfb1e30_Release,function,low,reimplemented (src/game/core/sharedglobals); cdecl (at exit): the counted object [0xfb1e30] loses a use (deleted with none left) and the global is cleared
+0x006a5d20,Globalfb1e58_Release,function,low,reimplemented (src/game/core/sharedglobals); cdecl (at exit): the counted object [0xfb1e58] loses a use (deleted with none left) and the global is cleared
+0x006a5e40,Globalfb1e34_Release,function,low,reimplemented (src/game/core/sharedglobals); cdecl (at exit): the counted object [0xfb1e34] loses a use (deleted with none left) and the global is cleared
+0x006a5f60,Globalfb1e38_Release,function,low,reimplemented (src/game/core/sharedglobals); cdecl (at exit): the counted object [0xfb1e38] loses a use (deleted with none left) and the global is cleared
+0x006a6080,Globalfb1e5c_Release,function,low,reimplemented (src/game/core/sharedglobals); cdecl (at exit): the counted object [0xfb1e5c] loses a use (deleted with none left) and the global is cleared
+0x006a61a0,Globalfb1e60_Release,function,low,reimplemented (src/game/core/sharedglobals); cdecl (at exit): the counted object [0xfb1e60] loses a use (deleted with none left) and the global is cleared
+0x006a62c0,Globalfb1e64_Release,function,low,reimplemented (src/game/core/sharedglobals); cdecl (at exit): the counted object [0xfb1e64] loses a use (deleted with none left) and the global is cleared
+0x006a6360,Globalfb1e3c_Release,function,low,reimplemented (src/game/core/sharedglobals); cdecl (at exit): the counted object [0xfb1e3c] loses a use (deleted with none left) and the global is cleared
+0x006a6400,Globalfb1e44_Release,function,low,reimplemented (src/game/core/sharedglobals); cdecl (at exit): the counted object [0xfb1e44] loses a use (deleted with none left) and the global is cleared
+0x006a64a0,Globalfb1e4c_Release,function,low,reimplemented (src/game/core/sharedglobals); cdecl (at exit): the counted object [0xfb1e4c] loses a use (deleted with none left) and the global is cleared
+0x006ac0b0,Globalfb1ecc_Release,function,low,reimplemented (src/game/core/sharedglobals); cdecl (at exit): the counted object [0xfb1ecc] loses a use (deleted with none left) and the global is cleared
+0x006ac1d0,Globalfb1eb4_Release,function,low,reimplemented (src/game/core/sharedglobals); cdecl (at exit): the counted object [0xfb1eb4] loses a use (deleted with none left) and the global is cleared
+0x006ac2f0,Globalfb1eb8_Release,function,low,reimplemented (src/game/core/sharedglobals); cdecl (at exit): the counted object [0xfb1eb8] loses a use (deleted with none left) and the global is cleared
+0x006ac410,Globalfb1ed0_Release,function,low,reimplemented (src/game/core/sharedglobals); cdecl (at exit): the counted object [0xfb1ed0] loses a use (deleted with none left) and the global is cleared
+0x006ac530,Globalfb1ed4_Release,function,low,reimplemented (src/game/core/sharedglobals); cdecl (at exit): the counted object [0xfb1ed4] loses a use (deleted with none left) and the global is cleared
+0x006ac650,Globalfb1ed8_Release,function,low,reimplemented (src/game/core/sharedglobals); cdecl (at exit): the counted object [0xfb1ed8] loses a use (deleted with none left) and the global is cleared
+0x006ac6f0,Globalfb1ebc_Release,function,low,reimplemented (src/game/core/sharedglobals); cdecl (at exit): the counted object [0xfb1ebc] loses a use (deleted with none left) and the global is cleared
+0x006ac790,Globalfb1ec4_Release,function,low,reimplemented (src/game/core/sharedglobals); cdecl (at exit): the counted object [0xfb1ec4] loses a use (deleted with none left) and the global is cleared
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

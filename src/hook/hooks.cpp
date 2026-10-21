@@ -167,6 +167,7 @@
 #include "../game/core/timesig.h"
 #include "../game/core/countedpair.h"
 #include "../game/core/keyactions.h"
+#include "../game/core/sharedglobals.h"
 #include "../game/core/soundplay.h"
 #include "../game/core/startcheck.h"
 #include "../game/core/stringmapsrecord.h"
@@ -4078,6 +4079,29 @@ const Hook kHooks[] = {
     {"KeyAction_FlagResearchControls", 0x0040c430, (void *)&KeyAction_FlagResearchControls, {0x8b, 0x0d, 0x3c, 0xf8, 0x7c}},
     {"KeyAction_ToggleOverlay",   0x0040c4b0, (void *)&KeyAction_ToggleOverlay, {0xb9, 0xf0, 0x51, 0x7b, 0x00}},
     {"KeyAction_GuiManagerSlotAndFlag", 0x0040c5d0, (void *)&KeyAction_GuiManagerSlotAndFlag, {0xb9, 0xf0, 0x51, 0x7b, 0x00}},
+    {"Global7ced48_Release",      0x004f7a10, (void *)&Global7ced48_Release, {0x6a, 0xff, 0x68, 0x28, 0xde}},
+    {"Globalfb1dc0_Release",      0x00699650, (void *)&Globalfb1dc0_Release, {0x6a, 0xff, 0x68, 0x68, 0x41}},
+    {"Globalfb1dbc_Release",      0x00699770, (void *)&Globalfb1dbc_Release, {0x6a, 0xff, 0x68, 0xa8, 0x41}},
+    {"Globalfb1dc4_Release",      0x00699890, (void *)&Globalfb1dc4_Release, {0x6a, 0xff, 0x68, 0xe8, 0x41}},
+    {"Globalfb1e54_Release",      0x006a5ae0, (void *)&Globalfb1e54_Release, {0x6a, 0xff, 0x68, 0xc8, 0x4b}},
+    {"Globalfb1e30_Release",      0x006a5c00, (void *)&Globalfb1e30_Release, {0x6a, 0xff, 0x68, 0x08, 0x4c}},
+    {"Globalfb1e58_Release",      0x006a5d20, (void *)&Globalfb1e58_Release, {0x6a, 0xff, 0x68, 0x48, 0x4c}},
+    {"Globalfb1e34_Release",      0x006a5e40, (void *)&Globalfb1e34_Release, {0x6a, 0xff, 0x68, 0x88, 0x4c}},
+    {"Globalfb1e38_Release",      0x006a5f60, (void *)&Globalfb1e38_Release, {0x6a, 0xff, 0x68, 0xc8, 0x4c}},
+    {"Globalfb1e5c_Release",      0x006a6080, (void *)&Globalfb1e5c_Release, {0x6a, 0xff, 0x68, 0x08, 0x4d}},
+    {"Globalfb1e60_Release",      0x006a61a0, (void *)&Globalfb1e60_Release, {0x6a, 0xff, 0x68, 0x48, 0x4d}},
+    {"Globalfb1e64_Release",      0x006a62c0, (void *)&Globalfb1e64_Release, {0x6a, 0xff, 0x68, 0x88, 0x4d}},
+    {"Globalfb1e3c_Release",      0x006a6360, (void *)&Globalfb1e3c_Release, {0x6a, 0xff, 0x68, 0xa8, 0x4d}},
+    {"Globalfb1e44_Release",      0x006a6400, (void *)&Globalfb1e44_Release, {0x6a, 0xff, 0x68, 0xc8, 0x4d}},
+    {"Globalfb1e4c_Release",      0x006a64a0, (void *)&Globalfb1e4c_Release, {0x6a, 0xff, 0x68, 0xe8, 0x4d}},
+    {"Globalfb1ecc_Release",      0x006ac0b0, (void *)&Globalfb1ecc_Release, {0x6a, 0xff, 0x68, 0x78, 0x53}},
+    {"Globalfb1eb4_Release",      0x006ac1d0, (void *)&Globalfb1eb4_Release, {0x6a, 0xff, 0x68, 0xb8, 0x53}},
+    {"Globalfb1eb8_Release",      0x006ac2f0, (void *)&Globalfb1eb8_Release, {0x6a, 0xff, 0x68, 0xf8, 0x53}},
+    {"Globalfb1ed0_Release",      0x006ac410, (void *)&Globalfb1ed0_Release, {0x6a, 0xff, 0x68, 0x38, 0x54}},
+    {"Globalfb1ed4_Release",      0x006ac530, (void *)&Globalfb1ed4_Release, {0x6a, 0xff, 0x68, 0x78, 0x54}},
+    {"Globalfb1ed8_Release",      0x006ac650, (void *)&Globalfb1ed8_Release, {0x6a, 0xff, 0x68, 0xb8, 0x54}},
+    {"Globalfb1ebc_Release",      0x006ac6f0, (void *)&Globalfb1ebc_Release, {0x6a, 0xff, 0x68, 0xd8, 0x54}},
+    {"Globalfb1ec4_Release",      0x006ac790, (void *)&Globalfb1ec4_Release, {0x6a, 0xff, 0x68, 0xf8, 0x54}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
