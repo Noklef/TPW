@@ -4,6 +4,8 @@
 #include "../core/gameheap.h"
 #include "../core/thunks.h"
 #include "../core/vtables.h"
+#include "../math/rect.h"
+#include "display.h"
 
 namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
@@ -277,6 +279,22 @@ s32 *__fastcall GlyphSolid_SpanBgra(void *, void *, s32 *status, const u8 *surfa
         // (the packing shifts the colour's byte 0 out: blue stays 0, sic)
         if (c) *p = c << 4 | c | (colour >> 8 & 0xff) << 16 | (colour >> 16 & 0xff) << 8;
     });
+}
+
+Rect *__fastcall GlyphRenderer_ClipSpan(void *, void *, Rect *out, const Rect *glyph, const s32 *point, u32) {
+    const Rect placed = {point[0], point[1], (s32)((u32)glyph->right - (u32)glyph->left + (u32)point[0]),
+                         (s32)((u32)glyph->bottom - (u32)glyph->top + (u32)point[1])};
+    const Rect clip = *Display_GetClip();
+    Rect visible;
+    Rect_Clip(&placed, nullptr, &visible, &clip);
+    u32 left = (u32)glyph->left, top = (u32)glyph->top;
+    if (point[0] < clip.left) left += (u32)clip.left - (u32)point[0];
+    if (point[1] < clip.top) top += (u32)clip.top - (u32)point[1];
+    out->left = (s32)left;
+    out->top = (s32)top;
+    out->right = (s32)(left - (u32)visible.left + (u32)visible.right);
+    out->bottom = (s32)(top - (u32)visible.top + (u32)visible.bottom);
+    return out;
 }
 
 s32 *__fastcall GlyphPattern1_Span1555(void *, void *, s32 *status, const u8 *surface, const u8 *span) {

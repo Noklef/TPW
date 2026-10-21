@@ -6,6 +6,7 @@
 # are 256 wider or taller now and then. The coverage bytes 0, 0xff, 0x88 / 0x77 (the threshold) or random.
 # The patterned writers: the pattern (0..6 by 0..5 pixels, 0 now and then: a fault in both) at PAT, its format gFormatArgb8888's
 # or not, the global at FORMAT, the origin small or random.
+# GlyphRenderer_ClipSpan: the clip at CLIP in order or not, a glyph rectangle and a point near the clip's corner or anywhere.
 # Deleting destructors: an object of random bytes at OBJ, flags 0, 1 or random (Mem_Free counts the block in the heap region).
 # usage: glyphrender.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
@@ -15,7 +16,9 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, LOG, RAM, Bench, Call, heap, log_region  # noqa: E402
 
-B = Bench([(0x6add30, 0x6add40), (0x6b0430, 0x6b0480), (0x6b0730, 0x6b4aa0), (0x6b5410, 0x6b5430)])
+B = Bench([(0x5f9ca0, 0x5f9cc0), (0x62f810, 0x62f8a0), (0x6add30, 0x6add40), (0x6b0430, 0x6b0480), (0x6b0730, 0x6b4aa0),
+           (0x6b5340, 0x6b5430)])
+OUT = RAM + 0x300
 SURF, SPAN, POINT, RECT, STYLE, STATUS, OBJ = RAM, RAM + 0x40, RAM + 0x60, RAM + 0x70, RAM + 0x80, RAM + 0xd0, RAM + 0xe0
 GLYPH, PAT, DST = RAM + 0x100, RAM + 0x200, RAM + 0x400
 FORMAT = 0xfaa280   # gFormatArgb8888: the patterned writers' pattern must have its format
@@ -29,7 +32,8 @@ SPANS = {'blend1555': (0x6b0760, 2), 'blend565': (0x6b0c50, 2), 'blend4444': (0x
          'fillbgra': (0x6b4700, 4)}
 DTORS = {'del70a148': 0x6b0430, 'del70a160': 0x6b0450, 'delblend': 0x6b0730, 'delsolid': 0x6b1e00, 'delpattern1': 0x6b2a30,
          'delpattern2': 0x6b3c20, 'del70a210': 0x6b4a30, 'delbase': 0x6b4a70, 'del70a258': 0x6b5410}
-OPS = [n for n in list(SPANS) + list(DTORS) if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
+CLIP = 0xfa76c0   # the display's clip (Display_GetClip)
+OPS = [n for n in list(SPANS) + list(DTORS) + ['clipspan'] if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
 def glyph_bytes(r, n):
@@ -89,8 +93,26 @@ def pattern(r, style):
     return {STYLE: style, PAT: r.bytes(pitch * max(height, 1)), FORMAT: struct.pack('<6I', *game)}
 
 
+def clipspan(r):
+    """GlyphRenderer_ClipSpan: a glyph rectangle placed at a point inside, across or outside the clip's edges."""
+    def coord():
+        return r.choice([r.randrange(-20, 60), r.randrange(-20, 60), r.choice([0, 10, 40]), r.getrandbits(32) - (1 << 31)])
+    clip = [coord(), coord(), coord(), coord()]
+    if r.random() < 0.7:
+        clip = [min(clip[0], clip[2]), min(clip[1], clip[3]), max(clip[0], clip[2]), max(clip[1], clip[3])]
+    gl, gt = r.randrange(-4, 20), r.randrange(-4, 20)
+    glyph = [gl, gt, gl + r.randrange(-2, 30), gt + r.randrange(-2, 30)]
+    point = [r.choice([clip[0] + r.randrange(-30, 30), coord()]), r.choice([clip[1] + r.randrange(-30, 30), coord()])]
+    point = [p & 0xffffffff for p in point]
+    regions = {OUT: r.bytes(16), RECT: struct.pack('<4I', *(v & 0xffffffff for v in glyph)), POINT: struct.pack('<2I', *point),
+               CLIP: struct.pack('<4I', *(v & 0xffffffff for v in clip))}
+    return Call(0x6b5340, [r.getrandbits(32), OUT, RECT, POINT, r.getrandbits(32)], regions, conv='t', ret='a')
+
+
 def case(r):
     name = r.deal(OPS)
+    if name == 'clipspan':
+        return clipspan(r)
     if name in SPANS:
         return span(r, name)
     regions = {OBJ: r.bytes(0x20), LOG: log_region(), HEAP: heap(0x40)}

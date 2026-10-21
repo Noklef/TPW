@@ -18,10 +18,11 @@
 // nibble * alpha / 255 for an alpha other than 0xff. *status = 0 at the end. Returns status.
 // Reimplementation of 0x6b0430, 0x6b0450, 0x6b0730, 0x6b0760, 0x6b0c50, 0x6b1130, 0x6b15f0, 0x6b19f0, 0x6b1e00, 0x6b1e30, 0x6b2100,
 // 0x6b21f0, 0x6b24b0, 0x6b2770, 0x6b2a30, 0x6b2a60, 0x6b2e20, 0x6b31e0, 0x6b3540, 0x6b3890, 0x6b3c20, 0x6b3c50, 0x6b3f40, 0x6b4140,
-// 0x6b4420, 0x6b4700, 0x6b4a30, 0x6b4a70 and 0x6b5410. The names are unconfirmed.
+// 0x6b4420, 0x6b4700, 0x6b4a30, 0x6b4a70, 0x6b5340 and 0x6b5410. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
+#include "../math/rect.h"
 
 extern "C" {
 
@@ -51,6 +52,11 @@ u8 *__fastcall GlyphBlend_DeletingDtor(u8 *renderer, void *, u32 flags);
 u8 *__fastcall GlyphSolid_DeletingDtor(u8 *renderer, void *, u32 flags);
 u8 *__fastcall GlyphPattern1_DeletingDtor(u8 *renderer, void *, u32 flags);
 u8 *__fastcall GlyphPattern2_DeletingDtor(u8 *renderer, void *, u32 flags);
+
+// 0x6b5340 (thiscall (out, glyph, point, unused), pops 0x10; `this` unused): the part of the glyph's rectangle that shows when its
+// top left goes at point: the placed rectangle clipped to the display's clip (Rect_Clip), moved back into the glyph's coordinates (its
+// left and top moved on by how far the point lies left of / above the clip). Returns out.
+Rect *__fastcall GlyphRenderer_ClipSpan(void *self, void *, Rect *out, const Rect *glyph, const s32 *point, u32 unused);
 
 // GlyphBlend's span writers: each channel moves toward the colour's by (colour - old) * coverage / 15, the colour's channel taken at the
 // pixel's precision, the result added back to the old pixel and masked to the channel. The 16-bit formats divide signed; the 32-bit ones
