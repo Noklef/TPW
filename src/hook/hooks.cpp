@@ -416,6 +416,7 @@
 #include "../game/ui/buttontext.h"
 #include "../game/ui/dialog7cc1f8.h"
 #include "../game/ui/guifont.h"
+#include "../game/ui/guitoken.h"
 #include "../game/ui/msgboxbutton.h"
 #include "../game/ui/msgtags.h"
 #include "../game/ui/panel7ca178.h"
@@ -5595,6 +5596,11 @@ const Hook kHooks[] = {
     {"GuiFont_TextWidth",         0x00658334, (void *)&GuiFont_TextWidth, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"GuiFont_Init",              0x00658243, (void *)&GuiFont_Init, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Panel7cc3e0_Dress",         0x004b6540, (void *)&Panel7cc3e0_Dress, {0x6a, 0xff, 0x68, 0xac, 0xb3}},
+    {"GuiToken_SkipBlanks",       0x0066dbfa, (void *)&GuiToken_SkipBlanks, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
+    {"GuiToken_ReadWord",         0x0066dcf7, (void *)&GuiToken_ReadWord, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiToken_ReadDword",        0x0066dd68, (void *)&GuiToken_ReadDword, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiToken_ReadString",       0x0066ddd8, (void *)&GuiToken_ReadString, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiToken_ReadKind",         0x0066dc2c, (void *)&GuiToken_ReadKind, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
