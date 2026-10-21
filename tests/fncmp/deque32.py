@@ -1,7 +1,7 @@
 # The sound code's deques of dwords (src/game/core/dequeiter: Deque32_*) against the originals: a deque at DEQ of 0 to ~2600 dwords in
 # blocks of 0x1000 bytes at BLOCKS in any order (its first element anywhere in the first block), the blocks' slots somewhere in a map of up to 12 at MAP
 # (other slots garbage); its map allocation (0x6c2990), the block release at the front and back (0x6c2910 / 0x6c2ca0, the count 0 or not),
-# pop_front (0x6c1550), the new back block (0x6c1940: an empty deque, a slot left after the end's, or the map grown), copy and copy_backward
+# pop_front (0x6c1550) and pop_back (0x632150), the new back block (0x6c1940: an empty deque, a slot left after the end's, or the map grown), copy and copy_backward
 # (0x6c3010 / 0x6c2f80) between positions in it, and erase(first, last) (0x6c15f0) of any stretch, nearer the front or the back.
 # usage: deque32.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
@@ -12,9 +12,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import HEAP, RAM, Bench, Call, heap  # noqa: E402
 
 CALLS = {'allocmap': 0x6c2990, 'freefront': 0x6c2910, 'freeback': 0x6c2ca0, 'popfront': 0x6c1550, 'growback': 0x6c1940, 'copy': 0x6c3010,
-         'copyback': 0x6c2f80, 'erase': 0x6c15f0}
+         'copyback': 0x6c2f80, 'erase': 0x6c15f0, 'popback': 0x632150}
 B = Bench([(0x6c2990, 0x6c29ab), (0x6c2910, 0x6c298a), (0x6c2ca0, 0x6c2d20), (0x6c1550, 0x6c15ef), (0x6c1940, 0x6c1a87), (0x6c3010, 0x6c309c),
-           (0x6c2f80, 0x6c300b), (0x6c15f0, 0x6c1932), (0x632310, 0x632343), (0x6c31a0, 0x6c31d3), (0x67a400, 0x690000)])
+           (0x6c2f80, 0x6c300b), (0x6c15f0, 0x6c1932), (0x632310, 0x632343), (0x6c31a0, 0x6c31d3), (0x632150, 0x632200), (0x67a400, 0x690000)])
 DEQ, OUT, MAP, BLOCKS = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x10000
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
@@ -52,9 +52,9 @@ def case(r):
         regions, _it, _n = build(r)
         struct.pack_into('<I', regions[DEQ], 0x28, r.choice([0, 1, 2, 8, 0x20000000, 0x3fffffff, 0x40000000, 0x80000000, r.getrandbits(32)]))
         return Call(CALLS[name], [DEQ], regions, conv='t', ret='v')
-    if name in ('freefront', 'freeback', 'popfront'):
+    if name in ('freefront', 'freeback', 'popfront', 'popback'):
         regions, it, n = build(r)
-        if name != 'popfront' and r.random() < 0.4:
+        if name not in ('popfront', 'popback') and r.random() < 0.4:
             struct.pack_into('<I', regions[DEQ], 0x2c, 0)
         return Call(CALLS[name], [DEQ], regions, conv='t', ret='v')
     if name == 'growback':

@@ -226,6 +226,15 @@ void __fastcall Deque32_PopFront(u8 *deque) {
         Deque32_FreeFront(deque);
 }
 
+void __fastcall Deque32_PopBack(u8 *deque) {
+    const u32 cur = at<u32>(deque, 0x1c) - 4;
+    at<u32>(deque, 0x1c) = cur;
+    const u32 count = at<u32>(deque, 0x2c) - 1;
+    at<u32>(deque, 0x2c) = count;
+    if (count == 0 || cur == at<u32>(deque, 0x14))
+        Deque32_FreeBack(deque);
+}
+
 void __fastcall Deque32_GrowBack(u8 *deque) {
     const u32 block = static_cast<u32>(reinterpret_cast<uintptr_t>(GameHeap_Alloc(0x1000)));
     DequeIt &begin = at<DequeIt>(deque, 4);
