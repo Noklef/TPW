@@ -1,6 +1,6 @@
 // The sound manager [0x802bcc]: a handle (vtable 0x70a288, made by 0x6b5dc0; +4 the engine object it holds, 0x34 bytes with vtable
-// 0x70a2a0) whose methods forward to the engine's slots. Reimplementation of 0x6b5ab0-0x6b5b80; the deleting destructor 0x6b5bf0 and
-// the command post 0x6b5bd0 are the exe's. Names past Release / Query / Post (the slots soundset and soundplay call) are unconfirmed.
+// 0x70a2a0) whose methods forward to the engine's slots. Reimplementation of 0x6b5ab0-0x6b5b80 and the deleting destructor 0x6b5bf0;
+// the command post 0x6b5bd0 is the exe's. Names past Release / Query / Post (the slots soundset and soundplay call) are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -30,5 +30,8 @@ u32 __fastcall SoundManager_Call5(u8 *manager, void *, u32 a, u32 b);
 
 // 0x6b5ad0 (slot 4; thiscall (out, a), pops 8): the engine's slot 1 (out, a). Returns out.
 u32 *__fastcall SoundManager_Call1(u8 *manager, void *, u32 *out, u32 a);
+
+// 0x6b5bf0 (slot 3; thiscall (flags), pops 4): SoundManager_Dtor, then the manager freed for flags bit 0. Returns the manager.
+u8 *__fastcall SoundManager_DeletingDtor(u8 *manager, void *, u32 flags);
 
 }  // extern "C"

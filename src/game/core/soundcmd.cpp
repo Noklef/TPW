@@ -4,6 +4,8 @@
 
 #include "accessors.h"
 #include "fieldops.h"
+#include "soundmixer.h"
+#include "soundobject.h"
 #include "vcall.h"
 
 namespace {
@@ -63,5 +65,33 @@ u32 *__fastcall SoundCmd700b74_Run(const u8 *command, void *, u32 *out, u8 *targ
 u32 *__fastcall SoundCmd700b78_Run(const u8 *command, void *, u32 *out, u8 *target) { return SetByte(target, out, 2, at<u32>(command, 4)); }
 
 u32 *__fastcall SoundCmd700ba8_Run(const u8 *command, void *, u32 *out, u8 *target) { return Forward(target, 0x18, out, at<u32>(command, 4)); }
+
+u32 *__fastcall SoundCmd700b5c_Run(const u8 *, void *, u32 *out, u8 *target) { return SoundObject_Broadcast(target, nullptr, out); }
+
+u32 *__fastcall SoundCmd700b60_Run(const u8 *command, void *, u32 *out, u8 *target) {
+    return SoundObject_BroadcastValue(target, nullptr, out, at<u32>(command, 4));
+}
+
+u32 *__fastcall SoundCmd700bbc_Run(const u8 *command, void *, u32 *out, u8 *target) {
+    const u32 id = at<u32>(command, 4);
+    if (!id) {
+        *out = 0xffffffff;
+        return out;
+    }
+    const u32 params[4] = {at<u32>(command, 8), at<u32>(command, 0xc), at<u32>(command, 0x10), at<u32>(command, 0x14)};
+    return SoundMixer_SetVoiceParams(at<u8 *>(target, 0x20), nullptr, out, id, params);
+}
+
+u32 *__fastcall SoundCmd700ba4_Run(const u8 *command, void *, u32 *out, u8 *target) {
+    return SoundMixer_SetVoicePending(at<u8 *>(target, 0x20), nullptr, out, at<u32>(command, 8), at<u32>(command, 4));
+}
+
+u32 *__fastcall SoundCmd700bac_Run(const u8 *command, void *, u32 *out, u8 *target) {
+    return SoundObject_SendVoice(target, nullptr, out, at<u32>(command, 4), at<u32>(command, 8));
+}
+
+u32 *__fastcall SoundCmd700bb8_Run(const u8 *command, void *, u32 *out, u8 *target) {
+    return SoundObject_VoiceInfo(target, nullptr, out, at<u32>(command, 8), at<u32 *>(command, 4));
+}
 
 }  // extern "C"

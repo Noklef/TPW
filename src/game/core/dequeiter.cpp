@@ -3,12 +3,30 @@
 #include <cstdint>
 #include <initializer_list>
 #include "gameheap.h"
+#include "methods.h"
 #include "seqs.h"
 #include "sync.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+
+u32 &Dword(u32 address) { return *reinterpret_cast<u32 *>(static_cast<uintptr_t>(address)); }
+
+// Both iterators cleared and the map freed (its pointer kept), as the deques' block release does when the count is 0.
+void ClearIterators(u8 *deque) {
+    for (u32 offset = 4; offset < 0x24; offset += 4)
+        at<u32>(deque, offset) = 0;
+    GameHeap_Free(at<void *>(deque, 0x24));
+}
+
+// a - b in dwords, as the deque code computes it: the positions' difference within one block, else across the blocks between.
+u32 Distance(const DequeIt &a, const DequeIt &b) {
+    if (a.node == b.node)
+        return static_cast<u32>(static_cast<s32>(a.cur - b.cur) >> 2);
+    return (static_cast<u32>(static_cast<s32>(a.node - b.node) >> 2) + 0x3fffff) * 1024 + static_cast<u32>(static_cast<s32>(b.end - b.cur) >> 2) +
+           static_cast<u32>(static_cast<s32>(a.cur - a.first) >> 2);
+}
 
 }  // namespace
 
@@ -158,5 +176,198 @@ u32 __cdecl CommandQueue_Post(u32 code, u32 param) {
     }
     ++at<u32>(q, 0x2c);
     return CritSec_Leave(reinterpret_cast<u8 *>(0x007b4bd8));
+}
+
+void __fastcall Deque32_AllocMap(u8 *deque) {
+    s32 bytes = static_cast<s32>(at<u32>(deque, 0x28) << 2);
+    if (bytes < 0)
+        bytes = 0;
+    at<void *>(deque, 0x24) = GameHeap_Alloc(static_cast<u32>(bytes));
+}
+
+void __fastcall Deque32_FreeFront(u8 *deque) {
+    const u32 node = at<u32>(deque, 0x10);
+    at<u32>(deque, 0x10) = node + 4;
+    GameHeap_Free(reinterpret_cast<void *>(static_cast<uintptr_t>(Dword(node))));
+    if (at<u32>(deque, 0x2c) == 0) {
+        ClearIterators(deque);
+        return;
+    }
+    const u32 next = at<u32>(deque, 0x10);
+    const u32 block = Dword(next);
+    at<u32>(deque, 4) = block;
+    at<u32>(deque, 8) = block + 0x1000;
+    at<u32>(deque, 0xc) = block;
+    at<u32>(deque, 0x10) = next;
+}
+
+void __fastcall Deque32_FreeBack(u8 *deque) {
+    const u32 node = at<u32>(deque, 0x20);
+    at<u32>(deque, 0x20) = node - 4;
+    GameHeap_Free(reinterpret_cast<void *>(static_cast<uintptr_t>(Dword(node))));
+    if (at<u32>(deque, 0x2c) == 0) {
+        ClearIterators(deque);
+        return;
+    }
+    const u32 previous = at<u32>(deque, 0x20);
+    const u32 block = Dword(previous);
+    at<u32>(deque, 0x14) = block;
+    at<u32>(deque, 0x18) = block + 0x1000;
+    at<u32>(deque, 0x1c) = block + 0x1000;
+    at<u32>(deque, 0x20) = previous;
+}
+
+void __fastcall Deque32_PopFront(u8 *deque) {
+    const u32 cur = at<u32>(deque, 0xc) + 4;
+    at<u32>(deque, 0xc) = cur;
+    const u32 count = at<u32>(deque, 0x2c) - 1;
+    at<u32>(deque, 0x2c) = count;
+    if (count == 0 || cur == at<u32>(deque, 8))
+        Deque32_FreeFront(deque);
+}
+
+void __fastcall Deque32_GrowBack(u8 *deque) {
+    const u32 block = static_cast<u32>(reinterpret_cast<uintptr_t>(GameHeap_Alloc(0x1000)));
+    DequeIt &begin = at<DequeIt>(deque, 4);
+    DequeIt &end = at<DequeIt>(deque, 0x14);
+    if (at<u32>(deque, 0x2c) == 0) {
+        at<u32>(deque, 0x28) = 2;
+        const u32 map = static_cast<u32>(reinterpret_cast<uintptr_t>(GameHeap_Alloc(8)));
+        at<u32>(deque, 0x24) = map;
+        Dword(map + 4) = block;
+        const u32 node = at<u32>(deque, 0x24) + 4;
+        const u32 first = Dword(node);
+        begin = DequeIt{first, first + 0x1000, block + 0x800, node};
+        end = begin;
+        return;
+    }
+    u32 slot = end.node;
+    if (slot < at<u32>(deque, 0x24) + at<u32>(deque, 0x28) * 4 - 4) {
+        slot += 4;
+        end.node = slot;
+        Dword(slot) = block;
+    } else {
+        const u32 used = static_cast<u32>((static_cast<s32>(slot - begin.node) >> 2) + 1);
+        s32 bytes = static_cast<s32>(used * 8);
+        if (bytes < 0)
+            bytes = 0;
+        const u32 map = static_cast<u32>(reinterpret_cast<uintptr_t>(GameHeap_Alloc(static_cast<u32>(bytes))));
+        const u32 base = map + ((used * 2) >> 2) * 4;
+        u32 to = base;
+        for (u32 from = begin.node; from != end.node + 4; from += 4, to += 4)
+            Dword(to) = Dword(from);
+        GameHeap_Free(at<void *>(deque, 0x24));
+        at<u32>(deque, 0x28) = used * 2;
+        at<u32>(deque, 0x24) = map;
+        slot = base + used * 4;
+        Dword(slot) = block;
+        const u32 first = Dword(base);
+        begin = DequeIt{first, first + 0x1000, begin.cur, base};
+    }
+    const u32 first = Dword(slot);
+    end = DequeIt{first, first + 0x1000, block, slot};
+}
+
+u32 *__cdecl Deque32_Copy(u32 *out, DequeIt first, DequeIt last, DequeIt dest) {
+    while (first.cur != last.cur) {
+        Dword(dest.cur) = Dword(first.cur);
+        dest.cur += 4;
+        if (dest.cur == dest.end) {
+            dest.node += 4;
+            dest.first = Dword(dest.node);
+            dest.cur = dest.first;
+            dest.end = dest.first + 0x1000;
+        }
+        first.cur += 4;
+        if (first.cur == first.end) {
+            first.node += 4;
+            first.cur = Dword(first.node);
+            first.end = first.cur + 0x1000;
+        }
+    }
+    *reinterpret_cast<DequeIt *>(out) = dest;
+    return out;
+}
+
+u32 *__cdecl Deque32_CopyBackward(u32 *out, DequeIt first, DequeIt last, DequeIt dest) {
+    while (last.cur != first.cur) {
+        if (last.cur == last.first) {
+            last.node -= 4;
+            last.first = Dword(last.node);
+            last.cur = last.first + 0x1000;
+        }
+        last.cur -= 4;
+        if (dest.cur == dest.first) {
+            dest.node -= 4;
+            dest.first = Dword(dest.node);
+            dest.end = dest.first + 0x1000;
+            dest.cur = dest.end;
+        }
+        dest.cur -= 4;
+        Dword(dest.cur) = Dword(last.cur);
+    }
+    *reinterpret_cast<DequeIt *>(out) = dest;
+    return out;
+}
+
+u32 *__fastcall Deque32_Erase(u8 *deque, void *, u32 *out, DequeIt first, DequeIt last) {
+    DequeIt &begin = at<DequeIt>(deque, 4);
+    DequeIt &end = at<DequeIt>(deque, 0x14);
+    const u32 erased = Distance(last, first);
+    const u32 before = Distance(first, begin);
+    if (before < Distance(end, last)) {
+        DequeIt from = first, to = last;
+        const u32 stop = begin.cur;
+        while (stop != from.cur) {
+            DequeIter_Prev(&from.first);
+            DequeIter_Prev(&to.first);
+            Dword(to.cur) = Dword(from.cur);
+        }
+        for (u32 i = erased; i != 0; i--) {
+            const u32 cur = at<u32>(deque, 0xc) + 4;
+            const u32 count = at<u32>(deque, 0x2c) - 1;
+            at<u32>(deque, 0xc) = cur;
+            at<u32>(deque, 0x2c) = count;
+            if (count == 0 || cur == at<u32>(deque, 8))
+                Deque32_FreeFront(deque);
+        }
+    } else {
+        DequeIt from = last;
+        const u32 stop = end.cur;
+        u32 to = first.cur, toEnd = first.end, toNode = first.node;
+        while (from.cur != stop) {
+            Dword(to) = Dword(from.cur);
+            to += 4;
+            if (to == toEnd) {
+                to = Dword(toNode + 4);
+                toNode += 4;
+                toEnd = to + 0x1000;
+            }
+            DequeIter_Inc(reinterpret_cast<u8 *>(&from));
+        }
+        for (u32 i = erased; i != 0; i--) {
+            const u32 cur = at<u32>(deque, 0x1c) - 4;
+            const u32 count = at<u32>(deque, 0x2c) - 1;
+            at<u32>(deque, 0x1c) = cur;
+            at<u32>(deque, 0x2c) = count;
+            if (count == 0 || cur == at<u32>(deque, 0x14))
+                Deque32_FreeBack(deque);
+        }
+    }
+    DequeIt result = begin;
+    if (before != 0) {
+        result.cur = begin.cur + before * 4;
+        s32 offset = static_cast<s32>(result.cur - begin.first) >> 2;
+        const s32 blocks = offset >= 0 ? static_cast<s32>(static_cast<u32>(offset) >> 10) : -static_cast<s32>((0x3ffu - static_cast<u32>(offset)) >> 10);
+        if (blocks != 0) {
+            result.node = begin.node + static_cast<u32>(blocks) * 4;
+            result.first = Dword(result.node);
+            offset -= blocks << 10;
+            result.end = result.first + 0x1000;
+            result.cur = result.first + static_cast<u32>(offset) * 4;
+        }
+    }
+    *reinterpret_cast<DequeIt *>(out) = result;
+    return out;
 }
 }

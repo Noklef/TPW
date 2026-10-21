@@ -3,7 +3,8 @@
 // fieldops), +0x30 a stamp counter (Obj_Inc30), +0x34 a byte its worker sets when it has stopped, +0x38 the stop request, +0x3c an
 // object and +0x40 / +0x44 blocks it owns. A voice: +0x24 its sound, +0x2c its id (the low 16 bits the slot Pages100_EntryAt finds,
 // the high 16 a stamp), +0x30 flags. Reimplementation of 0x6b6120, 0x6b6170, 0x6b6260, 0x6b6440, 0x6b6550, 0x6b6830, 0x6b6990,
-// 0x6b6ab0 and 0x6b6ba0; the names are unconfirmed.
+// 0x6b6ab0 and 0x6b6ba0, and of the voice commands 0x6b64b0, 0x6b6510 and 0x6b65a0 (out: 0, or -1 when no voice has the id); the
+// names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -46,5 +47,16 @@ s32 *__cdecl VoicePage_New(s32 *status, u8 **out, u32 count);
 
 // 0x6b6ba0 (thiscall): the 0x7c bytes at the block +0x44 points to cleared and +0x48 = 0. Returns 0.
 u32 __fastcall SoundMixer_ClearLevels(u8 *mixer);
+
+// 0x6b64b0 (thiscall (out, id, params), pops 0xc): the voice for the id (SoundMixer_FindVoice) gets a parameter block
+// (SoundVoice_EnsureParams; none when the allocation failed: a fault, sic), the 16 bytes at params copied to its +8, and flag 0x1000.
+// Returns out.
+u32 *__fastcall SoundMixer_SetVoiceParams(u8 *mixer, void *, u32 *out, u32 id, const u32 *params);
+
+// 0x6b6510 (thiscall (out, id, value), pops 0xc): SoundVoice_SetPending (out, value) on the voice for the id. Returns out.
+u32 *__fastcall SoundMixer_SetVoicePending(u8 *mixer, void *, u32 *out, u32 id, u32 value);
+
+// 0x6b65a0 (thiscall (out, id, value), pops 0xc): the voice for the id's slot 0xc (value); *out = 0. Returns out.
+u32 *__fastcall SoundMixer_SendVoice(u8 *mixer, void *, u32 *out, u32 id, u32 value);
 
 }  // extern "C"

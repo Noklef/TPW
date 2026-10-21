@@ -2555,6 +2555,14 @@ address,name,kind,confidence,notes
 0x00632380,Class703c14_Ctor,function,high,reimplemented (src/game/core/dequeiter); vtable 0x703c14 and its fields (two bytes of the address's top byte)
 0x0047f340,Deque8_Clear,function,high,reimplemented (src/game/core/dequeiter); Empties a deque of 8-byte elements and frees its blocks (name unconfirmed)
 0x0047f410,CommandQueue_Post,function,low,"reimplemented (src/game/core/dequeiter); cdecl (code, param): (param or [0x78ba88], code) pushed onto the global deque 0x7b4ba8 inside its critical section"
+0x006c2990,Deque32_AllocMap,function,low,reimplemented (src/game/core/dequeiter); thiscall: the deque's map allocated for its +0x28 slots
+0x006c2910,Deque32_FreeFront,function,low,"reimplemented (src/game/core/dequeiter); thiscall: the begin block freed, the begin iterator on to the next (or all cleared at count 0)"
+0x006c2ca0,Deque32_FreeBack,function,low,"reimplemented (src/game/core/dequeiter); thiscall: the end block freed, the end iterator back to the one before (or all cleared at count 0)"
+0x006c1550,Deque32_PopFront,function,low,reimplemented (src/game/core/dequeiter); thiscall: pop_front of a deque of dwords
+0x006c1940,Deque32_GrowBack,function,low,"reimplemented (src/game/core/dequeiter); thiscall: a new block at the back (a new map, a free slot, or the map doubled)"
+0x006c3010,Deque32_Copy,function,low,"reimplemented (src/game/core/dequeiter); cdecl (out, first, last, dest; iterators by value): copy across blocks, returns out"
+0x006c2f80,Deque32_CopyBackward,function,low,"reimplemented (src/game/core/dequeiter); cdecl (out, first, last, dest; iterators by value): copy_backward across blocks, returns out"
+0x006c15f0,Deque32_Erase,function,low,"reimplemented (src/game/core/dequeiter); thiscall (out, first, last; iterators by value), pops 0x24: erase(first, last) of a deque of dwords"
 0x00423720,Obj_Get24,function,high,reimplemented (src/game/core/accessors); the dword at +0x24
 0x00423730,Obj_Get2c,function,high,reimplemented (src/game/core/accessors); the dword at +0x2c
 0x004030c0,Obj_Get30,function,high,reimplemented (src/game/core/accessors); the dword at +0x30
@@ -3960,6 +3968,19 @@ address,name,kind,confidence,notes
 0x004f4c20,StdTree_InsertD,function,high,"reimplemented (src/game/core/stdtree); thiscall (out, x, y, value; pops 16): tree D's node insert, the wide string copied by StdWString_Construct and compared by WString_Compare"
 0x004f2810,StdMapD_Insert,function,high,"reimplemented (src/game/core/stdtree); thiscall (result, value; pops 8): tree D's set insert, the {node, inserted} result; returns result"
 0x004f0390,StdMapD_InsertCopy,function,high,"reimplemented (src/game/core/stdtree); thiscall (out, value; pops 8): StdMapD_Insert's {iterator, inserted byte} copied to out; returns out"
+0x006c2de0,StdTree_IncH,function,low,reimplemented (src/game/core/stdtree); thiscall on an iterator: tree H's ++ (the sound code's map of dword keys to Strings)
+0x006c2d20,StdTree_DecH,function,low,reimplemented (src/game/core/stdtree); thiscall on an iterator: tree H's --
+0x006c29b0,StdTree_InsertH,function,low,"reimplemented (src/game/core/stdtree); thiscall (out, x, y, value), pops 16: tree H's node insert and rebalance, the value made by StdPairH_Construct"
+0x006c1b70,StdTree_EraseH,function,low,"reimplemented (src/game/core/stdtree); thiscall (out, node), pops 8: tree H's erase, the node's String released"
+0x006c20b0,StdTree_EraseSubtreeH,function,low,"reimplemented (src/game/core/stdtree); thiscall (node), pops 4: tree H's _Erase, each String released"
+0x006c1270,StdTree_EraseRangeH,function,low,"reimplemented (src/game/core/stdtree); thiscall (out, first, last), pops 12: tree H's erase(first, last)"
+0x006c11c0,StdTree_DtorH,function,low,"reimplemented (src/game/core/stdtree); thiscall: tree H's destructor (map counter 0xfb200c, nil node 0xfb2008)"
+0x006c1a90,StdMapH_Insert,function,low,"reimplemented (src/game/core/stdtree); thiscall (result, value), pops 8: map H's insert(value)"
+0x006c1130,StdMapH_Index,function,low,"reimplemented (src/game/core/stdtree); thiscall (&key), pops 4: map H's operator[], returns the String"
+0x006c30a0,StdPairH_Construct,function,low,"reimplemented (src/game/core/stdtree); cdecl (where, value): StdPairH_Copy unless where is null"
+0x006c3110,StdPairH_Copy,function,low,"reimplemented (src/game/core/stdtree); thiscall (value), pops 4: the pair {key, String} copied"
+0x006c0b10,StdMapH_AssignWide,function,low,"reimplemented (src/game/core/stdtree); thiscall (from, key), pops 8: map[key] = a WString (String_AssignWide)"
+0x006c0b30,StdMapH_FindValue,function,low,"reimplemented (src/game/core/stdtree); thiscall (text, &index), pops 8: the first index whose String equals text (operator[] from 0 up)"
 0x00617f40,Class7037b8_Dtor,function,high,reimplemented (src/game/core/vdtor); frees the list of blocks
 0x005d48d0,Panel_Reset,function,high,reimplemented (src/game/gfx/imageops); fills the panel image and blends the six parts onto it
 0x00576620,Grid_AddObject,function,high,reimplemented (src/game/render/renderer); adds an object to every list in a rectangle of the grid
@@ -4291,6 +4312,12 @@ address,name,kind,confidence,notes
 0x006b5a50,SoundCmd700b74_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b74, thiscall (out, target), pops 8: Bytes44_Set(target's +0x24, out, 1, the value)"
 0x006b5990,SoundCmd700b78_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b78, thiscall (out, target), pops 8: Bytes44_Set(target's +0x24, out, 2, the value)"
 0x006b58b0,SoundCmd700ba8_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700ba8, thiscall (out, target), pops 8: target's slot 6 (out, the value)"
+0x006b5600,SoundCmd700b5c_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b5c, thiscall (out, target), pops 8: SoundObject_Broadcast (out) on the target; returns out"
+0x006b5620,SoundCmd700b60_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b60, thiscall (out, target), pops 8: SoundObject_BroadcastValue (out, the value at +4); returns out"
+0x006b56c0,SoundCmd700bbc_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700bbc, thiscall (out, target), pops 8: *out = -1 for an id (+4) of 0, else SoundMixer_SetVoiceParams on target's mixer (out, id, a stack copy of the 16 bytes at +8); returns out"
+0x006b58d0,SoundCmd700ba4_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700ba4, thiscall (out, target), pops 8: SoundMixer_SetVoicePending on target's mixer (out, the id at +8, the value at +4); returns out"
+0x006b5930,SoundCmd700bac_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700bac, thiscall (out, target), pops 8: SoundObject_SendVoice (out, the id at +4, the value at +8); returns out"
+0x006b5a90,SoundCmd700bb8_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700bb8, thiscall (out, target), pops 8: SoundObject_VoiceInfo (out, the id at +8, the result pointer at +4); returns out"
 0x006b5ab0,SoundManager_Dtor,function,low,reimplemented (src/game/core/soundmanager); thiscall: vtable reset to 0x70a288; the engine at +4 (if any) destroyed through its slot 0 (1) and +4 cleared
 0x006b5ad0,SoundManager_Call1,function,low,"reimplemented (src/game/core/soundmanager); slot 4, thiscall (out, a), pops 8: the engine's slot 1 (out, a); returns out"
 0x006b5af0,SoundManager_Release,function,low,"reimplemented (src/game/core/soundmanager); slot 0, thiscall (out), pops 4: the manager (unless null) destroyed through its slot 3 (1); *out = 0"
@@ -4298,6 +4325,7 @@ address,name,kind,confidence,notes
 0x006b5b40,SoundManager_Post,function,low,"reimplemented (src/game/core/soundmanager); slot 2, thiscall (owner, command), pops 8: the engine's slot 4, its result returned"
 0x006b5b60,SoundManager_Call5,function,low,"reimplemented (src/game/core/soundmanager); thiscall (a, b), pops 8: the engine's slot 5, its result returned"
 0x006b5b80,SoundManager_Call3,function,low,"reimplemented (src/game/core/soundmanager); thiscall (a, b, c), pops 0xc: the engine's slot 3, its result returned"
+0x006b5bf0,SoundManager_DeletingDtor,function,low,"reimplemented (src/game/core/soundmanager); slot 3, thiscall (flags), pops 4: SoundManager_Dtor, then the manager freed for flags bit 0; returns the manager"
 0x006b6120,SoundMixer_DeletingDtor,function,low,"reimplemented (src/game/core/soundmixer); thiscall (flags), pops 4: SoundMixer_Dtor, then freed for flags bit 0; returns the mixer"
 0x006b6170,SoundMixer_Dtor,function,low,"reimplemented (src/game/core/soundmixer); thiscall: stops the worker (+0x38 set, spins on +0x34), active voices' slot 3, frees the page list and the +0x44 / +0x40 blocks, +0x3c's slot 2 (3), deletes the critical section"
 0x006b6260,SoundMixer_TouchFlagged,function,low,reimplemented (src/game/core/soundmixer); thiscall: active voices with flag 0x400 counted (InterlockedIncrement) and their slot 0xb called; returns the count
@@ -4325,6 +4353,18 @@ address,name,kind,confidence,notes
 0x00672090,XaAdpcm_DecodeMono,function,low,"reimplemented (src/game/core/xaadpcm); cdecl (count, position, last, before, data, out): (count + 27) / 28 blocks of 15 bytes (a filter / shift header, 28 4-bit samples) from data + position * 15 / 28 decoded to 16-bit pairs (both channels) through *out; returns before"
 0x00672210,XaAdpcm_DecodeStereo,function,low,"reimplemented (src/game/core/xaadpcm); cdecl (count, position, last left, before left, last right, before right, data, out): the stereo blocks of 30 bytes (two header bytes, 28 byte pairs of left / right nibbles); returns the right before as stored"
 0x00672cb3,ImaAdpcm_DecodeStereo,function,low,"reimplemented (src/game/core/imaadpcm); cdecl (data, out, count, samples, indices): count bytes of stereo 4-bit ADPCM (high nibble left) through the step table 0x77c6c0 and index moves 0x77dd00, the state kept in 0x77dd20-0x77dd2c and packed back"
+0x006b64b0,SoundMixer_SetVoiceParams,function,low,"reimplemented (src/game/core/soundmixer); thiscall (out, id, params), pops 0xc: the voice for the id gets a parameter block (SoundVoice_EnsureParams), the 16 bytes at params at its +8, flag 0x1000; *out 0 / -1; returns out"
+0x006b6510,SoundMixer_SetVoicePending,function,low,"reimplemented (src/game/core/soundmixer); thiscall (out, id, value), pops 0xc: SoundVoice_SetPending (out, value) on the voice for the id, else *out = -1; returns out"
+0x006b65a0,SoundMixer_SendVoice,function,low,"reimplemented (src/game/core/soundmixer); thiscall (out, id, value), pops 0xc: the voice for the id's slot 0xc (value), *out = 0, else *out = -1; returns out"
+0x006b8b40,SoundChannel_Apply,function,low,"reimplemented (src/game/core/soundchannel); thiscall (out, functor), pops 8: the functor's slot 0 (out, channel); returns out"
+0x006b7d70,SoundChannel_GetSettings,function,low,"reimplemented (src/game/core/soundchannel); thiscall (out, settings), pops 8: fills a settings record from the channel per its asked-for flags (+4, +8): the info at +0x14, the source at +0x18 (slots 0x13, 3), the EAX buffer at +0x20 (EaxBuffer_QueryAll), [0xfb2058]; the filled flags at +0x4c; *out = 0; returns out"
+0x006b85f0,SoundObject_Broadcast,function,low,"reimplemented (src/game/core/soundobject); thiscall (out), pops 4: the mixer's active voices run (ForEachActive 0), then the channel's slot 4 with a stack functor 0x70a5b0; *out = -1 without a channel; returns out"
+0x006b8640,SoundObject_BroadcastValue,function,low,"reimplemented (src/game/core/soundobject); thiscall (out, value), pops 8: with a channel flagged 0x400 the mixer's ForEachActive (value), else SoundObject_Broadcast; *out = 0; returns out"
+0x006b8b00,SoundObject_VoiceInfo,function,low,"reimplemented (src/game/core/soundobject); thiscall (out, id, result), pops 0xc: the mixer's voice for the id; its +0xc's +8 into *result and *out = 0, else *out = -1; returns out"
+0x006b8930,SoundObject_SendVoice,function,low,"reimplemented (src/game/core/soundobject); thiscall (out, id, value), pops 0xc: *out = -1 for id 0; with a channel flagged 0x400 the mixer's SoundMixer_SendVoice, else the object's own slot 6 (out, id); returns out"
+0x006b7150,SoundVoice_EnsureParams,function,low,"reimplemented (src/game/core/soundvoice); thiscall: with no block at +0x4c, a 0x20-byte one (Mem_Alloc; the byte and +4-+0x18 cleared) stored there, or 0 when the allocation fails"
+0x006bc900,SoundVoice_SetPending,function,low,"reimplemented (src/game/core/soundvoice); thiscall (out, value), pops 8: with a sound at +0x24, a stack record (SetThenFlag28_14 value) handed to the sound system [0xfb1f24]'s slot 4 in a functor 0x70a850; else the value's low word at +0x48, flag 0x8000, *out = -1; returns out"
+0x006c4760,EaxBuffer_QueryAll,function,low,"reimplemented (src/game/core/soundeax); thiscall (out, unused), pops 8: IKsPropertySet::Get of the EAX 2.0 buffer properties (id 1, 0x38 bytes) into a stack block that is also the size out, dropped; *out = 0 on success, else -1; returns out"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

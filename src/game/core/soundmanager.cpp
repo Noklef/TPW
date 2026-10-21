@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "gameheap.h"
 #include "vcall.h"
 
 namespace {
@@ -40,6 +41,12 @@ u32 __fastcall SoundManager_Call5(u8 *manager, void *, u32 a, u32 b) { return vc
 u32 *__fastcall SoundManager_Call1(u8 *manager, void *, u32 *out, u32 a) {
     vcall<void>(at<u8 *>(manager, 4), 4, out, a);
     return out;
+}
+
+u8 *__fastcall SoundManager_DeletingDtor(u8 *manager, void *, u32 flags) {
+    SoundManager_Dtor(manager);
+    if (flags & 1) GameHeap_Free(manager);
+    return manager;
 }
 
 }  // extern "C"
