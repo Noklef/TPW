@@ -72,6 +72,36 @@ u8 *__fastcall GuiRect_Assign(u8 *rect, void *, const u8 *source) {
     return rect;
 }
 
+u32 __fastcall GuiRect_Split(u8 *rect, void *, u8 *shape, u8 *first, u8 *second) {
+    if (!shape) return 0;
+    const u32 how = GuiRect_Overlap(rect, nullptr, shape) & 0xffff;
+    const u32 l = at<u16>(rect, 4), t = at<u16>(rect, 6), r = at<u16>(rect, 8), b = at<u16>(rect, 0xa);
+    const u32 sl = at<u16>(shape, 4), st = at<u16>(shape, 6), sr = at<u16>(shape, 8), sb = at<u16>(shape, 0xa);
+    if (how & 0x10) {
+        if (first) Fn_659dac(first, nullptr, l, t, r, st);
+        if (second) Fn_659dac(second, nullptr, l, st, r, b);
+        return 1;
+    }
+    if (how & 0x20) {
+        if (first) Fn_659dac(first, nullptr, l, sb, r, b);
+        if (second) Fn_659dac(second, nullptr, l, t, r, sb);
+        return 1;
+    }
+    if (how & 0x40) {
+        if (first) Fn_659dac(first, nullptr, l, t, sl, b);
+        if (second) Fn_659dac(second, nullptr, sl, t, r, b);
+        return 1;
+    }
+    if (how & 0x80) {
+        if (first) Fn_659dac(first, nullptr, sr, t, r, b);
+        if (second) Fn_659dac(second, nullptr, l, t, sr, b);
+        return 1;
+    }
+    if (how & 0x100) return 0;
+    if (first) Fn_659dac(first, nullptr, l, t, r, b);
+    return 0;
+}
+
 u32 __fastcall GuiRect_Overlap(u8 *rect, void *, u8 *shape) {
     const s32 l = at<s16>(rect, 4), t = at<s16>(rect, 6), r = at<s16>(rect, 8), b = at<s16>(rect, 0xa);
     const s32 sl = at<s16>(shape, 4), st = at<s16>(shape, 6), sr = at<s16>(shape, 8), sb = at<s16>(shape, 0xa);

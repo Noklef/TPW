@@ -1,6 +1,7 @@
 # The GUI library's rectangle (src/game/ui/guirect: 0x659d00-0x65a43e) against the originals: a rectangle of random bytes (now and then
 # four words near each other, or edge values), the words given random, small or edge values (the upper halves random: only the low words
-# count), and the centre's pointers given or 0. Overlap (0x659f3d): see overlap_case.
+# count), and the centre's pointers given or 0. Overlap (0x659f3d): see overlap_case. Split (0x65a1c3): overlap_case's rectangle and
+# shape (now and then none), the two out rectangles given or 0.
 # usage: guirect.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Ctor,CtorWith,...)
 import os
 import struct
@@ -10,10 +11,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, RAM  # noqa: E402
 
 CALLS = {'Equals': 0x661700, 'GetSize': 0x659e3e, 'Ctor': 0x659d00, 'CtorWith': 0x659d43, 'Dtor': 0x659d90, 'Contains': 0x659e83, 'Centre': 0x659ee2, 'Offset': 0x65a3e9,
-         'Adjust': 0x65a43e, 'Overlap': 0x659f3d}
-B = Bench([(0x661700, 0x66176a), (0x659e3e, 0x659e83), (0x659d00, 0x659dbc), (0x659e83, 0x65a1c3), (0x65a3e9, 0x65a4a3), (0x65a9d0, 0x65aa00), (0x66bff7, 0x66c01b), (0x66c01a, 0x66c7dc),
+         'Adjust': 0x65a43e, 'Overlap': 0x659f3d, 'Split': 0x65a1c3}
+B = Bench([(0x661700, 0x66176a), (0x659e3e, 0x659e83), (0x659d00, 0x659dbc), (0x659e83, 0x65a1c3), (0x65a3e9, 0x65a4a3), (0x65a1c3, 0x65a3e9), (0x659dbc, 0x659de3), (0x65a9d0, 0x65aa00), (0x66bff7, 0x66c01b), (0x66c01a, 0x66c7dc),
            (0x67acb0, 0x67acb1)])
-RECT, OUT, SHAPE, POINTS = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300
+RECT, OUT, SHAPE, POINTS, OUT2 = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400
 SHAPES = {'rect': 0x705920, 'circle': 0x705b50, 'ellipse': 0x705b68, 'polygon': 0x705b80}
 
 
@@ -67,6 +68,11 @@ def case(r):
     regions = {RECT: rect, OUT: r.bytes(8)}
     if op == 'Overlap':
         return overlap_case(r, rect, regions)
+    if op == 'Split':
+        overlap_case(r, rect, regions)
+        regions[OUT], regions[OUT2] = r.bytes(0x10), r.bytes(0x10)
+        args = [RECT, r.choice([SHAPE] * 15 + [0]), r.choice([OUT] * 4 + [0]), r.choice([OUT2] * 4 + [0])]
+        return Call(CALLS[op], args, regions, conv='t', ret='w')
     if op in ('Ctor', 'Dtor'):
         return Call(CALLS[op], [RECT], regions, conv='t', ret='a')
     if op == 'CtorWith':
