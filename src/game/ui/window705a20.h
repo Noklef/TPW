@@ -1,6 +1,6 @@
 // The GUI library's window subclass with the vtable 0x705a20 (kind 5 of the factory 0x65dd7b: with flag 0x40 a 0x200-byte buffer +0x138,
 // a window timer +0x164 (0x2ee, id 0x75e88), the handler 0x66857d; what it is is unconfirmed, a text field going by the buffer and the
-// timer). Reimplementation of 0x665fb0, 0x665fcd and 0x66656c. The names are unconfirmed.
+// timer). Reimplementation of 0x665fb0, 0x665fcd, 0x66656c and others. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -54,4 +54,16 @@ void __fastcall Window705a20_NotifyText(u8 *window, void *, u32 post);
 // mode through its slot 5 (the pushed dword's upper half EDX's: the caller's for mode 0, else the window's address's; sic), and with
 // [0xfaa5d4] set the window posted 3 (0, 0). EAX not kept.
 void __fastcall Window705a20_SetInsertMode(u8 *window, void *edx, u32 mode);
+
+// 0x6662b7 (thiscall (buffer, size), pops 8; name unconfirmed): a buffer of the caller's: unless the window has its own (flag 0x40 of
+// +0x48) or either is 0, +0x138 = buffer, +0x13c = size and the byte +0x160 1; AX 1 then, else 0 (EAX's upper half the window's).
+u32 __fastcall Window705a20_SetBuffer(u8 *window, void *, u32 buffer, u32 size);
+
+// 0x668447 (thiscall; name unconfirmed): the selection's start: the anchor +0x14c when set (not -1) and below the cursor +0x14a, else
+// the cursor (the words compared signed). AX it (EAX's upper half: the window's for the anchor, else the anchor's sign, sic).
+u32 __fastcall Window705a20_SelectionStart(u8 *window);
+
+// 0x66848f (thiscall (from, to: word pointers, each optional), pops 8; name unconfirmed): from = the selection's start as
+// Window705a20_SelectionStart gives it, to = the anchor +0x14c when above the cursor +0x14a, else the cursor (signed). EAX not kept.
+void __fastcall Window705a20_Selection(u8 *window, void *, u16 *from, u16 *to);
 }

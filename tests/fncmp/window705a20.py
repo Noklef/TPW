@@ -11,7 +11,10 @@
 # the mode 0, 1 or any word (upper half random), called as fastcall with EDX random (its upper half pushed for mode 0). NotifyText
 # (0x66671d): the object +0x9c a recorder (slot 3, its event hashed by the text its +0x10 points to: dword +0, word +0xa) or none, post
 # 0, 1 or any, the parent +0x60 a window (byte +4 mostly clear) or none, window.py's queues.
-# usage: window705a20.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetCaret,MoveCaret,KeyToParent,ToggleInsert,SetInsertMode,NotifyText)
+# SetBuffer (0x6662b7): flag 0x40 of +0x48 either way, the buffer and the size 0 or any. SelectionStart / Selection (0x668447, 0x66848f):
+# the anchor +0x14c and the cursor +0x14a -1, small or any (signed both ways), Selection's word pointers each a slot of the window or 0.
+# usage: window705a20.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetCaret,MoveCaret,KeyToParent,ToggleInsert,SetInsertMode,
+# NotifyText,SetBuffer,SelectionStart,Selection)
 import os
 import struct
 import sys
@@ -23,10 +26,11 @@ from fncmp import CDECL_LOG4, LOG, RAM, Bench, Call, blob_bytes, log_region, put
 from window import RANGES, queues  # noqa: E402
 
 CALLS = {'SetCaret': 0x66656c, 'MoveCaret': 0x66836a, 'KeyToParent': 0x667fee, 'ToggleInsert': 0x6667eb,
-         'SetInsertMode': 0x666875, 'NotifyText': 0x66671d}
+         'SetInsertMode': 0x666875, 'NotifyText': 0x66671d, 'SetBuffer': 0x6662b7, 'SelectionStart': 0x668447, 'Selection': 0x66848f}
 B = Bench(sorted(set(RANGES + [(0x66656c, 0x66671d), (0x659d43, 0x659d90), (0x659d90, 0x659dbc), (0x65a9d0, 0x65aa00),
-                            (0x66bff7, 0x66c01b), (0x66836a, 0x668457), (0x667fee, 0x6680c7), (0x658d9f, 0x658e04),
-                            (0x6667eb, 0x666875), (0x666875, 0x6668e9), (0x66671d, 0x66679e), (0x658ccc, 0x658d9f), (0x6697e3, 0x6698b4), (0x680050, 0x68005b)])))
+                            (0x66bff7, 0x66c01b), (0x66836a, 0x668447), (0x667fee, 0x6680c7), (0x658d9f, 0x658e04),
+                            (0x6667eb, 0x666875), (0x666875, 0x6668e9), (0x66671d, 0x66679e), (0x658ccc, 0x658d9f), (0x6697e3, 0x6698b4), (0x680050, 0x68005b),
+                            (0x6662b7, 0x666308), (0x668447, 0x66852b)])))
 WINDOW, OBJ_A, OBJ_B, VT, PARENTS = RAM, RAM + 0x200, RAM + 0x240, RAM + 0x280, RAM + 0x400
 
 
@@ -110,10 +114,26 @@ def notify_text(r):
     return Call(CALLS['NotifyText'], [WINDOW, r.choice([0, 1, r.getrandbits(32)])], regions, conv='t', ret='v')
 
 
+def selection(r, op):
+    w = bytearray(r.bytes(0x170))
+    w[0x48] = (w[0x48] & 0xbf) | r.choice([0, 0x40])
+    for at in (0x14a, 0x14c):
+        put(w, at, 'h', r.choice([-1, -1, 0, 1, 2, r.randrange(0, 0x40), r.getrandbits(15), -r.getrandbits(15)]))
+    regions = {LOG: log_region(), WINDOW: w}
+    if op == 'SetBuffer':
+        return Call(CALLS[op], [WINDOW, r.choice([0, RAM + 0x800, r.getrandbits(32)]), r.choice([0, 0x200, r.getrandbits(32)])],
+                    regions, conv='t', ret='a')
+    if op == 'SelectionStart':
+        return Call(CALLS[op], [WINDOW], regions, conv='t', ret='a')
+    return Call(CALLS[op], [WINDOW, r.choice([WINDOW + 0x168, 0]), r.choice([WINDOW + 0x16a, WINDOW + 0x168, 0])], regions, conv='t', ret='v')
+
+
 def case(r):
     op = r.deal(OPS)
     return {'SetCaret': set_caret, 'MoveCaret': move_caret, 'KeyToParent': key_to_parent, 'ToggleInsert': toggle_insert,
-            'SetInsertMode': lambda r: toggle_insert(r, 'SetInsertMode'), 'NotifyText': notify_text}[op](r)
+            'SetInsertMode': lambda r: toggle_insert(r, 'SetInsertMode'), 'NotifyText': notify_text,
+            'SetBuffer': lambda r: selection(r, 'SetBuffer'), 'SelectionStart': lambda r: selection(r, 'SelectionStart'),
+            'Selection': lambda r: selection(r, 'Selection')}[op](r)
 
 
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
