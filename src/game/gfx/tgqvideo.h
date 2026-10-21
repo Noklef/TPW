@@ -32,6 +32,11 @@ u32 __fastcall TgqVideo_PackColour(s32 r, s32 g, s32 b, u32 unused, u32 red_bits
 void __fastcall TgqVideo_BuildTables(u32 unused, u32 red_bits, u32 green_bits, u32 blue_bits, u32 red_shift, u32 green_shift,
                                      u32 blue_shift);
 
+// 0x66ffa0 (fastcall (alpha); name unconfirmed): the same three tables as TgqVideo_BuildTables, as packed lanes (TgqVideo_PackLanes)
+// instead of pixels: luma (c + 0x80 in the three low lanes, the alpha in the top one), 0xfb7d30 (0, c * -0.3441, c * 1.7720, 0) and
+// 0xfb7b30 (c * 1.4020, c * -0.7141, 0, 0).
+void __fastcall TgqVideo_BuildLaneTables(s32 alpha);
+
 // 0x671000 (cdecl (quality); name unconfirmed): the dequantiser 0xfb7820 (64 dwords) from the base matrix 0x705c88: with d = 100 -
 // quality, base = d * 22 / 100 + 8 and step = d * 50 / 100 + 10 - base (signed, truncated), entry (row, k) = the matrix's * ((row + k)
 // * step / 14 + base) << 16, as 16.16 rounded by bit 15 (the products wrapping).

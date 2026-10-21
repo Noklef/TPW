@@ -176,6 +176,21 @@ u32 __fastcall TgqVideo_PackLanes(s32 a, s32 b, s32 c, s32 d) {
     return (u32)d << 24 | ((u32)a & 0xff) << 16 | ((u32)b & 0xff) << 8 | ((u32)c & 0xff);
 }
 
+void __fastcall TgqVideo_BuildLaneTables(s32 alpha) {
+    for (u32 i = 0; i < 0x80; ++i) {
+        const s32 v = (s8)(u8)(i * 2 + 1) + 0x80;
+        global<u32>(0x00fb7930 + i * 4) = TgqVideo_PackLanes(v, v, v, alpha);
+    }
+    for (u32 i = 0; i < 0x80; ++i) {
+        const s32 c = (s8)(u8)(i * 2 + 1);
+        global<u32>(0x00fb7d30 + i * 4) = TgqVideo_PackLanes(0, (s32)fixmul(c, -0x5816), (s32)fixmul(c, 0x1c5a1), 0);
+    }
+    for (u32 i = 0; i < 0x80; ++i) {
+        const s32 c = (s8)(u8)(i * 2 + 1);
+        global<u32>(0x00fb7b30 + i * 4) = TgqVideo_PackLanes((s32)fixmul(c, 0x166e9), (s32)fixmul(c, -0xb6cf), 0, 0);
+    }
+}
+
 void __cdecl TgqVideo_SetQuality(s32 quality) {
     const u32 d = 100u - (u32)quality;
     const s32 base = (s32)(d * 22) / 100 + 8;
