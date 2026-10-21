@@ -231,6 +231,13 @@ u32 __cdecl Gui_MouseDown(u32 button, u32 x, u32 y);
 // cleared, its bit cleared in [0xfaa5bc]; 1 in AX (the rest of EAX the inverted bit's).
 u32 __cdecl Gui_MouseUp(u32 button, u32 x, u32 y);
 
+// 0x6588ef (cdecl (x, y: words); name unconfirmed): the mouse moved. 0 in AX while [0x77c488] is 0. Else the words 0xfaa540 / 0xfaa544
+// = x / y; without the root window [0xfaa5d8], 0 in AX. With a capture window [0xfaa5e8], it is posted 0x10003 (x << 16 | y, both signed:
+// sic, a negative y fills the top half; 0); else the window under the point (Window_HitTest on the root), when it is not the hovered one
+// [0xfaa5e0], takes its place as UpdateHover's does (the old one posted 0x10002 (0, 0) when set, the new one 0x10001 (x << 16 | y, 0)),
+// and when it is, the hovered one is posted 0x10003 (x << 16 | y, 0) (Window_PostMessage). 1 in AX. Only AX is set.
+u32 __cdecl Gui_MouseMove(u32 x, u32 y);
+
 // 0x65f16b (thiscall (depth: a word), pops 4; name unconfirmed): the depth word +0xe0 = depth, at most 0x100 (signed); the objects +0x98
 // and +0x9c (when set) told through their slot 3 (2, an event on the stack whose only word set, +6, is +0xe0 for +0x98 and +0xe0 + 1 for
 // +0x9c); then each child (+0x5c, then +0x54) given depth + 2 (from the word passed, not the clamped one). EAX not kept.

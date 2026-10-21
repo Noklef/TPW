@@ -587,6 +587,29 @@ u32 __cdecl Gui_MouseUp(u32 button, u32 x, u32 y) {
     *reinterpret_cast<u16 *>((uintptr_t)0x00faa5bc) &= (u16)mask;
     return (mask & 0xffff0000u) | 1;
 }
+
+u32 __cdecl Gui_MouseMove(u32 x, u32 y) {
+    if (*reinterpret_cast<const u32 *>((uintptr_t)0x0077c488) == 0) return 0;  // only AX is set
+    *reinterpret_cast<u16 *>((uintptr_t)0x00faa540) = (u16)x;
+    *reinterpret_cast<u16 *>((uintptr_t)0x00faa544) = (u16)y;
+    u8 *const root = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5d8);
+    if (!root) return 0;
+    const u32 xy = ((u32)(s32)(s16)x << 16) | (u32)(s32)(s16)y;
+    if (u8 *const capture = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5e8)) {
+        Window_PostMessage(capture, 0x10003, xy, 0);
+        return 1;
+    }
+    u8 *const hit = Window_HitTest(root, nullptr, (u16)x, (u16)y);
+    u8 *&hovered = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5e0);
+    if (hit != hovered) {
+        if (hovered) Window_PostMessage(hovered, 0x10002, 0, 0);
+        hovered = hit;
+        Window_PostMessage(hovered, 0x10001, xy, 0);
+    } else {
+        Window_PostMessage(hovered, 0x10003, xy, 0);
+    }
+    return 1;
+}
 }
 
 extern "C" {
