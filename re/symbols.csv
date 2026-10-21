@@ -4569,6 +4569,7 @@ address,name,kind,confidence,notes
 0x006b4420,GlyphPattern2_Span8888,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span), pops 0xc: the solid pattern's 8888 span writer"
 0x006b4700,GlyphPattern2_SpanBgra,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (status, surface, span), pops 0xc: the solid pattern's byte-reversed 32-bit span writer"
 0x006b5340,GlyphRenderer_ClipSpan,function,low,"reimplemented (src/game/gfx/glyphrender); thiscall (out, glyph, point, unused), pops 0x10: the glyph rectangle's part that shows at point inside the display's clip; returns out"
+0x006b4aa0,GlyphRenderer_Draw,function,low,"reimplemented (src/game/gfx/glyphrender); slot 1, thiscall (status, point, index, out, style), pops 0x14: decodes the font's glyph (run-length nibbles or bits) into the shared buffer, clips it and hands the span to the surface format's span writer"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"

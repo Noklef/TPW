@@ -18,7 +18,7 @@
 // nibble * alpha / 255 for an alpha other than 0xff. *status = 0 at the end. Returns status.
 // Reimplementation of 0x6b0430, 0x6b0450, 0x6b0730, 0x6b0760, 0x6b0c50, 0x6b1130, 0x6b15f0, 0x6b19f0, 0x6b1e00, 0x6b1e30, 0x6b2100,
 // 0x6b21f0, 0x6b24b0, 0x6b2770, 0x6b2a30, 0x6b2a60, 0x6b2e20, 0x6b31e0, 0x6b3540, 0x6b3890, 0x6b3c20, 0x6b3c50, 0x6b3f40, 0x6b4140,
-// 0x6b4420, 0x6b4700, 0x6b4a30, 0x6b4a70, 0x6b5340 and 0x6b5410. The names are unconfirmed.
+// 0x6b4420, 0x6b4700, 0x6b4a30, 0x6b4a70, 0x6b4aa0, 0x6b5340 and 0x6b5410. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -52,6 +52,28 @@ u8 *__fastcall GlyphBlend_DeletingDtor(u8 *renderer, void *, u32 flags);
 u8 *__fastcall GlyphSolid_DeletingDtor(u8 *renderer, void *, u32 flags);
 u8 *__fastcall GlyphPattern1_DeletingDtor(u8 *renderer, void *, u32 flags);
 u8 *__fastcall GlyphPattern2_DeletingDtor(u8 *renderer, void *, u32 flags);
+
+// The draw call's calls to crt_atexit go through env (nullptr: the game's).
+struct GlyphRenderEnv {
+    s32(__cdecl *atExit)(void(__cdecl *fn)());   // crt_atexit (0x67a7d0)
+};
+void GlyphRender_SetEnv(const GlyphRenderEnv *env);
+
+// 0x6b4aa0 (slot 1; thiscall (status, point, index, out, style), pops 0x14): draws glyph `index` of the style's font
+// (TextStyle_GetFont, released through its slot 0 before returning) with its top left at point on the display's surface (the draw
+// context's at 0xfa76e8). *status = -1 with no font (the release then faults on the null, sic), a paletted surface (+0x14 not 0), no
+// glyph (Table_AddressPlus18 0) or nothing left inside the clip. The glyph's header (Table_Address: +0 the character, +8 the coded
+// size, +0xc the coding, +0x10 / +0x12 the width and height, +0x14 / +0x15 the offset from point, signed bytes) is followed by its data.
+// Coding bit 0: run-length coded nibbles (a nibble other than 0 stands for itself; 0, then a count and a nibble, for the nibble count
+// times; 0, 0 ends) decoded into the shared buffer (0xfb4cd4, 0x800 bytes made on first use and its release 0x6b5560 handed to atexit,
+// remade bigger for a larger coded size); bit 1: one bit a pixel (the high bit first), coded size * 8 of them, as the nibbles 0 / 0xf
+// into the buffer (after bit 0's when both are set). A space (character 0x20) sets *out to the empty rectangle at point and *status 0.
+// Otherwise the glyph is placed at point + its offset, clipped (GlyphRenderer_ClipSpan), *out set to the drawn rectangle (the placed
+// point moved inside the clip's top left) and the span (that point, the decoded or raw nibbles, (width + 1) / 2, the visible part,
+// the style, the width's low byte) handed to the span writer for the surface's format: slot 2 for 1555 / 555, 3 for 565, 4 for 4444,
+// 6 for 8888 / 888, 7 for the byte-reversed 32-bit formats (PixelFormat_Equal), 5 when none matched; every check runs. *status = the
+// dword the writer's return points to. Returns status.
+s32 *__fastcall GlyphRenderer_Draw(u8 *renderer, void *, s32 *status, const s32 *point, u32 index, Rect *out, u8 *style);
 
 // 0x6b5340 (thiscall (out, glyph, point, unused), pops 0x10; `this` unused): the part of the glyph's rectangle that shows when its
 // top left goes at point: the placed rectangle clipped to the display's clip (Rect_Clip), moved back into the glyph's coordinates (its

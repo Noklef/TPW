@@ -3,9 +3,15 @@
 #include <cstdint>
 #include "../core/gameheap.h"
 #include "../core/thunks.h"
+#include "../core/cursors.h"
+#include "../core/fieldops.h"
+#include "../core/initializers.h"
+#include "../core/vcall.h"
 #include "../core/vtables.h"
 #include "../math/rect.h"
+#include "color.h"
 #include "display.h"
+#include "textlayout.h"
 
 namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
@@ -157,6 +163,54 @@ void Solid8888(u32 *p, u32 colour, u32 c) {
     if (c) *p = c << 28 | c << 24 | (colour & 0xffffff);
 }
 
+const GlyphRenderEnv kGameEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0)};
+const GlyphRenderEnv *g_env = &kGameEnv;
+
+// The decoded glyph's buffer, shared by every draw: grown, never shrunk; its release (0x6b5560) handed to atexit on first use.
+u8 &BufferGuard() { return *reinterpret_cast<u8 *>((uintptr_t)0x00fb4ccb); }
+s32 &BufferSize() { return *reinterpret_cast<s32 *>((uintptr_t)0x00fb4cd0); }
+u8 *&Buffer() { return *reinterpret_cast<u8 **>((uintptr_t)0x00fb4cd4); }
+
+void BufferInit() {
+    if (BufferGuard() & 1) return;
+    BufferGuard() |= 1;
+    BufferSize() = 0x800;
+    Buffer() = static_cast<u8 *>(GameHeap_Alloc(0x800));
+    g_env->atExit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x006b5560));
+}
+
+void BufferGrow(s32 size) {
+    if (size <= BufferSize()) return;
+    BufferSize() = size;
+    GameHeap_Free(Buffer());
+    Buffer() = static_cast<u8 *>(GameHeap_Alloc((u32)BufferSize()));
+}
+
+u8 NextNibble(u8 *reader) {
+    u8 state[8];
+    return (u8)Nibble_Select(Nibble_Next(reader, nullptr, state, 0));
+}
+
+void Release(u8 *font) {
+    u8 *const object = *reinterpret_cast<u8 *volatile *>(&font);   // (a null font faults here, sic)
+    vcall<void>(object, 0);
+}
+
+bool FormatIs(const u8 *surface, u8 *format, u32 red, u32 green, u32 blue, u32 alpha, u32 bits) {
+    Fn_6b5310(format, nullptr, red, green, blue, alpha, bits, 0);
+    const u32 *a = reinterpret_cast<const u32 *>(surface), *b = reinterpret_cast<const u32 *>(format);
+    return a[0] == b[0] && a[1] == b[1] && a[2] == b[2] && a[3] == b[3] && a[4] == b[4] && (a[5] == 0) == (b[5] == 0);
+}
+
+struct GlyphSpan {
+    const s32 *point;
+    const u8 *bits;
+    u32 rowBytes;
+    const Rect *rect;
+    u8 *style;
+    u8 length;
+};
+
 u8 *Delete(u8 *object, u32 flags) {
     if (flags & 1) GameHeap_Free(object);
     return object;
@@ -164,6 +218,132 @@ u8 *Delete(u8 *object, u32 flags) {
 }  // namespace
 
 extern "C" {
+
+void GlyphRender_SetEnv(const GlyphRenderEnv *env) { g_env = env ? env : &kGameEnv; }
+
+s32 *__fastcall GlyphRenderer_Draw(u8 *renderer, void *, s32 *status, const s32 *point, u32 index, Rect *out, u8 *style) {
+    const u8 *const surface = *reinterpret_cast<const u8 *const *>((uintptr_t)0x00fa76e8);
+    u8 *const font = TextStyle_GetFont(style);
+    if (!font || at<u32>(surface, 0x14)) {
+        Release(font);
+        *status = -1;
+        return status;
+    }
+    const u8 *const metrics = reinterpret_cast<const u8 *>((uintptr_t)Table_Address(font, nullptr, index));
+    const u8 *const data = reinterpret_cast<const u8 *>((uintptr_t)Table_AddressPlus18(font, nullptr, index));
+    if (!data) {
+        Release(font);
+        *status = -1;
+        return status;
+    }
+    if (metrics[0xc] & 1) {   // run-length coded nibbles: a nibble, or 0 then a count (0: the end) and the nibble to repeat
+        BufferInit();
+        BufferGrow(at<s32>(metrics, 8));
+        u8 writer[0xc] = {};
+        at<u8 *>(writer, 0) = Buffer();
+        u8 reader[8] = {};
+        at<const u8 *>(reader, 4) = data;
+        for (bool done = false; !done;) {
+            const u8 nibble = NextNibble(reader);
+            if (nibble) {
+                Nibble_Write(writer, nullptr, nibble);
+                continue;
+            }
+            const u8 count = NextNibble(reader);
+            if (!count) {
+                done = true;
+                continue;
+            }
+            const u8 repeated = NextNibble(reader);
+            for (u32 i = count; i; --i) Nibble_Write(writer, nullptr, repeated);
+        }
+    }
+    if (metrics[0xc] & 2) {   // one bit a pixel, each written as the nibble 0 or 0xf
+        BufferInit();
+        BufferGrow(at<s32>(metrics, 8));
+        const u32 bytes = at<u32>(metrics, 8);
+        u8 writer[0xc];
+        Fn_6b5430(writer, nullptr, (u32)(uintptr_t)Buffer(), 0);
+        u8 reader[8] = {};
+        reader[0] = 0x80;
+        at<const u8 *>(reader, 4) = data;
+        for (u32 i = bytes * 2; i; --i) {
+            u8 state[8], copy[8];
+            Cursor_CopyState(Bit_Next(reader, nullptr, state, 0), nullptr, copy);
+            Nibble_Write(writer, nullptr, (*at<const u8 *>(copy, 4) & copy[0]) ? 0xf : 0);
+        }
+    }
+    const Rect glyph = {0, 0, at<u16>(metrics, 0x10), at<u16>(metrics, 0x12)};
+    s32 placed[2] = {point[0], point[1]};
+    if (at<u16>(metrics, 0) == 0x20) {   // a space: nothing drawn
+        out->left = placed[0];
+        out->top = placed[1];
+        out->right = placed[0];
+        out->bottom = placed[1];
+        Release(font);
+        *status = 0;
+        return status;
+    }
+    placed[0] = (s32)((u32)placed[0] + (u32)(s32)(s8)metrics[0x14]);
+    placed[1] = (s32)((u32)placed[1] + (u32)(s32)(s8)metrics[0x15]);
+    Rect visible;
+    GlyphRenderer_ClipSpan(font, nullptr, &visible, &glyph, placed, (u32)(uintptr_t)surface);
+    if (visible.left == visible.right || visible.top == visible.bottom) {
+        Release(font);
+        *status = -1;
+        return status;
+    }
+    const Rect *const clip = Display_GetClip();
+    if (placed[0] < clip->left) placed[0] = clip->left;
+    if (placed[1] < clip->top) placed[1] = clip->top;
+    out->left = placed[0];
+    out->top = placed[1];
+    out->right = (s32)((u32)visible.right - (u32)visible.left + (u32)placed[0]);
+    out->bottom = (s32)((u32)visible.bottom - (u32)visible.top + (u32)placed[1]);
+    GlyphSpan span;
+    span.point = placed;
+    span.rect = &visible;
+    span.style = style;
+    if (metrics[0xc] & 3) {
+        BufferInit();
+        span.bits = Buffer();
+    } else {
+        span.bits = data;
+    }
+    span.rowBytes = ((u32)at<u16>(metrics, 0x10) + 1) >> 1;
+    span.length = metrics[0x10];
+    // The span writer for the surface's format (slots 2-7); the checks all run, so a later match's result wins.
+    u8 format[0x18];
+    s32 drawn = 0, result = 0, scratch;
+    if (FormatIs(surface, format, 0x7c00, 0x3e0, 0x1f, 0x8000, 0x10) || FormatIs(surface, format, 0x7c00, 0x3e0, 0x1f, 0, 0x10)) {
+        result = *vcall<s32 *>(renderer, 8, &scratch, surface, &span);
+        drawn = 1;
+    }
+    if (FormatIs(surface, format, 0xf800, 0x7e0, 0x1f, 0, 0x10)) {
+        result = *vcall<s32 *>(renderer, 0xc, &scratch, surface, &span);
+        drawn = 1;
+    }
+    if (FormatIs(surface, format, 0xf00, 0xf0, 0xf, 0xf000, 0x10)) {
+        result = *vcall<s32 *>(renderer, 0x10, &scratch, surface, &span);
+        drawn = 1;
+    }
+    if (FormatIs(surface, format, 0xff0000, 0xff00, 0xff, 0xff000000, 0x20) || FormatIs(surface, format, 0xff0000, 0xff00, 0xff, 0, 0x20)) {
+        result = *vcall<s32 *>(renderer, 0x18, &scratch, surface, &span);
+        drawn = 1;
+    }
+    const PixelFormat *const pixels = reinterpret_cast<const PixelFormat *>(surface);
+    Fn_6b5310(format, nullptr, 0xff00, 0xff0000, 0xff000000, 0xff, 0x20, 0);
+    if (PixelFormat_Equal(pixels, nullptr, reinterpret_cast<const PixelFormat *>(format)) ||
+        PixelFormat_Equal(pixels, nullptr,
+                          reinterpret_cast<const PixelFormat *>((uintptr_t)Fn_6b52e0(format, nullptr, 0xff00, 0xff0000, 0xff000000, 0, 0x20, 0)))) {
+        result = *vcall<s32 *>(renderer, 0x1c, &scratch, surface, &span);
+        drawn = 1;
+    }
+    if (!drawn) result = *vcall<s32 *>(renderer, 0x14, &scratch, surface, &span);
+    Release(font);
+    *status = result;
+    return status;
+}
 
 u8 *__fastcall Vtbl70a148_DeletingDtor(u8 *object, void *, u32 flags) {
     Vtbl70a078_Set_6add30(object);
