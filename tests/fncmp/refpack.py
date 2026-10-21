@@ -1,8 +1,9 @@
 # RefPack decompression (src/game/files/refpack: 0x641f10 Decode, 0x642110 DecodedSize, stdcall) against the originals: well-formed streams of
 # every opcode (2-, 3- and 4-byte matches with 0-3 literals before, 4-112 literal runs, the stop with 0-3 last literals), matches reaching up to
 # 0x100 bytes before dst (prefilled), the plain 0x10fb header or one with flag 0x01 (a compressed size first), a null source; DecodedSize on
-# headers of either kind and random bytes.
-# usage: refpack.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Decode,Size)
+# headers of either kind and random bytes. Chunk (0x67850c, cdecl (src, dst, decode); EAX not compared: the original's POPAD restores the
+# caller's): the same streams, decode mostly set (else 0: nothing decoded), a null source now and then.
+# usage: refpack.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Decode,Size,Chunk)
 import os
 import struct
 import sys
@@ -10,10 +11,10 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM  # noqa: E402
 
-B = Bench([(0x641f10, 0x642100), (0x642110, 0x642147), (0x6419b0, 0x6419d4)])
+B = Bench([(0x641f10, 0x642100), (0x642110, 0x642147), (0x6419b0, 0x6419d4), (0x67850c, 0x67862f)])
 SRC, BEFORE, SLACK = RAM, RAM + 0x2000, 0x100
 DST = BEFORE + SLACK
-CALLS = {'Decode': 0x641f10, 'Size': 0x642110}
+CALLS = {'Decode': 0x641f10, 'Size': 0x642110, 'Chunk': 0x67850c}
 
 
 def stream(r):
@@ -66,6 +67,9 @@ def case(r):
     size = n if r.random() < 0.8 else r.getrandbits(24)
     src = header(r, size) + body
     regions = {SRC: src + r.bytes(4), BEFORE: r.bytes(SLACK + n + 8)}
+    if op == 'Chunk':
+        decode = r.choice([1, 1, 1, r.getrandbits(32), 0])
+        return Call(0x67850c, [SRC if r.random() < 0.95 else 0, DST, decode], regions, ret='v')
     return Call(0x641f10, [DST, SRC if r.random() < 0.95 else 0, r.getrandbits(32)], regions, conv='s', ret='a')
 
 

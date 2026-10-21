@@ -19,6 +19,11 @@ s32 __stdcall RefPack_Decode(u8 *dst, const u8 *src, s32 unused);
 // 0x642110: the decoded size, read from after the 2-byte magic when it is exactly 0x10FB,
 // else after 5 bytes.
 u32 __stdcall RefPack_DecodedSize(const u8 *src);
+
+// 0x67850c (cdecl (src, dst, decode); the video library's own copy, in hand-written assembly; name unconfirmed): src decoded into
+// dst when src is not null and decode is nonzero. It returns nothing: it reads the header's decoded size into EAX but its POPAD then
+// restores the caller's EAX (and the one caller, 0x677914, ignores it).
+void __cdecl RefPack_DecodeIf(const u8 *src, u8 *dst, s32 decode);
 }
 
 // 0x641a50 (vtable slot 1), not hooked: nothing in the game constructs a codec that encodes,

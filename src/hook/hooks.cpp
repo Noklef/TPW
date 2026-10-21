@@ -131,8 +131,13 @@
 #include "../game/gfx/textlayout.h"
 #include "../game/gfx/tvstatic.h"
 #include "../game/gfx/aaline.h"
+#include "../game/gfx/dctvlc.h"
 #include "../game/gfx/glyphrender.h"
+#include "../game/gfx/moviepixels.h"
+#include "../game/gfx/movieplayer.h"
+#include "../game/gfx/refblock.h"
 #include "../game/gfx/signstyle.h"
+#include "../game/gfx/tgqvideo.h"
 #include "../game/gfx/wctimage.h"
 #include "../game/core/crt.h"
 #include "../game/core/gameheap.h"
@@ -168,6 +173,7 @@
 #include "../game/core/gameerror.h"
 #include "../game/core/timesig.h"
 #include "../game/core/countedpair.h"
+#include "../game/core/imaadpcm.h"
 #include "../game/core/keyactions.h"
 #include "../game/core/sharedglobals.h"
 #include "../game/core/soundbank.h"
@@ -179,6 +185,7 @@
 #include "../game/core/stringmapsrecord.h"
 #include "../game/core/wscanner.h"
 #include "../game/core/wtraits.h"
+#include "../game/core/xaadpcm.h"
 #include "../game/motion/animator.h"
 #include "../game/motion/normals.h"
 #include "../game/motion/curve.h"
@@ -2603,6 +2610,7 @@ const Hook kHooks[] = {
     {"Path_StripBase",            0x0041cff0, (void *)&Path_StripBase, {0x6a, 0xff, 0x68, 0x30, 0x81}},
     {"VFS_Open",                  0x005c4d50, (void *)&VFS_Open, {0x6a, 0xff, 0x68, 0x83, 0x03}},
     {"VFS_FileExists",            0x0046f120, (void *)&VFS_FileExists, {0x8b, 0x44, 0x24, 0x04, 0x68}},
+    {"RefPack_DecodeIf",          0x0067850c, (void *)&RefPack_DecodeIf, {0x55, 0x8b, 0xec, 0x83, 0xc4}},
     {"Class70295c_Ctor",          0x005c9040, (void *)&Class70295c_Ctor, {0x56, 0x8b, 0xf1, 0xe8, 0x78}},
     {"Obj_SwapPair",              0x005d03b0, (void *)&Obj_SwapPair, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Obj_ChooseVector",          0x005dd3d0, (void *)&Obj_ChooseVector, {0x8b, 0x41, 0x58, 0x85, 0xc0}},
@@ -4166,6 +4174,9 @@ const Hook kHooks[] = {
     {"Globalfb1ed4_Set",          0x006ac4b0, (void *)&Globalfb1ed4_Set, {0x6a, 0xff, 0x68, 0x58, 0x54}},
     {"Globalfb1ed8_Set",          0x006ac5d0, (void *)&Globalfb1ed8_Set, {0x6a, 0xff, 0x68, 0x98, 0x54}},
     {"KeyAction_ShowVersion",     0x0040c820, (void *)&KeyAction_ShowVersion, {0xb9, 0xf0, 0x51, 0x7b, 0x00}},
+    {"XaAdpcm_DecodeMono",        0x00672090, (void *)&XaAdpcm_DecodeMono, {0x8b, 0x4c, 0x24, 0x08, 0x83}},
+    {"XaAdpcm_DecodeStereo",      0x00672210, (void *)&XaAdpcm_DecodeStereo, {0x83, 0xec, 0x28, 0x8b, 0x4c}},
+    {"ImaAdpcm_DecodeStereo",     0x00672cb3, (void *)&ImaAdpcm_DecodeStereo, {0x55, 0x8b, 0xec, 0x60, 0x33}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
@@ -4374,6 +4385,28 @@ const Hook kHooks[] = {
     {"GlyphRenderer_ClipSpan",    0x006b5340, (void *)&GlyphRenderer_ClipSpan, {0x83, 0xec, 0x30, 0x53, 0x55}},
     {"GlyphRenderer_Draw",        0x006b4aa0, (void *)&GlyphRenderer_Draw, {0x81, 0xec, 0x8c, 0x00, 0x00}},
     {"GlyphRender_FreeBuffer",    0x006b5560, (void *)&GlyphRender_FreeBuffer, {0xa1, 0xd4, 0x4c, 0xfb, 0x00}},
+    {"TgqVideo_FillBlocks16",     0x00671340, (void *)&TgqVideo_FillBlocks16, {0x55, 0x8b, 0xec, 0x0f, 0xbe}},
+    {"TgqVideo_FillBlocks32",     0x00671650, (void *)&TgqVideo_FillBlocks32, {0x55, 0x8b, 0xec, 0x0f, 0xbe}},
+    {"TgqVideo_PackColour",       0x0066fd70, (void *)&TgqVideo_PackColour, {0x83, 0xec, 0x10, 0x53, 0x55}},
+    {"TgqVideo_BuildTables",      0x0066fc10, (void *)&TgqVideo_BuildTables, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"TgqVideo_SetQuality",       0x00671000, (void *)&TgqVideo_SetQuality, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"MoviePlayer_ReadHeader",    0x00670860, (void *)&MoviePlayer_ReadHeader, {0x8b, 0x01, 0x8b, 0x90, 0x88}},
+    {"MoviePlayer_ReadPalette",   0x00670930, (void *)&MoviePlayer_ReadPalette, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"MoviePlayer_ReadSizeAt8",   0x00670ab0, (void *)&MoviePlayer_ReadSizeAt8, {0x0f, 0xbf, 0x42, 0x08, 0x56}},
+    {"MoviePlayer_BuildPixels",   0x00677930, (void *)&MoviePlayer_BuildPixels, {0x83, 0xec, 0x0c, 0x8b, 0x01}},
+    {"MoviePlayer_UnpackFields",  0x00677640, (void *)&MoviePlayer_UnpackFields, {0x51, 0x8b, 0x44, 0x24, 0x08}},
+    {"MoviePlayer_ExpandBlocks",  0x006776c0, (void *)&MoviePlayer_ExpandBlocks, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
+    {"MoviePlayer_PlaceView",     0x006711a0, (void *)&MoviePlayer_PlaceView, {0x33, 0xc0, 0x56, 0x89, 0x41}},
+    {"DctVlc_BuildTables",        0x00676c80, (void *)&DctVlc_BuildTables, {0x53, 0x55, 0x56, 0x57, 0xb9}},
+    {"DctVlc_DecodeBlock",        0x00677c00, (void *)&DctVlc_DecodeBlock, {0x53, 0x51, 0x52, 0x56, 0x57}},
+    {"DctVlc_Skip",               0x006770b0, (void *)&DctVlc_Skip, {0xa1, 0x54, 0xd6, 0xfb, 0x00}},
+    {"DctVlc_ReadCode",           0x00677110, (void *)&DctVlc_ReadCode, {0xa1, 0x50, 0xd6, 0xfb, 0x00}},
+    {"DctVlc_FillDc",             0x00677140, (void *)&DctVlc_FillDc, {0x56, 0xb8, 0x08, 0x00, 0x00}},
+    {"RefBlock_Copy16",           0x00676a70, (void *)&RefBlock_Copy16, {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"RefBlock_Copy8",            0x00676b50, (void *)&RefBlock_Copy8, {0x8d, 0x04, 0x0a, 0x8b, 0x4c}},
+    {"MoviePixels_Double",        0x00676478, (void *)&MoviePixels_Double, {0x53, 0x51, 0x52, 0x56, 0x57}},
+    {"MoviePixels_FromYuv",       0x006764bc, (void *)&MoviePixels_FromYuv, {0x53, 0x51, 0x52, 0x56, 0x57}},
+    {"MoviePixels_BuildTables",   0x00670350, (void *)&MoviePixels_BuildTables, {0x83, 0xec, 0x0c, 0x53, 0x55}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
@@ -5195,6 +5228,8 @@ const Hook kHooks[] = {
     {"Window7059f0_Dtor",         0x0066274e, (void *)&Window7059f0_Dtor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Window7059f0_ShowRows",     0x00664fde, (void *)&Window7059f0_ShowRows, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Window7059f0_SendToRows",   0x006650d4, (void *)&Window7059f0_SendToRows, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window7059f0_NthChild",     0x00663c11, (void *)&Window7059f0_NthChild, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window7059f0_Sort",         0x006628f4, (void *)&Window7059f0_Sort, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Window705950_Layout",       0x0065aac0, (void *)&Window705950_Layout, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window705950_Ctor",         0x0065ab64, (void *)&Window705950_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Window705950_SetInner",     0x0065bb10, (void *)&Window705950_SetInner, {0x55, 0x8b, 0xec, 0x51, 0x89}},
@@ -5367,6 +5402,7 @@ const Hook kHooks[] = {
     {"MsgTags_AddVersion",        0x0048f090, (void *)&MsgTags_AddVersion, {0x83, 0xec, 0x48, 0x53, 0x33}},
     {"MsgTags_Load",              0x0048ef70, (void *)&MsgTags_Load, {0x81, 0xec, 0x50, 0x02, 0x00}},
     {"UI_Load",                   0x00481680, (void *)&UI_Load, {0xe8, 0x9b, 0xd7, 0x00, 0x00}},
+    {"MsgTags_Save",              0x0048ee50, (void *)&MsgTags_Save, {0x81, 0xec, 0x28, 0x02, 0x00}},
     {"MsgBox_SetButton",          0x0048e610, (void *)&MsgBox_SetButton, {0x8b, 0x44, 0x24, 0x08, 0x56}},
     {"ThingBrowser_ShowName",     0x004b3490, (void *)&ThingBrowser_ShowName, {0xa1, 0x08, 0xc3, 0x7c, 0x00}},
     {"ThingBrowser_ShowDetail",   0x004b3580, (void *)&ThingBrowser_ShowDetail, {0x8b, 0x0d, 0x08, 0xc3, 0x7c}},

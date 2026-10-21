@@ -113,6 +113,21 @@ void __fastcall Window7059f0_ResetItems(u8 *window);
 // none) through last; neither is stored without the array.
 void __fastcall Window7059f0_RootEnd(u8 *window, void *, s32 *end, s32 *last);
 
+// 0x663c11 (thiscall (n, parent), pops 8; name unconfirmed): the item n next siblings (+0) along from the first child (+2) of the
+// parent-th item (Window7059f0_NthItem; -1 when that gives -1 or less), or, for a parent of -1 or less, from the first shown (+0x160);
+// stepping only for n from 0 to below the count +0x150 (signed) with the array +0x144 set, and while the item is above -1.
+s32 __fastcall Window7059f0_NthChild(u8 *window, void *, s32 n, s32 parent);
+
+// 0x6628f4 (thiscall (unused), pops 4; name unconfirmed): with the columns +0x16c set and 2 or more items (+0x150, signed), the top
+// list of siblings from the first shown (+0x160) sorted by the column +0x168 (a word: the cells are the dwords +4 + column from each
+// item): as numbers (signed) when that column's bottom word (+0xa) is 1, else as the strings they point to (WString_Compare); ascending
+// for the word +0x16a 0, descending for 1, else nothing moves. First, over at most count items to -1 or one whose parent (+3) is -2,
+// the first coming-first one becomes the first shown (unlinked after its previous, linked before the old first); then, with more than
+// 2 items, an insertion pass: from the third (Window7059f0_NthChild) while below the count, its parent not -2 and it 0 or more, each
+// moves before the first item from the second on that it comes before, the search stopping at it or at an item whose parent is -2
+// or less.
+void __fastcall Window7059f0_Sort(u8 *window, void *, s32 unused);
+
 // 0x664495 (cdecl (bar, count, rows, first); name unconfirmed): with a scroll bar (kind 11), more items than rows (signed) shows it
 // (Window_SetShown), sets its range to count - rows, 0 (Window705b20_SetRange) and gives first to its slot 7 (thiscall); else it is
 // hidden and its range 0, 0.

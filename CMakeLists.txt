@@ -153,6 +153,8 @@ add_library(tpw_game STATIC
     src/game/core/soundmanager.cpp
     src/game/core/soundbank.cpp
     src/game/core/soundmixer.cpp
+    src/game/core/xaadpcm.cpp
+    src/game/core/imaadpcm.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
@@ -186,6 +188,11 @@ add_library(tpw_game STATIC
     src/game/gfx/aaline.cpp
     src/game/gfx/signstyle.cpp
     src/game/gfx/glyphrender.cpp
+    src/game/gfx/tgqvideo.cpp
+    src/game/gfx/movieplayer.cpp
+    src/game/gfx/dctvlc.cpp
+    src/game/gfx/refblock.cpp
+    src/game/gfx/moviepixels.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp
     src/game/math/rect.cpp

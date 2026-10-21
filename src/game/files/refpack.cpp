@@ -1,4 +1,4 @@
-// EA RefPack: reimplementation of the decoder (0x641f10, 0x642110) and encoder (0x641a50).
+// EA RefPack: reimplementation of the decoder (0x641f10, 0x642110, the video library's 0x67850c) and encoder (0x641a50).
 #include "refpack.h"
 
 #include <vector>
@@ -50,6 +50,10 @@ extern "C" s32 __stdcall RefPack_Decode(u8 *dst, const u8 *src, s32 /*unused*/) 
             in += n;
         }
     }
+}
+
+extern "C" void __cdecl RefPack_DecodeIf(const u8 *src, u8 *dst, s32 decode) {
+    if (src && decode) RefPack_Decode(dst, src, 0);
 }
 
 extern "C" u32 __stdcall RefPack_DecodedSize(const u8 *src) {
