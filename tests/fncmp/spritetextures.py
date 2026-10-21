@@ -16,7 +16,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import texturemem  # noqa: E402
-from fncmp import Bench, Call, HEAP, LOG, RAM, global_heap, heap, log_region, put  # noqa: E402
+from fncmp import Bench, Call, HEAP, LOG, RAM, global_heap, heap, log_region, put, record_stream  # noqa: E402
 
 CALLS = {'Free': 0x588ba0, 'FreeIfSet': 0x588c20, 'Release': 0x588ca0, 'Dtor': 0x588350, 'FramesFree': 0x588230, 'SetSize': 0x588d90,
          'SetSize30': 0x588e40, 'PartFree': 0x48f3c0, 'PartFree2': 0x48f410, 'SetTexture': 0x588410, 'Make': 0x5889b0,
@@ -94,7 +94,8 @@ def tiles(r, name):
 def load(r, name):
     """0x588510 (thiscall (stream, texture)) / 0x588660 (thiscall (stream, language, texture)): tiles()'s world and texture (given
     or not, the heap failing now and then: the first allocation is the WCT / RLE image's), a stream whose reads (slot 2) log their
-    destination as 0 (stack addresses) and now and then write four bytes through it; the WCT header at 0x879a38 (its floats and block
+    destination as 0 (stack addresses) and now and then write four bytes through it (for half the RLE cases a record stream instead, its
+    words distinct, now and then a few bytes short); the WCT header at 0x879a38 (its floats and block
     sizes as wctimage.py's read()); the tracked blocks as wctimage.py's."""
     from fncmp import fill, strings, vtable
     from wctimage import tracked
@@ -110,6 +111,12 @@ def load(r, name):
         small = r.choice([0, 1, 4, 0x10, 0x40, 0x100])
         fill(log, 2, 0, struct.pack('<I', small) if name == 'LoadRle' or r.random() < 0.5 else r.bytes(4))
     regions[STREAM], regions[SVT] = struct.pack('<I', SVT), vtable({2: 2})
+    if name == 'LoadRle' and r.random() < 0.5:   # (a record stream instead: the size, four distinct words, two dwords, the codes)
+        small = r.choice([0, 1, 4, 0x10, 0x40])
+        words = r.sample(range(0x10000), 4)
+        data = struct.pack('<I4H2I', small, *words, r.getrandbits(32), r.getrandbits(32)) + r.bytes(small)
+        regions[STREAM] = record_stream(STREAM, SVT, len(data) - r.choice([0, 0, 0, 1, 6]))
+        regions[SVT] = data
     header = bytearray(r.bytes(0x2c))
     for at in range(0x14, 0x24, 4):
         put(header, at, 'f', r.choice([r.uniform(0, 100), float(r.randrange(0, 40)), 0.5, 1.0, -3.0, 1e20]))
