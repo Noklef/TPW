@@ -169,6 +169,7 @@
 #include "../game/core/timesig.h"
 #include "../game/core/countedpair.h"
 #include "../game/core/keyactions.h"
+#include "../game/core/soundcmd.h"
 #include "../game/core/soundplay.h"
 #include "../game/core/startcheck.h"
 #include "../game/core/stringmapsrecord.h"
@@ -4077,6 +4078,16 @@ const Hook kHooks[] = {
     {"KeyAction_FlagResearchControls", 0x0040c430, (void *)&KeyAction_FlagResearchControls, {0x8b, 0x0d, 0x3c, 0xf8, 0x7c}},
     {"KeyAction_ToggleOverlay",   0x0040c4b0, (void *)&KeyAction_ToggleOverlay, {0xb9, 0xf0, 0x51, 0x7b, 0x00}},
     {"KeyAction_GuiManagerSlotAndFlag", 0x0040c5d0, (void *)&KeyAction_GuiManagerSlotAndFlag, {0xb9, 0xf0, 0x51, 0x7b, 0x00}},
+    {"SoundCmd700b2c_Run",        0x006b5770, (void *)&SoundCmd700b2c_Run, {0x8b, 0xc1, 0x56, 0x8b, 0x4c}},
+    {"SoundCmd700b34_Run",        0x006b56a0, (void *)&SoundCmd700b34_Run, {0x8b, 0x44, 0x24, 0x08, 0x51}},
+    {"SoundCmd700b48_Run",        0x006b5790, (void *)&SoundCmd700b48_Run, {0x8b, 0xc1, 0x56, 0x8b, 0x4c}},
+    {"SoundCmd700b50_Run",        0x006b5840, (void *)&SoundCmd700b50_Run, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"SoundCmd700b64_Run",        0x006b5640, (void *)&SoundCmd700b64_Run, {0x83, 0xec, 0x08, 0x8b, 0x44}},
+    {"SoundCmd700b68_Run",        0x006b5670, (void *)&SoundCmd700b68_Run, {0x83, 0xec, 0x08, 0x8b, 0x44}},
+    {"SoundCmd700b70_Run",        0x006b59f0, (void *)&SoundCmd700b70_Run, {0x8b, 0x41, 0x04, 0x8b, 0x4c}},
+    {"SoundCmd700b74_Run",        0x006b5a50, (void *)&SoundCmd700b74_Run, {0x8b, 0x41, 0x04, 0x8b, 0x4c}},
+    {"SoundCmd700b78_Run",        0x006b5990, (void *)&SoundCmd700b78_Run, {0x8b, 0x41, 0x04, 0x8b, 0x4c}},
+    {"SoundCmd700ba8_Run",        0x006b58b0, (void *)&SoundCmd700ba8_Run, {0x8b, 0xc1, 0x56, 0x8b, 0x4c}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

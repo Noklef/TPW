@@ -4246,6 +4246,16 @@ address,name,kind,confidence,notes
 0x0040c430,KeyAction_FlagResearchControls,function,low,reimplemented (src/game/core/keyactions); cdecl: ResearchLab_FlagProjectControls on the lab of the game [0x7cf83c] (GameTable7cfb90_Get1da722_519550); returns 1 (alt 'R')
 0x0040c4b0,KeyAction_ToggleOverlay,function,low,reimplemented (src/game/core/keyactions); cdecl: Obj7b51f0_ToggleOverlay on 0x7b51f0; returns 1 (F3)
 0x0040c5d0,KeyAction_GuiManagerSlotAndFlag,function,low,reimplemented (src/game/core/keyactions); cdecl: Obj7b51f0_GuiManagerSlotAndFlag on 0x7b51f0; returns 1 (control 'H')
+0x006b5770,SoundCmd700b2c_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b2c (posted by SoundCategory_Release 0x51b620), thiscall (out, target), pops 8: target's slot 8 (out, the value)"
+0x006b56a0,SoundCmd700b34_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b34, thiscall (out, target), pops 8: the value as a float (fld / fstp) to +0x2c of target's +0x24; *out = 0"
+0x006b5790,SoundCmd700b48_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b48, thiscall (out, target), pops 8: target's slot 7 (out, the value)"
+0x006b5840,SoundCmd700b50_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b50, thiscall (out, target), pops 8: slot 9 of target's +0x24 (out, the value)"
+0x006b5640,SoundCmd700b64_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b64, thiscall (out, target), pops 8: slot 4 of target's +0x24 (out, a stack functor with vtable 0x70a268)"
+0x006b5670,SoundCmd700b68_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b68, thiscall (out, target), pops 8: slot 4 of target's +0x24 (out, a stack functor with vtable 0x70a270)"
+0x006b59f0,SoundCmd700b70_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b70, thiscall (out, target), pops 8: Bytes44_Set(target's +0x24, out, 3, the value)"
+0x006b5a50,SoundCmd700b74_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b74, thiscall (out, target), pops 8: Bytes44_Set(target's +0x24, out, 1, the value)"
+0x006b5990,SoundCmd700b78_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b78, thiscall (out, target), pops 8: Bytes44_Set(target's +0x24, out, 2, the value)"
+0x006b58b0,SoundCmd700ba8_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700ba8, thiscall (out, target), pops 8: target's slot 6 (out, the value)"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
