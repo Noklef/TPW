@@ -303,6 +303,10 @@ void __fastcall Window_ResizeChildren(u8 *window, void *, u32 dl, u32 dt, u32 dr
 // (GuiRect_CtorWith, GuiRect_Dtor). 1 in AX.
 u32 __fastcall Window_SetRectTo(u8 *window, void *, u32 left, u32 top, u32 right, u32 bottom);
 
+// 0x65ce10 (thiscall (x, y: word pointers, each may be 0), pops 8; name unconfirmed): the window moved (Window_SetRect) to the left / top
+// words given (+0xc / +0xe for none), its width and height (the words of +8, as words) kept. 1 in AX (the rest of EAX left).
+u32 __fastcall Window_MoveTo(u8 *window, void *, const s16 *x, const s16 *y);
+
 // 0x65f345 (thiscall (a, b: words), pops 8; recursive; name unconfirmed): the words +0xe4 = a and +0xe6 = b; the objects +0x98 and +0x9c
 // (when set) told through their slot 3 (0x40, an event on the stack whose only words set, +0xc / +0xe, are those two); then each child
 // (+0x5c, then +0x54) given the same. EAX not kept.

@@ -786,6 +786,18 @@ u32 __fastcall Window_SetRectTo(u8 *window, void *, u32 left, u32 top, u32 right
     return 1;
 }
 
+u32 __fastcall Window_MoveTo(u8 *window, void *, const s16 *x, const s16 *y) {
+    const s16 width = (s16)(at<s16>(window, 0x10) - at<s16>(window, 0xc));
+    const s16 height = (s16)(at<s16>(window, 0x12) - at<s16>(window, 0xe));
+    const s16 left = x ? *x : at<s16>(window, 0xc);
+    const s16 top = y ? *y : at<s16>(window, 0xe);
+    u8 rect[0xc];
+    GuiRect_CtorWith(rect, nullptr, (u16)left, (u16)top, (u32)(left + width), (u32)(top + height));
+    Window_SetRect(window, nullptr, rect);
+    GuiRect_Dtor(rect);
+    return 1;
+}
+
 void __fastcall Window_SetWordsE4(u8 *window, void *, u32 a, u32 b) {
     at<u16>(window, 0xe4) = (u16)a;
     at<u16>(window, 0xe6) = (u16)b;
