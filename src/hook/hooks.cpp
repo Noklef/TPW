@@ -134,6 +134,7 @@
 #include "../game/gfx/aaline.h"
 #include "../game/gfx/dctvlc.h"
 #include "../game/gfx/glyphrender.h"
+#include "../game/gfx/mmxblit.h"
 #include "../game/gfx/movieidct.h"
 #include "../game/gfx/moviepixels.h"
 #include "../game/gfx/movieplayer.h"
@@ -4423,6 +4424,8 @@ const Hook kHooks[] = {
     {"MovieIdct_Row",             0x0067687b, (void *)&RegThunk_MovieIdct_Row, {0x8b, 0x5e, 0x14, 0x8b, 0x46}},
     {"MovieIdct_RowShift",        0x00676965, (void *)&RegThunk_MovieIdct_RowShift, {0x57, 0x8b, 0x5e, 0x14, 0x8b}},
     {"DctIdct_Block",             0x0067832e, (void *)&DctIdct_Block, {0x53, 0x51, 0x52, 0x56, 0x57}},
+    {"MmxBlit_Copy16",            0x00678790, (void *)&MmxBlit_Copy16, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
+    {"MmxBlit_Copy32",            0x00678c20, (void *)&MmxBlit_Copy32, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

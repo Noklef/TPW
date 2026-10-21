@@ -194,6 +194,7 @@ add_library(tpw_game STATIC
     src/game/gfx/refblock.cpp
     src/game/gfx/moviepixels.cpp
     src/game/gfx/movieidct.cpp
+    src/game/gfx/mmxblit.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp
     src/game/math/rect.cpp
