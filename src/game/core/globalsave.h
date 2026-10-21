@@ -32,6 +32,15 @@ u8 __fastcall GlobalSave_Byte26(const u8 *info, void *, u32 i);
 // 0x5afc30: the counter +0x20 incremented.
 void __fastcall GlobalSave_Inc20(u8 *info);
 
+// 0x5af4a0 (thiscall; names unconfirmed): how many of the bytes +0x18..+0x1b are set, plus, for each theme record in the theme map
+// (+0x3c, from its first node; the record at the node's +0x20) whose global.sam loads (ThemeRecord_LoadGlobalSam), how many of its
+// first six bytes are. 0x5af530: that plus the bytes +0x26 and +0x27 set; 0x5af5d0: 0x5af530's less the s32 at +0x1c; 0x5af680:
+// 0x5af530's / 3 plus the s32 at +0x20.
+s32 __fastcall GlobalSave_CountSet4(const u8 *info);
+s32 __fastcall GlobalSave_CountSet(const u8 *info);
+s32 __fastcall GlobalSave_CountSetLeft(const u8 *info);
+s32 __fastcall GlobalSave_CountSetLevel(const u8 *info);
+
 // 0x5afc40 / 0x5afc50 (value): byte +0x24 / set. 0x5b09b0 / 0x5b09a0 (value): byte +0x25 / set.
 u8 __fastcall GlobalSave_Byte24(const u8 *info);
 void __fastcall GlobalSave_SetByte24(u8 *info, void *, u32 value);

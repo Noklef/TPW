@@ -2514,6 +2514,10 @@ address,name,kind,confidence,notes
 0x005aef50,GlobalSave_Construct,function,low,"reimplemented (src/game/core/globalsave); thiscall: the global save info constructed (two lists, two trees on the shared nils 0xf7c970 / 0xf7c968; flags set). Returns it"
 0x00409410,GlobalSave_Instance,function,low,"reimplemented (src/game/core/globalsave); cdecl: the global save info (0xf7c58c), made the first time (Mem_Alloc(0x50), GlobalSave_Construct)"
 0x004d4b70,GlobalSave_HasKey,function,low,"reimplemented (src/game/core/globalsave); stdcall (key), pops 4: Obj_HasKey5af780 on the global save info (GlobalSave_Instance) with the key"
+0x005af4a0,GlobalSave_CountSet4,function,low,reimplemented (src/game/core/globalsave); thiscall: the bytes +0x18..+0x1b set plus each loaded theme record's first six set (name unconfirmed)
+0x005af530,GlobalSave_CountSet,function,low,"reimplemented (src/game/core/globalsave); thiscall: 0x5af4a0's count plus the bytes +0x26, +0x27 set (name unconfirmed)"
+0x005af5d0,GlobalSave_CountSetLeft,function,low,reimplemented (src/game/core/globalsave); thiscall: 0x5af530's count less the s32 at +0x1c (name unconfirmed)
+0x005af680,GlobalSave_CountSetLevel,function,low,reimplemented (src/game/core/globalsave); thiscall: 0x5af530's count / 3 plus the s32 at +0x20 (name unconfirmed)
 0x005775d0,LiveObjects_Add,function,high,"reimplemented (src/game/core/liveobjects); cdecl (object): appended to the live objects list (0x87a6d8, count 0x87aed8, room for 0x200; the rest dropped); 1 either way"
 0x00577600,LiveObjects_Remove,function,high,"reimplemented (src/game/core/liveobjects); cdecl (object): the last match is replaced by the last entry and the count drops; 1, or 0 when not there"
 0x00579cd0,LiveObject7019f8_Construct,function,low,"reimplemented (src/game/core/liveobjects); thiscall (most derived): two identity matrices, fields cleared, the virtual base's vtable 0x7019f8 set and the base added to the live objects"
@@ -2878,6 +2882,7 @@ address,name,kind,confidence,notes
 0x005c7bb0,Records24_CountUsed,function,high,reimplemented (src/game/files/userslots); how many of four 24-byte records are in use
 0x005b0d40,Table73f8a8_At,function,high,reimplemented (src/game/core/balancefile); the address of a 60-byte record of the table at 0x73f8a8
 0x005b11c0,ThemeRecord_LoadGlobalSam,function,low,reimplemented (src/game/core/balancefile); a theme's global.sam loaded
+0x005b11a0,ThemeRecord_GlobalSamField14,function,low,"reimplemented (src/game/core/balancefile); thiscall: the theme record's global.sam loaded when missing; its dword +0x14, else -1 (name unconfirmed)"
 0x005d5ee0,Obj_Flags1cAnd,function,high,reimplemented (src/game/core/globals); the dword at +0x1c masked
 0x005d1440,Span_Limited,function,high,"reimplemented (src/game/core/codecvt); to - from, at most a limit"
 0x005dd810,Obj_Positive40,function,high,reimplemented (src/game/frontend/viewcontrols); 1 when the signed dword at +0x40 is above 0
