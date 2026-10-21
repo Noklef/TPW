@@ -71,6 +71,16 @@ extern "C" void __fastcall Vec3_Scale(float *v, void *, float scale) {
     v[2] = (float)z;
 }
 
+extern "C" float __cdecl Float_ClampBetween(float x, float a, float b) {
+    // (Picked by address: as a ? : of the values the compiler makes a maxss / minss of x >= b ? x : b, which gives b for x = 0, b = -0.)
+    const float *pick;
+    if (!(a >= b))
+        pick = x > b ? &b : x >= a ? &x : &a;
+    else
+        pick = x > a ? &a : x >= b ? &x : &b;
+    return *pick;
+}
+
 extern "C" void __fastcall Vec3_DirectionsFromAngle(float *out, void *, float angle) {
     const float pi = 3.14159274f;  // 0x7011e0
     const X87Reg a = angle;

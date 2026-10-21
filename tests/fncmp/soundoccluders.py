@@ -1,0 +1,68 @@
+# The sound occluders' test (src/game/core/soundoccluders: 0x6c4c80) and the clamp it uses (src/game/math/vector: 0x6c4f00) against the
+# originals. 'clamp': x, a and b small integers (ties), ordinary or odd floats (NaNs quiet and signalling, infinities, zeros). 'occlusion':
+# a list (+4 the head, +0xc the count, 0 now and then; +0x14 the smallest radius, NaN now and then) of 0-6 occluders (x +0, z +4, the radius
+# +0xc), sorted by radius (largest first) or not; from and to and the occluders mostly small integers, so that points fall on the circles
+# (ties); now and then ordinary or odd floats.
+# usage: soundoccluders.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
+import os
+import struct
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
+from fncmp import RAM, Bench, Call, fb  # noqa: E402
+
+B = Bench([(0x6c4c80, 0x6c4eff), (0x6c4f00, 0x6c4f54)])
+LIST, NODES, OCCS, FROM, TO, OUT = (RAM + 0x100 * i for i in range(6))
+ODD = [0x7fc00000, 0xffc00000, 0x7f800001, 0xff800001, 0x7fa00000, 0x7f800000, 0xff800000, 0x80000000, 0]
+OPS = [n for n in ('clamp', 'occlusion') if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
+
+
+def value(r, small=8):
+    x = r.random()
+    if x < 0.7:
+        return fb(float(r.randint(-small, small)))
+    if x < 0.85:
+        return r.f(small * 2)
+    if x < 0.95:
+        return fb(r.uniform(-small, small))
+    return r.choice(ODD + [r.getrandbits(32)])
+
+
+def radius(r):
+    x = r.random()
+    if x < 0.7:
+        return fb(float(r.randint(0, 8)))
+    if x < 0.9:
+        return fb(r.uniform(0, 10))
+    return r.choice(ODD + [fb(-1.0), r.getrandbits(32)])
+
+
+def case(r):
+    name = r.deal(OPS)
+    if name == 'clamp':
+        return Call(0x6c4f00, [value(r, 4) for _ in range(3)], {RAM: bytes(4)}, conv='c', ret='d')
+    n = r.choice([0, 1, 1, 2, 3, 4, 6])
+    occs = []
+    for _ in range(n):
+        occs.append([value(r), value(r), r.getrandbits(32), radius(r)])
+    if r.random() < 0.7:
+        occs.sort(key=lambda o: -struct.unpack('<f', struct.pack('<I', o[3]))[0] if o[3] & 0x7f800000 != 0x7f800000 else 0)
+    nodes = bytearray(r.bytes(8 * max(n, 1)))
+    for i in range(n):
+        struct.pack_into('<II', nodes, 8 * i, OCCS + 0x10 * i, NODES + 8 * (i + 1) if i + 1 < n else 0)
+    lst = bytearray(r.bytes(0x20))
+    struct.pack_into('<I', lst, 4, NODES if n else r.choice([0, 0, NODES]))
+    struct.pack_into('<I', lst, 0xc, r.choice([n] * 8 + [0, r.getrandbits(32)]) if n else r.choice([0, 0, 1]))
+    struct.pack_into('<I', lst, 0x14, r.choice([0, fb(1.0), fb(2.0), radius(r), radius(r)]))
+    if not n:
+        struct.pack_into('<II', nodes, 0, OCCS, 0)
+        occs = [[value(r), value(r), r.getrandbits(32), radius(r)]]
+    points = []
+    for _ in range(2):
+        points.append(struct.pack('<3I', value(r), r.getrandbits(32), value(r)))
+    regions = {LIST: lst, NODES: nodes, OCCS: b''.join(struct.pack('<4I', *o) for o in occs), FROM: points[0], TO: points[1], OUT: r.bytes(4)}
+    return Call(0x6c4c80, [LIST, FROM, TO, OUT], regions, conv='t', ret='a')
+
+
+if __name__ == '__main__':
+    B.main(case)

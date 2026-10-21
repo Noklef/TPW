@@ -207,6 +207,7 @@
 #include "../game/core/soundmixer.h"
 #include "../game/core/soundnames.h"
 #include "../game/core/soundobject.h"
+#include "../game/core/soundoccluders.h"
 #include "../game/core/soundplay.h"
 #include "../game/core/soundslot.h"
 #include "../game/core/soundvoice.h"
@@ -498,6 +499,7 @@ const Hook kHooks[] = {
     {"Vec3_Clamp",                0x005ebe50, (void *)&Vec3_Clamp, {0xd9, 0x01, 0xd8, 0x5c, 0x24}},
     {"Vec3_DirectionsFromAngle",  0x00565110, (void *)&Vec3_DirectionsFromAngle, {0xd9, 0x44, 0x24, 0x04, 0xd9}},
     {"Vec3_Scale",                0x006bb240, (void *)&Vec3_Scale, {0xd9, 0x44, 0x24, 0x04, 0xd9}},
+    {"Float_ClampBetween",        0x006c4f00, (void *)&Float_ClampBetween, {0xd9, 0x44, 0x24, 0x08, 0xd8}},
     {"Motion_ApplyUVs", 0x004745c0, (void *)&Motion_ApplyUVs, {0x83, 0xec, 0x10, 0x8b, 0x44}},
     {"Motion_FindKeys", 0x00470b60, (void *)&Motion_FindKeys, {0x8b, 0x44, 0x24, 0x10, 0x83}},
     {"Motion_ApplyMaterial", 0x00470c90, (void *)&Motion_ApplyMaterial, {0x8b, 0x44, 0x24, 0x0c, 0x56}},
@@ -4424,6 +4426,7 @@ const Hook kHooks[] = {
     {"ChannelVoices_ReleaseAll",  0x006babc0, (void *)&ChannelVoices_ReleaseAll, {0x51, 0x53, 0x56, 0x57, 0x8b}},
     {"ChannelVoices_SetCount",    0x006bac30, (void *)&ChannelVoices_SetCount, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"ChannelVoice_SetFlag",      0x006b8330, (void *)&ChannelVoice_SetFlag, {0x8a, 0x44, 0x24, 0x04, 0x84}},
+    {"SoundOccluders_Occlusion",  0x006c4c80, (void *)&SoundOccluders_Occlusion, {0x83, 0xec, 0x2c, 0x53, 0x8b}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
