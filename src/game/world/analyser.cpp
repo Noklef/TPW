@@ -50,6 +50,12 @@ void __fastcall ParkAnalyser_Record(u8 *analyser, void *, u32 ring, u32 value) {
     at<u8>(r, (u32)at<s32>(r, 0x34) + 1) = (u8)value;
 }
 
+u8 __fastcall ParkAnalyser_RingFull(const u8 *analyser, void *, u32 ring) {
+    const u8 *const r = analyser + 0x216fc + (ring << 6);
+    if (at<u8>(r, 0x3c)) return at<s32>(r, 0x38) >= 0x32;
+    return at<s32>(r, 0x34) + 1 >= 0x32;
+}
+
 void __fastcall ParkAnalyser_Tally(u8 *analyser, void *, u32 flag) {
     ++at<u32>(analyser, 0x21bfc);
     ++at<u32>(analyser, 0x21c04);

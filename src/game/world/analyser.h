@@ -22,6 +22,10 @@ u8 *__fastcall AnalyserCell_Ctor(u8 *cell);
 // wrapped flag), and the value's low byte stored there.
 void __fastcall ParkAnalyser_Record(u8 *analyser, void *, u32 ring, u32 value);
 
+// 0x4c9920 (ring; name unconfirmed): whether the ring holds 50 values: wrapped (+0x3c), its size +0x38 at least 50, else its cursor
+// +0x34 + 1 at least 50 (signed). In AL only.
+u8 __fastcall ParkAnalyser_RingFull(const u8 *analyser, void *, u32 ring);
+
 // 0x4c74f0 (flag): +0x21bfc and +0x21c04 counted up, +0x21c00 too when flag is 0.
 void __fastcall ParkAnalyser_Tally(u8 *analyser, void *, u32 flag);
 
