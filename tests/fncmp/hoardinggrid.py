@@ -3,16 +3,95 @@
 # type 0x19, parented (0xc / 0x11, parents of any id in the table) or neither, the 0x44-byte cells
 # they name with flag 0x40 or not. Flood (0x5328e0): the grid copy at 0x81d7c8 all '#' but for a rectangle of up to 24 x 24 (now and then
 # at an edge) of ' ', '@', '#' and others, the start in it, beside it or out of range, the fill '#', '.' or another char (not ' ' or '@').
-# usage: hoardinggrid.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Fill,Flood)
+# Check (0x531a50, the hoardings' area check): see check() below.
+# usage: hoardinggrid.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Fill,Flood,Check)
 import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
-B = Bench([(0x532960, 0x532a50), (0x5328e0, 0x53295b), (0x4d8300, 0x4d8328), (0x4d0b10, 0x4d0b27), (0x535db0, 0x535dc3), (0x53ad20, 0x53aefc)])
+B = Bench([(0x532960, 0x532a50), (0x5328e0, 0x53295b), (0x4d8300, 0x4d8328), (0x4d0b10, 0x4d0b27), (0x535db0, 0x535dc3), (0x53ad20, 0x53aefc),
+           (0x531a50, 0x5323ec), (0x5195d0, 0x519620), (0x522770, 0x5227a0), (0x522810, 0x522860), (0x536300, 0x536320), (0x536360, 0x536390),
+           (0x6ad810, 0x6ad830), (0x5da3c0, 0x5da3c1)])
 CELLS44, TABLE = RAM, RAM + 0x1000  # 16 cells of 0x44 bytes; the world's 0x28-byte cells for ids 0 to 0x680
-OPS = [k for k in os.environ.get('OPS', 'Fill,Flood').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Fill,Flood,Check').split(',') if k]
+WORLD = 0x31000000   # CheckArea's world: its 0x28-byte cells at +0x1102b0, the 0x44-byte cells it names inline at +0x294 (by id)
+MONEY = RAM + 0x2000  # the world's table entry (0x7cfb90 + 20 * the word at world +0x1da726): its +0xc the money
+
+
+def check(r):
+    """CheckArea (0x531a50): mostly a rectangle 3-12 cells a side (else thinner, or a corner off the map), the corners either way round;
+    the world's cells in it (per row) of types 0x19 (more often on the sides), 7 / 0x1e, 0xc / 0x11 (parents in the rectangle) or
+    others, neighbour bits 0x11 / 0x44 / straight or not, naming 0x44-byte cells of types 7 / 0x1e / 2 or others with flag 0x40 or
+    not; the two points at 0x7639f0 off it or on a side; the grid at 0x81eeb0 mostly '#' or mostly ' ' with '#' / '@' scattered."""
+    x1, y1 = r.randrange(0, 116), r.randrange(0, 116)
+    w, h = (r.choice([3, 4, 5, 6, 8, 12]), r.choice([3, 4, 5, 6, 8, 12])) if r.random() < 0.85 else (r.choice([0, 1, 2, 4]), r.choice([0, 1, 2, 4]))
+    x2, y2 = x1 + w, y1 + h
+    if r.random() < 0.05:
+        x2, y2 = r.choice([(128, y2), (x2, 128), (-1, y2)])
+    if r.random() < 0.5:
+        x1, x2 = x2, x1
+    if r.random() < 0.5:
+        y1, y2 = y2, y1
+    minx, maxx, miny, maxy = min(x1, x2), max(x1, x2), min(y1, y2), max(y1, y2)
+    regions = {}
+    cells = bytearray(r.bytes(16 * 0x44))
+    for i in range(16):
+        put(cells, 0x44 * i + 8, 'I', r.choice([7, 0x1e, 2, 0, 5] if i < 8 else [0, 1, 5, 2]))
+        put(cells, 0x44 * i + 0xe, 'H', r.choice([0x40, 0x40, 0, 0xffff, r.getrandbits(16)]))
+    ids = [(y << 7) + x + 1 for y in range(miny, maxy + 1) for x in range(minx, maxx + 1)] if maxx < 128 and minx >= 0 and maxy < 128 else [1]
+    p19, p7 = r.choice([0.1, 0.4, 0.8]), r.choice([0.0, 0.1, 0.3])
+    flag = r.choice([0.2, 0.5, 0.9])
+    for y in range(miny, maxy + 1):
+        if maxx >= 128 or minx < 0 or maxy >= 128:
+            break
+        row = bytearray(r.bytes(0x28 * (maxx - minx + 1)))
+        for x in range(minx, maxx + 1):
+            k = 0x28 * (x - minx)
+            side = x in (minx, maxx) or y in (miny, maxy)
+            handle = r.randrange(1, 9) if r.random() < p7 else r.randrange(9, 17) if r.random() < flag else r.randrange(1, 17)
+            put(row, k, 'H', handle)
+            row[k + 2] = r.choice([2, 2, 0, 1])
+            kind = 0x19 if r.random() < (p19 if side else 0.15) else r.choice([0xc, 0x11, 0, 3, 0x18, 0x1a])
+            put(row, k + 8, 'I', kind)
+            bits = r.choice([0x11, 0x44, 0x11, 0x44, 0x55, 0x15, 0, 0x10, r.getrandbits(8)])
+            row[k + 0xc], row[k + 0x22] = bits, r.choice([bits, bits, 0x11, 0x44, r.getrandbits(8)])
+            put(row, k + 0x10, 'H', r.choice(ids))
+        regions[WORLD + 0x1102b0 + 0x28 * ((y << 7) + minx + 1)] = row
+    for x, y in ((x1, y1), (x2, y2)):   # (the corners named as cells by their own ids; off the map only the first counts)
+        at = WORLD + 0x1102b0 + 0x28 * ((((y << 7) + x + 1) & 0xffff))
+        if not any(a <= at < a + len(v) for a, v in regions.items()):
+            regions[at] = r.bytes(0x28)
+    first = WORLD + 0x294 + 0x44 * ((((y1 << 7) + x1 + 1) & 0xffff))
+    regions[first] = put(bytearray(r.bytes(0x44)), 0xe, 'H', r.choice([0, 0x40]))
+    for y in range(miny + 2, maxy):   # (the cells inside the border, charged for)
+        n = maxx - minx - 2
+        if n > 0:
+            row = bytearray(r.bytes(0x44 * n))
+            for i in range(n):
+                put(row, 0x44 * i + 0xe, 'H', r.choice([0, 0x40, 0x40, 0xffff]))
+            regions[WORLD + 0x294 + 0x44 * ((y << 7) + minx + 3)] = row
+    points = [r.randrange(0, 128) | 0x100 for _ in range(4)]   # (off the map, mostly)
+    for k in range(2):
+        if r.random() < 0.08:
+            points[2 * k], points[2 * k + 1] = r.choice([minx, maxx, x1]), r.choice(range(miny, maxy + 1)) if maxy < 128 else miny
+            if r.random() < 0.5:
+                points[2 * k], points[2 * k + 1] = r.choice(range(minx, maxx + 1)), r.choice([miny, maxy])
+    source = bytearray(b'#' * (0x43 * 0x42))   # (mostly ' ' the flood would recurse past the emulator's 64 KB stack)
+    sprinkle = r.choice([0.0, 0.0, 0.002, 0.01, 0.05, 0.2])
+    for i in range(len(source)):
+        if r.random() < sprinkle:
+            source[i] = r.choice(b' @.A')
+    entry = r.randrange(1, 12)
+    regions.update({CELLS44: cells, 0x81eeb0: source, 0x81d7c8: r.bytes(0x43 * 0x43), 0x81ea78: r.bytes(0x220),
+                    0x81b484: r.bytes(4), 0x81aeec: r.bytes(4), 0x81edec: r.bytes(4), 0x81b73c: r.bytes(4), 0x81af4c: r.bytes(4),
+                    0x7639f0: put(bytearray(16), 0, '4i', *points), 0x78560c: put(bytearray(4), 0, 'I', r.choice([0, 1, 10, 500])),
+                    0x785a2c: put(bytearray(4), 0, 'I', r.choice([0, 0, 0, 1])), 0x816d5c: r.bytes(4), 0x81b4cc: bytes([r.choice([0, 1])]),
+                    0x7cf83c: put(bytearray(4), 0, 'I', WORLD), 0x8023a0: put(bytearray(4), 0, 'I', CELLS44),
+                    WORLD + 0x1da726: put(bytearray(4), 0, 'H', entry), 0x7cfb90 + 20 * entry: put(bytearray(4), 0, 'I', MONEY),
+                    MONEY: put(bytearray(r.bytes(0x10)), 0xc, 'i', r.choice([0, 5, 100, 1000, 100000, -5]))})
+    return Call(0x531a50, [x1 & 0xffffffff, y1 & 0xffffffff, x2 & 0xffffffff, y2 & 0xffffffff, r.choice([0, 1, 1, 0x100])], regions, ret='a')
 
 
 def flood(r):
@@ -33,8 +112,11 @@ def flood(r):
 
 
 def case(r):
-    if r.deal(OPS) == 'Flood':
+    op = r.deal(OPS)
+    if op == 'Flood':
         return flood(r)
+    if op == 'Check':
+        return check(r)
     if r.random() < 0.1:
         rows, cols = r.choice([1, 2]), r.choice([127, 128, 130])
     else:
