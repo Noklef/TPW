@@ -5,13 +5,17 @@
 #include <cstring>
 
 #include "../core/accessors.h"
+#include "../core/gameheap.h"
 #include "../core/ptrlist.h"
 #include "../math/x87.h"
+#include "../gfx/texsprite.h"
 #include "../render/backdrop.h"
 #include "../ui/window.h"
 #include "camera.h"
 #include "mapcell.h"
 #include "object.h"
+#include "person.h"
+#include "things.h"
 
 namespace {
 
@@ -44,6 +48,47 @@ void classify_things(u8 *entry, u8 *cell, u16 owner) {
         at<u16>(entry, 4) = handle;
         return;
     }
+}
+
+// A float's bits (to pass as TexSprite_Ctor's dword).
+u32 bits(float f) {
+    u32 u;
+    std::memcpy(&u, &f, 4);
+    return u;
+}
+
+// A sprite of the thing's kind: a new block (Mem_Alloc 0x30) built by TexSprite_Ctor; none when the allocation fails.
+u8 *new_sprite(u32 image, u32 a, u32 b, u32 c, u32 d) {
+    u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x30));
+    return block ? TexSprite_Ctor(block, nullptr, image, a, b, c, d) : nullptr;
+}
+
+// The sprite placed at the thing: +4 / +8 the bytes +5 / +7 less +4 / +6 times 0x703064's float, +0x18 the thing. (A null sprite faults, sic.)
+void place_at_thing(const u8 *map, u8 *sprite, const u8 *thing) {
+    const float k = global<float>(0x00703064);
+    at<float>(sprite, 4) = static_cast<float>(X87Reg(thing[5]) - X87Reg(thing[4]) * k);
+    at<const u8 *>(sprite, 0x18) = thing;
+    at<float>(sprite, 8) = static_cast<float>(X87Reg(thing[7]) - X87Reg(thing[6]) * k);
+    ParkMap_PlaceSprite(map, nullptr, sprite);
+}
+
+// A float global (an int) times 0x703030's float.
+float scaled(u32 address) { return static_cast<float>(X87Reg(global<s32>(address)) * global<float>(0x00703030)); }
+
+// TexSprite_Ctor inlined, its shown flag set and then cleared (Obj_SetShown 0); size the float stored at +0x24. Faults without the block (sic).
+u8 *new_inline_sprite(u32 image, u32 a, u32 c, float size) {
+    u8 *const sprite = static_cast<u8 *>(GameHeap_Alloc(0x30));
+    at<u32>(sprite, 0) = 0x00703088;
+    at<u8 *>(sprite, 0x28) = PtrArray_AddSpriteFrame(reinterpret_cast<u8 *>((uintptr_t)0x00879ce0), nullptr, image);
+    at<u32>(sprite, 0x1c) = 2;
+    at<u32>(sprite, 0x14) = a;
+    at<u32>(sprite, 0x2c) = 1;
+    at<u32>(sprite, 0x20) = c;
+    Obj_SetShown(sprite, nullptr, 0);
+    at<float>(sprite, 0x24) = size;
+    at<u32>(reinterpret_cast<u8 *>((uintptr_t)Fn_56b620(at<u32>(sprite, 0x28))), 0x10) |= 0x30000;
+    PtrList_Append(global<PtrList *>(0x00fa6e38), nullptr, sprite);
+    return sprite;
 }
 
 }  // namespace
@@ -180,6 +225,78 @@ void __fastcall ParkMap_LayOut(const u8 *map) {
         const u8 *const next = at<const u8 *>(node, 4);
         ParkMap_PlaceSprite(map, nullptr, at<u8 *>(node, 0));
         node = next;
+    }
+}
+
+void __fastcall ParkMap_AddSprites(u8 *map) {
+    void *const world = global<void *>(0x007cf83c);
+    u16 handle;
+    World_FirstThing(world, nullptr, &handle);
+    while (handle) {
+        const u8 *const t = thing(handle);
+        u8 *sprite;
+        switch (t[2]) {
+        case 1:
+            place_at_thing(map, new_sprite(at<u32>(map, 0x2006c), 1, 1, 0x20, 0x3f800000), t);
+            sprite = new_sprite(at<u32>(map, 0x20068), 0, 3, 1, 0x3f800000);
+            break;
+        case 4: sprite = new_sprite(at<u32>(map, 0x20070), 2, 2, 2, 0x3f800000); break;
+        case 5: sprite = new_sprite(at<u32>(map, 0x20070), 2, 2, 1, 0x3f800000); break;
+        case 6: {
+            place_at_thing(map, new_sprite(at<u32>(map, 0x20070), 2, 2, 4, 0x3f800000), t);
+            const float size = scaled(0x00785610);
+            sprite = new_sprite(at<u32>(map, 0x20078), 4, 2, 4, bits(size));
+            break;
+        }
+        case 7: {
+            place_at_thing(map, new_sprite(at<u32>(map, 0x20070), 2, 2, 3, 0x3f800000), t);
+            const float size = scaled(0x00785658);
+            sprite = new_sprite(at<u32>(map, 0x2007c), 5, 2, 3, bits(size));
+            break;
+        }
+        default: sprite = nullptr;
+        }
+        if (t[2] == 1 || (t[2] >= 4 && t[2] <= 7))
+            place_at_thing(map, sprite, t);
+        handle = *World_NextThing(global<void *>(0x007cf83c), nullptr, &handle, t);
+    }
+
+    // The squares: one for each cell of a kind (+0x2c), its size 1, or 0x785688's int for kind 8, 0x785640's for 7.
+    u8 *const cells = global<u8 *>(0x007cf83c) + 0x2d8;
+    for (s32 y = 0; y < at<s32>(map, 0x28); ++y) {
+        for (s32 x = 0; x < at<s32>(map, 0x24); ++x) {
+            const u32 id = ((u32)x + ((u32)y << 7) + 1) & 0xffff;
+            const u32 kind = at<u32>(cells + id * 0x44 - 0x44, 0x2c);
+            if (!kind)
+                continue;
+            float size = 1.0f;
+            if (kind == 8)
+                size = static_cast<float>(global<s32>(0x00785688));
+            else if (kind == 7)
+                size = static_cast<float>(global<s32>(0x00785640));
+            u8 *const sprite = new_inline_sprite(at<u32>(map, 0x20074), 3, 1, static_cast<float>(X87Reg(size) * global<float>(0x00703030)));
+            at<u32>(sprite, 0x18) = 0;
+            const float c = global<float>(0x00703028);
+            at<float>(sprite, 4) = static_cast<float>(X87Reg(x) - c);
+            at<float>(sprite, 8) = static_cast<float>(X87Reg(y) - c);
+            ParkMap_PlaceSprite(map, nullptr, sprite);
+        }
+    }
+
+    // The things on the list from the world's +0x1da746 (linked by +0xc) whose flags +0x32 have 0x10: one at their map square.
+    for (u16 h = at<u16>(global<u8 *>(0x007cf83c), 0x1da746); h; ) {
+        const u8 *const t = thing(h);
+        if (t[0x32] & 0x10) {
+            u8 *const sprite = new_inline_sprite(at<u32>(map, 0x2007c), 5, 3, scaled(0x00785670));
+            u16 id;
+            Thing_MapId(t, nullptr, &id);
+            at<u32>(sprite, 0x18) = 0;
+            const float c = global<float>(0x00703028);
+            at<float>(sprite, 4) = static_cast<float>(X87Reg((s32)(((u32)id - 1) & 0x7f)) - c);
+            at<float>(sprite, 8) = static_cast<float>(X87Reg((s32)(((u32)id - 1) >> 7)) - c);
+            ParkMap_PlaceSprite(map, nullptr, sprite);
+        }
+        h = at<u16>(t, 0xc);
     }
 }
 

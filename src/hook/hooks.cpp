@@ -131,6 +131,7 @@
 #include "../game/gfx/textlayout.h"
 #include "../game/gfx/tvstatic.h"
 #include "../game/gfx/aaline.h"
+#include "../game/gfx/signstyle.h"
 #include "../game/gfx/wctimage.h"
 #include "../game/core/crt.h"
 #include "../game/core/gameheap.h"
@@ -3649,6 +3650,8 @@ const Hook kHooks[] = {
     {"Wavelet_Shutdown",          0x00564b60, (void *)&Wavelet_Shutdown, {0xa1, 0x68, 0x9a, 0x87, 0x00}},
     {"WaveletCodec_YuvToRgb",     0x005935a0, (void *)&WaveletCodec_YuvToRgb, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"WaveletCodec_DecodeColour", 0x00592730, (void *)&WaveletCodec_DecodeColour, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"WaveletCodec_DecodeV13",    0x00595920, (void *)&WaveletCodec_DecodeV13, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"WaveletCodec_DecodeV13Scaled", 0x00597100, (void *)&WaveletCodec_DecodeV13Scaled, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Record_IsActive",           0x0059c610, (void *)&Record_IsActive, {0x8b, 0x4c, 0x24, 0x04, 0x81}},
     {"ObjectDef_FindMarkedCells", 0x00413410, (void *)&ObjectDef_FindMarkedCells, {0x6a, 0xff, 0x68, 0x58, 0x7e}},
     {"ObjectDef_Ctor",            0x00412c20, (void *)&ObjectDef_Ctor, {0x56, 0x8b, 0xf1, 0x8d, 0x4e}},
@@ -4169,6 +4172,7 @@ const Hook kHooks[] = {
     {"ParkMap_PlaceSprite",       0x005f4180, (void *)&ParkMap_PlaceSprite, {0x83, 0xec, 0x14, 0x56, 0x8b}},
     {"ParkMap_ApplyView",         0x005f1050, (void *)&ParkMap_ApplyView, {0x83, 0xec, 0x08, 0x56, 0x8b}},
     {"ParkMap_LayOut",            0x005f3230, (void *)&ParkMap_LayOut, {0x83, 0xec, 0x28, 0xa1, 0x68}},
+    {"ParkMap_AddSprites",        0x005f3940, (void *)&ParkMap_AddSprites, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"MapCell_PickModel",         0x0053a540, (void *)&MapCell_PickModel, {0x83, 0xec, 0x1c, 0x53, 0x55}},
     {"Weather_Serialize",         0x00512010, (void *)&Weather_Serialize, {0x8b, 0x44, 0x24, 0x10, 0x53}},
     {"Weather_RandomBolt",        0x00512c50, (void *)&Weather_RandomBolt, {0x83, 0xec, 0x1c, 0x8d, 0x44}},
@@ -4246,6 +4250,7 @@ const Hook kHooks[] = {
     {"AaLine_Draw16",             0x005ee580, (void *)&AaLine_Draw16, {0x83, 0xec, 0x54, 0x8b, 0x44}},
     {"AaLine_Draw24",             0x005ef040, (void *)&AaLine_Draw24, {0x83, 0xec, 0x54, 0x8b, 0x44}},
     {"AaLine_Draw32",             0x005efb10, (void *)&AaLine_Draw32, {0x83, 0xec, 0x54, 0x8b, 0x44}},
+    {"SignStyle_Load",            0x005ec3a0, (void *)&SignStyle_Load, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
@@ -4515,6 +4520,7 @@ const Hook kHooks[] = {
     {"Animator_Wake",             0x00425440, (void *)&Animator_Wake, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Animator_Create",           0x00424ef0, (void *)&Animator_Create, {0x83, 0xec, 0x10, 0x53, 0x55}},
     {"Animator_Clone",            0x00455690, (void *)&Animator_Clone, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"Instance_Clone",            0x004557c0, (void *)&Instance_Clone, {0x83, 0xec, 0x0c, 0x53, 0x8b}},
     {"Model_RemapTextures",       0x0046de00, (void *)&Model_RemapTextures, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_AddTerrainSets",      0x0046e130, (void *)&Model_AddTerrainSets, {0x83, 0xec, 0x28, 0x53, 0x8b}},
     {"Highlight_Update",          0x00469180, (void *)&Highlight_Update, {0x51, 0x53, 0x55, 0x56, 0x8b}},

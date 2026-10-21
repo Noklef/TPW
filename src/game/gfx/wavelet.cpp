@@ -8,6 +8,7 @@
 #include "../core/seqs.h"
 #include "../files/wrapsources.h"
 #include "../math/x87.h"
+#include "../render/texformat.h"
 
 namespace {
 
@@ -89,6 +90,348 @@ void InverseD4RowPairs(const u8 *src, u8 *dst, u32 width, u32 n) {
         src += row;
         d += 2 * row;
     } while (--rows != 0);
+}
+
+// The v0x13 decoders (0x595920, 0x597100): each plane's rows go into the plane at 0xd30a28, then down the columns into the plane's own.
+u8 *const kRowPlane = reinterpret_cast<u8 *>(0x00d30a28);
+
+float FloatOf(u32 bits) {
+    float f;
+    std::memcpy(&f, &bits, 4);
+    return f;
+}
+
+u32 BitsOf(float f) {
+    u32 b;
+    std::memcpy(&b, &f, 4);
+    return b;
+}
+
+// x - [0x7026ac] (-1.5 * 2^23) as the game stores it: round(x) in the float's low bits, read as an s16 or an s8.
+const float kBias = -12582912.0f;
+float Biased(float x) { return (float)(X87Reg(x) - kBias); }
+s32 Low16(float f) { return (s16)(BitsOf(f) & 0xffffu); }
+s32 Low8(float f) { return (s8)(BitsOf(f) & 0xffu); }
+
+// The colour tables Construct builds: dwords indexed by an s8 (0xbe6808 blue by Cb, 0xcefa28 and 0xcf0628 green by Cb and Cr, 0xc26c08 red by
+// Cr, their middles at +0x200), the clamp bytes from 0xc27008 (index 0 at 0xc27088) and the 16-bit pixel words indexed by an s16 (0xcef328
+// alpha, 0xcef728 blue, 0xceff28 green, 0xcf0328 red, their index 0 there). Out of range indices read on (sic).
+s32 Table(u32 middle, s32 index) { return global<s32>(middle + 4 * (u32)index); }
+u8 Clamp(s32 index) { return global<u8>(0x00c27088 + (u32)index); }
+u16 Word(u32 zero, s32 index) { return global<u16>(zero + 2 * (u32)index); }
+
+// The LZ77 stage of the v0x13 decoders (its first bit inline in 0x595920, Wavelet_ReadBits(1)'s steps): the bit reader reset over block (and
+// 0xd70a28 = the stream, 0xc67218 = 0), then into the stream at 0xa067f8 a 0 bit and 8 bits as a literal, a 1 bit, 12 bits of distance and
+// 7 of length less one as a copy (byte by byte, so overlapping), until a distance of 0.
+void Unpack(const void *block) {
+    global<const void *>(0x00e74a40) = block;
+    global<u32>(0x00d70a28) = 0x00a067f8;
+    global<u32>(0x00be6800) = 0;
+    global<u32>(0x00c67218) = 0;
+    global<u32>(0x00f74a48) = 0;
+    global<u32>(0x00aa67f8) = 0;
+    u8 *out = kStream;
+    for (;;) {
+        if (Wavelet_ReadBits(1) == 0) {
+            *out++ = (u8)Wavelet_ReadBits(8);
+            continue;
+        }
+        const u32 distance = Wavelet_ReadBits(12);
+        const u32 length = Wavelet_ReadBits(7) + 1;
+        if (distance == 0)
+            return;
+        const u8 *from = out - distance;
+        for (u32 k = length; k != 0; --k)
+            *out++ = *from++;
+    }
+}
+
+// The decoders' inline coefficient reader: a byte as its s8; 0x80 escapes the s16 after it (the dword from the byte before the escape,
+// shifted down 16).
+s32 NextCoefficient(const u8 *&p) {
+    s32 v = (s8)*p++;
+    if (v == -0x80) {
+        v = (s32)at<u32>(p - 2, 0) >> 16;
+        p += 2;
+    }
+    return v;
+}
+
+// The order one plane of a v0x13 decoder sums its inverse step along the rows in (each has its own). The inner pairs' even value is the
+// terms 0 low * q h0, 1 high * q h3, 2 last low * q h2, 3 last high * q h1 summed in `even`'s order; the odd one is low * q h1 + last low * q h3
+// (the other way round without lowFirst), less last high * q h0, less high * q h2. The wrapped pair at the row's start: terms 0 first low * q h0,
+// 1 first high * q h3, 2 last low * q h2, 3 last high * q h1 in `wrap`'s order, and last low * q h3 + first low * q h1 (the other way round
+// without lastFirst), less last high * q h0, less first high * q h2.
+struct RowOrder {
+    u8 even[4];
+    bool lowFirst;
+    u8 wrap[4];
+    bool lastFirst;
+};
+
+// Likewise for the columns' wrapped first two rows: terms 0 h0 * first low, 1 h3 * first high, 2 h2 * last low, 3 h1 * last high in `even`'s
+// order, and h1 * first low + h3 * last low (the other way round without firstFirst), less h0 * last high, less h2 * first high.
+struct ColumnOrder {
+    u8 even[4];
+    bool firstFirst;
+};
+
+X87Reg Sum4(const X87Reg *t, const u8 *order) { return ((t[order[0]] + t[order[1]]) + t[order[2]]) + t[order[3]]; }
+
+// One plane's rows: n rows of n coefficients (low and high interleaved) from the cursor, each through the inverse D4 step along it (the
+// filter times q, each rounded to a float) into the plane at 0xd30a28, rows n floats apart.
+void InverseRows(const u8 *&cursor, u32 n, float q, const RowOrder &o) {
+    const float q0 = (float)(X87Reg(q) * H0()), q1 = (float)(X87Reg(q) * H1()), q2 = (float)(X87Reg(q) * H2()), q3 = (float)(X87Reg(q) * H3());
+    const s32 pairs = (s32)(n >> 1) - 1;
+    float *row = reinterpret_cast<float *>(kRowPlane);
+    for (u32 y = n; y != 0; --y) {
+        const float first = (float)NextCoefficient(cursor);
+        const float firstHigh = (float)NextCoefficient(cursor);
+        float lastLow = first, lastHigh = firstHigh;
+        float *out = row + 2;
+        for (s32 k = pairs; k > 0; --k) {
+            const float low = (float)NextCoefficient(cursor);
+            const float high = (float)NextCoefficient(cursor);
+            const X87Reg t[4] = {X87Reg(low) * q0, X87Reg(high) * q3, X87Reg(lastLow) * q2, X87Reg(lastHigh) * q1};
+            out[0] = (float)Sum4(t, o.even);
+            const X87Reg a = X87Reg(low) * q1, b = X87Reg(lastLow) * q3;
+            out[1] = (float)(((o.lowFirst ? a + b : b + a) - X87Reg(lastHigh) * q0) - X87Reg(high) * q2);
+            out += 2;
+            lastLow = low;
+            lastHigh = high;
+        }
+        const X87Reg t[4] = {X87Reg(first) * q0, X87Reg(firstHigh) * q3, X87Reg(lastLow) * q2, X87Reg(lastHigh) * q1};
+        row[0] = (float)Sum4(t, o.wrap);
+        const X87Reg c = X87Reg(lastLow) * q3, d = X87Reg(first) * q1;
+        row[1] = (float)(((o.lastFirst ? c + d : d + c) - X87Reg(lastHigh) * q0) - X87Reg(firstHigh) * q2);
+        row += n;
+    }
+}
+
+// One plane's columns: the inverse step down them from the plane at 0xd30a28 into plane (n x n): the row pairs as in
+// WaveletCodec_InverseD4Columns (the same inline code), then the wrapped first two rows in the plane's own order.
+void InverseColumns(u32 plane, u32 n, const ColumnOrder &o) {
+    InverseD4RowPairs(kRowPlane, reinterpret_cast<u8 *>(plane), n, n);
+    const u32 half = n >> 1, lastLow = (half - 1) * n, high = n * half, lastHigh = lastLow + high;
+    const float *const src = reinterpret_cast<const float *>(kRowPlane);
+    float *const dst = reinterpret_cast<float *>(plane);
+    for (u32 c = 0; c != n; ++c) {
+        const X87Reg t[4] = {X87Reg(H0()) * src[c], X87Reg(H3()) * src[high + c], X87Reg(H2()) * src[lastLow + c], X87Reg(H1()) * src[lastHigh + c]};
+        dst[c] = (float)Sum4(t, o.even);
+        const X87Reg a = X87Reg(H1()) * src[c], b = X87Reg(H3()) * src[lastLow + c];
+        dst[n + c] = (float)(((o.firstFirst ? a + b : b + a) - X87Reg(H0()) * src[lastHigh + c]) - X87Reg(H2()) * src[high + c]);
+    }
+}
+
+// The orders of 0x595920's planes (Y, Cb, Cr, alpha) and 0x597100's (its Y as 0x595920's alpha, its alpha as 0x595920's Y).
+const RowOrder kRowsY = {{1, 0, 2, 3}, true, {3, 2, 0, 1}, true};
+const RowOrder kRowsCb = {{2, 3, 0, 1}, false, {3, 0, 2, 1}, true};
+const RowOrder kRowsCr = {{0, 1, 2, 3}, true, {0, 2, 3, 1}, false};
+const RowOrder kRowsA = {{2, 3, 1, 0}, false, {1, 3, 0, 2}, false};
+const RowOrder kScaledRowsCb = {{0, 2, 3, 1}, false, {0, 1, 2, 3}, false};
+const RowOrder kScaledRowsCr = {{1, 0, 2, 3}, true, {3, 1, 0, 2}, true};
+const ColumnOrder kColumnsY = {{0, 1, 2, 3}, true};
+const ColumnOrder kColumnsCb = {{3, 0, 2, 1}, true};
+const ColumnOrder kColumnsCr = {{2, 1, 3, 0}, true};
+const ColumnOrder kColumnsA = {{3, 1, 2, 0}, false};
+const ColumnOrder kScaledColumnsY = {{1, 3, 0, 2}, false};
+const ColumnOrder kScaledColumnsCb = {{1, 2, 3, 0}, false};
+const ColumnOrder kScaledColumnsCr = {{0, 2, 1, 3}, true};
+
+// The decoded planes: 0x595920's and 0x597100's.
+const u32 kY = 0x00be6c08, kCb = 0x00f34a48, kCr = 0x00cf0a28, kA = 0x008c67f8;
+const u32 kScaledY = 0x00c6f228, kScaledCb = 0x00c27218, kScaledCr = 0x00e74a48, kScaledA = 0x00aa6800;
+
+// The planes of both decoders: Y, Cb and Cr from the main block, alpha from its own when there is one.
+void DecodePlanes(u32 side, const void *main, const void *alpha, const float *q, const u32 *planes, const RowOrder *const *rows,
+                  const ColumnOrder *const *columns) {
+    const u32 half = side >> 1;
+    Unpack(main);
+    const u8 *cursor = kStream;
+    for (u32 k = 0; k < 3; ++k) {
+        const u32 n = k == 0 ? side : half;
+        InverseRows(cursor, n, q[k], *rows[k]);
+        InverseColumns(planes[k], n, *columns[k]);
+    }
+    if (!alpha)
+        return;
+    Unpack(alpha);
+    cursor = kStream;
+    InverseRows(cursor, side, q[3], *rows[3]);
+    InverseColumns(planes[3], side, *columns[3]);
+}
+
+// The 16-bit pixel of a Y with the block's biased blue (stored), green (in a register) and red (stored): the pixel words of each sum's low 16
+// bits or'd with the alpha word (or the format's mask).
+u16 Pixel16(float y, float blue, X87Reg green, float red, u32 alpha) {
+    const float b = (float)(X87Reg(blue) + y), g = (float)(green + y), r = (float)(X87Reg(red) + y);
+    return (u16)(Word(0x00ceff28, Low16(g)) | Word(0x00cef728, Low16(b)) | Word(0x00cf0328, Low16(r)) | alpha);
+}
+
+// The 16-bit colours of a Cb and a Cr: blue Cb * 1.772 and red Cr * 1.402 less the bias, each stored; green (Cb * -0.344136 - Cr * 0.714136)
+// less the bias, left in a register.
+const float kBlueCb = FloatOf(0x3fe2d0e5), kRedCr = FloatOf(0x3fb374bc), kGreenCb = FloatOf(0xbeb03298), kGreenCr = FloatOf(0x3f36d19e);
+float Blue16(float cb) { return (float)(X87Reg(cb) * kBlueCb - kBias); }
+X87Reg Green16(float cb, float cr) { return ((X87Reg(cb) * kGreenCb) - X87Reg(cr) * kGreenCr) - kBias; }
+float Red16(float cr) { return (float)(X87Reg(cr) * kRedCr - kBias); }
+
+// The 32-bit format's mask of the 16-bit outputs without alpha: [0x8bd574 + [0x8bd554] * 0x20].
+u32 FormatMask() { return global<u32>(0x008bd574 + (global<u32>(0x008bd554) << 5)); }
+
+// 0x595920's 32-bit outputs: height rows (signed) of (width + 1) / 2 pixel pairs (a width of 0 or less none), BGRA bytes from the biased
+// planes through the colour tables and the clamp. The Y and alpha indices and the output run on two by two from row to row (packed by the
+// pairs, not the side: sic); the chroma index one per pair, stepped back by width / 2 (signed) after each even row. Without alpha the
+// fourth bytes are 0xff.
+void Output32(u32 width, u32 height, u8 *pixels, bool alpha) {
+    const float *const y = reinterpret_cast<const float *>(kY);
+    const float *const a = reinterpret_cast<const float *>(kA);
+    const float *const cb = reinterpret_cast<const float *>(kCb);
+    const float *const cr = reinterpret_cast<const float *>(kCr);
+    u32 yi = 0, ci = 0;
+    u8 *out = pixels;
+    for (s32 row = 0; row < (s32)height; ++row) {
+        if ((s32)width > 0) {
+            for (u32 pairs = (width + 1) >> 1; pairs != 0; --pairs) {
+                const float b = Biased(cb[ci]), r = Biased(cr[ci]);
+                const float y0 = Biased(y[yi]), y1 = Biased(y[yi + 1]);
+                const s32 blue = Table(0x00be6a08, Low8(b));
+                const s32 green = Table(0x00cf0828, Low8(r)) + Table(0x00cefc28, Low8(b));
+                const s32 red = Table(0x00c26e08, Low8(r));
+                if (alpha) {
+                    const float a0 = Biased(a[yi]), a1 = Biased(a[yi + 1]);
+                    out[0] = Clamp(Low16(y0) + blue);
+                    out[4] = Clamp(Low16(y1) + blue);
+                    out[1] = Clamp(Low16(y0) + green);
+                    out[5] = Clamp(Low16(y1) + green);
+                    out[2] = Clamp(Low16(y0) + red);
+                    out[6] = Clamp(Low16(y1) + red);
+                    out[3] = Clamp(Low16(a0));
+                    out[7] = Clamp(Low16(a1));
+                } else {
+                    out[0] = Clamp(Low16(y0) + blue);
+                    out[4] = Clamp(Low16(y1) + blue);
+                    out[1] = Clamp(Low16(y0) + green);
+                    out[5] = Clamp(Low16(y1) + green);
+                    out[2] = Clamp(Low16(y0) + red);
+                    out[6] = Clamp(Low16(y1) + red);
+                    out[7] = 0xff;
+                    out[3] = 0xff;
+                }
+                yi += 2;
+                out += 8;
+                ++ci;
+            }
+        }
+        if (!(row & 1))
+            ci -= (u32)((s32)width >> 1);
+    }
+}
+
+// 0x595920's 16-bit outputs: 2 x 2 blocks, row pairs from 0 while below the height (signed) and (width + 1) / 2 blocks a row pair (a width
+// of 0 or less none), so an odd width or height writes past the image's last column or row (sic). Each block's chroma from its own index
+// ((row / 2) * half + block); its Y and alpha from the planes' rows side floats apart; the pixels (x, y), (x + 1, y), (x, y + 1),
+// (x + 1, y + 1), rows width pixels apart. Without alpha the format's mask instead of the alpha word.
+void Output16(u32 width, u32 height, u32 side, u8 *pixels, bool alpha) {
+    TexFormat_Table(reinterpret_cast<u8 *>((uintptr_t)0x008bd550));
+    const u32 mask = alpha ? 0 : FormatMask();
+    const u32 half = side >> 1;
+    const float *const y = reinterpret_cast<const float *>(kY);
+    const float *const a = reinterpret_cast<const float *>(kA);
+    const float *const cb = reinterpret_cast<const float *>(kCb);
+    const float *const cr = reinterpret_cast<const float *>(kCr);
+    u16 *const out = reinterpret_cast<u16 *>(pixels);
+    for (s32 row = 0; row < (s32)height; row += 2) {
+        if ((s32)width <= 0)
+            continue;
+        u32 ci = (u32)(row >> 1) * half;
+        u32 yi = (u32)row * side;
+        u16 *row0 = out + width * (u32)row;
+        u16 *row1 = out + width * (u32)(row + 1);
+        for (u32 blocks = (width + 1) >> 1; blocks != 0; --blocks) {
+            const float blue = Blue16(cb[ci]);
+            const X87Reg green = Green16(cb[ci], cr[ci]);
+            const float red = Red16(cr[ci]);
+            const u32 index[4] = {yi, yi + 1, yi + side, yi + side + 1};
+            u16 *const to[4] = {row0, row0 + 1, row1, row1 + 1};
+            for (u32 k = 0; k < 4; ++k) {
+                const u32 word = alpha ? Word(0x00cef328, Low16(Biased(a[index[k]]))) : mask;
+                *to[k] = Pixel16(y[index[k]], blue, green, red, word);
+            }
+            yi += 2;
+            ++ci;
+            row0 += 2;
+            row1 += 2;
+        }
+    }
+}
+
+// 0x597100's outputs: dstHeight rows (signed) of dstWidth pixels (signed; none at 0 or less), each row then stepped on to the pitch. The
+// positions are 16.16 fixed point: per row, the chroma's row (its accumulator's high half) shifted up by log2(side) - 1 and the luma's by
+// log2(side); per pixel, each index is its accumulator's high half (signed) and steps by its x step; per row, each accumulator steps by its
+// y step. 32-bit: BGRA bytes through the colour tables and the clamp (0xff alpha without the alpha plane), the pitch in bytes. 16-bit: the
+// pixel words with the sums made per pixel (the alpha word, or the format's mask), the pitch in 16-bit pixels (pitch / 2, signed).
+void OutputScaled(u32 dstWidth, u32 dstHeight, u32 pitch, u32 pixelSize, u8 *pixels, bool alpha, u32 log2side, const u32 *steps) {
+    const float *const y = reinterpret_cast<const float *>(kScaledY);
+    const float *const a = reinterpret_cast<const float *>(kScaledA);
+    const float *const cb = reinterpret_cast<const float *>(kScaledCb);
+    const float *const cr = reinterpret_cast<const float *>(kScaledCr);
+    const u32 chromaX = steps[0], lumaX = steps[1], chromaY = steps[2], lumaY = steps[3];
+    u32 chromaRow = 0, lumaRow = 0;
+    TexFormat_Table(reinterpret_cast<u8 *>((uintptr_t)0x008bd550));
+    if (pixelSize == 4) {
+        const u32 skip = pitch - dstWidth * 4;
+        u8 *out = pixels;
+        for (s32 rows = (s32)dstHeight; rows > 0; --rows) {
+            u32 chroma = (chromaRow & 0xffff0000u) << ((log2side - 1) & 31);
+            u32 luma = (lumaRow & 0xffff0000u) << (log2side & 31);
+            for (s32 n = (s32)dstWidth; n > 0; --n) {
+                const s32 li = (s32)luma >> 16, ci = (s32)chroma >> 16;
+                float alphaValue = 0.0f;
+                if (alpha)
+                    alphaValue = Biased(a[li]);
+                const float yv = Biased(y[li]);
+                const float b = Biased(cb[ci]), r = Biased(cr[ci]);
+                const s32 blue = Table(0x00be6a08, Low8(b));
+                out[0] = Clamp(blue + Low16(yv));
+                const s32 green = Table(0x00cf0828, Low8(r)) + Table(0x00cefc28, Low8(b));
+                out[1] = Clamp(green + Low16(yv));
+                out[2] = Clamp(Table(0x00c26e08, Low8(r)) + Low16(yv));
+                out[3] = alpha ? Clamp(Low16(alphaValue)) : 0xff;
+                chroma += chromaX;
+                luma += lumaX;
+                out += 4;
+            }
+            out += skip;
+            lumaRow += lumaY;
+            chromaRow += chromaY;
+        }
+        return;
+    }
+    const u32 mask = FormatMask();
+    const u32 skip = 2 * (u32)(((s32)pitch >> 1) - (s32)dstWidth);
+    u8 *out = pixels;
+    for (s32 rows = (s32)dstHeight; rows > 0; --rows) {
+        u32 chroma = (chromaRow & 0xffff0000u) << ((log2side - 1) & 31);
+        u32 luma = (lumaRow & 0xffff0000u) << (log2side & 31);
+        for (s32 n = (s32)dstWidth; n > 0; --n) {
+            const s32 ci = (s32)chroma >> 16, li = (s32)luma >> 16;
+            const float c = cb[ci], d = cr[ci];
+            u32 word = mask;
+            if (alpha)
+                word = Word(0x00cef328, Low16(Biased(a[li])));
+            const float yv = y[li];
+            const float b = (float)((X87Reg(c) * kBlueCb - kBias) + yv);
+            const float g = (float)((((X87Reg(c) * kGreenCb) - X87Reg(d) * kGreenCr) - kBias) + yv);
+            const float r = (float)((X87Reg(d) * kRedCr - kBias) + yv);
+            at<u16>(out, 0) = (u16)(Word(0x00ceff28, Low16(g)) | Word(0x00cef728, Low16(b)) | Word(0x00cf0328, Low16(r)) | word);
+            chroma += chromaX;
+            luma += lumaX;
+            out += 2;
+        }
+        out += skip;
+        chromaRow += chromaY;
+        lumaRow += lumaY;
+    }
 }
 
 }  // namespace
@@ -641,5 +984,40 @@ void __fastcall WaveletCodec_YuvToRgb(u8 *codec, void *, u32 width, u32 height, 
             o += 3;
         }
     }
+}
+void __fastcall WaveletCodec_DecodeV13(u8 *, void *, u32 width, u32 height, u32 pixelSize, const void *main, const void *alpha, u8 *pixels,
+                                       float qY, float qCb, float qCr, float qA) {
+    const u32 wide = SideFor(width), tall = SideFor(height);
+    const u32 side = wide > tall ? wide : tall;
+    const float q[4] = {qY, qCb, qCr, qA};
+    const u32 planes[4] = {kY, kCb, kCr, kA};
+    const RowOrder *const rows[4] = {&kRowsY, &kRowsCb, &kRowsCr, &kRowsA};
+    const ColumnOrder *const columns[4] = {&kColumnsY, &kColumnsCb, &kColumnsCr, &kColumnsA};
+    DecodePlanes(side, main, alpha, q, planes, rows, columns);
+    if (pixelSize == 4)
+        Output32(width, height, pixels, alpha != nullptr);
+    else
+        Output16(width, height, side, pixels, alpha != nullptr);
+}
+
+void __fastcall WaveletCodec_DecodeV13Scaled(u8 *codec, void *, u32 width, u32 height, u32 dstWidth, u32 dstHeight, u32 pitch, u32 pixelSize,
+                                             const void *main, const void *alpha, u8 *pixels, float qY, float qCb, float qCr, float qA) {
+    if (width == dstWidth && height == dstHeight && dstWidth == pitch) {
+        vcall<void>(codec, 8, width, height, pixelSize, main, alpha, pixels, qY, qCb, qCr, qA);
+        return;
+    }
+    const u32 wide = SideFor(width), tall = SideFor(height);
+    const u32 side = wide > tall ? wide : tall;
+    u32 log2side = 0;
+    for (u32 rest = side; rest > 1; rest >>= 1)
+        ++log2side;
+    const float q[4] = {qY, qCb, qCr, qA};
+    const u32 planes[4] = {kScaledY, kScaledCb, kScaledCr, kScaledA};
+    const RowOrder *const rows[4] = {&kRowsA, &kScaledRowsCb, &kScaledRowsCr, &kRowsY};
+    const ColumnOrder *const columns[4] = {&kScaledColumnsY, &kScaledColumnsCb, &kScaledColumnsCr, &kColumnsA};
+    DecodePlanes(side, main, alpha, q, planes, rows, columns);
+    // The x steps by the destination width, the y steps by its height (unsigned divisions: 0 faults); the chroma's over the even part.
+    const u32 steps[4] = {((width & ~1u) << 15) / dstWidth, (width << 16) / dstWidth, ((height & ~1u) << 15) / dstHeight, (height << 16) / dstHeight};
+    OutputScaled(dstWidth, dstHeight, pitch, pixelSize, pixels, alpha != nullptr, log2side, steps);
 }
 }

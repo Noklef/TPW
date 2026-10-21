@@ -117,4 +117,23 @@ void __fastcall WaveletCodec_YuvToRgb(u8 *codec, void *, u32 width, u32 height, 
 // 0x879a68: with no block, returns 0; otherwise the block is freed (TrackedGlobal_Free) and cleared, the codec (when set) told through
 // its slot 6 (+0x18; the codec pointer is kept) and 1 returned.
 u32 __cdecl Wavelet_Shutdown();
+
+// 0x595920 (thiscall on the codec, unused; width, height, pixel size, the main and alpha blocks, the pixels, the Y, Cb, Cr and alpha
+// quantisers; pops 0x28): the v0x13 decoder. The side as in WaveletCodec_EncodeGrey; the main block LZ77-unpacked (the bit reader of
+// Wavelet_ReadBits reset over it, its first bit read inline) into the stream at 0xa067f8 and read on as bytes (0x80 escaping an s16):
+// Y (side x side), Cb and Cr (half the side) each through the inverse D4 along its rows into 0xd30a28 (the filter times the quantiser
+// rounded to floats) and down its columns into 0xbe6c08, 0xf34a48 and 0xcf0a28; with an alpha block, it unpacked the same way into
+// alpha at 0x8c67f8. Each plane sums its wrapped and inner steps in its own order. A pixel size of 4 writes BGRA bytes through the colour
+// tables and the clamp, its Y and alpha packed by pixel pairs rather than the side (sic); any other 16-bit pixel words in 2 x 2 blocks
+// (an odd width or height writes past the image, sic), the alpha word or the format's mask.
+void __fastcall WaveletCodec_DecodeV13(u8 *codec, void *, u32 width, u32 height, u32 pixelSize, const void *main, const void *alpha, u8 *pixels,
+                                       float qY, float qCb, float qCr, float qA);
+
+// 0x597100 (thiscall on the codec; width, height, the destination's width, height and pitch, pixel size, the main and alpha blocks, the
+// pixels, the four quantisers; pops 0x34): WaveletCodec_DecodeV13 resampled. An unscaled image whose pitch is its width goes to the
+// codec's slot 2 (+8, 0x595920) with the arguments but the destination's. Otherwise the planes as there (at 0xc6f228, 0xc27218, 0xe74a48
+// and 0xaa6800, in their own orders) and then each destination pixel from the nearest plane values by 16.16 steps (unsigned divisions,
+// faulting on a destination width or height of 0): BGRA bytes, or 16-bit words made per pixel.
+void __fastcall WaveletCodec_DecodeV13Scaled(u8 *codec, void *, u32 width, u32 height, u32 dstWidth, u32 dstHeight, u32 pitch, u32 pixelSize,
+                                             const void *main, const void *alpha, u8 *pixels, float qY, float qCb, float qCr, float qA);
 }
