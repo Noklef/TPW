@@ -66,7 +66,7 @@ def points(r):
 
 
 def mesh(r):
-    """0x574660 (thiscall (colours, mesh)): lit()'s scene, a mesh of 0-6 vertices (+0x5e) indexing three groups of four positions near
+    """0x574660 (thiscall (colours, mesh)): lit()'s scene, a mesh of 0-6 vertices (+0x5e; now and then 0x100-0x1ff) indexing three groups of four positions near
     its point (the index list's words below 12, the rest of their word any), their normals any."""
     regions, near, normals = lit(r)
     n = r.choice([0, 1, 2, 3, 6])
@@ -78,10 +78,19 @@ def mesh(r):
     put(m, 0x60, '2I', POSITIONS, NORMALS)
     put(m, 0x94, 'I', INDEX)
     regions.update({NORMALS: normals, POSITIONS: pos, MESH: m, INDEX: struct.pack('<8H', *(r.randrange(12) for _ in range(8)))})
+    if r.random() < 0.1:   # a count past 0xff (the whole word counts), its colours, normals and indices at their own addresses
+        n = r.choice([0x100, 0x101, 0x103, 0x1ff])
+        put(m, 0x5e, 'H', n)
+        put(m, 0x64, 'I', BIG_NORMALS)
+        put(m, 0x94, 'I', BIG_INDEX)
+        regions.update({BIG_OUT: r.bytes(4 * n), BIG_NORMALS: struct.pack('<%dI' % (3 * n), *(r.f(1) for _ in range(3 * n))),
+                        BIG_INDEX: struct.pack('<%dH' % n, *(r.randrange(12) for _ in range(n)))})
+        return Call(0x574660, [OBJ, BIG_OUT, MESH], regions, conv='t')
     return Call(0x574660, [OBJ, OUT, MESH], regions, conv='t')
 
 
 POSITIONS = RAM + 0x4800
+BIG_OUT, BIG_NORMALS, BIG_INDEX = RAM + 0x5000, RAM + 0x6000, RAM + 0x8000
 
 
 def view(r):
