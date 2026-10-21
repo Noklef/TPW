@@ -71,4 +71,11 @@ u8 *__fastcall Bit_Next(u8 *object, void *, u8 *out, u32) {
     return out;
 }
 
+u8 *__fastcall Cursor_CopyState(const u8 *object, void *, u8 *out) {
+    const u32 byte = at<u32>(object, 4);
+    at<u8>(out, 0) = at<u8>(object, 0);
+    at<u32>(out, 4) = byte;
+    return out;
+}
+
 }  // extern "C"

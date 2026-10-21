@@ -3255,6 +3255,7 @@ address,name,kind,confidence,notes
 0x006b5450,Nibble_Write,function,high,reimplemented (src/game/core/cursors); writes a nibble to a packed stream
 0x006b54c0,Nibble_Next,function,high,reimplemented (src/game/core/cursors); steps a nibble cursor and returns the old state
 0x006b54f0,Bit_Next,function,high,reimplemented (src/game/core/cursors); steps a bit cursor and returns the old state
+0x006b5540,Cursor_CopyState,function,low,"reimplemented (src/game/core/cursors); thiscall (out), pops 4: a cursor's state (+0 byte, +4 dword) copied to out; returns out"
 0x006a01a0,Checksum_Words,function,high,reimplemented (src/game/core/seqs); a rolling checksum over 16-bit values
 0x006a7240,Checksum_SignedBytes,function,high,reimplemented (src/game/core/seqs); a rolling checksum over signed bytes
 0x006ae2b0,Char_BracketClass,function,high,reimplemented (src/game/core/seqs); 1 for an opening and 2 for a closing bracket

@@ -10,7 +10,8 @@ from fncmp import Bench, Call, RAM  # noqa: E402
 
 # name: (address, returns, size)
 CALLS = {'T18': (0x6b0620, 'a', 0x30), 'T': (0x6b0650, 'a', 0x30), 'Pk': (0x6b0510, 'w', 0x48), 'NW': (0x6b5450, 'a', 0x50),
-         'NN': (0x6b54c0, 'a', 0x30), 'BN': (0x6b54f0, 'a', 0x48)}
+         'NN': (0x6b54c0, 'a', 0x30), 'BN': (0x6b54f0, 'a', 0x48),
+         'Cp': (0x6b5540, 'a', 0x20)}
 B = Bench([(a, a + n) for (a, _r, n) in CALLS.values()])
 POOL = RAM + 0x3000
 OUT = RAM + 0x1000
@@ -48,6 +49,8 @@ def case(r):
         obj[0] = r.choice([1, 2, 4, 0x40, 0x80, 0x01, 0, 0xff, r.getrandbits(8)])
         struct.pack_into('<I', obj, 4, POOL + r.randrange(0, 0x100))
         args += [OUT, r.choice([0, 1, 5])]
+    elif name == 'Cp':
+        args += [OUT]
     return Call(address, args, regions, conv='t', ret=ret)
 
 
