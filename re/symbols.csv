@@ -456,7 +456,7 @@ address,name,kind,confidence,notes
 0x006c0450,SoundCategory_ReadSfxMap,function,medium,"reimplemented (src/game/core/soundcategory); thiscall (&result, name, &index): opened through the Handle at +0x30 and read by SoundCategory_ReadSfxImage; 0 or -1"
 0x006c0360,SoundCategory_ReadSfxImage,function,medium,"reimplemented (src/game/core/soundcategory); thiscall (&result, stream, &index): GUID checked, the rest of SFX.map read into a heap block and fixed up for the current category's record"
 0x006c0510,SfxMap_Fixup,function,medium,"reimplemented (src/game/core/soundcategory); thiscall (data, out, count): *out = data; each category record fixed from the end of the records"
-0x006c5d20,SndReverb_Load,function,medium,"SndReverb.map: version 2000, 32 slots of (u8 present, 13 dwords)"
+0x006c5d20,SndReverb_Load,function,medium,"reimplemented (src/game/core/sndreverb); thiscall: SndReverb.map (version 2000, a count, records of a byte and 13 dwords) read from the system's folder into +0x68 / +0x6c"
 0x00450900,TerrainAttrMap_Load,function,medium,"formats %s\Terrain\Base.map and reads it through TP2M_ReadChunks"
 0x005192d0,TP2M_ReadChunks,function,medium,"TP2M chunk reader set up with one handler for the MAP chunk (vtable 0x700aa8)"
 0x00519390,AttrMapHandler_MatchTag,function,medium,"MAP chunk handler: tag test"
