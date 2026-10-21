@@ -84,8 +84,8 @@ def settings_case(r, log):
 
 def voices_case(r, log, name):
     """SoundChannel_UpdateOcclusion (0x6b7b60), SoundChannel_SetPosition (0x6b79d0) and the functor 0x70a278's run (0x6b5e60): a channel (its
-    position small integers) with 0-3 voices (channelvoice.py's layout; +0x10 / +0x14 flags with bits 0 and 5 any way, +0x28 0, 0.5, NaN or
-    any; a sound or null) in a pool, its source a recorder vtable (slot 0x1e fills a voice's position, small integers; slot 0x22 (recorder 6) a status,
+    position small integers) with 0-3 voices (channelvoice.py's layout; +0x10 / +0x14 flags with bits 0 and 5 any way, +0x28 0, 0.5, NaNs
+    (quiet and signalling) or any; a sound or null) in a pool, its source a recorder vtable (slot 0x1e fills a voice's position, small integers; slot 0x22 (recorder 6) a status,
     negative now and then; slot 0x13 a byte; slot 10 ReleaseVoice's status), an EAX buffer now and then, 0-3 occluders at 0xfb2038 near the
     voices (soundoccluders.py's layout); a settings record with random flags (+4, +0x4c), +0x50 a vector or null, +0x54 a vector (+0x58,
     +0x5c, +0x68 random)."""
@@ -119,7 +119,7 @@ def voices_case(r, log, name):
         struct.pack_into('<II', v, 0, VVT, r.choice([SND, SND, SND, 0]))
         for at in (0x10, 0x14):
             struct.pack_into('<I', v, at, r.getrandbits(32) & ~0x21 | r.choice([0x20, 0x20, 0x21, 0, 1]))
-        struct.pack_into('<II', v, 0x28, r.choice([0, fb(0.5), 0x7fc00000, fb(r.random()), r.getrandbits(32)]),
+        struct.pack_into('<II', v, 0x28, r.choice([0, 0, fb(0.5), 0x7fc00000, 0xffc00000, 0x7f800001, fb(r.random()), r.getrandbits(32)]),
                          r.choice([r.getrandbits(32), r.getrandbits(8)]))
         voices += v
     pool = struct.pack('<IIII', r.choice([0, 1, 2, 4, r.getrandbits(32)]), r.choice([VOICES] * 8 + [0]), n, CHAN)
