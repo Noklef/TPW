@@ -204,9 +204,11 @@ def case(r):
     if map_ctor:
         name = 'A'
         kind = None
-    else:   # which member: dealt over the tree's, so that a short run (the coverage gate's) reaches each
-        kind = r.deal(['inc', 'erase'] + [k for k, table in (('insert', INSERT), ('range', RANGE), ('subtree', RANGE), ('dtor', DTOR), ('ctor', CTOR), ('dec', DEC))
-                                           if name in table])
+    else:   # which member: dealt over the tree's, so that a short run (the coverage gate's) reaches each. Each tree its own deck (the
+        # pairs name it): r.deal keeps one deck per list, and C, D and E have the same members, so a shared deck dealt them in turn
+        # and left some tree's member with no case in the gate's run.
+        _tree, kind = r.deal([(name, k) for k in ['inc', 'erase'] + [k for k, table in (('insert', INSERT), ('range', RANGE), ('subtree', RANGE),
+                                                                                        ('dtor', DTOR), ('ctor', CTOR), ('dec', DEC)) if name in table]])
     if kind == 'insert':
         return case_insert(r, name)
     inc, erase, nil_at, colour = TREES[name]
