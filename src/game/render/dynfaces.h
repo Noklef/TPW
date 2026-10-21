@@ -21,6 +21,16 @@ void __cdecl DynFaces_AddPoly(const u32 *corners, u32 tag, const u32 *uvs, const
 // comes out quiet), the uvs (0, 0) (1, 0) (0, 1) (1, 1) in that order, and the tag the next of the dwords at 0x871d18.
 void __cdecl DynFaces_AddGrid(float dx, float dy, float dz, s32 rows, s32 cols, s32 row, s32 col);
 
+// 0x53cda0 (cdecl; dx, dy, dz, xoff, rows, cols, tag, angle; name unconfirmed; 0x53c6e8 calls it with xoff 0.5, 6 rows, 4 columns, tag
+// 0x12): that grid from its first vertex, turned about y by angle, as two polygon faces per quad (DynFaces_AddPoly, user 3, the tag given),
+// all on the x87 at the game's precision. With s and c the sine table's (sintable.h) entries for angle and angle + pi / 2, a vertex
+// (x + xoff, y, z) turns to x' = c x - z s, z' = z c + s x and then moves by (dx, dy, dz); its colour (the normal at 0x870ed8) turns
+// likewise. For each column (v from 1, or 0.55 for tag 0x13, down by 0.55 / cols) and row (u from 0 up by 1 / rows), the first face has
+// the vertices below, here, below-right and right with the colours negated and the uvs (u + du, v) (u, v) (u + du, v - dv) (u, v - dv);
+// the second here, below, right and below-right with the colours as they are and the uvs (u, v) (u + du, v) (u, v - dv) (u + du, v - dv).
+// The original's four turning loops write the products in different orders, kept (they decide between two NaNs).
+void __cdecl DynFaces_AddTurnedGrid(float dx, float dy, float dz, float xoff, s32 rows, s32 cols, u32 tag, float angle);
+
 // 0x53d380 (cdecl; rows, cols, step, phase; name unconfirmed): that grid filled as a wave, x87 at the game's precision with the sine table
 // (sintable.h): with k = 2 pi / 3 and A = 10 degrees, for each column (z = 0, step, ...) and row (x = 0, step, ...) the vertex is
 // (x, 1.7 cos h, z), h = x * k cos A - z * k sin A - phase / 2, and its normal (sin h, 1, sin h) normalised.

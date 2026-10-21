@@ -22,6 +22,46 @@ void Finish(u32 n, u32 tag) {
 // a + b on the x87, stored as a float.
 float Sum(float a, float b) { return static_cast<float>(X87Reg(a) + X87Reg(b)); }
 
+float AsFloat(u32 bits) {
+    float f;
+    std::memcpy(&f, &bits, 4);
+    return f;
+}
+u32 Bits(float f) {
+    u32 b;
+    std::memcpy(&b, &f, 4);
+    return b;
+}
+
+// The four vertices' x and z (12 bytes apart, y kept) turned by sine s and cosine c: z' = z c + s x, x' = c x - z s. The products' operand
+// order differs between 0x53cda0's loops: 0 (the first face's corners) z c + s x, c x - z s; 1 (the second's) z c + x s, x c - z s; 2 (the
+// colours) z c + x s, x c - s z.
+void Turn(u32 *v, float s, float c, int order) {
+    for (int k = 0; k < 4; ++k) {
+        const X87Reg x = AsFloat(v[3 * k]), z = AsFloat(v[3 * k + 2]);
+        const X87Reg zc = z * X87Reg(c), sx = order == 0 ? X87Reg(s) * x : x * X87Reg(s);
+        v[3 * k + 2] = Bits(static_cast<float>(zc + sx));
+        const X87Reg cx = order == 0 ? X87Reg(c) * x : x * X87Reg(c), zs = order == 2 ? X87Reg(s) * z : z * X87Reg(s);
+        v[3 * k] = Bits(static_cast<float>(cx - zs));
+    }
+}
+
+// The sine table's entries for angle and for a (angle + pi / 2, as a float): scale * angle stored as a float, then fistp'd.
+void SinCos(float angle, float a, float &s, float &c) {
+    const SinTable sines = SinTable_Game();
+    s = SinTable_At(sines, static_cast<float>(X87Reg(sines.scale) * angle));
+    c = SinTable_At(sines, static_cast<float>(X87Reg(sines.scale) * a));
+}
+
+// dx, dy, dz added to the four vertices (dx + x, on the x87).
+void Move(u32 *v, float dx, float dy, float dz) {
+    for (int k = 0; k < 4; ++k) {
+        v[3 * k] = Bits(Sum(dx, AsFloat(v[3 * k])));
+        v[3 * k + 1] = Bits(Sum(dy, AsFloat(v[3 * k + 1])));
+        v[3 * k + 2] = Bits(Sum(dz, AsFloat(v[3 * k + 2])));
+    }
+}
+
 }  // namespace
 
 extern "C" {
@@ -139,6 +179,61 @@ void __cdecl DynFaces_AddGrid(float dx, float dy, float dz, s32 rows, s32 cols, 
             const u32 tag = global<u32>(0x00871d18 + 4 * face++);
             DynFaces_AddPoly(reinterpret_cast<const u32 *>(corners), tag, uvs, colours, 1);
         }
+    }
+}
+
+void __cdecl DynFaces_AddTurnedGrid(float dx, float dy, float dz, float xoff, s32 rows, s32 cols, u32 tag, float angle) {
+    const float du = static_cast<float>(X87Reg(1.0f) / X87Reg(static_cast<double>(rows)));
+    const float dv = static_cast<float>(X87Reg(0.550000012f) / X87Reg(static_cast<double>(cols)));
+    float v = tag == 0x13 ? 0.550000012f : 1.0f;
+    for (s32 i = 0; i < cols; ++i) {
+        if (rows > 0) {
+            const float a = static_cast<float>(X87Reg(angle) - X87Reg(-1.57079637f));
+            u32 u = 0;
+            u32 offset = static_cast<u32>(i) * 12;
+            for (s32 j = rows; j != 0; --j, offset += 0xe4) {
+                const u32 *const p = reinterpret_cast<const u32 *>((uintptr_t)(0x00874180 + offset));
+                const u32 *const n = reinterpret_cast<const u32 *>((uintptr_t)(0x00870ed8 + offset));
+                // The first face: below, here, below-right, right.
+                const u32 at1[4] = {57, 0, 60, 3};
+                u32 corners[12], colours[12], uvs[12] = {};
+                float s, c;
+                for (int k = 0; k < 4; ++k) {
+                    corners[3 * k] = Bits(Sum(xoff, AsFloat(p[at1[k]])));
+                    corners[3 * k + 1] = p[at1[k] + 1];
+                    corners[3 * k + 2] = p[at1[k] + 2];
+                }
+                SinCos(angle, a, s, c);
+                Turn(corners, s, c, 0);
+                for (int k = 0; k < 12; ++k) colours[k] = X87_FloatThrough(n[at1[k / 3] + k % 3]) ^ 0x80000000u;
+                SinCos(angle, a, s, c);
+                Turn(colours, s, c, 2);
+                Move(corners, dx, dy, dz);
+                const u32 u1 = Bits(static_cast<float>(X87Reg(AsFloat(u)) + X87Reg(du)));
+                const u32 v1 = Bits(v), v2 = Bits(static_cast<float>(X87Reg(v) - X87Reg(dv)));
+                const u32 uv1[8] = {u1, v1, u, v1, u1, v2, u, v2};
+                for (int k = 0; k < 4; ++k) uvs[3 * k] = uv1[2 * k], uvs[3 * k + 1] = uv1[2 * k + 1];
+                DynFaces_AddPoly(corners, tag, uvs, colours, 3);
+                // The second: here, below, right, below-right.
+                const u32 at2[4] = {0, 57, 3, 60};
+                for (int k = 0; k < 4; ++k) {
+                    corners[3 * k] = Bits(Sum(AsFloat(p[at2[k]]), xoff));
+                    corners[3 * k + 1] = p[at2[k] + 1];
+                    corners[3 * k + 2] = p[at2[k] + 2];
+                }
+                SinCos(angle, a, s, c);
+                Turn(corners, s, c, 1);
+                for (int k = 0; k < 12; ++k) colours[k] = n[at2[k / 3] + k % 3];
+                SinCos(angle, a, s, c);
+                Turn(colours, s, c, 2);
+                Move(corners, dx, dy, dz);
+                const u32 uv2[8] = {u, v1, u1, v1, u, v2, u1, v2};
+                for (int k = 0; k < 4; ++k) uvs[3 * k] = uv2[2 * k], uvs[3 * k + 1] = uv2[2 * k + 1];
+                DynFaces_AddPoly(corners, tag, uvs, colours, 3);
+                u = u1;
+            }
+        }
+        v = static_cast<float>(X87Reg(v) - X87Reg(dv));
     }
 }
 
