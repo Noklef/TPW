@@ -1019,4 +1019,31 @@ s32 __cdecl Things_AverageKind3Flag1Of100Minus44() {
     }
     return count ? sum / count : 0;
 }
+
+u16 *__stdcall Things_MostKind3Flag1Of100Minus44(u16 *handle, s32 *value) {
+    *value = 0;
+    u16 best = 0, at_handle;
+    s32 most = 0;
+    bool found = false;
+    World_FirstThing(world(), nullptr, &at_handle);
+    while (at_handle) {
+        const u8 *thing = thing_of(at_handle);
+        if (at<u8>(thing, 2) == 3 && (at<u8>(thing, 0x32) & 1)) {
+            const s32 v = 100 - (u8)(long long)at<float>(thing, 0x44);
+            if (!found || v > most) {
+                best = at_handle;
+                most = v;
+                found = true;
+            }
+        }
+        World_NextThing(world(), nullptr, &at_handle, thing);
+    }
+    if (!found) {
+        *handle = 0;
+        return handle;
+    }
+    *value = most;
+    *handle = best;
+    return handle;
+}
 }  // extern "C"

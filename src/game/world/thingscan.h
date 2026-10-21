@@ -266,6 +266,11 @@ s32 __stdcall Things_AverageStat1f8OfKind(u32 kind);
 // average (signed) of 100 less the low byte of their float +0x44 cut to an integer, 0 when there are none.
 s32 __cdecl Things_AverageKind3Flag1Of100Minus44();
 
+// 0x4ca220 (stdcall (&handle, &value), pops 8; ECX unused; name unconfirmed): *value = 0, then of the objects (kind 3) with bit 0 of
+// +0x32 set the first with the greatest (signed) 100 less the low byte of its float +0x44 cut to an integer: its handle to *handle and
+// that to *value; *handle = 0 when there is none (*value left 0). Returns handle. The debug print of the slot check is left out.
+u16 *__stdcall Things_MostKind3Flag1Of100Minus44(u16 *handle, s32 *value);
+
 // 0x4c9b40 (thiscall on the analyser, unused (kind), pops 4; name unconfirmed): the staff (things of kind 4, 5, 6, 8 or 7) of that kind,
 // or of any when it is 0, with a patrol region (Staff_HasPatrolRegion), counted.
 s32 __stdcall Things_CountStaffWithPatrol(u32 kind);

@@ -8,7 +8,7 @@
 # CPlain / C4ac0 (0x4c7fa0 / 0x4c8070, the analyser's kept counts): its count at +0x1f0b8 / +0x1f0c4 kept or not (byte +8), taken some
 # quarters before the game time (or after it, wrapping), the age asked for about that. Avg1f8 (0x4c9cc0): the staff mostly, a kind asked
 # for (or with high bits), their floats +0x1f8; Avg44 (0x4ca160): objects with +0x32 bit 0 or not, their floats +0x44; the floats 0..100
-# mostly (else negative, past 255, huge or NaN). Patrol (0x4c9b40, on the analyser, not read): the staff mostly, a kind asked for or any (0),
+# mostly (else negative, past 255, huge or NaN); Most44 (0x4ca220) as Avg44, its two outputs random bytes before. Patrol (0x4c9b40, on the analyser, not read): the staff mostly, a kind asked for or any (0),
 # their patrol regions +0x20a / +0x20c the none (1, 0x4000) now and then. Half (0x4c81e0): CPlain's analyser, its kept count (+0x1f0bc)
 # about 0, 200 and negative, kept for age 0 mostly.
 # usage: thingscan.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=C1,C2,Max,...)
@@ -36,7 +36,7 @@ CALLS = {'C1': (0x4c9f90, 'c', 0xa0, 'n'), 'C2': (0x4ca0c0, 'c', 0xa0, 'n'), 'Ma
          'Step': (0x4b3340, 'c', 0x14c, 'kp'), 'Group': (0x48caf0, 't', 0xe4, 'kp'),
          'GroupB': (0x48cbe0, 't', 0xe4, 'kp'), 'Score': (0x4cceb0, 't', 0x449, 'a'),
          'CPlain': (0x4c7fa0, 't', 0xc6, 'gc'), 'C4ac0': (0x4c8070, 't', 0xde, 'gc'),
-         'Avg1f8': (0x4c9cc0, 's', 0xb3, 'v'), 'Avg44': (0x4ca160, 'c', 0xb4, 'n'), 'Patrol': (0x4c9b40, 's', 0xba, 'v'),
+         'Avg1f8': (0x4c9cc0, 's', 0xb3, 'v'), 'Avg44': (0x4ca160, 'c', 0xb4, 'n'), 'Most44': (0x4ca220, 's', 0xec, 'oo'), 'Patrol': (0x4c9b40, 's', 0xba, 'v'),
          'Half': (0x4c81e0, 't', 0x53, 'gh')}   # (Step's and Group's ranges take in their jump tables)
 B = Bench([(a, a + n) for (a, _c, n, _s) in CALLS.values()] + [(0x516130, 0x516160), (0x516160, 0x5161b0), (0x50b350, 0x50b360), (0x4e0440, 0x4e0450),
                                                               (0x4e2710, 0x4e2740), (0x4dd4e0, 0x4dd500), (0x412e90, 0x412eea), (0x5da3c0, 0x5da3c1), (0x41a960, 0x41a970), (0x5161b0, 0x516200), (0x4fa990, 0x4fa9fa), (0x536300, 0x53644c), (0x519510, 0x519550),
@@ -53,7 +53,7 @@ def case(r):
     if shape == 'kp':
         return category(r, address)
     regions, handles, things = park(r, count=r.choice([1, 2, 3, 4, 6]) if shape in ('o', 'u') or name.startswith('B') else None,
-                                    defs=name not in ('C1', 'C2', 'Max', 'C3', 'Staff', 'Avg', 'Re', 'P1', 'P2', 'P3', 'Sum', 'Cs', 'Avg1f8', 'Avg44', 'Patrol') and shape != 'u',
+                                    defs=name not in ('C1', 'C2', 'Max', 'C3', 'Staff', 'Avg', 'Re', 'P1', 'P2', 'P3', 'Sum', 'Cs', 'Avg1f8', 'Avg44', 'Most44', 'Patrol') and shape != 'u',
                                     kinds=(4, 5, 6, 7, 8, 3, 1, 0) if name in ('Staff', 'S5', 'S6', 'S4', 'S7', 'S8', 'Cs', 'Avg1f8', 'Patrol') else (1, 1, 1, 3, 0, 0xff) if name[0] == 'P' or name in ('CPlain', 'Half') else
                                     (4, 5, 5, 6, 7, 8, 1, 1, 3, 3, 3, 0) if name == 'Score' else (3, 3, 3, 1, 2, 0xff, 0),
                                     cells=name[0] == 'P' or name in ('Score', 'CPlain', 'Half'))
@@ -110,7 +110,7 @@ def case(r):
             obj[off:off + 4] = struct.pack('<i', r.choice([-2, -1, 0, 1, 2, 5]))
             obj[off + 4:off + 8] = struct.pack('<I', r.choice([0, 7, 0xdead]))
         regions[RAM + 0x4000 + 0x360] = bytes(obj)
-    if name in ('Avg1f8', 'Avg44'):
+    if name in ('Avg1f8', 'Avg44', 'Most44'):
         pool = regions[POOL]
         for i in range(len(things)):
             f = r.choice([0.0, 1.0, 50.0, 99.9, 100.0, 0.5, r.uniform(0, 100)]) if r.random() < 0.85 else \
@@ -127,8 +127,10 @@ def case(r):
     if name in ('D4', 'D5'):
         value = r.choice([0, 3, 3, 5])
     args = {'n': [], 'a': [r.getrandbits(32)], 'p': [prev], 'v': [value], 'vp': [r.choice([0, 3, 5, value]), prev], 'o': [OUT], 'g': [RAM + 0x4000], 'gc': [RAM + 0x4000, value], 'gh': [RAM + 0x4000], 's': [RAM + 0x4000],
-            'vv': [value, r.choice([0, 1, 5, 0x7f, 0x80, 0xff, 0xffffffff, 0x80000000])]}[shape]
+            'oo': [OUT + 0x10, OUT + 0x14], 'vv': [value, r.choice([0, 1, 5, 0x7f, 0x80, 0xff, 0xffffffff, 0x80000000])]}[shape]
     regions[OUT] = r.bytes(4)
+    if shape == 'oo':
+        regions[OUT + 0x10] = r.bytes(8)
     return Call(address, args, regions, conv=conv, ret='a')
 
 
