@@ -66,6 +66,7 @@
 #include "../../src/game/world/advisorscore.h"
 #include "../../src/game/model/holder.h"
 #include "../../src/game/model/objmodel.h"
+#include "../../src/game/core/sharedglobals.h"
 #include "../../src/game/world/mapline.h"
 #include "../../src/game/world/mousemode.h"
 #include "crt.h"
@@ -290,6 +291,7 @@ const StdStringEnv kStdStringEnv = {&heap_alloc, &heap_free, &heap_throw, &heap_
 const MouseModeEnv kMouseModeEnv = {&heap_free, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const AdvisorScoreEnv kAdvisorScoreEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const ObjModelEnv kObjModelEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
+const SharedGlobalsEnv kSharedGlobalsEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const PtrListEnv kPtrListEnv = {&heap_alloc};
 const GameHeapEnv kGameHeapEnv = {&heap_alloc, &heap_free};
 // libjpeg 6b's calls outside itself (src/game/lib/jpeg6b.h): jmemansi.c's malloc / free the heap; jmemmgr.c's getenv, sscanf and
@@ -828,6 +830,7 @@ int main(int argc, char **argv) {
     MouseModes_SetEnv(&kMouseModeEnv);
     AdvisorScore_SetEnv(&kAdvisorScoreEnv);
     ObjModel_SetEnv(&kObjModelEnv);
+    SharedGlobals_SetEnv(&kSharedGlobalsEnv);
     PtrList_SetEnv(&kPtrListEnv);
     GameHeap_SetEnv(&kGameHeapEnv);
     Jpeg6b_SetCrtEnv(&kJpeg6bCrtEnv);

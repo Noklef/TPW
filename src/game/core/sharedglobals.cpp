@@ -6,6 +6,9 @@
 
 namespace {
 
+const SharedGlobalsEnv kGameEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0)};
+const SharedGlobalsEnv *g_env = &kGameEnv;
+
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
@@ -18,7 +21,17 @@ void release(u32 address) {
     global<u32>(address) = 0;
 }
 
+u8 *set(u32 address, u8 *shared, u32 release) {
+    global<u8 *>(address) = shared;
+    const u32 count = at<u32>(shared, 4);
+    if (count != 0xffffffffu) at<u32>(shared, 4) = count + 1;
+    g_env->atExit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)release));
+    return shared;
+}
+
 }  // namespace
+
+void SharedGlobals_SetEnv(const SharedGlobalsEnv *env) { g_env = env ? env : &kGameEnv; }
 
 extern "C" {
 
@@ -45,4 +58,10 @@ void __cdecl Globalfb1ed4_Release() { release(0x00fb1ed4); }
 void __cdecl Globalfb1ed8_Release() { release(0x00fb1ed8); }
 void __cdecl Globalfb1ebc_Release() { release(0x00fb1ebc); }
 void __cdecl Globalfb1ec4_Release() { release(0x00fb1ec4); }
+
+u8 *__cdecl Global7ced44_Set(u8 *shared) { return set(0x007ced44, shared, 0x004f7970); }
+u8 *__cdecl Global7ced48_Set(u8 *shared) { return set(0x007ced48, shared, 0x004f7a10); }
+u8 *__cdecl Globalfb1dc0_Set(u8 *shared) { return set(0x00fb1dc0, shared, 0x00699650); }
+u8 *__cdecl Globalfb1dbc_Set(u8 *shared) { return set(0x00fb1dbc, shared, 0x00699770); }
+u8 *__cdecl Globalfb1dc4_Set(u8 *shared) { return set(0x00fb1dc4, shared, 0x00699890); }
 }
