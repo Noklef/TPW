@@ -2,7 +2,7 @@
 // +0x14 set when free) kept in a list from [0xfaa634]: the window +0, the time last fired +4, the interval +8, the id +0xc, the enabled
 // flag +0x10, the next +0x18 and the previous +0x1c. Each fires by posting its window 0x10 (id, n) (0x661fe5). Names unconfirmed.
 // Reimplementation of 0x661faa, 0x6620e2, 0x662306, 0x662500, 0x661f2b, 0x661ece, 0x66220d, 0x6620ac, and the window's own 0x65ef90,
-// 0x65f024 and 0x65f077.
+// 0x65f024 and 0x65f077, and 0x661fe5 and 0x662384.
 #pragma once
 
 #include "../../../re/types.h"
@@ -53,4 +53,14 @@ u32 __fastcall Window_StartTimer(u8 *window, void *, u32 id);
 
 // 0x65f077 (thiscall (id), pops 4; name unconfirmed): as Window_StartTimer, the node stopped instead (Fn_662097: +0x10 = 0).
 u32 __fastcall Window_StopTimer(u8 *window, void *, u32 id);
+
+// 0x661fe5 (thiscall; name unconfirmed): the node's due firings: with the time since +4 (GuiClock_Now) at least the interval +8 (signed),
+// +4 now (the clock read again), then for each whole interval in that time, with the node enabled (+0x10), a window +0 and [0x77c488]
+// set, the window posted 0x10 (the id +0xc, the count posted so far) (Window_PostMessage); +4 then moved back by what is left. Returns the
+// count posted.
+s32 __fastcall WindowTimer_Fire(u8 *node);
+
+// 0x662384 (cdecl (node); name unconfirmed): 0 without a list [0xfaa634] or a node; else the list's head moves on (+0x18) when it is the
+// node, the node is deleted (WindowTimer_Delete (1)) and 1 returned.
+u32 __cdecl WindowTimers_Remove(u8 *node);
 }

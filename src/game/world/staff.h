@@ -180,6 +180,13 @@ void __fastcall Staff_InitBase(u8 *staff);
 // Others: only stored (the original's debug print left out).
 void __fastcall Staff_SetState(u8 *staff, void *, u32 state);
 
+// 0x4da370 (thiscall (state), pops 4; name unconfirmed): a mechanic's state. 0xc: the reference's animation (+0xc, Set4_4217f0) 9. 0xd: the
+// animation 0x12, and the repair time +0x214 for the thing of the handle +0x218 (the game table 0x7cfb90; the original's Debug_Printf left
+// out) from the skill table 0x78542c's dword of the grade +0x1e4 (8 bytes apart): times its definition's dword +0x1fc + 0x40 * its byte
+// +0x50 when its +0x19c is 2 (Is19c_Eq2_4e03e0, Object_GetDef), else times 100 less the low byte of its float +0x44 (truncated) over 100
+// (signed; both products wrapping). Others: Staff_SetState. The state is then +0x19c.
+void __fastcall Mechanic_SetState(u8 *mechanic, void *, u32 state);
+
 // 0x4d7880 (thiscall; out, pops 4; name unconfirmed: Handyman_Update's, which keeps the result at +0x21a): the handyman's next job, by the world's
 // object list (head +0x1da746 of [0x80239c], the thing table 0x7cfb90, next +0xc). An object with flag 0 of +0x32 that tracks nobody or this
 // handyman (Obj_GetTrackedHandle; asked twice) is a candidate at squared cell distance d2 (bytes +5 / +7 of both) when its +0x64 is set

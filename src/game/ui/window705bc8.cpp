@@ -55,4 +55,18 @@ u8 *__fastcall Window705bc8_SetRange2(u8 *window, void *, const s32 *low, const 
     at<s32>(window, 0x154) = at<s32>(window, 0x150) - at<s32>(window, 0x14c);
     return window;
 }
+
+s32 __fastcall Window705bc8_FirstToSecond(u8 *window) {
+    if (at<s32>(window, 0x144) == at<s32>(window, 0x13c)) return at<s32>(window, 0x150);
+    if (at<s32>(window, 0x144) == at<s32>(window, 0x138)) return at<s32>(window, 0x14c);
+    const s32 product = (s32)(at<u32>(window, 0x154) * at<u32>(window, 0x144));   // (wrapping, as IMUL)
+    return (s32)((u32)(product / at<s32>(window, 0x140)) + at<u32>(window, 0x14c));
+}
+
+s32 __fastcall Window705bc8_SecondToFirst(u8 *window) {
+    if (at<s32>(window, 0x158) == at<s32>(window, 0x150)) return at<s32>(window, 0x13c);
+    if (at<s32>(window, 0x158) == at<s32>(window, 0x14c)) return at<s32>(window, 0x138);
+    const s32 product = (s32)((at<u32>(window, 0x158) - at<u32>(window, 0x14c)) * at<u32>(window, 0x140));   // (wrapping, as IMUL)
+    return (s32)((u32)(product / at<s32>(window, 0x154)) + at<u32>(window, 0x138));
+}
 }

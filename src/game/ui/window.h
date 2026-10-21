@@ -231,6 +231,11 @@ u32 __cdecl Gui_MouseDown(u32 button, u32 x, u32 y);
 // cleared, its bit cleared in [0xfaa5bc]; 1 in AX (the rest of EAX the inverted bit's).
 u32 __cdecl Gui_MouseUp(u32 button, u32 x, u32 y);
 
+// 0x658bcb (cdecl (delta, x, y: words); name unconfirmed): the mouse wheel turned. 0 in AX while [0x77c488] is 0 (the rest of EAX not
+// set). Else the capture [0xfaa5e8], or without one the hovered window [0xfaa5e0], is posted 0x1000d (delta, x << 16 | y; signed, sic as
+// Gui_MouseDown's) (Window_PostMessage); 1 in AX.
+u32 __cdecl Gui_MouseWheel(u32 delta, u32 x, u32 y);
+
 // 0x6588ef (cdecl (x, y: words); name unconfirmed): the mouse moved. 0 in AX while [0x77c488] is 0. Else the words 0xfaa540 / 0xfaa544
 // = x / y; without the root window [0xfaa5d8], 0 in AX. With a capture window [0xfaa5e8], it is posted 0x10003 (x << 16 | y, both signed:
 // sic, a negative y fills the top half; 0); else the window under the point (Window_HitTest on the root), when it is not the hovered one

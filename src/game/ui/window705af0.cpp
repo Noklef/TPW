@@ -2,6 +2,9 @@
 
 #include <cstdint>
 
+#include "../core/accessors.h"
+#include "../core/gameheap.h"
+#include "../core/vcall.h"
 #include "guirect.h"
 #include "window.h"
 
@@ -24,6 +27,110 @@ u8 *__fastcall Window705af0_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 
     window[0x154] = 1;
     GuiRect_Assign(window + 0x2c, nullptr, window + 8);
     Window_SetHandler(window, nullptr, 0x66aa61);
+    return window;
+}
+
+u32 __fastcall Window705af0_Dtor(u8 *window) {
+    at<u32>(window, 0) = 0x705af0;
+    return Window_Dtor(window);
+}
+
+void __fastcall Window705af0_SetRange(u8 *window, void *, const s32 *low, const s32 *high) {
+    if (low) at<s32>(window, 0x138) = *low;
+    if (high) at<s32>(window, 0x13c) = *high;
+    if (at<s32>(window, 0x138) > at<s32>(window, 0x13c)) {
+        at<s32>(window, 0x138) = at<s32>(window, 0x13c);
+        at<s32>(window, 0x13c) = at<s32>(window, 0x138);  // sic: the swap's saved low is never used, both ends become the high one
+    }
+    if (at<s32>(window, 0x140) < at<s32>(window, 0x138)) at<s32>(window, 0x140) = at<s32>(window, 0x138);
+    else if (at<s32>(window, 0x140) > at<s32>(window, 0x13c)) at<s32>(window, 0x140) = at<s32>(window, 0x13c);
+}
+
+void __fastcall Window705af0_SetStep(u8 *window, void *, const s32 *step) {
+    if (step) at<s32>(window, 0x148) = *step;
+}
+
+s32 __fastcall Window705af0_Distance(u8 *window, void *, u8 *other) {
+    const u32 theirs = vcall<u32>(other, 0xc);
+    if (theirs != vcall<u32>(window, 0xc)) return 0;
+    return at<s32>(window, 0x140) - at<s32>(other, 0x140);
+}
+
+u16 __fastcall Window705af0_SetValue(u8 *window, void *, s32 value) {
+    if (value > at<s32>(window, 0x13c)) value = at<s32>(window, 0x13c);
+    else if (value < at<s32>(window, 0x138)) value = at<s32>(window, 0x138);
+    if (value == at<s32>(window, 0x140) && !window[0x154]) return 0;
+    window[0x154] = 0;
+    at<s32>(window, 0x144) = at<s32>(window, 0x140);
+    at<s32>(window, 0x140) = value;
+    Window_Notify80(window, nullptr, (u32)value);
+    Window_PostMessage(at<u8 *>(window, 0x60), 0x800, at<u32>(window, 0x8c), at<u32>(window, 0x140));
+    return 1;
+}
+
+void __fastcall Window705af0_Nudge(u8 *window, void *, u32 mode) {
+    s32 &value = at<s32>(window, 0x140), &step = at<s32>(window, 0x148), &count = at<s32>(window, 0x14c), &fast = at<s32>(window, 0x150);
+    switch ((s16)mode) {
+    case 0: Window705af0_SetValue(window, nullptr, value - step); break;
+    case 1: Window705af0_SetValue(window, nullptr, value + step); break;
+    case 2:
+    case 3:
+        if (step == 1) {
+            count = 0x14;
+            fast = 1;
+        } else {
+            count = 5;
+        }
+        if ((s16)mode == 3) Window705af0_SetValue(window, nullptr, value + step);
+        break;
+    case 4:
+    case 5: {
+        const bool up = (s16)mode == 5;
+        if (step == 1) {
+            Window705af0_SetValue(window, nullptr, up ? value + fast : value - fast);
+            if (--count == 0) {
+                fast *= 10;
+                count = 0x14;
+            }
+        } else if (--count == 0) {
+            Window705af0_SetValue(window, nullptr, up ? value + step : value - step);
+            count = 5;
+        }
+        break;
+    }
+    }
+}
+
+u32 __cdecl Window705af0_Proc(u8 *window, u32 message, u32 a, u32 b) {
+    switch ((s32)message) {
+    case 0x15:
+        for (u32 id = 1; id <= 2; ++id) {
+            if (u8 *const arrow = Window_FindChild(window, nullptr, id)) {
+                Fn_6693d0(arrow, nullptr, 0x32);
+                Fn_6693f0(arrow, nullptr, 200);
+            }
+        }
+        break;
+    case 0x100:
+        if (a == 1) Window705af0_Nudge(window, nullptr, 1);
+        else if (a == 2) Window705af0_Nudge(window, nullptr, 0);
+        break;
+    case 0x10008:
+        if (a == 1) Window705af0_Nudge(window, nullptr, 5);
+        else if (a == 2) Window705af0_Nudge(window, nullptr, 4);
+        break;
+    case 0x10009:
+        if (a == 1) Window705af0_Nudge(window, nullptr, 3);
+        else if (a == 2) Window705af0_Nudge(window, nullptr, 2);
+        break;
+    case 0x1000d: vcall<u32>(window, 0x1c, vcall<u32>(window, 0x20) + a); break;
+    }
+    return Window_DefaultProc(window, message, a, b);
+}
+
+u8 *__fastcall Window705af0_DeletingDtor(u8 *window, void *, u32 flags) {
+    Window705af0_Dtor(window);
+    if (flags & 1) GameHeap_Free(window);
     return window;
 }
 }

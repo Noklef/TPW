@@ -64,6 +64,7 @@
 #include "../../src/game/render/engineerrors.h"
 #include "../../src/game/sprite/draw.h"
 #include "../../src/game/sprite/script.h"
+#include "../../src/game/ui/cursor.h"
 #include "../../src/game/world/advisorscore.h"
 #include "../../src/game/model/holder.h"
 #include "../../src/game/model/objmodel.h"
@@ -1081,6 +1082,12 @@ int main(int argc, char **argv) {
     // and mp2layer2.py hook it with fncmp._mp2_transform.
     static const Mp2SynthEnv mp2Synth = {&stub_mp2_transform};
     Mp2Synth_SetEnv(&mp2Synth);
+    // The game cursors' file loaders (.ani / .cur and .tga) the cdecl recorders k 28 and 29 (one argument), as tests/fncmp/cursor.py hooks
+    // 0x4895b0 and 0x489670 (fncmp.recorder(k, 1, cdecl=True)).
+    static GameCursorsEnv gameCursors = *GameCursors_GetEnv();
+    gameCursors.loadAni = reinterpret_cast<u8 *(__cdecl *)(const char *)>((uintptr_t)(kStubs + 0xb000 + 0x400 * 1 + 0x20 * 28));
+    gameCursors.loadTga = reinterpret_cast<u8 *(__cdecl *)(const char *)>((uintptr_t)(kStubs + 0xb000 + 0x400 * 1 + 0x20 * 29));
+    GameCursors_SetEnv(&gameCursors);
     // A region of up to 8 MB, as hex. Mapped rather than static: a static this size grew the driver's .bss by 12 MB past the game's
     // addresses, where a case's wild pointer read memory natively that the emulator (the original's side) does not have. At 0x5a000000,
     // not top-down: that put it at 0x7ef00000-0x7fef0000, under the bits of +inf, NaN and big floats (0x7f800000, 0x7fc00000, 3e38),

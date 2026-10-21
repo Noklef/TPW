@@ -29,4 +29,29 @@ u32 __fastcall Window705a20_Dtor(u8 *window);
 // from +0x30 + +0x150 / +0x32 + +0x154, 8 wide and +0x156 high, and +0x24 0x17) and, when the window is shown (Window_IsShown), its
 // slot 5 (1). EAX not kept.
 void __fastcall Window705a20_SetCaret(u8 *window, void *, u8 *caret);
+
+// 0x66836a (thiscall (two words, unread), pops 8; name unconfirmed): message 0x13's (moved) handler: with a caret +0x15c, its slot 3
+// (0x10, an event on the stack of which only +0x14 is set: a GUI rectangle (GuiRect_CtorWith) from +0x30 + +0x150 / +0x32 + +0x154,
+// 8 wide and +0x156 high). EAX not kept.
+void __fastcall Window705a20_MoveCaret(u8 *window, void *, u32, u32);
+
+// 0x667fee (thiscall (key: a word, value), pops 8; name unconfirmed): the parent +0x60 sent (Window_SendMessage) for key 9 0x803, 0xd
+// 0x802 (none when flag 0x80 of +0x48 is set), 0x1b 0x804, each with the id +0x8c and the value; any other key 0x806 with the id and
+// the key sign-extended. EAX: the send's, or (sic) the window for a key 0xd not sent.
+u32 __fastcall Window705a20_KeyToParent(u8 *window, void *, u32 key, u32 value);
+
+// 0x6667eb (thiscall; name unconfirmed): with no selection (the word +0x14c -1) and the word +0x158 not -1, that word's bit 0 flipped
+// (insert or overwrite, unconfirmed), the caret +0x15c (when set) told it through its slot 5 (the word, the upper half the window's
+// address's, sic), and with [0xfaa5d4] set the window posted 3 (0, 0). EAX not kept.
+void __fastcall Window705a20_ToggleInsert(u8 *window);
+
+// 0x66671d (thiscall (post), pops 4; name unconfirmed): the object +0x9c (when set) told 0x4100 through its slot 3, the event's +0x10
+// pointing to the text (+0 the buffer +0x138, the word +0xa the length +0x148); with post set the parent +0x60 posted 0x801 (the id
+// +0x8c, 0). EAX not kept.
+void __fastcall Window705a20_NotifyText(u8 *window, void *, u32 post);
+
+// 0x666875 (thiscall (mode: a word), pops 4; name unconfirmed): the word +0x158 the mode, -1 for 0; the caret +0x15c (when set) told the
+// mode through its slot 5 (the pushed dword's upper half EDX's: the caller's for mode 0, else the window's address's; sic), and with
+// [0xfaa5d4] set the window posted 3 (0, 0). EAX not kept.
+void __fastcall Window705a20_SetInsertMode(u8 *window, void *edx, u32 mode);
 }

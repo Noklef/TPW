@@ -108,4 +108,18 @@ void __fastcall Window705950_Scrolled(u8 *window) {
     at<u32>(window, 0x150) = first;
     if (*reinterpret_cast<u32 *>((uintptr_t)0x00faa5d4)) Window_PostMessage(window, 3, 0, 0);
 }
+
+u8 *__fastcall Window705950_NthNode(u8 *window, void *, s32 n) {
+    if (n >= at<s32>(window, 0x14c) || !at<u8 *>(window, 0x144)) return nullptr;
+    u8 *node = at<u8 *>(window, 0x144);
+    for (s32 i = 0; i < n; ++i) {
+        if (at<u8 *>(node, 0x48)) {
+            node = at<u8 *>(node, 0x48);
+            continue;
+        }
+        while (!at<u8 *>(node, 0x44)) node = at<u8 *>(node, 0x4c);
+        node = at<u8 *>(node, 0x44);
+    }
+    return node;
+}
 }

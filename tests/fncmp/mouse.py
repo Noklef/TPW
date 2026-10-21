@@ -1,8 +1,9 @@
 # The mouse handlers of src/game/input/mouse (0x46c210, 0x46c2a0) against the originals: the mouse object at [0x7b05d8] is a recorder (the log shows which slot is called with which
 # arguments), the last position and the button flags are random. GuiButton (0x486c70, with ui/window's 0x658af1 / 0x658b5b and the GUI's
 # message queue): see gui(). GuiMove (0x6588ef): window.py's tree and hover (the capture [0xfaa5e8] mostly 0), the GUI up or not
-# ([0x77c488]), the point a point() (in the windows mostly) or any.
-# usage: mouse.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Button,Moved,GuiButton,GuiMove)
+# ([0x77c488]), the point a point() (in the windows mostly) or any. GuiWheel (0x658bcb): gui()'s, the capture [0xfaa5e8] the window or 0,
+# the delta small or any, x and y as gui()'s.
+# usage: mouse.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Button,Moved,GuiButton,GuiMove,GuiWheel)
 import os
 import struct
 import sys
@@ -13,7 +14,8 @@ from fncmp import Bench, Call, LOG, RAM, log_region, put, vtable  # noqa: E402
 from window import RANGES as WINDOW_RANGES, hover, point, tree  # noqa: E402
 
 B = Bench([(0x46c210, 0x46c2a0), (0x46c2a0, 0x46c330), (0x5da3c0, 0x5da3c1), (0x486c70, 0x486d8f), (0x658af1, 0x658b5b), (0x658b5b, 0x658bcb),
-           (0x658ccc, 0x658d9f), (0x6697e3, 0x6698a4), (0x659710, 0x659721)] +
+           (0x658ccc, 0x658d9f), (0x6697e3, 0x6698a4), (0x659710, 0x659721),
+           (0x658bcb, 0x658c38)] +
           sorted(set(WINDOW_RANGES + [(0x6588ef, 0x6589f9)])))
 MOUSE, VT = RAM + 0x2000, RAM + 0x2100
 WINDOW, QUEUE = RAM + 0x3000, RAM + 0x3200
@@ -45,6 +47,12 @@ def case(r):
     name = r.choice(OPS)
     if name == 'GuiButton':
         return gui(r)
+    if name == 'GuiWheel':
+        c = gui(r)
+        c.regions[0xfaa5e8] = struct.pack('<I', r.choice([WINDOW, 0, 0]))
+        x, y = c.args[3:5]
+        delta = r.choice([1, -1, 120, -120, 0, r.getrandbits(32)]) & 0xffffffff
+        return Call(0x658bcb, [delta, x, y], c.regions, ret='w')
     if name == 'GuiMove':
         regions = {LOG: log_region()}
         wins = tree(r, regions)
@@ -63,7 +71,7 @@ def case(r):
     return Call(0x46c2a0, [r.choice([0, 1, 5, 0x80000000, 0xffffffff]), r.choice([0, 1, 5, 7])], regions, conv='s', ret='v')
 
 
-OPS = [k for k in os.environ.get('OPS', 'Button,Moved,GuiButton,GuiMove').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Button,Moved,GuiButton,GuiMove,GuiWheel').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)

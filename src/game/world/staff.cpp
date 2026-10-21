@@ -538,4 +538,24 @@ u16 *__fastcall Handyman_FindJob(u8 *staff, void *, u16 *out) {
     *out = found;
     return out;
 }
+
+void __fastcall Mechanic_SetState(u8 *mechanic, void *, u32 state) {
+    if (state == 0xc) {
+        Set4_4217f0(mechanic + 0xc, nullptr, 9);
+    } else if (state == 0xd) {
+        Set4_4217f0(mechanic + 0xc, nullptr, 0x12);
+        const u8 *const target = global<u8 *>(0x007cfb90 + 20 * (u32)at<u16>(mechanic, 0x218));
+        const u32 scale = global<u32>(0x0078542c + 8 * at<u32>(mechanic, 0x1e4));
+        if (Is19c_Eq2_4e03e0(target)) {
+            const u32 rate = target[0x50];
+            at<u32>(mechanic, 0x214) = at<u32>(Object_GetDef(target), 0x1fc + (rate << 6)) * scale;
+        } else {
+            const u32 condition = (u8)(long long)at<float>(target, 0x44);   // (__ftol's low byte)
+            at<s32>(mechanic, 0x214) = (s32)((0x64 - condition) * scale) / 100;
+        }
+    } else {
+        Staff_SetState(mechanic, nullptr, state);
+    }
+    at<u32>(mechanic, 0x19c) = state;
+}
 }
