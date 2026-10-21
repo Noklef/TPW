@@ -214,4 +214,9 @@ void __fastcall Window7059f0_Clear(u8 *window);
 // selected (Select, the row on screen). Then the rows refreshed, the bar (child 1, Window_FindChild; none a fault, sic) given +0x154
 // through its slot 7 and, when +0x154 changed, the parent +0x60 sent 0x405 (+0x154, the last row shown, below the count).
 void __fastcall Window7059f0_ScrollTo(u8 *window, void *, s32 position);
+
+// 0x664ea3 (thiscall; name unconfirmed): with the bar (child 1, Window_FindChild), its slot 8's answer as the first row shown: when it
+// differs from +0x154, +0x154 = it, the rows refreshed (Window7059f0_RefreshRows), the parent +0x60 sent 0x405 (+0x154, the last row
+// shown, below the count +0x150) and, with [0xfaa5d4] set, the list posted 3 (0, 0). EAX not kept.
+void __fastcall Window7059f0_ScrollFromBar(u8 *window);
 }

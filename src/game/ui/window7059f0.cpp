@@ -705,4 +705,17 @@ void __fastcall Window7059f0_ScrollTo(u8 *window, void *, s32 position) {
     if (last >= at<s32>(window, 0x150)) last = at<s32>(window, 0x150) - 1;
     Window_SendMessage(at<u8 *>(window, 0x60), 0x405, at<u32>(window, 0x154), (u32)last);
 }
+
+void __fastcall Window7059f0_ScrollFromBar(u8 *window) {
+    u8 *const bar = Window_FindChild(window, nullptr, 1);
+    if (!bar) return;
+    const s32 first = vcall<s32>(bar, 0x20);
+    if (first == at<s32>(window, 0x154)) return;
+    at<s32>(window, 0x154) = first;
+    Window7059f0_RefreshRows(window);
+    s32 last = at<s32>(window, 0x154) + at<s16>(window, 0x172);
+    if (last >= at<s32>(window, 0x150)) last = at<s32>(window, 0x150) - 1;
+    Window_SendMessage(at<u8 *>(window, 0x60), 0x405, at<u32>(window, 0x154), (u32)last);
+    if (*reinterpret_cast<u32 *>((uintptr_t)0x00faa5d4)) Window_PostMessage(window, 3, 0, 0);
+}
 }
