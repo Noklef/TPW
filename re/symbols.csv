@@ -4658,6 +4658,9 @@ address,name,kind,confidence,notes
 0x00677140,DctVlc_FillDc,function,low,"reimplemented (src/game/gfx/dctvlc); fastcall (out, pitch in dwords): an 8x8 block of dwords filled with the DC 0xfbc14c"
 0x00676a70,RefBlock_Copy16,function,low,"reimplemented (src/game/gfx/refblock); fastcall (source, swapped; pitch, out, bias), pops 12: 8 rows of 8 source bytes (pairs swapped by the flag) plus the bias into out's dwords' byte 2, rows 0x40 bytes apart"
 0x00676b50,RefBlock_Copy8,function,low,"reimplemented (src/game/gfx/refblock); fastcall (base, offset; pitch, out, bias), pops 12: 8 rows of every fourth source byte plus the bias into out's dwords' byte 2, rows 0x20 bytes apart"
+0x00676478,MoviePixels_Double,function,low,"reimplemented (src/game/gfx/moviepixels); cdecl (source, out, count): count bytes (a multiple of 4) each written twice"
+0x006764bc,MoviePixels_FromYuv,function,low,"reimplemented (src/game/gfx/moviepixels); cdecl (source, out, count): count YUV dwords to 16-bit pixel pairs through the run-time tables 0xfb8f30-0xfbb810"
+0x00670350,MoviePixels_BuildTables,function,low,"reimplemented (src/game/gfx/moviepixels); fastcall (format, player), x87: the YUV tables 0xfb8f30 / 0xfb9730 / 0xfb9f30 and the channel tables 0xfba730 / 0xfbabf8 / 0xfbb010 for the pixel format and the brightness"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"

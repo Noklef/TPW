@@ -133,6 +133,7 @@
 #include "../game/gfx/aaline.h"
 #include "../game/gfx/dctvlc.h"
 #include "../game/gfx/glyphrender.h"
+#include "../game/gfx/moviepixels.h"
 #include "../game/gfx/movieplayer.h"
 #include "../game/gfx/refblock.h"
 #include "../game/gfx/signstyle.h"
@@ -4389,6 +4390,9 @@ const Hook kHooks[] = {
     {"DctVlc_FillDc",             0x00677140, (void *)&DctVlc_FillDc, {0x56, 0xb8, 0x08, 0x00, 0x00}},
     {"RefBlock_Copy16",           0x00676a70, (void *)&RefBlock_Copy16, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"RefBlock_Copy8",            0x00676b50, (void *)&RefBlock_Copy8, {0x8d, 0x04, 0x0a, 0x8b, 0x4c}},
+    {"MoviePixels_Double",        0x00676478, (void *)&MoviePixels_Double, {0x53, 0x51, 0x52, 0x56, 0x57}},
+    {"MoviePixels_FromYuv",       0x006764bc, (void *)&MoviePixels_FromYuv, {0x53, 0x51, 0x52, 0x56, 0x57}},
+    {"MoviePixels_BuildTables",   0x00670350, (void *)&MoviePixels_BuildTables, {0x83, 0xec, 0x0c, 0x53, 0x55}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
