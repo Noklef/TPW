@@ -149,6 +149,9 @@ bool category156(const u8 *thing) {
 // The dword +0x4ac of the object's definition (ObjectDefs_Find on gObjectDefs by its id +0xe).
 u32 def4ac(const u8 *thing) { return at<u32>(ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, at<u16>(thing, 0xe)), 0x4ac); }
 
+// A ride: an object (kind 3) whose definition has 0 at +0x4ac.
+bool ride(const u8 *thing) { return at<u8>(thing, 2) == 3 && def4ac(thing) == 0; }
+
 // Whether the object had customers: the low half of __ftol of its customers' ring +0x1a8's newest 30 summed (CircBufU32_30_Sum; inlined in
 // 0x4cbec0).
 bool hadCustomers(const u8 *thing) {
@@ -1018,6 +1021,66 @@ s32 __cdecl Things_AverageKind3Flag1Of100Minus44() {
         World_NextThing(world(), nullptr, &handle, thing);
     }
     return count ? sum / count : 0;
+}
+
+u32 __stdcall Things_BestRatedDef9c1(u16 *out) {
+    *out = 0;
+    bool found = false;
+    u8 best = 0;
+    u16 handle;
+    World_FirstThing(world(), nullptr, &handle);
+    while (handle) {
+        const u8 *thing = thing_of(handle);
+        if (ride(thing) && at<u32>(Object_GetDef(thing), 0x9c) == 1) {
+            const u8 rating = Object_Rating(thing, nullptr, 0);
+            if (!found || rating > best) {
+                found = true;
+                best = rating;
+                *out = handle;
+            }
+        }
+        World_NextThing(world(), nullptr, &handle, thing);
+    }
+    return found ? best : 0;
+}
+
+s32 __stdcall Things_BestRatedDef4ac0(u16 *out) {
+    u16 best_handle = 0, handle;
+    s32 best = 0;
+    World_FirstThing(world(), nullptr, &handle);
+    while (handle) {
+        const u8 *thing = thing_of(handle);
+        if (ride(thing)) {
+            const s32 rating = Object_Rating(thing, nullptr, 0);
+            if (!best_handle || rating > best) {
+                best_handle = handle;
+                best = rating;
+            }
+        }
+        World_NextThing(world(), nullptr, &handle, thing);
+    }
+    *out = best_handle;
+    return best;
+}
+
+s32 __fastcall ParkAnalyser_AverageRatingDef4ac0(u8 *analyser, void *, u32 maxAge) {
+    u32 *const cache = reinterpret_cast<u32 *>(analyser + 0x1f0f4);
+    if (at<u8>(cache, 8) && maxAge >= Game1da70c_MinusAt0Quarters(cache)) return (s32)cache[1];
+    s32 count = 0, sum = 0;
+    u16 handle;
+    World_FirstThing(world(), nullptr, &handle);
+    while (handle) {
+        const u8 *thing = thing_of(handle);
+        if (ride(thing)) {
+            ++count;
+            sum += Object_Rating(thing, nullptr, 0);
+        }
+        World_NextThing(world(), nullptr, &handle, thing);
+    }
+    cache[1] = count > 0 ? (u32)(sum / count) : 0;
+    at<u8>(cache, 8) = 1;
+    Out_SetFromGame1da70c(cache);
+    return (s32)cache[1];
 }
 
 u16 *__stdcall Things_MostKind3Flag1Of100Minus44(u16 *handle, s32 *value) {

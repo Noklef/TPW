@@ -271,6 +271,20 @@ s32 __cdecl Things_AverageKind3Flag1Of100Minus44();
 // that to *value; *handle = 0 when there is none (*value left 0). Returns handle. The debug print of the slot check is left out.
 u16 *__stdcall Things_MostKind3Flag1Of100Minus44(u16 *handle, s32 *value);
 
+// 0x4cc3b0 (stdcall (&handle), pops 4; ECX unused; name unconfirmed): *handle = 0, then of the rides (objects, kind 3, whose definition
+// (ObjectDefs_Find) has 0 at +0x4ac) whose definition (Object_GetDef) has 1 at +0x9c the first with the highest Object_Rating(0): its handle
+// to *handle; returns that rating, 0 for none. The debug print of the slot check is left out.
+u32 __stdcall Things_BestRatedDef9c1(u16 *out);
+
+// 0x4ccd10 (stdcall (&handle), pops 4; ECX unused; name unconfirmed): of the rides (as 0x4cc3b0's, any +0x9c) the first with the highest
+// Object_Rating(0): its handle to *handle (0 for none); returns that rating (0 for none).
+s32 __stdcall Things_BestRatedDef4ac0(u16 *out);
+
+// 0x4ccbf0 (thiscall on the analyser (maxAge), pops 4; name unconfirmed): the rides' (as 0x4cc3b0's) average Object_Rating(0) (a signed
+// division; 0 for none) the analyser keeps at +0x1f0f4 (+0 the game time it was taken, +4 the average, byte +8 set), kept as
+// ParkAnalyser_CountKind1OnPlainCell's count is. Returns +4.
+s32 __fastcall ParkAnalyser_AverageRatingDef4ac0(u8 *analyser, void *, u32 maxAge);
+
 // 0x4c9b40 (thiscall on the analyser, unused (kind), pops 4; name unconfirmed): the staff (things of kind 4, 5, 6, 8 or 7) of that kind,
 // or of any when it is 0, with a patrol region (Staff_HasPatrolRegion), counted.
 s32 __stdcall Things_CountStaffWithPatrol(u32 kind);
