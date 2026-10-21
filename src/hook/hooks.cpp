@@ -418,6 +418,7 @@
 #include "../game/ui/dialog7cca94.h"
 #include "../game/ui/guifont.h"
 #include "../game/ui/guitoken.h"
+#include "../game/ui/hoverlabel.h"
 #include "../game/ui/levelmeter.h"
 #include "../game/ui/msgboxbutton.h"
 #include "../game/ui/msgtags.h"
@@ -5634,6 +5635,10 @@ const Hook kHooks[] = {
     {"Dialog7cca94_Show",         0x004c23f0, (void *)&Dialog7cca94_Show, {0x6a, 0xff, 0x68, 0xe6, 0xbe}},
     {"Dialog7cca94_ShowText",     0x004c25b0, (void *)&Dialog7cca94_ShowText, {0xa1, 0x94, 0xca, 0x7c, 0x00}},
     {"Dialog7cca94_SetProgress",  0x004c2600, (void *)&Dialog7cca94_SetProgress, {0x8b, 0x0d, 0x94, 0xca, 0x7c}},
+    {"HoverLabel_SetYellow",      0x00492d20, (void *)&HoverLabel_SetYellow, {0x8b, 0x4c, 0x24, 0x04, 0x68}},
+    {"HoverLabel_Attach",         0x00485d20, (void *)&HoverLabel_Attach, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"HoverLabel_Handler",        0x0048d2e0, (void *)&HoverLabel_Handler, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
+    {"HoverLabel_Bind",           0x0048d290, (void *)&HoverLabel_Bind, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
