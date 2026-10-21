@@ -16,4 +16,9 @@ if "%OUT%"=="" set OUT=%~dp0build
 set TARGET=
 if not "%TPW_TARGET%"=="" set TARGET=--target %TPW_TARGET%
 cmake -S "%SRC%" -B "%OUT%" -G Ninja -DCMAKE_BUILD_TYPE=%CONFIG% || exit /b 1
-cmake --build "%OUT%" %TARGET% || exit /b 1
+rem The build runs at below-normal priority (its compilers inherit it), as benches and gates do (tools/lowprio.py), so a build gives
+rem way to the user's programs, the game among them; TPW_PRIORITY=normal leaves it alone.
+set PRIO=/belownormal
+if /i "%TPW_PRIORITY%"=="normal" set PRIO=/normal
+start "" %PRIO% /b /wait cmake --build "%OUT%" %TARGET%
+if not "%ERRORLEVEL%"=="0" exit /b 1
