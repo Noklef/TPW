@@ -55,4 +55,20 @@ u32 __cdecl Rsse_TakeFinished(u8 *vm);
 // With no free slot it returns the slot count (0 when it is not above 0). The original's Debug_Printf calls (empty) are left out, as
 // is its overwriting of the stack argument to with the stored floats.
 s32 __cdecl Rsse_StartWalker(u8 *vm, u32 value, s32 from, s32 to, u32 a, u32 b, u32 kind, u32 last);
+
+// 0x5580a0 (cdecl; vm, a walker slot, from, to, mode, t; called at 0x557e4e, 0x558008 and 0x55802a with the slot's keys +4 and +6;
+// name unconfirmed): a walker moved to t thousandths of its way. The places of the parts with keys from (mask 0x80 for mode 1, else
+// 0x800) and to (0x80 for mode 2) as Ride_PartPlace has them; t cut to 1000 (signed); x and z are ((to - from) * t - from * -1000) *
+// 0.001 (the floats 0x701020, 0x700fd4; the x87's 24 bits, stored as floats), y too when the slot's byte +0x1a has bit 0, else
+// View_FloorAt(x, z) (from's own bits when it writes nothing). The person is the thing (0x7cfb90, 20 bytes each) of the slot's word
+// +0x10. Unless the slot's word +0x18 is 2 it is placed (Person_PlaceScript) at x, y, z with the slot's s16 +0x14 and entry point 1.
+// Else, when vm +0x84 is set, it wobbles: a = 0.4 - (+0x10 & 7) * -0.1, b = 0.4 - (+0x10 & 3) * -0.25, c = 0.5 - s16 vm +0xc0 *
+// -0.01, d and e the u16s vm +0x88 and +0x8a times 0.001 (each a stored float); now the game clock's time (Clocks_Now of 0x785970,
+// made a float); s the sine (gSinTable, its entry for each float angle times the table's scale, rounded) of (now' - vm +0x80, s32) *
+// 3.14159 / vm +0x84 (fidiv); y += (12 - sin(a now c * 0.004) * -3) * s * e, x += sin(a now c (stored) * 0.0033333) * b * s * 3 * d,
+// z += sin(b now c * 0.0033333 - -1.5708) * a * s * 3 * d; the slot's +0x14 becomes (s16 (the clock's time / __ftol(b * 300),
+// unsigned) + its s16) % 8 (C's, signed), and the person is placed there with entry point 2. With vm +0x84 zero the slot's word +0x16
+// places it with entry point 3 (3), 8 (5) or 5 (6), and 4, 1 or 2 release its scripts (Person_ReleaseScripts). The original's
+// Debug_Printf (the things' first entry null) is left out.
+void __cdecl Rsse_MoveWalker(u8 *vm, u8 *slot, s32 from, s32 to, s32 mode, s32 t);
 }
