@@ -217,7 +217,7 @@ address,name,kind,confidence,notes
 0x004cf920,BankAccount_Serialize,function,high,"reimplemented (src/game/world/bankaccount); thiscall (stream, save, version, unused): the bank account's serializer (thing model 16: the head dwords, eight loans of eight dwords; loads past the third through Save_ReadU32)"
 0x004d2320,Challenges_Serialize,function,high,"reimplemented (src/game/world/challenges); thing model 19: thing, 0x14 challenges, then 7 fields"
 0x004d0f90,Challenge_Serialize,function,high,reimplemented (src/game/world/challenges); a challenge's 15 fields
-0x006c58f0,SoundBank_OpenSdt,function,medium,"appends HD.sdt or HW.sdt to the bank path and opens it, falling back to the other; arg3 == 0 tries HW first"
+0x006c58f0,SoundBank_OpenSdt,function,medium,"reimplemented (src/game/core/soundbank); thiscall (opener, path, hdFirst), pops 0xc, this unused: appends HD.sdt / HW.sdt to the path and opens it through the opener's slot 1; on failure the path set back and given the other suffix (not opened)"
 0x006c5a00,SoundBank_Open,function,low,calls SoundBank_OpenSdt and returns 0 / -1
 0x006d62c0,LbMpeg_MmxTransform,function,low,"MMX int16 transform over 8 qwords using the Q14 cosine table in section lbmpeg_d (0xfc0000); likely MPEG decoder matrixing"
 0x004e2c10,CircBufU32_30_Serialize,function,high,"reimplemented (src/game/core/circbuf); ring buffer of 30 u32 (mTemp, mData[30], mCurrentEntry, mNumEntries, mWrappedAround); 6 per Object; the entries while i < mNumEntries (unbounded, sic)"

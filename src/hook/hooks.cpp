@@ -169,6 +169,7 @@
 #include "../game/core/timesig.h"
 #include "../game/core/countedpair.h"
 #include "../game/core/keyactions.h"
+#include "../game/core/soundbank.h"
 #include "../game/core/soundcmd.h"
 #include "../game/core/soundmanager.h"
 #include "../game/core/soundplay.h"
@@ -4096,6 +4097,7 @@ const Hook kHooks[] = {
     {"SoundManager_Post",         0x006b5b40, (void *)&SoundManager_Post, {0x8b, 0x54, 0x24, 0x08, 0x8b}},
     {"SoundManager_Call5",        0x006b5b60, (void *)&SoundManager_Call5, {0x8b, 0x54, 0x24, 0x08, 0x8b}},
     {"SoundManager_Call3",        0x006b5b80, (void *)&SoundManager_Call3, {0x8b, 0x54, 0x24, 0x0c, 0x8b}},
+    {"SoundBank_OpenSdt",         0x006c58f0, (void *)&SoundBank_OpenSdt, {0x6a, 0xff, 0x68, 0x26, 0x64}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
