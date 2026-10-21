@@ -87,6 +87,130 @@ void SynthesisOutput(const float *k, float *slot, u32 n, float *x) {
     }
 }
 
+// 0x6d5450's x87 pieces, as the original (each value rounded to a float where it stores one).
+// A quarter of the step from the coefficient at old to the table's value at entry: (*entry - *old) * 0.25.
+u32 Quarter(u32 entry, const u8 *old) {
+    u32 out;
+    __asm {
+        mov eax, entry
+        mov ecx, old
+        fld dword ptr [eax]
+        fsub dword ptr [ecx]
+        fmul dword ptr ds:[0x00711bf8]
+        fstp dword ptr out
+    }
+    return out;
+}
+
+// The long-term gain: n (loaded as a qword) / 15 (times 0x711bfc).
+u32 Gain(u32 n) {
+    u32 q[2] = {n, 0};
+    u32 out;
+    __asm {
+        fild qword ptr q
+        fmul dword ptr ds:[0x00711bfc]
+        fstp dword ptr out
+    }
+    return out;
+}
+
+// A float through the x87 (a signalling NaN comes out quiet).
+u32 Loaded(const u8 *p) {
+    u32 out;
+    __asm {
+        mov eax, p
+        fld dword ptr [eax]
+        fstp dword ptr out
+    }
+    return out;
+}
+
+// x * 0.5 (0x711c0c).
+u32 Half(u32 x) {
+    u32 out;
+    __asm {
+        fld dword ptr x
+        fmul dword ptr ds:[0x00711c0c]
+        fstp dword ptr out
+    }
+    return out;
+}
+
+// The interpolated sample between the coded ones: (m[-5] + m[5]) * c0 - (m[-3] + m[3]) * c1 - (m[1] + m[-1]) * c2 (0x711c00 to 0x711c08).
+void Interpolate(float *m) {
+    __asm {
+        mov eax, m
+        fld dword ptr [eax - 0x14]
+        fadd dword ptr [eax + 0x14]
+        fmul dword ptr ds:[0x00711c00]
+        fld dword ptr [eax - 0xc]
+        fadd dword ptr [eax + 0xc]
+        fmul dword ptr ds:[0x00711c04]
+        fsubp st(1), st(0)
+        fld dword ptr [eax + 4]
+        fadd dword ptr [eax - 4]
+        fmul dword ptr ds:[0x00711c08]
+        fsubp st(1), st(0)
+        fstp dword ptr [eax]
+    }
+}
+
+// A subframe's 108 samples: amp * excitation[i] + gain * past[i].
+void Subframe(u32 gain, u32 amp, const float *excitation, const u8 *past, u8 *out) {
+    __asm {
+        mov ecx, excitation
+        mov edx, past
+        mov eax, out
+        mov ebx, 0x6c
+    sample:
+        fld dword ptr gain
+        fld dword ptr amp
+        fmul dword ptr [ecx]
+        fxch st(1)
+        fmul dword ptr [edx]
+        faddp st(1), st(0)
+        fstp dword ptr [eax]
+        add ecx, 4
+        add edx, 4
+        add eax, 4
+        dec ebx
+        jnz sample
+    }
+}
+
+// The 12 coefficients stepped by delta: coefficient + delta, or (deltaFirst) delta + coefficient, the second the memory operand.
+void Step(u8 *coefficients, const float *delta, bool deltaFirst) {
+    if (!deltaFirst) {
+        __asm {
+            mov eax, coefficients
+            mov ecx, delta
+            mov edx, 12
+        plain:
+            fld dword ptr [eax]
+            fadd dword ptr [ecx]
+            fstp dword ptr [eax]
+            add eax, 4
+            add ecx, 4
+            dec edx
+            jnz plain
+        }
+        return;
+    }
+    __asm {
+        mov eax, coefficients
+        mov ecx, delta
+        mov edx, 12
+    other:
+        fld dword ptr [ecx]
+        fadd dword ptr [eax]
+        fstp dword ptr [eax]
+        add eax, 4
+        add ecx, 4
+        dec edx
+        jnz other
+    }
+}
+
 }  // namespace
 
 extern "C" {
@@ -282,6 +406,62 @@ void __cdecl VoiceCodec_Synthesize(u8 *channel, u32 first, s32 blocks) {
     for (; blocks > 0; --blocks, x += 12) {
         for (u32 n = 0; n < 12; ++n) SynthesisOutput(k, slot, n, x + n);
     }
+}
+
+void __fastcall VoiceCodec_DecodeChannel(void *reader, void *, u8 *decoder, u8 *channel) {
+    u32 *const state = reinterpret_cast<u32 *>(decoder);
+    u32 delta[12];
+    u32 v = Read(reader, state, 6);
+    delta[0] = Quarter(0x00783ba8u + 4 * v, channel + 0x104);
+    const u32 coded = v < at<u32>(channel, 0);
+    for (u32 i = 1; i < 4; ++i) {
+        v = Read(reader, state, 6);
+        delta[i] = Quarter(0x00783ba8u + 4 * v, channel + 0x104 + 4 * i);
+    }
+    for (u32 i = 4; i < 12; ++i) {
+        v = Read(reader, state, 5);
+        delta[i] = Quarter(0x00783be8u + 4 * v, channel + 0x104 + 4 * i);
+    }
+    u8 *out = channel + 0x674;
+    for (u32 position = 0xd8; position < 0x288; position += 0x6c, out += 0x6c * 4) {
+        const u32 past = position - Read(reader, state, 8);
+        const u32 gain = Gain(Read(reader, state, 4));
+        u32 amp = Loaded(channel + 4 + 4 * Read(reader, state, 6));
+        float buffer[5 + 0x6c + 5];   // the excitation between 5 guard samples each side (cleared for the interpolation)
+        float *const excitation = buffer + 5;
+        if (!state[3]) {
+            VoiceCodec_Excitation(reader, nullptr, state, coded, reinterpret_cast<u32 *>(excitation), 1);
+        } else {
+            const u32 phase = Read(reader, state, 1);
+            const u32 zeros = Read(reader, state, 1);
+            VoiceCodec_Excitation(reader, nullptr, state, coded, reinterpret_cast<u32 *>(excitation + phase), 2);
+            u8 *const other = reinterpret_cast<u8 *>(excitation) + 4 - 4 * phase;   // the samples between the coded ones
+            if (zeros) {
+                for (u32 i = 0; i < 0x1b0; i += 8) at<u32>(other, i) = 0;
+            } else {
+                std::memset(buffer, 0, 5 * 4);
+                std::memset(excitation + 0x6c, 0, 5 * 4);
+                for (u32 i = 0; i < 0x1b0; i += 8) Interpolate(reinterpret_cast<float *>(other + i));
+                amp = Half(amp);
+            }
+        }
+        Subframe(gain, amp, excitation, channel + 0x164 + 4 * past, out);
+    }
+    for (u32 i = 0; i < 0x144; ++i) at<u32>(channel, 0x164 + 4 * i) = at<u32>(channel, 0x824 + 4 * i);
+    const float *const step = reinterpret_cast<const float *>(delta);
+    Step(channel + 0x104, step, false);
+    VoiceCodec_Synthesize(channel, 0, 1);
+    Step(channel + 0x104, step, true);
+    VoiceCodec_Synthesize(channel, 0xc, 1);
+    Step(channel + 0x104, step, false);
+    VoiceCodec_Synthesize(channel, 0x18, 1);
+    Step(channel + 0x104, step, true);
+    VoiceCodec_Synthesize(channel, 0x24, 0x21);
+}
+
+void __fastcall VoiceCodec_DecodeFrame(void *reader, void *, u8 *decoder) {
+    VoiceCodec_DecodeChannel(reader, nullptr, decoder, decoder + 0x14);
+    if (at<u32>(decoder, 0x10)) VoiceCodec_DecodeChannel(reader, nullptr, decoder, decoder + 0xd48);
 }
 
 }  // extern "C"

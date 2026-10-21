@@ -48,5 +48,16 @@ void __cdecl VoiceCodec_Impulse(const float *k, float *out);
 // (n its place in the block; the products added in the order of history slots 7, 8, 5, 11, 9, 10, 1, 2, 0, 6, 3, 4, on the x87's stack)
 // and goes to history[11 - n] too.
 void __cdecl VoiceCodec_Synthesize(u8 *channel, u32 first, s32 blocks);
+// 0x6d5450 (thiscall decoder, channel; pops 8): a channel's frame. The coefficients' new codes (four of 6 bits from 0x783ba8, eight of 5
+// from 0x783be8) give each a quarter step (new - old) * 0.25; coded (the excitation's kind) when the first code is below the channel's +0.
+// Four subframes of 108 samples to +0x674: per subframe a lag (read(8), back from positions 216 to 540 of the past at +0x164), a gain
+// read(4) / 15 and an amplitude (the float at +4 + read(6) * 4); with the decoder's +0xc clear the excitation (0x6d5040, stride 1), else a
+// phase and a bit read: the excitation at every other sample from the phase, the rest zeros (the bit set) or interpolated from 5 coded
+// samples each side (0x711c00 to 0x711c08, the amplitude halved); each sample amp * excitation + gain * past. Then the past's last 324
+// samples moved to its start and the four quarters of the frame synthesised (0x6d57e0: 12, 12, 12, 396 samples), the coefficients a
+// quarter step on before each (x87 as the original).
+void __fastcall VoiceCodec_DecodeChannel(void *reader, void *, u8 *decoder, u8 *channel);
+// 0x6d6290 (thiscall decoder; pops 4): a frame: the channel at +0x14, and the one at +0xd48 when stereo (+0x10).
+void __fastcall VoiceCodec_DecodeFrame(void *reader, void *, u8 *decoder);
 
 }  // extern "C"

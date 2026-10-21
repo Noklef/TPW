@@ -4,7 +4,8 @@
 # buffer's first bytes); the channel set-up over random channel bytes with floats (now and then special; signalling NaNs made quiet) for the
 # scale and factor. A subframe's excitation (coded or not) and the frame headers (from memory, or the refilled buffer) through the game's
 # readers (their vtables 0x70adb8 and 0x70ae28) over random bits, the strides positive (0 would loop for ever). The impulse response of
-# 12 coefficients mostly within -1..1, and the synthesis filter over blocks of 12 samples (the history and samples random floats).
+# 12 coefficients mostly within -1..1, and the synthesis filter over blocks of 12 samples (the history and samples random finite floats);
+# a channel's frame and a frame's channels (a memory reader over random bits, the channels' tables and past random finite floats).
 # usage: voicecodec.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -15,12 +16,13 @@ from fncmp import LOG, RAM, Bench, Call, fill, log_region, vtable  # noqa: E402
 
 B = Bench([(0x6d4ee0, 0x6d4f2a), (0x6d4fa0, 0x6d4fdc), (0x6d4f30, 0x6d4f99), (0x6d4fe0, 0x6d503a), (0x6d5200, 0x6d5254),
            (0x6d5040, 0x6d51ed), (0x6d5260, 0x6d5341), (0x6d5350, 0x6d5443), (0x6d61c0, 0x6d6285),
-           (0x6d57e0, 0x6d61ba)])
+           (0x6d57e0, 0x6d61ba), (0x6d5450, 0x6d57d2), (0x6d6290, 0x6d62bd)])
 STATE, DATA, CHANNEL, STREAM, READER = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x900, RAM + 0x1000
 MEMORY, BITS, FRAME, OUT = RAM + 0x3100, RAM + 0x3200, RAM + 0x4000, RAM + 0x3a00   # a memory reader, its data, a decoder's state
 MEMORY_VTABLE, BUFFERED_VTABLE = 0x70adb8, 0x70ae28   # (the driver resolves them to the readers' replacements)
 CALLS = {'read': 0x6d4ee0, 'skip': 0x6d4fa0, 'bread': 0x6d4f30, 'bskip': 0x6d4fe0, 'init': 0x6d5200, 'excite': 0x6d5040, 'header': 0x6d5260,
-         'bheader': 0x6d5350, 'impulse': 0x6d61c0, 'synth': 0x6d57e0}
+         'bheader': 0x6d5350, 'impulse': 0x6d61c0, 'synth': 0x6d57e0, 'decode': 0x6d5450,
+         'frame': 0x6d6290}
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
@@ -61,6 +63,16 @@ def case(r):
         scale = r.choice([1.0, 1.0, 0.5, 4.0])
         k = finite(r, 12, scale)
         return Call(0x6d61c0, [CHANNEL, OUT], {CHANNEL: k, OUT: r.bytes(0x30)}, conv='c', ret='v')
+    if name in ('decode', 'frame'):
+        decoder = bytearray(state(r, BITS + r.randrange(0, 0x40)))
+        decoder[0xc:0x14] = struct.pack('<2I', r.choice([0, 1, r.getrandbits(32)]), r.choice([0, 1, r.getrandbits(32)]))
+        for _ in range(2):
+            decoder += struct.pack('<I', r.choice([r.randrange(0, 0x48), r.getrandbits(32)])) + finite(r, 64, r.choice([1.0, 100.0]))
+            decoder += finite(r, 12, r.choice([1.0, 0.5])) + finite(r, 0x300, r.choice([1.0, 100.0, 30000.0]))
+        regions = {MEMORY: struct.pack('<I', MEMORY_VTABLE), BITS: r.bytes(0x800), FRAME: decoder}
+        if name == 'frame':
+            return Call(0x6d6290, [MEMORY, FRAME], regions, conv='t', ret='v')
+        return Call(0x6d5450, [MEMORY, FRAME, FRAME + r.choice([0x14, 0xd48])], regions, conv='t', ret='v')
     if name == 'synth':
         channel = r.bytes(0x104) + finite(r, 12, r.choice([1.0, 1.0, 0.5])) + finite(r, 0x300, r.choice([1.0, 100.0, 30000.0]))
         first = r.choice([0, 12, 24, 36, r.randrange(0, 0x30)])
