@@ -693,9 +693,10 @@ int crash_filter(EXCEPTION_POINTERS *x) {
 }
 
 // Pushes the stack arguments right to left, sets the registers (EAX EBX ECX EDX ESI EDI: ECX / EDX for thiscall
-// and fastcall, any of them for a register convention), calls, and restores ESP whatever the convention popped.
-int invoke(void *fn, const u32 *regs, const u32 *stack, u32 count, int wantSt0, u32 *eax, u32 *edx, double *st0) {
-    u32 ra = 0, rd = 0, saved = 0;
+// and fastcall, any of them for a register convention), calls, and restores ESP whatever the convention popped. EAX, EDX and EDI
+// come back (EDI for ret 'edi').
+int invoke(void *fn, const u32 *regs, const u32 *stack, u32 count, int wantSt0, u32 *eax, u32 *edx, double *st0, u32 *edi) {
+    u32 ra = 0, rd = 0, rdi = 0, saved = 0;
     double f = 0;
     __try {
         __asm {
@@ -719,6 +720,7 @@ int invoke(void *fn, const u32 *regs, const u32 *stack, u32 count, int wantSt0, 
             call fn
             mov ra, eax
             mov rd, edx
+            mov rdi, edi
             mov esp, saved
             cmp wantSt0, 0
             je done
@@ -731,6 +733,7 @@ int invoke(void *fn, const u32 *regs, const u32 *stack, u32 count, int wantSt0, 
     }
     *eax = ra;
     *edx = rd;
+    *edi = rdi;
     *st0 = f;
     return 0;
 }
@@ -1088,7 +1091,7 @@ int main(int argc, char **argv) {
                 for (int k = 0; k < 6; ++k)
                     if (std::strncmp(c, kNames[k], 3) == 0) regs[k] = args[skip++];
         }
-        u32 eax = 0, edxOut = 0;
+        u32 eax = 0, edxOut = 0, ediOut = 0;
         double st0 = 0;
         _control87(_PC_24 | _RC_NEAR, _MCW_PC | _MCW_RC);
         if (std::strchr(ret, 'c')) {  // the case's control word (ret 'c:CW'), with nothing flagged it could unmask
@@ -1096,7 +1099,8 @@ int main(int argc, char **argv) {
             __asm fnclex
             __asm fldcw cw
         }
-        const int code = invoke(fn, regs, args.data() + skip, count - skip, ret[0] == 'd', &eax, &edxOut, &st0);
+        const int code = invoke(fn, regs, args.data() + skip, count - skip, ret[0] == 'd', &eax, &edxOut, &st0, &ediOut);
+        if (std::strcmp(ret, "edi") == 0) eax = ediOut;  // (ret 'edi': EDI in EAX's place)
         if (std::strchr(ret, 'c')) {  // the control word the call left, then the driver's back
             u16 cw, ours = 0x7f;
             __asm fnstcw cw

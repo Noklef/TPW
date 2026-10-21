@@ -14,7 +14,7 @@ A test script defines a case generator and calls run():
 
 Call(address, args, regions, conv='c'|'s'|'t'|'f'|'esi'|'esiedi'..., ret='v'|'a'|'b'|'w'|'i'|'d'): ret 'a' compares
 EAX, 'b' AL (a flag returned over whatever EAX held), 'w' AX (likewise a u16), 'c' the x87 control word left (Call(cw=) going in, 0x7f; 'wc' AX too), 'i' EAX and EDX, 'd' the double left in
-st0. Call(ignore=[(address, count), ...]): those bytes of the regions are left out of the comparison in both (a stack address's low byte that
+st0, 'edi' EDI (an original that leaves a result there, its port's naked thunk moving the port's EAX to it: src/hook/regthunks.h). Call(ignore=[(address, count), ...]): those bytes of the regions are left out of the comparison in both (a stack address's low byte that
 the original stores, which the two sides' stacks cannot share). A register convention (hand-written assembly taking
 its arguments in registers) names the registers, three letters each, in argument order: conv='esi' puts args[0] in ESI and the rest on the
 stack, 'esiedi' args[0] in ESI and args[1] in EDI (of EAX EBX ECX EDX ESI EDI); the hook row's replacement is then the port's naked thunk
@@ -869,7 +869,7 @@ class Bench:
         finally:
             e.__dict__.pop('rb', None)
         st0 = struct.unpack('<Q', struct.pack('<d', e.st[0]))[0] if c.ret == 'd' and e.st else 0
-        head = ['%08x' % e.r['EAX'] if c.ret in 'ai' else '%02x' % (e.r['EAX'] & 0xff) if c.ret == 'b' else '%04x' % (e.r['EAX'] & 0xffff) if 'w' in c.ret else '-', '%08x' % e.r['EDX'] if c.ret == 'i' else '%04x' % e.cw if 'c' in c.ret else '-',
+        head = ['%08x' % e.r['EDI'] if c.ret == 'edi' else '%08x' % e.r['EAX'] if c.ret in 'ai' else '%02x' % (e.r['EAX'] & 0xff) if c.ret == 'b' else '%04x' % (e.r['EAX'] & 0xffff) if 'w' in c.ret else '-', '%08x' % e.r['EDX'] if c.ret == 'i' else '%04x' % e.cw if 'c' in c.ret else '-',
                 '%016x' % st0 if c.ret == 'd' else '-']
         return head + [e.read(k, len(v)).hex() for k, v in c.regions.items()]
 
@@ -903,7 +903,7 @@ class Bench:
             if len(w) < 3 or w[0] in ('crash', 'nohook', 'fncmp:'):
                 out.append(line)
                 continue
-            out.append([w[0] if c.ret in 'ai' else w[0][-2:] if c.ret == 'b' else w[0][-4:] if 'w' in c.ret else '-', w[1] if c.ret == 'i' else w[1][-4:] if 'c' in c.ret else '-', w[2] if c.ret == 'd' else '-'] + w[3:])
+            out.append([w[0] if c.ret in 'ai' or c.ret == 'edi' else w[0][-2:] if c.ret == 'b' else w[0][-4:] if 'w' in c.ret else '-', w[1] if c.ret == 'i' else w[1][-4:] if 'c' in c.ret else '-', w[2] if c.ret == 'd' else '-'] + w[3:])
         if len(out) < len(cases):
             out += ['driver stopped (exit %x): %s' % (p.returncode & 0xffffffff, p.stderr.strip()[:200])] * (len(cases) - len(out))
         return out
