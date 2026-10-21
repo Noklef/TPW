@@ -132,5 +132,25 @@ void __fastcall LinkedVoice_FollowParent(u8 *voice);
 // samples; a node of no branches cleared (both) and 0; no branch in range: the parent's block's byte +4 = 0x7f, its flag 0x40 and 0;
 // else the random pick (all of the rotated number) and 1, or 0 when no running sum reaches it.
 u8 __fastcall LinkedSwitchVoice_PickBranch(u8 *voice, void *, u32 unused);
+// 0x6bc090 (thiscall): 100 without a current variation (+8). Its bytes +0xc / +0xd (unsigned) put in order (an XOR swap through
+// the variation, +8 re-read at each step), the range their difference; with a parameter block (+0x4c) and slot 16 (1, a local) answering
+// AL nonzero: the local times the range (32 bits) / 100 + the low byte. Else the game's random number (advanced, all of it rotated right
+// 13) modulo the range (none drawn for an empty range) + the low byte.
+u32 __fastcall SoundVoice_RollVolume(u8 *voice);
+// 0x6bc170 (thiscall): as SoundVoice_RollVolume, on the signed bytes +0xe / +0xf, slot 16 with 2; 0 without a current variation.
+u32 __fastcall SoundVoice_RollPitch(u8 *voice);
+// 0x6bc3c0 (thiscall (record), pops 4): with flag 8 (+0x30), FlagThenSet14_5c_6c51d0 on the record with 0; else, when
+// Obj_Flags28_Bit1IfBit0 of the sound system answers nonzero, the same with the system's slot 10 (the voice + 0x10) as a float, else
+// that answer (0). Returns what the last call answered.
+u32 __fastcall SoundVoice_SetRecordLevel(u8 *voice, void *, u8 *record);
+// 0x6c3ae0 (thiscall (unused, record), pops 8; slot 17 of 0x70a970 / 0x70a9e0): 0 without +0xc, a current variation (+8), the sound
+// system or the voice's slot 18 (record). Else the record's volume (SetThenFlag28_14_6c5130: SoundVoice_RollVolume), +0x94 / +0x98
+// (Obj_Set94_98_Flag40000: the system + 0x58, the byte +0x47), pitch (SetThenFlag24_14_6c5170: SoundVoice_RollPitch), +0x2c
+// (SetThenFlag2c_14_6c5150: the parent's (+0x4c, +0x1c) +0x20) and level (SoundVoice_SetRecordLevel). With flag 8 (+0x30): the record's
+// +0x30 = the address of an unset local of this frame (sic), +0x14 and +0xc |= 1. Else +0x38 = 2.0f, +0x3c the radius (SoundVoice_Radius,
+// 2.1f unless above 2.0), +0x40 the system's slot 11 as a float, +0x14 |= 0x201, +0x30 the parent's position (+0x10), +0xc |= 0x20, and
+// 0x1000 with bit 3 of the system's +0x28, 0x800 when that has 0x43 and 0x80. Then with flag 4 (+0x30), SetThenFlag44_14_6c5110 (9999).
+// Returns 1.
+u32 __fastcall LinkedVoice_FillRecord(u8 *voice, void *, u32 unused, u8 *record);
 
 }  // extern "C"

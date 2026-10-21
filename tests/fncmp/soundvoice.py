@@ -11,7 +11,12 @@
 # value small, 0xff or any (the parameter block's byte +4 for the switch). The sequence voice's next: +8 null, on any variation up to
 # past the last, or off the stride; flag 4 either way. The constructors run Class70a7e0_Ctor. The linked voices: the parameter block's
 # +0x1c a parent voice at PARENT (its own block at PARENT_PARAMS); the linked switch's pick on the parent's node (the switch's setup moved
-# there, the value its block's byte +4); the init's slots 14, 15 and 19 answering any (0 now and then).
+# there, the value its block's byte +4); the init's slots 14, 15 and 19 answering any (0 now and then). The rolls: the current variation
+# (null now and then) with byte ranges in order, equal, reversed or about the sign's edge; slot 16 answering AL nonzero or not, its local
+# (logged as 0) filled with a percentage or any. The record's level and the linked voice's record (RECORD, its +0x30 left out of the
+# comparison with flag 8: the address of the original's local): flags 4, 8, 0x80 now and then, the system's +0x28 bits 0, 1, 3, 7 and
+# 0x43, its slots 10 and 11 floats, the radius about 2.0 now and then, the voice's slot 18 answering 0 now and then, +0xc 0 and the
+# system null now and then.
 # usage: soundvoice.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -29,20 +34,25 @@ CALLS = {'ensure': (0x6b7150, 'v'), 'pending': (0x6bc900, 'a'), 'apply': (0x6bbf
          'flags': (0x6bbe90, 'v'), 'init': (0x6bbf60, 'a'),
          'setparam': (0x6bbb80, 'v'), 'swsetparam': (0x6be580, 'v'), 'swcreate': (0x6be610, 'a'), 'seqcreate': (0x6be680, 'a'),
          'linkctor': (0x6c3a00, 'a'), 'linkswctor': (0x6c3de0, 'a'), 'linkinit': (0x6c3a80, 'b'), 'linkfollow': (0x6c3c70, 'v'),
-         'linkbranch': (0x6c3e00, 'b')}
+         'linkbranch': (0x6c3e00, 'b'), 'rollvol': (0x6bc090, 'a'), 'rollpitch': (0x6bc170, 'a'), 'level': (0x6bc3c0, 'a'),
+         'fillrec': (0x6c3ae0, 'a')}
 LINKED_OPS = ('linkinit', 'linkfollow', 'linkbranch')
 B = Bench([(0x6b7150, 0x6b7190), (0x6bc900, 0x6bcb56), (0x6c5130, 0x6c5150), (0x6bbf00, 0x6bbf56), (0x6bc650, 0x6bc674), (0x6bc680, 0x6bc806),
            (0x6bc810, 0x6bc8f0), (0x6bd5f0, 0x6bd781), (0x6bd7a0, 0x6bd7ac), (0x6bb220, 0x6bb237), (0x5f5f10, 0x5f5f7d), (0x5f5fa0, 0x5f5faa),
            (0x6bcb80, 0x6bcce1), (0x6c50d0, 0x6c50e8), (0x6be450, 0x6be573), (0x6be5e0, 0x6be608), (0x6be6d0, 0x6be727), (0x6be660, 0x6be672),
            (0x6be730, 0x6be742), (0x6bb950, 0x6bb98e), (0x6bbe90, 0x6bbef9), (0x6bbf60, 0x6bc034),
            (0x6bbb80, 0x6bbbde), (0x6be580, 0x6be5d3), (0x6be610, 0x6be657), (0x6be680, 0x6be6c7),
-           (0x6c3a00, 0x6c3a80), (0x6c3de0, 0x6c3df9), (0x6c3a80, 0x6c3ad4), (0x6c3c70, 0x6c3d7e), (0x6c3e00, 0x6c3f63)])
+           (0x6c3a00, 0x6c3a80), (0x6c3de0, 0x6c3df9), (0x6c3a80, 0x6c3ad4), (0x6c3c70, 0x6c3d7e), (0x6c3e00, 0x6c3f63),
+           (0x6b9260, 0x6b9280), (0x6bc090, 0x6bc240), (0x6bc3c0, 0x6bc410), (0x6c3ae0, 0x6c3c70), (0x6c5110, 0x6c5130), (0x6c5150, 0x6c51a0),
+           (0x6c51d0, 0x6c5230)])
 VOICE, OUT, SYS, SVT, VVT, DEF, VARS, SAMPLES, PARAMS, LISTENER, CMD, CVT = (RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x500,
                                                                             RAM + 0x600, RAM + 0xa00, RAM + 0xb00, RAM + 0xb40, RAM + 0xb80, RAM + 0xbc0)
 SYSTEM, RANDOM, CLOCK, TIME_GET_TIME = 0xfb1f24, 0xfb1f20, 0xfa71e0, 0x6fd3ec
 NODE, ENTRIES, BRANCHES, DEF2 = RAM + 0xc00, RAM + 0xc40, RAM + 0xc80, RAM + 0xe00
 OWNER, OVT, OINFO, POS, MEM, INFO = RAM + 0xe40, RAM + 0xe80, RAM + 0xf00, RAM + 0xf20, RAM + 0xf40, RAM + 0xfa0
 PARENT, PARENT_PARAMS = RAM + 0x1000, RAM + 0x1080
+RECORD = RAM + 0x1100
+ROLL_OPS = ('rollvol', 'rollpitch', 'level', 'fillrec')
 CMD_K, TIME_K = 9, 12
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
@@ -126,6 +136,39 @@ def branch(r, voice, params, regions, seed):
     return value
 
 
+def rolls(r, name, address, ret, log, voice, variations, system, regions):
+    var = r.choice([VARS, VARS + 0x2a, VARS, 0 if name in ('rollvol', 'rollpitch') else VARS])
+    struct.pack_into('<I', voice, 8, var)
+    for o in (0, 0x2a):   # (the ranges: in order, equal, reversed, about the sign's edge)
+        for at in (0xc, 0xe):
+            a = r.choice([r.getrandbits(8), 0, 0x7f, 0x80, 0xff, r.randrange(0x70, 0x90)])
+            variations[o + at] = a
+            variations[o + at + 1] = r.choice([a, r.getrandbits(8), (a + r.randrange(1, 8)) & 0xff, (a - r.randrange(1, 8)) & 0xff])
+        if r.random() < 0.3:
+            struct.pack_into('<I', variations, o + 0x22, r.choice([fb(2.0), fb(r.uniform(0, 4)), fb(2.0000002), fb(1.9999999)]))
+    set_return(log, 16, r.choice([0, 1, 1, 0x100, 0xff, r.getrandbits(32)]))
+    strings(log, 16, 0, out=2)   # (the percentage: a local)
+    fill(log, 16, 1, struct.pack('<I', r.choice([0, 50, 100, r.randrange(101), 0xffffffff, r.getrandbits(32)])))
+    voice[0x30] = r.choice([0, 4, 8, 0xc, 0x80, 0x84, r.getrandbits(8)])
+    struct.pack_into('<I', system, 0x28, r.choice([0, 1, 2, 3, 0x83, 0x8b, 0xc8, 0x0b, 0x43, 0x80, r.getrandbits(32)]))
+    if r.random() < 0.3:
+        struct.pack_into('<I', system, 0x2c, r.choice([fb(2.0), fb(1.0), fb(r.uniform(0, 4))]))
+        struct.pack_into('<I', voice, 0x40, r.choice([fb(1.0), fb(2.0), fb(r.uniform(0, 2))]))
+    set_float_return(log, 10, r.choice([r.uniform(0, 1), r.uniform(-100, 100), 0.0]))
+    set_float_return(log, 11, r.choice([r.uniform(0, 1), r.uniform(-100, 100), 0.0]))
+    if name in ('rollvol', 'rollpitch'):
+        return Call(address, [VOICE], regions, conv='t', ret=ret)
+    regions[RECORD] = r.bytes(0xa0)
+    if name == 'level':
+        return Call(address, [VOICE, RECORD], regions, conv='t', ret=ret)
+    struct.pack_into('<I', voice, 0xc, r.choice([0, 1, r.getrandbits(32), r.getrandbits(32)]))
+    struct.pack_into('<I', voice, 0x4c, PARAMS)
+    regions[SYSTEM] = struct.pack('<I', r.choice([SYS] * 9 + [0]))
+    set_return(log, 18, r.choice([0, 1, r.getrandbits(32), r.getrandbits(32)]))
+    ignore = [(RECORD + 0x30, 4)] if voice[0x30] & 8 else []
+    return Call(address, [VOICE, r.getrandbits(32), RECORD], regions, conv='t', ret=ret, ignore=ignore)
+
+
 def case(r):
     name = r.deal(OPS)
     address, ret = CALLS[name]
@@ -187,15 +230,17 @@ def case(r):
         struct.pack_into('<I', system, 0x2c, fb(float(radius)))
         struct.pack_into('<I', voice, 0x40, fb(1.0))
         set_float_return(log, 7, float(radius * radius))
-    regions = {VOICE: voice, OUT: r.bytes(4), SYS: system, SVT: vtable({4: 2}), VVT: vtable({7: 0, 8: 1, 14: 1, 15: 1}), DEF: d, VARS: variations,
+    regions = {VOICE: voice, OUT: r.bytes(4), SYS: system, SVT: vtable({4: 2, 10: 1}), VVT: vtable({7: 0, 8: 1, 14: 1, 15: 1, 16: 2, 18: 1}), DEF: d, VARS: variations,
                SAMPLES: samples, PARAMS: params, LISTENER: listener, CMD: struct.pack('<I', CVT) + r.bytes(0xc),
                CVT: struct.pack('<I', recorder(CMD_K, 0)), SYSTEM: struct.pack('<I', SYS), RANDOM: struct.pack('<I', seed), CLOCK: bytes(0x20),
                TIME_GET_TIME: struct.pack('<I', recorder(TIME_K, 0, True)), LOG: log, HEAP: heap(0x40, fail=r.choice([0, 0, 0, 1]))}
-    if name in LINKED_OPS or name in ('linkctor', 'linkswctor'):
+    if name in LINKED_OPS or name in ('linkctor', 'linkswctor', 'fillrec'):
         parent, parent_params = bytearray(r.bytes(0x50)), bytearray(r.bytes(0x20))
         struct.pack_into('<I', parent, 0x4c, PARENT_PARAMS)
         struct.pack_into('<I', params, 0x1c, PARENT)
         regions.update({PARENT: parent, PARENT_PARAMS: parent_params})
+    if name in ROLL_OPS:
+        return rolls(r, name, address, ret, log, voice, variations, system, regions)
     if name in ('linkctor', 'linkswctor'):
         regions[HEAP] = heap(0x40, fail=r.choice([0] * 9 + [1]))
         return Call(address, [VOICE, r.choice([PARENT, PARENT, 0, r.getrandbits(32)])], regions, conv='t', ret=ret)

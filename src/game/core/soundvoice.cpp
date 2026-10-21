@@ -8,6 +8,7 @@
 #include "fieldops.h"
 #include "gameheap.h"
 #include "initializers.h"
+#include "selectors.h"
 #include "soundcategory.h"
 #include "vcall.h"
 
@@ -28,6 +29,38 @@ u32 float_bits(float f) {
     u32 bits;
     std::memcpy(&bits, &f, 4);
     return bits;
+}
+
+// The variation's byte range at +lo / +lo + 1 put in order: an XOR swap through the variation, +8 re-read at each step.
+template <typename T> void order_range(u8 *voice, u32 lo) {
+    u8 *v = at<u8 *>(voice, 8);
+    if (static_cast<T>(v[lo + 1]) >= static_cast<T>(v[lo])) return;
+    v[lo + 1] = v[lo] ^ v[lo + 1];
+    v = at<u8 *>(voice, 8);
+    v[lo] = v[lo] ^ v[lo + 1];
+    v = at<u8 *>(voice, 8);
+    v[lo + 1] = v[lo + 1] ^ v[lo];
+}
+
+// The game's random number advanced (0xfb1f20) and rotated right 13, all of it.
+u32 next_random_full() {
+    const u32 seed = global<u32>(0x00fb1f20) * 0x19660d + 0x3c6ef35f;
+    global<u32>(0x00fb1f20) = seed;
+    return seed >> 13 | seed << 19;
+}
+
+// A roll in the variation's range (+lo, +lo + 1 of type T): the parameter's percentage (slot 16 with key) or a random draw.
+template <typename T> u32 roll(u8 *voice, u32 lo, u32 key) {
+    order_range<T>(voice, lo);
+    const u8 *v = at<u8 *>(voice, 8);
+    u32 range = static_cast<u32>(static_cast<s32>(static_cast<T>(v[lo + 1])) - static_cast<s32>(static_cast<T>(v[lo])));
+    if (at<u32>(voice, 0x4c)) {
+        u32 percent;
+        if (vcall<bool>(voice, 0x40, key, &percent))
+            return percent * range / 100 + static_cast<u32>(static_cast<s32>(static_cast<T>(at<u8 *>(voice, 8)[lo])));
+    }
+    if (range) range = next_random_full() % range;
+    return range + static_cast<u32>(static_cast<s32>(static_cast<T>(at<u8 *>(voice, 8)[lo])));
 }
 
 // The game's random number advanced (0xfb1f20), rotated right 13, its high word.
@@ -513,6 +546,61 @@ u8 __fastcall LinkedSwitchVoice_PickBranch(u8 *voice, void *, u32) {
         }
     }
     return 0;
+}
+
+u32 __fastcall SoundVoice_RollVolume(u8 *voice) {
+    if (!at<u8 *>(voice, 8)) return 100;
+    return roll<u8>(voice, 0xc, 1);
+}
+
+u32 __fastcall SoundVoice_RollPitch(u8 *voice) {
+    if (!at<u8 *>(voice, 8)) return 0;
+    return roll<s8>(voice, 0xe, 2);
+}
+
+u32 __fastcall SoundVoice_SetRecordLevel(u8 *voice, void *, u8 *record) {
+    if (voice[0x30] & 8) return FlagThenSet14_5c_6c51d0(record, nullptr, 0);
+    const u32 on = Obj_Flags28_Bit1IfBit0(system());
+    if (!on) return on;
+    const float level = static_cast<float>(vcall<double>(system(), 0x28, voice + 0x10));
+    return FlagThenSet14_5c_6c51d0(record, nullptr, float_bits(level));
+}
+
+u32 __fastcall LinkedVoice_FillRecord(u8 *voice, void *, u32, u8 *record) {
+    if (!at<u32>(voice, 0xc) || !at<u32>(voice, 8) || !system()) return 0;
+    if (!vcall<u32>(voice, 0x48, record)) return 0;
+    SetThenFlag28_14_6c5130(record, nullptr, SoundVoice_RollVolume(voice));
+    Obj_Set94_98_Flag40000(record, nullptr, static_cast<u32>(reinterpret_cast<uintptr_t>(system() + 0x58)), voice[0x47]);
+    SetThenFlag24_14_6c5170(record, nullptr, SoundVoice_RollPitch(voice));
+    SetThenFlag2c_14_6c5150(record, nullptr, at<u32>(at<u8 *>(at<u8 *>(voice, 0x4c), 0x1c), 0x20));
+    SoundVoice_SetRecordLevel(voice, nullptr, record);
+    if (voice[0x30] & 8) {
+        volatile u32 local;   // (never set: the record keeps its address, sic)
+        const u32 flags = at<u32>(record, 0x14);
+        at<u32>(record, 0x30) = static_cast<u32>(reinterpret_cast<uintptr_t>(&local));
+        const u32 c = at<u32>(record, 0xc);
+        at<u32>(record, 0x14) = flags | 1;
+        at<u32>(record, 0xc) = c | 1;
+    } else {
+        const double radius = SoundVoice_Radius(voice);
+        u32 stored = float_bits(static_cast<float>(radius));
+        if (!(radius > 2.0)) stored = 0x40066666;   // 2.1f
+        const float level = static_cast<float>(vcall<double>(system(), 0x2c));
+        at<u32>(record, 0x38) = 0x40000000;   // 2.0f
+        at<u32>(record, 0x3c) = stored;
+        at<u32>(record, 0x40) = float_bits(level);
+        const u32 flags = at<u32>(record, 0x14) | 0x200;
+        at<u32>(record, 0x14) = flags;
+        at<u32>(record, 0x14) = flags | 1;
+        at<u32>(record, 0x30) = static_cast<u32>(reinterpret_cast<uintptr_t>(at<u8 *>(at<u8 *>(voice, 0x4c), 0x1c) + 0x10));
+        u32 c = at<u32>(record, 0xc) | 0x20;
+        at<u32>(record, 0xc) = c;
+        if (at<u32>(system(), 0x28) >> 3 & 1) at<u32>(record, 0xc) = c | 0x1000;
+        const u32 sys = at<u32>(system(), 0x28);
+        if (sys & 0x43 && sys >> 7 & 1) at<u32>(record, 0xc) |= 0x800;
+    }
+    if (voice[0x30] & 4) SetThenFlag44_14_6c5110(record, nullptr, 9999);
+    return 1;
 }
 
 }  // extern "C"
