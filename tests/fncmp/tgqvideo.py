@@ -16,7 +16,7 @@
 # Frame16 / Frame32 (0x671230 / 0x671540, fastcall (player, data; out, unused, pitch)): a frame of up to 3 x 3 macroblocks (sizes not
 # always multiples of 16, sometimes 0), types mostly 3, 6 and 0xc, else 0-0xc (skipped); in a few cases one coded one (above 0xc), whose
 # 0x673fee / 0x67380f faults in both (they cannot run to the end: see tgqvideo.h). Pitches odd now and then.
-# Lanes (0x670090): the four values -0x100-0x100 mostly (else any).
+# Lanes (0x670090): the four values -1, 0 or 1 mostly (the borrows' edges), else -0x100-0x100 or any.
 # usage: tgqvideo.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Fill16,Fill32,Pack,Tables,Quality,Row16,Row32,Coefficients,Frame16,Frame32,
 # Lanes)
 import os
@@ -119,7 +119,8 @@ def frame(r, wide):
 def case(r):
     op = r.deal(OPS)
     if op == 'Lanes':
-        return Call(CALLS[op], [(r.randrange(-0x100, 0x101) if r.random() < 0.85 else r.getrandbits(32)) & 0xffffffff for _ in range(4)], {},
+        return Call(CALLS[op], [(r.choice([-1, 0, 0, 1, r.randrange(-0x100, 0x101)]) if r.random() < 0.9 else r.getrandbits(32)) & 0xffffffff
+                                    for _ in range(4)], {},
                     conv='f', ret='a')
     if op == 'Coefficients':
         return coefficients(r)
