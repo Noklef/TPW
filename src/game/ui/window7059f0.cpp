@@ -752,4 +752,34 @@ u16 __fastcall Window7059f0_NthItemCell(u8 *window, void *, s32 n, s32 column, u
     else *out = *cell;
     return 1;
 }
+
+u32 __fastcall Window7059f0_NthItemData(u8 *window, void *, s32 n, u32 *out) {
+    const s32 item = Window7059f0_NthItem(window, nullptr, n);
+    if (item == -1) return 0xffff0000u;
+    if (!out) return ((u32)item & 0xffff0000u) | 1;
+    *out = at<u32 *>(window, 0x144)[item + 1];
+    return ((u32)(uintptr_t)out & 0xffff0000u) | 1;
+}
+
+void __fastcall Window7059f0_OnKey(u8 *window, void *, u32 key, u32) {
+    if (!(at<u32>(window, 0x48) & 0x200)) return;
+    switch ((s16)key) {
+    case 0x2400: Window7059f0_ScrollTo(window, nullptr, 0); break;
+    case 0x2300: Window7059f0_ScrollTo(window, nullptr, at<s32>(window, 0x150) - 1); break;
+    case 0x2600: Window7059f0_ScrollTo(window, nullptr, at<s32>(window, 0x14c) - 1); break;
+    case 0x2800: Window7059f0_ScrollTo(window, nullptr, at<s32>(window, 0x14c) + 1); break;
+    }
+}
+
+u32 __fastcall Window7059f0_PostSelection(u8 *window) {
+    const s32 selection = at<s32>(window, 0x14c);
+    if (selection < 0) return (u32)(uintptr_t)window;   // (EAX still the window the compare went through)
+    return Window_PostMessage(at<u8 *>(window, 0x60), 0x400, at<u32>(window, 0x8c), (u32)selection);
+}
+
+s32 __fastcall Window7059f0_SendScroll(u8 *window) {
+    s32 value = at<s16>(window, 0x168) + 1;
+    if (at<s16>(window, 0x16a) == 1) value = -value;
+    return Window_SendMessage(at<u8 *>(window, 0x60), 0x406, at<u32>(window, 0x8c), (u32)value);
+}
 }

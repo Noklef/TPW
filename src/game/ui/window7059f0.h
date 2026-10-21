@@ -236,4 +236,22 @@ void __fastcall Window7059f0_PostColumnAt(u8 *window, void *, u32 x, u32 y);
 // (Window7059f0_ColumnBottom) is 0 the text of the counted string there (Obj_Get4Or6fd6c4), else the dword itself; 1 in AX. The rest of
 // EAX not kept.
 u16 __fastcall Window7059f0_NthItemCell(u8 *window, void *, s32 n, s32 column, u32 *out);
+
+// 0x664c71 (thiscall (n, out), pops 8; name unconfirmed): the n-th item's (Window7059f0_NthItem) data dword (the item array +0x144's
+// dword after the item's index) into out (when given); 1 in AX, 0 when the item is none (-1). EAX's upper half: the out's, the item's
+// without one, 0xffff for none (sic).
+u32 __fastcall Window7059f0_NthItemData(u8 *window, void *, s32 n, u32 *out);
+
+// 0x665b51 (thiscall (key: a word, unused), pops 8; name unconfirmed): with flag 0x200 of +0x48, the keys scroll (Window7059f0_ScrollTo):
+// 0x2400 (Home) to 0, 0x2300 (End) to the count +0x150 less one, 0x2600 (Up) / 0x2800 (Down) to the selection +0x14c less / plus one.
+// EAX not kept.
+void __fastcall Window7059f0_OnKey(u8 *window, void *, u32 key, u32);
+
+// 0x6656fa (thiscall; name unconfirmed): with a selection (+0x14c not negative) the parent +0x60 posted 0x400 (Window_PostMessage: the
+// id +0x8c, the selection). EAX the post's, or the window when none (sic).
+u32 __fastcall Window7059f0_PostSelection(u8 *window);
+
+// 0x6658b9 (thiscall; name unconfirmed): the parent +0x60 sent 0x406 (Window_SendMessage: the id +0x8c and the word +0x168 plus one,
+// sign-extended, negated when the word +0x16a is 1). Returns the send's.
+s32 __fastcall Window7059f0_SendScroll(u8 *window);
 }
