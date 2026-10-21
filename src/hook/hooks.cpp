@@ -245,6 +245,7 @@
 #include "../game/terrain/procedural.h"
 #include "../game/terrain/tct.h"
 #include "../game/terrain/terrain_blend.h"
+#include "../game/terrain/attrmap.h"
 #include "../game/terrain/texcache.h"
 #include "../game/world/random.h"
 #include "../game/world/camera.h"
@@ -4967,6 +4968,8 @@ const Hook kHooks[] = {
     {"Terrain_NodeCells",         0x0046eeb0, (void *)&Terrain_NodeCells, {0x83, 0xec, 0x18, 0x8d, 0x44}},
     {"Terrain_ModelCells",        0x0046f0c0, (void *)&Terrain_ModelCells, {0x83, 0xec, 0x40, 0x8d, 0x44}},
     {"TerrainSets_Load",          0x00427620, (void *)&TerrainSets_Load, {0x81, 0xec, 0x30, 0x01, 0x00}},
+    {"AttrMapHandler_MatchTag",   0x00519390, (void *)&AttrMapHandler_MatchTag, {0x8b, 0x54, 0x24, 0x04, 0x56}},
+    {"AttrMap_ReadMapChunk",      0x004d8cf0, (void *)&AttrMap_ReadMapChunk, {0x83, 0xec, 0x10, 0x8b, 0x44}},
     {"Online_ApplyBalance",       0x0045aee0, (void *)&Online_ApplyBalance, {0x6a, 0xff, 0x68, 0x08, 0x89}},
     {"Online_LoggedIn",           0x005b6450, (void *)&Online_LoggedIn, {0x8b, 0x41, 0x60, 0xc3, 0x90}},
     {"Online_Restricted",         0x005b6460, (void *)&Online_Restricted, {0x8b, 0x51, 0x60, 0x33, 0xc0}},

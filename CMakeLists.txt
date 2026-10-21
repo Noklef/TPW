@@ -316,6 +316,7 @@ add_library(tpw_game STATIC
     src/game/terrain/normals.cpp
     src/game/terrain/nodecells.cpp
     src/game/terrain/tct.cpp
+    src/game/terrain/attrmap.cpp
     src/game/model/parts.cpp
     src/game/model/holder.cpp
     src/game/model/remap.cpp
