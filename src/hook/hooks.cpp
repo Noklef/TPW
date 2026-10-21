@@ -203,6 +203,7 @@
 #include "../game/core/soundmixer.h"
 #include "../game/core/soundobject.h"
 #include "../game/core/soundplay.h"
+#include "../game/core/soundslot.h"
 #include "../game/core/soundvoice.h"
 #include "../game/core/startcheck.h"
 #include "../game/core/stringmapsrecord.h"
@@ -4352,6 +4353,12 @@ const Hook kHooks[] = {
     {"ReleaseList_Ctor",          0x006d74b0, (void *)&ReleaseList_Ctor, {0x6a, 0xff, 0x68, 0x18, 0x6a}},
     {"ReleaseList_BaseDeletingDtor", 0x006d7500, (void *)&ReleaseList_BaseDeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"ReleaseList_Push",          0x006d7520, (void *)&ReleaseList_Push, {0x6a, 0xff, 0x68, 0x38, 0x6a}},
+    {"SoundSlot_Init",            0x006d6dd0, (void *)&SoundSlot_Init, {0x8b, 0xc1, 0x33, 0xc9, 0x89}},
+    {"SoundSlot_Call7",           0x006d6df0, (void *)&SoundSlot_Call7, {0x8b, 0x01, 0x33, 0xc9, 0x85}},
+    {"SoundSlot_Call5",           0x006d6e10, (void *)&SoundSlot_Call5, {0x8b, 0x01, 0x33, 0xc9, 0x85}},
+    {"SoundSlot_Set",             0x006d6e40, (void *)&SoundSlot_Set, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
+    {"SoundSlot_Call59",          0x006d6e70, (void *)&SoundSlot_Call59, {0x8b, 0x01, 0x33, 0xc9, 0x85}},
+    {"SoundSlot_IsSet",           0x006d6eb0, (void *)&SoundSlot_IsSet, {0x8b, 0x11, 0x33, 0xc0, 0x85}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

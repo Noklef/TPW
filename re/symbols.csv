@@ -4463,6 +4463,12 @@ address,name,kind,confidence,notes
 0x006d74b0,ReleaseList_Ctor,function,low,"reimplemented (src/game/core/releaselist); an empty release list, its lock initialised"
 0x006d7500,ReleaseList_BaseDeletingDtor,function,low,"reimplemented (src/game/core/releaselist); the base list's destructor, then the list freed with flags bit 0"
 0x006d7520,ReleaseList_Push,function,low,"reimplemented (src/game/core/releaselist); under the lock, a node of a value pushed at the head of the release list"
+0x006d6dd0,SoundSlot_Init,function,low,reimplemented (src/game/core/soundslot); a sound object's slot cleared (all but +0x10 and +0x20)
+0x006d6df0,SoundSlot_Call7,function,low,"reimplemented (src/game/core/soundslot); the slot's COM object's slot 7 (a value), 0 without one"
+0x006d6e10,SoundSlot_Call5,function,low,"reimplemented (src/game/core/soundslot); the slot's COM object's slot 5 (a value) into an out, -1 without one"
+0x006d6e40,SoundSlot_Set,function,low,"reimplemented (src/game/core/soundslot); the slot's object replaced, the old one stopped and handed to the release list"
+0x006d6e70,SoundSlot_Call59,function,low,"reimplemented (src/game/core/soundslot); the slot's COM object's slot 59 (two values) into an out, -1 without one"
+0x006d6eb0,SoundSlot_IsSet,function,low,reimplemented (src/game/core/soundslot); whether the slot has its COM object
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
