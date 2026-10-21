@@ -447,6 +447,7 @@ add_library(tpw_game STATIC
     src/game/ui/guifont.cpp
     src/game/ui/panel7cc3e0.cpp
     src/game/ui/guitoken.cpp
+    src/game/ui/levelmeter.cpp
 )
 # The libraries whose functions replace the exe's copies (src/game/lib); their headers stay private to those units.
 target_link_libraries(tpw_game PRIVATE tpw_zlib tpw_jpeg6b tpw_jpeg6a)

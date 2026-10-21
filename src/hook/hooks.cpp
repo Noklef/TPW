@@ -417,6 +417,7 @@
 #include "../game/ui/dialog7cc1f8.h"
 #include "../game/ui/guifont.h"
 #include "../game/ui/guitoken.h"
+#include "../game/ui/levelmeter.h"
 #include "../game/ui/msgboxbutton.h"
 #include "../game/ui/msgtags.h"
 #include "../game/ui/panel7ca178.h"
@@ -5603,6 +5604,8 @@ const Hook kHooks[] = {
     {"GuiToken_ReadDword",        0x0066dd68, (void *)&GuiToken_ReadDword, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"GuiToken_ReadString",       0x0066ddd8, (void *)&GuiToken_ReadString, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"GuiToken_ReadKind",         0x0066dc2c, (void *)&GuiToken_ReadKind, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"LevelMeter_SetLevel",       0x004a95b0, (void *)&LevelMeter_SetLevel, {0x8b, 0x44, 0x24, 0x08, 0x56}},
+    {"LevelMeter_OnMessage",      0x004a9fc0, (void *)&LevelMeter_OnMessage, {0x53, 0x55, 0x8b, 0x6c, 0x24}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
