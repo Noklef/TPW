@@ -1,6 +1,9 @@
 #include "soundobject.h"
 
 #include <cstdint>
+#include <cstring>
+
+#include "../math/vector.h"
 
 #include "fieldops.h"
 #include "initializers.h"
@@ -78,6 +81,25 @@ u32 *__fastcall SoundObject_SetVoices(u8 *object, void *, u32 *out, u32 count) {
     SetThenFlag40_4c_6b9cf0(record, nullptr, at<u32>(object, 0x1c));
     u32 functor[2] = {0x0070a278, (u32)(uintptr_t)record};
     SoundChannel_Apply(at<u8 *>(object, 0x24), nullptr, out, reinterpret_cast<u8 *>(functor));
+    return out;
+}
+
+u32 *__fastcall SoundObject_SetPlacement(u8 *object, void *, u32 *out, const u32 *position, const u32 *direction, const u32 *value) {
+    if (!at<u8 *>(object, 0x24)) {
+        *out = 0xffffffff;
+        return out;
+    }
+    u32 scaled[3] = {position[0], position[1], position[2]};
+    Vec3_Scale(reinterpret_cast<float *>(scaled), nullptr, at<float>(at<u8 *>(object, 0x24), 0x2c));
+    if (std::memcmp(scaled, object + 0x28, 12) || std::memcmp(direction, object + 4, 12) || std::memcmp(value, object + 0x10, 12)) {
+        std::memcpy(object + 0x28, scaled, 12);
+        std::memcpy(object + 4, direction, 12);
+        std::memcpy(object + 0x10, value, 12);
+        u32 local;   // (the original's is the direction argument's own slot)
+        SoundChannel_SetPlacement(at<u8 *>(object, 0x24), nullptr, &local, (u32)(uintptr_t)(object + 0x28), (u32)(uintptr_t)(object + 4),
+                                  (u32)(uintptr_t)(object + 0x10));
+    }
+    *out = 0;
     return out;
 }
 
