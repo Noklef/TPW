@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "../core/accessors.h"
+#include "../core/gameheap.h"
 #include "../core/vcall.h"
 #include "guirect.h"
 #include "window.h"
@@ -97,5 +99,38 @@ void __fastcall Window705af0_Nudge(u8 *window, void *, u32 mode) {
         break;
     }
     }
+}
+
+u32 __cdecl Window705af0_Proc(u8 *window, u32 message, u32 a, u32 b) {
+    switch ((s32)message) {
+    case 0x15:
+        for (u32 id = 1; id <= 2; ++id) {
+            if (u8 *const arrow = Window_FindChild(window, nullptr, id)) {
+                Fn_6693d0(arrow, nullptr, 0x32);
+                Fn_6693f0(arrow, nullptr, 200);
+            }
+        }
+        break;
+    case 0x100:
+        if (a == 1) Window705af0_Nudge(window, nullptr, 1);
+        else if (a == 2) Window705af0_Nudge(window, nullptr, 0);
+        break;
+    case 0x10008:
+        if (a == 1) Window705af0_Nudge(window, nullptr, 5);
+        else if (a == 2) Window705af0_Nudge(window, nullptr, 4);
+        break;
+    case 0x10009:
+        if (a == 1) Window705af0_Nudge(window, nullptr, 3);
+        else if (a == 2) Window705af0_Nudge(window, nullptr, 2);
+        break;
+    case 0x1000d: vcall<u32>(window, 0x1c, vcall<u32>(window, 0x20) + a); break;
+    }
+    return Window_DefaultProc(window, message, a, b);
+}
+
+u8 *__fastcall Window705af0_DeletingDtor(u8 *window, void *, u32 flags) {
+    Window705af0_Dtor(window);
+    if (flags & 1) GameHeap_Free(window);
+    return window;
 }
 }

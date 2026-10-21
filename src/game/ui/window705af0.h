@@ -38,4 +38,13 @@ u16 __fastcall Window705af0_SetValue(u8 *window, void *, s32 value);
 // 4 / 5 a hold going on, down / up: with step 1 moved by the speed, and every 0x14th time the speed times ten; else moved by the step
 // every 5th time. Other modes nothing. EAX not kept.
 void __fastcall Window705af0_Nudge(u8 *window, void *, u32 mode);
+
+// 0x66aa61 (cdecl (window, message, a, b); the handler; name unconfirmed): 0x15 the children of ids 1 and 2 (the arrows; Window_FindChild)
+// given 0x32 and 200 (Fn_6693d0, Fn_6693f0); 0x100 a 1 / 2: Window705af0_Nudge 1 / 0; 0x10008: 5 / 4; 0x10009: 3 / 2; 0x1000d the
+// window's slot 7 (its slot 8's answer + a). Then Window_DefaultProc (message, a, b), whose answer it returns.
+u32 __cdecl Window705af0_Proc(u8 *window, u32 message, u32 a, u32 b);
+
+// 0x66abcf (thiscall (flags), pops 4; slot 2 of the vtable 0x705af0; name unconfirmed): the deleting destructor: Window705af0_Dtor, then
+// with flag 1 the window freed (Mem_Free). Returns the window.
+u8 *__fastcall Window705af0_DeletingDtor(u8 *window, void *, u32 flags);
 }

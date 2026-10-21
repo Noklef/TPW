@@ -8,7 +8,10 @@
 # a window (its byte +4 mostly clear) or 0 and window.py's message queues (Window_PostMessage).
 # Nudge (0x66a7e1): SetValue's set-up, the step +0x148 1 mostly or small, the count +0x14c 1, 2 or any, the speed +0x150 small or any;
 # the mode 0-5 mostly (the pushed register's upper half random).
-# usage: window705af0.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetRange,SetStep,Distance,SetValue,Nudge)
+# Proc (0x66aa61): Nudge's set-up, the message 0x15, 0x100, 0x10008, 0x10009, 0x1000d or a few others DefaultProc leaves (the top bit set,
+# 0x16, 0x101), a 1, 2, 0 or any; the window's vtable a recorder one (slot 8 answering any, slot 7 taking one argument); 0-3 children
+# (+0x5c, next +0x54) of ids 1, 2 or another.
+# usage: window705af0.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetRange,SetStep,Distance,SetValue,Nudge,Proc)
 import os
 import sys
 
@@ -18,10 +21,12 @@ sys.path.insert(0, HERE)
 from fncmp import LOG, RAM, Bench, Call, blob_bytes, log_region, put, recorder, set_return, vtable  # noqa: E402
 from window import queues  # noqa: E402
 
-CALLS = {'SetRange': 0x66a5c4, 'SetStep': 0x66a68d, 'Distance': 0x66a6db, 'SetValue': 0x66a71c, 'Nudge': 0x66a7e1}
-B = Bench([(0x658ccc, 0x658daf), (0x659710, 0x659740), (0x661525, 0x6615a6), (0x6697e3, 0x6698b4), (0x66a5c4, 0x66aa61)])
+CALLS = {'SetRange': 0x66a5c4, 'SetStep': 0x66a68d, 'Distance': 0x66a6db, 'SetValue': 0x66a71c, 'Nudge': 0x66a7e1, 'Proc': 0x66aa61}
+B = Bench([(0x658ccc, 0x658daf), (0x659710, 0x659740), (0x661525, 0x6615a6), (0x6697e3, 0x6698b4), (0x66a5c4, 0x66abcf), (0x65f6d1, 0x65fba8), (0x680050, 0x68005b),
+           (0x65d7bc, 0x65d832), (0x6693d0, 0x669407)])
 WINDOW, OTHER, OBJ98, OBJ9C, VT98, VT9C = RAM, RAM + 0x180, RAM + 0x300, RAM + 0x340, RAM + 0x380, RAM + 0x400
-PARENT, VTW, VTO, PTRS = RAM + 0x480, RAM + 0x500, RAM + 0x580, RAM + 0x600
+PARENT, VTW, VTO, PTRS, KIDS = RAM + 0x480, RAM + 0x500, RAM + 0x580, RAM + 0x600, RAM + 0x800
+KID = 0x160
 
 
 def small(r):
@@ -35,6 +40,22 @@ def window(r):
     put(w, 0x138, 'II', lo, hi)
     put(w, 0x140, 'I', r.choice([lo, hi, small(r)]))
     return w
+
+
+def proc(r, regions, log, w):
+    regions[VTW] = vtable({7: 1}, size=12)
+    put(w, 0, 'I', VTW)
+    set_return(log, 8, small(r))
+    n = r.choice([0, 1, 2, 3])
+    put(w, 0x5c, 'I', KIDS if n else 0)
+    for i in range(n):
+        kid = bytearray(r.bytes(KID))
+        put(kid, 0x54, 'I', KIDS + KID * (i + 1) if i + 1 < n else 0)
+        put(kid, 0x8c, 'I', r.choice([1, 2, 2, 1, 3, r.getrandbits(32)]))
+        regions[KIDS + KID * i] = kid
+    message = r.choice([0x15, 0x100, 0x100, 0x10008, 0x10008, 0x10009, 0x10009, 0x1000d, 0x80000015, 0x16, 0x101, 0x8001000d])
+    a = r.choice([1, 1, 2, 2, 0, r.getrandbits(32)])
+    return Call(CALLS['Proc'], [WINDOW, message, a, r.getrandbits(32)], regions, ret='a')
 
 
 def case(r):
@@ -67,10 +88,12 @@ def case(r):
     blob_bytes(log, 3, 1, 0xf)
     blob_bytes(log, 22, 1, 0xf)
     queues(r, regions)
-    if op == 'Nudge':
+    if op in ('Nudge', 'Proc'):
         put(w, 0x148, 'I', r.choice([1, 1, 1, small(r)]))
         put(w, 0x14c, 'I', r.choice([1, 1, 2, r.randrange(1, 25), r.getrandbits(32)]))
         put(w, 0x150, 'I', r.choice([1, 10, 100, small(r)]))
+        if op == 'Proc':
+            return proc(r, regions, log, w)
         mode = r.choice([0, 1, 2, 3, 4, 4, 5, 5, r.randrange(6, 0x10000)]) | r.choice([0, r.getrandbits(16)]) << 16
         return Call(CALLS[op], [WINDOW, mode], regions, conv='t', ret='v')
     value = w[0x140] | w[0x141] << 8 | w[0x142] << 16 | w[0x143] << 24 if r.random() < 0.3 else small(r)
