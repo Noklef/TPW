@@ -81,6 +81,16 @@ u8 *__fastcall TileSet_Ctor(u8 *object);
 // +0x48, +0x88, +0x98, +0x28, +0x58, +0xa8, +0x68, +0x78, +0xb8 and +0xc8 in that order. Returns 1 in AL over the upper bytes of the last read's return.
 u32 __fastcall Lnd_ReadLevel(u8 *object, void *, u8 *stream);
 
+// 0x560ff0 (thiscall; name, pops 4; the game pushes a second argument to VFS_Open, 0x74cfb8, unread): base.lnd read. Lnd_Clear, then the
+// file opened (VFS_Open; none: 0); its version byte (not 3: the stream finished and deleted, 0); the bytes +2 .. +0xb; the ramps at 0x8794a8
+// (centre +0xa, width +0xb) and 0x8793a8 (+6, +7): with w = width + 1, lo = centre - w / 2 and hi = centre + w / 2 (both as s16), entry i
+// (0..255) is 0 below lo, 0xff above hi, else (255 i - 255 lo) / w; then Lnd_BuildRamp of 0x8797a8 (+8, +9), 0x8796a8 (+4, +5) and
+// 0x8795a8 (+2, +3); the control map Array3D_Read into +0x14, its width - 1 and height - 1 (+0x14, +0x18) over 4 (sar) into +0xc and +0x10.
+// Then for each of the three levels (0xd8 bytes each from +0x24): the one byte +1 names read with Lnd_ReadLevel; the others skipped: a u32
+// and a byte read and dropped, then thirteen times three dwords read and a seek from here (Stream_SeekFailed, whence 1) by their product.
+// The stream finished and deleted; returns 1 (in AL over Object_FinishAndDelete's 0).
+u32 __fastcall Lnd_Read(u8 *object, void *, const char *name);
+
 // 0x55f530 (thiscall; name unconfirmed): the dwords +0x14 .. +0x20 cleared, the three levels at +0x24 (0xd8 bytes each) made with TileSet_Ctor, then
 // Lnd_Clear. Returns the object.
 u8 *__fastcall Lnd_Ctor(u8 *object);

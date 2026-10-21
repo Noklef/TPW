@@ -6,6 +6,9 @@
 #include "../core/buffers.h"
 #include "../core/crt.h"
 #include "../core/vwrap.h"
+#include "../core/vregs.h"
+#include "../files/vfs.h"
+#include "terrain_blend.h"
 #include "../core/gameheap.h"
 #include "../core/globalmem.h"
 #include "../gfx/array3d.h"
@@ -234,6 +237,48 @@ u32 __fastcall Lnd_ReadLevel(u8 *object, void *, u8 *stream) {
     for (u32 i = 0; i < 13; i++)
         result = Array3D_Read(object + kOrder[i], nullptr, stream);
     return (result & ~0xffu) | 1;
+}
+
+u32 __fastcall Lnd_Read(u8 *object, void *, const char *name) {
+    Lnd_Clear(object);
+    u8 *const stream = reinterpret_cast<u8 *>(VFS_Open(name));
+    if (!stream) return 0;
+    u8 version;
+    Object_CallSlot8Product((u32)(uintptr_t)&version, 1, 1, stream);
+    if (version != 3) return Object_FinishAndDelete(stream) & ~0xffu;
+    for (u32 offset = 2; offset <= 0xb; offset++)
+        Object_CallSlot8Product((u32)(uintptr_t)(object + offset), 1, 1, stream);
+    const auto ramp = [](u32 table, u8 centre, u8 width) {
+        const s32 w = width + 1;
+        const s32 lo = static_cast<s16>(centre - (w >> 1)), hi = static_cast<s16>((w >> 1) + centre);
+        for (s32 i = 0; i < 0x100; i++)
+            global<u8>(table + i) = i < lo ? 0 : i > hi ? 0xff : static_cast<u8>((255 * i - 255 * lo) / w);
+    };
+    ramp(0x008794a8, at<u8>(object, 0xa), at<u8>(object, 0xb));
+    ramp(0x008793a8, at<u8>(object, 6), at<u8>(object, 7));
+    Lnd_BuildRamp(reinterpret_cast<u8 *>(0x008797a8), at<u8>(object, 8), at<u8>(object, 9));
+    Lnd_BuildRamp(reinterpret_cast<u8 *>(0x008796a8), at<u8>(object, 4), at<u8>(object, 5));
+    Lnd_BuildRamp(reinterpret_cast<u8 *>(0x008795a8), at<u8>(object, 2), at<u8>(object, 3));
+    Array3D_Read(object + 0x14, nullptr, stream);
+    at<s32>(object, 0xc) = static_cast<s32>(at<u32>(object, 0x14) - 1) >> 2;
+    at<s32>(object, 0x10) = static_cast<s32>(at<u32>(object, 0x18) - 1) >> 2;
+    u32 dropped = 0, a = 0, b = 0, c = 0;
+    u8 number = 0;
+    for (u32 level = 0; level < 3; level++) {
+        if (at<u8>(object, 1) == level) {
+            Lnd_ReadLevel(object + 0x24 + 0xd8 * level, nullptr, stream);
+            continue;
+        }
+        Object_CallSlot8Product((u32)(uintptr_t)&dropped, 4, 1, stream);
+        Object_CallSlot8Product((u32)(uintptr_t)&number, 1, 1, stream);
+        for (int k = 0; k < 13; k++) {
+            Object_CallSlot8Product((u32)(uintptr_t)&a, 4, 1, stream);
+            Object_CallSlot8Product((u32)(uintptr_t)&b, 4, 1, stream);
+            Object_CallSlot8Product((u32)(uintptr_t)&c, 4, 1, stream);
+            Stream_SeekFailed(stream, c * b * a, 1);
+        }
+    }
+    return (Object_FinishAndDelete(stream) & ~0xffu) | 1;
 }
 
 u8 *__fastcall Lnd_Ctor(u8 *object) {

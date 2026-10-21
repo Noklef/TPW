@@ -377,7 +377,7 @@ address,name,kind,confidence,notes
 0x0056e550,TerrainTex_Init,function,medium,"allocates the 0x10014-byte tile cache and reads the .lnd"
 0x005723f0,TerrainTexCache_ReadLnd,function,medium,
 0x00572440,TerrainTexCache_Update,function,low,"LRU tile cache keyed by (x, y); blends missing tiles"
-0x00560ff0,Lnd_Read,function,high,"base.lnd: version 3, 5 blend ramps, 384x344x4 control map, 3 detail levels of 13 textures"
+0x00560ff0,Lnd_Read,function,high,"reimplemented (src/game/terrain/land); thiscall (name): base.lnd read: version 3, the ramp bytes and five ramps, the control map, the level byte +1 names (the others skipped)"
 0x0055f470,Lnd_ReadLevel,function,high,"reimplemented (src/game/terrain/land); Reads a level's tile size, number and thirteen arrays from a stream"
 0x0055f630,Lnd_Clear,function,high,reimplemented (src/game/terrain/land); Clears the land object and gives its three tile levels their sizes
 0x0055f720,Lnd_SetTileSize,function,high,reimplemented (src/game/terrain/land); 0x40/0x20/0x10 -> detail level 0/1/2
