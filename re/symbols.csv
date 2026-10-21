@@ -5514,6 +5514,7 @@ address,name,kind,confidence,notes
 0x0065f077,Window_StopTimer,function,low,"reimplemented (src/game/ui/windowtimers); thiscall (id), pops 4: the window's timer (indexed as Window_SetTimer's) stopped (Fn_662097); 0 in AX without one, else 1"
 0x00661fe5,WindowTimer_Fire,function,low,"reimplemented (src/game/ui/windowtimers); thiscall: the node's due firings posted to its window (0x10, id, n) while enabled and the GUI is up; the count posted"
 0x00662384,WindowTimers_Remove,function,low,"reimplemented (src/game/ui/windowtimers); cdecl (node): the node taken off the list [0xfaa634] and deleted; 0 without a list or node, else 1"
+0x0065f0ca,Window_KillTimer,function,low,"reimplemented (src/game/ui/windowtimers); thiscall (id), pops 4: as Window_StopTimer, the timer killed (WindowTimers_Kill with the id plus 0x80080); 0 in AX without a node"
 0x006689bc,Window705a50_Dtor,function,low,"reimplemented (src/game/ui/window705a50); thiscall: the 0x705a50 window's destructor: its vtable, the text row +0x148 released when set, then Window_Dtor"
 0x006693a0,Window705a50_DeletingDtor,function,low,"reimplemented (src/game/ui/window705a50); thiscall (flags): the 0x705a50 window's scalar deleting destructor (slot 2): Window705a50_Dtor, then with flag 1 freed; returns the window"
 0x0066852b,Window705a50_TextLength,function,low,"reimplemented (src/game/ui/window705a50); thiscall: wcslen of the wide text +0x138 (AX), 0 for none"
