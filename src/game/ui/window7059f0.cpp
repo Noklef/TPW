@@ -140,6 +140,45 @@ void __fastcall Window7059f0_SetRowHeight(u8 *window, void *, u32 height) {
     at<u16>(window, 0x172) = (u16)((at<s16>(window, 0x142) - at<s16>(window, 0x13e)) / at<s16>(window, 0x170));
 }
 
+u16 __fastcall Window7059f0_SetRowSize(u8 *window, void *, u8 *row) {
+    if (row) {
+        s16 width, height;
+        Window_GetSize(row, nullptr, &width, &height, 1);
+        at<s16>(window, 0x170) = height;
+        at<u16>(window, 0x172) = (u16)((at<s16>(window, 0x142) - at<s16>(window, 0x13e)) / at<s16>(window, 0x170));
+        if (!at<u32>(window, 0x148)) at<void *>(window, 0x148) = GameHeap_Alloc((u32)((s32)at<s16>(window, 0x172) << 2));
+        if (u8 *const highlight = at<u8 *>(window, 0x174)) {
+            u8 rect[12];
+            GuiRect_CtorWith(rect, nullptr, at<u16>(window, 0x13c), at<u16>(window, 0x13e), at<u16>(window, 0x140),
+                             (u32)((s32)at<s16>(window, 0x13e) + at<s16>(window, 0x170)));
+            u8 event[0x28];  // (only +0x14, the rectangle, and +0x24 set)
+            at<u8 *>(event, 0x14) = rect;
+            at<u32>(event, 0x24) = 0x10;
+            vcall<void>(highlight, 0xc, 0x10u, event);
+            GuiRect_Dtor(rect);
+        }
+    }
+    return at<u16>(window, 0x172);
+}
+
+void __fastcall Window7059f0_SetRow(u8 *window, void *, s32 index, u8 *row) {
+    u8 rect[12];
+    GuiRect_Ctor(rect);
+    if (row && at<u32>(window, 0x148) && at<u32>(window, 0x16c) && index < at<s16>(window, 0x172)) {
+        at<u8 **>(window, 0x148)[index] = row;
+        u8 *w = row;
+        const s16 top = (s16)(at<s16>(window, 0x13e) + (s32)at<s16>(window, 0x170) * index);
+        for (s32 i = 0; i < at<s16>(window, 0x164); ++i) {
+            u8 *const column = at<u8 *>(window, 0x16c) + 0xc * i;
+            Window_SetRectTo(w, nullptr, (u32)(s32)at<s16>(column, 4), (u32)(s32)top, (u32)(s32)at<s16>(column, 8),
+                             (u32)((s32)top + at<s16>(window, 0x170)));
+            Window_SetDepth(w, nullptr, (u32)(at<s16>(window, 0xe0) + 3));
+            w = reinterpret_cast<u8 *>((uintptr_t)(i == 0 ? Fn_65d547(w, nullptr, 0) : Fn_65d56b(w)));
+        }
+    }
+    GuiRect_Dtor(rect);
+}
+
 s32 __fastcall Window7059f0_FindItemData(u8 *window, void *, u32 data) {
     s32 item = Window7059f0_NthItem(window, nullptr, 0), position = -1;
     bool found = false;
