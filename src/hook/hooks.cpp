@@ -205,6 +205,7 @@
 #include "../game/coaster/setup.h"
 #include "../game/coaster/save.h"
 #include "../game/coaster/spline.h"
+#include "../game/coaster/trackmesh.h"
 #include "../game/coaster/train.h"
 #include "../game/coaster/xsection.h"
 #include "../game/terrain/land.h"
@@ -3833,6 +3834,7 @@ const Hook kHooks[] = {
     {"CoasterEdit_ToggleAdjustAngles", 0x00442010, (void *)&CoasterEdit_ToggleAdjustAngles, {0x8b, 0x15, 0x58, 0xc6, 0x79}},
     {"CoasterEdit_ToggleAdjust",  0x004421e0, (void *)&CoasterEdit_ToggleAdjust, {0xa1, 0xec, 0x0f, 0x79, 0x00}},
     {"CoasterEdit_ToggleDrag",    0x00441a00, (void *)&CoasterEdit_ToggleDrag, {0x51, 0x56, 0x8b, 0x35, 0xec}},
+    {"TrackMesh_EmitPiece",       0x0043f4e0, (void *)&TrackMesh_EmitPiece, {0x83, 0xec, 0x5c, 0xa1, 0x18}},
     {"Thing_SpriteChoice",        0x004fcac0, (void *)&Thing_SpriteChoice, {0x51, 0x56, 0x8b, 0xf1, 0x6a}},
     {"Thing_IngredientRecord",    0x004e2200, (void *)&Thing_IngredientRecord, {0x51, 0x66, 0x8b, 0x41, 0x0e}},
     {"Class701378_Ctor",          0x005667d0, (void *)&Class701378_Ctor, {0x51, 0x8b, 0x44, 0x24, 0x08}},
