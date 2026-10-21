@@ -2,11 +2,12 @@
 # SetYellow (0x492d20): window.py's notify_env tree, any of its windows.
 # Attach (0x485d20): windowtree.py's rect_env windows (small rectangles, margins, anchors; the objects' events logged as a hash of none of
 # their bytes: windownotify.py checks those) with ids +0x8c from a few (repeats too), the parent any of them, the id one of its children's
-# or another; the shared text part [0x7c2118] random bytes (its vtable the windows' recorder one, its words +0x10 / +0x12 small); the
+# or another (a parent with children mostly; rectangles inside out now and then; the default handlers +0x118 recorders); the shared text part [0x7c2118] random bytes (its vtable the windows' recorder one, its words +0x10 / +0x12 small); the
 # language's font group 0-2 (font 5 read inline); the text any.
 # Handler (0x48d2e0): notify_env's window, its default handler +0x118 a cdecl recorder, its dword +0xa0 an owner whose slot 14 is a
 # recorder (or none: a fault in both on a click); the message 0x10001, 0x10002, 0x10006 or another, a 0 or not.
-# Bind (0x48d290): Attach's surroundings, the owner random bytes with its window +0x10 the parent.
+# Bind (0x48d290): Attach's surroundings, the owner random bytes with its window +0x10 the parent; the windows' objects +0x98 all set (with none
+# the rectangle set sends the new handler 0x48d2e0 a message, and the driver cannot call a game address in its own code; Attach covers that path).
 # usage: hoverlabel.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetYellow,Attach,Handler,Bind)
 import os
 import struct
@@ -43,25 +44,33 @@ SHARED = 0x7c2118
 OWNER, OWNVT = RAM + 0xc000, RAM + 0xc100
 
 
-def attach_env(r, regions, log):
-    """Attach's surroundings (above); returns (parent, id)"""
+def attach_env(r, regions, log, bound=False):
+    """Attach's surroundings (above); returns (parent, id, whether the parent has children)"""
     wins = rect_env(r, regions, log)
     for k in (3, 22):
         blob_bytes(log, k, 1, 0)
     pool = [r.randrange(1, 6) for _ in range(3)] + [r.getrandbits(32)]
     for w in wins:
         put(regions[w], 0x8c, 'I', r.choice(pool))
+        put(regions[w], 0x4c, 'I', r.choice([0, window.LOOK]))   # (SetObject98 reads the look's byte +0x10)
+        put(regions[w], 0x98, 'I', window.OBJECT98 if bound else r.choice([0, 0, window.OBJECT98]))
+        put(regions[w], 0x118, 'I', recorder(5, 4, cdecl=True))   # (the default handler, behind the one Bind sets)
+        if r.random() < 0.3:   # (the rectangle +8 turned inside out: a negative width, odd or even)
+            left, top, right, bottom = struct.unpack_from('<4h', regions[w], 0xc)
+            put(regions[w], 0xc, '4h', left, top, left - r.choice([1, 2, 5, 40, 41]), bottom)
+    regions[window.LOOK] = r.bytes(0x20)
     regions[SHARED] = put(put(bytearray(r.bytes(0x60)), 0, 'I', window.VTABLE), 0x10, 'hh', r.choice([0, 1, 2]), r.choice([0, 1, 2]))
     lang = bytearray(r.bytes(0x400))
     put(lang, 4, 'I', r.choice([0, 1, 2]))
     regions[0x78b530] = lang
-    parent = r.choice(wins)
+    parents = [w for w in wins if struct.unpack_from('<I', regions[w], 0x5c)[0]]
+    parent = r.choice(parents * 6 + wins if parents else wins)
     kids, c = [], struct.unpack_from('<I', regions[parent], 0x5c)[0]
     while c:
         kids.append(struct.unpack_from('<I', regions[c], 0x8c)[0])
         c = struct.unpack_from('<I', regions[c], 0x54)[0]
-    ident = r.choice(kids * 4 + pool) if kids else r.choice(pool)
-    return parent, ident
+    ident = r.choice(kids * 12 + pool) if kids else r.choice(pool)
+    return parent, ident, bool(kids)
 
 
 def case(r):
@@ -83,7 +92,12 @@ def case(r):
         message = r.choice([0x10001, 0x10002, 0x10006, 0x10006, 0x10000, 0x10003, 0x10005, 0x10007, 1, r.getrandbits(32)])
         a = r.choice([0, 0, 1, r.getrandbits(32)])
         return Call(CALLS[op], [w, message, a, r.getrandbits(32)], regions, ret='a')
-    parent, ident = attach_env(r, regions, log)
+    for _ in range(3):   # (a parent with children, mostly)
+        log = log_region()
+        regions = {LOG: log}
+        parent, ident, kids = attach_env(r, regions, log, op == 'Bind')
+        if kids:
+            break
     if op == 'Attach':
         return Call(CALLS[op], [parent, ident, r.choice([0, RAM + 0xd000, r.getrandbits(32)])], regions, ret='v')
     regions[OWNER] = put(bytearray(r.bytes(0x40)), 0x10, 'I', parent)
