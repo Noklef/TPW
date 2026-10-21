@@ -4,18 +4,18 @@
 # synthesis filter (0x6c9270) over a decoder of 0 to 3 channels (mostly 1 or 2) at any ring position, its buffers and the window (0x70bd48)
 # random floats of a decoded stream's range (now and then large enough to clip or overflow the fistp), half rate (0xfb2708) now and then, the
 # output none now and then. The fixed-point filter (0x6ca580) the same over halfword buffers and windows (0x70c5c8-0x70ce08) of full range
-# (sums that wrap and saturate) or small, its transform (LbMpeg_MmxTransform, 0x6d62c0) fncmp's stand-in (copies the input to
-# both outputs, the second reversed; driver.cpp's Mp2Synth env).
+# (sums that wrap and saturate) or small, through its transform (0x6d62c0). The transform alone over 32 halfwords of full range or
+# small, its two outputs apart or overlapping (row 8 goes to both).
 # usage: mp2synth.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import RAM, Bench, Call, _mp2_transform, fb  # noqa: E402
+from fncmp import RAM, Bench, Call, fb  # noqa: E402
 
-CALLS = {'dct64': 0x6c9580, 'synth': 0x6c9270, 'fixed': 0x6ca580}
-B = Bench([(0x6c9580, 0x6ca574), (0x6c9270, 0x6c957d), (0x6ca580, 0x6cc735)], hooks={0x6d62c0: _mp2_transform})
+CALLS = {'dct64': 0x6c9580, 'synth': 0x6c9270, 'fixed': 0x6ca580, 'transform': 0x6d62c0}
+B = Bench([(0x6c9580, 0x6ca574), (0x6c9270, 0x6c957d), (0x6ca580, 0x6cc735), (0x6d62c0, 0x6d6c4c)])
 OUT0, OUT1, IN = RAM, RAM + 0x1000, RAM + 0x2000
 DECODER, PCM = RAM + 0x4000, RAM + 0x3000
 WINDOW, HALF = 0x70bd48, 0xfb2708
@@ -66,12 +66,21 @@ def case_fixed(r):
     return Call(CALLS['fixed'], [DECODER, out, IN], regions, conv='t', ret='v')
 
 
+def case_transform(r):
+    data = halfwords(r, 32, r.random() < 0.4)
+    if r.random() < 0.2:   # out1 inside out0's span or just past it
+        return Call(CALLS['transform'], [OUT0, OUT0 + 2 * r.randrange(0, 0x120), IN], {OUT0: r.bytes(0x440), IN: data}, conv='c', ret='v')
+    return Call(CALLS['transform'], [OUT0, OUT1, IN], {OUT0: r.bytes(0x202), OUT1: r.bytes(0x1e2), IN: data}, conv='c', ret='v')
+
+
 def case(r):
     name = r.deal(OPS)
     if name == 'synth':
         return case_synth(r)
     if name == 'fixed':
         return case_fixed(r)
+    if name == 'transform':
+        return case_transform(r)
     kind = r.choice(['plain', 'plain', 'plain', 'big', 'tiny', 'mixed'])
     data = bytearray(0x80)
     for i in range(32):

@@ -7,7 +7,7 @@
 
 #include "../../../re/types.h"
 
-// The fixed-point filter's callee: LbMpeg_MmxTransform (0x6d62c0, cdecl out0, out1, in: the fixed-point DCT, not ported).
+// The fixed-point filter's callee: LbMpeg_MmxTransform (0x6d62c0; a bench may put fncmp's stand-in there).
 struct Mp2SynthEnv {
     void(__cdecl *transform)(s16 *out0, s16 *out1, const s16 *in);
 };
@@ -27,6 +27,11 @@ void __cdecl Mp2_Dct64(float *out0, float *out1, const float *in);
 // (to nearest; out of range 0x80000000) and clipped to -32768..32767. With the dword 0xfb2708 set it makes 8, 1 and 7 at twice the strides.
 // The sums keep the original's association (four partial sums per sample).
 void __fastcall Mp2Decoder_Synth(u8 *decoder, void *, s16 *out, const float *fraction);
+// 0x6d62c0 (cdecl): the fixed-point DCT (MMX). in's 32 halfwords fold into 16 sums in[j] + in[31 - j] and 16 differences in[j] - in[31 - j]
+// (wrapping); each of 16 rows of Q14 factors (0xfc0200 for the sums, 0xfc0000 for the differences) times them, summed in 32 bits
+// (wrapping) and shifted right 14, gives one halfword. The sums' rows 0-8 go to out0[256 - 32 k] (row 8 to out1[0] too), 9-15 to
+// out1[32 (k - 8)]; the differences' rows 0-7 to out0[240 - 32 k], 8-15 to out1[16 + 32 (k - 8)].
+void __cdecl LbMpeg_MmxTransform(s16 *out0, s16 *out1, const s16 *in);
 // 0x6ca580 (thiscall): the same in 16-bit fixed point (the MMX code), fraction 32 halfwords a channel (0x40 bytes apart, as
 // Mp2Decoder_DequantizeFixed leaves them). Each channel's two buffers of 0x120 halfwords sit at +4 + 0x480 c (channel 0 first) and take the
 // transform; the window is 16-bit and already signed (0x70c9e8 for the first 16 samples and the even taps, 0x70c5e8 for the 15 mirrored, each

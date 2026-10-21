@@ -6,19 +6,19 @@
 # (now and then 0) with a bitrate, sampling rate and mode that pick one of the game's allocation tables (lsf now and then: table 4), jsbound
 # within sblimit and mono never joint stereo (else the original reads its stack unset), a frame of random bits, the synthesis's buffers,
 # windows and the factor and grouping tables random, float or fixed point (0xfb2704), half rate (0xfb2708) now and then, the output none
-# now and then; the fixed-point transform (0x6d62c0) fncmp's stand-in as in tests/fncmp/mp2synth.py.
+# now and then (the fixed point through the transform 0x6d62c0).
 # usage: mp2layer2.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import RAM, Bench, Call, _mp2_transform  # noqa: E402
+from fncmp import RAM, Bench, Call  # noqa: E402
 import x87emu  # noqa: E402
 
 CALLS = {'float': 0x6ccc20, 'fixed': 0x6cd220, 'frame': 0x6cdf50}
-B = Bench([(0x6ccc20, 0x6cd218), (0x6cd220, 0x6cde4d), (0x6cdf50, 0x6ce594), (0x6c9270, 0x6c957d), (0x6c9580, 0x6ca574), (0x6ca580, 0x6cc735)],
-          hooks={0x6d62c0: _mp2_transform})
+B = Bench([(0x6ccc20, 0x6cd218), (0x6cd220, 0x6cde4d), (0x6cdf50, 0x6ce594), (0x6c9270, 0x6c957d), (0x6c9580, 0x6ca574), (0x6ca580, 0x6cc735),
+           (0x6d62c0, 0x6d6c4c)])
 DECODER, FRAME, BITS, OUT, SCALE, TABLE = RAM, RAM + 0x3000, RAM + 0x3800, RAM + 0x4000, RAM + 0x4800, RAM + 0x5000
 FACTORS, FIXED = 0x70ce08, 0x70e908          # 27 rows of 64 each (float, then s32)
 GROUPS = 0x70af28                            # the 3-, 5- and 9-level grouping tables (from the pointers at 0x782e00)
