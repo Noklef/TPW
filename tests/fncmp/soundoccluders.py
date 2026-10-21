@@ -1,8 +1,9 @@
 # The sound occluders' test (src/game/core/soundoccluders: 0x6c4c80) and the clamp it uses (src/game/math/vector: 0x6c4f00) against the
-# originals. 'clamp': x, a and b small integers (ties), ordinary or odd floats (NaNs quiet and signalling, infinities, zeros). 'occlusion':
+# originals. 'clamp': x, a and b small integers (ties) or zeros of either sign, ordinary or odd floats (NaNs quiet and signalling,
+# infinities). 'occlusion':
 # a list (+4 the head, +0xc the count, 0 now and then; +0x14 the smallest radius, NaN now and then) of 0-6 occluders (x +0, z +4, the radius
 # +0xc), sorted by radius (largest first) or not; from and to and the occluders mostly small integers, so that points fall on the circles
-# (ties); now and then ordinary or odd floats.
+# (ties), to now and then put on the first occluder's circle; now and then ordinary or odd floats.
 # usage: soundoccluders.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -19,6 +20,8 @@ OPS = [n for n in ('clamp', 'occlusion') if not os.environ.get('OPS') or n in os
 
 def value(r, small=8):
     x = r.random()
+    if x < 0.1:
+        return r.choice([0, 0x80000000])
     if x < 0.7:
         return fb(float(r.randint(-small, small)))
     if x < 0.85:
@@ -60,6 +63,12 @@ def case(r):
     points = []
     for _ in range(2):
         points.append(struct.pack('<3I', value(r), r.getrandbits(32), value(r)))
+    if r.random() < 0.3:   # to on the first occluder's circle (an integer radius, a Pythagorean offset)
+        k = r.randint(1, 2)
+        dx, dz = r.choice([(3, 4), (4, 3), (5, 0), (0, 5), (-3, 4), (3, -4), (0, -5), (-5, 0)])
+        cx, cz = r.randint(-6, 6), r.randint(-6, 6)
+        occs[0][0], occs[0][1], occs[0][3] = fb(float(cx)), fb(float(cz)), fb(float(5 * k))
+        points[1] = struct.pack('<3I', fb(float(cx + k * dx)), r.getrandbits(32), fb(float(cz + k * dz)))
     regions = {LIST: lst, NODES: nodes, OCCS: b''.join(struct.pack('<4I', *o) for o in occs), FROM: points[0], TO: points[1], OUT: r.bytes(4)}
     return Call(0x6c4c80, [LIST, FROM, TO, OUT], regions, conv='t', ret='a')
 
