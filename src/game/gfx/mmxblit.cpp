@@ -8,6 +8,36 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 
 uint64_t &qword(u8 *p, u32 offset) { return *reinterpret_cast<uint64_t *>(p + offset); }
 
+uint64_t load(const u8 *p) { return *reinterpret_cast<const uint64_t *>(p); }
+
+// The MMX instructions, lane by lane.
+uint64_t paddusb(uint64_t a, uint64_t b) {
+    uint64_t out = 0;
+    for (int k = 0; k < 64; k += 8) {
+        const u32 sum = (u32)(a >> k & 0xff) + (u32)(b >> k & 0xff);
+        out |= (uint64_t)(sum > 0xff ? 0xff : sum) << k;
+    }
+    return out;
+}
+
+uint64_t pmaddwd(uint64_t a, uint64_t b) {
+    uint64_t out = 0;
+    for (int k = 0; k < 64; k += 32) {
+        const u32 sum = (u32)((s32)(s16)(a >> k) * (s16)(b >> k)) + (u32)((s32)(s16)(a >> (k + 16)) * (s16)(b >> (k + 16)));  // (wraps)
+        out |= (uint64_t)sum << k;
+    }
+    return out;
+}
+
+uint64_t psrld(uint64_t a, uint64_t count) {
+    if (count > 31) return 0;
+    return (uint64_t)((u32)(a >> 32) >> count) << 32 | (u32)a >> count;
+}
+
+uint64_t psrlq(uint64_t a, uint64_t count) { return count > 63 ? 0 : a >> count; }
+
+uint64_t punpckldq(uint64_t a, uint64_t b) { return b << 32 | (u32)a; }
+
 }  // namespace
 
 extern "C" {
@@ -28,6 +58,35 @@ void __cdecl MmxBlit_Copy16(const u8 *source, u8 *out, u32 width, u32 rows, s32 
         source += sourcePitch;
         out += outPitch;
     } while (--rows);
+}
+
+void __cdecl MmxBlit_Dither16(const u8 *source, u8 *out, u32 width, u32 rows, s32 sourcePitch, s32 outPitch) {
+    const u32 groups = width >> 2;
+    const uint64_t low = global<uint64_t>(0x00fbe198), high = global<uint64_t>(0x00fbe1a0), shift = global<uint64_t>(0x00fbe1a8);
+    u32 row = 0;
+    do {
+        global<uint64_t>(0x00fab4e0) = global<uint64_t>(0x0077e540 + (row & 3) * 16);
+        global<uint64_t>(0x00fab4e8) = global<uint64_t>(0x0077e548 + (row & 3) * 16);
+        const u8 *from = source;
+        u8 *to = out;
+        uint64_t a = load(from), b = load(from + 8);
+        u32 left = groups;
+        do {
+            a = paddusb(a, global<uint64_t>(0x00fab4e0));
+            b = paddusb(b, global<uint64_t>(0x00fab4e8));
+            const uint64_t aHigh = psrld(a & high, shift), bHigh = psrld(b & high, shift);
+            a = psrld(pmaddwd(a & low, global<uint64_t>(0x00fbe190)), 6) | aHigh;
+            b = psrld(pmaddwd(b & low, global<uint64_t>(0x00fbe190)), 6) | bHigh;
+            from += 0x10;
+            to += 8;
+            const uint64_t pairsA = psrlq(a, 16) | a, pairsB = psrlq(b, 16) | b;
+            a = load(from);
+            b = load(from + 8);
+            *reinterpret_cast<uint64_t *>(to - 8) = punpckldq(pairsA, pairsB);
+        } while (--left);
+        source += sourcePitch;
+        out += outPitch;
+    } while (++row != rows);
 }
 
 void __cdecl MmxBlit_Copy32(u8 *source, u8 *out, u32 width, u32 rows, s32 sourcePitch, s32 outPitch, u8 *depth, u32 depthPitch,

@@ -1,5 +1,6 @@
 // The software renderer's picture copies to the screen surface (hand-written MMX assembly: MOVQ moves, EMMS at the end; called from
-// 0x573d00's present). Reimplementation of 0x678790 and 0x678c20. The names are unconfirmed.
+// 0x573d00's present). The MMX arithmetic is done on 64-bit integers lane by lane. Reimplementation of 0x678790, 0x678c20 and
+// 0x678d70. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -19,4 +20,12 @@ void __cdecl MmxBlit_Copy16(const u8 *source, u8 *out, u32 width, u32 rows, s32 
 // its row moving by 0xfab4b0, read again each row).
 void __cdecl MmxBlit_Copy32(u8 *source, u8 *out, u32 width, u32 rows, s32 sourcePitch, s32 outPitch, u8 *depth, u32 depthPitch,
                             u32 clear, u32 fillLow, u32 fillHigh);
+
+// 0x678d70 (cdecl (source, out, width, rows, source pitch, out pitch); name unconfirmed): 32-bit pixels to 16 bits, dithered: for each
+// row (counted up from 0 until it equals rows, tested after each: 0 runs 2^32 times, sic) the two qwords at 0x77e540 + (row & 3) * 16
+// into 0xfab4e0 / 0xfab4e8; then width >> 2 passes (tested after each, the same) of 16 bytes in, 8 out: each qword PADDUSB its dither
+// qword (read from 0xfab4e0 / 0xfab4e8 each pass), (q & [0xfbe198]) PMADDWD [0xfbe190] >> 6 (dwords) OR (q & [0xfbe1a0]) >> [0xfbe1a8]
+// (dwords; the three masks read once), each dword's low word paired with the next's (q | q >> 16) and the two qwords' low dwords
+// written. The next pass's 16 bytes are read before this pass's 8 are written, so each row reads 16 bytes past its end (sic).
+void __cdecl MmxBlit_Dither16(const u8 *source, u8 *out, u32 width, u32 rows, s32 sourcePitch, s32 outPitch);
 }
