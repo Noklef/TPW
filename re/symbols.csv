@@ -4673,6 +4673,7 @@ address,name,kind,confidence,notes
 0x006770b0,DctVlc_Skip,function,low,reimplemented (src/game/gfx/dctvlc); fastcall (n): the bit reader's n bits dropped and a word read in when fewer than 16 are left (unsigned)
 0x00677110,DctVlc_ReadCode,function,low,"reimplemented (src/game/gfx/dctvlc); cdecl: the code in the top 6 bits by the table 0xfbd44c: its low byte skipped, its top 10 bits (signed) returned"
 0x00677140,DctVlc_FillDc,function,low,"reimplemented (src/game/gfx/dctvlc); fastcall (out, pitch in dwords): an 8x8 block of dwords filled with the DC 0xfbc14c"
+0x00676bc0,DctVlc_BeginFrame,function,low,"reimplemented (src/game/gfx/dctvlc); fastcall (data, out; quality), pops 4: a picture's start: the tables built unless 0xfaac68 is set, the bit reader from data's first two words, out into 0xfaac60, the quantisers 0xfbd54c-0xfbd64b from the scales 0xfbc24c on and the static matrix 0x706fb8 by quality (16.16)"
 0x00676a70,RefBlock_Copy16,function,low,"reimplemented (src/game/gfx/refblock); fastcall (source, swapped; pitch, out, bias), pops 12: 8 rows of 8 source bytes (pairs swapped by the flag) plus the bias into out's dwords' byte 2, rows 0x40 bytes apart"
 0x00676b50,RefBlock_Copy8,function,low,"reimplemented (src/game/gfx/refblock); fastcall (base, offset; pitch, out, bias), pops 12: 8 rows of every fourth source byte plus the bias into out's dwords' byte 2, rows 0x20 bytes apart"
 0x00676478,MoviePixels_Double,function,low,"reimplemented (src/game/gfx/moviepixels); cdecl (source, out, count): count bytes (a multiple of 4) each written twice"

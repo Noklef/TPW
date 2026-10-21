@@ -37,6 +37,13 @@ struct Bits {
     }
 };
 
+// value * factor, 16.16, rounded by the product's bit 15 (IMUL; SHL EDX,16; SHR EAX,16; ADC).
+u32 fixmul(s32 value, s32 factor) {
+    const int64_t product = (int64_t)value * factor;
+    const u32 low = (u32)product, high = (u32)((uint64_t)product >> 32);
+    return (high << 16) + (low >> 16) + (low >> 15 & 1);
+}
+
 }  // namespace
 
 extern "C" {
@@ -125,5 +132,18 @@ s32 __cdecl DctVlc_ReadCode() {
 void __fastcall DctVlc_FillDc(s32 *out, s32 pitch) {
     for (s32 row = 0; row < 8; ++row, out += pitch)
         for (s32 k = 0; k < 8; ++k) out[k] = global<s32>(0x00fbc14c);
+}
+
+void __fastcall DctVlc_BeginFrame(const u16 *data, s32 *out, s32 quality) {
+    if (global<u32>(0x00faac68) == 0) DctVlc_BuildTables();
+    const u32 dc = global<u32>(0x00706fb8);
+    const u32 bits = (u32)data[0] << 16 | data[1];
+    global<u32>(0x00fbd654) = 0x20;
+    global<u32>(0x00fbd650) = bits;
+    global<const u16 *>(0x00fbd64c) = data + 2;
+    global<s32 *>(0x00faac60) = out;
+    global<u32>(0x00fbd54c) = fixmul(global<s32>(0x00fbc24c), (s32)(dc << 15));
+    for (u32 k = 0; k < 0x3f; ++k)
+        global<u32>(0x00fbd550 + k * 4) = fixmul(global<s32>(0x00fbc250 + k * 4), (s32)(global<u32>(0x00706fbc + k * 4) * (u32)quality << 12));
 }
 }
