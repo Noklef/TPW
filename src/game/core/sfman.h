@@ -22,5 +22,14 @@ u32 __fastcall SfMan_NotesOff(u8 *self);
 // bit 1 note off; bits 2, 4, 3, 5 controllers 10, 11, 0x40, 0x5b with data2; none: the out pointer as status and data1, sic), sent
 // again after all notes off when it fails; 0 either way. Returns out.
 u32 *__fastcall SfMan_Send(u8 *self, void *, u32 *out, u32 program, u32 flags, u32 data2, u32 data1);
+// 0x6d3fb0 (thiscall out, value, message; pops 0xc): -1 without the handle or the message, or for a message type (its first dword) other
+// than 0, 2, 4 and 0x7f; else Creative's system-exclusive F0 00 20 21 5F 00 type, then by type: 0 the value's four bytes (& 0x7f each),
+// 2 the message's byte +4 and the value's, 4 0, the bytes +8, 0, +0xa, the value's, +0xc, 0, +0xe; then F7. Sent with
+// midiOutPrepareHeader and midiOutLongMsg (a 0x40-byte header): -1 when either fails, else 0. Returns out.
+u32 *__fastcall SfMan_Sysex(u8 *self, void *, u32 *out, u32 value, const u32 *message);
+// 0x6d4240 (thiscall out; pops 4): 0 when the handle is set; else the first MIDI out device whose name begins "SoundFont" that
+// midiOutOpen opens (into +0x10), then the system-exclusive message 0x7f through it (its answer in out); -1 when none (or no devices,
+// their count taken as a word). Returns out.
+u32 *__fastcall SfMan_OpenOut(u8 *self, void *, u32 *out);
 
 }  // extern "C"

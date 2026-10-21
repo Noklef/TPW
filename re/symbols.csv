@@ -4434,6 +4434,8 @@ address,name,kind,confidence,notes
 0x006d4530,SfMan_SetLoad,function,low,"reimplemented (src/game/core/sfman); the SoundFont API's slot 14 on the device with the pair {1, 0}: 1 when it answers 0"
 0x006d4570,SfMan_NotesOff,function,low,"reimplemented (src/game/core/sfman); all notes off on the SoundFont MIDI out device, midiOutShortMsg's answer"
 0x006d45a0,SfMan_Send,function,low,"reimplemented (src/game/core/sfman); bank 1, the program, then a note or controller message by flags on the SoundFont MIDI out device, resent after all notes off when it fails"
+0x006d3fb0,SfMan_Sysex,function,low,"reimplemented (src/game/core/sfman); Creative's system-exclusive message by type (0, 2, 4, 0x7f) through midiOutPrepareHeader and midiOutLongMsg"
+0x006d4240,SfMan_OpenOut,function,low,"reimplemented (src/game/core/sfman); the first ""SoundFont"" MIDI out device that opens, then the system-exclusive message 0x7f through it"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

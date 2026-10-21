@@ -1,6 +1,9 @@
 #include "sfman.h"
 
 #include <cstdint>
+#include <cstring>
+
+#include "crt.h"
 
 namespace {
 
@@ -13,6 +16,8 @@ u32 ShortMsg(u32 handle, u32 message) {   // midiOutShortMsg
     using F = u32(__stdcall *)(u32, u32);
     return (*reinterpret_cast<const F *>((uintptr_t)0x006fd3ccu))(handle, message);
 }
+
+template <typename F> F Import(u32 slot) { return *reinterpret_cast<const F *>((uintptr_t)slot); }
 
 u32 *Answer(u32 *out, u32 value) {
     *out = value;
@@ -65,6 +70,65 @@ u32 *__fastcall SfMan_Send(u8 *self, void *, u32 *out, u32 program, u32 flags, u
         ShortMsg(at<u32>(self, 0x10), SfMan_PackMsg(status, first, data2));
     }
     return Answer(out, 0);
+}
+
+u32 *__fastcall SfMan_Sysex(u8 *self, void *, u32 *out, u32 value, const u32 *message) {
+    using Header = u32(__stdcall *)(u32, u32 *, u32);   // midiOutPrepareHeader, midiOutLongMsg
+    const u32 handle = at<u32>(self, 0x10);
+    if (!handle || !message) return Answer(out, 0xffffffff);
+    u8 data[0x14] = {0xf0, 0, 0x20, 0x21, 0x5f, 0, static_cast<u8>(message[0])};
+    const u8 *const bytes = reinterpret_cast<const u8 *>(message);
+    const u32 type = message[0];
+    u32 length;
+    if (type == 0x7f) {
+        data[7] = 0xf7;
+        length = 8;
+    } else if (type == 0) {
+        for (u32 i = 0; i < 4; ++i) data[7 + i] = static_cast<u8>(value >> 8 * i & 0x7f);
+        data[0xb] = 0xf7;
+        length = 0xc;
+    } else if (type == 4) {
+        data[7] = 0;
+        data[8] = bytes[8];
+        data[9] = 0;
+        data[0xa] = bytes[0xa];
+        for (u32 i = 0; i < 4; ++i) data[0xb + i] = static_cast<u8>(value >> 8 * i & 0x7f);
+        data[0xf] = bytes[0xc];
+        data[0x10] = 0;
+        data[0x11] = bytes[0xe];
+        data[0x12] = 0xf7;
+        length = 0x13;
+    } else if (type == 2) {
+        data[7] = bytes[4];
+        for (u32 i = 0; i < 4; ++i) data[8 + i] = static_cast<u8>(value >> 8 * i & 0x7f);
+        data[0xc] = 0xf7;
+        length = 0xd;
+    } else {
+        return Answer(out, 0xffffffff);
+    }
+    u32 header[0x10] = {};
+    header[0] = static_cast<u32>(reinterpret_cast<uintptr_t>(data));
+    header[1] = length;
+    u32 result = 0;
+    if (Import<Header>(0x006fd3b8u)(handle, header, 0x40)) result = 0xffffffff;
+    if (Import<Header>(0x006fd3d0u)(at<u32>(self, 0x10), header, 0x40)) result = 0xffffffff;
+    return Answer(out, result);
+}
+
+u32 *__fastcall SfMan_OpenOut(u8 *self, void *, u32 *out) {
+    if (at<u32>(self, 0x10)) return Answer(out, 0);
+    const u32 count = Import<u32(__stdcall *)()>(0x006fd3c8u)();   // midiOutGetNumDevs
+    if (!static_cast<u16>(count)) return Answer(out, 0xffffffff);
+    for (u32 i = 0; static_cast<u16>(i) < static_cast<u16>(count); ++i) {
+        u8 caps[0x34] = {};
+        Import<u32(__stdcall *)(u32, u8 *, u32)>(0x006fd3c4u)(i & 0xffff, caps, 0x34);   // midiOutGetDevCapsA
+        if (Crt().strncmp(reinterpret_cast<const char *>(caps + 8), "SoundFont", 9)) continue;
+        if (Import<u32(__stdcall *)(u32 *, u32, u32, u32, u32)>(0x006fd3c0u)(&at<u32>(self, 0x10), i & 0xffff, 0, 0, 0)) continue;   // midiOutOpen
+        u32 message[4] = {0x7f, 0, 0, 0};
+        SfMan_Sysex(self, nullptr, out, 0, message);
+        return out;
+    }
+    return Answer(out, 0xffffffff);
 }
 
 }  // extern "C"
