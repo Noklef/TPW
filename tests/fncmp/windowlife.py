@@ -8,7 +8,10 @@
 # parent and siblings or none, 0-3 real child windows (vtable 0x705980: their own deleting destructors unlink them), the manager [0x77c48c]
 # a recorder, the globals, queues and timed table (window.py's timers()), the hover's root a tree's or none; now and then an object's counts
 # both -0x8000 (its release's 16-bit result 0xffff, the 32-bit one not -1). Dtor705a50 / DeletingDtor705a50 (0x6689bc, 0x6693a0): the
-# same, with the text row +0x148 or 0; the children of either window class (the driver resolves both vtables).
+# same, with the text row +0x148 or 0; the children of either window class (the driver resolves both vtables). Dtor7059f0 (0x66274e): the
+# same, 0x180 bytes, no items (the count +0x150 0: Clear is window7059f0.py's), the column array +0x16c a recorder object (slot 4) or 0,
+# the row array +0x148 of 0-3 recorder objects (slot 2) or 0s (the rows shown +0x172 now and then -1) or none, the items +0x144 any or
+# 0 (only freed: Mem_Free hashes the pointer), the highlight +0x174 a counted recorder object (its counts near letting go) or 0.
 # usage: windowlife.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Ctor,Dtor,...)
 import os
 import struct
@@ -17,13 +20,15 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
-from fncmp import CDECL_LOG4, HEAP, LOG, Bench, Call, heap, log_region, put, vtable  # noqa: E402
+from fncmp import CDECL_LOG4, HEAP, LOG, RAM, Bench, Call, heap, log_region, put, vtable  # noqa: E402
 from window import (CHILDREN, MANAGER, MISC, PARENT, RANGES, RECT, ROWS, TNODES, VTABLE, WINDOW, WINDOW2, point, queues, timers,  # noqa: E402
                     tree)
 
 CALLS = {'Ctor': 0x65bcad, 'ForgetGlobals': 0x6592b6, 'DropModal': 0x65e672, 'Destroying': 0x65c2d8,
-         'Dtor': 0x65c025, 'DeletingDtor': 0x661680, 'Dtor705a50': 0x6689bc, 'DeletingDtor705a50': 0x6693a0}
-B = Bench(RANGES)
+         'Dtor': 0x65c025, 'DeletingDtor': 0x661680, 'Dtor705a50': 0x6689bc, 'DeletingDtor705a50': 0x6693a0,
+         'Dtor7059f0': 0x66274e}
+B = Bench(RANGES + [(0x66274e, 0x6628e4), (0x6649d5, 0x664b68)])
+COLS7, ROWS7, OBJS7 = RAM + 0xa000, RAM + 0xa100, RAM + 0xa200
 
 
 def destructor(r, regions, op):
@@ -31,7 +36,7 @@ def destructor(r, regions, op):
     wins = tree(r, regions)
     x, y = point(r, regions, wins)
     regions[0xfaa540] = struct.pack('<II', x, y)
-    win = bytearray(r.bytes(0x150))
+    win = bytearray(r.bytes(0x180 if op == 'Dtor7059f0' else 0x150))
     win[4] = 0 if r.random() < 0.7 else 1
     put(win, 0x148, 'I', r.choice([ROWS, ROWS, 0]))
     regions[ROWS] = r.bytes(0x40)
@@ -92,6 +97,24 @@ def destructor(r, regions, op):
             put(kid, 0x120 + 4 * j, 'I', 0)
         put(kid, 0x44, 'I', a + 8)
         regions[a] = kid
+    if op == 'Dtor7059f0':
+        put(win, 0x150, 'i', 0)
+        put(win, 0x16c, 'I', r.choice([COLS7, COLS7, 0]))
+        regions[COLS7] = struct.pack('<I', COLS7 + 0x40) + r.bytes(0x20)
+        regions[COLS7 + 0x40] = vtable({4: 1})
+        rows = r.choice([0, 1, 2, 3, -1])
+        put(win, 0x172, 'h', rows)
+        put(win, 0x148, 'I', r.choice([ROWS7, ROWS7, 0]))
+        regions[ROWS7] = b''.join(struct.pack('<I', r.choice([OBJS7 + 0x20 * i, OBJS7 + 0x20 * i, 0])) for i in range(4))
+        for i in range(4):
+            regions[OBJS7 + 0x20 * i] = struct.pack('<I', OBJS7 + 0x100)
+        regions[OBJS7 + 0x100] = vtable({2: 1})
+        put(win, 0x144, 'I', r.choice([0, r.getrandbits(32)]))
+        hl = bytearray(r.bytes(0x20))
+        put(hl, 0, 'I', VTABLE)
+        put(hl, 0x10, 'HH', r.choice([0, 1, 1, 2]), r.choice([0, 1, 1, 2, 3]))
+        regions[OBJS7 + 0x180] = hl
+        put(win, 0x174, 'I', r.choice([OBJS7 + 0x180, OBJS7 + 0x180, 0]))
     regions[WINDOW2] = win
     timers(r, regions, WINDOW2)
 

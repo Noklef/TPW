@@ -17,6 +17,13 @@ void __fastcall Window7059f0_Layout(u8 *window);
 // Window705b20_SetRange(0, 0); then the handlers +0x114 / +0x118 0x665c35. Returns the window.
 u8 *__fastcall Window7059f0_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 id, u32 left, u32 top, u32 right, u32 bottom);
 
+// 0x66274e (thiscall; name unconfirmed): the destructor: the vtable 0x7059f0, Window7059f0_Clear; the column array +0x16c (when set)
+// deleted by its slot 4 (3: the GUI rectangles' vector deleting destructor); with the row array +0x148 set, each row window there (up to
+// the rows shown +0x172, signed) deleted by its slot 2 (1) and the array freed (Mem_Free); the items +0x144 freed when set; the highlight
+// +0x174 let go (WindowImpl_Release), and when that answers -1 (as a word) its slot 0 (1) called; the rectangle +0x138 destroyed
+// (GuiRect_Dtor), then Window_Dtor, whose EAX is left.
+u32 __fastcall Window7059f0_Dtor(u8 *window);
+
 // 0x663554 (thiscall (count: a word), pops 4; name unconfirmed): only while there are no columns (the word +0x164 0): an array of count (signed)
 // GUI rectangles (Mem_Alloc of count * 12 + 4, the count first; CRT_VectorCtorIterator with GuiRect_Ctor / GuiRect_Dtor) at +0x16c (0 when the
 // allocation fails), column i set (Fn_659dac) to i * 32, 0, (i + 1) * 32, 1, and +0x164 = count.

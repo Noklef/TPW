@@ -66,6 +66,24 @@ u8 *__fastcall Window7059f0_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 
     return window;
 }
 
+u32 __fastcall Window7059f0_Dtor(u8 *window) {
+    at<u32>(window, 0) = 0x7059f0;
+    Window7059f0_Clear(window);
+    if (u8 *const columns = at<u8 *>(window, 0x16c)) vcall<u32>(columns, 0x10, 3u);
+    if (at<u32>(window, 0x148)) {
+        for (s32 i = 0; i < at<s16>(window, 0x172); ++i) {
+            if (u8 *const row = at<u8 **>(window, 0x148)[i]) vcall<u32>(row, 8, 1u);
+        }
+        GameHeap_Free(at<void *>(window, 0x148));
+    }
+    if (at<u32>(window, 0x144)) GameHeap_Free(at<void *>(window, 0x144));
+    if (u8 *const highlight = at<u8 *>(window, 0x174)) {
+        if ((s16)WindowImpl_Release(highlight) == -1) vcall<u32>(highlight, 0, 1u);
+    }
+    GuiRect_Dtor(window + 0x138);
+    return Window_Dtor(window);
+}
+
 void __fastcall Window7059f0_SetColumns(u8 *window, void *, u32 count) {
     if (at<s16>(window, 0x164) != 0) return;
     const s32 n = (s16)count;
