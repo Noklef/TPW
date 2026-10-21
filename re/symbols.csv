@@ -2552,6 +2552,14 @@ address,name,kind,confidence,notes
 0x00632380,Class703c14_Ctor,function,high,reimplemented (src/game/core/dequeiter); vtable 0x703c14 and its fields (two bytes of the address's top byte)
 0x0047f340,Deque8_Clear,function,high,reimplemented (src/game/core/dequeiter); Empties a deque of 8-byte elements and frees its blocks (name unconfirmed)
 0x0047f410,CommandQueue_Post,function,low,"reimplemented (src/game/core/dequeiter); cdecl (code, param): (param or [0x78ba88], code) pushed onto the global deque 0x7b4ba8 inside its critical section"
+0x006c2990,Deque32_AllocMap,function,low,reimplemented (src/game/core/dequeiter); thiscall: the deque's map allocated for its +0x28 slots
+0x006c2910,Deque32_FreeFront,function,low,"reimplemented (src/game/core/dequeiter); thiscall: the begin block freed, the begin iterator on to the next (or all cleared at count 0)"
+0x006c2ca0,Deque32_FreeBack,function,low,"reimplemented (src/game/core/dequeiter); thiscall: the end block freed, the end iterator back to the one before (or all cleared at count 0)"
+0x006c1550,Deque32_PopFront,function,low,reimplemented (src/game/core/dequeiter); thiscall: pop_front of a deque of dwords
+0x006c1940,Deque32_GrowBack,function,low,"reimplemented (src/game/core/dequeiter); thiscall: a new block at the back (a new map, a free slot, or the map doubled)"
+0x006c3010,Deque32_Copy,function,low,"reimplemented (src/game/core/dequeiter); cdecl (out, first, last, dest; iterators by value): copy across blocks, returns out"
+0x006c2f80,Deque32_CopyBackward,function,low,"reimplemented (src/game/core/dequeiter); cdecl (out, first, last, dest; iterators by value): copy_backward across blocks, returns out"
+0x006c15f0,Deque32_Erase,function,low,"reimplemented (src/game/core/dequeiter); thiscall (out, first, last; iterators by value), pops 0x24: erase(first, last) of a deque of dwords"
 0x00423720,Obj_Get24,function,high,reimplemented (src/game/core/accessors); the dword at +0x24
 0x00423730,Obj_Get2c,function,high,reimplemented (src/game/core/accessors); the dword at +0x2c
 0x004030c0,Obj_Get30,function,high,reimplemented (src/game/core/accessors); the dword at +0x30
