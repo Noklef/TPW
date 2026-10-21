@@ -40,11 +40,12 @@ SHAPES = {'List7cc94c_InitRow': (5, None, None), 'List7cca90_InitRow': (4, None,
           'List7cb264_InitRow': (5, None, 0x752934)}
 # each dialog builder: (its global, the script's address, the texts' ids, the other globals it writes)
 DIALOGS = {'Dialog7cc4c4_Create': (0x7cc4c4, 0x7581a0, (0x16c11, 0x16c12), (0x7cc4e4,))}
-B = Bench(sorted(set(window.RANGES + listrows.PART_RANGES + listrows.REG_RANGES + windowscript.RANGES + [
+ALL_RANGES = sorted(set(window.RANGES + listrows.PART_RANGES + listrows.REG_RANGES + windowscript.RANGES + [
     (0x48f6a0, 0x491aac), (0x65c388, 0x65c55a), (0x65d56b, 0x65d58c), (0x65d773, 0x65d7cc), (0x6616b0, 0x661710), (0x6617f0, 0x661820),
     (0x65e526, 0x65e549), (0x4c03e0, 0x4c0653), (0x4c1c30, 0x4c1e33), (0x4ad340, 0x4ad46d), (0x4a03d0, 0x4a06a4), (0x4b9a70, 0x4b9bf6), (0x492180, 0x4922d0),
     (0x65e6d5, 0x65e705), (0x65f16b, 0x65f246), (0x65f6d1, 0x65fba8), (0x65b8dc, 0x65bb10), (0x65bb3f, 0x65bc24), (0x65dcaf, 0x65dd18),
-    (0x680050, 0x68005b)])))
+    (0x680050, 0x68005b)]))
+B = Bench(ALL_RANGES)
 ROW = listrows.ROW
 KIDS, KIDVT = RAM + 0xb000, RAM + 0xbc00
 KID = 0x140
