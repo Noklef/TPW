@@ -10,6 +10,7 @@
 #include "actionrec.h"
 #include "gameclock.h"
 #include "globals.h"
+#include "thunks.h"
 
 namespace {
 
@@ -63,6 +64,11 @@ u32 __cdecl KeyAction_ViewFillStep() {
     case 0xc: flags = (flags & ~8u) | 4; break;
     default: flags |= 0xc; break;
     }
+    return 1;
+}
+
+u32 __cdecl KeyAction_ShowVersion() {
+    Wrap_MsgTags_AddVersion_481b70();
     return 1;
 }
 
