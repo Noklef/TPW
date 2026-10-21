@@ -2571,6 +2571,7 @@ address,name,kind,confidence,notes
 0x006c3010,Deque32_Copy,function,low,"reimplemented (src/game/core/dequeiter); cdecl (out, first, last, dest; iterators by value): copy across blocks, returns out"
 0x006c2f80,Deque32_CopyBackward,function,low,"reimplemented (src/game/core/dequeiter); cdecl (out, first, last, dest; iterators by value): copy_backward across blocks, returns out"
 0x006c15f0,Deque32_Erase,function,low,"reimplemented (src/game/core/dequeiter); thiscall (out, first, last; iterators by value), pops 0x24: erase(first, last) of a deque of dwords"
+0x0047f7d0,CommandQueue_ShowNext,function,low,"reimplemented (src/game/core/dequeiter); cdecl: the command queue's first element's text widened to [0x7b4ba0]'s slot 9 and the element taken off (its block released at its end or the last), inside the queue's critical section; 1 when empty, else 0 (name unconfirmed)"
 0x00423720,Obj_Get24,function,high,reimplemented (src/game/core/accessors); the dword at +0x24
 0x00423730,Obj_Get2c,function,high,reimplemented (src/game/core/accessors); the dword at +0x2c
 0x004030c0,Obj_Get30,function,high,reimplemented (src/game/core/accessors); the dword at +0x30
