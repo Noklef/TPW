@@ -38,4 +38,15 @@ s32 __fastcall ParkMap_ApplyView(u8 *map);
 // the zoom, doubled, over the screen size, less 1, each kept to -1 to 1 (a NaN to -1). Then each sprite on the list at +0x20080 (its +4 the
 // first node: sprite, next) is placed (ParkMap_PlaceSprite). x87 at the game's precision (X87Reg), floats where the original stores them.
 void __fastcall ParkMap_LayOut(const u8 *map);
+
+// 0x5f3940 (thiscall on the park map; name unconfirmed): its sprites added. For each thing in use (World_FirstThing / World_NextThing, the
+// world at 0x7cf83c) by its kind (+2): 1 a sprite of image +0x2006c (TexSprite_Ctor 1, 1, 0x20, 1.0f) and one of +0x20068 (0, 3, 1, 1.0f);
+// 4 / 5 one of +0x20070 (2, 2, 2 / 1, 1.0f); 6 / 7 one of +0x20070 (2, 2, 4 / 3, 1.0f) and one of +0x20078 / +0x2007c (4 / 5, 2, 4 / 3, the
+// int at 0x785610 / 0x785658 times 0x703030's float). Each is a new 0x30-byte block (Mem_Alloc; a failed one faults, sic) at the thing
+// (+0x18) placed (ParkMap_PlaceSprite) at its bytes +5 / +7 less +4 / +6 times 0x703064's float. Then for each square of the map's width
+// (+0x24) x height (+0x28, signed) whose cell's kind (+0x2c) is set, and for each thing on the list from the world's u16 +0x1da746 (linked
+// by +0xc) whose flags +0x32 have 0x10, a sprite (TexSprite_Ctor inlined: +0x2c 1 first, then cleared through Obj_SetShown) of image
+// +0x20074 (3, 2, 1; the size 1, or the int at 0x785688 / 0x785640 for kinds 8 / 7, times 0x703030's float) / +0x2007c (5, 2, 3; 0x785670's
+// int times it), +0x18 0, placed at the square / the thing's map square (Thing_MapId) less 0x703028's float. x87 at the game's precision.
+void __fastcall ParkMap_AddSprites(u8 *map);
 }
