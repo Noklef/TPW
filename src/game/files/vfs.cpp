@@ -9,6 +9,7 @@
 #include "../core/vcall.h"
 #include "../core/vobj2.h"
 #include "../core/vwrap.h"
+#include "file.h"
 #include "handles.h"
 
 namespace {
@@ -112,6 +113,29 @@ u32 __cdecl VFS_FileExists(const char *name) {
     StreamBase *const stream = VFS_Open(name);
     if (!stream) return 0;
     Object_FinishAndDelete(reinterpret_cast<u8 *>(stream));
+    return 1;
+}
+
+u32 __cdecl VFS_ExtractFile(const char *from, const char *to) {
+    StreamBase *const in = VFS_Open(from);
+    if (!in) return 0;
+    const u32 size = vcall<u32>(in, 0x14);
+    void *const buffer = Mem_GlobalAlloc(size);
+    if (!buffer) return 0;
+    vcall<u32>(in, 8, buffer, size);
+    vcall<u32>(in, 4);
+    vcall<void>(in, 0, 1u);
+    void *const block = GameHeap_Alloc(8);
+    StreamBase *out = nullptr;
+    if (block) {
+        out = StreamBase_Ctor(static_cast<StreamBase *>(block));
+        *reinterpret_cast<u32 *>(out) = 0x006fd930;   // FileStream_vtable
+    }
+    s32 result;
+    if (*vcall<s32 *>(out, 0x24, &result, to, 0xc0000010u) < 0) return 0;
+    vcall<u32>(out, 0xc, buffer, size);
+    vcall<u32>(out, 4);
+    if (out) vcall<void>(out, 0, 1u);
     return 1;
 }
 }

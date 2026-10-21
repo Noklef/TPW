@@ -30,4 +30,11 @@ StreamBase *__cdecl VFS_Open(const char *name);
 // 0x46f120 (cdecl; name): VFS_Open(name) (the game pushes a second argument, 0x74cfb8,
 // which VFS_Open does not read); a stream got is finished and deleted (Object_FinishAndDelete) and 1 returned, else 0.
 u32 __cdecl VFS_FileExists(const char *name);
+
+// 0x5c5010 (cdecl; from, to; name unconfirmed; the sign styles' font files): VFS_Open(from) (none: 0); its size (slot 5) read (slot 2) into
+// a Mem_GlobalAlloc block (none, as for size 0: 0, the stream left open), the stream closed (slot 1) and deleted (slot 0). Then a new
+// FileStream (Mem_Alloc(8), StreamBase_Ctor, vtable 0x6fd930: none faults) opened (slot 9: &result, to, 0xc0000010 (write, create
+// always)): a negative result through the pointer it returns answers 0 (the stream left); else the block written (slot 3), the stream
+// closed (slot 1) and deleted (slot 0); 1. The block is never freed.
+u32 __cdecl VFS_ExtractFile(const char *from, const char *to);
 }
