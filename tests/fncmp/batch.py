@@ -120,7 +120,7 @@ TMODEL, TSETTINGS, TENTRIES, TFACES, TREMAP, TSRC, TBATCH, TVERTS, TINDICES, TXF
 def triangles(r):
     """0x581a00 (thiscall (batch, matrix, vertices), pops 12): a model whose settings give 0-12 vertices (+0x58) and 0-3 material entries
     (+0x5a), each 0-6 faces from a start (corners its base +8 plus 0-31, through a remap table of 32 into the batch's vertices); the batch's
-    counts small, the scale (0x8bd4ac) small or any; the source's x, y and w floats in -100..100 or any (a NaN now and then); the transformer
+    counts small, the scale (0x8bd4ac) small or any; the source's x, y and w floats in -100..100 or any (a NaN now and then, in some cases on about every other one); the transformer
     ([0x87b1d8]) a recorder (slot 2 cdecl)."""
     n, groups = r.choice([0, 1, 3, 4, 8, 12, r.randrange(13)]), r.choice([0, 1, 2, 3, 1, 2])
     settings = bytearray(r.bytes(0x98))
@@ -138,8 +138,10 @@ def triangles(r):
         put(faces, 8 * k + 2, 'HHH', *(vb + 16 + r.randrange(16) for _ in range(3)))
     reach = base + n * groups
     remap = b''.join(struct.pack('<H', r.choice([r.randrange(max(reach, 1)), r.randrange(n or 1), r.randrange(48)])) for _ in range(32))
+    nans = r.choice([0.03] * 7 + [0.5])   # (in some cases a NaN on about every other corner and coordinate)
+
     def coord():
-        return r.choice([fb(r.uniform(-100, 100)), fb(r.uniform(-100, 100)), fb(r.uniform(-2, 2)), r.f()]) if r.random() < 0.97 else \
+        return r.choice([fb(r.uniform(-100, 100)), fb(r.uniform(-100, 100)), fb(r.uniform(-2, 2)), r.f()]) if r.random() >= nans else \
             r.choice([0x7f800001, 0xffa00000, 0x7fc00000])   # (a signalling NaN goes through the x87 as the first x)
     src = b''.join(struct.pack('<4I', coord(), coord(), coord(), coord()) for _ in range(12))
     verts = b''.join(struct.pack('<4I', coord(), coord(), coord(), coord()) + r.bytes(0x10) for _ in range(48))
