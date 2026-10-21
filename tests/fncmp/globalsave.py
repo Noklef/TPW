@@ -9,6 +9,7 @@
 # tree (stdtree.py's build) of 0-6 nodes, their records' six bytes likewise and their global.sam loaded already (+0x1c set), or one
 # not and the heap failing its block (ThemeRecord_LoadGlobalSam: 0, nothing read). SamField (0x5b11a0, src/game/core/balancefile): a
 # theme record's global.sam loaded already (+0x1c set: its dword +0x14 returned) or not and the heap failing (-1).
+# The marks (0x5af810, 0x5afb00, 0x5af940): count()'s info and map, every record's global.sam loaded (see mark()).
 # usage: globalsave.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ThemeByte,...)
 import os
 import sys
@@ -27,7 +28,8 @@ def lock(e):  # the STL lock (0x691de0, thiscall, returns its argument; 0x691ea0
 
 B = Bench([(0x5af7f0, 0x5af80b), (0x5afc30, 0x5afc5a), (0x5b09a0, 0x5b09b4), (0x5b0ca0, 0x5b0cc5), (0x5b0940, 0x5b0996), (0x67b0d0, 0x67b10f),
            (0x5aef50, 0x5af0dc), (0x409410, 0x40947a), (0x5b3110, 0x5b3130), (0x5b2fd0, 0x5b2ff0), (0x5b1680, 0x5b16a6),
-           (0x5af4a0, 0x5af52a), (0x5af530, 0x5af5cf), (0x5af5d0, 0x5af674), (0x5af680, 0x5af734), (0x5b11c0, 0x5b12d3), (0x5b2480, 0x5b2530), (0x5b11a0, 0x5b11b9)],
+           (0x5af4a0, 0x5af52a), (0x5af530, 0x5af5cf), (0x5af5d0, 0x5af674), (0x5af680, 0x5af734), (0x5b11c0, 0x5b12d3), (0x5b2480, 0x5b2530), (0x5b11a0, 0x5b11b9),
+           (0x5af810, 0x5af940), (0x5afb00, 0x5afc30), (0x5af940, 0x5afb00)],
           hooks={0x691de0: lock, 0x691ea0: lambda e: None})
 INFO, THEME = RAM + 0x10, RAM + 0x100
 CALLS = {'ThemeByte': (0x5af7f0, 'i', 'b'), 'Byte26': (0x5af800, 'i', 'b'), 'Inc20': (0x5afc30, '', 'v'),
@@ -39,6 +41,8 @@ NILS = RAM + 0x400
 COUNTS = {'Count4': 0x5af4a0, 'Count': 0x5af530, 'CountLeft': 0x5af5d0, 'CountLevel': 0x5af680}
 HEAD, NIL, NODES, RECORDS = RAM + 0x800, RAM + 0x900, RAM + 0x1000, RAM + 0x2000
 GARBAGE = [0, 0xc, 0x28, 0x29, 0x38, 0x39]
+MARKS = {'MarkTheme': 0x5af810, 'MarkExtra': 0x5afb00, 'MarkScore': 0x5af940}
+SAMS = RAM + 0x3000
 
 
 def construct(r, op):
@@ -88,10 +92,44 @@ def count(r, op):
     return Call(COUNTS[op], [INFO], regions, conv='t', ret='a')
 
 
+def mark(r, op):
+    """0x5af810 / 0x5afb00 (thiscall (i)) and 0x5af940 (thiscall (i, score)): count()'s info and theme map, every record's global.sam
+    loaded (+0x1c a file whose +0x14 is a level about the info's, or any), the records' bytes +6..+9 0 or 1 and their scores small or
+    any; the current theme (+0x48) one of the records or another; i mostly in range; the score about the records' or any."""
+    c = count(r, 'Count')
+    regions = dict(c.regions)
+    regions[HEAP] = heap()
+    n = len(regions.get(RECORDS, b'')) // 0x40
+    recs = bytearray(regions.get(RECORDS, b''))
+    sams = bytearray(r.bytes(0x20 * max(n, 1)))
+    for k in range(n):
+        put(recs, 0x40 * k + 0x1c, 'I', SAMS + 0x20 * k)
+        recs[0x40 * k + 6:0x40 * k + 10] = flags(r, 4)
+        put(recs, 0x40 * k + 0xc, '4i', *(r.choice([0, 1, 5, 9, -1, r.getrandbits(31)]) for _ in range(4)))
+        put(sams, 0x20 * k + 0x14, 'i', r.choice([0, 1, 2, 3, 5, -1, r.getrandbits(31)]))
+    if n:
+        regions[RECORDS], regions[SAMS] = bytes(recs), bytes(sams)
+    info = bytearray(regions[INFO])
+    put(info, 0x48, 'I', RECORDS + 0x40 * r.randrange(n) if n and r.random() < 0.6 else THEME)
+    put(info, 0x20, 'i', r.choice([0, 0, 1, -1, -5, r.getrandbits(31)]))
+    regions[INFO] = bytes(info)
+    theme = bytearray(r.bytes(0x40))
+    theme[0:10] = flags(r, 10)
+    put(theme, 0xc, '4i', *(r.choice([0, 1, 5, 9, -1, r.getrandbits(31)]) for _ in range(4)))
+    regions[THEME] = bytes(theme)
+    i = r.choice([0, 1, 2, 3, 1]) if op == 'MarkScore' else r.choice([0, 1, 1, 2, 5]) if op == 'MarkTheme' else r.choice([0, 1, 1])
+    args = [INFO, i]
+    if op == 'MarkScore':
+        args.append(r.choice([0, 1, 5, 9, 10, -1, r.getrandbits(32)]))
+    return Call(MARKS[op], args, regions, conv='t', ret='a')
+
+
 def case(r):
     op = r.choice(OPS)
     if op in COUNTS:
         return count(r, op)
+    if op in MARKS:
+        return mark(r, op)
     if op == 'SamField':
         rec = bytearray(r.bytes(0x40))
         loaded = r.random() < 0.7
@@ -120,7 +158,7 @@ def case(r):
     return Call(fn, args, {RAM: r.bytes(0x10), INFO: info, THEME: r.bytes(0xc0)}, conv='t', ret=ret)
 
 
-OPS = [k for k in os.environ.get('OPS', ','.join(list(CALLS) + ['Construct', 'Instance'] + list(COUNTS) + ['SamField'])).split(',') if k]
+OPS = [k for k in os.environ.get('OPS', ','.join(list(CALLS) + ['Construct', 'Instance'] + list(COUNTS) + ['SamField'] + list(MARKS))).split(',') if k]
 
 
 if __name__ == '__main__':

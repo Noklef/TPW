@@ -2525,6 +2525,9 @@ address,name,kind,confidence,notes
 0x005af530,GlobalSave_CountSet,function,low,"reimplemented (src/game/core/globalsave); thiscall: 0x5af4a0's count plus the bytes +0x26, +0x27 set (name unconfirmed)"
 0x005af5d0,GlobalSave_CountSetLeft,function,low,reimplemented (src/game/core/globalsave); thiscall: 0x5af530's count less the s32 at +0x1c (name unconfirmed)
 0x005af680,GlobalSave_CountSetLevel,function,low,reimplemented (src/game/core/globalsave); thiscall: 0x5af530's count / 3 plus the s32 at +0x20 (name unconfirmed)
+0x005af810,GlobalSave_MarkTheme,function,low,"reimplemented (src/game/core/globalsave); thiscall (i): the current theme byte i set, then the level reached looked at"
+0x005afb00,GlobalSave_MarkExtra,function,low,"reimplemented (src/game/core/globalsave); thiscall (i): the info byte +0x26 + i set, then the level reached looked at"
+0x005af940,GlobalSave_MarkScore,function,low,"reimplemented (src/game/core/globalsave); thiscall (i, score): a score set on the current theme, or taken from a lower theme record"
 0x005775d0,LiveObjects_Add,function,high,"reimplemented (src/game/core/liveobjects); cdecl (object): appended to the live objects list (0x87a6d8, count 0x87aed8, room for 0x200; the rest dropped); 1 either way"
 0x00577600,LiveObjects_Remove,function,high,"reimplemented (src/game/core/liveobjects); cdecl (object): the last match is replaced by the last entry and the count drops; 1, or 0 when not there"
 0x00579cd0,LiveObject7019f8_Construct,function,low,"reimplemented (src/game/core/liveobjects); thiscall (most derived): two identity matrices, fields cleared, the virtual base's vtable 0x7019f8 set and the base added to the live objects"
