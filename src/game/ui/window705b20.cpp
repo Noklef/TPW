@@ -12,6 +12,18 @@ namespace {
 
 template <typename T> T &at(void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
+// a / divisor in one CDQ, IDIV, as the original: it faults (sic) on 0 or INT_MIN / -1.
+s32 Idiv(s32 a, s32 divisor) {
+    s32 q;
+    __asm {
+        mov eax, a
+        cdq
+        idiv divisor
+        mov q, eax
+    }
+    return q;
+}
+
 }  // namespace
 
 extern "C" {
@@ -26,6 +38,70 @@ void __fastcall Window705b20_SetRange(u8 *window, void *, s32 from, s32 to) {
     }
     at<s32>(window, 0x13c) = from;
     at<s32>(window, 0x138) = to;
+}
+
+u32 __fastcall Window705b20_SetPos(u8 *window, void *, s32 mode, s32 value) {
+    u8 rect[12];
+    GuiRect_Ctor(rect);
+    u8 *const thumb = Window_FindChild(window, nullptr, 3);
+    Window_GetRect(thumb, nullptr, rect, 1);
+    const s32 range = (s32)(at<u32>(window, 0x138) - at<u32>(window, 0x13c));
+    const s32 before = at<s32>(window, 0x140);
+    s32 pos = 0;  // sic: the original leaves it unset for any other mode (no caller passes one)
+    switch (mode) {
+    case 1: pos = (s32)(at<u32>(window, 0x140) + at<u32>(window, 0x144)); break;
+    case 0: pos = (s32)(at<u32>(window, 0x140) - at<u32>(window, 0x144)); break;
+    case 2: pos = (s32)(at<u32>(window, 0x140) + at<u32>(window, 0x148)); break;
+    case 3: pos = (s32)(at<u32>(window, 0x140) - at<u32>(window, 0x148)); break;
+    case -1: pos = value; break;
+    case -2: pos = at<s32>(window, 0x140); break;
+    default: break;
+    }
+    if (at<s32>(window, 0x144) > 0) {
+        if (pos > at<s32>(window, 0x138)) pos = at<s32>(window, 0x138);
+        if (pos < at<s32>(window, 0x13c)) pos = at<s32>(window, 0x13c);
+    } else {
+        if (pos < at<s32>(window, 0x138)) pos = at<s32>(window, 0x138);
+        if (pos > at<s32>(window, 0x13c)) pos = at<s32>(window, 0x13c);
+    }
+    if (pos == at<s32>(window, 0x140) && mode != -2) {
+        GuiRect_Dtor(rect);
+        return 0;
+    }
+    at<s32>(window, 0x140) = pos;
+    if (at<s16>(window, 0x14c) & 2) {   // across: the thumb's left / right
+        const s32 width = (s32)at<s16>(rect, 8) - at<s16>(rect, 4);
+        const s32 room = (s32)at<s16>(window, 0x34) - width - at<s16>(window, 0x30);
+        if (range != 0) {
+            at<u16>(rect, 4) = (u16)(Idiv((s32)((at<u32>(window, 0x140) - at<u32>(window, 0x13c)) * (u32)room), range) + at<s16>(window, 0x30));
+        } else {
+            at<u16>(rect, 4) = at<u16>(window, 0x30);
+        }
+        at<u16>(rect, 8) = (u16)(at<s16>(rect, 4) + width);
+    } else {   // down: the thumb's top / bottom, the maximum at the top
+        const s32 height = (s32)at<s16>(rect, 0xa) - at<s16>(rect, 6);
+        const s32 room = (s32)at<s16>(window, 0x36) - height - at<s16>(window, 0x32);
+        if (range != 0) {
+            at<u16>(rect, 6) = (u16)(Idiv((s32)((at<u32>(window, 0x138) - at<u32>(window, 0x140)) * (u32)room), range) + at<s16>(window, 0x32));
+        } else {
+            at<u16>(rect, 6) = at<u16>(window, 0x32);
+        }
+        at<u16>(rect, 0xa) = (u16)(at<s16>(rect, 6) + height);
+    }
+    Window_SetRect(thumb, nullptr, rect);
+    const s32 range2 = (s32)(at<u32>(window, 0x138) - at<u32>(window, 0x13c));
+    if (range2 != 0) {
+        u8 event[0x18];  // (only the dword +0 set: the position in 1024ths, its low word sign-extended)
+        at<s32>(event, 0) = (s16)Idiv((s32)((at<u32>(window, 0x140) - at<u32>(window, 0x13c)) << 10), range2);
+        if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 8u, event);
+        if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 8u, event);
+    }
+    Window_Notify80(window, nullptr, at<u32>(window, 0x140));
+    if (before != at<s32>(window, 0x140)) {
+        Window_SendMessage(at<u8 *>(window, 0x60), 0x800, at<u32>(window, 0x8c), at<u32>(window, 0x140));
+    }
+    GuiRect_Dtor(rect);
+    return 1;
 }
 
 u16 __fastcall Window705b20_SetEnabled(u8 *window, void *, u32 enabled) {

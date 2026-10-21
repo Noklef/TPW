@@ -13,6 +13,17 @@ extern "C" {
 // from and +0x138 = to.
 void __fastcall Window705b20_SetRange(u8 *window, void *, s32 from, s32 to);
 
+// 0x66b088 (thiscall (mode, value), pops 8; name unconfirmed): the position +0x140 moved by mode: 1 / 0 the step +0x144 added /
+// taken, 2 / 3 the page +0x148 added / taken, -1 the value, -2 kept (sic: any other mode leaves it unset in the original; no caller
+// passes one); clamped between +0x138 and +0x13c (signed; the first bound applied first: with the step above 0 at most +0x138 then at
+// least +0x13c, else the other way round). Unchanged (and the mode not -2): 0. Else stored; the thumb (child id 3; Window_FindChild,
+// its inner rectangle by Window_GetRect) placed (Window_SetRect) by bit 2 of the word +0x14c across from +0x30 to +0x34 at
+// (pos - +0x13c) * room / range, else down from +0x32 to +0x36 at (+0x138 - pos) * room / range (single IDIVs; at the start for a range
+// of 0), its length kept; then, with the range not 0, the objects +0x98 / +0x9c (when set) told by slot 3 (8, an event on the stack
+// whose dword +0 is (pos - +0x13c) << 10 / range, its low word sign-extended), Window_Notify80 (pos), and when the position changed the
+// parent +0x60 sent 0x800 (id +0x8c, pos) (Window_SendMessage). Returns 1.
+u32 __fastcall Window705b20_SetPos(u8 *window, void *, s32 mode, s32 value);
+
 // 0x66ae83 (thiscall (enabled: a word), pops 4; slot 5 of the vtable 0x705b20; name unconfirmed): 0 (AX) when flag 2 of +0x48 (disabled)
 // already says so. Otherwise Window_SetEnabled, each child (from +0x5c, the next by Fn_65d56b) gets slot 5 (enabled), the window is
 // posted 1 (0, 0) (Window_PostMessage) when the dword [0xfaa5d4] is set, and 1 (AX).
