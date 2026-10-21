@@ -4,11 +4,14 @@
 #include <cstring>
 
 #include "../files/handles.h"
+#include "../files/file.h"
 #include "dequeiter.h"
+#include "misc.h"
 #include "gameheap.h"
 #include "methods.h"
 #include "ptrlist.h"
 #include "seqs.h"
+#include "string.h"
 #include "vcall.h"
 
 namespace {
@@ -41,6 +44,18 @@ u8 *Advanced(const u8 *it, s32 n) {
     DequeIter_Advance(copy, nullptr, n);
     return Ptr(Get<u32>(copy, 8));
 }
+
+// The deques' inline push_back (0x6c1940 when the end's block is full or the deque empty).
+void PushBack(u8 *deque, u32 value) {
+    if (!Get<u32>(deque, 0x2c) || Get<u32>(deque, 0x1c) == Get<u32>(deque, 0x18)) Deque32_GrowBack(deque);
+    const u32 cur = Get<u32>(deque, 0x1c);
+    Put<u32>(deque, 0x1c, cur + 4);
+    if (cur) Put<u32>(Ptr(cur), 0, value);
+    Put<u32>(deque, 0x2c, Get<u32>(deque, 0x2c) + 1);
+}
+
+const StringView *View(const String *s) { return reinterpret_cast<const StringView *>(s); }
+void *const *Vtable(u32 address) { return reinterpret_cast<void *const *>(static_cast<uintptr_t>(address)); }
 
 }  // namespace
 
@@ -162,6 +177,107 @@ void __fastcall SoundCategory_ReadBankEntries(u8 *, void *, StreamBase *stream, 
         entry[4] = 0;
         Path_AfterLastBackslash(reinterpret_cast<const char **>(entry + 5), length);
     }
+}
+
+void __fastcall SoundCategory_OpenBankFolder(u8 *, void *, BankFolder *found, const String *folder) {
+    if (found->found) return;
+    String path;
+    String_CtorCopy(&path, nullptr, View(folder));
+    String_AssignStr(&path, nullptr, folder->data);
+    const u32 length = path.length;
+    if (String_ReverseFind(&path, nullptr, "\\", 0xffffffffu) != static_cast<s32>(length - 1)) String_AppendStr(&path, nullptr, "\\");
+    const s32 last = String_ReverseFind(&path, nullptr, "\\", 0xffffffffu);
+    u32 wad = 0;
+    if (last != -1) {
+        StringView left;
+        String_Assign(&path, nullptr, String_Left(&path, nullptr, &left, static_cast<u32>(last)));
+        String_AppendStr(&path, nullptr, ".wad");
+        wad = File_Exists(path.data);
+    }
+    Handle handle;
+    s32 status;
+    Handle_Ctor(&handle);
+    if (wad) {
+        handle.vtable = Vtable(0x6fda18);
+        if (*Handle_OpenE0(&handle, nullptr, &status, Addr(path.data), 0) >= 0) {
+            Handle_Assign(&found->handle, nullptr, &handle);
+            found->found = 1;
+        }
+    } else {
+        handle.vtable = Vtable(0x6fd9e8);
+        if (*Handle_Open28(&handle, nullptr, &status, Addr(folder->data)) >= 0) {
+            Handle_Assign(&found->handle, nullptr, &handle);
+            found->found = 1;
+        }
+    }
+    Handle_Dtor(&handle);
+    String_Dtor(&path);
+}
+
+s32 *__fastcall SoundCategory_SetFolder(u8 *category, void *, s32 *result, const char *folder) {
+    Handle *const held = reinterpret_cast<Handle *>(category + 0x30);
+    vcall<void>(held, 0);
+    BankFolder found;
+    found.found = 0;
+    Handle_Ctor(&found.handle);
+    String name;
+    String_CtorStr(&name, nullptr, folder);
+    SoundCategory_OpenBankFolder(category, nullptr, &found, &name);
+    String_Dtor(&name);
+    if (found.found) {
+        Handle_Assign(held, nullptr, &found.handle);
+        *result = 0;
+    } else {
+        *result = -1;
+    }
+    Handle_Dtor(&found.handle);
+    return result;
+}
+
+bool __fastcall SoundCategory_FindBank(u8 *category, void *, u32 *index, const char *path, const String *folder, BankFolder *found) {
+    String held, wanted;
+    String_Ctor(&held);
+    String_Ctor(&wanted);
+    found->found = 0;
+    for (u32 i = 0; i < Get<u32>(category, 0x94); ++i) {
+        if (!Get<u32>(Advanced(category + 0x6c, static_cast<s32>(i)), 0)) continue;
+        String empty;
+        String_CtorStr(&empty, nullptr, "");
+        u8 *const bank = Ptr(Get<u32>(Advanced(category + 0x6c, static_cast<s32>(i)), 0));
+        s32 status;
+        vcall<s32 *>(bank + 0x24, 0x10, &status, &held, &empty);
+        String_Dtor(&empty);
+        String_AssignWide(&wanted, nullptr, reinterpret_cast<const WString *>(folder));
+        if (String_Equals(&held, nullptr, View(&wanted))) {
+            found->found = 1;
+            Handle_Assign(&found->handle, nullptr, reinterpret_cast<const Handle *>(Ptr(Get<u32>(Advanced(category + 0x6c, static_cast<s32>(i)), 0)) + 0x24));
+        }
+        const u8 *const named = Ptr(Get<u32>(DequeAt(category + 0x6c, i), 0));
+        String_Append(&held, nullptr, reinterpret_cast<const StringView *>(named + 0xc));
+        String_AppendStr(&wanted, nullptr, path);
+        if (String_Equals(&held, nullptr, View(&wanted))) {
+            PushBack(category + 0x98, i);
+            *index = i;
+            String_Dtor(&wanted);
+            String_Dtor(&held);
+            return false;
+        }
+    }
+    String_Dtor(&wanted);
+    String_Dtor(&held);
+    return true;
+}
+
+void __fastcall Bank_Dtor(u8 *bank) {
+    Handle_Dtor(reinterpret_cast<Handle *>(bank + 0x24));
+    String_Dtor(reinterpret_cast<String *>(bank + 0xc));
+    Put<u32>(bank, 0, 0x703770);
+}
+
+u8 *__fastcall Bank_DeletingDtor(u8 *bank, void *, u32 flags) {
+    Bank_Dtor(bank);
+    if (flags & 1) GameHeap_Free(bank);
+    return bank;
 }
 
 s32 *__fastcall SoundCategory_ReadSfxImage(u8 *category, void *, s32 *result, StreamBase *stream, u32 *index) {

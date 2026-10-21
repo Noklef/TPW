@@ -4348,6 +4348,11 @@ address,name,kind,confidence,notes
 0x006bf150,SoundCategory_FreeCategorySlot,function,low,"reimplemented (src/game/core/soundcategory); thiscall: the first index below deque A's count whose entry is 0, else the count"
 0x006bf1c0,SoundCategory_FreeBankSlot,function,low,reimplemented (src/game/core/soundcategory); thiscall: how many of deque B's entries from its start are not 0
 0x006bf9e0,SoundCategory_ReadBankEntries,function,low,"reimplemented (src/game/core/soundcategory); thiscall (stream, table): the rest of BANK.map read into a heap block, each entry's path pointer set"
+0x006bf850,SoundCategory_OpenBankFolder,function,low,"reimplemented (src/game/core/soundcategory); thiscall (found, &folder): unless found, the folder opened as a WAD (its .wad there) or a folder into found"
+0x006bf260,SoundCategory_SetFolder,function,low,"reimplemented (src/game/core/soundcategory); thiscall (&result, folder): the Handle at +0x30 reset, then the folder opened into it; 0 or -1"
+0x006bfa60,SoundCategory_FindBank,function,low,"reimplemented (src/game/core/soundcategory); thiscall (&index, path, &folder, found): the banks searched for the folder (found its Handle) and for folder + path (index pushed onto deque C, false)"
+0x006c01b0,Bank_Dtor,function,low,"reimplemented (src/game/core/soundcategory); thiscall: a bank's Handle and name destroyed, the base vtable 0x703770"
+0x006c0190,Bank_DeletingDtor,function,low,"reimplemented (src/game/core/soundcategory); thiscall (flags): Bank_Dtor, freed with bit 0"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
