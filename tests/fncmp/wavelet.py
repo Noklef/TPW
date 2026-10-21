@@ -22,7 +22,7 @@
 # - its resampling variant (0x597100), dealt over the same four and the forward to the codec's slot 2 (a recorder): destinations 1 to 24
 #   (now and then 0: the division faults), pitches at, above and below the row.
 # usage: wavelet.py [CASES [SEED]] [--wild|--both] [--show N]
-#        (env OPS=PUT,UNPACK,YUV,D4ROW,HALVE,FWD,GREY,ENCODE,READ,IROW,ICOLS,DGREY,RGB,DCOL,V13,V13S)
+#        (env OPS=PUT,UNPACK,YUV,D4ROW,HALVE,FWD,GREY,ENCODE,READ,IROW,ICOLS,DGREY,RGB,DCOL,V13,V13S,DECODE,CTOR)
 import math
 import os
 import struct
@@ -31,8 +31,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, LOG, Bench, Call, RAM, fb, heap, log_region, put, vtable  # noqa: E402
 
-B = Bench([(0x591ab0, 0x592010), (0x592150, 0x593ab0), (0x595920, 0x5985c0), (0x598630, 0x598790), (0x5f8050, 0x5f8120), (0x5839e0, 0x583a00)])
-OPS = [k for k in os.environ.get('OPS', 'PUT,UNPACK,YUV,D4ROW,HALVE,FWD,GREY,ENCODE,READ,IROW,ICOLS,DGREY,RGB,DCOL,V13,V13S').split(',') if k]
+B = Bench([(0x5916c0, 0x59196b), (0x591ab0, 0x59205a), (0x592150, 0x593ab0), (0x595920, 0x5985c0), (0x598630, 0x598790), (0x5f8050, 0x5f8120), (0x5839e0, 0x583a00)])
+OPS = [k for k in os.environ.get('OPS', 'PUT,UNPACK,YUV,D4ROW,HALVE,FWD,GREY,ENCODE,READ,IROW,ICOLS,DGREY,RGB,DCOL,V13,V13S,DECODE,CTOR').split(',') if k]
 CURSOR = RAM + 8
 CODEC, PLANES, SRC, DST, FILTER = RAM, RAM + 0x1000, RAM + 0x2000, RAM + 0x3000, 0xc27208
 OUT, SIZE, OLD, STREAM = RAM + 0x4000, RAM + 0x4100, RAM + 0x5000, 0xa067f8
@@ -90,6 +90,10 @@ def case(r):
         return yuv_to_rgb(r)
     if op == 'DCOL':
         return decode_colour(r)
+    if op == 'DECODE':
+        return decode(r)
+    if op == 'CTOR':
+        return construct(r)
     if op in ('READ', 'IROW', 'ICOLS', 'DGREY'):
         return decoder(r, op)
     if op != 'HALVE':
@@ -233,6 +237,29 @@ def yuv_to_rgb(r):
         r.floats(planes, offsets, scale)
     return Call(0x5935a0, [CODEC, width, height, stride, DST], {CODEC: obj, PLANES: planes, DST: r.bytes(max(1, width * height * 3) + 8),
                                                                0xc27008: r.bytes(0x280), 0xfb2768: r.bytes(0x60)}, conv='t')
+
+
+def decode(r):
+    """0x592000 (the interface's thunk at +0x54): decode_colour()'s or decode_grey()'s case through it, the colour byte set or not
+    (the bits above it any now and then), the grey one's last two quantisers any."""
+    colour = r.random() < 0.5
+    c = decode_colour(r) if colour else decode_grey(r)
+    q = c.args[5:] + [r.getrandbits(32) for _ in range(8 - len(c.args))]
+    flag = (r.choice([1, 0x80, 0xff]) if colour else 0) | (r.getrandbits(24) << 8 if r.random() < 0.3 else 0)
+    return Call(0x592000, [CODEC + 0x54, c.args[1], c.args[2], flag, c.args[3], c.args[4]] + q, c.regions, conv='t')
+
+
+def construct(r):
+    """0x5916c0: most derived or not (then the vbtable 0x702708 or one with another offset at +4), the current texture format (0-3)
+    and its tables any bytes, the decoders' tables any bytes before; the heap failing its first block now and then (+0x4c 0)."""
+    obj = bytearray(r.bytes(0x60))
+    most = r.choice([1, 1, 0, 0x100])
+    regions = {CODEC: obj, HEAP: heap(0xb0000, fail=r.choice([0] * 8 + [1])), 0x8bd550: put(bytearray(r.bytes(0x4088)), 4, 'I', r.randrange(4)),
+               0xc27008: r.bytes(0x200), 0xcef228: r.bytes(0x1800), 0xbe6808: r.bytes(0x400), 0xc26c08: r.bytes(0x400)}
+    if not most:
+        put(obj, 4, 'I', r.choice([0x702708, SRC]))
+        regions[SRC] = struct.pack('<iI', -4, r.choice([0x50, 0x48, 0x40]))
+    return Call(0x5916c0, [CODEC, most], regions, conv='t', ret='a')
 
 
 def decoder(r, op):

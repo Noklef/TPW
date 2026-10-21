@@ -3701,6 +3701,8 @@ const Hook kHooks[] = {
     {"WaveletCodec_DecodeColour", 0x00592730, (void *)&WaveletCodec_DecodeColour, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"WaveletCodec_DecodeV13",    0x00595920, (void *)&WaveletCodec_DecodeV13, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"WaveletCodec_DecodeV13Scaled", 0x00597100, (void *)&WaveletCodec_DecodeV13Scaled, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"WaveletCodec_DecodeColourOrGrey", 0x00592000, (void *)&WaveletCodec_DecodeColourOrGrey, {0x8a, 0x44, 0x24, 0x0c, 0x84}},
+    {"WaveletCodec_Construct",    0x005916c0, (void *)&WaveletCodec_Construct, {0x6a, 0xff, 0x68, 0x26, 0xf5}},
     {"Record_IsActive",           0x0059c610, (void *)&Record_IsActive, {0x8b, 0x4c, 0x24, 0x04, 0x81}},
     {"ObjectDef_FindMarkedCells", 0x00413410, (void *)&ObjectDef_FindMarkedCells, {0x6a, 0xff, 0x68, 0x58, 0x7e}},
     {"ObjectDef_Ctor",            0x00412c20, (void *)&ObjectDef_Ctor, {0x56, 0x8b, 0xf1, 0x8d, 0x4e}},

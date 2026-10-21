@@ -89,7 +89,7 @@ address,name,kind,confidence,notes
 0x00572780,Engine_Init,function,high,"'Initializing engine internals'; logs a checkpoint after each renderer subsystem (… 'wavelet/printf ok')"
 0x00564b20,Wavelet_Init,function,medium,creates the global wavelet codec (DAT_00879a64) during Engine_Init
 0x005985c0,WaveletCodec_Create,function,medium,allocates 0x58 bytes and constructs; returns the IWaveletCodec interface pointer
-0x005916c0,WaveletCodec_Construct,function,high,"builds clamp table (0xc27008) and 16-bit pixel tables, allocates work buffers"
+0x005916c0,WaveletCodec_Construct,function,high,"reimplemented (src/game/gfx/wavelet); thiscall (most derived), pops 4: the codec's fields and vtables, the decoders' clamp, pixel and YUV to RGB tables, its two blocks"
 0x00591ab0,WaveletCodec_Encode,function,high,"reimplemented (src/game/gfx/wavelet); thiscall on the interface (width, height, colour, pixels, dst, size out, qY, qCb, qCr): grey or YUV 4:2:0 encode"
 0x00592060,WaveletCodec_Decode,function,high,reimplemented (src/game/gfx/wavelet); the decode dispatch on the format version 0x12 or 0x13
 0x005920f0,WaveletCodec_DecodeScaled,function,high,reimplemented (src/game/gfx/wavelet); the scaled decode dispatch for versions above 0x12
@@ -4598,6 +4598,7 @@ address,name,kind,confidence,notes
 0x00592c50,WaveletCodec_InverseD4Row,function,low,"reimplemented (src/game/gfx/wavelet); thiscall (src, dst, n): one inverse D4 step along a row, pipelined for n >= 6 (name unconfirmed)"
 0x005933a0,WaveletCodec_InverseD4Columns,function,low,"reimplemented (src/game/gfx/wavelet); thiscall (src plane, dst plane, width, n): the inverse D4 step down the columns, then the wrapped rows (name unconfirmed)"
 0x00564b60,Wavelet_Shutdown,function,low,"reimplemented (src/game/gfx/wavelet); cdecl: with the block at 0x879a68, frees it (TrackedGlobal_Free), clears it, calls the codec at 0x879a64's slot 6 when set and returns 1; else 0 (name unconfirmed)"
+0x00592000,WaveletCodec_DecodeColourOrGrey,function,low,"reimplemented (src/game/gfx/wavelet); thiscall on the codec's interface at +0x54 (width, height, colour, src, pixels, q0, q1, q2), pops 0x20: the colour or grey decoder (name unconfirmed)"
 0x0058c2c0,TexSurfaceA_Field38,function,high,reimplemented (src/game/gfx/texsurface); surface class A: the dword at ECX-0x38
 0x0058c2e0,TexSurfaceA_Area,function,high,reimplemented (src/game/gfx/texsurface); surface class A: its virtual base's two dwords multiplied
 0x0058c330,TexSurfaceA_Field10,function,high,reimplemented (src/game/gfx/texsurface); surface class A: the dword at ECX-0x10
