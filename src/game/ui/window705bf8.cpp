@@ -102,4 +102,24 @@ void __fastcall Window705bf8_SetAlignX(u8 *window, void *, u32 value) {
 void __fastcall Window705bf8_SetAlignY(u8 *window, void *, u32 value) {
     if (value != at<u32>(window, 0x140)) at<u32>(window, 0x140) = value;
 }
+
+u32 __fastcall Window705bf8_Dtor(u8 *window) {
+    at<u32>(window, 0) = 0x705bf8;
+    if (at<u32>(window, 0x138)) GameHeap_Free(at<void *>(window, 0x138));
+    return Window_Dtor(window);
+}
+
+u8 *__fastcall Window705bf8_DeletingDtor(u8 *window, void *, u32 flags) {
+    Window705bf8_Dtor(window);
+    if (flags & 1) GameHeap_Free(window);
+    return window;
+}
+
+u32 __fastcall Window705bf8_Compare(u8 *window, void *, u8 *other) {
+    const u32 kind = vcall<u32>(other, 0xc);
+    if (kind != vcall<u32>(window, 0xc)) return 0;
+    return (u32)Crt().wcscmp(at<const u16 *>(window, 0x138), at<const u16 *>(other, 0x138));
+}
+
+u32 __cdecl Window705bf8_Proc(u8 *window, u32 message, u32 a, u32 b) { return Window_DefaultProc(window, message, a, b); }
 }

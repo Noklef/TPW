@@ -2,8 +2,10 @@
 # 0x66d678) against the originals. The window's bytes any, its edges +0x30-+0x36 small words (now and then the sign bit), the alignments
 # +0x13c / +0x140 0-3 or any, the font +0x4c a recorder object (slot 1 no arguments, slot 2 three; their answers small words or any) or 0;
 # texts of 0-12 wide characters ('\n' among them now and then) or 0 where the function checks. SetText: the room +0x148 about the text's
-# length (or the sign bit), the block +0x138 one in RAM or 0, the heap failing now and then. GetText: out a buffer or 0, n 0-16.
-# usage: window705bf8.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Place,TextX,TextY,SetText,GetText,SetAlignX,SetAlignY)
+# length (or the sign bit), the block +0x138 one in RAM or 0, the heap failing now and then. GetText: out a buffer or 0, n 0-16. Compare:
+# the windows on real vtables (0x705bf8 mostly, the other now and then a button's or a list's: other kinds), the texts alike now and then.
+# Proc: any message (Window_DefaultProc's harmless ones: 0x80000000 set, or ones it ignores).
+# usage: window705bf8.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Place,TextX,TextY,SetText,GetText,SetAlignX,SetAlignY,Compare,Proc)
 import os
 import struct
 import sys
@@ -13,9 +15,11 @@ sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 from fncmp import HEAP, LOG, RAM, Bench, Call, heap, log_region, put, set_return, vtable  # noqa: E402
 
 CALLS = {'Place': 0x66d1f8, 'TextX': 0x66d386, 'TextY': 0x66d457, 'SetText': 0x66d56f, 'GetText': 0x66d617, 'SetAlignX': 0x66d651,
-         'SetAlignY': 0x66d678}
+         'SetAlignY': 0x66d678, 'Compare': 0x66d69f, 'Proc': 0x66d6f5}
 B = Bench([(0x66d1f8, 0x66d386), (0x66d386, 0x66d457), (0x66d457, 0x66d56f), (0x66d56f, 0x66d617), (0x66d617, 0x66d644),
-           (0x66d651, 0x66d678), (0x66d678, 0x66d69f), (0x67acd0, 0x67acee), (0x67bf10, 0x67bf3d), (0x67b0d0, 0x67b10f)])
+           (0x66d651, 0x66d678), (0x66d678, 0x66d69f), (0x67acd0, 0x67acee), (0x67bf10, 0x67bf3d), (0x67b0d0, 0x67b10f),
+           (0x66d69f, 0x66d6ea), (0x66d6f5, 0x66d71b), (0x66d1e8, 0x66d1f8), (0x668aad, 0x668abd), (0x65ad33, 0x65ad43), (0x67c290, 0x67c2e2),
+           (0x65f6d1, 0x65fba8), (0x680050, 0x68005b)])
 WINDOW, FONT, FONTVT, TEXT, BLOCK, OUT = RAM, RAM + 0x200, RAM + 0x240, RAM + 0x400, RAM + 0x500, RAM + 0x600
 
 
@@ -48,6 +52,20 @@ def case(r):
         off = 0x13c if op == 'SetAlignX' else 0x140
         value = r.choice([struct.unpack_from('<I', w, off)[0], 0, 1, 2, r.getrandbits(32)])
         return Call(CALLS[op], [WINDOW, value], regions, conv='t', ret='v')
+    if op == 'Compare':
+        other = bytearray(r.bytes(0x150))
+        put(w, 0, 'I', 0x705bf8)
+        put(other, 0, 'I', r.choice([0x705bf8] * 4 + [0x705a50, 0x705950]))
+        put(w, 0x138, 'I', TEXT)
+        same = r.random() < 0.4
+        put(other, 0x138, 'I', TEXT if r.random() < 0.1 else BLOCK)
+        regions[BLOCK] = wide(chars[:r.randrange(len(chars) + 1)] if same else text(r))
+        regions[OUT] = other
+        return Call(CALLS[op], [WINDOW, OUT], regions, conv='t', ret='a')
+    if op == 'Proc':
+        regions[0x77c480] = r.bytes(0x10)
+        message = r.choice([0x80000000 | r.getrandbits(31), 0x100, 0x1000d, 0x11006, 0x101, 0x15, 0x13])
+        return Call(CALLS[op], [WINDOW, message, r.getrandbits(32), r.getrandbits(32)], regions, ret='a')
     if op == 'Place':
         put(w, 0x138, 'I', TEXT if r.random() < 0.85 else 0)
         return Call(CALLS[op], [WINDOW], regions, conv='t', ret='v')

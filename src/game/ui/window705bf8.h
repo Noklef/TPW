@@ -1,7 +1,8 @@
 // The GUI library's window subclass with the vtable 0x705bf8 (kind 10 of the factory 0x65dd7b: dwords +0x138-+0x148 and words +0x14c /
 // +0x14e, the handler 0x66d6f5: a text label, unconfirmed: the wide text +0x138 (room for +0x148 characters), the alignments +0x13c across and
 // +0x140 down (1 right / bottom, 2 centred, else left / top), the font +0x4c (slot 1 the line height, slot 2 (text, first, last) a width), the
-// text's place +0x14c / +0x14e). Reimplementation of 0x66d0c0, 0x66d1f8, 0x66d386, 0x66d457, 0x66d56f, 0x66d617, 0x66d651 and 0x66d678.
+// text's place +0x14c / +0x14e). Reimplementation of 0x66d0c0, 0x66d1a6, 0x66d1f8, 0x66d386, 0x66d457, 0x66d56f, 0x66d617, 0x66d651, 0x66d678, 0x66d69f,
+// 0x66d6f5 and 0x66d720.
 // The names are unconfirmed.
 #pragma once
 
@@ -37,4 +38,19 @@ void __fastcall Window705bf8_GetText(u8 *window, void *, u16 *out, u32 n);
 // 0x66d651 / 0x66d678 (thiscall (value), pops 4; names unconfirmed): the alignment across +0x13c / down +0x140 set when it differs.
 void __fastcall Window705bf8_SetAlignX(u8 *window, void *, u32 value);
 void __fastcall Window705bf8_SetAlignY(u8 *window, void *, u32 value);
+
+// 0x66d1a6 (thiscall; name unconfirmed): the destructor: the vtable 0x705bf8, the text +0x138 freed (Mem_Free) when set, then Window_Dtor,
+// whose EAX is left.
+u32 __fastcall Window705bf8_Dtor(u8 *window);
+
+// 0x66d720 (thiscall (flags), pops 4; slot 2 of the vtable 0x705bf8; name unconfirmed): the destructor, the block freed for flags bit 0;
+// returns the window.
+u8 *__fastcall Window705bf8_DeletingDtor(u8 *window, void *, u32 flags);
+
+// 0x66d69f (thiscall (other), pops 4; name unconfirmed): 0 when the other window's kind (slot 3) is not this one's (the other asked
+// first); else wcscmp of this text +0x138 and the other's.
+u32 __fastcall Window705bf8_Compare(u8 *window, void *, u8 *other);
+
+// 0x66d6f5 (cdecl (window, message, a, b); the label's handler; name unconfirmed): Window_DefaultProc, whose answer it returns.
+u32 __cdecl Window705bf8_Proc(u8 *window, u32 message, u32 a, u32 b);
 }
