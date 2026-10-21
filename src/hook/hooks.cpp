@@ -3896,6 +3896,7 @@ const Hook kHooks[] = {
     {"Class6fd9d8_AddFolderAndWadIn", 0x0041cd50, (void *)&Class6fd9d8_AddFolderAndWadIn, {0x6a, 0xff, 0x68, 0xd3, 0x80}},
     {"Class6fd9d8_AddFolderAndWadBoth", 0x0041cc20, (void *)&Class6fd9d8_AddFolderAndWadBoth, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"Class6fd9d8_FindFirstMatch", 0x0041e8e0, (void *)&Class6fd9d8_FindFirstMatch, {0x6a, 0xff, 0x68, 0x21, 0x85}},
+    {"Class6fdaa4_SetEntry",      0x0041ec30, (void *)&Class6fdaa4_SetEntry, {0x6a, 0xff, 0x68, 0x58, 0x85}},
     {"Animator_Sleep",            0x004254c0, (void *)&Animator_Sleep, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Object_BackOfQueueTo",      0x004de110, (void *)&Object_BackOfQueueTo, {0x8a, 0x41, 0x32, 0x56, 0x8b}},
     {"Object_QueuePositionOfNone", 0x004ddf40, (void *)&Object_QueuePositionOfNone, {0x51, 0x8b, 0xc4, 0x66, 0xc7}},
