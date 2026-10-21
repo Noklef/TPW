@@ -11,9 +11,9 @@
 # Indices (0x67862f): count -5-40 (now and then -0x7ffffffe: the signed tests' overflow), bits 1-16 mostly (else 0-32 or any: the pairs
 # wrapping in their dword), the source random. Blocks (0x6786d8): across 0-8 and rows 0-4 (now and then -1), the pitch the row's bytes
 # (now and then 4 or 8 more), split 0-8, indices mostly 0 to split + 16 (else any small), offsets -0x100-0x100 by 4 (the previous frame
-# mapped 0x400 bytes either side), the codebook random.
+# mapped 0x400 bytes either side), the codebook random. SizeFlags (0x670900): the player and data random.
 # usage: movieplayer.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Header,Palette,Size,Pixels,Unpack,Expand,Place,Draw,Indices,
-# Blocks)
+# Blocks,SizeFlags)
 import os
 import struct
 import sys
@@ -22,10 +22,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import RAM, Bench, Call  # noqa: E402
 
 CALLS = {'Header': 0x670860, 'Palette': 0x670930, 'Size': 0x670ab0, 'Pixels': 0x677930, 'Unpack': 0x677640, 'Expand': 0x6776c0, 'Place': 0x6711a0, 'Draw': 0x6779e0, 'Indices': 0x67862f,
-         'Blocks': 0x6786d8}
+         'Blocks': 0x6786d8, 'SizeFlags': 0x670900}
 B = Bench([(0x670860, 0x67092e), (0x670930, 0x670aa2), (0x670ab0, 0x670ac5), (0x677930, 0x6779dc), (0x677640, 0x6776b8),
            (0x6776c0, 0x6777ce), (0x6711a0, 0x67122f), (0x6779e0, 0x677bf3), (0x676478, 0x6764bc), (0x67862f, 0x6786d8),
-           (0x6786d8, 0x67878c)])
+           (0x6786d8, 0x67878c), (0x670900, 0x67092e)])
 PLAYER, SETTINGS, DATA = RAM, RAM + 0x1000, RAM + 0x2000
 
 
@@ -103,6 +103,9 @@ def case(r):
         return indices_case(r)
     if op == 'Blocks':
         return blocks_case(r)
+    if op == 'SizeFlags':
+        regions = {PLAYER: struct.pack('<I', SETTINGS) + r.bytes(0x4c), SETTINGS: r.bytes(0x70), DATA: r.bytes(8)}
+        return Call(CALLS[op], [PLAYER, DATA], regions, conv='f', ret='v')
     if op == 'Draw':
         return draw_case(r)
     if op == 'Place':

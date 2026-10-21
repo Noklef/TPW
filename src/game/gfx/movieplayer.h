@@ -2,7 +2,7 @@
 // (+0x60 height, +0x64 width (unconfirmed which), +0x78 the brightness in percent, +0x88 a flag that skips the header, +0xb4 the palette:
 // three bytes an entry), +0x1e8 the current chunk's data, +0x1f4 its kind, +0x3a8 the kind read, +0x40 / +0x44 / +0x48 the kind 4 / 3
 // header's flags and depth, +0x628 / +0x62c the palette header's first entry and count. Reimplementation of 0x670860, 0x670930,
-// 0x670ab0, 0x677930, 0x677640, 0x6776c0, 0x6711a0, 0x6779e0, 0x67862f and 0x6786d8.
+// 0x670ab0, 0x677930, 0x677640, 0x6776c0, 0x6711a0, 0x6779e0, 0x67862f, 0x6786d8 and 0x670900.
 #pragma once
 
 #include "../../../re/types.h"
@@ -56,6 +56,11 @@ void __fastcall MoviePlayer_DrawFrame(u8 *player, u8 *out, u32 unused, u32 pitch
 // pass for the rest: a field the dword at its byte rotated right by its bit in it (ROR, not a shift); in the passes of four the second
 // and fourth fields are the first and third's dwords rotated on by bits, so a pair reaching past the dword's 32 bits takes the wrapped
 // low bits (sic).
+// 0x670900 (fastcall (player, data); name unconfirmed; MoviePlayer_ReadHeader's kind 4, jumped to): the size from the signed words at
+// data and data + 2 into the settings' +0x64 / +0x60 (the settings read again for each), the depth byte 4 into +0x48, and byte 7's bits
+// 1 and 0 into +0x40 / +0x44 (the byte read again for each).
+void __fastcall MoviePlayer_ReadSizeFlags(u8 *player, const u8 *data);
+
 void __cdecl MoviePlayer_UnpackIndices(u32 *out, const u8 *source, s32 count, u32 bits);
 
 // 0x6786d8 (cdecl (indices, previous, out, split, offsets, codebook, pitch, across, rows); hand-written assembly; name unconfirmed): rows
