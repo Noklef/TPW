@@ -64,7 +64,7 @@ def case(r):
             car = 0x200 * t + 0x60 * j
             at = 0x40 * (3 * t + j)
             put(car_bytes, car + 0x28, 'IIII', LISTS + at, LISTS + at + 0x20, r.choice([0, 1, 2, 3]), r.choice([0, 1, 2, 3]))
-            for e in range(8):
+            for e in range(16):   # (list A at +0, list B at +0x20)
                 put(list_bytes, at + 4 * e, 'I', who() | r.getrandbits(16) << 16)
     regions.update({COAST: coasters, TRAINS: train_bytes, CARS: car_bytes, LISTS: list_bytes, PIECES: r.bytes(0x100),
                     0x790fe0: struct.pack('<I', COAST)})
