@@ -21,6 +21,21 @@ u8 *__fastcall SpriteFrame_Init(u8 *frame);
 // pushed (EngineErrors_Push), 0.
 u32 __fastcall SpriteImage_AllocPixels(u8 *image, void *, u32 width, u32 height);
 
+// 0x588410 (thiscall (pixels, palette, source, width, height, texture, flags), pops 0x1c; name unconfirmed): +0 = the texture given,
+// or else a new one (a block of 100: a count of 1, one texture built by CRT_VectorVbaseCtorIterator with Texture_Ctor; not got: the
+// error (2, 0xb0754000) pushed and 0). The texture's +0x40 = source (0: pixels), +0x3c = palette, the flags 0x1000040 (0x1000440 with a
+// palette) | flags | 0x100, its size set (Texture_SetSize) and +0x34 = the width's low word. Returns 1.
+u32 __fastcall SpriteImage_SetTexture(u8 *image, void *, u32 pixels, u32 palette, u32 source, u32 width, u32 height, u8 *texture,
+                                      u32 flags);
+
+// 0x5889b0 (thiscall (x, y), pops 8; name unconfirmed): the image's width and height (u16 +0x10, +0x12) cut into tiles of the texture
+// cache's size ([0x8c4b44] +0x18f0, signed divisions rounding up): the textures' array (a count-prefixed block of 0x60 each, built by
+// CRT_VectorVbaseCtorIterator with Texture_Ctor) at +0 (not got: 0 there and 0 returned), the count's low word at +0x16. Row by row,
+// each texture's flags = 0x5180200, its size the tile's (the last column's and row's ((tile - 1) & (size - 1)) + 1), +0x34 = the
+// row width (u16 +0xc) and +0x40 = the pixels (+4) + ((y + row's offset) * row width + x + column's offset) * the format's pixel size
+// (0x701fe0 indexed by [0x8bd554]). Returns 1.
+u32 __fastcall SpriteImage_MakeTextures(u8 *image, void *, u32 x, u32 y);
+
 // 0x588320 (thiscall): all 0x18 bytes but +8 cleared; returns the image.
 u8 *__fastcall SpriteImage_Init(u8 *image);
 
