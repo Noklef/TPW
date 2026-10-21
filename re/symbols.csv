@@ -4417,6 +4417,7 @@ address,name,kind,confidence,notes
 0x0059f160,AdvisorScoring_StaffFull7,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: kind 7 limit not +0x3b0, exactly the limit hired: +0x3b8, else 0 (name unconfirmed)"
 0x0059f1e0,AdvisorScoring_StaffFull8,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: kind 8 limit not +0x3bc, exactly the limit hired: +0x3c4, else 0 (name unconfirmed)"
 0x00418da0,ParkInfo_Serialize,function,low,"reimplemented (src/game/core/parkinfo); thiscall (stream, save, version, unused), pops 0x10: the save's park information (strings, three dwords, the author's name and e-mail, the description, the publishing date) written or read field by field (name unconfirmed)"
+0x005d55a0,AuthStamp_Text,function,low,"reimplemented (src/game/core/authstamp); cdecl: ""No Authorization Stamp"" (0x774bc0) while the phrase at 0x763f3d is the plain one at 0x774bd8; else the phrase's bytes less the key's (0x774b78) written to 0xf827f8 until they meet, and 0xf827f8"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

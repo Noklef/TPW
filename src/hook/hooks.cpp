@@ -165,6 +165,7 @@
 #include "../game/core/vwrap.h"
 #include "../game/core/actionrec.h"
 #include "../game/core/advisorscoring.h"
+#include "../game/core/authstamp.h"
 #include "../game/core/namedobjects.h"
 #include "../game/core/savegame.h"
 #include "../game/core/stdwstring.h"
@@ -4291,6 +4292,7 @@ const Hook kHooks[] = {
     {"AdvisorScoring_StaffFull7", 0x0059f160, (void *)&AdvisorScoring_StaffFull7, {0xa1, 0xf4, 0x52, 0x78, 0x00}},
     {"AdvisorScoring_StaffFull8", 0x0059f1e0, (void *)&AdvisorScoring_StaffFull8, {0xa1, 0xf8, 0x52, 0x78, 0x00}},
     {"ParkInfo_Serialize",        0x00418da0, (void *)&ParkInfo_Serialize, {0x51, 0x8b, 0x44, 0x24, 0x0c}},
+    {"AuthStamp_Text",            0x005d55a0, (void *)&AuthStamp_Text, {0x53, 0x56, 0x57, 0xbe, 0xd8}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
