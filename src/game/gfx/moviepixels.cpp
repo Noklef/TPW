@@ -77,6 +77,25 @@ u32 __fastcall MoviePixels_MaskBits(u32 mask) {
     return bits;
 }
 
+void __fastcall MoviePixels_ReadFormat(void *, void *surface, u32 *out) {
+    if (!surface) return;
+    u32 format[8] = {0x20, 0, 0, 0, 0, 0, 0, 0};
+    using GetPixelFormat = s32(__stdcall *)(void *, u32 *);
+    (*reinterpret_cast<GetPixelFormat *>(*reinterpret_cast<u8 **>(surface) + 0x54))(surface, format);
+    if (format[3] == 8) {
+        out[7] = 8;
+        return;
+    }
+    out[0] = MoviePixels_MaskBits(format[4]);
+    out[1] = MoviePixels_MaskBits(format[5]);
+    out[2] = MoviePixels_MaskBits(format[6]);
+    out[3] = MoviePixels_MaskShift((s32)format[4]);
+    out[4] = MoviePixels_MaskShift((s32)format[5]);
+    out[5] = MoviePixels_MaskShift((s32)format[6]);
+    out[7] = out[0] + out[2] + out[1];
+    out[6] = format[4] | format[5] | format[6];
+}
+
 u32 __fastcall MoviePixels_MaskShift(s32 mask) {
     u32 shift = 0;
     while (!(mask & 1)) {   // (0 loops for ever, sic)

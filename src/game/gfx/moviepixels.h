@@ -1,5 +1,5 @@
 // The video library's pixel row writers (hand-written assembly; they keep every register but EAX) and the YUV tables they use.
-// Reimplementation of 0x676478, 0x6764bc, 0x670350, 0x6702d0 and 0x6702f0. The names are unconfirmed.
+// Reimplementation of 0x676478, 0x6764bc, 0x670350, 0x6702d0, 0x6702f0 and 0x670210. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -32,4 +32,10 @@ u32 __fastcall MoviePixels_MaskBits(u32 mask);
 // 0x6702f0 (fastcall (mask); name unconfirmed): a channel mask's shift: its lowest set bit's place, the mask shifted right (arithmetic)
 // until its low bit is set; a mask of 0 never ends (sic).
 u32 __fastcall MoviePixels_MaskShift(s32 mask);
+
+// 0x670210 (fastcall (unused, surface; out), pops 4; name unconfirmed): nothing for a null surface; else its DDPIXELFORMAT (0x20 bytes,
+// cleared, its size set) read with GetPixelFormat (vtable +0x54; its answer not checked): at 8 bits a pixel out's +0x1c 8, else the
+// red, green and blue masks' bits (MoviePixels_MaskBits) into out[0-2], their shifts (MoviePixels_MaskShift) into out[3-5], the masks
+// or'd into out[6] and the bits' sum into out[7].
+void __fastcall MoviePixels_ReadFormat(void *unused, void *surface, u32 *out);
 }
