@@ -203,7 +203,7 @@ address,name,kind,confidence,notes
 0x00599f60,Advisor_Serialize,function,high,thing model 11: message queue + history
 0x0059ba30,AdvisorMsg_Serialize,function,high,
 0x004c5d70,ParkAnalyser_Serialize,function,high,"thing model 13: 32x32 analysis grid + circular-buffer statistics"
-0x004c85b0,AnalyserCell_Serialize,function,high,
+0x004c85b0,AnalyserCell_Serialize,function,high,"reimplemented (src/game/world/analyser); thiscall (stream, save, version, unused), pops 16: an analyser cell saved (four dwords, six values inline, three as AnalyserVal_Serialize) or loaded; 1 at the first field that fails, 0 for a version outside 0..1"
 0x004cd9c0,AnalyserVal_Serialize,function,high,"reimplemented (src/game/world/analyser); thiscall (stream, save, version, unused): mVal (+4) and mWorkedOut (+8) saved or loaded"
 0x004cdb80,CircBufU16_Serialize,function,high,"reimplemented (src/game/core/circbuf); thiscall (stream, save, version, unused): a CircBufU16 saved or loaded (cursor +8, count, wrapped, the word temp, then count word entries)"
 0x004cdf00,CircBufU32_144_Serialize,function,low,"reimplemented (src/game/core/circbuf); thiscall (stream, save, version, unused): a CircBufU32 of 144 saved or loaded (cursor, count, wrapped, temp, then count entries)"

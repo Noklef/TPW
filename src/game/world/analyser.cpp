@@ -146,6 +146,27 @@ u32 __fastcall AnalyserVal_Serialize(u8 *val, void *, Stream *stream, u32 save, 
     return Save_Fields(stream, save, val, kVal, 2) ? 0 : 1;
 }
 
+u32 __fastcall AnalyserCell_Serialize(u8 *cell, void *, Stream *stream, u32 save, s32 version, u32 unused) {
+    static const SaveSpec kHead[] = {{0x0, 4, 0x00759aec}, {0x4, 4, 0x00759ae4}, {0x8, 4, 0x00759adc}, {0xc, 4, 0x00759ad4}};
+    if (version < 0 || version > 1) return 0;
+    if (save != 0) {
+        if (!Save_Fields(stream, save, cell, kHead, 4)) return 1;
+        for (u32 at = 0x10; at < 0x58; at += 0xc) {   // the first six values inline (as Save_WriteU32 / U8), the last three as themselves
+            if (Save_WriteU32(stream, cell + at + 4, reinterpret_cast<const char *>(0x00759a48), 0)) return 1;
+            if (Save_WriteU8(stream, cell + at + 8, reinterpret_cast<const char *>(0x00759a3c), 0)) return 1;
+        }
+        for (u32 at = 0x58; at < 0x7c; at += 0xc)
+            if (AnalyserVal_Serialize(cell + at, nullptr, stream, save, version, unused)) return 1;
+        return 0;
+    }
+    if (!Save_Fields(stream, 0, cell, kHead, 1)) return 1;
+    for (u32 i = 1; i < 4; ++i)
+        if (Save_ReadU32(stream, cell + kHead[i].at, reinterpret_cast<const char *>(kHead[i].name), 0)) return 1;
+    for (u32 at = 0x10; at < 0x7c; at += 0xc)
+        if (AnalyserVal_Serialize(cell + at, nullptr, stream, 0, version, unused)) return 1;
+    return 0;
+}
+
 s32 __fastcall ParkAnalyser_AveragePersonStat19c(void *, void *, u32 cell, u32 radius) {
     const u32 id = (cell & 0xffff) - 1;
     const u32 column = id & 0x7f, row = id >> 7;

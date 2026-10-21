@@ -7,7 +7,7 @@
 # 0x5070a0), circular buffers of 30, 144, 50 and 5 u32, of u16 and of 50 u8 (core/circbuf: 0x4e2c10, 0x4cdf00, 0x4ce2d0, 0x4ce660, 0x4cdb80,
 # 0x4cea00; the counts small, about the size or outside it), the sprite's nav call (world/nav: 0x4f9440)
 # a theme's save record (core/globalsave: 0x5b0d70), the bank account (world/bankaccount: 0x4cf920), the park's gates (world/parkgates:
-# 0x4cf050) and an analyser value (world/analyser: 0x4cd9c0)
+# 0x4cf050), an analyser value and cell (world/analyser: 0x4cd9c0, 0x4c85b0)
 # against the originals: saves and loads through a record stream with room for all the fields, none, or up to and about each field's end;
 # versions in and out of 0..1; the object and the sink compared after.
 # usage: serializers.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=5b0d70,... the functions' addresses)
@@ -25,7 +25,7 @@ RANGES = [(0x50b090, 0x50b34c), (0x4d3aa0, 0x4d3d09), (0x4d3ee0, 0x4d4100), (0x5
           (0x41a860, 0x41a970), (0x504210, 0x504590), (0x5070a0, 0x5074b0), (0x4e2c10, 0x4e2fb0), (0x4f9440, 0x4f9470), (0x502dc0, 0x5031b0),
           (0x504760, 0x504a30), (0x507850, 0x507bc0), (0x5b0d70, 0x5b118f), (0x4cf920, 0x4d0182), (0x4cdf00, 0x4ce28c),
           (0x4ce2d0, 0x4ce65a), (0x4ce660, 0x4ce9da), (0x4cdb80, 0x4cdefa), (0x4cea00, 0x4ced6f), (0x4cf050, 0x4cf3c8),
-          (0x4cd9c0, 0x4cdb51)]
+          (0x4cd9c0, 0x4cdb51), (0x4c85b0, 0x4c8add), (0x4ced70, 0x4cedf0), (0x4cee50, 0x4ceed0)]
 B = Bench(RANGES)
 OBJ, STREAM, SINK = RAM, RAM + 0x2000, RAM + 0x3000
 CELL = [1, 2, 4, 1, 2, 2, 12, 4, 1]
@@ -48,6 +48,7 @@ FIELDS[0x4cdb80] = [4, 4, 1, 2]
 FIELDS[0x4cf050] = [4, 4, 4, 4, 1, 1]
 FIELDS[0x4cea00] = [4, 4, 1, 1]
 FIELDS[0x4cd9c0] = [4, 1]
+FIELDS[0x4c85b0] = [4] * 4 + [4, 1] * 9
 COUNTS = [0, 1, 2, 30, 31, 40, 0xffffffff, 0x80000000]  # the circular buffers' mNumEntries (saved, the stream's second dword loaded)
 RINGS = {0x4e2c10: 0x80, 0x4cdf00: 0x248, 0x4ce2d0: 0xd0, 0x4ce660: 0x1c, 0x4cdb80: 0xc, 0x4cea00: 0x38}  # (where each keeps it)
 SIZES = {0x4cdf00: 144, 0x4ce2d0: 50, 0x4ce660: 5, 0x4cdb80: 3, 0x4cea00: 50}   # (their sizes, but 30's: the counts about them)

@@ -61,6 +61,12 @@ u8 *__fastcall ParkAnalyser_Ctor(u8 *analyser);
 // and mWorkedOut (+8, 1). 1 at the first that fails (the debug print left out), else 0; 0 for a version outside 0..1.
 u32 __fastcall AnalyserVal_Serialize(u8 *val, void *, Stream *stream, u32 save, s32 version, u32 unused);
 
+// 0x4c85b0 (thiscall (stream, save, version, unused), pops 16): an analyser cell (AnalyserCell_Ctor's 0x7c bytes). Saving: the four dwords +0-+0xc
+// (Save_Field), the first six values (+0x10, 0xc apart) inline as Save_WriteU32 of mVal and Save_WriteU8 of mWorkedOut, the last three
+// (+0x58, +0x64, +0x70) through AnalyserVal_Serialize. Loading: +0 (Save_Field), +4-+0xc (Save_ReadU32), then all nine values
+// (AnalyserVal_Serialize, save 0). 1 at the first that fails (the debug print left out), else 0; 0 for a version outside 0..1.
+u32 __fastcall AnalyserCell_Serialize(u8 *cell, void *, Stream *stream, u32 save, s32 version, u32 unused);
+
 // 0x4cd880 (thiscall on the analyser, not read (cell id, a word; radius), pops 8; name unconfirmed): the people (things of kind 1) in the
 // map's cells (gMapCells [0x8023a0], each one's first thing the word +0x24, then each thing's +0xa) within radius columns and rows of the
 // cell id (column (id - 1) & 0x7f, row (id - 1) >> 7, unsigned; the far edges cut at 0x7f as unsigned sums, the near ones signed and not
