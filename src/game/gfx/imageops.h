@@ -25,6 +25,13 @@ void __fastcall Panel_Reset(u8 *panel);
 // those taken kept, sic), freed at the end; returns 1.
 u8 __fastcall Image_ShrinkInto(const u8 *image, void *, u8 *dest, s32 width, s32 height, u32 format);
 
+// 0x5e80d0 (thiscall on the source image; the destination image {width, height, ?, pixels}, pops 4; name unconfirmed): the source shrunk
+// into the destination's size and pixels as Image_ShrinkInto does it, but signed: the steps (source size << 16 | 0x8000) / destination size
+// by IDIV, the loops over the destination's width and height only when they are above 0, the scratch band (row step + 1) x width x 4. Down
+// the band all four bytes of each column's average go to the destination's pixels as they are. The same scratch blocks, failures (0 with
+// those taken kept, sic) and divisions by a count of 0 (sic). Returns 1.
+u8 __fastcall Image_ShrinkToImage(const u8 *image, void *, u8 *dest);
+
 // 0x5d4970 (thiscall on a panel; dest, width, height, format, pops 16): the panel's image (+0x50) shrunk into dest (Image_ShrinkInto), after a
 // Panel_Reset (inline) when the image's pixels (+0x5c) are null (sic: the reset then fills through the null pointer unless the image is empty).
 u8 __fastcall Panel_ShrinkInto(u8 *panel, void *, u8 *dest, s32 width, s32 height, u32 format);

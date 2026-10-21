@@ -2,8 +2,10 @@
 # new sizes from 1 to the source's (now and then larger: a count of 0 divides by 0 in both), formats 1 and 2 (and others, which write nothing), and the
 # heap failing one of the three scratch blocks now and then. Panel (0x5d4970) shrinks a panel's image (+0x50) the same way; now and then its pixels are
 # null, so the panel reset runs first (its six source images empty): through the null pointer for an image that is not empty (a crash in both).
-# Surface (0x5d3ac0): an image made 320 x 240 from a surface description (see surface()).
-# usage: imageshrink.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Shrink,Panel,Surface)
+# Surface (0x5d3ac0): an image made 320 x 240 from a surface description (see surface()). Blocks (0x5d48a0): the same on the seven-block
+# object's image (+0x60) with the description passed by address; mostly with the bit counts that do no more than the set up (fast).
+# ToImage (0x5e80d0): Shrink's source shrunk into a destination image of the new size (its width now and then 0 or -1).
+# usage: imageshrink.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Shrink,Panel,Surface,Blocks,ToImage)
 import os
 import struct
 import sys
@@ -11,9 +13,9 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, HEAP, RAM, heap, put  # noqa: E402
 
-B = Bench([(0x5d4260, 0x5d45b0), (0x67acb0, 0x67acb1), (0x5d4970, 0x5d4a2d), (0x5d48d0, 0x5d4970), (0x5d4170, 0x5d4260), (0x5d3ac0, 0x5d4162)])
+B = Bench([(0x5d4260, 0x5d45b0), (0x67acb0, 0x67acb1), (0x5d4970, 0x5d4a2d), (0x5d48d0, 0x5d4970), (0x5d4170, 0x5d4260), (0x5d3ac0, 0x5d4162), (0x5d48a0, 0x5d48c3), (0x5e80d0, 0x5e840f)])
 PIXELS, DEST = RAM + 0x1000, RAM + 0x8000
-OPS = [k for k in os.environ.get('OPS', 'Shrink,Panel,Surface').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Shrink,Panel,Surface,Blocks,ToImage').split(',') if k]
 SURFACE = RAM + 0x10000
 MASKS16 = [(0xf800, 0x07e0, 0x001f), (0x7c00, 0x03e0, 0x001f), (0x0f00, 0x00f0, 0x000f), (0x001f, 0x07e0, 0xf800), (0xfff0, 0x000c, 0x0003),
            (0x0505, 0x8000, 0x0a0a), (0xffffffff, 0x10, 0x80000000)]
@@ -42,6 +44,19 @@ def surface(r):
     return Call(0x5d3ac0, [RAM] + list(struct.unpack('<31I', desc)), regions, conv='t', ret='b', steps=12_000_000)
 
 
+def blocks(r):
+    """0x5d48a0: surface()'s case on an object whose image is at +0x60, the description at RAM + 0x200; three in four with 24, 8, 0 or 15
+    bits (the set up alone: the blocks, the counts, the result)."""
+    c = surface(r)
+    desc = list(c.args[1:])
+    if r.random() < 0.75:
+        desc[0x54 // 4] = r.choice([24, 8, 0, 15])
+    obj = bytearray(r.bytes(0x60)) + c.regions.pop(RAM)
+    c.regions[RAM] = obj
+    c.regions[RAM + 0x200] = struct.pack('<31I', *desc)
+    return Call(0x5d48a0, [RAM, RAM + 0x200], c.regions, conv='t', ret='b', steps=12_000_000)
+
+
 def size(r, n):
     return r.choice([1, n, n, max(1, n // 2), max(1, n // 3), r.randrange(1, n + 1), r.randrange(1, n + 1)] + ([n + 1] if r.random() < 0.05 else []))
 
@@ -50,6 +65,8 @@ def case(r):
     op = r.deal(OPS)
     if op == 'Surface':
         return surface(r)
+    if op == 'Blocks':
+        return blocks(r)
     w, h = r.choice([1, 2, 3, 4, 8, r.randrange(1, 41)]), r.choice([1, 2, 3, 5, r.randrange(1, 31)])
     img = put(bytearray(r.bytes(0x10)), 0, 'II', w, h)
     put(img, 0xc, 'I', PIXELS)
@@ -61,6 +78,12 @@ def case(r):
     fmt = r.choice([1, 1, 2, 2, 0, 3])
     fail = r.choice([0] * 12 + [1, 2, 3])
     regions = {PIXELS: data, DEST: r.bytes(nw * nh * 4 + 0x20), HEAP: heap(fail=fail)}
+    if op == 'ToImage':
+        dst = put(bytearray(r.bytes(0x10)), 0, 'II', nw if r.random() < 0.95 else r.choice([0, 0xffffffff]), nh)
+        put(dst, 0xc, 'I', DEST)
+        regions[RAM] = img
+        regions[RAM + 0x100] = dst
+        return Call(0x5e80d0, [RAM, RAM + 0x100], regions, conv='t', ret='b')
     if op == 'Panel':
         panel = bytearray(r.bytes(0x80))
         for k in range(7):   # (the six images the reset blends: empty)

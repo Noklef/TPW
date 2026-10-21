@@ -463,4 +463,71 @@ u8 __fastcall Image_ShrinkSurface(u8 *image, void *, SurfaceDesc desc) {
     GameHeap_Free(rows);
     return 1;
 }
+
+u8 __fastcall Image_ShrinkToImage(const u8 *image, void *, u8 *dest) {
+    const s32 width = at<s32>(dest, 0), height = at<s32>(dest, 4);
+    const u32 xstep = (u32)((s32)((at<u32>(image, 0) << 16) + 0x8000) / width);  // (signed, sic)
+    const u32 ystep = (u32)((s32)((at<u32>(image, 4) << 16) + 0x8000) / height);
+    const u8 *source = at<const u8 *>(image, 0xc);
+    u8 *out = at<u8 *>(dest, 0xc);
+    u8 *const rows = static_cast<u8 *>(GameHeap_Alloc((((ystep >> 16) + 1) * (u32)width) << 2));
+    if (rows == nullptr) return 0;
+    u8 *const xcounts = static_cast<u8 *>(GameHeap_Alloc((u32)width));
+    u8 *const ycounts = static_cast<u8 *>(GameHeap_Alloc((u32)height));
+    if (xcounts == nullptr || ycounts == nullptr) return 0;  // (the blocks taken kept, sic)
+    u32 position = 0;
+    for (s32 i = 0; i < width; ++i) {
+        const u32 before = position;
+        position += xstep;
+        xcounts[i] = (u8)((position >> 16) - (before >> 16));
+    }
+    position = 0;
+    for (s32 j = 0; j < height; ++j) {
+        const u32 before = position;
+        position += ystep;
+        ycounts[j] = (u8)((position >> 16) - (before >> 16));
+    }
+    for (s32 j = 0; j < height; ++j) {
+        const u32 yc = ycounts[j];
+        u8 *band = rows;
+        for (u32 k = yc; k != 0; --k) {
+            for (s32 i = 0; i < width; ++i) {
+                const u32 xc = xcounts[i];
+                u32 sum0 = 0, sum1 = 0, sum2 = 0, sum3 = 0;
+                for (u32 n = xc; n != 0; --n) {
+                    sum0 += source[0];
+                    sum1 += source[1];
+                    sum2 += source[2];
+                    sum3 += source[3];
+                    source += 4;
+                }
+                band[0] = (u8)((sum0 & 0xffff) / xc);  // (a count of 0 divides by 0, sic)
+                band[1] = (u8)((sum1 & 0xffff) / xc);
+                band[2] = (u8)((sum2 & 0xffff) / xc);
+                band[3] = (u8)((sum3 & 0xffff) / xc);
+                band += 4;
+            }
+        }
+        for (s32 i = 0; i < width; ++i) {
+            const u8 *column = rows + i * 4;
+            u32 sum0 = 0, sum1 = 0, sum2 = 0, sum3 = 0;
+            for (u32 k = yc; k != 0; --k) {
+                sum0 += column[0];
+                sum1 += column[1];
+                sum2 += column[2];
+                sum3 += column[3];
+                column += (u32)width * 4;
+            }
+            out[0] = (u8)((sum0 & 0xffff) / yc);
+            out[1] = (u8)((sum1 & 0xffff) / yc);
+            out[2] = (u8)((sum2 & 0xffff) / yc);
+            out[3] = (u8)((sum3 & 0xffff) / yc);
+            out += 4;
+        }
+    }
+    GameHeap_Free(ycounts);
+    GameHeap_Free(xcounts);
+    GameHeap_Free(rows);
+    return 1;
+}
 }  // extern "C"
