@@ -8,7 +8,7 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import LOG, RAM, Bench, Call, log_region, set_return, strings, vtable  # noqa: E402
+from fncmp import LOG, RAM, Bench, Call, fill, log_region, set_return, strings, vtable  # noqa: E402
 
 CALLS = {'apply': 0x6b8b40, 'settings': 0x6b7d70}
 B = Bench([(0x6b8b40, 0x6b8b60), (0x6b7d70, 0x6b7e5b), (0x6c4760, 0x6c47a3)])
@@ -33,7 +33,12 @@ def settings_case(r, log):
     if r.random() < 0.6:
         set_return(log, 3, r.choice([0, 0, 1, 0x80004005, 0x10000]))
     chan = bytearray(r.bytes(0x60))
-    struct.pack_into('<III', chan, 0x14, r.choice([INFO, INFO, 0]), r.choice([SRC] * 6 + [0]), r.choice([EAXB, 0]))
+    struct.pack_into('<II', chan, 0x14, r.choice([INFO, INFO, 0]), r.choice([SRC] * 6 + [0]))
+    eax = r.choice([EAXB, 0])
+    struct.pack_into('<I', chan, 0x20, eax)
+    if not eax and r.random() < 0.5:   # the source's slot 3 (settings) rewrites the record's +0 and asked-for flags (+8; not with the
+        # EAX buffer, whose Get shares slot 3)
+        fill(log, 3, 0, struct.pack('<III', r.choice([0, 1]), r.getrandbits(32), r.getrandbits(32) & 0x7c1))
     rec = bytearray(r.bytes(0x70))
     for at in (4, 8):
         struct.pack_into('<I', rec, at, r.getrandbits(32) & r.choice([0xffffffff, 0x7c1, 0x300]))
