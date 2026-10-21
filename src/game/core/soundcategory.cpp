@@ -11,6 +11,7 @@
 #include "methods.h"
 #include "ptrlist.h"
 #include "seqs.h"
+#include "stdtree.h"
 #include "string.h"
 #include "vcall.h"
 
@@ -52,6 +53,29 @@ void PushBack(u8 *deque, u32 value) {
     Put<u32>(deque, 0x1c, cur + 4);
     if (cur) Put<u32>(Ptr(cur), 0, value);
     Put<u32>(deque, 0x2c, Get<u32>(deque, 0x2c) + 1);
+}
+
+// The deque's inline erase(begin, end) (std::deque::erase: the side with fewer elements outside the range is moved over it, then popped once per
+// element erased; here both sides are empty, so it is the back that is popped).
+void EraseAll(u8 *deque) {
+    DequeIt first = Get<DequeIt>(deque, 4), last = Get<DequeIt>(deque, 0x14);
+    const u32 n = static_cast<u32>(DequeIter_Diff(&last.first, nullptr, &first.first));
+    DequeIt begin = Get<DequeIt>(deque, 4);
+    const u32 before = static_cast<u32>(DequeIter_Diff(&first.first, nullptr, &begin.first));
+    DequeIt end = Get<DequeIt>(deque, 0x14);
+    const u32 after = static_cast<u32>(DequeIter_Diff(&end.first, nullptr, &last.first));
+    u32 out[4];
+    if (before < after) {
+        Deque32_CopyBackward(out, Get<DequeIt>(deque, 4), first, last);
+        for (u32 i = n; i; --i) Deque32_PopFront(deque);
+    } else {
+        Deque32_Copy(out, last, Get<DequeIt>(deque, 0x14), first);
+        for (u32 i = n; i; --i) Deque32_PopBack(deque);
+    }
+    if (before) {
+        DequeIt at = Get<DequeIt>(deque, 4);
+        DequeIter_Advance(reinterpret_cast<u8 *>(&at), nullptr, static_cast<s32>(before));
+    }
 }
 
 const StringView *View(const String *s) { return reinterpret_cast<const StringView *>(s); }
@@ -338,6 +362,68 @@ s32 *__fastcall SoundCategory_LoadBankMap(u8 *category, void *, s32 *result, con
     }
     *result = 0;
     StreamBase_Dtor(&stream);
+    return result;
+}
+
+s32 *__fastcall SoundCategory_Load(u8 *category, void *, s32 *result, const char *folder, const char *name, u32 *index) {
+    *index = 0;
+    s32 status;
+    if (*SoundCategory_SetFolder(category, nullptr, &status, folder) >= 0 && name) {
+        String key;
+        String_CtorStr(&key, nullptr, folder);
+        String_AppendStr(&key, nullptr, name);
+        u8 *const map = category + 0xc;
+        if (StdMapH_FindValue(map, nullptr, reinterpret_cast<const u8 *>(&key), index)) {
+            vcall<void>(Ptr(Get<u32>(Advanced(category + 0x3c, static_cast<s32>(*index)), 0)), 4);
+            *result = 0;
+            String_Dtor(&key);
+            return result;
+        }
+        String file;
+        String_CtorStr(&file, nullptr, name);
+        String_AppendStr(&file, nullptr, "BANK.map");
+        Put<u32>(category, 0xc8, SoundCategory_FreeCategorySlot(category));
+        u8 *const record = static_cast<u8 *>(GameHeap_Alloc(0x34));
+        if (record) {
+            const u32 slot = Get<u32>(category, 0xc8);
+            Class703770_Ctor(record);
+            Put<u32>(record, 8, 0);
+            String_Ctor(reinterpret_cast<String *>(record + 0xc));
+            Put<u32>(record, 0x20, slot);
+            Put<u32>(record, 0x24, 0x70a948);   // (an empty PtrList)
+            Put<u32>(record, 0x28, 0);
+            Put<u32>(record, 0x2c, 0);
+            Put<u32>(record, 0x30, 0);
+            Put<u32>(record, 0, 0x70a950);
+        }
+        String *const title = reinterpret_cast<String *>(record + 0xc);
+        String_AssignStr(title, nullptr, folder);
+        const s32 at = String_ReverseFind(title, nullptr, "\\data\\", 0xffffffffu);
+        StringView right;
+        String_Assign(title, nullptr, String_Right(title, nullptr, &right, title->length - static_cast<u32>(at)));
+        String_AppendStr(title, nullptr, name);
+        const u32 slot = Get<u32>(category, 0xc8);
+        if (slot < Get<u32>(category, 0x64)) Put<u32>(Advanced(category + 0x3c, static_cast<s32>(slot)), 0, Addr(record));
+        else PushBack(category + 0x38, Addr(record));
+        // (The reads' status is the name argument's own stack slot, sic: its value is not read.)
+        if (*SoundCategory_LoadBankMap(category, nullptr, &status, file.data, Addr(folder)) >= 0) {
+            String_AssignStr(&file, nullptr, name);
+            String_AppendStr(&file, nullptr, "SFX.map");
+            if (*SoundCategory_ReadSfxMap(category, nullptr, &status, file.data, index) >= 0) {
+                u32 out[4];
+                Deque32_Erase(category + 0x98, nullptr, out, Get<DequeIt>(category, 0x9c), Get<DequeIt>(category, 0xac));
+                StdMapH_AssignWide(map, nullptr, reinterpret_cast<const u8 *>(&key), *index);
+                *result = 0;
+                String_Dtor(&file);
+                String_Dtor(&key);
+                return result;
+            }
+        }
+        String_Dtor(&file);
+        String_Dtor(&key);
+    }
+    EraseAll(category + 0x98);
+    *result = -1;
     return result;
 }
 

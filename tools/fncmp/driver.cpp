@@ -410,6 +410,14 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
         seq[6] += copied;
         if (seq[3] && seq[3] <= n && stack[seq[3]]) std::memcpy(reinterpret_cast<void *>((uintptr_t)stack[seq[3]]), &copied, 4);
     }
+    // A seek on that data at + 0xf60 (fncmp.seq_seek()): (k | 0x80000000, the offset argument, the origin argument): the cursor moves to the offset
+    // from the data's start, the cursor or its end (origin 0 / 1 / 2, any other as 0) and is returned.
+    const u32 *const seek = log + 0x3d8;
+    const bool seeking = seek[0] == ((k & 63) | 0x80000000u) && seek[1] < n && seek[2] < n;
+    if (seeking) {
+        const u32 origin = stack[1 + seek[2]];
+        seq[6] = (origin == 1 ? seq[6] : origin == 2 ? seq[5] : 0) + stack[1 + seek[1]];
+    }
     u32 earlier = 0;  // (this slot's calls in the log so far: fncmp.fail_after())
     for (u32 i = 0; i < log[0] && i < 40; ++i) earlier += log[1 + 12 * i] == k;
     if (log[0] < 40) {
@@ -431,6 +439,7 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
     for (u32 i = 0; i < n; ++i) h = h * 33 ^ args[i];
     const u32 *override = log + 0x200 + 2 * (k & 63);  // (LOG_RETURNS: a flag and a value for the slot; flag 2: argument value, as passed;
     if (sequenced && (seq[7] & 1)) return copied;
+    if (seeking) return seq[6];
     if (override[0] == 3)                               //  3: the first value & 0xffff calls unanswered, then value >> 16 sign-extended)
         return earlier < (override[1] & 0xffff) ? h : (u32)(s32)(s16)(override[1] >> 16);
     return override[0] == 2 && override[1] < n ? stack[1 + override[1]] : override[0] ? override[1] : h;

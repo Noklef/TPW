@@ -452,7 +452,7 @@ address,name,kind,confidence,notes
 0x00804370,gParticleEffects,data,high,0x69 x 0x140-byte effect definitions from Tp2.plb
 0x0080c6b0,gParticleEffectors,data,high,20 x 0x68-byte effector definitions
 0x0080cefc,gParticleSystems,data,high,live systems: 0x140-byte copies of an effect definition
-0x006bf330,SoundCategory_Load,function,medium,"loads cat_<name>BANK.map, then cat_<name>SFX.map"
+0x006bf330,SoundCategory_Load,function,medium,"reimplemented (src/game/core/soundcategory); thiscall (&result, folder, name, &index): the folder set, a loaded name AddRef'd, else a record made and BANK.map / SFX.map read; deque C emptied"
 0x006c0450,SoundCategory_ReadSfxMap,function,medium,"reimplemented (src/game/core/soundcategory); thiscall (&result, name, &index): opened through the Handle at +0x30 and read by SoundCategory_ReadSfxImage; 0 or -1"
 0x006c0360,SoundCategory_ReadSfxImage,function,medium,"reimplemented (src/game/core/soundcategory); thiscall (&result, stream, &index): GUID checked, the rest of SFX.map read into a heap block and fixed up for the current category's record"
 0x006c0510,SfxMap_Fixup,function,medium,"reimplemented (src/game/core/soundcategory); thiscall (data, out, count): *out = data; each category record fixed from the end of the records"

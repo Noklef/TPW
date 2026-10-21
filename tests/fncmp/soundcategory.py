@@ -13,15 +13,17 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import fileopen  # noqa: E402  (the file library's ranges, imports and globals)
-from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, echo, fill, fill_arg, heap, import_table, log_region, recorder, seq_read, set_return, strings, vtable  # noqa: E402
+from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, echo, fill, fill_arg, heap, import_table, log_region, recorder, seq_read, seq_seek, set_return, strings, vtable  # noqa: E402
 
 CALLS = {'count': 0x6bd7a0, 'simple': 0x6c0550, 'variation': 0x6c06e0, 'sound': 0x6c0610, 'record': 0x6c05b0, 'fixup': 0x6c0510, 'readimage': 0x6c0360,
          'readmap': 0x6c0450, 'freecat': 0x6bf150, 'freebank': 0x6bf1c0, 'entries': 0x6bf9e0, 'bankdtor': 0x6c01b0, 'bankdel': 0x6c0190,
          'openfolder': 0x6bf850, 'setfolder': 0x6bf260, 'findbank': 0x6bfa60, 'readbankmap': 0x6bfe40, 'loadbankmap': 0x6c0210,
-         'addref': 0x6338c0, 'release': 0x6338d0}
+         'addref': 0x6338c0, 'release': 0x6338d0, 'load': 0x6bf330}
 B = Bench([(0x6bd7a0, 0x6bd7ac), (0x6bf150, 0x6bf31c), (0x6bf850, 0x6c0303), (0x6c0310, 0x6c035f), (0x6c0360, 0x6c0844), (0x4036a0, 0x4036e0), (0x639100, 0x639120),
-           (0x6b9b30, 0x6b9b94), (0x5e42d0, 0x5e431c), (0x6338b0, 0x633900), (0x6c1940, 0x6c1b00), (0x6c2990, 0x6c29c0), (0x4f6740, 0x4f67c0), (0x632200, 0x632230)]
-          + fileopen.RANGES)
+           (0x6b9b30, 0x6b9b94), (0x5e42d0, 0x5e431c), (0x6338b0, 0x633900), (0x6c1940, 0x6c1b00), (0x6c2990, 0x6c29c0), (0x4f6740, 0x4f67c0), (0x632200, 0x632230),
+           (0x6bf330, 0x6bf850), (0x632150, 0x632380), (0x6c0860, 0x6c3200)]
+          + fileopen.RANGES,
+          hooks={0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None})   # (the STL lock the map's insert takes: the port leaves it out)
 CAT, OUT, RECS, NODES = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x400
 MAPA, MAPC, MAPB = RAM + 0x600, RAM + 0x640, RAM + 0x680
 BLOCKA, BLOCKC, BLOCKB = RAM + 0x10000, RAM + 0x20000, RAM + 0x40000   # (two blocks each, 0x1000 apart, only the used stretch mapped)
@@ -41,6 +43,10 @@ ANSWERS = {'CreateFileA': [0xffffffff, 0x77, 0x77, 0x77], 'GetFileAttributesA': 
            'InterlockedIncrement': [1, 2], 'CreateSemaphoreA': [0, 0x44, 0x44], 'WaitForSingleObject': [0, 0, 0x102], 'GetCommandLineA': [0],
            'GetFileSize': [0, 0x58, 0x1000]}
 REFC, REFC_VT = RAM + 0xd00, RAM + 0xd80   # a counted object (the base class 0x703770's) and its recorder vtable
+REC_VT, TREE_HEAD, TREE_NIL, TREE_NODE, NODE_TEXT, NAME_TEXT = RAM + 0xdc0, RAM + 0xe00, RAM + 0xe40, RAM + 0xe80, RAM + 0xf00, RAM + 0xf80
+WAD = RAM + 0x50000   # a WAD holding <name>BANK.map and <name>SFX.map (SoundCategory_Load's)
+WAD_FOLDERS = [b'C:\\tp\\data\\sfx\\', b'C:\\tp\\data\\sfx', b'D:\\snd\\data\\x\\', b'C:\\tp\\amb\\']
+TREE_H_NIL = 0xfb2008   # (the map's nil node's pointer)
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
@@ -126,6 +132,35 @@ def bank(r, i, name, path, regions, recorders=True):
     regions[at] = b
     regions[NAMES + 0x40 * i] = name + b'\0' + r.bytes(8)
     return at
+
+
+def name_hash(text):
+    """The WAD directory's name hash (src/game/files/wadfind name_hash): the upper-cased chars weighted 1, 2, 4, 8 in fours, the rest added."""
+    up = [c - 0x20 if 0x61 <= c <= 0x7a else c for c in text]
+    h = sum(sum(up[4 * g + i] << i for i in range(4)) for g in range(len(up) >> 2))
+    return (h + sum(c & 0xff for c in up[len(up) & ~3:])) & 0xffffffff
+
+
+def wad_image(r, files):
+    """A WAD's bytes: the header (DWFB, version 0-2: 2 reads the names as one block), the 0x28-byte records (the name's hash, offset and length,
+    the data's offset and size, unpacked), the names, then the files' data."""
+    count = len(files)
+    names_at = 0x58 + 0x28 * count
+    names = b''.join(n + b'\0' for n, _ in files)
+    data_at = names_at + len(names) + r.choice([0, 0, 4])
+    out = bytearray(r.bytes(0x58))
+    struct.pack_into('<2I', out, 0, 0x42465744, r.choice([0, 1, 2, 2]))
+    struct.pack_into('<3I', out, 0x48, count, names_at, len(names))
+    at_name, at_data, blob = names_at, data_at, b''
+    for n, d in files:
+        rec = bytearray(0x28)
+        struct.pack_into('<7I', rec, 0, name_hash(n), at_name, len(n), at_data, len(d), 0, len(d))
+        out += rec
+        at_name += len(n) + 1
+        at_data += len(d)
+        blob += d
+    out += names + bytes(data_at - names_at - len(names)) + blob
+    return bytes(out)
 
 
 def category(r, banks=4, holes=False, bank_objects=None):
@@ -269,6 +304,8 @@ def case(r):
         regions[OUT] = r.bytes(8)
         regions[STREAM] = b'cat_x' + r.choice([b'SFX.map', b'']) + bytes(1)
         return Call(CALLS[name], [CAT, OUT, STREAM, OUT + 4], regions, conv='t', ret='a')
+    if name == 'load':   # a category loaded from a WAD in its folder (its BANK.map and SFX.map, read where the reads seek: seq_read + seq_seek)
+        return case_load(r, banks)
     if name in ('bankdtor', 'bankdel'):
         regions = {LOG: log_region()}
         files(r, regions[LOG], regions)
@@ -405,6 +442,87 @@ def case(r):
     regions[IMAGE] = body[size:]
     regions[OUT] = body[:size] + r.bytes(0x10)   # the record itself apart from the data that follows it
     return Call(CALLS[name], [CAT, IMAGE, OUT], regions, conv='t', ret='a')
+
+
+def case_load(r, banks):
+    """SoundCategory_Load over a category whose map (+0xc) holds 0 or 1 loaded names (the one asked for now and then: its record AddRef'd), whose
+    banks mostly share the WAD's folder (so a BANK.map entry finds its folder open), the folder's WAD (GetFileAttributesA a file, mostly) holding the
+    two maps (one now and then missing, or another GUID), the name sometimes empty or none."""
+    folder = r.choice(WAD_FOLDERS)
+    wad_path = (folder[:-1] if folder.endswith(b'\\') else folder) + b'.wad'   # (SoundCategory_OpenBankFolder's)
+    name = r.choice([b'cat_a', b'cat_a', b'cat_b2', b'', None])
+    root = r.choice([b'C:\\tp\\', b''])
+    shared = [wad_path + b'*', root + b'Global\\']
+    n = r.choice([0, 1, 2, 3])
+    regions = {}
+    objs = [bank(r, i, r.choice([b'Bank0.bnk', b'y']), r.choice(shared + [shared[0], r.choice(FOLDERS)]), regions, recorders=False) for i in range(n)]
+    regions.update(category(r, banks, bank_objects=objs))
+    cat = regions[CAT]
+    nrec = struct.unpack_from('<I', cat, 0x64)[0]
+    recs = regions[RECS]
+    for i in range(nrec):
+        struct.pack_into('<I', recs, 0x40 * i, REC_VT)
+    regions[REC_VT] = vtable({}, 4)
+    # the map: empty, or one node {key (an index in deque A), the String folder + name (or another)}
+    struct.pack_into('<I', cat, 0x30, HANDLE_VTABLE)
+    struct.pack_into('<I', cat, 0x34, 0)
+    nil = bytearray(0x28)
+    struct.pack_into('<I', nil, 0x24, 1)
+    regions[TREE_NIL] = nil
+    regions[TREE_H_NIL] = struct.pack('<I', TREE_NIL)
+    if r.random() < 0.4:
+        text = folder + (name or b'') if r.random() < 0.6 else r.choice([b'x', folder])
+        node = bytearray(0x28)
+        struct.pack_into('<4I', node, 0, TREE_NIL, TREE_HEAD, TREE_NIL, r.randrange(nrec))
+        node[0x10:0x24] = string(r, text, NODE_TEXT)
+        struct.pack_into('<I', node, 0x24, 1)
+        regions[TREE_NODE] = node
+        regions[NODE_TEXT] = text + b'\0' + r.bytes(8)
+        regions[TREE_HEAD] = struct.pack('<3I', TREE_NODE, TREE_NODE, TREE_NODE) + bytes(0x1c)
+        size = 1
+    else:
+        regions[TREE_HEAD] = struct.pack('<3I', TREE_HEAD, TREE_NIL, TREE_HEAD) + bytes(0x1c)
+        size = 0
+    struct.pack_into('<IIBxxxI', cat, 0xc, r.getrandbits(32), TREE_HEAD, 0, size)
+    # BANK.map: entries whose paths banks hold now and then, flags 0x20 (Global) now and then
+    count = r.choice([0, 1, 2, 3])
+    paths = [r.choice([b'Bank0.bnk', b'sub\\Bank1.bnk', b'y']) for _ in range(count)]
+    flags = [r.choice([0, 0, 0x20, 0x21]) for _ in range(count)]
+    entries = b''.join(r.bytes(9) + bytes([flags[i]]) + r.bytes(1) for i in range(count))
+    guid = BANK_GUID if r.random() < 0.92 else SFX_GUID
+    bank_map = guid + r.bytes(4) + r.bytes(4) + struct.pack('<I', count) + entries + b''.join(struct.pack('<I', len(p)) + p for p in paths) + bytes(4)
+    top = r.choice([0, 1, 1, 2])
+    body, top = image(r, banks, 'c', top)
+    guid = SFX_GUID if r.random() < 0.92 else BANK_GUID
+    sfx_map = guid + struct.pack('<4I', r.choice([0, 0, 1]), 0, top, 0)[:12] + bytes(body)
+    stem = (name or b'').lower()
+    files_ = [(stem + b'bank.map', bank_map), (stem + b'sfx.map', sfx_map)]
+    if r.random() < 0.15:
+        files_.pop(r.randrange(2))
+    if r.random() < 0.3:
+        files_.insert(r.randrange(len(files_) + 1), (b'other.txt', r.bytes(r.randrange(1, 9))))
+    wad = wad_image(r, files_)
+    log = log_region()
+    regions[LOG] = log
+    files(r, log, regions, wad=False)
+    regions[HEAP] = heap(0x18000)
+    set_return(log, fileopen.K['GetFileAttributesA'], r.choice([0x20] * 8 + [0x10, 0xffffffff]))
+    set_return(log, fileopen.K['CreateFileA'], r.choice([0x77] * 9 + [0xffffffff]))
+    set_return(log, fileopen.K['ReadFile'], 1)
+    set_return(log, fileopen.K['GetFileSize'], len(wad))
+    seq_read(log, fileopen.K['ReadFile'], WAD, len(wad), buffer=1, count=2, done=3, returns=False)
+    seq_seek(log, fileopen.K['SetFilePointer'], offset=1, origin=3)
+    regions[WAD] = wad + bytes(4)
+    regions[FOLDERTEXT] = folder + b'\0' + r.bytes(8)
+    if name is not None:
+        regions[NAME_TEXT] = name + b'\0' + r.bytes(8)
+    regions[SOUND_SYSTEM] = struct.pack('<I', SOUND)
+    sound = bytearray(r.bytes(0x44))
+    sound[0x30:0x44] = string(r, root, SOUNDTEXT)
+    regions[SOUND] = sound
+    regions[SOUNDTEXT] = root + b'\0' + r.bytes(8)
+    regions[OUT] = r.bytes(8)
+    return Call(CALLS['load'], [CAT, OUT, FOLDERTEXT, NAME_TEXT if name is not None else 0, OUT + 4], regions, conv='t', ret='a')
 
 
 if __name__ == '__main__':

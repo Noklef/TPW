@@ -1,5 +1,5 @@
 // A sound category (the statically linked sound library's: cat_<name>BANK.map and cat_<name>SFX.map, tools/sndmap.py): reimplementation of its
-// map loading, 0x6bd7a0, 0x6bf150-0x6bf31b, 0x6bf850-0x6c017f, 0x6c0190-0x6c0302 and 0x6c0360-0x6c0850 (the SFX.map header check 0x6c0310 is Obj_CheckId, core/methods).
+// map loading, 0x6bd7a0, 0x6bf150-0x6c017f, 0x6c0190-0x6c0302 and 0x6c0360-0x6c0850 (the SFX.map header check 0x6c0310 is Obj_CheckId, core/methods).
 //
 // The category object: +0x30 a Handle (the folder its maps are opened in), three std::deque<u32> (dequeiter.h's layout) at +0x38 (A: each
 // category's record, a 0x34-byte object whose +0x24 is a PtrList of the banks its sounds use), +0x68 (B: the banks) and +0x98 (C: the BANK.map's
@@ -89,6 +89,17 @@ s32 *__fastcall SoundCategory_ReadBankMap(u8 *category, void *, s32 *result, Str
 // &status, &stream, name, 0x80000001, 0); when the status is not negative, the Handle's path (vtable +0x10 into a String, an empty String the
 // second argument) is the folder SoundCategory_ReadBankMap reads it in, and the stream is closed. *result = 0 always. Returns result.
 s32 *__fastcall SoundCategory_LoadBankMap(u8 *category, void *, s32 *result, const char *name, u32);
+
+// 0x6bf330 (thiscall; &result, folder, name, &index, pops 0x10; name unconfirmed): a category loaded. *index = 0; the folder set
+// (SoundCategory_SetFolder) and, with that and a name, the folder + name looked up in the map at +0xc (StdMapH_FindValue into *index): there,
+// that category's record (deque A) is AddRef'd (its vtable +4) and *result = 0. Else +0xc8 = the first free category slot, a new record (0x34
+// bytes, vtable 0x70a950: Class703770_Ctor, +8 0, +0xc a String, +0x20 the slot, +0x24 an empty PtrList) named after the folder from its last
+// "\data\" on (String_Right of the length - that position) + the name goes to deque A's slot (or the back), then <name>BANK.map
+// (SoundCategory_LoadBankMap) and <name>SFX.map (SoundCategory_ReadSfxMap into *index) are read: when both worked, deque C is emptied
+// (Deque32_Erase), map[*index] = folder + name (StdMapH_AssignWide) and *result = 0. Otherwise (the folder, no name, either read failing)
+// deque C is emptied by the inline erase (the elements after the end moved down, Deque32_Copy, and the back popped once each, Deque32_PopBack)
+// and *result = -1 (the record stays). Returns result.
+s32 *__fastcall SoundCategory_Load(u8 *category, void *, s32 *result, const char *folder, const char *name, u32 *index);
 
 // 0x6c01b0 (thiscall; name unconfirmed): a bank (0x2c bytes, vtable 0x70a960: Release 0x6338d0, AddRef 0x6338c0 and this; +4 its count, +8, +0xc
 // its name (a String), +0x20 its BANK.map flags, +0x24 its folder's Handle) destroyed: the Handle, the name, then the base vtable 0x703770.
