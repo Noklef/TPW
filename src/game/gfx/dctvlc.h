@@ -1,6 +1,7 @@
 // The video library's coefficient code tables (the MPEG kind of run / level codes: unconfirmed). Built once from the static code
 // lists at 0x7061d8 (0x5e records) and 0x7067b8 (0x80 records) of 16 bytes: the code's length, the run / level word, a dword unused
-// here and the code left-aligned in 16 bits. Reimplementation of 0x676c80. The names are unconfirmed.
+// here and the code left-aligned in 16 bits. Reimplementation of 0x676c80, 0x677c00, 0x6770b0, 0x677110, 0x677140 and 0x676bc0. The
+// names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -34,4 +35,10 @@ s32 __cdecl DctVlc_ReadCode();
 
 // 0x677140 (fastcall (out, pitch in dwords); name unconfirmed): an 8x8 block of dwords filled with the DC 0xfbc14c (read for each).
 void __fastcall DctVlc_FillDc(s32 *out, s32 pitch);
+
+// 0x676bc0 (fastcall (data, out; quality), pops 4; name unconfirmed): a picture's start: the tables built (DctVlc_BuildTables) unless
+// 0xfaac68 is set; the bit reader from data's first two words (the first the high half; 0x20 bits, the next word at data + 4), out into
+// 0xfaac60; the quantiser 0xfbd54c [0xfbc24c] * ([0x706fb8] << 15) and 0xfbd550's 63 [0xfbc250 + k * 4] * ([0x706fbc + k * 4] *
+// quality << 12) (16.16, rounded by bit 15 as the IMUL / SHL / SHR / ADC idiom; the products wrapping).
+void __fastcall DctVlc_BeginFrame(const u16 *data, s32 *out, s32 quality);
 }

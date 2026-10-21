@@ -557,6 +557,13 @@ class Emu:
                 res = a if not m else ((a >> m) | (a << (bits - m)) if mn == 'ROR' else (a << m) | (a >> (bits - m))) & mask
                 self.cf = bool(res >> (bits - 1)) if mn == 'ROR' else bool(res & 1)
                 self.put(o[0], res)
+        elif mn in ('SHRD', 'SHLD'):  # the destination shifted with the source's bits filling in (a count mod 32; 0 changes nothing); CF the last bit out
+            a, b, n, bits = self.get(o[0]), self.get(o[1]), self.get(o[2]) & 31, 8 * self.size(o[0])
+            if n:
+                w = b << bits | a if mn == 'SHRD' else a << bits | b
+                res = w >> n if mn == 'SHRD' else w << n >> bits
+                cf = bool(a >> (n - 1) & 1) if mn == 'SHRD' else bool(a >> (bits - n) & 1)
+                self.put(o[0], self.flags(res, bits, cf))
         elif mn in ('RCR', 'RCL'):  # through CF: a rotate of the operand's size + 1 bits with CF above it; CF set, SF/ZF kept (_alldiv's)
             a, n, bits = self.get(o[0]), self.get(o[1]) & 31, 8 * self.size(o[0])
             n %= bits + 1
@@ -754,6 +761,11 @@ MMX = {'PADDW': lambda d, s: _join([a + b for a, b in zip(_lanes(d, 16), _lanes(
        'PSLLW': _shift(lambda x, s: x << s, 16),
        'PSRLW': _shift(lambda x, s: x >> s, 16),
        'PSRLQ': _shift(lambda x, s: x >> s, 64),
+       'PSRLD': _shift(lambda x, s: x >> s, 32),
+       'PADDUSB': lambda d, s: _join([min(255, a + b) for a, b in zip(_lanes(d, 8), _lanes(s, 8))], 8),
+       'PMADDWD': lambda d, s: _join([_signed(d1, 16) * _signed(s1, 16) + _signed(d2, 16) * _signed(s2, 16) for d1, d2, s1, s2 in
+                                      zip(_lanes(d, 16)[0::2], _lanes(d, 16)[1::2], _lanes(s, 16)[0::2], _lanes(s, 16)[1::2])], 32),
+       'PACKSSDW': lambda d, s: _join([min(0x7fff, max(-0x8000, _signed(x, 32))) for x in _lanes(d, 32) + _lanes(s, 32)], 16),
        'PACKUSWB': lambda d, s: _join([min(255, max(0, _signed(x, 16))) for x in _lanes(d, 16) + _lanes(s, 16)], 8),
        'PUNPCKLBW': lambda d, s: _join([x for p in zip(_lanes(d, 8)[:4], _lanes(s, 8)[:4]) for x in p], 8),
        'PUNPCKLWD': lambda d, s: _join([x for p in zip(_lanes(d, 16)[:2], _lanes(s, 16)[:2]) for x in p], 16),

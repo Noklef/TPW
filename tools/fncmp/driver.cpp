@@ -692,11 +692,11 @@ int crash_filter(EXCEPTION_POINTERS *x) {
     return EXCEPTION_EXECUTE_HANDLER;
 }
 
-// Pushes the stack arguments right to left, sets ECX/EDX, calls, and restores ESP whatever
-// the convention popped.
-int invoke(void *fn, u32 ecxIn, u32 edxIn, const u32 *stack, u32 count, int wantSt0, u32 *eax, u32 *edx,
-           double *st0) {
-    u32 ra = 0, rd = 0, saved = 0;
+// Pushes the stack arguments right to left, sets the registers (EAX EBX ECX EDX ESI EDI: ECX / EDX for thiscall
+// and fastcall, any of them for a register convention), calls, and restores ESP whatever the convention popped. EAX, EDX and EDI
+// come back (EDI for ret 'edi').
+int invoke(void *fn, const u32 *regs, const u32 *stack, u32 count, int wantSt0, u32 *eax, u32 *edx, double *st0, u32 *edi) {
+    u32 ra = 0, rd = 0, rdi = 0, saved = 0;
     double f = 0;
     __try {
         __asm {
@@ -710,11 +710,17 @@ int invoke(void *fn, u32 ecxIn, u32 edxIn, const u32 *stack, u32 count, int want
             push dword ptr [esi + ecx * 4]
             jmp next
         pushed:
-            mov ecx, ecxIn
-            mov edx, edxIn
+            mov eax, regs
+            mov ebx, [eax + 4]
+            mov ecx, [eax + 8]
+            mov edx, [eax + 12]
+            mov esi, [eax + 16]
+            mov edi, [eax + 20]
+            mov eax, [eax]
             call fn
             mov ra, eax
             mov rd, edx
+            mov rdi, edi
             mov esp, saved
             cmp wantSt0, 0
             je done
@@ -727,6 +733,7 @@ int invoke(void *fn, u32 ecxIn, u32 edxIn, const u32 *stack, u32 count, int want
     }
     *eax = ra;
     *edx = rd;
+    *edi = rdi;
     *st0 = f;
     return 0;
 }
@@ -1046,8 +1053,8 @@ int main(int argc, char **argv) {
     if (!token) fail("cannot map the token buffer", 0);
     for (;;) {
         u32 address, count;
-        char conv[8], ret[8];
-        if (std::scanf("%x %7s %7s %x", &address, conv, ret, &count) != 4) break;
+        char conv[16], ret[8];
+        if (std::scanf("%x %15s %7s %x", &address, conv, ret, &count) != 4) break;
         std::vector<u32> args(count);
         for (u32 &a : args) std::scanf("%x", &a);
         u32 regions;
@@ -1072,13 +1079,19 @@ int main(int argc, char **argv) {
             std::fflush(stdout);
             continue;
         }
-        u32 ecx = 0, edx = 0, skip = 0;
-        if (conv[0] == 't' && count > 0) ecx = args[0], skip = 1;
+        u32 regs[6] = {}, skip = 0;  // EAX EBX ECX EDX ESI EDI
+        if (conv[0] == 't' && count > 0) regs[2] = args[0], skip = 1;
         if (conv[0] == 'f') {
-            if (count > 0) ecx = args[0], skip = 1;
-            if (count > 1) edx = args[1], skip = 2;
+            if (count > 0) regs[2] = args[0], skip = 1;
+            if (count > 1) regs[3] = args[1], skip = 2;
         }
-        u32 eax = 0, edxOut = 0;
+        if (conv[0] == 'e') {  // a register convention (tools/fncmp.py register_args): register names, each taking the next argument
+            static const char *const kNames[6] = {"eax", "ebx", "ecx", "edx", "esi", "edi"};
+            for (const char *c = conv; c[0] && c[1] && c[2] && skip < count; c += 3)
+                for (int k = 0; k < 6; ++k)
+                    if (std::strncmp(c, kNames[k], 3) == 0) regs[k] = args[skip++];
+        }
+        u32 eax = 0, edxOut = 0, ediOut = 0;
         double st0 = 0;
         _control87(_PC_24 | _RC_NEAR, _MCW_PC | _MCW_RC);
         if (std::strchr(ret, 'c')) {  // the case's control word (ret 'c:CW'), with nothing flagged it could unmask
@@ -1086,7 +1099,8 @@ int main(int argc, char **argv) {
             __asm fnclex
             __asm fldcw cw
         }
-        const int code = invoke(fn, ecx, edx, args.data() + skip, count - skip, ret[0] == 'd', &eax, &edxOut, &st0);
+        const int code = invoke(fn, regs, args.data() + skip, count - skip, ret[0] == 'd', &eax, &edxOut, &st0, &ediOut);
+        if (std::strcmp(ret, "edi") == 0) eax = ediOut;  // (ret 'edi': EDI in EAX's place)
         if (std::strchr(ret, 'c')) {  // the control word the call left, then the driver's back
             u16 cw, ours = 0x7f;
             __asm fnstcw cw

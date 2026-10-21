@@ -6,6 +6,7 @@
 #include "../core/crt.h"
 #include "../core/gameheap.h"
 #include "../core/vcall.h"
+#include "guimanager.h"
 #include "textpool.h"
 #include "window.h"
 
@@ -102,6 +103,33 @@ void __fastcall Window705a50_NotifyLook(u8 *window) {
 u16 __fastcall Window705a50_SetEnabled(u8 *window, void *, u32 enabled) {
     if ((s16)Window_SetEnabled(window, nullptr, enabled) == 0) return 0;
     u8 event[0x18];  // (only the look +4 set)
+    at<u16>(event, 4) = Window705a50_Look(window);
+    if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 1u, event);
+    if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 1u, event);
+    return 1;
+}
+
+void __fastcall Window705a50_Repeat(u8 *window) {
+    if (!(at<u32>(window, 0x48) & 0x20)) return;
+    const s8 phase = (s8)window[0x15a];
+    if (phase == 1) {
+        if ((s32)(GuiClock_Now() - at<u32>(window, 0x144)) < at<s32>(window, 0x13c)) return;
+        window[0x15a] = 2;
+        at<u32>(window, 0x144) = GuiClock_Now();
+        if (window[0x138] & 2) Window_PostMessage(at<u8 *>(window, 0x60), 0x10009, at<u32>(window, 0x8c), 0);
+    } else if (phase == 2) {
+        if ((s32)(GuiClock_Now() - at<u32>(window, 0x144)) <= at<s32>(window, 0x140)) return;
+        if (window[0x138] & 2) Window_PostMessage(at<u8 *>(window, 0x60), 0x10008, at<u32>(window, 0x8c), 0);
+        at<u32>(window, 0x144) = GuiClock_Now();
+    }
+}
+
+u16 __fastcall Window705a50_SetFlag139(u8 *window, void *, u8 flag, u8 notify) {
+    if (flag == at<u8>(window, 0x139)) return 0;
+    u8 event[0x1c];  // (only the look +4 and the dword +0x18 set)
+    at<u32>(event, 0x18) = 1;
+    at<u8>(window, 0x139) = flag;
+    if (notify && global<u32>(0x00faa5d4)) Window_PostMessage(window, 1, 0, 0);
     at<u16>(event, 4) = Window705a50_Look(window);
     if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 1u, event);
     if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 1u, event);

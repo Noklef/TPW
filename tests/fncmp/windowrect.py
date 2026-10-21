@@ -5,7 +5,8 @@
 # kind 4 window (a GUI rectangle, its vtable 0x705920) given random words (their upper halves random); SetInner7059f0 (0x6651ef) the kind 7's.
 # SetColumns (0x663554): the kind 7 window's columns none yet (or some), counts of 0 to 8 or negative, the allocation now and then failing
 # (only with no columns to make). SetColumn (0x663662): a column array of up to 6 (or none), the index about the count. SetRange705bc8
-# (0x66cad3): the kind 11 window's range ends any (near each other mostly), the new ends given or not.
+# (0x66cad3): the kind 11 window's range ends any (near each other mostly), the new ends given or not. SetRange2705bc8 (0x66cb69): the
+# same for its second range, its value +0x158 near the ends (or any).
 # usage: windowrect.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=RectAssign,SaveRect,...)
 import os
 import struct
@@ -19,9 +20,10 @@ from window import MISC, RANGES, VTABLE, WINDOW  # noqa: E402
 
 CALLS = {'GetSize': 0x65d865, 'RectAssign': 0x65aa20, 'SaveRect': 0x65bc90, 'GetRect': 0x65d42e, 'SetSavedRect': 0x65cfd4, 'SaveInsetRect': 0x485e30,
          'SetHitArea': 0x65cfff, 'SetInner': 0x65bb10, 'OffsetInner': 0x65bb3f,
-         'SetInner7059f0': 0x6651ef, 'SetColumns': 0x663554, 'SetColumn': 0x663662, 'SetRange705bc8': 0x66cad3}
+         'SetInner7059f0': 0x6651ef, 'SetColumns': 0x663554, 'SetColumn': 0x663662, 'SetRange705bc8': 0x66cad3,
+         'SetRange2705bc8': 0x66cb69}
 B = Bench(RANGES + [(0x65d865, 0x65d8e7), (0x659e3e, 0x659e83), (0x65cfff, 0x65d070), (0x65bb10, 0x65bb6b), (0x659dac, 0x659de5), (0x6651ef, 0x66521e),
-                       (0x663554, 0x663662), (0x663662, 0x6636b2), (0x66cad3, 0x66cb69), (0x67acf0, 0x67ada0), (0x5da3c0, 0x5da3c1)])
+                       (0x663554, 0x663662), (0x663662, 0x6636b2), (0x66cad3, 0x66cb69), (0x66cb69, 0x66cc4d), (0x67acf0, 0x67ada0), (0x5da3c0, 0x5da3c1)])
 
 
 def case(r):
@@ -78,10 +80,13 @@ def case(r):
         index = r.choice([0, 1, 2, 5, n, (n - 1) & 0xffff, 0xffff, 0x8000, r.getrandbits(16)])   # (below the count: in the array, or before it)
         words = [index] + [r.getrandbits(32) for _ in range(2)]
         return Call(CALLS[op], [WINDOW] + words, regions, conv='t', ret='a')
-    if op == 'SetRange705bc8':
+    if op in ('SetRange705bc8', 'SetRange2705bc8'):
         win = bytearray(r.bytes(0x160))
         low = r.choice([0, -5, 100, 0x7fffffff, -0x80000000, r.randrange(-50, 50)])
-        put(win, 0x138, 'II', low & 0xffffffff, (low + r.choice([0, 1, -1, 30, -30]) if r.random() < 0.7 else r.getrandbits(32)) & 0xffffffff)
+        at = 0x138 if op == 'SetRange705bc8' else 0x14c
+        put(win, at, 'II', low & 0xffffffff, (low + r.choice([0, 1, -1, 30, -30]) if r.random() < 0.7 else r.getrandbits(32)) & 0xffffffff)
+        put(win, 0x158, 'I', (r.choice([low, low - 1, low + 1, r.randrange(-60, 60), 0x7fffffff, -0x80000000]) if r.random() < 0.85
+                              else r.getrandbits(32)) & 0xffffffff)
         regions[WINDOW] = win
         regions[MISC] = struct.pack('<ii', r.randrange(-50, 50), r.choice([r.randrange(-50, 50), 0x7fffffff, -0x80000000]))
         return Call(CALLS[op], [WINDOW, r.choice([0, MISC]), r.choice([0, MISC + 4])], regions, conv='t', ret='a')

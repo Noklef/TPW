@@ -1,5 +1,7 @@
 #include "movieplayer.h"
 
+#include <cstdint>
+
 namespace {
 
 template <typename T> T &at(u8 *base, u32 offset) { return *reinterpret_cast<T *>(base + offset); }
@@ -21,6 +23,35 @@ void read_size(u8 *player, const u8 *data) {
     at<s32>(settings(player), 0x64) = signed_word(data);
     at<s32>(settings(player), 0x60) = signed_word(data + 2);
     at<u32>(player, 0x48) = data[4];
+}
+
+u32 &mem(u32 address) { return *reinterpret_cast<u32 *>((uintptr_t)address); }
+
+u32 address(const void *p) { return (u32)(uintptr_t)p; }
+
+// SHRD EAX,EAX,CL: a rotate right by n mod 32.
+u32 ror(u32 v, u32 n) {
+    n &= 31;
+    return n ? v >> n | v << (32 - n) : v;
+}
+
+// SUB r,n then JGE / JG: the count moved on, and whether the true difference is at or above 0 / above 0.
+bool down_ge(s32 &count, s32 n) {
+    const int64_t d = (int64_t)count - n;
+    count = (s32)(u32)d;
+    return d >= 0;
+}
+
+bool down_g(s32 &count) {
+    const int64_t d = (int64_t)count - 1;
+    count = (s32)(u32)d;
+    return d > 0;
+}
+
+// A run of bytes copied as REP MOVSD then REP MOVSB do (forward, so an overlap repeats as theirs does).
+void copy_forward(u8 *out, const u8 *source, u32 count) {
+    for (u32 k = 0; k < count >> 2; ++k, out += 4, source += 4) *reinterpret_cast<u32 *>(out) = *reinterpret_cast<const u32 *>(source);
+    for (u32 k = 0; k < (count & 3); ++k) *out++ = *source++;
 }
 
 }  // namespace
@@ -55,11 +86,7 @@ void __fastcall MoviePlayer_ReadHeader(u8 *player, void *) {
     switch (at<u32>(player, 0x3a8)) {
     case 1: MoviePlayer_ReadPalette(player, data); return;
     case 3: read_size(player, data); return;
-    case 4:
-        read_size(player, data);
-        at<u32>(player, 0x40) = data[7] & 2u;
-        at<u32>(player, 0x44) = data[7] & 1u;   // (byte 7 read again after the store, as the listing does)
-        return;
+    case 4: MoviePlayer_ReadSizeFlags(player, data); return;
     case 5:
     case 6:
     case 7: MoviePlayer_ReadSizeAt8(player, data); return;
@@ -106,6 +133,108 @@ void __fastcall MoviePlayer_PlaceView(u8 *view, void *) {
     if (s[4] & 2) at<u32>(view, 0x18) += at<u32>(s, 0x6c);
     if (s[4] & 0x80) at<u32>(view, 0xc) = at<u32>(s, 0x70);
     if (s[5] & 1) at<u32>(view, 0x10) = at<u32>(s, 0x74);
+}
+
+void __fastcall MoviePlayer_DrawFrame(u8 *player, u8 *out, u32, u32 pitch) {
+    const u8 *source = at<const u8 *>(player, 0x648);
+    if (at<u32>(settings(player), 0x48) == 8) {
+        if (settings(player)[4] & 0x40) {
+            MoviePixels_Double(source, out, at<u32>(settings(player), 0x60) * at<u32>(settings(player), 0x64));
+            return;
+        }
+        if (at<u32>(settings(player), 0x60) == 0) return;
+        const u32 step = (u32)((s32)pitch >> 2 << 2);
+        u32 row = 0;
+        do {
+            copy_forward(out, source, at<u32>(settings(player), 0x64));
+            out += step;
+            source += at<u32>(settings(player), 0x64);
+        } while (++row < at<u32>(settings(player), 0x60));
+        return;
+    }
+    const bool wide = (settings(player)[4] & 0x40) != 0;
+    const u32 *pixels = reinterpret_cast<const u32 *>(settings(player) + 0x3b4);
+    if (at<u32>(settings(player), 0x60) == 0) return;
+    u32 row = 0;
+    do {
+        if (at<u32>(settings(player), 0x64) != 0) {
+            u32 x = 0;
+            do {
+                x += 8;
+                for (int k = 0; k < 8; ++k) {
+                    if (wide) {
+                        reinterpret_cast<u32 *>(out)[k] = pixels[source[k]];
+                    } else {
+                        reinterpret_cast<u16 *>(out)[k] = *reinterpret_cast<const u16 *>(&pixels[source[k]]);
+                    }
+                }
+                source += 8;
+                out += wide ? 0x20 : 0x10;
+            } while (x < at<u32>(settings(player), 0x64));
+        }
+        const u32 width = at<u32>(settings(player), 0x64);
+        out += wide ? (pitch - width * 4) >> 2 << 2 : (pitch - width * 2) >> 1 << 1;
+    } while (++row < at<u32>(settings(player), 0x60));
+}
+
+void __fastcall MoviePlayer_ReadSizeFlags(u8 *player, const u8 *data) {
+    read_size(player, data);
+    at<u32>(player, 0x40) = data[7] & 2u;
+    at<u32>(player, 0x44) = data[7] & 1u;   // (byte 7 read again after the store, as the listing does)
+}
+
+void __cdecl MoviePlayer_UnpackIndices(u32 *out, const u8 *source, s32 count, u32 bits) {
+    const u32 mask = (1u << (bits & 31)) - 1, base = address(source);
+    u32 position = 0;
+    s32 left = count;
+    if (down_ge(left, 4)) {
+        do {
+            u32 v = ror(mem(base + (position >> 3)), position & 7);
+            out[0] = v & mask;
+            v = ror(v, bits);
+            out[1] = v & mask;
+            const u32 third = position + bits * 2;
+            v = ror(mem(base + (third >> 3)), third & 7);
+            out[2] = v & mask;
+            v = ror(v, bits);
+            out[3] = v & mask;
+            out += 4;
+            position += bits * 4;
+        } while (down_ge(left, 4));
+    }
+    if (down_ge(left, -3)) {
+        do {
+            *out++ = ror(mem(base + (position >> 3)), position & 7) & mask;
+            position += bits;
+        } while (down_ge(left, 1));
+    }
+}
+
+void __cdecl MoviePlayer_DrawBlocks(const s32 *indices, u8 *previous, u8 *out, s32 split, const u32 *offsets, u8 *codebook, u32 pitch,
+                                    s32 across, s32 rows) {
+    const u32 book = address(codebook) - ((u32)split << 4), back = address(previous) - address(out), last = pitch * 3;
+    u32 to = address(out);
+    do {
+        s32 left = across;
+        do {
+            const s32 index = *indices++;
+            if (index < split) {
+                const u32 from = mem(address(offsets) + (u32)index * 4) + back + to;
+                mem(to) = mem(from);
+                mem(pitch + to) = mem(pitch + from);
+                mem(to + pitch * 2) = mem(from + pitch * 2);
+                mem(last + to) = mem(last + from);
+            } else {
+                const u32 from = book + (u32)index * 16;
+                mem(to) = mem(from);
+                mem(pitch + to) = mem(from + 4);
+                mem(to + pitch * 2) = mem(from + 8);
+                mem(last + to) = mem(from + 0xc);
+            }
+            to += 4;
+        } while (down_g(left));
+        to += last;
+    } while (down_g(rows));
 }
 
 void __fastcall MoviePlayer_ExpandBlocks(const u8 *records, u8 *out, s32 count) {

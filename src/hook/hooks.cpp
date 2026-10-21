@@ -1,6 +1,7 @@
 // The hook registry: every original function we have reimplemented.
 // Add a row here when a reimplementation is ready; mark it in re/symbols.csv too.
 #include "hooks.h"
+#include "regthunks.h"
 
 #include "../game/core/app.h"
 #include "../game/core/cheatmodule.h"
@@ -132,12 +133,18 @@
 #include "../game/gfx/tvstatic.h"
 #include "../game/gfx/aaline.h"
 #include "../game/gfx/dctvlc.h"
+#include "../game/gfx/dderrors.h"
 #include "../game/gfx/glyphrender.h"
+#include "../game/gfx/mmxblit.h"
+#include "../game/gfx/movieidct.h"
 #include "../game/gfx/moviepixels.h"
 #include "../game/gfx/movieplayer.h"
+#include "../game/gfx/moviesound.h"
+#include "../game/gfx/moviesurface.h"
 #include "../game/gfx/refblock.h"
 #include "../game/gfx/signstyle.h"
 #include "../game/gfx/tgqvideo.h"
+#include "../game/gfx/tqivideo.h"
 #include "../game/gfx/wctimage.h"
 #include "../game/core/crt.h"
 #include "../game/core/gameheap.h"
@@ -402,6 +409,7 @@
 #include "../game/ui/windowscript.h"
 #include "../game/ui/buttontext.h"
 #include "../game/ui/dialog7cc1f8.h"
+#include "../game/ui/guifont.h"
 #include "../game/ui/msgboxbutton.h"
 #include "../game/ui/msgtags.h"
 #include "../game/ui/panel7ca178.h"
@@ -4441,6 +4449,12 @@ const Hook kHooks[] = {
     {"TgqVideo_PackColour",       0x0066fd70, (void *)&TgqVideo_PackColour, {0x83, 0xec, 0x10, 0x53, 0x55}},
     {"TgqVideo_BuildTables",      0x0066fc10, (void *)&TgqVideo_BuildTables, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"TgqVideo_SetQuality",       0x00671000, (void *)&TgqVideo_SetQuality, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"TgqVideo_PixelRow16",       0x00673574, (void *)&RegThunk_TgqVideo_PixelRow16, {0x8b, 0x0f, 0x8b, 0x06, 0x8b}},
+    {"TgqVideo_DecodeCoefficients", 0x00672e60, (void *)&RegThunk_TgqVideo_DecodeCoefficients, {0xa1, 0x28, 0x79, 0xfb, 0x00}},
+    {"TgqVideo_PixelRow32",       0x006732e9, (void *)&RegThunk_TgqVideo_PixelRow32, {0x8b, 0x0f, 0x8b, 0x06, 0x8b}},
+    {"TgqVideo_DecodeFrame16",    0x00671230, (void *)&TgqVideo_DecodeFrame16, {0x83, 0xec, 0x0c, 0x8b, 0x01}},
+    {"TgqVideo_DecodeFrame32",    0x00671540, (void *)&TgqVideo_DecodeFrame32, {0x83, 0xec, 0x0c, 0x8b, 0x01}},
+    {"TgqVideo_PackLanes",        0x00670090, (void *)&TgqVideo_PackLanes, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"MoviePlayer_ReadHeader",    0x00670860, (void *)&MoviePlayer_ReadHeader, {0x8b, 0x01, 0x8b, 0x90, 0x88}},
     {"MoviePlayer_ReadPalette",   0x00670930, (void *)&MoviePlayer_ReadPalette, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"MoviePlayer_ReadSizeAt8",   0x00670ab0, (void *)&MoviePlayer_ReadSizeAt8, {0x0f, 0xbf, 0x42, 0x08, 0x56}},
@@ -4448,16 +4462,43 @@ const Hook kHooks[] = {
     {"MoviePlayer_UnpackFields",  0x00677640, (void *)&MoviePlayer_UnpackFields, {0x51, 0x8b, 0x44, 0x24, 0x08}},
     {"MoviePlayer_ExpandBlocks",  0x006776c0, (void *)&MoviePlayer_ExpandBlocks, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"MoviePlayer_PlaceView",     0x006711a0, (void *)&MoviePlayer_PlaceView, {0x33, 0xc0, 0x56, 0x89, 0x41}},
+    {"MoviePlayer_DrawFrame",     0x006779e0, (void *)&MoviePlayer_DrawFrame, {0x51, 0x53, 0x55, 0x8b, 0xe9}},
+    {"MoviePlayer_UnpackIndices", 0x0067862f, (void *)&MoviePlayer_UnpackIndices, {0x56, 0x57, 0x55, 0x53, 0x51}},
+    {"MoviePlayer_DrawBlocks",    0x006786d8, (void *)&MoviePlayer_DrawBlocks, {0x55, 0x8b, 0xec, 0x83, 0xc4}},
+    {"MoviePlayer_ReadSizeFlags", 0x00670900, (void *)&MoviePlayer_ReadSizeFlags, {0x0f, 0xbf, 0x02, 0x56, 0x8b}},
     {"DctVlc_BuildTables",        0x00676c80, (void *)&DctVlc_BuildTables, {0x53, 0x55, 0x56, 0x57, 0xb9}},
     {"DctVlc_DecodeBlock",        0x00677c00, (void *)&DctVlc_DecodeBlock, {0x53, 0x51, 0x52, 0x56, 0x57}},
     {"DctVlc_Skip",               0x006770b0, (void *)&DctVlc_Skip, {0xa1, 0x54, 0xd6, 0xfb, 0x00}},
     {"DctVlc_ReadCode",           0x00677110, (void *)&DctVlc_ReadCode, {0xa1, 0x50, 0xd6, 0xfb, 0x00}},
     {"DctVlc_FillDc",             0x00677140, (void *)&DctVlc_FillDc, {0x56, 0xb8, 0x08, 0x00, 0x00}},
+    {"DctVlc_BeginFrame",         0x00676bc0, (void *)&DctVlc_BeginFrame, {0x55, 0x8b, 0xec, 0x51, 0xa1}},
     {"RefBlock_Copy16",           0x00676a70, (void *)&RefBlock_Copy16, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"RefBlock_Copy8",            0x00676b50, (void *)&RefBlock_Copy8, {0x8d, 0x04, 0x0a, 0x8b, 0x4c}},
     {"MoviePixels_Double",        0x00676478, (void *)&MoviePixels_Double, {0x53, 0x51, 0x52, 0x56, 0x57}},
     {"MoviePixels_FromYuv",       0x006764bc, (void *)&MoviePixels_FromYuv, {0x53, 0x51, 0x52, 0x56, 0x57}},
     {"MoviePixels_BuildTables",   0x00670350, (void *)&MoviePixels_BuildTables, {0x83, 0xec, 0x0c, 0x53, 0x55}},
+    {"MoviePixels_MaskBits",      0x006702d0, (void *)&MoviePixels_MaskBits, {0x8b, 0xd1, 0x33, 0xc0, 0x56}},
+    {"MoviePixels_MaskShift",     0x006702f0, (void *)&MoviePixels_MaskShift, {0x33, 0xc0, 0xf6, 0xc1, 0x01}},
+    {"MoviePixels_ReadFormat",    0x00670210, (void *)&MoviePixels_ReadFormat, {0x83, 0xec, 0x20, 0x85, 0xd2}},
+    {"DctIdct_Column",            0x006780c1, (void *)&RegThunk_DctIdct_Column, {0x8b, 0x5e, 0x14, 0x8b, 0x46}},
+    {"DctIdct_Row",               0x00678224, (void *)&RegThunk_DctIdct_Row, {0x8b, 0x5e, 0x14, 0x8b, 0x46}},
+    {"MovieIdct_Column",          0x0067673c, (void *)&RegThunk_MovieIdct_Column, {0x57, 0x8b, 0x5e, 0x14, 0x8b}},
+    {"MovieIdct_Row",             0x0067687b, (void *)&RegThunk_MovieIdct_Row, {0x8b, 0x5e, 0x14, 0x8b, 0x46}},
+    {"MovieIdct_RowShift",        0x00676965, (void *)&RegThunk_MovieIdct_RowShift, {0x57, 0x8b, 0x5e, 0x14, 0x8b}},
+    {"DctIdct_Block",             0x0067832e, (void *)&DctIdct_Block, {0x53, 0x51, 0x52, 0x56, 0x57}},
+    {"MmxBlit_Copy16",            0x00678790, (void *)&MmxBlit_Copy16, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
+    {"MmxBlit_Copy32",            0x00678c20, (void *)&MmxBlit_Copy32, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"MmxBlit_Dither16",          0x00678d70, (void *)&MmxBlit_Dither16, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
+    {"MmxBlit_Convert16",         0x006787f0, (void *)&MmxBlit_Convert16, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"TqiVideo_SetQuality",       0x006710c0, (void *)&TqiVideo_SetQuality, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
+    {"DdErrors_Name",             0x00672e30, (void *)&DdErrors_Name, {0x33, 0xd2, 0xb8, 0xe8, 0x5e}},
+    {"MovieSurface_ReadSize",     0x00670300, (void *)&MovieSurface_ReadSize, {0x83, 0xec, 0x6c, 0x56, 0x8b}},
+    {"MovieSurface_PickMode",     0x00670660, (void *)&MovieSurface_PickMode, {0x81, 0xec, 0xf8, 0x02, 0x00}},
+    {"MovieSurface_Restore",      0x00671fa0, (void *)&MovieSurface_Restore, {0x56, 0x8b, 0xf1, 0x8b, 0x0e}},
+    {"MovieSound_BufferBytes",    0x00672950, (void *)&MovieSound_BufferBytes, {0x83, 0xec, 0x14, 0x33, 0xc0}},
+    {"MovieSound_Release",        0x006729e0, (void *)&MovieSound_Release, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
+    {"MovieSound_ReleaseStream",  0x00672bf0, (void *)&MovieSound_ReleaseStream, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
+    {"MovieSound_PlayDistance",   0x00672730, (void *)&MovieSound_PlayDistance, {0x83, 0xec, 0x08, 0x56, 0x8b}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
@@ -5152,6 +5193,8 @@ const Hook kHooks[] = {
     {"Window705a50_Set154",       0x00668f7b, (void *)&Window705a50_Set154, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window705a50_Ctor",         0x006688b3, (void *)&Window705a50_Ctor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window705a50_SetEnabled",   0x00668a23, (void *)&Window705a50_SetEnabled, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window705a50_Repeat",       0x00668dd9, (void *)&Window705a50_Repeat, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window705a50_SetFlag139",   0x00668c99, (void *)&Window705a50_SetFlag139, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"ThingPreview_Hide",         0x00486630, (void *)&ThingPreview_Hide, {0xa1, 0xd8, 0x24, 0x7c, 0x00}},
     {"ThingPreview_Show",         0x00486530, (void *)&ThingPreview_Show, {0x51, 0xa1, 0xd8, 0x24, 0x7c}},
     {"List7cc188_NewRow",         0x004a8380, (void *)&List7cc188_NewRow, {0x6a, 0xff, 0x68, 0xdb, 0xa7}},
@@ -5242,9 +5285,11 @@ const Hook kHooks[] = {
     {"Window705bf8_Dtor",         0x0066d1a6, (void *)&Window705bf8_Dtor, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Window705bf8_DeletingDtor", 0x0066d720, (void *)&Window705bf8_DeletingDtor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window705c28_Ctor",         0x0066d750, (void *)&Window705c28_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"Window705c28_SetValue",     0x0066d885, (void *)&Window705c28_SetValue, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Window705af0_Ctor",         0x0066a4c0, (void *)&Window705af0_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Window705bc8_Ctor",         0x0066c970, (void *)&Window705bc8_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Window705bc8_SetRange",     0x0066cad3, (void *)&Window705bc8_SetRange, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window705bc8_SetRange2",    0x0066cb69, (void *)&Window705bc8_SetRange2, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Window705a20_Ctor",         0x00665fcd, (void *)&Window705a20_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Window705a20_SaveRect",     0x00665fb0, (void *)&Window705a20_SaveRect, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window705a20_SetCaret",     0x0066656c, (void *)&Window705a20_SetCaret, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
@@ -5466,6 +5511,7 @@ const Hook kHooks[] = {
     {"Dialog7cc1f8_DressStats",   0x004ab6b0, (void *)&Dialog7cc1f8_DressStats, {0x6a, 0xff, 0x68, 0x7e, 0xaa}},
     {"Panel7cc408_Dress",         0x004b6c20, (void *)&Panel7cc408_Dress, {0x6a, 0xff, 0x68, 0x90, 0xb4}},
     {"Panel7cc3b0_Dress",         0x004b53c0, (void *)&Panel7cc3b0_Dress, {0x6a, 0xff, 0x68, 0x04, 0xb3}},
+    {"GuiFont_TextWidth",         0x00658334, (void *)&GuiFont_TextWidth, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},

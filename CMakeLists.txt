@@ -197,6 +197,12 @@ add_library(tpw_game STATIC
     src/game/gfx/dctvlc.cpp
     src/game/gfx/refblock.cpp
     src/game/gfx/moviepixels.cpp
+    src/game/gfx/movieidct.cpp
+    src/game/gfx/mmxblit.cpp
+    src/game/gfx/tqivideo.cpp
+    src/game/gfx/dderrors.cpp
+    src/game/gfx/moviesurface.cpp
+    src/game/gfx/moviesound.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp
     src/game/math/rect.cpp
@@ -432,6 +438,7 @@ add_library(tpw_game STATIC
     src/game/ui/panel7ca178.cpp
     src/game/ui/panel7cc3b0.cpp
     src/game/ui/panel7cc408.cpp
+    src/game/ui/guifont.cpp
 )
 # The libraries whose functions replace the exe's copies (src/game/lib); their headers stay private to those units.
 target_link_libraries(tpw_game PRIVATE tpw_zlib tpw_jpeg6b tpw_jpeg6a)
@@ -442,6 +449,7 @@ add_library(tpw_hook SHARED
     src/hook/dinput_proxy.cpp
     src/hook/hooks.cpp
     src/hook/patch.cpp
+    src/hook/regthunks.cpp
     src/hook/dinput.def
 )
 set_target_properties(tpw_hook PROPERTIES OUTPUT_NAME dinput)
@@ -475,6 +483,7 @@ add_executable(tpw_tests
     tests/test_main.cpp
     src/hook/hooks.cpp
     src/hook/patch.cpp
+    src/hook/regthunks.cpp
 )
 target_link_libraries(tpw_tests PRIVATE tpw_game)
 
@@ -485,6 +494,7 @@ add_executable(tpw_fncmp
     tools/fncmp/crt.cpp
     src/hook/hooks.cpp
     src/hook/patch.cpp
+    src/hook/regthunks.cpp
 )
 target_link_libraries(tpw_fncmp PRIVATE tpw_game)
 # Not incremental: an incremental link keeps an old, larger .bss when a static shrinks, and a case's wild pointer reads the driver's own
