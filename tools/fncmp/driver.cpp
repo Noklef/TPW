@@ -365,12 +365,17 @@ u32 bytes_hash(u32 h, const u8 *p, u32 mask) {
     return h;
 }
 
-u32 blob_bytes_hash(const u8 *p, u32 how, u32 mask) {
+// wide: the slot's entry at + 0xfc0 (two of (k | 0x80000000, start, mask), fncmp.LOG_BLOB_WIDE), or null: the second structure's bytes start to start + 31
+// that its mask selects, hashed after the first fifteen (an inner mask past bit 14).
+u32 blob_bytes_hash(const u8 *p, u32 how, u32 mask, const u32 *wide) {
     u32 h = bytes_hash(0x811c9dc5u, p, mask);
     if (const u32 at = how >> 8 & 0xff) {
         const u8 *inner;
         std::memcpy(&inner, p + at - 1, 4);
-        if (inner) h = bytes_hash(h, inner + 4 * (how >> 5 & 7), how >> 16 & 0x7fff);
+        if (inner) {
+            h = bytes_hash(h, inner + 4 * (how >> 5 & 7), how >> 16 & 0x7fff);
+            if (wide) h = bytes_hash(h, inner + wide[1], wide[2]);
+        }
     }
     return h;
 }
@@ -409,7 +414,10 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
         const u32 *blob = log + 0x340 + 2 * (k & 63);  // (LOG_BLOBS)
         if ((blob[0] & 0x1f) == i + 1 && args[i]) {
             const u8 *const p = reinterpret_cast<const u8 *>((uintptr_t)args[i]);
-            args[i] = blob[0] & 0x80000000u ? blob_bytes_hash(p, blob[0], blob[1]) : blob_hash(p, blob[1]);
+            const u32 *wide = nullptr;
+            for (u32 w = 0; w < 2; ++w)
+                if (log[0x3f0 + 4 * w] == ((k & 63) | 0x80000000u)) wide = log + 0x3f0 + 4 * w;
+            args[i] = blob[0] & 0x80000000u ? blob_bytes_hash(p, blob[0], blob[1], wide) : blob_hash(p, blob[1]);
         }
         if (mask >> i & 1) args[i] = string_hash(reinterpret_cast<const u8 *>((uintptr_t)args[i]));
         if (mask >> (16 + i) & 1) args[i] = 0;
