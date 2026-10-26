@@ -218,11 +218,9 @@ def start_case(r, address, ret, log, voice, system, regions):
     system null now and then; the voice's slot 17 (the fill: now, the record on the stack, its cleared fields hashed) answering 0 now and
     then; the system (the channel: SoundChannel_PlayRecord) its flags +0x28 bits 3 and 8 any way, slot 6 picking 0 or a voice, slot 5 any,
     slot 6 / 5 / 4 logging the record's cleared fields, +0xc and +0x44 (slot 4 the functor {0x70a618, the voice}), slot 4 writing a status
-    (negative now and then) through its out; the voice's +0x24 0 or not."""
+    (negative now and then) through its out; the voice's +0x24 0 or not; now and then the time the voice's flags' address, slot 17
+    rewriting them (flag 0x10 any way)."""
     rec = 1 | 1 << 1 | 1 << 3 | 1 << 4 | 1 << 5 | 1 << 0xb | 1 << 0xc | 1 << 0xe | 1 << 0xf | 1 << 0x10 | 0xff << 0x18   # (the cleared fields)
-    for k in (17, 6, 5):
-        strings(log, k, 0, out=2)
-        blob(log, k, 1, rec | (1 << 0x11 if k != 17 else 0))
     strings(log, 4, 0, out=1)
     blob(log, 4, 1, 3)
     fill(log, 4, 0, struct.pack('<I', r.choice([0, 1, 0x80000000, 0xffffffff, r.getrandbits(32)])))
@@ -236,7 +234,16 @@ def start_case(r, address, ret, log, voice, system, regions):
     struct.pack_into('<I', system, 0x28, r.getrandbits(32) & ~0x108 | r.choice([0, 8, 0x100, 0x108, 0x108]))
     regions.update({SYSTEM: struct.pack('<I', r.choice([SYS] * 9 + [0])), SVT: vtable({4: 2, 5: 2, 6: 2, 10: 1}),
                     VVT: vtable({7: 0, 8: 1, 14: 1, 15: 1, 16: 2, 17: 2, 18: 1})})
-    return Call(address, [VOICE, OUT, r.getrandbits(32)], regions, conv='t', ret=ret)
+    now = r.getrandbits(32)
+    flags = struct.unpack_from('<I', voice, 0x30)[0]
+    if r.random() < 0.3:   # (the time the voice's flags' address: slot 17 rewrites them, flag 0x10 any way)
+        now = VOICE + 0x30
+        flags = r.getrandbits(32) & ~0x10 | r.choice([0, 0x10])
+        fill(log, 17, 0, struct.pack('<I', flags), which=1)
+    blob(log, 17, 1, rec)
+    for k in (6, 5):   # (+0xc's bit 1 from the channel; +0x44 set only by the counted start with flag 4: else the stack's)
+        blob(log, k, 1, rec | (1 << 0x11 if address == 0x6bdf50 and flags & 4 else 0))
+    return Call(address, [VOICE, OUT, now], regions, conv='t', ret=ret)
 
 
 def case(r):
