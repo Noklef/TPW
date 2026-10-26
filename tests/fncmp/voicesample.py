@@ -23,7 +23,8 @@ CALLS = {'decode': (0x6c7cf0, 'a'), 'read': (0x6c7c20, 'a'), 'query': (0x6c7bc0,
          'close': (0x6c7be0, 'v'), 'open': (0x6c7c80, 'v'), 'sopen': (0x6c80c0, 'v'), 'srestart': (0x6c8120, 'v'),
          'schedule': (0x6c7010, 'b'), 'drained': (0x6c7070, 'a'), 'describe': (0x6bb1d0, 'v'), 'sdtor': (0x6c6ef0, 'v'),
          'dtor': (0x6c8330, 'v'), 'sdtor2': (0x6c8000, 'v'), 'ddtor': (0x6c7ba0, 'a'), 'sddtor': (0x6c7fe0, 'a'),
-         'sctor': (0x6c6e70, 'a'), 'sdel': (0x6c70c0, 'a'), 'basedel': (0x6c70a0, 'a')}
+         'sctor': (0x6c6e70, 'a'), 'sdel': (0x6c70c0, 'a'), 'basedel': (0x6c70a0, 'a'),
+         'memread': (0x6c7250, 'a')}
 B = Bench([(0x6c7bc0, 0x6c7dfb), (0x6c80c0, 0x6c8138), (0x6c7010, 0x6c7082), (0x6bb1d0, 0x6bb1dd), (0x6c6230, 0x6c625a),
            (0x6c62c0, 0x6c62d8), (0x6d4ec0, 0x6d4ed9), (0x5f5f10, 0x5f5f7d), (0x5f5fa0, 0x5f5faa),
            (0x6d4ee0, 0x6d4f2a), (0x6d4fa0, 0x6d4fdc), (0x6d4f30, 0x6d4f99), (0x6d4fe0, 0x6d503a), (0x6d5200, 0x6d5254),
@@ -31,7 +32,8 @@ B = Bench([(0x6c7bc0, 0x6c7dfb), (0x6c80c0, 0x6c8138), (0x6c7010, 0x6c7082), (0x
            (0x6d57e0, 0x6d61ba), (0x6d5450, 0x6d57d2), (0x6d6290, 0x6d62bd), (0x6c6ef0, 0x6c6f37), (0x6c8330, 0x6c8335),
            (0x6c8000, 0x6c806a), (0x6c7ba0, 0x6c7bc0), (0x6c7fe0, 0x6c7ffe), (0x6c7ad0, 0x6c7b15), (0x6c7f20, 0x6c7f65),
            (0x5f71e0, 0x5f7220), (0x618d30, 0x618d90), (0x6307e0, 0x630800),
-           (0x6c6e70, 0x6c6eed), (0x6c70a0, 0x6c70dc), (0x6c7090, 0x6c7097), (0x6c6f40, 0x6c6f87), (0x6c6f90, 0x6c6fee)])
+           (0x6c6e70, 0x6c6eed), (0x6c70a0, 0x6c70dc), (0x6c7090, 0x6c7097), (0x6c6f40, 0x6c6f87), (0x6c6f90, 0x6c6fee),
+           (0x6c7250, 0x6c72e9)])
 SAMPLE, SVT, NEXT, SUBVT, FILEVT, OUT, RECORD, MEMREADER = (RAM + 0x100 * i for i in range(8))
 BUFFER, DECODER, BITS, BREADER = RAM + 0x800, RAM + 0x1000, RAM + 0x3000, RAM + 0x4000
 MEMORY_VTABLE, BUFFERED_VTABLE = 0x70adb8, 0x70ae28
@@ -41,6 +43,7 @@ SLOTS = {0: 1, 2: 0, 5: 1, 6: 0, 17: 0, 19: 2, 20: 1}
 SOURCE, SOURCE_VT, REF, REF_VT = RAM + 0x7000, RAM + 0x7100, RAM + 0x7200, RAM + 0x7300
 POOLS = 0xfb20bc   # the voice sample pool's list and lock, 4 bytes, the voice stream pool's list and lock
 FREE = RAM + 0x7400   # a block on a pool's free list
+COPIER, COPIER_VT, COPIER_AT = RAM + 0x7500, RAM + 0x7510, 0xfb2018   # the memory copier and where it is kept
 # import: (recorder slot, import table address, stack arguments)
 IMPORTS = {'InterlockedDecrement': (34, 0x6fd12c, 1), 'CloseHandle': (33, 0x6fd13c, 1), 'EnterCriticalSection': (35, 0x6fd140, 1),
            'LeaveCriticalSection': (36, 0x6fd130, 1)}
@@ -152,6 +155,18 @@ def case(r):
         regions[SOURCE_VT] = struct.pack('<2I', recorder(30, 0), recorder(29, 0))
         struct.pack_into('<I', sample, 0x1c, r.getrandbits(32))   # (the end time: the constructor's to clear)
         args = [RECORD, SOURCE]
+    elif name == 'memread':   # (+0x10 the data, +0x14 the position, +0x18 the length; the copier's slot 0 and slot 19 recorders)
+        if r.random() < 0.25:
+            struct.pack_into('<I', sample, 0x1c, end or 1)
+        length = r.choice([0, 1, 0x100, r.randrange(0, 0x10000), r.getrandbits(32)])
+        pos = r.choice([0, length, length - 1, r.randrange(0, length + 1), r.getrandbits(32)]) & 0xffffffff
+        struct.pack_into('<3I', sample, 0x10, r.getrandbits(32), pos, length)
+        set_return(log, 19, r.choice([0, 1, 0x100, r.getrandbits(32)]))
+        regions[COPIER] = struct.pack('<I', COPIER_VT) + r.bytes(0xc)
+        regions[COPIER_VT] = struct.pack('<I', recorder(37, 3))
+        regions[COPIER_AT] = struct.pack('<I', COPIER)
+        left = (length - pos) & 0xffffffff
+        args = [BUFFER, r.choice([0, 1, left, left + 1, left - 1, r.getrandbits(32)]) & 0xffffffff, OUT, r.getrandbits(32)]
     elif name == 'basedel':
         args = [r.choice([0, 1, 1, 2, 3, r.getrandbits(32)])]
     elif name in ('sdtor', 'dtor', 'sdtor2', 'ddtor', 'sddtor', 'sdel'):

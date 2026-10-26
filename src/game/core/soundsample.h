@@ -1,7 +1,8 @@
 // The sound samples' shared slots (the sound streams of src/game/core/soundstream that are sources, vtables 0x70a6c8-0x70aec0; the
 // names are invented): +0x1c the time (the game's clock, ms) at which a sample whose data has run out has finished playing (0 while it
 // still has data), +0x20 the format byte (bit 1 stereo, bit 6 16-bit, bits 3 / 4 the rate, see Obj_SampleRate20). Reimplementation of
-// 0x6bb1d0, 0x6c7010, 0x6c7070, 0x6c6ef0, the constructor 0x6c6e70 and the deleting destructors 0x6c70c0 / 0x6c70a0.
+// 0x6bb1d0, 0x6c7010, 0x6c7070, 0x6c6ef0, the constructor 0x6c6e70, the deleting destructors 0x6c70c0 / 0x6c70a0 and the memory
+// sample's read 0x6c7250.
 #pragma once
 
 #include "../../../re/types.h"
@@ -28,5 +29,11 @@ u8 *__fastcall SoundSample_DeletingDtor(u8 *sample, void *, u32 flags);
 // 0x6c70a0 (thiscall (flags), pops 4; slot 0 of 0x70aca0, slot 20 of 0x70ac50): the base's vtable (Vtbl70a778_Set_6c7090), the block
 // freed (Mem_Free) for flags bit 0. Returns the stream.
 u8 *__fastcall SoundSampleBase_DeletingDtor(u8 *stream, void *, u32 flags);
+
+// 0x6c7250 (thiscall (buffer, bytes, out, flag), pops 0x10; slot 7 of 0x70a6f8, the memory sample: +0x10 the data, +0x14 the position,
+// +0x18 the length): once ended (+0x1c set), *out 0 and SoundSample_Drained. Else the bytes left or fewer (unsigned) into *out, copied
+// from the data + the position by the copier at [0xfb2018] (its slot 0: (buffer, source, count)), the position advanced; at the end
+// (unsigned) slot 19 (the end's schedule, (flag, *out)): 0 when it answers nonzero, else 1. Returns 0 otherwise.
+u32 __fastcall SoundSample_ReadMemory(u8 *sample, void *, u8 *buffer, u32 bytes, u32 *out, u32 flag);
 
 }  // extern "C"

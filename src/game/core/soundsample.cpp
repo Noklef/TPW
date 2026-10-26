@@ -65,4 +65,18 @@ u8 *__fastcall SoundSampleBase_DeletingDtor(u8 *stream, void *, u32 flags) {
     return stream;
 }
 
+u32 __fastcall SoundSample_ReadMemory(u8 *sample, void *, u8 *buffer, u32 bytes, u32 *out, u32 flag) {
+    if (at<u32>(sample, 0x1c)) {
+        *out = 0;
+        return SoundSample_Drained(sample);
+    }
+    const u32 left = at<u32>(sample, 0x18) - at<u32>(sample, 0x14);
+    *out = bytes < left ? bytes : left;
+    u8 *const copier = *reinterpret_cast<u8 **>(static_cast<uintptr_t>(0x00fb2018));
+    vcall<void>(copier, 0, buffer, at<u32>(sample, 0x10) + at<u32>(sample, 0x14), *out);
+    at<u32>(sample, 0x14) += *out;
+    if (at<u32>(sample, 0x14) < at<u32>(sample, 0x18)) return 0;
+    return vcall<u8>(sample, 0x4c, flag, *out) ? 0 : 1;
+}
+
 }  // extern "C"
