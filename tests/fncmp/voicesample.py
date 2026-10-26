@@ -150,6 +150,7 @@ def case(r):
         regions[RECORD] = rec
         regions[SOURCE] = struct.pack('<I', SOURCE_VT) + r.bytes(0xc)
         regions[SOURCE_VT] = struct.pack('<2I', recorder(30, 0), recorder(29, 0))
+        struct.pack_into('<I', sample, 0x1c, r.getrandbits(32))   # (the end time: the constructor's to clear)
         args = [RECORD, SOURCE]
     elif name == 'basedel':
         args = [r.choice([0, 1, 1, 2, 3, r.getrandbits(32)])]
