@@ -151,4 +151,14 @@ s32 __cdecl TrakRide_Unload(u8 *ride, u32 effect);
 // (any dword but 0) Particle_Spawn(0x13) at 1024 times the holder's model's root position (as Unload). The +0x9c record's count +0x60 goes
 // up for every node.
 void __cdecl TrakRide_Load(u8 *ride, u32 effect);
+
+// 0x547170 (cdecl; car: a 0xac-byte record of the pool [0x877b68]; called at 0x547117 after the area and blocker passes; name
+// unconfirmed): the car's sounds. A next state (+0x14) above the state (+0x18, unsigned) replaces it, and +0x14 is cleared; then by the
+// state, at x = __ftol(+0x34 * 0.0033036) and z = __ftol(+0x38 * 0.0033036) (fild; fmul 0x700f20), y 0: 1 Sound_PlayAt(0, [0x803a28],
+// 0x18, ...); 3 and 5 Sound_PlayAt(0, [0x803a28], 0xc, ...); 2, when the game's rand (0x877b90 = * 0x343fd + 0x269ec3) has none of
+// the bits 0x70000, and 4: Sound_PlayRideElement(the dword +0x24 of the thing found, 0, [0x803a3c], 3 or 4, ...), the thing (0: none)
+// the ride's object (state 2: TrakRide_FindThing; state 4: the same search inlined, through Thing_ByHandle on [[0x7cf6ec]]) for the
+// handle of the car's ride (+0x9c; 0 while the module is not loaded); after each the state is 0 (2: also when the rand skips). Other
+// states leave it. The original's Debug_Printf calls are left out.
+void __cdecl TrakCar_PlaySounds(u8 *car);
 }
