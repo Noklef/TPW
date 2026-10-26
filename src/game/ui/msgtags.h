@@ -70,4 +70,17 @@ s32 *__cdecl MsgTags_Save(Stream *stream);
 // 0x481680 (stdcall (stream); the UI module's load, ECX unused): message 5 to the tags' windows (Windows7c26b0_Message5), then MsgTags_Load;
 // its 0 returned.
 u32 __stdcall UI_Load(Stream *stream);
+
+// 0x4a11e0 (cdecl (window, message, a, b): the tags' window [0x7cb2c4]'s handler, set by 0x4a1fe5; name unconfirmed). Message (signed)
+// 0x14: [0x7cb2c8] = 0. 0x100001 (a the new tag): the window's dwords 0 and 1 read (Window_DwordA0); with a tag: it becomes the window's
+// last child (Window_AddChild, depth 1), its slot 5 told 1, posted 6 (1, 0) in 500 ms (Window_PostTimed); its inner rectangle and size
+// taken (Window_GetRect, Window_GetSize: the width and height land in the low words of the tag's and the window's argument slots), the
+// window's top raised by the height + 10 (Window_AdjustRect; the dword taken with the window pointer's upper half, sic), the tag moved
+// (Window_Offset) across to the centre of the window's inner rectangle and down to 8 below its old top (the dwords' upper halves as the
+// registers held them), the two dwords put back (Window_SetDwordA0) and the window's child 0x2e, when it runs no script (+0x135),
+// given the script 0x752e48 at 50 (Window_RunScript). 0x100002 (a the tag, b at once): a shown tag (flag 0 of +0x48) hidden
+// (Window_SetShown 0) and sent 5 (1, 0) when b is set (Window_SendMessage), else posted it in 500 ms. 0x100003: each tag from
+// [0x7cb2c8] (by +0x54) posted 5 (1, 0) in 100, 200, ... ms. Every message then goes to the default handler (Window_CallDefault),
+// whose answer is returned.
+s32 __cdecl MsgTags_WindowHandler(u8 *window, u32 message, u8 *tag, u32 b);
 }
