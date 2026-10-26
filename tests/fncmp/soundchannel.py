@@ -18,15 +18,15 @@ from fncmp import (IMPORT_TABLE, LOG, RAM, Bench, Call, blob, echo, fb, fill, im
 
 CALLS = {'apply': 0x6b8b40, 'settings': 0x6b7d70, 'fn260': 0x6b5e40, 'eax0b': 0x6b7910, 'eaxall': 0x6b7970, 'occlusion': 0x6b7b60,
          'position': 0x6b79d0, 'fn278': 0x6b5e60, 'mode': 0x6b90d0, 'placement': 0x6b9930, 'voices': 0x6b84f0, 'b4c': 0x6b57b0, 'b3c': 0x6b5720,
-         'b54': 0x6b5810, 'objplace': 0x6b8b60}
-SETTERS = ('occlusion', 'position', 'fn278', 'mode', 'placement', 'voices', 'b4c', 'b3c', 'b54', 'objplace')
+         'b54': 0x6b5810, 'objplace': 0x6b8b60, 'voiceocc': 0x6b7fa0, 'clearocc': 0x6b7a70}
+SETTERS = ('occlusion', 'voiceocc', 'clearocc', 'position', 'fn278', 'mode', 'placement', 'voices', 'b4c', 'b3c', 'b54', 'objplace')
 B = Bench([(0x6b8b40, 0x6b8b60), (0x6b7d70, 0x6b7e5b), (0x6c4760, 0x6c47a3), (0x6b5e40, 0x6b5e59), (0x6b7910, 0x6b796b),
            (0x6b7970, 0x6b79cb), (0x6c4670, 0x6c46a7), (0x6c46b0, 0x6c475a), (0x6b7b60, 0x6b7d6e), (0x6b79d0, 0x6b7a6b), (0x6b5e60, 0x6b5fb4),
            (0x6c4c80, 0x6c4eff), (0x6c4f00, 0x6c4f54), (0x6b8330, 0x6b8358), (0x6bb7a0, 0x6bb7bd), (0x6bb7c0, 0x6bb856), (0x6babc0, 0x6bac04),
            (0x6bac30, 0x6bac5c), (0x6b7e60, 0x6b7ea5), (0x6c5080, 0x6c5088), (0x6bb240, 0x6bb265), (0x6baa10, 0x6baa20), (0x6d1bc0, 0x6d1bca),
            (0x6b90d0, 0x6b9154), (0x6b9930, 0x6b99ba), (0x6b84f0, 0x6b8569), (0x6b57b0, 0x6b5801), (0x6b5720, 0x6b5739), (0x6b5810, 0x6b5834),
            (0x6b9c50, 0x6b9c6a), (0x6b9c70, 0x6b9c82), (0x6b9c90, 0x6b9ca9), (0x6b9cf0, 0x6b9d02), (0x6b9d30, 0x6b9d43), (0x6b6140, 0x6b6163),
-           (0x6b8b60, 0x6b8c63)])
+           (0x6b8b60, 0x6b8c63), (0x6b7fa0, 0x6b814e), (0x6b7a70, 0x6b7b5f)])
 CHAN, OUT, FUNCTOR, FVT, REC, INFO, SRC, SVT, EAXB, KSET, KVT = (RAM + 0x100 * i for i in range(11))
 GLOBAL = 0xfb2058
 VOICES, VVT, SND, SNDVT, POOL, NODES, OCCS, VEC, VEC2, OBJECT, MIXER, COMMAND, P1, P2, P3 = (RAM + 0x1000 + 0x200 * i for i in range(15))
@@ -111,6 +111,7 @@ def voices_case(r, log, name):
     set_return(log, 11, r.getrandbits(32))
     set_return(log, 41, r.getrandbits(32))
     strings(log, 0x1e, 0, out=5)   # (a local out, the position on the stack)
+    strings(log, 0x1d, 0, out=1)   # (0x6b7fa0's slot 0x1d: an out on the stack)
     fill(log, 0x1e, 2, b''.join(struct.pack('<3I', ints(), r.getrandbits(32), ints()) for _ in range(4)), which=0, records=4)
     for k in (5, 0x10, 0x15, 0x19, 0x14):
         strings(log, k, 0, out=1)
@@ -153,7 +154,7 @@ def voices_case(r, log, name):
     struct.pack_into('<II', rec, 0x50, r.choice([VEC, 0]), VEC2)
     blob(log, 4, 5, 1 if flags & 0x60 == 0x20 else 0x3fff)   # (IKsPropertySet::Set's data)
     set_return(log, 4, r.getrandbits(32))
-    svt = vtable({5: 2, 10: 2, 0x10: 2, 0x12: 2, 0x14: 2, 0x15: 3, 0x19: 2, 0x1e: 3}, size=36)
+    svt = vtable({5: 2, 10: 2, 0x10: 2, 0x12: 2, 0x14: 2, 0x15: 3, 0x19: 2, 0x1d: 4, 0x1e: 3}, size=36)
     struct.pack_into('<II', svt, 0x88, recorder(6, 5), recorder(7, 3))   # (slots 0x22 and 0x23: recorders 6 and 7, past the 32 a vtable() has)
     regions = {CHAN: chan, OUT: r.bytes(4), REC: rec, SRC: struct.pack('<I', SVT) + r.bytes(0xc), SVT: svt,
                EAXB: r.bytes(4) + struct.pack('<I', r.choice([KSET] * 6 + [0])), KSET: struct.pack('<I', KVT) + r.bytes(4), KVT: vtable({}, com={4: 7}),
@@ -193,6 +194,13 @@ def voices_case(r, log, name):
         return Call(0x6b7b60, [CHAN, r.choice([0, 1, 0x100, r.getrandbits(32)])], regions, conv='t', ret='v')
     if name == 'position':
         return Call(0x6b79d0, [CHAN, OUT, REC], regions, conv='t', ret='a')
+    if name == 'clearocc':
+        return Call(0x6b7a70, [CHAN, r.choice([0, 1, 0x100, r.getrandbits(32)])], regions, conv='t', ret='v')
+    if name == 'voiceocc':   # (one voice: the record's +0xc flags, its +0x30 the position or null)
+        struct.pack_into('<I', rec, 0xc, r.getrandbits(32) & r.choice([0xffffffff, 0x820, 0x820, 0x800, 0x20]))
+        struct.pack_into('<I', rec, 0x30, r.choice([VEC2] * 6 + [0]))
+        voice = VOICES + 0x8c * r.randrange(max(n, 1))
+        return Call(0x6b7fa0, [CHAN, r.getrandbits(32), voice, REC], regions, conv='t', ret='v')
     return Call(0x6b5e60, [FUNCTOR, OUT, CHAN], regions, conv='t', ret='a')
 
 

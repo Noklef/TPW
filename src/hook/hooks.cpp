@@ -4277,6 +4277,8 @@ const Hook kHooks[] = {
     {"SoundChannel_UpdateOcclusion", 0x006b7b60, (void *)&SoundChannel_UpdateOcclusion, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"SoundChannel_SetMode",      0x006b90d0, (void *)&SoundChannel_SetMode, {0x8b, 0x44, 0x24, 0x08, 0x83}},
     {"SoundChannel_SetPlacement", 0x006b9930, (void *)&SoundChannel_SetPlacement, {0x83, 0xec, 0x78, 0x56, 0x8b}},
+    {"SoundChannel_UpdateVoiceOcclusion", 0x006b7fa0, (void *)&SoundChannel_UpdateVoiceOcclusion, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"SoundChannel_ClearOcclusion", 0x006b7a70, (void *)&SoundChannel_ClearOcclusion, {0x83, 0xec, 0x3c, 0x53, 0x55}},
     {"SoundObject_Broadcast",     0x006b85f0, (void *)&SoundObject_Broadcast, {0x83, 0xec, 0x08, 0x56, 0x8b}},
     {"SoundObject_BroadcastValue", 0x006b8640, (void *)&SoundObject_BroadcastValue, {0x8b, 0x41, 0x24, 0x85, 0xc0}},
     {"SoundObject_VoiceInfo",     0x006b8b00, (void *)&SoundObject_VoiceInfo, {0x8b, 0x49, 0x20, 0x85, 0xc9}},

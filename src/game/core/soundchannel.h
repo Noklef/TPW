@@ -2,7 +2,7 @@
 // (0x400: its voices are run through the mixer), +0x2c a float, +0x44 four bytes, +0x48 an array of floats. Settings reach it as stack
 // functors (a vtable whose slot 0 is thiscall (out, channel), pops 8, and the functor's data); +0x14 a source's info (+0 and +8 read),
 // +0x18 its source object, +0x20 its EAX buffer (soundeax); +8 its position (three floats). Reimplementation of 0x6b7d70, 0x6b8b40, 0x6b5e40,
-// 0x6b5e60, 0x6b7910, 0x6b7970, 0x6b79d0, 0x6b7b60, 0x6b7e60, 0x6b90d0 and 0x6b9930; the names are unconfirmed. The setters build a
+// 0x6b5e60, 0x6b7910, 0x6b7970, 0x6b79d0, 0x6b7a70, 0x6b7b60, 0x6b7e60, 0x6b7fa0, 0x6b90d0 and 0x6b9930; the names are unconfirmed. The setters build a
 // settings record on the stack (Init_6b9c50, then its fields) and apply it with the functor 0x70a278 (SoundChannel_Apply).
 #pragma once
 
@@ -41,6 +41,18 @@ u32 *__fastcall SoundChannel_SetPosition(u8 *channel, void *, u32 *out, u8 *sett
 // (the id, twelve dwords of EAX 2.0 buffer properties: 0 but for the levels (the 6th and 8th) and 0.25, 0.5 and 1.0 (9th, 10th, 12th));
 // else its slot 0x15 (a local out, the id, 1 - the occlusion, 0.5 at least: 0.5 when above it, NaN kept).
 void __fastcall SoundChannel_UpdateOcclusion(u8 *channel, void *, u8 eax);
+// 0x6b7fa0 (thiscall (id, voice, record), pops 0xc): one voice's position and occlusion. Nothing without a source (+0x18) or the record's
+// position (+0x30). The source's slot 0x1d (a local out, the id, the position, the record's +0xc bit 5); then only with +0xc bit 11, an
+// EAX buffer (+0x20) or the source's slot 0x13 answering (AL), and bit 5: the occlusion of the path from the channel's position (+8) to
+// the record's (SoundOccluders_Occlusion). Occluded: unless it equals the voice's +0x28 (or either is NaN), stored there, the EAX 2.0
+// levels (fistp of it times -2000 and -1000) set and the voice's +0x10 bit 0 set. Not occluded: with that bit and +0x28 neither 0 nor
+// NaN, +0x28 = 0 and the bit cleared. Else nothing more. Then with the EAX buffer the source's slot 0x12 (the id, the twelve dwords of
+// SoundChannel_UpdateOcclusion), else its slot 0x15 (a local out, the id, 1 - the occlusion, 0.5 at least).
+void __fastcall SoundChannel_UpdateVoiceOcclusion(u8 *channel, void *, u32 id, u8 *voice, const u8 *record);
+// 0x6b7a70 (thiscall (eax byte), pops 4): each voice with a sound and flag 1 (+0x10 bit 0): the flag cleared; with +0x28 neither 0 nor
+// NaN, +0x28 = 0 and with eax the source's slot 0x12 (the id, SoundChannel_UpdateOcclusion's twelve dwords with both levels 0), else its
+// slot 0x15 (a local out, the id, 1.0).
+void __fastcall SoundChannel_ClearOcclusion(u8 *channel, void *, u8 eax);
 
 // 0x6b90d0 (thiscall (out, a, b, c), pops 0x10): flags (+0x28) bit 3 set when a is nonzero, else cleared; a settings record whose +4
 // gets bit 2 (and the flags bit 8) when b is nonzero, bit 3 when c is; applied (so the source's slot 5 gets +4 when nonzero). Returns out.
