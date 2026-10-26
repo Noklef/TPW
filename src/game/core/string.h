@@ -257,6 +257,11 @@ u16 *__cdecl String_AnsiToWide(const char *text, u16 *buffer, s32 size);
 // and returned.
 String *__cdecl String_ReadToken(String *out, const char **cursor, u32 delimiter);
 
+// 0x5e3a80 (cdecl; out, cursor, delimiter; name invented): String_ReadToken's wide twin over the same narrow text: each char up to the delimiter (its low
+// byte) sign-extended to a unit (MOVSX DX, stored over the delimiter's argument slot) and appended through the WString vtable's +0x24 (WString_AppendChar,
+// which skips a 0 unit); *cursor is left past the delimiter and out is constructed as a copy (WString_CtorCopy, 0x5f6900) and returned.
+WString *__cdecl WString_ReadToken(WString *out, const char **cursor, u32 delimiter);
+
 // 0x5c7490 (thiscall): WString_Ctor on the object (an empty wide string). Returns it.
 u8 *__fastcall WString_CtorReturning(u8 *string);
 

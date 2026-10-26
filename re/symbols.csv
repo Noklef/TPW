@@ -3880,6 +3880,7 @@ address,name,kind,confidence,notes
 0x004f7870,WString_CompareSub,function,high,"reimplemented (src/game/core/string); thiscall (pos, n, other, count; pops 16): the wide string's compare(pos, n, other, count)"
 0x005accb0,WNamedList_FindAfter,function,low,"reimplemented (src/game/core/string); thiscall on a list (key; pops 4): walks to the first item whose wide text equals the key's (WNames_Equal(key, item)) and returns the item after it (sic), 0 when the match is last or none"
 0x00665f30,WString_CompareText,function,low,"reimplemented (src/game/core/string); thiscall (text): compare(text): WString_CompareSub(0, the length, text, its length)"
+0x005e3a80,WString_ReadToken,function,low,"reimplemented (src/game/core/string); cdecl (out, cursor, delimiter): String_ReadToken's wide twin: the narrow chars up to the delimiter sign-extended into a new wide string, the cursor left past the delimiter"
 0x005bdc10,Class702938_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three wide strings
 0x005be320,Class702940_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three strings
 0x005be750,Class702948_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three wide strings

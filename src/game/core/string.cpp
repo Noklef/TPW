@@ -947,6 +947,20 @@ String *__cdecl String_ReadToken(String *out, const char **cursor, u32 delimiter
     return out;
 }
 
+WString *__cdecl WString_ReadToken(WString *out, const char **cursor, u32 delimiter) {
+    WString token;
+    WString_Ctor(&token);
+    while (**cursor != static_cast<char>(delimiter)) {
+        const u16 unit = static_cast<u16>(static_cast<s16>(static_cast<signed char>(**cursor)));
+        vcall<void>(&token, 0x24, &unit);
+        ++*cursor;
+    }
+    ++*cursor;
+    WString_CtorCopy(out, nullptr, &token);
+    WString_Dtor(&token);
+    return out;
+}
+
 u8 *__fastcall WString_CtorReturning(u8 *string) {
     WString_Ctor(reinterpret_cast<WString *>(string));
     return string;
