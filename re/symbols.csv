@@ -849,6 +849,7 @@ address,name,kind,confidence,notes
 0x004c81b0,ParkAnalyser_CountBusy,function,low,reimplemented (src/game/world/analyser); thiscall (limit): the cells' counts summed
 0x004c91c0,ParkAnalyser_CountAtTicketBooths,function,low,reimplemented (src/game/world/analyser); thiscall: the people at +0x220 3 in the ticket booths' cells counted into +0x1f0d0
 0x004c9920,ParkAnalyser_RingFull,function,low,"reimplemented (src/game/world/analyser); thiscall (ring): whether the ring holds 50 values, in AL"
+0x004c9830,ParkAnalyser_RingAverage,function,low,"reimplemented (src/game/world/analyser); thiscall (ring): the average of the ring's newest values (at most 50: wrapped its size, else the cursor + 1), from the cursor back, past it only once wrapped, truncated; 0 when none; in AL"
 0x004d0af0,MapHandle_Entry28,function,high,reimplemented (src/game/world/mapcell); thiscall on a u16 handle: gMapCells + 0x10ffd8 + handle * 0x28
 0x004d0b10,MapHandle_Cell44,function,high,reimplemented (src/game/world/mapcell); thiscall on a u16 handle: gMapCells + (handle - 1) * 0x44
 0x004d0a70,MemRanges_Set,function,high,"reimplemented (src/game/world/mapcell); thiscall on 0x7cdb30 (index, a, b, name): entry index = (a, b); name unused (""World Struture"")"

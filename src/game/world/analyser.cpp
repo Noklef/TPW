@@ -56,6 +56,25 @@ u8 __fastcall ParkAnalyser_RingFull(const u8 *analyser, void *, u32 ring) {
     return at<s32>(r, 0x34) + 1 >= 0x32;
 }
 
+u8 __fastcall ParkAnalyser_RingAverage(const u8 *analyser, void *, u32 ring) {
+    const u8 *const r = analyser + 0x216fc + (ring << 6);
+    const bool wrapped = at<u8>(r, 0x3c) != 0;
+    s32 n = 0x32;
+    const s32 held = wrapped ? at<s32>(r, 0x38) : at<s32>(r, 0x34) + 1;
+    if (held < n) n = held;
+    if (n <= 0) return 0;
+    double sum = 0.0;   // (the double [0x700320]; byte sums and the quotient below are exact enough that x87's precision cannot matter)
+    for (s32 i = 0; i < n; ++i) {
+        const s32 size = at<s32>(r, 0x38), cursor = at<s32>(r, 0x34);
+        if (i >= size) continue;
+        if (i <= cursor)
+            sum += r[(u32)cursor - (u32)i + 1u];   // (32-bit address arithmetic, as the original's)
+        else if (wrapped)
+            sum += r[(u32)cursor - (u32)i + (u32)size + 1u];
+    }
+    return (u8)(long long)(sum / n);   // (__ftol's low byte)
+}
+
 void __fastcall ParkAnalyser_Tally(u8 *analyser, void *, u32 flag) {
     ++at<u32>(analyser, 0x21bfc);
     ++at<u32>(analyser, 0x21c04);

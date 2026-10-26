@@ -26,6 +26,12 @@ void __fastcall ParkAnalyser_Record(u8 *analyser, void *, u32 ring, u32 value);
 // +0x34 + 1 at least 50 (signed). In AL only.
 u8 __fastcall ParkAnalyser_RingFull(const u8 *analyser, void *, u32 ring);
 
+// 0x4c9830 (ring, pops 4; name unconfirmed): the average of the ring's newest values, at most 50 (wrapped: its size +0x38, else the
+// cursor +0x34 + 1; signed), from the cursor back (r[cursor - i + 1], past the cursor only once wrapped: r[cursor - i + size + 1]; none
+// at or past the size), truncated (__ftol); 0 when there are none. In AL only (callers keep the byte). The original's debug message for a
+// size of 50 and up is gone.
+u8 __fastcall ParkAnalyser_RingAverage(const u8 *analyser, void *, u32 ring);
+
 // 0x4c74f0 (flag): +0x21bfc and +0x21c04 counted up, +0x21c00 too when flag is 0.
 void __fastcall ParkAnalyser_Tally(u8 *analyser, void *, u32 flag);
 
