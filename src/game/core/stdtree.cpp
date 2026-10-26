@@ -410,6 +410,7 @@ using TreeE = Tree<0x007ced34, 0x1c, kStdString, 0x007ced38, 0x20>;
 using TreeF = Tree<0x00f7c968, 0x24, kString, 0x00f7c964, 0x28>;  // (its users counted at 0xf7c964: 0x5af07e, 0x5af325, 0x5af470)
 using TreeG = Tree<0x00f7c970, 0x10, kPlain, 0x00f7c96c, 0x14>;
 using TreeH = Tree<0x00fb2008, 0x24, kKeyString, 0x00fb200c, 0x28>;
+using TreeI = Tree<0x00fb2010, 0x14, kPlain, 0x00fb2014, 0x18>;
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
@@ -706,6 +707,12 @@ u8 **__fastcall StdTree_EraseH(u8 *tree, void *, u8 **out, u8 *node) { return Tr
 void __fastcall StdTree_EraseSubtreeH(u8 *, void *, u8 *node) { TreeH::EraseSubtree(node); }
 u8 **__fastcall StdTree_EraseRangeH(u8 *tree, void *, u8 **out, u8 *first, u8 *last) { return TreeH::EraseRange(tree, out, first, last); }
 void __fastcall StdTree_DtorH(u8 *tree) { TreeH::Dtor(tree); }
+
+void __fastcall StdTree_IncI(u8 **it) { TreeI::Inc(it); }
+u8 **__fastcall StdTree_EraseI(u8 *tree, void *, u8 **out, u8 *node) { return TreeI::Erase(tree, out, node); }
+void __fastcall StdTree_EraseSubtreeI(u8 *, void *, u8 *node) { TreeI::EraseSubtree(node); }
+u8 **__fastcall StdTree_EraseRangeI(u8 *tree, void *, u8 **out, u8 *first, u8 *last) { return TreeI::EraseRange(tree, out, first, last); }
+void __fastcall StdTree_DtorI(u8 *tree) { TreeI::Dtor(tree); }
 
 void __fastcall StdMapH_Insert(u8 *tree, void *, u8 **result, const u8 *value) {
     MapInsert<u32, u8, 0x00fb2008, StdTree_DecH, StdTree_InsertH>(tree, result, value);

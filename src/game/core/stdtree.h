@@ -180,6 +180,15 @@ u8 *__fastcall StdMapH_AssignWide(u8 *map, void *, const u8 *from, u32 key);
 // map[i] (StdMapH_Index: a missing key is inserted, growing the size) String_Equals text: *index = i and 1; else 0 (index untouched).
 u32 __fastcall StdMapH_FindValue(u8 *map, void *, const u8 *text, u32 *index);
 
+// Tree I, another of the sound code's trees (H's neighbour; nil node 0xfb2010, its counter 0xfb2014, the colour at +0x14, plain values: nodes of 0x18
+// bytes presumably, freed as they are): its increment 0x6c3910, erase 0x6c3340, _Erase 0x6c3870, erase(first, last) 0x6c31e0 and destructor 0x6c3130,
+// as the other trees'.
+void __fastcall StdTree_IncI(u8 **it);
+u8 **__fastcall StdTree_EraseI(u8 *tree, void *, u8 **out, u8 *node);
+void __fastcall StdTree_EraseSubtreeI(u8 *tree, void *, u8 *node);
+u8 **__fastcall StdTree_EraseRangeI(u8 *tree, void *, u8 **out, u8 *first, u8 *last);
+void __fastcall StdTree_DtorI(u8 *tree);
+
 // 0x410be0 / 0x410c00 (cdecl; names unconfirmed): static initialisers of two floats nothing reads: 0x7899b4 = 1 and 0x78a0bc = 1 / 2^23 (as
 // camera's).
 void __cdecl StdTree_InitUnusedOne();
