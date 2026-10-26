@@ -16,6 +16,18 @@ extern "C" {
 // holder's part is made (Holder_Create). +0x7c and +0x80 cleared. Returns the overlay.
 u8 *__fastcall Overlay_Ctor(u8 *overlay, void *, u8 *holder);
 
+// 0x4771a0 (thiscall; slot 8 of 0x6fee10; name unconfirmed): the overlay itself unless its words +0x10 and +0x12 and its holder (+4) are
+// all set. Then the holder copied (Holder_Clone with [0x7c249c], flags 1, mask 0; the copy 0 unless written), a new overlay (Mem_Alloc
+// 0x84; none when that fails: the overlay itself returned, the copy left) built on the copy (Overlay_Ctor) and given the words +0xa,
+// +0xc and +0xe; returns the new one.
+u8 *__fastcall Overlay_Clone(u8 *overlay);
+
+// 0x4774c0 / 0x4777b0 (thiscall; slot 8 of 0x6fee38 / 0x6fee60; names unconfirmed): as Overlay_Clone with flags 4, the new overlay given
+// the vtable 0x6fee38 / 0x6fee60 after Overlay_Ctor (their constructors 0x477250 / 0x477580 inlined).
+u8 *__fastcall Overlay_CloneResized(u8 *overlay);
+
+u8 *__fastcall Overlay_CloneResizedHeight(u8 *overlay);
+
 // 0x476e80: with flag 0x80000 takes the base from desc +0xa, with flag 1 the frame from desc
 // +4 (else, with neither, nothing); then shows node base + frame (u16; fewer when the list ends
 // first, null past it): the old one gets 0x8010 set in its flags (+0), the new one cleared.
