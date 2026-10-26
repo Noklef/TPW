@@ -16,4 +16,9 @@ u32 __fastcall SilenceStream_Read(u8 *stream, void *, u8 *buffer, u32 bytes, u32
 // block back to the pool (SilenceStreamPool_Delete, 0x30 bytes). Returns the stream.
 u8 *__fastcall SilenceStream_DeletingDtor(u8 *stream, void *, u32 flags);
 
+// 0x6c6730 (thiscall (ms, format), pops 8; made near 0x6ba5d3): +4, +8, +0xc, +0x14, +0x24 and the byte +0x2c 0, the vtable 0x70ab58,
+// the format set (SoundStream_SetFormat); +0x18 = the ms, doubled for stereo (+0x20 bit 0x40) and again for 16 bits (bit 2), then
+// times the sample rate (Obj_SampleRate20; 32 bits) over 1000, even. Returns the stream.
+u8 *__fastcall SilenceStream_Ctor(u8 *stream, void *, u32 ms, const u8 *format);
+
 }  // extern "C"

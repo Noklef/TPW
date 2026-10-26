@@ -119,4 +119,11 @@ u8 *__fastcall Stream70a6c8_Dtor(u8 *stream, void *, u32 flags) {
     return stream;
 }
 
+void __fastcall SoundStream_SetFormat(u8 *stream, void *, const u8 *format) {
+    stream[0x20] = (format[0x1b] & 1) ? 0x40 : 0x20;
+    stream[0x20] |= format[0x1a] == 0x10 ? 2 : 1;
+    // (AX, the rate's word; its high half the format's address's, sic)
+    vcall<void>(stream, 0x3c, static_cast<u32>((reinterpret_cast<uintptr_t>(format) & 0xffff0000u) | at<u16>(format, 0x18)));
+}
+
 }  // extern "C"

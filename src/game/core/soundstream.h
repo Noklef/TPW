@@ -39,4 +39,9 @@ u8 *__fastcall Stream70a6c8_Dtor(u8 *stream, void *, u32 flags);
 // unsigned), else to it modulo the length unless that is 0. *out = 0. Returns out.
 u32 *__fastcall SoundStream_SeekTime(u8 *stream, void *, u32 *out, u32 ms);
 
+// 0x6c6f40 (thiscall (format), pops 4; the silence stream's and 0x70ac50's constructors'): the flags byte +0x20 = 0x40 when bit 0 of the
+// format's +0x1b is set, else 0x20, or 2 when its +0x1a is 0x10, else or 1; then slot 15 (the rate bits) with the format's word +0x18
+// (pushed as a dword, its high half the format's address's).
+void __fastcall SoundStream_SetFormat(u8 *stream, void *, const u8 *format);
+
 }  // extern "C"
