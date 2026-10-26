@@ -56,7 +56,9 @@ def deque(r, at, mapat, values, regions):
     n = len(values)
     start = max(0, min(0x3ff, r.choice([0, 0x3ff - n // 2, 0x400 - n, r.randrange(max(1, 0x400 - n + 1))])))
     blocks = [at, at + r.choice([0x1000, 0x3000])]
-    regions[mapat] = struct.pack('<2I', *blocks)
+    while len(blocks) <= (start + n - 1) // 0x400:   # (more than two blocks' worth: a block more each 1024 records, as far apart)
+        blocks.append(blocks[-1] + r.choice([0x1000, 0x2000]))
+    regions[mapat] = struct.pack('<%dI' % len(blocks), *blocks)
     cells = {}
     for i, v in enumerate(values):
         q = start + i
@@ -76,10 +78,10 @@ def deque_full(r, at, mapat, values, regions):
     deque's push_back leaves it), the map (2 slots) and the count (0x2c bytes, for the deque + 4)."""
     it = deque(r, at, mapat, values, regions)
     first, _last, cur, _node = struct.unpack('<4I', it)
-    blocks = struct.unpack('<2I', regions[mapat])
+    blocks = struct.unpack('<%dI' % (len(regions[mapat]) // 4), regions[mapat])
     q = (cur - first) // 4 + len(values)
     b = q // 0x400 - 1 if q and q % 0x400 == 0 else q // 0x400
-    return it + struct.pack('<4I', blocks[b], blocks[b] + 0x1000, blocks[b] + 4 * (q - 0x400 * b), mapat + 4 * b) + struct.pack('<3I', mapat, 2, len(values))
+    return it + struct.pack('<4I', blocks[b], blocks[b] + 0x1000, blocks[b] + 4 * (q - 0x400 * b), mapat + 4 * b) + struct.pack('<3I', mapat, len(blocks), len(values))
 
 
 def files(r, log, regions, wad=True):
@@ -163,8 +165,9 @@ def wad_image(r, files):
     return bytes(out)
 
 
-def category(r, banks=4, holes=False, bank_objects=None):
-    """The category object with deques A (records with bank lists) and C (bank indices); returns regions."""
+def category(r, banks=4, holes=False, bank_objects=None, many=False):
+    """The category object with deques A (records with bank lists) and C (bank indices); returns regions. With `many`, deque A holds more than
+    1024 cells (three blocks or more): mostly gaps, the first record once in the second half, the others anywhere."""
     regions = {HEAP: heap(0x2000)}
     nrec = r.randrange(1, 4)
     recs = bytearray(r.bytes(0x40 * nrec))
@@ -179,7 +182,12 @@ def category(r, banks=4, holes=False, bank_objects=None):
     regions[RECS] = recs
     regions[NODES] = nodes
     cat = bytearray(r.bytes(0xd0))
-    cat[0x3c:0x68] = deque_full(r, BLOCKA, MAPA, [0 if holes and r.random() < 0.3 else RECS + 0x40 * i for i in range(nrec)], regions)
+    vals = [0 if holes and r.random() < 0.3 else RECS + 0x40 * i for i in range(nrec)]
+    if many:
+        n = r.randrange(0x401, 0xa00)
+        vals = [RECS + 0x40 * r.randrange(1, nrec) if nrec > 1 and r.random() < 0.25 else 0 for i in range(n)]
+        vals[r.randrange(n // 2, n)] = RECS
+    cat[0x3c:0x68] = deque_full(r, BLOCKA, MAPA, vals, regions)
     cat[0x9c:0xc8] = deque_full(r, BLOCKC, MAPC, [r.choice([r.randrange(1, 7), r.getrandbits(32)]) for _ in range(banks)], regions)
     if bank_objects is not None:
         cat[0x6c:0x98] = deque_full(r, BLOCKB, MAPB, bank_objects, regions)
@@ -243,7 +251,7 @@ def image(r, banks, levels, top):
 def case(r):
     name = r.deal(OPS)
     if name == 'findrec':   # deque A's records (null now and then): +8 0 now and then, +0xc a String over a name; one of those names or another
-        regions = category(r, 4, holes=True)
+        regions = category(r, 4, holes=True, many=r.random() < 0.3)   # (now and then over three blocks or more)
         names = [r.choice(NAMES_GIVEN + [b'Bank0', b'ab']) for _ in range(4)]
         recs = bytearray(regions[RECS])
         for i in range(len(recs) // 0x40):
