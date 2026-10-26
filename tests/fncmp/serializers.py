@@ -7,7 +7,8 @@
 # 0x5070a0), circular buffers of 30, 144, 50 and 5 u32, of u16 and of 50 u8 (core/circbuf: 0x4e2c10, 0x4cdf00, 0x4ce2d0, 0x4ce660, 0x4cdb80,
 # 0x4cea00; the counts small, about the size or outside it), the sprite's nav call (world/nav: 0x4f9440)
 # a theme's save record (core/globalsave: 0x5b0d70), the bank account (world/bankaccount: 0x4cf920), the park's gates (world/parkgates:
-# 0x4cf050), an analyser value and cell (world/analyser: 0x4cd9c0, 0x4c85b0), the park analyser (world/analyser: 0x4c5d70, see park())
+# 0x4cf050), an analyser value and cell (world/analyser: 0x4cd9c0, 0x4c85b0), the park analyser (world/analyser: 0x4c5d70, see park()), the
+# world's head (world/world: 0x4d7a70: the staff pool, the clock and the gates; the room also about where each starts)
 # against the originals: saves and loads through a record stream with room for all the fields, none, or up to and about each field's end;
 # versions in and out of 0..1; the object and the sink compared after.
 # park(): the park analyser (0x21c4c bytes) with its rings' counts small, about their sizes or any (saving; within the object), the stream
@@ -29,7 +30,7 @@ RANGES = [(0x50b090, 0x50b34c), (0x4d3aa0, 0x4d3d09), (0x4d3ee0, 0x4d4100), (0x5
           (0x504760, 0x504a30), (0x507850, 0x507bc0), (0x5b0d70, 0x5b118f), (0x4cf920, 0x4d0182), (0x4cdf00, 0x4ce28c),
           (0x4ce2d0, 0x4ce65a), (0x4ce660, 0x4ce9da), (0x4cdb80, 0x4cdefa), (0x4cea00, 0x4ced6f), (0x4cf050, 0x4cf3c8),
           (0x4cd9c0, 0x4cdb51), (0x4c85b0, 0x4c8add), (0x4c5d70, 0x4c7365),
-          (0x4ced70, 0x4cef30)]   # (Save_WriteU32, Save_Write8Bytes, Save_WriteU8, Save_WriteU16)
+          (0x4ced70, 0x4cef30), (0x4d7a70, 0x4d7ae2)]   # (Save_WriteU32, Save_Write8Bytes, Save_WriteU8, Save_WriteU16)
 B = Bench(RANGES)
 OBJ, STREAM, SINK = RAM, RAM + 0x2000, RAM + 0x3000
 CELL = [1, 2, 4, 1, 2, 2, 12, 4, 1]
@@ -53,6 +54,8 @@ FIELDS[0x4cf050] = [4, 4, 4, 4, 1, 1]
 FIELDS[0x4cea00] = [4, 4, 1, 1]
 FIELDS[0x4cd9c0] = [4, 1]
 FIELDS[0x4c85b0] = [4] * 4 + [4, 1] * 9
+FIELDS[0x4d7a70] = FIELDS[0x507850] + FIELDS[0x4f7f30] + FIELDS[0x4cf050]
+MARKS = {0x4d7a70: [len(FIELDS[0x507850]) - 1, len(FIELDS[0x507850]) + len(FIELDS[0x4f7f30]) - 1]}   # (the last field of each part)
 COUNTS = [0, 1, 2, 30, 31, 40, 0xffffffff, 0x80000000]  # the circular buffers' mNumEntries (saved, the stream's second dword loaded)
 RINGS = {0x4e2c10: 0x80, 0x4cdf00: 0x248, 0x4ce2d0: 0xd0, 0x4ce660: 0x1c, 0x4cdb80: 0xc, 0x4cea00: 0x38}  # (where each keeps it)
 SIZES = {0x4cdf00: 144, 0x4ce2d0: 50, 0x4ce660: 5, 0x4cdb80: 3, 0x4cea00: 50}   # (their sizes, but 30's: the counts about them)
@@ -105,7 +108,7 @@ def case(r):
         sizes = sizes + [ELEMENTS.get(at, 4)] * (count if count < 0x80000000 else 0)
     ends = [sum(sizes[:i + 1]) for i in range(len(sizes))]
     total = ends[-1]
-    end = r.choice(ends[:3] + ends[-3:])
+    end = r.choice(ends[:3] + ends[-3:] + [ends[i + d] for i in MARKS.get(at, []) for d in (0, 1)])
     left = r.choice([total, total, total, 0x1400, 0, end, end - 1, end + 1, r.randrange(total)])
     regions = {OBJ: bytearray(r.bytes(0x1300 if at != 0x502dc0 else 0x1480)), STREAM: record_stream(STREAM, SINK, left), SINK: bytearray(r.bytes(0x1400))}
     if at in RINGS:

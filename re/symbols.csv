@@ -167,7 +167,7 @@ address,name,kind,confidence,notes
 0x004cede0,Save_Write8Bytes,function,high,reimplemented (src/game/core/savegame); an 8-byte field written to a save stream (name unconfirmed)
 0x0050b090,Thing_Serialize,function,high,"reimplemented (src/game/world/things); thiscall (stream, save, version, unused): the thing's words +4, +6, +0xa, +8 saved or loaded; a full load clears the byte +3"
 0x00509bc0,ThingBasic_Serialize,function,high,"reimplemented (src/game/world/things); thiscall (stream, save, version, unused): Thing_Serialize, its result as 0 or 1"
-0x004d7a70,WorldGlobals_Serialize,function,high,"staff pool, game clock, park gates"
+0x004d7a70,WorldGlobals_Serialize,function,high,"reimplemented (src/game/world/world); thiscall (stream, save, version, unused), pops 16: StaffPool_Serialize (+0), GameClock_Serialize (+0x2a0), ParkGates_Serialize (+0x2c4); 1 at the first that fails"
 0x00507850,StaffPool_Serialize,function,high,"reimplemented (src/game/world/staff); 0x20 x StaffPoolEntry + 5 categories, a time stamp, a byte"
 0x005070a0,StaffPoolEntry_Serialize,function,high,"reimplemented (src/game/world/staff); 6 fields, a time stamp at +0xc (TimeSig_Serialize), the dword at +0x10"
 0x004f7f30,GameClock_Serialize,function,high,"reimplemented (src/game/core/funnytime); thiscall (stream, save, version, unused): the calendar clock's five fields"

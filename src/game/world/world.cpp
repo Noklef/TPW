@@ -8,6 +8,8 @@
 #include "../core/gameheap.h"
 #include "../core/initializers.h"
 #include "objectdefs.h"
+#include "parkgates.h"
+#include "staff.h"
 #include "mapcell.h"
 
 namespace {
@@ -139,5 +141,11 @@ u32 __fastcall World_BusStopBlocked(u8 *world) {
             return 1;
     }
     return 0;
+}
+
+u32 __fastcall WorldGlobals_Serialize(u8 *world, void *, Stream *stream, u32 save, s32 version, u32 unused) {
+    if (StaffPool_Serialize(world, nullptr, stream, save, version, unused)) return 1;
+    if (GameClock_Serialize(world + 0x2a0, nullptr, stream, save, version, unused)) return 1;
+    return ParkGates_Serialize(world + 0x2c4, nullptr, stream, save, version, unused) != 0;
 }
 }
