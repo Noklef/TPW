@@ -3,7 +3,7 @@
 # range erase (0x4104b0: the whole tree, a tail, a stretch or nothing, the size now and then 0) and _Erase (0x410720) from the root, a node or nil, as C, D and E's (0x4f4070 / 0x4f4ac0 / 0x4f4fd0, the strings released) and their range erases (0x4f2590 / 0x4f2960 / 0x4f3290) and destructors (0x4e5870 / 0x4e5800 / 0x4e58e0); B's key compare (0x40f950); A's map constructor (0x47b060), the nil node made already or not.
 # Tree H (the sound code's map of dword keys to Strings, 0x6c....) as C's, its Strings at +0x10, with its insert; MapH: its map members (insert(value), operator[], the
 # pair's construct and copy, the WString assignment 0x6c0b10 and the value search 0x6c0b30). Tree I (the sound code's tree of plain values at 0xfb2010) as B's, with
-# its destructor.
+# its destructor. Tree J (0xfb2000: a map of dword keys to trees I, each node's tree I of 0 to 5 nodes, released with it) as B's, with its constructor.
 # usage: stdtree.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import struct
@@ -19,15 +19,16 @@ from fncmp import Bench, Call, HEAP, RAM, heap  # noqa: E402
 TREES = {'A': (0x47d570, 0x47c010, 0x7b4a54, 0x18), 'B': (0x410670, 0x40ff80, 0x785de4, 0x10), 'C': (0x4f44d0, 0x4f3b10, 0x7ced2c, 0x20),
          'D': (0x4f4f20, 0x4f4580, 0x7ced24, 0x1c), 'E': (0x4f5430, 0x4f2d50, 0x7ced34, 0x1c), 'F': (0x5b2480, 0x5b1b80, 0xf7c968, 0x24),
          'G': (0x5b2e90, 0x5b2530, 0xf7c970, 0x10), 'H': (0x6c2de0, 0x6c1b70, 0xfb2008, 0x24),
-         'I': (0x6c3910, 0x6c3340, 0xfb2010, 0x14)}
+         'I': (0x6c3910, 0x6c3340, 0xfb2010, 0x14), 'J': (0x6c2e90, 0x6c21f0, 0xfb2000, 0x20)}
 INSERT = {'A': 0x47d140, 'B': 0x4107b0, 'G': 0x5b2ba0, 'H': 0x6c29b0}
 DEC = {'A': 0x47d4b0, 'B': 0x410b20, 'C': 0x4f6340, 'D': 0x4f64f0, 'E': 0x4f6680, 'F': 0x5b2ff0, 'G': 0x5b3130, 'H': 0x6c2d20}
-RANGE = {'B': (0x4104b0, 0x410720), 'C': (0x4f2590, 0x4f4070), 'D': (0x4f2960, 0x4f4ac0), 'E': (0x4f3290, 0x4f4fd0), 'H': (0x6c1270, 0x6c20b0), 'I': (0x6c31e0, 0x6c3870)}   # erase(first, last), _Erase
+RANGE = {'B': (0x4104b0, 0x410720), 'C': (0x4f2590, 0x4f4070), 'D': (0x4f2960, 0x4f4ac0), 'E': (0x4f3290, 0x4f4fd0), 'H': (0x6c1270, 0x6c20b0), 'I': (0x6c31e0, 0x6c3870), 'J': (0x6c13e0, 0x6c2760)}   # erase(first, last), _Erase
 DTOR = {'C': (0x4e5870, 0x7ced30), 'D': (0x4e5800, 0x7ced28), 'E': (0x4e58e0, 0x7ced38), 'H': (0x6c11c0, 0xfb200c), 'I': (0x6c3130, 0xfb2014)}   # the destructor, the map counter
-CTOR = {'A': (0x47ce70, 0x7b4a50), 'C': (0x4f4120, 0x7ced30), 'D': (0x4f4b70, 0x7ced28), 'E': (0x4f5080, 0x7ced38), 'G': (0x5b2af0, 0xf7c96c)}
-B = Bench([(a, a + 0x330) for a in INSERT.values()] + [(0x5b3210, 0x5b3230)] + [(a, a + 0xc0) for a in DEC.values()] + [(a, a + 0xb0) for (a, _c) in CTOR.values()] + [(a, a + 0xb0) for (a, _e, _n, _c) in TREES.values()] + [(e, e + 0x560) for (_a, e, _n, _c) in TREES.values()] + [(0x40f950, 0x40f961), (0x47b060, 0x47b122), (0x4104b0, 0x410610), (0x410720, 0x4107a0), (0x4f4070, 0x4f4120), (0x4f4ac0, 0x4f4b70), (0x4f4fd0, 0x4f5080), (0x4f2590, 0x4f26f8), (0x4f2960, 0x4f2ac8), (0x4f3290, 0x4f33f8), (0x4f23f0, 0x4f2450), (0x4e5800, 0x4e596b), (0x67acb0, 0x67acb1), (0x45b340, 0x45b9a0), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000), (0x6c0b10, 0x6c0ba0), (0x6c1130, 0x6c1240), (0x6c1270, 0x6c13e0), (0x6c1a90, 0x6c1b70), (0x6c20b0, 0x6c2140), (0x6c30a0, 0x6c3130), (0x6c3130, 0x6c31a0), (0x6c31e0, 0x6c3340), (0x6c38a0, 0x6c3910)],
+CTOR = {'A': (0x47ce70, 0x7b4a50), 'C': (0x4f4120, 0x7ced30), 'D': (0x4f4b70, 0x7ced28), 'E': (0x4f5080, 0x7ced38), 'G': (0x5b2af0, 0xf7c96c), 'J': (0x6c2860, 0xfb2004)}
+B = Bench([(a, a + 0x330) for a in INSERT.values()] + [(0x5b3210, 0x5b3230)] + [(a, a + 0xc0) for a in DEC.values()] + [(a, a + 0xb0) for (a, _c) in CTOR.values()] + [(a, a + 0xb0) for (a, _e, _n, _c) in TREES.values()] + [(e, e + 0x560) for (_a, e, _n, _c) in TREES.values()] + [(0x40f950, 0x40f961), (0x47b060, 0x47b122), (0x4104b0, 0x410610), (0x410720, 0x4107a0), (0x4f4070, 0x4f4120), (0x4f4ac0, 0x4f4b70), (0x4f4fd0, 0x4f5080), (0x4f2590, 0x4f26f8), (0x4f2960, 0x4f2ac8), (0x4f3290, 0x4f33f8), (0x4f23f0, 0x4f2450), (0x4e5800, 0x4e596b), (0x67acb0, 0x67acb1), (0x45b340, 0x45b9a0), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000), (0x6c0b10, 0x6c0ba0), (0x6c1130, 0x6c1240), (0x6c1270, 0x6c13e0), (0x6c1a90, 0x6c1b70), (0x6c20b0, 0x6c2140), (0x6c30a0, 0x6c3130), (0x6c3130, 0x6c31a0), (0x6c31e0, 0x6c3340), (0x6c38a0, 0x6c3910), (0x6c13e0, 0x6c1543), (0x6c2750, 0x6c2860), (0x6c3900, 0x6c3905)],
           hooks={0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None})
 TREE, HEAD, NIL, NODES = RAM, RAM + 0x200, RAM + 0x300, RAM + 0x10000
+NIL_I, SUBTREES = RAM + 0x380, RAM + 0x20000   # tree J's values: tree I's nil node and its trees (0x400 bytes each)
 RED, BLACK = 0, 1
 
 
@@ -193,6 +194,28 @@ def case_map_h(r):
     return Call(0x6c0b30, [TREE, RAM + 0xa00, RAM + 0xc00], regions, conv='t', ret='a')
 
 
+def subtree(r, i, extra):
+    """Tree J's i-th value's tree I (0 to 5 nodes, colour at +0x14) into extra; returns its (head, a dword, size)."""
+    m = r.choice([0, 0, 1, 2, 3, 5])
+    nodes, root = build(r, m)
+    keys = sorted(nodes)
+    head = SUBTREES + 0x400 * i
+    addr = {k: head + 0x20 * (j + 1) for j, k in enumerate(keys)}
+    blob = bytearray(0x20 * (m + 1))
+    if m:
+        struct.pack_into('<III', blob, 0, addr[keys[0]], addr[root], addr[keys[-1]])
+    else:
+        struct.pack_into('<III', blob, 0, head, NIL_I, head)
+    struct.pack_into('<I', blob, 0x14, RED)
+    for k in keys:
+        at = addr[k] - head
+        left, parent, right = nodes[k][:3]
+        struct.pack_into('<IIII', blob, at, NIL_I if left is None else addr[left], head if parent is None else addr[parent], NIL_I if right is None else addr[right], k)
+        struct.pack_into('<I', blob, at + 0x14, nodes[k][3])
+    extra[head] = bytes(blob)
+    return head, r.getrandbits(32), m
+
+
 def case(r):
     name = r.deal(OPS)
     if name == 'MapH':
@@ -235,6 +258,8 @@ def case(r):
         if name in 'CDE':  # a std::string value at +0xc
             struct.pack_into('<4I', blob, base + 0xc, r.getrandbits(32), *stdstring.string(r, blocks, strings))
             strings += 1
+        elif name == 'J':  # a tree I object at +0x10 (its allocator byte, head, a dword, size)
+            struct.pack_into('<4I', blob, base + 0x10, r.getrandbits(8), *subtree(r, keys.index(k), extra))
         elif name in 'FH':  # one of the game's strings (H: after the key)
             gamestring.string(r, 0, RAM + 0x4000 + 0x40 * strings, RAM + 0x6000 + 0x80 * strings, extra)
             at = base + (0xc if name == 'F' else 0x10)
@@ -249,6 +274,11 @@ def case(r):
     regions = {TREE: tree, HEAD: head, NIL: nil, NODES: blob, nil_at: struct.pack('<I', NIL), RAM + 0x800: bytes(0x10), HEAP: heap(), **extra}
     if name in 'CDE':
         regions[stdstring.BLOCKS] = blocks
+    if name == 'J' and kind != 'ctor':  # tree I's nil and counter: its trees' count, more, or fewer (the nil node freed on the way)
+        nil_i = bytearray(0x20)
+        struct.pack_into('<I', nil_i, 0x14, BLACK)
+        regions[NIL_I] = nil_i
+        regions[0xfb2010] = struct.pack('<II', NIL_I, r.choice([n, n, n + 1, n + 7, max(1, n - 2), 1]))
     node = addr[r.choice(keys)]
     if map_ctor:
         low = 0x7b4a50

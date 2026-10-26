@@ -188,6 +188,14 @@ u8 **__fastcall StdTree_EraseI(u8 *tree, void *, u8 **out, u8 *node);
 void __fastcall StdTree_EraseSubtreeI(u8 *tree, void *, u8 *node);
 u8 **__fastcall StdTree_EraseRangeI(u8 *tree, void *, u8 **out, u8 *first, u8 *last);
 void __fastcall StdTree_DtorI(u8 *tree);
+// Tree J, the sound code's map of dword keys to trees I (std::map<u32, tree I>; nil node 0xfb2000, its counter 0xfb2004, nodes of 0x24 bytes, the colour
+// at +0x20; the value {key, tree I} at +0xc, the tree object at +0x10, released as StdTree_DtorI, inlined): its increment 0x6c2e90, constructor 0x6c2860,
+// erase 0x6c21f0, _Erase 0x6c2760 and erase(first, last) 0x6c13e0 (its whole-tree branch calling StdTree_DtorI), as the other trees'.
+void __fastcall StdTree_IncJ(u8 **it);
+void __fastcall StdTree_CtorJ(u8 *tree);
+u8 **__fastcall StdTree_EraseJ(u8 *tree, void *, u8 **out, u8 *node);
+void __fastcall StdTree_EraseSubtreeJ(u8 *tree, void *, u8 *node);
+u8 **__fastcall StdTree_EraseRangeJ(u8 *tree, void *, u8 **out, u8 *first, u8 *last);
 
 // 0x410be0 / 0x410c00 (cdecl; names unconfirmed): static initialisers of two floats nothing reads: 0x7899b4 = 1 and 0x78a0bc = 1 / 2^23 (as
 // camera's).

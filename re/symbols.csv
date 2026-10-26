@@ -3994,6 +3994,11 @@ address,name,kind,confidence,notes
 0x006c3870,StdTree_EraseSubtreeI,function,low,"reimplemented (src/game/core/stdtree); thiscall (node), pops 4: tree I's _Erase, the nodes under node freed (right subtrees by recursion, down the left by the loop)"
 0x006c31e0,StdTree_EraseRangeI,function,low,"reimplemented (src/game/core/stdtree); thiscall (out, first, last), pops 12: tree I's erase(first, last), the whole tree cleared at once, else node by node; out = last"
 0x006c3130,StdTree_DtorI,function,low,"reimplemented (src/game/core/stdtree); thiscall: tree I's destructor: every node erased, the head freed, head and size 0; the last tree out (counter 0xfb2014 to 0) frees the nil node"
+0x006c2e90,StdTree_IncJ,function,low,"reimplemented (src/game/core/stdtree); thiscall on an iterator: tree J's ++ (the sound code's map of dword keys to trees I, nil 0xfb2000)"
+0x006c2860,StdTree_CtorJ,function,low,"reimplemented (src/game/core/stdtree); thiscall: tree J's constructor: the nil node (0x24 bytes) on first use, the counter 0xfb2004 up, then the head node"
+0x006c21f0,StdTree_EraseJ,function,low,"reimplemented (src/game/core/stdtree); thiscall (out, node), pops 8: tree J's erase, the node's tree I destroyed (StdTree_DtorI's work inlined), the node freed, the size down"
+0x006c2760,StdTree_EraseSubtreeJ,function,low,"reimplemented (src/game/core/stdtree); thiscall (node), pops 4: tree J's _Erase, each node's tree I destroyed before the node is freed"
+0x006c13e0,StdTree_EraseRangeJ,function,low,"reimplemented (src/game/core/stdtree); thiscall (out, first, last), pops 12: tree J's erase(first, last), the whole tree cleared at once (StdTree_DtorI per node), else node by node"
 0x00617f40,Class7037b8_Dtor,function,high,reimplemented (src/game/core/vdtor); frees the list of blocks
 0x005d48d0,Panel_Reset,function,high,reimplemented (src/game/gfx/imageops); fills the panel image and blends the six parts onto it
 0x00576620,Grid_AddObject,function,high,reimplemented (src/game/render/renderer); adds an object to every list in a rectangle of the grid
