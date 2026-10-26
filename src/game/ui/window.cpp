@@ -618,6 +618,22 @@ u32 __cdecl Gui_MouseMove(u32 x, u32 y) {
     }
     return 1;
 }
+
+void __cdecl Gui_PollMouseMove() {
+    s16 *const now = reinterpret_cast<s16 *>((uintptr_t)0x00faa540);   // (x, then y at +4)
+    s16 *const seen = reinterpret_cast<s16 *>((uintptr_t)0x00faa5cc);  // (x, then y at +4)
+    const u32 x_high = (u32)(s32)seen[0] & 0xffff0000u;
+    u32 y_high;
+    if (now[0] != seen[0])
+        y_high = (u32)(s32)now[0] & 0xffff0000u;
+    else if (now[2] != seen[2])
+        y_high = (u32)(s32)seen[2] & 0xffff0000u;
+    else
+        return;
+    seen[0] = now[0];
+    seen[2] = now[2];
+    Gui_MouseMove(x_high | (u16)now[0], y_high | (u16)now[2]);
+}
 }
 
 extern "C" {

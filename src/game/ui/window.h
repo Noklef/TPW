@@ -243,6 +243,11 @@ u32 __cdecl Gui_MouseWheel(u32 delta, u32 x, u32 y);
 // and when it is, the hovered one is posted 0x10003 (x << 16 | y, 0) (Window_PostMessage). 1 in AX. Only AX is set.
 u32 __cdecl Gui_MouseMove(u32 x, u32 y);
 
+// 0x658840 (cdecl; name unconfirmed; no direct callers): when the mouse words 0xfaa540 / 0xfaa544 differ from the last ones seen
+// (0xfaa5cc / 0xfaa5d0, signed compares), those become them and Gui_MouseMove is called with them (their upper halves the original's
+// register leftovers: the sign of the old x, and of the new x or, with x unchanged, the old y).
+void __cdecl Gui_PollMouseMove();
+
 // 0x65f16b (thiscall (depth: a word), pops 4; name unconfirmed): the depth word +0xe0 = depth, at most 0x100 (signed); the objects +0x98
 // and +0x9c (when set) told through their slot 3 (2, an event on the stack whose only word set, +6, is +0xe0 for +0x98 and +0xe0 + 1 for
 // +0x9c); then each child (+0x5c, then +0x54) given depth + 2 (from the word passed, not the clamped one). EAX not kept.
