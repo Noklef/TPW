@@ -3,18 +3,19 @@
 # bitrates, layer I-III, one or two channels; random dwords now and then, so rates below 100 fault in both), half rate (0xfb2708) now and
 # then; the opens' own slots 2 (close) and 5 (header: 0 mostly, else failing) are recorders, as is the stream's slot 2 (seek). The rewind
 # (0x6d1a50), the close (0x6d1a80, open or not), the stream decoder's seek (0x6cc780) and the 64-bit muldiv (0x6d1980; products past 32
-# bits, quotients that overflow and divisors of 0 now and then: those fault in both).
+# bits, quotients that overflow and divisors of 0 now and then: those fault in both). The MMX probe (0x6d1810) and the static initializer that
+# keeps its answer in 0xfb2704 (0x6d1800) over a fake CPU (fncmp.cpu_region()) with the MMX bit or not.
 # usage: mp2decoder.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import LOG, RAM, Bench, Call, log_region, set_return, vtable  # noqa: E402
+from fncmp import CPU, LOG, RAM, Bench, Call, cpu_region, log_region, set_return, vtable  # noqa: E402
 
 CALLS = {'clear': 0x6cc740, 'setup': 0x6ccb10, 'rewind': 0x6d1a50, 'muldiv': 0x6d1980, 'seek': 0x6cc780, 'close': 0x6d1a80,
-         'open_buffer': 0x6d18e0, 'open_stream': 0x6d1990}
-B = Bench([(0x6cc740, 0x6cc7a1), (0x6ccb10, 0x6ccc13), (0x6d18e0, 0x6d1aa4), (0x5d60c0, 0x5d60c3), (0x5da3c0, 0x5da3c1)])
+         'open_buffer': 0x6d18e0, 'open_stream': 0x6d1990, 'hasmmx': 0x6d1810, 'initfixed': 0x6d1800}
+B = Bench([(0x6cc740, 0x6cc7a1), (0x6ccb10, 0x6ccc13), (0x6d18e0, 0x6d1aa4), (0x6d1800, 0x6d18dd), (0x5d60c0, 0x5d60c3), (0x5da3c0, 0x5da3c1)])
 DECODER, VT_SELF, STREAM, VT_STREAM, BUF = RAM, RAM + 0x4000, RAM + 0x4100, RAM + 0x4200, RAM + 0x5000
 FIXED, HALF = 0xfb2704, 0xfb2708
 RATES = [44100, 48000, 32000, 22050, 24000, 16000, 11025, 12000, 8000]
@@ -47,6 +48,11 @@ def case(r):
     regions = {DECODER: decoder(r), VT_SELF: vtable({2: 0, 5: 0}), STREAM: struct.pack('<I', VT_STREAM), VT_STREAM: vtable({2: 1}),
                LOG: log, FIXED: struct.pack('<I', r.choice([0, 1, i32(r)])), HALF: struct.pack('<I', r.choice([0, 0, 1, i32(r)]))}
     addr = CALLS[name]
+    if name in ('hasmmx', 'initfixed'):   # (the fake CPU: leaf 1's EDX with bit 23, the MMX bit, or not)
+        edx = i32(r) | 0x800000 if r.random() < 0.5 else i32(r) & ~0x800000
+        leaves = [tuple(i32(r) for _ in range(4)), (i32(r), i32(r), i32(r), edx)] + [tuple(i32(r) for _ in range(4))] * 2
+        regs = {CPU: cpu_region(1, leaves), FIXED: regions[FIXED], DECODER: bytes(4)}
+        return Call(addr, [], regs, conv='c', ret='a' if name == 'hasmmx' else 'v')
     if name == 'muldiv':
         if r.random() < 0.85:
             a, b = r.randrange(-1 << 20, 1 << 20), r.randrange(-1 << 10, 1 << 10)
