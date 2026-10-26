@@ -39,6 +39,16 @@ void __fastcall GuiRect_Adjust(u8 *rect, void *, u32 dl, u32 dt, u32 dr, u32 db)
 // copied from the source; returns the rectangle.
 u8 *__fastcall GuiRect_Assign(u8 *rect, void *, const u8 *source);
 
+// 0x661770 (thiscall (source), pops 4; name unconfirmed; called by 0x65cdbd, 0x65e767, 0x65e8f4, 0x66becf): the copy constructor: the
+// base's (Fn_6617d0), the four words copied from the source, the vtable 0x705920; returns the rectangle.
+u8 *__fastcall GuiRect_CopyCtor(u8 *rect, void *, const u8 *source);
+
+// 0x65a493 / 0x65a4f5 (thiscall; the second (source: a rectangle, may be 0), pops 4; names unconfirmed; the second called by 0x65a61f,
+// 0x65a67a, 0x65a752): a 0x10-byte node of a GUI rectangle at +4 (GuiRect_Ctor) and a dword +0 = 0 (a link?): the first sets the four
+// words 0 again (Fn_659dac), the second assigns the source to the rectangle when given (GuiRect_Assign). Return the node.
+u8 *__fastcall GuiRectNode_Ctor(u8 *node);
+u8 *__fastcall GuiRectNode_CtorFrom(u8 *node, void *, const u8 *source);
+
 // 0x659f3d (thiscall (shape), pops 4; name unconfirmed): how the shape (its words +4 / +6 / +8 / +0xa read as a rectangle's, whatever it
 // is) lies against the rectangle, in AX: 0x200 when they are the same (the shape's bottom compared with the top, sic); 0x100 when the
 // shape contains (its slot 0) the points (left + 1, top + 1) and (right - 1, bottom - 1); else the rectangle's own slot 0 tells which of

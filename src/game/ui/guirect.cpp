@@ -67,6 +67,28 @@ void __fastcall GuiRect_Adjust(u8 *rect, void *, u32 dl, u32 dt, u32 dr, u32 db)
     at<u16>(rect, 0xa) += (u16)db;
 }
 
+u8 *__fastcall GuiRect_CopyCtor(u8 *rect, void *, const u8 *source) {
+    Fn_6617d0(rect, nullptr, (u32)(uintptr_t)source);
+    for (u32 off = 4; off < 0xc; off += 2)
+        at<u16>(rect, off) = at<u16>(const_cast<u8 *>(source), off);
+    at<u32>(rect, 0) = 0x705920;
+    return rect;
+}
+
+u8 *__fastcall GuiRectNode_Ctor(u8 *node) {
+    GuiRect_Ctor(node + 4);
+    Fn_659dac(node + 4, nullptr, 0, 0, 0, 0);
+    at<u32>(node, 0) = 0;
+    return node;
+}
+
+u8 *__fastcall GuiRectNode_CtorFrom(u8 *node, void *, const u8 *source) {
+    GuiRect_Ctor(node + 4);
+    if (source) GuiRect_Assign(node + 4, nullptr, source);
+    at<u32>(node, 0) = 0;
+    return node;
+}
+
 u8 *__fastcall GuiRect_Assign(u8 *rect, void *, const u8 *source) {
     Fn_65aa80(rect, nullptr, (u32)(uintptr_t)source);
     for (u32 off = 4; off < 0xc; off += 2)

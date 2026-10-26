@@ -3,6 +3,8 @@
 # count), and the centre's pointers given or 0. Overlap (0x659f3d): see overlap_case. Split (0x65a1c3): overlap_case's rectangle and
 # shape (now and then none), the two out rectangles given or 0. Delete (0x665eb0, flags 0-3 or any): one rectangle, or with flag 2 an
 # array of 0-4 (the count dword before them, now and then negative) destroyed last first (CRT_VectorDtorIterator) and its block freed.
+# Copy (0x661770): another rectangle of random bytes copied. Node / NodeFrom (0x65a493 / 0x65a4f5): a node of random bytes, the source a
+# rectangle or (NodeFrom) none.
 # usage: guirect.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Ctor,CtorWith,...)
 import os
 import struct
@@ -12,9 +14,11 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import HEAP, Bench, Call, RAM, heap  # noqa: E402
 
 CALLS = {'Equals': 0x661700, 'GetSize': 0x659e3e, 'Ctor': 0x659d00, 'CtorWith': 0x659d43, 'Dtor': 0x659d90, 'Contains': 0x659e83, 'Centre': 0x659ee2, 'Offset': 0x65a3e9,
-         'Adjust': 0x65a43e, 'Overlap': 0x659f3d, 'Split': 0x65a1c3, 'Delete': 0x665eb0}
+         'Adjust': 0x65a43e, 'Overlap': 0x659f3d, 'Split': 0x65a1c3, 'Delete': 0x665eb0, 'Copy': 0x661770, 'Node': 0x65a493,
+         'NodeFrom': 0x65a4f5}
 B = Bench([(0x661700, 0x66176a), (0x659e3e, 0x659e83), (0x659d00, 0x659dbc), (0x659e83, 0x65a1c3), (0x65a3e9, 0x65a4a3), (0x65a1c3, 0x65a3e9), (0x659dbc, 0x659de3), (0x65a9d0, 0x65aa00), (0x66bff7, 0x66c01b), (0x66c01a, 0x66c7dc),
-           (0x67acb0, 0x67acb1), (0x665eb0, 0x665f0e), (0x67afa0, 0x67b0d0), (0x67b050, 0x67b0d0)])
+           (0x67acb0, 0x67acb1), (0x665eb0, 0x665f0e), (0x67afa0, 0x67b0d0), (0x67b050, 0x67b0d0),
+           (0x661770, 0x6617cd), (0x6617d0, 0x6617f0), (0x65a493, 0x65a4f5), (0x65a4f5, 0x65a55b), (0x65aa20, 0x65aa80), (0x65aa80, 0x65aa90)])
 RECT, OUT, SHAPE, POINTS, OUT2, ARRAY = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x500
 SHAPES = {'rect': 0x705920, 'circle': 0x705b50, 'ellipse': 0x705b68, 'polygon': 0x705b80}
 
@@ -69,6 +73,13 @@ def case(r):
     regions = {RECT: rect, OUT: r.bytes(8)}
     if op == 'Overlap':
         return overlap_case(r, rect, regions)
+    if op in ('Copy', 'Node', 'NodeFrom'):
+        regions[OUT] = r.bytes(0x10)
+        if op == 'Copy':
+            return Call(CALLS[op], [OUT, RECT], regions, conv='t', ret='a')
+        if op == 'Node':
+            return Call(CALLS[op], [OUT], regions, conv='t', ret='a')
+        return Call(CALLS[op], [OUT, r.choice([RECT, RECT, RECT, 0])], regions, conv='t', ret='a')
     if op == 'Split':
         overlap_case(r, rect, regions)
         regions[OUT], regions[OUT2] = r.bytes(0x10), r.bytes(0x10)
