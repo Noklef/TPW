@@ -4,26 +4,27 @@
 # at +0x13c none or one without a texture, the tracked blocks (+0x144, the meshes' +0x74, the sets' +8) as in spritesfree.py's
 # table, the model's flag 2 with the procedural texture object (no cache; a tracked block or none) there or not.
 # The load (0x579e00): see load(). A holder's part made (0x45bbc0, model/holder): see create(). The object's matrices set (0x57a260):
-# see matrices() and matrices_env().
-# usage: objmodel.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Unload,Load,Create,Matrices)
+# see matrices() and matrices_env(). A mesh's colours lit once a frame (0x57aa10): see light_mesh().
+# usage: objmodel.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Unload,Load,Create,Matrices,LightMesh)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import CDECL_LOG4, HEAP, LOG, RAM, Bench, Call, _cdecl_log, blob, fill, global_heap, heap, log_region, put, recorder, set_return, strings  # noqa: E402
+from fncmp import CDECL_LOG4, HEAP, LOG, RAM, Bench, Call, _cdecl_log, blob, fb, fill, global_heap, heap, log_region, put, recorder, set_return, strings, vtable  # noqa: E402
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import engineerrors  # noqa: E402
 import loadscreen  # noqa: E402
+import meshlist  # noqa: E402
 import texcache  # noqa: E402
 import texset  # noqa: E402
 import wctimage  # noqa: E402
 
 B = Bench(wctimage.merged([(0x57a100, 0x57a258), (0x579b80, 0x579c13), (0x57b2e0, 0x57b393), (0x57b070, 0x57b130), (0x57b5b0, 0x57b608),
                            (0x575f00, 0x575f8d), (0x56e4e0, 0x56e549), (0x67afa0, 0x67b0d0), (0x67acb0, 0x67acb1), (0x579e00, 0x57a0f2),
-                           (0x54dcc0, 0x54dce8), (0x45bbc0, 0x45bc58), (0x579cd0, 0x579df1), (0x5775d0, 0x5775f3), (0x57a260, 0x57a41c)] + texset.RANGES + texcache.RANGES
+                           (0x54dcc0, 0x54dce8), (0x45bbc0, 0x45bc58), (0x579cd0, 0x579df1), (0x5775d0, 0x5775f3), (0x57a260, 0x57a41c), (0x57aa10, 0x57aba6), (0x576230, 0x576260)] + meshlist.RANGES + texset.RANGES + texcache.RANGES
                           + loadscreen.RANGES), hooks={0x67a7d0: _cdecl_log})
-CALLS = {'Unload': 0x57a100, 'Load': 0x579e00, 'Create': 0x45bbc0, 'Matrices': 0x57a260}
+CALLS = {'Unload': 0x57a100, 'Load': 0x579e00, 'Create': 0x45bbc0, 'Matrices': 0x57a260, 'LightMesh': 0x57aa10}
 OBJ, MODEL, SETS, SET, MESHES, FACES, WORDS, BLOCK, TEX = (RAM, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x1000, RAM + 0x2000,
                                                         RAM + 0x2400, RAM + 0x2600, RAM + 0x3000)
 COUNT, TABLE = 0x8bb214, 0x87b1f8
@@ -236,8 +237,82 @@ def matrices(r):   # 0x57a260: an object (any bytes) given the matrix for its fi
     return Call(0x57a260, [OBJ, r.choice([0, 1, 2, 3, r.getrandbits(32)]), MATRIX], regions, conv='t', ret='v')
 
 
+LM_THIS, LM_DRAIN, LM_CAMERA, LM_NODES, LM_LIST, LM_MATRIX, LM_STAMP = (RAM + 0x10000, RAM + 0x10100, RAM + 0x10200, RAM + 0x10300,
+                                                                     RAM + 0x10400, RAM + 0x10500, RAM + 0x11000)
+
+
+def light_mesh(r):
+    """0x57aa10 (thiscall on the engine object; mesh, matrix, lights, flags): meshlist.py's mesh() scene (its lights also the light list
+    readied: their +0x14 / +0x2c the positions / directions the view turns into +0x20 / +0x38, 0x20 / 0x10000000 in their flags any), the
+    mesh's colours after a stamp (the frame number or not), its flags 0x1000000 / 0xc0000 now and then, a count of 0 now and then; the
+    view an identity, a turn and a shift (as meshlist.py's view()) or any floats; the render flags 0x800, 0x1000, 0x400 either way, the
+    camera's position, the two node lists drained (recorders, whose slot 2 returns 1 or 0) or none, the object's [+8] flag 0x800000 and
+    0x8bd524 = 4 or not; the flags argument's 0x3000000 either way."""
+    import math
+    c = meshlist.mesh(r)
+    regions = dict(c.regions)
+    obj, out, mesh_at = c.args
+    m = bytearray(regions[mesh_at]) + bytearray(r.bytes(8))
+    n = int.from_bytes(m[0x5e:0x60], 'little')
+    if r.random() < 0.1:
+        put(m, 0x5e, 'H', 0)
+    put(m, 0, 'I', r.getrandbits(32) & ~0x10c0000 | r.choice([0, 0, 0, 0x40000, 0x80000, 0xc0000, 0x1000000]))
+    put(m, 0x40, '3I', *(r.choice([fb(r.uniform(-50, 50)), r.f(30)]) for _ in range(3)))
+    frames = bytearray(r.bytes(8))
+    put(frames, 0, 'I', r.getrandbits(32) & ~0x40000000 | r.choice([0, 0, 0x40000000]))
+    frame = int.from_bytes(frames[4:8], 'little')
+    stamp = bytearray(struct.pack('<I', frame if r.random() < 0.4 else r.getrandbits(32)) + bytes(4 * max(n, 8)))
+    put(m, 0x9c, 'I', LM_STAMP)
+    regions.pop(out, None)
+    regions.update({mesh_at: bytes(m), LM_STAMP: stamp, 0x8bd508: frames})
+    lights = bytearray(regions[meshlist.LIGHTS])
+    for k in range(len(lights) // 0x60):
+        lights[0x60 * k + 0x14:0x60 * k + 0x20] = lights[0x60 * k + 0x20:0x60 * k + 0x2c]
+        lights[0x60 * k + 0x2c:0x60 * k + 0x38] = lights[0x60 * k + 0x38:0x60 * k + 0x44]
+    regions[meshlist.LIGHTS] = bytes(lights)
+    pick = [meshlist.LIGHTS + 0x60 * k for k in r.sample(range(6), r.choice([0, 1, 2, 3, 4]))]   # (each once: a light twice links a cycle)
+    regions[LM_LIST] = struct.pack('<%dI' % (len(pick) + 1), *(pick + [0]))
+    head = regions.pop(0x879dec)
+    regions[0x879db0] = bytes(regions[0x879db0]) + head + r.bytes(0x44)   # (the list head 0x879dec, then the matrix pointer and view)
+    if r.random() < 0.5:
+        mat = [0x3f800000, 0, 0, 0, 0, 0x3f800000, 0, 0, 0, 0, 0x3f800000, 0, 0, 0, 0, 0x3f800000]
+    elif r.random() < 0.7:
+        a = r.uniform(-4, 4)
+        mat = [fb(x) for x in [math.cos(a), math.sin(a), 0, 0, -math.sin(a), math.cos(a), 0, 0, 0, 0, 1, 0,
+                               r.uniform(-20, 20), r.uniform(-20, 20), r.uniform(-20, 20), 1]]
+    else:
+        mat = [r.f(r.choice([1, 10])) for _ in range(16)]
+    regions[LM_MATRIX] = struct.pack('<16I', *mat)
+    bits = r.getrandbits(32) & ~0x1c00
+    bits |= (0x800 if r.random() < 0.2 else 0) | (0x1000 if r.random() < 0.2 else 0) | r.choice([0, 0x400])
+    regions[0x8bcbc8] = struct.pack('<I', bits)
+    regions[0x8bd524] = struct.pack('<I', r.choice([4, 4, 3, r.getrandbits(32)]))
+    log = log_region()
+    set_return(log, 2, r.choice([1, 1, 0]))
+    regions[LOG] = log
+    nodes = bytearray(r.bytes(0xc0))   # (the vtable, four objects of it at +0x40, four nodes (object, next) at +0x80: lists 0 -> 1, 2 -> 3)
+    nodes[0:0x40] = vtable({}, size=16)
+    for k in range(4):
+        put(nodes, 0x40 + 0x10 * k, 'I', LM_NODES)
+        put(nodes, 0x80 + 0x10 * k, 'II', LM_NODES + 0x40 + 0x10 * k, LM_NODES + 0x80 + 0x10 * (k + 1) if k in (0, 2) else 0)
+    regions[LM_NODES] = nodes
+    drain = bytearray(r.bytes(0x40))
+    put(drain, 0x2c, 'II', r.choice([0, LM_NODES + 0xa0]), r.choice([0, LM_NODES + 0x80]))
+    camera = bytearray(r.bytes(0x40))
+    put(camera, 0x30, '3I', *(r.choice([fb(r.uniform(-50, 50)), r.f(30)]) for _ in range(3)))
+    this = bytearray(r.bytes(0x40))
+    put(this, 8, 'I', LM_THIS + 0x80)
+    sub_ = put(bytearray(r.bytes(0x40)), 0x30, 'I', r.getrandbits(32) & ~0x800000 | r.choice([0, 0x800000]))
+    regions.update({LM_THIS: this, LM_THIS + 0x80: sub_, LM_DRAIN: drain, LM_CAMERA: camera, 0x87a248: struct.pack('<I', obj),
+                    0x87a6d0: struct.pack('<I', LM_DRAIN), 0x87afe8: struct.pack('<I', LM_CAMERA)})
+    flags = r.getrandbits(32) & ~0x3000000 | r.choice([0, 0, 0x1000000, 0x2000000, 0x3000000])
+    return Call(CALLS['LightMesh'], [LM_THIS, mesh_at, LM_MATRIX, LM_LIST, flags], regions, conv='t', ret='a')
+
+
 def case(r):
     op = r.deal(OPS)
+    if op == 'LightMesh':
+        return light_mesh(r)
     if op == 'Load':
         return load(r)
     if op == 'Matrices':
