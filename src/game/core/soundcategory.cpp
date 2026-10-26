@@ -454,6 +454,36 @@ u32 __fastcall SoundCategory_FindRecordIndex(u8 *category, void *, const char *n
     return 0;   // (as the first's index, sic)
 }
 
+void __fastcall SoundCategory_Dtor(u8 *category) {
+    Put<u32>(category, 0, 0x70a95c);
+    u8 it[16];
+    std::memcpy(it, category + 0x3c, sizeof it);   // (deque A's begin)
+    DequeIter_Advance(it, nullptr, 0);
+    vcall<u32>(Ptr(Get<u32>(Ptr(Get<u32>(it, 8)), 0)), 0);   // (the first record's slot 0 alone, sic)
+    static const u32 kDeques[] = {0x98, 0x68, 0x38};   // (C, B, then A: popped one by one, each block freed as it empties)
+    for (const u32 deque : kDeques) {
+        u8 *const d = category + deque;
+        while (Get<u32>(d, 0x2c)) {
+            const u32 cur = Get<u32>(d, 0xc) + 4;
+            const u32 count = Get<u32>(d, 0x2c) - 1;
+            Put<u32>(d, 0xc, cur);
+            Put<u32>(d, 0x2c, count);
+            if (count == 0 || cur == Get<u32>(d, 8)) Deque32_FreeFront(d);
+        }
+    }
+    Handle_Dtor(reinterpret_cast<Handle *>(category + 0x30));
+    StdTree_DtorJ(category + 0x1c);
+    StdMapH_ClearDtor(category + 0xc);
+}
+
+u8 *__fastcall SoundCategory_DeletingDtor(u8 *category, void *, u32 flags) {
+    SoundCategory_Dtor(category);
+    if (flags & 1) GameHeap_Free(category);
+    return category;
+}
+
+void __cdecl SoundCategory_SingletonDtor() { SoundCategory_Dtor(Ptr(0xfb1f28)); }
+
 void __fastcall BankList_Dtor(u8 *list) {
     u8 *node = Ptr(Get<u32>(list, 4));
     Put<u32>(list, 0, 0x70a948);

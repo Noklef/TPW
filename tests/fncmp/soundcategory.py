@@ -18,10 +18,12 @@ from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, echo, fill, fill_ar
 CALLS = {'count': 0x6bd7a0, 'simple': 0x6c0550, 'variation': 0x6c06e0, 'sound': 0x6c0610, 'record': 0x6c05b0, 'fixup': 0x6c0510, 'readimage': 0x6c0360,
          'readmap': 0x6c0450, 'freecat': 0x6bf150, 'freebank': 0x6bf1c0, 'entries': 0x6bf9e0, 'bankdtor': 0x6c01b0, 'bankdel': 0x6c0190,
          'openfolder': 0x6bf850, 'setfolder': 0x6bf260, 'findbank': 0x6bfa60, 'readbankmap': 0x6bfe40, 'loadbankmap': 0x6c0210,
-         'addref': 0x6338c0, 'release': 0x6338d0, 'load': 0x6bf330, 'listdtor': 0x6c2f40, 'listdel': 0x6c30c0, 'findrec': 0x6c0f70}
+         'addref': 0x6338c0, 'release': 0x6338d0, 'load': 0x6bf330, 'listdtor': 0x6c2f40, 'listdel': 0x6c30c0, 'findrec': 0x6c0f70,
+         'dtor': 0x6bee10, 'deldtor': 0x6bed80, 'singleton': 0x6beb10}
 B = Bench([(0x6bd7a0, 0x6bd7ac), (0x6bf150, 0x6bf31c), (0x6bf850, 0x6c0303), (0x6c0310, 0x6c035f), (0x6c0360, 0x6c0844), (0x4036a0, 0x4036e0), (0x639100, 0x639120),
            (0x6b9b30, 0x6b9b94), (0x5e42d0, 0x5e431c), (0x6338b0, 0x633900), (0x6c1940, 0x6c1b00), (0x6c2990, 0x6c29c0), (0x4f6740, 0x4f67c0), (0x632200, 0x632230),
-           (0x6bf330, 0x6bf850), (0x632150, 0x632380), (0x6c0860, 0x6c3200), (0x5f7980, 0x5f79cf), (0x67c250, 0x67c2a0)]
+           (0x6bf330, 0x6bf850), (0x632150, 0x632380), (0x6c0860, 0x6c3200), (0x5f7980, 0x5f79cf), (0x67c250, 0x67c2a0),
+           (0x6beb10, 0x6beb1a), (0x6bed80, 0x6bee0b), (0x6bee10, 0x6bf14c), (0x5ec210, 0x5ec220), (0x5f8240, 0x5f8310), (0x5f8420, 0x5f8460), (0x619800, 0x619870)]
           + fileopen.RANGES,
           hooks={0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None})   # (the STL lock the map's insert takes: the port leaves it out)
 CAT, OUT, RECS, NODES = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x400
@@ -47,6 +49,7 @@ REC_VT, TREE_HEAD, TREE_NIL, TREE_NODE, NODE_TEXT, NAME_TEXT = RAM + 0xdc0, RAM 
 WAD = RAM + 0x50000   # a WAD holding <name>BANK.map and <name>SFX.map (SoundCategory_Load's)
 WAD_FOLDERS = [b'C:\\tp\\data\\sfx\\', b'C:\\tp\\data\\sfx', b'D:\\snd\\data\\x\\', b'C:\\tp\\amb\\']
 TREE_H_NIL = 0xfb2008   # (the map's nil node's pointer)
+J_HEAD, J_NIL, SINGLETON = RAM + 0x1000, RAM + 0x1040, 0xfb1f28   # tree J's head and nil node (the destructor's); the singleton category
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
@@ -248,8 +251,55 @@ def image(r, banks, levels, top):
     return bytearray(body) + bytearray(r.bytes(0x10)), top
 
 
+def case_dtor(r, name):
+    """The destructor over deque A of 1-3 records (the first's vtable a recorder: its slot 0 logged), B of 0 to ~0x900 banks and C of 0 to
+    ~0x900 indices (the boundaries crossed), the folder Handle on an object (count 1-3) or none, tree J empty (its counter 0xfb2004 1, more or 0)
+    and map H empty or of one node (its counter 0xfb200c the same); deleting with flags bit 0 or not; the singleton's at 0xfb1f28."""
+    n = r.choice([0, 1, 3, r.randrange(0x3f0, 0x401), r.randrange(0x401, 0x900)])
+    regions = category(r, r.choice([0, 1, 4, r.randrange(0x3f0, 0x401), r.randrange(0x401, 0x900)]), bank_objects=[r.getrandbits(32) for _ in range(n)])
+    cat = regions[CAT]
+    recs = bytearray(regions[RECS])
+    struct.pack_into('<I', recs, 0, REC_VT)
+    regions[RECS] = recs
+    regions[REC_VT] = vtable({}, 4)
+    regions[LOG] = log_region()
+    obj = handle_object(r, 0, r.choice(FOLDERS), regions, recorders=False) if r.random() < 0.5 else 0
+    struct.pack_into('<2I', cat, 0x30, HANDLE_VTABLE, obj)
+    regions[J_HEAD] = struct.pack('<3I', J_HEAD, J_NIL, J_HEAD) + r.bytes(0x18)
+    nil = bytearray(r.bytes(0x28))
+    struct.pack_into('<I', nil, 0x20, 1)
+    regions[J_NIL] = nil
+    struct.pack_into('<4I', cat, 0x1c, r.getrandbits(32), J_HEAD, r.getrandbits(32), 0)
+    nil = bytearray(0x28)
+    struct.pack_into('<I', nil, 0x24, 1)
+    regions[TREE_NIL] = nil
+    if r.random() < 0.5:
+        text = r.choice([b'x', WAD_FOLDERS[0] + b'cat_a', b''])
+        node = bytearray(0x28)
+        struct.pack_into('<4I', node, 0, TREE_NIL, TREE_HEAD, TREE_NIL, r.getrandbits(32))
+        node[0x10:0x24] = string(r, text, NODE_TEXT)
+        struct.pack_into('<I', node, 0x24, 1)
+        regions[TREE_NODE] = node
+        regions[NODE_TEXT] = text + b'\0' + r.bytes(8)
+        regions[TREE_HEAD] = struct.pack('<3I', TREE_NODE, TREE_NODE, TREE_NODE) + bytes(0x1c)
+        size = 1
+    else:
+        regions[TREE_HEAD] = struct.pack('<3I', TREE_HEAD, TREE_NIL, TREE_HEAD) + bytes(0x1c)
+        size = 0
+    struct.pack_into('<IIBxxxI', cat, 0xc, r.getrandbits(32), TREE_HEAD, 0, size)
+    regions[0xfb2000] = struct.pack('<4I', J_NIL, r.choice([1, 1, 2, 0]), TREE_NIL, r.choice([1, 1, 2, 0]))
+    if name == 'singleton':
+        regions[SINGLETON] = regions.pop(CAT)
+        return Call(CALLS[name], [], regions, conv='c', ret='v')
+    if name == 'deldtor':
+        return Call(CALLS[name], [CAT, r.choice([0, 1, 1, 3, 2])], regions, conv='t', ret='a')
+    return Call(CALLS[name], [CAT], regions, conv='t', ret='v')
+
+
 def case(r):
     name = r.deal(OPS)
+    if name in ('dtor', 'deldtor', 'singleton'):
+        return case_dtor(r, name)
     if name == 'findrec':   # deque A's records (null now and then): +8 0 now and then, +0xc a String over a name; one of those names or another
         regions = category(r, 4, holes=True, many=r.random() < 0.3)   # (now and then over three blocks or more)
         names = [r.choice(NAMES_GIVEN + [b'Bank0', b'ab']) for _ in range(4)]
