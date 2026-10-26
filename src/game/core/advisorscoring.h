@@ -45,6 +45,18 @@ s32 __fastcall AdvisorScoring_ResearchKind2Staff8(const u8 *scoring);
 // 0x59dbf0: staff of kind 8, definitions of kind 0 with control +0x14 (ObjectDefs_CountKind0WithControls14), not more than +0x240, and the
 // lab's share of group 4 0: +0x244.
 s32 __fastcall AdvisorScoring_Controls14Staff8(const u8 *scoring);
+// 0x59e260: as 0x59da30 for kind and category 3, without the lab's share: +0x2ac.
+s32 __fastcall AdvisorScoring_ResearchKind3Staff8(const u8 *scoring);
+// 0x59e840: ParkAnalyser_Tallied(1) above +0x314: the tally (asked again) times +0x318.
+s32 __fastcall AdvisorScoring_TalliedAbove(const u8 *scoring);
+// 0x59f940 / 0x59f970: more people on plain cells with +0x210 set / in mode 2 (Things_CountKind1OnPlainCellWith210 / Mode2) than +0x4a0 /
+// +0x4a8: +0x4a4 / +0x4ac.
+s32 __fastcall AdvisorScoring_PeopleWith210(const u8 *scoring);
+s32 __fastcall AdvisorScoring_PeopleMode2(const u8 *scoring);
+// 0x59fa60: not flagged, the analyser's total (ParkAnalyser_Total) at least +0x4c4 and no staff (Things_CountStaff): +0x4c0.
+s32 __fastcall AdvisorScoring_TotalNoStaff(const u8 *scoring);
+// 0x59fac0: more staff than +0x4c8 and none of them with a patrol region (Things_CountStaffWithPatrol(0)): +0x4cc.
+s32 __fastcall AdvisorScoring_StaffNoPatrol(const u8 *scoring);
 
 // The staff criteria (thiscall on the scoring; names unconfirmed). Staff kinds: 4 handyman, 5 mechanic, 6 entertainer, 7 researcher,
 // 8 guard (as Staff_TrainAll's).

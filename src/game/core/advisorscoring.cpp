@@ -161,6 +161,36 @@ s32 __fastcall AdvisorScoring_ResearchKind2Staff8(const u8 *scoring) {
     return some == ObjectDefs_CountKind2WithControls10(0) ? at<s32>(scoring, 0x288) : 0;
 }
 
+s32 __fastcall AdvisorScoring_ResearchKind3Staff8(const u8 *scoring) {
+    if (Things_CountStaffOfKind(8) == 0) return 0;
+    const s32 some = ObjectDefs_CountKindWithControls18(3, 0);
+    if (some == 0 || Research_CountNotDoneCat3() == 0) return 0;
+    return some == ObjectDefs_CountKind3WithControls10(0) ? at<s32>(scoring, 0x2ac) : 0;
+}
+
+s32 __fastcall AdvisorScoring_TalliedAbove(const u8 *scoring) {
+    if ((s32)ParkAnalyser_Tallied(table(), nullptr, 1) <= at<s32>(scoring, 0x314)) return 0;
+    return (s32)(ParkAnalyser_Tallied(table(), nullptr, 1) * at<u32>(scoring, 0x318));
+}
+
+s32 __fastcall AdvisorScoring_PeopleWith210(const u8 *scoring) {
+    return Things_CountKind1OnPlainCellWith210() > at<s32>(scoring, 0x4a0) ? at<s32>(scoring, 0x4a4) : 0;
+}
+
+s32 __fastcall AdvisorScoring_PeopleMode2(const u8 *scoring) {
+    return Things_CountKind1OnPlainCellMode2() > at<s32>(scoring, 0x4a8) ? at<s32>(scoring, 0x4ac) : 0;
+}
+
+s32 __fastcall AdvisorScoring_TotalNoStaff(const u8 *scoring) {
+    if (flagged() || (s32)ParkAnalyser_Total(table()) < at<s32>(scoring, 0x4c4) || Things_CountStaff() != 0) return 0;
+    return at<s32>(scoring, 0x4c0);
+}
+
+s32 __fastcall AdvisorScoring_StaffNoPatrol(const u8 *scoring) {
+    if (Things_CountStaff() <= at<s32>(scoring, 0x4c8) || Things_CountStaffWithPatrol(0) != 0) return 0;
+    return at<s32>(scoring, 0x4cc);
+}
+
 s32 __fastcall AdvisorScoring_StaffAtLimit5(const u8 *scoring) { return at_limit(scoring, 0x007852e8, 0x38c, 5, 0x38c); }
 s32 __fastcall AdvisorScoring_StaffAtLimit6(const u8 *scoring) { return at_limit(scoring, 0x007852f0, 0x398, 6, 0x398); }
 s32 __fastcall AdvisorScoring_StaffAtLimit4(const u8 *scoring) { return at_limit(scoring, 0x007852ec, 0x3a4, 4, 0x3a4); }

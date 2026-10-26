@@ -4610,6 +4610,12 @@ address,name,kind,confidence,notes
 0x0059dbf0,AdvisorScoring_Controls14Staff8,function,low,"reimplemented (src/game/core/advisorscoring); staff of kind 8, kind 0 definitions with control +0x14 not more than +0x240, the lab's group 4 share 0: +0x244"
 0x0059dd40,AdvisorScoring_ResearchKind1Staff8,function,low,reimplemented (src/game/core/advisorscoring); as 0x59da30 for kind and category 1 (group 1): +0x264
 0x0059dfd0,AdvisorScoring_ResearchKind2Staff8,function,low,reimplemented (src/game/core/advisorscoring); as 0x59da30 for kind and category 2 (group 2): +0x288
+0x0059e260,AdvisorScoring_ResearchKind3Staff8,function,low,"reimplemented (src/game/core/advisorscoring); staff of kind 8, kind 3 definitions with control +0x18, category 3 research left, as many with +0x10: +0x2ac"
+0x0059e840,AdvisorScoring_TalliedAbove,function,low,reimplemented (src/game/core/advisorscoring); ParkAnalyser_Tallied(1) above +0x314: the tally (asked again) times +0x318
+0x0059f940,AdvisorScoring_PeopleWith210,function,low,reimplemented (src/game/core/advisorscoring); more people on plain cells with +0x210 set than +0x4a0: +0x4a4
+0x0059f970,AdvisorScoring_PeopleMode2,function,low,reimplemented (src/game/core/advisorscoring); more people on plain cells in mode 2 than +0x4a8: +0x4ac
+0x0059fa60,AdvisorScoring_TotalNoStaff,function,low,"reimplemented (src/game/core/advisorscoring); not flagged, the analyser's total at least +0x4c4, no staff: +0x4c0"
+0x0059fac0,AdvisorScoring_StaffNoPatrol,function,low,"reimplemented (src/game/core/advisorscoring); more staff than +0x4c8, none with a patrol region: +0x4cc"
 0x00418da0,ParkInfo_Serialize,function,low,"reimplemented (src/game/core/parkinfo); thiscall (stream, save, version, unused), pops 0x10: the save's park information (strings, three dwords, the author's name and e-mail, the description, the publishing date) written or read field by field (name unconfirmed)"
 0x005d55a0,AuthStamp_Text,function,low,"reimplemented (src/game/core/authstamp); cdecl: ""No Authorization Stamp"" (0x774bc0) while the phrase at 0x763f3d is the plain one at 0x774bd8; else the phrase's bytes less the key's (0x774b78) written to 0xf827f8 until they meet, and 0xf827f8"
 0x006cc7b0,Mp2Decoder_ParseHeader,function,low,"reimplemented (src/game/core/mp2frame); parses an MPEG audio frame header into the decoder's fields, rate, bitrate and frame length; -1 without sync or bitrate"
