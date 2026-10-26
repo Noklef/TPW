@@ -59,7 +59,7 @@ def case(r):
         regions[RAM + 0x1000] = chain
     for g in globs:
         regions[g & ~0xf] = r.bytes(0x20)
-    args = [r.choice([0, 1, 0xff, 0x7fffffff, 0xffffffff, r.getrandbits(32)]) for _ in range(n)]
+    args = [r.choice([0, 1, 2, 0xfe, 0xff, 0x7fffffff, 0xfffffffe, 0xffffffff, r.getrandbits(32)]) for _ in range(n)]   # (bit 0 clear, others set too)
     for i in ptr:
         args[i] = RAM + 0x200 + 0x40 * min(i, 3) + r.choice([0, 4, 0x20])
     if conv == 't':
