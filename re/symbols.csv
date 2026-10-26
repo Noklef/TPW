@@ -5958,6 +5958,7 @@ address,name,kind,confidence,notes
 0x00496f90,Panel7ca178_DressTip,function,low,"reimplemented (src/game/ui/panel7ca178); thiscall: slot 4 of the vtable 0x6ff740: the window +0x1c dressed as panelparts::tip (raised by 0xb, hidden, a text part, font 8, no text)"
 0x00658334,GuiFont_TextWidth,function,low,"reimplemented (src/game/ui/guifont); thiscall (text, from, to: words), pops 12: the width (AX) of the characters from..to, each glyph width (signed) + the spacing +6; to below from means the last; 0 for a single character (sic)"
 0x00658243,GuiFont_Init,function,low,"reimplemented (src/game/ui/guifont); thiscall (count, width, spacing, height, b), pops 20: count glyphs of 8 bytes (Mem_Alloc; width, b, 0) with the count and height set when allocated; the spacing either way; returns the font"
+0x006583fe,GuiFont_CharWidth,function,low,"reimplemented (src/game/ui/guifont); thiscall (character word), pops 4: the glyph's signed width + the spacing +6 in AX; 0 with no glyphs or the character not below the count +4"
 0x004b6540,Panel7cc3e0_Dress,function,low,"reimplemented (src/game/ui/panel7cc3e0); thiscall, slot 3 of 0x6ffec8: with the window +0x14, its children 0x5211-0x520e found dressed (texts 0x37 / 0x38, 0x6ff350 / 0x6ff3b0 parts with 0)"
 0x0066dbfa,GuiToken_SkipBlanks,function,low,reimplemented (src/game/ui/guitoken); cdecl (text): past the spaces and tabs
 0x0066dcf7,GuiToken_ReadWord,function,low,"reimplemented (src/game/ui/guitoken); cdecl (text, out): the token up to a space or the end, atoi into the word out (when set); the byte after its end"
