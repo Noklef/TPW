@@ -26,6 +26,14 @@ template <typename T> void Put(void *p, u32 offset, T v) { std::memcpy(static_ca
 u8 *Ptr(u32 address) { return reinterpret_cast<u8 *>(static_cast<uintptr_t>(address)); }
 u32 Addr(const void *p) { return static_cast<u32>(reinterpret_cast<uintptr_t>(p)); }
 
+// The cell n dwords on from a copy of the deque iterator at `it` (DequeIter_Advance called, as the originals do).
+u8 *DequeCell(const u8 *it, u32 n) {
+    u8 copy[16];
+    std::memcpy(copy, it, sizeof copy);
+    DequeIter_Advance(copy, nullptr, static_cast<s32>(n));
+    return Ptr(Get<u32>(copy, 8));
+}
+
 // The element n dwords on from a deque iterator {first, end, position, map slot} (the originals' inline form of DequeIter_Advance).
 u8 *DequeAt(const u8 *it, u32 n) {
     u32 at = Get<u32>(it, 8) + n * 4;
@@ -483,6 +491,31 @@ u8 *__fastcall SoundCategory_DeletingDtor(u8 *category, void *, u32 flags) {
 }
 
 void __cdecl SoundCategory_SingletonDtor() { SoundCategory_Dtor(Ptr(0xfb1f28)); }
+
+u32 *__fastcall SoundCategory_UnloadRecord(u8 *category, void *, u32 *out, u8 *record) {
+    if (!record) {
+        *out = 0xffffffff;
+        return out;
+    }
+    u8 *const banks = category + 0x6c;   // (deque B's begin)
+    for (u8 *node = Ptr(Get<u32>(record, 0x28)); node;) {
+        const u32 index = Get<u32>(node, 0);
+        node = Ptr(Get<u32>(node, 4));
+        if (!Get<u32>(DequeCell(banks, index), 0)) continue;
+        u8 *const data = Ptr(Get<u32>(Ptr(Get<u32>(DequeCell(banks, index), 0)), 8));   // (read before the release)
+        if (vcall<u32>(Ptr(Get<u32>(DequeCell(banks, index), 0)), 0)) continue;
+        if (data) vcall<u32>(data, 0);
+        Put<u32>(DequeCell(banks, index), 0, 0);
+    }
+    if (Get<u32>(DequeCell(category + 0x3c, Get<u32>(record, 0x20)), 0) != Addr(record)) {
+        *out = 0xffffffff;
+        return out;
+    }
+    Put<u32>(DequeCell(category + 0x3c, Get<u32>(record, 0x20)), 0, 0);
+    StdMapH_ClearAt(category + 0xc, nullptr, Get<u32>(record, 0x20));
+    *out = 0;
+    return out;
+}
 
 void __fastcall BankList_Dtor(u8 *list) {
     u8 *node = Ptr(Get<u32>(list, 4));
