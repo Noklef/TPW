@@ -201,6 +201,8 @@ void __fastcall StdTree_DtorI(u8 *tree);
 // erase 0x6c21f0, _Erase 0x6c2760 and erase(first, last) 0x6c13e0 (its whole-tree branch calling StdTree_DtorI), as the other trees'.
 void __fastcall StdTree_IncJ(u8 **it);
 void __fastcall StdTree_CtorJ(u8 *tree);
+// 0x6beda0 (thiscall): tree J's destructor (map counter 0xfb2004, nil node 0xfb2000), as StdTree_DtorH.
+void __fastcall StdTree_DtorJ(u8 *tree);
 u8 **__fastcall StdTree_EraseJ(u8 *tree, void *, u8 **out, u8 *node);
 void __fastcall StdTree_EraseSubtreeJ(u8 *tree, void *, u8 *node);
 u8 **__fastcall StdTree_EraseRangeJ(u8 *tree, void *, u8 **out, u8 *first, u8 *last);
