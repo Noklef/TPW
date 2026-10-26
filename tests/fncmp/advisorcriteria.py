@@ -16,7 +16,7 @@ import parkenv  # noqa: E402
 PCT = [0, 25, 33, 50, 50, 66, 100, 100, 150, -1]
 CALLS = {'Booth': (0x59c8d0, {}), 'No02': (0x59c960, {}), 'Obj0': (0x59ca80, {}), 'Tal7': (0x59cd30, {}),
          'Low6': (0x59ce30, {0x10c: [0, 1, 2, 30, 100, -1]}), 'Share8': (0x59cea0, {0x114: PCT}), 'All8': (0x59cf50, {}),
-         'Tal7b': (0x59d3b0, {}), 'Res0': (0x59da30, {}), 'C14': (0x59dbf0, {}), 'Res1': (0x59dd40, {}), 'Res2': (0x59dfd0, {}),
+         'Tal7b': (0x59d3b0, {}), 'Res0': (0x59da30, {}), 'C14': (0x59dbf0, {0x240: [0, 1, 2, 3, 4, 5, -1]}), 'Res1': (0x59dd40, {}), 'Res2': (0x59dfd0, {}),
          'Res3': (0x59e260, {}), 'TalAb': (0x59e840, {}), 'P210': (0x59f940, {}), 'Mode2': (0x59f970, {}), 'Total': (0x59fa60, {}),
          'Patrol': (0x59fac0, {})}
 B = Bench([(0x412e60, 0x412f00), (0x41a960, 0x41a980), (0x41a990, 0x41a9c0), (0x4c7fa0, 0x4c8080), (0x4c81e0, 0x4c8250), (0x4c9050, 0x4c9080),
@@ -37,12 +37,12 @@ OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 def case(r):
     name = r.deal(OPS)
     address, bounds = CALLS[name]
-    deep = r.random() < 0.6   # (the criteria that ask for no staff of a kind and the flag clear: mostly so, to reach their last tests)
+    deep = r.random() < 0.6   # (mostly the staff and the flag as a criterion asks, and the park rich: to reach the last tests)
     kinds = parkenv.KINDS
     if deep:
         kinds = tuple(k for k in kinds if k not in NONE.get(name, ())) + (NEED[name],) * 6 if name in NEED else \
             tuple(k for k in kinds if k not in NONE.get(name, ()))
-    regions, _info = parkenv.park(r, kinds=kinds, flag=0 if deep and name in UNFLAGGED else None)
+    regions, _info = parkenv.park(r, kinds=kinds, flag=0 if deep and name in UNFLAGGED else None, rich=deep)
     s = bytearray(r.bytes(0x4d0))
     for off in range(0xa0, 0x4d0, 4):   # (most dwords small, so a bound lands about the counts; the weights small or anything)
         if r.random() < 0.7:

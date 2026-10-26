@@ -14,7 +14,9 @@
 #   booths' count +0x1f0d0 and its tallies +0x21bfc / +0x21c00 / +0x21c08;
 # - the research lab: 0-12 projects (or a negative count) of categories 0-5 mostly, done or not; its groups' dwords (Table_ScaledBySum's
 #   +0x1410 + 16 * index) 0 mostly; and the globals 0x7852f8 and 0x78548c (their product Table_ScaledBySum's total) 0 now and then.
-# park(r) returns (regions, info): info['things'] the things' addresses, info['kinds'] their kinds.
+# park(r) returns (regions, info): info['things'] the things' addresses, info['kinds'] their kinds. rich: the definitions mostly of the
+# kinds 0-3 with +0xc4 0, their control records' +0x14 / +0x18 mostly positive, the lab with projects (category 0 more often), its
+# groups' dwords and the globals' product nonzero more often (so the criteria's later tests, which ask for all of those at once, are reached).
 import struct
 
 from fncmp import RAM, put
@@ -48,12 +50,12 @@ def chain(r, handles, things, link, pool):
     return handles[order[0]] if order else 0
 
 
-def park(r, kinds=KINDS, count=None, flag=None):
+def park(r, kinds=KINDS, count=None, flag=None, rich=False):
     """flag: G's +0x1da710 (None: 0 or not)."""
     regions, handles, things = thingenv.park(r, count=count, kinds=kinds, defs=False)
     pool = regions[POOL]
     known = r.sample(IDS, r.choice([1, 2, 4, 6, 6]))
-    n = r.choice([1, 2, 4, 6, 8, 8]) if r.random() < 0.97 else 0
+    n = r.choice([2, 4, 6, 8] if rich else [1, 2, 4, 6, 8, 8]) if r.random() < 0.97 else 0
     ids = [r.choice(known) for _ in range(n)]
     for i in range(len(handles)):
         t = THING * i
@@ -99,8 +101,8 @@ def park(r, kinds=KINDS, count=None, flag=None):
         put(dtab, 4 * i, 'I', ITEMS + ITEM * i)
         if i < n:
             regions[ITEMS + ITEM * i] = struct.pack('<H', ids[i]) + r.bytes(2)
-            regions[ITEMS + ITEM * i + 0xc4] = struct.pack('<i', r.choice([0, 0, 0, 1, -1, 7]))
-            regions[ITEMS + ITEM * i + 0x4ac] = struct.pack('<I', r.choice([0, 0, 1, 2, 3, 4, 0x100]))
+            regions[ITEMS + ITEM * i + 0xc4] = struct.pack('<i', r.choice([0, 0, 0, 0, 0, 1] if rich else [0, 0, 0, 1, -1, 7]))
+            regions[ITEMS + ITEM * i + 0x4ac] = struct.pack('<I', r.choice([0, 0, 0, 1, 2, 3] if rich else [0, 0, 1, 2, 3, 4, 0x100]))
     regions[DEFS] = dtab
     regions[DEFS + 0x528] = struct.pack('<i', n)
     regions[DEFS + 0x72c] = struct.pack('<iHHI', r.choice([-1, 0, 3]), r.choice(IDS + [0, 0x77]), 0, ITEMS + ITEM * r.randrange(max(n, 1)))
@@ -111,8 +113,8 @@ def park(r, kinds=KINDS, count=None, flag=None):
     for k, i in enumerate(recs):
         put(table, 0x20 * k, 'H', i)
         table[0x20 * k + 0x10] = r.choice([0, 1, 1, 0x80])
-        put(table, 0x20 * k + 0x14, 'I', small(r, 0x80000000))
-        put(table, 0x20 * k + 0x18, 'I', small(r, 0x80000000))
+        for off in (0x14, 0x18):
+            put(table, 0x20 * k + off, 'I', r.choice([1, 1, 2, 5, 0, -1]) & 0xffffffff if rich and r.random() < 0.8 else small(r, 0x80000000))
     regions[FIELDS] = table
     # G's fields: the table's count and cache, the time, the flag, the slot words, the chain heads.
     now = r.getrandbits(32)
@@ -133,19 +135,20 @@ def park(r, kinds=KINDS, count=None, flag=None):
     put(tallies, 0x18, 'I', small(r))
     regions[ANALYSER + 0x21bf0] = tallies
     # The research lab and the staff globals.
-    projects = r.choice([0, 1, 2, 3, 5, 8, 12, 12, -1])
+    projects = r.choice([1, 2, 3, 5, 8, 12] if rich else [0, 1, 2, 3, 5, 8, 12, 12, -1])
     lab = bytearray(r.bytes(0x100))
     for i in range(12):
         p = 0xc + 20 * i
-        put(lab, p + 4, 'I', r.choice([0, 1, 2, 3, 0, 1, 2, 3, 4, 5]))
+        put(lab, p + 4, 'I', r.choice([0, 0, 1, 2, 3] if rich else [0, 1, 2, 3, 0, 1, 2, 3, 4, 5]))
         cost = r.choice([0.0, 1.0, 50.0, 100.0])
         put(lab, p + 0xc, 'ff', cost, r.choice([cost, cost, 0.0, 10.0, 100.0, float('nan')]))
     regions[LAB] = lab
     groups = bytearray(r.bytes(0x60))
     for g in range(5):
-        put(groups, 0x10 + 16 * g, 'I', r.choice([0, 0, 0, 1, 50, r.getrandbits(32)]))
+        put(groups, 0x10 + 16 * g, 'I', r.choice([0, 0, 1, 50, 100, r.getrandbits(32)] if rich else [0, 0, 0, 1, 50, r.getrandbits(32)]))
     put(groups, 0x5c, 'i', projects)
     regions[LAB + 0x1400] = groups
-    regions[0x7852f8] = struct.pack('<I', r.choice([0, 1, 2, 5]))
-    regions[0x78545c] = b''.join(struct.pack('<I', r.choice([0, 1, 3, 10])) for _ in range(12)) + struct.pack('<I', r.choice([0, 1, 3, 100]))
+    regions[0x7852f8] = struct.pack('<I', r.choice([0, 1, 1, 2] if rich else [0, 1, 2, 5]))
+    regions[0x78545c] = b''.join(struct.pack('<I', r.choice([0, 1, 3, 10])) for _ in range(12)) + \
+        struct.pack('<I', r.choice([1, 1, 3, 100] if rich else [0, 1, 3, 100]))
     return regions, {'things': things, 'kinds': [pool[THING * i + 2] for i in range(len(handles))]}
