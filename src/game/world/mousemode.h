@@ -21,11 +21,12 @@ struct MouseModeEnv {
 // The deleting destructors' frees and MouseMode_Set's atexit go to env (nullptr: the game's).
 void MouseModes_SetEnv(const MouseModeEnv *env);
 
-// Inlined in 0x481a10 and 0x485b70 (not a function of the game's): the one-byte object at [0x7b05e8] made the first time (Mem_Alloc(1),
-// its byte left as it is) and constructed (MouseModeHolder_Ctor). Its allocation failing: [0x7b05e8] stays 0 and nothing else is done.
-void MouseModes_EnsureHolder();
-
 extern "C" {
+
+// 0x40bed0 (cdecl; name unconfirmed; also inlined in 0x481a10 and 0x485b70): the one-byte object at [0x7b05e8] made the first time
+// (Mem_Alloc(1), its byte left as it is) and constructed (MouseModeHolder_Ctor, inlined there). Its allocation failing: [0x7b05e8] stays
+// 0 and nothing else is done. Returns [0x7b05e8] (EAX; the game's callers ignore it).
+u8 *__cdecl MouseModes_EnsureHolder();
 
 // 0x46d550 (thiscall; name unconfirmed): the one-byte mode holder's constructor: the mouse mode set to a new CMMOnline base
 // (Mem_Alloc(8), MouseModeOnlineBase_Ctor; 0 when that failed; MouseMode_Set), 0x7b05e0 and 0x7b05d4 = -1. Returns the holder.

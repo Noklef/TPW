@@ -794,6 +794,7 @@ address,name,kind,confidence,notes
 0x0046c350,MouseMode_Set,function,low,"reimplemented (src/game/world/mousemode); stdcall; the mouse mode switched: the current one left and deleted, a mode the setting turns online replaced by a new CMMOnline, stored at 0x7b05d8 and assigned"
 0x00481a10,MouseMode_Enter6fead0,function,low,"reimplemented (src/game/world/mousemode); cdecl: the window [0x7c24c8] closed (Window7c24c8_Close), a new 0x6fead0 mode (Mem_Alloc(8), MouseMode6fead0_Ctor; 0 when that failed), the mouse mode holder [0x7b05e8] made when missing (MouseModes_EnsureHolder) and the mode set (MouseMode_Set)"
 0x0046d550,MouseModeHolder_Ctor,function,low,"reimplemented (src/game/world/mousemode); thiscall: the mode holder's constructor: a new CMMOnline base set as the mouse mode, 0x7b05e0 and 0x7b05d4 -1; returns the holder (name unconfirmed)"
+0x0040bed0,MouseModes_EnsureHolder,function,low,"reimplemented (src/game/world/mousemode); the mode holder [0x7b05e8] made the first time: Mem_Alloc(1), MouseModeHolder_Ctor inlined; returns it"
 0x0040f290,ThingMsg01_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (a): +8 a; vtable set, +4 cleared; returns this"
 0x0040f240,ThingMsg02_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (c, b): +8 b, +0xc c; vtable set, +4 cleared; returns this"
 0x0040f330,ThingMsg06_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (u16 a): +8 a; vtable set, +4 cleared; returns this"
