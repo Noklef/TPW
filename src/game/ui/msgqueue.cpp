@@ -107,6 +107,14 @@ void __fastcall MsgQueue_Clear(u8 *queue) {
     std::memset(at<u8 *>(queue, 0), 0, at<u32>(queue, 4) << 4);
 }
 
+s32 __cdecl MsgQueue_PumpSecond(s32 most) {
+    u8 **const queue = reinterpret_cast<u8 **>((uintptr_t)0x00faa5f4);
+    s32 n = 0;
+    if (!*queue) return 0;
+    while ((s16)MsgQueue_DispatchOne(*queue) && n < most) ++n;
+    return n;
+}
+
 s32 __cdecl MsgQueue_Pump(s32 most) {
     using Hook = void(__cdecl *)(u32, u32, u32, u32);
     u8 *&queue = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f0);

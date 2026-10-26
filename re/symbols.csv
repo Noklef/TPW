@@ -5565,6 +5565,7 @@ address,name,kind,confidence,notes
 0x00669b3e,MsgQueue_Cancel,function,low,"reimplemented (src/game/ui/msgqueue); thiscall (window): the window's entries get message, a and b 0x80808080; their number in AX, -1 without entries"
 0x00669bdb,MsgQueue_Clear,function,low,"reimplemented (src/game/ui/msgqueue); thiscall: with entries, indices capacity - 1, count 0, entries zeroed"
 0x00658e42,MsgQueue_Pump,function,low,"reimplemented (src/game/ui/msgqueue); cdecl (most): the posted queue [0xfaa5f0]'s messages sent until none is left or most were counted, each first shown to the hook [0xfaa5fc] when set; the count"
+0x00658f0b,MsgQueue_PumpSecond,function,low,"reimplemented (src/game/ui/msgqueue); cdecl (most): with the queue [0xfaa5f4], messages dispatched while one is and fewer than most counted; the count"
 0x00669440,TextPool_Init,function,low,"reimplemented (src/game/ui/textpool); cdecl (long length, long rows, short length, short rows): sizes checked and stored, both blocks allocated, the rows marked free (the short pool with the long count, sic); 1, else 0"
 0x00669586,TextPool_Free,function,low,reimplemented (src/game/ui/textpool); cdecl: both text pool blocks freed (Mem_Free)
 0x006695b9,TextPool_Take,function,low,"reimplemented (src/game/ui/textpool); cdecl (length): the first free row of the short pool (length below its row length), else the last free one of the long one; its first character 0; 0 for none"
