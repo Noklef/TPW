@@ -10,6 +10,7 @@
 # the steps or 0 and its interval any, Pause's and StopSlide's word 0, 1 or any (upper half random).
 # AdjustRect (0x65cd95): rect_env()'s windows, four words (upper halves random); EAX not compared (a stack address).
 # MoveTo (0x65ce10): rect_env()'s windows, the new left / top near the old or any, each given or not.
+# ChildCount (0x65d822): FindChild's children.
 # usage: windowtree.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=FindChild,IsShown,...)
 import os
 import struct
@@ -25,7 +26,8 @@ CALLS = {'FindChild': 0x65d7d0, 'IsShown': 0x65d773, 'OffsetByParents': 0x65c979
          'NotifyShown': 0x65d90b, 'SetShown': 0x65d9dd, 'Offset': 0x65c7fe, 'SetEnabled': 0x65da8d,
          'RaiseToTop': 0x65dbf0, 'OpenTree': 0x65c707, 'CloseTree': 0x65c778, 'SetRect': 0x65cc04, 'ResizeChildren': 0x65c9bd,
          'SetRectTo': 0x65cf5e, 'AddChild': 0x65f447, 'ScriptStep': 0x65e9a4, 'SlideStep': 0x65ee7a, 'ScriptTick': 0x65c357,
-         'DefaultProc': 0x65f6d1, 'MoveTo': 0x65ce10, 'RunScript': 0x65e72d, 'PauseScript': 0x65e855, 'StopScript': 0x65e897, 'StopSlide': 0x65ee1b, 'AdjustRect': 0x65cd95}
+         'DefaultProc': 0x65f6d1, 'MoveTo': 0x65ce10, 'RunScript': 0x65e72d, 'PauseScript': 0x65e855, 'StopScript': 0x65e897, 'StopSlide': 0x65ee1b, 'AdjustRect': 0x65cd95,
+         'ChildCount': 0x65d822}
 ARG = RAM + 0xb000
 B = Bench(RANGES + [(0x65ce10, 0x65cef7), (0x65da8d, 0x65db25), (0x65dbf0, 0x65dcaf), (0x65c707, 0x65c7fe), (0x65c9bd, 0x65ce10),
                        (0x65cf5e, 0x65cfd4), (0x661700, 0x66176a), (0x659e3e, 0x659e83), (0x659d43, 0x659d90),
@@ -33,7 +35,7 @@ B = Bench(RANGES + [(0x65ce10, 0x65cef7), (0x65da8d, 0x65db25), (0x65dbf0, 0x65d
                        (0x65e9a4, 0x65ecb0), (0x65ee7a, 0x65ef90), (0x65f286, 0x65f330), (0x65d3a3, 0x65d40c), (0x662097, 0x6620ac),
                        (0x65968e, 0x6596a2), (0x65c357, 0x65c388),
                        (0x65f6d1, 0x65fba8), (0x680050, 0x68005b), (0x65f150, 0x65f16b), (0x6590f7, 0x6591d4), (0x65dcaf, 0x65dd18),
-                       (0x65dd18, 0x65dd5f), (0x65e72d, 0x65e9a4), (0x661770, 0x661800), (0x65ee1b, 0x65ee7a)])
+                       (0x65dd18, 0x65dd5f), (0x65e72d, 0x65e9a4), (0x661770, 0x661800), (0x65ee1b, 0x65ee7a), (0x65d822, 0x65d865)])
 SCRIPT, TNODE, CLOCK = ARG + 0x400, ARG + 0x600, ARG + 0x700
 
 
@@ -41,13 +43,13 @@ def case(r):
     op = r.deal(OPS)
     log = log_region()
     regions = {LOG: log, VTABLE: vtable({5: 1})}
-    if op == 'FindChild':
+    if op in ('FindChild', 'ChildCount'):
         ids = [r.choice([0, 1, 5, 0x18, 0x1f, 0x100, r.getrandbits(32)]) for _ in range(r.choice([0, 1, 2, 3, 6]))]
         want = r.choice(ids + [r.choice([0, 5, 0x18, r.getrandbits(32)])]) if ids else r.choice([0, 5])
         win = bytearray(r.bytes(0x90))
         put(win, 0x5c, 'I', chain(r, regions, ids, NODES))
         regions[WINDOW] = win
-        return Call(CALLS[op], [WINDOW, want], regions, conv='t', ret='a')
+        return Call(CALLS[op], [WINDOW] + ([] if op == 'ChildCount' else [want]), regions, conv='t', ret='a')
     if op == 'IsShown':   # a chain of 0-4 windows by +0x60, flag 0 of +0x48 mostly set (other bits random)
         n = r.randrange(0, 5)
         for i in range(n):

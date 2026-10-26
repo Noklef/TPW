@@ -9,6 +9,10 @@ extern "C" {
 // 0x65d7d0 (thiscall (id), pops 4; name unconfirmed): the first child of the window whose id is `id`, 0 when none is.
 u8 *__fastcall Window_FindChild(u8 *window, void *, u32 id);
 
+// 0x65d822 (thiscall; no callers; name unconfirmed): the number of children (a word, in AX). With none the rest of EAX is the window's
+// (sic), else 0.
+u32 __fastcall Window_ChildCount(u8 *window);
+
 // 0x65f697 (thiscall (message, a, b), pops 12; name unconfirmed): the window's handler (the cdecl function at +0x114) called with
 // (window, message, a, b) and its result returned; -1 when there is none.
 s32 __fastcall Window_CallHandler(u8 *window, void *, u32 message, u32 a, u32 b);

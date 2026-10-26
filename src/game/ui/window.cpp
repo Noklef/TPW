@@ -53,6 +53,13 @@ u8 *__fastcall Window_FindChild(u8 *window, void *, u32 id) {
     return found;
 }
 
+u32 __fastcall Window_ChildCount(u8 *window) {
+    if (!at<u8 *>(window, 0x5c)) return (u32)(uintptr_t)window & 0xffff0000u;  // sic: only AX is set, EAX held the window
+    u16 count = 0;
+    for (u8 *child = at<u8 *>(window, 0x5c); child; child = at<u8 *>(child, 0x54)) ++count;
+    return count;
+}
+
 s32 __fastcall Window_CallHandler(u8 *window, void *, u32 message, u32 a, u32 b) {
     using Handler = s32(__cdecl *)(u8 *, u32, u32, u32);
     const Handler handler = at<Handler>(window, 0x114);
