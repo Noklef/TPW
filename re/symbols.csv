@@ -5470,6 +5470,10 @@ address,name,kind,confidence,notes
 0x0065ee1b,Window_StopSlide,function,low,"reimplemented (src/game/ui/window); thiscall (move word), pops 4: with +0x136 set the timer +0x100 stopped, +0x136 and +0x10c 0, with the word the rectangle set to +0x38; 1 / 0 in AX"
 0x0065cd95,Window_AdjustRect,function,low,"reimplemented (src/game/ui/window); thiscall (four words), pops 16: the rectangle +8 adjusted by the words and set"
 0x0065edd3,Window_PauseSlide,function,low,"reimplemented (src/game/ui/window); thiscall (paused word), pops 4: with a slide timer +0x100 stopped or started by the word; 1 / 0 in AX"
+0x0065d323,Window_NotifyObject98_1,function,low,"reimplemented (src/game/ui/window); thiscall (value word), pops 4: the object +0x98 (when set) told by slot 3 (1, an event with the word +4)"
+0x0065d363,Window_NotifyImpl1,function,low,"reimplemented (src/game/ui/window); thiscall (value word), pops 4: the object +0x9c (when set) told by slot 3 (1, an event with the word +4)"
+0x0065f246,Window_NotifyImpl2,function,low,"reimplemented (src/game/ui/window); thiscall (value word), pops 4: the object +0x9c (when set) told by slot 3 (2, an event with the word +6)"
+0x0065d69f,Window_Object98Slot7,function,low,"reimplemented (src/game/ui/window); thiscall (a, b), pops 8: the object +0x98's slot 7 (a, b), its result; 0 without one"
 0x00498090,Dialog7ca1c8_SetChecks,function,low,"reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): the nine check buttons of the 0x7ca1c8 dialog's child 0x18 set (vtable slot 5, bool) from flags bits 0-8 (0x20's also needs [0x7ca1d0]+0x50)"
 0x00498a50,Dialog7ca1c8_SetChecksIfUp,function,low,reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): Dialog7ca1c8_SetChecks when [0x7ca1c8] and [0x7ca1cc] are not 0
 0x00481a00,Dialog7ca1c8_SetChecksIfUpThis,function,low,"reimplemented (src/game/ui/dialog7ca1c8); thiscall (flags), pops 4, this unused: Dialog7ca1c8_SetChecksIfUp(flags)"

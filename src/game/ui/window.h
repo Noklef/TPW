@@ -25,6 +25,9 @@ s32 __cdecl Window_SendMessage(u8 *window, u32 message, u32 a, u32 b);
 // none.
 u32 __fastcall Window_ImplSlot7(u8 *window, void *, u32 a, u32 b);
 
+// 0x65d69f (thiscall (a, b), pops 8; no direct callers; name unconfirmed): Window_ImplSlot7 for the object at +0x98.
+u32 __fastcall Window_Object98Slot7(u8 *window, void *, u32 a, u32 b);
+
 // 0x65d745 (thiscall; name unconfirmed): slot 6 (thiscall, no arguments) of the window's object at +0x9c, its result; the window itself when
 // there is none (sic: EAX still holds it).
 u32 __fastcall Window_ImplSlot6(u8 *window);
@@ -279,6 +282,15 @@ u32 __fastcall Window_Notify80(u8 *window, void *, u32 value);
 // 0x66160c (thiscall (value: a word), pops 4; name unconfirmed): the objects +0x98 and +0x9c (when set) told through their slot 3
 // (0x80000, an event on the stack whose only word set, +0xa, is the value). EAX not kept.
 void __fastcall Window_Notify80000(u8 *window, void *, u32 value);
+
+// 0x65d323 / 0x65d363 (thiscall (value: a word), pops 4; no direct callers; names unconfirmed): Window_Notify1 for only the object +0x98
+// / only +0x9c (when set).
+void __fastcall Window_NotifyObject98_1(u8 *window, void *, u32 value);
+void __fastcall Window_NotifyImpl1(u8 *window, void *, u32 value);
+
+// 0x65f246 (thiscall (value: a word), pops 4; no direct callers; name unconfirmed): the object +0x9c (when set) told through its slot 3
+// (2, an event on the stack whose only word set, +6, is the value). EAX not kept.
+void __fastcall Window_NotifyImpl2(u8 *window, void *, u32 value);
 
 // 0x65d865 (thiscall (width, height: word pointers, each may be 0; inner: a word), pops 12; name unconfirmed): the size of the rectangle
 // +8 (GuiRect_GetSize); with inner not 0 each one set less the margins: width less +0xfc - +0xf8, height less +0xfe - +0xfa. 1 in AX (the

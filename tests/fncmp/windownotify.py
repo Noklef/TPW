@@ -8,6 +8,8 @@
 # value. SetDepth / SetWordE2 (0x65f16b, 0x65f286): notify_env's tree (the children too), the event's word +6 / +8 hashed, the value near
 # 0x100 or any. NotifyC000 (0x65c672): NotifyC00's, the second event's words +0xa / +0xc hashed.
 # Notify1b / Notify80 / Notify80000 (0x6615a3, 0x661525, 0x66160c): as Notify1, the event's word +4, dword +0 or word +0xa hashed.
+# NotifyObject98_1 / NotifyImpl1 / NotifyImpl2 (0x65d323, 0x65d363, 0x65f246): as Notify1, only +0x98 / +0x9c told, the event's word +4
+# (+6 for NotifyImpl2) hashed. Object98Slot7 (0x65d69f): ImplSlot7's, the object at +0x98 instead.
 # usage: windownotify.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Set4c,NotifyC00,...)
 import os
 import struct
@@ -23,26 +25,28 @@ CALLS = {'Set4c': 0x65c388, 'NotifyC00': 0x65c428, 'Notify3000': 0x65c4b9, 'Noti
          'ImplRelease': 0x6616b0, 'ImplSlot7': 0x65d6db, 'ImplSlot6': 0x65d745, 'DwordA0': 0x65e705, 'SetObject98': 0x65d070,
          'Notify40000': 0x65c5d5, 'NotifyImpl100': 0x65f5b7, 'SetDwordA0': 0x65e6d5,
          'NotifyObject98_100': 0x65f5fe, 'SetDepth': 0x65f16b, 'SetWordE2': 0x65f286, 'NotifyC000': 0x65c672, 'Notify1': 0x65d3a3, 'SetWordsE4': 0x65f345,
-         'Notify1b': 0x6615a3, 'Notify80': 0x661525, 'Notify80000': 0x66160c}
+         'Notify1b': 0x6615a3, 'Notify80': 0x661525, 'Notify80000': 0x66160c,
+         'NotifyObject98_1': 0x65d323, 'NotifyImpl1': 0x65d363, 'NotifyImpl2': 0x65f246, 'Object98Slot7': 0x65d69f}
 B = Bench(RANGES + [(0x65d070, 0x65d1c8), (0x65c5d5, 0x65c672), (0x65f5b7, 0x65f643), (0x65e6d5, 0x65e705), (0x65f16b, 0x65f246),
                     (0x65f286, 0x65f330), (0x65c672, 0x65c707), (0x65d3a3, 0x65d40c), (0x65f345, 0x65f410),
-                    (0x661525, 0x661596), (0x6615a3, 0x66160c), (0x66160c, 0x66167b)])
+                    (0x661525, 0x661596), (0x6615a3, 0x66160c), (0x66160c, 0x66167b),
+                    (0x65d323, 0x65d3a3), (0x65f246, 0x65f286), (0x65d69f, 0x65d6db)])
 
 
 def case(r):
     op = r.deal(OPS)
     log = log_region()
     regions = {LOG: log, VTABLE: vtable({5: 1})}
-    if op in ('ImplSlot7', 'ImplSlot6', 'DwordA0', 'SetDwordA0'):   # +0x9c a recorder object or 0; +0xa0 sixteen dwords (an index reads before them too)
+    if op in ('ImplSlot7', 'ImplSlot6', 'DwordA0', 'SetDwordA0', 'Object98Slot7'):   # +0x9c a recorder object or 0; +0xa0 sixteen dwords (an index reads before them too)
         win = bytearray(r.bytes(0x120))
-        put(win, 0x9c, 'I', r.choice([MISC, MISC, 0]))
+        put(win, 0x98 if op == 'Object98Slot7' else 0x9c, 'I', r.choice([MISC, MISC, 0]))
         regions[WINDOW] = win
         regions[MISC] = struct.pack('<I', VTABLE)
         for k in (6, 7):
             if r.random() < 0.5:
                 set_return(log, k, r.choice([0, 1, r.getrandbits(32)]))
         regions[VTABLE] = vtable({7: 2})
-        if op == 'ImplSlot7':
+        if op in ('ImplSlot7', 'Object98Slot7'):
             return Call(CALLS[op], [WINDOW, r.getrandbits(32), r.choice([0, 1, r.getrandbits(32)])], regions, conv='t', ret='a')
         if op == 'ImplSlot6':
             return Call(CALLS[op], [WINDOW], regions, conv='t', ret='a')
@@ -72,8 +76,8 @@ def case(r):
     if op == 'SetWordsE4':   # (the event's words +0xc / +0xe; the upper halves random)
         notify_blobs(log, 0xf000, 0)
         return Call(CALLS[op], [window, r.getrandbits(32), r.getrandbits(32)], regions, conv='t', ret='v')
-    if op in ('Notify1', 'Notify1b', 'Notify80', 'Notify80000'):   # (the event's word +4, dword +0 or word +0xa)
-        notify_blobs(log, {'Notify80': 0xf, 'Notify80000': 0xc00}.get(op, 0x30), 0)
+    if op in ('Notify1', 'Notify1b', 'Notify80', 'Notify80000', 'NotifyObject98_1', 'NotifyImpl1', 'NotifyImpl2'):   # (the event's word +4, dword +0 or word +0xa)
+        notify_blobs(log, {'Notify80': 0xf, 'Notify80000': 0xc00, 'NotifyImpl2': 0xc0}.get(op, 0x30), 0)
         return Call(CALLS[op], [window, r.getrandbits(32)], regions, conv='t', ret='w' if op == 'Notify80' else 'v')
     if op in ('SetDepth', 'SetWordE2'):   # (the event's word +6 / +8; the value near the depth's limit 0x100 or any, its upper half random)
         notify_blobs(log, 0xc0 if op == 'SetDepth' else 0x300, 0)

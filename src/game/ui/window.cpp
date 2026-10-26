@@ -77,6 +77,12 @@ u32 __fastcall Window_ImplSlot7(u8 *window, void *, u32 a, u32 b) {
     return reinterpret_cast<u32(__fastcall *)(u8 *, void *, u32, u32)>(at<void **>(impl, 0)[7])(impl, nullptr, a, b);
 }
 
+u32 __fastcall Window_Object98Slot7(u8 *window, void *, u32 a, u32 b) {
+    u8 *const object = at<u8 *>(window, 0x98);
+    if (!object) return 0;
+    return reinterpret_cast<u32(__fastcall *)(u8 *, void *, u32, u32)>(at<void **>(object, 0)[7])(object, nullptr, a, b);
+}
+
 u32 __fastcall Window_ImplSlot6(u8 *window) {
     u8 *const impl = at<u8 *>(window, 0x9c);
     if (!impl) return (u32)(uintptr_t)window;  // sic
@@ -700,6 +706,24 @@ void __fastcall Window_Notify1b(u8 *window, void *, u32 value) {
     at<u16>(event, 4) = (u16)value;
     if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 1u, event);
     if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 1u, event);
+}
+
+void __fastcall Window_NotifyObject98_1(u8 *window, void *, u32 value) {
+    u8 event[0x18];  // (only the word +4 set)
+    at<u16>(event, 4) = (u16)value;
+    if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 1u, event);
+}
+
+void __fastcall Window_NotifyImpl1(u8 *window, void *, u32 value) {
+    u8 event[0x18];  // (only the word +4 set)
+    at<u16>(event, 4) = (u16)value;
+    if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 1u, event);
+}
+
+void __fastcall Window_NotifyImpl2(u8 *window, void *, u32 value) {
+    u8 event[0x18];  // (only the word +6 set)
+    at<u16>(event, 6) = (u16)value;
+    if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 2u, event);
 }
 
 u32 __fastcall Window_Notify80(u8 *window, void *, u32 value) {
