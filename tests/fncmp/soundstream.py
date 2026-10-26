@@ -8,17 +8,21 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, LOG, RAM, Bench, Call, echo, fill, heap, log_region, set_return, strings, vtable  # noqa: E402
+from fncmp import HEAP, LOG, LOG_RETURNS, RAM, Bench, Call, echo, fill, heap, log_region, set_return, strings, vtable  # noqa: E402
 
 # name: (address, convention, returns)
 CALLS = {'dtor': (0x6bab30, 't', 'a'), 'setnext': (0x6c61e0, 't', 'a'), 'chain': (0x6c6210, 'c', 'a'), 'close': (0x6c6230, 't', 'v'),
          'unlink': (0x6c6300, 't', 'v'), 'find': (0x6c62e0, 't', 'a'), 'describe': (0x6c62c0, 't', 'v'), 'send': (0x6c6260, 't', 'v'),
-         'rate': (0x6ba9a0, 't', 'a'), 'query': (0x6c6280, 't', 'a')}
-RANGES = [(0x6bab30, 0x6bab50), (0x6ba9a0, 0x6ba9b0), (0x6c61e0, 0x6c632e)]
+         'rate': (0x6ba9a0, 't', 'a'), 'query': (0x6c6280, 't', 'a'), 'seektime': (0x6c6d70, 't', 'a')}
+RANGES = [(0x6bab30, 0x6bab50), (0x6ba9a0, 0x6ba9b0), (0x6c61e0, 0x6c632e), (0x6c6d70, 0x6c6e45)]
 B = Bench(RANGES)
 STREAM, NEXT, PREV, VT, OUT, RECORD, WORD = (RAM + 0x100 * i for i in range(7))
-SLOTS = {0: 1, 1: 1, 4: 1, 5: 1, 9: 2, 11: 1}
+SLOTS = {0: 1, 1: 1, 4: 1, 5: 1, 9: 2, 11: 1, 12: 1}
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
+
+
+def f32(x):
+    return struct.unpack('<f', struct.pack('<f', x))[0] if abs(x) < 3e38 else x
 
 
 def obj(r, nxt, prev, id_):
@@ -57,6 +61,20 @@ def case(r):
         else:
             set_return(log, 9, WORD)
         args = [OUT, RECORD]
+    elif name == 'seektime':   # (the rate, the channels and bits answers, the length; the time small, about a length's end or any)
+        set_return(log, 6, r.choice([11025, 22050, 44100, 8000, r.randrange(1, 100000), r.getrandbits(32)]))
+        set_return(log, 17, r.choice([1, 2, 2, 0x102, r.getrandbits(32)]))
+        set_return(log, 16, r.choice([8, 0x10, 0x10, 0x110, r.getrandbits(32)]))
+        length = r.choice([0, 0, r.randrange(1, 0x10000), r.randrange(0x10000, 0x1000000), r.getrandbits(32)])
+        ms = r.choice([0, 1, r.randrange(1000), r.randrange(1, 100000), r.getrandbits(32), r.getrandbits(32)])
+        if r.random() < 0.3:   # (the length about the offset: an estimate in floats, one either side)
+            rate, ch, bits = (struct.unpack_from('<I', log, LOG_RETURNS + 8 * k + 4)[0] for k in (6, 17, 16))
+            f = f32(f32(ms * f32(0.001)) * rate) * (2 if ch & 0xff == 2 else 1) * (2 if bits & 0xff == 0x10 else 1)
+            offset = int(round(f)) & 0xffffffff if f < 2 ** 31 else 0x80000000
+            offset += offset & 3
+            length = (offset + r.choice([-1, 0, 0, 1])) & 0xffffffff
+        set_return(log, 14, length)
+        args = [OUT, ms]
     elif name in ('describe', 'send'):
         args = [r.choice([RECORD, r.getrandbits(32)])]
     else:

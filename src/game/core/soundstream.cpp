@@ -1,7 +1,9 @@
 #include "soundstream.h"
 
 #include <cstdint>
+#include <xmmintrin.h>
 
+#include "../math/x87.h"
 #include "gameheap.h"
 #include "streampool.h"
 #include "vcall.h"
@@ -13,9 +15,34 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 u8 *next_of(u8 *stream) { return at<u8 *>(stream, 4); }
 
+// fld; fistp (to nearest; out of range 0x80000000, as cvtss2si).
+s32 fistp(float x) { return _mm_cvtss_si32(_mm_set_ss(x)); }
+
 }  // namespace
 
 extern "C" {
+
+u32 *__fastcall SoundStream_SeekTime(u8 *stream, void *, u32 *out, u32 ms) {
+    if (!next_of(stream)) {
+        *out = 0xffffffff;
+        return out;
+    }
+    const u32 rate = vcall<u32>(stream, 0x18);
+    const float per_ms = static_cast<float>(X87_MulInt(ms, 0.001f));   // (the float at 0x70ac44)
+    float bytes = static_cast<float>(X87_MulInt(rate, per_ms));
+    if (vcall<u8>(stream, 0x44) == 2) bytes = bytes + bytes;
+    if (vcall<u8>(stream, 0x40) == 0x10) bytes = bytes + bytes;
+    u32 offset = static_cast<u32>(fistp(bytes));
+    if (offset & 3) offset += offset & 3;   // (sic: not rounded up to the next multiple of 4)
+    const u32 length = vcall<u32>(stream, 0x38);
+    if (offset <= length) {
+        vcall<void>(stream, 0x30, offset);
+    } else if (length) {
+        vcall<void>(stream, 0x30, offset % length);
+    }
+    *out = 0;
+    return out;
+}
 
 u8 *__fastcall SoundStream_Dtor(u8 *stream, void *, u32 flags) {
     at<u32>(stream, 0) = 0x70a778;

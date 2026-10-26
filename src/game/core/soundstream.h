@@ -1,7 +1,7 @@
 // The sound stream (vtable 0x70a778; the names are invented), the base of the stream filter (src/game/core/streamfilter) and the
 // sound sources: a stream in a chain, +4 the next stream downstream, +8 the one upstream, +0xc an id. Its slots: 0 the destructor, 1 the
 // next set, 2 the close, 3 the unlink, 4 the find by id, 5 a description, 6 the sample rate, 9 a query (out, record), 11 a send; the
-// chain's slots pass on to the next stream. Reimplementation of 0x6bab30, 0x6ba9a0 and 0x6c61e0-0x6c6300.
+// chain's slots pass on to the next stream. Reimplementation of 0x6bab30, 0x6ba9a0, 0x6c61e0-0x6c6300 and 0x6c6d70.
 #pragma once
 
 #include "../../../re/types.h"
@@ -33,5 +33,10 @@ u32 *__fastcall SoundStream_Query(u8 *stream, void *, u32 *out, u8 *record);
 // 0x6baab0 (thiscall (flags), pops 4; slot 0 of 0x70a6c8): the base's vtable (Vtbl70a778_Set_6c7090), then, when flags bit 0, the
 // pool's delete (Stream70a6c8Pool_Delete, 0x1c). Returns the stream.
 u8 *__fastcall Stream70a6c8_Dtor(u8 *stream, void *, u32 flags);
+// 0x6c6d70 (thiscall (out, ms), pops 8): without a next stream (+4) *out = -1. Else the byte offset of the time: the sample rate (slot 6)
+// times (ms times 0.001f) (x87 at 24 bits, through a float), doubled when slot 17 answers 2 (AL) and again when slot 16 answers 0x10,
+// rounded (fistp); its low two bits, when not 0, added to it (sic). Slot 12 (seek) to it when it is not past the length (slot 14,
+// unsigned), else to it modulo the length unless that is 0. *out = 0. Returns out.
+u32 *__fastcall SoundStream_SeekTime(u8 *stream, void *, u32 *out, u32 ms);
 
 }  // extern "C"
