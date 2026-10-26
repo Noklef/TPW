@@ -758,4 +758,20 @@ u32 *__fastcall SoundVoice_Start(u8 *voice, void *, u32 *out, u32 now) { return 
 
 u32 *__fastcall SoundVoice_StartCounted(u8 *voice, void *, u32 *out, u32 now) { return start_voice(voice, out, now, true); }
 
+u32 __fastcall SoundVoice_PickChannelVoice(u8 *voice, void *, u32 a, u32) {
+    const u32 variation = vcall<u32>(voice, 0x38, 1);
+    if (!static_cast<u8>(variation)) return variation;   // (the slot's whole answer, sic)
+    u8 *const system = global<u8 *>(0x00fb1f24);
+    if (!system) return 0;
+    if (!at<u32>(voice, 8)) return static_cast<u32>(reinterpret_cast<uintptr_t>(system));   // sic
+    const u32 sample = vcall<u32>(voice, 0x3c, 1);
+    at<u32>(voice, 0xc) = sample;
+    if (!sample) return 0;
+    u32 record[0x27];
+    start_record(record);
+    if (!vcall<u32>(voice, 0x48, record)) return 0;
+    u32 picked;   // (dropped)
+    return SoundChannel_PickVoice(global<u8 *>(0x00fb1f24), nullptr, a, &picked, reinterpret_cast<u8 *>(record));
+}
+
 }  // extern "C"

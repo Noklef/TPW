@@ -37,7 +37,7 @@ CALLS = {'ensure': (0x6b7150, 'v'), 'pending': (0x6bc900, 'a'), 'apply': (0x6bbf
          'linkctor': (0x6c3a00, 'a'), 'linkswctor': (0x6c3de0, 'a'), 'linkinit': (0x6c3a80, 'b'), 'linkfollow': (0x6c3c70, 'v'),
          'linkbranch': (0x6c3e00, 'b'), 'rollvol': (0x6bc090, 'a'), 'rollpitch': (0x6bc170, 'a'), 'level': (0x6bc3c0, 'a'),
          'rollword': (0x6bc2d0, 'a'), 'value20': (0x6bba90, 'v'), 'levels': (0x6bbbe0, 'v'), 'position': (0x6bbce0, 'a'),
-         'fillrec': (0x6c3ae0, 'a'), 'voicefill': (0x6bc410, 'a'), 'voicefillx': (0x6c39c0, 'a'), 'start': (0x6bd800, 'a'), 'startcnt': (0x6bdf50, 'a')}
+         'fillrec': (0x6c3ae0, 'a'), 'voicefill': (0x6bc410, 'a'), 'voicefillx': (0x6c39c0, 'a'), 'start': (0x6bd800, 'a'), 'startcnt': (0x6bdf50, 'a'), 'pickch': (0x6bde00, 'a')}
 LINKED_OPS = ('linkinit', 'linkfollow', 'linkbranch')
 B = Bench([(0x6b7150, 0x6b7190), (0x6bc900, 0x6bcb56), (0x6c5130, 0x6c5150), (0x6bbf00, 0x6bbf56), (0x6bc650, 0x6bc674), (0x6bc680, 0x6bc806),
            (0x6bc810, 0x6bc8f0), (0x6bd5f0, 0x6bd781), (0x6bd7a0, 0x6bd7ac), (0x6bb220, 0x6bb237), (0x5f5f10, 0x5f5f7d), (0x5f5fa0, 0x5f5faa),
@@ -48,7 +48,7 @@ B = Bench([(0x6b7150, 0x6b7190), (0x6bc900, 0x6bcb56), (0x6c5130, 0x6c5150), (0x
            (0x6b9260, 0x6b9280), (0x6bc090, 0x6bc240), (0x6bc3c0, 0x6bc410), (0x6c3ae0, 0x6c3c70), (0x6c5110, 0x6c5130), (0x6c5150, 0x6c51a0),
            (0x6c51d0, 0x6c5230), (0x6bc2d0, 0x6bc3bb), (0x6bba90, 0x6bbb72), (0x6bbbe0, 0x6bbcdd), (0x6bbce0, 0x6bbe3d), (0x6bb240, 0x6bb265),
            (0x6bc410, 0x6bc650), (0x6bcb60, 0x6bcb80), (0x6c5090, 0x6c50c0), (0x6bd800, 0x6bd92e), (0x6bdf50, 0x6be08f),
-           (0x6b9a60, 0x6b9aa1), (0x6b9ab0, 0x6b9b26), (0x6c39c0, 0x6c39f3)])
+           (0x6b9a60, 0x6b9aa1), (0x6b9ab0, 0x6b9b26), (0x6c39c0, 0x6c39f3), (0x6bde00, 0x6bdef9)])
 VOICE, OUT, SYS, SVT, VVT, DEF, VARS, SAMPLES, PARAMS, LISTENER, CMD, CVT = (RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x500,
                                                                             RAM + 0x600, RAM + 0xa00, RAM + 0xb00, RAM + 0xb40, RAM + 0xb80, RAM + 0xbc0)
 SYSTEM, RANDOM, CLOCK, TIME_GET_TIME = 0xfb1f24, 0xfb1f20, 0xfa71e0, 0x6fd3ec
@@ -246,6 +246,26 @@ def start_case(r, address, ret, log, voice, system, regions):
     return Call(address, [VOICE, OUT, now], regions, conv='t', ret=ret)
 
 
+def pick_case(r, address, ret, log, voice, regions):
+    """SoundVoice_PickChannelVoice (0x6bde00): slot 14's answer 0, 1 or with a zero low byte; the system null now and then, +8 too; slot 15
+    (+0xc) 0 now and then; slot 18 hashing the record's cleared fields and writing its +0x14 (flag 0x2000 now and then), answering 0 now
+    and then; the channel's slots 6 and 5 (SoundChannel_PickVoice) hashing the record, slot 6 answering 0 or a voice."""
+    rec = 1 | 1 << 1 | 1 << 3 | 1 << 4 | 1 << 5 | 1 << 0xb | 1 << 0xc | 1 << 0xe | 1 << 0xf | 1 << 0x10 | 0xff << 0x18
+    set_return(log, 14, r.choice([0, 1, 1, 1, 0x100, 0xffffff00, r.getrandbits(32)]))
+    set_return(log, 15, r.choice([0, SAMPLES, SAMPLES, r.getrandbits(32)]))
+    fill(log, 18, 0, struct.pack('<I', r.choice([0, 0x2000, r.getrandbits(32)])), offset=0x14)
+    blob(log, 18, 0, rec)
+    set_return(log, 18, r.choice([0, 1, 1, r.getrandbits(32)]))
+    set_return(log, 6, r.choice([0, 0, VOICE + 0x80, r.getrandbits(32)]))
+    set_return(log, 5, r.getrandbits(32))
+    for k in (6, 5):
+        blob(log, k, 1, rec)
+    struct.pack_into('<I', voice, 8, r.choice([VARS] * 7 + [0]))
+    regions.update({SYSTEM: struct.pack('<I', r.choice([SYS] * 9 + [0])), SVT: vtable({4: 2, 5: 2, 6: 2, 10: 1}),
+                    VVT: vtable({7: 0, 8: 1, 14: 1, 15: 1, 16: 2, 17: 2, 18: 1})})
+    return Call(address, [VOICE, r.getrandbits(32), r.getrandbits(32)], regions, conv='t', ret=ret)
+
+
 def case(r):
     name = r.deal(OPS)
     address, ret = CALLS[name]
@@ -320,6 +340,8 @@ def case(r):
         regions.update({PARENT: parent, PARENT_PARAMS: parent_params})
     if name in ('start', 'startcnt'):
         return start_case(r, address, ret, log, voice, system, regions)
+    if name == 'pickch':
+        return pick_case(r, address, ret, log, voice, regions)
     if name in ROLL_OPS:
         return rolls(r, name, address, ret, log, voice, variations, system, regions)
     if name in ('linkctor', 'linkswctor'):

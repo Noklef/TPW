@@ -191,5 +191,10 @@ u32 *__fastcall SoundVoice_Start(u8 *voice, void *, u32 *out, u32 now);
 // 0x6bdf50 (slot 5 of 0x70a338, 0x70a440, 0x70a498, 0x70a878 and 0x70a8d0; name invented): SoundVoice_Start with, after the fill and with
 // flag 4, the record's +0x44 = 1 (SetThenFlag44_14_6c5110).
 u32 *__fastcall SoundVoice_StartCounted(u8 *voice, void *, u32 *out, u32 now);
+// 0x6bde00 (thiscall (a, unused), pops 8; slot 0 of 0x70a338, 0x70a440, 0x70a498, 0x70a878 and 0x70a8d0; name invented): the voice's
+// slot 14 (1) answering 0 in its low byte: that whole answer (sic). Without the sound system 0; without a variation (+8) the system's
+// address (sic). Else +0xc = slot 15 (1) (0: 0), a stack record (as SoundVoice_Start's) through slot 18 (0: 0), then
+// SoundChannel_PickVoice (the system, re-read; a, a dropped local, the record).
+u32 __fastcall SoundVoice_PickChannelVoice(u8 *voice, void *, u32 a, u32 unused);
 
 }  // extern "C"
