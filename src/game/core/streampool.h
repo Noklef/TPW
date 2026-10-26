@@ -2,9 +2,11 @@
 // new, under a critical section the pool allocates. The stream filter's (0x70a678: 0x18-byte blocks, the next block at +0x10; the lock at
 // [0xfb206c], the list at [0xfb2068]), the looping stream's (0x70aba8: 0x24, +0x18; [0xfb2084], [0xfb2080]), the stream 0x70abf8's
 // (0x14, +0x10; [0xfb2090], [0xfb208c]), the stream 0x70a6c8's (0x1c, +0x14; [0xfb20a8], [0xfb20a4]), the voice-coded samples' over
-// memory (0x70ad60, core/voicesample: 0x40, +0x28; [0xfb20c0], [0xfb20bc]) and over a sub-stream (0x70adc0: 0x5c, +0x58; [0xfb20cc], [0xfb20c8]). Other sizes go straight to
+// memory (0x70ad60, core/voicesample: 0x40, +0x28; [0xfb20c0], [0xfb20bc]) and over a sub-stream (0x70adc0: 0x5c, +0x58; [0xfb20cc], [0xfb20c8]),
+// the silence stream's (0x70ab58, core/silencestream: 0x30, +0x28; [0xfb2078], [0xfb2074]). Other sizes go straight to
 // Mem_Free. As the MP2 decoders' pools (src/game/core/mp2pool). Reimplementation of each pool's Init, Shutdown, Purge, New
-// and Delete (0x6c6340-0x6c6495, 0x6c68a0-0x6c69f5, 0x6c6bd0-0x6c6d25, 0x6c7300-0x6c7455, 0x6c79c0-0x6c7b15, 0x6c7e10-0x6c7f65).
+// and Delete (0x6c6340-0x6c6495, 0x6c68a0-0x6c69f5, 0x6c6bd0-0x6c6d25, 0x6c7300-0x6c7455, 0x6c79c0-0x6c7b15, 0x6c7e10-0x6c7f65,
+// 0x6c65d0-0x6c6724; the silence pool's atexit registration 0x6c65c0 / 0x6c65f0 left out).
 #pragma once
 
 #include "../../../re/types.h"
@@ -52,5 +54,11 @@ void __cdecl Stream70abf8Pool_Delete(void *block, u32 size);
 void __cdecl Stream70a6c8Pool_Delete(void *block, u32 size);
 void __cdecl VoiceSamplePool_Delete(void *block, u32 size);   // 0x6c7ad0
 void __cdecl VoiceStreamPool_Delete(void *block, u32 size);   // 0x6c7f20
+// The silence stream's: 0x6c65d0, 0x6c6600, 0x6c6630, 0x6c6670 and 0x6c66e0.
+void __cdecl SilenceStreamPool_Init();
+void __cdecl SilenceStreamPool_Shutdown();
+void __cdecl SilenceStreamPool_Purge();
+void *__cdecl SilenceStreamPool_New(u32 size);
+void __cdecl SilenceStreamPool_Delete(void *block, u32 size);
 
 }  // extern "C"

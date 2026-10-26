@@ -26,6 +26,7 @@ constexpr Pool k70abf8 = {0x00fb2090, 0x00fb208c, 0x14, 0x10};
 constexpr Pool k70a6c8 = {0x00fb20a8, 0x00fb20a4, 0x1c, 0x14};
 constexpr Pool kVoiceSample = {0x00fb20c0, 0x00fb20bc, 0x40, 0x28};
 constexpr Pool kVoiceStream = {0x00fb20cc, 0x00fb20c8, 0x5c, 0x58};
+constexpr Pool kSilence = {0x00fb2078, 0x00fb2074, 0x30, 0x28};
 
 void Init(const Pool &p) {
     void *const lock = GameHeap_Alloc(0x18);
@@ -109,5 +110,10 @@ void __cdecl Stream70abf8Pool_Delete(void *block, u32 size) { Delete(k70abf8, bl
 void __cdecl Stream70a6c8Pool_Delete(void *block, u32 size) { Delete(k70a6c8, block, size); }
 void __cdecl VoiceSamplePool_Delete(void *block, u32 size) { Delete(kVoiceSample, block, size); }
 void __cdecl VoiceStreamPool_Delete(void *block, u32 size) { Delete(kVoiceStream, block, size); }
+void __cdecl SilenceStreamPool_Init() { Init(kSilence); }
+void __cdecl SilenceStreamPool_Shutdown() { Shutdown(kSilence); }
+void __cdecl SilenceStreamPool_Purge() { Purge(kSilence); }
+void *__cdecl SilenceStreamPool_New(u32 size) { return New(kSilence, size); }
+void __cdecl SilenceStreamPool_Delete(void *block, u32 size) { Delete(kSilence, block, size); }
 
 }  // extern "C"

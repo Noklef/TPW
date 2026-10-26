@@ -3,7 +3,9 @@
 #include <cstdint>
 #include <cstring>
 
+#include "streampool.h"
 #include "vcall.h"
+#include "voicesample.h"
 
 namespace {
 
@@ -25,6 +27,12 @@ u32 __fastcall SilenceStream_Read(u8 *stream, void *, u8 *buffer, u32 bytes, u32
     *done += n;
     at<u32>(stream, 0x14) += n;
     return at<u32>(stream, 0x14) >= at<u32>(stream, 0x18) ? 1 : 0;
+}
+
+u8 *__fastcall SilenceStream_DeletingDtor(u8 *stream, void *, u32 flags) {
+    VoiceSample_Dtor(stream);
+    if (flags & 1) SilenceStreamPool_Delete(stream, 0x30);
+    return stream;
 }
 
 }  // extern "C"
