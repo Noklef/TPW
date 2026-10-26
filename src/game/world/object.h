@@ -53,6 +53,14 @@ u32 __fastcall Kinds_Compatible(const u8 *object, void *, u32 kind);
 // +0x3e0 is 0 or equal to the low 16 bits of extra, the dword at +0x3dc gains amount. Undefined return.
 void __fastcall Slots_AddIfMatch(u8 *object, void *, u32 id, u32 amount, u32 kind, u32 extra);
 
+// 0x4d2860 (thiscall (event), pops 4; through 0x50b643; name unconfirmed): by the event's type (its slot 0): 0x1a Slots_AddIfMatch with
+// the event's id +8, amount +0xc and kind word +0x10; 0x11 with +0xc 0, Slots_AddIfMatch(0x10, 1, 0, 0); 0xb on the selected slot (as
+// Slots_AddIfMatch's; none: nothing) by its id: 0x18 Slots_AddIfMatch(0x18, 100 - Things_AverageKind3Flag1Of100Minus44), 0x19 with
+// Things_AverageStaffStat1f8Int, 0x1b with Things_AverageStat1f8OfKind of the slot's +0x10 0-4 as the staff kinds 5, 4, 6, 7, 8 (else the
+// event's address, sic), the game [[0x7cf6ec]]'s GameTable7cfb90_Get1da720_519510 looked up first (unused). Any other type: nothing
+// (the original's debug message). The kind's high half and the extra's are the original's stack garbage, which AddIfMatch never reads.
+void __fastcall Slots_OnEvent(u8 *object, void *, u8 *event);
+
 // 0x503a20 (thiscall; slot, pops 4): the entries (20 bytes from +0xc) are chosen by the dwords at +0x1414 + 16 * slot (0 when below 0): for slot 4
 // the dword at +0x1ac of the object definition (word +0xc of the entry; ObjectDefs_Find) at 0x40 * (the byte at +0x15) + 0x1b8; for the others
 // the dword at +4 of the object control record (the entry's word at +0xc; the game's table, ObjectControls_FindUncached quiet).
