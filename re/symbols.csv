@@ -4653,6 +4653,10 @@ address,name,kind,confidence,notes
 0x006c7070,SoundSample_Drained,function,low,"reimplemented (src/game/core/soundsample); thiscall: 1 once Time_GetMs has reached +0x1c (unsigned), else 0"
 0x006bb1d0,SoundSample_Describe,function,low,"reimplemented (src/game/core/soundsample); thiscall (record), pops 4; slot 5 of the sound samples: SoundStream_Describe (record)"
 0x006c6ef0,SoundSample_Dtor,function,low,"reimplemented (src/game/core/soundsample); thiscall; the sound samples' destructor (0x70ac50): the source at +0x24, if any, released (its slot 0); vtable 0x70a778"
+0x006be140,ShuffleBag_Shuffle,function,low,"reimplemented (src/game/core/shufflebag); thiscall: index 0, the seed stepped, a pick k; entries k-1 and k swapped outward by alternating strides (name invented)"
+0x006be130,ShuffleBag_SetList,function,low,"reimplemented (src/game/core/shufflebag); thiscall (list), pops 4: +0 = list, then the shuffle (name invented)"
+0x006be100,ShuffleBag_Ctor,function,low,"reimplemented (src/game/core/shufflebag); thiscall (list), pops 4: strides 1 and 2, seed Time_GetMs, then SetList (name invented)"
+0x006be210,ShuffleBag_Next,function,low,"reimplemented (src/game/core/shufflebag); thiscall (refill), pops 4: the next entry, reshuffled at the end with refill, else 0 (name invented)"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

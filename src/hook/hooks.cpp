@@ -197,6 +197,7 @@
 #include "../game/core/sfbank.h"
 #include "../game/core/sfman.h"
 #include "../game/core/sharedglobals.h"
+#include "../game/core/shufflebag.h"
 #include "../game/core/sndreverb.h"
 #include "../game/core/soundbank.h"
 #include "../game/core/soundcategory.h"
@@ -4555,6 +4556,10 @@ const Hook kHooks[] = {
     {"VoiceStream_Dtor",          0x006c8000, (void *)&VoiceStream_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"VoiceSample_DeletingDtor",  0x006c7ba0, (void *)&VoiceSample_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x88}},
     {"VoiceStream_DeletingDtor",  0x006c7fe0, (void *)&VoiceStream_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"ShuffleBag_Shuffle",        0x006be140, (void *)&ShuffleBag_Shuffle, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"ShuffleBag_SetList",        0x006be130, (void *)&ShuffleBag_SetList, {0x8b, 0x44, 0x24, 0x04, 0x89}},
+    {"ShuffleBag_Ctor",           0x006be100, (void *)&ShuffleBag_Ctor, {0x56, 0x8b, 0xf1, 0x33, 0xc0}},
+    {"ShuffleBag_Next",           0x006be210, (void *)&ShuffleBag_Next, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
