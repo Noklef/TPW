@@ -316,6 +316,12 @@ void __fastcall Window_NotifyImpl100(u8 *window, void *, u32 a) {
     vcall<void>(at<u8 *>(window, 0x9c), 0xc, 0x100u, event);
 }
 
+u16 __fastcall Window_NotifyBoth100(u8 *window, void *, u32 a) {
+    Window_NotifyImpl100(window, nullptr, a);
+    Window_NotifyObject98_100(window, nullptr, a);
+    return 1;
+}
+
 void __fastcall Window_NotifyObject98_100(u8 *window, void *, u32 a) {
     if (!at<u8 *>(window, 0x98)) return;
     u8 inner[0x14], event[0x18];  // (only inner's dword +0 and event's pointer +0x10 set)
@@ -943,6 +949,10 @@ void __fastcall Window_SetWordsE4(u8 *window, void *, u32 a, u32 b) {
     if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 0x40u, event);
     if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 0x40u, event);
     for (u8 *child = at<u8 *>(window, 0x5c); child; child = at<u8 *>(child, 0x54)) Window_SetWordsE4(child, nullptr, (u16)a, (u16)b);
+}
+
+void __fastcall Window_AddWordsE4(u8 *window, void *, u32 da, u32 db) {
+    Window_SetWordsE4(window, nullptr, (u32)(at<s16>(window, 0xe4) + (s16)da), (u32)(at<s16>(window, 0xe6) + (s16)db));
 }
 
 u32 __fastcall Window_AddChild(u8 *window, void *, u8 *child, u32 depth, u32 words) {

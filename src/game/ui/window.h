@@ -136,6 +136,9 @@ void __fastcall Window_NotifyImpl100(u8 *window, void *, u32 a);
 // 0x65f5fe (thiscall (a), pops 4; name unconfirmed): Window_NotifyImpl100 for the object +0x98.
 void __fastcall Window_NotifyObject98_100(u8 *window, void *, u32 a);
 
+// 0x65f645 (thiscall (a), pops 4; name unconfirmed): Window_NotifyImpl100 (a), then Window_NotifyObject98_100 (a); 1 in AX.
+u16 __fastcall Window_NotifyBoth100(u8 *window, void *, u32 a);
+
 // 0x65d070 (thiscall (object), pops 4; name unconfirmed): as Window_SetImpl for the object +0x98, except that the old one's own slot 0
 // (1) is called when its release (WindowImpl_Release) answers -1, and the event's word +6 is +0xe0 itself and its +0x14 the window + 8.
 void __fastcall Window_SetObject98(u8 *window, void *, u8 *object);
@@ -362,6 +365,10 @@ u32 __fastcall Window_MoveTo(u8 *window, void *, const s16 *x, const s16 *y);
 // (when set) told through their slot 3 (0x40, an event on the stack whose only words set, +0xc / +0xe, are those two); then each child
 // (+0x5c, then +0x54) given the same. EAX not kept.
 void __fastcall Window_SetWordsE4(u8 *window, void *, u32 a, u32 b);
+
+// 0x65f410 (thiscall (da, db: words), pops 8; no callers; name unconfirmed): Window_SetWordsE4 with +0xe4 + da and +0xe6 + db (signed
+// words added as dwords). EAX not kept.
+void __fastcall Window_AddWordsE4(u8 *window, void *, u32 da, u32 db);
 
 // 0x65f447 (thiscall (child, depth, words: bytes), pops 12; name unconfirmed): 0 in AX for no child or one with a parent (+0x60), a next
 // (+0x54) or a previous (+0x58) already. Else it becomes the window's last child (its parent the window, its previous the old last one

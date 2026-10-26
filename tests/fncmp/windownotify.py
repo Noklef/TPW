@@ -10,6 +10,8 @@
 # Notify1b / Notify80 / Notify80000 (0x6615a3, 0x661525, 0x66160c): as Notify1, the event's word +4, dword +0 or word +0xa hashed.
 # NotifyObject98_1 / NotifyImpl1 / NotifyImpl2 (0x65d323, 0x65d363, 0x65f246): as Notify1, only +0x98 / +0x9c told, the event's word +4
 # (+6 for NotifyImpl2) hashed. Object98Slot7 (0x65d69f): ImplSlot7's, the object at +0x98 instead.
+# AddWordsE4 (0x65f410): SetWordsE4's, the words +0xe4 / +0xe6 random. NotifyBoth100 (0x65f645): NotifyImpl100's and NotifyObject98_100's
+# together; AX compared.
 # usage: windownotify.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Set4c,NotifyC00,...)
 import os
 import struct
@@ -26,11 +28,13 @@ CALLS = {'Set4c': 0x65c388, 'NotifyC00': 0x65c428, 'Notify3000': 0x65c4b9, 'Noti
          'Notify40000': 0x65c5d5, 'NotifyImpl100': 0x65f5b7, 'SetDwordA0': 0x65e6d5,
          'NotifyObject98_100': 0x65f5fe, 'SetDepth': 0x65f16b, 'SetWordE2': 0x65f286, 'NotifyC000': 0x65c672, 'Notify1': 0x65d3a3, 'SetWordsE4': 0x65f345,
          'Notify1b': 0x6615a3, 'Notify80': 0x661525, 'Notify80000': 0x66160c,
-         'NotifyObject98_1': 0x65d323, 'NotifyImpl1': 0x65d363, 'NotifyImpl2': 0x65f246, 'Object98Slot7': 0x65d69f}
+         'NotifyObject98_1': 0x65d323, 'NotifyImpl1': 0x65d363, 'NotifyImpl2': 0x65f246, 'Object98Slot7': 0x65d69f,
+         'AddWordsE4': 0x65f410, 'NotifyBoth100': 0x65f645}
 B = Bench(RANGES + [(0x65d070, 0x65d1c8), (0x65c5d5, 0x65c672), (0x65f5b7, 0x65f643), (0x65e6d5, 0x65e705), (0x65f16b, 0x65f246),
                     (0x65f286, 0x65f330), (0x65c672, 0x65c707), (0x65d3a3, 0x65d40c), (0x65f345, 0x65f410),
                     (0x661525, 0x661596), (0x6615a3, 0x66160c), (0x66160c, 0x66167b),
-                    (0x65d323, 0x65d3a3), (0x65f246, 0x65f286), (0x65d69f, 0x65d6db)])
+                    (0x65d323, 0x65d3a3), (0x65f246, 0x65f286), (0x65d69f, 0x65d6db),
+                    (0x65f410, 0x65f447), (0x65f645, 0x65f66e)])
 
 
 def case(r):
@@ -68,12 +72,12 @@ def case(r):
     if op == 'Set4c':
         notify_blobs(log, 0, 1 << 8)
         return Call(CALLS[op], [window, r.choice([LOOK, LOOK + 0x40, 0])], regions, conv='t', ret='v')
-    if op in ('Notify40000', 'NotifyImpl100', 'NotifyObject98_100'):   # (the bytes +0x10-+0x13 / +0-+3 of the second event)
+    if op in ('Notify40000', 'NotifyImpl100', 'NotifyObject98_100', 'NotifyBoth100'):   # (the bytes +0x10-+0x13 / +0-+3 of the second event)
         for k in (3, 22):
             blob_bytes(log, k, 1, 0, (0x10, 0xf, 0x10) if op == 'Notify40000' else (0x10, 0xf))
         args = [r.getrandbits(32) for _ in range(4 if op == 'Notify40000' else 1)]
-        return Call(CALLS[op], [window] + args, regions, conv='t', ret='v')
-    if op == 'SetWordsE4':   # (the event's words +0xc / +0xe; the upper halves random)
+        return Call(CALLS[op], [window] + args, regions, conv='t', ret='w' if op == 'NotifyBoth100' else 'v')
+    if op in ('SetWordsE4', 'AddWordsE4'):   # (the event's words +0xc / +0xe; the upper halves random)
         notify_blobs(log, 0xf000, 0)
         return Call(CALLS[op], [window, r.getrandbits(32), r.getrandbits(32)], regions, conv='t', ret='v')
     if op in ('Notify1', 'Notify1b', 'Notify80', 'Notify80000', 'NotifyObject98_1', 'NotifyImpl1', 'NotifyImpl2'):   # (the event's word +4, dword +0 or word +0xa)
