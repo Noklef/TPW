@@ -2,7 +2,7 @@
 // (0x400: its voices are run through the mixer), +0x2c a float, +0x44 four bytes, +0x48 an array of floats. Settings reach it as stack
 // functors (a vtable whose slot 0 is thiscall (out, channel), pops 8, and the functor's data); +0x14 a source's info (+0 and +8 read),
 // +0x18 its source object, +0x20 its EAX buffer (soundeax); +8 its position (three floats). Reimplementation of 0x6b7d70, 0x6b8b40, 0x6b5e40,
-// 0x6b5e60, 0x6b7910, 0x6b7970, 0x6b79d0, 0x6b7a70, 0x6b7b60, 0x6b7e60, 0x6b7fa0, 0x6b90d0 and 0x6b9930; the names are unconfirmed. The setters build a
+// 0x6b5e60, 0x6b7910, 0x6b7970, 0x6b79d0, 0x6b7a70, 0x6b7b60, 0x6b7e60, 0x6b7fa0, 0x6b90d0, 0x6b9930, 0x6b9a60 and 0x6b9ab0; the names are unconfirmed. The setters build a
 // settings record on the stack (Init_6b9c50, then its fields) and apply it with the functor 0x70a278 (SoundChannel_Apply).
 #pragma once
 
@@ -80,5 +80,15 @@ u32 *__fastcall SoundChannel_SetEaxAll(u8 *channel, void *, u32 *out, u8 *settin
 // stack slot, sic; the voice's id +0x2c shifted right by the byte at 0x782db8); when the dword it returns a pointer to is not negative,
 // the voice released (value). *out = -1 either way (sic). Returns out.
 u32 *__fastcall SoundChannel_ReleaseVoice(u8 *channel, void *, u32 *out, u8 *voice, u32 value);
+
+// 0x6b9a60 (thiscall (a, &picked, record), pops 0xc; name invented): the channel's slot 6 (a, record) picks a voice, kept in *picked; none
+// and the record's flags (+0x14, read after) with bit 13: 0. Else the channel's slot 5 (the voice, or a without one; record), its result returned.
+u32 __fastcall SoundChannel_PickVoice(u8 *channel, void *, u32 a, u32 *picked, u8 *record);
+
+// 0x6b9ab0 (thiscall (record, &voice), pops 8; name invented): with the channel's flags (+0x28) bits 3 and 8 both set, the record's +0xc
+// gets bit 1; SoundChannel_PickVoice (0, voice, record): 0 when it answers 0. Else *voice (when 0) = its result, and the channel's slot 4
+// (out: the record argument's own stack slot, sic, so the record's address unless written; a stack functor {0x70a618, *voice}): 0 when the
+// dword it returns a pointer to is negative, else PickVoice's result.
+u32 __fastcall SoundChannel_PlayRecord(u8 *channel, void *, u8 *record, u32 *voice);
 
 }  // extern "C"

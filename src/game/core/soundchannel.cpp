@@ -307,4 +307,23 @@ u32 *__fastcall SoundChannel_SetPlacement(u8 *channel, void *, u32 *out, u32 pos
     return apply_settings(channel, out, record);
 }
 
+u32 __fastcall SoundChannel_PickVoice(u8 *channel, void *, u32 a, u32 *picked, u8 *record) {
+    const u32 voice = vcall<u32>(channel, 0x18, a, record);
+    *picked = voice;
+    if (!voice && (at<u32>(record, 0x14) & 0x2000)) return 0;
+    return vcall<u32>(channel, 0x14, voice ? voice : a, record);
+}
+
+u32 __fastcall SoundChannel_PlayRecord(u8 *channel, void *, u8 *record, u32 *voice) {
+    const u32 flags = at<u32>(channel, 0x28);
+    if ((flags & 8) && (flags & 0x100)) at<u32>(record, 0xc) |= 2;
+    const u32 result = SoundChannel_PickVoice(channel, nullptr, 0, voice, record);
+    if (!result) return 0;
+    if (!*voice) *voice = result;
+    u32 functor[2] = {0x0070a618, *voice};
+    u32 slot = (u32)(uintptr_t)record;   // (the out: the record argument's own stack slot, sic)
+    if (*vcall<s32 *>(channel, 0x10, &slot, functor) < 0) return 0;
+    return result;
+}
+
 }  // extern "C"
