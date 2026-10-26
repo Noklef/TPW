@@ -64,6 +64,10 @@ u32 __fastcall Object_QueueSpot(u8 *object, void *, u32 place, u16 *cell, u8 *x,
 // first switch of Object_QueueSpot on the direction of the object's own cell (the word at +0x36). Returns 0.
 u32 __fastcall Object_EntranceQueueSpot(u8 *object, void *, u32 place, u16 *cell, u8 *x, u8 *y);
 
+// 0x4de7e0 (thiscall; the same arguments, pops 0x10; name unconfirmed; called by 0x501214): Object_QueueSpot for an object whose byte +0x32 has
+// bit 3 set, else Object_EntranceQueueSpot (the debug print of whether the place is below 4 left out). Returns its result.
+u32 __fastcall Object_AnyQueueSpot(u8 *object, void *, u32 place, u16 *cell, u8 *x, u8 *y);
+
 // 0x4df290 (thiscall; name unconfirmed): whether the object can be opened: the dword at +0x19c is not 1, 4 or 2, the dword at +0x64 is 0, Object_EntranceOnPath, and
 // for a definition (ObjectDefs_Find of the id at +0xe) of kind 3 (+0x9c) Object_LinkOtherOpen.
 u32 __fastcall Object_CanOpen(u8 *object);
