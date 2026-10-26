@@ -4,8 +4,9 @@
 # at +0x13c none or one without a texture, the tracked blocks (+0x144, the meshes' +0x74, the sets' +8) as in spritesfree.py's
 # table, the model's flag 2 with the procedural texture object (no cache; a tracked block or none) there or not.
 # The load (0x579e00): see load(). A holder's part made (0x45bbc0, model/holder): see create(). The object's matrices set (0x57a260):
-# see matrices() and matrices_env(). A mesh's colours lit once a frame (0x57aa10): see light_mesh().
-# usage: objmodel.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Unload,Load,Create,Matrices,LightMesh)
+# see matrices() and matrices_env(). A mesh's colours lit once a frame (0x57aa10): see light_mesh(). The overlay base's constructor
+# (0x476a90, gfx/overlay): see overlay_ctor().
+# usage: objmodel.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Unload,Load,Create,Matrices,LightMesh,OverlayCtor)
 import os
 import struct
 import sys
@@ -22,9 +23,10 @@ import wctimage  # noqa: E402
 
 B = Bench(wctimage.merged([(0x57a100, 0x57a258), (0x579b80, 0x579c13), (0x57b2e0, 0x57b393), (0x57b070, 0x57b130), (0x57b5b0, 0x57b608),
                            (0x575f00, 0x575f8d), (0x56e4e0, 0x56e549), (0x67afa0, 0x67b0d0), (0x67acb0, 0x67acb1), (0x579e00, 0x57a0f2),
-                           (0x54dcc0, 0x54dce8), (0x45bbc0, 0x45bc58), (0x579cd0, 0x579df1), (0x5775d0, 0x5775f3), (0x57a260, 0x57a41c), (0x57aa10, 0x57aba6), (0x576230, 0x576260)] + meshlist.RANGES + texset.RANGES + texcache.RANGES
+                           (0x54dcc0, 0x54dce8), (0x45bbc0, 0x45bc58), (0x579cd0, 0x579df1), (0x5775d0, 0x5775f3), (0x57a260, 0x57a41c), (0x57aa10, 0x57aba6), (0x576230, 0x576260),
+                           (0x476a90, 0x476b4a), (0x6597b0, 0x659896), (0x659994, 0x6599bc), (0x659d00, 0x659d53), (0x65a9d0, 0x65aa00)] + meshlist.RANGES + texset.RANGES + texcache.RANGES
                           + loadscreen.RANGES), hooks={0x67a7d0: _cdecl_log})
-CALLS = {'Unload': 0x57a100, 'Load': 0x579e00, 'Create': 0x45bbc0, 'Matrices': 0x57a260, 'LightMesh': 0x57aa10}
+CALLS = {'Unload': 0x57a100, 'Load': 0x579e00, 'Create': 0x45bbc0, 'Matrices': 0x57a260, 'LightMesh': 0x57aa10, 'OverlayCtor': 0x476a90}
 OBJ, MODEL, SETS, SET, MESHES, FACES, WORDS, BLOCK, TEX = (RAM, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x1000, RAM + 0x2000,
                                                         RAM + 0x2400, RAM + 0x2600, RAM + 0x3000)
 COUNT, TABLE = 0x8bb214, 0x87b1f8
@@ -309,8 +311,31 @@ def light_mesh(r):
     return Call(CALLS['LightMesh'], [LM_THIS, mesh_at, LM_MATRIX, LM_LIST, flags], regions, conv='t', ret='a')
 
 
+OVR, OVNODES = RAM + 0x4a000, RAM + 0x4a100
+
+
+def overlay_ctor(r):
+    """0x476a90 (gfx/overlay): create()'s case with an overlay (any bytes) built on its holder (now and then none: the GUI dialog's part
+    only); the model's node list (+0x78: 0-4 nodes, flags any) and the screen's width (0x7a1968: 0x280 or not)."""
+    c = create(r)
+    regions = c.regions
+    model = struct.unpack_from('<I', regions[HOLDER], 4)[0]
+    count = r.choice([0, 1, 2, 4])
+    regions[model] = put(bytearray(regions[model]), 0x78, 'I', OVNODES if count else 0)
+    nodes = bytearray(r.bytes(0x40))
+    for i in range(count):
+        put(nodes, 0x10 * i, 'I', r.choice([0, r.getrandbits(32), 0x8000000]))
+        put(nodes, 0x10 * i + 0xc, 'I', OVNODES + 0x10 * (i + 1) if i + 1 < count else 0)
+    regions[OVNODES] = nodes
+    regions[0x7a1968] = struct.pack('<I', r.choice([0x280, 0x280, 0x200, 0x320]))
+    regions[OVR] = r.bytes(0x90)
+    return Call(0x476a90, [OVR, HOLDER if r.random() < 0.95 else 0], regions, conv='t', ret='a')
+
+
 def case(r):
     op = r.deal(OPS)
+    if op == 'OverlayCtor':
+        return overlay_ctor(r)
     if op == 'LightMesh':
         return light_mesh(r)
     if op == 'Load':
