@@ -168,6 +168,7 @@ add_library(tpw_game STATIC
     src/game/core/mp2layer1.cpp
     src/game/core/advisorscoring.cpp
     src/game/core/parkinfo.cpp
+    src/game/core/authstamp.cpp
     src/game/core/mp2frame.cpp
     src/game/core/mp2decoder.cpp
     src/game/core/mp2pool.cpp

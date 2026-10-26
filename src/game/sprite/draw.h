@@ -1,6 +1,6 @@
 // The sprite draw lists: reimplementation of 0x540ab0, 0x540b30 and 0x542010, which
 // SpriteScripts_Draw (0x475430) calls each frame around the scripts, and of the switch
-// 0x5408e0/0x5408f0.
+// 0x5408e0/0x5408f0, and of the pick 0x532bd0.
 //
 // A shown script is not drawn here: its draw record (+0xd0 of the script, 0x44 bytes) is
 // filled in and appended to a list for the renderer. The map is split into a 4x4 grid of
@@ -36,6 +36,15 @@ void __cdecl SpriteDraw_End();
 // 0x2000000 or a sprite without directions: direction 0). The direction offset is kept
 // at 0x87734c.
 void __cdecl Sprite_DrawScript(u8 *script);
+// 0x532bd0 (cdecl; name unconfirmed): the thing under the cursor that belongs to the picked sprite. The pointer's position
+// (Gui_GetMousePos, as s16) becomes [0x8bd4f0] = x * [0x700d18] - [0x700d10] and [0x8bd4f4] = y * [0x700d1c] - [0x700d10] (x87, 24
+// bits; 1/1024, 1/767.5 and 1). With a picked draw record ([0x8bd4fc]) whose shown script there is (SpriteScript_FindShown): for the
+// nine (dx, dy) pairs at 0x81ed40..0x81ed8c in turn, about the pointer's tile ([0x7b05cc] - 1 as u32: column its low 7 bits, row
+// the rest), each map cell in bounds (Map_InBounds) has its things walked (the cell's word +0x2b8 in the 0x44-byte cells at
+// [0x7cf83c], cell (row << 7) + column + 1 as u16; each thing's record is the dword at 0x7cfb90 + 0x14 * thing, its next the word
+// +0xa): the first of kind (byte +2) 1, 4, 5, 6, 7, 8 or 0x12 whose +0xc is the script's slot is returned. Else 0. (The
+// original's Debug_Printf calls, empty, are left out.)
+u32 __cdecl SpriteDraw_Pick();
 // 0x5408e0 / 0x5408f0: sprites are drawn (byte 0x763f84 = 1) / not (0).
 void __cdecl SpriteDraw_Enable();
 void __cdecl SpriteDraw_Disable();

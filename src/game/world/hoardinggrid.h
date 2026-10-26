@@ -21,6 +21,11 @@ void __cdecl HoardingGrid_Fill();
 // recurses up, down and left, then steps right. pass is handed on unused. A fill of ' ' or '@' recurses until the stack runs out (sic).
 void __cdecl HoardingGrid_Flood(s32 row, s32 col, u32 pass, u32 fill);
 
+// 0x532a50 (cdecl; x1, y1, x2, y2; name unconfirmed): whether some cell of the rectangle from (x1, y1) to (x2, y2) (inclusive, by rows; none
+// when x1 > x2 or y1 > y2) that is on the map (Map_InBounds) would be '#' in HoardingGrid_Fill's grid: its 0x44-byte cell (the world's
+// +0x294 + id * 0x44) names (MapHandle_Entry28) an entry (its parent's for a 0xc / 0x11 one) not of type 0x19, and lacks flag 0x40. 1 or 0.
+u32 __cdecl HoardingGrid_AreaBlocked(s32 x1, s32 y1, s32 x2, s32 y2);
+
 // 0x531a50 (cdecl; x1, y1, x2, y2, charge; name unconfirmed): whether hoardings can enclose the rectangle the two corners span. Its four
 // side lists (0x81eb10 top, 0x81ec18 bottom, 0x81eb98 left, 0x81ea78 right: 0x80 bytes of 0xff, counts at 0x81b484 / 0x81edec /
 // 0x81aeec / 0x81b73c, and 0x81af4c the cost, all cleared first) get a byte for every second cell of each side (0 a flag 0x40 cell that

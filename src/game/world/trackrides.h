@@ -137,4 +137,18 @@ void __cdecl TrakRide_SetAsleep(u8 *ride, s32 asleep);
 // its +0x10 the ride and +0x18 the first node, whose +0x1c is the buoy (no node, as for the other kinds, faults). A node the pool cannot
 // give faults at its flags. Returns 1.
 s32 __cdecl TrakRide_AddSection(u32 handle, s32 x, s32 y, u32 piece, u32 a, u32 b, u32 c);
+
+// 0x54ac70 (cdecl; ride, effect; name unconfirmed): empties the ride's node list +0x30 (the next at +0x10): each node goes to the head of
+// the list +0xc8 of the record at +0x9c, whose count +0x60 goes down; a node with a part (+8, -1 none) has it released (PartStates_Release
+// on the holder +8 of the instance [0x7a4610 + 4 * (+8)]) and set to -1, and with effect (any dword but 0) Particle_Spawn(0x13) at 1024
+// times the position +0x40..+0x48 of that holder's model's root (+4 -> +0x78; z through __ftol first). Returns the record's count then.
+// (Its Debug_Printf of the node's +0 and the record's handle only reads.)
+s32 __cdecl TrakRide_Unload(u8 *ride, u32 effect);
+
+// 0x549c60 (cdecl; ride, effect; name unconfirmed): Unload's reverse for the node list +0x30 (the next at +0x10): each node in turn is
+// given the seat number +0xc (1, 2, ...) and the part +8 Model_FindPartByKey4(the instance [0x7a4610 + 4 * (+8)], 0x80, that number) finds;
+// a part found (not -1) is activated (PartStates_Activate on the instance's holder +8, with the node's +0 as the handle) and with effect
+// (any dword but 0) Particle_Spawn(0x13) at 1024 times the holder's model's root position (as Unload). The +0x9c record's count +0x60 goes
+// up for every node.
+void __cdecl TrakRide_Load(u8 *ride, u32 effect);
 }

@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../model/holder.h"
+#include "../model/parts.h"
 #include "../model/partstate.h"
 #include "../motion/animator.h"
 #include "../math/x87.h"
@@ -16,6 +17,18 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 bool loaded() { return global<u32>(0x00877b58) == 0x4a454647; }
+
+s32 Ftol(X87Reg x) { return (s32)(long long)x.v; }
+
+// Particle_Spawn(0x13) at 1024 times the position +0x40..+0x48 of the root (+0x78) of the model (+4) of the instance's holder (+8): z
+// through __ftol first.
+void SeatEffect(const u8 *instance) {
+    const u8 *const root = at<const u8 *>(at<const u8 *>(at<const u8 *>(instance, 8), 4), 0x78);
+    const s32 z = Ftol(X87Reg(at<float>(root, 0x48)) * 1024.0f);
+    const s32 y = Ftol(X87Reg(at<float>(root, 0x44)) * 1024.0f);
+    const s32 x = Ftol(X87Reg(at<float>(root, 0x40)) * 1024.0f);
+    Particle_Spawn(0x13, x, y, z);
+}
 
 // The ride a handle indexes, or 0; whether the handle also names it (its index and serial).
 u8 *RideOf(u32 handle) {
@@ -705,5 +718,35 @@ u16 *__cdecl TrakRide_FindThing(u16 *out, u32 ride) {
     }
     *out = 0;
     return out;
+}
+
+s32 __cdecl TrakRide_Unload(u8 *ride, u32 effect) {
+    u8 *const *const instances = reinterpret_cast<u8 *const *>(0x007a4610);
+    for (u8 *node; (node = at<u8 *>(ride, 0x30)) != nullptr;) {
+        at<u32>(ride, 0x30) = at<u32>(node, 0x10);
+        at<u32>(node, 0x10) = at<u32>(at<u8 *>(ride, 0x9c), 0xc8);
+        at<u8 *>(at<u8 *>(ride, 0x9c), 0xc8) = node;
+        --at<s32>(at<u8 *>(ride, 0x9c), 0x60);
+        if (at<s32>(node, 8) == -1) continue;
+        PartStates_Release(at<u8 *>(instances[at<u32>(ride, 8)], 8), at<u32>(node, 8));
+        at<s32>(node, 8) = -1;
+        if (effect) SeatEffect(instances[at<u32>(ride, 8)]);
+    }
+    return at<s32>(at<u8 *>(ride, 0x9c), 0x60);
+}
+
+void __cdecl TrakRide_Load(u8 *ride, u32 effect) {
+    u8 *const *const instances = reinterpret_cast<u8 *const *>(0x007a4610);
+    u32 seat = 1;
+    for (u8 *node = at<u8 *>(ride, 0x30); node; node = at<u8 *>(node, 0x10)) {
+        const u32 part = Model_FindPartByKey4(instances[at<u32>(ride, 8)], 0x80, seat);
+        at<u32>(node, 0xc) = seat++;
+        at<u32>(node, 8) = part;
+        if (part != 0xffffffffu) {
+            PartStates_Activate(at<u8 *>(instances[at<u32>(ride, 8)], 8), part, at<u32>(node, 0));
+            if (effect) SeatEffect(instances[at<u32>(ride, 8)]);
+        }
+        ++at<s32>(at<u8 *>(ride, 0x9c), 0x60);
+    }
 }
 }

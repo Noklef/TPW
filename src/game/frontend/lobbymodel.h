@@ -29,4 +29,13 @@ void __fastcall LobbyModel_AlignTo(const u8 *model, void *, const float *v);
 
 // 0x5d8440: when there is a model, the ms left of its layer 0 (Layer_GetPlayback); else 0.
 u32 __fastcall LobbyModel_TimeLeft(const u8 *model);
+
+// 0x5d9b50 (thiscall; name unconfirmed): one step of a lobby flyer (the members of the list +0x58 of the lobby class 0x702af0, each
+// stepped in turn at 0x5da0fa), x87 throughout. The wanted heading (+0x54) = the target (+0x3c) less the position (+0x30), over its
+// length; the heading (+0x48) turned toward it by [0xf82884] +8 (the frame time) * 0.1 and made unit again; the position moved along it
+// by the speed (+0x28) * the frame time. Within reach of the target (the squared distance below +0x2c, or unordered) a new target: per
+// axis the centre (+0x10) plus the extent (+0x1c) * (r * 2^-30 - 0.5), r the scene's generator ([0xf82884] +0x34: * 0x19660d +
+// 0x3c6ef35f, turned right 13) & 0x3fffffff. Then the lobby model at +8 aligned to the heading (LobbyModel_AlignTo) and put at the
+// position (LobbyModel_SetPosition).
+void __fastcall LobbyFlyer_Step(u8 *flyer);
 }

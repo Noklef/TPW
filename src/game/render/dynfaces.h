@@ -21,6 +21,16 @@ void __cdecl DynFaces_AddPoly(const u32 *corners, u32 tag, const u32 *uvs, const
 // comes out quiet), the uvs (0, 0) (1, 0) (0, 1) (1, 1) in that order, and the tag the next of the dwords at 0x871d18.
 void __cdecl DynFaces_AddGrid(float dx, float dy, float dz, s32 rows, s32 cols, s32 row, s32 col);
 
+// 0x53cda0 (cdecl; dx, dy, dz, xoff, rows, cols, tag, angle; name unconfirmed; 0x53c6e8 calls it with xoff 0.5, 6 rows, 4 columns, tag
+// 0x12): that grid from its first vertex, turned about y by angle, as two polygon faces per quad (DynFaces_AddPoly, user 3, the tag given),
+// all on the x87 at the game's precision. With s and c the sine table's (sintable.h) entries for angle and angle + pi / 2, a vertex
+// (x + xoff, y, z) turns to x' = c x - z s, z' = z c + s x and then moves by (dx, dy, dz); its colour (the normal at 0x870ed8) turns
+// likewise. For each column (v from 1, or 0.55 for tag 0x13, down by 0.55 / cols) and row (u from 0 up by 1 / rows), the first face has
+// the vertices below, here, below-right and right with the colours negated and the uvs (u + du, v) (u, v) (u + du, v - dv) (u, v - dv);
+// the second here, below, right and below-right with the colours as they are and the uvs (u, v) (u + du, v) (u, v - dv) (u + du, v - dv).
+// The original's four turning loops write the products in different orders, kept (they decide between two NaNs).
+void __cdecl DynFaces_AddTurnedGrid(float dx, float dy, float dz, float xoff, s32 rows, s32 cols, u32 tag, float angle);
+
 // 0x53d380 (cdecl; rows, cols, step, phase; name unconfirmed): that grid filled as a wave, x87 at the game's precision with the sine table
 // (sintable.h): with k = 2 pi / 3 and A = 10 degrees, for each column (z = 0, step, ...) and row (x = 0, step, ...) the vertex is
 // (x, 1.7 cos h, z), h = x * k cos A - z * k sin A - phase / 2, and its normal (sin h, 1, sin h) normalised.
@@ -40,5 +50,19 @@ void __cdecl DynFaces_SortTags(u32 *tags, u32 count);
 // 0x871ee4, 0x871ed8, in that order; null ones skipped, none cleared, sic) has its animator at +0x54 put to sleep (Animator_Sleep) and disposed of
 // (Animator_Dispose) and is freed (Mem_Free); then bit 0 of the dword at 0x763c78 is cleared (Dword_ClearBit0). The flag is cleared either way.
 void __cdecl DynFaces_ReleaseModels();
+
+// 0x53c3f0 (cdecl, no arguments; called at 0x54e2fc; name unconfirmed): the scene's generated faces for a frame, x87 at the game's
+// precision. The ground offsets' moves (the ints at 0x8186b8 / 0x8186b4 * [0x700de0] less the floats at 0x820afc / 0x820af8) taken
+// first; the four corners (x, y at 0x871f24 + 12 i: (-0.4, -0.4), (0.4, -0.4), (-0.4, 0.4), (0.4, 0.4)) and the other constants from
+// 0x871ee8 set, the corners turned by the sine table's entries (rounded indices, fistp) for t ([0x790a38]) and t - [0x700df0] (scaled)
+// and moved by -[0x700df4]; 0x820afc / 0x820af8 raised by the moves * [0x700de4]. Then the wave (DynFaces_WaveGrid 16 x 19, step 20, phase
+// [0x871f60]), two grids (DynFaces_AddGrid offset by 0x870ec8.., 10 x 11 from the start and 4 x 6 from row 10), the ripple
+// (DynFaces_RippleGrid 7 x 5, step 1.8, phase [0x871ed0]), eight turned grids (DynFaces_AddTurnedGrid at the offsets 0x763cf4 + 16 k,
+// xoff 0.5, 6 x 4, tags 0x12 and 0x13 by turns, the angle the float +0x5c of the world's record (GameTable7cfb90_Get1da724_519590 of
+// [0x7cf83c]) * [0x700dd0]); the tags sorted (DynFaces_SortTags) and the three blocks [0x871f64], [0x871ee4], [0x871ed8] given their
+// faces (VertexBlock_TakeFaces), the count 0. Unless the clock 0x785970 is paused (+0x30): [0x874fc0] less [0x700df8], the phases
+// [0x871f60] and [0x871ed0] less the clock's frame time (its double +0x20) * [0x700de8], and the counter 0x874fc8 up by the frame time
+// (__ftol); past 6 with the flag byte 0x763c98 set, or past 1 with it clear, the flag flips and the counter is 0.
+void __cdecl DynFaces_Frame();
 
 }  // extern "C"

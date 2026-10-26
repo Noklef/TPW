@@ -18,11 +18,11 @@ MODEL, GROUPS, FACES, REMAP, NORMALS, GIVEN = RAM, RAM + 0x100, RAM + 0x200, RAM
 INSTANCE, VIEW, VERTS = RAM + 0x780, RAM + 0x7c0, RAM + 0x800
 
 
-def view(r):   # 0x4511a0 (x, z, &out)
+def view(r, terrain=RAM):   # 0x4511a0 (x, z, &out); terrain: where terrainheight.py's ground goes (its base)
     mode = r.choice([1, 1, 2, 2, 4, 4, 8, 0, 0x10, 3, 6, 0xc, r.getrandbits(8)])
     offset = r.choice([fb(0.0), fb(r.uniform(-20, 20)), fb(1.5), r.f(), 0x7fc00000, 0xffc00000, 0x7f800001, fb(float('inf'))])
     if mode & 1:
-        c = terrainheight.case(r, ['Height'])
+        c = terrainheight.case(r, ['Height'], terrain)
         regions = dict(c.regions)
         regions.update({0x79fb18: struct.pack('<I', TVIEW), TVIEW: put(bytearray(r.bytes(0x10)), 4, 'I', TMODEL),
                         TMODEL: put(bytearray(r.bytes(0xa4)), 0xa0, 'I', offset)})

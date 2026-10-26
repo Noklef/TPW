@@ -179,4 +179,26 @@ u32 __fastcall Masks_TopBits(u8 *object) {
     at<u32>(object, 0x918) = blue | green | red;
     return blue | green | red;
 }
+u8 *__fastcall TexSettings_Init(u8 *settings) {
+    at<u32>(settings, 0) = 0x17a;
+    at<u32>(settings, 4) = 0xffffffff;
+    for (u32 k = 0; k < 0x20; ++k)
+        at<u32>(settings, 8 + 4 * k) = 0;
+    for (u32 k = 0; k < 0x1000; ++k)
+        at<u32>(settings, 0x88 + 4 * k) = 0;
+    for (u32 i = 0; i < 0x100; ++i) {
+        at<u32>(settings, 0x3088 + 0x10 * i) = i << 24;
+        at<u32>(settings, 0x308c + 0x10 * i) = i << 16;
+        at<u32>(settings, 0x3090 + 0x10 * i) = i << 8;
+        at<u32>(settings, 0x3094 + 0x10 * i) = i;
+    }
+    at<u32>(settings, 0x40e4) = 0xbf800000;
+    at<u32>(settings, 0x40e0) = 0xbf800000;
+    at<u32>(settings, 0x40d8) = 0x3f000000;
+    at<u32>(settings, 0x40c8) = 0x3fc00000;
+    at<u32>(settings, 0x40cc) = 0x3f4ccccd;
+    at<u32>(settings, 0x40d0) = 0;
+    at<u32>(settings, 0x40dc) = 0x9c4;
+    return settings;
+}
 }

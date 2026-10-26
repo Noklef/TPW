@@ -6,8 +6,9 @@
 # negative) and a tracked block or none. Also the renderer part's thunks to 0x588c20 for its image at +0x9c (0x48f3c0, 0x48f410).
 # An image's texture set (0x588410: one given or a new one, the heap failing now and then) and its tiled textures (0x5889b0: sizes
 # 0-0x60 or any, tiles of 8-0x40 (or 0x18), the heap failing now and then).
+# A WCT or run-length image read and set as the texture (0x588510, 0x588660; see load()).
 # usage: spritetextures.py [CASES [SEED]] [--wild|--both] [--show N]
-#        (env OPS=Free,FreeIfSet,Release,Dtor,FramesFree,SetSize,SetSize30,PartFree,PartFree2,SetTexture,Make)
+#        (env OPS=Free,FreeIfSet,Release,Dtor,FramesFree,SetSize,SetSize30,PartFree,PartFree2,SetTexture,Make,LoadWct,LoadRle)
 import os
 import struct
 import sys
@@ -15,13 +16,17 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import texturemem  # noqa: E402
-from fncmp import Bench, Call, HEAP, LOG, RAM, global_heap, heap, log_region, put  # noqa: E402
+from fncmp import Bench, Call, HEAP, LOG, RAM, global_heap, heap, log_region, put, record_stream  # noqa: E402
 
 CALLS = {'Free': 0x588ba0, 'FreeIfSet': 0x588c20, 'Release': 0x588ca0, 'Dtor': 0x588350, 'FramesFree': 0x588230, 'SetSize': 0x588d90,
-         'SetSize30': 0x588e40, 'PartFree': 0x48f3c0, 'PartFree2': 0x48f410, 'SetTexture': 0x588410, 'Make': 0x5889b0}
+         'SetSize30': 0x588e40, 'PartFree': 0x48f3c0, 'PartFree2': 0x48f410, 'SetTexture': 0x588410, 'Make': 0x5889b0,
+         'LoadWct': 0x588510, 'LoadRle': 0x588660}
 B = Bench([(0x48f3c0, 0x48f3ce), (0x48f410, 0x48f41c), (0x588ba0, 0x588d6e),(0x588d90, 0x588ee8), (0x588230, 0x5882d4), (0x588350, 0x588410), (0x590a70, 0x590a75),
            (0x590b90, 0x590c39), (0x579b40, 0x579c13), (0x58dc50, 0x58dd5e), (0x67afa0, 0x67b0d0), (0x67acb0, 0x67acb1),
-           (0x588410, 0x58850d), (0x5889b0, 0x588b9c), (0x590a00, 0x590a70), (0x590d40, 0x590f7e), (0x67d830, 0x67d8f0), (0x56af20, 0x56af9c)])
+           (0x588410, 0x58850d), (0x5889b0, 0x588b9c), (0x590a00, 0x590a70), (0x590d40, 0x590f7e), (0x67d830, 0x67d8f0), (0x56af20, 0x56af9c),
+           (0x588510, 0x58865e), (0x588660, 0x588813), (0x564ba0, 0x564bf0), (0x564d00, 0x564e12), (0x564ff0, 0x565070), (0x5c4f60, 0x5c4f7c),
+           (0x67a830, 0x67a860), (0x5646c0, 0x564708), (0x564730, 0x564741), (0x564750, 0x564790), (0x564a80, 0x564af0), (0x41a840, 0x41a84a)])
+STREAM, SVT = RAM + 0x7000, RAM + 0x7100   # the loaders' stream: slot 2 (the reads) a recorder
 FRAME, IMAGE, ARRAY, IMAGES = RAM + 0x4000, RAM + 0x4100, RAM + 0x5000, RAM + 0x6000   # (the textures' own regions below RAM + 0x4000)
 SIZES = [0, 1, 5, 0x40, 0x7fff, 0x8000, 0xffff, 0x10005, 0xffff8000, 0xffffffff]
 BLOCKS = [0, HEAP + 0x1000, HEAP + 0x1100]
@@ -86,10 +91,49 @@ def tiles(r, name):
     return Call(CALLS[name], [IMAGE] + args, regions, conv='t', ret='a')
 
 
+def load(r, name):
+    """0x588510 (thiscall (stream, texture)) / 0x588660 (thiscall (stream, language, texture)): tiles()'s world and texture (given
+    or not, the heap failing now and then: the first allocation is the WCT / RLE image's), a stream whose reads (slot 2) log their
+    destination as 0 (stack addresses) and now and then write four bytes through it (for half the RLE cases a record stream instead, its
+    words distinct, now and then a few bytes short); the WCT header at 0x879a38 (its floats and block
+    sizes as wctimage.py's read()); the tracked blocks as wctimage.py's."""
+    from fncmp import fill, strings, vtable
+    from wctimage import tracked
+    c = tiles(r, 'SetTexture')
+    regions = c.regions
+    put(regions[HEAP], 0, 'I', HEAP + 0x10 + r.choice([0] * 10 + [1, 2, 3]))   # (tiles()'s heap, its failing allocation chosen again)
+    tracked(r, regions)
+    log = regions[LOG]
+    strings(log, 2, 0, out=1)
+    # (the RLE size is read through the stream, so its reads always write: a size left as the block's address would be a GlobalAlloc
+    # of gigabytes; small sizes then)
+    if name == 'LoadRle' or r.random() < 0.6:
+        small = r.choice([0, 1, 4, 0x10, 0x40, 0x100])
+        fill(log, 2, 0, struct.pack('<I', small) if name == 'LoadRle' or r.random() < 0.5 else r.bytes(4))
+    regions[STREAM], regions[SVT] = struct.pack('<I', SVT), vtable({2: 2})
+    if name == 'LoadRle' and r.random() < 0.5:   # (a record stream instead: the size, four distinct words, two dwords, the codes)
+        small = r.choice([0, 1, 4, 0x10, 0x40])
+        words = r.sample(range(0x10000), 4)
+        data = struct.pack('<I4H2I', small, *words, r.getrandbits(32), r.getrandbits(32)) + r.bytes(small)
+        regions[STREAM] = record_stream(STREAM, SVT, len(data) - r.choice([0, 0, 0, 1, 6]))
+        regions[SVT] = data
+    header = bytearray(r.bytes(0x2c))
+    for at in range(0x14, 0x24, 4):
+        put(header, at, 'f', r.choice([r.uniform(0, 100), float(r.randrange(0, 40)), 0.5, 1.0, -3.0, 1e20]))
+    put(header, 0x24, '2I', *(r.choice([0, 1, 0x10, 0x100, r.randrange(0x400)]) for _ in range(2)))
+    put(header, 4, '2H', *(r.choice([0, 1, 0x10, 0x40, r.getrandbits(16)]) for _ in range(2)))
+    regions[0x879a38] = header
+    texture = c.args[6]
+    args = [STREAM, texture] if name == 'LoadWct' else [STREAM, r.getrandbits(32), texture]
+    return Call(CALLS[name], [IMAGE] + args, regions, conv='t', ret='a')
+
+
 def case(r):
     name = r.deal(OPS)
     if name in ('SetTexture', 'Make'):
         return tiles(r, name)
+    if name in ('LoadWct', 'LoadRle'):
+        return load(r, name)
     regions = {HEAP: heap(), **global_heap(), LOG: log_region()}
     if name == 'FramesFree':
         frames(r, regions)

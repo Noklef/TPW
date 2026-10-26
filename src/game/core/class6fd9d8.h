@@ -8,6 +8,7 @@
 struct String;
 struct StringView;
 struct WString;
+struct DirEntry;
 
 extern "C" {
 
@@ -126,6 +127,13 @@ u32 __fastcall Class6fdaa4_HasEmt(u8 *object);
 // (String_ReverseFind from -1) and the next after it is the last), s = its chars before the last (String_Left, the vtable's +0x1c Assign); then when
 // its first char is "p" (0x74c778, String_EqualsStr) it is dropped (String_Right of length - 1). Otherwise s is left as it is.
 void __fastcall Class6fdaa4_TrimName(u8 *object, void *, String *s);
+
+// 0x41ec30 (thiscall (entry, path), pops 8; name unconfirmed): the object set from a directory entry. Its name (+4) assigned the entry's name
+// (+0x20; vtable +0x14) and then the copy String_StripSuffix of the ".wad" String 0x78bb08 gives (+0x18); its path (+0x18) assigned path,
+// then likewise stripped; a local String assigned path. Class6fdaa4_TrimName on the name. A handle (Handle_Ctor) with the vtable 0x6fda18
+// opened on the local's text (Handle_OpenE0, 0) when the entry is a WAD (DirEntry_IsWad), else with 0x6fd9e8 (Handle_Open28); when the result
+// is not negative, a copy of it (Handle_CopyCtor) assigned to the handle at +0x2c (Handle_Assign) and destroyed. The handle and the local destroyed.
+void __fastcall Class6fdaa4_SetEntry(u8 *object, void *, const DirEntry *entry, const String *path);
 
 // The constructors (thiscall; name, folder: wide strings, pops 8; return the object). The base part: empty strings at +4 and +0x18 (String_Ctor),
 // the vtable 0x6fd9d8, +4 given the name and +0x18 the folder through their vtable's +0x18 (String_AssignWide), the folder ending in "\"

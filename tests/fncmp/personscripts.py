@@ -36,10 +36,11 @@ def place(r):
     return Call(0x4f9e60, args, regions, conv='t', ret='a')
 
 
-def script_list(r, regions, person, anim=None):
+def script_list(r, regions, person, anim=None, base=RAM):   # (base: RAM, or where its regions go clear of another world)
     """Place's script list (into regions): the person's reference (+0xc) slot one of three scripts (or past them, or an empty one, or 0)
     with the list ready, or the list not ready; the entry point (anim, or one drawn: mostly 1-12) the scripts' +0xc or the reference's +4
     half the time each. Returns the entry point."""
+    d = base - RAM
     ready = r.random() < 0.85
     slot = r.choice([0, 0, 1, 2, 3, 3, 4, 5]) if ready else r.choice([0, 0, 1, 2])
     put(person, 0xc, 'I', slot)
@@ -52,8 +53,8 @@ def script_list(r, regions, person, anim=None):
         for f in range(14):
             put(folders, 12 * f + 4, 'II', r.randrange(8), r.choice([1, 2, 3, 4]))
         regions[0x763f88] = folders
-        regions[PSPRITES] = r.bytes(0x240 * 4)
-        regions[0x876b48] = b''.join(struct.pack('<I', PSPRITES + 0x240 * r.randrange(4)) for _ in range(16))
+        regions[PSPRITES + d] = r.bytes(0x240 * 4)
+        regions[0x876b48] = b''.join(struct.pack('<I', PSPRITES + d + 0x240 * r.randrange(4)) for _ in range(16))
     # (with the list ready only the code entry points 1-12: 0 and 13-15 are action codes, which go through the sprite folders)
     if anim is None:
         anim = r.randrange(1, 13) if ready else r.randrange(16)
@@ -64,9 +65,9 @@ def script_list(r, regions, person, anim=None):
         code = ENTRIES[anim] if r.random() < 0.5 and 1 <= anim <= 12 else r.choice(ENTRIES[1:13])
         put(s, 0xc, 'I', (code - 0x74dab8) // 4)
         scripts += s
-    regions.update({PSCRIPTS: scripts,
-                    PTABLE: struct.pack('<4I', 0, PSCRIPTS, r.choice([0, PSCRIPTS + 0x120]), PSCRIPTS + 0x240),
-                    0x7b49f0: put(put(bytearray(0x2c), 0, 'Ii', PTABLE, 4), 0x24, 'I', 1 if ready else 0)})
+    regions.update({PSCRIPTS + d: scripts,
+                    PTABLE + d: struct.pack('<4I', 0, PSCRIPTS + d, r.choice([0, PSCRIPTS + d + 0x120]), PSCRIPTS + d + 0x240),
+                    0x7b49f0: put(put(bytearray(0x2c), 0, 'Ii', PTABLE + d, 4), 0x24, 'I', 1 if ready else 0)})
     return anim
 
 

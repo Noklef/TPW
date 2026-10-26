@@ -37,6 +37,17 @@ u32 __cdecl Display_RestoreIfFocused() {
     return EngineErrors_DropSurfaceLost(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0));
 }
 
+u32 __cdecl Display_Restore() {
+    const u32 flags = global<u32>(0x008bd508);
+    global<u32>(0x008bd508) = flags & ~1u;
+    for (int round = 0; round < 3; ++round) {
+        RenderDevice_Call0();
+        Display_RestoreIfFocused();
+    }
+    global<u32>(0x008bd508) = flags;
+    return 1;
+}
+
 void __fastcall Render_FogOn(void *) { global<u32>(0x008bcbc8) |= 0x2000; }
 
 void __fastcall Render_FogOff(void *) { global<u32>(0x008bcbc8) &= ~0x2000u; }

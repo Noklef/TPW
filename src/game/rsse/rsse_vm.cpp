@@ -1,13 +1,17 @@
 #include "rsse.h"
 #include <cstring>
 
+#include "../coaster/ridebounds.h"
 #include "../core/gameclock.h"
+#include "../math/x87.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
+s32 Ftol(X87Reg x) { return (s32)(long long)x.v; }
 
 }  // namespace
 
@@ -105,4 +109,41 @@ u32 __cdecl Rsse_TakeFinished(u8 *vm) {
     return 0;
 }
 
+s32 __cdecl Rsse_StartWalker(u8 *vm, u32 value, s32 from, s32 to, u32 a, u32 b, u32 kind, u32 last) {
+    float p1[3], p2[3];
+    Ride_PartPlace(vm, p1, nullptr, from, 0x800);
+    Ride_PartPlace(vm, p2, nullptr, to, kind == 4 ? 0x80 : 0x800);
+    const X87Reg dx = X87Reg(p1[0]) - p2[0];
+    const X87Reg dy = X87Reg(p1[1]) - p2[1];
+    const X87Reg dz = X87Reg(p1[2]) - p2[2];
+    const X87Reg squares = dx * (float)dx + dy * dy + dz * (float)dz;
+    u32 time = (u32)Ftol(X87_Sqrt(squares)) * 100;
+    if (time == 0)
+        time = 100;
+    const s32 count = at<s32>(vm, 0x7c);
+    s32 i = 0;
+    u8 *slot = at<u8 *>(vm, 0x2c);
+    for (; i < count; ++i, slot += 0x20)
+        if (at<u16>(slot, 0x18) == 0)
+            break;
+    if (i >= count)
+        return i;
+    at<u16>(slot, 0) = (u16)from;
+    at<u16>(slot, 2) = (u16)to;
+    at<u16>(slot, 4) = (u16)a;
+    at<u16>(slot, 6) = (u16)b;
+    at<u32>(slot, 0x10) = value;
+    at<u16>(slot, 0x16) = (u16)kind;
+    u8 *const clock = reinterpret_cast<u8 *>(0x00785970);
+    at<u32>(slot, 8) = Clocks_Now(clock);
+    at<u32>(slot, 0xc) = Clocks_Now(clock) + time;
+    const double angle = X87_Atan2((X87Reg(p2[2]) - p1[2]).v, (X87Reg(p2[0]) - p1[0]).v);
+    const X87Reg turn = X87_SubR(X87_SubR(X87Reg(angle) - global<double>(0x00700fe8), global<double>(0x00700ff0)) * global<double>(0x00700ff8),
+                                 global<double>(0x00701000));
+    const s32 octant = Ftol(turn) % 8;
+    at<u16>(slot, 0x18) = 1;
+    at<u16>(slot, 0x1a) = (u16)last;
+    at<u16>(slot, 0x14) = (u16)octant;
+    return octant;
+}
 }  // extern "C"

@@ -7,6 +7,7 @@
 #include "language.h"
 #include "string.h"
 #include "vcall.h"
+#include "../files/direntry.h"
 #include "../files/handles.h"
 
 namespace {
@@ -503,6 +504,39 @@ void __fastcall Class6fdaa4_TrimName(u8 *, void *, String *s) {
     if (String_EqualsStr(reinterpret_cast<const String *>(String_Left(s, nullptr, &view, 1)), nullptr,
                          reinterpret_cast<const char *>((uintptr_t)0x0074c778)))
         String_Assign(s, nullptr, String_Right(s, nullptr, &view, s->length - 1));
+}
+
+void __fastcall Class6fdaa4_SetEntry(u8 *object, void *, const DirEntry *entry, const String *path) {
+    const String *const wad = reinterpret_cast<const String *>((uintptr_t)0x0078bb08);
+    String folder;
+    String_Ctor(&folder);
+    String *const name = reinterpret_cast<String *>(object + 4);
+    vcall<void>(name, 0x14, entry->name);
+    vcall<void>(name, 0x18, String_StripSuffix(wad, name));
+    String *const full = reinterpret_cast<String *>(object + 0x18);
+    vcall<void>(full, 0x18, path);
+    vcall<void>(full, 0x18, String_StripSuffix(wad, full));
+    vcall<void>(&folder, 0x18, path);
+    Class6fdaa4_TrimName(object, nullptr, name);
+    Handle opened;
+    Handle_Ctor(&opened);
+    s32 result;
+    const s32 *got;
+    if (DirEntry_IsWad(entry)) {
+        *reinterpret_cast<u32 *>(&opened) = 0x006fda18;
+        got = Handle_OpenE0(&opened, nullptr, &result, (u32)(uintptr_t)folder.data, 0);
+    } else {
+        *reinterpret_cast<u32 *>(&opened) = 0x006fd9e8;
+        got = Handle_Open28(&opened, nullptr, &result, (u32)(uintptr_t)folder.data);
+    }
+    if (*got >= 0) {
+        Handle copy;
+        Handle_CopyCtor(&copy, nullptr, &opened);
+        Handle_Assign(reinterpret_cast<Handle *>(object + 0x2c), nullptr, &copy);
+        Handle_Dtor(&copy);
+    }
+    Handle_Dtor(&opened);
+    String_Dtor(&folder);
 }
 
 u32 __fastcall Class6fdaa4_HasEmt(u8 *object) {

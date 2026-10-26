@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "drawbuffer.h"
+#include "../math/x87.h"
 #include "vertexfog.h"
 #include "texformat.h"
 #include "../gfx/texset.h"
@@ -97,5 +98,64 @@ void __fastcall Batch_Fog(u8 *object, void *) {
         return;
     u8 *batch = at<u8 *>(object, 0x20);
     fog(object, global<u32>(0x008bcbc8), at<u8 *>(batch, 0x28), at<u32>(batch, 0x20));
+}
+
+u32 __fastcall Model_AddTriangles(u8 *model, void *, u8 *batch, const void *matrix, const u8 *vertices) {
+    {
+        using Slot = void(__cdecl *)(void *, const void *, const u8 *, u32, u32, u32, u32);
+        void *const transformer = global<void *>(0x0087b1d8);
+        void *const *const vtable = *static_cast<void *const *const *>(transformer);
+        const u8 *const settings = at<u8 *>(model, 4);
+        reinterpret_cast<Slot>(vtable[2])(transformer, matrix, vertices, at<u32>(settings, 0x60), 0x10, 0, at<u16>(settings, 0x58));
+    }
+    const u8 *settings = at<u8 *>(model, 4);
+    const u8 *entry = at<u8 *>(settings, 0x6c);
+    for (u32 g = 0; g < at<u16>(settings, 0x5a); ++g, entry += 0x10) {
+        const u32 base = at<u32>(batch, 0x20);
+        u8 *dst = at<u8 *>(batch, 0x28) + (base << 5);
+        const u8 *src = vertices;
+        for (u32 n = at<u16>(settings, 0x58); n; --n, src += 0x10, dst += 0x20) {
+            at<float>(dst, 0) = (float)(X87Reg((double)global<s32>(0x008bd4ac)) * X87Reg(at<float>(src, 0)));
+            at<float>(dst, 4) = (float)(X87Reg((double)global<s32>(0x008bd4ac)) * X87Reg(at<float>(src, 8)));
+            at<u32>(dst, 8) = at<u32>(src, 4);
+            at<u32>(dst, 0xc) = at<u32>(src, 0xc);
+            at<u32>(dst, 0x10) = 0xffffffff;
+        }
+        at<u32>(batch, 0x20) += at<u16>(settings, 0x58);
+        u16 *out = at<u16 *>(batch, 0x2c) + at<u32>(batch, 0x24);
+        const u32 vbase = at<u16>(entry, 8);
+        const u8 *face = at<u8 *>(at<u8 *>(model, 4), 0x70) + at<u16>(entry, 4) * 8;
+        for (u32 k = at<u16>(entry, 6); k; --k, face += 8) {
+            const u8 *const verts = at<u8 *>(batch, 0x28);
+            const u8 *const remap = at<u8 *>(at<u8 *>(model, 4), 0x94);
+            const u32 a = at<u16>(remap, (at<u16>(face, 2) - vbase) * 2);
+            const u32 b = at<u16>(remap, (at<u16>(face, 4) - vbase) * 2);
+            const u32 c = at<u16>(remap, (at<u16>(face, 6) - vbase) * 2);
+            const u8 *const pa = verts + (a << 5), *const pb = verts + (b << 5), *const pc = verts + (c << 5);
+            global<u32>(0x008c63bc) = X87_FloatThrough(at<u32>(pa, 0));
+            global<u32>(0x008c63c8) = at<u32>(pa, 4);
+            global<u32>(0x008c63b0) = at<u32>(pa, 0xc);
+            global<u32>(0x008c63c0) = at<u32>(pb, 0);
+            global<u32>(0x008c63cc) = at<u32>(pb, 4);
+            global<u32>(0x008c63b4) = at<u32>(pb, 0xc);
+            global<u32>(0x008c63c4) = at<u32>(pc, 0);
+            global<u32>(0x008c63d0) = at<u32>(pc, 4);
+            global<u32>(0x008c63b8) = at<u32>(pc, 0xc);
+            const float xa = global<float>(0x008c63bc), ya = global<float>(0x008c63c8), wa = global<float>(0x008c63b0);
+            const float xb = global<float>(0x008c63c0), yb = global<float>(0x008c63cc), wb = global<float>(0x008c63b4);
+            const float xc = global<float>(0x008c63c4), yc = global<float>(0x008c63d0), wc = global<float>(0x008c63b8);
+            const X87Reg f = (X87Reg(wa) * yb - X87Reg(wb) * ya) * xc - X87Reg(wc) * yb * xa;
+            const X87Reg e = (X87Reg(wa) * yc - X87Reg(wc) * ya) * xb - X87Reg(wb) * yc * xa;
+            if (f.v < e.v || f.v != f.v || e.v != e.v) {   // (below or unordered)
+                out[0] = (u16)(a + base);
+                out[1] = (u16)(b + base);
+                out[2] = (u16)(c + base);
+                out += 3;
+                at<u32>(batch, 0x24) += 3;
+            }
+        }
+        settings = at<u8 *>(model, 4);
+    }
+    return 1;
 }
 }

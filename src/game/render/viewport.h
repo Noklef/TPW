@@ -32,4 +32,10 @@ void __fastcall View_SetProjection(u8 *view, void *, u32 unused, float a, float 
 // 0x583280 (near, far; pops 8): +0x8c8 = near, +0x8cc = far, +0x8d0 = 1 / (far - near), +0x8d4 / +0x8d8 their squares and +0x8dc
 // the square of +0x8d0.
 void __fastcall View_SetDepthRange(u8 *view, void *, float near_, float far_);
+
+// 0x582d90 (thiscall; the static initialiser 0x582d80 calls it on 0x8bcbc8; name unconfirmed): the view's defaults: the flags 0x410100,
+// the screen and window fields (+4..+0x1c, +0x48, +0x60, +0x78, +0x7c) 0, the projection's inputs +0x40 = 1, +0x4c = 0.1, +0x50 = 0.2,
+// +0x54 = 1 and +0x44 = 0.003, +0x58 / +0x5c 0.1; the depth range as SetDepthRange(100, 130) leaves it, and +0x8b0..+0x8c4, +0x8e0..
+// +0x8f8 and +0x924 their constants (as dwords: 1.5, 0x400080, 0, 2^22, 0, 128; 0.3, 0x80, 0x20, 1, 0, 2^31, 400; 0.5). Returns the view.
+u8 *__fastcall View_Defaults(u8 *view);
 }
