@@ -41,4 +41,7 @@ u8 *__fastcall StreamFilter_Dtor(u8 *stream, void *, u32 flags);
 // pool's delete (Stream70abf8Pool_Delete, 0x14). Returns the stream.
 u8 *__fastcall Stream70abf8_Dtor(u8 *stream, void *, u32 flags);
 
+// 0x6c6e50 (thiscall (record), pops 4; slot 5 of 0x70abf8): slot 18's answer (the next stream)'s slot 5 (record).
+void __fastcall Stream70abf8_Describe(u8 *stream, void *, u8 *record);
+
 }  // extern "C"
