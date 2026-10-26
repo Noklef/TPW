@@ -197,9 +197,15 @@ def voices_case(r, log, name):
     if name == 'clearocc':
         return Call(0x6b7a70, [CHAN, r.choice([0, 1, 0x100, r.getrandbits(32)])], regions, conv='t', ret='v')
     if name == 'voiceocc':   # (one voice: the record's +0xc flags, its +0x30 the position or null)
-        struct.pack_into('<I', rec, 0xc, r.getrandbits(32) & r.choice([0xffffffff, 0x820, 0x820, 0x800, 0x20]))
+        struct.pack_into('<I', rec, 0xc, r.choice([r.getrandbits(32), 0x820, r.getrandbits(32) | 0x820, r.getrandbits(32) | 0x820, 0x800, 0x20]))
         struct.pack_into('<I', rec, 0x30, r.choice([VEC2] * 6 + [0]))
-        voice = VOICES + 0x8c * r.randrange(max(n, 1))
+        if r.random() < 0.8:   # (the position near the occluders, as slot 0x1e's: small integers)
+            regions[VEC2] = struct.pack('<3I', ints(), r.getrandbits(32), ints())
+        k = r.randrange(max(n, 1))
+        voice = VOICES + 0x8c * k
+        struct.pack_into('<I', voices, 0x8c * k + 0x10, r.getrandbits(32) & ~3 | r.choice([0, 1, 2, 3]))   # (flag 1 and its neighbour)
+        if r.random() < 0.3:
+            struct.pack_into('<I', occluders, 0xc, 0)   # (no occluders: not occluded)
         return Call(0x6b7fa0, [CHAN, r.getrandbits(32), voice, REC], regions, conv='t', ret='v')
     return Call(0x6b5e60, [FUNCTOR, OUT, CHAN], regions, conv='t', ret='a')
 
