@@ -14,13 +14,16 @@ from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, heap, import_table,
 
 # pool: (delete, destructor, size, next offset, list global, lock global); init, shutdown, purge, new
 POOLS_MORE = {'filter': (0x6c6340, 0x6c6370, 0x6c63a0, 0x6c63e0), 'loop': (0x6c68a0, 0x6c68d0, 0x6c6900, 0x6c6940),
-              'f70abf8': (0x6c6bd0, 0x6c6c00, 0x6c6c30, 0x6c6c70), 'f70a6c8': (0x6c7300, 0x6c7330, 0x6c7360, 0x6c73a0)}
+              'f70abf8': (0x6c6bd0, 0x6c6c00, 0x6c6c30, 0x6c6c70), 'f70a6c8': (0x6c7300, 0x6c7330, 0x6c7360, 0x6c73a0),
+              'voice': (0x6c79c0, 0x6c79f0, 0x6c7a20, 0x6c7a60), 'voicestream': (0x6c7e10, 0x6c7e40, 0x6c7e70, 0x6c7eb0)}
 KINDS = ('delete', 'dtor', 'init', 'shutdown', 'purge', 'new')
 POOLS = {'filter': (0x6c6450, 0x6bb170, 0x18, 0x10, 0xfb2068, 0xfb206c), 'loop': (0x6c69b0, 0x6c6a40, 0x24, 0x18, 0xfb2080, 0xfb2084),
-         'f70abf8': (0x6c6ce0, 0x6c6d50, 0x14, 0x10, 0xfb208c, 0xfb2090), 'f70a6c8': (0x6c7410, 0x6baab0, 0x1c, 0x14, 0xfb20a4, 0xfb20a8)}
+         'f70abf8': (0x6c6ce0, 0x6c6d50, 0x14, 0x10, 0xfb208c, 0xfb2090), 'f70a6c8': (0x6c7410, 0x6baab0, 0x1c, 0x14, 0xfb20a4, 0xfb20a8),
+         'voice': (0x6c7ad0, None, 0x40, 0x28, 0xfb20bc, 0xfb20c0), 'voicestream': (0x6c7f20, None, 0x5c, 0x58, 0xfb20c8, 0xfb20cc)}
 OPS = [(p, kind) for p in POOLS for kind in KINDS
+       if POOLS[p][1] or kind != 'dtor'
        if not os.environ.get('OPS') or p + '_' + kind in os.environ['OPS'].split(',')]
-B = Bench([(0x6c6340, 0x6c6495), (0x6c68a0, 0x6c69f5), (0x6c6bd0, 0x6c6d25), (0x6c7300, 0x6c7455), (0x6bb170, 0x6bb190),
+B = Bench([(0x6c6340, 0x6c6495), (0x6c68a0, 0x6c69f5), (0x6c6bd0, 0x6c6d25), (0x6c7300, 0x6c7455), (0x6c79c0, 0x6c7b15), (0x6c7e10, 0x6c7f65), (0x6bb170, 0x6bb190),
            (0x6c6a40, 0x6c6a60), (0x6c6d50, 0x6c6d70), (0x6baab0, 0x6baad0), (0x6c7090, 0x6c7097)])
 IMPORTS = {'EnterCriticalSection': (20, 0x6fd140, 1, 0, 0), 'LeaveCriticalSection': (21, 0x6fd130, 1, 0, 0),
            'InitializeCriticalSection': (22, 0x6fd144, 1, 0, 0), 'DeleteCriticalSection': (23, 0x6fd0d0, 1, 0, 0)}
@@ -35,7 +38,7 @@ def case(r):
     pool, kind = r.deal(OPS)
     delete, dtor, size, nxt, list_at, lock_at = POOLS[pool]
     log = log_region()
-    blocks = [bytearray(r.bytes(0x40)) for _ in range(BLOCKS)]
+    blocks = [bytearray(r.bytes(0x60)) for _ in range(BLOCKS)]
     n = r.choice([0, 0, 1, 2])
     for i in range(n - 1):
         struct.pack_into('<I', blocks[i], nxt, block_at(i + 1))
