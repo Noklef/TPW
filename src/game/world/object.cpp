@@ -298,6 +298,18 @@ s32 __cdecl Objects_CountKind0InState1() {
     return count;
 }
 
+s32 __stdcall Objects_CountKind0Below44OrState1(s32 least) {
+    s32 count = 0;
+    u16 handle = global<u16>(global<u32>(0x0080239c) + 0x1da746);
+    while (handle) {
+        const u8 *object = global<u8 *>(0x007cfb90 + 20 * (u32)handle);
+        const u8 *def = ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, at<u16>(object, 0xe));
+        if (at<u32>(def, 0x4ac) == 0 && ((s32)((u32)(long long)at<float>(object, 0x44) & 0xff) < least || Is19c_Eq1_4e0370(object))) ++count;
+        handle = at<u16>(object, 0xc);
+    }
+    return count;
+}
+
 u16 *__fastcall Objects_NearestFreeFor(u8 *self, void *, u16 *out, u32 person) {
     u16 here = 0;
     if (at<u16>(self, 0xc) != 0) {

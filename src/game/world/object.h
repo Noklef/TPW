@@ -115,6 +115,10 @@ void __fastcall Objects_ReleaseTracked(void *self, void *, u32 unused1, u32 unus
 // state 1 (+0x19c, Is19c_Eq1_4e0370) counted.
 s32 __cdecl Objects_CountKind0InState1();
 
+// 0x4ca3a0 (thiscall, the analyser unused (least), pops 4; name unconfirmed): Objects_CountKind0InState1's walk, those of map kind 0 whose
+// float +0x44 cut to an integer (__ftol's low byte) is below least (signed) or that are in state 1 counted.
+s32 __stdcall Objects_CountKind0Below44OrState1(s32 least);
+
 // 0x4fa770 (thiscall; name unconfirmed): whether the largest block value (Map_BlockValue of the map at [0x80239c] + 0x2d8) at the nine offsets of 0x7ced88 (dword pairs
 // x, y: id + y * 0x80 + x as a word) from a cell is below the dword at +0x198 (unsigned; the search stops early once the largest is above it). The cell is the object's
 // ((byte +7) * 0x80 + byte +5 + 1); when that is a type 3 or 9 cell, the last one of the chain Map_FindFacingNeighbour follows from it (forever round a loop).
