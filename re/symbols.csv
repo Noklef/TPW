@@ -2895,6 +2895,7 @@ address,name,kind,confidence,notes
 0x00564ba0,Obj_CtorVirtual564ba0,function,high,"reimplemented (src/game/gfx/wctimage); a class with a virtual base (vtables 0x7011d8, 0x701178, 0x7011c8)"
 0x0056b570,PtrArray_SetVectorOf,function,high,reimplemented (src/game/core/ptrlist); a pointer array searched for a key; its three dwords at +0x14 set
 0x0056e780,Extents_Include,function,high,reimplemented (src/game/terrain/procedural); a column range's lowest and highest bytes extended
+0x0056ef10,TerrainTex_LightGrid,function,low,"reimplemented (src/game/terrain/procedural); thiscall (texture): a terrain texture's grid of points lit once a frame, a row at a time, each point's normal from its neighbours' heights"
 0x0054b290,Pool_FreeAll,function,high,"reimplemented (src/game/world/collobj); every chunk of an owner's list freed, with its nodes"
 0x00549070,CollArea_FindNearest,function,low,"reimplemented (src/game/world/collobj); cdecl (area, x, y, self): of the area nodes in use, the nearest (x, y) that is no blocker (0x40), is not area unless self, meets area and whose centre moved 0x87c towards its closed side is in no blocker; 0 for none"
 0x00547c60,Collider_SteerTo,function,low,"reimplemented (src/game/world/collobj); cdecl (car, x, y): a ride car steered to a point through the area nodes; the distance left or -1"

@@ -63,6 +63,16 @@ u32 __fastcall TerrainTex_Setup(u8 *tex, void *, const u8 *land);
 // then the renderer's [0x87a6d0] frame buffer made at the width by the height (Renderer_MakeFrameBuffer). Returns 1.
 u32 __fastcall TerrainTex_SetView(u8 *tex);
 
+// 0x56ef10 (thiscall; name unconfirmed): the grid's colours lit, once a frame: nothing when the stamp +0x12968 is the frame number
+// 0x8bd50c already and 0x8bd508's 0x40000000 is clear. Else for each of the +0xc rows (signed) a row of the +8 points (signed; at most 128,
+// the stack's room) from the header [+0]'s height floats [+0x28] on (a row after the last's points, rows +8 apart): each point x, the
+// height, z, x starting at the header's float +8 and stepping by it (sic: not +0x10), z from the header's +0xc stepping by its +0x14 a
+// row; its normal (dx, 1.0, dz) the height differences scaled by +0x18: dx the left less the right neighbour (the point itself at an
+// end), dz the row before less the row after (the point itself in the first row; in the last, the height 128 floats back (sic) less
+// the point), each stored as a float before the scaling (x87 at the game's precision); the row lit by Meshes_LightPoints on [0x87a248]
+// into +0x2968 + 0x200 a row. Then the stamp = the frame number.
+void __fastcall TerrainTex_LightGrid(u8 *tex);
+
 // 0x457a00: when available and not in use: the option 0x78d8d8 at 1 turns them on (flag, the
 // renderer, the cells); at 0 marks them unavailable (clears 0x6000); else nothing.
 void __cdecl Terrain_ProceduralEnter();
