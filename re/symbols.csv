@@ -2882,6 +2882,7 @@ address,name,kind,confidence,notes
 0x004b4f00,Panel7cc328_AddStaff,function,low,"reimplemented (src/game/ui/panel7cc328); thiscall (staff): with a window +0x10, a staff member resting in the area [0x7cc310] whose group index is the tab [0x7cc358] added to its list 0x1e7b as AddStaffRow adds it, refreshed"
 0x004b4f90,Panel7cc328_RemoveStaff,function,low,"reimplemented (src/game/ui/panel7cc328); thiscall (staff): with a window +0x10, the staff member's row in its list 0x1e7b removed when there is one"
 0x00481960,Panel7cc328_OnStaff,function,low,"reimplemented (src/game/ui/panel7cc328); thiscall (handle, added), pops 8, this unused: the thing of the handle's low word added to (AddStaff) or removed from (RemoveStaff) the staff panel 0x7cc328"
+0x004b4510,Panel7cc328_ShowStaff,function,low,"reimplemented (src/game/ui/panel7cc328); thiscall (staff), pops 4: the staff member's figure shown in the window +0x10's child 0x1e84 (a sprite script of 0x74f758 with the staff's folder +0x24 and sprite +0x20, anim 1, at the child's saved rectangle and depth); only when they differ from the panel's +0x28 / +0x2c, the old script +0x24 killed"
 0x004bcec0,Global7cc698_Choose,function,high,reimplemented (src/game/ui/dialogs); a global set from the first of three sources that applies
 0x0052fbf0,PairTable_Add,function,high,reimplemented (src/game/world/cellrun); a pair appended to the 8-byte entry table unless it is past 0x400
 0x004d09a0,Obj_SmallestEntry,function,high,"reimplemented (src/game/world/money); the index of the smallest non-zero entry size of eight, or -1"
