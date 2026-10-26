@@ -4666,6 +4666,7 @@ address,name,kind,confidence,notes
 0x006be130,ShuffleBag_SetList,function,low,"reimplemented (src/game/core/shufflebag); thiscall (list), pops 4: +0 = list, then the shuffle (name invented)"
 0x006be100,ShuffleBag_Ctor,function,low,"reimplemented (src/game/core/shufflebag); thiscall (list), pops 4: strides 1 and 2, seed Time_GetMs, then SetList (name invented)"
 0x006be210,ShuffleBag_Next,function,low,"reimplemented (src/game/core/shufflebag); thiscall (refill), pops 4: the next entry, reshuffled at the end with refill, else 0 (name invented)"
+0x006c67f0,SilenceStream_Read,function,low,"reimplemented (src/game/core/silencestream); slot 7 of 0x70ab58: the next stream read until it ends, then zeros up to the silence left (name invented)"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
