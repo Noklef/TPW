@@ -262,6 +262,10 @@ s32 __fastcall Things_PercentPeopleStat19cBelow(void *self, void *, s32 bound);
 // slot check are left out.
 s32 __stdcall Things_AverageStat1f8OfKind(u32 kind);
 
+// 0x4c9d80 (no arguments; name unconfirmed): Things_AverageStat1f8OfKind over all the staff (kind byte +2 4 to 8). The debug prints of
+// the slot check are left out.
+s32 __cdecl Things_AverageStaffStat1f8Int();
+
 // 0x4ca160 (thiscall, the analyser unused, no arguments; name unconfirmed): over the objects (kind 3) with bit 0 of +0x32 set, the
 // average (signed) of 100 less the low byte of their float +0x44 cut to an integer, 0 when there are none.
 s32 __cdecl Things_AverageKind3Flag1Of100Minus44();

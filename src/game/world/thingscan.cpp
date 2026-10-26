@@ -1008,6 +1008,22 @@ s32 __stdcall Things_AverageStat1f8OfKind(u32 kind) {
     return count ? sum / count : 0;
 }
 
+s32 __cdecl Things_AverageStaffStat1f8Int() {
+    s32 sum = 0, count = 0;
+    u16 handle;
+    World_FirstThing(world(), nullptr, &handle);
+    while (handle) {
+        const u8 *thing = thing_of(handle);
+        const u8 kind = at<u8>(thing, 2);
+        if (kind == 4 || kind == 5 || kind == 6 || kind == 8 || kind == 7) {
+            ++count;
+            sum += (u8)(long long)at<float>(thing, 0x1f8);
+        }
+        World_NextThing(world(), nullptr, &handle, thing);
+    }
+    return count ? sum / count : 0;
+}
+
 s32 __cdecl Things_AverageKind3Flag1Of100Minus44() {
     s32 sum = 0, count = 0;
     u16 handle;
