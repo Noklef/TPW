@@ -367,6 +367,29 @@ u32 __fastcall Window_SlideTo(u8 *window, void *, const u8 *target, s32 time, s3
 // step (Window_ScriptStep), whose answer it returns.
 u32 __fastcall Window_ScriptTick(u8 *window);
 
+// 0x65e72d (thiscall (script, interval), pops 8; called by the panels 0x48a85b, 0x48a935, 0x48ad7a and others; name unconfirmed): a
+// running script (+0x135 set, signed) first undone (the rectangle +8 less the margins +0xf8..+0xfe set by Window_SetRect, the margins 0);
+// then with a script: +0x135 = 1, the step +0xec 0, the script +0xe8, the interval +0xf0 and the last time +0xf4 now (GuiClock_Now); 1 in
+// AX. Without one 0 in AX (the rest of EAX left in both, by no caller read).
+u16 __fastcall Window_RunScript(u8 *window, void *, u8 *script, s32 interval);
+
+// 0x65e855 (thiscall (paused: a word), pops 4; no direct callers; name unconfirmed): with a script running (+0x135 set) +0x135 = 2 when the
+// word is not 0, else 1; 1 in AX. Else 0.
+u16 __fastcall Window_PauseScript(u8 *window, void *, u32 paused);
+
+// 0x65e897 (thiscall; name unconfirmed): with a script running (+0x135 set) +0x135, the step +0xec and the script +0xe8 0, then the
+// rectangle +8 less the margins set (Window_SetRect) and the margins 0; 1 in AX. Else 0.
+u16 __fastcall Window_StopScript(u8 *window);
+
+// 0x65ee1b (thiscall (move: a word), pops 4; name unconfirmed): with a slide running (+0x136 set, signed) its timer +0x100 stopped
+// (Fn_662097), +0x136 and the count +0x10c 0 and, when the word is not 0, the rectangle set to the target +0x38 (Window_SetRect); 1 in AX.
+// Else 0.
+u16 __fastcall Window_StopSlide(u8 *window, void *, u32 move);
+
+// 0x65cd95 (thiscall (dl, dt, dr, db: words), pops 16; called by 0x48dc92, 0x4a12e3; name unconfirmed): the rectangle +8 moved edge by
+// edge by the words (GuiRect_CopyCtor, GuiRect_Adjust) and set (Window_SetRect). EAX the rectangle's address (its destructor's), by neither caller read.
+void __fastcall Window_AdjustRect(u8 *window, void *, u32 dl, u32 dt, u32 dr, u32 db);
+
 // 0x65f6d1 (cdecl; name unconfirmed): a window's default handler (+0x114 / +0x118 of a new window). Messages with the top bit set: nothing.
 // 1 / 2 the tree opened / closed (Window_OpenTree / Window_CloseTree); 3 the window's slot 4; 4 its slot 2 (1: its deleting destructor);
 // 5 the window posted 4; 6 shown by a's word (Window_SetShown); 7 moved by a's and b's words (Window_Offset); 8 its rectangle set to the

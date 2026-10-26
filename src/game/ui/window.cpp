@@ -984,6 +984,65 @@ u32 __fastcall Window_ScriptTick(u8 *window) {
 }
 
 namespace {
+// The rectangle +8 less the script's margins +0xf8..+0xfe set (Window_SetRect) and the margins 0 (inlined in RunScript and StopScript).
+void unmove(u8 *window) {
+    u8 rect[0x10];
+    GuiRect_CopyCtor(rect, nullptr, window + 8);
+    GuiRect_Adjust(rect, nullptr, (u32)-(s32)at<s16>(window, 0xf8), (u32)-(s32)at<s16>(window, 0xfa), (u32)-(s32)at<s16>(window, 0xfc),
+                   (u32)-(s32)at<s16>(window, 0xfe));
+    Window_SetRect(window, nullptr, rect);
+    at<u16>(window, 0xfe) = 0;
+    at<u16>(window, 0xfc) = 0;
+    at<u16>(window, 0xfa) = 0;
+    at<u16>(window, 0xf8) = 0;
+    GuiRect_Dtor(rect);
+}
+}  // namespace
+
+u16 __fastcall Window_RunScript(u8 *window, void *, u8 *script, s32 interval) {
+    if (at<s8>(window, 0x135)) unmove(window);
+    if (!script) return 0;
+    at<u8>(window, 0x135) = 1;
+    at<u16>(window, 0xec) = 0;
+    at<u8 *>(window, 0xe8) = script;
+    at<s32>(window, 0xf0) = interval;
+    at<u32>(window, 0xf4) = GuiClock_Now();
+    return 1;
+}
+
+u16 __fastcall Window_PauseScript(u8 *window, void *, u32 paused) {
+    if (!at<s8>(window, 0x135)) return 0;
+    at<u8>(window, 0x135) = (s16)paused ? 2 : 1;
+    return 1;
+}
+
+u16 __fastcall Window_StopScript(u8 *window) {
+    if (!at<s8>(window, 0x135)) return 0;
+    at<u8>(window, 0x135) = 0;
+    at<u16>(window, 0xec) = 0;
+    at<u8 *>(window, 0xe8) = nullptr;
+    unmove(window);
+    return 1;
+}
+
+u16 __fastcall Window_StopSlide(u8 *window, void *, u32 move) {
+    if (!at<s8>(window, 0x136)) return 0;
+    Fn_662097(at<u8 *>(window, 0x100));
+    at<u8>(window, 0x136) = 0;
+    at<u16>(window, 0x10c) = 0;
+    if ((s16)move) Window_SetRect(window, nullptr, window + 0x38);
+    return 1;
+}
+
+void __fastcall Window_AdjustRect(u8 *window, void *, u32 dl, u32 dt, u32 dr, u32 db) {
+    u8 rect[0x10];
+    GuiRect_CopyCtor(rect, nullptr, window + 8);
+    GuiRect_Adjust(rect, nullptr, dl, dt, dr, db);   // (only the words are read: the original's pushes carry other upper halves)
+    Window_SetRect(window, nullptr, rect);
+    GuiRect_Dtor(rect);
+}
+
+namespace {
 u8 *press(u32 button) { return reinterpret_cast<u8 *>((uintptr_t)(0x00faa598u + button * 0xcu)); }
 s32 iabs(s32 v) { return v < 0 ? -v : v; }
 }  // namespace

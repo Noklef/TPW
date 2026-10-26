@@ -5,6 +5,10 @@
 # or not. NotifyShown / SetShown (0x65d90b, 0x65d9dd): window.py's shown_env. Offset (0x65c7fe): window.py's offset_env, moved by words 0 or
 # not (upper halves random). SetEnabled (0x65da8d): shown_env's, flag 2 of each window's +0x48 either way; AX compared (only AX is set).
 # ScriptStep / SlideStep / ScriptTick (0x65e9a4, 0x65ee7a, 0x65c357): see script_case().
+# RunScript / PauseScript / StopScript / StopSlide (0x65e72d, 0x65e855, 0x65e897, 0x65ee1b): script_case()'s window (its byte +0x135 1, 0,
+# 0x81; the slide's +0x136 too), the objects' events hashed by the rectangle a running script's end or a stopped slide sets; Run's script
+# the steps or 0 and its interval any, Pause's and StopSlide's word 0, 1 or any (upper half random).
+# AdjustRect (0x65cd95): rect_env()'s windows, four words (upper halves random); EAX not compared (a stack address).
 # MoveTo (0x65ce10): rect_env()'s windows, the new left / top near the old or any, each given or not.
 # usage: windowtree.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=FindChild,IsShown,...)
 import os
@@ -21,15 +25,15 @@ CALLS = {'FindChild': 0x65d7d0, 'IsShown': 0x65d773, 'OffsetByParents': 0x65c979
          'NotifyShown': 0x65d90b, 'SetShown': 0x65d9dd, 'Offset': 0x65c7fe, 'SetEnabled': 0x65da8d,
          'RaiseToTop': 0x65dbf0, 'OpenTree': 0x65c707, 'CloseTree': 0x65c778, 'SetRect': 0x65cc04, 'ResizeChildren': 0x65c9bd,
          'SetRectTo': 0x65cf5e, 'AddChild': 0x65f447, 'ScriptStep': 0x65e9a4, 'SlideStep': 0x65ee7a, 'ScriptTick': 0x65c357,
-         'DefaultProc': 0x65f6d1, 'MoveTo': 0x65ce10}
+         'DefaultProc': 0x65f6d1, 'MoveTo': 0x65ce10, 'RunScript': 0x65e72d, 'PauseScript': 0x65e855, 'StopScript': 0x65e897, 'StopSlide': 0x65ee1b, 'AdjustRect': 0x65cd95}
 ARG = RAM + 0xb000
-B = Bench(RANGES + [(0x65ce10, 0x65cef7), (0x65da8d, 0x65db25), (0x65dbf0, 0x65dcaf), (0x65c707, 0x65c7fe), (0x65c9bd, 0x65cd95),
+B = Bench(RANGES + [(0x65ce10, 0x65cef7), (0x65da8d, 0x65db25), (0x65dbf0, 0x65dcaf), (0x65c707, 0x65c7fe), (0x65c9bd, 0x65ce10),
                        (0x65cf5e, 0x65cfd4), (0x661700, 0x66176a), (0x659e3e, 0x659e83), (0x659d43, 0x659d90),
                        (0x65f447, 0x65f538), (0x65f345, 0x65f410), (0x65f16b, 0x65f246),
                        (0x65e9a4, 0x65ecb0), (0x65ee7a, 0x65ef90), (0x65f286, 0x65f330), (0x65d3a3, 0x65d40c), (0x662097, 0x6620ac),
                        (0x65968e, 0x6596a2), (0x65c357, 0x65c388),
                        (0x65f6d1, 0x65fba8), (0x680050, 0x68005b), (0x65f150, 0x65f16b), (0x6590f7, 0x6591d4), (0x65dcaf, 0x65dd18),
-                       (0x65dd18, 0x65dd5f)])
+                       (0x65dd18, 0x65dd5f), (0x65e72d, 0x65e9a4), (0x661770, 0x661800), (0x65ee1b, 0x65ee7a)])
 SCRIPT, TNODE, CLOCK = ARG + 0x400, ARG + 0x600, ARG + 0x700
 
 
@@ -71,6 +75,8 @@ def case(r):
     if op == 'UpdateHover':   # the root [0xfaa5d8] or none, [0xfaa5e8] mostly 0, the hovered window [0xfaa5e0] one of them or none
         hover(r, regions, tree(r, regions))
         return Call(CALLS[op], [], regions, ret='w')
+    if op in ('RunScript', 'PauseScript', 'StopScript', 'StopSlide'):
+        return run_case(r, op, regions, log)
     if op in ('ScriptStep', 'SlideStep', 'ScriptTick'):
         return script_case(r, op, regions, log)
     if op == 'DefaultProc':
@@ -82,9 +88,11 @@ def case(r):
         regions[ARG] = struct.pack('<HH', (left + r.choice([0, 0, 3, -7, r.randrange(-0x8000, 0x8000)])) & 0xffff,
                                    (top + r.choice([0, 0, 2, -5, r.randrange(-0x8000, 0x8000)])) & 0xffff)
         return Call(CALLS[op], [window, r.choice([ARG, ARG, 0]), r.choice([ARG + 2, ARG + 2, 0])], regions, conv='t', ret='w')
-    if op in ('SetRect', 'ResizeChildren', 'SetRectTo'):   # see rect_env()
+    if op in ('SetRect', 'ResizeChildren', 'SetRectTo', 'AdjustRect'):   # see rect_env()
         wins = rect_env(r, regions, log)
         window = r.choice(wins[:1] * 3 + wins)
+        if op == 'AdjustRect':
+            return Call(CALLS[op], [window] + [word(r) for _ in range(4)], regions, conv='t', ret='v')
         if op == 'ResizeChildren':
             return Call(CALLS[op], [window] + [word(r) for _ in range(4)], regions, conv='t', ret='v')
         left, top, right, bottom = struct.unpack_from('<hhhh', regions[window], 0xc)
@@ -244,6 +252,23 @@ def script_case(r, op, regions, log):
     c = Call(CALLS[op], [window], regions, conv='t', ret='w')
     c.wins, c.now = wins, now   # (for proc_case)
     return c
+
+
+def run_case(r, op, regions, log):
+    """RunScript / PauseScript / StopScript (see the module comment)"""
+    c = script_case(r, 'ScriptStep', regions, log)
+    window = c.args[0]
+    word = r.choice([0, 1, 0x100, 0x8000, 0x10000, 0xffff, r.getrandbits(16)]) | (r.getrandbits(16) << 16 if r.random() < 0.5 else 0)
+    if op == 'StopSlide':
+        mask = 0xf00000 if regions[window][0x136] and word & 0xffff else 0
+    else:
+        mask = 0xf00000 if regions[window][0x135] and op != 'PauseScript' else 0
+    blob_bytes(log, 3, 1, mask)
+    blob_bytes(log, 22, 1, mask)
+    args = {'RunScript': lambda: [r.choice([SCRIPT] * 4 + [0]), r.choice([0, 5, 100, -1 & 0xffffffff, r.getrandbits(32)])],
+            'PauseScript': lambda: [word], 'StopSlide': lambda: [word],
+            'StopScript': lambda: []}[op]()
+    return Call(CALLS[op], [window] + args, regions, conv='t', ret='w')
 
 
 PROC_MESSAGES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 9, 10, 11, 12, 0x10, 0x10, 0x10, 0x1e, 0x1e, 0x10001, 0x10002, 0x10003, 0x10003, 0x10004, 0x10004,

@@ -5464,6 +5464,11 @@ address,name,kind,confidence,notes
 0x00658840,Gui_PollMouseMove,function,low,"reimplemented (src/game/ui/window); cdecl: when the mouse words 0xfaa540 / 0xfaa544 differ from the last seen 0xfaa5cc / 0xfaa5d0, those set and Gui_MouseMove called"
 0x0065e549,Window_CaptureMouse,function,low,"reimplemented (src/game/ui/window); thiscall: the mouse capture [0xfaa5e8] taken for the window when nobody has it; 1 in AX when taken, else 0 (only AX set)"
 0x0065e56e,Window_ReleaseMouse,function,low,"reimplemented (src/game/ui/window); thiscall: when the window has the capture [0xfaa5e8] it is cleared and the hover updated (Window_UpdateHover), 1 in AX; else 0 (only AX set)"
+0x0065e72d,Window_RunScript,function,low,"reimplemented (src/game/ui/window); thiscall (script, interval), pops 8: a running script undone (the rectangle less the margins, the margins 0); with a script +0x135 1, +0xec 0, +0xe8, +0xf0 and +0xf4 now; 1 / 0 in AX"
+0x0065e855,Window_PauseScript,function,low,"reimplemented (src/game/ui/window); thiscall (paused word), pops 4: with +0x135 set it is 2 or 1 by the word; 1 / 0 in AX"
+0x0065e897,Window_StopScript,function,low,"reimplemented (src/game/ui/window); thiscall: with +0x135 set +0x135, +0xec, +0xe8 0 and the rectangle less the margins set, the margins 0; 1 / 0 in AX"
+0x0065ee1b,Window_StopSlide,function,low,"reimplemented (src/game/ui/window); thiscall (move word), pops 4: with +0x136 set the timer +0x100 stopped, +0x136 and +0x10c 0, with the word the rectangle set to +0x38; 1 / 0 in AX"
+0x0065cd95,Window_AdjustRect,function,low,"reimplemented (src/game/ui/window); thiscall (four words), pops 16: the rectangle +8 adjusted by the words and set"
 0x00498090,Dialog7ca1c8_SetChecks,function,low,"reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): the nine check buttons of the 0x7ca1c8 dialog's child 0x18 set (vtable slot 5, bool) from flags bits 0-8 (0x20's also needs [0x7ca1d0]+0x50)"
 0x00498a50,Dialog7ca1c8_SetChecksIfUp,function,low,reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): Dialog7ca1c8_SetChecks when [0x7ca1c8] and [0x7ca1cc] are not 0
 0x00481a00,Dialog7ca1c8_SetChecksIfUpThis,function,low,"reimplemented (src/game/ui/dialog7ca1c8); thiscall (flags), pops 4, this unused: Dialog7ca1c8_SetChecksIfUp(flags)"
