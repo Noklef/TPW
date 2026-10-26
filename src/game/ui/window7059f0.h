@@ -164,6 +164,12 @@ s32 __fastcall Window7059f0_FindText(u8 *window, void *, const u16 *text, s32 co
 // * 0x14 and 0 first (Window_NotifyC000). Then the next item (Window7059f0_NextItem), its level change added.
 void __fastcall Window7059f0_RefreshRows(u8 *window);
 
+// 0x6639cb (thiscall (make, release: cdecl functions), pops 8; name unconfirmed): nothing without make. A row window made (make ()) sizes
+// the rows (Window7059f0_SetRowSize), whose count goes to the bar child 1 (Fn_66b53e, sign-extended) when there is one; with a count, the
+// row is stored at 0 (Window7059f0_SetRow) and given to release (when not 0), then the rows count-1 down to 1 each made, stored and
+// released likewise. Last the rows refreshed (Window7059f0_RefreshRows).
+void __fastcall Window7059f0_BuildRows(u8 *window, void *, u8 *(__cdecl *make)(), void(__cdecl *release)(u8 *));
+
 // 0x66316b (thiscall (n), pops 4; name unconfirmed): 0 for n 0 or no columns (+0x164, signed). Else the item array +0x144 grown by n items
 // of columns + 4 dwords: a block of (the dword count +0x158 + that) * 4 bytes (Mem_Alloc; none: 0) cleared, the new items from the old
 // count on chained as free ones (each the next one's previous, child -1, parent -2; the last's next -1); with an old array, its dwords

@@ -30,6 +30,7 @@
 # sets (sic), different in the two runs: allocator_masks() leaves those bytes of the heap out (the strings' first byte; the listing reads
 # no string's allocator: CopyCells only stores the new string, StdWString_CtorChars writes the byte and nothing after it reads one).
 # SetRowSize / SetRow (0x663718, 0x663864): see row_case(). SetHighlight (0x662eee): see highlight_case().
+# BuildRows (0x6639cb): see build_case().
 # ShowRows (0x664fde): see show_case(). SendToRows (0x6650d4): RefreshRows' list, rows and items; the message 0x1e mostly (else 3,
 # 0x15, 7 or one with the top bit), a and b any (the row windows' handlers fncmp's logger or none).
 # NthChild (0x663c11): NthItem's forest, the n likewise, the parent -1, -2, an item's place or past them.
@@ -70,7 +71,7 @@ CALLS = {'ColumnBottom': 0x6636f6, 'NextItem': 0x663a93, 'NthItem': 0x663ba2, 'S
          'SetHighlight': 0x662eee, 'ShowRows': 0x664fde, 'SendToRows': 0x6650d4, 'NthChild': 0x663c11, 'Sort': 0x6628f4,
          'ScrollFromBar': 0x664ea3, 'Cell': 0x663d56,
          'PostColumnAt': 0x665494, 'NthItemCell': 0x664bf0, 'NthItemData': 0x664c71, 'OnKey': 0x665b51, 'PostSelection': 0x6656fa,
-         'NotifySort': 0x6658b9, 'ColumnSpan': 0x664cb9, 'SetSortColumn': 0x66590f, 'SetSortOrder': 0x66594d}
+         'NotifySort': 0x6658b9, 'ColumnSpan': 0x664cb9, 'SetSortColumn': 0x66590f, 'SetSortOrder': 0x66594d, 'BuildRows': 0x6639cb}
 LIST_RANGES = (RANGES + [(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 0x664bf0), (0x664d2a, 0x664db7), (0x663324, 0x663554),
                     (0x4f0240, 0x4f0250), (0x65d547, 0x65d56b), (0x65d56b, 0x65d57c), (0x65c672, 0x65c707),
                     (0x663085, 0x66316b), (0x663cb8, 0x663d56), (0x664495, 0x6644ea), (0x66b47d, 0x66b508),
@@ -82,7 +83,8 @@ LIST_RANGES = (RANGES + [(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 
                     (0x663718, 0x663864), (0x663864, 0x6639cb), (0x65d865, 0x65d8e7), (0x659e3e, 0x659e83), (0x65cf5e, 0x65cfd4),
                     (0x65c9bd, 0x65cd95), (0x661700, 0x66176a), (0x65f16b, 0x65f246), (0x662eee, 0x663085), (0x664fde, 0x6650d2), (0x6650d4, 0x6651ee),
                     (0x663c11, 0x663cb8), (0x6628f4, 0x662eee), (0x4f76b0, 0x4f7718), (0x664ea3, 0x664f6d), (0x663d56, 0x663dfa), (0x665494, 0x66552c), (0x664bf0, 0x664c71),
-                    (0x664c71, 0x664cb9), (0x665b51, 0x665bfb), (0x6656fa, 0x665739), (0x6658b9, 0x66590f), (0x664cb9, 0x664d2a), (0x66590f, 0x66594d), (0x66594d, 0x6659ad)])
+                    (0x664c71, 0x664cb9), (0x665b51, 0x665bfb), (0x6656fa, 0x665739), (0x6658b9, 0x66590f), (0x664cb9, 0x664d2a), (0x66590f, 0x66594d), (0x66594d, 0x6659ad),
+                    (0x6639cb, 0x663a93), (0x66b53e, 0x66b567)])
 B = Bench(LIST_RANGES)
 WINDOW, COLUMNS, LINKS, OUT = RAM, RAM + 0x200, RAM + 0x400, RAM + 0x800
 LIST, LINKS2, COLS2, CELLS, ROWS2, ROWWINS = RAM + 0x9000, RAM + 0x9420, RAM + 0x9e00, RAM + 0x9f00, RAM + 0x9c00, RAM + 0xb000
@@ -94,6 +96,7 @@ HL_A, HL_B, HL_VT, HL_PARENTS = RAM + 0x11000, RAM + 0x11040, RAM + 0x11080, RAM
 ALPHA = [0x41, 0x42, 0x100, 0xffff]
 SORTW, SORTCOLS, SORTLINKS, SORTSTRS, SORTCHARS = RAM + 0x12000, RAM + 0x12200, RAM + 0x12400, RAM + 0x12c00, RAM + 0x13000
 BARS = RAM + 0x14000
+BUILDROW, BUILDBAR = RAM + 0x16000, RAM + 0x16800
 PARENT = RAM + 0x600
 
 
@@ -240,6 +243,41 @@ def refresh_case(r):
     put(window, 0x154, 'i', first)
     put(window, 0x160, 'i', shown)
     return Call(CALLS['RefreshRows'], [LIST], regions, conv='t', ret='v')
+
+
+def build_case(r):
+    """BuildRows (0x6639cb): refresh_case()'s list, rows and items with the heap; the row the maker (a cdecl recorder) answers each
+    time the list's first row (its windows as refresh_case() made them), a new one (row_windows()) or none, its rectangle +8 a few pixels
+    high (0 now and then: a fault in both) and its insets 0; the list's inner words +0x13c-+0x142 as high as the rows the array +0x148
+    holds (now and then one less or one more); the highlight none; the children +0x5c none, the bar (id 1) or another; the releaser a
+    cdecl recorder or none; now and then no maker (nothing done)."""
+    c = refresh_case(r)
+    regions = c.regions
+    log, window = regions[LOG], regions[LIST]
+    regions[HEAP] = heap()
+    nrows, ncols = struct.unpack_from('<h', window, 0x172)[0], struct.unpack_from('<h', window, 0x164)[0]
+    old = struct.unpack_from('<I', regions[ROWS2], 0)[0] if nrows > 0 else 0
+    row = r.choice([old, old, 0] if old else [0]) if r.random() < 0.5 else row_windows(r, regions, [], 1, ncols, LIST, base=BUILDROW)[0]
+    if not row and nrows < 0:   # (the count kept: -1 would make and store 65535 rows, past the emulator's step limit)
+        put(window, 0x172, 'h', 0)
+    high = r.choice([5, 8, 12, 20, 20, 0]) if r.random() < 0.97 else 0
+    if row:
+        buf = regions[row]
+        top = r.randrange(-30, 100)
+        put(buf, 8, 'Ihhhh', 0x705920, r.randrange(-30, 100), top, r.randrange(-30, 100), top + (high or r.choice([1, 0])))
+        put(buf, 0xf8, 'hhhh', 0, 0, 0, 0)
+    shown = max(nrows, 0) + r.choice([0, 0, 0, -1, 1])
+    top = r.randrange(-40, 200)
+    put(window, 0x13c, 'hhhh', r.randrange(-40, 200), top, r.randrange(-40, 300), top + max(shown, 0) * max(high, 1) + r.randrange(0, max(high, 1)))
+    put(window, 0x174, 'I', 0)
+    bar = put(bytearray(r.bytes(0x160)), 0x54, 'I', 0)
+    put(bar, 0x8c, 'I', r.choice([1, 1, 2]))
+    regions[BUILDBAR] = bar
+    put(window, 0x5c, 'I', r.choice([BUILDBAR, BUILDBAR, 0]))
+    set_return(log, 26, row)
+    make = recorder(26, 0, cdecl=True) if r.random() < 0.95 else 0
+    release = r.choice([recorder(27, 1, cdecl=True), 0])
+    return Call(CALLS['BuildRows'], [LIST, make, release], regions, conv='t', ret='v')
 
 
 def free_case(r, window, regions):
@@ -854,6 +892,8 @@ def case(r):
         return list_case(r, op)
     if op == 'RefreshRows':
         return refresh_case(r)
+    if op == 'BuildRows':
+        return build_case(r)
     if op == 'ScrollFromBar':
         return bar_scroll_case(r)
     if op == 'PostColumnAt':

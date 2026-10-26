@@ -490,6 +490,23 @@ void __fastcall Window7059f0_RefreshRows(u8 *window) {
     }
 }
 
+void __fastcall Window7059f0_BuildRows(u8 *window, void *, u8 *(__cdecl *make)(), void(__cdecl *release)(u8 *)) {
+    if (!make) return;
+    u8 *row = make();
+    s16 count = (s16)Window7059f0_SetRowSize(window, nullptr, row);
+    if (u8 *const bar = Window_FindChild(window, nullptr, 1)) Fn_66b53e(bar, nullptr, (u32)(s32)count);
+    if (count) {
+        Window7059f0_SetRow(window, nullptr, 0, row);   // (the first row made kept at 0)
+        if (release) release(row);
+        for (--count; count; --count) {   // (then rows count-1 down to 1, each made anew)
+            row = make();
+            Window7059f0_SetRow(window, nullptr, count, row);
+            if (release) release(row);
+        }
+    }
+    Window7059f0_RefreshRows(window);
+}
+
 s32 *__fastcall Window7059f0_Grow(u8 *window, void *, s32 n) {
     if (!n || at<s16>(window, 0x164) == 0) return nullptr;
     const s32 added = n * (at<s16>(window, 0x164) + 4);

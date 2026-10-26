@@ -5805,6 +5805,7 @@ address,name,kind,confidence,notes
 0x0066590f,Window7059f0_SetSortColumn,function,low,reimplemented (src/game/ui/window7059f0); thiscall (word): a new sort column +0x168 set and told (Window7059f0_NotifySort): 1 in AX; the same one: 0
 0x0066594d,Window7059f0_SetSortOrder,function,low,reimplemented (src/game/ui/window7059f0); thiscall (word): a new sort order +0x16a (-1 flips it) set and told (Window7059f0_NotifySort): 1 in AX; the same one: 0
 0x00665e80,Window7059f0_DeletingDtor,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (flags): slot 2 of the vtable 0x7059f0: Window7059f0_Dtor, the block freed for flags bit 0; returns the window"
+0x006639cb,Window7059f0_BuildRows,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (make, release), pops 8: rows made by make, sized (SetRowSize), the count to the bar child 1, stored at 0 then count-1 down to 1 (SetRow), each given to release; then RefreshRows"
 0x0065fbf0,WindowScript_ReadDword,function,low,reimplemented (src/game/ui/windowscript); a window script's next dword (two words)
 0x0065fc18,WindowScript_ReadWord,function,low,reimplemented (src/game/ui/windowscript); a window script's next word
 0x0065fc38,WindowScript_ReadRect,function,low,reimplemented (src/game/ui/windowscript); a window script's next four words to four outputs
