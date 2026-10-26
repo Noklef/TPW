@@ -139,6 +139,10 @@ u8 __fastcall LinkedSwitchVoice_PickBranch(u8 *voice, void *, u32 unused);
 u32 __fastcall SoundVoice_RollVolume(u8 *voice);
 // 0x6bc170 (thiscall): as SoundVoice_RollVolume, on the signed bytes +0xe / +0xf, slot 16 with 2; 0 without a current variation.
 u32 __fastcall SoundVoice_RollPitch(u8 *voice);
+// 0x6bc2d0 (thiscall; slot 19): the current variation's (+8, not tested for null) words +0x10 / +0x12 both 0: 0. With a parameter block
+// (+0x4c) and slot 16 (4) answering (AL): +0x10 + (+0x12 - +0x10) * the percentage / 100 (signed). Else the words put in order (swapped
+// in place) and +0x10 + a random draw (the full rotated number) modulo their difference, or +0x10 when they are equal.
+u32 __fastcall SoundVoice_RollWord(u8 *voice);
 // 0x6bc3c0 (thiscall (record), pops 4): with flag 8 (+0x30), FlagThenSet14_5c_6c51d0 on the record with 0; else, when
 // Obj_Flags28_Bit1IfBit0 of the sound system answers nonzero, the same with the system's slot 10 (the voice + 0x10) as a float, else
 // that answer (0). Returns what the last call answered.

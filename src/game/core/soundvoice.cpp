@@ -558,6 +558,31 @@ u32 __fastcall SoundVoice_RollPitch(u8 *voice) {
     return roll<s8>(voice, 0xe, 2);
 }
 
+u32 __fastcall SoundVoice_RollWord(u8 *voice) {
+    const u8 *v = at<u8 *>(voice, 8);
+    if (!at<u16>(v, 0x10) && !at<u16>(v, 0x12)) return 0;
+    if (at<u32>(voice, 0x4c)) {
+        u32 percent;
+        if (vcall<bool>(voice, 0x40, 4u, &percent)) {
+            v = at<u8 *>(voice, 8);
+            const s32 scaled = static_cast<s32>(static_cast<u32>(at<u16>(v, 0x12) - at<u16>(v, 0x10)) * percent);
+            return static_cast<u32>(scaled / 100) + at<u16>(at<u8 *>(voice, 8), 0x10);
+        }
+    }
+    u8 *w = at<u8 *>(voice, 8);
+    if (at<u16>(w, 0x12) < at<u16>(w, 0x10)) {
+        at<u16>(w, 0x12) = at<u16>(w, 0x10) ^ at<u16>(w, 0x12);
+        w = at<u8 *>(voice, 8);
+        at<u16>(w, 0x10) ^= at<u16>(w, 0x12);
+        w = at<u8 *>(voice, 8);
+        at<u16>(w, 0x12) ^= at<u16>(w, 0x10);
+    }
+    w = at<u8 *>(voice, 8);
+    u32 range = static_cast<u32>(at<u16>(w, 0x12)) - at<u16>(w, 0x10);
+    if (range) range = next_random_full() % range;
+    return at<u16>(at<u8 *>(voice, 8), 0x10) + range;
+}
+
 u32 __fastcall SoundVoice_SetRecordLevel(u8 *voice, void *, u8 *record) {
     if (voice[0x30] & 8) return FlagThenSet14_5c_6c51d0(record, nullptr, 0);
     const u32 on = Obj_Flags28_Bit1IfBit0(system());
