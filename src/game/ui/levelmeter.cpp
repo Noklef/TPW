@@ -1,5 +1,11 @@
 #include "levelmeter.h"
 
+#include <cstdint>
+
+#include "../core/soundset.h"
+#include "../world/research.h"
+#include "../world/staff.h"
+#include "../world/world.h"
 #include "guimanager.h"
 #include "window.h"
 
@@ -13,9 +19,41 @@ void set(u8 *window, u32 index, u32 value) { Window_SetDwordA0(window, nullptr, 
 
 void tell(u8 *window, u32 value) { Window_Notify1(Window_FindChild(window, nullptr, kLight), nullptr, value); }
 
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
+// A research group's level: 0 without a current project (ResearchLab_CurrentObjId's id 0), else the lab's Table_ScaledBySum of it; the
+// lab the game [0x7cf83c]'s (GameTable7cfb90_Get1da722_519550), found again for each.
+u32 researchLevel(s32 group) {
+    u8 *const lab = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da722_519550(global<u8 *>(0x007cf83c)));
+    u16 id;
+    if (*ResearchLab_CurrentObjId(lab, nullptr, &id, (u32)group) == 0) return 0;
+    return Table_ScaledBySum(lab, nullptr, group);
+}
+
+void showLevel(s32 group, u32 level) {
+    static const u32 kMeter[5] = {0xd2d01, 0xd2d08, 0xd2d09, 0xd2d0a, 0xd2d07};   // (by group)
+    LevelMeter_SetLevel(Window_FindChild(global<u8 *>(0x007cc1d8), nullptr, kMeter[group]), level);
+}
+
 }  // namespace
 
 extern "C" {
+
+void __cdecl ResearchMeters_Update(s32 group) {
+    static const s32 kOrder[5] = {0, 4, 1, 2, 3};
+    if (group == -1) {
+        for (const s32 g : kOrder) {
+            const u32 level = researchLevel(g);
+            showLevel(g, level);
+        }
+    } else {
+        const u32 level = researchLevel(group);
+        if ((u32)group <= 4) showLevel(group, level);
+    }
+    u32 sum = 0;
+    for (const s32 g : kOrder) sum += researchLevel(g);
+    Sound_SetParam(global<u32>(0x007cc1d0), 0x12, (u32)((s32)sum / 5));
+}
 
 void __cdecl LevelMeter_SetLevel(u8 *window, u32 level) {
     if (level == 0) {
