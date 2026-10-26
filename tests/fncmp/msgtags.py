@@ -405,6 +405,17 @@ def handler_case(r):
         regions[CHAIN + 0x60 * i] = put(bytearray(r.bytes(0x60)), 0x54, 'I', CHAIN + 0x60 * (i + 1) if i + 1 < n else 0)
     regions[0x7cb2c8] = struct.pack('<I', CHAIN if n else r.choice([0, 0, 0x12345678]))
     gui.timers(r, regions, TAGW)
+    if r.random() < 0.85:   # (a table with free entries (due 0) mostly: the posts land, their delays compared)
+        n = r.choice([1, 2, 4, 6])
+        entries = bytearray(r.bytes(0x14 * n))
+        for i in range(n):
+            if r.random() < 0.6:
+                put(entries, 0x14 * i + 0x10, 'I', 0)
+        regions[gui.TIMED] = struct.pack('<II', n, gui.TIMED + 0x20)
+        regions[gui.TIMED + 0x20] = entries
+        regions[0xfaa5f8] = struct.pack('<I', gui.TIMED)
+    if message == 0x100002:
+        put(regions[TAGW], 0x48, 'I', struct.unpack_from('<I', regions[TAGW], 0x48)[0] & ~3 | r.choice([0, 1, 2, 3]))
     regions[CLOCK] = struct.pack('<I', CVT)
     regions[CVT] = vtable({}, size=4)
     regions[0x77c490] = struct.pack('<I', CLOCK)
