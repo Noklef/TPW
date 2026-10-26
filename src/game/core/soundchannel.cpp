@@ -326,4 +326,20 @@ u32 __fastcall SoundChannel_PlayRecord(u8 *channel, void *, u8 *record, u32 *voi
     return result;
 }
 
+u32 *__fastcall SoundChannel_SetOcclusion(u8 *channel, void *, u32 *out, u8 on, u32 radius) {
+    const u8 was = global<u8>(0xfb2050);
+    const float old = global<float>(0xfb204c), now = *reinterpret_cast<const float *>(&radius);
+    if (was != on || old < now || old > now) {
+        global<u32>(0xfb204c) = radius;
+        global<u8>(0xfb2050) = on;
+        const u8 eax = at<u32>(channel, 0x20) != 0;
+        if (eax || vcall<u8>(at<u8 *>(channel, 0x18), 0x4c)) {
+            if (!on && was) SoundChannel_ClearOcclusion(channel, nullptr, eax);
+            else if (on && !was) SoundChannel_UpdateOcclusion(channel, nullptr, eax);
+        }
+    }
+    *out = 0;
+    return out;
+}
+
 }  // extern "C"

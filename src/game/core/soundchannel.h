@@ -91,4 +91,11 @@ u32 __fastcall SoundChannel_PickVoice(u8 *channel, void *, u32 a, u32 *picked, u
 // dword it returns a pointer to is negative, else PickVoice's result.
 u32 __fastcall SoundChannel_PlayRecord(u8 *channel, void *, u8 *record, u32 *voice);
 
+// 0x6b8180 (thiscall (out, on, radius), pops 0xc; name invented): the occluders' (0xfb2038) switch, the byte +0x18 (0xfb2050), and
+// their smallest radius that counts, the float +0x14 (0xfb204c): nothing when the switch is as it was and the radius compares equal or
+// unordered (fcomp: C3); else both stored (the radius as its dword) and, with an EAX buffer (+0x20) or else the source's slot 0x13
+// answering nonzero (a byte), the switch turned off: SoundChannel_ClearOcclusion, turned on: SoundChannel_UpdateOcclusion (eax: the EAX
+// buffer is there). *out = 0; returns out.
+u32 *__fastcall SoundChannel_SetOcclusion(u8 *channel, void *, u32 *out, u8 on, u32 radius);
+
 }  // extern "C"
