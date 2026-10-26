@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../core/vcall.h"
 #include "guirect.h"
 #include "window.h"
 
@@ -68,5 +69,28 @@ s32 __fastcall Window705bc8_SecondToFirst(u8 *window) {
     if (at<s32>(window, 0x158) == at<s32>(window, 0x14c)) return at<s32>(window, 0x138);
     const s32 product = (s32)((at<u32>(window, 0x158) - at<u32>(window, 0x14c)) * at<u32>(window, 0x140));   // (wrapping, as IMUL)
     return (s32)((u32)(product / at<s32>(window, 0x154)) + at<u32>(window, 0x138));
+}
+
+s32 __fastcall Window705bc8_Compare(u8 *window, void *, u8 *other) {
+    const u32 theirs = vcall<u32>(other, 0xc);
+    if (theirs != vcall<u32>(window, 0xc)) return 0;
+    return (s32)(at<u32>(window, 0x158) - at<u32>(other, 0x158));
+}
+
+void __fastcall Window705bc8_SetValue(u8 *window, void *, s32 value) {
+    if (value > at<s32>(window, 0x150))
+        value = at<s32>(window, 0x150);
+    else if (value < at<s32>(window, 0x14c))
+        value = at<s32>(window, 0x14c);
+    if (value == at<s32>(window, 0x158)) return;
+    at<s32>(window, 0x15c) = at<s32>(window, 0x158);
+    at<s32>(window, 0x158) = value;
+    at<s32>(window, 0x148) = Window705bc8_SecondToFirst(window);
+    if (u8 *const object = at<u8 *>(window, 0x9c)) {
+        u8 event[0x18] = {};
+        *reinterpret_cast<u16 *>(event + 8) = (u16)at<u32>(window, 0x148);
+        vcall<void>(object, 0xc, 4u, event);
+    }
+    Window_PostMessage(at<u8 *>(window, 0x60), 0x800, at<u32>(window, 0x8c), at<u32>(window, 0x158));
 }
 }

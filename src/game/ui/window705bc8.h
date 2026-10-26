@@ -1,6 +1,6 @@
 // The GUI library's window subclass with the vtable 0x705bc8 (kind 11 of the factory 0x65dd7b: two ranges, +0x138 to +0x13c (0xfff) and
 // +0x14c to +0x150 (1), with their spans +0x140 / +0x154, the handler 0x66d001; what it is is unconfirmed). Reimplementation of 0x66c970,
-// 0x66cad3, 0x66cb69, 0x66cc90 and 0x66cd05. The names are unconfirmed.
+// 0x66cad3, 0x66cb69, 0x66cc90, 0x66cd05, 0x66cd83 and 0x66cdc4. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -31,4 +31,15 @@ s32 __fastcall Window705bc8_FirstToSecond(u8 *window);
 // 0x66cd05 (thiscall; name unconfirmed): the second range's value +0x158 in the first: +0x13c at the second's high end, +0x138 at its
 // low end, else (value - low2) * span1 / span2 + low1 (signed).
 s32 __fastcall Window705bc8_SecondToFirst(u8 *window);
+
+// 0x66cd83 (thiscall (other), pops 4; name unconfirmed): when the other window's slot 3 answers what this one's does (the other's asked
+// first), this one's second value +0x158 less the other's; else 0.
+s32 __fastcall Window705bc8_Compare(u8 *window, void *, u8 *other);
+
+// 0x66cdc4 (thiscall (value), pops 4; name unconfirmed; called by 0x66cc5b and 0x66cf0c): the value held to the second range (lowered to
+// its high end +0x150, else raised to its low end +0x14c; signed); when it differs from the value +0x158: the old one to +0x15c, the new one
+// to +0x158, +0x148 its place in the first range (Window705bc8_SecondToFirst); the object +0x9c (when set) told 4 with an event whose word
+// +8 is +0x148's low word (the rest the original's stack leftovers: here 0) (slot 3); and the parent +0x60 posted 0x800 (the id +0x8c, the
+// value) (Window_PostMessage).
+void __fastcall Window705bc8_SetValue(u8 *window, void *, s32 value);
 }
