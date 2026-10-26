@@ -171,6 +171,44 @@ u16 __fastcall Window_SetSavedRect(u8 *window, void *, const u8 *rect) {
     return 1;
 }
 
+u16 __fastcall Window_SetRect20(u8 *window, void *, const u8 *rect) {
+    GuiRect_Assign(window + 0x20, nullptr, rect);
+    return 1;
+}
+
+u16 __fastcall Window_SetRect14(u8 *window, void *, const u8 *rect) {
+    if (rect) GuiRect_Assign(window + 0x14, nullptr, rect);
+    return 1;
+}
+
+u16 __fastcall Window_KeepRect(u8 *window) {
+    GuiRect_Assign(window + 0x20, nullptr, window + 8);
+    return 1;
+}
+
+u16 __fastcall Window_GetRect20(u8 *window, void *, u8 *rect) {
+    if (!rect) return 0;
+    GuiRect_Assign(rect, nullptr, window + 0x20);
+    return 1;
+}
+
+u16 __fastcall Window_GetRect14(u8 *window, void *, u8 *rect) {
+    if (!rect) return 0;
+    GuiRect_Assign(rect, nullptr, window + 0x14);
+    return 1;
+}
+
+u16 __fastcall Window_GetSavedRect(u8 *window, void *, u8 *rect) {
+    if (!rect) return 0;
+    GuiRect_Assign(rect, nullptr, window + 0x2c);
+    return 1;
+}
+
+u16 __fastcall Window_GetSize14(u8 *window, void *, u16 *width, u16 *height) {
+    GuiRect_GetSize(window + 0x14, nullptr, width, height);
+    return 1;
+}
+
 u8 *__fastcall Window_OffsetByParents(u8 *window, void *, u8 *rect) {
     u8 *previous = window;  // the pushed words' upper halves: dy's from EAX (the window, then the last parent), dx's from the parent
     for (u8 *p = at<u8 *>(window, 0x60); p; p = at<u8 *>(p, 0x60)) {

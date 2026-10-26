@@ -70,6 +70,22 @@ u16 __fastcall Window_GetRect(u8 *window, void *, u8 *rect, u32 inner);
 // (GuiRect_Assign); 1 (AX).
 u16 __fastcall Window_SetSavedRect(u8 *window, void *, const u8 *rect);
 
+// The rectangles +0x14 and +0x20 (+0x20 is where Window_SetRect keeps the old +8; +0x14's use unknown). 1 in AX for each below (the
+// rest of EAX what the call left), or 0 for no pointer where one is checked.
+// 0x65cef7 (thiscall (rect), pops 4; name unconfirmed): +0x20 assigned from rect (GuiRect_Assign; no check for none).
+u16 __fastcall Window_SetRect20(u8 *window, void *, const u8 *rect);
+// 0x65cf17 (thiscall (rect), pops 4; name unconfirmed): +0x14 assigned from rect when given; 1 either way.
+u16 __fastcall Window_SetRect14(u8 *window, void *, const u8 *rect);
+// 0x65cf3d (thiscall; name unconfirmed): +0x20 assigned from the rectangle +8.
+u16 __fastcall Window_KeepRect(u8 *window);
+// 0x65d4a0 / 0x65d4cb / 0x65d4f6 (thiscall (rect), pops 4; names unconfirmed): rect (0 for none) assigned from +0x20, +0x14 or the saved
+// rectangle +0x2c.
+u16 __fastcall Window_GetRect20(u8 *window, void *, u8 *rect);
+u16 __fastcall Window_GetRect14(u8 *window, void *, u8 *rect);
+u16 __fastcall Window_GetSavedRect(u8 *window, void *, u8 *rect);
+// 0x65d8e7 (thiscall (width, height: word pointers, each may be 0), pops 8; name unconfirmed): the size of +0x14 (GuiRect_GetSize).
+u16 __fastcall Window_GetSize14(u8 *window, void *, u16 *width, u16 *height);
+
 // 0x65cfff (thiscall (area), pops 4; name unconfirmed): the hit area +0x44 replaced: the old one, unless none or the window's own rectangle +8,
 // deleted (slot 4 (1)); then +0x44 = area, or +8 for none. EAX is left the window.
 u8 *__fastcall Window_SetHitArea(u8 *window, void *, u8 *area);

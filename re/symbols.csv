@@ -5474,6 +5474,13 @@ address,name,kind,confidence,notes
 0x0065d363,Window_NotifyImpl1,function,low,"reimplemented (src/game/ui/window); thiscall (value word), pops 4: the object +0x9c (when set) told by slot 3 (1, an event with the word +4)"
 0x0065f246,Window_NotifyImpl2,function,low,"reimplemented (src/game/ui/window); thiscall (value word), pops 4: the object +0x9c (when set) told by slot 3 (2, an event with the word +6)"
 0x0065d69f,Window_Object98Slot7,function,low,"reimplemented (src/game/ui/window); thiscall (a, b), pops 8: the object +0x98's slot 7 (a, b), its result; 0 without one"
+0x0065cef7,Window_SetRect20,function,low,reimplemented (src/game/ui/window); thiscall (rect): +0x20 assigned from rect; AX 1
+0x0065cf17,Window_SetRect14,function,low,reimplemented (src/game/ui/window); thiscall (rect): +0x14 assigned from rect when given; AX 1
+0x0065cf3d,Window_KeepRect,function,low,reimplemented (src/game/ui/window); thiscall: +0x20 assigned from +8; AX 1
+0x0065d4a0,Window_GetRect20,function,low,"reimplemented (src/game/ui/window); thiscall (rect): rect assigned from +0x20; AX 1, 0 for none"
+0x0065d4cb,Window_GetRect14,function,low,"reimplemented (src/game/ui/window); thiscall (rect): rect assigned from +0x14; AX 1, 0 for none"
+0x0065d4f6,Window_GetSavedRect,function,low,"reimplemented (src/game/ui/window); thiscall (rect): rect assigned from the saved +0x2c; AX 1, 0 for none"
+0x0065d8e7,Window_GetSize14,function,low,"reimplemented (src/game/ui/window); thiscall (width, height): the size of +0x14; AX 1"
 0x00498090,Dialog7ca1c8_SetChecks,function,low,"reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): the nine check buttons of the 0x7ca1c8 dialog's child 0x18 set (vtable slot 5, bool) from flags bits 0-8 (0x20's also needs [0x7ca1d0]+0x50)"
 0x00498a50,Dialog7ca1c8_SetChecksIfUp,function,low,reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): Dialog7ca1c8_SetChecks when [0x7ca1c8] and [0x7ca1cc] are not 0
 0x00481a00,Dialog7ca1c8_SetChecksIfUpThis,function,low,"reimplemented (src/game/ui/dialog7ca1c8); thiscall (flags), pops 4, this unused: Dialog7ca1c8_SetChecksIfUp(flags)"
