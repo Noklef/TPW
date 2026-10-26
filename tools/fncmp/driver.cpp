@@ -699,6 +699,7 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x0070aa80, 16},   // the sound resources SoundResource_Create (0x6c5240) makes, which it loads through slot 3: the
                                    {0x0070aac0, 16},   // stream index (SoundStreamIndex_Load), the mapped index (SoundMapIndex_Map) and the SoundFont
                                    {0x00711ba8, 16},   // bank (SfBank_Load; 0x711ba0 / 0x711ba4 before it and 0x711be8 after it are floats, not slots)
+                                   {0x0070ab58, 20},   // the silence stream's (slot 15 Obj_SetRateBits20: SoundStream_SetFormat's in SilenceStream_Ctor)
                                    {0x006fe980, 12},   // CMMOnline's (slot 10 Debug_Nop_46cfb0, which MouseMode_Set calls on the new mode; 11 its leave)
                                    {0x006fea10, 12},   // CMMOnline's base (slots 0, 9 and 11 MouseMode_Set's; 0x481a10 / 0x485b70 make it)
                                    {0x006fea70, 12},   // MMStaffDrop's (slots 9, 10 AssignDrop: MouseMode_Set's on the mode 0x5054d0 makes)
