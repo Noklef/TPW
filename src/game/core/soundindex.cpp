@@ -6,6 +6,7 @@
 #include "../files/handles.h"
 #include "gameheap.h"
 #include "misc.h"
+#include "sfbank.h"
 #include "vcall.h"
 
 namespace {
@@ -122,6 +123,47 @@ u8 *__fastcall SoundMapIndex_DeletingDtor(u8 *self, void *, u32 flags) {
     SoundMapIndex_Dtor(self);
     if (flags & 1) GameHeap_Free(self);
     return self;
+}
+
+u32 *__stdcall SoundResource_Create(u32 *out, u8 **resource, const u8 *owner, const u32 *desc, u8 *source) {
+    *resource = nullptr;
+    switch (desc[0]) {
+    case 1: {
+        u8 *const p = static_cast<u8 *>(GameHeap_Alloc(0x1c));
+        if (p) {
+            const StreamBase *const stream = reinterpret_cast<const StreamBase *>((uintptr_t)desc[2]);
+            SoundResource_Ctor(p, nullptr, source);
+            StreamBase_CopyCtor(reinterpret_cast<StreamBase *>(p + 0x14), nullptr, stream);
+            at<u32>(p, 0) = 0x0070aa80;
+        }
+        *resource = p;
+        break;
+    }
+    case 2: {
+        u8 *const p = static_cast<u8 *>(GameHeap_Alloc(0x20));
+        if (p) {
+            const StreamBase *const stream = reinterpret_cast<const StreamBase *>((uintptr_t)desc[2]);
+            SoundResource_Ctor(p, nullptr, source);
+            at<u32>(p, 0x14) = 0;
+            StreamBase_CopyCtor(reinterpret_cast<StreamBase *>(p + 0x18), nullptr, stream);
+            at<u32>(p, 0) = 0x0070aac0;
+        }
+        *resource = p;
+        break;
+    }
+    case 3:
+        if (owner) {
+            u8 *const p = static_cast<u8 *>(GameHeap_Alloc(0x1c));
+            *resource = p ? SfBank_Ctor(p, nullptr, source, at<u8 *>(owner, 4)) : nullptr;
+        }
+        break;
+    }
+    if (u8 *const r = *resource) {
+        vcall<u32 *>(r, 0xc, out, desc[3], desc[1]);
+        return out;
+    }
+    *out = 0xffffffff;
+    return out;
 }
 
 }  // extern "C"

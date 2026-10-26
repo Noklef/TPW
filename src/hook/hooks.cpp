@@ -4449,6 +4449,7 @@ const Hook kHooks[] = {
     {"SoundMapIndex_Unmap",       0x006d4860, (void *)&SoundMapIndex_Unmap, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
     {"SoundMapIndex_Dtor",        0x006c5520, (void *)&SoundMapIndex_Dtor, {0x6a, 0xff, 0x68, 0xcb, 0x63}},
     {"SoundMapIndex_DeletingDtor", 0x006c5500, (void *)&SoundMapIndex_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"SoundResource_Create",      0x006c5240, (void *)&SoundResource_Create, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"ChannelVoiceCount_Reset",   0x006c5060, (void *)&ChannelVoiceCount_Reset, {0xc7, 0x05, 0x58, 0x20, 0xfb}},
     {"ChannelVoiceCount_Increment", 0x006c5070, (void *)&ChannelVoiceCount_Increment, {0x51, 0xff, 0x15, 0xc0, 0xd0}},
     {"ChannelVoiceCount_Decrement", 0x006c5080, (void *)&ChannelVoiceCount_Decrement, {0x51, 0xff, 0x15, 0x2c, 0xd1}},
