@@ -699,6 +699,13 @@ u32 *__fastcall SoundVoice_SetPosition(u8 *voice, void *, u32 *out, const u32 *p
     return out;
 }
 
+u32 __fastcall SoundVoice_FillRecordUnowned(u8 *voice, void *, u32 now, u8 *record) {
+    if (!SoundVoice_FillRecord(voice, nullptr, now, record)) return 0;
+    at<u32>(record, 0x50) = 0;
+    at<u32>(record, 0x14) &= ~0x2000u;
+    return 1;
+}
+
 u32 __fastcall SoundVoice_FillRecord(u8 *voice, void *, u32 now, u8 *record) {
     if (!at<u32>(voice, 0xc) || !at<u32>(voice, 8) || !system()) return 0;
     if (!vcall<u32>(voice, 0x48, record)) return 0;

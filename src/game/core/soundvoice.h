@@ -166,6 +166,9 @@ u32 *__fastcall SoundVoice_SetPosition(u8 *voice, void *, u32 *out, const u32 *p
 // scaled by the system's +0x2c (Vec3_Scale), +0xc |= 0x20 (0x1000 with bit 3 of the system's +0x28, 0x800 when that has 0x43 and 0x80).
 // Then +0x30 = the voice + 0x10, +0x14 |= 1, and with flag 4 SetThenFlag44_14_6c5110 (9999). Returns 1.
 u32 __fastcall SoundVoice_FillRecord(u8 *voice, void *, u32 now, u8 *record);
+// 0x6c39c0 (thiscall (now, record), pops 8; slot 17 of 0x70a4f0; name invented): SoundVoice_FillRecord, and when that answers 1 the
+// record's +0x50 (the voice) = 0 and its flag 0x2000 (+0x14) cleared again; returns 1. Else 0.
+u32 __fastcall SoundVoice_FillRecordUnowned(u8 *voice, void *, u32 now, u8 *record);
 // 0x6bc3c0 (thiscall (record), pops 4): with flag 8 (+0x30), FlagThenSet14_5c_6c51d0 on the record with 0; else, when
 // Obj_Flags28_Bit1IfBit0 of the sound system answers nonzero, the same with the system's slot 10 (the voice + 0x10) as a float, else
 // that answer (0). Returns what the last call answered.
