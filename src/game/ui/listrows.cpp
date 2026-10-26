@@ -118,6 +118,13 @@ u8 *__cdecl List7cc338_NewRow() {
     return window;
 }
 
+void __cdecl List7cc338_InitRow(u8 *row) {
+    setPart(row, TextPart_Ctor);
+    Window_Set4c(row, nullptr, Language_Font(global<u32>(0x00756f38)));
+    Window_NotifyImpl100(row, nullptr, 0);
+    vcall<void>(panelparts::barOf(firstChild(row), panelparts::kRideStatBar), 0x1c, 0u);
+}
+
 u8 *__cdecl List7cc530_NewRow() {
     const u32 height = rowHeight();
     u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x138));

@@ -141,6 +141,10 @@ void __cdecl List7cb264_InitRow(u8 *row);
 // ridestatbar bars; 1: two 0x6ff3b0 parts (the bytes 2, 1 as 0xc00, then the font) and a bar; 2: a bar, two such parts, a bar; 3: none.
 void __cdecl List7ca158_InitRow(u8 *row);
 
+// 0x4b4d40 (with List7cc338_NewRow; name unconfirmed): the row a TextPart_Ctor part, the font [0x756f38] and the text 0; its first
+// child a ridestatbar bar with its slot 7 called with 0.
+void __cdecl List7cc338_InitRow(u8 *row);
+
 // 0x4939d0 (with 0x4938c0): the row a TextPart6ff470_Ctor part, the font [0x7508b4] and the bytes 1, 1 as 0xc00; its first child a
 // 0x6ff3b0 part, the font, slot 7 with 0 and the bytes 2, 1; the next a 0x6ff4a0 part, the font and the bytes 1, 1; the next a 0x6ff350
 // part, the font and slot 7 with 0; the next inset by 4 and 0 and given the GUI window registered as "ti_hungry" (GuiWindows_FindByName,
