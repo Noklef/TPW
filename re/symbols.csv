@@ -4466,6 +4466,7 @@ address,name,kind,confidence,notes
 0x006c0210,SoundCategory_LoadBankMap,function,low,"reimplemented (src/game/core/soundcategory); thiscall (&result, name, unused): BANK.map opened through the Handle at +0x30 and read in its folder; 0"
 0x006c2f40,BankList_Dtor,function,low,"reimplemented (src/game/core/soundcategory); the category record's bank PtrList (vtable 0x70a948) destructor: nodes freed, emptied (name invented)"
 0x006c30c0,BankList_DeletingDtor,function,low,"reimplemented (src/game/core/soundcategory); that, then freed with bit 0 of the flags (name invented)"
+0x006c0f70,SoundCategory_FindRecordIndex,function,low,"reimplemented (src/game/core/soundcategory); thiscall (name), pops 4: index in deque A of the first record with +8 set and its String +0xc equal to name; 0 when none (name invented)"
 0x006338c0,Class703770_AddRef,function,low,"reimplemented (src/game/core/refcounted); thiscall: the counted base class's AddRef, InterlockedIncrement (+4)"
 0x006338d0,Class703770_Release,function,low,"reimplemented (src/game/core/refcounted); thiscall: its Release: InterlockedDecrement (+4), at 0 deleted (vtable +8 (1)) and 0, else the count re-read"
 0x006c9580,Mp2_Dct64,function,low,"reimplemented (src/game/core/mp2synth); cdecl (out0, out1, in): the MP2 synthesis's 32-point DCT (dct64), 17 values to out0 and 16 to out1 at a stride of 16 floats"

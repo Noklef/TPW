@@ -106,6 +106,9 @@ s32 *__fastcall SoundCategory_Load(u8 *category, void *, s32 *result, const char
 // 0x6c0190 (thiscall; flags, pops 4): that, then freed with bit 0 of the flags (Mem_Free). Returns the bank.
 void __fastcall Bank_Dtor(u8 *bank);
 u8 *__fastcall Bank_DeletingDtor(u8 *bank, void *, u32 flags);
+// 0x6c0f70 (thiscall (name), pops 4; name invented): the index in deque A of the first category record (nonzero) whose +8 is nonzero and
+// whose String +0xc equals name (String_EqualsStr); 0 when none does (sic: as the first's).
+u32 __fastcall SoundCategory_FindRecordIndex(u8 *category, void *, const char *name);
 // 0x6c2f40 (thiscall; also an unwind funclet's at 0x6e5e19; names of both invented): the destructor of a category record's PtrList of banks
 // (+0x24; vtable 0x70a948, the deleting one its slot 0): its nodes (+0 the bank, +4 the next) freed, the banks left; vtable reset, +8, +4
 // and the count (+0xc) 0.

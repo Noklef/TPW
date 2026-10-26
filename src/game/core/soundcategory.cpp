@@ -439,6 +439,21 @@ u8 *__fastcall Bank_DeletingDtor(u8 *bank, void *, u32 flags) {
     return bank;
 }
 
+u32 __fastcall SoundCategory_FindRecordIndex(u8 *category, void *, const char *name) {
+    u32 last = Get<u32>(category, 0x40), cur = Get<u32>(category, 0x44), node = Get<u32>(category, 0x48);
+    for (u32 index = 0; cur != Get<u32>(category, 0x54); ++index) {   // (deque A's end re-read each time)
+        const u8 *record = Ptr(Get<u32>(Ptr(cur), 0));
+        if (record && Get<u32>(record, 8) && String_EqualsStr(reinterpret_cast<const String *>(record + 0xc), nullptr, name)) return index;
+        cur += 4;
+        if (cur == last) {
+            node += 4;
+            cur = Get<u32>(Ptr(node), 0);
+            last = cur + 0x1000;
+        }
+    }
+    return 0;   // (as the first's index, sic)
+}
+
 void __fastcall BankList_Dtor(u8 *list) {
     u8 *node = Ptr(Get<u32>(list, 4));
     Put<u32>(list, 0, 0x70a948);
