@@ -673,4 +673,52 @@ u32 *__fastcall SoundVoice_SetPosition(u8 *voice, void *, u32 *out, const u32 *p
     return out;
 }
 
+u32 __fastcall SoundVoice_FillRecord(u8 *voice, void *, u32 now, u8 *record) {
+    if (!at<u32>(voice, 0xc) || !at<u32>(voice, 8) || !system()) return 0;
+    if (!vcall<u32>(voice, 0x48, record)) return 0;
+    SetThenFlag28_14_6c5130(record, nullptr, at<u32>(voice, 0x30) & 0x8000 ? at<u16>(voice, 0x48) : SoundVoice_RollVolume(voice));
+    Obj_Set94_98_Flag40000(record, nullptr, static_cast<u32>(reinterpret_cast<uintptr_t>(system() + 0x58)), voice[0x47]);
+    SetThenFlag24_14_6c5170(record, nullptr,
+                            at<u32>(voice, 0x30) & 0x10000 ? static_cast<u32>(static_cast<s32>(at<s16>(voice, 0x4a))) : SoundVoice_RollPitch(voice));
+    SetThenFlag2c_14_6c5150(record, nullptr, at<u32>(voice, 0x20));
+    const u32 f14 = at<u32>(record, 0x14);
+    at<u8 *>(record, 0x50) = voice;
+    at<u32>(record, 0x14) = f14 | 0x2000;
+    SetThenFlag48_14_6c5090(record, nullptr, at<u32>(voice, 0x2c));
+    if (!at<u32>(at<u8 *>(voice, 0xc), 8)) at<u32>(voice, 0xc) = at<u32>(at<u8 *>(voice, 8), 8);
+    const u32 since = now - (at<u32>(voice, 0x1c) - at<u32>(at<u8 *>(voice, 0xc), 8) - 0xfa);
+    at<u32>(voice, 0x3c) = vcall<u32>(voice, 0x4c);
+    if (Obj_PastEnd(voice, nullptr, now)) return 0;
+    SoundVoice_SetRecordLevel(voice, nullptr, record);
+    const u32 flags = at<u32>(voice, 0x30);
+    float *const at10 = &at<float>(voice, 0x10);
+    if (flags & 8) {
+        Fn_6bb220(reinterpret_cast<u8 *>(at10), nullptr, 0, 1, 0);   // (ints: 1 is no 1.0f, sic)
+        at<u32>(record, 0xc) |= 1;
+    } else {
+        const u32 length = at<u32>(at<u8 *>(voice, 0xc), 8);
+        const u32 into = since % length;   // (a zero length faults, as the original's DIV)
+        if (into > 1000 && !(flags & 2) && length > 1000 && length - into < 1000) return 0;
+        const double radius = SoundVoice_Radius(voice);
+        u32 stored = float_bits(static_cast<float>(radius));
+        if (!(radius > 2.0)) stored = 0x40066666;   // 2.1f
+        const float level = static_cast<float>(vcall<double>(system(), 0x2c));
+        at<u32>(record, 0x38) = 0x40000000;   // 2.0f
+        at<u32>(record, 0x3c) = stored;
+        at<u32>(record, 0x40) = float_bits(level);
+        at<u32>(record, 0x14) |= 0x200;
+        Vec3_Scale(at10, nullptr, at<float>(system(), 0x2c));
+        u32 c = at<u32>(record, 0xc) | 0x20;
+        at<u32>(record, 0xc) = c;
+        if (at<u32>(system(), 0x28) >> 3 & 1) at<u32>(record, 0xc) = c | 0x1000;
+        const u32 sys = at<u32>(system(), 0x28);
+        if (sys & 0x43 && sys >> 7 & 1) at<u32>(record, 0xc) |= 0x800;
+    }
+    const u32 f = at<u32>(record, 0x14);
+    at<u32>(record, 0x30) = static_cast<u32>(reinterpret_cast<uintptr_t>(at10));
+    at<u32>(record, 0x14) = f | 1;
+    if (voice[0x30] & 4) SetThenFlag44_14_6c5110(record, nullptr, 9999);
+    return 1;
+}
+
 }  // extern "C"

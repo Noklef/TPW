@@ -155,6 +155,17 @@ void __fastcall SoundVoice_SendLevels(u8 *voice);
 // record's +0xc |= 0x20, and 0x800 when the system's +0x28 has 0x43 and 0x80. Then +0x14 |= 1, +0x30 = the voice + 0x10. *out = 0;
 // returns out.
 u32 *__fastcall SoundVoice_SetPosition(u8 *voice, void *, u32 *out, const u32 *position);
+// 0x6bc410 (thiscall (now, record); pops 8; slot 17 of the voices' vtables): 0 without a sample (+0xc), a variation (+8), the sound system
+// or the voice's slot 18 (record). Else the record's volume (SetThenFlag28_14_6c5130: the word +0x48 with flag 0x8000 (+0x30), else
+// SoundVoice_RollVolume), +0x94 / +0x98 (the system + 0x58, the byte +0x47), pitch (SetThenFlag24_14_6c5170: the signed word +0x4a with
+// flag 0x10000, else SoundVoice_RollPitch), +0x2c (+0x20), +0x50 = the voice and +0x14 |= 0x2000, +0x48 (SetThenFlag48_14_6c5090: +0x2c).
+// A sample of length 0 gives way to the variation's first (its +8); +0x3c = slot 19; 0 when Obj_PastEnd (now). Then the level
+// (SoundVoice_SetRecordLevel). With flag 8: +0x10 = the ints (0, 1, 0) (Fn_6bb220, sic), the record's +0xc |= 1. Else, with now -
+// (+0x1c - length - 250) modulo the length (DIV: a zero length faults) past 1000, flag 2 clear, a length past 1000 and under 1000 left,
+// 0; otherwise +0x38 = 2.0f, +0x3c the radius (2.1f unless above 2.0), +0x40 the system's slot 11 as a float, +0x14 |= 0x200, +0x10
+// scaled by the system's +0x2c (Vec3_Scale), +0xc |= 0x20 (0x1000 with bit 3 of the system's +0x28, 0x800 when that has 0x43 and 0x80).
+// Then +0x30 = the voice + 0x10, +0x14 |= 1, and with flag 4 SetThenFlag44_14_6c5110 (9999). Returns 1.
+u32 __fastcall SoundVoice_FillRecord(u8 *voice, void *, u32 now, u8 *record);
 // 0x6bc3c0 (thiscall (record), pops 4): with flag 8 (+0x30), FlagThenSet14_5c_6c51d0 on the record with 0; else, when
 // Obj_Flags28_Bit1IfBit0 of the sound system answers nonzero, the same with the system's slot 10 (the voice + 0x10) as a float, else
 // that answer (0). Returns what the last call answered.
