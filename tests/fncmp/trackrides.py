@@ -38,7 +38,7 @@ def car_sound(r):
     """0x547170 (car): the next state (+0x14) 0 mostly, the state (+0x18) 1-5 mostly (0, 6, any too), the position (+0x34, +0x38) any;
     the car's ride (+0x9c) one of four records (the module loaded or not); the game's rand seed (0x877b90) half the time one whose next
     value plays (bits 0x70000 clear); ridesound.py's records and sound globals; thingenv's park, its objects given the ride's handle at
-    +0x28 or not, their +0x24 the ids."""
+    +0x28 or not, their +0x24 the ids (ridesound's records' 1-8 mostly)."""
     import ridesound
     sound = ridesound.case(r)
     regions = dict(sound.regions)
@@ -59,6 +59,7 @@ def car_sound(r):
     pool = regions[thingenv.POOL]
     for i in range(len(handles)):
         put(pool, thingenv.THING * i + 0x28, 'I', ride if r.random() < 0.5 else r.choice([ride ^ 1, ride ^ 0x100, 0, r.getrandbits(32)]))
+        put(pool, thingenv.THING * i + 0x24, 'I', r.choice([1, 2, 3, 4, 5, 6, 7, 8, r.getrandbits(32)]))   # (ridesound's record ids 1-8)
     car = bytearray(r.bytes(0xac))
     put(car, 0x14, 'I', r.choice([0, 0, 0, 1, 2, 3, 4, 5, 6, r.getrandbits(32)]))
     put(car, 0x18, 'I', r.choice([1, 2, 2, 3, 4, 4, 5, 0, 6, r.getrandbits(32)]))

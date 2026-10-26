@@ -128,7 +128,7 @@ def step_case(r):
     any, +0x84 zero (no wobble) or not, +0x88 / +0x8a / +0xc0 any), the keys found under each lookup's mask (0x80 for mode 1 / 2, as
     walk_case() deals them); heightat.view()'s floor (its ground at STEP_GROUND) or y between the parts (the slot's +0x1a bit 0); the
     person (the things' entry, 0x7cfb90 + 20 * the slot's +0x10) with script_list()'s scripts for the entry point Place is given; the
-    slot's +0x18 2 mostly, its +0x16 each kind; t any (past 1000, negative); the game clock paused; the sine table 4096 entries or 64."""
+    slot's +0x18 2 mostly (a word: 0x102 too), its +0x16 each kind; t any (past 1000, negative); the game clock paused; the sine table 4096 entries or 64."""
     from ridebounds import pose
     import heightat
     import personscripts
@@ -164,7 +164,7 @@ def step_case(r):
     slot = bytearray(r.bytes(0x20))
     h = r.choice([0, 1, 2, 3, 5, 6, 7, r.randrange(16), r.randrange(64)])
     put(slot, 0x10, 'I', h | r.choice([0, 0, r.getrandbits(16) << 16]))
-    put(slot, 0x16, 'HH', r.choice([0, 1, 2, 3, 4, 5, 6, 7, r.getrandbits(16)]), r.choice([2, 2, 2, 2, 0, 1, r.getrandbits(16)]))
+    put(slot, 0x16, 'HH', r.choice([0, 1, 2, 3, 4, 5, 6, 7, r.getrandbits(16)]), r.choice([2, 2, 2, 2, 0, 1, 0x102, 0xff02, r.getrandbits(16)]))
     slot[0x1a] = slot[0x1a] & ~1 | r.choice([0, 1])
     wobble = int.from_bytes(ram[o + 0x84:o + 0x88], 'little') != 0
     kind = int.from_bytes(slot[0x16:0x18], 'little')
