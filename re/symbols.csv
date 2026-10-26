@@ -4535,6 +4535,69 @@ address,name,kind,confidence,notes
 0x005a01f0,AdvisorScoring_Happiest3,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: Things_HappiestOf(3) on the game table entry; a handle and a value above +0x560: the value to +8, the handle to +4, (value - bound) * [+0x564]; else 0"
 0x005a0240,AdvisorScoring_Happiest4,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: Things_HappiestOf(4) on the game table entry; a handle and a value above +0x568: the value to +8, the handle to +4, (value - bound) * [+0x56c]; else 0"
 0x005a0290,AdvisorScoring_HappiestDef4ac2,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: Things_HappiestDef4ac2 on the game table entry; a handle and a value above +0x570: the value to +8, the handle to +4, (value - bound) * [+0x574]; else 0"
+0x0059c8c0,AdvisorScoring_Fielda0,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0xa0
+0x0059d800,AdvisorScoring_Field1bc,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x1bc
+0x0059d810,AdvisorScoring_Field1c0,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x1c0
+0x0059d820,AdvisorScoring_Field1c4,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x1c4
+0x0059d830,AdvisorScoring_Field1c8,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x1c8
+0x0059d840,AdvisorScoring_Field1cc,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x1cc
+0x0059d850,AdvisorScoring_Field1d0,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x1d0
+0x0059d860,AdvisorScoring_Field1d4,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x1d4
+0x0059d870,AdvisorScoring_Field1d8,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x1d8
+0x0059d880,AdvisorScoring_Field1dc,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x1dc
+0x0059d890,AdvisorScoring_Field1e0,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x1e0
+0x0059d8a0,AdvisorScoring_Field1e4,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x1e4
+0x0059d8b0,AdvisorScoring_Field1e8,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x1e8
+0x0059d8c0,AdvisorScoring_Field1ec,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x1ec
+0x0059d8d0,AdvisorScoring_Field1f0,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x1f0
+0x0059d8e0,AdvisorScoring_Field1f4,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x1f4
+0x0059d8f0,AdvisorScoring_Field1f8,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x1f8
+0x0059d900,AdvisorScoring_Field1fc,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x1fc
+0x0059d910,AdvisorScoring_Field200,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x200
+0x0059d920,AdvisorScoring_Field204,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x204
+0x0059d930,AdvisorScoring_Field208,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x208
+0x0059d940,AdvisorScoring_Field20c,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x20c
+0x0059d950,AdvisorScoring_Field210,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x210
+0x0059d960,AdvisorScoring_Field214,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x214
+0x0059d970,AdvisorScoring_Field218,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x218
+0x0059d980,AdvisorScoring_Field21c,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x21c
+0x0059dc60,AdvisorScoring_Field248,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x248
+0x0059dc70,AdvisorScoring_Field24c,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x24c
+0x0059dc80,AdvisorScoring_Field250,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x250
+0x0059dc90,AdvisorScoring_Field254,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x254
+0x0059e410,AdvisorScoring_Field2c4,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x2c4
+0x0059e7f0,AdvisorScoring_Field300,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x300
+0x0059e800,AdvisorScoring_Field304,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x304
+0x0059e810,AdvisorScoring_Field308,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x308
+0x0059e820,AdvisorScoring_Field30c,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x30c
+0x0059e830,AdvisorScoring_Field310,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x310
+0x0059e890,AdvisorScoring_Field31c,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x31c
+0x0059e8a0,AdvisorScoring_Field320,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x320
+0x0059e8b0,AdvisorScoring_Field324,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x324
+0x0059e8c0,AdvisorScoring_Field328,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x328
+0x0059eb70,AdvisorScoring_Field350,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x350
+0x0059f360,AdvisorScoring_Field3d4,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x3d4
+0x0059f370,AdvisorScoring_Field3d8,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x3d8
+0x0059f380,AdvisorScoring_Field3dc,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x3dc
+0x0059f390,AdvisorScoring_Field3e0,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x3e0
+0x0059f3a0,AdvisorScoring_Field3e8,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x3e8
+0x0059f3b0,AdvisorScoring_Field3ec,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x3ec
+0x0059f3c0,AdvisorScoring_Field3f0,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x3f0
+0x0059f3d0,AdvisorScoring_Field3f4,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x3f4
+0x0059f3e0,AdvisorScoring_Field3f8,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x3f8
+0x0059f3f0,AdvisorScoring_Field3fc,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x3fc
+0x0059f400,AdvisorScoring_Field400,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x400
+0x0059f410,AdvisorScoring_Field404,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x404
+0x0059f420,AdvisorScoring_Field408,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x408
+0x0059f430,AdvisorScoring_Field40c,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x40c
+0x0059f570,AdvisorScoring_Field424,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x424
+0x0059f580,AdvisorScoring_Field428,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x428
+0x005a02e0,AdvisorScoring_Field578,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x578
+0x005a0520,AdvisorScoring_Field5b4,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x5b4
+0x005a0590,AdvisorScoring_Field5c0,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x5c0
+0x005a07c0,AdvisorScoring_Field5f8,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x5f8
+0x0059f9a0,AdvisorScoring_Const10000,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the constant 10000
+0x0059f9b0,AdvisorScoring_Const9999,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the constant 9999
 0x00418da0,ParkInfo_Serialize,function,low,"reimplemented (src/game/core/parkinfo); thiscall (stream, save, version, unused), pops 0x10: the save's park information (strings, three dwords, the author's name and e-mail, the description, the publishing date) written or read field by field (name unconfirmed)"
 0x005d55a0,AuthStamp_Text,function,low,"reimplemented (src/game/core/authstamp); cdecl: ""No Authorization Stamp"" (0x774bc0) while the phrase at 0x763f3d is the plain one at 0x774bd8; else the phrase's bytes less the key's (0x774b78) written to 0xf827f8 until they meet, and 0xf827f8"
 0x006cc7b0,Mp2Decoder_ParseHeader,function,low,"reimplemented (src/game/core/mp2frame); parses an MPEG audio frame header into the decoder's fields, rate, bitrate and frame length; -1 without sync or bitrate"
