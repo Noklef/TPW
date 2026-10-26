@@ -1,4 +1,4 @@
-# src/game/coaster: ratings, track spline, orientation and frame against the originals.
+# src/game/coaster: ratings, track spline, orientation and frame against the originals. Clank (0x439840): see clank().
 # usage: coaster.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import math
@@ -15,7 +15,8 @@ from fncmp import LOG, LOG_BYTES, blob_bytes, log_region, recorder, vtable  # no
 
 B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000), (0x43b050, 0x43b5ff), (0x44b4c0, 0x44b505), (0x475550, 0x47558b), (0x440ad0, 0x440c10), (0x4386d0, 0x438800), (0x43ea90, 0x43eac0), (0x43e0b0, 0x43e0e0), (0x43e520, 0x43e540), (0x43ba90, 0x43bbe0), (0x43ad50, 0x43afd0), (0x43b330, 0x43b390), (0x432b50, 0x432bd0), (0x432d50, 0x432df0), (0x433280, 0x433300), (0x436750, 0x4367a0), (0x434000, 0x434060), (0x433f70, 0x433ffd), (0x442d10, 0x442d70), (0x443ee0, 0x443f40), (0x444c00, 0x444c50), (0x444040, 0x444090), (0x444700, 0x444740), (0x447790, 0x447830), (0x442cd0, 0x442d10), (0x436820, 0x4368f0), (0x436150, 0x436190), (0x432bd0, 0x432c10), (0x444c50, 0x444cb0), (0x43af70, 0x43afa0), (0x4418d0, 0x4419b0), (0x434650, 0x434740), (0x5da3c0, 0x5da3d0), (0x447990, 0x4479a0), (0x430ac0, 0x430ad0), (0x433220, 0x433240), (0x435710, 0x435730), (0x439920, 0x439ab0), (0x43a060, 0x43a2b0), (0x43d8f0, 0x43dbb0), (0x46f150, 0x46f180), (0x46f350, 0x46f420), (0x46f5c0, 0x46f6f0), (0x444090, 0x444150), (0x445f30, 0x446042), (0x45d630, 0x45d660), (0x436190, 0x436230), (0x445910, 0x445a70), (0x4367a0, 0x436820), (0x447830, 0x447990), (0x432840, 0x432b50), (0x437300, 0x4379a0), (0x5f5e50, 0x5f5e80), (0x463ab0, 0x463c7a), (0x412e90, 0x412eea), (0x443df0, 0x443ed4), (0x433300, 0x433790), (0x434f10, 0x43501c), (0x4479a0, 0x447a03), (0x447a10, 0x447ad2), (0x403be0, 0x403c13), (0x4445b0, 0x4446f4),
            (0x432c10, 0x432d4b), (0x466d70, 0x466fa0), (0x469930, 0x469950), (0x454050, 0x4541a0), (0x45b9d0, 0x45ba15), (0x430ca0, 0x430ee0), (0x438a70, 0x438ac0), (0x433790, 0x4338e0), (0x433a90, 0x433bd0), (0x4338e0, 0x433a90), (0x440a30, 0x440ad0), (0x442d70, 0x442e94)]
-          + [(0x444740, 0x444780), (0x4819f0, 0x481a20), (0x498090, 0x4982b0), (0x498a30, 0x498a80)] + dialog7ca1c8.RANGES + window.RANGES, sines=256)
+          + [(0x444740, 0x444780), (0x4819f0, 0x481a20), (0x498090, 0x4982b0), (0x498a30, 0x498a80)] + dialog7ca1c8.RANGES + window.RANGES
+          + [(0x439840, 0x4398da), (0x51bfc0, 0x51c048), (0x5da3c0, 0x5da3c1)], sines=256)
 G = 0x7923a8  # CoasterRatingState
 COAST, TYPE, NODES, FORCE, CARS, SPL, PIECES, OUT, ORIENT, FLAGS, YAW = (RAM + k * 0x1000 for k in range(11))
 CHAIN = RAM + 0xc000
@@ -1490,6 +1491,34 @@ def refresh_tools(r, op):
 
 KINDS['RefreshTools'] = refresh_tools
 OPS += ['RefreshTools'] if 'OPS' not in os.environ else []
+
+
+def clank(r, op):
+    """0x439840 (cdecl (coaster, car)): the coaster's length (+0xa8) 0.5-11 mostly (11, 0, any now and then), the car's place (+0x20)
+    any about it (negative, far past, any floats too), twelve nodes for CoasterNode_Lerp (NodeLerp's); sound on or off (0x785a2c),
+    Sound_PlayAt's globals (on or off, a manager whose slot 2 is a recorder; ridesound.py's) and category (0x803a28) any."""
+    from fncmp import LOG, blob, log_region, set_return, vtable
+    c = put(bytearray(r.bytes(0x200)), 0x9c, 'I', NODES)
+    length = r.choice([r.uniform(0.5, 11), r.uniform(0.5, 11), r.uniform(0.5, 11), 11.0, 0.0, None])
+    put(c, 0xa8, 'I', fb(length) if length is not None else r.f(10))
+    car = bytearray(r.bytes(0x40))
+    span = length if length else 10.0
+    put(car, 0x20, 'I', r.choice([fb(r.uniform(0, span)), fb(r.uniform(0, span)), fb(r.uniform(-3 * span, 5 * span)), fb(float(r.randrange(12))),
+                                  r.f(30)]))
+    ns = r.floats(r.bytes(12 * 0x38), [k * 0x38 + o for k in range(12) for o in (4, 8, 0xc)])
+    manager, vt = RAM + 0x20000, RAM + 0x20100
+    log = log_region()
+    if r.random() < 0.85:
+        set_return(log, 2, r.getrandbits(32))
+    blob(log, 2, 1, 0x7f)   # (the play command on the stack: its seven dwords)
+    g = put(put(put(bytearray(r.bytes(0x20)), 8, 'I', r.choice([0, 1, 1, 1, 1])), 0xc, 'I', manager), 0x14, 'I', r.choice([0, 1, 1, 1, 1]))
+    regions = {COAST: c, CARS: car, NODES: ns, 0x785a2c: struct.pack('<I', r.choice([0, 0, 0, 1, r.getrandbits(32)])), 0x803a28: r.bytes(4),
+               0x802bc0: g, LOG: log, manager: struct.pack('<I', vt) + r.bytes(0xc), vt: vtable({2: 2}, 4)}
+    return Call(0x439840, [COAST, CARS], regions, ret='v')
+
+
+KINDS['Clank'] = clank
+OPS += ['Clank'] if 'OPS' not in os.environ else []
 
 
 def case(r):
