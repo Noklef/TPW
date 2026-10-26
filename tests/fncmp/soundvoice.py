@@ -18,6 +18,8 @@
 # 0x43, its slots 10 and 11 floats, the radius about 2.0 now and then, the voice's slot 18 answering 0 now and then, +0xc 0 and the
 # system null now and then. The value +0x20 and its record (flag 1 either way); the levels' record (flag 0x400 either way); the position's
 # (floats or any, flag 8 either way, the scale 1, 0.5 or 2 now and then). The starts: see start_case().
+# The shuffle bag's (0x6be380, 0x6be420): the parameter block's bag none (a new one from the heap) or one over the definition, another
+# list or a wild one (shufflebag.py's layout), flag 4 of +0x30 any way.
 # usage: soundvoice.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -32,6 +34,7 @@ CALLS = {'ensure': (0x6b7150, 'v'), 'pending': (0x6bc900, 'a'), 'apply': (0x6bbf
          'sample': (0x6bc680, 'a'), 'category': (0x6bc760, 'b'), 'variation': (0x6bc810, 'b'), 'audible': (0x6bca10, 'b'),
          'cull': (0x6bca70, 'v'), 'command': (0x6bcab0, 'a'), 'follow': (0x6bd5f0, 'v'), 'byte44': (0x6bcb80, 'a'),
          'branch': (0x6be450, 'b'), 'switch': (0x6be5e0, 'b'), 'next': (0x6be6d0, 'b'), 'swctor': (0x6be660, 'a'), 'seqctor': (0x6be730, 'a'),
+         'ensurebag': (0x6be380, 'v'), 'shuffle': (0x6be420, 'b'),
          'flags': (0x6bbe90, 'v'), 'init': (0x6bbf60, 'a'),
          'setparam': (0x6bbb80, 'v'), 'swsetparam': (0x6be580, 'v'), 'swcreate': (0x6be610, 'a'), 'seqcreate': (0x6be680, 'a'),
          'linkctor': (0x6c3a00, 'a'), 'linkswctor': (0x6c3de0, 'a'), 'linkinit': (0x6c3a80, 'b'), 'linkfollow': (0x6c3c70, 'v'),
@@ -42,7 +45,7 @@ LINKED_OPS = ('linkinit', 'linkfollow', 'linkbranch')
 B = Bench([(0x6b7150, 0x6b7190), (0x6bc900, 0x6bcb56), (0x6c5130, 0x6c5150), (0x6bbf00, 0x6bbf56), (0x6bc650, 0x6bc674), (0x6bc680, 0x6bc806),
            (0x6bc810, 0x6bc8f0), (0x6bd5f0, 0x6bd781), (0x6bd7a0, 0x6bd7ac), (0x6bb220, 0x6bb237), (0x5f5f10, 0x5f5f7d), (0x5f5fa0, 0x5f5faa),
            (0x6bcb80, 0x6bcce1), (0x6c50d0, 0x6c50e8), (0x6be450, 0x6be573), (0x6be5e0, 0x6be608), (0x6be6d0, 0x6be727), (0x6be660, 0x6be672),
-           (0x6be730, 0x6be742), (0x6bb950, 0x6bb98e), (0x6bbe90, 0x6bbef9), (0x6bbf60, 0x6bc034),
+           (0x6be730, 0x6be742), (0x6be380, 0x6be41d), (0x6be420, 0x6be44a), (0x6be100, 0x6be24f), (0x6bb950, 0x6bb98e), (0x6bbe90, 0x6bbef9), (0x6bbf60, 0x6bc034),
            (0x6bbb80, 0x6bbbde), (0x6be580, 0x6be5d3), (0x6be610, 0x6be657), (0x6be680, 0x6be6c7),
            (0x6c3a00, 0x6c3a80), (0x6c3de0, 0x6c3df9), (0x6c3a80, 0x6c3ad4), (0x6c3c70, 0x6c3d7e), (0x6c3e00, 0x6c3f63),
            (0x6b9260, 0x6b9280), (0x6bc090, 0x6bc240), (0x6bc3c0, 0x6bc410), (0x6c3ae0, 0x6c3c70), (0x6c5110, 0x6c5130), (0x6c5150, 0x6c51a0),
@@ -56,6 +59,7 @@ NODE, ENTRIES, BRANCHES, DEF2 = RAM + 0xc00, RAM + 0xc40, RAM + 0xc80, RAM + 0xe
 OWNER, OVT, OINFO, POS, MEM, INFO = RAM + 0xe40, RAM + 0xe80, RAM + 0xf00, RAM + 0xf20, RAM + 0xf40, RAM + 0xfa0
 PARENT, PARENT_PARAMS = RAM + 0x1000, RAM + 0x1080
 RECORD = RAM + 0x1100
+BAG, LIST2 = RAM + 0x1200, RAM + 0x1240   # (the parameter block's shuffle bag: shufflebag.py's layout; another list over the variations)
 ROLL_OPS = ('rollvol', 'rollpitch', 'level', 'fillrec', 'rollword', 'levels', 'voicefill', 'voicefillx')
 CMD_K, TIME_K = 9, 12
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
@@ -368,6 +372,18 @@ def case(r):
         regions[PARENT_PARAMS][4] = value & 0xff
         params[4] = r.getrandbits(8)
         return Call(address, [VOICE, r.getrandbits(32)], regions, conv='t', ret=ret)
+    if name in ('ensurebag', 'shuffle'):   # (the bag none or one over the definition or another list; the new failing now and then)
+        struct.pack_into('<I', voice, 0x4c, PARAMS)
+        struct.pack_into('<I', params, 0x1c, r.choice([0, BAG, BAG]))
+        n = struct.unpack_from('<I', d, 4)[0]
+        bag = bytearray(struct.pack('<III', r.choice([DEF, DEF, LIST2, r.getrandbits(32)]), r.getrandbits(32), r.choice([0, n - 1, n, n + 1, r.getrandbits(32)]) & 0xffffffff))
+        bag += bytes([r.choice([1, 2, r.getrandbits(8)]), r.choice([1, 2, r.getrandbits(8)]), r.choice([0, 1]), r.getrandbits(8)])
+        regions[BAG] = bag
+        regions[LIST2] = r.bytes(4) + struct.pack('<II', r.randrange(1, max(n, 1) + 1), VARS) + r.bytes(4)
+        struct.pack_into('<I', voice, 0x30, r.getrandbits(32))
+        if name == 'shuffle':
+            return Call(address, [VOICE, r.getrandbits(32)], regions, conv='t', ret=ret)
+        return Call(address, [VOICE, r.choice([DEF, DEF, LIST2])], regions, conv='t', ret=ret)
     if name in ('branch', 'switch'):
         value = branch(r, voice, params, regions, seed)
         params[4] = value & 0xff

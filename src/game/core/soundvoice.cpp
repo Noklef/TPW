@@ -10,6 +10,7 @@
 #include "gameheap.h"
 #include "initializers.h"
 #include "selectors.h"
+#include "shufflebag.h"
 #include "soundcategory.h"
 #include "soundchannel.h"
 #include "vcall.h"
@@ -788,6 +789,25 @@ u32 __fastcall SoundVoice_PickChannelVoice(u8 *voice, void *, u32 a, u32) {
     if (!vcall<u32>(voice, 0x48, record)) return 0;
     u32 picked;   // (dropped)
     return SoundChannel_PickVoice(global<u8 *>(0x00fb1f24), nullptr, a, &picked, reinterpret_cast<u8 *>(record));
+}
+
+void __fastcall SoundVoice_EnsureShuffleBag(u8 *voice, void *, u8 *list) {
+    u8 *const params = *reinterpret_cast<u8 **>(voice + 0x4c);
+    u8 *&bag = *reinterpret_cast<u8 **>(params + 0x1c);
+    if (bag) {
+        if (*reinterpret_cast<u8 **>(bag) != list) ShuffleBag_SetList(bag, nullptr, list);
+        return;
+    }
+    u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x10));
+    bag = block ? ShuffleBag_Ctor(block, nullptr, list) : nullptr;
+}
+
+u8 __fastcall SoundVoice_ShuffleVariation(u8 *voice, void *, u32) {
+    SoundVoice_EnsureShuffleBag(voice, nullptr, *reinterpret_cast<u8 **>(voice + 4));
+    u8 *const bag = *reinterpret_cast<u8 **>(*reinterpret_cast<u8 **>(voice + 0x4c) + 0x1c);
+    u8 *const next = ShuffleBag_Next(bag, nullptr, *reinterpret_cast<u32 *>(voice + 0x30) & 4);
+    *reinterpret_cast<u8 **>(voice + 8) = next;
+    return next != nullptr;
 }
 
 }  // extern "C"

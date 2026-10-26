@@ -203,4 +203,11 @@ u32 *__fastcall SoundVoice_StartCounted(u8 *voice, void *, u32 *out, u32 now);
 // SoundChannel_PickVoice (the system, re-read; a, a dropped local, the record).
 u32 __fastcall SoundVoice_PickChannelVoice(u8 *voice, void *, u32 a, u32 unused);
 
+// 0x6be380 (thiscall (list), pops 4; name invented): the parameter block's (+0x4c) shuffle bag (+0x1c): none, a new one (Mem_Alloc 0x10,
+// ShuffleBag_Ctor over the list; null when the new fails); else ShuffleBag_SetList when its list (+0) is another.
+void __fastcall SoundVoice_EnsureShuffleBag(u8 *voice, void *, u8 *list);
+// 0x6be420 (thiscall (unused), pops 4; slot 14 of 0x70a878; name invented): SoundVoice_EnsureShuffleBag with the definition (+4), the
+// current variation (+8) = ShuffleBag_Next (refill: flag 4 of +0x30); 1 when there is one (a byte: SETNZ over the pointer in EAX).
+u8 __fastcall SoundVoice_ShuffleVariation(u8 *voice, void *, u32 unused);
+
 }  // extern "C"
