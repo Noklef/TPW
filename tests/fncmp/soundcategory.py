@@ -263,6 +263,7 @@ def case_dtor(r, name):
     regions[RECS] = recs
     regions[REC_VT] = vtable({}, 4)
     regions[LOG] = log_region()
+    files(r, regions[LOG], regions, wad=False)   # (the imports: the Handle's release, InterlockedDecrement)
     obj = handle_object(r, 0, r.choice(FOLDERS), regions, recorders=False) if r.random() < 0.5 else 0
     struct.pack_into('<2I', cat, 0x30, HANDLE_VTABLE, obj)
     regions[J_HEAD] = struct.pack('<3I', J_HEAD, J_NIL, J_HEAD) + r.bytes(0x18)
