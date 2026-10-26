@@ -4,6 +4,7 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "../core/string.h"
 
 struct WString;
 
@@ -13,6 +14,11 @@ extern "C" {
 // the root (a wide String, String_AssignFromWide), the String at 0xf81b48 and the name appended (String_Append): when that folder does
 // not open (a folder handle, vtable 0x6fd9e8, Handle_Open28) it is created (Dir_Create).
 void __fastcall GamePaths_MakeFolders(void *, void *, const WString *root);
+
+// 0x5aa650 (cdecl; a String by value, destroyed at the end; name unconfirmed): a local String given the drive (vtable +0x18, assign), ":" (0x77316c,
+// +0x20, append a C string) and the String at 0xf79fe8 (+0x28, append) is assigned to the second path string of 0xf816c0 (Obj_CallSub14Slot18:
+// its +0x14's vtable +0x18); a second local String is made and destroyed unused. Its caller (in 0x5aa4xx's drive scan) passes a drive's letter.
+void __cdecl GamePaths_SetSecondRoot(String drive);
 
 // 0x468250 (cdecl; out): with no text in the root folder's string (Obj_Self of 0xf816c0, its data at +8) 0; else out = the root and "Data\Fonts"
 // (0x74d6c0) by sprintf, "%s%s" (0x74d320) when the root's last char is "\" and "%s\%s" (0x7488ac) when not (an empty root: the byte before its

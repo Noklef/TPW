@@ -7,6 +7,7 @@
 #include "../core/string.h"
 #include "../core/trivial.h"
 #include "../core/vcall.h"
+#include "../core/vwrap.h"
 #include "file.h"
 #include "handles.h"
 
@@ -40,6 +41,20 @@ void __fastcall GamePaths_MakeFolders(void *, void *, const WString *root) {
         Handle_Dtor(&folder);
         String_Dtor(&path);
     }
+}
+
+void __cdecl GamePaths_SetSecondRoot(String drive) {
+    String path;
+    String_Ctor(&path);
+    String unused;
+    String_Ctor(&unused);
+    vcall<void>(&path, 0x18, &drive);
+    vcall<void>(&path, 0x20, at<const char *>(0x0077316c));
+    vcall<void>(&path, 0x28, at<const String *>(0x00f79fe8));
+    Obj_CallSub14Slot18(at<u8 *>(0x00f816c0), nullptr, static_cast<u32>(reinterpret_cast<std::uintptr_t>(&path)));
+    String_Dtor(&unused);
+    String_Dtor(&path);
+    String_Dtor(&drive);
 }
 
 u32 __cdecl GamePaths_FontsFolder(char *out) {

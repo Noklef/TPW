@@ -5,8 +5,10 @@
 # wide "save" (0xf818d8, now and then another text) into out: MultiByteToWideChar a recorder (as in wideconv.py) answering a size and writing a wide text
 # (NUL-terminated, now and then not within the size), GlobalAlloc / GlobalFree the heap stubs, the allocation failing now and then. UsersFolder
 # (0x5c7c70) and OnlineFolder (0x5c8980) are the same with the global wide "\" (0xf82508) and "users" (0xf81ff8) / "online" (0xf820e8) appended,
-# now and then other texts.
-# usage: gamepaths.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=FontsFolder,TexFolders,SaveFolder,UsersFolder,OnlineFolder)
+# now and then other texts. SecondRoot (0x5aa650) takes a String by value (its five dwords on the stack: a drive letter mostly, any short text or
+# none) and assigns it with ":" and the String at 0xf79fe8 appended to the String at 0xf816d4 (the heap's allocations failing now and then: the
+# harness's countdown, a fault in both).
+# usage: gamepaths.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=FontsFolder,TexFolders,SaveFolder,UsersFolder,OnlineFolder,SecondRoot)
 import os
 import struct
 import sys
@@ -17,7 +19,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import gamestring  # noqa: E402
 
 B = Bench([(0x468250, 0x4682b0), (0x5c5520, 0x5c5530), (0x67a400, 0x690000), (0x4688b0, 0x468902), (0x5c7bd0, 0x5c7c64), (0x424e10, 0x424e6e),
-           (0x5f5660, 0x5f5690), (0x5f5fc0, 0x5f7f00), (0x5c7c70, 0x5c7cfd), (0x5c8980, 0x5c8a0d)])
+           (0x5f5660, 0x5f5690), (0x5f5fc0, 0x5f7f00), (0x5c7c70, 0x5c7cfd), (0x5c8980, 0x5c8a0d), (0x5aa650, 0x5aa720), (0x5c5530, 0x5c5560)])
 PATHS = 0xf816c0
 ROOT, OUT = RAM + 0x100, RAM + 0x1000
 CHARS = b'abcXYZ09:\\/. _%'
@@ -58,8 +60,21 @@ SEP = 0xf82508
 SUBFOLDERS = {0x5c7c70: (0xf81ff8, 'users'), 0x5c8980: (0xf820e8, 'online')}
 
 
+def second_root(r):
+    regions = {HEAP: heap(0x4000, r.choice(range(1, 5)) if r.random() < 0.05 else 0)}
+    drive = r.choice([b'D', b'E', b'Z', b'c']) if r.random() < 0.7 else bytes(r.choice(CHARS) for _ in range(r.choice([0, 2, 9, 30])))
+    gamestring.string(r, 0, RAM + 0x4000, RAM + 0x4100, regions, drive)
+    arg = list(struct.unpack_from('<5I', regions.pop(RAM + 0x4000)))
+    tail = b'\\TPW' if r.random() < 0.7 else bytes(r.choice(CHARS) for _ in range(r.choice([0, 1, 7, 40])))
+    gamestring.string(r, 0, 0xf79fe8, RAM + 0x4200, regions, tail)
+    gamestring.string(r, 0, PATHS + 0x14, RAM + 0x4300, regions)
+    return Call(0x5aa650, arg, regions)
+
+
 def case(r):
     op = r.deal(OPS)
+    if op == 'SecondRoot':
+        return second_root(r)
     if op == 'SaveFolder':
         return save_folder(r)
     if op == 'UsersFolder':
@@ -86,7 +101,7 @@ def case(r):
     return Call(0x468250, [OUT], regions, ret='a')
 
 
-OPS = [k for k in os.environ.get('OPS', 'FontsFolder,TexFolders,SaveFolder,UsersFolder,OnlineFolder').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'FontsFolder,TexFolders,SaveFolder,UsersFolder,OnlineFolder,SecondRoot').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)
