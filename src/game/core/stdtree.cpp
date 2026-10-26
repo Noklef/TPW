@@ -6,6 +6,7 @@
 #include "gameheap.h"
 #include "stdwstring.h"
 #include "string.h"
+#include "vcall.h"
 
 namespace {
 
@@ -770,6 +771,19 @@ u32 __fastcall StdMapH_FindValue(u8 *map, void *, const u8 *text, u32 *index) {
         }
     }
     return 0;
+}
+
+void __fastcall StdTree_CtorH(u8 *tree) { TreeH::Ctor(tree); }
+
+void __fastcall StdMapH_ClearDtor(u8 *map) {
+    u8 *out;
+    TreeH::EraseRange(map, &out, TreeH::L(at<u8 *>(map, 4)), at<u8 *>(map, 4));
+    TreeH::Dtor(map);
+}
+
+void __fastcall StdMapH_ClearAt(u8 *map, void *, u32 key) {
+    if (!key || key >= at<u32>(map, 0xc)) return;
+    vcall<void>(StdMapH_Index(map, nullptr, &key), 0x14, reinterpret_cast<const char *>(0x00786de4));
 }
 
 void __cdecl StdTree_InitUnusedOne() { *reinterpret_cast<float *>(0x007899b4) = 1.0f; }

@@ -179,6 +179,14 @@ u8 *__fastcall StdMapH_AssignWide(u8 *map, void *, const u8 *from, u32 key);
 // 0x6c0b30 (thiscall on the map; text, &index, pops 8; name unconfirmed): the first index i, from 0 while below the size (read again each time), whose
 // map[i] (StdMapH_Index: a missing key is inserted, growing the size) String_Equals text: *index = i and 1; else 0 (index untouched).
 u32 __fastcall StdMapH_FindValue(u8 *map, void *, const u8 *text, u32 *index);
+// 0x6c2140 (thiscall): H's constructor, as the other trees'.
+void __fastcall StdTree_CtorH(u8 *tree);
+// 0x6c0a60 (thiscall; name invented): a map H destroyed after a clear: erase(begin, end), then the destructor's own (StdTree_DtorH's work
+// inlined: a second erase over the now empty map, the head freed, head and size 0, the nil node freed by the last map out).
+void __fastcall StdMapH_ClearDtor(u8 *map);
+// 0x6c0ba0 (thiscall (key), pops 4; name invented): for a key from 1 to below the size (unsigned), map[key] (StdMapH_Index: a missing
+// key inserted) set to the empty text 0x786de4 through its String's vtable +0x14 (String_AssignStr).
+void __fastcall StdMapH_ClearAt(u8 *map, void *, u32 key);
 
 // Tree I, another of the sound code's trees (H's neighbour; nil node 0xfb2010, its counter 0xfb2014, the colour at +0x14, plain values: nodes of 0x18
 // bytes presumably, freed as they are): its increment 0x6c3910, erase 0x6c3340, _Erase 0x6c3870, erase(first, last) 0x6c31e0 and destructor 0x6c3130,

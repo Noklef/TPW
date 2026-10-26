@@ -3999,6 +3999,9 @@ address,name,kind,confidence,notes
 0x006c21f0,StdTree_EraseJ,function,low,"reimplemented (src/game/core/stdtree); thiscall (out, node), pops 8: tree J's erase, the node's tree I destroyed (StdTree_DtorI's work inlined), the node freed, the size down"
 0x006c2760,StdTree_EraseSubtreeJ,function,low,"reimplemented (src/game/core/stdtree); thiscall (node), pops 4: tree J's _Erase, each node's tree I destroyed before the node is freed"
 0x006c13e0,StdTree_EraseRangeJ,function,low,"reimplemented (src/game/core/stdtree); thiscall (out, first, last), pops 12: tree J's erase(first, last), the whole tree cleared at once (StdTree_DtorI per node), else node by node"
+0x006c2140,StdTree_CtorH,function,low,"reimplemented (src/game/core/stdtree); thiscall: tree H's constructor: the nil node (0x28 bytes) on first use, the counter 0xfb200c up, then the head node"
+0x006c0a60,StdMapH_ClearDtor,function,low,"reimplemented (src/game/core/stdtree); thiscall: a map H destroyed after a clear: erase(begin, end), then StdTree_DtorH's work inlined (a second erase over the empty map, the head freed, the nil node by the last map out)"
+0x006c0ba0,StdMapH_ClearAt,function,low,"reimplemented (src/game/core/stdtree); thiscall (key), pops 4: for a key from 1 to below the size (unsigned), map[key] (inserted when missing) set to the empty text 0x786de4 through its String's vtable +0x14"
 0x00617f40,Class7037b8_Dtor,function,high,reimplemented (src/game/core/vdtor); frees the list of blocks
 0x005d48d0,Panel_Reset,function,high,reimplemented (src/game/gfx/imageops); fills the panel image and blends the six parts onto it
 0x00576620,Grid_AddObject,function,high,reimplemented (src/game/render/renderer); adds an object to every list in a rectangle of the grid
