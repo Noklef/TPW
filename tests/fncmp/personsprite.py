@@ -6,7 +6,9 @@
 # the last tick's [0x878a1c] (0-300 ms on, behind, or any); the camera's point and its three cleared dwords compared.
 # PlaceAll (0x518f90): the thing table's chain of 1-5 things (handles 1-9, [0x7cf56c] the first's entry or none), the sprite one of them (a person or
 # not, its byte +3 clear mostly), the others 0x40 bytes of kinds about the people's with byte +3 set (or no person's kind): one sprite placed or none.
-# usage: personsprite.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=PlaceSprite,CentreOnSprite,PlaceAll)
+# UpdateSpeed (0x4fa870): the words +0xc0-+0xc4 small, about 100 or any, the speed +0xc8 (NaN, infinity, denormal, any bits), the word at
+# 0x75c7fc (0 too, the high half set or not), the reference's period +0x14 as its entry point +0x10 (script_list).
+# usage: personsprite.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=PlaceSprite,CentreOnSprite,PlaceAll,UpdateSpeed)
 import os
 import struct
 import sys
@@ -18,8 +20,10 @@ from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
 from personscripts import script_list  # noqa: E402
 
 B = Bench([(0x475480, 0x4754f0), (0x4d8c50, 0x4d8c70), (0x4f9f00, 0x4fa2b0), (0x4fe900, 0x4fe960), (0x50b350, 0x50b370), (0x510160, 0x510190),
-           (0x53c8d0, 0x53c9d0), (0x5da3c0, 0x5da3c1), (0x486860, 0x4868c1), (0x42aab0, 0x42ab1d), (0x518f90, 0x51905c)])
-CALLS = {'PlaceSprite': 0x4fa030, 'CentreOnSprite': 0x486860, 'PlaceAll': 0x518f90}
+           (0x53c8d0, 0x53c9d0), (0x5da3c0, 0x5da3c1), (0x486860, 0x4868c1), (0x42aab0, 0x42ab1d), (0x518f90, 0x51905c),
+           (0x4fa870, 0x4fa928), (0x510190, 0x5101e9), (0x4d4190, 0x4d41d0), (0x475010, 0x475480), (0x4754f0, 0x476a30),
+           (0x540b90, 0x540d78), (0x541f60, 0x541f70)])
+CALLS = {'PlaceSprite': 0x4fa030, 'CentreOnSprite': 0x486860, 'PlaceAll': 0x518f90, 'UpdateSpeed': 0x4fa870}
 OTHERS = RAM + 0x24000   # (PlaceAll's other things, 0x40 bytes each)
 PEOPLE = [1, 4, 5, 6, 7, 8, 0x12]
 THING = RAM + 0x20000
@@ -70,6 +74,16 @@ def case(r):
     if op == 'CentreOnSprite':
         centre_env(r, regions)
         return Call(CALLS[op], [r.choice([THING] * 9 + [0])], regions, ret='v')
+    if op == 'UpdateSpeed':
+        thing = regions[THING]
+        for off in (0xc0, 0xc2, 0xc4):
+            put(thing, off, 'H', r.choice([0, 1, 50, 99, 100, 101, 0x295, 0x7fff, 0xffff, r.getrandbits(16)]))
+        put(thing, 0xc8, 'f', r.choice([0.0, -0.0, 0.5, 1.0, 2.0, 3.0, -1.0, 1e-40, 1e30, float('nan'), float('inf'), r.uniform(-5, 5)]))
+        if r.random() < 0.1:
+            thing[0xc8:0xcc] = r.bytes(4)
+        put(thing, 0x14, 'I', r.choice([0, 0, 1, 100, r.getrandbits(32)]))
+        regions[0x75c7fc] = struct.pack('<I', r.choice([0, 1, 3, 10, 100, 0x10000, 0x10001, r.getrandbits(32)]))
+        return Call(CALLS[op], [THING], regions, conv='t', ret='v')
     if op == 'PlaceAll':
         thing = regions[THING]
         handles = r.sample(range(1, 10), r.randrange(1, 6))

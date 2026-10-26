@@ -155,4 +155,9 @@ void __fastcall World_PlaceSprites(u8 *world, void *, float t);
 // object, its cell +5 / +7) and the action (+0, by its kind 0..0x19) to the empty Debug_Printf: only the reads remain. Returns -1 (the loop's
 // counter, left in EAX; the caller ignores it).
 u32 __fastcall Person_DumpActionHistory(u8 *person);
+
+// 0x4fa870 (thiscall; name unconfirmed; called from 0x4f7c63, 0x501658, 0x505495): the speed +0xc8 = ((+0xc0 + +0xc2 + +0xc4, words) / the word
+// at 0x75c7fc - +0xc8 * -3.0) * 0.25 (x87), passed to the nav (+0xd4: Nav_SetSpeed); the word +0xc4 = its product with 99 (16 bits) / 100; the
+// position +0x190 / +0x194 read back from the nav (Nav_GetPos), and the script reference +0xc applied (ScriptRef_Apply).
+void __fastcall Person_UpdateSpeed(u8 *person);
 }

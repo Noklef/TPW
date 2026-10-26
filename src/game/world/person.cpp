@@ -463,4 +463,15 @@ u32 __fastcall Person_DumpActionHistory(u8 *person) {
     }
     return 0xffffffff;  // (the loop counter's last value, left in EAX)
 }
+
+void __fastcall Person_UpdateSpeed(u8 *person) {
+    const u32 sum = (u32)at<u16>(person, 0xc2) + at<u16>(person, 0xc0) + at<u16>(person, 0xc4);
+    const X87Reg pace = X87Reg((double)(s32)sum) / X87Reg((double)(global<u32>(0x0075c7fc) & 0xffff));
+    const float speed = (float)((pace - X87Reg(at<float>(person, 0xc8)) * X87Reg(-3.0)) * X87Reg(0.25));
+    at<float>(person, 0xc8) = speed;
+    Nav_SetSpeed(person + 0xd4, nullptr, speed);
+    at<u16>(person, 0xc4) = (u16)((u16)(at<u16>(person, 0xc4) * 99u) / 100u);
+    Nav_GetPos(person + 0xd4, nullptr, &at<u32>(person, 0x190), &at<u32>(person, 0x194));
+    ScriptRef_Apply(person + 0xc);
+}
 }
