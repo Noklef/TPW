@@ -1,7 +1,7 @@
 // The sound stream (vtable 0x70a778; the names are invented), the base of the stream filter (src/game/core/streamfilter) and the
 // sound sources: a stream in a chain, +4 the next stream downstream, +8 the one upstream, +0xc an id. Its slots: 0 the destructor, 1 the
 // next set, 2 the close, 3 the unlink, 4 the find by id, 5 a description, 6 the sample rate, 9 a query (out, record), 11 a send; the
-// chain's slots pass on to the next stream. Reimplementation of 0x6bab30, 0x6ba9a0, 0x6c61e0-0x6c6300 and 0x6c6d70.
+// chain's slots pass on to the next stream. Reimplementation of 0x6bab30, 0x6ba9a0, 0x6c61e0-0x6c6300, 0x6c6d70 and 0x6ba460.
 #pragma once
 
 #include "../../../re/types.h"
@@ -43,5 +43,14 @@ u32 *__fastcall SoundStream_SeekTime(u8 *stream, void *, u32 *out, u32 ms);
 // format's +0x1b is set, else 0x20, or 2 when its +0x1a is 0x10, else or 1; then slot 15 (the rate bits) with the format's word +0x18
 // (pushed as a dword, its high half the format's address's).
 void __fastcall SoundStream_SetFormat(u8 *stream, void *, const u8 *format);
+
+// 0x6ba460 (stdcall (record, format, stream), pops 0xc; an SEH frame for the news; name invented): a sample's filters chained in front of
+// stream (the record's +0x14 flags). Bit 14: a new 0x70abf8 stream (Stream70abf8Pool_New, Init_6c6d30) and, with a stream, it set in
+// front of it (slot 1) and SoundStream_SeekTime to the record's +0x54 ms (the status 1 before), then its slot 3 (unlink); a negative
+// status returns the stream as it is. Bit 6 with the loops +0x44 above 1 (unsigned): a looping stream (LoopStreamPool_New, Fn_6c6a00:
+// the format's loop +0x20 / +0x24, both not 0) or else a plain filter (StreamFilterPool_New, vtable 0x70a678, +4 / +8 / +0xc 0, +0x14
+// the loops) chained (SoundStream_Chain) and bit 6 cleared. Bit 21 with +0x58 not 0: a silence stream of +0x58 ms (SilenceStreamPool_New,
+// SilenceStream_Ctor with the format) chained. A null new is chained as it is (sic). Returns the chain's front.
+u8 *__stdcall SoundStream_BuildChain(u8 *record, const u8 *format, u8 *stream);
 
 }  // extern "C"

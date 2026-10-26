@@ -5,6 +5,8 @@
 
 #include "../math/x87.h"
 #include "gameheap.h"
+#include "initializers.h"
+#include "silencestream.h"
 #include "streampool.h"
 #include "vcall.h"
 #include "vtables.h"
@@ -124,6 +126,48 @@ void __fastcall SoundStream_SetFormat(u8 *stream, void *, const u8 *format) {
     stream[0x20] |= format[0x1a] == 0x10 ? 2 : 1;
     // (AX, the rate's word; its high half the format's address's, sic)
     vcall<void>(stream, 0x3c, static_cast<u32>((reinterpret_cast<uintptr_t>(format) & 0xffff0000u) | at<u16>(format, 0x18)));
+}
+
+u8 *__stdcall SoundStream_BuildChain(u8 *record, const u8 *format, u8 *stream) {
+    u32 &flags = *reinterpret_cast<u32 *>(record + 0x14);
+    if (flags & 0x4000) {
+        u8 *const block = static_cast<u8 *>(Stream70abf8Pool_New(0x14));
+        u8 *const seeker = block ? Init_6c6d30(block) : nullptr;
+        if (stream) {
+            vcall<u8 *>(seeker, 4, stream);
+            u32 status = 1;
+            const s32 sought = static_cast<s32>(*SoundStream_SeekTime(seeker, nullptr, &status, *reinterpret_cast<const u32 *>(record + 0x54)));
+            vcall<void>(seeker, 0xc);
+            if (sought < 0) return stream;
+        }
+    }
+    const u32 loops = *reinterpret_cast<const u32 *>(record + 0x44);
+    if ((flags & 0x40) && loops > 1) {
+        u8 *filter;
+        if (*reinterpret_cast<const u32 *>(format + 0x20) && *reinterpret_cast<const u32 *>(format + 0x24)) {
+            u8 *const block = static_cast<u8 *>(LoopStreamPool_New(0x24));
+            filter = block ? reinterpret_cast<u8 *>(static_cast<uintptr_t>(Fn_6c6a00(block, nullptr, static_cast<u32>(reinterpret_cast<uintptr_t>(format)), loops)))
+                           : nullptr;
+        } else {
+            filter = static_cast<u8 *>(StreamFilterPool_New(0x18));
+            if (filter) {
+                u32 *const f = reinterpret_cast<u32 *>(filter);
+                f[1] = 0;
+                f[2] = 0;
+                f[3] = 0;
+                f[5] = loops;
+                f[0] = 0x0070a678;
+            }
+        }
+        stream = SoundStream_Chain(stream, filter);
+        flags &= ~0x40u;
+    }
+    if ((flags & 0x200000) && *reinterpret_cast<const u32 *>(record + 0x58)) {
+        u8 *const block = static_cast<u8 *>(SilenceStreamPool_New(0x30));
+        u8 *const silence = block ? SilenceStream_Ctor(block, nullptr, *reinterpret_cast<const u32 *>(record + 0x58), format) : nullptr;
+        stream = SoundStream_Chain(stream, silence);
+    }
+    return stream;
 }
 
 }  // extern "C"
