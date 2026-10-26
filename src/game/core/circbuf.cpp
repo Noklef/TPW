@@ -184,6 +184,22 @@ void __fastcall CircBufU32_30_Sum(const u8 *buf, void *, double *sum, s32 count)
     }
 }
 
+s32 __fastcall CircBufU32_50_Sum(const u8 *buf, void *, double *sum, s32 count) {
+    const s32 limit = at<u8>(buf, 0xd4) ? at<s32>(buf, 0xd0) : at<s32>(buf, 0xcc) + 1;
+    const s32 n = count > limit ? limit : count;
+    *sum = 0;
+    for (s32 i = 0; i < n; ++i) {
+        const s32 size = at<s32>(buf, 0xd0), cursor = at<s32>(buf, 0xcc);
+        if (i >= size) continue;
+        u32 slot;
+        if (i <= cursor) slot = (u32)cursor - (u32)i;
+        else if (at<u8>(buf, 0xd4)) slot = (u32)cursor - (u32)i + (u32)size;
+        else continue;
+        *sum = X87_Add((double)at<s32>(buf, 4 + slot * 4), *sum);
+    }
+    return n;
+}
+
 // A circular buffer's serializer for its cursor's offset (element + element * its size) and its entries' size (mTemp's too).
 static u32 SerializeRing(u8 *buf, Stream *stream, u32 save, s32 version, u16 cursor, u16 element) {
     const SaveSpec fields[] = {{cursor, 4, 0x00759a80}, {(u16)(cursor + 4), 4, 0x00759a74}, {(u16)(cursor + 8), 1, 0x00759a64}, {0x0, element, 0x00759a5c}};
