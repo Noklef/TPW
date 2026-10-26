@@ -2,7 +2,7 @@
 # originals: a sample at SAMPLE whose vtable is a recorder (slot 17 the channels: 1-3 mostly, any byte in --wild; slot 19's answer any,
 # slot 6 the sample rate), a recorder next stream now and then. The decode / read over a decoder of two channels (as voicecodec.py's
 # frame: its samples floats up to 1, 30000, 100000 or past the int range, special ones now and then), a memory reader over random bits
-# (the end pointer within them, past them, 0 or ~0), the frame played 0x1b0 (decoded first), 0x1af or any below, bytes up to 0x400; the
+# (the end pointer where the frame leaves the reader (a probe of the original) or one either side, the start, within the bits, past them, 0 or ~0; the samples the clamp's edges and halves now and then), the frame played 0x1b0 (decoded first), 0x1af or any below, bytes up to 0x400; the
 # read's end time (+0x1c) set now and then (timeGetTime a recorder, the clock disabled; the end time now, a ms either side or any). The opens: a reader already there or a new one
 # (Mem_Alloc failing now and then; the buffered reader refilled from the sub-stream's slot 1, a recorder), +0x34 any. The close's
 # decoder / reader any or 0 (freed in the heap stand-in). The end time's flag 0 mostly, the format byte any, the rate 11025-44100 or any.
@@ -27,6 +27,7 @@ SAMPLE, SVT, NEXT, SUBVT, FILEVT, OUT, RECORD, MEMREADER = (RAM + 0x100 * i for 
 BUFFER, DECODER, BITS, BREADER = RAM + 0x800, RAM + 0x1000, RAM + 0x3000, RAM + 0x4000
 MEMORY_VTABLE, BUFFERED_VTABLE = 0x70adb8, 0x70ae28
 CLOCK, TIME_GET_TIME, TIME_K = 0xfa71e0, 0x6fd3ec, 12
+EDGES = [32767, 32768, -32768, -32769, 65535, 65536, 98303, 98304, -65536, -65537, 131071, 131072, -0.5, 0.5, 1.5, 2.5, -1.5]
 SLOTS = {0: 1, 2: 0, 5: 1, 6: 0, 17: 0, 19: 2, 20: 1}
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
@@ -42,7 +43,12 @@ def decoder(r):
     d += r.bytes(4) + struct.pack('<2I', r.choice([0, 1, r.getrandbits(32)]), r.choice([0, 1, 0x100, r.getrandbits(32)]))
     for _ in range(2):
         d += struct.pack('<I', r.choice([r.randrange(0, 0x48), r.getrandbits(32)])) + floats(r, 64, r.choice([1.0, 100.0]))
-        d += floats(r, 12, r.choice([1.0, 0.5])) + floats(r, 0x300, r.choice([1.0, 30000.0, 100000.0, 3e9]))
+        samples = bytearray(floats(r, 0x300, r.choice([1.0, 30000.0, 100000.0, 3e9])))
+        if r.getrandbits(1):   # (the clamp's edges and halves: the played samples are floats 0x150-0x2ff)
+            for i in range(0x150, 0x300):
+                if r.random() < 0.25:
+                    struct.pack_into('<f', samples, 4 * i, r.choice(EDGES))
+        d += floats(r, 12, r.choice([1.0, 0.5])) + samples
     return d
 
 
@@ -74,12 +80,21 @@ def case(r):
         set_return(log, 17, channels)
         set_return(log, 19, r.choice([0, 1, 0x100, r.getrandbits(32)]))
         struct.pack_into('<I', sample, 0x30, r.choice([0x1b0, 0x1b0, 0x1af, r.randrange(0, 0x1b0)]))
-        struct.pack_into('<I', sample, 0x3c, r.choice([BITS + r.randrange(0, 0x100), BITS + r.randrange(0, 0x100), BITS + 0x1000, 0, 0xffffffff]))
         if name == 'read' and r.random() < 0.25:
             struct.pack_into('<I', sample, 0x1c, end or 1)
         regions[DECODER] = decoder(r)
+        start = struct.unpack_from('<I', regions[DECODER], 0)[0]
+        struct.pack_into('<I', sample, 0x3c, r.choice([start, start + 1, BITS + r.randrange(0, 0x100), BITS + 0x1000, 0, 0xffffffff]))
         regions[BITS] = r.bytes(0x1000)
         regions[BUFFER] = r.bytes(0x800)
+        if channels & 0xff and r.random() < 0.3:   # (the end where the frame leaves the reader: a probe of the original over a copy)
+            struct.pack_into('<I', sample, 0x30, 0x1b0)
+            struct.pack_into('<I', sample, 0x3c, 0xffffffff)
+            probe = {k: bytes(v) for k, v in regions.items()}
+            probe[SAMPLE] = bytes(sample)
+            if not isinstance(B.original(Call(0x6c7cf0, [SAMPLE, BUFFER, 2 * (channels & 0xff), OUT], probe, conv='t', ret='a')), str):
+                left = B.emu.u32(DECODER)
+                struct.pack_into('<I', sample, 0x3c, r.choice([left, left, left + 1, left - 1]) & 0xffffffff)
         count = r.choice([0, 1, 2, 3, r.randrange(4, 0x40), r.randrange(0x40, 0x400), r.randrange(0x40, 0x400)])
         if r.wild and r.random() < 0.05:
             count = r.getrandbits(32)
