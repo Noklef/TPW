@@ -415,6 +415,7 @@
 #include "../game/ui/windowfactory.h"
 #include "../game/ui/windowscript.h"
 #include "../game/ui/buttontext.h"
+#include "../game/ui/dialog7ca308.h"
 #include "../game/ui/dialog7cb25c.h"
 #include "../game/ui/dialog7cb2b8.h"
 #include "../game/ui/dialog7cc1f8.h"
@@ -5801,6 +5802,7 @@ const Hook kHooks[] = {
     {"Window7cc8bc_ListRemove1Std", 0x00481890, (void *)&Window7cc8bc_ListRemove1Std, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"Window7cc8bc_ListSetData1Std", 0x004818a0, (void *)&Window7cc8bc_ListSetData1Std, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"Dialog7cb2b8_ShowRightOf",  0x004a1440, (void *)&Dialog7cb2b8_ShowRightOf, {0x6a, 0xff, 0x68, 0x68, 0xa4}},
+    {"Dialog7ca308_ShowStaff",    0x0049ba00, (void *)&Dialog7ca308_ShowStaff, {0x6a, 0xff, 0x68, 0x78, 0xa1}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},

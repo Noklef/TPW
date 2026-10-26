@@ -43,12 +43,6 @@ _spec.loader.exec_module(ss)
 
 CALLS = {'Kill24': 0x4b4670, 'OnMessage': 0x4b4850, 'AddStaffRow': 0x4b47e0, 'Reopen': 0x4b4e30, 'AddStaff': 0x4b4f00,
          'RemoveStaff': 0x4b4f90, 'OnStaff': 0x481960, 'ShowStaff': 0x4b4510}
-B = Bench(sorted(set(window7059f0.LIST_RANGES + ridesweep.SWEEP_RANGES + [
-    (0x4b4670, 0x4b4695), (0x475550, 0x47558b), (0x4b47e0, 0x4b4850), (0x4b4850, 0x4b4a3c), (0x506650, 0x506675), (0x506860, 0x506867),
-    (0x65f66e, 0x65f697), (0x4b4e30, 0x4b4ee9), (0x4b4f00, 0x4b4f8b), (0x4b4f90, 0x4b4fc0), (0x506490, 0x5064d4), (0x5da3c0, 0x5da3c1), (0x481960, 0x4819db),
-    (0x4b4510, 0x4b4642), (0x475010, 0x476a30), (0x540b90, 0x540da0), (0x541f60, 0x541f70), (0x402d70, 0x403220), (0x4033a0, 0x4033f0),
-    (0x5f5660, 0x5f56a0), (0x5f5e20, 0x5f5e90), (0x5f5fa0, 0x5f5fc0), (0x67a830, 0x67a857), (0x476a70, 0x476aa0), (0x659d00, 0x659d53), (0x659d90, 0x659dbc),
-    (0x65a9d0, 0x65aa00), (0x65aa20, 0x65aaa0), (0x65d4f6, 0x65d521), (0x65d7bc, 0x65d822), (0x66bff7, 0x66c00b)])))
 POOL2, PANEL, OTHER, WIN, AREA, PVT = RAM + 0x40000, RAM + 0x50000, RAM + 0x50100, RAM + 0x50200, RAM + 0x50400, RAM + 0x50500
 ROWS, ROWWINS, OBJ20, OVT = RAM + 0x50600, RAM + 0x52000, RAM + 0x50580, RAM + 0x50700   # (the rows' windows past the park's definitions)
 FLOATS = [0.0, 0.5, 1.0, 50.0, 99.9, 100.0, 255.9, 256.0, 300.5, -1.5, -0.5, 1e10, -1e10]
@@ -158,9 +152,18 @@ def word(r):
     return r.choice([r.randrange(-50, 700), r.randrange(-50, 700), 0, -1, 0x7fff, -0x8000, r.getrandbits(16)]) & 0xffff
 
 
-def show_case(r):
-    """ShowStaff (above): the sprite scripts' surroundings as spritescript.py's case and list_case build them"""
-    SPANEL, SWIN, KIDS, SSTAFF = RAM + 0x60000, RAM + 0x60100, RAM + 0x60200, RAM + 0x60800
+SHOW_RANGES = [(0x475010, 0x476a30), (0x540b90, 0x540da0), (0x541f60, 0x541f70), (0x402d70, 0x403220), (0x4033a0, 0x4033f0),
+               (0x5f5660, 0x5f56a0), (0x5f5e20, 0x5f5e90), (0x5f5fa0, 0x5f5fc0), (0x67a830, 0x67a857), (0x476a70, 0x476aa0), (0x659d00, 0x659d53),
+               (0x659d90, 0x659dbc), (0x65a9d0, 0x65aa00), (0x65aa20, 0x65aaa0), (0x65d4f6, 0x65d521), (0x65d7bc, 0x65d822), (0x66bff7, 0x66c00b),
+               (0x5da3c0, 0x5da3c1)]   # (the sprite scripts, the rectangles, Window_FindChild / Window_GetSavedRect)
+B = Bench(sorted(set(window7059f0.LIST_RANGES + ridesweep.SWEEP_RANGES + [
+    (0x4b4670, 0x4b4695), (0x475550, 0x47558b), (0x4b47e0, 0x4b4850), (0x4b4850, 0x4b4a3c), (0x506650, 0x506675), (0x506860, 0x506867),
+    (0x65f66e, 0x65f697), (0x4b4e30, 0x4b4ee9), (0x4b4f00, 0x4b4f8b), (0x4b4f90, 0x4b4fc0), (0x506490, 0x5064d4), (0x5da3c0, 0x5da3c1), (0x481960, 0x4819db),
+    (0x4b4510, 0x4b4642)] + SHOW_RANGES)))
+
+
+def script_env(r):
+    """The sprite scripts' surroundings as spritescript.py's case and list_case build them, [0x74f898] a few or any: (regions, live slots)"""
     code = ss.CODE
     words = [ss.code_word(r) for _ in range(0x100)]
     scripts = bytearray()
@@ -191,18 +194,30 @@ def show_case(r):
                HEAP: heap(), **global_heap()}
     if r.random() < 0.8:
         regions[0x74f898] = struct.pack('<I', r.choice([ss.f32(480.0), ss.f32(600.0), ss.f32(768.0), 0, ss.f32(-1.0), r.getrandbits(32)]))
+    return regions, [k for k in range(1, min(nslots, 12)) if slots[k]]
+
+
+def child_window(r, regions, window, kids, child_id):
+    """The window (at window) with 0-3 other children (at kids) ahead of the child child_id: its saved rectangle +0x2c's words small, wide
+    or edges, its depth +0xe0 small or any"""
     nkids = r.choice([0, 1, 2, 3])
-    kids = bytearray()
-    for k in range(nkids + 1):   # (the others first, then 0x1e84)
+    kid_bytes = bytearray()
+    for k in range(nkids + 1):   # (the others first, then child_id)
         kid = bytearray(r.bytes(0x100))
-        put(kid, 0x8c, 'I', 0x1e84 if k == nkids else r.choice([0, 0x1e83, 0x1e85, 0x11e84, r.getrandbits(32)]))
-        put(kid, 0x54, 'I', KIDS + 0x100 * (k + 1) if k < nkids else r.choice([0, 0, KIDS]))
+        put(kid, 0x8c, 'I', child_id if k == nkids else r.choice([0, child_id - 1, child_id + 1, child_id + 0x10000, r.getrandbits(32)]))
+        put(kid, 0x54, 'I', kids + 0x100 * (k + 1) if k < nkids else r.choice([0, 0, kids]))
         put(kid, 0x2c, 'IHHHH', 0x705920, *(word(r) for _ in range(4)))
         put(kid, 0xe0, 'H', r.choice([0, 1, 2, 5, 0x100, r.randrange(-300, 300) & 0xffff, r.getrandbits(16)]))
-        kids += kid
-    regions[KIDS] = kids
-    regions[SWIN] = put(bytearray(r.bytes(0x100)), 0x5c, 'I', KIDS)
-    live = [k for k in range(1, min(nslots, 12)) if slots[k]]
+        kid_bytes += kid
+    regions[kids] = kid_bytes
+    regions[window] = put(bytearray(r.bytes(0x100)), 0x5c, 'I', kids)
+
+
+def show_case(r):
+    """ShowStaff (above)"""
+    SPANEL, SWIN, KIDS, SSTAFF = RAM + 0x60000, RAM + 0x60100, RAM + 0x60200, RAM + 0x60800
+    regions, live = script_env(r)
+    child_window(r, regions, SWIN, KIDS, 0x1e84)
     folder = r.choice([r.randrange(14), r.randrange(14), r.randrange(14), r.getrandbits(4)])
     sprite = r.choice([r.randrange(8), r.randrange(2), r.randrange(-3, 12) & 0xffffffff])
     staff = put(bytearray(r.bytes(0x40)), 0x20, 'II', sprite, folder)
