@@ -55,7 +55,7 @@ def slots_case(r, name):
     pos = r.choice([0, length, length - 1, length + 1, length - r.randrange(0x400), r.randrange(0x10000), r.getrandbits(32)]) & 0xffffffff
     now = r.getrandbits(32)
     set_return(log, TIME_K, now)
-    struct.pack_into('<4I', sample, 0x14, pos, r.getrandbits(32), r.getrandbits(32), 0 if r.random() < 0.75 else r.choice([now, now + 1, now - 1, 1]) & 0xffffffff or 1)
+    struct.pack_into('<3I', sample, 0x14, pos, r.getrandbits(32), 0 if r.random() < 0.75 else r.choice([now, now + 1, now - 1, 1]) & 0xffffffff or 1)
     struct.pack_into('<II', sample, 0x30, length, DECODER if r.random() < 0.9 or name in ('read', 'query', 'restart', 'srestart') else 0)
     sample[0x3c] = r.choice([0, 1, r.getrandbits(8)])
     struct.pack_into('<I', sample, 0x40, SUBVT)
