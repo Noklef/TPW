@@ -45,7 +45,7 @@ B = Bench(sorted(set(RANGES + msgtags.TIMER_RANGES + BOX_RANGES + [
 BW = RAM + 0x30000   # (BoxHandler's own: the box, the tag, its leaf, the close button, the timer node and pool, the clock, the sound)
 BOX, TAG, LEAF, CLOSE, NODE, POOL, CLOCK, CVT, SND = BW, BW + 0x200, BW + 0x400, BW + 0x600, BW + 0x800, BW + 0x900, BW + 0xa00, BW + 0xa10, BW + 0xb00
 SNDMGR, SNDVT = SND + 0x40, SND + 0x60
-BOX_MESSAGES = [0xa] * 6 + [0xb] * 3 + [0x10] * 6 + [0x12] * 3 + [0x100] * 2 + [0, 5, 0x11, 0x14, 0x101, 0x10a]
+BOX_MESSAGES = [0xa] * 8 + [0xb] * 3 + [0x10] * 9 + [0x12] * 4 + [0x100] * 2 + [0, 5, 0x11, 0x14, 0x101, 0x10a]
 
 
 def small(r):
@@ -105,13 +105,23 @@ def box_case(r):
     regions[0x77c490] = struct.pack('<I', CLOCK)
     set_return(log, 0, r.getrandbits(32))
     # the box's count, state and dwords
-    put(box, 0x130, 'I', (r.choice([0, 0, 0, 1, 2, 10, r.randrange(-3, 12), r.getrandbits(32)]) if message == 0x10 else r.getrandbits(32)) & 0xffffffff)
-    box[0x134] = r.choice([0] * 6 + [2, 3, 4, 1]) if message == 0xa else r.choice([3, 4, 3, 4, 2, 0, 1, r.getrandbits(8)])
-    shown = r.choice([TAG] * 6 + [0, 0] + wins[1:]) if message != 0xa else r.choice([TAG, 0, r.getrandbits(32)])
-    put(box, 0xa0, 'III', small(r) if r.random() < 0.8 else r.getrandbits(32), shown, r.choice([0, 0, TAG, r.getrandbits(32)]))
+    put(box, 0x130, 'I', (r.choice([0] * 6 + [1, 2, 10, r.randrange(-3, 12), r.getrandbits(32)]) if message == 0x10 else r.getrandbits(32)) & 0xffffffff)
+    box[0x134] = r.choice([0] * 12 + [2, 3, 4, 1]) if message == 0xa else r.choice([3, 4] * 3 + [2, 0, 1, r.getrandbits(8)])
+    shown = r.choice([TAG] * 12 + [0, 0] + wins[1:]) if message != 0xa else r.choice([TAG, 0, r.getrandbits(32)])
+    put(box, 0xa0, 'III', small(r) if r.random() < 0.8 else r.getrandbits(32), shown, r.choice([0, TAG, TAG, r.getrandbits(32)]))
+    if message == 0x12:   # (the parent wide: the tag's right edge about its inner right)
+        left = r.randrange(-40, 0)
+        put(regions[root], 8, 'Ihhhh', 0x705920, left, r.randrange(-30, 30), left + r.randrange(20, 140), r.randrange(30, 90))
+        if r.random() < 0.8:   # (the box's old rectangle +0x20 small: the tag moved by a few)
+            x, width = r.randrange(-30, 30), r.randrange(0, 80)
+            put(box, 0x20, 'Ihhhh', 0x705920, x, r.randrange(-20, 20), x + width, r.randrange(20, 60))
     regions[0x7cb2b8] = struct.pack('<I', r.choice([root] * 12 + [0]) if message == 0xa else root)
     regions[0x7cb2d0] = struct.pack('<I', r.choice(wins))
     gui.timers(r, regions, BOX)
+    queue = regions[gui.QUEUES + 0x140]
+    if r.random() < 0.85:   # (room in the queue [0xfaa5f0] mostly: the posts land, compared)
+        put(queue, 16 * r.randrange(len(queue) // 16), 'I', 0)
+        regions[0xfaa5f0] = struct.pack('<I', gui.QUEUES + 0x100)
     # the sound (msgtags.py's)
     g = bytearray(r.bytes(0x20))   # 0x802bc0..
     put(g, 8, 'I', r.choice([0, 1, 1, 1]))
@@ -129,13 +139,13 @@ def box_case(r):
         blob_when(log, k, 0, 2, 0xc0, 0 if k == 3 else 1)
         blob_when(log, k, 0, 0x10, 0xf00000, 2 if k == 3 else 3)
     if message == 0xa:
-        a = r.choice([TAG] * 8 + [0] + wins[1:])
+        a = r.choice([TAG] * 20 + [0] + wins[1:]) if not box[0x134] else r.choice([TAG, 0, 0])   # (busy: a 0 leaves the waiting one)
     elif message == 0xb:
         a = r.choice([0xffffffff, 0xffffffff, 0, 1, r.getrandbits(32)])
     elif message == 0x10:
-        a = r.choice([0x80080] * 8 + [0x80081, 0x80, 0])
+        a = r.choice([0x80080] * 16 + [0x80081, 0x80, 0])
     elif message == 0x12:
-        a = r.randrange(-60, 100) & 0xffff | r.choice([0, 0, 0xffff0000, r.getrandbits(16) << 16])
+        a = r.randrange(-60, 160) & 0xffff | r.choice([0, 0, 0xffff0000, r.getrandbits(16) << 16])
     elif message == 0x100:
         a = r.choice([0x24] * 6 + [0x23, 0x25, 0x10024])
         dialogs.reset_case(r, 'Dialog7cb2b8_ResetChild21', regions)
