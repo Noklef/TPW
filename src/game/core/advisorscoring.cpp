@@ -2,14 +2,32 @@
 
 #include <cstdint>
 
+#include "../world/analyser.h"
+#include "../world/object.h"
+#include "../world/objectdefs.h"
+#include "../world/research.h"
+#include "../world/staff.h"
 #include "../world/thingscan.h"
 #include "../world/world.h"
+#include "accessors.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
 u8 *table() { return reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(**reinterpret_cast<u8 ***>((uintptr_t)0x007cf6ec))); }
+
+// The game object [[0x7cf6ec]], whether its +0x1da710 is set (Get1da710_51a280), and its research lab (GameTable7cfb90_Get1da722_519550).
+u8 *game() { return **reinterpret_cast<u8 ***>((uintptr_t)0x007cf6ec); }
+bool flagged() { return Get1da710_51a280(game()) != 0; }
+u8 *lab() { return reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da722_519550(game())); }
+
+// The objects whose definition's +0x4ac is 0, or 2 (Things_CountByDef4ac, both counted).
+bool objects0or2() {
+    const bool some0 = Things_CountByDef4ac(0, 0) > 0;
+    const bool some2 = Things_CountByDef4ac(2, 0) > 0;
+    return some0 || some2;
+}
 
 // The object criteria: Below for the fewest / unhappiest, Above for the most / happiest.
 s32 below(u8 *scoring, s32 found, u16 handle, u32 bound) {
@@ -66,6 +84,42 @@ s32 __fastcall AdvisorScoring_PeopleAbove1a4(u8 *scoring) {
 
 s32 __fastcall AdvisorScoring_PeopleAbove1a8(u8 *scoring) {
     return Things_CountPeopleStat1a8Above(table(), nullptr, at<u8>(scoring, 0xb8)) * at<s32>(scoring, 0xb4);
+}
+
+s32 __fastcall AdvisorScoring_BoothPeople(const u8 *scoring) {
+    if (Game_Field1da710IsZero() || !objects0or2()) return 0;
+    return (s32)(ParkAnalyser_CountAtTicketBooths(table()) * at<u32>(scoring, 0xa4));
+}
+
+s32 __fastcall AdvisorScoring_NoObjects0Or2(const u8 *scoring) {
+    if (!Game_Field1da710IsZero() || objects0or2()) return 0;
+    return at<s32>(scoring, 0xa8);
+}
+
+s32 __fastcall AdvisorScoring_Objects0InState1NoStaff4(const u8 *scoring) {
+    if (Things_CountStaffOfKind(4) > 0) return 0;
+    return (s32)((u32)Objects_CountKind0InState1() * at<u32>(scoring, 0xc4));
+}
+
+s32 __fastcall AdvisorScoring_TalliedNoStaff7(const u8 *scoring) {
+    if (flagged() || Things_CountStaffOfKind(7) > 0) return 0;
+    return (s32)(ParkAnalyser_Tallied(table(), nullptr, 0) * at<u32>(scoring, 0xfc) + at<u32>(scoring, 0xf8));
+}
+
+s32 __fastcall AdvisorScoring_PeopleLow19cNoStaff6(const u8 *scoring) {
+    if (flagged() || Things_CountStaffOfKind(6) > 0 || Things_PercentPeopleStat19cBelow(table(), nullptr, 0x1e) <= 0x1e) return 0;
+    return (s32)(((u32)ParkAnalyser_Kind1OnPlainHalfClamped(table()) - at<u32>(scoring, 0x10c)) * at<u32>(scoring, 0x110));
+}
+
+s32 __fastcall AdvisorScoring_Controls18ShareNoStaff8(const u8 *scoring) {
+    if (flagged() || Things_CountStaffOfKind(8) > 0 || Research_CountNotDoneCat0() == 0) return 0;
+    const s32 all = ObjectDefs_CountKind0WithControls10(0);
+    if (all == 0) return 0;
+    const s32 some = ObjectDefs_CountKindWithControls18(0, 0);
+    if (some == all) return 0;
+    const s32 percent = (s32)((u32)some * 100u) / all;
+    if (percent <= at<s32>(scoring, 0x114)) return 0;
+    return (s32)(((u32)percent - at<u32>(scoring, 0x114)) * at<u32>(scoring, 0x118));
 }
 
 s32 __fastcall AdvisorScoring_StaffAtLimit5(const u8 *scoring) { return at_limit(scoring, 0x007852e8, 0x38c, 5, 0x38c); }

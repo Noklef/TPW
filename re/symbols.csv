@@ -4598,6 +4598,12 @@ address,name,kind,confidence,notes
 0x005a07c0,AdvisorScoring_Field5f8,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x5f8
 0x0059f9a0,AdvisorScoring_Const10000,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the constant 10000
 0x0059f9b0,AdvisorScoring_Const9999,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the constant 9999
+0x0059c8d0,AdvisorScoring_BoothPeople,function,low,reimplemented (src/game/core/advisorscoring); flagged (Game_Field1da710IsZero false) and objects with definition +0x4ac 0 or 2: the people at the ticket booths times +0xa4
+0x0059c960,AdvisorScoring_NoObjects0Or2,function,low,reimplemented (src/game/core/advisorscoring); flagged and no objects with definition +0x4ac 0 or 2: +0xa8
+0x0059ca80,AdvisorScoring_Objects0InState1NoStaff4,function,low,reimplemented (src/game/core/advisorscoring); no staff of kind 4: Objects_CountKind0InState1 times +0xc4
+0x0059cd30,AdvisorScoring_TalliedNoStaff7,function,low,"reimplemented (src/game/core/advisorscoring); not flagged, no staff of kind 7: ParkAnalyser_Tallied(0) times +0xfc plus +0xf8"
+0x0059ce30,AdvisorScoring_PeopleLow19cNoStaff6,function,low,"reimplemented (src/game/core/advisorscoring); not flagged, no staff of kind 6, over 30 percent of the people below 30: the analyser's half count less +0x10c, times +0x110"
+0x0059cea0,AdvisorScoring_Controls18ShareNoStaff8,function,low,"reimplemented (src/game/core/advisorscoring); not flagged, no staff of kind 8, category 0 research left: the percentage of kind 0 definitions with control +0x18 among those with +0x10, above +0x114, less it, times +0x118"
 0x00418da0,ParkInfo_Serialize,function,low,"reimplemented (src/game/core/parkinfo); thiscall (stream, save, version, unused), pops 0x10: the save's park information (strings, three dwords, the author's name and e-mail, the description, the publishing date) written or read field by field (name unconfirmed)"
 0x005d55a0,AuthStamp_Text,function,low,"reimplemented (src/game/core/authstamp); cdecl: ""No Authorization Stamp"" (0x774bc0) while the phrase at 0x763f3d is the plain one at 0x774bd8; else the phrase's bytes less the key's (0x774b78) written to 0xf827f8 until they meet, and 0xf827f8"
 0x006cc7b0,Mp2Decoder_ParseHeader,function,low,"reimplemented (src/game/core/mp2frame); parses an MPEG audio frame header into the decoder's fields, rate, bitrate and frame length; -1 without sync or bitrate"
