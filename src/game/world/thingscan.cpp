@@ -989,6 +989,8 @@ s32 __fastcall Things_CountPeopleStat1a8Above(void *, void *, u32 least) { retur
 
 s32 __fastcall Things_CountPeopleStat1a4Above(void *, void *, u32 least) { return countAbove(0x1a4, least); }
 
+s32 __fastcall Things_CountPeopleStat1acAbove(void *, void *, u32 least) { return countAbove(0x1ac, least); }
+
 s32 __fastcall Things_PercentPeopleStat19cAbove(void *, void *, s32 bound) { return percentBeyond<true>(bound); }
 
 s32 __fastcall Things_PercentPeopleStat19cBelow(void *, void *, s32 bound) { return percentBeyond<false>(bound); }

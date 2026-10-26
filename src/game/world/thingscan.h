@@ -246,11 +246,12 @@ u32 __fastcall ParkAnalyser_CountDef4ac0(u8 *analyser, void *, u32 maxAge);
 // giving 0, else again, 100 when at least 100; then once more, below 0 giving 0, else the fourth.
 s32 __fastcall ParkAnalyser_Kind1OnPlainHalfClamped(u8 *analyser);
 
-// 0x4c9340 / 0x4c93f0 (thiscall, the analyser unused (least), pops 4; names unconfirmed): how many things of kind 1 on a plain analyser
-// cell (AnalyserCell_TypePlain) have the low byte of their float +0x1a8 / +0x1a4 cut to an integer above least's low byte (unsigned).
+// 0x4c9340 / 0x4c93f0 / 0x4c9290 (thiscall, the analyser unused (least), pops 4; names unconfirmed): how many things of kind 1 on a plain
+// analyser cell (AnalyserCell_TypePlain) have the low byte of their float +0x1a8 / +0x1a4 / +0x1ac cut to an integer above least's low byte (unsigned).
 // The debug prints of the slot check are left out.
 s32 __fastcall Things_CountPeopleStat1a8Above(void *self, void *, u32 least);
 s32 __fastcall Things_CountPeopleStat1a4Above(void *self, void *, u32 least);
+s32 __fastcall Things_CountPeopleStat1acAbove(void *self, void *, u32 least);
 
 // 0x4c9670 / 0x4c9750 (as 0x4c9340; names unconfirmed): the percentage (count * 100 / all, signed) of those things whose float +0x19c's
 // low byte (as 0x4c9340's) is above / below bound (signed), 0 when there are none.

@@ -1105,6 +1105,7 @@ address,name,kind,confidence,notes
 0x004ccbf0,ParkAnalyser_AverageRatingDef4ac0,function,low,reimplemented (src/game/world/thingscan); thiscall on the analyser (maxAge): the rides' average Object_Rating(0) kept at +0x1f0f4 as the analyser's other kept counts
 0x004ccd10,Things_BestRatedDef4ac0,function,low,"reimplemented (src/game/world/thingscan); stdcall (&handle), ECX unused: of the rides the first with the highest Object_Rating(0), its handle out (0 for none); that rating returned (0 for none)"
 0x004c9d80,Things_AverageStaffStat1f8Int,function,low,"reimplemented (src/game/world/thingscan); no arguments: over all the staff (kind byte +2 4 to 8), the average (signed) of the low bytes of their float +0x1f8 cut to an integer, 0 when there are none"
+0x004c9290,Things_CountPeopleStat1acAbove,function,low,"reimplemented (src/game/world/thingscan); thiscall, the analyser unused (least), pops 4: how many things of kind 1 on a plain analyser cell have the low byte of their float +0x1ac cut to an integer above least low byte (unsigned)"
 0x0054b130,Buoy_FindFree,function,high,"reimplemented (src/game/world/trackpools); the first free buoy record, its index stored in it"
 0x0054b170,Buoy_Alloc,function,high,reimplemented (src/game/world/trackpools); takes the first free buoy record
 0x0054b1e0,CollNode_FindFree,function,high,reimplemented (src/game/world/trackpools); the first free collision node
