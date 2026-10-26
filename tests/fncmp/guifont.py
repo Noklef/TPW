@@ -3,7 +3,8 @@
 # negative or any (their upper halves random).
 # Init (0x658243): a font of random bytes, the count 0 to 0x200 (upper half random), the allocation failing now and then (the heap),
 # the bytes and words any (upper bits random).
-# CharWidth (0x6583fe): TextWidth's font, its count +4 about 0x200 or any, the character about the count or any (upper half random).
+# CharWidth (0x6583fe): TextWidth's font, its count +4 about 0x200 or any, the character about the count or any (upper half random); now
+# and then characters from 0x8000 under a count past them.
 # usage: guifont.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=TextWidth,Init,CharWidth)
 import os
 import struct
@@ -35,6 +36,10 @@ def case(r):
         count = r.choice([0, 1, 0x100, 0x200, 0x200, r.randrange(0x201)])
         put(font, 4, 'H', count)
         c = r.choice([0, 1, count - 1, count, count + 1, r.randrange(0x200), r.getrandbits(16)]) & 0xffff | r.getrandbits(16) << 16
+        if r.random() < 0.15:   # (characters from 0x8000 under a count past them: the glyphs 0x40000 before the block, so that theirs are in it)
+            put(font, 0xc, 'I', GLYPHS - 0x40000)
+            put(font, 4, 'H', r.choice([0xffff, 0x8200]))
+            c = 0x8000 + r.randrange(0x200) | r.getrandbits(16) << 16
         return Call(CALLS[op], [FONT, c], {FONT: font, GLYPHS: r.bytes(0x1000)}, conv='t', ret='w')
     text = struct.pack('<%dH' % (n + 1), *([r.choice([0x20, 0x41, 0x61, r.randrange(1, 0x200)]) for _ in range(n)] + [0]))
     regions = {FONT: font, TEXT: text + r.bytes(4), GLYPHS: r.bytes(0x1000)}
