@@ -13,7 +13,7 @@
 # windows' byte +4 mostly clear). Remove (0x662384): Kill's list, the node one of it or 0. KillTimer (0x65f0ca): Kill's list, the
 # window the first of them with its four nodes +0x120 each set or 0, the id as StopTimer's (half the time a node of the list its).
 # PoolCtor (0x661e70): a node of random bytes and the clock. VecDelete (0x6624a0): Delete's list, or with flag 2 an array of 1-4 nodes
-# (linked to each other, a previous link now and then missing) after its count (theirs, fewer or 0), the block freed by the harness.
+# (linked to each other, a previous link now and then missing) after its count (theirs, fewer or 0), the block freed (heap(): its pointer hashed).
 # PauseSlide (0x65edd3): a window whose timer +0x100 is one of two nodes or 0, the clock; the word 0, 1, 0x100, 0x8000 or any (upper
 # half random); AX compared.
 # usage: windowtimers.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Unlink,Find,Delete,Kill,New,Ctor,Add,Start,SetTimer,...,Fire,Remove)
@@ -24,7 +24,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
-from fncmp import LOG, RAM, Bench, Call, log_region, put, set_return, vtable  # noqa: E402
+from fncmp import HEAP, LOG, RAM, Bench, Call, heap, log_region, put, set_return, vtable  # noqa: E402
 from window import queues  # noqa: E402
 
 CALLS = {'Unlink': 0x661faa, 'Find': 0x6620e2, 'Delete': 0x662500, 'Kill': 0x662306, 'New': 0x661f2b, 'Ctor': 0x661ece,
@@ -141,7 +141,7 @@ def case(r):
             put(buf, 4 + 0x20 * i + 0x18, 'I', nodes[i + 1] if i + 1 < n else 0)
             put(buf, 4 + 0x20 * i + 0x1c, 'I', nodes[i - 1] if i and r.random() < 0.9 else 0)
         flags = r.choice([2, 3, 2 | (r.getrandbits(32) & ~1)])
-        return Call(CALLS[op], [nodes[0], flags], {ARRAY: buf}, conv='t', ret='a')
+        return Call(CALLS[op], [nodes[0], flags], {ARRAY: buf, HEAP: heap()}, conv='t', ret='a')
     if op == 'Ctor':
         regions = {POOL: r.bytes(0x20)}
         clock(r, regions)
