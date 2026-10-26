@@ -3,6 +3,8 @@
 
 #include <cstdint>
 
+#include "vobj2.h"
+
 namespace {
 
 template <typename T>
@@ -199,6 +201,20 @@ void __cdecl EventQueue_PostKind4(u32 value) {
     event[0] = 4;
     event[1] = value;
     EventQueue_Post(g_env->instance, nullptr, 0, event);
+}
+
+void __cdecl EventQueue_PostScreenReset() {
+    u32 event[5];  // (one 0x14-byte event for both posts, the first's +8.. unset as the original's)
+    event[0] = 6;
+    event[1] = 0;
+    EventQueue_Post(g_env->instance, nullptr, 0, event);
+    event[2] = *reinterpret_cast<const u32 *>(0x007a1930);
+    event[0] = 7;
+    event[1] = *reinterpret_cast<const u32 *>(0x007a1968);
+    reinterpret_cast<u8 *>(event)[0xc] = 0x10;
+    event[4] = 0;
+    EventQueue_Post(g_env->instance, nullptr, 0, event);
+    Obj_ReleaseTwoComMembers(reinterpret_cast<u8 *>(0x007b4ac0));
 }
 
 }  // extern "C"
