@@ -439,6 +439,25 @@ u8 *__fastcall Bank_DeletingDtor(u8 *bank, void *, u32 flags) {
     return bank;
 }
 
+void __fastcall BankList_Dtor(u8 *list) {
+    u8 *node = Ptr(Get<u32>(list, 4));
+    Put<u32>(list, 0, 0x70a948);
+    Put<u32>(list, 8, 0);
+    Put<u32>(list, 4, 0);
+    while (node) {
+        u8 *const next = Ptr(Get<u32>(node, 4));
+        GameHeap_Free(node);
+        node = next;
+    }
+    Put<u32>(list, 0xc, 0);
+}
+
+u8 *__fastcall BankList_DeletingDtor(u8 *list, void *, u32 flags) {
+    BankList_Dtor(list);
+    if (flags & 1) GameHeap_Free(list);
+    return list;
+}
+
 s32 *__fastcall SoundCategory_ReadSfxImage(u8 *category, void *, s32 *result, StreamBase *stream, u32 *index) {
     u32 header[5];
     vcall<s32>(stream, 8, static_cast<void *>(header), 0x14);

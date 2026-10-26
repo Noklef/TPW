@@ -106,6 +106,12 @@ s32 *__fastcall SoundCategory_Load(u8 *category, void *, s32 *result, const char
 // 0x6c0190 (thiscall; flags, pops 4): that, then freed with bit 0 of the flags (Mem_Free). Returns the bank.
 void __fastcall Bank_Dtor(u8 *bank);
 u8 *__fastcall Bank_DeletingDtor(u8 *bank, void *, u32 flags);
+// 0x6c2f40 (thiscall; also an unwind funclet's at 0x6e5e19; names of both invented): the destructor of a category record's PtrList of banks
+// (+0x24; vtable 0x70a948, the deleting one its slot 0): its nodes (+0 the bank, +4 the next) freed, the banks left; vtable reset, +8, +4
+// and the count (+0xc) 0.
+void __fastcall BankList_Dtor(u8 *list);
+// 0x6c30c0 (thiscall; flags, pops 4): that, then the list freed with bit 0 of the flags. Returns the list.
+u8 *__fastcall BankList_DeletingDtor(u8 *list, void *, u32 flags);
 
 // 0x6c0360 (thiscall; &result, stream, &index, pops 0xc): reads the 0x14-byte header (Obj_CheckId; another GUID: *result = -1), then 8 bytes
 // (a dword and the category record count), then the rest of the stream (its size - its position, through its vtable +0x14 / +0x18) into a block
