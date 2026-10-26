@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include "../files/file.h"
+#include "../math/vector.h"
 #include "../math/x87.h"
 #include "fieldops.h"
 #include "gameheap.h"
@@ -626,6 +627,50 @@ u32 __fastcall LinkedVoice_FillRecord(u8 *voice, void *, u32, u8 *record) {
     }
     if (voice[0x30] & 4) SetThenFlag44_14_6c5110(record, nullptr, 9999);
     return 1;
+}
+
+void __fastcall SoundVoice_SetValue20(u8 *voice, void *, u32 value) {
+    at<u32>(voice, 0x20) = value;
+    if (!(voice[0x30] & 1)) return;
+    u32 record[0x27];
+    start_record(record);
+    SetThenFlag2c_14_6c5150(reinterpret_cast<u8 *>(record), nullptr, value);
+    u32 result;   // (dropped)
+    send_record(voice, &result, record);
+}
+
+void __fastcall SoundVoice_SendLevels(u8 *voice) {
+    if (!at<u32>(voice, 0x24) || !system()) return;
+    u32 record[0x27];
+    start_record(record);
+    if (!(at<u32>(voice, 0x30) & 0x400))
+        SetThenFlag28_14_6c5130(reinterpret_cast<u8 *>(record), nullptr, SoundVoice_RollVolume(voice));
+    SetThenFlag24_14_6c5170(reinterpret_cast<u8 *>(record), nullptr, SoundVoice_RollPitch(voice));
+    u32 result;   // (dropped)
+    send_record(voice, &result, record);
+}
+
+u32 *__fastcall SoundVoice_SetPosition(u8 *voice, void *, u32 *out, const u32 *position) {
+    float *const at10 = &at<float>(voice, 0x10);
+    for (u32 i = 0; i < 3; ++i) at<u32>(voice, 0x10 + 4 * i) = position[i];
+    if (at<u32>(voice, 0x24)) {
+        u32 record[0x27];
+        start_record(record);
+        if (voice[0x30] & 8) {
+            Fn_6bb220(reinterpret_cast<u8 *>(at10), nullptr, 0, 1, 0);   // (ints: 1 is no 1.0f, sic)
+        } else {
+            Vec3_Scale(at10, nullptr, at<float>(system(), 0x2c));
+            record[3] |= 0x20;
+            const u32 sys = at<u32>(system(), 0x28);
+            if (sys & 0x43 && sys >> 7 & 1) record[3] |= 0x800;
+        }
+        record[5] |= 1;
+        record[0xc] = static_cast<u32>(reinterpret_cast<uintptr_t>(at10));
+        u32 result;   // (dropped)
+        send_record(voice, &result, record);
+    }
+    *out = 0;
+    return out;
 }
 
 }  // extern "C"

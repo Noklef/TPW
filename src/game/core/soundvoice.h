@@ -143,6 +143,18 @@ u32 __fastcall SoundVoice_RollPitch(u8 *voice);
 // (+0x4c) and slot 16 (4) answering (AL): +0x10 + (+0x12 - +0x10) * the percentage / 100 (signed). Else the words put in order (swapped
 // in place) and +0x10 + a random draw (the full rotated number) modulo their difference, or +0x10 when they are equal.
 u32 __fastcall SoundVoice_RollWord(u8 *voice);
+// 0x6bba90 (thiscall (value), pops 4; slot 8): +0x20 = value; with flag 1 (+0x30) the record (as 0x6bc900's) with +0x2c = value
+// (SetThenFlag2c_14_6c5150) to the sound system, without testing the sound (+0x24) or the system for null.
+void __fastcall SoundVoice_SetValue20(u8 *voice, void *, u32 value);
+// 0x6bbbe0 (thiscall; slot 13, SoundVoice_SetParam's): with a sound (+0x24) and the sound system, the record with the volume
+// (SetThenFlag28_14_6c5130: SoundVoice_RollVolume) unless flag 0x400 (+0x30), and the pitch (SetThenFlag24_14_6c5170:
+// SoundVoice_RollPitch), to the system.
+void __fastcall SoundVoice_SendLevels(u8 *voice);
+// 0x6bbce0 (thiscall (out, position), pops 8; slot 9): the three dwords to +0x10; with a sound (+0x24), a record to the system: with
+// flag 8 (+0x30) +0x10 set to the ints (0, 1, 0) (Fn_6bb220, sic); else +0x10 scaled by the system's float +0x2c (Vec3_Scale), the
+// record's +0xc |= 0x20, and 0x800 when the system's +0x28 has 0x43 and 0x80. Then +0x14 |= 1, +0x30 = the voice + 0x10. *out = 0;
+// returns out.
+u32 *__fastcall SoundVoice_SetPosition(u8 *voice, void *, u32 *out, const u32 *position);
 // 0x6bc3c0 (thiscall (record), pops 4): with flag 8 (+0x30), FlagThenSet14_5c_6c51d0 on the record with 0; else, when
 // Obj_Flags28_Bit1IfBit0 of the sound system answers nonzero, the same with the system's slot 10 (the voice + 0x10) as a float, else
 // that answer (0). Returns what the last call answered.
