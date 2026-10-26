@@ -8,9 +8,10 @@
 # +0x10 bytes 0 or set), the global save info's keys (a red-black tree of stdtree.py's of 1-8 of the ids 0-11, the instance [0xf7c58c]),
 # the group 4 mostly, 0-12 projects mostly (or up to 0x100, or a negative count), their categories mostly the group's, their ids mostly
 # ones with a definition and a record, their research groups and the group's highest about each other, its current project none, among
-# them or past them. Cat0-Cat3 (0x4ca630-0x4ca690): the lab as AllDone's, its projects' categories 0-5 mostly.
+# them or past them. Cat0-Cat3 (0x4ca630-0x4ca690): the lab as AllDone's, its projects' categories 0-5 mostly. Left (0x503ac0): the
+# dearest project's index +0x1464 0, among the projects or the current one, the current one's mCost about 0.1 and its mResearchDone.
 # usage: research.py [CASES [SEED]] [--wild|--both] [--show N]
-#   (env OPS=Effort,ObjId,Count,NotDone,Ctor,Next,Fill,AllDone,Flag,Choose,ChooseBack,Cat0,Cat1,Cat2,Cat3)
+#   (env OPS=Effort,ObjId,Count,NotDone,Ctor,Next,Fill,AllDone,Flag,Choose,ChooseBack,Cat0,Cat1,Cat2,Cat3,Left)
 import os
 import struct
 import sys
@@ -24,11 +25,11 @@ B = Bench([(0x503850, 0x503861), (0x5039f0, 0x503a20), (0x503b30, 0x503b79), (0x
            (0x504750, 0x50475e), (0x504580, 0x504627), (0x5031a0, 0x503325), (0x412e60, 0x412e6d), (0x412e70, 0x412e8f),
            (0x4d3d10, 0x4d3d80), (0x5da3c0, 0x5da3c1), (0x4ca6b0, 0x4ca733), (0x4d3d80, 0x4d3df0), (0x519550, 0x51958d), (0x503ff0, 0x504037),
            (0x5034f0, 0x503693), (0x5036a0, 0x503844), (0x412e90, 0x412eea), (0x4d4b70, 0x4d4b84), (0x5af780, 0x5af7f0), (0x410ac0, 0x410b20),
-           (0x47d460, 0x47d4b0), (0x5b30b0, 0x5b3110), (0x409410, 0x40947a), (0x4ca630, 0x4ca6a5)],
+           (0x47d460, 0x47d4b0), (0x5b30b0, 0x5b3110), (0x409410, 0x40947a), (0x4ca630, 0x4ca6a5), (0x503ac0, 0x503b26)],
           hooks={0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None})   # (as tree_finds.py's)
 LAB = RAM
 CALLS = {'Effort': 0x503850, 'ObjId': 0x5039f0, 'Count': 0x503b30, 'NotDone': 0x504040, 'Ctor': 0x504750, 'Next': 0x504580, 'Fill': 0x5031a0, 'AllDone': 0x4ca6b0,
-         'Flag': 0x503ff0, 'Choose': 0x5034f0, 'ChooseBack': 0x5036a0, 'Cat0': 0x4ca630, 'Cat1': 0x4ca650, 'Cat2': 0x4ca670, 'Cat3': 0x4ca690}
+         'Flag': 0x503ff0, 'Choose': 0x5034f0, 'ChooseBack': 0x5036a0, 'Cat0': 0x4ca630, 'Cat1': 0x4ca650, 'Cat2': 0x4ca670, 'Cat3': 0x4ca690, 'Left': 0x503ac0}
 TABLE, ITEMS, DEFS = RAM + 0x2000, RAM + 0x4000, 0x7890a0   # (the game's object control table, the object definitions and their list)
 IDS = [1, 2, 3, 4, 5, 9]
 SAVE, THEAD, TNIL, TNODES = RAM + 0x9000, RAM + 0x9100, RAM + 0x9200, RAM + 0xa000   # (the global save info and its tree of keys)
@@ -162,6 +163,12 @@ def case(r):
             put(lab, 0x140c + g * 16, 'I', r.choice([0, 0, 1, 7, 100, 0x3000000, r.getrandbits(32)]))
         put(lab, 0x1460, 'I', r.choice([0, 1, 100, 250, 0x10000, r.getrandbits(32)]))
         return Call(0x5031a0, [LAB], regions, conv='t')
+    if op == 'Left':
+        current = struct.unpack_from('<i', lab, 0x140c + group * 16 + 8)[0]
+        put(lab, 0x1464, 'i', r.choice([0, r.randrange(0x100), r.randrange(0x100), max(current, 0)]))
+        if current >= 0 and r.random() < 0.3:
+            put(lab, 0xc + current * 20 + 0xc, 'f', r.choice([0.1, 0.10000001, 0.0999999, 1.0, 1.0000001, 0.5]))
+        return Call(0x503ac0, [LAB, group], {LAB: lab}, conv='t', ret='a')
     if op == 'Ctor':
         return Call(0x504750, [LAB + 0x140c + group * 16], {LAB: lab}, conv='t', ret='a')
     if op == 'Count':
