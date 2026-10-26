@@ -386,6 +386,10 @@ u16 __fastcall Window_StopScript(u8 *window);
 // Else 0.
 u16 __fastcall Window_StopSlide(u8 *window, void *, u32 move);
 
+// 0x65edd3 (thiscall (paused: a word), pops 4; no direct callers; name unconfirmed): with a slide timer +0x100 it is stopped (Fn_662097)
+// when the word is not 0, else started (WindowTimer_Start); 1 in AX. Without one 0.
+u16 __fastcall Window_PauseSlide(u8 *window, void *, u32 paused);
+
 // 0x65cd95 (thiscall (dl, dt, dr, db: words), pops 16; called by 0x48dc92, 0x4a12e3; name unconfirmed): the rectangle +8 moved edge by
 // edge by the words (GuiRect_CopyCtor, GuiRect_Adjust) and set (Window_SetRect). EAX the rectangle's address (its destructor's), by neither caller read.
 void __fastcall Window_AdjustRect(u8 *window, void *, u32 dl, u32 dt, u32 dr, u32 db);

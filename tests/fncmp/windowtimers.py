@@ -12,6 +12,10 @@
 # would not end), the clock a few intervals on (or before, or a bit short), [0x77c488] set or not, window.py's message queues (the
 # windows' byte +4 mostly clear). Remove (0x662384): Kill's list, the node one of it or 0. KillTimer (0x65f0ca): Kill's list, the
 # window the first of them with its four nodes +0x120 each set or 0, the id as StopTimer's (half the time a node of the list its).
+# PoolCtor (0x661e70): a node of random bytes and the clock. VecDelete (0x6624a0): Delete's list, or with flag 2 an array of 1-4 nodes
+# (linked to each other, a previous link now and then missing) after its count (theirs, fewer or 0), the block freed by the harness.
+# PauseSlide (0x65edd3): a window whose timer +0x100 is one of two nodes or 0, the clock; the word 0, 1, 0x100, 0x8000 or any (upper
+# half random); AX compared.
 # usage: windowtimers.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Unlink,Find,Delete,Kill,New,Ctor,Add,Start,SetTimer,...,Fire,Remove)
 import os
 import struct
@@ -25,16 +29,18 @@ from window import queues  # noqa: E402
 
 CALLS = {'Unlink': 0x661faa, 'Find': 0x6620e2, 'Delete': 0x662500, 'Kill': 0x662306, 'New': 0x661f2b, 'Ctor': 0x661ece,
          'Add': 0x66220d, 'Start': 0x6620ac, 'SetTimer': 0x65ef90, 'StartTimer': 0x65f024, 'StopTimer': 0x65f077, 'KillTimer': 0x65f0ca,
-         'SlideTo': 0x65ecb0, 'Fire': 0x661fe5, 'Remove': 0x662384}
+         'SlideTo': 0x65ecb0, 'Fire': 0x661fe5, 'Remove': 0x662384, 'PoolCtor': 0x661e70, 'VecDelete': 0x6624a0, 'PauseSlide': 0x65edd3}
 B = Bench([(0x661f9b, 0x661fe5), (0x6620e2, 0x66213e), (0x662306, 0x662384), (0x662500, 0x66252c), (0x661ece, 0x661f2b),
            (0x661f2b, 0x661f9b), (0x66220d, 0x6622d2), (0x65968e, 0x6596a2),
            (0x6620ac, 0x6620cc), (0x6620cc, 0x6620e2), (0x662097, 0x6620ac), (0x65ef90, 0x65f024), (0x65f024, 0x65f077), (0x65f077, 0x65f0ca), (0x65f0ca, 0x65f11d),
            (0x65ecb0, 0x65edd1), (0x65aa20, 0x65aa72), (0x65aa80, 0x65aa8e),
-           (0x661fe5, 0x662086), (0x662384, 0x6623ec), (0x658ccc, 0x658daf), (0x659710, 0x659740), (0x6697e3, 0x6698b4), (0x680050, 0x68005b)])
+           (0x661fe5, 0x662086), (0x662384, 0x6623ec), (0x658ccc, 0x658daf), (0x659710, 0x659740), (0x6697e3, 0x6698b4), (0x680050, 0x68005b),
+           (0x661e70, 0x661ece), (0x6624a0, 0x662500), (0x67afa0, 0x67b0d0), (0x65edd3, 0x65ee1b)])
 TARGET = RAM + 0x3200
 NODES = RAM
 POOL, CLOCK, VTABLE = RAM + 0x2000, RAM + 0x3000, RAM + 0x3100
 FNODE = RAM + 0x6000
+ARRAY = RAM + 0x7000
 WINDOWS = [RAM + 0x1000, RAM + 0x1200, 0]
 IDS = [0x80080, 0x80081, 0x80082, 0x80083, 1, 0x10]
 
@@ -80,6 +86,12 @@ def case(r):
             ident = r.getrandbits(32)
         args = [WINDOWS[0], ident] + ([r.choice([0x2ee, 0, r.getrandbits(32)])] if op == 'SetTimer' else [])
         return Call(CALLS[op], args, regions, conv='t', ret='w')
+    if op == 'PauseSlide':
+        win = put(bytearray(r.bytes(0x140)), 0x100, 'I', r.choice([0, NODES, NODES + 0x20]))
+        regions = {WINDOWS[0]: win, NODES: bytearray(r.bytes(0x40))}
+        clock(r, regions)
+        word = r.choice([0, 1, 0x100, 0x8000, r.getrandbits(16)]) | (r.getrandbits(16) << 16 if r.random() < 0.5 else 0)
+        return Call(CALLS[op], [WINDOWS[0], word], regions, conv='t', ret='w')
     if op == 'SlideTo':
         win = bytearray(r.bytes(0x140))
         put(win, 0xc, 'hhhh', *[r.choice([0, 5, -20, 100, r.getrandbits(16) - 0x8000]) for _ in range(4)])
@@ -116,6 +128,20 @@ def case(r):
         for w in WINDOWS[:2]:
             regions[w] = put(bytearray(r.bytes(0x10)), 4, 'B', r.choice([0, 0, 0, 1]))
         return Call(CALLS[op], [FNODE], regions, conv='t', ret='a')
+    if op == 'PoolCtor':
+        regions = {POOL: r.bytes(0x20)}
+        clock(r, regions)
+        return Call(CALLS[op], [POOL], regions, conv='t', ret='a')
+    if op == 'VecDelete' and r.random() < 0.5:   # the array: the count first
+        n = r.choice([1, 2, 3, 4])
+        nodes = [ARRAY + 4 + 0x20 * i for i in range(n)]
+        buf = bytearray(r.bytes(4 + 0x20 * n))
+        put(buf, 0, 'i', r.choice([n, n, n, n - 1, 0]))
+        for i in range(n):
+            put(buf, 4 + 0x20 * i + 0x18, 'I', nodes[i + 1] if i + 1 < n else 0)
+            put(buf, 4 + 0x20 * i + 0x1c, 'I', nodes[i - 1] if i and r.random() < 0.9 else 0)
+        flags = r.choice([2, 3, 2 | (r.getrandbits(32) & ~1)])
+        return Call(CALLS[op], [nodes[0], flags], {ARRAY: buf}, conv='t', ret='a')
     if op == 'Ctor':
         regions = {POOL: r.bytes(0x20)}
         clock(r, regions)
@@ -159,6 +185,8 @@ def case(r):
         return Call(CALLS[op], [node, window, ident], regions, conv='t', ret='a')
     if op == 'Delete':
         return Call(CALLS[op], [node, r.choice([0, 1, 2, 3, r.getrandbits(32)])], regions, conv='t', ret='a')
+    if op == 'VecDelete':   # (flag 2 clear)
+        return Call(CALLS[op], [node, r.choice([0, 1, 0x10, r.getrandbits(32) & ~2])], regions, conv='t', ret='a')
     return Call(CALLS[op], [node], regions, conv='t', ret='a')
 
 

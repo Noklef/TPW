@@ -1034,6 +1034,13 @@ u16 __fastcall Window_StopSlide(u8 *window, void *, u32 move) {
     return 1;
 }
 
+u16 __fastcall Window_PauseSlide(u8 *window, void *, u32 paused) {
+    if (!at<u8 *>(window, 0x100)) return 0;
+    if ((s16)paused) Fn_662097(at<u8 *>(window, 0x100));
+    else WindowTimer_Start(at<u8 *>(window, 0x100));
+    return 1;
+}
+
 void __fastcall Window_AdjustRect(u8 *window, void *, u32 dl, u32 dt, u32 dr, u32 db) {
     u8 rect[0x10];
     GuiRect_CopyCtor(rect, nullptr, window + 8);

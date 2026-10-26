@@ -3,6 +3,8 @@
 #include <cstdint>
 
 #include "../core/accessors.h"
+#include "../core/crt.h"
+#include "../core/gameheap.h"
 #include "guimanager.h"
 #include "window.h"
 
@@ -32,6 +34,17 @@ u8 *__fastcall WindowTimer_Find(u8 *node, void *, u32 window, u32 id) {
 u8 *__fastcall WindowTimer_Delete(u8 *node, void *, u32 flags) {
     WindowTimer_Unlink(node);
     if (flags & 1) Fn_661f9b((u32)(uintptr_t)node);
+    return node;
+}
+
+u8 *__fastcall WindowTimer_VecDelete(u8 *node, void *, u32 flags) {
+    if (flags & 2) {
+        CRT_VectorDtorIterator(node, 0x20, at<s32>(node, (u32)-4), reinterpret_cast<void(__fastcall *)(void *)>(&WindowTimer_Unlink));
+        GameHeap_Free(node - 4);
+    } else {
+        WindowTimer_Unlink(node);
+        if (flags & 1) Fn_661f9b((u32)(uintptr_t)node);
+    }
     return node;
 }
 
@@ -65,6 +78,18 @@ u8 *__fastcall WindowTimer_Ctor(u8 *node, void *, u32 window, u32 interval, u32 
     at<u32>(node, 4) = GuiClock_Now();
     at<u32>(node, 0x10) = 0;
     at<u32>(node, 0x14) = 0;
+    return node;
+}
+
+u8 *__fastcall WindowTimer_PoolCtor(u8 *node) {
+    at<u32>(node, 0) = 0;
+    at<u32>(node, 8) = 0;
+    at<u32>(node, 0xc) = 0;
+    at<u32>(node, 0x18) = 0;
+    at<u32>(node, 0x1c) = 0;
+    at<u32>(node, 4) = GuiClock_Now();
+    at<u32>(node, 0x10) = 0;
+    at<u32>(node, 0x14) = 1;
     return node;
 }
 
