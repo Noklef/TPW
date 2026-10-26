@@ -2,7 +2,7 @@
 # 0x549d30, 0x5452a0, 0x54ab40) against the originals: writes and reads that fit or run short, pools absent, full or
 # with a free record anywhere, handles good, stale, of other rides or 0, with the module loaded
 # or not and links absent or flagged either way; a track section added (0x54b2f0): see section(). A ride's object thing found (0x54bbe0):
-# thingenv's park, some objects (and others) given the ride's handle at +0x28.
+# thingenv's park, some objects (and others) given the ride's handle at +0x28. A car's sounds (0x547170): see car_sound().
 # usage: trackrides.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Write,Read,Free,Linked,Field5c,PopNode)
 import os
 import sys
@@ -14,10 +14,11 @@ import thingenv  # noqa: E402
 
 B = Bench([(0x5452a0, 0x545307), (0x54ab40, 0x54abc3), (0x543490, 0x5434d0), (0x54bbb0, 0x54bbd6), (0x549b50, 0x549b71), (0x549d30, 0x549da6),
            (0x5f5e20, 0x5f5e50), (0x5f5e50, 0x5f5e80), (0x544a10, 0x544b50), (0x544840, 0x544a10), (0x545890, 0x546280), (0x54b130, 0x54b290), (0x544e50, 0x544f90), (0x545180, 0x5452a0), (0x545310, 0x545450), (0x54aa80, 0x54ab40), (0x51feb0, 0x51ff10), (0x544160, 0x5441f0), (0x5441f0, 0x544290), (0x544c00, 0x544c80), (0x545100, 0x545180), (0x54abd0, 0x54ac70), (0x5da3c0, 0x5da3c1),
-           (0x54b2f0, 0x54bb71), (0x54bbe0, 0x54bc9c), (0x516130, 0x516160), (0x516160, 0x5161b0), (0x50b350, 0x50b360)])
+           (0x54b2f0, 0x54bb71), (0x54bbe0, 0x54bc9c), (0x516130, 0x516160), (0x516160, 0x5161b0), (0x50b350, 0x50b360),
+           (0x547170, 0x547490), (0x4cd300, 0x4cd331), (0x51eeb0, 0x51eeec), (0x55a3e0, 0x55a470), (0x55a070, 0x55a0b0), (0x51bfc0, 0x51c048)])
 STREAM, SINK, BUF, POOL, LINKS, GLOBALS = RAM + 0x100, RAM + 0x200, RAM + 0x400, RAM + 0x1000, RAM + 0x800, 0x877b58
 SETUPREG, SYSTEMS_AT = 0x816d40, 0x80cefc
-CALLS = ['Write', 'Read', 'Free', 'Linked', 'Field5c', 'PopNode', 'Worn', 'Dur', 'PushNode', 'ReadN', 'ReadD', 'Close', 'Fixed', 'Perf', 'Count', 'AddCar', 'Open', 'Create', 'Section', 'FindThing']
+CALLS = ['Write', 'Read', 'Free', 'Linked', 'Field5c', 'PopNode', 'Worn', 'Dur', 'PushNode', 'ReadN', 'ReadD', 'Close', 'Fixed', 'Perf', 'Count', 'AddCar', 'Open', 'Create', 'Section', 'FindThing', 'CarSound']
 
 
 def find_thing(r):
@@ -30,10 +31,52 @@ def find_thing(r):
     return Call(0x54bbe0, [RAM, ride], regions, ret='a')
 
 
+CAR, RIDES = RAM + 0x6000, RAM + 0x10000   # (clear of ridesound.py's and thingenv's regions)
+
+
+def car_sound(r):
+    """0x547170 (car): the next state (+0x14) 0 mostly, the state (+0x18) 1-5 mostly (0, 6, any too), the position (+0x34, +0x38) any;
+    the car's ride (+0x9c) one of four records (the module loaded or not); the game's rand seed (0x877b90) half the time one whose next
+    value plays (bits 0x70000 clear); ridesound.py's records and sound globals; thingenv's park, its objects given the ride's handle at
+    +0x28 or not, their +0x24 the ids (ridesound's records' 1-8 mostly)."""
+    import ridesound
+    sound = ridesound.case(r)
+    regions = dict(sound.regions)
+    park, handles, _things = thingenv.park(r, count=r.choice([0, 1, 2, 3, 4, 6]), kinds=(3, 3, 3, 1, 2, 0), defs=False)
+    regions.update(park)
+    globals_ = bytearray(r.bytes(0x40))
+    put(globals_, 0, 'I', 0x4a454647 if r.random() < 0.9 else r.getrandbits(32))
+    put(globals_, 8, 'I', RIDES)
+    seed = r.getrandbits(32)
+    while r.random() < 0.5 and (seed * 0x343fd + 0x269ec3) & 0x70000:
+        seed = r.getrandbits(32)
+    put(globals_, 0x38, 'I', seed)
+    rides = bytearray(r.bytes(4 * 0xd0))
+    index = r.randrange(4)
+    kind = r.choice([0, 1, -3, -14, r.getrandbits(32)]) & 0xffffffff
+    put(rides, index * 0xd0, 'I', kind)
+    ride = (index | kind << 8) & 0xffffffff
+    pool = regions[thingenv.POOL]
+    for i in range(len(handles)):
+        put(pool, thingenv.THING * i + 0x28, 'I', ride if r.random() < 0.5 else r.choice([ride ^ 1, ride ^ 0x100, 0, r.getrandbits(32)]))
+        put(pool, thingenv.THING * i + 0x24, 'I', r.choice([1, 2, 3, 4, 5, 6, 7, 8, r.getrandbits(32)]))   # (ridesound's record ids 1-8)
+    car = bytearray(r.bytes(0xac))
+    put(car, 0x14, 'I', r.choice([0, 0, 0, 1, 2, 3, 4, 5, 6, r.getrandbits(32)]))
+    put(car, 0x18, 'I', r.choice([1, 2, 2, 3, 4, 4, 5, 0, 6, r.getrandbits(32)]))
+    coord = lambda: r.choice([0, 1, -1, 300, -300, r.randrange(-100000, 100000), r.getrandbits(32)]) & 0xffffffff  # noqa: E731
+    put(car, 0x34, 'II', coord(), coord())
+    put(car, 0x9c, 'I', RIDES + 0xd0 * index)
+    regions.update({GLOBALS: globals_, RIDES: rides, CAR: car, 0x803a28: r.bytes(4), 0x803a3c: r.bytes(4),
+                    0x7cf6ec: RAM.to_bytes(4, 'little'), RAM: r.bytes(4)})
+    return Call(0x547170, [CAR], regions, ret='v')
+
+
 def case(r):
     op = r.choice(OPS)
     if op == 'FindThing':
         return find_thing(r)
+    if op == 'CarSound':
+        return car_sound(r)
     globals_ = bytearray(r.bytes(0x40))
     if op in ('Perf', 'Count', 'AddCar', 'Fixed'):
         rides = bytearray(r.bytes(0x100 * 0xd0))

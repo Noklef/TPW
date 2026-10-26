@@ -212,4 +212,69 @@ s32 __fastcall AdvisorScoring_HappiestDef4ac2(u8 *scoring) {
     return above(scoring, found, handle, 0x570);
 }
 
+s32 __fastcall AdvisorScoring_Fielda0(const u8 *scoring) { return at<s32>(scoring, 0xa0); }
+s32 __fastcall AdvisorScoring_Field1bc(const u8 *scoring) { return at<s32>(scoring, 0x1bc); }
+s32 __fastcall AdvisorScoring_Field1c0(const u8 *scoring) { return at<s32>(scoring, 0x1c0); }
+s32 __fastcall AdvisorScoring_Field1c4(const u8 *scoring) { return at<s32>(scoring, 0x1c4); }
+s32 __fastcall AdvisorScoring_Field1c8(const u8 *scoring) { return at<s32>(scoring, 0x1c8); }
+s32 __fastcall AdvisorScoring_Field1cc(const u8 *scoring) { return at<s32>(scoring, 0x1cc); }
+s32 __fastcall AdvisorScoring_Field1d0(const u8 *scoring) { return at<s32>(scoring, 0x1d0); }
+s32 __fastcall AdvisorScoring_Field1d4(const u8 *scoring) { return at<s32>(scoring, 0x1d4); }
+s32 __fastcall AdvisorScoring_Field1d8(const u8 *scoring) { return at<s32>(scoring, 0x1d8); }
+s32 __fastcall AdvisorScoring_Field1dc(const u8 *scoring) { return at<s32>(scoring, 0x1dc); }
+s32 __fastcall AdvisorScoring_Field1e0(const u8 *scoring) { return at<s32>(scoring, 0x1e0); }
+s32 __fastcall AdvisorScoring_Field1e4(const u8 *scoring) { return at<s32>(scoring, 0x1e4); }
+s32 __fastcall AdvisorScoring_Field1e8(const u8 *scoring) { return at<s32>(scoring, 0x1e8); }
+s32 __fastcall AdvisorScoring_Field1ec(const u8 *scoring) { return at<s32>(scoring, 0x1ec); }
+s32 __fastcall AdvisorScoring_Field1f0(const u8 *scoring) { return at<s32>(scoring, 0x1f0); }
+s32 __fastcall AdvisorScoring_Field1f4(const u8 *scoring) { return at<s32>(scoring, 0x1f4); }
+s32 __fastcall AdvisorScoring_Field1f8(const u8 *scoring) { return at<s32>(scoring, 0x1f8); }
+s32 __fastcall AdvisorScoring_Field1fc(const u8 *scoring) { return at<s32>(scoring, 0x1fc); }
+s32 __fastcall AdvisorScoring_Field200(const u8 *scoring) { return at<s32>(scoring, 0x200); }
+s32 __fastcall AdvisorScoring_Field204(const u8 *scoring) { return at<s32>(scoring, 0x204); }
+s32 __fastcall AdvisorScoring_Field208(const u8 *scoring) { return at<s32>(scoring, 0x208); }
+s32 __fastcall AdvisorScoring_Field20c(const u8 *scoring) { return at<s32>(scoring, 0x20c); }
+s32 __fastcall AdvisorScoring_Field210(const u8 *scoring) { return at<s32>(scoring, 0x210); }
+s32 __fastcall AdvisorScoring_Field214(const u8 *scoring) { return at<s32>(scoring, 0x214); }
+s32 __fastcall AdvisorScoring_Field218(const u8 *scoring) { return at<s32>(scoring, 0x218); }
+s32 __fastcall AdvisorScoring_Field21c(const u8 *scoring) { return at<s32>(scoring, 0x21c); }
+s32 __fastcall AdvisorScoring_Field248(const u8 *scoring) { return at<s32>(scoring, 0x248); }
+s32 __fastcall AdvisorScoring_Field24c(const u8 *scoring) { return at<s32>(scoring, 0x24c); }
+s32 __fastcall AdvisorScoring_Field250(const u8 *scoring) { return at<s32>(scoring, 0x250); }
+s32 __fastcall AdvisorScoring_Field254(const u8 *scoring) { return at<s32>(scoring, 0x254); }
+s32 __fastcall AdvisorScoring_Field2c4(const u8 *scoring) { return at<s32>(scoring, 0x2c4); }
+s32 __fastcall AdvisorScoring_Field300(const u8 *scoring) { return at<s32>(scoring, 0x300); }
+s32 __fastcall AdvisorScoring_Field304(const u8 *scoring) { return at<s32>(scoring, 0x304); }
+s32 __fastcall AdvisorScoring_Field308(const u8 *scoring) { return at<s32>(scoring, 0x308); }
+s32 __fastcall AdvisorScoring_Field30c(const u8 *scoring) { return at<s32>(scoring, 0x30c); }
+s32 __fastcall AdvisorScoring_Field310(const u8 *scoring) { return at<s32>(scoring, 0x310); }
+s32 __fastcall AdvisorScoring_Field31c(const u8 *scoring) { return at<s32>(scoring, 0x31c); }
+s32 __fastcall AdvisorScoring_Field320(const u8 *scoring) { return at<s32>(scoring, 0x320); }
+s32 __fastcall AdvisorScoring_Field324(const u8 *scoring) { return at<s32>(scoring, 0x324); }
+s32 __fastcall AdvisorScoring_Field328(const u8 *scoring) { return at<s32>(scoring, 0x328); }
+s32 __fastcall AdvisorScoring_Field350(const u8 *scoring) { return at<s32>(scoring, 0x350); }
+s32 __fastcall AdvisorScoring_Field3d4(const u8 *scoring) { return at<s32>(scoring, 0x3d4); }
+s32 __fastcall AdvisorScoring_Field3d8(const u8 *scoring) { return at<s32>(scoring, 0x3d8); }
+s32 __fastcall AdvisorScoring_Field3dc(const u8 *scoring) { return at<s32>(scoring, 0x3dc); }
+s32 __fastcall AdvisorScoring_Field3e0(const u8 *scoring) { return at<s32>(scoring, 0x3e0); }
+s32 __fastcall AdvisorScoring_Field3e8(const u8 *scoring) { return at<s32>(scoring, 0x3e8); }
+s32 __fastcall AdvisorScoring_Field3ec(const u8 *scoring) { return at<s32>(scoring, 0x3ec); }
+s32 __fastcall AdvisorScoring_Field3f0(const u8 *scoring) { return at<s32>(scoring, 0x3f0); }
+s32 __fastcall AdvisorScoring_Field3f4(const u8 *scoring) { return at<s32>(scoring, 0x3f4); }
+s32 __fastcall AdvisorScoring_Field3f8(const u8 *scoring) { return at<s32>(scoring, 0x3f8); }
+s32 __fastcall AdvisorScoring_Field3fc(const u8 *scoring) { return at<s32>(scoring, 0x3fc); }
+s32 __fastcall AdvisorScoring_Field400(const u8 *scoring) { return at<s32>(scoring, 0x400); }
+s32 __fastcall AdvisorScoring_Field404(const u8 *scoring) { return at<s32>(scoring, 0x404); }
+s32 __fastcall AdvisorScoring_Field408(const u8 *scoring) { return at<s32>(scoring, 0x408); }
+s32 __fastcall AdvisorScoring_Field40c(const u8 *scoring) { return at<s32>(scoring, 0x40c); }
+s32 __fastcall AdvisorScoring_Field424(const u8 *scoring) { return at<s32>(scoring, 0x424); }
+s32 __fastcall AdvisorScoring_Field428(const u8 *scoring) { return at<s32>(scoring, 0x428); }
+s32 __fastcall AdvisorScoring_Field578(const u8 *scoring) { return at<s32>(scoring, 0x578); }
+s32 __fastcall AdvisorScoring_Field5b4(const u8 *scoring) { return at<s32>(scoring, 0x5b4); }
+s32 __fastcall AdvisorScoring_Field5c0(const u8 *scoring) { return at<s32>(scoring, 0x5c0); }
+s32 __fastcall AdvisorScoring_Field5f8(const u8 *scoring) { return at<s32>(scoring, 0x5f8); }
+
+s32 __fastcall AdvisorScoring_Const10000(const u8 *) { return 10000; }
+s32 __fastcall AdvisorScoring_Const9999(const u8 *) { return 9999; }
+
 }  // extern "C"

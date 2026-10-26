@@ -6,6 +6,7 @@
 #include "../model/parts.h"
 #include "../model/partstate.h"
 #include "../motion/animator.h"
+#include "../core/soundplay.h"
 #include "../math/x87.h"
 #include "../render/particles.h"
 #include "trackpools.h"
@@ -748,5 +749,60 @@ void __cdecl TrakRide_Load(u8 *ride, u32 effect) {
         }
         ++at<s32>(at<u8 *>(ride, 0x9c), 0x60);
     }
+}
+
+void __cdecl TrakCar_PlaySounds(u8 *car) {
+    const u32 next = at<u32>(car, 0x14);
+    if (next != 0) {
+        if (next > at<u32>(car, 0x18))
+            at<u32>(car, 0x18) = next;
+        at<u32>(car, 0x14) = 0;
+    }
+    const u32 state = at<u32>(car, 0x18);
+    if (state - 1 > 4)
+        return;
+    // fild +0x34 / +0x38; fmul 0.0033036 (0x700f20); __ftol
+    const auto place = [&](u32 offset) { return Ftol(X87_MulIntDouble(at<s32>(car, offset), global<float>(0x00700f20))); };
+    if (state == 2) {
+        const u32 seed = global<u32>(0x00877b90) * 0x343fd + 0x269ec3;
+        global<u32>(0x00877b90) = seed;
+        if (seed & 0x70000) {
+            at<u32>(car, 0x18) = 0;
+            return;
+        }
+    }
+    const s32 x = place(0x34), z = place(0x38);
+    if (state == 1 || state == 3 || state == 5) {
+        Sound_PlayAt(0, global<u32>(0x00803a28), state == 1 ? 0x18 : 0xc, x, 0, z);
+        at<u32>(car, 0x18) = 0;
+        return;
+    }
+    const u32 ride = NameOf(at<const u8 *>(car, 0x9c));
+    u16 found = 0;
+    s32 id = 0;
+    if (state == 2) {
+        u16 handle;
+        found = *TrakRide_FindThing(&handle, ride);
+        if (found)
+            id = at<s32>(global<u8 *>(0x007cfb90 + 20u * found), 0x24);
+    } else {
+        void *const world = global<void *>(0x007cf83c);
+        u16 handle;
+        World_FirstThing(world, nullptr, &handle);
+        while (handle != 0) {
+            const u8 *const thing = Thing_ByHandle(handle);
+            if (thing[2] == 3 && at<u32>(thing, 0x28) == ride) {
+                found = *Thing_GetHandle(thing, nullptr, &handle);
+                break;
+            }
+            handle = *World_NextThing(world, nullptr, &handle, thing);
+        }
+        if (found) {
+            (void)*reinterpret_cast<const volatile u32 *>(global<uintptr_t>(0x007cf6ec));   // (the world pointer, read for ECX)
+            id = at<s32>(Thing_ByHandle(found), 0x24);
+        }
+    }
+    Sound_PlayRideElement(id, 0, global<u32>(0x00803a3c), state == 2 ? 3 : 4, x, 0, z);
+    at<u32>(car, 0x18) = 0;
 }
 }

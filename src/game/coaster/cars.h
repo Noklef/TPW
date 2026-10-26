@@ -114,4 +114,9 @@ void __cdecl CoasterTrain_AtStation(u8 *coaster, u8 *train);
 // nothing reads (core/floatconsts): 0x7923a0 = 1 and 0x7923a4 = 1 / 2^23.
 void __cdecl CoasterCars_InitUnusedOne();
 void __cdecl CoasterCars_InitUnusedEpsilon();
+
+// 0x439840 (cdecl (coaster, car); called from 0x43ce0f; name unconfirmed): the car's place on the track, its +0x20 modulo the coaster's
+// +0xa8 (_CIfmod, as doubles) split by modf into a node index (__ftol of the whole part) and the fraction (stored as a float), the point
+// there (CoasterNode_Lerp); unless sound is off (0x785a2c), Sound_PlayAt(0, [0x803a28], 0xc, the point's x, y, z each __ftol'd).
+void __cdecl CoasterCar_PlayClank(const u8 *coaster, const u8 *car);
 }

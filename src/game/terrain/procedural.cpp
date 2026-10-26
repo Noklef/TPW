@@ -1,6 +1,7 @@
 #include "procedural.h"
 
 #include <cstdint>
+#include <cstring>
 #include <initializer_list>
 
 #include "../core/gameheap.h"
@@ -8,6 +9,7 @@
 #include "../core/misc.h"
 #include "../math/x87.h"
 #include "../render/engineerrors.h"
+#include "../render/meshlist.h"
 #include "../render/renderer.h"
 #include "../render/worldview.h"
 #include "land.h"
@@ -245,5 +247,47 @@ void __fastcall Extents_Include(u8 *extents, void *, s32 low, s32 first, s32 hig
         if (highest < high)
             highest = (s8)high;
     }
+}
+
+void __fastcall TerrainTex_LightGrid(u8 *tex) {
+    if (at<u32>(tex, 0x12968) == global(0x008bd50c) && !(global(0x008bd508) & 0x40000000))
+        return;
+    struct {
+        float normals[0x600 / 4];
+        float points[0x800 / 4];
+    } frame;
+    const u8 *header = at<const u8 *>(tex, 0);
+    float z = at<float>(header, 0xc);
+    const float *h = at<const float *>(header, 0x28);
+    u32 *colours = &at<u32>(tex, 0x2968);
+    for (s32 row = 0; row < at<s32>(tex, 0xc); ++row) {
+        const s32 cols = at<s32>(tex, 8);
+        X87Reg x = X87Reg(at<float>(header, 8));
+        for (s32 i = 0; i < cols; ++i) {
+            float *const point = &frame.points[4 * i];
+            float *const normal = &frame.normals[3 * i];
+            point[0] = (float)x;
+            std::memcpy(&point[1], h, 4);
+            std::memcpy(&point[2], &z, 4);
+            const X87Reg dx = i > 0 ? (i < cols - 1 ? X87Reg(h[-1]) - h[1] : X87Reg(h[-1]) - h[0]) : X87Reg(h[0]) - h[1];
+            normal[0] = (float)dx;
+            normal[0] = (float)(X87Reg(normal[0]) * at<float>(tex, 0x18));
+            const u32 one = 0x3f800000;
+            std::memcpy(&normal[1], &one, 4);
+            X87Reg dz = X87Reg(h[0]) - h[cols];
+            if (row > 0)
+                dz = row < at<s32>(tex, 0xc) - 1 ? X87Reg(h[-cols]) - h[cols] : X87Reg(h[-128]) - h[0];
+            normal[2] = (float)dz;
+            normal[2] = (float)(X87Reg(normal[2]) * at<float>(tex, 0x18));
+            ++h;
+            header = at<const u8 *>(tex, 0);
+            x = x + at<float>(header, 8);
+        }
+        Meshes_LightPoints(reinterpret_cast<u8 *>((uintptr_t)global(0x0087a248)), nullptr, colours, frame.normals, frame.points, (u32)cols);
+        header = at<const u8 *>(tex, 0);
+        z = (float)(X87Reg(at<float>(header, 0x14)) + z);
+        colours += 0x80;
+    }
+    at<u32>(tex, 0x12968) = global(0x008bd50c);
 }
 }

@@ -4,10 +4,12 @@
 #include <cstdint>
 
 #include "../core/actionrec.h"
+#include "../core/soundplay.h"
 #include "../math/matrix.h"
 #include "../math/x87.h"
 #include "../model/partstate.h"
 #include "contacts.h"
+#include "nodes.h"
 #include "queue.h"
 #include "train.h"
 
@@ -285,4 +287,17 @@ void __cdecl CoasterTrain_AtStation(u8 *coaster, u8 *train) {
 void __cdecl CoasterCars_InitUnusedOne() { *reinterpret_cast<float *>(0x007923a0) = 1.0f; }
 
 void __cdecl CoasterCars_InitUnusedEpsilon() { *reinterpret_cast<float *>(0x007923a4) = 1.0f / 8388608.0f; }
+
+void __cdecl CoasterCar_PlayClank(const u8 *coaster, const u8 *car) {
+    // fld car+0x20; fld coaster+0xa8; _CIfmod; modf(that, &whole); fstp float (the argument's slot); __ftol(whole)
+    double whole;
+    const double place = std::fmod((double)at<float>(car, 0x20), (double)at<float>(coaster, 0xa8));
+    const float t = (float)std::modf(place, &whole);
+    float out[3];
+    CoasterNode_Lerp(coaster, (u32)(s32)(long long)whole, t, out);
+    if (*reinterpret_cast<const u32 *>(0x00785a2c) != 0)
+        return;
+    const auto ftol = [](float f) { return (s32)(long long)f; };
+    Sound_PlayAt(0, *reinterpret_cast<const u32 *>(0x00803a28), 0xc, ftol(out[0]), ftol(out[1]), ftol(out[2]));
+}
 }

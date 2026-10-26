@@ -993,6 +993,7 @@ address,name,kind,confidence,notes
 0x0054bbe0,TrakRide_FindThing,function,low,"reimplemented (src/game/world/trackrides); cdecl (&handle, ride handle): the first thing in use that is an object (+2 is 3) whose +0x28 is the ride's handle, its handle, else 0; returns &handle (name unconfirmed)"
 0x0054ac70,TrakRide_Unload,function,low,"reimplemented (src/game/world/trackrides); cdecl (ride, effect): the node list +0x30 handed to the +0x9c record list +0xc8, parts released, effect 0x13 spawned at the root; returns the record count (name unconfirmed)"
 0x00549c60,TrakRide_Load,function,low,"reimplemented (src/game/world/trackrides); cdecl (ride, effect): each node of the list +0x30 given its seat number and part (key, mask 0x80), the part activated, effect 0x13 spawned at the root; the record count up (name unconfirmed)"
+0x00547170,TrakCar_PlaySounds,function,low,"reimplemented (src/game/world/trackrides); cdecl (car): a track ride car's sounds by its state, positional or the ride's linked element, then the state cleared"
 0x0055a570,FlyingRide_FirstSlotRide,function,high,"reimplemented (src/game/world/flyingrides); cdecl u32 (index): flying ride index's (1-99, 0x8791f8) first slot's ride (+0x11c), else 0"
 0x0055d610,FlyingRide_StepInSlot,function,high,"reimplemented (src/game/world/flyingrides); cdecl u32 (index): first slot in state 1 (slot +0x80) with a negative step (+0x8c): its ride part (key (base + -step) % count + 1, flag 0x80) released, step +1, +0x48 -1, the step's u32 (+0x90 + -step * 4); else 0"
 0x0055d720,FlyingRide_StepOutSlot,function,high,reimplemented (src/game/world/flyingrides); cdecl u32 (index): as 0x55d610 for the first slot with a positive step: step -1
@@ -2896,6 +2897,7 @@ address,name,kind,confidence,notes
 0x00564ba0,Obj_CtorVirtual564ba0,function,high,"reimplemented (src/game/gfx/wctimage); a class with a virtual base (vtables 0x7011d8, 0x701178, 0x7011c8)"
 0x0056b570,PtrArray_SetVectorOf,function,high,reimplemented (src/game/core/ptrlist); a pointer array searched for a key; its three dwords at +0x14 set
 0x0056e780,Extents_Include,function,high,reimplemented (src/game/terrain/procedural); a column range's lowest and highest bytes extended
+0x0056ef10,TerrainTex_LightGrid,function,low,"reimplemented (src/game/terrain/procedural); thiscall (texture): a terrain texture's grid of points lit once a frame, a row at a time, each point's normal from its neighbours' heights"
 0x0054b290,Pool_FreeAll,function,high,"reimplemented (src/game/world/collobj); every chunk of an owner's list freed, with its nodes"
 0x00549070,CollArea_FindNearest,function,low,"reimplemented (src/game/world/collobj); cdecl (area, x, y, self): of the area nodes in use, the nearest (x, y) that is no blocker (0x40), is not area unless self, meets area and whose centre moved 0x87c towards its closed side is in no blocker; 0 for none"
 0x00547c60,Collider_SteerTo,function,low,"reimplemented (src/game/world/collobj); cdecl (car, x, y): a ride car steered to a point through the area nodes; the distance left or -1"
@@ -2917,6 +2919,7 @@ address,name,kind,confidence,notes
 0x00557110,Rsse_TakeFinished,function,high,"reimplemented (src/game/rsse/rsse_vm); the value of the first finished entry, which is cleared"
 0x0054dcc0,Flag54dcc0_Test,function,high,reimplemented (src/game/render/mode); a flag test on two settings
 0x00556a80,Rsse_GetVector,function,high,reimplemented (src/game/rsse/rsse_vm); three dwords of a frame's record written through pointers
+0x005580a0,Rsse_MoveWalker,function,low,"reimplemented (src/game/rsse/rsse_vm); cdecl (vm, slot, from, to, mode, t): a walker t thousandths of its way between two ride parts, on the floor or between their heights; its person placed, wobbled about it or its scripts released"
 0x00569f30,Setting569f30_Set,function,high,"reimplemented (src/game/render/rasteriser); a setting stored, or a default restored"
 0x005c7d20,Records24_Field14,function,high,reimplemented (src/game/files/userslots); the dword at +0x14 of a 24-byte record
 0x005c7d00,Records24_IfUsed,function,high,reimplemented (src/game/files/userslots); a 24-byte record's address when its dword at +4 is set
@@ -3879,6 +3882,7 @@ address,name,kind,confidence,notes
 0x004f7870,WString_CompareSub,function,high,"reimplemented (src/game/core/string); thiscall (pos, n, other, count; pops 16): the wide string's compare(pos, n, other, count)"
 0x005accb0,WNamedList_FindAfter,function,low,"reimplemented (src/game/core/string); thiscall on a list (key; pops 4): walks to the first item whose wide text equals the key's (WNames_Equal(key, item)) and returns the item after it (sic), 0 when the match is last or none"
 0x00665f30,WString_CompareText,function,low,"reimplemented (src/game/core/string); thiscall (text): compare(text): WString_CompareSub(0, the length, text, its length)"
+0x005e3a80,WString_ReadToken,function,low,"reimplemented (src/game/core/string); cdecl (out, cursor, delimiter): String_ReadToken's wide twin: the narrow chars up to the delimiter sign-extended into a new wide string, the cursor left past the delimiter"
 0x005bdc10,Class702938_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three wide strings
 0x005be320,Class702940_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three strings
 0x005be750,Class702948_Dtor,function,high,reimplemented (src/game/core/vdtor); destructor taking the object off its parent's list and destroying three wide strings
@@ -4072,6 +4076,12 @@ address,name,kind,confidence,notes
 0x005d97a0,ListScalarDelete702a8c_5d97a0,function,low,"reimplemented (src/game/core/vdel); thiscall (flags, pops 4): vtable 0x702a8c, the node chain at +4 freed, +4/+8/+0xc cleared, the list freed on bit 0; returns it"
 0x005e4370,ListScalarDelete702d98_5e4370,function,low,"reimplemented (src/game/core/vdel); slot 0 of vtable 0x702d98 (thiscall, flags): linked list scalar deleting destructor: vtable 0x702d98, nodes freed, +4/+8/+0xc cleared, the list freed for flags bit 0"
 0x005d5ef0,ListScalarDelete7029f8_5d5ef0,function,low,"reimplemented (src/game/core/vdel); slot 0 of vtable 0x7029f8 (thiscall, flags): linked list scalar deleting destructor: vtable 0x7029f8, nodes freed, +4/+8/+0xc cleared, the list freed for flags bit 0"
+0x005ad0d0,ListScalarDelete7027fc_5ad0d0,function,low,"reimplemented (src/game/core/vdel); thiscall (flags): a linked list scalar deleting destructor, the vtable pointer 0x7027fc"
+0x005ba860,ListScalarDelete7028b0_5ba860,function,low,"reimplemented (src/game/core/vdel); thiscall (flags): a linked list scalar deleting destructor, the vtable pointer 0x7028b0"
+0x005bec40,ListScalarDelete702954_5bec40,function,low,"reimplemented (src/game/core/vdel); thiscall (flags): a linked list scalar deleting destructor, the vtable pointer 0x702954"
+0x005da520,ListScalarDelete702b28_5da520,function,low,"reimplemented (src/game/core/vdel); thiscall (flags): a linked list scalar deleting destructor, the vtable pointer 0x702b28"
+0x005ddb40,ListScalarDelete702c10_5ddb40,function,low,"reimplemented (src/game/core/vdel); thiscall (flags): a linked list scalar deleting destructor, the vtable pointer 0x702c10"
+0x005e2b70,ListScalarDelete702d00_5e2b70,function,low,"reimplemented (src/game/core/vdel); thiscall (flags): a linked list scalar deleting destructor, the vtable pointer 0x702d00"
 0x004dda20,Object_QueueHasRoom,function,high,reimplemented (src/game/world/objectmsg); whether the person queue is shorter than four times the limit
 0x005eb090,ArrayHolder_Clear,function,high,reimplemented (src/game/gfx/array3d); frees the four arrays of the holder
 0x005ea3f0,Image_CropInto,function,high,reimplemented (src/game/gfx/imageops); copies the part of an image that is left once moved into a fresh destination
@@ -4553,6 +4563,69 @@ address,name,kind,confidence,notes
 0x005a01f0,AdvisorScoring_Happiest3,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: Things_HappiestOf(3) on the game table entry; a handle and a value above +0x560: the value to +8, the handle to +4, (value - bound) * [+0x564]; else 0"
 0x005a0240,AdvisorScoring_Happiest4,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: Things_HappiestOf(4) on the game table entry; a handle and a value above +0x568: the value to +8, the handle to +4, (value - bound) * [+0x56c]; else 0"
 0x005a0290,AdvisorScoring_HappiestDef4ac2,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: Things_HappiestDef4ac2 on the game table entry; a handle and a value above +0x570: the value to +8, the handle to +4, (value - bound) * [+0x574]; else 0"
+0x0059c8c0,AdvisorScoring_Fielda0,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0xa0
+0x0059d800,AdvisorScoring_Field1bc,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x1bc
+0x0059d810,AdvisorScoring_Field1c0,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x1c0
+0x0059d820,AdvisorScoring_Field1c4,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x1c4
+0x0059d830,AdvisorScoring_Field1c8,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x1c8
+0x0059d840,AdvisorScoring_Field1cc,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x1cc
+0x0059d850,AdvisorScoring_Field1d0,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x1d0
+0x0059d860,AdvisorScoring_Field1d4,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x1d4
+0x0059d870,AdvisorScoring_Field1d8,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x1d8
+0x0059d880,AdvisorScoring_Field1dc,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x1dc
+0x0059d890,AdvisorScoring_Field1e0,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x1e0
+0x0059d8a0,AdvisorScoring_Field1e4,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x1e4
+0x0059d8b0,AdvisorScoring_Field1e8,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x1e8
+0x0059d8c0,AdvisorScoring_Field1ec,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x1ec
+0x0059d8d0,AdvisorScoring_Field1f0,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x1f0
+0x0059d8e0,AdvisorScoring_Field1f4,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x1f4
+0x0059d8f0,AdvisorScoring_Field1f8,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x1f8
+0x0059d900,AdvisorScoring_Field1fc,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x1fc
+0x0059d910,AdvisorScoring_Field200,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x200
+0x0059d920,AdvisorScoring_Field204,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x204
+0x0059d930,AdvisorScoring_Field208,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x208
+0x0059d940,AdvisorScoring_Field20c,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x20c
+0x0059d950,AdvisorScoring_Field210,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x210
+0x0059d960,AdvisorScoring_Field214,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x214
+0x0059d970,AdvisorScoring_Field218,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x218
+0x0059d980,AdvisorScoring_Field21c,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x21c
+0x0059dc60,AdvisorScoring_Field248,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x248
+0x0059dc70,AdvisorScoring_Field24c,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x24c
+0x0059dc80,AdvisorScoring_Field250,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x250
+0x0059dc90,AdvisorScoring_Field254,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x254
+0x0059e410,AdvisorScoring_Field2c4,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x2c4
+0x0059e7f0,AdvisorScoring_Field300,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x300
+0x0059e800,AdvisorScoring_Field304,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x304
+0x0059e810,AdvisorScoring_Field308,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x308
+0x0059e820,AdvisorScoring_Field30c,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x30c
+0x0059e830,AdvisorScoring_Field310,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x310
+0x0059e890,AdvisorScoring_Field31c,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x31c
+0x0059e8a0,AdvisorScoring_Field320,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x320
+0x0059e8b0,AdvisorScoring_Field324,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x324
+0x0059e8c0,AdvisorScoring_Field328,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x328
+0x0059eb70,AdvisorScoring_Field350,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x350
+0x0059f360,AdvisorScoring_Field3d4,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x3d4
+0x0059f370,AdvisorScoring_Field3d8,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x3d8
+0x0059f380,AdvisorScoring_Field3dc,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x3dc
+0x0059f390,AdvisorScoring_Field3e0,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x3e0
+0x0059f3a0,AdvisorScoring_Field3e8,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x3e8
+0x0059f3b0,AdvisorScoring_Field3ec,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x3ec
+0x0059f3c0,AdvisorScoring_Field3f0,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x3f0
+0x0059f3d0,AdvisorScoring_Field3f4,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x3f4
+0x0059f3e0,AdvisorScoring_Field3f8,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x3f8
+0x0059f3f0,AdvisorScoring_Field3fc,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x3fc
+0x0059f400,AdvisorScoring_Field400,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x400
+0x0059f410,AdvisorScoring_Field404,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x404
+0x0059f420,AdvisorScoring_Field408,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x408
+0x0059f430,AdvisorScoring_Field40c,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x40c
+0x0059f570,AdvisorScoring_Field424,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x424
+0x0059f580,AdvisorScoring_Field428,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x428
+0x005a02e0,AdvisorScoring_Field578,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x578
+0x005a0520,AdvisorScoring_Field5b4,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x5b4
+0x005a0590,AdvisorScoring_Field5c0,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x5c0
+0x005a07c0,AdvisorScoring_Field5f8,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the scoring object's dword +0x5f8
+0x0059f9a0,AdvisorScoring_Const10000,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the constant 10000
+0x0059f9b0,AdvisorScoring_Const9999,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the constant 9999
 0x00418da0,ParkInfo_Serialize,function,low,"reimplemented (src/game/core/parkinfo); thiscall (stream, save, version, unused), pops 0x10: the save's park information (strings, three dwords, the author's name and e-mail, the description, the publishing date) written or read field by field (name unconfirmed)"
 0x005d55a0,AuthStamp_Text,function,low,"reimplemented (src/game/core/authstamp); cdecl: ""No Authorization Stamp"" (0x774bc0) while the phrase at 0x763f3d is the plain one at 0x774bd8; else the phrase's bytes less the key's (0x774b78) written to 0xf827f8 until they meet, and 0xf827f8"
 0x006cc7b0,Mp2Decoder_ParseHeader,function,low,"reimplemented (src/game/core/mp2frame); parses an MPEG audio frame header into the decoder's fields, rate, bitrate and frame length; -1 without sync or bitrate"
@@ -5084,6 +5157,7 @@ address,name,kind,confidence,notes
 0x0043b2b0,Coaster_SetMixAt,function,low,"reimplemented (src/game/coaster/cars); cdecl (index, value): table 0x790bd0's coaster's Coaster_SetMix (recorded) when value differs, unless flag 0x8000 and not playing back (name unconfirmed)"
 0x00447e30,Coaster_SetMixAtPinned,function,low,"reimplemented (src/game/coaster/cars); the recorded mix replayed, the coaster then pinned (flag 0x8000)"
 0x0043b8b0,CoasterTrain_AtStation,function,low,"reimplemented (src/game/coaster/cars); the train at the station: riders off, boarding over the cars in the window, the window kept"
+0x00439840,CoasterCar_PlayClank,function,low,"reimplemented (src/game/coaster/cars); cdecl (coaster, car): a coaster car's clank, played (sound 0xc) at its place on the track (its distance modulo the track's length) unless 0x785a2c is set"
 0x0043b050,CoasterLink_Find,function,high,"reimplemented (src/game/coaster/registry); cdecl (key): +0x14 of the first entry of the list at 0x790fe0 (next +0x18) whose +0x24 is key, else 0"
 0x00438720,Coaster_Count,function,high,reimplemented (src/game/coaster/registry); cdecl (): the coaster count (0x792214)
 0x00438730,CoasterLink_Nodes,function,high,"reimplemented (src/game/coaster/registry); cdecl (n, value or null): link n of the list at 0x790fe0: its +0x28 to *value, returns its +0x54 -> +0x90 -> +4 node list"
@@ -5526,6 +5600,7 @@ address,name,kind,confidence,notes
 0x0057a100,ObjModel_Unload,function,low,"reimplemented (src/game/model/objmodel); thiscall: an engine object's model unloaded (meshes' tracked blocks, saved pairs, block, texture sets, tracked block, procedural textures); +8 and flag 0x10000000 cleared; returns 1"
 0x00579e00,ObjModel_Load,function,low,"reimplemented (src/game/model/objmodel); thiscall (model), pops 4: an engine object's model loaded (procedural textures set up, BlueprintMesh parts flagged, texture sets made and set up, sharp textures flagged, waiting loads run, the tracked mesh block laid out, a loading step); unloaded and 0 on failure"
 0x0057a260,ObjModel_SetMatrices,function,low,"reimplemented (src/game/model/objmodel); thiscall (which, matrix): the matrix (with a flip) through the vertex transformer slot 6 into the static 0xfb3400, copied to the object +0x10 (bit 1) / +0x50 (bit 2)"
+0x0057aa10,ObjModel_LightMesh,function,low,"reimplemented (src/game/model/objmodel); thiscall (mesh, matrix, lights, flags): a mesh's colours lit once a frame: the light list readied, the camera's direction and the view set, then lit (all lights for the 0x800000 kind when 0x8bd524 is 4)"
 0x00467310,RideBase_TidyUVs,function,low,"reimplemented (src/game/model/baseuvs); cdecl (model, part, tolerance, map, positions, warned): a ride base's texture coordinates snapped to whole numbers, moved down by their triangles' floors, groups on the base marked"
 0x004679d0,RideBase_TidyAllUVs,function,low,"reimplemented (src/game/model/baseuvs); RideBase_TidyUVs on the holder's model for the given part, or for each part not flagged 0x200; one warned flag shared"
 0x0045aee0,Online_ApplyBalance,function,high,reimplemented (src/game/online/servers); copies Online.sam (gBalanceOnline) into the servers object 0x7a14f0

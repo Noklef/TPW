@@ -12,7 +12,9 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
 
-B = Bench([(0x574110, 0x5741a7), (0x5744d0, 0x574526), (0x5741b0, 0x57439b), (0x574530, 0x57465b), (0x574660, 0x5747d0), (0x5743a0, 0x5744e0), (0x578820, 0x578bd0), (0x578d20, 0x579020)])
+RANGES = [(0x574110, 0x5741a7), (0x5744d0, 0x574526), (0x5741b0, 0x57439b), (0x574530, 0x57465b), (0x574660, 0x5747d0), (0x5743a0, 0x5744e0),
+          (0x578820, 0x578bd0), (0x578d20, 0x579020)]
+B = Bench(RANGES)
 OPS = [k for k in os.environ.get('OPS', 'Ready,Direction,View,Light,Points,Mesh').split(',') if k]
 MESHES, LIST = RAM + 0x1000, RAM + 0x2000
 LIGHTS, VEC = RAM + 0x3000, RAM + 0x3800

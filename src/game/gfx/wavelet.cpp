@@ -35,11 +35,12 @@ u32 FtolLow(float f) { return (u32)(long long)f; }
 // The dword count of a {data, size, ...} array zeroed as the original's REP STOSD / STOSB does (size * 4 bytes).
 void ZeroArray(const u8 *array) { std::memset(at<u8 *>(array, 0), 0, at<u32>(array, 4) << 2); }
 
-// The D4 filter, read from 0xc27208..0xc27214 for each product.
-float H0() { return global<float>(0x00c27208); }
-float H1() { return global<float>(0x00c2720c); }
-float H2() { return global<float>(0x00c27210); }
-float H3() { return global<float>(0x00c27214); }
+// The D4 filter, read from 0xc27208..0xc27214 for each product (by reference: the memory operand's bits as they are, a signalling NaN
+// not quieted on its way to the hardware NaN rule).
+const float &H0() { return global<float>(0x00c27208); }
+const float &H1() { return global<float>(0x00c2720c); }
+const float &H2() { return global<float>(0x00c27210); }
+const float &H3() { return global<float>(0x00c27214); }
 
 // The inverse D4's software-pipelined pair loop (0x592c50's for n >= 6, 0x5933a0's along a row): the low values at p and p + next (bytes),
 // the high ones at p + high and p + high + next; the even value goes to out, the odd one to out + outNext; then p moves by step and out by
