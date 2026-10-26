@@ -5462,6 +5462,8 @@ address,name,kind,confidence,notes
 0x006588ef,Gui_MouseMove,function,low,"reimplemented (src/game/ui/window); cdecl (x, y words): the mouse moved: the point kept, the capture or hovered window posted 0x10003, or the hover changed (0x10002 / 0x10001); 1 in AX, 0 with the GUI down or no root"
 0x00658bcb,Gui_MouseWheel,function,low,"reimplemented (src/game/ui/window); cdecl (delta, x, y): with the GUI up the capture (or the hovered window) posted 0x1000d (delta, x << 16 | y); 1 / 0 in AX"
 0x00658840,Gui_PollMouseMove,function,low,"reimplemented (src/game/ui/window); cdecl: when the mouse words 0xfaa540 / 0xfaa544 differ from the last seen 0xfaa5cc / 0xfaa5d0, those set and Gui_MouseMove called"
+0x0065e549,Window_CaptureMouse,function,low,"reimplemented (src/game/ui/window); thiscall: the mouse capture [0xfaa5e8] taken for the window when nobody has it; 1 in AX when taken, else 0 (only AX set)"
+0x0065e56e,Window_ReleaseMouse,function,low,"reimplemented (src/game/ui/window); thiscall: when the window has the capture [0xfaa5e8] it is cleared and the hover updated (Window_UpdateHover), 1 in AX; else 0 (only AX set)"
 0x00498090,Dialog7ca1c8_SetChecks,function,low,"reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): the nine check buttons of the 0x7ca1c8 dialog's child 0x18 set (vtable slot 5, bool) from flags bits 0-8 (0x20's also needs [0x7ca1d0]+0x50)"
 0x00498a50,Dialog7ca1c8_SetChecksIfUp,function,low,reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): Dialog7ca1c8_SetChecks when [0x7ca1c8] and [0x7ca1cc] are not 0
 0x00481a00,Dialog7ca1c8_SetChecksIfUpThis,function,low,"reimplemented (src/game/ui/dialog7ca1c8); thiscall (flags), pops 4, this unused: Dialog7ca1c8_SetChecksIfUp(flags)"

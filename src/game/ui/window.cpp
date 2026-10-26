@@ -541,6 +541,21 @@ u32 __cdecl Window_UpdateHover() {
     return 1;
 }
 
+u32 __fastcall Window_CaptureMouse(u8 *window) {
+    u8 *&capture = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5e8);
+    if (capture) return 0;
+    capture = window;
+    return 1;
+}
+
+u32 __fastcall Window_ReleaseMouse(u8 *window) {
+    u8 *&capture = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5e8);
+    if (capture != window) return 0;
+    capture = nullptr;
+    Window_UpdateHover();
+    return 1;
+}
+
 void __cdecl Window_SaveInsetRect(u8 *window, s32 dx, s32 dy) {
     u8 rect[12];
     GuiRect_Ctor(rect);

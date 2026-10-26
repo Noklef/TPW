@@ -212,6 +212,12 @@ u8 *__fastcall Window_HitTest(u8 *window, void *, u32 x, u32 y);
 // fills the top half, 0) (Window_PostMessage). 1 in AX. Only AX is set.
 u32 __cdecl Window_UpdateHover();
 
+// 0x65e549 / 0x65e56e (thiscall; names unconfirmed; called by the GUI panels' handlers 0x488xxx, 0x4a2xxx, 0x4a7xxx, 0x4bd5xx and the
+// windows 0x66bd1e / 0x66bd70, 0x66cf5c / 0x66cf72): the mouse capture [0xfaa5e8]: Capture takes it for the window when nobody has it,
+// Release gives it up when the window has it and updates the hover (Window_UpdateHover); 1 in AX when done, else 0. Only AX is set.
+u32 __fastcall Window_CaptureMouse(u8 *window);
+u32 __fastcall Window_ReleaseMouse(u8 *window);
+
 // 0x65e59b (thiscall (a), pops 4; name unconfirmed): the window takes the focus [0xfaa5ec]: nothing and 0 in AX when it has it already
 // (the rest of EAX the focus's); else the old focus (when set) is posted 0x20 (a, 0), the window becomes the focus and is posted 0x1f
 // (a, 0) (Window_PostMessage), and 1 in AX (the rest of EAX the post's).
