@@ -2526,6 +2526,8 @@ address,name,kind,confidence,notes
 0x0051b4f0,Sound_Query,function,low,"reimplemented (src/game/core/soundset); cdecl (a, b): when sound is on and started, the manager's vtable +4 (&a, a, b, &b); b as left, else 0"
 0x0051b7c0,Sound_Shutdown,function,low,"reimplemented (src/game/core/soundset); cdecl: when on and started, the manager's vtable +0 (&result); then not started"
 0x0051e8f0,Sound_RegisterLobbyCategories,function,low,"reimplemented (src/game/core/soundset); cdecl (name): the lobby folder's music and sfx categories appended as a pair to the array at 0x803a4c; its index, or -1"
+0x0051bc40,Sound_SetParam,function,low,"reimplemented (src/game/core/soundset); cdecl (sound, parameter, value): 0 unless sound is on (0x802bc8) and started (0x802bd4); else the manager 0x802bcc's SoundManager_Call3 (its engine's slot 3) with them, its answer returned"
+0x0051c270,Sound_SetPosition,function,low,"reimplemented (src/game/core/soundset); cdecl (sound, x, y, z): 0 unless sound is on and started; else the manager's SoundManager_Call5 (its engine's slot 5) with the sound and the position as three floats on the stack, its answer returned"
 0x005af7f0,GlobalSave_ThemeByte,function,high,reimplemented (src/game/core/globalsave); thiscall u8 (i): byte i of the global save info's (0xf7c58c) current theme record (+0x48)
 0x005af800,GlobalSave_Byte26,function,high,reimplemented (src/game/core/globalsave); thiscall u8 (i): byte +0x26 + i of the global save info
 0x005afc30,GlobalSave_Inc20,function,high,reimplemented (src/game/core/globalsave); thiscall: the global save info's counter +0x20 incremented
