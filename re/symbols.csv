@@ -6053,6 +6053,7 @@ address,name,kind,confidence,notes
 0x00481870,Window7cc8bc_ListAdd1Std,function,low,reimplemented (src/game/ui/window7cc8bc); stdcall wrapper of 0x4bec60
 0x00481890,Window7cc8bc_ListRemove1Std,function,low,reimplemented (src/game/ui/window7cc8bc); stdcall wrapper of 0x4becb0
 0x004818a0,Window7cc8bc_ListSetData1Std,function,low,reimplemented (src/game/ui/window7cc8bc); stdcall wrapper of 0x4bed00
+0x004a1440,Dialog7cb2b8_ShowRightOf,function,low,"reimplemented (src/game/ui/dialog7cb2b8); cdecl (window, limit): a window shown when its inner right edge is past the limit word (signed), else hidden; then its children the same, depth first"
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"
