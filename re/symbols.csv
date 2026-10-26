@@ -220,7 +220,7 @@ address,name,kind,confidence,notes
 0x004d2320,Challenges_Serialize,function,high,"reimplemented (src/game/world/challenges); thing model 19: thing, 0x14 challenges, then 7 fields"
 0x004d0f90,Challenge_Serialize,function,high,reimplemented (src/game/world/challenges); a challenge's 15 fields
 0x006c58f0,SoundBank_OpenSdt,function,medium,"reimplemented (src/game/core/soundbank); thiscall (opener, path, hdFirst), pops 0xc, this unused: appends HD.sdt / HW.sdt to the path and opens it through the opener's slot 1; on failure the path set back and given the other suffix (not opened)"
-0x006c5a00,SoundBank_Open,function,low,calls SoundBank_OpenSdt and returns 0 / -1
+0x006c5a00,SoundBank_Open,function,low,"reimplemented (src/game/core/soundbank); thiscall (out, opener, path, unused, hdFirst), pops 0x14: the path set back to a copy of itself, SoundBank_OpenSdt, the opener slot 1 again; *out -1 when its status is negative, else 0"
 0x006d62c0,LbMpeg_MmxTransform,function,low,reimplemented (src/game/core/mp2synth); the fixed-point MP2 DCT (MMX): 16 sums and 16 differences of mirrored halfwords times two Q14 tables
 0x004e2c10,CircBufU32_30_Serialize,function,high,"reimplemented (src/game/core/circbuf); ring buffer of 30 u32 (mTemp, mData[30], mCurrentEntry, mNumEntries, mWrappedAround); 6 per Object; the entries while i < mNumEntries (unbounded, sic)"
 0x00516380,World_Tick,function,medium,"increments the tick counter at +0x1da70c and calls Thing_Update for every live thing (skips things whose byte +3 is set)"
