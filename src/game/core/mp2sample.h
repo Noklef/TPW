@@ -20,4 +20,23 @@ extern "C" {
 u32 *__fastcall Mp2BufferSample_Open(u8 *sample, void *, u32 *out);
 u32 *__fastcall Mp2StreamSample_Open(u8 *sample, void *, u32 *out);
 
+// The slots the two MP2 samples (vtables 0x70ae30 and 0x70ae90) share or pair; the names are invented.
+// 0x6c83c0 (thiscall (buffer, bytes, done, flag), pops 0x10; slot 7): with +0x1c set *done = 0 and SoundSample_Drained. With the byte
+// +0x3c and the decoder's (+0x34) byte +0x2442 2 and +0x2420 0x30: +0x3c 0, bytes zeros, *done = bytes, 0. Else *done = the bytes, at
+// most the length (+0x30) less the position (+0x14, unsigned), the sample's slot 23 (buffer, that), the position on by *done (re-read);
+// once it is not below the length, slot 19 (flag, *done) answering 0 in its low byte gives 1. Else 0.
+u32 __fastcall Mp2Sample_Read(u8 *sample, void *, u8 *buffer, u32 bytes, u32 *done, u32 flag);
+// 0x6c8340 (thiscall (out, record), pops 8; slot 9): the sample's slot 21 (the open: a local out) negative: *out = -1. Else, with the
+// decoder's byte +0x2442 1 and the record's +0x14 bit 6 or 11, slot 23 (0xfb23d8, 0x300); *out = 0. Returns out.
+u32 *__fastcall Mp2Sample_Query(u8 *sample, void *, u32 *out, const u8 *record);
+// 0x6c83a0 (thiscall; slot 2): the sample's slot 22 (Mp2Sample_FreeDecoder), then SoundStream_Close.
+void __fastcall Mp2Sample_Close(u8 *sample);
+// 0x6c84a0 (thiscall; slot 8 of 0x70ae30): the position (+0x14) 0, the decoder reset (Fn_6d1a50), and with its byte +0x2442 1 slot 23
+// (0xfb20d0, 0x300).
+void __fastcall Mp2BufferSample_Restart(u8 *sample);
+// 0x6c8b10 (thiscall; slot 8 of 0x70ae90): the position 0, SubStream_Rewind (+0x40), the decoder reset (Fn_6d1a50).
+void __fastcall Mp2StreamSample_Restart(u8 *sample);
+// 0x6c8ae0 (thiscall; slot 22): with a decoder (+0x34), its slot 2, then (re-read, when still there) its slot 0 (1), and +0x34 0.
+void __fastcall Mp2Sample_FreeDecoder(u8 *sample);
+
 }  // extern "C"

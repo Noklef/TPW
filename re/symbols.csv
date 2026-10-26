@@ -4505,6 +4505,12 @@ address,name,kind,confidence,notes
 0x006c91c0,Mp2StreamPool_Delete,function,low,reimplemented (src/game/core/mp2pool); the stream decoder's operator delete: its size's blocks back to the pool
 0x006c84e0,Mp2BufferSample_Open,function,low,"reimplemented (src/game/core/mp2sample); the buffered MP2 sample's open: its decoder from the pool, opened over the data, the length and rate checked"
 0x006c88c0,Mp2StreamSample_Open,function,low,"reimplemented (src/game/core/mp2sample); the streamed MP2 sample's open: its decoder from the pool, opened over the stream, the length and rate checked"
+0x006c83c0,Mp2Sample_Read,function,low,"reimplemented (src/game/core/mp2sample); slot 7 of 0x70ae30 / 0x70ae90: drained, a zeroed first frame, or the bytes left fed through slot 23 and the end through slot 19 (name invented)"
+0x006c8340,Mp2Sample_Query,function,low,"reimplemented (src/game/core/mp2sample); slot 9: the open (slot 21), then slot 23 (0xfb23d8, 0x300) for decoder +0x2442 1 and record flags 0x840; *out 0 / -1 (name invented)"
+0x006c83a0,Mp2Sample_Close,function,low,"reimplemented (src/game/core/mp2sample); slot 2: slot 22 (the decoder freed), then SoundStream_Close (name invented)"
+0x006c84a0,Mp2BufferSample_Restart,function,low,"reimplemented (src/game/core/mp2sample); slot 8 of 0x70ae30: position 0, Fn_6d1a50 on the decoder, slot 23 (0xfb20d0, 0x300) for +0x2442 1 (name invented)"
+0x006c8b10,Mp2StreamSample_Restart,function,low,"reimplemented (src/game/core/mp2sample); slot 8 of 0x70ae90: position 0, SubStream_Rewind (+0x40), Fn_6d1a50 on the decoder (name invented)"
+0x006c8ae0,Mp2Sample_FreeDecoder,function,low,"reimplemented (src/game/core/mp2sample); slot 22: the decoder's slot 2 then slot 0 (1), +0x34 0 (name invented)"
 0x006d3f80,SfMan_PackMsg,function,low,"reimplemented (src/game/core/sfman); the SoundFont synthesiser's short MIDI message on channel 2 (stdcall status, data1, data2)"
 0x006d4530,SfMan_UnloadBank,function,low,"reimplemented (src/game/core/sfman); the SoundFont API's slot 14 (unload bank) on the device with the pair {1, 0}: 1 when it answers 0"
 0x006d4570,SfMan_NotesOff,function,low,"reimplemented (src/game/core/sfman); all notes off on the SoundFont MIDI out device, midiOutShortMsg's answer"
