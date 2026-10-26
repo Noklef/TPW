@@ -2,12 +2,38 @@
 // new, under a critical section the pool allocates. The stream filter's (0x70a678: 0x18-byte blocks, the next block at +0x10; the lock at
 // [0xfb206c], the list at [0xfb2068]), the looping stream's (0x70aba8: 0x24, +0x18; [0xfb2084], [0xfb2080]), the stream 0x70abf8's
 // (0x14, +0x10; [0xfb2090], [0xfb208c]) and the stream 0x70a6c8's (0x1c, +0x14; [0xfb20a8], [0xfb20a4]). Other sizes go straight to
-// Mem_Free. As the MP2 decoders' pools (src/game/core/mp2pool). Reimplementation of 0x6c6450, 0x6c69b0, 0x6c6ce0 and 0x6c7410.
+// Mem_Free. As the MP2 decoders' pools (src/game/core/mp2pool). Reimplementation of each pool's Init, Shutdown, Purge, New
+// and Delete (0x6c6340-0x6c6495, 0x6c68a0-0x6c69f5, 0x6c6bd0-0x6c6d25, 0x6c7300-0x6c7455).
 #pragma once
 
 #include "../../../re/types.h"
 
 extern "C" {
+
+// 0x6c6340 / 0x6c68a0 / 0x6c6bd0 / 0x6c7300: the lock's 0x18 bytes from Mem_Alloc, initialised.
+void __cdecl StreamFilterPool_Init();
+void __cdecl LoopStreamPool_Init();
+void __cdecl Stream70abf8Pool_Init();
+void __cdecl Stream70a6c8Pool_Init();
+
+// 0x6c6370 / 0x6c68d0 / 0x6c6c00 / 0x6c7330 (registered with atexit): purged, the lock deleted, freed and cleared.
+void __cdecl StreamFilterPool_Shutdown();
+void __cdecl LoopStreamPool_Shutdown();
+void __cdecl Stream70abf8Pool_Shutdown();
+void __cdecl Stream70a6c8Pool_Shutdown();
+
+// 0x6c63a0 / 0x6c6900 / 0x6c6c30 / 0x6c7360: under the lock, every block on the free list freed (Mem_Free).
+void __cdecl StreamFilterPool_Purge();
+void __cdecl LoopStreamPool_Purge();
+void __cdecl Stream70abf8Pool_Purge();
+void __cdecl Stream70a6c8Pool_Purge();
+
+// 0x6c63e0 / 0x6c6940 / 0x6c6c70 / 0x6c73a0 (cdecl size; the classes' operator new): 0 counts as 1; any size but the pool's: Mem_Alloc;
+// the pool's: under the lock, the free list's first block, or a new one from Mem_Alloc when the list is empty.
+void *__cdecl StreamFilterPool_New(u32 size);
+void *__cdecl LoopStreamPool_New(u32 size);
+void *__cdecl Stream70abf8Pool_New(u32 size);
+void *__cdecl Stream70a6c8Pool_New(u32 size);
 
 // 0x6c6450 / 0x6c69b0 / 0x6c6ce0 / 0x6c7410 (cdecl block, size; the classes' operator delete): nothing for null; the pool's size: under
 // the lock, onto the free list's front; any other: Mem_Free.
