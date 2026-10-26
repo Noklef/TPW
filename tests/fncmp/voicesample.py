@@ -8,7 +8,8 @@
 # decoder / reader any or 0 (freed in the heap stand-in). The end time's flag 0 mostly, the format byte any, the rate 11025-44100 or any.
 # The destructors: the source at +0x24 an object whose slot 0 is a recorder, or none; the sub-stream's stream source (+0x50) a RefObject
 # (InterlockedDecrement answering 1, 0 or -1; its slots recorders) or none, CloseHandle a recorder; the deletes' pools (0xfb20bc-0xfb20cc)
-# with a free list or none (Enter / LeaveCriticalSection recorders), flags any.
+# with a free list or none (Enter / LeaveCriticalSection recorders), flags any. The sample stream's constructor (0x6c6e70: a record's format,
+# the source's slot 1 a recorder; the real vtable 0x70ac50's slot 15) and its deleting destructors (0x6c70c0, 0x6c70a0), flags any.
 # usage: voicesample.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -21,14 +22,16 @@ from fncmp import HEAP, LOG, RAM, Bench, Call, fill, heap, log_region, recorder,
 CALLS = {'decode': (0x6c7cf0, 'a'), 'read': (0x6c7c20, 'a'), 'query': (0x6c7bc0, 'a'), 'restart': (0x6c7ce0, 'v'),
          'close': (0x6c7be0, 'v'), 'open': (0x6c7c80, 'v'), 'sopen': (0x6c80c0, 'v'), 'srestart': (0x6c8120, 'v'),
          'schedule': (0x6c7010, 'b'), 'drained': (0x6c7070, 'a'), 'describe': (0x6bb1d0, 'v'), 'sdtor': (0x6c6ef0, 'v'),
-         'dtor': (0x6c8330, 'v'), 'sdtor2': (0x6c8000, 'v'), 'ddtor': (0x6c7ba0, 'a'), 'sddtor': (0x6c7fe0, 'a')}
+         'dtor': (0x6c8330, 'v'), 'sdtor2': (0x6c8000, 'v'), 'ddtor': (0x6c7ba0, 'a'), 'sddtor': (0x6c7fe0, 'a'),
+         'sctor': (0x6c6e70, 'a'), 'sdel': (0x6c70c0, 'a'), 'basedel': (0x6c70a0, 'a')}
 B = Bench([(0x6c7bc0, 0x6c7dfb), (0x6c80c0, 0x6c8138), (0x6c7010, 0x6c7082), (0x6bb1d0, 0x6bb1dd), (0x6c6230, 0x6c625a),
            (0x6c62c0, 0x6c62d8), (0x6d4ec0, 0x6d4ed9), (0x5f5f10, 0x5f5f7d), (0x5f5fa0, 0x5f5faa),
            (0x6d4ee0, 0x6d4f2a), (0x6d4fa0, 0x6d4fdc), (0x6d4f30, 0x6d4f99), (0x6d4fe0, 0x6d503a), (0x6d5200, 0x6d5254),
            (0x6d5040, 0x6d51ed), (0x6d5260, 0x6d5341), (0x6d5350, 0x6d5443), (0x6d61c0, 0x6d6285),
            (0x6d57e0, 0x6d61ba), (0x6d5450, 0x6d57d2), (0x6d6290, 0x6d62bd), (0x6c6ef0, 0x6c6f37), (0x6c8330, 0x6c8335),
            (0x6c8000, 0x6c806a), (0x6c7ba0, 0x6c7bc0), (0x6c7fe0, 0x6c7ffe), (0x6c7ad0, 0x6c7b15), (0x6c7f20, 0x6c7f65),
-           (0x5f71e0, 0x5f7220), (0x618d30, 0x618d90), (0x6307e0, 0x630800)])
+           (0x5f71e0, 0x5f7220), (0x618d30, 0x618d90), (0x6307e0, 0x630800),
+           (0x6c6e70, 0x6c6eed), (0x6c70a0, 0x6c70dc), (0x6c7090, 0x6c7097), (0x6c6f40, 0x6c6f87), (0x6c6f90, 0x6c6fee)])
 SAMPLE, SVT, NEXT, SUBVT, FILEVT, OUT, RECORD, MEMREADER = (RAM + 0x100 * i for i in range(8))
 BUFFER, DECODER, BITS, BREADER = RAM + 0x800, RAM + 0x1000, RAM + 0x3000, RAM + 0x4000
 MEMORY_VTABLE, BUFFERED_VTABLE = 0x70adb8, 0x70ae28
@@ -139,7 +142,18 @@ def case(r):
         struct.pack_into('<I', sample, 0x1c, end)
     elif name == 'describe':
         args = [RECORD]
-    elif name in ('sdtor', 'dtor', 'sdtor2', 'ddtor', 'sddtor'):
+    elif name == 'sctor':   # (the record a format: its word +0x18 a rate or any, +0x1a 16 bits or not, +0x1b bit 0; the source's slot 1)
+        rec = bytearray(r.bytes(0x48))
+        struct.pack_into('<H', rec, 0x18, r.choice([0x5622, 0xac44, 0x2b11, r.getrandbits(16)]))
+        rec[0x1a] = r.choice([0x10, 8, r.getrandbits(8)])
+        rec[0x1b] = r.choice([0, 1, r.getrandbits(8)])
+        regions[RECORD] = rec
+        regions[SOURCE] = struct.pack('<I', SOURCE_VT) + r.bytes(0xc)
+        regions[SOURCE_VT] = struct.pack('<2I', recorder(30, 0), recorder(29, 0))
+        args = [RECORD, SOURCE]
+    elif name == 'basedel':
+        args = [r.choice([0, 1, 1, 2, 3, r.getrandbits(32)])]
+    elif name in ('sdtor', 'dtor', 'sdtor2', 'ddtor', 'sddtor', 'sdel'):
         struct.pack_into('<I', sample, 0x24, r.choice([SOURCE, SOURCE, 0]))
         regions[SOURCE] = struct.pack('<I', SOURCE_VT) + r.bytes(0xc)
         regions[SOURCE_VT] = struct.pack('<I', recorder(30, 0))
@@ -151,7 +165,7 @@ def case(r):
             regions[slot] = struct.pack('<I', recorder(k, n, True))
         regions[POOLS] = struct.pack('<5I', r.choice([0, FREE]), r.getrandbits(32), 0, r.choice([0, FREE]), r.getrandbits(32))
         regions[FREE] = r.bytes(0x60)
-        if name in ('ddtor', 'sddtor'):
+        if name in ('ddtor', 'sddtor', 'sdel'):
             args = [r.choice([0, 1, 1, 2, 3, r.getrandbits(32)])]
     regions[SAMPLE] = sample
     return Call(address, [SAMPLE] + args, regions, conv='t', ret=ret)

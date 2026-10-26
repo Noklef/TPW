@@ -1,7 +1,7 @@
 // The sound samples' shared slots (the sound streams of src/game/core/soundstream that are sources, vtables 0x70a6c8-0x70aec0; the
 // names are invented): +0x1c the time (the game's clock, ms) at which a sample whose data has run out has finished playing (0 while it
 // still has data), +0x20 the format byte (bit 1 stereo, bit 6 16-bit, bits 3 / 4 the rate, see Obj_SampleRate20). Reimplementation of
-// 0x6bb1d0, 0x6c7010, 0x6c7070 and 0x6c6ef0.
+// 0x6bb1d0, 0x6c7010, 0x6c7070, 0x6c6ef0, the constructor 0x6c6e70 and the deleting destructors 0x6c70c0 / 0x6c70a0.
 #pragma once
 
 #include "../../../re/types.h"
@@ -18,5 +18,15 @@ u32 __fastcall SoundSample_Drained(u8 *sample);
 // 0x6c6ef0 (thiscall; the destructor of 0x70ac50): vtable 0x70ac50; the object at +0x24, if any, its slot 0 (the release); vtable
 // 0x70a778 (the sound stream's, whose destructor has nothing more to do).
 void __fastcall SoundSample_Dtor(u8 *sample);
+
+// 0x6c6e70 (thiscall (record, source), pops 8; the sample stream 0x70ac50's constructor; an SEH frame for the source): +4 / +8 / +0xc,
+// +0x14 and +0x1c 0 (the vtable 0x70aca0 first), +0x10 the record + 0x28, +0x18 the record's +4, +0x24 the source and its slot 1 (the
+// AddRef); then the vtable 0x70ac50 and SoundStream_SetFormat with the record. Returns the sample.
+u8 *__fastcall SoundSample_Ctor(u8 *sample, void *, u8 *record, u8 *source);
+// 0x6c70c0 (thiscall (flags), pops 4; slot 0 of 0x70ac50): SoundSample_Dtor, the block freed (Mem_Free) for flags bit 0. Returns the sample.
+u8 *__fastcall SoundSample_DeletingDtor(u8 *sample, void *, u32 flags);
+// 0x6c70a0 (thiscall (flags), pops 4; slot 0 of 0x70aca0, slot 20 of 0x70ac50): the base's vtable (Vtbl70a778_Set_6c7090), the block
+// freed (Mem_Free) for flags bit 0. Returns the stream.
+u8 *__fastcall SoundSampleBase_DeletingDtor(u8 *stream, void *, u32 flags);
 
 }  // extern "C"
