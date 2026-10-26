@@ -1523,22 +1523,33 @@ OPS += ['Clank'] if 'OPS' not in os.environ else []
 
 def bump(r, op):
     """0x43cd60 (cdecl (coaster, car)): clank()'s case (CoasterCar_PlayClank's environment) with 0-5 cars (+0xf4) of 0x80 bytes from
-    CARS + 0x200 (+0x128), the car one of them (now and then before the first, or off their 0x80 grid); each car's place (+0x20), its
-    +0x24, +0x74 and speed (+0x78) about the coaster's length, any floats now and then."""
+    CARS + 0x200 (+0x128), the car one of them (now and then before the first, or off their 0x80 grid: 8 past it most, where the car's
+    speed (+0x78) is the next one's flags); every dword of the cars a float: whole numbers 0-12 often (ties of the place (+0x20) with
+    the reach (+0x24, plus the length 11 or a whole one), and speeds 3 apart, whose trade leaves a gap of exactly 1), about the length,
+    -10..10, a NaN now and then, any."""
     c = clank(r, op)
     regions = c.regions
     count = r.choice([0, 1, 2, 2, 3, 5])
     base = CARS + 0x200
     coast = put(put(bytearray(regions[COAST]), 0xf4, 'I', count), 0x128, 'I', base)
-    span = 11.0
-    cars = bytearray(r.bytes(0x200 + 8 * 0x80))
-    for k in range(-4, 8):
-        o = 0x200 + 0x80 * k
-        for f in (0x20, 0x24, 0x74):
-            put(cars, o + f, 'I', r.choice([fb(r.uniform(0, span)), fb(r.uniform(0, span)), fb(r.uniform(-span, 2 * span)), r.f(30)]))
-        put(cars, o + 0x78, 'I', r.choice([fb(r.uniform(-10, 10)), fb(r.uniform(-10, 10)), fb(r.uniform(-1, 1)), r.f(30)]))
+    if r.random() < 0.5:
+        put(coast, 0xa8, 'I', fb(float(r.choice([11, 0, 1, 3]))))
+    cars = bytearray(0x200 + 8 * 0x80)
+    for k in range(len(cars) // 4):
+        put(cars, 4 * k, 'I', r.choice([fb(float(r.randrange(13))), fb(float(r.randrange(13))), fb(r.uniform(0, 11)), fb(r.uniform(-10, 10)),
+                                        fb(float('nan')) if r.random() < 0.3 else r.getrandbits(32), r.f(30)]))
     i = r.randrange(max(count, 1))
-    car = r.choice([base + 0x80 * i, base + 0x80 * i, base + 0x80 * i, base - 0x80 * r.randrange(1, 4), base + 0x80 * i + 4 * r.randrange(8)])
+    car = r.choice([base + 0x80 * i, base + 0x80 * i, base + 0x80 * i, base - 0x80 * r.randrange(1, 4), base + 0x80 * i + 8,
+                    base + 0x80 * i + 8, base + 0x80 * i + 4 * r.randrange(8)])
+    if count > 1 and r.random() < 0.3:   # (reached; speeds 3 apart, whole, either sign: a gap of exactly 1, past it when the flag bumps)
+        index = ((((car - base) & 0xffffffff) ^ 0x80000000) - 0x80000000 >> 7) + 1 & 0xffffffff
+        ahead = base + 0x80 * (index % count) - CARS
+        speed = float(r.randrange(-12, 13))
+        put(cars, ahead + 0x24, 'I', fb(0.0))
+        put(cars, ahead + 0x74, 'I', fb(20.0))
+        put(cars, car - CARS + 0x20, 'I', fb(5.0))
+        put(cars, ahead + 0x78, 'I', fb(speed - 3))
+        put(cars, car - CARS + 0x78, 'I', fb(speed))
     regions.update({COAST: coast, CARS: cars})
     return Call(0x43cd60, [COAST, car], regions, ret='v')
 
