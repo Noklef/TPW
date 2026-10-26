@@ -492,6 +492,22 @@ u8 *__fastcall LinkedVoice_Ctor(u8 *voice, void *, u8 *parent) {
     return voice;
 }
 
+u8 *__fastcall Voice70a878_Ctor(u8 *voice) {
+    Class70a7e0_Ctor(voice);
+    at<u32>(voice, 0) = 0x0070a878;
+    SoundVoice_EnsureParams(voice);
+    at<u32>(at<u8 *>(voice, 0x4c), 0x1c) = 0;   // (no block when the allocation fails: a fault, sic)
+    return voice;
+}
+
+u8 *__fastcall Voice70a2e0_Ctor(u8 *voice) {
+    Class70a7e0_Ctor(voice);
+    at<u32>(voice, 0) = 0x0070a390;
+    SoundVoice_EnsureParams(voice);
+    at<u32>(voice, 0) = 0x0070a2e0;
+    return voice;
+}
+
 u8 *__fastcall LinkedSwitchVoice_Ctor(u8 *voice, void *, u8 *parent) {
     LinkedVoice_Ctor(voice, nullptr, parent);
     at<u32>(voice, 0) = 0x0070a9e0;
