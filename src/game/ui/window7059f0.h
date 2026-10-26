@@ -48,6 +48,15 @@ u32 __fastcall Window7059f0_Item148Depth(const u8 *window);
 // array +0x16c (0xc bytes each).
 s32 __fastcall Window7059f0_ColumnBottom(u8 *window, void *, u32 column);
 
+// 0x6636b2 (thiscall (column, value: words), pops 8; 69 callers, the panels' builders 0x480c27, 0x49359f, 0x4935aa and others; name
+// unconfirmed): with the column (signed) below the columns +0x164 and the array +0x16c set, its rectangle's bottom word +0xa = value (a
+// negative column writes before the array, sic).
+void __fastcall Window7059f0_SetColumnBottom(u8 *window, void *, u32 column, u32 value);
+
+// 0x664f6d (thiscall (dx, dy: words), pops 8; called by 0x665251; name unconfirmed): with the column array +0x16c set, each column's
+// rectangle from the last (+0x164, signed) to the first moved by its slot 2 (dx, dy); a negative count does not end the loop (sic).
+void __fastcall Window7059f0_OffsetColumns(u8 *window, void *, u32 dx, u32 dy);
+
 // 0x663a93 (thiscall (item, level), pops 8; name unconfirmed): the item after the given one in the tree's order: its first child (level
 // 1), else its next sibling (0), else its parent's next sibling, going up while a parent has none but a parent of its own (level -1 for
 // each step up; the last one's next sibling, -1 or less, when none has one); -2 (level 0) with no sibling and no parent. The level
@@ -149,6 +158,11 @@ void __fastcall Window7059f0_FreeItem(u8 *window, void *, u32 unused, s32 item, 
 // whose +0x14 points at the selection's row rectangle (GuiRect_CtorWith): left +0x13c, right +0x140, top +0x13e + the row height +0x170
 // * (selection - +0x154), the bottom one row further (32-bit, wrapping).
 void __fastcall Window7059f0_Select(u8 *window, void *, s32 row);
+
+// 0x66552e (thiscall (x, y: words), pops 8; called by 0x6655c6, 0x665620, 0x665661, 0x6656ef; name unconfirmed): with a row height +0x170
+// and the point in the inner rectangle +0x138 (its slot 0, AX), the row (y - the top +0x13e) / the height (signed) selected
+// (Window7059f0_Select) when it is not negative.
+void __fastcall Window7059f0_SelectAt(u8 *window, void *, u32 x, u32 y);
 
 // 0x664db7 (thiscall (text, column), pops 8; name unconfirmed): the position (from 0) of the first item from the first shown one whose
 // cell in the column (1 to the columns +0x164, clamped; from 1) is a wide string equal to text (WString_CompareText), stepping as
