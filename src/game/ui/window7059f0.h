@@ -288,6 +288,11 @@ u32 __fastcall Window7059f0_SetSortColumn(u8 *window, void *, u32 column);
 // (1 when it was 0, else 0).
 u32 __fastcall Window7059f0_SetSortOrder(u8 *window, void *, u32 order);
 
+// 0x6659af (thiscall (by, sort), pops 8; name unconfirmed): the sort column abs(by) - 1 (CRT abs: abs(INT_MIN) stays) and the order 1
+// for a negative by, 0 else (Window7059f0_SetSortColumn, then SetSortOrder, both called); when either changed (1 in AX) and the byte sort
+// is set, Window7059f0_Sort(-1). EAX not kept (the callers drop it).
+void __fastcall Window7059f0_SortBy(u8 *window, void *, s32 by, u32 sort);
+
 // 0x665e80 (thiscall (flags), pops 4; slot 2 of the vtable 0x7059f0; name unconfirmed): the destructor (Window7059f0_Dtor), the block
 // freed (Mem_Free) for flags bit 0; returns the window.
 u8 *__fastcall Window7059f0_DeletingDtor(u8 *window, void *, u32 flags);

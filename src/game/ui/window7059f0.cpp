@@ -837,6 +837,13 @@ u32 __fastcall Window7059f0_SetSortOrder(u8 *window, void *, u32 order) {
     return ((u32)Window7059f0_NotifySort(window) & 0xffff0000u) | 1;
 }
 
+void __fastcall Window7059f0_SortBy(u8 *window, void *, s32 by, u32 sort) {
+    const u32 magnitude = by < 0 ? 0u - (u32)by : (u32)by;   // (CRT abs 0x680050)
+    const bool column = (s16)Window7059f0_SetSortColumn(window, nullptr, magnitude - 1) == 1;
+    const bool order = (s16)Window7059f0_SetSortOrder(window, nullptr, by < 0 ? 1u : 0u) == 1;
+    if ((order || column) && (u8)sort) Window7059f0_Sort(window, nullptr, -1);
+}
+
 u8 *__fastcall Window7059f0_DeletingDtor(u8 *window, void *, u32 flags) {
     Window7059f0_Dtor(window);
     if (flags & 1) GameHeap_Free(window);

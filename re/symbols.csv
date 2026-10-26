@@ -5838,6 +5838,7 @@ address,name,kind,confidence,notes
 0x006636b2,Window7059f0_SetColumnBottom,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (column, value words), pops 8: below the columns +0x164 and with the array +0x16c, the column's bottom word = value"
 0x00664f6d,Window7059f0_OffsetColumns,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (dx, dy words), pops 8: with the array +0x16c each column's rectangle last first moved (slot 2)"
 0x0066552e,Window7059f0_SelectAt,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (x, y words), pops 8: with a row height and the point in the inner rectangle +0x138, the row under y selected when not negative"
+0x006659af,Window7059f0_SortBy,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (by, sort), pops 8: the sort column abs(by) - 1 and the order 1 for a negative by (SetSortColumn, SetSortOrder); when either changed and the byte sort is set, Window7059f0_Sort(-1)"
 0x0065fbf0,WindowScript_ReadDword,function,low,reimplemented (src/game/ui/windowscript); a window script's next dword (two words)
 0x0065fc18,WindowScript_ReadWord,function,low,reimplemented (src/game/ui/windowscript); a window script's next word
 0x0065fc38,WindowScript_ReadRect,function,low,reimplemented (src/game/ui/windowscript); a window script's next four words to four outputs
