@@ -122,6 +122,45 @@ s32 __fastcall AdvisorScoring_Controls18ShareNoStaff8(const u8 *scoring) {
     return (s32)(((u32)percent - at<u32>(scoring, 0x114)) * at<u32>(scoring, 0x118));
 }
 
+s32 __fastcall AdvisorScoring_Controls18AllNoStaff8(const u8 *scoring) {
+    if (flagged() || Things_CountStaffOfKind(8) > 0 || Research_CountNotDoneCat0() == 0) return 0;
+    const s32 some = ObjectDefs_CountKindWithControls18(0, 0);
+    return some == ObjectDefs_CountKind0WithControls10(0) ? at<s32>(scoring, 0x11c) : 0;
+}
+
+s32 __fastcall AdvisorScoring_TalliedStaff7(const u8 *scoring) {
+    if (Things_CountStaffOfKind(7) == 0) return 0;
+    return (s32)ParkAnalyser_Tallied(table(), nullptr, 1) > at<s32>(scoring, 0x15c) ? at<s32>(scoring, 0x160) : 0;
+}
+
+s32 __fastcall AdvisorScoring_ResearchKind0Staff8(const u8 *scoring) {
+    if (Things_CountStaffOfKind(8) == 0) return 0;
+    const s32 some = ObjectDefs_CountKindWithControls18(0, 0);
+    if (some == 0 || Research_CountNotDoneCat0() == 0 || Table_ScaledBySum(lab(), nullptr, 0) != 0) return 0;
+    return some == ObjectDefs_CountKind0WithControls10(0) ? at<s32>(scoring, 0x22c) : 0;
+}
+
+s32 __fastcall AdvisorScoring_Controls14Staff8(const u8 *scoring) {
+    if (Things_CountStaffOfKind(8) == 0) return 0;
+    const s32 some = ObjectDefs_CountKind0WithControls14(0);
+    if (some == 0 || some > at<s32>(scoring, 0x240) || Table_ScaledBySum(lab(), nullptr, 4) != 0) return 0;
+    return at<s32>(scoring, 0x244);
+}
+
+s32 __fastcall AdvisorScoring_ResearchKind1Staff8(const u8 *scoring) {
+    if (Things_CountStaffOfKind(8) == 0) return 0;
+    const s32 some = ObjectDefs_CountKindWithControls18(1, 0);
+    if (some == 0 || Research_CountNotDoneCat1() == 0 || Table_ScaledBySum(lab(), nullptr, 1) != 0) return 0;
+    return some == ObjectDefs_CountKind1WithControls10(0) ? at<s32>(scoring, 0x264) : 0;
+}
+
+s32 __fastcall AdvisorScoring_ResearchKind2Staff8(const u8 *scoring) {
+    if (Things_CountStaffOfKind(8) == 0) return 0;
+    const s32 some = ObjectDefs_CountKindWithControls18(2, 0);
+    if (some == 0 || Research_CountNotDoneCat2() == 0 || Table_ScaledBySum(lab(), nullptr, 2) != 0) return 0;
+    return some == ObjectDefs_CountKind2WithControls10(0) ? at<s32>(scoring, 0x288) : 0;
+}
+
 s32 __fastcall AdvisorScoring_StaffAtLimit5(const u8 *scoring) { return at_limit(scoring, 0x007852e8, 0x38c, 5, 0x38c); }
 s32 __fastcall AdvisorScoring_StaffAtLimit6(const u8 *scoring) { return at_limit(scoring, 0x007852f0, 0x398, 6, 0x398); }
 s32 __fastcall AdvisorScoring_StaffAtLimit4(const u8 *scoring) { return at_limit(scoring, 0x007852ec, 0x3a4, 4, 0x3a4); }

@@ -48,7 +48,8 @@ def chain(r, handles, things, link, pool):
     return handles[order[0]] if order else 0
 
 
-def park(r, kinds=KINDS, count=None):
+def park(r, kinds=KINDS, count=None, flag=None):
+    """flag: G's +0x1da710 (None: 0 or not)."""
     regions, handles, things = thingenv.park(r, count=count, kinds=kinds, defs=False)
     pool = regions[POOL]
     known = r.sample(IDS, r.choice([1, 2, 4, 6, 6]))
@@ -117,7 +118,7 @@ def park(r, kinds=KINDS, count=None):
     now = r.getrandbits(32)
     tail = bytearray(r.bytes(0x50))
     put(tail, 0, 'iHHI', len(recs), r.choice(IDS + [0, 0x77]), 0, FIELDS + 0x20 * r.randrange(len(recs)))
-    put(tail, 0x10, 'II', now, r.choice([0, 0, 0, 1, 0x100, 0xffffffff]))
+    put(tail, 0x10, 'II', now, r.choice([0, 0, 0, 1, 0x100, 0xffffffff]) if flag is None else flag)
     put(tail, 0x24, 'HH', ASLOT, LSLOT)
     put(tail, 0x46, 'H', sums)
     put(tail, 0x4a, 'H', objects)

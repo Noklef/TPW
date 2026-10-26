@@ -32,6 +32,19 @@ s32 __fastcall AdvisorScoring_PeopleLow19cNoStaff6(const u8 *scoring);
 // +0x10 (ObjectDefs_CountKind0WithControls10(0), n) and a different count with +0x18 (ObjectDefs_CountKindWithControls18(0, 0), m): the
 // percentage m * 100 / n (signed) when above +0x114, less it, times +0x118.
 s32 __fastcall AdvisorScoring_Controls18ShareNoStaff8(const u8 *scoring);
+// 0x59cf50: as 0x59cea0 up to the research, then m (counted first) equal to n: +0x11c.
+s32 __fastcall AdvisorScoring_Controls18AllNoStaff8(const u8 *scoring);
+// 0x59d3b0: staff of kind 7 and ParkAnalyser_Tallied(1) above +0x15c: +0x160.
+s32 __fastcall AdvisorScoring_TalliedStaff7(const u8 *scoring);
+// 0x59da30 / 0x59dd40 / 0x59dfd0: staff of kind 8, definitions of kind 0 / 1 / 2 with control +0x18 (ObjectDefs_CountKindWithControls18
+// (kind, 0)), research of that category left (Research_CountNotDoneCat0 / 1 / 2), the lab's share of group 0 / 1 / 2 (Table_ScaledBySum) 0,
+// and the count the same with control +0x10 (ObjectDefs_CountKind0 / 1 / 2WithControls10(0)): +0x22c / +0x264 / +0x288.
+s32 __fastcall AdvisorScoring_ResearchKind0Staff8(const u8 *scoring);
+s32 __fastcall AdvisorScoring_ResearchKind1Staff8(const u8 *scoring);
+s32 __fastcall AdvisorScoring_ResearchKind2Staff8(const u8 *scoring);
+// 0x59dbf0: staff of kind 8, definitions of kind 0 with control +0x14 (ObjectDefs_CountKind0WithControls14), not more than +0x240, and the
+// lab's share of group 4 0: +0x244.
+s32 __fastcall AdvisorScoring_Controls14Staff8(const u8 *scoring);
 
 // The staff criteria (thiscall on the scoring; names unconfirmed). Staff kinds: 4 handyman, 5 mechanic, 6 entertainer, 7 researcher,
 // 8 guard (as Staff_TrainAll's).
