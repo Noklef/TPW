@@ -4,7 +4,7 @@
 // sub-stream, 0x200c bytes), +0x30 the samples of the current frame played (0x1b0: all, the next one decoded first), +0x34 bit 0 mono,
 // +0x38 the decoder (its first dword the reader's byte pointer; its channels' samples floats from +0x688, 0xd34 bytes apart), +0x3c the
 // data's end. Slots: 2 the close, 7 the read, 8 the restart, 9 a query, 20 the open. Reimplementation of 0x6c7bc0-0x6c7dfa, 0x6c80c0 and
-// 0x6c8120.
+// 0x6c8120; the destructors 0x6c8330, 0x6c8000, 0x6c7ba0 and 0x6c7fe0.
 #pragma once
 
 #include "../../../re/types.h"
@@ -33,5 +33,14 @@ void __fastcall VoiceSample_Open(u8 *sample, void *, const u8 *data);
 void __fastcall VoiceStream_Open(u8 *sample, void *, u32 unused);
 // 0x6c8120 (thiscall; slot 8 of 0x70adc0): the sub-stream rewound (SubStream_Rewind), then slot 20 (+0x10).
 void __fastcall VoiceStream_Restart(u8 *sample);
+// 0x6c8330 (thiscall; the destructor of 0x70ad60): a jump to SoundSample_Dtor.
+void __fastcall VoiceSample_Dtor(u8 *sample);
+// 0x6c8000 (thiscall; the destructor of 0x70adc0): the sub-stream at +0x40's (vtable 0x70ad50; Semaphore_Dtor (+0x14), StreamBase_Dtor
+// (+0xc)), then SoundSample_Dtor.
+void __fastcall VoiceStream_Dtor(u8 *sample);
+// 0x6c7ba0 / 0x6c7fe0 (thiscall (flags), pops 4; slot 0): the destructor; with flags bit 0, the block back to its pool
+// (VoiceSamplePool_Delete (0x40) / VoiceStreamPool_Delete (0x5c), core/streampool). Returns the sample.
+u8 *__fastcall VoiceSample_DeletingDtor(u8 *sample, void *, u32 flags);
+u8 *__fastcall VoiceStream_DeletingDtor(u8 *sample, void *, u32 flags);
 
 }  // extern "C"

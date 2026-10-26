@@ -1,7 +1,7 @@
 // The sound samples' shared slots (the sound streams of src/game/core/soundstream that are sources, vtables 0x70a6c8-0x70aec0; the
 // names are invented): +0x1c the time (the game's clock, ms) at which a sample whose data has run out has finished playing (0 while it
 // still has data), +0x20 the format byte (bit 1 stereo, bit 6 16-bit, bits 3 / 4 the rate, see Obj_SampleRate20). Reimplementation of
-// 0x6bb1d0, 0x6c7010 and 0x6c7070.
+// 0x6bb1d0, 0x6c7010, 0x6c7070 and 0x6c6ef0.
 #pragma once
 
 #include "../../../re/types.h"
@@ -15,5 +15,8 @@ void __fastcall SoundSample_Describe(u8 *sample, void *, u8 *record);
 u8 __fastcall SoundSample_ScheduleEnd(u8 *sample, void *, u32 flag, u32 bytes);
 // 0x6c7070 (thiscall): 1 when the game's clock (Time_GetMs) has reached +0x1c (unsigned), else 0.
 u32 __fastcall SoundSample_Drained(u8 *sample);
+// 0x6c6ef0 (thiscall; the destructor of 0x70ac50): vtable 0x70ac50; the object at +0x24, if any, its slot 0 (the release); vtable
+// 0x70a778 (the sound stream's, whose destructor has nothing more to do).
+void __fastcall SoundSample_Dtor(u8 *sample);
 
 }  // extern "C"

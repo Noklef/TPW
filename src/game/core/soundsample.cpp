@@ -28,4 +28,10 @@ u8 __fastcall SoundSample_ScheduleEnd(u8 *sample, void *, u32 flag, u32 bytes) {
 
 u32 __fastcall SoundSample_Drained(u8 *sample) { return Time_GetMs() >= at<u32>(sample, 0x1c) ? 1 : 0; }
 
+void __fastcall SoundSample_Dtor(u8 *sample) {
+    at<u32>(sample, 0) = 0x70ac50;
+    if (u8 *const source = at<u8 *>(sample, 0x24)) vcall<void>(source, 0);
+    at<u32>(sample, 0) = 0x70a778;
+}
+
 }  // extern "C"

@@ -6,6 +6,9 @@
 # read's end time (+0x1c) set now and then (timeGetTime a recorder, the clock disabled; the end time now, a ms either side or any). The opens: a reader already there or a new one
 # (Mem_Alloc failing now and then; the buffered reader refilled from the sub-stream's slot 1, a recorder), +0x34 any. The close's
 # decoder / reader any or 0 (freed in the heap stand-in). The end time's flag 0 mostly, the format byte any, the rate 11025-44100 or any.
+# The destructors: the source at +0x24 an object whose slot 0 is a recorder, or none; the sub-stream's stream source (+0x50) a RefObject
+# (InterlockedDecrement answering 1, 0 or -1; its slots recorders) or none, CloseHandle a recorder; the deletes' pools (0xfb20bc-0xfb20cc)
+# with a free list or none (Enter / LeaveCriticalSection recorders), flags any.
 # usage: voicesample.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -17,18 +20,27 @@ from fncmp import HEAP, LOG, RAM, Bench, Call, fill, heap, log_region, recorder,
 # name: (address, returns)
 CALLS = {'decode': (0x6c7cf0, 'a'), 'read': (0x6c7c20, 'a'), 'query': (0x6c7bc0, 'a'), 'restart': (0x6c7ce0, 'v'),
          'close': (0x6c7be0, 'v'), 'open': (0x6c7c80, 'v'), 'sopen': (0x6c80c0, 'v'), 'srestart': (0x6c8120, 'v'),
-         'schedule': (0x6c7010, 'b'), 'drained': (0x6c7070, 'a'), 'describe': (0x6bb1d0, 'v')}
+         'schedule': (0x6c7010, 'b'), 'drained': (0x6c7070, 'a'), 'describe': (0x6bb1d0, 'v'), 'sdtor': (0x6c6ef0, 'v'),
+         'dtor': (0x6c8330, 'v'), 'sdtor2': (0x6c8000, 'v'), 'ddtor': (0x6c7ba0, 'a'), 'sddtor': (0x6c7fe0, 'a')}
 B = Bench([(0x6c7bc0, 0x6c7dfb), (0x6c80c0, 0x6c8138), (0x6c7010, 0x6c7082), (0x6bb1d0, 0x6bb1dd), (0x6c6230, 0x6c625a),
            (0x6c62c0, 0x6c62d8), (0x6d4ec0, 0x6d4ed9), (0x5f5f10, 0x5f5f7d), (0x5f5fa0, 0x5f5faa),
            (0x6d4ee0, 0x6d4f2a), (0x6d4fa0, 0x6d4fdc), (0x6d4f30, 0x6d4f99), (0x6d4fe0, 0x6d503a), (0x6d5200, 0x6d5254),
            (0x6d5040, 0x6d51ed), (0x6d5260, 0x6d5341), (0x6d5350, 0x6d5443), (0x6d61c0, 0x6d6285),
-           (0x6d57e0, 0x6d61ba), (0x6d5450, 0x6d57d2), (0x6d6290, 0x6d62bd)])
+           (0x6d57e0, 0x6d61ba), (0x6d5450, 0x6d57d2), (0x6d6290, 0x6d62bd), (0x6c6ef0, 0x6c6f37), (0x6c8330, 0x6c8335),
+           (0x6c8000, 0x6c806a), (0x6c7ba0, 0x6c7bc0), (0x6c7fe0, 0x6c7ffe), (0x6c7ad0, 0x6c7b15), (0x6c7f20, 0x6c7f65),
+           (0x5f71e0, 0x5f7220), (0x618d30, 0x618d90), (0x6307e0, 0x630800)])
 SAMPLE, SVT, NEXT, SUBVT, FILEVT, OUT, RECORD, MEMREADER = (RAM + 0x100 * i for i in range(8))
 BUFFER, DECODER, BITS, BREADER = RAM + 0x800, RAM + 0x1000, RAM + 0x3000, RAM + 0x4000
 MEMORY_VTABLE, BUFFERED_VTABLE = 0x70adb8, 0x70ae28
 CLOCK, TIME_GET_TIME, TIME_K = 0xfa71e0, 0x6fd3ec, 12
 EDGES = [32767, 32768, -32768, -32769, 65535, 65536, 98303, 98304, -65536, -65537, 131071, 131072, -0.5, 0.5, 1.5, 2.5, -1.5]
 SLOTS = {0: 1, 2: 0, 5: 1, 6: 0, 17: 0, 19: 2, 20: 1}
+SOURCE, SOURCE_VT, REF, REF_VT = RAM + 0x7000, RAM + 0x7100, RAM + 0x7200, RAM + 0x7300
+POOLS = 0xfb20bc   # the voice sample pool's list and lock, 4 bytes, the voice stream pool's list and lock
+FREE = RAM + 0x7400   # a block on a pool's free list
+# import: (recorder slot, import table address, stack arguments)
+IMPORTS = {'InterlockedDecrement': (34, 0x6fd12c, 1), 'CloseHandle': (33, 0x6fd13c, 1), 'EnterCriticalSection': (35, 0x6fd140, 1),
+           'LeaveCriticalSection': (36, 0x6fd130, 1)}
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
@@ -127,6 +139,20 @@ def case(r):
         struct.pack_into('<I', sample, 0x1c, end)
     elif name == 'describe':
         args = [RECORD]
+    elif name in ('sdtor', 'dtor', 'sdtor2', 'ddtor', 'sddtor'):
+        struct.pack_into('<I', sample, 0x24, r.choice([SOURCE, SOURCE, 0]))
+        regions[SOURCE] = struct.pack('<I', SOURCE_VT) + r.bytes(0xc)
+        regions[SOURCE_VT] = struct.pack('<I', recorder(30, 0))
+        struct.pack_into('<II', sample, 0x50, r.choice([REF, REF, 0]), r.getrandbits(32))
+        regions[REF] = struct.pack('<3I', REF_VT, 0, r.getrandbits(32))
+        regions[REF_VT] = struct.pack('<16I', *[recorder(32, 1) if k == 0 else recorder(31, 0) for k in range(16)])
+        set_return(log, 34, r.choice([1, 0, 0xffffffff, 2]))
+        for k, slot, n in IMPORTS.values():
+            regions[slot] = struct.pack('<I', recorder(k, n, True))
+        regions[POOLS] = struct.pack('<5I', r.choice([0, FREE]), r.getrandbits(32), 0, r.choice([0, FREE]), r.getrandbits(32))
+        regions[FREE] = r.bytes(0x60)
+        if name in ('ddtor', 'sddtor'):
+            args = [r.choice([0, 1, 1, 2, 3, r.getrandbits(32)])]
     regions[SAMPLE] = sample
     return Call(address, [SAMPLE] + args, regions, conv='t', ret=ret)
 

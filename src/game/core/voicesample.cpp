@@ -3,10 +3,13 @@
 #include <cstdint>
 #include <xmmintrin.h>
 
+#include "../files/handles.h"
 #include "../files/substream.h"
 #include "gameheap.h"
+#include "semaphore.h"
 #include "soundsample.h"
 #include "soundstream.h"
+#include "streampool.h"
 #include "vcall.h"
 #include "voicecodec.h"
 
@@ -105,6 +108,28 @@ void __fastcall VoiceStream_Open(u8 *sample, void *, u32) {
 void __fastcall VoiceStream_Restart(u8 *sample) {
     SubStream_Rewind(sample + 0x40);
     vcall<void>(sample, 0x50, at<u32>(sample, 0x10));
+}
+
+void __fastcall VoiceSample_Dtor(u8 *sample) { SoundSample_Dtor(sample); }
+
+void __fastcall VoiceStream_Dtor(u8 *sample) {
+    u8 *const sub = sample + 0x40;   // (the original tests the sample for null first)
+    at<u32>(sub, 0) = 0x70ad50;
+    Semaphore_Dtor(reinterpret_cast<Semaphore *>(sub + 0x14));
+    StreamBase_Dtor(reinterpret_cast<StreamBase *>(sub + 0xc));
+    SoundSample_Dtor(sample);
+}
+
+u8 *__fastcall VoiceSample_DeletingDtor(u8 *sample, void *, u32 flags) {
+    VoiceSample_Dtor(sample);
+    if (flags & 1) VoiceSamplePool_Delete(sample, 0x40);
+    return sample;
+}
+
+u8 *__fastcall VoiceStream_DeletingDtor(u8 *sample, void *, u32 flags) {
+    VoiceStream_Dtor(sample);
+    if (flags & 1) VoiceStreamPool_Delete(sample, 0x5c);
+    return sample;
 }
 
 }  // extern "C"
