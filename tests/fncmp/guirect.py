@@ -5,6 +5,7 @@
 # array of 0-4 (the count dword before them, now and then negative) destroyed last first (CRT_VectorDtorIterator) and its block freed.
 # Copy (0x661770): another rectangle of random bytes copied. Node / NodeFrom (0x65a493 / 0x65a4f5): a node of random bytes, the source a
 # rectangle or (NodeFrom) none. The list ops (0x65a55b-0x65aa90): see list_case.
+# GetEdges (0x659de5): the four word pointers each given (apart) or 0.
 # usage: guirect.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Ctor,CtorWith,...)
 import os
 import struct
@@ -16,9 +17,9 @@ from fncmp import HEAP, Bench, Call, RAM, heap  # noqa: E402
 CALLS = {'Equals': 0x661700, 'GetSize': 0x659e3e, 'Ctor': 0x659d00, 'CtorWith': 0x659d43, 'Dtor': 0x659d90, 'Contains': 0x659e83, 'Centre': 0x659ee2, 'Offset': 0x65a3e9,
          'Adjust': 0x65a43e, 'Overlap': 0x659f3d, 'Split': 0x65a1c3, 'Delete': 0x665eb0, 'Copy': 0x661770, 'Node': 0x65a493,
          'NodeFrom': 0x65a4f5, 'NodeDtor': 0x65a55b, 'NodeDelete': 0x65aa90, 'Append': 0x65a5d2, 'AppendRect': 0x65a6b0,
-         'AppendNode': 0x65a7e3, 'NodeOverlap': 0x65a824, 'Subtract': 0x65a887}
+         'AppendNode': 0x65a7e3, 'NodeOverlap': 0x65a824, 'Subtract': 0x65a887, 'GetEdges': 0x659de5}
 LIST_OPS = ('NodeDtor', 'NodeDelete', 'Append', 'AppendRect', 'AppendNode', 'NodeOverlap', 'Subtract')
-B = Bench([(0x661700, 0x66176a), (0x659e3e, 0x659e83), (0x659d00, 0x659dbc), (0x659e83, 0x65a1c3), (0x65a3e9, 0x65a4a3), (0x65a1c3, 0x65a3e9), (0x659dbc, 0x659de3), (0x65a9d0, 0x65aa00), (0x66bff7, 0x66c01b), (0x66c01a, 0x66c7dc),
+B = Bench([(0x661700, 0x66176a), (0x659e3e, 0x659e83), (0x659d00, 0x659dbc), (0x659e83, 0x65a1c3), (0x65a3e9, 0x65a4a3), (0x65a1c3, 0x65a3e9), (0x659dbc, 0x659de3), (0x659de5, 0x659e3e), (0x65a9d0, 0x65aa00), (0x66bff7, 0x66c01b), (0x66c01a, 0x66c7dc),
            (0x67acb0, 0x67acb1), (0x665eb0, 0x665f0e), (0x67afa0, 0x67b0d0), (0x67b050, 0x67b0d0),
            (0x661770, 0x6617cd), (0x6617d0, 0x6617f0), (0x65a493, 0x65a4f5), (0x65a4f5, 0x65a55b), (0x65aa20, 0x65aa80), (0x65aa80, 0x65aa90),
            (0x65a55b, 0x65a5d2), (0x65a5d2, 0x65a6b0), (0x65a6b0, 0x65a7e3), (0x65a7e3, 0x65a824), (0x65a824, 0x65a887), (0x65a887, 0x65a9d0),
@@ -158,6 +159,8 @@ def case(r):
             other[k] ^= r.choice([1, 0x80, 0xff])
         regions[OUT] = bytes(other)
         return Call(CALLS[op], [RECT, OUT], regions, conv='t', ret='a')
+    if op == 'GetEdges':
+        return Call(CALLS[op], [RECT] + [r.choice([OUT + 2 * k, OUT + 2 * k, 0]) for k in range(4)], regions, conv='t')
     if op in ('Centre', 'GetSize'):
         return Call(CALLS[op], [RECT, r.choice([OUT, OUT, 0]), r.choice([OUT + 4, OUT + 4, 0])], regions, conv='t')
     if op == 'Offset':

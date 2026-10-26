@@ -5545,6 +5545,7 @@ address,name,kind,confidence,notes
 0x0065a7e3,GuiRectNode_AppendNode,function,low,"reimplemented (src/game/ui/guirect); thiscall (node), pops 4: the node set as the head's +0 when 0, else the last node's +0"
 0x0065a824,GuiRectNode_Overlap,function,low,"reimplemented (src/game/ui/guirect); thiscall (shape, out), pops 8; recursive: the first nonzero GuiRect_Overlap of a node's rectangle with the shape along the list, in AX (out never written, sic)"
 0x0065a887,GuiRectNode_Subtract,function,low,"reimplemented (src/game/ui/guirect); thiscall (shape, may be 0), pops 4; recursive: each node's rectangle cut by the shape (GuiRect_Split while it splits; the rectangle keeps the second part), the first parts made a new list, the rest's list appended; returns the new list"
+0x00659de5,GuiRect_GetEdges,function,low,"reimplemented (src/game/ui/guirect); thiscall (four word pointers), pops 16: the four words stored through each pointer given"
 0x006599f2,GuiDialog_SetA,function,low,"reimplemented (src/game/ui/guidialog); thiscall (word), pops 4: +0xa = value when value < the word +0xe (signed)"
 0x00659a19,GuiDialog_SetC,function,low,"reimplemented (src/game/ui/guidialog); thiscall (word), pops 4: +0xc = value when value < the word +0xe (signed)"
 0x006598f7,GuiDialog_Apply,function,low,"reimplemented (src/game/ui/guidialog); thiscall (flags, source), pops 8, slot 3: bit 0 SetC(src+4), bit 2 +0x30 = src+8, bit 19 SetA(src+0xa), bit 6 +0x34/+0x36 = src+0xc/+0xe; nothing for flags 0 or no source"
