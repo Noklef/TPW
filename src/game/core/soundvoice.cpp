@@ -11,6 +11,7 @@
 #include "initializers.h"
 #include "selectors.h"
 #include "soundcategory.h"
+#include "soundchannel.h"
 #include "vcall.h"
 
 namespace {
@@ -92,6 +93,31 @@ void start_record(u32 *record) {
 void send_record(const u8 *voice, u32 *out, u32 *record) {
     u32 functor[3] = {0x0070a850, at<u32>(voice, 0x24), static_cast<u32>(reinterpret_cast<uintptr_t>(record))};
     vcall<void>(global<u8 *>(0x00fb1f24), 0x10, out, functor);
+}
+
+// 0x6bd800 / 0x6bdf50: the voice started (counted: with flag 4 the record's +0x44 = 1).
+u32 *start_voice(u8 *voice, u32 *out, u32 now, bool counted) {
+    if (!global<u8 *>(0x00fb1f24) || !at<u32>(voice, 8)) {
+        *out = 0xffffffff;
+        return out;
+    }
+    if (at<u32>(voice, 0x30) & 0x11) {
+        *out = 0;
+        return out;
+    }
+    at<u32>(voice, 0x30) |= 1;
+    u32 record[0x27];
+    start_record(record);
+    if (!vcall<u32>(voice, 0x44, now, record)) {
+        at<u32>(voice, 0x30) |= 0x10;
+        *out = 0xffffffff;
+        return out;
+    }
+    if (counted && (voice[0x30] & 4)) SetThenFlag44_14_6c5110(reinterpret_cast<u8 *>(record), nullptr, 1);
+    if (!SoundChannel_PlayRecord(global<u8 *>(0x00fb1f24), nullptr, reinterpret_cast<u8 *>(record), &at<u32>(voice, 0x24)))
+        at<u32>(voice, 0x30) &= ~1u;
+    *out = 0;
+    return out;
 }
 
 // 0x6be610 / 0x6be680's end: the voice's slot 4 (out: the factory's memory argument's own stack slot, sic).
@@ -720,5 +746,9 @@ u32 __fastcall SoundVoice_FillRecord(u8 *voice, void *, u32 now, u8 *record) {
     if (voice[0x30] & 4) SetThenFlag44_14_6c5110(record, nullptr, 9999);
     return 1;
 }
+
+u32 *__fastcall SoundVoice_Start(u8 *voice, void *, u32 *out, u32 now) { return start_voice(voice, out, now, false); }
+
+u32 *__fastcall SoundVoice_StartCounted(u8 *voice, void *, u32 *out, u32 now) { return start_voice(voice, out, now, true); }
 
 }  // extern "C"

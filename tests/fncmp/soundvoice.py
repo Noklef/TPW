@@ -17,15 +17,15 @@
 # comparison with flag 8: the address of the original's local): flags 4, 8, 0x80 now and then, the system's +0x28 bits 0, 1, 3, 7 and
 # 0x43, its slots 10 and 11 floats, the radius about 2.0 now and then, the voice's slot 18 answering 0 now and then, +0xc 0 and the
 # system null now and then. The value +0x20 and its record (flag 1 either way); the levels' record (flag 0x400 either way); the position's
-# (floats or any, flag 8 either way, the scale 1, 0.5 or 2 now and then).
+# (floats or any, flag 8 either way, the scale 1, 0.5 or 2 now and then). The starts: see start_case().
 # usage: soundvoice.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import (HEAP, LOG, RAM, Bench, Call, blob_bytes, fb, fill, heap, log_region, recorder, set_float_return, set_return, strings,  # noqa: E402
-                   vtable)
+from fncmp import (HEAP, LOG, RAM, Bench, Call, blob, blob_bytes, echo, fb, fill, heap, log_region, recorder, set_float_return, set_return,  # noqa: E402
+                   strings, vtable)
 
 # name: (address, returns)
 CALLS = {'ensure': (0x6b7150, 'v'), 'pending': (0x6bc900, 'a'), 'apply': (0x6bbf00, 'v'), 'radius': (0x6bc650, 'd'),
@@ -37,7 +37,7 @@ CALLS = {'ensure': (0x6b7150, 'v'), 'pending': (0x6bc900, 'a'), 'apply': (0x6bbf
          'linkctor': (0x6c3a00, 'a'), 'linkswctor': (0x6c3de0, 'a'), 'linkinit': (0x6c3a80, 'b'), 'linkfollow': (0x6c3c70, 'v'),
          'linkbranch': (0x6c3e00, 'b'), 'rollvol': (0x6bc090, 'a'), 'rollpitch': (0x6bc170, 'a'), 'level': (0x6bc3c0, 'a'),
          'rollword': (0x6bc2d0, 'a'), 'value20': (0x6bba90, 'v'), 'levels': (0x6bbbe0, 'v'), 'position': (0x6bbce0, 'a'),
-         'fillrec': (0x6c3ae0, 'a'), 'voicefill': (0x6bc410, 'a')}
+         'fillrec': (0x6c3ae0, 'a'), 'voicefill': (0x6bc410, 'a'), 'start': (0x6bd800, 'a'), 'startcnt': (0x6bdf50, 'a')}
 LINKED_OPS = ('linkinit', 'linkfollow', 'linkbranch')
 B = Bench([(0x6b7150, 0x6b7190), (0x6bc900, 0x6bcb56), (0x6c5130, 0x6c5150), (0x6bbf00, 0x6bbf56), (0x6bc650, 0x6bc674), (0x6bc680, 0x6bc806),
            (0x6bc810, 0x6bc8f0), (0x6bd5f0, 0x6bd781), (0x6bd7a0, 0x6bd7ac), (0x6bb220, 0x6bb237), (0x5f5f10, 0x5f5f7d), (0x5f5fa0, 0x5f5faa),
@@ -47,7 +47,8 @@ B = Bench([(0x6b7150, 0x6b7190), (0x6bc900, 0x6bcb56), (0x6c5130, 0x6c5150), (0x
            (0x6c3a00, 0x6c3a80), (0x6c3de0, 0x6c3df9), (0x6c3a80, 0x6c3ad4), (0x6c3c70, 0x6c3d7e), (0x6c3e00, 0x6c3f63),
            (0x6b9260, 0x6b9280), (0x6bc090, 0x6bc240), (0x6bc3c0, 0x6bc410), (0x6c3ae0, 0x6c3c70), (0x6c5110, 0x6c5130), (0x6c5150, 0x6c51a0),
            (0x6c51d0, 0x6c5230), (0x6bc2d0, 0x6bc3bb), (0x6bba90, 0x6bbb72), (0x6bbbe0, 0x6bbcdd), (0x6bbce0, 0x6bbe3d), (0x6bb240, 0x6bb265),
-           (0x6bc410, 0x6bc650), (0x6bcb60, 0x6bcb80), (0x6c5090, 0x6c50c0)])
+           (0x6bc410, 0x6bc650), (0x6bcb60, 0x6bcb80), (0x6c5090, 0x6c50c0), (0x6bd800, 0x6bd92e), (0x6bdf50, 0x6be08f),
+           (0x6b9a60, 0x6b9aa1), (0x6b9ab0, 0x6b9b26)])
 VOICE, OUT, SYS, SVT, VVT, DEF, VARS, SAMPLES, PARAMS, LISTENER, CMD, CVT = (RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x500,
                                                                             RAM + 0x600, RAM + 0xa00, RAM + 0xb00, RAM + 0xb40, RAM + 0xb80, RAM + 0xbc0)
 SYSTEM, RANDOM, CLOCK, TIME_GET_TIME = 0xfb1f24, 0xfb1f20, 0xfa71e0, 0x6fd3ec
@@ -212,6 +213,32 @@ def voice_fill(r, address, ret, log, voice, regions):
     return Call(address, [VOICE, now, RECORD], regions, conv='t', ret=ret)
 
 
+def start_case(r, address, ret, log, voice, system, regions):
+    """SoundVoice_Start (0x6bd800) and SoundVoice_StartCounted (0x6bdf50): flags 1, 4 and 0x10 (+0x30) any way, +8 null now and then, the
+    system null now and then; the voice's slot 17 (the fill: now, the record on the stack, its cleared fields hashed) answering 0 now and
+    then; the system (the channel: SoundChannel_PlayRecord) its flags +0x28 bits 3 and 8 any way, slot 6 picking 0 or a voice, slot 5 any,
+    slot 6 / 5 / 4 logging the record's cleared fields, +0xc and +0x44 (slot 4 the functor {0x70a618, the voice}), slot 4 writing a status
+    (negative now and then) through its out; the voice's +0x24 0 or not."""
+    rec = 1 | 1 << 1 | 1 << 3 | 1 << 4 | 1 << 5 | 1 << 0xb | 1 << 0xc | 1 << 0xe | 1 << 0xf | 1 << 0x10 | 0xff << 0x18   # (the cleared fields)
+    for k in (17, 6, 5):
+        strings(log, k, 0, out=2)
+        blob(log, k, 1, rec | (1 << 0x11 if k != 17 else 0))
+    strings(log, 4, 0, out=1)
+    blob(log, 4, 1, 3)
+    fill(log, 4, 0, struct.pack('<I', r.choice([0, 1, 0x80000000, 0xffffffff, r.getrandbits(32)])))
+    echo(log, 4, 0)
+    set_return(log, 17, r.choice([0, 1, 1, r.getrandbits(32)]))
+    set_return(log, 6, r.choice([0, 0, VOICE + 0x80, r.getrandbits(32)]))
+    set_return(log, 5, r.getrandbits(32))
+    struct.pack_into('<I', voice, 0x30, r.getrandbits(32) & ~0x15 | r.choice([0, 0, 1, 4, 4, 0x10, 0x11, 5, 0x14]))
+    struct.pack_into('<I', voice, 8, r.choice([VARS] * 7 + [0]))
+    struct.pack_into('<I', voice, 0x24, r.choice([0, 0, r.getrandbits(32)]))
+    struct.pack_into('<I', system, 0x28, r.getrandbits(32) & ~0x108 | r.choice([0, 8, 0x100, 0x108, 0x108]))
+    regions.update({SYSTEM: struct.pack('<I', r.choice([SYS] * 9 + [0])), SVT: vtable({4: 2, 5: 2, 6: 2, 10: 1}),
+                    VVT: vtable({7: 0, 8: 1, 14: 1, 15: 1, 16: 2, 17: 2, 18: 1})})
+    return Call(address, [VOICE, OUT, r.getrandbits(32)], regions, conv='t', ret=ret)
+
+
 def case(r):
     name = r.deal(OPS)
     address, ret = CALLS[name]
@@ -284,6 +311,8 @@ def case(r):
         struct.pack_into('<I', parent, 0x4c, PARENT_PARAMS)
         struct.pack_into('<I', params, 0x1c, PARENT)
         regions.update({PARENT: parent, PARENT_PARAMS: parent_params})
+    if name in ('start', 'startcnt'):
+        return start_case(r, address, ret, log, voice, system, regions)
     if name in ROLL_OPS:
         return rolls(r, name, address, ret, log, voice, variations, system, regions)
     if name in ('linkctor', 'linkswctor'):
