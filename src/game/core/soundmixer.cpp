@@ -178,4 +178,28 @@ u32 *__fastcall SoundMixer_SendVoice(u8 *mixer, void *, u32 *out, u32 id, u32 va
     return out;
 }
 
+u32 *__fastcall SoundMixer_AddPage(u8 *mixer, void *, u32 *out) {
+    u8 *page;
+    s32 status;
+    if (*VoicePage_New(&status, &page, 100) < 0) {
+        *out = 0xffffffffu;
+        return out;
+    }
+    if (u8 *last = at<u8 *>(mixer, 0x1c)) {
+        while (at<u8 *>(last, 8)) last = at<u8 *>(last, 8);
+        at<u8 *>(last, 8) = page;
+    } else {
+        at<u8 *>(mixer, 0x1c) = page;
+    }
+    u8 *voice = page + 0xc;
+    for (int i = 0; i < 100; ++i, voice += 0x50) {
+        at<u32>(voice, 0x2c) = at<u32>(mixer, 0x2c)++;
+        at<u32>(voice, 0x30) = 0;
+        Chain20_PushFront(mixer, nullptr, voice);
+    }
+    ++at<u32>(mixer, 0x28);
+    *out = 0;
+    return out;
+}
+
 }  // extern "C"

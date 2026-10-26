@@ -3,7 +3,7 @@
 // fieldops), +0x30 a stamp counter (Obj_Inc30), +0x34 a byte its worker sets when it has stopped, +0x38 the stop request, +0x3c an
 // object and +0x40 / +0x44 blocks it owns. A voice: +0x24 its sound, +0x2c its id (the low 16 bits the slot Pages100_EntryAt finds,
 // the high 16 a stamp), +0x30 flags. Reimplementation of 0x6b6120, 0x6b6170, 0x6b6260, 0x6b6440, 0x6b6550, 0x6b6830, 0x6b6990,
-// 0x6b6ab0, 0x6b6ba0 and 0x6b62b0, and of the voice commands 0x6b64b0, 0x6b6510 and 0x6b65a0 (out: 0, or -1 when no voice has the id); the
+// 0x6b6ab0, 0x6b6ba0, 0x6b62b0 and 0x6b69b0, and of the voice commands 0x6b64b0, 0x6b6510 and 0x6b65a0 (out: 0, or -1 when no voice has the id); the
 // names are unconfirmed.
 #pragma once
 
@@ -65,5 +65,11 @@ u32 *__fastcall SoundMixer_SetVoicePending(u8 *mixer, void *, u32 *out, u32 id, 
 
 // 0x6b65a0 (thiscall (out, id, value), pops 0xc): the voice for the id's slot 0xc (value); *out = 0. Returns out.
 u32 *__fastcall SoundMixer_SendVoice(u8 *mixer, void *, u32 *out, u32 id, u32 value);
+
+// 0x6b69b0 (thiscall (out), pops 4; name invented): a new page of 100 voices (VoicePage_New); *out = -1 when that fails. Else the
+// page appended to the list at +0x1c (after its last page, through +8), each voice given the next id (+0x2c, the mixer's counter
+// +0x2c then raised), its flags +0x30 0 and pushed on the free chain (Chain20_PushFront), the pages' count +0x28 raised and *out = 0.
+// Returns out.
+u32 *__fastcall SoundMixer_AddPage(u8 *mixer, void *, u32 *out);
 
 }  // extern "C"
