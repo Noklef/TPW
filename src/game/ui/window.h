@@ -168,6 +168,11 @@ u32 __cdecl Window_ForgetGlobals(u8 *window);
 // its pairs [0xfaa578] are cleared and 1 is in AX; else 0. Only AX is set (sic: the rest of EAX is [0xfaa57c]'s).
 u32 __fastcall Window_DropModal(u8 *window);
 
+// 0x65e640 (thiscall (pairs), pops 4; called by 0x665e55; name unconfirmed): Window_DropModal's opposite: 0 in AX when the window has the
+// focus [0xfaa5ec]; else it becomes the modal one [0xfaa57c] with the pairs [0xfaa578], 1 in AX. Only AX is set (sic: the rest of EAX
+// is the focus's).
+u32 __fastcall Window_SetModal(u8 *window, void *, u32 pairs);
+
 // 0x65c2d8 (thiscall; name unconfirmed): the window and its children (from +0x5c by +0x54, each in turn) told they are going: sent 0x14
 // (0, 0) (Window_SendMessage), then the byte +4 set; after the children, Window_DropModal, and [0xfaa5ec] and [0xfaa5dc] cleared when
 // they are the window. EAX is left as [0xfaa5ec] as it was read.
@@ -263,6 +268,18 @@ u32 __cdecl Gui_MouseUp(u32 button, u32 x, u32 y);
 // set). Else the capture [0xfaa5e8], or without one the hovered window [0xfaa5e0], is posted 0x1000d (delta, x << 16 | y; signed, sic as
 // Gui_MouseDown's) (Window_PostMessage); 1 in AX.
 u32 __cdecl Gui_MouseWheel(u32 delta, u32 x, u32 y);
+
+// 0x658ab4 (cdecl (button, x, y: words); no callers; name unconfirmed, a double click going by the message): 0 in AX while [0x77c488]
+// is 0; else the hovered window [0xfaa5e0] is posted 0x10007 (button, x << 16 | y; all three signed, sic as Gui_MouseDown's)
+// (Window_PostMessage); 1 in AX. Only AX is set.
+u32 __cdecl Gui_MouseDouble(u32 button, u32 x, u32 y);
+
+// 0x658c38 / 0x658c67 / 0x658c96 (cdecl (key: a word, b); called from the window procedure 0x46b752; names unconfirmed, key down, key
+// up and a character going by it): 0 in AX while [0x77c488] is 0; else 0x1000a / 0x1000b / 0x1000c (key signed, b) posted with the
+// window 1 (Window_PostMessage, which sends those to the first window that takes them); 1 in AX. Only AX is set.
+u32 __cdecl Gui_KeyDown(u32 key, u32 b);
+u32 __cdecl Gui_KeyUp(u32 key, u32 b);
+u32 __cdecl Gui_KeyChar(u32 key, u32 b);
 
 // 0x6588ef (cdecl (x, y: words); name unconfirmed): the mouse moved. 0 in AX while [0x77c488] is 0. Else the words 0xfaa540 / 0xfaa544
 // = x / y; without the root window [0xfaa5d8], 0 in AX. With a capture window [0xfaa5e8], it is posted 0x10003 (x << 16 | y, both signed:

@@ -454,6 +454,15 @@ u32 __fastcall Window_DropModal(u8 *window) {
     return high | 1;
 }
 
+u32 __fastcall Window_SetModal(u8 *window, void *, u32 pairs) {
+    u8 *const focus = *reinterpret_cast<u8 *const *>((uintptr_t)0x00faa5ec);
+    const u32 high = (u32)(uintptr_t)focus & 0xffff0000u;  // sic: only AX is set, EAX held the focus
+    if (focus == window) return high;
+    *reinterpret_cast<u8 **>((uintptr_t)0x00faa57c) = window;
+    *reinterpret_cast<u32 *>((uintptr_t)0x00faa578) = pairs;
+    return high | 1;
+}
+
 u32 __fastcall Window_Destroying(u8 *window) {
     Window_SendMessage(window, 0x14, 0, 0);
     window[4] = 1;
@@ -660,6 +669,23 @@ u32 __cdecl Gui_MouseWheel(u32 delta, u32 x, u32 y) {
     Window_PostMessage(target, 0x1000d, delta, ((u32)(s32)(s16)x << 16) | (u32)(s32)(s16)y);
     return 1;  // (AX; the rest the post's answer, 0)
 }
+
+u32 __cdecl Gui_MouseDouble(u32 button, u32 x, u32 y) {
+    if (*reinterpret_cast<const u32 *>((uintptr_t)0x0077c488) == 0) return 0;  // only AX is set
+    Window_PostMessage(*reinterpret_cast<u8 *const *>((uintptr_t)0x00faa5e0), 0x10007, (u32)(s32)(s16)button,
+                       ((u32)(s32)(s16)x << 16) | (u32)(s32)(s16)y);
+    return 1;
+}
+
+static u32 Gui_PostKey(u32 message, u32 key, u32 b) {
+    if (*reinterpret_cast<const u32 *>((uintptr_t)0x0077c488) == 0) return 0;  // only AX is set
+    Window_PostMessage(reinterpret_cast<u8 *>((uintptr_t)1), message, (u32)(s32)(s16)key, b);
+    return 1;
+}
+
+u32 __cdecl Gui_KeyDown(u32 key, u32 b) { return Gui_PostKey(0x1000a, key, b); }
+u32 __cdecl Gui_KeyUp(u32 key, u32 b) { return Gui_PostKey(0x1000b, key, b); }
+u32 __cdecl Gui_KeyChar(u32 key, u32 b) { return Gui_PostKey(0x1000c, key, b); }
 
 u32 __cdecl Gui_MouseMove(u32 x, u32 y) {
     if (*reinterpret_cast<const u32 *>((uintptr_t)0x0077c488) == 0) return 0;  // only AX is set

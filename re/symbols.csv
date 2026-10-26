@@ -5483,6 +5483,11 @@ address,name,kind,confidence,notes
 0x0065d8e7,Window_GetSize14,function,low,"reimplemented (src/game/ui/window); thiscall (width, height): the size of +0x14; AX 1"
 0x0065f410,Window_AddWordsE4,function,low,"reimplemented (src/game/ui/window); thiscall (da, db): Window_SetWordsE4 with the words +0xe4 / +0xe6 plus those"
 0x0065f645,Window_NotifyBoth100,function,low,reimplemented (src/game/ui/window); thiscall (a): Window_NotifyImpl100 then Window_NotifyObject98_100; AX 1
+0x00658ab4,Gui_MouseDouble,function,low,"reimplemented (src/game/ui/window); cdecl (button, x, y): the hovered window posted 0x10007 while the GUI is up; AX 1 or 0"
+0x00658c38,Gui_KeyDown,function,low,"reimplemented (src/game/ui/window); cdecl (key, b): 0x1000a posted while the GUI is up; AX 1 or 0"
+0x00658c67,Gui_KeyUp,function,low,"reimplemented (src/game/ui/window); cdecl (key, b): 0x1000b posted while the GUI is up; AX 1 or 0"
+0x00658c96,Gui_KeyChar,function,low,"reimplemented (src/game/ui/window); cdecl (key, b): 0x1000c posted while the GUI is up; AX 1 or 0"
+0x0065e640,Window_SetModal,function,low,reimplemented (src/game/ui/window); thiscall (pairs): the window made the modal one with its pairs unless it has the focus; AX 1 or 0
 0x00498090,Dialog7ca1c8_SetChecks,function,low,"reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): the nine check buttons of the 0x7ca1c8 dialog's child 0x18 set (vtable slot 5, bool) from flags bits 0-8 (0x20's also needs [0x7ca1d0]+0x50)"
 0x00498a50,Dialog7ca1c8_SetChecksIfUp,function,low,reimplemented (src/game/ui/dialog7ca1c8); cdecl (flags): Dialog7ca1c8_SetChecks when [0x7ca1c8] and [0x7ca1cc] are not 0
 0x00481a00,Dialog7ca1c8_SetChecksIfUpThis,function,low,"reimplemented (src/game/ui/dialog7ca1c8); thiscall (flags), pops 4, this unused: Dialog7ca1c8_SetChecksIfUp(flags)"
