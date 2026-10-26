@@ -4,7 +4,8 @@
 # op's mostly, else the other or 2. Add / Add1 (and the wrappers): window7059f0.py's add_case() with at most one column (the callers'
 # texts are one stack slot: a second column would read the return address), its texts' first the text, its data the data. Remove /
 # SetData (and 1, and the wrappers): list_env()'s cells strings of window7059f0.py's ALPHA, 0-3 long (the buffers' counts kept), the
-# first column's bottom 0 mostly; the text one of them or another. Handler (0x4bed60): window.py's shown_env tree with its previous
+# first column's bottom 0 mostly; the text one of them or another; for SetData the list's rows mostly 1-3 row windows (window7059f0.py's
+# row_windows(), the array +0x148 set, the columns' slot 9 a recorder), so the refresh is seen. Handler (0x4bed60): window.py's shown_env tree with its previous
 # siblings +0x58 set as windowlinks.py's (Window_Unlink), the windows [0x7cc8cc] and [0x7cc8bc] of it (now and then none: a fault in
 # both), [0x7cc8c4] the window or another, the window's default handler +0x118 fncmp's logger; the message 0x14, 0x10006 or another.
 # usage: window7cc8bc.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Add,Remove,...)
@@ -17,8 +18,8 @@ sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import dialog7cc5f4  # noqa: E402
 import window7059f0 as w7  # noqa: E402
-from fncmp import CDECL_LOG4, LOG, RAM, Bench, Call, log_region, put  # noqa: E402
-from window import shown_env  # noqa: E402
+from fncmp import CDECL_LOG4, LOG, RAM, Bench, Call, log_region, put, vtable  # noqa: E402
+from window import notify_blobs, shown_env  # noqa: E402
 
 CALLS = {'Add': 0x4beb60, 'Remove': 0x4bebb0, 'SetData': 0x4bec00, 'Add1': 0x4bec60, 'Remove1': 0x4becb0, 'SetData1': 0x4bed00,
          'AddStd': 0x481820, 'RemoveStd': 0x481840, 'SetDataStd': 0x481850, 'Add1Std': 0x481870, 'Remove1Std': 0x481890,
@@ -52,7 +53,7 @@ def top(r, regions, mode):
     regions[TOP] = put(bytearray(r.bytes(0x100)), 0x5c, 'I', among(r, regions, MIDDLE, DECOYS + 0x200))
 
 
-def named(r):
+def named(r, rows=False):
     """list_env() with its cells strings of ALPHA (the counted buffers' chars at +3 rewritten, their lengths +8 0-3) and the first
     column's bottom mostly 0, at least one column and each item's first cell an object (taken from the other columns' cells when none is
     unused: FindText reads it unchecked); returns (regions, the text: one of the strings or another)"""
@@ -93,6 +94,14 @@ def named(r):
     regions[w7.COLS3] = cols
     text = r.choice(texts + [(0x42, 0x41, 0x41, 0x41)])
     regions[TEXT] = struct.pack('<%dH' % (len(text) + 1), *text, 0)
+    if rows and r.random() < 0.85:   # (SetData's refresh: 1-3 row windows as window7059f0.py's refresh_case's, their columns' slot 9 a recorder)
+        nrows = r.choice([1, 2, 3])
+        put(window, 0x172, 'h', nrows)
+        wins = w7.row_windows(r, regions, [], nrows, ncols, w7.LIST3)
+        regions[w7.ROWS2] = struct.pack('<%dI' % (nrows + 1), *wins, r.getrandbits(32))
+        put(window, 0x148, 'I', w7.ROWS2)
+        regions[w7.VTABLE] = vtable({5: 1, 3: 2, 0: 1, 7: 1, 9: 1})
+        notify_blobs(regions[LOG], 0, 0x3c00)
     return regions, TEXT
 
 
@@ -152,7 +161,7 @@ def case(r):
         top(r, regions, mode)
         text = struct.unpack_from('<I', regions[w7.ATEXTS])[0]
         return Call(CALLS[op], [text, c.args[2]], regions, conv=conv, ret='v', masks=c.masks)
-    regions, text = named(r)
+    regions, text = named(r, rows='SetData' in op)
     top(r, regions, mode)
     args = [text] if 'Remove' in op else [text, r.getrandbits(32)]
     return Call(CALLS[op], args, regions, conv=conv, ret='v')

@@ -11,7 +11,7 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import CDECL_LOG4, RAM, blob, blob_bytes, put, recorder, set_return, vtable  # noqa: E402
+from fncmp import CDECL_LOG4, LOG_BLOBS, RAM, blob, blob_bytes, blob_when_inner, put, recorder, set_return, vtable  # noqa: E402
 
 RANGES = [(0x498090, 0x4981e0), (0x498a50, 0x498a80), (0x65d7bc, 0x65d832), (0x65f697, 0x65f6d1), (0x658d9f, 0x658df4), (0x659710, 0x659721),
           (0x4b87f0, 0x4b8850), (0x4b8e80, 0x4b8ea0), (0x4b8ec0, 0x4b8ee0), (0x4b9c00, 0x4b9c40),
@@ -227,6 +227,16 @@ def notify_blobs(log, mask, inner):
     points to (none for 0: the pointer is unset then)"""
     for k in (3, 22):
         blob_bytes(log, k, 1, mask, (0x10, inner) if inner else None)
+
+
+def notify_inner(log, k=3):
+    """slot k's recorder (its event a blob_bytes() hash; of none of its bytes when no blob is set yet) hashing, for the GUI's notifications
+    of one kind each, the bytes they set in the second event: 0xc00 (Window_NotifyC00: +4 / +5), 0x10000 (Window_Set4c: +8), 0x40000
+    (Window_Notify40000: +0x10-+0x13) and 0x100 (Window_NotifyImpl100: the dword +0). Takes blob_when()'s four entries."""
+    if not struct.unpack_from('<I', log, LOG_BLOBS + 8 * (k & 63))[0]:
+        blob_bytes(log, k, 1, 0)
+    for entry, (flags, mask, base) in enumerate(((0xc00, 3, 4), (0x10000, 1, 8), (0x40000, 0xf, 0x10), (0x100, 0xf, 0))):
+        blob_when_inner(log, k, 0, flags, (0x10, mask, base), entry)
 
 
 def word(r):

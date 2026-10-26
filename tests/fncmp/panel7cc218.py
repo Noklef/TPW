@@ -2,7 +2,7 @@
 # calls) against the original: panel7cc258.py's surroundings (dialogbuild.py's chain(), panelparts.py's heap and the meshes' vtable
 # 0x6feeb8 slots 3 / 5 recorders, the text parts' slot 3 a recorder, the manager's slot 13 a recorder, the park's things and the group
 # +4 counted) with the selected thing at [0x7cc208]; the panel's window +0x10 the row whose children are the ones looked up (0x3e26 /
-# 0x3e27 hidden when the group counts under 2, the gauges 0x3e2d / 0x3e30 (0x705b20 sliders: kid()s grown to 0x160 bytes) each with its
+# 0x3e27 hidden when the group counts under 2; the text parts' slot 3 events hashed as window.py's notify_inner(), the gauges 0x3e2d / 0x3e30 (0x705b20 sliders: kid()s grown to 0x160 bytes) each with its
 # own children, 0x3e2e among 0-2 decoys, the slider 0x3e2f, the texts 0x3e31 / 0x3e33 / 0x3e32, the hover label 0x3e28 (its object
 # +0x98 set)), each a dialogbuild.py kid() shuffled among 0-2 decoys, now and then one missing (none is checked: a fault in both).
 # Gauges (0x4ae980 alone): the same, the window +0x10 none now and then.
@@ -22,6 +22,7 @@ import dialogbuild  # noqa: E402
 import objectqueue  # noqa: E402
 import panel7cc258  # noqa: E402
 import panelparts  # noqa: E402
+import window  # noqa: E402
 import window705a50  # noqa: E402
 from fncmp import CDECL_LOG4, LOG, RAM, Bench, Call, blob_bytes, put, recorder, vtable  # noqa: E402
 from thingenv import ITEM, ITEMS  # noqa: E402
@@ -170,6 +171,7 @@ def case(r):
             put(w, 0x98, 'I', dialogbuild.listrows.OBJ98)
     surround(r, regions)
     regions[0x6ff320 + 0xc] = struct.pack('<I', recorder(3, 2))   # (the new text parts told: their slot 3 a recorder too)
+    window.notify_inner(regions[LOG])   # (its events hashed with the bytes each notification sets)
     regions[0x7c2658] = r.bytes(0x10)   # (the count's value and count)
     panel = bytearray(r.bytes(0x30))
     put(panel, 4, 'i', r.choice([-1] * 5 + [4, 0x3e9, -3]))

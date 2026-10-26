@@ -3,7 +3,8 @@
 # then the dialog (kind 1) whose children are 0xadb3 (kind 1, the hover label: the shared text part [0x7c2118] random bytes, its vtable a
 # recorder) and 0xada1 (kind 1; its own children the seventeen texts and figures, kind 1 mostly, among 0-2 decoys), in any order among 0-2
 # decoys, now and then one of them missing (a fault in both, or for 0xada1 nothing more); the window kinds' slots 5 and 7 recorders (game
-# code the driver cannot run natively), the 0x6ff350 / 0x6ff3b0 text parts' slots 3 and 9 too (unported); the language texts 0xba-0xc1
+# code the driver cannot run natively), the 0x6ff350 / 0x6ff3b0 text parts' slots 3 and 9 too (unported; slot 3's events hashed with the
+# bytes each notification sets: window.py's notify_inner()); the language texts 0xba-0xc1
 # (panelparts.py's texts()). The game record [0x7cf83c]'s analyser (its handle +0x1da720 into the table 0x7cfb90) with its CircBufU32s
 # 0, 1, 2, 5 and 15: the cursor -1..143 (now and then 0-12, the wrap's edge), the entries 0, 1, 12, 13 or 144 mostly (now and then any),
 # wrapped or not. The heap fails now and then (in the script's build, a fault in both: its countdown cannot reach the parts).
@@ -18,7 +19,8 @@ sys.path.insert(0, HERE)
 import dialogbuild  # noqa: E402
 import focus  # noqa: E402
 import panelparts  # noqa: E402
-from fncmp import HEAP, RAM, Bench, Call, heap, put, recorder, vtable  # noqa: E402
+import window  # noqa: E402
+from fncmp import HEAP, LOG, RAM, Bench, Call, heap, put, recorder, vtable  # noqa: E402
 
 CALLS = {'Create': 0x4b7b00}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
@@ -88,6 +90,7 @@ def case(r):
     for vt in (0x6ff350, 0x6ff3b0):   # (those parts' layout and text: unported)
         regions[vt + 0xc] = struct.pack('<I', recorder(3, 2))
         regions[vt + 0x24] = struct.pack('<I', recorder(9, 1))
+    window.notify_inner(regions[LOG])   # (their slot 3 told the alignment bytes, the font, the colour and the text: hashed)
     regions[SHARED] = put(put(bytearray(r.bytes(0x60)), 0, 'I', SHAREDVT), 0x10, 'hh', r.choice([0, 1, 2]), r.choice([0, 1, 2]))
     regions[SHAREDVT] = vtable({3: 2, 5: 1})
     panelparts.texts(r, regions, list(range(0xba, 0xc2)))
