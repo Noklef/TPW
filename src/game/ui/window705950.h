@@ -58,4 +58,16 @@ u32 __cdecl Window705950_Proc(u8 *window, u32 message, u32 a, u32 b);
 // else the n-th node from that one in a depth-first walk (a node's first child +0x48, else the next +0x44 of it or of its nearest
 // parent (+0x4c) with one); negative n the first.
 u8 *__fastcall Window705950_NthNode(u8 *window, void *, s32 n);
+
+// 0x65b766 (thiscall (n, value), pops 8; name unconfirmed): the n-th node's (Window705950_NthNode) dword +0x40 set to value; AX 1, or 0
+// without that node.
+u16 __fastcall Window705950_SetNodeData(u8 *window, void *, s32 n, u32 value);
+
+// 0x65b818 (thiscall (n, out), pops 8; name unconfirmed): *out the n-th node's dword +0x40; AX 1, or 0 (out untouched) without that node.
+u16 __fastcall Window705950_GetNodeData(u8 *window, void *, s32 n, u32 *out);
+
+// 0x65ad43 (thiscall (font), pops 4; name unconfirmed): Window_Set4c (font); with a font, the row height +0x154 its slot 1's AX and
+// the rows shown +0x156 the inner rectangle's height (bottom +0x142 less top +0x13e, signed words) over it (signed; a height of 0
+// faults, sic).
+void __fastcall Window705950_SetFont(u8 *window, void *, u8 *font);
 }
