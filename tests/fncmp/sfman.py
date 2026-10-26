@@ -177,13 +177,16 @@ def case(r):
         select(r, log, 8)
         if name != 'open':   # (the holder's: the synthesiser a new block, Fn_6d3b90's, from the heap; +4 random before)
             regions.update({HEAP: heap(0x200), HOST: r.bytes(8)})
+            if r.random() < 0.5:   # (an open that gets through: the steps' answers all good)
+                for k, v in ((LOAD_K, 0x10000), (PROC_K, MANAGER), (MANAGER_K, 0), (OPEN_K, 0), (PREP_K, 0), (LONG_K, 0), (4, 0)):
+                    set_return(log, k, v)
             return Call(CALLS[name], [HOST, OUT], regions, conv='t', ret='a')
         return Call(0x6d3bc0, [SELF, OUT], regions, conv='t', ret='a')
     if name in ('close', 'dtor', 'hostclose', 'hostdtor'):
         me[0x14] = r.choice([1, 1, 1, 0, r.getrandbits(8)])
         word(log, 5, 0)
         if name.startswith('host'):   # (the holder's synthesiser SELF or none)
-            regions[HOST] = r.bytes(4) + struct.pack('<I', SELF if r.random() < 0.85 else 0)
+            regions.update({HEAP: heap(0x100), HOST: r.bytes(4) + struct.pack('<I', SELF if r.random() < 0.85 else 0)})
             return Call(CALLS[name], [HOST], regions, conv='t', ret='v')
         return Call(CALLS[name], [SELF], regions, conv='t', ret='a')
     if name in ('getname', 'count', 'loadbank'):
