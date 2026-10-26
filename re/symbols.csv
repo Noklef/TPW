@@ -1809,6 +1809,7 @@ address,name,kind,confidence,notes
 0x005c8980,GamePaths_OnlineFolder,function,low,"reimplemented (src/game/files/gamepaths); stdcall (out): the save folder with ""\"" and ""online"" appended, copied into out; returns out (name unconfirmed)"
 0x005c7ac0,GamePaths_MakeFolders,function,low,"reimplemented (src/game/files/gamepaths); thiscall, this unused (root wide String): for each name listed at [0x786b90], root + the String at 0xf81b48 + the name; when that folder does not open (Handle_Open28) it is created (Dir_Create)"
 0x005aa650,GamePaths_SetSecondRoot,function,low,"reimplemented (src/game/files/gamepaths); the second path string of 0xf816c0 = the drive String (by value, destroyed), "":"" and the String at 0xf79fe8"
+0x005aa500,GamePaths_FindDisc,function,low,"reimplemented (src/game/files/gamepaths); the CD check's loop: drives listed (type mask 8) or a retry/cancel MessageBoxW; the disc's drive letter to GamePaths_SetSecondRoot; 1 found, 0 cancelled"
 0x005c53c0,DirEntry_IsWad,function,low,"reimplemented (src/game/files/direntry); cdecl (entry); whether the entry's name ends in the global "".wad"" String (0xf80808, Names_Equal)"
 0x0055e470,CpuInfo_Ctor,function,high,"reimplemented (src/game/core/cpuinfo); thiscall; CPUID probe (EFLAGS.ID test, then the vendor string and features); SystemInfo's base"
 0x00591210,Cpu_Ticks,function,low,reimplemented (src/game/core/cpuinfo); cdecl: the low dword of the time-stamp counter (rdtsc)

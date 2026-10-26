@@ -3,11 +3,15 @@
 
 #include <cstdint>
 
+#include "../core/app.h"
 #include "../core/crt.h"
+#include "../core/language.h"
+#include "../core/methods.h"
 #include "../core/string.h"
 #include "../core/trivial.h"
 #include "../core/vcall.h"
 #include "../core/vwrap.h"
+#include "drives.h"
 #include "file.h"
 #include "handles.h"
 
@@ -55,6 +59,36 @@ void __cdecl GamePaths_SetSecondRoot(String drive) {
     String_Dtor(&unused);
     String_Dtor(&path);
     String_Dtor(&drive);
+}
+
+u32 __fastcall GamePaths_FindDisc(u8 *check) {
+    WString text;
+    WString_Ctor(&text);
+    WString caption;
+    WString_Ctor(&caption);
+    vcall<void>(&text, 0x14, Language_Widen(Records_DataIfTerminated(*at<const u8 *const *>(0x0078ba88), nullptr, 9)));
+    WString_AssignFromAnsi(&caption, reinterpret_cast<const String *>(0x00f7a7c8));
+    using Box = s32(__stdcall *)(void *, const u16 *, const u16 *, u32);
+    const Box box = *reinterpret_cast<const Box *>(0x006fd378);   // MessageBoxW (read once, as the original)
+    SystemInfo *const info = reinterpret_cast<SystemInfo *>(check + 0x10);
+    StringList *const list = reinterpret_cast<StringList *>(check);
+    u32 found = 0;
+    for (;;) {
+        s32 status;
+        if (*SystemInfo_ListDrives(info, nullptr, &status, list, 8) >= 0) {
+            const char letter = static_cast<char>(SystemInfo_FindVolume(info, nullptr, list, *at<const char *const *>(0x00f7a7d0)));
+            String drive;
+            String_CtorChar(&drive, nullptr, &letter);
+            GamePaths_SetSecondRoot(drive);
+            found = 1;
+            break;
+        }
+        if (box(App_GetWindow(), text.data, caption.data, 0x15) == 2)   // (MB_RETRYCANCEL | MB_ICONHAND; IDCANCEL)
+            break;
+    }
+    WString_Dtor(&caption);
+    WString_Dtor(&text);
+    return found;
 }
 
 u32 __cdecl GamePaths_FontsFolder(char *out) {

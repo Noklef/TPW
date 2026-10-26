@@ -20,6 +20,14 @@ void __fastcall GamePaths_MakeFolders(void *, void *, const WString *root);
 // its +0x14's vtable +0x18); a second local String is made and destroyed unused. Its caller (in 0x5aa4xx's drive scan) passes a drive's letter.
 void __cdecl GamePaths_SetSecondRoot(String drive);
 
+// 0x5aa500 (thiscall on the CD check, its only caller 0x45f84f: a StringList at +0, the system-info object at +0x10; name unconfirmed):
+// a WString text (vtable +0x14) widened (Language_Widen) from record 9 of the table [0x78ba88] (Records_DataIfTerminated) and a caption
+// from the String 0xf7a7c8 (WString_AssignFromAnsi). Until the drives of type mask 8 are listed into the list (SystemInfo_ListDrives
+// with a status >= 0) a MessageBoxW (the import [0x6fd378], read once) over the app's window with text and caption, 0x15 (retry,
+// cancel; the hand icon), asks again; IDCANCEL (2) returns 0. Listed: the letter of the volume labelled as [0xf7a7d0] (that String's data;
+// SystemInfo_FindVolume) as a one-char String (String_CtorChar) to GamePaths_SetSecondRoot, and 1 returned. Both WStrings destroyed.
+u32 __fastcall GamePaths_FindDisc(u8 *check);
+
 // 0x468250 (cdecl; out): with no text in the root folder's string (Obj_Self of 0xf816c0, its data at +8) 0; else out = the root and "Data\Fonts"
 // (0x74d6c0) by sprintf, "%s%s" (0x74d320) when the root's last char is "\" and "%s\%s" (0x7488ac) when not (an empty root: the byte before its
 // text read, sic), and 1.

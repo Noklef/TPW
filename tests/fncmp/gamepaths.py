@@ -7,19 +7,20 @@
 # (0x5c7c70) and OnlineFolder (0x5c8980) are the same with the global wide "\" (0xf82508) and "users" (0xf81ff8) / "online" (0xf820e8) appended,
 # now and then other texts. SecondRoot (0x5aa650) takes a String by value (its five dwords on the stack: a drive letter mostly, any short text or
 # none) and assigns it with ":" and the String at 0xf79fe8 appended to the String at 0xf816d4 (the heap's allocations failing now and then: the
-# harness's countdown, a fault in both).
-# usage: gamepaths.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=FontsFolder,TexFolders,SaveFolder,UsersFolder,OnlineFolder,SecondRoot)
+# harness's countdown, a fault in both). FindDisc (0x5aa500): see find_disc().
+# usage: gamepaths.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=FontsFolder,TexFolders,SaveFolder,UsersFolder,OnlineFolder,SecondRoot,FindDisc)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import IMPORT_TABLE, LOG, Bench, Call, HEAP, RAM, fill, global_heap, heap, import_table, log_region, put, set_return  # noqa: E402
+from fncmp import IMPORT_TABLE, LOG, Bench, Call, HEAP, RAM, fail_after, fill, global_heap, heap, import_table, log_region, put, set_return  # noqa: E402
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import gamestring  # noqa: E402
 
 B = Bench([(0x468250, 0x4682b0), (0x5c5520, 0x5c5530), (0x67a400, 0x690000), (0x4688b0, 0x468902), (0x5c7bd0, 0x5c7c64), (0x424e10, 0x424e6e),
-           (0x5f5660, 0x5f5690), (0x5f5fc0, 0x5f7f00), (0x5c7c70, 0x5c7cfd), (0x5c8980, 0x5c8a0d), (0x5aa650, 0x5aa720), (0x5c5530, 0x5c5560)])
+           (0x5f5660, 0x5f5690), (0x5f5fc0, 0x5f7f00), (0x5c7c70, 0x5c7cfd), (0x5c8980, 0x5c8a0d), (0x5aa650, 0x5aa720), (0x5c5530, 0x5c5560),
+           (0x5aa500, 0x5aa64e), (0x5f5f00, 0x5f5fc0), (0x5f7f00, 0x5f9000), (0x6ace60, 0x6acea0), (0x485ac0, 0x485af4)])
 PATHS = 0xf816c0
 ROOT, OUT = RAM + 0x100, RAM + 0x1000
 CHARS = b'abcXYZ09:\\/. _%'
@@ -71,8 +72,54 @@ def second_root(r):
     return Call(0x5aa650, arg, regions)
 
 
+DISC, RECORDS, LABEL = RAM + 0x5000, RAM + 0x5100, RAM + 0x5400
+
+
+def find_disc(r):
+    """0x5aa500 (thiscall on the CD check: a StringList at +0, empty, the system-info object at +0x10): second_root()'s globals; the text a
+    record (index 9 of the table at [0x78ba88]: there, out of range, or not terminated: no text) widened (0x78ba80 off: the static buffer
+    0x7ba058 as it is); the caption the label String at 0xf7a7c8 (drives.py's labels) widened by MultiByteToWideChar (a recorder writing a
+    wide text); GetLogicalDriveStringsA failing (its hash: a count past 0x100) for its first 0-3 calls, then drives.py's roots and answers;
+    GetDriveTypeA one type, GetVolumeInformationA a label or a failure; MessageBoxW (logged) answering its hash (retry) for its first 0-3
+    calls, then IDCANCEL (2). The heap fails now and then (its countdown; a fault in both)."""
+    c = second_root(r)
+    regions = c.regions
+    log = log_region()
+    table = import_table(log, {'MultiByteToWideChar': (MB2WC, 0x6fd174, 6, 4, 0), 'GetLogicalDriveStringsA': (41, 0x6fd0a0, 2, 0, 2),
+                               'GetDriveTypeA': (42, 0x6fd09c, 1, 1, 0), 'GetVolumeInformationA': (43, 0x6fd0a4, 8, 1, 2), 'MessageBoxW': (44, 0x6fd378, 4, 0, 0)})
+    for at, stub in global_heap().items():
+        table[at - IMPORT_TABLE:at - IMPORT_TABLE + 4] = stub
+    labels = [b'THEMEPARK', b'ThemePark', b'TP', b'', b'THEMEPARKWORLD12345']
+    label = r.choice(labels)
+    n = len(label)
+    set_return(log, MB2WC, n + 1)
+    fill(log, MB2WC, 4, (struct.pack('<%dH' % n, *label) + bytes(2))[:0x70], 2)
+    roots = r.choice([[b'C:\\', b'D:\\'], [b'A:\\', b'C:\\', b'D:\\', b'E:\\'], [b''], [b'C:\\'], [b'X', b'D:\\'], []])
+    strings = b''.join(x + b'\0' for x in roots) + b'\0'
+    fill(log, 41, 1, strings, 0)
+    fail_after(log, 41, r.choice([0, 0, 1, 2, 3]), r.choice([len(strings) - 1, len(strings) - 1, 0]))
+    set_return(log, 42, r.choice([5, 5, 3, 2, 4, 6, r.getrandbits(32)]))
+    fill(log, 43, 1, r.choice(labels) + b'\0', 1)
+    set_return(log, 43, r.choice([0, 1, 1, 1]))
+    fail_after(log, 44, r.choice([0, 1, 2, 3]), 2)
+    gamestring.string(r, 0, 0xf7a7c8, LABEL, regions, label)
+    rec = bytearray(r.bytes(0x40))
+    text = r.choice([b'Please insert the disc', b'', b'x', b'abc'])
+    put(rec, 0, 'I', 1 | (len(text) + 1) << 8 if r.random() < 0.9 else r.getrandbits(32))
+    rec[4:5 + len(text)] = text + b'\0'
+    put(rec, 4 + (len(text) + 4 & ~3), 'I', 0 if r.random() < 0.9 else 1)
+    regions.update({LOG: log, IMPORT_TABLE: table, HEAP: heap(0x8000, r.choice(range(1, 9)) if r.random() < 0.04 else 0),
+                    DISC: struct.pack('<4I', 0x6fe680, 0, 0, 0) + r.bytes(0x20), 0xfb1440: bytes(4), 0xfa7610: r.bytes(4),
+                    0x78ba88: struct.pack('<I', RECORDS), RECORDS: struct.pack('<4I', 0, 0, r.choice([10, 10, 10, 9]), RECORDS + 0x10)
+                    + struct.pack('<10I', *[RECORDS + 0x40] * 10) + bytes(0x08) + rec, 0x78ba80: bytes(4),
+                    0x7ba058: 'Disc?'.encode('utf-16-le') + bytes(2) + r.bytes(8)})
+    return Call(0x5aa500, [DISC], regions, conv='t', ret='a')
+
+
 def case(r):
     op = r.deal(OPS)
+    if op == 'FindDisc':
+        return find_disc(r)
     if op == 'SecondRoot':
         return second_root(r)
     if op == 'SaveFolder':
@@ -101,7 +148,7 @@ def case(r):
     return Call(0x468250, [OUT], regions, ret='a')
 
 
-OPS = [k for k in os.environ.get('OPS', 'FontsFolder,TexFolders,SaveFolder,UsersFolder,OnlineFolder,SecondRoot').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'FontsFolder,TexFolders,SaveFolder,UsersFolder,OnlineFolder,SecondRoot,FindDisc').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)
