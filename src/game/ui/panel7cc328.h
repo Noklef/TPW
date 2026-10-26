@@ -39,6 +39,11 @@ void __fastcall Panel7cc328_AddStaff(u8 *self, void *, u8 *staff);
 // (Window7059f0_FindItemData) removed (Window7059f0_RemoveItem) when there is one.
 void __fastcall Panel7cc328_RemoveStaff(u8 *self, void *, u8 *staff);
 
+// 0x481960 (thiscall (handle, added), pops 8; this, 0x7b51f0 at its one caller 0x50cb53, unused; name unconfirmed): the thing of the
+// handle's low word ([0x7cfb90] + handle * 20) added to the staff panel 0x7cc328 (Panel7cc328_AddStaff) when added is set, else removed
+// (Panel7cc328_RemoveStaff). (The debug print of whether the table's first slot is empty is left out.)
+void __fastcall Panel7cc328_OnStaff(void *self, void *, u32 handle, u32 added);
+
 // 0x4b46a0 (thiscall; slot 3 of the vtable 0x6ffdd8): the window +0x14's children dressed (ui/panelparts; the window and the children not
 // checked, the window read again for each): 0x1e8b text 0x38, 0x1e8a a 0x6ff3b0 part with 0.
 void __fastcall Panel7cc328_Dress(u8 *self);

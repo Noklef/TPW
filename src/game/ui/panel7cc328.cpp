@@ -97,6 +97,15 @@ void __fastcall Panel7cc328_RemoveStaff(u8 *self, void *, u8 *staff) {
     if (n >= 0) Window7059f0_RemoveItem(list, nullptr, n);
 }
 
+void __fastcall Panel7cc328_OnStaff(void *, void *, u32 handle, u32 added) {
+    u8 *const staff = global<u8 *>(0x007cfb90 + (handle & 0xffff) * 20u);
+    u8 *const panel = reinterpret_cast<u8 *>((uintptr_t)0x007cc328);
+    if (added)
+        Panel7cc328_AddStaff(panel, nullptr, staff);
+    else
+        Panel7cc328_RemoveStaff(panel, nullptr, staff);
+}
+
 void __fastcall Panel7cc328_Dress(u8 *self) {
     panelparts::text(at<u8 *>(self, 0x14), 0x1e8b, 0x38);
     panelparts::part(at<u8 *>(self, 0x14), TextPart6ff3b0_Ctor, 0x1e8a, 0);
