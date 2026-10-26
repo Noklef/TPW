@@ -66,7 +66,7 @@ def case(r):
         set_return(log, 17, r.choice([1, 2, 2, 0x102, r.getrandbits(32)]))
         set_return(log, 16, r.choice([8, 0x10, 0x10, 0x110, r.getrandbits(32)]))
         length = r.choice([0, 0, r.randrange(1, 0x10000), r.randrange(0x10000, 0x1000000), r.getrandbits(32)])
-        ms = r.choice([0, 1, r.randrange(1000), r.randrange(1, 100000), r.getrandbits(32), r.getrandbits(32)])
+        ms = r.choice([0, 1, r.randrange(1000), r.randrange(1, 100000), r.randrange(1 << 24, 1 << 25) | 1, r.getrandbits(32)])   # (odd past 2^24: not a float)
         if r.random() < 0.3:   # (the length about the offset: an estimate in floats, one either side)
             rate, ch, bits = (struct.unpack_from('<I', log, LOG_RETURNS + 8 * k + 4)[0] for k in (6, 17, 16))
             f = f32(f32(ms * f32(0.001)) * rate) * (2 if ch & 0xff == 2 else 1) * (2 if bits & 0xff == 0x10 else 1)
