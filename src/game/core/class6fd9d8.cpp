@@ -181,6 +181,15 @@ void __fastcall Class6fda88_FullDtor(u8 *object) { Derived(object, 0x006fda88); 
 
 void __fastcall Class6fdac8_FullDtor(u8 *object) { Derived(object, 0x006fdac8); }
 
+u8 *__fastcall Class6fdaa4_Ctor(u8 *object, void *, const DirEntry *entry, const String *path) {
+    String_Ctor(reinterpret_cast<String *>(object + 4));
+    String_Ctor(reinterpret_cast<String *>(object + 0x18));
+    Handle_Ctor(reinterpret_cast<Handle *>(object + 0x2c));
+    at<u32>(object, 0) = 0x006fdaa4;
+    Class6fdaa4_SetEntry(object, nullptr, entry, path);
+    return object;
+}
+
 void __fastcall Class6fdaa4_Dtor(u8 *object) {
     at<u32>(object, 0) = 0x006fdaa4;
     Handle_Dtor(reinterpret_cast<Handle *>(object + 0x2c));

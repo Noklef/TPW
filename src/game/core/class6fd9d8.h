@@ -43,6 +43,10 @@ void __fastcall Class6fda58_DtorC(u8 *object);
 void __fastcall Class6fda88_FullDtor(u8 *object);
 void __fastcall Class6fdac8_FullDtor(u8 *object);
 
+// 0x41dc80 (thiscall (entry, path), pops 8; name unconfirmed): the strings at +4 and +0x18 (String_Ctor) and the handle at +0x2c
+// (Handle_Ctor) constructed, the vtable 0x6fdaa4, then Class6fdaa4_SetEntry(entry, path). Returns the object.
+u8 *__fastcall Class6fdaa4_Ctor(u8 *object, void *, const DirEntry *entry, const String *path);
+
 // 0x41e470 (thiscall): the vtable 0x6fdaa4 is set, the handle at +0x2c destroyed, then the strings at +0x18 and +4 (String_Dtor).
 void __fastcall Class6fdaa4_Dtor(u8 *object);
 

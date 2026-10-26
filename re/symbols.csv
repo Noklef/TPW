@@ -4165,6 +4165,7 @@ address,name,kind,confidence,notes
 0x0041cc20,Class6fd9d8_AddFolderAndWadBoth,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (path): Class6fd9d8_AddFolderAndWad, then Class6fd9d8_AddFolderAndWadIn, on the path (name unconfirmed)"
 0x0041e8e0,Class6fd9d8_FindFirstMatch,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (base, arg): base + ""*"" tried on the list objects through slot 1; the first found gets slot 4 (arg, 0x78be50); 1 / 0 in AL; name unconfirmed"
 0x0041ec30,Class6fdaa4_SetEntry,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (entry, path), pops 8: the name (+4) from the entry's name and the path (+0x18) from path, each with "".wad"" stripped, the name trimmed; a WAD or folder handle opened on path, assigned to +0x2c when it opened (name unconfirmed)"
+0x0041dc80,Class6fdaa4_Ctor,function,low,"reimplemented (src/game/core/class6fd9d8); the 0x6fdaa4 object constructed: its two Strings and handle, the vtable, then Class6fdaa4_SetEntry(entry, path)"
 0x004254c0,Animator_Sleep,function,high,reimplemented (src/game/model/holder); the holder sleeps and flag 0x4000 clears
 0x004de110,Object_BackOfQueueTo,function,high,reimplemented (src/game/world/objectmsg); Object_BackOfQueue returning out
 0x004ddf40,Object_QueuePositionOfNone,function,high,reimplemented (src/game/world/objectmsg); the position of the person with no handle
