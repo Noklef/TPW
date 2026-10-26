@@ -4531,6 +4531,10 @@ address,name,kind,confidence,notes
 0x006d3bc0,SfMan_Open,function,low,"reimplemented (src/game/core/sfman); SFMAN32.DLL loaded, its SFManager export asked for the API table, the MIDI out device opened and the best SoundFont device selected"
 0x006d3c90,SfMan_SelectDevice,function,low,"reimplemented (src/game/core/sfman); the SoundFont devices scored by their capabilities and free memory, the best that opens selected, its version sent as a system-exclusive message"
 0x006d3f20,SfMan_Close,function,low,"reimplemented (src/game/core/sfman); all notes off, the bank unloaded, the MIDI out handle and the device closed, the library freed"
+0x006c47f0,SfHost_Open,function,low,"reimplemented (src/game/core/sfman); thiscall out, pops 4: the synthesiser's holder opens a new SoundFont synthesiser into +4 (SfMan_Open); on failure it is destroyed, freed and +4 cleared; *out 0 or -1 (name invented)"
+0x006c47c0,SfHost_OpenOut,function,low,"reimplemented (src/game/core/sfman); thiscall out, pops 4: SfHost_Open; returns out (name invented)"
+0x006c48b0,SfHost_Close,function,low,"reimplemented (src/game/core/sfman); thiscall: with a synthesiser, SfMan_Close, SfMan_Dtor and Mem_Free; +4 cleared (name invented)"
+0x006c47e0,SfHost_Dtor,function,low,"reimplemented (src/game/core/sfman); thiscall: the holder's destructor: SfHost_Close, +0 = 0 (name invented)"
 0x006d4ee0,VoiceBits_Read,function,low,"reimplemented (src/game/core/voicecodec); the voice codec's bit read over memory: the low n bits through the mask table, a byte loaded when fewer than 8 are left"
 0x006d4fa0,VoiceBits_Skip,function,low,reimplemented (src/game/core/voicecodec); the voice codec's bit skip over memory
 0x006d4f30,VoiceBitsBuffered_Read,function,low,reimplemented (src/game/core/voicecodec); the voice codec's bit read over a 0x2000-byte buffer refilled through its stream

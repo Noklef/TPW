@@ -62,4 +62,16 @@ u32 __fastcall SfMan_Close(u8 *self);
 // 0x6d3bb0: the destructor, a jump to 0x6d3f20.
 u32 __fastcall SfMan_Dtor(u8 *self);
 
+// The synthesiser's holder (8 bytes, built by Init_6c47b0: +0 0, +4 the synthesiser or null; the sound system's +0x1c, 0x6b7870; names
+// invented). 0x6c47f0 (thiscall out; pops 4; an SEH frame for the new): a 0x1c-byte block (Mem_Alloc; Fn_6d3b90 on it when not null)
+// into +4 and SfMan_Open on it (sic: on null too); when that answers >= 0, *out = 0; else the synthesiser (+4 read again) destroyed
+// (SfMan_Dtor) and freed (Mem_Free) when not null, +4 = 0 and *out = -1. Returns out.
+u32 *__fastcall SfHost_Open(u8 *host, void *, u32 *out);
+// 0x6c47c0 (thiscall out; pops 4): SfHost_Open. Returns out.
+u32 *__fastcall SfHost_OpenOut(u8 *host, void *, u32 *out);
+// 0x6c48b0 (thiscall): with a synthesiser (+4), SfMan_Close, then (+4 read again) SfMan_Dtor and Mem_Free when not null, +4 = 0.
+void __fastcall SfHost_Close(u8 *host);
+// 0x6c47e0 (thiscall): the destructor: SfHost_Close, +0 = 0.
+void __fastcall SfHost_Dtor(u8 *host);
+
 }  // extern "C"
