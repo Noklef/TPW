@@ -8,8 +8,8 @@
 # or not, now and then holding the block the new String will get, now and then a count with no head), allocations failing now and then.
 # And the owner's frame update 0x409260 (the game clock's step and the flags 0x7a1a14), and its theme labels 0x409a30 / 0x4099b0 (see theme()).
 # And its folders 0x4088a0 and 0x4081e0 (see mounts(): the whole chain below runs, the constructors, AddFolderAndWad with fileopen.py's imports, the adds),
-# and the fixed ones 0x408470 (see fixed()).
-# usage: namedobjects.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Remove,Ctor,Dtor,Static,Add,Flags,Theme,ThemeAnsi,Folders,Listed,Fixed)
+# and the fixed ones 0x408470 (see fixed()). And the subfolders' names 0x5c2ce0 (see subfolders()).
+# usage: namedobjects.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Remove,Ctor,Dtor,Static,Add,Flags,Theme,ThemeAnsi,Folders,Listed,Fixed,Subfolders)
 import os
 import struct
 import sys
@@ -18,7 +18,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import fileopen  # noqa: E402
-from fncmp import HEAP, IMPORT_TABLE, LOG, Bench, Call, RAM, fill, global_heap, heap, import_table, log_region, put, set_return, vtable  # noqa: E402
+from fncmp import HEAP, IMPORT_TABLE, LOG, Bench, Call, RAM, fail_mask, fill, global_heap, heap, import_table, log_region, put, recorder, set_return, strings, vtable  # noqa: E402
 
 
 def lock(e):  # the STL lock (0x691de0, thiscall, returns its argument; 0x691ea0 releases): the port leaves them out
@@ -31,7 +31,7 @@ B = Bench([(0x408f00, 0x40914f), (0x421770, 0x4217e0), (0x421690, 0x421720), (0x
            (0x409620, 0x40978d), (0x424cc0, 0x424ce2), (0x5e2a30, 0x5e2a7e),
            (0x409260, 0x409296), (0x402ef0, 0x402f10), (0x4030c0, 0x4030c4),
            (0x4099b0, 0x409b0b), (0x424d10, 0x424d2e), (0x424e10, 0x424e6e), (0x485ac0, 0x485af4), (0x6ace60, 0x6acea0), (0x6adc80, 0x6add25), (0x5f5660, 0x5f5690),
-           (0x4088a0, 0x408ef8), (0x4081e0, 0x408464), (0x408470, 0x408899), (0x41d7c0, 0x41e250), (0x421590, 0x421630), (0x421680, 0x421690)] + fileopen.RANGES,
+           (0x4088a0, 0x408ef8), (0x4081e0, 0x408464), (0x408470, 0x408899), (0x41d7c0, 0x41e250), (0x421590, 0x421630), (0x421680, 0x421690), (0x5c2ce0, 0x5c2e57), (0x5c5230, 0x5c5260)] + fileopen.RANGES,
           hooks={0x691de0: lock, 0x691ea0: lambda e: None})
 NAMES = [0x786b68, 0x785e78, 0x785f98, 0x7862c8, 0x785f68, 0x7862f8, 0x786d10, 0x7866e8, 0x7862e0, 0x785ed8, 0x785f80, 0x786aa8, 0x786040, 0x7867d8]
 WORDS = [b'Font', b'Sky', b'Rides', b'Shops', b'Staff', b'Water', b'Lake', b'Paths', b'Fence', b'Trees', b'Rock', b'Hint', b'Map', b'Sound']
@@ -288,8 +288,52 @@ def fixed(r):
     return Call(0x408470, [OWNER], regions, conv='t', ret='v')
 
 
+SUB = RAM + 0x9000   # Subfolders: the folder String, + 0x100 the pattern, + 0x180 out, + 0x200 the owner's nodes, + 0x400 their Strings
+FINDNEXT = 39        # FindNextFileA's recorder slot (fileopen.py's imports leave it out)
+
+
+def subfolders(r):
+    """0x5c2ce0 (mounts()): a folder (a String, "\\"-ended or not, or empty) with the String at 0xf7f908 ("*" mostly) appended, opened as a
+    folder (GetFileAttributesA a folder mostly) and searched for the pattern [0xf80768]: FindFirstFileA failing now and then, its entry and
+    FindNextFileA's 0-3 more (fail_mask: then 0) of the attributes 0x10 or not and short names ("." / ".." among them); each real folder's
+    name added to the owner 0x786b68's sorted list of 0-3 Strings (add()'s), the heap failing an allocation now and then (mounts())."""
+    regions = mounts(r)
+    log = regions[LOG]
+    set_return(log, fileopen.K['GetFileAttributesA'], r.choice([0x10, 0x10, 0x10, 0x11, 0x20, 0xffffffff]))
+    set_return(log, fileopen.K['FindFirstFileA'], r.choice([0x99, 0x99, 0x99, 0xffffffff]))
+    table = regions[IMPORT_TABLE]
+    put(table, 0x6fd0c8 - IMPORT_TABLE, 'I', recorder(FINDNEXT, 2, True))
+    strings(log, FINDNEXT, 0, 2)
+    more = r.choice([0, 1, 2, 3])
+    fail_mask(log, FINDNEXT, (1 << more) - 1)
+    names = [r.choice([b'.', b'..', b'Rides', b'sky', b'Fonts', b'a', b'rides', b'']) for _ in range(4)]
+    attrs = [r.choice([0x10, 0x10, 0x11, 0x20, 0x30]) for _ in range(4)]
+    fill(log, fileopen.K['FindFirstFileA'], 1, struct.pack('<I', attrs[0]), 1)
+    fill(log, fileopen.K['FindFirstFileA'], 1, names[0].ljust(0x10, b'\0'), 2, 0x2c)
+    fill(log, FINDNEXT, 1, struct.pack('<3I', *attrs[1:]), 3, 0, 3)
+    fill(log, FINDNEXT, 1, b''.join(n.ljust(0x10, b'\0') for n in names[1:]), 4, 0x2c, 3)
+    string(regions, SUB, r.choice([b'C:\\tp\\data', b'C:\\tp\\data\\', b'data', b'']))
+    string(regions, 0xf7f908, r.choice([b'*', b'*', b'*.*', b'']))
+    regions[SUB + 0x100] = r.choice([b'*', b'*.*', b'']) + bytes(4)
+    regions[0xf80768] = struct.pack('<I', SUB + 0x100)
+    o = bytearray(r.bytes(0x40))
+    n = r.choice([0, 1, 3])
+    words = sorted((r.choice([b'Rides', b'Fonts', b'sky', b'Zoo']) for _ in range(n)), key=bytes.lower)
+    nodes = bytearray(r.bytes(0x10 * max(n, 1)))
+    for k, word in enumerate(words):
+        string(regions, SUB + 0x400 + 0x40 * k, word)
+        put(nodes, 0x10 * k, 'III', SUB + 0x400 + 0x40 * k, SUB + 0x200 + 0x10 * (k + 1) if k + 1 < n else 0, SUB + 0x200 + 0x10 * (k - 1) if k else 0)
+    regions[SUB + 0x200] = bytes(nodes)
+    put(o, 0x24, 'IIII', 0x6fd704, SUB + 0x200 if n else 0, SUB + 0x200 + 0x10 * (n - 1) if n else 0, n)
+    regions[0x786b68] = bytes(o)
+    regions[SUB + 0x180] = r.bytes(4)
+    return Call(0x5c2ce0, [SUB + 0x180, SUB], regions, ret='a')
+
+
 def case(r):
     op = r.choice(OPS)
+    if op == 'Subfolders':
+        return subfolders(r)
     if op == 'Folders':
         return folders(r)
     if op == 'Listed':
@@ -313,7 +357,7 @@ def case(r):
     return remove(r)
 
 
-OPS = [k for k in os.environ.get('OPS', 'Remove,Ctor,Dtor,Static,Add,Flags,Theme,ThemeAnsi,Folders,Listed,Fixed').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Remove,Ctor,Dtor,Static,Add,Flags,Theme,ThemeAnsi,Folders,Listed,Fixed,Subfolders').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)
