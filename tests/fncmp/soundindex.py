@@ -5,20 +5,21 @@
 # recorder answering 0 or more, the RefObject's slots 9 and 0 recorders). The counts small, or ones whose size wraps (count * 4 past 32 bits);
 # the offsets' block TABLE (any index from 0 to past the count); the blocks from the heap region, freed blocks any pointer.
 # SoundResource_New (0x6c53c0) and SoundChannel_NewResource (0x6b8160: the source the channel) as the create; the ref's constructor
-# (0x6c8b40) over random bytes; its destructors (0x6c8b80, 0x6c8b60: the resource at REF, its slot 0 a recorder; flags 0-3 or any). SoundChannel_LoadBank (0x6b9310): see loadbank().
+# (0x6c8b40) over random bytes; its destructors (0x6c8b80, 0x6c8b60: the resource at REF, its slot 0 a recorder; flags 0-3 or any); its forwards (0x6c8bd0-0x6c8c60: the resource null now and
+# then, its slots recorders; slots 6 and 15 answer their out (the argument's own stack slot), which they fill or not). SoundChannel_LoadBank (0x6b9310): see loadbank().
 # usage: soundindex.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, LOG, LOG_BYTES, RAM, Bench, Call, blob, blob_bytes, fill, heap, log_region, recorder, set_return, strings  # noqa: E402
+from fncmp import HEAP, LOG, LOG_BYTES, RAM, Bench, Call, blob, blob_bytes, echo, fill, heap, log_region, recorder, set_return, strings  # noqa: E402
 
 B = Bench([(0x6d4910, 0x6d4964), (0x6c5450, 0x6c5497), (0x6c54e0, 0x6c54fc), (0x6d46e0, 0x6d474f), (0x6d4760, 0x6d4785), (0x6d4790, 0x6d479e),
            (0x6d47a0, 0x6d47ea), (0x6c55c0, 0x6c562c), (0x6c55a0, 0x6c55bc), (0x6d47f0, 0x6d4856), (0x6d4860, 0x6d4885), (0x6c5520, 0x6c558c),
            (0x6c5500, 0x6c551c), (0x6338b0, 0x6338c0), (0x5f71e0, 0x5f7208), (0x618d30, 0x618d72), (0x67a400, 0x690000),
            (0x6c5240, 0x6c5440), (0x5f71b0, 0x5f71e0), (0x5f7208, 0x5f72a0), (0x618d20, 0x618d30), (0x4036a0, 0x4036d0), (0x6d49f0, 0x6d4a30),
-           (0x6d4aa0, 0x6d4b10), (0x6d44a0, 0x6d4522), (0x6c8b40, 0x6c8b5b), (0x6c8b60, 0x6c8bc8), (0x6b8160, 0x6b8176),
+           (0x6d4aa0, 0x6d4b10), (0x6d44a0, 0x6d4522), (0x6c8b40, 0x6c8b5b), (0x6c8b60, 0x6c8bc8), (0x6c8bd0, 0x6c8c8b), (0x6b8160, 0x6b8176),
            (0x6b9310, 0x6b9652), (0x6bead0, 0x6beb03), (0x632230, 0x632290), (0x6b9260, 0x6b9280), (0x6c58d0, 0x6c58e2), (0x6c58f0, 0x6c59f4),
            (0x6c5a00, 0x6c5aca), (0x5f5fc0, 0x5f71b0), (0x5f72a0, 0x5f7f00)])
 SELF, OUT, SOURCE, SELF_VT, INNER_VT, REF, REF_VT, MAPPED, TABLE, RECORD = (RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x500,
@@ -26,7 +27,8 @@ SELF, OUT, SOURCE, SELF_VT, INNER_VT, REF, REF_VT, MAPPED, TABLE, RECORD = (RAM,
 DECREMENT = 0x6fd12c   # the import table's InterlockedDecrement
 CALLS = {'ctor': 0x6d4910, 'dtor': 0x6c5450, 'deldtor': 0x6c54e0, 'load': 0x6d46e0, 'unload': 0x6d4760, 'offset': 0x6d4790, 'record': 0x6d47a0,
          'sdtor': 0x6c55c0, 'sdeldtor': 0x6c55a0, 'map': 0x6d47f0, 'unmap': 0x6d4860, 'mdtor': 0x6c5520, 'mdeldtor': 0x6c5500,
-         'create': 0x6c5240, 'new': 0x6c53c0, 'refctor': 0x6c8b40, 'refdtor': 0x6c8b80, 'refdel': 0x6c8b60, 'channelnew': 0x6b8160, 'loadbank': 0x6b9310}
+         'create': 0x6c5240, 'new': 0x6c53c0, 'refctor': 0x6c8b40, 'refdtor': 0x6c8b80, 'refdel': 0x6c8b60, 'ref11': 0x6c8bd0, 'ref13': 0x6c8be0, 'ref12': 0x6c8bf0, 'refoffset': 0x6c8c00,
+         'ref15': 0x6c8c20, 'refread': 0x6c8c60, 'channelnew': 0x6b8160, 'loadbank': 0x6b9310}
 INCREMENT = 0x6fd0c0   # the import table's InterlockedIncrement
 DESC, STREAM, OWNER, SYNTH, API = RAM + 0xa00, RAM + 0xa40, RAM + 0xa80, RAM + 0xac0, RAM + 0xb00
 BANK, OPENER_VT, WIDE, NAME, STATUS1, STATUS3, DMAP, BLOCK0, BLOCK1 = (RAM + 0xc00, RAM + 0xc80, RAM + 0xd00, RAM + 0xd80, RAM + 0xe00, RAM + 0xe10,
@@ -154,6 +156,20 @@ def case(r):
     name = r.deal(OPS)
     if name in ('create', 'new', 'channelnew', 'loadbank'):
         return create(r, name)
+    if name in ('ref11', 'ref12', 'ref13', 'refoffset', 'ref15', 'refread'):
+        log = log_region()
+        for k in (9, 11, 12, 13):
+            set_return(log, k, r.getrandbits(32))
+        for k, which in ((6, 0), (15, 1)):
+            echo(log, k, 0)
+            strings(log, k, 0, out=1)
+            if r.random() < 0.7:
+                fill(log, k, 0, struct.pack('<I', r.choice([0, 1, 0x7fffffff, 0x80000000, 0xffffffff, r.getrandbits(32)])), which=which)
+        regions = {SELF: struct.pack('<II', r.getrandbits(32), r.getrandbits(32)) + struct.pack('<II', r.choice([REF] * 9 + [0]), r.getrandbits(32)),
+                   REF: struct.pack('<I', REF_VT) + r.bytes(0xc), REF_VT: table({6: recorder(6, 3), 9: recorder(9, 1), 11: recorder(11, 0), 12: recorder(12, 0),
+                                                                                13: recorder(13, 0), 15: recorder(15, 2)}), LOG: log, OUT: r.bytes(4)}
+        args = {'refoffset': [r.getrandbits(32)], 'ref15': [OUT, r.getrandbits(32)], 'refread': [r.getrandbits(32), r.getrandbits(32)]}.get(name, [])
+        return Call(CALLS[name], [SELF] + args, regions, conv='t', ret='a')
     if name in ('refdtor', 'refdel'):
         regions = {SELF: struct.pack('<II', r.getrandbits(32), r.getrandbits(32)) + struct.pack('<II', REF, r.getrandbits(32)),
                    REF: struct.pack('<I', REF_VT) + r.bytes(0xc), REF_VT: table({0: recorder(0, 0)}), LOG: log_region(), HEAP: heap(0x40)}

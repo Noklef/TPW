@@ -4673,6 +4673,12 @@ address,name,kind,confidence,notes
 0x006c53c0,SoundResource_New,function,low,"reimplemented (src/game/core/soundindex); stdcall (owner, desc, source), pops 0xc; ECX unused: SoundResource_Create with out and resource the desc and source arguments' own slots (sic); negative: 0; else a SoundResourceRef (Mem_Alloc 0xc) over the resource, 0 when the block is (name invented)"
 0x006c8b80,SoundResourceRef_Dtor,function,low,reimplemented (src/game/core/soundindex); the resource ref's destructor (the resource's slot 0)
 0x006c8b60,SoundResourceRef_DeletingDtor,function,low,reimplemented (src/game/core/soundindex); the resource ref's deleting destructor
+0x006c8bd0,SoundResourceRef_Slot11,function,low,"reimplemented (src/game/core/soundindex); the resource's slot 11, 0 without one"
+0x006c8be0,SoundResourceRef_Slot13,function,low,"reimplemented (src/game/core/soundindex); the resource's slot 13, 0 without one"
+0x006c8bf0,SoundResourceRef_Slot12,function,low,"reimplemented (src/game/core/soundindex); the resource's slot 12, 0 without one"
+0x006c8c00,SoundResourceRef_Offset,function,low,"reimplemented (src/game/core/soundindex); the resource's slot 9 (an offset), 0 without one"
+0x006c8c20,SoundResourceRef_Slot15,function,low,"reimplemented (src/game/core/soundindex); the resource's slot 15 through the argument's own slot, its dword out"
+0x006c8c60,SoundResourceRef_ReadRecord,function,low,reimplemented (src/game/core/soundindex); the resource's record read (slot 6): whether its status is not negative
 0x006c5060,ChannelVoiceCount_Reset,function,low,reimplemented (src/game/core/channelvoice); the voices' count (0xfb2058) = 0
 0x006c5070,ChannelVoiceCount_Increment,function,low,reimplemented (src/game/core/channelvoice); thiscall on the count: InterlockedIncrement; returns what it answers
 0x006c5080,ChannelVoiceCount_Decrement,function,low,reimplemented (src/game/core/channelvoice); thiscall on the count: InterlockedDecrement; returns what it answers

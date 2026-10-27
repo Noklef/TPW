@@ -63,5 +63,17 @@ u8 *__fastcall SoundResourceRef_Ctor(u8 *ref, void *, u8 *resource);
 void __fastcall SoundResourceRef_Dtor(u8 *ref);
 // 0x6c8b60 (thiscall (flags), pops 4; name invented): SoundResourceRef_Dtor, the ref freed for flags bit 0. Returns the ref.
 u8 *__fastcall SoundResourceRef_DeletingDtor(u8 *ref, void *, u32 flags);
+// The ref's forwards to its resource (+8; names invented, after the resource's slots): without one, 0 (or *out = -1). 0x6c8bd0 / 0x6c8bf0
+// / 0x6c8be0 (thiscall): the resource's slot 11 / 12 / 13. 0x6c8c00 (thiscall (i), pops 4): its slot 9 (the offset i).
+u32 __fastcall SoundResourceRef_Slot11(u8 *ref);
+u32 __fastcall SoundResourceRef_Slot12(u8 *ref);
+u32 __fastcall SoundResourceRef_Slot13(u8 *ref);
+u32 __fastcall SoundResourceRef_Offset(u8 *ref, void *, u32 i);
+// 0x6c8c20 (thiscall (out, a), pops 8): the resource's slot 15 (its out the a argument's own stack slot, sic; a), *out = the dword the
+// answer points to; without a resource *out = -1. Returns out.
+u32 *__fastcall SoundResourceRef_Slot15(u8 *ref, void *, u32 *out, u32 a);
+// 0x6c8c60 (thiscall (record, i), pops 8): the resource's slot 6, the record read (its out the i argument's own stack slot, sic; record,
+// i): 1 when the dword the answer points to is not negative, else 0; 0 without a resource.
+u32 __fastcall SoundResourceRef_ReadRecord(u8 *ref, void *, u32 record, u32 i);
 
 }  // extern "C"
