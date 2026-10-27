@@ -2,7 +2,7 @@
 # (src/game/core/soundset: 0x51bb60-0x51bc20, 0x51bc40 / 0x51c270 (the manager's engine's slots 3 / 5 recorders, the position's floats hashed), 0x51e6f0, 0x51e710, 0x51c1c0, 0x51c6f0, 0x51bb40)
 # against the originals. The commands' senders (0x51c0a0-0x51c700, 0x51bc70-0x51bd30, 0x51c570) and the settings update (0x51bd70): see
 # sender_case() and update_case().
-# usage: soundset.py [CASES [SEED]] [--wild|--both] [--show N]
+# usage: soundset.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=51b920,...: only those senders)
 import os
 import struct
 import sys
@@ -10,11 +10,11 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, IMPORT_TABLE, LOG, Bench, Call, RAM, blob, blob_bytes, fill, fb, heap, import_table, log_region, recorder, set_return, strings, vtable  # noqa: E402
 
-B = Bench([(0x51b4f0, 0x51b530), (0x51b620, 0x51b670), (0x51b7c0, 0x51b913), (0x51bb40, 0x51bc34), (0x51bc40, 0x51bfd0),
+B = Bench([(0x51b4f0, 0x51b530), (0x51b620, 0x51b670), (0x51b7c0, 0x51b913), (0x51b920, 0x51bb35), (0x51bb40, 0x51bc34), (0x51bc40, 0x51bfd0),
            (0x51c060, 0x51c140), (0x51c1c0, 0x51c1cc), (0x51c1d0, 0x51c2bc), (0x51c2c0, 0x51c360), (0x51c570, 0x51c5c2),
            (0x51c5d0, 0x51c8c6), (0x51c8d0, 0x51c930), (0x51e6f0, 0x51e704), (0x51e710, 0x51e726), (0x5da3c0, 0x5da3c1),
            (0x5e2a30, 0x5e2b80), (0x5f5f10, 0x5f5f7d), (0x5f5fa0, 0x5f5fc0), (0x632150, 0x632380), (0x6338d0, 0x6338f9),
-           (0x67acb0, 0x67acb1), (0x6b55c0, 0x6b5739), (0x6b5770, 0x6b5801), (0x6b5810, 0x6b5834), (0x6b5840, 0x6b5860),
+           (0x67acb0, 0x67acb1), (0x6b55c0, 0x6b5739), (0x6b5770, 0x6b5801), (0x6b5810, 0x6b5834), (0x6b5840, 0x6b5860), (0x6b5860, 0x6b5890), (0x6b92f0, 0x6b9310), (0x6c0bd0, 0x6c0da0),
            (0x6b5890, 0x6b5a80), (0x6b5a90, 0x6b5ab0), (0x6b5b60, 0x6b5b75), (0x6b5b80, 0x6b5b9a), (0x6b5ba0, 0x6b5c00),
            (0x6b5c50, 0x6b5d10), (0x6b5e40, 0x6b5fb4), (0x6b5fc0, 0x6b603d), (0x6b6140, 0x6b6163), (0x6b62b0, 0x6b63b0),
            (0x6b6440, 0x6b65f0), (0x6b6830, 0x6b68e0), (0x6b6a50, 0x6b6a90), (0x6b6b00, 0x6b6c40), (0x6b7150, 0x6b71a0),
@@ -50,8 +50,10 @@ def manager(r):
 
 SMGR = RAM + 0x8000   # (the senders' manager: +4 the sound object)
 SENDERS = [0x51c0a0, 0x51c0e0, 0x51c2c0, 0x51c300, 0x51c640, 0x51c6b0, 0x51bc70, 0x51bcb0, 0x51bcf0, 0x51bd30, 0x51bd70, 0x51c700, 0x51c570,
-           0x51b810, 0x51b620, 0x51c060, 0x51c1d0, 0x51c5d0, 0x51c8d0]
+           0x51b810, 0x51b620, 0x51c060, 0x51c1d0, 0x51c5d0, 0x51c8d0, 0x51b920]
+ONLY = [int(k, 16) for k in os.environ.get('OPS', '').split(',') if k]
 MIXB, TOPB = RAM + 0x9000, RAM + 0x9100   # (the settings update's mixer and its loudest array)
+CVT, OVT = RAM + 0x9200, RAM + 0x9300   # (the camera level's channel and object vtables)
 
 
 def update_case(r, log):
@@ -92,16 +94,16 @@ def sender_case(r, fn):
     """The sound commands' senders: the sound globals (on and started, either 0 now and then; the manager at SMGR, its +4 the sound
     object); 0x51c0a0 / 0x51c0e0 / 0x51c2c0 / 0x51c300 the soundobject bench's object (a mixer with voices, ids of theirs or not; for
     0x51c0e0 the sound system [0xfb1f24] as the soundcmd bench gives it; the object's own slot 6 its out hidden); 0x51c640 / 0x51c6b0
-    the soundchannel bench's occluder add / remove (cmdoccadd's values and cmdoccrem's node)."""
+    the soundchannel bench's occluder add / remove (cmdoccadd's values and cmdoccrem's node); 0x51b920 b54's (the camera level: below)."""
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     log = log_region()
     if fn == 0x51bd70:
         return update_case(r, log)
-    if fn in (0x51c640, 0x51c6b0, 0x51c700, 0x51b810, 0x51c1d0, 0x51c8d0):   # (0x51b810: the voice count's, as soundchannel.py's b3c;
+    if fn in (0x51c640, 0x51c6b0, 0x51c700, 0x51b810, 0x51c1d0, 0x51c8d0, 0x51b920):   # (0x51b810: the voice count's, as soundchannel.py's b3c;
         # 0x51c1d0: the manager's placement, its three vectors the arguments; 0x51c8d0: the command's EAX record, its index the argument)
         import soundchannel as sc
         regions = sc.voices_case(r, log, {0x51c640: 'cmdoccadd', 0x51c6b0: 'cmdoccrem', 0x51c700: 'cmdoccswitch', 0x51b810: 'b3c',
-                                          0x51c1d0: 'mgrplace', 0x51c8d0: 'cmdeaxrecord'}[fn]).regions
+                                          0x51c1d0: 'mgrplace', 0x51c8d0: 'cmdeaxrecord', 0x51b920: 'b54'}[fn]).regions
         target = sc.OBJECT
     else:
         import soundobject as so
@@ -128,6 +130,53 @@ def sender_case(r, fn):
         import soundchannel as sc
         _, x, y, z, radius, _ = struct.unpack('<6I', regions[sc.COMMAND])
         return Call(fn, [x, r.getrandbits(32), y, radius, z], regions, ret='a')
+    if fn == 0x51b920:   # (the camera level: the globals 0x7858fc-0x785970 one block, the thresholds about the level (each one now and then
+        # random); 0x51c700's four levels rising from about it and its radii; 0x51b810's voice levels as its case's, [0x78594c] at or above the
+        # level; the kept EAX record 0x803ab4 0 or not (the channel's records +0x68 none: 0x700b30 answers -1); 0x700b50's channel slot 9 and
+        # 0x700b48's object slot 7 recorders (0x18, 0x17); the channel's hidden byte +0x64 the flag 0x700b44 gives it mostly, else 0, 1 or any,
+        # over a category (0xfb1f28, constructed: its guard 0xfb1ff8 bit 0) of no records (+0x64 0)
+        import soundchannel as sc
+        lv0 = r.choice([0, 10, 100, r.randrange(-50, 400), r.getrandbits(32) - (1 << 31)])
+        clamp = lambda v: max(-0x80000000, min(0x7fffffff, v))
+        near = lambda: clamp(lv0 + r.choice([-1, 0, 0, 1, -100, 100, r.randrange(-500, 500)])) if r.random() < 0.9 else r.getrandbits(32) - (1 << 31)
+        block = bytearray(r.bytes(0x74))
+        put = lambda addr, v: struct.pack_into('<i' if v < 0 else '<I', block, addr - 0x7858fc, v)
+        for addr in (0x7858fc, 0x785900, 0x785904, 0x785908, 0x785910, 0x785918, 0x785920):
+            put(addr, near())
+        levels = [near()]
+        for _ in range(3):
+            levels.append(clamp(levels[-1] + r.choice([0, 1, 50, 100, 300])) if r.random() < 0.8 else near())
+        for addr, v in zip((0x78590c, 0x785958, 0x785960, 0x785968), levels):
+            put(addr, v)
+        for addr in (0x785954, 0x78595c, 0x785964):
+            put(addr, r.choice([fb(1.0), fb(2.5), fb(5.0), 0, 0x7fc00000, r.getrandbits(32)]))
+        c3c = near()
+        c44 = clamp(c3c + r.choice([1, 10, 50, 100, 0, r.randrange(1000)]))
+        level = r.choice([lv0, lv0, lv0 + 1, lv0 - 1, near(), c3c, c44, r.getrandbits(32) - (1 << 31)])
+        level = clamp(level)
+        put(0x785938, r.choice([0, 4, 8, r.randrange(32)]))
+        put(0x78593c, c3c)
+        put(0x785940, r.choice([16, 32, r.randrange(32)]))
+        put(0x785944, c44)
+        put(0x78594c, r.choice([0x7fffffff, level, min(0x7fffffff, level + r.randrange(100))]))
+        chan = bytearray(regions[sc.CHAN]) + bytearray(r.bytes(0x10))
+        hide = 0 if level > struct.unpack_from('<i', block, 0x785918 - 0x7858fc)[0] else 1
+        struct.pack_into('<I', chan, 0, CVT)
+        chan[0x64] = r.choice([hide, hide, hide, 0, 1, r.getrandbits(8)])
+        struct.pack_into('<I', chan, 0x68, 0)
+        obj = bytearray(regions[sc.OBJECT])
+        struct.pack_into('<I', obj, 0, OVT)
+        cvt, ovt = bytearray(0x80), bytearray(0x80)
+        struct.pack_into('<I', cvt, 4 * 9, recorder(0x18, 2))
+        struct.pack_into('<I', ovt, 4 * 7, recorder(0x17, 2))
+        for k in (0x17, 0x18):
+            strings(log, k, 0, out=1)   # (the out the level's slot)
+        category = bytearray(r.bytes(0xd4))
+        struct.pack_into('<I', category, 0x64, 0)
+        category[0xd0] |= 1
+        regions.update({0x7858fc: block, 0x790ab0: bytes([r.choice([0x16, 2, 0, r.getrandbits(8)])]), sc.CHAN: chan, sc.OBJECT: obj, CVT: cvt,
+                        OVT: ovt, 0x803ab4: struct.pack('<I', r.choice([0, 0, 1, 5, r.getrandbits(32)])), 0xfb1f28: category})
+        return Call(fn, [level & 0xffffffff], regions)
     if fn == 0x51c700:   # (the camera's flags; the four levels mostly rising, sometimes equal or any; the three radii any floats)
         ints = lambda: r.choice([0, 1, -1, 100, 0x7fffffff, -0x80000000, r.randrange(-1000, 1000), r.getrandbits(32) - (1 << 31)])
         low0 = ints() if r.random() < 0.3 else r.choice([0, 0, 10, -5])
@@ -180,6 +229,8 @@ def sender_case(r, fn):
 
 
 def case(r):
+    if ONLY:
+        return sender_case(r, r.deal(ONLY))
     if r.random() < 0.4:
         return sender_case(r, r.deal(SENDERS))
     value = r.choice([0, 1, 100, 0xffff, 0x10000, r.getrandbits(32)])

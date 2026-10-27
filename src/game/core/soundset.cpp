@@ -439,4 +439,38 @@ void __cdecl Sound_SetEaxRecord(u32 index) {
     u32 functor[2] = {0x00700b30, index};
     Apply(&index, functor);
 }
+
+void __cdecl Sound_SetCameraLevel(s32 level) {
+    if (!On()) return;
+    const s32 lv = level;
+    u32 *const out = reinterpret_cast<u32 *>(&level);
+    u32 cmd[4] = {0x00700b54, lv > global<s32>(0x007858fc), lv > global<s32>(0x00785900), lv > global<s32>(0x00785904)};
+    Apply(out, cmd);
+    if (lv > global<s32>(0x00785908)) {
+        cmd[1] = 1;
+    } else {
+        if (On() && global<u32>(0x00803ab4)) {
+            global<u32>(0x00803ab4) = 0;
+            cmd[0] = 0x00700b30;
+            cmd[1] = 0;
+            Apply(out, cmd);
+        }
+        cmd[1] = 0;
+    }
+    cmd[0] = 0x00700b50;
+    Apply(out, cmd);
+    cmd[0] = 0x00700b4c;
+    cmd[1] = !(lv > global<s32>(0x00785910));
+    Apply(out, cmd);
+    Sound_SetCameraOcclusion(lv);
+    Sound_SetVoicesForLevel(lv);
+    cmd[0] = 0x00700b48;
+    cmd[1] = lv > global<s32>(0x00785920);
+    Apply(out, cmd);
+    const bool above = lv > global<s32>(0x00785918);
+    if (!On()) return;
+    SoundCmd_Ctor(reinterpret_cast<u8 *>(cmd), nullptr, !above);
+    cmd[0] = 0x00700b44;
+    Apply(out, cmd);
+}
 }

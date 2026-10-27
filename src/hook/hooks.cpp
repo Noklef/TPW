@@ -2390,6 +2390,7 @@ const Hook kHooks[] = {
     {"Sound_ReleaseLobbyCategories", 0x0051ea70, (void *)&Sound_ReleaseLobbyCategories, {0xa1, 0x4c, 0x3a, 0x80, 0x00}},
     {"Sound_ReleaseGlobalCategories", 0x0051eda0, (void *)&Sound_ReleaseGlobalCategories, {0xa1, 0x20, 0x3a, 0x80, 0x00}},
     {"Sound_ReleaseThemeCategories", 0x0051ee40, (void *)&Sound_ReleaseThemeCategories, {0xa1, 0x38, 0x3a, 0x80, 0x00}},
+    {"Sound_SetCameraLevel",      0x0051b920, (void *)&Sound_SetCameraLevel, {0xa1, 0xc8, 0x2b, 0x80, 0x00}},
     {"GlobalSave_ThemeByte",      0x005af7f0, (void *)&GlobalSave_ThemeByte, {0x8b, 0x41, 0x48, 0x8b, 0x4c}},
     {"GlobalSave_Byte26",         0x005af800, (void *)&GlobalSave_Byte26, {0x8b, 0x44, 0x24, 0x04, 0x8a}},
     {"GlobalSave_Inc20",          0x005afc30, (void *)&GlobalSave_Inc20, {0xff, 0x41, 0x20, 0xc3, 0x90}},

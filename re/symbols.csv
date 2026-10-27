@@ -2589,6 +2589,7 @@ address,name,kind,confidence,notes
 0x0051c060,Sound_SendVoiceFunctor2,function,low,"reimplemented (src/game/core/soundset); while on and started, the manager posts 0x700b9c (the id's voice's functor 2)"
 0x0051ea50,Sound_ReleaseLobbySfx,function,low,reimplemented (src/game/core/soundset); the lobby sfx category 0x803a48 released (SoundCategory_Release) and cleared
 0x0051ea70,Sound_ReleaseLobbyCategories,function,low,"reimplemented (src/game/core/soundset); the lobby pairs released, the array to Sound_Free, 0x803a4c / 0x803a50 cleared"
+0x0051b920,Sound_SetCameraLevel,function,low,"reimplemented (src/game/core/soundset); cdecl (level): while on and started, the camera level's posts: 0x700b54 (three thresholds), 0x700b50 (the EAX record cleared below it), 0x700b4c, the occlusion and voice levels, 0x700b48, 0x700b44 (hidden)"
 0x005af7f0,GlobalSave_ThemeByte,function,high,reimplemented (src/game/core/globalsave); thiscall u8 (i): byte i of the global save info's (0xf7c58c) current theme record (+0x48)
 0x005af800,GlobalSave_Byte26,function,high,reimplemented (src/game/core/globalsave); thiscall u8 (i): byte +0x26 + i of the global save info
 0x005afc30,GlobalSave_Inc20,function,high,reimplemented (src/game/core/globalsave); thiscall: the global save info's counter +0x20 incremented

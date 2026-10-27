@@ -86,6 +86,12 @@ void __cdecl Sound_ApplySettings();
 // [0x785960] / [0x78595c]; above [0x78590c] {1, [0x785954]}; else {0, 0} (x87 single precision; the level's slot then holds the
 // divisor). Without that camera {0, 0}.
 void __cdecl Sound_SetCameraOcclusion(s32 level);
+// 0x51b920 (level; name from its callees, unconfirmed): while on and started, the manager's posts for a camera level (the out the level's
+// slot; each flag the level above a global, signed): 0x700b54 {[0x7858fc], [0x785900], [0x785904]} (SoundChannel_SetMode); 0x700b50 with
+// [0x785908] (when not above it, and still on and started with an EAX record kept in 0x803ab4, first that cleared and 0x700b30 with record
+// 0); 0x700b4c with not above [0x785910]; Sound_SetCameraOcclusion and Sound_SetVoicesForLevel; 0x700b48 with [0x785920]; then (on and
+// started again) 0x700b44 (built by SoundCmd_Ctor) with not above [0x785918] (the channel shown or hidden).
+void __cdecl Sound_SetCameraLevel(s32 level);
 // 0x51c570 (id; name invented): a result 1, then (sound on and started) the command 0x700bb8 {&result, id} (SoundObject_VoiceInfo), the
 // out the id's slot. Returns the result.
 u32 __cdecl Sound_VoiceInfo(u32 id);
