@@ -8,7 +8,7 @@
 # Ends: the cell (in the world), the pairs mostly the opposite sides (west / east, north / south), now and then any of -1, 0 and 1. A cell
 # whose direction is none of the four sides has ends without end flags: its flags would be a stack address (sic), not the same on both sides.
 # Unlink: x and y the cell's (x now and then -1 or -2: its id a cell of the row before, x's high bytes in the direction's slot), dir 0, a
-# side, a diagonal or any; the cell's neighbour bits now and then its direction and one other.
+# side, a diagonal, any or one whose low byte is 0 (only that byte counts); the cell's neighbour bits now and then its direction and one other.
 # usage: lineends.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Ends,Unlink)
 import os
 import struct
@@ -110,7 +110,7 @@ def case(r):
         dx, dy = r.choice([(2, 0), (-2, 0), (0, 2), (0, -2)])
         ends[:2] = [ax + dx, ay + dy]
     regions[0x7639e0] = struct.pack('<4i', *ends)
-    d = r.choice([0, 0, 0, r.choice(SIDES), r.choice([2, 8, 0x20, 0x80]), r.getrandbits(32)])
+    d = r.choice([0, 0, 0, r.choice(SIDES), r.choice([2, 8, 0x20, 0x80]), r.getrandbits(32), r.choice([0x100, 0x4000, 0xff00])])
     return Call(CALLS[op], [ax, ay, d], regions, ret='a')
 
 
