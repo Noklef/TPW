@@ -90,6 +90,8 @@
 #include "../../src/game/world/mapline.h"
 #include "../../src/game/world/mousemode.h"
 #include "../../src/game/world/person.h"
+#include "../../src/game/world/pathdrag.h"
+#include "../../src/game/world/queuepieces.h"
 #include "crt.h"
 #include "../../src/hook/hooks.h"
 
@@ -370,6 +372,12 @@ const WrapSourcesEnv kWrapSourcesEnv = {&heap_alloc, &heap_free, reinterpret_cas
 // entry holds the first seven arguments and, for more, a hash of the rest.
 const u32 kLog = kStubs + 0x100000;  // (the case maps it)
 constexpr u32 recorder(u32 k, u32 n) { return kStubs + 0x1000 + 0x400 * n + 0x20 * k; }
+// The queue pieces' and the path drag's calls into agent B's unported 0x463060 / 0x463c80 / 0x5367a0 / 0x536100: recorders (cdecl 30 of 10
+// arguments, cdecl 31 of 1, thiscall 28 of 2, cdecl 29 of 5), as tests/fncmp/queuepieces.py and pathdrag.py hook those addresses.
+const QueuePiecesEnv kQueuePiecesEnv = {reinterpret_cast<u32(__cdecl *)(u32, u32, const u32 *, u32, u32, u32, u32, u32, s32, u32)>((uintptr_t)jpeg_recorder(30, 10)),
+                                        reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(31, 1))};
+const PathDragEnv kPathDragEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32)>((uintptr_t)recorder(28, 2)),
+                                  reinterpret_cast<void(__cdecl *)(u32, s32, s32, s32 *, s32 *)>((uintptr_t)jpeg_recorder(29, 5))};
 
 // Optional settings in the log region: at + 0xa00 a mask per slot (k & 63): bits 0-15 the arguments that are C strings, logged and hashed as a hash of the string
 // (so that a path in a stack buffer, whose address differs between the sides, compares by its text), bits 16-31 out arguments, logged as 0 (a stack address;
@@ -1030,6 +1038,8 @@ int main(int argc, char **argv) {
     SoundCategory_SetEnv(&kSoundCategoryEnv);
     SoundDevice_SetEnv(&kSoundDeviceEnv);
     Person_SetEnv(&kPersonEnv);   // (tests/fncmp/personwalk.py hooks 0x6e7074 with fncmp._cdecl_log2)
+    QueuePieces_SetEnv(&kQueuePiecesEnv);
+    PathDrag_SetEnv(&kPathDragEnv);
     GlyphRender_SetEnv(&kGlyphRenderEnv);   // (tests/fncmp/glyphrender.py hooks 0x67a7d0 with fncmp._cdecl_log)
     PtrList_SetEnv(&kPtrListEnv);
     GameHeap_SetEnv(&kGameHeapEnv);
