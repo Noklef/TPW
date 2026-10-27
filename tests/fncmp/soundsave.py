@@ -303,9 +303,9 @@ def case(r):
     name = r.deal(OPS)
     if name in ('vsave', 'vload'):
         return voice_case(r, name)
-    if name[0] in 'mocg':
-        return mixer_case(r, name)
-    return names_case(r, name)
+    if name in ('mapfree', 'freemap', 'mapload', 'namesload'):   # (before the kinds: 'mapfree' / 'mapload' start with the mixer's 'm')
+        return names_case(r, name)
+    return mixer_case(r, name)
 
 
 if __name__ == '__main__':
