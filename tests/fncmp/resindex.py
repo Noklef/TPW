@@ -106,7 +106,10 @@ def load_case(r, op, regions):
         header = struct.pack('<2I', 0x49524642 if r.random() < 0.85 else r.getrandbits(32), r.choice([0, 1, 1, 2, 2, 3, 5]))
         data = struct.pack('<IHH', r.choice([0, 1, r.getrandbits(32)]), r.randrange(8), r.randrange(0x40))
         fill(log, fo.K['ReadFile'], 1, header + data, records=2)
-        fill_arg(log, fo.K['ReadFile'], 3, 2, which=1)
+        if r.random() < 0.75:
+            fill_arg(log, fo.K['ReadFile'], 3, 2, which=1)   # (the bytes read: all asked for)
+        else:   # (the header's and the records' bytes read: fewer or more than asked: a short header, records past the size)
+            fill(log, fo.K['ReadFile'], 3, struct.pack('<2I', r.choice([4, 7, 8, 8, 0x100]), r.choice([1, 4, 0x40, 0x100, 0x1000])), which=1, records=2)
         if op == 'LoadIndex':
             obj[4:0xc] = handle(r)
             stack = [RESULT, path(r, regions)]
