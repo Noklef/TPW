@@ -196,6 +196,7 @@
 #include "../game/core/mp2pool.h"
 #include "../game/core/mp2sample.h"
 #include "../game/core/mp2synth.h"
+#include "../game/core/narrowwriter.h"
 #include "../game/core/refcounted.h"
 #include "../game/core/parkinfo.h"
 #include "../game/core/releaselist.h"
@@ -5160,6 +5161,12 @@ const Hook kHooks[] = {
     {"WideWriter_PutWide",        0x006affe0, (void *)&WideWriter_PutWide, {0x8b, 0x44, 0x24, 0x08, 0x53}},
     {"WideWriter_Dtor",           0x006ad0b0, (void *)&WideWriter_Dtor, {0x6a, 0xff, 0x68, 0xe3, 0x55}},
     {"WideWriter_DeletingDtor",   0x006ad110, (void *)&WideWriter_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x98}},
+    {"NarrowWriter_Finish",       0x006afe40, (void *)&NarrowWriter_Finish, {0x8b, 0xc1, 0x33, 0xd2, 0x53}},
+    {"NarrowWriter_PutChar",      0x006afd40, (void *)&NarrowWriter_PutChar, {0x8a, 0x41, 0x10, 0x84, 0xc0}},
+    {"NarrowWriter_PutWideChar",  0x006afe10, (void *)&NarrowWriter_PutWideChar, {0x56, 0x8b, 0xf1, 0x33, 0xc0}},
+    {"NarrowWriter_PutWide",      0x006afd90, (void *)&NarrowWriter_PutWide, {0x53, 0x55, 0x56, 0x8b, 0xf1}},
+    {"NarrowWriter_Dtor",         0x006ad030, (void *)&NarrowWriter_Dtor, {0x6a, 0xff, 0x68, 0xc3, 0x55}},
+    {"NarrowWriter_DeletingDtor", 0x006ad090, (void *)&NarrowWriter_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x98}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

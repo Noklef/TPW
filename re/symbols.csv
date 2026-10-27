@@ -5185,6 +5185,12 @@ address,name,kind,confidence,notes
 0x006affe0,WideWriter_PutWide,function,low,reimplemented (src/game/core/widewriter); The wide-text writer's slot 5: 16-bit cells copied to the cursor until the end
 0x006ad0b0,WideWriter_Dtor,function,low,"reimplemented (src/game/core/widewriter); The wide-text writer's destructor: finished, its range table released, the base vtable"
 0x006ad110,WideWriter_DeletingDtor,function,low,reimplemented (src/game/core/widewriter); The wide-text writer's deleting destructor
+0x006afe40,NarrowWriter_Finish,function,low,"reimplemented (src/game/core/narrowwriter); The narrow-text writer's slot 1: the text terminated, the cursor cleared, the range table released"
+0x006afd40,NarrowWriter_PutChar,function,low,reimplemented (src/game/core/narrowwriter); The narrow-text writer's slot 2: a character's bytes stored at the cursor until the end
+0x006afe10,NarrowWriter_PutWideChar,function,low,reimplemented (src/game/core/narrowwriter); The narrow-text writer's slot 4: a 16-bit character narrowed through the range table and written
+0x006afd90,NarrowWriter_PutWide,function,low,reimplemented (src/game/core/narrowwriter); The narrow-text writer's slot 5: 16-bit characters narrowed through the range table and written
+0x006ad030,NarrowWriter_Dtor,function,low,"reimplemented (src/game/core/narrowwriter); The narrow-text writer's destructor: finished, its range table released, the base vtable"
+0x006ad090,NarrowWriter_DeletingDtor,function,low,reimplemented (src/game/core/narrowwriter); The narrow-text writer's deleting destructor
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
