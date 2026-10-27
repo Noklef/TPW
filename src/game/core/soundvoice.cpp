@@ -650,6 +650,19 @@ u32 __fastcall SoundVoice_RollPitch(u8 *voice) {
     return roll<s8>(voice, 0xe, 2);
 }
 
+u32 __fastcall SoundVoice_SetRecordBank(u8 *voice, void *, u8 *record) {
+    u8 *const resource = SoundChannel_LoadBank(system(), nullptr, at<u16>(at<u8 *>(voice, 0xc), 0xc));
+    if (!resource) return 0;
+    Obj_SetFirstFlag80(record, nullptr, at<u32>(at<u8 *>(voice, 0xc), 0));
+    Obj_SetSecondFlag8(record, nullptr, static_cast<u32>(reinterpret_cast<uintptr_t>(resource)));
+    if (at<u32>(voice, 0x30) & 0x200) {
+        SetThenFlag8_14_6c50b0(record, nullptr, at<u32>(voice, 4));
+        at<u32>(record, 0xc) |= 0x200;
+    }
+    at<u32>(record, 0xc) |= (at<u32>(voice, 0x30) & 0x20000) ? 4u : 0xc0u;
+    return 1;
+}
+
 u32 __fastcall SoundVoice_RollWord(u8 *voice) {
     const u8 *v = at<u8 *>(voice, 8);
     if (!at<u16>(v, 0x10) && !at<u16>(v, 0x12)) return 0;
