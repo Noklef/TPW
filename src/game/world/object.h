@@ -199,6 +199,12 @@ void __fastcall Object_ResetCondition(u8 *object);
 // (Object_ResetCondition's test), else 0.
 u32 __fastcall Object_InPoorCondition(const u8 *object);
 
+// 0x4e2440 (thiscall (amount), pops 4; x87; name unconfirmed): an object's wear. The mode setting 0xfb3b7c (a function-local static: guard 0xfb34b8
+// bit 0, Setting_ReadMode and atexit of 0x5d1750 the first time) 1: when Object_InPoorCondition, Object_ResetCondition's steps; otherwise the
+// condition +0x44 = (u64)amount * -0.05f + itself kept to 0..100 (NaN 0), and when that makes it poor (not before): the object's cell has spread
+// record 1 taken back and record 6 spread.
+void __fastcall Object_Wear(u8 *object, void *, u32 amount);
+
 // 0x4db7d0 (thiscall; stream, save, version, unused): an object: Thing_Serialize first (1 if it fails); for a version of 0..1 then, saved or loaded as
 // a serializer does (Save_Field; the load through the readers): mAngle, mId, the date +0x18 as a SYSTEMTIME's eight fields in dwords (saved from
 // FileTime_ToSystemTime, loaded into FileTime_FromSystemTime, the day of the week skipped), MeshInstanceID, mFlags, mNameA[i] and mNameB[i] for each

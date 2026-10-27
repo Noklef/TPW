@@ -3655,6 +3655,7 @@ address,name,kind,confidence,notes
 0x004e0390,Object_InPoorCondition,function,low,"reimplemented (src/game/world/object); thiscall, x87: with flag 1 of +0x32, whether the low byte of __ftol(the condition +0x44) is below 25"
 0x004ca310,Objects_CountKind0InState1,function,low,reimplemented (src/game/world/object); cdecl: the world's objects of map kind 0 in state 1
 0x004ca3a0,Objects_CountKind0Below44OrState1,function,low,"reimplemented (src/game/world/object); thiscall, the analyser unused (least), pops 4: Objects_CountKind0InState1 walk, those of map kind 0 whose float +0x44 cut to an integer (low byte) is below least (signed) or that are in state 1 counted"
+0x004e2440,Object_Wear,function,low,reimplemented (src/game/world/object); an object's wear by an amount (toilet use)
 0x005d46d0,Blocks7_Free,function,high,reimplemented (src/game/core/buffers); frees the seven blocks of an object and clears its groups
 0x00424cc0,Names_FirstAfter,function,high,"reimplemented (src/game/core/string); whether the first name is after the second, case blind"
 0x00424cf0,Names_Equal,function,high,"reimplemented (src/game/core/string); whether two names are equal, case blind"

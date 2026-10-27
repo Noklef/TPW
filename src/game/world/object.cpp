@@ -10,6 +10,7 @@
 #include "../core/funnytime.h"
 #include "../core/gameheap.h"
 #include "../core/initializers.h"
+#include "../core/options.h"
 #include "../core/savegame.h"
 #include "../core/vcall.h"
 #include "../math/x87.h"
@@ -698,5 +699,33 @@ u8 __fastcall Object_Rating(const u8 *object, void *, u32 baseOnly) {
 
 u32 __fastcall Object_InPoorCondition(const u8 *object) {
     return at<u8>(object, 0x32) & 1 && (u8)(long long)at<float>(object, 0x44) < 25 ? 1 : 0;
+}
+
+void __fastcall Object_Wear(u8 *object, void *, u32 amount) {
+    u8 &guard = global<u8>(0x00fb34b8);   // (the mode setting 0xfb3b7c: a function-local static)
+    if (!(guard & 1)) {
+        guard |= 1;
+        Setting_ReadMode(reinterpret_cast<u8 *>(0x00fb3b7c));
+        reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0)(reinterpret_cast<void(__cdecl *)()>(0x005d1750));
+    }
+    if (global<u32>(0x00fb3b7c) == 1) {
+        if (Object_InPoorCondition(object))
+            Object_ResetCondition(object);   // (the same steps: the removal's cell from Cell_MakeHandle, the spread's from the map id)
+        return;
+    }
+    const u32 wasPoor = Object_InPoorCondition(object);
+    const X87Reg level = X87Reg((double)(unsigned long long)amount) * global<float>(0x007005d0) + at<float>(object, 0x44);   // fild qword; fmul; fadd
+    if (level.v > 100.0)
+        at<u32>(object, 0x44) = 0x42c80000;
+    else if (!(level.v >= 0.0))
+        at<u32>(object, 0x44) = 0;
+    else
+        at<float>(object, 0x44) = (float)level.v;
+    if (Object_InPoorCondition(object) && !wasPoor) {
+        u8 *const world = global<u8 *>(0x008023a0);
+        const u16 id = (u16)((at<u8>(object, 7) << 7) + at<u8>(object, 5) + 1);
+        Map_SpreadRemove(world, nullptr, 1, id);
+        Map_SpreadAdd(global<u8 *>(0x008023a0), nullptr, 6, id);
+    }
 }
 }
