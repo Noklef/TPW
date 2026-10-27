@@ -3,16 +3,20 @@
 #include <cstdint>
 #include <cstring>
 
+#include "../core/crt.h"
 #include "../core/gameheap.h"
 #include "../core/vobj2.h"
 #include "../gfx/loadscreen.h"
+#include "../gfx/texcache.h"
 #include "../gfx/texset.h"
+#include "../gfx/texture.h"
 #include "../core/vwrap.h"
 #include "../math/x87.h"
 #include "../render/engineerrors.h"
 #include "../render/meshlist.h"
 #include "../render/mode.h"
 #include "../terrain/procedural.h"
+#include "../terrain/texcache.h"
 
 namespace {
 
@@ -243,5 +247,90 @@ u32 __fastcall ObjModel_LightMesh(u8 *object, void *, u8 *mesh, const u32 *matri
     }
     Meshes_LightMesh(global<u8 *>(0x0087a248), nullptr, colours, mesh);
     return 1;
+}
+
+// The terrain cell (x, y) of the map at [[0x879d60]] (width +0x18, cells +0x2c), read again each time; its index wraps as the original's.
+static u32 terrain_cell(s32 x, s32 y) {
+    const u8 *const map = **reinterpret_cast<u8 *const *const *>((uintptr_t)0x00879d60);
+    const u32 index = static_cast<u32>(at<s32>(map, 0x18)) * static_cast<u32>(y) + static_cast<u32>(x);
+    return *reinterpret_cast<const u32 *>((uintptr_t)(at<u32>(map, 0x2c) + index * 4));
+}
+
+static bool blended_cell(u32 cell) { return (cell & 0x80) && (cell & 0x200); }
+
+u32 __fastcall ObjModel_BlendTerrainTiles(u8 *object, void *, s32 x0, s32 y0, s32 x1, s32 y1) {
+    at<s32>(object, 0x12c) = 0;
+    for (s32 y = y0; y <= y1; ++y)
+        for (s32 x = x0; x <= x1; ++x)
+            if (blended_cell(terrain_cell(x, y)))
+                ++at<s32>(object, 0x12c);
+    const s32 pairCount = at<s32>(object, 0x12c);
+    u32 *const pairs = static_cast<u32 *>(GameHeap_Alloc(static_cast<u32>(pairCount) * 8));
+    if (pairs)
+        for (s32 i = 0; i < pairCount; ++i)
+            pairs[2 * i] = pairs[2 * i + 1] = 0;
+    const s32 count = at<s32>(object, 0x12c);
+    at<u32 *>(object, 0x124) = pairs;
+    u8 *sets = nullptr;
+    if (u8 *const block = static_cast<u8 *>(GameHeap_Alloc(static_cast<u32>(count) * 0x10 + 4))) {
+        sets = block + 4;
+        at<s32>(block, 0) = count;
+        CRT_VectorCtorIterator(sets, 0x10, count, reinterpret_cast<void(__fastcall *)(void *)>(&TexSet_Ctor),
+                               reinterpret_cast<void *>((uintptr_t)0x00575bf0));
+    }
+    at<u8 *>(object, 0x128) = sets;
+    u8 *const errors = reinterpret_cast<u8 *>((uintptr_t)0x00879ad0);
+    if (!at<u32>(object, 0x124) && !sets) {
+        Object_ReleaseSavedPairs(object);
+        EngineErrors_Push(errors, nullptr, 2, 0xb0754000);
+        return 0;
+    }
+    u32 result = 1;
+    s32 done = 0;
+    for (s32 y = y0; y <= y1; ++y)
+        for (s32 x = x0; x <= x1; ++x) {
+            const u32 cell = terrain_cell(x, y);
+            if (!blended_cell(cell))
+                continue;
+            u32 *const pairSlot = reinterpret_cast<u32 *>(ptr(ptr(object, 8), 0x50) + (cell >> 16) * 8 + 4);
+            u32 *const slot = TexSet_TextureSlot(reinterpret_cast<const u8 *>((uintptr_t)*pairSlot), nullptr, 0);
+            u8 *texture = nullptr;
+            if (u8 *const block = static_cast<u8 *>(GameHeap_Alloc(100))) {
+                at<s32>(block, 0) = 1;
+                texture = block + 4;
+                CRT_VectorVbaseCtorIterator(texture, 0x60, 1, reinterpret_cast<void(__fastcall *)(void *, void *, u32)>(&Texture_Ctor),
+                                            reinterpret_cast<void *>((uintptr_t)0x00590a70));
+            }
+            if (!texture) {   // (the links made so far stay: the pairs that would put them back are freed, sic)
+                EngineErrors_Push(errors, nullptr, 2, 0xb0754000);
+                for (s32 i = done - 1; i >= 0; --i)
+                    TexSet_Release(ptr(object, 0x128) + i * 0x10);
+                GameHeap_Free(ptr(object, 0x124));
+                if (u8 *const made = ptr(object, 0x128)) {   // (their dtor 0x575bf0 is a jump to TexSet_Release)
+                    CRT_VectorDtorIterator(made, 0x10, at<s32>(made - 4, 0), reinterpret_cast<void(__fastcall *)(void *)>(&TexSet_Release));
+                    GameHeap_Free(made - 4);
+                }
+                return 0;
+            }
+            u8 *const old = reinterpret_cast<u8 *>((uintptr_t)*slot);
+            TerrainOverlay overlay;
+            overlay.pixels = Texture_LockFlipped(old);
+            overlay.width = at<s16>(old, 0x10);
+            overlay.height = at<s16>(old, 0x12);
+            overlay.bytes_per_pixel = reinterpret_cast<const s32 *>((uintptr_t)0x00701a18)[global<u32>(0x008bd554)];
+            overlay.flags = cell & 0xffff;
+            result &= TerrainTexCache_BlendTile(ptr(global<u8 *>(0x00879d60), 0x230), nullptr, texture, x, y, &overlay);
+            TexCache_UnlinkItem(global<u8 *>(0x008c4b44), nullptr, reinterpret_cast<u8 *>((uintptr_t)*slot));
+            TexSet_InitShared(ptr(object, 0x128) + done * 0x10, nullptr, (u32)(uintptr_t)texture);
+            u8 *const set = ptr(object, 0x128) + done * 0x10;
+            u32 *const pair = at<u32 *>(object, 0x124) + 2 * done;
+            ++done;
+            pair[1] = (u32)(uintptr_t)pairSlot;
+            pair[0] = *pairSlot;
+            *pairSlot = (u32)(uintptr_t)set;
+        }
+    if (result)
+        at<u32>(object, 4) |= 0x20000000;
+    return result;
 }
 }
