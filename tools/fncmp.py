@@ -606,7 +606,7 @@ def blob_when(log, k, arg, value, mask, entry=0, deref=False):
     matches wins. deref: the dword the argument points to (a null one matches nothing) is compared, not the argument: one stack event posted
     twice, its kind (its first dword) changed in between."""
     assert 0 <= entry < 4
-    struct.pack_into('<4I', log, LOG_BLOB_WHEN + 16 * entry, (k & 63) | 0x80000000 | (0x40000000 if deref else 0), arg, value & 0xffffffff, mask)
+    struct.pack_into('<4I', log, LOG_BLOB_WHEN + 16 * entry, (k & 63) | 0x80000000, arg | (0x100 if deref else 0), value & 0xffffffff, mask)
 
 
 def blob_bytes(log, k, arg, mask, inner=None):
@@ -690,8 +690,8 @@ def _log_args(e, k, raw, kk):
     blob_arg, blob_mask = struct.unpack('<2I', e.read(LOG + LOG_BLOBS + 8 * (k & 63), 8))
     for w in range(4):   # (blob_when(): the mask for this call's argument)
         wk, wa, wv, wm = struct.unpack('<4I', e.read(LOG + LOG_BLOB_WHEN + 16 * w, 16))
-        if wk & ~0x40000000 == (k & 63) | 0x80000000 and wa < n and (raw[wa] if not wk & 0x40000000 else e.u32(raw[wa]) if raw[wa] else None) == wv:
-            blob_mask = wm   # (bit 30: the dword the argument points to, blob_when()'s deref)
+        if wk == (k & 63) | 0x80000000 and wa & 0xff < n and wa < 0x200 and (raw[wa & 0xff] if not wa & 0x100 else e.u32(raw[wa & 0xff]) if raw[wa & 0xff] else None) == wv:
+            blob_mask = wm   # (the argument's bit 8: the dword it points to, blob_when()'s deref)
     for i in range(n):
         for at, fk, fa, fn, how in fills:
             if fk == (k & 63) | 0x80000000 and fa == i and args[i]:
