@@ -155,4 +155,10 @@ void __cdecl List7ca140_InitRow(u8 *row);
 // 0x6ff3b0 part, the bytes 2, 1 as 0xc00, the font and slot 7 with 0; the next a ridestatbar bar inset by 0 and 8 with slot 7 given
 // 0x1f4; the next a happygrad bar inset by 0 and 8.
 void __cdecl List7ca170_InitRow(u8 *row);
+
+// 0x4959c0 (cdecl (window, message, a, b); name unconfirmed): List7ca158_NewRow's row handler. For 0x403 b is an object: its word +0x30
+// (Fn_4e0df0), when not 0, an index into the table at 0x7cfb90 (20-byte entries) whose dword is the object used instead; its status
+// (Object_Status with count 2) picks a colour (Table74fb50_Get) sent as its bytes 0-2 and 0xff (Window_Notify40000). Then, for every
+// message, the default handler's answer (Window_CallDefault).
+u32 __cdecl List7ca158_RowProc(u8 *window, u32 message, u32 a, u32 b);
 }

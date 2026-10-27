@@ -7,6 +7,7 @@
 #include "../core/language.h"
 #include "../core/vcall.h"
 #include "../render/textparts.h"
+#include "../world/objectstatus.h"
 #include "panelparts.h"
 #include "window.h"
 #include "windowfactory.h"
@@ -429,5 +430,20 @@ void __cdecl List7ca170_InitRow(u8 *row) {   // (sic: the original builds a GuiR
     window = nextSibling(window);
     vcall<void>(panelparts::barOf(window, panelparts::kRideStatBar, 0, 8), 0x1c, 0x1f4u);
     panelparts::barOf(nextSibling(window), panelparts::kHappyGrad, 0, 8);
+}
+
+u32 __cdecl List7ca158_RowProc(u8 *window, u32 message, u32 a, u32 b) {
+    if (message == 0x403) {
+        u8 *object = reinterpret_cast<u8 *>((uintptr_t)b);
+        u16 id = 0;
+        Fn_4e0df0(object, nullptr, (u32)(uintptr_t)&id);
+        if (id != 0) {
+            Fn_4e0df0(object, nullptr, (u32)(uintptr_t)&id);
+            object = global<u8 *>(0x007cfb90 + id * 20u);
+        }
+        const u32 colour = Table74fb50_Get(Object_Status(object, 2));
+        Window_Notify40000(window, nullptr, colour & 0xff, colour >> 8 & 0xff, colour >> 16 & 0xff, 0xff);
+    }
+    return (u32)Window_CallDefault(window, nullptr, message, a, b);
 }
 }  // extern "C"
