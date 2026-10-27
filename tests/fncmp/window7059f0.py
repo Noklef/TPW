@@ -31,9 +31,11 @@
 # AddRow (0x493800, src/game/ui/dialog7ca13c), AddGuest (0x493c50), OnGuestAdded (0x481920; thiscall on 0x7b51f0): AddItem's list of
 # 1-6 columns ([0x7ca138]; the first column add_case()'s, the others number columns, the sort column a string or number one), a guest
 # (GUEST2: its name +0x1d8 one of add_case()'s strings or none when the first column holds strings, else any; +0x30 0, 1, small or any;
-# its float +0x19c 0..100 mostly, else past a byte, negative or NaN; its arrival +0x1d4 ticks some quarters back or any) in the world
-# WORLD2 ([0x80239c] and [0x7cf83c]; its clock +0x2a0 at a rate small or any). AddGuest: RemoveData's dialog (or none); OnGuestAdded:
-# the guest at the handle's entry of the table 0x7cfb90 (the handle 0-7, its high word any).
+# its float +0x19c 0..100 mostly, else past a byte, negative or NaN; its arrival +0x1d4 ticks some quarters back or any); the world
+# [0x80239c] WORLD2 (its ticks), the game [0x7cf83c] WORLD3 (its clock +0x2a0 at a rate small or any), each with the other's field too (a
+# decoy). AddGuest: RemoveData's dialog (or none), the list given 1-2 row windows (row_windows(); the row array +0x148, the rows shown
+# +0x172) mostly, so that the refresh shows; OnGuestAdded: the guest at the handle's entry of the table 0x7cfb90 (0x108 entries; the
+# handle 0-7 or 0x100-0x107, its high word any).
 # SortsBefore (0x663edc): the sort column +0x168 0-3 (or -1 / -2: before the column array), +0x16a 0, 1 or any, the column bottoms 1 or not;
 # the texts four dwords (wide strings of a few short texts, or numbers around each other), the cells four counted strings (their text
 # or none) or 0 or numbers.
@@ -128,7 +130,7 @@ SORTW, SORTCOLS, SORTLINKS, SORTSTRS, SORTCHARS = RAM + 0x12000, RAM + 0x12200, 
 BARS = RAM + 0x14000
 BUILDROW, BUILDBAR = RAM + 0x16000, RAM + 0x16800
 GUEST, GUESTVT = RAM + 0x17000, RAM + 0x17100   # (OnGuestRemoved)
-GUEST2, WORLD2 = RAM + 0x17400, RAM + 0x200000   # (AddRow: the guest and the world)
+GUEST2, WORLD2, WORLD3 = RAM + 0x17400, RAM + 0x200000, RAM + 0x400000   # (AddRow: the guest, the world and the game)
 PARENT = RAM + 0x600
 
 
@@ -700,6 +702,20 @@ def add_case(r, columns=(0, 1, 2, 3, 3)):
     return Call(CALLS['AddItem'], args, regions, conv='t', ret='a', masks=allocator_masks(fail, lengths, first) if args[1] else [])
 
 
+def free_end(regions, window, stride):
+    """whether Window7059f0_RootEnd's walk from the first shown item along the next siblings comes to a free one (parent -2)"""
+    if not struct.unpack_from('<I', window, 0x144)[0]:
+        return False
+    data = regions[LINKS3 - 0x20]
+    i, seen = struct.unpack_from('<i', window, 0x160)[0], set()
+    while 0 <= i and 0x20 + 4 * (i + 4) <= len(data) and i not in seen:
+        seen.add(i)
+        if struct.unpack_from('<i', data, 0x20 + 4 * (i + 3))[0] == -2:
+            return True
+        i = struct.unpack_from('<i', data, 0x20 + 4 * i)[0]
+    return False
+
+
 def guest_case(r, op):
     """AddRow / AddGuest / OnGuestAdded: see above (add_case()'s list, its column bottoms past the first numbers)"""
     regions = add_case(r, columns=(1, 2, 3, 4, 5, 6, 6, 6)).regions
@@ -720,9 +736,12 @@ def guest_case(r, op):
     ticks = r.getrandbits(32)
     put(guest, 0x1d4, 'I', (ticks - 4 * r.choice([0, 1, 100, 14400, 1000000])) & 0xffffffff if r.random() < 0.9 else r.getrandbits(32))
     regions[GUEST2] = guest
-    regions[WORLD2 + 0x1da70c] = put(bytearray(r.bytes(0x10)), 0, 'I', ticks)
-    regions[WORLD2 + 0x2a0] = put(bytearray(r.bytes(0x40)), 0x1c, 'I', r.choice([1, 4, 60, 15000, 1000000, r.getrandbits(32)]))
-    regions[0x80239c] = regions[0x7cf83c] = struct.pack('<I', WORLD2)
+    rates = r.sample([1, 4, 60, 15000, 1000000, r.getrandbits(32) | 1], 2)
+    for world, tick, rate in ((WORLD2, ticks, rates[0]), (WORLD3, r.getrandbits(32), rates[1])):
+        regions[world + 0x1da70c] = put(bytearray(r.bytes(0x10)), 0, 'I', tick)
+        regions[world + 0x2a0] = put(bytearray(r.bytes(0x40)), 0x1c, 'I', rate)
+    regions[0x80239c] = struct.pack('<I', WORLD2)
+    regions[0x7cf83c] = struct.pack('<I', WORLD3)
     # (the new string's allocator byte: as add_case()'s, the first column the only string one)
     chars = regions[ACHARS]
     n = struct.unpack_from('<16H', chars, 0x20 * j).index(0) if name and first == 0 else None
@@ -740,10 +759,23 @@ def guest_case(r, op):
     shown = r.choice([dialog] * 12 + [0])
     regions[0x7ca130] = struct.pack('<4I', r.getrandbits(32), r.getrandbits(32), r.getrandbits(32), shown)
     masks = masks if shown else []
+    if r.random() < 0.85 and free_end(regions, window, stride) and not grows:   # (rows for the refresh: shown and given the cells,
+        # slot 7 or 9 of their columns' windows; only when the item goes into a free one: without one AddItem writes before the array, sic,
+        # and the refresh's climb through the parents then runs on for ever)
+        nrows = r.choice([1, 1, 2])
+        rows = row_windows(r, regions, [], nrows, ncols, LIST3)
+        regions[ROWS2] = struct.pack('<%dI' % (nrows + 1), *rows, r.getrandbits(32))
+        put(window, 0x148, 'I', ROWS2)
+        put(window, 0x172, 'h', nrows)
+        regions[VTABLE] = vtable({5: 1, 3: 2, 0: 1, 7: 1, 9: 1})
+        notify_blobs(regions[LOG], 0, 0x3c00)   # (as RefreshRows': the rows' events hashed, not their stack addresses)
+        # (the number columns' bottoms 1: a number in another column is read as an object, a fault in both)
+        bottoms = [0 if first == 0 else 1] + [1] * (len(bottoms) - 1)
+        regions[COLS3] = b''.join(put(bytearray(r.bytes(0xc)), 0xa, 'h', v) for v in bottoms + [1] * (4 - len(bottoms)))
     if op == 'AddGuest':
         return Call(CALLS[op], [GUEST2], regions, ret='v', masks=masks)
-    handle = r.randrange(8)
-    table = bytearray(r.bytes(20 * 8))
+    handle = r.randrange(8) | r.choice([0, 0, 0x100])
+    table = bytearray(r.bytes(20 * 0x108))
     put(table, 20 * handle, 'I', GUEST2)
     regions[0x7cfb90] = table
     return Call(CALLS[op], [0x7b51f0, handle | r.getrandbits(16) << 16], regions, conv='t', ret='v', masks=masks)
