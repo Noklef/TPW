@@ -26,6 +26,10 @@ u32 __fastcall ScriptRef_IsAt(const u8 *ref, void *, u32 anim);
 // +4 cleared; when +8 is set it is made the script's period (SpriteScript_SetPeriod) and +8 cleared.
 void __fastcall ScriptRef_Apply(u8 *ref);
 
+// 0x4d41d0 (thiscall (speed, a float), pops 4; called by 0x4fa442 on a person's +0xc; name invented): the period +8 set from the
+// speed: __ftol(62 / speed) (the x87's quotient at the game's precision) clamped to 0-250 (an invalid quotient's __ftol 0).
+void __fastcall ScriptRef_SetPeriodFor(u8 *ref, void *, float speed);
+
 // 0x4d4170 (thiscall): the script at +0 killed (SpriteScript_Kill) and +0 = 0.
 void __fastcall Obj_KillSlot(u8 *object);
 }
