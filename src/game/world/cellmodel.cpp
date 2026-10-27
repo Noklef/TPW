@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include "../core/accessors.h"
+#include "../core/crt.h"
 #include "mapcell.h"
 #include "random.h"
 
@@ -12,13 +13,15 @@ namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-// The table's model for the bits: the first row with exactly them, else the first with bits all among them; -1 for none.
+// The table's model for the bits: the first row with exactly them, else (none, or its model -1: sic) the first with bits all among them;
+// -1 for none.
 u32 search(u32 table, s32 rows, u8 bits, s32 turn, s32 *angle) {
     for (s32 i = 0; i < rows; ++i) {
         const u32 row = table + i * 12;
         if (global<u8>(row + 8) == bits) {
             *angle = turn + global<s32>(row + 4);
-            return global<u32>(row);
+            if (global<u32>(row) != 0xffffffffu) return global<u32>(row);
+            break;
         }
     }
     for (s32 i = 0; i < rows; ++i) {
@@ -110,6 +113,50 @@ u32 __fastcall MapCell_PickModel(const u8 *cell, void *, s32 *angle) {
         global<u32>(0x00820aec) = static_cast<u32>(World_Rand(global<u8 *>(0x007cf83c))) % 30;
     }
     return (model & 0xffff) | 0x50000;
+}
+
+u32 __fastcall MapCell_PickPathModel(const u8 *cell, void *, s32 *angle) {
+    const u8 bits = MapCell_Neighbours(cell);
+    const s32 type = at<s32>(cell, 8);
+    const u8 direction = MapCell_Direction(cell);
+    *angle = 0;
+    const u32 size = static_cast<u32>(type < 0 ? -type : type);
+    switch (size) {
+    case 2: case 4: case 7: case 9: case 0xa: case 0x15: case 0x1e: return 8;
+    default: break;
+    }
+    u32 model;
+    if (size == 3) {
+        const s32 turn = MapCell_StraightNeighbours(cell) && direction != 0x40 && direction != 0x10 ? 0xb4 : 0;
+        model = search(0x007630b0, global<s32>(0x00700c20), bits, turn, angle);
+    } else {
+        model = search(0x00763138, global<s32>(0x00700c24), bits, 0, angle);
+    }
+    if (type == 3 && MapCell_CornerNeighbours(cell)) {
+        const u8 d = MapCell_Direction(cell), b = MapCell_Neighbours(cell);
+        if ((d == 0x40 && b == 0x50) || (d == 0x10 && b == 0x14) || (d == 1 && b == 0x41) || (d == 4 && b == 5)) ++model;
+    }
+    if (global<u8>(0x00820ac0) && (model & 0xffff0000u) == 0x10000) {
+        if ((model & 0xffff) == 2) model += 0x11;
+        if ((model & 0xffff) == 0xa) model += 0xa;
+    }
+    global<u8>(0x00820ac0) = static_cast<u8>(Crt().rand() % 2);
+    if ((model & 0xffff0000u) != 0x20000) return model;
+    const u16 *const handle = reinterpret_cast<const u16 *>(cell);
+    u8 side = 1;
+    do {
+        if (side & MapCell_Neighbours(cell)) {
+            const u8 *const next = Map_StepCellInDirection(handle, nullptr, side);
+            if (next && at<s32>(next, 8) == 1 && (MapCell_Neighbours(next) & static_cast<u8>(Nibble_Scale(side)))) {
+                const u8 *entry = MapHandle_Entry28(handle);
+                if (MapCell_IsTypeCOr11(entry))
+                    entry = global<u8 *>(0x007cf83c) + (static_cast<u32>(at<u16>(MapHandle_Entry28(handle), 0x10)) + 0x6cde) * 0x28;
+                if (!MapCell_HasLowFlags(entry)) model += 3;
+            }
+        }
+        side = static_cast<u8>(Byte_ShiftLog2(side, 4));
+    } while (side != 1);
+    return model;
 }
 
 }  // extern "C"

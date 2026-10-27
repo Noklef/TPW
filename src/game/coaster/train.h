@@ -5,7 +5,67 @@
 
 #include "../../../re/types.h"
 
+// Train_PlaceCars's call into the game: Animator_Update (0x473c70).
+struct TrainEnv {
+    s32(__cdecl *animate)(u8 *animator, const u8 *block, u32 mode);
+};
+// nullptr restores the game's.
+void Train_SetEnv(const TrainEnv *e);
+const TrainEnv *Train_GetEnv();
+
 extern "C" {
+
+// 0x432df0 (cdecl; type, train, force, keep; name unconfirmed): nothing while 0x790afc is set unless force. Each car (+0x30, +0x34):
+// without keep its +8 and its piece's (+0x68, when there) +8 get 0x200000; a car with flag 0x2000 is then skipped. Its ride's (table
+// 0x7a4610 [car+0x70]) model (+8) root frame (+4 -> +0x78) +0x44 takes the base: for the first car the train's +0x20; for a later one
+// the car before's +0x50 plus the train type's (+0x18) gap +0xc4 when that car has flag 0x2000, else that car's ride model's top (+0x28
+// -> +4, row type +0x18 of 20 bytes, +4) +0x34, or 0 with no top. Animator_Update (ride, 1, 0). A later car's model flags (+0x2c, when
+// there) get 0x80000010 unless the type has flag 0x10; the first car's lose 0x10 and Model_FitToGrid (model, [0x7a0854], the car part's
+// (+0x100) +0x20, 0). Then the model's frames at the type's indexes +0x1c / +0x20 / +0x24 / +0x28 past the root's +0x46 (below the
+// root's +0x44 count its +0x70 frames, 0xa0 apart, else its +0x74 ones, 0x58 apart): the last car Flags_SetMoved (+0x1c, type 0x400)
+// and clears 0x10 (+0x20, 0x800); the others clear 0x10 (+0x1c, 0x400, unless the next car has flag 0x2000) and Flags_SetMoved (+0x20,
+// 0x800); the first car Flags_SetMoved (+0x24, 0x1000) and clears 0x10 (+0x28, 0x2000); the others clear 0x10 (+0x24, 0x1000) and set
+// 0x80000010 (+0x28, 0x2000).
+void __cdecl Train_PlaceCars(const u8 *type, u8 *train, u32 force, u32 keep);
+
+// 0x433bd0 (cdecl, ten arguments; name unconfirmed): car put into the train's slot. The car already there (old; none past the count)
+// and its train length (Car_TrainLength, inlined: 0 for an empty slot), and the length up to the slot before plus the type's (+0x18)
+// gap +0xc4 (0 for slot 0) are taken first. Unless noInsert, the cars from the slot up move a slot up (their +4 too); the car takes the
+// slot (+4, its train +0x100), the train's count (+0x30) goes up, and mark sets the train's flag 0x20 (+4). With an old car (and not
+// noInsert): height is lowered to the old car's length less the type's +0x68 and gap (or taken from it when a NaN), the room above
+// the slot before (height less that length, not below +0x68) unlerped against the type's +0xbc..+0xc0 and held to 0..1 (not above
+// 0, or a NaN, 0) is the car's length +0xe8, height becomes the room plus the length before, Car_SetChannelRates ([0x790fec]+4, car),
+// and Car_FitHeight (owner, the old car, type, its length, free). Otherwise, with a type, Car_FitHeight (owner, car, type, height,
+// free). height to *out when out is given. Then (a type, not noInsert): Train_ShrinkToTop (owner, type, train) unless noShrink,
+// Train_SetCouplings (inlined) and Train_PlaceCars (type, train, 0, 0). All on the x87.
+void __cdecl Train_InsertCar(const u8 *owner, u8 *car, u8 *train, u32 slot, float height, float *out, u32 mark, u32 noInsert,
+                             u32 noShrink, u32 free);
+
+// 0x4424e0 (cdecl; a, b; name unconfirmed): two cars of a's train (+0x100) swapped: their slots (+4) and the train's slot pointers
+// (+0x34), their rides' (table 0x7a4610 [+0x70]) root frame (+8 -> +4 -> +0x78) values +0x44 and their lengths +0xe8 (each moved
+// through the x87 but b's +0xe8 to a); Car_SetChannelRates ([0x790fec]+4) for a and b, Train_SetCouplings, Flags_SetChanged
+// ([0x790fec], 1) and Train_PlaceCars (the train's type, train, 0, 0).
+void __cdecl Train_SwapCars(u8 *a, u8 *b);
+
+// 0x443f40 (cdecl; what, car, coaster, unused, keepContacts; name unconfirmed): after an edit of car. With what bit 0: for the
+// coaster's +0x60 car, unless the train type (car +0x100 -> +0x18) has flag 0x4000, the coaster's +0x118 = CarType_Lerp of the car's
+// length +0xe8 held to 0..1 (below 0 or a NaN 0); with bit 2 instead, the coaster's +0x60 car without flag 0x40 (+8) gives its +0xd8
+// to the coaster's +0x11c. Flags_SetChanged (coaster, 1); with bit 0 then Car_SetChannelRates (coaster +4, car) and Train_PlaceCars
+// (type, train, 0, 0). Unless keepContacts, Contacts_MarkLostPair (car).
+void __cdecl Car_Edited(u32 what, u8 *car, u8 *coaster, u32 unused, u32 keepContacts);
+
+// 0x444150 (cdecl; length (a float's bits), index, unused, keepContacts; name unconfirmed): the length +0xe8 of the coaster's
+// ([0x790fec]) piece index (Track_PieceAt of its +0x3c), then Car_Edited (1, it, the coaster, unused, keepContacts).
+void __cdecl Car_SetLengthAt(u32 length, u32 index, u32 unused, u32 keepContacts);
+
+// 0x435340 (cdecl; node, range, car, other, keep, wantValue, out; name invented, unconfirmed): a value along range (+0xbc..+0xc0).
+// With range flagged 0x4000 and keep 0: other's (its type +0x100 flag 1 (+4): +0x50; else its ride's (0x7a4610[+0x70] +8 -> +0x28 ->
+// +4) entry the type's +0x18 -> +0x2c (0x14 apart, +4) -> +0x34, none 0.0; no other: range's own pointer bits, sic) less half the
+// distance across x and z from node's +0x1c to its +0x2c node's (Vec3_Distance with y zeroed), then car's length set to its
+// fraction of car's type (+0x100 -> +0x18) +0xbc..+0xc0 (Car_SetLengthAt (it, car's +0, 1, 0)); otherwise the coaster's ([0x790fec])
+// +0x118. The value to *out when given; returned (st0, so double): with wantValue the value, else its fraction of range's span, held
+// to 0..1 (below 0 or a NaN 0) unless node's +0x30 is set. sic: a null range faults (in the fraction).
+double __cdecl Car_LengthFromNode(const u8 *node, const u8 *range, u8 *car, const u8 *other, u32 keep, u32 wantValue, u32 *out);
 
 // 0x432d50: unless 0x790afc is set, marks each car but the last 0x100 (+8), clearing it on
 // the last, and picks its coupling: +0x84 with the type's +0x44 for a marked car without

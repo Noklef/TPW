@@ -69,8 +69,13 @@ s32 __cdecl time(s32 *t) {
     return now;
 }
 
-// rand(): a fixed answer (fncmp._rand, the emulator's hook of 0x67b5c0, gives the same; the original's seed is per thread, in its TLS block).
-s32 __cdecl rand() { return 0x2a6b; }
+// rand(): the MSVC6 generator on a seed at 0x2f200000 (fncmp.RAND_SEED: a case maps it; the game's is the thread's, _getptd()'s +0x14),
+// as the emulator's hook of 0x67b5c0 (fncmp._rand), so that ports drawing from it compare.
+s32 __cdecl rand() {
+    u32 &seed = *reinterpret_cast<u32 *>((uintptr_t)0x2f200000);
+    seed = seed * 214013u + 2531011u;
+    return (s32)((seed >> 16) & 0x7fff);
+}
 
 char *__cdecl strstr(const char *s, const char *find) { return const_cast<char *>(std::strstr(s, find)); }
 

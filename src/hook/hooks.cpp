@@ -257,12 +257,14 @@
 #include "../game/coaster/keys.h"
 #include "../game/coaster/lists.h"
 #include "../game/coaster/cars.h"
+#include "../game/coaster/carsound.h"
 #include "../game/coaster/nodes.h"
 #include "../game/coaster/queue.h"
 #include "../game/coaster/cursor.h"
 #include "../game/coaster/registry.h"
 #include "../game/coaster/contacts.h"
 #include "../game/coaster/edittools.h"
+#include "../game/coaster/placecheck.h"
 #include "../game/coaster/ridebounds.h"
 #include "../game/coaster/setup.h"
 #include "../game/coaster/save.h"
@@ -352,6 +354,7 @@
 #include "../game/model/objmodel.h"
 #include "../game/model/stripanim.h"
 #include "../game/model/baseuvs.h"
+#include "../game/model/gridfit.h"
 #include "../game/model/md2file.h"
 #include "../game/model/worldverts.h"
 #include "../game/render/frame.h"
@@ -1800,6 +1803,12 @@ const Hook kHooks[] = {
     {"Train_ShrinkToTop",         0x00433a90, (void *)&Train_ShrinkToTop, {0x51, 0x8b, 0x4c, 0x24, 0x10}},
     {"Train_RestoreSaved",        0x004338e0, (void *)&Train_RestoreSaved, {0x8b, 0x44, 0x24, 0x08, 0x83}},
     {"Train_RemoveCar",           0x00442d70, (void *)&Train_RemoveCar, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
+    {"Train_PlaceCars",           0x00432df0, (void *)&Train_PlaceCars, {0xa1, 0xfc, 0x0a, 0x79, 0x00}},
+    {"Train_InsertCar",           0x00433bd0, (void *)&Train_InsertCar, {0x83, 0xec, 0x10, 0x8b, 0x44}},
+    {"Train_SwapCars",            0x004424e0, (void *)&Train_SwapCars, {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"Car_Edited",                0x00443f40, (void *)&Car_Edited, {0x51, 0x8b, 0x44, 0x24, 0x08}},
+    {"Car_SetLengthAt",           0x00444150, (void *)&Car_SetLengthAt, {0x8b, 0x0d, 0xec, 0x0f, 0x79}},
+    {"Car_LengthFromNode",        0x00435340, (void *)&Car_LengthFromNode, {0x83, 0xec, 0x18, 0x53, 0x56}},
     {"Coasters_Save",             0x00437300, (void *)&Coasters_Save, {0x81, 0xec, 0xa0, 0x00, 0x00}},
     {"CrossSection_BuildIndices", 0x0042e200, (void *)&CrossSection_BuildIndices, {0x51, 0x53, 0x55, 0x56, 0x8b}},
     {"CrossSection_BuildPoints",  0x0042d6d0, (void *)&CrossSection_BuildPoints, {0x8b, 0x44, 0x24, 0x10, 0x83}},
@@ -2760,6 +2769,8 @@ const Hook kHooks[] = {
     {"Advisor_PostKindEvent",     0x0059afc0, (void *)&Advisor_PostKindEvent, {0x8b, 0x44, 0x24, 0x04, 0x83}},
     {"Advisor_PostId",            0x00486b00, (void *)&Advisor_PostId, {0x83, 0xec, 0x18, 0x6a, 0xff}},
     {"Advisor_Serialize",         0x00599f60, (void *)&Advisor_Serialize, {0x51, 0x8b, 0x44, 0x24, 0x0c}},
+    {"Advisor_HandleCode",        0x0059ae20, (void *)&Advisor_HandleCode, {0x8b, 0x44, 0x24, 0x04, 0x83}},
+    {"Advisor_HandleMessage",     0x0059b060, (void *)&Advisor_HandleMessage, {0x81, 0xec, 0xf4, 0x00, 0x00}},
     {"Flags7a1a14_Update",        0x00409260, (void *)&Flags7a1a14_Update, {0x56, 0x8b, 0x35, 0x14, 0x1a}},
     {"Obj_RemoveFromRect",        0x0045be80, (void *)&Obj_RemoveFromRect, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Global7c24d8_CopyScript",   0x00486610, (void *)&Global7c24d8_CopyScript, {0xa1, 0xd8, 0x24, 0x7c, 0x00}},
@@ -4130,8 +4141,17 @@ const Hook kHooks[] = {
     {"CoasterEdit_ToggleAdjustAngles", 0x00442010, (void *)&CoasterEdit_ToggleAdjustAngles, {0x8b, 0x15, 0x58, 0xc6, 0x79}},
     {"CoasterEdit_ToggleAdjust",  0x004421e0, (void *)&CoasterEdit_ToggleAdjust, {0xa1, 0xec, 0x0f, 0x79, 0x00}},
     {"CoasterEdit_ToggleDrag",    0x00441a00, (void *)&CoasterEdit_ToggleDrag, {0x51, 0x56, 0x8b, 0x35, 0xec}},
+    {"CoasterEdit_MoveCarBack",   0x004423f0, (void *)&CoasterEdit_MoveCarBack, {0xa1, 0xec, 0x0f, 0x79, 0x00}},
+    {"CoasterEdit_MoveCarForward", 0x004425c0, (void *)&CoasterEdit_MoveCarForward, {0xa1, 0xec, 0x0f, 0x79, 0x00}},
+    {"CoasterEdit_EndTool",       0x00442220, (void *)&CoasterEdit_EndTool, {0xa0, 0x24, 0xc6, 0x79, 0x00}},
+    {"CoasterEdit_SetMode",       0x00444360, (void *)&CoasterEdit_SetMode, {0xa0, 0x24, 0xc6, 0x79, 0x00}},
+    {"CoasterEdit_SwitchToTool1", 0x00444770, (void *)&CoasterEdit_SwitchToTool1, {0x51, 0x53, 0x55, 0x56, 0x33}},
+    {"CoasterEdit_SetTools",      0x00442880, (void *)&CoasterEdit_SetTools, {0xa0, 0x24, 0xc6, 0x79, 0x00}},
+    {"CoasterEdit_StartTool",     0x00445220, (void *)&CoasterEdit_StartTool, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"TrackMesh_EmitPiece",       0x0043f4e0, (void *)&TrackMesh_EmitPiece, {0x83, 0xec, 0x5c, 0xa1, 0x18}},
     {"TrackMesh_PlaceSections",   0x004402d0, (void *)&TrackMesh_PlaceSections, {0x81, 0xec, 0x80, 0x00, 0x00}},
+    {"CoasterCar_SetSoundMode",   0x00439780, (void *)&CoasterCar_SetSoundMode, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"CoasterPiece_CanPlaceAt",   0x00434740, (void *)&CoasterPiece_CanPlaceAt, {0x83, 0xec, 0x30, 0xa1, 0xec}},
     {"Thing_SpriteChoice",        0x004fcac0, (void *)&Thing_SpriteChoice, {0x51, 0x56, 0x8b, 0xf1, 0x6a}},
     {"Thing_IngredientRecord",    0x004e2200, (void *)&Thing_IngredientRecord, {0x51, 0x66, 0x8b, 0x41, 0x0e}},
     {"Class701378_Ctor",          0x005667d0, (void *)&Class701378_Ctor, {0x51, 0x8b, 0x44, 0x24, 0x08}},
@@ -5270,6 +5290,7 @@ const Hook kHooks[] = {
     {"ParkMap_AddSprites",        0x005f3940, (void *)&ParkMap_AddSprites, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"ParkMap_Scroll",            0x005f35b0, (void *)&ParkMap_Scroll, {0x8b, 0x44, 0x24, 0x04, 0x83}},
     {"MapCell_PickModel",         0x0053a540, (void *)&MapCell_PickModel, {0x83, 0xec, 0x1c, 0x53, 0x55}},
+    {"MapCell_PickPathModel",     0x00535dd0, (void *)&MapCell_PickPathModel, {0x83, 0xec, 0x18, 0x53, 0x55}},
     {"Weather_Serialize",         0x00512010, (void *)&Weather_Serialize, {0x8b, 0x44, 0x24, 0x10, 0x53}},
     {"Weather_RandomBolt",        0x00512c50, (void *)&Weather_RandomBolt, {0x83, 0xec, 0x1c, 0x8d, 0x44}},
     {"UIMsgReceiver_Ctor",        0x0050c9b0, (void *)&UIMsgReceiver_Ctor, {0x51, 0x66, 0xc7, 0x44, 0x24}},
@@ -5828,6 +5849,8 @@ const Hook kHooks[] = {
     {"RideBase_TidyUVs",          0x00467310, (void *)&RideBase_TidyUVs, {0x83, 0xec, 0x38, 0x53, 0x55}},
     {"RideBase_TidyAllUVs",       0x004679d0, (void *)&RideBase_TidyAllUVs, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"MD2_Load",                  0x0046d6d0, (void *)&MD2_Load, {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"Frame_FitToGrid",           0x00469a80, (void *)&Frame_FitToGrid, {0x55, 0x8b, 0xec, 0x83, 0xe4}},
+    {"Model_FitToGrid",           0x00469940, (void *)&Model_FitToGrid, {0x83, 0xec, 0x48, 0x53, 0x55}},
     {"Terrain_IsParkLand",        0x00450420, (void *)&Terrain_IsParkLand, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
     {"Terrain_CopyAttrs",         0x00450a30, (void *)&Terrain_CopyAttrs, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Terrain_GridSize",          0x00450b00, (void *)&Terrain_GridSize, {0xa1, 0x54, 0x08, 0x7a, 0x00}},

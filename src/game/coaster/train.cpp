@@ -4,8 +4,13 @@
 #include <cstdint>
 
 #include "../core/globalmem.h"
+#include "../math/matrix.h"
 #include "../math/x87.h"
+#include "../model/gridfit.h"
 #include "../model/parts.h"
+#include "../motion/animator.h"
+#include "contacts.h"
+#include "cursor.h"
 #include "helpers.h"
 
 namespace {
@@ -15,6 +20,11 @@ template <typename T> T &at(const void *p, u32 offset) {
 }
 
 template <typename T> T &global(uintptr_t address) { return *reinterpret_cast<T *>(address); }
+
+const TrainEnv kGameEnv = {&Animator_Update};
+const TrainEnv *g_trainEnv = &kGameEnv;
+
+u8 *RideAt(u32 index) { return reinterpret_cast<u8 *const *>(0x007a4610)[index]; }
 
 }  // namespace
 
@@ -380,4 +390,213 @@ u32 __cdecl Pylon_FindBraceLevel(float wanted, const u8 *train, u32 *level, floa
     *height = (float)((X87Reg(gap) + prev) + base);
     return 1;
 }
+
+void __cdecl Train_PlaceCars(const u8 *type, u8 *train, u32 force, u32 keep) {
+    if (global<u32>(0x00790afc) && !force) return;
+    for (u32 i = 0; i < at<u32>(train, 0x30); ++i) {
+        u8 *const car = at<u8 *>(train, 0x34 + 4 * i);
+        if (!keep) {
+            at<u32>(car, 8) |= 0x200000;
+            if (u8 *const piece = at<u8 *>(car, 0x68)) at<u32>(piece, 8) |= 0x200000;
+        }
+        if (at<u32>(car, 8) & 0x2000) continue;
+        const u8 *const ride = RideAt(at<u32>(car, 0x70));   // EDI
+        if (i != 0) {
+            const u8 *const prev = at<const u8 *>(train, 0x30 + 4 * i);
+            float base;
+            if (at<u32>(prev, 8) & 0x2000) {
+                base = (float)(X87Reg(at<float>(prev, 0x50)) + at<float>(at<const u8 *>(train, 0x18), 0xc4));
+            } else {
+                const u8 *const model = at<const u8 *>(RideAt(at<u32>(prev, 0x70)), 8);
+                const u8 *const top = at<const u8 *>(at<const u8 *>(at<const u8 *>(model, 0x28), 4), at<u32>(type, 0x18) * 20 + 4);
+                base = top ? X87_Through(at<float>(top, 0x34)) : 0.0f;   // (0x6fde74)
+            }
+            at<float>(at<u8 *>(at<u8 *>(at<u8 *>(ride, 8), 4), 0x78), 0x44) = base;
+            g_trainEnv->animate(RideAt(at<u32>(car, 0x70)), reinterpret_cast<const u8 *>(1), 0);
+            if (!(at<u8>(type, 0) & 0x10)) {
+                if (u32 *const flags = at<u32 *>(at<u8 *>(ride, 8), 0x2c)) *flags |= 0x80000010;
+            }
+        } else {
+            at<float>(at<u8 *>(at<u8 *>(at<u8 *>(ride, 8), 4), 0x78), 0x44) = X87_Through(at<float>(train, 0x20));
+            g_trainEnv->animate(RideAt(at<u32>(car, 0x70)), reinterpret_cast<const u8 *>(1), 0);
+            if (u32 *const flags = at<u32 *>(at<u8 *>(ride, 8), 0x2c)) {
+                *flags &= ~0x10u;
+                Model_FitToGrid(at<const u8 *>(ride, 8), global<const u8 *>(0x007a0854), at<u32>(at<const u8 *>(car, 0x100), 0x20), 0);
+            }
+        }
+        // The car's ride model's frame at the type's index k (+0x1c, +0x20, +0x24, +0x28) past the model's +0x46: the root's frames
+        // (+0x70, 0xa0 each) below its +0x44, past them the others (+0x74, 0x58 each).
+        const auto frame = [&](u32 k) {
+            const u8 *const root = at<const u8 *>(at<const u8 *>(RideAt(at<u32>(car, 0x70)), 8), 4);
+            const u32 index = at<u32>(type, k) + at<u16>(root, 0x46);
+            const u32 count = at<u16>(root, 0x44);
+            return index < count ? reinterpret_cast<u32 *>(at<u8 *>(root, 0x70) + index * 0xa0)
+                                 : reinterpret_cast<u32 *>(at<u8 *>(root, 0x74) + (index - count) * 0x58);
+        };
+        if (i == at<u32>(train, 0x30) - 1) {
+            if (at<u32>(type, 0) & 0x400) Flags_SetMoved(frame(0x1c), 1);
+            if (at<u32>(type, 0) & 0x800) *frame(0x20) &= ~0x10u;
+        } else {
+            const u8 *const next = at<const u8 *>(train, 0x38 + 4 * i);
+            if ((at<u32>(type, 0) & 0x400) && !(at<u32>(next, 8) & 0x2000)) *frame(0x1c) &= ~0x10u;
+            if (at<u32>(type, 0) & 0x800) Flags_SetMoved(frame(0x20), 1);
+        }
+        if (i == 0) {
+            if (at<u32>(type, 0) & 0x1000) Flags_SetMoved(frame(0x24), 1);
+            if (at<u32>(type, 0) & 0x2000) *frame(0x28) &= ~0x10u;
+        } else {
+            if (at<u32>(type, 0) & 0x1000) *frame(0x24) &= ~0x10u;
+            if (at<u32>(type, 0) & 0x2000) *frame(0x28) |= 0x80000010;
+        }
+    }
 }
+
+void __cdecl Train_InsertCar(const u8 *owner, u8 *car, u8 *train, u32 slot, float height, float *out, u32 mark, u32 noInsert,
+                             u32 noShrink, u32 free) {
+    const u8 *const type = at<const u8 *>(train, 0x18);   // [esp+0x10]
+    const u32 count = at<u32>(train, 0x30);   // [esp+0x1c]
+    u8 *old = nullptr;   // (the slot's argument, reused)
+    float oldLength = 0.0f;   // [esp+0x14]
+    X87Reg room = 0.0;
+    if (slot < count) {
+        old = at<u8 *>(train, 0x34 + 4 * slot);
+        if (old) oldLength = (float)Car_TrainLength(old);
+        room = oldLength - (X87Reg(at<float>(type, 0x68)) + at<float>(type, 0xc4));
+    }
+    float before = 0.0f;   // [esp+0x18]
+    if (slot != 0) {
+        const u8 *const prev = at<const u8 *>(train, 0x30 + 4 * slot);
+        const X87Reg length = prev ? X87Reg(Car_TrainLength(prev)) : X87Reg(0.0);
+        before = (float)(X87Reg(at<float>(type, 0xc4)) + length);
+    }
+    if (!noInsert) {
+        for (u32 j = count; j > slot; --j) {
+            u8 *const moved = at<u8 *>(train, 0x30 + 4 * j);
+            at<u8 *>(train, 0x34 + 4 * j) = moved;
+            at<u32>(moved, 4) = j;
+        }
+    }
+    at<u8 *>(train, 0x34 + 4 * slot) = car;
+    if (mark) at<u32>(train, 4) |= 0x20;
+    at<u32>(car, 4) = slot;
+    at<u8 *>(car, 0x100) = train;
+    at<u32>(train, 0x30) += 1;
+    if (old && !noInsert) {
+        if (!(room.v >= height)) height = (float)room;   // (fcom: below or unordered)
+        X87Reg rise = X87Reg(height) - before;
+        if (!(rise.v > at<float>(type, 0x68))) rise = X87Reg(at<float>(type, 0x68));
+        X87Reg t = (rise - at<float>(type, 0xbc)) / (X87Reg(at<float>(type, 0xc0)) - at<float>(type, 0xbc));
+        height = (float)(rise + before);
+        if (!(t.v > 0.0)) t = 0.0;
+        if (!(t.v < 1.0)) t = 1.0;
+        at<float>(car, 0xe8) = (float)t;
+        Car_SetChannelRates(at<u32>(global<const u8 *>(0x00790fec), 4), car);
+        Car_FitHeight(owner, old, type, oldLength, free);
+    } else if (type) {
+        Car_FitHeight(owner, car, type, height, free);
+    }
+    if (out) *out = height;
+    if (!type || noInsert) return;
+    if (!noShrink) Train_ShrinkToTop(owner, type, train);
+    Train_SetCouplings(0, train);
+    Train_PlaceCars(type, train, 0, 0);
+}
+
+void __cdecl Train_SwapCars(u8 *a, u8 *b) {
+    u8 *const train = at<u8 *>(a, 0x100);
+    const u32 slot = at<u32>(b, 4);
+    at<u32>(b, 4) = at<u32>(a, 4);
+    at<u32>(a, 4) = slot;
+    at<u8 *>(train, 0x34 + 4 * slot) = a;
+    at<u8 *>(train, 0x34 + 4 * at<u32>(b, 4)) = b;
+    // The rides' (table 0x7a4610 [+0x70]) root frame (+8 -> +4 -> +0x78) values +0x44 swapped through the x87 (a's loaded first).
+    const auto value = [](const u8 *car) -> u32 & {
+        return at<u32>(at<u8 *>(at<u8 *>(at<u8 *>(RideAt(at<u32>(car, 0x70)), 8), 4), 0x78), 0x44);
+    };
+    const u32 va = value(a), vb = value(b);
+    value(a) = X87_FloatThrough(vb);
+    value(b) = X87_FloatThrough(va);
+    const u32 la = at<u32>(a, 0xe8);
+    at<u32>(a, 0xe8) = at<u32>(b, 0xe8);
+    at<u32>(b, 0xe8) = X87_FloatThrough(la);
+    Car_SetChannelRates(at<u32>(global<const u8 *>(0x00790fec), 4), a);
+    Car_SetChannelRates(at<u32>(global<const u8 *>(0x00790fec), 4), b);
+    Train_SetCouplings(at<u32>(train, 0x18), train);
+    Flags_SetChanged(global<u32 *>(0x00790fec), 1);
+    Train_PlaceCars(at<const u8 *>(train, 0x18), train, 0, 0);
+}
+
+void __cdecl Car_Edited(u32 what, u8 *car, u8 *coaster, u32, u32 keepContacts) {
+    u8 *const train = at<u8 *>(car, 0x100);
+    const u8 *const type = at<const u8 *>(train, 0x18);
+    if (what & 1) {
+        if (car == at<u8 *>(coaster, 0x60)) {
+            float t = at<float>(car, 0xe8);
+            if (!(t >= 0.0f)) t = 0.0f;   // (0x6fe1b4; a NaN too)
+            else if (t > 1.0f) t = 1.0f;   // (0x6fe1a8)
+            if (!(at<u32>(type, 0) & 0x4000)) at<float>(coaster, 0x118) = (float)CarType_Lerp(t, type);
+        }
+        // (with the coaster's flag 0x800, the empty Debug_Printf (0x5da3c0): nothing)
+    } else if ((what & 4) && !(at<u8>(car, 8) & 0x40) && car == at<u8 *>(coaster, 0x60)) {
+        at<u32>(coaster, 0x11c) = at<u32>(car, 0xd8);
+    }
+    Flags_SetChanged(reinterpret_cast<u32 *>(coaster), 1);
+    if (what & 1) {
+        Car_SetChannelRates(at<u32>(coaster, 4), car);
+        Train_PlaceCars(type, train, 0, 0);
+    }
+    if (!keepContacts) Contacts_MarkLostPair(car);
+}
+
+void __cdecl Car_SetLengthAt(u32 length, u32 index, u32 unused, u32 keepContacts) {
+    u8 *const coaster = global<u8 *>(0x00790fec);
+    u8 *const car = reinterpret_cast<u8 *>((uintptr_t)Track_PieceAt(coaster + 0x3c, index));
+    at<u32>(car, 0xe8) = length;
+    Car_Edited(1, car, global<u8 *>(0x00790fec), unused, keepContacts);
+}
+
+double __cdecl Car_LengthFromNode(const u8 *node, const u8 *range, u8 *car, const u8 *other, u32 keep, u32 wantValue, u32 *out) {
+    u32 value = (u32)(uintptr_t)range;   // (the range argument's slot, sic)
+    if (range && (at<u32>(range, 0) & 0x4000) && !keep) {
+        float a[3], b[3];
+        std::memcpy(a, node + 0x1c, 12);
+        std::memcpy(b, at<const u8 *>(node, 0x2c) + 0x1c, 12);
+        a[1] = 0.0f;
+        b[1] = 0.0f;
+        if (other) {
+            const u8 *const type = at<const u8 *>(other, 0x100);
+            if (at<u8>(type, 4) & 1) {
+                value = at<u32>(other, 0x50);
+            } else {
+                const u8 *const list = at<const u8 *>(at<const u8 *>(at<const u8 *>(RideAt(at<u32>(other, 0x70)), 8), 0x28), 4);
+                const u8 *const entry = at<const u8 *>(list, 0x14 * at<u32>(at<const u8 *>(type, 0x18), 0x2c) + 4);
+                value = entry ? X87_FloatThrough(at<u32>(entry, 0x34)) : 0;
+            }
+        }
+        float v;
+        std::memcpy(&v, &value, 4);
+        v = (float)(v - X87Reg(Vec3_Distance(a, b)) * global<float>(0x006fdea0));   // (fmul -0.5; fsubr)
+        std::memcpy(&value, &v, 4);
+        const u8 *const model = at<const u8 *>(at<const u8 *>(car, 0x100), 0x18);
+        const float length = (float)((X87Reg(v) - at<float>(model, 0xbc)) / (X87Reg(at<float>(model, 0xc0)) - at<float>(model, 0xbc)));
+        u32 bits;
+        std::memcpy(&bits, &length, 4);
+        Car_SetLengthAt(bits, at<u32>(car, 0), 1, 0);
+    } else {
+        value = at<u32>(global<const u8 *>(0x00790fec), 0x118);
+    }
+    if (out) *out = value;
+    float v;
+    std::memcpy(&v, &value, 4);
+    const X87Reg top(at<float>(range, 0xc0));
+    double r = ((X87Reg(v) - at<float>(range, 0xbc)) / (top - at<float>(range, 0xbc))).v;
+    if (!at<u32>(node, 0x30)) {
+        if (!(r >= 0.0)) r = 0.0;
+        if (r > 1.0) r = 1.0;
+    }
+    return wantValue ? (double)X87_Through(v) : r;
+}
+}
+
+void Train_SetEnv(const TrainEnv *e) { g_trainEnv = e ? e : &kGameEnv; }
+const TrainEnv *Train_GetEnv() { return g_trainEnv; }

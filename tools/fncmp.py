@@ -994,11 +994,13 @@ def _time(e):  # cdecl (t) -> the fixed clock, also through t unless null (the o
     e.r['EAX'] = TIME
 
 
-RAND = 0x2a6b   # the CRT rand()'s stand-in answer (driver crt.cpp msvc6::rand, kDriverCrt)
+RAND_SEED = STUBS + 0x200000   # the CRT rand()'s stand-in seed (driver crt.cpp msvc6::rand, kDriverCrt): a case drawing from rand maps 4 bytes here
 
 
-def _rand(e):  # cdecl () -> RAND (the original's seed is per thread, in its TLS block)
-    e.r['EAX'] = RAND
+def _rand(e):  # cdecl () -> the MSVC6 generator on the seed at RAND_SEED (the original's is the thread's: _getptd()'s +0x14)
+    seed = (e.u32(RAND_SEED) * 214013 + 2531011) & 0xffffffff
+    e.write(RAND_SEED, struct.pack('<I', seed))
+    e.r['EAX'] = seed >> 16 & 0x7fff
 
 
 def _throw(name):

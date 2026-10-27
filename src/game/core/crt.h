@@ -36,8 +36,8 @@ struct CrtEnv {
     s32(__cdecl *strcmp)(const char *a, const char *b);            // 0x680060: -1, 0 or 1 (the bytes compared unsigned)
     // The clock (the driver's stand-in: a fixed time, the same in the emulator's hook, fncmp._time).
     s32(__cdecl *time)(s32 *t);                                    // 0x67d3f0: the seconds since 1970 (UTC), also through t unless null
-    // The generator (the driver's stand-in: a fixed answer, the same in the emulator's hook, fncmp._rand).
-    s32(__cdecl *rand)();                                          // 0x67b5c0: the thread's seed * 214013 + 2531011, its bits 16-30
+    // The generator (the driver's stand-in: the same on a seed at fncmp.RAND_SEED, as the emulator's hook, fncmp._rand).
+    s32(__cdecl *rand)();                                          // 0x67b5c0: the thread's seed (_getptd +0x14) * 214013 + 2531011, bits 16-30
 };
 
 // The CRT ports call (the game's unless swapped).
