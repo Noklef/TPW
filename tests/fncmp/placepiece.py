@@ -2,12 +2,13 @@
 # calls: CoasterLinks_FindKey, CoasterPiece_CanPlaceAt (and the CRT), Track_AppendPiece, Train_PlaceCarAtBrace (bracecar.py's world:
 # the coaster [0x790fec] with its cars and train, the type, the grid on [0x7a0854], 0x790afc set), TrackPieces_Renumber, Car_TravelCost
 # and Global81af4c_Add. The point 0x7a1c70 / 0x7a1c78 over the grid's 24 x 18 cells (now and then past them; the tiles' taken bits
-# any), the track's last piece (+0x24, a car of the train) within 300 of it mostly; the links (0x790fe0: the coaster, its +0x4c chain)
+# any), the track's last piece (+0x24, a car of the train) within 300 of it mostly (a quarter 270-330 off; the cars' flag 0x4000 clear half the time); the links (0x790fe0: the coaster, its +0x4c chain)
 # the train (its +4 bits 0 / 2 clear mostly, its key +8 the cell mostly, its +0x14 the coaster or not, the type's +0xcc 1-7) or none.
 # The track's flags 1 / 2, its +0x28 piece any car (in the train or not), its +0x1c none or a car; 0x79c658 flag 0x40 any (0x100 never:
 # the editor is not moving a piece); without a link the track's +0x2c block an empty pylon put before its +0x14 one (with a +0x28 one
 # or none); 0x785a2c set now and then.
 # usage: placepiece.py [CASES [SEED]] [--wild|--both] [--show N]
+import math
 import os
 import struct
 import sys
@@ -51,9 +52,19 @@ def case(r):
     cell = gz * GW + gx
     last = r.choice(cars)
     o = last - insertcar.CARS
-    near = r.random() < 0.9
-    put(carbuf, o + 0x4c, 'f', gx * 10 + (r.uniform(-200, 200) if near else r.choice([-1, 1]) * r.uniform(301, 900)))
-    put(carbuf, o + 0x54, 'f', gz * 10 + (r.uniform(-200, 200) if near else r.uniform(-900, 900)))
+    near = r.random()
+    if near < 0.25:   # (around the 300 limit)
+        a, d = r.uniform(0, 2 * math.pi), r.uniform(270, 330)
+        ox, oz = d * math.cos(a), d * math.sin(a)
+    elif near < 0.9:
+        ox, oz = r.uniform(-200, 200), r.uniform(-200, 200)
+    else:
+        ox, oz = r.choice([-1, 1]) * r.uniform(301, 900), r.uniform(-900, 900)
+    put(carbuf, o + 0x4c, 'f', gx * 10 + ox)
+    put(carbuf, o + 0x54, 'f', gz * 10 + oz)
+    for k in range(6):   # (the join's 0x4000 clear now and then)
+        if r.random() < 0.5:
+            put(carbuf, insertcar.CAR * k + 8, 'I', struct.unpack_from('<I', carbuf, insertcar.CAR * k + 8)[0] & ~0x4000)
     if r.random() < 0.03:
         put(carbuf, o + r.choice([0x4c, 0x54]), 'I', r.choice([0x7fc00000, 0x7f800001]))
     put(coaster, 0, 'I', struct.unpack_from('<I', coaster, 0)[0] & ~8)
