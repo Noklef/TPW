@@ -5,8 +5,9 @@
 # Path: the back of the queue's cell or the cell ahead of a quarter-turn angle) and whether the object can be opened (0x4df290 Object_CanOpen: Open's states with Path's
 # cells). The angles are quarter turns only: another leaves the original's direction bit a stale stack byte (see objectmsg.h). Where a person at a place in the
 # queue stands (0x4de840 Object_QueueSpot, Spot: Path's world, places in the first cells or past the end, the world's random state, now and then the one drawing 0x80000000); EntSpot (0x4dec30 Object_EntranceQueueSpot) on Spot's cases.
-# AnySpot (0x4de7e0 Object_AnyQueueSpot): Spot's cases, the object's bit 3 of +0x32 set or clear.
-# usage: objectqueue.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Back,BackTo,None,Open,Path,CanOpen,Spot,EntSpot,AnySpot)
+# AnySpot (0x4de7e0 Object_AnyQueueSpot): Spot's cases, the object's bit 3 of +0x32 set or clear. Close (0x4df390 Object_Close, src/game/world/object): CanOpen's
+# cases with strip objects for the link ids (strips or none) and a ride record of the id +0x24 or none (element 6 there or not).
+# usage: objectqueue.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Back,BackTo,None,Open,Path,CanOpen,Close,Spot,EntSpot,AnySpot)
 import os
 import struct
 import sys
@@ -21,8 +22,10 @@ from thingenv import park  # noqa: E402
 B = Bench([(0x4d8300, 0x4d8340), (0x4d8c00, 0x4d8c30), (0x4d96f0, 0x4d99f0), (0x4de4a0, 0x4de5b0), (0x4df290, 0x4df310), (0x4de840, 0x4dede8), (0x516330, 0x516380),
            (0x4ddf40, 0x4de200), (0x4de040, 0x4de100), (0x4de670, 0x4de7e0), (0x4de7e0, 0x4de83e), (0x502430, 0x502470), (0x50b350, 0x50b370),
            (0x522770, 0x5227a0), (0x522850, 0x522870), (0x536300, 0x53644c), (0x5da3c0, 0x5da3c1),
-           (0x4dd920, 0x4dda20), (0x412e90, 0x412eea), (0x441970, 0x4419b0), (0x436860, 0x436880)])
+           (0x4dd920, 0x4dda20), (0x412e90, 0x412eea), (0x441970, 0x4419b0), (0x436860, 0x436880),
+           (0x4df390, 0x4df441), (0x4547c0, 0x454800), (0x55a070, 0x55a110), (0x4e0e60, 0x4e11e4)])
 OUT = RAM + 0x7000
+RIDES, STRIPS = RAM + 0x40000, RAM + 0x41000
 
 
 def back(r):
@@ -123,6 +126,23 @@ def can_open(r):
     return c
 
 
+def close(r):
+    """0x4df390: CanOpen's cases (its states, +0x64, definitions, links and entrance cells), the strip objects of 0x7a4610 for the link ids
+    (+0xb0 strips set or not, the flags random) and a ride record of id +0x24 or none, its count 0-8 or -1 (element 6 there or not)."""
+    c = can_open(r)
+    strips = bytearray(4 * 10)
+    for i in range(10):
+        put(strips, 4 * i, 'I', STRIPS + 0x100 * i)
+        c.regions[STRIPS + 0x100 * i] = put(bytearray(r.bytes(0xc0)), 0xb0, 'I', r.choice([0, 0, r.getrandbits(32) | 1]))
+    c.regions[0x7a4610] = strips
+    node = put(put(put(bytearray(r.bytes(0x100)), 0, 'I', 0), 8, 'I', 5), 0x1c, 'I', RIDES + 0x100)
+    put(node, 0x8c, 'i', r.choice([0, 1, 6, 7, 8, 8, -1]))
+    put(c.regions[RAM], 0x24, 'I', r.choice([5, 5, 5, 3]))
+    c.regions.update({RIDES: node, RIDES + 0x100: r.bytes(0x40), 0x8791a0: struct.pack('<I', r.choice([0, 1, 1, 1])), 0x8791b0: struct.pack('<I', RIDES)})
+    c.address, c.ret = 0x4df390, 'v'
+    return c
+
+
 def spot(r):
     """0x4de840: back()'s world with entrance()'s cells, a place in the first cells of the queue or far beyond its end, the world's random state."""
     c = path(r)
@@ -157,7 +177,7 @@ def any_spot(r):
     return c
 
 
-CASES = {'Back': back, 'BackTo': back_to, 'None': none, 'Open': open_, 'Path': path, 'CanOpen': can_open, 'Spot': spot, 'EntSpot': entrance_spot, 'AnySpot': any_spot}
+CASES = {'Back': back, 'BackTo': back_to, 'None': none, 'Open': open_, 'Path': path, 'CanOpen': can_open, 'Close': close, 'Spot': spot, 'EntSpot': entrance_spot, 'AnySpot': any_spot}
 
 
 def case(r):
