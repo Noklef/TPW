@@ -326,6 +326,7 @@ add_library(tpw_game STATIC
     src/game/world/demolish.cpp
     src/game/world/tracksquare.cpp
     src/game/world/placeobject.cpp
+    src/game/world/endthing.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp
