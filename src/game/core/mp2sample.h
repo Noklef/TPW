@@ -36,6 +36,11 @@ void __fastcall Mp2Sample_Close(u8 *sample);
 void __fastcall Mp2BufferSample_Restart(u8 *sample);
 // 0x6c8b10 (thiscall; slot 8 of 0x70ae90): the position 0, SubStream_Rewind (+0x40), the decoder reset (Fn_6d1a50).
 void __fastcall Mp2StreamSample_Restart(u8 *sample);
+// The MP2 streamed sample's window (its sub-stream at +0x40, vtable 0x70aef4; names invented). 0x6c8a60 (thiscall (buffer, count), pops
+// 8; slot 1): the count clipped to the sample's length (+0x18) less the position (+4, unsigned); not above 0 (signed) -1, else
+// SubStream_Read of it. 0x6c8aa0 (thiscall (offset), pops 4; slot 2): SubStream_Seek less the start (+8).
+u32 __fastcall Mp2StreamWindow_Read(u8 *window, void *, u8 *buffer, u32 count);
+u32 __fastcall Mp2StreamWindow_Seek(u8 *window, void *, u32 offset);
 // 0x6c8ae0 (thiscall; slot 22): with a decoder (+0x34), its slot 2, then (re-read, when still there) its slot 0 (1), and +0x34 0.
 void __fastcall Mp2Sample_FreeDecoder(u8 *sample);
 // 0x6c82c0 (thiscall (record, source), pops 8): the MP2 memory sample's constructor: SoundSample_Ctor, the vtable 0x70ae30, +0x2c =

@@ -4597,6 +4597,8 @@ address,name,kind,confidence,notes
 0x006c87c0,Mp2StreamSample_Ctor,function,low,"reimplemented (src/game/core/mp2sample); thiscall (stream, record, start, source), pops 0x10: the MP2 streamed sample's constructor: Mp2Sample_Ctor, SubStream_CtorAt (+0x40, stream, start), its vtable 0x70aef0, the sample's 0x70ae90 (name invented)"
 0x006c8850,Mp2StreamSample_Dtor,function,low,"reimplemented (src/game/core/mp2sample); thiscall: the MP2 streamed sample's destructor: the SubStream at +0x40's (vtable 0x70ad50, Semaphore_Dtor, StreamBase_Dtor), then SoundSample_Dtor (name invented)"
 0x006c8830,Mp2StreamSample_DeletingDtor,function,low,"reimplemented (src/game/core/mp2sample); thiscall (flags), pops 4; slot 0 of 0x70ae90: Mp2StreamSample_Dtor, with flags bit 0 Mp2StreamSamplePool_Delete (0x5c); returns the sample (name invented)"
+0x006c8a60,Mp2StreamWindow_Read,function,low,"reimplemented (src/game/core/mp2sample); the MP2 streamed sample's window read, clipped to the sample's length; -1 at the end"
+0x006c8aa0,Mp2StreamWindow_Seek,function,low,"reimplemented (src/game/core/mp2sample); the MP2 streamed sample's window seek, less the start"
 0x006d3f80,SfMan_PackMsg,function,low,"reimplemented (src/game/core/sfman); the SoundFont synthesiser's short MIDI message on channel 2 (stdcall status, data1, data2)"
 0x006d4530,SfMan_UnloadBank,function,low,"reimplemented (src/game/core/sfman); the SoundFont API's slot 14 (unload bank) on the device with the pair {1, 0}: 1 when it answers 0"
 0x006d4570,SfMan_NotesOff,function,low,"reimplemented (src/game/core/sfman); all notes off on the SoundFont MIDI out device, midiOutShortMsg's answer"
