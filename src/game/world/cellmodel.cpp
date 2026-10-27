@@ -162,13 +162,11 @@ u32 __fastcall MapCell_PickPathModel(const u8 *cell, void *, s32 *angle) {
 }
 
 void __fastcall MapCell_ApplyPathModel(u8 *cell) {
-    s32 angle = static_cast<s32>(reinterpret_cast<uintptr_t>(cell));   // (unset by some picks: the original's slot holds its saved ECX)
+    s32 angle = 0;   // (MapCell_PickPathModel sets it first)
     const s32 kind = at<s32>(cell, 8);
     u32 model = 0x37;
     if (kind > 0 && kind != 5)
         model = MapCell_PickPathModel(cell, nullptr, &angle);
-    else
-        angle = 0;
     s32 *const paint = reinterpret_cast<s32 *>(0x00820aa8);
     paint[0] = static_cast<s32>(model) >> 16;
     paint[1] = static_cast<s32>(model & 0xffff);
