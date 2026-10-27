@@ -8,6 +8,7 @@
 #include "../core/seqs.h"
 #include "../files/wrapsources.h"
 #include "../math/x87.h"
+#include "../render/drawbuffer.h"
 #include "../render/texformat.h"
 
 namespace {
@@ -438,6 +439,17 @@ void OutputScaled(u32 dstWidth, u32 dstHeight, u32 pitch, u32 pixelSize, u8 *pix
 }  // namespace
 
 extern "C" {
+
+u32 __cdecl Wavelet_Startup() {
+    if (global<u32>(0x00879a68))
+        return 0;
+    u8 *const codec = WaveletCodec_Create();
+    global<u8 *>(0x00879a64) = codec;
+    if (!codec)
+        return 0;
+    global<u32>(0x00879a68) = at<u32>(DrawBuffer_Begin(global<u8 *>(0x008bcbc4), nullptr, 2), 0x28);
+    return 1;
+}
 
 u32 __cdecl Wavelet_Shutdown() {
     const u32 block = global<u32>(0x00879a68);

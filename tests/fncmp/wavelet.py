@@ -20,9 +20,10 @@
 #   then up to 32, or 0), LZ77 blocks encoded here from coefficient streams (small values, 0x80 escapes, now and then a copy from before
 #   the stream), any quantisers, the filter the game's or any floats, the colour tables small values, the clamp and pixel words any bytes;
 # - its resampling variant (0x597100), dealt over the same four and the forward to the codec's slot 2 (a recorder): destinations 1 to 24
-#   (now and then 0: the division faults), pitches at, above and below the row.
+#   (now and then 0: the division faults), pitches at, above and below the row;
+# - the codec's start-up (0x564b20, Wavelet_Startup): see startup().
 # usage: wavelet.py [CASES [SEED]] [--wild|--both] [--show N]
-#        (env OPS=PUT,UNPACK,YUV,D4ROW,HALVE,FWD,GREY,ENCODE,READ,IROW,ICOLS,DGREY,RGB,DCOL,V13,V13S,DECODE,CTOR)
+#        (env OPS=PUT,UNPACK,YUV,D4ROW,HALVE,FWD,GREY,ENCODE,READ,IROW,ICOLS,DGREY,RGB,DCOL,V13,V13S,DECODE,CTOR,CREATE,STARTUP)
 import math
 import os
 import struct
@@ -31,8 +32,9 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, LOG, Bench, Call, RAM, fb, heap, log_region, put, vtable  # noqa: E402
 
-B = Bench([(0x5916c0, 0x59196b), (0x591ab0, 0x59205a), (0x592150, 0x593ab0), (0x595920, 0x5985c0), (0x5985c0, 0x598629), (0x598630, 0x598790), (0x5f8050, 0x5f8120), (0x5839e0, 0x583a00)])
-OPS = [k for k in os.environ.get('OPS', 'PUT,UNPACK,YUV,D4ROW,HALVE,FWD,GREY,ENCODE,READ,IROW,ICOLS,DGREY,RGB,DCOL,V13,V13S,DECODE,CTOR,CREATE').split(',') if k]
+B = Bench([(0x5916c0, 0x59196b), (0x591ab0, 0x59205a), (0x592150, 0x593ab0), (0x595920, 0x5985c0), (0x5985c0, 0x598629), (0x598630, 0x598790), (0x5f8050, 0x5f8120), (0x5839e0, 0x583a00),
+           (0x564b20, 0x564b55), (0x582670, 0x5826f0)])
+OPS = [k for k in os.environ.get('OPS', 'PUT,UNPACK,YUV,D4ROW,HALVE,FWD,GREY,ENCODE,READ,IROW,ICOLS,DGREY,RGB,DCOL,V13,V13S,DECODE,CTOR,CREATE,STARTUP').split(',') if k]
 CURSOR = RAM + 8
 CODEC, PLANES, SRC, DST, FILTER = RAM, RAM + 0x1000, RAM + 0x2000, RAM + 0x3000, 0xc27208
 OUT, SIZE, OLD, STREAM = RAM + 0x4000, RAM + 0x4100, RAM + 0x5000, 0xa067f8
@@ -98,6 +100,8 @@ def case(r):
         c = construct(r)
         c.regions[HEAP] = heap(0xb0000, fail=r.choice([0] * 6 + [1, 2]))
         return Call(0x5985c0, [], c.regions, ret='a')
+    if op == 'STARTUP':
+        return startup(r)
     if op in ('READ', 'IROW', 'ICOLS', 'DGREY'):
         return decoder(r, op)
     if op != 'HALVE':
@@ -269,6 +273,23 @@ def construct(r):
         put(obj, 4, 'I', r.choice([0x702708, SRC]))
         regions[SRC] = struct.pack('<iI', -4, r.choice([0x50, 0x48, 0x40]))
     return Call(0x5916c0, [CODEC, most], regions, conv='t', ret='a')
+
+
+def startup(r):
+    """0x564b20: a block at 0x879a68 already now and then (nothing done, 0); else CREATE's codec (the heap failing its first or second block
+    now and then: none, 0) kept at 0x879a64, and the draw buffer at [0x8bcbc4] (drawbuffer.py's: 16 batches, the streams' slots any of
+    them) begins a batch in mode 2, whose +0x28 (the stream's free vertices) is kept at 0x879a68: 1."""
+    c = construct(r)
+    c.regions[HEAP] = heap(0xb0000, fail=r.choice([0] * 6 + [1, 2]))
+    mem = bytearray(r.bytes(0x100 + 16 * 0x38))
+    buf = RAM + 0x6020
+    put(mem, 0x20 + 0x44, 'I', RAM + 0x6100)
+    for off in (0x4c, 0x50, 0x54):
+        put(mem, 0x20 + off, 'I', r.randrange(16))
+    c.regions[RAM + 0x6000] = mem
+    c.regions[0x8bcbc4] = struct.pack('<I', buf)
+    c.regions[0x879a64] = struct.pack('<2I', r.getrandbits(32), 0 if r.random() < 0.9 else r.getrandbits(32) | 1)
+    return Call(0x564b20, [], c.regions, ret='a')
 
 
 def decoder(r, op):
