@@ -2,7 +2,7 @@
 # CoasterEdit_StartChosenTool 0x4455c0) against the original, with all it
 # calls: settools.py's world (coaster.py's edit-tool world and RefreshTools dialog, endtool.py's cars, rides' holders and selection; the
 # tool in use none, another or the selection, the mode 0x79c624 bit 0 or not, the chosen tools 0x79c638 and the offer 0x79c6e0 any).
-# The tool one of bits 0-8 mostly (3, 0, 0x200 and any now and then); the action 1 (on), 2 (off), 4 (all off), none or several.
+# The tool one of bits 0-8 mostly (dealt; 3, 0, 0x200, 0x101 and all now and then); the action 1 (on), 2 (off), 4 (all off), none or several.
 # EndAll (0x4426a0): that world. Chosen (0x4455c0): that world, the game's +0x3c bits 0 / 1 any.
 # usage: toolbutton.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=On,Off,All,Other,EndAll,Chosen)
 import os
@@ -35,7 +35,7 @@ def case(r):
         regions[settools.GAME] = game
         regions[OUT] = r.bytes(4)
         return Call(0x4455c0, [OUT], regions)
-    tool = r.choice([1, 1, 2, 2, 1 << r.randrange(2, 9), 1 << r.randrange(2, 9), 1 << r.randrange(9), 3, 0, 0x200, r.getrandbits(32)])
+    tool = r.deal([1 << k for k in range(9)] * 2 + [3, 0, 0x200, 0x101, 0xffffffff])
     action = r.choice(ACTIONS[op]) | r.getrandbits(32) & ~0xff
     return Call(0x446fa0, [tool, action], c.regions)
 
