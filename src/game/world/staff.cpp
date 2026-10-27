@@ -24,6 +24,7 @@
 #include "person.h"
 #include "personscripts.h"
 #include "random.h"
+#include "ridelist.h"
 #include "things.h"
 #include "thingscan.h"
 #include "world.h"
@@ -657,5 +658,18 @@ void __fastcall Staff_HeadForEntrance(u8 *staff) {
     const u16 cell = static_cast<u16>((global<u32>(0x007855c0) << 7) + global<u32>(0x007855bc) + 1);
     const u32 arg = (static_cast<u32>(reinterpret_cast<uintptr_t>(staff)) & 0xffff0000u) | cell;
     Staff_SetState(staff, nullptr, Sprite_SetDestinationCell(staff, nullptr, arg) ? 1u : 0u);   // (0: after the original's debug print)
+}
+
+void __fastcall Staff_LeaveRestArea(u8 *staff) {
+    u16 handle;
+    u32 msg[4] = {0x00700868, 0, *Thing_GetHandle(staff, nullptr, &handle), 0};   // (the original leaves the word above the handle as it was)
+    Object_PostMessage(reinterpret_cast<u8 *>(msg));
+    const u16 area = *reinterpret_cast<u16 *>(staff + 0x208);
+    const u8 *const thing = *reinterpret_cast<u8 **>((uintptr_t)0x007cfb90 + area * 20u);
+    u8 *const record = Rides_FindById(*reinterpret_cast<const s32 *>(thing + 0x24));
+    Rides_SetElement(record, 0, Rides_GetElement(record, 0) - 1);
+    *reinterpret_cast<u16 *>(staff + 0x208) = 0;
+    ScriptRef_Start(staff + 0xc, nullptr, 3, *reinterpret_cast<u32 *>(staff + 0x24), *reinterpret_cast<u32 *>(staff + 0x20));
+    Staff_SetState(staff, nullptr, 0);
 }
 }

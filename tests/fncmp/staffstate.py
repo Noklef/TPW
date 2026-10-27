@@ -15,7 +15,11 @@
 # Settle (0x505f50): PickUp's surroundings with the state +0x19c 0-7, 0xd, 0x12 or others, the type +8 of the staff member's cell
 # plain (0, 1, 3, 9, 0xa) or not, its byte +2 7 mostly.
 # Head (0x506300): see head().
-# usage: staffstate.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetState,Mechanic,Handyman,PickUp,Settle,Head,Researcher)
+# LeaveRest (0x506d10): SetState's surroundings for state 0, the message centre [0x788d3c] made, agent B's unported 0x40fb10 thiscall recorder 21
+# (driver.cpp's kObjectEnv) logging the message's bytes 0-9 and 0xc-0xf (0xa-0xb are the original's stack); the rest area +0x208 a
+# handle 0-15 whose slot of 0x7cfb90 holds a thing with the ride id +0x24 (the ride list ready or not, its id matching mostly; element 0
+# 0, 1, any or the count 0).
+# usage: staffstate.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetState,Mechanic,Handyman,PickUp,Settle,Head,Researcher,LeaveRest)
 import os
 import struct
 import sys
@@ -25,7 +29,7 @@ sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import navpath  # noqa: E402
 import wctimage  # noqa: E402
-from fncmp import HEAP, LOG, Bench, Call, RAM, heap, put, set_return, vtable  # noqa: E402
+from fncmp import HEAP, LOG, Bench, Call, RAM, _recorder, blob_bytes, heap, put, set_return, vtable  # noqa: E402
 from focus import MODES  # noqa: E402
 from mousemode import assign  # noqa: E402
 from movingperson import cell_xy  # noqa: E402
@@ -40,15 +44,16 @@ B = Bench(wctimage.merged(MODES + [
     (0x4da370, 0x4da483), (0x4e03e0, 0x4e03f0), (0x4dd4e0, 0x4dd4fb), (0x412e90, 0x412eea), (0x4d7330, 0x4d73b4),
     (0x505c50, 0x505ea0), (0x509ae0, 0x509aec), (0x4fa990, 0x4fa9fa), (0x536300, 0x53644c), (0x505f50, 0x505fe0),
     (0x506300, 0x5064a0), (0x4c9130, 0x4c91d0), (0x4fa530, 0x4fa600), (0x509990, 0x5099d0), (0x516130, 0x5161c0), (0x516330, 0x516380),
-    (0x519510, 0x519560), (0x51a280, 0x51a2a0), (0x4d4170, 0x4d41a0)] + navpath.RANGES))
+    (0x519510, 0x519560), (0x51a280, 0x51a2a0), (0x4d4170, 0x4d41a0), (0x506d10, 0x506e41), (0x55a070, 0x55a100), (0x55a390, 0x55a3e0),
+    (0x415e00, 0x415e80)] + navpath.RANGES), hooks={0x40fb10: _recorder(21, 1)})
 STAFF, WORLD, MODE, MODE_VT, HOLDER = RAM + 0x20000, RAM + 0x21000, RAM + 0xc000, RAM + 0xc100, RAM + 0xc200
 RECORD, CELLS = RAM + 0x21400, RAM + 0x50000
 
 
 CALLS = {'SetState': 0x5054d0, 'Mechanic': 0x4da370, 'Handyman': 0x4d7330, 'PickUp': 0x505c50, 'Settle': 0x505f50, 'Head': 0x506300,
-         'Researcher': 0x502c20}
+         'Researcher': 0x502c20, 'LeaveRest': 0x506d10}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
-TARGET, ITEMS = RAM + 0x38000, RAM + 0x40000
+TARGET, ITEMS, AREA, RIDES = RAM + 0x38000, RAM + 0x40000, RAM + 0x39000, RAM + 0x3a000
 
 
 def mechanic(r):
@@ -173,6 +178,24 @@ def case(r):
             cells = bytearray(regions[CELLS])
             put(cells, 0x44 * (staff[7] * 128 + staff[5]) + 8, 'I', r.choice([0, 1, 3, 9, 0xa, 2, 4, 0xc, 0x11, r.getrandbits(32)]))
             regions[CELLS] = cells
+        return Call(CALLS[op], [STAFF], regions, conv='t', ret='v')
+    if op == 'LeaveRest':
+        h = r.randrange(16)
+        put(staff, 0x208, 'H', h)
+        regions[0x788d3c] = struct.pack('<I', RAM + 0x3b000)
+        blob_bytes(regions[LOG], 21, 0, 0xf3ff)
+        rid = r.choice([1, 2, 7])
+        regions[0x7cfb90 + 20 * h] = struct.pack('<I', AREA)
+        regions[AREA] = put(bytearray(r.bytes(0x40)), 0x24, 'I', r.choice([rid, rid, rid, 3]))
+        node = bytearray(r.bytes(0x100))
+        put(node, 0, 'I', 0)
+        put(node, 8, 'I', rid)
+        put(node, 0x1c, 'I', RIDES + 0x100)
+        put(node, 0x8c, 'i', r.choice([1, 1, 2, 0]))
+        regions[RIDES] = node
+        regions[RIDES + 0x100] = put(bytearray(r.bytes(0x10)), 0, 'I', r.choice([0, 1, 5, r.getrandbits(32)]))
+        regions[0x8791a0] = struct.pack('<I', r.choice([0, 1, 1, 1]))
+        regions[0x8791b0] = struct.pack('<I', RIDES)
         return Call(CALLS[op], [STAFF], regions, conv='t', ret='v')
     return Call(CALLS[op], [STAFF, state], regions, conv='t', ret='v')
 

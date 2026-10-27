@@ -235,4 +235,10 @@ u16 *__fastcall Handyman_FindJob(u8 *staff, void *, u16 *out);
 // entry is set, nothing more; else Sprite_SetDestinationCell to the cell past the entrance ((row 0x7855c0 << 7) + column 0x7855bc + 1, a
 // word: the dword's upper half the staff pointer's) and the state 1, or 0 when it cannot go.
 void __fastcall Staff_HeadForEntrance(u8 *staff);
+
+// 0x506d10 (thiscall; name invented, unconfirmed): the staff member leaves its rest area: a message {vtable 0x700868, +4 0, +8 its handle
+// word, +0xc 0} posted (Object_PostMessage: agent B's unported 0x40fb10 through the objects' env); element 0 of the ride record
+// (Rides_FindById of +0x24) of the thing the rest area handle (+0x208) names (its slot of 0x7cfb90) less 1; +0x208 = 0; the script at
+// +0xc started at entry 3 with the folder +0x24 and sprite +0x20 (ScriptRef_Start); Staff_SetState 0.
+void __fastcall Staff_LeaveRestArea(u8 *staff);
 }
