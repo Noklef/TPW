@@ -374,7 +374,7 @@ def case_ctor(r, name):
     mask = Mask(CAT, [0xc, 0xd, 0x1c, 0x1d, 0x38, 0x68, 0x98], 'the allocator and comparator bytes: the original copies its uninitialised '
                 'stack bytes there (the port 0); nothing reads them')
     if name == 'get':   # (the singleton: made unless the guard's bit 0 is set (its other bits any); atexit a recorder)
-        regions[0xfb1ff8] = bytes([r.choice([0, 1, r.getrandbits(8)])])
+        regions[0xfb1ff8] = bytes([r.choice([0, 1, r.getrandbits(8), r.getrandbits(8) & 0xfe])])
         regions[SINGLETON] = regions.pop(CAT)
         regions[LOG] = log_region()
         mask.region = SINGLETON
@@ -399,8 +399,13 @@ def locate_case(r, name):
         set_return(log, 0, r.getrandbits(32))
         regions.update({RECS: recs, REC_VT: vtable({}, 4), LOG: log, OUT: r.bytes(4)})
         return Call(CALLS[name], [SINGLETON, OUT, r.randrange(count) if count else 0], regions, conv='t', ret='a')
-    if name == 'recordat':
-        return Call(CALLS[name], [r.getrandbits(32), r.choice([0, 1, 2, r.randrange(count + 3), r.getrandbits(32)]), r.getrandbits(32)], regions,
+    if name == 'recordat':   # (a record in the cell past the last: only the count check keeps it out)
+        first, _last, cur, _node = struct.unpack_from('<4I', regions[SINGLETON], 0x3c)
+        blocks = struct.unpack('<%dI' % (len(regions[MAPA]) // 4), regions[MAPA])
+        q = (cur - first) // 4 + count
+        if q // 0x400 < len(blocks):
+            regions[blocks[q // 0x400] + 4 * (q % 0x400)] = struct.pack('<I', RECS)
+        return Call(CALLS[name], [r.getrandbits(32), r.choice([0, 1, 2, count, r.randrange(count + 3), r.getrandbits(32)]), r.getrandbits(32)], regions,
                     conv='t', ret='a')
     recs = bytearray(regions[RECS])
     entries = bytearray(r.bytes(0x40))
@@ -422,7 +427,7 @@ def locate_case(r, name):
     regions[SFX_SAMPLES - 0x40] = r.bytes(0x100)
     i = r.randrange(len(counts))
     sound = r.choice([SFX_SOUNDS + 0x100 * i + 0x14 * r.randrange(min(counts[i], 5) + 1), SFX_SOUNDS + 0x100 * i + r.randrange(0x64),
-                      SFX_SOUNDS + 0x100 * i + 0x14 * r.randrange(6), RAM + 0x1490, 0])
+                      SFX_SOUNDS + 0x100 * i + 0x14 * r.randrange(6), RAM + 0x1490, 0, SFX_SOUNDS + 0x100 * i + 0x14 * min(counts[i], 5)])   # (its end too)
     variation = r.choice([SFX_VARS + 0x2a * r.randrange(6), SFX_VARS + r.randrange(-0x2a, 0x100), 0])
     sample = r.choice([SFX_SAMPLES + 0x10 * r.randrange(6), SFX_SAMPLES + r.randrange(-0x20, 0x80), 0])
     regions[INFO] = struct.pack('<4I', r.getrandbits(32), sound, variation, sample) + r.bytes(0x10)
