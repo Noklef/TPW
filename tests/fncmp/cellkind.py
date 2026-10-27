@@ -32,12 +32,13 @@ W1, W2, G = pathmodel.W1, pathmodel.W2, pathmodel.G
 objects.OBJ, objects.ITEMS, objects.WORLD, objects.OPS = RAM + 0x50000, RAM + 0x50400, W2, ['Scrap']
 MONEY, DECOYS, PARK, TRACK = RAM + 0x54000, RAM + 0x55000, RAM + 0x60000, RAM + 0x56000
 CALLS = {'SetKind': 0x5346d0, 'Clear': 0x5367a0, 'SetTrack': 0x538fc0, 'ClearBlock': 0x53bb20}
-B = Bench(pathapply.merged(pathapply.RANGES + objects.RANGES + money.RANGES +
+RANGES = (pathapply.merged(pathapply.RANGES + objects.RANGES + money.RANGES +
                            [(0x5346d0, 0x5348c5), (0x5367a0, 0x536c0d), (0x522730, 0x522800), (0x522810, 0x522860), (0x4d8c00, 0x4d8cb0),
                             (0x4d97e0, 0x4d9a70), (0x539210, 0x539230), (0x52fb20, 0x52fb60), (0x5195d0, 0x519620), (0x535600, 0x535680),
                             (0x6ad810, 0x6ad830), (0x538fc0, 0x539202), (0x53bb20, 0x53bc55), (0x52fb60, 0x52fba0), (0x4d0af0, 0x4d0b40),
-                            (0x4d96f0, 0x4d97e0), (0x50c320, 0x50c3f0)]),
-          sines=256, hooks={**pathapply.HOOKS, 0x4de1f0: _recorder(26, 0)})
+                            (0x4d96f0, 0x4d97e0), (0x50c320, 0x50c3f0)]))
+HOOKS = {**pathapply.HOOKS, 0x4de1f0: _recorder(26, 0)}
+B = Bench(RANGES, sines=256, hooks=HOOKS)
 DIAGONALS = {0x10: (-1, 1), 0x18: (1, 1), 0x20: (-1, -1), 0x38: (1, -1)}   # (0x20, 8, 0x80, 2's pairs)
 KINDS = [1, 1, 1, 9, 9, 3, 0, 0xa, 5]
 
@@ -51,7 +52,7 @@ def block(h):   # (Map_SetBlockValue's dword for the id h)
     return (i >> 11) * 33 + ((i >> 4) & 7)
 
 
-def things(r, regions):
+def things(r, regions, world=W1):   # (world: the [0x7cf83c] whose +0x1da720 handles name the money and the park thing)
     slots = bytearray(r.bytes(20 * 8))
     for h, p in enumerate([objects.OBJ, MONEY, PARK, objects.OBJ, objects.OBJ, DECOYS, DECOYS + 0x10, DECOYS + 0x20]):
         put(slots, 20 * h, 'I', p)
@@ -61,7 +62,7 @@ def things(r, regions):
         put(decoys, i * 0x10 + 0xa, 'H', nxt)
     regions[objects.OBJ][2] = 3
     regions.update({0x7cfb90: slots, DECOYS: decoys, MONEY: money.record(r), PARK + 0x1fc90: r.bytes(4), PARK + 0x1f5a0: r.bytes(4),
-                    W1 + 0x1da720: struct.pack('<HHHH', 2, r.getrandbits(16), r.getrandbits(16), 1)})
+                    world + 0x1da720: struct.pack('<HHHH', 2, r.getrandbits(16), r.getrandbits(16), 1)})
 
 
 def patch(r, regions, x, y, owners, reach=2, kinds=None):

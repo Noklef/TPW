@@ -17,7 +17,8 @@ namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const CellKindEnv kGameEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x004de1f0)};
+const CellKindEnv kGameEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x004de1f0),
+                              reinterpret_cast<u32(__cdecl *)(s32, s32, u32)>((uintptr_t)0x00527ee0)};
 const CellKindEnv *g_env = &kGameEnv;
 
 u8 *World() { return global<u8 *>(0x007cf83c); }
@@ -74,6 +75,168 @@ void EmptyTrackCell(u8 *cell) {
     MapCell_SetParent(cell, nullptr, 0);
 }
 
+bool LineKind(u32 kind) { return kind == 0xb || kind == 0xd || kind == 0x10 || kind == 0x12 || kind == 0x19; }
+u8 *WorldCell28(u16 id) { return World() + ((u32)id + 0x6cde) * 0x28; }
+
+// next (a line cell's neighbour) of kind 0xd / 0x12, or of 0xc / 0x11 with its owner's world cell of those, and of the cell's owner.
+bool JoinsLine(const u8 *cell, const u8 *next) {
+    const u32 kind = at<u32>(next, 8);
+    bool line = false;
+    if (kind == 0xc || kind == 0x11) {
+        const u8 *const owner = WorldCell28(at<u16>(next, 0x10));
+        line = owner && (at<u32>(owner, 8) == 0xd || at<u32>(owner, 8) == 0x12);
+    }
+    if (!line) line = kind == 0xd || kind == 0x12;
+    return line && at<u16>(next, 0x10) == at<u16>(cell, 0x10);
+}
+
+// The cell a pair away (Map_StepCell28 (.., 1)) whose owner is the cell emptied; its model when models.
+void ClearOwned(const u8 *cell, u32 table, u8 models) {
+    u8 *const next = Map_StepCell28(reinterpret_cast<const u16 *>(cell), nullptr, PairX(table), PairY(table), 1);
+    if (!next || at<u16>(next, 0x10) != at<u16>(cell, 0)) return;
+    MapCell_RemoveNeighbours(next, nullptr, 0xff);
+    MapCell_SetDirection(next, nullptr, 0);
+    at<u16>(next, 0xe) = 0;
+    MapCell_SetTrackKind(next, nullptr, 0);
+    MapCell_SetOverlap(next, nullptr, 0);
+    if (at<u32>(cell, 8) != 0x19) MapCell_SetParent(next, nullptr, 0);
+    if (models) MapCell_ApplyModel(next);
+}
+
+// The count's step by (a, b) and the sides or direction dropped; false when the cell is left for the check without its model.
+bool CountDown(u8 *cell, s32 a, s32 b, u16 start, u16 end, u32 &slot) {
+    if (a == 0 && b == 0 && at<u16>(cell, 0) != start) {
+        at<u16>(cell, 0x20) = 0xffff;
+        return false;
+    }
+    at<u16>(cell, 0x20)--;
+    if (a == -1 && b == -1) {
+        switch (MapCell_Direction(cell)) {   // (the jump tables 0x53bae0 / 0x53bacc)
+        case 1:
+        case 0x10:
+            MapCell_RemoveNeighbours(cell, nullptr, 4);
+            MapCell_RemoveNeighbours(cell, nullptr, 0x40);
+            break;
+        case 4:
+        case 0x40:
+            MapCell_RemoveNeighbours(cell, nullptr, 1);
+            MapCell_RemoveNeighbours(cell, nullptr, 0x10);
+            break;
+        }
+        return true;
+    }
+    if ((s32)MapCell_SideDirectionCount(cell) >= 2) {
+        if (a == -2) MapCell_ClearDirection(cell, nullptr, 4);
+        if (a == 2) MapCell_ClearDirection(cell, nullptr, 0x40);
+        if (b == -2) MapCell_ClearDirection(cell, nullptr, 0x10);
+        if (b == 2) MapCell_ClearDirection(cell, nullptr, 1);
+        if (a == 2 || a == -2) {
+            MapCell_RemoveNeighbours(cell, nullptr, 4);
+            MapCell_RemoveNeighbours(cell, nullptr, 0x40);
+        }
+        if (b == 2 || b == -2) {
+            MapCell_RemoveNeighbours(cell, nullptr, 0x10);
+            MapCell_RemoveNeighbours(cell, nullptr, 1);
+        }
+        return true;
+    }
+    if (at<u16>(cell, 0) == start || at<u16>(cell, 0) == end) return false;
+    slot = WithLowByte(slot, 0);
+    const u8 bits = MapCell_Neighbours(cell);
+    const bool corner = MapCell_SideNeighbourCount(cell) == 2 && ((bits & 1) || (bits & 0x10)) && ((bits & 4) || (bits & 0x40));
+    if (a == -2) MapCell_RemoveNeighbours(cell, nullptr, 4);
+    if (a == 2) MapCell_RemoveNeighbours(cell, nullptr, 0x40);
+    if (b == -2) MapCell_RemoveNeighbours(cell, nullptr, 0x10);
+    if (b == 2) MapCell_RemoveNeighbours(cell, nullptr, 1);
+    if (corner && MapCell_NeighbourCount(cell) == 1) MapCell_SetDirection(cell, nullptr, Nibble_Scale(MapCell_Neighbours(cell)));
+    return true;
+}
+
+// Emptied (the count 0): the scrap credit, the neighbours dropped both ways, the env's 0x527ee0 for flag 0x10, then cleared, its owned cells too.
+void Removed(u8 *cell, u32 &slot, u32 price, u8 models) {
+    at<u16>(cell, 0x20) = 0;
+    if (at<u32>(cell, 8) != 0x19 && !global<u32>(0x00785a2c)) {
+        const u8 *const c44 = MapHandle_Cell44(reinterpret_cast<const u16 *>(WorldCell28(at<u16>(cell, 0x10))));
+        Cell_FirstObject(c44, nullptr, reinterpret_cast<u16 *>(&slot));   // (the slot's word read, found or not)
+        const u32 value = Object_ScrapValue(ThingAt(slot));
+        Money_Credit(WorldMoney(), nullptr, (s32)(value * price / 100));
+    }
+    u8 d = 1;
+    slot = WithLowByte(slot, d);
+    do {
+        const u8 bits = MapCell_Neighbours(cell);
+        const u32 dd = slot;
+        if (d & bits) {
+            MapCell_RemoveNeighbours(cell, nullptr, dd);
+            u8 *const next = Map_StepCell28InDirection(reinterpret_cast<const u16 *>(cell), nullptr, dd, 2);
+            if (next) {
+                MapCell_RemoveNeighbours(next, nullptr, Nibble_Scale(dd));
+                MapCell_ApplyModel(next);
+                if (MapCell_NeighbourCount(next) == 1 && MapCell_Direction(next) != MapCell_Neighbours(next) &&
+                    MapCell_Direction(next) != (u8)Nibble_Scale(MapCell_Neighbours(next)))
+                    MapCell_SetDirection(next, nullptr, Nibble_Scale(MapCell_Neighbours(next)));
+            }
+        }
+        d = (u8)Byte_ShiftLog2(dd, 4);
+        slot = WithLowByte(slot, d);
+    } while (d != 1);
+    if (cell[0xe] & 0x10) {
+        slot = (slot & 0xffff0000) | at<u16>(cell, 0);
+        const u32 index = (u32)(u16)slot - 1;
+        g_env->deadEnds527ee0((s32)(index & 0x7f), (s32)(index >> 7), 1);
+    }
+    MapCell_SetDirection(cell, nullptr, 0);
+    at<u16>(cell, 0xe) = 0;
+    MapCell_SetTrackKind(cell, nullptr, 0);
+    if (at<u32>(cell, 8) != 0x19) {
+        MapCell_SetParent(cell, nullptr, 0);
+        at<u16>(cell, 0x24) = 0xffff;
+    }
+    MapCell_ApplyModel(cell);
+    ClearOwned(cell, 0x007cdba8, models);
+    ClearOwned(cell, 0x007cdbc8, models);
+    ClearOwned(cell, 0x007cdbb8, models);
+}
+
+// The line's start cell: each direction not among its bits whose cell two steps out joins the line (JoinsLine) faces it and joins its
+// bits (a model), and one not of the line kinds is dropped (a model); a cell left with one neighbour then faces those that join.
+void Rejoin(u8 *cell, u32 &slot) {
+    u8 d = 1;
+    slot = WithLowByte(slot, d);
+    do {
+        const u8 bits = MapCell_Neighbours(cell);
+        const u32 dd = slot;
+        if (!(d & bits)) {
+            const u8 *const next = Map_StepCell28InDirection(reinterpret_cast<const u16 *>(cell), nullptr, dd, 2);
+            if (next) {
+                if (JoinsLine(cell, next)) {
+                    MapCell_SetDirection(cell, nullptr, Nibble_Scale(dd));
+                    MapCell_AddNeighbours(cell, nullptr, dd);
+                    MapCell_ApplyModel(cell);
+                }
+                if (!LineKind(at<u32>(next, 8))) {
+                    MapCell_RemoveNeighbours(cell, nullptr, dd);
+                    MapCell_ApplyModel(cell);
+                }
+            }
+        }
+        d = (u8)Byte_ShiftLog2(dd, 4);
+        slot = WithLowByte(slot, d);
+    } while (d != 1);
+    if (MapCell_NeighbourCount(cell) != 1) return;
+    MapCell_ClearDirection(cell, nullptr, 0xff);
+    do {
+        const u8 bits = MapCell_Neighbours(cell);
+        const u32 dd = slot;
+        if (d & bits) {
+            const u8 *const next = Map_StepCell28InDirection(reinterpret_cast<const u16 *>(cell), nullptr, dd, 2);
+            if (next && JoinsLine(cell, next)) MapCell_SetDirection(cell, nullptr, Nibble_Scale(dd));
+        }
+        d = (u8)Byte_ShiftLog2(dd, 4);
+        slot = WithLowByte(slot, d);
+    } while (d != 1);
+}
+
 }  // namespace
 
 extern "C" {
@@ -126,6 +289,33 @@ void __fastcall TrackCell_ClearBlock(u8 *cell) {
         u8 *const next = Map_StepCell28(reinterpret_cast<const u16 *>(cell), nullptr, PairX(table), PairY(table), 1);
         if (next) EmptyTrackCell(next);
     }
+}
+
+void __fastcall TrackCell_Remove(u8 *cell, void *, s32 a, s32 b, u32 models) {
+    u32 slotA = (u32)a, slotM = models;   // (a's and models' stack slots, reused)
+    u16 start = 0, end = 0;
+    u32 price = 0;
+    if (at<u32>(cell, 8) == 0xb)
+        price = Global81aebc_Get_52fb60();
+    else if (at<u32>(cell, 8) == 0x10)
+        price = Global81b43c_Get_52fb80();
+    if (at<u32>(cell, 8) == 0xc || at<u32>(cell, 8) == 0x11) {
+        TrackCell_Remove(WorldCell28(at<u16>(cell, 0x10)), nullptr, a, b, 1);
+    } else {
+        if (Map_InBounds(global<s32>(0x007639e0), global<s32>(0x007639e4)))
+            start = (u16)(((u32)global<s32>(0x007639e4) << 7) + (u32)global<s32>(0x007639e0) + 1);
+        if (Map_InBounds(global<s32>(0x007639e8), global<s32>(0x007639ec)))
+            end = (u16)(((u32)global<s32>(0x007639ec) << 7) + (u32)global<s32>(0x007639e8) + 1);
+        if (LineKind(at<u32>(cell, 8))) {   // (the jump tables 0x53babc / 0x53baa4)
+            if (CountDown(cell, a, b, start, end, slotA)) MapCell_ApplyModel(cell);
+            const s16 count = at<s16>(cell, 0x20);
+            const u16 id = at<u16>(cell, 0);
+            const bool clear = (count < 0 && id != start && id != end) || (count < 0 && global<u32>(0x0081b46c)) || global<u32>(0x0081d7a8);
+            if (clear) Removed(cell, slotA, price, (u8)models);
+        }
+    }
+    if (at<u16>(cell, 0) == start && LineKind(at<u32>(cell, 8)) && !global<u32>(0x0081b46c)) Rejoin(cell, slotM);
+    if (at<u32>(cell, 8) != 0 && !at<u32>(cell, 4)) MapCell_ApplyModel(cell);
 }
 
 void CellKind_SetEnv(const CellKindEnv *env) { g_env = env ? env : &kGameEnv; }

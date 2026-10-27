@@ -44,7 +44,7 @@ HOOKS = {0x463c80: _recorder(31, 1, cdecl=True), 0x522b90: _recorder(20, 6, cdec
 B = Bench(RANGES, sines=256, hooks=HOOKS)
 
 
-def case(r):
+def case(r, log=None):
     regions, _, _ = animator.world(r)
     regions.update(cellmodel.case(r).regions)
     for table, _, most in cellmodel.TABLES:   # (the models' groups the code tells apart)
@@ -72,7 +72,7 @@ def case(r):
     instances = bytearray(r.bytes(0x40))
     for k in range(16):
         put(instances, 4 * k, 'I', animator.ANIM)
-    log = log_region()
+    log = log_region() if log is None else log
     for k in (20, 21, 22):
         set_return(log, k, r.choice([0, 1, 2, 15, r.randrange(16)]))
     regions.update({LOG: log, MAPC: mapc, 0x8023a0: struct.pack('<I', (MAPC - (handle - 1) * 0x44) & 0xffffffff), 0x7a4610: instances,

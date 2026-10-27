@@ -398,8 +398,10 @@ const PathDragEnv kPathDragEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void
                                   reinterpret_cast<void(__cdecl *)(u32, s32, s32, s32 *, s32 *)>((uintptr_t)jpeg_recorder(29, 5))};
 // Ride_Destroy's calls into the unported 0x42a190 and 0x436fa0 (agent B's): cdecl recorders 18 of no arguments and 19 of 1, as
 // tests/fncmp/ridedestroy.py hooks those addresses.
-// The cell kinds' calls into agent C's unported 0x4de1f0: the thiscall recorder 26 of no arguments, as tests/fncmp/cellkind.py hooks it.
-const CellKindEnv kCellKindEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(26, 0))};
+// The cell kinds' calls into agent C's unported 0x4de1f0 and 0x527ee0: the thiscall recorder 26 of no arguments and the cdecl recorder 27
+// of 3, as tests/fncmp/cellkind.py and tests/fncmp/trackremove.py hook them.
+const CellKindEnv kCellKindEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(26, 0)),
+                                  reinterpret_cast<u32(__cdecl *)(s32, s32, u32)>((uintptr_t)jpeg_recorder(27, 3))};
 const RidesEnv kRidesEnv = {reinterpret_cast<void(__cdecl *)()>((uintptr_t)jpeg_recorder(18, 0)), reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(19, 1))};
 // MapCell_ApplyModel's calls into agent A's unported placers 0x522b90 / 0x522d50 / 0x522f20: cdecl recorders 20, 21 and 22 of 6 arguments,
 // as tests/fncmp/cellapply.py hooks those addresses.
