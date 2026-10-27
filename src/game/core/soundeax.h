@@ -1,11 +1,21 @@
-// The EAX 2.0 wrappers of a DirectSound buffer (the class name is invented): +4 the buffer's IKsPropertySet. The property set GUIDs are
+// The EAX 2.0 wrappers of a DirectSound buffer (the class name is invented): +0 its IDirectSound3DBuffer, +4 its IKsPropertySet, +8 the
+// IDirectSoundBuffer itself. The property set GUIDs are
 // in the exe: 0x70aa50 DSPROPSETID_EAX20_BufferProperties {0306A6A8-B224-11D2-99E5-0000E8D8C722}, 0x70aa60 the listener's (...A6A7).
-// Reimplementation of 0x6c4670, 0x6c46b0, 0x6c4760 and 0x6d6cf0; the names are unconfirmed.
+// Reimplementation of 0x6c4550, 0x6c4630, 0x6c4670, 0x6c46b0, 0x6c4760 and 0x6d6cf0; the names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
 
 extern "C" {
+
+// 0x6c4550 (thiscall (out, sound, rate), pops 0xc): a wave format holder (1 channel, 16 bits, the rate's word; WaveFormat_Build) and a
+// DSBUFFERDESC {0x14, 0x10 (3D control), 0x40 bytes, 0, the format}; the IDirectSound (sound; null fails) CreateSoundBuffer into +8,
+// that buffer's QueryInterface for IDirectSound3DBuffer (0x707fa0) into +0, that one's for IKsPropertySet (0x707fe0) into +4, and its
+// QuerySupport of the EAX20 buffer properties (id 1) into the rate's own stack slot, zeroed first (sic). Each negative (QuerySupport
+// not 0, or its bit 0 clear) fails: EaxBuffer_Release and *out = -1; else *out = 0. Returns out.
+u32 *__fastcall EaxBuffer_Open(u8 *buffer, void *, u32 *out, u8 *sound, u32 rate);
+// 0x6c4630 (thiscall): +4, +0 and +8 in that order, each Released (slot 2) and cleared when not null.
+void __fastcall EaxBuffer_Release(u8 *buffer);
 
 // 0x6c4760 (thiscall (out, unused), pops 8): IKsPropertySet::Get (EAX20 buffer properties, id 1: all parameters, no instance data,
 // 0x38 bytes) into a stack block that is also the returned-size out (sic), which is then dropped: *out = 0 when it succeeds, else -1.
