@@ -494,6 +494,26 @@ u8 *__cdecl SequenceVoice_Create(u8 *owner, u8 *memory, u8 *definition, u8 *info
     return init_voice(voice, reinterpret_cast<u32 *>(&memory), owner, definition, info);
 }
 
+u8 *__cdecl Voice70a390_Create(u8 *owner, u8 *memory, u8 *definition, u8 *info) {
+    u8 *const voice = memory ? Voice70a390_Ctor(memory) : nullptr;
+    return init_voice(voice, reinterpret_cast<u32 *>(&memory), owner, definition, info);
+}
+
+u8 *__cdecl Voice70a2e0_Create(u8 *owner, u8 *memory, u8 *definition, u8 *info) {
+    u8 *const voice = memory ? Voice70a2e0_Ctor(memory) : nullptr;
+    return init_voice(voice, reinterpret_cast<u32 *>(&memory), owner, definition, info);
+}
+
+u8 *__cdecl Voice70a3e8_Create(u8 *owner, u8 *memory, u8 *definition, u8 *info) {
+    u8 *const voice = memory ? Voice70a3e8_Ctor(memory) : nullptr;
+    return init_voice(voice, reinterpret_cast<u32 *>(&memory), owner, definition, info);
+}
+
+u8 *__cdecl Voice70a878_Create(u8 *owner, u8 *memory, u8 *definition, u8 *info) {
+    u8 *const voice = memory ? Voice70a878_Ctor(memory) : nullptr;
+    return init_voice(voice, reinterpret_cast<u32 *>(&memory), owner, definition, info);
+}
+
 u8 *__fastcall SwitchVoice_Ctor(u8 *voice) {
     Class70a7e0_Ctor(voice);
     at<u32>(voice, 0) = 0x0070a498;

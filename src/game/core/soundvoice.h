@@ -115,6 +115,12 @@ void __fastcall SwitchVoice_SetParam(u8 *voice, void *, u32 key, u32 value);
 // the voice, or 0 without memory or when *out is negative (the voice left as it is).
 u8 *__cdecl SwitchVoice_Create(u8 *owner, u8 *memory, u8 *definition, u8 *info);
 u8 *__cdecl SequenceVoice_Create(u8 *owner, u8 *memory, u8 *definition, u8 *info);
+// 0x6bdc60 / 0x6bdd30 / 0x6bd7b0 / 0x6be330 (names invented): the same with Voice70a390_Ctor / Voice70a2e0_Ctor / Voice70a3e8_Ctor /
+// Voice70a878_Ctor.
+u8 *__cdecl Voice70a390_Create(u8 *owner, u8 *memory, u8 *definition, u8 *info);
+u8 *__cdecl Voice70a2e0_Create(u8 *owner, u8 *memory, u8 *definition, u8 *info);
+u8 *__cdecl Voice70a3e8_Create(u8 *owner, u8 *memory, u8 *definition, u8 *info);
+u8 *__cdecl Voice70a878_Create(u8 *owner, u8 *memory, u8 *definition, u8 *info);
 
 // The linked voice (vtable 0x70a970) and the linked switch voice (0x70a9e0, on it): a voice whose parameter block's +0x1c is the voice it
 // follows (the parent: its position +0x10, categories +0x47, current node +8 and parameter block's byte +4); a parent's block +0x18 heads
