@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "gameheap.h"
+#include "soundobject.h"
 #include "vcall.h"
 
 namespace {
@@ -53,6 +54,11 @@ u32 __fastcall SoundManager_Post(u8 *manager, void *, u32 owner, u32 command) { 
 u32 __fastcall SoundManager_Call3(u8 *manager, void *, u32 a, u32 b, u32 c) { return vcall<u32>(at<u8 *>(manager, 4), 0xc, a, b, c); }
 
 u32 __fastcall SoundManager_Call5(u8 *manager, void *, u32 a, u32 b) { return vcall<u32>(at<u8 *>(manager, 4), 0x14, a, b); }
+
+u32 *__fastcall SoundManager_SetPlacement(u8 *manager, void *, u32 *out, const u32 *position, const u32 *direction, const u32 *value) {
+    SoundObject_SetPlacement(at<u8 *>(manager, 4), nullptr, out, position, direction, value);
+    return out;
+}
 
 u32 *__fastcall SoundManager_Call1(u8 *manager, void *, u32 *out, u32 a) {
     vcall<void>(at<u8 *>(manager, 4), 4, out, a);

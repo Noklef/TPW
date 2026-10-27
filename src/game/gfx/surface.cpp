@@ -52,6 +52,10 @@ void Surface_SetEnv(const SurfaceEnv *e) { g_env = e ? e : &kGameEnv; }
 
 extern "C" {
 
+void __cdecl PixelShifts_InitGlobal() {
+    std::memset(reinterpret_cast<PixelShifts *>((uintptr_t)0x00fa7708), 0, sizeof(PixelShifts));
+}
+
 void __fastcall PixelChannel_Set(PixelChannel *c, void *, u32 mask, u32 top) {
     c->mask = mask;
     u32 bit = 31;

@@ -9,7 +9,20 @@
 # Buttons (0x4ad4e0): the same surroundings with the children 0x3e38 / 0x3e36 window705a50.py's buttons (linked and dispatched as the kid
 # each replaces; their +0x98 object a recorder k 23, 0x3e36's +0x9c one k 24: the events masked as panel7cc258.py's), the others kid()s
 # (their slot 5 a recorder); the thing (thing()) and the panel's mode +8 3, 0x19 / 0x1a, 0x11-0x15 or others.
-# usage: panel7cc218.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Open,Gauges,Buttons)
+# Show (0x4af980, slot 10 of the vtable 0x6ffbe8): dialogbuild.py's windowat10() surroundings with the panel's ids (0x3e24, 0x3e15,
+# 0x3e25) and handler (0x4af600), the script at 0x755150; the thing's float +0x44 about 0-21 (fractions, negatives, huge, NaNs too);
+# advisor.py's PostId surroundings for 0x129 / 0xcf (their records their own mostly; the stack message's unwritten bytes masked).
+# Show7ca178 (0x497990, slot 10 of the vtable 0x6ff740, src/game/ui/panel7ca178): the same with that panel's ids (0x15bb8, 0x15bba,
+# 0x15bb9), handler (0x497640), script (0x751190), selected thing (0x7ca19c) and posts (0xd5 / 0x12b; the float about 0-30).
+# Show7cc3b0 (0x4b6080, slot 10 of 0x6ffe50, src/game/ui/panel7cc3b0): the same with its ids (0x511, 0x512, no inner), handler 0x4b5cb0,
+# script 0x756f48, thing 0x7cc3a4 and post 0xc0; the window +0x18 then given the handler 0x4b5c80 (none there: a fault in both).
+# Show7cc408 (0x4b79b0, slot 10 of 0x6fff40, src/game/ui/panel7cc408): ids 0x3722, 0x3723 (no inner), handler 0x4b7720, script 0x7575e0,
+# thing 0x7cc430, post 0x12e; a sound played first: soundplay.py's globals (0x802bc0, the manager's +8 a recorder k 31, the command
+# hashed), the kids' category [0x803a24].
+# Show7cc258 / Show7cc298 / Show7cc328 / Show7cc3e0 / Show7ca228 (0x4b0e30 / 0x4b2430 / 0x4b5290 / 0x4b6ae0 / 0x499eb0, slot 10 of
+# 0x6ffc68 / 0x6ffce8 / 0x6ffdd8 / 0x6ffec8 / 0x6ff8d0): the same with their ids, handlers, scripts, things and posts (SHOWS).
+# usage: panel7cc218.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Open,Gauges,Buttons,Show,Show7ca178,
+#   Show7cc3b0,Show7cc408,Show7cc258,Show7cc298,Show7cc328,Show7cc3e0,Show7ca228)
 import os
 import struct
 import sys
@@ -17,6 +30,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
+import advisor  # noqa: E402
 import animatormesh  # noqa: E402
 import dialogbuild  # noqa: E402
 import objectqueue  # noqa: E402
@@ -24,20 +38,27 @@ import panel7cc258  # noqa: E402
 import panelparts  # noqa: E402
 import window  # noqa: E402
 import window705a50  # noqa: E402
-from fncmp import CDECL_LOG4, LOG, RAM, Bench, Call, blob_bytes, put, recorder, vtable  # noqa: E402
+from fncmp import CDECL_LOG4, LOG, RAM, Bench, Call, Mask, blob, blob_bytes, put, recorder, set_return, vtable  # noqa: E402
+from msgtags import ADVISOR_RANGES  # noqa: E402
 from thingenv import ITEM, ITEMS  # noqa: E402
 
-CALLS = {'Open': 0x4ae8e0, 'Gauges': 0x4ae980, 'Buttons': 0x4ad4e0}
+CALLS = {'Open': 0x4ae8e0, 'Gauges': 0x4ae980, 'Buttons': 0x4ad4e0, 'Show': 0x4af980, 'Show7ca178': 0x497990,
+         'Show7cc3b0': 0x4b6080, 'Show7cc408': 0x4b79b0, 'Show7cc258': 0x4b0e30, 'Show7cc298': 0x4b2430, 'Show7cc328': 0x4b5290,
+         'Show7cc3e0': 0x4b6ae0, 'Show7ca228': 0x499eb0}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 QUEUE_RANGES = [   # (objectqueue.py's and object_checks.py's: Object_CanOpen's and Object_TrackNeighboursOk's code)
     (0x4d8300, 0x4d8340), (0x4d8c00, 0x4d8c30), (0x4d96f0, 0x4d99f0), (0x4de4a0, 0x4de5b0), (0x4df290, 0x4df310), (0x4de840, 0x4dede8),
     (0x516330, 0x516380), (0x4ddf40, 0x4de200), (0x4de040, 0x4de100), (0x4de670, 0x4de7f0), (0x502430, 0x502470), (0x50b350, 0x50b370),
     (0x522770, 0x5227a0), (0x522850, 0x522870), (0x536300, 0x53644c), (0x4dd920, 0x4dda20), (0x412e90, 0x412eea), (0x441970, 0x4419b0),
     (0x436860, 0x436880), (0x4dd4e0, 0x4dd510), (0x522770, 0x5227f0), (0x52c2b0, 0x52c430), (0x55a070, 0x55a110), (0x55a390, 0x55a3f0)]
-B = Bench(panel7cc258.merged(panel7cc258.RANGES + QUEUE_RANGES + [(0x4ae8e0, 0x4ae93e), (0x4ae980, 0x4aec2b), (0x4ad4e0, 0x4ad71b)]),
-          hooks=animatormesh.HOOKS)
+B = Bench(panel7cc258.merged(panel7cc258.RANGES + QUEUE_RANGES + dialogbuild.ALL_RANGES + ADVISOR_RANGES + [
+    (0x4ae8e0, 0x4ae93e), (0x4ae980, 0x4aec2b), (0x4ad4e0, 0x4ad71b), (0x4af980, 0x4af9e5), (0x497990, 0x4979e7), (0x4b6080, 0x4b60c5), (0x4b79b0, 0x4b7a00),
+    (0x4b0e30, 0x4b0e67), (0x4b2430, 0x4b2467), (0x4b5290, 0x4b52c4), (0x4b6ae0, 0x4b6b14), (0x499eb0, 0x499ee4),
+    (0x51bfc0, 0x51c048)]),
+          hooks={**animatormesh.HOOKS, 0x67a7d0: advisor._cdecl_log})   # (advisor.py's: the records' static set-up's atexit logged)
 ROOT = dialogbuild.ROW
 KIDS, SUBKIDS, PANEL, MANAGER, OBJS, DEFS = 0x31000000, 0x31008000, 0x31010000, 0x31030000, 0x31040000, 0x31100000
+THING_SHOWN = 0x31200000
 BUTTONS = (0x3e38, 0x3e34, 0x3e2a, 0x3e36, 0x3e2c, 0x3e37, 0x3e35)
 BIG = panel7cc258.BIG
 GAUGES = (0x3e2d, 0x3e30)
@@ -138,10 +159,67 @@ def surround(r, regions):
     regions[0xfaa5d8] = struct.pack('<5I', r.choice([0, ROOT]), r.getrandbits(32), 0, r.getrandbits(32), r.randrange(1, 1 << 32))
 
 
+def f32(x):
+    return struct.unpack('<I', struct.pack('<f', x))[0]
+
+
+SHOWS = {'Show': ((0x4af600, 0x3e24, 0x3e15, 0x3e25), 0x755150, 0x7cc208, (0x129, 0xcf), 22),
+         'Show7ca178': ((0x497640, 0x15bb8, 0x15bba, 0x15bb9), 0x751190, 0x7ca19c, (0xd5, 0x12b), 31),
+         'Show7cc3b0': ((0x4b5cb0, 0x511, 0x512, 0), 0x756f48, 0x7cc3a4, (0xc0,), 22),
+         'Show7cc408': ((0x4b7720, 0x3722, 0x3723, 0), 0x7575e0, 0x7cc430, (0x12e,), 22),
+         'Show7cc258': ((0x4b0b30, 0xc06c, 0xc06f, 0xc06d), 0x755908, 0x7cc288, (0xd1,), 22),
+         'Show7cc298': ((0x4b2150, 0xa0a2, 0xa091, 0xa0a3), 0x755e80, 0x7cc2c8, (0xd0,), 22),
+         'Show7cc328': ((0x4b4fc0, 0x1e84, 0x1e89, 0), 0x756ba0, 0x7cc318, (0x12c,), 22),
+         'Show7cc3e0': ((0x4b67f0, 0x520c, 0x520d, 0), 0x7573c8, 0x7cc3d8, (0x12d,), 22),
+         'Show7ca228': ((0x499bb0, 0x157e, 0x1583, 0), 0x751a68, 0x7ca218, (0x12a,), 22)}
+SOUNDS, SOUNDS_VT = 0x31210000, 0x31210100
+
+
+def show_case(r, op):
+    """Show and Show7ca178 (above)"""
+    fixed, script, selected, posts, top = SHOWS[op]
+    args, regions = dialogbuild.windowat10(r, fixed)
+    regions[script] = regions.pop(dialogbuild.WINDOWAT10SCRIPT)
+    obj = args[0]
+    regions[obj] = regions[obj] + r.bytes(0x10)   # (+0x24 written)
+    log = regions[LOG]
+    thing = bytearray(r.bytes(0x60))
+    put(thing, 0x44, 'I', r.choice([f32(float(r.randrange(0, top)))] * 4 + [f32(r.uniform(-2, top + 1)), f32(r.uniform(-1e6, 1e6)),
+                                    f32(256.0 + r.randrange(1, top - 1)), f32(3e19), 0x7fc00000, r.getrandbits(32)]))
+    regions[THING_SHOWN] = thing
+    regions[selected] = r.bytes(4)
+    adv = advisor.queue(r, 'PostId')
+    for k, v in adv.regions.items():
+        if k != LOG:
+            regions[k] = v
+    table = bytearray(regions[0x76e300])
+    for ident in posts:
+        if r.random() < 0.7:   # (the record its own mostly)
+            put(table, 0x38 * ident + 4, 'I', ident)
+    regions[0x76e300] = table
+    set_return(log, 20, r.choice([0, 1, 5, 100, -1, r.getrandbits(32)]))
+    masks = [Mask(m.region, sorted(set(m.offsets + [0x16d0 + k for k in (2, 3, 0x17)])), m.reason) for m in adv.masks]
+    if op == 'Show7cc3b0':   # (+0x18 none unless built: a preset +0x10 leaves it as it was)
+        regions[obj] = put(bytearray(regions[obj]), 0x18, 'I', 0)
+    if op == 'Show7cc408':   # (soundplay.py's globals)
+        g = bytearray(r.bytes(0x20))
+        put(g, 8, 'I', r.choice([0, 1, 1, 1, 1, r.getrandbits(32)]))
+        put(g, 0xc, 'I', SOUNDS)
+        put(g, 0x14, 'I', r.choice([0, 1, 1, 1, 1, r.getrandbits(32)]))
+        regions[0x802bc0] = g
+        regions[SOUNDS] = struct.pack('<I', SOUNDS_VT) + r.bytes(0xc)
+        regions[SOUNDS_VT] = put(vtable({}, 4), 8, 'I', recorder(31, 2))
+        regions[0x803a24] = struct.pack('<I', r.choice([0, 1, r.getrandbits(32)]))
+        blob(log, 31, 1, 0x7f)
+    return Call(CALLS[op], [obj, THING_SHOWN], regions, conv='t', ret='v', masks=masks)
+
+
 def case(r):
     op = r.deal(OPS)
     if op == 'Buttons':
         return buttons_case(r)
+    if op in SHOWS:
+        return show_case(r, op)
     regions = dialogbuild.chain(r, 'Open', 0)
     panelparts.surroundings(r, regions)
     panel7cc258.things(r, regions)

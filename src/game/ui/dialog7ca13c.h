@@ -17,4 +17,8 @@ extern "C" {
 // (list or not) the dialog's timer 0x80083 set to 2000 (Window_SetTimer) and, when that answers (AX), started; the advisor's message 0x11e
 // (Advisor_PostId). EAX not kept.
 void __cdecl Dialog7ca13c_Open(u32 selected);
+
+// 0x493c10 (cdecl (data); name invented): with the dialog [0x7ca13c], its list 0x1e497 (Window_FindChild, not checked)'s item holding
+// the data (Window7059f0_FindItemData), when there is one, removed (Window7059f0_RemoveItem) and the count [0x7ca134] lowered.
+void __cdecl Dialog7ca13c_RemoveData(u32 data);
 }

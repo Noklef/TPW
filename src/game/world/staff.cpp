@@ -14,6 +14,7 @@
 #include "../math/x87.h"
 #include "../sprite/scriptref.h"
 #include "analyser.h"
+#include "analysercell.h"
 #include "messagecentre.h"
 #include "money.h"
 #include "mousemode.h"
@@ -502,6 +503,12 @@ void __fastcall Staff_SetState(u8 *staff, void *, u32 state) {
         break;
     }
     at<u32>(staff, 0x19c) = state;
+}
+
+void __fastcall Staff_Settle(u8 *staff) {
+    if (!AnalyserRecord_ChecksCell(staff)) return;   // (inlined: not 4, 5, 7, 0xd or 0x12, and the cell plain)
+    if (at<u8>(staff, 2) == 7 && at<u32>(staff, 0x19c) == 0x12) return;
+    Staff_SetState(staff, nullptr, 0);
 }
 
 void __fastcall Staff_PickUp(u8 *staff) {

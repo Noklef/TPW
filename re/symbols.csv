@@ -85,7 +85,7 @@ address,name,kind,confidence,notes
 0x00559060,RSSE_KillScript,function,medium,'Cant kill a script - system is not initialised'
 0x00556ab0,Mem_AllocLogged,function,high,reimplemented (src/game/core/gameheap); global allocation that refuses 0
 0x005584b0,RSSE_CheckLeaks,function,medium,'Something malloced but not freed'
-0x005573d0,RSSE_TriggerCustomEvent,function,medium,'Tried to trigger a custom event'
+0x005573d0,Rsse_Trigger,function,low,"reimplemented (src/game/rsse/rsse_vm); cdecl (vm, kind, key, what, extra); name unconfirmed: a script effect at a ride part: kinds 1-2 a particle effect (plain or with the part direction as velocity), 3-10 a sound in one of eight categories"
 0x00551130,RSSE_StartScream,function,medium,'Started screaming without ...'
 0x00556f40,Rsse_StartWalker,function,low,"reimplemented (src/game/rsse/rsse_vm); cdecl (vm, value, from, to, a, b, kind, last): a walker slot filled between two ride parts, its time 100 times their distance, its octant the direction between them"
 0x00572780,Engine_Init,function,high,"'Initializing engine internals'; logs a checkpoint after each renderer subsystem (… 'wavelet/printf ok')"
@@ -143,6 +143,7 @@ address,name,kind,confidence,notes
 0x004e0900,Obj_ClaimRideElement0,function,low,reimplemented (src/game/world/ridelist); thiscall (handle): claim element 0 of the ride record for the handle when the object is open and the element is free
 0x0051a760,Game_PollRideElement1,function,low,"reimplemented (src/game/world/ridelist); thiscall on the game object: 0 when the taken ride element 1 is 3, then (count at +0x2d0 under 10) 1, then 2; else 1"
 0x0055a4e0,Rides_GetE0ById,function,low,reimplemented (src/game/world/ridelist); cdecl (id): the dword +0xe0 of the ride record with the id; 0 without the system or the record
+0x0055a100,Ride_PlayEffect,function,low,reimplemented (src/game/world/ridelist); a ride effect and sound at its box
 0x00516330,World_Rand,function,high,"reimplemented (src/game/world/random); thiscall; LCG x*0x19660d+0x3c6ef35f, rotr 13, abs; state at world+0x1da708. Must be bit-exact for determinism"
 0x008791b0,RSSE_ScriptList,data,high,head of doubly linked list of live script contexts (0xF4 bytes each)
 0x008791ac,RSSE_ScriptCount,data,high,
@@ -357,6 +358,7 @@ address,name,kind,confidence,notes
 0x00551560,KidSound_Play,function,low,"reimplemented (src/game/core/soundplay); cdecl (level, x, y, z): a kids' sound for a level (0x69 / 0x6a / 0x6c / 0x6d by level 1, < 4, < 8, else; nothing for 0) played at a position in gSndCatKids"
 0x00551320,KidSound_PlayGraded,function,low,"reimplemented (src/game/core/soundplay); cdecl (level, a, b, x, y, z): a kids' sound for a level (base 0x4b / 0x4f / 0x53 / 0x57) graded by (a + b) / 50 (at most 3; nothing for level 0 or a negative grade) played at a position in gSndCatKids"
 0x0051eeb0,Sound_PlayRideElement,function,low,"reimplemented (src/game/core/soundplay); cdecl (id, owner, category, index, x, y, z): a ride's linked sound element played at a position"
+0x0051e730,Sound_StartMusic,function,low,"reimplemented (src/game/core/soundplay); cdecl: the music [0x803aa0] = Sound_PlayAt([0x803aa0], cat_music [0x803a44], 2, 0, 0, 0), then Sound_SetParam(it, 4, 0) into [0x803aa0]"
 0x0051c5d0,Sound_SetArea,function,medium,"(sound, x, z, w, d): spreads an emitter over the rect (x, z)..(x+w, z+d)"
 0x00521e60,Particle_Spawn,function,high,"reimplemented (src/game/render/particles); cdecl (effect, x, y, z): starts a particle system from the effect definition: a free system to the live list, the definition copied, its first burst emitted, its linked voice or effect started; returns its handle, 0 for an optional effect while reduced, -1 when none"
 0x0051b530,Sound_QueryFound,function,low,"reimplemented (src/game/core/soundset); cdecl (name, folders): the name found in a folder list (Class6fd9d8_FindFirstMatch), then the sound manager's +4 (&folders, found text, name, &name) when on and started; else 0"
@@ -389,6 +391,9 @@ address,name,kind,confidence,notes
 0x0055e710,Lnd_BuildRamp,function,high,"reimplemented (src/game/terrain/terrain_blend); (table, centre, width): 256-entry 0..255 ramp"
 0x0055ee10,Lnd_BlendRow16,function,high,reimplemented (src/game/terrain/terrain_blend); blend of 16 texels from two colour pairs
 0x0055eaa0,Lnd_BlendRow16x3,function,high,reimplemented (src/game/terrain/terrain_blend); Sixteen texels blended from three weighted colour-row pairs (name unconfirmed)
+0x0055e620,Lnd_FreeWeightMap1,function,low,"reimplemented (src/game/terrain/terrain_blend); cdecl; name invented: W1 exit handler, the block freed when set, the four dwords cleared"
+0x0055e680,Lnd_FreeWeightMap3,function,low,"reimplemented (src/game/terrain/terrain_blend); cdecl; name invented: W3 exit handler, as W1"
+0x0055e6e0,Lnd_FreeWeightMap2,function,low,"reimplemented (src/game/terrain/terrain_blend); cdecl; name invented: W2 exit handler, as W1"
 0x008798c8,gTerrainBlendScratch,data,high,"tile-sized RGBA scratch the blend writes bottom-up"
 0x005e78b0,Array3D_Read,function,high,"reimplemented (src/game/gfx/array3d); Reads width, height, depth and the pixel bytes from a stream into a new block"
 0x00467a80,Sign_Apply,function,high,"splits a name into two lines, loads <theme>/<style>.sgn, renders it onto the model's sign1/sign2.tga with GDI"
@@ -505,6 +510,7 @@ address,name,kind,confidence,notes
 0x00418d70,Landscape_RemoveTextureList,function,low,reimplemented (src/game/terrain/landscape); thiscall on a list of texture arrays: the first [0x785724] (re-read each time) removed from the landscape at 0x8c1828 (Landscape_RemoveTexture); returns the count (name unconfirmed)
 0x00585ce0,Landscape_SampleColours,function,low,"reimplemented (src/game/terrain/landscape); thiscall: 16 x 16 colours sampled from the texture at +0x1fd4 (Texture_Lock) into +0xf60, copied to +0x400, +0x800, +0xc00 after them"
 0x005850c0,Landscape_AddTexture,function,low,"reimplemented (src/game/terrain/landscape); thiscall (&textures, name, a, b, c, d, e, f), pops 0x20: the next of the 0x10 texture entries loaded by the texture manager (the error pushed twice when not, sic) (name unconfirmed)"
+0x005852b0,Landscape_LoadSky,function,low,"reimplemented (src/game/terrain/landscape); thiscall (folder), pops 4; name unconfirmed: the sky textures folder\sky\sky.tga, sky_rgb.tga (its colours sampled, then released) and sky_cyl.tga into +0x1fd0 / +0x1fd4 / +0x1fd8"
 0x005720d0,TerrainTexCache_Ctor,function,high,"reimplemented (src/game/terrain/texcache); the tile cache cleared, 0x40 tiles"
 0x00572350,TerrainTexCache_Dtor,function,low,"reimplemented (src/game/terrain/texcache); thiscall: the tiles' texture arrays, the tiles and the landscape freed (name unconfirmed)"
 0x00572110,TerrainTexCache_Init,function,low,"reimplemented (src/game/terrain/texcache); the tile cache set up: the landscape, count tiles in a ring each with a texture of the size (capped by the video and texture memory)"
@@ -1021,6 +1027,8 @@ address,name,kind,confidence,notes
 0x0055cc00,FlyingRides_FloorAt,function,low,"reimplemented (src/game/world/flyingrides); cdecl (x, y): 100000 past the bounds' 20000 margin, 30000 near a flying ride record (sqrt of the squared /32 distances << 5 under 10000), 0 outside the bounds, else Terrain_SurfaceHeight of the clamped cell (x/3000, y/3000) * 300"
 0x0055ce60,FlyingRides_LerpSlots,function,low,"reimplemented (src/game/world/flyingrides); cdecl (t): each flying ride slot in use placed at t between its old and new positions and angles, eased from its last, its ride's matrix and particle system set (name unconfirmed)"
 0x0055a5a0,FlyingRides_Init,function,low,"reimplemented (src/game/world/flyingrides); once: the flags set, the 100-entry table cleared and a 0x1000-entry sine table made (GlobalAlloc; __ftol(0.5 - fsin(2j * 2pi/8192) * -1024))"
+0x0055da70,FlyingRide_SetMode,function,low,reimplemented (src/game/world/flyingrides); flying ride mode
+0x0055c350,FlyingRide_PickWaypoint,function,low,"reimplemented (src/game/world/flyingrides); cdecl; name invented: the next waypoint on the 20000 grid, ahead or by a search under the floor limit, its y the higher surface plus 5000"
 0x004fa990,AnalyserCell_TypePlain,function,high,"reimplemented (src/game/world/analysercell); 1 when the cell under the record is type 0, 1, 3, 9 or 0xa"
 0x004de040,Object_NeighbourCellId,function,high,reimplemented (src/game/world/analysercell); the id of the cell a neighbour bit points to
 0x00505bd0,AnalyserRecord_ChecksCell,function,high,reimplemented (src/game/world/analysercell); 0 for kinds 4 5 7 d 12 else the cell type test
@@ -2550,6 +2558,7 @@ address,name,kind,confidence,notes
 0x0051e8f0,Sound_RegisterLobbyCategories,function,low,"reimplemented (src/game/core/soundset); cdecl (name): the lobby folder's music and sfx categories appended as a pair to the array at 0x803a4c; its index, or -1"
 0x0051bc40,Sound_SetParam,function,low,"reimplemented (src/game/core/soundset); cdecl (sound, parameter, value): 0 unless sound is on (0x802bc8) and started (0x802bd4); else the manager 0x802bcc's SoundManager_Call3 (its engine's slot 3) with them, its answer returned"
 0x0051c270,Sound_SetPosition,function,low,"reimplemented (src/game/core/soundset); cdecl (sound, x, y, z): 0 unless sound is on and started; else the manager's SoundManager_Call5 (its engine's slot 5) with the sound and the position as three floats on the stack, its answer returned"
+0x0051e890,Sound_RegisterGlobalLobbySfx,function,low,"reimplemented (src/game/core/soundset); cdecl: from the folder named the String 0x8030d8, cat_globallobbysfx to 0x803a48"
 0x005af7f0,GlobalSave_ThemeByte,function,high,reimplemented (src/game/core/globalsave); thiscall u8 (i): byte i of the global save info's (0xf7c58c) current theme record (+0x48)
 0x005af800,GlobalSave_Byte26,function,high,reimplemented (src/game/core/globalsave); thiscall u8 (i): byte +0x26 + i of the global save info
 0x005afc30,GlobalSave_Inc20,function,high,reimplemented (src/game/core/globalsave); thiscall: the global save info's counter +0x20 incremented
@@ -2892,6 +2901,7 @@ address,name,kind,confidence,notes
 0x00403340,GameClock_Slower,function,low,"reimplemented (src/game/core/gameclock); thiscall: the rate +0x20 times 0.8 (x87, 24 bits), kept in 0.25..2 (a NaN gives 0.25)"
 0x0047f940,Obj_CtorValue,function,high,"reimplemented (src/game/gfx/text); Fn_657d30, vtable 0x6ff058 and +0x14 = value"
 0x004d4170,Obj_KillSlot,function,high,reimplemented (src/game/sprite/scriptref); the script slot at +0 killed and cleared
+0x004d41d0,ScriptRef_SetPeriodFor,function,low,reimplemented (src/game/sprite/scriptref); thiscall (speed float): the period +8 = __ftol(62 / speed) clamped to 0-250
 0x004d9600,Obj_StampAt30,function,high,reimplemented (src/game/world/litter); a word at +0x30 and the world's stamp at +0x34
 0x004e01f0,Obj_StampAt5e,function,high,reimplemented (src/game/world/object); a word at +0x5e and the world's stamp at +0x60
 0x0040f300,Obj_CtorPart8,function,high,"reimplemented (src/game/world/thingmsg); vtable 0x6fd7b8, a part built at +8, vtable 0x6fd7b0"
@@ -2909,9 +2919,13 @@ address,name,kind,confidence,notes
 0x004b4f90,Panel7cc328_RemoveStaff,function,low,"reimplemented (src/game/ui/panel7cc328); thiscall (staff): with a window +0x10, the staff member's row in its list 0x1e7b removed when there is one"
 0x00481960,Panel7cc328_OnStaff,function,low,"reimplemented (src/game/ui/panel7cc328); thiscall (handle, added), pops 8, this unused: the thing of the handle's low word added to (AddStaff) or removed from (RemoveStaff) the staff panel 0x7cc328"
 0x004b4510,Panel7cc328_ShowStaff,function,low,"reimplemented (src/game/ui/panel7cc328); thiscall (staff), pops 4: the staff member's figure shown in the window +0x10's child 0x1e84 (a sprite script of 0x74f758 with the staff's folder +0x24 and sprite +0x20, anim 1, at the child's saved rectangle and depth); only when they differ from the panel's +0x28 / +0x2c, the old script +0x24 killed"
+0x004b5290,Panel7cc328_Show,function,low,"reimplemented (src/game/ui/panel7cc328); thiscall (thing), slot 10 of the vtable 0x6ffdd8: the selected thing [0x7cc318] set, the window built (script 0x756ba0, handler 0x4b4fc0, children 0x1e84 / 0x1e89), the advisor posted 0x12c"
+0x004b47a0,Panel7cc328_ShowRefund,function,low,"reimplemented (src/game/ui/panel7cc328); thiscall, slot 5 of the vtable 0x6ffdd8: the window +0x14 child 0x1e8a slot 7 given Object_ScrapRefund of the shown thing [0x7c2658]"
 0x004bcec0,Global7cc698_Choose,function,high,reimplemented (src/game/ui/dialogs); a global set from the first of three sources that applies
 0x0052fbf0,PairTable_Add,function,high,reimplemented (src/game/world/cellrun); a pair appended to the 8-byte entry table unless it is past 0x400
 0x004d09a0,Obj_SmallestEntry,function,high,"reimplemented (src/game/world/money); the index of the smallest non-zero entry size of eight, or -1"
+0x004d0970,Money_LoanOwed,function,low,"reimplemented (src/game/world/money); thiscall (loan): (term - months paid) * rate of the loan entry when taken, else 0"
+0x004d0a00,Money_TotalOwed,function,low,reimplemented (src/game/world/money); thiscall: the eight loans amounts owed added up
 0x00458310,Obj_CtorVirtual,function,high,reimplemented (src/game/render/lightsource); a class with a virtual base: vtables and the offset word
 0x004583d0,Obj_SetVectorAt2c,function,high,"reimplemented (src/game/render/lightsource); the scene flags touched, then three dwords at +0x2c"
 0x005651c0,Class701260_Ctor,function,high,"reimplemented (src/game/render/device); vtable 0x701260 and its defaults, plus a driver quirk flag"
@@ -2942,6 +2956,10 @@ address,name,kind,confidence,notes
 0x0054dcc0,Flag54dcc0_Test,function,high,reimplemented (src/game/render/mode); a flag test on two settings
 0x00556a80,Rsse_GetVector,function,high,reimplemented (src/game/rsse/rsse_vm); three dwords of a frame's record written through pointers
 0x005580a0,Rsse_MoveWalker,function,low,"reimplemented (src/game/rsse/rsse_vm); cdecl (vm, slot, from, to, mode, t): a walker t thousandths of its way between two ride parts, on the floor or between their heights; its person placed, wobbled about it or its scripts released"
+0x005571a0,Rsse_WalkerBack,function,low,"reimplemented (src/game/rsse/rsse_vm); cdecl (vm, value); name unconfirmed: the walker slot holding value sent back from its key +4 to +6"
+0x00557d80,Rsse_UpdateWalkers,function,low,"reimplemented (src/game/rsse/rsse_vm); cdecl (vm); name unconfirmed: each busy walker slot moved by its state (out, there, back, home), then the run-out wobble cleared"
+0x00557970,Rsse_TriggerNode,function,low,"reimplemented (src/game/rsse/rsse_vm); cdecl (vm, node, what, extra, value); name unconfirmed: a trigger node started, its part found, unlinked and freed when nothing started"
+0x00557ab0,Rsse_UpdateAll,function,low,"reimplemented (src/game/rsse/rsse_vm); cdecl; name unconfirmed: every ride record riders placed at their parts (bobbing unless the record flag says still), then its walkers updated"
 0x00569f30,Setting569f30_Set,function,high,"reimplemented (src/game/render/rasteriser); a setting stored, or a default restored"
 0x005c7d20,Records24_Field14,function,high,reimplemented (src/game/files/userslots); the dword at +0x14 of a 24-byte record
 0x005c7d00,Records24_IfUsed,function,high,reimplemented (src/game/files/userslots); a 24-byte record's address when its dword at +4 is set
@@ -2957,6 +2975,7 @@ address,name,kind,confidence,notes
 0x005c7490,WString_CtorReturning,function,high,"reimplemented (src/game/core/string); an empty wide string, returned"
 0x005c5230,DirEntry_IsRealDir,function,high,reimplemented (src/game/files/direntry); a directory entry whose name does not start with a full stop
 0x004d3860,ChunkFile_ReadStream,function,low,"reimplemented (src/game/files/chunkfile); thiscall (stream, name), pops 8: the stream read whole into a GlobalAlloc block; the magic +0x10 checked; each chunk from +0x24 (tag, length, data) offered to the handlers on the list +4 until ""END "" or the end"
+0x004d3a60,ChunkFile_Open,function,low,"reimplemented (src/game/files/chunkfile); thiscall (name): VFS_Open(name); none: GameError_Set(0x785de8, 3, 0, name), 0; else ChunkFile_ReadStream(stream, 0)"
 0x0041cff0,Path_StripBase,function,low,"reimplemented (src/game/files/vfs); cdecl (path, base, out); the path taken relative to a base folder (an archive's pattern dropped), leading backslashes dropped; 1 when under it, else out empty and 0"
 0x005c5010,VFS_ExtractFile,function,low,"reimplemented (src/game/files/vfs); cdecl (from, to): a VFS file read whole into a Mem_GlobalAlloc block and written out through a new FileStream; 1, or 0 (name unconfirmed)"
 0x005c5110,VFS_ArchiveName,function,low,"reimplemented (src/game/files/vfs); cdecl (name, out), bool in AL: VFS_Open(name) (leaked; none: 0), then name taken relative to the current source's root (Path_StripBase into out), assigned out and handed to the archive's slot 0x10; 1, else 0 (name unconfirmed)"
@@ -3590,6 +3609,8 @@ address,name,kind,confidence,notes
 0x004f8940,MovingPerson_Ctor,function,low,"reimplemented (src/game/world/person); thiscall (cell, kind): the moving person constructor: thing, script reference, thoughts, nav; +0xc0 by World_Rand % 5; the message centre slot 0xa; the nav at the cell middle"
 0x00518f90,World_PlaceSprites,function,low,"reimplemented (src/game/world/person); thiscall on the world, unused (t): every person (kinds 1, 4-8, 0x12) in the thing table chain with byte +3 clear placed for t (Person_PlaceSprite)"
 0x004fa870,Person_UpdateSpeed,function,low,reimplemented (src/game/world/person); thiscall: speed +0xc8 = ((+0xc0 + +0xc2 + +0xc4) / word [0x75c7fc] - +0xc8 * -3.0) * 0.25 to Nav_SetSpeed; +0xc4 * 99 / 100; Nav_GetPos to +0x190; ScriptRef_Apply(+0xc)
+0x004fa670,Sprite_SetStranded,function,low,"reimplemented (src/game/world/person); thiscall (flag): +0x198 the next count of 0x7cdb98 for a flag, else 0"
+0x00505490,Person_TickSpeed,function,low,"reimplemented (src/game/world/person); thiscall: Person_UpdateSpeed, then when the world ticks [0x80239c]+0x1da70c low two bits are the handle low byte s, Person_KillScript84After on +0x30"
 0x00550d80,Setting_SetMode,function,high,reimplemented (src/game/core/options); stores a mode and sets its flag bits
 0x005633e0,Quad_Push,function,high,reimplemented (src/game/core/seqs); pushes four dwords into the next of four slots
 0x0059c390,Table76e300_GetObjectDword,function,high,reimplemented (src/game/world/objectdefs); a dword of the object indexed through a record of the table
@@ -3969,6 +3990,12 @@ address,name,kind,confidence,notes
 0x00478d20,ImeContext_Release,function,low,"reimplemented (src/game/core/ime); thiscall: with a context, ImmReleaseContext(window, context); returns EAX (that, else 0)"
 0x00478be0,Ime_Dtor,function,low,"reimplemented (src/game/core/ime); thiscall destructor: vtable 0x6fef04, ImmDestroyContext(+0x5c) when set, each 0x24 entry's strings cleared (CountedVector4_Clear +0x10), the entries' block freed and +0x3c-+0x44 0, then the wide strings +0x28 / +0x18 / +0x8 tidied (inlined)"
 0x00478bc0,Ime_DeletingDtor,function,low,"reimplemented (src/game/core/ime); thiscall (flags), pops 4: Ime_Dtor, then freed for flags bit 0; returns ime"
+0x0047a830,Ime_SelectCandidate,function,low,"reimplemented (src/game/core/ime); thiscall (value), pops 4: with the window +0x4c's input context, ImmNotifyIME 0x12 (index +0x54, value) and 0x11 (index, 0), the context released"
+0x0047a6d0,Ime_SetCandidatePage,function,low,"reimplemented (src/game/core/ime); thiscall (first, last, unread), pops 12: with the input context, ImmNotifyIME 0x17 (last - first) and 0x16 (first), the keyboard layout's description widened into the wide string +0x28, the context released"
+0x00480fd0,ImeHost_InsertResult,function,low,reimplemented (src/game/core/ime); thiscall on the host: the IME's result put into the text window +4 at its selection's start (the window's text fetched first when unfetched; no room: OutputDebugStringA)
+0x004809f0,ImeHost_OnMessage,function,low,"reimplemented (src/game/core/ime); thiscall on the host (window, message, a, b), pops 16: the candidate window's handler (0x14, 0x400, 0x401, 0x405), then Window_CallDefault"
+0x00480d10,ImeHost_WindowProc,function,low,"reimplemented (src/game/core/ime); cdecl (window, message, a, b): ImeHost_OnMessage on the host 0x7b4e38"
+0x00480960,ImeHost_Dtor,function,low,"reimplemented (src/game/core/ime); thiscall: the host's destructor: the wide strings of the vector +0x190 reset and its block freed, +0x190-+0x198 cleared, then Ime_Dtor on +0x1c"
 0x0047f9a0,TextMetrics_Width,function,high,reimplemented (src/game/gfx/text); width of a run of characters by the glyph width slot
 0x0047fa00,TextMetrics_FitIndex,function,high,reimplemented (src/game/gfx/text); index at which the width runs out
 0x0047f990,TextMetrics_ForwardSlot8,function,high,reimplemented (src/game/gfx/text); Forwards to virtual call 8 of the inner object (name unconfirmed)
@@ -4001,6 +4028,7 @@ address,name,kind,confidence,notes
 0x004da370,Mechanic_SetState,function,low,"reimplemented (src/game/world/staff); thiscall (state): a mechanic's state; 0xc and 0xd set its animation (0xd also its repair time +0x214 from its target's definition or condition and its grade's skill), others Staff_SetState; then +0x19c"
 0x004d7330,Handyman_SetState,function,low,"reimplemented (src/game/world/staff); thiscall (state): a handyman's states 8-0xb, else Staff_SetState; the state stored"
 0x00505c50,Staff_PickUp,function,low,reimplemented (src/game/world/staff); thiscall: the holder made when missing; when the current mode answers 6 a new CMMOnline base set; the world's 0x519450 record's +0x60 the staff member's handle; state 7 entered
+0x00505f50,Staff_Settle,function,low,"reimplemented (src/game/world/staff); thiscall: unless the state +0x19c is 4, 5, 7, 0xd or 0x12, on a plain cell, the state 0 entered"
 0x00520d60,FreeList_Take,function,high,reimplemented (src/game/core/voices); takes a record off the free list into a table entry
 0x00521890,FreeList_Return,function,high,reimplemented (src/game/core/voices); puts a record back on the free list
 0x00521d60,Voice_ScaleLevels,function,high,reimplemented (src/game/core/voices); scales a voice's levels by the factor over 1024
@@ -4103,6 +4131,7 @@ address,name,kind,confidence,notes
 0x005d48d0,Panel_Reset,function,high,reimplemented (src/game/gfx/imageops); fills the panel image and blends the six parts onto it
 0x00576620,Grid_AddObject,function,high,reimplemented (src/game/render/renderer); adds an object to every list in a rectangle of the grid
 0x005830e0,Surface_SetMasks,function,high,reimplemented (src/game/gfx/surface); stores the colour masks and makes the 16-bit tables
+0x005f96b0,PixelShifts_InitGlobal,function,low,"reimplemented (src/game/gfx/surface); cdecl; name invented: initializer of the global pixel shifts at 0xfa7708, cleared"
 0x005e2a80,PtrList_Insert,function,high,reimplemented (src/game/core/ptrlist); inserts a value before an iterator in a pointer list
 0x005e1540,SortedPtrList_Add,function,high,reimplemented (src/game/core/ptrlist); an item added to a pointer list in order of its key
 0x0056b4c0,PtrArray_AddSpriteFrame,function,low,"reimplemented (src/game/core/ptrlist); thiscall (image, pops 4): a new 0x44-byte sprite frame (flags 0x58000, +0x24 -1, +0x2c 10.0f, the image at +0x28) appended to the pointer array (items +8, count +0x1c mirrored at +4 of what +4 points to); returns it, or 0 when the allocation failed (the error (2, 0xb0754000) pushed)"
@@ -4468,6 +4497,7 @@ address,name,kind,confidence,notes
 0x006b5b80,SoundManager_Call3,function,low,"reimplemented (src/game/core/soundmanager); thiscall (a, b, c), pops 0xc: the engine's slot 3, its result returned"
 0x006b5bf0,SoundManager_DeletingDtor,function,low,"reimplemented (src/game/core/soundmanager); slot 3, thiscall (flags), pops 4: SoundManager_Dtor, then the manager freed for flags bit 0; returns the manager"
 0x006b5dc0,SoundManager_Create,function,low,"reimplemented (src/game/core/soundmanager); a new manager handle over an engine, its slot 4 called"
+0x006b5ba0,SoundManager_SetPlacement,function,low,"reimplemented (src/game/core/soundmanager); thiscall (out, position, direction, value), pops 0x10: SoundObject_SetPlacement on the engine +4 (the sound object), same arguments; returns out (name invented)"
 0x006b6120,SoundMixer_DeletingDtor,function,low,"reimplemented (src/game/core/soundmixer); thiscall (flags), pops 4: SoundMixer_Dtor, then freed for flags bit 0; returns the mixer"
 0x006b6170,SoundMixer_Dtor,function,low,"reimplemented (src/game/core/soundmixer); thiscall: stops the worker (+0x38 set, spins on +0x34), active voices' slot 3, frees the page list and the +0x44 / +0x40 blocks, +0x3c's slot 2 (3), deletes the critical section"
 0x006b6260,SoundMixer_TouchFlagged,function,low,reimplemented (src/game/core/soundmixer); thiscall: active voices with flag 0x400 counted (InterlockedIncrement) and their slot 0xb called; returns the count
@@ -4505,6 +4535,7 @@ address,name,kind,confidence,notes
 0x006b62b0,SoundMixer_Update,function,low,"reimplemented (src/game/core/soundmixer); the mixer worker's step: retires ended voices, stops or culls the rest, keeps the audible loudest and updates them"
 0x006b69b0,SoundMixer_AddPage,function,low,"reimplemented (src/game/core/soundmixer); thiscall (out), pops 4: a page of 100 voices appended to the mixer page list, each voice given the next id, flags 0 and pushed on the free chain; the pages count raised; *out 0 or -1 (name invented)"
 0x006b6650,SoundMixer_AddVoice,function,low,"reimplemented (src/game/core/soundmixer); thiscall (owner, definition, info), pops 0xc: the first free slot (+0x40, count +0x4c); none: 0; its voice in the array +0x3c constructed (Voice70a4f0_Ctor) and initialised (slot 4: out the info argument's slot, sic); negative: 0; else the slot = the voice, 1 (name invented)"
+0x006b6620,SoundMixer_CallVoice10,function,low,"reimplemented (src/game/core/soundmixer); thiscall (id, a, b), pops 0xc: SoundMixer_FindVoice (id): none 0; else the voice slot 10 (a, b), the id returned (name invented)"
 0x006b8b40,SoundChannel_Apply,function,low,"reimplemented (src/game/core/soundchannel); thiscall (out, functor), pops 8: the functor's slot 0 (out, channel); returns out"
 0x006b7d70,SoundChannel_GetSettings,function,low,"reimplemented (src/game/core/soundchannel); thiscall (out, settings), pops 8: fills a settings record from the channel per its asked-for flags (+4, +8): the info at +0x14, the source at +0x18 (slots 0x13, 3), the EAX buffer at +0x20 (EaxBuffer_QueryAll), [0xfb2058]; the filled flags at +0x4c; *out = 0; returns out"
 0x006b5e40,SoundChannelFn70a260_Run,function,low,"reimplemented (src/game/core/soundchannel); the stack functor 0x70a260's run on a channel: its source's slot 1, then the out zeroed"
@@ -4538,6 +4569,8 @@ address,name,kind,confidence,notes
 0x006b8dd0,SoundChannelFn70a5b0_Run,function,low,"reimplemented (src/game/core/soundchannel); the functor 0x70a5b0's run: every voice released, *out = 0"
 0x006b8e40,SoundChannelFn70a268_Run,function,low,reimplemented (src/game/core/soundchannel); the functor 0x70a268's run: the source's slot 14 (out)
 0x006b8eb0,SoundChannelFn70a270_Run,function,low,reimplemented (src/game/core/soundchannel); the functor 0x70a270's run: the source's slot 15 (out)
+0x006b8f60,SoundChannel_SetRecordValue40,function,low,"reimplemented (src/game/core/soundchannel); slot 13 of 0x70a5d8, thiscall (out, record, value), pops 0xc, the channel unused: record +0x40 = value, +0x68 = 0 (the flag setters), +4 |= 0xc; *out = 0 (name invented)"
+0x006b5fc0,SoundChannel_ApplyVoiceRates,function,low,"reimplemented (src/game/core/soundchannel); slot 14 of 0x70a5d8, thiscall (out, channel), pops 8, this unused: each voice of the pool (the first even at count 0) the source slot 32 (local out, id, ChannelVoice_ScaledRate); *out = 0 (name invented)"
 0x006b85f0,SoundObject_Broadcast,function,low,"reimplemented (src/game/core/soundobject); thiscall (out), pops 4: the mixer's active voices run (ForEachActive 0), then the channel's slot 4 with a stack functor 0x70a5b0; *out = -1 without a channel; returns out"
 0x006b8640,SoundObject_BroadcastValue,function,low,"reimplemented (src/game/core/soundobject); thiscall (out, value), pops 8: with a channel flagged 0x400 the mixer's ForEachActive (value), else SoundObject_Broadcast; *out = 0; returns out"
 0x006b8b00,SoundObject_VoiceInfo,function,low,"reimplemented (src/game/core/soundobject); thiscall (out, id, result), pops 0xc: the mixer's voice for the id; its +0xc's +8 into *result and *out = 0, else *out = -1; returns out"
@@ -4674,6 +4707,7 @@ address,name,kind,confidence,notes
 0x006c0bd0,SfxVariation_MoveFlag40SamplesLast,function,low,"reimplemented (src/game/core/soundcategory); thiscall (variation), pops 4: the samples whose bank has flag 0x40 swapped to the end, the count kept in the high word and the low word the samples not flagged (name invented)"
 0x006c0850,SoundCategory_ReleaseRecordAt,function,low,"reimplemented (src/game/core/soundcategory); thiscall (out, index), pops 8: deque A's record index (no count check) released (slot 0), *out = 0; none: -1 (name invented)"
 0x006c5870,SfxSounds_Find,function,low,reimplemented (src/game/core/soundcategory); a command's entry in an SFX.map sound table
+0x006c0c90,SoundCategory_HideFlag40Samples,function,low,"reimplemented (src/game/core/soundcategory); thiscall (hide), pops 4: every variation of every sound of deque A's category records (the cells computed inline): hide's low byte set SfxVariation_MoveFlag40SamplesLast, else dword +0 >>= 16 (name invented)"
 0x006338c0,Class703770_AddRef,function,low,"reimplemented (src/game/core/refcounted); thiscall: the counted base class's AddRef, InterlockedIncrement (+4)"
 0x006338d0,Class703770_Release,function,low,"reimplemented (src/game/core/refcounted); thiscall: its Release: InterlockedDecrement (+4), at 0 deleted (vtable +8 (1)) and 0, else the count re-read"
 0x006c9580,Mp2_Dct64,function,low,"reimplemented (src/game/core/mp2synth); cdecl (out0, out1, in): the MP2 synthesis's 32-point DCT (dct64), 17 values to out0 and 16 to out1 at a stride of 16 floats"
@@ -4806,6 +4840,24 @@ address,name,kind,confidence,notes
 0x0059f970,AdvisorScoring_PeopleMode2,function,low,reimplemented (src/game/core/advisorscoring); more people on plain cells in mode 2 than +0x4a8: +0x4ac
 0x0059fa60,AdvisorScoring_TotalNoStaff,function,low,"reimplemented (src/game/core/advisorscoring); not flagged, the analyser's total at least +0x4c4, no staff: +0x4c0"
 0x0059fac0,AdvisorScoring_StaffNoPatrol,function,low,"reimplemented (src/game/core/advisorscoring); more staff than +0x4c8, none with a patrol region: +0x4cc"
+0x005a02f0,AdvisorScoring_IdleObjects0Share,function,low,"reimplemented (src/game/core/advisorscoring); thiscall; name invented: not flagged, objects with def +0x4ac 0 at least +0x57c and their idle share above +0x580: +0x584"
+0x005a0370,AdvisorScoring_IdleObjects1Share,function,low,reimplemented (src/game/core/advisorscoring); thiscall; name invented: the idle share of objects with def +0x4ac 1 above +0x588: +0x58c
+0x005a03d0,AdvisorScoring_IdleObjects2Share,function,low,reimplemented (src/game/core/advisorscoring); thiscall; name invented: the idle share of objects with def +0x4ac 2 above +0x590: +0x594
+0x005a0430,AdvisorScoring_IdleKind3Flag1Share,function,low,reimplemented (src/game/core/advisorscoring); thiscall; name invented: the idle share of the kind 3 things with flag bit 0 (recounted into the analyser) above +0x598: +0x59c
+0x005a0490,AdvisorScoring_IdleKind3Flag2Share,function,low,reimplemented (src/game/core/advisorscoring); thiscall; name invented: the idle share of the kind 3 things with flag bit 1 above +0x5a0: +0x5a4
+0x005a04f0,AdvisorScoring_Tallied0Above,function,low,reimplemented (src/game/core/advisorscoring); thiscall; name invented: the analyser's tally 0 above +0x5a8: +0x5ac
+0x005a05a0,AdvisorScoring_TotalAboveTheme0,function,low,reimplemented (src/game/core/advisorscoring); thiscall; name invented: the analyser's total above [0x785790] * +0x5c4 and the theme byte 0 clear: +0x5c8
+0x005a05f0,AdvisorScoring_Mood19cTheme2,function,low,"reimplemented (src/game/core/advisorscoring); thiscall; name invented: [0x785798] * +0x5cc below the people's average +0x19c, people on plain cells above [0x78579c], theme byte 2 clear: +0x5d0"
+0x005a0670,AdvisorScoring_MoneyAboveTheme4,function,low,reimplemented (src/game/core/advisorscoring); thiscall; name invented: the money's total above [0x7857a0] * +0x5d4 and the theme byte 4 clear: +0x5d8
+0x005a0780,AdvisorScoring_AnalyserCountOne,function,low,reimplemented (src/game/core/advisorscoring); thiscall; name invented: the analyser's count at +0x216d8 exactly 1: +0x5f4
+0x005a07d0,AdvisorScoring_ControlsPercentLow,function,low,"reimplemented (src/game/core/advisorscoring); thiscall; name invented: not flagged, the definitions' percentage with controls in (+0x5fc, +0x604]: +0x600"
+0x005a0820,AdvisorScoring_ControlsPercentMid,function,low,"reimplemented (src/game/core/advisorscoring); thiscall; name invented: not flagged, the percentage with controls in (+0x604, +0x60c]: +0x608"
+0x005a0870,AdvisorScoring_ControlsPercentHigh,function,low,"reimplemented (src/game/core/advisorscoring); thiscall; name invented: not flagged, the percentage with controls above +0x60c: +0x610"
+0x005a08b0,AdvisorScoring_PeopleShare,function,low,"reimplemented (src/game/core/advisorscoring); thiscall; name invented: not flagged, the people on plain cells' share of [0x785794] (at most 100) above +0x614: +0x618"
+0x0059f440,AdvisorScoring_LatestCountBusStop,function,low,"reimplemented (src/game/core/advisorscoring); thiscall; name invented: the analyser's count at +0x216d8 nonzero and its newest sample above +0x410: +8 the bus stop B's x, +0x414"
+0x0059f590,AdvisorScoring_StaffStat1f8NotAbove,function,low,reimplemented (src/game/core/advisorscoring); thiscall; name invented: at least +0x42c staff and +0x430 not above their average +0x1f8: +0x434
+0x0059f5e0,AdvisorScoring_PeopleStat19cNotAbove,function,low,reimplemented (src/game/core/advisorscoring); thiscall; name invented: at least +0x438 people on plain cells and +0x43c not above their average +0x19c: +0x440
+0x0059fb10,AdvisorScoring_StaffEntryClear,function,low,reimplemented (src/game/core/advisorscoring); thiscall; name invented: more staff than +0x4d0 and the byte +0x20 of the entry for +0x1da718 clear: +0x4d4
 0x00418da0,ParkInfo_Serialize,function,low,"reimplemented (src/game/core/parkinfo); thiscall (stream, save, version, unused), pops 0x10: the save's park information (strings, three dwords, the author's name and e-mail, the description, the publishing date) written or read field by field (name unconfirmed)"
 0x005d55a0,AuthStamp_Text,function,low,"reimplemented (src/game/core/authstamp); cdecl: ""No Authorization Stamp"" (0x774bc0) while the phrase at 0x763f3d is the plain one at 0x774bd8; else the phrase's bytes less the key's (0x774b78) written to 0xf827f8 until they meet, and 0xf827f8"
 0x006cc7b0,Mp2Decoder_ParseHeader,function,low,"reimplemented (src/game/core/mp2frame); parses an MPEG audio frame header into the decoder's fields, rate, bitrate and frame length; -1 without sync or bitrate"
@@ -5107,6 +5159,9 @@ address,name,kind,confidence,notes
 0x006c4480,SoundDevice_Release,function,low,reimplemented (src/game/core/sounddevice); thiscall: +4 then +0 released and cleared (name invented)
 0x006c44b0,SoundDevice_CoCreate,function,low,"reimplemented (src/game/core/sounddevice); thiscall (out), pops 4: CoCreateInstance of the EAX DirectSound, else of CLSID_DirectSound (name invented)"
 0x006c4500,SoundDevice_Get,function,low,"reimplemented (src/game/core/sounddevice); the device singleton (0xfb2030, guard 0xfb2028, atexit 0x6c4540) (name invented)"
+0x006d21d0,SoundSource711920_SetRate,function,low,"reimplemented (src/game/core/soundsource); slot 16 of 0x711920, thiscall (out, low), pops 8: Obj_SetRateAtC; negative *out = 0; else SoundDevice_SetFormat (out, 2, 16, the rate +0xc) on SoundDevice_Get (name invented)"
+0x006d37b0,SoundSource711b08_SetOrientation,function,low,"reimplemented (src/game/core/soundsource); slot 35 of 0x711b08, thiscall (out, front, top), pops 0xc: without +0x1c *out = -1; else its COM slot 11 (front x, 0, front z, top x, y, z; floats through the x87) into *out (name invented)"
+0x006b00e0,WideWriter_Finish,function,low,"reimplemented (src/game/core/widewriter); slot 1 of 0x70a0c0, thiscall: with a cursor the full byte set at the end, a 0 cell at the cursor (or before it when full), the cursor cleared; the holder +0xc cleared and released (slot 0) (name invented)"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
@@ -5204,6 +5259,8 @@ address,name,kind,confidence,notes
 0x0059bf20,AdvisorScoring_Score,function,low,reimplemented (src/game/world/advisorscore); thiscall (id): the method of id's record of the table at 0x76e300 called on gAdvisorScoring when it applies to the mode setting; -1 otherwise
 0x0059c0a0,AdvisorScoring_ScoreDetail,function,low,"reimplemented (src/game/world/advisorscore); thiscall (id, &word, &dword): AdvisorScoring_Score with the word +4 and dword +8 cleared first and copied out after"
 0x0059b590,AdvisorMsg_Init,function,low,"reimplemented (src/game/world/advisorscore); thiscall (id, type, a, b, flag, score): an advisor message; a score below 0 taken from gAdvisorScoring (built on first use)"
+0x00535670,MapCell_CanBuild,function,low,"reimplemented (src/game/world/cellbuild); thiscall (kind, alone), pops 8; name unconfirmed: whether a kind can be built on a map cell (0, 1, 2, 8, 0xb or 0xd), its findings in 0x816d4c-0x816d60"
+0x00539760,MapCell_CanBuildTrack,function,low,"reimplemented (src/game/world/cellbuild); thiscall (kind, alone, direction), pops 0xc; name unconfirmed: whether a track-like kind (0xb / 0x10, 0xe / 0x13, 0xf, 0x19) can be built on a map cell facing a direction (0, 1, 9, 0xb or 0xd), its findings in 0x816d4c-0x816d5c"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved
@@ -5691,6 +5748,7 @@ address,name,kind,confidence,notes
 0x0057e4b0,WeatherFx_BoltMidpoint,function,low,"reimplemented (src/game/render/weatherfx); cdecl (out, a, b, scale; returns out): a lightning segment's midpoint pushed off by a random amount (the renderer's seed at +0xa198), x87"
 0x0057d7f0,WeatherFx_LoadTexture,function,low,"reimplemented (src/game/render/weatherfx); thiscall (which, name), pops 8: an empty weather texture slot (1-3, else the value as its address, sic) loaded by the texture manager (name unconfirmed)"
 0x005508c0,WeatherFx_LoadTextures,function,low,"reimplemented (src/game/render/weatherfx); cdecl: with a renderer at [0x8bcbac], snow.tga into slot 2, raindrop.tga into 1, lightning.tga into 3 (Data\Generic\Weather\), each name through Quickload_Locate(name, 1, 0) and WeatherFx_LoadTexture; returns the last load's answer, or 0 without a renderer"
+0x0057d850,WeatherFx_ReloadTextures,function,low,"reimplemented (src/game/render/weatherfx); thiscall; name invented: the three weather textures loaded (WeatherFx_LoadTexture slots 2, 1, 3), +4 cleared, 1"
 0x00576260,Renderer_SetRestoreCallback,function,high,"reimplemented (src/game/render/renderer); thiscall (the renderer, [0x87a6d0]; fn): +0x78 = fn, called when the display device generation moves on (0x576c26)"
 0x005763f0,Renderer_SetStateFlags,function,high,"reimplemented (src/game/render/renderer); thiscall (flags): +0x48, the render state flags (0x1f31 by default)"
 0x00576400,Renderer_StateFlags,function,high,"reimplemented (src/game/render/renderer); thiscall: +0x48, the render state flags"
@@ -5716,6 +5774,7 @@ address,name,kind,confidence,notes
 0x00577970,Backdrop_SetSourceRect,function,high,"reimplemented (src/game/render/backdrop); thiscall (x0, y0, x1, y1, floats): the part of the image drawn, +0x30..+0x3c"
 0x00577990,Backdrop_UncacheRect,function,low,"reimplemented (src/game/render/backdrop); thiscall (x0, y0, x1, y1): the tiles of the pixel rectangle (divided by 64 toward 0, ends included) unlinked from the texture cache (name unconfirmed)"
 0x005777b0,Backdrop_Create,function,low,"reimplemented (src/game/render/backdrop); thiscall (pixels, width, height, pitch in bytes), pops 0x10: the image cut into 64x64 textures (count-prefixed block, Texture_Ctor each), each tile's pitch and pixels set; +0x58 the count; returns 1 (name unconfirmed)"
+0x00577730,Backdrop_Release,function,low,"reimplemented (src/game/render/backdrop); cdecl; name invented: the backdrop exit handler, its tiles +0x40 cleared, destroyed and the fields cleared"
 0x00579c70,MeshQueue_Clear,function,high,"reimplemented (src/game/render/meshqueue); thiscall (the first mesh queue, 0x8bb220): +0x400 = 0, emptied"
 0x0057c260,MeshQueue2_Init,function,high,reimplemented (src/game/render/meshqueue); static initialiser: the second mesh queue (0x8bb638) emptied
 0x0057c270,MeshQueue2_Add,function,high,"reimplemented (src/game/render/meshqueue); thiscall (the second mesh queue; mesh): appended when there is room (0x100); 1, or 0 when full"
@@ -5728,6 +5787,7 @@ address,name,kind,confidence,notes
 0x00491f20,SpriteSet_DeletingDtor,function,low,"reimplemented (src/game/render/spritequeue); thiscall on a sprite set's +0x20 (flags): the 0x6ff308 class's deleting destructor: vbase vtable 0x6ff308 and displacement, TrackedArray_Free, LiveObjects_Remove(vbase), +0x20 = 0x6fdce8, flags bit 0 frees; returns the set"
 0x0048f280,SpriteSet_Dtor,function,low,"reimplemented (src/game/render/spritequeue); thiscall: the sprite set's destructor (SpriteSet_DeletingDtor without the free), run by an exception unwind"
 0x0058a5c0,SpriteQueue_LoadTexture,function,low,"reimplemented (src/game/render/spritequeue); thiscall (name), pops 4: the queue's texture array destroyed and loaded anew by the texture manager (name unconfirmed)"
+0x0058ac10,Global8c47b0_Release,function,low,"reimplemented (src/game/render/spritequeue); cdecl; name invented: exit handler of the record at 0x8c47b0: its textures released and destroyed, its tracked block freed"
 0x00582390,DrawBuffer_Reset,function,high,"reimplemented (src/game/render/drawbuffer); thiscall (the draw buffer, [0x8bcbc4]; streams byte 1/2): streams emptied, stream 1's batches from the top again (else the batches above +0x54 cleared), the scratch area emptied"
 0x00582640,DrawBuffer_Alloc,function,high,"reimplemented (src/game/render/drawbuffer); thiscall (n): n * 16 bytes from the scratch area (+0x5c up to +0x3c), or 0"
 0x00582670,DrawBuffer_Begin,function,high,"reimplemented (src/game/render/drawbuffer); thiscall (mode): the stream's next batch begun, cleared and pointed at the free vertices and indices; returns it"
@@ -6071,6 +6131,8 @@ address,name,kind,confidence,notes
 0x00492330,HelpBg_MoveTo,function,low,"reimplemented (src/game/frontend/helpbg); thiscall (x, y), pops 8: with the window +0x18, Window_Offset by x, y less its inner rectangle's left, top (0xffff keeps one); the rect dtor's EAX or 0"
 0x004924b0,HelpBg_SetText,function,low,"reimplemented (src/game/frontend/helpbg); cdecl (text): the help background 0x7ca0c0 (words +0xc, +4 set) tells its window NotifyC00(1, no newline), then closes on an empty text or shows the window and hands it the text (slot 9)"
 0x00492180,HelpBg_Build,function,low,"reimplemented (src/game/frontend/helpbg); thiscall; slot 14 of the help background's vtable 0x6ff598: its window +0x18 made (a child of the GUI root, its height from font 7) and dressed: a text part, font 7, the f_helpbg object, A0[0] the background, depth 0x26, slot 5, the handler 0x491fe0; the word +0xc = 1"
+0x004923d0,HelpBg_RestoreRect,function,low,"reimplemented (src/game/frontend/helpbg); thiscall, not called: with the window +0x18, its rectangle +8 set from its rectangle +0x14"
+0x00492530,HelpBg_Place,function,low,"reimplemented (src/game/frontend/helpbg); cdecl (x, y): for the object at 0x7ca0c0, both low words 0xffff: HelpBg_RestoreRect, else HelpBg_MoveTo(x, y)"
 0x005da120,Class702af0_AcquireModels,function,low,"reimplemented (src/game/frontend/lobbyscene); thiscall: once (+4), each list item (+0x58) not yet set up (+0xc) has its lobby model (+8) set up by RideUser_Acquire"
 0x005dfca0,Class702ca8_AcquireModels,function,low,"reimplemented (src/game/frontend/lobbyscene); thiscall: once (+0x10), the lobby models at +4 and +8 set up by RideUser_Acquire"
 0x005e1350,Class702cb0_StartPendingPlay,function,low,"reimplemented (src/game/frontend/lobbyscene); thiscall, vtable 0x702cb0 slot 6: a pending play (state +0x14 == 2) started with LobbyModel_Play(entry 1); 0 when the state is 0, else 1 and the state cleared"
@@ -6089,6 +6151,7 @@ address,name,kind,confidence,notes
 0x005e2650,Scene702dd0_ShowDialogCallback,function,low,reimplemented (src/game/frontend/viewcontrols); cdecl callback of Class702dd0 slot 17 for 0x4c0ae0: Dialog7cc47c_Message6On's result
 0x005e2660,Scene702dd0_DialogDone,function,low,"reimplemented (src/game/frontend/viewcontrols); cdecl (accepted, self) callback of Class702dd0 slot 17: 0 calls self slot 0x44; else state +0x14 2 plays the +0xc +8 lobby model, +0x14 = 0, Dialog7cc47c_Message6On"
 0x005e2cc0,IslandCamera_LoadSettings,function,low,"reimplemented (src/game/frontend/islandcamera); thiscall: the lobby island camera settings read from a text file (FOV, spin, radii, ten camera positions)"
+0x004a7bf0,Postcard_OnSent,function,low,"reimplemented (src/game/frontend/postcard); cdecl (done, result): the postcard sender's callback; when done and the result is 0-4, the command of the table {0x34, 0x39, 0x3a, 0x3b, 0x3b} posted (CommandQueue_Post)"
 0x0065d7d0,Window_FindChild,function,low,"reimplemented (src/game/ui/window); thiscall (id), pops 4: the first child of the window (list +0x5c, next +0x54) whose id (+0x8c) is id, or 0"
 0x0065f697,Window_CallHandler,function,low,"reimplemented (src/game/ui/window); thiscall (message, a, b), pops 12: the cdecl handler at +0x114 called with (window, message, a, b), its result; -1 when none"
 0x00658d9f,Window_SendMessage,function,low,"reimplemented (src/game/ui/window); cdecl (window, message, a, b): -1 for no window or byte +4 set; else the hook [0xfaa5fc] (if set) then Window_CallHandler"
@@ -6237,6 +6300,9 @@ address,name,kind,confidence,notes
 0x004c4fb0,Dialog7cdb0c_Create,function,low,"reimplemented (src/game/ui/dialogs); cdecl (flag byte): the dialog [0x7cdb0c] built from the script 0x7596b0 on the frame's window, its children dressed by the flag"
 0x0048d1a0,WindowAt10_CentreHandler,function,low,"reimplemented (src/game/ui/dialogs); cdecl (window, message, a, b): the handler WindowAt10_Create gives its child +0x18; 0x10006: the camera centred on the thing [0x7c2658] (Thing_GetHandle, Camera_CentreOnThing), the window's dword 6 told its slot 11, 0; else Window_CallDefault's result"
 0x0048cea0,WindowAt10_Create,function,low,"reimplemented (src/game/ui/dialogs); thiscall (script, handler, first, second, inner), pops 0x14: unless +0x10: the fields cleared, Window7c24c8_Close, the window built on [0x7cb2ac] (WindowScript_Build) into +0x10 and Window7c24c8_Set; slot 0; +0x18 its child first (with inner: +0x1c its child, slot 5 (0); the handler 0x48d1a0, dword 6 the object, slot 4); +0x14 its child second (slot 3); slot 1; dword 6 of +0x10 the object"
+0x00493130,WindowAt10_Show,function,low,"reimplemented (src/game/ui/dialogs); thiscall (flag): with the window +0x10 and +0xc not set, +0xc = 1, the window shown, added to the GUI root above the top depth and focused (Window7c24c8_Close first for flag 0)"
+0x004931b0,WindowAt10_Hide,function,low,"reimplemented (src/game/ui/dialogs); thiscall: WindowAt10_Show undone: with +0xc set, +0xc = 0, the window +0x10 hidden, unlinked, its focus let go, the focus restored"
+0x004c5820,Dialog7cdb0c_SetChild16006State,function,low,"reimplemented (src/game/ui/dialogs); cdecl (on): with the dialog [0x7cdb0c], its child 0x16006 given Window705a50_SetState(on == 1, 1)"
 0x00659607,GuiManager_CallSlot4,function,low,"reimplemented (src/game/ui/guimanager); cdecl: slot 4 (thiscall, no arguments) of the GUI manager [0x77c48c], its result"
 0x0065961c,GuiManager_CallSlot3,function,low,"reimplemented (src/game/ui/guimanager); cdecl: slot 3 (thiscall, no arguments) of the GUI manager [0x77c48c], its result"
 0x00659631,GuiManager_Word4Set,function,low,"reimplemented (src/game/ui/guimanager); cdecl: 1 when the GUI manager's word +4 (Fn_659790) is not 0, else 0"
@@ -6377,6 +6443,15 @@ address,name,kind,confidence,notes
 0x00496d20,List7ca170_InitRow,function,low,"reimplemented (src/game/ui/listrows); cdecl (row); the initialiser of 0x496c10's rows: the row and its first child text parts, font [0x751184], text 0; then a 0x6ff3b0 part, a ridestatbar bar (0x1f4) and a happygrad bar"
 0x00496c10,List7ca170_NewRow,function,low,"reimplemented (src/game/ui/listrows); cdecl; the row factory of the list built at 0x496680: the cache [0x7ca170] (font [0x751184]); when made, the children (1, 1, 0x3e7) twice (sic), (9, 0x11, 4), (9, 0x11, 5)"
 0x004b4d40,List7cc338_InitRow,function,low,"reimplemented (src/game/ui/listrows); cdecl (row): the row window made a TextPart (0x6ff320), its font the language's font [0x756f38], NotifyImpl100(0), and its first child's ride stat bar (panelparts barOf: the ""ridestatbar.wct"" mesh overlay) slot 7 with 0"
+0x004959c0,List7ca158_RowProc,function,low,"reimplemented (src/game/ui/listrows); cdecl (window, message, a, b): List7ca158_NewRow's row handler: for 0x403 the object b (or the table 0x7cfb90's entry its word +0x30 names) has its status's colour sent as 0x40000; then the default handler's answer"
+0x004a0710,List7cb264_RowProc,function,low,"reimplemented (src/game/ui/listrows); cdecl (window, message, a, b): List7cb264_InitRow's row handler: for 0x403 0x8c, 0, 0x3c (b negative) or white sent as 0x40000; then Window_CallDefault"
+0x004bf760,List758f04_NewRow,function,low,"reimplemented (src/game/ui/listrows); cdecl: a new 0x138-byte row window, the font [0x758f04]'s height * 0x600 / [0xfaa5c0] + 4 high"
+0x004bf740,List758f04_NewRowA,function,low,reimplemented (src/game/ui/listrows); cdecl: List758f04_NewRow with the handler 0x4be730
+0x004bf8b0,List758f04_NewRowB,function,low,reimplemented (src/game/ui/listrows); cdecl: List758f04_NewRow with the handler 0x4be7c0
+0x004bf810,List758f04_InitRow,function,low,"reimplemented (src/game/ui/listrows); cdecl (row): a TextPart_Ctor part, the font [0x758f04], white as 0x40000"
+0x004bf800,List758f04_InitRowJump,function,low,reimplemented (src/game/ui/listrows); cdecl (row): List758f04_InitRow
+0x004be730,List758f04_RowProcA,function,low,"reimplemented (src/game/ui/listrows); cdecl (window, message, a, b): for 0x403 the colour [0x758f30] / [0x758f3c] / [0x758f34] / [0x758f38] by b's bits 0-2; then Window_CallDefault"
+0x004be7c0,List758f04_RowProcB,function,low,"reimplemented (src/game/ui/listrows); cdecl (window, message, a, b): for 0x403 the colour of the table 0x758f10's entry b & 7; then Window_CallDefault"
 0x0066a084,Frame_SetInterval,function,low,"reimplemented (src/game/ui/frame); thiscall (value): +0x14 = value; with the words +4 and +0xc set, +0x10 = GuiClock_Now"
 0x0066a016,Frame_Stop,function,low,"reimplemented (src/game/ui/frame); thiscall: the word +4 = 0, then with the word +6 set slot 1 (its result returned, else the frame)"
 0x004a4ab0,Dialog7cb398_ShowTopThree,function,low,"reimplemented (src/game/ui/dialog7cb398); cdecl: the window [0x7cb398]'s child 0x4a68d1, then Things_TopThreeValues shown by its children 0x4a68d4/d3/d2 (1..0x16: slot 7 with value - 1, else hidden)"
@@ -6384,6 +6459,8 @@ address,name,kind,confidence,notes
 0x004a52a0,Dialog7cb398_Create,function,low,"reimplemented (src/game/ui/dialog7cb398); no arguments: the park statistics window [0x7cb398] built on [0x7cb2ac] from the script 0x7537d0 (handler 0x4a4830), its timer 0x80083, title, top three, panel with radio group and labels, the people and total figures, the sad / happy meshes and percentages; advisor told 199"
 0x00499b40,Panel7ca228_Update,function,low,"reimplemented (src/game/ui/panel7ca228); thiscall, slot 1 of 0x6ff8d0: +0x20's slot 9 (panel slot 13), the window +0x10's child 0x1581 shown by bit 4 of [0x7c2658]+0x32, then slots 6 and 5"
 0x00499890,Panel7ca228_Dress,function,low,"reimplemented (src/game/ui/panel7ca228); thiscall, slot 3 of 0x6ff8d0: with the window +0x14, its children 0x1587-0x1584 found dressed (texts 0x35 / 0x36, 0x6ff350 / 0x6ff3b0 parts with 0)"
+0x00499af0,Panel7ca228_Open,function,low,"reimplemented (src/game/ui/panel7ca228); thiscall, slot 0 of the vtable 0x6ff8d0: the children 0x157c / 0x157d hidden when the group counts under 2, the hover label 0x157f bound"
+0x00499eb0,Panel7ca228_Show,function,low,"reimplemented (src/game/ui/panel7ca228); thiscall (thing), slot 10 of the vtable 0x6ff8d0: the selected thing set, the window built (script 0x751a68, handler 0x499bb0, children 0x157e / 0x1583), the advisor posted 0x12a"
 0x00661d96,CursorTable_Get,function,low,"reimplemented (src/game/ui/cursor); thiscall (index), pops 4: the entry at the index's low word when below the word count +4, else 0"
 0x006590f7,Gui_SetCursor,function,low,"reimplemented (src/game/ui/cursor); cdecl (id word): the current cursor's slot 4 (0), the new one (or the default) stored at 0xfaa608 and its id at 0x77c484, its slot 4 (1) and slot 2"
 0x0065f11d,Window_SetCursor,function,low,"reimplemented (src/game/ui/cursor); thiscall (id), pops 4: the word +0x50 = id; Gui_SetCursor when the window is the hovered one [0xfaa5e0]"
@@ -6401,6 +6478,8 @@ address,name,kind,confidence,notes
 0x00661dd0,Cursor_Delete,function,low,"reimplemented (src/game/ui/cursor); thiscall (flags): the base cursor's scalar deleting destructor: Fn_6618a6, freed with flag 1; returns it"
 0x00661e30,PalColour_Ctor,function,low,"reimplemented (src/game/ui/cursor); thiscall (red, green, blue: bytes): the colour built (PalColour_Set); returns it"
 0x00492d80,TextButton_Handler,function,low,"reimplemented (src/game/ui/textbutton); cdecl (window, message, a, b): 0x10006 plays the interface sound 0xc1 and sends the parent 0x100001 (id +0x8c, 0), 0; 0x14 releases the text row (Window_DwordA0 1); else Window_CallDefault"
+0x0048b220,TextButton_FlashStep,function,low,"reimplemented (src/game/ui/textbutton); cdecl (window): the flash value (Window_DwordA0 2) stepped by 0x20 up (grey) or down (0, 0xaf, 0xbe), sent as 0x40000 and stored"
+0x0048b2a0,TextButton_FlashHandler,function,low,"reimplemented (src/game/ui/textbutton); cdecl (window, message, a, b): 0x11 colour, 0x1e TextButton_FlashStep, 0x10001 / 0x10002 flash value 1 / -1; then TextButton_Handler"
 0x0048c8d0,Global7c2534_HasSource,function,low,reimplemented (src/game/ui/focus); whether the object at 0x7c2534 has its +0xc set (name unconfirmed)
 0x004862a0,Focus_Restore,function,low,reimplemented (src/game/ui/focus); the focus given back to the first shown of the game's windows (name unconfirmed)
 0x00485b40,Window7c24c8_Close,function,low,"reimplemented (src/game/ui/focus); cdecl: with the window [0x7c24c8], sent 5 (Window_SendMessage), forgotten, Focus_Restore; 1, else 0"
@@ -6418,6 +6497,9 @@ address,name,kind,confidence,notes
 0x004b1ee0,Panel7cc298_Update,function,low,"reimplemented (src/game/ui/panel7cc298); thiscall; slot 1 of the vtable 0x6ffce8 (the panel at 0x7cc298): object +0x20 slot 9 (slot 13), slots 6, 5; the thing [0x7c2658] shown in the window +0x10's children"
 0x004b1040,Panel7cc298_Dress,function,low,"reimplemented (src/game/ui/panel7cc298); thiscall; slot 3 of the vtable 0x6ffce8 (the panel at 0x7cc298): with the window +0x14 set, its children 0xa092-0xa0a1 dressed (ui/panelparts: eight texts 0x29-0x30, one with none, three 0x6ff3b0 parts, three ridestatbar bars and a happygrad bar)"
 0x004b0ed0,Panel7cc298_DressTip,function,low,"reimplemented (src/game/ui/panel7cc298); thiscall: slot 4 of the vtable 0x6ffce8: the window +0x1c dressed as panelparts::tip (raised by 0xb, hidden, a text part, font 8, no text)"
+0x004b20f0,Panel7cc298_ApplyToThing,function,low,"reimplemented (src/game/ui/panel7cc298); cdecl (thing), the Things_Select callback of the panel: a thing of the shown kind given +0x194 and, unless its definition +0x10c, the chance of winning and +0x188; 1"
+0x004b20b0,Panel7cc298_ApplyToShown,function,low,"reimplemented (src/game/ui/panel7cc298); thiscall, slot 15 of the vtable 0x6ffce8: the shown thing [0x7c2658] given the panel's +0x2c as +0x194 and, unless its definition +0x10c, its byte +0x24 as the chance of winning and +0x28 as +0x188"
+0x004b2430,Panel7cc298_Show,function,low,"reimplemented (src/game/ui/panel7cc298); thiscall (thing), slot 10 of the vtable 0x6ffce8: the selected thing set, the window built (script 0x755e80, handler 0x4b2150, children 0xa0a2 / 0xa091 / 0xa0a3), the advisor posted 0xd0"
 0x004a3960,Dialog7cb2fc_SetToggle,function,low,"reimplemented (src/game/ui/dialog7cb2fc); cdecl (row, label, on, other, select, button): row's child 0x1d4c9 slot 9 the label + on/off text (wcsncpy 31 to the stack, wcscat into 0x7ba058); select: button state !on"
 0x004a43b0,Dialog7cb2fc_DressRow,function,low,"reimplemented (src/game/ui/dialog7cb2fc); cdecl (row): the dialog [0x7cb2fc]'s child row's child 0x1d4c9 given a text part, 0, 0, 0, 0xff as 0x40000, the font of [0x7537b4] and the text 0"
 0x004a4490,Dialog7cb2fc_DressSlider,function,low,"reimplemented (src/game/ui/dialog7cb2fc); cdecl (row, value): as Dialog7cb2fc_DressRow, then the row's range 0-100 (Window705b20_SetRange) and its slot 7 given the value"
@@ -6490,6 +6572,12 @@ address,name,kind,confidence,notes
 0x00668447,Window705a20_SelectionStart,function,low,"reimplemented (src/game/ui/window705a20); thiscall: the anchor +0x14c when set and below the cursor +0x14a, else the cursor (AX)"
 0x0066848f,Window705a20_Selection,function,low,"reimplemented (src/game/ui/window705a20); thiscall (from, to: optional word pointers): the selection's start and end (the larger of anchor and cursor)"
 0x0066679e,Window705a20_NotifyScroll,function,low,"reimplemented (src/game/ui/window705a20); thiscall: the object +0x9c told 0x8000 by slot 3, the event's +0x10 pointing to a second one whose word +0xc is the scroll word +0x14e"
+0x006668e9,Window705a20_SetSelection,function,low,"reimplemented (src/game/ui/window705a20); thiscall (cursor, mark, anchor: words), pops 12: moves the text field's caret and selection (-1 kept, -2/-3 back/on, -4 start, -5 end, -6/-7 the line above/below), scrolls to it and tells the caret its rectangle"
+0x00666308,Window705a20_SetText,function,low,"reimplemented (src/game/ui/window705a20); thiscall (text, notify: a byte), pops 8: sets the text field's text (its own buffer replaced only by a longer text; else copied at most +0x13c when it differs), then the objects told, SetSelection(-5, 0, -1) and 0x801 posted to the parent with notify; AX 0"
+0x006664fa,Window705a20_SetTextNotify,function,low,"reimplemented (src/game/ui/window705a20); thiscall (text), pops 4: Window705a20_SetText(text, 1)"
+0x00666515,Window705a20_SetTextQuiet,function,low,"reimplemented (src/game/ui/window705a20); thiscall (text), pops 4: Window705a20_SetText(text, 0)"
+0x00666530,Window705a20_GetText,function,low,"reimplemented (src/game/ui/window705a20); thiscall (to, n), pops 8: at most n characters of the buffer +0x138 copied (wcsncpy): AX 1, none: AX 0"
+0x0066778d,Window705a20_SetCursor,function,low,"reimplemented (src/game/ui/window705a20); thiscall (cursor, anchor: words), pops 8: Window705a20_SetSelection(cursor, 1, anchor)"
 0x0065dd7b,Window_CreateChild,function,low,"reimplemented (src/game/ui/windowfactory); thiscall on the parent (kind, flags, id, left, top, right, bottom), pops 28: the GUI window factory; 0 for a kind outside 1-13, else a heap block of the kind's size built by its constructor (kind 1 with flags & 0x100: +0x64 the parent) and put last among the parent's children (unchecked for 0, sic); returns it"
 0x0065aac0,Window705950_Layout,function,low,"reimplemented (src/game/ui/window705950); thiscall: +0x2c from +8 less 0x30 on the right, +0x138 that inset by 4"
 0x0065ab64,Window705950_Ctor,function,low,"reimplemented (src/game/ui/window705950); thiscall (parent, flags, id, left, top, right, bottom), pops 28: kind 4 of the factory 0x65dd7b; Window_Ctor, +0x138 a GUI rectangle, the vtable 0x705950, the layout, with flags & 0x1000 a scroll bar (kind 3) disabled, shown and ranged 0-0, the handler 0x65bb6b; returns the window"
@@ -6715,6 +6803,7 @@ address,name,kind,confidence,notes
 0x0048ef70,MsgTags_Load,function,low,"reimplemented (src/game/ui/msgtags); cdecl (stream): a count, then that many 0x21c-byte records each added (MsgTags_Add) as a message of kind 0x17f with its text; 0"
 0x0048ee50,MsgTags_Save,function,low,"reimplemented (src/game/ui/msgtags); cdecl (stream): the count of the ten records [0x7c26b0] in use, then each one in use as a 0x21c-byte record (its window's dwords +0xa0 1/7/4/5/6/3/8 and its text, unbounded wcscpy, sic); the stack's bytes left in the rest (sic)"
 0x004a11e0,MsgTags_WindowHandler,function,low,"reimplemented (src/game/ui/msgtags); cdecl (window, message, a, b): the tags' window [0x7cb2c4]'s handler: 0x14 clears [0x7cb2c8]; 0x100001 adds the tag a as the last child, slides it in under the window; 0x100002 hides tag a (posted or sent 5); 0x100003 posts 5 to each listed tag 100 ms apart; then Window_CallDefault"
+0x004a1190,MsgTags_ButtonHandler,function,low,"reimplemented (src/game/ui/msgtags); cdecl (window, message, a, b): a HUD button's handler: on 0x10006 with a 1 the tags' window [0x7cb2c4] posted 0x100003; then the default handler"
 0x0048e610,MsgBox_SetButton,function,low,"reimplemented (src/game/ui/msgboxbutton); cdecl (window, kind): the message box's button look by kind: the ""mb_locate"" / ""mb_buy"" / ""b_loan"" / ... window's object at +0x98, slot 5 with 1, +0x90 the kind's tag (0x200 + kind; 3 / 4 swapped, 24 0xec, 26 / 27 none); 22 nothing; others +0x98 none and slot 5 with 0"
 0x004b3490,ThingBrowser_ShowName,function,low,reimplemented (src/game/ui/thingbrowser); cdecl: the browser panel label 0x147 given the shown thing name (staff) or the count text 0x1c9 / 0x1c8 formatted into 0x7ba058; then ShowDetail and the camera on the thing
 0x004b3580,ThingBrowser_ShowDetail,function,low,reimplemented (src/game/ui/thingbrowser); cdecl: staff: the mode code told to child 0x148 when changed (0x756b98); others: child 0x14a slot 7 with +0x30 - 1 or 0x29a
@@ -6726,21 +6815,34 @@ address,name,kind,confidence,notes
 0x004ad4e0,Panel7cc218_UpdateButtons,function,low,"reimplemented (src/game/ui/panel7cc218); thiscall: with the thing [0x7c2658], the window +0x10's buttons 0x3e38 / 0x3e36, 0x3e2a, 0x3e2c and others hidden (mode 3) or shown and set by the thing's +0x68, Object_CanOpen, the mode and Object_TrackNeighboursOk"
 0x004ae980,Panel7cc218_SetUpGauges,function,low,"reimplemented (src/game/ui/panel7cc218); thiscall: with the window +0x10 set, the gauges 0x3e2d / 0x3e30 (range 0..0x78, their child 0x3e2e a smallguage mesh), 0x3e2f's range 0..10 and the texts 0x3e31 / 0x3e33 / 0x3e32 set up"
 0x004ae8e0,Panel7cc218_Open,function,low,"reimplemented (src/game/ui/panel7cc218); thiscall; slot 0 of the vtable 0x6ffbe8: 0x3e26 / 0x3e27 hidden when the group counts under 2, the gauges set up, the window +0x10 shown, the hover label 0x3e28 bound"
+0x004af980,Panel7cc218_Show,function,low,"reimplemented (src/game/ui/panel7cc218); thiscall (thing), slot 10 of the vtable 0x6ffbe8: [0x7cc208] = thing, the window built from the script 0x755150, +0x24 = 0, the advisor posted 0x129 or 0xcf by the thing's float +0x44"
+0x004af440,Panel7cc218_ApplyToShown,function,low,"reimplemented (src/game/ui/panel7cc218); thiscall, slot 15 of the vtable 0x6ffbe8: the shown thing [0x7c2658] given the panel's speed +0x2c, capacity byte +0x30 and, with its definition's +0x70 set, duration byte +0x34"
 0x004afc10,Panel7cc258_Dress,function,low,"reimplemented (src/game/ui/panel7cc258); thiscall; slot 3 of the vtable 0x6ffc68 (the panel at 0x7cc258): with the window +0x14 set, its children 0xc070-0xc07d dressed (ui/panelparts: seven texts 0x20-0x26, one with none, four 0x6ff3b0 parts, a ridestatbar and a happygrad bar)"
 0x004afaa0,Panel7cc258_DressTip,function,low,"reimplemented (src/game/ui/panel7cc258); thiscall: slot 4 of the vtable 0x6ffc68: the window +0x1c dressed as panelparts::tip (raised by 0xb, hidden, a text part, font 8, no text)"
 0x004b0640,Panel7cc258_Open,function,low,"reimplemented (src/game/ui/panel7cc258); thiscall: slot 0 of the vtable 0x6ffc68, the panel's window +0x10's children set up"
 0x004b0950,Panel7cc258_Update,function,low,"reimplemented (src/game/ui/panel7cc258); slot 1 of 0x6ffc68: the object +0x20's slot 9 given slot 13, slots 6 and 5; the button 0xc082's state by the thing's +0x68, the sliders 0xc06b / 0xc086 and the figure 0xc085 the thing's bytes +0x18c / 50, +0x198 and dword +0x194, 0xc086 / 0xc084 shown by the ingredient's text"
+0x004b0ae0,Panel7cc258_ApplyToThing,function,low,"reimplemented (src/game/ui/panel7cc258); cdecl (thing), the Things_Select callback for the button 0xc081: a thing of the shown kind given +0x198, the quality of goods and +0x194; 1"
+0x004b0e30,Panel7cc258_Show,function,low,"reimplemented (src/game/ui/panel7cc258); thiscall (thing), slot 10 of the vtable 0x6ffc68: the selected thing set, the window built (script 0x755908, handler 0x4b0b30, children 0xc06c / 0xc06f / 0xc06d), the advisor posted 0xd1"
 0x004b53c0,Panel7cc3b0_Dress,function,low,"reimplemented (src/game/ui/panel7cc3b0); thiscall; slot 3 of the vtable 0x6ffe50 (the panel at 0x7cc3b0): with the window +0x14 set, its children 0x513-0x51e dressed (ui/panelparts: six texts 0x40-0x45, two with none, a 0x6ff3b0 part, two ridestatbar bars and a happygrad bar)"
+0x004b5330,Panel7cc3b0_ShowPreview,function,low,"reimplemented (src/game/ui/panel7cc3b0); thiscall, slot 6 of the vtable 0x6ffe50: with a thing selected ([0x7c2658]) its preview shown over the window +0x18's saved rectangle at its depth + 1, scaled 8.0"
+0x004b5a60,Panel7cc3b0_Open,function,low,"reimplemented (src/game/ui/panel7cc3b0); thiscall, slot 0 of the vtable 0x6ffe50: the children 0x50d / 0x50f hidden when the group counts under 2, the hover label 0x520 bound"
+0x004b6080,Panel7cc3b0_Show,function,low,"reimplemented (src/game/ui/panel7cc3b0); thiscall (thing), slot 10 of the vtable 0x6ffe50: the selected thing set, the window built (script 0x756f48, handler 0x4b5cb0, children 0x511 / 0x512), +0x18 given the handler 0x4b5c80, the advisor posted 0xc0"
+0x004b5c80,Panel7cc3b0_WindowHandler,function,low,"reimplemented (src/game/ui/panel7cc3b0); cdecl (window, message, a, b): on 0x10006 Camera_CentreOnGlobalThing; then Window_CallDefault"
 0x004b6c20,Panel7cc408_Dress,function,low,"reimplemented (src/game/ui/panel7cc408); thiscall; slot 3 of the vtable 0x6fff40 (the panel at 0x7cc408): with the window +0x14 set, its children 0x3724-0x3733 dressed (ui/panelparts: eight texts 0x46-0x4d, one with none, a 0x6ff3b0 part with 0x29a, a 0x6ff4a0 part, four 0x6ff350 parts and a happygrad bar on 0x3732 when found)"
+0x004b6b90,Panel7cc408_ShowPreview,function,low,"reimplemented (src/game/ui/panel7cc408); thiscall, slot 6 of the vtable 0x6fff40: with a thing selected ([0x7c2658]) its preview shown over the window +0x18's saved rectangle at its depth + 2, scaled 12.0"
+0x004b79b0,Panel7cc408_Show,function,low,"reimplemented (src/game/ui/panel7cc408); thiscall (thing), slot 10 of the vtable 0x6fff40: the selected thing set, the window built (script 0x7575e0, handler 0x4b7720, children 0x3722 / 0x3723), the sound 0x81 played in the kids' category, the advisor posted 0x12e"
 0x004ab6b0,Dialog7cc1f8_DressStats,function,low,"reimplemented (src/game/ui/dialog7cc1f8); cdecl, no arguments: the dialog [0x7cc1f8]'s child 0x1ed (when found) gets its children 0x1ee-0x1f7 dressed (ui/panelparts: seven texts 0x7d-0x81 and 0x88 twice, three ridestatbar bars)"
 0x004abfb0,Dialog7cc1f8_ShowStats,function,low,"reimplemented (src/game/ui/dialog7cc1f8); cdecl (mode): the dialog [0x7cc1f8]'s stats child 0x1ed's eight children shown (mode 0), hidden (1, 3) or two shown and the rest hidden (2)"
 0x00497100,Panel7ca178_Dress,function,low,"reimplemented (src/game/ui/panel7ca178); thiscall; slot 3 of the vtable 0x6ff740 (the panel at 0x7ca178): with the window +0x14 set, its children 0x15bbb-0x15bc0 dressed (ui/panelparts: three texts 0x3c, 0x3d, 0x3f, a 0x6ff350 part, a ridestatbar bar and a 0x6ff3b0 part)"
 0x00496f90,Panel7ca178_DressTip,function,low,"reimplemented (src/game/ui/panel7ca178); thiscall: slot 4 of the vtable 0x6ff740: the window +0x1c dressed as panelparts::tip (raised by 0xb, hidden, a text part, font 8, no text)"
+0x00497990,Panel7ca178_Show,function,low,"reimplemented (src/game/ui/panel7ca178); thiscall (thing), slot 10 of the vtable 0x6ff740: [0x7ca19c] = thing, the window built from the script 0x751190, the advisor posted 0xd5 or 0x12b by the thing float +0x44"
 0x00658334,GuiFont_TextWidth,function,low,"reimplemented (src/game/ui/guifont); thiscall (text, from, to: words), pops 12: the width (AX) of the characters from..to, each glyph width (signed) + the spacing +6; to below from means the last; 0 for a single character (sic)"
 0x00658243,GuiFont_Init,function,low,"reimplemented (src/game/ui/guifont); thiscall (count, width, spacing, height, b), pops 20: count glyphs of 8 bytes (Mem_Alloc; width, b, 0) with the count and height set when allocated; the spacing either way; returns the font"
 0x006583fe,GuiFont_CharWidth,function,low,"reimplemented (src/game/ui/guifont); thiscall (character word), pops 4: the glyph's signed width + the spacing +6 in AX; 0 with no glyphs or the character not below the count +4"
 0x006582ec,GuiFont_SetGlyph,function,low,"reimplemented (src/game/ui/guifont); thiscall (index word, width, b bytes), pops 12: with glyphs and the index (signed) below the count, the glyph's two bytes set"
 0x004b6540,Panel7cc3e0_Dress,function,low,"reimplemented (src/game/ui/panel7cc3e0); thiscall, slot 3 of 0x6ffec8: with the window +0x14, its children 0x5211-0x520e found dressed (texts 0x37 / 0x38, 0x6ff350 / 0x6ff3b0 parts with 0)"
+0x004b67a0,Panel7cc3e0_Open,function,low,"reimplemented (src/game/ui/panel7cc3e0); thiscall, slot 0 of the vtable 0x6ffec8: the children 0x520a / 0x520b hidden when the group counts under 2, the hover label 0x5212 bound"
+0x004b6ae0,Panel7cc3e0_Show,function,low,"reimplemented (src/game/ui/panel7cc3e0); thiscall (thing), slot 10 of the vtable 0x6ffec8: the selected thing set, the window built (script 0x7573c8, handler 0x4b67f0, children 0x520c / 0x520d), the advisor posted 0x12d"
 0x0066dbfa,GuiToken_SkipBlanks,function,low,reimplemented (src/game/ui/guitoken); cdecl (text): past the spaces and tabs
 0x0066dcf7,GuiToken_ReadWord,function,low,"reimplemented (src/game/ui/guitoken); cdecl (text, out): the token up to a space or the end, atoi into the word out (when set); the byte after its end"
 0x0066dd68,GuiToken_ReadDword,function,low,"reimplemented (src/game/ui/guitoken); cdecl (text, out): the token up to a space or the end, atoi into the dword out (when set); the byte after its end"
@@ -6749,6 +6851,7 @@ address,name,kind,confidence,notes
 0x004a95b0,LevelMeter_SetLevel,function,low,"reimplemented (src/game/ui/levelmeter); cdecl (window, level): 0 stops the light (phase 3 / 1 to 2, told 0x20, position 0x200000); else the speed ((level + 0x14) << 16) / 100, phase 0 / 2 restarting it (clock, phase 3, 0x300000, told 0x30)"
 0x004a9fc0,LevelMeter_OnMessage,function,low,"reimplemented (src/game/ui/levelmeter); cdecl (window, message, a, b): message 0x1e moves the light by its phase (0x1f / 0x2f / 0x3f limits), tells it, keeps the position and clock; Window_CallDefault's result"
 0x004a9c70,ResearchMeters_Update,function,low,"reimplemented (src/game/ui/levelmeter); cdecl (group): the research panel meters: group -1 all five groups shown (0, 4, 1, 2, 3), a group 0-4 its own, each level the lab current project Table_ScaledBySum or 0; then the five levels sum / 5 the sound [0x7cc1d0] parameter 0x12"
+0x004a9bd0,ResearchMeters_ShowProgress,function,low,reimplemented (src/game/ui/levelmeter); cdecl (group): the group's research done (100 - ResearchLab_LeftPercent) given * 1024 / 100 to the gauge 0xd2d05 of its meter (groups 0-4)
 0x004c23c0,Dialog7cca94_OnMessage,function,low,"reimplemented (src/game/ui/dialog7cca94); cdecl (window, message, a, b): message 0x14 forgets the dialog [0x7cca94]; Window_CallDefault's result"
 0x004c23f0,Dialog7cca94_Show,function,low,"reimplemented (src/game/ui/dialog7cca94); cdecl (text): the dialog up: its child 0x2241's slot 9 given the text; else built from the script 0x759548 under the root, a progress.wct bar, the text part 0x2241 dressed, depth 0x23, slot 5(0)"
 0x004c25b0,Dialog7cca94_ShowText,function,low,reimplemented (src/game/ui/dialog7cca94); cdecl (index): Dialog7cca94_Show(Language_WideText(index)) unless up with [0x7cca9c] == index; [0x7cca9c] = index
@@ -6788,7 +6891,9 @@ address,name,kind,confidence,notes
 0x00661b3c,GuiNamed_FreeAll,function,low,"reimplemented (src/game/ui/guinamed); cdecl: each node of [0xfaa624]: its object deleted (slot 0 with 1) when set, the node freed; [0xfaa624] left as it was (sic)"
 0x00661bab,GuiNamed_Find,function,low,"reimplemented (src/game/ui/guinamed); cdecl (name): the object of the first node of [0xfaa624] whose name equals it (strcmp), else 0"
 0x00493530,Dialog7ca13c_Open,function,low,"reimplemented (src/game/ui/dialog7ca13c); cdecl (selected): the guests' list dialog built on [0x7cb2ac] from the script 0x7506c8 (handler 0x493230) into [0x7ca13c]; its list 0x1e497's rows, columns, highlight, sort [0x7508bc], the group 0x40's things added, a selected data scrolled to, header texts 0x71-0x76; the timer 0x80083; the advisor's 0x11e"
+0x00493c10,Dialog7ca13c_RemoveData,function,low,"reimplemented (src/game/ui/dialog7ca13c); cdecl (data): with the dialog [0x7ca13c], its list 0x1e497 item holding data found and removed, the count [0x7ca134] lowered"
 0x00480b00,ImeHost_OpenCandidates,function,low,"reimplemented (src/game/ui/imecandidates); thiscall on the IME host (parent, second): the window of the script 0x74f9e0 (handler 0x480d10) into +0, placed by the host window +4 within 0x7f8 x 0x5f8, its depth the root's top; its list 0x7b79e3 (+8) given the hilight rows and highlight, cleared, then the IME's cached strings added"
+0x00481100,ImeHost_Update,function,low,"reimplemented (src/game/ui/imecandidates); thiscall on the IME host: with +0xc set, +0xd whether the IME's result has characters (told to the text window +4); without a candidate window the list opened (cached strings) or the result inserted; with one, the current entry cached again, the list +8 refilled with the cached strings when unchanged, scrolled to the cache's position, the result inserted"
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"

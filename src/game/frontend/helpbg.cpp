@@ -69,6 +69,21 @@ u32 __fastcall HelpBg_MoveTo(u8 *self, void *, u32 x, u32 y) {
     return GuiRect_Dtor(rect);
 }
 
+u32 __cdecl HelpBg_Place(u32 x, u32 y) {
+    u8 *const self = reinterpret_cast<u8 *>((uintptr_t)0x007ca0c0);
+    if ((u16)x == 0xffff && (u16)y == 0xffff) return HelpBg_RestoreRect(self);
+    return HelpBg_MoveTo(self, nullptr, x, y);
+}
+
+u32 __fastcall HelpBg_RestoreRect(u8 *self) {
+    if (!at<u8 *>(self, 0x18)) return 0;
+    u8 rect[12];
+    GuiRect_Ctor(rect);
+    Window_GetRect14(at<u8 *>(self, 0x18), nullptr, rect);
+    Window_SetRect(at<u8 *>(self, 0x18), nullptr, rect);
+    return GuiRect_Dtor(rect);
+}
+
 s32 __cdecl HelpBg_WindowHandler(u8 *window, u32 message, u32 a, u32 b) {
     if (message == 0x14) vcall<u32>(reinterpret_cast<u8 *>(Window_DwordA0(window, nullptr, 0)), 0x3c);
     return Window_CallDefault(window, nullptr, message, a, b);

@@ -1,16 +1,18 @@
 # An object's reference to a sprite script (src/game/sprite/scriptref: 0x4d4100, 0x4d4140, 0x4d4170, 0x4d4190)
 # against the originals, with the script list not ready (0x7b49f0 zero: the script calls then do
-# little): references with and without an animation or period, entry point numbers about the table.
-# usage: scriptref.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=IsAt,Start,Apply,Kill)
+# little): references with and without an animation or period, entry point numbers about the table. SetPeriodFor (0x4d41d0): the
+# speed a float about 0.2-100 mostly (zero, negative, tiny, huge, infinite and NaN too).
+# usage: scriptref.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=IsAt,Start,Apply,Kill,SetPeriodFor)
 import os
+import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
 B = Bench([(0x4d4100, 0x4d4134), (0x4d4140, 0x4d416d), (0x4d4190, 0x4d41d0), (0x475010, 0x476a30), (0x540b90, 0x540d78),
-           (0x541f60, 0x541f70), (0x5da3c0, 0x5da3c1), (0x4d4170, 0x4d4186)])
-CALLS = ['IsAt', 'Start', 'Apply', 'Kill']
+           (0x541f60, 0x541f70), (0x5da3c0, 0x5da3c1), (0x4d4170, 0x4d4186), (0x4d41d0, 0x4d4202)])
+CALLS = ['IsAt', 'Start', 'Apply', 'Kill', 'SetPeriodFor']
 
 
 def case(r):
@@ -25,6 +27,11 @@ def case(r):
         return Call(0x4d4100, [RAM, anim], regions, conv='t', ret='a')
     if op == 'Start':
         return Call(0x4d4140, [RAM, anim, r.randrange(4), r.randrange(4)], regions, conv='t')
+    if op == 'SetPeriodFor':
+        speed = r.choice([r.uniform(0.2, 100)] * 6 + [r.uniform(0, 0.3), 0.248, 0.24, 62.0 / 250, 62.0 / 251, 0.0, -0.0, -r.uniform(0, 100),
+                                                     1e-30, 1e30, float('inf'), float('-inf'), float('nan')])
+        bits = struct.unpack('<I', struct.pack('<f', speed))[0] if r.random() < 0.95 else r.getrandbits(32)
+        return Call(0x4d41d0, [RAM, bits], regions, conv='t', ret='v')
     if op == 'Kill':
         return Call(0x4d4170, [RAM], regions, conv='t')
     return Call(0x4d4190, [RAM], regions, conv='t')

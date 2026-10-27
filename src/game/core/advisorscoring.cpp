@@ -2,7 +2,10 @@
 
 #include <cstdint>
 
+#include "../math/x87.h"
 #include "../world/analyser.h"
+#include "../world/mapcell.h"
+#include "../world/money.h"
 #include "../world/object.h"
 #include "../world/objectdefs.h"
 #include "../world/research.h"
@@ -10,6 +13,7 @@
 #include "../world/thingscan.h"
 #include "../world/world.h"
 #include "accessors.h"
+#include "globalsave.h"
 
 namespace {
 
@@ -399,5 +403,165 @@ s32 __fastcall AdvisorScoring_Field5f8(const u8 *scoring) { return at<s32>(scori
 
 s32 __fastcall AdvisorScoring_Const10000(const u8 *) { return 10000; }
 s32 __fastcall AdvisorScoring_Const9999(const u8 *) { return 9999; }
+
+}  // extern "C"
+
+namespace {
+
+u8 *world_table() { return reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(*reinterpret_cast<u8 **>((uintptr_t)0x007cf83c))); }
+
+s32 global_s32(u32 address) { return *reinterpret_cast<const s32 *>((uintptr_t)address); }
+
+// count * 100 / total (the product wrapping; signed, truncated).
+s32 share(s32 count, s32 total) { return (s32)((u32)count * 100) / total; }
+
+// fild [address]; fmul float; __ftol: the bound the totals are held against.
+s32 scaled(u32 address, float f) {
+    const s32 n = global_s32(address);
+    const double v = n < 0 ? -X87_MulInt(0u - (u32)n, f) : X87_MulInt((u32)n, f);
+    return (s32)(long long)v;
+}
+
+bool theme_clear(u32 i) { return GlobalSave_ThemeByte(GlobalSave_Instance(), nullptr, i) == 0; }
+
+s32 idle_share(const u8 *scoring, s32 value, u32 bound) {
+    const s32 n = Things_CountByDef4ac(value, 0);
+    if (n == 0)
+        return 0;
+    return share(Things_CountByDef4acIdle(value), n) > at<s32>(scoring, bound) ? at<s32>(scoring, bound + 4) : 0;
+}
+
+s32 controls_percent(const u8 *scoring, u32 low, u32 high, u32 value) {
+    if (Get1da710_51a280(game()) != 0)
+        return 0;
+    const s32 p = ObjectDefs_PercentWithControls();
+    return p > at<s32>(scoring, low) && p <= at<s32>(scoring, high) ? at<s32>(scoring, value) : 0;
+}
+
+}  // namespace
+
+extern "C" {
+
+s32 __fastcall AdvisorScoring_IdleObjects0Share(const u8 *scoring) {
+    if (!Game_Field1da710IsZero())
+        return 0;
+    const s32 n = Things_CountByDef4ac(0, 0);
+    if (n == 0 || n < at<s32>(scoring, 0x57c))
+        return 0;
+    return share(Things_CountByDef4acIdle(0), n) > at<s32>(scoring, 0x580) ? at<s32>(scoring, 0x584) : 0;
+}
+
+s32 __fastcall AdvisorScoring_IdleObjects1Share(const u8 *scoring) { return idle_share(scoring, 1, 0x588); }
+s32 __fastcall AdvisorScoring_IdleObjects2Share(const u8 *scoring) { return idle_share(scoring, 2, 0x590); }
+
+s32 __fastcall AdvisorScoring_IdleKind3Flag1Share(const u8 *scoring) {
+    const s32 n = (s32)Game_RecountKind3Flag1(table());
+    if (n == 0)
+        return 0;
+    return share(Things_CountKind3Flag1(), n) > at<s32>(scoring, 0x598) ? at<s32>(scoring, 0x59c) : 0;
+}
+
+s32 __fastcall AdvisorScoring_IdleKind3Flag2Share(const u8 *scoring) {
+    const s32 n = Things_CountKind3Flag2Any();
+    if (n == 0)
+        return 0;
+    return share(Things_CountKind3Flag2(), n) > at<s32>(scoring, 0x5a0) ? at<s32>(scoring, 0x5a4) : 0;
+}
+
+s32 __fastcall AdvisorScoring_Tallied0Above(const u8 *scoring) {
+    return (s32)ParkAnalyser_Tallied(table(), nullptr, 0) > at<s32>(scoring, 0x5a8) ? at<s32>(scoring, 0x5ac) : 0;
+}
+
+s32 __fastcall AdvisorScoring_TotalAboveTheme0(const u8 *scoring) {
+    const s32 total = (s32)ParkAnalyser_Total(table());
+    if (total <= scaled(0x00785790, at<float>(scoring, 0x5c4)) || !theme_clear(0))
+        return 0;
+    return at<s32>(scoring, 0x5c8);
+}
+
+s32 __fastcall AdvisorScoring_Mood19cTheme2(const u8 *scoring) {
+    const double average = Things_AveragePersonStat19c(table(), nullptr, 0);
+    const s32 k = scaled(0x00785798, at<float>(scoring, 0x5cc));
+    if ((double)k >= average || Things_CountKind1OnPlainCell() <= global_s32(0x0078579c) || !theme_clear(2))
+        return 0;
+    return at<s32>(scoring, 0x5d0);
+}
+
+s32 __fastcall AdvisorScoring_MoneyAboveTheme4(const u8 *scoring) {
+    const s32 money = (s32)Money_Total(reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(game())));
+    if (money <= scaled(0x007857a0, at<float>(scoring, 0x5d4)) || !theme_clear(4))
+        return 0;
+    return at<s32>(scoring, 0x5d8);
+}
+
+s32 __fastcall AdvisorScoring_AnalyserCountOne(const u8 *scoring) {
+    const u8 *const counts = world_table() + 0x216d8;
+    const s32 count = counts[0x20] ? at<s32>(counts, 0x1c) : (s32)(at<u32>(counts, 0x18) + 1);
+    return count == 1 ? at<s32>(scoring, 0x5f4) : 0;
+}
+
+s32 __fastcall AdvisorScoring_ControlsPercentLow(const u8 *scoring) { return controls_percent(scoring, 0x5fc, 0x604, 0x600); }
+s32 __fastcall AdvisorScoring_ControlsPercentMid(const u8 *scoring) { return controls_percent(scoring, 0x604, 0x60c, 0x608); }
+
+s32 __fastcall AdvisorScoring_ControlsPercentHigh(const u8 *scoring) {
+    if (Get1da710_51a280(game()) != 0)
+        return 0;
+    return ObjectDefs_PercentWithControls() > at<s32>(scoring, 0x60c) ? at<s32>(scoring, 0x610) : 0;
+}
+
+s32 __fastcall AdvisorScoring_PeopleShare(const u8 *scoring) {
+    if (Get1da710_51a280(game()) != 0 || global_s32(0x00785794) == 0)
+        return 0;
+    s32 p = share(Things_CountKind1OnPlainCell(), global_s32(0x00785794));
+    if (p > 100)
+        p = 100;
+    else
+        p = share(Things_CountKind1OnPlainCell(), global_s32(0x00785794));
+    return p > at<s32>(scoring, 0x614) ? at<s32>(scoring, 0x618) : 0;
+}
+
+
+s32 __fastcall AdvisorScoring_LatestCountBusStop(u8 *scoring) {
+    const u8 *const counts = world_table() + 0x216d8;
+    const s32 count = counts[0x20] ? at<s32>(counts, 0x1c) : (s32)(at<u32>(counts, 0x18) + 1);
+    if (count <= 0)
+        return 0;
+    const s32 size = at<s32>(counts, 0x1c);
+    if (size <= 0)
+        return 0;
+    s32 cursor = at<s32>(counts, 0x18);
+    if (cursor < 0) {
+        if (!counts[0x20])
+            return 0;
+        cursor += size;
+    }
+    if (at<s32>(counts, 4 + 4 * cursor) <= at<s32>(scoring, 0x410))
+        return 0;
+    u16 pos[2];
+    Map_BusStopPos(game() + 0x2d8, nullptr, pos, 1);
+    at<u32>(scoring, 8) = pos[0];
+    return at<s32>(scoring, 0x414);
+}
+
+s32 __fastcall AdvisorScoring_StaffStat1f8NotAbove(const u8 *scoring) {
+    if (Things_CountStaff() < at<s32>(scoring, 0x42c))
+        return 0;
+    const double average = Things_AverageStaffStat1f8(world_table(), nullptr, 0);
+    return (double)at<s32>(scoring, 0x430) > average ? 0 : at<s32>(scoring, 0x434);
+}
+
+s32 __fastcall AdvisorScoring_PeopleStat19cNotAbove(const u8 *scoring) {
+    if (Things_CountKind1OnPlainCell() < at<s32>(scoring, 0x438))
+        return 0;
+    const double average = Things_AveragePersonStat19c(world_table(), nullptr, 0);
+    return (double)at<s32>(scoring, 0x43c) > average ? 0 : at<s32>(scoring, 0x440);
+}
+
+s32 __fastcall AdvisorScoring_StaffEntryClear(const u8 *scoring) {
+    if (Things_CountStaff() <= at<s32>(scoring, 0x4d0))
+        return 0;
+    const u8 *const entry = reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da718_519450(game()));
+    return entry[0x20] ? 0 : at<s32>(scoring, 0x4d4);
+}
 
 }  // extern "C"

@@ -163,6 +163,11 @@ bool __fastcall SoundCategory_BankFlag40(void *self, void *, u32 index);
 // sound system [0xfb1ffc]) swapped with the last, the last one back, and the variation's dword +0 one less; else the next. Before
 // that, dword +0 = (itself << 16) + the count sign-extended (the count kept in the high word, the low word the samples not flagged).
 void __fastcall SfxVariation_MoveFlag40SamplesLast(void *self, void *, u8 *variation);
+// 0x6c0c90 (thiscall (hide), pops 4; name invented): every variation of every sound of each category record of deque A (its count +0x64,
+// the begin iterator +0x3c and each step's cell computed inline, re-read each step; null records and records with a null +8 skipped):
+// with hide's low byte set SfxVariation_MoveFlag40SamplesLast (this, variation), else its dword +0 >>= 16 (the count back from the high
+// word). The record's SFX.map category (+8), its sound count, each sound's variation count (+4) and variations (+8) re-read each step.
+void __fastcall SoundCategory_HideFlag40Samples(u8 *self, void *, u32 hide);
 // 0x6bea00 (thiscall; an SEH frame; name invented): a category record's destructor (vtable 0x70a950): SoundCategory_UnloadRecord on the
 // singleton (the status a local), its +8 block freed (GameHeap_Free) and cleared when there is one, the bank list's nodes (+0x28) freed
 // with +0x2c / +0x28 / +0x30 = 0, then BankList_Dtor (+0x24), String_Dtor (+0xc) and the vtable 0x703770.

@@ -5,6 +5,7 @@
 #include "../core/gameerror.h"
 #include "../core/vcall.h"
 #include "file.h"
+#include "vfs.h"
 
 namespace {
 
@@ -13,6 +14,15 @@ u8 *gameError() { return reinterpret_cast<u8 *>((uintptr_t)0x00785de8); }
 }  // namespace
 
 extern "C" {
+
+u32 __fastcall ChunkFile_Open(u8 *file, void *, const char *name) {
+    StreamBase *const stream = VFS_Open(name);
+    if (!stream) {
+        GameError_Set(reinterpret_cast<u8 *>((uintptr_t)0x00785de8), nullptr, 3, 0, name);
+        return 0;
+    }
+    return ChunkFile_ReadStream(file, nullptr, reinterpret_cast<u8 *>(stream), nullptr);
+}
 
 u32 __fastcall ChunkFile_ReadStream(u8 *file, void *, u8 *stream, const char *name) {
     const s32 size = vcall<s32>(stream, 0x14);

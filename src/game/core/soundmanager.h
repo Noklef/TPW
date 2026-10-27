@@ -28,6 +28,10 @@ u32 __fastcall SoundManager_Call3(u8 *manager, void *, u32 a, u32 b, u32 c);
 // returned.
 u32 __fastcall SoundManager_Call5(u8 *manager, void *, u32 a, u32 b);
 
+// 0x6b5ba0 (thiscall (out, position, direction, value), pops 0x10; called at 0x51c25d on the manager [0x802bcc]; name invented): SoundObject_SetPlacement on the
+// engine (+4: the sound object) with the same arguments. Returns out.
+u32 *__fastcall SoundManager_SetPlacement(u8 *manager, void *, u32 *out, const u32 *position, const u32 *direction, const u32 *value);
+
 // 0x6b5ad0 (slot 4; thiscall (out, a), pops 8): the engine's slot 1 (out, a). Returns out.
 u32 *__fastcall SoundManager_Call1(u8 *manager, void *, u32 *out, u32 a);
 

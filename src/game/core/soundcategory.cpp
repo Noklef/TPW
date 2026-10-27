@@ -648,6 +648,26 @@ void __fastcall SfxVariation_MoveFlag40SamplesLast(void *, void *, u8 *variation
     }
 }
 
+void __fastcall SoundCategory_HideFlag40Samples(u8 *self, void *, u32 hide) {
+    for (u32 i = 0; i < Get<u32>(self, 0x64); ++i) {
+        const u32 first = Get<u32>(self, 0x3c), node = Get<u32>(self, 0x48);
+        u32 at = Get<u32>(self, 0x44) + 4 * i;
+        const u32 off = static_cast<u32>(static_cast<s32>(at - first) >> 2);
+        const u32 block = static_cast<s32>(off) >= 0 ? off >> 10 : 0u - ((0x3ffu - off) >> 10);
+        if (block) at = Get<u32>(Ptr(node + 4 * block), 0) + 4 * (off - (block << 10));
+        const u32 record = Get<u32>(Ptr(at), 0);
+        if (!record || !Get<u32>(Ptr(record), 8)) continue;
+        for (u32 j = 0; j < Get<u32>(Ptr(Get<u32>(Ptr(record), 8)), 0); ++j) {
+            const u32 sound = Get<u32>(Ptr(Get<u32>(Ptr(record), 8)), 4) + 0x14 * j;
+            for (u32 k = 0; k < Get<u32>(Ptr(sound), 4); ++k) {
+                u8 *const variation = Ptr(Get<u32>(Ptr(sound), 8) + 0x2a * k);
+                if (static_cast<u8>(hide)) SfxVariation_MoveFlag40SamplesLast(self, nullptr, variation);
+                else Put<u32>(variation, 0, Get<u32>(variation, 0) >> 16);
+            }
+        }
+    }
+}
+
 void __fastcall CategoryRecord_Dtor(u8 *record) {
     Put<u32>(record, 0, 0x70a950);
     u32 status;

@@ -74,6 +74,10 @@ u8 *__fastcall Person_PartsCtor(u8 *object, void *, u32);
 // and Nav_PathToPoint of the nav at +0xd4 to it (16.16, each << 8); its result.
 u32 __fastcall Sprite_SetDestination(u8 *sprite, void *, s32 x, s32 y);
 
+// 0x4fa670 (thiscall (flag), pops 4; name invented): the dword +0x198 (the timer Sprite_SetDestination and Person_PlaceSprite clear) the
+// next count of 0x7cdb98 (Counter7cdb98_Inc) for a flag, else 0. (The debug print of the handle, Thing_GetHandle's, is left out.)
+void __fastcall Sprite_SetStranded(u8 *sprite, void *, u32 flag);
+
 // 0x4fa530 (thiscall; a cell id; name unconfirmed): Sprite_SetDestination to the cell's centre: x (id - 1) & 0x7f and y its bits 7-14, each the
 // high byte of a word whose low byte is 0x80.
 u32 __fastcall Sprite_SetDestinationCell(u8 *sprite, void *, u32 cell);
@@ -160,4 +164,9 @@ u32 __fastcall Person_DumpActionHistory(u8 *person);
 // at 0x75c7fc - +0xc8 * -3.0) * 0.25 (x87), passed to the nav (+0xd4: Nav_SetSpeed); the word +0xc4 = its product with 99 (16 bits) / 100; the
 // position +0x190 / +0x194 read back from the nav (Nav_GetPos), and the script reference +0xc applied (ScriptRef_Apply).
 void __fastcall Person_UpdateSpeed(u8 *person);
+
+// 0x505490 (thiscall; called from 0x4d46c2, 0x4d63c2, 0x4d7068; name invented): Person_UpdateSpeed, then on the world's ticks
+// ([0x80239c] +0x1da70c, read after it) whose low two bits are the handle's (Thing_GetHandle) the script at +0x30 +0x84 let go once its
+// time is up (Person_KillScript84After on +0x30).
+void __fastcall Person_TickSpeed(u8 *person);
 }

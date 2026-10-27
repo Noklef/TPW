@@ -69,6 +69,10 @@ s32 __cdecl Sound_RegisterLobbyCategories(const char *name);
 // beforehand are left out.)
 void __cdecl Sound_RegisterGlobalCategories();
 
+// 0x51e890 (cdecl): from the folder named the global String 0x8030d8, cat_globallobbysfx to 0x803a48. (The debug print of 0x803a48 being
+// set beforehand is left out.)
+void __cdecl Sound_RegisterGlobalLobbySfx();
+
 // 0x51ec50 (cdecl; theme, a string or view): the String 0x803768 with the theme appended (String_Append): its folder's cat_ambient and
 // cat_rides to 0x803a38 and 0x803a3c; then assigned 0x8039c0 (through the string's slot 6, String_AssignWide: its data as chars) with the theme:
 // cat_speech to 0x803a40; then 0x802e68 with the theme: cat_music to 0x803a44.

@@ -84,7 +84,7 @@ lowprio.below_normal()   # (every bench, the gate and the driver they start run 
 import x87emu  # noqa: E402
 
 EXE = os.path.join(ROOT, '.data', 'nocd', 'tp.exe')
-DRIVER = os.path.join(ROOT, 'build', 'tpw_fncmp.exe')
+DRIVER = os.environ.get('FNCMP_DRIVER') or os.path.join(ROOT, 'build', 'tpw_fncmp.exe')  # (FNCMP_DRIVER: another build of it, to compare two drivers)
 # FNCMP_COVER=file (tools/coverage.py): each run appends what it verified to the file, one JSON line: the addresses its cases called whose
 # cases matched without a crash ("direct", with their counts) and the hooked originals entered inside those cases ("indirect").
 COVER = os.environ.get('FNCMP_COVER')
@@ -266,8 +266,9 @@ def put(buf, off, fmt, *values):
 
 def off_code(buf):
     """buf with each aligned dword that would point into the exe's image below its data (0x400000-0x6e7000) moved out of it (its top
-    bit set). The driver is linked over those addresses, so a read through such a pointer sees the driver's code natively and the
-    exe's in the emulator: a difference of the two environments, not of the code. For random object bytes a case dereferences."""
+    bit set). For random object bytes a case dereferences: while the driver was linked over those addresses (until 2026-10-27), a read
+    through such a pointer saw the driver's code natively and the exe's in the emulator. The driver now loads the exe's code there
+    (read-only, as the emulator has it); this stays so that the benches' cases stay the same."""
     for k in range(0, len(buf) - 3, 4):
         v = struct.unpack_from('<I', buf, k)[0]
         if 0x400000 <= v < GAME_LOW:
@@ -498,15 +499,23 @@ def logged_calls(read, kk):
     return sum(1 for i in range(count) if struct.unpack('<I', read(LOG + 4 + 4 * LOG_ENTRY * i, 4))[0] == kk)
 
 
-def answer(flag, value, raw, n, h, earlier):
+def answer(flag, value, raw, n, h, earlier, read=None):
     """A recorder's return value: its override (LOG_RETURNS: flag and value) or the hash h (driver.cpp record_call)."""
     if flag == 2 and value < n:
         return raw[value]
+    if flag == 7:
+        return struct.unpack('<I', read(value + 4 * earlier, 4))[0]
     if flag == 3:
         return h if earlier < (value & 0xffff) else (value >> 16) - (0x10000 if value >> 31 else 0) & 0xffffffff
     if flag == 5:
         return h if earlier < 32 and value >> earlier & 1 else 0
     return value if flag else h
+
+
+def answers(log, k, table):
+    """Makes slot k's recorder answer its calls in turn from the dwords at `table` (an address the case maps, 40 dwords or more): its first
+    call table[0], the next table[1] and so on (its calls counted as fail_after() counts them: those in the log, which keeps 40)."""
+    struct.pack_into('<II', log, LOG_RETURNS + 8 * k, 7, table)
 
 
 def echo(log, k, arg):
@@ -837,7 +846,7 @@ def _recorder(k, n, com=False, cdecl=False):
             e.write(entry, struct.pack('<%dI' % LOG_ENTRY, kk, n, this, *(args + [0] * 7)[:7], tail_hash(args), 0))
             e.write(LOG, struct.pack('<I', count + 1))
         flag, value = struct.unpack('<2I', e.read(LOG + LOG_RETURNS + 8 * k, 8))
-        e.r['EAX'] = named_answer if by_name else copied if returns_copied else cursor if seeked else answer(flag, value, raw, n, vhash(kk, n, this, args), earlier)
+        e.r['EAX'] = named_answer if by_name else copied if returns_copied else cursor if seeked else answer(flag, value, raw, n, vhash(kk, n, this, args), earlier, e.read)
         if flag == 6 and not by_name and not returns_copied and not seeked:   # (fail_after(counted=True): the countdown in the override)
             if value & 0xffff:
                 e.write(LOG + LOG_RETURNS + 8 * k + 4, struct.pack('<I', value - 1))
@@ -1159,7 +1168,7 @@ class Bench:
                     print('  %s +%x: cpp %s emu %s' % (name, d // 2, x[d:d + 16], y[d:d + 16]))
         if COVER:
             with open(COVER, 'a') as f:
-                f.write(json.dumps({'bench': os.path.basename(sys.argv[0]), 'cases': n, 'differ': bad, 'direct': {'%x' % k: v for k, v in sorted(direct.items())},
+                f.write(json.dumps({'bench': os.path.basename(sys.argv[0]), 'cases': n, 'differ': bad, 'crashed': crashed, 'direct': {'%x' % k: v for k, v in sorted(direct.items())},
                                     'indirect': ['%x' % k for k in sorted(indirect)]}) + '\n')
         if not quiet:
             print('%d cases%s, seed %d: %d differ%s' % (n, ' (wild)' if wild else '', seed, bad,

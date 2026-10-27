@@ -8,9 +8,12 @@
 #include "../math/x87.h"
 #include "../sprite/screenmatrix.h"
 #include "../sprite/script.h"
+#include "../world/advisor.h"
+#include "../world/object.h"
 #include "../world/ridesweep.h"
 #include "../world/staff.h"
 #include "../world/things.h"
+#include "dialogs.h"
 #include "guirect.h"
 #include "panelparts.h"
 #include "window.h"
@@ -25,6 +28,12 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 }  // namespace
 
 extern "C" {
+
+void __fastcall Panel7cc328_ShowRefund(u8 *self) {
+    u8 *const thing = global<u8 *>(0x007c2658);
+    u8 *const child = Window_FindChild(at<u8 *>(self, 0x14), nullptr, 0x1e8a);
+    vcall<void>(child, 0x1c, Object_ScrapRefund(thing));
+}
 
 u32 __fastcall Obj_KillSlot24(u8 *object) {
     if (!at<u32>(object, 0x24))
@@ -132,6 +141,12 @@ void __fastcall Panel7cc328_OnStaff(void *, void *, u32 handle, u32 added) {
         Panel7cc328_AddStaff(panel, nullptr, staff);
     else
         Panel7cc328_RemoveStaff(panel, nullptr, staff);
+}
+
+void __fastcall Panel7cc328_Show(u8 *self, void *, u8 *thing) {
+    *reinterpret_cast<u8 **>((uintptr_t)0x007cc318) = thing;
+    WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00756ba0), 0x004b4fc0, 0x1e84, 0x1e89, 0);
+    Advisor_PostId(0x12c);
 }
 
 void __fastcall Panel7cc328_Dress(u8 *self) {

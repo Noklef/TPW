@@ -8,7 +8,7 @@
 # (0x6d1dc0): see locate_case(). The banks' resources released (0x6b9660, 0x6b9760): see case_release(). The record's destructor (0x6bea00): case_unload()'s record on the singleton.
 # The sound object's category load (0x6b8720): case_load(obj=True); its record banks' release (0x6b8570): case_release()'s releaserec. A bank's flag 0x40 (0x6b9270): case_release()'s deque B.
 # The variation's flagged samples moved last (0x6c0bd0): case_release()'s deque B. A record released (0x6c0850): locate_case().
-# A command's sound found in an SFX.map sound table (0x6c5870): 'findsound' in case().
+# A command's sound found in an SFX.map sound table (0x6c5870): 'findsound' in case(). Every variation's flagged samples hidden or shown again (0x6c0c90): case_hide().
 # usage: soundcategory.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,...)
 import os
 import struct
@@ -28,13 +28,13 @@ CALLS = {'count': 0x6bd7a0, 'simple': 0x6c0550, 'variation': 0x6c06e0, 'sound': 
          'locate': 0x6d1bd0, 'recordat': 0x6d1dc0, 'releaseall': 0x6b9660, 'releaserec': 0x6b9760,
          'recdtor': 0x6bea00, 'objload': 0x6b8720, 'bankflag': 0x6b9270,
          'partition': 0x6c0bd0, 'recrelease': 0x6c0850, 'findsound': 0x6c5870, 'objrelease': 0x6b8570,
-         'objrecrelease': 0x6ba090}
+         'objrecrelease': 0x6ba090, 'hide': 0x6c0c90}
 B = Bench([(0x6bd7a0, 0x6bd7ac), (0x6bf150, 0x6bf31c), (0x6bf850, 0x6c0303), (0x6c0310, 0x6c035f), (0x6c0360, 0x6c0844), (0x4036a0, 0x4036e0), (0x639100, 0x639120),
            (0x6b9b30, 0x6b9b94), (0x5e42d0, 0x5e431c), (0x6338b0, 0x633900), (0x6c1940, 0x6c1b00), (0x6c2990, 0x6c29c0), (0x4f6740, 0x4f67c0), (0x632200, 0x632230),
            (0x6bf330, 0x6bf850), (0x632150, 0x632380), (0x6c0860, 0x6c3200), (0x5f7980, 0x5f79cf), (0x67c250, 0x67c2a0),
            (0x6beb10, 0x6beb1a), (0x6bed80, 0x6bee0b), (0x6bee10, 0x6bf14c), (0x5ec210, 0x5ec220), (0x5f8240, 0x5f8310), (0x5f8420, 0x5f8460), (0x619800, 0x619870),
            (0x6beb20, 0x6bed76), (0x6bead0, 0x6beb03), (0x47db00, 0x47db30), (0x5f61a0, 0x5f61f0),
-           (0x6d1bd0, 0x6d1db5), (0x6d1dc0, 0x6d1e2f), (0x6b9660, 0x6b9760), (0x6b9760, 0x6b984c), (0x6c0bd0, 0x6c0c87), (0x6c0850, 0x6c08ad), (0x6bea00, 0x6beac5), (0x6b8720, 0x6b87c5), (0x6b8690, 0x6b8711), (0x6b9270, 0x6b92ef), (0x6c5870, 0x6c58ce), (0x6b8570, 0x6b859f), (0x6ba090, 0x6ba0be)]
+           (0x6d1bd0, 0x6d1db5), (0x6d1dc0, 0x6d1e2f), (0x6b9660, 0x6b9760), (0x6b9760, 0x6b984c), (0x6c0bd0, 0x6c0c87), (0x6c0c90, 0x6c0d8a), (0x6c0850, 0x6c08ad), (0x6bea00, 0x6beac5), (0x6b8720, 0x6b87c5), (0x6b8690, 0x6b8711), (0x6b9270, 0x6b92ef), (0x6c5870, 0x6c58ce), (0x6b8570, 0x6b859f), (0x6ba090, 0x6ba0be)]
           + fileopen.RANGES,
           hooks={0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None, 0x67a7d0: _cdecl_log})   # (the STL lock the map's insert takes: the port leaves it out)
 CAT, OUT, RECS, NODES = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x400
@@ -477,6 +477,51 @@ def case_release(r, name):
     return Call(CALLS[name], [OUT, r.choice([RECS, 0])], regions, conv='s', ret='a')
 
 
+HIDE_BLOCK = RAM + 0x70000   # (case_hide(): deque A's block before its first, through the map slot before MAPA)
+
+
+def case_hide(r):
+    """0x6c0c90 on the singleton: deque A's records (null now and then, over three blocks or more now and then), each one's SFX.map category (+8,
+    null now and then) 0-3 sounds (a wrapping count now and then) at SFX_SOUNDS + 0x100 * i, each 0-3 variations at SFX_VARS (shared: walked
+    again from each sound), each 0-5 samples (the high word random) at SFX_SAMPLES whose banks are mostly deque B's 0-7 (flags any; null now
+    and then); hide's low byte 0 or not (the rest random)."""
+    nb = r.choice([0, 1, 3, 7])
+    objs = [0 if r.random() < 0.2 else BANKS + 0x40 * i for i in range(nb)]
+    regions = category(r, 4, holes=True, bank_objects=objs, many=r.random() < 0.15)
+    regions[SINGLETON] = regions.pop(CAT)
+    regions[0xfb1ff8] = bytes([r.choice([1, r.getrandbits(8) | 1])]) + r.bytes(3) + struct.pack('<I', r.getrandbits(32))
+    for i in range(nb):
+        regions[BANKS + 0x40 * i] = r.bytes(0x30)
+    if r.random() < 0.15:   # (the begin iterator's block start past its position: the first cells' offsets negative, block -1 through the map slot before it)
+        cat = bytearray(regions[SINGLETON])
+        struct.pack_into('<I', cat, 0x3c, struct.unpack_from('<I', cat, 0x44)[0] + 4 * r.choice([r.randrange(1, 0x401), 0x3ff, 0x400]))
+        regions[SINGLETON] = cat
+        regions[MAPA - 4] = struct.pack('<I', HIDE_BLOCK) + regions.pop(MAPA)
+        regions[HIDE_BLOCK] = struct.pack('<1024I', *[r.choice([0, 0, RECS, RECS + 0x40, RECS + 0x80]) for _ in range(0x400)])
+    recs = bytearray(regions[RECS])
+    entries = bytearray(r.bytes(0x40))
+    for i in range(len(recs) // 0x40):
+        struct.pack_into('<II', entries, 8 * i, r.choice([0, 1, 2, 3, 3, 0x0ccccccd]) if r.random() < 0.1 else r.choice([0, 1, 2, 3]),
+                         SFX_SOUNDS + 0x100 * i)
+        struct.pack_into('<I', recs, 0x40 * i + 8, r.choice([ENTRIES + 8 * i] * 5 + [0]))
+    regions[RECS], regions[ENTRIES] = recs, entries
+    sounds = bytearray(r.bytes(0x100 * (len(recs) // 0x40)))
+    for o in range(0, len(sounds), 0x100):   # (each record's at + 0x100 * i: four sounds, past the counts too)
+        for j in range(4):
+            struct.pack_into('<II', sounds, o + 0x14 * j + 4, r.choice([0, 1, 2, 3]), SFX_VARS)
+    regions[SFX_SOUNDS] = sounds
+    variations = bytearray(r.bytes(0x100))
+    for o in range(0, 0x2a * 3, 0x2a):
+        struct.pack_into('<HHI', variations, o, r.choice([0, 1, 2, 5]), r.getrandbits(16), r.getrandbits(32))
+        struct.pack_into('<I', variations, o + 8, SFX_SAMPLES)
+    regions[SFX_VARS] = variations
+    samples = bytearray(r.bytes(0x60))
+    for i in range(6):
+        struct.pack_into('<H', samples, 0x10 * i + 0xc, r.choice([r.randrange(nb + 2), r.randrange(nb + 2), r.getrandbits(16)]))
+    regions[SFX_SAMPLES] = samples
+    return Call(CALLS['hide'], [SINGLETON, r.choice([0, 1, 1, 0x100, r.getrandbits(32)])], regions, conv='t', ret='v')
+
+
 def case(r):
     name = r.deal(OPS)
     if name in ('releaseall', 'releaserec', 'bankflag', 'partition', 'objrelease'):
@@ -485,6 +530,8 @@ def case(r):
         return locate_case(r, name)
     if name in ('ctor', 'get'):
         return case_ctor(r, name)
+    if name == 'hide':
+        return case_hide(r)
     if name in ('dtor', 'deldtor', 'singleton'):
         return case_dtor(r, name)
     if name in ('unload', 'recdtor'):

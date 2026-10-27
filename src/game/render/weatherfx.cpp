@@ -173,4 +173,13 @@ u32 __cdecl WeatherFx_LoadTextures() {
     WeatherFx_LoadTexture(*fx, nullptr, 1, name(0x007651f4));          // "Data\Generic\Weather\raindrop.tga"
     return WeatherFx_LoadTexture(*fx, nullptr, 3, name(0x007651d0));   // "Data\Generic\Weather\lightning.tga"
 }
+
+u32 __fastcall WeatherFx_ReloadTextures(u8 *fx) {
+    const auto name = [](u32 address) { return Quickload_Locate(reinterpret_cast<const char *>((uintptr_t)address), 1, nullptr); };
+    WeatherFx_LoadTexture(fx, nullptr, 2, name(0x00765218));
+    WeatherFx_LoadTexture(fx, nullptr, 1, name(0x007651f4));
+    WeatherFx_LoadTexture(fx, nullptr, 3, name(0x007651d0));
+    *reinterpret_cast<u32 *>(fx + 4) = 0;
+    return 1;
+}
 }

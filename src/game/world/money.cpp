@@ -88,6 +88,17 @@ FileTime *__fastcall Money_TimeInRed(const u8 *money, void *, FileTime *out) {
     return FunnyTime_SpanSince(global<const u8 *>(0x0080239c) + 0x2a0, nullptr, out, at<u32>(money, 0x120));
 }
 
+u32 __fastcall Money_LoanOwed(const u8 *money, void *, u32 loan) {
+    const u8 *entry = money + 0x20 + 0x20 * loan;
+    return at<const u32>(entry, 8) ? (at<const u32>(entry, 0) - at<const u32>(entry, 0xc)) * at<const u32>(entry, 4) : 0;
+}
+
+u32 __fastcall Money_TotalOwed(const u8 *money) {
+    u32 total = 0;
+    for (u32 i = 0; i < 8; i++) total += Money_LoanOwed(money, nullptr, i);
+    return total;
+}
+
 s32 __fastcall Obj_SmallestEntry(const u8 *object) {
     s32 best = -1;
     u32 smallest = 0;

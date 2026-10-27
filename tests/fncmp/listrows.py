@@ -10,7 +10,7 @@
 # the row's first child +0x5c a window of random bytes (its +0x98 none, an object of the +0x98 kind or the one found; +0x4c none or an
 # object; its slot 7 a recorder), the GUI's registered windows of register() below with "i_boxtick" among them or not.
 # The jump List7ca314_NewRowJump (0x49c870): List7ca314_NewRow's cases. The initialisers with a text child (0x49c880, 0x49f170, 0x4ae7d0,
-# 0x4bcca0): see child_case() below.
+# 0x4bcca0): see child_case() below. List7ca158_NewRow's row handler (0x4959c0): see row_proc() below.
 # usage: listrows.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=HilightList_NewRow,...)
 import os
 import struct
@@ -19,9 +19,13 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
+_OPS = os.environ.pop('OPS', None)   # (objectstatus.py's imports read their own OPS: this bench's names are not theirs)
+import objectstatus  # noqa: E402
+if _OPS is not None:
+    os.environ['OPS'] = _OPS
 import rendererpart  # noqa: E402
 import windowfactory  # noqa: E402
-from fncmp import HEAP, LOG, RAM, Bench, Call, blob_bytes, heap, log_region, put, recorder, set_return, vtable  # noqa: E402
+from fncmp import CDECL_LOG4, HEAP, LOG, RAM, Bench, Call, blob_bytes, heap, log_region, put, recorder, set_return, vtable  # noqa: E402
 from window import RANGES, VTABLE, queues, tree  # noqa: E402
 
 CALLS = {'HilightList_NewRow': 0x480d30, 'List7cc188_NewRow': 0x4a8380, 'HilightList_InitRow': 0x480dd0, 'List7cc188_InitRow': 0x4a8420,
@@ -29,7 +33,10 @@ CALLS = {'HilightList_NewRow': 0x480d30, 'List7cc188_NewRow': 0x4a8380, 'Hilight
          'List7ca158_NewRow': 0x4944d0, 'List7ca314_NewRow': 0x49bbb0, 'List7cb24c_NewRow': 0x49f0b0, 'List7cb264_NewRow': 0x4a02b0,
          'List7cc200_NewRow': 0x4ad240, 'List7cc250_NewRow': 0x4ae700, 'List7cc654_NewRow': 0x4bcbc0, 'List7ca314_NewRowJump': 0x49c870,
          'List7ca314_InitRow': 0x49c880, 'List7cb24c_InitRow': 0x49f170, 'List7cc250_InitRow': 0x4ae7d0, 'List7cc654_InitRow': 0x4bcca0,
-         'List7cc94c_NewRow': 0x4c02d0, 'List7cca90_NewRow': 0x4c1b30, 'List7ca170_NewRow': 0x496c10}
+         'List7cc94c_NewRow': 0x4c02d0, 'List7cca90_NewRow': 0x4c1b30, 'List7ca170_NewRow': 0x496c10, 'List7ca158_RowProc': 0x4959c0,
+         'List7cb264_RowProc': 0x4a0710, 'List758f04_NewRow': 0x4bf760, 'List758f04_NewRowA': 0x4bf740, 'List758f04_NewRowB': 0x4bf8b0,
+         'List758f04_InitRow': 0x4bf810, 'List758f04_InitRowJump': 0x4bf800, 'List758f04_RowProcA': 0x4be730, 'List758f04_RowProcB': 0x4be7c0}
+COLOUR_PROCS = {'List7cb264_RowProc', 'List758f04_RowProcA', 'List758f04_RowProcB'}
 TEXT_ROWS = {'List7ca314_InitRow', 'List7cb24c_InitRow', 'List7cc250_InitRow', 'List7cc654_InitRow'}
 # the factories that make children (with windowfactory.py's surroundings), those whose first allocation failing would fault in both
 # (their child or handler of no window, sic), and the dwords their height is cached in with the dword their font index is in (or 7)
@@ -38,7 +45,7 @@ UNCHECKED = {'List7cc530_NewRow', 'List7ca158_NewRow', 'List7cb24c_NewRow', 'Lis
 CACHES = {'List7cc338_NewRow': (0x7cc35c, 0x756f38), 'List7ca140_NewRow': (0x7ca140, 0x7508b4), 'List7ca158_NewRow': (0x7ca158, 0x750d54),
           'List7ca314_NewRow': (0x7ca314, 0x7523dc), 'List7cb24c_NewRow': (0x7cb24c, None), 'List7cb264_NewRow': (0x7cb264, 0x752934),
           'List7cc200_NewRow': (0x7cc200, 0x755134), 'List7cc250_NewRow': (0x7cc250, 0x75583c), 'List7cc94c_NewRow': (0x7cc94c, None),
-          'List7cca90_NewRow': (0x7cca90, None), 'List7ca170_NewRow': (0x7ca170, 0x751184)}
+          'List7cca90_NewRow': (0x7cca90, None), 'List7ca170_NewRow': (0x7ca170, 0x751184), 'List758f04_NewRow': (None, 0x758f04)}
 # (the initialisers: the text part's construction (textparts.py's ranges), SetLayout (0x48fc40, 0x48f420), the pixels (trackedglobal.py's),
 # the renderer's tag 0x30 list (0x48f5c0, Renderer_Add, Pool_AddSorted), Window_Notify40000)
 PART_RANGES = [(0x48f150, 0x48f290), (0x5775d0, 0x577660), (0x579b40, 0x579c30), (0x588320, 0x588420), (0x588d70, 0x588e50), (0x58a4f0, 0x58a560),
@@ -49,12 +56,15 @@ PART_RANGES = [(0x48f150, 0x48f290), (0x5775d0, 0x577660), (0x579b40, 0x579c30),
                (0x576270, 0x576320), (0x65c5d5, 0x65c672), (0x480dd0, 0x480e62), (0x4a8420, 0x4a84b2)]
 # (GuiWindows_FindByName and Window_SetObject98 with what they call; the new rows and their children: windowfactory.py's)
 REG_RANGES = [(0x659bc9, 0x659c42), (0x6588b6, 0x6588ef), (0x65d070, 0x65d1c8), (0x65f5b7, 0x65f5fe), (0x668f5a, 0x668f9c), (0x65d547, 0x65d558)]
-B = Bench(sorted(set(RANGES + PART_RANGES + REG_RANGES + windowfactory.FACTORY + [
+B = Bench(objectstatus.merged(sorted(set(RANGES + PART_RANGES + REG_RANGES + windowfactory.FACTORY + [
     (0x4b4c70, 0x4b4d34), (0x4bacc0, 0x4bad69), (0x4bad70, 0x4bae2b), (0x4938c0, 0x4939c7), (0x4944d0, 0x494679), (0x49bbb0, 0x49bc74),
-    (0x49f0b0, 0x49f16e), (0x4a02b0, 0x4a03c1), (0x4ad240, 0x4ad334), (0x4ae700, 0x4ae7c9), (0x4bcbc0, 0x4bcc9d), (0x490250, 0x490300),
+    (0x4bf740, 0x4bf758), (0x4bf760, 0x4bf7f7), (0x4bf800, 0x4bf80e), (0x4bf810, 0x4bf8a6), (0x4bf8b0, 0x4bf8c8), (0x4be730, 0x4be7b9),
+    (0x4be7c0, 0x4be81f), (0x4a0710, 0x4a0768), (0x49f0b0, 0x49f16e), (0x4a02b0, 0x4a03c1), (0x4ad240, 0x4ad334), (0x4ae700, 0x4ae7c9), (0x4bcbc0, 0x4bcc9d), (0x490250, 0x490300),
     (0x4907b0, 0x490860), (0x49c870, 0x49c96b), (0x49f170, 0x49f27f), (0x4ae7d0, 0x4ae8d6), (0x4bcca0, 0x4bce08), (0x65c388, 0x65c55a),
     (0x65d56b, 0x65d58c), (0x65d773, 0x65d7cc), (0x6616b0, 0x661710), (0x6617f0, 0x661820), (0x4903e0, 0x4904d0), (0x490940, 0x490a00), (0x6acb70, 0x6accb0),
-    (0x6acd60, 0x6ace70), (0x6b00e0, 0x6b0140), (0x4c02d0, 0x4c03dd), (0x4c1b30, 0x4c1c28), (0x496c10, 0x496d16)])))
+    (0x6acd60, 0x6ace70), (0x6b00e0, 0x6b0140), (0x4c02d0, 0x4c03dd), (0x4c1b30, 0x4c1c28), (0x496c10, 0x496d16)] +
+    objectstatus.OWN + objectstatus.QUEUE + objectstatus.EXIT + [(0x4959c0, 0x495a94), (0x4e0df0, 0x4e0dfe), (0x4861d0, 0x4861dc),
+    (0x65c5d5, 0x65c682), (0x65f66e, 0x65f6a7)]))))
 ROW, OLD, OBJ98, VT98, VTOLD, OBJ4C, REND = RAM + 0x9000, RAM + 0x9200, RAM + 0x9300, RAM + 0x9380, RAM + 0x9400, RAM + 0x9480, RAM + 0x9500
 PARENTS = RAM + 0x9600
 NODES, FOUND, FVT, CUT, BOX, BOXVT = RAM + 0xa000, RAM + 0xa100, RAM + 0xa200, RAM + 0xa300, RAM + 0xa500, RAM + 0xa780
@@ -176,6 +186,17 @@ def case(r):
     op = r.deal(OPS)
     if op in TEXT_ROWS:
         return child_case(r, op)
+    if op == 'List7ca158_RowProc':
+        return row_proc(r)
+    if op in COLOUR_PROCS:
+        return colour_proc(r, op)
+    if op in ('List758f04_NewRowA', 'List758f04_NewRowB'):
+        c = case_for(r, 'List758f04_NewRow')
+        return Call(CALLS[op], c.args, c.regions, ret='a')
+    if op in ('List758f04_InitRow', 'List758f04_InitRowJump'):   # (init_case()'s with the font index [0x758f04] 0-12)
+        regions = dict(init_case(r, op).regions)
+        regions[0x758f04] = struct.pack('<I', r.choice([7] * 4 + list(range(13))))
+        return Call(CALLS[op], [ROW], regions, ret='v')
     if op == 'List7ca314_NewRowJump':
         c = case_for(r, 'List7ca314_NewRow')
         return Call(CALLS[op], c.args, c.regions, ret='a')
@@ -194,6 +215,71 @@ def case(r):
     if op.endswith('InitRow'):
         return init_case(r, op)
     return case_for(r, op)
+
+
+PROC, PROC_OBJ, PROC_VT, PROC_REC = 0x36000000, 0x36000200, 0x36000300, 0x36000400
+
+
+def patch(regions, address, fmt, *values):
+    """writes values at address into the region holding it (a region of its own when none does)"""
+    size = struct.calcsize('<' + fmt)
+    for base, data in regions.items():
+        if base <= address and address + size <= base + len(data):
+            data = bytearray(data)
+            put(data, address - base, fmt, *values)
+            regions[base] = data
+            return
+    regions[address] = struct.pack('<' + fmt, *values)
+
+
+def row_proc(r):
+    """0x4959c0: objectstatus.py's objects (front or back end); b the object with its word +0x30 0, or a record whose word +0x30 (1-10, or
+    any with the table entry left as it was) indexes the table at 0x7cfb90 that names the object; the window's objects +0x98 / +0x9c
+    recorders or none (the 0x40000 event's colour bytes hashed), its default handler +0x118 fncmp's logger; the message 0x403 mostly"""
+    c = objectstatus.front(r) if r.random() < 0.7 else objectstatus.back_end(r)
+    regions = dict(c.regions)
+    obj = c.args[0]
+    log = regions.setdefault(LOG, log_region())
+    if r.random() < 0.4:
+        b = obj
+        patch(regions, obj + 0x30, 'H', 0)
+    else:
+        b = PROC_REC
+        rec = bytearray(r.bytes(0x40))
+        index = r.choice([1, 2, 5, 10, 10])
+        if r.random() < 0.8:
+            patch(regions, 0x7cfb90 + 20 * index, 'I', obj)
+        put(rec, 0x30, 'H', index)
+        regions[PROC_REC] = rec
+    return Call(CALLS['List7ca158_RowProc'], [PROC, proc_window(r, regions, log), r.getrandbits(32), b], regions, ret='a')
+
+
+def proc_window(r, regions, log):
+    """a row handler's window at PROC: its objects +0x98 / +0x9c recorders or none (the 0x40000 event's colour bytes hashed), its
+    default handler +0x118 fncmp's logger; returns the message, 0x403 mostly"""
+    w = bytearray(r.bytes(0x120))
+    put(w, 0x98, 'I', r.choice([PROC_OBJ, PROC_OBJ, 0]))
+    put(w, 0x9c, 'I', r.choice([PROC_OBJ + 0x40, 0, 0]))
+    put(w, 0x118, 'I', CDECL_LOG4)
+    regions[PROC] = w
+    obj98 = bytearray(r.bytes(0x80))
+    put(obj98, 0, 'I', PROC_VT)
+    put(obj98, 0x40, 'I', PROC_VT)
+    regions[PROC_OBJ] = obj98
+    regions[PROC_VT] = vtable({3: 2})
+    blob_bytes(log, 3, 1, 0, (0x10, 0xf, 0x10))
+    set_return(log, 0x3d, r.getrandbits(32))
+    return r.choice([0x403] * 6 + [0x1e, 0x402, 0x404, 0x10403, r.getrandbits(32)])
+
+
+def colour_proc(r, op):
+    """0x4a0710 / 0x4be730 / 0x4be7c0: proc_window()'s window; the colour dwords 0x758f10-0x758f3f random; b any, its low bits and sign
+    each way"""
+    log = log_region()
+    regions = {LOG: log, 0x758f10: r.bytes(0x30)}
+    message = proc_window(r, regions, log)
+    b = r.choice([r.getrandbits(32), r.randrange(8), r.randrange(8) | 0x80000000, 0xffffffff, 0x7fffffff, 0])
+    return Call(CALLS[op], [PROC, message, r.getrandbits(32), b], regions, ret='a')
 
 
 def case_for(r, op):

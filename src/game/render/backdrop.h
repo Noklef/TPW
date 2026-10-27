@@ -15,6 +15,11 @@ extern "C" {
 // 0x5777a0 (thiscall): +0x5c = 0.
 void __fastcall Backdrop_Clear5c(u8 *backdrop);
 
+// 0x577730 (cdecl; the game's exit handler for the backdrop, registered by its initializer 0x5776e0; name unconfirmed): with tiles
+// (+0x1c), each of the first +0x58 (signed) has its +0x40 cleared, then they are destroyed as one array (Texture_DestroyArray:
+// Texture_Release on each, freed 4 bytes below) and +0x1c and +0x58 cleared; without tiles nothing.
+void __cdecl Backdrop_Release();
+
 // 0x577940 (thiscall; x0, y0, x1, y1, floats moved as dwords): +0x20..+0x2c, and flag 2 in +0.
 // 0x5777b0 (thiscall; pixels, width, height, pitch in bytes; pops 0x10; the SEH frame left out; name unconfirmed): +4 width, +8
 // height, +0xc pitch, +0x10 / +0x14 the tiles across and down ((size + 63) / 64, signed), +0x1c their textures (count * 0x60 + 4

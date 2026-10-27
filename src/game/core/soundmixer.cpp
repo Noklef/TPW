@@ -178,6 +178,13 @@ u32 *__fastcall SoundMixer_SendVoice(u8 *mixer, void *, u32 *out, u32 id, u32 va
     return out;
 }
 
+u32 __fastcall SoundMixer_CallVoice10(u8 *mixer, void *, u32 id, u32 a, u32 b) {
+    u8 *const voice = SoundMixer_FindVoice(mixer, nullptr, id);
+    if (!voice) return 0;
+    vcall<void>(voice, 0x28, a, b);
+    return id;
+}
+
 u32 *__fastcall SoundMixer_AddPage(u8 *mixer, void *, u32 *out) {
     u8 *page;
     s32 status;

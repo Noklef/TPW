@@ -136,6 +136,12 @@ void __cdecl Sound_RegisterGlobalCategories() {
         global<u32>(0x00803a34) = Sound_QueryFound(text(0x00762c54), found);   // "cat_speech"
 }
 
+void __cdecl Sound_RegisterGlobalLobbySfx() {
+    u8 *found = nullptr;
+    if (find_folder(reinterpret_cast<const void *>(0x008030d8), &found))
+        global<u32>(0x00803a48) = Sound_QueryFound(text(0x00762bcc), found);   // "cat_globallobbysfx"
+}
+
 void __cdecl Sound_RegisterThemeCategories(const StringView *theme) {
     String key;
     String_CtorCopy(&key, nullptr, view(0x00803768));

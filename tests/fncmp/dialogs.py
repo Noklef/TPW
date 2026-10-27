@@ -6,6 +6,8 @@
 # Dialog7cb2b8_Child21Post (0x4a2590): the dialog or none, its child 0x21 or none among others, the child's dword +0xa8 set or not, the
 # value 0 or not, window.py's queues. WindowAt10_Handler / Dialog7cb2b8_Handler / DefaultHandler (0x492e00, 0x4a0a20, 0x4a0a90; [0x7cb2b8]
 # random): the default handler +0x118 fncmp's logger, the window's object A0[0] random bytes, the message 0x14 often.
+# MsgTags_ButtonHandler (0x4a1190, src/game/ui/msgtags): the same, the message 0x10006 with a 1 often; the tags' window [0x7cb2c4] posted
+# to (window.py's queues) WINDOW2 (its byte +4 now and then set) or none.
 # Dialog7cb2b8_ResetChild21 / ResetChild21Only / Obj7b51f0_ResetDialogChild21 (0x4a25f0, 0x4b4470, 0x4816b0): see reset_case.
 # WindowText7cb4d0_Handler (0x4bcb70): a recorder window (slot 9), +0x98 / +0x9c recorder objects or 0, the message 0x800 often.
 # WindowAt10_CentreHandler (0x48d1a0): as WindowAt10_Handler's, the message 0x10006 mostly, the window's dword 6 +0xa0 an object whose
@@ -32,12 +34,13 @@ CALLS = {'Dialog7cc47c_Message4': 0x4b87f0, 'Dialog7cc47c_Message6On': 0x4b8810,
          'Windows7cc8bc_Message6Pair': 0x4bcef0, 'Global7cc698_Choose': 0x4bcec0, 'Dialog7cb2b8_Child21Post': 0x4a2590,
          'WindowAt10_Handler': 0x492e00, 'Dialog7cb2b8_Handler': 0x4a0a20, 'DefaultHandler': 0x4a0a90,
          'Dialog7cb2b8_ResetChild21': 0x4a25f0, 'Dialog7cb2b8_ResetChild21Only': 0x4b4470, 'Obj7b51f0_ResetDialogChild21': 0x4816b0,
-         'WindowText7cb4d0_Handler': 0x4bcb70, 'WindowAt10_CentreHandler': 0x48d1a0}
+         'WindowText7cb4d0_Handler': 0x4bcb70, 'WindowAt10_CentreHandler': 0x48d1a0,
+         'MsgTags_ButtonHandler': 0x4a1190}
 SENDS = {k: int(k[6:12], 16) for k in CALLS if k.startswith('Dialog7') and 'Handler' not in k and 'Post' not in k and 'Reset' not in k}   # the window's global
 RESET_KIDS, BUTTONS = RAM + 0x9000, RAM + 0xa000   # (0x160 bytes each: the kind byte +0x134, the 0x705a50 window's state +0x138)
 B = Bench(sorted(set(RANGES + [(0x4816b0, 0x4816e0), (0x4a25f0, 0x4a2690), (0x4b4470, 0x4b44a0), (0x658ccc, 0x658e04), (0x659710, 0x659740),
                                (0x65e6d5, 0x65e73d), (0x65f697, 0x65f6e1), (0x668820, 0x6688c3), (0x668ad3, 0x668c99), (0x6697e3, 0x6698b4),
-                               (0x4bcb70, 0x4bcbb3), (0x65c672, 0x65c707),
+                               (0x4bcb70, 0x4bcbb3), (0x65c672, 0x65c707), (0x4a1190, 0x4a11d1),
                                (0x48d1a0, 0x48d1f5), (0x42aab0, 0x42ab30), (0x4867b0, 0x486870), (0x50b350, 0x50b370), (0x65e705, 0x65e73d),
                                (0x5da3c0, 0x5da3c1)])))
 
@@ -169,7 +172,13 @@ def case(r):
         return Call(CALLS[op], [r.choice([0, 1, r.getrandbits(32), r.getrandbits(32)])], regions, ret='a')
     if op == 'WindowAt10_CentreHandler':
         return centre_case(r, regions, log)
-    if op in ('WindowAt10_Handler', 'Dialog7cb2b8_Handler', 'DefaultHandler'):   # the default handler +0x118 fncmp's logger (its result now and then set); the object A0[0]
+    if op == 'MsgTags_ButtonHandler':
+        queues(r, regions)
+        tags = bytearray(r.bytes(0x120))
+        tags[4] = r.choice([0, 0, 0, 1])
+        regions[WINDOW2] = tags
+        regions[0x7cb2c4] = struct.pack('<I', r.choice([WINDOW2] * 4 + [0]))
+    if op in ('WindowAt10_Handler', 'Dialog7cb2b8_Handler', 'DefaultHandler', 'MsgTags_ButtonHandler'):   # the default handler +0x118 fncmp's logger (its result now and then set); the object A0[0]
         win = bytearray(r.bytes(0x120))
         put(win, 0x118, 'I', CDECL_LOG4)
         put(win, 0xa0, 'I', MISC)
@@ -179,6 +188,8 @@ def case(r):
         if r.random() < 0.5:
             set_return(log, 0x3d, r.choice([0, 1, -1, r.getrandbits(32)]))
         args = [r.choice([0x14, 0x14, 0x15, 0, 4, r.getrandbits(32)])] + [r.choice([0, 1, 4, r.getrandbits(32)]) for _ in range(2)]
+        if op == 'MsgTags_ButtonHandler' and r.random() < 0.6:
+            args[:2] = [0x10006, r.choice([1, 1, 1, 0, 2])]
         return Call(CALLS[op], [WINDOW] + args, regions, ret='a')
     win = bytearray(r.bytes(0x120))
     win[4] = r.choice([0, 0, 0, 1, 0x80])
