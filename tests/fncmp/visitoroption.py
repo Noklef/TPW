@@ -237,11 +237,11 @@ def poke(regions, r, address, data):
 def minor_case(r):
     """Visitor_ChooseMinorDest (0x4fd570): choose_case()'s visitor, object and copies (the world's clock moved to WORLD2, clear of the cells) on
     routesearch.py's box of cells in mode 0, 1 or 3 (mode 2's ride cells would read the thing slots, which are the score's here); the visitor's
-    map id a cell of the box, its major destination +0x1dc the object (mostly), a copy or 0; the destination's queue back 1-6 cells away (at
+    map id a cell of the box, its major destination +0x1dc the object or a copy (half each, when there are copies) or 0; the destination's queue back 1-6 cells away (at
     times 0 or anywhere), so that some of the 16 cells round the visitor are nearer to it; the object, the copies and now and then the other
     ride (its model not 3) in chains (+0xa) of those cells' things (the first handle at [0x8023a0] + id * 0x44 - 0x20, the other cells' 0), of
     model 3 mostly, each with its own queue back near the visitor and its RE cell; their cells +0x36 the destination's, the box's, the visitor's
-    or the ring's; the ring position +0xb8 0-0x1f; the nav (+0xd4) in the visitor's cell, its mode the route's; the steps 0x7cf3a4 low."""
+    or the ring's (the destination's the visitor's own now and then); the ring position +0xb8 0-0x1f; the nav (+0xd4) in the visitor's cell, its mode the route's; the steps 0x7cf3a4 low."""
     c = choose_case(r)
     regions = c.regions
     visitor, obj = regions[VISITOR], regions[OBJ]
@@ -297,17 +297,18 @@ def minor_case(r):
         blob = regions[COPIES]
         for h in copies:
             things[h] = memoryview(blob)[0x200 * (h - 12):0x200 * (h - 12) + 0x200]
-    major = r.choice([h_obj] * 6 + copies + [0])
+    major = r.choice([h_obj] * 3 + copies * 3 + [0])   # (a copy as often as there are any: the object, then, a candidate)
     put(visitor, 0x1dc, 'H', major)
-    from_cell = cell_id(*r.choice(box)) if r.random() < 0.9 else cell_id(*r.choice(sorted(ring)))
     mine = cell_id(vx, vy)
+    k = r.random()   # (the visitor's own cell now and then: a distance of 0, whatever the box's cells block)
+    from_cell = mine if k < 0.25 else cell_id(*r.choice(box)) if k < 0.9 else cell_id(*r.choice(sorted(ring)))
     for h, thing in things.items():
         back_of(thing, near_back() if r.random() < 0.95 else 0)
         if h == major:
             put(thing, 0x36, 'H', from_cell)
         else:
             put(thing, 0x36, 'H', r.choice([from_cell, from_cell, mine, cell_id(*r.choice(box)), cell_id(*r.choice(box))]
-                                            + ([cell_id(*r.choice(sorted(ring)))] if r.random() < 0.1 else [])))
+                                            + ([cell_id(*r.choice(sorted(ring)))] * 2 if r.random() < 0.3 else [])))
     regions[RIDE][2] = r.choice([0, 1, 2, 4])
     members = copies + [h_obj] + ([h_ride] if r.random() < 0.3 else [])
     r.shuffle(members)
