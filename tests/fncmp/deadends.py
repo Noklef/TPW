@@ -1,7 +1,8 @@
 # An object demolished off the map (src/game/world/demolish: Path_CheckDeadEnds 0x527ee0) against the original. The world (the map
-# [0x7cf83c] and [0x80239c], object.py's WORLD with its clock) has the cells within five rows and columns of the object's cell (and
+# [0x7cf83c] and [0x80239c], object.py's WORLD with its clock) has the cells within seven rows and columns of the object's cell (and
 # their 0x28-byte entries), each cell's first word its own id, the types mostly 1, 4, 9 and 0xa (9 and 0xa not on the map's edge, their direction one bit),
-# the flag 0x20 half the time. The cell clicked (on the map or not; of type 4, 9, 0xa or another) or its parent (+0x10) heads a chain
+# the flag 0x20 half the time; half the queue cells (9 / 0xa) have the path cell they step to (behind / ahead) of type 1 with flag 0x20.
+# The directions' steps (0x7cdba0, set at run time) laid out. The cell clicked (on the map or not; of type 4, 9, 0xa or another) or its parent (+0x10) heads a chain
 # (+0x24) of a thing of kind 1 and / or the object (kind 3), whose word +0x34 is a cell next to it or the same. The object's slot, its
 # definition (gObjectDefs, the cache hit now and then; +0x40, kind +0x9c 0-3, the scrap values), its footprint (-1 to 3 columns and rows,
 # cells taken at random), its angle (0x5a, 0xb4, 0x10e or another; for kinds 1 and 2 square, with the
@@ -51,7 +52,7 @@ SLOTS, POOL, THING = 0x7cfb90, RAM + 0x2000, 0x400
 OBJ, OTHER, MONEY, AN = POOL, POOL + THING, RAM + 0x3000, RAM + 0x10000
 DEFS, ITEMS, ITEM, SHAPE = 0x7890a0, RAM + 0x4000, 0x400, RAM + 0x6000
 MANAGER, VT, TABLE, QNODES = RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400
-TYPES = [1, 1, 1, 4, 4, 4, 9, 9, 0xa, 0xa, 0, 3, 2]
+TYPES = [1, 1, 1, 4, 4, 4, 9, 9, 9, 0xa, 0xa, 0xa, 0, 3, 2]
 BITS = [1, 2, 4, 8, 0x10, 0x20, 0x40, 0x80]
 
 
@@ -83,6 +84,12 @@ def init(r, cells, c, cx, cy):
 STEP_A = {0: (4, 1, 4), 0x5a: (1, -5, 1), 0xb4: (-5, -2, 0x40), 0x10e: (-2, 4, 0x10)}   # (Position_StepA: offset, direction)
 STEP_B = {0: (-2, 1, 0x40), 0x5a: (1, 1, 0x10), 0xb4: (1, -2, 4), 0x10e: (-2, -2, 1)}  # (Position_StepB's, the code reversed)
 REVERSE = {1: 0x10, 4: 0x40, 0x10: 1, 0x40: 4}
+# (the directions' steps (dx, dy) at 0x7cdba0 +, set at run time, as cellrun.py's)
+STEPS = {1: (0, -1), 2: (1, -1), 4: (1, 0), 8: (1, 1), 0x10: (0, 1), 0x20: (-1, 1), 0x40: (-1, 0), 0x80: (-1, -1)}
+STEPS_AT = {1: 0, 0x10: 8, 0x20: 0x10, 8: 0x18, 0x80: 0x20, 4: 0x28, 0x40: 0x30, 2: 0x38}
+DIRECTIONS = bytearray(0x40)
+for _d, _at in STEPS_AT.items():
+    put(DIRECTIONS, _at, 'ii', *STEPS[_d])
 
 
 def track(r, entries, clo, obj, ax, ay):
@@ -114,14 +121,25 @@ def case(r):
     ax, ay = near(r, *parent)
     if r.random() < 0.05:
         x, y = r.choice([-1, 128, x]), r.choice([-1, 128, -0x80000000, y])
-    lo, hi = max(0, ay - 5), min(127, ay + 5)       # (the cells within five of the object's: Map_StepCell keeps to the map)
-    clo, chi = max(0, ax - 5), min(127, ax + 5)
+    lo, hi = max(0, ay - 7), min(127, ay + 7)       # (the cells within seven of the object's: Map_StepCell keeps to the map)
+    clo, chi = max(0, ax - 7), min(127, ax + 7)
     width = chi - clo + 1
     rows = {cy: bytearray(r.bytes(0x44 * width)) for cy in range(lo, hi + 1)}
     entries = {}
     for cy in range(lo, hi + 1):
         for cx in range(clo, chi + 1):
             init(r, rows[cy], 0x44 * (cx - clo), cx, cy)
+    for cy in range(lo, hi + 1):    # (half the queue cells' path cells (9: behind, 0xa: ahead) of type 1 with flag 0x20)
+        for cx in range(clo, chi + 1):
+            c = 0x44 * (cx - clo)
+            kind = struct.unpack_from('<I', rows[cy], c + 8)[0]
+            if kind in (9, 0xa) and r.random() < 0.5:
+                d = rows[cy][c + 0xd]
+                dx, dy = STEPS[d if kind == 0xa else (d << 4 | d >> 4) & 0xff]
+                if clo <= cx + dx <= chi and lo <= cy + dy <= hi:
+                    n, path = 0x44 * (cx + dx - clo), rows[cy + dy]
+                    put(path, n + 8, 'I', 1)
+                    put(path, n + 0xe, 'H', struct.unpack_from('<H', path, n + 0xe)[0] | 0x20)
     handles = r.sample(range(1, 12), 4)
     h_obj, h_other, h_money, h_an = handles
     cells, c = rows[click[1]], 0x44 * (click[0] - clo)
@@ -199,6 +217,7 @@ def case(r):
     for g in (0x81d7a8, 0x81b46c, 0x820a8c):
         regions[g] = r.bytes(4)
     regions[0x818c50] = r.bytes(4)
+    regions[0x7cdba0] = DIRECTIONS
     regions[0x81b740] = r.bytes(0x20)   # (the track runs' points, and their last)
     regions[0x81ede4] = r.bytes(8)
     regions[0x7639e0] = struct.pack('<ii', r.randrange(-1, 129), r.randrange(-1, 129))
