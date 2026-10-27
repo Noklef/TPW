@@ -1,23 +1,25 @@
 # The flying rides' accessors (src/game/world/flyingrides: 0x55a570, 0x55d610-0x55de30) against
 # the originals: indices in and out of 1-99, empty entries, slots in state 1 or not with steps
-# either side of 0, and the ride part a step releases there, absent or not.
+# either side of 0, and the ride part a step releases there, absent or not. Init (0x55a5a0): see init().
 # usage: flyingrides.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=FirstRide,In,...)
 import os
+import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, RAM, put  # noqa: E402
+from fncmp import IMPORT_TABLE, Bench, Call, HEAP, RAM, global_heap, heap, import_table, log_region, put, LOG  # noqa: E402
 
 B = Bench([(0x55a570, 0x55a592), (0x55d610, 0x55d716), (0x55d720, 0x55d82f), (0x55d950, 0x55d9a8),
            (0x55d9b0, 0x55d9e1), (0x55d9f0, 0x55da61), (0x55dcf0, 0x55dd20), (0x55dd20, 0x55dd3f),
            (0x55dd40, 0x55dd74), (0x55dd80, 0x55ddc3), (0x55ddd0, 0x55ddf0), (0x55ddf0, 0x55de10),
            (0x55de10, 0x55de30), (0x55de30, 0x55de65), (0x44b220, 0x44b267), (0x44b4c0, 0x44b505),
-           (0x475550, 0x47558b), (0x55e330, 0x55e3a8), (0x55c270, 0x55c340), (0x55ab50, 0x55abf0), (0x52c6c0, 0x52c6f0)])
+           (0x475550, 0x47558b), (0x55e330, 0x55e3a8), (0x55c270, 0x55c340), (0x55ab50, 0x55abf0), (0x52c6c0, 0x52c6f0), (0x55a5a0, 0x55a61f),
+           (0x5f5660, 0x5f5690), (0x67a830, 0x67a860)])
 TABLE, RIDES, SCRIPTS = 0x8791f8, 0x7a4610, 0x7b49f0
 HOLDER, H8, MODEL, PARTS, PS, PSE, REC = (RAM + o for o in (0, 0x40, 0x100, 0x200, 0x300, 0x400, 0x1000))
 CALLS = {'FirstRide': 0x55a570, 'In': 0x55d610, 'Out': 0x55d720, 'Cap': 0x55d950, 'Tenth': 0x55d9b0,
          'On': 0x55d9f0, 'Set4': 0x55dcf0, 'Get3c': 0x55dd20, 'Ready': 0x55dd40, 'Take3c': 0x55dd80,
-         'Set44': 0x55ddd0, 'Set20': 0x55ddf0, 'Set24': 0x55de10, 'Busy': 0x55de30, 'Part': 0x55e330, 'Corner': 0x55c270, 'Bounds': 0x55ab50}
+         'Set44': 0x55ddd0, 'Set20': 0x55ddf0, 'Set24': 0x55de10, 'Busy': 0x55de30, 'Part': 0x55e330, 'Corner': 0x55c270, 'Bounds': 0x55ab50, 'Init': 0x55a5a0}
 RETURNS = {'FirstRide', 'In', 'Out', 'Get3c', 'Ready', 'Take3c', 'Busy'}
 
 
@@ -47,8 +49,22 @@ def record(r, op):
     return rec
 
 
+def init(r):
+    """0x55a5a0: the flag 0x8791ec 0 mostly (else nothing done), the table and 0x8791f0 / 0x8791c8 any; the sine table from GlobalAlloc
+    (the heap stubs; never failing: the table is written unchecked)."""
+    log = log_region()
+    table = import_table(log, {})
+    for at, stub in global_heap().items():
+        table[at - IMPORT_TABLE:at - IMPORT_TABLE + 4] = stub
+    flag = 0 if r.random() < 0.85 else r.choice([1, r.getrandbits(32)])
+    regions = {LOG: log, IMPORT_TABLE: table, HEAP: heap(0x5000), 0x8791c8: r.bytes(4), 0x8791ec: struct.pack('<I', flag) + r.bytes(0x19c)}
+    return Call(0x55a5a0, [], regions, ret='v')
+
+
 def case(r):
     op = r.choice(OPS)
+    if op == 'Init':
+        return init(r)
     index = r.choice([1, 2, 99, r.randrange(1, 100)] * 4 + [0, 100, -1, r.getrandbits(32) - (1 << 31)])
     table = bytearray(r.bytes(0x194))  # and the entry past the end, at 100
     if 0 < index <= 100:
