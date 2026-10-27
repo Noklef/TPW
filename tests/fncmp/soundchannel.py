@@ -13,7 +13,9 @@
 # The channel's slot 13 (0x6b8f60): a settings record at REC (random bytes), any value; the channel argument random (unused). Its flagged
 # form (0x6c5c50, slot 7 of 0x70a630): the same. The record's block set (0x6b9cd0): 0x34 random bytes.
 # The rate modifier's set (0x6b98d0): as slot 14's (the voices' modifiers +0x34 mostly the channel's +0x48), the modifier's index 0-5
-# (any upper bytes now and then) and any float (signalling NaNs now and then). The sound
+# (any upper bytes now and then) and any float (signalling NaNs now and then). The rate commands 0x700b80 / 0x700b88 / 0x700b7c /
+# 0x700b84 (0x6b58f0, 0x6b5a10, 0x6b5950, 0x6b59b0): the same, their values any (0-200 mostly), the target an object whose +0x24 is
+# the channel (random now and then: a fault in both). The sound
 # commands 0x700bc0 / 0x700bc4 / 0x700bc8 (0x6b5cb0, 0x6b5ce0, 0x6b5890): as the object's occluder add and remove and the channel's
 # occlusion switch, their arguments the command's +4 on, the target an object whose +0x24 is the channel (none now and then).
 # The channel's slot 14 (0x6b5fc0): see rates_case(). The sound manager's placement (0x6b5ba0): as the object's, through a handle at MGRH.
@@ -33,7 +35,9 @@ CALLS = {'apply': 0x6b8b40, 'settings': 0x6b7d70, 'fn260': 0x6b5e40, 'eax0b': 0x
          'setocc': 0x6b8180, 'addocc': 0x6b8230, 'remocc': 0x6b82c0, 'listremove': 0x6c4ba0, 'flag2': 0x6b9160, 'objopen': 0x6b8480, 'occswitch': 0x6b99c0, 'occadd': 0x6b9a10,
          'objoccadd': 0x6b8c70, 'objoccrem': 0x6b8cb0, 'rec40': 0x6b8f60, 'rates': 0x6b5fc0, 'mgrplace': 0x6b5ba0, 'mgrapply': 0x6b5bd0,
          'rec40flag': 0x6c5c50, 'ratemod': 0x6b98d0, 'cmdoccadd': 0x6b5cb0, 'cmdoccrem': 0x6b5ce0, 'cmdoccswitch': 0x6b5890, 'objeaxrecord': 0x6ba1b0, 'cmdeaxrecord': 0x6b5c90,
-         'release': 0x6b9230, 'recblock': 0x6b9cd0, 'eaxrecord': 0x6c6000}
+         'release': 0x6b9230, 'recblock': 0x6b9cd0, 'eaxrecord': 0x6c6000, 'cmdb80': 0x6b58f0, 'cmdb88': 0x6b5a10, 'cmdb7c': 0x6b5950,
+         'cmdb84': 0x6b59b0}
+RATECMDS = ('cmdb80', 'cmdb88', 'cmdb7c', 'cmdb84')
 SETTERS = ('eaxrecord', 'objeaxrecord', 'cmdeaxrecord', 'occlusion', 'voiceocc', 'clearocc', 'position', 'fn278', 'mode', 'placement', 'voices', 'b4c', 'b3c', 'b54', 'objplace', 'setocc', 'addocc', 'remocc', 'listremove', 'occswitch', 'occadd', 'objoccadd', 'objoccrem', 'mgrplace', 'cmdoccadd', 'cmdoccrem', 'cmdoccswitch')
 B = Bench([(0x6b8b40, 0x6b8b60), (0x6b7d70, 0x6b7e5b), (0x6c4760, 0x6c47a3), (0x6b5e40, 0x6b5e59), (0x6b7910, 0x6b796b),
            (0x6b7970, 0x6b79cb), (0x6c4670, 0x6c46a7), (0x6c46b0, 0x6c475a), (0x6b7b60, 0x6b7d6e), (0x6b79d0, 0x6b7a6b), (0x6b5e60, 0x6b5fb4),
@@ -48,7 +52,8 @@ B = Bench([(0x6b8b40, 0x6b8b60), (0x6b7d70, 0x6b7e5b), (0x6c4760, 0x6c47a3), (0x
            (0x6b8c70, 0x6b8cda), (0x6b8f60, 0x6b8f90), (0x6b5fc0, 0x6b603d), (0x6bb860, 0x6bb8c9), (0x6b5ba0, 0x6b5bc3), (0x6b5bd0, 0x6b5be9),
            (0x6c5c50, 0x6c5c8f), (0x6b9cb0, 0x6b9cc2), (0x6b98d0, 0x6b98ff),
            (0x6b5cb0, 0x6b5cd9), (0x6b5ce0, 0x6b5cf9), (0x6b5890, 0x6b58b0),
-           (0x6b9230, 0x6b925b), (0x6338d0, 0x6338f9), (0x6b9cd0, 0x6b9cf0), (0x6c6000, 0x6c6084), (0x6ba1b0, 0x6ba1e7), (0x6b5c90, 0x6b5ca9), (0x6b9260, 0x6b926e)])
+           (0x6b9230, 0x6b925b), (0x6338d0, 0x6338f9), (0x6b9cd0, 0x6b9cf0), (0x6c6000, 0x6c6084), (0x6ba1b0, 0x6ba1e7), (0x6b5c90, 0x6b5ca9), (0x6b9260, 0x6b926e),
+           (0x6b58f0, 0x6b592d), (0x6b5950, 0x6b598d), (0x6b59b0, 0x6b59ed), (0x6b5a10, 0x6b5a4d)])
 CHAN, OUT, FUNCTOR, FVT, REC, INFO, SRC, SVT, EAXB, KSET, KVT = (RAM + 0x100 * i for i in range(11))
 GLOBAL = 0xfb2058
 VOICES, VVT, SND, SNDVT, POOL, NODES, OCCS, VEC, VEC2, OBJECT, MIXER, COMMAND, P1, P2, P3 = (RAM + 0x1000 + 0x200 * i for i in range(15))
@@ -75,7 +80,7 @@ def case(r):
         return flag2_case(r, log, name)
     if name == 'objopen':
         return objopen_case(r, log)
-    if name in ('rates', 'ratemod'):
+    if name in ('rates', 'ratemod') + RATECMDS:
         return rates_case(r, log, name)
     if name == 'recblock':
         return Call(0x6b9cd0, [REC, FUNCTOR], {REC: r.bytes(0x70), FUNCTOR: r.bytes(0x34)}, conv='t', ret='a')
@@ -197,7 +202,7 @@ def rates_case(r, log, name):
         struct.pack_into('<I', v, 0x18, r.choice([0, 22050, 44100, r.getrandbits(32)]))
         struct.pack_into('<I', v, 0x24, r.choice([0, 0, 0xf, r.getrandbits(4), r.getrandbits(32)]))
         struct.pack_into('<4I', v, 0x34, *[r.choice([fb(0.5), fb(2.0), fb(r.random()), r.getrandbits(32)]) for _ in range(4)])
-        if name == 'ratemod' and r.random() < 0.9:   # (the modifiers' pointer the channel's own, which the set writes)
+        if name != 'rates' and r.random() < 0.9:   # (the modifiers' pointer the channel's own, which the set writes)
             struct.pack_into('<I', v, 0x34, CHAN + 0x48)
         voices += v
     pool = struct.pack('<IIII', r.getrandbits(32), r.choice([VOICES] * 8 + [0]), n, CHAN)
@@ -207,6 +212,11 @@ def rates_case(r, log, name):
     struct.pack_into('<I', svt, 0x80, recorder(8, 3))
     regions = {CHAN: chan, OUT: r.bytes(4), VOICES: voices, POOL: pool, SRC: struct.pack('<I', SVT) + r.bytes(0xc), SVT: svt,
                SHIFT: bytes([r.choice([0, 1, 4, r.getrandbits(8)])]) + r.bytes(3), LOG: log}
+    if name in RATECMDS:
+        value = r.choice([0, 1, 50, 100, 100, 150, 200, r.randrange(201), 0x7fffffff, 0x80000000, 0xffffffff, r.getrandbits(32)])
+        target = struct.pack('<9I', *[r.getrandbits(32) for _ in range(9)]) + struct.pack('<I', CHAN if r.random() < 0.97 else r.getrandbits(32))
+        regions.update({OBJECT: target, COMMAND: struct.pack('<II', r.getrandbits(32), value) + r.bytes(8)})
+        return Call(CALLS[name], [COMMAND, OUT, OBJECT], regions, conv='t', ret='a')
     if name == 'ratemod':
         index = r.randrange(6) | (r.getrandbits(24) << 8 if r.random() < 0.3 else 0)
         return Call(0x6b98d0, [CHAN, OUT, index, r.choice([fb(0.5), fb(2.0), fb(r.random()), 0x7f800001, 0xff812345, 0x7fc00000, r.getrandbits(32)])], regions, conv='t', ret='a')

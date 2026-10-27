@@ -28,11 +28,19 @@ u32 *__fastcall SoundCmd700b50_Run(const u8 *command, void *, u32 *out, u8 *targ
 u32 *__fastcall SoundCmd700b64_Run(const u8 *command, void *, u32 *out, u8 *target);
 u32 *__fastcall SoundCmd700b68_Run(const u8 *command, void *, u32 *out, u8 *target);
 
-// 0x6b59f0 / 0x6b5a50 / 0x6b5990 (vtables 0x700b70 / 0x700b74 / 0x700b78, posted by the sound update 0x51bd80 with 0x803ad8 /
+// 0x6b59f0 / 0x6b5a50 / 0x6b5990 (vtables 0x700b70 / 0x700b74 / 0x700b78, posted by the sound update 0x51bd70 with 0x803ad8 /
 // 0x803adc / 0x803ae0): Bytes44_Set(target's +0x24, out, 3 / 1 / 2, the value).
 u32 *__fastcall SoundCmd700b70_Run(const u8 *command, void *, u32 *out, u8 *target);
 u32 *__fastcall SoundCmd700b74_Run(const u8 *command, void *, u32 *out, u8 *target);
 u32 *__fastcall SoundCmd700b78_Run(const u8 *command, void *, u32 *out, u8 *target);
+
+// 0x6b58f0 / 0x6b5a10 / 0x6b5950 / 0x6b59b0 (vtables 0x700b80 / 0x700b88 / 0x700b7c / 0x700b84, posted by the sound update 0x51bd70
+// with [0x803ab8] / [0x803ac0] / [0x803ac4] / [0x803abc]): SoundChannel_SetRateModifier on target's +0x24 (out, the index 0 / 1 / 2 / 3, the value
+// times 0.01 ([0x70a280]; fild qword of the zero-extended value, fmul float, fstp float)). Returns out.
+u32 *__fastcall SoundCmd700b80_Run(const u8 *command, void *, u32 *out, u8 *target);
+u32 *__fastcall SoundCmd700b88_Run(const u8 *command, void *, u32 *out, u8 *target);
+u32 *__fastcall SoundCmd700b7c_Run(const u8 *command, void *, u32 *out, u8 *target);
+u32 *__fastcall SoundCmd700b84_Run(const u8 *command, void *, u32 *out, u8 *target);
 
 // 0x6b58b0 (vtable 0x700ba8): target's slot 6 (out, the value).
 u32 *__fastcall SoundCmd700ba8_Run(const u8 *command, void *, u32 *out, u8 *target);
