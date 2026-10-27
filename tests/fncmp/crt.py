@@ -2,12 +2,49 @@
 # game's MSVC6 CRT run under the emulator.
 # usage: crt.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
+import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, RAM  # noqa: E402
 
 B = Bench([(0x67a400, 0x6902c0)])
+
+
+def swprintf_hook(e):
+    """An emulator hook for the CRT's swprintf (0x67af00) where a bench runs an original that formats with %d, %s (wide) or %% only: the
+    ports' side has the driver's stand-in (the host's), whose integers the emulator cannot follow into MSVC6's code (its locale lock's
+    imports); this bench checks the stand-in against the original."""
+    sp = e.r['ESP'] + (4 if e.tail else 0)
+    to, fmt = e.u32(sp), e.u32(sp + 4)
+    arg, out, i = sp + 8, '', 0
+    while True:
+        c = struct.unpack('<H', e.read(fmt + 2 * i, 2))[0]
+        i += 1
+        if not c:
+            break
+        if c != 0x25:
+            out += chr(c)
+            continue
+        f = chr(struct.unpack('<H', e.read(fmt + 2 * i, 2))[0])
+        i += 1
+        if f == 'd':
+            out += str(struct.unpack('<i', e.read(arg, 4))[0])
+            arg += 4
+        elif f == 's':
+            p, k = e.u32(arg), 0
+            arg += 4
+            while True:
+                u = struct.unpack('<H', e.read(p + 2 * k, 2))[0]
+                if not u:
+                    break
+                out += chr(u)
+                k += 1
+        else:
+            assert f == '%', f
+            out += '%'
+    e.write(to, out.encode('utf-16-le') + b'\0\0')
+    e.r['EAX'] = len(out)
 A, Z, OUT = RAM, RAM + 0x100, RAM + 0x200  # two strings and an output buffer
 PICK = b'aAbBzZ@[`{.\\ 09-+\t\x80\xc1\xe1\xff'
 

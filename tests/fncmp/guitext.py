@@ -16,11 +16,12 @@ sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import display  # noqa: E402
 import textlayout as tl  # noqa: E402
-from fncmp import HEAP, LOG, RAM, Bench, Call, Mask, echo, fill, heap, log_region, put, set_return, strings, vtable  # noqa: E402
+from fncmp import HEAP, LOG, LOG_BYTES, RAM, Bench, Call, Mask, echo, fill, heap, log_region, put, set_return, strings, vtable  # noqa: E402
 
-B = Bench([(0x41a850, 0x41a870), (0x486780, 0x4867c0), (0x492750, 0x492c50), (0x5f9ac0, 0x5f9da0), (0x5fa680, 0x5fa6b0), (0x5fb770, 0x5fb7a0),
-           (0x61af60, 0x61b040), (0x61b090, 0x61b140), (0x62f8d0, 0x62f950), (0x6ad5d0, 0x6ad740), (0x6ad7c0, 0x6ad860), (0x6ad8f0, 0x6ad910),
+RANGES = ([(0x41a850, 0x41a870), (0x486780, 0x4867c0), (0x492750, 0x492c50), (0x5f9ac0, 0x5f9da0), (0x5fa680, 0x5fa6b0), (0x5fb770, 0x5fb7a0),
+           (0x61af60, 0x61b040), (0x61b090, 0x61b140), (0x62f8d0, 0x62f950), (0x6ad5d0, 0x6ad740), (0x6ad7c0, 0x6ad860), (0x6ad8f0, 0x6ad946),
            (0x6ada00, 0x6adaa0), (0x6add90, 0x6af770), (0x6b0230, 0x6b0340), (0x6b70d0, 0x6b70f0)])
+B = Bench(RANGES)
 CALLS = {'Draw': 0x492750, 'Measure': 0x4929f0}
 SURFACE, INFO, LANG, FONT_TABLE, STYLE, NARROW, BUFFER = 0x7ca120, 0x7ca0e8, 0x78b530, 0x78b54c, 0x78ba2c, 0x78ba80, 0x7b5378
 STATE = display.STATE
@@ -33,10 +34,11 @@ def byte_arg(r, v):
     return (v & 0xff) | r.choice([0, r.getrandbits(24)]) << 8
 
 
-def case(r):
-    op = r.deal(OPS)
-    log = log_region()
-    regions = {LOG: log, HEAP: heap(0x400)}
+def world(r, log, regions):
+    """The text's world (shared: gauge.py's grid draws labels in it): the draw context and its driver table (recorders; slots 8 and 9,
+    the lines, take 5 arguments, the colour's index logged as its byte), the surfaces, the language, the fonts and the font table, the
+    global style, no narrowing table, the font's and the renderer's recorders. Returns (lang, table, codes, lead): the language's index,
+    the font table's bytes, the code table (slot 11's answer: 0 or tl.CODES) and its lead byte."""
     # the draw context
     state = bytearray(r.bytes(0x74))
     xs, ys = sorted([r.randrange(-20, 300), r.randrange(-20, 300)]), sorted([r.randrange(-20, 300), r.randrange(-20, 300)])
@@ -45,7 +47,9 @@ def case(r):
     put(state, 0x30, 'I', DINFO)
     for at in (0x38, 0x40, 0x44, 0x48):
         put(state, at, 'I', DTABLE)
-    regions.update({STATE: state, DTABLE: vtable({}, 16), DINFO: display.info(r), INFO: display.info(r)})
+    regions.update({STATE: state, DTABLE: vtable({8: 5, 9: 5}, 16), DINFO: display.info(r), INFO: display.info(r)})
+    for slot in (8, 9):
+        struct.pack_into('<I', log, LOG_BYTES + 4 * slot, 1 << 4)
     regions[SURFACE] = struct.pack('<I', r.choice([0, r.getrandbits(32) | 1, 1]))
     lang = r.randrange(0, 3)
     regions[LANG] = struct.pack('<4I', r.getrandbits(32), lang, r.choice([0x40d, 0x409, 0x40d, r.getrandbits(32)]), r.getrandbits(32))
@@ -57,8 +61,6 @@ def case(r):
     for i in range(39):
         put(table, 24 * i + 0x14, 'I', r.choice(fonts * 4 + [0]))
     regions[FONT_TABLE] = table
-    font = r.choice([r.randrange(0, 13)] * 24 + [13, 0xff])
-    entry_font = struct.unpack_from('<I', table, 24 * (font + 13 * lang) + 0x14)[0] if font < 13 else None
     style = bytearray(r.bytes(0x50))
     put(style, 4, 'I', r.choice(fonts + [0]))
     regions[STYLE] = style
@@ -76,6 +78,16 @@ def case(r):
     glyphs = [r.choice([9, 10, 13, 0x20, 0x41, 0x28, 0x29, r.getrandbits(16)]) for _ in range(0x200)]
     regions[tl.GLYPHS] = struct.pack('<512H', *[0x41 if 0x5b0 < g < 0x5eb else g for g in glyphs])   # (no right to left glyph)
     tl.renderer_setup(r, regions, log)
+    return lang, table, codes, lead
+
+
+def case(r):
+    op = r.deal(OPS)
+    log = log_region()
+    regions = {LOG: log, HEAP: heap(0x400)}
+    lang, table, codes, lead = world(r, log, regions)
+    font = r.choice([r.randrange(0, 13)] * 24 + [13, 0xff])
+    entry_font = struct.unpack_from('<I', table, 24 * (font + 13 * lang) + 0x14)[0] if font < 13 else None
     # the text: none, or one record (a byte, or a lead byte and the next)
     text = bytearray(0x10)
     kind = r.randrange(0, 4)
