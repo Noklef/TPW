@@ -51,6 +51,23 @@ u32 __cdecl Sound_SetParam(u32 sound, u32 parameter, u32 value);
 // engine's slot 5) with the sound and the position as three floats on the stack (each converted from the int), whose answer is returned.
 u32 __cdecl Sound_SetPosition(u32 sound, s32 x, s32 y, s32 z);
 
+// The sound commands' senders (cdecl; names invented): nothing unless sound is on (0x802bc8) and started (0x802bd4); else the manager
+// [0x802bcc]'s SoundManager_Apply with a stack command and an out that is one of the sender's own argument slots (EAX: that address, or 0
+// when off; not kept).
+// 0x51c0a0 (id): the command 0x700ba0 {id} (the sound object's functor 3 send), the out the id's slot.
+void __cdecl Sound_VoiceFunctor3(u32 id);
+// 0x51c0e0 (id, value): the command 0x700ba4 {value, id} (the mixer's pending value), the out the value's slot.
+void __cdecl Sound_SetVoicePending(u32 id, u32 value);
+// 0x51c2c0 (value): the command 0x700ba8 {value} (the sound object's slot 6), the out the value's slot.
+void __cdecl Sound_Forward6(u32 value);
+// 0x51c300 (id): the command 0x700bac {id, 0x3c} (the voice's slot 0xc with 0x3c), the out the id's slot.
+void __cdecl Sound_Stop(u32 id);
+// 0x51c640 (x, unused, y, radius, z): the command 0x700bc0 {x, y, z, radius, &x} (the occluder add: the node into x's slot), the out y's
+// slot; returns x's slot after it (0 when off).
+u32 __cdecl Sound_AddOccluder(u32 x, u32 unused, u32 y, u32 radius, u32 z);
+// 0x51c6b0 (node): the command 0x700bc4 {&node} (the occluder remove), the out a local (unset before the run).
+void __cdecl Sound_RemoveOccluder(u32 node);
+
 // 0x51b7c0 (cdecl): when on and started, the sound manager's vtable +0 (&result, not read after); then not started. The
 // warning when the allocation count 0x802bd8 is not back to 0 is compiled out.
 void __cdecl Sound_Shutdown();

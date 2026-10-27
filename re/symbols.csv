@@ -2562,6 +2562,12 @@ address,name,kind,confidence,notes
 0x0051bc40,Sound_SetParam,function,low,"reimplemented (src/game/core/soundset); cdecl (sound, parameter, value): 0 unless sound is on (0x802bc8) and started (0x802bd4); else the manager 0x802bcc's SoundManager_Call3 (its engine's slot 3) with them, its answer returned"
 0x0051c270,Sound_SetPosition,function,low,"reimplemented (src/game/core/soundset); cdecl (sound, x, y, z): 0 unless sound is on and started; else the manager's SoundManager_Call5 (its engine's slot 5) with the sound and the position as three floats on the stack, its answer returned"
 0x0051e890,Sound_RegisterGlobalLobbySfx,function,low,"reimplemented (src/game/core/soundset); cdecl: from the folder named the String 0x8030d8, cat_globallobbysfx to 0x803a48"
+0x0051c0a0,Sound_VoiceFunctor3,function,low,"reimplemented (src/game/core/soundset); cdecl (id): with sound on and started, the manager's apply with the stack command 0x700ba0 {id} (the out the id's slot)"
+0x0051c0e0,Sound_SetVoicePending,function,low,"reimplemented (src/game/core/soundset); cdecl (id, value): with sound on and started, the manager's apply with the stack command 0x700ba4 {value, id} (the out the value's slot)"
+0x0051c2c0,Sound_Forward6,function,low,"reimplemented (src/game/core/soundset); cdecl (value): with sound on and started, the manager's apply with the stack command 0x700ba8 {value} (the out the value's slot)"
+0x0051c300,Sound_Stop,function,low,"reimplemented (src/game/core/soundset); cdecl (id): with sound on and started, the manager's apply with the stack command 0x700bac {id, 0x3c} (the out the id's slot)"
+0x0051c640,Sound_AddOccluder,function,low,"reimplemented (src/game/core/soundset); cdecl (x, unused, y, radius, z): with sound on and started, the manager's apply with the stack command 0x700bc0 {x, y, z, radius, &x} (the out y's slot); returns x's slot after it, else 0"
+0x0051c6b0,Sound_RemoveOccluder,function,low,"reimplemented (src/game/core/soundset); cdecl (node): with sound on and started, the manager's apply with the stack command 0x700bc4 {&node} (the out an unset local)"
 0x005af7f0,GlobalSave_ThemeByte,function,high,reimplemented (src/game/core/globalsave); thiscall u8 (i): byte i of the global save info's (0xf7c58c) current theme record (+0x48)
 0x005af800,GlobalSave_Byte26,function,high,reimplemented (src/game/core/globalsave); thiscall u8 (i): byte +0x26 + i of the global save info
 0x005afc30,GlobalSave_Inc20,function,high,reimplemented (src/game/core/globalsave); thiscall: the global save info's counter +0x20 incremented

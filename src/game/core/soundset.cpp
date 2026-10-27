@@ -73,6 +73,52 @@ u32 __cdecl Sound_SetPosition(u32 sound, s32 x, s32 y, s32 z) {
     return SoundManager_Call5(global<u8 *>(0x00802bcc), nullptr, sound, (u32)(uintptr_t)position);
 }
 
+namespace {
+
+bool On() { return global<u32>(0x00802bc8) && global<u32>(0x00802bd4); }
+
+void Apply(u32 *out, u32 *functor) { SoundManager_Apply(global<u8 *>(0x00802bcc), nullptr, out, reinterpret_cast<u8 *>(functor)); }
+
+}  // namespace
+
+void __cdecl Sound_VoiceFunctor3(u32 id) {
+    if (!On()) return;
+    u32 functor[2] = {0x00700ba0, id};
+    Apply(&id, functor);
+}
+
+void __cdecl Sound_SetVoicePending(u32 id, u32 value) {
+    if (!On()) return;
+    u32 functor[3] = {0x00700ba4, value, id};
+    Apply(&value, functor);
+}
+
+void __cdecl Sound_Forward6(u32 value) {
+    if (!On()) return;
+    u32 functor[2] = {0x00700ba8, value};
+    Apply(&value, functor);
+}
+
+void __cdecl Sound_Stop(u32 id) {
+    if (!On()) return;
+    u32 functor[3] = {0x00700bac, id, 0x3c};
+    Apply(&id, functor);
+}
+
+u32 __cdecl Sound_AddOccluder(u32 x, u32, u32 y, u32 radius, u32 z) {
+    if (!On()) return 0;
+    u32 functor[6] = {0x00700bc0, x, y, z, radius, (u32)(uintptr_t)&x};
+    Apply(&y, functor);
+    return x;
+}
+
+void __cdecl Sound_RemoveOccluder(u32 node) {
+    if (!On()) return;
+    u32 out;   // (unset: the run writes it)
+    u32 functor[2] = {0x00700bc4, (u32)(uintptr_t)&node};
+    Apply(&out, functor);
+}
+
 u32 __cdecl Sound_QueryFound(const char *name, u8 *folders) {
     String found, key;
     String_Ctor(&found);
