@@ -221,6 +221,7 @@
 #include "../game/core/streampool.h"
 #include "../game/core/stringmapsrecord.h"
 #include "../game/core/voicecodec.h"
+#include "../game/core/voiceevents.h"
 #include "../game/core/voicesample.h"
 #include "../game/core/waveformat.h"
 #include "../game/core/wscanner.h"
@@ -4614,6 +4615,10 @@ const Hook kHooks[] = {
     {"SilenceStream_DeletingDtor", 0x006c67d0, (void *)&SilenceStream_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x58}},
     {"SilenceStream_Ctor",        0x006c6730, (void *)&SilenceStream_Ctor, {0x6a, 0xff, 0x68, 0xd8, 0x64}},
     {"WaveFormat_Build",          0x006d3a80, (void *)&WaveFormat_Build, {0x66, 0x83, 0x79, 0x04, 0x00}},
+    {"VoiceEvents_Ctor",          0x006c6120, (void *)&VoiceEvents_Ctor, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"VoiceEvents_Dtor",          0x006c6090, (void *)&VoiceEvents_Dtor, {0x6a, 0xff, 0x68, 0xbb, 0x64}},
+    {"VoiceEvents_DeletingDtor",  0x006c6100, (void *)&VoiceEvents_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x88}},
+    {"VoiceEvents_Stop",          0x006c6160, (void *)&VoiceEvents_Stop, {0x8b, 0x41, 0x14, 0x8b, 0x51}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

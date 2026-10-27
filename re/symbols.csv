@@ -4708,6 +4708,10 @@ address,name,kind,confidence,notes
 0x006c67d0,SilenceStream_DeletingDtor,function,low,"reimplemented (src/game/core/silencestream); thiscall (flags), pops 4; slot 0 of 0x70ab58: VoiceSample_Dtor, then the pool's delete with bit 0 (name invented)"
 0x006c6730,SilenceStream_Ctor,function,low,"reimplemented (src/game/core/silencestream); thiscall (ms, format), pops 8: the silence stream's fields cleared, vtable 0x70ab58, the format set, +0x18 the ms in bytes at the sample rate, even (name invented)"
 0x006d3a80,WaveFormat_Build,function,low,"reimplemented (src/game/core/waveformat); thiscall, returns +4: once (tag +4 0), the WAVEFORMATEX at +4 from the format record at +0x18 (channels 2 for its bit 0, rate, bits) or from +0 / +1 / +2; block align channels * bits >> 3, bytes per second rate * align, tag 1, cbSize 0 (name invented)"
+0x006c6120,VoiceEvents_Ctor,function,low,"reimplemented (src/game/core/voiceevents); thiscall (voices, count), pops 8: +4 the voices, +0xc the count, +8 count + 1 handles in a block at +0x10 (Mem_Alloc), +0x14 0, vtable 0x70ab50 (name invented)"
+0x006c6090,VoiceEvents_Dtor,function,low,"reimplemented (src/game/core/voiceevents); thiscall (an SEH frame): the vtable 0x70ab50, each handle closed (CloseHandle), the block freed (name invented)"
+0x006c6100,VoiceEvents_DeletingDtor,function,low,"reimplemented (src/game/core/voiceevents); thiscall (flags), pops 4; slot 0 of 0x70ab50: the destructor, freed for flags bit 0 (name invented)"
+0x006c6160,VoiceEvents_Stop,function,low,"reimplemented (src/game/core/voiceevents); thiscall: flag 0 of +0x14 set, the stop event (the handle at index count) set (SetEvent); returns its answer (name invented)"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
