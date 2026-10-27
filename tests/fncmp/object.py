@@ -5,7 +5,8 @@
 # or anything; an upgrade level of 0 to 7. Its share of the first level's cost (0x4e2400): costs about the product's wrap. The
 # mechanic's stamp (0x4e01f0) and +0x180 - +0x184 (0x4e1c60): any object bytes, handle word and clock. ShowRefund (0x4b47a0, the panel
 # 0x7cc328's slot 5, src/game/ui/panel7cc328): Refund's surroundings with the object the shown thing [0x7c2658], the panel's window +0x14
-# with the child 0x1e8a among 0-3 decoys, its slot 7 a recorder of one.
+# with the child 0x1e8a among 0-3 decoys, its slot 7 a recorder of one. Values228 / Values3e0 (0x499a70 / 0x4b6720, the panels 0x7ca228's
+# and 0x7cc3e0's slot 5, src/game/ui/panel7ca228 / panel7cc3e0): see values_case.
 # usage: object.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=GetDef,AddCustomer,...)
 import os
 import struct
@@ -19,14 +20,16 @@ from funnytime import IMPORTS, K, RANGES as CLOCK_RANGES  # noqa: E402
 B = Bench([(0x4dd4e0, 0x4dd4fb), (0x4e1670, 0x4e168b), (0x4e1690, 0x4e16ab), (0x4e1e00, 0x4e1e2b),
            (0x4e2190, 0x4e21a2), (0x4e21c0, 0x4e21d2), (0x4e2710, 0x4e273b), (0x4e2b50, 0x4e2b7b),
            (0x412e90, 0x412eea), (0x4e2290, 0x4e23f4), (0x4e2400, 0x4e243f), (0x4e01f0, 0x4e0209), (0x4e1c60, 0x4e1c70),
-           (0x4b47a0, 0x4b47cb), (0x65d7bc, 0x65d822)] + CLOCK_RANGES)
+           (0x4b47a0, 0x4b47cb), (0x65d7bc, 0x65d822), (0x499a70, 0x499ae7), (0x4b6720, 0x4b6797), (0x519510, 0x51954d), (0x4ca8c0, 0x4ca8dd),
+           (0x4d3d80, 0x4d3df0), (0x5da3c0, 0x5da3c1)] + CLOCK_RANGES)
 DEFS, OBJ, ITEMS, NITEMS = 0x7890a0, RAM, RAM + 0x400, 16
 WORLD = 0x31000000   # (its calendar clock at +0x2a0 and its ticks at +0x1da70c)
 DAY, YEAR = 864000000000, 365 * 864000000000   # FILETIME ticks
 CALLS = {'GetDef': (0x4dd4e0, 'f', 'a'), 'AddWalkAway': (0x4e1670, 'f', 'v'), 'AddCustomer': (0x4e1690, 'f', 'v'),
          'Happiness': (0x4e1e00, 't', 'v'), 'Quality': (0x4e2190, 't', 'v'), 'Chance': (0x4e21c0, 't', 'v'),
          'Word284': (0x4e2710, 't', 'a'), 'IsKind3': (0x4e2b50, 'f', 'a'), 'Scrap': (0x4e2290, 'f', 'a'), 'Refund': (0x4e2400, 'f', 'a'),
-         'Stamp5e': (0x4e01f0, 't', 'a'), 'Diff': (0x4e1c60, 't', 'a'), 'ShowRefund': (0x4b47a0, 't', 'v')}
+         'Stamp5e': (0x4e01f0, 't', 'a'), 'Diff': (0x4e1c60, 't', 'a'), 'ShowRefund': (0x4b47a0, 't', 'v'),
+         'Values228': (0x499a70, 't', 'v'), 'Values3e0': (0x4b6720, 't', 'v')}
 PANEL, WIN, KIDS, KVT = RAM + 0x8000, RAM + 0x8100, RAM + 0x8200, RAM + 0x8800
 
 
@@ -85,7 +88,7 @@ def case(r):
     put(defs, 0x730, 'HxxI', id_ if hit else id_ ^ r.randrange(1, 0x10000),
         ITEMS + 0x300 * r.randrange(NITEMS))
     put(obj, 0xe, 'H', id_)
-    if op in ('Scrap', 'Refund', 'ShowRefund'):
+    if op in ('Scrap', 'Refund', 'ShowRefund', 'Values228', 'Values3e0'):
         regions = {DEFS: defs, OBJ: obj, ITEMS: items}
         clock(r, regions, obj)
         for i in range(NITEMS):
@@ -105,6 +108,8 @@ def case(r):
             regions.update({KIDS: kids, WIN: put(bytearray(r.bytes(0x100)), 0x5c, 'I', KIDS), KVT: vtable({7: 1}),
                             PANEL: put(bytearray(r.bytes(0x40)), 0x14, 'I', WIN), 0x7c2658: struct.pack('<I', OBJ)})
             return Call(addr, [PANEL], regions, conv=conv, ret=ret)
+        if op in ('Values228', 'Values3e0'):
+            return values_case(r, op, regions, obj)
         return Call(addr, [OBJ], regions, conv=conv, ret=ret)
     args = [OBJ]
     if op in ('Happiness', 'Quality', 'Chance'):
@@ -112,6 +117,37 @@ def case(r):
     elif op == 'Word284':
         args.append(OBJ + 0x3f0 + r.randrange(4))
     return Call(addr, args, {DEFS: defs, OBJ: obj, ITEMS: items}, conv=conv, ret=ret)
+
+
+def values_case(r, op, regions, obj):
+    """Values228 / Values3e0 (0x499a70 / 0x4b6720): Refund's world with the shown thing [0x7c2658] the object; the panel's window +0x14
+    (none now and then) with the children of the control value and the refund (0x1586 / 0x1584, 0x5210 / 0x520e; the first missing now
+    and then, the second too, a fault in both) among 0-2 decoys, each with its slot 7 a recorder of one; the game's controls table
+    (objectcontrols.py's, at [0x80239c] + 0x1d943c) with a record of the object's word +0xe mostly (found in it or by its cache), and the
+    game's word +0x1da720 (GameTable7cfb90_Get1da720_519510 of [0x7cf83c])."""
+    first, second = (0x1586, 0x1584) if op == 'Values228' else (0x5210, 0x520e)
+    ids = [first, second] if r.random() < 0.85 else r.choice([[second], [second], [first]])
+    ids += [r.choice([0, first + 1, second - 1, first | 0x10000, r.getrandbits(32)]) for _ in range(r.choice([0, 1, 2]))]
+    r.shuffle(ids)
+    kids = bytearray()
+    for k, ident in enumerate(ids):
+        kid = put(put(bytearray(r.bytes(0x100)), 0, 'I', KVT), 0x8c, 'I', ident)
+        kids += put(kid, 0x54, 'I', KIDS + 0x100 * (k + 1) if k + 1 < len(ids) else 0)
+    own = struct.unpack_from('<H', obj, 0xe)[0]
+    table = bytearray(r.bytes(0x12cc))   # (to the cache's record +0x12c8: the clock's ticks at +0x1da70c follow)
+    have = r.choice([1, 3, 6, 6])
+    put(table, 0x12c0, 'i', have)
+    for k in range(have):
+        put(table, 0x20 * k, 'H', r.choice([own, 1, 2, 9, r.getrandbits(16)]))
+    put(table, 0x20 * r.randrange(have), 'H', own if r.random() < 0.6 else r.getrandbits(16))
+    hit = r.randrange(have)
+    put(table, 0x12c4, 'H', r.choice([own, own, 0, 9]))
+    put(table, 0x12c8, 'I', WORLD + 0x1d943c + 0x20 * hit if r.random() < 0.9 else 0)
+    regions.update({KIDS: kids or bytes(4), WIN: put(bytearray(r.bytes(0x100)), 0x5c, 'I', KIDS if kids else 0), KVT: vtable({7: 1}),
+                    PANEL: put(bytearray(r.bytes(0x40)), 0x14, 'I', WIN if r.random() < 0.92 else 0), 0x7c2658: struct.pack('<I', OBJ),
+                    WORLD + 0x1d943c: table, WORLD + 0x1da720: struct.pack('<H', r.randrange(4)), 0x7cfb90: r.bytes(0x50),
+                    0x7cf83c: struct.pack('<I', WORLD)})
+    return Call(CALLS[op][0], [PANEL], regions, conv='t', ret='v')
 
 
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]

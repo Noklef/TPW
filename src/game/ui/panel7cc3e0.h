@@ -17,4 +17,8 @@ void __fastcall Panel7cc3e0_Open(u8 *self);
 // window built (WindowAt10_Create: the script 0x7573c8, the handler 0x4b67f0, the children 0x520c and 0x520d, no inner one), then the advisor posted 0x12d (Advisor_PostId).
 void __fastcall Panel7cc3e0_Show(u8 *self, void *, u8 *thing);
 
+// 0x4b6720 (thiscall; slot 5 of the vtable 0x6ffec8; name invented): Panel7ca228_ShowValues with the children 0x5210 (the control
+// record's +0x18) and 0x520e (the scrap refund).
+void __fastcall Panel7cc3e0_ShowValues(u8 *self);
+
 }  // extern "C"
