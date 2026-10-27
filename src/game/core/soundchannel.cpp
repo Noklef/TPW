@@ -11,6 +11,7 @@
 #include "initializers.h"
 #include "ptrlist.h"
 #include "soundeax.h"
+#include "soundindex.h"
 #include "soundoccluders.h"
 #include "thunks.h"
 #include "vcall.h"
@@ -48,6 +49,10 @@ s32 fistp(float x) { return _mm_cvtss_si32(_mm_set_ss(x)); }
 }  // namespace
 
 extern "C" {
+
+u8 *__fastcall SoundChannel_NewResource(u8 *channel, void *, const u32 *desc) {
+    return SoundResource_New(at<u8 *>(channel, 0x1c), desc, channel);
+}
 
 u32 *__fastcall SoundChannel_Apply(u8 *channel, void *, u32 *out, u8 *functor) {
     vcall<void>(functor, 0, out, channel);

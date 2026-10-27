@@ -17,6 +17,21 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 extern "C" {
 
+u8 *__stdcall SoundResource_New(const u8 *owner, const u32 *desc, u8 *source) {
+    u32 *const out = reinterpret_cast<u32 *>(&desc);   // (sic: the arguments' own slots)
+    if (static_cast<s32>(*SoundResource_Create(out, &source, owner, desc, source)) < 0) return nullptr;
+    u8 *const ref = static_cast<u8 *>(GameHeap_Alloc(0xc));
+    if (!ref) return nullptr;
+    return SoundResourceRef_Ctor(ref, nullptr, source);
+}
+
+u8 *__fastcall SoundResourceRef_Ctor(u8 *ref, void *, u8 *resource) {
+    Class703770_Ctor(ref);
+    at<u32>(ref, 0) = 0x0070af18;
+    at<u8 *>(ref, 8) = resource;
+    return ref;
+}
+
 u8 *__fastcall SoundResource_Ctor(u8 *self, void *, u8 *source) {
     Class703770_Ctor(self);
     at<u32>(self, 8) = 0;

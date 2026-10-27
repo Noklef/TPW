@@ -10,6 +10,9 @@
 
 extern "C" {
 
+// 0x6b8160 (thiscall (desc), pops 4; name invented): 0x6c53c0's new resource (the channel's +0x1c the owner, desc, the channel the source).
+u8 *__fastcall SoundChannel_NewResource(u8 *channel, void *, const u32 *desc);
+
 // 0x6b8b40 (thiscall (out, functor), pops 8): the functor's slot 0 (out, channel). Returns out.
 u32 *__fastcall SoundChannel_Apply(u8 *channel, void *, u32 *out, u8 *functor);
 

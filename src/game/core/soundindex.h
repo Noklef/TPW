@@ -53,5 +53,11 @@ u8 *__fastcall SoundMapIndex_DeletingDtor(u8 *self, void *, u32 flags);
 // SfBank_Ctor (source, the owner's +4)); *resource = the object (null when the block is). When *resource (read back) is not null, its
 // slot 3 (out, desc +0xc, desc +4); otherwise *out = -1. Returns out.
 u32 *__stdcall SoundResource_Create(u32 *out, u8 **resource, const u8 *owner, const u32 *desc, u8 *source);
+// 0x6c53c0 (stdcall (owner, desc, source), pops 0xc; an SEH frame; ECX unused; name invented): SoundResource_Create with its out and
+// resource the desc and source arguments' own slots (sic); a negative answer: 0. Else a SoundResourceRef (Mem_Alloc 0xc) over the new
+// resource, or 0 when the block is.
+u8 *__stdcall SoundResource_New(const u8 *owner, const u32 *desc, u8 *source);
+// 0x6c8b40 (thiscall (resource), pops 4; name invented): Class703770_Ctor, the vtable 0x70af18, +8 = the resource. Returns the object.
+u8 *__fastcall SoundResourceRef_Ctor(u8 *ref, void *, u8 *resource);
 
 }  // extern "C"
