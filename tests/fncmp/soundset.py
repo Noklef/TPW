@@ -69,12 +69,12 @@ def update_case(r, log):
     struct.pack_into('<I', settings, 0, r.choice([0, 1, 50, 100, 150, 200, r.getrandbits(32)]))
     for k in (4, 8):
         struct.pack_into('<I', settings, k, r.choice([0, 1, 50, 100, 127, 255, 0x7fffffff, r.getrandbits(32)]))
-    struct.pack_into('<I', settings, 0xc, r.choice([0, 1, 100, 100, 0xffffffff, 0x80000000, r.getrandbits(32)]))
+    struct.pack_into('<I', settings, 0xc, r.choice([0, 0, 0, 1, 100, 100, 0xffffffff, 0x80000000, r.getrandbits(32)]))
     struct.pack_into('<I', settings, 0x10, r.choice([1, 1, 1, 1, 0, r.getrandbits(32)]))
     struct.pack_into('<I', settings, 0x14, r.choice([0, 1, 1, r.getrandbits(32)]))
     struct.pack_into('<H', settings, 0x18, r.choice([0, 0, 1, 0x100, r.getrandbits(16)]))
-    for k in (0x20, 0x24, 0x28):
-        struct.pack_into('<I', settings, k, r.choice([0, 1, 1, 2, 0xff, r.getrandbits(32)]))
+    for k in (0x20, 0x24, 0x28):   # (+0x28, 0x803ae0, also one of the scaling's conditions)
+        struct.pack_into('<I', settings, k, r.choice([0, 0, 1, 1, 2, 0xff, r.getrandbits(32)]))
     g = bytearray(r.bytes(0x20))
     struct.pack_into('<II', g, 8, r.choice([1] * 8 + [0, r.getrandbits(32)]), SMGR)
     struct.pack_into('<I', g, 0x14, r.choice([1] * 8 + [0, r.getrandbits(32)]))
