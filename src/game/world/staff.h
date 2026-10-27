@@ -102,6 +102,9 @@ u32 __fastcall StaffPool_FirstInvalid(const u8 *pool);
 
 // 0x508380 (type; called by 0x4c9e4b): how many of the pool's 0x20 entries are mValid (+0xa) with the dword +0 the type.
 u32 __fastcall StaffPool_CountOfType(const u8 *pool, void *, u32 type);
+// 0x507080 (thiscall; the pool's element constructor, passed to the array constructor by 0x507800; name invented): mType +0 and +0xc
+// cleared, the bytes +9 (mSubType), +0xa (mValid) and +0xb (mOnPointer) cleared. Returns the entry.
+u8 *__fastcall StaffPoolEntry_Ctor(u8 *entry);
 
 // 0x50c620: the staff training (serialized at 0x50c640: 5 x u32 mBudget, u8 mHaveEverTrained)
 // zeroed. Returns it.

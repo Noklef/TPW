@@ -4073,6 +4073,7 @@ address,name,kind,confidence,notes
 0x00508380,StaffPool_CountOfType,function,low,reimplemented (src/game/world/staff); how many of the pool's 0x20 valid entries have the type
 0x00504a90,Staff_Ctor,function,low,"reimplemented (src/game/world/staff); MovingPerson_Ctor, +0x1e4 = 0, +0x1f0-+0x1fc cleared, Staff_InitBase"
 0x00504b10,Staff_CtorTyped,function,low,"reimplemented (src/game/world/staff); MovingPerson_Ctor, +0x1e4 = the type, +0x1f0-+0x1fc cleared, Staff_InitBase"
+0x00507080,StaffPoolEntry_Ctor,function,low,"reimplemented (src/game/world/staff); the staff pool's element constructor: mType +0 and +0xc cleared, the bytes +9, +0xa, +0xb cleared; returns the entry"
 0x00520d60,FreeList_Take,function,high,reimplemented (src/game/core/voices); takes a record off the free list into a table entry
 0x00521890,FreeList_Return,function,high,reimplemented (src/game/core/voices); puts a record back on the free list
 0x00521d60,Voice_ScaleLevels,function,high,reimplemented (src/game/core/voices); scales a voice's levels by the factor over 1024

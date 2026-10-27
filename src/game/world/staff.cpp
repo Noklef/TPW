@@ -208,6 +208,15 @@ u32 __fastcall StaffPool_CountOfType(const u8 *pool, void *, u32 type) {
     return count;
 }
 
+u8 *__fastcall StaffPoolEntry_Ctor(u8 *entry) {
+    at<u32>(entry, 0xc) = 0;
+    at<u32>(entry, 0) = 0;
+    at<u8>(entry, 9) = 0;
+    at<u8>(entry, 0xa) = 0;
+    at<u8>(entry, 0xb) = 0;
+    return entry;
+}
+
 u16 *__fastcall Staff_NearestInList1da740(const u8 *object, void *, u16 *out) {
     u16 best = 0;
     u32 bestDistance = 0xffffffff;
