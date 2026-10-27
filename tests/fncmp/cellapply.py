@@ -59,8 +59,11 @@ def case(r):
     regions[0x820aec] = struct.pack('<i', counter) + regions[0x820aec][4:]
     cell = bytearray(regions[cellmodel.CELL])
     put(cell, 4, 'I', r.choice([0, 0, 5, r.getrandbits(32)]))
-    if r.random() < 0.3:   # (the default model: kind not positive, or 5)
+    k = r.random()
+    if k < 0.3:   # (the default model: kind not positive, or 5)
         put(cell, 8, 'i', r.choice([0, 5, -3, -0x19]))
+    elif k < 0.45:   # (the kinds the flag 0x81b4cc leaves)
+        put(cell, 8, 'i', r.choice([0xb, 0x10, 0xc, 0x11]))
     handle = struct.unpack_from('<H', cell, 0)[0]
     regions[cellmodel.CELL] = cell
     mapc = bytearray(r.bytes(0x44))
