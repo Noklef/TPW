@@ -70,6 +70,10 @@ u32 *__fastcall SoundMixer_SendVoice(u8 *mixer, void *, u32 *out, u32 id, u32 va
 // else its slot 10 (a, b) and the id returned.
 u32 __fastcall SoundMixer_CallVoice10(u8 *mixer, void *, u32 id, u32 a, u32 b);
 
+// 0x6b65e0 (thiscall (id, value), pops 8; called by 0x6b8990; name invented): the voice for the id (SoundMixer_FindVoice): none, 0; else
+// its slot 9 (an out that is the id's own stack slot, sic; value): the id when the status it returns a pointer to is not negative, else 0.
+u32 __fastcall SoundMixer_CallVoice9(u8 *mixer, void *, u32 id, u32 value);
+
 // 0x6b69b0 (thiscall (out), pops 4; name invented): a new page of 100 voices (VoicePage_New); *out = -1 when that fails. Else the
 // page appended to the list at +0x1c (after its last page, through +8), each voice given the next id (+0x2c, the mixer's counter
 // +0x2c then raised), its flags +0x30 0 and pushed on the free chain (Chain20_PushFront), the pages' count +0x28 raised and *out = 0.

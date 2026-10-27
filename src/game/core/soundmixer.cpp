@@ -185,6 +185,14 @@ u32 __fastcall SoundMixer_CallVoice10(u8 *mixer, void *, u32 id, u32 a, u32 b) {
     return id;
 }
 
+u32 __fastcall SoundMixer_CallVoice9(u8 *mixer, void *, u32 id, u32 value) {
+    u8 *const voice = SoundMixer_FindVoice(mixer, nullptr, id);
+    if (!voice) return 0;
+    u32 local = id;   // (the out: the id's own stack slot, sic)
+    const s32 *const status = vcall<const s32 *>(voice, 0x24, &local, value);
+    return *status >= 0 ? id : 0;
+}
+
 u32 *__fastcall SoundMixer_AddPage(u8 *mixer, void *, u32 *out) {
     u8 *page;
     s32 status;
