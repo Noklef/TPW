@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <cstdint>
+#include <cstring>
 
 #include "../core/globalmem.h"
 #include "../math/matrix.h"
@@ -12,6 +13,7 @@
 #include "contacts.h"
 #include "cursor.h"
 #include "helpers.h"
+#include "../terrain/land.h"
 
 namespace {
 
@@ -621,6 +623,62 @@ void __cdecl Car_SwapWithNextAt(u32 index) {
 void __cdecl Car_SwapWithPrevAt(u32 index) {
     u8 *const car = PieceAt(index & 0xffff);
     Train_SwapCars(car, at<u8 *>(at<u8 *>(car, 0x100), 0x30 + 4 * at<u32>(car, 4)));
+}
+
+void __cdecl Train_PlaceCarAtBrace(u8 *coaster, u8 *car, u8 *train, u32, u32 save) {
+    const u8 *const other = at<const u8 *>(coaster, (at<u8>(coaster, 0x3c) & 2) ? 0x64 : 0x54);
+    u32 out = 0;   // (the loop's counter's slot: 0 after a saved train; Train_InsertCar always writes it)
+    u32 type;
+    const bool marks = (global<u8>(0x0079c658) & 0x40) != 0;
+    if (save) {
+        std::memcpy(reinterpret_cast<void *>(0x00790ff0), train, 0x48);
+        const u32 count = global<u32>(0x00791020);
+        for (u32 k = 0; k < count; ++k) {
+            const u8 *const c = at<const u8 *>(train, 0x34 + 4 * k);
+            if (c) std::memcpy(reinterpret_cast<void *>(0x00791d00 + 0x104 * k), c, 0x104);
+            reinterpret_cast<u32 *>(0x00791038)[k] = at<u32>(c, 0x50);   // (an empty slot faults, sic)
+        }
+        global<u32>(0x00791cd8) = 1;
+        type = at<u32>(train, 0x18);
+    } else {
+        type = at<u32>(coaster, 4) + (marks ? 0x1c8 : 0xa8);
+    }
+    if (marks) {
+        at<u32>(car, 8) |= 0x40;
+        if (global<u32>(0x0079c664) == 2) at<u32>(car, 8) |= 0x80;
+    }
+    if (!save) at<u32>(train, 0x18) = type;
+    u32 wanted;
+    const bool fromOther = save && at<const u8 *>(other, 0x100) == train;
+    if (fromOther) {
+        const u32 index = *at<const u32 *>(other, 0x74);
+        wanted = X87_FloatThrough(at<u32>(at<const u8 *>(at<const u8 *>(other, 0x90), 4), index * 0x58 + 0x44));
+    } else {
+        const float v = (float)Car_LengthFromNode(train, reinterpret_cast<const u8 *>((uintptr_t)type), at<u8 *>(car, 0x68),
+                                                  at<const u8 *>(coaster, 0x5c), at<u32>(car, 8) & 0x80, 1, nullptr);
+        std::memcpy(&wanted, &v, 4);
+    }
+    u32 level = (u32)(uintptr_t)other;   // (the slots Pylon_FindBraceLevel writes: the other car's, then the car argument's)
+    u32 height = (u32)(uintptr_t)car;
+    float w;
+    std::memcpy(&w, &wanted, 4);
+    Pylon_FindBraceLevel(w, train, &level, reinterpret_cast<float *>(&height), 1);
+    at<u32>(car, 0x50) = height;
+    float h;
+    std::memcpy(&h, &height, 4);
+    Train_InsertCar(coaster, car, train, level, h, reinterpret_cast<float *>(&out), 1, 0, 1, 0);
+    if (fromOther) {
+        at<u32>(car, 0x50) = wanted;
+    } else {
+        at<u32>(car, 0x50) = out;
+        const s32 y = (s32)(long long)(X87Reg(at<float>(train, 0x24)) * 0.100000001f).v;   // 0x6fdedc, __ftol
+        const s32 x = (s32)(long long)(X87Reg(at<float>(train, 0x1c)) * 0.100000001f).v;
+        const X87Reg ground(Terrain_FootprintHeight(x, y, nullptr, 1, 1, 0x3fa, 0));
+        at<float>(car, 0x50) = (float)(ground + at<float>(car, 0x50)).v;
+    }
+    at<u32>(car, 0xe8) = 0;
+    at<float>(car, 0x4c) = (float)X87_SubR(X87_MulInt(at<u32>(train, 0xc), -10.0f), X87Reg(5.0f)).v;   // 0x6fdef0, 0x6fdef4
+    at<float>(car, 0x54) = (float)X87_SubR(X87_MulInt(at<u32>(train, 0x10), -10.0f), X87Reg(5.0f)).v;
 }
 
 double __cdecl Car_LengthFromNode(const u8 *node, const u8 *range, u8 *car, const u8 *other, u32 keep, u32 wantValue, u32 *out) {

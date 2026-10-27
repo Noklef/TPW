@@ -78,6 +78,21 @@ void __cdecl Car_ApplyAnglesAt(u32 a, u32 b, u32 index);
 void __cdecl Car_SwapWithNextAt(u32 index);
 void __cdecl Car_SwapWithPrevAt(u32 index);
 
+// 0x436230 (cdecl; coaster, car, train, unused, save; name invented, unconfirmed): car put into the train (a pylon) at a brace. The
+// other car is the coaster's +0x64 with its +0x3c flag 2, else its +0x54. With save, the train saved for Train_RestoreSaved: its first
+// 0x48 bytes to 0x790ff0, then for each of the saved count (0x791020) its slot's car (+0x34 on) copied (0x104 bytes, to 0x791d00 on)
+// unless empty and its +0x50 to 0x791038 on (an empty slot faults, sic); 0x791cd8 = 1; the type the train's +0x18. Without save, the
+// type is the coaster's +4 plus 0x1c8 (with 0x79c658 flag 0x40) or 0xa8, stored to the train's +0x18. With 0x79c658 flag 0x40 the car's
+// +8 gets 0x40, and 0x80 too when 0x79c664 is 2. The wanted height: with save and the other car on this train, the other's frame value
+// (its +0x90 -> +4, 0x58 bytes each, at its +0x74 -> index; +0x44, through fld / fstp); else Car_LengthFromNode (the train, the type,
+// the car's +0x68, the coaster's +0x5c, the car's flag 0x80, 1, none) as a float. Pylon_FindBraceLevel (wanted, train, level, height,
+// 1) (their slots the other car and the car argument when not written, sic); the car's +0x50 = the height; Train_InsertCar (coaster,
+// car, train, level, height, out, mark 1, insert, noShrink 1, not free). Then the car's +0x50: the wanted value for the other car's,
+// else out plus Terrain_FootprintHeight (__ftol (the train's +0x1c * 0.1), __ftol (+0x24 * 0.1), no cells, 1 by 1, 0x3fa, angle 0).
+// +0xe8 = 0, +0x4c = 5 - the train's +0xc (unsigned) * -10 and +0x54 = 5 - its +0x10 * -10. The original's coaster argument slot
+// holds its +0x118 from both callers (unused).
+void __cdecl Train_PlaceCarAtBrace(u8 *coaster, u8 *car, u8 *train, u32 unused, u32 save);
+
 // 0x435340 (cdecl; node, range, car, other, keep, wantValue, out; name invented, unconfirmed): a value along range (+0xbc..+0xc0).
 // With range flagged 0x4000 and keep 0: other's (its type +0x100 flag 1 (+4): +0x50; else its ride's (0x7a4610[+0x70] +8 -> +0x28 ->
 // +4) entry the type's +0x18 -> +0x2c (0x14 apart, +4) -> +0x34, none 0.0; no other: range's own pointer bits, sic) less half the
