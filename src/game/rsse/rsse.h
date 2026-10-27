@@ -71,4 +71,36 @@ s32 __cdecl Rsse_StartWalker(u8 *vm, u32 value, s32 from, s32 to, u32 a, u32 b, 
 // places it with entry point 3 (3), 8 (5) or 5 (6), and 4, 1 or 2 release its scripts (Person_ReleaseScripts). The original's
 // Debug_Printf (the things' first entry null) is left out.
 void __cdecl Rsse_MoveWalker(u8 *vm, u8 *slot, s32 from, s32 to, s32 mode, s32 t);
+
+// 0x5571a0 (cdecl; vm, value; name unconfirmed): the walker sent back. The first busy slot (word +0x18 not 0; of the vm's +0x7c at
+// +0x2c, 0x20 bytes each) whose +0x10 is value (none: nothing, the original's empty Debug_Printf left out) walks from its key +4's
+// part (Ride_PartPlace, mask 0x80 for kind +0x16 4, else 0x800) to its key +6's (0x800): +0x14 the octant of that heading and +0xc
+// the clock's time (Clocks_Now of 0x785970) plus the walk's time, then +8 the time read again (both as Rsse_StartWalker has them).
+// Kind 2 puffs (Particle_Spawn(0x13) at 1024 times key +4's place under 0x800, each __ftol'd z first); kind 4 still there (+0x18 2)
+// releases its part (the one Model_FindPartByKey4(ride [0x7a4610 + 4 vm +0xc8], 0x80, s16 +2) finds, when found: PartStates_Release
+// on the ride's +8). +0x18 then 3.
+void __cdecl Rsse_WalkerBack(u8 *vm, u32 value);
+
+// 0x557d80 (cdecl; vm; name unconfirmed): with walkers (vm +0x7c not 0) the ride's model (+8 of [0x7a4610 + 4 vm +0xc8]) made the
+// view (Model_BeginView), then each busy slot (the count and +0x2c re-read) by its s16 +0x18: 1 walks out (Rsse_MoveWalker from s16
+// +0 to s16 +2, mode 2 for kind +0x16 4, else 0, at its progress (now * 1000 - +8 * 1000) / (+0xc - +8), unsigned) and, at 1000 or
+// past, is there (+0x18 2, +8 the clock's time): kind 4 takes its part (Model_FindPartByKey4(ride, 0x80, s16 +2), when found:
+// PartStates_Activate on the ride's +8 for the handle +0x10), kind 2 puffs (Particle_Spawn(0x13) at 1024 times key +2's place under
+// 0x800, z first). 2 stands: kind 4 Rsse_MoveWalker(+0, +2, 2, 1), kinds 1 and 2 (+0, +2, 0, 1), others face key +2's part's direction
+// (Ride_PartPlace under 0x800, its direction's third float shared with the place's first, sic; the octant of atan2(z, x) as
+// Rsse_StartWalker's) and stand there (+2, +2, 0, 0). 3 walks back (+4 to +6, mode 1 for kind 4, at its progress; at 1000 or past
+// +0x18 4) and 4 stands at +6 (+6, +6, 0, 0). Then with a wobble (+0x84 not 0) that has run out (+0x80 + +0x84 below the clock's
+// time, unsigned) +0x84 is cleared. The original's Debug_Printf of each busy slot's +0x10 is left out.
+void __cdecl Rsse_UpdateWalkers(u8 *vm);
+
+// 0x5573d0 (cdecl (vm, kind, key, what, extra); name unconfirmed): a script's effect at the place of the ride's part with the key
+// (Ride_PartPlace; not found: 0 returned). Kinds 1 and 2 (mask 0x100) start the particle effect what (with its bit 0x8000 the vm's
+// thing's (the u16 +0xac; 0x7cfb90) definition's (ObjectDefs_Find of 0x7890a0 by its type +0xe) dword what & 0x7fff of +0x4e0:
+// Obj_GetIndexed4e0) at 1024 ([0x700fdc]) times the place: 1 Particle_Spawn, 2 Particle_SpawnWithVelocity with the part's direction
+// (__ftol'd as it is); the system's +0xa2 gets extra unless it is 1000 (ParticleSystem_SetA2), and the handle is returned. Kinds
+// 3-10 (mask 0x200) play the sound what (Sound_PlayAt, owner 0, at the place __ftol'd) in the category [0x803a3c], [0x803a38],
+// [0x803a28], [0x803a24], [0x803a30], [0x803a20], [0x803a2c] or, for 10, the thing's definition's +0x4f0 (Get4f0_4145e0; read before
+// the place, 0: nothing, 0 returned), and return its result. Other kinds: 0. Each __ftol'd z first. The original's Debug_Printf calls
+// are left out.
+s32 __cdecl Rsse_Trigger(u8 *vm, s32 kind, s32 key, u32 what, u32 extra);
 }
