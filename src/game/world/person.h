@@ -198,4 +198,11 @@ void __fastcall Person_UpdateSpeedParticle(u8 *person);
 // ([0x80239c] +0x1da70c, read after it) whose low two bits are the handle's (Thing_GetHandle) the script at +0x30 +0x84 let go once its
 // time is up (Person_KillScript84After on +0x30).
 void __fastcall Person_TickSpeed(u8 *person);
+
+// The hand-written angle routine in cseg (0x6e7074, cdecl (dx, dy), the angle in AX; not in the listing, not ported): the game's own by
+// default; tools/fncmp's driver points it at its two-argument logger (the bench hooks 0x6e7074 with the same).
+struct PersonEnv {
+    u32(__cdecl *angle)(s32 dx, s32 dy);
+};
+void Person_SetEnv(const PersonEnv *env);
 }

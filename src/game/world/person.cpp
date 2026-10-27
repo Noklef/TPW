@@ -34,6 +34,9 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 
 u16 map_id(const u8 *thing) { return (u16)((at<u8>(thing, 7) << 7) + at<u8>(thing, 5) + 1); }
 
+const PersonEnv kGameEnv = {reinterpret_cast<u32(__cdecl *)(s32, s32)>((uintptr_t)0x006e7074)};
+const PersonEnv *g_env = &kGameEnv;
+
 // The float at p = v kept to 0..100 (fcom 100.0: above it 100; fcom 0.0: below it, or unordered, 0).
 void set100(void *p, X87Reg v) {
     if (v.v > 100.0)
@@ -631,4 +634,6 @@ void __fastcall Person_UpdateSpeedParticle(u8 *person) {
     Person_UpdateSpeed(person);
     Sprite_SpawnParticle(person, nullptr, at<u8>(person, 0x3a0) ? 0x35 : 0x39);
 }
+
+void Person_SetEnv(const PersonEnv *env) { g_env = env ? env : &kGameEnv; }
 }
