@@ -100,6 +100,12 @@ u8 *__fastcall StaffPool_ValidEntry(u8 *pool, void *, u32 index);
 // 0x5087b0: the index of the pool's first entry not mValid, 0x20 when all are.
 u32 __fastcall StaffPool_FirstInvalid(const u8 *pool);
 
+// 0x508380 (type; called by 0x4c9e4b): how many of the pool's 0x20 entries are mValid (+0xa) with the dword +0 the type.
+u32 __fastcall StaffPool_CountOfType(const u8 *pool, void *, u32 type);
+// 0x507080 (thiscall; the pool's element constructor, passed to the array constructor by 0x507800; name invented): mType +0 and +0xc
+// cleared, the bytes +9 (mSubType), +0xa (mValid) and +0xb (mOnPointer) cleared. Returns the entry.
+u8 *__fastcall StaffPoolEntry_Ctor(u8 *entry);
+
 // 0x50c620: the staff training (serialized at 0x50c640: 5 x u32 mBudget, u8 mHaveEverTrained)
 // zeroed. Returns it.
 u8 *__fastcall StaffTraining_Ctor(u8 *training);
@@ -171,6 +177,12 @@ u32 __fastcall StaffPool_Serialize(u8 *pool, void *, Stream *stream, u32 save, s
 // stamped (ParkAnalyser_StampTime21c38 on GameTable7cfb90_Get1da720_519510).
 void __fastcall Staff_InitBase(u8 *staff);
 
+// 0x504b10 (thiscall; cell, kind, type, an unused dword, pops 16; name invented): MovingPerson_Ctor (cell, kind); the type to +0x1e4; the
+// dwords +0x1f0-+0x1fc cleared; Staff_InitBase. Returns the staff member. 0x504a90 (thiscall; cell, kind, pops 8): the same with a type of 0.
+// (The debug prints are left out.)
+u8 *__fastcall Staff_CtorTyped(u8 *staff, void *, u32 cell, u32 kind, u32 type, u32 unused);
+u8 *__fastcall Staff_Ctor(u8 *staff, void *, u32 cell, u32 kind);
+
 // 0x5054d0 (thiscall; state, pops 4; name unconfirmed): the staff member's state (mState +0x19c, set last to `state`) entered. The reference +0xc's
 // +4 (Set4_4217f0) is the animation: 0: +0x200 the world's tick ([0x80239c] + 0x1da70c) when the old state is 1, else 0; the word +0xc2 the word
 // 0x75c7f0; anim 3 (Wrap_Set4_4217f0_4fa460). 1: anim 9. 4: +0xc2 the word 0x75c7f2, anim 9. 2: anim 1. 3: the +0x30 object's script
@@ -203,6 +215,10 @@ void __fastcall Mechanic_SetState(u8 *mechanic, void *, u32 state);
 // reference's animation (+0xc, Set4_4217f0) 9. 9 and 0xb: +0x214 = the world's tick ([0x80239c] +0x1da70c) and the animation 0x11. Others:
 // Staff_SetState. The state is then +0x19c.
 void __fastcall Handyman_SetState(u8 *handyman, void *, u32 state);
+
+// 0x502c20 (thiscall (state), pops 4): a researcher's state. 0xf: +0x214 = the world's tick ([0x80239c] +0x1da70c) and the reference's
+// animation (+0xc, Set4_4217f0) 0xa. Others: Staff_SetState. The state is then +0x19c.
+void __fastcall Researcher_SetState(u8 *researcher, void *, u32 state);
 
 // 0x4d7880 (thiscall; out, pops 4; name unconfirmed: Handyman_Update's, which keeps the result at +0x21a): the handyman's next job, by the world's
 // object list (head +0x1da746 of [0x80239c], the thing table 0x7cfb90, next +0xc). An object with flag 0 of +0x32 that tracks nobody or this

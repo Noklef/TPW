@@ -3,7 +3,8 @@
 # nothing): the magic (the file's +0x10 or not), a header, chunks of 2-3 tags ("END " among them) whose lengths are small, 0, past the end or far
 # below the block; 0-3 handlers (a recorder pair each, their answers 0 or not) on the list +4. Open (0x4d3a60): the file opened by name
 # through vfs.py's mounts (as tct.py's), its memory source over such data mostly (else the mounts' own answers), the size recorder (k 8) the
-# data's mostly; the heap one block for both (failing now and then), the handlers' recorders from k 20 (vfs.py's take 2-11).
+# data's mostly; the heap one block for both (failing now and then), the handlers' recorders from k 20 (vfs.py's take 2-11). opened()
+# builds Open's file environment for other benches (attrmap.py's TP2M reader), RANGES its listing.
 # usage: chunkfile.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Read,Open)
 import os
 import struct
@@ -16,8 +17,9 @@ import vfs  # noqa: E402
 from gamestring import LOCALE  # noqa: E402
 from texdirs import merged  # noqa: E402
 
-B = Bench(merged(vfs.RANGES + [(0x4d3860, 0x4d3a9e), (0x405710, 0x405760), (0x5f5660, 0x5f56a0), (0x5c4d50, 0x5c5020), (0x5da3c0, 0x5da3c1),
-                               (0x67a400, 0x690000)]))
+RANGES = merged(vfs.RANGES + [(0x4d3860, 0x4d3a9e), (0x405710, 0x405760), (0x5f5660, 0x5f56a0), (0x5c4d50, 0x5c5020), (0x5da3c0, 0x5da3c1),
+                              (0x67a400, 0x690000)])
+B = Bench(RANGES)
 FILE, STREAM, NODES, HANDLERS, NAME = RAM, RAM + 0x40, RAM + 0x100, RAM + 0x200, RAM + 0x300
 SVT, HVT = RAM + 0x400, RAM + 0x500
 MAGIC, TAGS = 0x4d325054, [0x2050414d, 0x20444e45, 0x41544144]
@@ -50,23 +52,29 @@ def handlers(r, log, base):
     return n, {NODES: nodes, HANDLERS: table, HVT: hvt}
 
 
-def open_case(r):
-    """Open (above)"""
-    log = log_region()
-    regions = {LOG: log, HEAP: heap(0x8000, fail=r.choice([0] * 12 + [1])), LOCALE: bytes(4), **global_heap()}
+def opened(r, log, regions, raw, fail=True):
+    """Open's file (the module comment): the heap (failing now and then when fail), vfs.py's mounts and memory source over raw, the name
+    at vfs.NAME, the error record 0x785de8."""
+    regions.update({HEAP: heap(0x8000, fail=r.choice([0] * 12 + [1]) if fail else 0), LOCALE: bytes(4), **global_heap()})
     root = vfs.mounts(r, log, regions)
-    raw = data(r)
     if r.random() < 0.85:
         vfs.memory_source(r, log, regions, raw)
         set_return(log, 8, r.choice([len(raw)] * 10 + [0, 0x2b, len(raw) - 1, len(raw) + 5, -1]))
+    regions[vfs.NAME] = vfs.name_under(r, root) + r.choice([b'.tp2', b'', b'.TP2']) + bytes(1) + r.bytes(7)
+    regions[0x785de8] = r.bytes(0x5c)
+
+
+def open_case(r):
+    """Open (above)"""
+    log = log_region()
+    regions = {LOG: log}
+    opened(r, log, regions, data(r))
     n, parts = handlers(r, log, 20)
     regions.update(parts)
     f = bytearray(r.bytes(0x14))
     put(f, 4, 'I', NODES if n else 0)
     put(f, 0x10, 'I', MAGIC)
     regions[FILE] = f
-    regions[vfs.NAME] = vfs.name_under(r, root) + r.choice([b'.tp2', b'', b'.TP2']) + bytes(1) + r.bytes(7)
-    regions[0x785de8] = r.bytes(0x5c)
     return Call(0x4d3a60, [FILE, vfs.NAME], regions, conv='t', ret='a')
 
 

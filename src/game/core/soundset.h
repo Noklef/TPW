@@ -86,6 +86,12 @@ void __cdecl Sound_ApplySettings();
 // [0x785960] / [0x78595c]; above [0x78590c] {1, [0x785954]}; else {0, 0} (x87 single precision; the level's slot then holds the
 // divisor). Without that camera {0, 0}.
 void __cdecl Sound_SetCameraOcclusion(s32 level);
+// 0x51b920 (level; name from its callees, unconfirmed): while on and started, the manager's posts for a camera level (the out the level's
+// slot; each flag the level above a global, signed): 0x700b54 {[0x7858fc], [0x785900], [0x785904]} (SoundChannel_SetMode); 0x700b50 with
+// [0x785908] (when not above it, and still on and started with an EAX record kept in 0x803ab4, first that cleared and 0x700b30 with record
+// 0); 0x700b4c with not above [0x785910]; Sound_SetCameraOcclusion and Sound_SetVoicesForLevel; 0x700b48 with [0x785920]; then (on and
+// started again) 0x700b44 (built by SoundCmd_Ctor) with not above [0x785918] (the channel shown or hidden).
+void __cdecl Sound_SetCameraLevel(s32 level);
 // 0x51c570 (id; name invented): a result 1, then (sound on and started) the command 0x700bb8 {&result, id} (SoundObject_VoiceInfo), the
 // out the id's slot. Returns the result.
 u32 __cdecl Sound_VoiceInfo(u32 id);
@@ -95,8 +101,15 @@ u32 __cdecl Sound_VoiceInfo(u32 id);
 void __cdecl Sound_Shutdown();
 
 // The sound categories, each Sound_QueryFound of a category name in a folder object the named objects registry (0x786b9c, NamedList_Find)
-// holds under a key's name; a folder not found leaves its categories as they were. (Their releases, 0x51ea50, 0x51ea70, 0x51eda0 and 0x51ee40,
-// call SoundCategory_Release 0x51b620, not reimplemented.)
+// holds under a key's name; a folder not found leaves its categories as they were. Their releases (cdecl; names invented) give each one
+// that is not 0 to SoundCategory_Release, then clear them:
+// 0x51ea50: the lobby sfx 0x803a48. 0x51ea70: with an array at 0x803a4c, both of each of its 0x803a50 pairs (signed; not tested for 0),
+// then the array to Sound_Free; 0x803a4c and 0x803a50 cleared. 0x51eda0: 0x803a20, 0x803a28, 0x803a2c, 0x803a24, 0x803a30 and 0x803a34 in
+// that order. 0x51ee40: the theme's 0x803a38-0x803a44.
+void __cdecl Sound_ReleaseLobbySfx();
+void __cdecl Sound_ReleaseLobbyCategories();
+void __cdecl Sound_ReleaseGlobalCategories();
+void __cdecl Sound_ReleaseThemeCategories();
 //
 // 0x51e8f0 (cdecl; name; name unconfirmed): the folder named the global String 0x803768 with name appended (String_AppendStr): -1 when not
 // found; else its "cat_locallobbysfx" and "cat_locallobbymusic" are appended as a pair (+0, +4) to the array at 0x803a4c of 0x803a50 pairs (the

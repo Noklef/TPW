@@ -110,3 +110,9 @@ u32 __fastcall SoundSource711b08_HasCaps(u8 *source) {
     const u8 flags = static_cast<u8>(caps[1]);
     return (flags & 8) && (flags & 2) && (flags & 0x40) ? 1 : 0;
 }
+
+void __fastcall SoundSource_Destroy(void *, void *, u8 **slot) {
+    vcall<void>(*slot, 0x1c);   // (not tested for null, sic)
+    if (u8 *const source = *slot) vcall<void>(source, 0, 1u);
+    *slot = nullptr;
+}

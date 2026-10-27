@@ -200,6 +200,23 @@ u32 __fastcall StaffPool_FirstInvalid(const u8 *pool) {
     return 0x20;
 }
 
+u32 __fastcall StaffPool_CountOfType(const u8 *pool, void *, u32 type) {
+    u32 count = 0;
+    for (u32 i = 0; i != 0x20; ++i) {
+        if (at<u8>(pool + i * 20, 0xa) && at<u32>(pool + i * 20, 0) == type) ++count;
+    }
+    return count;
+}
+
+u8 *__fastcall StaffPoolEntry_Ctor(u8 *entry) {
+    at<u32>(entry, 0xc) = 0;
+    at<u32>(entry, 0) = 0;
+    at<u8>(entry, 9) = 0;
+    at<u8>(entry, 0xa) = 0;
+    at<u8>(entry, 0xb) = 0;
+    return entry;
+}
+
 u16 *__fastcall Staff_NearestInList1da740(const u8 *object, void *, u16 *out) {
     u16 best = 0;
     u32 bestDistance = 0xffffffff;
@@ -415,6 +432,19 @@ extern "C" void __fastcall Staff_InitBase(u8 *staff) {
     ParkAnalyser_StampTime21c38(reinterpret_cast<u8 *>(GameTable7cfb90_Get1da720_519510(global<u8 *>(0x0080239c))));
 }
 
+extern "C" u8 *__fastcall Staff_CtorTyped(u8 *staff, void *, u32 cell, u32 kind, u32 type, u32) {
+    MovingPerson_Ctor(staff, nullptr, cell, kind);
+    at<u32>(staff, 0x1e4) = type;
+    at<u32>(staff, 0x1f0) = 0;
+    at<u32>(staff, 0x1f4) = 0;
+    at<u32>(staff, 0x1f8) = 0;
+    at<u32>(staff, 0x1fc) = 0;
+    Staff_InitBase(staff);
+    return staff;
+}
+
+extern "C" u8 *__fastcall Staff_Ctor(u8 *staff, void *, u32 cell, u32 kind) { return Staff_CtorTyped(staff, nullptr, cell, kind, 0, 0); }
+
 namespace {
 
 // A staff type's serializer: Staff_Serialize, then (a version of 0..1) the type's fields; 1 at the first that fails, else 0.
@@ -596,6 +626,16 @@ void __fastcall Handyman_SetState(u8 *handyman, void *, u32 state) {
         Staff_SetState(handyman, nullptr, state);
     }
     at<u32>(handyman, 0x19c) = state;
+}
+
+void __fastcall Researcher_SetState(u8 *researcher, void *, u32 state) {
+    if (state == 0xf) {
+        at<u32>(researcher, 0x214) = global<u32>(global<u32>(0x0080239c) + 0x1da70c);
+        Set4_4217f0(researcher + 0xc, nullptr, 0xa);
+    } else {
+        Staff_SetState(researcher, nullptr, state);
+    }
+    at<u32>(researcher, 0x19c) = state;
 }
 
 void __fastcall Staff_HeadForEntrance(u8 *staff) {

@@ -8,13 +8,14 @@
 # into the skill table 0x78542c, the handle +0x218's thing (its +0x19c 2 or not, byte +0x50 small or any, float +0x44 0-100, past it,
 # negative, huge or NaN) and its definition (gObjectDefs as object.py's: 1-3 of 0x4000 bytes, the cache hit or not).
 # Handyman (0x4d7330): Staff_SetState's cases now and then, else the states 8-0xb: the word 0x75c7f2 and the world's tick any.
+# Researcher (0x502c20): Staff_SetState's cases now and then, else the state 0xf: the world's tick any.
 # PickUp (0x505c50): SetState's surroundings (the old state +0x19c 4, 5, 7, 0xd or 0x12 mostly, else one whose debug print reads the
 # staff member's cell: the cells [0x8023a0] random, its column +5 and row +7 within them), the current mode's slot 9 answering 6 mostly
 # (else 8, 0, 7 or any), the world's handle +0x1da718 into the thing table 0x7cfb90 (a record whose word +0x60 is set).
 # Settle (0x505f50): PickUp's surroundings with the state +0x19c 0-7, 0xd, 0x12 or others, the type +8 of the staff member's cell
 # plain (0, 1, 3, 9, 0xa) or not, its byte +2 7 mostly.
 # Head (0x506300): see head().
-# usage: staffstate.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetState,Mechanic,Handyman,PickUp,Settle,Head)
+# usage: staffstate.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetState,Mechanic,Handyman,PickUp,Settle,Head,Researcher)
 import os
 import struct
 import sys
@@ -33,7 +34,7 @@ B = Bench(wctimage.merged(MODES + [
     (0x402d70, 0x403200), (0x40f350, 0x40f370), (0x4217f0, 0x421810), (0x46c350, 0x46c460), (0x46c6a0, 0x46c6c0), (0x46c710, 0x46c740),
     (0x46cbc0, 0x46cc50), (0x46cdc0, 0x46cef0), (0x46cfb0, 0x46cfd0), (0x475550, 0x4755a0), (0x4758f0, 0x475b90), (0x4814a0, 0x481500),
     (0x4a2aa0, 0x4a2ad0), (0x4d4140, 0x4d41a0), (0x4da5b0, 0x4da750), (0x4dad20, 0x4dadd0), (0x4fa460, 0x4fa480), (0x4fa930, 0x4fa9a0),
-    (0x5054d0, 0x5056f0), (0x505ea0, 0x505f60), (0x509af0, 0x509b50), (0x50b350, 0x50b370), (0x50c0d0, 0x50c110), (0x519450, 0x5194e0),
+    (0x5054d0, 0x5056f0), (0x502c20, 0x502c64), (0x505ea0, 0x505f60), (0x509af0, 0x509b50), (0x50b350, 0x50b370), (0x50c0d0, 0x50c110), (0x519450, 0x5194e0),
     (0x540c60, 0x540da0), (0x550ca0, 0x550d90), (0x5f5660, 0x5f56a0), (0x6590f7, 0x6591e4), (0x65f11d, 0x65f160), (0x67a740, 0x67a800),
     (0x67fa20, 0x67fa40), (0x5d1410, 0x5d1416), (0x5d1750, 0x5d1751), (0x5da3c0, 0x5da3c1),
     (0x4da370, 0x4da483), (0x4e03e0, 0x4e03f0), (0x4dd4e0, 0x4dd4fb), (0x412e90, 0x412eea), (0x4d7330, 0x4d73b4),
@@ -44,7 +45,8 @@ STAFF, WORLD, MODE, MODE_VT, HOLDER = RAM + 0x20000, RAM + 0x21000, RAM + 0xc000
 RECORD, CELLS = RAM + 0x21400, RAM + 0x50000
 
 
-CALLS = {'SetState': 0x5054d0, 'Mechanic': 0x4da370, 'Handyman': 0x4d7330, 'PickUp': 0x505c50, 'Settle': 0x505f50, 'Head': 0x506300}
+CALLS = {'SetState': 0x5054d0, 'Mechanic': 0x4da370, 'Handyman': 0x4d7330, 'PickUp': 0x505c50, 'Settle': 0x505f50, 'Head': 0x506300,
+         'Researcher': 0x502c20}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 TARGET, ITEMS = RAM + 0x38000, RAM + 0x40000
 
@@ -129,6 +131,9 @@ def case(r):
         staff = bytearray(r.bytes(0x240))
         regions = {STAFF: staff, 0x75c7f0: r.bytes(8), 0x80239c: struct.pack('<I', WORLD - 0x1da70c), WORLD: r.bytes(4)}
         return Call(0x4d7330, [STAFF, r.choice([8, 9, 0xa, 0xb])], regions, conv='t', ret='v')
+    if op == 'Researcher' and r.random() < 0.6:
+        regions = {STAFF: r.bytes(0x240), 0x80239c: struct.pack('<I', WORLD - 0x1da70c), WORLD: r.bytes(4)}
+        return Call(0x502c20, [STAFF, 0xf], regions, conv='t', ret='v')
     regions = dict(assign(r, 'AssignDrop').regions)
     regions[HEAP] = heap(fail=r.choice([0] * 8 + [1, 2, 3]))
     regions.pop(RAM)   # (assign()'s mode)

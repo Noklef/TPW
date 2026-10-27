@@ -19,6 +19,23 @@ u32 __cdecl Sound_PlayAtRange(u32 owner, u32 category, u32 sound, s32 x, s32 y, 
 // [0x803a44], 2, 0, 0, 0), then [0x803aa0] = Sound_SetParam(it, 4, 0). EAX not kept.
 void __cdecl Sound_StartMusic();
 
+// 0x51e770 (cdecl; called by 0x55002b; name invented): the music [0x803aa0], when there is one, stopped (Sound_Stop; [0x803aa0] kept).
+void __cdecl Sound_StopMusic();
+
+// 0x51e790 (cdecl (value); called by 0x54f870; name invented): the music [0x803aa0] = Sound_SetParam(it, 4, value).
+void __cdecl Sound_SetMusicLevel(u32 value);
+
+// 0x51e7b0 (cdecl (level); name invented): the kids' level [0x803ab0] = the level, 100 at most (signed); with the kids' sounds on
+// ([0x803aa8]): a level stored not 0 plays the kids' sound [0x803aa4] (Sound_PlayAt(0, gSndCatKids [0x803a24], 0x5b, 0, 0, 0)) when
+// there is none, then [0x803aa4] = Sound_SetParam(it, 7, the level as passed, sic); a level 0 stops the sound (Sound_Stop) when there
+// is one and clears it.
+void __cdecl Sound_SetKidsLevel(s32 level);
+
+// 0x51e830 (cdecl (level); name invented): as Sound_SetKidsLevel for the ambient sound [0x803aac] (Sound_PlayAt(0, gSndCatAmbient
+// [0x803a20], 0x21, 0, 0, 0)), the level clamped to 0-100 (signed) and stored nowhere, its parameter 8 (the clamped level); stopping
+// it keeps [0x803aac] (sic).
+void __cdecl Sound_SetAmbientLevel(s32 level);
+
 // 0x485aa0 (cdecl (sound); name unconfirmed): Sound_PlayAt(0, [0x803a2c], sound, 0, 0, 0).
 u32 __cdecl SoundUi_Play(u32 sound);
 

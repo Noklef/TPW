@@ -22,8 +22,10 @@
 #include "nav.h"
 #include "object.h"
 #include "objectdefs.h"
+#include "objectmsg.h"
 #include "personscripts.h"
 #include "random.h"
+#include "ridelist.h"
 #include "staff.h"
 #include "things.h"
 #include "world.h"
@@ -35,7 +37,8 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 
 u16 map_id(const u8 *thing) { return (u16)((at<u8>(thing, 7) << 7) + at<u8>(thing, 5) + 1); }
 
-const PersonEnv kGameEnv = {reinterpret_cast<u32(__cdecl *)(s32, s32)>((uintptr_t)0x006e7074)};
+const PersonEnv kGameEnv = {reinterpret_cast<u32(__cdecl *)(s32, s32)>((uintptr_t)0x006e7074),
+                             reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)0x00501db0)};
 const PersonEnv *g_env = &kGameEnv;
 
 // The float at p = v kept to 0..100 (fcom 100.0: above it 100; fcom 0.0: below it, or unordered, 0).
@@ -145,6 +148,28 @@ u32 __fastcall Person_HasWordInState(const u8 *object, void *, u32 word) {
 }
 
 void __fastcall Visitor_Set1f8One(u8 *object) { at<u32>(object, 0x1f8) = 1; }
+
+void __fastcall Visitor_QuitQueue(u8 *visitor) {
+    u8 *const object = global<u8 *>(0x007cfb90 + 20 * (u32)at<u16>(visitor, 0x1dc));
+    if (!Obj_RideElement0Differs(object)) return;
+    u16 handle;
+    Thing_GetHandle(visitor, nullptr, &handle);
+    Object_QueueRemovePerson(object, nullptr, handle);
+    g_env->state501db0(visitor, nullptr, 0x10);
+}
+
+void __fastcall Visitor_SendAway(u8 *visitor) {
+    Ring_PushUnique(visitor + 0x30, nullptr, 6, at<u16>(visitor, 0x1dc));
+    u16 handle;
+    if (!(*Thing_GetHandle(visitor, nullptr, &handle) & 7)) Sprite_PlaySound(visitor, nullptr, global<u32>(0x00803a24), 0x80);
+    Visitor_Lower19c(visitor, nullptr, 1);
+    at<u16>(visitor, 0x22a) = 0;
+    at<u16>(visitor, 0x228) = 0;
+    at<u32>(visitor, 0x1f8) = 0;
+    at<u16>(visitor, 0x1dc) = 0;
+    at<u8>(visitor, 0x1f1) = 0;
+    g_env->state501db0(visitor, nullptr, 6);
+}
 
 u32 __fastcall Person_HasWord(const u8 *object, void *, u32 word) {
     const u8 kind = at<u8>(object, 2);

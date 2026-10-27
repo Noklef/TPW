@@ -91,6 +91,16 @@ u32 __fastcall Person_HasWordInState(const u8 *object, void *, u32 word);
 // 0x5012b0 (thiscall): the dword at +0x1f8 = 1 (the original also reads the handle at +0x1dc into its debug print).
 void __fastcall Visitor_Set1f8One(u8 *object);
 
+// 0x500870 (thiscall; called by 0x4e0450 for a queue's head in state 0xe; name invented): when the visitor's object (the handle at +0x1dc, the
+// table 0x7cfb90) has a ride record whose element 0 is not its queue's head (Obj_RideElement0Differs), the visitor is taken off its queue
+// (Object_QueueRemovePerson of its handle) and goes to state 0x10 (the env's 0x501db0). The debug prints are left out.
+void __fastcall Visitor_QuitQueue(u8 *visitor);
+
+// 0x5012f0 (thiscall; called by 0x4e0450; name invented): (6, the object handle +0x1dc) goes on the ring at +0x30 (Ring_PushUnique); for a
+// handle (Thing_GetHandle) whose low 3 bits are 0, the sound 0x80 of the category [0x803a24] (Sprite_PlaySound); Visitor_Lower19c(1); the words
+// +0x22a, +0x228 and +0x1dc, the dword +0x1f8 and the byte +0x1f1 cleared; then state 6 (the env's 0x501db0). The debug print is left out.
+void __fastcall Visitor_SendAway(u8 *visitor);
+
 // 0x506580 (thiscall; word, pops 4): for the kind byte at +2 being 4 the word at +0x218, for 5 the word at +0x21a, is equal to the low 16 bits of
 // word (1 or 0); any other kind gives 0 (the original reports it to its empty debug printf).
 u32 __fastcall Person_HasWord(const u8 *object, void *, u32 word);
@@ -209,9 +219,11 @@ void __fastcall Person_UpdateSpeedParticle(u8 *person);
 void __fastcall Person_TickSpeed(u8 *person);
 
 // The hand-written angle routine in cseg (0x6e7074, cdecl (dx, dy), the angle in AX; not in the listing, not ported): the game's own by
-// default; tools/fncmp's driver points it at its two-argument logger (the bench hooks 0x6e7074 with the same).
+// default; tools/fncmp's driver points it at its two-argument logger (the bench hooks 0x6e7074 with the same). And 0x501db0 (thiscall on a
+// person; a state, pops 4; agent C's, waiting on 0x4c7600): the game's by default, a thiscall recorder (k 26) in the driver.
 struct PersonEnv {
     u32(__cdecl *angle)(s32 dx, s32 dy);
+    void(__fastcall *state501db0)(u8 *person, void *, u32 state);
 };
 void Person_SetEnv(const PersonEnv *env);
 }

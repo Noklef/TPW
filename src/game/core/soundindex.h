@@ -75,5 +75,9 @@ u32 *__fastcall SoundResourceRef_Slot15(u8 *ref, void *, u32 *out, u32 a);
 // 0x6c8c60 (thiscall (record, i), pops 8): the resource's slot 6, the record read (its out the i argument's own stack slot, sic; record,
 // i): 1 when the dword the answer points to is not negative, else 0; 0 without a resource.
 u32 __fastcall SoundResourceRef_ReadRecord(u8 *ref, void *, u32 record, u32 i);
+// 0x6bada0 (stdcall (record, handle), pops 8; ECX unused; name invented): a handle of an index (+0) and a resource reference (+4):
+// SoundResourceRef_ReadRecord (record, the index) on the reference when both are not 0; else 0 in AL (with no reference, the index's
+// upper bytes left in EAX, sic). Called by SoundStream_BuildChain's caller 0x6ba610.
+u32 __stdcall SoundResourceHandle_ReadRecord(u32 record, const u32 *handle);
 
 }  // extern "C"

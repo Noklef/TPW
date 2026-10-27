@@ -44,4 +44,8 @@ void __fastcall SoundSource711b08_CreateEvents(u8 *source);
 // 8, 2 and 0x40, else 0.
 u32 __fastcall SoundSource711b08_HasCaps(u8 *source);
 
+// 0x6c42b0 (thiscall, this unused (slot), pops 4; name invented): the source *slot's slot 7 (not tested for null), then, *slot read
+// again, its slot 0 (1) unless null; *slot = 0. The device's source maker's failure path (0x6c4190).
+void __fastcall SoundSource_Destroy(void *, void *, u8 **slot);
+
 }

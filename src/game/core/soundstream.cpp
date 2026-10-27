@@ -156,6 +156,26 @@ u32 __fastcall Stream70a6c8_NextSource(u8 *stream) {
     return at<u32>(stream, 4) == 0;
 }
 
+u32 __fastcall Stream70a6c8_Read(u8 *stream, void *, u8 *buffer, u32 count, u32 *done, u32) {
+    bool switched = false;
+    if (!at<u8 *>(stream, 4)) return 1;
+    *done = 0;
+    while (*done < count) {
+        u32 got = 0;   // (the done argument's own stack slot)
+        if (vcall<u32>(at<u8 *>(stream, 4), 0x1c, buffer + *done, count - *done, &got, 1u) == 1) {
+            if (Stream70a6c8_NextSource(stream) == 1) {
+                *done += got;
+                if (switched) vcall<void>(stream, 0xc);
+                return 1;
+            }
+            switched = true;
+        }
+        *done += got;
+    }
+    if (switched) vcall<void>(stream, 0xc);
+    return 0;
+}
+
 void __fastcall Stream70a6c8_Describe(u8 *stream, void *, u8 *record) {
     SoundStream_DescribeUser(stream, nullptr, record);
     if (at<u32>(record, 0x18) & 0x800) SetThenFlag4c_14_6c50f0(record, nullptr, at<u32>(stream, 0x18));
