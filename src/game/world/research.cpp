@@ -8,7 +8,9 @@
 #include "advisor.h"
 #include "advisorscore.h"
 #include "messagecentre.h"
+#include "object.h"
 #include "objectdefs.h"
+#include "thingmsg.h"
 #include "things.h"
 #include "thingscan.h"
 #include "world.h"
@@ -267,5 +269,26 @@ void __fastcall ResearchLab_ApplyEfforts(u8 *lab) {
         }
         ResearchLab_UpdateLevels(lab, nullptr, cat);
     }
+}
+
+void __fastcall ResearchLab_FlagOn(u8 *lab) {
+    if (lab[0x1468]) return;
+    lab[0x1468] = 1;
+    u32 msg[3];
+    Object_PostMessage(ThingMsg13_Ctor(reinterpret_cast<u8 *>(msg), nullptr, 5));
+}
+
+void __fastcall ResearchLab_FlagOff(u8 *lab) {
+    if (!lab[0x1468]) return;
+    lab[0x1468] = 0;
+    u32 msg[3];
+    Object_PostMessage(ThingMsg13_Ctor(reinterpret_cast<u8 *>(msg), nullptr, 6));
+}
+
+void __fastcall ResearchLab_SyncFlag(u8 *lab) {
+    if (at<u16>(*reinterpret_cast<u8 **>((uintptr_t)0x0080239c), 0x1da742))
+        ResearchLab_FlagOn(lab);
+    else
+        ResearchLab_FlagOff(lab);
 }
 }

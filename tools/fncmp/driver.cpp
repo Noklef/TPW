@@ -93,6 +93,9 @@
 #include "../../src/game/world/mousemode.h"
 #include "../../src/game/world/person.h"
 #include "../../src/game/world/pathdrag.h"
+#include "../../src/game/world/cellrun.h"
+#include "../../src/game/world/staff.h"
+#include "../../src/game/world/things.h"
 #include "../../src/game/world/queuepieces.h"
 #include "../../src/game/world/object.h"
 #include "crt.h"
@@ -388,6 +391,18 @@ const QueuePiecesEnv kQueuePiecesEnv = {reinterpret_cast<u32(__cdecl *)(u32, u32
                                         reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(31, 1))};
 const PathDragEnv kPathDragEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32)>((uintptr_t)recorder(28, 2)),
                                   reinterpret_cast<void(__cdecl *)(u32, s32, s32, s32 *, s32 *)>((uintptr_t)jpeg_recorder(29, 5))};
+// The track runs' call into agent B's unported 0x53afa0: thiscall recorder 24 of no arguments, as tests/fncmp/trackshape.py hooks it.
+const CellRunEnv kCellRunEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(24, 0))};
+// Thing_Detach's call into agent B's unported Ride_Destroy (0x463c80): cdecl recorder 31 of 1, as tests/fncmp/thingdetach.py hooks it.
+const ThingDetachEnv kThingDetachEnv = {reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(31, 1))};
+// Thing_Delete's per-kind deletes (agent C's unported 0x4dd0a0, 0x4d9fe0, 0x4d6c90, 0x4d4620, 0x4d5eb0, 0x4c9040; thingdetach.py's k 10-15).
+using ThingKindFn = void(__fastcall *)(u8 *);
+const ThingDeleteEnv kThingDeleteEnv = {reinterpret_cast<ThingKindFn>((uintptr_t)recorder(10, 0)), reinterpret_cast<ThingKindFn>((uintptr_t)recorder(11, 0)),
+                                        reinterpret_cast<ThingKindFn>((uintptr_t)recorder(12, 0)), reinterpret_cast<ThingKindFn>((uintptr_t)recorder(13, 0)),
+                                        reinterpret_cast<ThingKindFn>((uintptr_t)recorder(14, 0)), reinterpret_cast<ThingKindFn>((uintptr_t)recorder(15, 0))};
+// StaffAdvice_KindLow's sums (agent C's unported 0x4c8180 / 0x4c8150; staffadvice.py's k 16 / 17).
+using StaffSumFn = s32(__fastcall *)(u8 *, void *, u32);
+const StaffAdviceEnv kStaffAdviceEnv = {reinterpret_cast<StaffSumFn>((uintptr_t)recorder(16, 1)), reinterpret_cast<StaffSumFn>((uintptr_t)recorder(17, 1))};
 // The objects' calls into the unported 0x40fb10 (agent B's) and 0x500870 / 0x5012f0 (agent C's): thiscall recorders 21 of 1 argument, 22 and 23
 // of none, as tests/fncmp/objectstate.py hooks those addresses.
 const ObjectEnv kObjectEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, u8 *)>((uintptr_t)recorder(21, 1)),
@@ -1065,6 +1080,10 @@ int main(int argc, char **argv) {
     Person_SetEnv(&kPersonEnv);   // (tests/fncmp/personwalk.py hooks 0x6e7074 with fncmp._cdecl_log2)
     QueuePieces_SetEnv(&kQueuePiecesEnv);
     PathDrag_SetEnv(&kPathDragEnv);
+    CellRun_SetEnv(&kCellRunEnv);
+    Things_SetDetachEnv(&kThingDetachEnv);
+    Things_SetDeleteEnv(&kThingDeleteEnv);
+    Staff_SetAdviceEnv(&kStaffAdviceEnv);
     Object_SetEnv(&kObjectEnv);
     GlyphRender_SetEnv(&kGlyphRenderEnv);   // (tests/fncmp/glyphrender.py hooks 0x67a7d0 with fncmp._cdecl_log)
     PtrList_SetEnv(&kPtrListEnv);

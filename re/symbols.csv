@@ -262,6 +262,7 @@ address,name,kind,confidence,notes
 0x00503d40,ResearchLab_HandleMessage,function,high,Thing_HandleMessage case 14
 0x00512880,Weather_Update,function,medium,Thing_Update case 15
 0x005127a0,Weather_HandleMessage,function,high,"reimplemented (src/game/world/weather); thiscall (message), pops 4: kind 1 sets the intensity (unless +0x64), kind 2 schedules +0x20 = now + days, +0x28 the value, +0x18 now"
+0x00512000,Weather_Detach,function,low,"reimplemented (src/game/world/weather); thiscall: Thing_Detach, then the renderer's ([0x8bcbac]) textures freed (WeatherFx_FreeTextures); returns 1"
 0x004d02d0,BankAccount_HandleMessage,function,high,Thing_HandleMessage case 16
 0x0050ca50,UIMsgReceiver_HandleMessage,function,high,Thing_HandleMessage case 17
 0x004f7c50,Stub_Ret4b,function,high,reimplemented (src/game/core/accessors); a virtual that does nothing (pops 4)
@@ -978,6 +979,9 @@ address,name,kind,confidence,notes
 0x00503b80,ResearchLab_UpdateLevels,function,low,"reimplemented (src/game/world/research); thiscall (cat), pops 4: raises the category's group's highest level while the share of its eligible projects done reaches 0x785540's threshold (below 7); when raised, some not done and cat 0-3, posts advisor message 0x85 + cat"
 0x00503330,ResearchLab_ApplyEfforts,function,low,"reimplemented (src/game/world/research); each group's effort from the settings at 0x785568 (100 at most), the outputs recomputed, the current project the first available one, then UpdateLevels"
 0x00502d60,ResearchLab_Init,function,low,"reimplemented (src/game/world/research); thiscall: no projects, the dearest index -1, the output the setting 0x785580, +0x1468 whether any staff of kind 8; then the projects filled, the efforts applied and the lab added to the message centre's slot 0x11"
+0x00504090,ResearchLab_FlagOn,function,low,"reimplemented (src/game/world/research); thiscall: the flag +0x1468 set from clear, then a message 13 of 5 posted"
+0x00504140,ResearchLab_FlagOff,function,low,"reimplemented (src/game/world/research); thiscall: the flag +0x1468 cleared from set, then a message 13 of 6 posted"
+0x005041f0,ResearchLab_SyncFlag,function,low,"reimplemented (src/game/world/research); thiscall: FlagOn when the game object's word +0x1da742 is set, else FlagOff"
 0x005100e0,Nav_SetPosVel,function,high,"reimplemented (src/game/world/nav); thiscall (x, y, vx, vy): pos (+8) and vel (+0x10) set"
 0x00510160,Nav_GetPos,function,high,"reimplemented (src/game/world/nav); thiscall (&x, &y): pos (+8, +0xc) read"
 0x0051aad0,World_ArrivalVehicleNotSize1,function,high,reimplemented (src/game/world/world); thiscall: 1 when mCurrentArrivalVehicle (+0x1da72a) is set and is not mArrivalVehicle_Size1 (+0x1da72c)
@@ -1165,7 +1169,7 @@ address,name,kind,confidence,notes
 0x0048cad0,Things_CountOne,function,low,"reimplemented (src/game/world/ridesweep); cdecl (thing, unused): the count 0x7c2660 raised; 1"
 0x0048caf0,Things_StepGroup,function,low,"reimplemented (src/game/world/ridesweep); thiscall: the owner's slot 0x3c, then the next thing of the group its +4 picks after 0x7c2658, wrapping round (Things_FindNextOfCategoryWrap); a new one stored at 0x7c2658 and the owner's slot 4 called (name unconfirmed)"
 0x0048cbe0,Things_StepGroupBack,function,low,"reimplemented (src/game/world/ridesweep); thiscall: the owner's slot 0x3c, then the previous thing of the group its +4 picks before 0x7c2658, wrapping round (Things_FindPrevOfCategoryWrap); a new one stored at 0x7c2658 and the owner's slot 4 called"
-0x0050b780,Thing_Delete,function,medium,"thiscall on a thing; the base deletion, queues its handle (World_QueueDelete)"
+0x0050b780,Thing_Delete,function,medium,"reimplemented (src/game/world/things); thiscall: message 1b of the handle posted, the kind's detach (ported ones; agent C's through ThingDeleteEnv), +3 = 1, the handle queued for deletion, the kind 2"
 0x00801f38,gThingsToDelete,data,high,"HandleQueue: +4 head, +8 tail, +0xc count; handles whose slots DeleteAll releases"
 0x005f5fc0,String_Alloc,function,high,"reimplemented (src/game/core/string); thiscall (length); vtable +8: a new block for length units, terminated; the old block is not freed"
 0x005f6000,String_SetLength,function,high,"reimplemented (src/game/core/string); thiscall (length); vtable +4: length and terminator within the capacity, else Alloc and copy the old text"
@@ -3654,6 +3658,8 @@ address,name,kind,confidence,notes
 0x004fa2a0,Sprite_WalkNav,function,low,"reimplemented (src/game/world/person); thiscall; x87; one step along the nav +0xd4: the thing moved, +0x1c the cseg angle, the walk / run / guard action and the period for the step's length; returns 0 (path done), 1 or 2 (+0x18c set) (name invented)"
 0x00500870,Visitor_QuitQueue,function,low,"reimplemented (src/game/world/person); when the object's ride record's element 0 is not its head, off the queue and state 0x10"
 0x005012f0,Visitor_SendAway,function,low,"reimplemented (src/game/world/person); (6, object) on the ring, sound 0x80 for a handle & 7 of 0, Lower19c(1), the queue fields cleared, state 6"
+0x004f8ae0,Person_Detach,function,low,"reimplemented (src/game/world/person); thiscall: Thing_Detach, the script slot +0xc killed when set, the action history's dump, the history's +0x84 script killed"
+0x004fb330,Visitor_Detach,function,low,"reimplemented (src/game/world/person); thiscall: the sprite script at +0x210 killed and cleared when set, then Person_Detach"
 0x00550d80,Setting_SetMode,function,high,reimplemented (src/game/core/options); stores a mode and sets its flag bits
 0x005633e0,Quad_Push,function,high,reimplemented (src/game/core/seqs); pushes four dwords into the next of four slots
 0x0059c390,Table76e300_GetObjectDword,function,high,reimplemented (src/game/world/objectdefs); a dword of the object indexed through a record of the table
@@ -4084,6 +4090,12 @@ address,name,kind,confidence,notes
 0x00504a90,Staff_Ctor,function,low,"reimplemented (src/game/world/staff); MovingPerson_Ctor, +0x1e4 = 0, +0x1f0-+0x1fc cleared, Staff_InitBase"
 0x00504b10,Staff_CtorTyped,function,low,"reimplemented (src/game/world/staff); MovingPerson_Ctor, +0x1e4 = the type, +0x1f0-+0x1fc cleared, Staff_InitBase"
 0x00507080,StaffPoolEntry_Ctor,function,low,"reimplemented (src/game/world/staff); the staff pool's element constructor: mType +0 and +0xc cleared, the bytes +9, +0xa, +0xb cleared; returns the entry"
+0x00506d10,Staff_LeaveRestArea,function,low,reimplemented (src/game/world/staff); thiscall: a message (vtable 0x700868) of the staff member's handle posted; the rest area's (+0x208) ride record's element 0 less 1; +0x208 = 0; the script +0xc started at entry 3; Staff_SetState 0
+0x004f7c40,Staff_Detach,function,low,reimplemented (src/game/world/staff); thiscall: a jump to Person_Detach (Thing_Delete's kind 0x12)
+0x00502920,Researcher_Detach,function,low,"reimplemented (src/game/world/staff); thiscall: out of the game object's researcher chain (Things_Unlink1da742), Staff_Detach, the lab's flag synced when there is a lab"
+0x00504c70,Staff_HandleMessage,function,low,"reimplemented (src/game/world/staff); thiscall (message), pops 4: pay day (0xc) debits the wage and adds it to the record's +0x1f7f0; 0xa for the rest area: state 3 leaves it and heads to the nearest one, state 2 clears it and returns to state 0"
+0x00509360,StaffAdvice_KindLow,function,low,"reimplemented (src/game/world/staff); thiscall (kind), pops 4: 1 when +0x64 is set, or (kind 0) the sums' ratio is above 0.2, or the kind's staff chain has more than 3 members averaging below 15 in the low byte of +0x1fc, then +0x1f8; else 0"
+0x00508f70,StaffAdvice_Update,function,low,"reimplemented (src/game/world/staff); thiscall (kind), pops 4: once the game clock's elapsed time is 24 30-day months, the kind's advice state +0x24 + 12 * kind steps on (message 17 of (kind, 0 or 2) posted) while StaffAdvice_KindLow, else is cleared with its flag (message 17 of (kind, 3) when it was 1)"
 0x00520d60,FreeList_Take,function,high,reimplemented (src/game/core/voices); takes a record off the free list into a table entry
 0x00521890,FreeList_Return,function,high,reimplemented (src/game/core/voices); puts a record back on the free list
 0x00521d60,Voice_ScaleLevels,function,high,reimplemented (src/game/core/voices); scales a voice's levels by the factor over 1024
@@ -4320,6 +4332,7 @@ address,name,kind,confidence,notes
 0x00502d20,ThingKindE_Ctor,function,high,reimplemented (src/game/world/things); a thing of kind 0xe with five records
 0x004f7e20,Thing_ResetPlaceAt,function,high,"reimplemented (src/game/world/things); thiscall (x, y, pops 8): +0x39c = 0, +0x10 = 3 (Set4_4217f0 on +0xc), then Thing_PlaceAt(x, y)"
 0x005153c0,ThingsToDelete_AtExit,function,low,"reimplemented (src/game/world/things); cdecl: the delete queue's atexit entry, its nodes freed once"
+0x0050b980,Thing_Detach,function,low,"reimplemented (src/game/world/things); thiscall: unlinked from its map cell's chain, a ride destroyed (Ride_Destroy through the env), 0x877350 cleared when it is the thing (kinds 1, 4-8, 0x12), erased from the message centre; returns the count erased"
 0x00565310,DrawBatch_Open,function,high,reimplemented (src/game/render/drawbuffer); a draw batch resumed and tagged
 0x0057b070,Object_ReleaseSavedPairs,function,high,reimplemented (src/game/core/vobj2); saved pairs written back and their arrays freed
 0x0057b5b0,Object_FreeBlock13c,function,low,reimplemented (src/game/core/vobj2); thiscall: the tracked block at +0x13c freed after its texture at +0x18 is released twice (sic) and freed (name unconfirmed)
@@ -5396,6 +5409,9 @@ address,name,kind,confidence,notes
 0x00530b70,TrackRun_TraceB,function,low,"reimplemented (src/game/world/cellrun); cdecl (thing): TraceA's run from the cell stepped by Position_StepB, not moving onto the end, the cell at 0x7639e0 reset to overlap 0, stopping at once on a start of no track type"
 0x0052a490,TrackRun_AnimateA,function,low,"reimplemented (src/game/world/cellrun); cdecl (thing, start): the track run from the thing's cell stepped as Position_StepA, each run cell's thing playing bank 5 or 0xc"
 0x0052a700,TrackRun_AnimateB,function,low,"reimplemented (src/game/world/cellrun); cdecl (thing, start): the same from the cell stepped as Position_StepB (its code through Nibble_Scale)"
+0x0052c6f0,TrackRun_UpdateA,function,low,"reimplemented (src/game/world/cellrun); cdecl (thing, flash, start, bank5): the track's piece shapes (low flags) along a run from the thing (as AnimateA), the env's 0x53afa0 on each shaped cell, its thing animated (start) and the end's flashed or not (flash); AL 1 at an end piece"
+0x0052ccb0,TrackRun_UpdateB,function,low,"reimplemented (src/game/world/cellrun); cdecl (thing, flash, start, bank5): the same along a run as AnimateB (animating before the shape rules, 8 / 2 for one side's low flags the other way round, the last rule reversed, no move or answer at an end piece)"
+0x0052fc80,TrackCell_Relink,function,low,"reimplemented (src/game/world/cellrun); cdecl (corners): the links of the track piece at the cell 0x7639e0 / 0x7639e4 mended side by side against the cells two on (linked to an end of the same +0x10 word, unlinked from others); at a corner with corners set, linked sides to non-ends unlinked both ways, at an end the direction set"
 0x005f2050,ParkMap_Classify,function,low,"reimplemented (src/game/world/parkmap); thiscall (map): each square of the map's width x height gets a kind (9 path, 1-8 by the owner's first thing's definition map kind and flags, 0xa / 0xb / 0xc by cell type 1 / 3 / flag 0x40) and the thing's handle in its 8-byte entry at +0x60"
 0x005f4180,ParkMap_PlaceSprite,function,low,"reimplemented (src/game/world/parkmap); thiscall on the park map (sprite; pops 4): the sprite's screen position from its map position, its frame's vector in the array at 0x879ce0 and the frame's +0x2c size"
 0x005f1050,ParkMap_ApplyView,function,low,"reimplemented (src/game/world/parkmap); thiscall on the map: the view origin (+0x54, +0x58) kept to 0 to width / height - 1, the camera put on it times 10 (Camera_SetView), the window (+4) sent message 4"
@@ -5417,6 +5433,9 @@ address,name,kind,confidence,notes
 0x004d4b90,ObjectDef_IsUnlocked,function,low,"reimplemented (src/game/world/objectunlock); stdcall (id): the definition's s32 +0xc4 (ObjectDefs_Find, not checked) <= GlobalSave_CountSetLeft of GlobalSave_Instance (signed); only AL"
 0x005229e0,QueuePiece_Place,function,low,"reimplemented (src/game/world/queuepieces); a queue piece of the table 0x763388 claimed (Ride_Claim) or created (0x463060 through the env) at x, y with the turn 360 - angle, key 0x33a"
 0x00522a90,QueuePiece_Remove,function,low,"reimplemented (src/game/world/queuepieces); Ride_Destroy (0x463c80, through the env) of the ride"
+0x00522b90,TrackQueuePiece_Place,function,low,"reimplemented (src/game/world/queuepieces); cdecl (x, y, unused, piece, angle, claim): QueuePiece_Place over the table 0x7633e8, the description's last dword 0x8179f8, the position moved by the turn"
+0x00522d50,TrackQueuePiece_PlaceAnimated,function,low,"reimplemented (src/game/world/queuepieces); cdecl (x, y, unused, piece, angle, claim): the same over 0x7634d8; the ride (when not 0) plays bank 0xc (Animator_Play)"
+0x00522f20,EndPiece_Place,function,low,"reimplemented (src/game/world/queuepieces); cdecl (x, y, unused, piece, angle, claim): the same over 0x763608 (ho_end1.md2, ...)"
 0x0052c150,PathDrag_Begin,function,low,"reimplemented (src/game/world/pathdrag); the drag's cell becomes (x, y); its entry's dword +4 saved at 0x818c58 and cleared; without keep, 0x5367a0 on the cell; the held byte set"
 0x0052c1c0,PathDrag_Finish,function,low,"reimplemented (src/game/world/pathdrag); with a cell held, three 0x536100 steps (0x15, 0x83, 0x81); the stepped cell's entry gets the saved value back; the held byte cleared, the cell -1, -1"
 0x00518e60,AdvisorSlot_Ctor,function,low,reimplemented (src/game/world/advisorrecords); the element constructor of the 8 records of 0x18 at +0x14: the byte +0x14 cleared; returns the record

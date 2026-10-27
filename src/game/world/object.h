@@ -18,6 +18,9 @@ struct ObjectEnv {
 };
 // The objects' calls go to env (nullptr: the game's).
 void Object_SetEnv(const ObjectEnv *env);
+// A message posted to the message centre (MessageCentre_Instance, made on the first call, then the env's 0x40fb10): what the things'
+// code in 0x4e0000-0x530000 does inline; the staff and the research labs share the objects' env through it.
+void Object_PostMessage(u8 *msg);
 
 // 0x4e0450 (thiscall; name invented): the queue's head (the handle at +0x3c, a person of the table 0x7cfb90): when it is not element 0 of the
 // object's ride record (Rides_GetElement of Rides_FindById of +0x24) and its state (+0x220) is 0xe, the env's 0x500870 on it. Otherwise, unless

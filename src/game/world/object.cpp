@@ -45,6 +45,8 @@ extern "C" {
 
 void Object_SetEnv(const ObjectEnv *env) { g_env = env ? env : &kGameEnv; }
 
+void Object_PostMessage(u8 *msg) { g_env->post40fb10(MessageCentre_Instance(), nullptr, msg); }
+
 void __fastcall Object_DismissQueueHead(u8 *object) {
     const u16 head = at<u16>(object, 0x3c);
     if (Rides_GetElement(Rides_FindById(at<s32>(object, 0x24)), 0) != head) {
