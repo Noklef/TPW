@@ -146,7 +146,10 @@ def sender_case(r, fn):
         return Call(fn, [max(-0x80000000, min(0x7fffffff, level)) & 0xffffffff], regions)
     if fn == 0x51c1d0:   # (the word 0x803ad2: the position's y the float [0x700b28] instead)
         regions[0x803ad0] = r.bytes(2) + struct.pack('<H', r.choice([0, 0, 0, 1, 0x100, r.getrandbits(16)])) + r.bytes(4)
-        return Call(fn, [v for p in (sc.P1, sc.P2, sc.P3) for v in struct.unpack('<3I', regions[p])], regions)
+        args = [v for p in (sc.P1, sc.P2, sc.P3) for v in struct.unpack('<3I', regions[p])]
+        if r.random() < 0.2:   # (y a signalling NaN: the x87's load and store quiet it)
+            args[1] = r.choice([0x7f800001, 0xffbfffff, 0x7fa00000])
+        return Call(fn, args, regions)
     if fn == 0x51c8d0:   # (the kept record 0x803ab4: the index's now and then)
         index = struct.unpack_from('<I', regions[sc.COMMAND], 4)[0]
         regions[0x803ab0] = r.bytes(4) + struct.pack('<I', r.choice([index, r.getrandbits(32), 0, 1])) + r.bytes(4)
