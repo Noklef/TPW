@@ -5,7 +5,8 @@
 # index the folder holds a recorder vtable (its slot 0, Release, logged).
 # FolderCtor (0x6ad130) over random bytes; FolderDtor (0x6ad160) and FolderClose (0x6ad200): an index or none; FolderOpen (0x6ad1b0): +0xc
 # 0 mostly (else 1 or any), a path; IndexInit (0x6afbc0): a path, 0-6 records (keys mostly increasing, now and then equal or lower, the
-# objects any), the count 0 to two past them.
+# objects any), the count 0 to two past them. Load, Find (0x6afc80), Fetch (0x6af9d0) and the folder's getters (0x6ad460-0x6ad570): an
+# index of 5 records (keys increasing from 0-2 by 1 or 2, kinds mostly 0-5, objects a recorder or none), the key one of them mostly.
 # usage: resindex.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=FolderOpen,...)
 import os
 import struct
@@ -17,14 +18,18 @@ from fncmp import IMPORT_TABLE, LOG, Bench, Call, HEAP, RAM, blob, echo, fill, f
 import fileopen as fo  # noqa: E402
 
 B = Bench(fo.RANGES + [(0x6ad130, 0x6ad230), (0x6afbc0, 0x6afc57), (0x6acfd0, 0x6acff0), (0x6af760, 0x6af770), (0x6af810, 0x6af954),
-                       (0x6afa30, 0x6afb5f), (0x6afb70, 0x6afbbc), (0x6ad230, 0x6ad45a)])
+                       (0x6afa30, 0x6afb5f), (0x6afb70, 0x6afbbc), (0x6ad230, 0x6ad45a), (0x6ad460, 0x6ad5bf), (0x6af960, 0x6afa20),
+                       (0x6afc60, 0x6afc8d)])
 THIS, RESULT, OBJ, NAME, INDEX, RECORDS = RAM, RAM + 0x80, RAM + 0xc0, RAM + 0x400, RAM + 0x500, RAM + 0x600
 VT_HANDLE, VT_OBJ, VT_INDEX = RAM + 0x200, RAM + 0x280, RAM + 0x300
 FOLDER_HANDLE_VTABLE = 0x6fd9e8
 OPS = {'FolderCtor': 0x6ad130, 'FolderDtor': 0x6ad160, 'FolderOpen': 0x6ad1b0, 'FolderClose': 0x6ad200, 'IndexInit': 0x6afbc0,
        'BaseCtor': 0x6af760, 'BaseDelete': 0x6acfd0, 'IndexCtor': 0x6af810, 'IndexDtor': 0x6af8a0, 'IndexDelete': 0x6af880,
        'ReleaseEntry': 0x6af900, 'ReleaseAll': 0x6af920, 'GetEntry': 0x6afa30, 'OpenEntry': 0x6afb70,
-       'Load': 0x6afa70, 'LoadIndex': 0x6ad2a0, 'LoadNamed': 0x6ad230}
+       'Load': 0x6afa70, 'LoadIndex': 0x6ad2a0, 'LoadNamed': 0x6ad230, 'Find': 0x6afc80, 'Fetch': 0x6af9d0, 'GetCode': 0x6ad460,
+       'GetRange': 0x6ad4b0, 'GetCharset': 0x6ad510, 'GetFont': 0x6ad570}
+LOOKUPS = ('Load', 'Find', 'Fetch', 'GetCode', 'GetRange', 'GetCharset', 'GetFont')   # (on an index with records and a handle)
+FOLDER_INDEX = RAM + 0xa00
 LOADER, VT_LOADER, SOURCE = RAM + 0x780, RAM + 0x800, RAM + 0x900
 RETURNS = {'FolderDtor': 'v', 'IndexDtor': 'v', 'ReleaseEntry': 'v', 'ReleaseAll': 'v'}
 ENTRY_OBJ, VT_ENTRY, OUT = RAM + 0x700, RAM + 0x380, RAM + 0x90
@@ -79,13 +84,22 @@ def result(r):
 def load_case(r, op, regions):
     log = regions[LOG]
     obj = bytearray(r.bytes(0x30))
-    if op == 'Load':   # (&result, record, &object) on an index whose handle answers slot 3 (or its object slot 1)
-        obj[0:0x10] = struct.pack('<4I', VT_INDEX, 1, RECORDS, RECORDS + 12 * 4)
+    if op in LOOKUPS:   # (&result, record, &object) on an index whose handle answers slot 3 (or its object slot 1); 5 records (keys
+        # increasing from 0-2 by 1 or 2, their objects mostly none; the last pointer now and then before the fifth) for Find (key) and the
+        # folder's getters ((&result, &object, key) on a folder holding the index)
+        obj[0:0x10] = struct.pack('<4I', VT_INDEX, 1, RECORDS, RECORDS + 12 * (4 if r.random() < 0.8 else r.randrange(4)))
         obj[0x10:0x18] = handle(r)
         recs = bytearray(r.bytes(12 * 5))
+        key = r.randrange(3)
+        keys = []
         for k in range(5):
-            struct.pack_into('<H', recs, 12 * k + 4, r.randrange(6) if r.random() < 0.85 else r.choice([6, 7, r.getrandbits(16)]))
+            keys.append(key)
+            struct.pack_into('<IH', recs, 12 * k, key, r.randrange(6) if r.random() < 0.85 else r.choice([6, 7, r.getrandbits(16)]))
+            if op != 'Load':
+                struct.pack_into('<I', recs, 12 * k + 8, ENTRY_OBJ if r.random() < 0.4 else 0)
+            key += r.choice([1, 1, 2])
         regions[RECORDS] = bytes(recs)
+        key = r.choice(keys) if r.random() < 0.75 else r.choice([0, 1, 2, 3, 8, r.getrandbits(32)])
         for k, which in ((1, 0), (3, 1)):
             answer(log, k, which, result(r), held=False)   # (&slot holds &stream)
         regions[0x782d20] = struct.pack('<6I', *[LOADER if r.random() < 0.8 else 0 for _ in range(6)])
@@ -97,6 +111,14 @@ def load_case(r, op, regions):
         regions[ENTRY_OBJ] = struct.pack('<2I', VT_ENTRY, 1)
         regions[OUT] = r.bytes(4)
         stack = [RESULT, RECORDS + 12 * r.randrange(5), OUT]
+        if op == 'Find':
+            stack = [key]
+        elif op == 'Fetch' and r.random() < 0.08:
+            stack[1] = 0
+        elif op.startswith('Get'):
+            regions[FOLDER_INDEX] = bytes(obj)
+            obj = bytearray(struct.pack('<I', FOLDER_INDEX) + r.bytes(0x2c))
+            stack = [RESULT, OUT, key]
     else:   # a folder (+0 an index or none, +4 its handle) and a file system: "ResIdx.dat" read through FileSource from ReadFile's fills
         obj[0:4] = struct.pack('<I', 0 if r.random() < 0.4 else INDEX)
         set_return(log, fo.K['CreateFileA'], r.choice([0x77, 0x77, 0x77, 0xffffffff]))
@@ -134,7 +156,7 @@ def load_case(r, op, regions):
 def case(r):
     op = r.deal(PICK)
     regions = world(r)
-    if op in ('Load', 'LoadIndex', 'LoadNamed'):
+    if op in LOOKUPS or op in ('LoadIndex', 'LoadNamed'):
         return load_case(r, op, regions)
     obj = bytearray(r.bytes(0x30))
     stack = []

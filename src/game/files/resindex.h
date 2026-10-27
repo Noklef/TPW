@@ -4,7 +4,7 @@
 // ResIndex (vtable 0x70a128; the counted base 0x70a078, its count at +4): +8 the records (12 bytes each: +0 a key, the keys strictly
 // increasing; +4 a 16-bit kind, +6 a 16-bit offset, +8 the object loaded for it), +0xc the last record, +0x10 the folder handle (a
 // Handle, vtable 0x6fd9e8). Its slots 0 and 1 are the counted base's Release and AddRef (refcounted.h).
-// Reimplementation of 0x6ad130-0x6ad458, 0x6af810-0x6af953 and 0x6afa30-0x6afc56.
+// Reimplementation of 0x6ad130-0x6ad5bf, 0x6af810-0x6af953, 0x6af9d0-0x6afa1f, 0x6afa30-0x6afc56 and 0x6afc80-0x6afc8c.
 #pragma once
 
 #include "../../../re/types.h"
@@ -81,4 +81,19 @@ s32 *__fastcall ResFolder_LoadIndex(u8 *folder, void *, s32 *result, u32 path);
 // 0x6ad230 (thiscall (&result, name)): the name's full path (0x200 bytes on the stack) through the handle (+4) slot 5 (&r, buffer,
 // name, 0x200): -1 below 0, else ResFolder_LoadIndex on it. Returns &result.
 s32 *__fastcall ResFolder_Load(u8 *folder, void *, s32 *result, u32 name);
+
+// 0x6afc80 (thiscall (key), pops 4): the record for the key (Table12_Find), or null.
+u8 *__fastcall ResIndex_Find(u8 *index, void *, u32 key);
+
+// 0x6af9d0 (thiscall (&result, record, &object)): *object cleared; -1 without a record. A record whose object (+8) is loaded: *object
+// that, given a reference (slot 1 of +8 read again), 0; else ResIndex_Load. Returns &result.
+s32 *__fastcall ResIndex_Fetch(u8 *index, void *, s32 *result, u8 *record, u8 **object);
+
+// 0x6ad460, 0x6ad4b0, 0x6ad510 and 0x6ad570 (thiscall (&result, &object, key)): the index's (+0, read again for each) record for the key
+// (ResIndex_Find) of kind 0 (a CodeTable), 1 (a RangeTable), 3 (a Charset; charsets.h) or 4 (an "F4FB" font) by Record_Word4OrSix:
+// ResIndex_Fetch on it; else *object cleared and -1. Returns &result. (A null index faults, sic.)
+s32 *__fastcall ResFolder_GetCodeTable(u8 *folder, void *, s32 *result, u8 **object, u32 key);
+s32 *__fastcall ResFolder_GetRangeTable(u8 *folder, void *, s32 *result, u8 **object, u32 key);
+s32 *__fastcall ResFolder_GetCharset(u8 *folder, void *, s32 *result, u8 **object, u32 key);
+s32 *__fastcall ResFolder_GetFont(u8 *folder, void *, s32 *result, u8 **object, u32 key);
 }

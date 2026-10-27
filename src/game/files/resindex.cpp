@@ -3,7 +3,9 @@
 #include <cstdint>
 
 #include "../core/gameheap.h"
+#include "../core/methods.h"
 #include "../core/refcounted.h"
+#include "../core/seqs.h"
 #include "../core/vcall.h"
 #include "handles.h"
 
@@ -12,6 +14,15 @@ namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
 Handle *HandleAt(u8 *object, u32 offset) { return reinterpret_cast<Handle *>(object + offset); }
+
+// The folder's typed getters: the index's record for the key fetched when it is of the kind.
+s32 *GetOfKind(u8 *folder, s32 *result, u32 key, u8 **object, u32 kind) {
+    u8 *const record = ResIndex_Find(at<u8 *>(folder, 0), nullptr, key);
+    if (Record_Word4OrSix(record) == kind) return ResIndex_Fetch(at<u8 *>(folder, 0), nullptr, result, record, object);
+    *object = nullptr;
+    *result = -1;
+    return result;
+}
 
 }  // namespace
 
@@ -217,3 +228,28 @@ s32 *__fastcall ResFolder_Load(u8 *folder, void *, s32 *result, u32 name) {
     }
     return ResFolder_LoadIndex(folder, nullptr, result, (u32)(uintptr_t)path);
 }
+
+u8 *__fastcall ResIndex_Find(u8 *index, void *, u32 key) { return Table12_Find(index, nullptr, key); }
+
+s32 *__fastcall ResIndex_Fetch(u8 *index, void *, s32 *result, u8 *record, u8 **object) {
+    *object = nullptr;
+    if (!record) {
+        *result = -1;
+        return result;
+    }
+    if (u8 *const held = at<u8 *>(record, 8)) {
+        *object = held;
+        vcall<void>(at<u8 *>(record, 8), 4);
+        *result = 0;
+        return result;
+    }
+    return ResIndex_Load(index, nullptr, result, record, object);
+}
+
+s32 *__fastcall ResFolder_GetCodeTable(u8 *folder, void *, s32 *result, u8 **object, u32 key) { return GetOfKind(folder, result, key, object, 0); }
+
+s32 *__fastcall ResFolder_GetRangeTable(u8 *folder, void *, s32 *result, u8 **object, u32 key) { return GetOfKind(folder, result, key, object, 1); }
+
+s32 *__fastcall ResFolder_GetCharset(u8 *folder, void *, s32 *result, u8 **object, u32 key) { return GetOfKind(folder, result, key, object, 3); }
+
+s32 *__fastcall ResFolder_GetFont(u8 *folder, void *, s32 *result, u8 **object, u32 key) { return GetOfKind(folder, result, key, object, 4); }

@@ -3007,6 +3007,12 @@ address,name,kind,confidence,notes
 0x006afa70,ResIndex_Load,function,low,reimplemented (src/game/files/resindex); A resource index record's object loaded by its kind's loader from the record's file
 0x006ad2a0,ResFolder_LoadIndex,function,low,"reimplemented (src/game/files/resindex); The resource folder's index read from ResIdx.dat in a folder (BFRI header, records) into a new resource index"
 0x006ad230,ResFolder_Load,function,low,reimplemented (src/game/files/resindex); The resource folder's index loaded from a name's full path in its folder
+0x006afc80,ResIndex_Find,function,low,reimplemented (src/game/files/resindex); The resource index's record for a key
+0x006af9d0,ResIndex_Fetch,function,low,"reimplemented (src/game/files/resindex); A resource index record's object, given a reference when loaded, else loaded"
+0x006ad460,ResFolder_GetCodeTable,function,low,reimplemented (src/game/files/resindex); The code table the resource folder's index names by a key
+0x006ad4b0,ResFolder_GetRangeTable,function,low,reimplemented (src/game/files/resindex); The range table the resource folder's index names by a key
+0x006ad510,ResFolder_GetCharset,function,low,reimplemented (src/game/files/resindex); The charset the resource folder's index names by a key
+0x006ad570,ResFolder_GetFont,function,low,reimplemented (src/game/files/resindex); The font the resource folder's index names by a key
 0x006ad860,RangeTable_Ctor,function,low,reimplemented (src/game/files/charsets); A range table (vtable 0x70a0e0) constructed on its range segments
 0x006ad8c0,RangeTable_Dtor,function,low,reimplemented (src/game/files/charsets); A range table destroyed (the counted base's vtable)
 0x006ad8a0,RangeTable_DeletingDtor,function,low,reimplemented (src/game/files/charsets); A range table destroyed and freed for flags bit 0
