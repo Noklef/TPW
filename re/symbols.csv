@@ -4415,6 +4415,7 @@ address,name,kind,confidence,notes
 0x006b7840,SoundChannel_FreeEax,function,low,"reimplemented (src/game/core/soundchannel); thiscall: the EAX buffer (+0x20) released, freed and cleared when there is one (name invented)"
 0x006b99c0,SoundChannel_SwitchOcclusion,function,low,reimplemented (src/game/core/soundchannel); the channel's occlusion switch (flag 0x80 over 0x42) passed to SetOcclusion
 0x006b9a10,SoundChannel_TryAddOccluder,function,low,"reimplemented (src/game/core/soundchannel); an occluder added for a channel with the flags 0x41, the node out"
+0x006b7eb0,SoundChannel_ReleaseVoices,function,low,reimplemented (src/game/core/soundchannel); each of the pool's voices released (the first even with a count of 0)
 0x006b85f0,SoundObject_Broadcast,function,low,"reimplemented (src/game/core/soundobject); thiscall (out), pops 4: the mixer's active voices run (ForEachActive 0), then the channel's slot 4 with a stack functor 0x70a5b0; *out = -1 without a channel; returns out"
 0x006b8640,SoundObject_BroadcastValue,function,low,"reimplemented (src/game/core/soundobject); thiscall (out, value), pops 8: with a channel flagged 0x400 the mixer's ForEachActive (value), else SoundObject_Broadcast; *out = 0; returns out"
 0x006b8b00,SoundObject_VoiceInfo,function,low,"reimplemented (src/game/core/soundobject); thiscall (out, id, result), pops 0xc: the mixer's voice for the id; its +0xc's +8 into *result and *out = 0, else *out = -1; returns out"
@@ -4686,6 +4687,9 @@ address,name,kind,confidence,notes
 0x006bb590,ChannelVoice_Refill,function,low,"reimplemented (src/game/core/channelvoice); thiscall: the stream voice's refill on its service thread: its slot 7 reads 0x2400 bytes into +0x68, +0x30 set unless it returned 1, the event *(+0x70) reset, +0x6c set; returns +0x30 (name invented)"
 0x006bb860,ChannelVoice_ScaledRate,function,low,"reimplemented (src/game/core/channelvoice); thiscall: the rate (+0x18) times the modifiers (+0x34) the mask (+0x24) selects, fistp'd; the rate as it is for no mask (name invented)"
 0x006bb8d0,VoiceId_SetHigh,function,low,"reimplemented (src/game/core/channelvoice); thiscall (value), pops 4: the dword keeps its bits below shift + 1 (a mask made once), then the value's low word shifted in (name invented)"
+0x006baa60,ChannelVoices_Find,function,low,reimplemented (src/game/core/channelvoice); the pool's voice for a handle (its slot 12 says yes)
+0x006baad0,ChannelVoices_FindOut,function,low,"reimplemented (src/game/core/channelvoice); the pool's voice for a handle, slot 12's answer out"
+0x006bab50,ChannelVoices_Holds,function,low,reimplemented (src/game/core/channelvoice); the handle's index out; whether its voice's slot 12 says yes
 0x006c4c80,SoundOccluders_Occlusion,function,low,"reimplemented (src/game/core/soundoccluders); thiscall on the occluders (0xfb2038) (from, to, out), pops 0xc: the largest occlusion of the path, through out; returns it is neither 0 nor NaN"
 0x006c4ba0,SoundOccluders_Remove,function,low,"reimplemented (src/game/core/soundoccluders); thiscall (out, &node), pops 8: with occluders, the node unlinked, the count lowered, the node freed; its occluder freed, *node = 0 and *out = 0 when there is one, else *out = -1 (none in the list too); returns out (name invented)"
 0x006c4c20,SoundOccluders_Clear,function,low,reimplemented (src/game/core/soundoccluders); the occluders cleared (each node and its occluder freed)

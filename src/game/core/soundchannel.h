@@ -103,6 +103,9 @@ u32 *__fastcall SoundChannel_SetEaxAll(u8 *channel, void *, u32 *out, u8 *settin
 // stack slot, sic; the voice's id +0x2c shifted right by the byte at 0x782db8); when the dword it returns a pointer to is not negative,
 // the voice released (value). *out = -1 either way (sic). Returns out.
 u32 *__fastcall SoundChannel_ReleaseVoice(u8 *channel, void *, u32 *out, u8 *voice, u32 value);
+// 0x6b7eb0 (thiscall; name invented): with a voice array (the pool +0x14's +4), SoundChannel_ReleaseVoice (a local out, the voice, 0)
+// for each voice up to the count (+8, read once) of them, the first one even when the count is 0 (sic: the test comes after).
+void __fastcall SoundChannel_ReleaseVoices(u8 *channel);
 
 // 0x6b9a60 (thiscall (a, &picked, record), pops 0xc; name invented): the channel's slot 6 (a, record) picks a voice, kept in *picked; none
 // and the record's flags (+0x14, read after) with bit 13: 0. Else the channel's slot 5 (the voice, or a without one; record), its result returned.

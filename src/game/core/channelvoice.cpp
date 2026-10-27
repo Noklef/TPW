@@ -126,6 +126,25 @@ void __fastcall VoiceId_SetHigh(u32 *id, void *, u32 value) {
     *id += (value & 0xffff) << (*shift & 31);
 }
 
+u8 *__fastcall ChannelVoices_Find(u8 *pool, void *, const u32 *handle) {
+    u8 *const voice = at<u8 *>(pool, 4) + (*handle >> (*reinterpret_cast<const u8 *>(static_cast<uintptr_t>(0x00782db8)) & 31)) * 0x8c;
+    return vcall<u32>(voice, 0x30, handle) ? voice : nullptr;
+}
+
+u8 *__fastcall ChannelVoices_FindOut(u8 *pool, void *, const u32 *handle, u32 *out) {
+    u8 *const voice = at<u8 *>(pool, 4) + (*handle >> (*reinterpret_cast<const u8 *>(static_cast<uintptr_t>(0x00782db8)) & 31)) * 0x8c;
+    const u32 answer = vcall<u32>(voice, 0x30, handle);
+    *out = answer;
+    return answer ? voice : nullptr;
+}
+
+u32 __fastcall ChannelVoices_Holds(u8 *pool, void *, const u32 *handle, u32 *out) {
+    u8 *const voices = at<u8 *>(pool, 4);
+    const u32 index = *handle >> (*reinterpret_cast<const u8 *>(static_cast<uintptr_t>(0x00782db8)) & 31);
+    *out = index;
+    return vcall<u32>(voices + index * 0x8c, 0x30, handle) ? 1 : 0;
+}
+
 u8 *__fastcall ChannelVoice_Ctor(u8 *voice) {
     at<u32>(voice, 4) = 0;
     at<u32>(voice, 8) = 0;

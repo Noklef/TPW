@@ -60,4 +60,13 @@ u8 *__fastcall ChannelVoices_Ctor(u8 *pool, void *, u8 *channel, u32 count);
 // Returns +0x30.
 u32 __fastcall ChannelVoice_Refill(u8 *voice);
 
+// The pool's lookups by a voice's handle (*handle shifted right by the byte at 0x782db8: the voice's index in the array +4, not checked;
+// the voice's slot 12 (0x6bb6c0: (handle)) says whether the handle is the voice's; names invented). 0x6baa60 (thiscall (&handle), pops
+// 4): the voice when its slot 12 answers nonzero, else 0.
+u8 *__fastcall ChannelVoices_Find(u8 *pool, void *, const u32 *handle);
+// 0x6baad0 (thiscall (&handle, out), pops 8): as ChannelVoices_Find, slot 12's answer into *out.
+u8 *__fastcall ChannelVoices_FindOut(u8 *pool, void *, const u32 *handle, u32 *out);
+// 0x6bab50 (thiscall (&handle, out), pops 8): *out = the index; 1 when slot 12 answers nonzero, else 0.
+u32 __fastcall ChannelVoices_Holds(u8 *pool, void *, const u32 *handle, u32 *out);
+
 }  // extern "C"

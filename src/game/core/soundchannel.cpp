@@ -226,6 +226,18 @@ u32 *__fastcall SoundChannel_SetEaxAll(u8 *channel, void *, u32 *out, u8 *settin
     return source_eax(channel, out, settings);
 }
 
+void __fastcall SoundChannel_ReleaseVoices(u8 *channel) {
+    u8 *const pool = at<u8 *>(channel, 0x14);
+    u8 *voice = at<u8 *>(pool, 4);
+    u8 *const end = voice + at<u32>(pool, 8) * 0x8c;
+    if (!voice) return;
+    do {
+        u32 status;
+        SoundChannel_ReleaseVoice(channel, nullptr, &status, voice, 0);
+        voice += 0x8c;
+    } while (voice < end);
+}
+
 u32 *__fastcall SoundChannel_ReleaseVoice(u8 *channel, void *, u32 *out, u8 *voice, u32 value) {
     u8 *const target = voice;   // (the argument's slot is the source's out below)
     if (target) {
