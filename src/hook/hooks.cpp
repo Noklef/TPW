@@ -328,6 +328,7 @@
 #include "../game/world/cellmodel.h"
 #include "../game/world/objectstatus.h"
 #include "../game/world/parkgates.h"
+#include "../game/world/pathdrag.h"
 #include "../game/world/queuepieces.h"
 #include "../game/world/uimsgreceiver.h"
 #include "../game/world/visitoroption.h"
@@ -5331,6 +5332,8 @@ const Hook kHooks[] = {
     {"MapCell_CanBuildTrack",     0x00539760, (void *)&MapCell_CanBuildTrack, {0x83, 0xec, 0x1c, 0x53, 0x55}},
     {"QueuePiece_Place",          0x005229e0, (void *)&QueuePiece_Place, {0x8b, 0x54, 0x24, 0x14, 0xb8}},
     {"QueuePiece_Remove",         0x00522a90, (void *)&QueuePiece_Remove, {0x8b, 0x44, 0x24, 0x04, 0x50}},
+    {"PathDrag_Begin",            0x0052c150, (void *)&PathDrag_Begin, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"PathDrag_Finish",           0x0052c1c0, (void *)&PathDrag_Finish, {0x83, 0xec, 0x08, 0xa1, 0x00}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},

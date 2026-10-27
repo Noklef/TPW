@@ -14,4 +14,14 @@ struct PathDragEnv {
 };
 // The path drag's calls go to env (nullptr: the game's).
 void PathDrag_SetEnv(const PathDragEnv *env);
+
+// 0x52c150 (cdecl (x, y, keep); name invented): the drag's cell becomes (x, y) (0x763a00 / 0x763a04); the map id's 0x44-byte cell (the
+// world [0x7cf83c] + 0x294 + id * 0x44): its entry's (MapHandle_Entry28) dword +4 is saved at 0x818c58 and cleared; without keep, the
+// env's 0x5367a0 on the cell (0, 0). The held byte 0x818c54 becomes 1.
+void __cdecl PathDrag_Begin(s32 x, s32 y, u32 keep);
+
+// 0x52c1c0 (cdecl; name invented): with a cell held (neither of 0x763a00 / 0x763a04 -1, the byte 0x818c54 set), the env's 0x536100 steps
+// it by the codes 0x15, 0x83 and 0x81 in turn (each from the last one's out column and row); that cell's entry (the world + 0x1102b4 +
+// id * 0x28) gets the saved value of 0x818c58 back; the byte 0x818c54 is cleared and the cell becomes -1, -1.
+void __cdecl PathDrag_Finish();
 }
