@@ -5357,6 +5357,7 @@ address,name,kind,confidence,notes
 0x00577970,Backdrop_SetSourceRect,function,high,"reimplemented (src/game/render/backdrop); thiscall (x0, y0, x1, y1, floats): the part of the image drawn, +0x30..+0x3c"
 0x00577990,Backdrop_UncacheRect,function,low,"reimplemented (src/game/render/backdrop); thiscall (x0, y0, x1, y1): the tiles of the pixel rectangle (divided by 64 toward 0, ends included) unlinked from the texture cache (name unconfirmed)"
 0x005777b0,Backdrop_Create,function,low,"reimplemented (src/game/render/backdrop); thiscall (pixels, width, height, pitch in bytes), pops 0x10: the image cut into 64x64 textures (count-prefixed block, Texture_Ctor each), each tile's pitch and pixels set; +0x58 the count; returns 1 (name unconfirmed)"
+0x00577730,Backdrop_Release,function,low,"reimplemented (src/game/render/backdrop); cdecl; name invented: the backdrop exit handler, its tiles +0x40 cleared, destroyed and the fields cleared"
 0x00579c70,MeshQueue_Clear,function,high,"reimplemented (src/game/render/meshqueue); thiscall (the first mesh queue, 0x8bb220): +0x400 = 0, emptied"
 0x0057c260,MeshQueue2_Init,function,high,reimplemented (src/game/render/meshqueue); static initialiser: the second mesh queue (0x8bb638) emptied
 0x0057c270,MeshQueue2_Add,function,high,"reimplemented (src/game/render/meshqueue); thiscall (the second mesh queue; mesh): appended when there is room (0x100); 1, or 0 when full"
