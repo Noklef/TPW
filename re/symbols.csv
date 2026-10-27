@@ -969,6 +969,7 @@ address,name,kind,confidence,notes
 0x004ca670,Research_CountNotDoneCat2,function,low,reimplemented (src/game/world/research); cdecl: the lab's projects of category 2 not done
 0x004ca690,Research_CountNotDoneCat3,function,low,reimplemented (src/game/world/research); cdecl: the lab's projects of category 3 not done
 0x00503ac0,ResearchLab_LeftPercent,function,low,"reimplemented (src/game/world/research); thiscall (group), pops 4: the current project's (mCost - mResearchDone) * 100 / the dearest project's (+0x1464) mCost, __ftol; 0 without one or unless mCost > 0.1 and the dearest > 1.0"
+0x00503b80,ResearchLab_UpdateLevels,function,low,"reimplemented (src/game/world/research); thiscall (cat), pops 4: raises the category's group's highest level while the share of its eligible projects done reaches 0x785540's threshold (below 7); when raised, some not done and cat 0-3, posts advisor message 0x85 + cat"
 0x005100e0,Nav_SetPosVel,function,high,"reimplemented (src/game/world/nav); thiscall (x, y, vx, vy): pos (+8) and vel (+0x10) set"
 0x00510160,Nav_GetPos,function,high,"reimplemented (src/game/world/nav); thiscall (&x, &y): pos (+8, +0xc) read"
 0x0051aad0,World_ArrivalVehicleNotSize1,function,high,reimplemented (src/game/world/world); thiscall: 1 when mCurrentArrivalVehicle (+0x1da72a) is set and is not mArrivalVehicle_Size1 (+0x1da72c)

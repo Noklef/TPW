@@ -88,4 +88,10 @@ u32 __cdecl Research_CountNotDoneCat3();
 // taken. None: a current project that is done is dropped (-1). (EAX is left as it happens; the callers 0x4aa0e9 and on ignore it.)
 void __fastcall ResearchLab_NextProject(u8 *lab, void *, u32 group);
 void __fastcall ResearchLab_PrevProject(u8 *lab, void *, u32 group);
+// 0x503b80 (thiscall (cat), pops 4; name invented): raises the category's group's highestGroupAvailable (+0x1418 + cat * 16) while the
+// share of its projects that are done, among the mNumProjects projects of the category whose mResearchGroup is at most it (done * 100 /
+// count, unsigned; 0 for none), reaches the threshold of the level (the dwords at 0x785540, unsigned) and it is below 7. When it rose,
+// with some project of the category not done (ResearchLab_CountNotDone) and the category 0-3, the advisor message 0x85 + cat (type 0, a
+// 0, b -1, flag 0, no score; on the stack, bytes +2, +3, +0x17 unwritten) is posted to the advisor of the world [0x80239c].
+void __fastcall ResearchLab_UpdateLevels(u8 *lab, void *, u32 cat);
 }
