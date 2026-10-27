@@ -330,6 +330,7 @@ add_library(tpw_game STATIC
     src/game/world/queuepieces.cpp
     src/game/world/pathdrag.cpp
     src/game/world/advisorrecords.cpp
+    src/game/world/rides.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp

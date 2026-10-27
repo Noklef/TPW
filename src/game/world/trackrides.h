@@ -147,8 +147,8 @@ s32 __cdecl TrakRide_Unload(u8 *ride, u32 effect);
 
 // 0x54ae50 (cdecl (car): a 0xac-byte record of the pool [0x877b68]; called by 0x545450 / 0x545610; name invented): the car taken off its
 // ride (+0x9c): TrakRide_Unload (car, 0); flag 0x400000 cleared (and the ride's +0x58 with it); unless the ride's state (+0x50) is 4,
-// Particle_Spawn (0xf) at 1024 times the car's instance's position (as Unload's; the original reads it either way); Ride_Destroy (0x463c80,
-// through the queue pieces' env) of +8, and of +0xc with the flags 0x2002000 (then cleared); with a sound (+0x20) and the state not 4,
+// Particle_Spawn (0xf) at 1024 times the car's instance's position (as Unload's; the original reads it either way); Ride_Destroy 0x463c80 (through
+// the queue pieces' env) of +8, and of +0xc with the flags 0x2002000 (then cleared); with a sound (+0x20) and the state not 4,
 // for the ride kinds (+0) -10, -9, -7 and -4 Sound_PlayRideElement (the ride's object's +0x24 (the inlined search of TrakRide_FindThing),
 // the sound, [0x803a3c], 1, 0, 0, 0) and, when it plays, Sound_SetPosition at the car's +0x34 / +0x38 (as TrakCar_PlaySounds'); +0x20
 // left 0; other kinds Sound_Stop (the sound). A particle system (+0x2c) ended (ParticleSystem_End) and set to -1; flag 1 cleared, the
