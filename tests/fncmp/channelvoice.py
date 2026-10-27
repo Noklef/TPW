@@ -38,6 +38,19 @@ IMPORTS = {'InterlockedIncrement': (40, 0x6fd0c0, 1, 0, 0), 'InterlockedDecremen
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
+def tie(r):
+    """The scaled rate's rate and modifier where float and double rounding part: the exact 56-bit product rate * m (m the modifier's
+    24-bit significand, odd) has bit 31 set, bits 30-3 clear and 1-3 in bits 2-0 below its even 24-bit top. The x87's one rounding to 24
+    bits goes up (past the halfway point); a double product's rounding to 53 bits first drops bits 2-0 onto the tie, which goes to the
+    even top. The modifier's exponent keeps the result in fistp's range (2^25-2^26, or 2^24-2^25)."""
+    while True:
+        m = r.randrange(1 << 23, 1 << 24) | 1
+        n = ((1 << 31) + r.randrange(1, 4)) * pow(m, -1, 1 << 32) % (1 << 32)
+        p = n * m
+        if p >> 55 == 1 and not (p >> 32) & 1:
+            return n, ((127 - r.choice([7, 8])) << 23) | (m & 0x7fffff)
+
+
 def voices(r, n):
     out = bytearray()
     for _ in range(n):
@@ -107,6 +120,11 @@ def case(r):
         regions[VOICES] = v
         regions[MODS] = struct.pack('<4I', *[r.choice([fb(r.f()), fb(r.f()), 0x3f800000, 0, 0x80000000, 0x7f800000, 0xff800000, 0x7fc00000,
                                                        0x7f800001, 0xffc12345, 0x00000001, r.getrandbits(32)]) for _ in range(4)])
+        if r.random() < 0.3:   # (a rate and modifier 0 whose product sits just past a 24-bit tie: see tie())
+            rate, mod = tie(r)
+            struct.pack_into('<I', v, 0x18, rate)
+            struct.pack_into('<I', v, 0x24, r.choice([1, 1, 3, 0xf, r.getrandbits(32) | 1]))
+            regions[MODS] = struct.pack('<4I', mod, 0x3f800000, 0x3f800000, 0x3f800000)   # (the others 1.0)
         return Call(address, [VOICES], regions, conv=conv, ret=ret)
     if name == 'sethigh':   # (the guard set or not, the mask kept any; the shift any byte)
         regions[0xfb1f18] = bytes([r.choice([0, 1, r.getrandbits(8)])]) + r.bytes(3) + struct.pack('<I', r.getrandbits(32))
