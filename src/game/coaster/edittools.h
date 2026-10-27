@@ -67,4 +67,18 @@ void __cdecl CoasterEdit_EndTool();
 // Coaster_FlashCar (game, 2), the game's flag 4 set (sic: before the game is tested), and with a game whose +4 has flag 2 (a byte),
 // when the car at +0x58 (the game's +0x3c bit 0 clear) or at +0x60 (bits 0 and 1 set) has flag 0x80 (+8), 0x79c664 = 1 and flag 0x40.
 void __cdecl CoasterEdit_SetMode(u32 mode);
+
+// 0x444770 (cdecl; name invented, unconfirmed): CoasterEdit_Tools (0), then the editor's tool 2 ended (as CoasterEdit_EndTool; bit 2
+// of the chosen tools 0x79c638 cleared) and tool 1 started: CoasterEdit_EndTool, the mode 1, Coaster_FlashCar (game, 2), the game's
+// flag 4 set, CoasterLink_CheckEnd, recorded (ActionRec_Write 0x37), the game's flag 0x2000 cleared, CoasterLink_ClearEnd when
+// 0x79c644 and 0x79c664 are both 2, 0x79c664 = 0, 0x79c644 = 1, CoasterEdit_SetBounds; bit 1 of 0x79c638 set. Then the 0x7ca1c8
+// dialog (0x7b51f0) told the tools on offer (0x79c6e0) and the chosen ones (0x79c638). (The original's loops over its two masks,
+// 2 off and 1 on, compiled in full for any bits.)
+void __cdecl CoasterEdit_SwitchToTool1();
+
+// 0x442880 (cdecl; tools; name invented, unconfirmed): the editor's tool ended (as CoasterEdit_EndTool), the offer 0x79c6e0 and the
+// chosen tools 0x79c638 cleared, then each bit of tools, lowest first, started and set in 0x79c638: 1 as SwitchToTool1 starts it
+// up to CoasterLink_CheckEnd, then CoasterEdit_SetTool (1); 2 CoasterEdit_SetMode (1) and CoasterEdit_SetTool (2); 4, 8, 0x10, 0x20,
+// 0x40, 0x80, 0x100 CoasterEdit_SetMode (2, 4, 8, 0x10, 0x80, 0x20, 0x40); higher ones only set. Then CoasterEdit_RefreshTools.
+void __cdecl CoasterEdit_SetTools(u32 tools);
 }

@@ -5,6 +5,7 @@
 #include "../core/actionrec.h"
 #include "../files/wrapsources.h"
 #include "../math/x87.h"
+#include "../ui/dialog7ca1c8.h"
 #include "../model/highlight.h"
 #include "../world/money.h"
 #include "../world/world.h"
@@ -375,5 +376,61 @@ void __cdecl CoasterEdit_SetMode(u32 mode) {
         g<u32>(0x0079c664) = 1;
         Flags() |= 0x40;
     }
+}
+
+// Tool 1 started (0x444770 and 0x442880 alike): CoasterEdit_EndTool, the mode 1, the car flashed, the game's flag 4, the end checked.
+static void StartTool1() {
+    CoasterEdit_EndTool();
+    g<u32>(0x0079c624) = 1;
+    Coaster_FlashCar(g<u8 *>(0x00790fec), 2);
+    at<u32>(g<u8 *>(0x00790fec), 0) |= 4;
+    CoasterLink_CheckEnd();
+}
+
+void __cdecl CoasterEdit_SwitchToTool1() {
+    CoasterEdit_Tools(nullptr);
+    CoasterEdit_EndTool();
+    g<u32>(0x0079c638) &= ~2u;
+    StartTool1();
+    ActionRec_Write(Recorder(), nullptr, 0x37);
+    at<u32>(g<u8 *>(0x00790fec), 0) &= ~0x2000u;
+    if (g<u32>(0x0079c644) == 2 && g<u32>(0x0079c664) == 2) CoasterLink_ClearEnd();
+    g<u32>(0x0079c664) = 0;
+    g<u32>(0x0079c644) = 1;
+    CoasterEdit_SetBounds();
+    g<u32>(0x0079c638) |= 1;
+    Dialog7ca1c8_SetChecksIfUpThis(reinterpret_cast<void *>(0x007b51f0), nullptr, g<u32>(0x0079c6e0));
+    Dialog7ca1c8_SelectButtonIfUpThis(reinterpret_cast<void *>(0x007b51f0), nullptr, g<u32>(0x0079c638));
+}
+
+void __cdecl CoasterEdit_SetTools(u32 tools) {
+    EndTool();
+    SetModeState(0);
+    g<u32>(0x0079c6e0) = 0;
+    g<u32>(0x0079c638) = 0;
+    for (u32 bit = 1, left = tools; left; bit <<= 1) {
+        if (!(left & bit)) continue;
+        switch (bit) {
+        case 1:
+            StartTool1();
+            CoasterEdit_SetTool(1);
+            break;
+        case 2:
+            CoasterEdit_SetMode(1);
+            CoasterEdit_SetTool(2);
+            break;
+        case 4: CoasterEdit_SetMode(2); break;
+        case 8: CoasterEdit_SetMode(4); break;
+        case 0x10: CoasterEdit_SetMode(8); break;
+        case 0x20: CoasterEdit_SetMode(0x10); break;
+        case 0x40: CoasterEdit_SetMode(0x80); break;
+        case 0x80: CoasterEdit_SetMode(0x20); break;
+        case 0x100: CoasterEdit_SetMode(0x40); break;
+        default: break;
+        }
+        g<u32>(0x0079c638) |= bit;
+        left &= ~bit;
+    }
+    CoasterEdit_RefreshTools();
 }
 }
