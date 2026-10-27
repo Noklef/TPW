@@ -977,6 +977,9 @@ address,name,kind,confidence,notes
 0x00503b80,ResearchLab_UpdateLevels,function,low,"reimplemented (src/game/world/research); thiscall (cat), pops 4: raises the category's group's highest level while the share of its eligible projects done reaches 0x785540's threshold (below 7); when raised, some not done and cat 0-3, posts advisor message 0x85 + cat"
 0x00503330,ResearchLab_ApplyEfforts,function,low,"reimplemented (src/game/world/research); each group's effort from the settings at 0x785568 (100 at most), the outputs recomputed, the current project the first available one, then UpdateLevels"
 0x00502d60,ResearchLab_Init,function,low,"reimplemented (src/game/world/research); thiscall: no projects, the dearest index -1, the output the setting 0x785580, +0x1468 whether any staff of kind 8; then the projects filled, the efforts applied and the lab added to the message centre's slot 0x11"
+0x00504090,ResearchLab_FlagOn,function,low,"reimplemented (src/game/world/research); thiscall: the flag +0x1468 set from clear, then a message 13 of 5 posted"
+0x00504140,ResearchLab_FlagOff,function,low,"reimplemented (src/game/world/research); thiscall: the flag +0x1468 cleared from set, then a message 13 of 6 posted"
+0x005041f0,ResearchLab_SyncFlag,function,low,"reimplemented (src/game/world/research); thiscall: FlagOn when the game object's word +0x1da742 is set, else FlagOff"
 0x005100e0,Nav_SetPosVel,function,high,"reimplemented (src/game/world/nav); thiscall (x, y, vx, vy): pos (+8) and vel (+0x10) set"
 0x00510160,Nav_GetPos,function,high,"reimplemented (src/game/world/nav); thiscall (&x, &y): pos (+8, +0xc) read"
 0x0051aad0,World_ArrivalVehicleNotSize1,function,high,reimplemented (src/game/world/world); thiscall: 1 when mCurrentArrivalVehicle (+0x1da72a) is set and is not mArrivalVehicle_Size1 (+0x1da72c)

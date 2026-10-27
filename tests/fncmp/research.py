@@ -14,9 +14,11 @@
 # their research groups 0-8 about the group's highest (0-8 or 0xff), the thresholds at 0x785540 0-101 or any; the rest advisor.py's PostId
 # set-up (the world [0x80239c] its time's, the advisor the table entry of its +0x1da71c), the messages 0x85-0x88's records sometimes
 # not yet posted; the stack message's unwritten bytes masked in the slots and the copy at +0x16d0 (as headquarters.py).
-# Efforts (0x503330): see efforts_case(). Init (0x502d60): see init_case().
+# Efforts (0x503330): see efforts_case(). Init (0x502d60): see init_case(). FlagOn / FlagOff / Sync (0x504090 / 0x504140 / 0x5041f0): the
+# flag +0x1468 0, 1 or any, the game object's word +0x1da742 0 or not; the message centre [0x788d3c] made, agent B's unported 0x40fb10 a
+# thiscall recorder 21 (driver.cpp's kObjectEnv) logging the message's 12 bytes.
 # usage: research.py [CASES [SEED]] [--wild|--both] [--show N]
-#   (env OPS=Effort,ObjId,Count,NotDone,Ctor,Next,Fill,AllDone,Flag,Choose,ChooseBack,Cat0,Cat1,Cat2,Cat3,Left,Levels,Efforts,Init)
+#   (env OPS=Effort,ObjId,Count,NotDone,Ctor,Next,Fill,AllDone,Flag,Choose,ChooseBack,Cat0,Cat1,Cat2,Cat3,Left,Levels,Efforts,Init,FlagOn,FlagOff,Sync)
 import os
 import struct
 import sys
@@ -27,7 +29,7 @@ import stdtree  # noqa: E402
 from advisor import ADVISOR, NOW, queue  # noqa: E402
 from thing_ctors import CENTRE_RANGES, centre  # noqa: E402
 from thingenv import park  # noqa: E402
-from fncmp import HEAP, Bench, Call, Mask, RAM, _cdecl_log, heap, put  # noqa: E402
+from fncmp import HEAP, LOG, Bench, Call, Mask, RAM, _cdecl_log, _recorder, blob_bytes, heap, log_region, put  # noqa: E402
 
 
 
@@ -50,12 +52,13 @@ B = Bench(merged(INIT_RANGES + CENTRE_RANGES + [(0x503850, 0x503861), (0x5039f0,
            (0x503b80, 0x503d3c), (0x503330, 0x503426), (0x4e1910, 0x4e1930), (0x5194d0, 0x51950d), (0x409cd0, 0x409cdd), (0x59b590, 0x59b611), (0x59a940, 0x59aa63),
            (0x59abc0, 0x59ae1c), (0x59c2b0, 0x59c680), (0x59bf20, 0x59c093), (0x550ca0, 0x550d90), (0x5d1750, 0x5d1751), (0x41a980, 0x41a986),
            (0x41a990, 0x41a9a7), (0x5997b0, 0x5997f8), (0x429fe0, 0x42a010), (0x44b2e0, 0x44b3d0), (0x474070, 0x4740e0), (0x5442e0, 0x544340),
-           (0x5989c0, 0x598ae0), (0x5ed580, 0x5ed5b0), (0x67a400, 0x6902c0)]),
-          hooks={0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None, 0x67a7d0: _cdecl_log})   # (as tree_finds.py's)
+           (0x5989c0, 0x598ae0), (0x5ed580, 0x5ed5b0), (0x67a400, 0x6902c0), (0x504090, 0x504132), (0x504140, 0x5041e2), (0x5041f0, 0x504209),
+           (0x40f630, 0x40f650), (0x415e00, 0x415e80)]),
+          hooks={0x40fb10: _recorder(21, 1), 0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None, 0x67a7d0: _cdecl_log})   # (as tree_finds.py's)
 LAB = RAM
 CALLS = {'Effort': 0x503850, 'ObjId': 0x5039f0, 'Count': 0x503b30, 'NotDone': 0x504040, 'Ctor': 0x504750, 'Next': 0x504580, 'Fill': 0x5031a0, 'AllDone': 0x4ca6b0,
          'Flag': 0x503ff0, 'Choose': 0x5034f0, 'ChooseBack': 0x5036a0, 'Cat0': 0x4ca630, 'Cat1': 0x4ca650, 'Cat2': 0x4ca670, 'Cat3': 0x4ca690, 'Left': 0x503ac0,
-         'Levels': 0x503b80, 'Efforts': 0x503330, 'Init': 0x502d60}
+         'Levels': 0x503b80, 'Efforts': 0x503330, 'Init': 0x502d60, 'FlagOn': 0x504090, 'FlagOff': 0x504140, 'Sync': 0x5041f0}
 TABLE, ITEMS, DEFS = RAM + 0x2000, RAM + 0x4000, 0x7890a0   # (the game's object control table, the object definitions and their list)
 IDS = [1, 2, 3, 4, 5, 9]
 SAVE, THEAD, TNIL, TNODES = RAM + 0x9000, RAM + 0x9100, RAM + 0x9200, RAM + 0xa000   # (the global save info and its tree of keys)
@@ -226,8 +229,20 @@ def init_case(r, lab):
     return Call(0x502d60, [LAB], regions, conv='t')
 
 
+def flag_case(r, op):
+    lab = bytearray(r.bytes(0x1480))
+    lab[0x1468] = r.choice([0, 1, 0, 1, r.getrandbits(8)])
+    world = put(bytearray(r.bytes(4)), 2, 'H', r.choice([0, 0, 1, 0x100, r.getrandbits(16)]))
+    log = log_region()
+    blob_bytes(log, 21, 0, 0xfff)
+    regions = {LAB: lab, RAM + 0x3000: world, 0x80239c: struct.pack('<I', RAM + 0x3000 + 2 - 0x1da742), 0x788d3c: struct.pack('<I', RAM + 0x3800), LOG: log}
+    return Call(CALLS[op], [LAB], regions, conv='t', ret='v')
+
+
 def case(r):
     op = r.deal(OPS)
+    if op in ('FlagOn', 'FlagOff', 'Sync'):
+        return flag_case(r, op)
     lab = bytearray(r.bytes(0x1800))
     for i in range(0x100):
         p = 0xc + i * 20
