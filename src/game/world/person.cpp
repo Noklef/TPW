@@ -347,6 +347,20 @@ void __fastcall Visitor_Lower19c(u8 *visitor, void *, u32 index) {
 
 void __fastcall Stat100_Add(float *stat, void *, float delta) { set100(stat, X87Reg(delta) + X87Reg(*stat)); }
 
+void __fastcall Visitor_RideFeelings(u8 *visitor, void *, const u8 *object) {
+    if (!Object_Rating(object, nullptr, 0)) return;
+    const s32 wanted = *reinterpret_cast<const u8 *>(0x7850e4 + 12 * visitor[0x1f0]);
+    s32 gap = wanted - Object_Rating(object, nullptr, 0);
+    if (gap < 0) gap = -gap;
+    const u32 step = gap < 5 ? 0x785064 : gap < 15 ? 0x785068 : gap < 0x28 ? 0x78506c : 0;
+    if (step) set100(visitor + 0x19c, X87Reg((double)*reinterpret_cast<const s32 *>(step)) + at<float>(visitor, 0x19c));   // fild; fadd [mem]
+    const s32 divisor = *reinterpret_cast<const s32 *>(0x785070);
+    const s32 rating = Object_Rating(object, nullptr, 0);
+    const s32 share = rating / divisor;   // (idiv: 0 faults)
+    const s32 calm = (100 - static_cast<s32>(static_cast<u8>(static_cast<long long>(at<float>(visitor, 0x1a8))))) / 20;
+    set100(visitor + 0x1b0, X87Reg((double)(calm * share)) + at<float>(visitor, 0x1b0));
+}
+
 void __fastcall Sprite_InterpolatedPos(const u8 *sprite, void *, float t, u32 unit, float *x, u32 *height, float *z, u32 *frame) {
     if (unit)
         t = !(t >= 0.0f) ? 0.0f : t > 1.0f ? 1.0f : t;

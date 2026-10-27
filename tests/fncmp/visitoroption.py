@@ -6,7 +6,8 @@
 # object's handle, another ride of its id or not, others); the age (funnytime.py's clock: days about the threshold 0x785090) and the
 # world's record +0x30 (0x519590's); the weights and multipliers 0x785090-0x7850c8 and the wanted ratings 0x7850e4 small or any (the
 # game's are 0 until its settings load).
-# usage: visitoroption.py [CASES [SEED]] [--wild|--both] [--show N]
+# The visitor's feelings after a ride (0x4fdcc0, person): feelings_case().
+# usage: visitoroption.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=score,feelings)
 import os
 import struct
 import sys
@@ -23,7 +24,7 @@ B = Bench([(0x412e90, 0x412f00), (0x43e0b0, 0x43e0f0), (0x4d8300, 0x4d8340), (0x
            (0x4dd4e0, 0x4dd510), (0x4dd670, 0x4dd6e0), (0x4ddf40, 0x4de200), (0x4de670, 0x4de7f0), (0x4e0560, 0x4e0910), (0x4f8690, 0x4f8740),
            (0x4fcc30, 0x4fd4f0), (0x502430, 0x502470), (0x50b350, 0x50b370), (0x519590, 0x5195e0), (0x522770, 0x5227a0), (0x522850, 0x522870),
            (0x536320, 0x536360), (0x545310, 0x545460), (0x55a4e0, 0x55a540), (0x5fc530, 0x5fc580), (0x5fc660, 0x5fc750), (0x67c320, 0x67c3e0),
-           (0x67c7f0, 0x67c840), (0x5da3c0, 0x5da3c1)])
+           (0x67c7f0, 0x67c840), (0x5da3c0, 0x5da3c1), (0x4fdcc0, 0x4fde45)])
 VISITOR, RIDE, RECORD, POOL, CLOCK = RAM + 0x6000, RAM + 0x6400, RAM + 0x6800, RAM + 0x2000, RAM + 0x28000
 CELLS = RAM + 0x30000   # (the RE cells of map ids 1-0x800: [0x8023a0] + 0x1b1104)
 DAY = funnytime.DAY
@@ -126,5 +127,33 @@ def case(r):
     return Call(0x4fcc30, [VISITOR, OBJ], regions, conv='t', ret='a')
 
 
+def feelings_case(r):
+    """Visitor_RideFeelings (0x4fdcc0, person): rating_env's object; the visitor's +0x19c, +0x1a8, +0x1b0 stats as above, its row +0x1f0
+    small or any, the rows' wanted excitement 0-255 (about the ratings now and then); the steps 0x785064-0x78506c small, large or negative,
+    the divisor 0x785070 small, negative or 0 now and then (a fault in both)."""
+    regions, obj = rating_env(r)
+    visitor = bytearray(r.bytes(0x200))
+    for off in (0x19c, 0x1a8, 0x1b0):
+        put(visitor, off, 'I', stat(r))
+    visitor[0x1f0] = r.choice([0, 1, 2, 3, 4, 5, 6, 7, r.getrandbits(8)])
+    regions[VISITOR] = visitor
+    rows = bytearray(r.bytes(12 * 256))
+    for k in range(256):
+        rows[12 * k] = r.choice([0, 1, 4, 5, 6, 14, 15, 16, 20, 39, 40, 41, 50, 99, 100, 150, 255, r.getrandbits(8)])
+    regions[0x7850e4] = rows
+    steps = [0, 1, 5, 10, 50, 99, 100, 101, -1, -10, -100, 0x7fffffff, -0x80000000]
+    divisor = r.choice([1, 1, 2, 3, 5, 10, 20, 100, 255, 256, -1, -3, 0x7fffffff] * 4 + [0])
+    regions[0x785064] = struct.pack('<4i', r.choice(steps), r.choice(steps), r.choice(steps), divisor)
+    return Call(0x4fdcc0, [VISITOR, OBJ], regions, conv='t', ret='v')
+
+
+CASES = {'score': case, 'feelings': feelings_case}
+OPS = [n for n in CASES if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
+
+
+def any_case(r):
+    return CASES[r.deal(OPS)](r)
+
+
 if __name__ == '__main__':
-    B.main(case)
+    B.main(any_case)

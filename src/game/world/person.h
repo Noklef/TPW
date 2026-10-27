@@ -42,6 +42,13 @@ void __fastcall Visitor_Lower19c(u8 *visitor, void *, u32 index);
 // Visitor_Raise19c's (the visitor's 0..100 values: +0x1b8 and others).
 void __fastcall Stat100_Add(float *stat, void *, float delta);
 
+// 0x4fdcc0 (thiscall (object), pops 4, x87; name invented): nothing when the object's rating (Object_Rating (0), asked three times) is 0.
+// Else its distance from the visitor's wanted excitement (the byte of the 12-byte row 0x7850e4 by +0x1f0; absolute) picks the step:
+// below 5 the int 0x785064, below 15 0x785068, below 40 0x78506c (else +0x19c is left), added to +0x19c and kept to 0..100 (as
+// Visitor_Raise19c). Then +0x1b0 gets (100 - +0x1a8's __ftol low byte) / 20 times the rating / the int 0x785070 (signed; 0 faults),
+// kept to 0..100 the same way.
+void __fastcall Visitor_RideFeelings(u8 *visitor, void *, const u8 *object);
+
 // 0x50ba80: a person's thoughts (serialized at 0x50bad0) cleared: +0, the 32 u16 pairs of
 // the action history (+4), mThoughtScript (+0x84), mActionHistIndex (+0x88) and
 // mTimeBubbleShown (+0x8c). Returns them.
