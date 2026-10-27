@@ -183,6 +183,13 @@ add_library(tpw_game STATIC
     src/game/core/channelvoice.cpp
     src/game/core/soundoccluders.cpp
     src/game/core/loopstream.cpp
+    src/game/core/streamfilter.cpp
+    src/game/core/soundstream.cpp
+    src/game/core/streampool.cpp
+    src/game/core/soundsample.cpp
+    src/game/core/voicesample.cpp
+    src/game/core/shufflebag.cpp
+    src/game/core/silencestream.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp

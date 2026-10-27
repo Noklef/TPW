@@ -436,7 +436,7 @@ LOG = STUBS + 0x100000  # their log (the case maps it, see log_region()): a coun
 LOG_ENTRY = 12
 LOG_ENTRIES = 40  # (the room: 4 + 48 * 40 bytes)
 LOG_RETURNS = 0x800  # from here an override for each slot: a flag and a value (flag 2: the value is an argument's index, see echo(); 3: see fail_after();
-#                      4: see set_float_return())
+#                      4: see set_float_return(); 5: see fail_mask(); 6: fail_after(counted=True))
 
 
 def recorder(k, n, com=False, cdecl=False):
@@ -469,12 +469,13 @@ def set_float_return(log, k, x):
     struct.pack_into('<If', log, LOG_RETURNS + 8 * k, 4, x)
 
 
-def fail_after(log, k, n, value=0xffffffff):
+def fail_after(log, k, n, value=0xffffffff, counted=False):
     """Makes slot k's recorder answer its first n calls (as counted in the log) as it would without an override, and every later one `value`
     (a 16-bit value sign-extended: INVALID_HANDLE_VALUE by default), so that a loop that runs until a call fails ends: a CreateFileA that opens
-    n files."""
+    n files. The log keeps only 40 entries, and calls past them are not counted; with counted, the calls are counted down in the override
+    itself (flag 6: its value's low word, written back by both sides on each call), so n can be past the log's room."""
     assert 0 <= n < 0x10000 and (value >> 15 == 0 or value | 0x7fff == 0xffffffff)
-    struct.pack_into('<II', log, LOG_RETURNS + 8 * k, 3, (value & 0xffff) << 16 | n)
+    struct.pack_into('<II', log, LOG_RETURNS + 8 * k, 6 if counted else 3, (value & 0xffff) << 16 | n)
 
 
 def fail_mask(log, k, mask):
@@ -619,13 +620,23 @@ def blob_when_inner(log, k, arg, value, inner, entry=0):
     struct.pack_into('<4I', log, LOG_BLOB_WHEN + 16 * entry, (k & 63) | 0xc0000000, arg, value & 0xffffffff, how)
 
 
+LOG_BLOB_WIDE = 0xfc0  # two (k | 0x80000000, start, mask): a blob_bytes() second structure's bytes start to start + 31 (see blob_bytes())
+BLOB_WIDE = 2
+
+
 def blob_bytes(log, k, arg, mask, inner=None):
-    """As blob(), but `mask` selects bytes 0-31 (bit i: byte i), and inner = (offset, mask[, base]) also hashes bytes base to base + 14 of the structure
+    """As blob(), but `mask` selects bytes 0-31 (bit i: byte i), and inner = (offset, mask[, base]) also hashes bytes base to base + 46 of the structure
     that the pointer at that offset points to (unless null; base a multiple of 4 up to 28, default 0): an event on the stack that points to a second one,
-    both only partly set."""
+    both only partly set. Bits 0-14 of the inner mask go in the slot's own dwords; bits 15-46 (bytes base + 15 on) in one of the BLOB_WIDE entries at
+    LOG_BLOB_WIDE, which the slot's next blob_bytes() replaces or frees (a mask under 0x8000 hashes as it did before them)."""
     at, inner_mask, base = (tuple(inner) + (0,))[:3] if inner else (-1, 0, 0)
-    assert arg < 31 and base % 4 == 0 and 0 <= base <= 28
+    assert arg < 31 and base % 4 == 0 and 0 <= base <= 28 and 0 <= inner_mask < 1 << 47
     struct.pack_into('<II', log, LOG_BLOBS + 8 * (k & 63), 0x80000000 | (arg + 1) | base // 4 << 5 | (at + 1) << 8 | (inner_mask & 0x7fff) << 16, mask)
+    entries = [struct.unpack_from('<I', log, LOG_BLOB_WIDE + 16 * w)[0] for w in range(BLOB_WIDE)]
+    key = (k & 63) | 0x80000000
+    w = entries.index(key) if key in entries else entries.index(0) if inner_mask >> 15 else None
+    if w is not None:
+        struct.pack_into('<3I', log, LOG_BLOB_WIDE + 16 * w, key if inner_mask >> 15 else 0, base + 15, inner_mask >> 15)
 
 
 def bytes_hash(h, data, mask):
@@ -635,14 +646,25 @@ def bytes_hash(h, data, mask):
     return h
 
 
-def blob_bytes_hash(read, p, how, mask):
+def blob_bytes_hash(read, p, how, mask, wide=None):
+    """wide: the slot's LOG_BLOB_WIDE entry (start, mask), if it has one."""
     h = bytes_hash(0x811c9dc5, read(p, 32), mask)
     at = how >> 8 & 0xff
     if at:
         inner = struct.unpack('<I', read(p + at - 1, 4))[0]
         if inner:
             h = bytes_hash(h, read(inner + 4 * (how >> 5 & 7), 15), how >> 16 & 0x7fff)
+            if wide:
+                h = bytes_hash(h, read(inner + wide[0], wide[1].bit_length()), wide[1])
     return h
+
+
+def _blob_wide(e, k):
+    for w in range(BLOB_WIDE):
+        wk, start, mask = struct.unpack('<3I', e.read(LOG + LOG_BLOB_WIDE + 16 * w, 12))
+        if wk == (k & 63) | 0x80000000:
+            return start, mask
+    return None
 
 
 def blob_hash(read, p, mask):
@@ -721,7 +743,7 @@ def _log_args(e, k, raw, kk):
                     if skip + length <= 0x70:
                         e.write(to, e.read(at + 0x10 + skip, length))
         if (blob_arg & 0x1f) == i + 1 and args[i]:
-            args[i] = blob_bytes_hash(e.read, args[i], blob_arg, blob_mask) if blob_arg & 0x80000000 else blob_hash(e.read, args[i], blob_mask)
+            args[i] = blob_bytes_hash(e.read, args[i], blob_arg, blob_mask, _blob_wide(e, k)) if blob_arg & 0x80000000 else blob_hash(e.read, args[i], blob_mask)
         if mask >> i & 1:
             args[i] = string_hash(e.read, args[i])
         if mask >> (16 + i) & 1:
@@ -760,6 +782,12 @@ def _recorder(k, n, com=False, cdecl=False):
             e.write(LOG, struct.pack('<I', count + 1))
         flag, value = struct.unpack('<2I', e.read(LOG + LOG_RETURNS + 8 * k, 8))
         e.r['EAX'] = copied if returns_copied else cursor if seeked else answer(flag, value, raw, n, vhash(kk, n, this, args), earlier)
+        if flag == 6 and not returns_copied and not seeked:   # (fail_after(counted=True): the countdown in the override)
+            if value & 0xffff:
+                e.write(LOG + LOG_RETURNS + 8 * k + 4, struct.pack('<I', value - 1))
+                e.r['EAX'] = vhash(kk, n, this, args)
+            else:
+                e.r['EAX'] = (value >> 16) - (0x10000 if value >> 31 else 0) & 0xffffffff
         if flag == 4 and not returns_copied and not seeked:
             e.st.insert(0, struct.unpack('<f', struct.pack('<I', value))[0])
         if cdecl:  # (the caller pops them)

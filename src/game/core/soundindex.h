@@ -47,4 +47,11 @@ void __fastcall SoundMapIndex_Dtor(u8 *self);
 // 0x6c5500 (thiscall (flags); pops 4; slot 2): SoundMapIndex_Dtor, the block freed for flags bit 0. Returns the object.
 u8 *__fastcall SoundMapIndex_DeletingDtor(u8 *self, void *, u32 flags);
 
+// 0x6c5240 (stdcall (out, resource, owner, desc, source); pops 0x14; ECX unused): *resource = 0, then by desc's type (its dword +0): 1 a
+// stream index (Mem_Alloc 0x1c: SoundResource_Ctor (source), its StreamBase +0x14 a copy of the one desc +8 points to, vtable 0x70aa80);
+// 2 a mapped index (0x20: the same, +0x14 = 0 and the StreamBase at +0x18, vtable 0x70aac0); 3, with an owner, a SoundFont bank (0x1c:
+// SfBank_Ctor (source, the owner's +4)); *resource = the object (null when the block is). When *resource (read back) is not null, its
+// slot 3 (out, desc +0xc, desc +4); otherwise *out = -1. Returns out.
+u32 *__stdcall SoundResource_Create(u32 *out, u8 **resource, const u8 *owner, const u32 *desc, u8 *source);
+
 }  // extern "C"

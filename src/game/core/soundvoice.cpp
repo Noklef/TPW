@@ -4,11 +4,14 @@
 #include <cstring>
 
 #include "../files/file.h"
+#include "../math/vector.h"
 #include "../math/x87.h"
 #include "fieldops.h"
 #include "gameheap.h"
 #include "initializers.h"
+#include "selectors.h"
 #include "soundcategory.h"
+#include "soundchannel.h"
 #include "vcall.h"
 
 namespace {
@@ -28,6 +31,38 @@ u32 float_bits(float f) {
     u32 bits;
     std::memcpy(&bits, &f, 4);
     return bits;
+}
+
+// The variation's byte range at +lo / +lo + 1 put in order: an XOR swap through the variation, +8 re-read at each step.
+template <typename T> void order_range(u8 *voice, u32 lo) {
+    u8 *v = at<u8 *>(voice, 8);
+    if (static_cast<T>(v[lo + 1]) >= static_cast<T>(v[lo])) return;
+    v[lo + 1] = v[lo] ^ v[lo + 1];
+    v = at<u8 *>(voice, 8);
+    v[lo] = v[lo] ^ v[lo + 1];
+    v = at<u8 *>(voice, 8);
+    v[lo + 1] = v[lo + 1] ^ v[lo];
+}
+
+// The game's random number advanced (0xfb1f20) and rotated right 13, all of it.
+u32 next_random_full() {
+    const u32 seed = global<u32>(0x00fb1f20) * 0x19660d + 0x3c6ef35f;
+    global<u32>(0x00fb1f20) = seed;
+    return seed >> 13 | seed << 19;
+}
+
+// A roll in the variation's range (+lo, +lo + 1 of type T): the parameter's percentage (slot 16 with key) or a random draw.
+template <typename T> u32 roll(u8 *voice, u32 lo, u32 key) {
+    order_range<T>(voice, lo);
+    const u8 *v = at<u8 *>(voice, 8);
+    u32 range = static_cast<u32>(static_cast<s32>(static_cast<T>(v[lo + 1])) - static_cast<s32>(static_cast<T>(v[lo])));
+    if (at<u32>(voice, 0x4c)) {
+        u32 percent;
+        if (vcall<bool>(voice, 0x40, key, &percent))
+            return percent * range / 100 + static_cast<u32>(static_cast<s32>(static_cast<T>(at<u8 *>(voice, 8)[lo])));
+    }
+    if (range) range = next_random_full() % range;
+    return range + static_cast<u32>(static_cast<s32>(static_cast<T>(at<u8 *>(voice, 8)[lo])));
 }
 
 // The game's random number advanced (0xfb1f20), rotated right 13, its high word.
@@ -58,6 +93,31 @@ void start_record(u32 *record) {
 void send_record(const u8 *voice, u32 *out, u32 *record) {
     u32 functor[3] = {0x0070a850, at<u32>(voice, 0x24), static_cast<u32>(reinterpret_cast<uintptr_t>(record))};
     vcall<void>(global<u8 *>(0x00fb1f24), 0x10, out, functor);
+}
+
+// 0x6bd800 / 0x6bdf50: the voice started (counted: with flag 4 the record's +0x44 = 1).
+u32 *start_voice(u8 *voice, u32 *out, u32 now, bool counted) {
+    if (!global<u8 *>(0x00fb1f24) || !at<u32>(voice, 8)) {
+        *out = 0xffffffff;
+        return out;
+    }
+    if (at<u32>(voice, 0x30) & 0x11) {
+        *out = 0;
+        return out;
+    }
+    at<u32>(voice, 0x30) |= 1;
+    u32 record[0x27];
+    start_record(record);
+    if (!vcall<u32>(voice, 0x44, now, record)) {
+        at<u32>(voice, 0x30) |= 0x10;
+        *out = 0xffffffff;
+        return out;
+    }
+    if (counted && (voice[0x30] & 4)) SetThenFlag44_14_6c5110(reinterpret_cast<u8 *>(record), nullptr, 1);
+    if (!SoundChannel_PlayRecord(global<u8 *>(0x00fb1f24), nullptr, reinterpret_cast<u8 *>(record), &at<u32>(voice, 0x24)))
+        at<u32>(voice, 0x30) &= ~1u;
+    *out = 0;
+    return out;
 }
 
 // 0x6be610 / 0x6be680's end: the voice's slot 4 (out: the factory's memory argument's own stack slot, sic).
@@ -432,6 +492,22 @@ u8 *__fastcall LinkedVoice_Ctor(u8 *voice, void *, u8 *parent) {
     return voice;
 }
 
+u8 *__fastcall Voice70a878_Ctor(u8 *voice) {
+    Class70a7e0_Ctor(voice);
+    at<u32>(voice, 0) = 0x0070a878;
+    SoundVoice_EnsureParams(voice);
+    at<u32>(at<u8 *>(voice, 0x4c), 0x1c) = 0;   // (no block when the allocation fails: a fault, sic)
+    return voice;
+}
+
+u8 *__fastcall Voice70a2e0_Ctor(u8 *voice) {
+    Class70a7e0_Ctor(voice);
+    at<u32>(voice, 0) = 0x0070a390;
+    SoundVoice_EnsureParams(voice);
+    at<u32>(voice, 0) = 0x0070a2e0;
+    return voice;
+}
+
 u8 *__fastcall LinkedSwitchVoice_Ctor(u8 *voice, void *, u8 *parent) {
     LinkedVoice_Ctor(voice, nullptr, parent);
     at<u32>(voice, 0) = 0x0070a9e0;
@@ -513,6 +589,205 @@ u8 __fastcall LinkedSwitchVoice_PickBranch(u8 *voice, void *, u32) {
         }
     }
     return 0;
+}
+
+u32 __fastcall SoundVoice_RollVolume(u8 *voice) {
+    if (!at<u8 *>(voice, 8)) return 100;
+    return roll<u8>(voice, 0xc, 1);
+}
+
+u32 __fastcall SoundVoice_RollPitch(u8 *voice) {
+    if (!at<u8 *>(voice, 8)) return 0;
+    return roll<s8>(voice, 0xe, 2);
+}
+
+u32 __fastcall SoundVoice_RollWord(u8 *voice) {
+    const u8 *v = at<u8 *>(voice, 8);
+    if (!at<u16>(v, 0x10) && !at<u16>(v, 0x12)) return 0;
+    if (at<u32>(voice, 0x4c)) {
+        u32 percent;
+        if (vcall<bool>(voice, 0x40, 4u, &percent)) {
+            v = at<u8 *>(voice, 8);
+            const s32 scaled = static_cast<s32>(static_cast<u32>(at<u16>(v, 0x12) - at<u16>(v, 0x10)) * percent);
+            return static_cast<u32>(scaled / 100) + at<u16>(at<u8 *>(voice, 8), 0x10);
+        }
+    }
+    u8 *w = at<u8 *>(voice, 8);
+    if (at<u16>(w, 0x12) < at<u16>(w, 0x10)) {
+        at<u16>(w, 0x12) = at<u16>(w, 0x10) ^ at<u16>(w, 0x12);
+        w = at<u8 *>(voice, 8);
+        at<u16>(w, 0x10) ^= at<u16>(w, 0x12);
+        w = at<u8 *>(voice, 8);
+        at<u16>(w, 0x12) ^= at<u16>(w, 0x10);
+    }
+    w = at<u8 *>(voice, 8);
+    u32 range = static_cast<u32>(at<u16>(w, 0x12)) - at<u16>(w, 0x10);
+    if (range) range = next_random_full() % range;
+    return at<u16>(at<u8 *>(voice, 8), 0x10) + range;
+}
+
+u32 __fastcall SoundVoice_SetRecordLevel(u8 *voice, void *, u8 *record) {
+    if (voice[0x30] & 8) return FlagThenSet14_5c_6c51d0(record, nullptr, 0);
+    const u32 on = Obj_Flags28_Bit1IfBit0(system());
+    if (!on) return on;
+    const float level = static_cast<float>(vcall<double>(system(), 0x28, voice + 0x10));
+    return FlagThenSet14_5c_6c51d0(record, nullptr, float_bits(level));
+}
+
+u32 __fastcall LinkedVoice_FillRecord(u8 *voice, void *, u32, u8 *record) {
+    if (!at<u32>(voice, 0xc) || !at<u32>(voice, 8) || !system()) return 0;
+    if (!vcall<u32>(voice, 0x48, record)) return 0;
+    SetThenFlag28_14_6c5130(record, nullptr, SoundVoice_RollVolume(voice));
+    Obj_Set94_98_Flag40000(record, nullptr, static_cast<u32>(reinterpret_cast<uintptr_t>(system() + 0x58)), voice[0x47]);
+    SetThenFlag24_14_6c5170(record, nullptr, SoundVoice_RollPitch(voice));
+    SetThenFlag2c_14_6c5150(record, nullptr, at<u32>(at<u8 *>(at<u8 *>(voice, 0x4c), 0x1c), 0x20));
+    SoundVoice_SetRecordLevel(voice, nullptr, record);
+    if (voice[0x30] & 8) {
+        volatile u32 local;   // (never set: the record keeps its address, sic)
+        const u32 flags = at<u32>(record, 0x14);
+        at<u32>(record, 0x30) = static_cast<u32>(reinterpret_cast<uintptr_t>(&local));
+        const u32 c = at<u32>(record, 0xc);
+        at<u32>(record, 0x14) = flags | 1;
+        at<u32>(record, 0xc) = c | 1;
+    } else {
+        const double radius = SoundVoice_Radius(voice);
+        u32 stored = float_bits(static_cast<float>(radius));
+        if (!(radius > 2.0)) stored = 0x40066666;   // 2.1f
+        const float level = static_cast<float>(vcall<double>(system(), 0x2c));
+        at<u32>(record, 0x38) = 0x40000000;   // 2.0f
+        at<u32>(record, 0x3c) = stored;
+        at<u32>(record, 0x40) = float_bits(level);
+        const u32 flags = at<u32>(record, 0x14) | 0x200;
+        at<u32>(record, 0x14) = flags;
+        at<u32>(record, 0x14) = flags | 1;
+        at<u32>(record, 0x30) = static_cast<u32>(reinterpret_cast<uintptr_t>(at<u8 *>(at<u8 *>(voice, 0x4c), 0x1c) + 0x10));
+        u32 c = at<u32>(record, 0xc) | 0x20;
+        at<u32>(record, 0xc) = c;
+        if (at<u32>(system(), 0x28) >> 3 & 1) at<u32>(record, 0xc) = c | 0x1000;
+        const u32 sys = at<u32>(system(), 0x28);
+        if (sys & 0x43 && sys >> 7 & 1) at<u32>(record, 0xc) |= 0x800;
+    }
+    if (voice[0x30] & 4) SetThenFlag44_14_6c5110(record, nullptr, 9999);
+    return 1;
+}
+
+void __fastcall SoundVoice_SetValue20(u8 *voice, void *, u32 value) {
+    at<u32>(voice, 0x20) = value;
+    if (!(voice[0x30] & 1)) return;
+    u32 record[0x27];
+    start_record(record);
+    SetThenFlag2c_14_6c5150(reinterpret_cast<u8 *>(record), nullptr, value);
+    u32 result;   // (dropped)
+    send_record(voice, &result, record);
+}
+
+void __fastcall SoundVoice_SendLevels(u8 *voice) {
+    if (!at<u32>(voice, 0x24) || !system()) return;
+    u32 record[0x27];
+    start_record(record);
+    if (!(at<u32>(voice, 0x30) & 0x400))
+        SetThenFlag28_14_6c5130(reinterpret_cast<u8 *>(record), nullptr, SoundVoice_RollVolume(voice));
+    SetThenFlag24_14_6c5170(reinterpret_cast<u8 *>(record), nullptr, SoundVoice_RollPitch(voice));
+    u32 result;   // (dropped)
+    send_record(voice, &result, record);
+}
+
+u32 *__fastcall SoundVoice_SetPosition(u8 *voice, void *, u32 *out, const u32 *position) {
+    float *const at10 = &at<float>(voice, 0x10);
+    for (u32 i = 0; i < 3; ++i) at<u32>(voice, 0x10 + 4 * i) = position[i];
+    if (at<u32>(voice, 0x24)) {
+        u32 record[0x27];
+        start_record(record);
+        if (voice[0x30] & 8) {
+            Fn_6bb220(reinterpret_cast<u8 *>(at10), nullptr, 0, 1, 0);   // (ints: 1 is no 1.0f, sic)
+        } else {
+            Vec3_Scale(at10, nullptr, at<float>(system(), 0x2c));
+            record[3] |= 0x20;
+            const u32 sys = at<u32>(system(), 0x28);
+            if (sys & 0x43 && sys >> 7 & 1) record[3] |= 0x800;
+        }
+        record[5] |= 1;
+        record[0xc] = static_cast<u32>(reinterpret_cast<uintptr_t>(at10));
+        u32 result;   // (dropped)
+        send_record(voice, &result, record);
+    }
+    *out = 0;
+    return out;
+}
+
+u32 __fastcall SoundVoice_FillRecordUnowned(u8 *voice, void *, u32 now, u8 *record) {
+    if (!SoundVoice_FillRecord(voice, nullptr, now, record)) return 0;
+    at<u32>(record, 0x50) = 0;
+    at<u32>(record, 0x14) &= ~0x2000u;
+    return 1;
+}
+
+u32 __fastcall SoundVoice_FillRecord(u8 *voice, void *, u32 now, u8 *record) {
+    if (!at<u32>(voice, 0xc) || !at<u32>(voice, 8) || !system()) return 0;
+    if (!vcall<u32>(voice, 0x48, record)) return 0;
+    SetThenFlag28_14_6c5130(record, nullptr, at<u32>(voice, 0x30) & 0x8000 ? at<u16>(voice, 0x48) : SoundVoice_RollVolume(voice));
+    Obj_Set94_98_Flag40000(record, nullptr, static_cast<u32>(reinterpret_cast<uintptr_t>(system() + 0x58)), voice[0x47]);
+    SetThenFlag24_14_6c5170(record, nullptr,
+                            at<u32>(voice, 0x30) & 0x10000 ? static_cast<u32>(static_cast<s32>(at<s16>(voice, 0x4a))) : SoundVoice_RollPitch(voice));
+    SetThenFlag2c_14_6c5150(record, nullptr, at<u32>(voice, 0x20));
+    const u32 f14 = at<u32>(record, 0x14);
+    at<u8 *>(record, 0x50) = voice;
+    at<u32>(record, 0x14) = f14 | 0x2000;
+    SetThenFlag48_14_6c5090(record, nullptr, at<u32>(voice, 0x2c));
+    if (!at<u32>(at<u8 *>(voice, 0xc), 8)) at<u32>(voice, 0xc) = at<u32>(at<u8 *>(voice, 8), 8);
+    const u32 since = now - (at<u32>(voice, 0x1c) - at<u32>(at<u8 *>(voice, 0xc), 8) - 0xfa);
+    at<u32>(voice, 0x3c) = vcall<u32>(voice, 0x4c);
+    if (Obj_PastEnd(voice, nullptr, now)) return 0;
+    SoundVoice_SetRecordLevel(voice, nullptr, record);
+    const u32 flags = at<u32>(voice, 0x30);
+    float *const at10 = &at<float>(voice, 0x10);
+    if (flags & 8) {
+        Fn_6bb220(reinterpret_cast<u8 *>(at10), nullptr, 0, 1, 0);   // (ints: 1 is no 1.0f, sic)
+        at<u32>(record, 0xc) |= 1;
+    } else {
+        const u32 length = at<u32>(at<u8 *>(voice, 0xc), 8);
+        const u32 into = since % length;   // (a zero length faults, as the original's DIV)
+        if (into > 1000 && !(flags & 2) && length > 1000 && length - into < 1000) return 0;
+        const double radius = SoundVoice_Radius(voice);
+        u32 stored = float_bits(static_cast<float>(radius));
+        if (!(radius > 2.0)) stored = 0x40066666;   // 2.1f
+        const float level = static_cast<float>(vcall<double>(system(), 0x2c));
+        at<u32>(record, 0x38) = 0x40000000;   // 2.0f
+        at<u32>(record, 0x3c) = stored;
+        at<u32>(record, 0x40) = float_bits(level);
+        at<u32>(record, 0x14) |= 0x200;
+        Vec3_Scale(at10, nullptr, at<float>(system(), 0x2c));
+        u32 c = at<u32>(record, 0xc) | 0x20;
+        at<u32>(record, 0xc) = c;
+        if (at<u32>(system(), 0x28) >> 3 & 1) at<u32>(record, 0xc) = c | 0x1000;
+        const u32 sys = at<u32>(system(), 0x28);
+        if (sys & 0x43 && sys >> 7 & 1) at<u32>(record, 0xc) |= 0x800;
+    }
+    const u32 f = at<u32>(record, 0x14);
+    at<u32>(record, 0x30) = static_cast<u32>(reinterpret_cast<uintptr_t>(at10));
+    at<u32>(record, 0x14) = f | 1;
+    if (voice[0x30] & 4) SetThenFlag44_14_6c5110(record, nullptr, 9999);
+    return 1;
+}
+
+u32 *__fastcall SoundVoice_Start(u8 *voice, void *, u32 *out, u32 now) { return start_voice(voice, out, now, false); }
+
+u32 *__fastcall SoundVoice_StartCounted(u8 *voice, void *, u32 *out, u32 now) { return start_voice(voice, out, now, true); }
+
+u32 __fastcall SoundVoice_PickChannelVoice(u8 *voice, void *, u32 a, u32) {
+    const u32 variation = vcall<u32>(voice, 0x38, 1);
+    if (!static_cast<u8>(variation)) return variation;   // (the slot's whole answer, sic)
+    u8 *const system = global<u8 *>(0x00fb1f24);
+    if (!system) return 0;
+    if (!at<u32>(voice, 8)) return static_cast<u32>(reinterpret_cast<uintptr_t>(system));   // sic
+    const u32 sample = vcall<u32>(voice, 0x3c, 1);
+    at<u32>(voice, 0xc) = sample;
+    if (!sample) return 0;
+    u32 record[0x27];
+    start_record(record);
+    if (!vcall<u32>(voice, 0x48, record)) return 0;
+    u32 picked;   // (dropped)
+    return SoundChannel_PickVoice(global<u8 *>(0x00fb1f24), nullptr, a, &picked, reinterpret_cast<u8 *>(record));
 }
 
 }  // extern "C"

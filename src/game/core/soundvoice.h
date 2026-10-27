@@ -120,6 +120,12 @@ u8 *__cdecl SequenceVoice_Create(u8 *owner, u8 *memory, u8 *definition, u8 *info
 u8 *__fastcall LinkedVoice_Ctor(u8 *voice, void *, u8 *parent);
 // 0x6c3de0 (thiscall (parent), pops 4): LinkedVoice_Ctor, then the vtable 0x70a9e0. Returns the voice.
 u8 *__fastcall LinkedSwitchVoice_Ctor(u8 *voice, void *, u8 *parent);
+// 0x6be260 (thiscall; name invented): Class70a7e0_Ctor, the vtable 0x70a878, the parameter block (SoundVoice_EnsureParams) and its +0x1c
+// 0 (no parent; a failed allocation faults there, sic). Returns the voice.
+u8 *__fastcall Voice70a878_Ctor(u8 *voice);
+// 0x6bdd80 (thiscall; name invented): Class70a7e0_Ctor, the vtable 0x70a390, the parameter block (SoundVoice_EnsureParams), then the
+// vtable 0x70a2e0. Returns the voice.
+u8 *__fastcall Voice70a2e0_Ctor(u8 *voice);
 // 0x6c3a80 (thiscall (definition, time), pops 8): +4 = the definition, SoundVoice_SetFlags (0), the categories (+0x47) the parent's;
 // slot 14 (0) answering 0, or slot 15 (0) (it becomes +0xc) 0: 0. Else +0x1c = slot 19 () + the time; 1.
 u8 __fastcall LinkedVoice_Init(u8 *voice, void *, u8 *definition, u32 time);
@@ -132,5 +138,69 @@ void __fastcall LinkedVoice_FollowParent(u8 *voice);
 // samples; a node of no branches cleared (both) and 0; no branch in range: the parent's block's byte +4 = 0x7f, its flag 0x40 and 0;
 // else the random pick (all of the rotated number) and 1, or 0 when no running sum reaches it.
 u8 __fastcall LinkedSwitchVoice_PickBranch(u8 *voice, void *, u32 unused);
+// 0x6bc090 (thiscall): 100 without a current variation (+8). Its bytes +0xc / +0xd (unsigned) put in order (an XOR swap through
+// the variation, +8 re-read at each step), the range their difference; with a parameter block (+0x4c) and slot 16 (1, a local) answering
+// AL nonzero: the local times the range (32 bits) / 100 + the low byte. Else the game's random number (advanced, all of it rotated right
+// 13) modulo the range (none drawn for an empty range) + the low byte.
+u32 __fastcall SoundVoice_RollVolume(u8 *voice);
+// 0x6bc170 (thiscall): as SoundVoice_RollVolume, on the signed bytes +0xe / +0xf, slot 16 with 2; 0 without a current variation.
+u32 __fastcall SoundVoice_RollPitch(u8 *voice);
+// 0x6bc2d0 (thiscall; slot 19): the current variation's (+8, not tested for null) words +0x10 / +0x12 both 0: 0. With a parameter block
+// (+0x4c) and slot 16 (4) answering (AL): +0x10 + (+0x12 - +0x10) * the percentage / 100 (signed). Else the words put in order (swapped
+// in place) and +0x10 + a random draw (the full rotated number) modulo their difference, or +0x10 when they are equal.
+u32 __fastcall SoundVoice_RollWord(u8 *voice);
+// 0x6bba90 (thiscall (value), pops 4; slot 8): +0x20 = value; with flag 1 (+0x30) the record (as 0x6bc900's) with +0x2c = value
+// (SetThenFlag2c_14_6c5150) to the sound system, without testing the sound (+0x24) or the system for null.
+void __fastcall SoundVoice_SetValue20(u8 *voice, void *, u32 value);
+// 0x6bbbe0 (thiscall; slot 13, SoundVoice_SetParam's): with a sound (+0x24) and the sound system, the record with the volume
+// (SetThenFlag28_14_6c5130: SoundVoice_RollVolume) unless flag 0x400 (+0x30), and the pitch (SetThenFlag24_14_6c5170:
+// SoundVoice_RollPitch), to the system.
+void __fastcall SoundVoice_SendLevels(u8 *voice);
+// 0x6bbce0 (thiscall (out, position), pops 8; slot 9): the three dwords to +0x10; with a sound (+0x24), a record to the system: with
+// flag 8 (+0x30) +0x10 set to the ints (0, 1, 0) (Fn_6bb220, sic); else +0x10 scaled by the system's float +0x2c (Vec3_Scale), the
+// record's +0xc |= 0x20, and 0x800 when the system's +0x28 has 0x43 and 0x80. Then +0x14 |= 1, +0x30 = the voice + 0x10. *out = 0;
+// returns out.
+u32 *__fastcall SoundVoice_SetPosition(u8 *voice, void *, u32 *out, const u32 *position);
+// 0x6bc410 (thiscall (now, record); pops 8; slot 17 of the voices' vtables): 0 without a sample (+0xc), a variation (+8), the sound system
+// or the voice's slot 18 (record). Else the record's volume (SetThenFlag28_14_6c5130: the word +0x48 with flag 0x8000 (+0x30), else
+// SoundVoice_RollVolume), +0x94 / +0x98 (the system + 0x58, the byte +0x47), pitch (SetThenFlag24_14_6c5170: the signed word +0x4a with
+// flag 0x10000, else SoundVoice_RollPitch), +0x2c (+0x20), +0x50 = the voice and +0x14 |= 0x2000, +0x48 (SetThenFlag48_14_6c5090: +0x2c).
+// A sample of length 0 gives way to the variation's first (its +8); +0x3c = slot 19; 0 when Obj_PastEnd (now). Then the level
+// (SoundVoice_SetRecordLevel). With flag 8: +0x10 = the ints (0, 1, 0) (Fn_6bb220, sic), the record's +0xc |= 1. Else, with now -
+// (+0x1c - length - 250) modulo the length (DIV: a zero length faults) past 1000, flag 2 clear, a length past 1000 and under 1000 left,
+// 0; otherwise +0x38 = 2.0f, +0x3c the radius (2.1f unless above 2.0), +0x40 the system's slot 11 as a float, +0x14 |= 0x200, +0x10
+// scaled by the system's +0x2c (Vec3_Scale), +0xc |= 0x20 (0x1000 with bit 3 of the system's +0x28, 0x800 when that has 0x43 and 0x80).
+// Then +0x30 = the voice + 0x10, +0x14 |= 1, and with flag 4 SetThenFlag44_14_6c5110 (9999). Returns 1.
+u32 __fastcall SoundVoice_FillRecord(u8 *voice, void *, u32 now, u8 *record);
+// 0x6c39c0 (thiscall (now, record), pops 8; slot 17 of 0x70a4f0; name invented): SoundVoice_FillRecord, and when that answers 1 the
+// record's +0x50 (the voice) = 0 and its flag 0x2000 (+0x14) cleared again; returns 1. Else 0.
+u32 __fastcall SoundVoice_FillRecordUnowned(u8 *voice, void *, u32 now, u8 *record);
+// 0x6bc3c0 (thiscall (record), pops 4): with flag 8 (+0x30), FlagThenSet14_5c_6c51d0 on the record with 0; else, when
+// Obj_Flags28_Bit1IfBit0 of the sound system answers nonzero, the same with the system's slot 10 (the voice + 0x10) as a float, else
+// that answer (0). Returns what the last call answered.
+u32 __fastcall SoundVoice_SetRecordLevel(u8 *voice, void *, u8 *record);
+// 0x6c3ae0 (thiscall (unused, record), pops 8; slot 17 of 0x70a970 / 0x70a9e0): 0 without +0xc, a current variation (+8), the sound
+// system or the voice's slot 18 (record). Else the record's volume (SetThenFlag28_14_6c5130: SoundVoice_RollVolume), +0x94 / +0x98
+// (Obj_Set94_98_Flag40000: the system + 0x58, the byte +0x47), pitch (SetThenFlag24_14_6c5170: SoundVoice_RollPitch), +0x2c
+// (SetThenFlag2c_14_6c5150: the parent's (+0x4c, +0x1c) +0x20) and level (SoundVoice_SetRecordLevel). With flag 8 (+0x30): the record's
+// +0x30 = the address of an unset local of this frame (sic), +0x14 and +0xc |= 1. Else +0x38 = 2.0f, +0x3c the radius (SoundVoice_Radius,
+// 2.1f unless above 2.0), +0x40 the system's slot 11 as a float, +0x14 |= 0x201, +0x30 the parent's position (+0x10), +0xc |= 0x20, and
+// 0x1000 with bit 3 of the system's +0x28, 0x800 when that has 0x43 and 0x80. Then with flag 4 (+0x30), SetThenFlag44_14_6c5110 (9999).
+// Returns 1.
+u32 __fastcall LinkedVoice_FillRecord(u8 *voice, void *, u32 unused, u8 *record);
+
+// 0x6bd800 (thiscall (out, now), pops 8; slot 5 of 0x70a3e8, 0x70a4f0, 0x70a970 and 0x70a9e0; name invented): the voice started. Without
+// the sound system or a variation (+8): *out = -1. With flag 0x1 or 0x10 (+0x30): *out = 0. Else flag 1 set, a stack record (as
+// SoundVoice_SetPending's) filled by the voice's slot 17 (now, record): 0 sets flag 0x10 and *out = -1; else SoundChannel_PlayRecord (the
+// system, the record, the voice's +0x24), flag 1 cleared again when it answers 0. *out = 0. Returns out.
+u32 *__fastcall SoundVoice_Start(u8 *voice, void *, u32 *out, u32 now);
+// 0x6bdf50 (slot 5 of 0x70a338, 0x70a440, 0x70a498, 0x70a878 and 0x70a8d0; name invented): SoundVoice_Start with, after the fill and with
+// flag 4, the record's +0x44 = 1 (SetThenFlag44_14_6c5110).
+u32 *__fastcall SoundVoice_StartCounted(u8 *voice, void *, u32 *out, u32 now);
+// 0x6bde00 (thiscall (a, unused), pops 8; slot 0 of 0x70a338, 0x70a440, 0x70a498, 0x70a878 and 0x70a8d0; name invented): the voice's
+// slot 14 (1) answering 0 in its low byte: that whole answer (sic). Without the sound system 0; without a variation (+8) the system's
+// address (sic). Else +0xc = slot 15 (1) (0: 0), a stack record (as SoundVoice_Start's) through slot 18 (0: 0), then
+// SoundChannel_PickVoice (the system, re-read; a, a dropped local, the record).
+u32 __fastcall SoundVoice_PickChannelVoice(u8 *voice, void *, u32 a, u32 unused);
 
 }  // extern "C"

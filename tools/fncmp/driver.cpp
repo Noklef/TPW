@@ -366,12 +366,17 @@ u32 bytes_hash(u32 h, const u8 *p, u32 mask) {
     return h;
 }
 
-u32 blob_bytes_hash(const u8 *p, u32 how, u32 mask) {
+// wide: the slot's entry at + 0xfc0 (two of (k | 0x80000000, start, mask), fncmp.LOG_BLOB_WIDE), or null: the second structure's bytes start to start + 31
+// that its mask selects, hashed after the first fifteen (an inner mask past bit 14).
+u32 blob_bytes_hash(const u8 *p, u32 how, u32 mask, const u32 *wide) {
     u32 h = bytes_hash(0x811c9dc5u, p, mask);
     if (const u32 at = how >> 8 & 0xff) {
         const u8 *inner;
         std::memcpy(&inner, p + at - 1, 4);
-        if (inner) h = bytes_hash(h, inner + 4 * (how >> 5 & 7), how >> 16 & 0x7fff);
+        if (inner) {
+            h = bytes_hash(h, inner + 4 * (how >> 5 & 7), how >> 16 & 0x7fff);
+            if (wide) h = bytes_hash(h, inner + wide[1], wide[2]);
+        }
     }
     return h;
 }
@@ -418,7 +423,10 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
                 if (when[0] == ((k & 63) | 0x80000000u)) blob_mask = when[3];
                 else if (when[0] == ((k & 63) | 0xc0000000u)) how = (how & 0x8000001fu) | (when[3] & 0x7fffffe0u);
             }
-            args[i] = how & 0x80000000u ? blob_bytes_hash(p, how, blob_mask) : blob_hash(p, blob_mask);
+            const u32 *wide = nullptr;
+            for (u32 w = 0; w < 2; ++w)
+                if (log[0x3f0 + 4 * w] == ((k & 63) | 0x80000000u)) wide = log + 0x3f0 + 4 * w;
+            args[i] = how & 0x80000000u ? blob_bytes_hash(p, how, blob_mask, wide) : blob_hash(p, blob_mask);
         }
         if (mask >> i & 1) args[i] = string_hash(reinterpret_cast<const u8 *>((uintptr_t)args[i]));
         if (mask >> (16 + i) & 1) args[i] = 0;
@@ -478,6 +486,14 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
         return earlier < (override[1] & 0xffff) ? h : (u32)(s32)(s16)(override[1] >> 16);
     if (override[0] == 5)                               //  5: call j unanswered when bit j of the value is set, else 0: fncmp.fail_mask())
         return earlier < 32 && (override[1] >> earlier & 1) ? h : 0;
+    if (override[0] == 6) {                             //  6: as 3, the calls counted down in the value's low word (past the log's 40 entries)
+        u32 *const left = log + 0x200 + 2 * (k & 63) + 1;
+        if (*left & 0xffff) {
+            --*left;
+            return h;
+        }
+        return (u32)(s32)(s16)(*left >> 16);
+    }
     return override[0] == 2 && override[1] < n ? stack[1 + override[1]] : override[0] ? override[1] : h;
 }
 
@@ -690,6 +706,9 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x0070a950, 3},   // and category record (the same; slot 2 0x6c1110)
                                    {0x0070a498, 21},   // the switch voice's (slot 4 SoundVoice_Init, 14 SoundVoice_SwitchVariation, 15 PickSample)
                                    {0x0070a440, 21},   // the sequence voice's (slot 4 SoundVoice_Init, 14 SoundVoice_NextVariation, 15 PickSample)
+                                   {0x0070aa80, 16},   // the sound resources SoundResource_Create (0x6c5240) makes, which it loads through slot 3: the
+                                   {0x0070aac0, 16},   // stream index (SoundStreamIndex_Load), the mapped index (SoundMapIndex_Map) and the SoundFont
+                                   {0x00711ba8, 16},   // bank (SfBank_Load; 0x711ba0 / 0x711ba4 before it and 0x711be8 after it are floats, not slots)
                                    {0x006fe980, 12},   // CMMOnline's (slot 10 Debug_Nop_46cfb0, which MouseMode_Set calls on the new mode; 11 its leave)
                                    {0x006fea10, 12},   // CMMOnline's base (slots 0, 9 and 11 MouseMode_Set's; 0x481a10 / 0x485b70 make it)
                                    {0x006fea70, 12},   // MMStaffDrop's (slots 9, 10 AssignDrop: MouseMode_Set's on the mode 0x5054d0 makes)

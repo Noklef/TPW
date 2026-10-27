@@ -219,6 +219,68 @@ void __fastcall SoundChannel_UpdateOcclusion(u8 *channel, void *, u8 eax) {
     } while (voice < end);
 }
 
+void __fastcall SoundChannel_ClearOcclusion(u8 *channel, void *, u8 eax) {
+    u8 *const pool = at<u8 *>(channel, 0x14);
+    u8 *voice = at<u8 *>(pool, 4);
+    u8 *const end = voice + at<u32>(pool, 8) * 0x8c;
+    if (!voice) return;
+    u32 properties[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0x3e800000, 0x3f000000, 0, 0x3f800000};   // (0.25, 0.5, 1.0)
+    do {
+        if (ChannelVoice_Sound(voice) && (at<u32>(voice, 0x10) & 1)) {
+            at<u32>(voice, 0x10) &= ~1u;
+            const float was = at<float>(voice, 0x28);
+            if (was < 0.0f || was > 0.0f) {
+                at<u32>(voice, 0x28) = 0;
+                if (eax) {
+                    vcall<void>(at<u8 *>(channel, 0x18), 0x48, voice_id(voice), properties);
+                } else {
+                    u32 local;
+                    vcall<void>(at<u8 *>(channel, 0x18), 0x54, &local, voice_id(voice), 1.0f);
+                }
+            }
+        }
+        voice += 0x8c;
+    } while (voice < end);
+}
+
+void __fastcall SoundChannel_UpdateVoiceOcclusion(u8 *channel, void *, u32 id, u8 *voice, const u8 *record) {
+    u8 *const source = at<u8 *>(channel, 0x18);
+    if (!source) return;
+    float *const position = at<float *>(record, 0x30);
+    if (!position) return;
+    const u32 bit5 = at<u32>(record, 0xc) & 0x20;
+    u32 local;
+    vcall<void>(source, 0x74, &local, id, position, bit5);
+    if (!(at<u32>(record, 0xc) & 0x800)) return;
+    const u8 eax = at<u32>(channel, 0x20) != 0;
+    if (!eax && !vcall<u8>(source, 0x4c)) return;
+    if (!bit5) return;
+    u32 properties[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0x3e800000, 0x3f000000, 0, 0x3f800000};   // (0.25, 0.5, 1.0)
+    float occlusion;
+    if (SoundOccluders_Occlusion(reinterpret_cast<u8 *>((uintptr_t)0x00fb2038), nullptr, reinterpret_cast<const float *>(channel + 8), position,
+                                 &occlusion)) {
+        const float was = at<float>(voice, 0x28);
+        if (!(was < occlusion || was > occlusion)) return;
+        at<float>(voice, 0x28) = occlusion;
+        properties[5] = static_cast<u32>(fistp((float)(X87Reg(occlusion) * -2000.0f)));
+        properties[7] = static_cast<u32>(fistp((float)(X87Reg(occlusion) * -1000.0f)));
+        at<u32>(voice, 0x10) |= 1;
+    } else {
+        if (!(at<u8>(voice, 0x10) & 1)) return;
+        const float was = at<float>(voice, 0x28);
+        if (!(was < 0.0f || was > 0.0f)) return;
+        at<u32>(voice, 0x28) = 0;
+        at<u32>(voice, 0x10) &= ~1u;
+    }
+    if (eax) {
+        vcall<void>(source, 0x48, id, properties);
+        return;
+    }
+    const float half = 0.5f, level = (float)(X87Reg(1.0f) - occlusion);
+    const float *const pick = half > level ? &half : &level;   // (by address: no maxss)
+    vcall<void>(source, 0x54, &local, id, *pick);
+}
+
 u32 *__fastcall SoundChannel_SetMode(u8 *channel, void *, u32 *out, u32 a, u32 b, u32 c) {
     if (a)
         at<u32>(channel, 0x28) |= 8;
@@ -243,6 +305,25 @@ u32 *__fastcall SoundChannel_SetPlacement(u8 *channel, void *, u32 *out, u32 pos
     const u32 flags = at<u32>(channel, 0x28);
     if ((flags & 0x43) && (flags & 0x80)) at<u32>(record, 4) |= 0x800;
     return apply_settings(channel, out, record);
+}
+
+u32 __fastcall SoundChannel_PickVoice(u8 *channel, void *, u32 a, u32 *picked, u8 *record) {
+    const u32 voice = vcall<u32>(channel, 0x18, a, record);
+    *picked = voice;
+    if (!voice && (at<u32>(record, 0x14) & 0x2000)) return 0;
+    return vcall<u32>(channel, 0x14, voice ? voice : a, record);
+}
+
+u32 __fastcall SoundChannel_PlayRecord(u8 *channel, void *, u8 *record, u32 *voice) {
+    const u32 flags = at<u32>(channel, 0x28);
+    if ((flags & 8) && (flags & 0x100)) at<u32>(record, 0xc) |= 2;
+    const u32 result = SoundChannel_PickVoice(channel, nullptr, 0, voice, record);
+    if (!result) return 0;
+    if (!*voice) *voice = result;
+    u32 functor[2] = {0x0070a618, *voice};
+    u32 slot = (u32)(uintptr_t)record;   // (the out: the record argument's own stack slot, sic)
+    if (*vcall<s32 *>(channel, 0x10, &slot, functor) < 0) return 0;
+    return result;
 }
 
 }  // extern "C"

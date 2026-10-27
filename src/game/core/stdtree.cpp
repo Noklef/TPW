@@ -6,13 +6,14 @@
 #include "gameheap.h"
 #include "stdwstring.h"
 #include "string.h"
+#include "vcall.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
 constexpr u32 kRed = 0, kBlack = 1;
-enum Value { kPlain, kStdString, kString, kKeyString };   // (kKeyString: {a dword key, a String})
+enum Value { kPlain, kStdString, kString, kKeyString, kKeyMapI };   // (kKeyString: {a dword key, a String}; kKeyMapI: {a dword key, a tree I object})
 
 // A tree whose nil node is the global pointer at `nilAt` and whose nodes keep their colour at +`colourAt`.
 template <u32 nilAt, u32 colourAt, Value value, u32 counterAt, u32 nodeSize> struct Tree {
@@ -332,6 +333,8 @@ template <u32 nilAt, u32 colourAt, Value value, u32 counterAt, u32 nodeSize> str
             String_Dtor(reinterpret_cast<String *>(y + 0xc));
         else if (value == kKeyString)
             String_Dtor(reinterpret_cast<String *>(y + 0x10));
+        else if (value == kKeyMapI)  // (the tree's destructor inlined in the originals)
+            StdTree_DtorI(y + 0x10);
         GameHeap_Free(y);
         at<u32>(tree, 0xc) -= 1;
         *out = next;
@@ -356,6 +359,8 @@ template <u32 nilAt, u32 colourAt, Value value, u32 counterAt, u32 nodeSize> str
                 at<u32>(x, 0x18) = 0;
             } else if (value == kKeyString) {
                 String_Dtor(reinterpret_cast<String *>(x + 0x10));
+            } else if (value == kKeyMapI) {
+                StdTree_DtorI(x + 0x10);
             }
             GameHeap_Free(x);
             x = left;
@@ -410,6 +415,8 @@ using TreeE = Tree<0x007ced34, 0x1c, kStdString, 0x007ced38, 0x20>;
 using TreeF = Tree<0x00f7c968, 0x24, kString, 0x00f7c964, 0x28>;  // (its users counted at 0xf7c964: 0x5af07e, 0x5af325, 0x5af470)
 using TreeG = Tree<0x00f7c970, 0x10, kPlain, 0x00f7c96c, 0x14>;
 using TreeH = Tree<0x00fb2008, 0x24, kKeyString, 0x00fb200c, 0x28>;
+using TreeI = Tree<0x00fb2010, 0x14, kPlain, 0x00fb2014, 0x18>;
+using TreeJ = Tree<0x00fb2000, 0x20, kKeyMapI, 0x00fb2004, 0x24>;
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
@@ -707,6 +714,18 @@ void __fastcall StdTree_EraseSubtreeH(u8 *, void *, u8 *node) { TreeH::EraseSubt
 u8 **__fastcall StdTree_EraseRangeH(u8 *tree, void *, u8 **out, u8 *first, u8 *last) { return TreeH::EraseRange(tree, out, first, last); }
 void __fastcall StdTree_DtorH(u8 *tree) { TreeH::Dtor(tree); }
 
+void __fastcall StdTree_IncI(u8 **it) { TreeI::Inc(it); }
+u8 **__fastcall StdTree_EraseI(u8 *tree, void *, u8 **out, u8 *node) { return TreeI::Erase(tree, out, node); }
+void __fastcall StdTree_EraseSubtreeI(u8 *, void *, u8 *node) { TreeI::EraseSubtree(node); }
+u8 **__fastcall StdTree_EraseRangeI(u8 *tree, void *, u8 **out, u8 *first, u8 *last) { return TreeI::EraseRange(tree, out, first, last); }
+void __fastcall StdTree_DtorI(u8 *tree) { TreeI::Dtor(tree); }
+
+void __fastcall StdTree_IncJ(u8 **it) { TreeJ::Inc(it); }
+void __fastcall StdTree_CtorJ(u8 *tree) { TreeJ::Ctor(tree); }
+u8 **__fastcall StdTree_EraseJ(u8 *tree, void *, u8 **out, u8 *node) { return TreeJ::Erase(tree, out, node); }
+void __fastcall StdTree_EraseSubtreeJ(u8 *, void *, u8 *node) { TreeJ::EraseSubtree(node); }
+u8 **__fastcall StdTree_EraseRangeJ(u8 *tree, void *, u8 **out, u8 *first, u8 *last) { return TreeJ::EraseRange(tree, out, first, last); }
+
 void __fastcall StdMapH_Insert(u8 *tree, void *, u8 **result, const u8 *value) {
     MapInsert<u32, u8, 0x00fb2008, StdTree_DecH, StdTree_InsertH>(tree, result, value);
 }
@@ -752,6 +771,19 @@ u32 __fastcall StdMapH_FindValue(u8 *map, void *, const u8 *text, u32 *index) {
         }
     }
     return 0;
+}
+
+void __fastcall StdTree_CtorH(u8 *tree) { TreeH::Ctor(tree); }
+
+void __fastcall StdMapH_ClearDtor(u8 *map) {
+    u8 *out;
+    TreeH::EraseRange(map, &out, TreeH::L(at<u8 *>(map, 4)), at<u8 *>(map, 4));
+    TreeH::Dtor(map);
+}
+
+void __fastcall StdMapH_ClearAt(u8 *map, void *, u32 key) {
+    if (!key || key >= at<u32>(map, 0xc)) return;
+    vcall<void>(StdMapH_Index(map, nullptr, &key), 0x14, reinterpret_cast<const char *>(0x00786de4));
 }
 
 void __cdecl StdTree_InitUnusedOne() { *reinterpret_cast<float *>(0x007899b4) = 1.0f; }

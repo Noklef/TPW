@@ -13,5 +13,8 @@ extern "C" {
 // (9999 stays): none left ends the looping, else the inner seeks to the start (slot 12). *done += got. The looping ended, slot 3 at the
 // end (on either answer). Returns 0, or 1 as said.
 u32 __fastcall LoopStream_Read(u8 *stream, void *, u8 *buffer, u32 count, u32 *done, u32 unused);
+// 0x6c6a40 (thiscall (flags), pops 4; slot 0 of 0x70aba8): the base's vtable (Vtbl70a778_Set_6c7090), then, when flags bit 0, the
+// pool's delete (LoopStreamPool_Delete, 0x24). Returns the stream.
+u8 *__fastcall LoopStream_Dtor(u8 *stream, void *, u32 flags);
 
 }  // extern "C"

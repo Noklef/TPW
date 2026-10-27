@@ -1,12 +1,16 @@
 #include "mp2sample.h"
 
 #include <cstdint>
+#include <cstring>
 #include <emmintrin.h>
 
+#include "../files/substream.h"
 #include "../math/x87.h"
 #include "initializers.h"
 #include "mp2decoder.h"
 #include "mp2pool.h"
+#include "soundsample.h"
+#include "soundstream.h"
 #include "vcall.h"
 
 namespace {
@@ -60,6 +64,62 @@ u32 *__fastcall Mp2StreamSample_Open(u8 *sample, void *, u32 *out) {
         return answer(out, 0xffffffff);
     vcall<void>(sample, 0x50);
     return opened(sample, out);
+}
+
+u32 __fastcall Mp2Sample_Read(u8 *sample, void *, u8 *buffer, u32 bytes, u32 *done, u32 flag) {
+    if (at<u32>(sample, 0x1c)) {
+        *done = 0;
+        return SoundSample_Drained(sample);
+    }
+    const u8 *decoder = at<u8 *>(sample, 0x34);
+    if (sample[0x3c] && decoder[0x2442] == 2 && at<u32>(decoder, 0x2420) == 0x30) {
+        sample[0x3c] = 0;
+        memset(buffer, 0, bytes);
+        *done = bytes;
+        return 0;
+    }
+    const u32 left = at<u32>(sample, 0x30) - at<u32>(sample, 0x14);
+    const u32 n = bytes < left ? bytes : left;
+    *done = n;
+    vcall<void>(sample, 0x5c, buffer, n);
+    at<u32>(sample, 0x14) += *done;
+    if (at<u32>(sample, 0x14) >= at<u32>(sample, 0x30) && !vcall<u8>(sample, 0x4c, flag, *done)) return 1;
+    return 0;
+}
+
+u32 *__fastcall Mp2Sample_Query(u8 *sample, void *, u32 *out, const u8 *record) {
+    u32 status;
+    if (static_cast<s32>(*vcall<u32 *>(sample, 0x54, &status)) < 0) {
+        *out = 0xffffffff;
+        return out;
+    }
+    if (at<u8 *>(sample, 0x34)[0x2442] == 1 && (at<u32>(record, 0x14) & 0x840)) vcall<void>(sample, 0x5c, 0x00fb23d8u, 0x300u);
+    *out = 0;
+    return out;
+}
+
+void __fastcall Mp2Sample_Close(u8 *sample) {
+    vcall<void>(sample, 0x58);
+    SoundStream_Close(sample);
+}
+
+void __fastcall Mp2BufferSample_Restart(u8 *sample) {
+    at<u32>(sample, 0x14) = 0;
+    Fn_6d1a50(at<u8 *>(sample, 0x34));
+    if (at<u8 *>(sample, 0x34)[0x2442] == 1) vcall<void>(sample, 0x5c, 0x00fb20d0u, 0x300u);
+}
+
+void __fastcall Mp2StreamSample_Restart(u8 *sample) {
+    at<u32>(sample, 0x14) = 0;
+    SubStream_Rewind(sample + 0x40);
+    Fn_6d1a50(at<u8 *>(sample, 0x34));
+}
+
+void __fastcall Mp2Sample_FreeDecoder(u8 *sample) {
+    if (!at<u8 *>(sample, 0x34)) return;
+    vcall<void>(at<u8 *>(sample, 0x34), 8);
+    if (u8 *const decoder = at<u8 *>(sample, 0x34)) vcall<void>(decoder, 0, 1);
+    at<u8 *>(sample, 0x34) = nullptr;
 }
 
 }  // extern "C"
