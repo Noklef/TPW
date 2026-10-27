@@ -93,6 +93,18 @@ void __cdecl Car_SwapWithPrevAt(u32 index);
 // holds its +0x118 from both callers (unused).
 void __cdecl Train_PlaceCarAtBrace(u8 *coaster, u8 *car, u8 *train, u32 unused, u32 save);
 
+// 0x436490 (cdecl; name invented, unconfirmed): each coaster of the list 0x790fe0 (on by +0x18) with flag 1 (+0) is made current
+// (0x792218, its track +0x3c to 0x790fe4) and loses flag 1 (through 0x792218). The game's coaster ([0x790fec]) with flag 4 drops its
+// pending piece (the track's +0x30; its previous +0x68 kept): with 0x790fd4 set and flag 8, flag 8 cleared and the track's +0x24 piece
+// flagged 0x50000, its +0x28 one losing 0x804000 and gaining 0xa0000, then each (and its previous, when any) 0x200000; nothing else.
+// Otherwise a piece with flag 0x8000 (+8) has its contacts cleared (Contacts_ClearPair) and its previous (and that one's previous, when
+// any) flagged 0x200000; without 0x790fd4, a track +0x2c block with flag 8 (+4) unhooked (its +0x2c's +0x28 cleared when any, the
+// track's +0x14 = its +0x2c, its +0x2c, +0x28 and +0 cleared, the track's +4 lowered, flag 8 cleared). Track_RemovePiece; the piece's
+// train (+0x100), when any: Train_RestoreSaved (coaster, train) for a count (+0x30) over 1, else its slot count - 1 cleared (the count
+// itself for 0, sic) and the count lowered; Train_SetCouplings (inlined without 0x790fd4) and Train_PlaceCars (type, train, 0, 0). The
+// piece's train = 0, its flags 0xc0 cleared, and TrackPieces_Renumber (the previous). 0x792218 = 0 at the end.
+void __cdecl Coasters_DropPendingPiece();
+
 // 0x435340 (cdecl; node, range, car, other, keep, wantValue, out; name invented, unconfirmed): a value along range (+0xbc..+0xc0).
 // With range flagged 0x4000 and keep 0: other's (its type +0x100 flag 1 (+4): +0x50; else its ride's (0x7a4610[+0x70] +8 -> +0x28 ->
 // +4) entry the type's +0x18 -> +0x2c (0x14 apart, +4) -> +0x34, none 0.0; no other: range's own pointer bits, sic) less half the

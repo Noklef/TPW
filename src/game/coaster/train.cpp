@@ -681,6 +681,70 @@ void __cdecl Train_PlaceCarAtBrace(u8 *coaster, u8 *car, u8 *train, u32, u32 sav
     at<float>(car, 0x54) = (float)X87_SubR(X87_MulInt(at<u32>(train, 0x10), -10.0f), X87Reg(5.0f)).v;
 }
 
+void __cdecl Coasters_DropPendingPiece() {
+    for (u8 *c = global<u8 *>(0x00790fe0); c; c = at<u8 *>(c, 0x18)) {
+        if (!(at<u8>(c, 0) & 1)) continue;
+        u8 *const track = c + 0x3c;
+        global<u8 *>(0x00792218) = c;
+        global<u8 *>(0x00790fe4) = track;
+        const u32 flags = at<u32>(c, 0);
+        if (c == global<u8 *>(0x00790fec) && (flags & 4)) {
+            const bool held = global<u32>(0x00790fd4) != 0;
+            u8 *piece = at<u8 *>(track, 0x30);
+            u8 *const before = at<u8 *>(piece, 0x68);
+            if (held && (flags & 8)) {
+                at<u32>(c, 0) = flags & ~8u;
+                at<u32>(at<u8 *>(track, 0x24), 8) |= 0x50000;
+                at<u32>(at<u8 *>(track, 0x28), 8) &= 0xff7fbfff;
+                at<u32>(at<u8 *>(track, 0x28), 8) |= 0xa0000;
+                const u32 ends[] = {0x24, 0x28};
+                for (const u32 end : ends) {
+                    u8 *const p = at<u8 *>(track, end);
+                    at<u32>(p, 8) |= 0x200000;
+                    if (u8 *const q = at<u8 *>(p, 0x68)) at<u32>(q, 8) |= 0x200000;
+                }
+            } else {
+                if (at<u32>(piece, 8) & 0x8000) {
+                    Contacts_ClearPair(piece, c);
+                    u8 *const p = at<u8 *>(at<u8 *>(track, 0x30), 0x68);
+                    at<u32>(p, 8) |= 0x200000;
+                    if (u8 *const q = at<u8 *>(p, 0x68)) at<u32>(q, 8) |= 0x200000;
+                }
+                if (!held) {
+                    u8 *const t = at<u8 *>(track, 0x2c);
+                    if (at<u8>(t, 4) & 8) {
+                        if (u8 *const next = at<u8 *>(t, 0x2c)) at<u32>(next, 0x28) = 0;
+                        at<u32>(track, 0x14) = at<u32>(t, 0x2c);
+                        at<u32>(t, 0x2c) = 0;
+                        at<u32>(t, 0x28) = 0;
+                        at<u32>(t, 0) = 0;
+                        at<u32>(track, 4) -= 1;
+                        at<u32>(t, 4) &= ~8u;
+                    }
+                }
+                Track_RemovePiece(at<u8 *>(track, 0x30), track);
+                piece = at<u8 *>(track, 0x30);
+                if (u8 *const train = at<u8 *>(piece, 0x100)) {
+                    const u32 count = at<u32>(train, 0x30);
+                    if (count > 1) {
+                        Train_RestoreSaved(c, train);
+                    } else {
+                        at<u32>(train, 0x30 + 4 * count) = 0;   // (for 0 the count itself, sic)
+                        at<u32>(train, 0x30) -= 1;
+                    }
+                    Train_SetCouplings(at<u32>(train, 0x18), train);   // (inlined without 0x790fd4)
+                    Train_PlaceCars(at<const u8 *>(train, 0x18), train, 0, 0);
+                }
+                at<u32>(piece, 0x100) = 0;
+                at<u32>(piece, 8) &= ~0xc0u;
+                TrackPieces_Renumber(before);
+            }
+        }
+        at<u32>(global<u8 *>(0x00792218), 0) &= ~1u;
+    }
+    global<u32>(0x00792218) = 0;
+}
+
 double __cdecl Car_LengthFromNode(const u8 *node, const u8 *range, u8 *car, const u8 *other, u32 keep, u32 wantValue, u32 *out) {
     u32 value = (u32)(uintptr_t)range;   // (the range argument's slot, sic)
     if (range && (at<u32>(range, 0) & 0x4000) && !keep) {
