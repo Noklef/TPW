@@ -114,4 +114,17 @@ void __cdecl CoasterTrain_AtStation(u8 *coaster, u8 *train);
 // nothing reads (core/floatconsts): 0x7923a0 = 1 and 0x7923a4 = 1 / 2^23.
 void __cdecl CoasterCars_InitUnusedOne();
 void __cdecl CoasterCars_InitUnusedEpsilon();
+
+// 0x439840 (cdecl (coaster, car); called from 0x43ce0f; name unconfirmed): the car's place on the track, its +0x20 modulo the coaster's
+// +0xa8 (_CIfmod, as doubles) split by modf into a node index (__ftol of the whole part) and the fraction (stored as a float), the point
+// there (CoasterNode_Lerp); unless sound is off (0x785a2c), Sound_PlayAt(0, [0x803a28], 0xc, the point's x, y, z each __ftol'd).
+void __cdecl CoasterCar_PlayClank(const u8 *coaster, const u8 *car);
+
+// 0x43cd60 (cdecl (coaster, car); called from 0x43d54f; name unconfirmed): nothing with fewer than two cars (+0xf4). The car ahead is
+// the one after the car's slot in the 0x80-byte array at +0x128 ((car - array) >> 7 arithmetic, + 1, unsigned modulo the count). Its
+// +0x24, plus the coaster's length (+0xa8) when its +0x74 is below the car's (or unordered), must be below the car's place (+0x20) and
+// its speed (+0x78) below the car's (each or unordered). Then the speeds are traded on the x87: the car's (c + 2 * ahead) / 3, stored
+// first; the one ahead gets flag 0x40 (+0) and (ahead + 2 * c) / 3 (memory re-read); when |the car's speed as stored, re-read - the
+// ahead's unrounded| > 1, CoasterCar_PlayClank.
+void __cdecl CoasterCar_Bump(const u8 *coaster, u8 *car);
 }

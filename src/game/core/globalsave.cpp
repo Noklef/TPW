@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "balancefile.h"
 #include "gameheap.h"
 #include "savegame.h"
 #include "stdlist.h"
@@ -52,6 +53,50 @@ void SetSignName(u8 *info, u32 at, const u16 *name) {
         while (--count)
             *to++ = 0;
     theme[0xb8] = 1;
+}
+
+// 0x5af4a0's count (inlined in 0x5af530, 0x5af5d0 and 0x5af680): the theme map's head re-read each step.
+s32 CountSetFlags(const u8 *info) {
+    s32 count = 0;
+    for (u32 i = 0; i < 4; ++i)
+        count += info[0x18 + i] != 0;
+    u8 *node = at<u8 *>(at<u8 *const>(info, 0x3c), 0);
+    while (node != at<u8 *const>(info, 0x3c)) {
+        if (ThemeRecord_LoadGlobalSam(at<u8 *>(node, 0x20))) {
+            s32 theme = 0;
+            for (u32 i = 0; i < 6; ++i)
+                theme += at<const u8 *>(node, 0x20)[i] != 0;
+            count += theme;
+        }
+        StdTree_IncF(&node);
+    }
+    return count;
+}
+
+// 0x5af530's count as the mark setters inline it: GlobalSave_CountSet4 and the bytes +0x26, +0x27 set.
+s32 CountWithExtras(const u8 *info) {
+    s32 count = CountSetFlags(info);
+    for (u32 k = 0; k < 2; ++k)
+        count += info[0x26 + k] != 0;
+    return count;
+}
+
+// The level after a mark (see 0x5af940 in the header): 1, 2 or 3.
+u32 LevelReached(const u8 *info, s32 first) {
+    if ((s32)((u32)(first / 3) + at<u32>(info, 0x20)) <= 0)
+        return 1;
+    if (CountWithExtras(info) % 3 != 0)
+        return 1;
+    u8 *node = at<u8 *>(at<u8 *const>(info, 0x3c), 0);
+    while (node != at<u8 *const>(info, 0x3c)) {
+        const s32 count = CountWithExtras(info);
+        u8 *const record = at<u8 *>(node, 0x20);
+        const s32 sam = ThemeRecord_LoadGlobalSam(record) ? at<s32>(at<u8 *>(record, 0x1c), 0x14) : -1;
+        if ((s32)((u32)(count / 3) + at<u32>(info, 0x20)) == sam)
+            return 3;
+        StdTree_IncF(&node);
+    }
+    return 2;
 }
 
 }  // namespace
@@ -152,4 +197,55 @@ u8 *__cdecl GlobalSave_Instance() {
 }
 
 u32 __stdcall GlobalSave_HasKey(u32 key) { return Obj_HasKey5af780(GlobalSave_Instance(), nullptr, key); }
+
+s32 __fastcall GlobalSave_CountSet4(const u8 *info) { return CountSetFlags(info); }
+
+s32 __fastcall GlobalSave_CountSet(const u8 *info) { return CountSetFlags(info) + (info[0x26] != 0) + (info[0x27] != 0); }
+
+s32 __fastcall GlobalSave_CountSetLeft(const u8 *info) { return GlobalSave_CountSet(info) - at<s32>(info, 0x1c); }
+
+s32 __fastcall GlobalSave_CountSetLevel(const u8 *info) { return GlobalSave_CountSet(info) / 3 + at<s32>(info, 0x20); }
+
+u32 __fastcall GlobalSave_MarkTheme(u8 *info, void *, u32 i) {
+    u8 *const theme = at<u8 *>(info, 0x48);
+    if (theme[i] == 1)
+        return 0;
+    theme[i] = 1;
+    return LevelReached(info, CountWithExtras(info));
+}
+
+u32 __fastcall GlobalSave_MarkExtra(u8 *info, void *, u32 i) {
+    if (info[0x26 + i] == 1)
+        return 0;
+    info[0x26 + i] = 1;
+    return LevelReached(info, CountWithExtras(info));
+}
+
+u32 __fastcall GlobalSave_MarkScore(u8 *info, void *, u32 i, s32 score) {
+    if (info[0x18 + i] == 1) {
+        if (at<u8 *>(info, 0x48)[6 + i] != 0)
+            return 0;
+        u8 *node = at<u8 *>(at<u8 *const>(info, 0x3c), 0);
+        while (node != at<u8 *const>(info, 0x3c)) {
+            u8 *const record = at<u8 *>(node, 0x20);
+            if (record[6 + i] != 0) {
+                const s32 best = record[6 + i] != 0 ? at<s32>(record, 0xc + 4 * i) : -1;
+                if (score > best) {
+                    record[6 + i] = 0;
+                    u8 *const theme = at<u8 *>(info, 0x48);
+                    theme[6 + i] = 1;
+                    at<s32>(theme, 0xc + 4 * i) = score;
+                    return 4;
+                }
+            }
+            StdTree_IncF(&node);
+        }
+        return 0;
+    }
+    info[0x18 + i] = 1;
+    u8 *const theme = at<u8 *>(info, 0x48);
+    theme[6 + i] = 1;
+    at<s32>(theme, 0xc + 4 * i) = score;
+    return LevelReached(info, GlobalSave_CountSet(info));
+}
 }

@@ -5,8 +5,9 @@
 # a folder: as the game's, else both fault). The strings as gamestring.py's, their blocks from the heap region.
 # Open (0x5c4d50): a file opened through the mounts' current source and its archive, or the list of the others (see open_()); Exists
 # (0x46f120) the same, the stream got closed and deleted. Locate (0x44a280): a ride file through the quickload indexes or Exists (see
-# locate()).
-# usage: vfs.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=StripBase,Open,Exists,Locate)
+# locate()); Has (0x44a220): its sibling, whether the quickload indexes or the mounts have a file (the same case).
+# ArchiveName (0x5c5110): see archive_name().
+# usage: vfs.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=StripBase,Open,Exists,Locate,Has)
 import os
 import struct
 import sys
@@ -14,14 +15,14 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
-from fncmp import LOG, Bench, Call, HEAP, RAM, STUBS, SEEK, blob, echo, fill, heap, log_region, put, recorder, set_return, strings  # noqa: E402
+from fncmp import LOG, Bench, Call, HEAP, RAM, STUBS, SEEK, STREAM_SIZE, blob, echo, fill, heap, log_region, named, put, recorder, set_return, strings  # noqa: E402
 import files  # noqa: E402
 import gamestring  # noqa: E402
 from gamestring import BACKSLASH, DOT, LOCALE, SLASH2, string  # noqa: E402
 
-RANGES = gamestring.B_RANGES + [(0x41cff0, 0x41d2d0), (0x41ce90, 0x41ce94), (0x421720, 0x421780), (0x4217e0, 0x421800), (0x5c4d50, 0x5c4f70),
+RANGES = gamestring.B_RANGES + [(0x5c5110, 0x5c5222), (0x41cff0, 0x41d2d0), (0x41ce90, 0x41ce94), (0x421720, 0x421780), (0x4217e0, 0x421800), (0x5c4d50, 0x5c4f70),
                                  (0x46f120, 0x46f160), (0x5c4f80, 0x5c4fb0), (0x618d30, 0x618d90), (0x44a280, 0x44a3c4), (0x461790, 0x461a60),
-                                 (0x45b9d0, 0x45ba15),
+                                 (0x45b9d0, 0x45ba15), (0x44a220, 0x44a27b), (0x46e630, 0x46e636),
                                  (0x4036a0, 0x4036e0), (0x639100, 0x639110)]   # (the last two: StreamBase's read, write and size, for memory_source())
 B = Bench(RANGES)
 TAIL, WAD, EMPTY = 0x78bf40, 0x78c810, 0x78be50
@@ -177,12 +178,44 @@ def memory_source(r, log, regions, data):
     set_return(log, 11, 1)
 
 
+VT_FILE, FILES, FILEDATA = RAM + 0xa0000, RAM + 0xa0040, RAM + 0xa1000
+
+
+def memory_files(r, log, regions, files, sizes=None):
+    """After mounts(), as memory_source() but by name: the source (always there, without an archive) opens the files named in `files` ({name:
+    bytes}, up to fncmp.NAMED) and no other (k 2 answered by the path String's text, fncmp.named(): 1, else 0), each opened stream getting its own
+    memory source over its file's bytes (from FILEDATA on, each followed by 0x100 random bytes, the reads stopping there) written through the open's
+    first argument; the mounts' list objects (k 7) answer 0, so another name opens nothing. A file's size (the source's +0x10, which
+    fncmp.STREAM_SIZE answers) is its length, or sizes[name] for one in `sizes`. The sources at FILES, 0x20 bytes each; their vtable's +0x14 (the
+    position) the recorder k 9, the release as memory_source()'s (k 10, InterlockedDecrement's k 11 answering 1)."""
+    regions[SOURCE] = put(bytearray(regions[SOURCE]), 0x38, 'I', 0)
+    regions[MOUNTS] = put(bytearray(regions[MOUNTS]), 4, 'I', SOURCE)
+    set_return(log, 7, 0)
+    vt = bytearray(r.bytes(0x28))
+    put(vt, 0, '6I', recorder(10, 1), STUBS, STUBS + 0x10, SEEK, STREAM_SIZE, recorder(9, 0))
+    put(vt, 0x24, 'I', recorder(10, 0))
+    regions[VT_FILE] = vt
+    sources, at, answers = bytearray(), FILEDATA, {}
+    for i, (name, data) in enumerate(files.items()):
+        size = (sizes or {}).get(name, len(data))
+        sources += struct.pack('<5I3I', VT_FILE, at, len(data) + 0x100, at, size & 0xffffffff, 0, 0, 0)
+        regions[at] = bytes(data) + r.bytes(0x100)
+        answers[name] = (1, struct.pack('<2I', 0x703100, FILES + 0x20 * i))
+        at = (at + len(data) + 0x100 + 0xff) & ~0xff
+    if sources:
+        regions[FILES] = sources
+    named(log, 2, 1, answers, through=8, out=0, length=8, miss=0)
+    set_return(log, 9, r.choice([0, r.getrandbits(32)]))
+    regions[0x6fd12c] = struct.pack('<I', recorder(11, 1, True))   # InterlockedDecrement: 1 (the close's Release frees nothing)
+    set_return(log, 11, 1)
+
+
 def exists(r):
     """0x46f120 (cdecl; name, 0x74cfb8): open_()'s case; a stream got is finished and deleted (the game's StreamBase code)."""
     return open_(r, 0x46f120, [0x74cfb8])
 
 
-def locate(r):
+def locate(r, has=False):
     """0x44a280 (cdecl; name or 0, flags, &index or 0): mounts()'s case and files.py's quickload tables (at RAM + 0x40000 on, loaded or
     not); the name one of files.py's names, now and then under a folder, or one under the root (name_under()); flags of bits 0-3 or any;
     the directories [0x79cb4c] 64 dwords, the buffer 0x79c9d0 up to them."""
@@ -204,11 +237,34 @@ def locate(r):
     regions[RAM + 0x3d00] = r.bytes(0x100)
     regions[RAM + 0x3e00] = r.bytes(4)
     flags = r.choice([0, 1, 2, 3, 4, 6, 7, 0xa, 0xb, 0xe, 0xf, 0xc, r.getrandbits(4), r.getrandbits(32)])
+    if has:   # (0x44a220: the name and flags only, the current texture directory [0x7b0620] one of the tables' 4)
+        regions[0x7b0620] = struct.pack('<I', r.choice([0, 0, 1, 2, 3]))
+        return Call(0x44a220, [RAM + 0x60000, flags], regions, ret='a')
     args = [0 if r.random() < 0.04 else RAM + 0x60000, flags, r.choice([RAM + 0x3e00] * 4 + [0])]
     return Call(0x44a280, args, regions, ret='a')
 
 
-OPS_ALL = {'StripBase': strip_base, 'Open': open_, 'Exists': exists, 'Locate': locate}
+def archive_name(r):
+    """0x5c5110 (cdecl; name, out; AL): open_()'s case with the name a String (the stream got is leaked), the source and its archive there
+    mostly (else both fault); out a String of any text; the archive's slot 0x10 a recorder (k 4: the result struct's address logged as 0,
+    the name's copy as its five dwords)."""
+    log = log_region()
+    regions = {LOG: log, HEAP: heap(fail=r.choice([0] * 7 + [1])), LOCALE: bytes(4)}
+    root = mounts(r, log, regions)
+    if r.random() < 0.95:
+        regions[MOUNTS] = struct.pack('<II', struct.unpack_from('<I', regions[MOUNTS])[0], SOURCE)
+        put(regions[SOURCE], 0x38, 'I', ARCHIVE)
+    put(regions[VT_ARCHIVE], 0x10, 'I', recorder(4, 3))
+    strings(log, 4, 0, out=1)
+    blob(log, 4, 2, 0x1f)
+    string(r, 0, ANAME, ANAME + 0x40, regions, name_under(r, root))
+    string(r, 0, AOUT, AOUT + 0x40, regions)
+    return Call(0x5c5110, [ANAME, AOUT], regions, ret='b')
+
+
+ANAME, AOUT = RAM + 0x5000, RAM + 0x5400
+OPS_ALL = {'StripBase': strip_base, 'Open': open_, 'Exists': exists, 'Locate': locate, 'Has': lambda r: locate(r, has=True),
+           'ArchiveName': archive_name}
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 

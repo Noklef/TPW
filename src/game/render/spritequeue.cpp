@@ -6,6 +6,7 @@
 #include "../core/liveobjects.h"
 #include "../render/engineerrors.h"
 #include "../gfx/texture.h"
+#include "../gfx/texman.h"
 
 namespace {
 
@@ -105,5 +106,17 @@ u32 __cdecl SpriteQueue_Create() {
         return 0;
     }
     return 1;
+}
+
+u32 __fastcall SpriteQueue_LoadTexture(u8 *queue, void *, const char *name) {
+    u8 **const slot = reinterpret_cast<u8 **>(queue + 0x2400);
+    if (*slot != nullptr) {
+        Texture_DestroyArray(*slot);
+        *slot = nullptr;
+    }
+    *slot = TexManager_Load(*reinterpret_cast<u8 *const *>((uintptr_t)0x0087a268), nullptr, name);
+    if (*slot != nullptr)
+        *reinterpret_cast<u32 *>(*slot + 8) = (*reinterpret_cast<u32 *>(*slot + 8) & ~0x80u) | 0x40040;
+    return *slot != nullptr;
 }
 }

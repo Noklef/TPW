@@ -35,6 +35,12 @@ void __cdecl NamedObjects_StaticDtor();
 struct String;
 void __fastcall NamedObjects_AddName(u8 *self, void *, const String *name);
 
+// 0x5c2ce0 (cdecl (out, folder); name unconfirmed): a folder handle (vtable 0x6fd9e8) opened (Handle_Open28) on the folder (a String, through
+// its vtable +0x18) ending in "\" (String_EnsureTrailingBackslash) with the String at 0xf7f908 appended (+0x28); its entries searched
+// (Handle_Vfn1 with the pattern [0xf80768], then Handle_Vfn2) into a local DirEntry, and each real folder's name (DirEntry_IsRealDir) added to
+// the registry owner 0x786b68 (String_CtorStr, NamedObjects_AddName). *out = 0 when the open and the first find succeeded, else -1. Returns out.
+s32 *__cdecl NamedObjects_AddSubfolders(s32 *out, const String *folder);
+
 // 0x409260 (thiscall on the registry's owner 0x786b68, through 0x40f220, once a frame): Obj_AdvanceUnless30 on the game clock 0x785970;
 // 0x7477e4 = bit 3 of the flags 0x7a1a14; and when the owner's dword at +0x18 is set bit 1 of the flags is set. Returns the flags then,
 // else 0.

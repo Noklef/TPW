@@ -56,4 +56,20 @@ u8 *__fastcall MeshOverlay_Construct(u8 *mesh, void *, const char *name);
 // is +8's already; else the animator (+0x6c) wakes (Animator_Wake) for a word other than 0 and sleeps (Animator_Sleep) for 0, and +8
 // takes the word.
 void __fastcall BarMesh_SetShown(u8 *mesh, void *, u32 shown);
+
+// 0x477db0 (virtual, slot 3 of 0x6fee88: thiscall (flags, desc), pops 8; name unconfirmed): nothing without a holder (+4), a desc or
+// flags. Flag 0x10: the desc's rectangle (the four words at +4 of its +0x14) to +0x18 and again to +0x24; flag 4: the desc's word +8
+// to +0x30. Flags 0x14: the matrix at +0xdc put on the screen (Sprite_ScreenMatrix) from the bounds +0x4c (low) and +0x58 (high), x and
+// y each swapped when high is below low or unordered (the new low through the x87), as Overlay_Apply does (+0x18, +0x1e, the widths of
+// the rectangle, low, high - low, +0x34, +0x36, +0x30). Flag 2: the desc's word +6 to +0x38 and the scale 1 - it / 40. The scale +0x114
+// is written back in any case, as read before the matrix (whose element 14 it is, sic). Flag 8: the level the desc's dword / 1024 * 100,
+// at most 100 and at least 0; unless equal to +0x120 (or that is a NaN) it goes there and the bar's top edge follows (slots 9 and 10:
+// BarMesh_SetTopVertices, BarMesh_SetTopTexCoords). After a matrix or scale change the holder (+0x90) gets the matrix (Holder_SetMatrix);
+// after any change the bit 31 of 0x8bd508 is set.
+void __fastcall BarMesh_Apply(u8 *bar, void *, u32 flags, const u8 *desc);
+
+// 0x478400 (virtual, slot 3 of 0x6feeb8; name unconfirmed): the same for the sibling mesh overlay, its new level put on its quads in place
+// of the slot calls: vertices 1 and 4 (level, 100, 0), 2 and 5 (level, 0, 0); coordinates 1 (u, 1), 4 and 2 (u, 0.5), 5 (u, 0), u = the
+// level * 0.01 (the pointers and the level read again as it goes).
+void __fastcall MeshOverlay_Apply(u8 *mesh, void *, u32 flags, const u8 *desc);
 }

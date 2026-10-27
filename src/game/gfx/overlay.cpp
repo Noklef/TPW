@@ -6,6 +6,7 @@
 #include "../core/gameheap.h"
 #include "../math/matrix.h"
 #include "../math/x87.h"
+#include "../model/clone.h"
 #include "../model/holder.h"
 #include "../model/objmodel.h"
 #include "../sprite/screenmatrix.h"
@@ -50,6 +51,46 @@ void Stretch(const u8 *overlay, u8 *node, u32 count, bool wide) {
 }  // namespace
 
 extern "C" {
+
+u8 *__fastcall Overlay_Ctor(u8 *overlay, void *, u8 *holder) {
+    GuiDialog_Ctor(overlay, nullptr, static_cast<u32>(reinterpret_cast<uintptr_t>(holder)));
+    u8 *const h = at<u8 *>(overlay, 4);
+    at<u32>(overlay, 0) = 0x006fee10u;
+    if (h) {
+        at<u32>(at<u8 *>(h, 4), 0x30) |= 0x200;   // (the model reread from the holder after each store, as the original)
+        at<u16>(overlay, 0xe) = at<u16>(at<u8 *>(h, 4), 0x44);
+        for (u8 *node = at<u8 *>(at<u8 *>(h, 4), 0x78); node; node = at<u8 *>(node, 0xc)) {
+            const u32 flags = at<u32>(node, 0) | 0xc8010;
+            at<u32>(node, 0) = flags;
+            if (*reinterpret_cast<const volatile s32 *>(0x007a1968) == 0x280) at<u32>(node, 0) = flags | 0x8000000;
+        }
+        Holder_Create(h);
+    }
+    at<u32>(overlay, 0x7c) = 0;
+    at<u32>(overlay, 0x80) = 0;
+    return overlay;
+}
+
+// Slot 8's copy (see Overlay_Clone): flags for Holder_Clone, vtable the derived one's (0: the base's, left by Overlay_Ctor).
+static u8 *CloneOverlay(u8 *overlay, u32 flags, u32 vtable) {
+    if (!at<u16>(overlay, 0x10) || !at<u16>(overlay, 0x12) || !at<u8 *>(overlay, 4)) return overlay;
+    u8 *holder = nullptr;
+    Holder_Clone(at<u8 *>(overlay, 4), *reinterpret_cast<const volatile u32 *>(0x007c249c), flags, &holder, 0);
+    u8 *const copy = static_cast<u8 *>(GameHeap_Alloc(0x84));
+    if (!copy) return overlay;
+    Overlay_Ctor(copy, nullptr, holder);
+    if (vtable) at<u32>(copy, 0) = vtable;
+    at<u16>(copy, 0xa) = at<u16>(overlay, 0xa);
+    at<u16>(copy, 0xc) = at<u16>(overlay, 0xc);
+    at<u16>(copy, 0xe) = at<u16>(overlay, 0xe);
+    return copy;
+}
+
+u8 *__fastcall Overlay_Clone(u8 *overlay) { return CloneOverlay(overlay, 1, 0); }
+
+u8 *__fastcall Overlay_CloneResized(u8 *overlay) { return CloneOverlay(overlay, 4, 0x006fee38u); }
+
+u8 *__fastcall Overlay_CloneResizedHeight(u8 *overlay) { return CloneOverlay(overlay, 4, 0x006fee60u); }
 
 const u8 *__fastcall Overlay_ShowFrame(u8 *overlay, void *, u32 flags, const u8 *desc) {
     const u8 *holder = at<const u8 *>(overlay, 4);

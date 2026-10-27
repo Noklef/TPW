@@ -233,6 +233,12 @@ void __fastcall ThemeRecord_Dtor(u8 *self) {
     String_Dtor(reinterpret_cast<String *>(self + 0x20));
 }
 
+u32 __fastcall ThemeRecord_GlobalSamField14(u8 *self) {
+    if (!ThemeRecord_LoadGlobalSam(self))
+        return 0xffffffff;
+    return at<u32>(at<const u8 *>(self, 0x1c), 0x14);
+}
+
 u8 __fastcall ThemeRecord_LoadGlobalSam(u8 *self) {
     if (at<u8 *>(self, 0x1c))
         return 1;

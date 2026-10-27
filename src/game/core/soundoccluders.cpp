@@ -1,0 +1,146 @@
+#include "soundoccluders.h"
+
+#include <cstdint>
+
+#include "../math/vector.h"
+#include "../math/x87.h"
+#include "gameheap.h"
+
+namespace {
+
+template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+
+}  // namespace
+
+extern "C" {
+
+u32 __fastcall SoundOccluders_Occlusion(u8 *list, void *, const float *from, const float *to, float *out) {
+    float largest = 0.0f;
+    if (at<u32>(list, 0xc)) {
+        for (u8 *node = at<u8 *>(list, 4); node;) {
+            const float *const o = at<const float *>(node, 0);
+            node = at<u8 *>(node, 4);
+            if (!(o[3] >= at<float>(list, 0x14))) break;
+            const float tox = to[0], fromx = from[0], fromz = from[2];
+            const float toz = (float)X87Reg(to[2]);
+            const float rr = (float)(X87Reg(o[3]) * o[3]);
+            X87Reg dx = X87Reg(o[0]) - tox;
+            if (!(dx.v >= 0.0)) dx.v = -dx.v;
+            X87Reg dz = X87Reg(o[1]) - toz;
+            if (!(dz.v >= 0.0)) dz.v = -dz.v;
+            if (!((dx * dx + dz * dz).v >= rr)) continue;   // (to inside the occluder)
+            // The nearest point of the line from `from` to `to`.
+            const X87Reg ez = X87Reg(toz) - fromz, ex = X87Reg(tox) - fromx;
+            const X87Reg fz = X87Reg(o[1]) - fromz, fx = X87Reg(o[0]) - fromx;
+            const float ezf = (float)ez, exf = (float)ex;
+            const X87Reg t = (fz * ezf + fx * exf) / (ex * exf + ez * ez);
+            const float tf = (float)t;
+            const float cz = (float)(t * ezf + fromz);
+            const float x = (float)(X87Reg(tf) * exf + fromx);
+            // x clamped to the segment's x span (inline, as Float_ClampBetween; picked by address so that the compiler makes no minss / maxss)
+            const float *cxp;
+            if (!(fromx >= tox))
+                cxp = x > tox ? &tox : x >= fromx ? &x : &fromx;
+            else
+                cxp = x > fromx ? &fromx : x >= tox ? &x : &tox;
+            const float cx = *cxp;
+            const float cl = (float)X87Reg(Float_ClampBetween(cz, fromz, toz));
+            const X87Reg ddx = X87Reg(o[0]) - cx, ddz = X87Reg(o[1]) - cl;
+            const float ddxf = (float)ddx, ddzf = (float)ddz;
+            const X87Reg d2 = ddx * ddxf + ddz * ddzf;
+            if (d2.v > rr) continue;
+            *out = (float)(1.0f - d2 / rr);
+            const float v = *out;
+            if (v > largest) largest = v;
+        }
+    }
+    *out = largest;
+    return largest == 0.0f || largest != largest ? 0 : 1;
+}
+
+u32 *__fastcall SoundOccluders_Remove(u8 *list, void *, u32 *out, u8 **node) {
+    if (!at<u32>(list, 0xc)) {
+        *out = 0xffffffff;
+        return out;
+    }
+    u8 *const n = *node;
+    if (n == at<u8 *>(list, 4))
+        at<u8 *>(list, 4) = at<u8 *>(n, 4);
+    else
+        at<u8 *>(at<u8 *>(n, 8), 4) = at<u8 *>(n, 4);
+    if (n == at<u8 *>(list, 8))
+        at<u8 *>(list, 8) = at<u8 *>(n, 8);
+    else
+        at<u8 *>(at<u8 *>(n, 4), 8) = at<u8 *>(n, 8);
+    const u32 count = at<u32>(list, 0xc) - 1;
+    u8 *const occluder = at<u8 *>(n, 0);
+    at<u32>(list, 0xc) = count;
+    GameHeap_Free(n);
+    if (!occluder) {
+        *out = 0xffffffff;
+        return out;
+    }
+    GameHeap_Free(occluder);
+    *node = nullptr;
+    *out = 0;
+    return out;
+}
+
+void __fastcall SoundOccluders_Clear(u8 *list) {
+    while (at<u32>(list, 0xc)) {
+        u8 *const node = at<u8 *>(list, 4);
+        void *occluder = nullptr;
+        if (node) {
+            u8 *const next = at<u8 *>(node, 4);
+            at<u8 *>(list, 4) = next;
+            if (!next)
+                at<u32>(list, 8) = 0;
+            else
+                at<u32>(next, 8) = 0;
+            occluder = at<void *>(node, 0);
+            --at<u32>(list, 0xc);
+            GameHeap_Free(node);
+        }
+        GameHeap_Free(occluder);   // (no node: the count unchanged, an endless loop, sic)
+    }
+}
+
+void __fastcall OccluderList_Dtor(u8 *list) {
+    u8 *node = at<u8 *>(list, 4);
+    at<u32>(list, 0) = 0x70aa70;
+    at<u32>(list, 8) = 0;
+    at<u32>(list, 4) = 0;
+    while (node) {
+        u8 *const next = at<u8 *>(node, 4);
+        GameHeap_Free(node);
+        node = next;
+    }
+    at<u32>(list, 0xc) = 0;
+}
+
+u8 *__fastcall OccluderList_DeletingDtor(u8 *list, void *, u32 flags) {
+    OccluderList_Dtor(list);
+    if (flags & 1) GameHeap_Free(list);
+    return list;
+}
+
+void __fastcall SoundOccluders_Dtor(u8 *list) {
+    SoundOccluders_Clear(list);
+    OccluderList_Dtor(list);
+}
+
+u8 *__fastcall SoundOccluders_DeletingDtor(u8 *list, void *, u32 flags) {
+    OccluderList_Dtor(list);
+    if (flags & 1) GameHeap_Free(list);
+    return list;
+}
+
+void SoundOccluders_SingletonDtor() {
+    u8 &guard = *reinterpret_cast<u8 *>(static_cast<uintptr_t>(0x00fb2054));
+    if (!(guard & 1)) {
+        guard |= 1;
+        SoundOccluders_Dtor(reinterpret_cast<u8 *>(static_cast<uintptr_t>(0x00fb2038)));
+    }
+}
+
+}  // extern "C"

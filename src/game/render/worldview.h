@@ -23,4 +23,13 @@ void __fastcall WorldView_SetRangeY(u8 *view, void *, float start, float end, fl
 
 // 0x56b830 (thiscall; a, b, pops 8): +0x30 = a and +0x34 = b; returns a.
 u32 __fastcall Obj_Set30_34(u8 *object, void *, u32 a, u32 b);
+
+// 0x56b940 (thiscall (out, vector), pops 8; called at 0x56bc23; name unconfirmed): a point along a view ray. The vector turned by
+// the camera matrix [0x87afe8] (Mat4_Transform, mode 3) is the direction d, its y replaced by [0x701488] when it equals [0x7014a0]
+// (0) or is a NaN. The ray's parameters for the heights +0x30 and +0x34 ((height - the matrix's +0x34) / dy) are each taken as
+// floats and held to [0x8bd4c0] * [0x70149c] (lim) when below 0 (or a NaN: as compared on the x87) or above it. The parameter s is
+// the second when the two are equal (or either a NaN), else (second + first) * [0x70149c]; there the original also works out two
+// values it drops (__ftol), reading [0x879d60]'s +0x10, +0x14 and its first dword's +8, +0xc (read here too). out = (s dx + the
+// matrix's +0x30, s dy + +0x34, s dz + +0x38). Returns out.
+float *__fastcall WorldView_RayPoint(const u8 *view, void *, float *out, const float *vector);
 }  // extern "C"

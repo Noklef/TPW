@@ -27,7 +27,21 @@ u32 __cdecl Path_StripBase(String *path, String *base, String *out);
 // is not freed then, nor when an earlier step failed.
 StreamBase *__cdecl VFS_Open(const char *name);
 
+// 0x5c5110 (cdecl; name, out; a bool in AL; name unconfirmed): a file's name within the current source's archive. VFS_Open(name's text) (the
+// game pushes 0x74cfb8 too; the stream got is never freed); none: 0. Then, with no checks, the source (StreamBase_GetSource of the mounts
+// [0x786b9c]) and its archive (+0x38): copies (String_CtorCopy) of the source's root at +0x18 (a WString read as a narrow string, sic) and of
+// name; when Path_StripBase(name's copy, the root's, out) is 1 the name's copy is assigned out (slot 0x18) and the archive asked (slot 0x10:
+// a result struct through its first argument, out, the name's copy; its answer unread): 1. Else 0. The copies destroyed either way.
+bool __cdecl VFS_ArchiveName(const String *name, String *out);
+
 // 0x46f120 (cdecl; name): VFS_Open(name) (the game pushes a second argument, 0x74cfb8,
 // which VFS_Open does not read); a stream got is finished and deleted (Object_FinishAndDelete) and 1 returned, else 0.
 u32 __cdecl VFS_FileExists(const char *name);
+
+// 0x5c5010 (cdecl; from, to; name unconfirmed; the sign styles' font files): VFS_Open(from) (none: 0); its size (slot 5) read (slot 2) into
+// a Mem_GlobalAlloc block (none, as for size 0: 0, the stream left open), the stream closed (slot 1) and deleted (slot 0). Then a new
+// FileStream (Mem_Alloc(8), StreamBase_Ctor, vtable 0x6fd930: none faults) opened (slot 9: &result, to, 0xc0000010 (write, create
+// always)): a negative result through the pointer it returns answers 0 (the stream left); else the block written (slot 3), the stream
+// closed (slot 1) and deleted (slot 0); 1. The block is never freed.
+u32 __cdecl VFS_ExtractFile(const char *from, const char *to);
 }

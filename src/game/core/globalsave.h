@@ -32,6 +32,30 @@ u8 __fastcall GlobalSave_Byte26(const u8 *info, void *, u32 i);
 // 0x5afc30: the counter +0x20 incremented.
 void __fastcall GlobalSave_Inc20(u8 *info);
 
+// 0x5af4a0 (thiscall; names unconfirmed): how many of the bytes +0x18..+0x1b are set, plus, for each theme record in the theme map
+// (+0x3c, from its first node; the record at the node's +0x20) whose global.sam loads (ThemeRecord_LoadGlobalSam), how many of its
+// first six bytes are. 0x5af530: that plus the bytes +0x26 and +0x27 set; 0x5af5d0: 0x5af530's less the s32 at +0x1c; 0x5af680:
+// 0x5af530's / 3 plus the s32 at +0x20.
+s32 __fastcall GlobalSave_CountSet4(const u8 *info);
+s32 __fastcall GlobalSave_CountSet(const u8 *info);
+s32 __fastcall GlobalSave_CountSetLeft(const u8 *info);
+s32 __fastcall GlobalSave_CountSetLevel(const u8 *info);
+
+// 0x5af810 / 0x5afb00 (thiscall (i), pops 4; called at 0x40c6c9.. / 0x4d4a84; names unconfirmed): a mark set, the current theme's (+0x48)
+// byte i / the info's byte +0x26 + i: 0 when it is 1 already; else it becomes 1 and the level is looked at (see 0x5af940).
+u32 __fastcall GlobalSave_MarkTheme(u8 *info, void *, u32 i);
+u32 __fastcall GlobalSave_MarkExtra(u8 *info, void *, u32 i);
+
+// 0x5af940 (thiscall (i, score), pops 8; called at 0x40c78b..; name unconfirmed): a score i set. With the byte +0x18 + i already 1:
+// 0 when the current theme (+0x48) has its byte +6 + i; else the first theme record in the map with its byte +6 + i whose s32 at
+// +0xc + 4 i (-1 had the byte been clear) is below the score loses the byte and the current theme gets it and the score: 4; none: 0.
+// Else the byte +0x18 + i becomes 1 and the current theme gets its byte and the score, and the level is looked at: with the level
+// (GlobalSave_CountSet / 3 + the s32 +0x20, signed) at most 0, or the count (GlobalSave_CountSet4 and the bytes +0x26, +0x27, counted
+// again) not a multiple of 3: 1; else, for the theme map's records in order (the count again at each), 3 at the first whose global.sam
+// (ThemeRecord_LoadGlobalSam; its file's +0x14, -1 when it does not load) gives that count's level, 2 when none does.
+// 0x5af810 and 0x5afb00 count with GlobalSave_CountSet4 and the two bytes from the first.
+u32 __fastcall GlobalSave_MarkScore(u8 *info, void *, u32 i, s32 score);
+
 // 0x5afc40 / 0x5afc50 (value): byte +0x24 / set. 0x5b09b0 / 0x5b09a0 (value): byte +0x25 / set.
 u8 __fastcall GlobalSave_Byte24(const u8 *info);
 void __fastcall GlobalSave_SetByte24(u8 *info, void *, u32 value);

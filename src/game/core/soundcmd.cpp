@@ -4,6 +4,8 @@
 
 #include "accessors.h"
 #include "fieldops.h"
+#include "initializers.h"
+#include "soundchannel.h"
 #include "soundmixer.h"
 #include "soundobject.h"
 #include "vcall.h"
@@ -68,6 +70,15 @@ u32 *__fastcall SoundCmd700ba8_Run(const u8 *command, void *, u32 *out, u8 *targ
 
 u32 *__fastcall SoundCmd700b5c_Run(const u8 *, void *, u32 *out, u8 *target) { return SoundObject_Broadcast(target, nullptr, out); }
 
+u32 *__fastcall SoundCmd700b6c_Run(const u8 *, void *, u32 *out, u8 *target) {
+    u8 *const object = target;
+    u32 functor = 0x0070a260;
+    SoundChannel_Apply(at<u8 *>(object, 0x24), nullptr, reinterpret_cast<u32 *>(&target), reinterpret_cast<u8 *>(&functor));
+    SoundMixer_Update(at<u8 *>(object, 0x20));
+    *out = 0;
+    return out;
+}
+
 u32 *__fastcall SoundCmd700b60_Run(const u8 *command, void *, u32 *out, u8 *target) {
     return SoundObject_BroadcastValue(target, nullptr, out, at<u32>(command, 4));
 }
@@ -92,6 +103,25 @@ u32 *__fastcall SoundCmd700bac_Run(const u8 *command, void *, u32 *out, u8 *targ
 
 u32 *__fastcall SoundCmd700bb8_Run(const u8 *command, void *, u32 *out, u8 *target) {
     return SoundObject_VoiceInfo(target, nullptr, out, at<u32>(command, 8), at<u32 *>(command, 4));
+}
+
+u32 *__fastcall SoundCmd700b4c_Run(const u8 *command, void *, u32 *out, u8 *target) {
+    u8 record[0x70];
+    Init_6b9c50(record);
+    SetThenFlag68_4c_6b9d30(record, nullptr, at<u32>(command, 4));
+    u32 functor[2] = {0x0070a278, (u32)(uintptr_t)record};
+    SoundChannel_Apply(at<u8 *>(target, 0x24), nullptr, out, reinterpret_cast<u8 *>(functor));
+    return out;
+}
+
+u32 *__fastcall SoundCmd700b3c_Run(const u8 *command, void *, u32 *out, u8 *target) {
+    SoundObject_SetVoices(target, nullptr, out, at<u32>(command, 4));
+    return out;
+}
+
+u32 *__fastcall SoundCmd700b54_Run(const u8 *command, void *, u32 *out, u8 *target) {
+    SoundChannel_SetMode(at<u8 *>(target, 0x24), nullptr, out, at<u32>(command, 4), at<u32>(command, 8), at<u32>(command, 0xc));
+    return out;
 }
 
 }  // extern "C"

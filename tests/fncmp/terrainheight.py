@@ -35,8 +35,9 @@ def coordinate(r, n, size, other):
     return r.uniform(0, max(edge, 1.0))
 
 
-def case(r, ops=None):   # (ops: other benches take the Height ground alone)
-    op = r.deal(ops or OPS)
+def case(r, ops=None, base=RAM):   # (ops: other benches take the Height ground alone; base: where its RAM regions go, RAM unless another
+    op = r.deal(ops or OPS)          # bench's world is there)
+    map_, grid_, heights_, cells_ = (a - RAM + base for a in (MAP, GRID, HEIGHTS, CELLS))
     w, h = (r.choice([0, 1, 2, 3, 4, 5, 8, 8]) for _ in range(2))
     if r.random() < 0.03:
         w, h = r.getrandbits(32), r.getrandbits(32)
@@ -44,7 +45,7 @@ def case(r, ops=None):   # (ops: other benches take the Height ground alone)
     grid = bytearray(r.bytes(0x30))
     put(grid, 0x10, '2f', size_x, size_y)
     put(grid, 0x18, '2I', w, h)
-    put(grid, 0x28, '2I', HEIGHTS, CELLS)
+    put(grid, 0x28, '2I', heights_, cells_)
     heights = bytearray(0x2000)
     for i in range(0x800):
         put(heights, 4 * i, 'f', height(r))
@@ -62,7 +63,7 @@ def case(r, ops=None):   # (ops: other benches take the Height ground alone)
         x, y = ix * 10.0 + fx * 10.0, iy * 10.0 + fy * 10.0
         a = (w + 1) * iy + ix
         put(heights, 4 * r.choice([a, a + 1, a + w + 1, a + w + 2]), 'f', r.choice([float('inf'), float('-inf'), 3e38, -3e38]))
-    regions = {0x7a0854: struct.pack('<I', MAP), MAP: put(bytearray(r.bytes(0x70)), 0x6c, 'I', GRID), GRID: grid, HEIGHTS: heights, CELLS: cells}
+    regions = {0x7a0854: struct.pack('<I', map_), map_: put(bytearray(r.bytes(0x70)), 0x6c, 'I', grid_), grid_: grid, heights_: heights, cells_: cells}
     if op == 'Grid':   # 0x452560: an origin (none mostly, whole cells, half a cell, any, NaN) added to the point; cell flags 1 and 4 any mix; any or not
         ox, oy = (r.choice([0.0, 0.0, 0.0, 10.0, -10.0, 5.0, r.uniform(-20, 20), float('nan')]) for _ in range(2))
         put(grid, 8, '2f', ox, oy)

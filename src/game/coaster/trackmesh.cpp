@@ -135,7 +135,7 @@ void __cdecl TrackMesh_EmitPiece(u8 *piece, u8 *next, s32 count, const float *po
         u8 *const following = at<u8 *>(next, 0x90);
         if (piece == next) {
             double whole;
-            const double fraction = std::modf((X87Reg(*position) - X87Reg(global<float>(0x0079240c))).v, &whole);   // CRT modf (0x67b280)
+            const double fraction = std::modf((X87Reg(*position) - global<float>(0x0079240c)).v, &whole);   // CRT modf (0x67b280)
             s32 node = (s32)(long long)whole;   // __ftol
             float t = (float)fraction;
             if (node == at<s32>(spline, 0) - 1) {
@@ -146,15 +146,15 @@ void __cdecl TrackMesh_EmitPiece(u8 *piece, u8 *next, s32 count, const float *po
             const u8 *to = at<u8 *>(following, 4) + (node + 1) * 0x58;
             TrackSpline_Frame(coasterNodes(), track(), from, to, at<u8 *>(spline, 8) + node * 0x58,
                               at<u8 *>(following, 8) + (node + 1) * 0x58, t, &cur, orientation());
-            blend = (float)(X87Reg(at<float>(from, 8)) * (X87Reg(one) - X87Reg(t)) + X87Reg(at<float>(to, 8)) * X87Reg(t));
+            blend = (float)(X87Reg(at<float>(from, 8)) * (X87Reg(one) - t) + X87Reg(at<float>(to, 8)) * t);   // (t the memory operand)
         } else {
-            const X87Reg t = X87Reg(*position) - X87Reg(global<float>(0x0079240c));
+            const X87Reg t = X87Reg(*position) - global<float>(0x0079240c);
             const s32 last = at<s32>(spline, 0) * 0x58 - 0x58;
             const u8 *from = at<u8 *>(spline, 4) + last;
             const u8 *to = at<u8 *>(following, 4);
             TrackSpline_Frame(coasterNodes(), track(), from, to, at<u8 *>(spline, 8) + last, at<u8 *>(following, 8), (float)t, &cur,
                               orientation());
-            const X87Reg t2 = X87Reg(*position) - X87Reg(global<float>(0x0079240c));
+            const X87Reg t2 = X87Reg(*position) - global<float>(0x0079240c);
             blend = (float)(X87Reg(at<float>(from, 8)) * (X87Reg(one) - t2) + X87Reg(at<float>(to, 8)) * t2);
         }
 
@@ -174,12 +174,12 @@ void __cdecl TrackMesh_EmitPiece(u8 *piece, u8 *next, s32 count, const float *po
             advance(at<u8 *>(record, 0xc));
         }
 
-        const X87Reg dx = X87Reg(prev.x) - X87Reg(cur.x);
-        const X87Reg dy = X87Reg(prev.y) - X87Reg(cur.y);
-        const X87Reg dz = X87Reg(prev.z) - X87Reg(cur.z);
+        const X87Reg dx = X87Reg(prev.x) - cur.x;   // (cur the memory operands)
+        const X87Reg dy = X87Reg(prev.y) - cur.y;
+        const X87Reg dz = X87Reg(prev.z) - cur.z;
         const float dyf = (float)dy, dzf = (float)dz;
         const X87Reg sum = dx * X87Reg(dx.v) + dy * X87Reg(dyf) + X87Reg(dzf) * X87Reg(dzf);
-        at<float>(track(), 0x38) = (float)X87_SubR(X87_Sqrt(sum) * X87Reg(-0.166666672f), X87Reg(at<float>(track(), 0x38)));   // 0x6fe150
+        at<float>(track(), 0x38) = (float)(at<float>(track(), 0x38) - X87_Sqrt(sum) * X87Reg(-0.166666672f));   // 0x6fe150; fsubr m32
         emit(blend, at<float>(track(), 0x40), at<float>(track(), 0x44), at<float>(track(), 0x48), &cur, 0, record);
 
         section = at<u8 *>(record, 0xc);

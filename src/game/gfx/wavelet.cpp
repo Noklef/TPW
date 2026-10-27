@@ -35,11 +35,12 @@ u32 FtolLow(float f) { return (u32)(long long)f; }
 // The dword count of a {data, size, ...} array zeroed as the original's REP STOSD / STOSB does (size * 4 bytes).
 void ZeroArray(const u8 *array) { std::memset(at<u8 *>(array, 0), 0, at<u32>(array, 4) << 2); }
 
-// The D4 filter, read from 0xc27208..0xc27214 for each product.
-float H0() { return global<float>(0x00c27208); }
-float H1() { return global<float>(0x00c2720c); }
-float H2() { return global<float>(0x00c27210); }
-float H3() { return global<float>(0x00c27214); }
+// The D4 filter, read from 0xc27208..0xc27214 for each product (by reference: the memory operand's bits as they are, a signalling NaN
+// not quieted on its way to the hardware NaN rule).
+const float &H0() { return global<float>(0x00c27208); }
+const float &H1() { return global<float>(0x00c2720c); }
+const float &H2() { return global<float>(0x00c27210); }
+const float &H3() { return global<float>(0x00c27214); }
 
 // The inverse D4's software-pipelined pair loop (0x592c50's for n >= 6, 0x5933a0's along a row): the low values at p and p + next (bytes),
 // the high ones at p + high and p + high + next; the even value goes to out, the odd one to out + outNext; then p moves by step and out by
@@ -1019,5 +1020,64 @@ void __fastcall WaveletCodec_DecodeV13Scaled(u8 *codec, void *, u32 width, u32 h
     // The x steps by the destination width, the y steps by its height (unsigned divisions: 0 faults); the chroma's over the even part.
     const u32 steps[4] = {((width & ~1u) << 15) / dstWidth, (width << 16) / dstWidth, ((height & ~1u) << 15) / dstHeight, (height << 16) / dstHeight};
     OutputScaled(dstWidth, dstHeight, pitch, pixelSize, pixels, alpha != nullptr, log2side, steps);
+}
+
+void __fastcall WaveletCodec_DecodeColourOrGrey(u8 *face, void *, u32 width, u32 height, u32 colour, const void *src, u8 *pixels,
+                                               u32 q0, u32 q1, u32 q2) {
+    u8 *const codec = face - 0x54;
+    if ((u8)colour != 0)
+        reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32, const void *, u8 *, u32, u32, u32)>(&WaveletCodec_DecodeColour)(
+            codec, nullptr, width, height, src, pixels, q0, q1, q2);
+    else
+        reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32, const void *, u8 *, u32)>(&WaveletCodec_DecodeGrey)(
+            codec, nullptr, width, height, src, pixels, q0);
+}
+
+u8 *__fastcall WaveletCodec_Construct(u8 *codec, void *, u32 mostDerived) {
+    if (mostDerived != 0) {
+        at<u32>(codec, 4) = 0x702708;
+        at<u32>(codec, 0x54) = 0x7026e8;
+    }
+    at<u32>(codec, 8) = 1;
+    for (u32 offset = 0xc; offset < 0x50; offset += 4)
+        at<u32>(codec, offset) = 0;
+    at<u32>(codec, 0) = 0x7026d8;
+    const u32 base = at<u32>(at<const u8 *>(codec, 4), 4);
+    at<u32>(codec, base + 4) = 0x7026b8;
+    const u32 again = at<u32>(at<const u8 *>(codec, 4), 4);
+    at<u32>(codec, again) = again - 0x50;
+    const u8 *const formats = TexFormat_Table(reinterpret_cast<u8 *>((uintptr_t)0x008bd550));
+    for (u32 i = 0; i < 0x200; ++i) {
+        const s32 v = (s32)i - 0x80;
+        const u32 c = v < 0 ? 0 : (v > 0xff ? 0xff : (u32)v);
+        global<u8>(0xc27008 + i) = (u8)c;
+        const u8 *const e = formats + c * 0x10;
+        global<u16>(0xcef628 + 2 * i) = at<u16>(e, 0xc);
+        global<u16>(0xcefe28 + 2 * i) = at<u16>(e, 8);
+        global<u16>(0xcf0228 + 2 * i) = at<u16>(e, 4);
+        global<u16>(0xcef228 + 2 * i) = at<u16>(e, 0);
+    }
+    for (u32 i = 0; i < 0x100; ++i) {
+        const s32 v = (s32)i - 0x80;
+        global<s32>(0xbe6808 + 4 * i) = (s32)X87_MulIntDouble(v, global<double>(0x702640));
+        global<s32>(0xcefa28 + 4 * i) = (s32)X87_MulIntDouble(v, global<double>(0x702648));
+        global<s32>(0xcf0628 + 4 * i) = (s32)X87_MulIntDouble(v, global<double>(0x702650));
+        global<s32>(0xc26c08 + 4 * i) = (s32)X87_MulIntDouble(v, global<double>(0x702658));
+    }
+    at<void *>(codec, 0x4c) = GameHeap_Alloc(0x62a39);
+    u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x40000));
+    at<u8 *>(codec, 0x3c) = block;
+    std::memset(block, 0, 0x40000);
+    at<u32>(codec, 0x44) = 0x10000;
+    at<u32>(codec, 0x40) = 0x10000;
+    return codec;
+}
+
+u8 *__cdecl WaveletCodec_Create() {
+    u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x58));
+    u8 *const codec = block ? WaveletCodec_Construct(block, nullptr, 1) : nullptr;
+    if (!codec)
+        return nullptr;
+    return codec + at<s32>(at<u8 *>(codec, 4), 4) + 4;
 }
 }

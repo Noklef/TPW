@@ -9,6 +9,7 @@
 #include "gameheap.h"
 #include "string.h"
 #include "stdstring.h"
+#include "stdwstring.h"
 
 namespace {
 
@@ -124,6 +125,18 @@ void __fastcall StringList34_PushChars(u8 *owner, void *, const char *chars) { P
 void __fastcall StdListString_Insert(u8 *list, void *, u8 **out, u8 *before, const StdString *x) {
     u8 *node = LinkBefore(before, 0x18);
     CopyString(node, x);
+    at<u32>(list, 8) += 1;
+    *out = node;
+}
+
+void __fastcall StdListWString_Insert(u8 *list, void *, u8 **out, u8 *before, const StdWString *x) {
+    u8 *node = LinkBefore(before, 0x18);
+    StdWString *s = reinterpret_cast<StdWString *>(node + 8);
+    *reinterpret_cast<u8 *>(s) = *reinterpret_cast<const u8 *>(x);  // (only the first byte of the empty allocator is copied)
+    s->ptr = nullptr;
+    s->len = 0;
+    s->res = 0;
+    StdWString_AssignSub(s, nullptr, x, 0, global<u32>(0x006fef00));
     at<u32>(list, 8) += 1;
     *out = node;
 }
@@ -487,6 +500,11 @@ void __fastcall Obj_SwapPair(u8 *object, void *, u8 *other) {
     const u32 own = at<u32>(object, 8);
     at<u32>(object, 8) = second;
     at<u32>(other, 8) = own;
+}
+
+const StdString *__fastcall StdListString_First(u8 *list) {
+    at<u8 *>(list, 0xc) = at<u8 *>(at<const u8 *>(list, 4), 0);
+    return StdListString_Next(list);
 }
 
 const StdString *__fastcall StdListString_Next(u8 *list) {

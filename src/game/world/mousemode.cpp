@@ -35,20 +35,24 @@ const MouseModeEnv *g_env = &kGameEnv;
 
 void MouseModes_SetEnv(const MouseModeEnv *env) { g_env = env ? env : &kGameEnv; }
 
-void MouseModes_EnsureHolder() {
+extern "C" {
+
+u8 *__cdecl MouseModes_EnsureHolder() {
     u8 *&holder = *reinterpret_cast<u8 **>(0x007b05e8);
-    if (holder) return;
+    if (holder) return holder;
     u8 *const block = static_cast<u8 *>(GameHeap_Alloc(1));
-    if (block) {
-        u8 *const mode = static_cast<u8 *>(GameHeap_Alloc(8));
-        MouseMode_Set(mode ? MouseModeOnlineBase_Ctor(mode) : nullptr);
-        *reinterpret_cast<u32 *>(0x007b05e0) = 0xffffffffu;
-        *reinterpret_cast<u32 *>(0x007b05d4) = 0xffffffffu;
-    }
+    if (block) MouseModeHolder_Ctor(block);
     holder = block;
+    return block;
 }
 
-extern "C" {
+u8 *__fastcall MouseModeHolder_Ctor(u8 *holder) {
+    u8 *const mode = static_cast<u8 *>(GameHeap_Alloc(8));
+    MouseMode_Set(mode ? MouseModeOnlineBase_Ctor(mode) : nullptr);
+    *reinterpret_cast<u32 *>(0x007b05e0) = 0xffffffffu;
+    *reinterpret_cast<u32 *>(0x007b05d4) = 0xffffffffu;
+    return holder;
+}
 
 void __cdecl MouseModes_InitUnusedOne() { *reinterpret_cast<float *>(0x007b05a0) = 1.0f; }
 

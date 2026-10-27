@@ -191,6 +191,7 @@ u8 *__fastcall Class702948_Ctor(u8 *item, void *, const u8 *record, u8 *owner) {
 }
 
 void __fastcall Owner2c_Add702938s(u8 *owner, void *, const u32 *array) { AddAll<Class702938_Ctor>(owner, array, 0x68, 0x30); }
+void __fastcall Owner2c_Add70293cs(u8 *owner, void *, const u32 *array) { AddAll<Class70293c_CtorFrom>(owner, array, 0xc0, 0x66); }
 void __fastcall Owner2c_Add702940s(u8 *owner, void *, const u32 *array) { AddAll<Class702940_Ctor>(owner, array, 0x48, 0x10); }
 void __fastcall Owner2c_Add702944s(u8 *owner, void *, const u32 *array) { AddAll<Class702944_Ctor>(owner, array, 0x80, 0x26); }
 void __fastcall Owner2c_Add702948s(u8 *owner, void *, const u32 *array) { AddAll<Class702948_Ctor>(owner, array, 0x6c, 0x34); }

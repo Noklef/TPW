@@ -6,8 +6,10 @@
 #include "../core/gameheap.h"
 #include "../math/x87.h"
 #include "../core/trivial.h"
+#include "../core/vcall.h"
 #include "../math/matrix.h"
 #include "../model/holder.h"
+#include "../sprite/screenmatrix.h"
 #include "../ui/guidialog.h"
 
 namespace {
@@ -109,6 +111,98 @@ void Mesh_SetIndices(u8 *mesh, const u16 (&words)[12]) {
 
 u32 levelTimesHundredth(const u8 *mesh) { return bitsOf(static_cast<float>(X87Reg(at<float>(mesh, 0x120)) * X87Reg(0.01f))); }
 
+// 0x478400's new level put on its quads in place (the sibling's slots 9 and 10 written out): vertices 1 and 4 to (level, 100, 0), 2 and 5
+// (BarMesh_SetVertex) to (level, 0, 0); coordinate 1 to (u, 1), 4 and 2 to (u, 0.5), 5 (BarMesh_SetTexCoord) to (u, 0), u = level * 0.01.
+// The pointers and the level are read again where the original reads them.
+void MeshOverlay_PutLevel(u8 *mesh, u32 level) {
+    u8 *v = at<u8 *>(mesh, 0x7c);
+    at<u32>(mesh, 0x120) = level;
+    at<u32>(v, 4) = level;  // vertex 1
+    at<u32>(v, 0x14) = kHundred;
+    at<u32>(v, 0x24) = 0;
+    v = at<u8 *>(mesh, 0x7c);
+    at<u32>(v, 0x30) = X87_FloatThrough(at<u32>(mesh, 0x120));  // vertex 4
+    at<u32>(v, 0x40) = kHundred;
+    at<u32>(v, 0x50) = 0;
+    BarMesh_SetVertex(at<float *>(mesh, 0x7c), 2, floatOf(at<u32>(mesh, 0x120)), 0.0f, 0.0f);
+    BarMesh_SetVertex(at<float *>(mesh, 0x7c), 5, floatOf(at<u32>(mesh, 0x120)), 0.0f, 0.0f);
+    const u32 u = levelTimesHundredth(mesh);
+    u8 *t = at<u8 *>(mesh, 0x84);
+    at<u32>(t, 4) = u;  // 1
+    at<u32>(t, 0x14) = kOne;
+    t = at<u8 *>(mesh, 0x84);
+    at<u32>(t, 0x20) = u;  // 4
+    at<u32>(t, 0x30) = kHalf;
+    t = at<u8 *>(mesh, 0x84);
+    at<u32>(t, 8) = u;  // 2
+    at<u32>(t, 0x18) = kHalf;
+    BarMesh_SetTexCoord(at<float *>(mesh, 0x84), 5, floatOf(u), 0.0f);
+}
+
+// 0x477db0 / 0x478400 (slot 3 of the bar and of its sibling).
+void Mesh_Apply(u8 *mesh, u32 flags, const u8 *desc, bool overlay) {
+    if (!at<u32>(mesh, 4) || !desc || !flags) return;
+    bool changed = false;
+    if (flags & 0x10) {
+        const u8 *const rect = at<const u8 *>(desc, 0x14);
+        for (u32 k = 0; k < 8; k += 2) at<u16>(mesh, 0x18 + k) = at<u16>(rect, 4 + k);
+        for (u32 k = 0; k < 8; k += 2) at<u16>(mesh, 0x24 + k) = at<u16>(mesh, 0x18 + k);
+    }
+    if (flags & 4) at<u16>(mesh, 0x30) = at<u16>(desc, 8);
+    u32 scale = at<u32>(mesh, 0x114);   // (read before the matrix, whose element 14 it is, and written back over it after: sic)
+    if (flags & 0x14) {
+        u32 low[3], high[3];
+        std::memcpy(low, mesh + 0x4c, sizeof low);
+        std::memcpy(high, mesh + 0x58, sizeof high);
+        for (u32 k = 0; k < 2; ++k) {   // (below or unordered: swapped, the new low through the x87)
+            if (!(floatOf(high[k]) >= floatOf(low[k]))) {
+                const u32 was = low[k];
+                low[k] = X87_FloatThrough(high[k]);
+                high[k] = was;
+            }
+        }
+        const float height = (float)(X87Reg(floatOf(high[1])) - X87Reg(floatOf(low[1])));
+        const float width = (float)(X87Reg(floatOf(high[0])) - X87Reg(floatOf(low[0])));
+        Sprite_ScreenMatrix(reinterpret_cast<float *>(mesh + 0xdc), at<s16>(mesh, 0x18), at<s16>(mesh, 0x1e),
+                            (s16)(at<u16>(mesh, 0x1c) - at<u16>(mesh, 0x18)), (s16)(at<u16>(mesh, 0x1e) - at<u16>(mesh, 0x1a)),
+                            floatOf(low[0]), floatOf(low[1]), width, height, at<s16>(mesh, 0x34), at<s16>(mesh, 0x36), at<s16>(mesh, 0x30));
+        changed = true;
+    }
+    if (flags & 2) {
+        const s16 height = at<s16>(desc, 6);
+        at<s16>(mesh, 0x38) = height;
+        changed = true;
+        scale = bitsOf((float)X87_SubR(X87Reg((double)height) / X87Reg(40.0f), X87Reg(1.0f)));   // 1 - height / 40 (0x6fedd8, 0x74f898)
+    }
+    at<u32>(mesh, 0x114) = scale;
+    u32 &dirty = *reinterpret_cast<u32 *>((uintptr_t)0x008bd508);
+    if (flags & 8) {   // the level: desc's dword / 1024 * 100 (0x6fee08, 0x6fee0c), at most 100 and at least 0 (0x6fedec)
+        X87Reg level = X87Reg((double)at<s32>(desc, 0)) * X87Reg(1.0f / 1024.0f) * X87Reg(100.0f);
+        if (level.v > 100.0)
+            level = X87Reg(100.0);
+        else if (level.v < 0.0)
+            level = X87Reg(0.0);
+        const float old = at<float>(mesh, 0x120);
+        if (level.v < old || level.v > old) {   // (equal or unordered: left)
+            const u32 bits = bitsOf((float)level);
+            if (overlay) {
+                MeshOverlay_PutLevel(mesh, bits);
+            } else {
+                at<u32>(mesh, 0x120) = bits;
+                vcall<void>(mesh, 0x24);   // BarMesh_SetTopVertices
+                vcall<void>(mesh, 0x28);   // BarMesh_SetTopTexCoords
+            }
+            if (!changed) {
+                dirty |= 0x80000000;
+                return;
+            }
+        }
+    }
+    if (!changed) return;
+    Holder_SetMatrix(at<u8 *>(mesh, 0x90), reinterpret_cast<const u32 *>(mesh + 0xdc));
+    dirty |= 0x80000000;
+}
+
 }  // namespace
 
 extern "C" {
@@ -172,6 +266,10 @@ u8 *__fastcall BarMesh_ScalarDtor(u8 *bar, void *, u32 flags) { return Mesh_Scal
 void __fastcall MeshOverlay_Dtor(u8 *mesh) { Mesh_Dtor(mesh, 0x006feeb8); }
 
 u8 *__fastcall MeshOverlay_ScalarDtor(u8 *mesh, void *, u32 flags) { return Mesh_ScalarDtor(mesh, 0x006feeb8, flags); }
+
+void __fastcall BarMesh_Apply(u8 *bar, void *, u32 flags, const u8 *desc) { Mesh_Apply(bar, flags, desc, false); }
+
+void __fastcall MeshOverlay_Apply(u8 *mesh, void *, u32 flags, const u8 *desc) { Mesh_Apply(mesh, flags, desc, true); }
 
 u8 *__fastcall BarMesh_Construct(u8 *bar, void *, const char *name) {
     if (!Mesh_ConstructStart(bar, name, 0x006fee88))

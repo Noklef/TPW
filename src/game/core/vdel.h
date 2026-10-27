@@ -308,6 +308,27 @@ u8 * __fastcall ListScalarDelete702c0c_5ddaf0(u8 *o, void *, u32 v0);
 // 0x5d97a0 (slot 0 of the vtable 0x702a8c): a linked list scalar deleting destructor: sets the vtable pointer 0x702a8c, frees every node and, when bit 0 of the flags is set, the list.
 u8 * __fastcall ListScalarDelete702a8c_5d97a0(u8 *o, void *, u32 v0);
 
+// 0x5ad0d0 (no direct callers; name invented): a linked list scalar deleting destructor: sets the vtable pointer 0x7027fc, frees every node and, when bit 0 of the flags is set, the list.
+u8 * __fastcall ListScalarDelete7027fc_5ad0d0(u8 *o, void *, u32 v0);
+
+// 0x5ba860 (no direct callers; name invented): a linked list scalar deleting destructor: sets the vtable pointer 0x7028b0, frees every node and, when bit 0 of the flags is set, the list.
+u8 * __fastcall ListScalarDelete7028b0_5ba860(u8 *o, void *, u32 v0);
+
+// 0x5bec40 (no direct callers; name invented): a linked list scalar deleting destructor: sets the vtable pointer 0x702954, frees every node and, when bit 0 of the flags is set, the list.
+u8 * __fastcall ListScalarDelete702954_5bec40(u8 *o, void *, u32 v0);
+
+// 0x5da520 (no direct callers; name invented): a linked list scalar deleting destructor: sets the vtable pointer 0x702b28, frees every node and, when bit 0 of the flags is set, the list.
+u8 * __fastcall ListScalarDelete702b28_5da520(u8 *o, void *, u32 v0);
+
+// 0x5ddb40 (no direct callers; name invented): a linked list scalar deleting destructor: sets the vtable pointer 0x702c10, frees every node and, when bit 0 of the flags is set, the list.
+u8 * __fastcall ListScalarDelete702c10_5ddb40(u8 *o, void *, u32 v0);
+
+// 0x41f6f0 (no direct callers; name invented): a linked list scalar deleting destructor: sets the vtable pointer 0x6fdb08, frees every node and, when bit 0 of the flags is set, the list.
+u8 * __fastcall ListScalarDelete6fdb08_41f6f0(u8 *o, void *, u32 v0);
+
+// 0x5e2b70 (no direct callers; name invented): a linked list scalar deleting destructor: sets the vtable pointer 0x702d00, frees every node and, when bit 0 of the flags is set, the list.
+u8 * __fastcall ListScalarDelete702d00_5e2b70(u8 *o, void *, u32 v0);
+
 // 0x5e4370 / 0x5d5ef0 (slot 0 of the vtables 0x702d98 / 0x7029f8; thiscall, flags, pops 4): the same with their own vtable pointers.
 u8 *__fastcall ListScalarDelete702d98_5e4370(u8 *o, void *, u32 flags);
 u8 *__fastcall ListScalarDelete7029f8_5d5ef0(u8 *o, void *, u32 flags);

@@ -30,6 +30,12 @@ u32 *__fastcall DequeIter_Prev(u32 *it);
 // the object's own address (sic). Returns the object.
 u8 *__fastcall Class703c14_Ctor(u8 *object);
 
+// 0x47f7d0 (cdecl; name unconfirmed): the command queue's (0x7b4ba8, see CommandQueue_Post) first element shown and taken off, inside its critical
+// section (0x7b4bd8): its text (record table the element's first dword, index its second: Records_DataIfTerminated, core/methods) widened
+// (Language_Widen, core/language) to the object at [0x7b4ba0]'s slot 9 (thiscall, one argument); then the cursor moves 8 on and the count falls,
+// and at the block's end or the last element the block is released as Deque8_Clear does. 1 when the queue was empty (nothing done), else 0.
+u32 __cdecl CommandQueue_ShowNext();
+
 // 0x47f340 (thiscall; name unconfirmed): empties a deque of 8-byte elements in blocks of 0x1000 bytes (the begin iterator at +4 {first, end, cursor, map slot}, the end iterator at +0x14, the
 // map at +0x24, the count at +0x2c): while the count is not 0 the cursor (+0xc) moves on by 8 and the count falls; at the end of a block, or the last element, the block (the map slot's, which moves
 // on) is freed and, with the count at 0, both iterators are cleared and the map freed, else the begin iterator is set to the next block.

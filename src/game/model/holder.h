@@ -38,6 +38,19 @@ u32 __cdecl Animator_Sleep(u8 *animator);
 // result ignored); the count at +0x34 of the owner (the holder at +8, else itself) raised and the part stored at +0x1c.
 void __cdecl Holder_Create(u8 *holder);
 
+// 0x46dd50 (cdecl; the holder; name unconfirmed): as Holder_Create, but the part is stored at +0x20, before its load, and no count is
+// raised.
+void __cdecl Holder_CreateAt20(u8 *holder);
+
+// 0x46dcf0 (cdecl; name, unused, noPart, third, flag; name unconfirmed): the .md2 file loaded (MD2_Load with flags 6 for a flag, else
+// 2; none: 0), a holder for it (GlobalMem_AllocCounted with the model), the model's textures given their directories (TextureSet_Load
+// of the model, probe 0, the third argument) and, without noPart, the part made at +0x20 (Holder_CreateAt20). Returns the holder.
+u8 *__cdecl Holder_LoadMd2(const char *name, u32 unused, u32 noPart, u32 third, u32 flag);
+
+// 0x45bda0 (cdecl; holder, matrix; name unconfirmed): the holder's part (+0x1c, unadjusted) gets the matrix as its first
+// (ObjModel_SetMatrices with 1).
+void __cdecl Holder_SetMatrix(u8 *holder, const u32 *matrix);
+
 // 0x45bd30 (cdecl; holder, matrix, grid): the holder's part (+0x1c, unadjusted) gets the matrix as its first (ObjModel_SetMatrices with
 // 1); then it is added to the renderer ([0x87a6d0]; Renderer_Add, the part reached through the virtual base offset in the word at +4 of
 // its vtable, none for no part) under the tag 0x10 and the holder's flags get 0x11 (grid set), else under 0x20 with 9.

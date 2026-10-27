@@ -15,20 +15,21 @@ B = Bench([(0x466b70, 0x466c7f), (0x556af0, 0x556b8c), (0x556b90, 0x556ddb), (0x
 RIDE, BLOCK, HOLDER, MODEL, ROOT, OUT = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x220, RAM + 0x300, RAM + 0x400
 
 
-def box(r):
+def box(r, base=RAM):   # (base: where the RAM region goes, RAM unless another bench's world is there)
+    d = base - RAM
     ram = bytearray(r.bytes(0x500))
-    put(ram, 0xcc, 'I', r.choice([BLOCK, BLOCK, BLOCK, 0]))
+    put(ram, 0xcc, 'I', r.choice([BLOCK + d, BLOCK + d, BLOCK + d, 0]))
     corner = lambda: r.choice([r.randrange(256), r.getrandbits(16), 0, 0xffff])  # noqa: E731
     put(ram, 0xc0, 'HHHH', corner(), corner(), corner(), corner())
-    put(ram, 8, 'I', HOLDER)
-    put(ram, HOLDER - RAM + 4, 'I', MODEL)
-    put(ram, MODEL - RAM + 0x78, 'I', ROOT)
+    put(ram, 8, 'I', HOLDER + d)
+    put(ram, HOLDER - RAM + 4, 'I', MODEL + d)
+    put(ram, MODEL - RAM + 0x78, 'I', ROOT + d)
     scale = r.choice([1, 100, None])
     r.floats(ram, [BLOCK - RAM + 0x1c, BLOCK - RAM + 0x28, ROOT - RAM + 0x44], scale)
     index = r.randrange(8)
     table = bytearray(r.bytes(32))
-    put(table, 4 * index, 'I', r.choice([RIDE, RIDE, RIDE, 0]))
-    return Call(0x466b70, [index, OUT], {RAM: ram, 0x7a4610: table}, ret='a')
+    put(table, 4 * index, 'I', r.choice([RIDE + d, RIDE + d, RIDE + d, 0]))
+    return Call(0x466b70, [index, OUT + d], {base: ram, 0x7a4610: table}, ret='a')
 
 
 def centre(r):   # (handle, x, y, z): the handle a dword (0: none) holding the index
@@ -48,34 +49,35 @@ def direction(r, ram, off):   # the three floats at off (any, from the caller) n
         put(ram, off, '3f', *(r.uniform(-3.4e38, 3.4e38) if big else r.uniform(-2e-38, 2e-38) for _ in range(3)))
 
 
-def pose(r):   # (obj, pos, dir, key, mask): the ride at obj +0xc8 (or 0), a model part found by key and mask whose node gives both
-    c = box(r)
+def pose(r, base=RAM):   # (obj, pos, dir, key, mask): the ride at obj +0xc8 (or 0), a model part found by key and mask whose node gives both
+    c = box(r, base)
+    d = base - RAM
     index = c.args[0]
-    ram = c.regions[RAM] + r.bytes(0x300)
+    ram = c.regions[base] + r.bytes(0x300)
     table = c.regions[0x7a4610]
     if r.random() < 0.95:
-        put(table, 4 * index, 'I', RIDE)
-    obj, parts, entries, inst, nodes = RAM + 0x500, RAM + 0x600, RAM + 0x680, RAM + 0x6e0, RAM + 0x700
-    put(ram, obj - RAM + 0xc8, 'I', index if r.random() < 0.9 else 0)
+        put(table, 4 * index, 'I', RIDE + d)
+    obj, parts, entries, inst, nodes = base + 0x500, base + 0x600, base + 0x680, base + 0x6e0, base + 0x700
+    put(ram, obj - base + 0xc8, 'I', index if r.random() < 0.9 else 0)
     n = r.randrange(5)
     put(ram, MODEL - RAM + 0x48, 'H', n)
     put(ram, MODEL - RAM + 0x7c, 'I', parts)
     put(ram, HOLDER - RAM + 0x28, 'I', inst)
-    put(ram, inst - RAM + 4, 'I', entries)
+    put(ram, inst - base + 4, 'I', entries)
     keys = [r.randrange(6) for _ in range(n)]
     for i in range(n):
-        put(ram, parts - RAM + 0x14 * i, 'I', r.getrandbits(32) & r.choice([0xffffffff, 0x3da1f83, 0x10, 0]))
-        put(ram, parts - RAM + 0x14 * i + 4, 'I', keys[i])
+        put(ram, parts - base + 0x14 * i, 'I', r.getrandbits(32) & r.choice([0xffffffff, 0x3da1f83, 0x10, 0]))
+        put(ram, parts - base + 0x14 * i + 4, 'I', keys[i])
         node = nodes + 0x40 * i
-        put(ram, entries - RAM + 0x14 * i, 'I', r.getrandbits(32) & ~0x10 | r.choice([0, 0x10]))
-        put(ram, entries - RAM + 0x14 * i + 4, 'I', node if r.random() < 0.85 else 0)
+        put(ram, entries - base + 0x14 * i, 'I', r.getrandbits(32) & ~0x10 | r.choice([0, 0x10]))
+        put(ram, entries - base + 0x14 * i + 4, 'I', node if r.random() < 0.85 else 0)
         scale = r.choice([1, 100, None])
-        r.floats(ram, [node - RAM + o for o in (0x20, 0x24, 0x28, 0x30, 0x34, 0x38)], scale)
-        direction(r, ram, node - RAM + 0x20)
+        r.floats(ram, [node - base + o for o in (0x20, 0x24, 0x28, 0x30, 0x34, 0x38)], scale)
+        direction(r, ram, node - base + 0x20)
     key = r.choice(keys + [r.randrange(6), -1, -0x10, r.getrandbits(32)]) if keys else r.choice([0, 3, -1])
     mask = r.choice([0xffffffff, 0x10, 1, 0x3da1f82, 0x400000, 0, r.getrandbits(32)])
-    out = r.choice([RAM + 0x4d0, RAM + 0x4d0, 0])
-    return Call(0x556b90, [obj, RAM + 0x4c0, out, key & 0xffffffff, mask], {RAM: ram, 0x7a4610: table}, ret='a')
+    out = r.choice([base + 0x4d0, base + 0x4d0, 0])
+    return Call(0x556b90, [obj, base + 0x4c0, out, key & 0xffffffff, mask], {base: ram, 0x7a4610: table}, ret='a')
 
 
 def axes(r):   # (index, part, dir, up): a part's node's direction (+0x20, flipped or not) and up (+0x10), each made of length 1

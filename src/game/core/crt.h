@@ -34,6 +34,8 @@ struct CrtEnv {
     u16 *(__cdecl *wcscat)(u16 *to, const u16 *from);              // 0x67bed0
     s32(__cdecl *wcscmp)(const u16 *a, const u16 *b);              // 0x67c290: -1, 0 or 1 (the units compared unsigned)
     s32(__cdecl *strcmp)(const char *a, const char *b);            // 0x680060: -1, 0 or 1 (the bytes compared unsigned)
+    // The clock (the driver's stand-in: a fixed time, the same in the emulator's hook, fncmp._time).
+    s32(__cdecl *time)(s32 *t);                                    // 0x67d3f0: the seconds since 1970 (UTC), also through t unless null
 };
 
 // The CRT ports call (the game's unless swapped).

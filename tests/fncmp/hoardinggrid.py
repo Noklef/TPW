@@ -3,8 +3,8 @@
 # type 0x19, parented (0xc / 0x11, parents of any id in the table) or neither, the 0x44-byte cells
 # they name with flag 0x40 or not. Flood (0x5328e0): the grid copy at 0x81d7c8 all '#' but for a rectangle of up to 24 x 24 (now and then
 # at an edge) of ' ', '@', '#' and others, the start in it, beside it or out of range, the fill '#', '.' or another char (not ' ' or '@').
-# Check (0x531a50, the hoardings' area check): see check() below.
-# usage: hoardinggrid.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Fill,Flood,Check)
+# Check (0x531a50, the hoardings' area check): see check() below. Blocked (0x532a50): see blocked() below.
+# usage: hoardinggrid.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Fill,Flood,Check,Blocked)
 import os
 import sys
 
@@ -13,9 +13,9 @@ from fncmp import Bench, Call, RAM, put  # noqa: E402
 
 B = Bench([(0x532960, 0x532a50), (0x5328e0, 0x53295b), (0x4d8300, 0x4d8328), (0x4d0b10, 0x4d0b27), (0x535db0, 0x535dc3), (0x53ad20, 0x53aefc),
            (0x531a50, 0x5323ec), (0x5195d0, 0x519620), (0x522770, 0x5227a0), (0x522810, 0x522860), (0x536300, 0x536320), (0x536360, 0x536390),
-           (0x6ad810, 0x6ad830), (0x5da3c0, 0x5da3c1)])
+           (0x6ad810, 0x6ad830), (0x5da3c0, 0x5da3c1), (0x532a50, 0x532b2d), (0x4d0af0, 0x4d0b06)])
 CELLS44, TABLE = RAM, RAM + 0x1000  # 16 cells of 0x44 bytes; the world's 0x28-byte cells for ids 0 to 0x680
-OPS = [k for k in os.environ.get('OPS', 'Fill,Flood,Check').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Fill,Flood,Check,Blocked').split(',') if k]
 WORLD = 0x31000000   # CheckArea's world: its 0x28-byte cells at +0x1102b0, the 0x44-byte cells it names inline at +0x294 (by id)
 OUTSIDE = 0xffff   # (a parent off the area, of type 0x19)
 MONEY = RAM + 0x2000  # the world's table entry (0x7cfb90 + 20 * the word at world +0x1da726): its +0xc the money
@@ -109,6 +109,34 @@ def check(r):
     return Call(0x531a50, [x1 & 0xffffffff, y1 & 0xffffffff, x2 & 0xffffffff, y2 & 0xffffffff, r.choice([0, 1, 1, 0x100])], regions, ret='a')
 
 
+def blocked(r):
+    """0x532a50 (x1, y1, x2, y2): a rectangle up to 6 x 6 cells (now and then reversed: nothing, or partly off the map), the world's
+    0x44-byte cells in it (inline at +0x294 by id; [0x8023a0] their first, as the game has it) naming entries 1-16 (at +0x1102b0) of
+    type 0x19, 0xc / 0x11 (parents among them) or others, flag 0x40 on the cells mostly, at times on all."""
+    x1, y1 = r.choice([r.randrange(0, 126), 0, 124, -2]), r.choice([r.randrange(0, 126), 0, 124, -2])
+    x2, y2 = x1 + r.randrange(0, 6), y1 + r.randrange(0, 6)
+    if r.random() < 0.1:
+        x1, x2 = x2, x1
+    if r.random() < 0.1:
+        y1, y2 = y2, y1
+    every = r.random() < 0.3
+    entries = bytearray(r.bytes(0x28 * 17))
+    for h in range(17):
+        put(entries, 0x28 * h + 8, 'I', r.choice([0x19, 0x19, 0xc, 0x11, 0, 3]))
+        put(entries, 0x28 * h + 0x10, 'H', r.randrange(1, 17))
+    regions = {0x7cf83c: put(bytearray(4), 0, 'I', WORLD), 0x8023a0: put(bytearray(4), 0, 'I', WORLD + 0x2d8), WORLD + 0x1102b0: entries}
+    for y in range(max(y1, 0), min(y2, 127) + 1):
+        lo, hi = max(x1, 0), min(x2, 127)
+        if lo > hi:
+            continue
+        row = bytearray(r.bytes(0x44 * (hi - lo + 1)))
+        for i in range(hi - lo + 1):
+            put(row, 0x44 * i, 'H', r.randrange(1, 17))
+            put(row, 0x44 * i + 0xe, 'H', r.getrandbits(16) | 0x40 if every or r.random() < 0.6 else r.getrandbits(16) & ~0x40)
+        regions[WORLD + 0x294 + 0x44 * ((y << 7) + lo + 1)] = row
+    return Call(0x532a50, [x1 & 0xffffffff, y1 & 0xffffffff, x2 & 0xffffffff, y2 & 0xffffffff], regions, ret='a')
+
+
 def flood(r):
     grid = bytearray(b'#' * (0x42 * 0x43))
     h, w = r.randrange(1, 25), r.randrange(1, 25)
@@ -132,6 +160,8 @@ def case(r):
         return flood(r)
     if op == 'Check':
         return check(r)
+    if op == 'Blocked':
+        return blocked(r)
     if r.random() < 0.1:
         rows, cols = r.choice([1, 2]), r.choice([127, 128, 130])
     else:

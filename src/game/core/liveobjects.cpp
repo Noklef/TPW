@@ -63,6 +63,24 @@ u8 *__fastcall LiveObject7019f8_Construct(u8 *o, void *, u32 most_derived) {
     return o;
 }
 
+u8 *__fastcall LiveObject6ff308_Construct(u8 *o, void *, u32 most_derived) {
+    if (most_derived) {
+        at<u32>(o, 0) = 0x006ff318;
+        at<u32>(o, 0x20) = 0x006fdce8;
+    }
+    at<u32>(o, at<u32>(at<u8 *>(o, 0), 4)) = 0x006ff308;
+    const u32 base = at<u32>(at<u8 *>(o, 0), 4);
+    at<u32>(o, base - 4) = base - 0x20;
+    at<u32>(o, 4) = 0;
+    at<u32>(o, 8) = 0;
+    at<u32>(o, 0x10) = 0;
+    at<s32>(o, 0xc) = -1;
+    at<u32>(o, 0x14) = 0;
+    at<u32>(o, 0x18) = 0;
+    LiveObjects_Add(o ? o + at<u32>(at<u8 *>(o, 0), 4) : nullptr);
+    return o;
+}
+
 u8 *__fastcall LiveObject701b30_DeletingDtor(u8 *base, void *, u32 flags) {
     u8 *o = base - 0xa4;
     at<u32>(o, at<u32>(at<u8 *>(o, 0), 4)) = 0x00701b30;

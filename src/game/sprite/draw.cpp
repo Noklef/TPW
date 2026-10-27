@@ -6,6 +6,9 @@
 
 #include "../math/matrix.h"
 #include "../math/x87.h"
+#include "../ui/guimanager.h"
+#include "../world/mapcell.h"
+#include "script.h"
 
 namespace {
 
@@ -156,6 +159,36 @@ extern "C" void __cdecl Sprite_DrawScript(u8 *s) {
         lists()[bucket][counts()[bucket]] = (u32)(uintptr_t)record;
         ++counts()[bucket];
     }
+}
+
+extern "C" u32 __cdecl SpriteDraw_Pick() {
+    const u32 tile = (u32)global<u16>(0x007b05cc) - 1;
+    const u32 row = tile >> 7, column = tile & 0x7f;
+    u16 x, y;
+    Gui_GetMousePos(&x, &y);
+    global<float>(0x008bd4f0) = (float)(X87Reg((double)(s16)x) * global<float>(0x00700d18) - global<float>(0x00700d10));
+    global<float>(0x008bd4f4) = (float)(X87Reg((double)(s16)y) * global<float>(0x00700d1c) - global<float>(0x00700d10));
+    u8 *const picked = global<u8 *>(0x008bd4fc);
+    if (!picked)
+        return 0;
+    const s32 slot = SpriteScript_FindShown(picked);
+    if (!slot)
+        return 0;
+    for (u32 pair = 0x0081ed44; pair < 0x0081ed8c; pair += 8) {
+        const s32 cx = global<s32>(pair - 4) + (s32)column;
+        const s32 cy = global<s32>(pair) + (s32)row;
+        if (!Map_InBounds(cx, cy))
+            continue;
+        const u32 cell = ((u32)cy << 7) + (u32)cx + 1;
+        for (u16 thing = at<u16>(global<u8 *>(0x007cf83c), (cell & 0xffff) * 0x44 + 0x2b8); thing;) {
+            u8 *const record = global<u8 *>(0x007cfb90 + 0x14 * (u32)thing);
+            const u8 kind = record[2];
+            if ((kind == 1 || kind == 4 || kind == 5 || kind == 6 || kind == 8 || kind == 7 || kind == 0x12) && at<s32>(record, 0xc) == slot)
+                return (u32)(uintptr_t)record;
+            thing = at<u16>(record, 0xa);
+        }
+    }
+    return 0;
 }
 
 extern "C" void __cdecl SpriteDraw_Enable() { global<u8>(0x00763f84) = 1; }

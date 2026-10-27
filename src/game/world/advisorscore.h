@@ -6,6 +6,8 @@
 
 #include "../../../re/types.h"
 
+struct Stream;
+
 struct AdvisorScoreEnv {
     s32(__cdecl *atExit)(void(__cdecl *fn)());   // crt_atexit (0x67a7d0)
 };
@@ -34,4 +36,9 @@ s32 __fastcall AdvisorScoring_ScoreDetail(u8 *self, void *, u32 id, u16 *word, u
 // +0x16 0. The byte +0x14 set to 1. Returns the message.
 // (The message, 0x18 bytes: +0 type, +4 a, +8 b, +0xc id, +0x10 score, the bytes +0x14 set, +0x15 flag, +0x16 the score given.)
 u8 *__fastcall AdvisorMsg_Init(u8 *self, void *, u32 id, u16 type, u32 a, u32 b, u8 flag, s32 score);
+
+// 0x59ba30 (thiscall (stream, save, version, unused), pops 16): the message saved or loaded as the serializers do (core/savegame's
+// Save_Field): mThingId (the word +0), mSecondary (+4), mMessage (+0xc), mScore (+0x10), mValid (the byte +0x14), mResponseNo (+8),
+// mOverrideOnlyOnce (+0x15), mScoreOverridden (+0x16); a load reads all but the first through Save_ReadU32 / Save_ReadU8.
+u32 __fastcall AdvisorMsg_Serialize(u8 *self, void *, Stream *stream, u32 save, s32 version, u32 unused);
 }

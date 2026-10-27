@@ -6,19 +6,19 @@
 # (now and then 0) with a bitrate, sampling rate and mode that pick one of the game's allocation tables (lsf now and then: table 4), jsbound
 # within sblimit and mono never joint stereo (else the original reads its stack unset), a frame of random bits, the synthesis's buffers,
 # windows and the factor and grouping tables random, float or fixed point (0xfb2704), half rate (0xfb2708) now and then, the output none
-# now and then; the fixed-point transform (0x6d62c0) fncmp's stand-in as in tests/fncmp/mp2synth.py.
+# now and then (the fixed point through the transform 0x6d62c0).
 # usage: mp2layer2.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import RAM, Bench, Call, _mp2_transform  # noqa: E402
+from fncmp import RAM, Bench, Call  # noqa: E402
 import x87emu  # noqa: E402
 
 CALLS = {'float': 0x6ccc20, 'fixed': 0x6cd220, 'frame': 0x6cdf50}
-B = Bench([(0x6ccc20, 0x6cd218), (0x6cd220, 0x6cde4d), (0x6cdf50, 0x6ce594), (0x6c9270, 0x6c957d), (0x6c9580, 0x6ca574), (0x6ca580, 0x6cc735)],
-          hooks={0x6d62c0: _mp2_transform})
+B = Bench([(0x6ccc20, 0x6cd218), (0x6cd220, 0x6cde4d), (0x6cdf50, 0x6ce594), (0x6c9270, 0x6c957d), (0x6c9580, 0x6ca574), (0x6ca580, 0x6cc735),
+           (0x6d62c0, 0x6d6c4c)])
 DECODER, FRAME, BITS, OUT, SCALE, TABLE = RAM, RAM + 0x3000, RAM + 0x3800, RAM + 0x4000, RAM + 0x4800, RAM + 0x5000
 FACTORS, FIXED = 0x70ce08, 0x70e908          # 27 rows of 64 each (float, then s32)
 GROUPS = 0x70af28                            # the 3-, 5- and 9-level grouping tables (from the pointers at 0x782e00)
@@ -27,6 +27,9 @@ OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].s
 GROUPED = {3: 5, 5: 7, 9: 10}                # d: the code's bits
 FIXED_POINT, HALF = 0xfb2704, 0xfb2708
 PCM = RAM + 0x6000
+# the resolved vtables a group's byte past 26 reads as factors (float rows 27-255 reach 0x71cdff, fixed ones 0x71e8ff): the MP2 buffer
+# decoder's 0x7118e0 (float row 74, fixed 47; 6 slots) and the SoundFont bank's 0x711ba8 (float row 77, fixed 50; 16 slots)
+VTABLES = {0x7118e0: 0x18, 0x711ba8: 0x40}
 
 
 def image(address, n):
@@ -37,6 +40,8 @@ def image(address, n):
 
 CHOICE = struct.unpack('<96I', image(0x7114f0, 0x180))   # the allocation table by 16 (2 sampling rate + 2 - channels) + bitrate
 SUBBANDS = struct.unpack('<5i', image(0x711670, 0x14))   # each table's sblimit
+# (the driver resolves those vtables' slots to its replacements, which the hooked game does not: both sides read the game's own slots)
+SLOTS = {a: image(a, n) for a, n in VTABLES.items()}
 
 
 def entry(r):
@@ -109,7 +114,7 @@ def case_frame(r):
     out = 0 if r.random() < 0.05 else PCM
     regions = {DECODER: decoder, FRAME: r.bytes(0x2000), PCM: r.bytes(36 * 2 * 80 + 0x100), GROUPS: tables(r),
                FIXED_POINT: struct.pack('<I', r.choice([1, r.getrandbits(32)]) if fixed else 0),
-               HALF: struct.pack('<I', r.choice([0, 0, 0, 1]))}
+               HALF: struct.pack('<I', r.choice([0, 0, 0, 1])), **SLOTS}
     return Call(CALLS['frame'], [DECODER, out], regions, conv='t', ret='a')
 
 
@@ -144,7 +149,7 @@ def case(r):
     else:
         rows = b''.join(struct.pack('<I', r.choice([r.getrandbits(16), r.getrandbits(20), r.getrandbits(32)])) for _ in range(27 * 64 + 0x80))
         regions = {FIXED - 0x100: r.bytes(0x100) + rows}
-    regions.update({DECODER: decoder, FRAME: r.bytes(0x500), BITS: bits + r.bytes(0x40), OUT: r.bytes(0x500), SCALE: scale, TABLE: tab,
+    regions.update({DECODER: decoder, FRAME: r.bytes(0x500), BITS: bits + r.bytes(0x40), OUT: r.bytes(0x500), SCALE: scale, TABLE: tab, **SLOTS,
                     GROUPS: bytearray(r.choice([r.randrange(27), r.randrange(27), r.getrandbits(8)]) for _ in range(GROUPS_END - GROUPS))})
     return Call(CALLS[name], [DECODER, BITS, OUT, SCALE, r.randrange(0, 4), TABLE], regions, conv='t', ret='v')
 

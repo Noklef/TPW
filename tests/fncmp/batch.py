@@ -7,17 +7,18 @@
 # A model's material batch (0x581880) over the same buffer, the batch object at [0x879ab0]: settings
 # flags with and without 0xc0000 and 0x2000000, material entries 0-3 with a material or none, a texture set or none, the texture's index
 # used or not (0x8bd550), textures 0 or with flags 0x400, 0x1000 and others, +0x3c 0 or not (as texformat.py's driver flags cases).
-# usage: batch.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Begin,Model,Fog,FogBatch)
+# A model's triangles added to a batch (0x581a00): see triangles().
+# usage: batch.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Begin,Model,Fog,FogBatch,Triangles)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, RAM, bf, fb, put  # noqa: E402
+from fncmp import LOG, Bench, Call, RAM, bf, fb, log_region, put, vtable  # noqa: E402
 
 B = Bench([(0x565240, 0x56530d), (0x582640, 0x582804), (0x581880, 0x5819fd), (0x575f90, 0x575f9d), (0x5911d0, 0x591210), (0x581790, 0x581880),
            (0x590c40, 0x590ca8), (0x590fb0, 0x590fcb),
-           (0x565e70, 0x565f4d), (0x5747d0, 0x5749db)])
+           (0x565e70, 0x565f4d), (0x5747d0, 0x5749db), (0x581a00, 0x581cca)])
 BUF, BATCHES, OBJECT = RAM + 0x20, RAM + 0x100, RAM + 0x1000
 VERTICES, BATCH = RAM + 0x2000, RAM + 0x2400
 FOG, SCRATCH = 0x8bd47c, 0xfb34a4
@@ -113,7 +114,47 @@ def fog(r, op):
     return Call(0x565ee0, [OBJECT], regions, conv='t')
 
 
-OPS = [k for k in os.environ.get('OPS', 'Begin,Model,Fog,FogBatch').split(',') if k]
+TMODEL, TSETTINGS, TENTRIES, TFACES, TREMAP, TSRC, TBATCH, TVERTS, TINDICES, TXF, TVT = (RAM + 0x10000 + 0x1000 * k for k in range(11))
+
+
+def triangles(r):
+    """0x581a00 (thiscall (batch, matrix, vertices), pops 12): a model whose settings give 0-12 vertices (+0x58) and 0-3 material entries
+    (+0x5a), each 0-6 faces from a start (corners its base +8 plus 0-31, through a remap table of 32 into the batch's vertices); the batch's
+    counts small, the scale (0x8bd4ac) small or any; the source's x, y and w floats in -100..100 or any (a NaN now and then, in some cases on about every other one); the transformer
+    ([0x87b1d8]) a recorder (slot 2 cdecl)."""
+    n, groups = r.choice([0, 1, 3, 4, 8, 12, r.randrange(13)]), r.choice([0, 1, 2, 3, 1, 2])
+    settings = bytearray(r.bytes(0x98))
+    put(settings, 0x58, 'HH', n, groups)
+    put(settings, 0x6c, 'I', TENTRIES)
+    put(settings, 0x70, 'I', TFACES)
+    put(settings, 0x94, 'I', TREMAP)
+    base = r.choice([0, 0, 1, 4, r.randrange(8)])
+    entries = bytearray(r.bytes(0x30))
+    vb = r.choice([0, 0, 3, 0x100, r.getrandbits(15)])
+    for g in range(3):
+        put(entries, 0x10 * g + 4, 'HHH', r.randrange(8), r.choice([0, 1, 2, 4, 6, r.randrange(7)]), vb + r.choice([16, 16, r.randrange(17)]))
+    faces = bytearray(r.bytes(0x70))
+    for k in range(14):
+        put(faces, 8 * k + 2, 'HHH', *(vb + 16 + r.randrange(16) for _ in range(3)))
+    reach = base + n * groups
+    remap = b''.join(struct.pack('<H', r.choice([r.randrange(max(reach, 1)), r.randrange(n or 1), r.randrange(48)])) for _ in range(32))
+    nans = r.choice([0.03] * 7 + [0.5])   # (in some cases a NaN on about every other corner and coordinate)
+
+    def coord():
+        return r.choice([fb(r.uniform(-100, 100)), fb(r.uniform(-100, 100)), fb(r.uniform(-2, 2)), r.f()]) if r.random() >= nans else \
+            r.choice([0x7f800001, 0xffa00000, 0x7fc00000])   # (a signalling NaN goes through the x87 as the first x)
+    src = b''.join(struct.pack('<4I', coord(), coord(), coord(), coord()) for _ in range(12))
+    verts = b''.join(struct.pack('<4I', coord(), coord(), coord(), coord()) + r.bytes(0x10) for _ in range(48))
+    batch = bytearray(r.bytes(0x40))
+    put(batch, 0x20, 'IIII', base, r.choice([0, 0, 3, r.randrange(16)]), TVERTS, TINDICES)
+    regions = {TMODEL: put(bytearray(r.bytes(0x10)), 4, 'I', TSETTINGS), TSETTINGS: settings, TENTRIES: entries, TFACES: faces, TREMAP: remap,
+               TSRC: src, TBATCH: batch, TVERTS: verts, TINDICES: r.bytes(0x100), TXF: struct.pack('<I', TVT), TVT: vtable({}, cdecl={2: 7}),
+               LOG: log_region(), 0x87b1d8: struct.pack('<I', TXF), 0x8c63b0: r.bytes(0x24),
+               0x8bd4ac: struct.pack('<i', r.choice([1, 1, 2, -1, 0, r.randrange(-1000, 1000), r.getrandbits(31)]))}
+    return Call(0x581a00, [TMODEL, TBATCH, r.getrandbits(32), TSRC], regions, conv='t', ret='a')
+
+
+OPS = [k for k in os.environ.get('OPS', 'Begin,Model,Fog,FogBatch,Triangles').split(',') if k]
 
 
 def case(r):
@@ -122,6 +163,8 @@ def case(r):
         return begin(r)
     if op == 'Model':
         return model(r)
+    if op == 'Triangles':
+        return triangles(r)
     return fog(r, op)
 
 

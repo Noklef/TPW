@@ -1,13 +1,20 @@
 #include "rsse.h"
 #include <cstring>
 
+#include "../coaster/ridebounds.h"
 #include "../core/gameclock.h"
+#include "../math/sintable.h"
+#include "../math/x87.h"
+#include "../model/heightat.h"
+#include "../world/personscripts.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
+s32 Ftol(X87Reg x) { return (s32)(long long)x.v; }
 
 }  // namespace
 
@@ -105,4 +112,110 @@ u32 __cdecl Rsse_TakeFinished(u8 *vm) {
     return 0;
 }
 
+s32 __cdecl Rsse_StartWalker(u8 *vm, u32 value, s32 from, s32 to, u32 a, u32 b, u32 kind, u32 last) {
+    float p1[3], p2[3];
+    Ride_PartPlace(vm, p1, nullptr, from, 0x800);
+    Ride_PartPlace(vm, p2, nullptr, to, kind == 4 ? 0x80 : 0x800);
+    const X87Reg dx = X87Reg(p1[0]) - p2[0];
+    const X87Reg dy = X87Reg(p1[1]) - p2[1];
+    const X87Reg dz = X87Reg(p1[2]) - p2[2];
+    const X87Reg squares = dx * (float)dx + dy * dy + dz * (float)dz;
+    u32 time = (u32)Ftol(X87_Sqrt(squares)) * 100;
+    if (time == 0)
+        time = 100;
+    const s32 count = at<s32>(vm, 0x7c);
+    s32 i = 0;
+    u8 *slot = at<u8 *>(vm, 0x2c);
+    for (; i < count; ++i, slot += 0x20)
+        if (at<u16>(slot, 0x18) == 0)
+            break;
+    if (i >= count)
+        return i;
+    at<u16>(slot, 0) = (u16)from;
+    at<u16>(slot, 2) = (u16)to;
+    at<u16>(slot, 4) = (u16)a;
+    at<u16>(slot, 6) = (u16)b;
+    at<u32>(slot, 0x10) = value;
+    at<u16>(slot, 0x16) = (u16)kind;
+    u8 *const clock = reinterpret_cast<u8 *>(0x00785970);
+    at<u32>(slot, 8) = Clocks_Now(clock);
+    at<u32>(slot, 0xc) = Clocks_Now(clock) + time;
+    const double angle = X87_Atan2((X87Reg(p2[2]) - p1[2]).v, (X87Reg(p2[0]) - p1[0]).v);
+    const X87Reg turn = X87_SubR(X87_SubR(X87Reg(angle) - global<double>(0x00700fe8), global<double>(0x00700ff0)) * global<double>(0x00700ff8),
+                                 global<double>(0x00701000));
+    const s32 octant = Ftol(turn) % 8;
+    at<u16>(slot, 0x18) = 1;
+    at<u16>(slot, 0x1a) = (u16)last;
+    at<u16>(slot, 0x14) = (u16)octant;
+    return octant;
+}
+
+void __cdecl Rsse_MoveWalker(u8 *vm, u8 *slot, s32 from, s32 to, s32 mode, s32 t) {
+    float p1[3], p2[3];
+    Ride_PartPlace(vm, p1, nullptr, from, mode == 1 ? 0x80 : 0x800);
+    Ride_PartPlace(vm, p2, nullptr, to, mode == 2 ? 0x80 : 0x800);
+    if (t > 1000)
+        t = 1000;
+    const X87Reg T = (double)t;
+    const float &k1000 = global<float>(0x00701020), &k0001 = global<float>(0x00700fd4);
+    // fld to; fsub from (m32); fmul st1; fld from; fmul -1000; fsubp; fmul 0.001
+    const auto lerp = [&](int i) { return (float)(((X87Reg(p2[i]) - p1[i]) * T - X87Reg(p1[i]) * k1000) * k0001); };
+    float x = lerp(0);
+    float z = lerp(2);
+    float y;
+    std::memcpy(&y, &from, 4);   // (the stack argument the original stores y into)
+    if (at<u8>(slot, 0x1a) & 1)
+        y = lerp(1);
+    else
+        View_FloorAt(x, z, &y);
+    u8 *const person = global<u8 *>(0x007cfb90 + 20 * (u32)at<u16>(slot, 0x10));
+    const auto place = [&](s32 octant, u32 anim) {
+        u32 xb, zb;
+        std::memcpy(&xb, &x, 4);
+        std::memcpy(&zb, &z, 4);
+        Person_PlaceScript(person, nullptr, xb, y, zb, (u32)octant, anim);
+    };
+    if (at<u16>(slot, 0x18) != 2) {
+        place(at<s16>(slot, 0x14), 1);
+        return;
+    }
+    if (at<u32>(vm, 0x84) == 0) {
+        if (at<u16>(slot, 0x16) == 3)
+            place(at<s16>(slot, 0x14), 3);
+        if (at<u16>(slot, 0x16) == 5)
+            place(at<s16>(slot, 0x14), 8);
+        if (at<u16>(slot, 0x16) == 6)
+            place(at<s16>(slot, 0x14), 5);
+        const u16 kind = at<u16>(slot, 0x16);
+        if (kind == 4 || kind == 1 || kind == 2)
+            Person_ReleaseScripts(person);
+        return;
+    }
+    const u32 h = at<u32>(slot, 0x10);
+    const float &k04 = global<float>(0x00701028), &k3 = global<float>(0x00701044), &k0033 = global<float>(0x00701040);
+    const float a = (float)(k04 - X87Reg((double)(s32)(h & 7)) * global<float>(0x00701024));
+    const float b = (float)(k04 - X87Reg((double)(s32)(h & 3)) * global<float>(0x0070102c));
+    const float c = (float)(global<float>(0x00700fd0) - X87Reg((double)at<s16>(vm, 0xc0)) * global<float>(0x00700fcc));
+    const float d = (float)(X87Reg((double)at<u16>(vm, 0x88)) * k0001);
+    const float e = (float)(X87Reg((double)at<u16>(vm, 0x8a)) * k0001);
+    u8 *const clock = reinterpret_cast<u8 *>(0x00785970);
+    const float now = (float)(double)Clocks_Now(clock);   // (fild qword: the time unsigned)
+    const s32 since = (s32)(Clocks_Now(clock) - at<u32>(vm, 0x80));
+    const SinTable sines = SinTable_Game();
+    const float &scale = global<float>(0x007b095c);
+    const X87Reg angle = X87Reg(X87_MulIntDouble(since, global<float>(0x00701030))) / X87Reg((double)at<s32>(vm, 0x84)) * scale;
+    const float s = SinTable_At(sines, (float)angle);
+    const X87Reg g = X87Reg(a) * now * c;   // (fst: kept in the register for y, read back as the float for x)
+    const float gf = (float)g;
+    const float sy = SinTable_At(sines, (float)(g * global<float>(0x00701034) * scale));
+    y = (float)((global<float>(0x0070103c) - X87Reg(sy) * global<float>(0x00701038)) * s * e + y);
+    const float sx = SinTable_At(sines, (float)(X87Reg(gf) * k0033 * scale));
+    x = (float)(X87Reg(sx) * b * s * k3 * d + x);
+    const float sz = SinTable_At(sines, (float)((X87Reg(b) * now * c * k0033 - global<float>(0x00701048)) * scale));
+    z = (float)(X87Reg(sz) * a * s * k3 * d + z);
+    const u32 q = Clocks_Now(clock) / (u32)Ftol(X87Reg(b) * global<float>(0x0070104c));
+    const s16 octant = (s16)(((s32)(s16)q + at<s16>(slot, 0x14)) % 8);
+    at<s16>(slot, 0x14) = octant;
+    place(octant, 2);
+}
 }  // extern "C"

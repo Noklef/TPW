@@ -7,7 +7,9 @@
 #include "../gfx/texture.h"
 #include "../core/crt.h"
 #include "../render/engineerrors.h"
+#include "../render/texformat.h"
 #include "land.h"
+#include "terrain_blend.h"
 
 namespace {
 
@@ -91,6 +93,29 @@ u32 __fastcall TerrainTexCache_Init(u8 *cache, void *, s32 count, u32 size) {
         at<u8 *>(at<u8 *>(cache, 0x10008), i * 0x10 + 0xc) = textures;
     }
     at<u8 *>(cache, 0x1000c) = at<u8 *>(cache, 0x10008) + (count >> 1) * 0x10;
+    return 1;
+}
+
+u32 __fastcall TerrainTexCache_BlendTile(u8 *cache, void *, u8 *texture, u32 x, u32 y, const TerrainOverlay *overlay) {
+    if (!Texture_Alloc(texture, nullptr, at<u32>(cache, 4), 0)) return 0;
+    const u32 format = *reinterpret_cast<const u32 *>((uintptr_t)0x008bd554);
+    u8 **const scratch = reinterpret_cast<u8 **>((uintptr_t)0x00879a68);
+    if (reinterpret_cast<const s32 *>((uintptr_t)0x00701548)[format] == 2) {
+        TerrainBlend_Tile(at<const Lnd *>(cache, 0), nullptr, *scratch, x, y, overlay);
+        const u32 side = at<u32>(cache, 4);
+        const u32 *const from = reinterpret_cast<const u32 *>(*scratch);
+        TexFormat_ConvertSquare(reinterpret_cast<u16 *>(Texture_Lock(texture)), from, side);
+        return 1;
+    }
+    u8 *pixel = Texture_Lock(texture);
+    TerrainBlend_Tile(at<const Lnd *>(cache, 0), nullptr, pixel, x, y, overlay);
+    for (s32 i = 0; i < at<s32>(cache, 4) * at<s32>(cache, 4); ++i, pixel += 4) {
+        const u8 b0 = pixel[0], b1 = pixel[1];
+        pixel[0] = pixel[3];
+        pixel[3] = b0;
+        pixel[1] = pixel[2];
+        pixel[2] = b1;
+    }
     return 1;
 }
 }

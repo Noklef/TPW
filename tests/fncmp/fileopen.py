@@ -11,18 +11,21 @@
 # AddBoth and then AddIn. MakeFolders (0x5c7ac0, files/gamepaths): a
 # root (a wide String; WideCharToMultiByte a recorder answering one path, the GlobalAlloc / GlobalFree stubs) with the String at 0xf81b48 ("\"
 # mostly) and each of 0-3 listed names (0x786b90) appended, opened as a folder and, when that fails, created (CreateDirectoryA a recorder).
+# SetEntry (0x41ec30, core/class6fd9d8): a Class6fdaa4 (its name and path Strings of a few texts, its handle at +0x2c as THIS's handle case)
+# from a directory entry whose name ends in ".wad" (either case) or not, and a path String as AddFolder's; the ".wad" Strings 0x78bb08 and 0xf80808.
+# Ctor6fdaa4 (0x41dc80): SetEntry's case on a Class6fdaa4 constructed first over random bytes (its Strings and handle new).
 # usage: fileopen.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Open28,...)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import IMPORT_TABLE, LOG, Bench, Call, HEAP, RAM, echo, fill, fill_arg, global_heap, heap, import_table, log_region, set_return, vtable  # noqa: E402
+from fncmp import IMPORT_TABLE, LOG, Bench, Call, HEAP, RAM, echo, fill, fill_arg, global_heap, heap, import_table, log_region, put, set_return, vtable  # noqa: E402
 
 RANGES = [(0x41c9e0, 0x41ce90), (0x5c5480, 0x5c5570), (0x424cf0, 0x424d20), (0x4036a0, 0x4036c0), (0x5da3c0, 0x5da3d0), (0x638ef0, 0x639230), (0x62fa40, 0x630000), (0x636e40, 0x637460), (0x45f940, 0x45fa40), (0x61a060, 0x61af40), (0x45d820, 0x45d880),
           (0x4217e0, 0x421800), (0x637460, 0x638f00), (0x641500, 0x642400), (0x5f5660, 0x5f9000), (0x618000, 0x61a060), (0x6307c0, 0x630900),
           (0x6ad800, 0x6ad820), (0x67a400, 0x690000), (0x405000, 0x406000), (0x5e4000, 0x5e5000), (0x636b00, 0x636e40),
-          (0x5c7ac0, 0x5c7ba6), (0x424db0, 0x424e10)]
+          (0x5c7ac0, 0x5c7ba6), (0x424db0, 0x424e10), (0x41ec30, 0x41edd3), (0x41eb90, 0x41ec25), (0x424d30, 0x424db0), (0x5c53c0, 0x5c5480), (0x41dc80, 0x41dcf2)]
 B = Bench(RANGES)
 THIS, RESULT, OTHER, OBJ, SRC = RAM, RAM + 0x40, RAM + 0x80, RAM + 0xc0, RAM + 0x100
 VT_THIS, VT_OBJ, VT_SRC = RAM + 0x200, RAM + 0x280, RAM + 0x300
@@ -59,8 +62,9 @@ OPS = {
     'RefObject2Ctor': (0x619730, 'x', '', 'a'), 'RefObject2DeletingDtor': (0x619790, 'o', 'F', 'a'), 'RefObject2Dtor': (0x6197b0, 'o', '', 'v'),
     'RefObject2Vfn5': (0x6198b0, 'o', 'RBTc', 'a'), 'AddFolder': (0x41c9e0, 'l', 'P', 'v'), 'AddWad': (0x41cb10, 'l', 'P', 'v'),
     'AddBoth': (0x41cc40, 'l', 'P', 'v'), 'AddIn': (0x41cd50, 'l', 'P', 'v'), 'AddBothIn': (0x41cc20, 'l', 'P', 'v'),
-    'MakeFolders': (0x5c7ac0, 'x', 'W', 'v'),
+    'MakeFolders': (0x5c7ac0, 'x', 'W', 'v'), 'SetEntry': (0x41ec30, 'e', 'DP', 'v'), 'Ctor6fdaa4': (0x41dc80, 'e', 'DP', 'a'),
 }
+ENTRY, ENTRY_NAME, OWN = RAM + 0xc00, RAM + 0xc80, RAM + 0xd00   # SetEntry: the entry, its name, the object's two Strings' texts
 ROOT, FOLDERS, SEP = RAM + 0x900, RAM + 0xa00, 0xf81b48   # MakeFolders: the root, the list's nodes and names, the separator String
 
 
@@ -113,6 +117,16 @@ def case(r):
                OBJ: struct.pack('<4I', VT_OBJ, 0, 0x44, 1) + r.bytes(0x30), SRC: struct.pack('<3I', VT_SRC, 0, 1) + r.bytes(0x34)}
     if kind == 'o':
         regions[TEXT] = path + b'\0' + r.bytes(0x20)
+    if kind == 'e':
+        if r.random() < 0.9:   # (the handles' releases: a count left, mostly; 0 destroys the opened object through slot 0x30, a pure call)
+            set_return(log, K['InterlockedDecrement'], r.choice([1, 1, 2]))
+        for k, off in enumerate((4, 0x18)):
+            s = r.choice([b'', b'old', b'x.wad', b'p_a_b'])
+            struct.pack_into('<5I', obj, off, STRING_VTABLE, len(s), OWN + 0x40 * k, len(s) + 8, 8)
+            regions[OWN + 0x40 * k] = s + b'\0' + r.bytes(0x10)
+        struct.pack_into('<2I', obj, 0x2c, VT_THIS if r.random() < 0.6 else HANDLE_VTABLE, 0 if r.random() < 0.6 else OBJ)
+        regions[0xf80808] = struct.pack('<5I', STRING_VTABLE, 4, OWN + 0x80, 8, 8)
+        regions[OWN + 0x80] = b'.wad\0' + r.bytes(8)
     if kind == 'l':   # a Class6fd9d8: the list at +0x2c (vtable, head, tail, count) of 0-2 nodes {object, next, prev}
         n = r.choice([0, 0, 1, 2])
         nodes = bytearray(r.bytes(0x18))
@@ -181,6 +195,11 @@ def case(r):
             regions[FOLDERS] = bytes(folders)
             regions[0x786b90] = struct.pack('<I', FOLDERS if n else 0)
             stack.append(ROOT)
+        elif x == 'D':   # a directory entry: its name at +0x20
+            name = r.choice([b'x.wad', b'X.WAD', b'p_park_1.wad', b'park_1_x', b'data', b'a.wa', b'', b'p_a_b'])
+            regions[ENTRY_NAME] = name + b'\0' + r.bytes(8)
+            regions[ENTRY] = put(bytearray(r.bytes(0x40)), 0x20, 'I', ENTRY_NAME)
+            stack.append(ENTRY)
         elif x == 'T':
             stack.append(0 if r.random() < 0.2 else text(r, NAME, regions, r.choice([b'', b'x.wad', b'data\\*.bin'])))
     return Call(address, [THIS] + stack, regions, conv='t', ret=ret)

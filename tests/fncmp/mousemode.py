@@ -4,7 +4,9 @@
 # (0x45d560) on a map's grid of random origins, cell sizes and dimensions; Hover (0x46c480): a sprite slot or none, ready or not, at a
 # highlight point of any floats, over a cell (and its handle's entry and parent) of any type and flags, with a face queue part full or full.
 # Fps (0x46c0d0): the FPS text printed into the pointer state and handed to 0x8bba50. CMMOnline's constructor and the modes' Assign
-# (0x46ce80, 0x46d590, 0x46c730, 0x46cbf0): see assign().
+# (0x46ce80, 0x46d590, 0x46c730, 0x46cbf0): see assign(). Holder (0x46d550): the mode holder's constructor, MouseMode_Set's scene
+# (set_mode()) with the new CMMOnline base's block failing (only). Ensure (0x40bed0): Holder's scene with [0x7b05e8] set (nothing done) or
+# not, then the holder's block failing or the CMMOnline base's.
 # usage: mousemode.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import sys
@@ -17,7 +19,7 @@ from fncmp import HEAP, LOG, Bench, Call, RAM, _cdecl_log, fb, global_heap, heap
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import cursor  # noqa: E402
 
-B = Bench([(0x46c450, 0x46c453), (0x46c460, 0x46c480), (0x46c580, 0x46c5c6), (0x46c650, 0x46c653),
+B = Bench([(0x40bed0, 0x40bf65), (0x46c450, 0x46c453), (0x46c460, 0x46c480), (0x46c580, 0x46c5c6), (0x46c650, 0x46c653),
            (0x46c6a0, 0x46c6b0), (0x46c6d0, 0x46c702), (0x46c710, 0x46c72e), (0x46cbc0, 0x46cbe1),
            (0x46ced0, 0x46ced7), (0x46cfc0, 0x46cfd0), (0x46cff0, 0x46d000), (0x46c070, 0x46c10e),
            (0x45d560, 0x45d60e), (0x4d8300, 0x4d8328), (0x46c480, 0x46c578), (0x45d610, 0x45d616), (0x475480, 0x4754d4),
@@ -27,7 +29,7 @@ B = Bench([(0x46c450, 0x46c453), (0x46c460, 0x46c480), (0x46c580, 0x46c5c6), (0x
            (0x46ce80, 0x46ceca), (0x46d590, 0x46d59d), (0x46c730, 0x46c87a), (0x46cbf0, 0x46cc37), (0x402d70, 0x403220), (0x4033a0, 0x4033f0),
            (0x475550, 0x4755a0), (0x4758f0, 0x475b90), (0x540c60, 0x540da0), (0x5f5660, 0x5f56a0), (0x5f5e20, 0x5f5e90), (0x5f5fa0, 0x5f5fc0),
            (0x4814a0, 0x4814e3), (0x4a2aa0, 0x4a2abf), (0x6590f7, 0x6591d4), (0x65f11d, 0x65f14e), (0x66190a, 0x66191b), (0x661d96, 0x661dca),
-           (0x46c350, 0x46c448), (0x550ca0, 0x550d90), (0x46cfb0, 0x46cfc0), (0x40f3a0, 0x40f3a6), (0x5d1750, 0x5d1751)], hooks={0x67a7d0: _cdecl_log})
+           (0x46c350, 0x46c448), (0x46d550, 0x46d58b), (0x550ca0, 0x550d90), (0x46cfb0, 0x46cfc0), (0x40f3a0, 0x40f3a6), (0x5d1750, 0x5d1751)], hooks={0x67a7d0: _cdecl_log})
 HTYPES = [0, 0, 1, 1, 3, 9, 2, 4, 0xb, 0xc, 0xd, 0x10, 0x11, 0x12, 0x19, 0x1e]
 CELLS = RAM + 0x1000   # the 0x44-byte cells: [0x7cf83c] + 0x294
 ENTRIES = CELLS - 0x294 + 0x1102b0   # the 0x28-byte entries of handles 0-5
@@ -109,7 +111,7 @@ def assign(r, op):
     return Call(ASSIGNS[op], [RAM], regions, conv='t', ret='a' if op == 'Online' else 'v')
 
 
-def set_mode(r):
+def set_mode(r, holder=False):
     """0x46c350: the current mode (or 0) and the one given (or 0) with recorder vtables (slot 0 the deleting destructor, slot 9 answering 1
     mostly); the setting's guard set or not (then read from 0x7a1a8c's bits 23-25, the atexit logged) and the setting 1 mostly; the new
     CMMOnline from the heap (failing now and then) with assign()'s cursor windows, its own vtable's Assign the game's."""
@@ -131,13 +133,21 @@ def set_mode(r):
     regions[0xfb3518] = bytes([r.choice([1, 1, 0, 0, 2, 3, r.getrandbits(8)])])
     regions[0xfb3b7c] = put(bytearray(4), 0, 'I', r.choice([1, 1, 1, 0, 2, r.getrandbits(32)]))
     regions[0x7a1a8c] = put(bytearray(4), 0, 'I', r.getrandbits(32) & ~(7 << 23) | r.choice([0, 1, 2, 3, 4, 6, 7]) << 23)
+    if holder:   # (its CMMOnline base's block failing: given, MouseMode_Set asks its slot 9 (0x46c6b0), the cursor code, not in the bench)
+        regions[0x7b05d4], regions[0x7b05e0], regions[HEAP] = r.bytes(4), r.bytes(4), heap(fail=1)
+        return Call(0x46d550, [RAM + 0x8300], regions, conv='t', ret='a')
     return Call(0x46c350, [r.choice([new, new, new, 0])], regions, conv='s', ret='v')
 
 
 def case(r):
     op = r.choice(OPS)
-    if op == 'Set':
-        return set_mode(r)
+    if op in ('Set', 'Holder'):
+        return set_mode(r, op == 'Holder')
+    if op == 'Ensure':
+        regions = set_mode(r, True).regions
+        regions[HEAP] = heap(fail=r.choice([1, 2]))
+        regions[0x7b05e8] = struct.pack('<I', r.choice([0, 0, 0, RAM + 0x8300]))
+        return Call(0x40bed0, [], regions, ret='a')
     if op in ASSIGNS:
         return assign(r, op)
     if op == 'Hover':
@@ -171,7 +181,7 @@ def case(r):
     return Call(at, [RAM] + args, regions, conv='t', ret=ret)
 
 
-OPS_ALL = list(CALLS) + list(STATICS) + ['TileAt'] * 3 + ['Hover'] * 10 + ['Fps'] * 2 + list(ASSIGNS) * 3 + ['Set'] * 3
+OPS_ALL = list(CALLS) + list(STATICS) + ['TileAt'] * 3 + ['Hover'] * 10 + ['Fps'] * 2 + list(ASSIGNS) * 3 + ['Set'] * 3 + ['Holder'] * 3 + ['Ensure'] * 3
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 

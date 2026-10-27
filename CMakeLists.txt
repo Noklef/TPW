@@ -71,6 +71,8 @@ add_library(tpw_game STATIC
     src/game/files/userslots.cpp
     src/game/files/chunkfile.cpp
     src/game/files/vfs.cpp
+    src/game/files/substream.cpp
+    src/game/files/fontfiles.cpp
     src/game/core/regkey.cpp
     src/game/core/stdstring.cpp
     src/game/core/globalmem.cpp
@@ -165,6 +167,35 @@ add_library(tpw_game STATIC
     src/game/core/mp2synth.cpp
     src/game/core/mp2layer2.cpp
     src/game/core/mp2layer1.cpp
+    src/game/core/advisorscoring.cpp
+    src/game/core/parkinfo.cpp
+    src/game/core/authstamp.cpp
+    src/game/core/mp2frame.cpp
+    src/game/core/mp2decoder.cpp
+    src/game/core/mp2pool.cpp
+    src/game/core/mp2sample.cpp
+    src/game/core/sfman.cpp
+    src/game/core/voicecodec.cpp
+    src/game/core/releaselist.cpp
+    src/game/core/soundslot.cpp
+    src/game/core/sfbank.cpp
+    src/game/core/soundnames.cpp
+    src/game/core/soundindex.cpp
+    src/game/core/channelvoice.cpp
+    src/game/core/soundoccluders.cpp
+    src/game/core/loopstream.cpp
+    src/game/core/streamfilter.cpp
+    src/game/core/soundstream.cpp
+    src/game/core/streampool.cpp
+    src/game/core/soundsample.cpp
+    src/game/core/voicesample.cpp
+    src/game/core/shufflebag.cpp
+    src/game/core/silencestream.cpp
+    src/game/core/waveformat.cpp
+    src/game/core/voiceevents.cpp
+    src/game/core/sounddevice.cpp
+    src/game/core/soundsource.cpp
+    src/game/core/widewriter.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
@@ -512,8 +543,9 @@ add_executable(tpw_tests
 )
 target_link_libraries(tpw_tests PRIVATE tpw_game)
 
-# Comparison driver for tools/fncmp.py: calls hooked functions by their original address,
-# fixed at the game's image base so absolute game addresses work as they do in tp.exe.
+# Comparison driver for tools/fncmp.py: calls hooked functions by their original address. Fixed at 0x100000, below the game's image
+# base, so its code ends below 0x400000 and its g_game section (the next one) covers the game's whole image, 0x400000-0xfc5200, where
+# absolute game addresses work as they do in tp.exe (tools/fncmp/driver.cpp's header; it checks the layout at start-up).
 add_executable(tpw_fncmp
     tools/fncmp/driver.cpp
     tools/fncmp/crt.cpp
@@ -524,4 +556,4 @@ add_executable(tpw_fncmp
 target_link_libraries(tpw_fncmp PRIVATE tpw_game)
 # Not incremental: an incremental link keeps an old, larger .bss when a static shrinks, and a case's wild pointer reads the driver's own
 # memory natively where the emulator has none, so the layout has to follow the source.
-target_link_options(tpw_fncmp PRIVATE /FIXED /DYNAMICBASE:NO /BASE:0x400000 /MAP /INCREMENTAL:NO)  # (the map names where FNCMP_CRASHAT's crashes are)
+target_link_options(tpw_fncmp PRIVATE /FIXED /DYNAMICBASE:NO /BASE:0x100000 /MAP /INCREMENTAL:NO)  # (the map names where FNCMP_CRASHAT's crashes are)
