@@ -331,6 +331,7 @@
 #include "../game/world/objectstatus.h"
 #include "../game/world/parkgates.h"
 #include "../game/world/pathdrag.h"
+#include "../game/world/placeobject.h"
 #include "../game/world/queuepieces.h"
 #include "../game/world/tracksquare.h"
 #include "../game/world/uimsgreceiver.h"
@@ -5383,6 +5384,7 @@ const Hook kHooks[] = {
     {"Map_DemolishRect",          0x0052bdd0, (void *)&Map_DemolishRect, {0x83, 0xec, 0x1c, 0x8b, 0x54}},
     {"Path_CheckDeadEnds",        0x00527ee0, (void *)&Path_CheckDeadEnds, {0x83, 0xec, 0x34, 0x53, 0x55}},
     {"TrackSquare_Check",         0x005286a0, (void *)&TrackSquare_Check, {0x53, 0x55, 0x56, 0x8b, 0x74}},
+    {"PlaceObject_Create",        0x00529e10, (void *)&PlaceObject_Create, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
