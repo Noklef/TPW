@@ -144,6 +144,9 @@ void __fastcall SoundCategory_LocateSample(void *self, void *, u32 *category, u3
 // 0x6d1dc0 (thiscall (index, unused), pops 8; `this` unused; name invented): deque A's record index of the singleton, 0 when index is not
 // under its count (+0x64).
 u8 *__fastcall SoundCategory_RecordAt(void *self, void *, u32 index, u32 unused);
+// 0x6c0850 (thiscall (out, index), pops 8; name invented): deque A's record index (its begin advanced, DequeIter_Advance; no count
+// check): none, *out = -1; else its slot 0 (Release) and *out = 0. Returns out.
+u32 *__fastcall SoundCategory_ReleaseRecordAt(u8 *category, void *, u32 *out, u32 index);
 // 0x6b9660 (name invented): each bank of the singleton's deque B (its count +0x94 re-read each step) that is not null has its resource's
 // (+8, not tested for null) slot 0 called (no arguments) and +8 = 0.
 void __cdecl SoundCategory_ReleaseBankResources();

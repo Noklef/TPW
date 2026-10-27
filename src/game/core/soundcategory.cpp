@@ -694,6 +694,20 @@ u32 *__stdcall SoundCategory_ReleaseRecordBanks(u32 *out, const u8 *record) {
     return out;
 }
 
+u32 *__fastcall SoundCategory_ReleaseRecordAt(u8 *category, void *, u32 *out, u32 index) {
+    u32 it[4];
+    std::memcpy(it, category + 0x3c, sizeof it);
+    DequeIter_Advance(reinterpret_cast<u8 *>(it), nullptr, static_cast<s32>(index));
+    u8 *const record = Get<u8 *>(Ptr(it[2]), 0);
+    if (!record) {
+        *out = 0xffffffff;
+        return out;
+    }
+    vcall<void>(record, 0);
+    *out = 0;
+    return out;
+}
+
 u8 *__fastcall SoundCategory_RecordAt(void *, void *, u32 index, u32) {
     if (index >= Get<u32>(SoundCategory_Get(), 0x64)) return nullptr;
     u32 it[4], found[4];

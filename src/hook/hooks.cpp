@@ -4445,6 +4445,7 @@ const Hook kHooks[] = {
     {"CategoryRecord_Dtor",       0x006bea00, (void *)&CategoryRecord_Dtor, {0x6a, 0xff, 0x68, 0x1e, 0x5e}},
     {"SoundCategory_BankFlag40",  0x006b9270, (void *)&SoundCategory_BankFlag40, {0x83, 0xec, 0x10, 0x56, 0xe8}},
     {"SfxVariation_MoveFlag40SamplesLast", 0x006c0bd0, (void *)&SfxVariation_MoveFlag40SamplesLast, {0x83, 0xec, 0x10, 0x53, 0x8b}},
+    {"SoundCategory_ReleaseRecordAt", 0x006c0850, (void *)&SoundCategory_ReleaseRecordAt, {0x83, 0xec, 0x10, 0x83, 0xc1}},
     {"Class703770_AddRef",        0x006338c0, (void *)&Class703770_AddRef, {0x83, 0xc1, 0x04, 0x51, 0xff}},
     {"Class703770_Release",       0x006338d0, (void *)&Class703770_Release, {0x56, 0x8b, 0xf1, 0x57, 0x8d}},
     {"SndReverb_Load",            0x006c5d20, (void *)&SndReverb_Load, {0x6a, 0xff, 0x68, 0xa0, 0x64}},
