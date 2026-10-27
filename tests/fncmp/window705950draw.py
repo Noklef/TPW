@@ -4,7 +4,7 @@
 # indent runs into the line, sic) from +0x144 with the count +0x14c theirs or fewer, their names wide strings at +0 (ASCII mostly, now and
 # then up to 0xff; past it the CRT's wctomb sets errno through its thread data); the GUI's scale words [0xfaa5c0] / [0xfaa5c4] small or any; the palette (0xfa71f8) holding the five colours asked for
 # early mostly (else the whole of it is searched); the indent's format text (0x786de4) short; the font table (0x7b059c) with font 1 or not,
-# the text driver before none; display.py's draw context (0xfa76b8, its window and clip in order) with a driver of thiscall recorders for
+# the text driver before none; display.py's draw context (0xfa76b8, its clip in order, its window on the surface mostly) with a driver of thiscall recorders for
 # the fill (slot 3, its rectangle logged by its four dwords) and the glyphs' sprite shapes (slot 15; textdriver.py's font of random glyph sizes), the colours' index logged as its byte
 # (the rest of its dword is what the stack held). wctomb's InterlockedIncrement / Decrement (on 0xfb3ca8, its lock not taken) are the
 # emulator's own stand-ins (INTERLOCKED), not recorders: the driver's sprintf is crt.py's stand-in (the host's), which never calls them.
@@ -106,11 +106,15 @@ def case(r):
     w = bytearray(r.bytes(0x158))
     put(w, 0x30, '4H', *[word(r) for _ in range(4)])
     put(w, 0x13c, '4H', *[word(r) for _ in range(4)])
+    if r.random() < 0.6:   # (a list rectangle the right way round, inside the draw context's window mostly: the selection's fill shows)
+        xs, ys = sorted(r.sample(range(0, 100), 2)), sorted(r.sample(range(0, 100), 2))
+        put(w, 0x13c, '4H', xs[0], ys[0], xs[1], ys[1])
     put(w, 0x144, 'I', nodes[0] if nodes else r.choice([0, 0]))
-    put(w, 0x148, 'i', r.choice([-1, r.randrange(-1, 14)]))
     put(w, 0x14c, 'i', r.choice([len(nodes)] * 3 + [r.randrange(len(nodes) + 1), -1]))
     put(w, 0x150, 'i', r.choice([0, 0, r.randrange(-2, 13)]))
     put(w, 0x154, 'hh', r.choice([8, 12, 16, 0, -4, r.randrange(1, 40)]), r.choice([0, 1, 3, 6, 13, -1, r.randrange(1, 20)]))
+    first, shown = struct.unpack_from('<i2xh', w, 0x150)
+    put(w, 0x148, 'i', r.choice([-1, r.randrange(-1, 14), first + r.randrange(max(shown, 1)), first + r.randrange(max(shown, 1))]))   # (a shown row half the time)
     regions[WINDOW] = w
     regions[0xfaa5c0] = struct.pack('<hhhh', r.choice([0x600, 0x600, 0x480, r.getrandbits(15)]), 0,
                                     r.choice([0x800, 0x800, 0x400, r.getrandbits(15)]), 0)
@@ -127,6 +131,8 @@ def case(r):
     state = bytearray(r.bytes(0x74))
     xs, ys = sorted([r.randrange(-20, 100), r.randrange(-20, 100)]), sorted([r.randrange(-20, 100), r.randrange(-20, 100)])
     put(state, 8, '4i', xs[0], ys[0], xs[1], ys[1])
+    if r.random() < 0.8:   # (a window on the surface mostly, so that the clip the draw sets keeps something: the fill and glyphs show)
+        put(state, 0x20, '4i', r.randrange(0, 10), r.randrange(0, 10), r.randrange(150, 700), r.randrange(150, 500))
     put(state, 0x18, 'I', STATE + r.choice([0x38, 0x40, 0x44, 0x48]))
     put(state, 0x30, 'I', INFO)
     for at in (0x38, 0x40, 0x44, 0x48):
