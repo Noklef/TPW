@@ -725,6 +725,7 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x00705920, 4},   // the GUI rectangle (GuiRect_Contains, _Centre, _Offset, _Adjust)
                                    {0x0070a260, 1},   // the sound channel's stack functor (SoundChannelFn70a260_Run; SoundCmd700b6c_Run's)
                                    {0x0070a278, 1},   // its settings functor (SoundChannelFn70a278_Run: the channel's setters')
+                                   {0x0070a610, 1},   // its rates functor (SoundChannel_ApplyVoiceRates: SoundChannel_SetRateModifier's)
                                    {0x007118e0, 6},   // the MP2 buffer decoder (Mp2BufferDecoder_DeletingDtor, _Open, Mp2Decoder_Close, ...)
                                    {0x0070af00, 6},   // the MP2 stream decoder (Mp2StreamDecoder_DeletingDtor, Mp2BufferDecoder_Open, ...)
                                    {0x0070adb8, 2},   // the voice codec's bit readers over memory (VoiceBits_Skip, _Read)
