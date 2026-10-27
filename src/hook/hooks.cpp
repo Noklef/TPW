@@ -4579,6 +4579,7 @@ const Hook kHooks[] = {
     {"Voice70a878_Create",        0x006be330, (void *)&Voice70a878_Create, {0x8b, 0x4c, 0x24, 0x08, 0x56}},
     {"SoundVoice_SetRecordBank",  0x006bc240, (void *)&SoundVoice_SetRecordBank, {0x53, 0x57, 0x8b, 0xf9, 0x33}},
     {"SoundVoice_SetRecordBankLinked", 0x006bdf00, (void *)&SoundVoice_SetRecordBankLinked, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
+    {"Voice70a8d0_PickQueuedSound", 0x006be880, (void *)&Voice70a8d0_PickQueuedSound, {0x83, 0xec, 0x20, 0x53, 0x56}},
     {"EaxBuffer_QueryAll",        0x006c4760, (void *)&EaxBuffer_QueryAll, {0x8b, 0x41, 0x04, 0x83, 0xec}},
     {"EaxListener_SetAll",        0x006d6cf0, (void *)&EaxListener_SetAll, {0x8b, 0x01, 0x83, 0xec, 0x38}},
     {"EaxBuffer_SetProperty0b",   0x006c4670, (void *)&EaxBuffer_SetProperty0b, {0x8b, 0x41, 0x04, 0x85, 0xc0}},

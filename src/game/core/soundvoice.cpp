@@ -12,6 +12,7 @@
 #include "fieldops.h"
 #include "gameheap.h"
 #include "initializers.h"
+#include "methods.h"
 #include "selectors.h"
 #include "shufflebag.h"
 #include "soundcategory.h"
@@ -987,6 +988,27 @@ u8 *__fastcall Voice70a8d0_DeletingDtor(u8 *voice, void *, u8 flags) {
     Voice70a8d0_Dtor(voice);
     if (flags & 1) GameHeap_Free(voice);
     return voice;
+}
+
+u8 __fastcall Voice70a8d0_PickQueuedSound(u8 *voice, void *, u32) {
+    at<u32>(voice, 0x30) |= 2;
+    u32 *const queue = at<u32 *>(at<u8 *>(voice, 0x4c), 0x1c);
+    const u32 i = queue[1]++;
+    if (i >= queue[0]) return 0;
+    const u32 *const entry = reinterpret_cast<const u32 *>(queue[2]) + 2 * i;
+    const u32 category = entry[0], sound = entry[1];
+    u32 it[4];
+    std::memcpy(it, SoundCategory_Get() + 0x3c, sizeof it);
+    DequeIter_Advance(reinterpret_cast<u8 *>(it), nullptr, static_cast<s32>(category));
+    const u8 *const record = *reinterpret_cast<u8 *const *>(it[2]);
+    if (!record) return 0;
+    const u32 *const sounds = at<u32 *>(record, 8);
+    if (!sounds) return 0;
+    u32 command[7] = {0x00700b90, category, sound, at<u32>(voice, 0x10), at<u32>(voice, 0x14), at<u32>(voice, 0x18), 0};
+    u8 *const found = SfxSounds_Find(nullptr, nullptr, sounds, reinterpret_cast<u8 *>(command));
+    if (!found) return 0;
+    at<u8 *>(voice, 4) = found;
+    return SoundVoice_PickVariation(voice, nullptr, 0);
 }
 
 // (the children: the parameter block's +0x18, each the next's in its own block's +0x18)

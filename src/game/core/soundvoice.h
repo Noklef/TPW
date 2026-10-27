@@ -267,6 +267,13 @@ u8 *__fastcall Voice70a878_DeletingDtor(u8 *voice, void *, u8 flags);
 // +8; the vtable 0x70a338, Class70a7e0_Dtor. 0x6be9a0 (slot 2 of 0x70a8d0, (flags), pops 4): it, the voice freed with flag 1; returns the voice.
 void __fastcall Voice70a8d0_Dtor(u8 *voice);
 u8 *__fastcall Voice70a8d0_DeletingDtor(u8 *voice, void *, u8 flags);
+// 0x6be880 (thiscall (unused), pops 4; slot 14 of 0x70a8d0; name invented): flag 2 (+0x30) set; the parameter block's (+0x4c) +0x1c a
+// queue (+0 its count, +4 the next index, +8 its 8-byte entries {a category index, a sound}): the index taken and moved on (even past the
+// count); none left: 0. Else the category singleton's deque A (its begin +0x3c, DequeIter_Advance) at the category index: a record, its +8
+// an SFX.map sound table; either null: 0. Else SfxSounds_Find with a stack play command (vtable 0x700b90: the category, the sound, the
+// voice's position +0x10-+0x18, range 0; its `this` an unset local, unused): none, 0; else it is the definition (+4) and
+// SoundVoice_PickVariation (0)'s answer. AL only on the failures (the rest of EAX left over).
+u8 __fastcall Voice70a8d0_PickQueuedSound(u8 *voice, void *, u32 unused);
 // The group voice 0x70a390's (names invented): its children (linked voices) listed at the parameter block's +0x18, each the next's in
 // its own block's +0x18. 0x6bd930 (thiscall; an SEH frame): the vtable 0x70a390, each child deleted (slot 2, flag 1; the next read
 // first), the vtable 0x70a3e8, Class70a7e0_Dtor. 0x6b72b0 (thiscall (flags), pops 4; slot 2): it, the voice freed with flag 1.
