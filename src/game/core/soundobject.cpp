@@ -8,6 +8,7 @@
 #include "fieldops.h"
 #include "gameheap.h"
 #include "initializers.h"
+#include "selectors.h"
 #include "soundcategory.h"
 #include "soundchannel.h"
 #include "soundmixer.h"
@@ -144,6 +145,15 @@ u32 *__fastcall SoundObject_SetPlacement(u8 *object, void *, u32 *out, const u32
                                   (u32)(uintptr_t)(object + 0x10));
     }
     *out = 0;
+    return out;
+}
+
+u32 *__fastcall SoundObject_ApplyEaxRecord(u8 *object, void *, u32 *out, u32 index) {
+    if (!Obj_Flags28_Bit1IfBit0(at<u8 *>(object, 0x24))) {
+        *out = 0xffffffff;
+        return out;
+    }
+    SoundChannel_ApplyEaxRecord(at<u8 *>(object, 0x24), nullptr, out, index);
     return out;
 }
 

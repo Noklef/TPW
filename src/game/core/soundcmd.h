@@ -72,6 +72,9 @@ u32 *__fastcall SoundCmd700b3c_Run(const u8 *command, void *, u32 *out, u8 *targ
 // (+0x24) (out, the values).
 u32 *__fastcall SoundCmd700b54_Run(const u8 *command, void *, u32 *out, u8 *target);
 
+// 0x6b5c90 (vtable 0x700b30; the index at +4): the sound object's EAX record applied (soundobject, 0x6ba1b0: out, the index).
+u32 *__fastcall SoundCmd700b30_Run(const u8 *command, void *, u32 *out, u8 *target);
+
 // 0x6b5cb0 (vtable 0x700bc0; five values at +4-+0x14): the sound object's occluder add (soundobject, 0x6b8c70: out, the values).
 u32 *__fastcall SoundCmd700bc0_Run(const u8 *command, void *, u32 *out, u8 *target);
 

@@ -4500,6 +4500,7 @@ address,name,kind,confidence,notes
 0x006b5cb0,SoundCmd700bc0_Run,function,low,"reimplemented (src/game/core/soundcmd); slot 0 of 0x700bc0: SoundObject_AddOccluder on the target (out, the command's +4-+0x14); returns out"
 0x006b5ce0,SoundCmd700bc4_Run,function,low,"reimplemented (src/game/core/soundcmd); slot 0 of 0x700bc4: SoundObject_RemoveOccluder on the target (out, the command's +4); returns out"
 0x006b5890,SoundCmd700bc8_Run,function,low,"reimplemented (src/game/core/soundcmd); slot 0 of 0x700bc8: SoundChannel_SwitchOcclusion on the target's channel +0x24 (out, the command's +4, +8); returns out"
+0x006b5c90,SoundCmd700b30_Run,function,low,"reimplemented (src/game/core/soundcmd); slot 0 of 0x700b30, thiscall (out, target), pops 8: SoundObject_ApplyEaxRecord on the target (out, the command's +4); returns out"
 0x006b5ab0,SoundManager_Dtor,function,low,reimplemented (src/game/core/soundmanager); thiscall: vtable reset to 0x70a288; the engine at +4 (if any) destroyed through its slot 0 (1) and +4 cleared
 0x006b5ad0,SoundManager_Call1,function,low,"reimplemented (src/game/core/soundmanager); slot 4, thiscall (out, a), pops 8: the engine's slot 1 (out, a); returns out"
 0x006b5af0,SoundManager_Release,function,low,"reimplemented (src/game/core/soundmanager); slot 0, thiscall (out), pops 4: the manager (unless null) destroyed through its slot 3 (1); *out = 0"
@@ -4611,6 +4612,7 @@ address,name,kind,confidence,notes
 0x006ba090,SoundObject_ReleaseRecordAt,function,low,reimplemented (src/game/core/soundobject); slot 7 of 0x70a2a0: the singleton category's record at the index released; 0: -1
 0x006b8ce0,SoundObject_DeletingDtor,function,low,"reimplemented (src/game/core/soundobject); thiscall (flags), pops 4; slot 0 of 0x70a588: SoundObject_Dtor, then the object freed with flags bit 0; returns the object"
 0x006b8ad0,SoundObject_CallVoice10,function,low,"reimplemented (src/game/core/soundobject); thiscall (id, a, b), pops 0xc; slot 3 of 0x70a2a0 and 0x70a588: with an id and a mixer (+0x20), SoundMixer_CallVoice10 (id, a, b); else 0 (name invented)"
+0x006ba1b0,SoundObject_ApplyEaxRecord,function,low,"reimplemented (src/game/core/soundobject); thiscall (out, index), pops 8: when the channel's (+0x24) flags have bits 0 and 1 (Obj_Flags28_Bit1IfBit0), its EAX record applied (SoundChannel_ApplyEaxRecord); else *out = -1; returns out (name invented)"
 0x006b7150,SoundVoice_EnsureParams,function,low,"reimplemented (src/game/core/soundvoice); thiscall: with no block at +0x4c, a 0x20-byte one (Mem_Alloc; the byte and +4-+0x18 cleared) stored there, or 0 when the allocation fails"
 0x006bc900,SoundVoice_SetPending,function,low,"reimplemented (src/game/core/soundvoice); thiscall (out, value), pops 8: with a sound at +0x24, a stack record (SetThenFlag28_14 value) handed to the sound system [0xfb1f24]'s slot 4 in a functor 0x70a850; else the value's low word at +0x48, flag 0x8000, *out = -1; returns out"
 0x006bbf00,SoundVoice_ApplyVariation,function,low,"reimplemented (src/game/core/soundvoice); copies the current variation's two parameter words' low bytes into the voice's parameter block (creating it), or clears them"

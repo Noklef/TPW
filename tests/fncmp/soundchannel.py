@@ -32,9 +32,9 @@ CALLS = {'apply': 0x6b8b40, 'settings': 0x6b7d70, 'fn260': 0x6b5e40, 'eax0b': 0x
          'b54': 0x6b5810, 'objplace': 0x6b8b60, 'voiceocc': 0x6b7fa0, 'clearocc': 0x6b7a70, 'pick': 0x6b9a60, 'play': 0x6b9ab0,
          'setocc': 0x6b8180, 'addocc': 0x6b8230, 'remocc': 0x6b82c0, 'listremove': 0x6c4ba0, 'flag2': 0x6b9160, 'objopen': 0x6b8480, 'occswitch': 0x6b99c0, 'occadd': 0x6b9a10,
          'objoccadd': 0x6b8c70, 'objoccrem': 0x6b8cb0, 'rec40': 0x6b8f60, 'rates': 0x6b5fc0, 'mgrplace': 0x6b5ba0, 'mgrapply': 0x6b5bd0,
-         'rec40flag': 0x6c5c50, 'ratemod': 0x6b98d0, 'cmdoccadd': 0x6b5cb0, 'cmdoccrem': 0x6b5ce0, 'cmdoccswitch': 0x6b5890,
+         'rec40flag': 0x6c5c50, 'ratemod': 0x6b98d0, 'cmdoccadd': 0x6b5cb0, 'cmdoccrem': 0x6b5ce0, 'cmdoccswitch': 0x6b5890, 'objeaxrecord': 0x6ba1b0, 'cmdeaxrecord': 0x6b5c90,
          'release': 0x6b9230, 'recblock': 0x6b9cd0, 'eaxrecord': 0x6c6000}
-SETTERS = ('eaxrecord', 'occlusion', 'voiceocc', 'clearocc', 'position', 'fn278', 'mode', 'placement', 'voices', 'b4c', 'b3c', 'b54', 'objplace', 'setocc', 'addocc', 'remocc', 'listremove', 'occswitch', 'occadd', 'objoccadd', 'objoccrem', 'mgrplace', 'cmdoccadd', 'cmdoccrem', 'cmdoccswitch')
+SETTERS = ('eaxrecord', 'objeaxrecord', 'cmdeaxrecord', 'occlusion', 'voiceocc', 'clearocc', 'position', 'fn278', 'mode', 'placement', 'voices', 'b4c', 'b3c', 'b54', 'objplace', 'setocc', 'addocc', 'remocc', 'listremove', 'occswitch', 'occadd', 'objoccadd', 'objoccrem', 'mgrplace', 'cmdoccadd', 'cmdoccrem', 'cmdoccswitch')
 B = Bench([(0x6b8b40, 0x6b8b60), (0x6b7d70, 0x6b7e5b), (0x6c4760, 0x6c47a3), (0x6b5e40, 0x6b5e59), (0x6b7910, 0x6b796b),
            (0x6b7970, 0x6b79cb), (0x6c4670, 0x6c46a7), (0x6c46b0, 0x6c475a), (0x6b7b60, 0x6b7d6e), (0x6b79d0, 0x6b7a6b), (0x6b5e60, 0x6b5fb4),
            (0x6c4c80, 0x6c4eff), (0x6c4f00, 0x6c4f54), (0x6b8330, 0x6b8358), (0x6bb7a0, 0x6bb7bd), (0x6bb7c0, 0x6bb856), (0x6babc0, 0x6bac04),
@@ -48,7 +48,7 @@ B = Bench([(0x6b8b40, 0x6b8b60), (0x6b7d70, 0x6b7e5b), (0x6c4760, 0x6c47a3), (0x
            (0x6b8c70, 0x6b8cda), (0x6b8f60, 0x6b8f90), (0x6b5fc0, 0x6b603d), (0x6bb860, 0x6bb8c9), (0x6b5ba0, 0x6b5bc3), (0x6b5bd0, 0x6b5be9),
            (0x6c5c50, 0x6c5c8f), (0x6b9cb0, 0x6b9cc2), (0x6b98d0, 0x6b98ff),
            (0x6b5cb0, 0x6b5cd9), (0x6b5ce0, 0x6b5cf9), (0x6b5890, 0x6b58b0),
-           (0x6b9230, 0x6b925b), (0x6338d0, 0x6338f9), (0x6b9cd0, 0x6b9cf0), (0x6c6000, 0x6c6084)])
+           (0x6b9230, 0x6b925b), (0x6338d0, 0x6338f9), (0x6b9cd0, 0x6b9cf0), (0x6c6000, 0x6c6084), (0x6ba1b0, 0x6ba1e7), (0x6b5c90, 0x6b5ca9), (0x6b9260, 0x6b926e)])
 CHAN, OUT, FUNCTOR, FVT, REC, INFO, SRC, SVT, EAXB, KSET, KVT = (RAM + 0x100 * i for i in range(11))
 GLOBAL = 0xfb2058
 VOICES, VVT, SND, SNDVT, POOL, NODES, OCCS, VEC, VEC2, OBJECT, MIXER, COMMAND, P1, P2, P3 = (RAM + 0x1000 + 0x200 * i for i in range(15))
@@ -415,7 +415,7 @@ def voices_case(r, log, name):
         if r.random() < 0.3:
             struct.pack_into('<I', occluders, 0xc, 0)   # (no occluders: not occluded)
         return Call(0x6b7fa0, [CHAN, r.getrandbits(32), voice, REC], regions, conv='t', ret='v')
-    if name == 'eaxrecord':   # (the channel's EAX records +0x68 (or null) and count +0x6c; a record's first dword -1 now and then; the index
+    if name in ('eaxrecord', 'objeaxrecord', 'cmdeaxrecord'):   # (the channel's EAX records +0x68 (or null) and count +0x6c; a record's first dword -1 now and then; the index
         # in them, at their count or past; the run's settings flags 0x40 only: the EAX properties' set)
         count = r.choice([0, 1, 2, 5])
         recs = bytearray(r.bytes(0x34 * 5))
@@ -427,7 +427,15 @@ def voices_case(r, log, name):
         blob(log, 4, 5, 0x3fff)
         blob(log, 20, 1, 0x3fff)   # (the source's slot 0x14 given the stack settings record's +0xc: the block and +0x40, as the Set's data)
         index = r.choice([0, 0, 1, count - 1 if count else 0, count, r.getrandbits(32)])
-        return Call(0x6c6000, [CHAN, OUT, index], regions, conv='t', ret='a')
+        if name == 'eaxrecord':
+            return Call(0x6c6000, [CHAN, OUT, index], regions, conv='t', ret='a')
+        # (the object's: its channel +0x24 whose flags' bits 0 and 1 gate it; the command's: the index at its +4, the object the target)
+        regions[CHAN] = regions[CHAN][:0x28] + struct.pack('<I', r.choice([3, 3, 1, 2, 0, r.getrandbits(32)])) + regions[CHAN][0x2c:]
+        regions[OBJECT] = r.bytes(0x24) + struct.pack('<I', CHAN) + r.bytes(0x18)
+        if name == 'objeaxrecord':
+            return Call(0x6ba1b0, [OBJECT, OUT, index], regions, conv='t', ret='a')
+        regions[COMMAND] = struct.pack('<II', r.getrandbits(32), index)
+        return Call(0x6b5c90, [COMMAND, OUT, OBJECT], regions, conv='t', ret='a')
     return Call(0x6b5e60, [FUNCTOR, OUT, CHAN], regions, conv='t', ret='a')
 
 

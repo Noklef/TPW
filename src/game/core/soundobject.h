@@ -60,6 +60,10 @@ s32 *__fastcall SoundObject_LoadCategory(u8 *object, void *, s32 *out, const cha
 
 // The channel's (+0x24) forwards (names invented); without a channel *out = -1. Each returns out.
 // 0x6b8c70 (thiscall (out, x, y, z, radius, &node), pops 0x18): SoundChannel_TryAddOccluder with them.
+// 0x6ba1b0 (thiscall (out, index), pops 8; name invented): when the channel's (+0x24) flags (+0x28) have bits 0 and 1
+// (Obj_Flags28_Bit1IfBit0), its EAX record index applied (SoundChannel_ApplyEaxRecord); else *out = -1. Returns out.
+u32 *__fastcall SoundObject_ApplyEaxRecord(u8 *object, void *, u32 *out, u32 index);
+
 u32 *__fastcall SoundObject_AddOccluder(u8 *object, void *, u32 *out, u32 x, u32 y, u32 z, u32 radius, u8 **node);
 // 0x6b8cb0 (thiscall (out, &node), pops 8): SoundChannel_RemoveOccluder with them.
 u32 *__fastcall SoundObject_RemoveOccluder(u8 *object, void *, u32 *out, u8 **node);
