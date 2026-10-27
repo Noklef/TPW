@@ -3007,6 +3007,14 @@ address,name,kind,confidence,notes
 0x006afa70,ResIndex_Load,function,low,reimplemented (src/game/files/resindex); A resource index record's object loaded by its kind's loader from the record's file
 0x006ad2a0,ResFolder_LoadIndex,function,low,"reimplemented (src/game/files/resindex); The resource folder's index read from ResIdx.dat in a folder (BFRI header, records) into a new resource index"
 0x006ad230,ResFolder_Load,function,low,reimplemented (src/game/files/resindex); The resource folder's index loaded from a name's full path in its folder
+0x006ad860,RangeTable_Ctor,function,low,reimplemented (src/game/files/charsets); A range table (vtable 0x70a0e0) constructed on its range segments
+0x006ad8c0,RangeTable_Dtor,function,low,reimplemented (src/game/files/charsets); A range table destroyed (the counted base's vtable)
+0x006ad8a0,RangeTable_DeletingDtor,function,low,reimplemented (src/game/files/charsets); A range table destroyed and freed for flags bit 0
+0x006ad950,RangeTable_Load,function,low,reimplemented (src/game/files/charsets); A range table read from a BFUM file's stream (the resource index's kind 1 loader)
+0x006adbe0,CodeTable_Ctor,function,low,"reimplemented (src/game/files/charsets); A code table (vtable 0x70a0f8) constructed on its lead byte, code count and words"
+0x006adc50,CodeTable_Dtor,function,low,reimplemented (src/game/files/charsets); A code table destroyed (the counted base's vtable)
+0x006adc30,CodeTable_DeletingDtor,function,low,reimplemented (src/game/files/charsets); A code table destroyed and freed for flags bit 0
+0x006ada90,CodeTable_Load,function,low,reimplemented (src/game/files/charsets); A code table read from a BFMU or BFMH file's stream (the resource index's kind 0 loader)
 0x005c9040,Class70295c_Ctor,function,high,"reimplemented (src/game/core/vdtor); Init_5d36c0, vtable 0x70295c and four zeroed dwords"
 0x005d03b0,Obj_SwapPair,function,high,reimplemented (src/game/core/stdlist); the dwords at +4 and +8 swapped with another object's
 0x005dd3d0,Obj_ChooseVector,function,high,reimplemented (src/game/frontend/viewcontrols); the vector at +0x10 taken from one of two others

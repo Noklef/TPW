@@ -33,6 +33,7 @@
 #include "../game/files/wrapsources.h"
 #include "../game/files/wadsource.h"
 #include "../game/files/bufsource.h"
+#include "../game/files/charsets.h"
 #include "../game/files/chunkfile.h"
 #include "../game/files/direntry.h"
 #include "../game/files/filestream.h"
@@ -2834,6 +2835,14 @@ const Hook kHooks[] = {
     {"ResIndex_Load",             0x006afa70, (void *)&ResIndex_Load, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"ResFolder_LoadIndex",       0x006ad2a0, (void *)&ResFolder_LoadIndex, {0x6a, 0xff, 0x68, 0x20, 0x56}},
     {"ResFolder_Load",            0x006ad230, (void *)&ResFolder_Load, {0x8b, 0x54, 0x24, 0x08, 0x81}},
+    {"RangeTable_Ctor",           0x006ad860, (void *)&RangeTable_Ctor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"RangeTable_Dtor",           0x006ad8c0, (void *)&RangeTable_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"RangeTable_DeletingDtor",   0x006ad8a0, (void *)&RangeTable_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"RangeTable_Load",           0x006ad950, (void *)&RangeTable_Load, {0x53, 0x55, 0x56, 0x8b, 0x74}},
+    {"CodeTable_Ctor",            0x006adbe0, (void *)&CodeTable_Ctor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"CodeTable_Dtor",            0x006adc50, (void *)&CodeTable_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"CodeTable_DeletingDtor",    0x006adc30, (void *)&CodeTable_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"CodeTable_Load",            0x006ada90, (void *)&CodeTable_Load, {0x83, 0xec, 0x08, 0x8d, 0x4c}},
     {"Class70295c_Ctor",          0x005c9040, (void *)&Class70295c_Ctor, {0x56, 0x8b, 0xf1, 0xe8, 0x78}},
     {"Obj_SwapPair",              0x005d03b0, (void *)&Obj_SwapPair, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Obj_ChooseVector",          0x005dd3d0, (void *)&Obj_ChooseVector, {0x8b, 0x41, 0x58, 0x85, 0xc0}},
