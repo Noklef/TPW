@@ -345,7 +345,11 @@ def case(r):
             ear = struct.unpack_from('<f', listener, 4 * i)[0]
             ear = ear if ear == ear and abs(ear) < 1e6 else 0.0
             struct.pack_into('<I', listener, 4 * i, fb(ear))
-            v = r.choice([fb(ear), fb(ear + r.uniform(-far, far)), fb(ear + r.uniform(-far, far)), fb(ear + r.uniform(-far, far)), r.f()])
+            v = r.choice([fb(ear), fb(ear + r.uniform(-far, far)), fb(ear + r.uniform(-far, far)), fb(ear + r.uniform(-far, far)), r.f(),
+                          r.choice([0x7fc00000, 0xffc00000, 0xff800001, 0x7f800001])])
+            if r.random() < 0.08:   # (squares under the float range: the register keeps them)
+                struct.pack_into('<I', listener, 4 * i, 0)
+                v = fb(r.choice([1, -1]) * r.uniform(1e-25, 1e-18))
             struct.pack_into('<I', voice, off, v)
         if r.random() < 0.1:   # (exactly on the edge: 0.01 * d = 0xffff, or 0x10000)
             struct.pack_into('<I', voice, 0x18, fb(struct.unpack_from('<f', listener, 8)[0]))
