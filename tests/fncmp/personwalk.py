@@ -33,7 +33,9 @@ NAV_RANGES = [(0x50f3b0, 0x50f5f5), (0x510150, 0x510156), (0x50dd80, 0x50dfd0), 
               (0x50ece0, 0x50ed20), (0x50f1a0, 0x50f202), (0x50f600, 0x50f6f9), (0x50f700, 0x50f84a), (0x50f850, 0x50f86f), (0x4d99c0, 0x4d99d3),
               (0x4d97b0, 0x4d97d9), (0x5104b0, 0x510502), (0x510870, 0x51089d), (0x4d8300, 0x4d8328), (0x50fd40, 0x50fde2)]
 B = Bench(merged(NAV_RANGES + [(0x4217f0, 0x421810), (0x475c50, 0x475d00), (0x4d41d0, 0x4d4220), (0x4d6350, 0x4d6370), (0x4d91f0, 0x4d93c0),
-                               (0x4fa2a0, 0x4fa470), (0x50b6a0, 0x50b790), (0x510150, 0x5101a0), (0x540c70, 0x540da0), (0x5da3c0, 0x5da3c1)]),
+                               (0x4fa2a0, 0x4fa470), (0x50b6a0, 0x50b790), (0x510150, 0x5101a0), (0x540c70, 0x540da0), (0x5da3c0, 0x5da3c1),
+                               (0x4d7330, 0x4d73b4), (0x4d7790, 0x4d7880), (0x4e0220, 0x4e02f0), (0x4fa460, 0x4fa480), (0x50b350, 0x50b360),
+                               (0x5054d0, 0x5056f0), (0x506580, 0x5065d0)]),
           hooks={0x6e7074: fncmp._cdecl_log2})
 TARGET, LIST = RAM + 0x100, RAM + 0x200
 CODES = [0x74db60, 0x74dbc0, 0x74ef90]
@@ -70,7 +72,31 @@ def nav(r, mem, at):
     return pos
 
 
+def job(r, regions, pool, person, handles, me, pos):
+    """ToJob's surroundings: the world's tick (RAM + 0x1da70c: [0x80239c] is RAM); the job +0x21a mostly one of the park's handles (the
+    handyman's own now and then); the job's entrance +0x36 the handyman's cell id (row << 7 + column + 1, from its bytes or its nav's
+    point) mostly; its tracked handle +0x5e the handyman's, 0 or another, its stamp +0x60 about the tick (past 0x64 behind it: the
+    tracked one asked, Person_HasWord: the kind +2 4 or 5 and the word +0x218 / +0x21a)"""
+    tick = r.getrandbits(32)
+    regions[RAM + 0x1da70c] = struct.pack('<I', tick)
+    person[2] = r.choice([5] * 6 + [1, 4, 7, r.getrandbits(8)])
+    j = r.randrange(len(handles))
+    job = person if j == me else memoryview(pool)[THING * j:THING * (j + 1)]
+    put(person, 0x21a, 'H', handles[j] if r.random() < 0.97 else r.choice([0, 12]))
+    cols = [person[5], (pos[0] >> 16) & 0xff]
+    rows = [person[7], (pos[1] >> 16) & 0xff]
+    cell = ((r.choice(rows) << 7) + r.choice(cols) + 1) & 0xffff
+    put(job, 0x36, 'H', r.choice([cell] * 4 + [(cell + 1) & 0xffff, (cell + 0x80) & 0xffff, r.getrandbits(16)]))
+    put(job, 0x5e, 'H', r.choice([handles[me]] * 4 + [0, r.choice(handles), r.getrandbits(16)]))
+    put(job, 0x60, 'I', (tick - r.choice([0, 0, 0x64, 0x65, 0x1000, r.getrandbits(32)])) & 0xffffffff)
+    for t in range(len(handles)):
+        thing = person if t == me else memoryview(pool)[THING * t:THING * (t + 1)]
+        if r.random() < 0.5:
+            put(thing, 0x218, 'HH', r.choice(handles + [0]), r.choice(handles + [0]))
+
+
 def case(r):
+    op = r.deal(OPS)
     count = r.choice([1, 2, 3, 4])
     regions, handles, things_ = park(r, count=count, defs=False, cells=True)
     pool = bytearray(regions[POOL])
@@ -97,6 +123,8 @@ def case(r):
     default = r.choice([0, 0, 1, 0x19, 0x32, 0x7fff, 0xffff, r.getrandbits(16)])
     put(person, 0xc2, 'H', r.choice([default, default, (default + 1) & 0xffff, (default - 1) & 0xffff, 0, 0xffff, r.getrandbits(16)]))
     regions[0x75c7f0] = struct.pack('<H', default)
+    if op == 'ToJob':
+        job(r, regions, pool, person, handles, me, pos)
     pool[p:p + THING] = person
     regions[POOL], regions[CELLS] = pool, grid
     log = log_region()
@@ -104,8 +132,12 @@ def case(r):
         set_return(log, 0x3e, r.choice([0, 1, 0x10000, 0x12345, r.getrandbits(32)]))
     regions.update({TARGET: struct.pack('<II', *((v + near(r, 0x40000)) & 0xffffffff for v in pos)), LIST: bytes(8),
                     0x7cf078: struct.pack('<II', LIST, LIST), 0x762190: struct.pack('<I', CDECL_LOG2), LOG: log})
+    if op == 'ToJob':
+        return Call(0x4d7790, [things_[me]], regions, conv='t', ret='v')
     return Call(0x4fa2a0, [things_[me]], regions, conv='t', ret='a')
 
+
+OPS = [k for k in os.environ.get('OPS', 'Walk,ToJob').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)

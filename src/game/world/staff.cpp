@@ -628,6 +628,23 @@ void __fastcall Handyman_SetState(u8 *handyman, void *, u32 state) {
     at<u32>(handyman, 0x19c) = state;
 }
 
+void __fastcall Handyman_WalkToJob(u8 *handyman) {
+    const u32 walked = Sprite_WalkNav(handyman);
+    if (walked == 0) {
+        // (the debug check of an empty thing table left out)
+        u8 *const job = global<u8 *>(0x007cfb90 + 20 * (u32)at<u16>(handyman, 0x21a));
+        if (at<u16>(job, 0x36) == (u16)(((u32)handyman[7] << 7) + handyman[5] + 1)) {
+            u16 handle, tracked;
+            const u16 *const mine = Thing_GetHandle(handyman, nullptr, &handle);
+            Handyman_SetState(handyman, nullptr, *Obj_GetTrackedHandle(job, nullptr, &tracked) == *mine ? 0xb : 0);
+            return;
+        }
+        Handyman_SetState(handyman, nullptr, 0);
+        return;
+    }
+    if (walked == 2) Handyman_SetState(handyman, nullptr, 0);
+}
+
 void __fastcall Researcher_SetState(u8 *researcher, void *, u32 state) {
     if (state == 0xf) {
         at<u32>(researcher, 0x214) = global<u32>(global<u32>(0x0080239c) + 0x1da70c);

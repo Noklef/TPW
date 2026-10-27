@@ -216,6 +216,12 @@ void __fastcall Mechanic_SetState(u8 *mechanic, void *, u32 state);
 // Staff_SetState. The state is then +0x19c.
 void __fastcall Handyman_SetState(u8 *handyman, void *, u32 state);
 
+// 0x4d7790 (thiscall; name invented; Handyman_PostUpdate's walking state): one step along the nav (Sprite_WalkNav). Arrived (0): the job,
+// the thing of the handle +0x21a (the table 0x7cfb90), whose entrance word +0x36 is the handyman's cell id ((row +7 << 7) + column +5 + 1,
+// 16 bits) and which tracks him (Obj_GetTrackedHandle, asked after Thing_GetHandle), sets state 0xb, else 0 (Handyman_SetState). A failed
+// walk (2) sets 0; anything else nothing. The debug checks are left out.
+void __fastcall Handyman_WalkToJob(u8 *handyman);
+
 // 0x502c20 (thiscall (state), pops 4): a researcher's state. 0xf: +0x214 = the world's tick ([0x80239c] +0x1da70c) and the reference's
 // animation (+0xc, Set4_4217f0) 0xa. Others: Staff_SetState. The state is then +0x19c.
 void __fastcall Researcher_SetState(u8 *researcher, void *, u32 state);
