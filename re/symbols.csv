@@ -5275,6 +5275,7 @@ address,name,kind,confidence,notes
 0x006d20a0,SoundSource711920_SetFlags,function,low,"reimplemented (src/game/core/soundsource); thiscall: +0x24 = 0x10000, | 0x20000 with hardware 3D streaming buffers (a SoundCaps holder of the device's sound) (name invented)"
 0x006d2290,SoundSource711920_GetSound,function,low,"reimplemented (src/game/core/soundsource); slot 3 of 0x711920, thiscall (out), pops 4: *out = the device singleton's sound; AL = it is not null (name invented)"
 0x006d35d0,SoundSource711b08_GetSlotPosition,function,low,"reimplemented (src/game/core/soundsource); slot 30 of 0x711b08, thiscall (out, index, vector), pops 0xc: the slot at the index (+0x28, 0x2c bytes each) asked for its position (SoundSlot_GetPosition); returns out (name invented)"
+0x006c42b0,SoundSource_Destroy,function,low,"reimplemented (src/game/core/soundsource); thiscall, this unused (slot): the source's slot 7, then its slot 0 (1) unless null; *slot = 0"
 0x006b00e0,WideWriter_Finish,function,low,"reimplemented (src/game/core/widewriter); slot 1 of 0x70a0c0, thiscall: with a cursor the full byte set at the end, a 0 cell at the cursor (or before it when full), the cursor cleared; the holder +0xc cleared and released (slot 0) (name invented)"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
