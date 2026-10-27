@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../world/advisor.h"
+#include "../world/camera.h"
 #include "../world/ridesweep.h"
 #include "dialogs.h"
 #include "guirect.h"
@@ -42,6 +43,11 @@ void __fastcall Panel7cc3b0_Show(u8 *self, void *, u8 *thing) {
     WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00756f48), 0x004b5cb0, 0x511, 0x512, 0);
     Window_SetHandler(*reinterpret_cast<u8 **>(self + 0x18), nullptr, 0x004b5c80);
     Advisor_PostId(0xc0);
+}
+
+s32 __cdecl Panel7cc3b0_WindowHandler(u8 *window, u32 message, u32 a, u32 b) {
+    if (message == 0x10006) Camera_CentreOnGlobalThing();
+    return Window_CallDefault(window, nullptr, message, a, b);
 }
 
 void __fastcall Panel7cc3b0_Dress(u8 *self) {

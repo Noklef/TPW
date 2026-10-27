@@ -19,6 +19,10 @@ void __fastcall Panel7cc3b0_Open(u8 *self);
 // handler 0x4b5c80 (Window_SetHandler, not checked) and the advisor posted 0xc0 (Advisor_PostId).
 void __fastcall Panel7cc3b0_Show(u8 *self, void *, u8 *thing);
 
+// 0x4b5c80 (cdecl (window, message, a, b); the handler Panel7cc3b0_Show gives the window +0x18; name invented): on 0x10006 the camera
+// centred on the shown thing (Camera_CentreOnGlobalThing); every message then to the default handler (Window_CallDefault), its answer returned.
+s32 __cdecl Panel7cc3b0_WindowHandler(u8 *window, u32 message, u32 a, u32 b);
+
 // 0x4b53c0 (thiscall; slot 3 of the vtable 0x6ffe50): with the window +0x14 set (read again for each child), its children dressed in this
 // order (ui/panelparts; a text a TextPart_Ctor part with that language text, a part's or a bar's value given to the child's slot 7): 0x51a
 // text 0x40, 0x51d text 0x41, 0x519 text 0x43, 0x518 text 0x45, 0x51c text 0x44, 0x516 text 0x42, 0x51b no text, 0x513 a happygrad bar
