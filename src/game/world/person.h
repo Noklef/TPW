@@ -74,6 +74,10 @@ u8 *__fastcall Person_PartsCtor(u8 *object, void *, u32);
 // and Nav_PathToPoint of the nav at +0xd4 to it (16.16, each << 8); its result.
 u32 __fastcall Sprite_SetDestination(u8 *sprite, void *, s32 x, s32 y);
 
+// 0x4fa670 (thiscall (flag), pops 4; name invented): the dword +0x198 (the timer Sprite_SetDestination and Person_PlaceSprite clear) the
+// next count of 0x7cdb98 (Counter7cdb98_Inc) for a flag, else 0. (The debug print of the handle, Thing_GetHandle's, is left out.)
+void __fastcall Sprite_SetStranded(u8 *sprite, void *, u32 flag);
+
 // 0x4fa530 (thiscall; a cell id; name unconfirmed): Sprite_SetDestination to the cell's centre: x (id - 1) & 0x7f and y its bits 7-14, each the
 // high byte of a word whose low byte is 0x80.
 u32 __fastcall Sprite_SetDestinationCell(u8 *sprite, void *, u32 cell);

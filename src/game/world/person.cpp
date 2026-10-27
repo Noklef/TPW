@@ -200,6 +200,8 @@ u32 __fastcall Sprite_SetDestination(u8 *sprite, void *, s32 x, s32 y) {
     return Nav_PathToPoint(sprite + 0xd4, nullptr, (s32)((u32)(s32)(s16)x << 8), (s32)((u32)(s32)(s16)y << 8));
 }
 
+void __fastcall Sprite_SetStranded(u8 *sprite, void *, u32 flag) { at<u32>(sprite, 0x198) = flag ? Counter7cdb98_Inc() : 0; }
+
 u32 __fastcall Sprite_SetDestinationCell(u8 *sprite, void *, u32 cell) {
     const u32 index = cell - 1;
     const u32 x = (index & 0x7f) << 8 | 0x80;

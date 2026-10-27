@@ -4,6 +4,7 @@
 # (routes of up to 14 cells, past the 5 waypoints); the route at 0x7cf108 random before the search, the
 # counter 0x7cdb98, prepending 0, 1 or other. The person's: objectblocks.py's object and block values (the limit +0x198 about the counter),
 # the destination's cell the nav's (its route then that one cell, needing no map).
+# The person stranded (src/game/world/person: 0x4fa670): the flag 0 or not, the counter 0x7cdb98 random, the person's +0x198 random.
 # usage: navpath.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -18,7 +19,8 @@ import routesearch  # noqa: E402
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
 RANGES = []
-for a, b in sorted([(0x50f8e0, 0x50fd2f), (0x510100, 0x51014d), (0x4fa5f0, 0x4fa669), (0x50cd80, 0x50cda8), (0x4d8c50, 0x4d8c5c)]
+for a, b in sorted([(0x50f8e0, 0x50fd2f), (0x510100, 0x51014d), (0x4fa5f0, 0x4fa669), (0x50cd80, 0x50cda8), (0x4d8c50, 0x4d8c5c),
+                    (0x4fa670, 0x4fa6c7), (0x50b350, 0x50b370), (0x5da3c0, 0x5da3c1)]
                    + routesearch.RANGES + objectblocks.RANGES):  # (the two benches' ranges overlap)
     if RANGES and a <= RANGES[-1][1]:
         RANGES[-1] = (RANGES[-1][0], max(RANGES[-1][1], b))
@@ -98,8 +100,15 @@ def person_case(r, xy=None):
     return Call(0x4fa5f0, [RAM, x | r.getrandbits(16) << 16, y | r.getrandbits(16) << 16], regions, conv='t', ret='a')
 
 
+def stranded_case(r):
+    regions = {RAM: r.bytes(0x200), 0x80239c: r.bytes(4), 0x7cdb98: struct.pack('<I', r.choice([0, 1, 0xffffffff, r.getrandbits(32)]))}
+    return Call(0x4fa670, [RAM, r.choice([0, 0, 1, 1, r.getrandbits(32)])], regions, conv='t', ret='v')
+
+
 def case(r):
-    op = r.deal(OPS or [0x50f8e0, 0x510100, 0x4fa5f0])
+    op = r.deal(OPS or [0x50f8e0, 0x510100, 0x4fa5f0, 0x4fa670])
+    if op == 0x4fa670:
+        return stranded_case(r)
     return person_case(r) if op == 0x4fa5f0 else nav_case(r, op)
 
 

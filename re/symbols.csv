@@ -3553,6 +3553,7 @@ address,name,kind,confidence,notes
 0x004f8940,MovingPerson_Ctor,function,low,"reimplemented (src/game/world/person); thiscall (cell, kind): the moving person constructor: thing, script reference, thoughts, nav; +0xc0 by World_Rand % 5; the message centre slot 0xa; the nav at the cell middle"
 0x00518f90,World_PlaceSprites,function,low,"reimplemented (src/game/world/person); thiscall on the world, unused (t): every person (kinds 1, 4-8, 0x12) in the thing table chain with byte +3 clear placed for t (Person_PlaceSprite)"
 0x004fa870,Person_UpdateSpeed,function,low,reimplemented (src/game/world/person); thiscall: speed +0xc8 = ((+0xc0 + +0xc2 + +0xc4) / word [0x75c7fc] - +0xc8 * -3.0) * 0.25 to Nav_SetSpeed; +0xc4 * 99 / 100; Nav_GetPos to +0x190; ScriptRef_Apply(+0xc)
+0x004fa670,Sprite_SetStranded,function,low,"reimplemented (src/game/world/person); thiscall (flag): +0x198 the next count of 0x7cdb98 for a flag, else 0"
 0x00550d80,Setting_SetMode,function,high,reimplemented (src/game/core/options); stores a mode and sets its flag bits
 0x005633e0,Quad_Push,function,high,reimplemented (src/game/core/seqs); pushes four dwords into the next of four slots
 0x0059c390,Table76e300_GetObjectDword,function,high,reimplemented (src/game/world/objectdefs); a dword of the object indexed through a record of the table
