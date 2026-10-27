@@ -5755,6 +5755,7 @@ address,name,kind,confidence,notes
 0x00672990,MovieSound_ReleaseAll,function,low,"reimplemented (src/game/gfx/moviesound); thiscall on the player, returns 0: with flag 0x800000 of the settings' +4, the primary buffer +0x58 (when +0x3d8) and the device +0x54 (when +0x3dc) released and cleared"
 0x00492750,GuiText_Draw,function,low,"reimplemented (src/game/gfx/guitext); The GUI's text drawn in a rectangle through a stack text layout: alignments, the language's font, colour, surface, clip; the glyphs' bounds out"
 0x004929f0,GuiText_Measure,function,low,"reimplemented (src/game/gfx/guitext); The GUI's text measured in a rectangle through a stack text layout: alignments, the language's font; the text box out"
+0x00492c40,GuiText_DrawRgb,function,low,"reimplemented (src/game/gfx/guitext); reimplemented (src/game/gfx/guitext); cdecl (text, a, c, d, left, top, right, bottom, rgb): the colour rgb's bytes with alpha 0xff and the palette's nearest entry, the GUI's SurfaceInfo filled as kind 3, 0x7ca120 and the style's +0x10 on around GuiText_Draw (font 0xc, fit 1)"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"

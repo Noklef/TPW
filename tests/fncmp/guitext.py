@@ -5,7 +5,8 @@
 # GUI's SurfaceInfo (0x7ca0e8) as display.py makes them; the narrowing table (0x78ba80) none, so the text is the global buffer's bytes
 # (0x7b5378) as the case writes them. The layout lives on the stack, so a text makes at most one record: SetText leaves a record's bytes
 # +5-+7 and +0xe-+0xf as the stack lies (masked in the heap's first block, which a second record would copy). The alignments are 0-2:
-# past them the layout's kinds (+0xa0, +0xa4, which TextLayout_Ctor leaves) are the stack's garbage.
+# past them the layout's kinds (+0xa0, +0xa4, which TextLayout_Ctor leaves) are the stack's garbage. Rgb (0x492c40): the same world and
+# text, the rectangle as four arguments, the surface's bits / width / height (a, c, d) any or usual, the rgb any, the palette random.
 # usage: guitext.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -18,11 +19,13 @@ import display  # noqa: E402
 import textlayout as tl  # noqa: E402
 from fncmp import HEAP, LOG, LOG_BYTES, RAM, Bench, Call, Mask, echo, fill, heap, log_region, put, set_return, strings, vtable  # noqa: E402
 
-RANGES = ([(0x41a850, 0x41a870), (0x486780, 0x4867c0), (0x492750, 0x492c50), (0x5f9ac0, 0x5f9da0), (0x5fa680, 0x5fa6b0), (0x5fb770, 0x5fb7a0),
-           (0x61af60, 0x61b040), (0x61b090, 0x61b140), (0x62f8d0, 0x62f950), (0x6ad5d0, 0x6ad740), (0x6ad7c0, 0x6ad860), (0x6ad8f0, 0x6ad946),
+RANGES = ([(0x41a850, 0x41a870), (0x486780, 0x4867c0), (0x492650, 0x492740), (0x492750, 0x492d20), (0x5f73a0, 0x5f76c0), (0x5f9ac0, 0x5f9da0),
+           (0x5fa680, 0x5fa6b0), (0x5fb770, 0x5fb7a0),
+           (0x61af60, 0x61b040), (0x61b090, 0x61b140), (0x62f8d0, 0x62f950), (0x6ad5d0, 0x6ad740), (0x6ad740, 0x6ad7c0), (0x6ad7c0, 0x6ad860), (0x6ad8f0, 0x6ad946),
            (0x6ada00, 0x6adaa0), (0x6add90, 0x6af770), (0x6b0230, 0x6b0340), (0x6b70d0, 0x6b70f0)])
 B = Bench(RANGES)
-CALLS = {'Draw': 0x492750, 'Measure': 0x4929f0}
+CALLS = {'Draw': 0x492750, 'Measure': 0x4929f0, 'Rgb': 0x492c40}
+PALETTE = 0xfa71f8
 SURFACE, INFO, LANG, FONT_TABLE, STYLE, NARROW, BUFFER = 0x7ca120, 0x7ca0e8, 0x78b530, 0x78b54c, 0x78ba2c, 0x78ba80, 0x7b5378
 STATE = display.STATE
 WIDE, RECT, COLOUR, OUT = RAM + 0x2000, RAM + 0x2040, RAM + 0x2060, RAM + 0x2080
@@ -86,7 +89,7 @@ def case(r):
     log = log_region()
     regions = {LOG: log, HEAP: heap(0x400)}
     lang, table, codes, lead = world(r, log, regions)
-    font = r.choice([r.randrange(0, 13)] * 24 + [13, 0xff])
+    font = 0xc if op == 'Rgb' else r.choice([r.randrange(0, 13)] * 24 + [13, 0xff])
     entry_font = struct.unpack_from('<I', table, 24 * (font + 13 * lang) + 0x14)[0] if font < 13 else None
     # the text: none, or one record (a byte, or a lead byte and the next)
     text = bytearray(0x10)
@@ -109,7 +112,16 @@ def case(r):
     out = r.choice([OUT] * 4 + [0])
     align = [byte_arg(r, r.randrange(0, 3)) for _ in range(2)]   # (past 2 the layout's kind is left as the stack lies: not comparable)
     fit = r.choice([0, 1, r.getrandbits(32)])
-    if op == 'Draw':
+    if op == 'Rgb':   # (font 0xc, aligned left / top, fit 1, no bounds, its own surface: the bits, width and height a, c, d)
+        regions[PALETTE] = r.bytes(0x400)
+        strings(log, 1, 0, out=0b11011)   # (the renderer's style, the layout's holder + 4, is on the stack here: a surface of its own)
+        style = bytearray(regions[STYLE])   # (the renderer's index from +0xc and +0x10, which the SetOn10 sets to 1: kept near the table, as
+        put(style, 0xc, 'iI', r.choice([0, 1, 2, 3, -1]), r.choice([0, 1]))   # random ones can land in memory only the emulator maps)
+        regions[STYLE] = style
+        runs = wide
+        size = [r.choice([640, 800, 64, 0, r.getrandbits(32)]) for _ in range(2)]
+        args = [wide, r.getrandbits(32)] + size + list(struct.unpack('<4i', regions[RECT])) + [r.getrandbits(32)]
+    elif op == 'Draw':
         keep = r.choice([0, 0, 1])
         runs = wide and (struct.unpack('<I', regions[SURFACE])[0] or keep)
         args = [wide, RECT, COLOUR, byte_arg(r, font)] + align + [fit, out, keep]
