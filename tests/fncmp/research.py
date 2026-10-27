@@ -16,9 +16,9 @@
 # not yet posted; the stack message's unwritten bytes masked in the slots and the copy at +0x16d0 (as headquarters.py).
 # Efforts (0x503330): see efforts_case(). Init (0x502d60): see init_case(). FlagOn / FlagOff / Sync (0x504090 / 0x504140 / 0x5041f0): the
 # flag +0x1468 0, 1 or any, the game object's word +0x1da742 0 or not; the message centre [0x788d3c] made, agent B's unported 0x40fb10 a
-# thiscall recorder 21 (driver.cpp's kObjectEnv) logging the message's 12 bytes.
+# thiscall recorder 21 (driver.cpp's kObjectEnv) logging the message's 12 bytes. Message (0x503d40): see message_case().
 # usage: research.py [CASES [SEED]] [--wild|--both] [--show N]
-#   (env OPS=Effort,ObjId,Count,NotDone,Ctor,Next,Fill,AllDone,Flag,Choose,ChooseBack,Cat0,Cat1,Cat2,Cat3,Left,Levels,Efforts,Init,FlagOn,FlagOff,Sync)
+#   (env OPS=Effort,ObjId,Count,NotDone,Ctor,Next,Fill,AllDone,Flag,Choose,ChooseBack,Cat0,Cat1,Cat2,Cat3,Left,Levels,Efforts,Init,FlagOn,FlagOff,Sync,Message)
 import os
 import struct
 import sys
@@ -29,7 +29,7 @@ import stdtree  # noqa: E402
 from advisor import ADVISOR, NOW, queue  # noqa: E402
 from thing_ctors import CENTRE_RANGES, centre  # noqa: E402
 from thingenv import park  # noqa: E402
-from fncmp import HEAP, LOG, Bench, Call, Mask, RAM, _cdecl_log, _recorder, blob_bytes, heap, log_region, put  # noqa: E402
+from fncmp import HEAP, LOG, LOG_BYTES, Bench, Call, Mask, RAM, _cdecl_log, _recorder, blob_bytes, heap, log_region, put, set_return, vtable  # noqa: E402
 
 
 
@@ -43,6 +43,11 @@ def merged(ranges):   # (overlapping ranges joined: a listing line must not come
     return out
 
 
+MESSAGE_RANGES = [(0x409cd0, 0x409cf0), (0x40f5e0, 0x40f610), (0x40ff80, 0x4104c0), (0x410610, 0x410730), (0x412e60, 0x412f00),
+                  (0x4d3d10, 0x4d3d90), (0x4e1910, 0x4e1930), (0x503b80, 0x503ff0), (0x504580, 0x504640), (0x50b350, 0x50b370), (0x516b00, 0x516c10),
+                  (0x5194d0, 0x519520), (0x550ca0, 0x550d90), (0x59a940, 0x59aa80), (0x59abc0, 0x59ae30), (0x59b590, 0x59b630), (0x59bea0, 0x59c0b0),
+                  (0x59c500, 0x59c580), (0x5aef50, 0x5af0f0), (0x5b0c40, 0x5b0cc0), (0x5b1680, 0x5b16c0), (0x5b2480, 0x5b2540), (0x5b2fd0, 0x5b3000),
+                  (0x5b3110, 0x5b3140)]   # (Message's: tools/ranges.py 503d40's but the hooked)
 INIT_RANGES = [(0x502d60, 0x502dc0), (0x519510, 0x51954d), (0x4c9960, 0x4c9a20), (0x401030, 0x401260), (0x401650, 0x401710), (0x516130, 0x5161c0)]
 B = Bench(merged(INIT_RANGES + CENTRE_RANGES + [(0x503850, 0x503861), (0x5039f0, 0x503a20), (0x503b30, 0x503b79), (0x504040, 0x504081),
            (0x504750, 0x50475e), (0x504580, 0x504627), (0x5031a0, 0x503325), (0x412e60, 0x412e6d), (0x412e70, 0x412e8f),
@@ -53,12 +58,14 @@ B = Bench(merged(INIT_RANGES + CENTRE_RANGES + [(0x503850, 0x503861), (0x5039f0,
            (0x59abc0, 0x59ae1c), (0x59c2b0, 0x59c680), (0x59bf20, 0x59c093), (0x550ca0, 0x550d90), (0x5d1750, 0x5d1751), (0x41a980, 0x41a986),
            (0x41a990, 0x41a9a7), (0x5997b0, 0x5997f8), (0x429fe0, 0x42a010), (0x44b2e0, 0x44b3d0), (0x474070, 0x4740e0), (0x5442e0, 0x544340),
            (0x5989c0, 0x598ae0), (0x5ed580, 0x5ed5b0), (0x67a400, 0x6902c0), (0x504090, 0x504132), (0x504140, 0x5041e2), (0x5041f0, 0x504209),
-           (0x40f630, 0x40f650), (0x415e00, 0x415e80)]),
-          hooks={0x40fb10: _recorder(21, 1), 0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None, 0x67a7d0: _cdecl_log})   # (as tree_finds.py's)
+           (0x40f630, 0x40f650), (0x415e00, 0x415e80)] + MESSAGE_RANGES),
+          hooks={0x40fb10: _recorder(21, 1), 0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None, 0x67a7d0: _cdecl_log,
+                 0x4db090: _recorder(11, 4), 0x481b60: _recorder(12, 1)})   # (as tree_finds.py's; the last two as endthing.py's)
 LAB = RAM
 CALLS = {'Effort': 0x503850, 'ObjId': 0x5039f0, 'Count': 0x503b30, 'NotDone': 0x504040, 'Ctor': 0x504750, 'Next': 0x504580, 'Fill': 0x5031a0, 'AllDone': 0x4ca6b0,
          'Flag': 0x503ff0, 'Choose': 0x5034f0, 'ChooseBack': 0x5036a0, 'Cat0': 0x4ca630, 'Cat1': 0x4ca650, 'Cat2': 0x4ca670, 'Cat3': 0x4ca690, 'Left': 0x503ac0,
-         'Levels': 0x503b80, 'Efforts': 0x503330, 'Init': 0x502d60, 'FlagOn': 0x504090, 'FlagOff': 0x504140, 'Sync': 0x5041f0}
+         'Levels': 0x503b80, 'Efforts': 0x503330, 'Init': 0x502d60, 'FlagOn': 0x504090, 'FlagOff': 0x504140, 'Sync': 0x5041f0,
+         'Message': 0x503d40}
 TABLE, ITEMS, DEFS = RAM + 0x2000, RAM + 0x4000, 0x7890a0   # (the game's object control table, the object definitions and their list)
 IDS = [1, 2, 3, 4, 5, 9]
 SAVE, THEAD, TNIL, TNODES = RAM + 0x9000, RAM + 0x9100, RAM + 0x9200, RAM + 0xa000   # (the global save info and its tree of keys)
@@ -239,10 +246,89 @@ def flag_case(r, op):
     return Call(CALLS[op], [LAB], regions, conv='t', ret='v')
 
 
+MSG, MSG_VT, CENTRE, OBJECT, NAME = RAM + 0x7000, RAM + 0x7100, RAM + 0x7140, RAM + 0x7200, RAM + 0x7300
+INFO, THEME, GHEAD, GNIL, GNODES, GOBJS = RAM + 0x7400, RAM + 0x7480, RAM + 0x7600, RAM + 0x7640, RAM + 0x7700, RAM + 0x7800
+WORLD2 = RAM + 0x40000 - 0x1d943c   # (Message's world: the control table at RAM + 0x40000, the advisor's time and index right after it)
+
+
+def wide(s):
+    return s.encode('utf-16-le') + b'\0\0'
+
+
+def info_tree(r, regions):
+    """the global save info [0xf7c58c]: its current theme +0x48 (or none) with mAllResearchCompleted +0xb9 any; its themes' map (head +0x3c,
+    a red-black tree of stdtree.py's of 0-3 nodes on the nil [0xf7c968]) whose mapped objects (+0x20) have +0xb9 set mostly"""
+    n = r.choice([0, 1, 2, 3])
+    nodes, root = stdtree.build(r, n) if n else ({}, None)
+    keys = sorted(nodes)
+    addr = {k: GNODES + 0x40 * i for i, k in enumerate(keys)}
+    ptr = lambda k: GNIL if k is None else addr[k]  # noqa: E731
+    blob, objs = bytearray(r.bytes(0x40 * max(n, 1))), bytearray(r.bytes(0x100 * max(n, 1)))
+    for i, k in enumerate(keys):
+        base = addr[k] - GNODES
+        put(blob, base, 'III', ptr(nodes[k][0]), GHEAD if nodes[k][1] is None else addr[nodes[k][1]], ptr(nodes[k][2]))
+        put(blob, base + 0x20, 'II', GOBJS + 0x100 * i, nodes[k][3])
+        objs[0x100 * i + 0xb9] = r.choice([1, 1, 1, 1, 0, 0x80])
+    head = struct.pack('<III', addr[keys[0]] if keys else GHEAD, addr[root] if keys else GNIL, addr[keys[-1]] if keys else GHEAD) + bytes(0x20)
+    info = put(bytearray(r.bytes(0x50)), 0x3c, 'I', GHEAD)
+    put(info, 0x48, 'I', r.choice([THEME, THEME, 0]))
+    regions.update({GHEAD: head, GNIL: put(bytearray(0x40), 0x24, 'I', 1), GNODES: blob, GOBJS: objs, 0xf7c968: struct.pack('<I', GNIL),
+                    INFO: info, THEME: r.bytes(0x100), 0xf7c58c: struct.pack('<I', INFO)})
+
+
+def message_case(r, lab):
+    """Message (0x503d40): Levels' set-up (the category the message's +0xc), its world moved to WORLD2 so that defs()' control table lies
+    under it too (the definitions at least 1, named at +0x390 "End" (one now and then) or "Shop"); the message's type (its vtable's slot 0,
+    recorder k 0) 0x11 mostly, its id one of the definitions' mostly (theirs +0x17c 4 half the time: no next project); the projects all
+    done half the time; the message centre made (agent B's unported 0x40fb10 recorder 21, the message's 12 bytes logged); the global save
+    info as info_tree() has it; the mode setting 0xfb3b7c 0-3 under its guard 0xfb34ac (read from 0x7a1a8c's bits when clear); the "End"
+    object as endthing.py's (0x4db090 recorder 11 answering an object, 0x481b60 recorder 12) over the heap."""
+    call = levels_case(r, lab)
+    regions, cat = call.regions, call.args[1]
+    now = regions.pop(NOW)
+    tmp = {}
+    defs(r, tmp)
+    lst, items, table = tmp[DEFS], tmp[ITEMS], tmp[TABLE]
+    n = max(1, struct.unpack_from('<i', lst, 0x528)[0])
+    put(lst, 0x528, 'i', n)
+    newt = WORLD2 + 0x1d943c
+    put(table, 0x12c8, 'I', struct.unpack_from('<I', table, 0x12c8)[0] - TABLE + newt)
+    end = r.choice([None, None, r.randrange(n)])
+    for i in range(6):
+        nm = wide('End' if i == end else 'Shop')
+        items[0x600 * i + 0x390:0x600 * i + 0x390 + len(nm)] = nm
+    ids = [struct.unpack_from('<H', items, 0x600 * i)[0] for i in range(n)]
+    mid = r.choice(ids) if r.random() < 0.95 else r.choice(IDS)
+    if r.random() < 0.5:
+        for i in range(6):
+            if struct.unpack_from('<H', items, 0x600 * i)[0] == mid:
+                put(items, 0x600 * i + 0x17c, 'i', 4)
+    if r.random() < 0.5:
+        for i in range(max(0, min(struct.unpack_from('<i', lab, 0x145c)[0], 0x100))):
+            put(lab, 0xc + i * 20 + 0xc, 'ff', 1.0, r.choice([1.0, 2.0]))
+    regions.update({DEFS: lst, ITEMS: items, newt: table[:0x12d0], newt + 0x12d0: now, 0x80239c: struct.pack('<I', WORLD2), LAB: lab})
+    log = regions[LOG]
+    set_return(log, 0, r.choice([0x11] * 8 + [0x10, 0x12, 0xe]))
+    blob_bytes(log, 21, 0, 0xfff)
+    set_return(log, 11, OBJECT)
+    struct.pack_into('<I', log, LOG_BYTES + 4 * 11, 3 << 16)   # (the cell and the id: words)
+    msg = put(bytearray(r.bytes(0x10)), 0, 'I', MSG_VT)
+    put(msg, 8, 'H', mid)
+    put(msg, 0xc, 'I', cat)
+    info_tree(r, regions)
+    wstr = put(bytearray(r.bytes(0x14)), 8, 'I', NAME)
+    regions.update({MSG: msg, MSG_VT: vtable({}, 1), 0x788d3c: struct.pack('<I', CENTRE), CENTRE: r.bytes(0x40), OBJECT: r.bytes(0x40),
+                    0x7cf9c0: wstr, NAME: wide('End'), 0x7cf4f4: r.bytes(4), 0xfb34ac: bytes([r.choice([1, 1, 0, 3])]),
+                    0xfb3b7c: struct.pack('<I', r.choice([0, 2, 0, 2, 1, 3])), HEAP: heap()})
+    return Call(0x503d40, [LAB, MSG], regions, conv='t', masks=call.masks)
+
+
 def case(r):
     op = r.deal(OPS)
     if op in ('FlagOn', 'FlagOff', 'Sync'):
         return flag_case(r, op)
+    if op == 'Message':
+        return message_case(r, bytearray(r.bytes(0x1800)))
     lab = bytearray(r.bytes(0x1800))
     for i in range(0x100):
         p = 0xc + i * 20

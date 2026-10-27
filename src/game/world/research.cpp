@@ -3,10 +3,13 @@
 #include <cstdint>
 
 #include "../core/globalsave.h"
+#include "../core/options.h"
 #include "../core/savegame.h"
+#include "../core/stdtree.h"
 #include "../math/x87.h"
 #include "advisor.h"
 #include "advisorscore.h"
+#include "endthing.h"
 #include "messagecentre.h"
 #include "object.h"
 #include "objectdefs.h"
@@ -71,6 +74,29 @@ template <bool back> void chooseProject(u8 *lab, u32 group) {
 
 // The research lab: the game object's ([0x80239c]) entry GameTable7cfb90_Get1da722_519550.
 const u8 *labOfGame() { return reinterpret_cast<const u8 *>(GameTable7cfb90_Get1da722_519550(*reinterpret_cast<u8 *const *>(0x0080239c))); }
+
+const ResearchEnv kGameEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0)};
+const ResearchEnv *g_env = &kGameEnv;
+
+// The mode setting (0xfb3b7c), read the first time under the handler's guard bit (0xfb34ac & 1), its empty destructor 0x5d1750 given to atexit.
+u32 modeSetting() {
+    u8 &guard = *reinterpret_cast<u8 *>((uintptr_t)0x00fb34ac);
+    const u8 bits = guard;
+    if (!(bits & 1)) {
+        guard = bits | 1;
+        Setting_ReadMode(reinterpret_cast<u8 *>((uintptr_t)0x00fb3b7c));
+        g_env->atExit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x005d1750));
+    }
+    return *reinterpret_cast<const u32 *>((uintptr_t)0x00fb3b7c);
+}
+
+// All research done: the advisor message 0xa7 posted and the "End" object made.
+void allDone() {
+    u8 message[0x18];   // (its bytes +2, +3 and +0x17 never written, sic)
+    AdvisorMsg_Init(message, nullptr, 0xa7, 0, 0, 0xffffffffu, 0, -1);
+    Advisor_Post(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da71c_5194d0(*reinterpret_cast<u8 *const *>(0x0080239c))), nullptr, message);
+    EndThing_Create();
+}
 
 }  // namespace
 
@@ -290,5 +316,25 @@ void __fastcall ResearchLab_SyncFlag(u8 *lab) {
         ResearchLab_FlagOn(lab);
     else
         ResearchLab_FlagOff(lab);
+}
+
+void Research_SetEnv(const ResearchEnv *env) { g_env = env ? env : &kGameEnv; }
+
+void __fastcall ResearchLab_HandleMessage(u8 *lab, void *, u8 *message) {
+    if ((*reinterpret_cast<u32(__fastcall *const *const *)(u8 *)>(message))[0](message) != 0x11) return;
+    const u32 cat = at<u32>(message, 0xc);
+    const u8 *const def = ObjectDefs_Find(reinterpret_cast<u8 *>((uintptr_t)0x007890a0), nullptr, at<u16>(message, 8));
+    if (ResearchProject_SetNextUpgrade(lab + 0xc + at<s32>(lab, 0x145c) * 20, nullptr, def)) ++at<s32>(lab, 0x145c);
+    ResearchLab_UpdateLevels(lab, nullptr, cat);
+    u32 posted[3];
+    Object_PostMessage(ThingMsg12_Ctor(reinterpret_cast<u8 *>(posted), nullptr, cat));
+    for (s32 i = (s32)(at<u32>(lab, 0x145c) - 1); i >= 0; --i)   // (a count of -2^31 runs from 2^31 - 1, sic)
+        if (not_done(project(lab, i))) return;
+    GlobalSave_SetAllResearchCompleted(GlobalSave_Instance());
+    if (modeSetting() == 2) {
+        allDone();
+        return;
+    }
+    if (modeSetting() == 0 && StdTreeF_AllFlagged(GlobalSave_Instance())) allDone();
 }
 }
