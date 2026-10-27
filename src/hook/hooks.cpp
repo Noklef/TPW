@@ -40,6 +40,7 @@
 #include "../game/files/gamepaths.h"
 #include "../game/files/userslots.h"
 #include "../game/files/quickload.h"
+#include "../game/files/resindex.h"
 #include "../game/files/substream.h"
 #include "../game/files/textscan.h"
 #include "../game/files/vfs.h"
@@ -2818,6 +2819,11 @@ const Hook kHooks[] = {
     {"SubStream_Rewind",          0x006d4ec0, (void *)&SubStream_Rewind, {0x8b, 0xc1, 0x6a, 0x00, 0x8b}},
     {"FontFiles_Destroy",         0x00412bc0, (void *)&FontFiles_Destroy, {0x56, 0x8b, 0x35, 0x1c, 0x9c}},
     {"SubStream_Dtor",            0x006c7960, (void *)&SubStream_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"ResFolder_Ctor",            0x006ad130, (void *)&ResFolder_Ctor, {0x56, 0x8b, 0xf1, 0x57, 0x8d}},
+    {"ResFolder_Dtor",            0x006ad160, (void *)&ResFolder_Dtor, {0x6a, 0xff, 0x68, 0xfb, 0x55}},
+    {"ResFolder_Open",            0x006ad1b0, (void *)&ResFolder_Open, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"ResFolder_Close",           0x006ad200, (void *)&ResFolder_Close, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"ResIndex_Init",             0x006afbc0, (void *)&ResIndex_Init, {0x8b, 0x44, 0x24, 0x08, 0x56}},
     {"Class70295c_Ctor",          0x005c9040, (void *)&Class70295c_Ctor, {0x56, 0x8b, 0xf1, 0xe8, 0x78}},
     {"Obj_SwapPair",              0x005d03b0, (void *)&Obj_SwapPair, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Obj_ChooseVector",          0x005dd3d0, (void *)&Obj_ChooseVector, {0x8b, 0x41, 0x58, 0x85, 0xc0}},
