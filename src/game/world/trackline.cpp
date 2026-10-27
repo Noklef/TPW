@@ -129,4 +129,17 @@ void __cdecl TrackLine_Prune() {
         }
     }
 }
+
+void __cdecl TrackCell_ClearAt(s32 x, s32 y) {
+    if (x < 0) x = 0;
+    if (y < 0) y = 0;
+    if (x >= global<s32>(0x007a0314)) x = global<s32>(0x007a0314) - 1;
+    if (y >= global<s32>(0x007a0374)) y = global<s32>(0x007a0374) - 1;
+    if (!Map_InBounds(x, y)) return;
+    u8 *const cell = reinterpret_cast<u8 *>((uintptr_t)World() + ((((u32)y << 7) + (u32)x + 1) & 0xffff) * 0x44 + 0x294);
+    if (!cell) return;
+    u8 *const entry = MapHandle_Entry28(reinterpret_cast<const u16 *>(cell));
+    MapCell_Clear(cell, nullptr, 0, 0);
+    TrackCell_Remove(entry, nullptr, 0, 0, 1);
+}
 }

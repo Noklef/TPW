@@ -18,4 +18,9 @@ extern "C" {
 // without flag 0x20 is removed (TrackCell_Remove (0, 0, 0), or TrackCell_ClearBlock when its map cell is of kind 0x15), its overlap
 // counter 0 (MapCell_SetOverlap), and its map cell and those south, south-east and east lose flag 0x40 and get their models.
 void __cdecl TrackLine_Prune();
+
+// 0x452ca0 (cdecl (x, y); name invented, unconfirmed): x and y held in [0, [0x7a0314] - 1] / [0, [0x7a0374] - 1] (below 0 first, so a
+// size of 0 or less gives -1); inside the map (Map_InBounds) the map cell there ([0x7cf83c] + 0x294 + id * 0x44) is cleared
+// (MapCell_Clear (0, 0)) and its track cell (MapHandle_Entry28, taken first) removed (TrackCell_Remove (0, 0, models 1)).
+void __cdecl TrackCell_ClearAt(s32 x, s32 y);
 }

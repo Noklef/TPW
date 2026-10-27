@@ -4,13 +4,12 @@
 # pathmodel.py's model tables and pathapply.py's queue pieces for MapCell_ApplyPathModel (no terrain: [0x7a0854] null). A small map
 # ([0x81b1b0] rows, [0x81d740] columns: 3-8 mostly, now and then 0-2) laid out with two more rows and columns each side: those of flag
 # 0x20 and not of kind 0x19 (so that the walk and the side scans stop inside), the two rows above now and then without the flag; the
-# rest of kinds 0x19, 0xc / 0x11 (owners inside), the line kinds and others, flag 0x20 now and then; their map cells of flag 0x40 now
-# and then, of kind 0x15 or others, their owners inside. The line: from
-# (0x7639f0, 0x7639f4) a walk two cells at a time (no cell twice) of kind 0x19 cells facing on (their bits the way in and out: straight
-# or a corner), the cell two on from its end not of kind 0x19, or its last cell of one neighbour; the cell two east of the start (the
-# walk's first facing) not of kind 0x19 either unless the line goes on there. Now and then: the line on the margin too (the spot two
-# on from its end off the map: Map_StepCell28InDirection null), a straight cell but the start a T, a start going east of one
-# neighbour.
+# rest of kinds 0x19, 0xc / 0x11 (owners inside, of other kinds), the line kinds and others, flag 0x20 now and then; their map cells
+# of flag 0x40 now and then, of kind 0x15 or others, their owners inside. The line: from (0x7639f0, 0x7639f4) a walk two cells at a
+# time (no cell twice) of kind 0x19 cells facing on (their bits the way in and out: straight or a corner), the cell two on from its end
+# not of kind 0x19, or its last cell of one neighbour; the cell two east of the start (the walk's first facing) not of kind 0x19 either
+# unless the line goes on there. Now and then: the line on the margin too (the spot two on from its end off the map:
+# Map_StepCell28InDirection null), a straight cell but the start a T, a start going east of one neighbour.
 # usage: trackline.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -93,6 +92,7 @@ def case(r):
     # the cell east two of the start not of kind 0x19 unless the line goes on there (the walk faces east from the start)
     east = (x0 + 2, y0) if cells[(x0, y0)] is None or (x0 + 2, y0) not in cells else None
     inner = [ident(x, y) for x in range(2, wl + 2) for y in range(2, hl + 2)]
+    rows = {}
     for y in range(hl + 4):
         row = bytearray()
         for x in range(wl + 4):
@@ -116,6 +116,15 @@ def case(r):
                 put(c, 8, 'i', r.choice([0, 0xb, 0xd, 3, 0xc]))
             row += c
             regions[WORLD + 0x1b02d8 + cellkind.block(ident(x, y)) * 4] = r.bytes(4)
+        rows[y] = row
+    # the owners of the 0xc / 0x11 cells not of those kinds themselves (TrackCell_Remove goes on to the owner's: a chain of them can
+    # loop until the stack runs out, which the original and the port report differently)
+    kind = {(x, y): struct.unpack_from('<i', rows[y], x * 0x28 + 8)[0] for y in rows for x in range(wl + 4)}
+    owners = [ident(x, y) for (x, y), k in kind.items() if k not in (0xc, 0x11) and ident(x, y) in inner]
+    for (x, y), k in kind.items():
+        if k in (0xc, 0x11) and owners:
+            put(rows[y], x * 0x28 + 0x10, 'H', r.choice(owners))
+    for y, row in rows.items():
         regions[TABLE + ident(0, y) * 0x28] = row
     for y in range(hl + 5):
         mapc = bytearray(r.bytes(0x44 * (wl + 5)))

@@ -179,4 +179,17 @@ u32 __cdecl Ride_Claim(u32 index, u32 type, u32 key, const u32 *desc, u32, u32 v
 // = x / y, +0x1c / +0x24 = x * 10 / y * 10 (each as an unsigned dword), +0x20 = Terrain_FootprintHeight(x, y, null, 1, 1, 0, 0) and +8 the
 // tile, x + y * the map width (0x7a0854 -> +0x6c -> +0x18). Then +0x14 = the link, +0x18 = value. Returns the entry.
 u8 *__cdecl CoasterLink_AddEntry(s32 x, s32 y, u32 flags, u32 unused, u32 value, const float *position);
+
+// 0x442ea0 (cdecl (link, entry, keep); name invented, unconfirmed): an entry taken off its link's chain (as CoasterLink_AddEntry's). An
+// entry without flag 1 (+4) and keep 0 first clears the track under it (TrackCell_ClearAt of +0xc, +0x10). Its neighbours (next +0x28,
+// previous +0x2c) joined, the link's first (+0x4c) and last (+0x50) moved off it, its count (+0x40) down; the entries after it numbered
+// (+0) on from the one before the next's index + 1 (0 with none). The entry freed (GlobalMem_Free), the link's flags changed
+// (Flags_SetChanged (link, 1)).
+void __cdecl CoasterLink_RemoveEntry(u8 *link, u8 *entry, u32 keep);
+
+// 0x43eaf0 (cdecl (link); name invented, unconfirmed): every entry of the link's chain (+0x4c, next +0x28) freed (GlobalMem_Free, its next
+// read first); the chain's pointers and count are left as they were. An entry without flag 1 (+4): when its car (+0x18) has flag 4 (+0),
+// the cars from +0x34 (the count +0x30, read each time) freed (Car_Free with that car), then the track under it cleared
+// (TrackCell_ClearAt of +0xc, +0x10); one with flag 1: the front coupling (+0x78) of its first car (+0x34) freed (Car_FreeCoupling).
+void __cdecl CoasterLink_FreeEntries(const u8 *link);
 }

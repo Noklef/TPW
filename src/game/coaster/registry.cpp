@@ -10,6 +10,8 @@
 #include "../terrain/land.h"
 #include "../ui/dialog7ca1c8.h"
 #include "../world/objectdefs.h"
+#include "../world/trackline.h"
+#include "train.h"
 
 namespace {
 
@@ -422,5 +424,41 @@ void __cdecl CoasterEdit_RefreshTools() {
     void *const owner = reinterpret_cast<void *>(static_cast<uintptr_t>(0x007b51f0));
     Dialog7ca1c8_SetChecksIfUpThis(owner, nullptr, *reinterpret_cast<u32 *>(0x0079c6e0));
     Dialog7ca1c8_SelectButtonIfUpThis(owner, nullptr, *reinterpret_cast<u32 *>(0x0079c638));
+}
+
+void __cdecl CoasterLink_RemoveEntry(u8 *link, u8 *entry, u32 keep) {
+    if (!(entry[4] & 1) && !keep) TrackCell_ClearAt(at<s32>(entry, 0xc), at<s32>(entry, 0x10));
+    if (at<u8 *>(entry, 0x2c)) at<u8 *>(at<u8 *>(entry, 0x2c), 0x28) = at<u8 *>(entry, 0x28);
+    if (at<u8 *>(entry, 0x28)) at<u8 *>(at<u8 *>(entry, 0x28), 0x2c) = at<u8 *>(entry, 0x2c);
+    if (at<u8 *>(link, 0x4c) == entry) at<u8 *>(link, 0x4c) = at<u8 *>(entry, 0x28);
+    if (at<u8 *>(link, 0x50) == entry) at<u8 *>(link, 0x50) = at<u8 *>(entry, 0x2c);
+    --at<u32>(link, 0x40);
+    u8 *next = at<u8 *>(entry, 0x28);
+    if (next) {
+        const u8 *const before = at<u8 *>(next, 0x2c);
+        u32 index = before ? at<u32>(before, 0) + 1 : 0;
+        do {
+            at<u32>(next, 0) = index++;
+            next = at<u8 *>(next, 0x28);
+        } while (next);
+    }
+    GlobalMem_Free(entry);
+    Flags_SetChanged(reinterpret_cast<u32 *>(link), 1);
+}
+
+void __cdecl CoasterLink_FreeEntries(const u8 *link) {
+    for (u8 *entry = at<u8 *>(link, 0x4c); entry;) {
+        if (!(entry[4] & 1)) {
+            if (*at<u8 *>(entry, 0x18) & 4)
+                for (u32 i = 0; i < at<u32>(entry, 0x30); ++i) Car_Free(at<u8 *>(entry, 0x34 + i * 4), at<u8 *>(entry, 0x18));
+            TrackCell_ClearAt(at<s32>(entry, 0xc), at<s32>(entry, 0x10));
+        } else {
+            u8 *const car = at<u8 *>(entry, 0x34);
+            Car_FreeCoupling(car, reinterpret_cast<u32 *>(car + 0x78));
+        }
+        u8 *const next = at<u8 *>(entry, 0x28);
+        GlobalMem_Free(entry);
+        entry = next;
+    }
 }
 }
