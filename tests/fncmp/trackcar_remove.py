@@ -17,6 +17,7 @@ sys.path.insert(0, HERE)
 from fncmp import HEAP, LOG, RAM, Bench, Call, _recorder, blob, heap, put, vtable  # noqa: E402
 _ops = os.environ.pop('OPS', None)   # (the imported benches read OPS as their own)
 import particles  # noqa: E402
+import partstate  # noqa: E402
 import ridesound as rs  # noqa: E402
 import soundset  # noqa: E402
 import thingenv  # noqa: E402
@@ -24,6 +25,8 @@ if _ops is not None:
     os.environ['OPS'] = _ops
 rs.OPS = ['Play']
 particles.NODES, particles.SINES = RAM + 0x60000, RAM + 0x61000   # (clear of the sound object's page)
+partstate.INSTANCE, partstate.PS, partstate.ENTRIES, partstate.THINGS, partstate.TABLE, partstate.SPRITES, partstate.WORLD = (
+    RAM + o for o in (0x21000, 0x21100, 0x21200, 0x21400, 0x21800, 0x22000, 0x23000))   # (as trackride_seats.py's)
 rs.NODES, rs.ARRAYS, rs.MANAGER, rs.VT = RAM + 0x50000, RAM + 0x51000, RAM + 0x52000, RAM + 0x52100
 ENGINE, EVT = RAM + 0x52200, RAM + 0x52300
 CAR, RIDES, CNODES, INSTANCE, HOLDER, MODEL, ROOT = (RAM + o for o in (0x30000, 0x31000, 0x32000, 0x33000, 0x33100, 0x33200, 0x33300))
@@ -41,7 +44,8 @@ def merged(ranges):   # (overlapping ranges joined: a listing line must not come
     return out
 
 
-B = Bench(merged(particles.RANGES + soundset.RANGES + [
+B = Bench(merged(particles.RANGES + soundset.RANGES + partstate.RANGES + [
+    (0x44b4c0, 0x44b505), (0x44b220, 0x44b267), (0x44b410, 0x44b4c0), (0x475550, 0x47558b),
     (0x54ae50, 0x54b0f8), (0x54ac70, 0x54ad8e), (0x67a830, 0x67a860), (0x516130, 0x516160), (0x516160, 0x5161b0), (0x50b350, 0x50b360),
     (0x4cd300, 0x4cd331), (0x51eeb0, 0x51eeec), (0x55a3e0, 0x55a470), (0x55a070, 0x55a0b0), (0x51bfc0, 0x51c048)]),
     hooks={0x463c80: _recorder(31, 1, cdecl=True)})
@@ -107,6 +111,14 @@ def case(r):
         regions.update(stop.regions)
         if r.random() < 0.7:   # (the id one of the voices' mostly, as the sender case draws it)
             put(car, 0x20, 'I', stop.args[0] or 1)
+        if r.random() < 0.5:   # (seats with parts: trackride_seats.py's part states, the car's instance's holder theirs)
+            partstate.activation(r, regions)
+            holder = bytearray(regions[partstate.INSTANCE])
+            put(holder, 4, 'I', MODEL)
+            regions[partstate.INSTANCE] = holder
+            regions[INSTANCE] = r.bytes(8) + struct.pack('<I', partstate.INSTANCE) + r.bytes(4)
+            for k in range(n):
+                put(nodes, 0x20 * k + 8, 'i', r.choice([-1, 0, 1, 2, 3]))
     return Call(0x54ae50, [CAR], regions, ret='a')
 
 
