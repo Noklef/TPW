@@ -5457,6 +5457,7 @@ address,name,kind,confidence,notes
 0x0047fc50,Gauge_DrawAxes,function,low,"reimplemented (src/game/gfx/gauge); thiscall: the horizontal axis (colour 0) at bottom + 1 or scaled by the first mark, then the vertical one (colour 1)"
 0x004806a0,Gauge_Setup,function,low,"reimplemented (src/game/gfx/gauge); A gauge set up for a window: its rect from the window's size, green, black and dark green colours, then the marks"
 0x0047fcd0,Gauge_DrawGrid,function,low,"reimplemented (src/game/gfx/gauge); The gauge's grid: a numbered vertical line every few columns (GuiText_Draw labels), a horizontal line each row (x87 steps)"
+0x00480810,Gauge_DrawInWindow,function,low,"reimplemented (src/game/gfx/gauge); reimplemented (src/game/gfx/gauge); cdecl (window, gauge, after): the window's surface (Window_ImplSlot7: bits, width, height) made the display's (Format_FillInfo, Display_SetSurfaceInfo of a stack SurfaceInfo, sic), filled black, the gauge's back, grid and axes drawn, after(gauge) when given; Window_ImplSlot6's result (0 without bits)"
 0x00477c00,BarMesh_SetVertex,function,high,reimplemented (src/game/gfx/barmesh); vertex i of a 4-lane x/y/z block array
 0x00477cc0,BarMesh_SetTopVertices,function,high,reimplemented (src/game/gfx/barmesh); virtual: the bar's top edge vertices at its level (+0x120)
 0x00477d20,BarMesh_SetTopTexCoords,function,high,reimplemented (src/game/gfx/barmesh); virtual: the bar's top edge texture v = level * 0.01

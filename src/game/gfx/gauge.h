@@ -48,4 +48,11 @@ void __fastcall Gauge_DrawGrid(const u8 *gauge);
 // colours 0 and 1 green (0, 200, 0), 3 black, 2 dark green (0, 100, 0), each with its nearest entry of the game's palette 0xfa71f8 (Palette_Nearest),
 // set in the order 0, 1, 3, 2; then the marks' y (y0..y2) and x (x0..x2).
 void __cdecl Gauge_Setup(u8 *gauge, const u8 *window, u32 y0, u32 y1, u32 y2, u32 x0, u32 x1, u32 x2);
+
+// 0x480810 (cdecl (window, gauge, after); name invented): the window's surface (Window_ImplSlot7: its bits, its width and height through
+// two out arguments): none: 0. Else a SurfaceInfo filled from the current format (Format_FillInfo) made the display's surface
+// (Display_SetSurfaceInfo: the stack one, left there, sic); the rectangle (0, 0, width, height) filled black (0xff000000 with the game
+// palette's nearest entry to (0, 0, 0), Palette_Nearest); the gauge's back, grid and axes drawn; after(gauge) when given (cdecl); then
+// Window_ImplSlot6's result.
+u32 __cdecl Gauge_DrawInWindow(u8 *window, u8 *gauge, void(__cdecl *after)(u8 *));
 }
