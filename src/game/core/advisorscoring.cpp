@@ -105,6 +105,25 @@ s32 __fastcall AdvisorScoring_Objects0InState1NoStaff4(const u8 *scoring) {
     return (s32)((u32)Objects_CountKind0InState1() * at<u32>(scoring, 0xc4));
 }
 
+s32 __fastcall AdvisorScoring_Objects0WornNoStaff4(const u8 *scoring) {
+    if (Things_CountStaffOfKind(4) > 0) return 0;
+    return (s32)((u32)Objects_CountKind0Below44OrState1(at<s32>(scoring, 0xc0)) * at<u32>(scoring, 0xbc));
+}
+
+s32 __fastcall AdvisorScoring_MapShareAtMostNoStaff5(const u8 *scoring) {
+    if (flagged() || Things_CountStaffOfKind(5) > 0) return 0;
+    const s32 share = Map_PercentWith2c();
+    if (share > at<s32>(scoring, 0xd8)) return 0;
+    return (s32)((u32)share * at<u32>(scoring, 0xd0) - at<u32>(scoring, 0xd4));
+}
+
+s32 __fastcall AdvisorScoring_MapShareAtLeastNoStaff5(const u8 *scoring) {
+    if (flagged() || Things_CountStaffOfKind(5) > 0) return 0;
+    const s32 share = Map_PercentWith2c();
+    if (share < at<s32>(scoring, 0xe0)) return 0;
+    return (s32)((u32)share * at<u32>(scoring, 0xdc) - at<u32>(scoring, 0xe0));
+}
+
 s32 __fastcall AdvisorScoring_TalliedNoStaff7(const u8 *scoring) {
     if (flagged() || Things_CountStaffOfKind(7) > 0) return 0;
     return (s32)(ParkAnalyser_Tallied(table(), nullptr, 0) * at<u32>(scoring, 0xfc) + at<u32>(scoring, 0xf8));
@@ -563,5 +582,54 @@ s32 __fastcall AdvisorScoring_StaffEntryClear(const u8 *scoring) {
     const u8 *const entry = reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da718_519450(game()));
     return entry[0x20] ? 0 : at<s32>(scoring, 0x4d4);
 }
+
+}  // extern "C"
+
+namespace {
+
+// 0x59e450-0x59e680's shape: not flagged; the staff of kind 5 present or not as asked; the most worn object's handle (+4) set; the
+// objects' average wear at least the bound at lowAt and (highAt not 0) at most the one at highAt: the weight at weightAt times it.
+s32 worn_objects(u8 *scoring, bool staff, u32 lowAt, u32 highAt, u32 weightAt) {
+    if (flagged())
+        return 0;
+    const s32 cleaners = Things_CountStaffOfKind(5);
+    if (staff ? cleaners == 0 : cleaners > 0)
+        return 0;
+    u16 handle;
+    s32 value;
+    const u16 most = *Things_MostKind3Flag1Of100Minus44(&handle, &value);
+    at<u16>(scoring, 4) = most;
+    if (!most)
+        return 0;
+    const s32 average = Things_AverageKind3Flag1Of100Minus44();
+    if (average < at<s32>(scoring, lowAt) || (highAt && average > at<s32>(scoring, highAt)))
+        return 0;
+    return (s32)(at<u32>(scoring, weightAt) * (u32)average);
+}
+
+// 0x59e730 / 0x59e790's shape: the analyser's ring 0 full and its average (a byte) below (or above) the bound: the weight.
+s32 ring_average(const u8 *scoring, bool above, u32 boundAt, u32 weightAt) {
+    if (!ParkAnalyser_RingFull(world_table(), nullptr, 0))
+        return 0;
+    const s32 average = ParkAnalyser_RingAverage(world_table(), nullptr, 0);
+    const s32 bound = at<s32>(scoring, boundAt);
+    return (above ? average > bound : average < bound) ? at<s32>(scoring, weightAt) : 0;
+}
+
+}  // namespace
+
+extern "C" {
+
+s32 __fastcall AdvisorScoring_WornObjectsNoStaff5(u8 *scoring) { return worn_objects(scoring, false, 0x2d0, 0x2e0, 0x2d4); }
+
+s32 __fastcall AdvisorScoring_WornObjectsStaff5(u8 *scoring) { return worn_objects(scoring, true, 0x2d8, 0x2e8, 0x2d4); }
+
+s32 __fastcall AdvisorScoring_VeryWornObjectsNoStaff5(u8 *scoring) { return worn_objects(scoring, false, 0x2e0, 0, 0x2e4); }
+
+s32 __fastcall AdvisorScoring_VeryWornObjectsStaff5(u8 *scoring) { return worn_objects(scoring, true, 0x2e8, 0, 0x2ec); }
+
+s32 __fastcall AdvisorScoring_RingAverageBelow(const u8 *scoring) { return ring_average(scoring, false, 0x2f0, 0x2f4); }
+
+s32 __fastcall AdvisorScoring_RingAverageAbove(const u8 *scoring) { return ring_average(scoring, true, 0x2f8, 0x2fc); }
 
 }  // extern "C"

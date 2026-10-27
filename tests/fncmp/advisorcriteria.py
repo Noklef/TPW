@@ -2,7 +2,9 @@
 # joint park (things, chains, definitions and control records, the analyser, the research lab), the scoring's bounds small (about the
 # counts the park can give: -1 to 5, the percentages and half counts about 30 and 100) or anything, its weights anything.
 # The criteria of 0x5a02f0-0x5a08b0 (Idle0 ... Share): see late_case(); 0x59f440 / 0x59f590 / 0x59f5e0 / 0x59fb10 (Bus, Stf1f8, Ppl19c,
-# StfE): late_case() and late2().
+# StfE): late_case() and late2(). The objects' wear criteria 0x59e450-0x59e680 (Worn ... VWorn5s) and the ring criteria 0x59e730 / 0x59e790
+# (RingLo, RingHi): see wear_case(). 0x59ca30 (Obj0w): the things' float +0x44 as for the wear criteria; 0x59cb40 / 0x59cbb0 (MapLo,
+# MapHi): the whole map (128 x 128 cells from G's +0x2d8, over the booths' first row) of types 1, 3, 9 and others, +0x2c 0 mostly.
 # usage: advisorcriteria.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Booth,No02,...)
 import os
 import struct
@@ -17,6 +19,8 @@ import parkenv  # noqa: E402
 
 # name: (address, the scoring's bounds: offset -> the values about them)
 PCT = [0, 25, 33, 50, 50, 66, 100, 100, 150, -1]
+WEAR = [0, 0, 1, 10, 30, 50, 70, 90, 99, 100, 101, -1, -50]   # (the objects' average wear, 100 less a byte: -155 to 100)
+RING = [0, 1, 2, 3, 5, 50, 100, 200, 255, 256, -1]
 CALLS = {'Booth': (0x59c8d0, {}), 'No02': (0x59c960, {}), 'Obj0': (0x59ca80, {}), 'Tal7': (0x59cd30, {}),
          'Low6': (0x59ce30, {0x10c: [0, 1, 2, 30, 100, -1]}), 'Share8': (0x59cea0, {0x114: PCT}), 'All8': (0x59cf50, {}),
          'Tal7b': (0x59d3b0, {}), 'Res0': (0x59da30, {}), 'C14': (0x59dbf0, {0x240: [0, 1, 2, 3, 4, 5, -1]}), 'Res1': (0x59dd40, {}), 'Res2': (0x59dfd0, {}),
@@ -27,7 +31,11 @@ CALLS = {'Booth': (0x59c8d0, {}), 'No02': (0x59c960, {}), 'Obj0': (0x59ca80, {})
          'Mood': (0x5a05f0, {}), 'Money': (0x5a0670, {}), 'One': (0x5a0780, {}), 'CtlLo': (0x5a07d0, {0x5fc: PCT, 0x604: PCT}),
          'CtlMid': (0x5a0820, {0x604: PCT, 0x60c: PCT}), 'CtlHi': (0x5a0870, {0x60c: PCT}), 'Share': (0x5a08b0, {0x614: PCT + [99]}),
          'Bus': (0x59f440, {0x410: [0, 1, 2, 5, -1]}), 'Stf1f8': (0x59f590, {0x42c: [0, 1, 2, 3, -1], 0x430: [0, 10, 50, 100, -1]}),
-         'Ppl19c': (0x59f5e0, {0x438: [0, 1, 2, 3, -1], 0x43c: [0, 10, 50, 100, -1]}), 'StfE': (0x59fb10, {0x4d0: [0, 1, 2, 3, -1]})}
+         'Ppl19c': (0x59f5e0, {0x438: [0, 1, 2, 3, -1], 0x43c: [0, 10, 50, 100, -1]}), 'StfE': (0x59fb10, {0x4d0: [0, 1, 2, 3, -1]}),
+         'Worn': (0x59e450, {0x2d0: WEAR, 0x2e0: WEAR}), 'Worn5s': (0x59e510, {0x2d8: WEAR, 0x2e8: WEAR}), 'VWorn': (0x59e5d0, {0x2e0: WEAR}),
+         'VWorn5s': (0x59e680, {0x2e8: WEAR}), 'RingLo': (0x59e730, {0x2f0: RING}), 'RingHi': (0x59e790, {0x2f8: RING}),
+         'Obj0w': (0x59ca30, {0xc0: [0, 1, 30, 50, 100, 255, 256, -1]}), 'MapLo': (0x59cb40, {0xd8: PCT}), 'MapHi': (0x59cbb0, {0xe0: PCT})}
+WORN = {'Worn', 'Worn5s', 'VWorn', 'VWorn5s'}
 IDLE = {'Idle0': 0, 'Idle1': 1, 'Idle2': 2, 'K3F1': None, 'K3F2': None}
 LATE = {'Idle0', 'Idle1', 'Idle2', 'K3F1', 'K3F2', 'Tal0', 'TotTh', 'Mood', 'Money', 'One', 'CtlLo', 'CtlMid', 'CtlHi', 'Share',
         'Bus', 'Stf1f8', 'Ppl19c', 'StfE'}
@@ -43,10 +51,13 @@ B = Bench([(0x412e60, 0x412f00), (0x41a960, 0x41a980), (0x41a990, 0x41a9c0), (0x
            (0x4ca9c0, 0x4caa6e), (0x4d09f0, 0x4d09f7), (0x4e0440, 0x4e044b), (0x5195d0, 0x51960d), (0x5aef50, 0x5af0dc),
            (0x5af7f0, 0x5af7fd), (0x5b1680, 0x5b16a6), (0x5b2fd0, 0x5b2feb), (0x5b3110, 0x5b312b), (0x67a830, 0x67a860),
            (0x5a02f0, 0x5a0520), (0x5a05a0, 0x5a06c0), (0x5a0780, 0x5a07b7), (0x5a07d0, 0x5a0930),
-           (0x4c7cc0, 0x4c7da9), (0x519450, 0x51948d), (0x59f440, 0x59f4ea), (0x59f590, 0x59f62c)])
-NONE = {'Obj0': (4,), 'Tal7': (7,), 'Low6': (6,), 'Share8': (8,), 'All8': (8,), 'Total': (4, 5, 6, 7, 8)}   # (the staff a criterion asks to be absent)
-NEED = {'Tal7b': 7, 'Res0': 8, 'C14': 8, 'Res1': 8, 'Res2': 8, 'Res3': 8}   # (the kind a criterion asks to be present)
-UNFLAGGED = {'Tal7', 'Low6', 'Share8', 'All8', 'Total', 'Idle0', 'Mood', 'CtlLo', 'CtlMid', 'CtlHi', 'Share'}
+           (0x4c7cc0, 0x4c7da9), (0x519450, 0x51948d), (0x59f440, 0x59f4ea), (0x59f590, 0x59f62c),
+           (0x59e450, 0x59e7e5), (0x4ca160, 0x4ca214), (0x4ca220, 0x4ca30c), (0x4c9830, 0x4c9912), (0x4c9920, 0x4c9956),
+           (0x59ca30, 0x59ca74), (0x59cb40, 0x59cc16), (0x4ca3a0, 0x4ca448), (0x4ccdf0, 0x4ccea6)])
+NONE = {'Obj0': (4,), 'Tal7': (7,), 'Low6': (6,), 'Share8': (8,), 'All8': (8,), 'Total': (4, 5, 6, 7, 8), 'Worn': (5,), 'VWorn': (5,),
+        'Obj0w': (4,), 'MapLo': (5,), 'MapHi': (5,)}   # (the staff a criterion asks to be absent)
+NEED = {'Tal7b': 7, 'Res0': 8, 'C14': 8, 'Res1': 8, 'Res2': 8, 'Res3': 8, 'Worn5s': 5, 'VWorn5s': 5}   # (the kind a criterion asks to be present)
+UNFLAGGED = {'Tal7', 'Low6', 'Share8', 'All8', 'Total', 'Idle0', 'Mood', 'CtlLo', 'CtlMid', 'CtlHi', 'Share', 'Worn', 'Worn5s', 'VWorn', 'VWorn5s', 'MapLo', 'MapHi'}
 SCORING = RAM + 0x50000
 MONEY, SAVE, THEME, MSLOT = RAM + 0x58000, RAM + 0x60000, RAM + 0x60100, 14
 ENTRY, ESLOT = RAM + 0x58400, 15   # (StfE's game table entry for G's +0x1da718)
@@ -63,6 +74,8 @@ def case(r):
             tuple(k for k in kinds if k not in NONE.get(name, ()))
     if deep and name in LATE:
         kinds = kinds + (3, 3, 3, 1, 1, 1, 1, 1)   # (more objects and people to share out)
+    if deep and name in WORN:
+        kinds = kinds + (3, 3, 3)
     regions, _info = parkenv.park(r, kinds=kinds, flag=0 if deep and name in UNFLAGGED else None, rich=deep)
     s = bytearray(r.bytes(0x620 if name in LATE else 0x4d0))
     for off in range(0xa0, 0x4d0, 4):   # (most dwords small, so a bound lands about the counts; the weights small or anything)
@@ -74,7 +87,45 @@ def case(r):
     regions[SCORING] = s
     if name in LATE:
         late_case(r, regions, _info, name)
+    if name in WORN or name in ('RingLo', 'RingHi', 'Obj0w', 'MapLo', 'MapHi'):
+        wear_case(r, regions, _info, name)
     return Call(address, [SCORING], regions, conv='t', ret='a')
+
+
+def wear_case(r, regions, info, name):
+    """The wear criteria: the objects' (kind 3) byte +0x32 bit 0 set mostly and their float +0x44 0-100 mostly (else past 255, negative, NaN);
+    the ring criteria: the analyser's ring 0 (+0x216fc) full mostly (its size +0x38 or cursor +0x34 about 50, wrapped +0x3c or not), its
+    bytes any, small or all one value, the bound about them."""
+    if name in ('MapLo', 'MapHi'):
+        empty = r.random() < 0.1
+        types = [2, 7, 0x1e, 0, 0xa] if empty else [2, 7, 0x1e, 0, 1, 3, 9, 0xa]
+        cells = bytearray(regions[parkenv.BOOTHS]) + bytearray(r.bytes(0x44 + 0x44 * 0x4000 - len(regions[parkenv.BOOTHS])))
+        for c in range(0x4000):
+            put(cells, 0x44 * (c + 1) + 8, 'I', r.choice(types) if r.random() < 0.9 else r.getrandbits(32))
+            if empty or r.random() < 0.7:
+                put(cells, 0x44 * (c + 1) + 0x2c, 'I', 0)
+        regions[parkenv.BOOTHS] = cells
+        return
+    if name in WORN or name == 'Obj0w':
+        pool = bytearray(regions[POOL])
+        for i in range(len(info['things'])):
+            if pool[THING * i + 2] == 3 or name == 'Obj0w':
+                pool[THING * i + 0x32] = r.choice([1, 1, 1, 3, 0, 2, r.randrange(256)])
+                put(pool, THING * i + 0x44, 'f', r.choice([0.0, 10.0, 50.5, 99.9, 100.0, r.uniform(0, 100), r.uniform(0, 100), 300.7, -5.5,
+                                                           float('nan')]))
+        regions[POOL] = pool
+        return
+    ring = bytearray(r.bytes(0x40))
+    put(ring, 0x38, 'i', r.choice([50, 50, 51, 60, 49, 0, -1, r.randrange(-3, 60)]))
+    put(ring, 0x34, 'i', r.choice([49, 49, 48, 50, 10, -1, r.randrange(-3, 60)]))
+    ring[0x3c] = r.choice([0, 1, 1, 0x80])
+    kind = r.choice(['any', 'small', 'one'])
+    v = r.randrange(256)
+    ring[1:0x34] = r.bytes(0x33) if kind == 'any' else bytes(r.randrange(8) for _ in range(0x33)) if kind == 'small' else bytes([v]) * 0x33
+    regions[parkenv.ANALYSER + 0x216fc] = ring
+    if kind == 'one' and r.random() < 0.5:
+        bound = 0x2f0 if name == 'RingLo' else 0x2f8
+        regions[SCORING] = put(bytearray(regions[SCORING]), bound, 'i', v + r.choice([-1, 0, 1]))
 
 
 def late_case(r, regions, info, name):
