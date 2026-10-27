@@ -512,7 +512,7 @@ add_library(tpw_hook SHARED
 set_target_properties(tpw_hook PROPERTIES OUTPUT_NAME dinput)
 target_link_libraries(tpw_hook PRIVATE tpw_game)
 
-# Test tooling (tpw.log, the startup trace, the FPU watcher): NOT part of the decompilation.
+# Test tooling (tpw.log, the startup trace, the FPU watcher, the profiler): NOT part of the decompilation.
 # It lives in src/testing, links into the hook DLL only, and is never visible to tpw_game.
 # OFF builds the DLL as the reimplementation alone. See .docs/06-in-game-testing.md.
 option(TPW_TEST_TOOLING "Build the in-game test tooling into the hook DLL" ON)
@@ -522,6 +522,7 @@ if(TPW_TEST_TOOLING)
         src/testing/log.cpp
         src/testing/trace.cpp
         src/testing/fpu_watch.cpp
+        src/testing/profiler.cpp
     )
     target_link_libraries(tpw_hook PRIVATE tpw_testing)
     target_compile_definitions(tpw_hook PRIVATE TPW_TEST_TOOLING)
