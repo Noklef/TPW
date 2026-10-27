@@ -2,8 +2,9 @@
 # the first) against the originals. The sound globals (on
 # 0x802bc8, started 0x802bd4 each 0 or not, the manager 0x802bcc) and the category gSndCatUi 0x803a2c; the manager's vtable +8 a recorder
 # logging the command as a hash of its 7 dwords (its result now and then set); the sound 0 or not, the position and range ints small,
-# large (rounded as floats) or negative.
-# usage: soundplay.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=PlayAt,PlayAtRange,UiPlay,UiPlay1d,KidPlay,KidPlayGraded,SpritePlay)
+# large (rounded as floats) or negative. StartMusic (0x51e730): the music [0x803aa0] and cat_music [0x803a44] random, the manager's engine
+# +4 (Sound_SetParam's SoundManager_Call3) its slot 3 a recorder of three (its result now and then set).
+# usage: soundplay.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=PlayAt,PlayAtRange,UiPlay,UiPlay1d,KidPlay,KidPlayGraded,SpritePlay,StartMusic)
 import os
 import struct
 import sys
@@ -12,10 +13,12 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import LOG, RAM, Bench, Call, blob, fb, log_region, put, set_return, vtable  # noqa: E402
 
 CALLS = {'PlayAt': 0x51bfc0, 'PlayAtRange': 0x51c130, 'UiPlay': 0x485aa0, 'UiPlay1d': 0x486ae0, 'KidPlay': 0x551560,
-         'KidPlayGraded': 0x551320, 'SpritePlay': 0x4faa00}
+         'KidPlayGraded': 0x551320, 'SpritePlay': 0x4faa00, 'StartMusic': 0x51e730}
 B = Bench([(0x51bfc0, 0x51c048), (0x51c130, 0x51c1b8), (0x485aa0, 0x485abd), (0x486ae0, 0x486af9), (0x551320, 0x551560),
-           (0x551560, 0x551600), (0x4faa00, 0x4faa5b), (0x4754e0, 0x475560)])
+           (0x551560, 0x551600), (0x4faa00, 0x4faa5b), (0x4754e0, 0x475560), (0x51e730, 0x51e765), (0x51bc40, 0x51bc70),
+           (0x6b5b80, 0x6b5b9a)])
 MANAGER, VT, SCRIPT, SCRIPTS, SPRITE = RAM + 0x100, RAM + 0x200, RAM + 0x400, RAM + 0x600, RAM + 0x700
+ENGINE, EVT = RAM + 0x800, RAM + 0x900
 
 
 def coord(r):
@@ -35,6 +38,15 @@ def case(r):
     regions = {LOG: log, 0x802bc0: g, MANAGER: struct.pack('<I', VT) + r.bytes(0xc), VT: vtable({2: 2}, 4),
                0x803a2c: r.bytes(4)}
     sound = r.choice([0, 1, 0x1d, r.getrandbits(16), r.getrandbits(32)])
+    if op == 'StartMusic':
+        regions[MANAGER] = struct.pack('<II', VT, ENGINE) + r.bytes(8)
+        regions[ENGINE] = struct.pack('<I', EVT) + r.bytes(0x30)
+        regions[EVT] = vtable({3: 3})
+        if r.random() < 0.6:
+            set_return(log, 3, r.getrandbits(32))
+        regions[0x803aa0] = r.choice([bytes(4), r.bytes(4)])
+        regions[0x803a44] = r.bytes(4)
+        return Call(CALLS[op], [], regions, ret='v')
     if op == 'UiPlay':
         return Call(CALLS[op], [sound], regions, ret='a')
     if op == 'UiPlay1d':
