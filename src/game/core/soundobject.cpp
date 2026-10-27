@@ -103,4 +103,11 @@ u32 *__fastcall SoundObject_SetPlacement(u8 *object, void *, u32 *out, const u32
     return out;
 }
 
+u32 __fastcall SoundObject_ResolvePath(u8 *object, void *, const char *path, u8 *string) {
+    const auto slash = [](char c) { return c == '\\' || c == '/'; };
+    if ((path[1] == ':' && slash(path[2])) || (slash(path[0]) && slash(path[1]))) return vcall<u32>(string, 0x14, path);
+    vcall<u32>(string, 0x18, *reinterpret_cast<u8 **>(object + 0x24) + 0x30);
+    return vcall<u32>(string, 0x20, path);
+}
+
 }  // extern "C"
