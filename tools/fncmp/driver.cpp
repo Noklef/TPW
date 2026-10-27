@@ -1151,8 +1151,10 @@ int main(int argc, char **argv) {
     // hooks them (their own benches are texdirs.py and objmodel.py).
     static const AnimatorMeshEnv animatorMeshEnv = {reinterpret_cast<void(__cdecl *)(u8 *, u8 *)>(&stub_cdecl_log2), reinterpret_cast<void(__cdecl *)(u8 *)>(&stub_cdecl_log)};
     Animator_SetMeshEnv(&animatorMeshEnv);
-    // 0x6acd60 (the text formatter, library code): stub_cdecl_log4, as tests/fncmp/objectdefs.py hooks it.
-    static const TextFormatEnv textFormat = {reinterpret_cast<u32(__cdecl *)(void *, u16 *, u32, u32, ...)>(&stub_cdecl_log4)};
+    // 0x6acd60 and 0x6acca0 (the text formatters, wide and narrow, library code): stub_cdecl_log4, as tests/fncmp/objectdefs.py and
+    // dialog7cb2b8.py hook them (the narrow buffer given the stub's wide digits all the same).
+    static const TextFormatEnv textFormat = {reinterpret_cast<u32(__cdecl *)(void *, u16 *, u32, u32, ...)>(&stub_cdecl_log4),
+                                             reinterpret_cast<u32(__cdecl *)(void *, u8 *, u32, u32, ...)>(&stub_cdecl_log4)};
     TextFormat_SetEnv(&textFormat);
     // The 8-bit sprite's hand-written blitter (0x6e73c0, cseg: not in the listing): stub_cdecl_log4, as tests/fncmp/draw8.py hooks it; the rest the game's.
     static const DrawEnv draw = {reinterpret_cast<DrawContext *>((uintptr_t)0x00fa76b8), reinterpret_cast<const u8 *>((uintptr_t)0x00778108),
