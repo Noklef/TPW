@@ -441,7 +441,7 @@ def _global_alloc(e):  # stdcall (flags, size)
 
 
 VSTUBS = STUBS + 0x1000  # the recorders: slot k (0-31) with n (0-15) stack arguments at VSTUBS + 0x400 * n + 0x20 * k
-LOG = STUBS + 0x100000  # their log (the case maps it, see log_region()): a count, then 12 dwords an entry (k, n, this, up to 7 arguments), room for 80
+LOG = STUBS + 0x100000  # their log (the case maps it, see log_region()): a count, then 12 dwords an entry (k, n, this, up to 7 arguments), room for 40
 LOG_ENTRY = 12
 LOG_ENTRIES = 40  # (the room: 4 + 48 * 40 bytes)
 LOG_RETURNS = 0x800  # from here an override for each slot: a flag and a value (flag 2: the value is an argument's index, see echo(); 3: see fail_after();

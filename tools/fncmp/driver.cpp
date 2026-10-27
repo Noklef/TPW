@@ -365,7 +365,7 @@ const WrapSourcesEnv kWrapSourcesEnv = {&heap_alloc, &heap_free, reinterpret_cas
                                         reinterpret_cast<ZlibCodec *>((uintptr_t)0x00fa75fc)};
 
 // The recorders (tools/fncmp.py recorder(k, n)): thunks at kStubs + 0x1000 + 0x400 * n + 0x20 * k, thiscall with n stack arguments (popped by the thunk), that
-// log (k, n, this, the arguments) at kLog and return a hash of them, ECX left as this. The log is a count, then 12 dwords an entry; room for 80. An
+// log (k, n, this, the arguments) at kLog and return a hash of them, ECX left as this. The log is a count, then 12 dwords an entry; room for 40 (calls past them neither logged nor counted). An
 // entry holds the first seven arguments and, for more, a hash of the rest.
 const u32 kLog = kStubs + 0x100000;  // (the case maps it)
 constexpr u32 recorder(u32 k, u32 n) { return kStubs + 0x1000 + 0x400 * n + 0x20 * k; }
@@ -1094,9 +1094,9 @@ int main(int argc, char **argv) {
         const auto t = [](u32 k, u32 n) { return Rec{(uintptr_t)recorder(k, n)}; };
         static const MapClickEnv mapClick = {
             c(30, 3), c(12, 0), c(15, 1), c(16, 1), c(13, 4), c(23, 2), c(31, 3), c(17, 6), c(5, 1), c(8, 3), c(14, 4), c(6, 4), c(15, 4),
-            c(24, 2), c(25, 2), c(17, 1), c(18, 1), c(16, 4), c(0, 5), c(19, 1),
-            c(10, 6), c(1, 5), c(26, 2), c(2, 2), c(20, 1), c(3, 3), c(4, 4), c(11, 3), c(12, 3), c(27, 2), c(28, 2), c(21, 1), c(13, 0),
-            c(7, 5), c(14, 0), c(22, 1), c(29, 2), c(9, 1),
+            c(21, 2), c(17, 2), c(17, 1), c(18, 1), c(16, 4), c(0, 5), c(19, 1),
+            c(10, 6), c(1, 5), c(26, 2), c(2, 2), c(10, 1), c(3, 3), c(4, 4), c(11, 3), c(12, 3), c(27, 2), c(28, 2), c(21, 1), c(13, 0),
+            c(7, 5), c(14, 0), c(11, 1), c(29, 2), c(9, 1),
             t(26, 0), t(27, 0), t(16, 0), t(28, 0), t(20, 1), t(30, 2), t(22, 2), t(24, 1), t(25, 1), t(12, 0), t(13, 0), t(14, 0), t(15, 0),
             t(18, 3), t(19, 2), t(31, 3), t(31, 4), t(29, 0), t(30, 1)};
         MapClick_SetEnv(&mapClick);
