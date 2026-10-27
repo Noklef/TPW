@@ -20,8 +20,8 @@ from fncmp import (HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, blob, echo, fb, fi
 CALLS = {'apply': 0x6b8b40, 'settings': 0x6b7d70, 'fn260': 0x6b5e40, 'eax0b': 0x6b7910, 'eaxall': 0x6b7970, 'occlusion': 0x6b7b60,
          'position': 0x6b79d0, 'fn278': 0x6b5e60, 'mode': 0x6b90d0, 'placement': 0x6b9930, 'voices': 0x6b84f0, 'b4c': 0x6b57b0, 'b3c': 0x6b5720,
          'b54': 0x6b5810, 'objplace': 0x6b8b60, 'voiceocc': 0x6b7fa0, 'clearocc': 0x6b7a70, 'pick': 0x6b9a60, 'play': 0x6b9ab0,
-         'setocc': 0x6b8180, 'addocc': 0x6b8230}
-SETTERS = ('occlusion', 'voiceocc', 'clearocc', 'position', 'fn278', 'mode', 'placement', 'voices', 'b4c', 'b3c', 'b54', 'objplace', 'setocc', 'addocc')
+         'setocc': 0x6b8180, 'addocc': 0x6b8230, 'remocc': 0x6b82c0, 'listremove': 0x6c4ba0}
+SETTERS = ('occlusion', 'voiceocc', 'clearocc', 'position', 'fn278', 'mode', 'placement', 'voices', 'b4c', 'b3c', 'b54', 'objplace', 'setocc', 'addocc', 'remocc', 'listremove')
 B = Bench([(0x6b8b40, 0x6b8b60), (0x6b7d70, 0x6b7e5b), (0x6c4760, 0x6c47a3), (0x6b5e40, 0x6b5e59), (0x6b7910, 0x6b796b),
            (0x6b7970, 0x6b79cb), (0x6c4670, 0x6c46a7), (0x6c46b0, 0x6c475a), (0x6b7b60, 0x6b7d6e), (0x6b79d0, 0x6b7a6b), (0x6b5e60, 0x6b5fb4),
            (0x6c4c80, 0x6c4eff), (0x6c4f00, 0x6c4f54), (0x6b8330, 0x6b8358), (0x6bb7a0, 0x6bb7bd), (0x6bb7c0, 0x6bb856), (0x6babc0, 0x6bac04),
@@ -30,11 +30,12 @@ B = Bench([(0x6b8b40, 0x6b8b60), (0x6b7d70, 0x6b7e5b), (0x6c4760, 0x6c47a3), (0x
            (0x6b9c50, 0x6b9c6a), (0x6b9c70, 0x6b9c82), (0x6b9c90, 0x6b9ca9), (0x6b9cf0, 0x6b9d02), (0x6b9d30, 0x6b9d43), (0x6b6140, 0x6b6163),
            (0x6b8b60, 0x6b8c63), (0x6b7fa0, 0x6b814e), (0x6b7a70, 0x6b7b5f), (0x6b9a60, 0x6b9aa1), (0x6b9ab0, 0x6b9b26),
            (0x6b8180, 0x6b822d), (0x6b8230, 0x6b82b1), (0x6c49b0, 0x6c4b93), (0x6c4fd0, 0x6c4fe3), (0x5e2a30, 0x5e2a80), (0x5e2a80, 0x5e2b80),
-           (0x67acb0, 0x67acb1)])
+           (0x67acb0, 0x67acb1), (0x6b82c0, 0x6b832e), (0x6c4ba0, 0x6c4c1e)])
 CHAN, OUT, FUNCTOR, FVT, REC, INFO, SRC, SVT, EAXB, KSET, KVT = (RAM + 0x100 * i for i in range(11))
 GLOBAL = 0xfb2058
 VOICES, VVT, SND, SNDVT, POOL, NODES, OCCS, VEC, VEC2, OBJECT, MIXER, COMMAND, P1, P2, P3 = (RAM + 0x1000 + 0x200 * i for i in range(15))
 PCHAN, PVT, PREC, PVOICE = (RAM + 0x5000 + 0x100 * i for i in range(4))   # (pick / play)
+PNODE = RAM + 0x5400   # (the occluder removes' node pointer)
 OCCLUDERS, SHIFT, GLOBAL2708 = 0xfb2038, 0x782db8, 0xfb2708   # (the occluders' list, the voices' count at 0xfb2058 its +0x20)
 IMPORTS = {'InterlockedDecrement': (41, 0x6fd12c, 1, 0, 0), 'EnterCriticalSection': (42, 0x6fd140, 1, 0, 0),
            'LeaveCriticalSection': (43, 0x6fd130, 1, 0, 0)}
@@ -234,8 +235,9 @@ def voices_case(r, log, name):
         if r.random() < 0.15:
             struct.pack_into('<I', occluders, 0x14, r.choice([0x7fc00000, 0x7f800001]))
         return Call(0x6b8180, [CHAN, OUT, r.getrandbits(24) << 8 | on, radius], regions, conv='t', ret='a')
-    if name == 'addocc':   # (the occluders' list rebuilt with the list's own nodes {occluder, next, prev} and tail; the new one's radius
-        # equal to one there, between, NaN or random; the switch on or off; the EAX buffer or the source's slot 0x13)
+    if name in ('addocc', 'remocc', 'listremove'):   # (the occluders' list rebuilt with the list's own nodes {occluder, next, prev} and
+        # tail; the switch on or off; the EAX buffer or the source's slot 0x13. The add: the new one's radius equal to one there, between,
+        # NaN or random. The removes: one of the nodes (its occluder null now and then), or none; the count 0 now and then)
         m = r.choice([0, 1, 2, 3])
         radii = sorted((float(r.randint(0, 6)) for _ in range(m)), reverse=True)
         occs = b''.join(struct.pack('<4I', ints(), ints(), r.getrandbits(32), fb(radii[i])) for i in range(m)) or bytes(0x10)
@@ -244,6 +246,14 @@ def voices_case(r, log, name):
             struct.pack_into('<3I', nodes, 0xc * i, OCCS + 0x10 * i, NODES + 0xc * (i + 1) if i + 1 < m else 0, NODES + 0xc * (i - 1) if i else 0)
         struct.pack_into('<3I', occluders, 4, NODES if m else 0, NODES + 0xc * (m - 1) if m else 0, m)
         occluders[0x18] = r.choice([0, 1, r.getrandbits(8)])
+        if name != 'addocc':
+            pick = NODES + 0xc * r.randrange(m) if m and r.random() < 0.9 else r.choice([0, 0, NODES])
+            if pick and r.random() < 0.15:
+                struct.pack_into('<I', nodes, pick - NODES, 0)
+            if r.random() < 0.1:
+                struct.pack_into('<I', occluders, 0xc, 0)
+            regions.update({OCCS: occs, NODES: nodes, HEAP: heap(), PNODE: struct.pack('<I', pick)})
+            return Call(CALLS[name], [OCCLUDERS if name == 'listremove' else CHAN, OUT, PNODE], regions, conv='t', ret='a')
         radius = r.choice([fb(float(r.randint(0, 7))), fb(radii[0]) if m else 0, fb(2.5), 0x7fc00000, r.getrandbits(32)])
         regions.update({OCCS: occs, NODES: nodes, HEAP: heap(fail=r.choice([0, 0, 0, 1]))})
         return Call(0x6b8230, [CHAN, ints(), r.getrandbits(32), ints(), radius], regions, conv='t', ret='a')

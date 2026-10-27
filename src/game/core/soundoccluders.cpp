@@ -4,6 +4,7 @@
 
 #include "../math/vector.h"
 #include "../math/x87.h"
+#include "gameheap.h"
 
 namespace {
 
@@ -55,6 +56,34 @@ u32 __fastcall SoundOccluders_Occlusion(u8 *list, void *, const float *from, con
     }
     *out = largest;
     return largest == 0.0f || largest != largest ? 0 : 1;
+}
+
+u32 *__fastcall SoundOccluders_Remove(u8 *list, void *, u32 *out, u8 **node) {
+    if (!at<u32>(list, 0xc)) {
+        *out = 0xffffffff;
+        return out;
+    }
+    u8 *const n = *node;
+    if (n == at<u8 *>(list, 4))
+        at<u8 *>(list, 4) = at<u8 *>(n, 4);
+    else
+        at<u8 *>(at<u8 *>(n, 8), 4) = at<u8 *>(n, 4);
+    if (n == at<u8 *>(list, 8))
+        at<u8 *>(list, 8) = at<u8 *>(n, 8);
+    else
+        at<u8 *>(at<u8 *>(n, 4), 8) = at<u8 *>(n, 8);
+    const u32 count = at<u32>(list, 0xc) - 1;
+    u8 *const occluder = at<u8 *>(n, 0);
+    at<u32>(list, 0xc) = count;
+    GameHeap_Free(n);
+    if (!occluder) {
+        *out = 0xffffffff;
+        return out;
+    }
+    GameHeap_Free(occluder);
+    *node = nullptr;
+    *out = 0;
+    return out;
 }
 
 }  // extern "C"

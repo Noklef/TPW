@@ -353,4 +353,19 @@ u8 *__fastcall SoundChannel_AddOccluder(u8 *channel, void *, u32 x, u32 y, u32 z
     return node;
 }
 
+u32 *__fastcall SoundChannel_RemoveOccluder(u8 *channel, void *, u32 *out, u8 **node) {
+    if (*node) {
+        const u8 eax = at<u32>(channel, 0x20) ? 1 : vcall<u8>(at<u8 *>(channel, 0x18), 0x4c);
+        if (eax) {
+            u32 status;
+            SoundOccluders_Remove(reinterpret_cast<u8 *>(static_cast<uintptr_t>(0x00fb2038)), nullptr, &status, node);
+            if (global<u8>(0xfb2050)) SoundChannel_UpdateOcclusion(channel, nullptr, eax);
+            *out = status;
+            return out;
+        }
+    }
+    *out = 0;
+    return out;
+}
+
 }  // extern "C"
