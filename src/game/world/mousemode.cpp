@@ -35,15 +35,16 @@ const MouseModeEnv *g_env = &kGameEnv;
 
 void MouseModes_SetEnv(const MouseModeEnv *env) { g_env = env ? env : &kGameEnv; }
 
-void MouseModes_EnsureHolder() {
+extern "C" {
+
+u8 *__cdecl MouseModes_EnsureHolder() {
     u8 *&holder = *reinterpret_cast<u8 **>(0x007b05e8);
-    if (holder) return;
+    if (holder) return holder;
     u8 *const block = static_cast<u8 *>(GameHeap_Alloc(1));
     if (block) MouseModeHolder_Ctor(block);
     holder = block;
+    return block;
 }
-
-extern "C" {
 
 u8 *__fastcall MouseModeHolder_Ctor(u8 *holder) {
     u8 *const mode = static_cast<u8 *>(GameHeap_Alloc(8));

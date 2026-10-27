@@ -1,10 +1,12 @@
 #include "flyingrides.h"
 
 #include <cstdint>
+#include <cstring>
 
 #include "objectdefs.h"
 #include "../coaster/registry.h"
 #include "../core/initializers.h"
+#include "../files/file.h"
 #include "../math/matrix.h"
 #include "../math/x87.h"
 #include "../model/parts.h"
@@ -385,6 +387,24 @@ void __cdecl FlyingRides_LerpSlots(float t) {
             const s32 vx = (s32)((u32)(s32)(long long)px << 10);
             ParticleSystem_SetVectorA(system, vx, vy, vz);
         }
+    }
+}
+
+void __cdecl FlyingRides_Init() {
+    u32 *const flag = reinterpret_cast<u32 *>(0x008791ec);
+    if (*flag)
+        return;
+    *flag = 1;
+    *reinterpret_cast<u32 *>(0x008791f0) = 1;
+    std::memset(reinterpret_cast<void *>(0x008791f8), 0, 0x64 * 4);
+    u32 *volatile *const sines = reinterpret_cast<u32 *volatile *>(0x008791c8);
+    *sines = static_cast<u32 *>(Mem_GlobalAlloc(0x4000));
+    const double step = *reinterpret_cast<const double *>(0x00701090), scale = *reinterpret_cast<const double *>(0x00701098),
+                 half = *reinterpret_cast<const double *>(0x007010a0);
+    for (s32 i = 0, j = 0; i < 0x2000; i += 2, ++j) {
+        const X87Reg angle = X87_MulIntDouble(i, step);                                 // fild; fmul qword [0x701090]
+        const X87Reg value = X87Reg(half) - X87Reg(X87_Sin(angle.v)) * X87Reg(scale);  // fsin; fmul [0x701098]; fsubr [0x7010a0]
+        (*sines)[j] = (u32)(long long)value.v;                                          // __ftol, low half
     }
 }
 }

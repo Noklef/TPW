@@ -424,6 +424,11 @@ void __fastcall Class702d78_Dtor(u8 *object) {
     Class7029d0_Release(object);
 }
 
+void __fastcall Class7029f0_Dtor(u8 *object) {
+    at<u32>(object, 0) = 0x007029f0;
+    DrainList(object, 0x18);
+}
+
 void __fastcall Class702ec0_Dtor(u8 *object) {
     *reinterpret_cast<u32 *>(object) = 0x00702ec0;
     Class702cb0_Dtor(object);

@@ -120,6 +120,10 @@ void __fastcall WaveletCodec_DecodeColourOrGrey(u8 *face, void *, u32 width, u32
 // dwords (unchecked: none faults) and +0x40 = +0x44 = 0x10000 (the branches for a block already there are dead). Returns the codec.
 u8 *__fastcall WaveletCodec_Construct(u8 *codec, void *, u32 mostDerived);
 
+// 0x5985c0 (cdecl): Mem_Alloc 0x58 and WaveletCodec_Construct (most derived) on it; null when the allocation fails, else the codec's
+// interface: the codec + 4 + the offset at +4 of the table its +4 points to (the virtual base's displacement).
+u8 *__cdecl WaveletCodec_Create();
+
 // 0x5935a0 (thiscall on the codec; width, height, the luma plane's stride in floats, the BGR pixels; pops 0x10): the planes at +0x2c (Y),
 // +0x1c (Cb) and +0xc (Cr, read at its distance from Cb rounded down to a dword) to 3-byte pixels. Its strides and the factors 1.772,
 // 1.402, 0.344136, 0.714136 and 1.5 * 2^23 + 128 go to globals at 0xfb2768-0xfb27ac first. Each 2 x 2 block (half the width by half the

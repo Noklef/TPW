@@ -3,7 +3,7 @@
 # (+0x2c) holds no, one or two nodes, and the game's String / WString code with the heap; 0x702938's floats (times 1.01, x87) come from r.f(). 0x702940's
 # narrow strings go through String_AssignFromWide: WideCharToMultiByte is a recorder (as in wideconv.py) answering a size and writing a text,
 # GlobalAlloc / GlobalFree the heap stubs. The empty constructor (0x5bdcd0) runs over random bytes; the assignment (0x5bdfd0) between two built items
-# (strings of up to 24 units), now and then the item itself. The owner's loads (0x5bc940, 0x5bd1b0, 0x5bd5f0, 0x5bda40) get 0-3 records (now and then a
+# (strings of up to 24 units), now and then the item itself. The owner's loads (0x5bc940, 0x5bc9f0, 0x5bd1b0, 0x5bd5f0, 0x5bda40) get 0-3 records (now and then a
 # negative count) and a heap whose allocations now and then fail (an item's: none made; a node's: both write through the null).
 # usage: items.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
@@ -17,11 +17,11 @@ import gamestring  # noqa: E402
 from fncmp import IMPORT_TABLE, LOG, Bench, Call, HEAP, RAM, fill, global_heap, heap, import_table, log_region, put, set_return  # noqa: E402
 
 # kind: (constructor, record size, the record's wide text pointers, its narrow ones, the owner's load, the item's size)
-KINDS = {'938': (0x5bdac0, 0x30, [4, 8, 0x1c], [], 0x5bc940, 0x68), '93c': (0x5bde30, 0x66, [4, 8, 0xc, 0x4c], [0x44], None, 0xc0),
+KINDS = {'938': (0x5bdac0, 0x30, [4, 8, 0x1c], [], 0x5bc940, 0x68), '93c': (0x5bde30, 0x66, [4, 8, 0xc, 0x4c], [0x44], 0x5bc9f0, 0xc0),
          '940': (0x5be1c0, 0x10, [4, 8, 0xc], [], 0x5bd1b0, 0x48), '944': (0x5be3e0, 0x26, [8, 0xc, 0x16, 0x1a, 0x22], [], 0x5bd5f0, 0x80),
          '948': (0x5be610, 0x34, [4, 8, 0x24], [], 0x5bda40, 0x6c)}
 OPS_ALL = ['C' + k for k in KINDS] + ['Add' + k for k in KINDS if KINDS[k][4]] + ['Empty', 'Assign']
-B = Bench([(0x5bc940, 0x5bc9c0), (0x5bd1b0, 0x5bd230), (0x5bd5f0, 0x5bd670), (0x5bda40, 0x5bdbf0), (0x5bdcd0, 0x5bde10), (0x5bde30, 0x5be0e0),
+B = Bench([(0x5bc940, 0x5bc9c0), (0x5bc9f0, 0x5bca67), (0x5bd1b0, 0x5bd230), (0x5bd5f0, 0x5bd670), (0x5bda40, 0x5bdbf0), (0x5bdcd0, 0x5bde10), (0x5bde30, 0x5be0e0),
            (0x5be1c0, 0x5be300), (0x5be3e0, 0x5be510), (0x5be610, 0x5be730), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000), (0x424db0, 0x424e6e),
            (0x5f5660, 0x5f5690)])
 ITEM, OTHER, OWNER, LIST, NODES, RECORDS, TEXTS, ARRAY, BLOCKS = (RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x1000, RAM + 0x2000,

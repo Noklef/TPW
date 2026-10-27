@@ -38,6 +38,10 @@ u32 __cdecl Animator_Sleep(u8 *animator);
 // result ignored); the count at +0x34 of the owner (the holder at +8, else itself) raised and the part stored at +0x1c.
 void __cdecl Holder_Create(u8 *holder);
 
+// 0x46dd50 (cdecl; the holder; name unconfirmed): as Holder_Create, but the part is stored at +0x20, before its load, and no count is
+// raised.
+void __cdecl Holder_CreateAt20(u8 *holder);
+
 // 0x45bda0 (cdecl; holder, matrix; name unconfirmed): the holder's part (+0x1c, unadjusted) gets the matrix as its first
 // (ObjModel_SetMatrices with 1).
 void __cdecl Holder_SetMatrix(u8 *holder, const u32 *matrix);

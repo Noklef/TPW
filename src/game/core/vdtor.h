@@ -101,6 +101,11 @@ void __fastcall Class702cb0_Dtor(u8 *object);
 
 void __fastcall Class702d78_Dtor(u8 *object);
 
+// 0x5d5840 (thiscall; the class of the object [0xf82884] points to, its constructor 0x5d5770; name unconfirmed): vtable pointer 0x7029f0 and
+// the list at +0x18 drained as Class702d78_Dtor's (each node unlinked from the front and freed, its object deleted through slot 0 with 1; then
+// the list deleted the same way and +0x18 = 0). No base is released.
+void __fastcall Class7029f0_Dtor(u8 *object);
+
 // Each sets the vtable pointer named and runs Class702cb0_Dtor on the object.
 void __fastcall Class702ec0_Dtor(u8 *object);
 

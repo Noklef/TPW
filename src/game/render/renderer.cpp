@@ -1,10 +1,13 @@
 #include "renderer.h"
 
 #include <cstdint>
+#include <cstring>
 #include <initializer_list>
 
 #include "../core/buffers.h"
 #include "../core/gameheap.h"
+#include "../core/initializers.h"
+#include "../gfx/wavelet.h"
 #include "../core/vcall.h"
 #include "../core/vobj3.h"
 #include "../render/engineerrors.h"
@@ -256,6 +259,53 @@ u32 __fastcall Grid_AddObject(u8 *grid, void *, s32 x0, s32 y0, s32 x1, s32 y1, 
             result &= Pool_AddSorted(grid, nullptr, reinterpret_cast<u8 **>(at<u8 *>(grid, 0x10) + (y * at<s32>(grid, 0x38) + x) * 4), object);
     }
     return result;
+}
+
+// A GDI LOGFONT at +0 of block (height, width, escapement, orientation 0; weight 400; not italic, underlined or struck out; charset
+// 1, output precision 4, clipping 1, quality 4, pitch 0; the face name the string at 0x774d80).
+static void DefaultFont(u8 *block) {
+    at<u32>(block, 0) = 0;
+    at<u32>(block, 4) = 0;
+    at<u32>(block, 8) = 0;
+    at<u32>(block, 0xc) = 0;
+    at<u32>(block, 0x10) = 0x190;
+    const u8 bytes[8] = {0, 0, 0, 1, 4, 1, 4, 0};
+    std::memcpy(block + 0x14, bytes, 8);
+    std::strcpy(reinterpret_cast<char *>(block + 0x1c), reinterpret_cast<const char *>(0x00774d80));
+}
+
+// One of the two groups of four arrays (+0x2c, +0x3c, +0x4c, +0x5c): the first two cleared directly or by Init_5ec210 (first),
+// +0 = 3, +4 = 10.0f, +8 = +0x14 = 1.0f, then Array3Ds_Free4.
+static void SetupGroup(u8 *group, bool first) {
+    for (u32 off = 0x2c; off < (first ? 0x4c : 0x3c); off += 4)
+        at<u32>(group, off) = 0;
+    for (u32 off = first ? 0x4c : 0x3c; off <= 0x5c; off += 0x10)
+        Init_5ec210(group + off);
+    at<u32>(group, 0) = 3;
+    at<u32>(group, 4) = 0x41200000;
+    at<u32>(group, 8) = 0x3f800000;
+    at<u32>(group, 0x14) = 0x3f800000;
+    Array3Ds_Free4(group);
+}
+
+u8 *__fastcall Renderer_Construct(u8 *object) {
+    for (u32 off = 0x18; off <= 0x34; off += 4)
+        at<u32>(object, off) = 0;
+    DefaultFont(object + 0x48);
+    at<u32>(object, 0x40) = 100;
+    at<u32>(object, 0x44) = 0;
+    DefaultFont(object + 0x1d8);
+    at<u32>(object, 0x1d0) = 100;
+    at<u32>(object, 0x1d4) = 0;
+    SetupGroup(object + 0x358, true);
+    SetupGroup(object + 0x3c4, false);
+    Fn_5ebef0(object + 0x430);
+    for (u32 off = 0x444; off < 0x448; ++off)
+        at<u8>(object, off) = 0;
+    for (u32 off = 0x448; off <= 0x454; off += 4)
+        at<u32>(object, off) = 0;
+    at<u8 *>(object, 0x14) = WaveletCodec_Create();
+    return object;
 }
 
 void __fastcall Renderer_Teardown(u8 *object) {

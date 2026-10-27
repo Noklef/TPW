@@ -3,7 +3,7 @@
 # counted-buffer nodes (as Pair's). Swap (0x5d03b0): two lists' head and size exchanged. Chars (0x4a8ad0): a list at +0x10 of the owner, given characters (none to 0x7e, at any address: its low byte
 # becomes the allocator byte) made into a string and pushed. Chars34 (0x5ca220): the same for a list at +0x30.
 # Next (0x5cd440): the cursor (+0xc) at the sentinel or a node; the text at 0x786de4 empty, short or longer than 31. First (0x5cd430): the
-# same after the cursor put on the first node (the sentinel for an empty list).
+# same after the cursor put on the first node (the sentinel for an empty list). WInsert (0x5d3600): Insert for a list<wstring> (stdwstring.py's strings).
 # usage: stdlist.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import sys
@@ -11,15 +11,20 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import stdstring  # noqa: E402
+import stdwstring  # noqa: E402
 from fncmp import Bench, Call, HEAP, RAM, heap, put  # noqa: E402
 
 # name: (address, convention, returns, size)
 CALLS = {'Clear': (0x5cde80, 't', 'v', 0x80), 'Push': (0x5cdf00, 't', 'v', 0x70), 'Insert': (0x5d0330, 't', 'v', 0x80), 'Dword': (0x618160, 't', 'v', 0x50),
          'Pair': (0x5af0e0, 't', 'v', 0xf4), 'Record': (0x5caf20, 't', 'v', 0x110),
          'Chars': (0x4a8ad0, 't', 'v', 0xfc), 'Swap': (0x5d03b0, 't', 'v', 0x1f), 'Chars34': (0x5ca220, 't', 'v', 0xfc),
-         'Next': (0x5cd440, 't', 'a', 0xc9), 'First': (0x5cd430, 't', 'a', 0xe)}
+         'Next': (0x5cd440, 't', 'a', 0xc9), 'First': (0x5cd430, 't', 'a', 0xe), 'WInsert': (0x5d3600, 't', 'v', 0x72)}
 B = Bench([(a, a + n) for (a, _c, _r, n) in CALLS.values()] + [(0x45b340, 0x45b9a0), (0x67acb0, 0x67acb1), (0x4f54e0, 0x4f5560), (0x47db20, 0x47db80),
-                                                                (0x5cdf70, 0x5cdfdd), (0x4a9420, 0x4a953c)])
+                                                                (0x5cdf70, 0x5cdfdd), (0x4a9420, 0x4a953c),
+                                                                # (stdwstring.py's: the wide string's assign and its helpers)
+                                                                (0x405280, 0x405390), (0x479150, 0x4791b0), (0x47b750, 0x47bcf0), (0x4f23f0, 0x4f2450), (0x4f6080, 0x4f60a0), (0x67acd0, 0x67ad00),
+                                                                (0x4ea740, 0x4ea7e0), (0x47ae60, 0x47b060), (0x47b600, 0x47b750), (0x479230, 0x479256), (0x47cc10, 0x47cd00), (0x47b460, 0x47b5b0),
+                                                                (0x47d9d0, 0x47db00), (0x47d620, 0x47d780), (0x47b320, 0x47b460)])
 NODES, LIST, X = RAM + 0x3000, RAM, RAM + 0x2000
 BUFS = RAM + 0x4000
 
@@ -80,13 +85,16 @@ def case(r):
     at = [NODES + size * i for i in range(n + 1)]  # at[0] is the sentinel, the rest the nodes in order
     for i in range(n + 1):
         put(nodes, size * i, 'II', at[(i + 1) % (n + 1)], at[i - 1])
+    wide = name == 'WInsert'
+    if wide:
+        blocks = bytearray(r.bytes(6 * stdwstring.SLOT))
     for i in range(1, n + 1):
         if name != 'Dword':
-            ptr, ln, res = stdstring.string(r, blocks, i)
+            ptr, ln, res = (stdwstring if wide else stdstring).string(r, blocks, i)
             put(nodes, size * i + 8, '4I', r.getrandbits(32), ptr, ln, res)
     obj = bytearray(r.bytes(0x40))
     put(obj, {'Chars': 0x14, 'Chars34': 0x34}.get(name, 4), 'II', at[0], n)
-    regions = {LIST: obj, NODES: nodes, stdstring.BLOCKS: blocks, HEAP: heap()}
+    regions = {LIST: obj, NODES: nodes, (stdwstring if wide else stdstring).BLOCKS: blocks, HEAP: heap()}
     if name in ('Next', 'First'):   # the cursor (+0xc) at the sentinel (the text at 0x786de4 made a string and released) or a node
         cursor = r.choice([at[0], r.choice(at)])
         put(obj, 0xc, 'I', cursor)
@@ -108,7 +116,9 @@ def case(r):
         regions[X] = text
         return Call(address, [LIST, X + off], regions, conv=conv, ret=ret)
     x = bytearray(r.bytes(0x20))
-    ptr, ln, res = stdstring.string(r, blocks, 5)
+    ptr, ln, res = (stdwstring if wide else stdstring).string(r, blocks, 5)
+    if wide:
+        regions[stdwstring.BLOCKS] = blocks
     put(x, 0, '4I', r.getrandbits(32), ptr, ln, res)
     regions[X] = x
     if name == 'Push':

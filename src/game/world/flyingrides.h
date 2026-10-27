@@ -1,6 +1,6 @@
 // The flying rides (module FLYR, saved as 'FLY_' by 0x55de70): a table of 100 records at 0x8791f8,
 // numbered from 1 (0x55a620 allocates them, 0x122c bytes each). Reimplementation of their
-// accessors 0x55a570 and 0x55d610-0x55de30.
+// accessors 0x55a570 and 0x55d610-0x55de30, and of their set-up 0x55a5a0.
 //
 // A record's fields as 0x55a620 sets them up: +0 and +4 (1), +0xc (0), +0x10 and +0x28 (0x12c),
 // +0x14/+0x18/+0x1c (its arguments), +0x20/+0x24 (0x400), +0x30 (0x9c4 or 0x1388), +0x38 (1),
@@ -99,4 +99,9 @@ s32 __cdecl FlyingRides_FloorAt(s32 x, s32 y);
 // particle system (+0xc4) and a part keyed 1 among its flag-0x100 parts (Model_FindPartByKey4; none: skipped) the system's vector A set to
 // the part's +0x30, +0x34 and +0x38 (+8 -> +0x28 -> +4, 0x14 each, +4; a null part: 0, 0, 0), each __ftol'd and << 10.
 void __cdecl FlyingRides_LerpSlots(float t);
+
+// 0x55a5a0 (cdecl; called from 0x54eab4; name unconfirmed): once (the flag 0x8791ec, then set, as 0x8791f0): the table of 100 entries
+// at 0x8791f8 cleared and a sine table of 0x1000 dwords made at [0x8791c8] (Mem_GlobalAlloc 0x4000, unchecked): entry j = __ftol(1/2 -
+// fsin(2j * [0x701090] (2 pi / 8192)) * [0x701098] (-1024)) (low half; x87 at the game's precision), the table pointer re-read each time.
+void __cdecl FlyingRides_Init();
 }

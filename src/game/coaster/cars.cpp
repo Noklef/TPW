@@ -300,4 +300,31 @@ void __cdecl CoasterCar_PlayClank(const u8 *coaster, const u8 *car) {
     const auto ftol = [](float f) { return (s32)(long long)f; };
     Sound_PlayAt(0, *reinterpret_cast<const u32 *>(0x00803a28), 0xc, ftol(out[0]), ftol(out[1]), ftol(out[2]));
 }
+
+void __cdecl CoasterCar_Bump(const u8 *coaster, u8 *car) {
+    const u32 count = at<u32>(coaster, 0xf4);
+    if (count <= 1)
+        return;
+    const u32 base = at<u32>(coaster, 0x128);
+    const u32 index = (u32)(((s32)((u32)(uintptr_t)car - base) >> 7) + 1) % count;
+    u8 *const next = reinterpret_cast<u8 *>((uintptr_t)(index * 0x80 + base));
+    // (Re-read through volatile where the original reads memory again: an off-grid car's +0x78 can be the next car's flags.)
+    const auto mem = [](u8 *p, u32 o) { return *reinterpret_cast<volatile float *>(p + o); };
+    X87Reg reach = X87Reg(at<float>(next, 0x24));
+    if (!(at<float>(next, 0x74) >= at<float>(car, 0x74)))   // (below or unordered)
+        reach = reach + at<float>(coaster, 0xa8);
+    if (reach.v >= (double)at<float>(car, 0x20) || at<float>(next, 0x78) >= at<float>(car, 0x78))
+        return;
+    const float kMinus2 = -2.0f, kThird = 0.333333343f;   // (0x6fe05c, 0x6fe060)
+    const X87Reg speed = X87Reg(mem(car, 0x78));
+    const X87Reg pushed = X87Reg(mem(next, 0x78)) * kMinus2;
+    const X87Reg kept = speed * kMinus2;
+    *reinterpret_cast<volatile float *>(car + 0x78) = (float)((speed - pushed) * kThird);
+    *reinterpret_cast<volatile u32 *>(next) = *reinterpret_cast<volatile u32 *>(next) | 0x40;
+    const X87Reg ahead = (mem(next, 0x78) - kept) * kThird;
+    *reinterpret_cast<volatile float *>(next + 0x78) = (float)ahead;
+    const X87Reg gap = X87Reg(mem(car, 0x78)) - ahead;
+    if (std::fabs(gap.v) > 1.0)   // (0x6fe020; not when below, equal or unordered)
+        CoasterCar_PlayClank(coaster, car);
+}
 }

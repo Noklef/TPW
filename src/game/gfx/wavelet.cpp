@@ -1072,4 +1072,12 @@ u8 *__fastcall WaveletCodec_Construct(u8 *codec, void *, u32 mostDerived) {
     at<u32>(codec, 0x40) = 0x10000;
     return codec;
 }
+
+u8 *__cdecl WaveletCodec_Create() {
+    u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x58));
+    u8 *const codec = block ? WaveletCodec_Construct(block, nullptr, 1) : nullptr;
+    if (!codec)
+        return nullptr;
+    return codec + at<s32>(at<u8 *>(codec, 4), 4) + 4;
+}
 }

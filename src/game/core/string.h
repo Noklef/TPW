@@ -258,7 +258,7 @@ u16 *__cdecl String_AnsiToWide(const char *text, u16 *buffer, s32 size);
 String *__cdecl String_ReadToken(String *out, const char **cursor, u32 delimiter);
 
 // 0x5e3a80 (cdecl; out, cursor, delimiter; name invented): String_ReadToken's wide twin over the same narrow text: each char up to the delimiter (its low
-// byte) sign-extended to a unit (MOVSX DX, stored over the delimiter's argument slot) and appended through the WString vtable's +0x24 (WString_AppendChar,
+// byte) sign-extended to a unit (MOVSX DX, the whole EDX stored over the delimiter's argument slot: the port stores the cursor's upper half above it) and appended through the WString vtable's +0x24 (WString_AppendChar,
 // which skips a 0 unit); *cursor is left past the delimiter and out is constructed as a copy (WString_CtorCopy, 0x5f6900) and returned.
 WString *__cdecl WString_ReadToken(WString *out, const char **cursor, u32 delimiter);
 

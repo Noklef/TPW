@@ -10,7 +10,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, Bench, Call, RAM, global_heap, heap, put  # noqa: E402
 
-B = Bench([(0x454a10, 0x455689), (0x44b140, 0x44b220), (0x45b9d0, 0x45ba15)])
+RANGES = [(0x454a10, 0x455689), (0x44b140, 0x44b220), (0x45b9d0, 0x45ba15)]
+B = Bench(RANGES)
 HOLDER, MODEL, NODES, OUT = (RAM + 0x1000 * k for k in range(4))
 TERRAIN = 0x7a1a8c  # the terrain flags (0x2000: procedural textures could load)
 # MODEL page: the model, then its arrays

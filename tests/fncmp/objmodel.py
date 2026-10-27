@@ -4,8 +4,10 @@
 # at +0x13c none or one without a texture, the tracked blocks (+0x144, the meshes' +0x74, the sets' +8) as in spritesfree.py's
 # table, the model's flag 2 with the procedural texture object (no cache; a tracked block or none) there or not.
 # The load (0x579e00): see load(). A holder's part made (0x45bbc0, model/holder): see create(). The object's matrices set (0x57a260):
-# see matrices() and matrices_env(). A mesh's colours lit once a frame (0x57aa10): see light_mesh().
-# usage: objmodel.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Unload,Load,Create,Matrices,LightMesh)
+# see matrices() and matrices_env(). A mesh's colours lit once a frame (0x57aa10): see light_mesh(). The overlay base's constructor
+# (0x476a90, gfx/overlay): see overlay_ctor(). Its three clones (slot 8: 0x4771a0, 0x4774c0, 0x4777b0): see overlay_clone().
+# The holder's part made at +0x20 (0x46dd50, model/holder): create()'s case.
+# usage: objmodel.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Unload,Load,Create,Matrices,LightMesh,OverlayCtor,OverlayClone,OverlayCloneR,OverlayCloneRH,CreateAt20)
 import os
 import struct
 import sys
@@ -13,6 +15,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import CDECL_LOG4, HEAP, LOG, RAM, Bench, Call, _cdecl_log, blob, fb, fill, global_heap, heap, log_region, put, recorder, set_return, strings, vtable  # noqa: E402
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import clone  # noqa: E402
 import engineerrors  # noqa: E402
 import loadscreen  # noqa: E402
 import meshlist  # noqa: E402
@@ -22,9 +25,13 @@ import wctimage  # noqa: E402
 
 B = Bench(wctimage.merged([(0x57a100, 0x57a258), (0x579b80, 0x579c13), (0x57b2e0, 0x57b393), (0x57b070, 0x57b130), (0x57b5b0, 0x57b608),
                            (0x575f00, 0x575f8d), (0x56e4e0, 0x56e549), (0x67afa0, 0x67b0d0), (0x67acb0, 0x67acb1), (0x579e00, 0x57a0f2),
-                           (0x54dcc0, 0x54dce8), (0x45bbc0, 0x45bc58), (0x579cd0, 0x579df1), (0x5775d0, 0x5775f3), (0x57a260, 0x57a41c), (0x57aa10, 0x57aba6), (0x576230, 0x576260)] + meshlist.RANGES + texset.RANGES + texcache.RANGES
+                           (0x54dcc0, 0x54dce8), (0x45bbc0, 0x45bc58), (0x579cd0, 0x579df1), (0x5775d0, 0x5775f3), (0x57a260, 0x57a41c), (0x57aa10, 0x57aba6), (0x576230, 0x576260),
+                           (0x476a90, 0x476b4a), (0x6597b0, 0x659896), (0x659994, 0x6599bc), (0x659d00, 0x659d53), (0x65a9d0, 0x65aa00),
+                           (0x4771a0, 0x47724e), (0x4774c0, 0x47757e), (0x4777b0, 0x47786e), (0x46dd50, 0x46ddb9)] + clone.RANGES + meshlist.RANGES + texset.RANGES + texcache.RANGES
                           + loadscreen.RANGES), hooks={0x67a7d0: _cdecl_log})
-CALLS = {'Unload': 0x57a100, 'Load': 0x579e00, 'Create': 0x45bbc0, 'Matrices': 0x57a260, 'LightMesh': 0x57aa10}
+CALLS = {'Unload': 0x57a100, 'Load': 0x579e00, 'Create': 0x45bbc0, 'Matrices': 0x57a260, 'LightMesh': 0x57aa10, 'OverlayCtor': 0x476a90, 'CreateAt20': 0x46dd50}
+CLONES = {'OverlayClone': 0x4771a0, 'OverlayCloneR': 0x4774c0, 'OverlayCloneRH': 0x4777b0}
+CALLS.update(CLONES)
 OBJ, MODEL, SETS, SET, MESHES, FACES, WORDS, BLOCK, TEX = (RAM, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x1000, RAM + 0x2000,
                                                         RAM + 0x2400, RAM + 0x2600, RAM + 0x3000)
 COUNT, TABLE = 0x8bb214, 0x87b1f8
@@ -309,14 +316,79 @@ def light_mesh(r):
     return Call(CALLS['LightMesh'], [LM_THIS, mesh_at, LM_MATRIX, LM_LIST, flags], regions, conv='t', ret='a')
 
 
+OVR, OVNODES = RAM + 0x4a000, RAM + 0x4a100
+
+
+def overlay_ctor(r):
+    """0x476a90 (gfx/overlay): create()'s case with an overlay (any bytes) built on its holder (now and then none: the GUI dialog's part
+    only); the model's node list (+0x78: 0-4 nodes, flags any) and the screen's width (0x7a1968: 0x280 or not)."""
+    c = create(r)
+    regions = c.regions
+    model = struct.unpack_from('<I', regions[HOLDER], 4)[0]
+    count = r.choice([0, 1, 2, 4])
+    regions[model] = put(bytearray(regions[model]), 0x78, 'I', OVNODES if count else 0)
+    nodes = bytearray(r.bytes(0x40))
+    for i in range(count):
+        put(nodes, 0x10 * i, 'I', r.choice([0, r.getrandbits(32), 0x8000000]))
+        put(nodes, 0x10 * i + 0xc, 'I', OVNODES + 0x10 * (i + 1) if i + 1 < count else 0)
+    regions[OVNODES] = nodes
+    regions[0x7a1968] = struct.pack('<I', r.choice([0x280, 0x280, 0x200, 0x320]))
+    regions[OVR] = r.bytes(0x90)
+    return Call(0x476a90, [OVR, HOLDER if r.random() < 0.95 else 0], regions, conv='t', ret='a')
+
+
+def overlay_clone(r, address):
+    """0x4771a0 / 0x4774c0 / 0x4777b0 (gfx/overlay, slot 8 of the overlay vtables): an overlay (any bytes; its words +0x10 and +0x12 and
+    its holder each 0 now and then) on clone.py's holder, copied by Holder_Clone (run), the new overlay built on the copy with Overlay_Ctor,
+    Holder_Create and ObjModel_Load run; its allocation failing now and then (the heap's second). The holder's owner (+8) none or in its
+    block; the model's primary nodes only, each linked (+0xc) to the next and the last to none (the walk ends), +0x78 the first or none,
+    0-3 faces each (+0x5e) and +0x3a at least their sum (the load's block holds the walk); no texture sets (+0x36), the terrain flag 2 off,
+    the renderer's deferred flags (0x8bd550) and the loading screen's step (0x8bd508's 1) off."""
+    c = clone.holder(r)
+    regions = dict(c.regions)
+    h = put(bytearray(regions[clone.HOLDER]), 8, 'I', r.choice([0, clone.HOLDER + 0x80]))
+    m = bytearray(regions[clone.MODEL])
+    nodes = bytearray(regions[clone.NODES])
+    total = r.choice([0, 1, 2, 3, r.randrange(1, 9)])
+    put(m, 0x42, '2H', total, total)
+    put(m, 0x36, 'H', 0)
+    put(m, 0x30, 'I', struct.unpack_from('<I', m, 0x30)[0] & ~2)
+    put(m, 0x70, 'I', clone.PRIMARY)
+    put(m, 0x78, 'I', clone.PRIMARY if total and r.random() < 0.9 else 0)
+    faces = [r.choice([0, 0, 1, 2, 3]) for _ in range(total)]
+    for k in range(total):
+        put(nodes, 0xa0 * k + 0xc, 'I', clone.PRIMARY + 0xa0 * (k + 1) if k + 1 < total else 0)
+        put(nodes, 0xa0 * k + 0x5e, 'H', faces[k])
+    put(m, 0x3a, 'H', max(struct.unpack_from('<H', m, 0x3a)[0], sum(faces)))
+    ovr = put(bytearray(r.bytes(0x90)), 4, 'I', clone.HOLDER if r.random() < 0.95 else 0)
+    for o in (0x10, 0x12):
+        if r.random() < 0.05:
+            put(ovr, o, 'H', 0)
+    regions.update({clone.HOLDER: h, clone.MODEL: m, clone.NODES: nodes, OVR: ovr,
+                    HEAP: heap(0x10000, fail=2) if r.random() < 0.15 else heap(0x10000),
+                    LIVE: put(bytearray(r.bytes(0x808)), 0x800, 'I', r.randrange(0x200)),
+                    COUNT: struct.pack('<I', r.choice([0, 1, 2, 3, 5])), TABLE: r.bytes(0x40),
+                    0x7a1968: struct.pack('<I', r.choice([0x280, 0x200])), 0x7c249c: r.bytes(4),
+                    0x8bd508: put(bytearray(r.bytes(4)), 0, 'I', r.getrandbits(32) & ~1),
+                    0x8bd550: put(bytearray(r.bytes(4)), 0, 'I', r.getrandbits(32) & ~0x40000100)})
+    return Call(address, [OVR], regions, conv='t', ret='a')
+
+
 def case(r):
     op = r.deal(OPS)
+    if op in CLONES:
+        return overlay_clone(r, CLONES[op])
+    if op == 'OverlayCtor':
+        return overlay_ctor(r)
     if op == 'LightMesh':
         return light_mesh(r)
     if op == 'Load':
         return load(r)
     if op == 'Matrices':
         return matrices(r)
+    if op == 'CreateAt20':
+        c = create(r)
+        return Call(0x46dd50, c.args, c.regions, ret='v')
     return create(r) if op == 'Create' else unload(r)
 
 

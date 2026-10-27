@@ -78,4 +78,8 @@ EventList *__fastcall EventListBase_DeletingDtor(EventList *l, void *edx, u32 fl
 // 0x47e9d0 (cdecl; value; name unconfirmed): an event {4, value} (0x14 bytes on the stack, the rest unset) posted on channel 0 of the queue;
 // the game's window procedure (0x46b752) posts one.
 void __cdecl EventQueue_PostKind4(u32 value);
+// 0x47ea00 (cdecl; name unconfirmed): on channel 0 of the queue an event {6, 0} (0x14 bytes on the stack, the rest unset), then the same
+// bytes as {7, the screen's width 0x7a1968, its height 0x7a1930, byte 0x10 (the dword's other bytes left), 0}; then the two COM objects
+// of 0x7b4ac0 released and cleared (Obj_ReleaseTwoComMembers inlined: +0xa8 / +0xa4 cleared first).
+void __cdecl EventQueue_PostScreenReset();
 }

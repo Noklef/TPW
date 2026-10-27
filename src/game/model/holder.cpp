@@ -91,6 +91,13 @@ void __cdecl Holder_Create(u8 *holder) {
     at<u8 *>(holder, 0x1c) = part;
 }
 
+void __cdecl Holder_CreateAt20(u8 *holder) {
+    u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x158));
+    u8 *const part = block ? LiveObject7019f8_Construct(block, nullptr, 1) : nullptr;
+    at<u8 *>(holder, 0x20) = part;
+    ObjModel_Load(part, nullptr, at<u8 *>(holder, 4));   // (no part: a crash in the game too)
+}
+
 void __cdecl Holder_Destroy(u8 *holder) {
     if (at<u32>(holder, 0) & 1)
         Holder_Sleep(holder);

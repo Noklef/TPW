@@ -1,4 +1,4 @@
-# src/game/coaster: ratings, track spline, orientation and frame against the originals. Clank (0x439840): see clank().
+# src/game/coaster: ratings, track spline, orientation and frame against the originals. Clank (0x439840): see clank(). Bump (0x43cd60): see bump().
 # usage: coaster.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import math
@@ -16,7 +16,7 @@ from fncmp import LOG, LOG_BYTES, blob_bytes, log_region, recorder, vtable  # no
 B = Bench([(0x43c000, 0x43c3d0), (0x43dbf0, 0x43ea90), (0x46f210, 0x46f240), (0x470940, 0x470990), (0x43f030, 0x43f150), (0x43fcd0, 0x43fd60), (0x43bc20, 0x43bd20), (0x43b750, 0x43b8b0), (0x43a970, 0x43aa10), (0x43bdb0, 0x43be10), (0x43bfb0, 0x43c000), (0x43b050, 0x43b5ff), (0x44b4c0, 0x44b505), (0x475550, 0x47558b), (0x440ad0, 0x440c10), (0x4386d0, 0x438800), (0x43ea90, 0x43eac0), (0x43e0b0, 0x43e0e0), (0x43e520, 0x43e540), (0x43ba90, 0x43bbe0), (0x43ad50, 0x43afd0), (0x43b330, 0x43b390), (0x432b50, 0x432bd0), (0x432d50, 0x432df0), (0x433280, 0x433300), (0x436750, 0x4367a0), (0x434000, 0x434060), (0x433f70, 0x433ffd), (0x442d10, 0x442d70), (0x443ee0, 0x443f40), (0x444c00, 0x444c50), (0x444040, 0x444090), (0x444700, 0x444740), (0x447790, 0x447830), (0x442cd0, 0x442d10), (0x436820, 0x4368f0), (0x436150, 0x436190), (0x432bd0, 0x432c10), (0x444c50, 0x444cb0), (0x43af70, 0x43afa0), (0x4418d0, 0x4419b0), (0x434650, 0x434740), (0x5da3c0, 0x5da3d0), (0x447990, 0x4479a0), (0x430ac0, 0x430ad0), (0x433220, 0x433240), (0x435710, 0x435730), (0x439920, 0x439ab0), (0x43a060, 0x43a2b0), (0x43d8f0, 0x43dbb0), (0x46f150, 0x46f180), (0x46f350, 0x46f420), (0x46f5c0, 0x46f6f0), (0x444090, 0x444150), (0x445f30, 0x446042), (0x45d630, 0x45d660), (0x436190, 0x436230), (0x445910, 0x445a70), (0x4367a0, 0x436820), (0x447830, 0x447990), (0x432840, 0x432b50), (0x437300, 0x4379a0), (0x5f5e50, 0x5f5e80), (0x463ab0, 0x463c7a), (0x412e90, 0x412eea), (0x443df0, 0x443ed4), (0x433300, 0x433790), (0x434f10, 0x43501c), (0x4479a0, 0x447a03), (0x447a10, 0x447ad2), (0x403be0, 0x403c13), (0x4445b0, 0x4446f4),
            (0x432c10, 0x432d4b), (0x466d70, 0x466fa0), (0x469930, 0x469950), (0x454050, 0x4541a0), (0x45b9d0, 0x45ba15), (0x430ca0, 0x430ee0), (0x438a70, 0x438ac0), (0x433790, 0x4338e0), (0x433a90, 0x433bd0), (0x4338e0, 0x433a90), (0x440a30, 0x440ad0), (0x442d70, 0x442e94)]
           + [(0x444740, 0x444780), (0x4819f0, 0x481a20), (0x498090, 0x4982b0), (0x498a30, 0x498a80)] + dialog7ca1c8.RANGES + window.RANGES
-          + [(0x439840, 0x4398da), (0x51bfc0, 0x51c048), (0x5da3c0, 0x5da3c1)], sines=256)
+          + [(0x439840, 0x4398da), (0x51bfc0, 0x51c048), (0x5da3c0, 0x5da3c1), (0x43cd60, 0x43ce1b)], sines=256)
 G = 0x7923a8  # CoasterRatingState
 COAST, TYPE, NODES, FORCE, CARS, SPL, PIECES, OUT, ORIENT, FLAGS, YAW = (RAM + k * 0x1000 for k in range(11))
 CHAIN = RAM + 0xc000
@@ -1519,6 +1519,43 @@ def clank(r, op):
 
 KINDS['Clank'] = clank
 OPS += ['Clank'] if 'OPS' not in os.environ else []
+
+
+def bump(r, op):
+    """0x43cd60 (cdecl (coaster, car)): clank()'s case (CoasterCar_PlayClank's environment) with 0-5 cars (+0xf4) of 0x80 bytes from
+    CARS + 0x200 (+0x128), the car one of them (now and then before the first, or off their 0x80 grid: 8 past it most, where the car's
+    speed (+0x78) is the next one's flags); every dword of the cars a float: whole numbers 0-12 often (ties of the place (+0x20) with
+    the reach (+0x24, plus the length 11 or a whole one), and speeds 3 apart, whose trade leaves a gap of exactly 1), about the length,
+    -10..10, a NaN now and then, any."""
+    c = clank(r, op)
+    regions = c.regions
+    count = r.choice([0, 1, 2, 2, 3, 5])
+    base = CARS + 0x200
+    coast = put(put(bytearray(regions[COAST]), 0xf4, 'I', count), 0x128, 'I', base)
+    if r.random() < 0.5:
+        put(coast, 0xa8, 'I', fb(float(r.choice([11, 0, 1, 3]))))
+    cars = bytearray(0x200 + 8 * 0x80)
+    for k in range(len(cars) // 4):
+        put(cars, 4 * k, 'I', r.choice([fb(float(r.randrange(13))), fb(float(r.randrange(13))), fb(r.uniform(0, 11)), fb(r.uniform(-10, 10)),
+                                        fb(float('nan')) if r.random() < 0.3 else r.getrandbits(32), r.f(30)]))
+    i = r.randrange(max(count, 1))
+    car = r.choice([base + 0x80 * i, base + 0x80 * i, base + 0x80 * i, base - 0x80 * r.randrange(1, 4), base + 0x80 * i + 8,
+                    base + 0x80 * i + 8, base + 0x80 * i + 4 * r.randrange(8)])
+    if count > 1 and r.random() < 0.3:   # (reached; speeds 3 apart, whole, either sign: a gap of exactly 1, past it when the flag bumps)
+        index = ((((car - base) & 0xffffffff) ^ 0x80000000) - 0x80000000 >> 7) + 1 & 0xffffffff
+        ahead = base + 0x80 * (index % count) - CARS
+        speed = float(r.randrange(-12, 13))
+        put(cars, ahead + 0x24, 'I', fb(0.0))
+        put(cars, ahead + 0x74, 'I', fb(20.0))
+        put(cars, car - CARS + 0x20, 'I', fb(5.0))
+        put(cars, ahead + 0x78, 'I', fb(speed - 3))
+        put(cars, car - CARS + 0x78, 'I', fb(speed))
+    regions.update({COAST: coast, CARS: cars})
+    return Call(0x43cd60, [COAST, car], regions, ret='v')
+
+
+KINDS['Bump'] = bump
+OPS += ['Bump'] if 'OPS' not in os.environ else []
 
 
 def case(r):

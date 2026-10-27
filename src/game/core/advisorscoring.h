@@ -13,6 +13,51 @@ extern "C" {
 s32 __fastcall AdvisorScoring_PeopleAbove1a4(u8 *scoring);
 s32 __fastcall AdvisorScoring_PeopleAbove1a8(u8 *scoring);
 
+// The park criteria of 0x59c8d0-0x59fb10 (thiscall on the scoring; names invented). "Flagged": the game object [[0x7cf6ec]]'s +0x1da710
+// set (Get1da710_51a280; Game_Field1da710IsZero for the first two). The analyser is the game table entry GameTable7cfb90_Get1da720_519510
+// of that object, the lab its Get1da722_519550 entry. Staff counts are Things_CountStaffOfKind's; the scans' game table getters that the
+// originals call first are left out where their answers are not used. The bounds are signed, the products and differences wrap.
+// 0x59c8d0: flagged and objects with definition +0x4ac 0 or 2 (Things_CountByDef4ac(0, 0), then (2, 0), both counted): the people at the
+// ticket booths (ParkAnalyser_CountAtTicketBooths) times +0xa4. 0x59c960: flagged and no such objects: +0xa8.
+s32 __fastcall AdvisorScoring_BoothPeople(const u8 *scoring);
+s32 __fastcall AdvisorScoring_NoObjects0Or2(const u8 *scoring);
+// 0x59ca80: no staff of kind 4: Objects_CountKind0InState1 times +0xc4.
+s32 __fastcall AdvisorScoring_Objects0InState1NoStaff4(const u8 *scoring);
+// 0x59cd30: not flagged, no staff of kind 7: ParkAnalyser_Tallied(0) times +0xfc plus +0xf8.
+s32 __fastcall AdvisorScoring_TalliedNoStaff7(const u8 *scoring);
+// 0x59ce30: not flagged, no staff of kind 6, more than 30 percent of the people below 30 (Things_PercentPeopleStat19cBelow): the
+// analyser's half count (ParkAnalyser_Kind1OnPlainHalfClamped) less +0x10c, times +0x110.
+s32 __fastcall AdvisorScoring_PeopleLow19cNoStaff6(const u8 *scoring);
+// 0x59cea0: not flagged, no staff of kind 8, research of category 0 left (Research_CountNotDoneCat0), definitions of kind 0 with control
+// +0x10 (ObjectDefs_CountKind0WithControls10(0), n) and a different count with +0x18 (ObjectDefs_CountKindWithControls18(0, 0), m): the
+// percentage m * 100 / n (signed) when above +0x114, less it, times +0x118.
+s32 __fastcall AdvisorScoring_Controls18ShareNoStaff8(const u8 *scoring);
+// 0x59cf50: as 0x59cea0 up to the research, then m (counted first) equal to n: +0x11c.
+s32 __fastcall AdvisorScoring_Controls18AllNoStaff8(const u8 *scoring);
+// 0x59d3b0: staff of kind 7 and ParkAnalyser_Tallied(1) above +0x15c: +0x160.
+s32 __fastcall AdvisorScoring_TalliedStaff7(const u8 *scoring);
+// 0x59da30 / 0x59dd40 / 0x59dfd0: staff of kind 8, definitions of kind 0 / 1 / 2 with control +0x18 (ObjectDefs_CountKindWithControls18
+// (kind, 0)), research of that category left (Research_CountNotDoneCat0 / 1 / 2), the lab's share of group 0 / 1 / 2 (Table_ScaledBySum) 0,
+// and the count the same with control +0x10 (ObjectDefs_CountKind0 / 1 / 2WithControls10(0)): +0x22c / +0x264 / +0x288.
+s32 __fastcall AdvisorScoring_ResearchKind0Staff8(const u8 *scoring);
+s32 __fastcall AdvisorScoring_ResearchKind1Staff8(const u8 *scoring);
+s32 __fastcall AdvisorScoring_ResearchKind2Staff8(const u8 *scoring);
+// 0x59dbf0: staff of kind 8, definitions of kind 0 with control +0x14 (ObjectDefs_CountKind0WithControls14), not more than +0x240, and the
+// lab's share of group 4 0: +0x244.
+s32 __fastcall AdvisorScoring_Controls14Staff8(const u8 *scoring);
+// 0x59e260: as 0x59da30 for kind and category 3, without the lab's share: +0x2ac.
+s32 __fastcall AdvisorScoring_ResearchKind3Staff8(const u8 *scoring);
+// 0x59e840: ParkAnalyser_Tallied(1) above +0x314: the tally (asked again) times +0x318.
+s32 __fastcall AdvisorScoring_TalliedAbove(const u8 *scoring);
+// 0x59f940 / 0x59f970: more people on plain cells with +0x210 set / in mode 2 (Things_CountKind1OnPlainCellWith210 / Mode2) than +0x4a0 /
+// +0x4a8: +0x4a4 / +0x4ac.
+s32 __fastcall AdvisorScoring_PeopleWith210(const u8 *scoring);
+s32 __fastcall AdvisorScoring_PeopleMode2(const u8 *scoring);
+// 0x59fa60: not flagged, the analyser's total (ParkAnalyser_Total) at least +0x4c4 and no staff (Things_CountStaff): +0x4c0.
+s32 __fastcall AdvisorScoring_TotalNoStaff(const u8 *scoring);
+// 0x59fac0: more staff than +0x4c8 and none of them with a patrol region (Things_CountStaffWithPatrol(0)): +0x4cc.
+s32 __fastcall AdvisorScoring_StaffNoPatrol(const u8 *scoring);
+
 // The staff criteria (thiscall on the scoring; names unconfirmed). Staff kinds: 4 handyman, 5 mechanic, 6 entertainer, 7 researcher,
 // 8 guard (as Staff_TrainAll's).
 // The hiring limits are the dwords at 0x7852ec, 0x7852e8, 0x7852f0, 0x7852f4 and 0x7852f8 for kinds 4, 5, 6, 7, 8 (Staff_CountTypes).

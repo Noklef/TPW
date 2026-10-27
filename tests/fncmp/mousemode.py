@@ -5,7 +5,8 @@
 # highlight point of any floats, over a cell (and its handle's entry and parent) of any type and flags, with a face queue part full or full.
 # Fps (0x46c0d0): the FPS text printed into the pointer state and handed to 0x8bba50. CMMOnline's constructor and the modes' Assign
 # (0x46ce80, 0x46d590, 0x46c730, 0x46cbf0): see assign(). Holder (0x46d550): the mode holder's constructor, MouseMode_Set's scene
-# (set_mode()) with the new CMMOnline base's block failing (only).
+# (set_mode()) with the new CMMOnline base's block failing (only). Ensure (0x40bed0): Holder's scene with [0x7b05e8] set (nothing done) or
+# not, then the holder's block failing or the CMMOnline base's.
 # usage: mousemode.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import sys
@@ -18,7 +19,7 @@ from fncmp import HEAP, LOG, Bench, Call, RAM, _cdecl_log, fb, global_heap, heap
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import cursor  # noqa: E402
 
-B = Bench([(0x46c450, 0x46c453), (0x46c460, 0x46c480), (0x46c580, 0x46c5c6), (0x46c650, 0x46c653),
+B = Bench([(0x40bed0, 0x40bf65), (0x46c450, 0x46c453), (0x46c460, 0x46c480), (0x46c580, 0x46c5c6), (0x46c650, 0x46c653),
            (0x46c6a0, 0x46c6b0), (0x46c6d0, 0x46c702), (0x46c710, 0x46c72e), (0x46cbc0, 0x46cbe1),
            (0x46ced0, 0x46ced7), (0x46cfc0, 0x46cfd0), (0x46cff0, 0x46d000), (0x46c070, 0x46c10e),
            (0x45d560, 0x45d60e), (0x4d8300, 0x4d8328), (0x46c480, 0x46c578), (0x45d610, 0x45d616), (0x475480, 0x4754d4),
@@ -142,6 +143,11 @@ def case(r):
     op = r.choice(OPS)
     if op in ('Set', 'Holder'):
         return set_mode(r, op == 'Holder')
+    if op == 'Ensure':
+        regions = set_mode(r, True).regions
+        regions[HEAP] = heap(fail=r.choice([1, 2]))
+        regions[0x7b05e8] = struct.pack('<I', r.choice([0, 0, 0, RAM + 0x8300]))
+        return Call(0x40bed0, [], regions, ret='a')
     if op in ASSIGNS:
         return assign(r, op)
     if op == 'Hover':
@@ -175,7 +181,7 @@ def case(r):
     return Call(at, [RAM] + args, regions, conv='t', ret=ret)
 
 
-OPS_ALL = list(CALLS) + list(STATICS) + ['TileAt'] * 3 + ['Hover'] * 10 + ['Fps'] * 2 + list(ASSIGNS) * 3 + ['Set'] * 3 + ['Holder'] * 3
+OPS_ALL = list(CALLS) + list(STATICS) + ['TileAt'] * 3 + ['Hover'] * 10 + ['Fps'] * 2 + list(ASSIGNS) * 3 + ['Set'] * 3 + ['Holder'] * 3 + ['Ensure'] * 3
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 
