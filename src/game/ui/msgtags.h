@@ -83,4 +83,9 @@ u32 __stdcall UI_Load(Stream *stream);
 // [0x7cb2c8] (by +0x54) posted 5 (1, 0) in 100, 200, ... ms. Every message then goes to the default handler (Window_CallDefault),
 // whose answer is returned.
 s32 __cdecl MsgTags_WindowHandler(u8 *window, u32 message, u8 *tag, u32 b);
+
+// 0x4a1190 (cdecl (window, message, a, b); the handler 0x4a1d70's HUD build gives one of its buttons; name invented): on 0x10006 with a
+// 1 the tags' window [0x7cb2c4] posted 0x100003 (Window_PostMessage(0, 0): each tag shown again, see above); every message then goes to
+// the default handler (Window_CallDefault), whose answer is returned.
+s32 __cdecl MsgTags_ButtonHandler(u8 *window, u32 message, u32 a, u32 b);
 }
