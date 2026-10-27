@@ -6074,6 +6074,7 @@ address,name,kind,confidence,notes
 0x00429d60,ModelSlot_KillAdvisor,function,low,"reimplemented (src/game/model/slots); cdecl (slot): ""Kill advisor"": an awake holder plays bank 0xc and leaves the renderer (rectangle with flag 0x4000, else Holder_Sleep)"
 0x00429e90,ModelSlot_CallAdvisor,function,low,"reimplemented (src/game/model/slots); cdecl (entry, slot): ""Initial advisor call"": Animator_Play(holder, 5, entry - 1, 0x10, 1.0f, 0), or 1000 without a holder"
 0x00429e20,ModelSlot_Free,function,low,"reimplemented (src/game/model/slots); cdecl (slot): the slot model (+4) leaves the renderer (its +0x48 part through the virtual base, tag 0x10), is disposed, the +0 instance freed; both cleared"
+0x00429ba0,ModelSlot_LoadAdvisor,function,low,"reimplemented (src/game/model/slots); The advisor's model loaded into a model slot: its matrix and part set up, ""Advisor[suffix].md2"" located, loaded, cloned and added to the renderer"
 0x00462870,WorldVerts_Alloc,function,high,reimplemented (src/game/model/worldverts); 0x7aecd4 = a zeroed block of 12 bytes for each of 0x400 entries (large) or [0x7a42ac]
 0x004628a0,WorldVerts_Free,function,high,reimplemented (src/game/model/worldverts); frees the block at 0x7aecd4 (pointer left)
 0x004628b0,WorldVerts_TransformFrame,function,high,reimplemented (src/game/model/worldverts); the frame's vertices in world space (its matrix times its parents') into the 0x7aecd4 block

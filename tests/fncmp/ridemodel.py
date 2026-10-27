@@ -28,10 +28,11 @@ import texdirs  # noqa: E402
 import vfs  # noqa: E402
 import wctimage  # noqa: E402
 
-B = Bench(texdirs.merged(md2file.RANGES + texdirs.RANGES + objmodel.RANGES + [
+RANGES = texdirs.merged(md2file.RANGES + texdirs.RANGES + objmodel.RANGES + [
     (0x461f10, 0x462870), (0x46dcf0, 0x46dd4c), (0x45ba70, 0x45bad0), (0x44a220, 0x44a290), (0x44a870, 0x44aaf0), (0x45b9d0, 0x45ba30),
     (0x45bbc0, 0x45bc70), (0x461820, 0x4618b0), (0x461920, 0x461a70), (0x467310, 0x467a90), (0x470a00, 0x470b70), (0x472bc0, 0x472c70),
-    (0x472f40, 0x472f70), (0x473e30, 0x473f60), (0x5da3c0, 0x5da3c1)]))
+    (0x472f40, 0x472f70), (0x473e30, 0x473f60), (0x5da3c0, 0x5da3c1)])
+B = Bench(RANGES)
 KINDS = b'CDILSMEUWBRO'   # (0x6fe6bc: a letter every 8 bytes)
 OUT, OUTNAME = RAM + 0x9f000, RAM + 0x9f100
 FLAG_BITS = ((1, .2), (2, .4), (4, .3), (8, .5), (0x10, .3), (0x20, .3), (0x40, .3), (0x80, .3), (0x100, .3), (0x200, .15), (0x400, .15),
@@ -134,6 +135,40 @@ def motion_file(r, total, geo):
     return bytes(d)
 
 
+def motions(r, files, base, total, geo):
+    """0-3 of the 12 kinds' motion files into files (by path, from base: the directory and the name's base), each numbered from 1 (now and
+    then with a gap, or a later one without the first), or unnumbered, or both; see the header."""
+    for kind in r.sample(range(12), r.choice([0, 1, 1, 2, 3])):
+        letter = KINDS[kind:kind + 1]
+        mode = r.choice(['numbered', 'numbered', 'one', 'both'])
+        if mode != 'one':
+            numbers = list(range(1, r.choice([1, 1, 2, 3]) + 1))
+            if r.random() < 0.15:
+                numbers.remove(r.choice(numbers))
+            for n in numbers:
+                files[base + letter + b'%d.md2' % n] = motion_file(r, total, geo)
+        if mode != 'numbered':
+            files[base + letter + b'.md2'] = motion_file(r, total, geo)
+
+
+def model_globals(r, regions, flags):
+    """The globals the maxima are raised in (small), [0x7b4980], and without flags 8 the part's world (wctimage.py's tracked blocks,
+    objmodel.py's live objects, the scene flags and the engine's lost list)."""
+    regions[0x7a42ac] = struct.pack('<I', r.choice([0, 1, 2, 4, 0x10]))
+    regions[0x7afd90] = struct.pack('<4I', r.choice([0, 2, 8]), 0, 0, r.choice([0, 1, 3]))
+    regions[0x7afe10] = struct.pack('<I', r.choice([0, 1, 2, 5]))
+    regions[0x7b4980] = r.bytes(4)
+    if not flags & 8:
+        wctimage.tracked(r, regions)
+        regions[0x879ad0] = engineerrors.lost_list(r)
+        regions[0x879d60] = bytes(4)
+        regions[0x8bd508] = bytes(4)
+        regions[0x8bd550] = put(bytearray(r.bytes(4)), 0, 'I', r.getrandbits(32) & ~0x40000100)
+        regions[0x8bcbc8] = r.bytes(4)
+        regions[0x8bcbd0] = struct.pack('<I', r.choice([0x200, 0x280, r.getrandbits(32)]))
+        regions[objmodel.LIVE] = put(bytearray(r.bytes(0x808)), 0x800, 'I', r.randrange(0x200))
+
+
 def case(r):
     flags = 0
     for bit, p in FLAG_BITS:
@@ -157,36 +192,13 @@ def case(r):
     files = {}
     if r.random() < 0.95:
         files[main_path(name, directory, flags)] = data
-    base = (directory if directory is not None else b'(null)') + base_of(name)
-    for kind in r.sample(range(12), r.choice([0, 1, 1, 2, 3])):
-        letter = KINDS[kind:kind + 1]
-        mode = r.choice(['numbered', 'numbered', 'one', 'both'])
-        if mode != 'one':
-            numbers = list(range(1, r.choice([1, 1, 2, 3]) + 1))
-            if r.random() < 0.15:
-                numbers.remove(r.choice(numbers))
-            for n in numbers:
-                files[base + letter + b'%d.md2' % n] = motion_file(r, total, geo)
-        if mode != 'numbered':
-            files[base + letter + b'.md2'] = motion_file(r, total, geo)
+    motions(r, files, (directory if directory is not None else b'(null)') + base_of(name), total, geo)
     vfs.memory_files(r, log, regions, files)
     regions[vfs.NAME] = name + b'\0' + r.bytes(7)
     regions[OUT] = r.bytes(4)
     regions[OUTNAME] = r.bytes(0x200)
-    regions[0x7a42ac] = struct.pack('<I', r.choice([0, 1, 2, 4, 0x10]))
-    regions[0x7afd90] = struct.pack('<4I', r.choice([0, 2, 8]), 0, 0, r.choice([0, 1, 3]))
-    regions[0x7afe10] = struct.pack('<I', r.choice([0, 1, 2, 5]))
-    regions[0x7b4980] = r.bytes(4)
+    model_globals(r, regions, flags)
     regions[0x7a445c] = struct.pack('<I', 0 if r.random() < 0.94 else r.getrandbits(32))   # (the tables' CRT stricmp is slow)
-    if not flags & 8:
-        wctimage.tracked(r, regions)
-        regions[0x879ad0] = engineerrors.lost_list(r)
-        regions[0x879d60] = bytes(4)
-        regions[0x8bd508] = bytes(4)
-        regions[0x8bd550] = put(bytearray(r.bytes(4)), 0, 'I', r.getrandbits(32) & ~0x40000100)
-        regions[0x8bcbc8] = r.bytes(4)
-        regions[0x8bcbd0] = struct.pack('<I', r.choice([0x200, 0x280, r.getrandbits(32)]))
-        regions[objmodel.LIVE] = put(bytearray(r.bytes(0x808)), 0x800, 'I', r.randrange(0x200))
     args = [vfs.NAME, flags, OUT, OUTNAME if r.random() < 0.7 else 0, r.choice([0, 1, 2, 4])]
     return Call(0x461f10, args, regions, ret='a')
 
