@@ -49,4 +49,7 @@ void __cdecl ThingBrowser_Create();
 // [0x7b05e8] made when missing and, when the current mode [0x7b05d8] answers 9 from its slot 9, a new CMMOnline base set (as
 // Window7c24c8_Set's).
 void __cdecl ThingBrowser_Open(u8 *thing);
+
+// 0x4b3620 (cdecl (thing); name invented): when the browser's thing [0x7cc308] is this one, Dialog7cb2b8_ResetChild21(1).
+void __cdecl ThingBrowser_ResetIfThing(u8 *thing);
 }
