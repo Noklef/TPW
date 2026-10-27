@@ -387,6 +387,11 @@ const PathDragEnv kPathDragEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void
 const CellRunEnv kCellRunEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(24, 0))};
 // Thing_Detach's call into agent B's unported Ride_Destroy (0x463c80): cdecl recorder 31 of 1, as tests/fncmp/thingdetach.py hooks it.
 const ThingDetachEnv kThingDetachEnv = {reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(31, 1))};
+// Thing_Delete's per-kind deletes (agent C's unported 0x4dd0a0, 0x4d9fe0, 0x4d6c90, 0x4d4620, 0x4d5eb0, 0x4c9040; thingdetach.py's k 10-15).
+using ThingKindFn = void(__fastcall *)(u8 *);
+const ThingDeleteEnv kThingDeleteEnv = {reinterpret_cast<ThingKindFn>((uintptr_t)recorder(10, 0)), reinterpret_cast<ThingKindFn>((uintptr_t)recorder(11, 0)),
+                                        reinterpret_cast<ThingKindFn>((uintptr_t)recorder(12, 0)), reinterpret_cast<ThingKindFn>((uintptr_t)recorder(13, 0)),
+                                        reinterpret_cast<ThingKindFn>((uintptr_t)recorder(14, 0)), reinterpret_cast<ThingKindFn>((uintptr_t)recorder(15, 0))};
 // The objects' calls into the unported 0x40fb10 (agent B's) and 0x500870 / 0x5012f0 (agent C's): thiscall recorders 21 of 1 argument, 22 and 23
 // of none, as tests/fncmp/objectstate.py hooks those addresses.
 const ObjectEnv kObjectEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, u8 *)>((uintptr_t)recorder(21, 1)),
@@ -1057,6 +1062,7 @@ int main(int argc, char **argv) {
     PathDrag_SetEnv(&kPathDragEnv);
     CellRun_SetEnv(&kCellRunEnv);
     Things_SetDetachEnv(&kThingDetachEnv);
+    Things_SetDeleteEnv(&kThingDeleteEnv);
     Object_SetEnv(&kObjectEnv);
     GlyphRender_SetEnv(&kGlyphRenderEnv);   // (tests/fncmp/glyphrender.py hooks 0x67a7d0 with fncmp._cdecl_log)
     PtrList_SetEnv(&kPtrListEnv);
