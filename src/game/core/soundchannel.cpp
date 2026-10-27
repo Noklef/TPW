@@ -18,6 +18,7 @@
 #include "sfman.h"
 #include "soundbank.h"
 #include "soundcategory.h"
+#include "sounddevice.h"
 #include "soundeax.h"
 #include "soundindex.h"
 #include "soundoccluders.h"
@@ -68,6 +69,31 @@ void __fastcall SoundChannel_FreeEax(u8 *channel) {
     EaxBuffer_Release(at<u8 *>(channel, 0x20));
     GameHeap_Free(at<u8 *>(channel, 0x20));
     at<u8 *>(channel, 0x20) = nullptr;
+}
+
+u32 *__fastcall SoundChannel_OpenEax(u8 *channel, void *, u32 *out) {
+    SoundChannel_FreeEax(channel);
+    u8 *sound;
+    vcall<void>(at<u8 *>(channel, 0x18), 0xc, &sound);
+    if (sound) {
+        u8 caps[8];
+        SoundCaps_Ctor(caps, nullptr, sound);
+        if (SoundCaps_Max3DStreaming(caps)) {
+            u8 *const buffer = static_cast<u8 *>(GameHeap_Alloc(0xc));
+            if (buffer) {
+                at<u32>(buffer, 0) = 0;
+                at<u32>(buffer, 4) = 0;
+                at<u32>(buffer, 8) = 0;
+            }
+            at<u8 *>(channel, 0x20) = buffer;
+            EaxBuffer_Open(buffer, nullptr, out, sound, at<u32>(at<u8 *>(channel, 0x18), 0xc));
+            SoundCaps_Dtor(caps);
+            return out;
+        }
+        SoundCaps_Dtor(caps);
+    }
+    *out = 0xffffffff;
+    return out;
 }
 
 u32 *__fastcall SoundChannel_OpenSynth(u8 *channel, void *, u32 *out) {

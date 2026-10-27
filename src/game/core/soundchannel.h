@@ -27,6 +27,11 @@ u32 *__fastcall SoundChannel_SetFlag2(u8 *channel, void *, u32 *out, u32 on);
 // 0x6b7840 (thiscall; name invented): the EAX buffer (+0x20), when there is one, released (EaxBuffer_Release), freed (GameHeap_Free) and
 // cleared.
 void __fastcall SoundChannel_FreeEax(u8 *channel);
+// 0x6b7750 (thiscall (out), pops 4; an SEH frame; name invented): the EAX buffer freed (SoundChannel_FreeEax); the source's (+0x18) sound
+// (its slot 3, into a stack dword the slot must set); with one that has hardware 3D streaming buffers (a SoundCaps holder of it,
+// SoundCaps_Max3DStreaming) +0x20 = a new zeroed 12-byte EAX buffer (null when the heap fails) opened (EaxBuffer_Open: out, the sound, the
+// source's rate +0xc), else *out = -1. Returns out.
+u32 *__fastcall SoundChannel_OpenEax(u8 *channel, void *, u32 *out);
 // 0x6b7870 (thiscall (out), pops 4; an SEH frame for the new; name invented): +0x1c = a new synthesiser holder (8 bytes, Init_6c47b0;
 // null when the heap fails) and SfHost_OpenOut on it (on null too, sic). Returns out.
 u32 *__fastcall SoundChannel_OpenSynth(u8 *channel, void *, u32 *out);
