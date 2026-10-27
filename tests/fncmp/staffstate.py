@@ -182,6 +182,7 @@ def case(r):
     if op == 'LeaveRest':
         h = r.randrange(16)
         put(staff, 0x208, 'H', h)
+        put(staff, 0x20, 'I', r.choice([0, 1, 2, 3]))   # (the sprite the script starts with: a dword here, so the upper bytes clear)
         regions[0x788d3c] = struct.pack('<I', RAM + 0x3b000)
         blob_bytes(regions[LOG], 21, 0, 0xf3ff)
         rid = r.choice([1, 2, 7])
