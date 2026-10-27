@@ -162,6 +162,10 @@ void __cdecl Window7ca2e8_ClearButtons(u32 mode);
 // 0xff and the text 0; then [0x7cc4e4] = 0.
 void __cdecl Dialog7cc4c4_Create();
 
+// 0x4b9950 (cdecl (window, message, a, b); name invented): Dialog7cc4c4_Create's handler: the message 0x14 forgets the dialog ([0x7cc4c4]
+// = 0); Window_CallDefault's result.
+s32 __cdecl Dialog7cc4c4_Handler(u8 *window, u32 message, u32 a, u32 b);
+
 // 0x4c4fb0 (cdecl (flag: a byte); called by 0x5dd650 / 0x5dd910 before Dialog7cc4c4_Create; name unconfirmed): unless the dialog [0x7cdb0c]
 // is made or the frame [0xf82884] has no window +4, it is built from the window script 0x7596b0 on that window (WindowScript_Build: the
 // last child it makes) with the handler 0x4c53f0 and its dword +0xa0 0 set to the flag (Window_SetDwordA0). With a flag its child 0x16007

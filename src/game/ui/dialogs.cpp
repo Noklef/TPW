@@ -122,6 +122,11 @@ s32 __cdecl Dialog7cb2b8_Handler(u8 *window, u32 message, u32 a, u32 b) {
     return Window_CallDefault(window, nullptr, message, a, b);
 }
 
+s32 __cdecl Dialog7cc4c4_Handler(u8 *window, u32 message, u32 a, u32 b) {
+    if (message == 0x14) *reinterpret_cast<u32 *>(0x007cc4c4) = 0;
+    return Window_CallDefault(window, nullptr, message, a, b);
+}
+
 s32 __cdecl Window_DefaultHandler(u8 *window, u32 message, u32 a, u32 b) { return Window_CallDefault(window, nullptr, message, a, b); }
 
 s32 __cdecl WindowText7cb4d0_Handler(u8 *window, u32 message, u32 a, u32 b) {
