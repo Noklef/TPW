@@ -264,4 +264,27 @@ void __fastcall MoviePlayer_ExpandBlocks(const u8 *records, u8 *out, s32 count) 
         for (s32 k = 0; k < 0x10; ++k) out[0xf - k] = records[indices >> (k * 2) & 3];
     }
 }
+
+u8 *__fastcall MoviePlayer_SwapFields(u8 *player) {
+    u8 *const settings = at<u8 *>(player, 0);
+    const u32 second = at<u32>(settings, 0x20);
+    if (second && at<s32>(player, 0x4c) == 1) {
+        at<u32>(settings, 0x20) = at<u32>(settings, 0x1c);
+        at<u32>(settings, 0x1c) = second;
+    }
+    if (at<u32>(settings, 4) & 0x800) {
+        const u32 a = at<u32>(settings, 0x4c);
+        at<u32>(settings, 0x4c) = at<u32>(settings, 0x50);
+        at<u32>(settings, 0x50) = a;
+    }
+    return settings;
+}
+
+u32 __cdecl MoviePlayer_IsRunning(u8 *handle) {
+    u8 *const player = at<u8 *>(handle, 0);
+    if (!player) return 0;
+    const s32 state = at<s32>(handle, 0x9c);
+    if (at<u32>(player, 0x3e0)) return state != 7;
+    return state == 3 || state == 4;
+}
 }

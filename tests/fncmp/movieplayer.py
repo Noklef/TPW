@@ -14,6 +14,8 @@
 # mapped 0x400 bytes either side), the codebook random. SizeFlags (0x670900): the player and data random.
 # Size3 (0x6708e0): the same. ByKind (0x670890): Header's player and chunk, the kind read +0x3a8 0-8 (now and then any).
 # Number (0x66ee80): a cursor at a tag, its count 0-4 mostly (else 5-8 or any byte), the bytes random (high bits set about half).
+# SwapFields (0x66fb90): the player's +0x4c 1 mostly, its settings' +0x20 0 now and then. IsRunning (0x66f540): a handle whose player
+# is none now and then, the player's +0x3e0 0 or not, the state +0x9c 0-8 or any.
 # usage: movieplayer.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Header,Palette,Size,Pixels,Unpack,Expand,Place,Draw,Indices,
 # Blocks,SizeFlags,Size3,ByKind,Number)
 import os
@@ -24,11 +26,17 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import RAM, Bench, Call  # noqa: E402
 
 CALLS = {'Header': 0x670860, 'Palette': 0x670930, 'Size': 0x670ab0, 'Pixels': 0x677930, 'Unpack': 0x677640, 'Expand': 0x6776c0, 'Place': 0x6711a0, 'Draw': 0x6779e0, 'Indices': 0x67862f,
-         'Blocks': 0x6786d8, 'SizeFlags': 0x670900, 'Size3': 0x6708e0, 'ByKind': 0x670890, 'Number': 0x66ee80}
+         'Blocks': 0x6786d8, 'SizeFlags': 0x670900, 'Size3': 0x6708e0, 'ByKind': 0x670890, 'Number': 0x66ee80,
+         'SwapFields': 0x66fb90, 'IsRunning': 0x66f540}
 B = Bench([(0x670860, 0x67092e), (0x670930, 0x670aa2), (0x670ab0, 0x670ac5), (0x677930, 0x6779dc), (0x677640, 0x6776b8),
            (0x6776c0, 0x6777ce), (0x6711a0, 0x67122f), (0x6779e0, 0x677bf3), (0x676478, 0x6764bc), (0x67862f, 0x6786d8),
-           (0x6786d8, 0x67878c), (0x670900, 0x67092e), (0x66ee80, 0x66eee9)])
+           (0x6786d8, 0x67878c), (0x670900, 0x67092e), (0x66ee80, 0x66eee9), (0x66fb90, 0x66fbc5), (0x66f540, 0x66f57e)])
 PLAYER, SETTINGS, DATA = RAM, RAM + 0x1000, RAM + 0x2000
+
+
+def put32(buf, at, value):
+    buf[at:at + 4] = struct.pack('<I', value & 0xffffffff)
+    return buf
 
 
 def settings(r):
@@ -105,6 +113,16 @@ def case(r):
         return indices_case(r)
     if op == 'Blocks':
         return blocks_case(r)
+    if op == 'SwapFields':   # (the player's +0x4c 1 mostly, the settings' +0x20 0 now and then, flag 0x800 of +4 either way)
+        player = put32(bytearray(r.bytes(0x60)), 0x4c, r.choice([1, 1, 1, 0, 2, r.getrandbits(32)]))
+        put32(player, 0, SETTINGS)
+        sets = put32(bytearray(r.bytes(0x60)), 0x20, r.choice([0, r.getrandbits(32), r.getrandbits(32)]))
+        return Call(CALLS[op], [PLAYER], {PLAYER: bytes(player), SETTINGS: bytes(sets)}, conv='t', ret='a')
+    if op == 'IsRunning':   # (the player none now and then, its +0x3e0 0 or not, the state 0-8 or any)
+        handle = put32(bytearray(r.bytes(0xa0)), 0, r.choice([SETTINGS] * 6 + [0]))
+        put32(handle, 0x9c, r.choice(list(range(9)) + [3, 4, 7, r.getrandbits(32)]))
+        sets = put32(bytearray(r.bytes(0x3e4)), 0x3e0, r.choice([0, 0, 1, r.getrandbits(32)]))
+        return Call(CALLS[op], [PLAYER], {PLAYER: bytes(handle), SETTINGS: bytes(sets)}, ret='a')
     if op == 'Number':
         count = r.choice([0, 1, 1, 2, 2, 3, 3, 4, r.randrange(5, 9), r.getrandbits(8)])
         body = bytearray(r.bytes(2 + count + 4))
