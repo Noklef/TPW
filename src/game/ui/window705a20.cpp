@@ -368,4 +368,47 @@ void __fastcall Window705a20_SetSelection(u8 *window, void *, u32 cursorArg, u32
     vcall<void>(at<u8 *>(window, 0x15c), 0xc, 0x10u, event);
     GuiRect_Dtor(rect);
 }
+
+u32 __fastcall Window705a20_SetText(u8 *window, void *, const u16 *text, u32 notify) {
+    if (!text) return 0;
+    bool changed = false;
+    if (at<u32>(window, 0x48) & 0x40) {   // its own buffer: replaced by a new one when the text is longer (sic: one that fits is not copied)
+        if (Crt().wcslen(text) > at<u32>(window, 0x13c)) {
+            if (at<u16 *>(window, 0x138)) GameHeap_Free(at<u16 *>(window, 0x138));
+            at<u16 *>(window, 0x138) = static_cast<u16 *>(GameHeap_Alloc(Crt().wcslen(text) * 2 + 2));
+            at<u32>(window, 0x13c) = Crt().wcslen(text);
+            if (at<u16 *>(window, 0x138)) Crt().wcscpy(at<u16 *>(window, 0x138), text);
+            changed = true;
+        }
+    } else if (at<u32>(window, 0x13c) && at<u16 *>(window, 0x138) &&
+               (Crt().wcscmp(at<u16 *>(window, 0x138), text) != 0 || at<u8>(window, 0x160))) {
+        Crt().wcsncpy(at<u16 *>(window, 0x138), text, at<u32>(window, 0x13c));
+        at<u16 *>(window, 0x138)[at<u32>(window, 0x13c)] = 0;
+        at<u8>(window, 0x160) = 0;
+        changed = true;
+    } else if (at<const u16 *>(window, 0x138) == text) {
+        changed = true;
+        at<u8>(window, 0x160) = 0;
+    }
+    if (changed) {
+        if (global<u32>(0x00faa5d4)) Window_PostMessage(window, 3, 0, 0);
+        Window_NotifyBoth100(window, nullptr, at<u32>(window, 0x138));
+        Window705a20_SetSelection(window, nullptr, (u32)-5, 0, (u32)-1);
+        if (notify & 0xff) Window_PostMessage(at<u8 *>(window, 0x60), 0x801, at<u32>(window, 0x8c), 0);
+    }
+    return 0;
+}
+
+u32 __fastcall Window705a20_SetTextNotify(u8 *window, void *, const u16 *text) { return Window705a20_SetText(window, nullptr, text, 1); }
+
+u32 __fastcall Window705a20_SetTextQuiet(u8 *window, void *, const u16 *text) { return Window705a20_SetText(window, nullptr, text, 0); }
+
+u32 __fastcall Window705a20_GetText(u8 *window, void *, u16 *to, u32 n) {
+    if (!at<u16 *>(window, 0x138)) return (u32)(uintptr_t)window & 0xffff0000u;
+    return ((u32)(uintptr_t)Crt().wcsncpy(to, at<u16 *>(window, 0x138), n) & 0xffff0000u) | 1;
+}
+
+void __fastcall Window705a20_SetCursor(u8 *window, void *, u32 cursor, u32 anchor) {
+    Window705a20_SetSelection(window, nullptr, cursor, 1, anchor);
+}
 }
