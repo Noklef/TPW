@@ -226,6 +226,7 @@
 #include "../game/core/voiceevents.h"
 #include "../game/core/voicesample.h"
 #include "../game/core/waveformat.h"
+#include "../game/core/widewriter.h"
 #include "../game/core/wscanner.h"
 #include "../game/core/wtraits.h"
 #include "../game/core/xaadpcm.h"
@@ -4782,6 +4783,7 @@ const Hook kHooks[] = {
     {"SoundDevice_Get",           0x006c4500, (void *)&SoundDevice_Get, {0x8a, 0x0d, 0x28, 0x20, 0xfb}},
     {"SoundSource711920_SetRate", 0x006d21d0, (void *)&SoundSource711920_SetRate, {0x8b, 0x44, 0x24, 0x08, 0x56}},
     {"SoundSource711b08_SetOrientation", 0x006d37b0, (void *)&SoundSource711b08_SetOrientation, {0x8b, 0x49, 0x1c, 0x85, 0xc9}},
+    {"WideWriter_Finish",         0x006b00e0, (void *)&WideWriter_Finish, {0x8b, 0xc1, 0x33, 0xd2, 0x53}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
