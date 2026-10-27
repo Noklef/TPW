@@ -4,7 +4,10 @@
 #include <cstring>
 
 #include "../core/buffers.h"
+#include "../core/countedpair.h"
 #include "../core/crt.h"
+#include "../core/dequeiter.h"
+#include "../core/gameheap.h"
 #include "../core/initializers.h"
 #include "../core/stdstring.h"
 #include "../core/stdwstring.h"
@@ -74,6 +77,44 @@ u8 *__fastcall OnlineChat_Ctor(u8 *chat) {
         s->ptr[count] = 0;
     }
     return chat;
+}
+
+void __stdcall OnlineChat_QueueCallback(u32 code, u32, u32, u32) {
+    u8 vec[0x10];   // {+0 allocator byte, +4 first, +8 last, +0xc end}
+    vec[0] = static_cast<u8>(code);   // (sic: code's stack slot)
+    at<u32>(vec, 4) = 0;
+    at<u32>(vec, 8) = 0;
+    at<u32>(vec, 0xc) = 0;
+    CountedPair pair;
+    const u32 values[2] = {0x2711, code};
+    for (u32 value : values) {
+        *reinterpret_cast<u8 *>(&pair.narrow) = static_cast<u8>(code);
+        StdString_Tidy(&pair.narrow, nullptr, 0);
+        *reinterpret_cast<u8 *>(&pair.wide) = static_cast<u8>(code);
+        CountedBuf_Reset(reinterpret_cast<u8 *>(&pair.wide), nullptr, 0);
+        pair.value = value;
+        CountedPairVector_InsertN(vec, nullptr, at<u32>(vec, 8), 1, &pair);
+        CountedBuf_Reset(reinterpret_cast<u8 *>(&pair.wide), nullptr, 1);
+        StdString_Tidy(&pair.narrow, nullptr, 1);
+    }
+    u8 *chat = *reinterpret_cast<u8 **>((uintptr_t)0x007cddec);
+    if (!chat) {
+        u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0xf0c));
+        chat = block ? OnlineChat_Ctor(block) : nullptr;
+        *reinterpret_cast<u8 **>((uintptr_t)0x007cddec) = chat;
+    }
+    u8 *const lock = chat + 0x30;
+    CritSec_Enter(lock);
+    u8 *const deque = chat + 0xec8;
+    if (at<u32>(deque, 0x2c) == 0 || at<u32>(deque, 0x1c) == at<u32>(deque, 0x18)) Deque32_GrowBack(deque);
+    const u32 cur = at<u32>(deque, 0x1c);
+    at<u32>(deque, 0x1c) = cur + 0x10;
+    CountedPairVector_Construct(reinterpret_cast<u8 *>((uintptr_t)cur), vec);
+    ++at<u32>(deque, 0x2c);
+    CritSec_Leave(lock);
+    const u32 first = at<u32>(vec, 4), last = at<u32>(vec, 8);
+    for (u32 p = first; p != last; p += 0x24) CountedPair_Deleter(reinterpret_cast<u8 *>((uintptr_t)p), nullptr, 0);
+    GameHeap_Free(reinterpret_cast<void *>((uintptr_t)first));
 }
 
 void __fastcall OnlineChat_Set29And2a(u8 *chat) {
