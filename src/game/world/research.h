@@ -94,4 +94,10 @@ void __fastcall ResearchLab_PrevProject(u8 *lab, void *, u32 group);
 // with some project of the category not done (ResearchLab_CountNotDone) and the category 0-3, the advisor message 0x85 + cat (type 0, a
 // 0, b -1, flag 0, no score; on the stack, bytes +2, +3, +0x17 unwritten) is posted to the advisor of the world [0x80239c].
 void __fastcall ResearchLab_UpdateLevels(u8 *lab, void *, u32 cat);
+
+// 0x503330 (thiscall; name invented; called by the lab's 0x502d60 after ResearchLab_FillProjects): for each group 0-4, its effort set to
+// the dword at 0x785568 + group * 4, 100 at most (unsigned); the 5 groups' outputs recomputed (as ResearchLab_FillProjects's tail); the
+// group's current project set to the first of the mNumProjects projects with mCat the group, mResearchGroup at most its
+// highestGroupAvailable (bytes, unsigned) and not done (kept when there is none); then ResearchLab_UpdateLevels of the group.
+void __fastcall ResearchLab_ApplyEfforts(u8 *lab);
 }
