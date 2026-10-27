@@ -12,6 +12,7 @@
 #include "../model/parts.h"
 #include "../model/partstate.h"
 #include "../motion/animator.h"
+#include "camera.h"
 #include "random.h"
 #include "../core/soundplay.h"
 #include "../render/particles.h"
@@ -277,6 +278,92 @@ s32 __cdecl FlyingRides_FloorAt(s32 x, s32 y) {
     if (cy >= bound(0x007a0374))
         cy = bound(0x007a0374) - 1;
     return (s32)((u32)(long long)Terrain_SurfaceHeight(cx, cy, nullptr) * 300);
+}
+}
+
+namespace {
+
+s32 wrap_add(s32 a, s32 b) { return (s32)((u32)a + (u32)b); }
+
+// A coordinate's 20000 square's centre: v / 20000 * 20000 (truncated), less 20000 below 0, plus 10000.
+s32 square_centre(s32 v) {
+    u32 corner = (u32)(v / 20000) * 20000u;
+    if (v < 0)
+        corner -= 20000;
+    return (s32)(corner + 10000);
+}
+
+bool in_bounds(s32 x, s32 z) {
+    return x < bound(0x007660b8) && z < bound(0x007660c0) && x >= bound(0x007660bc) && z >= bound(0x007660c4);
+}
+
+// The surface's height (by __ftol, times 300) at a position's cell, clamped by hand as 0x55c350 does; 0 outside the bounds.
+s32 surface_at(s32 x, s32 z) {
+    if (!in_bounds(x, z))
+        return 0;
+    s32 cx = x / 300 / 10, cz = z / 300 / 10;
+    if (cx < 0)
+        cx = 0;
+    if (cz < 0)
+        cz = 0;
+    if (cx >= bound(0x007a0314))
+        cx = bound(0x007a0314) - 1;
+    if (cz >= bound(0x007a0374))
+        cz = bound(0x007a0374) - 1;
+    return (s32)((u32)(long long)Terrain_SurfaceHeight(cx, cz, nullptr) * 300);
+}
+
+}  // namespace
+
+extern "C" {
+void __cdecl FlyingRide_PickWaypoint(u8 *rec) {
+    s32 &x = at<s32>(rec, 0x4c), &z = at<s32>(rec, 0x54);
+    const s32 dx = wrap_add(x, -at<s32>(rec, 0x58)), dz = wrap_add(z, -at<s32>(rec, 0x60));
+    s32 stepX = 0, stepZ = 0;
+    if (magnitude(dx) > magnitude(dz))
+        stepX = dx == 0 ? 0 : dx > 0 ? 20000 : -20000;
+    else
+        stepZ = dz == 0 ? 0 : dz > 0 ? 20000 : -20000;
+    at<s32>(rec, 0x58) = x;
+    at<s32>(rec, 0x5c) = at<s32>(rec, 0x50);
+    at<s32>(rec, 0x60) = z;
+    s32 limit = wrap_add(at<s32>(rec, 8), 5000);
+    if (magnitude(World_Rand(*reinterpret_cast<u8 **>(0x007cf83c))) % 4 != 0 && FlyingRides_FloorAt(wrap_add(x, stepX), wrap_add(z, stepZ)) < limit) {
+        x = wrap_add(square_centre(x), stepX);
+        z = wrap_add(square_centre(z), stepZ);
+    } else {
+        // Sideways first (either way), then ahead or back; the floor allowed rising by 5000 each round.
+        for (;; limit = wrap_add(limit, 5000)) {
+            if (FlyingRides_FloorAt(wrap_add(x, stepZ), wrap_add(z, stepX)) < limit) {
+                x = wrap_add(x, stepZ), z = wrap_add(z, stepX);
+                break;
+            }
+            if (FlyingRides_FloorAt(wrap_add(x, -stepZ), wrap_add(z, -stepX)) < limit) {
+                x = wrap_add(x, -stepZ), z = wrap_add(z, -stepX);
+                break;
+            }
+            if (FlyingRides_FloorAt(wrap_add(x, stepX), wrap_add(z, stepZ)) < limit) {
+                x = wrap_add(x, stepX), z = wrap_add(z, stepZ);
+                break;
+            }
+            if (FlyingRides_FloorAt(wrap_add(x, -stepX), wrap_add(z, -stepZ)) < limit) {
+                x = wrap_add(x, -stepX), z = wrap_add(z, -stepZ);
+                break;
+            }
+        }
+        x = square_centre(x);
+        z = square_centre(z);
+    }
+    const bool there = surface_at(x, z) > surface_at(at<s32>(rec, 4), at<s32>(rec, 0xc));
+    const s32 px = there ? x : at<s32>(rec, 4), pz = there ? z : at<s32>(rec, 0xc);
+    s32 y = 0;
+    if (in_bounds(px, pz)) {
+        s32 cx = px / 300 / 10, cz = pz / 300 / 10;
+        Camera_ClampCell(&cx, &cz);
+        y = (s32)((u32)(long long)Terrain_SurfaceHeight(cx, cz, nullptr) * 300);
+    }
+    y = wrap_add(y, 5000);
+    at<s32>(rec, 0x50) = y > 12000 ? y : 12000;
 }
 }
 

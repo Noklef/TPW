@@ -88,6 +88,17 @@ void __cdecl FlyingRides_ReclaimRides();
 // y / 3000 (truncated, then clamped to 0 and to below the grid sizes at 0x7a0314 and 0x7a0374) by __ftol, times 300.
 s32 __cdecl FlyingRides_FloorAt(s32 x, s32 y);
 
+// 0x55c350 (cdecl; a record; name invented, unconfirmed; called at 0x55b85c and 0x55b874): the next waypoint (+0x4c, +0x50, +0x54) on
+// the 20000 grid. A step of 20000 along the axis the last leg (from +0x58 / +0x60) moved most (x when |dx| > |dz|, signed; its sign,
+// 0 for none); the waypoint kept as the old one; the floor limit +8 + 5000. With World_Rand (the world 0x7cf83c) % 4 not 0 and the
+// floor (FlyingRides_FloorAt) a step ahead under the limit (signed): the waypoint the centre of its square (v / 20000 * 20000, less
+// 20000 below 0, plus 10000) and a step ahead. Else the first under the limit of a step to one side, the other, ahead and back
+// (the limit rising 5000 each round), the waypoint moved there and centred. Its y: the surface (Terrain_SurfaceHeight, no slot) by
+// __ftol, times 300, at whichever of the waypoint and +4 / +0xc is higher (the waypoint only when strictly; each 0 outside the bounds
+// 0x7660b8-0x7660c4, cells x / 3000 clamped to the grid 0x7a0314 / 0x7a0374), the chosen one by Camera_ClampCell, plus 5000, at least
+// 12000.
+void __cdecl FlyingRide_PickWaypoint(u8 *rec);
+
 // 0x55ce60 (cdecl; t, a float capped at 2.0; name unconfirmed): each record's (0x8791fc-0x879388) slots in use (+0x80 set) placed at t
 // between their old and new positions. A slot's position (+4, +8, +0xc; old +0x1c, +0x20, +0x24) and three 12-bit angles (+0x10, +0x18,
 // +0x14; old +0x28, +0x30, +0x2c) go to the globals 0x8791e0, 0x8791f4, 0x8791d8 and 0x8791e8, 0x8791c4, 0x8791c0: when +0xc8 is set
