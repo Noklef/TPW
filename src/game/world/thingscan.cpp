@@ -542,12 +542,17 @@ s32 __fastcall Things_FacilityScore(void *) {
         World_NextThing(world(), nullptr, &handle, thing);
     }
     auto cap = [](s32 v, s32 most) { return v < most ? v : most; };
+    // (the definition counts under their caps counted again, as the original's: ObjectDefs_Find's last-found id moves in between)
+    auto again = [](s32 value, s32 least, s32 times, s32 most) {
+        const s32 v = Things_CountByDef4ac(value, least) * times / 2;
+        return v < most ? Things_CountByDef4ac(value, least) * times / 2 : most;
+    };
     s32 score = cap(plain, 1000) * 20 / 1000;
-    score += cap(Things_CountByDef4ac(0, 0) * 3 / 2, 20);
-    score += cap(Things_CountByDef4ac(1, 0) * 2, 10);
-    score += cap(Things_CountByDef4ac(2, 0) * 2, 10);
-    score += cap(Things_CountByDef4ac(3, 0), 10);
-    score += cap(Things_CountByDef4ac(0, 2), 10);
+    score += again(0, 0, 3, 20);
+    score += again(1, 0, 4, 10);
+    score += again(2, 0, 4, 10);
+    score += again(3, 0, 2, 10);
+    score += again(0, 2, 2, 10);
     for (u32 kind = 4; kind <= 8; ++kind) score += cap(Things_CountStaffOfKind(kind), 4);  // (5 and 4 inlined, Thing_IsStaff and the kind)
     return score;
 }
