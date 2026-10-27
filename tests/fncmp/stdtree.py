@@ -3,7 +3,7 @@
 # range erase (0x4104b0: the whole tree, a tail, a stretch or nothing, the size now and then 0) and _Erase (0x410720) from the root, a node or nil, as C, D and E's (0x4f4070 / 0x4f4ac0 / 0x4f4fd0, the strings released) and their range erases (0x4f2590 / 0x4f2960 / 0x4f3290) and destructors (0x4e5870 / 0x4e5800 / 0x4e58e0); B's key compare (0x40f950); A's map constructor (0x47b060), the nil node made already or not.
 # Tree H (the sound code's map of dword keys to Strings, 0x6c....) as C's, its Strings at +0x10, with its insert; MapH: its map members (insert(value), operator[], the
 # string clear 0x6c0ba0, the pair's construct and copy, the WString assignment 0x6c0b10 and the value search 0x6c0b30). Tree I (the sound code's tree of plain values at 0xfb2010) as B's, with
-# its destructor. Tree J (0xfb2000: a map of dword keys to trees I, each node's tree I of 0 to 5 nodes, released with it) as B's, with its constructor.
+# its destructor. Tree J (0xfb2000: a map of dword keys to trees I, each node's tree I of 0 to 5 nodes, released with it) as B's, with its constructor and destructor (0x6beda0).
 # usage: stdtree.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import struct
@@ -23,10 +23,10 @@ TREES = {'A': (0x47d570, 0x47c010, 0x7b4a54, 0x18), 'B': (0x410670, 0x40ff80, 0x
 INSERT = {'A': 0x47d140, 'B': 0x4107b0, 'G': 0x5b2ba0, 'H': 0x6c29b0}
 DEC = {'A': 0x47d4b0, 'B': 0x410b20, 'C': 0x4f6340, 'D': 0x4f64f0, 'E': 0x4f6680, 'F': 0x5b2ff0, 'G': 0x5b3130, 'H': 0x6c2d20}
 RANGE = {'B': (0x4104b0, 0x410720), 'C': (0x4f2590, 0x4f4070), 'D': (0x4f2960, 0x4f4ac0), 'E': (0x4f3290, 0x4f4fd0), 'H': (0x6c1270, 0x6c20b0), 'I': (0x6c31e0, 0x6c3870), 'J': (0x6c13e0, 0x6c2760)}   # erase(first, last), _Erase
-DTOR = {'C': (0x4e5870, 0x7ced30), 'D': (0x4e5800, 0x7ced28), 'E': (0x4e58e0, 0x7ced38), 'H': (0x6c11c0, 0xfb200c), 'I': (0x6c3130, 0xfb2014)}   # the destructor, the map counter
+DTOR = {'C': (0x4e5870, 0x7ced30), 'D': (0x4e5800, 0x7ced28), 'E': (0x4e58e0, 0x7ced38), 'H': (0x6c11c0, 0xfb200c), 'I': (0x6c3130, 0xfb2014), 'J': (0x6beda0, 0xfb2004)}   # the destructor, the map counter
 CTOR = {'A': (0x47ce70, 0x7b4a50), 'C': (0x4f4120, 0x7ced30), 'D': (0x4f4b70, 0x7ced28), 'E': (0x4f5080, 0x7ced38), 'G': (0x5b2af0, 0xf7c96c), 'H': (0x6c2140, 0xfb200c), 'J': (0x6c2860, 0xfb2004)}
 CLEARDTOR = {'H': (0x6c0a60, 0xfb200c)}   # a clear, then the destructor
-B = Bench([(a, a + 0x330) for a in INSERT.values()] + [(0x5b3210, 0x5b3230)] + [(a, a + 0xc0) for a in DEC.values()] + [(a, a + 0xb0) for (a, _c) in CTOR.values()] + [(a, a + 0xb0) for (a, _e, _n, _c) in TREES.values()] + [(e, e + 0x560) for (_a, e, _n, _c) in TREES.values()] + [(0x40f950, 0x40f961), (0x47b060, 0x47b122), (0x4104b0, 0x410610), (0x410720, 0x4107a0), (0x4f4070, 0x4f4120), (0x4f4ac0, 0x4f4b70), (0x4f4fd0, 0x4f5080), (0x4f2590, 0x4f26f8), (0x4f2960, 0x4f2ac8), (0x4f3290, 0x4f33f8), (0x4f23f0, 0x4f2450), (0x4e5800, 0x4e596b), (0x67acb0, 0x67acb1), (0x45b340, 0x45b9a0), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000), (0x6c0b10, 0x6c0ba0), (0x6c1130, 0x6c1240), (0x6c1270, 0x6c13e0), (0x6c1a90, 0x6c1b70), (0x6c20b0, 0x6c2140), (0x6c30a0, 0x6c3130), (0x6c3130, 0x6c31a0), (0x6c31e0, 0x6c3340), (0x6c38a0, 0x6c3910), (0x6c13e0, 0x6c1543), (0x6c2750, 0x6c2860), (0x6c3900, 0x6c3905), (0x6c0a60, 0x6c0b08), (0x6c0ba0, 0x6c0bc6)],
+B = Bench([(a, a + 0x330) for a in INSERT.values()] + [(0x5b3210, 0x5b3230)] + [(a, a + 0xc0) for a in DEC.values()] + [(a, a + 0xb0) for (a, _c) in CTOR.values()] + [(a, a + 0xb0) for (a, _e, _n, _c) in TREES.values()] + [(e, e + 0x560) for (_a, e, _n, _c) in TREES.values()] + [(0x40f950, 0x40f961), (0x47b060, 0x47b122), (0x4104b0, 0x410610), (0x410720, 0x4107a0), (0x4f4070, 0x4f4120), (0x4f4ac0, 0x4f4b70), (0x4f4fd0, 0x4f5080), (0x4f2590, 0x4f26f8), (0x4f2960, 0x4f2ac8), (0x4f3290, 0x4f33f8), (0x4f23f0, 0x4f2450), (0x4e5800, 0x4e596b), (0x67acb0, 0x67acb1), (0x45b340, 0x45b9a0), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000), (0x6c0b10, 0x6c0ba0), (0x6c1130, 0x6c1240), (0x6c1270, 0x6c13e0), (0x6c1a90, 0x6c1b70), (0x6c20b0, 0x6c2140), (0x6c30a0, 0x6c3130), (0x6c3130, 0x6c31a0), (0x6c31e0, 0x6c3340), (0x6c38a0, 0x6c3910), (0x6c13e0, 0x6c1543), (0x6c2750, 0x6c2860), (0x6c3900, 0x6c3905), (0x6c0a60, 0x6c0b08), (0x6c0ba0, 0x6c0bc6), (0x6beda0, 0x6bee0b)],
           hooks={0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None})
 TREE, HEAD, NIL, NODES = RAM, RAM + 0x200, RAM + 0x300, RAM + 0x10000
 NIL_I, SUBTREES = RAM + 0x380, RAM + 0x20000   # tree J's values: tree I's nil node and its trees (0x400 bytes each)
@@ -309,6 +309,8 @@ def case(r):
         struct.pack_into('<I', glob, nil_at - low, NIL)
         struct.pack_into('<I', glob, counter - low, r.choice([1, 1, 2, 5, 0]))
         del regions[nil_at]
+        if low <= 0xfb2010 < low + len(glob) and 0xfb2010 in regions:   # (J's: tree I's nil and counter inside the same 0x20 bytes)
+            glob[0x10:0x18] = regions.pop(0xfb2010)
         regions[low] = glob
         return Call(address, [TREE], regions, conv='t', ret='v')
     if kind == 'ctor':  # the constructor: the nil node made already or not

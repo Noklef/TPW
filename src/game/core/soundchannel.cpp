@@ -9,6 +9,7 @@
 #include "channelvoice.h"
 #include "fieldops.h"
 #include "initializers.h"
+#include "ptrlist.h"
 #include "soundeax.h"
 #include "soundoccluders.h"
 #include "thunks.h"
@@ -324,6 +325,47 @@ u32 __fastcall SoundChannel_PlayRecord(u8 *channel, void *, u8 *record, u32 *voi
     u32 slot = (u32)(uintptr_t)record;   // (the out: the record argument's own stack slot, sic)
     if (*vcall<s32 *>(channel, 0x10, &slot, functor) < 0) return 0;
     return result;
+}
+
+u32 *__fastcall SoundChannel_SetOcclusion(u8 *channel, void *, u32 *out, u8 on, u32 radius) {
+    const u8 was = global<u8>(0xfb2050);
+    const float old = global<float>(0xfb204c), now = *reinterpret_cast<const float *>(&radius);
+    if (was != on || old < now || old > now) {
+        global<u32>(0xfb204c) = radius;
+        global<u8>(0xfb2050) = on;
+        const u8 eax = at<u32>(channel, 0x20) != 0;
+        if (eax || vcall<u8>(at<u8 *>(channel, 0x18), 0x4c)) {
+            if (!on && was) SoundChannel_ClearOcclusion(channel, nullptr, eax);
+            else if (on && !was) SoundChannel_UpdateOcclusion(channel, nullptr, eax);
+        }
+    }
+    *out = 0;
+    return out;
+}
+
+u8 *__fastcall SoundChannel_AddOccluder(u8 *channel, void *, u32 x, u32 y, u32 z, u32 radius) {
+    const u8 eax = at<u32>(channel, 0x20) != 0;
+    if (!eax && !vcall<u8>(at<u8 *>(channel, 0x18), 0x4c)) return nullptr;
+    const u32 occluder[4] = {x, y, z, radius};
+    u8 *const node = PtrList_InsertCopyByKey(reinterpret_cast<u8 *>(static_cast<uintptr_t>(0x00fb2038)), nullptr,
+                                             reinterpret_cast<const u8 *>(occluder));
+    if (node && global<u8>(0xfb2050)) SoundChannel_UpdateOcclusion(channel, nullptr, eax);
+    return node;
+}
+
+u32 *__fastcall SoundChannel_RemoveOccluder(u8 *channel, void *, u32 *out, u8 **node) {
+    if (*node) {
+        const u8 eax = at<u32>(channel, 0x20) ? 1 : vcall<u8>(at<u8 *>(channel, 0x18), 0x4c);
+        if (eax) {
+            u32 status;
+            SoundOccluders_Remove(reinterpret_cast<u8 *>(static_cast<uintptr_t>(0x00fb2038)), nullptr, &status, node);
+            if (global<u8>(0xfb2050)) SoundChannel_UpdateOcclusion(channel, nullptr, eax);
+            *out = status;
+            return out;
+        }
+    }
+    *out = 0;
+    return out;
 }
 
 }  // extern "C"

@@ -38,5 +38,18 @@ void __fastcall Mp2BufferSample_Restart(u8 *sample);
 void __fastcall Mp2StreamSample_Restart(u8 *sample);
 // 0x6c8ae0 (thiscall; slot 22): with a decoder (+0x34), its slot 2, then (re-read, when still there) its slot 0 (1), and +0x34 0.
 void __fastcall Mp2Sample_FreeDecoder(u8 *sample);
+// 0x6c82c0 (thiscall (record, source), pops 8): the MP2 memory sample's constructor: SoundSample_Ctor, the vtable 0x70ae30, +0x2c =
+// +0x34 = 0, the byte +0x3c = 1; bit 2 of the record's +0x1b: +0x2c = 1 and the length +0x30 = the record's +0x20. Returns the sample.
+// 0x6c8310 (thiscall (flags), pops 4; slot 0): SoundSample_Dtor (0x6c8330's jump), with flags bit 0 the block back to its pool
+// (Mp2SamplePool_Delete, 0x40); returns the sample. (Names invented.)
+u8 *__fastcall Mp2Sample_Ctor(u8 *sample, void *, const u8 *record, u8 *source);
+u8 *__fastcall Mp2Sample_DeletingDtor(u8 *sample, void *, u32 flags);
+// The streamed one (vtable 0x70ae90; its SubStream at +0x40, vtable 0x70aef0): 0x6c87c0 (thiscall (stream, record, start, source), pops
+// 0x10): Mp2Sample_Ctor (record, source), SubStream_CtorAt (+0x40, stream, start), the vtables; returns the sample. 0x6c8850: the
+// SubStream's (vtable 0x70ad50; Semaphore_Dtor (+0x14), StreamBase_Dtor (+0xc)), then SoundSample_Dtor. 0x6c8830 (thiscall (flags),
+// pops 4; slot 0): it, and with flags bit 0 the block back to its pool (Mp2StreamSamplePool_Delete, 0x5c); returns the sample.
+u8 *__fastcall Mp2StreamSample_Ctor(u8 *sample, void *, const u8 *stream, const u8 *record, u32 start, u8 *source);
+void __fastcall Mp2StreamSample_Dtor(u8 *sample);
+u8 *__fastcall Mp2StreamSample_DeletingDtor(u8 *sample, void *, u32 flags);
 
 }  // extern "C"

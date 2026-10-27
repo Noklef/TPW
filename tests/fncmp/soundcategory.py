@@ -18,10 +18,12 @@ from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, echo, fill, fill_ar
 CALLS = {'count': 0x6bd7a0, 'simple': 0x6c0550, 'variation': 0x6c06e0, 'sound': 0x6c0610, 'record': 0x6c05b0, 'fixup': 0x6c0510, 'readimage': 0x6c0360,
          'readmap': 0x6c0450, 'freecat': 0x6bf150, 'freebank': 0x6bf1c0, 'entries': 0x6bf9e0, 'bankdtor': 0x6c01b0, 'bankdel': 0x6c0190,
          'openfolder': 0x6bf850, 'setfolder': 0x6bf260, 'findbank': 0x6bfa60, 'readbankmap': 0x6bfe40, 'loadbankmap': 0x6c0210,
-         'addref': 0x6338c0, 'release': 0x6338d0, 'load': 0x6bf330, 'listdtor': 0x6c2f40, 'listdel': 0x6c30c0, 'findrec': 0x6c0f70}
+         'addref': 0x6338c0, 'release': 0x6338d0, 'load': 0x6bf330, 'listdtor': 0x6c2f40, 'listdel': 0x6c30c0, 'findrec': 0x6c0f70,
+         'dtor': 0x6bee10, 'deldtor': 0x6bed80, 'singleton': 0x6beb10, 'unload': 0x6c08b0}
 B = Bench([(0x6bd7a0, 0x6bd7ac), (0x6bf150, 0x6bf31c), (0x6bf850, 0x6c0303), (0x6c0310, 0x6c035f), (0x6c0360, 0x6c0844), (0x4036a0, 0x4036e0), (0x639100, 0x639120),
            (0x6b9b30, 0x6b9b94), (0x5e42d0, 0x5e431c), (0x6338b0, 0x633900), (0x6c1940, 0x6c1b00), (0x6c2990, 0x6c29c0), (0x4f6740, 0x4f67c0), (0x632200, 0x632230),
-           (0x6bf330, 0x6bf850), (0x632150, 0x632380), (0x6c0860, 0x6c3200), (0x5f7980, 0x5f79cf), (0x67c250, 0x67c2a0)]
+           (0x6bf330, 0x6bf850), (0x632150, 0x632380), (0x6c0860, 0x6c3200), (0x5f7980, 0x5f79cf), (0x67c250, 0x67c2a0),
+           (0x6beb10, 0x6beb1a), (0x6bed80, 0x6bee0b), (0x6bee10, 0x6bf14c), (0x5ec210, 0x5ec220), (0x5f8240, 0x5f8310), (0x5f8420, 0x5f8460), (0x619800, 0x619870)]
           + fileopen.RANGES,
           hooks={0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None})   # (the STL lock the map's insert takes: the port leaves it out)
 CAT, OUT, RECS, NODES = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x400
@@ -47,6 +49,8 @@ REC_VT, TREE_HEAD, TREE_NIL, TREE_NODE, NODE_TEXT, NAME_TEXT = RAM + 0xdc0, RAM 
 WAD = RAM + 0x50000   # a WAD holding <name>BANK.map and <name>SFX.map (SoundCategory_Load's)
 WAD_FOLDERS = [b'C:\\tp\\data\\sfx\\', b'C:\\tp\\data\\sfx', b'D:\\snd\\data\\x\\', b'C:\\tp\\amb\\']
 TREE_H_NIL = 0xfb2008   # (the map's nil node's pointer)
+J_HEAD, J_NIL, SINGLETON = RAM + 0x1000, RAM + 0x1040, 0xfb1f28   # tree J's head and nil node (the destructor's); the singleton category
+UNLOAD_BANKS, UNLOAD_EXTRAS, UNLOAD_VT = RAM + 0x1100, RAM + 0x1200, RAM + 0x1300   # the unload's banks, their +8 objects, their vtables
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
@@ -56,7 +60,9 @@ def deque(r, at, mapat, values, regions):
     n = len(values)
     start = max(0, min(0x3ff, r.choice([0, 0x3ff - n // 2, 0x400 - n, r.randrange(max(1, 0x400 - n + 1))])))
     blocks = [at, at + r.choice([0x1000, 0x3000])]
-    regions[mapat] = struct.pack('<2I', *blocks)
+    while len(blocks) <= (start + n - 1) // 0x400:   # (more than two blocks' worth: a block more each 1024 records, as far apart)
+        blocks.append(blocks[-1] + r.choice([0x1000, 0x2000]))
+    regions[mapat] = struct.pack('<%dI' % len(blocks), *blocks)
     cells = {}
     for i, v in enumerate(values):
         q = start + i
@@ -76,10 +82,10 @@ def deque_full(r, at, mapat, values, regions):
     deque's push_back leaves it), the map (2 slots) and the count (0x2c bytes, for the deque + 4)."""
     it = deque(r, at, mapat, values, regions)
     first, _last, cur, _node = struct.unpack('<4I', it)
-    blocks = struct.unpack('<2I', regions[mapat])
+    blocks = struct.unpack('<%dI' % (len(regions[mapat]) // 4), regions[mapat])
     q = (cur - first) // 4 + len(values)
     b = q // 0x400 - 1 if q and q % 0x400 == 0 else q // 0x400
-    return it + struct.pack('<4I', blocks[b], blocks[b] + 0x1000, blocks[b] + 4 * (q - 0x400 * b), mapat + 4 * b) + struct.pack('<3I', mapat, 2, len(values))
+    return it + struct.pack('<4I', blocks[b], blocks[b] + 0x1000, blocks[b] + 4 * (q - 0x400 * b), mapat + 4 * b) + struct.pack('<3I', mapat, len(blocks), len(values))
 
 
 def files(r, log, regions, wad=True):
@@ -163,8 +169,9 @@ def wad_image(r, files):
     return bytes(out)
 
 
-def category(r, banks=4, holes=False, bank_objects=None):
-    """The category object with deques A (records with bank lists) and C (bank indices); returns regions."""
+def category(r, banks=4, holes=False, bank_objects=None, many=False):
+    """The category object with deques A (records with bank lists) and C (bank indices); returns regions. With `many`, deque A holds more than
+    1024 cells (three blocks or more): mostly gaps, the first record once in the second half, the others anywhere."""
     regions = {HEAP: heap(0x2000)}
     nrec = r.randrange(1, 4)
     recs = bytearray(r.bytes(0x40 * nrec))
@@ -179,7 +186,12 @@ def category(r, banks=4, holes=False, bank_objects=None):
     regions[RECS] = recs
     regions[NODES] = nodes
     cat = bytearray(r.bytes(0xd0))
-    cat[0x3c:0x68] = deque_full(r, BLOCKA, MAPA, [0 if holes and r.random() < 0.3 else RECS + 0x40 * i for i in range(nrec)], regions)
+    vals = [0 if holes and r.random() < 0.3 else RECS + 0x40 * i for i in range(nrec)]
+    if many:
+        n = r.randrange(0x401, 0xa00)
+        vals = [RECS + 0x40 * r.randrange(1, nrec) if nrec > 1 and r.random() < 0.25 else 0 for i in range(n)]
+        vals[r.randrange(n // 2, n)] = RECS
+    cat[0x3c:0x68] = deque_full(r, BLOCKA, MAPA, vals, regions)
     cat[0x9c:0xc8] = deque_full(r, BLOCKC, MAPC, [r.choice([r.randrange(1, 7), r.getrandbits(32)]) for _ in range(banks)], regions)
     if bank_objects is not None:
         cat[0x6c:0x98] = deque_full(r, BLOCKB, MAPB, bank_objects, regions)
@@ -240,10 +252,103 @@ def image(r, banks, levels, top):
     return bytearray(body) + bytearray(r.bytes(0x10)), top
 
 
+def case_dtor(r, name):
+    """The destructor over deque A of 1-3 records (the first's vtable a recorder: its slot 0 logged), B of 0 to ~0x900 banks and C of 0 to
+    ~0x900 indices (the boundaries crossed), the folder Handle on an object (count 1-3) or none, tree J empty (its counter 0xfb2004 1, more or 0)
+    and map H empty or of one node (its counter 0xfb200c the same); deleting with flags bit 0 or not; the singleton's at 0xfb1f28."""
+    n = r.choice([0, 1, 3, r.randrange(0x3f0, 0x401), r.randrange(0x401, 0x900)])
+    regions = category(r, r.choice([0, 1, 4, r.randrange(0x3f0, 0x401), r.randrange(0x401, 0x900)]), bank_objects=[r.getrandbits(32) for _ in range(n)])
+    cat = regions[CAT]
+    recs = bytearray(regions[RECS])
+    struct.pack_into('<I', recs, 0, REC_VT)
+    regions[RECS] = recs
+    regions[REC_VT] = vtable({}, 4)
+    regions[LOG] = log_region()
+    files(r, regions[LOG], regions, wad=False)   # (the imports: the Handle's release, InterlockedDecrement)
+    obj = handle_object(r, 0, r.choice(FOLDERS), regions, recorders=False) if r.random() < 0.5 else 0
+    struct.pack_into('<2I', cat, 0x30, HANDLE_VTABLE, obj)
+    regions[J_HEAD] = struct.pack('<3I', J_HEAD, J_NIL, J_HEAD) + r.bytes(0x18)
+    nil = bytearray(r.bytes(0x28))
+    struct.pack_into('<I', nil, 0x20, 1)
+    regions[J_NIL] = nil
+    struct.pack_into('<4I', cat, 0x1c, r.getrandbits(32), J_HEAD, r.getrandbits(32), 0)
+    nil = bytearray(0x28)
+    struct.pack_into('<I', nil, 0x24, 1)
+    regions[TREE_NIL] = nil
+    if r.random() < 0.5:
+        text = r.choice([b'x', WAD_FOLDERS[0] + b'cat_a', b''])
+        node = bytearray(0x28)
+        struct.pack_into('<4I', node, 0, TREE_NIL, TREE_HEAD, TREE_NIL, r.getrandbits(32))
+        node[0x10:0x24] = string(r, text, NODE_TEXT)
+        struct.pack_into('<I', node, 0x24, 1)
+        regions[TREE_NODE] = node
+        regions[NODE_TEXT] = text + b'\0' + r.bytes(8)
+        regions[TREE_HEAD] = struct.pack('<3I', TREE_NODE, TREE_NODE, TREE_NODE) + bytes(0x1c)
+        size = 1
+    else:
+        regions[TREE_HEAD] = struct.pack('<3I', TREE_HEAD, TREE_NIL, TREE_HEAD) + bytes(0x1c)
+        size = 0
+    struct.pack_into('<IIBxxxI', cat, 0xc, r.getrandbits(32), TREE_HEAD, 0, size)
+    regions[0xfb2000] = struct.pack('<4I', J_NIL, r.choice([1, 1, 2, 0]), TREE_NIL, r.choice([1, 1, 2, 0]))
+    if name == 'singleton':
+        regions[SINGLETON] = regions.pop(CAT)
+        return Call(CALLS[name], [], regions, conv='c', ret='v')
+    if name == 'deldtor':
+        return Call(CALLS[name], [CAT, r.choice([0, 1, 1, 3, 2])], regions, conv='t', ret='a')
+    return Call(CALLS[name], [CAT], regions, conv='t', ret='v')
+
+
+def case_unload(r):
+    """A record unloaded (0x6c08b0): deque B of 7-10 banks (now and then 0), each a recorder object of its own slot-0 recorder (1-10: answering
+    0 mostly, else 1 or 2) whose +8 is another (12-21) or null; a record of deque A (its bank list of 0-3 indices 1-6), at its own index
+    (+0x20) or another, or none; map H empty or of one node (its key the index or another), its size 0 to 5 (StdMapH_ClearAt's bound)."""
+    nb = r.choice([7, 7, 10])
+    objs = [0 if r.random() < 0.2 else UNLOAD_BANKS + 0x10 * i for i in range(nb)]
+    regions = category(r, 4, bank_objects=objs)
+    log = log_region()
+    regions[LOG] = log
+    for i in range(nb):
+        extra = UNLOAD_EXTRAS + 0x10 * i if r.random() < 0.6 else 0
+        regions[UNLOAD_BANKS + 0x10 * i] = struct.pack('<3I', UNLOAD_VT + 4 * i, r.getrandbits(32), extra) + r.bytes(4)
+        regions[UNLOAD_EXTRAS + 0x10 * i] = struct.pack('<I', UNLOAD_VT + 0x40 + 4 * i) + r.bytes(0xc)
+        set_return(log, 1 + i, r.choice([0, 0, 0, 1, 2]))
+    regions[UNLOAD_VT] = struct.pack('<10I', *[recorder(1 + i, 0) for i in range(10)])
+    regions[UNLOAD_VT + 0x40] = struct.pack('<10I', *[recorder(12 + i, 0) for i in range(10)])
+    cat = regions[CAT]
+    nrec = struct.unpack_from('<I', cat, 0x64)[0]
+    j = r.randrange(nrec)
+    recs = bytearray(regions[RECS])
+    for i in range(nrec):
+        struct.pack_into('<I', recs, 0x40 * i + 0x20, i if r.random() < 0.85 else r.randrange(4))
+    regions[RECS] = recs
+    nil = bytearray(0x28)
+    struct.pack_into('<I', nil, 0x24, 1)
+    regions[TREE_NIL] = nil
+    regions[TREE_H_NIL] = struct.pack('<I', TREE_NIL)
+    if r.random() < 0.5:
+        text = r.choice([b'x', b'', b'cat_b2'])
+        node = bytearray(0x28)
+        struct.pack_into('<4I', node, 0, TREE_NIL, TREE_HEAD, TREE_NIL, r.choice([j, j, r.randrange(4)]))
+        node[0x10:0x24] = string(r, text, NODE_TEXT)
+        struct.pack_into('<I', node, 0x24, 1)
+        regions[TREE_NODE] = node
+        regions[NODE_TEXT] = text + bytes(1) + r.bytes(8)
+        regions[TREE_HEAD] = struct.pack('<3I', TREE_NODE, TREE_NODE, TREE_NODE) + bytes(0x1c)
+    else:
+        regions[TREE_HEAD] = struct.pack('<3I', TREE_HEAD, TREE_NIL, TREE_HEAD) + bytes(0x1c)
+    struct.pack_into('<IIBxxxI', cat, 0xc, r.getrandbits(32), TREE_HEAD, 0, r.choice([0, 1, 2, 3, 5]))
+    regions[OUT] = r.bytes(4)
+    return Call(CALLS['unload'], [CAT, OUT, RECS + 0x40 * j if r.random() < 0.95 else 0], regions, conv='t', ret='a')
+
+
 def case(r):
     name = r.deal(OPS)
+    if name in ('dtor', 'deldtor', 'singleton'):
+        return case_dtor(r, name)
+    if name == 'unload':
+        return case_unload(r)
     if name == 'findrec':   # deque A's records (null now and then): +8 0 now and then, +0xc a String over a name; one of those names or another
-        regions = category(r, 4, holes=True)
+        regions = category(r, 4, holes=True, many=r.random() < 0.3)   # (now and then over three blocks or more)
         names = [r.choice(NAMES_GIVEN + [b'Bank0', b'ab']) for _ in range(4)]
         recs = bytearray(regions[RECS])
         for i in range(len(recs) // 0x40):

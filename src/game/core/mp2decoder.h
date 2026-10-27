@@ -19,6 +19,12 @@ void __fastcall Mp2Decoder_ClearBuffers(u8 *decoder, void *);
 // +0x245c (bitrate 144000 % rate) / 100. The ring position +0x243d 1; +0x2474 = +0x246c (halved, as idiv by 2, at half rate, 0xfb2708).
 // 32-bit products; idiv faults (sic) on a rate below 100. Returns 0.
 s32 __fastcall Mp2Decoder_SetupOutput(u8 *decoder, void *);
+// 0x6d1810 (cdecl; name invented): 1 when CPUID leaf 1's EDX has bit 23 (MMX), then EMMS; else 0. (An SEH frame catches a
+// faulting CPUID and returns 0; CPUID does not fault on the CPUs the game runs on, so the port has no handler.)
+u32 __cdecl Mp2_HasMmx();
+// 0x6d1800 (cdecl; a static initializer, reached through the jump 0x6d17f0; name invented): the dword 0xfb2704 (decode in fixed
+// point, the MMX synthesis) = Mp2_HasMmx().
+void __cdecl Mp2_InitFixedPoint();
 // 0x6d1980 (cdecl): a * b / c with the 64-bit product (imul, idiv: faults, sic, on 0 or a quotient past 32 bits).
 s32 __cdecl Mp2_MulDiv(s32 a, s32 b, s32 c);
 // 0x6cc780 (thiscall; position, pops 4; slot 3 of the stream decoder): the stream's slot 2 (seek) with it, the bit position +0x242c 0;

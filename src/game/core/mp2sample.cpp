@@ -4,13 +4,16 @@
 #include <cstring>
 #include <emmintrin.h>
 
+#include "../files/handles.h"
 #include "../files/substream.h"
 #include "../math/x87.h"
 #include "initializers.h"
 #include "mp2decoder.h"
 #include "mp2pool.h"
+#include "semaphore.h"
 #include "soundsample.h"
 #include "soundstream.h"
+#include "streampool.h"
 #include "vcall.h"
 
 namespace {
@@ -120,6 +123,47 @@ void __fastcall Mp2Sample_FreeDecoder(u8 *sample) {
     vcall<void>(at<u8 *>(sample, 0x34), 8);
     if (u8 *const decoder = at<u8 *>(sample, 0x34)) vcall<void>(decoder, 0, 1);
     at<u8 *>(sample, 0x34) = nullptr;
+}
+
+u8 *__fastcall Mp2Sample_Ctor(u8 *sample, void *, const u8 *record, u8 *source) {
+    SoundSample_Ctor(sample, nullptr, const_cast<u8 *>(record), source);
+    at<u32>(sample, 0) = 0x0070ae30;
+    at<u32>(sample, 0x2c) = 0;
+    at<u32>(sample, 0x34) = 0;
+    sample[0x3c] = 1;
+    if (record[0x1b] & 4) {
+        at<u32>(sample, 0x2c) = 1;
+        at<u32>(sample, 0x30) = at<u32>(record, 0x20);
+    }
+    return sample;
+}
+
+u8 *__fastcall Mp2Sample_DeletingDtor(u8 *sample, void *, u32 flags) {
+    SoundSample_Dtor(sample);   // (0x6c8330, a jump to it)
+    if (flags & 1) Mp2SamplePool_Delete(sample, 0x40);
+    return sample;
+}
+
+u8 *__fastcall Mp2StreamSample_Ctor(u8 *sample, void *, const u8 *stream, const u8 *record, u32 start, u8 *source) {
+    Mp2Sample_Ctor(sample, nullptr, record, source);
+    SubStream_CtorAt(sample + 0x40, nullptr, stream, start);
+    at<u32>(sample, 0x40) = 0x0070aef0;
+    at<u32>(sample, 0) = 0x0070ae90;
+    return sample;
+}
+
+void __fastcall Mp2StreamSample_Dtor(u8 *sample) {
+    u8 *const sub = sample + 0x40;   // (the original tests the sample for null first)
+    at<u32>(sub, 0) = 0x0070ad50;
+    Semaphore_Dtor(reinterpret_cast<Semaphore *>(sub + 0x14));
+    StreamBase_Dtor(reinterpret_cast<StreamBase *>(sub + 0xc));
+    SoundSample_Dtor(sample);
+}
+
+u8 *__fastcall Mp2StreamSample_DeletingDtor(u8 *sample, void *, u32 flags) {
+    Mp2StreamSample_Dtor(sample);
+    if (flags & 1) Mp2StreamSamplePool_Delete(sample, 0x5c);
+    return sample;
 }
 
 }  // extern "C"

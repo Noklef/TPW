@@ -6,20 +6,23 @@
 # midiOutLongMsg bytes 4-18). midiOutGetDevCapsA fills the devices' names at +8 in turn (records: "SoundFont", near misses, others),
 # midiOutOpen the handle. Slot 16's names land in the buffer its third argument's structure points to (fill(through=4); per call for
 # the presets' count, some of them the string at 0x786de4 that ends it), the sink's slot 5 logs the name by its text; slots 11 and 16
-# log their word pairs by bytes or as 0, the bank's {0x80, path} by its dwords.
+# log their word pairs by bytes or as 0, the bank's {0x80, path} by its dwords. The synthesiser's holder (HOST): its opens over the open's
+# environment with the synthesiser a heap block, its close and destructor with SELF as its synthesiser or none.
 # usage: sfman.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import (IMPORT_TABLE, LOG, LOG_BYTES, RAM, Bench, Call, blob, blob_bytes, fail_mask, fill, import_table, log_region, recorder,  # noqa: E402
+from fncmp import (HEAP, IMPORT_TABLE, LOG, LOG_BYTES, RAM, Bench, Call, blob, blob_bytes, fail_mask, fill, heap, import_table, log_region, recorder,  # noqa: E402
                    set_return, strings, vtable)
 
 B = Bench([(0x6d3f80, 0x6d3fa1), (0x6d4530, 0x6d4565), (0x6d4570, 0x6d4595), (0x6d45a0, 0x6d46da), (0x6d3fb0, 0x6d41a8), (0x6d4240, 0x6d4339),
            (0x67c250, 0x67c2a0), (0x6d4340, 0x6d43b2), (0x6d43c0, 0x6d449c), (0x6d44a0, 0x6d4522),
-           (0x6d3bb0, 0x6d3bb5), (0x6d3bc0, 0x6d3c82), (0x6d3c90, 0x6d3f1e), (0x6d3f20, 0x6d3f80)])
+           (0x6d3bb0, 0x6d3bb5), (0x6d3bc0, 0x6d3c82), (0x6d3c90, 0x6d3f1e), (0x6d3f20, 0x6d3f80),
+           (0x6c47c0, 0x6c47d1), (0x6c47e0, 0x6c48a3), (0x6c48b0, 0x6c48e1), (0x6d3b90, 0x6d3ba5)])
 SELF, API, OUT, MSG = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300
+HOST = RAM + 0x700   # the synthesiser's holder (8 bytes: +4 the synthesiser)
 SHORT_K, PREP_K, LONG_K, CLOSE_K, OPEN_K, CAPS_K, DEVS_K, LOAD_K, PROC_K, FREE_K = 40, 41, 42, 43, 44, 45, 46, 47, 48, 49
 IMPORTS = {'midiOutShortMsg': (SHORT_K, 0x6fd3cc, 2, 0, 0), 'midiOutPrepareHeader': (PREP_K, 0x6fd3b8, 3, 0, 0),
            'midiOutLongMsg': (LONG_K, 0x6fd3d0, 3, 0, 0), 'midiOutOpen': (OPEN_K, 0x6fd3c0, 5, 0, 0),
@@ -35,7 +38,7 @@ MANAGER, MANAGER_K = RAM + 0x600, 20   # the "SFManager" export: a structure who
 FLAGS = [0x40000000, 0x80000000, 0xc0000000, 0, 0, 0, 0x3fffffff]
 CALLS = {'pack': 0x6d3f80, 'unload': 0x6d4530, 'notesoff': 0x6d4570, 'send': 0x6d45a0, 'sysex': 0x6d3fb0, 'openout': 0x6d4240,
          'getname': 0x6d4340, 'count': 0x6d43c0, 'loadbank': 0x6d44a0, 'dtor': 0x6d3bb0, 'open': 0x6d3bc0,
-         'select': 0x6d3c90, 'close': 0x6d3f20}
+         'select': 0x6d3c90, 'close': 0x6d3f20, 'hostopen': 0x6c47f0, 'hostopenout': 0x6c47c0, 'hostclose': 0x6c48b0, 'hostdtor': 0x6c47e0}
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
@@ -161,7 +164,7 @@ def case(r):
         select(r, log, 0xc)
         count = r.choice([0, 0x10000, r.getrandbits(16) << 16 | r.randrange(1, 17)] + [r.randrange(1, 17)] * 8)
         return Call(0x6d3c90, [SELF, OUT, count], regions, conv='t', ret='a')
-    if name == 'open':
+    if name in ('open', 'hostopen', 'hostopenout'):
         me[0x14] = r.choice([0, 0, 0, 0, 0, 1, r.getrandbits(8)])
         set_return(log, LOAD_K, r.choice([0] + [r.getrandbits(32)] * 6))
         set_return(log, PROC_K, r.choice([0] + [MANAGER] * 8))
@@ -172,10 +175,19 @@ def case(r):
         fill(log, 0, 0, struct.pack('<I', r.choice([0, r.getrandbits(16) << 16 | r.randrange(1, 17)] + [r.randrange(1, 17)] * 6)), 3)
         openout(r, log, me, 0.97)
         select(r, log, 8)
+        if name != 'open':   # (the holder's: the synthesiser a new block, Fn_6d3b90's, from the heap; +4 random before)
+            regions.update({HEAP: heap(0x200), HOST: r.bytes(8)})
+            if r.random() < 0.5:   # (an open that gets through: the steps' answers all good)
+                for k, v in ((LOAD_K, 0x10000), (PROC_K, MANAGER), (MANAGER_K, 0), (OPEN_K, 0), (PREP_K, 0), (LONG_K, 0), (4, 0)):
+                    set_return(log, k, v)
+            return Call(CALLS[name], [HOST, OUT], regions, conv='t', ret='a')
         return Call(0x6d3bc0, [SELF, OUT], regions, conv='t', ret='a')
-    if name in ('close', 'dtor'):
+    if name in ('close', 'dtor', 'hostclose', 'hostdtor'):
         me[0x14] = r.choice([1, 1, 1, 0, r.getrandbits(8)])
         word(log, 5, 0)
+        if name.startswith('host'):   # (the holder's synthesiser SELF or none)
+            regions.update({HEAP: heap(0x100), HOST: r.bytes(4) + struct.pack('<I', SELF if r.random() < 0.85 else 0)})
+            return Call(CALLS[name], [HOST], regions, conv='t', ret='v')
         return Call(CALLS[name], [SELF], regions, conv='t', ret='a')
     if name in ('getname', 'count', 'loadbank'):
         word(log, 16, 0)

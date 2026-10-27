@@ -2,18 +2,19 @@
 # has 0-4 voices (recorder vtables) as entries of a page at PAGE (a second page at NODE2 or none: ids 100-105 reach it), some chained
 # active (+0x24); voices' +0xc an info block at INFO or null; the channel (+0x24, null now and then) a recorder vtable, its flag 0x400 set
 # or not; the object's own vtable a recorder (slot 6). Ids: an entry's own, its low 16 bits with another stamp, or random. The stack functors and outs the recorders get are logged by
-# their set bytes (blob_bytes) and as 0 (strings out).
+# their set bytes (blob_bytes) and as 0 (strings out). The path resolve (0x6b8690) over paths whose first three characters are drive
+# letters, slashes of either kind and others, into a string whose slots 5, 6 and 8 are recorders.
 # usage: soundobject.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import IMPORT_TABLE, LOG, RAM, Bench, Call, blob_bytes, import_table, log_region, strings, vtable  # noqa: E402
+from fncmp import IMPORT_TABLE, LOG, RAM, Bench, Call, blob_bytes, import_table, log_region, set_return, strings, vtable  # noqa: E402
 
 # name: (address, stack arguments after out)
-CALLS = {'broadcast': (0x6b85f0, 0), 'value': (0x6b8640, 1), 'info': (0x6b8b00, 2), 'send': (0x6b8930, 2)}
-B = Bench([(0x6b6550, 0x6b65b0), (0x6b6830, 0x6b68e0), (0x6b6b40, 0x6b6bb0), (0x6b85f0, 0x6b86a0), (0x6b8b00, 0x6b8b70), (0x6b8930, 0x6b8980),
+CALLS = {'broadcast': (0x6b85f0, 0), 'value': (0x6b8640, 1), 'info': (0x6b8b00, 2), 'send': (0x6b8930, 2), 'path': (0x6b8690, 0)}
+B = Bench([(0x6b6550, 0x6b65b0), (0x6b6830, 0x6b68e0), (0x6b6b40, 0x6b6bb0), (0x6b85f0, 0x6b8711), (0x6b8b00, 0x6b8b70), (0x6b8930, 0x6b8980),
            (0x6b65a0, 0x6b65e0)])
 OBJ, OUT, RESULT, CHAN, CVT, VVT, INFO, MIX, NODE2, OVT = (RAM + 0x100 * i for i in range(10))
 PAGE = RAM + 0x1000
@@ -21,6 +22,7 @@ IMPORTS = {'EnterCriticalSection': (41, 0x6fd140, 1, 0, 0), 'LeaveCriticalSectio
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 ENTRY = 0x50
 PARAMS = RAM + 0xa00
+STR, STRVT, PATH = RAM + 0xb00, RAM + 0xb40, RAM + 0xc00   # (the path's string: slots 5 assign, 6 assign a string, 8 append)
 
 
 def mixer_regions(r, regions, voices=False):
@@ -81,7 +83,13 @@ def case(r):
     address, extra = CALLS[name]
     log = log_region()
     regions = {}
-    ids = object_regions(r, log, regions, slot6=name != 'send')   # (send: slot 6 is the object's own (out, id))
+    ids = object_regions(r, log, regions, slot6=name not in ('send', 'path'))   # (send: slot 6 is the object's own (out, id); path: the string's)
+    if name == 'path':   # (drive letters, slashes of either kind and others in the first three characters)
+        path = bytes(r.choice(b'C:\\/a.') if r.random() < 0.9 else r.getrandbits(8) for _ in range(3)) + r.bytes(5) + b'\0'
+        for k in (5, 6, 8):
+            set_return(log, k, r.getrandbits(32))
+        regions.update({STR: struct.pack('<I', STRVT) + r.bytes(0xc), STRVT: vtable({5: 1, 6: 1, 8: 1}), PATH: path})
+        return Call(address, [OBJ, PATH, STR], regions, conv='t', ret='a')
     if name == 'value':
         args = [r.choice([0, 0, 1, r.getrandbits(32)])]
     elif name == 'info':

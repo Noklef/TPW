@@ -722,6 +722,7 @@ void __fastcall StdTree_DtorI(u8 *tree) { TreeI::Dtor(tree); }
 
 void __fastcall StdTree_IncJ(u8 **it) { TreeJ::Inc(it); }
 void __fastcall StdTree_CtorJ(u8 *tree) { TreeJ::Ctor(tree); }
+void __fastcall StdTree_DtorJ(u8 *tree) { TreeJ::Dtor(tree); }
 u8 **__fastcall StdTree_EraseJ(u8 *tree, void *, u8 **out, u8 *node) { return TreeJ::Erase(tree, out, node); }
 void __fastcall StdTree_EraseSubtreeJ(u8 *, void *, u8 *node) { TreeJ::EraseSubtree(node); }
 u8 **__fastcall StdTree_EraseRangeJ(u8 *tree, void *, u8 **out, u8 *first, u8 *last) { return TreeJ::EraseRange(tree, out, first, last); }

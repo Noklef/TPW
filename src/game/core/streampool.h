@@ -60,5 +60,26 @@ void __cdecl SilenceStreamPool_Shutdown();
 void __cdecl SilenceStreamPool_Purge();
 void *__cdecl SilenceStreamPool_New(u32 size);
 void __cdecl SilenceStreamPool_Delete(void *block, u32 size);
+// The file sample's (0x70acf0, core/soundsample: 0x48, +0x44; [0xfb20b4], [0xfb20b0]): 0x6c7620, 0x6c7650, 0x6c7680, 0x6c76c0 and 0x6c7730
+// (its atexit registration 0x6c7640 left out).
+void __cdecl FileSamplePool_Init();
+void __cdecl FileSamplePool_Shutdown();
+void __cdecl FileSamplePool_Purge();
+void *__cdecl FileSamplePool_New(u32 size);
+void __cdecl FileSamplePool_Delete(void *block, u32 size);
+// The MP2 streamed sample's (0x70ae90, core/mp2sample: 0x5c, +0x58; [0xfb26e8], [0xfb26e4]): 0x6c8660, 0x6c8690, 0x6c86c0, 0x6c8700 and
+// 0x6c8770 (its atexit registration 0x6c8680 left out).
+void __cdecl Mp2StreamSamplePool_Init();
+void __cdecl Mp2StreamSamplePool_Shutdown();
+void __cdecl Mp2StreamSamplePool_Purge();
+void *__cdecl Mp2StreamSamplePool_New(u32 size);
+void __cdecl Mp2StreamSamplePool_Delete(void *block, u32 size);
+// The MP2 memory sample's (0x70ae30, core/mp2sample: 0x40, +0x28; [0xfb26dc], [0xfb26d8]): 0x6c8160, 0x6c8190, 0x6c81c0, 0x6c8200
+// and 0x6c8270 (its atexit registration 0x6c8180 left out).
+void __cdecl Mp2SamplePool_Init();
+void __cdecl Mp2SamplePool_Shutdown();
+void __cdecl Mp2SamplePool_Purge();
+void *__cdecl Mp2SamplePool_New(u32 size);
+void __cdecl Mp2SamplePool_Delete(void *block, u32 size);
 
 }  // extern "C"

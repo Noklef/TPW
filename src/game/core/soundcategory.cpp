@@ -26,6 +26,14 @@ template <typename T> void Put(void *p, u32 offset, T v) { std::memcpy(static_ca
 u8 *Ptr(u32 address) { return reinterpret_cast<u8 *>(static_cast<uintptr_t>(address)); }
 u32 Addr(const void *p) { return static_cast<u32>(reinterpret_cast<uintptr_t>(p)); }
 
+// The cell n dwords on from a copy of the deque iterator at `it` (DequeIter_Advance called, as the originals do).
+u8 *DequeCell(const u8 *it, u32 n) {
+    u8 copy[16];
+    std::memcpy(copy, it, sizeof copy);
+    DequeIter_Advance(copy, nullptr, static_cast<s32>(n));
+    return Ptr(Get<u32>(copy, 8));
+}
+
 // The element n dwords on from a deque iterator {first, end, position, map slot} (the originals' inline form of DequeIter_Advance).
 u8 *DequeAt(const u8 *it, u32 n) {
     u32 at = Get<u32>(it, 8) + n * 4;
@@ -452,6 +460,61 @@ u32 __fastcall SoundCategory_FindRecordIndex(u8 *category, void *, const char *n
         }
     }
     return 0;   // (as the first's index, sic)
+}
+
+void __fastcall SoundCategory_Dtor(u8 *category) {
+    Put<u32>(category, 0, 0x70a95c);
+    u8 it[16];
+    std::memcpy(it, category + 0x3c, sizeof it);   // (deque A's begin)
+    DequeIter_Advance(it, nullptr, 0);
+    vcall<u32>(Ptr(Get<u32>(Ptr(Get<u32>(it, 8)), 0)), 0);   // (the first record's slot 0 alone, sic)
+    static const u32 kDeques[] = {0x98, 0x68, 0x38};   // (C, B, then A: popped one by one, each block freed as it empties)
+    for (const u32 deque : kDeques) {
+        u8 *const d = category + deque;
+        while (Get<u32>(d, 0x2c)) {
+            const u32 cur = Get<u32>(d, 0xc) + 4;
+            const u32 count = Get<u32>(d, 0x2c) - 1;
+            Put<u32>(d, 0xc, cur);
+            Put<u32>(d, 0x2c, count);
+            if (count == 0 || cur == Get<u32>(d, 8)) Deque32_FreeFront(d);
+        }
+    }
+    Handle_Dtor(reinterpret_cast<Handle *>(category + 0x30));
+    StdTree_DtorJ(category + 0x1c);
+    StdMapH_ClearDtor(category + 0xc);
+}
+
+u8 *__fastcall SoundCategory_DeletingDtor(u8 *category, void *, u32 flags) {
+    SoundCategory_Dtor(category);
+    if (flags & 1) GameHeap_Free(category);
+    return category;
+}
+
+void __cdecl SoundCategory_SingletonDtor() { SoundCategory_Dtor(Ptr(0xfb1f28)); }
+
+u32 *__fastcall SoundCategory_UnloadRecord(u8 *category, void *, u32 *out, u8 *record) {
+    if (!record) {
+        *out = 0xffffffff;
+        return out;
+    }
+    u8 *const banks = category + 0x6c;   // (deque B's begin)
+    for (u8 *node = Ptr(Get<u32>(record, 0x28)); node;) {
+        const u32 index = Get<u32>(node, 0);
+        node = Ptr(Get<u32>(node, 4));
+        if (!Get<u32>(DequeCell(banks, index), 0)) continue;
+        u8 *const data = Ptr(Get<u32>(Ptr(Get<u32>(DequeCell(banks, index), 0)), 8));   // (read before the release)
+        if (vcall<u32>(Ptr(Get<u32>(DequeCell(banks, index), 0)), 0)) continue;
+        if (data) vcall<u32>(data, 0);
+        Put<u32>(DequeCell(banks, index), 0, 0);
+    }
+    if (Get<u32>(DequeCell(category + 0x3c, Get<u32>(record, 0x20)), 0) != Addr(record)) {
+        *out = 0xffffffff;
+        return out;
+    }
+    Put<u32>(DequeCell(category + 0x3c, Get<u32>(record, 0x20)), 0, 0);
+    StdMapH_ClearAt(category + 0xc, nullptr, Get<u32>(record, 0x20));
+    *out = 0;
+    return out;
 }
 
 void __fastcall BankList_Dtor(u8 *list) {

@@ -8,7 +8,11 @@
 # decoder / reader any or 0 (freed in the heap stand-in). The end time's flag 0 mostly, the format byte any, the rate 11025-44100 or any.
 # The destructors: the source at +0x24 an object whose slot 0 is a recorder, or none; the sub-stream's stream source (+0x50) a RefObject
 # (InterlockedDecrement answering 1, 0 or -1; its slots recorders) or none, CloseHandle a recorder; the deletes' pools (0xfb20bc-0xfb20cc)
-# with a free list or none (Enter / LeaveCriticalSection recorders), flags any.
+# with a free list or none (Enter / LeaveCriticalSection recorders), flags any. The sample stream's constructor (0x6c6e70: a record's format,
+# the source's slot 1 a recorder; the real vtable 0x70ac50's slot 15) and its deleting destructors (0x6c70c0, 0x6c70a0), flags any.
+# The voice, file and MP2 samples' constructors (as it, +4 the data's length any, +0x1b bit 2 now and then; the stream a StreamBase over
+# REF: InterlockedIncrement and CreateSemaphoreA recorders; the start any) and the file / MP2 samples' destructors (as the others; the
+# file sample's window at +0x2c, its source at +0x3c; the pools 0xfb20b0 and 0xfb26d8-0xfb26eb).
 # usage: voicesample.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -21,26 +25,42 @@ from fncmp import HEAP, LOG, RAM, Bench, Call, fill, heap, log_region, recorder,
 CALLS = {'decode': (0x6c7cf0, 'a'), 'read': (0x6c7c20, 'a'), 'query': (0x6c7bc0, 'a'), 'restart': (0x6c7ce0, 'v'),
          'close': (0x6c7be0, 'v'), 'open': (0x6c7c80, 'v'), 'sopen': (0x6c80c0, 'v'), 'srestart': (0x6c8120, 'v'),
          'schedule': (0x6c7010, 'b'), 'drained': (0x6c7070, 'a'), 'describe': (0x6bb1d0, 'v'), 'sdtor': (0x6c6ef0, 'v'),
-         'dtor': (0x6c8330, 'v'), 'sdtor2': (0x6c8000, 'v'), 'ddtor': (0x6c7ba0, 'a'), 'sddtor': (0x6c7fe0, 'a')}
+         'dtor': (0x6c8330, 'v'), 'sdtor2': (0x6c8000, 'v'), 'ddtor': (0x6c7ba0, 'a'), 'sddtor': (0x6c7fe0, 'a'),
+         'sctor': (0x6c6e70, 'a'), 'sdel': (0x6c70c0, 'a'), 'basedel': (0x6c70a0, 'a'),
+         'memread': (0x6c7250, 'a'), 'fileread': (0x6c7890, 'a'), 'filerewind': (0x6c7920, 'a'),
+         'vctor': (0x6c7b20, 'a'), 'vsctor': (0x6c7f70, 'a'), 'fctor': (0x6c7780, 'a'), 'mctor': (0x6c82c0, 'a'), 'msctor': (0x6c87c0, 'a'),
+         'fdtor': (0x6c7820, 'v'), 'fddtor': (0x6c7800, 'a'), 'mddtor': (0x6c8310, 'a'), 'msdtor': (0x6c8850, 'v'), 'msddtor': (0x6c8830, 'a')}
+CTORS = ('vctor', 'vsctor', 'fctor', 'mctor', 'msctor')
+DTORS = ('sdtor', 'dtor', 'sdtor2', 'ddtor', 'sddtor', 'sdel', 'fdtor', 'fddtor', 'mddtor', 'msdtor', 'msddtor')
 B = Bench([(0x6c7bc0, 0x6c7dfb), (0x6c80c0, 0x6c8138), (0x6c7010, 0x6c7082), (0x6bb1d0, 0x6bb1dd), (0x6c6230, 0x6c625a),
            (0x6c62c0, 0x6c62d8), (0x6d4ec0, 0x6d4ed9), (0x5f5f10, 0x5f5f7d), (0x5f5fa0, 0x5f5faa),
            (0x6d4ee0, 0x6d4f2a), (0x6d4fa0, 0x6d4fdc), (0x6d4f30, 0x6d4f99), (0x6d4fe0, 0x6d503a), (0x6d5200, 0x6d5254),
            (0x6d5040, 0x6d51ed), (0x6d5260, 0x6d5341), (0x6d5350, 0x6d5443), (0x6d61c0, 0x6d6285),
            (0x6d57e0, 0x6d61ba), (0x6d5450, 0x6d57d2), (0x6d6290, 0x6d62bd), (0x6c6ef0, 0x6c6f37), (0x6c8330, 0x6c8335),
            (0x6c8000, 0x6c806a), (0x6c7ba0, 0x6c7bc0), (0x6c7fe0, 0x6c7ffe), (0x6c7ad0, 0x6c7b15), (0x6c7f20, 0x6c7f65),
-           (0x5f71e0, 0x5f7220), (0x618d30, 0x618d90), (0x6307e0, 0x630800)])
+           (0x5f71e0, 0x5f7220), (0x618d30, 0x618d90), (0x6307e0, 0x630800),
+           (0x6c6e70, 0x6c6eed), (0x6c70a0, 0x6c70dc), (0x6c7090, 0x6c7097), (0x6c6f40, 0x6c6f87), (0x6c6f90, 0x6c6fee),
+           (0x6c7250, 0x6c72e9), (0x6c7890, 0x6c7911), (0x6c7920, 0x6c7925),
+           (0x6c7b20, 0x6c7b9e), (0x6c7f70, 0x6c7fd7), (0x6c7780, 0x6c77f2), (0x6c7800, 0x6c788a), (0x6c82c0, 0x6c8301), (0x6c8310, 0x6c832e),
+           (0x6c87c0, 0x6c882c), (0x6c8830, 0x6c88ba), (0x6d4d10, 0x6d4d72), (0x6d4d80, 0x6d4de2), (0x5f71b0, 0x5f71d1), (0x618d20, 0x618d2b),
+           (0x6307c0, 0x6307d7), (0x6c7730, 0x6c7775), (0x6c8270, 0x6c82b5), (0x6c8770, 0x6c87b5)])
 SAMPLE, SVT, NEXT, SUBVT, FILEVT, OUT, RECORD, MEMREADER = (RAM + 0x100 * i for i in range(8))
-BUFFER, DECODER, BITS, BREADER = RAM + 0x800, RAM + 0x1000, RAM + 0x3000, RAM + 0x4000
+# (the buffer ends at the regions' 64 KB chunk: a wild count's frames run off it there at once, in both, where at RAM + 0x800 the
+# original wrote on through the decoder and the rest of the chunk, 0x7c00 samples and 37 frames decoded, past the emulator's 5M steps)
+BUFFER, DECODER, BITS, BREADER = RAM + 0xf800, RAM + 0x1000, RAM + 0x3000, RAM + 0x4000
 MEMORY_VTABLE, BUFFERED_VTABLE = 0x70adb8, 0x70ae28
 CLOCK, TIME_GET_TIME, TIME_K = 0xfa71e0, 0x6fd3ec, 12
 EDGES = [32767, 32768, -32768, -32769, 65535, 65536, 98303, 98304, -65536, -65537, 131071, 131072, -0.5, 0.5, 1.5, 2.5, -1.5]
 SLOTS = {0: 1, 2: 0, 5: 1, 6: 0, 17: 0, 19: 2, 20: 1}
 SOURCE, SOURCE_VT, REF, REF_VT = RAM + 0x7000, RAM + 0x7100, RAM + 0x7200, RAM + 0x7300
-POOLS = 0xfb20bc   # the voice sample pool's list and lock, 4 bytes, the voice stream pool's list and lock
+POOLS = 0xfb20b0   # the file sample pool's list and lock, 4 bytes, the voice sample pool's, 4 bytes, the voice stream pool's
+MP2_POOLS = 0xfb26d8   # the MP2 memory sample pool's list and lock, 4 bytes, the MP2 streamed sample pool's
+STREAM = RAM + 0x7600   # the constructors' stream (a StreamBase: its source REF)
 FREE = RAM + 0x7400   # a block on a pool's free list
+COPIER, COPIER_VT, COPIER_AT = RAM + 0x7500, RAM + 0x7510, 0xfb2018   # the memory copier and where it is kept
 # import: (recorder slot, import table address, stack arguments)
 IMPORTS = {'InterlockedDecrement': (34, 0x6fd12c, 1), 'CloseHandle': (33, 0x6fd13c, 1), 'EnterCriticalSection': (35, 0x6fd140, 1),
-           'LeaveCriticalSection': (36, 0x6fd130, 1)}
+           'LeaveCriticalSection': (36, 0x6fd130, 1), 'CreateSemaphoreA': (37, 0x6fd16c, 4), 'InterlockedIncrement': (38, 0x6fd0c0, 1)}
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
@@ -139,19 +159,76 @@ def case(r):
         struct.pack_into('<I', sample, 0x1c, end)
     elif name == 'describe':
         args = [RECORD]
-    elif name in ('sdtor', 'dtor', 'sdtor2', 'ddtor', 'sddtor'):
+    elif name == 'sctor':   # (the record a format: its word +0x18 a rate or any, +0x1a 16 bits or not, +0x1b bit 0; the source's slot 1)
+        rec = bytearray(r.bytes(0x48))
+        struct.pack_into('<H', rec, 0x18, r.choice([0x5622, 0xac44, 0x2b11, r.getrandbits(16)]))
+        rec[0x1a] = r.choice([0x10, 8, r.getrandbits(8)])
+        rec[0x1b] = r.choice([0, 1, r.getrandbits(8)])
+        regions[RECORD] = rec
+        regions[SOURCE] = struct.pack('<I', SOURCE_VT) + r.bytes(0xc)
+        regions[SOURCE_VT] = struct.pack('<2I', recorder(30, 0), recorder(29, 0))
+        struct.pack_into('<I', sample, 0x1c, r.getrandbits(32))   # (the end time: the constructor's to clear)
+        args = [RECORD, SOURCE]
+    elif name == 'memread':   # (+0x10 the data, +0x14 the position, +0x18 the length; the copier's slot 0 and slot 19 recorders)
+        if r.random() < 0.25:
+            struct.pack_into('<I', sample, 0x1c, end or 1)
+        length = r.choice([0, 1, 0x100, r.randrange(0, 0x10000), r.getrandbits(32)])
+        pos = r.choice([0, length, length - 1, r.randrange(0, length + 1), r.getrandbits(32)]) & 0xffffffff
+        struct.pack_into('<3I', sample, 0x10, r.getrandbits(32), pos, length)
+        set_return(log, 19, r.choice([0, 1, 0x100, r.getrandbits(32)]))
+        regions[COPIER] = struct.pack('<I', COPIER_VT) + r.bytes(0xc)
+        regions[COPIER_VT] = struct.pack('<I', recorder(25, 3))
+        regions[COPIER_AT] = struct.pack('<I', COPIER)
+        left = (length - pos) & 0xffffffff
+        args = [BUFFER, r.choice([0, 1, left, left + 1, left - 1, r.getrandbits(32)]) & 0xffffffff, OUT, r.getrandbits(32)]
+    elif name == 'fileread':   # (the window at +0x2c: SUBVT's slot 1 a recorder, its position +0x30; +0x18 the length)
+        if r.random() < 0.25:
+            struct.pack_into('<I', sample, 0x1c, end or 1)
+        length = r.choice([0, 1, 0x100, r.randrange(0, 0x10000), r.getrandbits(32)])
+        pos = r.choice([0, length, length - 1, r.randrange(0, length + 1), r.getrandbits(32)]) & 0xffffffff
+        struct.pack_into('<I', sample, 0x18, length)
+        struct.pack_into('<II', sample, 0x2c, SUBVT, pos)
+        set_return(log, 19, r.choice([0, 1, 0x100, r.getrandbits(32)]))
+        left = (length - pos) & 0xffffffff
+        args = [BUFFER, r.choice([0, 1, left, left + 1, left - 1, r.getrandbits(32)]) & 0xffffffff, OUT, r.getrandbits(32)]
+    elif name == 'filerewind':   # (the window's stream at +0x38: FILEVT's slot 4 the seek)
+        struct.pack_into('<I', sample, 0x38, FILEVT)
+        set_return(log, 4, r.getrandbits(32))
+    elif name == 'basedel':
+        args = [r.choice([0, 1, 1, 2, 3, r.getrandbits(32)])]
+    elif name in CTORS:   # (the record a format as sctor's, +4 the data's length, +0x1b bit 2 now and then; the stream's source REF)
+        rec = bytearray(r.bytes(0x48))
+        struct.pack_into('<H', rec, 0x18, r.choice([0x5622, 0xac44, 0x2b11, r.getrandbits(16)]))
+        rec[0x1a] = r.choice([0x10, 8, r.getrandbits(8)])
+        rec[0x1b] = r.choice([0, 1, 4, 5, r.getrandbits(8)])
+        struct.pack_into('<I', rec, 4, r.choice([0, 0x100, r.getrandbits(32)]))
+        regions[RECORD] = rec
+        regions[SOURCE] = struct.pack('<I', SOURCE_VT) + r.bytes(0xc)
+        regions[SOURCE_VT] = struct.pack('<2I', recorder(30, 0), recorder(29, 0))
+        struct.pack_into('<I', sample, 0x1c, r.getrandbits(32))
+        regions[STREAM] = struct.pack('<II', r.getrandbits(32), REF) + r.bytes(8)
+        regions[REF] = struct.pack('<3I', REF_VT, 0, r.getrandbits(32))
+        for k, slot, n in IMPORTS.values():
+            regions[slot] = struct.pack('<I', recorder(k, n, True))
+        set_return(log, 37, r.getrandbits(32))
+        args = {'vctor': [RECORD, SOURCE], 'mctor': [RECORD, SOURCE], 'vsctor': [STREAM, RECORD, SOURCE]}.get(
+            name, [STREAM, RECORD, r.choice([0, 0x100, r.getrandbits(32)]), SOURCE])
+    elif name in DTORS:   # (the window on the stream at +0x2c (the file sample) or +0x40: its stream's source at +0x3c / +0x50)
         struct.pack_into('<I', sample, 0x24, r.choice([SOURCE, SOURCE, 0]))
         regions[SOURCE] = struct.pack('<I', SOURCE_VT) + r.bytes(0xc)
         regions[SOURCE_VT] = struct.pack('<I', recorder(30, 0))
-        struct.pack_into('<II', sample, 0x50, r.choice([REF, REF, 0]), r.getrandbits(32))
+        struct.pack_into('<II', sample, 0x3c if name in ('fdtor', 'fddtor') else 0x50, r.choice([REF, REF, 0]), r.getrandbits(32))
         regions[REF] = struct.pack('<3I', REF_VT, 0, r.getrandbits(32))
-        regions[REF_VT] = struct.pack('<16I', *[recorder(32, 1) if k == 0 else recorder(31, 0) for k in range(16)])
+        # (slot 0 the deleting destructor, one argument: k 27, a plain recorder's k below 32, where k 32 was recorder(0, 2)'s stub)
+        regions[REF_VT] = struct.pack('<16I', *[recorder(27, 1) if k == 0 else recorder(31, 0) for k in range(16)])
         set_return(log, 34, r.choice([1, 0, 0xffffffff, 2]))
         for k, slot, n in IMPORTS.values():
             regions[slot] = struct.pack('<I', recorder(k, n, True))
-        regions[POOLS] = struct.pack('<5I', r.choice([0, FREE]), r.getrandbits(32), 0, r.choice([0, FREE]), r.getrandbits(32))
+        regions[POOLS] = struct.pack('<8I', r.choice([0, FREE]), r.getrandbits(32), r.getrandbits(32), r.choice([0, FREE]), r.getrandbits(32), 0,
+                                     r.choice([0, FREE]), r.getrandbits(32))
+        regions[MP2_POOLS] = struct.pack('<5I', r.choice([0, FREE]), r.getrandbits(32), r.getrandbits(32), r.choice([0, FREE]), r.getrandbits(32))
         regions[FREE] = r.bytes(0x60)
-        if name in ('ddtor', 'sddtor'):
+        if name in ('ddtor', 'sddtor', 'sdel', 'fddtor', 'mddtor', 'msddtor'):
             args = [r.choice([0, 1, 1, 2, 3, r.getrandbits(32)])]
     regions[SAMPLE] = sample
     return Call(address, [SAMPLE] + args, regions, conv='t', ret=ret)

@@ -42,5 +42,12 @@ void __fastcall VoiceStream_Dtor(u8 *sample);
 // (VoiceSamplePool_Delete (0x40) / VoiceStreamPool_Delete (0x5c), core/streampool). Returns the sample.
 u8 *__fastcall VoiceSample_DeletingDtor(u8 *sample, void *, u32 flags);
 u8 *__fastcall VoiceStream_DeletingDtor(u8 *sample, void *, u32 flags);
+// 0x6c7b20 (thiscall (record, source), pops 8): SoundSample_Ctor, +0x2c = +0x34 = 0, a decoder of 0x1a7c bytes (Mem_Alloc) at +0x38,
+// the vtable 0x70ad60, the data's end +0x3c = the record's +4 + the data (+0x10); bit 2 of the record's +0x1b sets +0x34 bit 0 (mono).
+// Returns the sample.
+u8 *__fastcall VoiceSample_Ctor(u8 *sample, void *, const u8 *record, u8 *source);
+// 0x6c7f70 (thiscall (stream, record, source), pops 0xc): VoiceSample_Ctor (record, source), SubStream_Ctor (+0x40, stream), its
+// vtable 0x70ae18, the sample's 0x70adc0. Returns the sample.
+u8 *__fastcall VoiceStream_Ctor(u8 *sample, void *, const u8 *stream, const u8 *record, u8 *source);
 
 }  // extern "C"

@@ -132,4 +132,23 @@ u8 *__fastcall VoiceStream_DeletingDtor(u8 *sample, void *, u32 flags) {
     return sample;
 }
 
+u8 *__fastcall VoiceSample_Ctor(u8 *sample, void *, const u8 *record, u8 *source) {
+    SoundSample_Ctor(sample, nullptr, const_cast<u8 *>(record), source);
+    at<u32>(sample, 0x2c) = 0;
+    at<u32>(sample, 0x34) = 0;
+    at<void *>(sample, 0x38) = GameHeap_Alloc(0x1a7c);
+    at<u32>(sample, 0) = 0x0070ad60;
+    at<u32>(sample, 0x3c) = at<u32>(record, 4) + at<u32>(sample, 0x10);
+    if (record[0x1b] & 4) at<u32>(sample, 0x34) |= 1;
+    return sample;
+}
+
+u8 *__fastcall VoiceStream_Ctor(u8 *sample, void *, const u8 *stream, const u8 *record, u8 *source) {
+    VoiceSample_Ctor(sample, nullptr, record, source);
+    SubStream_Ctor(sample + 0x40, nullptr, stream);
+    at<u32>(sample, 0x40) = 0x0070ae18;
+    at<u32>(sample, 0) = 0x0070adc0;
+    return sample;
+}
+
 }  // extern "C"

@@ -83,4 +83,9 @@ u8 *__fastcall Stream70abf8_Dtor(u8 *stream, void *, u32 flags) {
     return stream;
 }
 
+void __fastcall Stream70abf8_Describe(u8 *stream, void *, u8 *record) {
+    u8 *const next = vcall<u8 *>(stream, 0x48);
+    vcall<void>(next, 0x14, record);
+}
+
 }  // extern "C"

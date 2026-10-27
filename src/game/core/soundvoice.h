@@ -53,6 +53,11 @@ u8 __fastcall SoundVoice_PickVariation(u8 *voice, void *, u8 avoidRepeat);
 // precision against slot 7: below it (or unordered) and without flag 8, SoundVoice_Cull and 0; else flag 0x800 cleared, slot 8 with
 // +0x20 and 1.
 u8 __fastcall SoundVoice_UpdateAudible(u8 *voice);
+// 0x6bb9f0 (thiscall; a float in st0; slot 7 of 0x70a7e0 and the voices'): +0x22 the definition's (+4) word +0xc. The squared distance
+// on the ground (|x - the listener's x|, |z - z|, from +0x10 / +0x18 and the sound system's +0x60, at the FPU's precision, stored as a
+// float), 0 without a listener. Not above 0 (or unordered): +0x20 0xffff; else that times 0.01 (stored as a float, fistp): up to
+// 0xffff (unsigned), +0x20 0xffff minus it, else +0x20 kept. Returns the squared distance (name invented).
+double __fastcall SoundVoice_Distance(u8 *voice);
 // 0x6bca70 (thiscall): flag 0x800 set; playing (flag 1) with a sound, the sound stopped (as SoundVoice_CategoryEnabled; kept at +0x24).
 void __fastcall SoundVoice_Cull(u8 *voice);
 // 0x6bcab0 (thiscall (out, command), pops 8; vtable slot): with a sound, the sound system's slot 4 with the command and the out
@@ -126,6 +131,9 @@ u8 *__fastcall Voice70a878_Ctor(u8 *voice);
 // 0x6bdd80 (thiscall; name invented): Class70a7e0_Ctor, the vtable 0x70a390, the parameter block (SoundVoice_EnsureParams), then the
 // vtable 0x70a2e0. Returns the voice.
 u8 *__fastcall Voice70a2e0_Ctor(u8 *voice);
+// 0x6bdcb0 (thiscall; an SEH frame; name invented): Class70a7e0_Ctor, the vtable 0x70a390 and the parameter block (SoundVoice_EnsureParams,
+// inlined). Returns the voice.
+u8 *__fastcall Voice70a390_Ctor(u8 *voice);
 // 0x6c3a80 (thiscall (definition, time), pops 8): +4 = the definition, SoundVoice_SetFlags (0), the categories (+0x47) the parent's;
 // slot 14 (0) answering 0, or slot 15 (0) (it becomes +0xc) 0: 0. Else +0x1c = slot 19 () + the time; 1.
 u8 __fastcall LinkedVoice_Init(u8 *voice, void *, u8 *definition, u32 time);
@@ -202,5 +210,77 @@ u32 *__fastcall SoundVoice_StartCounted(u8 *voice, void *, u32 *out, u32 now);
 // address (sic). Else +0xc = slot 15 (1) (0: 0), a stack record (as SoundVoice_Start's) through slot 18 (0: 0), then
 // SoundChannel_PickVoice (the system, re-read; a, a dropped local, the record).
 u32 __fastcall SoundVoice_PickChannelVoice(u8 *voice, void *, u32 a, u32 unused);
+
+// 0x6be380 (thiscall (list), pops 4; name invented): the parameter block's (+0x4c) shuffle bag (+0x1c): none, a new one (Mem_Alloc 0x10,
+// ShuffleBag_Ctor over the list; null when the new fails); else ShuffleBag_SetList when its list (+0) is another.
+void __fastcall SoundVoice_EnsureShuffleBag(u8 *voice, void *, u8 *list);
+// 0x6be420 (thiscall (unused), pops 4; slot 14 of 0x70a878; name invented): SoundVoice_EnsureShuffleBag with the definition (+4), the
+// current variation (+8) = ShuffleBag_Next (refill: flag 4 of +0x30); 1 when there is one (a byte: SETNZ over the pointer in EAX).
+u8 __fastcall SoundVoice_ShuffleVariation(u8 *voice, void *, u32 unused);
+// 0x6b71d0 / 0x6b7210 (thiscall; names invented): Class70a7e0_Ctor, then the vtable 0x70a3e8 / 0x70a4f0. Return the voice.
+u8 *__fastcall Voice70a3e8_Ctor(u8 *voice);
+u8 *__fastcall Voice70a4f0_Ctor(u8 *voice);
+// 0x6b7040 (thiscall (count), pops 4; an SEH frame; name invented): new[] of count voices 0x70a4f0: a block of count * 0x50 + 4 (Mem_Alloc),
+// the count at +0, the voices from +4 constructed (CRT_VectorCtorIterator with Voice70a4f0_Ctor; 0x6b7230, the 0x70a3e8 voice's
+// destructor, for the unwinding); the array (null when the allocation fails) into the holder's +0. Returns the holder.
+u8 *__fastcall Voices70a4f0_New(u8 *holder, void *, u32 count);
+// 0x6b7250 / 0x6b72f0 (thiscall; slot 21 of the vtables 0x70a390 / 0x70a2e0; an SEH frame; names invented): a new linked voice / linked
+// switch voice (Mem_Alloc 0x50, LinkedVoice_Ctor / LinkedSwitchVoice_Ctor) whose parent is this voice; null when the allocation fails.
+u8 *__fastcall Voice70a390_NewLinked(u8 *voice);
+u8 *__fastcall Voice70a2e0_NewLinkedSwitch(u8 *voice);
+// 0x6bb9b0 (thiscall; the voice class 0x70a7e0's destructor; name invented): the vtable 0x70a7e0, +0x2c's high word cleared, the parameter
+// block (+0x4c) freed (Mem_Free) unless null, then the owner's (+0x28, unless null) slot 0.
+void __fastcall Class70a7e0_Dtor(u8 *voice);
+// 0x6bb990 (thiscall (flags), pops 4; slot 2 of 0x70a7e0; name invented): Class70a7e0_Dtor, the voice freed with flag 1. Returns the voice.
+u8 *__fastcall Class70a7e0_DeletingDtor(u8 *voice, void *, u8 flags);
+// 0x6b7230 / 0x6b7240 (thiscall; names invented): the vtable 0x70a3e8 / 0x70a338, then Class70a7e0_Dtor.
+void __fastcall Voice70a3e8_Dtor(u8 *voice);
+void __fastcall Voice70a338_Dtor(u8 *voice);
+// 0x6b71f0 / 0x6b72d0 (thiscall (flags), pops 4; slot 2 of 0x70a3e8 / 0x70a338; names invented): the destructor, the voice freed with
+// flag 1. Return the voice.
+u8 *__fastcall Voice70a3e8_DeletingDtor(u8 *voice, void *, u8 flags);
+u8 *__fastcall Voice70a338_DeletingDtor(u8 *voice, void *, u8 flags);
+// 0x6b70e0 (thiscall (flags), pops 4; slot 2 of 0x70a4f0; name invented): flag 2, the array's (count at -4) voices destroyed, the last first
+// (CRT_VectorDtorIterator with Voice70a3e8_Dtor), and its block freed (sic: flag 1 not tested); else Voice70a3e8_Dtor and the voice
+// freed with flag 1. Returns the voice.
+u8 *__fastcall Voice70a4f0_VectorDeletingDtor(u8 *voice, void *, u8 flags);
+// 0x6be300 (thiscall; name invented): the vtable 0x70a878, the parameter block's (+0x4c, not checked) +0x1c freed unless null, the
+// vtable 0x70a338, Class70a7e0_Dtor. 0x6be2e0 (slot 2 of 0x70a878, (flags), pops 4): it, the voice freed with flag 1; returns the voice.
+void __fastcall Voice70a878_Dtor(u8 *voice);
+u8 *__fastcall Voice70a878_DeletingDtor(u8 *voice, void *, u8 flags);
+// 0x6be9c0 (thiscall; name invented): the vtable 0x70a8d0, the parameter block's (+0x4c, not checked) +0x1c, unless null, freed after its
+// +8; the vtable 0x70a338, Class70a7e0_Dtor. 0x6be9a0 (slot 2 of 0x70a8d0, (flags), pops 4): it, the voice freed with flag 1; returns the voice.
+void __fastcall Voice70a8d0_Dtor(u8 *voice);
+u8 *__fastcall Voice70a8d0_DeletingDtor(u8 *voice, void *, u8 flags);
+// The group voice 0x70a390's (names invented): its children (linked voices) listed at the parameter block's +0x18, each the next's in
+// its own block's +0x18. 0x6bd930 (thiscall; an SEH frame): the vtable 0x70a390, each child deleted (slot 2, flag 1; the next read
+// first), the vtable 0x70a3e8, Class70a7e0_Dtor. 0x6b72b0 (thiscall (flags), pops 4; slot 2): it, the voice freed with flag 1.
+void __fastcall Voice70a390_Dtor(u8 *voice);
+u8 *__fastcall Voice70a390_DeletingDtor(u8 *voice, void *, u32 flags);
+// 0x6bd9b0 (thiscall (out, command), pops 8; slot 6): each child: the command's +4 its sound (+0x24), its slot 6 (out: the command's own
+// argument slot), deleted (slot 2, 1) when the command's slot 0 answers 1; the list then emptied (the kept children too, sic), and
+// SoundVoice_Command (out, command). Returns the out.
+u32 *__fastcall Voice70a390_Command(u8 *voice, void *, u32 *out, u8 *command);
+// 0x6bda20 (thiscall (out, position), pops 8; slot 9): the position into +0x10, flag 8: Fn_6bb220 (0, 1, 0) on it, else Vec3_Scale by
+// the sound system's +0x2c; LinkedVoice_FollowParent on each child; *out = 0. Returns the out.
+u32 *__fastcall Voice70a390_SetPosition(u8 *voice, void *, u32 *out, const u32 *position);
+// 0x6bda90 (thiscall (key, value), pops 8; slot 10): SoundVoice_SetParam, then flag 0x40 cleared unless the block's byte +4 is 0x7f.
+void __fastcall Voice70a390_SetParam(u8 *voice, void *, u32 key, u32 value);
+// 0x6bdac0 (thiscall; slot 13): each child's slot 13.
+void __fastcall Voice70a390_SendLevels(u8 *voice);
+// 0x6bdbb0 (thiscall (prev, time), pops 8): a new child (the voice's slot 21) after prev (its block's +0x18), LinkedVoice_Init
+// (the voice's definition +4, time): 1, SoundVoice_ApplyVariation and 1; else the child deleted (slot 2, 1) unless null, unlinked, 0.
+u8 __fastcall Voice70a390_AddChild(u8 *voice, void *, u8 *prev, u32 time);
+// 0x6bdb10 (thiscall (time), pops 4): without children: the block's byte 0 set and flag 0x20 clear: +8 = 0 and flag 0x20; then
+// Voice70a390_AddChild (the voice, time). Returns the first child.
+u8 *__fastcall Voice70a390_FirstChild(u8 *voice, void *, u32 time);
+// 0x6bdb50 (thiscall (time), pops 4): unless flag 0x10, from Voice70a390_FirstChild on: each child's slot 5 (out: the time's own
+// argument slot, sic; time), and past its end (+0x1c, unsigned) the last one gets a next (Voice70a390_AddChild).
+void __fastcall Voice70a390_StartChildren(u8 *voice, void *, u32 time);
+// 0x6bdc10 (thiscall (time), pops 4): the children whose end (+0x1c) the time has reached (unsigned) unlinked and deleted (slot 2, 1).
+void __fastcall Voice70a390_PruneChildren(u8 *voice, void *, u32 time);
+// 0x6bdae0 (thiscall (out, time), pops 8; slot 5): unless the byte +0x30 has 0x50, Voice70a390_StartChildren and _PruneChildren;
+// *out = 0. Returns the out.
+u32 *__fastcall Voice70a390_Start(u8 *voice, void *, u32 *out, u32 time);
 
 }  // extern "C"

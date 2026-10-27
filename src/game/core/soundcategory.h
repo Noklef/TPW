@@ -109,6 +109,20 @@ u8 *__fastcall Bank_DeletingDtor(u8 *bank, void *, u32 flags);
 // 0x6c0f70 (thiscall (name), pops 4; name invented): the index in deque A of the first category record (nonzero) whose +8 is nonzero and
 // whose String +0xc equals name (String_EqualsStr); 0 when none does (sic: as the first's).
 u32 __fastcall SoundCategory_FindRecordIndex(u8 *category, void *, const char *name);
+// 0x6bee10 (thiscall; names invented): the destructor: the vtable 0x70a95c; deque A's first record's slot 0 (the release; at its begin
+// iterator moved on by 0: DequeIter_Advance), the others' not (sic); deques C, B and A emptied element by element, each block freed as it
+// empties (Deque32_FreeFront, inlined for C and B); the folder Handle (+0x30) destroyed, tree J (+0x1c, StdTree_DtorJ inlined) and map H
+// (+0xc, StdMapH_ClearDtor).
+void __fastcall SoundCategory_Dtor(u8 *category);
+// 0x6bed80 (thiscall (flags), pops 4; slot 0 of 0x70a95c): the destructor, then Mem_Free with flags bit 0. Returns the category.
+u8 *__fastcall SoundCategory_DeletingDtor(u8 *category, void *, u32 flags);
+// 0x6beb10 (atexit, from 0x6bead0's guard): the destructor on the singleton at 0xfb1f28 (src/game/core/soundnames' table).
+void __cdecl SoundCategory_SingletonDtor();
+// 0x6c08b0 (thiscall (out, record), pops 8; from 0x6bea3c, the record's destructor; name invented): *out = -1 for no record. Else each bank
+// index in the record's list (+0x28 its first node {index, next}): the bank in deque B there, when not 0, released (slot 0); when that
+// answers 0, its +8 (read before) released too (slot 0, when not null) and the bank's cell 0. Then *out = -1 unless deque A's cell at the
+// record's index (+0x20) is the record; else that cell 0, map H's entry at the index cleared (StdMapH_ClearAt) and *out = 0. Returns out.
+u32 *__fastcall SoundCategory_UnloadRecord(u8 *category, void *, u32 *out, u8 *record);
 // 0x6c2f40 (thiscall; also an unwind funclet's at 0x6e5e19; names of both invented): the destructor of a category record's PtrList of banks
 // (+0x24; vtable 0x70a948, the deleting one its slot 0): its nodes (+0 the bank, +4 the next) freed, the banks left; vtable reset, +8, +4
 // and the count (+0xc) 0.
