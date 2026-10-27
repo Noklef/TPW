@@ -4,9 +4,11 @@
 
 #include "../core/accessors.h"
 #include "../core/vcall.h"
+#include "../world/advisor.h"
 #include "../world/object.h"
 #include "../world/ridesweep.h"
 #include "../world/things.h"
+#include "dialogs.h"
 #include "guirect.h"
 #include "hoverlabel.h"
 #include "panelparts.h"
@@ -110,6 +112,12 @@ void __fastcall Panel7cc258_Update(u8 *self) {
         Window_SetShown(label, nullptr, 0);
     }
     if (u8 *const figure = Window_FindChild(root(self), nullptr, 0xc085)) vcall<void>(figure, 0x1c, Obj_Get194(thing));
+}
+
+void __fastcall Panel7cc258_Show(u8 *self, void *, u8 *thing) {
+    *reinterpret_cast<u8 **>((uintptr_t)0x007cc288) = thing;
+    WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00755908), 0x004b0b30, 0xc06c, 0xc06f, 0xc06d);
+    Advisor_PostId(0xd1);
 }
 
 u32 __cdecl Panel7cc258_ApplyToThing(u8 *thing) {

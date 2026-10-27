@@ -1,4 +1,4 @@
-// The game panel object at 0x7cc258 (its vtable 0x6ffc68). Reimplementation of 0x4afaa0, 0x4afc10, 0x4b0640, 0x4b0950, 0x4b0ae0. The names are unconfirmed.
+// The game panel object at 0x7cc258 (its vtable 0x6ffc68). Reimplementation of 0x4afaa0, 0x4afc10, 0x4b0640, 0x4b0950, 0x4b0ae0, 0x4b0e30. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -37,4 +37,8 @@ void __fastcall Panel7cc258_Update(u8 *self);
 // name invented): a thing of the shown thing's [0x7c2658] kind (+0xe) given the panel's settings: +0x198 [0x7cc280] (Set198_4e21e0),
 // the quality of goods the signed byte [0x7cc27c] times 50 (its low byte), +0x194 [0x7cc284]. 1.
 u32 __cdecl Panel7cc258_ApplyToThing(u8 *thing);
+
+// 0x4b0e30 (thiscall (thing), pops 4; slot 10 of the vtable 0x6ffc68; name invented): the selected thing [0x7cc288] = thing, the
+// window built (WindowAt10_Create: the script 0x755908, the handler 0x4b0b30, the children 0xc06c and 0xc06f, the inner one 0xc06d), then the advisor posted 0xd1 (Advisor_PostId).
+void __fastcall Panel7cc258_Show(u8 *self, void *, u8 *thing);
 }

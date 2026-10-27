@@ -3,7 +3,9 @@
 #include <cstdint>
 
 #include "../core/vcall.h"
+#include "../world/advisor.h"
 #include "../world/ridesweep.h"
+#include "dialogs.h"
 #include "hoverlabel.h"
 #include "panelparts.h"
 #include "window.h"
@@ -27,6 +29,12 @@ void __fastcall Panel7ca228_Update(u8 *self) {
     Window_SetShown(Window_FindChild(at<u8 *>(self, 0x10), nullptr, 0x1581), nullptr, shown);
     vcall<void>(self, 0x18);
     vcall<void>(self, 0x14);
+}
+
+void __fastcall Panel7ca228_Show(u8 *self, void *, u8 *thing) {
+    *reinterpret_cast<u8 **>((uintptr_t)0x007ca218) = thing;
+    WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00751a68), 0x00499bb0, 0x157e, 0x1583, 0);
+    Advisor_PostId(0x12a);
 }
 
 void __fastcall Panel7ca228_Open(u8 *self) {
