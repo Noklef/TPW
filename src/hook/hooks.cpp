@@ -474,6 +474,7 @@
 #include "../game/ui/panel7cc408.h"
 #include "../game/ui/staffrename.h"
 #include "../game/ui/thingbrowser.h"
+#include "../game/ui/thingpanel.h"
 #include "../game/ui/window7cc8bc.h"
 #include "../game/ui/windowtimers.h"
 #include "../game/lib/jpeg6b.h"
@@ -6654,6 +6655,7 @@ const Hook kHooks[] = {
     {"Dialog7ca13c_RemoveData",   0x00493c10, (void *)&Dialog7ca13c_RemoveData, {0x8b, 0x0d, 0x3c, 0xa1, 0x7c}},
     {"ImeHost_OpenCandidates",    0x00480b00, (void *)&ImeHost_OpenCandidates, {0x6a, 0xff, 0x68, 0xb0, 0x90}},
     {"ImeHost_Update",            0x00481100, (void *)&ImeHost_Update, {0x83, 0xec, 0x08, 0x53, 0x55}},
+    {"ThingPanel_Show",           0x00486920, (void *)&ThingPanel_Show, {0x83, 0xec, 0x08, 0x56, 0x8b}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
