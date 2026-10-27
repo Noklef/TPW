@@ -4788,6 +4788,18 @@ address,name,kind,confidence,notes
 0x006c6090,VoiceEvents_Dtor,function,low,"reimplemented (src/game/core/voiceevents); thiscall (an SEH frame): the vtable 0x70ab50, each handle closed (CloseHandle), the block freed (name invented)"
 0x006c6100,VoiceEvents_DeletingDtor,function,low,"reimplemented (src/game/core/voiceevents); thiscall (flags), pops 4; slot 0 of 0x70ab50: the destructor, freed for flags bit 0 (name invented)"
 0x006c6160,VoiceEvents_Stop,function,low,"reimplemented (src/game/core/voiceevents); thiscall: flag 0 of +0x14 set, the stop event (the handle at index count) set (SetEvent); returns its answer (name invented)"
+0x006d3b10,ComInit_Ctor,function,low,reimplemented (src/game/core/sounddevice); thiscall: the byte = CoInitialize(null) answered 0 (name invented)
+0x006d3b30,ComInit_Dtor,function,low,reimplemented (src/game/core/sounddevice); thiscall: CoUninitialize when the byte is set (name invented)
+0x006d3b40,ComInit_Get,function,low,"reimplemented (src/game/core/sounddevice); the COM initialisation singleton (0xfb271c, guard 0xfb2720, atexit 0x6d3b80) (name invented)"
+0x006d3b80,ComInit_SingletonDtor,function,low,reimplemented (src/game/core/sounddevice); the COM singleton's atexit: its destructor (name invented)
+0x006c42e0,SoundDevice_Ctor,function,low,"reimplemented (src/game/core/sounddevice); thiscall: +0 = +4 = 0, then SoundDevice_Open (name invented)"
+0x006c4300,SoundDevice_CreatePrimary,function,low,"reimplemented (src/game/core/sounddevice); thiscall (out), pops 4: the primary buffer created into +4, then set to 16-bit stereo 22050 (name invented)"
+0x006c4370,SoundDevice_CreatePrimaryOf,function,low,"reimplemented (src/game/core/sounddevice); thiscall (out), pops 4: SoundDevice_CreatePrimary (name invented)"
+0x006c4390,SoundDevice_SetFormat,function,low,"reimplemented (src/game/core/sounddevice); thiscall (out, channels, bits, rate), pops 0x10: the primary buffer's SetFormat of a built wave format (name invented)"
+0x006c4410,SoundDevice_Open,function,low,"reimplemented (src/game/core/sounddevice); thiscall (out), pops 4: COM initialised, the DirectSound created, Initialize, SetCooperativeLevel (foreground window, priority); failing releases (name invented)"
+0x006c4480,SoundDevice_Release,function,low,reimplemented (src/game/core/sounddevice); thiscall: +4 then +0 released and cleared (name invented)
+0x006c44b0,SoundDevice_CoCreate,function,low,"reimplemented (src/game/core/sounddevice); thiscall (out), pops 4: CoCreateInstance of the EAX DirectSound, else of CLSID_DirectSound (name invented)"
+0x006c4500,SoundDevice_Get,function,low,"reimplemented (src/game/core/sounddevice); the device singleton (0xfb2030, guard 0xfb2028, atexit 0x6c4540) (name invented)"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

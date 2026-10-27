@@ -204,6 +204,7 @@
 #include "../game/core/soundcategory.h"
 #include "../game/core/soundchannel.h"
 #include "../game/core/soundcmd.h"
+#include "../game/core/sounddevice.h"
 #include "../game/core/soundeax.h"
 #include "../game/core/soundindex.h"
 #include "../game/core/soundmanager.h"
@@ -4695,6 +4696,18 @@ const Hook kHooks[] = {
     {"VoiceEvents_Dtor",          0x006c6090, (void *)&VoiceEvents_Dtor, {0x6a, 0xff, 0x68, 0xbb, 0x64}},
     {"VoiceEvents_DeletingDtor",  0x006c6100, (void *)&VoiceEvents_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x88}},
     {"VoiceEvents_Stop",          0x006c6160, (void *)&VoiceEvents_Stop, {0x8b, 0x41, 0x14, 0x8b, 0x51}},
+    {"ComInit_Ctor",              0x006d3b10, (void *)&ComInit_Ctor, {0x56, 0x8b, 0xf1, 0x6a, 0x00}},
+    {"ComInit_Dtor",              0x006d3b30, (void *)&ComInit_Dtor, {0x80, 0x39, 0x00, 0x74, 0x06}},
+    {"ComInit_Get",               0x006d3b40, (void *)&ComInit_Get, {0x8a, 0x0d, 0x20, 0x27, 0xfb}},
+    {"ComInit_SingletonDtor",     0x006d3b80, (void *)&ComInit_SingletonDtor, {0xb9, 0x1c, 0x27, 0xfb, 0x00}},
+    {"SoundDevice_Ctor",          0x006c42e0, (void *)&SoundDevice_Ctor, {0x51, 0x56, 0x8b, 0xf1, 0x8d}},
+    {"SoundDevice_CreatePrimary", 0x006c4300, (void *)&SoundDevice_CreatePrimary, {0x83, 0xec, 0x14, 0x56, 0x8b}},
+    {"SoundDevice_CreatePrimaryOf", 0x006c4370, (void *)&SoundDevice_CreatePrimaryOf, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"SoundDevice_SetFormat",     0x006c4390, (void *)&SoundDevice_SetFormat, {0x83, 0xec, 0x1c, 0x53, 0x56}},
+    {"SoundDevice_Open",          0x006c4410, (void *)&SoundDevice_Open, {0x51, 0x56, 0x57, 0x8b, 0xf1}},
+    {"SoundDevice_Release",       0x006c4480, (void *)&SoundDevice_Release, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"SoundDevice_CoCreate",      0x006c44b0, (void *)&SoundDevice_CoCreate, {0x56, 0x8b, 0xf1, 0x57, 0x8b}},
+    {"SoundDevice_Get",           0x006c4500, (void *)&SoundDevice_Get, {0x8a, 0x0d, 0x28, 0x20, 0xfb}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
