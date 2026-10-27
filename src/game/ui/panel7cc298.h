@@ -1,5 +1,5 @@
 // The game panel object at 0x7cc298 (built by 0x4b0eb0: the panel base 0x48c9e0 with its window at +0x10, then its own vtable 0x6ffce8
-// and +4 = 2), with an object at +0x20; it shows the thing [0x7c2658]. Reimplementation of 0x4b0ed0, 0x4b1ee0, 0x4b1040 and 0x4b20f0. The names are unconfirmed.
+// and +4 = 2), with an object at +0x20; it shows the thing [0x7c2658]. Reimplementation of 0x4b0ed0, 0x4b1ee0, 0x4b1040, 0x4b20f0, 0x4b2430 and 0x4b20b0. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -27,4 +27,13 @@ void __fastcall Panel7cc298_Dress(u8 *self);
 
 // 0x4b0ed0 (thiscall; slot 4 of the vtable 0x6ffce8): the window +0x1c dressed as panelparts::tip (the same code in four panels).
 void __fastcall Panel7cc298_DressTip(u8 *self);
+
+// 0x4b2430 (thiscall (thing), pops 4; slot 10 of the vtable 0x6ffce8; name invented): the selected thing [0x7cc2c8] = thing, the
+// window built (WindowAt10_Create: the script 0x755e80, the handler 0x4b2150, the children 0xa0a2 and 0xa091, the inner one 0xa0a3), then the advisor posted 0xd0 (Advisor_PostId).
+void __fastcall Panel7cc298_Show(u8 *self, void *, u8 *thing);
+
+// 0x4b20b0 (thiscall; slot 15 of the vtable 0x6ffce8; name invented): as Panel7cc298_ApplyToThing on the shown thing [0x7c2658] (no kind
+// test) with the panel's own settings: +0x194 its +0x2c (Obj_Set194) and, unless the thing's definition +0x10c, the chance of winning its
+// byte +0x24 (Object_SetChanceOfWinning) and +0x188 its +0x28 (Obj_Set188).
+void __fastcall Panel7cc298_ApplyToShown(u8 *self);
 }

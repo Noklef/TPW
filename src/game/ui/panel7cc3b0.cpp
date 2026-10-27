@@ -2,7 +2,11 @@
 
 #include <cstdint>
 
+#include "../world/advisor.h"
+#include "../world/ridesweep.h"
+#include "dialogs.h"
 #include "guirect.h"
+#include "hoverlabel.h"
 #include "panelparts.h"
 #include "thingpreview.h"
 #include "window.h"
@@ -23,6 +27,21 @@ void __fastcall Panel7cc3b0_ShowPreview(u8 *self) {
     Window_GetSavedRect(shown, nullptr, rect);
     ThingPreview_Show(rect, *reinterpret_cast<u8 *const *>((uintptr_t)0x007c2658), *reinterpret_cast<const s16 *>(shown + 0xe0) + 1, 0x41000000);
     GuiRect_Dtor(rect);
+}
+
+void __fastcall Panel7cc3b0_Open(u8 *self) {
+    if (Things_CountGroup(self, nullptr, *reinterpret_cast<const u32 *>((uintptr_t)0x007cc3a4)) < 2) {
+        Window_SetShown(Window_FindChild(*reinterpret_cast<u8 **>(self + 0x10), nullptr, 0x50d), nullptr, 0);
+        Window_SetShown(Window_FindChild(*reinterpret_cast<u8 **>(self + 0x10), nullptr, 0x50f), nullptr, 0);
+    }
+    HoverLabel_Bind(self, nullptr, 0x520);
+}
+
+void __fastcall Panel7cc3b0_Show(u8 *self, void *, u8 *thing) {
+    *reinterpret_cast<u8 **>((uintptr_t)0x007cc3a4) = thing;
+    WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00756f48), 0x004b5cb0, 0x511, 0x512, 0);
+    Window_SetHandler(*reinterpret_cast<u8 **>(self + 0x18), nullptr, 0x004b5c80);
+    Advisor_PostId(0xc0);
 }
 
 void __fastcall Panel7cc3b0_Dress(u8 *self) {
