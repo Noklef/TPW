@@ -10,9 +10,11 @@
 #include "channelvoice.h"
 #include "dequeiter.h"
 #include "fieldops.h"
+#include "gameheap.h"
 #include "initializers.h"
 #include "ptrlist.h"
 #include "selectors.h"
+#include "sfman.h"
 #include "soundbank.h"
 #include "soundcategory.h"
 #include "soundeax.h"
@@ -58,6 +60,28 @@ extern "C" {
 
 u8 *__fastcall SoundChannel_NewResource(u8 *channel, void *, const u32 *desc) {
     return SoundResource_New(at<u8 *>(channel, 0x1c), desc, channel);
+}
+
+void __fastcall SoundChannel_FreeEax(u8 *channel) {
+    if (!at<u8 *>(channel, 0x20)) return;
+    EaxBuffer_Release(at<u8 *>(channel, 0x20));
+    GameHeap_Free(at<u8 *>(channel, 0x20));
+    at<u8 *>(channel, 0x20) = nullptr;
+}
+
+u32 *__fastcall SoundChannel_OpenSynth(u8 *channel, void *, u32 *out) {
+    u8 *host = static_cast<u8 *>(GameHeap_Alloc(8));
+    if (host) host = Init_6c47b0(host);
+    at<u8 *>(channel, 0x1c) = host;
+    SfHost_OpenOut(host, nullptr, out);
+    return out;
+}
+
+void __fastcall SoundChannel_FreeSynth(u8 *channel) {
+    if (!at<u8 *>(channel, 0x1c)) return;
+    SfHost_Dtor(at<u8 *>(channel, 0x1c));
+    GameHeap_Free(at<u8 *>(channel, 0x1c));
+    at<u8 *>(channel, 0x1c) = nullptr;
 }
 
 u32 *__fastcall SoundChannel_SetFlag2(u8 *channel, void *, u32 *out, u32 on) {

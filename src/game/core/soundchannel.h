@@ -24,6 +24,14 @@ u8 *__fastcall SoundChannel_LoadBank(u8 *channel, void *, u32 index);
 // flag 2 set or cleared to match, the channel's slot 4 (out: on's own stack slot, sic; a stack functor: vtable 0x70a5b0, its data
 // unset) and SoundCategory_ReleaseBankResources; *out = 0. Returns out.
 u32 *__fastcall SoundChannel_SetFlag2(u8 *channel, void *, u32 *out, u32 on);
+// 0x6b7840 (thiscall; name invented): the EAX buffer (+0x20), when there is one, released (EaxBuffer_Release), freed (GameHeap_Free) and
+// cleared.
+void __fastcall SoundChannel_FreeEax(u8 *channel);
+// 0x6b7870 (thiscall (out), pops 4; an SEH frame for the new; name invented): +0x1c = a new synthesiser holder (8 bytes, Init_6c47b0;
+// null when the heap fails) and SfHost_OpenOut on it (on null too, sic). Returns out.
+u32 *__fastcall SoundChannel_OpenSynth(u8 *channel, void *, u32 *out);
+// 0x6b78e0 (thiscall; name invented): the synthesiser holder (+0x1c), when there is one, destroyed (SfHost_Dtor), freed and cleared.
+void __fastcall SoundChannel_FreeSynth(u8 *channel);
 
 // 0x6b8b40 (thiscall (out, functor), pops 8): the functor's slot 0 (out, channel). Returns out.
 u32 *__fastcall SoundChannel_Apply(u8 *channel, void *, u32 *out, u8 *functor);
