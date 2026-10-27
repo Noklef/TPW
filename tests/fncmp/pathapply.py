@@ -32,11 +32,13 @@ def merged(ranges):   # (overlapping ranges joined: a listing line must not come
     return out
 
 
-B = Bench(merged(pathmodel.RANGES + scene.RANGES + [(0x5229e0, 0x522a8a), (0x522a90, 0x522a9e), (0x5365d0, 0x5366dd)]), sines=256,
-          hooks={0x463060: _recorder(30, 10, cdecl=True), 0x463c80: _recorder(31, 1, cdecl=True)})
+RANGES = merged(pathmodel.RANGES + scene.RANGES + [(0x5229e0, 0x522a8a), (0x522a90, 0x522a9e), (0x5365d0, 0x5366dd)])
+HOOKS = {0x463060: _recorder(30, 10, cdecl=True), 0x463c80: _recorder(31, 1, cdecl=True)}
+B = Bench(RANGES, sines=256, hooks=HOOKS)
 
 
-def case(r):
+def case(r, log=None):
+    """log: the log region to set up (cellkind.py's, shared with object.py's clock), else a new one."""
     regions = dict(scene.paint(r, 'PaintAt').regions)
     w, h = struct.unpack_from('<2I', regions[scene.GRID], 0x18)
     x = r.choice([r.randrange(w)] * 4 + [r.randrange(128)])
@@ -45,7 +47,7 @@ def case(r):
     cell = bytearray(regions[pathmodel.CELL])
     put(cell, 4, 'I', r.choice([0, 0, 5, r.getrandbits(32)]))
     regions[pathmodel.CELL] = cell
-    log = log_region()
+    log = log_region() if log is None else log
     blob(log, 30, 2, 0xf)
     if r.random() < 0.5:
         set_return(log, 30, r.choice([0, 1, r.getrandbits(32)]))

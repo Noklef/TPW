@@ -318,6 +318,7 @@
 #include "../game/world/analysercell.h"
 #include "../game/world/bankaccount.h"
 #include "../game/world/cellbuild.h"
+#include "../game/world/cellkind.h"
 #include "../game/world/linestep.h"
 #include "../game/world/money.h"
 #include "../game/world/objectmsg.h"
@@ -5498,6 +5499,8 @@ const Hook kHooks[] = {
     {"AdvisorSlot_Ctor",          0x00518e60, (void *)&AdvisorSlot_Ctor, {0x8b, 0xc1, 0xc6, 0x40, 0x14}},
     {"AdvisorRecord_Ctor",        0x00518e80, (void *)&AdvisorRecord_Ctor, {0x8b, 0xc1, 0x33, 0xc9, 0x89}},
     {"Ride_Destroy",              0x00463c80, (void *)&Ride_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"MapCell_SetKind",           0x005346d0, (void *)&MapCell_SetKind, {0x53, 0x55, 0x56, 0x57, 0x8b}},
+    {"MapCell_Clear",             0x005367a0, (void *)&MapCell_Clear, {0x83, 0xec, 0x08, 0x53, 0x55}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},

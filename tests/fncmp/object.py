@@ -16,10 +16,11 @@ from fncmp import IMPORT_TABLE as IAT, LOG, Bench, Call, RAM, fill, import_table
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from funnytime import IMPORTS, K, RANGES as CLOCK_RANGES  # noqa: E402
 
-B = Bench([(0x4dd4e0, 0x4dd4fb), (0x4e1670, 0x4e168b), (0x4e1690, 0x4e16ab), (0x4e1e00, 0x4e1e2b),
+RANGES = ([(0x4dd4e0, 0x4dd4fb), (0x4e1670, 0x4e168b), (0x4e1690, 0x4e16ab), (0x4e1e00, 0x4e1e2b),
            (0x4e2190, 0x4e21a2), (0x4e21c0, 0x4e21d2), (0x4e2710, 0x4e273b), (0x4e2b50, 0x4e2b7b),
            (0x412e90, 0x412eea), (0x4e2290, 0x4e23f4), (0x4e2400, 0x4e243f), (0x4e01f0, 0x4e0209), (0x4e1c60, 0x4e1c70),
            (0x4b47a0, 0x4b47cb), (0x65d7bc, 0x65d822)] + CLOCK_RANGES)
+B = Bench(RANGES)
 DEFS, OBJ, ITEMS, NITEMS = 0x7890a0, RAM, RAM + 0x400, 16
 WORLD = 0x31000000   # (its calendar clock at +0x2a0 and its ticks at +0x1da70c)
 DAY, YEAR = 864000000000, 365 * 864000000000   # FILETIME ticks
