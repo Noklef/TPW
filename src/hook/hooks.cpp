@@ -329,6 +329,7 @@
 #include "../game/world/cellmodel.h"
 #include "../game/world/demolish.h"
 #include "../game/world/endthing.h"
+#include "../game/world/gamemode.h"
 #include "../game/world/objectstatus.h"
 #include "../game/world/parkgates.h"
 #include "../game/world/parkopen.h"
@@ -5391,6 +5392,8 @@ const Hook kHooks[] = {
     {"EndThing_Create",           0x00516b00, (void *)&EndThing_Create, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Game_OpenPark",             0x00519ef0, (void *)&Game_OpenPark, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Game_EndPark",              0x005168f0, (void *)&Game_EndPark, {0x83, 0xec, 0x08, 0x53, 0x56}},
+    {"GameMode_Set",              0x0052f200, (void *)&GameMode_Set, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"GameMode_SetOnly",          0x0052f580, (void *)&GameMode_SetOnly, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},

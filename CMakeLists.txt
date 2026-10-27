@@ -328,6 +328,7 @@ add_library(tpw_game STATIC
     src/game/world/placeobject.cpp
     src/game/world/endthing.cpp
     src/game/world/parkopen.cpp
+    src/game/world/gamemode.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp
