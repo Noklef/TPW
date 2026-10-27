@@ -619,6 +619,28 @@ void __cdecl SoundCategory_ReleaseBankResources() {
     } while (++i < Get<u32>(cat, 0x94));
 }
 
+void __fastcall CategoryRecord_Dtor(u8 *record) {
+    Put<u32>(record, 0, 0x70a950);
+    u32 status;
+    SoundCategory_UnloadRecord(SoundCategory_Get(), nullptr, &status, record);
+    if (Get<u32>(record, 8)) {
+        GameHeap_Free(Ptr(Get<u32>(record, 8)));
+        Put<u32>(record, 8, 0);
+    }
+    u8 *node = Ptr(Get<u32>(record, 0x28));
+    Put<u32>(record, 0x2c, 0);
+    Put<u32>(record, 0x28, 0);
+    while (node) {
+        u8 *const next = Ptr(Get<u32>(node, 4));
+        GameHeap_Free(node);
+        node = next;
+    }
+    Put<u32>(record, 0x30, 0);
+    BankList_Dtor(record + 0x24);
+    String_Dtor(reinterpret_cast<String *>(record + 0xc));
+    Put<u32>(record, 0, 0x703770);
+}
+
 u32 *__stdcall SoundCategory_ReleaseRecordBanks(u32 *out, const u8 *record) {
     if (!record) {
         *out = 0xffffffff;

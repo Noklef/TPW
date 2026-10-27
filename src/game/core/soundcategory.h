@@ -147,6 +147,10 @@ u8 *__fastcall SoundCategory_RecordAt(void *self, void *, u32 index, u32 unused)
 // 0x6b9660 (name invented): each bank of the singleton's deque B (its count +0x94 re-read each step) that is not null has its resource's
 // (+8, not tested for null) slot 0 called (no arguments) and +8 = 0.
 void __cdecl SoundCategory_ReleaseBankResources();
+// 0x6bea00 (thiscall; an SEH frame; name invented): a category record's destructor (vtable 0x70a950): SoundCategory_UnloadRecord on the
+// singleton (the status a local), its +8 block freed (GameHeap_Free) and cleared when there is one, the bank list's nodes (+0x28) freed
+// with +0x2c / +0x28 / +0x30 = 0, then BankList_Dtor (+0x24), String_Dtor (+0xc) and the vtable 0x703770.
+void __fastcall CategoryRecord_Dtor(u8 *record);
 // 0x6b9760 (stdcall (out, record), pops 8; name invented): no record: *out = -1. Else Fn_6c0200 (record, &banks) gives the count of a
 // list of deque B indices (0, and banks null: the loop never runs), each bank's resource (+8) slot 0 called and +8 = 0 (the bank and its
 // resource not tested for null); the list freed (GameHeap_Free) when not null and *out = 0. Returns out.
