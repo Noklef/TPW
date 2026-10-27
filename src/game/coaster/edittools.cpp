@@ -268,3 +268,50 @@ u32 __cdecl CoasterEdit_ToggleDrag() {
     return Off(Flags());
 }
 }
+
+namespace {
+
+// 0x4423f0 / 0x4425c0: the move tool (bit) toggled; on, the selected car swapped with its neighbour (next: the one after, else the
+// one before), recorded as code with the car's handle, and again while there is a game (the tool then going off).
+void MoveCar(u32 bit, u32 code, bool next) {
+    for (u8 *game = g<u8 *>(0x00790fec); game; game = g<u8 *>(0x00790fec)) {
+        if (!at<u32>(game, 0x40)) return;
+        u32 flags = Flags();
+        u8 *const car = Piece();
+        const u32 on = flags & bit;
+        if (!on) {
+            if (!car) return;
+            if (next ? at<u32>(car, 4) >= at<u32>(Def(car), 0x30) - 1 : at<u32>(car, 4) == 0) return;
+        }
+        if (at<u8>(Def(car), 4) & 2) return;   // (sic: with the tool on, a missing car faults)
+        if (!(flags & 0x3f)) {
+            Flags() = flags |= bit;
+        } else if (on) {
+            Flags() = flags &= ~bit;
+        }
+        if (!(flags & bit)) {
+            Highlight_SetShown(0);
+            return;
+        }
+        if (!car) {
+            Flags() = flags & ~bit;
+            Highlight_SetShown(0);
+            return;
+        }
+        // (the word pushed with the pointer's high half, sic)
+        ActionRec_WriteW(Recorder(), nullptr, code, ((u32)(uintptr_t)car & 0xffff0000u) | at<u16>(car, 0));
+        ClearChanged();
+        u8 *const piece = Piece();
+        Train_SwapCars(piece, at<u8 *>(Def(piece), 0x34 + 4 * at<u32>(piece, 4) + (next ? 4 : -4)));
+        Highlight_SetShown(1);
+    }
+}
+
+}  // namespace
+
+extern "C" {
+
+void __cdecl CoasterEdit_MoveCarBack() { MoveCar(8, 0x3d, true); }
+
+void __cdecl CoasterEdit_MoveCarForward() { MoveCar(0x10, 0x3e, false); }
+}

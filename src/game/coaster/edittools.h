@@ -43,4 +43,16 @@ u32 __cdecl CoasterEdit_ToggleAdjust();
 // credited the kept cost (__ftol) and debited Float_RoundUp of the cost now, and the kept cost cleared; then flags 0x1e00 are cleared
 // and the highlight hidden. Returns 1.
 u32 __cdecl CoasterEdit_ToggleDrag();
+
+// 0x4423f0 (cdecl; name unconfirmed): the move-back tool (8), only with a game whose +0x40 is set: with the tool off, a selected car
+// that is not its train's (+0x100) last (+4 below the count +0x30 less 1) is wanted; then (either way) the train must lack flag 2 (+4;
+// with the tool on and no car, sic, it faults). No tool on: the tool goes on; this tool on: it goes off; another: no change. On: the
+// move recorded (0x3d with the car's handle word, the high half the car pointer's, sic), the game's changed flag 0x2000 cleared, the
+// car swapped with the one after it (Train_SwapCars) and the highlight shown, then all again while there is a game (so the tool, now
+// on, goes off). Off: the highlight hidden.
+void __cdecl CoasterEdit_MoveCarBack();
+
+// 0x4425c0 (cdecl; name unconfirmed): the move-forward tool (0x10), as CoasterEdit_MoveCarBack with a car not its train's first (+4
+// above 0), recorded as 0x3e, swapped with the one before it.
+void __cdecl CoasterEdit_MoveCarForward();
 }
