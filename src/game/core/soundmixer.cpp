@@ -202,4 +202,21 @@ u32 *__fastcall SoundMixer_AddPage(u8 *mixer, void *, u32 *out) {
     return out;
 }
 
+u32 __fastcall SoundMixer_AddVoice(u8 *mixer, void *, u8 *owner, u8 *definition, u8 *info) {
+    const u32 count = at<u32>(mixer, 0x4c);
+    u32 slot = 0;
+    if (count) {
+        const u32 *const slots = at<const u32 *>(mixer, 0x40);
+        while (slots[slot] && ++slot < count) {
+        }
+    }
+    if (slot >= count) return 0;
+    u8 *const memory = at<u8 *>(mixer, 0x3c) + slot * 0x50;
+    u8 *const voice = memory ? Voice70a4f0_Ctor(memory) : nullptr;
+    u32 *const out = reinterpret_cast<u32 *>(&info);   // (sic: the info argument's own slot)
+    if (static_cast<s32>(*vcall<u32 *>(voice, 0x10, out, owner, definition, info + 0xc, at<u32>(info, 0x18))) < 0) return 0;
+    at<u8 **>(mixer, 0x40)[slot] = voice;
+    return 1;
+}
+
 }  // extern "C"

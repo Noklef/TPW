@@ -23,7 +23,8 @@
 # 0x70a4f0 voices into OUT and the new linked (switch) voice of VOICE, the heap failing now and then. The destructors: see dtor_case().
 # The group voice 0x70a390's slots and destructors: see group_case(). The creates (0x6be610, 0x6be680, 0x6bdc60, 0x6bdd30, 0x6bd7b0,
 # 0x6be330): the voices' game vtables (resolved by the driver), memory null now and then, the heap failing now and then.
-# The record's bank (slot 18, 0x6bc240): see recordbank_case().
+# The record's bank (slot 18, 0x6bc240): see recordbank_case(). The mixer's voice added (0x6b6650): the creates' setup, the voice in the
+# first free slot of 0-6 (the driver resolves the vtable 0x70a4f0).
 # usage: soundvoice.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -52,7 +53,7 @@ CALLS = {'ensure': (0x6b7150, 'v'), 'pending': (0x6bc900, 'a'), 'apply': (0x6bbf
          'gposition': (0x6bda20, 'a'), 'gsetparam': (0x6bda90, 'v'), 'glevels': (0x6bdac0, 'v'), 'gstart': (0x6bdae0, 'a'),
          'gfirst': (0x6bdb10, 'a'), 'gstartkids': (0x6bdb50, 'v'), 'gadd': (0x6bdbb0, 'b'), 'gprune': (0x6bdc10, 'v'),
          'create390': (0x6bdc60, 'a'), 'create2e0': (0x6bdd30, 'a'), 'create3e8': (0x6bd7b0, 'a'), 'create878': (0x6be330, 'a'),
-         'recordbank': (0x6bc240, 'a')}
+         'recordbank': (0x6bc240, 'a'), 'mixeradd': (0x6b6650, 'a')}
 GROUP_OPS = ('gdtor', 'gddtor', 'gcommand', 'gposition', 'gsetparam', 'glevels', 'gstart', 'gfirst', 'gstartkids', 'gadd', 'gprune')
 DTOR_OPS = ('dtor7e0', 'ddtor7e0', 'dtor3e8', 'dtor338', 'ddtor3e8', 'ddtor338', 'vddtor4f0', 'dtor878', 'ddtor878', 'dtor8d0', 'ddtor8d0')
 LINKED_OPS = ('linkinit', 'linkfollow', 'linkbranch')
@@ -72,7 +73,7 @@ B = Bench([(0x6b7150, 0x6b7190), (0x6bb9f0, 0x6bba81), (0x6bc900, 0x6bcb56), (0x
            (0x6bd930, 0x6bd9a3), (0x6b72b0, 0x6b72ce), (0x6bd9b0, 0x6bda1b), (0x6bda20, 0x6bda8d), (0x6bda90, 0x6bdabd), (0x6bdac0, 0x6bdade),
            (0x6bdae0, 0x6bdb0b), (0x6bdb10, 0x6bdb4c), (0x6bdb50, 0x6bdbad), (0x6bdbb0, 0x6bdc0b), (0x6bdc10, 0x6bdc55),
            (0x6bdc60, 0x6bdca7), (0x6bdd30, 0x6bdd77), (0x6bd7b0, 0x6bd7f7), (0x6be330, 0x6be377),
-           (0x6bc240, 0x6bc2c4), (0x6b9310, 0x6b9652), (0x6bead0, 0x6beb03), (0x632230, 0x632290), (0x6c51b0, 0x6c51c2)])
+           (0x6bc240, 0x6bc2c4), (0x6b9310, 0x6b9652), (0x6bead0, 0x6beb03), (0x632230, 0x632290), (0x6c51b0, 0x6c51c2), (0x6b6650, 0x6b66c8)])
 VOICE, OUT, SYS, SVT, VVT, DEF, VARS, SAMPLES, PARAMS, LISTENER, CMD, CVT = (RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x500,
                                                                             RAM + 0x600, RAM + 0xa00, RAM + 0xb00, RAM + 0xb40, RAM + 0xb80, RAM + 0xbc0)
 SYSTEM, RANDOM, CLOCK, TIME_GET_TIME = 0xfb1f24, 0xfb1f20, 0xfa71e0, 0x6fd3ec
@@ -84,8 +85,9 @@ BAG, LIST2 = RAM + 0x1200, RAM + 0x1240   # (the parameter block's shuffle bag: 
 KEEPER, KVT, ARRAY, BAG2 = RAM + 0x1300, RAM + 0x1340, RAM + 0x1400, RAM + 0x1500   # (the destructors' owner +0x28, a voice array, a bag)
 CHILDREN, CHILD_PARAMS, CHVT = RAM + 0x1600, RAM + 0x1700, RAM + 0x1780   # (the group voice's children, their blocks and vtable)
 NEWKID, NEWKID_PARAMS = RAM + 0x1800, RAM + 0x1860   # (the group voice's new child, from its slot 21)
+MIXER, MIX_SLOTS, MIX_VOICES = RAM + 0x3000, RAM + 0x3080, RAM + 0x3100   # (the mixer's voice added: its slots and voice array)
 BANK, BANK_MAP, BANK_BLOCK, CATEGORY = RAM + 0x1900, RAM + 0x1940, RAM + 0x2000, 0xfb1f28   # (the record's bank: recordbank_case())
-CREATE_OPS = ('swcreate', 'seqcreate', 'create390', 'create2e0', 'create3e8', 'create878')
+CREATE_OPS = ('swcreate', 'seqcreate', 'create390', 'create2e0', 'create3e8', 'create878', 'mixeradd')
 ROLL_OPS = ('rollvol', 'rollpitch', 'level', 'fillrec', 'rollword', 'levels', 'voicefill', 'voicefillx')
 CMD_K, TIME_K = 9, 12
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
@@ -579,6 +581,13 @@ def case(r):
             struct.pack_into('<I', info, 0x18, scale)
             regions.update({OWNER: struct.pack('<II', OVT, r.getrandbits(32)) + struct.pack('<I', OINFO), OVT: vtable({}), OINFO: r.bytes(0x10),
                             MEM: r.bytes(0x50), INFO: info, HEAP: heap(0x40, fail=r.choice([0] * 9 + [1]))})
+            if name == 'mixeradd':   # (0-6 slots, each taken (not 0) now and then; the voice array over random bytes)
+                n = r.choice([0, 1, 2, 4, 6])
+                taken = [r.choice([0, 0, 1, r.getrandbits(32)]) for _ in range(n)]
+                regions[MIXER] = r.bytes(0x3c) + struct.pack('<II', MIX_VOICES, MIX_SLOTS) + r.bytes(8) + struct.pack('<I', n) + r.bytes(4)
+                regions[MIX_SLOTS] = struct.pack('<%dI' % n, *taken) + r.bytes(8)
+                regions[MIX_VOICES] = r.bytes(0x50 * 6)
+                return Call(address, [MIXER, OWNER, DEF, INFO], regions, conv='t', ret=ret)
             return Call(address, [OWNER, r.choice([MEM] * 9 + [0]), DEF, INFO], regions, conv='c', ret=ret)
         if name == 'flags':
             return Call(address, [VOICE, scale], regions, conv='t', ret=ret)

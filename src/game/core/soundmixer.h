@@ -4,7 +4,7 @@
 // object and +0x40 / +0x44 blocks it owns. A voice: +0x24 its sound, +0x2c its id (the low 16 bits the slot Pages100_EntryAt finds,
 // the high 16 a stamp), +0x30 flags. Reimplementation of 0x6b6120, 0x6b6170, 0x6b6260, 0x6b6440, 0x6b6550, 0x6b6830, 0x6b6990,
 // 0x6b6ab0, 0x6b6ba0, 0x6b62b0 and 0x6b69b0, and of the voice commands 0x6b64b0, 0x6b6510 and 0x6b65a0 (out: 0, or -1 when no voice has the id); the
-// names are unconfirmed.
+// names are unconfirmed. 0x6b6650 adds a voice to the array at +0x3c (0x50 bytes each, its slots' pointers at +0x40, their count +0x4c).
 #pragma once
 
 #include "../../../re/types.h"
@@ -71,5 +71,9 @@ u32 *__fastcall SoundMixer_SendVoice(u8 *mixer, void *, u32 *out, u32 id, u32 va
 // +0x2c then raised), its flags +0x30 0 and pushed on the free chain (Chain20_PushFront), the pages' count +0x28 raised and *out = 0.
 // Returns out.
 u32 *__fastcall SoundMixer_AddPage(u8 *mixer, void *, u32 *out);
+// 0x6b6650 (thiscall (owner, definition, info), pops 0xc; name invented): the first slot (+0x40, count +0x4c) that is 0; none: 0. Else
+// the array's voice there (+0x3c + slot * 0x50) constructed (Voice70a4f0_Ctor) and its slot 4 (SoundVoice_Init: out the info argument's
+// own slot (sic), owner, definition, info + 0xc, info's +0x18): negative, 0 (the voice left constructed); else the slot = the voice, 1.
+u32 __fastcall SoundMixer_AddVoice(u8 *mixer, void *, u8 *owner, u8 *definition, u8 *info);
 
 }  // extern "C"
