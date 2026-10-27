@@ -50,6 +50,42 @@ void __cdecl Sound_StartMusic() {
     music = Sound_SetParam(music, 4, 0);
 }
 
+void __cdecl Sound_StopMusic() {
+    const u32 music = global<u32>(0x00803aa0);
+    if (music) Sound_Stop(music);
+}
+
+void __cdecl Sound_SetMusicLevel(u32 value) {
+    u32 &music = global<u32>(0x00803aa0);
+    music = Sound_SetParam(music, 4, value);
+}
+
+void __cdecl Sound_SetKidsLevel(s32 level) {
+    s32 &stored = global<s32>(0x00803ab0);
+    stored = level > 100 ? 100 : level;
+    if (!global<u32>(0x00803aa8)) return;
+    u32 &sound = global<u32>(0x00803aa4);
+    if (stored) {
+        if (!sound) sound = Sound_PlayAt(0, global<u32>(0x00803a24), 0x5b, 0, 0, 0);
+        sound = Sound_SetParam(sound, 7, level);   // (the level as passed, not the clamped one, sic)
+    } else if (sound) {
+        Sound_Stop(sound);
+        sound = 0;
+    }
+}
+
+void __cdecl Sound_SetAmbientLevel(s32 level) {
+    if (level > 100) level = 100;
+    if (level < 0) level = 0;
+    u32 &sound = global<u32>(0x00803aac);
+    if (level) {
+        if (!sound) sound = Sound_PlayAt(0, global<u32>(0x00803a20), 0x21, 0, 0, 0);
+        sound = Sound_SetParam(sound, 8, level);
+    } else if (sound) {
+        Sound_Stop(sound);   // (the sound kept, sic)
+    }
+}
+
 u32 __cdecl SoundUi_Play(u32 sound) { return Sound_PlayAt(0, global<u32>(0x00803a2c), sound, 0, 0, 0); }
 
 u32 __cdecl SoundUi_Play1d() { return Sound_PlayAt(0, global<u32>(0x00803a2c), 0x1d, 0, 0, 0); }

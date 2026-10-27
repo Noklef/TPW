@@ -65,6 +65,13 @@ void __cdecl Dialog7cc5f4_Create(u32 owner) {
     yellow(Window_FindChild(dialog(), nullptr, 0x4d), 0xec);
 }
 
+u32 __cdecl Dialog7cc5f4_Finish(u32 value) {
+    Window_SendMessage(dialog(), 4, 0, 0);
+    const auto owner = *reinterpret_cast<u32(__cdecl **)(u32)>((uintptr_t)0x007cc5fc);
+    if (value == 0 || owner == nullptr) return 0;
+    return owner(value);
+}
+
 void __cdecl Dialog7cc5f4_CreateFrom(u32 value, u8 *data) {
     u8 *const built = Dialog_Create(reinterpret_cast<u8 *>((uintptr_t)0x007583e8), 0x004b9d00, 0);
     u8 *const name = Window_FindChild(built, nullptr, 0x49);

@@ -41,7 +41,7 @@ def rng(r, big):
     return s32(low), s32(high), s32(span) or 1
 
 
-def compare(r):
+def compare(r, address=0x66cd83):
     log = log_region()
     vt2 = vtable({})
     put(vt2, 0xc, 'I', recorder(5, 0))
@@ -51,7 +51,7 @@ def compare(r):
     mine = r.choice([0, 1, 11, r.getrandbits(32)])
     set_return(log, 3, mine)
     set_return(log, 5, r.choice([mine] * 4 + [mine ^ 1, r.getrandbits(32)]))
-    return Call(0x66cd83, [WINDOW, OTHER], regions, conv='t', ret='a')
+    return Call(address, [WINDOW, OTHER], regions, conv='t', ret='a')
 
 
 def set_value(r, op='SetValue'):

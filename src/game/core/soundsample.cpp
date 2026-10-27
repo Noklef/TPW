@@ -8,7 +8,11 @@
 #include "../files/handles.h"
 #include "../files/substream.h"
 #include "gameheap.h"
+#include "misc.h"
+#include "fieldops.h"
 #include "semaphore.h"
+#include "soundchannel.h"
+#include "sounddevice.h"
 #include "soundstream.h"
 #include "streampool.h"
 #include "vcall.h"
@@ -137,6 +141,35 @@ void __fastcall SampleCopier_MmxCopy(void *, void *, u8 *dest, const u8 *source,
         std::memcpy(dest, q, sizeof q);
     }
     __movsb(dest, source, count & 31);
+}
+
+void __fastcall SoundSample70a548_Dtor(u8 *self) {
+    *reinterpret_cast<u32 *>(self) = 0x0070a548;
+    SoundChannel_ReleaseAll(self);
+    GameHeap_Free(*reinterpret_cast<void **>(static_cast<uintptr_t>(0x00fb2018)));
+    *reinterpret_cast<u32 *>(self) = 0x00703770;
+}
+
+u8 *__fastcall SoundSample70a548_Ctor(u8 *self) {
+    Class703770_Ctor(self);
+    for (u32 offset = 8; offset <= 0x20; offset += 4) at<u32>(self, offset) = 0;
+    SampleCopier_Install(self + 0x24);
+    at<u32>(self, 0) = 0x0070a548;
+    return self;
+}
+
+void __fastcall SoundSample70a548_Choose3DVoices(u8 *, void *, u8 *settings) {
+    u8 caps[8];   // (a caps holder of no sound: DirectSoundCreate makes one)
+    SoundCaps_Ctor(caps, nullptr, nullptr);
+    u32 status;
+    u32 voices;
+    const u32 max = static_cast<s32>(*SoundCaps_Query(caps, nullptr, &status)) >= 0 ? SoundCaps_Max3DStreaming(caps) : 0;
+    if (max && SoundCaps_Free3DStreaming(caps) >= at<u32>(settings, 0x40) && max >= 5)
+        voices = at<u8>(settings, 0x4c) & 0x60 ? max - 1 : max;
+    else
+        voices = at<u32>(settings, 0x40);
+    SetThenFlag44_4c_6b9d10(settings, nullptr, voices);
+    SoundCaps_Dtor(caps);
 }
 
 }  // extern "C"

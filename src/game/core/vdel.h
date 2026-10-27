@@ -78,6 +78,10 @@ u8 *__fastcall Deleter_Minus8_56a660(u8 *object, void *, u32 flags);
 // bytes before the object is freed. Returns that address (the object - 8), freed or not.
 u8 *__fastcall Deleter_Minus8_458970(u8 *object, void *, u32 flags);
 
+// 0x4e5ba0 (thiscall; flags, pops 4; slot 0 of 0x700620; name invented): the vtable pointer at +0 = 0x700620 (as Vtbl700620_Set_4e5b90,
+// inlined); when bit 0 of the flags is set the object is freed. Returns the object.
+u8 *__fastcall Class700620_ScalarDtor(u8 *object, void *, u32 flags);
+
 // 0x579020 / 0x5790c0 / 0x579150 (thiscall on the object 8 bytes above the base; flags, pops 4): the base's (the pointer - 8) virtual base
 // offset (dword +4 of its vtable) names where the vtable 0x7018d0 / 0x701920 / 0x7018f8 is stored; the dword at (the offset - 4, read
 // again from the base's new vtable) = the offset - 8; the dword at +8 = 0x701940; when bit 0 of the flags is set the base is freed.

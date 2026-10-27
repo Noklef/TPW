@@ -10,6 +10,37 @@
 
 extern "C" {
 
+// What the objects call in the game that is not yet ported, so that they can run outside it (the benches point these at recorders).
+struct ObjectEnv {
+    void(__fastcall *post40fb10)(u8 *centre, void *, u8 *msg);   // 0x40fb10 (agent B's; thiscall on the message centre, pops 4)
+    void(__fastcall *person500870)(u8 *person);                  // 0x500870 (agent C's; thiscall on a person)
+    void(__fastcall *person5012f0)(u8 *person);                  // 0x5012f0 (agent C's; thiscall on a person)
+};
+// The objects' calls go to env (nullptr: the game's).
+void Object_SetEnv(const ObjectEnv *env);
+
+// 0x4e0450 (thiscall; name invented): the queue's head (the handle at +0x3c, a person of the table 0x7cfb90): when it is not element 0 of the
+// object's ride record (Rides_GetElement of Rides_FindById of +0x24) and its state (+0x220) is 0xe, the env's 0x500870 on it. Otherwise, unless
+// the handle is 0, it is taken off the queue (Object_QueueRemovePerson) and the env's 0x5012f0 runs on it. The debug prints are left out.
+void __fastcall Object_DismissQueueHead(u8 *object);
+
+// 0x4e0e60 (thiscall; state, pops 4; name invented): for state 1, 2 or 4, Object_DismissQueueHead, Object_RestartRide (inlined in the original)
+// and a message 7, 9 or 8 of the object's handle (ThingMsg07 / 09 / 08 on the stack) posted to the message centre (MessageCentre_Instance, inlined)
+// through the env's 0x40fb10. Every state is then kept at +0x19c. The debug prints (the handle and +0x6c; an unknown state's) are left out.
+void __fastcall Object_SetState(u8 *object, void *, u32 state);
+// 0x4e0050 (thiscall; open, pops 4; name invented): opening (the argument not 0): without the flag 4 of the byte +0x32 0; else
+// Object_SetState (2), the strip animation of 0x7a4610[+0x20] grown from frame 8 (StripAnim_StartGrow), 1. Closing: unless the state
+// (+0x19c) is 2, 1; else the strip animation shrunk (StripAnim_StartShrink), Object_CanOpen's checks made inline (they only pick a
+// debug print, left out with the others), +0x68 = 1, the strip animation shrunk again, element 6 of the ride record (Rides_FindById of
+// +0x24) = 0 and Object_SetState (0); 1.
+u32 __fastcall Object_SetOpen(u8 *object, void *, u32 open);
+// 0x4e1220 (thiscall; name invented; called by 0x4e14e0): without +0x68 Object_DismissQueueHead. Else, with the ride record (Rides_FindById
+// of +0x24): when its element 0 is 0, and its element 5 is below element 2 (signed) or the definition (ObjectDefs_Find of the id +0xe, looked
+// up twice) is of kind 3 or 2 (+0x9c), and element 9 is 0 or the flag 1 of the byte +0x33 is set, and no rider (the word +0x6c): the queue's
+// head (the word +0x3c; none: nothing), when Visitor_IsState11AtQueuePos0, gets Visitor_Set1f8One and becomes the rider. Otherwise a rider
+// whose state (+0x220) is not 0xd is forgotten (+0x6c = 0). The debug prints are left out (element 2 is still read for the first).
+void __fastcall Object_CallQueueHead(u8 *object);
+
 // 0x4dd4e0: the object's definition, ObjectDefs_Find on gObjectDefs (0x7890a0) by its id (+0xe).
 u8 *__fastcall Object_GetDef(const u8 *object);
 
@@ -198,6 +229,12 @@ void __fastcall Object_ResetCondition(u8 *object);
 // 0x4e0390 (thiscall; x87; name unconfirmed): with flag 1 of the byte +0x32, whether the low byte of __ftol(the condition float +0x44) is below 25
 // (Object_ResetCondition's test), else 0.
 u32 __fastcall Object_InPoorCondition(const u8 *object);
+
+// 0x4e2440 (thiscall (amount), pops 4; x87; name unconfirmed): an object's wear. The mode setting 0xfb3b7c (a function-local static: guard 0xfb34b8
+// bit 0, Setting_ReadMode and atexit of 0x5d1750 the first time) 1: when Object_InPoorCondition, Object_ResetCondition's steps; otherwise the
+// condition +0x44 = (u64)amount * -0.05f + itself kept to 0..100 (NaN 0), and when that makes it poor (not before): the object's cell has spread
+// record 1 taken back and record 6 spread.
+void __fastcall Object_Wear(u8 *object, void *, u32 amount);
 
 // 0x4db7d0 (thiscall; stream, save, version, unused): an object: Thing_Serialize first (1 if it fails); for a version of 0..1 then, saved or loaded as
 // a serializer does (Save_Field; the load through the readers): mAngle, mId, the date +0x18 as a SYSTEMTIME's eight fields in dwords (saved from

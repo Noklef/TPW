@@ -13,13 +13,16 @@
 #include "gameheap.h"
 #include "initializers.h"
 #include "ptrlist.h"
+#include "refcounted.h"
 #include "selectors.h"
 #include "sfman.h"
 #include "soundbank.h"
 #include "soundcategory.h"
+#include "sounddevice.h"
 #include "soundeax.h"
 #include "soundindex.h"
 #include "soundoccluders.h"
+#include "soundsample.h"
 #include "string.h"
 #include "thunks.h"
 #include "vcall.h"
@@ -67,6 +70,77 @@ void __fastcall SoundChannel_FreeEax(u8 *channel) {
     EaxBuffer_Release(at<u8 *>(channel, 0x20));
     GameHeap_Free(at<u8 *>(channel, 0x20));
     at<u8 *>(channel, 0x20) = nullptr;
+}
+
+void __fastcall SoundChannel_Dtor(u8 *channel) {
+    at<u32>(channel, 0) = 0x0070a5d8;
+    String_Dtor(reinterpret_cast<String *>(channel + 0x30));
+    SoundSample70a548_Dtor(channel);
+}
+
+void __fastcall SoundChannel_ReleaseAll(u8 *channel) {
+    if (u8 *const source = at<u8 *>(channel, 0x18)) {
+        u32 local = static_cast<u32>(reinterpret_cast<uintptr_t>(channel));   // (the out: the pushed ECX, sic)
+        vcall<void>(source, 0x34, &local);
+    }
+    if (at<u8 *>(channel, 0x14)) {
+        ChannelVoices_ReleaseEach(at<u8 *>(channel, 0x14));
+        if (u8 *const pool = at<u8 *>(channel, 0x14)) {
+            ChannelVoices_Dtor(pool);
+            GameHeap_Free(pool);
+        }
+        at<u32>(channel, 0x14) = 0;
+    }
+    SoundChannel_FreeEax(channel);
+    SoundChannel_FreeSynth(channel);
+    if (at<u8 *>(channel, 0x18)) {
+        vcall<void>(at<u8 *>(channel, 0x18), 0x1c);
+        if (u8 *const source = at<u8 *>(channel, 0x18)) vcall<void>(source, 0, 1u);
+        at<u32>(channel, 0x18) = 0;
+    }
+    SoundDevice_Release(SoundDevice_Get());
+}
+
+u8 *__fastcall SoundChannel_Ctor(u8 *channel) {
+    SoundSample70a548_Ctor(channel);
+    at<u32>(channel, 0x28) = 8;
+    at<u32>(channel, 0x2c) = 0;
+    String_Ctor(reinterpret_cast<String *>(channel + 0x30));
+    at<u32>(channel, 0x58) = 0;
+    at<u32>(channel, 0x5c) = 0;
+    for (u32 i = 0x48; i <= 0x54; i += 4) at<u32>(channel, i) = 0x3f800000;   // (1.0f)
+    at<u32>(channel, 0x60) = 0;
+    at<u8>(channel, 0x64) = 0;
+    at<u32>(channel, 0) = 0x0070a5d8;
+    for (u32 i = 0x44; i <= 0x47; ++i) at<u8>(channel, i) = 1;
+    at<u32>(channel, 0x5c) = 4;
+    at<u8 *>(channel, 0x58) = channel + 0x48;
+    return channel;
+}
+
+u32 *__fastcall SoundChannel_OpenEax(u8 *channel, void *, u32 *out) {
+    SoundChannel_FreeEax(channel);
+    u8 *sound;
+    vcall<void>(at<u8 *>(channel, 0x18), 0xc, &sound);
+    if (sound) {
+        u8 caps[8];
+        SoundCaps_Ctor(caps, nullptr, sound);
+        if (SoundCaps_Max3DStreaming(caps)) {
+            u8 *const buffer = static_cast<u8 *>(GameHeap_Alloc(0xc));
+            if (buffer) {
+                at<u32>(buffer, 0) = 0;
+                at<u32>(buffer, 4) = 0;
+                at<u32>(buffer, 8) = 0;
+            }
+            at<u8 *>(channel, 0x20) = buffer;
+            EaxBuffer_Open(buffer, nullptr, out, sound, at<u32>(at<u8 *>(channel, 0x18), 0xc));
+            SoundCaps_Dtor(caps);
+            return out;
+        }
+        SoundCaps_Dtor(caps);
+    }
+    *out = 0xffffffff;
+    return out;
 }
 
 u32 *__fastcall SoundChannel_OpenSynth(u8 *channel, void *, u32 *out) {
@@ -163,6 +237,20 @@ u8 *__fastcall SoundChannel_LoadBank(u8 *channel, void *, u32 index) {
 
 u32 *__fastcall SoundChannel_Apply(u8 *channel, void *, u32 *out, u8 *functor) {
     vcall<void>(functor, 0, out, channel);
+    return out;
+}
+
+u32 *__fastcall SoundChannel_ApplyEaxRecord(u8 *channel, void *, u32 *out, u32 index) {
+    const u8 *const table = at<u8 *>(channel, 0x68);
+    if (!table || index >= at<u32>(channel, 0x6c) || at<s32>(table, index * 0x34) == -1) {
+        *out = 0xffffffff;
+        return out;
+    }
+    u8 settings[0x70];
+    Init_6b9c50(settings);
+    SoundChannel_SetRecordBlock(settings, nullptr, reinterpret_cast<const u32 *>(at<u8 *>(channel, 0x68) + index * 0x34));
+    u32 functor[2] = {0x0070a278, static_cast<u32>(reinterpret_cast<uintptr_t>(settings))};
+    SoundChannel_Apply(channel, nullptr, out, reinterpret_cast<u8 *>(functor));
     return out;
 }
 
@@ -593,6 +681,59 @@ u32 *__fastcall SoundChannel_RemoveOccluder(u8 *channel, void *, u32 *out, u8 **
     }
     *out = 0;
     return out;
+}
+
+s32 __fastcall SoundChannel_Release(u8 *channel) {
+    u32 out;          // (unset, as the original's)
+    u32 functor[2];   // (the second dword left unset, sic)
+    functor[0] = 0x0070a5b0;
+    vcall<void>(channel, 0x10, &out, functor);
+    return Class703770_Release(channel);
+}
+
+u32 *__fastcall SoundChannel_SetRecordValue40Flagged(u8 *channel, void *, u32 *out, u8 *record, u32 value) {
+    // (the status lands in the value's own stack slot, sic)
+    if (static_cast<s32>(*SoundChannel_SetRecordValue40(channel, nullptr, &value, record, value)) < 0) {
+        *out = 0xffffffff;
+        return out;
+    }
+    SetThenFlag60_4c_6b9cb0(record, nullptr, 1);
+    *out = 0;
+    return out;
+}
+
+u32 *__fastcall SoundChannel_SetRateModifier(u8 *channel, void *, u32 *out, u32 index, u32 modifier) {
+    at<u32>(channel, 0x48 + 4 * (index & 0xff)) = X87_FloatThrough(modifier);   // (fld; fstp)
+    u32 functor[2] = {0x0070a610, modifier};   // (the index's own stack slot, then the modifier's)
+    SoundChannel_Apply(channel, nullptr, out, reinterpret_cast<u8 *>(functor));
+    return out;
+}
+
+u8 *__fastcall SoundChannel_SetRecordBlock(u8 *record, void *, const u32 *block) {
+    for (u32 i = 0; i < 0xd; ++i) at<u32>(record, 0xc + 4 * i) = block[i];
+    at<u32>(record, 0x4c) |= 0x40;
+    return record;
+}
+
+void __fastcall SoundChannel_SetHidden(u8 *channel, void *, u32 hide) {
+    if (at<u8>(channel, 0x64) == static_cast<u8>(hide)) return;
+    at<u8>(channel, 0x64) = static_cast<u8>(hide);
+    SoundCategory_HideFlag40Samples(SoundCategory_Get(), nullptr, hide);
+}
+
+void __fastcall SoundChannelEax_Dtor(u8 *channel) {
+    at<u32>(channel, 0) = 0x0070a630;
+    if (void *const records = at<void *>(channel, 0x68)) {
+        GameHeap_Free(records);
+        at<void *>(channel, 0x68) = nullptr;
+    }
+    SoundChannel_Dtor(channel);
+}
+
+u8 *__fastcall SoundChannelEax_DeletingDtor(u8 *channel, void *, u32 flags) {
+    SoundChannelEax_Dtor(channel);
+    if (flags & 1) GameHeap_Free(channel);
+    return channel;
 }
 
 }  // extern "C"

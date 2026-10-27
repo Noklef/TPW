@@ -46,4 +46,18 @@ u32 *__fastcall SoundDevice_CoCreate(u8 *device, void *, u32 *out);
 // 0x6c4500: the device singleton (0xfb2030), constructed on the first call (guard 0xfb2028 bit 0, its atexit 0x6c4540).
 u8 *__cdecl SoundDevice_Get();
 
+// The DirectSound caps holder (names invented): +0 an IDirectSound (or null), +4 its DSCAPS (0x60 bytes, the heap's) once queried.
+// 0x6c4040 (thiscall (sound), pops 4): +0 = the sound (AddRef'd, slot 1, when not null), +4 = 0. Returns the holder.
+u8 *__fastcall SoundCaps_Ctor(u8 *caps, void *, u8 *sound);
+// 0x6c4060 (thiscall): the caps freed when not null, then the sound Released (slot 2) when not null.
+void __fastcall SoundCaps_Dtor(u8 *caps);
+// 0x6c4090 (thiscall (out), pops 4): without a sound, DirectSoundCreate (null, &+0, null): negative, *out = -1. With caps already,
+// *out = 0; else a zeroed 0x60-byte block (not checked) into +4, its size set, and *out = the sound's GetCaps (slot 4) of it.
+// Returns out.
+u32 *__fastcall SoundCaps_Query(u8 *caps, void *, u32 *out);
+// 0x6c4170 (thiscall): Obj_CacheStatics (the holder), then the cached max hardware 3D streaming buffers (0xfb201c; at most 30).
+u32 __fastcall SoundCaps_Max3DStreaming(u8 *caps);
+// 0x6c4180 (thiscall): Obj_CacheStatics (the holder), then the cached free hardware 3D streaming buffers (0xfb2020).
+u32 __fastcall SoundCaps_Free3DStreaming(u8 *caps);
+
 }  // extern "C"

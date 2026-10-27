@@ -1,4 +1,4 @@
-# The release list (src/game/core/releaselist: 0x6d7370-0x6d7520) against the originals: the instance at 0xfb2730 (its flag at 0xfb2728)
+# The release list (src/game/core/releaselist: 0x6d7370-0x6d7520, the base's deleting destructor 0x6d7690) against the originals: the instance at 0xfb2730 (its flag at 0xfb2728)
 # with a chain of 0-5 nodes at NODES whose count is the chain's length or less (a larger one spins in both), the critical-section imports
 # and atexit as recorders, the heap failing now and then (a push then writes through null in both).
 # usage: releaselist.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
@@ -11,8 +11,8 @@ from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, _cdecl_log, heap, i
 
 # name: (address, returns)
 CALLS = {'dtor': (0x6d7370, 'v'), 'basedtor': (0x6d7420, 'v'), 'get': (0x6d7460, 'a'), 'atexit': (0x6d74a0, 'v'), 'ctor': (0x6d74b0, 'a'),
-         'deleting': (0x6d7500, 'a'), 'push': (0x6d7520, 'a')}
-B = Bench([(0x6d7370, 0x6d75b7)], hooks={0x67a7d0: _cdecl_log})
+         'deleting': (0x6d7500, 'a'), 'push': (0x6d7520, 'a'), 'basedeleting': (0x6d7690, 'a')}
+B = Bench([(0x6d7370, 0x6d75b7), (0x6d7690, 0x6d76e0)], hooks={0x67a7d0: _cdecl_log})
 NODES = RAM
 FLAG, LIST = 0xfb2728, 0xfb2730
 ENTER_K, LEAVE_K, INIT_K, DELETE_K = 40, 41, 42, 43
@@ -43,7 +43,7 @@ def case(r):
         return Call(address, [], regions, ret=ret)
     if name in ('dtor', 'basedtor', 'ctor'):
         return Call(address, [LIST], regions, conv='t', ret=ret)
-    return Call(address, [LIST, r.choice([0, 1, 2, 3, r.getrandbits(32)]) if name == 'deleting' else r.getrandbits(32)], regions, conv='t', ret=ret)
+    return Call(address, [LIST, r.choice([0, 1, 2, 3, r.getrandbits(32)]) if name in ('deleting', 'basedeleting') else r.getrandbits(32)], regions, conv='t', ret=ret)
 
 
 if __name__ == '__main__':

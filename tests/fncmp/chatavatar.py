@@ -5,7 +5,8 @@
 # NameIs (0x4ebf00, 0x4f7d70): a park of named chat players and others, looked up by a name of theirs, one near it or another. Move1 (0x4eace0):
 # Chat::MovePlayer with mode 1 alone. Room (0x4eeb50): the avatar's wide string +0xf00 (or none) as a std::wstring told to Chat::Goto (import
 # 0x6fd490) and released. Enter (0x4ea2d0): Move's world, the thing's script list as personscripts.py's Place's (entry point 3), a small ground.
-# usage: chatavatar.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Move,Say,Move3,Cell,CellMove,GoTo,Arrive,Find,NameIs,Move1,Room,Enter)
+# AddName (0x4ee6d0): see add_name() below.
+# usage: chatavatar.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Move,Say,Move3,Cell,CellMove,GoTo,Arrive,Find,NameIs,Move1,Room,Enter,AddName)
 import os
 import struct
 import sys
@@ -16,8 +17,13 @@ sys.path.insert(0, HERE)
 import things_methods  # noqa: E402
 from fncmp import HEAP, IMPORT_TABLE, LOG, Bench, Call, RAM, blob, heap, log_region, put, recorder  # noqa: E402
 import personscripts  # noqa: E402
+import stdtree  # noqa: E402
 import terrainheight  # noqa: E402
 import thingenv  # noqa: E402
+import dialog7cc5f4  # noqa: E402
+import window7059f0 as w7  # noqa: E402
+import window7cc8bc  # noqa: E402
+import wstringmap  # noqa: E402
 from thingenv import POOL, SLOTS  # noqa: E402
 
 _ops = os.environ.pop('OPS', None)   # (movingperson.py reads its own OPS, as hex addresses)
@@ -32,11 +38,15 @@ B = Bench(movingperson.RANGES + personscripts.PLACE_RANGES + [(0x4ea2d0, 0x4ea36
            (0x540b90, 0x540da0), (0x50c0d0, 0x50c0f2), (0x50bab0, 0x50bac4), (0x50be40, 0x50be7c), (0x4d91f0, 0x4d93c0), (0x4fa930, 0x4fa9a0), (0x50b350, 0x50b370), (0x50b6a0, 0x50b790), (0x5100e0, 0x510110), (0x510160, 0x510190),
            (0x412e90, 0x412f00), (0x516270, 0x516320), (0x516330, 0x516390), (0x541f60, 0x541fb0), (0x6ace60, 0x6aceb0), (0x5da3c0, 0x5da3c1),
            (0x4eace0, 0x4eacfa), (0x4eeb50, 0x4eec32), (0x405280, 0x405390), (0x47bad0, 0x47bc10), (0x67acd0, 0x67ad00), (0x45b380, 0x45b5f0),
-           (0x45b680, 0x45b9b0), (0x67bb90, 0x67bd98), (0x67d250, 0x67d2c0), (0x67d3a0, 0x67d400), (0x6918f0, 0x691a30), (0x691ba0, 0x691ce0)])
+           (0x45b680, 0x45b9b0), (0x67bb90, 0x67bd98), (0x67d250, 0x67d2c0), (0x67d3a0, 0x67d400), (0x6918f0, 0x691a30), (0x691ba0, 0x691ce0),
+           (0x4ee6d0, 0x4ee70d)] + wstringmap.RANGES   # (AddName's: window7cc8bc.py's list and the tree D insert)
+          + dialog7cc5f4.merged(w7.LIST_RANGES + [(0x4beb60, 0x4bedd1), (0x481820, 0x4818b3), (0x65f538, 0x65f5b7), (0x65e59b, 0x65e60a), (0x65f66e, 0x65f6e1)]),
+          hooks=wstringmap.HOOKS)
 CALLS = {'Move': 0x4ea370, 'Say': 0x4ea3f0, 'Move3': 0x4ea410, 'Cell': 0x4ebfb0, 'CellMove': 0x4eab40, 'GoTo': 0x4eac30, 'Arrive': 0x4ea240,
-         'Find': 0x4ebf00, 'NameIs': 0x4f7d70, 'Move1': 0x4eace0, 'Room': 0x4eeb50, 'Enter': 0x4ea2d0}
+         'Find': 0x4ebf00, 'NameIs': 0x4f7d70, 'Move1': 0x4eace0, 'Room': 0x4eeb50, 'Enter': 0x4ea2d0, 'AddName': 0x4ee6d0}
 AVATAR, CHAT, NAME, CHARS, ROOM = RAM + 0x20000, RAM + 0x21000, RAM + 0x21100, RAM + 0x21200, RAM + 0x21300
 GROUND = RAM + 0x22000   # (Enter's ground: the map, its grid, heights and cells)
+TNODES, THEAD, TNIL, TCHARS, NAMEW = RAM + 0x40000, RAM + 0x41000, RAM + 0x41100, RAM + 0x41200, RAM + 0x41800   # (AddName's set and name)
 
 
 def imports(regions):
@@ -123,8 +133,67 @@ def names(r):
     return regions, things
 
 
+def add_name(r):
+    """AddName (0x4ee6d0): window7cc8bc.py's Add (mode 0) with the name's characters (one of window7059f0.py's add_case strings, copied after
+    a count byte; an empty one null half the time: the empty string 0x6fd6c4) and data 0; the avatar's set of names at +0xe80 as wstringmap.py's MapInsert
+    tree (0-8 names of window7059f0.py's alphabet, the name among them or not, the multi flag now and then set)."""
+    while True:
+        c = w7.add_case(r, columns=(0, 1, 1, 1))
+        text = struct.unpack_from('<I', c.regions[w7.ATEXTS])[0]
+        if c.args[1] and w7.ACHARS <= text < w7.ACHARS + 0x100:   # (the masks are for a call with texts)
+            break
+    regions = dict(c.regions)
+    window7cc8bc.top(r, regions, 0)
+    chars = regions[w7.ACHARS]
+    at = text - w7.ACHARS
+    name = struct.unpack_from('<16H', chars, at)
+    name = name[:name.index(0)]
+    n = r.choice([0, 1, 2, 3, 5, 8])
+    nodes, root = stdtree.build(r, n) if n else ({}, None)
+    keys = sorted(nodes)
+    pool = {tuple(r.choice(w7.ALPHA) for _ in range(r.choice([0, 1, 1, 2, 3]))) for _ in range(2 * n)}
+    strings = sorted(pool)[:n]
+    if strings and r.random() < 0.5:
+        strings[r.randrange(len(strings))] = name
+        strings = sorted(set(strings))
+    while len(strings) < n:
+        strings.append(strings[-1] + (0xffff,) if strings else (1,))
+    addr = {k: TNODES + 0x40 * i for i, k in enumerate(keys)}
+    ptr = lambda k: TNIL if k is None else addr[k]  # noqa: E731
+    blob_ = bytearray(0x40 * max(n, 1))
+    tchars = bytearray(0x400)
+    at = 2   # (each string after a count byte, as wstringmap.py's)
+    for i, k in enumerate(keys):
+        base = addr[k] - TNODES
+        struct.pack_into('<III', blob_, base, ptr(nodes[k][0]), THEAD if nodes[k][1] is None else addr[nodes[k][1]], ptr(nodes[k][2]))
+        struct.pack_into('<I', blob_, base + 0x1c, nodes[k][3])
+        s = strings[i]
+        struct.pack_into('<%dH' % len(s), tchars, at, *s)
+        tchars[at - 1] = r.choice([0, 0, 1, 2, 0xff])
+        struct.pack_into('<III', blob_, base + 0x10, TCHARS + at if s or r.random() < 0.5 else 0, len(s), len(s) + r.choice([0, 0, 3]))
+        at += 2 * len(s) + 4
+    head = struct.pack('<III', addr[keys[0]] if keys else THEAD, addr[root] if keys else TNIL, addr[keys[-1]] if keys else THEAD) + bytes(0x20)
+    nil = put(bytearray(0x40), 0x1c, 'I', 1)
+    avatar = bytearray(r.bytes(0xf0c))
+    put(avatar, 0xe84, 'III', THEAD, 0, n)
+    avatar[0xe88] = r.choice([0, 0, 0, 1, 0xff])
+    word = bytearray(r.bytes(0x10)) + bytearray(0x40)   # (the name: a std::wstring, its characters after a count byte at +0x12)
+    word[0x11] = r.choice([0, 0, 1, 0xff])
+    struct.pack_into('<%dH' % (len(name) + 1), word, 0x12, *name, 0)
+    if name or r.random() < 0.5:
+        put(word, 4, 'III', NAMEW + 0x12, len(name), len(name) + r.choice([0, 0, 2]))
+    else:   # (a null std::wstring, for an empty name only: add_case's masks are for its text's length)
+        put(word, 4, 'III', 0, 0, 0)
+    regions.update({AVATAR: avatar, THEAD: head, TNIL: nil, TNODES: blob_, TCHARS: tchars, NAMEW: word, 0x7ced24: struct.pack('<I', TNIL)})
+    ready = struct.unpack('<I', regions[0x7cc8bc])[0] and struct.unpack('<I', regions[0x7cc8d0])[0] == 0
+    # (add_case's masks are its strings' blocks: with the window not ready (none, or another mode) the set's node takes the first block)
+    return Call(CALLS['AddName'], [AVATAR, NAMEW, r.getrandbits(32)], regions, conv='t', ret='v', masks=c.masks if ready else [])
+
+
 def case(r):
     op = r.deal(OPS)
+    if op == 'AddName':
+        return add_name(r)
     if op == 'GoTo':
         return goto(r)
     if op == 'Move1':

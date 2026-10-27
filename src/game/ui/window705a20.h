@@ -107,4 +107,12 @@ u32 __fastcall Window705a20_GetText(u8 *window, void *, u16 *to, u32 n);
 
 // 0x66778d (thiscall (cursor, anchor: words), pops 8; name unconfirmed): Window705a20_SetSelection(cursor, 1, anchor). EAX not kept.
 void __fastcall Window705a20_SetCursor(u8 *window, void *, u32 cursor, u32 anchor);
+
+// 0x6677ae (thiscall; name invented): the whole text selected: with the byte +0x162 set Window705a20_SetSelection(-5, 1, -1); else, with a
+// buffer +0x138, Window705a20_SetCursor(0, its length (wcslen)). EAX not kept.
+void __fastcall Window705a20_SelectAll(u8 *window);
+
+// 0x6687b0 (thiscall (flags), pops 4; slot 2 of the vtable 0x705a20; name unconfirmed): the destructor, the block freed for flags bit 0;
+// returns the window.
+u8 *__fastcall Window705a20_DeletingDtor(u8 *window, void *, u32 flags);
 }

@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "../core/gameheap.h"
+#include "../core/initializers.h"
 #include "../core/vcall.h"
 #include "guimanager.h"
 
@@ -22,5 +24,27 @@ u32 __fastcall Frame_Stop(u8 *frame) {
     at<u16>(frame, 4) = 0;
     if (at<s16>(frame, 6) == 0) return (u32)(uintptr_t)frame;
     return vcall<u32>(frame, 4);
+}
+
+void __fastcall Frame_Expire(u8 *frame) {
+    at<u32>(frame, 0x14) = 0;
+    if (at<s16>(frame, 4) != 0 && at<s16>(frame, 0xc) != 0) vcall<void>(frame, 4);
+}
+
+void __fastcall Frame_ExpireB(u8 *frame) {
+    at<u32>(frame, 0x14) = 0;
+    if (at<s16>(frame, 4) != 0 && at<s16>(frame, 0xc) != 0) vcall<void>(frame, 4);
+}
+
+void __fastcall Frame_ExpireIf(u8 *frame, void *, u32 value) {
+    if (at<u32>(frame, 0x14) != value) return;
+    at<u32>(frame, 0x14) = 0;
+    vcall<void>(frame, 4);
+}
+
+u8 *__fastcall Frame_DeletingDtor(u8 *frame, void *, u32 flags) {
+    Fn_669fee(frame);
+    if (flags & 1) GameHeap_Free(frame);
+    return frame;
 }
 }  // extern "C"

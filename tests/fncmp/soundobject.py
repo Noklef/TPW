@@ -4,20 +4,23 @@
 # or not; the object's own vtable a recorder (slot 6). Ids: an entry's own, its low 16 bits with another stamp, or random. The stack functors and outs the recorders get are logged by
 # their set bytes (blob_bytes) and as 0 (strings out). The path resolve (0x6b8690) over paths whose first three characters are drive
 # letters, slashes of either kind and others, into a string whose slots 5, 6 and 8 are recorders.
-# The functors sent to a voice (0x6b89b0, 0x6b8a10, 0x6b8a70): ids as the info's. The destructor (0x6b8d00): its mixer's vtable a recorder.
+# The functors sent to a voice (0x6b89b0, 0x6b8a10, 0x6b8a70): ids as the info's. The destructor (0x6b8d00): its mixer's vtable a recorder;
+# the deleting one (0x6b8ce0) the same, any flags (the heap's free). The voice call (0x6b8ad0, slot 3): ids as the info's, any two values.
 # usage: soundobject.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import IMPORT_TABLE, LOG, RAM, Bench, Call, blob_bytes, import_table, log_region, recorder, set_return, strings, vtable  # noqa: E402
+from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, blob_bytes, heap, import_table, log_region, recorder, set_return, strings, vtable  # noqa: E402
 
 # name: (address, stack arguments after out)
 CALLS = {'broadcast': (0x6b85f0, 0), 'value': (0x6b8640, 1), 'info': (0x6b8b00, 2), 'send': (0x6b8930, 2), 'path': (0x6b8690, 0),
-         'functor1': (0x6b89b0, 1), 'functor2': (0x6b8a10, 1), 'functor3': (0x6b8a70, 1), 'dtor': (0x6b8d00, 0)}
+         'functor1': (0x6b89b0, 1), 'functor2': (0x6b8a10, 1), 'functor3': (0x6b8a70, 1), 'dtor': (0x6b8d00, 0),
+         'deleting': (0x6b8ce0, 1), 'callvoice': (0x6b8ad0, 3)}
 B = Bench([(0x6b6550, 0x6b65b0), (0x6b6830, 0x6b68e0), (0x6b6b40, 0x6b6bb0), (0x6b85f0, 0x6b8711), (0x6b8b00, 0x6b8b70), (0x6b8930, 0x6b8980),
-           (0x6b65a0, 0x6b65e0), (0x6b89b0, 0x6b8a05), (0x6b8a10, 0x6b8a65), (0x6b8a70, 0x6b8ac5), (0x6b8d00, 0x6b8d5b)])
+           (0x6b65a0, 0x6b65e0), (0x6b89b0, 0x6b8a05), (0x6b8a10, 0x6b8a65), (0x6b8a70, 0x6b8ac5), (0x6b8d00, 0x6b8d5b),
+           (0x6b8ce0, 0x6b8cfe), (0x6b8ad0, 0x6b8af7), (0x6b6620, 0x6b664c)])
 OBJ, OUT, RESULT, CHAN, CVT, VVT, INFO, MIX, NODE2, OVT = (RAM + 0x100 * i for i in range(10))
 PAGE = RAM + 0x1000
 IMPORTS = {'EnterCriticalSection': (41, 0x6fd140, 1, 0, 0), 'LeaveCriticalSection': (42, 0x6fd130, 1, 0, 0)}
@@ -93,12 +96,17 @@ def case(r):
             set_return(log, k, r.getrandbits(32))
         regions.update({STR: struct.pack('<I', STRVT) + r.bytes(0xc), STRVT: vtable({5: 1, 6: 1, 8: 1}), PATH: path})
         return Call(address, [OBJ, PATH, STR], regions, conv='t', ret='a')
-    if name == 'dtor':   # (the mixer's slot 0 recorder 20, one argument; the channel's slot 0 recorder 0)
+    if name == 'callvoice':
+        return Call(address, [OBJ, r.choice(ids * 3 + [0, 0, 1, 100, r.getrandbits(32)]), r.getrandbits(32), r.getrandbits(32)], regions, conv='t', ret='a')
+    if name in ('dtor', 'deleting'):   # (the mixer's slot 0 recorder 20, one argument; the channel's slot 0 recorder 0)
         mixer = bytearray(regions[MIX])
         struct.pack_into('<I', mixer, 0, MVT)
         set_return(log, 0, r.getrandbits(32))
         set_return(log, 20, r.getrandbits(32))
         regions.update({MIX: mixer, MVT: struct.pack('<I', recorder(20, 1))})
+        if name == 'deleting':
+            regions[HEAP] = heap(0x40)
+            return Call(address, [OBJ, r.choice([0, 1, 2, 3, r.getrandbits(32)])], regions, conv='t', ret='a')
         return Call(address, [OBJ], regions, conv='t', ret='v')
     if name == 'value':
         args = [r.choice([0, 0, 1, r.getrandbits(32)])]

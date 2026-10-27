@@ -21,4 +21,9 @@ u32 __cdecl Object_Status(u8 *object, s32 count);
 // index is the table 0x74fbc0's dword, widened: Language_WideText; 0 when there is none) set by the window's slot 9, whose EAX is returned.
 // No bound on the status (past 27 the text ids' table is read as colours, sic).
 u32 __cdecl ObjectStatus_Show(u8 *window, u32 status);
+
+// 0x48d160 (thiscall; slot 9 of the panels' vtables (0x6ff740 and nine more); name unconfirmed): with a shown thing ([0x7c2658]) and the
+// panel's window +0x1c, that window shown or hidden as the panel's status +8 is set or 0 (Window_SetShown) and the status shown on it
+// (ObjectStatus_Show), whose EAX is returned (else [0x7c2658] or 0, as EAX was left).
+u32 __fastcall ObjectStatus_ShowOnPanel(u8 *panel);
 }

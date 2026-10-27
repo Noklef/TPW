@@ -70,6 +70,10 @@ u32 *__fastcall SoundMixer_SendVoice(u8 *mixer, void *, u32 *out, u32 id, u32 va
 // else its slot 10 (a, b) and the id returned.
 u32 __fastcall SoundMixer_CallVoice10(u8 *mixer, void *, u32 id, u32 a, u32 b);
 
+// 0x6b65e0 (thiscall (id, value), pops 8; called by 0x6b8990; name invented): the voice for the id (SoundMixer_FindVoice): none, 0; else
+// its slot 9 (an out that is the id's own stack slot, sic; value): the id when the status it returns a pointer to is not negative, else 0.
+u32 __fastcall SoundMixer_CallVoice9(u8 *mixer, void *, u32 id, u32 value);
+
 // 0x6b69b0 (thiscall (out), pops 4; name invented): a new page of 100 voices (VoicePage_New); *out = -1 when that fails. Else the
 // page appended to the list at +0x1c (after its last page, through +8), each voice given the next id (+0x2c, the mixer's counter
 // +0x2c then raised), its flags +0x30 0 and pushed on the free chain (Chain20_PushFront), the pages' count +0x28 raised and *out = 0.
@@ -79,5 +83,23 @@ u32 *__fastcall SoundMixer_AddPage(u8 *mixer, void *, u32 *out);
 // the array's voice there (+0x3c + slot * 0x50) constructed (Voice70a4f0_Ctor) and its slot 4 (SoundVoice_Init: out the info argument's
 // own slot (sic), owner, definition, info + 0xc, info's +0x18): negative, 0 (the voice left constructed); else the slot = the voice, 1.
 u32 __fastcall SoundMixer_AddVoice(u8 *mixer, void *, u8 *owner, u8 *definition, u8 *info);
+
+// 0x6b6c30 (thiscall (out, stream), pops 8; an SEH frame; name invented): under the lock, the time (Time_GetMs), the stream's position
+// (slot 6, +0x18), two zero dwords (the size and count, slot 3 write (buffer, count)), the names (SoundNames_Save on the singleton; out
+// the stream argument's own slot), the pages' count +0x28; then with active voices, from the last of the chain (+0x34) back (+0x38), each
+// without both flags 0x10 and 0x400 counted, its id (+0x2c) written and its record (SoundVoice_Save: out a local, the time), and the
+// size (the position now less the first, after a seek to the first: slot 4 (offset, 0)) and count written there, the stream sought
+// back to the end. With none, the zeros stay. *out = 0. Returns out.
+u32 *__fastcall SoundMixer_Save(u8 *mixer, void *, u32 *out, u8 *stream);
+// 0x6b6da0 (thiscall (out, stream, restore: a byte), pops 0xc; an SEH frame; name invented): under the lock, the time; every active voice
+// (its next read first) gets slot 6 (out a local; the stack functor 0x70a2d0 and its +0x24) and is retired (SoundMixer_Retire). The size
+// read (slot 2 read (buffer, count)); restore 0: the stream sought on past it (slot 4 (size - 4, 1)). Else the count, the names
+// (SoundNames_Load on the singleton; out the restore argument's slot), the pages' count: pages added (SoundMixer_AddPage) for as many as
+// it is over +0x28 (signed). Then count times an id and a type: the free voice whose id (+0x2c) is the id's low 16 bits
+// (Chain20_Find2c), none or a type not 1-6: the next (its record left unread, sic); else constructed in place (1-3, 5: Class70a7e0_Ctor
+// and the vtable 0x70a498 / 0x70a440 / 0x70a3e8 / 0x70a338; 4: the vtable 0x70a390 and SoundVoice_EnsureParams; 6: Voice70a3e8_Ctor,
+// 0x70a390, SoundVoice_EnsureParams and 0x70a2e0), its record read (SoundVoice_Load: out a local, the time), the whole id put at +0x2c
+// and the voice made active (Chain20_MoveTo24). Then the names' map freed (SoundNames_FreeMap). *out = 0. Returns out.
+u32 *__fastcall SoundMixer_Load(u8 *mixer, void *, u32 *out, u8 *stream, u32 restore);
 
 }  // extern "C"

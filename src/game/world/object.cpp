@@ -10,6 +10,7 @@
 #include "../core/funnytime.h"
 #include "../core/gameheap.h"
 #include "../core/initializers.h"
+#include "../core/options.h"
 #include "../core/savegame.h"
 #include "../core/vcall.h"
 #include "../math/x87.h"
@@ -17,8 +18,11 @@
 #include "objectdefs.h"
 #include "person.h"
 #include "mapcell.h"
+#include "messagecentre.h"
+#include "objectmsg.h"
 #include "ridelist.h"
 #include "money.h"
+#include "thingmsg.h"
 #include "things.h"
 #include "thingscan.h"
 #include "trackrides.h"
@@ -30,9 +34,49 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
+const ObjectEnv kGameEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, u8 *)>((uintptr_t)0x0040fb10),
+                            reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x00500870),
+                            reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x005012f0)};
+const ObjectEnv *g_env = &kGameEnv;
+
 }  // namespace
 
 extern "C" {
+
+void Object_SetEnv(const ObjectEnv *env) { g_env = env ? env : &kGameEnv; }
+
+void __fastcall Object_DismissQueueHead(u8 *object) {
+    const u16 head = at<u16>(object, 0x3c);
+    if (Rides_GetElement(Rides_FindById(at<s32>(object, 0x24)), 0) != head) {
+        u8 *const person = global<u8 *>(0x007cfb90 + 20 * (u32)head);
+        if (at<s32>(person, 0x220) == 0xe) {
+            g_env->person500870(person);
+            return;
+        }
+    }
+    if (!head) return;
+    u8 *const person = global<u8 *>(0x007cfb90 + 20 * (u32)head);
+    Object_QueueRemovePerson(object, nullptr, head);
+    g_env->person5012f0(person);
+}
+
+void __fastcall Object_SetState(u8 *object, void *, u32 state) {
+    if (state == 1 || state == 2 || state == 4) {
+        Object_DismissQueueHead(object);
+        Object_RestartRide(object);
+        u16 handle;
+        Thing_GetHandle(object, nullptr, &handle);
+        alignas(4) u8 msg[0x10];
+        if (state == 1)
+            ThingMsg07_Ctor(msg, nullptr, handle);
+        else if (state == 2)
+            ThingMsg09_Ctor(msg, nullptr, handle);
+        else
+            ThingMsg08_Ctor(msg, nullptr, handle);
+        g_env->post40fb10(MessageCentre_Instance(), nullptr, msg);
+    }
+    at<u32>(object, 0x19c) = state;
+}
 
 u8 *__fastcall Object_GetDef(const u8 *object) {
     return ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, at<u16>(object, 0xe));
@@ -247,6 +291,56 @@ void __fastcall Object_SetCapacity(u8 *object, void *, u32 capacity) {
     }
     Rides_SetElement(Rides_FindById(at<s32>(object, 0x24)), 2, value);  // (the debug print of the capacity is left out)
     at<u8>(object, 0x5d) = value;
+}
+
+void __fastcall Object_CallQueueHead(u8 *object) {
+    u8 *const record = Rides_FindById(at<s32>(object, 0x24));
+    if (!at<u32>(object, 0x68)) {
+        Object_DismissQueueHead(object);
+        return;
+    }
+    u8 *const defs = reinterpret_cast<u8 *>(0x007890a0);
+    Rides_GetElement(record, 2);   // (for a debug print)
+    bool call = false;
+    if (Rides_GetElement(record, 0) == 0) {
+        const s32 loaded = static_cast<s32>(Rides_GetElement(record, 2));
+        call = static_cast<s32>(Rides_GetElement(record, 5)) < loaded ||
+               at<s32>(ObjectDefs_Find(defs, nullptr, at<u16>(object, 0xe)), 0x9c) == 3 ||
+               at<s32>(ObjectDefs_Find(defs, nullptr, at<u16>(object, 0xe)), 0x9c) == 2;
+        if (call && Rides_GetElement(record, 9) && !(at<u8>(object, 0x33) & 1)) call = false;
+        if (call && at<u16>(object, 0x6c)) call = false;
+    }
+    if (call) {
+        const u16 head = at<u16>(object, 0x3c);
+        if (!head) return;
+        u8 *const person = global<u8 *>(0x007cfb90 + 20 * (u32)head);
+        if (!Visitor_IsState11AtQueuePos0(person)) return;
+        Visitor_Set1f8One(person);
+        at<u16>(object, 0x6c) = head;
+        return;
+    }
+    const u16 rider = at<u16>(object, 0x6c);
+    if (!rider) return;
+    if (at<s32>(global<u8 *>(0x007cfb90 + 20 * (u32)rider), 0x220) == 0xd) return;
+    at<u16>(object, 0x6c) = 0;
+}
+
+u32 __fastcall Object_SetOpen(u8 *object, void *, u32 open) {
+    u8 *const *const strips = reinterpret_cast<u8 *const *>(0x007a4610);
+    if (open) {
+        if (!(at<u8>(object, 0x32) & 4)) return 0;
+        Object_SetState(object, nullptr, 2);
+        StripAnim_StartGrow(strips[at<u32>(object, 0x20)], 8);
+        return 1;
+    }
+    if (at<u32>(object, 0x19c) != 2) return 1;
+    StripAnim_StartShrink(strips[at<u32>(object, 0x20)]);
+    Object_CanOpen(object);   // (the original's inline checks pick only a debug print; their calls are kept)
+    at<u32>(object, 0x68) = 1;
+    StripAnim_StartShrink(strips[at<u32>(object, 0x20)]);
+    Rides_SetElement(Rides_FindById(at<s32>(object, 0x24)), 6, 0);
+    Object_SetState(object, nullptr, 0);
+    return 1;
 }
 
 void __fastcall Object_RestartRide(u8 *object) {
@@ -698,5 +792,33 @@ u8 __fastcall Object_Rating(const u8 *object, void *, u32 baseOnly) {
 
 u32 __fastcall Object_InPoorCondition(const u8 *object) {
     return at<u8>(object, 0x32) & 1 && (u8)(long long)at<float>(object, 0x44) < 25 ? 1 : 0;
+}
+
+void __fastcall Object_Wear(u8 *object, void *, u32 amount) {
+    u8 &guard = global<u8>(0x00fb34b8);   // (the mode setting 0xfb3b7c: a function-local static)
+    if (!(guard & 1)) {
+        guard |= 1;
+        Setting_ReadMode(reinterpret_cast<u8 *>(0x00fb3b7c));
+        reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0)(reinterpret_cast<void(__cdecl *)()>(0x005d1750));
+    }
+    if (global<u32>(0x00fb3b7c) == 1) {
+        if (Object_InPoorCondition(object))
+            Object_ResetCondition(object);   // (the same steps: the removal's cell from Cell_MakeHandle, the spread's from the map id)
+        return;
+    }
+    const u32 wasPoor = Object_InPoorCondition(object);
+    const X87Reg level = X87Reg((double)(unsigned long long)amount) * global<float>(0x007005d0) + at<float>(object, 0x44);   // fild qword; fmul; fadd
+    if (level.v > 100.0)
+        at<u32>(object, 0x44) = 0x42c80000;
+    else if (!(level.v >= 0.0))
+        at<u32>(object, 0x44) = 0;
+    else
+        at<float>(object, 0x44) = (float)level.v;
+    if (Object_InPoorCondition(object) && !wasPoor) {
+        u8 *const world = global<u8 *>(0x008023a0);
+        const u16 id = (u16)((at<u8>(object, 7) << 7) + at<u8>(object, 5) + 1);
+        Map_SpreadRemove(world, nullptr, 1, id);
+        Map_SpreadAdd(global<u8 *>(0x008023a0), nullptr, 6, id);
+    }
 }
 }

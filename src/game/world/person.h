@@ -42,6 +42,40 @@ void __fastcall Visitor_Lower19c(u8 *visitor, void *, u32 index);
 // Visitor_Raise19c's (the visitor's 0..100 values: +0x1b8 and others).
 void __fastcall Stat100_Add(float *stat, void *, float delta);
 
+// 0x4fa470 (thiscall (effect), pops 4; x87; name invented; called from 0x4f7c60, 0x4fb26e, 0x500c35, 0x501fce, 0x5020ed, 0x5059c3): the
+// effect spawned (Particle_Spawn) where the sprite's script (the reference +0xc: SpriteScript_GetPosition's x and z) is, moved by the dwords
+// 0x785584 / 0x785588 times 10.0 (0x700698), on the ground there (Terrain_HeightAt); each times 1024.0 (0x7006ec), __ftol'd. (With the
+// script not there the original's x, y and z are its stack's leftovers; 0 here.)
+void __fastcall Sprite_SpawnParticle(u8 *sprite, void *, s32 effect);
+
+// 0x4fa2a0 (thiscall; x87; called from the staff's states 0x4d48e8-0x4da7b4; name invented): one step along the nav (+0xd4): its position
+// before and after Nav_Update (through 0x510150), the thing moved to the new one's 8.8 (Thing_SetPos), +0x198 = 0. Returns 2 when +0x18c is
+// set, 0 when the path is done (Nav_PathProgress 1.0, through 0x510180). Else +0x1c = the cseg angle (0x6e7074) of (old x - new x,
+// new y - old y), its low word; the person runs when its speed word +0xc2 is above the word 0x75c7f0 and its kind (+2) is 1 or 7. Running,
+// the script reference +0xc is started at action 2 unless its script is at 0x74dbc0; walking at 1 unless at 0x74db60 (a guard, kind 7, in
+// state 0x12 (Guard_IsState12): 0x17 unless at 0x74ef90). The period is set (ScriptRef_SetPeriodFor) for the step's length (fild of the
+// squares' 32-bit sum; fsqrt) times the float 0x7006e8, doubled when walking. Returns 1.
+u32 __fastcall Sprite_WalkNav(u8 *sprite);
+
+// 0x4fdcc0 (thiscall (object), pops 4, x87; name invented): nothing when the object's rating (Object_Rating (0), asked three times) is 0.
+// Else its distance from the visitor's wanted excitement (the byte of the 12-byte row 0x7850e4 by +0x1f0; absolute) picks the step:
+// below 5 the int 0x785064, below 15 0x785068, below 40 0x78506c (else +0x19c is left), added to +0x19c and kept to 0..100 (as
+// Visitor_Raise19c). Then +0x1b0 gets (100 - +0x1a8's __ftol low byte) / 20 times the rating / the int 0x785070 (signed; 0 faults),
+// kept to 0..100 the same way.
+void __fastcall Visitor_RideFeelings(u8 *visitor, void *, const u8 *object);
+
+// 0x4fe1e0 (thiscall (object), pops 4; x87): a visitor uses an object (a shop, a sideshow, a toilet). Its ring +0x30 gets (8, the object's handle); a
+// sideshow (definition kind 2) is paid its running cost of the prize Obj_Get188 and the visitor's cash +0x1a0 gains it, a kind 1 pays
+// Object_CurrentSettingsValue; Visitor_RideFeelings; the definition's effects move thirst +0x1a4 and hunger +0x1a8 down by +0x144 / +0x148
+// (Sprite_PlaySound 0x83 / 0x84 by the larger), vomit +0x1b0, happiness +0x19c, litter +0x1b4 up (each kept to 0..100); with the object's
+// quality (GetByte198_4e21f0) a small happiness drop (0x785058) for each of hunger and thirst when effect + quality + World_Rand & 7 < 30, the
+// happiness up by quality * +0x150 / 100; the ingredient +0x158: 1 toilet +0x1ac, 2 thirst by the quality, 3 thirst by quality * +0x144 / 100,
+// 4 the word +0xc4 by quality * 6 / 100; the appearance +0x15c: 1 a balloon (script 0x74f480 at +0x210, its life +0x214 from Obj_GetByte18c
+// kept to 0x75d0f0..0x75d0f4; ring 0xc), 2 a costume (+0x24 2 and its sprite, ring 0xb; or returned: 0 and the folder's sprite); a toilet (+0x32
+// bit 0): Object_Wear by the toilet need, which is emptied, ring 0x11, and above 90 vomit ring (0x12, 0) and emptied, +0xc2 = [0x75c7f2]; a
+// sideshow: +0x1d0 counted, the happiness up by 0x78505c * log2(prize / price), then a World_Rand. (Debug_Printf calls left out.)
+void __fastcall Visitor_UseObject(u8 *visitor, void *, u8 *object);
+
 // 0x50ba80: a person's thoughts (serialized at 0x50bad0) cleared: +0, the 32 u16 pairs of
 // the action history (+4), mThoughtScript (+0x84), mActionHistIndex (+0x88) and
 // mTimeBubbleShown (+0x8c). Returns them.
@@ -56,6 +90,16 @@ u32 __fastcall Person_HasWordInState(const u8 *object, void *, u32 word);
 
 // 0x5012b0 (thiscall): the dword at +0x1f8 = 1 (the original also reads the handle at +0x1dc into its debug print).
 void __fastcall Visitor_Set1f8One(u8 *object);
+
+// 0x500870 (thiscall; called by 0x4e0450 for a queue's head in state 0xe; name invented): when the visitor's object (the handle at +0x1dc, the
+// table 0x7cfb90) has a ride record whose element 0 is not its queue's head (Obj_RideElement0Differs), the visitor is taken off its queue
+// (Object_QueueRemovePerson of its handle) and goes to state 0x10 (the env's 0x501db0). The debug prints are left out.
+void __fastcall Visitor_QuitQueue(u8 *visitor);
+
+// 0x5012f0 (thiscall; called by 0x4e0450; name invented): (6, the object handle +0x1dc) goes on the ring at +0x30 (Ring_PushUnique); for a
+// handle (Thing_GetHandle) whose low 3 bits are 0, the sound 0x80 of the category [0x803a24] (Sprite_PlaySound); Visitor_Lower19c(1); the words
+// +0x22a, +0x228 and +0x1dc, the dword +0x1f8 and the byte +0x1f1 cleared; then state 6 (the env's 0x501db0). The debug print is left out.
+void __fastcall Visitor_SendAway(u8 *visitor);
 
 // 0x506580 (thiscall; word, pops 4): for the kind byte at +2 being 4 the word at +0x218, for 5 the word at +0x21a, is equal to the low 16 bits of
 // word (1 or 0); any other kind gives 0 (the original reports it to its empty debug printf).
@@ -165,8 +209,21 @@ u32 __fastcall Person_DumpActionHistory(u8 *person);
 // position +0x190 / +0x194 read back from the nav (Nav_GetPos), and the script reference +0xc applied (ScriptRef_Apply).
 void __fastcall Person_UpdateSpeed(u8 *person);
 
+// 0x4f7c60 (thiscall; name invented; called from 0x50b495 after a test of the mode setting 0xfb3b7c): Person_UpdateSpeed, then the effect 0x35
+// (the byte +0x3a0 set) or 0x39 spawned at the person (Sprite_SpawnParticle).
+void __fastcall Person_UpdateSpeedParticle(u8 *person);
+
 // 0x505490 (thiscall; called from 0x4d46c2, 0x4d63c2, 0x4d7068; name invented): Person_UpdateSpeed, then on the world's ticks
 // ([0x80239c] +0x1da70c, read after it) whose low two bits are the handle's (Thing_GetHandle) the script at +0x30 +0x84 let go once its
 // time is up (Person_KillScript84After on +0x30).
 void __fastcall Person_TickSpeed(u8 *person);
+
+// The hand-written angle routine in cseg (0x6e7074, cdecl (dx, dy), the angle in AX; not in the listing, not ported): the game's own by
+// default; tools/fncmp's driver points it at its two-argument logger (the bench hooks 0x6e7074 with the same). And 0x501db0 (thiscall on a
+// person; a state, pops 4; agent C's, waiting on 0x4c7600): the game's by default, a thiscall recorder (k 26) in the driver.
+struct PersonEnv {
+    u32(__cdecl *angle)(s32 dx, s32 dy);
+    void(__fastcall *state501db0)(u8 *person, void *, u32 state);
+};
+void Person_SetEnv(const PersonEnv *env);
 }

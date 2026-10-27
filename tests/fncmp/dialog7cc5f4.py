@@ -1,4 +1,4 @@
-# The two-field entry dialog's builders (src/game/ui/dialog7cc5f4: 0x4bb070, 0x4ba200) against the originals. Create / CreateFrom:
+# The two-field entry dialog's builders and finish (src/game/ui/dialog7cc5f4: 0x4bb070, 0x4ba200, 0x4bb390) against the originals. Create / CreateFrom:
 # dialogbuild.py's scripted() surroundings (the dialog [0x7cc5f4] any: the builders do not look), the GUI root [0xfaa5d8] the script's
 # parent WINDOW2 (Dialog_Create's frame made under it), the script (0x7585a8 / 0x7583e8) generated here: 0-2 plain children, then a kind 1
 # window whose children are the fields 0x49 and 0x4b (kind 5, their own children the labels 0x4a / 0x4c among 0-2 decoys) and 0x4d
@@ -6,7 +6,8 @@
 # (the text; 0x705a20's 0x6664fa unported); the GUI's registered windows (listrows.py's register()) with "hilight" among them or not (the
 # fields' caret: CUT mostly, else none); the language texts 0xe9-0xee (panelparts.py's texts()); CreateFrom: the data's bytes random, the value any, the five
 # key maps (keymap.py's) for KeyMaps_ResetAllAndSetFlag. The heap fails now and then (in the script's build: a fault in both).
-# usage: dialog7cc5f4.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Create,CreateFrom)
+# Finish (0x4bb390): see finish_case.
+# usage: dialog7cc5f4.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Create,CreateFrom,Finish)
 import os
 import struct
 import sys
@@ -20,9 +21,9 @@ import keymap  # noqa: E402
 import listrows  # noqa: E402
 import panelparts  # noqa: E402
 import window  # noqa: E402
-from fncmp import HEAP, LOG, RAM, Bench, Call, heap, put, recorder, set_return  # noqa: E402
+from fncmp import CDECL_LOG4, HEAP, LOG, RAM, Bench, Call, heap, log_region, put, recorder, set_return  # noqa: E402
 
-CALLS = {'Create': 0x4bb070, 'CreateFrom': 0x4ba200}
+CALLS = {'Create': 0x4bb070, 'CreateFrom': 0x4ba200, 'Finish': 0x4bb390}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 SCRIPTS = {'Create': 0x7585a8, 'CreateFrom': 0x7583e8}
 
@@ -40,13 +41,13 @@ def merged(ranges):
 RANGES = (dialogbuild.ALL_RANGES + panelparts.ALL_RANGES + dialogbase.CREATE + [
     (0x4bb070, 0x4bb38f), (0x4ba200, 0x4ba52c), (0x486b70, 0x486b7d), (0x40c870, 0x40d06a), (0x492d20, 0x492d3b), (0x6662b7, 0x666308),
     (0x66656c, 0x66671d), (0x659d43, 0x659dbc), (0x65a9d0, 0x65aa00), (0x66bff7, 0x66c01b), (0x65e6d5, 0x65e73d), (0x65c5d5, 0x65c682),
-    (0x65f5b7, 0x65f655), (0x661525, 0x6615a3)])
+    (0x65f5b7, 0x65f655), (0x661525, 0x6615a3), (0x4bb390, 0x4bb3b8), (0x658ccc, 0x658e04)])
 B = Bench(merged(RANGES))
 KIND_VTABLES = (0x705980, 0x705a50, 0x705b20, 0x705950, 0x705a20, 0x705c58, 0x7059f0, 0x705ac0, 0x705c28, 0x705bf8, 0x705bc8, 0x705af0,
                 0x705b98)   # (the factory's kinds 1-13)
 PART_SLOTS = {0x6ff380: {3: 2, 4: 2, 9: 1}, 0x6ff4d0: {4: 2, 9: 1}, 0x6ff530: {9: 1}}   # (0x4901d0, 0x491300, 0x48f830, 0x491ab0)
 DATA, KEYS =RAM + 0x48000, RAM + 0x50000
-for op in CALLS:
+for op in SCRIPTS:
     dialogbuild.DIALOGS['Dialog7cc5f4_' + op] = (0x7cc5f4, SCRIPTS[op], (0x49,), ())   # (scripted()'s script, replaced below)
 
 
@@ -61,8 +62,26 @@ def children(r, w, ids, kinds, scripts):
         dialogbuild.child(r, w, ident, scripts.get(ident, (5,)), kind=kinds.get(ident))
 
 
+def finish_case(r):
+    """Finish: the dialog [0x7cc5f4] or none (its byte +4 now and then set, its handler +0x114 fncmp's logger or 0), the hook [0xfaa5fc]
+    the logger or 0 (its result now and then set); the owner [0x7cc5fc] a one-argument cdecl recorder or 0, the value 0 or not"""
+    log = log_region()
+    win = bytearray(r.bytes(0x120))
+    win[4] = r.choice([0, 0, 0, 1, 0x80])
+    put(win, 0x114, 'I', r.choice([CDECL_LOG4, CDECL_LOG4, 0]))
+    regions = {LOG: log, window.WINDOW: win, 0xfaa5fc: struct.pack('<I', r.choice([0, 0, CDECL_LOG4]))}
+    if r.random() < 0.5:
+        set_return(log, 0x3d, r.choice([0, 1, -1, r.getrandbits(32)]))
+    set_return(log, 1, r.choice([0, 1, -1, r.getrandbits(32)]))
+    regions[0x7cc5f4] = struct.pack('<I', r.choice([window.WINDOW] * 6 + [0]))
+    regions[0x7cc5fc] = struct.pack('<I', r.choice([recorder(1, 1, cdecl=True)] * 3 + [0]))   # (cdecl: ECX is not the owner's)
+    return Call(CALLS['Finish'], [r.choice([0, 1, 1, r.getrandbits(32)])], regions, ret='a')
+
+
 def case(r):
     op = r.deal(OPS)
+    if op == 'Finish':
+        return finish_case(r)
     regions = dialogbuild.scripted(r, 'Dialog7cc5f4_' + op)
     if r.random() < 0.95:
         regions[0xfaa5d8] = put(bytearray(regions[0xfaa5d8]), 0, 'I', window.WINDOW2)

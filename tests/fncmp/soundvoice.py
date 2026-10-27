@@ -22,7 +22,8 @@
 # list or a wild one (shufflebag.py's layout), flag 4 of +0x30 any way. The voices 0x70a3e8 / 0x70a4f0's constructors; the new[] of 0-3
 # 0x70a4f0 voices into OUT and the new linked (switch) voice of VOICE, the heap failing now and then. The destructors: see dtor_case().
 # The group voice 0x70a390's slots and destructors: see group_case(). The creates (0x6be610, 0x6be680, 0x6bdc60, 0x6bdd30, 0x6bd7b0,
-# 0x6be330): the voices' game vtables (resolved by the driver), memory null now and then, the heap failing now and then.
+# 0x6be330, 0x6be750) and the queued voice's constructor (0x6be7a0: its block's +0x4c none or PARAMS; the info's pairs queued_case()'s
+# entries, 0-5, or none): the voices' game vtables (resolved by the driver), memory null now and then, the heap failing now and then.
 # The record's bank (slot 18, 0x6bc240) and its override 0x6bdf00 ('recordbanklinked'): see recordbank_case(). The mixer's voice added (0x6b6650): the creates' setup, the voice in the
 # first free slot of 0-6 (the driver resolves the vtable 0x70a4f0).
 # usage: soundvoice.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
@@ -31,6 +32,7 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fncmp import (HEAP, LOG, RAM, Bench, Call, blob, blob_bytes, echo, fb, fill, heap, log_region, recorder, set_float_return, set_return,  # noqa: E402
                    strings, vtable)
 
@@ -41,7 +43,7 @@ CALLS = {'ensure': (0x6b7150, 'v'), 'pending': (0x6bc900, 'a'), 'apply': (0x6bbf
          'branch': (0x6be450, 'b'), 'switch': (0x6be5e0, 'b'), 'next': (0x6be6d0, 'b'), 'swctor': (0x6be660, 'a'), 'seqctor': (0x6be730, 'a'),
          'ensurebag': (0x6be380, 'v'), 'shuffle': (0x6be420, 'b'),
          'flags': (0x6bbe90, 'v'), 'init': (0x6bbf60, 'a'),
-         'setparam': (0x6bbb80, 'v'), 'swsetparam': (0x6be580, 'v'), 'swcreate': (0x6be610, 'a'), 'seqcreate': (0x6be680, 'a'),
+         'setparam': (0x6bbb80, 'v'), 'swsetparam': (0x6be580, 'v'), 'pairsalloc': (0x6be960, 'a'), 'swcreate': (0x6be610, 'a'), 'seqcreate': (0x6be680, 'a'),
          'linkctor': (0x6c3a00, 'a'), 'linkswctor': (0x6c3de0, 'a'), 'linkinit': (0x6c3a80, 'b'), 'linkfollow': (0x6c3c70, 'v'),
          'linkbranch': (0x6c3e00, 'b'), 'rollvol': (0x6bc090, 'a'), 'rollpitch': (0x6bc170, 'a'), 'level': (0x6bc3c0, 'a'),
          'rollword': (0x6bc2d0, 'a'), 'value20': (0x6bba90, 'v'), 'levels': (0x6bbbe0, 'v'), 'position': (0x6bbce0, 'a'),
@@ -52,8 +54,8 @@ CALLS = {'ensure': (0x6b7150, 'v'), 'pending': (0x6bc900, 'a'), 'apply': (0x6bbf
          'ddtor8d0': (0x6be9a0, 'a'), 'gdtor': (0x6bd930, 'v'), 'gddtor': (0x6b72b0, 'a'), 'gcommand': (0x6bd9b0, 'a'),
          'gposition': (0x6bda20, 'a'), 'gsetparam': (0x6bda90, 'v'), 'glevels': (0x6bdac0, 'v'), 'gstart': (0x6bdae0, 'a'),
          'gfirst': (0x6bdb10, 'a'), 'gstartkids': (0x6bdb50, 'v'), 'gadd': (0x6bdbb0, 'b'), 'gprune': (0x6bdc10, 'v'),
-         'create390': (0x6bdc60, 'a'), 'create2e0': (0x6bdd30, 'a'), 'create3e8': (0x6bd7b0, 'a'), 'create878': (0x6be330, 'a'),
-         'recordbank': (0x6bc240, 'a'), 'recordbanklinked': (0x6bdf00, 'a'), 'mixeradd': (0x6b6650, 'a')}
+         'create390': (0x6bdc60, 'a'), 'create2e0': (0x6bdd30, 'a'), 'create3e8': (0x6bd7b0, 'a'), 'create878': (0x6be330, 'a'), 'create8d0': (0x6be750, 'a'), 'ctor8d0': (0x6be7a0, 'a'),
+         'recordbank': (0x6bc240, 'a'), 'recordbanklinked': (0x6bdf00, 'a'), 'mixeradd': (0x6b6650, 'a'), 'queued': (0x6be880, 'b')}
 GROUP_OPS = ('gdtor', 'gddtor', 'gcommand', 'gposition', 'gsetparam', 'glevels', 'gstart', 'gfirst', 'gstartkids', 'gadd', 'gprune')
 DTOR_OPS = ('dtor7e0', 'ddtor7e0', 'dtor3e8', 'dtor338', 'ddtor3e8', 'ddtor338', 'vddtor4f0', 'dtor878', 'ddtor878', 'dtor8d0', 'ddtor8d0')
 LINKED_OPS = ('linkinit', 'linkfollow', 'linkbranch')
@@ -61,7 +63,7 @@ B = Bench([(0x6b7150, 0x6b7190), (0x6bb9f0, 0x6bba81), (0x6bc900, 0x6bcb56), (0x
            (0x6bc810, 0x6bc8f0), (0x6bd5f0, 0x6bd781), (0x6bd7a0, 0x6bd7ac), (0x6bb220, 0x6bb237), (0x5f5f10, 0x5f5f7d), (0x5f5fa0, 0x5f5faa),
            (0x6bcb80, 0x6bcce1), (0x6c50d0, 0x6c50e8), (0x6be450, 0x6be573), (0x6be5e0, 0x6be608), (0x6be6d0, 0x6be727), (0x6be660, 0x6be672),
            (0x6be730, 0x6be742), (0x6be380, 0x6be41d), (0x6be420, 0x6be44a), (0x6be100, 0x6be24f), (0x6bb950, 0x6bb98e), (0x6bbe90, 0x6bbef9), (0x6bbf60, 0x6bc034),
-           (0x6bbb80, 0x6bbbde), (0x6be580, 0x6be5d3), (0x6be610, 0x6be657), (0x6be680, 0x6be6c7),
+           (0x6bbb80, 0x6bbbde), (0x6be580, 0x6be5d3), (0x6be610, 0x6be657), (0x6be680, 0x6be6c7), (0x6be960, 0x6be993), (0x6be750, 0x6be872),
            (0x6c3a00, 0x6c3a80), (0x6c3de0, 0x6c3df9), (0x6c3a80, 0x6c3ad4), (0x6c3c70, 0x6c3d7e), (0x6c3e00, 0x6c3f63),
            (0x6b9260, 0x6b9280), (0x6bc090, 0x6bc240), (0x6bc3c0, 0x6bc410), (0x6c3ae0, 0x6c3c70), (0x6c5110, 0x6c5130), (0x6c5150, 0x6c51a0),
            (0x6c51d0, 0x6c5230), (0x6bc2d0, 0x6bc3bb), (0x6bba90, 0x6bbb72), (0x6bbbe0, 0x6bbcdd), (0x6bbce0, 0x6bbe3d), (0x6bb240, 0x6bb265),
@@ -73,7 +75,8 @@ B = Bench([(0x6b7150, 0x6b7190), (0x6bb9f0, 0x6bba81), (0x6bc900, 0x6bcb56), (0x
            (0x6bd930, 0x6bd9a3), (0x6b72b0, 0x6b72ce), (0x6bd9b0, 0x6bda1b), (0x6bda20, 0x6bda8d), (0x6bda90, 0x6bdabd), (0x6bdac0, 0x6bdade),
            (0x6bdae0, 0x6bdb0b), (0x6bdb10, 0x6bdb4c), (0x6bdb50, 0x6bdbad), (0x6bdbb0, 0x6bdc0b), (0x6bdc10, 0x6bdc55),
            (0x6bdc60, 0x6bdca7), (0x6bdd30, 0x6bdd77), (0x6bd7b0, 0x6bd7f7), (0x6be330, 0x6be377),
-           (0x6bc240, 0x6bc2c4), (0x6b9310, 0x6b9652), (0x6bead0, 0x6beb03), (0x632230, 0x632290), (0x6c51b0, 0x6c51c2), (0x6b6650, 0x6b66c8), (0x6bdf00, 0x6bdf49), (0x6c50f0, 0x6c5103), (0x6c5230, 0x6c5235)])
+           (0x6bc240, 0x6bc2c4), (0x6b9310, 0x6b9652), (0x6bead0, 0x6beb03), (0x632230, 0x632290), (0x6c51b0, 0x6c51c2), (0x6b6650, 0x6b66c8), (0x6bdf00, 0x6bdf49), (0x6c50f0, 0x6c5103), (0x6c5230, 0x6c5235),
+           (0x6be880, 0x6be957), (0x6b9b30, 0x6b9b94), (0x6c5870, 0x6c58ce), (0x5dc650, 0x5dc654), (0x51c050, 0x51c054)])
 VOICE, OUT, SYS, SVT, VVT, DEF, VARS, SAMPLES, PARAMS, LISTENER, CMD, CVT = (RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x500,
                                                                             RAM + 0x600, RAM + 0xa00, RAM + 0xb00, RAM + 0xb40, RAM + 0xb80, RAM + 0xbc0)
 SYSTEM, RANDOM, CLOCK, TIME_GET_TIME = 0xfb1f24, 0xfb1f20, 0xfa71e0, 0x6fd3ec
@@ -81,13 +84,15 @@ NODE, ENTRIES, BRANCHES, DEF2 = RAM + 0xc00, RAM + 0xc40, RAM + 0xc80, RAM + 0xe
 OWNER, OVT, OINFO, POS, MEM, INFO = RAM + 0xe40, RAM + 0xe80, RAM + 0xf00, RAM + 0xf20, RAM + 0xf40, RAM + 0xfa0
 PARENT, PARENT_PARAMS = RAM + 0x1000, RAM + 0x1080
 RECORD = RAM + 0x1100
+QUEUE, QENTRIES, QMAP, QRECS, SFXTAB, SFXENTRIES, QBLOCK = (RAM + 0x1a00, RAM + 0x1a40, RAM + 0x1a80, RAM + 0x1b00, RAM + 0x1b80, RAM + 0x1c00,
+                                                            RAM + 0x8000)   # (the queued voice 0x70a8d0's pick: queued_case())
 BAG, LIST2 = RAM + 0x1200, RAM + 0x1240   # (the parameter block's shuffle bag: shufflebag.py's layout; another list over the variations)
 KEEPER, KVT, ARRAY, BAG2 = RAM + 0x1300, RAM + 0x1340, RAM + 0x1400, RAM + 0x1500   # (the destructors' owner +0x28, a voice array, a bag)
 CHILDREN, CHILD_PARAMS, CHVT = RAM + 0x1600, RAM + 0x1700, RAM + 0x1780   # (the group voice's children, their blocks and vtable)
 NEWKID, NEWKID_PARAMS = RAM + 0x1800, RAM + 0x1860   # (the group voice's new child, from its slot 21)
 MIXER, MIX_SLOTS, MIX_VOICES = RAM + 0x3000, RAM + 0x3080, RAM + 0x3100   # (the mixer's voice added: its slots and voice array)
 BANK, BANK_MAP, BANK_BLOCK, CATEGORY = RAM + 0x1900, RAM + 0x1940, RAM + 0x2000, 0xfb1f28   # (the record's bank: recordbank_case())
-CREATE_OPS = ('swcreate', 'seqcreate', 'create390', 'create2e0', 'create3e8', 'create878', 'mixeradd')
+CREATE_OPS = ('swcreate', 'seqcreate', 'create390', 'create2e0', 'create3e8', 'create878', 'mixeradd', 'create8d0', 'ctor8d0')
 ROLL_OPS = ('rollvol', 'rollpitch', 'level', 'fillrec', 'rollword', 'levels', 'voicefill', 'voicefillx')
 CMD_K, TIME_K = 9, 12
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
@@ -421,11 +426,51 @@ def recordbank_case(r, name='recordbank'):
     return Call(0x6bc240, [VOICE, RECORD], regions, conv='t', ret='a')
 
 
+def queued_case(r, voice, d, regions):
+    """Voice70a8d0_PickQueuedSound (0x6be880): the parameter block's +0x1c a queue of 0-5 (category, sound) entries, its next index under
+    the count mostly, at it, past it or -1; the categories 1-3 or 0 (the play command's slot 1 answering 0) into the category singleton's
+    deque A (soundcategory.py's deque(): its begin anywhere in a block, over two blocks now and then) of 4 records (null now and then; their
+    +8 the sound table SFXTAB or null); the sounds small or any; the table's 0-5 entries (its count theirs or fewer), their ids those sounds
+    or others, the rest of each the definition's (+4 the count, 0 now and then; +8 the variations; +0x10 the flags)."""
+    from soundcategory import deque   # (imported here: no import cycle at module level)
+    struct.pack_into('<I', voice, 0x4c, PARAMS)
+    struct.pack_into('<I', regions[PARAMS], 0x1c, QUEUE)
+    n = r.choice([0, 1, 2, 3, 5, 5])
+    index = r.choice([r.randrange(n)] * 6 + [n, n + 1, 0xffffffff] if n else [0, 1, 0xffffffff])
+    sounds = [r.choice([1, 2, 3, 0x10]) for _ in range(3)]
+    queue = bytearray()
+    for _ in range(max(n, 1)):
+        queue += struct.pack('<II', r.choice([1, 2, 3, 1, 2, 3, 0]), r.choice(sounds + [r.getrandbits(32)]))
+    regions[QUEUE] = struct.pack('<3I', n, index, QENTRIES)
+    regions[QENTRIES] = bytes(queue)
+    records = [r.choice([QRECS + 0x10 * k] * 5 + [0]) for k in range(4)]
+    category = bytearray(r.bytes(0xd4))
+    category[0x3c:0x4c] = deque(r, QBLOCK, QMAP, records, regions)
+    category[0xd0] = r.choice([1, r.getrandbits(8) | 1])
+    regions[CATEGORY] = category
+    recs = bytearray(r.bytes(0x40))
+    for k in range(4):
+        struct.pack_into('<I', recs, 0x10 * k + 8, r.choice([SFXTAB] * 5 + [0]))
+    regions[QRECS] = recs
+    m = r.choice([0, 1, 2, 3, 5, 5])
+    entries = bytearray(r.bytes(0x14 * m + 0x20))
+    for k in range(m):
+        entries[0x14 * k:0x14 * k + 0x14] = struct.pack('<I', r.choice(sounds + [r.randrange(4), r.getrandbits(32)])) + d[4:0x14]
+        if r.random() < 0.15:
+            struct.pack_into('<I', entries, 0x14 * k + 4, 0)
+    regions[SFXTAB] = struct.pack('<II', r.choice([m, m, m, r.randrange(m + 1)]), SFXENTRIES)
+    regions[SFXENTRIES] = bytes(entries)
+    return Call(0x6be880, [VOICE, r.getrandbits(32)], regions, conv='t', ret='b')
+
+
 def case(r):
     name = r.deal(OPS)
     address, ret = CALLS[name]
     if name in ('recordbank', 'recordbanklinked'):
         return recordbank_case(r, name)
+    if name == 'pairsalloc':   # (the pairs' block into OUT from the heap, which fails now and then; a small count, 0 now and then)
+        regions = {OUT: r.bytes(8), HEAP: heap(0x400, fail=r.choice([0, 0, 0, 1]))}
+        return Call(address, [OUT, r.choice([0, 1, 2, 5, r.randrange(0x60)])], regions, conv='t', ret=ret)
     log = log_region()
     if name in ('follow', 'linkfollow', 'gposition'):
         blob_bytes(log, 4, 1, 0xff, inner=(8, 0xfff, 12))   # the functor: its vtable, the sound; the record's +0xc-+0x17
@@ -435,7 +480,9 @@ def case(r):
         fill(log, 4, 1, struct.pack('<I', r.choice([0, 2, 3, 0xfffffffd, r.getrandbits(32)])), offset=0x18, through=8)   # or +0xc-+0x17; +0x18
     elif name in ('value20', 'position'):   # the record's flags +0x14 and the value +0x2c; the position's +0xc-+0x17 and its pointer +0x30 (the levels': in rolls())
         blob_bytes(log, 4, 1, 0xff, inner=(8, 0xf << 36 | 0x7000, 8) if name == 'value20' else (8, 0xf << 36 | 0xfff, 12))
-    elif name not in ('command', 'gcommand'):
+    elif name == 'command':   # slot 4 writes its out (the command argument's own stack slot, sic), the -1 of a failed command now and then
+        fill(log, 4, 0, struct.pack('<I', r.choice([0, 0xffffffff, 0xffffffff, r.getrandbits(32)])))
+    elif name != 'gcommand':
         blob_bytes(log, 4, 1, 0xff, inner=(8, 0x7000, 28) if name == 'pending' else None)   # (the stop's functor: two dwords)
     if name != 'pending':
         strings(log, 4, 0, out=1)   # (the out is the caller's local)
@@ -490,6 +537,8 @@ def case(r):
                SAMPLES: samples, PARAMS: params, LISTENER: listener, CMD: struct.pack('<I', CVT) + r.bytes(0xc),
                CVT: struct.pack('<I', recorder(CMD_K, 0)), SYSTEM: struct.pack('<I', SYS), RANDOM: struct.pack('<I', seed), CLOCK: bytes(0x20),
                TIME_GET_TIME: struct.pack('<I', recorder(TIME_K, 0, True)), LOG: log, HEAP: heap(0x40, fail=r.choice([0, 0, 0, 1]))}
+    if name == 'queued':
+        return queued_case(r, voice, d, regions)
     if name == 'distance':   # (the voice near the listener: up to 0.01 * 0xffff squared and past it; the listener now and then null)
         struct.pack_into('<I', voice, 4, DEF)
         struct.pack_into('<I', system, 0x60, r.choice([LISTENER] * 6 + [0]))
@@ -593,6 +642,20 @@ def case(r):
             struct.pack_into('<I', info, 0x18, scale)
             regions.update({OWNER: struct.pack('<II', OVT, r.getrandbits(32)) + struct.pack('<I', OINFO), OVT: vtable({}), OINFO: r.bytes(0x10),
                             MEM: r.bytes(0x50), INFO: info, HEAP: heap(0x40, fail=r.choice([0] * 9 + [1]))})
+            if name in ('create8d0', 'ctor8d0'):   # (the queue's pairs: the info's +0x1c (0-5 of them, or none) and count +0x20; the
+                # three allocations (the parameter block when +0x4c is none, the queue, its pairs) failing now and then)
+                # (queued_case()'s category, sound tables and queue entries: the pairs the init's pick reads)
+                regions.setdefault(PARAMS, bytearray(r.bytes(0x20)))
+                regions[PARAMS] = bytearray(regions[PARAMS])
+                queued_case(r, bytearray(r.bytes(0x50)), d, regions)
+                count = struct.unpack_from('<I', regions[QUEUE])[0]
+                regions[INFO] = bytes(info) + struct.pack('<II', r.choice([QENTRIES] * 6 + [0]) if count else r.choice([QENTRIES, 0]), count)
+                regions[HEAP] = heap(0x100, fail=r.choice([0] * 9 + [1, 2, 3]))
+                if name == 'ctor8d0':
+                    mem = bytearray(regions[MEM])
+                    struct.pack_into('<I', mem, 0x4c, r.choice([0, 0, 0, PARAMS]))
+                    regions[MEM] = mem
+                    return Call(address, [MEM, INFO], regions, conv='t', ret=ret)
             if name == 'mixeradd':   # (0-6 slots, each taken (not 0) now and then; the voice array over random bytes)
                 n = r.choice([0, 1, 2, 4, 6])
                 taken = [r.choice([0, 0, 1, r.getrandbits(32)]) for _ in range(n)]

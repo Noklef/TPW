@@ -39,6 +39,10 @@ s32 __fastcall Object_QueuePositionOfNone(u8 *object);
 // 0x4dda20 (thiscall): whether the queue of persons (Object_QueuePosition for the person 0, i.e. its length) is shorter than the dword at +0x40 times 4 (unsigned).
 u32 __fastcall Object_QueueHasRoom(u8 *object);
 
+// 0x4ddb60 (thiscall; name invented): whether the queue is full: its length (Object_QueuePosition of the person whose handle word is 0, the
+// stack word the object's pointer with its low word cleared, as Object_QueuePositionOfNone) at least Object_FillRate (unsigned).
+u32 __fastcall Object_QueueFull(u8 *object);
+
 // 0x4dd920 (thiscall; name unconfirmed): whether the object takes people into its queue: flag 4 of +0x32, the dword at +0x19c neither 1 nor 4, the dword at +0x68 set,
 // a back of the queue (Object_BackOfQueue, not 0) and room (Object_QueuePosition of the person 0 below the dword at +0x40 times 4, unsigned); and by the definition's
 // kind (+0x9c of ObjectDefs_Find of the id at +0xe, found anew for each test): for 3 Object_LinkOtherOpen, for 1 and 2 the dword at +0x2c set.

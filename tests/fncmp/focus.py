@@ -10,6 +10,7 @@
 # CaptureMouse / ReleaseMouse (0x65e549 / 0x65e56e): SetFocus's set-up, the capture [0xfaa5e8] the window, another or none.
 # WindowAt10_Show (0x493130, thiscall (flag); src/game/ui/dialogs): see show_case.
 # WindowAt10_Hide (0x4931b0, thiscall; src/game/ui/dialogs): show_case's surroundings with the holder's +0xc set mostly (no flag).
+# Windows7cc8bc_SelectFirst (0x4bcf50; src/game/ui/dialogs): see select_first_case.
 # usage: focus.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetFocus,KillFocus,...)
 import os
 import struct
@@ -26,7 +27,7 @@ CALLS = {'SetFocus': 0x65e59b, 'KillFocus': 0x65e5fa, 'Dialog7ca1c8_Focus': 0x49
          'Close7c24c8': 0x485b40, 'Close7cb2cc': 0x4a27c0, 'Windows7cc8bc_SelectSecond': 0x4bce80,
          'Overlay7cb2b4_Toggle': 0x4a29d0, 'Obj7b51f0_ToggleOverlay': 0x481490, 'Obj7b51f0_CloseOverlay': 0x4815d0,
          'Enter6fead0': 0x481a10, 'Set7c24c8': 0x485b70, 'CaptureMouse': 0x65e549, 'ReleaseMouse': 0x65e56e, 'WindowAt10_Show': 0x493130,
-         'WindowAt10_Hide': 0x4931b0}
+         'WindowAt10_Hide': 0x4931b0, 'Windows7cc8bc_SelectFirst': 0x4bcf50}
 MODES = [(0x40cb40, 0x40cb90), (0x46c350, 0x46c460), (0x46c6a0, 0x46c6c0), (0x46cff0, 0x46d010), (0x4814a0, 0x481500), (0x481a10, 0x481b00),
          (0x485b40, 0x485d30), (0x4862a0, 0x486420), (0x4a25f0, 0x4a2690), (0x4a2aa0, 0x4a2ad0), (0x550ca0, 0x550d90), (0x6590f7, 0x6591e4),
          (0x65e6d5, 0x65e73d), (0x65f11d, 0x65f160), (0x66190a, 0x66192b), (0x661d96, 0x661de0), (0x668ad3, 0x668c99), (0x67a740, 0x67a800),
@@ -35,9 +36,10 @@ MODES = [(0x40cb40, 0x40cb90), (0x46c350, 0x46c460), (0x46c6a0, 0x46c6c0), (0x46
 B = Bench(sorted(set(RANGES + FACTORY + MODES + [(0x4a29d0, 0x4a2a8a), (0x4a2a90, 0x4a2a96), (0x481490, 0x481495), (0x4815d0, 0x4815df),
                                             (0x65e549, 0x65e56e), (0x65e56e, 0x65e59b),
     (0x493130, 0x49319f), (0x4931b0, 0x4931e8), (0x65f538, 0x65f5b7), (0x659409, 0x65959a), (0x659730, 0x659760), (0x65d547, 0x65d56a), (0x65d56b, 0x65d59d),   # (WindowAt10_Show's:
-    (0x65f447, 0x65f538), (0x65f345, 0x65f410), (0x65f16b, 0x65f246), (0x65d9dd, 0x65da8d), (0x65d90b, 0x65d9dd)])))   # top depth, AddChild)
+    (0x65f447, 0x65f538), (0x65f345, 0x65f410), (0x65f16b, 0x65f246), (0x65d9dd, 0x65da8d), (0x65d90b, 0x65d9dd), (0x4bcf50, 0x4bd015), (0x40bed0, 0x40bf65)])))   # top depth, AddChild)
 OVERLAY, OVERLAY_VT = RAM + 0xb000, RAM + 0xb040   # (an overlay to delete: its slot 2 a recorder)
 MODE, MODE_VT, HOLDER = RAM + 0xc000, RAM + 0xc100, RAM + 0xc200   # (the current mouse mode, a recorder object; the holder, never read)
+CHAIN = RAM + 0xe000   # (Windows7cc8bc_SelectFirst's child chain, its rectangles at +0x400)
 
 
 def modes_case(r, op, regions, log, wins):
@@ -67,6 +69,53 @@ def modes_case(r, op, regions, log, wins):
     if op == 'Enter6fead0':
         return Call(CALLS[op], [], regions, ret='v')
     return Call(CALLS[op], [r.choice(wins + [0, 0])], regions, ret='a')
+
+
+def select_first_case(r, regions, log, wins):
+    """Windows7cc8bc_SelectFirst (0x4bcf50): SelectSecond's set-up with the bytes 0x7cc8b4 (set mostly) and 0x7cc6a0 (0 mostly); under
+    the window [0x7cc8bc] (one of the tree, now and then none: a fault in both) the chain 0xc3123 / 0xc312b / 0xc312c (each the first
+    child or after the window's own children; another id now and then: a fault in both); the mouse mode [0x7b05d8] a recorder object
+    (slot 9 answering 9 half the time) or none, the holder [0x7b05e8] set or not (a heap); the GUI cursor's default id (no table)."""
+    for w in wins:
+        put(regions[w], 0x114, 'I', r.choice([CDECL_LOG4, CDECL_LOG4, 0]))
+    regions[0xfaa5fc] = struct.pack('<I', r.choice([0, 0, CDECL_LOG4]))
+    first = r.choice(wins * 8 + [0])
+    regions[0x7cc8bc] = struct.pack('<II', first, r.choice(wins * 4 + [0]))
+    regions[0x7cc8b4] = bytes([r.choice([1, 1, 1, 0x80, 0])])
+    regions[0x7cc6a0] = bytes([r.choice([0, 0, 0, 1])])
+    parent = first
+    for i, ident in enumerate((0xc3123, 0xc312b, 0xc312c)):
+        at = CHAIN + 0x120 * i
+        kid = bytearray(r.bytes(0x120))
+        kid[4] = 0 if r.random() < 0.9 else 1
+        for off, v in ((0x48, 1 if r.random() < 0.8 else r.getrandbits(32)), (0x5c, 0), (0x54, 0), (0x44, CHAIN + 0x400 + 0x10 * i),
+                       (0x114, r.choice([CDECL_LOG4, 0])), (0x8c, ident if r.random() < 0.98 else ident + 1)):
+            put(kid, off, 'I', v)
+        regions[CHAIN + 0x400 + 0x10 * i] = struct.pack('<Ihhhh', 0x705920, *[r.randrange(-40, 60) for _ in range(4)]) + r.bytes(4)
+        if parent:
+            p = regions[parent] = bytearray(regions[parent])
+            old = struct.unpack_from('<I', p, 0x5c)[0]
+            if old and r.random() < 0.5:   # (after the parent's own children)
+                put(kid, 0x54, 'I', old)
+            elif old:   # (last)
+                last = old
+                while struct.unpack_from('<I', regions[last], 0x54)[0]:
+                    last = struct.unpack_from('<I', regions[last], 0x54)[0]
+                regions[last] = put(bytearray(regions[last]), 0x54, 'I', at)
+            if not old or struct.unpack_from('<I', kid, 0x54)[0]:
+                put(p, 0x5c, 'I', at)
+        regions[at] = kid
+        parent = at
+    regions[HEAP] = heap(0x1000, r.choice([0] * 8 + [1]))
+    regions[0xfaa600] = struct.pack('<HHI', r.choice([0, 1, 0xffff, r.getrandbits(16)]), r.getrandbits(16), 0)
+    regions[0x77c484] = r.bytes(4)
+    regions[MODE_VT] = vtable({0: 1})
+    regions[MODE] = put(bytearray(r.bytes(0x10)), 0, 'I', MODE_VT)
+    set_return(log, 9, r.choice([9, 9, 1, 0, r.getrandbits(32)]))
+    regions[0x7b05d4] = put(put(bytearray(r.bytes(0x18)), 4, 'I', r.choice([MODE, MODE, MODE, 0])), 0x14, 'I', r.choice([0, HOLDER, HOLDER]))
+    regions[0xfb3518] = bytes([r.choice([1, 3, 0xff])])   # (no holder: modes_case()'s CMMOnline set-up)
+    regions[0xfb3b7c] = struct.pack('<I', 1)
+    return Call(CALLS['Windows7cc8bc_SelectFirst'], [], regions, ret='v')
 
 
 def overlay_case(r, op, regions, log):
@@ -204,6 +253,8 @@ def case(r, ops=None):
         if r.random() < 0.5:
             set_return(log, 0x3d, r.choice([0, 1, -1, r.getrandbits(32)]))
         return Call(CALLS[op], [], regions, ret='a')
+    if op == 'Windows7cc8bc_SelectFirst':
+        return select_first_case(r, regions, log, wins)
     if op in ('FocusRestore', 'HasSource', 'Close7c24c8', 'Close7cb2cc', 'Enter6fead0', 'Set7c24c8'):
         def some(none=3):
             return r.choice(wins + [0] * none)

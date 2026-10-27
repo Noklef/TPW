@@ -33,6 +33,18 @@ u32 __fastcall MovieSound_Release(void **place, void *) {
     return 0;
 }
 
+u32 __fastcall MovieSound_ReleaseAll(u8 *player, void *) {
+    if (!(at<u32>(settings(player), 4) & 0x800000)) return 0;
+    if (at<u32>(player, 0x3d8)) {
+        if (void *primary = at<void *>(settings(player), 0x58)) {
+            method<Method1>(primary, 8)(primary);
+            at<void *>(settings(player), 0x58) = nullptr;
+        }
+    }
+    if (at<u32>(player, 0x3dc)) MovieSound_Release(reinterpret_cast<void **>(settings(player) + 0x54), nullptr);
+    return 0;
+}
+
 u32 __fastcall MovieSound_ReleaseStream(u8 *player, void *) {
     if (void *stream = at<void *>(settings(player), 0x5c)) {
         method<Method1>(stream, 8)(stream);

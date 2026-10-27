@@ -22,11 +22,26 @@
 
 #include "../../../re/types.h"
 
+// A double's bits, and back. (Every X87Reg operation rounds, so the rounding works on the bits:
+// frexp, ldexp and 64-bit variable shifts, which a 32-bit build makes calls of, made a hooked
+// game several times slower than the original.)
+inline unsigned long long X87_Bits(double x) {
+    unsigned long long b;
+    std::memcpy(&b, &x, 8);
+    return b;
+}
+inline double X87_FromBits(unsigned long long b) {
+    double x;
+    std::memcpy(&x, &b, 8);
+    return x;
+}
+
 // m * 2^e rounded to a 24-bit significand, to nearest, ties to even.
 inline double X87_Round24(unsigned long long m, int e) {
     if (m == 0) return 0.0;
-    int bits = 0;
-    while (bits < 64 && (m >> bits) != 0) ++bits;
+    const u32 high = (u32)(m >> 32);
+    int bits = high ? 32 : 0;
+    for (u32 w = high ? high : (u32)m; w; w >>= 1) ++bits;
     if (bits > 24) {
         const int shift = bits - 24;
         const unsigned long long half = 1ull << (shift - 1), rest = m & ((half << 1) - 1);
@@ -34,26 +49,45 @@ inline double X87_Round24(unsigned long long m, int e) {
         if (rest > half || (rest == half && (m & 1))) ++m;
         e += shift;
     }
-    return std::ldexp((double)m, e);
+    // m is below 2^25 now: times a power of two, exact while the result is a normal double.
+    if (e >= -1022 && e <= 1023 - 25) return (double)(u32)m * X87_FromBits((unsigned long long)(e + 1023) << 52);
+    return std::ldexp((double)(u32)m, e);
+}
+
+// |x| (finite, not zero) as m * 2^(e - 53), m of 53 bits (the top one set): frexp's exponent and its fraction times 2^53.
+inline unsigned long long X87_Significand(double x, int &e) {
+    const unsigned long long b = X87_Bits(x);
+    const int exponent = (int)(b >> 52) & 0x7ff;
+    if (exponent == 0) return (unsigned long long)std::ldexp(std::frexp(std::fabs(x), &e), 53);
+    e = exponent - 1022;
+    return (b & 0xfffffffffffffull) | (1ull << 52);
 }
 
 // x (finite) rounded to a 24-bit significand: the x87 result of an operation whose exact
 // value x is the correctly rounded double of. For + - * / of 24-bit operands that double
 // rounding is harmless (53 >= 2 * 24 + 2).
 inline double X87_Round(double x) {
-    if (x == 0 || !std::isfinite(x)) return x;
-    int e;
-    const double frac = std::frexp(std::fabs(x), &e);
-    const double r = X87_Round24((unsigned long long)std::ldexp(frac, 53), e - 53);
-    return x < 0 ? -r : r;
+    const unsigned long long b = X87_Bits(x);
+    const u32 exponent = (u32)(b >> 52) & 0x7ff;
+    if (exponent == 0x7ff) return x;
+    if (exponent == 0) {   // a zero, or a denormal: rounded on its own leading bit
+        if (x == 0) return x;
+        int e;
+        const unsigned long long m = X87_Significand(x, e);
+        const double r = X87_Round24(m, e - 53);
+        return x < 0 ? -r : r;
+    }
+    // A normal double: the low 29 of its 52 fraction bits go, to nearest, ties to even; a carry
+    // goes on into the exponent (to infinity past the double range).
+    return X87_FromBits((b + 0x0fffffff + ((b >> 29) & 1)) & ~0x1fffffffull);
 }
 
 // fild n (n as an unsigned 32-bit value: a qword with a zero high half); fmul f.
 inline double X87_MulInt(u32 n, float f) {
     if (n == 0 || f == 0 || !std::isfinite(f)) return (double)n * (double)f;
     int e;
-    const double frac = std::frexp(std::fabs((double)f), &e);
-    const double r = X87_Round24((unsigned long long)n * (unsigned long long)std::ldexp(frac, 24), e - 24);
+    const unsigned long long m = X87_Significand(f, e) >> 29;   // (exact: a float has 24 bits)
+    const double r = X87_Round24((unsigned long long)n * m, e - 24);
     return f < 0 ? -r : r;
 }
 
@@ -62,8 +96,7 @@ inline double X87_MulInt(u32 n, float f) {
 inline double X87_MulIntDouble(s32 n, double d) {
     if (n == 0 || d == 0 || !std::isfinite(d)) return (double)n * d;
     int e;
-    const double frac = std::frexp(std::fabs(d), &e);
-    const unsigned long long m = (unsigned long long)std::ldexp(frac, 53);
+    const unsigned long long m = X87_Significand(d, e);
     const unsigned long long k = n < 0 ? 0ull - (unsigned long long)(long long)n : (unsigned long long)n;
     // k * m = top * 2^32 + rest (top below 2^54).
     const unsigned long long lo = k * (m & 0xffffffffull);
@@ -82,8 +115,7 @@ inline double X87_MulIntDouble(s32 n, double d) {
 inline double X87_MulUIntDouble(u32 n, double d) {
     if (n == 0 || d == 0 || !std::isfinite(d)) return (double)n * d;
     int e;
-    const double frac = std::frexp(std::fabs(d), &e);
-    const unsigned long long m = (unsigned long long)std::ldexp(frac, 53);
+    const unsigned long long m = X87_Significand(d, e);
     const unsigned long long k = n;
     const unsigned long long lo = k * (m & 0xffffffffull);
     const unsigned long long top = k * (m >> 32) + (lo >> 32), rest = lo & 0xffffffffull;
@@ -97,8 +129,8 @@ inline double X87_MulFloatDouble(float f, double d) {
     const double x = f;
     if (x == 0 || d == 0 || !std::isfinite(x) || !std::isfinite(d)) return x * d;
     int ex, ed;
-    const unsigned long long k = (unsigned long long)std::ldexp(std::frexp(std::fabs(x), &ex), 24);
-    const unsigned long long m = (unsigned long long)std::ldexp(std::frexp(std::fabs(d), &ed), 53);
+    const unsigned long long k = X87_Significand(x, ex) >> 29;
+    const unsigned long long m = X87_Significand(d, ed);
     const unsigned long long lo = k * (m & 0xffffffffull);
     const unsigned long long top = k * (m >> 32) + (lo >> 32), rest = lo & 0xffffffffull;
     const int e = ex - 24 + ed - 53;
@@ -125,15 +157,22 @@ inline double X87_Add(double a, double b) {
         return a != a ? a : b;
     }
     const double s = a + b;
-    if (!std::isfinite(s) || s == 0) return s;
+    const unsigned long long sb = X87_Bits(s);
+    const u32 exponent = (u32)(sb >> 52) & 0x7ff;
+    if (exponent == 0x7ff || s == 0) return s;
     const double bb = s - a, e = (a - (s - bb)) + (b - bb);
-    int exp;
-    const double frac = std::frexp(std::fabs(s), &exp);
-    const unsigned long long m = (unsigned long long)std::ldexp(frac, 53);
-    if (e == 0 || (m & ((1ull << 29) - 1)) != (1ull << 28)) return X87_Round(s);
-    const unsigned long long kept = (m >> 29) + (((e > 0) == (s > 0)) ? 1 : 0);
-    const double r = std::ldexp((double)kept, exp - 24);
-    return s < 0 ? -r : r;
+    if (e == 0) return X87_Round(s);
+    if (exponent == 0) {   // a denormal sum: its significand taken from its own leading bit
+        int exp;
+        const unsigned long long m = X87_Significand(s, exp);
+        if ((m & ((1ull << 29) - 1)) != (1ull << 28)) return X87_Round(s);
+        const unsigned long long kept = (m >> 29) + (((e > 0) == (s > 0)) ? 1 : 0);
+        const double r = std::ldexp((double)kept, exp - 24);
+        return s < 0 ? -r : r;
+    }
+    if (((u32)sb & 0x1fffffff) != 0x10000000) return X87_Round(s);
+    // On a midpoint: down to the 24 bits, then up one if the exact sum is past it (away from zero).
+    return X87_FromBits((sb & ~0x1fffffffull) + ((e > 0) == (s > 0) ? 0x20000000 : 0));
 }
 
 // fld a; fmul b (both doubles): the exact product of up to 53 by 53 bits rounded once to 24 bits. The double product and its exact
@@ -192,28 +231,28 @@ inline bool X87_MemGivesWay(X87Reg st, float m) {
     std::memcpy(&b, &m, 4);
     return st.v != st.v && (b & 0x7f800000) == 0x7f800000 && (b & 0x7fffff) && !(b & 0x400000);
 }
-template <class F, class = std::enable_if_t<std::is_same<F, float>::value>> X87Reg operator+(X87Reg a, F m) {
+template <class F, class = std::enable_if_t<std::is_same<F, float>::value>> inline X87Reg operator+(X87Reg a, F m) {
     return X87_MemGivesWay(a, m) ? a : a + X87Reg(m);
 }
-template <class F, class = std::enable_if_t<std::is_same<F, float>::value>> X87Reg operator+(F m, X87Reg a) {
+template <class F, class = std::enable_if_t<std::is_same<F, float>::value>> inline X87Reg operator+(F m, X87Reg a) {
     return X87_MemGivesWay(a, m) ? a : X87Reg(m) + a;
 }
-template <class F, class = std::enable_if_t<std::is_same<F, float>::value>> X87Reg operator-(X87Reg a, F m) {
+template <class F, class = std::enable_if_t<std::is_same<F, float>::value>> inline X87Reg operator-(X87Reg a, F m) {
     return X87_MemGivesWay(a, m) ? a : a - X87Reg(m);
 }
-template <class F, class = std::enable_if_t<std::is_same<F, float>::value>> X87Reg operator-(F m, X87Reg a) {
+template <class F, class = std::enable_if_t<std::is_same<F, float>::value>> inline X87Reg operator-(F m, X87Reg a) {
     return X87_MemGivesWay(a, m) ? a : X87Reg(m) - a;
 }
-template <class F, class = std::enable_if_t<std::is_same<F, float>::value>> X87Reg operator*(X87Reg a, F m) {
+template <class F, class = std::enable_if_t<std::is_same<F, float>::value>> inline X87Reg operator*(X87Reg a, F m) {
     return X87_MemGivesWay(a, m) ? a : a * X87Reg(m);
 }
-template <class F, class = std::enable_if_t<std::is_same<F, float>::value>> X87Reg operator*(F m, X87Reg a) {
+template <class F, class = std::enable_if_t<std::is_same<F, float>::value>> inline X87Reg operator*(F m, X87Reg a) {
     return X87_MemGivesWay(a, m) ? a : X87Reg(m) * a;
 }
-template <class F, class = std::enable_if_t<std::is_same<F, float>::value>> X87Reg operator/(X87Reg a, F m) {
+template <class F, class = std::enable_if_t<std::is_same<F, float>::value>> inline X87Reg operator/(X87Reg a, F m) {
     return X87_MemGivesWay(a, m) ? a : a / X87Reg(m);
 }
-template <class F, class = std::enable_if_t<std::is_same<F, float>::value>> X87Reg operator/(F m, X87Reg a) {
+template <class F, class = std::enable_if_t<std::is_same<F, float>::value>> inline X87Reg operator/(F m, X87Reg a) {
     return X87_MemGivesWay(a, m) ? a : X87Reg(m) / a;
 }
 
