@@ -181,6 +181,9 @@ u8 *__fastcall StdMapH_AssignWide(u8 *map, void *, const u8 *from, u32 key);
 u32 __fastcall StdMapH_FindValue(u8 *map, void *, const u8 *text, u32 *index);
 // 0x6c2140 (thiscall): H's constructor, as the other trees'.
 void __fastcall StdTree_CtorH(u8 *tree);
+// 0x6c1240 (thiscall; &comp, multi, &alloc, pops 12; name invented): H's map constructor: +0 = the alloc byte, +8 = the multi byte, +1 = the comp
+// byte, then the tree as StdTree_CtorH makes it. Returns the map.
+u8 *__fastcall StdMapH_Ctor(u8 *map, void *, const u8 *comp, u32 multi, const u8 *alloc);
 // 0x6c0a60 (thiscall; name invented): a map H destroyed after a clear: erase(begin, end), then the destructor's own (StdTree_DtorH's work
 // inlined: a second erase over the now empty map, the head freed, head and size 0, the nil node freed by the last map out).
 void __fastcall StdMapH_ClearDtor(u8 *map);
