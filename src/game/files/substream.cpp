@@ -25,6 +25,12 @@ extern "C" {
 
 u8 *__fastcall SubStream_Ctor(u8 *self, void *, const u8 *stream) { return construct(self, stream, 0); }
 
+void __fastcall SubStream_Dtor(u8 *self) {
+    at<u32>(self, 0) = 0x0070ad50;
+    Semaphore_Dtor(reinterpret_cast<Semaphore *>(self + 0x14));
+    StreamBase_Dtor(reinterpret_cast<StreamBase *>(self + 0xc));
+}
+
 u8 *__fastcall SubStream_CtorAt(u8 *self, void *, const u8 *stream, u32 start) { return construct(self, stream, start); }
 
 u32 __fastcall SubStream_Read(u8 *self, void *, void *buffer, u32 count) {

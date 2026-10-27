@@ -2894,6 +2894,7 @@ address,name,kind,confidence,notes
 0x006d4df0,SubStream_Read,function,low,"reimplemented (src/game/files/substream); thiscall (buffer, count), pops 8, slot 1: under the semaphore, seek to the position unless the stream is there, read, the position advanced; returns it"
 0x006d4e90,SubStream_Seek,function,low,"reimplemented (src/game/files/substream); thiscall (offset), pops 4, slot 2: the stream sought to start + offset, the position from its answer; returns the answer"
 0x006d4ec0,SubStream_Rewind,function,low,reimplemented (src/game/files/substream); thiscall: the position 0 and the stream sought to the start; returns its answer
+0x006c7960,SubStream_Dtor,function,low,"reimplemented (src/game/files/substream); the window's destructor (its semaphore, then its stream)"
 0x005c9040,Class70295c_Ctor,function,high,"reimplemented (src/game/core/vdtor); Init_5d36c0, vtable 0x70295c and four zeroed dwords"
 0x005d03b0,Obj_SwapPair,function,high,reimplemented (src/game/core/stdlist); the dwords at +4 and +8 swapped with another object's
 0x005dd3d0,Obj_ChooseVector,function,high,reimplemented (src/game/frontend/viewcontrols); the vector at +0x10 taken from one of two others
@@ -4788,6 +4789,7 @@ address,name,kind,confidence,notes
 0x006c7fe0,VoiceStream_DeletingDtor,function,low,"reimplemented (src/game/core/voicesample); thiscall (flags), pops 4; slot 0 of 0x70adc0: VoiceStream_Dtor; flags bit 0: VoiceStreamPool_Delete (0x5c); returns the sample"
 0x006c7b20,VoiceSample_Ctor,function,low,"reimplemented (src/game/core/voicesample); thiscall (record, source), pops 8: the voice-coded sample's constructor: SoundSample_Ctor, +0x2c = +0x34 = 0, a 0x1a7c-byte decoder (Mem_Alloc) at +0x38, the vtable 0x70ad60, the data's end +0x3c = the record's +4 + the data (+0x10), +0x34 bit 0 from the record's +0x1b bit 2 (name invented)"
 0x006c7f70,VoiceStream_Ctor,function,low,"reimplemented (src/game/core/voicesample); thiscall (stream, record, source), pops 0xc: the voice-coded stream sample's constructor: VoiceSample_Ctor, SubStream_Ctor (+0x40, stream), its vtable 0x70ae18, the sample's 0x70adc0 (name invented)"
+0x006c8070,VoiceStreamWindow_Read,function,low,"reimplemented (src/game/core/voicesample); the voice stream's window read, clipped to the sample's length; the end marked"
 0x006c7010,SoundSample_ScheduleEnd,function,low,"reimplemented (src/game/core/soundsample); thiscall (flag, bytes), pops 8; slot 19 of the sound samples: with the flag's low byte 0, +0x1c = the bytes' play time (halved for 16-bit and for stereo, * 1000 / slot 6) + Time_GetMs + 200, returns 1; else 0"
 0x006c7070,SoundSample_Drained,function,low,"reimplemented (src/game/core/soundsample); thiscall: 1 once Time_GetMs has reached +0x1c (unsigned), else 0"
 0x006bb1d0,SoundSample_Describe,function,low,"reimplemented (src/game/core/soundsample); thiscall (record), pops 4; slot 5 of the sound samples: SoundStream_Describe (record)"

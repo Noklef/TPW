@@ -50,4 +50,10 @@ u8 *__fastcall VoiceSample_Ctor(u8 *sample, void *, const u8 *record, u8 *source
 // vtable 0x70ae18, the sample's 0x70adc0. Returns the sample.
 u8 *__fastcall VoiceStream_Ctor(u8 *sample, void *, const u8 *stream, const u8 *record, u8 *source);
 
+// 0x6c8070 (thiscall (buffer, count), pops 8; slot 1 of 0x70ae18, the window at +0x40 of the voice stream sample (0x70adc0); name
+// invented): SubStream_Read (buffer, the count or, when fewer, the bytes left: the sample's length (+0x18, this - 0x28) less the position
+// (+4)); once the position is at or past the length, the sample's +0x3c (this - 4) = the answer + the buffer's address (sic) and bit 1 of
+// its +0x34 (this - 0xc) set. Returns SubStream_Read's answer.
+u32 __fastcall VoiceStreamWindow_Read(u8 *window, void *, u8 *buffer, u32 count);
+
 }  // extern "C"
