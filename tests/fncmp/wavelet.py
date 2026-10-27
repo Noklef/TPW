@@ -31,8 +31,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, LOG, Bench, Call, RAM, fb, heap, log_region, put, vtable  # noqa: E402
 
-B = Bench([(0x5916c0, 0x59196b), (0x591ab0, 0x59205a), (0x592150, 0x593ab0), (0x595920, 0x5985c0), (0x598630, 0x598790), (0x5f8050, 0x5f8120), (0x5839e0, 0x583a00)])
-OPS = [k for k in os.environ.get('OPS', 'PUT,UNPACK,YUV,D4ROW,HALVE,FWD,GREY,ENCODE,READ,IROW,ICOLS,DGREY,RGB,DCOL,V13,V13S,DECODE,CTOR').split(',') if k]
+B = Bench([(0x5916c0, 0x59196b), (0x591ab0, 0x59205a), (0x592150, 0x593ab0), (0x595920, 0x5985c0), (0x5985c0, 0x598629), (0x598630, 0x598790), (0x5f8050, 0x5f8120), (0x5839e0, 0x583a00)])
+OPS = [k for k in os.environ.get('OPS', 'PUT,UNPACK,YUV,D4ROW,HALVE,FWD,GREY,ENCODE,READ,IROW,ICOLS,DGREY,RGB,DCOL,V13,V13S,DECODE,CTOR,CREATE').split(',') if k]
 CURSOR = RAM + 8
 CODEC, PLANES, SRC, DST, FILTER = RAM, RAM + 0x1000, RAM + 0x2000, RAM + 0x3000, 0xc27208
 OUT, SIZE, OLD, STREAM = RAM + 0x4000, RAM + 0x4100, RAM + 0x5000, 0xa067f8
@@ -94,6 +94,10 @@ def case(r):
         return decode(r)
     if op == 'CTOR':
         return construct(r)
+    if op == 'CREATE':   # (0x5985c0: CTOR's set-up, the codec allocated, most derived; the heap failing its first or second block now and then)
+        c = construct(r)
+        c.regions[HEAP] = heap(0xb0000, fail=r.choice([0] * 6 + [1, 2]))
+        return Call(0x5985c0, [], c.regions, ret='a')
     if op in ('READ', 'IROW', 'ICOLS', 'DGREY'):
         return decoder(r, op)
     if op != 'HALVE':

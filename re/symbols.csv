@@ -88,7 +88,7 @@ address,name,kind,confidence,notes
 0x00556f40,Rsse_StartWalker,function,low,"reimplemented (src/game/rsse/rsse_vm); cdecl (vm, value, from, to, a, b, kind, last): a walker slot filled between two ride parts, its time 100 times their distance, its octant the direction between them"
 0x00572780,Engine_Init,function,high,"'Initializing engine internals'; logs a checkpoint after each renderer subsystem (… 'wavelet/printf ok')"
 0x00564b20,Wavelet_Init,function,medium,creates the global wavelet codec (DAT_00879a64) during Engine_Init
-0x005985c0,WaveletCodec_Create,function,medium,allocates 0x58 bytes and constructs; returns the IWaveletCodec interface pointer
+0x005985c0,WaveletCodec_Create,function,medium,"reimplemented (src/game/gfx/wavelet); Mem_Alloc 0x58 and WaveletCodec_Construct (most derived); null on failure, else the codec interface through the virtual base displacement"
 0x005916c0,WaveletCodec_Construct,function,high,"reimplemented (src/game/gfx/wavelet); thiscall (most derived), pops 4: the codec's fields and vtables, the decoders' clamp, pixel and YUV to RGB tables, its two blocks"
 0x00591ab0,WaveletCodec_Encode,function,high,"reimplemented (src/game/gfx/wavelet); thiscall on the interface (width, height, colour, pixels, dst, size out, qY, qCb, qCr): grey or YUV 4:2:0 encode"
 0x00592060,WaveletCodec_Decode,function,high,reimplemented (src/game/gfx/wavelet); the decode dispatch on the format version 0x12 or 0x13
