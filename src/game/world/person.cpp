@@ -466,6 +466,13 @@ u32 __fastcall Person_DumpActionHistory(u8 *person) {
     return 0xffffffff;  // (the loop counter's last value, left in EAX)
 }
 
+void __fastcall Person_TickSpeed(u8 *person) {
+    Person_UpdateSpeed(person);
+    const u32 ticks = at<u32>(global<u8 *>(0x0080239c), 0x1da70c);
+    u16 handle;
+    if (((*Thing_GetHandle(person, nullptr, &handle) ^ ticks) & 3) == 0) Person_KillScript84After(person + 0x30);
+}
+
 void __fastcall Person_UpdateSpeed(u8 *person) {
     const u32 sum = (u32)at<u16>(person, 0xc2) + at<u16>(person, 0xc0) + at<u16>(person, 0xc4);
     const X87Reg pace = X87Reg((double)(s32)sum) / X87Reg((double)(global<u32>(0x0075c7fc) & 0xffff));

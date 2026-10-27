@@ -164,4 +164,9 @@ u32 __fastcall Person_DumpActionHistory(u8 *person);
 // at 0x75c7fc - +0xc8 * -3.0) * 0.25 (x87), passed to the nav (+0xd4: Nav_SetSpeed); the word +0xc4 = its product with 99 (16 bits) / 100; the
 // position +0x190 / +0x194 read back from the nav (Nav_GetPos), and the script reference +0xc applied (ScriptRef_Apply).
 void __fastcall Person_UpdateSpeed(u8 *person);
+
+// 0x505490 (thiscall; called from 0x4d46c2, 0x4d63c2, 0x4d7068; name invented): Person_UpdateSpeed, then on the world's ticks
+// ([0x80239c] +0x1da70c, read after it) whose low two bits are the handle's (Thing_GetHandle) the script at +0x30 +0x84 let go once its
+// time is up (Person_KillScript84After on +0x30).
+void __fastcall Person_TickSpeed(u8 *person);
 }
