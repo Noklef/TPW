@@ -33,6 +33,10 @@ u32 __fastcall SoundSource711920_GetSound(u8 *source, void *, u32 *out);
 // (front's x, 0, front's z, top's x, y, z: six floats moved through the x87, a signalling NaN quieted) answered into *out. Returns out.
 u32 *__fastcall SoundSource711b08_SetOrientation(u8 *source, void *, u32 *out, const u32 *front, const u32 *top);
 
+// 0x6d35d0 (slot 30 of 0x711b08, thiscall (out, index, vector), pops 0xc; name invented): the slot at the index (+0x28, 0x2c bytes each;
+// not checked) asked for its position (SoundSlot_GetPosition: out, vector). Returns out.
+u32 *__fastcall SoundSource711b08_GetSlotPosition(u8 *source, void *, u32 *out, u32 index, u8 *vector);
+
 // 0x6d3020 (thiscall; name invented): +0x30 = 2 * +4 + 1 events, +0x2c a new array of them (Mem_Alloc; not checked), each
 // CreateEventA (0, 0, 0, 0).
 void __fastcall SoundSource711b08_CreateEvents(u8 *source);

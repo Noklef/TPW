@@ -7,6 +7,7 @@
 #include "gameheap.h"
 #include "methods.h"
 #include "sounddevice.h"
+#include "soundslot.h"
 #include "vcall.h"
 
 namespace {
@@ -73,6 +74,11 @@ u32 __fastcall SoundSource711920_GetSound(u8 *, void *, u32 *out) {
     const u32 sound = at<u32>(SoundDevice_Get(), 0);
     *out = sound;
     return (sound & 0xffffff00) | (sound ? 1 : 0);
+}
+
+u32 *__fastcall SoundSource711b08_GetSlotPosition(u8 *source, void *, u32 *out, u32 index, u8 *vector) {
+    SoundSlot_GetPosition(*reinterpret_cast<u8 **>(source + 0x28) + index * 0x2c, nullptr, out, vector);
+    return out;
 }
 
 u32 *__fastcall SoundSource711b08_SetOrientation(u8 *source, void *, u32 *out, const u32 *front, const u32 *top) {
