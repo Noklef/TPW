@@ -100,6 +100,9 @@ u8 *__fastcall StaffPool_ValidEntry(u8 *pool, void *, u32 index);
 // 0x5087b0: the index of the pool's first entry not mValid, 0x20 when all are.
 u32 __fastcall StaffPool_FirstInvalid(const u8 *pool);
 
+// 0x508380 (type; called by 0x4c9e4b): how many of the pool's 0x20 entries are mValid (+0xa) with the dword +0 the type.
+u32 __fastcall StaffPool_CountOfType(const u8 *pool, void *, u32 type);
+
 // 0x50c620: the staff training (serialized at 0x50c640: 5 x u32 mBudget, u8 mHaveEverTrained)
 // zeroed. Returns it.
 u8 *__fastcall StaffTraining_Ctor(u8 *training);
@@ -203,6 +206,10 @@ void __fastcall Mechanic_SetState(u8 *mechanic, void *, u32 state);
 // reference's animation (+0xc, Set4_4217f0) 9. 9 and 0xb: +0x214 = the world's tick ([0x80239c] +0x1da70c) and the animation 0x11. Others:
 // Staff_SetState. The state is then +0x19c.
 void __fastcall Handyman_SetState(u8 *handyman, void *, u32 state);
+
+// 0x502c20 (thiscall (state), pops 4): a researcher's state. 0xf: +0x214 = the world's tick ([0x80239c] +0x1da70c) and the reference's
+// animation (+0xc, Set4_4217f0) 0xa. Others: Staff_SetState. The state is then +0x19c.
+void __fastcall Researcher_SetState(u8 *researcher, void *, u32 state);
 
 // 0x4d7880 (thiscall; out, pops 4; name unconfirmed: Handyman_Update's, which keeps the result at +0x21a): the handyman's next job, by the world's
 // object list (head +0x1da746 of [0x80239c], the thing table 0x7cfb90, next +0xc). An object with flag 0 of +0x32 that tracks nobody or this

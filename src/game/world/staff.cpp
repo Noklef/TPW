@@ -200,6 +200,14 @@ u32 __fastcall StaffPool_FirstInvalid(const u8 *pool) {
     return 0x20;
 }
 
+u32 __fastcall StaffPool_CountOfType(const u8 *pool, void *, u32 type) {
+    u32 count = 0;
+    for (u32 i = 0; i != 0x20; ++i) {
+        if (at<u8>(pool + i * 20, 0xa) && at<u32>(pool + i * 20, 0) == type) ++count;
+    }
+    return count;
+}
+
 u16 *__fastcall Staff_NearestInList1da740(const u8 *object, void *, u16 *out) {
     u16 best = 0;
     u32 bestDistance = 0xffffffff;
@@ -596,6 +604,16 @@ void __fastcall Handyman_SetState(u8 *handyman, void *, u32 state) {
         Staff_SetState(handyman, nullptr, state);
     }
     at<u32>(handyman, 0x19c) = state;
+}
+
+void __fastcall Researcher_SetState(u8 *researcher, void *, u32 state) {
+    if (state == 0xf) {
+        at<u32>(researcher, 0x214) = global<u32>(global<u32>(0x0080239c) + 0x1da70c);
+        Set4_4217f0(researcher + 0xc, nullptr, 0xa);
+    } else {
+        Staff_SetState(researcher, nullptr, state);
+    }
+    at<u32>(researcher, 0x19c) = state;
 }
 
 void __fastcall Staff_HeadForEntrance(u8 *staff) {
