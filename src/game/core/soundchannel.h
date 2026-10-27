@@ -198,5 +198,10 @@ u8 *__fastcall SoundChannel_SetRecordBlock(u8 *record, void *, const u32 *block)
 // 0x6b92f0 (thiscall (hide), pops 4; name invented): with the byte +0x64 not the argument's low byte, that byte stored and
 // SoundCategory_HideFlag40Samples (the argument) on SoundCategory_Get's singleton.
 void __fastcall SoundChannel_SetHidden(u8 *channel, void *, u32 hide);
+// 0x6c5be0 (thiscall; an SEH frame; names invented): the EAX channel's (vtable 0x70a630) destructor: its EAX records (+0x68), when there
+// are some, freed and cleared, then SoundChannel_Dtor. 0x6ba200 (its slot 2, pops 4): that, then the channel freed when the flags' bit 0
+// is set; returns the channel.
+void __fastcall SoundChannelEax_Dtor(u8 *channel);
+u8 *__fastcall SoundChannelEax_DeletingDtor(u8 *channel, void *, u32 flags);
 
 }  // extern "C"
