@@ -425,6 +425,7 @@
 #include "../game/ui/dialog7cc5f4.h"
 #include "../game/ui/dialog7cca94.h"
 #include "../game/ui/guifont.h"
+#include "../game/ui/guinamed.h"
 #include "../game/ui/guitoken.h"
 #include "../game/ui/hoverlabel.h"
 #include "../game/ui/levelmeter.h"
@@ -5811,6 +5812,9 @@ const Hook kHooks[] = {
     {"Dialog7ca150_ShowTab1",     0x00494c70, (void *)&Dialog7ca150_ShowTab1, {0x8b, 0x0d, 0x50, 0xa1, 0x7c}},
     {"Dialog7ca150_ShowTab2",     0x00494250, (void *)&Dialog7ca150_ShowTab2, {0x8b, 0x0d, 0x50, 0xa1, 0x7c}},
     {"Dialog7ca150_ShowTab3",     0x00495110, (void *)&Dialog7ca150_ShowTab3, {0x8b, 0x0d, 0x50, 0xa1, 0x7c}},
+    {"GuiNamed_Add",              0x00661a93, (void *)&GuiNamed_Add, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiNamed_FreeAll",          0x00661b3c, (void *)&GuiNamed_FreeAll, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiNamed_Find",             0x00661bab, (void *)&GuiNamed_Find, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
