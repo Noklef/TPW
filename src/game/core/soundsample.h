@@ -41,5 +41,13 @@ u32 __fastcall SoundSample_ReadMemory(u8 *sample, void *, u8 *buffer, u32 bytes,
 u32 __fastcall SoundSample_ReadFile(u8 *sample, void *, u8 *buffer, u32 bytes, u32 *out, u32 flag);
 // 0x6c7920 (thiscall; slot 8 of 0x70acf0): SubStream_Rewind on the window (+0x2c); returns its answer.
 u32 __fastcall SoundSample_RewindFile(u8 *sample);
+// The file sample (vtable 0x70acf0; the window on its file, a SubStream, at +0x2c with the vtable 0x70ad40): 0x6c7780 (thiscall (stream,
+// record, start, source), pops 0x10): SoundSample_Ctor (record, source), the vtable 0x70a6f8, SubStream_CtorAt (+0x2c, stream, start), its
+// vtable 0x70ad40, the sample's 0x70acf0; returns the sample. 0x6c7820 (thiscall): the window's (vtable 0x70ad50; Semaphore_Dtor (+0x14),
+// StreamBase_Dtor (+0xc)), then SoundSample_Dtor. 0x6c7800 (thiscall (flags), pops 4; slot 0): it, and with flags bit 0 the block back
+// to its pool (FileSamplePool_Delete, 0x48); returns the sample. (Names invented.)
+u8 *__fastcall FileSample_Ctor(u8 *sample, void *, const u8 *stream, u8 *record, u32 start, u8 *source);
+void __fastcall FileSample_Dtor(u8 *sample);
+u8 *__fastcall FileSample_DeletingDtor(u8 *sample, void *, u32 flags);
 
 }  // extern "C"

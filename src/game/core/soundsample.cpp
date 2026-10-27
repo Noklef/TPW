@@ -3,9 +3,12 @@
 #include <cstdint>
 
 #include "../files/file.h"
+#include "../files/handles.h"
 #include "../files/substream.h"
 #include "gameheap.h"
+#include "semaphore.h"
 #include "soundstream.h"
+#include "streampool.h"
 #include "vcall.h"
 #include "vtables.h"
 
@@ -93,5 +96,28 @@ u32 __fastcall SoundSample_ReadFile(u8 *sample, void *, u8 *buffer, u32 bytes, u
 }
 
 u32 __fastcall SoundSample_RewindFile(u8 *sample) { return SubStream_Rewind(sample + 0x2c); }
+
+u8 *__fastcall FileSample_Ctor(u8 *sample, void *, const u8 *stream, u8 *record, u32 start, u8 *source) {
+    SoundSample_Ctor(sample, nullptr, record, source);
+    at<u32>(sample, 0) = 0x0070a6f8;
+    SubStream_CtorAt(sample + 0x2c, nullptr, stream, start);
+    at<u32>(sample, 0x2c) = 0x0070ad40;
+    at<u32>(sample, 0) = 0x0070acf0;
+    return sample;
+}
+
+void __fastcall FileSample_Dtor(u8 *sample) {
+    u8 *const sub = sample + 0x2c;   // (the original tests the sample for null first)
+    at<u32>(sub, 0) = 0x0070ad50;
+    Semaphore_Dtor(reinterpret_cast<Semaphore *>(sub + 0x14));
+    StreamBase_Dtor(reinterpret_cast<StreamBase *>(sub + 0xc));
+    SoundSample_Dtor(sample);
+}
+
+u8 *__fastcall FileSample_DeletingDtor(u8 *sample, void *, u32 flags) {
+    FileSample_Dtor(sample);
+    if (flags & 1) FileSamplePool_Delete(sample, 0x48);
+    return sample;
+}
 
 }  // extern "C"
