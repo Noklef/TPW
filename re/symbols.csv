@@ -5633,6 +5633,7 @@ address,name,kind,confidence,notes
 0x005bd1b0,Owner2c_Add702940s,function,low,"reimplemented (src/game/online/items); thiscall (array {count, records}); a 0x702940 item (Mem_Alloc 0x48) made for each 0x10-byte record"
 0x005bd5f0,Owner2c_Add702944s,function,low,"reimplemented (src/game/online/items); thiscall (array {count, records}); a 0x702944 item (Mem_Alloc 0x80) made for each 0x26-byte record"
 0x005bda40,Owner2c_Add702948s,function,low,"reimplemented (src/game/online/items); thiscall (array {count, records}); a 0x702948 item (Mem_Alloc 0x6c) made for each 0x34-byte record"
+0x005bc9f0,Owner2c_Add70293cs,function,low,"reimplemented (src/game/online/items); the owner loads a record array as 0x70293c items: Mem_Alloc 0xc0 and Class70293c_CtorFrom per record, records 0x66 bytes apart"
 0x005bc910,OnlineList_GetCities,function,low,"reimplemented (src/game/online/onlinelist); stdcall (city, request); debug text ""ONLINELIST: Getting city list""; City::GetCityList(0, request, 0)"
 0x005bd180,OnlineList_GetThemes,function,low,"reimplemented (src/game/online/onlinelist); stdcall (city, request); debug text ""ONLINELIST: Getting theme list""; City::GetThemeList(0, request, 0)"
 0x005bda10,OnlineList_GetRides,function,low,"reimplemented (src/game/online/onlinelist); stdcall (city, request); debug text ""ONLINELIST: Getting ride list""; City::GetRideList(0, request, 0)"
