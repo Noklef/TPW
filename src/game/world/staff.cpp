@@ -26,6 +26,7 @@
 #include "random.h"
 #include "research.h"
 #include "ridelist.h"
+#include "thingmsg.h"
 #include "things.h"
 #include "thingscan.h"
 #include "world.h"
@@ -750,5 +751,24 @@ u32 __fastcall StaffAdvice_KindLow(const u8 *self, void *, u32 kind) {
     }
     if (chain_low(kKindHeads[kind], 0x1fc)) return 1;
     return chain_low(kKindHeads[kind], 0x1f8) ? 1 : 0;
+}
+
+void __fastcall StaffAdvice_Update(u8 *self, void *, u32 kind) {
+    FileTime out;
+    const FileTime *const age = FunnyTime_Elapsed(**reinterpret_cast<u8 ***>((uintptr_t)0x007cf6ec) + 0x2a0, nullptr, &out);
+    if ((s32)((long long)((unsigned long long)age->high << 32 | age->low) / 25920000000000LL) < 0x18) return;   // (_alldiv by 30 days)
+    u32 *const state = reinterpret_cast<u32 *>(self + 0x24 + 12 * kind);
+    u32 msg[4];
+    if (StaffAdvice_KindLow(self, nullptr, kind)) {
+        const u32 now = state[0];
+        if (now > 4) return;
+        state[0] = now == 0 ? 1 : now == 4 ? 4 : now + 1;
+        if (now) state[1] = 1;
+        Object_PostMessage(ThingMsg17_Ctor(reinterpret_cast<u8 *>(msg), nullptr, kind, now ? 2 : 0));
+        return;
+    }
+    if (state[0] == 1) Object_PostMessage(ThingMsg17_Ctor(reinterpret_cast<u8 *>(msg), nullptr, kind, 3));
+    state[0] = 0;
+    state[1] = 0;
 }
 }

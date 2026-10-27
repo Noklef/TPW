@@ -4089,6 +4089,7 @@ address,name,kind,confidence,notes
 0x00502920,Researcher_Detach,function,low,"reimplemented (src/game/world/staff); thiscall: out of the game object's researcher chain (Things_Unlink1da742), Staff_Detach, the lab's flag synced when there is a lab"
 0x00504c70,Staff_HandleMessage,function,low,"reimplemented (src/game/world/staff); thiscall (message), pops 4: pay day (0xc) debits the wage and adds it to the record's +0x1f7f0; 0xa for the rest area: state 3 leaves it and heads to the nearest one, state 2 clears it and returns to state 0"
 0x00509360,StaffAdvice_KindLow,function,low,"reimplemented (src/game/world/staff); thiscall (kind), pops 4: 1 when +0x64 is set, or (kind 0) the sums' ratio is above 0.2, or the kind's staff chain has more than 3 members averaging below 15 in the low byte of +0x1fc, then +0x1f8; else 0"
+0x00508f70,StaffAdvice_Update,function,low,"reimplemented (src/game/world/staff); thiscall (kind), pops 4: once the game clock's elapsed time is 24 30-day months, the kind's advice state +0x24 + 12 * kind steps on (message 17 of (kind, 0 or 2) posted) while StaffAdvice_KindLow, else is cleared with its flag (message 17 of (kind, 3) when it was 1)"
 0x00520d60,FreeList_Take,function,high,reimplemented (src/game/core/voices); takes a record off the free list into a table entry
 0x00521890,FreeList_Return,function,high,reimplemented (src/game/core/voices); puts a record back on the free list
 0x00521d60,Voice_ScaleLevels,function,high,reimplemented (src/game/core/voices); scales a voice's levels by the factor over 1024

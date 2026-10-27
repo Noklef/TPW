@@ -269,4 +269,10 @@ void Staff_SetAdviceEnv(const StaffAdviceEnv *env);
 // as a float over sumB(1) is above 0.2) 1 when the chain has more than 3 members and the average low byte of the truncated float +0x1fc
 // is below 15, else the same for +0x1f8; 0 otherwise (others: 0 after the original's debug print).
 u32 __fastcall StaffAdvice_KindLow(const u8 *self, void *, u32 kind);
+// 0x508f70 (thiscall (kind), pops 4; name invented, unconfirmed): nothing until the game clock's elapsed time ([[0x7cf6ec]] + 0x2a0,
+// FunnyTime_Elapsed) is 24 30-day months (the signed 64-bit quotient's low dword). Then the kind's state +0x24 + 12 * kind and flag
+// (+4): while StaffAdvice_KindLow, the state 0 becomes 1 (message 17 of (kind, 0) posted), 1-4 become 2, 3, 4, 4 with the flag set
+// (message 17 of (kind, 2)), others stay; else message 17 of (kind, 3) when the state is 1, and the state and flag cleared.
+// (The messages through Object_PostMessage: agent B's unported 0x40fb10.)
+void __fastcall StaffAdvice_Update(u8 *self, void *, u32 kind);
 }
