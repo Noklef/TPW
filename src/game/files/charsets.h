@@ -8,7 +8,7 @@
 // Charset (vtable 0x70a060, a "BFST" file): +8 the count of entries, +0xc their table (each a dword offset from the table, made a pointer
 // by the constructor; Records_DataIfTerminated, methods.h), +0x10 the index's CodeTable (key 1), +0x14 its RangeTable (key 2), each held
 // (a reference) or null.
-// Reimplementation of 0x6aca10-0x6acb64, 0x6acec0-0x6acfbf, 0x6ad860-0x6ad8eb, 0x6ad950-0x6ad9f2 and 0x6ada90-0x6adc7a.
+// Reimplementation of 0x6aca10-0x6ace5c, 0x6acec0-0x6acfbf, 0x6ad860-0x6ad8eb, 0x6ad950-0x6ad9f2 and 0x6ada90-0x6adc7a.
 #pragma once
 
 #include "../../../re/types.h"
@@ -67,5 +67,27 @@ u8 *__fastcall Charset_DeletingDtor(u8 *charset, void *, u32 flags);
 // to +0x18 (not all of them: the block freed, -1), a Charset constructed in it (the header's third dword the count, that data the table,
 // the index), *object the block: 0. Returns &result.
 s32 *__fastcall Charset_Load(u8 *loader, void *, s32 *result, u8 *stream, u8 **object, u32 key, u8 *index);
+
+// 0x6ace20 (stdcall (key, &cursor), pops 8): the formatter's arguments (textarg.h) taken from *cursor in turn (advanced past each, the
+// one that ends it too): stops at a null one, one without the tag 'MRAV' (+4) or once one with the key as its number (+8) was found;
+// returns that, else 0.
+u8 *__stdcall TextArgs_Find(u32 key, u8 ***cursor);
+
+// 0x6acb70 (thiscall (writer, entry, args), pops 12): the entry's (the table +0xc, no bounds check) program run against the writer, a
+// dword at a time, its low byte the op and the rest (>> 8) its operand: 0 the writer's slot 1 (finish), 0; 1 that many bytes of the
+// program (padded to dwords) through the writer's slot 3; 2 the argument numbered so (TextArgs_Find from args, afresh each time; none:
+// -1) told slot 0 (writer, &state), the state then reset ({0, 0xffff, 0, 0}): below 0 -1; 3 the state's +0 the program here, that many
+// dwords skipped; 4 its +8 the operand; 5 its word +6 and 6 its word +4 the operand >> 8 (the op's high word). Any other op -1.
+s32 __fastcall Charset_Format(u8 *charset, void *, u8 *writer, u32 entry, u8 **args);
+
+// 0x6acca0 (cdecl (charset, dest, size, entry, args...); an SEH frame): a narrow-text writer (narrowwriter.h) on the stack over dest to
+// dest + size, its range table the charset's +0x14 (given a reference, slot 1, when there is one); Charset_Format with it, the entry and the
+// arguments after it; the writer finished (NarrowWriter_Finish) and its table (left 0 by that) released when there is one. Returns
+// Charset_Format's.
+s32 __cdecl Charset_FormatNarrow(u8 *charset, u8 *dest, u32 size, u32 entry, ...);
+
+// 0x6acd60 (cdecl (charset, dest, size, entry, args...); an SEH frame): Charset_FormatNarrow's wide twin: a wide-text writer
+// (widewriter.h) over size 16-bit cells, its code table the charset's +0x10, finished by WideWriter_Finish.
+s32 __cdecl Charset_FormatWide(u8 *charset, u16 *dest, u32 size, u32 entry, ...);
 
 }

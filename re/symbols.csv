@@ -3059,6 +3059,10 @@ address,name,kind,confidence,notes
 0x006acb00,Charset_Dtor,function,low,reimplemented (src/game/files/charsets); A charset destroyed: its range and code tables released
 0x006acae0,Charset_DeletingDtor,function,low,reimplemented (src/game/files/charsets); A charset destroyed and freed for flags bit 0
 0x006acec0,Charset_Load,function,low,reimplemented (src/game/files/charsets); A charset read from a BFST file's stream (the resource index's kind 3 loader)
+0x006ace20,TextArgs_Find,function,low,"reimplemented (src/game/files/charsets); The text formatter's argument with a number, from a cursor over the arguments"
+0x006acb70,Charset_Format,function,low,reimplemented (src/game/files/charsets); A charset entry's format program run against a text writer with the formatter's arguments
+0x006acca0,Charset_FormatNarrow,function,low,reimplemented (src/game/files/charsets); A charset entry formatted into a byte buffer through a narrow-text writer
+0x006acd60,Charset_FormatWide,function,low,reimplemented (src/game/files/charsets); A charset entry formatted into a 16-bit buffer through a wide-text writer
 0x005c9040,Class70295c_Ctor,function,high,"reimplemented (src/game/core/vdtor); Init_5d36c0, vtable 0x70295c and four zeroed dwords"
 0x005d03b0,Obj_SwapPair,function,high,reimplemented (src/game/core/stdlist); the dwords at +4 and +8 swapped with another object's
 0x005dd3d0,Obj_ChooseVector,function,high,reimplemented (src/game/frontend/viewcontrols); the vector at +0x10 taken from one of two others

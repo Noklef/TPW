@@ -11,15 +11,27 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import LOG, Bench, Call, HEAP, RAM, echo, fill, heap, log_region, set_return, strings, vtable  # noqa: E402
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from fncmp import LOG, Bench, Call, HEAP, RAM, blob, echo, fill, heap, log_region, set_return, strings, vtable  # noqa: E402
+import crt  # noqa: E402
+import narrowwriter as nw  # noqa: E402
+import widewriter as ww  # noqa: E402
 
 B = Bench([(0x6ad860, 0x6ad8ec), (0x6ad950, 0x6ad9f2), (0x6ada90, 0x6adc7a), (0x6af760, 0x6af770), (0x6aca10, 0x6acb65), (0x6acec0, 0x6acfbf),
-           (0x6af960, 0x6af9c9), (0x6afa30, 0x6afa6f), (0x6afc60, 0x6afc8d)])
+           (0x6af960, 0x6af9c9), (0x6afa30, 0x6afa6f), (0x6afc60, 0x6afc8d), (0x6acb70, 0x6acc94), (0x6acca0, 0x6ace5d), (0x6add40, 0x6add86),
+           (0x6afc90, 0x6afd36), (0x6afd40, 0x6afe80), (0x6afe80, 0x6b0122), (0x6ad8f0, 0x6ad946)], hooks={0x67af00: crt.swprintf_hook})
+# the formatter's cases (Format, FindArg, FormatNarrow, FormatWide): their own regions from FBASE (narrowwriter.py's and widewriter.py's
+# writers and tables sit below it)
+FBASE = RAM + 0x2000
+CS, ENTRIES, PROGS, ARGS, ARGOBJ, VT_ARG = FBASE, FBASE + 0x40, FBASE + 0x80, FBASE + 0x300, FBASE + 0x340, FBASE + 0x440
+STRS, DEST, CT, VT_H, CODES, REC, VT_REC, CUR = FBASE + 0x4c0, FBASE + 0x600, FBASE + 0x700, FBASE + 0x780, FBASE + 0x800, FBASE + 0xa00, \
+    FBASE + 0xa80, FBASE + 0xb00
+FORMAT_OPS = {'Format': 0x6acb70, 'FindArg': 0x6ace20, 'FormatNarrow': 0x6acca0, 'FormatWide': 0x6acd60}
 THIS, RESULT, OUT, STREAM, VT_STREAM, LOADER = RAM, RAM + 0x80, RAM + 0x90, RAM + 0x100, RAM + 0x200, RAM + 0x300
 INDEX, RECORDS, TABLE, VT_ENTRY, ENTRY_OBJ = RAM + 0x400, RAM + 0x480, RAM + 0x500, RAM + 0x600, RAM + 0x700
 OPS = {'RangeCtor': 0x6ad860, 'RangeDtor': 0x6ad8c0, 'RangeDelete': 0x6ad8a0, 'RangeLoad': 0x6ad950,
        'CodeCtor': 0x6adbe0, 'CodeDtor': 0x6adc50, 'CodeDelete': 0x6adc30, 'CodeLoad': 0x6ada90,
-       'CharsetCtor': 0x6aca10, 'CharsetDtor': 0x6acb00, 'CharsetDelete': 0x6acae0, 'CharsetLoad': 0x6acec0}
+       'CharsetCtor': 0x6aca10, 'CharsetDtor': 0x6acb00, 'CharsetDelete': 0x6acae0, 'CharsetLoad': 0x6acec0, **FORMAT_OPS}
 RETURNS = {'RangeDtor': 'v', 'CodeDtor': 'v', 'CharsetDtor': 'v'}
 MAGIC = {'RangeLoad': [0x4d554642], 'CodeLoad': [0x554d4642, 0x484d4642], 'CharsetLoad': [0x54534642]}   # "BFUM"; "BFMU", "BFMH"; "BFST"
 HEADER = {'RangeLoad': 4, 'CodeLoad': 8, 'CharsetLoad': 12}
@@ -75,9 +87,106 @@ def load_case(r, op, regions):
     return [RESULT, STREAM, OUT, key, index(r, regions) if op == 'CharsetLoad' else r.getrandbits(32)]
 
 
+def program(r):
+    """An entry's program: 0-8 ops (1 literal bytes below 0x7f, 2 an argument 0-4, 3 inline dwords, 4 a dword, 5 / 6 a word), then 0 (finish)
+    or now and then an op past 6."""
+    words = []
+    for _ in range(r.choice([0, 1, 2, 3, 5, 8])):
+        op = r.choice([1, 1, 2, 2, 2, 3, 4, 5, 6])
+        if op == 1:
+            n = r.choice([0, 1, 3, 4, 5, 9])
+            words.append(1 | n << 8)
+            data = bytes(r.randrange(0x20, 0x7f) for _ in range(n)) + r.bytes(-n % 4)
+            words += struct.unpack('<%dI' % (len(data) // 4), data)
+        elif op == 2:
+            words.append(2 | r.choice([0, 1, 2, 3, 4, 7]) << 8)
+        elif op == 3:
+            n = r.randrange(4)
+            words.append(3 | n << 8)
+            words += [r.getrandbits(32) for _ in range(n)]
+        else:
+            words.append(op | r.getrandbits(24) << 8)
+    words.append(0 | r.getrandbits(24) << 8 if r.random() < 0.9 else r.choice([7, 8, 0xff]) | r.getrandbits(24) << 8)
+    return words[:0x1f] + [0]
+
+
+def arguments(r, regions, writer_on_stack):
+    """The arguments: 0-4 pointers (the game's number or string argument, or a recorder answering 0, 1 or below 0; the tag now and then
+    another, the numbers 0-4), then a null or an untagged one."""
+    log = regions[LOG]
+    regions[VT_ARG] = vtable({0: 2})
+    set_return(log, 0, r.choice([0, 0, 0, 1, 0xffffffff, 0x80000000]))
+    blob(log, 0, 1, 7)   # (&state: on the stack; its three dwords)
+    if writer_on_stack:
+        strings(log, 0, 0, out=1)
+    ptrs, objs, strs = [], bytearray(), bytearray()
+    for k in range(r.choice([0, 1, 2, 3, 4])):
+        kind = r.choice([0x6ff170, 0x6ff174, VT_ARG])
+        text = [r.randrange(0x20, 0x7f) for _ in range(r.choice([0, 1, 4, 9]))] + [0]
+        s = STRS + len(strs)
+        strs += struct.pack('<%dH' % len(text), *text)
+        tag = 0x5641524d if r.random() < 0.93 else r.getrandbits(32)
+        objs += struct.pack('<5I', kind, tag, r.randrange(5) if r.random() < 0.9 else r.getrandbits(32),
+                            s if kind == 0x6ff174 else r.choice([0, 7, 0xffffffff, 12345, r.getrandbits(32)]), r.randrange(2)) + bytes(0xc)
+        ptrs.append(ARGOBJ + 0x20 * k)
+    end = 0 if r.random() < 0.8 else ARGOBJ + 0x20 * len(ptrs)
+    objs += struct.pack('<3I', VT_ARG, r.getrandbits(32), r.randrange(5)) + bytes(0x14)
+    regions[ARGOBJ] = bytes(objs)
+    regions[STRS] = bytes(strs) + bytes(4)
+    return ptrs + [end]
+
+
+def charset(r, regions):
+    """The charset: +0xc the entries (0-3, each a program), +0x10 a code table (lead 0xff or 0x80, 0x100 codes) or none, +0x14 the range
+    table of narrowwriter.py's world or none."""
+    progs = bytearray()
+    entries = []
+    for _ in range(4):
+        entries.append(PROGS + len(progs))
+        progs += struct.pack('<%dI' % 0x20, *(program(r) + [0] * 0x20)[:0x20])
+    regions[PROGS] = bytes(progs)
+    regions[ENTRIES] = struct.pack('<4I', *entries)
+    regions[VT_H] = vtable({})
+    regions[CT] = struct.pack('<2IBBHI', VT_H, 1, r.choice([0xff, 0x80]), 0, 0x100, CODES)
+    regions[CODES] = r.bytes(0x200)
+    regions[CS] = struct.pack('<6I', r.getrandbits(32), 1, 4, ENTRIES, CT if r.random() < 0.85 else 0,
+                              nw.TABLE if r.random() < 0.85 else 0)
+
+
+def format_case(r, op, regions):
+    entry = r.randrange(4)
+    if op == 'FindArg':   # (key, &cursor)
+        args = arguments(r, regions, False)
+        regions[ARGS] = struct.pack('<%dI' % len(args), *args)
+        regions[CUR] = struct.pack('<I', ARGS) + r.bytes(4)
+        return Call(OPS[op], [r.choice([0, 1, 2, 3, 4, 7]), CUR], regions, ret='a')
+    regions.update(nw.world(r))   # (its range table; its writer at nw.W for Format)
+    charset(r, regions)
+    args = arguments(r, regions, op != 'Format')
+    if op == 'Format':   # (writer, entry, args): the game's wide-text writer, its narrow-text writer or a recorder
+        u = r.random()
+        if u < 0.4:
+            ww.writer(r, regions, CT if r.random() < 0.85 else 0)
+            writer = ww.W
+        elif u < 0.75:
+            writer = nw.W
+        else:
+            regions[VT_REC] = vtable({3: 2, 5: 2})
+            regions[REC] = struct.pack('<I', VT_REC) + r.bytes(0xc)
+            strings(regions[LOG], 5, 0, out=1)   # (the number argument's stack buffer)
+            writer = REC
+        regions[ARGS] = struct.pack('<%dI' % len(args), *args)
+        return Call(OPS[op], [CS, writer, entry, ARGS], regions, conv='t', ret='a')
+    size = r.choice([0, 1, 2, 5, 0x10, 0x30, r.randrange(0x31)])
+    regions[DEST] = r.bytes(0x80)
+    return Call(OPS[op], [CS, DEST, size, entry] + args, regions, ret='a')
+
+
 def case(r):
     op = r.deal(PICK)
     regions = {LOG: log_region(), HEAP: heap(0x2000, fail=1 if r.random() < 0.08 else 0)}
+    if op in FORMAT_OPS:
+        return format_case(r, op, regions)
     this = THIS
     if op.endswith('Load'):
         stack = load_case(r, op, regions)
