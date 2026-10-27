@@ -96,6 +96,7 @@
 #include "../../src/game/world/tracksquare.h"
 #include "../../src/game/world/placeobject.h"
 #include "../../src/game/world/endthing.h"
+#include "../../src/game/world/parkopen.h"
 #include "../../src/game/world/cellrun.h"
 #include "../../src/game/world/staff.h"
 #include "../../src/game/world/things.h"
@@ -412,6 +413,8 @@ const PlaceObjectEnv kPlaceObjectEnv = {reinterpret_cast<u8 *(__fastcall *)(u8 *
 // 1, as tests/fncmp/endthing.py hooks them.
 const EndThingEnv kEndThingEnv = {reinterpret_cast<u8 *(__fastcall *)(u8 *, void *, u32, u32, s32, u32)>((uintptr_t)recorder(11, 4)),
                                   reinterpret_cast<void(__fastcall *)(void *, void *, u8 *)>((uintptr_t)recorder(12, 1))};
+// The park opening's object open (agent C's unported 0x4df390): thiscall recorder 13 of none, as tests/fncmp/parkopen.py hooks it.
+const ParkOpenEnv kParkOpenEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(13, 0))};
 // Thing_Detach's call into agent B's unported Ride_Destroy (0x463c80): cdecl recorder 31 of 1, as tests/fncmp/thingdetach.py hooks it.
 const ThingDetachEnv kThingDetachEnv = {reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(31, 1))};
 // Thing_Delete's per-kind deletes (agent C's unported 0x4dd0a0, 0x4d9fe0, 0x4d6c90, 0x4d4620, 0x4d5eb0, 0x4c9040; thingdetach.py's k 10-15).
@@ -1098,6 +1101,7 @@ int main(int argc, char **argv) {
     TrackSquare_SetEnv(&kTrackSquareEnv);
     PlaceObject_SetEnv(&kPlaceObjectEnv);
     EndThing_SetEnv(&kEndThingEnv);
+    ParkOpen_SetEnv(&kParkOpenEnv);
     Things_SetDetachEnv(&kThingDetachEnv);
     Things_SetDeleteEnv(&kThingDeleteEnv);
     Staff_SetAdviceEnv(&kStaffAdviceEnv);
