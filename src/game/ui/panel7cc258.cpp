@@ -111,4 +111,14 @@ void __fastcall Panel7cc258_Update(u8 *self) {
     }
     if (u8 *const figure = Window_FindChild(root(self), nullptr, 0xc085)) vcall<void>(figure, 0x1c, Obj_Get194(thing));
 }
+
+u32 __cdecl Panel7cc258_ApplyToThing(u8 *thing) {
+    const u8 *const shown = *reinterpret_cast<u8 *const *>((uintptr_t)0x007c2658);
+    if (*reinterpret_cast<const u16 *>(thing + 0xe) == *reinterpret_cast<const u16 *>(shown + 0xe)) {
+        Set198_4e21e0(thing, nullptr, *reinterpret_cast<const u32 *>((uintptr_t)0x007cc280));
+        Object_SetQualityOfGoods(thing, nullptr, (u8)(*reinterpret_cast<const s8 *>((uintptr_t)0x007cc27c) * 0x32));   // (IMUL CL: the low byte)
+        Obj_Set194(thing, nullptr, *reinterpret_cast<const u32 *>((uintptr_t)0x007cc284));
+    }
+    return 1;
+}
 }

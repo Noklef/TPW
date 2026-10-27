@@ -75,4 +75,15 @@ void __fastcall Panel7cc298_Dress(u8 *self) {
 }
 
 void __fastcall Panel7cc298_DressTip(u8 *self) { panelparts::tip(self); }
+
+u32 __cdecl Panel7cc298_ApplyToThing(u8 *thing) {
+    if (at<u16>(thing, 0xe) == at<u16>(global<const u8 *>(0x007c2658), 0xe)) {
+        Obj_Set194(thing, nullptr, global<u32>(0x007cc2c4));
+        if (!at<u32>(Object_GetDef(thing), 0x10c)) {
+            Object_SetChanceOfWinning(thing, nullptr, global<u8>(0x007cc2bc));
+            Obj_Set188(thing, nullptr, global<u32>(0x007cc2c0));
+        }
+    }
+    return 1;
+}
 }
