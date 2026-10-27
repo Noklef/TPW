@@ -35,7 +35,9 @@ B = Bench([(0x6c7bc0, 0x6c7dfb), (0x6c80c0, 0x6c8138), (0x6c7010, 0x6c7082), (0x
            (0x6c6e70, 0x6c6eed), (0x6c70a0, 0x6c70dc), (0x6c7090, 0x6c7097), (0x6c6f40, 0x6c6f87), (0x6c6f90, 0x6c6fee),
            (0x6c7250, 0x6c72e9), (0x6c7890, 0x6c7911), (0x6c7920, 0x6c7925)])
 SAMPLE, SVT, NEXT, SUBVT, FILEVT, OUT, RECORD, MEMREADER = (RAM + 0x100 * i for i in range(8))
-BUFFER, DECODER, BITS, BREADER = RAM + 0x800, RAM + 0x1000, RAM + 0x3000, RAM + 0x4000
+# (the buffer ends at the regions' 64 KB chunk: a wild count's frames run off it there at once, in both, where at RAM + 0x800 the
+# original wrote on through the decoder and the rest of the chunk, 0x7c00 samples and 37 frames decoded, past the emulator's 5M steps)
+BUFFER, DECODER, BITS, BREADER = RAM + 0xf800, RAM + 0x1000, RAM + 0x3000, RAM + 0x4000
 MEMORY_VTABLE, BUFFERED_VTABLE = 0x70adb8, 0x70ae28
 CLOCK, TIME_GET_TIME, TIME_K = 0xfa71e0, 0x6fd3ec, 12
 EDGES = [32767, 32768, -32768, -32769, 65535, 65536, 98303, 98304, -65536, -65537, 131071, 131072, -0.5, 0.5, 1.5, 2.5, -1.5]
