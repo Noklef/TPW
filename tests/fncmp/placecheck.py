@@ -4,7 +4,9 @@
 # then a chain's end, kinds 0-2, flags 0x40 / 0x10000 / 0x20000), their nodes and a few more on two coaster links (bits 0 / 2 now
 # and then, the coaster or another, the rule blocks or another, counts 0-4 against 0-4, objects' flags 0x200 / 0x400), the
 # tiles' taken bits, the editor's flags 0x100 / 0x40, 0x79c664 1 or not and its selected piece; the tile near the piece, or
-# anywhere (off the map too); half the cases with a piece given.
+# anywhere (off the map too); 40% of the cases with a piece given. A fifth of the cases dealt to reach the links' test: no piece, not
+# moving, the coaster's flag 2 clear, the tile that of a node of this coaster and of the rules in force; another fifth with flag 2
+# set and the tile that of the coaster's +0x64 piece's node (0x79c664 1 or not).
 # Kept away (the original reads an unset slot): no piece given, moving (0x100), and the piece chosen without a next one: that
 # piece gets flags 0x30000, so the angle test, the only reader of the slot, is not reached.
 # usage: placecheck.py [CASES [SEED]] [--wild|--both] [--show N]
@@ -28,6 +30,8 @@ def piece_at(k):
 
 
 def case(r):
+    link = r.deal([0, 0, 0, 1, 2])   # (1: no piece, not moving, the coaster's flag 2 clear, the tile a node's of this coaster and
+    # rules; 2: the same with flag 2 set, the tile the +0x64 piece's node's)
     w, h = r.randrange(3, 11), r.randrange(3, 11)
     # the walk
     tiles = [(r.randrange(w), r.randrange(h))]
@@ -61,7 +65,7 @@ def case(r):
         put(nodes, o + 0x30, 'I', r.randrange(5))
         put(nodes, o + 0x34, 'I', OBJS + 0x10 * r.randrange(8))
     for k in range(8):
-        put(objs, 0x10 * k + 8, 'I', r.getrandbits(32) & ~0x600 | r.choice([0, 0, 0, 0x200, 0x400]))
+        put(objs, 0x10 * k + 8, 'I', r.getrandbits(32) & ~0x600 | r.choice([0, 0, 0x200, 0x400, 0x400, 0x600]))
     put(other, 0xcc, 'I', r.randrange(5))
     # the links: the nodes in two chains, shuffled
     order = list(range(NN))
@@ -77,21 +81,23 @@ def case(r):
     # the type's rule blocks
     tp = bytearray(r.bytes(0x2a0))
     for b in (0xa8, 0x1c8):
-        for j in range(4):   # +0x74.. / +0x84..: the low limits (+0, +8), the high (+4, +0xc)
+        wide = r.random() < 0.5   # (limits that most angles pass)
+        for at in (0, 4, 8, 0xc):   # +0x74.. / +0x84..: the low limits (+0, +8), the high (+4, +0xc)
             for base in (0x74, 0x84):
-                v = r.uniform(0, 1.6) if j in (0, 2) else r.uniform(1.4, 3.2)
-                put(tp, b + base + 4 * [0, 2, 1, 3][j], 'I', fb(v) if r.random() < 0.97 else r.f())
+                low = at in (0, 8)
+                v = (r.uniform(0, 0.2) if low else r.uniform(3.0, 3.2)) if wide else r.uniform(0, 1.6) if low else r.uniform(1.4, 3.2)
+                put(tp, b + base + at, 'I', fb(v) if r.random() < 0.97 else r.f())
         put(tp, b + 0x9c, 'I', r.randrange(4))
         put(tp, b + 0xa0, 'I', r.randrange(1, 21))
-        near = r.uniform(0, 2)
+        near = r.choice([r.uniform(0, 2), r.uniform(0, 2), 1.0, 2.0])   # (1 and 2: a distance itself, with no span a 0 / 0)
         put(tp, b + 0xa4, 'f', near)
-        put(tp, b + 0xa8, 'I', fb(near) if r.random() < 0.05 else fb(near + r.uniform(0.5, 5)))
+        put(tp, b + 0xa8, 'I', fb(near) if r.random() < 0.15 else fb(near + r.uniform(0.5, 5)))
         put(tp, b + 0xcc, 'I', r.randrange(5))
     put(coaster, 4, 'I', TYPE)
-    put(coaster, 0x3c, 'I', r.getrandbits(32) & ~3 | r.getrandbits(2))
+    put(coaster, 0x3c, 'I', r.getrandbits(32) & ~3 | (r.getrandbits(2) & 1 if link == 1 else 2 | r.getrandbits(1) if link == 2 else r.getrandbits(2)))
     for off in (0x54, 0x58, 0x60, 0x64):
         put(coaster, off, 'I', piece_at(r.randrange(NP)))
-    flags = r.getrandbits(32) & ~0x140 | r.choice([0, 0x100]) | r.choice([0, 0x40])
+    flags = r.getrandbits(32) & ~0x140 | (0 if link else r.choice([0, 0x100])) | r.choice([0, 0x40])
     selected = piece_at(r.randrange(NP)) if r.random() < 0.97 else 0
     editor = bytearray(r.bytes(0x50))   # 0x79c658..
     put(editor, 0, 'I', flags)
@@ -110,7 +116,7 @@ def case(r):
     def piece_field(p, off):
         return p32(pieces, p - PIECES + off) if PIECES <= p < PIECES + PIECE * NP else None
 
-    given = r.random() < 0.5
+    given = not link and r.random() < 0.6
     if given:
         k = r.randrange(NP)
         piece = piece_at(k)
@@ -138,8 +144,16 @@ def case(r):
         x, z = base[0] + r.choice([-2, -1, 0, 1, 1, 2]), base[1] + r.choice([-2, -1, 0, 1, 2])
     else:
         x, z = r.randrange(-1, w + 2), r.randrange(-1, h + 2)
-    if r.random() < 0.3:   # a tile a node is on
-        x, z = tiles[r.randrange(NN)]
+    if r.random() < 0.3:   # a tile a node is on: half the time the coaster's +0x64 or +0x54 piece's
+        k = r.randrange(NN) if r.random() < 0.5 else (p32(coaster, r.choice([0x54, 0x64])) - PIECES) // PIECE
+        x, z = tiles[k]
+    if link:
+        k = r.randrange(NN) if link == 1 else (p32(coaster, 0x64) - PIECES) // PIECE
+        x, z = tiles[k]
+        put(nodes, NODE * k + 4, 'I', p32(nodes, NODE * k + 4) & ~5)
+        put(nodes, NODE * k + 8, 'I', (z * w + x) & 0xffffffff)
+        put(nodes, NODE * k + 0x14, 'I', COASTER)
+        put(nodes, NODE * k + 0x18, 'I', TYPE + (0x1c8 if flags & 0x40 else 0xa8))
     regions = {COASTER: coaster, TYPE: tp, PIECES: pieces, NODES: nodes, OBJS: objs, LINKS: links, OTHER: other, WORLD: world,
                TFLAGS: tflags, 0x790fe0: struct.pack('<4I', LINKS if r.random() < 0.95 else 0, 0, 0, COASTER), 0x79c658: editor,
                0x79fc54: struct.pack('<I', WORLD + 0xc0), 0x7a0854: struct.pack('<I', WORLD)}
