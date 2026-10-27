@@ -413,7 +413,13 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
             u32 blob_mask = blob[1];
             for (u32 w = 0; w < 4; ++w) {  // (at + 0xf80, fncmp.blob_when(): (k | 0x80000000, argument, value, mask), the mask for this call's argument)
                 const u32 *const when = log + 0x3e0 + 4 * w;
-                if (when[0] == ((k & 63) | 0x80000000u) && when[1] < n && stack[1 + when[1]] == when[2]) blob_mask = when[3];
+                if ((when[0] & ~0x40000000u) != ((k & 63) | 0x80000000u) || when[1] >= n) continue;
+                u32 value = stack[1 + when[1]];
+                if (when[0] & 0x40000000u) {  // (bit 30, blob_when()'s deref: the dword the argument points to; a null one matches nothing)
+                    if (!value) continue;
+                    value = *reinterpret_cast<const u32 *>((uintptr_t)value);
+                }
+                if (value == when[2]) blob_mask = when[3];
             }
             args[i] = blob[0] & 0x80000000u ? blob_bytes_hash(p, blob[0], blob_mask) : blob_hash(p, blob_mask);
         }

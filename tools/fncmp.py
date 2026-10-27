@@ -600,12 +600,13 @@ def blob(log, k, arg, mask):
     struct.pack_into('<II', log, LOG_BLOBS + 8 * (k & 63), arg + 1, mask)
 
 
-def blob_when(log, k, arg, value, mask, entry=0):
+def blob_when(log, k, arg, value, mask, entry=0, deref=False):
     """Gives slot k's blob() / blob_bytes() hash the mask `mask` in place of its own for the calls whose argument `arg` (as passed) is `value`: a slot
     called with events of different layouts (one message's event, another's), each only partly set. Four entries (`entry` 0-3), the last that
-    matches wins."""
+    matches wins. deref: the dword the argument points to (a null one matches nothing) is compared, not the argument: one stack event posted
+    twice, its kind (its first dword) changed in between."""
     assert 0 <= entry < 4
-    struct.pack_into('<4I', log, LOG_BLOB_WHEN + 16 * entry, (k & 63) | 0x80000000, arg, value & 0xffffffff, mask)
+    struct.pack_into('<4I', log, LOG_BLOB_WHEN + 16 * entry, (k & 63) | 0x80000000 | (0x40000000 if deref else 0), arg, value & 0xffffffff, mask)
 
 
 def blob_bytes(log, k, arg, mask, inner=None):
@@ -689,8 +690,8 @@ def _log_args(e, k, raw, kk):
     blob_arg, blob_mask = struct.unpack('<2I', e.read(LOG + LOG_BLOBS + 8 * (k & 63), 8))
     for w in range(4):   # (blob_when(): the mask for this call's argument)
         wk, wa, wv, wm = struct.unpack('<4I', e.read(LOG + LOG_BLOB_WHEN + 16 * w, 16))
-        if wk == (k & 63) | 0x80000000 and wa < n and raw[wa] == wv:
-            blob_mask = wm
+        if wk & ~0x40000000 == (k & 63) | 0x80000000 and wa < n and (raw[wa] if not wk & 0x40000000 else e.u32(raw[wa]) if raw[wa] else None) == wv:
+            blob_mask = wm   # (bit 30: the dword the argument points to, blob_when()'s deref)
     for i in range(n):
         for at, fk, fa, fn, how in fills:
             if fk == (k & 63) | 0x80000000 and fa == i and args[i]:
@@ -878,6 +879,16 @@ def _memmove(e):  # cdecl (to, from, n) -> to
     e.r['EAX'] = to
 
 
+TIME = 0x386d4380   # the CRT time()'s stand-in clock: 2000-01-01 00:00:00 UTC (driver crt.cpp msvc6::time, kDriverCrt)
+
+
+def _time(e):  # cdecl (t) -> the fixed clock, also through t unless null (the original reads the system clock)
+    t = e.u32(e.r['ESP'])
+    if t:
+        e.write(t, struct.pack('<I', TIME))
+    e.r['EAX'] = TIME
+
+
 def _throw(name):
     def hook(e):
         raise RuntimeError('the original called %s' % name)
@@ -915,7 +926,7 @@ class Bench:
                                STUBS + 0x20: _global_alloc, STUBS + 0x30: _global_free, STUBS + 0x40: _mark, CDECL_LOG: _cdecl_log, COUNTER: _counter, SEEK: _seek, CDECL_LOG2: _cdecl_log2, CDECL_LOG4: _cdecl_log4,
                                0x6351a0: _zlib_init(0x140, 7), 0x635450: _zlib_copy(1), 0x6357c0: _zlib_end(0x142), 0x636600: _zlib_init(0x143, 3),
                                0x636710: _zlib_copy(2), 0x6365b0: _zlib_end(0x145),
-                               0x67acc0: _alloc, 0x67acb0: _free, 0x67bb90: _memmove, ZALLOC: _zalloc, ZFREE: _zfree,
+                               0x67acc0: _alloc, 0x67acb0: _free, 0x67bb90: _memmove, ZALLOC: _zalloc, ZFREE: _zfree, 0x67d3f0: _time,
                                0x6918f0: _throw('_Xlen'), 0x691ba0: _throw('_Xran')})
         self.emu.hooks.update({recorder(k, n): _recorder(k, n) for k in range(32) for n in range(16)})  # (n up to 15 fits below the COM recorders at +0x4000)
         self.emu.hooks.update({recorder(k, n, True): _recorder(k, n, True) for k in range(64) for n in range(16)})
