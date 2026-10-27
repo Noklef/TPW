@@ -3,7 +3,7 @@
 // hovered window [0xfaa5e0]). The game sets its cursor on the window [0x7cb2ac], or with none on the two at 0x7cc8c0 and 0x7cc8bc.
 // The game's cursor files fill two tables: 0x7b9e88 (the .ani / .cur files) and 0x7b9ab0 (the .tga ones).
 // Reimplementation of 0x661d96, 0x661c36, 0x661cca, 0x661d3f, 0x659248, 0x6590f7, 0x65f11d, 0x65f150, 0x4a2aa0, 0x4814a0, 0x52f950,
-// 0x489720 and 0x4899c0. The names are unconfirmed.
+// 0x489720, 0x4899c0, 0x661935 and 0x661dd0. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -72,5 +72,15 @@ void __fastcall Obj7b51f0_SetCursor(void *self, void *, u32 id);
 // set, else 0x12 with 0x816d4c set, else 3, 4, 6 and 6; mode 0x15 and 0x16 give 0x12 with 0x816d4c set, else 0xb and 0x11; mode 4 and
 // 0x3b give 7, mode 0x39 gives 3; other modes none. Then 8 when Global816d48_Get() is nonzero and 0x14 when the dword 0x816d5c is set.
 void __cdecl GameCursor_Update();
+
+// The cursor objects: the base class's vtable 0x7059b0 (Fn_661870 builds it: +4 1 (shown), +5 / +6 0, +0x10 0; Fn_6618a6 its
+// destructor), the system cursor's 0x7059d0 (its handle +0x14, shown and hidden by the imports 0x6fd334 / 0x6fd30c). Names unconfirmed.
+// 0x661935 (thiscall; called by 0x48961e): the system cursor built: the base's (Fn_661870), the vtable 0x7059d0, the handle +0x14 0.
+// Returns the cursor.
+u8 *__fastcall SysCursor_Ctor(u8 *cursor);
+
+// 0x661dd0 (thiscall (flags), pops 4; slot 0 of the vtable 0x7059b0): the base's scalar deleting destructor: Fn_6618a6, then with flag
+// 1 the block freed (Mem_Free). Returns the cursor.
+u8 *__fastcall Cursor_Delete(u8 *cursor, void *, u32 flags);
 
 }

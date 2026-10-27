@@ -202,4 +202,17 @@ void __cdecl GameCursors_LoadTga() {
     }
 }
 
+u8 *__fastcall SysCursor_Ctor(u8 *cursor) {
+    Fn_661870(cursor);
+    *reinterpret_cast<u32 *>(cursor) = 0x007059d0;
+    *reinterpret_cast<u32 *>(cursor + 0x14) = 0;
+    return cursor;
+}
+
+u8 *__fastcall Cursor_Delete(u8 *cursor, void *, u32 flags) {
+    Fn_6618a6(cursor);
+    if (flags & 1) GameHeap_Free(cursor);
+    return cursor;
+}
+
 }

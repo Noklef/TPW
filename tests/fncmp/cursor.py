@@ -14,6 +14,7 @@
 # (the game's string: the carry and crosshair names mapped, whose +5 / +6 then get written), 0, their hashes or their hashes for the first
 # few then 0 (for the .tga ones never past the carry cursor's, whose +5 a hash would be).
 # usage: cursor.py [CASES [SEED]] [--wild|--both] [--show N]
+# SysCtor (0x661935): any bytes. Delete (0x661dd0): any bytes, the flags 0-3 or any (the block freed with bit 0).
 #   (env OPS=Get,SetCursor,WindowSetCursor,ApplyCursor,Set,ObjSet,Update,Clear,Init,SetTable,TableSet,LoadAni,LoadTga)
 import os
 import struct
@@ -24,10 +25,11 @@ from fncmp import HEAP, LOG, RAM, Bench, Call, _recorder, echo, fail_after, heap
 
 CALLS = {'Get': 0x661d96, 'SetCursor': 0x6590f7, 'WindowSetCursor': 0x65f11d, 'ApplyCursor': 0x65f150, 'Set': 0x4a2aa0, 'ObjSet': 0x4814a0,
          'Update': 0x52f950, 'Clear': 0x661c36, 'Init': 0x661cca, 'SetTable': 0x659248, 'TableSet': 0x661d3f, 'LoadAni': 0x489720,
-         'LoadTga': 0x4899c0}
+         'LoadTga': 0x4899c0, 'SysCtor': 0x661935, 'Delete': 0x661dd0}
 RANGES = [(0x661d96, 0x661dca), (0x6590f7, 0x6591d4), (0x65f11d, 0x65f14e), (0x66190a, 0x66191b), (0x65f150, 0x65f16b),
           (0x4a2aa0, 0x4a2abf), (0x4814a0, 0x4814e3), (0x52f950, 0x52fa1a), (0x527950, 0x527956), (0x661c36, 0x661cca), (0x661cca, 0x661d3f), (0x659248, 0x6592b6),
-          (0x661d3f, 0x661d96), (0x489720, 0x4899b5), (0x4899c0, 0x489c71), (0x6618c7, 0x6618e6)]
+          (0x661d3f, 0x661d96), (0x489720, 0x4899b5), (0x4899c0, 0x489c71), (0x6618c7, 0x6618e6),
+          (0x661935, 0x66195e), (0x661dd0, 0x661dfe), (0x661870, 0x6618a6), (0x6618a6, 0x6618ba)]
 LOADERS = {'LoadAni': (0x7b9e88, 28), 'LoadTga': (0x7b9ab0, 29)}
 B = Bench(RANGES, hooks={0x4895b0: _recorder(28, 1, cdecl=True), 0x489670: _recorder(29, 1, cdecl=True)})
 TABLE, ENTRIES, CURSORS, CVTABLE, WINDOW = RAM + 0x100, RAM + 0x200, RAM + 0x400, RAM + 0x800, RAM + 0x1000
@@ -74,6 +76,10 @@ def case(r):
     op = r.deal(OPS)
     log = log_region()
     regions = {LOG: log}
+    if op == 'SysCtor':
+        return Call(CALLS[op], [CURSORS], {CURSORS: r.bytes(0x20)}, conv='t', ret='a')
+    if op == 'Delete':
+        return Call(CALLS[op], [CURSORS, r.choice([0, 1, 2, 3, 0xffffffff])], {CURSORS: r.bytes(0x20), HEAP: heap(0x20)}, conv='t', ret='a')
     if op == 'Get':
         n = table(r, regions)
         index = r.choice([r.randrange(n + 2), r.randrange(n + 2), r.randrange(n + 2) | r.randrange(1, 256) << 8, r.getrandbits(16)]) | r.choice([0, r.getrandbits(16)]) << 16
