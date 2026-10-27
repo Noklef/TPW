@@ -447,6 +447,57 @@ void __cdecl Train_PlaceCars(const u8 *type, u8 *train, u32 force, u32 keep) {
         }
     }
 }
+
+void __cdecl Train_InsertCar(const u8 *owner, u8 *car, u8 *train, u32 slot, float height, float *out, u32 mark, u32 noInsert,
+                             u32 noShrink, u32 free) {
+    const u8 *const type = at<const u8 *>(train, 0x18);   // [esp+0x10]
+    const u32 count = at<u32>(train, 0x30);   // [esp+0x1c]
+    u8 *old = nullptr;   // (the slot's argument, reused)
+    float oldLength = 0.0f;   // [esp+0x14]
+    X87Reg room = 0.0;
+    if (slot < count) {
+        old = at<u8 *>(train, 0x34 + 4 * slot);
+        if (old) oldLength = (float)Car_TrainLength(old);
+        room = oldLength - (X87Reg(at<float>(type, 0x68)) + at<float>(type, 0xc4));
+    }
+    float before = 0.0f;   // [esp+0x18]
+    if (slot != 0) {
+        const u8 *const prev = at<const u8 *>(train, 0x30 + 4 * slot);
+        const X87Reg length = prev ? X87Reg(Car_TrainLength(prev)) : X87Reg(0.0);
+        before = (float)(X87Reg(at<float>(type, 0xc4)) + length);
+    }
+    if (!noInsert) {
+        for (u32 j = count; j > slot; --j) {
+            u8 *const moved = at<u8 *>(train, 0x30 + 4 * j);
+            at<u8 *>(train, 0x34 + 4 * j) = moved;
+            at<u32>(moved, 4) = j;
+        }
+    }
+    at<u8 *>(train, 0x34 + 4 * slot) = car;
+    if (mark) at<u32>(train, 4) |= 0x20;
+    at<u32>(car, 4) = slot;
+    at<u8 *>(car, 0x100) = train;
+    at<u32>(train, 0x30) += 1;
+    if (old && !noInsert) {
+        if (!(room.v >= height)) height = (float)room;   // (fcom: below or unordered)
+        X87Reg rise = X87Reg(height) - before;
+        if (!(rise.v > at<float>(type, 0x68))) rise = X87Reg(at<float>(type, 0x68));
+        X87Reg t = (rise - at<float>(type, 0xbc)) / (X87Reg(at<float>(type, 0xc0)) - at<float>(type, 0xbc));
+        height = (float)(rise + before);
+        if (!(t.v > 0.0)) t = 0.0;
+        if (!(t.v < 1.0)) t = 1.0;
+        at<float>(car, 0xe8) = (float)t;
+        Car_SetChannelRates(at<u32>(global<const u8 *>(0x00790fec), 4), car);
+        Car_FitHeight(owner, old, type, oldLength, free);
+    } else if (type) {
+        Car_FitHeight(owner, car, type, height, free);
+    }
+    if (out) *out = height;
+    if (!type || noInsert) return;
+    if (!noShrink) Train_ShrinkToTop(owner, type, train);
+    Train_SetCouplings(0, train);
+    Train_PlaceCars(type, train, 0, 0);
+}
 }
 
 void Train_SetEnv(const TrainEnv *e) { g_trainEnv = e ? e : &kGameEnv; }

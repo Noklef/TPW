@@ -28,6 +28,19 @@ extern "C" {
 // 0x80000010 (+0x28, 0x2000).
 void __cdecl Train_PlaceCars(const u8 *type, u8 *train, u32 force, u32 keep);
 
+// 0x433bd0 (cdecl, ten arguments; name unconfirmed): car put into the train's slot. The car already there (old; none past the count)
+// and its train length (Car_TrainLength, inlined: 0 for an empty slot), and the length up to the slot before plus the type's (+0x18)
+// gap +0xc4 (0 for slot 0) are taken first. Unless noInsert, the cars from the slot up move a slot up (their +4 too); the car takes the
+// slot (+4, its train +0x100), the train's count (+0x30) goes up, and mark sets the train's flag 0x20 (+4). With an old car (and not
+// noInsert): height is lowered to the old car's length less the type's +0x68 and gap (or taken from it when a NaN), the room above
+// the slot before (height less that length, not below +0x68) unlerped against the type's +0xbc..+0xc0 and held to 0..1 (not above
+// 0, or a NaN, 0) is the car's length +0xe8, height becomes the room plus the length before, Car_SetChannelRates ([0x790fec]+4, car),
+// and Car_FitHeight (owner, the old car, type, its length, free). Otherwise, with a type, Car_FitHeight (owner, car, type, height,
+// free). height to *out when out is given. Then (a type, not noInsert): Train_ShrinkToTop (owner, type, train) unless noShrink,
+// Train_SetCouplings (inlined) and Train_PlaceCars (type, train, 0, 0). All on the x87.
+void __cdecl Train_InsertCar(const u8 *owner, u8 *car, u8 *train, u32 slot, float height, float *out, u32 mark, u32 noInsert,
+                             u32 noShrink, u32 free);
+
 // 0x432d50: unless 0x790afc is set, marks each car but the last 0x100 (+8), clearing it on
 // the last, and picks its coupling: +0x84 with the type's +0x44 for a marked car without
 // flag 0x2000 whose type has flag 8, else +0x78 with the type's +0x30.
