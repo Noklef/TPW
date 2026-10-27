@@ -293,6 +293,24 @@ void __fastcall Object_SetCapacity(u8 *object, void *, u32 capacity) {
     at<u8>(object, 0x5d) = value;
 }
 
+u32 __fastcall Object_SetOpen(u8 *object, void *, u32 open) {
+    u8 *const *const strips = reinterpret_cast<u8 *const *>(0x007a4610);
+    if (open) {
+        if (!(at<u8>(object, 0x32) & 4)) return 0;
+        Object_SetState(object, nullptr, 2);
+        StripAnim_StartGrow(strips[at<u32>(object, 0x20)], 8);
+        return 1;
+    }
+    if (at<u32>(object, 0x19c) != 2) return 1;
+    StripAnim_StartShrink(strips[at<u32>(object, 0x20)]);
+    Object_CanOpen(object);   // (the original's inline checks pick only a debug print; their calls are kept)
+    at<u32>(object, 0x68) = 1;
+    StripAnim_StartShrink(strips[at<u32>(object, 0x20)]);
+    Rides_SetElement(Rides_FindById(at<s32>(object, 0x24)), 6, 0);
+    Object_SetState(object, nullptr, 0);
+    return 1;
+}
+
 void __fastcall Object_RestartRide(u8 *object) {
     at<u32>(object, 0x68) = 0;
     at<u16>(object, 0x6c) = 0;

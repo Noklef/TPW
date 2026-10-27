@@ -28,6 +28,12 @@ void __fastcall Object_DismissQueueHead(u8 *object);
 // and a message 7, 9 or 8 of the object's handle (ThingMsg07 / 09 / 08 on the stack) posted to the message centre (MessageCentre_Instance, inlined)
 // through the env's 0x40fb10. Every state is then kept at +0x19c. The debug prints (the handle and +0x6c; an unknown state's) are left out.
 void __fastcall Object_SetState(u8 *object, void *, u32 state);
+// 0x4e0050 (thiscall; open, pops 4; name invented): opening (the argument not 0): without the flag 4 of the byte +0x32 0; else
+// Object_SetState (2), the strip animation of 0x7a4610[+0x20] grown from frame 8 (StripAnim_StartGrow), 1. Closing: unless the state
+// (+0x19c) is 2, 1; else the strip animation shrunk (StripAnim_StartShrink), Object_CanOpen's checks made inline (they only pick a
+// debug print, left out with the others), +0x68 = 1, the strip animation shrunk again, element 6 of the ride record (Rides_FindById of
+// +0x24) = 0 and Object_SetState (0); 1.
+u32 __fastcall Object_SetOpen(u8 *object, void *, u32 open);
 
 // 0x4dd4e0: the object's definition, ObjectDefs_Find on gObjectDefs (0x7890a0) by its id (+0xe).
 u8 *__fastcall Object_GetDef(const u8 *object);

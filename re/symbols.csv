@@ -3715,6 +3715,7 @@ address,name,kind,confidence,notes
 0x004e2440,Object_Wear,function,low,reimplemented (src/game/world/object); an object's wear by an amount (toilet use)
 0x004e0450,Object_DismissQueueHead,function,low,"reimplemented (src/game/world/object); the queue's head: not the ride record's element 0 and in state 0xe, the env's 0x500870 on it; else (a head) Object_QueueRemovePerson and the env's 0x5012f0"
 0x004e0e60,Object_SetState,function,low,"reimplemented (src/game/world/object); states 1, 2, 4: DismissQueueHead, RestartRide and message 7, 9 or 8 posted through the env's 0x40fb10; the state kept at +0x19c"
+0x004e0050,Object_SetOpen,function,low,"reimplemented (src/game/world/object); thiscall (open): opening with the flag 4 of +0x32 state 2 and the strips grown; closing from state 2: strips shrunk, +0x68 = 1, ride element 6 = 0, state 0"
 0x005d46d0,Blocks7_Free,function,high,reimplemented (src/game/core/buffers); frees the seven blocks of an object and clears its groups
 0x00424cc0,Names_FirstAfter,function,high,"reimplemented (src/game/core/string); whether the first name is after the second, case blind"
 0x00424cf0,Names_Equal,function,high,"reimplemented (src/game/core/string); whether two names are equal, case blind"
