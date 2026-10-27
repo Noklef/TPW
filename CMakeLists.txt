@@ -320,6 +320,7 @@ add_library(tpw_game STATIC
     src/game/world/bankaccount.cpp
     src/game/world/parkgates.cpp
     src/game/world/mapclick.cpp
+    src/game/world/objectunlock.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp
