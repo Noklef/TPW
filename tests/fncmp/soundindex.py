@@ -91,7 +91,9 @@ def create(r, mode=None):
     struct.pack_into('<I', log, LOG_BYTES + 4 * 30, 1 << 16)
     set_return(log, 30, r.choice([1, 0xffffffff, r.getrandbits(32) | 1]))
     regions[HEAP] = heap(fail=r.choice([0] * 8 + [1, 2]))
-    if mode == 'new':   # (0x6c53c0: the same through its argument slots, then the ref object from the heap)
+    if mode == 'new':   # (0x6c53c0: the same through its argument slots, then the ref object from the heap, its block failing now and then)
+        if r.random() < 0.3:
+            regions[HEAP] = heap(fail=r.choice([2, 3, 4]))
         return Call(0x6c53c0, [r.choice([OWNER, OWNER, 0]), DESC, SOURCE], regions, conv='s', ret='a')
     if mode in ('channelnew', 'loadbank'):   # (0x6b8160: the channel the source, its +0x1c the owner; its vtable moved to + 0x40)
         regions[SOURCE] = struct.pack('<I', SOURCE + 0x40) + r.bytes(0x18) + struct.pack('<I', r.choice([OWNER, OWNER, 0])) + r.bytes(0x20) + regions[SOURCE][4:]
