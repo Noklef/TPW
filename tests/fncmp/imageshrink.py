@@ -4,8 +4,14 @@
 # null, so the panel reset runs first (its six source images empty): through the null pointer for an image that is not empty (a crash in both).
 # Surface (0x5d3ac0): an image made 320 x 240 from a surface description (see surface()). Blocks (0x5d48a0): the same on the seven-block
 # object's image (+0x60) with the description passed by address; mostly with the bit counts that do no more than the set up (fast).
-# Surface and Blocks take some 19 s a case at full size, so the ops are dealt from a weighted deck (WEIGHTS: each of them 1 in 25, the others
-# several times), and Surface's bit counts and mask layouts from a deck of their own (LAYOUTS), so that the first 400 cases reach each of them.
+# A full Surface or Blocks case (16 or 32 bits, every block had: the whole 320 x 240 or more converted and averaged) takes some 35-40 s in
+# the emulator (6-9 million steps): at one in four of their cases the gate's 400 cases at seed 6 took over 7 minutes alone (12 of them
+# 445 s of the emulator's time, the other 388 cases 6 s) and timed out at 600 s under the gate's load. So the ops are dealt from a weighted
+# deck (WEIGHTS: each of them 1 in 25, the others several times), and Surface runs in full one case in 12 (FULL, a deck): its bit counts
+# and mask layouts dealt from a deck of their own (LAYOUTS) there; its other cases a layout of any kind with, for the 16 and 32 bits, a
+# block failing (the image's: through null at the first band; a scratch block's: 0 after the set-up), so that each still compares the
+# masks, the image's block and sizes and the steps; Blocks in full one case in 40 (it forwards to Surface: the rest the set-up alone).
+# So the 400 cases at seed 6 run some 16 Surface cases, 1 or 2 in full, and 1000 cases about 3 full ones.
 # ToImage (0x5e80d0): Shrink's source shrunk into a destination image of the new size (its width now and then 0 or -1).
 # usage: imageshrink.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Shrink,Panel,Surface,Blocks,ToImage)
 import os
@@ -26,15 +32,17 @@ MASKS32 = [(0xff0000, 0xff00, 0xff), (0xff, 0xff00, 0xff0000), (0xff000000, 0xff
 LAYOUTS = [(16, m) for m in MASKS16] + [(32, m) for m in MASKS32] + [(16, 'odd'), (32, 'odd'), (24, None), (8, None), (0, None)]
 WEIGHTS = {'Shrink': 8, 'Panel': 8, 'ToImage': 7, 'Surface': 1, 'Blocks': 1}   # (a deck of 25: 400 cases deal Surface 16 times, LAYOUTS' size)
 DECK = [k for k in OPS for _ in range(WEIGHTS.get(k, 1))]
+FULL = [True] + [False] * 11   # (Surface in full one case in 12: see the header)
 
 
-def surface(r, dealt=True):
+def surface(r, dealt=True, full=True):
     """0x5d3ac0: a surface of 320 to 327 x 240 to 245 pixels (smaller ones divide by 0 in both; even these take some 6-9 million steps), 16 or 32 bits
     (now and then 24, 8 or 0: nothing done) of random bytes (many extremes), masks of the usual layouts or odd ones (gaps, more than 8 bits),
     the pitch the row's bytes or more (odd too); the image's old pixels or none; the heap failing one of the four blocks now and then (the
-    image's: written through null in both). dealt: the count and masks dealt from LAYOUTS, else drawn."""
+    image's: written through null in both). dealt: the count and masks dealt from LAYOUTS, else drawn. full: else a 16 or 32 bit count
+    with one of the four blocks failing (no more than the set-up: see the header)."""
     w, h = r.choice([320, 320, 321, 327]), r.choice([240, 240, 241, 245])
-    bits, masks = r.deal(LAYOUTS) if dealt else r.choice(LAYOUTS)
+    bits, masks = r.deal(LAYOUTS) if dealt and full else r.choice(LAYOUTS)
     pitch = w * max(bits, 8) // 8 + r.choice([0, 0, 1, 2, 6, 64])
     if masks == 'odd' or masks is None:
         masks = [r.randrange(1, 1 << 32) for _ in range(3)]
@@ -47,16 +55,18 @@ def surface(r, dealt=True):
         data[r.randrange(len(data))] = r.choice([0, 0xff, 0x80, 0xf0, 0x0f, 1])
     img = put(bytearray(r.bytes(0x10)), 0xc, 'I', r.choice([0, 0, RAM + 0x800]))
     fail = r.choice([0] * 16 + [1, 2, 3, 4])
+    if not full and bits in (16, 32):
+        fail = r.choice([1, 2, 3, 4])
     regions = {RAM: img, SURFACE: data, HEAP: heap(0x60000, fail=fail)}
     return Call(0x5d3ac0, [RAM] + list(struct.unpack('<31I', desc)), regions, conv='t', ret='b', steps=12_000_000)
 
 
 def blocks(r, quick=False):
-    """0x5d48a0: surface()'s case on an object whose image is at +0x60, the description at RAM + 0x200; three in four (quick: always) with
+    """0x5d48a0: surface()'s case on an object whose image is at +0x60, the description at RAM + 0x200; 39 in 40 (quick: always) with
     24, 8, 0 or 15 bits (the set up alone: the blocks, the counts, the result)."""
     c = surface(r, dealt=False)
     desc = list(c.args[1:])
-    if quick or r.random() < 0.75:
+    if quick or r.random() < 0.975:
         desc[0x54 // 4] = r.choice([24, 8, 0, 15])
     obj = bytearray(r.bytes(0x60)) + c.regions.pop(RAM)
     c.regions[RAM] = obj
@@ -74,7 +84,7 @@ def case(r):
         return blocks(r, quick=True)
     op = r.deal(DECK)
     if op == 'Surface':
-        return surface(r)
+        return surface(r, full=r.deal(FULL))
     if op == 'Blocks':
         return blocks(r)
     w, h = r.choice([1, 2, 3, 4, 8, r.randrange(1, 41)]), r.choice([1, 2, 3, 5, r.randrange(1, 31)])
