@@ -248,4 +248,11 @@ void __fastcall Staff_Detach(u8 *staff);
 // (Things_Unlink1da742 on [0x80239c]), Staff_Detach, then the lab (GameTable7cfb90_Get1da722_519550, when there is one) has its flag
 // synced (ResearchLab_SyncFlag: set while the list is not empty).
 void __fastcall Researcher_Detach(u8 *researcher);
+// 0x504c70 (thiscall (message), pops 4; name invented, unconfirmed): a staff member's message (its type the message's vtable slot 0).
+// 0xc (pay day): the wage ([0x785380 + Byte2_ToIndex * 4] times [0x78532c + the grade +0x1e4 * 16], as it is here, not Staff_GetWage)
+// debited from the park's money (Money_Debit on GameTable7cfb90_Get1da726_5195d0) and added to the dword +0x1f7f0 of
+// GameTable7cfb90_Get1da720_519510's record (the wage computed again). 0xa, for the rest area +0x208 when the word +8 names it: in
+// state 3 (+0x19c), Staff_LeaveRestArea, then the nearest rest area (Things_NearestRestArea) set as +0x208 when there is one and
+// Sprite_SetDestinationCell to its cell (+0x36) succeeds; in state 2, +0x208 cleared and Staff_SetState(0). Others: nothing.
+void __fastcall Staff_HandleMessage(u8 *staff, void *, u8 *message);
 }

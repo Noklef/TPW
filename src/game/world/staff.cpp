@@ -683,4 +683,36 @@ void __fastcall Researcher_Detach(u8 *researcher) {
     if (GameTable7cfb90_Get1da722_519550(*game))
         ResearchLab_SyncFlag(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da722_519550(*game)));
 }
+
+namespace {
+s32 handler_wage(const u8 *staff) {   // (as 0x504c70 has it: the grade's whole dword)
+    const s32 factor = *reinterpret_cast<const s32 *>((uintptr_t)0x00785380 + Byte2_ToIndex(staff) * 4u);
+    return factor * *reinterpret_cast<const s32 *>((uintptr_t)0x0078532c + (*reinterpret_cast<const u32 *>(staff + 0x1e4) << 4));
+}
+}  // namespace
+
+void __fastcall Staff_HandleMessage(u8 *staff, void *, u8 *message) {
+    u8 **const game = reinterpret_cast<u8 **>((uintptr_t)0x0080239c);
+    const u32 kind = vcall<u32>(message, 0);
+    if (kind == 0xc) {
+        Money_Debit(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(*game)), nullptr, handler_wage(staff));
+        s32 *const paid = reinterpret_cast<s32 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(*game) + 0x1f7f0);
+        *paid += handler_wage(staff);
+        return;
+    }
+    if (kind != 0xa || *reinterpret_cast<u16 *>(staff + 0x208) != *reinterpret_cast<const u16 *>(message + 8)) return;
+    const u32 state = *reinterpret_cast<const u32 *>(staff + 0x19c);
+    if (state == 3) {
+        Staff_LeaveRestArea(staff);
+        u16 area = static_cast<u16>(reinterpret_cast<uintptr_t>(message));   // (the out word is the original's argument slot)
+        Things_NearestRestArea(staff, nullptr, &area);
+        if (!area) return;
+        const u8 *const thing = *reinterpret_cast<u8 **>((uintptr_t)0x007cfb90 + area * 20u);
+        if (Sprite_SetDestinationCell(staff, nullptr, *reinterpret_cast<const u16 *>(thing + 0x36)))
+            *reinterpret_cast<u16 *>(staff + 0x208) = area;   // (either way after the original's debug print)
+    } else if (state == 2) {
+        *reinterpret_cast<u16 *>(staff + 0x208) = 0;
+        Staff_SetState(staff, nullptr, 0);
+    }
+}
 }
