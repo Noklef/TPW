@@ -967,8 +967,8 @@ def case(r):
         regions[0x7ca130] = struct.pack('<4I', r.getrandbits(32), r.choice([0, 1, 5, 0x80000000, r.getrandbits(32)]), r.getrandbits(32),
                                         r.choice([dialog] * 12 + [0]))
         if op == 'OnGuestRemoved':
-            handle = r.randrange(8)
-            table = bytearray(r.bytes(20 * 8))
+            handle = r.choice([r.randrange(8), 0x100 + r.randrange(8)])   # (past a byte too; the entry 0x100 below a decoy)
+            table = bytearray(r.bytes(20 * 0x108))
             put(table, 20 * handle, 'I', GUEST)
             regions[0x7cfb90] = table
             regions[GUEST] = put(bytearray(r.bytes(0x40)), 2, 'B', r.choice([1] * 6 + [0, 2, r.getrandbits(8)]))
@@ -977,7 +977,9 @@ def case(r):
             set_return(regions[LOG], 11, r.getrandbits(32))
             regions[0x7c2658] = struct.pack('<I', r.choice([GUEST, GUEST, GUEST + 1, 0]))
             regions[0x7cc308] = struct.pack('<I', r.choice([GUEST, 0, 0, r.getrandbits(32)]))
-            regions[0x7cb2ac], regions[0x7cb2b8] = r.choice([(0, r.getrandbits(32)), (r.getrandbits(32) | 1, 0)])
+            # (the browser's dialog none, or one without children: ResetChild21's child 0x25 then null, a fault in both, sic)
+            regions[BUILDBAR + 0x600] = put(bytearray(r.bytes(0x100)), 0x5c, 'I', 0)
+            regions[0x7cb2ac], regions[0x7cb2b8] = r.choice([(0, r.getrandbits(32)), (r.getrandbits(32) | 1, 0), (1, BUILDBAR + 0x600)])
             regions[0x7cb2ac], regions[0x7cb2b8] = struct.pack('<I', regions[0x7cb2ac]), struct.pack('<I', regions[0x7cb2b8])
             return Call(CALLS[op], [0x7b51f0, handle | r.getrandbits(16) << 16], regions, conv='t')
         return Call(CALLS[op], [data], regions, ret='v')
