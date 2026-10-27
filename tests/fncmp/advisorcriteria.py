@@ -24,7 +24,7 @@ CALLS = {'Booth': (0x59c8d0, {}), 'No02': (0x59c960, {}), 'Obj0': (0x59ca80, {})
          'Idle0': (0x5a02f0, {0x57c: [0, 1, 2, 3, -1], 0x580: PCT}), 'Idle1': (0x5a0370, {0x588: PCT}), 'Idle2': (0x5a03d0, {0x590: PCT}),
          'K3F1': (0x5a0430, {0x598: PCT}), 'K3F2': (0x5a0490, {0x5a0: PCT}), 'Tal0': (0x5a04f0, {}), 'TotTh': (0x5a05a0, {}),
          'Mood': (0x5a05f0, {}), 'Money': (0x5a0670, {}), 'One': (0x5a0780, {}), 'CtlLo': (0x5a07d0, {0x5fc: PCT, 0x604: PCT}),
-         'CtlMid': (0x5a0820, {0x604: PCT, 0x60c: PCT}), 'CtlHi': (0x5a0870, {0x60c: PCT}), 'Share': (0x5a08b0, {0x614: PCT})}
+         'CtlMid': (0x5a0820, {0x604: PCT, 0x60c: PCT}), 'CtlHi': (0x5a0870, {0x60c: PCT}), 'Share': (0x5a08b0, {0x614: PCT + [99]})}
 IDLE = {'Idle0': 0, 'Idle1': 1, 'Idle2': 2, 'K3F1': None, 'K3F2': None}
 LATE = {'Idle0', 'Idle1', 'Idle2', 'K3F1', 'K3F2', 'Tal0', 'TotTh', 'Mood', 'Money', 'One', 'CtlLo', 'CtlMid', 'CtlHi', 'Share'}
 B = Bench([(0x412e60, 0x412f00), (0x41a960, 0x41a980), (0x41a990, 0x41a9c0), (0x4c7fa0, 0x4c8080), (0x4c81e0, 0x4c8250), (0x4c9050, 0x4c9080),
@@ -78,8 +78,10 @@ def late_case(r, regions, info, name):
     objects (kind 3) and for Idle0-2 the definitions' +0x4ac the criterion's value mostly; the criteria's weights nonzero mostly; the analyser's recount fields (+0x1f0dc-0x1f0e5) and its count at
     +0x216d8 (+0x18 0 or -1 mostly, +0x1c 1 or not, the byte +0x20 set or not); a money record in the game table's slot 14 (G's word
     +0x1da726) with its total +0x124 small or anything; the global save info [0xf7c58c] (never 0: GlobalSave_Instance would build
-    one) with a theme record (+0x48) whose bytes 0-4 are 0 mostly; the globals 0x785790-0x7857a0 about the counts (0x785794 0 now and
-    then) and the scoring's floats +0x5c4 / +0x5cc / +0x5d4 small multipliers (now and then NaN or negative)."""
+    one) with a theme record (+0x48) whose bytes 0-4 are 0 mostly; the globals 0x785790-0x7857a0 about the counts (0x785794 0 or
+    negative now and then) and the scoring's floats +0x5c4 / +0x5cc / +0x5d4 small multipliers (now and then NaN or negative). For Mood
+    now and then a tie (every person's byte v, the bound v * 1.0); for Money half the time a large product (2^24-2^30 times 0.1-1.9) with
+    the total within 40 of it (where the 24-bit fmul and a double one differ); Share's bound 99 now and then (the share's 100 cap)."""
     pool = bytearray(regions[POOL])
     for i in range(len(info['things'])):
         pool[THING * i + 0x32] = r.choice([0, 1, 2, 3, r.randrange(256)])
@@ -123,13 +125,26 @@ def late_case(r, regions, info, name):
     regions[SAVE] = put(bytearray(r.bytes(0x50)), 0x48, 'I', THEME)
     regions[THEME] = bytes(r.choice([0, 0, 0, 1, 0xff]) for _ in range(8))
     regions[0xf7c58c] = struct.pack('<I', SAVE)
-    regions[0x785790] = struct.pack('<5I', parkenv.small(r, 10, 50, 100), r.choice([1, 2, 5, 10, 0x7fffffff]), r.choice([0, 1, 10, 30, 0xffffffff]),
-                                    r.choice([0, 0, 1, 2, 0xffffffff]), parkenv.small(r, 10, 50, 100))
+    regions[0x785790] = struct.pack('<5I', parkenv.small(r, 10, 50, 100), r.choice([1, 2, 5, 10, 0x7fffffff, 0xffffffff, 0xfffffffb]),
+                                    r.choice([0, 1, 10, 30, 0xffffffff]), r.choice([0, 0, 1, 2, 0xffffffff]), parkenv.small(r, 10, 50, 100))
     if r.random() < 0.2:
         regions[0x785790] = put(bytearray(regions[0x785790]), 4, 'I', 0)
+    if name == 'Mood' and r.random() < 0.35:   # (a tie: every person's byte v, the bound v * 1.0)
+        v = r.randrange(101)
+        for i in range(len(info['things'])):
+            if pool[THING * i + 2] == 1:
+                pool[THING * i + 0x19c] = v
+        regions[POOL] = pool
+        regions[0x785790] = put(bytearray(regions[0x785790]), 8, 'I', v)
+        regions[SCORING] = put(bytearray(regions[SCORING]), 0x5cc, 'f', 1.0)
+    if name == 'Money' and r.random() < 0.5:   # (the total about a large product, where the 24-bit fmul and a double one part)
+        n, f = r.randrange(1 << 24, 1 << 30), struct.unpack('<f', struct.pack('<f', r.uniform(0.1, 1.9)))[0]
+        regions[0x785790] = put(bytearray(regions[0x785790]), 0x10, 'I', n)
+        regions[SCORING] = put(bytearray(regions[SCORING]), 0x5d4, 'f', f)
+        regions[MONEY + 0x124] = struct.pack('<I', int(n * f) + r.randrange(-40, 41))
 
 
-CALLS_LATE_BOUNDS = {0x598: PCT, 0x5a0: PCT, 0x5a8: [0, 1, 2, -1], 0x5fc: PCT, 0x604: PCT, 0x60c: PCT, 0x614: PCT}
+CALLS_LATE_BOUNDS = {0x598: PCT, 0x5a0: PCT, 0x5a8: [0, 1, 2, -1], 0x5fc: PCT, 0x604: PCT, 0x60c: PCT, 0x614: PCT + [99, 99]}
 
 
 if __name__ == '__main__':
