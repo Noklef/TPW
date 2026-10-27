@@ -11,6 +11,7 @@
 #include "misc.h"
 #include "fieldops.h"
 #include "semaphore.h"
+#include "soundchannel.h"
 #include "sounddevice.h"
 #include "soundstream.h"
 #include "streampool.h"
@@ -140,6 +141,13 @@ void __fastcall SampleCopier_MmxCopy(void *, void *, u8 *dest, const u8 *source,
         std::memcpy(dest, q, sizeof q);
     }
     __movsb(dest, source, count & 31);
+}
+
+void __fastcall SoundSample70a548_Dtor(u8 *self) {
+    *reinterpret_cast<u32 *>(self) = 0x0070a548;
+    SoundChannel_ReleaseAll(self);
+    GameHeap_Free(*reinterpret_cast<void **>(static_cast<uintptr_t>(0x00fb2018)));
+    *reinterpret_cast<u32 *>(self) = 0x00703770;
 }
 
 u8 *__fastcall SoundSample70a548_Ctor(u8 *self) {

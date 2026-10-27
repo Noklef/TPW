@@ -14,6 +14,14 @@ extern "C" {
 // string +0x30 empty (String_Ctor), the floats +0x48-+0x54 = 1, +0x58 = the array +0x48 and +0x5c = its count 4, +0x60 = 0, the byte
 // +0x64 = 0, the bytes +0x44-+0x47 = 1, the vtable 0x70a5d8. Returns the channel.
 u8 *__fastcall SoundChannel_Ctor(u8 *channel);
+// 0x6b9c00 (thiscall; an SEH frame; name invented): the destructor: the vtable 0x70a5d8, the string +0x30 destroyed (String_Dtor), the
+// base's destructor (SoundSample70a548_Dtor).
+void __fastcall SoundChannel_Dtor(u8 *channel);
+// 0x6b76d0 (thiscall; the base 0x70a548's destructor's; name invented): the source's (+0x18) slot 13 (a local out: the channel's own
+// pushed copy, sic) unless null; with a voice pool (+0x14), each voice released (ChannelVoices_ReleaseEach) and the pool destroyed
+// (ChannelVoices_Dtor) and freed, +0x14 = 0; the EAX buffer and the synthesiser freed (SoundChannel_FreeEax / FreeSynth); with a
+// source, its slot 7 then its slot 0 (1: delete), +0x18 = 0; the device singleton's objects released (SoundDevice_Get / Release).
+void __fastcall SoundChannel_ReleaseAll(u8 *channel);
 
 // 0x6b8160 (thiscall (desc), pops 4; name invented): 0x6c53c0's new resource (the channel's +0x1c the owner, desc, the channel the source).
 u8 *__fastcall SoundChannel_NewResource(u8 *channel, void *, const u32 *desc);

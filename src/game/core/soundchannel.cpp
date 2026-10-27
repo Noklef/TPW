@@ -72,6 +72,35 @@ void __fastcall SoundChannel_FreeEax(u8 *channel) {
     at<u8 *>(channel, 0x20) = nullptr;
 }
 
+void __fastcall SoundChannel_Dtor(u8 *channel) {
+    at<u32>(channel, 0) = 0x0070a5d8;
+    String_Dtor(reinterpret_cast<String *>(channel + 0x30));
+    SoundSample70a548_Dtor(channel);
+}
+
+void __fastcall SoundChannel_ReleaseAll(u8 *channel) {
+    if (u8 *const source = at<u8 *>(channel, 0x18)) {
+        u32 local = static_cast<u32>(reinterpret_cast<uintptr_t>(channel));   // (the out: the pushed ECX, sic)
+        vcall<void>(source, 0x34, &local);
+    }
+    if (at<u8 *>(channel, 0x14)) {
+        ChannelVoices_ReleaseEach(at<u8 *>(channel, 0x14));
+        if (u8 *const pool = at<u8 *>(channel, 0x14)) {
+            ChannelVoices_Dtor(pool);
+            GameHeap_Free(pool);
+        }
+        at<u32>(channel, 0x14) = 0;
+    }
+    SoundChannel_FreeEax(channel);
+    SoundChannel_FreeSynth(channel);
+    if (at<u8 *>(channel, 0x18)) {
+        vcall<void>(at<u8 *>(channel, 0x18), 0x1c);
+        if (u8 *const source = at<u8 *>(channel, 0x18)) vcall<void>(source, 0, 1u);
+        at<u32>(channel, 0x18) = 0;
+    }
+    SoundDevice_Release(SoundDevice_Get());
+}
+
 u8 *__fastcall SoundChannel_Ctor(u8 *channel) {
     SoundSample70a548_Ctor(channel);
     at<u32>(channel, 0x28) = 8;
