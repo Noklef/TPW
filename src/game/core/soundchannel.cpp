@@ -6,13 +6,19 @@
 
 #include "../math/vector.h"
 #include "../math/x87.h"
+#include "../files/handles.h"
 #include "channelvoice.h"
+#include "dequeiter.h"
 #include "fieldops.h"
 #include "initializers.h"
 #include "ptrlist.h"
+#include "selectors.h"
+#include "soundbank.h"
+#include "soundcategory.h"
 #include "soundeax.h"
 #include "soundindex.h"
 #include "soundoccluders.h"
+#include "string.h"
 #include "thunks.h"
 #include "vcall.h"
 
@@ -52,6 +58,66 @@ extern "C" {
 
 u8 *__fastcall SoundChannel_NewResource(u8 *channel, void *, const u32 *desc) {
     return SoundResource_New(at<u8 *>(channel, 0x1c), desc, channel);
+}
+
+u8 *__fastcall SoundChannel_LoadBank(u8 *channel, void *, u32 index) {
+    u8 *const category = SoundCategory_Get();
+    u8 *bank = nullptr;
+    if (index < at<u32>(category, 0x94)) {
+        u32 it[4], found[4];
+        for (int i = 0; i < 4; ++i) it[i] = at<u32>(category, 0x6c + 4 * i);
+        bank = *reinterpret_cast<u8 **>(static_cast<uintptr_t>(DequeIter_Plus(it, nullptr, found, static_cast<s32>(index))[2]));
+    }
+    if (!bank) return nullptr;
+    if (at<u8 *>(bank, 8)) return at<u8 *>(bank, 8);
+    String path, name, empty;
+    String_Ctor(&path);
+    String_Ctor(&name);
+    String_CtorStr(&empty, nullptr, reinterpret_cast<const char *>(static_cast<uintptr_t>(0x00786de4)));
+    u8 *const opener = bank + 0x24;
+    s32 status;
+    vcall<s32 *>(opener, 0x10, &status, &name, &empty);
+    String_Dtor(&empty);
+    String_AssignWide(&path, nullptr, reinterpret_cast<const WString *>(bank + 0xc));
+    u32 self;
+    if (*reinterpret_cast<s32 *>(SoundBank_Open(&self, nullptr, reinterpret_cast<u32 *>(&status), opener, &path,
+                                                static_cast<u32>(reinterpret_cast<uintptr_t>(&name)), Obj_Flags28_Bit1IfBit0(channel))) < 0) {
+        String_Dtor(&name);
+        String_Dtor(&path);
+        return nullptr;
+    }
+    StreamBase stream;
+    StreamBase_Ctor(&stream);
+    u32 desc[4] = {};   // (+4: the original's is uninitialised on flags 1 and 2, sic; the loads ignore it)
+    const auto open = [&](u32 mode, u32 type) {
+        if (*vcall<s32 *>(opener, 0xc, &status, &stream, path.data, mode, 0u) < 0) return;
+        desc[0] = type;
+        desc[2] = static_cast<u32>(reinterpret_cast<uintptr_t>(&stream));
+        desc[3] = static_cast<u32>(reinterpret_cast<uintptr_t>(path.data));
+        at<u8 *>(bank, 8) = SoundChannel_NewResource(channel, nullptr, desc);
+    };
+    const u32 flags = at<u32>(bank, 0x20);
+    if (flags & 1) {
+        open(0x81000001, 2);
+    } else if (flags & 2) {
+        open(0x80008001, 1);
+    } else if (flags & 4) {   // (a SoundFont: name + path up to its last ".", then ".sf2")
+        String dir;
+        String_CtorCopy(&dir, nullptr, reinterpret_cast<const StringView *>(&name));
+        String_Append(&dir, nullptr, reinterpret_cast<const StringView *>(&path));
+        const s32 dot = String_ReverseFind(&dir, nullptr, reinterpret_cast<const char *>(static_cast<uintptr_t>(0x00747800)), 0xffffffff);
+        String_Assign(&dir, nullptr, String_Left(&dir, nullptr, reinterpret_cast<StringView *>(desc), static_cast<u32>(dot)));
+        String_AppendStr(&dir, nullptr, reinterpret_cast<const char *>(static_cast<uintptr_t>(0x00782db0)));
+        const u32 sf2 = Fn_6c58d0(reinterpret_cast<u8 *>(desc), nullptr, 3, static_cast<u32>(reinterpret_cast<uintptr_t>(dir.data)));
+        at<u8 *>(bank, 8) = SoundChannel_NewResource(channel, nullptr, reinterpret_cast<const u32 *>(static_cast<uintptr_t>(sf2)));
+        if (!at<u8 *>(bank, 8)) open(0x81000001, 2);
+        String_Dtor(&dir);
+    }
+    u8 *const result = at<u8 *>(bank, 8);
+    StreamBase_Dtor(&stream);
+    String_Dtor(&name);
+    String_Dtor(&path);
+    return result;
 }
 
 u32 *__fastcall SoundChannel_Apply(u8 *channel, void *, u32 *out, u8 *functor) {

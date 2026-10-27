@@ -4306,6 +4306,7 @@ const Hook kHooks[] = {
     {"SoundChannel_AddOccluder",  0x006b8230, (void *)&SoundChannel_AddOccluder, {0x83, 0xec, 0x14, 0x56, 0x8b}},
     {"SoundChannel_RemoveOccluder", 0x006b82c0, (void *)&SoundChannel_RemoveOccluder, {0x51, 0x56, 0x57, 0x8b, 0x7c}},
     {"SoundChannel_NewResource",  0x006b8160, (void *)&SoundChannel_NewResource, {0x8b, 0x44, 0x24, 0x04, 0x51}},
+    {"SoundChannel_LoadBank",     0x006b9310, (void *)&SoundChannel_LoadBank, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"SoundObject_Broadcast",     0x006b85f0, (void *)&SoundObject_Broadcast, {0x83, 0xec, 0x08, 0x56, 0x8b}},
     {"SoundObject_BroadcastValue", 0x006b8640, (void *)&SoundObject_BroadcastValue, {0x8b, 0x41, 0x24, 0x85, 0xc0}},
     {"SoundObject_VoiceInfo",     0x006b8b00, (void *)&SoundObject_VoiceInfo, {0x8b, 0x49, 0x20, 0x85, 0xc9}},

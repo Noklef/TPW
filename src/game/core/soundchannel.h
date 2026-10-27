@@ -12,6 +12,14 @@ extern "C" {
 
 // 0x6b8160 (thiscall (desc), pops 4; name invented): 0x6c53c0's new resource (the channel's +0x1c the owner, desc, the channel the source).
 u8 *__fastcall SoundChannel_NewResource(u8 *channel, void *, const u32 *desc);
+// 0x6b9310 (thiscall (index), pops 4; an SEH frame; name invented): the category singleton's (SoundCategory_Get) deque B entry index
+// (DequeIter_Plus from its begin; past its count +0x94: none), a bank record: none, 0; its resource +8 when it has one. Else: the
+// record's opener (+0x24) slot 4 (&status, &name, &empty; its answer unused), path = the WString +0xc, SoundBank_Open (&status, the
+// opener, &path, &name, Obj_Flags28_Bit1IfBit0 of the channel): negative, 0. Then by the flags +0x20: 1 / 2 the opener's slot 3 (&status,
+// &stream, the path's text, 0x81000001 / 0x80008001, 0) and, not negative, +8 = SoundChannel_NewResource of {2 / 1, -, &stream, the
+// path's text}; 4 a SoundFont: name + path up to its last ".", ".sf2" appended, as {3, the cut length, the cut's text, the text}, and
+// when that fails the flag-1 open. The descriptor's +4 is uninitialised on flags 1 and 2 (0 here, sic; the loads ignore it).
+u8 *__fastcall SoundChannel_LoadBank(u8 *channel, void *, u32 index);
 
 // 0x6b8b40 (thiscall (out, functor), pops 8): the functor's slot 0 (out, channel). Returns out.
 u32 *__fastcall SoundChannel_Apply(u8 *channel, void *, u32 *out, u8 *functor);
