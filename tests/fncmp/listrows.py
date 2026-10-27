@@ -19,7 +19,10 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
+_OPS = os.environ.pop('OPS', None)   # (objectstatus.py's imports read their own OPS: this bench's names are not theirs)
 import objectstatus  # noqa: E402
+if _OPS is not None:
+    os.environ['OPS'] = _OPS
 import rendererpart  # noqa: E402
 import windowfactory  # noqa: E402
 from fncmp import CDECL_LOG4, HEAP, LOG, RAM, Bench, Call, blob_bytes, heap, log_region, put, recorder, set_return, vtable  # noqa: E402
