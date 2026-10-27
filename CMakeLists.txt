@@ -187,6 +187,7 @@ add_library(tpw_game STATIC
     src/game/core/voicesample.cpp
     src/game/core/shufflebag.cpp
     src/game/core/silencestream.cpp
+    src/game/core/waveformat.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
