@@ -70,6 +70,15 @@ u32 __cdecl Object_Status(u8 *object, s32 count) {
     return count > 1 && Is68_Zero_4e0440(object) ? 1 : 0;
 }
 
+u32 __fastcall ObjectStatus_ShowOnPanel(u8 *panel) {
+    const u32 shown = *reinterpret_cast<const u32 *>(0x007c2658);
+    if (shown == 0) return 0;
+    u8 *const window = at<u8 *>(panel, 0x1c);
+    if (window == nullptr) return shown;
+    Window_SetShown(window, nullptr, at<u32>(panel, 8) != 0 ? 1 : 0);
+    return ObjectStatus_Show(at<u8 *>(panel, 0x1c), at<u32>(panel, 8));
+}
+
 u32 __cdecl ObjectStatus_Show(u8 *window, u32 status) {
     const u32 colour = reinterpret_cast<const u32 *>(0x0074fb50)[status];
     Window_Notify40000(window, nullptr, colour & 0xff, colour >> 8 & 0xff, colour >> 16 & 0xff, 0xff);
