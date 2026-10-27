@@ -302,6 +302,52 @@ u32 __fastcall ParkAnalyser_CountBusy(u8 *analyser, void *, u32 limit) {
     return sum;
 }
 
+u32 __fastcall AnalyserCell_CountType1Or3Or9(u8 *cell, void *, u32 limit) {
+    if (!cell[0x54] || limit < Game1da70c_MinusAt0Quarters(reinterpret_cast<const u32 *>(cell + 0x4c))) {
+        u32 count = 0;
+        for (s32 x = at<s32>(cell, 0); x < at<s32>(cell, 0) + at<s32>(cell, 8); ++x)
+            for (s32 y = at<s32>(cell, 4); y < at<s32>(cell, 4) + at<s32>(cell, 0xc); ++y) {
+                const u16 id = (u16)((y << 7) + x + 1);
+                const u8 *const m = *reinterpret_cast<u8 *const *>(0x008023a0) + id * 0x44u - 0x44u;
+                count += MapCell_IsType1(m) || MapCell_IsType3Or9(m) ? 1 : 0;
+            }
+        at<u32>(cell, 0x50) = count;
+        cell[0x54] = 1;
+        Out_SetFromGame1da70c(reinterpret_cast<u32 *>(cell + 0x4c));
+    }
+    return at<u32>(cell, 0x50);
+}
+
+u32 __fastcall ParkAnalyser_CountType1Or3Or9(u8 *analyser, void *, u32 limit) {
+    u32 sum = 0;
+    for (u32 i = 0x400; i-- > 0;) sum += AnalyserCell_CountType1Or3Or9(analyser + 0x20 + 0x7c * i, nullptr, limit);
+    return sum;
+}
+
+u32 __fastcall AnalyserCell_CountWith2c(u8 *cell, void *, u32 limit) {
+    if (!cell[0x60] || limit < Game1da70c_MinusAt0Quarters(reinterpret_cast<const u32 *>(cell + 0x58))) {
+        u32 count = 0;
+        const s32 x0 = at<s32>(cell, 0), x1 = x0 + at<s32>(cell, 8);
+        const s32 y0 = at<s32>(cell, 4), y1 = y0 + at<s32>(cell, 0xc);   // (the bounds and the map read once)
+        const u8 *const map = *reinterpret_cast<u8 *const *>(0x008023a0);
+        for (s32 x = x0; x < x1; ++x)
+            for (s32 y = y0; y < y1; ++y) {
+                const u16 id = (u16)((y << 7) + x + 1);
+                count += at<u32>(map, id * 0x44u - 0x18u) != 0 ? 1 : 0;
+            }
+        at<u32>(cell, 0x5c) = count;
+        cell[0x60] = 1;
+        Out_SetFromGame1da70c(reinterpret_cast<u32 *>(cell + 0x58));
+    }
+    return at<u32>(cell, 0x5c);
+}
+
+u32 __fastcall ParkAnalyser_CountWith2c(u8 *analyser, void *, u32 limit) {
+    u32 sum = 0;
+    for (u32 i = 0x400; i-- > 0;) sum += AnalyserCell_CountWith2c(analyser + 0x20 + 0x7c * i, nullptr, limit);
+    return sum;
+}
+
 u32 __fastcall ParkAnalyser_CountAtTicketBooths(u8 *analyser) {
     s32 count = 0;
     for (u32 b = 0; b <= 1; ++b) {

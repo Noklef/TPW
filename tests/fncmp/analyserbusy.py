@@ -5,8 +5,9 @@
 # bytes, 128 to a row) of types 0-0xb mostly (1, 3, 4, 9 and 0xa count). Sum: the analyser's 0x400 cells, most of them cached and fresh
 # (a few to count again, their rectangles small). Booth (0x4c91c0): the two ticket booths' cells (the balance positions 0x78559c, in the
 # map's first rows, now and then the same) each heading a chain (+0xa) of up to six things (the slots at 0x7cfb90) of kind 1 mostly,
-# their +0x220 3 or not, the chains one list's tails; its value +0x1f0d0 set.
-# usage: analyserbusy.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Count,Sum,Booth)
+# their +0x220 3 or not, the chains one list's tails; its value +0x1f0d0 set. Paths / SumPaths (0x4c8ae0, 0x4c8150: types 1, 3 and 9, the
+# cache at +0x4c) and Held / SumHeld (0x4c8ba0, 0x4c8180: the map cells' +0x2c not 0, half of them 0; the cache at +0x58) as Count / Sum.
+# usage: analyserbusy.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Count,Sum,Booth,Paths,SumPaths,Held,SumHeld)
 import os
 import struct
 import sys
@@ -14,9 +15,12 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import RAM, Bench, Call, put  # noqa: E402
 
-CALLS = {'Count': 0x4c8c40, 'Sum': 0x4c81b0, 'Booth': 0x4c91c0}
+CALLS = {'Count': 0x4c8c40, 'Sum': 0x4c81b0, 'Booth': 0x4c91c0, 'Paths': 0x4c8ae0, 'SumPaths': 0x4c8150, 'Held': 0x4c8ba0, 'SumHeld': 0x4c8180}
+CACHE = {'Count': 0x64, 'Sum': 0x64, 'Paths': 0x4c, 'SumPaths': 0x4c, 'Held': 0x58, 'SumHeld': 0x58}   # (the cell's cached value: ticks, count, flag)
+SUMS = {'Sum': 'Count', 'SumPaths': 'Paths', 'SumHeld': 'Held'}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
-B = Bench([(0x4c8c40, 0x4c8d2c), (0x4c81b0, 0x4c81de), (0x41a960, 0x41a9a7), (0x536300, 0x536390), (0x5d60c0, 0x5d60c3), (0x4c91c0, 0x4c9283), (0x4d8610, 0x4d8750), (0x5da3c0, 0x5da3c1)])
+B = Bench([(0x4c8c40, 0x4c8d2c), (0x4c81b0, 0x4c81de), (0x41a960, 0x41a9a7), (0x536300, 0x536390), (0x5d60c0, 0x5d60c3), (0x4c91c0, 0x4c9283), (0x4d8610, 0x4d8750), (0x5da3c0, 0x5da3c1),
+           (0x4c8ae0, 0x4c8b96), (0x4c8ba0, 0x4c8c3a), (0x4c8150, 0x4c817e), (0x4c8180, 0x4c81ae)])
 CELL, ANALYSER, MAP, TICKS, THINGS = RAM, RAM + 0x1000, RAM + 0x40000, RAM + 0x200000, RAM + 0x100000
 WORLD = TICKS - 0x1da70c   # (its map cells from +0x294, each one's first thing the word +0x24)
 ROWS = 6
@@ -33,14 +37,14 @@ def rect(r, small=False):
     return col, row, w, h
 
 
-def cell(r, ticks, fresh=None):
+def cell(r, ticks, fresh=None, at=0x64):
     c = bytearray(r.bytes(0x7c))
     put(c, 0, '4i', *rect(r, fresh is not None))
     if fresh is None:
         fresh = r.random() < 0.4
     age = r.choice([0, 0, 1, 4, 7, 8, 9, 40, 400]) if fresh else r.choice([400, 4000, 1 << 31, (1 << 32) - 4, r.getrandbits(32)])
-    put(c, 0x64, 'I', (ticks - age) & 0xffffffff)
-    c[0x6c] = r.choice([1, 1, 1, 0, 0xff]) if fresh else r.choice([1, 0, 0x80])
+    put(c, at, 'I', (ticks - age) & 0xffffffff)
+    c[at + 8] = r.choice([1, 1, 1, 0, 0xff]) if fresh else r.choice([1, 0, 0x80])
     return c
 
 
@@ -75,26 +79,29 @@ def case(r):
     grid = bytearray(r.bytes(0x44 * 128 * ROWS))
     for i in range(128 * ROWS):
         put(grid, 0x44 * i + 8, 'I', r.choice(TYPES))
+        if r.random() < 0.5:
+            put(grid, 0x44 * i + 0x2c, 'I', 0)
     regions = {MAP: grid, 0x8023a0: struct.pack('<I', MAP), 0x80239c: struct.pack('<I', (TICKS - 0x1da70c) & 0xffffffff),
                TICKS: struct.pack('<I', ticks)}
     limit = r.choice([0, 1, 2, 3, 10, 100, 0xffffffff, r.getrandbits(32)])
     if op == 'Booth':
         return booth(r, regions)
-    if op == 'Count':
-        regions[CELL] = cell(r, ticks)
-        return Call(CALLS['Count'], [CELL, limit], regions, conv='t', ret='a')
+    at = CACHE[op]
+    if op not in SUMS:
+        regions[CELL] = cell(r, ticks, at=at)
+        return Call(CALLS[op], [CELL, limit], regions, conv='t', ret='a')
     analyser = bytearray(r.bytes(0x20 + 0x400 * 0x7c))
     again = set(r.sample(range(0x400), r.choice([0, 1, 3, 6])))
     for i in range(0x400):
         if i in again:
-            c = cell(r, ticks, fresh=False)
+            c = cell(r, ticks, fresh=False, at=at)
         else:   # (cached and fresh: the limit past its age)
             c = bytearray(r.bytes(0x7c))
-            put(c, 0x64, 'I', ticks)
-            c[0x6c] = r.choice([1, 1, 0x40])
+            put(c, at, 'I', ticks)
+            c[at + 8] = r.choice([1, 1, 0x40])
         analyser[0x20 + 0x7c * i:0x20 + 0x7c * (i + 1)] = c
     regions[ANALYSER] = analyser
-    return Call(CALLS['Sum'], [ANALYSER, limit], regions, conv='t', ret='a')
+    return Call(CALLS[op], [ANALYSER, limit], regions, conv='t', ret='a')
 
 
 if __name__ == '__main__':

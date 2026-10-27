@@ -110,6 +110,24 @@ u32 __fastcall AnalyserCell_CountBusy(u8 *cell, void *, u32 limit);
 // summed.
 u32 __fastcall ParkAnalyser_CountBusy(u8 *analyser, void *, u32 limit);
 
+// 0x4c8ae0 (thiscall on a cell (limit), pops 4; name unconfirmed): as AnalyserCell_CountBusy, the map cells of type 1, 3 or 9
+// (MapCell_IsType1, MapCell_IsType3Or9) in the cell's rectangle, kept in its value at +0x4c (+0x4c the ticks, +0x50 the count, +0x54 worked
+// out). Returns +0x50.
+u32 __fastcall AnalyserCell_CountType1Or3Or9(u8 *cell, void *, u32 limit);
+
+// 0x4c8150 (thiscall (limit), pops 4; name unconfirmed): AnalyserCell_CountType1Or3Or9 of the 0x400 cells (+0x20, 0x7c apart), the last
+// first, summed.
+u32 __fastcall ParkAnalyser_CountType1Or3Or9(u8 *analyser, void *, u32 limit);
+
+// 0x4c8ba0 (thiscall on a cell (limit), pops 4; name unconfirmed): as AnalyserCell_CountBusy, the map cells in the cell's rectangle (its
+// bounds and gMapCells read once) whose dword +0x2c is not 0, kept in its value at +0x58 (+0x58 the ticks, +0x5c the count, +0x60 worked
+// out). Returns +0x5c.
+u32 __fastcall AnalyserCell_CountWith2c(u8 *cell, void *, u32 limit);
+
+// 0x4c8180 (thiscall (limit), pops 4; name unconfirmed): AnalyserCell_CountWith2c of the 0x400 cells (+0x20, 0x7c apart), the last first,
+// summed.
+u32 __fastcall ParkAnalyser_CountWith2c(u8 *analyser, void *, u32 limit);
+
 // 0x4c91c0 (thiscall; name unconfirmed): the people (kind 1) whose +0x220 is 3 in the chains (+0xa, from the cell's first thing, the word
 // [0x80239c] + id * 0x44 + 0x2b8) of the two ticket booths' cells (Map_TicketBoothPos 0 and 1 on [0x80239c] + 0x2d8; the same cell counted
 // twice when they are one), the world read again for each; the value +0x1f0d0's count +0x1f0d4 = that, +0x1f0d8 = 1, its ticks +0x1f0d0
