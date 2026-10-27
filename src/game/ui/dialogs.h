@@ -89,6 +89,11 @@ void __fastcall WindowAt10_Create(u8 *object, void *, u8 *script, u32 handler, u
 // (Window_SetFocus(0)). EAX not kept.
 void __fastcall WindowAt10_Show(u8 *object, void *, u32 flag);
 
+// 0x4931b0 (thiscall; called directly, no table; name invented): WindowAt10_Show undone: with +0xc set, +0xc = 0, the window +0x10
+// hidden (Window_SetShown(0)), unlinked from its parent when there is one (Window_Unlink), its focus let go (Window_KillFocus(0)) and the
+// focus restored (Focus_Restore). EAX not kept.
+void __fastcall WindowAt10_Hide(u8 *object);
+
 // 0x48d1a0 (cdecl (window, message, a, b); the handler WindowAt10_Create gives its window's child +0x18; name unconfirmed): on message
 // 0x10006 the camera centred on the thing [0x7c2658] (Thing_GetHandle, Camera_CentreOnThing; the handle's high word the thing pointer's)
 // and the window's dword 6 (Window_DwordA0, the object) told its slot 11; 0. Any other message: Window_CallDefault's result.

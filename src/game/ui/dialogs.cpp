@@ -312,6 +312,16 @@ void __fastcall WindowAt10_Show(u8 *object, void *, u32 flag) {
     Window_SetFocus(fields[4], nullptr, 0);
 }
 
+void __fastcall WindowAt10_Hide(u8 *object) {
+    u8 **const fields = reinterpret_cast<u8 **>(object);   // (+0xc [3], +0x10 [4])
+    if (!fields[3]) return;
+    fields[3] = nullptr;
+    Window_SetShown(fields[4], nullptr, 0);
+    if (fields[4]) Window_Unlink(fields[4]);
+    Window_KillFocus(fields[4], nullptr, 0);
+    Focus_Restore();
+}
+
 s32 __cdecl WindowAt10_CentreHandler(u8 *window, u32 message, u32 a, u32 b) {
     if (message != 0x10006) return Window_CallDefault(window, nullptr, message, a, b);
     u8 *const object = reinterpret_cast<u8 *>((uintptr_t)Window_DwordA0(window, nullptr, 6));

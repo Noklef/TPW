@@ -9,6 +9,7 @@
 # Enter6fead0 / Set7c24c8 (0x481a10 / 0x485b70, the mouse mode and the window [0x7c24c8]): see modes_case.
 # CaptureMouse / ReleaseMouse (0x65e549 / 0x65e56e): SetFocus's set-up, the capture [0xfaa5e8] the window, another or none.
 # WindowAt10_Show (0x493130, thiscall (flag); src/game/ui/dialogs): see show_case.
+# WindowAt10_Hide (0x4931b0, thiscall; src/game/ui/dialogs): show_case's surroundings with the holder's +0xc set mostly (no flag).
 # usage: focus.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetFocus,KillFocus,...)
 import os
 import struct
@@ -24,7 +25,8 @@ from windowfactory import FACTORY, timer_env  # noqa: E402
 CALLS = {'SetFocus': 0x65e59b, 'KillFocus': 0x65e5fa, 'Dialog7ca1c8_Focus': 0x498a80, 'FocusRestore': 0x4862a0, 'HasSource': 0x48c8d0,
          'Close7c24c8': 0x485b40, 'Close7cb2cc': 0x4a27c0, 'Windows7cc8bc_SelectSecond': 0x4bce80,
          'Overlay7cb2b4_Toggle': 0x4a29d0, 'Obj7b51f0_ToggleOverlay': 0x481490, 'Obj7b51f0_CloseOverlay': 0x4815d0,
-         'Enter6fead0': 0x481a10, 'Set7c24c8': 0x485b70, 'CaptureMouse': 0x65e549, 'ReleaseMouse': 0x65e56e, 'WindowAt10_Show': 0x493130}
+         'Enter6fead0': 0x481a10, 'Set7c24c8': 0x485b70, 'CaptureMouse': 0x65e549, 'ReleaseMouse': 0x65e56e, 'WindowAt10_Show': 0x493130,
+         'WindowAt10_Hide': 0x4931b0}
 MODES = [(0x40cb40, 0x40cb90), (0x46c350, 0x46c460), (0x46c6a0, 0x46c6c0), (0x46cff0, 0x46d010), (0x4814a0, 0x481500), (0x481a10, 0x481b00),
          (0x485b40, 0x485d30), (0x4862a0, 0x486420), (0x4a25f0, 0x4a2690), (0x4a2aa0, 0x4a2ad0), (0x550ca0, 0x550d90), (0x6590f7, 0x6591e4),
          (0x65e6d5, 0x65e73d), (0x65f11d, 0x65f160), (0x66190a, 0x66192b), (0x661d96, 0x661de0), (0x668ad3, 0x668c99), (0x67a740, 0x67a800),
@@ -32,7 +34,7 @@ MODES = [(0x40cb40, 0x40cb90), (0x46c350, 0x46c460), (0x46c6a0, 0x46c6c0), (0x46
          (0x40f440, 0x40f446), (0x5d1410, 0x5d1416), (0x46d590, 0x46d59d), (0x46c710, 0x46c72e), (0x46ced0, 0x46ced7), (0x5d1750, 0x5d1751)]
 B = Bench(sorted(set(RANGES + FACTORY + MODES + [(0x4a29d0, 0x4a2a8a), (0x4a2a90, 0x4a2a96), (0x481490, 0x481495), (0x4815d0, 0x4815df),
                                             (0x65e549, 0x65e56e), (0x65e56e, 0x65e59b),
-    (0x493130, 0x49319f), (0x659409, 0x65959a), (0x659730, 0x659760), (0x65d547, 0x65d56a), (0x65d56b, 0x65d59d),   # (WindowAt10_Show's:
+    (0x493130, 0x49319f), (0x4931b0, 0x4931e8), (0x65f538, 0x65f5b7), (0x659409, 0x65959a), (0x659730, 0x659760), (0x65d547, 0x65d56a), (0x65d56b, 0x65d59d),   # (WindowAt10_Show's:
     (0x65f447, 0x65f538), (0x65f345, 0x65f410), (0x65f16b, 0x65f246), (0x65d9dd, 0x65da8d), (0x65d90b, 0x65d9dd)])))   # top depth, AddChild)
 OVERLAY, OVERLAY_VT = RAM + 0xb000, RAM + 0xb040   # (an overlay to delete: its slot 2 a recorder)
 MODE, MODE_VT, HOLDER = RAM + 0xc000, RAM + 0xc100, RAM + 0xc200   # (the current mouse mode, a recorder object; the holder, never read)
@@ -105,7 +107,7 @@ def overlay_case(r, op, regions, log):
 SHOWN, SHOWN_KID, SHOWN_OBJ, SHOWN_VT = RAM + 0xd000, RAM + 0xd200, RAM + 0xd400, RAM + 0xd440
 
 
-def show_case(r):
+def show_case(r, op='WindowAt10_Show'):
     """WindowAt10_Show: window.py's shown_env() tree (previous links +0x58 set, as windowtree.py's AddChild), its root [0xfaa5d8] mostly
     set; the windows' kinds (slot 3: a recorder of its own, 27, answering 1, 2, 4 or 11, never 7) for Gui_TopDepth, its globals random;
     the holder's +0xc 0 mostly, its window +0x10 a new one (no links now and then one set, a leaf child or not, objects +0x98 / +0x9c set or
@@ -150,7 +152,8 @@ def show_case(r):
     put(leaf, 0x9c, 'I', r.choice([MISC + 0x40, 0]))
     regions[SHOWN_KID] = leaf
     window = r.choice([SHOWN] * 8 + wins[1:] + [0])
-    regions[SHOWN_OBJ] = put(put(bytearray(r.bytes(0x20)), 0xc, 'I', r.choice([0] * 6 + [1, r.getrandbits(32)])), 0x10, 'I', window)
+    shown = r.choice([0] * 6 + [1, r.getrandbits(32)]) if op == 'WindowAt10_Show' else r.choice([1] * 6 + [0, r.getrandbits(32)])
+    regions[SHOWN_OBJ] = put(put(bytearray(r.bytes(0x20)), 0xc, 'I', shown), 0x10, 'I', window)
     regions[0xfaa5ec] = struct.pack('<I', r.choice([SHOWN, SHOWN, 0] + wins))
     regions[0xfaa5fc] = struct.pack('<I', r.choice([0, 0, CDECL_LOG4]))
 
@@ -168,14 +171,22 @@ def show_case(r):
     for at, m in zip((0x787c14, 0x787a60, 0x78733c), [FOCUS + 0x80 + 0x10 * k for k in range(3)]):
         regions[at] = struct.pack('<I', m)
         regions[m] = r.bytes(8)
+    if op == 'WindowAt10_Hide':   # (the tree's handlers fncmp's logger or none: hidden, unlinked and unfocused windows are told)
+        for w in wins + [SHOWN_KID]:
+            put(regions[w], 0x114, 'I', r.choice([CDECL_LOG4, 0]))
+        for off in (0x60, 0x54, 0x58):   # (no links from the shown window back into the tree: a loop's recursion overflows the stack, its
+            put(regions[SHOWN], off, 'I', 0)   # fault differs (stack overflow natively, a write past the emulator's stack))
+        if not window and r.random() < 0.8:
+            put(regions[SHOWN_OBJ], 0x10, 'I', SHOWN)
+        return Call(CALLS[op], [SHOWN_OBJ], regions, conv='t', ret='v')
     flag = r.choice([0, 0, 1, 1, r.getrandbits(32)])
     return Call(CALLS['WindowAt10_Show'], [SHOWN_OBJ, flag], regions, conv='t', ret='v')
 
 
 def case(r, ops=None):
     op = r.deal(ops or OPS)
-    if op == 'WindowAt10_Show':
-        return show_case(r)
+    if op in ('WindowAt10_Show', 'WindowAt10_Hide'):
+        return show_case(r, op)
     log = log_region()
     regions = {LOG: log, VTABLE: vtable({5: 1})}
     if 'Overlay' in op:
