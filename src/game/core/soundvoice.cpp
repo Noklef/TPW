@@ -1,7 +1,9 @@
 #include "soundvoice.h"
 
 #include <cstdint>
+#include <cmath>
 #include <cstring>
+#include <xmmintrin.h>
 
 #include "../files/file.h"
 #include "../math/vector.h"
@@ -281,6 +283,24 @@ u8 __fastcall SoundVoice_UpdateAudible(u8 *voice) {
     at<u32>(voice, 0x30) &= ~0x800u;
     vcall<void>(voice, 0x20, at<u32>(voice, 0x20));
     return 1;
+}
+
+double __fastcall SoundVoice_Distance(u8 *voice) {
+    at<u16>(voice, 0x22) = at<u16>(at<u8 *>(voice, 4), 0xc);
+    float distance = 0.0f;
+    if (const float *const listener = at<const float *>(system(), 0x60)) {
+        const X87Reg dx = std::fabs((X87Reg(at<float>(voice, 0x10)) - listener[0]).v);
+        const X87Reg dz = std::fabs((X87Reg(at<float>(voice, 0x18)) - listener[2]).v);
+        distance = static_cast<float>(dx * dx + dz * dz);
+    }
+    if (!(distance > global<float>(0x0070a834))) {
+        at<u16>(voice, 0x20) = 0xffff;
+        return distance;
+    }
+    const float scaled = static_cast<float>(X87Reg(distance) * global<float>(0x0070a838));
+    const u32 level = static_cast<u32>(_mm_cvtss_si32(_mm_set_ss(scaled)));   // fistp
+    if (level <= 0xffff) at<u16>(voice, 0x20) = static_cast<u16>(0xffff - level);
+    return distance;
 }
 
 void __fastcall SoundVoice_Cull(u8 *voice) {

@@ -30,7 +30,7 @@ from fncmp import (HEAP, LOG, RAM, Bench, Call, blob, blob_bytes, echo, fb, fill
                    strings, vtable)
 
 # name: (address, returns)
-CALLS = {'ensure': (0x6b7150, 'v'), 'pending': (0x6bc900, 'a'), 'apply': (0x6bbf00, 'v'), 'radius': (0x6bc650, 'd'),
+CALLS = {'ensure': (0x6b7150, 'v'), 'pending': (0x6bc900, 'a'), 'apply': (0x6bbf00, 'v'), 'radius': (0x6bc650, 'd'), 'distance': (0x6bb9f0, 'd'),
          'sample': (0x6bc680, 'a'), 'category': (0x6bc760, 'b'), 'variation': (0x6bc810, 'b'), 'audible': (0x6bca10, 'b'),
          'cull': (0x6bca70, 'v'), 'command': (0x6bcab0, 'a'), 'follow': (0x6bd5f0, 'v'), 'byte44': (0x6bcb80, 'a'),
          'branch': (0x6be450, 'b'), 'switch': (0x6be5e0, 'b'), 'next': (0x6be6d0, 'b'), 'swctor': (0x6be660, 'a'), 'seqctor': (0x6be730, 'a'),
@@ -42,7 +42,7 @@ CALLS = {'ensure': (0x6b7150, 'v'), 'pending': (0x6bc900, 'a'), 'apply': (0x6bbf
          'rollword': (0x6bc2d0, 'a'), 'value20': (0x6bba90, 'v'), 'levels': (0x6bbbe0, 'v'), 'position': (0x6bbce0, 'a'),
          'fillrec': (0x6c3ae0, 'a'), 'voicefill': (0x6bc410, 'a'), 'voicefillx': (0x6c39c0, 'a'), 'start': (0x6bd800, 'a'), 'startcnt': (0x6bdf50, 'a'), 'pickch': (0x6bde00, 'a'), 'ctor878': (0x6be260, 'a'), 'ctor2e0': (0x6bdd80, 'a')}
 LINKED_OPS = ('linkinit', 'linkfollow', 'linkbranch')
-B = Bench([(0x6b7150, 0x6b7190), (0x6bc900, 0x6bcb56), (0x6c5130, 0x6c5150), (0x6bbf00, 0x6bbf56), (0x6bc650, 0x6bc674), (0x6bc680, 0x6bc806),
+B = Bench([(0x6b7150, 0x6b7190), (0x6bb9f0, 0x6bba81), (0x6bc900, 0x6bcb56), (0x6c5130, 0x6c5150), (0x6bbf00, 0x6bbf56), (0x6bc650, 0x6bc674), (0x6bc680, 0x6bc806),
            (0x6bc810, 0x6bc8f0), (0x6bd5f0, 0x6bd781), (0x6bd7a0, 0x6bd7ac), (0x6bb220, 0x6bb237), (0x5f5f10, 0x5f5f7d), (0x5f5fa0, 0x5f5faa),
            (0x6bcb80, 0x6bcce1), (0x6c50d0, 0x6c50e8), (0x6be450, 0x6be573), (0x6be5e0, 0x6be608), (0x6be6d0, 0x6be727), (0x6be660, 0x6be672),
            (0x6be730, 0x6be742), (0x6be380, 0x6be41d), (0x6be420, 0x6be44a), (0x6be100, 0x6be24f), (0x6bb950, 0x6bb98e), (0x6bbe90, 0x6bbef9), (0x6bbf60, 0x6bc034),
@@ -337,6 +337,19 @@ def case(r):
                SAMPLES: samples, PARAMS: params, LISTENER: listener, CMD: struct.pack('<I', CVT) + r.bytes(0xc),
                CVT: struct.pack('<I', recorder(CMD_K, 0)), SYSTEM: struct.pack('<I', SYS), RANDOM: struct.pack('<I', seed), CLOCK: bytes(0x20),
                TIME_GET_TIME: struct.pack('<I', recorder(TIME_K, 0, True)), LOG: log, HEAP: heap(0x40, fail=r.choice([0, 0, 0, 1]))}
+    if name == 'distance':   # (the voice near the listener: up to 0.01 * 0xffff squared and past it; the listener now and then null)
+        struct.pack_into('<I', voice, 4, DEF)
+        struct.pack_into('<I', system, 0x60, r.choice([LISTENER] * 6 + [0]))
+        far = r.choice([10.0, 100.0, 2560.0, 2600.0, 1e5])
+        for off, i in ((0x10, 0), (0x18, 2)):
+            ear = struct.unpack_from('<f', listener, 4 * i)[0]
+            ear = ear if ear == ear and abs(ear) < 1e6 else 0.0
+            struct.pack_into('<I', listener, 4 * i, fb(ear))
+            v = r.choice([fb(ear), fb(ear + r.uniform(-far, far)), fb(ear + r.uniform(-far, far)), fb(ear + r.uniform(-far, far)), r.f()])
+            struct.pack_into('<I', voice, off, v)
+        if r.random() < 0.1:   # (exactly on the edge: 0.01 * d = 0xffff, or 0x10000)
+            struct.pack_into('<I', voice, 0x18, fb(struct.unpack_from('<f', listener, 8)[0]))
+            struct.pack_into('<I', voice, 0x10, fb(struct.unpack_from('<f', listener, 0)[0] + r.choice([2559.98, 2560.0, 2560.02, 0.0])))
     if name in LINKED_OPS or name in ('linkctor', 'linkswctor', 'fillrec'):
         parent, parent_params = bytearray(r.bytes(0x50)), bytearray(r.bytes(0x20))
         struct.pack_into('<I', parent, 0x4c, PARENT_PARAMS)

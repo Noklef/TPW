@@ -53,6 +53,11 @@ u8 __fastcall SoundVoice_PickVariation(u8 *voice, void *, u8 avoidRepeat);
 // precision against slot 7: below it (or unordered) and without flag 8, SoundVoice_Cull and 0; else flag 0x800 cleared, slot 8 with
 // +0x20 and 1.
 u8 __fastcall SoundVoice_UpdateAudible(u8 *voice);
+// 0x6bb9f0 (thiscall; a float in st0; slot 7 of 0x70a7e0 and the voices'): +0x22 the definition's (+4) word +0xc. The squared distance
+// on the ground (|x - the listener's x|, |z - z|, from +0x10 / +0x18 and the sound system's +0x60, at the FPU's precision, stored as a
+// float), 0 without a listener. Not above 0 (or unordered): +0x20 0xffff; else that times 0.01 (stored as a float, fistp): up to
+// 0xffff (unsigned), +0x20 0xffff minus it, else +0x20 kept. Returns the squared distance (name invented).
+double __fastcall SoundVoice_Distance(u8 *voice);
 // 0x6bca70 (thiscall): flag 0x800 set; playing (flag 1) with a sound, the sound stopped (as SoundVoice_CategoryEnabled; kept at +0x24).
 void __fastcall SoundVoice_Cull(u8 *voice);
 // 0x6bcab0 (thiscall (out, command), pops 8; vtable slot): with a sound, the sound system's slot 4 with the command and the out
