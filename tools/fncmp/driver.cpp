@@ -808,7 +808,10 @@ const u32 kRawCalled[] = {0x0065f6d1,   // Window_DefaultProc (src/game/ui/windo
                           0x0050f1f0,   // IntPair_Ctor and Stub_Ret, the game's constructor and destructor handed to the array iterators
                           0x005d1750,   // by address (tests/fncmp/crt_vector_iterators.py's GameCtor / GameDtor: below the old g_game)
                           0x00480d10,   // ImeHost_WindowProc, the IME's candidate window's handler (ui/imecandidates' ImeHost_OpenCandidates)
-                          0x004959c0};  // List7ca158_RowProc, the objects' lists' row handler (ui/listrows' List7ca158_NewRow)
+                          0x004959c0,   // List7ca158_RowProc, the objects' lists' row handler (ui/listrows' List7ca158_NewRow)
+                          0x004bed60,   // Windows7cc8c4_Handler, told 0x11 when Window7cc8bc_Create hides its windows (ui/window7cc8bc)
+                          0x004be730,   // List758f04_RowProcA and RowProcB, the name lists' row handlers (ui/listrows' List758f04_NewRowA /
+                          0x004be7c0};  // NewRowB; the kept rows sent 0x12)
 
 void map_raw_called() {
     for (u32 a : kRawCalled) {
