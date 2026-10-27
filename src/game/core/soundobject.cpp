@@ -146,6 +146,44 @@ u32 *__fastcall SoundObject_SetPlacement(u8 *object, void *, u32 *out, const u32
     return out;
 }
 
+u32 *__fastcall SoundObject_AddOccluder(u8 *object, void *, u32 *out, u32 x, u32 y, u32 z, u32 radius, u8 **node) {
+    u8 *const channel = *reinterpret_cast<u8 **>(object + 0x24);
+    if (!channel) {
+        *out = 0xffffffff;
+        return out;
+    }
+    SoundChannel_TryAddOccluder(channel, nullptr, out, x, y, z, radius, node);
+    return out;
+}
+
+u32 *__fastcall SoundObject_RemoveOccluder(u8 *object, void *, u32 *out, u8 **node) {
+    u8 *const channel = *reinterpret_cast<u8 **>(object + 0x24);
+    if (!channel) {
+        *out = 0xffffffff;
+        return out;
+    }
+    SoundChannel_RemoveOccluder(channel, nullptr, out, node);
+    return out;
+}
+
+u32 *__fastcall SoundObject_ReleaseRecordBanks(u8 *object, void *, u32 *out, const u8 *record) {
+    if (!*reinterpret_cast<u8 **>(object + 0x24) || !record) {
+        *out = 0xffffffff;
+        return out;
+    }
+    SoundCategory_ReleaseRecordBanks(out, record);
+    return out;
+}
+
+u32 *__fastcall SoundObject_ReleaseRecordAt(u8 *, void *, u32 *out, u32 index) {
+    if (!index) {
+        *out = 0xffffffff;
+        return out;
+    }
+    SoundCategory_ReleaseRecordAt(SoundCategory_Get(), nullptr, out, index);
+    return out;
+}
+
 s32 *__fastcall SoundObject_LoadCategory(u8 *object, void *, s32 *out, const char *path, const char *name, u32 *index) {
     if (!at<u32>(object, 0x24)) {
         *out = -1;

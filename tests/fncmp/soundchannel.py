@@ -8,7 +8,8 @@
 # The voices' occlusion (0x6b7b60), the position's set (0x6b79d0), the functor 0x70a278's run (0x6b5e60) and the setters that apply it
 # (0x6b90d0, 0x6b9930; the sound object's 0x6b84f0 and 0x6b8b60; the sound commands' runs 0x6b57b0, 0x6b5720, 0x6b5810): see voices_case().
 # The voices' pick and play (0x6b9a60, 0x6b9ab0): see play_case().
-# The flag 2 switch (0x6b9160): see flag2_case(). The sound object's open (0x6b8480): see objopen_case().
+# The flag 2 switch (0x6b9160): see flag2_case(). The sound object's open (0x6b8480): see objopen_case(). The sound object's occluder
+# forwards (0x6b8c70, 0x6b8cb0): as the channel's add and remove, the object's channel +0x24 or none.
 # usage: soundchannel.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -21,8 +22,9 @@ from fncmp import (HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, blob, echo, fb, fi
 CALLS = {'apply': 0x6b8b40, 'settings': 0x6b7d70, 'fn260': 0x6b5e40, 'eax0b': 0x6b7910, 'eaxall': 0x6b7970, 'occlusion': 0x6b7b60,
          'position': 0x6b79d0, 'fn278': 0x6b5e60, 'mode': 0x6b90d0, 'placement': 0x6b9930, 'voices': 0x6b84f0, 'b4c': 0x6b57b0, 'b3c': 0x6b5720,
          'b54': 0x6b5810, 'objplace': 0x6b8b60, 'voiceocc': 0x6b7fa0, 'clearocc': 0x6b7a70, 'pick': 0x6b9a60, 'play': 0x6b9ab0,
-         'setocc': 0x6b8180, 'addocc': 0x6b8230, 'remocc': 0x6b82c0, 'listremove': 0x6c4ba0, 'flag2': 0x6b9160, 'objopen': 0x6b8480, 'occswitch': 0x6b99c0, 'occadd': 0x6b9a10}
-SETTERS = ('occlusion', 'voiceocc', 'clearocc', 'position', 'fn278', 'mode', 'placement', 'voices', 'b4c', 'b3c', 'b54', 'objplace', 'setocc', 'addocc', 'remocc', 'listremove', 'occswitch', 'occadd')
+         'setocc': 0x6b8180, 'addocc': 0x6b8230, 'remocc': 0x6b82c0, 'listremove': 0x6c4ba0, 'flag2': 0x6b9160, 'objopen': 0x6b8480, 'occswitch': 0x6b99c0, 'occadd': 0x6b9a10,
+         'objoccadd': 0x6b8c70, 'objoccrem': 0x6b8cb0}
+SETTERS = ('occlusion', 'voiceocc', 'clearocc', 'position', 'fn278', 'mode', 'placement', 'voices', 'b4c', 'b3c', 'b54', 'objplace', 'setocc', 'addocc', 'remocc', 'listremove', 'occswitch', 'occadd', 'objoccadd', 'objoccrem')
 B = Bench([(0x6b8b40, 0x6b8b60), (0x6b7d70, 0x6b7e5b), (0x6c4760, 0x6c47a3), (0x6b5e40, 0x6b5e59), (0x6b7910, 0x6b796b),
            (0x6b7970, 0x6b79cb), (0x6c4670, 0x6c46a7), (0x6c46b0, 0x6c475a), (0x6b7b60, 0x6b7d6e), (0x6b79d0, 0x6b7a6b), (0x6b5e60, 0x6b5fb4),
            (0x6c4c80, 0x6c4eff), (0x6c4f00, 0x6c4f54), (0x6b8330, 0x6b8358), (0x6bb7a0, 0x6bb7bd), (0x6bb7c0, 0x6bb856), (0x6babc0, 0x6bac04),
@@ -32,7 +34,8 @@ B = Bench([(0x6b8b40, 0x6b8b60), (0x6b7d70, 0x6b7e5b), (0x6c4760, 0x6c47a3), (0x
            (0x6b8b60, 0x6b8c63), (0x6b7fa0, 0x6b814e), (0x6b7a70, 0x6b7b5f), (0x6b9a60, 0x6b9aa1), (0x6b9ab0, 0x6b9b26),
            (0x6b8180, 0x6b822d), (0x6b99c0, 0x6b9a05), (0x6b9a10, 0x6b9a5b), (0x6b8230, 0x6b82b1), (0x6c49b0, 0x6c4b93), (0x6c4fd0, 0x6c4fe3), (0x5e2a30, 0x5e2a80), (0x5e2a80, 0x5e2b80),
            (0x67acb0, 0x67acb1), (0x6b82c0, 0x6b832e), (0x6c4ba0, 0x6c4c1e),
-           (0x6b9160, 0x6b91ce), (0x6b9660, 0x6b9760), (0x6bead0, 0x6beb03), (0x632150, 0x632380), (0x6b9b30, 0x6b9b94), (0x6b8480, 0x6b84ec)])
+           (0x6b9160, 0x6b91ce), (0x6b9660, 0x6b9760), (0x6bead0, 0x6beb03), (0x632150, 0x632380), (0x6b9b30, 0x6b9b94), (0x6b8480, 0x6b84ec),
+           (0x6b8c70, 0x6b8cda)])
 CHAN, OUT, FUNCTOR, FVT, REC, INFO, SRC, SVT, EAXB, KSET, KVT = (RAM + 0x100 * i for i in range(11))
 GLOBAL = 0xfb2058
 VOICES, VVT, SND, SNDVT, POOL, NODES, OCCS, VEC, VEC2, OBJECT, MIXER, COMMAND, P1, P2, P3 = (RAM + 0x1000 + 0x200 * i for i in range(15))
@@ -291,7 +294,7 @@ def voices_case(r, log, name):
         if name == 'occswitch':
             return Call(0x6b99c0, [CHAN, OUT, r.choice([0, 1, r.getrandbits(32)]), radius], regions, conv='t', ret='a')
         return Call(0x6b8180, [CHAN, OUT, r.getrandbits(24) << 8 | on, radius], regions, conv='t', ret='a')
-    if name in ('addocc', 'remocc', 'listremove', 'occadd'):   # (the occluders' list rebuilt with the list's own nodes {occluder, next, prev} and
+    if name in ('addocc', 'remocc', 'listremove', 'occadd', 'objoccadd', 'objoccrem'):   # (the occluders' list rebuilt with the list's own nodes {occluder, next, prev} and
         # tail; the switch on or off; the EAX buffer or the source's slot 0x13. The add: the new one's radius equal to one there, between,
         # NaN or random. The removes: one of the nodes (its occluder null now and then), or none; the count 0 now and then)
         m = r.choice([0, 1, 2, 3])
@@ -302,16 +305,24 @@ def voices_case(r, log, name):
             struct.pack_into('<3I', nodes, 0xc * i, OCCS + 0x10 * i, NODES + 0xc * (i + 1) if i + 1 < m else 0, NODES + 0xc * (i - 1) if i else 0)
         struct.pack_into('<3I', occluders, 4, NODES if m else 0, NODES + 0xc * (m - 1) if m else 0, m)
         occluders[0x18] = r.choice([0, 1, r.getrandbits(8)])
-        if name not in ('addocc', 'occadd'):
+        obj = bytearray(r.bytes(0x40))   # (the sound object's forwards: its channel +0x24 or none)
+        struct.pack_into('<I', obj, 0x24, r.choice([CHAN] * 8 + [0]))
+        if name not in ('addocc', 'occadd', 'objoccadd'):
             pick = NODES + 0xc * r.randrange(m) if m and r.random() < 0.9 else r.choice([0, 0, NODES])
             if pick and r.random() < 0.15:
                 struct.pack_into('<I', nodes, pick - NODES, 0)
             if r.random() < 0.1:
                 struct.pack_into('<I', occluders, 0xc, 0)
             regions.update({OCCS: occs, NODES: nodes, HEAP: heap(), PNODE: struct.pack('<I', pick)})
+            if name == 'objoccrem':
+                regions[OBJECT] = obj
+                return Call(0x6b8cb0, [OBJECT, OUT, PNODE], regions, conv='t', ret='a')
             return Call(CALLS[name], [OCCLUDERS if name == 'listremove' else CHAN, OUT, PNODE], regions, conv='t', ret='a')
         radius = r.choice([fb(float(r.randint(0, 7))), fb(radii[0]) if m else 0, fb(2.5), 0x7fc00000, r.getrandbits(32)])
         regions.update({OCCS: occs, NODES: nodes, HEAP: heap(fail=r.choice([0, 0, 0, 1]))})
+        if name == 'objoccadd':
+            regions.update({PNODE: r.bytes(4), OBJECT: obj})
+            return Call(0x6b8c70, [OBJECT, OUT, ints(), r.getrandbits(32), ints(), radius, PNODE], regions, conv='t', ret='a')
         if name == 'occadd':
             regions[PNODE] = r.bytes(4)
             return Call(0x6b9a10, [CHAN, OUT, ints(), r.getrandbits(32), ints(), radius, PNODE], regions, conv='t', ret='a')

@@ -58,4 +58,15 @@ u32 __fastcall SoundObject_ResolvePath(u8 *object, void *, const char *path, u8 
 // Returns out.
 s32 *__fastcall SoundObject_LoadCategory(u8 *object, void *, s32 *out, const char *path, const char *name, u32 *index);
 
+// The channel's (+0x24) forwards (names invented); without a channel *out = -1. Each returns out.
+// 0x6b8c70 (thiscall (out, x, y, z, radius, &node), pops 0x18): SoundChannel_TryAddOccluder with them.
+u32 *__fastcall SoundObject_AddOccluder(u8 *object, void *, u32 *out, u32 x, u32 y, u32 z, u32 radius, u8 **node);
+// 0x6b8cb0 (thiscall (out, &node), pops 8): SoundChannel_RemoveOccluder with them.
+u32 *__fastcall SoundObject_RemoveOccluder(u8 *object, void *, u32 *out, u8 **node);
+// 0x6b8570 (thiscall (out, record), pops 8; slot 8): with a record too, SoundCategory_ReleaseRecordBanks (out, record); else *out = -1.
+u32 *__fastcall SoundObject_ReleaseRecordBanks(u8 *object, void *, u32 *out, const u8 *record);
+// 0x6ba090 (thiscall, this unused (out, index), pops 8; slot 7 of 0x70a2a0): with an index (not 0), SoundCategory_ReleaseRecordAt (out,
+// index) on the category singleton (SoundCategory_Get); else *out = -1.
+u32 *__fastcall SoundObject_ReleaseRecordAt(u8 *object, void *, u32 *out, u32 index);
+
 }  // extern "C"
