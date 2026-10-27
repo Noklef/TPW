@@ -26,4 +26,15 @@
 extern "C" {
 // 0x53a540 (thiscall on the cell; angle out, pops 4).
 u32 __fastcall MapCell_PickModel(const u8 *cell, void *, s32 *angle);
+
+// 0x535dd0 (thiscall on the cell; angle out, pops 4; name invented, unconfirmed): the same pick for a path's cell. *angle first 0; a type
+// of magnitude 2, 4, 7, 9, 0xa, 0x15 or 0x1e gets 8 straight away. Magnitude 3 searches 0x7630b0 (its row count at 0x700c20) with a turn
+// of 180 for a straight cell (MapCell_StraightNeighbours, inlined) not facing 0x40 or 0x10; any other 0x763138 (0x700c24) with none. Then a
+// type 3 corner (MapCell_CornerNeighbours, inlined) facing along it (0x40 with 0x50, 0x10 with 0x14, 1 with 0x41, 4 with 5) adds 1. With
+// the toggle byte 0x820ac0 set, a model of group 1 index 2 adds 0x11 and then one of index 0xa adds 0xa; the toggle then becomes rand() % 2
+// (the CRT's). A model of group 2 adds 3 for each side (1, 4, 0x10, 0x40: Byte_ShiftLog2 (side, 4) round to 1) among the cell's neighbour
+// bits whose next cell (Map_StepCellInDirection) is of type 1 with the side's reverse (Nibble_Scale) among its own bits, while the cell's
+// own entry (MapHandle_Entry28; for a type 0xc / 0x11 one, MapCell_IsTypeCOr11, the parent [0x7cf83c] + (its word +0x10 + 0x6cde) * 0x28)
+// has none of its low flags (MapCell_HasLowFlags).
+u32 __fastcall MapCell_PickPathModel(const u8 *cell, void *, s32 *angle);
 }
