@@ -12,7 +12,7 @@
 # weather_load_all()'s three loads through Quickload_Locate, a folder name of 0-40 characters, the old arrays at +0x1fd0..+0x1fd8 plain
 # textures or none, the second's colours sampled (its file a TGA). The weather renderer's reload (src/game/render/weatherfx: 0x57d850):
 # weather_load_all()'s scene on the renderer itself, its +4 any. The static textures' exit handler (src/game/render/spritequeue: 0x58ac10):
-# the record at 0x8c47b0 with plain_array()'s textures at +8 (or none) and a block at +0xc in the tracked table (as it is, 4 above, or
+# the record at 0x8c47b0 with 1-3 of texturemem.py's textures at +8 (count-prefixed; or none) and a block at +0xc in the tracked table (as it is, 4 above, or
 # not) or 0.
 # usage: texman.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetLoadFlags,Destroy,Release,Load,Acquire,LandAdd,WeatherLoad,QueueLoad,WeatherLoadAll,LandSky,WeatherReload,StaticFree)
 import os
@@ -169,11 +169,15 @@ def weather_reload(r):
 
 def static_free(r):
     regions = {HEAP: heap(), **global_heap(), LOG: log_region()}
-    textures = plain_array(r, regions)
+    textures = 0
+    if r.random() < 0.7:   # (texturemem.py's textures, any flags: the object one makes the first release differ from the array's)
+        n = r.choice([1, 2, 3])
+        regions[ARRAYS] = struct.pack('<I', n) + bytes(texturemem.textures(r, regions, ARRAYS + 4, n))
+        textures = ARRAYS + 4
     block = r.choice([0, HEAP + 0x200, HEAP + 0x200, r.getrandbits(32)])
-    table = bytearray(8 * 8)
-    for k in range(8):
-        put(table, 8 * k, 'II', r.getrandbits(32), r.choice([block, (block + 4) & 0xffffffff, r.getrandbits(32)]))
+    table = bytearray(regions.get(texturemem.PAIRS, bytes(8 * 8)))
+    for k in r.sample(range(8), 3):
+        put(table, 8 * k, 'II', r.getrandbits(32), r.choice([block, (block + 4) & 0xffffffff]))
     regions[texturemem.PAIRS] = table
     regions[texturemem.COUNT] = struct.pack('<I', r.choice([0, 1, 2, 4, 8]))
     regions[0x8c47b0] = put(bytearray(r.bytes(0x18)), 8, 'II', textures, block)
