@@ -75,4 +75,36 @@ u32 __fastcall ImeContext_Release(const u32 *context);
 // returns ime.
 void __fastcall Ime_Dtor(u8 *ime);
 u8 *__fastcall Ime_DeletingDtor(u8 *ime, void *, u32 flags);
+
+// 0x47a830 (thiscall (value), pops 4; name unconfirmed): the window +0x4c's input context (ImmGetContext 0x6fd084); with one, ImmNotifyIME
+// (0x6fd068) 0x12 (NI_SELECTCANDIDATESTR) with the index +0x54 and value, then 0x11 (NI_CLOSECANDIDATE) with it and 0, and the context
+// released (ImmReleaseContext 0x6fd080). EAX not kept.
+void __fastcall Ime_SelectCandidate(u8 *ime, void *, u32 value);
+
+// 0x47a6d0 (thiscall (first, last, a third unread), pops 12; name unconfirmed): with the window +0x4c's input context: ImmNotifyIME 0x17
+// (NI_SETCANDIDATE_PAGESIZE) with the index +0x54 and last - first, then 0x16 (PAGESTART) with first; the keyboard layout's
+// (GetKeyboardLayout(0) 0x6fd304) description (ImmGetDescriptionA 0x6fd088, 0x100 bytes) widened (MultiByteToWideChar 0x6fd174, code page
+// 0) into the wide string +0x28: when it has a length, the string assigned that many less one 'X's (a local string: CountedBuf_Reset,
+// StdWString_AssignFill, StdWString_AssignSub of all of it (npos [0x6fef00]), released), frozen (StdWString_Freeze) and written over;
+// then compared with the wide text 0x6feee8 (wcscmp; the answer unused, sic) and the context released. EAX not kept.
+void __fastcall Ime_SetCandidatePage(u8 *ime, void *, u32 first, u32 last, u32);
+
+// 0x480fd0 (thiscall on the host; name unconfirmed): the IME's result (+0x1c's string +8: Obj_GetCOr6fd6c4) put into the text window +4
+// (Window705a20) at its selection's start. When the host's text +0x1a8 is still unfetched (its first word 0 and the second 1, as
+// ImeHost_OnWindow leaves it): the window's text (Window705a20_GetText, 0x100) into it, the IME's limit (Ime_SetLimit) the room left (the
+// window's word +0x13c less its text's length, signed), and with no room and a result OutputDebugStringA (0x6fd1e0) of the text 0x74fa8c
+// and nothing more. Else the text cut at the start (Window705a20_SelectionStart), the result put between (wcscpy / wcscat into two
+// 0x102-character locals), set (Window705a20_SetTextQuiet) and selected from the start over the result's length (Window705a20_SetCursor).
+// EAX not kept.
+void __fastcall ImeHost_InsertResult(u8 *host);
+
+// 0x4809f0 (thiscall on the host (window, message, a, b), pops 16; name unconfirmed): the candidate window's handler. 0x14: +0 and +8
+// cleared. 0x400: Ime_SelectCandidate(b) on the IME +0x1c, its byte +0x184 0. 0x405: +0x14 = a, +0x18 = b, and unless the IME's byte +0x184
+// is set with +0x168 a and +0x16c the page +0x10 (as read before), Ime_SetCandidatePage(a, b, page). 0x401 with b not +0x10: +0x10 = b,
+// Ime_SetCandidatePage(+0x14, +0x18, b) likewise unless the IME has them, then ImeHost_InsertResult. Then (all) Window_CallDefault: its
+// EAX.
+s32 __fastcall ImeHost_OnMessage(u8 *host, void *, u8 *window, u32 message, u32 a, u32 b);
+
+// 0x480d10 (cdecl (window, message, a, b); name unconfirmed): the candidate window's raw handler: ImeHost_OnMessage on the host 0x7b4e38.
+s32 __cdecl ImeHost_WindowProc(u8 *window, u32 message, u32 a, u32 b);
 }

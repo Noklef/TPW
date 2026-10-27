@@ -3929,6 +3929,11 @@ address,name,kind,confidence,notes
 0x00478d20,ImeContext_Release,function,low,"reimplemented (src/game/core/ime); thiscall: with a context, ImmReleaseContext(window, context); returns EAX (that, else 0)"
 0x00478be0,Ime_Dtor,function,low,"reimplemented (src/game/core/ime); thiscall destructor: vtable 0x6fef04, ImmDestroyContext(+0x5c) when set, each 0x24 entry's strings cleared (CountedVector4_Clear +0x10), the entries' block freed and +0x3c-+0x44 0, then the wide strings +0x28 / +0x18 / +0x8 tidied (inlined)"
 0x00478bc0,Ime_DeletingDtor,function,low,"reimplemented (src/game/core/ime); thiscall (flags), pops 4: Ime_Dtor, then freed for flags bit 0; returns ime"
+0x0047a830,Ime_SelectCandidate,function,low,"reimplemented (src/game/core/ime); thiscall (value), pops 4: with the window +0x4c's input context, ImmNotifyIME 0x12 (index +0x54, value) and 0x11 (index, 0), the context released"
+0x0047a6d0,Ime_SetCandidatePage,function,low,"reimplemented (src/game/core/ime); thiscall (first, last, unread), pops 12: with the input context, ImmNotifyIME 0x17 (last - first) and 0x16 (first), the keyboard layout's description widened into the wide string +0x28, the context released"
+0x00480fd0,ImeHost_InsertResult,function,low,reimplemented (src/game/core/ime); thiscall on the host: the IME's result put into the text window +4 at its selection's start (the window's text fetched first when unfetched; no room: OutputDebugStringA)
+0x004809f0,ImeHost_OnMessage,function,low,"reimplemented (src/game/core/ime); thiscall on the host (window, message, a, b), pops 16: the candidate window's handler (0x14, 0x400, 0x401, 0x405), then Window_CallDefault"
+0x00480d10,ImeHost_WindowProc,function,low,"reimplemented (src/game/core/ime); cdecl (window, message, a, b): ImeHost_OnMessage on the host 0x7b4e38"
 0x0047f9a0,TextMetrics_Width,function,high,reimplemented (src/game/gfx/text); width of a run of characters by the glyph width slot
 0x0047fa00,TextMetrics_FitIndex,function,high,reimplemented (src/game/gfx/text); index at which the width runs out
 0x0047f990,TextMetrics_ForwardSlot8,function,high,reimplemented (src/game/gfx/text); Forwards to virtual call 8 of the inner object (name unconfirmed)

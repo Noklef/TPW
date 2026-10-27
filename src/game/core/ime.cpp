@@ -2,8 +2,13 @@
 
 #include <cstdint>
 
+#include "accessors.h"
 #include "buffers.h"
+#include "crt.h"
 #include "gameheap.h"
+#include "stdwstring.h"
+#include "../ui/window.h"
+#include "../ui/window705a20.h"
 #include "../ui/window705a50.h"
 
 namespace {
@@ -322,5 +327,97 @@ u8 *__fastcall Ime_DeletingDtor(u8 *ime, void *, u32 flags) {
     Ime_Dtor(ime);
     if (flags & 1) GameHeap_Free(ime);
     return ime;
+}
+
+void __fastcall Ime_SelectCandidate(u8 *ime, void *, u32 value) {
+    const u32 window = at<u32>(ime, 0x4c);
+    const u32 context = import<u32(__stdcall *)(u32)>(0x006fd084)(window);
+    if (!context) return;
+    const u32 index = at<u32>(ime, 0x54);
+    const auto notify = import<u32(__stdcall *)(u32, u32, u32, u32)>(0x006fd068);
+    notify(context, 0x12, index, value);
+    notify(context, 0x11, index, 0);
+    import<u32(__stdcall *)(u32, u32)>(0x006fd080)(window, context);
+}
+
+void __fastcall Ime_SetCandidatePage(u8 *ime, void *, u32 first, u32 last, u32) {
+    const u32 window = at<u32>(ime, 0x4c);
+    const u32 context = import<u32(__stdcall *)(u32)>(0x006fd084)(window);
+    if (!context) return;
+    const u32 index = at<u32>(ime, 0x54);
+    const auto notify = import<u32(__stdcall *)(u32, u32, u32, u32)>(0x006fd068);
+    notify(context, 0x17, index, last - first);
+    notify(context, 0x16, index, first);
+    char description[0x100];
+    import<u32(__stdcall *)(u32, char *, u32)>(0x006fd088)(import<u32(__stdcall *)(u32)>(0x006fd304)(0), description, 0x100);
+    const auto widen = import<s32(__stdcall *)(u32, u32, const char *, s32, u16 *, s32)>(0x006fd174);
+    StdWString *const name = reinterpret_cast<StdWString *>(ime + 0x28);
+    const s32 count = widen(0, 0, description, -1, nullptr, 0);
+    if (count) {
+        StdWString temp = {};   // (the original's allocator byte is an unset local's: never read)
+        CountedBuf_Reset(reinterpret_cast<u8 *>(&temp), nullptr, 0);
+        StdWString_AssignFill(&temp, nullptr, (u32)(count - 1), 0x58);
+        StdWString_AssignSub(name, nullptr, &temp, 0, *reinterpret_cast<const u32 *>((uintptr_t)0x006fef00));
+        CountedBuf_Reset(reinterpret_cast<u8 *>(&temp), nullptr, 1);
+        StdWString_Freeze(name, nullptr);
+        widen(0, 0, description, -1, name->ptr, count);
+    }
+    const u16 *const characters = name->ptr ? name->ptr : reinterpret_cast<const u16 *>((uintptr_t)0x006fd6c4);
+    Crt().wcscmp(characters, reinterpret_cast<const u16 *>((uintptr_t)0x006feee8));   // (the answer unused, sic)
+    import<u32(__stdcall *)(u32, u32)>(0x006fd080)(window, context);
+}
+
+void __fastcall ImeHost_InsertResult(u8 *host) {
+    u8 *const ime = host + 0x1c;
+    const u32 length = Crt().wcslen(reinterpret_cast<const u16 *>((uintptr_t)Obj_GetCOr6fd6c4(ime)));
+    u16 *const text = reinterpret_cast<u16 *>(host + 0x1a8);
+    if (text[0] == 0 && at<u16>(host, 0x1aa) == 1) {   // (ImeHost_OnWindow's mark: the window's text not fetched yet)
+        Window705a20_GetText(at<u8 *>(host, 4), nullptr, text, 0x100);
+        u8 *const window = at<u8 *>(host, 4);
+        const s32 room = (s32)at<s16>(window, 0x13c) - (s16)Window705a50_TextLength(window);
+        Ime_SetLimit(ime, nullptr, (u32)room);
+        if (room == 0 && length != 0) {
+            import<void(__stdcall *)(const char *)>(0x006fd1e0)(reinterpret_cast<const char *>((uintptr_t)0x0074fa8c));
+            return;
+        }
+    }
+    const s32 start = (s16)Window705a20_SelectionStart(at<u8 *>(host, 4));
+    u16 joined[0x102], rest[0x102];
+    Crt().wcscpy(rest, text);
+    u16 *const cut = rest + start;
+    const u16 kept = *cut;
+    *cut = 0;
+    Crt().wcscpy(joined, rest);
+    Crt().wcscat(joined, reinterpret_cast<const u16 *>((uintptr_t)Obj_GetCOr6fd6c4(ime)));
+    *cut = kept;
+    Crt().wcscat(joined, cut);
+    Window705a20_SetTextQuiet(at<u8 *>(host, 4), nullptr, joined);
+    Window705a20_SetCursor(at<u8 *>(host, 4), nullptr, (u32)start, (u32)(start + (s32)length));
+}
+
+s32 __fastcall ImeHost_OnMessage(u8 *host, void *, u8 *window, u32 message, u32 a, u32 b) {
+    u8 *const ime = host + 0x1c;
+    if (message == 0x14) {
+        at<u32>(host, 0) = 0;
+        at<u32>(host, 8) = 0;
+    } else if (message == 0x400) {
+        Ime_SelectCandidate(ime, nullptr, b);
+        at<u8>(ime, 0x184) = 0;
+    } else if (message == 0x405) {
+        const u32 page = at<u32>(host, 0x10);
+        at<u32>(host, 0x14) = a;
+        at<u32>(host, 0x18) = b;
+        if (!at<u8>(ime, 0x184) || at<u32>(ime, 0x168) != a || page != at<u32>(ime, 0x16c)) Ime_SetCandidatePage(ime, nullptr, a, b, page);
+    } else if (message == 0x401 && at<u32>(host, 0x10) != b) {
+        const u32 first = at<u32>(host, 0x14), last = at<u32>(host, 0x18);
+        at<u32>(host, 0x10) = b;
+        if (!at<u8>(ime, 0x184) || at<u32>(ime, 0x168) != first || b != at<u32>(ime, 0x16c)) Ime_SetCandidatePage(ime, nullptr, first, last, b);
+        ImeHost_InsertResult(host);
+    }
+    return Window_CallDefault(window, nullptr, message, a, b);
+}
+
+s32 __cdecl ImeHost_WindowProc(u8 *window, u32 message, u32 a, u32 b) {
+    return ImeHost_OnMessage(reinterpret_cast<u8 *>((uintptr_t)0x007b4e38), nullptr, window, message, a, b);
 }
 }
