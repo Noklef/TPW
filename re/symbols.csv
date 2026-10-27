@@ -390,7 +390,7 @@ address,name,kind,confidence,notes
 0x008798c8,gTerrainBlendScratch,data,high,"tile-sized RGBA scratch the blend writes bottom-up"
 0x005e78b0,Array3D_Read,function,high,"reimplemented (src/game/gfx/array3d); Reads width, height, depth and the pixel bytes from a stream into a new block"
 0x00467a80,Sign_Apply,function,high,"splits a name into two lines, loads <theme>/<style>.sgn, renders it onto the model's sign1/sign2.tga with GDI"
-0x005ebfc0,SignStyle_Ctor,function,high,"two line styles, default LOGFONT Arial Black, weight 400"
+0x005ebfc0,Renderer_Construct,function,low,"reimplemented (src/game/render/renderer); the sign renderer constructor (Sign_Apply's local; Renderer_Teardown its destructor): two default GDI LOGFONTs, two array groups, the wavelet codec at +0x14"
 0x005ec220,Renderer_Teardown,function,high,reimplemented (src/game/render/renderer); releases the two array groups and two blocks after calling the sub object
 0x005ec3a0,SignStyle_Load,function,high,"reimplemented (src/game/gfx/signstyle); a sign style read from its .sgn file: version 100 or above, two line styles, the effects, two fill strips and the background"
 0x005eb1a0,Eleven_Read,function,high,reimplemented (src/game/core/streambuf); reads eleven dwords from a stream
