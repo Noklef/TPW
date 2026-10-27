@@ -110,6 +110,17 @@ void __cdecl ResearchMeters_Refresh(u32 group) {
 
 void __fastcall Obj7b51f0_RefreshResearch(void *, void *, u32 group) { ResearchMeters_Refresh(group); }
 
+s32 __cdecl ResearchMeters_ArrowProc(u8 *window, u32 message, u32 a, u32 b) {
+    if (message == 0x100) {
+        u8 *const lab = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da722_519550(global<u8 *>(0x007cf83c)));
+        if (a == 0xd2d03) ResearchLab_PrevProject(lab, nullptr, 0);
+        else ResearchLab_NextProject(lab, nullptr, 0);
+        ResearchMeters_ShowName(0);
+        ResearchMeters_ShowProgress(0);
+    }
+    return LevelMeter_OnMessage(window, message, a, b);
+}
+
 void __cdecl LevelMeter_SetLevel(u8 *window, u32 level) {
     if (level == 0) {
         const u32 phase = get(window, 3);

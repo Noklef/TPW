@@ -26,7 +26,10 @@
 # stub with its two text arguments hashed (text_args(); the buffer it writes is what the gauge is sent).
 # Refresh (0x4aaec0) and Refresh481520 (0x481520, thiscall on 0x7b51f0): as Name, but the lab, definitions, control records and save keys research.py's
 # choose_case() makes for Choose (0x5034f0, ResearchLab_NextProject; its group too), the lab moved to LAB2.
-# usage: levelmeter.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetLevel,OnMessage,Research,Progress,Name,Refresh,Refresh481520)
+# Arrows (0x4aa0c0, the meters' arrows' handler): Refresh's world with its group swapped into group 0 (the projects' groups and the groups'
+# records), the message 0x100 mostly (else 0x101, 0x1d, 0 or any but 0x1e: OnMessage's default handler), the arrow 0xd2d03 (back) or
+# another; the window random, no children, its default handler +0x118 the cdecl recorder 5.
+# usage: levelmeter.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetLevel,OnMessage,Research,Progress,Name,Refresh,Refresh481520,Arrows)
 import os
 import struct
 import sys
@@ -38,11 +41,11 @@ import research  # noqa: E402
 from fncmp import LOG, RAM, Bench, Call, _cdecl_log4, blob_bytes, blob_inner_text, log_region, put, recorder, set_return, strings, text_args, vtable  # noqa: E402
 
 CALLS = {'SetLevel': 0x4a95b0, 'OnMessage': 0x4a9fc0, 'Research': 0x4a9c70, 'Progress': 0x4a9bd0, 'Name': 0x4aa120, 'Refresh': 0x4aaec0,
-         'Refresh481520': 0x481520}
+         'Refresh481520': 0x481520, 'Arrows': 0x4aa0c0}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 B = Bench([(0x409410, 0x409490), (0x410ac0, 0x410b20), (0x412e90, 0x412f00), (0x412fb0, 0x413030), (0x414670, 0x414690), (0x4146b0, 0x414800),
            (0x47d460, 0x47d4b0), (0x481520, 0x481540), (0x485b00, 0x485b50), (0x4a95b0, 0x4a96c0), (0x4a9bd0, 0x4a9f84), (0x4a9fc0, 0x4aa0b1),
-           (0x4aa120, 0x4aa310), (0x4aaec0, 0x4aaf20), (0x4c9e60, 0x4c9ef0), (0x4d3d10, 0x4d3df0), (0x4d4b70, 0x4d4ba0), (0x5034f0, 0x5036b0),
+           (0x4aa0c0, 0x4aa310), (0x4aaec0, 0x4aaf20), (0x4c9e60, 0x4c9ef0), (0x4d3d10, 0x4d3df0), (0x4d4b70, 0x4d4ba0), (0x5034f0, 0x503850),
            (0x503980, 0x503b40), (0x504040, 0x5040a0), (0x519510, 0x5195a0), (0x51bc40, 0x51bc80), (0x5aef50, 0x5af0f0), (0x5af780, 0x5af800),
            (0x5b30b0, 0x5b3120), (0x5da3c0, 0x5da3c1), (0x65968e, 0x6596a2), (0x65d3a3, 0x65d40e), (0x65d7bc, 0x65d832), (0x65e6d5, 0x65e73d),
            (0x65f5b7, 0x65f60e), (0x65f66e, 0x65f697), (0x67acd0, 0x67ad00), (0x67af00, 0x67afb0), (0x67b0d0, 0x67b120), (0x6acb70, 0x6accb0),
@@ -287,8 +290,31 @@ def name_case(r, op):
     return Call(CALLS[op], [group], regions)
 
 
+def arrows_case(r):
+    """Arrows (the module comment)"""
+    c = name_case(r, 'Refresh')
+    regions = c.regions
+    group = c.args[0]
+    lab = regions[LAB2]
+    if group:   # (choose_case()'s group swapped with group 0, the handler's)
+        for i in range(0x100):
+            g = struct.unpack_from('<I', lab, 0xc + 20 * i + 4)[0]
+            if g in (0, group):
+                put(lab, 0xc + 20 * i + 4, 'I', group - g)
+        a, b = 0x140c, 0x140c + 16 * group
+        lab[a:a + 16], lab[b:b + 16] = lab[b:b + 16], lab[a:a + 16]
+    w = put(bytearray(r.bytes(0x140)), 0x118, 'I', recorder(5, 4, cdecl=True))
+    put(w, 0x5c, 'I', 0)
+    regions[WINDOW] = w
+    message = r.choice([0x100] * 8 + [0x101, 0x1d, 0, r.getrandbits(32) | 0x100])
+    arrow = r.choice([0xd2d03, 0xd2d03, 0xd2d02, 0xd2d04, 0x100d2d03, r.getrandbits(32)])
+    return Call(CALLS['Arrows'], [WINDOW, message, arrow, r.getrandbits(32)], regions)
+
+
 def case(r):
     op = r.deal(OPS)
+    if op == 'Arrows':
+        return arrows_case(r)
     if op in ('Name', 'Refresh', 'Refresh481520'):
         return name_case(r, op)
     if op == 'Progress':
