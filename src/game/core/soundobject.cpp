@@ -21,6 +21,22 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 extern "C" {
 
+u32 *__fastcall SoundObject_Open(u8 *object, void *, u32 *out, u32 value) {
+    vcall<void>(object, 0x24);
+    if (static_cast<s32>(*vcall<u32 *>(at<u8 *>(object, 0x24), 0x1c, &value, value, at<u32>(object, 0x1c))) < 0) {
+        *out = 0xffffffff;
+        return out;
+    }
+    u8 *const channel = at<u8 *>(object, 0x24);
+    SoundCategory_Get();
+    *reinterpret_cast<u8 **>(static_cast<uintptr_t>(0xfb1ffc)) = channel;
+    at<u8 *>(at<u8 *>(object, 0x24), 0x60) = object + 0x28;
+    *reinterpret_cast<u8 **>(static_cast<uintptr_t>(0xfb1f24)) = at<u8 *>(object, 0x24);
+    vcall<void>(object, 0x1c, &value, 1u);
+    *out = 0;
+    return out;
+}
+
 u32 *__fastcall SoundObject_Broadcast(u8 *object, void *, u32 *out) {
     if (u8 *const mixer = at<u8 *>(object, 0x20)) SoundMixer_ForEachActive(mixer, nullptr, 0);
     u8 *const channel = at<u8 *>(object, 0x24);

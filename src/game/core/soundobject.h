@@ -28,6 +28,11 @@ u32 *__fastcall SoundObject_SendVoice(u8 *object, void *, u32 *out, u32 id, u32 
 // +0x4c = it, 0x1e at most (Obj_Set4cMin1e; when there is a mixer), and the channel (+0x24) given a settings record with the count (+0x40,
 // bit 7: the voices' count, ChannelVoices_SetCount) with the functor 0x70a278 (SoundChannel_Apply). Returns out.
 u32 *__fastcall SoundObject_SetVoices(u8 *object, void *, u32 *out, u32 count);
+// 0x6b8480 (thiscall (out, value), pops 8; name invented): its own slot 9; the channel's (+0x24) slot 7 (out: value's own stack slot,
+// value, the count +0x1c) gives a status pointer: negative, *out = -1. Else SoundCategory_Get, the sound system globals [0xfb1ffc] and
+// [0xfb1f24] = the channel, the channel's +0x60 = &+0x28, its own slot 7 (value's slot, 1: SoundObject_SetVoices) and *out = 0.
+// Returns out.
+u32 *__fastcall SoundObject_Open(u8 *object, void *, u32 *out, u32 value);
 
 // 0x6b8b60 (thiscall (out, position, direction, value: three pointers to three dwords), pops 0x10): *out = -1 without a channel
 // (+0x24). Else the position scaled by the channel's float +0x2c (Vec3_Scale, on a copy); when that, the direction and the value are
