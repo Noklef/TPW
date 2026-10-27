@@ -24,6 +24,7 @@
 #include "person.h"
 #include "personscripts.h"
 #include "random.h"
+#include "research.h"
 #include "ridelist.h"
 #include "things.h"
 #include "thingscan.h"
@@ -671,5 +672,15 @@ void __fastcall Staff_LeaveRestArea(u8 *staff) {
     *reinterpret_cast<u16 *>(staff + 0x208) = 0;
     ScriptRef_Start(staff + 0xc, nullptr, 3, *reinterpret_cast<u32 *>(staff + 0x24), *reinterpret_cast<u32 *>(staff + 0x20));
     Staff_SetState(staff, nullptr, 0);
+}
+
+void __fastcall Staff_Detach(u8 *staff) { Person_Detach(staff); }
+
+void __fastcall Researcher_Detach(u8 *researcher) {
+    u8 **const game = reinterpret_cast<u8 **>((uintptr_t)0x0080239c);   // (reloaded for each call, as the original does)
+    Things_Unlink1da742(*game, nullptr, researcher);
+    Staff_Detach(researcher);
+    if (GameTable7cfb90_Get1da722_519550(*game))
+        ResearchLab_SyncFlag(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da722_519550(*game)));
 }
 }

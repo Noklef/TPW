@@ -1166,7 +1166,7 @@ address,name,kind,confidence,notes
 0x0048cad0,Things_CountOne,function,low,"reimplemented (src/game/world/ridesweep); cdecl (thing, unused): the count 0x7c2660 raised; 1"
 0x0048caf0,Things_StepGroup,function,low,"reimplemented (src/game/world/ridesweep); thiscall: the owner's slot 0x3c, then the next thing of the group its +4 picks after 0x7c2658, wrapping round (Things_FindNextOfCategoryWrap); a new one stored at 0x7c2658 and the owner's slot 4 called (name unconfirmed)"
 0x0048cbe0,Things_StepGroupBack,function,low,"reimplemented (src/game/world/ridesweep); thiscall: the owner's slot 0x3c, then the previous thing of the group its +4 picks before 0x7c2658, wrapping round (Things_FindPrevOfCategoryWrap); a new one stored at 0x7c2658 and the owner's slot 4 called"
-0x0050b780,Thing_Delete,function,medium,"thiscall on a thing; the base deletion, queues its handle (World_QueueDelete)"
+0x0050b780,Thing_Delete,function,medium,"reimplemented (src/game/world/things); thiscall: message 1b of the handle posted, the kind's detach (ported ones; agent C's through ThingDeleteEnv), +3 = 1, the handle queued for deletion, the kind 2"
 0x00801f38,gThingsToDelete,data,high,"HandleQueue: +4 head, +8 tail, +0xc count; handles whose slots DeleteAll releases"
 0x005f5fc0,String_Alloc,function,high,"reimplemented (src/game/core/string); thiscall (length); vtable +8: a new block for length units, terminated; the old block is not freed"
 0x005f6000,String_SetLength,function,high,"reimplemented (src/game/core/string); thiscall (length); vtable +4: length and terminator within the capacity, else Alloc and copy the old text"
@@ -4085,6 +4085,8 @@ address,name,kind,confidence,notes
 0x00504b10,Staff_CtorTyped,function,low,"reimplemented (src/game/world/staff); MovingPerson_Ctor, +0x1e4 = the type, +0x1f0-+0x1fc cleared, Staff_InitBase"
 0x00507080,StaffPoolEntry_Ctor,function,low,"reimplemented (src/game/world/staff); the staff pool's element constructor: mType +0 and +0xc cleared, the bytes +9, +0xa, +0xb cleared; returns the entry"
 0x00506d10,Staff_LeaveRestArea,function,low,reimplemented (src/game/world/staff); thiscall: a message (vtable 0x700868) of the staff member's handle posted; the rest area's (+0x208) ride record's element 0 less 1; +0x208 = 0; the script +0xc started at entry 3; Staff_SetState 0
+0x004f7c40,Staff_Detach,function,low,reimplemented (src/game/world/staff); thiscall: a jump to Person_Detach (Thing_Delete's kind 0x12)
+0x00502920,Researcher_Detach,function,low,"reimplemented (src/game/world/staff); thiscall: out of the game object's researcher chain (Things_Unlink1da742), Staff_Detach, the lab's flag synced when there is a lab"
 0x00520d60,FreeList_Take,function,high,reimplemented (src/game/core/voices); takes a record off the free list into a table entry
 0x00521890,FreeList_Return,function,high,reimplemented (src/game/core/voices); puts a record back on the free list
 0x00521d60,Voice_ScaleLevels,function,high,reimplemented (src/game/core/voices); scales a voice's levels by the factor over 1024

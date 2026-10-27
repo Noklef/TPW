@@ -241,4 +241,11 @@ void __fastcall Staff_HeadForEntrance(u8 *staff);
 // (Rides_FindById of +0x24) of the thing the rest area handle (+0x208) names (its slot of 0x7cfb90) less 1; +0x208 = 0; the script at
 // +0xc started at entry 3 with the folder +0x24 and sprite +0x20 (ScriptRef_Start); Staff_SetState 0.
 void __fastcall Staff_LeaveRestArea(u8 *staff);
+
+// 0x4f7c40 (thiscall; name invented, unconfirmed): a jump to Person_Detach (Thing_Delete's kind 0x12, Researcher_Detach's base).
+void __fastcall Staff_Detach(u8 *staff);
+// 0x502920 (thiscall; name invented, unconfirmed): a researcher (kind 8) taken out of the world: out of the game object's list of them
+// (Things_Unlink1da742 on [0x80239c]), Staff_Detach, then the lab (GameTable7cfb90_Get1da722_519550, when there is one) has its flag
+// synced (ResearchLab_SyncFlag: set while the list is not empty).
+void __fastcall Researcher_Detach(u8 *researcher);
 }
