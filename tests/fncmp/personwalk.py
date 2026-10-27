@@ -5,7 +5,8 @@
 # state +0x19c 0x12 or not; the speed word +0xc2 about the word 0x75c7f0; personscripts.py's script list behind the reference +0xc,
 # its scripts at 0x74db60, 0x74dbc0, 0x74ef90 or others. The cseg angle routine (0x6e7074, not in the listing) is the two-argument
 # logger on both sides (driver.cpp's Person_SetEnv), its answer the logger's hash (or set: 0, 0x10000 and up, any).
-# usage: personwalk.py [CASES [SEED]] [--wild|--both] [--show N]
+# ToJob (0x4d7790 Handyman_WalkToJob): Walk's world with a handyman (kind 5 mostly) and its job (job() below).
+# usage: personwalk.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Walk,ToJob)
 import os
 import struct
 import sys
