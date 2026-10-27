@@ -3700,6 +3700,7 @@ address,name,kind,confidence,notes
 0x005e40e0,List18_ExpireSlot8,function,high,reimplemented (src/game/core/vlist); calls slot 0x24 of each object of the list and slot 8 when it says so
 0x005e4110,List18_ExpireSlotC,function,high,reimplemented (src/game/core/vlist); calls slot 0x24 of each object of the list and slot 0xc when it says so
 0x005d5cc0,List18_CallSlotC,function,high,reimplemented (src/game/core/vlist); calls slot 0xc of each object of the list
+0x005d5c50,List18_TickSlot8,function,low,"reimplemented (src/game/core/vlist); a frame tick: real time from the game clock, the difference to the last (at most 500) and its 0.01 scale stored, then slot 8 of each listed object; returns +0x14"
 0x004f1eb0,WBuf_Peek,function,high,reimplemented (src/game/core/vstream); the current wide unit of a stream buffer or the refill
 0x005d0050,Buf_Peek,function,high,reimplemented (src/game/core/vstream); the current byte of a stream buffer or the refill
 0x004f06c0,WBuf_Next,function,high,reimplemented (src/game/core/vstream); takes the next wide unit of a stream buffer

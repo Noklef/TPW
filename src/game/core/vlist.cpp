@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "../math/x87.h"
+#include "gameclock.h"
 #include "vcall.h"
 
 namespace {
@@ -52,6 +54,23 @@ u32 __fastcall List18_CallSlotC(u8 *object) {
     while (node) {
         u8 *next = at<u8 *>(node, 4);
         vcall<u32>(at<u8 *>(node, 0), 0xc);
+        node = next;
+    }
+    return at<u32>(object, 0x14);
+}
+
+u32 __fastcall List18_TickSlot8(u8 *object) {
+    at<u32>(object, 0x28) = at<u32>(object, 0x2c);
+    const u32 now = Clocks_RealNow(reinterpret_cast<u8 *>(0x00785970));
+    at<u32>(object, 0x2c) = now;
+    at<u32>(object, 0x30) = now - at<u32>(object, 0x28);
+    if (now - at<u32>(object, 0x28) > 500)
+        at<u32>(object, 0x30) = 500;
+    at<float>(object, 8) = static_cast<float>(X87_MulInt(at<u32>(object, 0x30), *reinterpret_cast<const float *>(0x007029cc)));
+    u8 *node = at<u8 *>(at<u8 *>(object, 0x18), 4);
+    while (node) {
+        u8 *next = at<u8 *>(node, 4);
+        vcall<u32>(at<u8 *>(node, 0), 8);
         node = next;
     }
     return at<u32>(object, 0x14);
