@@ -415,6 +415,7 @@
 #include "../game/ui/windowfactory.h"
 #include "../game/ui/windowscript.h"
 #include "../game/ui/buttontext.h"
+#include "../game/ui/dialog7ca13c.h"
 #include "../game/ui/dialog7ca150.h"
 #include "../game/ui/dialog7ca308.h"
 #include "../game/ui/dialog7cb25c.h"
@@ -5815,6 +5816,7 @@ const Hook kHooks[] = {
     {"GuiNamed_Add",              0x00661a93, (void *)&GuiNamed_Add, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"GuiNamed_FreeAll",          0x00661b3c, (void *)&GuiNamed_FreeAll, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"GuiNamed_Find",             0x00661bab, (void *)&GuiNamed_Find, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Dialog7ca13c_Open",         0x00493530, (void *)&Dialog7ca13c_Open, {0xe8, 0x0b, 0x26, 0xff, 0xff}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
