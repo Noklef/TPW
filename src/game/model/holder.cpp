@@ -11,6 +11,7 @@
 #include "../core/crt.h"
 #include "clone.h"
 #include "../gfx/texdirs.h"
+#include "md2file.h"
 #include "../core/liveobjects.h"
 #include "objmodel.h"
 #include "partstate.h"
@@ -96,6 +97,17 @@ void __cdecl Holder_CreateAt20(u8 *holder) {
     u8 *const part = block ? LiveObject7019f8_Construct(block, nullptr, 1) : nullptr;
     at<u8 *>(holder, 0x20) = part;
     ObjModel_Load(part, nullptr, at<u8 *>(holder, 4));   // (no part: a crash in the game too)
+}
+
+u8 *__cdecl Holder_LoadMd2(const char *name, u32, u32 noPart, u32 third, u32 flag) {
+    u8 *const model = MD2_Load(name, flag ? 6 : 2);
+    if (!model)
+        return nullptr;
+    u8 *const holder = static_cast<u8 *>(GlobalMem_AllocCounted((u32)(uintptr_t)model));
+    TextureSet_Load(model, 0, third);
+    if (!noPart)
+        Holder_CreateAt20(holder);
+    return holder;
 }
 
 void __cdecl Holder_Destroy(u8 *holder) {

@@ -61,6 +61,14 @@ s32 __cdecl strcmp(const char *a, const char *b) {
     }
 }
 
+// time(): a fixed clock, 2000-01-01 00:00:00 UTC (fncmp._time, the emulator's hook of 0x67d3f0, answers the same), so that ports storing the
+// time compare.
+s32 __cdecl time(s32 *t) {
+    const s32 now = 0x386d4380;
+    if (t) *t = now;
+    return now;
+}
+
 char *__cdecl strstr(const char *s, const char *find) { return const_cast<char *>(std::strstr(s, find)); }
 
 s32 __cdecl toupper(s32 c) { return c >= 'a' && c <= 'z' ? c - 0x20 : c; }
@@ -271,7 +279,7 @@ const CrtEnv kDriverCrt = {&msvc6::stricmp, &msvc6::strrchr, &msvc6::strchr, &ms
                            &msvc6::strncpy, &msvc6::iswspace, &msvc6::wcscpy,
                            &msvc6::isalpha, &msvc6::isdigit, &msvc6::isspace,
                            &msvc6::isalnum, &msvc6::atof, &msvc6::swprintf, &msvc6::wcsncpy, &msvc6::wcsicmp,
-                           &msvc6::wcscat, &msvc6::wcscmp, &msvc6::strcmp};
+                           &msvc6::wcscat, &msvc6::wcscmp, &msvc6::strcmp, &msvc6::time};
 
 const LibcEnv kDriverLibc = {&msvc6::strncpy, &msvc6::strncat, &msvc6::atoi,    &msvc6::iswctype, &msvc6::vsprintf,
                              &msvc6::vsnprintf, &msvc6::wcslen,  &msvc6::wcscpy,  &msvc6::wcsncpy,  &msvc6::wcscat,

@@ -41,7 +41,8 @@ driver's stubs at STUBS, the emulator's hooks).
 A case can hand the code objects whose vtables point at recorders (vtable({slot: stack arguments}) is the vtable's bytes; give the case a log_region()): a
 call through slot k with n stack arguments (thiscall, the callee pops them) appends (k, n, this, the arguments) to the log region at LOG and returns a hash of
 them, in both the driver and the emulator, so a function that calls virtual methods can be compared without the game's classes. A case can make slot k return a value
-of its own instead of the hash: set_return(log, k, value) on the log region.
+of its own instead of the hash: set_return(log, k, value) on the log region, or an answer for each name it is called with: named() (a source that
+opens the files it has, each its own memory stream, whose size STREAM_SIZE answers).
 
 A slot can be a sequenced read (seq_read(log, k, ...)): each call copies the next slice of a byte string the case maps to its buffer argument, as
 a file's ReadFile or a source's read would, so code that reads a file record by record can be compared. Another slot can seek in that byte string
@@ -114,6 +115,13 @@ def memory_stream(at, start, size):
     """A seekable stream over size bytes at start (a region the case maps), at `at`: vtable (at + 0x20), cursor, bytes left, start, size; then the vtable:
     +8 read and +0xc write (the record stream's), +0x10 seek (offset, origin 0 / 1 / 2): the new position, or -1 past the end (nothing moved)."""
     return bytearray(struct.pack('<8I8I', at + 0x20, start, size, start, size, 0, 0, 0, 0, 0, STUBS, STUBS + 0x10, SEEK, 0, 0, 0))
+
+
+STREAM_SIZE = STUBS + 0xc0  # a memory stream's size (driver.cpp stub_stream_size): thiscall, no arguments, its +0x10 (whatever the bytes left at +8)
+
+
+def _stream_size(e):
+    e.r['EAX'] = e.u32(e.r['ECX'] + 0x10)
 
 
 def _seek(e):  # thiscall (offset, origin): pops its two arguments (driver.cpp stub_seek)
@@ -523,6 +531,49 @@ LOG_SEEK = 0xf60  # a seek on the sequenced read's data: (k | 0x80000000, offset
 LOG_BLOB_WHEN = 0xf80  # four (k | 0x80000000, argument, value, mask): a blob's mask for the calls whose argument is value (see blob_when())
 
 
+LOG_NAMED = 0x1400  # answers by name: (k | 0x80000000, name argument | (offset + 1) << 8, out argument + 1 | length << 8, count, miss flag, miss
+#                     value), from + 0x20 four dwords an entry (a string hash, the answer, two dwords) (see named(): the region is that much longer)
+NAMED = 30
+
+
+def named(log, k, arg, answers, through=None, out=None, length=8, miss=None):
+    """Makes slot k's recorder answer by name: answers {name (bytes): (answer, data)}, up to NAMED of them; a call whose argument `arg` (with
+    `through` an offset: the pointer at that offset in the argument's structure, a String's text +8) is a C string whose text is an entry's name
+    answers the entry's answer and, with `out` an argument, writes the entry's data (`length` bytes, at most 8) through it (unless null) before the
+    slot's fills; any other name answers `miss` (None: as the slot would without the table). A source that opens the files it has and no other."""
+    assert len(answers) <= NAMED and 0 <= length <= 8 and (through is None or 0 <= through < 0xff)
+    end = LOG_NAMED + 0x20 + 0x10 * NAMED
+    if len(log) < end:
+        log.extend(bytearray(end - len(log)))
+    struct.pack_into('<6I', log, LOG_NAMED, (k & 63) | 0x80000000, arg | (0 if through is None else through + 1) << 8,
+                     (0 if out is None else out + 1) | length << 8, len(answers), int(miss is not None), (miss or 0) & 0xffffffff)
+    for i, (name, (value, data)) in enumerate(answers.items()):
+        h = 0x811c9dc5
+        for c in bytes(name).split(b'\0')[0][:0x400]:   # (string_hash()'s, over the text)
+            h = ((h ^ c) * 0x01000193) & 0xffffffff
+        struct.pack_into('<II8s', log, LOG_NAMED + 0x20 + 0x10 * i, h, value & 0xffffffff, bytes(data)[:8])
+
+
+def _named(e, k, raw):
+    """(driver.cpp record_call) Slot k's answer by name, if it has one: (applied, the answer)."""
+    fk, spec, out_spec, count, missing, miss = struct.unpack('<6I', e.read(LOG + LOG_NAMED, 24))
+    n = len(raw)
+    if fk != (k & 63) | 0x80000000 or (spec & 0xff) >= n:
+        return False, 0
+    p = raw[spec & 0xff]
+    if spec >> 8 & 0xff and p:
+        p = e.u32(p + (spec >> 8 & 0xff) - 1)
+    name = string_hash(e.read, p)
+    for i in range(min(count, NAMED)):
+        h, value, data = struct.unpack('<II8s', e.read(LOG + LOG_NAMED + 0x20 + 0x10 * i, 16))
+        if h == name:
+            out, length = out_spec & 0xff, out_spec >> 8 & 0xff
+            if out and out <= n and raw[out - 1] and length <= 8:
+                e.write(raw[out - 1], data[:length])
+            return True, value
+    return (True, miss) if missing else (False, 0)
+
+
 def seq_read(log, k, data_at, length, buffer=0, count=1, done=None, returns=True):
     """Makes slot k's recorder a sequenced read (a file's ReadFile, a source's read): each call copies the next `count` argument's bytes of the data
     (length bytes at data_at, a region the case maps; fewer at its end, none for a negative count or a null buffer) to its `buffer` argument, moves the
@@ -601,12 +652,13 @@ def blob(log, k, arg, mask):
     struct.pack_into('<II', log, LOG_BLOBS + 8 * (k & 63), arg + 1, mask)
 
 
-def blob_when(log, k, arg, value, mask, entry=0):
+def blob_when(log, k, arg, value, mask, entry=0, deref=False):
     """Gives slot k's blob() / blob_bytes() hash the mask `mask` in place of its own for the calls whose argument `arg` (as passed) is `value`: a slot
     called with events of different layouts (one message's event, another's), each only partly set. Four entries (`entry` 0-3), the last that
-    matches wins."""
+    matches wins. deref: the dword the argument points to (a null one matches nothing) is compared, not the argument: one stack event posted
+    twice, its kind (its first dword) changed in between."""
     assert 0 <= entry < 4
-    struct.pack_into('<4I', log, LOG_BLOB_WHEN + 16 * entry, (k & 63) | 0x80000000, arg, value & 0xffffffff, mask)
+    struct.pack_into('<4I', log, LOG_BLOB_WHEN + 16 * entry, (k & 63) | 0x80000000, arg | (0x100 if deref else 0), value & 0xffffffff, mask)
 
 
 def blob_when_inner(log, k, arg, value, inner, entry=0):
@@ -722,9 +774,12 @@ def _log_args(e, k, raw, kk):
     blob_arg, blob_mask = struct.unpack('<2I', e.read(LOG + LOG_BLOBS + 8 * (k & 63), 8))
     for w in range(4):   # (blob_when(): the mask for this call's argument; blob_when_inner(): the second structure's selection)
         wk, wa, wv, wm = struct.unpack('<4I', e.read(LOG + LOG_BLOB_WHEN + 16 * w, 16))
-        if wk == (k & 63) | 0x80000000 and wa < n and raw[wa] == wv:
+        if wa >= 0x200 or wa & 0xff >= n:   # (the argument's bit 8: the dword it points to, blob_when()'s deref; a null one matches nothing)
+            continue
+        got = raw[wa & 0xff] if not wa & 0x100 else e.u32(raw[wa & 0xff]) if raw[wa & 0xff] else None
+        if wk == (k & 63) | 0x80000000 and got == wv:
             blob_mask = wm
-        elif wk == (k & 63) | 0xc0000000 and wa < n and raw[wa] == wv:
+        elif wk == (k & 63) | 0xc0000000 and got == wv:
             blob_arg = (blob_arg & 0x8000001f) | (wm & 0x7fffffe0)
     for i in range(n):
         for at, fk, fa, fn, how in fills:
@@ -771,6 +826,7 @@ def _recorder(k, n, com=False, cdecl=False):
         raw = [e.u32(sp + 4 * i) for i in range(n)]
         this = 0 if com or cdecl else e.r['ECX']
         kk = k | 0x100 if com else k | 0x200 if cdecl else k
+        by_name, named_answer = _named(e, k, raw)
         args = _log_args(e, k, raw, kk)
         returns_copied, copied = _seq_read(e, k, raw)
         seeked, cursor = _seq_seek(e, k, raw)
@@ -781,14 +837,14 @@ def _recorder(k, n, com=False, cdecl=False):
             e.write(entry, struct.pack('<%dI' % LOG_ENTRY, kk, n, this, *(args + [0] * 7)[:7], tail_hash(args), 0))
             e.write(LOG, struct.pack('<I', count + 1))
         flag, value = struct.unpack('<2I', e.read(LOG + LOG_RETURNS + 8 * k, 8))
-        e.r['EAX'] = copied if returns_copied else cursor if seeked else answer(flag, value, raw, n, vhash(kk, n, this, args), earlier)
-        if flag == 6 and not returns_copied and not seeked:   # (fail_after(counted=True): the countdown in the override)
+        e.r['EAX'] = named_answer if by_name else copied if returns_copied else cursor if seeked else answer(flag, value, raw, n, vhash(kk, n, this, args), earlier)
+        if flag == 6 and not by_name and not returns_copied and not seeked:   # (fail_after(counted=True): the countdown in the override)
             if value & 0xffff:
                 e.write(LOG + LOG_RETURNS + 8 * k + 4, struct.pack('<I', value - 1))
                 e.r['EAX'] = vhash(kk, n, this, args)
             else:
                 e.r['EAX'] = (value >> 16) - (0x10000 if value >> 31 else 0) & 0xffffffff
-        if flag == 4 and not returns_copied and not seeked:
+        if flag == 4 and not by_name and not returns_copied and not seeked:
             e.st.insert(0, struct.unpack('<f', struct.pack('<I', value))[0])
         if cdecl:  # (the caller pops them)
             return
@@ -919,6 +975,16 @@ def _memmove(e):  # cdecl (to, from, n) -> to
     e.r['EAX'] = to
 
 
+TIME = 0x386d4380   # the CRT time()'s stand-in clock: 2000-01-01 00:00:00 UTC (driver crt.cpp msvc6::time, kDriverCrt)
+
+
+def _time(e):  # cdecl (t) -> the fixed clock, also through t unless null (the original reads the system clock)
+    t = e.u32(e.r['ESP'])
+    if t:
+        e.write(t, struct.pack('<I', TIME))
+    e.r['EAX'] = TIME
+
+
 def _throw(name):
     def hook(e):
         raise RuntimeError('the original called %s' % name)
@@ -954,9 +1020,10 @@ class Bench:
         self.emu.hooks.update({0x67a830: _ftol, 0x67b280: _modf, 0x67b24a: _cifmod,
                                STUBS: _record(False), STUBS + 0x10: _record(True),
                                STUBS + 0x20: _global_alloc, STUBS + 0x30: _global_free, STUBS + 0x40: _mark, CDECL_LOG: _cdecl_log, COUNTER: _counter, SEEK: _seek, CDECL_LOG2: _cdecl_log2, CDECL_LOG4: _cdecl_log4,
+                               STREAM_SIZE: _stream_size,
                                0x6351a0: _zlib_init(0x140, 7), 0x635450: _zlib_copy(1), 0x6357c0: _zlib_end(0x142), 0x636600: _zlib_init(0x143, 3),
                                0x636710: _zlib_copy(2), 0x6365b0: _zlib_end(0x145),
-                               0x67acc0: _alloc, 0x67acb0: _free, 0x67bb90: _memmove, ZALLOC: _zalloc, ZFREE: _zfree,
+                               0x67acc0: _alloc, 0x67acb0: _free, 0x67bb90: _memmove, ZALLOC: _zalloc, ZFREE: _zfree, 0x67d3f0: _time,
                                0x6918f0: _throw('_Xlen'), 0x691ba0: _throw('_Xran')})
         self.emu.hooks.update({recorder(k, n): _recorder(k, n) for k in range(32) for n in range(16)})  # (n up to 15 fits below the COM recorders at +0x4000)
         self.emu.hooks.update({recorder(k, n, True): _recorder(k, n, True) for k in range(64) for n in range(16)})

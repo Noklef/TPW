@@ -1,5 +1,6 @@
 # The constructors and destructors of src/game/core/list_class_dtors against the originals: the global objects they register with (recorder vtables), lists of 0 to 3 objects with
-# deleting-destructor recorders, the allocator the heap region.
+# deleting-destructor recorders, the allocator the heap region (failing now and then for CtorC, 0x5d5770: its list then 0); CtorC's time() the
+# stand-ins' fixed clock.
 # usage: list_class_dtors.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import struct
@@ -10,7 +11,7 @@ from fncmp import Bench, Call, HEAP, LOG, RAM, heap, log_region, put, vtable  # 
 
 # name: (address, list offset or None for a constructor, size)
 CALLS = {'CtorA': (0x5da200, None, 0x70), 'CtorB': (0x5e3c20, None, 0x70), 'DtorA': (0x5da2f0, 4, 0xb0), 'DtorB': (0x5e03b0, 8, 0xb0), 'DtorC': (0x5e3d10, 0x18, 0xb0),
-         'DtorD': (0x5d5840, 0x18, 0x6c)}
+         'DtorD': (0x5d5840, 0x18, 0x6c), 'CtorC': (0x5d5770, None, 0x6d)}
 B = Bench([(a, a + n) for (a, _o, n) in CALLS.values()] + [(0x5d5700, 0x5d5720), (0x5d5750, 0x5d5770), (0x5e3c00, 0x5e3c20)])
 LIST, NODES, OBJS, VT, VTL, OTHER, OTHER2 = RAM + 0x400, RAM + 0x500, RAM + 0x1000, RAM + 0x3000, RAM + 0x3100, RAM + 0x200, RAM + 0x300
 
@@ -21,6 +22,8 @@ def case(r):
     obj = bytearray(r.bytes(0x40))
     regions = {RAM: obj, LOG: log_region(), HEAP: heap(), 0xf82884: struct.pack('<I', OTHER), OTHER: struct.pack('<I', VT) + r.bytes(0x20), VT: vtable({0: 1, 1: 1, 6: 1, 7: 1}),
                0xf85614: struct.pack('<I', OTHER2), OTHER2: struct.pack('<I', VT) + r.bytes(0x20)}
+    if name == 'CtorC' and r.random() < 0.2:
+        regions[HEAP] = heap(fail=1)
     if off is not None:
         n = r.choice([0, 1, 2, 3])
         put(obj, off, 'I', LIST)

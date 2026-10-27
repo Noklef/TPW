@@ -15,7 +15,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
-from fncmp import LOG, Bench, Call, HEAP, RAM, STUBS, SEEK, blob, echo, fill, heap, log_region, put, recorder, set_return, strings  # noqa: E402
+from fncmp import LOG, Bench, Call, HEAP, RAM, STUBS, SEEK, STREAM_SIZE, blob, echo, fill, heap, log_region, named, put, recorder, set_return, strings  # noqa: E402
 import files  # noqa: E402
 import gamestring  # noqa: E402
 from gamestring import BACKSLASH, DOT, LOCALE, SLASH2, string  # noqa: E402
@@ -174,6 +174,38 @@ def memory_source(r, log, regions, data):
     regions[MEMDATA] = bytes(data) + r.bytes(0x100)
     for k in (8, 9):
         set_return(log, k, r.choice([0, len(data), r.getrandbits(32)]))
+    regions[0x6fd12c] = struct.pack('<I', recorder(11, 1, True))   # InterlockedDecrement: 1 (the close's Release frees nothing)
+    set_return(log, 11, 1)
+
+
+VT_FILE, FILES, FILEDATA = RAM + 0xa0000, RAM + 0xa0040, RAM + 0xa1000
+
+
+def memory_files(r, log, regions, files, sizes=None):
+    """After mounts(), as memory_source() but by name: the source (always there, without an archive) opens the files named in `files` ({name:
+    bytes}, up to fncmp.NAMED) and no other (k 2 answered by the path String's text, fncmp.named(): 1, else 0), each opened stream getting its own
+    memory source over its file's bytes (from FILEDATA on, each followed by 0x100 random bytes, the reads stopping there) written through the open's
+    first argument; the mounts' list objects (k 7) answer 0, so another name opens nothing. A file's size (the source's +0x10, which
+    fncmp.STREAM_SIZE answers) is its length, or sizes[name] for one in `sizes`. The sources at FILES, 0x20 bytes each; their vtable's +0x14 (the
+    position) the recorder k 9, the release as memory_source()'s (k 10, InterlockedDecrement's k 11 answering 1)."""
+    regions[SOURCE] = put(bytearray(regions[SOURCE]), 0x38, 'I', 0)
+    regions[MOUNTS] = put(bytearray(regions[MOUNTS]), 4, 'I', SOURCE)
+    set_return(log, 7, 0)
+    vt = bytearray(r.bytes(0x28))
+    put(vt, 0, '6I', recorder(10, 1), STUBS, STUBS + 0x10, SEEK, STREAM_SIZE, recorder(9, 0))
+    put(vt, 0x24, 'I', recorder(10, 0))
+    regions[VT_FILE] = vt
+    sources, at, answers = bytearray(), FILEDATA, {}
+    for i, (name, data) in enumerate(files.items()):
+        size = (sizes or {}).get(name, len(data))
+        sources += struct.pack('<5I3I', VT_FILE, at, len(data) + 0x100, at, size & 0xffffffff, 0, 0, 0)
+        regions[at] = bytes(data) + r.bytes(0x100)
+        answers[name] = (1, struct.pack('<2I', 0x703100, FILES + 0x20 * i))
+        at = (at + len(data) + 0x100 + 0xff) & ~0xff
+    if sources:
+        regions[FILES] = sources
+    named(log, 2, 1, answers, through=8, out=0, length=8, miss=0)
+    set_return(log, 9, r.choice([0, r.getrandbits(32)]))
     regions[0x6fd12c] = struct.pack('<I', recorder(11, 1, True))   # InterlockedDecrement: 1 (the close's Release frees nothing)
     set_return(log, 11, 1)
 

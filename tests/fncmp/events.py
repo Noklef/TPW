@@ -5,15 +5,16 @@
 # on both sides (driver.cpp's EventQueue env); allocations from the heap region, failing now and then. Post, Listen, Unlisten on channels 0-6
 # (6 is "none"); Clear and the destructors over every list; the lists' constructor and destructors on a list of their own. PostKind4 (0x47e9d0)
 # posts {4, value} on channel 0 from the stack (the callbacks log its first two dwords). ScreenReset (0x47ea00) posts {6, 0} and then
-# {7, width, ...} on channel 0 from one stack event (the callbacks log its first two dwords only: its +8.. are unset in the first post, the
-# blob's mask is per slot), then releases the COM objects at 0x7b4b6c / 0x7b4b70 (recorders or none) and clears 0x7b4b64-0x7b4b70.
+# {7, width, height, byte 0x10, 0} on channel 0 from one stack event (the callbacks log its first two dwords for kind 6, whose +8.. are unset,
+# and for kind 7 its dwords 0-2, the byte at +0xc (the rest of that dword unset) and dword 4: blob_when on the event's kind), channel 0's
+# listeners one to three recorders (or none, now and then), then releases the COM objects at 0x7b4b6c / 0x7b4b70 (recorders or none) and clears 0x7b4b64-0x7b4b70.
 # usage: events.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=StaticInit,... to pick)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, _cdecl_log, blob, heap, import_table, log_region, put, recorder  # noqa: E402
+from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, _cdecl_log, blob, blob_bytes, blob_when, heap, import_table, log_region, put, recorder  # noqa: E402
 
 B = Bench([(0x5fbde0, 0x5fc330), (0x47e9d0, 0x47e9f8), (0x47ea00, 0x47ea91), (0x67a740, 0x67a800), (0x67acf0, 0x67ae10), (0x67afa0, 0x67b0d0), (0x67dcd0, 0x67dd50), (0x67efc0, 0x67f1b0),
            (0x67fa20, 0x67fa50), (0x681740, 0x681970), (0x682720, 0x6827d0), (0x6828a0, 0x682a20), (0x682a70, 0x6830a0), (0x688710, 0x688740)],
@@ -61,7 +62,14 @@ def case(r):
     address = CALLS[op]
     if op == 'ScreenReset':
         for k in (1, 2, 3):
-            blob(log, k, 1, 3)
+            blob_bytes(log, k, 1, 0xff)
+            blob_when(log, k, 1, 7, 0xf1fff, entry=k - 1, deref=True)
+        n = r.choice([1, 2, 3, 3, 0])   # (channel 0's list rebuilt from node 0: the other channels are not walked)
+        for i in range(n):
+            put(nodes, 0xc * i, '3I', LISTENERS + 8 * i, NODES + 0xc * (i + 1) if i + 1 < n else 0, NODES + 0xc * (i - 1) if i else 0)
+            put(listeners, 8 * i, '2I', r.choice(CONTEXTS), r.choice(CALLBACKS))
+        put(q, 4, '4I', r.choice([0x703648, 0x70364c]), NODES if n else 0, NODES + 0xc * (n - 1) if n else 0, n)
+        regions[NODES], regions[LISTENERS], regions[Q] = nodes, listeners, q
         com = RAM + 0xa00
         regions[com] = struct.pack('<4I', com + 0x10, 0, com + 0x10, 0) + struct.pack('<3I', 0, 0, recorder(4, 1, True))
         regions[0x7b4b64] = struct.pack('<4I', r.getrandbits(32), r.getrandbits(32), r.choice([com, com, 0]), r.choice([com + 8, com + 8, 0]))

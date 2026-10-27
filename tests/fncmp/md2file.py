@@ -17,7 +17,8 @@ import vfs  # noqa: E402
 from gamestring import LOCALE  # noqa: E402
 from texdirs import merged  # noqa: E402
 
-B = Bench(merged(vfs.RANGES + [(0x46d6d0, 0x46dcef), (0x5c4d50, 0x5c5020), (0x45b9d0, 0x45ba30), (0x67a400, 0x690000)]))
+RANGES = merged(vfs.RANGES + [(0x46d6d0, 0x46dcef), (0x5c4d50, 0x5c5020), (0x45b9d0, 0x45ba30), (0x67a400, 0x690000)])
+B = Bench(RANGES)
 
 
 class Model:
