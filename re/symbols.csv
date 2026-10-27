@@ -3643,6 +3643,8 @@ address,name,kind,confidence,notes
 0x004fa670,Sprite_SetStranded,function,low,"reimplemented (src/game/world/person); thiscall (flag): +0x198 the next count of 0x7cdb98 for a flag, else 0"
 0x00505490,Person_TickSpeed,function,low,"reimplemented (src/game/world/person); thiscall: Person_UpdateSpeed, then when the world ticks [0x80239c]+0x1da70c low two bits are the handle low byte s, Person_KillScript84After on +0x30"
 0x004fa2a0,Sprite_WalkNav,function,low,"reimplemented (src/game/world/person); thiscall; x87; one step along the nav +0xd4: the thing moved, +0x1c the cseg angle, the walk / run / guard action and the period for the step's length; returns 0 (path done), 1 or 2 (+0x18c set) (name invented)"
+0x00500870,Visitor_QuitQueue,function,low,"reimplemented (src/game/world/person); when the object's ride record's element 0 is not its head, off the queue and state 0x10"
+0x005012f0,Visitor_SendAway,function,low,"reimplemented (src/game/world/person); (6, object) on the ring, sound 0x80 for a handle & 7 of 0, Lower19c(1), the queue fields cleared, state 6"
 0x00550d80,Setting_SetMode,function,high,reimplemented (src/game/core/options); stores a mode and sets its flag bits
 0x005633e0,Quad_Push,function,high,reimplemented (src/game/core/seqs); pushes four dwords into the next of four slots
 0x0059c390,Table76e300_GetObjectDword,function,high,reimplemented (src/game/world/objectdefs); a dword of the object indexed through a record of the table
