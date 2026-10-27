@@ -23,4 +23,9 @@ void __cdecl Dialog7cb25c_FillList(u8 *list);
 // 0x4a0770 (cdecl): with the dialog and [0x7cb260] 1, Dialog7cb25c_FillList on its child 0x12c4bd (Window_FindChild).
 void __cdecl Dialog7cb25c_Refresh();
 
+// 0x4a06b0 (cdecl (list, message, a, b); name invented): the list's handler (set at 0x4a0121). On 0x101 with b 1 (a 0x15 test first, of
+// no effect): [0x7cb260] = whether a is 0x12c4bf (the button pressed), the list refilled (Dialog7cb25c_FillList) and the texts set
+// (Dialog7cb25c_SetTexts). Every message then goes to Window_CallDefault, whose answer is returned.
+s32 __cdecl Dialog7cb25c_ListProc(u8 *list, u32 message, u32 a, u32 b);
+
 }

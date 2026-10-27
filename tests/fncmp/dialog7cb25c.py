@@ -9,7 +9,8 @@
 # converter off mostly: then the wide buffer 0x7ba058 a short string of its own, else the first column a number one); the flag [0x7cb260] 0
 # or 1 mostly. The new strings' allocator bytes masked (the items added, the list's growth and the strings worked out as the original's).
 # Refresh (0x4a0770): FillList's, the list the child 0x12c4bd of the dialog [0x7cb25c] (among 0-2 decoys; none now and then), or no dialog.
-# usage: dialog7cb25c.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetTexts,FillList,Refresh)
+# Proc (0x4a06b0): the handler on FillList's list with SetTexts' dialog (proc_case()).
+# usage: dialog7cb25c.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetTexts,FillList,Refresh,Proc)
 import os
 import struct
 import sys
@@ -19,31 +20,31 @@ sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import panelparts  # noqa: E402
 import window7059f0 as wl  # noqa: E402
-from fncmp import HEAP, LOG, RAM, Bench, Call, Mask, blob_bytes, log_region, put, vtable  # noqa: E402
+from fncmp import HEAP, LOG, RAM, Bench, Call, Mask, blob_bytes, log_region, put, recorder, vtable  # noqa: E402
 
-CALLS = {'SetTexts': 0x49f860, 'FillList': 0x49fa00, 'Refresh': 0x4a0770}
+CALLS = {'SetTexts': 0x49f860, 'FillList': 0x49fa00, 'Refresh': 0x4a0770, 'Proc': 0x4a06b0}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 B = Bench(sorted(set(wl.LIST_RANGES + [
     (0x485b00, 0x485b40), (0x49f860, 0x49f9ff), (0x65d7bc, 0x65d832), (0x65f5b7, 0x65f5fe), (0x6ace60, 0x6aceb0), (0x6adc80, 0x6add40),
     (0x41a990, 0x41a9c0), (0x47db20, 0x47db90), (0x485ac0, 0x485b00), (0x49fa00, 0x49fb40), (0x4a0770, 0x4a07a0), (0x4c7db0, 0x4c8160),
     (0x4d06b0, 0x4d0760), (0x4f0240, 0x4f0260), (0x519510, 0x519560), (0x5195d0, 0x519620), (0x535db0, 0x535de0), (0x536300, 0x536330),
     (0x658ccc, 0x658e04), (0x659710, 0x659740), (0x65d773, 0x65d7bc), (0x65d9dd, 0x65da9d), (0x6649d5, 0x664b78), (0x6697e3, 0x6698b4),
-    (0x66b47d, 0x66b518), (0x5da3c0, 0x5da3c1)])))   # (tools/ranges.py 4a0770, window7059f0.py's)
+    (0x66b47d, 0x66b518), (0x5da3c0, 0x5da3c1), (0x4a06b0, 0x4a070b), (0x65f66e, 0x65f6a7)])))   # (tools/ranges.py 4a0770 / 4a06b0, window7059f0.py's)
 ROOT, PANEL, NODES, VT, IMPL, IMPLVT = RAM + 0x1000, RAM + 0x1200, RAM + 0x2000, RAM + 0x3000, RAM + 0x3100, RAM + 0x3200
 NODE = 0x120
 
 
-def window(r, ident):
+def window(r, ident, off=0):
     buf = bytearray(r.bytes(NODE))
-    put(buf, 0, 'I', VT)
+    put(buf, 0, 'I', VT + off)
     put(buf, 0x54, 'I', 0)
     put(buf, 0x5c, 'I', 0)
     put(buf, 0x8c, 'I', ident)
-    put(buf, 0x9c, 'I', r.choice([IMPL, IMPL, IMPL, 0]))
+    put(buf, 0x9c, 'I', r.choice([IMPL + off, IMPL + off, IMPL + off, 0]))
     return buf
 
 
-def kids(r, regions, parent, ids, at):
+def kids(r, regions, parent, ids, at, off=0):
     """the children `ids` of `parent` (one now and then missing) among 0-2 decoys, laid out from `at`"""
     ids = list(ids)
     if r.random() < 0.04:
@@ -52,27 +53,34 @@ def kids(r, regions, parent, ids, at):
     r.shuffle(ids)
     head = 0
     for i, ident in reversed(list(enumerate(ids))):
-        address = PANEL if ident == 0x12c4bd else at + NODE * i
-        regions[address] = put(window(r, ident), 0x54, 'I', head)
+        address = PANEL + off if ident == 0x12c4bd else at + NODE * i
+        regions[address] = put(window(r, ident, off), 0x54, 'I', head)
         head = address
     put(regions[parent], 0x5c, 'I', head)
 
 
+def texts_env(r, regions, off=0):
+    """SetTexts' dialog (from ROOT + off) as [0x7cb25c]: see above"""
+    regions[ROOT + off] = window(r, 0, off)
+    kids(r, regions, ROOT + off, (0x12c4bd, 0x12c4ca), NODES + off, off)
+    if PANEL + off in regions:
+        kids(r, regions, PANEL + off, (0x11, 0x12, 0x15), NODES + 0x800 + off, off)
+    regions[VT + off] = vtable({9: 1})
+    regions[IMPL + off] = struct.pack('<I', IMPLVT + off)
+    regions[IMPLVT + off] = vtable({3: 2})
+    blob_bytes(regions[LOG], 3, 1, 0, (0x10, 0xf))
+    regions[0x7cb25c] = struct.pack('<I', ROOT + off if r.random() < 0.95 else 0)
+
+
 def case(r):
     op = r.deal(OPS)
+    if op == 'Proc':
+        return proc_case(r)
     if op != 'SetTexts':
         return fill_case(r, op)
     log = log_region()
     regions = {LOG: log}
-    regions[ROOT] = window(r, 0)
-    kids(r, regions, ROOT, (0x12c4bd, 0x12c4ca), NODES)
-    if PANEL in regions:
-        kids(r, regions, PANEL, (0x11, 0x12, 0x15), NODES + 0x800)
-    regions[VT] = vtable({9: 1})
-    regions[IMPL] = struct.pack('<I', IMPLVT)
-    regions[IMPLVT] = vtable({3: 2})
-    blob_bytes(log, 3, 1, 0, (0x10, 0xf))
-    regions[0x7cb25c] = struct.pack('<I', ROOT if r.random() < 0.95 else 0)
+    texts_env(r, regions)
     regions[0x7cb260] = struct.pack('<I', r.choice([0, 0, 1, 1, r.getrandbits(32)]))
     regions[0x78b530] = r.bytes(0x400)
     panelparts.texts(r, regions, list(range(0xaa, 0xb5)))
@@ -112,7 +120,9 @@ def fill_env(r):
     window, regions, _ = wl.list_env(r, columns=(1, 2, 3, 4, 5, 6, 6, 6))
     ncols = struct.unpack_from('<h', window, 0x164)[0]
     window[0x48] = (window[0x48] & ~0x10) | r.choice([0, 0x10])
-    if struct.unpack_from('<i', window, 0x150)[0] == 0:   # (Clear leaves a list of no items as it is, and list_env()'s links may run in a
+    dwords = struct.unpack_from('<i', window, 0x158)[0]   # (whole items, as Grow leaves them: with a part item over, AddItem's room check
+    put(window, 0x158, 'i', dwords - dwords % (4 + ncols))   # lets one more in than ResetItems chains, RootEnd gives -1 and the item
+    if struct.unpack_from('<i', window, 0x150)[0] == 0:       # written at -1 links the first to itself: a ring the next walk follows for ever)   # (Clear leaves a list of no items as it is, and list_env()'s links may run in a
         put(window, 0x160, 'i', -1)                       # ring that AddItem's walk to the end follows for ever: a list of none is a
         dwords = struct.unpack_from('<i', window, 0x158)[0]   # reset one, as Window7059f0_ResetItems leaves it)
         stride = 4 + ncols
@@ -223,6 +233,29 @@ def fill_case(r, op):
     regions[0x7cb25c] = struct.pack('<I', dialog)
     masks = masks_of(regions, flag, env) if dialog and flag == 1 and 0x12c4bd in ids else []
     return Call(CALLS['Refresh'], [], regions, ret='v', masks=masks)
+
+
+PROC_OFF, TABLE2 = 0x30000, RAM + 0x34000   # (Proc: SetTexts' dialog moved past FillList's world; its texts' record table)
+
+
+def proc_case(r):
+    """the handler 0x4a06b0 on FillList's list (its default handler +0x118 a cdecl recorder) with SetTexts' dialog, its texts (0xaa-0xb4)
+    records of FillList's own ([0x78ba94] a table of its own); message 0x101 mostly, a 0x12c4bf or another, b 1 mostly"""
+    regions, env, flag = fill_env(r)
+    window = env[0]
+    put(window, 0x118, 'I', recorder(5, 4, cdecl=True))
+    texts_env(r, regions, PROC_OFF)
+    table = bytearray(r.bytes(0x20))
+    put(table, 8, 'II', r.choice([0xb5] * 4 + [r.randrange(0xaa, 0xb6), 0]), TABLE2 + 0x100 - 4 * 0xaa)
+    regions[TABLE2] = table
+    regions[TABLE2 + 0x100] = struct.pack('<11I', *[panelparts.TEXTS + 0xc00 + 0x40 * r.randrange(16) for _ in range(11)])
+    put(regions[0x78b530], 0x564, 'I', TABLE2)
+    message = r.choice([0x101] * 6 + [0x15, 0x100, 0x102, 0, r.getrandbits(32)])
+    a = r.choice([0x12c4bf] * 3 + [0x12c4be, 0x12c4c0, 0, r.getrandbits(32)])
+    b = r.choice([1] * 4 + [0, 2, r.getrandbits(32)])
+    taken = message == 0x101 and b == 1
+    masks = masks_of(regions, int(a == 0x12c4bf), env) if taken else []
+    return Call(CALLS['Proc'], [wl.LIST3, message, a, b], regions, ret='a', masks=masks)
 
 
 if __name__ == '__main__':
