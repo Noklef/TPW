@@ -1,5 +1,5 @@
 // The dialog whose page [0x7ca150] holds the objects' lists (its child 0x12c4b8 the page they are built on; the list [0x7ca14c], its rows
-// List7ca158's by the tab [0x7ca154]). Reimplementation of 0x494250, 0x494c70, 0x494ec0 and 0x495110. The names are unconfirmed.
+// List7ca158's by the tab [0x7ca154]). Reimplementation of 0x494250, 0x494c70, 0x494ec0, 0x495110 and 0x495aa0. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -20,4 +20,13 @@ void __cdecl Dialog7ca150_ShowTab0(u32 selected);
 void __cdecl Dialog7ca150_ShowTab1(u32 selected);
 void __cdecl Dialog7ca150_ShowTab2(u32 selected);
 void __cdecl Dialog7ca150_ShowTab3(u32 selected);
+
+// 0x495aa0 (cdecl (tab, selected); name unconfirmed): the tab -1 is [0x7ca154]'s; the window [0x7c24c8] closed (Window7c24c8_Close),
+// Global7cb28c_Select(2, 5), the page built on [0x7cb2ac] from the script 0x7508e0 with the handler 0x495290 (WindowScript_Build; not
+// checked) into [0x7ca150] and made the window [0x7c24c8] (Window7c24c8_Set). Its child 0x12c4b8's child 0x12c4b9 (Window_FindChild,
+// neither checked), a radio group, has the tab's button selected (RadioGroup_Select: 0x12c4ba, 0x12c4bc, 0x12c4bb, 0x12c4bd for tabs 0-3)
+// and the tab shown with the selected data (Dialog7ca150_ShowTab0-3); then the page's child 0x12c4be gets the hover label of the language
+// text 0x4e + the tab (Language_WideText, HoverLabel_Attach). Any other tab (unsigned) none of that. Then the page's child 0x12c4b8 the
+// handler 0x495360 (Window_SetHandler) and the advisor told 0xbf (Advisor_PostId). EAX not kept.
+void __cdecl Dialog7ca150_Open(s32 tab, u32 selected);
 }

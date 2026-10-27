@@ -3,8 +3,9 @@
 # handler or not, and 0), the entries now and then missing; the clock [0x77c490] a recorder vtable whose slot 0 answers a time near 0,
 # the sign bit or the top, or random. Init: the count 0-6, 0x1ff, 0x200 or -1, the allocation failing now and then. Add: the delay 0,
 # 1, 59999, 60000, below or anywhere. PostTimed (0x658df4, src/game/ui/window): Add's through [0xfaa5f8].
-# Delete (0x6596e0): Free's, the flags 0-3 or any (the block freed with bit 0: the heap's hash of the frees).
-# usage: guitimers.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Init,Free,Add,Fire,Cancel,Reset,PostTimed)
+# Delete (0x6596e0): Free's, the flags 0-3 or any (the block freed with bit 0: the heap's hash of the frees). FireTimers (0x658f4b,
+# src/game/ui/window): Fire's through [0xfaa5f8] or none.
+# usage: guitimers.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Init,Free,Add,Fire,Cancel,Reset,PostTimed,FireTimers)
 import os
 import struct
 import sys
@@ -12,9 +13,10 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import CDECL_LOG4, HEAP, LOG, RAM, Bench, Call, heap, log_region, put, set_return, vtable  # noqa: E402
 
-CALLS = {'Delete': 0x6596e0, 'Init': 0x669efb, 'Free': 0x669c62, 'Add': 0x669c8d, 'Fire': 0x669d77, 'Cancel': 0x669e3a, 'Reset': 0x669eb3, 'PostTimed': 0x658df4}
+CALLS = {'Delete': 0x6596e0, 'Init': 0x669efb, 'Free': 0x669c62, 'Add': 0x669c8d, 'Fire': 0x669d77, 'Cancel': 0x669e3a, 'Reset': 0x669eb3, 'PostTimed': 0x658df4,
+         'FireTimers': 0x658f4b}
 B = Bench([(0x6596e0, 0x65970e), (0x669c62, 0x669c8d), (0x669c8d, 0x669d77), (0x669d77, 0x669e3a), (0x669e3a, 0x669eb3), (0x669eb3, 0x669efb),
-           (0x669efb, 0x669f79), (0x65968e, 0x6596a2), (0x65f697, 0x65f6d1), (0x658df4, 0x658e42)])
+           (0x669efb, 0x669f79), (0x65968e, 0x6596a2), (0x65f697, 0x65f6d1), (0x658df4, 0x658e42), (0x658f4b, 0x658f6c)])
 TABLE, ENTRIES, WINDOWS, CLOCK, VTABLE = RAM, RAM + 0x100, RAM + 0x400, RAM + 0x800, RAM + 0x900
 WINS = [WINDOWS, WINDOWS + 0x200]
 
@@ -59,6 +61,9 @@ def case(r):
         return Call(CALLS[op], args + [delay], regions, ret='a')
     if op == 'Cancel':
         return Call(CALLS[op], [TABLE, r.choice(WINS + [0])], regions, conv='t', ret='w')
+    if op == 'FireTimers':   # (src/game/ui/window: Fire's through [0xfaa5f8] or none)
+        regions[0xfaa5f8] = struct.pack('<I', r.choice([TABLE] * 5 + [0]))
+        return Call(CALLS[op], [], regions, ret='a')
     return Call(CALLS[op], [TABLE], regions, conv='t', ret='w' if op == 'Fire' else 'v')
 
 

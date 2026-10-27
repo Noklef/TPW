@@ -2,10 +2,15 @@
 
 #include <cstdint>
 
+#include "../core/accessors.h"
 #include "../core/language.h"
+#include "../world/advisor.h"
 #include "../world/ridesweep.h"
 #include "buttontext.h"
+#include "focus.h"
+#include "hoverlabel.h"
 #include "listrows.h"
+#include "radiogroup.h"
 #include "window.h"
 #include "window7059f0.h"
 #include "windowreg.h"
@@ -75,4 +80,37 @@ void __cdecl Dialog7ca150_ShowTab1(u32 selected) { show_tab(selected, kTabs[1]);
 void __cdecl Dialog7ca150_ShowTab2(u32 selected) { show_tab(selected, kTabs[2]); }
 
 void __cdecl Dialog7ca150_ShowTab3(u32 selected) { show_tab(selected, kTabs[3]); }
+
+void __cdecl Dialog7ca150_Open(s32 tab, u32 selected) {
+    if (tab == -1) tab = global<s32>(0x007ca154);
+    Window7c24c8_Close();
+    Global7cb28c_Select(2, 5);
+    global<u8 *>(0x007ca150) = WindowScript_Build(global<u8 *>(0x007cb2ac), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007508e0), 0x00495290);
+    Window7c24c8_Set(global<u8 *>(0x007ca150));
+    u8 *const group = Window_FindChild(Window_FindChild(global<u8 *>(0x007ca150), nullptr, 0x12c4b8), nullptr, 0x12c4b9);
+    switch ((u32)tab) {
+    case 0:
+        RadioGroup_Select(group, nullptr, 0x12c4ba);
+        Dialog7ca150_ShowTab0(selected);
+        break;
+    case 1:
+        RadioGroup_Select(group, nullptr, 0x12c4bc);
+        Dialog7ca150_ShowTab1(selected);
+        break;
+    case 2:
+        RadioGroup_Select(group, nullptr, 0x12c4bb);
+        Dialog7ca150_ShowTab2(selected);
+        break;
+    case 3:
+        RadioGroup_Select(group, nullptr, 0x12c4bd);
+        Dialog7ca150_ShowTab3(selected);
+        break;
+    }
+    if ((u32)tab <= 3) {
+        const u32 text = (u32)(uintptr_t)Language_WideText(0x4e + (u32)tab);
+        HoverLabel_Attach(global<u8 *>(0x007ca150), 0x12c4be, text);
+    }
+    Window_SetHandler(Window_FindChild(global<u8 *>(0x007ca150), nullptr, 0x12c4b8), nullptr, 0x00495360);
+    Advisor_PostId(0xbf);
+}
 }  // extern "C"

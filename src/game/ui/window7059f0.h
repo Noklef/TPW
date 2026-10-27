@@ -279,6 +279,15 @@ void __fastcall Window7059f0_OnMouseDown(u8 *window, void *, u32 x, u32 y);
 // EAX not kept.
 void __fastcall Window7059f0_OnDouble(u8 *window, void *, u32 x, u32 y);
 
+// 0x6656a0 (thiscall (x, y: words), pops 8; called by the handler 0x665c35 for two messages, the point's words from the second argument
+// (high, low); name invented): with flag 0x80 of +0x48, no +0x11c and the point in the saved rectangle +0x2c (its slot 0, AX), the row at
+// the point selected (Window7059f0_SelectAt). EAX not kept.
+void __fastcall Window7059f0_OnDrag(u8 *window, void *, u32 x, u32 y);
+
+// 0x66521e (thiscall (dx, dy: words), pops 8; called by the handler 0x665c35; name invented): the inner rectangle +0x138 moved by its slot
+// 2 (dx, dy), then the columns' (Window7059f0_OffsetColumns). EAX not kept.
+void __fastcall Window7059f0_OnMoved(u8 *window, void *, u32 dx, u32 dy);
+
 // 0x665b51 (thiscall (key: a word, unused), pops 8; name unconfirmed): with flag 0x200 of +0x48, the keys scroll (Window7059f0_ScrollTo):
 // 0x2400 (Home) to 0, 0x2300 (End) to the count +0x150 less one, 0x2600 (Up) / 0x2800 (Down) to the selection +0x14c less / plus one.
 // EAX not kept.

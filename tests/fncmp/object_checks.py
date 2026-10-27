@@ -16,8 +16,9 @@
 #   Wear (0x4e2440 Object_Wear): Reset's object and map, the mode setting 1 or other (its guard set), the amount small or any.
 #   Use (0x4fe1e0 Visitor_UseObject, person.cpp's): Rating's object and definitions with the effects, Pay's money, Wear's map, the sprite script
 #   list and the sounds (see use()).
+#   QueueFull (0x4ddb60, src/game/world/objectmsg): Fill's object tuned to rates of 4-7 mostly, with objectmsg.py's queue of 0-6 visitors.
 # usage: object_checks.py [CASES [SEED]] [--wild|--both] [--show N]
-#   (env OPS=Capacity,Track,Score,Percent,Stand,History,Fill,Pay,Settings,Current,Diff,Average,Reset,WontPay,Rating,RatingOf,Poor,Gap,Wear,Use)
+#   (env OPS=Capacity,Track,Score,Percent,Stand,History,Fill,Pay,Settings,Current,Diff,Average,Reset,WontPay,Rating,RatingOf,Poor,Gap,Wear,Use,QueueFull)
 import os
 import struct
 import sys
@@ -27,7 +28,7 @@ sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import ridelist  # noqa: E402
 from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
-from thingenv import ITEM, ITEMS, NITEMS, park  # noqa: E402
+from thingenv import ITEM, ITEMS, NITEMS, POOL, THING, park  # noqa: E402
 
 B = Bench([(0x412e90, 0x412f00), (0x4dd4e0, 0x4dd510), (0x4d8c00, 0x4d8c30), (0x4dd7f0, 0x4dd930), (0x4df450, 0x4df66d), (0x522770, 0x5227f0), (0x52c2b0, 0x52c430),
            (0x55a070, 0x55a110), (0x55a0b0, 0x55a110), (0x55a390, 0x55a3f0), (0x5da3c0, 0x5da3c1),
@@ -40,7 +41,8 @@ B = Bench([(0x412e90, 0x412f00), (0x4dd4e0, 0x4dd510), (0x4d8c00, 0x4d8c30), (0x
            (0x4fe1e0, 0x4fe8e8), (0x4fdcc0, 0x4fde45), (0x50c100, 0x50c190), (0x4e21f0, 0x4e2200), (0x4e2180, 0x4e2187), (0x4fb4f0, 0x4fb52b),
            (0x516330, 0x516370), (0x516370, 0x51637d), (0x541f70, 0x541fa0), (0x541fd0, 0x542010), (0x475a10, 0x475b7f), (0x4758f0, 0x475a10),
            (0x5f5660, 0x5f56a0), (0x402d70, 0x403220), (0x4033a0, 0x4033f0), (0x540c60, 0x540c70), (0x4faa00, 0x4faa5b), (0x4754e0, 0x47554c),
-           (0x51bfc0, 0x51c048), (0x4dfd80, 0x4dfe30), (0x50b350, 0x50b370)])
+           (0x51bfc0, 0x51c048), (0x4dfd80, 0x4dfe30), (0x50b350, 0x50b370),
+           (0x4ddb60, 0x4ddb82), (0x4ddf50, 0x4de040), (0x502430, 0x502460)])
 OBJ, WORLD = RAM, RAM + 0x10000
 
 
@@ -201,6 +203,39 @@ def fill(r):
     obj[0x5d] = r.choice([0, 1, 10, 100, 255])
     regions[0x7cdc54] = r.bytes(4)
     return Call(0x4dda40, [OBJ], regions, conv='t', ret='a')
+
+
+def queue_full(r):
+    """0x4ddb60: Fill's object (flag 8 mostly, the count 0 or the row's limit mostly, the bytes +0x5c / +0x5d equal mostly and the rows'
+    floats 4-7 mostly: rates about the queue's length) with objectmsg.py's queue of 0-6 visitors (states 11 mostly) at +0x3c"""
+    count = r.choice([1, 2, 3, 4, 6])
+    regions, handles, _things = park(r, count=count, kinds=(1,), defs=True)
+    items = bytearray(regions[ITEMS])
+    floats = [fb(v) for v in (4.0, 5.0, 6.0, 7.0, 4.5)] * 3 + [fb(v) for v in (1.0, 100.0, -1.0)] + [r.f(10.0)]
+    for i in range(NITEMS):
+        for row in range(4):
+            put(items, i * ITEM + 0x40 * row + 0x1a8, 'i', r.choice([1, 2, 5, 10, 0, -3]))
+            put(items, i * ITEM + 0x40 * row + 0x1b4, 'I', r.choice(floats))
+    regions[ITEMS] = items
+    obj = bytearray(r.bytes(0x200))
+    n = struct.unpack_from('<i', regions[0x7890a0], 0x528)[0]
+    put(obj, 0xe, 'H', struct.unpack_from('<H', items, ITEM * r.randrange(n))[0])
+    obj[0x32] = r.choice([8, 8, 8, 0xc, 0xff, 0, 0xf7])
+    obj[0x50] = r.randrange(4)
+    limit = struct.unpack_from('<i', items, 0x1a8)[0]   # (row 0 of the first: a match now and then)
+    put(obj, 0x58, 'I', r.choice([0, 0, limit & 0xffffffff, 1, 5, r.getrandbits(32)]))
+    obj[0x5c] = r.choice([1, 2, 10, 255])
+    obj[0x5d] = obj[0x5c] if r.random() < 0.7 else r.choice([0, 1, 10, 255])
+    regions[0x7cdc54] = r.bytes(4)
+    pool = bytearray(regions[POOL])
+    order = r.sample(range(count), r.randrange(0, count + 1))
+    for k, i in enumerate(order):
+        put(pool, THING * i + 0x228, 'HH', handles[order[k + 1]] if k + 1 < len(order) else 0, handles[order[k - 1]] if k else 0)
+        put(pool, THING * i + 0x220, 'i', r.choice([11, 12, 14, 8, 3, 15]) if r.random() < 0.2 else 11)
+    regions[POOL] = pool
+    put(obj, 0x3c, 'H', handles[order[0]] if order else 0)
+    regions[OBJ] = obj
+    return Call(0x4ddb60, [OBJ], regions, conv='t', ret='a')
 
 
 def pay(r):
@@ -553,7 +588,7 @@ def use(r):
 
 CASES = {'Capacity': capacity, 'Track': track, 'Score': score, 'Percent': percent, 'Stand': stand, 'History': history, 'Fill': fill, 'Pay': pay,
          'Settings': settings, 'Current': current, 'Diff': diff, 'Average': average, 'Reset': reset,
-         'WontPay': wont_pay, 'Rating': rating, 'RatingOf': rating_of, 'Poor': poor, 'Gap': gap, 'Wear': wear, 'Use': use}
+         'WontPay': wont_pay, 'Rating': rating, 'RatingOf': rating_of, 'Poor': poor, 'Gap': gap, 'Wear': wear, 'Use': use, 'QueueFull': queue_full}
 
 
 def case(r):

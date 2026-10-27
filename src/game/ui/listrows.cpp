@@ -482,6 +482,7 @@ void __cdecl List758f04_InitRow(u8 *row) {
 }
 
 void __cdecl List758f04_InitRowJump(u8 *row) { List758f04_InitRow(row); }
+void __cdecl List758f04_InitRowJumpB(u8 *row) { List758f04_InitRow(row); }
 
 u32 __cdecl List758f04_RowProcA(u8 *window, u32 message, u32 a, u32 b) {
     if (message == 0x403) {

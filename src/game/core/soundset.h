@@ -51,6 +51,12 @@ u32 __cdecl Sound_SetParam(u32 sound, u32 parameter, u32 value);
 // engine's slot 5) with the sound and the position as three floats on the stack (each converted from the int), whose answer is returned.
 u32 __cdecl Sound_SetPosition(u32 sound, s32 x, s32 y, s32 z);
 
+// 0x51c1d0 (cdecl (a, level, c, x, y, z, dx, dy, dz: dwords); name invented): nothing unless sound is on and started; else the manager's
+// SoundManager_SetPlacement with three vectors on the stack, (a, level, c) (level a float through FLD / FSTP; the fixed 10000.0 at
+// 0x700b28 instead when the u16 0x803ad2 is set), (x, y, z) and (dx, dy, dz), its out the first argument's own stack slot (sic).
+// EAX not kept.
+void __cdecl Sound_Place(u32 a, u32 level, u32 c, u32 x, u32 y, u32 z, u32 dx, u32 dy, u32 dz);
+
 // 0x51b7c0 (cdecl): when on and started, the sound manager's vtable +0 (&result, not read after); then not started. The
 // warning when the allocation count 0x802bd8 is not back to 0 is compiled out.
 void __cdecl Sound_Shutdown();

@@ -62,7 +62,8 @@
 # SetColumnBottom (0x6636b2): ColumnBottom's array (or none), the columns +0x164 0-12 or negative, the column 0-11, -1 or -2, the value
 # any (upper halves random). OffsetColumns (0x664f6d): 0-4 columns of real GUI rectangles (or no array), dx / dy words (upper halves
 # random; a negative count would run for ever). SelectAt (0x66552e): select_case()'s, the inner rectangle +0x138 a real one, the point in
-# it, near it or any.
+# it, near it or any. OnDrag (0x6656a0): OnMouseDown's, +0x11c 0 mostly, the saved rectangle +0x2c a real one (the inner one's mostly, else
+# around the point). OnMoved (0x66521e): OffsetColumns', the inner rectangle +0x138 a real one of any words.
 # usage: window7059f0.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ColumnBottom,NextItem,...)
 import os
 import struct
@@ -85,7 +86,7 @@ CALLS = {'ColumnBottom': 0x6636f6, 'NextItem': 0x663a93, 'NthItem': 0x663ba2, 'S
          'NotifySort': 0x6658b9, 'ColumnSpan': 0x664cb9, 'SetSortColumn': 0x66590f, 'SetSortOrder': 0x66594d, 'BuildRows': 0x6639cb,
          'SortBy': 0x6659af, 'OnHeader': 0x665a44,
          'SetColumnBottom': 0x6636b2, 'OffsetColumns': 0x664f6d, 'SelectAt': 0x66552e,
-         'OnMouseDown': 0x6655a2, 'OnDouble': 0x66563d, 'RemoveData': 0x493c10}
+         'OnMouseDown': 0x6655a2, 'OnDouble': 0x66563d, 'RemoveData': 0x493c10, 'OnDrag': 0x6656a0, 'OnMoved': 0x66521e}
 LIST_RANGES = (RANGES + [(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 0x664bf0), (0x664d2a, 0x664db7), (0x663324, 0x663554),
                     (0x4f0240, 0x4f0250), (0x65d547, 0x65d56b), (0x65d56b, 0x65d57c), (0x65c672, 0x65c707),
                     (0x663085, 0x66316b), (0x663cb8, 0x663d56), (0x664495, 0x6644ea), (0x66b47d, 0x66b508),
@@ -100,7 +101,7 @@ LIST_RANGES = (RANGES + [(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 
                     (0x664c71, 0x664cb9), (0x665b51, 0x665bfb), (0x6656fa, 0x665739), (0x6658b9, 0x66590f), (0x664cb9, 0x664d2a), (0x66590f, 0x66594d), (0x66594d, 0x6659ad), (0x6659af, 0x665a44), (0x665a44, 0x665b4f), (0x658ccc, 0x658d9f),
                     (0x6639cb, 0x663a93), (0x66b53e, 0x66b567), (0x6636b2, 0x6636f6), (0x664f6d, 0x664fde), (0x66552e, 0x6655a0), (0x6655a2, 0x66563d), (0x66563d, 0x6656a0),
                     (0x493c10, 0x493c47), (0x65d7bc, 0x65d822)])
-B = Bench(LIST_RANGES)
+B = Bench(LIST_RANGES + [(0x6656a0, 0x6656fa), (0x66521e, 0x66525c)])
 WINDOW, COLUMNS, LINKS, OUT = RAM, RAM + 0x200, RAM + 0x400, RAM + 0x800
 LIST, LINKS2, COLS2, CELLS, ROWS2, ROWWINS = RAM + 0x9000, RAM + 0x9420, RAM + 0x9e00, RAM + 0x9f00, RAM + 0x9c00, RAM + 0xb000
 BAR, OBJS, BUFS = RAM + 0xd000, RAM + 0x1000, RAM + 0x1200
@@ -998,7 +999,7 @@ def case(r):
         return bar_case(r)
     if op == 'Select':
         return select_case(r)
-    if op in ('SelectAt', 'OnMouseDown', 'OnDouble'):
+    if op in ('SelectAt', 'OnMouseDown', 'OnDouble', 'OnDrag'):
         c = select_case(r)
         window = c.regions[WINDOW]
         if op != 'SelectAt':   # (the clicks: flag 0x80 mostly; OnMouseDown's columns as PostColumnAt's)
@@ -1019,6 +1020,14 @@ def case(r):
         if op != 'SelectAt' and r.random() < 0.5:   # (the click on a column's edges)
             left, right = r.choice(edges)
             x = r.choice([left, right, left + 1, right - 1, (left + right) // 2])
+        if op == 'OnDrag':   # (+0x11c 0 mostly; the saved rectangle the inner one mostly, else around the point)
+            put(window, 0x11c, 'I', r.choice([0, 0, 0, 1, r.getrandbits(32)]))
+            if r.random() < 0.6:
+                put(window, 0x2c, 'Ihhhh', 0x705920, *rect)
+            else:
+                left, top = x + r.randrange(-30, 5), y + r.randrange(-30, 5)
+                put(window, 0x2c, 'Ihhhh', 0x705920, *[(v + 0x8000 & 0xffff) - 0x8000 for v in
+                                                        (left, top, left + r.randrange(0, 60), top + r.randrange(0, 60))])
         return Call(CALLS[op], [WINDOW] + [(v & 0xffff) | r.choice([0, r.getrandbits(16)]) << 16 for v in (x, y)], c.regions, conv='t', ret='v')
     window = bytearray(r.bytes(0x180))
     regions = {WINDOW: window}
@@ -1034,11 +1043,13 @@ def case(r):
         put(window, 0x164, 'h', r.choice([0, 1, 3, 12, 12, -1, r.getrandbits(16) - 0x8000]))
         column = r.choice(list(range(12)) + [-1, -2]) & 0xffff
         return Call(CALLS[op], [WINDOW, column | r.choice([0, r.getrandbits(16)]) << 16, r.getrandbits(32)], regions, conv='t', ret='v')
-    if op == 'OffsetColumns':
+    if op in ('OffsetColumns', 'OnMoved'):
         n = r.choice([0, 1, 2, 3, 4])
         regions[COLUMNS] = b''.join(struct.pack('<Ihhhh', 0x705920, *[r.getrandbits(16) - 0x8000 for _ in range(4)]) for _ in range(n)) or bytes(1)
         put(window, 0x16c, 'I', r.choice([COLUMNS] * 5 + [0]))
         put(window, 0x164, 'h', n)
+        if op == 'OnMoved':
+            put(window, 0x138, 'Ihhhh', 0x705920, *[r.getrandbits(16) - 0x8000 for _ in range(4)])
         return Call(CALLS[op], [WINDOW] + [r.choice([0, 1, -3, r.getrandbits(16)]) & 0xffff | r.choice([0, r.getrandbits(16)]) << 16 for _ in range(2)],
                     regions, conv='t', ret='v')
     if op == 'ColumnBottom':

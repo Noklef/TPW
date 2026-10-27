@@ -21,8 +21,16 @@
 # hashed), the kids' category [0x803a24].
 # Show7cc258 / Show7cc298 / Show7cc328 / Show7cc3e0 / Show7ca228 (0x4b0e30 / 0x4b2430 / 0x4b5290 / 0x4b6ae0 / 0x499eb0, slot 10 of
 # 0x6ffc68 / 0x6ffce8 / 0x6ffdd8 / 0x6ffec8 / 0x6ff8d0): the same with their ids, handlers, scripts, things and posts (SHOWS).
+# ShowThing (0x486920, src/game/ui/thingpanel): the panel route()'s choice (any for none) set up as above at its own address, the
+# thing's kind +2, id +0xe, link +0x30 and flags +0x32 set; the definitions 0x7890a0 cached (+0x730 / +0x734) or searched (the first
+# +0x528 entries, one of them the definition DEF: kind +0x4ac, +0x284, +0x288); the linked things 0x7cfb90 mostly the thing shown
+# (the advisor's entry kept); the thing none now and then.
+# Handler (0x4b3c10, src/game/ui/thingbrowser: the thing browser panel's handler): the messages 0x10006 (a mostly 0), 0x10001 / 0x10002,
+# 0x14 or others; for 0x10006 with a 0 Show7cc3b0's or Show7cc408's surroundings as ShowThing's, the thing [0x7cc308] staff (4-8) or not;
+# for 0x10001 / 0x10002 window.py's shown_env() tree, the window one with children, one or two of them 0x149 (none now and then: a fault in
+# both); else a lone window ([0x7cc304] any); the default handlers +0x118 fncmp's logger (its result set or not).
 # usage: panel7cc218.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Open,Gauges,Buttons,Show,Show7ca178,
-#   Show7cc3b0,Show7cc408,Show7cc258,Show7cc298,Show7cc328,Show7cc3e0,Show7ca228)
+#   Show7cc3b0,Show7cc408,Show7cc258,Show7cc298,Show7cc328,Show7cc3e0,Show7ca228,ShowThing,Handler)
 import os
 import struct
 import sys
@@ -38,13 +46,13 @@ import panel7cc258  # noqa: E402
 import panelparts  # noqa: E402
 import window  # noqa: E402
 import window705a50  # noqa: E402
-from fncmp import CDECL_LOG4, LOG, RAM, Bench, Call, Mask, blob, blob_bytes, put, recorder, set_return, vtable  # noqa: E402
+from fncmp import CDECL_LOG4, LOG, RAM, Bench, Call, Mask, blob, blob_bytes, log_region, put, recorder, set_return, vtable  # noqa: E402
 from msgtags import ADVISOR_RANGES  # noqa: E402
 from thingenv import ITEM, ITEMS  # noqa: E402
 
 CALLS = {'Open': 0x4ae8e0, 'Gauges': 0x4ae980, 'Buttons': 0x4ad4e0, 'Show': 0x4af980, 'Show7ca178': 0x497990,
          'Show7cc3b0': 0x4b6080, 'Show7cc408': 0x4b79b0, 'Show7cc258': 0x4b0e30, 'Show7cc298': 0x4b2430, 'Show7cc328': 0x4b5290,
-         'Show7cc3e0': 0x4b6ae0, 'Show7ca228': 0x499eb0}
+         'Show7cc3e0': 0x4b6ae0, 'Show7ca228': 0x499eb0, 'ShowThing': 0x486920, 'Handler': 0x4b3c10}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 QUEUE_RANGES = [   # (objectqueue.py's and object_checks.py's: Object_CanOpen's and Object_TrackNeighboursOk's code)
     (0x4d8300, 0x4d8340), (0x4d8c00, 0x4d8c30), (0x4d96f0, 0x4d99f0), (0x4de4a0, 0x4de5b0), (0x4df290, 0x4df310), (0x4de840, 0x4dede8),
@@ -54,7 +62,8 @@ QUEUE_RANGES = [   # (objectqueue.py's and object_checks.py's: Object_CanOpen's 
 B = Bench(panel7cc258.merged(panel7cc258.RANGES + QUEUE_RANGES + dialogbuild.ALL_RANGES + ADVISOR_RANGES + [
     (0x4ae8e0, 0x4ae93e), (0x4ae980, 0x4aec2b), (0x4ad4e0, 0x4ad71b), (0x4af980, 0x4af9e5), (0x497990, 0x4979e7), (0x4b6080, 0x4b60c5), (0x4b79b0, 0x4b7a00),
     (0x4b0e30, 0x4b0e67), (0x4b2430, 0x4b2467), (0x4b5290, 0x4b52c4), (0x4b6ae0, 0x4b6b14), (0x499eb0, 0x499ee4),
-    (0x51bfc0, 0x51c048)]),
+    (0x51bfc0, 0x51c048), (0x486920, 0x486a8e), (0x4e0df0, 0x4e0dfe), (0x4e2710, 0x4e273a), (0x5da3c0, 0x5da3c1)] + window.RANGES + [
+    (0x4b3c10, 0x4b3ce8)]),
           hooks={**animatormesh.HOOKS, 0x67a7d0: advisor._cdecl_log})   # (advisor.py's: the records' static set-up's atexit logged)
 ROOT = dialogbuild.ROW
 KIDS, SUBKIDS, PANEL, MANAGER, OBJS, DEFS = 0x31000000, 0x31008000, 0x31010000, 0x31030000, 0x31040000, 0x31100000
@@ -175,8 +184,8 @@ SHOWS = {'Show': ((0x4af600, 0x3e24, 0x3e15, 0x3e25), 0x755150, 0x7cc208, (0x129
 SOUNDS, SOUNDS_VT = 0x31210000, 0x31210100
 
 
-def show_case(r, op):
-    """Show and Show7ca178 (above)"""
+def show_case(r, op, panel=None):
+    """Show and Show7ca178 (above); with a panel address, the panel there and its regions and masks returned instead"""
     fixed, script, selected, posts, top = SHOWS[op]
     args, regions = dialogbuild.windowat10(r, fixed)
     regions[script] = regions.pop(dialogbuild.WINDOWAT10SCRIPT)
@@ -211,13 +220,143 @@ def show_case(r, op):
         regions[SOUNDS_VT] = put(vtable({}, 4), 8, 'I', recorder(31, 2))
         regions[0x803a24] = struct.pack('<I', r.choice([0, 1, r.getrandbits(32)]))
         blob(log, 31, 1, 0x7f)
+    if panel is not None:   # (the panel at its own address: a selected thing inside it left to the panel's bytes)
+        regions[panel] = regions.pop(obj)
+        if panel <= selected < panel + len(regions[panel]):
+            regions.pop(selected)
+        return regions, masks
     return Call(CALLS[op], [obj, THING_SHOWN], regions, conv='t', ret='v', masks=masks)
+
+
+PANELS = {'Show': 0x7cc218, **{op: int(op[4:], 16) for op in SHOWS if op != 'Show'}}
+DEF, DEF_TABLE = 0x31220000, 0x31221000
+
+
+def route(kind, def_kind, d288, link, w284, flags):
+    """the panel ThingPanel_Show (0x486920) shows a thing in, None for none"""
+    if kind == 3:
+        if def_kind == 0:
+            return 'Show7cc3e0' if d288 == 2 else 'Show' if link or w284 == 0 else None
+        if def_kind == 3:
+            return 'Show7ca178' if flags & 1 else 'Show7cc328' if flags & 2 else 'Show7ca228'
+        return {1: 'Show7cc258', 2: 'Show7cc298'}.get(def_kind)
+    return 'Show7cc3b0' if kind in (4, 5, 6, 7, 8) else 'Show7cc408' if kind == 1 else None
+
+
+def show_thing_case(r):
+    """ShowThing (0x486920, above)"""
+    want = r.choice(list(SHOWS) + [None] * 2)   # (each route about as often: the fields drawn until they take it)
+    while True:
+        kind = r.choice([3] * 8 + [4, 5, 6, 7, 8, 1, 1, 0, 2, 9, r.getrandbits(8)])
+        def_kind = r.choice([0, 0, 0, 0, 1, 2, 3, 3, 4, r.getrandbits(32)])
+        d288 = r.choice([2, 2, 0, 1, r.getrandbits(32)])
+        link = r.choice([0, 0, 1, 2, 3])
+        w284 = r.choice([0, 0, 1, r.getrandbits(16)])
+        flags = r.choice([0, 1, 2, 3, r.getrandbits(16)])
+        if route(kind, def_kind, d288, link, w284, flags) == want:
+            break
+    op = want or r.choice(list(SHOWS))
+    regions, masks = show_case(r, op, PANELS[op])
+    thing = bytearray(regions[THING_SHOWN])
+    ident = r.getrandbits(16)
+    thing[2] = kind
+    put(thing, 0xe, 'H', ident)
+    put(thing, 0x30, 'H', link)
+    put(thing, 0x32, 'H', flags)
+    regions[THING_SHOWN] = thing
+    d = bytearray(r.bytes(0x4b0))
+    put(d, 0, 'H', ident)
+    put(d, 0x284, 'H', w284)
+    put(d, 0x288, 'I', d288)
+    put(d, 0x4ac, 'I', def_kind)
+    regions[DEF] = d
+    assert 0x7890a0 not in regions
+    defs = bytearray(r.bytes(0x738))   # (the definitions: the cached one, else a search of the first +0x528 for the id)
+    hit = r.random() < 0.6
+    put(defs, 0x730, 'H', ident if hit else ident ^ 1)
+    put(defs, 0x734, 'I', DEF)
+    n = r.choice([1, 2, 3])
+    table = [DEF_TABLE + 4 * k for k in range(n)]
+    table[r.randrange(n)] = DEF
+    for k, at in enumerate(table):
+        put(defs, 4 * k, 'I', at)
+        if at != DEF:
+            regions[at] = put(bytearray(r.bytes(4)), 0, 'H', ident ^ 1)
+    put(defs, 0x528, 'i', n)
+    regions[0x7890a0] = defs
+    things = bytearray(r.bytes(0x14 * 16))   # (the linked things: entries mostly the thing shown; the advisor's entry kept)
+    for off in range(0, 0x14 * 4, 4):   # (the bytes between them another thing: a misplaced entry read shows that one)
+        put(things, off, 'I', THING_SHOWN + 4)
+    for k in range(4):
+        put(things, 0x14 * k, 'I', THING_SHOWN if r.random() < 0.95 else r.choice([0, RAM]))
+    for at in [at for at in regions if 0x7cfb90 <= at < 0x7cfb90 + len(things)]:
+        v = regions.pop(at)
+        things[at - 0x7cfb90:at - 0x7cfb90 + len(v)] = v
+        if link and (at - 0x7cfb90) // 0x14 == link:   # (a link not the advisor's entry: its masked bytes read as a thing)
+            put(thing, 0x30, 'H', r.choice([k for k in (1, 2, 3) if k != link]))
+    regions[0x7cfb90] = things
+    return Call(CALLS['ShowThing'], [0 if r.random() < 0.03 else THING_SHOWN], regions, ret='v', masks=masks)
+
+
+HANDLER_WINDOW = 0x31300000
+
+
+def handler_case(r):
+    """Handler (0x4b3c10, above)"""
+    message = r.choice([0x10006] * 6 + [0x10001] * 3 + [0x10002] * 3 + [0x14] * 2 + [0x10000, 0x10003, 0x10005, 0x10007, 0x13, 0x15, 1,
+                                                                                    r.getrandbits(32)])
+    a = r.choice([0] * 5 + [1, r.getrandbits(32)]) if message == 0x10006 else r.getrandbits(32)
+    b = r.getrandbits(32)
+    masks = []
+    if message in (0x10001, 0x10002):   # (window.py's shown_env() tree: the window one with children, one of them (mostly) 0x149)
+        for _ in range(3):
+            log = log_region()
+            regions = {LOG: log}
+            wins = window.shown_env(r, regions, log)
+            parents = [w for w in wins if struct.unpack_from('<I', regions[w], 0x5c)[0]]
+            if parents:
+                break
+        for w in wins:
+            put(regions[w], 0x8c, 'I', r.choice([0, 1, 0x148, 0x14a, 0x10149, r.getrandbits(32)]))
+            put(regions[w], 0x118, 'I', CDECL_LOG4)
+        at = r.choice(parents) if parents else wins[0]
+        kids, c = [], struct.unpack_from('<I', regions[at], 0x5c)[0]
+        while c:
+            kids.append(c)
+            c = struct.unpack_from('<I', regions[c], 0x54)[0]
+        if kids and r.random() < 0.97:   # (none now and then: a fault in both)
+            for k in r.sample(kids, r.choice([1, 1, 1, 2]) if len(kids) > 1 else 1):
+                put(regions[k], 0x8c, 'I', 0x149)
+    else:
+        if message == 0x10006 and a == 0:   # (show_case()'s panel at its own address; the thing shown [0x7cc308] staff or another)
+            kind = r.choice([4, 5, 6, 7, 8, 4, 5, 6, 7, 8, 1, 1, 0, 2, 3, 9, r.getrandbits(8)])
+            op = 'Show7cc3b0' if kind in (4, 5, 6, 7, 8) else 'Show7cc408'
+            regions, masks = show_case(r, op, PANELS[op])
+            thing = bytearray(regions[THING_SHOWN])
+            thing[2] = kind
+            regions[THING_SHOWN] = thing
+            assert not any(k <= 0x7cc308 < k + len(v) for k, v in regions.items())
+            regions[0x7cc308] = struct.pack('<I', THING_SHOWN)
+            log = regions[LOG]
+        else:
+            log = log_region()
+            regions = {LOG: log}
+            regions[0x7cc304] = r.bytes(4)
+        at = HANDLER_WINDOW
+        regions[at] = put(bytearray(r.bytes(0x120)), 0x118, 'I', CDECL_LOG4)
+    if r.random() < 0.7:
+        set_return(log, 0x3d, r.choice([0, 1, -1, r.getrandbits(32)]))
+    return Call(CALLS['Handler'], [at, message, a, b], regions, ret='a', masks=masks)
 
 
 def case(r):
     op = r.deal(OPS)
+    if op == 'Handler':
+        return handler_case(r)
     if op == 'Buttons':
         return buttons_case(r)
+    if op == 'ShowThing':
+        return show_thing_case(r)
     if op in SHOWS:
         return show_case(r, op)
     regions = dialogbuild.chain(r, 'Open', 0)

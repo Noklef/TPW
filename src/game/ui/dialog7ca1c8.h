@@ -1,6 +1,6 @@
 // The dialog whose window is at 0x7ca1c8 (built by 0x498790 from the template 0x751530; 0x7ca1cc set while it is up): its nine check buttons
 // (ids 0x18-0x21 in its child 0x18) shown from a flags word, or one of them selected. Reimplementation of 0x498090, 0x498a50, 0x498a80,
-// 0x4981d0, 0x498a30, 0x4819f0 and 0x4987f0.
+// 0x4981d0, 0x498a30, 0x4819f0, 0x4987f0 and 0x498790.
 #pragma once
 
 #include "../../../re/types.h"
@@ -37,4 +37,9 @@ void __fastcall Dialog7ca1c8_SelectButtonIfUpThis(void *self, void *, u32 flags)
 // its slot 5 called with 1, the object of the GUI window registered as "cb_trough" (tool 0x200; +0x90 and +0x94 0x134) or "cb_loop"
 // (0x132) as its +0x98, then slot 5 called again with whether tool 2 is on offer.
 void __cdecl Dialog7ca1c8_UpdateLoopButton();
+
+// 0x498790 (cdecl; name invented): the dialog built on the GUI root [0xfaa5d8] from the template 0x751530 with the handler 0x4982a0
+// (WindowScript_Build) as [0x7ca1c8], taken out of the root's children (Window_Unlink), its dword +0xa0 index 0 set to 2
+// (Window_SetDwordA0) and hidden (Window_SetShown(0)); none of it checked.
+void __cdecl Dialog7ca1c8_Create();
 }

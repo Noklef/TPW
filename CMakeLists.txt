@@ -321,6 +321,8 @@ add_library(tpw_game STATIC
     src/game/world/bankaccount.cpp
     src/game/world/parkgates.cpp
     src/game/world/cellbuild.cpp
+    src/game/world/mapclick.cpp
+    src/game/world/objectunlock.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp
@@ -501,6 +503,9 @@ add_library(tpw_game STATIC
     src/game/ui/dialog7ca13c.cpp
     src/game/ui/imecandidates.cpp
     src/game/ui/window705950draw.cpp
+    src/game/ui/thingpanel.cpp
+    src/game/ui/dialog7ca1bc.cpp
+    src/game/ui/dialog7ca1e0.cpp
 )
 # The libraries whose functions replace the exe's copies (src/game/lib); their headers stay private to those units.
 target_link_libraries(tpw_game PRIVATE tpw_zlib tpw_jpeg6b tpw_jpeg6a)
