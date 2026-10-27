@@ -222,6 +222,13 @@ void __fastcall Handyman_SetState(u8 *handyman, void *, u32 state);
 // walk (2) sets 0; anything else nothing. The debug checks are left out.
 void __fastcall Handyman_WalkToJob(u8 *handyman);
 
+// 0x4d4660 / 0x4d6360 (thiscall; Thing_Update's first calls for the kinds 6 and 7; names from the symbol table, medium): the cell recorded
+// (Sprite_RecordMapId); when the last one recorded is not the cell the person stands on ((row +7 << 7) + column +5 + 1), the map
+// [0x8023a0] takes spread record 0 (entertainers) or 3 (guards) back from the last (Map_SpreadRemove) and spreads it round the new one
+// (Map_SpreadAdd); then Person_TickSpeed.
+void __fastcall Entertainer_Update(u8 *entertainer);
+void __fastcall Guard_Update(u8 *guard);
+
 // 0x502c20 (thiscall (state), pops 4): a researcher's state. 0xf: +0x214 = the world's tick ([0x80239c] +0x1da70c) and the reference's
 // animation (+0xc, Set4_4217f0) 0xa. Others: Staff_SetState. The state is then +0x19c.
 void __fastcall Researcher_SetState(u8 *researcher, void *, u32 state);

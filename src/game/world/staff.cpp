@@ -17,6 +17,7 @@
 #include "../sprite/scriptref.h"
 #include "analyser.h"
 #include "analysercell.h"
+#include "mapcell.h"
 #include "messagecentre.h"
 #include "money.h"
 #include "mousemode.h"
@@ -644,6 +645,23 @@ void __fastcall Handyman_WalkToJob(u8 *handyman) {
     }
     if (walked == 2) Handyman_SetState(handyman, nullptr, 0);
 }
+
+// The staff's spread record moved with them: Sprite_RecordMapId's last cell against the one they stand on now; the map takes the record
+// back from the last and spreads it round the new one (only the low words count; the original passes stack dwords).
+static void moveSpread(u8 *person, u32 record) {
+    u16 last;
+    Sprite_RecordMapId(person, nullptr, &last);
+    const u16 cell = (u16)(((u32)person[7] << 7) + person[5] + 1);
+    if (last != cell) {
+        Map_SpreadRemove(global<u8 *>(0x008023a0), nullptr, record, last);
+        Map_SpreadAdd(global<u8 *>(0x008023a0), nullptr, record, cell);
+    }
+    Person_TickSpeed(person);
+}
+
+void __fastcall Entertainer_Update(u8 *entertainer) { moveSpread(entertainer, 0); }
+
+void __fastcall Guard_Update(u8 *guard) { moveSpread(guard, 3); }
 
 void __fastcall Researcher_SetState(u8 *researcher, void *, u32 state) {
     if (state == 0xf) {
