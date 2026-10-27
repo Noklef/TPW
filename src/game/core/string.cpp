@@ -934,6 +934,13 @@ void __fastcall Strings5_JoinPath(u8 *object, void *, const StringView *name) {
     vcall<void>(path, 0x28, name);
 }
 
+void __fastcall Strings5_JoinPathAt50(u8 *object, void *, const StringView *name) {
+    String *const path = reinterpret_cast<String *>(object + 0x50);
+    vcall<void>(path, 0x18, object + 0x28);
+    String_EnsureTrailingBackslash(path);
+    vcall<void>(path, 0x28, name);
+}
+
 String *__cdecl String_ReadToken(String *out, const char **cursor, u32 delimiter) {
     String token;
     String_Ctor(&token);
