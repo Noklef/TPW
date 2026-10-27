@@ -27,6 +27,8 @@ constexpr Pool k70a6c8 = {0x00fb20a8, 0x00fb20a4, 0x1c, 0x14};
 constexpr Pool kVoiceSample = {0x00fb20c0, 0x00fb20bc, 0x40, 0x28};
 constexpr Pool kVoiceStream = {0x00fb20cc, 0x00fb20c8, 0x5c, 0x58};
 constexpr Pool kSilence = {0x00fb2078, 0x00fb2074, 0x30, 0x28};
+constexpr Pool kFileSample = {0x00fb20b4, 0x00fb20b0, 0x48, 0x44};
+constexpr Pool kMp2Stream = {0x00fb26e8, 0x00fb26e4, 0x5c, 0x58};
 
 void Init(const Pool &p) {
     void *const lock = GameHeap_Alloc(0x18);
@@ -115,5 +117,15 @@ void __cdecl SilenceStreamPool_Shutdown() { Shutdown(kSilence); }
 void __cdecl SilenceStreamPool_Purge() { Purge(kSilence); }
 void *__cdecl SilenceStreamPool_New(u32 size) { return New(kSilence, size); }
 void __cdecl SilenceStreamPool_Delete(void *block, u32 size) { Delete(kSilence, block, size); }
+void __cdecl FileSamplePool_Init() { Init(kFileSample); }
+void __cdecl FileSamplePool_Shutdown() { Shutdown(kFileSample); }
+void __cdecl FileSamplePool_Purge() { Purge(kFileSample); }
+void *__cdecl FileSamplePool_New(u32 size) { return New(kFileSample, size); }
+void __cdecl FileSamplePool_Delete(void *block, u32 size) { Delete(kFileSample, block, size); }
+void __cdecl Mp2StreamSamplePool_Init() { Init(kMp2Stream); }
+void __cdecl Mp2StreamSamplePool_Shutdown() { Shutdown(kMp2Stream); }
+void __cdecl Mp2StreamSamplePool_Purge() { Purge(kMp2Stream); }
+void *__cdecl Mp2StreamSamplePool_New(u32 size) { return New(kMp2Stream, size); }
+void __cdecl Mp2StreamSamplePool_Delete(void *block, u32 size) { Delete(kMp2Stream, block, size); }
 
 }  // extern "C"
