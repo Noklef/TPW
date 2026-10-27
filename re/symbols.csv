@@ -5015,6 +5015,10 @@ address,name,kind,confidence,notes
 0x006d4a40,SfBank_Dtor,function,low,"reimplemented (src/game/core/sfbank); thiscall: SfBank_Unload, then the sound resource's destructor"
 0x006d4a20,SfBank_DeletingDtor,function,low,"reimplemented (src/game/core/sfbank); thiscall (flags), pops 4, slot 2: the destructor, freed for bit 0"
 0x006c0dc0,SoundNames_Save,function,low,"reimplemented (src/game/core/soundnames); thiscall (out, stream), pops 8: the table at 0xfb1f28 saved: the count (+0x64) twice, that many zero dwords, each deque element's name as a length + 1 byte and that many bytes, then the size less 8 written back at the start; *out = 0"
+0x006c10f0,SoundNameMap_Free,function,low,reimplemented (src/game/core/soundnames); the loaded names' map's block freed and cleared
+0x006c0d90,SoundNames_FreeMap,function,low,reimplemented (src/game/core/soundnames); SoundNameMap_Free on the singleton's +4
+0x006c1050,SoundNameMap_Load,function,low,"reimplemented (src/game/core/soundnames); the loaded names' map read from a stream, each name's record index looked up"
+0x006c0f50,SoundNames_Load,function,low,reimplemented (src/game/core/soundnames); SoundNameMap_Load on +4 (its out the stream's slot); *out = 0
 0x006d4910,SoundResource_Ctor,function,low,"reimplemented (src/game/core/soundindex); thiscall (source), pops 4: the base class, +8 = +0xc = 0, the source kept and AddRef'd; vtable 0x70ab00"
 0x006c5450,SoundResource_Dtor,function,low,"reimplemented (src/game/core/soundindex); thiscall: the source's Release, back to the base vtable"
 0x006c54e0,SoundResource_DeletingDtor,function,low,"reimplemented (src/game/core/soundindex); thiscall (flags), pops 4: the destructor, freed for bit 0"
