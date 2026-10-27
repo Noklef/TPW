@@ -6,6 +6,10 @@
 #include "../math/sintable.h"
 #include "../math/x87.h"
 #include "../model/heightat.h"
+#include "../model/partstate.h"
+#include "../model/parts.h"
+#include "../model/scratch.h"
+#include "../render/particles.h"
 #include "../world/personscripts.h"
 
 namespace {
@@ -15,6 +19,40 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 s32 Ftol(X87Reg x) { return (s32)(long long)x.v; }
+
+// A walk's time: 100 times the distance from p1 to p2 (its x87 sums, fsqrt, __ftol), 100 for none.
+u32 WalkTime(const float *p1, const float *p2) {
+    const X87Reg dx = X87Reg(p1[0]) - p2[0];
+    const X87Reg dy = X87Reg(p1[1]) - p2[1];
+    const X87Reg dz = X87Reg(p1[2]) - p2[2];
+    const X87Reg squares = dx * (float)dx + dy * dy + dz * (float)dz;
+    const u32 time = (u32)Ftol(X87_Sqrt(squares)) * 100;
+    return time == 0 ? 100 : time;
+}
+
+// The octant (C's % 8, signed) of __ftol(0.5 - (6.28318 - (angle - 1.570795)) * -1.27324...) (the doubles 0x700fe8..0x701000).
+s32 Octant(double angle) {
+    const X87Reg turn = X87_SubR(X87_SubR(X87Reg(angle) - global<double>(0x00700fe8), global<double>(0x00700ff0)) * global<double>(0x00700ff8),
+                                 global<double>(0x00701000));
+    return Ftol(turn) % 8;
+}
+
+// Particle_Spawn(0x13) at 1024 times the place (each __ftol'd: z, y, then x).
+void Puff(const float *place) {
+    const s32 z = (s32)((u32)Ftol(X87Reg(place[2])) << 10);
+    const s32 y = (s32)((u32)Ftol(X87Reg(place[1])) << 10);
+    const s32 x = (s32)((u32)Ftol(X87Reg(place[0])) << 10);
+    Particle_Spawn(0x13, x, y, z);
+}
+
+u8 *Ride(const u8 *vm) { return global<u8 *>(0x007a4610 + 4 * at<u32>(vm, 0xc8)); }
+
+// A leg's progress in thousandths: (now * 1000 - start * 1000) / (end - start), unsigned (the start +8 read before the clock).
+u32 Progress(u8 *slot) {
+    const u32 start = at<u32>(slot, 8);
+    const u32 now = Clocks_Now(reinterpret_cast<u8 *>(0x00785970));
+    return (now * 1000 - start * 1000) / (at<u32>(slot, 0xc) - start);
+}
 
 }  // namespace
 
@@ -116,13 +154,7 @@ s32 __cdecl Rsse_StartWalker(u8 *vm, u32 value, s32 from, s32 to, u32 a, u32 b, 
     float p1[3], p2[3];
     Ride_PartPlace(vm, p1, nullptr, from, 0x800);
     Ride_PartPlace(vm, p2, nullptr, to, kind == 4 ? 0x80 : 0x800);
-    const X87Reg dx = X87Reg(p1[0]) - p2[0];
-    const X87Reg dy = X87Reg(p1[1]) - p2[1];
-    const X87Reg dz = X87Reg(p1[2]) - p2[2];
-    const X87Reg squares = dx * (float)dx + dy * dy + dz * (float)dz;
-    u32 time = (u32)Ftol(X87_Sqrt(squares)) * 100;
-    if (time == 0)
-        time = 100;
+    const u32 time = WalkTime(p1, p2);
     const s32 count = at<s32>(vm, 0x7c);
     s32 i = 0;
     u8 *slot = at<u8 *>(vm, 0x2c);
@@ -140,10 +172,7 @@ s32 __cdecl Rsse_StartWalker(u8 *vm, u32 value, s32 from, s32 to, u32 a, u32 b, 
     u8 *const clock = reinterpret_cast<u8 *>(0x00785970);
     at<u32>(slot, 8) = Clocks_Now(clock);
     at<u32>(slot, 0xc) = Clocks_Now(clock) + time;
-    const double angle = X87_Atan2((X87Reg(p2[2]) - p1[2]).v, (X87Reg(p2[0]) - p1[0]).v);
-    const X87Reg turn = X87_SubR(X87_SubR(X87Reg(angle) - global<double>(0x00700fe8), global<double>(0x00700ff0)) * global<double>(0x00700ff8),
-                                 global<double>(0x00701000));
-    const s32 octant = Ftol(turn) % 8;
+    const s32 octant = Octant(X87_Atan2((X87Reg(p2[2]) - p1[2]).v, (X87Reg(p2[0]) - p1[0]).v));
     at<u16>(slot, 0x18) = 1;
     at<u16>(slot, 0x1a) = (u16)last;
     at<u16>(slot, 0x14) = (u16)octant;
@@ -217,5 +246,97 @@ void __cdecl Rsse_MoveWalker(u8 *vm, u8 *slot, s32 from, s32 to, s32 mode, s32 t
     const s16 octant = (s16)(((s32)(s16)q + at<s16>(slot, 0x14)) % 8);
     at<s16>(slot, 0x14) = octant;
     place(octant, 2);
+}
+
+void __cdecl Rsse_WalkerBack(u8 *vm, u32 value) {
+    const s32 count = at<s32>(vm, 0x7c);
+    u8 *slot = at<u8 *>(vm, 0x2c);
+    s32 i = 0;
+    for (; i < count; ++i, slot += 0x20)
+        if (at<u16>(slot, 0x18) != 0 && at<u32>(slot, 0x10) == value)
+            break;
+    if (i >= count)
+        return;
+    float p1[3], p2[3];
+    Ride_PartPlace(vm, p1, nullptr, at<s16>(slot, 4), at<u16>(slot, 0x16) == 4 ? 0x80 : 0x800);
+    Ride_PartPlace(vm, p2, nullptr, at<s16>(slot, 6), 0x800);
+    const u32 time = WalkTime(p1, p2);
+    at<u16>(slot, 0x14) = (u16)Octant(X87_Atan2((X87Reg(p2[2]) - p1[2]).v, (X87Reg(p2[0]) - p1[0]).v));
+    u8 *const clock = reinterpret_cast<u8 *>(0x00785970);
+    at<u32>(slot, 0xc) = Clocks_Now(clock) + time;
+    at<u32>(slot, 8) = Clocks_Now(clock);
+    if (at<u16>(slot, 0x16) == 2) {
+        float place[3];
+        Ride_PartPlace(vm, place, nullptr, at<s16>(slot, 4), 0x800);
+        Puff(place);
+    }
+    if (at<u16>(slot, 0x16) == 4 && at<u16>(slot, 0x18) == 2) {
+        const u32 part = Model_FindPartByKey4(Ride(vm), 0x80, (u32)(s32)at<s16>(slot, 2));
+        if (part != 0xffffffffu)
+            PartStates_Release(at<u8 *>(Ride(vm), 8), part);
+    }
+    at<u16>(slot, 0x18) = 3;
+}
+
+void __cdecl Rsse_UpdateWalkers(u8 *vm) {
+    if (at<s32>(vm, 0x7c) == 0)
+        return;
+    Model_BeginView(at<u8 *>(Ride(vm), 8));
+    u8 *const clock = reinterpret_cast<u8 *>(0x00785970);
+    for (s32 i = 0; i < at<s32>(vm, 0x7c); ++i) {
+        u8 *const slot = at<u8 *>(vm, 0x2c) + 0x20 * i;
+        if (at<u16>(slot, 0x18) == 0)
+            continue;
+        switch (at<s16>(slot, 0x18)) {
+        case 1: {   // walking out
+            const u32 t = Progress(slot);
+            Rsse_MoveWalker(vm, slot, at<s16>(slot, 0), at<s16>(slot, 2), at<u16>(slot, 0x16) == 4 ? 2 : 0, (s32)t);
+            if (t < 1000)
+                break;
+            at<u16>(slot, 0x18) = 2;
+            at<u32>(slot, 8) = Clocks_Now(clock);
+            if (at<u16>(slot, 0x16) == 4) {
+                const u32 part = Model_FindPartByKey4(Ride(vm), 0x80, (u32)(s32)at<s16>(slot, 2));
+                if (part != 0xffffffffu)
+                    PartStates_Activate(at<u8 *>(Ride(vm), 8), part, at<u32>(slot, 0x10));
+            }
+            if (at<u16>(slot, 0x16) == 2) {
+                float place[3];
+                Ride_PartPlace(vm, place, nullptr, at<s16>(slot, 2), 0x800);
+                Puff(place);
+            }
+            break;
+        }
+        case 2: {   // there
+            const u16 kind = at<u16>(slot, 0x16);
+            if (kind == 4) {
+                Rsse_MoveWalker(vm, slot, at<s16>(slot, 0), at<s16>(slot, 2), 2, 1);
+            } else if (kind == 1 || kind == 2) {
+                Rsse_MoveWalker(vm, slot, at<s16>(slot, 0), at<s16>(slot, 2), 0, 1);
+            } else {
+                float buffer[5];   // (the original's direction and place share a float: the place from buffer + 2, sic)
+                Ride_PartPlace(vm, buffer + 2, buffer, at<s16>(slot, 2), 0x800);
+                at<u16>(slot, 0x14) = (u16)Octant(X87_Atan2(buffer[2], buffer[0]));
+                Rsse_MoveWalker(vm, slot, at<s16>(slot, 2), at<s16>(slot, 2), 0, 0);
+            }
+            break;
+        }
+        case 3: {   // walking back
+            const u32 t = Progress(slot);
+            Rsse_MoveWalker(vm, slot, at<s16>(slot, 4), at<s16>(slot, 6), at<u16>(slot, 0x16) == 4 ? 1 : 0, (s32)t);
+            if (t >= 1000)
+                at<u16>(slot, 0x18) = 4;
+            break;
+        }
+        case 4:   // back
+            Rsse_MoveWalker(vm, slot, at<s16>(slot, 6), at<s16>(slot, 6), 0, 0);
+            break;
+        }
+    }
+    if (at<u32>(vm, 0x84) != 0) {
+        const u32 now = Clocks_Now(clock);
+        if (at<u32>(vm, 0x80) + at<u32>(vm, 0x84) < now)
+            at<u32>(vm, 0x84) = 0;
+    }
 }
 }  // extern "C"

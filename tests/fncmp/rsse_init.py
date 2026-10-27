@@ -11,8 +11,10 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fncmp import Bench, Call, RAM, put, sine_table  # noqa: E402
+from particles import RANGES as PARTICLE_RANGES  # noqa: E402
 
-CALLS = {'Init': 0x551600, 'Event': 0x468600, 'Timer': 0x557160, 'GetVec': 0x556a80, 'TakeDone': 0x557110, 'Walk': 0x556f40, 'Step': 0x5580a0}
+CALLS = {'Init': 0x551600, 'Event': 0x468600, 'Timer': 0x557160, 'GetVec': 0x556a80, 'TakeDone': 0x557110, 'Walk': 0x556f40, 'Step': 0x5580a0,
+         'Back': 0x5571a0, 'Walkers': 0x557d80}
 B = Bench([(0x551600, 0x5516a3), (0x468600, 0x468708), (0x557160, 0x557197), (0x556a80, 0x556aac), (0x557110, 0x55715b),(0x402d70, 0x402d75), (0x402f10, 0x402f2d), (0x4031e0, 0x4031ef), (0x5da3c0, 0x5da3c1),
            (0x556f40, 0x557108), (0x466b70, 0x466c7f), (0x556af0, 0x556b8c), (0x556b90, 0x556ddb), (0x44b220, 0x44b267), (0x67a830, 0x67a860),
            # (Step's: the function, heightat.py's and personscripts.py's ranges)
@@ -20,7 +22,9 @@ B = Bench([(0x551600, 0x5516a3), (0x468600, 0x468708), (0x557160, 0x557197), (0x
            (0x4f9e60, 0x4f9ed0), (0x4d4100, 0x4d4134), (0x4d4140, 0x4d416d), (0x4217f0, 0x421800), (0x5f5660, 0x5f56a0), (0x5f5e20, 0x5f5e90),
            (0x5f5fa0, 0x5f5fc0), (0x402d70, 0x403220), (0x4033a0, 0x4033f0), (0x4f9ed0, 0x4f9efc), (0x4d4170, 0x4d4186), (0x475550, 0x47558b),
            (0x4fdc90, 0x4fdcb6), (0x4fdc60, 0x4fdc90), (0x4fe950, 0x4fe977), (0x475010, 0x476a30), (0x540b90, 0x540da0), (0x541f60, 0x541fb0),
-           (0x50c0d0, 0x50c0f2), (0x50bab0, 0x50bac4), (0x50be40, 0x50be7c), (0x4fe900, 0x4fe944)])
+           (0x50c0d0, 0x50c0f2), (0x50bab0, 0x50bac4), (0x50be40, 0x50be7c), (0x4fe900, 0x4fe944),
+           (0x5571a0, 0x557395), (0x557d80, 0x5580a0), (0x44b410, 0x44b4d0), (0x44b4c0, 0x44b520), (0x450ea0, 0x4512a0), (0x475a10, 0x475b90),
+           (0x4f9e60, 0x4f9f10), (0x4fcac0, 0x4fcb20), (0x466b70, 0x466c90), (0x475550, 0x4755a0), (0x5f5680, 0x5f56a0)] + PARTICLE_RANGES)
 STRINGS, SCRIPT, KEYS, TABLES, OUT = RAM + 0x100, RAM + 0x1000, RAM + 0x1400, RAM + 0x1500, RAM + 0x1800
 
 
@@ -193,9 +197,101 @@ def step_case(r):
     return Call(CALLS['Step'], args, regions, conv='c', ret='v')
 
 
+WALK_SLOTS = RAM + 0x58000
+
+
+def walkers_case(r, op):
+    """0x5571a0 (cdecl; vm, value) / 0x557d80 (cdecl; vm): step_case()'s world (its paused clock, person, scripts and ground; the y
+    between the parts, each slot's byte +0x1a bit 0, since 0x557d80 makes the ride's model the view: picked without filling, its +0x30
+    given 0x80 and the part states' flag 8 cleared), the vm's walker slots (+0x2c: up to 5 at WALK_SLOTS, or a negative count) each
+    busy (+0x18 1-4, or 0, 0x100, 0x102) or not, of each kind (+0x16: 2 and 4 most, 1, 3, 5, 6, 0, any), +0x10 the person's handle
+    (its high half any; a value two slots share now and then), the keys +0 / +6 found under 0x800 and +2 / +4 under 0x80 for kind 4
+    (else 0x800), or -1 (the ride's centre; not for a facing slot's +2, whose direction it leaves unwritten), +8 / +0xc the leg's start
+    and end about the clock's time (never equal: the original divides by their difference); the part states' scripts -1 or small
+    slots; Particle_Spawn's world as particles.spawn() has it."""
+    from ridebounds import MODEL, pose
+    import particles
+    import personscripts
+    import terrainheight
+    c = pose(r, STEP_POSE)
+    ram = bytearray(c.regions[STEP_POSE])
+    vm = c.args[0]
+    o = vm - STEP_POSE
+    n = int.from_bytes(ram[0x268:0x26a], 'little')
+    if n >= 2 and r.random() < 0.4:
+        put(ram, 0x600 + 0x14 + 4, 'I', int.from_bytes(ram[0x604:0x608], 'little'))
+    keys = [int.from_bytes(ram[0x600 + 0x14 * i + 4:0x600 + 0x14 * i + 8], 'little') for i in range(min(n, 4))]
+    alone = r.random() < 0.5
+    bits = [r.choice([0x880, 0x80, 0x800]) if alone else 0x880 for _ in range(min(n, 4))]
+    for i in range(min(n, 4)):
+        put(ram, 0x600 + 0x14 * i, 'I', int.from_bytes(ram[0x600 + 0x14 * i:0x604 + 0x14 * i], 'little') & ~0x880 | bits[i])
+        put(ram, 0x680 + 0x14 * i + 0xc, 'i', r.choice([-1, -1, 0, 1, 3, r.randrange(64)]))
+    found = lambda m: [k for k, b in zip(keys, bits) if b & m]  # noqa: E731
+    ram[MODEL - RAM + 0x30] |= 0x80
+    ram[0x6e0] &= ~8
+    put(ram, 0x6e8, 'I', r.choice([0, 1, 2, 5, r.getrandbits(32)]))   # (the part states' active count)
+    clock = bytearray(r.bytes(0x80))
+    put(clock, 0x38, 'I', r.choice([1, 2, 0x80000000]))
+    put(clock, 0x3c, 'I', r.choice([0, 1000, 123456, r.getrandbits(31), r.getrandbits(32)]))
+    put(clock, 0x48, 'I', r.choice([0, 0, 50, r.getrandbits(32)]))
+    now = (int.from_bytes(clock[0x3c:0x40], 'little') + int.from_bytes(clock[0x48:0x4c], 'little')) & 0xffffffff
+    put(ram, o + 0x2c, 'I', WALK_SLOTS)
+    put(ram, o + 0x7c, 'i', r.choice([0, 1, 3, 5, 5, 5, -1]))
+    put(ram, o + 0x80, 'I', (now - r.choice([0, 1, 250, 999, r.randrange(5000), r.getrandbits(32)])) & 0xffffffff)
+    put(ram, o + 0x84, 'I', r.choice([0, 0, 0, 1000, 2000, 1, 0xffffffff, 500, r.getrandbits(32)]))
+    put(ram, o + 0x88, 'HH', r.choice([0, 1000, r.getrandbits(16)]), r.choice([0, 1000, r.getrandbits(16)]))
+    put(ram, o + 0xc0, 'H', r.choice([0, 50, 0xffce, r.getrandbits(16)]))
+    h = r.choice([0, 1, 2, 3, 5, 7, r.randrange(16)])
+    slots = bytearray(r.bytes(0xc0))
+    for i in range(6):
+        s = 0x20 * i
+        kind = r.choice([2, 2, 4, 4, 1, 3, 5, 6, 0, r.getrandbits(16)])
+        busy = r.choice([1, 2, 3, 4, 1, 2, 3, 4, 0, 0x100, 0x102])
+        near = lambda m: found(m) + [0xffff]  # noqa: E731
+        m = 0x80 if kind == 4 else 0x800
+        to = found(m) if busy == 2 and kind not in (1, 2, 4) else near(m)
+        if not to:
+            busy, to = 4, [0xffff]
+        put(slots, s, 'HHHH', r.choice(near(0x800)), r.choice(to), r.choice(near(m)), r.choice(near(0x800)))
+        start = (now - r.choice([0, 1, 300, 999, 1000, 5000, r.getrandbits(32)])) & 0xffffffff
+        put(slots, s + 8, 'II', start, (start + r.choice([1, 100, 1000, 2000, 50, r.getrandbits(16) + 1, r.getrandbits(32) | 1])) & 0xffffffff)
+        put(slots, s + 0x10, 'I', h | r.choice([0, 0, r.getrandbits(16) << 16]))
+        put(slots, s + 0x16, 'HH', kind, busy)
+        slots[s + 0x1a] |= 1
+    if r.random() < 0.3:
+        a, b = r.sample(range(6), 2)
+        slots[0x20 * b + 0x10:0x20 * b + 0x14] = slots[0x20 * a + 0x10:0x20 * a + 0x14]
+    regions = dict(particles.spawn(r).regions)
+    regions.update(terrainheight.case(r, ['Height'], STEP_GROUND).regions)
+    person = bytearray(r.bytes(0x400))
+    for off in (0x30, 0x210):   # (Person_ReleaseScripts' slots)
+        put(person, off, 'I', r.choice([0, 0, 1, 2, 7]))
+    person[2] = r.choice([0, 1, 1, 2])
+    personscripts.script_list(r, regions, person, None, STEP_SCRIPTS)
+    if 0x763f88 not in regions:   # (Thing_SpriteChoice's folder 3 for PartStates_Activate)
+        regions[0x763f88] = put(bytearray(r.bytes(14 * 12)), 8 + 12 * 3, 'I', r.randrange(1, 8))
+    regions[PERSON] = person
+    things = bytearray(r.bytes(20 * (h + 1)))
+    put(things, 20 * h, 'I', PERSON)
+    regions[0x7cfb90] = things
+    regions[0x785970] = clock
+    regions[0x7b095c] = sine_table(r.choice([4096, 4096, 64]))
+    regions[0x79fb10] = r.bytes(0x10)   # (Model_BeginView's view and floor mode)
+    regions[STEP_POSE] = bytes(ram)
+    regions[0x7a4610] = c.regions[0x7a4610]
+    regions[WALK_SLOTS] = bytes(slots)
+    if op == 'Back':
+        value = r.choice([int.from_bytes(slots[0x20 * i + 0x10:0x20 * i + 0x14], 'little') for i in range(6)] + [r.getrandbits(32)])
+        return Call(CALLS['Back'], [vm, value], regions, conv='c', ret='v')
+    return Call(CALLS['Walkers'], [vm], regions, conv='c', ret='v')
+
+
 def case(r):
+    op = r.deal(OPS)
+    if op in ('Back', 'Walkers'):
+        return walkers_case(r, op)
     return {'Init': init_case, 'Event': event_case, 'Timer': timer_case, 'GetVec': vector_case, 'TakeDone': finished_case,
-            'Walk': walk_case, 'Step': step_case}[r.deal(OPS)](r)
+            'Walk': walk_case, 'Step': step_case}[op](r)
 
 
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
