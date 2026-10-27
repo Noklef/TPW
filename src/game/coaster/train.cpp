@@ -555,6 +555,64 @@ void __cdecl Car_SetLengthAt(u32 length, u32 index, u32 unused, u32 keepContacts
     Car_Edited(1, car, global<u8 *>(0x00790fec), unused, keepContacts);
 }
 
+}
+
+namespace {
+
+u8 *PieceAt(u32 index) {
+    return reinterpret_cast<u8 *>((uintptr_t)Track_PieceAt(global<u8 *>(0x00790fec) + 0x3c, index));
+}
+
+void SetAngles(u8 *car, u32 a, u32 b, bool mark) {
+    const u32 flags = at<u32>(car, 8);
+    if (flags & 0x40) {
+        at<u32>(car, 0xd8) = 0;
+        at<u32>(car, 0xdc) = 0;
+        at<u32>(car, 0xf8) = a;
+    } else {
+        at<u32>(car, 0xd8) = a;
+        at<u32>(car, 0xdc) = b;
+        at<u32>(car, 0xf8) = 0;
+        if (mark) at<u32>(car, 8) = flags | 6;
+    }
+}
+
+}  // namespace
+
+extern "C" {
+
+void __cdecl Car_ApplyLengthAt(u32 length, u32 index) {
+    u8 *const car = PieceAt(index);
+    at<u32>(car, 0xe8) = length;
+    Car_Edited(1, car, global<u8 *>(0x00790fec), 0, 0);
+}
+
+void __cdecl Car_SetE0At(u32 value, u32 index, u32 mark, u32 keep) {
+    u8 *const car = PieceAt(index);
+    at<u32>(car, 0xe0) = value;
+    if (mark) at<u32>(car, 8) |= 1;
+    Car_Edited(2, car, global<u8 *>(0x00790fec), 0, keep);
+}
+
+void __cdecl Car_ApplyE0At(u32 value, u32 index) {
+    u8 *const car = PieceAt(index);
+    at<u32>(car, 0xe0) = value;
+    at<u32>(car, 8) |= 1;
+    Car_Edited(2, car, global<u8 *>(0x00790fec), 0, 0);
+}
+
+void __cdecl Car_SetAnglesAt(u32 a, u32 b, u32 index, u32 mark, u32 keep) {
+    u8 *const car = PieceAt(index);
+    SetAngles(car, a, b, mark != 0);
+    Car_Edited(4, car, global<u8 *>(0x00790fec), 0, keep);
+}
+
+void __cdecl Car_ApplyAnglesAt(u32 a, u32 b, u32 index) {
+    u8 *const car = PieceAt(index);
+    SetAngles(car, a, b, true);
+    Car_Edited(4, car, global<u8 *>(0x00790fec), 0, 0);
+}
+
 double __cdecl Car_LengthFromNode(const u8 *node, const u8 *range, u8 *car, const u8 *other, u32 keep, u32 wantValue, u32 *out) {
     u32 value = (u32)(uintptr_t)range;   // (the range argument's slot, sic)
     if (range && (at<u32>(range, 0) & 0x4000) && !keep) {

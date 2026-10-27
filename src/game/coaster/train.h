@@ -58,6 +58,20 @@ void __cdecl Car_Edited(u32 what, u8 *car, u8 *coaster, u32 unused, u32 keepCont
 // ([0x790fec]) piece index (Track_PieceAt of its +0x3c), then Car_Edited (1, it, the coaster, unused, keepContacts).
 void __cdecl Car_SetLengthAt(u32 length, u32 index, u32 unused, u32 keepContacts);
 
+// The coaster's ([0x790fec]) piece index (Track_PieceAt of its +0x3c) edited, then Car_Edited (what, it, the coaster, 0, keep);
+// the forms of two arguments are the recorded edit events' (0x39, 0x3a, 0x3b, played back by 0x404xxx). Names invented, unconfirmed.
+// 0x444190 (cdecl; length (a float's bits), index): the length +0xe8; what 1, keep 0.
+void __cdecl Car_ApplyLengthAt(u32 length, u32 index);
+// 0x4441d0 (cdecl; value (a float's bits), index, mark, keep): the value +0xe0, the car's +8 flag 1 with mark; what 2.
+void __cdecl Car_SetE0At(u32 value, u32 index, u32 mark, u32 keep);
+// 0x444220 (cdecl; value, index): the value +0xe0 and the car's flag 1; what 2, keep 0.
+void __cdecl Car_ApplyE0At(u32 value, u32 index);
+// 0x444270 (cdecl; a, b, index, mark, keep): a car with flag 0x40 (+8) gets +0xd8 = +0xdc = 0 and +0xf8 = a; else +0xd8 = a,
+// +0xdc = b, +0xf8 = 0 and, with mark, flags 6 (the flags read before the stores); what 4.
+void __cdecl Car_SetAnglesAt(u32 a, u32 b, u32 index, u32 mark, u32 keep);
+// 0x4442f0 (cdecl; a, b, index): as 0x444270 with mark 1 and keep 0.
+void __cdecl Car_ApplyAnglesAt(u32 a, u32 b, u32 index);
+
 // 0x435340 (cdecl; node, range, car, other, keep, wantValue, out; name invented, unconfirmed): a value along range (+0xbc..+0xc0).
 // With range flagged 0x4000 and keep 0: other's (its type +0x100 flag 1 (+4): +0x50; else its ride's (0x7a4610[+0x70] +8 -> +0x28 ->
 // +4) entry the type's +0x18 -> +0x2c (0x14 apart, +4) -> +0x34, none 0.0; no other: range's own pointer bits, sic) less half the
