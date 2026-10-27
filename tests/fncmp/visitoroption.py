@@ -6,8 +6,8 @@
 # object's handle, another ride of its id or not, others); the age (funnytime.py's clock: days about the threshold 0x785090) and the
 # world's record +0x30 (0x519590's); the weights and multipliers 0x785090-0x7850c8 and the wanted ratings 0x7850e4 small or any (the
 # game's are 0 until its settings load).
-# The visitor's feelings after a ride (0x4fdcc0, person): feelings_case().
-# usage: visitoroption.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=score,feelings)
+# The visitor's feelings after a ride (0x4fdcc0, person): feelings_case(). Its major destination (0x4fcb10): choose_case().
+# usage: visitoroption.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=score,feelings,choose)
 import os
 import struct
 import sys
@@ -16,6 +16,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import funnytime  # noqa: E402
+_ops = os.environ.pop('OPS', None)   # (navpath.py and cellstep.py read their own OPS, as hex addresses)
+import navpath  # noqa: E402
+if _ops is not None:
+    os.environ['OPS'] = _ops
 from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
 from object_checks import OBJ, rating_env  # noqa: E402
 from thingenv import ITEM, ITEMS, NITEMS, SLOTS  # noqa: E402
@@ -24,9 +28,12 @@ B = Bench([(0x412e90, 0x412f00), (0x43e0b0, 0x43e0f0), (0x4d8300, 0x4d8340), (0x
            (0x4dd4e0, 0x4dd510), (0x4dd670, 0x4dd6e0), (0x4ddf40, 0x4de200), (0x4de670, 0x4de7f0), (0x4e0560, 0x4e0910), (0x4f8690, 0x4f8740),
            (0x4fcc30, 0x4fd4f0), (0x502430, 0x502470), (0x50b350, 0x50b370), (0x519590, 0x5195e0), (0x522770, 0x5227a0), (0x522850, 0x522870),
            (0x536320, 0x536360), (0x545310, 0x545460), (0x55a4e0, 0x55a540), (0x5fc530, 0x5fc580), (0x5fc660, 0x5fc750), (0x67c320, 0x67c3e0),
-           (0x67c7f0, 0x67c840), (0x5da3c0, 0x5da3c1), (0x4fdcc0, 0x4fde45)])
+           (0x67c7f0, 0x67c840), (0x5da3c0, 0x5da3c1), (0x4fdcc0, 0x4fde45),
+           (0x4fcb10, 0x4fcc22), (0x4dd920, 0x4dda20), (0x412e90, 0x412eea), (0x441970, 0x4419b0), (0x436860, 0x436880), (0x4fa530, 0x4fa5e7)]
+          + navpath.RANGES)   # (choose's: the queue test as objectqueue.py's Open, the destination as navpath.py's person)
 VISITOR, RIDE, RECORD, POOL, CLOCK = RAM + 0x6000, RAM + 0x6400, RAM + 0x6800, RAM + 0x2000, RAM + 0x28000
 CELLS = RAM + 0x30000   # (the RE cells of map ids 1-0x800: [0x8023a0] + 0x1b1104)
+COPIES, LINKS = RAM + 0x50000, RAM + 0x58000   # (choose's other objects, 0x200 apart; the coaster links)
 DAY = funnytime.DAY
 
 
@@ -147,7 +154,59 @@ def feelings_case(r):
     return Call(0x4fdcc0, [VISITOR, OBJ], regions, conv='t', ret='v')
 
 
-CASES = {'score': score_case, 'feelings': feelings_case}
+def choose_case(r):
+    """Visitor_ChooseMajorDest (0x4fcb10): score_case()'s visitor and object, the world's list ([0x80239c] +0x1da746, next +0xc) of the object
+    and 0-4 copies of it (handles 12-15) or none; flag 4 of +0x32 set or not, the queue test's state +0x19c, +0x68, +0x2c and room +0x40 about
+    its tests (objectqueue.py's Open, with its coaster links for the track type 3), the tick's bit 0 either way; the visitor's +0x198 0 and its
+    nav (+0xd4) in the queue back's cell, as navpath.py's person (so the route needs no map), the route and counter navpath.py's."""
+    c = score_case(r)
+    regions = c.regions
+    obj = regions[OBJ]
+    visitor = regions[VISITOR]
+    handle = struct.unpack_from('<H', obj, 0)[0]
+    copies = r.choice([0, 1, 1, 2, 3, 4])
+    members = [handle] + list(range(12, 12 + copies))
+    r.shuffle(members)
+    slots = bytearray(regions[SLOTS]) + bytearray(r.bytes(20 * 4))
+    blob = bytearray()
+    for k in range(copies):
+        put(slots, 20 * (12 + k), 'I', COPIES + 0x200 * k)
+        blob += bytearray(obj)
+    regions[SLOTS] = slots
+    for h in members:
+        thing = obj if h == handle else memoryview(blob)[0x200 * (h - 12):0x200 * (h - 12) + 0x200]
+        nxt = members[members.index(h) + 1] if members.index(h) + 1 < len(members) else 0
+        struct.pack_into('<H', thing, 0xc, nxt)
+        if h != handle:   # (the copies' own flags, states and rooms)
+            thing[0x32] = r.choice([0xff, 0xfe, 4, 0xc, 0xfb, 0, obj[0x32]])
+            struct.pack_into('<I', thing, 0x40, r.choice([0, 1, 2, 3, 5, 100, 0xffffffff]))
+        struct.pack_into('<I', thing, 0x19c, r.choice([0, 2, 3, 3, 3, 1, 4, 5]))
+        struct.pack_into('<I', thing, 0x68, r.choice([1, 1, 1, 0]))
+        struct.pack_into('<I', thing, 0x2c, r.choice([0, 1, 0x100]))
+    if copies:
+        regions[COPIES] = blob
+    world = struct.unpack('<I', regions[0x80239c])[0]
+    ticks = bytearray(regions[world + 0x1da70c]) + bytearray(r.bytes(0x20))
+    put(ticks, 0x3a, 'H', members[0] if r.random() < 0.95 else 0)
+    regions[world + 0x1da70c] = ticks
+    links = bytearray(r.bytes(0x200 * 3))   # (objectqueue.py's Open's: the coaster links 1-3, a chain from [0x790fe0])
+    for i in range(3):
+        put(links, 0x200 * i + 0x10, 'I', i + 1)
+        put(links, 0x200 * i + 0x18, 'I', LINKS + 0x200 * (i + 1) if i < 2 else 0)
+        put(links, 0x200 * i + 0x140, 'I', r.choice([0, 0, 1]))
+        put(links, 0x200 * i + 0x3c, 'I', r.choice([1, 1, 3, 0, 5]))
+    put(obj, 0x20, 'I', r.choice([1, 2, 3, 9]))
+    regions.update({LINKS: links, 0x790fe0: struct.pack('<I', LINKS if r.random() < 0.9 else 0),
+                    0x790fec: struct.pack('<I', r.choice([0, LINKS, LINKS + 0x200]))})
+    back = struct.unpack_from('<H', obj, 0x3a)[0]
+    put(visitor, 0x198, 'I', 0)
+    put(visitor, 0xd4 + 8, 'II', navpath.fixed((back - 1) & 0x7f, r), navpath.fixed((back - 1) >> 7 & 0xff, r))
+    put(visitor, 0xd4 + 0xb4, 'I', r.choice([0, 1, 2, 3]))
+    navpath.common(regions, r, r.getrandbits(32))
+    return Call(0x4fcb10, [VISITOR], regions, conv='t', ret='v')
+
+
+CASES = {'score': score_case, 'feelings': feelings_case, 'choose': choose_case}
 OPS = [n for n in CASES if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 

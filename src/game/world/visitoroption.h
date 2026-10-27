@@ -26,4 +26,11 @@ extern "C" {
 // first of the visitor's +0x1e0, +0x1e2, +0x1e4, +0x1e6 that is the object's handle, and by 5, 4, 3, 2 for each of +0x1e8-+0x1ee that
 // is. The original's debug prints are left out (their calls to Object_GetDef, Object_BackOfQueueTo and Thing_GetHandle kept).
 u32 __fastcall Visitor_ScoreOption(u8 *visitor, void *, u8 *object);
+
+// 0x4fcb10 (thiscall on the visitor; name invented): the major destination +0x1dc chosen: cleared, then the world's objects ([0x80239c]
+// +0x1da746 the first's handle, each one's next at +0xc) with flag 4 of +0x32 and a queue back (Object_BackOfQueueTo) scored
+// (Visitor_ScoreOption); one scoring 10 or more (unsigned) above the best so far (signed), or equal to it with bit 0 of the world's tick
+// +0x1da70c set, that takes people into its queue (Object_QueueOpen) and that the visitor can be sent to (Sprite_SetDestinationCell of the
+// queue back) becomes the destination and its score the best. (The debug prints are left out: their reads of [0x7cfb90] only.)
+void __fastcall Visitor_ChooseMajorDest(u8 *visitor);
 }

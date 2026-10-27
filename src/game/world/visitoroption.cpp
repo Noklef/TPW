@@ -7,6 +7,7 @@
 #include "mapcell.h"
 #include "object.h"
 #include "objectmsg.h"
+#include "person.h"
 #include "things.h"
 #include "world.h"
 
@@ -121,5 +122,25 @@ u32 __fastcall Visitor_ScoreOption(u8 *visitor, void *, u8 *object) {
         if (at<u16>(visitor, 0x1e8 + 2 * i) == *Thing_GetHandle(object, nullptr, &word)) score = (u32)((s32)score / (s32)kDivisors[i]);
     Thing_GetHandle(object, nullptr, &word);
     return score;
+}
+
+void __fastcall Visitor_ChooseMajorDest(u8 *visitor) {
+    s32 best = 0;
+    at<u16>(visitor, 0x1dc) = 0;
+    u16 handle = at<u16>(global<u8 *>(0x0080239c), 0x1da746);
+    while (handle) {
+        u8 *const object = global<u8 *>(0x007cfb90 + 20u * handle);
+        u16 back;
+        if ((at<u8>(object, 0x32) & 4) && *Object_BackOfQueueTo(object, nullptr, &back) != 0) {
+            const u32 score = Visitor_ScoreOption(visitor, nullptr, object);
+            if (score >= 10 && ((s32)score > best || ((s32)score == best && (at<u8>(global<u8 *>(0x0080239c), 0x1da70c) & 1))) &&
+                Object_QueueOpen(object) &&
+                Sprite_SetDestinationCell(visitor, nullptr, *Object_BackOfQueueTo(object, nullptr, &back))) {
+                best = (s32)score;
+                at<u16>(visitor, 0x1dc) = handle;
+            }
+        }
+        handle = at<u16>(object, 0xc);
+    }
 }
 }
