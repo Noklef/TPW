@@ -332,6 +332,7 @@
 #include "../game/world/parkgates.h"
 #include "../game/world/pathdrag.h"
 #include "../game/world/queuepieces.h"
+#include "../game/world/tracksquare.h"
 #include "../game/world/uimsgreceiver.h"
 #include "../game/world/visitoroption.h"
 #include "../game/world/weather.h"
@@ -5380,6 +5381,7 @@ const Hook kHooks[] = {
     {"AdvisorRecord_Ctor",        0x00518e80, (void *)&AdvisorRecord_Ctor, {0x8b, 0xc1, 0x33, 0xc9, 0x89}},
     {"Map_DemolishRect",          0x0052bdd0, (void *)&Map_DemolishRect, {0x83, 0xec, 0x1c, 0x8b, 0x54}},
     {"Path_CheckDeadEnds",        0x00527ee0, (void *)&Path_CheckDeadEnds, {0x83, 0xec, 0x34, 0x53, 0x55}},
+    {"TrackSquare_Check",         0x005286a0, (void *)&TrackSquare_Check, {0x53, 0x55, 0x56, 0x8b, 0x74}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
