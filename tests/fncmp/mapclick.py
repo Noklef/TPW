@@ -21,7 +21,7 @@ RECORDS = WORLD + 0x294             # the 0x44-byte records (id 0 first)
 CELLS = WORLD + 0x6cde * 0x28       # the 0x28-byte cells (id 0 first)
 IDS = 0x92                          # ids 0..IDS-1 mapped (row 1's column 7 is 0x88)
 THING, THING2 = RAM + 0x1000, RAM + 0x1100
-TABLES = RAM + 0x2000               # answers(): 0x539760's, 0x535670's, 0x52b400's (0xa0 bytes each)
+TABLES = RAM + 0x2000               # answers(): 0x539760's, 0x535670's, 0x52b400's, MapCell_Word24's (0xa0 bytes each)
 WORDS = RAM + 0x3000                # 0x52a050's, 0x52a1a0's and Cell_FirstObject's words
 
 CDECL = {0x5234d0: (30, 3), 0x446050: (12, 0), 0x446300: (15, 1), 0x435570: (16, 1), 0x4419b0: (13, 4), 0x445a70: (23, 2), 0x527ee0: (31, 3),
@@ -66,7 +66,8 @@ B = Bench([(0x524960, 0x52766a), (0x52f860, 0x52f890), (0x52f840, 0x52f860), (0x
            (0x48c920, 0x48c926), (0x4d8c00, 0x4d8c30), (0x5da3c0, 0x5da3c1)],
           hooks=HOOKS)
 
-MODES = [0, 1, 3, 4, 0xb, 0xe, 0x10, 0x13, 0x14, 0x15, 0x16, 0x19, 0x1a, 0x32, 0x33, 0x34, 0x35, 0x36, 0x38, 0x39, 0x3a, 0x3b]
+MODES = [0, 1, 3, 4, 0xb, 0xe, 0x10, 0x13, 0x14, 0x15, 0x16, 0x19, 0x1a, 0x32, 0x33, 0x34, 0x35, 0x36, 0x38, 0x39, 0x3a, 0x3b,
+         1, 3, 4, 4, 0xb, 0xe, 0x10, 0x13, 0x1a, 0x1a, 0x3b, 0x3b]   # (the longer ones twice or more)
 
 
 def mask(r):
@@ -90,6 +91,7 @@ def case(r):
     answers(log, 18, TABLES)
     answers(log, 19, TABLES + 0xa0)
     answers(log, 8, TABLES + 0x140)
+    answers(log, 15, TABLES + 0x1e0)
     set_return(log, 3, WORDS)
     set_return(log, 4, WORDS + 4)
     set_return(log, 20, WORDS + 8)
@@ -116,7 +118,7 @@ def case(r):
 
     thing = bytearray(r.bytes(0x40))
     thing[5], thing[7] = cx(), cy()
-    struct.pack_into('<I', thing, 0x10, r.choice([0, 0x5a, 0xb4, 0x10e, r.getrandbits(32)]))
+    struct.pack_into('<I', thing, 0x10, r.choice([0, 0x5a, 0x5a, 0xb4, 0x10e, r.getrandbits(32)]))
     thing2 = bytearray(thing)
     thing2[5], thing2[7] = cx(), cy()
     things = bytearray(r.bytes(0x50))
@@ -137,7 +139,7 @@ def case(r):
     focus = bytearray(r.bytes(0x58))   # 0x7639a0..0x7639f8
     struct.pack_into('<ii', focus, 4, cx(), cy())                              # 0x7639a4 / a8
     struct.pack_into('<I', focus, 0xc, r.choice([0, 0x5a, 0xb4, 0x10e, r.getrandbits(32)]))
-    struct.pack_into('<H', focus, 0x10, r.choice([0xffff, 0xffff, r.getrandbits(16)]))   # 0x7639b0
+    struct.pack_into('<H', focus, 0x10, r.choice([0xffff, r.getrandbits(16)]))   # 0x7639b0
     struct.pack_into('<ii', focus, 0x18, cx(), cy())                           # 0x7639b8 / bc
     struct.pack_into('<iiii', focus, 0x40, cx(), cy(), cx(), cy())             # 0x7639e0..ec
     struct.pack_into('<ii', focus, 0x50, cx(), cy())                           # 0x7639f0 / f4
@@ -153,13 +155,13 @@ def case(r):
         return struct.pack('<I', v & 0xffffffff)
     regions = {
         LOG: log, RECORDS: records, CELLS: cells, THING: thing, THING2: thing2,
-        TABLES: table(r, [1, 9, 9, 0, r.getrandbits(32)]) + table(r, [1, 1, 0, 3]) + table(r, [-1, -1, 0, 1]),
+        TABLES: table(r, [1, 9, 9, 0, r.getrandbits(32)]) + table(r, [1, 1, 0, 3]) + table(r, [-1, -1, 0, 1]) + table(r, [r.getrandbits(16) for _ in range(4)] + [0, 1, 0xffff, 0x8000]),
         WORDS: struct.pack('<HHHH', cid(), cid(), r.randrange(4), 0),
         0x7cf83c: word(WORLD), 0x7cfb90: things, 0x81ae2c: word(mode),
         0x785a2c: word(r.choice([0, 0, 1])), 0x81b4cc: bytes([r.choice([0, 0, 0, 1]), 0, 0, 0]),
         0x8187f8: word(r.choice([0, 0, 0, 1])), 0x816d48: bytearray(r.bytes(0x1c)),
         0x818680: near, 0x818c10: bytearray(r.bytes(0x48)), 0x7639a0: focus, 0x763ac0: bytearray(r.bytes(0x48)),
-        0x81ede4: struct.pack('<ii', *start), 0x81ecac: word(r.choice([0, 1, 2, 3, 3])), 0x81b0cc: word(r.choice([0, 1, 1, 2])),
+        0x81ede4: struct.pack('<ii', *start), 0x81ecac: word(r.choice([0, 1, 2, 1, 2, 3])), 0x81b0cc: word(r.choice([0, 1, 1, 2])),
         0x81d740: word(r.randrange(2, 10)), 0x81b1b0: word(r.randrange(3, 6)), 0x81d7a4: r.bytes(4), 0x81af4c: r.bytes(4),
         0x81b604: r.bytes(4), 0x820a8c: word(r.choice([0, 1, 1, 2])), 0x81b740: bytearray(r.bytes(0x100)), 0x7c2650: r.bytes(4),
         0x803a2c: r.bytes(4),
