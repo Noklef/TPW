@@ -2,8 +2,10 @@
 
 #include <cstdint>
 
+#include "../core/soundplay.h"
 #include "../core/soundset.h"
 #include "../rsse/scream.h"
+#include "../world/ridelist.h"
 
 namespace {
 
@@ -20,6 +22,19 @@ void __cdecl CoasterCar_StopSounds(u8 *, u8 *car) {
     if (at<u32>(car, 0x68) && !Silenced()) Sound_Forward6(at<u32>(car, 0x68));
     if (at<u32>(car, 0x70) && !Silenced()) RSSE_StopScream(at<u32>(car, 0x70));
     for (u32 offset = 0x54; offset <= 0x70; offset += 4) at<u32>(car, offset) = 0;
+}
+
+void __cdecl CoasterCar_StartSounds(u8 *coaster, u8 *car, u32 quiet) {
+    CoasterCar_StopSounds(coaster, car);
+    if (!Silenced()) {
+        for (s32 k = 0; k < 4; ++k) at<u32>(car, 0x54 + 4 * k) = Rides_GetLinkedElement(at<s32>(coaster, 0x24), 5 + k);
+        const auto ftol = [](float f) { return (s32)(long long)f; };   // __ftol
+        for (s32 k = 0; k < 2; ++k) {
+            const s32 z = ftol(at<float>(car, 0x50)), y = ftol(at<float>(car, 0x4c)), x = ftol(at<float>(car, 0x48));
+            at<u32>(car, 0x64 + 4 * k) = Sound_PlayRideElement(at<s32>(coaster, 0x24), 0, *reinterpret_cast<const u32 *>(0x00803a3c), k, x, y, z);
+        }
+    }
+    if (!quiet) CoasterCar_SetSoundMode(car, 2, 100);
 }
 
 void __cdecl CoasterCar_SetSoundMode(u8 *car, s32 mode, u32 value) {
