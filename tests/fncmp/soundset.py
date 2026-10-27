@@ -1,6 +1,6 @@
 # The sound settings' setters and flag, and the sound commands' base constructor
 # (src/game/core/soundset: 0x51bb60-0x51bc20, 0x51bc40 / 0x51c270 (the manager's engine's slots 3 / 5 recorders, the position's floats hashed), 0x51e6f0, 0x51e710, 0x51c1c0, 0x51c6f0, 0x51bb40)
-# against the originals. The commands' senders (0x51c0a0-0x51c700, 0x51bc70-0x51bd30) and the settings update (0x51bd70): see
+# against the originals. The commands' senders (0x51c0a0-0x51c700, 0x51bc70-0x51bd30, 0x51c570) and the settings update (0x51bd70): see
 # sender_case() and update_case().
 # usage: soundset.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import IMPORT_TABLE, LOG, Bench, Call, RAM, blob, blob_bytes, fill, fb, import_table, log_region, recorder, set_return, strings, vtable  # noqa: E402
 
 B = Bench([(0x51b4f0, 0x51b530), (0x51b7c0, 0x51b810), (0x51bb40, 0x51bc34), (0x51bc40, 0x51bfd0), (0x51c0a0, 0x51c140), (0x51c1c0, 0x51c1cc),
-           (0x51c270, 0x51c2bc), (0x51c2c0, 0x51c360), (0x51c640, 0x51c8c6), (0x51e6f0, 0x51e704), (0x51e710, 0x51e726), (0x5da3c0, 0x5da3c1),
+           (0x51c270, 0x51c2bc), (0x51c2c0, 0x51c360), (0x51c570, 0x51c5c2), (0x51c640, 0x51c8c6), (0x51e6f0, 0x51e704), (0x51e710, 0x51e726), (0x5da3c0, 0x5da3c1),
            (0x5e2a30, 0x5e2b80), (0x5f5f10, 0x5f5f7d), (0x5f5fa0, 0x5f5fc0), (0x632150, 0x632380), (0x6338d0, 0x6338f9), (0x67acb0, 0x67acb1),
            (0x6b55c0, 0x6b5739), (0x6b5770, 0x6b5801), (0x6b5810, 0x6b5834), (0x6b5840, 0x6b5860), (0x6b5890, 0x6b5a80), (0x6b5a90, 0x6b5ab0),
            (0x6b5b60, 0x6b5b75), (0x6b5b80, 0x6b5b9a), (0x6b5ba0, 0x6b5bc3), (0x6b5bd0, 0x6b5c00), (0x6b5c70, 0x6b5ca9), (0x6b5cb0, 0x6b5d10),
@@ -46,7 +46,7 @@ def manager(r):
 
 
 SMGR = RAM + 0x8000   # (the senders' manager: +4 the sound object)
-SENDERS = [0x51c0a0, 0x51c0e0, 0x51c2c0, 0x51c300, 0x51c640, 0x51c6b0, 0x51bc70, 0x51bcb0, 0x51bcf0, 0x51bd30, 0x51bd70, 0x51c700]
+SENDERS = [0x51c0a0, 0x51c0e0, 0x51c2c0, 0x51c300, 0x51c640, 0x51c6b0, 0x51bc70, 0x51bcb0, 0x51bcf0, 0x51bd30, 0x51bd70, 0x51c700, 0x51c570]
 MIXB, TOPB = RAM + 0x9000, RAM + 0x9100   # (the settings update's mixer and its loudest array)
 
 
@@ -100,7 +100,7 @@ def sender_case(r, fn):
     else:
         import soundobject as so
         regions = {}
-        ids = so.object_regions(r, log, regions, slot6=fn in (0x51c0a0, 0x51c0e0, 0x51bc70, 0x51bcb0), voices=True)
+        ids = so.object_regions(r, log, regions, slot6=fn in (0x51c0a0, 0x51c0e0, 0x51bc70, 0x51bcb0, 0x51c570), voices=True)
         target = so.OBJ
         pick = r.choice(ids * 3 + [0, 1, 100, r.getrandbits(32)])
         if fn in (0x51c2c0, 0x51c300):
@@ -137,6 +137,8 @@ def sender_case(r, fn):
         return Call(fn, [struct.unpack('<I', regions[sc.PNODE])[0]], regions)
     if fn == 0x51c0e0:
         return Call(fn, [pick, r.getrandbits(32)], regions)
+    if fn == 0x51c570:   # (the result on the stack, returned)
+        return Call(fn, [pick], regions, ret='a')
     if fn in (0x51bc70, 0x51bcb0, 0x51bcf0, 0x51bd30):
         return Call(fn, [], regions)
     return Call(fn, [pick if fn != 0x51c2c0 else r.getrandbits(32)], regions)

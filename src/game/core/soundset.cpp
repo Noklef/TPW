@@ -173,6 +173,15 @@ void __cdecl Sound_ApplySettings() {
     Apply(&local[1], &local[0]);
 }
 
+u32 __cdecl Sound_VoiceInfo(u32 id) {
+    u32 result = 1;
+    if (On()) {
+        u32 functor[3] = {0x00700bb8, (u32)(uintptr_t)&result, id};
+        Apply(&id, functor);
+    }
+    return result;
+}
+
 void __cdecl Sound_SetCameraOcclusion(s32 level) {
     if (!On()) return;
     u32 functor[3] = {0x00700bc8, 0, 0};

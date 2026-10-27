@@ -86,6 +86,9 @@ void __cdecl Sound_ApplySettings();
 // [0x785960] / [0x78595c]; above [0x78590c] {1, [0x785954]}; else {0, 0} (x87 single precision; the level's slot then holds the
 // divisor). Without that camera {0, 0}.
 void __cdecl Sound_SetCameraOcclusion(s32 level);
+// 0x51c570 (id; name invented): a result 1, then (sound on and started) the command 0x700bb8 {&result, id} (SoundObject_VoiceInfo), the
+// out the id's slot. Returns the result.
+u32 __cdecl Sound_VoiceInfo(u32 id);
 
 // 0x51b7c0 (cdecl): when on and started, the sound manager's vtable +0 (&result, not read after); then not started. The
 // warning when the allocation count 0x802bd8 is not back to 0 is compiled out.
