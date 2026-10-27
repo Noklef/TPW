@@ -100,6 +100,17 @@ void __fastcall Batch_Fog(u8 *object, void *) {
     fog(object, global<u32>(0x008bcbc8), at<u8 *>(batch, 0x28), at<u32>(batch, 0x20));
 }
 
+void __fastcall Batch_TransformVertices(u8 *object, void *, u32 arg) {
+    u8 *const batch = at<u8 *>(object, 0x20);
+    const u32 count = at<u32>(batch, 0x20);
+    if (!count) return;
+    using Slot = float(__cdecl *)(void *, u8 *, u32, u32, u32);
+    void *const transformer = global<void *>(0x0087b1d8);
+    void *const *const vtable = *static_cast<void *const *const *>(transformer);
+    const float answer = reinterpret_cast<Slot>(vtable[3])(transformer, at<u8 *>(batch, 0x28), at<u32>(object, 0x1c), count, arg);
+    at<float>(batch, 0x30) = (float)(X87Reg(answer) + at<float>(batch, 0x30));
+}
+
 u32 __fastcall Model_AddTriangles(u8 *model, void *, u8 *batch, const void *matrix, const u8 *vertices) {
     {
         using Slot = void(__cdecl *)(void *, const void *, const u8 *, u32, u32, u32, u32);
