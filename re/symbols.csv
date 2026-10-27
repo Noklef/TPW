@@ -4501,6 +4501,7 @@ address,name,kind,confidence,notes
 0x006b5ce0,SoundCmd700bc4_Run,function,low,"reimplemented (src/game/core/soundcmd); slot 0 of 0x700bc4: SoundObject_RemoveOccluder on the target (out, the command's +4); returns out"
 0x006b5890,SoundCmd700bc8_Run,function,low,"reimplemented (src/game/core/soundcmd); slot 0 of 0x700bc8: SoundChannel_SwitchOcclusion on the target's channel +0x24 (out, the command's +4, +8); returns out"
 0x006b5c90,SoundCmd700b30_Run,function,low,"reimplemented (src/game/core/soundcmd); slot 0 of 0x700b30, thiscall (out, target), pops 8: SoundObject_ApplyEaxRecord on the target (out, the command's +4); returns out"
+0x006b5c70,SoundCmd700ba0_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700ba0, thiscall (out, target), pops 8: SoundObject_SendVoiceFunctor3 on the target (out, the id at +4); returns out"
 0x006b5ab0,SoundManager_Dtor,function,low,reimplemented (src/game/core/soundmanager); thiscall: vtable reset to 0x70a288; the engine at +4 (if any) destroyed through its slot 0 (1) and +4 cleared
 0x006b5ad0,SoundManager_Call1,function,low,"reimplemented (src/game/core/soundmanager); slot 4, thiscall (out, a), pops 8: the engine's slot 1 (out, a); returns out"
 0x006b5af0,SoundManager_Release,function,low,"reimplemented (src/game/core/soundmanager); slot 0, thiscall (out), pops 4: the manager (unless null) destroyed through its slot 3 (1); *out = 0"

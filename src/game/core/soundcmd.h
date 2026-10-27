@@ -84,4 +84,7 @@ u32 *__fastcall SoundCmd700bc4_Run(const u8 *command, void *, u32 *out, u8 *targ
 // 0x6b5890 (vtable 0x700bc8; two values at +4, +8): the occlusion switch (soundchannel, 0x6b99c0) on the target's channel (+0x24).
 u32 *__fastcall SoundCmd700bc8_Run(const u8 *command, void *, u32 *out, u8 *target);
 
+// 0x6b5c70 (vtable 0x700ba0; the id at +4): the sound object's functor 3 send (soundobject, 0x6b8a70: out, the id).
+u32 *__fastcall SoundCmd700ba0_Run(const u8 *command, void *, u32 *out, u8 *target);
+
 }  // extern "C"
