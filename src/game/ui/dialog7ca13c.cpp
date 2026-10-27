@@ -4,11 +4,13 @@
 
 #include "../core/accessors.h"
 #include "../core/language.h"
+#include "../core/vwrap.h"
 #include "../world/advisor.h"
 #include "../world/ridesweep.h"
 #include "buttontext.h"
 #include "focus.h"
 #include "listrows.h"
+#include "thingbrowser.h"
 #include "window.h"
 #include "window7059f0.h"
 #include "windowreg.h"
@@ -62,5 +64,13 @@ void __cdecl Dialog7ca13c_RemoveData(u32 data) {
     if (position < 0) return;
     Window7059f0_RemoveItem(list, nullptr, position);
     --global<s32>(0x007ca134);
+}
+
+void __fastcall Obj7b51f0_OnGuestRemoved(void *, void *, u32 handle) {
+    u8 *const thing = global<u8 *>(0x007cfb90 + (handle & 0xffff) * 20);   // (the original's empty assert that the table is there left out)
+    if (thing[2] != 1) return;
+    Obj_CallSlot2cIfGlobalIf10(reinterpret_cast<u8 *>((uintptr_t)0x007cc408), nullptr, (u32)(uintptr_t)thing);
+    Dialog7ca13c_RemoveData((u32)(uintptr_t)thing);
+    ThingBrowser_ResetIfThing(thing);
 }
 }  // extern "C"

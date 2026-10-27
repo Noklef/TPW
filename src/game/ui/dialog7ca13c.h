@@ -21,4 +21,9 @@ void __cdecl Dialog7ca13c_Open(u32 selected);
 // 0x493c10 (cdecl (data); name invented): with the dialog [0x7ca13c], its list 0x1e497 (Window_FindChild, not checked)'s item holding
 // the data (Window7059f0_FindItemData), when there is one, removed (Window7059f0_RemoveItem) and the count [0x7ca134] lowered.
 void __cdecl Dialog7ca13c_RemoveData(u32 data);
+
+// 0x4818c0 (thiscall on the object at 0x7b51f0, this not used (handle), pops 4; name invented): the handle's thing (0x7cfb90's entry for its
+// low word), when of kind 1 (its byte +2): Obj_CallSlot2cIfGlobalIf10 of the object at 0x7cc408 with it, its row left the guests' list
+// (Dialog7ca13c_RemoveData) and ThingBrowser_ResetIfThing.
+void __fastcall Obj7b51f0_OnGuestRemoved(void *, void *, u32 handle);
 }
