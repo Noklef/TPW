@@ -97,5 +97,9 @@ u32 __fastcall SoundChannel_PlayRecord(u8 *channel, void *, u8 *record, u32 *voi
 // answering nonzero (a byte), the switch turned off: SoundChannel_ClearOcclusion, turned on: SoundChannel_UpdateOcclusion (eax: the EAX
 // buffer is there). *out = 0; returns out.
 u32 *__fastcall SoundChannel_SetOcclusion(u8 *channel, void *, u32 *out, u8 on, u32 radius);
+// 0x6b8230 (thiscall (x, y, z, radius), pops 0x10): with an EAX buffer (+0x20) or the source's slot 0x13 answering nonzero (a byte), the
+// occluder {x, y, z, radius} copied into the occluders' list (0xfb2038) by its radius (PtrList_InsertCopyByKey); with a node made and the
+// occlusion switched on (0xfb2050), SoundChannel_UpdateOcclusion (eax: the buffer's). Returns the node, 0 without one or without EAX.
+u8 *__fastcall SoundChannel_AddOccluder(u8 *channel, void *, u32 x, u32 y, u32 z, u32 radius);
 
 }  // extern "C"

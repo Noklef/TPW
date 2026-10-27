@@ -4301,6 +4301,7 @@ const Hook kHooks[] = {
     {"SoundChannel_PickVoice",    0x006b9a60, (void *)&SoundChannel_PickVoice, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"SoundChannel_PlayRecord",   0x006b9ab0, (void *)&SoundChannel_PlayRecord, {0x83, 0xec, 0x08, 0x53, 0x56}},
     {"SoundChannel_SetOcclusion", 0x006b8180, (void *)&SoundChannel_SetOcclusion, {0x8a, 0x54, 0x24, 0x08, 0x53}},
+    {"SoundChannel_AddOccluder",  0x006b8230, (void *)&SoundChannel_AddOccluder, {0x83, 0xec, 0x14, 0x56, 0x8b}},
     {"SoundObject_Broadcast",     0x006b85f0, (void *)&SoundObject_Broadcast, {0x83, 0xec, 0x08, 0x56, 0x8b}},
     {"SoundObject_BroadcastValue", 0x006b8640, (void *)&SoundObject_BroadcastValue, {0x8b, 0x41, 0x24, 0x85, 0xc0}},
     {"SoundObject_VoiceInfo",     0x006b8b00, (void *)&SoundObject_VoiceInfo, {0x8b, 0x49, 0x20, 0x85, 0xc9}},

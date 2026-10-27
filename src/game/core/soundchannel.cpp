@@ -9,6 +9,7 @@
 #include "channelvoice.h"
 #include "fieldops.h"
 #include "initializers.h"
+#include "ptrlist.h"
 #include "soundeax.h"
 #include "soundoccluders.h"
 #include "thunks.h"
@@ -340,6 +341,16 @@ u32 *__fastcall SoundChannel_SetOcclusion(u8 *channel, void *, u32 *out, u8 on, 
     }
     *out = 0;
     return out;
+}
+
+u8 *__fastcall SoundChannel_AddOccluder(u8 *channel, void *, u32 x, u32 y, u32 z, u32 radius) {
+    const u8 eax = at<u32>(channel, 0x20) != 0;
+    if (!eax && !vcall<u8>(at<u8 *>(channel, 0x18), 0x4c)) return nullptr;
+    const u32 occluder[4] = {x, y, z, radius};
+    u8 *const node = PtrList_InsertCopyByKey(reinterpret_cast<u8 *>(static_cast<uintptr_t>(0x00fb2038)), nullptr,
+                                             reinterpret_cast<const u8 *>(occluder));
+    if (node && global<u8>(0xfb2050)) SoundChannel_UpdateOcclusion(channel, nullptr, eax);
+    return node;
 }
 
 }  // extern "C"
