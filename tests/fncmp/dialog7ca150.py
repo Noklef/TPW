@@ -6,9 +6,9 @@
 # missing now and then: a fault in both) among 0-1 others, in any order; the kinds' slots 5 and 7 recorders (dialogbuild.py's
 # windowat10()); the heap failing rarely (a fault in both); the rows' height [0x7ca158] 20-80 mostly (0 now and then: the font
 # [0x750d54]'s slot 1 asked, font 7's vtable a recorder, the divisor [0xfaa5c0] about 1536), the list's inner rectangle (0xa) under 20
-# high, so no row is kept (the first one made by List7ca158_NewRow only): a row kept is moved (Window7059f0_SetRow), sent 0x12, and its
-# handler 0x4959c0 is unported, stored raw, and lies in the driver's own code natively; the part kinds' unported slots recorders
-# (listrows.py's child_case()); the GUI's registered windows: "hilight" and "!cbut"
+# high mostly, so no row is kept (the first one made by List7ca158_NewRow only), 20-170 high now and then: the rows kept are moved
+# (Window7059f0_SetRow) and sent 0x12, which their handler 0x4959c0 (stored raw: the driver's kRawCalled jumps to its port) gives the
+# default handler; the part kinds' unported slots 3, 5 and 9 recorders (listrows.py's child_case()); the GUI's registered windows: "hilight" and "!cbut"
 # each among 0-2 others or not (their window a recorder whose slot 8 gives listrows.py's CUT, an object, or 0); the texts' record table
 # about the tab's ids (panelparts.py's texts()); the buttons' font [0x750d58] 0-12, 7 mostly; the sort dword +-1 to +-the columns, 0
 # or any; an empty park (the things' callbacks are unported: none called); the selected data 0 or any (the list is new and empty, so it
@@ -41,7 +41,8 @@ ALL_RANGES = sorted(set(dialogbuild.ALL_RANGES + panelparts.ALL_RANGES + window7
     (0x4e2710, 0x4e273a), (0x4cd300, 0x4cd331), (0x5da3c0, 0x5da3c1),
     (0x485a70, 0x485ab0), (0x485ac0, 0x485b50), (0x486660, 0x486790), (0x494250, 0x4952a0), (0x4944d0, 0x494690),
     (0x659bc9, 0x659c52), (0x6588b6, 0x6588ef), (0x65d070, 0x65d1c8), (0x668f5a, 0x668f9c), (0x668820, 0x6688b3), (0x668ad3, 0x668bd4),
-    (0x6659af, 0x665a54), (0x65dd7b, 0x65e559), (0x65bcad, 0x65c035)]))
+    (0x6659af, 0x665a54), (0x65dd7b, 0x65e559), (0x65bcad, 0x65c035),
+    (0x4959c0, 0x495a94), (0x65f66e, 0x65f6a7)]))   # (the kept rows' handler List7ca158_RowProc: sent 0x12, its default handler's answer)
 B = Bench(ALL_RANGES, hooks=panelparts.animatormesh.HOOKS)
 BASE = 0x32000000
 PAGE, C400, NODES, FOUND, FVT, FONTVT = BASE, BASE + 0x100, BASE + 0x300, BASE + 0x400, BASE + 0x480, BASE + 0x500
@@ -80,8 +81,8 @@ def list_script(r, columns):
         width = r.randrange(5, 40)
         inner += [x, x + width]
         x += width
-    left, top = r.randrange(0, 20), r.randrange(0, 30)   # (under a row high: no rows kept, so none moved, see list_dialog())
-    inner += [0xa, left, top, left + r.randrange(20, 200), top + r.choice([r.randrange(0, 20)] * 6 + [0, 1])]
+    left, top = r.randrange(0, 20), r.randrange(0, 30)   # (under a row high mostly: no rows kept, so none moved, see list_dialog())
+    inner += [0xa, left, top, left + r.randrange(20, 200), top + r.choice([r.randrange(0, 20)] * 6 + [0, 1, r.randrange(20, 170)])]
     heads = list(range(columns))
     if r.random() < 0.03:
         heads.remove(r.choice(heads))
@@ -139,8 +140,10 @@ def list_dialog(r, op):
     put(lang, 0x1c + (7 + 13 * group) * 0x18, 'I', FONTVT)
     regions[FONTVT] = vtable({1: 0})
     set_return(log, 1, r.randrange(20, 80))
-    for vt in (0x6ff3b0, 0x6ff410):
+    for vt in dialogbuild.PART_KINDS:   # (the kept rows' parts too: their slots 3, 5 and 9 unported, as imecandidates.py's)
         regions[vt + 0xc] = struct.pack('<I', recorder(3, 2))
+        regions[vt + 0x14] = struct.pack('<I', recorder(5, 1))
+        regions[vt + 0x24] = struct.pack('<I', recorder(9, 1))
     regions.update(global_heap())   # (the bars' meshes: panelparts.py's surroundings())
     regions[panelparts.MESH_VTABLE + 0xc] = struct.pack('<I', recorder(3, 2))
     regions[panelparts.MESH_VTABLE + 0x14] = struct.pack('<I', recorder(5, 1))
