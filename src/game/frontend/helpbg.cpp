@@ -69,6 +69,12 @@ u32 __fastcall HelpBg_MoveTo(u8 *self, void *, u32 x, u32 y) {
     return GuiRect_Dtor(rect);
 }
 
+u32 __cdecl HelpBg_Place(u32 x, u32 y) {
+    u8 *const self = reinterpret_cast<u8 *>((uintptr_t)0x007ca0c0);
+    if ((u16)x == 0xffff && (u16)y == 0xffff) return HelpBg_RestoreRect(self);
+    return HelpBg_MoveTo(self, nullptr, x, y);
+}
+
 u32 __fastcall HelpBg_RestoreRect(u8 *self) {
     if (!at<u8 *>(self, 0x18)) return 0;
     u8 rect[12];

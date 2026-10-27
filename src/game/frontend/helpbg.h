@@ -39,6 +39,10 @@ u32 __fastcall HelpBg_MoveTo(u8 *self, void *, u32 x, u32 y);
 // (Window_GetRect14, through a GuiRect on the stack); EAX the rectangle's destructor's (0 without the window).
 u32 __fastcall HelpBg_RestoreRect(u8 *self);
 
+// 0x492530 (cdecl (x, y); called by 0x4bd54f, 0x4bf716, 0x5f1019; name invented): for the object at 0x7ca0c0, both low words 0xffff:
+// HelpBg_RestoreRect, else HelpBg_MoveTo(x, y); its EAX returned.
+u32 __cdecl HelpBg_Place(u32 x, u32 y);
+
 // 0x4924b0 (cdecl (text); name unconfirmed): the help background at 0x7ca0c0, while its words +0xc and +4 are set, shows a wide text: its
 // window +0x18 told Window_NotifyC00(1, 1 when the text has no '\n' (wcschr), else 0); an empty text (wcslen 0) then only calls the
 // background's slot 1 (its close); any other shows the window (Window_SetShown(1)) and hands it the text through the window's slot 9.
