@@ -1199,7 +1199,9 @@ int main(int argc, char **argv) {
         reinterpret_cast<s32 *(__fastcall *)(BufferedSource *, void *, s32 *, u32)>(hooked(0x00638f20)),
         reinterpret_cast<void(__fastcall *)(StreamBase *, void *, RefObject *)>(hooked(0x005f7240))};
     StreamOpen_SetEnv(&streamOpen);
-    Crt_SetEnv(&kDriverCrt);
+    static CrtEnv crt = kDriverCrt;   // (free: the stand-in heap, as a bench's hook of 0x67ad90 gives the emulator)
+    crt.free = &heap_free;
+    Crt_SetEnv(&crt);
     Libc_SetEnv(&kDriverLibc);
     static FpuEnv fpu = *Fpu_GetEnv();  // (the guard's deleting destructors free with the stand-in heap)
     fpu.free = &heap_free;
