@@ -6,7 +6,7 @@
 # wind), the three ranges at 0x785504 (the game's 1-100 split, overlapping, empty, reversed, extreme) and the most drops 0x785530 any;
 # the angle +0x5c whole or odd degrees from -1500 to 1500 (a NaN, an infinity or a huge one loops for ever in both); the sound +0x54
 # none (sound on: the manager's slot 2, the play command hashed) or one (stopped: the manager's engine, no mixer, its own slot 6);
-# the message a recorder vtable (slot 0 answering 1, 2 or any), its +8 any value, +0xc any days; the byte +0x64 any way.
+# the angle 720 after the turn now and then (the game's ranges: one random number); the message a recorder vtable (slot 0 answering 1, 2 or any), its +8 any value, +0xc any days; the byte +0x64 any way.
 # usage: weather.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Bolt,SetMode,SetIntensity,Message)
 import os
 import struct
@@ -48,6 +48,13 @@ def ranges(r):
     return block
 
 
+def world_rand(state):
+    """World_Rand's next number from the state."""
+    x = (state * 0x19660d + 0x3c6ef35f) & 0xffffffff
+    x = (x >> 13 | x << 19) & 0xffffffff
+    return (0x100000000 - x) & 0xffffffff if x & 0x80000000 else x
+
+
 def world_case(r, name):
     import funnytime
     regions = {}
@@ -80,6 +87,10 @@ def world_case(r, name):
     if name == 'SetMode':
         return Call(0x5131f0, [WEATHER, r.choice([0, 1, 2, 0, 1, 2, 3, 0xffffffff, r.getrandbits(32)])], regions, conv='t')
     if name == 'SetIntensity':
+        if r.random() < 0.15:   # (the game's ranges, so one random number: the angle landing on 720, then 360 exactly)
+            struct.pack_into('<6i', regions[0x785500], 4, 1, 40, 41, 100, 60, 100)
+            seed = struct.unpack_from('<I', regions[W + 0x1da708])[0]
+            put(regions[WEATHER], 0x5c, 'I', fb(765.0 - world_rand(seed) % 90))
         return Call(0x512f00, [WEATHER, value], regions, conv='t')
     set_return(log, 0, r.choice([1, 1, 2, 2, 0, 3, r.getrandbits(32)]))
     regions.update({MSG: struct.pack('<III', VT, r.getrandbits(32), value) + struct.pack('<i', r.choice([0, 1, 7, -1, r.randrange(-1000, 1000),
