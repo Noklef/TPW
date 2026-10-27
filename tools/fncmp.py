@@ -475,13 +475,21 @@ def logged_calls(read, kk):
     return sum(1 for i in range(count) if struct.unpack('<I', read(LOG + 4 + 4 * LOG_ENTRY * i, 4))[0] == kk)
 
 
-def answer(flag, value, raw, n, h, earlier):
+def answer(flag, value, raw, n, h, earlier, read=None):
     """A recorder's return value: its override (LOG_RETURNS: flag and value) or the hash h (driver.cpp record_call)."""
     if flag == 2 and value < n:
         return raw[value]
+    if flag == 4:
+        return struct.unpack('<I', read(value + 4 * earlier, 4))[0]
     if flag == 3:
         return h if earlier < (value & 0xffff) else (value >> 16) - (0x10000 if value >> 31 else 0) & 0xffffffff
     return value if flag else h
+
+
+def answers(log, k, table):
+    """Makes slot k's recorder answer its calls in turn from the dwords at `table` (an address the case maps, 40 dwords or more): its first
+    call table[0], the next table[1] and so on (its calls counted as fail_after() counts them: those in the log, which keeps 40)."""
+    struct.pack_into('<II', log, LOG_RETURNS + 8 * k, 4, table)
 
 
 def echo(log, k, arg):
@@ -713,7 +721,7 @@ def _recorder(k, n, com=False, cdecl=False):
             e.write(entry, struct.pack('<%dI' % LOG_ENTRY, kk, n, this, *(args + [0] * 7)[:7], tail_hash(args), 0))
             e.write(LOG, struct.pack('<I', count + 1))
         flag, value = struct.unpack('<2I', e.read(LOG + LOG_RETURNS + 8 * k, 8))
-        e.r['EAX'] = copied if returns_copied else cursor if seeked else answer(flag, value, raw, n, vhash(kk, n, this, args), earlier)
+        e.r['EAX'] = copied if returns_copied else cursor if seeked else answer(flag, value, raw, n, vhash(kk, n, this, args), earlier, e.read)
         if cdecl:  # (the caller pops them)
             return
         if e.tail:  # the return address goes up over the arguments the callee would have popped
