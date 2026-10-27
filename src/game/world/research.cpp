@@ -7,8 +7,10 @@
 #include "../math/x87.h"
 #include "advisor.h"
 #include "advisorscore.h"
+#include "messagecentre.h"
 #include "objectdefs.h"
 #include "things.h"
+#include "thingscan.h"
 #include "world.h"
 
 namespace {
@@ -233,6 +235,17 @@ void __fastcall ResearchLab_UpdateLevels(u8 *lab, void *, u32 cat) {
     u8 message[0x18];   // (its bytes +2, +3 and +0x17 never written, sic)
     AdvisorMsg_Init(message, nullptr, 0x85 + cat, 0, 0, 0xffffffffu, 0, -1);
     Advisor_Post(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da71c_5194d0(*reinterpret_cast<u8 *const *>(0x0080239c))), nullptr, message);
+}
+
+void __fastcall ResearchLab_Init(u8 *lab) {
+    at<u32>(lab, 0x145c) = 0;
+    at<u32>(lab, 0x1464) = 0xffffffff;
+    at<u32>(lab, 0x1460) = *reinterpret_cast<const u32 *>(0x00785580);
+    GameTable7cfb90_Get1da720_519510(*reinterpret_cast<u8 *const *>(0x0080239c));   // (into ECX for the stdcall count, which ignores it)
+    at<u8>(lab, 0x1468) = Things_CountStaffOfKind(8) > 0;
+    ResearchLab_FillProjects(lab);
+    ResearchLab_ApplyEfforts(lab);
+    MessageCentre_AddThing(MessageCentre_Instance(), nullptr, lab, 0x11);
 }
 
 void __fastcall ResearchLab_ApplyEfforts(u8 *lab) {

@@ -100,4 +100,9 @@ void __fastcall ResearchLab_UpdateLevels(u8 *lab, void *, u32 cat);
 // group's current project set to the first of the mNumProjects projects with mCat the group, mResearchGroup at most its
 // highestGroupAvailable (bytes, unsigned) and not done (kept when there is none); then ResearchLab_UpdateLevels of the group.
 void __fastcall ResearchLab_ApplyEfforts(u8 *lab);
+// 0x502d60 (thiscall; name invented): the lab set up: no projects (+0x145c 0), the dearest project's index +0x1464 -1, the total output
+// +0x1460 the setting at 0x785580; the byte +0x1468 whether there are any staff of kind 8 (Things_CountStaffOfKind; the game table entry of
+// [0x80239c] looked up first, its answer unused); then ResearchLab_FillProjects, ResearchLab_ApplyEfforts and the lab added to the message
+// centre's slot 0x11.
+void __fastcall ResearchLab_Init(u8 *lab);
 }
