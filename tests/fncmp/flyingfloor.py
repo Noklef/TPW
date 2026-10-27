@@ -99,6 +99,9 @@ def pick(r):
     for off, v in ((0x4c, x), (0x54, z), (0x58, ox), (0x60, oz)):
         put(rec, off, 'I', v & 0xffffffff)
     (lx, ux), (lz, uz) = bounds(r, x if abs(x) < 1 << 30 else cx * 3000), bounds(r, z)   # (a far waypoint: outside them)
+    if r.random() < 0.3 and abs(x) < 1 << 30:   # (a bound on a square's centre about the waypoint: where it may land)
+        k, centre = r.randrange(4), lambda v: (int(v / 20000) * 20000 - (20000 if v < 0 else 0) + 10000 + 20000 * r.choice([-1, 0, 0, 1]))  # noqa: E731
+        ux, lx, uz, lz = [centre(v) if i == k else b for i, (v, b) in enumerate(((x, ux), (x, lx), (z, uz), (z, lz)))]
     regions[0x7660b8] = struct.pack('<4i', ux, lx, uz, lz)
     regions[0x7a0314] = struct.pack('<i', r.choice([cx + 1, 0x81, r.randrange(1, 0x82), 1, 1]))
     regions[0x7a0374] = struct.pack('<i', r.choice([cy + 1, 4, r.randrange(1, 5), 1]))
