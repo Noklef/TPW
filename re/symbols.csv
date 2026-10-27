@@ -5020,6 +5020,7 @@ address,name,kind,confidence,notes
 0x006baa60,ChannelVoices_Find,function,low,reimplemented (src/game/core/channelvoice); the pool's voice for a handle (its slot 12 says yes)
 0x006baad0,ChannelVoices_FindOut,function,low,"reimplemented (src/game/core/channelvoice); the pool's voice for a handle, slot 12's answer out"
 0x006bab50,ChannelVoices_Holds,function,low,reimplemented (src/game/core/channelvoice); the handle's index out; whether its voice's slot 12 says yes
+0x006ba390,ChannelVoices_ReleaseEach,function,low,"reimplemented (src/game/core/channelvoice); thiscall: ChannelVoice_Release (0) on each of the pool's 0x8c-byte voices (+4, the count +8; with an array the first whatever the count); returns the sum of their bytes (name invented)"
 0x006c4c80,SoundOccluders_Occlusion,function,low,"reimplemented (src/game/core/soundoccluders); thiscall on the occluders (0xfb2038) (from, to, out), pops 0xc: the largest occlusion of the path, through out; returns it is neither 0 nor NaN"
 0x006c4ba0,SoundOccluders_Remove,function,low,"reimplemented (src/game/core/soundoccluders); thiscall (out, &node), pops 8: with occluders, the node unlinked, the count lowered, the node freed; its occluder freed, *node = 0 and *out = 0 when there is one, else *out = -1 (none in the list too); returns out (name invented)"
 0x006c4c20,SoundOccluders_Clear,function,low,reimplemented (src/game/core/soundoccluders); the occluders cleared (each node and its occluder freed)

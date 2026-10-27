@@ -69,4 +69,8 @@ u8 *__fastcall ChannelVoices_FindOut(u8 *pool, void *, const u32 *handle, u32 *o
 // 0x6bab50 (thiscall (&handle, out), pops 8): *out = the index; 1 when slot 12 answers nonzero, else 0.
 u32 __fastcall ChannelVoices_Holds(u8 *pool, void *, const u32 *handle, u32 *out);
 
+// 0x6ba390 (thiscall; name invented): ChannelVoice_Release (0) on each of the pool's voices (+4, the count +8; with an array, the first
+// whatever the count); returns the sum of their bytes.
+u32 __fastcall ChannelVoices_ReleaseEach(u8 *pool);
+
 }  // extern "C"
