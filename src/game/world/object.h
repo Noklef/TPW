@@ -19,6 +19,16 @@ struct ObjectEnv {
 // The objects' calls go to env (nullptr: the game's).
 void Object_SetEnv(const ObjectEnv *env);
 
+// 0x4e0450 (thiscall; name invented): the queue's head (the handle at +0x3c, a person of the table 0x7cfb90): when it is not element 0 of the
+// object's ride record (Rides_GetElement of Rides_FindById of +0x24) and its state (+0x220) is 0xe, the env's 0x500870 on it. Otherwise, unless
+// the handle is 0, it is taken off the queue (Object_QueueRemovePerson) and the env's 0x5012f0 runs on it. The debug prints are left out.
+void __fastcall Object_DismissQueueHead(u8 *object);
+
+// 0x4e0e60 (thiscall; state, pops 4; name invented): for state 1, 2 or 4, Object_DismissQueueHead, Object_RestartRide (inlined in the original)
+// and a message 7, 9 or 8 of the object's handle (ThingMsg07 / 09 / 08 on the stack) posted to the message centre (MessageCentre_Instance, inlined)
+// through the env's 0x40fb10. Every state is then kept at +0x19c. The debug prints (the handle and +0x6c; an unknown state's) are left out.
+void __fastcall Object_SetState(u8 *object, void *, u32 state);
+
 // 0x4dd4e0: the object's definition, ObjectDefs_Find on gObjectDefs (0x7890a0) by its id (+0xe).
 u8 *__fastcall Object_GetDef(const u8 *object);
 
