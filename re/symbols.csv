@@ -251,7 +251,7 @@ address,name,kind,confidence,notes
 0x004d5fb0,Guard_HandleMessage,function,high,Thing_HandleMessage case 7
 0x00502960,Researcher_Update,function,medium,Thing_Update case 8 (first call)
 0x005029f0,Researcher_PostUpdate,function,medium,Thing_Update case 8 (second call)
-0x00508a30,StaffHQ_HandleMessage,function,high,Thing_HandleMessage case 9
+0x00508a30,StaffHQ_HandleMessage,function,high,"reimplemented (src/game/world/staff); thiscall (message), pops 4: the staff HQ's message by type (vtable slot 0): 0xc StaffAdvice_Tick; 0xe, when the RE cell (Map_RECell) of the cell of the message's thing (+8) has word +6 above 0, the nearest free guard (Guard_NearestFree) gets agent C's 0x4d6260 (handle, its high word the message pointer's, sic) through StaffAdviceEnv; others nothing"
 0x004dadc0,MechanicHQ_HandleMessage,function,high,"reimplemented (src/game/world/headquarters); thiscall (event): a kind-7 event's mechanic (+8) looked up along the HQs' chain from the world's +0x1da73e; the advisor message 0x44, 0x45 or 0x46 posted, or nothing"
 0x0059b060,Advisor_HandleMessage,function,high,Thing_HandleMessage case 11
 0x0059a550,Advisor_Update,function,medium,Thing_Update case 11 (works on a global; skipped when DAT_00fb3b7c == 1)

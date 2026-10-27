@@ -17,6 +17,7 @@
 #include "../sprite/scriptref.h"
 #include "analyser.h"
 #include "analysercell.h"
+#include "mapcell.h"
 #include "messagecentre.h"
 #include "money.h"
 #include "mousemode.h"
@@ -721,7 +722,10 @@ namespace {
 using SumFn = s32(__fastcall *)(u8 *, void *, u32);
 s32 __fastcall game_sumA(u8 *record, void *, u32 n) { return reinterpret_cast<SumFn>((uintptr_t)0x004c8180)(record, nullptr, n); }
 s32 __fastcall game_sumB(u8 *record, void *, u32 n) { return reinterpret_cast<SumFn>((uintptr_t)0x004c8150)(record, nullptr, n); }
-const StaffAdviceEnv kGameAdviceEnv = {&game_sumA, &game_sumB};
+void __fastcall game_sendGuard(u8 *guard, void *, u32 handle) {
+    reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)0x004d6260)(guard, nullptr, handle);
+}
+const StaffAdviceEnv kGameAdviceEnv = {&game_sumA, &game_sumB, &game_sendGuard};
 const StaffAdviceEnv *g_advice = &kGameAdviceEnv;
 const u32 kKindHeads[5] = {0x1da73c, 0x1da73e, 0x1da740, 0x1da744, 0x1da742};
 
@@ -790,5 +794,23 @@ void __fastcall StaffAdvice_Tick(u8 *self) {
         if (state[1]) state[1] = 0;
         else StaffAdvice_Update(self, nullptr, kind);
     }
+}
+
+void __fastcall StaffHQ_HandleMessage(u8 *self, void *, u8 *message) {
+    const u32 type = (*reinterpret_cast<u32(__fastcall *const *const *)(u8 *)>(message))[0](message);
+    if (type == 0xc) {
+        StaffAdvice_Tick(self);
+        return;
+    }
+    if (type != 0xe) return;
+    // (sic: the handle's argument slot keeps the message pointer's high word, as the original's stack slot does)
+    const u32 handle = at<u16>(message, 8) | ((u32)(uintptr_t)message & 0xffff0000u);
+    const u8 *const thing = global<u8 *>(0x007cfb90 + 20 * (handle & 0xffff));
+    const u32 pos = (((u32)thing[7] << 7) + thing[5] + 1) & 0xffff;
+    if (at<s16>(Map_RECell(global<u8 *>(0x008023a0), nullptr, pos), 6) <= 0) return;
+    u16 guard = 0;
+    Guard_NearestFree(self, nullptr, &guard, pos);
+    if (!guard) return;
+    g_advice->sendGuard(global<u8 *>(0x007cfb90 + 20 * (u32)guard), nullptr, handle);
 }
 }
