@@ -56,7 +56,7 @@ void __fastcall SoundNames_FreeMap(u8 *self) { SoundNameMap_Free(self + 4); }
 
 u32 *__fastcall SoundNameMap_Load(u8 *map, void *, u32 *out, u8 *stream) {
     SoundNameMap_Free(map);
-    u32 size;
+    u32 size = static_cast<u32>(reinterpret_cast<uintptr_t>(map));   // (the original's slot for it holds the pushed ECX, the map)
     vcall<u32>(stream, 8, &size, 4u);
     vcall<u32>(stream, 8, map, 4u);
     u8 *const block = static_cast<u8 *>(GameHeap_Alloc(size));

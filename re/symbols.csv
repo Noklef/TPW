@@ -4719,6 +4719,8 @@ address,name,kind,confidence,notes
 0x006bdf00,SoundVoice_SetRecordBankLinked,function,low,"reimplemented (src/game/core/soundvoice); slot 18's override: the record's bank, then the voice and slot 19 linked in"
 0x006be880,Voice70a8d0_PickQueuedSound,function,low,reimplemented (src/game/core/soundvoice); slot 14 of 0x70a8d0: the queued sound's pick
 0x006be960,VoicePairs_Alloc,function,low,"reimplemented (src/game/core/soundvoice); thiscall (count), pops 4: *self = a game-heap block of count 8-byte pairs (null when it fails); returns self (name invented)"
+0x006bccf0,SoundVoice_Save,function,low,"reimplemented (src/game/core/soundvoice); a voice's saved record written (type, magic, position, sample indices, parameter block, flag byte, id, the linked voice)"
+0x006bd0a0,SoundVoice_Load,function,low,reimplemented (src/game/core/soundvoice); a voice's saved record read back (a named category faults: the original's frame is off by 4)
 0x006c4760,EaxBuffer_QueryAll,function,low,"reimplemented (src/game/core/soundeax); thiscall (out, unused), pops 8: IKsPropertySet::Get of the EAX 2.0 buffer properties (id 1, 0x38 bytes) into a stack block that is also the size out, dropped; *out = 0 on success, else -1; returns out"
 0x006d6cf0,EaxListener_SetAll,function,low,reimplemented (src/game/core/soundeax); an object's buffer (its slot 4 for a key) asked for IKsPropertySet and handed all the EAX 2.0 listener properties
 0x006c4670,EaxBuffer_SetProperty0b,function,low,"reimplemented (src/game/core/soundeax); thiscall (out, value), pops 8: the buffer's IKsPropertySet::Set (EAX20 buffer properties, id 0xb, the value's own slot, 4 bytes), *out its result; without a set *out = -1"

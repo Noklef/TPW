@@ -308,4 +308,23 @@ void __fastcall Voice70a390_PruneChildren(u8 *voice, void *, u32 time);
 // *out = 0. Returns the out.
 u32 *__fastcall Voice70a390_Start(u8 *voice, void *, u32 *out, u32 time);
 
+// The voices' saved record (Stream_Write / Stream_Read; names invented): the type (slot 20; the mixer's load reads it), the magic
+// 0x12d591, +0x10-+0x18, a zero dword, +0x40, the sample's indices (SoundCategory_LocateSample: category, sound, variation, sample),
+// the magic, the parameter block's flag (1 / 0) and with it the block's +0, +4, +0xc, +8, +0x10, +0x14, the magic, a byte (flag
+// 0x1000), +0x2c, then the linked voice's (the block's +0x18) type and its own record, or a zero dword.
+// 0x6bccf0 (thiscall (out, stream, time), pops 0xc): that record written; type 0 or no category found: nothing more and *out = -1;
+// else *out = 0. The linked voice's save gets the time argument's own slot as its out (sic). Returns out.
+u32 *__fastcall SoundVoice_Save(u8 *voice, void *, u32 *out, u8 *stream, u32 time);
+// 0x6bd0a0 (thiscall (out, stream, time), pops 0xc; an SEH frame): that record read (from the magic): a magic that is not 0x12d591, *out
+// = -1 and nothing more. +0x10-+0x18 through Fn_6bb220; the zero dword and +0x2c read and dropped; with the flag, the parameter block
+// made when there is none (as SoundVoice_EnsureParams, not checked) and its six dwords read; the byte read into the stream argument's
+// slot (sic); a linked type not 0 put in the block's +0x18 (the block made as before). +0x24 = 0. The category through the singleton's
+// names' map (Array_AtOrZero on SoundCategory_Get): 0 sets flag 0x10 at the end. Not 0: the original pops 4 bytes more than it pushes
+// (SoundCategory_RecordAt pops 8 for the one argument pushed), so it runs on with its frame 4 bytes off and returns to its out pointer: a
+// fault (sic; the port faults there at once). With a linked type in the block: the block's +0x18 cleared, the parent this voice when its
+// slot 20 answers 6 or 4 (asked again), else the block's +0x1c; type 7 / 9 a LinkedVoice / LinkedSwitchVoice (Mem_Alloc 0x50; 0 when it
+// fails) to +0x18, any other none; a dword read and dropped; then that voice's load (out the time's slot, sic; a null one faults).
+// Returns out (*out 0 after the flag).
+u32 *__fastcall SoundVoice_Load(u8 *voice, void *, u32 *out, u8 *stream, u32 time);
+
 }  // extern "C"
