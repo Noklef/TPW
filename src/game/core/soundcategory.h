@@ -150,6 +150,11 @@ void __cdecl SoundCategory_ReleaseBankResources();
 // 0x6b9270 (thiscall (index), pops 4; `this` unused (the sound system); name invented): bit 6 of the flags (+0x20) of the singleton's
 // deque B bank index; false past the count (+0x94) or for a null bank (AL only: the rest of EAX is left over).
 bool __fastcall SoundCategory_BankFlag40(void *self, void *, u32 index);
+// 0x6c0bd0 (thiscall (variation), pops 4; `this` unused; name invented): a variation's samples (+8) partitioned: from the first to the last
+// (by SfxVariation_SampleCount; addresses compared unsigned), each whose bank (word +0xc) has flag 0x40 (SoundCategory_BankFlag40 on the
+// sound system [0xfb1ffc]) swapped with the last, the last one back, and the variation's dword +0 one less; else the next. Before
+// that, dword +0 = (itself << 16) + the count sign-extended (the count kept in the high word, the low word the samples not flagged).
+void __fastcall SfxVariation_MoveFlag40SamplesLast(void *self, void *, u8 *variation);
 // 0x6bea00 (thiscall; an SEH frame; name invented): a category record's destructor (vtable 0x70a950): SoundCategory_UnloadRecord on the
 // singleton (the status a local), its +8 block freed (GameHeap_Free) and cleared when there is one, the bank list's nodes (+0x28) freed
 // with +0x2c / +0x28 / +0x30 = 0, then BankList_Dtor (+0x24), String_Dtor (+0xc) and the vtable 0x703770.

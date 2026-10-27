@@ -629,6 +629,25 @@ bool __fastcall SoundCategory_BankFlag40(void *, void *, u32 index) {
     return bank && (Get<u32>(bank, 0x20) >> 6 & 1);
 }
 
+void __fastcall SfxVariation_MoveFlag40SamplesLast(void *, void *, u8 *variation) {
+    u32 first = Get<u32>(variation, 8);
+    u32 last = (SfxVariation_SampleCount(variation) << 4) + Get<u32>(variation, 8) - 0x10;
+    const u32 count = SfxVariation_SampleCount(variation);
+    Put<u32>(variation, 0, (Get<u32>(variation, 0) << 16) + static_cast<u32>(static_cast<s32>(static_cast<s16>(count))));
+    while (first <= last) {
+        if (SoundCategory_BankFlag40(Ptr(Get<u32>(Ptr(0xfb1ffc), 0)), nullptr, Get<u16>(Ptr(first), 0xc))) {
+            u32 held[4];
+            std::memcpy(held, Ptr(first), sizeof held);
+            std::memcpy(Ptr(first), Ptr(last), sizeof held);
+            std::memcpy(Ptr(last), held, sizeof held);
+            last -= 0x10;
+            Put<u32>(variation, 0, Get<u32>(variation, 0) - 1);
+        } else {
+            first += 0x10;
+        }
+    }
+}
+
 void __fastcall CategoryRecord_Dtor(u8 *record) {
     Put<u32>(record, 0, 0x70a950);
     u32 status;
