@@ -77,7 +77,7 @@
 # it, near it or any. OnDrag (0x6656a0): OnMouseDown's, +0x11c 0 mostly, the saved rectangle +0x2c a real one (the inner one's mostly, else
 # around the point). OnMoved (0x66521e): OffsetColumns', the inner rectangle +0x138 a real one of any words.
 # Proc (0x665c35): one of the handled messages on its callee's world (OnHeader's 0x100, OnDrag's 0x10003 / 0x10001, OnMoved's 0x13,
-# ShowRows' 0x11, OnMouseDown's / OnDouble's 0x11006 (a 0 or not), PostSelection's 0x11007 (a 0 mostly), ScrollFromBar's 0x800,
+# ShowRows' 0x11, OnMouseDown's / OnDouble's 0x11006 (a 0 or not), PostSelection's 0x11007 (a 0, 1 or any), ScrollFromBar's 0x800,
 # SendToRows' 0x1e, OnKey's 0x1000a), 0x1000d on a window of 0-3 recorder children (ids 1 or others), 0x15 / 0x1a on a window with
 # flag 0x200 mostly (the focus [0xfaa5ec] it now and then), or a few others DefaultProc leaves; the manager [0x77c48c] a recorder object
 # for 0x1e / 0x10001 / 0x10002 (the window's script byte +0x135 not 1), the cursor table [0xfaa604] 0 for 0x10001. EAX compared.
@@ -1030,7 +1030,7 @@ def unmapped(regions, address, size):
 def proc_case(r):
     """Proc (see the top): a sub-case's world, its call turned into the message"""
     sub = r.choice(['OnHeader', 'OnDrag', 'OnDrag', 'OnMoved', 'ShowRows', 'OnMouseDown', 'OnDouble', 'PostSelection',
-                    'ScrollFromBar', 'SendToRows', 'OnKey', 'Child', 'Modal', 'Modal', 'Other'])
+                    'PostSelection', 'ScrollFromBar', 'SendToRows', 'OnKey', 'Child', 'Modal', 'Modal', 'Other'])
     if sub in ('Child', 'Modal', 'Other'):
         window = bytearray(r.bytes(0x180))
         regions = {WINDOW: window, LOG: log_region()}
@@ -1054,7 +1054,7 @@ def proc_case(r):
     elif sub in ('OnMouseDown', 'OnDouble'):
         message, a, b = 0x11006, 0 if sub == 'OnMouseDown' else r.choice([1, 2, r.getrandbits(32)]), (args[1] & 0xffff) << 16 | (args[2] & 0xffff)
     elif sub == 'PostSelection':
-        message, a = 0x11007, r.choice([0, 0, 0, 1])
+        message, a = 0x11007, r.choice([0, 1, r.getrandbits(32)])
     elif sub == 'ScrollFromBar':
         message, a = 0x800, r.getrandbits(32)
     elif sub == 'SendToRows':
