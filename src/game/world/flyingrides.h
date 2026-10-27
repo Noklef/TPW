@@ -52,6 +52,12 @@ void __cdecl FlyingRide_Set4(s32 index, u32 value);
 void __cdecl FlyingRide_SetBounds();
 void __cdecl FlyingRide_ReleaseSlotPart(s32 index, s32 slotIndex, s32 step);
 
+// 0x55cda0 (cdecl (index, slot); called by 0x55d3d0; name invented): the record's (table 0x8791f8, unchecked) slot emptied: its particle
+// system (+0xc4) ended (ParticleSystem_End) and cleared, its ride (+0xc0) destroyed (Ride_Destroy 0x463c80, through the queue pieces'
+// env) and cleared, the record's +0xc counted down, its sound (+0xe0) given to Sound_Forward6 and cleared (the record re-read after
+// each call, as the original).
+void __cdecl FlyingRide_ClearSlot(s32 index, u32 slotIndex);
+
 // 0x55c270 (cdecl; camera dwords: [0] the ride index, [0x13..0x15] the target, [0x16..0x18] the old one, [0x22] the corner): the target moves to the old one, the target
 // height (+0x14) becomes the record's +0x18 plus 5000 (at least 14000) and the corner goes round (0 to 3): the target x / z become the record's +0x14 / +0x1c plus or minus
 // 25000 for the corners (+, +), (+, -), (-, -), (-, +).
