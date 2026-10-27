@@ -76,6 +76,13 @@ u32 __fastcall SoundResourceRef_ReadRecord(u8 *ref, void *, u32 record, u32 i) {
     return static_cast<s32>(*vcall<const u32 *>(resource, 0x18, &slot, record, i)) >= 0 ? 1 : 0;
 }
 
+u32 __stdcall SoundResourceHandle_ReadRecord(u32 record, const u32 *handle) {
+    const u32 i = handle[0];
+    if (!i) return 0;
+    if (!handle[1]) return i & 0xffffff00;   // (AL cleared over the index, sic)
+    return SoundResourceRef_ReadRecord(reinterpret_cast<u8 *>(static_cast<uintptr_t>(handle[1])), nullptr, record, i);
+}
+
 u8 *__fastcall SoundResourceRef_DeletingDtor(u8 *ref, void *, u32 flags) {
     SoundResourceRef_Dtor(ref);
     if (flags & 1) GameHeap_Free(ref);

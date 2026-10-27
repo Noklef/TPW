@@ -5023,6 +5023,7 @@ const Hook kHooks[] = {
     {"SoundResourceRef_Offset",   0x006c8c00, (void *)&SoundResourceRef_Offset, {0x8b, 0x49, 0x08, 0x85, 0xc9}},
     {"SoundResourceRef_Slot15",   0x006c8c20, (void *)&SoundResourceRef_Slot15, {0x8b, 0x49, 0x08, 0x85, 0xc9}},
     {"SoundResourceRef_ReadRecord", 0x006c8c60, (void *)&SoundResourceRef_ReadRecord, {0x8b, 0x49, 0x08, 0x85, 0xc9}},
+    {"SoundResourceHandle_ReadRecord", 0x006bada0, (void *)&SoundResourceHandle_ReadRecord, {0x8b, 0x4c, 0x24, 0x08, 0x8b}},
     {"ChannelVoiceCount_Reset",   0x006c5060, (void *)&ChannelVoiceCount_Reset, {0xc7, 0x05, 0x58, 0x20, 0xfb}},
     {"ChannelVoiceCount_Increment", 0x006c5070, (void *)&ChannelVoiceCount_Increment, {0x51, 0xff, 0x15, 0xc0, 0xd0}},
     {"ChannelVoiceCount_Decrement", 0x006c5080, (void *)&ChannelVoiceCount_Decrement, {0x51, 0xff, 0x15, 0x2c, 0xd1}},

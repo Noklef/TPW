@@ -5079,6 +5079,7 @@ address,name,kind,confidence,notes
 0x006c8c00,SoundResourceRef_Offset,function,low,"reimplemented (src/game/core/soundindex); the resource's slot 9 (an offset), 0 without one"
 0x006c8c20,SoundResourceRef_Slot15,function,low,"reimplemented (src/game/core/soundindex); the resource's slot 15 through the argument's own slot, its dword out"
 0x006c8c60,SoundResourceRef_ReadRecord,function,low,reimplemented (src/game/core/soundindex); the resource's record read (slot 6): whether its status is not negative
+0x006bada0,SoundResourceHandle_ReadRecord,function,low,"reimplemented (src/game/core/soundindex); stdcall (record, handle): SoundResourceRef_ReadRecord on the handle's reference (+4) with its index (+0) when both are not 0"
 0x006c5060,ChannelVoiceCount_Reset,function,low,reimplemented (src/game/core/channelvoice); the voices' count (0xfb2058) = 0
 0x006c5070,ChannelVoiceCount_Increment,function,low,reimplemented (src/game/core/channelvoice); thiscall on the count: InterlockedIncrement; returns what it answers
 0x006c5080,ChannelVoiceCount_Decrement,function,low,reimplemented (src/game/core/channelvoice); thiscall on the count: InterlockedDecrement; returns what it answers
