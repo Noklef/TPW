@@ -31,6 +31,12 @@ u32 __fastcall WeatherFx_FreeTextures(u8 *fx);
 // and, got, its flags given 0x80200. Returns whether the slot is set.
 u32 __fastcall WeatherFx_LoadTexture(u8 *fx, void *, u32 which, const char *name);
 
+// 0x5508c0 (cdecl; name unconfirmed): with a renderer at [0x8bcbac], its three textures loaded (WeatherFx_LoadTexture, the renderer read
+// again for each): "Data\Generic\Weather\snow.tga" into slot 2, "raindrop.tga" into 1, "lightning.tga" into 3, each name through
+// Quickload_Locate(name, 1, 0) (the copy at 0x79c9d0 if the file opens, else 0). Returns the last load's answer (EAX as the original
+// leaves it), or 0 without a renderer.
+u32 __cdecl WeatherFx_LoadTextures();
+
 // 0x57d1a0 (cdecl; name unconfirmed): with a renderer at [0x8bcbac], its textures freed (WeatherFx_FreeTextures), it freed (GameHeap_Free)
 // and [0x8bcbac] cleared: 1. Without one 0.
 u32 __cdecl WeatherFx_Delete();
