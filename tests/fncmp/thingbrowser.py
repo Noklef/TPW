@@ -205,6 +205,8 @@ def open_case(r, shown=False):
     for k, v in adv.regions.items():
         if k != LOG:
             regions[k] = v
+    if 0xfb34bc in regions:   # (the mode setting's static built already: its first build's atexit call reaches CRT code the ranges leave out)
+        regions[0xfb34bc] = bytes([regions[0xfb34bc][0] | 1])
     set_return(log, 20, r.choice([0, 1, 5, 100, -1, r.getrandbits(32)]))
     masks = [Mask(m.region, m.offsets + [0x16d0 + k for k in (2, 3, 0x17)], m.reason) for m in adv.masks]
     regions[0x7c24c8] = struct.pack('<I', r.choice([0, CLOSING]))   # (a window to close: sent 5, then the focus restored to nothing)
