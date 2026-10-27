@@ -415,6 +415,7 @@
 #include "../game/ui/windowfactory.h"
 #include "../game/ui/windowscript.h"
 #include "../game/ui/buttontext.h"
+#include "../game/ui/dialog7ca150.h"
 #include "../game/ui/dialog7ca308.h"
 #include "../game/ui/dialog7cb25c.h"
 #include "../game/ui/dialog7cb2b8.h"
@@ -5805,6 +5806,10 @@ const Hook kHooks[] = {
     {"Dialog7cb2b8_ShowRightOf",  0x004a1440, (void *)&Dialog7cb2b8_ShowRightOf, {0x6a, 0xff, 0x68, 0x68, 0xa4}},
     {"Dialog7cb2b8_BoxHandler",   0x004a14f0, (void *)&Dialog7cb2b8_BoxHandler, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Dialog7ca308_ShowStaff",    0x0049ba00, (void *)&Dialog7ca308_ShowStaff, {0x6a, 0xff, 0x68, 0x78, 0xa1}},
+    {"Dialog7ca150_ShowTab0",     0x00494ec0, (void *)&Dialog7ca150_ShowTab0, {0x8b, 0x0d, 0x50, 0xa1, 0x7c}},
+    {"Dialog7ca150_ShowTab1",     0x00494c70, (void *)&Dialog7ca150_ShowTab1, {0x8b, 0x0d, 0x50, 0xa1, 0x7c}},
+    {"Dialog7ca150_ShowTab2",     0x00494250, (void *)&Dialog7ca150_ShowTab2, {0x8b, 0x0d, 0x50, 0xa1, 0x7c}},
+    {"Dialog7ca150_ShowTab3",     0x00495110, (void *)&Dialog7ca150_ShowTab3, {0x8b, 0x0d, 0x50, 0xa1, 0x7c}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
