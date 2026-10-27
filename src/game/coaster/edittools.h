@@ -88,4 +88,19 @@ void __cdecl CoasterEdit_SetTools(u32 tools);
 // 0x79c644 = 2 and CoasterEdit_SetBounds. 4 .. 0x100: CoasterEdit_SetMode (2, 4, 8, 0x10, 0x80, 0x20, 0x40; all but the last inlined
 // as CoasterEdit_EndTool and the mode set); any other only set.
 void __cdecl CoasterEdit_StartTool(u32 tool);
+// 0x4426a0 (cdecl; name invented, unconfirmed): CoasterEdit_EndTool (inlined, TrackSelection_Clear in it too), then the offer
+// 0x79c6e0 and the chosen tools 0x79c638 cleared.
+void __cdecl CoasterEdit_EndAll();
+
+// 0x4455c0 (cdecl; out; name invented, unconfirmed): the tool to start picked into *out and started (CoasterEdit_StartTool, inlined
+// in full): 0x10 when the game's +0x3c has bit 0 without bit 1 (sic: the game read before it is tested); else, with
+// CoasterLink_EndMarked (inlined) 0x79c664 = 1 and flag 0x40 of 0x79c658, then 2 when 0x79c664 is 1, else 1.
+void __cdecl CoasterEdit_StartChosenTool(u32 *out);
+
+// 0x446fa0 (cdecl; tool, action; name invented, unconfirmed): the editor's tool buttons (the 0x7ca1c8 dialog's handler calls it).
+// Action bit 1 (its low byte tested; first): with any of tool's bits 0-8, the tool in use ended (as CoasterEdit_EndTool, inlined)
+// and tool cleared from the chosen tools 0x79c638. Else bit 0: tool started as CoasterEdit_StartTool but for 2, which is started as
+// tool 1 up to CoasterLink_CheckEnd and then CoasterEdit_SetTool (2); tool set in 0x79c638. Else bit 2: CoasterEdit_EndAll
+// (inlined). Then, with tool not 0, CoasterEdit_Tools (0) and the dialog (0x7b51f0) told the tools on offer (0x79c6e0).
+void __cdecl CoasterEdit_ToolButton(u32 tool, u32 action);
 }

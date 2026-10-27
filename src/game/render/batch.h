@@ -32,6 +32,11 @@ void __fastcall Batch_FogVertices(u8 *object, void *, u8 *vertices, u32 count);
 // (+0x28) and count (+0x20), without the fog bit's test.
 void __fastcall Batch_Fog(u8 *object, void *);
 
+// 0x565f50 (thiscall on the same object (arg), pops 4; name invented, unconfirmed): with the batch (+0x20) holding vertices (its +0x20
+// count not 0), the transformer [0x87b1d8]'s slot 3 (cdecl: transformer, the batch's vertices +0x28, the object's stride +0x1c, the
+// count, arg) on them; the float it answers added to the batch's +0x30.
+void __fastcall Batch_TransformVertices(u8 *object, void *, u32 arg);
+
 // 0x581a00 (thiscall on a model (+4 its settings); batch, matrix, vertices; pops 12; returns 1; name unconfirmed): the transformer
 // ([0x87b1d8]) slot 2 (cdecl: transformer, matrix, vertices, the settings' +0x60, 0x10, 0, the vertex count +0x58) first. Then for each
 // material entry (16 bytes from the settings' +0x6c, read once; as many as the word +0x5a, read again each time): the vertex count's

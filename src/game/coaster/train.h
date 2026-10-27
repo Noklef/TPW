@@ -58,6 +58,69 @@ void __cdecl Car_Edited(u32 what, u8 *car, u8 *coaster, u32 unused, u32 keepCont
 // ([0x790fec]) piece index (Track_PieceAt of its +0x3c), then Car_Edited (1, it, the coaster, unused, keepContacts).
 void __cdecl Car_SetLengthAt(u32 length, u32 index, u32 unused, u32 keepContacts);
 
+// The coaster's ([0x790fec]) piece index (Track_PieceAt of its +0x3c) edited, then Car_Edited (what, it, the coaster, 0, keep);
+// the forms of two arguments are the recorded edit events' (0x39, 0x3a, 0x3b, played back by 0x404xxx). Names invented, unconfirmed.
+// 0x444190 (cdecl; length (a float's bits), index): the length +0xe8; what 1, keep 0.
+void __cdecl Car_ApplyLengthAt(u32 length, u32 index);
+// 0x4441d0 (cdecl; value (a float's bits), index, mark, keep): the value +0xe0, the car's +8 flag 1 with mark; what 2.
+void __cdecl Car_SetE0At(u32 value, u32 index, u32 mark, u32 keep);
+// 0x444220 (cdecl; value, index): the value +0xe0 and the car's flag 1; what 2, keep 0.
+void __cdecl Car_ApplyE0At(u32 value, u32 index);
+// 0x444270 (cdecl; a, b, index, mark, keep): a car with flag 0x40 (+8) gets +0xd8 = +0xdc = 0 and +0xf8 = a; else +0xd8 = a,
+// +0xdc = b, +0xf8 = 0 and, with mark, flags 6 (the flags read before the stores); what 4.
+void __cdecl Car_SetAnglesAt(u32 a, u32 b, u32 index, u32 mark, u32 keep);
+// 0x4442f0 (cdecl; a, b, index): as 0x444270 with mark 1 and keep 0.
+void __cdecl Car_ApplyAnglesAt(u32 a, u32 b, u32 index);
+
+// 0x447ae0 / 0x447b20 (cdecl; index; names invented, unconfirmed): the coaster's piece (index & 0xffff, as 0x444190) swapped with the
+// car in its train's (+0x100) slot after (+0x38 + 4 * its slot +4) or before it (+0x30 + ...: for slot 0 the train's count, sic)
+// (Train_SwapCars).
+void __cdecl Car_SwapWithNextAt(u32 index);
+void __cdecl Car_SwapWithPrevAt(u32 index);
+
+// 0x436230 (cdecl; coaster, car, train, unused, save; name invented, unconfirmed): car put into the train (a pylon) at a brace. The
+// other car is the coaster's +0x64 with its +0x3c flag 2, else its +0x54. With save, the train saved for Train_RestoreSaved: its first
+// 0x48 bytes to 0x790ff0, then for each of the saved count (0x791020) its slot's car (+0x34 on) copied (0x104 bytes, to 0x791d00 on)
+// unless empty and its +0x50 to 0x791038 on (an empty slot faults, sic); 0x791cd8 = 1; the type the train's +0x18. Without save, the
+// type is the coaster's +4 plus 0x1c8 (with 0x79c658 flag 0x40) or 0xa8, stored to the train's +0x18. With 0x79c658 flag 0x40 the car's
+// +8 gets 0x40, and 0x80 too when 0x79c664 is 2. The wanted height: with save and the other car on this train, the other's frame value
+// (its +0x90 -> +4, 0x58 bytes each, at its +0x74 -> index; +0x44, through fld / fstp); else Car_LengthFromNode (the train, the type,
+// the car's +0x68, the coaster's +0x5c, the car's flag 0x80, 1, none) as a float. Pylon_FindBraceLevel (wanted, train, level, height,
+// 1) (their slots the other car and the car argument when not written, sic); the car's +0x50 = the height; Train_InsertCar (coaster,
+// car, train, level, height, out, mark 1, insert, noShrink 1, not free). Then the car's +0x50: the wanted value for the other car's,
+// else out plus Terrain_FootprintHeight (__ftol (the train's +0x1c * 0.1), __ftol (+0x24 * 0.1), no cells, 1 by 1, 0x3fa, angle 0).
+// +0xe8 = 0, +0x4c = 5 - the train's +0xc (unsigned) * -10 and +0x54 = 5 - its +0x10 * -10. The original's coaster argument slot
+// holds its +0x118 from both callers (unused).
+void __cdecl Train_PlaceCarAtBrace(u8 *coaster, u8 *car, u8 *train, u32 unused, u32 save);
+
+// 0x436490 (cdecl; name invented, unconfirmed): each coaster of the list 0x790fe0 (on by +0x18) with flag 1 (+0) is made current
+// (0x792218, its track +0x3c to 0x790fe4) and loses flag 1 (through 0x792218). The game's coaster ([0x790fec]) with flag 4 drops its
+// pending piece (the track's +0x30; its previous +0x68 kept): with 0x790fd4 set and flag 8, flag 8 cleared and the track's +0x24 piece
+// flagged 0x50000, its +0x28 one losing 0x804000 and gaining 0xa0000, then each (and its previous, when any) 0x200000; nothing else.
+// Otherwise a piece with flag 0x8000 (+8) has its contacts cleared (Contacts_ClearPair) and its previous (and that one's previous, when
+// any) flagged 0x200000; without 0x790fd4, a track +0x2c block with flag 8 (+4) unhooked (its +0x2c's +0x28 cleared when any, the
+// track's +0x14 = its +0x2c, its +0x2c, +0x28 and +0 cleared, the track's +4 lowered, flag 8 cleared). Track_RemovePiece; the piece's
+// train (+0x100), when any: Train_RestoreSaved (coaster, train) for a count (+0x30) over 1, else its slot count - 1 cleared (the count
+// itself for 0, sic) and the count lowered; Train_SetCouplings (inlined without 0x790fd4) and Train_PlaceCars (type, train, 0, 0). The
+// piece's train = 0, its flags 0xc0 cleared, and TrackPieces_Renumber (the previous). 0x792218 = 0 at the end.
+void __cdecl Coasters_DropPendingPiece();
+
+// 0x435d50 (cdecl; coaster; name invented, unconfirmed): the coaster's pending piece (its track +0x3c's +0x30) placed at the point
+// 0x7a1c70 / 0x7a1c78: its cell (gx, gz) the __ftol of each times 0.1, the key gz * the map's width (0x7a0854 -> +0x6c -> +0x18) + gx;
+// the link there (CoasterLinks_FindKey) to 0x790fd4. Nothing when the squared distance from the track's last piece (+0x24; its +0x4c,
+// +0x54) to (gx, gz) * 10 (each through a float) is over 90000. With a link: with the track's flag 2 a link car that is the track's
+// +0x28 piece joins them (the coaster's flag 8; the last piece loses 0x50000, the +0x28 one gains 0x800000 (0x804000 when the cell is
+// not CoasterPiece_CanPlaceAt's), loses 0xa0000, each and its previous 0x200000); nothing when a link car is the track's +0x24 (flag
+// 2) or +0x1c piece, when its count (+0x30) reaches its type's (+0x18) +0xcc, or when 0x79c658's flag 0x40 and the type's 0x4000
+// differ; else Track_AppendPiece (open: the cell placeable), Train_PlaceCarAtBrace (coaster, the piece, the link, its +0x118, save).
+// Without a link the track's +0x2c block becomes a pylon there (flag 8 at +4, the key +8, gx, gz +0xc / +0x10, the corner (as floats)
+// +0x1c / +0x24, Terrain_FootprintHeight (gx, gz, none, 1, 1, 0, 0) +0x20), linked in before the track's +0x14 one (whose +0x28 is
+// read even when it is null, sic) and numbered by the track's +4 (raised), then Track_AppendPiece and Train_PlaceCarAtBrace (without
+// save). Either way the piece and its previous two flagged 0x200000 (the previous twice) and TrackPieces_Renumber (the piece). Then,
+// unless 0x785a2c is set, Global81af4c_Add of the __ftol of the piece's Car_TravelCost (coaster, 1, piece, its +0x4c, +0x54) (0 for a
+// piece without a train), a negative one plus 0xf1111112 (sic).
+void __cdecl Coaster_PlacePendingPiece(u8 *coaster);
+
 // 0x435340 (cdecl; node, range, car, other, keep, wantValue, out; name invented, unconfirmed): a value along range (+0xbc..+0xc0).
 // With range flagged 0x4000 and keep 0: other's (its type +0x100 flag 1 (+4): +0x50; else its ride's (0x7a4610[+0x70] +8 -> +0x28 ->
 // +4) entry the type's +0x18 -> +0x2c (0x14 apart, +4) -> +0x34, none 0.0; no other: range's own pointer bits, sic) less half the

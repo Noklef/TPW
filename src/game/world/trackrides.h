@@ -161,4 +161,30 @@ void __cdecl TrakRide_Load(u8 *ride, u32 effect);
 // handle of the car's ride (+0x9c; 0 while the module is not loaded); after each the state is 0 (2: also when the rand skips). Other
 // states leave it. The original's Debug_Printf calls are left out.
 void __cdecl TrakCar_PlaySounds(u8 *car);
+
+// 0x547f50 (cdecl; car, as TrakCar_PlaySounds'; called at 0x546cd2 for each car in use; name invented, unconfirmed): the car's step. The
+// velocity +0x3c / +0x40 times the ride's (+0x9c) rate +0x24 (car flag 0x80000: 7/10 of it; else 1000 when the ride's +0x54 is 2) over
+// 1024 (signed, truncated) is the new velocity (also +0x44 / +0x48), its length (fsqrt of the 32-bit sum of squares, __ftol) the speed
+// +0x4c, and the place +0x34 / +0x38 moves by it. By the ride's kind: -14, -11, -6, -3, -1 (ride +0x50 2: the heading +0x58 (+0x50 for
+// -1, else 256 - atan2(vx, -vy) / pi * 256) and the turn +0x5c = ((heading - +0x54) & 0x1ff as -0xff..0x100) * speed / 1000; else turn
+// 0), with ride +0x50 2, car flag 0x4000, the frame (0x877b5c) & 0x1f 0, part +0x28 not -1, the game's rand's (0x877b90) bits 16-17 2,
+// the kind (read again) not -1 and +0x14 0: Particle_SpawnWithVelocity(1) at that part of the instance's holder's part state entries
+// (1024 times its place, along its direction normalised) and +0x14 = 4; the sound below (the thing by TrakRide_FindThing); the particle
+// system +0x2c (not -1) at part +0x24 (not -1). -13, -12, -8, -5: a turn +0x58 past 0x30 either way scaled by 99.8 * 0.01 (__ftol); +0x5c
+// = +0x58 / 128 clamped to -16..16; ride +0x50 2, the frame and the rand's bits 16-18 2: Particle_Spawn(0x60) at 1024 times the
+// instance's model's root place; the sound. -10, -9, -7, -4: +0x14 = 2 when 0 with ride +0x50 2, the frame and speed above 0xe6; the
+// animation +0x10 12 becomes 5 above speed 0x28 (Layer_ClearQueue, Animator_Play(5, 0, mode 1) on the instance +8 when not 0), 5 becomes
+// 12 at or below it unless the car's flags had 0x400 (Animator_Play(0xc, 0, mode 2)); with ride +0x50 2, +0x54 1, the frame, speed above
+// 0x50 and part +0x24 not -1, the rand's bits 16-18 0 or 1 spawn particle 1 at that part, 2 (and +0x14 0) particle 10 and +0x14 = 1;
+// the sound (the thing by the park's things walked); the particle system; then as -2 and any other kind: the heading 256 - atan2(+0x3c,
+// -+0x40) / pi * 256, +0x60 = the new turn - the old. The sound +0x20 (not 0): Sound_SetPosition(x, 0, z) at +0x34 / +0x38 * 0.0033036,
+// then Sound_SetParam(Rides_GetLinkedElement(the ride's thing's id, 10), speed / 3). +0x54 += the turn (& 0x1ff). The link +0x98: without
+// flag 0x100 a sleeping car (flag 0x200) is woken (TrakRide_SetAsleep); with it, its gate +0x18 (marked 0xdac at +0x10) on axis x (+4
+// 0xc: +0x34 - link +4) or y (+0x38 - link +8): gate +8 0, an awake car within 0x4b0 gets flag 0x800000 for a negative distance (else
+// cleared) and sleeps, the gate's animator (+0xc) told 5 (Animator_Play mode 0) unless Layer_GetFlags says it plays bank 5, and the gate
+// flag 2 set; gate +8 not 0, a sleeping car past 0x4b0 on its side wakes; a gate with flag 2 whose queued bank (Layer_GetQueued) is 0xc
+// plays bank 2 (mode 1) and loses the flag. The original's argument slot holds the car's flags, then the latest of the values written
+// into it (the length of a part's direction, a handle found, the heading's fild operands); with no animator the gate tests read that
+// (sic). The original's Debug_Printf calls are left out.
+void __cdecl TrakCar_Move(u8 *car);
 }

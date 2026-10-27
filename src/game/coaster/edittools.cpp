@@ -470,4 +470,53 @@ void __cdecl CoasterEdit_StartTool(u32 tool) {
     }
     g<u32>(0x0079c638) |= tool;
 }
+
+void __cdecl CoasterEdit_EndAll() {
+    EndTool();
+    SetModeState(0);
+    g<u32>(0x0079c6e0) = 0;
+    g<u32>(0x0079c638) = 0;
+}
+
+void __cdecl CoasterEdit_StartChosenTool(u32 *tool) {
+    const u8 *const game = g<const u8 *>(0x00790fec);
+    const u32 f = at<u32>(game, 0x3c);   // (sic: before the game is tested)
+    if ((f & 1) && !(f & 2)) {
+        *tool = 0x10;
+    } else {
+        u32 marked;
+        if (CoasterLink_EndMarked()) {   // (inlined)
+            Flags() |= 0x40;
+            marked = g<u32>(0x0079c664) = 1;
+        } else {
+            marked = g<u32>(0x0079c664);
+        }
+        *tool = marked != 1 ? 1 : 2;
+    }
+    CoasterEdit_StartTool(*tool);   // (inlined in full; the CoasterLink_SetEnd it calls tests the game and its type again)
+}
+
+void __cdecl CoasterEdit_ToolButton(u32 tool, u32 action) {
+    if (action & 2) {
+        if (tool & 0x1ff) {
+            EndTool();
+            SetModeState(0);
+            g<u32>(0x0079c638) &= ~tool;
+        }
+    } else if (action & 1) {
+        if (tool == 2) {
+            StartTool1();
+            CoasterEdit_SetTool(2);
+            g<u32>(0x0079c638) |= tool;
+        } else {
+            CoasterEdit_StartTool(tool);   // (1 and 4 .. 0x100 as StartTool; SetMode called, not inlined)
+        }
+    } else if (action & 4) {
+        CoasterEdit_EndAll();   // (inlined)
+    }
+    if (tool) {
+        CoasterEdit_Tools(nullptr);
+        Dialog7ca1c8_SetChecksIfUpThis(reinterpret_cast<void *>(0x007b51f0), nullptr, g<u32>(0x0079c6e0));
+    }
+}
 }

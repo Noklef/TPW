@@ -2,7 +2,8 @@
 # (a small alphabet, so equal, prefix and ordered cases come up), views of them, C strings and chars as arguments; the blocks come from the heap region.
 # Format is left out (the game's vsprintf). StripSuffix (0x424d30) cuts a case-blind suffix off a string; SkipDot (0x41cea0) steps over a leading "." and the
 # "\" / "." chars after it. EnsureSlash (0x5c5480) appends the global "\" unless s ends in it, IsWad (0x5c53c0) tests a directory entry's name for the
-# global ".wad" at its end and JoinPath (0x5c5580) builds +0x3c of five strings from +0x28, "\" and a name.
+# global ".wad" at its end and JoinPath (0x5c5580) builds +0x3c of five strings from +0x28, "\" and a name;
+# JoinPath50 (0x5c55c0) the same into +0x50.
 # usage: gamestring.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...)
 import os
 import struct
@@ -28,9 +29,9 @@ OPS_TABLE = {
     'WAppend': (0x5f6c10, 1, 'v', 'a'), 'WDelDtor': (0x5f7150, 1, 'f', 'a'), 'WNeStr': (0x5f7e60, 1, 't', 'b'),
     'WCtorReturning': (0x5c7490, 1, '', 'a'),
     'StripSuffix': (0x424d30, 0, '', 'a'), 'SkipDot': (0x41cea0, 0, '', 'a'), 'EnsureSlash': (0x5c5480, 0, '', 'v'), 'IsWad': (0x5c53c0, 0, '', 'a'),
-    'JoinPath': (0x5c5580, 0, '', 'v'),
+    'JoinPath': (0x5c5580, 0, '', 'v'), 'JoinPath50': (0x5c55c0, 0, '', 'v'),
 }
-B_RANGES = [(0x41cea0, 0x41cfe4), (0x424cf0, 0x424dc0), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000), (0x5c53c0, 0x5c5510), (0x5c5580, 0x5c55a9),
+B_RANGES = [(0x41cea0, 0x41cfe4), (0x424cf0, 0x424dc0), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000), (0x5c53c0, 0x5c5510), (0x5c5580, 0x5c55a9), (0x5c55c0, 0x5c55e9),
             (0x5c7490, 0x5c749c)]
 B = Bench(B_RANGES)
 DOT, BACKSLASH = 0x78c648, 0x78bee0   # the game's global strings "." and "\" (String objects in .bss)
@@ -118,12 +119,13 @@ def is_wad(r):
     return Call(0x5c53c0, [S3], regions, ret='a')
 
 
-def join_path(r):
+def join_path(r, at=0x3c, address=0x5c5580):
     """0x5c5580 (thiscall; name): five strings, of which +0x28 (read as the other class's string, as the game's does: a wide one or a
-    narrow one with room past its block) and +0x3c are filled; a name string, now and then +0x28 or +0x3c itself; the global "\\"."""
+    narrow one with room past its block) and +0x3c are filled; a name string, now and then +0x28 or +0x3c itself; the global "\\".
+    0x5c55c0 (JoinPath50) the same into +0x50."""
     regions = {HEAP: heap(), LOCALE: bytes(4)}
     obj = bytearray(r.bytes(0x64))
-    for i, (base, data) in enumerate(((S1 + 0x28, D1), (S1 + 0x3c, D2))):
+    for i, (base, data) in enumerate(((S1 + 0x28, D1), (S1 + at, D2))):
         wide = i == 0 and r.random() < 0.6
         part = {}
         string(r, wide, base, data, part, units(r, wide, r.choice([0, 1, 2, 4, 7, 9])) if r.random() < 0.8 else None)
@@ -135,15 +137,16 @@ def join_path(r):
     if k < 0.1:
         name = S1 + 0x28
     elif k < 0.2:
-        name = S1 + 0x3c
+        name = S1 + at
     else:
         string(r, 0, S2 + 0x40, D3, regions)
         name = S2 + 0x40
     string(r, 0, SLASH2, RAM + 0x5000, regions, b'\\' if r.random() < 0.85 else r.choice([b'', b'/', b'a\\']))
-    return Call(0x5c5580, [S1, name], regions, conv='t', ret='v')
+    return Call(address, [S1, name], regions, conv='t', ret='v')
 
 
-SPECIAL = {'StripSuffix': strip_suffix, 'SkipDot': skip_dot, 'EnsureSlash': ensure_slash, 'IsWad': is_wad, 'JoinPath': join_path}
+SPECIAL = {'StripSuffix': strip_suffix, 'SkipDot': skip_dot, 'EnsureSlash': ensure_slash, 'IsWad': is_wad, 'JoinPath': join_path,
+           'JoinPath50': lambda r: join_path(r, 0x50, 0x5c55c0)}
 
 
 def case(r):
