@@ -984,6 +984,11 @@ void __fastcall Voice70a8d0_Dtor(u8 *voice) {
     Class70a7e0_Dtor(voice);
 }
 
+u32 *__fastcall VoicePairs_Alloc(u32 *self, void *, u32 count) {
+    *self = static_cast<u32>(reinterpret_cast<uintptr_t>(GameHeap_Alloc(count * 8)));
+    return self;
+}
+
 u8 *__fastcall Voice70a8d0_DeletingDtor(u8 *voice, void *, u8 flags) {
     Voice70a8d0_Dtor(voice);
     if (flags & 1) GameHeap_Free(voice);
