@@ -248,4 +248,23 @@ u32 *__fastcall SoundObject_Load(u8 *object, void *, u32 *out, u8 *stream, u32 r
     return out;
 }
 
+u8 *__fastcall SoundObject_CreateChannel(u8 *object) {
+    u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x68));
+    u8 *const channel = block ? SoundChannel_Ctor(block) : nullptr;
+    at<u8 *>(object, 0x24) = channel;
+    return channel;
+}
+
+u8 *__fastcall SoundObjectEax_CreateChannel(u8 *object) {
+    u8 *const channel = static_cast<u8 *>(GameHeap_Alloc(0x70));
+    if (channel) {
+        SoundChannel_Ctor(channel);
+        at<u32>(channel, 0x68) = 0;
+        at<u32>(channel, 0x6c) = 0;
+        at<u32>(channel, 0) = 0x0070a630;
+    }
+    at<u8 *>(object, 0x24) = channel;
+    return channel;
+}
+
 }  // extern "C"
