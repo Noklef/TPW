@@ -1,8 +1,8 @@
 // The sound samples' shared slots (the sound streams of src/game/core/soundstream that are sources, vtables 0x70a6c8-0x70aec0; the
 // names are invented): +0x1c the time (the game's clock, ms) at which a sample whose data has run out has finished playing (0 while it
 // still has data), +0x20 the format byte (bit 1 stereo, bit 6 16-bit, bits 3 / 4 the rate, see Obj_SampleRate20). Reimplementation of
-// 0x6bb1d0, 0x6c7010, 0x6c7070, 0x6c6ef0, the constructor 0x6c6e70, the deleting destructors 0x6c70c0 / 0x6c70a0 and the memory
-// sample's read 0x6c7250.
+// 0x6bb1d0, 0x6c7010, 0x6c7070, 0x6c6ef0, the constructor 0x6c6e70, the deleting destructors 0x6c70c0 / 0x6c70a0, the memory
+// sample's read 0x6c7250 and the file sample's read and rewind 0x6c7890 / 0x6c7920.
 #pragma once
 
 #include "../../../re/types.h"
@@ -35,5 +35,11 @@ u8 *__fastcall SoundSampleBase_DeletingDtor(u8 *stream, void *, u32 flags);
 // from the data + the position by the copier at [0xfb2018] (its slot 0: (buffer, source, count)), the position advanced; at the end
 // (unsigned) slot 19 (the end's schedule, (flag, *out)): 0 when it answers nonzero, else 1. Returns 0 otherwise.
 u32 __fastcall SoundSample_ReadMemory(u8 *sample, void *, u8 *buffer, u32 bytes, u32 *out, u32 flag);
+// 0x6c7890 (thiscall (buffer, bytes, out, flag), pops 0x10; slot 7 of 0x70acf0, the file sample: +0x2c a window on the file, SubStream
+// (vtable 0x70ad40), its position +0x30; +0x18 the length): as SoundSample_ReadMemory, the bytes read by the window's slot 1 (buffer,
+// count), which advances the position; the end tested on the position read again.
+u32 __fastcall SoundSample_ReadFile(u8 *sample, void *, u8 *buffer, u32 bytes, u32 *out, u32 flag);
+// 0x6c7920 (thiscall; slot 8 of 0x70acf0): SubStream_Rewind on the window (+0x2c); returns its answer.
+u32 __fastcall SoundSample_RewindFile(u8 *sample);
 
 }  // extern "C"

@@ -24,7 +24,7 @@ CALLS = {'decode': (0x6c7cf0, 'a'), 'read': (0x6c7c20, 'a'), 'query': (0x6c7bc0,
          'schedule': (0x6c7010, 'b'), 'drained': (0x6c7070, 'a'), 'describe': (0x6bb1d0, 'v'), 'sdtor': (0x6c6ef0, 'v'),
          'dtor': (0x6c8330, 'v'), 'sdtor2': (0x6c8000, 'v'), 'ddtor': (0x6c7ba0, 'a'), 'sddtor': (0x6c7fe0, 'a'),
          'sctor': (0x6c6e70, 'a'), 'sdel': (0x6c70c0, 'a'), 'basedel': (0x6c70a0, 'a'),
-         'memread': (0x6c7250, 'a')}
+         'memread': (0x6c7250, 'a'), 'fileread': (0x6c7890, 'a'), 'filerewind': (0x6c7920, 'a')}
 B = Bench([(0x6c7bc0, 0x6c7dfb), (0x6c80c0, 0x6c8138), (0x6c7010, 0x6c7082), (0x6bb1d0, 0x6bb1dd), (0x6c6230, 0x6c625a),
            (0x6c62c0, 0x6c62d8), (0x6d4ec0, 0x6d4ed9), (0x5f5f10, 0x5f5f7d), (0x5f5fa0, 0x5f5faa),
            (0x6d4ee0, 0x6d4f2a), (0x6d4fa0, 0x6d4fdc), (0x6d4f30, 0x6d4f99), (0x6d4fe0, 0x6d503a), (0x6d5200, 0x6d5254),
@@ -33,7 +33,7 @@ B = Bench([(0x6c7bc0, 0x6c7dfb), (0x6c80c0, 0x6c8138), (0x6c7010, 0x6c7082), (0x
            (0x6c8000, 0x6c806a), (0x6c7ba0, 0x6c7bc0), (0x6c7fe0, 0x6c7ffe), (0x6c7ad0, 0x6c7b15), (0x6c7f20, 0x6c7f65),
            (0x5f71e0, 0x5f7220), (0x618d30, 0x618d90), (0x6307e0, 0x630800),
            (0x6c6e70, 0x6c6eed), (0x6c70a0, 0x6c70dc), (0x6c7090, 0x6c7097), (0x6c6f40, 0x6c6f87), (0x6c6f90, 0x6c6fee),
-           (0x6c7250, 0x6c72e9)])
+           (0x6c7250, 0x6c72e9), (0x6c7890, 0x6c7911), (0x6c7920, 0x6c7925)])
 SAMPLE, SVT, NEXT, SUBVT, FILEVT, OUT, RECORD, MEMREADER = (RAM + 0x100 * i for i in range(8))
 BUFFER, DECODER, BITS, BREADER = RAM + 0x800, RAM + 0x1000, RAM + 0x3000, RAM + 0x4000
 MEMORY_VTABLE, BUFFERED_VTABLE = 0x70adb8, 0x70ae28
@@ -167,6 +167,19 @@ def case(r):
         regions[COPIER_AT] = struct.pack('<I', COPIER)
         left = (length - pos) & 0xffffffff
         args = [BUFFER, r.choice([0, 1, left, left + 1, left - 1, r.getrandbits(32)]) & 0xffffffff, OUT, r.getrandbits(32)]
+    elif name == 'fileread':   # (the window at +0x2c: SUBVT's slot 1 a recorder, its position +0x30; +0x18 the length)
+        if r.random() < 0.25:
+            struct.pack_into('<I', sample, 0x1c, end or 1)
+        length = r.choice([0, 1, 0x100, r.randrange(0, 0x10000), r.getrandbits(32)])
+        pos = r.choice([0, length, length - 1, r.randrange(0, length + 1), r.getrandbits(32)]) & 0xffffffff
+        struct.pack_into('<I', sample, 0x18, length)
+        struct.pack_into('<II', sample, 0x2c, SUBVT, pos)
+        set_return(log, 19, r.choice([0, 1, 0x100, r.getrandbits(32)]))
+        left = (length - pos) & 0xffffffff
+        args = [BUFFER, r.choice([0, 1, left, left + 1, left - 1, r.getrandbits(32)]) & 0xffffffff, OUT, r.getrandbits(32)]
+    elif name == 'filerewind':   # (the window's stream at +0x38: FILEVT's slot 4 the seek)
+        struct.pack_into('<I', sample, 0x38, FILEVT)
+        set_return(log, 4, r.getrandbits(32))
     elif name == 'basedel':
         args = [r.choice([0, 1, 1, 2, 3, r.getrandbits(32)])]
     elif name in ('sdtor', 'dtor', 'sdtor2', 'ddtor', 'sddtor', 'sdel'):

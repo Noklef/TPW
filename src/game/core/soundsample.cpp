@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../files/file.h"
+#include "../files/substream.h"
 #include "gameheap.h"
 #include "soundstream.h"
 #include "vcall.h"
@@ -78,5 +79,19 @@ u32 __fastcall SoundSample_ReadMemory(u8 *sample, void *, u8 *buffer, u32 bytes,
     if (at<u32>(sample, 0x14) < at<u32>(sample, 0x18)) return 0;
     return vcall<u8>(sample, 0x4c, flag, *out) ? 0 : 1;
 }
+
+u32 __fastcall SoundSample_ReadFile(u8 *sample, void *, u8 *buffer, u32 bytes, u32 *out, u32 flag) {
+    if (at<u32>(sample, 0x1c)) {
+        *out = 0;
+        return SoundSample_Drained(sample);
+    }
+    const u32 left = at<u32>(sample, 0x18) - at<u32>(sample, 0x30);
+    *out = bytes < left ? bytes : left;
+    vcall<u32>(sample + 0x2c, 4, buffer, *out);
+    if (at<u32>(sample, 0x30) < at<u32>(sample, 0x18)) return 0;
+    return vcall<u8>(sample, 0x4c, flag, *out) ? 0 : 1;
+}
+
+u32 __fastcall SoundSample_RewindFile(u8 *sample) { return SubStream_Rewind(sample + 0x2c); }
 
 }  // extern "C"
