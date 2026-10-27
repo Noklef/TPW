@@ -268,5 +268,19 @@ u32 *__fastcall Voice70a390_SetPosition(u8 *voice, void *, u32 *out, const u32 *
 void __fastcall Voice70a390_SetParam(u8 *voice, void *, u32 key, u32 value);
 // 0x6bdac0 (thiscall; slot 13): each child's slot 13.
 void __fastcall Voice70a390_SendLevels(u8 *voice);
+// 0x6bdbb0 (thiscall (prev, time), pops 8): a new child (the voice's slot 21) after prev (its block's +0x18), LinkedVoice_Init
+// (the voice's definition +4, time): 1, SoundVoice_ApplyVariation and 1; else the child deleted (slot 2, 1) unless null, unlinked, 0.
+u8 __fastcall Voice70a390_AddChild(u8 *voice, void *, u8 *prev, u32 time);
+// 0x6bdb10 (thiscall (time), pops 4): without children: the block's byte 0 set and flag 0x20 clear: +8 = 0 and flag 0x20; then
+// Voice70a390_AddChild (the voice, time). Returns the first child.
+u8 *__fastcall Voice70a390_FirstChild(u8 *voice, void *, u32 time);
+// 0x6bdb50 (thiscall (time), pops 4): unless flag 0x10, from Voice70a390_FirstChild on: each child's slot 5 (out: the time's own
+// argument slot, sic; time), and past its end (+0x1c, unsigned) the last one gets a next (Voice70a390_AddChild).
+void __fastcall Voice70a390_StartChildren(u8 *voice, void *, u32 time);
+// 0x6bdc10 (thiscall (time), pops 4): the children whose end (+0x1c) the time has reached (unsigned) unlinked and deleted (slot 2, 1).
+void __fastcall Voice70a390_PruneChildren(u8 *voice, void *, u32 time);
+// 0x6bdae0 (thiscall (out, time), pops 8; slot 5): unless the byte +0x30 has 0x50, Voice70a390_StartChildren and _PruneChildren;
+// *out = 0. Returns the out.
+u32 *__fastcall Voice70a390_Start(u8 *voice, void *, u32 *out, u32 time);
 
 }  // extern "C"

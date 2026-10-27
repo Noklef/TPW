@@ -1003,4 +1003,62 @@ void __fastcall Voice70a390_SendLevels(u8 *voice) {
     for (u8 *child = at<u8 *>(at<u8 *>(voice, 0x4c), 0x18); child; child = at<u8 *>(at<u8 *>(child, 0x4c), 0x18)) vcall<void>(child, 0x34);
 }
 
+u8 __fastcall Voice70a390_AddChild(u8 *voice, void *, u8 *prev, u32 time) {
+    at<u8 *>(at<u8 *>(prev, 0x4c), 0x18) = vcall<u8 *>(voice, 0x54);
+    if (LinkedVoice_Init(at<u8 *>(at<u8 *>(prev, 0x4c), 0x18), nullptr, at<u8 *>(voice, 4), time)) {
+        SoundVoice_ApplyVariation(voice);
+        return 1;
+    }
+    if (u8 *const child = at<u8 *>(at<u8 *>(prev, 0x4c), 0x18)) vcall<void>(child, 8, 1u);
+    at<u32>(at<u8 *>(prev, 0x4c), 0x18) = 0;
+    return 0;
+}
+
+u8 *__fastcall Voice70a390_FirstChild(u8 *voice, void *, u32 time) {
+    u8 *const params = at<u8 *>(voice, 0x4c);
+    if (!at<u8 *>(params, 0x18)) {
+        if (params[0] && !(voice[0x30] & 0x20)) {
+            at<u32>(voice, 8) = 0;
+            at<u32>(voice, 0x30) |= 0x20;
+        }
+        Voice70a390_AddChild(voice, nullptr, voice, time);
+    }
+    return at<u8 *>(at<u8 *>(voice, 0x4c), 0x18);
+}
+
+void __fastcall Voice70a390_StartChildren(u8 *voice, void *, u32 time) {
+    if (voice[0x30] & 0x10) return;
+    u32 scratch = time;   // (the children's out: the time's own argument slot, sic)
+    for (u8 *child = Voice70a390_FirstChild(voice, nullptr, time); child;) {
+        u8 *const next = at<u8 *>(at<u8 *>(child, 0x4c), 0x18);
+        vcall<void>(child, 0x14, &scratch, time);
+        if (time > at<u32>(child, 0x1c) && !at<u8 *>(at<u8 *>(child, 0x4c), 0x18)) Voice70a390_AddChild(voice, nullptr, child, time);
+        child = next;
+    }
+}
+
+void __fastcall Voice70a390_PruneChildren(u8 *voice, void *, u32 time) {
+    u8 *prev = voice;
+    for (u8 *child = at<u8 *>(at<u8 *>(voice, 0x4c), 0x18); child;) {
+        if (time < at<u32>(child, 0x1c)) {
+            prev = child;
+            child = at<u8 *>(at<u8 *>(child, 0x4c), 0x18);
+            continue;
+        }
+        u8 *const next = at<u8 *>(at<u8 *>(child, 0x4c), 0x18);
+        at<u8 *>(at<u8 *>(prev, 0x4c), 0x18) = next;
+        vcall<void>(child, 8, 1u);
+        child = next;
+    }
+}
+
+u32 *__fastcall Voice70a390_Start(u8 *voice, void *, u32 *out, u32 time) {
+    if (!(voice[0x30] & 0x50)) {
+        Voice70a390_StartChildren(voice, nullptr, time);
+        Voice70a390_PruneChildren(voice, nullptr, time);
+    }
+    *out = 0;
+    return out;
+}
+
 }  // extern "C"
