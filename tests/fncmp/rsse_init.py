@@ -206,9 +206,11 @@ def walkers_case(r, op):
     given 0x80 and the part states' flag 8 cleared), the vm's walker slots (+0x2c: up to 5 at WALK_SLOTS, or a negative count) each
     busy (+0x18 1-4, or 0, 0x100, 0x102) or not, of each kind (+0x16: 2 and 4 most, 1, 3, 5, 6, 0, any), +0x10 the person's handle
     (its high half any; a value two slots share now and then), the keys +0 / +6 found under 0x800 and +2 / +4 under 0x80 for kind 4
-    (else 0x800), or -1 (the ride's centre; not for a facing slot's +2, whose direction it leaves unwritten), +8 / +0xc the leg's start
-    and end about the clock's time (never equal: the original divides by their difference); the part states' scripts -1 or small
-    slots; Particle_Spawn's world as particles.spawn() has it."""
+    (else 0x800; most often a key only parts of that one mask have, so that a lookup under the other finds nothing), or -1 (the
+    ride's centre; not for a facing slot's +2, whose direction it leaves unwritten), +8 / +0xc the leg's start and end about the
+    clock's time (never equal: the original divides by their difference; a leg part way through often); the wobble's end (+0x80 +
+    +0x84) the clock's time or one either side now and then; the part states' scripts -1 or small slots; Particle_Spawn's world as
+    particles.spawn() has it."""
     from ridebounds import MODEL, pose
     import particles
     import personscripts
@@ -227,6 +229,7 @@ def walkers_case(r, op):
         put(ram, 0x600 + 0x14 * i, 'I', int.from_bytes(ram[0x600 + 0x14 * i:0x604 + 0x14 * i], 'little') & ~0x880 | bits[i])
         put(ram, 0x680 + 0x14 * i + 0xc, 'i', r.choice([-1, -1, 0, 1, 3, r.randrange(64)]))
     found = lambda m: [k for k, b in zip(keys, bits) if b & m]  # noqa: E731
+    only = lambda m: [k for k, b in zip(keys, bits) if b == m and k not in [k2 for k2, b2 in zip(keys, bits) if b2 != m]]  # noqa: E731
     ram[MODEL - RAM + 0x30] |= 0x80
     ram[0x6e0] &= ~8
     put(ram, 0x6e8, 'I', r.choice([0, 1, 2, 5, r.getrandbits(32)]))   # (the part states' active count)
@@ -237,8 +240,9 @@ def walkers_case(r, op):
     now = (int.from_bytes(clock[0x3c:0x40], 'little') + int.from_bytes(clock[0x48:0x4c], 'little')) & 0xffffffff
     put(ram, o + 0x2c, 'I', WALK_SLOTS)
     put(ram, o + 0x7c, 'i', r.choice([0, 1, 3, 5, 5, 5, -1]))
-    put(ram, o + 0x80, 'I', (now - r.choice([0, 1, 250, 999, r.randrange(5000), r.getrandbits(32)])) & 0xffffffff)
-    put(ram, o + 0x84, 'I', r.choice([0, 0, 0, 1000, 2000, 1, 0xffffffff, 500, r.getrandbits(32)]))
+    ago = r.choice([0, 1, 250, 999, r.randrange(5000), r.getrandbits(32)])
+    put(ram, o + 0x80, 'I', (now - ago) & 0xffffffff)
+    put(ram, o + 0x84, 'I', r.choice([0, 0, 0, 1000, 2000, 1, 0xffffffff, 500, r.getrandbits(32), ago, ago, ago + 1, ago - 1]) & 0xffffffff)
     put(ram, o + 0x88, 'HH', r.choice([0, 1000, r.getrandbits(16)]), r.choice([0, 1000, r.getrandbits(16)]))
     put(ram, o + 0xc0, 'H', r.choice([0, 50, 0xffce, r.getrandbits(16)]))
     h = r.choice([0, 1, 2, 3, 5, 7, r.randrange(16)])
@@ -247,14 +251,14 @@ def walkers_case(r, op):
         s = 0x20 * i
         kind = r.choice([2, 2, 4, 4, 1, 3, 5, 6, 0, r.getrandbits(16)])
         busy = r.choice([1, 2, 3, 4, 1, 2, 3, 4, 0, 0x100, 0x102])
-        near = lambda m: found(m) + [0xffff]  # noqa: E731
+        near = lambda m: (only(m) if only(m) and r.random() < 0.6 else found(m)) + [0xffff]  # noqa: E731
         m = 0x80 if kind == 4 else 0x800
         to = found(m) if busy == 2 and kind not in (1, 2, 4) else near(m)
         if not to:
             busy, to = 4, [0xffff]
         put(slots, s, 'HHHH', r.choice(near(0x800)), r.choice(to), r.choice(near(m)), r.choice(near(0x800)))
-        start = (now - r.choice([0, 1, 300, 999, 1000, 5000, r.getrandbits(32)])) & 0xffffffff
-        put(slots, s + 8, 'II', start, (start + r.choice([1, 100, 1000, 2000, 50, r.getrandbits(16) + 1, r.getrandbits(32) | 1])) & 0xffffffff)
+        start = (now - r.choice([0, 1, 300, 999, 1000, 5000, r.randrange(2000), r.randrange(2000), r.getrandbits(32)])) & 0xffffffff
+        put(slots, s + 8, 'II', start, (start + r.choice([1, 100, 1000, 2000, 50, 3000, 3000, r.getrandbits(16) + 1, r.getrandbits(32) | 1])) & 0xffffffff)
         put(slots, s + 0x10, 'I', h | r.choice([0, 0, r.getrandbits(16) << 16]))
         put(slots, s + 0x16, 'HH', kind, busy)
         slots[s + 0x1a] |= 1
