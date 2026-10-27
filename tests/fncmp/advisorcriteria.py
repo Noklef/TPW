@@ -1,7 +1,8 @@
 # The advisor scoring's park criteria (src/game/core/advisorscoring: 0x59c8d0-0x59fb10) against the originals, each on parkenv.py's
 # joint park (things, chains, definitions and control records, the analyser, the research lab), the scoring's bounds small (about the
 # counts the park can give: -1 to 5, the percentages and half counts about 30 and 100) or anything, its weights anything.
-# The criteria of 0x5a02f0-0x5a08b0 (Idle0 ... Share): see late_case().
+# The criteria of 0x5a02f0-0x5a08b0 (Idle0 ... Share): see late_case(); 0x59f440 / 0x59f590 / 0x59f5e0 / 0x59fb10 (Bus, Stf1f8, Ppl19c,
+# StfE): late_case() and late2().
 # usage: advisorcriteria.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Booth,No02,...)
 import os
 import struct
@@ -24,26 +25,31 @@ CALLS = {'Booth': (0x59c8d0, {}), 'No02': (0x59c960, {}), 'Obj0': (0x59ca80, {})
          'Idle0': (0x5a02f0, {0x57c: [0, 1, 2, 3, -1], 0x580: PCT}), 'Idle1': (0x5a0370, {0x588: PCT}), 'Idle2': (0x5a03d0, {0x590: PCT}),
          'K3F1': (0x5a0430, {0x598: PCT}), 'K3F2': (0x5a0490, {0x5a0: PCT}), 'Tal0': (0x5a04f0, {}), 'TotTh': (0x5a05a0, {}),
          'Mood': (0x5a05f0, {}), 'Money': (0x5a0670, {}), 'One': (0x5a0780, {}), 'CtlLo': (0x5a07d0, {0x5fc: PCT, 0x604: PCT}),
-         'CtlMid': (0x5a0820, {0x604: PCT, 0x60c: PCT}), 'CtlHi': (0x5a0870, {0x60c: PCT}), 'Share': (0x5a08b0, {0x614: PCT + [99]})}
+         'CtlMid': (0x5a0820, {0x604: PCT, 0x60c: PCT}), 'CtlHi': (0x5a0870, {0x60c: PCT}), 'Share': (0x5a08b0, {0x614: PCT + [99]}),
+         'Bus': (0x59f440, {0x410: [0, 1, 2, 5, -1]}), 'Stf1f8': (0x59f590, {0x42c: [0, 1, 2, 3, -1], 0x430: [0, 10, 50, 100, -1]}),
+         'Ppl19c': (0x59f5e0, {0x438: [0, 1, 2, 3, -1], 0x43c: [0, 10, 50, 100, -1]}), 'StfE': (0x59fb10, {0x4d0: [0, 1, 2, 3, -1]})}
 IDLE = {'Idle0': 0, 'Idle1': 1, 'Idle2': 2, 'K3F1': None, 'K3F2': None}
-LATE = {'Idle0', 'Idle1', 'Idle2', 'K3F1', 'K3F2', 'Tal0', 'TotTh', 'Mood', 'Money', 'One', 'CtlLo', 'CtlMid', 'CtlHi', 'Share'}
+LATE = {'Idle0', 'Idle1', 'Idle2', 'K3F1', 'K3F2', 'Tal0', 'TotTh', 'Mood', 'Money', 'One', 'CtlLo', 'CtlMid', 'CtlHi', 'Share',
+        'Bus', 'Stf1f8', 'Ppl19c', 'StfE'}
 B = Bench([(0x412e60, 0x412f00), (0x41a960, 0x41a980), (0x41a990, 0x41a9c0), (0x4c7fa0, 0x4c8080), (0x4c81e0, 0x4c8250), (0x4c9050, 0x4c9080),
            (0x4c91c0, 0x4c92a0), (0x4c94a0, 0x4c94e0), (0x4c9530, 0x4c9680), (0x4c9750, 0x4c9840), (0x4c9960, 0x4c9ab0), (0x4c9b40, 0x4c9c10),
            (0x4c9e60, 0x4c9ef0), (0x4ca310, 0x4ca3b0), (0x4ca450, 0x4ca6c0), (0x4ca7b0, 0x4ca830), (0x4ca8e0, 0x4ca9c0), (0x4d3d80, 0x4d3df0),
-           (0x4d8610, 0x4d8660), (0x4e0370, 0x4e0390), (0x4fa990, 0x4faa10), (0x503980, 0x503a00), (0x503b30, 0x503b90), (0x506eb0, 0x506ee0),
+           (0x4d8610, 0x4d8690), (0x4e0370, 0x4e0390), (0x4fa990, 0x4faa10), (0x503980, 0x503a00), (0x503b30, 0x503b90), (0x506eb0, 0x506ee0),
            (0x50b350, 0x50b370), (0x516130, 0x5161c0), (0x519510, 0x5195a0), (0x51a280, 0x51a2a0), (0x536300, 0x53644c),
            (0x59c8d0, 0x59c9e0), (0x59ca80, 0x59cad0), (0x59cd30, 0x59cda0), (0x59ce30, 0x59cff0), (0x59d3b0, 0x59d410), (0x59da30, 0x59dae0),
            (0x59dbf0, 0x59dc70), (0x59dd40, 0x59ddf0), (0x59dfd0, 0x59e080), (0x59e260, 0x59e2f0), (0x59e840, 0x59e8a0), (0x59f940, 0x59f9b0),
-           (0x59fa60, 0x59fb20), (0x5da3c0, 0x5da3c1),
+           (0x59fa60, 0x59fb51), (0x5da3c0, 0x5da3c1),
            (0x409410, 0x40947a), (0x4c7bb0, 0x4c7cb6), (0x4c9130, 0x4c91be), (0x4c9ef0, 0x4ca154), (0x4ca740, 0x4ca7a4),
            (0x4ca9c0, 0x4caa6e), (0x4d09f0, 0x4d09f7), (0x4e0440, 0x4e044b), (0x5195d0, 0x51960d), (0x5aef50, 0x5af0dc),
            (0x5af7f0, 0x5af7fd), (0x5b1680, 0x5b16a6), (0x5b2fd0, 0x5b2feb), (0x5b3110, 0x5b312b), (0x67a830, 0x67a860),
-           (0x5a02f0, 0x5a0520), (0x5a05a0, 0x5a06c0), (0x5a0780, 0x5a07b7), (0x5a07d0, 0x5a0930)])
+           (0x5a02f0, 0x5a0520), (0x5a05a0, 0x5a06c0), (0x5a0780, 0x5a07b7), (0x5a07d0, 0x5a0930),
+           (0x4c7cc0, 0x4c7da9), (0x519450, 0x51948d), (0x59f440, 0x59f4ea), (0x59f590, 0x59f62c)])
 NONE = {'Obj0': (4,), 'Tal7': (7,), 'Low6': (6,), 'Share8': (8,), 'All8': (8,), 'Total': (4, 5, 6, 7, 8)}   # (the staff a criterion asks to be absent)
 NEED = {'Tal7b': 7, 'Res0': 8, 'C14': 8, 'Res1': 8, 'Res2': 8, 'Res3': 8}   # (the kind a criterion asks to be present)
 UNFLAGGED = {'Tal7', 'Low6', 'Share8', 'All8', 'Total', 'Idle0', 'Mood', 'CtlLo', 'CtlMid', 'CtlHi', 'Share'}
 SCORING = RAM + 0x50000
 MONEY, SAVE, THEME, MSLOT = RAM + 0x58000, RAM + 0x60000, RAM + 0x60100, 14
+ENTRY, ESLOT = RAM + 0x58400, 15   # (StfE's game table entry for G's +0x1da718)
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 
 
@@ -129,6 +135,8 @@ def late_case(r, regions, info, name):
                                     r.choice([0, 1, 10, 30, 0xffffffff]), r.choice([0, 0, 1, 2, 0xffffffff]), parkenv.small(r, 10, 50, 100))
     if r.random() < 0.2:
         regions[0x785790] = put(bytearray(regions[0x785790]), 4, 'I', 0)
+    if name in LATE2:
+        late2(r, regions, info, name, pool)
     if name == 'Mood' and r.random() < 0.35:   # (a tie: every person's byte v, the bound v * 1.0)
         v = r.randrange(101)
         for i in range(len(info['things'])):
@@ -144,6 +152,44 @@ def late_case(r, regions, info, name):
         regions[MONEY + 0x124] = struct.pack('<I', int(n * f) + r.randrange(-40, 41))
 
 
+
+def late2(r, regions, info, name, pool):
+    """Bus: the analyser's count buffer +0x216d8 (5 samples from +4) with its cursor -2..4 and size -1..5 mostly, the samples about the
+    bound +0x410, and the bus stops 0x7855ac (A x, y, B x, y). Stf1f8 / Ppl19c: the staff's +0x1f8 / the people's +0x19c low bytes 0-100,
+    now and then all one value v with the bound +0x430 / +0x43c v (a tie). StfE: G's +0x1da718 the slot 15 mostly, an entry there
+    whose byte +0x20 is 0 or not."""
+    s = bytearray(regions[SCORING])
+    if name == 'Bus':
+        count = bytearray(r.bytes(0x24))
+        put(count, 4, '5i', *(r.choice([0, 1, 2, 3, 5, -1, r.getrandbits(31)]) for _ in range(5)))
+        put(count, 0x18, 'i', r.choice([-1, -1, 0, 1, 2, 3, 4, -2, -5]))
+        put(count, 0x1c, 'i', r.choice([1, 2, 3, 4, 5, 5, 0, -1]))
+        count[0x20] = r.choice([0, 1, 1, 0x80])
+        regions[parkenv.ANALYSER + 0x216d8] = count
+        regions[0x7855ac] = struct.pack('<4I', *(r.choice([0, 1, 5, 0x7f, 0xffff, 0x10000 + r.randrange(0x100), r.getrandbits(32)]) for _ in range(4)))
+    elif name in ('Stf1f8', 'Ppl19c'):
+        staff, off, bound = (lambda k: 4 <= k <= 8, 0x1f8, 0x430) if name == 'Stf1f8' else (lambda k: k == 1, 0x19c, 0x43c)
+        tie = r.randrange(101) if r.random() < 0.35 else None
+        for i in range(len(info['things'])):
+            if staff(pool[THING * i + 2]):
+                pool[THING * i + off] = tie if tie is not None else r.choice([r.randrange(101), r.randrange(256)])
+        regions[POOL] = pool
+        if tie is not None:
+            put(s, bound, 'i', tie)
+    elif name == 'StfE':
+        slots = bytearray(regions[parkenv.SLOTS])
+        slots += bytearray(max(0, 20 * (ESLOT + 1) - len(slots)))
+        put(slots, 20 * ESLOT, 'I', ENTRY)
+        regions[parkenv.SLOTS] = slots
+        tail = bytearray(regions[parkenv.TAIL])
+        put(tail, 0x1c, 'H', ESLOT if r.random() < 0.95 else MSLOT)
+        regions[parkenv.TAIL] = tail
+        regions[ENTRY] = bytes(0x20) + bytes([r.choice([0, 0, 1, 0x80])]) + r.bytes(3)
+    put(s, {'Bus': 0x414, 'Stf1f8': 0x434, 'Ppl19c': 0x440, 'StfE': 0x4d4}[name], 'I', r.choice([1, 5, 100, r.getrandbits(32) | 1]))
+    regions[SCORING] = s
+
+
+LATE2 = {'Bus', 'Stf1f8', 'Ppl19c', 'StfE'}
 CALLS_LATE_BOUNDS = {0x598: PCT, 0x5a0: PCT, 0x5a8: [0, 1, 2, -1], 0x5fc: PCT, 0x604: PCT, 0x60c: PCT, 0x614: PCT + [99, 99]}
 
 

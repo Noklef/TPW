@@ -4,6 +4,7 @@
 
 #include "../math/x87.h"
 #include "../world/analyser.h"
+#include "../world/mapcell.h"
 #include "../world/money.h"
 #include "../world/object.h"
 #include "../world/objectdefs.h"
@@ -517,6 +518,50 @@ s32 __fastcall AdvisorScoring_PeopleShare(const u8 *scoring) {
     else
         p = share(Things_CountKind1OnPlainCell(), global_s32(0x00785794));
     return p > at<s32>(scoring, 0x614) ? at<s32>(scoring, 0x618) : 0;
+}
+
+
+s32 __fastcall AdvisorScoring_LatestCountBusStop(u8 *scoring) {
+    const u8 *const counts = world_table() + 0x216d8;
+    const s32 count = counts[0x20] ? at<s32>(counts, 0x1c) : (s32)(at<u32>(counts, 0x18) + 1);
+    if (count <= 0)
+        return 0;
+    const s32 size = at<s32>(counts, 0x1c);
+    if (size <= 0)
+        return 0;
+    s32 cursor = at<s32>(counts, 0x18);
+    if (cursor < 0) {
+        if (!counts[0x20])
+            return 0;
+        cursor += size;
+    }
+    if (at<s32>(counts, 4 + 4 * cursor) <= at<s32>(scoring, 0x410))
+        return 0;
+    u16 pos[2];
+    Map_BusStopPos(game() + 0x2d8, nullptr, pos, 1);
+    at<u32>(scoring, 8) = pos[0];
+    return at<s32>(scoring, 0x414);
+}
+
+s32 __fastcall AdvisorScoring_StaffStat1f8NotAbove(const u8 *scoring) {
+    if (Things_CountStaff() < at<s32>(scoring, 0x42c))
+        return 0;
+    const double average = Things_AverageStaffStat1f8(world_table(), nullptr, 0);
+    return (double)at<s32>(scoring, 0x430) > average ? 0 : at<s32>(scoring, 0x434);
+}
+
+s32 __fastcall AdvisorScoring_PeopleStat19cNotAbove(const u8 *scoring) {
+    if (Things_CountKind1OnPlainCell() < at<s32>(scoring, 0x438))
+        return 0;
+    const double average = Things_AveragePersonStat19c(world_table(), nullptr, 0);
+    return (double)at<s32>(scoring, 0x43c) > average ? 0 : at<s32>(scoring, 0x440);
+}
+
+s32 __fastcall AdvisorScoring_StaffEntryClear(const u8 *scoring) {
+    if (Things_CountStaff() <= at<s32>(scoring, 0x4d0))
+        return 0;
+    const u8 *const entry = reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da718_519450(game()));
+    return entry[0x20] ? 0 : at<s32>(scoring, 0x4d4);
 }
 
 }  // extern "C"

@@ -233,4 +233,17 @@ s32 __fastcall AdvisorScoring_ControlsPercentHigh(const u8 *scoring);
 // 0x5a08b0: not flagged, [0x785794] not 0 and the people on plain cells' share of it (Things_CountKind1OnPlainCell, asked again when
 // the first share is not above 100; else 100) above +0x614: +0x618.
 s32 __fastcall AdvisorScoring_PeopleShare(const u8 *scoring);
+
+// More park criteria (thiscall on the scoring; names invented). 0x59f440: the analyser's (of [0x7cf83c]) count at +0x216d8 (as
+// 0x5a0780 has it) above 0, and the buffer's newest sample (size +0x1c above 0; the cursor +0x18 if not negative, else, with the byte
+// +0x20 set, cursor + size; the samples from +4) above +0x410: +8 the x of the bus stop B (Map_BusStopPos(G + 0x2d8, 1)), +0x414.
+s32 __fastcall AdvisorScoring_LatestCountBusStop(u8 *scoring);
+// 0x59f590: at least +0x42c staff (Things_CountStaff) and +0x430 not above their average +0x1f8 (Things_AverageStaffStat1f8; fcompp's
+// C3 / C0, so unordered counts as not above): +0x434. 0x59f5e0: the same for the people on plain cells (Things_CountKind1OnPlainCell,
+// Things_AveragePersonStat19c) against +0x438 / +0x43c: +0x440.
+s32 __fastcall AdvisorScoring_StaffStat1f8NotAbove(const u8 *scoring);
+s32 __fastcall AdvisorScoring_PeopleStat19cNotAbove(const u8 *scoring);
+// 0x59fb10: more staff than +0x4d0 and the byte +0x20 of the game table entry for G's +0x1da718 (GameTable7cfb90_Get1da718_519450)
+// clear: +0x4d4.
+s32 __fastcall AdvisorScoring_StaffEntryClear(const u8 *scoring);
 }
