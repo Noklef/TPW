@@ -95,6 +95,7 @@
 #include "../../src/game/world/person.h"
 #include "../../src/game/world/pathdrag.h"
 #include "../../src/game/world/queuepieces.h"
+#include "../../src/game/world/cellmodel.h"
 #include "../../src/game/world/rides.h"
 #include "../../src/game/world/object.h"
 #include "crt.h"
@@ -397,6 +398,11 @@ const PathDragEnv kPathDragEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void
 // Ride_Destroy's calls into the unported 0x42a190 and 0x436fa0 (agent B's): cdecl recorders 18 of no arguments and 19 of 1, as
 // tests/fncmp/ridedestroy.py hooks those addresses.
 const RidesEnv kRidesEnv = {reinterpret_cast<void(__cdecl *)()>((uintptr_t)jpeg_recorder(18, 0)), reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(19, 1))};
+// MapCell_ApplyModel's calls into agent A's unported placers 0x522b90 / 0x522d50 / 0x522f20: cdecl recorders 20, 21 and 22 of 6 arguments,
+// as tests/fncmp/cellapply.py hooks those addresses.
+const CellModelEnv kCellModelEnv = {reinterpret_cast<u32(__cdecl *)(s32, s32, s32, s32, s32, u32)>((uintptr_t)jpeg_recorder(20, 6)),
+                                    reinterpret_cast<u32(__cdecl *)(s32, s32, s32, s32, s32, u32)>((uintptr_t)jpeg_recorder(21, 6)),
+                                    reinterpret_cast<u32(__cdecl *)(s32, s32, s32, s32, s32, u32)>((uintptr_t)jpeg_recorder(22, 6))};
 // The objects' calls into the unported 0x40fb10 (agent B's) and 0x500870 / 0x5012f0 (agent C's): thiscall recorders 21 of 1 argument, 22 and 23
 // of none, as tests/fncmp/objectstate.py hooks those addresses.
 // MessageCentre_Post's call into the unported Thing_HandleMessage 0x50b550 (agent C's): the thiscall recorder 27 of 1 argument, as
@@ -1079,6 +1085,7 @@ int main(int argc, char **argv) {
     QueuePieces_SetEnv(&kQueuePiecesEnv);
     PathDrag_SetEnv(&kPathDragEnv);
     Rides_SetEnv(&kRidesEnv);
+    CellModel_SetEnv(&kCellModelEnv);
     Object_SetEnv(&kObjectEnv);
     MessageCentre_SetEnv(&kMessageCentreEnv);
     GlyphRender_SetEnv(&kGlyphRenderEnv);   // (tests/fncmp/glyphrender.py hooks 0x67a7d0 with fncmp._cdecl_log)

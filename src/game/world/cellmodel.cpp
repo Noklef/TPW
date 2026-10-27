@@ -5,6 +5,7 @@
 
 #include "../core/accessors.h"
 #include "../core/crt.h"
+#include "../motion/animator.h"
 #include "../terrain/land.h"
 #include "mapcell.h"
 #include "queuepieces.h"
@@ -40,6 +41,18 @@ u32 search(u32 table, s32 rows, u8 bits, s32 turn, s32 *angle) {
 // A straight cell facing 0x40 or 0x10 turns by 180.
 s32 turn_of(const u8 *cell, u8 direction) {
     return MapCell_StraightNeighbours(cell) && (direction == 0x40 || direction == 0x10) ? 0xb4 : 0;
+}
+
+const CellModelEnv kGameEnv = {reinterpret_cast<u32(__cdecl *)(s32, s32, s32, s32, s32, u32)>((uintptr_t)0x00522b90),
+                               reinterpret_cast<u32(__cdecl *)(s32, s32, s32, s32, s32, u32)>((uintptr_t)0x00522d50),
+                               reinterpret_cast<u32(__cdecl *)(s32, s32, s32, s32, s32, u32)>((uintptr_t)0x00522f20)};
+const CellModelEnv *g_env = &kGameEnv;
+
+// The cell's ride (+4), if any, removed (QueuePiece_Remove) and the field cleared.
+void remove_ride(u8 *cell) {
+    if (!at<u32>(cell, 4)) return;
+    QueuePiece_Remove(at<u32>(cell, 4));
+    at<u32>(cell, 4) = 0;
 }
 
 }  // namespace
@@ -193,6 +206,44 @@ void __fastcall MapCell_ApplyPathModel(u8 *cell) {
         at<u32>(cell, 4) = 0;
     }
     Terrain_PaintAt(x, y, reinterpret_cast<const s32 *>(cell + 0x14));
+}
+
+void CellModel_SetEnv(const CellModelEnv *env) { g_env = env ? env : &kGameEnv; }
+
+void __fastcall MapCell_ApplyModel(u8 *cell) {
+    if (global<u8>(0x0081b4cc)) {
+        const s32 kind = at<s32>(cell, 8);
+        if (kind == 0xb || kind == 0x10 || kind == 0xc || kind == 0x11) return;
+        if (at<u32>(MapHandle_Cell44(reinterpret_cast<const u16 *>(cell)), 8) == 0x15) return;
+    }
+    s32 angle = 0;
+    u32 model = 0x37;
+    const s32 kind = at<s32>(cell, 8);
+    if (kind > 0 && kind != 5)
+        model = MapCell_PickModel(cell, nullptr, &angle);
+    s32 *const kept = reinterpret_cast<s32 *>(0x00820ad8);
+    kept[0] = static_cast<s32>(model) >> 16;
+    kept[1] = static_cast<s32>(model & 0xffff);
+    kept[2] = angle;
+    at<s32>(cell, 0x14) = kept[0];
+    at<s32>(cell, 0x18) = kept[1];
+    at<s32>(cell, 0x1c) = kept[2];
+    const u32 index = static_cast<u32>(at<u16>(cell, 0)) - 1;
+    const s32 x = static_cast<s32>(index & 0x7f), y = static_cast<s32>(index >> 7);
+    const s32 group = at<s32>(cell, 0x14);
+    if (group == 3 || group == 4) {
+        remove_ride(cell);
+        if ((at<u8>(cell, 0xe) & 0x10) || !at<u32>(cell, 0x18)) return;
+        const auto place = group == 3 ? g_env->place3 : g_env->place4;
+        const u32 ride = place(x, y, at<s32>(cell, 0x14), at<s32>(cell, 0x18), at<s32>(cell, 0x1c), 0);
+        at<u32>(cell, 4) = ride;
+        if (group == 4 && ride) Animator_Play(global<u8 *>(0x007a4610 + 4 * ride), 0xc, 0, 7, 1.0f, 0);
+    } else if (group == 5) {
+        if (at<u32>(cell, 4) && at<u32>(MapHandle_Cell44(reinterpret_cast<const u16 *>(cell)), 8) != 0x15) remove_ride(cell);
+        at<u32>(cell, 4) = g_env->place5(x, y, at<s32>(cell, 0x14), at<s32>(cell, 0x18), at<s32>(cell, 0x1c), 0);
+    } else if (group == 0) {
+        if (at<u32>(cell, 0x18) == 0x37) remove_ride(cell);
+    }
 }
 
 }  // extern "C"
