@@ -7,6 +7,7 @@
 #include "radiogroup.h"
 #include "window.h"
 #include "windowreg.h"
+#include "windowscript.h"
 
 namespace {
 
@@ -82,5 +83,12 @@ void __cdecl Dialog7ca1c8_UpdateLoopButton() {
     Window_SetObject98(button, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(trough ? "cb_trough" : "cb_loop")));
     at<u32>(button, 0x90) = at<u32>(button, 0x94) = trough ? 0x134 : 0x132;
     show((tools & 2) ? 1 : 0);
+}
+
+void __cdecl Dialog7ca1c8_Create() {
+    global<u8 *>(0x007ca1c8) = WindowScript_Build(global<u8 *>(0x00faa5d8), nullptr, reinterpret_cast<u8 *>(0x00751530), 0x004982a0);
+    Window_Unlink(global<u8 *>(0x007ca1c8));
+    Window_SetDwordA0(global<u8 *>(0x007ca1c8), nullptr, 0, 2);
+    Window_SetShown(global<u8 *>(0x007ca1c8), nullptr, 0);
 }
 }

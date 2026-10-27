@@ -450,6 +450,8 @@
 #include "../game/ui/buttontext.h"
 #include "../game/ui/dialog7ca13c.h"
 #include "../game/ui/dialog7ca150.h"
+#include "../game/ui/dialog7ca1bc.h"
+#include "../game/ui/dialog7ca1e0.h"
 #include "../game/ui/dialog7ca308.h"
 #include "../game/ui/dialog7cb25c.h"
 #include "../game/ui/dialog7cb2b8.h"
@@ -6018,6 +6020,7 @@ const Hook kHooks[] = {
     {"Dialog7ca1c8_SelectButtonIfUp", 0x00498a30, (void *)&Dialog7ca1c8_SelectButtonIfUp, {0xa1, 0xc8, 0xa1, 0x7c, 0x00}},
     {"Dialog7ca1c8_SelectButtonIfUpThis", 0x004819f0, (void *)&Dialog7ca1c8_SelectButtonIfUpThis, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"Dialog7ca1c8_UpdateLoopButton", 0x004987f0, (void *)&Dialog7ca1c8_UpdateLoopButton, {0x51, 0x8b, 0x0d, 0xc8, 0xa1}},
+    {"Dialog7ca1c8_Create",       0x00498790, (void *)&Dialog7ca1c8_Create, {0x8b, 0x0d, 0xd8, 0xa5, 0xfa}},
     {"Dialog7cc47c_Message6Off",  0x004b8830, (void *)&Dialog7cc47c_Message6Off, {0xa1, 0x7c, 0xc4, 0x7c, 0x00}},
     {"Dialog7cc47c_Message6On",   0x004b8810, (void *)&Dialog7cc47c_Message6On, {0xa1, 0x7c, 0xc4, 0x7c, 0x00}},
     {"Dialog7cc47c_Message4",     0x004b87f0, (void *)&Dialog7cc47c_Message4, {0xa1, 0x7c, 0xc4, 0x7c, 0x00}},
@@ -6671,6 +6674,8 @@ const Hook kHooks[] = {
     {"ImeHost_OpenCandidates",    0x00480b00, (void *)&ImeHost_OpenCandidates, {0x6a, 0xff, 0x68, 0xb0, 0x90}},
     {"ImeHost_Update",            0x00481100, (void *)&ImeHost_Update, {0x83, 0xec, 0x08, 0x53, 0x55}},
     {"ThingPanel_Show",           0x00486920, (void *)&ThingPanel_Show, {0x83, 0xec, 0x08, 0x56, 0x8b}},
+    {"Dialog7ca1e0_Create",       0x00498b50, (void *)&Dialog7ca1e0_Create, {0x8b, 0x0d, 0xd8, 0xa5, 0xfa}},
+    {"Dialog7ca1bc_Create",       0x00497b20, (void *)&Dialog7ca1bc_Create, {0x8b, 0x0d, 0xd8, 0xa5, 0xfa}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
