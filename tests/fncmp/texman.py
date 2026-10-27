@@ -137,6 +137,8 @@ def weather_load_all(r):
     regions = texfile.scene(r, 0)
     regions[HEAP] = heap(0x40000)
     vfs.memory_source(r, regions[LOG], regions, b''.join(texfile.exact(r) for _ in range(3)))
+    if r.random() < 0.2:   # (the tracked blocks full: each load's pixels not got, TexManager_Load 0, so the last load answers 0)
+        regions[wctimage.COUNT] = struct.pack('<I', 0x8000)
     regions[MGR + 0x10008] = struct.pack('<I', r.choice([0, 2, 4, 8]))
     regions[0x87a268] = struct.pack('<I', MGR)
     slots = bytearray(r.bytes(0x10))
