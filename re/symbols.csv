@@ -2946,6 +2946,7 @@ address,name,kind,confidence,notes
 0x006d4df0,SubStream_Read,function,low,"reimplemented (src/game/files/substream); thiscall (buffer, count), pops 8, slot 1: under the semaphore, seek to the position unless the stream is there, read, the position advanced; returns it"
 0x006d4e90,SubStream_Seek,function,low,"reimplemented (src/game/files/substream); thiscall (offset), pops 4, slot 2: the stream sought to start + offset, the position from its answer; returns the answer"
 0x006d4ec0,SubStream_Rewind,function,low,reimplemented (src/game/files/substream); thiscall: the position 0 and the stream sought to the start; returns its answer
+0x00412bc0,FontFiles_Destroy,function,low,"reimplemented (src/game/files/fontfiles); atexit destructor of the added font files' vector at 0x789c1c: each 0x14-byte String told slot 0xc with 0, the block freed, begin/end/capacity cleared"
 0x005c9040,Class70295c_Ctor,function,high,"reimplemented (src/game/core/vdtor); Init_5d36c0, vtable 0x70295c and four zeroed dwords"
 0x005d03b0,Obj_SwapPair,function,high,reimplemented (src/game/core/stdlist); the dwords at +4 and +8 swapped with another object's
 0x005dd3d0,Obj_ChooseVector,function,high,reimplemented (src/game/frontend/viewcontrols); the vector at +0x10 taken from one of two others
