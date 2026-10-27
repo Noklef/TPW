@@ -6,7 +6,7 @@
 # is clear (no animation), now and then 2: a holder that flashes (Highlight_Flash: its model's +0x5c not its base's, 0-3 meshes) or stops
 # (Highlight_Unflash: listed at 0x7afe14 first or second; no 0x20000, the model without 0x100000; the meshes' blocks copied or not). Agent B's
 # unported 0x53afa0 is thiscall recorder 24 (driver.cpp's kCellRunEnv). A run that would not stop (or leaves the laid out cells) is skipped by a
-# model of the walk, so a case is redrawn.
+# model of the walk, so a case is redrawn, as is one that would shape a cell from cells two on that are not laid out (or off the map: null).
 # usage: trackshape.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=A,B)
 import os
 import struct
@@ -49,6 +49,16 @@ def stops(cells, x, y, d, hoarding):
                 return True
         return u32(cell, 8) in ENDS
 
+    def ahead(cell, d):   # (the cell two on, False off the map or not laid out)
+        if d not in STEPS:
+            return False
+        own = u16(cell, 0)
+        index = (own - 1) & 0xffffffff
+        dx, dy = STEPS[d]
+        if not (0 <= (index & 0x7f) + dx * 2 < 0x80 and 0 <= (index >> 7) + dy * 2 < 0x80):
+            return False
+        return cells.get((((dy * 2) << 7) + own + dx * 2) & 0xffff) is not None
+
     first = cells.get(ident(x, y))
     if first is None:
         return False
@@ -62,8 +72,11 @@ def stops(cells, x, y, d, hoarding):
             if corner(nb):
                 turn = nib(d)
                 d = nb ^ (turn if turn & nb else d)
-            elif not d & nb:
-                done = True
+            else:
+                if cell[0xe] & 0xf and not (ahead(cell, d) and ahead(cell, nib(d))):   # (a shape from cells not laid out, or a null one)
+                    return False
+                if not d & nb:
+                    done = True
             if d in STEPS:
                 own = u16(cell, 0)
                 index = (own - 1) & 0xffffffff
