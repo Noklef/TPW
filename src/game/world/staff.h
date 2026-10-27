@@ -212,4 +212,11 @@ void __fastcall Handyman_SetState(u8 *handyman, void *, u32 state);
 // A candidate is taken when the handyman can be sent to its entrance cell (+0x36, Sprite_SetDestinationCell, so each candidate redirects
 // him). Each one taken is the best (later ones may be taken further off). The last one taken tracks the handyman (Obj_StampAt5e with its handle); its handle (0: none) goes to out. Returns out.
 u16 *__fastcall Handyman_FindJob(u8 *staff, void *, u16 *out);
+
+// 0x506300 (thiscall, void; name invented): a staff member sent to the park's entrance. One World_Rand roll (the world [0x80239c]) in 8
+// moves +0x1c by (roll & 0xff) - 0x80, held at most 0x7ff (unsigned, so below 0 too). With the world's 0x1da710 set and no person on a
+// plain cell (Things_CountKind1OnPlainCell), the world's 0x1da718 record's entry for the staff kind (Byte2_ToIndex) is cleared. When that
+// entry is set, nothing more; else Sprite_SetDestinationCell to the cell past the entrance ((row 0x7855c0 << 7) + column 0x7855bc + 1, a
+// word: the dword's upper half the staff pointer's) and the state 1, or 0 when it cannot go.
+void __fastcall Staff_HeadForEntrance(u8 *staff);
 }

@@ -4057,6 +4057,7 @@ address,name,kind,confidence,notes
 0x004d7330,Handyman_SetState,function,low,"reimplemented (src/game/world/staff); thiscall (state): a handyman's states 8-0xb, else Staff_SetState; the state stored"
 0x00505c50,Staff_PickUp,function,low,reimplemented (src/game/world/staff); thiscall: the holder made when missing; when the current mode answers 6 a new CMMOnline base set; the world's 0x519450 record's +0x60 the staff member's handle; state 7 entered
 0x00505f50,Staff_Settle,function,low,"reimplemented (src/game/world/staff); thiscall: unless the state +0x19c is 4, 5, 7, 0xd or 0x12, on a plain cell, the state 0 entered"
+0x00506300,Staff_HeadForEntrance,function,low,"reimplemented (src/game/world/staff); a staff member sent to the cell past the park's entrance (state 1, or 0 when it cannot go) unless the world's 0x1da718 record has its kind's entry"
 0x00520d60,FreeList_Take,function,high,reimplemented (src/game/core/voices); takes a record off the free list into a table entry
 0x00521890,FreeList_Return,function,high,reimplemented (src/game/core/voices); puts a record back on the free list
 0x00521d60,Voice_ScaleLevels,function,high,reimplemented (src/game/core/voices); scales a voice's levels by the factor over 1024
