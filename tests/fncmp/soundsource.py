@@ -2,18 +2,22 @@
 # is 11025, 22050 or any, low 0, 1 or any; the device singleton at 0xfb2030 made already (its guard set: no atexit), its primary buffer
 # at PRIM or null, whose SetFormat (a COM recorder, the format logged as a hash) succeeds or fails. The orientation's set (0x6d37b0): the
 # source's COM object (+0x1c) a recorder vtable whose slot 11 takes six floats, null now and then; the two vectors' floats normal, zero,
-# NaNs (quiet and signalling, either sign) or any.
+# NaNs (quiet and signalling, either sign) or any. The events (0x6d3020): +4 small, huge or any (the heap failing now and then:
+# a write through null in both), CreateEventA a recorder. The caps test (0x6d3070): +0x18 a recorder whose slot 11 fills the caps' flags +4
+# (bits 8, 2 and 0x40 set mostly).
 # usage: soundsource.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import LOG, RAM, Bench, Call, blob_bytes, fb, log_region, recorder, set_return, vtable  # noqa: E402
+from fncmp import (HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, blob_bytes, fb, fill, heap, import_table, log_region, recorder, set_return,  # noqa: E402
+                   strings, vtable)
 
-CALLS = {'setrate': 0x6d21d0, 'orient': 0x6d37b0}
+CALLS = {'setrate': 0x6d21d0, 'orient': 0x6d37b0, 'events': 0x6d3020, 'caps': 0x6d3070}
 B = Bench([(0x6d21d0, 0x6d2214), (0x6d6cb0, 0x6d6cf0), (0x6c4390, 0x6c4410), (0x6c4500, 0x6c4541), (0x6d3a80, 0x6d3b04),
-           (0x6d37b0, 0x6d37fe)])
+           (0x6d37b0, 0x6d37fe), (0x6d3020, 0x6d306a), (0x6d3070, 0x6d30a8)])
+EVENT_K, CAPS_K = 42, 11
 SRC, OUT, PRIM, PRIM_VT, LISTENER, LVT, FRONT, TOP = (RAM + 0x100 * i for i in range(8))
 DEVICE_GUARD = 0xfb2028   # (the guard's byte, then the device at 0xfb2030)
 FORMAT_K = 41
@@ -38,6 +42,22 @@ def case(r):
         regions = {LOG: log, SRC: src, OUT: r.bytes(4), PRIM: struct.pack('<I', PRIM_VT) + r.bytes(0xc), PRIM_VT: prim_vt,
                    DEVICE_GUARD: bytes([r.choice([1, 3, 0xff])]) + r.bytes(7) + device}
         return Call(0x6d21d0, [SRC, OUT, r.choice([0, 1, r.getrandbits(32)])], regions, conv='t', ret='a')
+    if name == 'events':
+        imports = import_table(log, {'event': (EVENT_K, 0x6fd0d4, 4, 0, 0)})
+        set_return(log, EVENT_K, r.getrandbits(32))
+        src = bytearray(r.bytes(0x34))
+        struct.pack_into('<I', src, 4, r.choice([0, 1, 2, 3, 6, 0, 1, 2, 0x80000000, 0x80000003, 0x7fffffff]))
+        regions = {LOG: log, SRC: src, IMPORT_TABLE: imports, HEAP: heap(0x80, fail=r.choice([0] * 7 + [1]))}
+        return Call(0x6d3020, [SRC], regions, conv='t', ret='v')
+    if name == 'caps':   # (slot 11's caps are the caller's stack: logged as 0, their flags +4 filled)
+        strings(log, CAPS_K, 0, out=0b10)
+        flags = r.choice([0x4a, 0x4a, 0xff, 0x42, 0x48, 0x0a, 0, r.getrandbits(8)]) | r.getrandbits(24) << 8
+        fill(log, CAPS_K, 1, struct.pack('<I', flags), offset=4)
+        set_return(log, CAPS_K, r.getrandbits(32))
+        src = bytearray(r.bytes(0x20))
+        struct.pack_into('<I', src, 0x18, LISTENER)
+        regions = {LOG: log, SRC: src, LISTENER: struct.pack('<I', LVT) + r.bytes(0xc), LVT: vtable({}, com={CAPS_K: 2})}
+        return Call(0x6d3070, [SRC], regions, conv='t', ret='a')
     set_return(log, 11, r.getrandbits(32))
     src = bytearray(r.bytes(0x20))
     struct.pack_into('<I', src, 0x1c, r.choice([LISTENER] * 6 + [0]))

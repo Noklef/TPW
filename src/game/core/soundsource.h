@@ -16,4 +16,11 @@ u32 *__fastcall SoundSource711920_SetRate(u8 *source, void *, u32 *out, u32 low)
 // (front's x, 0, front's z, top's x, y, z: six floats moved through the x87, a signalling NaN quieted) answered into *out. Returns out.
 u32 *__fastcall SoundSource711b08_SetOrientation(u8 *source, void *, u32 *out, const u32 *front, const u32 *top);
 
+// 0x6d3020 (thiscall; name invented): +0x30 = 2 * +4 + 1 events, +0x2c a new array of them (Mem_Alloc; not checked), each
+// CreateEventA (0, 0, 0, 0).
+void __fastcall SoundSource711b08_CreateEvents(u8 *source);
+// 0x6d3070 (thiscall; name invented): the caps (0x24 bytes, the size set) from +0x18's COM slot 11; 1 when their flags +4 have bits
+// 8, 2 and 0x40, else 0.
+u32 __fastcall SoundSource711b08_HasCaps(u8 *source);
+
 }
