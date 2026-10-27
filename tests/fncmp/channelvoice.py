@@ -16,12 +16,15 @@ from fncmp import IMPORT_TABLE, LOG, RAM, Bench, Call, echo, fill, import_table,
 # name: (address, convention, returns)
 CALLS = {'reset': (0x6c5060, 'c', 'v'), 'inc': (0x6c5070, 't', 'a'), 'dec': (0x6c5080, 't', 'a'), 'sound': (0x6bb7a0, 't', 'a'),
          'release': (0x6bb7c0, 't', 'b'), 'releaseall': (0x6babc0, 't', 'v'), 'setcount': (0x6bac30, 't', 'v'),
-         'releasevoice': (0x6b7e60, 't', 'a'), 'setflag': (0x6b8330, 't', 'v')}
+         'releasevoice': (0x6b7e60, 't', 'a'), 'setflag': (0x6b8330, 't', 'v'),
+         'apply': (0x6bb3e0, 't', 'a')}
 RANGES = [(0x6c5060, 0x6c506b), (0x6c5070, 0x6c5078), (0x6c5080, 0x6c5088), (0x6bb7a0, 0x6bb7bd), (0x6bb7c0, 0x6bb856), (0x6babc0, 0x6bac04),
-          (0x6bac30, 0x6bac5c), (0x6b7e60, 0x6b7ea5), (0x6b8330, 0x6b8358)]
+          (0x6bac30, 0x6bac5c), (0x6b7e60, 0x6b7ea5), (0x6b8330, 0x6b8358),
+          (0x6bb3e0, 0x6bb468)]
 B = Bench(RANGES)
 VOICES, VVT, SND, SVT, POOL, CHAN, SRC, SRCVT, SETS, OUT = (RAM + 0x400 * i for i in range(10))
 COUNT, SHIFT = 0xfb2058, 0x782db8
+REC, PAIR = RAM + 0x2800, RAM + 0x2c00   # (the apply's record and its pair)
 IMPORTS = {'InterlockedIncrement': (40, 0x6fd0c0, 1, 0, 0), 'InterlockedDecrement': (41, 0x6fd12c, 1, 0, 0),
            'EnterCriticalSection': (42, 0x6fd140, 1, 0, 0), 'LeaveCriticalSection': (43, 0x6fd130, 1, 0, 0)}
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
@@ -60,6 +63,14 @@ def case(r):
     regions = common(r, log, max(n, 1))
     if name == 'releasevoice':
         return Call(address, [CHAN, OUT, r.choice([VOICES] * 6 + [0]), r.getrandbits(32)], regions, conv=conv, ret=ret)
+    if name == 'apply':   # (the voice's flag 2 or not; the record's flags 2, 0x400, 0x40000 and others)
+        struct.pack_into('<I', regions[VOICES], 0x10, r.choice([0, 2, 0xfffffffd, r.getrandbits(32)]))
+        rec = bytearray(r.bytes(0xa0))
+        flags = r.getrandbits(32) if r.random() < 0.2 else r.choice([0, 2]) | r.choice([0, 0x400]) | r.choice([0, 0x40000]) | r.getrandbits(32) & 0x1080
+        struct.pack_into('<I', rec, 0x14, flags)
+        struct.pack_into('<I', rec, 0x94, PAIR)
+        regions.update({REC: rec, PAIR: r.bytes(8)})
+        return Call(address, [VOICES, REC, OUT], regions, conv=conv, ret=ret)
     if name == 'setflag':   # (the byte on over random upper bytes)
         return Call(address, [VOICES, r.choice([0, 1, 0x80, 0x100, 0xffff7f00, r.getrandbits(32)]), r.getrandbits(32)], regions, conv=conv, ret=ret)
     if name == 'reset':

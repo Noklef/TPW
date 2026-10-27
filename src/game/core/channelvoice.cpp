@@ -55,6 +55,29 @@ void __fastcall ChannelVoice_SetFlag(u8 *voice, void *, u8 on, u32 mask) {
         at<u32>(voice, 0x10) &= ~mask;
 }
 
+u32 __fastcall ChannelVoice_Apply(u8 *voice, void *, u8 *record, u32 *out) {
+    if (!(voice[0x10] & 2)) {
+        at<u32>(voice, 0x24) = 0;
+        at<u32>(voice, 0x1c) = 0;
+        at<u32>(voice, 0x10) = 2;
+        at<u32>(voice, 0x14) = at<u32>(record, 0xc);
+    }
+    if (at<u32>(record, 0x14) & 0x400) {
+        at<u32>(voice, 0x58) = at<u32>(record, 0x2c);
+        at<u32>(record, 0x14) &= ~0x400u;
+    }
+    at<u32>(voice, 0x1c) = at<u32>(record, 8);
+    if (record[0x14] & 2) at<u32>(voice, 0x18) = at<u32>(record, 0x28);
+    if (at<u32>(record, 0x14) & 0x40000) {
+        const u32 *const pair = at<const u32 *>(record, 0x94);
+        at<u32>(voice, 0x34) = pair[0];
+        at<u32>(voice, 0x38) = pair[1];
+        at<u32>(voice, 0x24) = at<u32>(record, 0x98);
+    }
+    *out = at<u32>(voice, 0x2c) >> (*reinterpret_cast<const u8 *>(static_cast<uintptr_t>(0x00782db8)) & 31);
+    return at<u32>(voice, 0x2c);
+}
+
 void __fastcall ChannelVoices_ReleaseAll(u8 *pool) {
     u8 *voice = at<u8 *>(pool, 4);
     const u32 count = at<u32>(pool, 8);
