@@ -8,7 +8,9 @@
 #include "../ui/dialog7ca1c8.h"
 #include "../model/highlight.h"
 #include "../world/money.h"
+#include "../world/object.h"
 #include "../world/world.h"
+#include "cars.h"
 #include "cursor.h"
 #include "helpers.h"
 #include "registry.h"
@@ -518,5 +520,38 @@ void __cdecl CoasterEdit_ToolButton(u32 tool, u32 action) {
         CoasterEdit_Tools(nullptr);
         Dialog7ca1c8_SetChecksIfUpThis(reinterpret_cast<void *>(0x007b51f0), nullptr, g<u32>(0x0079c6e0));
     }
+}
+void __cdecl CoasterEdit_SetEditing(u8 *coaster, u32 on) {
+    ActionRec_WriteW(Recorder(), nullptr, 0x44, coaster && on ? at<u32>(coaster, 0x14) : 0);
+    if (coaster && on) {
+        if (!g<u8 *>(0x00790fec)) {
+            Object_RestartRide(at<u8 *>(coaster, 0x28));
+            const u32 f = at<u32>(coaster, 0x3c);
+            Coaster_SetState(coaster, (f & 1) && !(f & 2) ? 2 : 1);
+        }
+        CoasterLink_SetCurrent(coaster);
+        return;
+    }
+    if (!g<u8 *>(0x00790fec)) return;
+    EndTool();
+    g<u32>(0x0079c664) = 0;
+    g<u32>(0x0079c644) = 0;
+    Flags() &= ~0x40u;
+    g<u32>(0x0079c624) = 0;
+    g<u32>(0x0079c6e0) = 0;
+    g<u32>(0x0079c638) = 0;
+    u8 *const game = g<u8 *>(0x00790fec);
+    Flags_SetChanged(reinterpret_cast<u32 *>(game), 0);
+    CoasterLink_SetCurrent(nullptr);
+    if (at<u8>(game, 8) & 2) Object_Close(at<u8 *>(game, 0x28));
+}
+
+void __cdecl CoasterEdit_EditRide(const u8 *object, u32 on) {
+    u8 *const link = object ? CoasterLink_ById(at<u32>(object, 0x20)) : nullptr;
+    if (g<u32>(0x00785a2c)) return;
+    if (on)
+        CoasterEdit_SetEditing(link, 1);
+    else
+        CoasterEdit_SetEditing(nullptr, 0);
 }
 }

@@ -103,4 +103,14 @@ void __cdecl CoasterEdit_StartChosenTool(u32 *out);
 // tool 1 up to CoasterLink_CheckEnd and then CoasterEdit_SetTool (2); tool set in 0x79c638. Else bit 2: CoasterEdit_EndAll
 // (inlined). Then, with tool not 0, CoasterEdit_Tools (0) and the dialog (0x7b51f0) told the tools on offer (0x79c6e0).
 void __cdecl CoasterEdit_ToolButton(u32 tool, u32 action);
+// 0x447520 (cdecl (coaster, on); name invented): recorded (0x44, the coaster's +0x14 with a coaster and on, else 0). Editing a coaster (one
+// and on): with no game (0x790fec) yet, Object_RestartRide of its object (+0x28) and Coaster_SetState (2 when its +0x3c has bit 0 without
+// bit 1, else 1); then it is the game (CoasterLink_SetCurrent). Else, with a game: the tool in use ended as CoasterEdit_EndTool does (inlined),
+// 0x79c664, 0x79c644, 0x79c624, 0x79c6e0 and 0x79c638 cleared and flag 0x40 of 0x79c658, Flags_SetChanged (game, 0), no game, and
+// Object_Close of the game's object (+0x28) when its +8 has bit 1.
+void __cdecl CoasterEdit_SetEditing(u8 *coaster, u32 on);
+
+// 0x4474d0 (cdecl (object, on); name invented): the coaster of the object's ride id (+0x20; CoasterLink_ById, none without an object); unless
+// 0x785a2c is set, CoasterEdit_SetEditing (that coaster, 1) when on, else (none, 0).
+void __cdecl CoasterEdit_EditRide(const u8 *object, u32 on);
 }
