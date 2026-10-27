@@ -32,6 +32,7 @@
 #include <windows.h>
 
 #include <cfloat>
+#include <cstdarg>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -290,10 +291,46 @@ u32 __cdecl stub_cdecl_log2(u32 a, u32 b) {
     return record_call(0x13e, 2, 0, stack);
 }
 
-// The same with four arguments (kStubs + 0x90, tools/fncmp.py CDECL_LOG4): the entry k 0x13d.
-u32 __cdecl stub_cdecl_log4(u32 a, u32 b, u32 c, u32 d) {
-    const u32 stack[5] = {0, a, b, c, d};
-    return record_call(0x13d, 4, 0, stack);
+u32 wide_hash(u32 h, const u16 *s) {
+    if (!s) return h;
+    for (u32 i = 0; i < 0x400 && s[i]; ++i) h = (h ^ s[i]) * 0x01000193u;
+    return h;
+}
+
+// A text argument of the formatter's (src/game/core/textarg.h) as one dword: its vtable, tag and number, then a string's text (vtable 0x6ff174;
+// it lives on the stack) or the dwords +0xc and +0x10 (a number's); 0 for none.
+u32 text_arg_hash(const u32 *arg) {
+    if (!arg) return 0;
+    u32 h = 0x811c9dc5u;
+    for (u32 i = 0; i < 3; ++i) h = (h ^ arg[i]) * 0x01000193u;
+    if (arg[0] == 0x006ff174u) return wide_hash(h, reinterpret_cast<const u16 *>((uintptr_t)arg[3]));
+    h = (h ^ arg[3]) * 0x01000193u;
+    return (h ^ arg[4]) * 0x01000193u;
+}
+
+// The same with four arguments (kStubs + 0x90, tools/fncmp.py CDECL_LOG4): the entry k 0x13d. As the text formatter 0x6acd60 (fncmp.text_args()):
+// with a count of text arguments (1-3) at log + 0x7e0, that many more (pointers to them) logged as text_arg_hash()es, and the buffer (b; c its size
+// in characters, 9 or more) given the hash of the text's id and those as 8 hex digits, so that what shows the text compares it.
+u32 __cdecl stub_cdecl_log4(u32 a, u32 b, u32 c, u32 d, ...) {
+    const u32 texts = *reinterpret_cast<const u32 *>((uintptr_t)(kStubs + 0x100000 + 0x7e0));
+    u32 stack[8] = {0, a, b, c, d};
+    u32 n = 4;
+    if (texts) {
+        va_list rest;
+        va_start(rest, d);
+        u32 h = (0x811c9dc5u ^ d) * 0x01000193u;
+        for (; n < 4 + (texts < 3 ? texts : 3); ++n) {
+            stack[1 + n] = text_arg_hash(reinterpret_cast<const u32 *>((uintptr_t)va_arg(rest, u32)));
+            h = (h ^ stack[1 + n]) * 0x01000193u;
+        }
+        va_end(rest);
+        if (b && c >= 9) {
+            u16 *const to = reinterpret_cast<u16 *>((uintptr_t)b);
+            for (u32 i = 0; i < 8; ++i) to[i] = (u16)"0123456789ABCDEF"[h >> (28 - 4 * i) & 0xf];
+            to[8] = 0;
+        }
+    }
+    return record_call(0x13d, n, 0, stack);
 }
 
 // QueryPerformanceFrequency / QueryPerformanceCounter (stdcall) for code that calls through the game's import slots (kStubs + 0x60, tools/fncmp.py COUNTER;
@@ -406,7 +443,7 @@ u32 bytes_hash(u32 h, const u8 *p, u32 mask) {
 }
 
 // wide: the slot's entry at + 0xfc0 (two of (k | 0x80000000, start, mask), fncmp.LOG_BLOB_WIDE), or null: the second structure's bytes start to start + 31
-// that its mask selects, hashed after the first fifteen (an inner mask past bit 14).
+// that its mask selects, hashed after the first fifteen (an inner mask past bit 14); start bit 31: the wide text its dword at start & 0xff points to.
 u32 blob_bytes_hash(const u8 *p, u32 how, u32 mask, const u32 *wide) {
     u32 h = bytes_hash(0x811c9dc5u, p, mask);
     if (const u32 at = how >> 8 & 0xff) {
@@ -414,7 +451,13 @@ u32 blob_bytes_hash(const u8 *p, u32 how, u32 mask, const u32 *wide) {
         std::memcpy(&inner, p + at - 1, 4);
         if (inner) {
             h = bytes_hash(h, inner + 4 * (how >> 5 & 7), how >> 16 & 0x7fff);
-            if (wide) h = bytes_hash(h, inner + wide[1], wide[2]);
+            if (wide && wide[1] & 0x80000000u) {  // (fncmp.blob_inner_text(): the wide text the second structure's dword at that offset points to)
+                const u16 *text;
+                std::memcpy(&text, inner + (wide[1] & 0xff), 4);
+                h = wide_hash(h, text);
+            } else if (wide) {
+                h = bytes_hash(h, inner + wide[1], wide[2]);
+            }
         }
     }
     return h;
