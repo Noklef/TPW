@@ -351,4 +351,28 @@ void __cdecl Sound_Load(u8 *stream) {
     Stream_Read(&result, s, &skip, 4, nullptr);
     Stream_Seek(s, static_cast<s32>(skip - 4), 1);
 }
+
+void __cdecl Sound_SetVoicesForLevel(s32 level) {
+    const s32 a = global<s32>(0x00785938), b = global<s32>(0x0078593c), c = global<s32>(0x00785940), d = global<s32>(0x00785944);
+    u32 out;
+    if (level > global<s32>(0x0078594c)) {
+        const s32 original = level;
+        u32 query[2] = {0x00700b40, static_cast<u32>(reinterpret_cast<uintptr_t>(&level))};
+        Apply(&out, query);
+        const u32 c2 = global<u32>(0x00785940), d2 = global<u32>(0x00785944);
+        const u32 product = (static_cast<u32>(original) - d2) * (static_cast<u32>(level) - c2);
+        u32 value[2] = {0x00700b3c, product / (100u - d2) + c2};
+        Apply(&out, value);
+        return;
+    }
+    if (level > d) {
+        u32 value[2] = {0x00700b3c, static_cast<u32>(c)};
+        Apply(reinterpret_cast<u32 *>(&level), value);
+        return;
+    }
+    const s32 span = static_cast<s32>(global<u32>(0x00785944) - static_cast<u32>(b));
+    const s32 product = static_cast<s32>((static_cast<u32>(level) - static_cast<u32>(b)) * (global<u32>(0x00785940) - static_cast<u32>(a)));
+    u32 value[2] = {0x00700b3c, static_cast<u32>(product / span) + static_cast<u32>(a)};   // (idiv: a zero span or INT_MIN / -1 faults)
+    Apply(reinterpret_cast<u32 *>(&level), value);
+}
 }

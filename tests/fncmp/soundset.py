@@ -10,7 +10,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import IMPORT_TABLE, LOG, Bench, Call, RAM, blob, blob_bytes, fill, fb, import_table, log_region, recorder, set_return, strings, vtable  # noqa: E402
 
-B = Bench([(0x51b4f0, 0x51b530), (0x51b7c0, 0x51b810), (0x51bb40, 0x51bc34), (0x51bc40, 0x51bfd0), (0x51c0a0, 0x51c140), (0x51c1c0, 0x51c1cc),
+B = Bench([(0x51b4f0, 0x51b530), (0x51b7c0, 0x51b913), (0x51bb40, 0x51bc34), (0x51bc40, 0x51bfd0), (0x51c0a0, 0x51c140), (0x51c1c0, 0x51c1cc),
            (0x51c270, 0x51c2bc), (0x51c2c0, 0x51c360), (0x51c570, 0x51c5c2), (0x51c640, 0x51c8c6), (0x51e6f0, 0x51e704), (0x51e710, 0x51e726), (0x5da3c0, 0x5da3c1),
            (0x5e2a30, 0x5e2b80), (0x5f5f10, 0x5f5f7d), (0x5f5fa0, 0x5f5fc0), (0x632150, 0x632380), (0x6338d0, 0x6338f9), (0x67acb0, 0x67acb1),
            (0x6b55c0, 0x6b5739), (0x6b5770, 0x6b5801), (0x6b5810, 0x6b5834), (0x6b5840, 0x6b5860), (0x6b5890, 0x6b5a80), (0x6b5a90, 0x6b5ab0),
@@ -46,7 +46,8 @@ def manager(r):
 
 
 SMGR = RAM + 0x8000   # (the senders' manager: +4 the sound object)
-SENDERS = [0x51c0a0, 0x51c0e0, 0x51c2c0, 0x51c300, 0x51c640, 0x51c6b0, 0x51bc70, 0x51bcb0, 0x51bcf0, 0x51bd30, 0x51bd70, 0x51c700, 0x51c570]
+SENDERS = [0x51c0a0, 0x51c0e0, 0x51c2c0, 0x51c300, 0x51c640, 0x51c6b0, 0x51bc70, 0x51bcb0, 0x51bcf0, 0x51bd30, 0x51bd70, 0x51c700, 0x51c570,
+           0x51b810]
 MIXB, TOPB = RAM + 0x9000, RAM + 0x9100   # (the settings update's mixer and its loudest array)
 
 
@@ -93,9 +94,9 @@ def sender_case(r, fn):
     log = log_region()
     if fn == 0x51bd70:
         return update_case(r, log)
-    if fn in (0x51c640, 0x51c6b0, 0x51c700):
+    if fn in (0x51c640, 0x51c6b0, 0x51c700, 0x51b810):   # (0x51b810: the voice count's, as soundchannel.py's b3c)
         import soundchannel as sc
-        regions = sc.voices_case(r, log, {0x51c640: 'cmdoccadd', 0x51c6b0: 'cmdoccrem', 0x51c700: 'cmdoccswitch'}[fn]).regions
+        regions = sc.voices_case(r, log, {0x51c640: 'cmdoccadd', 0x51c6b0: 'cmdoccrem', 0x51c700: 'cmdoccswitch', 0x51b810: 'b3c'}[fn]).regions
         target = sc.OBJECT
     else:
         import soundobject as so
@@ -137,6 +138,18 @@ def sender_case(r, fn):
         return Call(fn, [struct.unpack('<I', regions[sc.PNODE])[0]], regions)
     if fn == 0x51c0e0:
         return Call(fn, [pick, r.getrandbits(32)], regions)
+    if fn == 0x51b810:   # (the voice levels 0x785938-0x78594c: the level at or under [0x78594c] (above it 0x700b40's query runs 0x6b9060,
+        # whose settings record's asked flags (+8) are never set: not comparable), above [0x785944] or interpolated (a zero span now and then)
+        c3c = r.choice([0, 1, 10, r.randrange(-50, 50), r.getrandbits(32) - (1 << 31)])
+        c44 = (c3c + r.choice([1, 10, 50, 100, 0, r.randrange(1000)])) & 0xffffffff
+        c44 -= (c44 >> 31) << 32
+        level = r.choice([c3c, c44, c44 + 1, c3c - 1, (c3c + c44) // 2, r.randrange(-100, 200), r.getrandbits(32) - (1 << 31)])
+        level = max(-0x80000000, min(0x7fffffff, level))
+        c4c = r.choice([0x7fffffff, level, level + r.randrange(100)])
+        regions[0x785938] = struct.pack('<6I', r.choice([0, 4, 8, r.randrange(32), r.getrandbits(32)]), c3c & 0xffffffff,
+                                        r.choice([16, 32, r.randrange(32), r.getrandbits(32)]), c44 & 0xffffffff, r.getrandbits(32),
+                                        min(0x7fffffff, c4c) & 0xffffffff)
+        return Call(fn, [level & 0xffffffff], regions)
     if fn == 0x51c570:   # (the result on the stack, returned)
         return Call(fn, [pick], regions, ret='a')
     if fn in (0x51bc70, 0x51bcb0, 0x51bcf0, 0x51bd30):

@@ -126,4 +126,9 @@ void __cdecl Sound_RegisterThemeCategories(const StringView *theme);
 // set is put back.
 void __cdecl Sound_Save(u8 *stream);
 void __cdecl Sound_Load(u8 *stream);
+
+// 0x51b810 (cdecl (level); name invented): the sound object's voice count (0x700b3c, SoundObject_SetVoices) for a level against the levels
+// 0x785938-0x78594c (a, b, c, d, -, e; no on / started test). Above e: the level slot handed to 0x700b40 (the channel's query, 0x6b9060, may
+// write it), then (level - d) * (that - c) / (100 - d) (unsigned) + c. Above d: c. Else (level - b) * (c - a) / (d - b) (signed) + a.
+void __cdecl Sound_SetVoicesForLevel(s32 level);
 }
