@@ -51,12 +51,12 @@ def surface(r, dealt=True):
     return Call(0x5d3ac0, [RAM] + list(struct.unpack('<31I', desc)), regions, conv='t', ret='b', steps=12_000_000)
 
 
-def blocks(r):
-    """0x5d48a0: surface()'s case on an object whose image is at +0x60, the description at RAM + 0x200; three in four with 24, 8, 0 or 15
-    bits (the set up alone: the blocks, the counts, the result)."""
+def blocks(r, quick=False):
+    """0x5d48a0: surface()'s case on an object whose image is at +0x60, the description at RAM + 0x200; three in four (quick: always) with
+    24, 8, 0 or 15 bits (the set up alone: the blocks, the counts, the result)."""
     c = surface(r, dealt=False)
     desc = list(c.args[1:])
-    if r.random() < 0.75:
+    if quick or r.random() < 0.75:
         desc[0x54 // 4] = r.choice([24, 8, 0, 15])
     obj = bytearray(r.bytes(0x60)) + c.regions.pop(RAM)
     c.regions[RAM] = obj
@@ -69,6 +69,9 @@ def size(r, n):
 
 
 def case(r):
+    if 'Blocks' in OPS and not hasattr(r, 'quick_blocks'):   # (a run's first case: a quick Blocks, so that the coverage gate's short runs,
+        r.quick_blocks = True                                 # a few cases in its 90 s, reach 0x5d48a0 too)
+        return blocks(r, quick=True)
     op = r.deal(DECK)
     if op == 'Surface':
         return surface(r)
