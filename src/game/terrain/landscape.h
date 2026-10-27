@@ -57,6 +57,14 @@ u32 __fastcall Landscape_RemoveTexture(u8 *landscape, void *, u8 *textures);
 // +0x14, +0x18 = a, b, c, d and +4, +8 = e, f, *out = the textures and 1.
 u32 __fastcall Landscape_AddTexture(u8 *landscape, void *, u8 **out, const char *name, u32 a, u32 b, u32 c, u32 d, u32 e, u32 f);
 
+// 0x5852b0 (thiscall (folder), pops 4; name unconfirmed): the sky's textures, each path folder + "\" + file (0x768da0 "sky\sky.tga",
+// 0x768d90 "sky\sky_rgb.tga", 0x768d80 "sky\sky_cyl.tga"; 120 bytes, unchecked) located (Quickload_Locate(path, 1, 0)), the old array
+// at +0x1fd0 / +0x1fd4 / +0x1fd8 released when set (Texture_Release, then destroyed when still set) and the path loaded by the
+// texture manager at [0x87a268] (TexManager_Load) into it: none pushes the error (1, 0xb0754001) onto 0x879ad0 twice (sic), got
+// has its flags' 0x100 cleared and 0x30200 set. The second, got, gives the sky's colours (Landscape_SampleColours) and is then
+// released and cleared. Returns 1.
+u32 __fastcall Landscape_LoadSky(u8 *landscape, void *, const char *folder);
+
 // 0x418d70 (thiscall on a list of texture arrays; name unconfirmed): each of the first [0x785724] (the count re-read after each) removed
 // from the landscape at 0x8c1828 (Landscape_RemoveTexture). Returns the count last read.
 u32 __fastcall Landscape_RemoveTextureList(u8 **list);

@@ -8,8 +8,10 @@
 # The landscape's texture added (src/game/terrain/landscape: 0x5850c0): its count 0-0x10 or more (or negative), the slot's old array
 # (plain textures) set or not, the load's scene as above with the manager at [0x87a268]. The same scene for the weather renderer's
 # texture (src/game/render/weatherfx: 0x57d7f0; slot 1-3 or a pointer, set already or not) and the sprite queue's (src/game/render/
-# spritequeue: 0x58a5c0; its old array plain textures or none).
-# usage: texman.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetLoadFlags,Destroy,Release,Load,Acquire,LandAdd,WeatherLoad,QueueLoad)
+# spritequeue: 0x58a5c0; its old array plain textures or none). The landscape's sky (src/game/terrain/landscape: 0x5852b0): as
+# weather_load_all()'s three loads through Quickload_Locate, a folder name of 0-40 characters, the old arrays at +0x1fd0..+0x1fd8 plain
+# textures or none, the second's colours sampled (its file a TGA).
+# usage: texman.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetLoadFlags,Destroy,Release,Load,Acquire,LandAdd,WeatherLoad,QueueLoad,WeatherLoadAll,LandSky)
 import os
 import struct
 import sys
@@ -23,11 +25,11 @@ import wctimage  # noqa: E402
 from fncmp import Bench, Call, HEAP, LOG, RAM, global_heap, heap, log_region, put  # noqa: E402
 
 CALLS = {'SetLoadFlags': 0x575b80, 'Destroy': 0x574b10, 'Release': 0x575ad0, 'Load': 0x5755f0, 'Acquire': 0x575870, 'LandAdd': 0x5850c0, 'WeatherLoad': 0x57d7f0, 'QueueLoad': 0x58a5c0,
-         'WeatherLoadAll': 0x5508c0}
+         'WeatherLoadAll': 0x5508c0, 'LandSky': 0x5852b0}
 RANGES = wctimage.merged(texfile.RANGES + [(0x575b80, 0x575b8d), (0x575ad0, 0x575b7a), (0x574b10, 0x574bc6), (0x590a70, 0x590a75), (0x590b90, 0x590c39),
                                              (0x579b40, 0x579c13), (0x58dc50, 0x58dd5e), (0x67afa0, 0x67b0d0), (0x67acb0, 0x67acb1), (0x5755f0, 0x575acb),
                                              (0x590a00, 0x590a70), (0x590d40, 0x590f7e), (0x5850c0, 0x5851c6), (0x57d7f0, 0x57d849), (0x58a5c0, 0x58a630),
-                                             (0x56af20, 0x56af9c), (0x5508c0, 0x550927)])
+                                             (0x56af20, 0x56af9c), (0x5508c0, 0x550927), (0x5852b0, 0x58568c), (0x585ce0, 0x585e1e)])
 B = Bench(RANGES)
 MANAGER, ARRAYS = RAM + 0x10000, RAM + 0x5000   # (texturemem.py's regions below RAM + 0x4000)
 
@@ -154,6 +156,43 @@ def weather_load_all(r):
 
 
 
+def land_sky(r):
+    """0x5852b0: weather_load_all()'s scene (its three files, the second a TGA; the loads failing now and then), the folder a
+    name of 0-40 characters, the landscape's old arrays plain textures (1 or 2) or none."""
+    regions = texfile.scene(r, 0)
+    regions[HEAP] = heap(0x40000)
+    files = [texfile.exact(r) for _ in range(3)]
+    while files[1][0] != 0:   # (the colours' texture a TGA: a WCT image's pixels are its surface object's, locked through its vtable)
+        files[1] = texfile.exact(r)
+    vfs.memory_source(r, regions[LOG], regions, b''.join(files))
+    if r.random() < 0.3:   # (the tracked blocks full, or two or three from full: the later loads' pixels not got, TexManager_Load 0)
+        regions[wctimage.COUNT] = struct.pack('<I', r.choice([0x8000, 0x7ffe, 0x7ffd]))   # (0x7fff: crashes in both a third of the time)
+    regions[MGR + 0x10008] = struct.pack('<I', r.choice([0, 2, 4, 8]))
+    regions[0x87a268] = struct.pack('<I', MGR)
+    regions[0x79c9d0] = r.bytes(0x17c)
+    regions[0x79cb4c] = struct.pack('<I', DIRS)
+    regions[DIRS] = r.bytes(0x100)
+    regions[0x7a445c] = r.bytes(4)
+    regions[0x879ad0] = put(bytearray(r.bytes(0x204)), 0x200, 'i', r.choice([r.randrange(0x40), 0, 0x3e, 0x3f, 0x40]))
+    regions[0x8798c8] = bytes(4)
+    land = bytearray(r.bytes(0x1fe0))
+    for k in range(3):
+        array = 0
+        if r.random() < 0.5:
+            n = r.choice([1, 2])
+            tex = bytearray(r.bytes(0x60 * n))
+            for j in range(n):
+                put(tex, 0x60 * j + 8, 'I', r.getrandbits(32) & ~0x10801000)
+                put(tex, 0x60 * j + 0x3c, 'II', 0, 0)
+            regions[ARRAYS + 0x200 * k] = struct.pack('<I', n) + bytes(tex)
+            array = ARRAYS + 0x200 * k + 4
+        put(land, 0x1fd0 + 4 * k, 'I', array)
+    regions[LAND] = bytes(land)
+    name = bytes(r.choice(b'abcdefghijklmnopqrstuvwxyz0123456789_' + bytes([92])) for _ in range(r.choice([0, 1, 5, 12, 40, r.randrange(41)])))
+    regions[OUT] = name + bytes(1)
+    return Call(0x5852b0, [LAND, OUT], regions, conv='t', ret='a')
+
+
 def queue_load(r):
     regions = scene_at_manager(r)
     regions[QUEUE + 0x2400] = struct.pack('<I', plain_array(r, regions)) + r.bytes(4)
@@ -236,6 +275,8 @@ def case(r):
         return weather_load(r)
     if op == 'QueueLoad':
         return queue_load(r)
+    if op == 'LandSky':
+        return land_sky(r)
     if op == 'WeatherLoadAll':
         return weather_load_all(r)
     if op == 'Destroy':
