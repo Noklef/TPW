@@ -5,6 +5,7 @@
 # all of the source, Blt's destination rectangle too, with the rectangles and DDBLTFX on the stack hashed (one a case, the others logged as 0);
 # SetColorKey's DDCOLORKEY hashed. Lock fills its description, fails, or finds the surface lost and tries again; DDLOCK_NOSYSLOCK
 # (0xfa76b4) set or not. Attach wraps a surface (the wrapper's old bytes random), SetDirectDraw stores 0xfa76b0, GetSurface adds a reference.
+# The global pixel shifts' initializer (0x5f96b0): any bytes about them (0xfa7700-0xfa7730).
 # usage: surface.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetDirectDraw,... to pick)
 import os
 import struct
@@ -13,9 +14,9 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import LOG, RAM, Bench, Call, blob, fill, log_region, put, recorder, set_return, strings  # noqa: E402
 
-B = Bench([(0x5f8f80, 0x5f9080), (0x5f9160, 0x5f9650), (0x61af20, 0x61af50), (0x61b090, 0x61b0f0), (0x61b130, 0x61b1f0), (0x5da3c0, 0x5da3c1)])
+B = Bench([(0x5f8f80, 0x5f9080), (0x5f9160, 0x5f9650), (0x61af20, 0x61af50), (0x61b090, 0x61b0f0), (0x61b130, 0x61b1f0), (0x5da3c0, 0x5da3c1), (0x5f96b0, 0x5f96f7)])
 CALLS = {'SetDirectDraw': 0x5f8f80, 'Attach': 0x5f8f90, 'Restore': 0x5f9040, 'BltFast': 0x5f9160, 'Blt': 0x5f92e0, 'Lock': 0x5f9550,
-         'Unlock': 0x5f9600, 'GetSurface': 0x5f9620}
+         'Unlock': 0x5f9600, 'GetSurface': 0x5f9620, 'InitShifts': 0x5f96b0}
 DST, SRC, SURFD, SURFS, VTD, VTS, OUT, DRECT, SRECT, BITS = (RAM, RAM + 0x60, RAM + 0xc0, RAM + 0xd0, RAM + 0x100, RAM + 0x200, RAM + 0x300,
                                                             RAM + 0x310, RAM + 0x320, RAM + 0x330)
 ADDREF, BLT, BLTFAST, DESC, ISLOST, LOCK, RESTORE, SETKEY, UNLOCK = 1, 5, 7, 22, 24, 25, 27, 29, 32
@@ -48,6 +49,8 @@ def surface(r, surf):
 
 def case(r):
     op = r.deal(OPS)
+    if op == 'InitShifts':
+        return Call(0x5f96b0, [], {0xfa7700: r.bytes(0x30)})
     log = log_region()
     for k in (DESC, DESC + 32):
         strings(log, k, 0, 1 << 1)   # (the description: the stack)

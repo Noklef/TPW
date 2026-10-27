@@ -56,6 +56,9 @@ static_assert(offsetof(Surface, info) == 0x28, "Surface::info is at +0x28");
 static_assert(sizeof(Surface) == 0x50, "Surface is 0x50 bytes");
 
 extern "C" {
+// 0x5f96b0 (cdecl; the global pixel shifts' initializer, reached through 0x5f96a0; name unconfirmed): the four channels at 0xfa7708
+// cleared (mask, down and up 0).
+void __cdecl PixelShifts_InitGlobal();
 // 0x61b090 (mask, top): the mask's top bit against top (31, 23, 15 or 7).
 void __fastcall PixelChannel_Set(PixelChannel *c, void *edx, u32 mask, u32 top);
 // 0x61b0e0 (&masks: red, green, blue, alpha): alpha, red, green, blue in that order.

@@ -4073,6 +4073,7 @@ address,name,kind,confidence,notes
 0x005d48d0,Panel_Reset,function,high,reimplemented (src/game/gfx/imageops); fills the panel image and blends the six parts onto it
 0x00576620,Grid_AddObject,function,high,reimplemented (src/game/render/renderer); adds an object to every list in a rectangle of the grid
 0x005830e0,Surface_SetMasks,function,high,reimplemented (src/game/gfx/surface); stores the colour masks and makes the 16-bit tables
+0x005f96b0,PixelShifts_InitGlobal,function,low,"reimplemented (src/game/gfx/surface); cdecl; name invented: initializer of the global pixel shifts at 0xfa7708, cleared"
 0x005e2a80,PtrList_Insert,function,high,reimplemented (src/game/core/ptrlist); inserts a value before an iterator in a pointer list
 0x005e1540,SortedPtrList_Add,function,high,reimplemented (src/game/core/ptrlist); an item added to a pointer list in order of its key
 0x0056b4c0,PtrArray_AddSpriteFrame,function,low,"reimplemented (src/game/core/ptrlist); thiscall (image, pops 4): a new 0x44-byte sprite frame (flags 0x58000, +0x24 -1, +0x2c 10.0f, the image at +0x28) appended to the pointer array (items +8, count +0x1c mirrored at +4 of what +4 points to); returns it, or 0 when the allocation failed (the error (2, 0xb0754000) pushed)"
