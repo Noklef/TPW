@@ -5,7 +5,8 @@
 # recorder) writes a status through its out (negative now and then) and returns the out; the shift at 0x782db8 any byte). The pool's
 # count from the settings' +0x40 (below, at or above the capacity). SoundChannel_ReleaseVoice (soundchannel, 0x6b7e60) is benched here
 # ('releasevoice'): a voice or null. ChannelVoice_SetFlag: the byte on over random upper bytes, any mask. The pool's constructor: 0-3
-# voices, the heap failing now and then (the array, a voice's buffer, the events, their handles). The refill: slot 7 (the read, its out
+# voices, the heap failing now and then (the array, a voice's buffer, the events, their handles). The sound commands' functors' runs
+# (soundchannel, 0x6b8d60-0x6b8eb0): a handle as find's at the functor's +4, the channel's pool of the voices, the source's slots. The refill: slot 7 (the read, its out
 # logged as 0) answering 1 or else, Reset / SetEvent recorders. The scaled rate (0x6bb860) and the id's high part (0x6bb8d0): see case().
 # usage: channelvoice.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
@@ -13,7 +14,7 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, echo, fb, fill, heap, import_table, log_region, set_return, strings, vtable  # noqa: E402
+from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, echo, fb, fill, heap, import_table, log_region, recorder, set_return, strings, vtable  # noqa: E402
 
 # name: (address, convention, returns)
 CALLS = {'reset': (0x6c5060, 'c', 'v'), 'inc': (0x6c5070, 't', 'a'), 'dec': (0x6c5080, 't', 'a'), 'sound': (0x6bb7a0, 't', 'a'),
@@ -21,17 +22,21 @@ CALLS = {'reset': (0x6c5060, 'c', 'v'), 'inc': (0x6c5070, 't', 'a'), 'dec': (0x6
          'releasevoice': (0x6b7e60, 't', 'a'), 'setflag': (0x6b8330, 't', 'v'),
          'apply': (0x6bb3e0, 't', 'a'), 'ctor': (0x6bb270, 't', 'a'), 'new': (0x6baf50, 't', 'a'),
          'poolctor': (0x6ba230, 't', 'a'), 'refill': (0x6bb590, 't', 'a'), 'scaled': (0x6bb860, 't', 'a'), 'sethigh': (0x6bb8d0, 't', 'v'),
-         'releasevoices': (0x6b7eb0, 't', 'v'), 'find': (0x6baa60, 't', 'a'), 'findout': (0x6baad0, 't', 'a'), 'holds': (0x6bab50, 't', 'a')}
+         'releasevoices': (0x6b7eb0, 't', 'v'), 'find': (0x6baa60, 't', 'a'), 'findout': (0x6baad0, 't', 'a'), 'holds': (0x6bab50, 't', 'a'),
+         'fn2d0': (0x6b8d60, 't', 'a'), 'fn5b8': (0x6b8df0, 't', 'a'), 'fn5c0': (0x6b8e60, 't', 'a'), 'fn5b0': (0x6b8dd0, 't', 'a'),
+         'fn268': (0x6b8e40, 't', 'a'), 'fn270': (0x6b8eb0, 't', 'a')}
 RANGES = [(0x6c5060, 0x6c506b), (0x6c5070, 0x6c5078), (0x6c5080, 0x6c5088), (0x6bb7a0, 0x6bb7bd), (0x6bb7c0, 0x6bb856), (0x6babc0, 0x6bac04),
           (0x6bac30, 0x6bac5c), (0x6b7e60, 0x6b7ea5), (0x6b8330, 0x6b8358),
           (0x6bb3e0, 0x6bb468), (0x6bb270, 0x6bb311), (0x6baf50, 0x6bafc9), (0x67acf0, 0x67ada0),
           (0x6ba230, 0x6ba2b5), (0x6bb590, 0x6bb5d2), (0x6c6120, 0x6c615d), (0x6bb860, 0x6bb8c9),
-          (0x6bb8d0, 0x6bb922), (0x6baa60, 0x6baaa2), (0x6baad0, 0x6bab18), (0x6bab50, 0x6bab86), (0x6b7eb0, 0x6b7ef6)]
+          (0x6bb8d0, 0x6bb922), (0x6baa60, 0x6baaa2), (0x6baad0, 0x6bab18), (0x6bab50, 0x6bab86), (0x6b7eb0, 0x6b7ef6),
+          (0x6b8d60, 0x6b8ec6)]
 B = Bench(RANGES)
 VOICES, VVT, SND, SVT, POOL, CHAN, SRC, SRCVT, SETS, OUT = (RAM + 0x400 * i for i in range(10))
 COUNT, SHIFT = 0xfb2058, 0x782db8
 REC, PAIR = RAM + 0x2800, RAM + 0x2c00   # (the apply's record and its pair)
 MODS = RAM + 0x2e00   # (the scaled rate's four modifiers)
+FUNCTOR = RAM + 0x3000   # (the commands' stack functors: +4 a voice's handle)
 IMPORTS = {'InterlockedIncrement': (40, 0x6fd0c0, 1, 0, 0), 'InterlockedDecrement': (41, 0x6fd12c, 1, 0, 0),
            'EnterCriticalSection': (42, 0x6fd140, 1, 0, 0), 'LeaveCriticalSection': (43, 0x6fd130, 1, 0, 0),
            'CreateEventA': (44, 0x6fd0d4, 4, 0, 0), 'InitializeCriticalSection': (45, 0x6fd144, 1, 0, 0),
@@ -74,8 +79,11 @@ def common(r, log, n):
     echo(log, 10, 0)   # (slot 10 returns its out)
     chan = bytearray(r.bytes(0x40))
     struct.pack_into('<I', chan, 0x18, SRC)
+    srcvt = vtable({10: 2})   # (the source's slots 11, 12, 14 and 15 log as k 31, 30, 29 and 28, apart from the voices')
+    for slot, k, args in ((11, 31, 2), (12, 30, 2), (14, 29, 1), (15, 28, 1)):
+        struct.pack_into('<I', srcvt, 4 * slot, recorder(k, args))
     return {VOICES: voices(r, n), VVT: vtable({11: 1, 7: 4, 12: 1}), SND: struct.pack('<I', SVT) + r.bytes(0xc), SVT: vtable({}), CHAN: chan,
-            SRC: struct.pack('<I', SRCVT) + r.bytes(0xc), SRCVT: vtable({10: 2}), COUNT: r.bytes(4), SHIFT: bytes([r.getrandbits(8)]) + r.bytes(3),
+            SRC: struct.pack('<I', SRCVT) + r.bytes(0xc), SRCVT: srcvt, COUNT: r.bytes(4), SHIFT: bytes([r.getrandbits(8)]) + r.bytes(3),
             OUT: r.bytes(4), IMPORT_TABLE: import_table(log, IMPORTS), LOG: log}
 
 
@@ -92,6 +100,15 @@ def case(r):
         regions[POOL] = struct.pack('<II', r.getrandbits(32), VOICES) + r.bytes(8)
         regions[SETS] = struct.pack('<I', handle)
         return Call(address, [POOL, SETS] + ([] if name == 'find' else [OUT]), regions, conv=conv, ret=ret)
+    if name.startswith('fn'):   # (the functor's handle as find's, slot 12 answering; the pool's voices, their count any of theirs)
+        shift = regions[SHIFT][0] & 31
+        handle = ((r.randrange(max(n, 1)) << shift) | r.getrandbits(shift)) & 0xffffffff
+        set_return(log, 12, r.choice([0, 1, 0x100, r.getrandbits(32)]))
+        strings(log, 12, 0, out=1)   # (the voice's slot 12: the handle a local)
+        struct.pack_into('<I', regions[CHAN], 0x14, POOL)
+        regions[POOL] = struct.pack('<4I', r.getrandbits(32), VOICES, r.choice([n, n, 0, r.randint(0, n)]), CHAN)
+        regions[FUNCTOR] = struct.pack('<II', r.getrandbits(32), handle)
+        return Call(address, [FUNCTOR, OUT, CHAN], regions, conv=conv, ret=ret)
     if name == 'releasevoices':   # (the channel's pool of the voices, the count theirs or fewer, 0 now and then; no array now and then)
         struct.pack_into('<I', regions[CHAN], 0x14, POOL)
         regions[POOL] = struct.pack('<4I', r.getrandbits(32), r.choice([VOICES] * 6 + [0]), r.choice([n, n, 0, r.randint(0, n)]), CHAN)

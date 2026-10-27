@@ -249,6 +249,57 @@ u32 *__fastcall SoundChannel_ReleaseVoice(u8 *channel, void *, u32 *out, u8 *voi
     return out;
 }
 
+namespace {
+
+// ChannelVoices_Holds by the functor's handle (+4; a local); its index out the channel argument's own stack slot (sic).
+bool holds(const u8 *functor, u8 *channel, u32 *index) {
+    const u32 handle = at<u32>(functor, 4);
+    *index = static_cast<u32>(reinterpret_cast<uintptr_t>(channel));
+    return ChannelVoices_Holds(at<u8 *>(channel, 0x14), nullptr, &handle, index) != 0;
+}
+
+u32 *source_index(const u8 *functor, u32 *out, u8 *channel, u32 offset) {
+    u32 index;
+    if (!holds(functor, channel, &index)) {
+        *out = 0xffffffff;
+        return out;
+    }
+    vcall<void>(at<u8 *>(channel, 0x18), offset, out, index);
+    return out;
+}
+
+}  // namespace
+
+u32 *__fastcall SoundChannelFn70a2d0_Run(const u8 *functor, void *, u32 *out, u8 *channel) {
+    u32 index;
+    if (!holds(functor, channel, &index)) {
+        *out = 0;
+        return out;
+    }
+    SoundChannel_ReleaseVoice(channel, nullptr, out, at<u8 *>(at<u8 *>(channel, 0x14), 4) + index * 0x8c, 0);
+    return out;
+}
+
+u32 *__fastcall SoundChannelFn70a5b8_Run(const u8 *functor, void *, u32 *out, u8 *channel) { return source_index(functor, out, channel, 0x2c); }
+
+u32 *__fastcall SoundChannelFn70a5c0_Run(const u8 *functor, void *, u32 *out, u8 *channel) { return source_index(functor, out, channel, 0x30); }
+
+u32 *__fastcall SoundChannelFn70a5b0_Run(const u8 *, void *, u32 *out, u8 *channel) {
+    SoundChannel_ReleaseVoices(channel);
+    *out = 0;
+    return out;
+}
+
+u32 *__fastcall SoundChannelFn70a268_Run(const u8 *, void *, u32 *out, u8 *channel) {
+    vcall<void>(at<u8 *>(channel, 0x18), 0x38, out);
+    return out;
+}
+
+u32 *__fastcall SoundChannelFn70a270_Run(const u8 *, void *, u32 *out, u8 *channel) {
+    vcall<void>(at<u8 *>(channel, 0x18), 0x3c, out);
+    return out;
+}
+
 u32 *__fastcall SoundChannelFn70a278_Run(const u8 *functor, void *, u32 *out, u8 *channel) {
     u32 local;   // (the original's is the channel argument's own slot)
     auto record = [functor] { return at<u8 *>(functor, 4); };

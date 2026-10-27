@@ -106,6 +106,18 @@ u32 *__fastcall SoundChannel_ReleaseVoice(u8 *channel, void *, u32 *out, u8 *voi
 // 0x6b7eb0 (thiscall; name invented): with a voice array (the pool +0x14's +4), SoundChannel_ReleaseVoice (a local out, the voice, 0)
 // for each voice up to the count (+8, read once) of them, the first one even when the count is 0 (sic: the test comes after).
 void __fastcall SoundChannel_ReleaseVoices(u8 *channel);
+// The sound commands' stack functors' runs on a channel (slot 1 of each, thiscall (out, channel), pops 8; slot 0 the functor's type;
+// the names are invented). By a voice's handle (the functor's +4: ChannelVoices_Holds on the channel's pool +0x14, its index out the
+// channel argument's own stack slot, sic): 0x6b8d60 (0x70a2d0): the held voice released (SoundChannel_ReleaseVoice (out, the voice, 0)),
+// else *out = 0; 0x6b8df0 (0x70a5b8) / 0x6b8e60 (0x70a5c0): the source's (+0x18) slot 11 / 12 (out, the index), else *out = -1.
+// 0x6b8dd0 (0x70a5b0): SoundChannel_ReleaseVoices, *out = 0. 0x6b8e40 (0x70a268) / 0x6b8eb0 (0x70a270): the source's slot 14 / 15 (out).
+// Each returns out.
+u32 *__fastcall SoundChannelFn70a2d0_Run(const u8 *functor, void *, u32 *out, u8 *channel);
+u32 *__fastcall SoundChannelFn70a5b8_Run(const u8 *functor, void *, u32 *out, u8 *channel);
+u32 *__fastcall SoundChannelFn70a5c0_Run(const u8 *functor, void *, u32 *out, u8 *channel);
+u32 *__fastcall SoundChannelFn70a5b0_Run(const u8 *functor, void *, u32 *out, u8 *channel);
+u32 *__fastcall SoundChannelFn70a268_Run(const u8 *functor, void *, u32 *out, u8 *channel);
+u32 *__fastcall SoundChannelFn70a270_Run(const u8 *functor, void *, u32 *out, u8 *channel);
 
 // 0x6b9a60 (thiscall (a, &picked, record), pops 0xc; name invented): the channel's slot 6 (a, record) picks a voice, kept in *picked; none
 // and the record's flags (+0x14, read after) with bit 13: 0. Else the channel's slot 5 (the voice, or a without one; record), its result returned.
