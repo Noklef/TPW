@@ -21,6 +21,22 @@ void __fastcall SoundManager_Dtor(u8 *manager) {
     at<u8 *>(manager, 4) = nullptr;
 }
 
+u32 *__stdcall SoundManager_Create(u32 *out, u8 **manager, u8 *engine, u32 a) {
+    u8 *m = static_cast<u8 *>(GameHeap_Alloc(8));
+    if (m) {
+        at<u32>(m, 4) = 0;
+        at<u32>(m, 0) = 0x0070a288;
+    }
+    *manager = m;
+    if (!m) {
+        *out = 0xffffffff;
+        return out;
+    }
+    at<u8 *>(m, 4) = engine;
+    SoundManager_Call1(*manager, nullptr, out, a);
+    return out;
+}
+
 u32 *__fastcall SoundManager_Release(u8 *manager, void *, u32 *out) {
     if (manager) vcall<void>(manager, 0xc, 1u);
     *out = 0;
