@@ -8,6 +8,7 @@
 #include "soundmanager.h"
 #include "string.h"
 #include "vcall.h"
+#include "../math/x87.h"
 
 namespace {
 
@@ -170,6 +171,37 @@ void __cdecl Sound_ApplySettings() {
     }
     local[0] = 0x00700b6c;
     Apply(&local[1], &local[0]);
+}
+
+void __cdecl Sound_SetCameraOcclusion(s32 level) {
+    if (!On()) return;
+    u32 functor[3] = {0x00700bc8, 0, 0};
+    const float &radius954 = global<float>(0x00785954), &radius95c = global<float>(0x0078595c), &radius964 = global<float>(0x00785964);
+    // Between two (level, radius) points: (level - low) * (high radius - low radius) / (high - low) + low radius; the level's slot
+    // then holds the divisor (sic).
+    auto between = [&](s32 low, s32 high, const float &lowRadius, const float &highRadius) {
+        const s32 span = (s32)((u32)high - (u32)low);
+        const X87Reg x = X87Reg((double)(s32)((u32)level - (u32)low)) * (X87Reg(highRadius) - lowRadius) / X87Reg((double)span) + lowRadius;
+        level = span;
+        const float radius = (float)x;
+        functor[1] = 1;
+        std::memcpy(&functor[2], &radius, 4);
+    };
+    if (global<u8>(0x00790ab0) & 0x16) {
+        const s32 high = global<s32>(0x00785968), mid = global<s32>(0x00785960), low = global<s32>(0x00785958);
+        if (level > high) {
+            functor[1] = 1;
+            functor[2] = X87_FloatThrough(global<u32>(0x00785964));
+        } else if (level > mid) {
+            between(mid, high, radius95c, radius964);
+        } else if (level > low) {
+            between(low, mid, radius954, radius95c);
+        } else if (level > global<s32>(0x0078590c)) {
+            functor[1] = 1;
+            functor[2] = X87_FloatThrough(global<u32>(0x00785954));
+        }
+    }
+    Apply(reinterpret_cast<u32 *>(&level), functor);
 }
 
 void __cdecl Sound_RemoveOccluder(u32 node) {

@@ -80,6 +80,12 @@ void __cdecl Sound_Post700b60();
 // [0x803ae0]; 0x700b74 [0x803adc]; 0x700b70 [0x803ad8] (built by SoundCmd_Ctor); then the flag cleared. Then (changed or not) the
 // command 0x700b6c, its out the dword after its vtable.
 void __cdecl Sound_ApplySettings();
+// 0x51c700 (level; name invented): the command 0x700bc8 {on, radius} (the occlusion switch), the out the level's slot: with the ground-level
+// camera (gCameraFlags 0x790ab0 & 0x16), signed: above [0x785968] {1, [0x785964]}; above [0x785960] {1, (level - [0x785960]) *
+// ([0x785964] - [0x78595c]) / ([0x785968] - [0x785960]) + [0x78595c]}; above [0x785958] the same between [0x785958] / [0x785954] and
+// [0x785960] / [0x78595c]; above [0x78590c] {1, [0x785954]}; else {0, 0} (x87 single precision; the level's slot then holds the
+// divisor). Without that camera {0, 0}.
+void __cdecl Sound_SetCameraOcclusion(s32 level);
 
 // 0x51b7c0 (cdecl): when on and started, the sound manager's vtable +0 (&result, not read after); then not started. The
 // warning when the allocation count 0x802bd8 is not back to 0 is compiled out.
