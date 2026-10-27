@@ -10,7 +10,7 @@
 # Call (0x4e1220): +0x68 0 now and then; the record's count 10 mostly (elements 2, 5 and 9 there), its element 0 mostly 0, 2 and 5 small
 # (signed) and 9 0 or not; the definition (ObjectDefs_Find's cache at 0x7897d0 holding the id +0xe) of kind 3, 2 or any; the flags +0x33
 # random; the rider +0x6c 0, the head or another person; the head's state 11 and queue position (+0x1f1) 0 now and then, the rider's state
-# 0xd now and then.
+# 0xd now and then (the head mostly in state 11 at position 0; the rider 0x100 now and then: past the slots, a fault when it is looked at).
 # usage: objectstate.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Dismiss,State,Open,Call)
 import os
 import struct
@@ -87,13 +87,13 @@ def case(r):
             put(el, 4 * i, 'i', r.choice([0, 1, 2, 3, -1, r.getrandbits(32) - (1 << 31)]))
         put(el, 4 * 9, 'I', r.choice([0, 0, 1, r.getrandbits(32)]))
         regions[RIDES + 0x100] = el
-        put(obj, 0x6c, 'H', r.choice([0, 0, 0, head] + (handles and [r.choice(handles)])))
+        put(obj, 0x6c, 'H', r.choice([0, 0, 0, 0, head, 0x100] + (handles and [r.choice(handles)])))
         pool = bytearray(regions[POOL])
         for h in handles:
             t = struct.unpack_from('<I', slots, 20 * h)[0] - POOL
-            if r.random() < 0.5:
-                put(pool, t + 0x220, 'i', r.choice([11, 11, 0xd]))
-            if r.random() < 0.5:
+            if r.random() < (0.8 if h == head else 0.5):
+                put(pool, t + 0x220, 'i', r.choice([11, 11, 0xd]) if h != head else 11)
+            if r.random() < (0.8 if h == head else 0.5):
                 pool[t + 0x1f1] = 0
         regions[POOL] = pool
         oid = struct.unpack_from('<H', obj, 0xe)[0]
