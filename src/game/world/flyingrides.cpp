@@ -102,11 +102,8 @@ void __cdecl FlyingRide_ReleaseSlotPart(s32 index, s32 slotIndex, s32 step) {
 
 void __cdecl FlyingRide_ClearSlot(s32 index, u32 slotIndex) {
     const auto field = [&](u32 offset) -> u32 & { return at<u32>(slot(table()[index], slotIndex), offset); };
-    if (const u32 system = field(0xc4)) {
-        ParticleSystem_End(system);
-        field(0xc4) = 0;
-    }
-    field(0xc4) = 0;
+    if (const u32 system = field(0xc4)) ParticleSystem_End(system);
+    field(0xc4) = 0;   // (the original clears it twice after an end)
     QueuePiece_Remove(field(0xc0));   // (Ride_Destroy 0x463c80, through the queue pieces' env)
     field(0xc0) = 0;
     --at<s32>(table()[index], 0xc);
