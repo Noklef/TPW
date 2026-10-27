@@ -3734,6 +3734,7 @@ address,name,kind,confidence,notes
 0x004e0050,Object_SetOpen,function,low,"reimplemented (src/game/world/object); thiscall (open): opening with the flag 4 of +0x32 state 2 and the strips grown; closing from state 2: strips shrunk, +0x68 = 1, ride element 6 = 0, state 0"
 0x004e1220,Object_CallQueueHead,function,low,"reimplemented (src/game/world/object); thiscall: without +0x68 the queue head dismissed; else, when the ride may load (element 0 clear; element 5 below 2 or a kind 3/2 definition; element 9 clear or +0x33 bit 0; no rider +0x6c), a head in state 11 at position 0 becomes the rider (+0x1f8 = 1); otherwise a rider not in state 0xd is forgotten"
 0x004df390,Object_Close,function,low,"reimplemented (src/game/world/object); thiscall; Object_CanOpen's checks (debug prints only), +0x68 = 1, the strip animation shrunk, ride record element 6 = 0, Object_SetState(0)"
+0x004dfe30,Object_SetFlag64,function,low,"reimplemented (src/game/world/object); thiscall (on), pops 4; on: unless +0x64 is set, +0x64 = 1 and Object_RestartRide; off: when +0x64 is set, +0x64 = 0 and, if Object_CanOpen, Object_Close; 1"
 0x005d46d0,Blocks7_Free,function,high,reimplemented (src/game/core/buffers); frees the seven blocks of an object and clears its groups
 0x00424cc0,Names_FirstAfter,function,high,"reimplemented (src/game/core/string); whether the first name is after the second, case blind"
 0x00424cf0,Names_Equal,function,high,"reimplemented (src/game/core/string); whether two names are equal, case blind"

@@ -6,7 +6,8 @@
 # cells). The angles are quarter turns only: another leaves the original's direction bit a stale stack byte (see objectmsg.h). Where a person at a place in the
 # queue stands (0x4de840 Object_QueueSpot, Spot: Path's world, places in the first cells or past the end, the world's random state, now and then the one drawing 0x80000000); EntSpot (0x4dec30 Object_EntranceQueueSpot) on Spot's cases.
 # AnySpot (0x4de7e0 Object_AnyQueueSpot): Spot's cases, the object's bit 3 of +0x32 set or clear. Close (0x4df390 Object_Close): see close().
-# usage: objectqueue.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Back,BackTo,None,Open,Path,CanOpen,Spot,EntSpot,AnySpot,Close)
+# Flag64 (0x4dfe30 Object_SetFlag64): see flag64().
+# usage: objectqueue.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Back,BackTo,None,Open,Path,CanOpen,Spot,EntSpot,AnySpot,Close,Flag64)
 import os
 import struct
 import sys
@@ -22,7 +23,7 @@ B = Bench([(0x4d8300, 0x4d8340), (0x4d8c00, 0x4d8c30), (0x4d96f0, 0x4d99f0), (0x
            (0x4ddf40, 0x4de200), (0x4de040, 0x4de100), (0x4de670, 0x4de7e0), (0x4de7e0, 0x4de83e), (0x502430, 0x502470), (0x50b350, 0x50b370),
            (0x522770, 0x5227a0), (0x522850, 0x522870), (0x536300, 0x53644c), (0x5da3c0, 0x5da3c1),
            (0x4dd920, 0x4dda20), (0x412e90, 0x412eea), (0x441970, 0x4419b0), (0x436860, 0x436880),
-           (0x4df390, 0x4df450), (0x454550, 0x454800), (0x4e0e60, 0x4e11e4), (0x55a070, 0x55a110)])
+           (0x4df390, 0x4df450), (0x454550, 0x454800), (0x4e0e60, 0x4e11e4), (0x55a070, 0x55a110), (0x4dfe30, 0x4e004b)])
 OUT = RAM + 0x7000
 RIDES, STRIP = RAM + 0x24000, RAM + 0x26000   # (Close's)
 
@@ -138,7 +139,14 @@ def spot(r):
             put(cells, 0x44 * idx + 8, 'I', 3)
             cells[0x44 * idx + 0xd] = (0x10, 1)[idx // 128 & 1]
         place = r.choice([0, 3, 4, 0x23, 0x200, 0x200, 0x201, 0x3ff])  # (a walk of a huge place never ends in the emulator's step budget)
-    c.address, c.args, c.ret = 0x4de840, [RAM, place, OUT, OUT + 2, OUT + 3], 'a'
+    c.address, c.args, c.ret = 0x4de840, [RAM, 0x800, OUT, OUT + 2, OUT + 3], 'a'
+    if place > 0x800:   # (the random cells' facing walk can go round a ring too: probed in the emulator with 0x200 steps, more than the cells,
+        probe = Call(c.address, c.args, dict(c.regions), conv=c.conv, ret='a')   # a cell still under way means a ring, and a far place one
+        probe.regions.update({k: v for k, v in B.extra.items() if k not in probe.regions})   # the emulator cannot walk: a near one then)
+        out = B.original(probe)
+        if not isinstance(out, str) and struct.unpack('<H', bytes.fromhex(out[3 + list(probe.regions).index(OUT)])[:2])[0]:
+            place = r.choice([0x200, 0x201, 0x3ff])
+    c.args[1] = place
     return c
 
 
@@ -181,8 +189,16 @@ def close(r):
     return c
 
 
+def flag64(r):
+    """0x4dfe30: close()'s world, +0x64 0, 1 or any, the argument 0, 1 or any"""
+    c = close(r)
+    put(c.regions[RAM], 0x64, 'I', r.choice([0, 0, 1, 1, r.getrandbits(32)]))
+    c.address, c.ret, c.args = 0x4dfe30, 'a', c.args[:1] + [r.choice([0, 0, 1, 1, r.getrandbits(32)])]
+    return c
+
+
 CASES = {'Back': back, 'BackTo': back_to, 'None': none, 'Open': open_, 'Path': path, 'CanOpen': can_open, 'Spot': spot, 'EntSpot': entrance_spot, 'AnySpot': any_spot,
-         'Close': close}
+         'Close': close, 'Flag64': flag64}
 
 
 def case(r):

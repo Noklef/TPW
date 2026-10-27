@@ -351,6 +351,19 @@ void __fastcall Object_Close(u8 *object) {
     Object_SetState(object, nullptr, 0);
 }
 
+u32 __fastcall Object_SetFlag64(u8 *object, void *, u32 on) {
+    if (on) {
+        if (at<u32>(object, 0x64) != 0) return 1;
+        at<u32>(object, 0x64) = 1;
+        Object_RestartRide(object);
+        return 1;
+    }
+    if (at<u32>(object, 0x64) == 0) return 1;
+    at<u32>(object, 0x64) = 0;
+    if (Object_CanOpen(object)) Object_Close(object);
+    return 1;
+}
+
 void __fastcall Object_RestartRide(u8 *object) {
     at<u32>(object, 0x68) = 0;
     at<u16>(object, 0x6c) = 0;
