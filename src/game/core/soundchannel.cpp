@@ -300,6 +300,14 @@ u32 *__fastcall SoundChannelFn70a270_Run(const u8 *, void *, u32 *out, u8 *chann
     return out;
 }
 
+u32 *__fastcall SoundChannel_SetRecordValue40(u8 *, void *, u32 *out, u8 *record, u32 value) {
+    SetThenFlag40_4c_6b9cf0(record, nullptr, value);
+    SetThenFlag68_4c_6b9d30(record, nullptr, 0);
+    at<u32>(record, 4) |= 0xc;
+    *out = 0;
+    return out;
+}
+
 u32 *__fastcall SoundChannelFn70a278_Run(const u8 *functor, void *, u32 *out, u8 *channel) {
     u32 local;   // (the original's is the channel argument's own slot)
     auto record = [functor] { return at<u8 *>(functor, 4); };
