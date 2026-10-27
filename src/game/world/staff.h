@@ -174,6 +174,12 @@ u32 __fastcall StaffPool_Serialize(u8 *pool, void *, Stream *stream, u32 save, s
 // stamped (ParkAnalyser_StampTime21c38 on GameTable7cfb90_Get1da720_519510).
 void __fastcall Staff_InitBase(u8 *staff);
 
+// 0x504b10 (thiscall; cell, kind, type, an unused dword, pops 16; name invented): MovingPerson_Ctor (cell, kind); the type to +0x1e4; the
+// dwords +0x1f0-+0x1fc cleared; Staff_InitBase. Returns the staff member. 0x504a90 (thiscall; cell, kind, pops 8): the same with a type of 0.
+// (The debug prints are left out.)
+u8 *__fastcall Staff_CtorTyped(u8 *staff, void *, u32 cell, u32 kind, u32 type, u32 unused);
+u8 *__fastcall Staff_Ctor(u8 *staff, void *, u32 cell, u32 kind);
+
 // 0x5054d0 (thiscall; state, pops 4; name unconfirmed): the staff member's state (mState +0x19c, set last to `state`) entered. The reference +0xc's
 // +4 (Set4_4217f0) is the animation: 0: +0x200 the world's tick ([0x80239c] + 0x1da70c) when the old state is 1, else 0; the word +0xc2 the word
 // 0x75c7f0; anim 3 (Wrap_Set4_4217f0_4fa460). 1: anim 9. 4: +0xc2 the word 0x75c7f2, anim 9. 2: anim 1. 3: the +0x30 object's script

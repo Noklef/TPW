@@ -423,6 +423,19 @@ extern "C" void __fastcall Staff_InitBase(u8 *staff) {
     ParkAnalyser_StampTime21c38(reinterpret_cast<u8 *>(GameTable7cfb90_Get1da720_519510(global<u8 *>(0x0080239c))));
 }
 
+extern "C" u8 *__fastcall Staff_CtorTyped(u8 *staff, void *, u32 cell, u32 kind, u32 type, u32) {
+    MovingPerson_Ctor(staff, nullptr, cell, kind);
+    at<u32>(staff, 0x1e4) = type;
+    at<u32>(staff, 0x1f0) = 0;
+    at<u32>(staff, 0x1f4) = 0;
+    at<u32>(staff, 0x1f8) = 0;
+    at<u32>(staff, 0x1fc) = 0;
+    Staff_InitBase(staff);
+    return staff;
+}
+
+extern "C" u8 *__fastcall Staff_Ctor(u8 *staff, void *, u32 cell, u32 kind) { return Staff_CtorTyped(staff, nullptr, cell, kind, 0, 0); }
+
 namespace {
 
 // A staff type's serializer: Staff_Serialize, then (a version of 0..1) the type's fields; 1 at the first that fails, else 0.
