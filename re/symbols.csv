@@ -83,7 +83,7 @@ address,name,kind,confidence,notes
 0x00559060,RSSE_KillScript,function,medium,'Cant kill a script - system is not initialised'
 0x00556ab0,Mem_AllocLogged,function,high,reimplemented (src/game/core/gameheap); global allocation that refuses 0
 0x005584b0,RSSE_CheckLeaks,function,medium,'Something malloced but not freed'
-0x005573d0,RSSE_TriggerCustomEvent,function,medium,'Tried to trigger a custom event'
+0x005573d0,Rsse_Trigger,function,low,"reimplemented (src/game/rsse/rsse_vm); cdecl (vm, kind, key, what, extra); name unconfirmed: a script effect at a ride part: kinds 1-2 a particle effect (plain or with the part direction as velocity), 3-10 a sound in one of eight categories"
 0x00551130,RSSE_StartScream,function,medium,'Started screaming without ...'
 0x00556f40,Rsse_StartWalker,function,low,"reimplemented (src/game/rsse/rsse_vm); cdecl (vm, value, from, to, a, b, kind, last): a walker slot filled between two ride parts, its time 100 times their distance, its octant the direction between them"
 0x00572780,Engine_Init,function,high,"'Initializing engine internals'; logs a checkpoint after each renderer subsystem (… 'wavelet/printf ok')"

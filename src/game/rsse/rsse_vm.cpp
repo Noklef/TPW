@@ -2,7 +2,10 @@
 #include <cstring>
 
 #include "../coaster/ridebounds.h"
+#include "../core/accessors.h"
 #include "../core/gameclock.h"
+#include "../core/indexed.h"
+#include "../core/soundplay.h"
 #include "../math/sintable.h"
 #include "../math/x87.h"
 #include "../model/heightat.h"
@@ -10,6 +13,7 @@
 #include "../model/parts.h"
 #include "../model/scratch.h"
 #include "../render/particles.h"
+#include "../world/objectdefs.h"
 #include "../world/personscripts.h"
 
 namespace {
@@ -46,6 +50,12 @@ void Puff(const float *place) {
 }
 
 u8 *Ride(const u8 *vm) { return global<u8 *>(0x007a4610 + 4 * at<u32>(vm, 0xc8)); }
+
+// The definition (ObjectDefs_Find of 0x7890a0 by its type +0xe) of the vm's thing (the u16 +0xac; 0x7cfb90, 20 bytes each).
+u8 *ThingDef(const u8 *vm) {
+    const u8 *const thing = global<u8 *>(0x007cfb90 + 20 * (u32)at<u16>(vm, 0xac));
+    return ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, at<u16>(thing, 0xe));
+}
 
 // A leg's progress in thousandths: (now * 1000 - start * 1000) / (end - start), unsigned (the start +8 read before the clock).
 u32 Progress(u8 *slot) {
@@ -338,5 +348,54 @@ void __cdecl Rsse_UpdateWalkers(u8 *vm) {
         if (at<u32>(vm, 0x80) + at<u32>(vm, 0x84) < now)
             at<u32>(vm, 0x84) = 0;
     }
+}
+
+s32 __cdecl Rsse_Trigger(u8 *vm, s32 kind, s32 key, u32 what, u32 extra) {
+    static const u32 categories[7] = {0x00803a3c, 0x00803a38, 0x00803a28, 0x00803a24, 0x00803a30, 0x00803a20, 0x00803a2c};   // kinds 3-9
+    float place[3], dir[3];
+    if (kind == 1 || kind == 2) {
+        if (Ride_PartPlace(vm, place, kind == 2 ? dir : nullptr, key, 0x100) == 0)
+            return 0;
+        u32 effect = what;
+        if (what & 0x8000)
+            effect = Obj_GetIndexed4e0(ThingDef(vm), nullptr, what & 0x7fff);
+        const float &scale = global<float>(0x00700fdc);
+        s32 system;
+        if (kind == 1) {
+            const s32 z = Ftol(X87Reg(place[2]) * scale);
+            const s32 y = Ftol(X87Reg(place[1]) * scale);
+            const s32 x = Ftol(X87Reg(place[0]) * scale);
+            system = Particle_Spawn((s32)effect, x, y, z);
+        } else {
+            const s32 vz = Ftol(X87Reg(dir[2]));
+            const s32 vy = Ftol(X87Reg(dir[1]));
+            const s32 vx = Ftol(X87Reg(dir[0]));
+            const s32 z = Ftol(X87Reg(place[2]) * scale);
+            const s32 y = Ftol(X87Reg(place[1]) * scale);
+            const s32 x = Ftol(X87Reg(place[0]) * scale);
+            system = Particle_SpawnWithVelocity((s32)effect, x, y, z, vx, vy, vz);
+        }
+        if (extra != 1000)
+            ParticleSystem_SetA2((u32)system, extra);
+        return system;
+    }
+    u32 category;
+    if (kind >= 3 && kind <= 9) {
+        category = 0;
+    } else if (kind == 10) {
+        category = Get4f0_4145e0(ThingDef(vm));
+        if (category == 0)
+            return 0;
+    } else {
+        return 0;
+    }
+    if (Ride_PartPlace(vm, place, nullptr, key, 0x200) == 0)
+        return 0;
+    const s32 z = Ftol(X87Reg(place[2]));
+    const s32 y = Ftol(X87Reg(place[1]));
+    const s32 x = Ftol(X87Reg(place[0]));
+    if (kind != 10)
+        category = global<u32>(categories[kind - 3]);
+    return (s32)Sound_PlayAt(0, category, what, x, y, z);
 }
 }  // extern "C"

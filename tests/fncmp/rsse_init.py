@@ -10,11 +10,11 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from fncmp import Bench, Call, RAM, put, sine_table  # noqa: E402
+from fncmp import LOG, Bench, Call, RAM, blob, log_region, put, set_return, sine_table, vtable  # noqa: E402
 from particles import RANGES as PARTICLE_RANGES  # noqa: E402
 
 CALLS = {'Init': 0x551600, 'Event': 0x468600, 'Timer': 0x557160, 'GetVec': 0x556a80, 'TakeDone': 0x557110, 'Walk': 0x556f40, 'Step': 0x5580a0,
-         'Back': 0x5571a0, 'Walkers': 0x557d80}
+         'Back': 0x5571a0, 'Walkers': 0x557d80, 'Trigger': 0x5573d0}
 B = Bench([(0x551600, 0x5516a3), (0x468600, 0x468708), (0x557160, 0x557197), (0x556a80, 0x556aac), (0x557110, 0x55715b),(0x402d70, 0x402d75), (0x402f10, 0x402f2d), (0x4031e0, 0x4031ef), (0x5da3c0, 0x5da3c1),
            (0x556f40, 0x557108), (0x466b70, 0x466c7f), (0x556af0, 0x556b8c), (0x556b90, 0x556ddb), (0x44b220, 0x44b267), (0x67a830, 0x67a860),
            # (Step's: the function, heightat.py's and personscripts.py's ranges)
@@ -24,7 +24,8 @@ B = Bench([(0x551600, 0x5516a3), (0x468600, 0x468708), (0x557160, 0x557197), (0x
            (0x4fdc90, 0x4fdcb6), (0x4fdc60, 0x4fdc90), (0x4fe950, 0x4fe977), (0x475010, 0x476a30), (0x540b90, 0x540da0), (0x541f60, 0x541fb0),
            (0x50c0d0, 0x50c0f2), (0x50bab0, 0x50bac4), (0x50be40, 0x50be7c), (0x4fe900, 0x4fe944),
            (0x5571a0, 0x557395), (0x557d80, 0x5580a0), (0x44b410, 0x44b4d0), (0x44b4c0, 0x44b520), (0x450ea0, 0x4512a0), (0x475a10, 0x475b90),
-           (0x4f9e60, 0x4f9f10), (0x4fcac0, 0x4fcb20), (0x466b70, 0x466c90), (0x475550, 0x4755a0), (0x5f5680, 0x5f56a0)] + PARTICLE_RANGES)
+           (0x4f9e60, 0x4f9f10), (0x4fcac0, 0x4fcb20), (0x466b70, 0x466c90), (0x475550, 0x4755a0), (0x5f5680, 0x5f56a0),
+           (0x5573d0, 0x557970), (0x412e90, 0x412eea), (0x4145d0, 0x4145e0), (0x4145e0, 0x4145f0), (0x51bfc0, 0x51c048)] + PARTICLE_RANGES)
 STRINGS, SCRIPT, KEYS, TABLES, OUT = RAM + 0x100, RAM + 0x1000, RAM + 0x1400, RAM + 0x1500, RAM + 0x1800
 
 
@@ -290,8 +291,68 @@ def walkers_case(r, op):
     return Call(CALLS['Walkers'], [vm], regions, conv='c', ret='v')
 
 
+TMANAGER, TVT, TTHING, TDEFS = RAM + 0x60000, RAM + 0x60100, RAM + 0x60200, RAM + 0x61000
+
+
+def trigger_case(r):
+    """0x5573d0 (cdecl; vm, kind, key, what, extra): pose()'s world (at STEP_POSE), its parts' masks given 0x100, 0x200, both or neither
+    (the effects look under 0x100, the sounds under 0x200), the key a part's, -1 (the ride's centre) or one the ride has no part for;
+    kinds 0-11 (1 and 2 most) and any; what an effect (0x13, 0x27, any below 0x69, or with bit 0x8000 an index 0-4 of the thing's
+    definition's +0x4e0 dwords), or a sound; extra 1000 or not; the vm's thing (+0xac) one whose type has a definition (0x7890a0, cached
+    or not) with +0x4e0..+0x4f0 effects and +0x4f0 a category or 0; ridesound.py's sound globals and manager (its command logged);
+    particles.spawn()'s world."""
+    import particles
+    from ridebounds import pose
+    c = pose(r, STEP_POSE)
+    ram = bytearray(c.regions[STEP_POSE])
+    vm = c.args[0]
+    n = int.from_bytes(ram[0x268:0x26a], 'little')
+    keys = [int.from_bytes(ram[0x600 + 0x14 * i + 4:0x600 + 0x14 * i + 8], 'little') for i in range(min(n, 4))]
+    for i in range(min(n, 4)):
+        put(ram, 0x600 + 0x14 * i, 'I', int.from_bytes(ram[0x600 + 0x14 * i:0x604 + 0x14 * i], 'little') & ~0x300 | r.choice([0x100, 0x200, 0x300, 0]))
+    h = r.choice([1, 2])
+    put(ram, vm - STEP_POSE + 0xac, 'H', h)
+    kind = r.choice([1, 1, 2, 2, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 0, 11, r.getrandbits(32)])
+    if kind in (1, 2):
+        what = r.choice([0x13, 0x27, r.randrange(0x69), 0x8000 | r.randrange(5), 0xffff8000 | r.randrange(5), 0x8000 | r.randrange(5)])
+    else:
+        what = r.choice([0, 1, 0x1d, 0xbb, r.getrandbits(32)])
+    extra = r.choice([1000, 1000, 0, 1, 0x10, r.getrandbits(32)])
+    key = r.choice(keys * 3 + [0xffffffff, 7, r.getrandbits(32)]) if keys else r.choice([0xffffffff, 0xffffffff, 3])
+    regions = dict(particles.spawn(r).regions)
+    log = log_region()
+    g = bytearray(r.bytes(0x20))   # 0x802bc0..
+    put(g, 8, 'I', r.choice([0, 1, 1, 1, 1]))
+    put(g, 0xc, 'I', TMANAGER)
+    put(g, 0x14, 'I', r.choice([0, 1, 1, 1, 1]))
+    blob(log, 2, 1, 0x7f)
+    if r.random() < 0.85:
+        set_return(log, 2, r.getrandbits(32))
+    things = bytearray(r.bytes(60))
+    put(things, 20 * h, 'I', TTHING)
+    thing = bytearray(r.bytes(0x20))
+    type_ = r.getrandbits(16)
+    put(thing, 0xe, 'H', type_)
+    defs = bytearray(r.bytes(0x738))
+    put(defs, 0, 'I', TDEFS)
+    put(defs, 0x528, 'i', 1)
+    if r.random() < 0.3:
+        put(defs, 0x730, 'HxxI', type_, TDEFS)
+    block = bytearray(r.bytes(0x500))
+    put(block, 0, 'H', type_)
+    for k in range(4):
+        put(block, 0x4e0 + 4 * k, 'I', r.choice([0x13, 0x27, r.randrange(0x69), r.getrandbits(32)]))
+    put(block, 0x4f0, 'I', r.choice([0, 1, 5, r.getrandbits(32)]))
+    regions.update({STEP_POSE: bytes(ram), 0x7a4610: c.regions[0x7a4610], LOG: log, 0x802bc0: g, 0x8791a0: r.bytes(4),
+                    TMANAGER: put(bytearray(r.bytes(0x10)), 0, 'I', TVT), TVT: vtable({2: 2}, 4), 0x803a20: r.bytes(0x20),
+                    0x7cfb90: things, TTHING: thing, 0x7890a0: defs, TDEFS: block})
+    return Call(CALLS['Trigger'], [vm, kind & 0xffffffff, key, what & 0xffffffff, extra], regions, conv='c', ret='a')
+
+
 def case(r):
     op = r.deal(OPS)
+    if op == 'Trigger':
+        return trigger_case(r)
     if op in ('Back', 'Walkers'):
         return walkers_case(r, op)
     return {'Init': init_case, 'Event': event_case, 'Timer': timer_case, 'GetVec': vector_case, 'TakeDone': finished_case,
