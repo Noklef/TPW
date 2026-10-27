@@ -133,6 +133,17 @@ void __cdecl SoundCategory_SingletonDtor();
 // 0x6bead0 (name invented): the singleton category at 0xfb1f28: the first time (bit 0 of the guard byte 0xfb1ff8 clear) the bit set,
 // SoundCategory_Ctor on it and SoundCategory_SingletonDtor (0x6beb10) given to atexit. Returns the singleton.
 u8 *__cdecl SoundCategory_Get();
+// 0x6d1bd0 (thiscall (category, sound, variation, sample, info), pops 0x14; `this` unused; name invented): the indices of info's sound
+// (+4), variation (+8) and sample (+0xc) pointers, all four outs 0 first (the last three again when one of the pointers is null). Walks
+// the singleton's deque A (SoundCategory_Get) from its begin to its end (re-read each step), *category counting the records passed: the
+// first record whose SFX.map category (+8) has sounds and holds the sound (base <= sound <= base + sounds * 0x14, the end included,
+// sic) gives *sound = (sound - base) / 0x14, *variation = (variation - the sound's +8) / 0x2a and *sample = (sample - the variation's
+// +8) >> 4 (signed), each 0 when negative and its count - 1 when not under it (SfxVariation_SampleCount, called twice). Not found:
+// *category = 0.
+void __fastcall SoundCategory_LocateSample(void *self, void *, u32 *category, u32 *sound, u32 *variation, u32 *sample, const u32 *info);
+// 0x6d1dc0 (thiscall (index, unused), pops 8; `this` unused; name invented): deque A's record index of the singleton, 0 when index is not
+// under its count (+0x64).
+u8 *__fastcall SoundCategory_RecordAt(void *self, void *, u32 index, u32 unused);
 // 0x6c08b0 (thiscall (out, record), pops 8; from 0x6bea3c, the record's destructor; name invented): *out = -1 for no record. Else each bank
 // index in the record's list (+0x28 its first node {index, next}): the bank in deque B there, when not 0, released (slot 0); when that
 // answers 0, its +8 (read before) released too (slot 0, when not null) and the bank's cell 0. Then *out = -1 unless deque A's cell at the

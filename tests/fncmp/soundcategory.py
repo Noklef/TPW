@@ -4,7 +4,8 @@
 # 0-3 banks) and C (the bank indices) are small stretches of one or two blocks (the block boundary crossed now and then); a variation's sample
 # count (0x6bd7a0) and the simple sound mark (0x6c0550: each of its conditions met or missed). The free slots in deques A and B (0x6bf150 with
 # holes in A, 0x6bf1c0 over bank objects and gaps, long runs crossing into the second block); the BANK.map entries read (0x6bf9e0) through a stream recorder whose reads hand out the file's bytes in turn (seq_read).
-# The constructor (0x6beb20) and the singleton's getter (0x6bead0): see case_ctor().
+# The constructor (0x6beb20) and the singleton's getter (0x6bead0): see case_ctor(). The sample's indices (0x6d1bd0) and deque A's record
+# (0x6d1dc0): see locate_case().
 # usage: soundcategory.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,...)
 import os
 import struct
@@ -20,12 +21,14 @@ CALLS = {'count': 0x6bd7a0, 'simple': 0x6c0550, 'variation': 0x6c06e0, 'sound': 
          'readmap': 0x6c0450, 'freecat': 0x6bf150, 'freebank': 0x6bf1c0, 'entries': 0x6bf9e0, 'bankdtor': 0x6c01b0, 'bankdel': 0x6c0190,
          'openfolder': 0x6bf850, 'setfolder': 0x6bf260, 'findbank': 0x6bfa60, 'readbankmap': 0x6bfe40, 'loadbankmap': 0x6c0210,
          'addref': 0x6338c0, 'release': 0x6338d0, 'load': 0x6bf330, 'listdtor': 0x6c2f40, 'listdel': 0x6c30c0, 'findrec': 0x6c0f70,
-         'dtor': 0x6bee10, 'deldtor': 0x6bed80, 'singleton': 0x6beb10, 'unload': 0x6c08b0, 'ctor': 0x6beb20, 'get': 0x6bead0}
+         'dtor': 0x6bee10, 'deldtor': 0x6bed80, 'singleton': 0x6beb10, 'unload': 0x6c08b0, 'ctor': 0x6beb20, 'get': 0x6bead0,
+         'locate': 0x6d1bd0, 'recordat': 0x6d1dc0}
 B = Bench([(0x6bd7a0, 0x6bd7ac), (0x6bf150, 0x6bf31c), (0x6bf850, 0x6c0303), (0x6c0310, 0x6c035f), (0x6c0360, 0x6c0844), (0x4036a0, 0x4036e0), (0x639100, 0x639120),
            (0x6b9b30, 0x6b9b94), (0x5e42d0, 0x5e431c), (0x6338b0, 0x633900), (0x6c1940, 0x6c1b00), (0x6c2990, 0x6c29c0), (0x4f6740, 0x4f67c0), (0x632200, 0x632230),
            (0x6bf330, 0x6bf850), (0x632150, 0x632380), (0x6c0860, 0x6c3200), (0x5f7980, 0x5f79cf), (0x67c250, 0x67c2a0),
            (0x6beb10, 0x6beb1a), (0x6bed80, 0x6bee0b), (0x6bee10, 0x6bf14c), (0x5ec210, 0x5ec220), (0x5f8240, 0x5f8310), (0x5f8420, 0x5f8460), (0x619800, 0x619870),
-           (0x6beb20, 0x6bed76), (0x6bead0, 0x6beb03), (0x47db00, 0x47db30), (0x5f61a0, 0x5f61f0)]
+           (0x6beb20, 0x6bed76), (0x6bead0, 0x6beb03), (0x47db00, 0x47db30), (0x5f61a0, 0x5f61f0),
+           (0x6d1bd0, 0x6d1db5), (0x6d1dc0, 0x6d1e2f)]
           + fileopen.RANGES,
           hooks={0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None, 0x67a7d0: _cdecl_log})   # (the STL lock the map's insert takes: the port leaves it out)
 CAT, OUT, RECS, NODES = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x400
@@ -53,6 +56,7 @@ WAD_FOLDERS = [b'C:\\tp\\data\\sfx\\', b'C:\\tp\\data\\sfx', b'D:\\snd\\data\\x\
 TREE_H_NIL = 0xfb2008   # (the map's nil node's pointer)
 J_HEAD, J_NIL, SINGLETON = RAM + 0x1000, RAM + 0x1040, 0xfb1f28   # tree J's head and nil node (the destructor's); the singleton category
 UNLOAD_BANKS, UNLOAD_EXTRAS, UNLOAD_VT = RAM + 0x1100, RAM + 0x1200, RAM + 0x1300   # the unload's banks, their +8 objects, their vtables
+ENTRIES, INFO, SFX_SOUNDS, SFX_VARS, SFX_SAMPLES = RAM + 0x1400, RAM + 0x1480, RAM + 0x1500, RAM + 0x1a00, RAM + 0x1c00   # (locate_case())
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
@@ -365,8 +369,50 @@ def case_ctor(r, name):
     return Call(CALLS['ctor'], [CAT], regions, conv='t', ret='a', masks=[mask])
 
 
+def locate_case(r, name):
+    """The singleton's deque A (category(): records null now and then, over three blocks or more now and then; the guard's bit 0 set). Each
+    record's SFX.map category (+8, null now and then) has 0-5 sounds (a wrapping count now and then) at SFX_SOUNDS + 0x100 * i, each sound
+    0-5 variations at SFX_VARS (each 0-5 samples at SFX_SAMPLES). info's sound one of a record's (its end too), off the stride, outside them
+    or null; its variation and sample about their bases (below them now and then) or null. recordat: an index under the count or past it."""
+    regions = category(r, 4, holes=True, many=r.random() < 0.2)
+    regions[SINGLETON] = regions.pop(CAT)
+    regions[0xfb1ff8] = bytes([r.choice([1, r.getrandbits(8) | 1])])
+    count = struct.unpack_from('<I', regions[SINGLETON], 0x64)[0]
+    if name == 'recordat':
+        return Call(CALLS[name], [r.getrandbits(32), r.choice([0, 1, 2, r.randrange(count + 3), r.getrandbits(32)]), r.getrandbits(32)], regions,
+                    conv='t', ret='a')
+    recs = bytearray(regions[RECS])
+    entries = bytearray(r.bytes(0x40))
+    counts = []
+    for i in range(len(recs) // 0x40):
+        counts.append(r.choice([0, 1, 2, 3, 5, 0x0ccccccd]))
+        struct.pack_into('<II', entries, 8 * i, counts[-1], SFX_SOUNDS + 0x100 * i)
+        struct.pack_into('<I', recs, 0x40 * i + 8, r.choice([ENTRIES + 8 * i] * 5 + [0]))
+    regions[RECS], regions[ENTRIES] = recs, entries
+    sounds = bytearray(r.bytes(0x100 * len(counts)))
+    for o in range(0, len(sounds) - 0x14, 0x14):
+        struct.pack_into('<II', sounds, o + 4, r.choice([0, 1, 2, 5]), SFX_VARS)
+    regions[SFX_SOUNDS] = sounds
+    variations = bytearray(r.bytes(0x200))
+    for o in range(0x40, 0x200 - 0x2a, 0x2a):
+        struct.pack_into('<H', variations, o, r.choice([0, 1, 2, 5]))
+        struct.pack_into('<I', variations, o + 8, SFX_SAMPLES)
+    regions[SFX_VARS - 0x40] = variations
+    regions[SFX_SAMPLES - 0x40] = r.bytes(0x100)
+    i = r.randrange(len(counts))
+    sound = r.choice([SFX_SOUNDS + 0x100 * i + 0x14 * r.randrange(min(counts[i], 5) + 1), SFX_SOUNDS + 0x100 * i + r.randrange(0x64),
+                      SFX_SOUNDS + 0x100 * i + 0x14 * r.randrange(6), RAM + 0x1490, 0])
+    variation = r.choice([SFX_VARS + 0x2a * r.randrange(6), SFX_VARS + r.randrange(-0x2a, 0x100), 0])
+    sample = r.choice([SFX_SAMPLES + 0x10 * r.randrange(6), SFX_SAMPLES + r.randrange(-0x20, 0x80), 0])
+    regions[INFO] = struct.pack('<4I', r.getrandbits(32), sound, variation, sample) + r.bytes(0x10)
+    regions[OUT] = r.bytes(0x10)
+    return Call(CALLS[name], [r.getrandbits(32), OUT, OUT + 4, OUT + 8, OUT + 12, INFO], regions, conv='t', ret='v')
+
+
 def case(r):
     name = r.deal(OPS)
+    if name in ('locate', 'recordat'):
+        return locate_case(r, name)
     if name in ('ctor', 'get'):
         return case_ctor(r, name)
     if name in ('dtor', 'deldtor', 'singleton'):

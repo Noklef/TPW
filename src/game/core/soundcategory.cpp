@@ -562,6 +562,53 @@ u8 *__cdecl SoundCategory_Get() {
     return Ptr(0xfb1f28);
 }
 
+void __fastcall SoundCategory_LocateSample(void *, void *, u32 *category, u32 *sound, u32 *variation, u32 *sample, const u32 *info) {
+    u8 *const cat = SoundCategory_Get();
+    *category = 0;
+    *sound = 0;
+    *variation = 0;
+    *sample = 0;
+    const u32 soundAt = info[1], variationAt = info[2], sampleAt = info[3];
+    if (!sampleAt || !variationAt || !soundAt) {
+        *sample = 0;
+        *variation = 0;
+        *sound = 0;
+    }
+    u32 it[4];
+    std::memcpy(it, cat + 0x3c, sizeof it);
+    while (it[2] != Get<u32>(cat, 0x54)) {
+        const u8 *const record = Get<u8 *>(Ptr(it[2]), 0);
+        const u8 *const entry = record ? Get<u8 *>(record, 8) : nullptr;
+        if (entry && Get<u32>(entry, 0) && soundAt >= Get<u32>(entry, 4) && soundAt <= Get<u32>(entry, 4) + Get<u32>(entry, 0) * 0x14) {
+            const s32 s = static_cast<s32>(soundAt - Get<u32>(Get<u8 *>(Get<u8 *>(Ptr(it[2]), 0), 8), 4)) / 0x14;
+            *sound = static_cast<u32>(s);
+            if (s < 0) *sound = 0;
+            const u32 sounds = Get<u32>(Get<u8 *>(Get<u8 *>(Ptr(it[2]), 0), 8), 0);
+            if (*sound >= sounds) *sound = sounds - 1;
+            const s32 v = static_cast<s32>(variationAt - Get<u32>(Ptr(soundAt), 8)) / 0x2a;
+            *variation = static_cast<u32>(v);
+            if (v < 0) *variation = 0;
+            const u32 variations = Get<u32>(Ptr(soundAt), 4);
+            if (*variation >= variations) *variation = variations - 1;
+            const s32 k = static_cast<s32>(sampleAt - Get<u32>(Ptr(variationAt), 8)) >> 4;
+            *sample = static_cast<u32>(k);
+            if (k < 0) *sample = 0;
+            if (*sample >= SfxVariation_SampleCount(Ptr(variationAt))) *sample = SfxVariation_SampleCount(Ptr(variationAt)) - 1;
+            return;
+        }
+        DequeIter_Inc(reinterpret_cast<u8 *>(it));
+        ++*category;
+    }
+    *category = 0;
+}
+
+u8 *__fastcall SoundCategory_RecordAt(void *, void *, u32 index, u32) {
+    if (index >= Get<u32>(SoundCategory_Get(), 0x64)) return nullptr;
+    u32 it[4], found[4];
+    std::memcpy(it, SoundCategory_Get() + 0x3c, sizeof it);
+    return Get<u8 *>(Ptr(DequeIter_Plus(it, nullptr, found, static_cast<s32>(index))[2]), 0);
+}
+
 u32 *__fastcall SoundCategory_UnloadRecord(u8 *category, void *, u32 *out, u8 *record) {
     if (!record) {
         *out = 0xffffffff;
