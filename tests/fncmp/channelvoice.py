@@ -11,22 +11,23 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import IMPORT_TABLE, LOG, RAM, Bench, Call, echo, fill, import_table, log_region, set_return, strings, vtable  # noqa: E402
+from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, echo, fill, heap, import_table, log_region, set_return, strings, vtable  # noqa: E402
 
 # name: (address, convention, returns)
 CALLS = {'reset': (0x6c5060, 'c', 'v'), 'inc': (0x6c5070, 't', 'a'), 'dec': (0x6c5080, 't', 'a'), 'sound': (0x6bb7a0, 't', 'a'),
          'release': (0x6bb7c0, 't', 'b'), 'releaseall': (0x6babc0, 't', 'v'), 'setcount': (0x6bac30, 't', 'v'),
          'releasevoice': (0x6b7e60, 't', 'a'), 'setflag': (0x6b8330, 't', 'v'),
-         'apply': (0x6bb3e0, 't', 'a')}
+         'apply': (0x6bb3e0, 't', 'a'), 'ctor': (0x6bb270, 't', 'a'), 'new': (0x6baf50, 't', 'a')}
 RANGES = [(0x6c5060, 0x6c506b), (0x6c5070, 0x6c5078), (0x6c5080, 0x6c5088), (0x6bb7a0, 0x6bb7bd), (0x6bb7c0, 0x6bb856), (0x6babc0, 0x6bac04),
           (0x6bac30, 0x6bac5c), (0x6b7e60, 0x6b7ea5), (0x6b8330, 0x6b8358),
-          (0x6bb3e0, 0x6bb468)]
+          (0x6bb3e0, 0x6bb468), (0x6bb270, 0x6bb311), (0x6baf50, 0x6bafc9), (0x67acf0, 0x67ada0)]
 B = Bench(RANGES)
 VOICES, VVT, SND, SVT, POOL, CHAN, SRC, SRCVT, SETS, OUT = (RAM + 0x400 * i for i in range(10))
 COUNT, SHIFT = 0xfb2058, 0x782db8
 REC, PAIR = RAM + 0x2800, RAM + 0x2c00   # (the apply's record and its pair)
 IMPORTS = {'InterlockedIncrement': (40, 0x6fd0c0, 1, 0, 0), 'InterlockedDecrement': (41, 0x6fd12c, 1, 0, 0),
-           'EnterCriticalSection': (42, 0x6fd140, 1, 0, 0), 'LeaveCriticalSection': (43, 0x6fd130, 1, 0, 0)}
+           'EnterCriticalSection': (42, 0x6fd140, 1, 0, 0), 'LeaveCriticalSection': (43, 0x6fd130, 1, 0, 0),
+           'CreateEventA': (44, 0x6fd0d4, 4, 0, 0), 'InitializeCriticalSection': (45, 0x6fd144, 1, 0, 0)}
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
@@ -43,7 +44,7 @@ def voices(r, n):
 def common(r, log, n):
     set_return(log, 11, r.getrandbits(32))
     set_return(log, 2, r.getrandbits(32))
-    for k in (40, 41):
+    for k in (40, 41, 44):
         set_return(log, k, r.getrandbits(32))
     strings(log, 10, 0, out=1)   # (the source's out: the voice argument's own stack slot)
     fill(log, 10, 0, b''.join(struct.pack('<I', r.choice([0, 1, 0x80000000, 0xffffffff, r.getrandbits(32)])) for _ in range(4)), records=4)
@@ -63,6 +64,11 @@ def case(r):
     regions = common(r, log, max(n, 1))
     if name == 'releasevoice':
         return Call(address, [CHAN, OUT, r.choice([VOICES] * 6 + [0]), r.getrandbits(32)], regions, conv=conv, ret=ret)
+    if name in ('ctor', 'new'):   # (the heap failing now and then: the array's block, or a voice's buffer; 0-3 voices)
+        regions[HEAP] = heap(0xa000, fail=r.choice([0, 0, 0, 1, 2, 3]))
+        if name == 'ctor':
+            return Call(address, [VOICES], regions, conv=conv, ret=ret)
+        return Call(address, [OUT, r.choice([0, 1, 2, 3])], regions, conv=conv, ret=ret)
     if name == 'apply':   # (the voice's flag 2 or not; the record's flags 2, 0x400, 0x40000 and others)
         struct.pack_into('<I', regions[VOICES], 0x10, r.choice([0, 2, 0xfffffffd, r.getrandbits(32)]))
         rec = bytearray(r.bytes(0xa0))

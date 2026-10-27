@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "crt.h"
+#include "gameheap.h"
 #include "soundchannel.h"
 #include "vcall.h"
 
@@ -88,6 +90,42 @@ void __fastcall ChannelVoices_ReleaseAll(u8 *pool) {
         SoundChannel_ReleaseVoice(at<u8 *>(pool, 0xc), nullptr, &out, voice, 1);
         voice += 0x8c;
     } while (voice < end);
+}
+
+u8 *__fastcall ChannelVoice_Ctor(u8 *voice) {
+    at<u32>(voice, 4) = 0;
+    at<u32>(voice, 8) = 0;
+    at<u32>(voice, 0xc) = 0;
+    at<u32>(voice, 0) = 0x0070a778;
+    at<u32>(voice, 0x10) = 0;
+    at<u32>(voice, 0x18) = 0;
+    at<u32>(voice, 0x1c) = 0;
+    at<u32>(voice, 0x20) = 0;
+    at<u32>(voice, 0x24) = 0;
+    at<u32>(voice, 0x2c) = 0;
+    at<u32>(voice, 0x34) = 0;
+    at<u32>(voice, 0x38) = 0;
+    const uintptr_t block = reinterpret_cast<uintptr_t>(GameHeap_Alloc(0x2420));
+    at<u32>(voice, 0x64) = static_cast<u32>(block);
+    at<u32>(voice, 0x68) = static_cast<u32>((block + 0x1f) & ~static_cast<uintptr_t>(0x1f));
+    using CreateEvent = u32(__stdcall *)(void *, u32, u32, const char *);
+    at<u32>(voice, 0x6c) = Import<CreateEvent>(0x006fd0d4)(nullptr, 1, 0, nullptr);   // CreateEventA
+    Import<OnObject>(0x006fd144)(voice + 0x74);   // InitializeCriticalSection
+    at<u32>(voice, 0x58) = 0;
+    at<u32>(voice, 0) = 0x0070a7a8;
+    return voice;
+}
+
+u8 *__fastcall ChannelVoices_New(u8 *holder, void *, u32 count) {
+    u8 *array = nullptr;
+    if (u32 *const block = static_cast<u32 *>(GameHeap_Alloc(count * 0x8c + 4))) {
+        block[0] = count;
+        array = reinterpret_cast<u8 *>(block + 1);
+        CRT_VectorCtorIterator(array, 0x8c, static_cast<s32>(count), reinterpret_cast<void(__fastcall *)(void *)>(ChannelVoice_Ctor),
+                               reinterpret_cast<void *>(static_cast<uintptr_t>(0x006bb050)));
+    }
+    at<u8 *>(holder, 0) = array;
+    return holder;
 }
 
 void __fastcall ChannelVoices_SetCount(u8 *pool, void *, const u8 *settings) {

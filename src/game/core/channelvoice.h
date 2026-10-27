@@ -2,7 +2,8 @@
 // slot 2 releases it), +0x10 flags, +0x2c an id, +0x58 a value cleared on release, +0x74 a critical section; its vtable's slot 11
 // takes a value on release. The pool (the channel's +0x14): +0 its capacity, +4 the array, +8 the count in use, +0xc the channel. The
 // voices' count (the dword at 0xfb2058) is kept with the Interlocked imports. Reimplementation of 0x6c5060, 0x6c5070, 0x6c5080,
-// 0x6bb7a0, 0x6bb7c0, 0x6b8330, 0x6bb3e0, 0x6babc0 and 0x6bac30; the names are invented.
+// 0x6bb7a0, 0x6bb7c0, 0x6b8330, 0x6bb3e0, 0x6babc0, 0x6bac30, the constructor 0x6bb270 and the array's new 0x6baf50; the names are
+// invented.
 #pragma once
 
 #include "../../../re/types.h"
@@ -18,6 +19,14 @@ s32 __fastcall ChannelVoiceCount_Decrement(s32 *count);
 
 // 0x6bb7a0 (thiscall): the voice's sound (+4), read inside its critical section.
 u8 *__fastcall ChannelVoice_Sound(u8 *voice);
+// 0x6bb270 (thiscall; an SEH frame): the sound stream's base (+4 / +8 / +0xc 0, vtable 0x70a778), +0x10, +0x18 / +0x1c / +0x20 / +0x24,
+// +0x2c, +0x34 / +0x38 0; +0x64 a block of 0x2420 bytes (Mem_Alloc) and +0x68 that 32-byte aligned up; +0x6c an event (CreateEventA
+// (0, 1, 0, 0): manual reset, not signalled); the critical section +0x74 initialised; +0x58 0; vtable 0x70a7a8. Returns the voice.
+u8 *__fastcall ChannelVoice_Ctor(u8 *voice);
+// 0x6baf50 (thiscall (count), pops 4; an SEH frame): new[] of count voices: a block of count * 0x8c + 4 (Mem_Alloc), the count at +0,
+// the voices from +4 constructed (CRT_VectorCtorIterator with ChannelVoice_Ctor; the destructor 0x6bb050 for the unwinding); the array
+// (null when the allocation fails) into the holder's +0. Returns the holder.
+u8 *__fastcall ChannelVoices_New(u8 *holder, void *, u32 count);
 // 0x6bb7c0 (thiscall (value), pops 4): inside its critical section: with a sound, slot 11 (value), the sound's slot 2, +4 = 0 and the
 // count decremented; then flag 2 (+0x10) cleared and +0x58 = 0 either way. Returns 1 when there was a sound, else 0 (a byte).
 u8 __fastcall ChannelVoice_Release(u8 *voice, void *, u32 value);
