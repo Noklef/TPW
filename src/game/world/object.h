@@ -34,6 +34,10 @@ void __fastcall Object_SetState(u8 *object, void *, u32 state);
 // debug print, left out with the others), +0x68 = 1, the strip animation shrunk again, element 6 of the ride record (Rides_FindById of
 // +0x24) = 0 and Object_SetState (0); 1.
 u32 __fastcall Object_SetOpen(u8 *object, void *, u32 open);
+// 0x4df390 (thiscall; name invented): SetOpen's closing without its state test and first shrink: Object_CanOpen's checks made inline
+// (they only pick a debug print, five times, left out), +0x68 = 1, the strip animation of 0x7a4610[+0x20] shrunk (StripAnim_StartShrink),
+// element 6 of the ride record (Rides_FindById of +0x24) = 0 and Object_SetState (0).
+void __fastcall Object_Close(u8 *object);
 // 0x4e1220 (thiscall; name invented; called by 0x4e14e0): without +0x68 Object_DismissQueueHead. Else, with the ride record (Rides_FindById
 // of +0x24): when its element 0 is 0, and its element 5 is below element 2 (signed) or the definition (ObjectDefs_Find of the id +0xe, looked
 // up twice) is of kind 3 or 2 (+0x9c), and element 9 is 0 or the flag 1 of the byte +0x33 is set, and no rider (the word +0x6c): the queue's

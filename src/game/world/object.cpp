@@ -343,6 +343,14 @@ u32 __fastcall Object_SetOpen(u8 *object, void *, u32 open) {
     return 1;
 }
 
+void __fastcall Object_Close(u8 *object) {
+    Object_CanOpen(object);   // (Object_Close: the original's inline checks pick only a debug print, five times; their calls are kept)
+    at<u32>(object, 0x68) = 1;
+    StripAnim_StartShrink(reinterpret_cast<u8 *const *>(0x007a4610)[at<u32>(object, 0x20)]);
+    Rides_SetElement(Rides_FindById(at<s32>(object, 0x24)), 6, 0);
+    Object_SetState(object, nullptr, 0);
+}
+
 void __fastcall Object_RestartRide(u8 *object) {
     at<u32>(object, 0x68) = 0;
     at<u16>(object, 0x6c) = 0;

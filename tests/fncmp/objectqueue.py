@@ -5,8 +5,8 @@
 # Path: the back of the queue's cell or the cell ahead of a quarter-turn angle) and whether the object can be opened (0x4df290 Object_CanOpen: Open's states with Path's
 # cells). The angles are quarter turns only: another leaves the original's direction bit a stale stack byte (see objectmsg.h). Where a person at a place in the
 # queue stands (0x4de840 Object_QueueSpot, Spot: Path's world, places in the first cells or past the end, the world's random state, now and then the one drawing 0x80000000); EntSpot (0x4dec30 Object_EntranceQueueSpot) on Spot's cases.
-# AnySpot (0x4de7e0 Object_AnyQueueSpot): Spot's cases, the object's bit 3 of +0x32 set or clear.
-# usage: objectqueue.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Back,BackTo,None,Open,Path,CanOpen,Spot,EntSpot,AnySpot)
+# AnySpot (0x4de7e0 Object_AnyQueueSpot): Spot's cases, the object's bit 3 of +0x32 set or clear. Close (0x4df390 Object_Close): see close().
+# usage: objectqueue.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Back,BackTo,None,Open,Path,CanOpen,Spot,EntSpot,AnySpot,Close)
 import os
 import struct
 import sys
@@ -21,8 +21,10 @@ from thingenv import park  # noqa: E402
 B = Bench([(0x4d8300, 0x4d8340), (0x4d8c00, 0x4d8c30), (0x4d96f0, 0x4d99f0), (0x4de4a0, 0x4de5b0), (0x4df290, 0x4df310), (0x4de840, 0x4dede8), (0x516330, 0x516380),
            (0x4ddf40, 0x4de200), (0x4de040, 0x4de100), (0x4de670, 0x4de7e0), (0x4de7e0, 0x4de83e), (0x502430, 0x502470), (0x50b350, 0x50b370),
            (0x522770, 0x5227a0), (0x522850, 0x522870), (0x536300, 0x53644c), (0x5da3c0, 0x5da3c1),
-           (0x4dd920, 0x4dda20), (0x412e90, 0x412eea), (0x441970, 0x4419b0), (0x436860, 0x436880)])
+           (0x4dd920, 0x4dda20), (0x412e90, 0x412eea), (0x441970, 0x4419b0), (0x436860, 0x436880),
+           (0x4df390, 0x4df450), (0x454550, 0x454800), (0x4e0e60, 0x4e11e4), (0x55a070, 0x55a110)])
 OUT = RAM + 0x7000
+RIDES, STRIP = RAM + 0x24000, RAM + 0x26000   # (Close's)
 
 
 def back(r):
@@ -157,7 +159,30 @@ def any_spot(r):
     return c
 
 
-CASES = {'Back': back, 'BackTo': back_to, 'None': none, 'Open': open_, 'Path': path, 'CanOpen': can_open, 'Spot': spot, 'EntSpot': entrance_spot, 'AnySpot': any_spot}
+def close(r):
+    """0x4df390: CanOpen's cases, then the strip object of 0x7a4610[+0x20] (its strips +0xb0 set or not, its flags random) and the ride
+    record of the id +0x24 (the rides' system on mostly, one record of that id or another, its element count 0-8 or -1: element 6 there
+    or not)."""
+    c = can_open(r)
+    obj = c.regions[RAM]
+    if r.random() < 0.3:   # (else the coaster link's id, 1-3 or 9)
+        put(obj, 0x20, 'I', r.randrange(10))
+    k = struct.unpack_from('<I', obj, 0x20)[0]
+    table = bytearray(r.bytes(0x28))
+    put(table, 4 * k, 'I', STRIP)
+    c.regions[0x7a4610] = table
+    c.regions[STRIP] = put(bytearray(r.bytes(0xc0)), 0xb0, 'I', r.choice([0, r.getrandbits(32) | 1]))
+    rid = r.choice([1, 2, 7])
+    node = put(put(put(put(bytearray(r.bytes(0x100)), 0, 'I', 0), 8, 'I', rid), 0x1c, 'I', RIDES + 0x100), 0x8c, 'i', r.choice([7, 7, 8, 6, 0, -1]))
+    put(obj, 0x24, 'I', r.choice([rid, rid, rid, 3]))
+    c.regions.update({RIDES: node, RIDES + 0x100: r.bytes(0x20), 0x8791a0: struct.pack('<I', r.choice([0, 1, 1, 1])),
+                      0x8791b0: struct.pack('<I', RIDES)})
+    c.address, c.ret = 0x4df390, 'v'
+    return c
+
+
+CASES = {'Back': back, 'BackTo': back_to, 'None': none, 'Open': open_, 'Path': path, 'CanOpen': can_open, 'Spot': spot, 'EntSpot': entrance_spot, 'AnySpot': any_spot,
+         'Close': close}
 
 
 def case(r):
