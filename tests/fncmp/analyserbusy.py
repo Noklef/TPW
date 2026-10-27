@@ -175,9 +175,21 @@ def loan_offer(r, regions):
         put(money, e + 4, 'i', r.choice([0, 1000, 5000, 20000, 100000, -1, r.randrange(-0x80000000, 0x80000000)]))
         put(money, e + 0xc, 'iiii', r.choice([0, 1, 12, 36, 60]), r.choice([0, 1, 100, 500, 3000, -7]), r.choice([0, 0, 1, 0x100]),
             r.choice([0, 1, 5, 12, 40]))
+    index = r.choice([0, 1, 2, 3, 4, 5, 6, 7] * 3 + [8, 9])
+    value = regions[SCORE_AT + 0x1f0e8]
+    if SW + 0x2d8 not in regions and r.random() < 0.7:   # (kept, not worked out again: the score small or past 24 bits, the amount about the credit)
+        value = bytearray(value)
+        put(value, 4, 'i', r.choice([0, 7, 100, 5000, 250000, 0x1000001, 0x1234567, 0x7fffffff, -5, r.randrange(-0x80000000, 0x80000000)]))
+        regions[SCORE_AT + 0x1f0e8] = value
+        owed = 0
+        for i in range(8):
+            term, rate, taken, paid = struct.unpack_from('<4I', money, 0x20 + 0x20 * i)
+            owed += (term - paid) * rate if taken else 0
+        scaled = int(struct.unpack('<f', struct.pack('<f', float(struct.unpack_from('<i', value, 4)[0])))[0])   # (fild, fmul 1.0 at 24 bits)
+        credit = (scaled - owed) & 0xffffffff
+        put(money, 0x18 + 0x20 * index, 'I', (credit + r.choice([-1, 0, 0, 1])) & 0xffffffff)
     regions[MONEY] = money
     regions[MONEY + 0x400] = r.bytes(0x20)
-    index = r.choice([0, 1, 2, 3, 4, 5, 6, 7] * 3 + [8, 9])
     return Call(CALLS['LoanOffer'], [MONEY, MONEY + 0x400, index], regions, conv='t', ret='a')
 
 
