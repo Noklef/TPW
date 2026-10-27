@@ -58,6 +58,15 @@ void __cdecl Car_Edited(u32 what, u8 *car, u8 *coaster, u32 unused, u32 keepCont
 // ([0x790fec]) piece index (Track_PieceAt of its +0x3c), then Car_Edited (1, it, the coaster, unused, keepContacts).
 void __cdecl Car_SetLengthAt(u32 length, u32 index, u32 unused, u32 keepContacts);
 
+// 0x435340 (cdecl; node, range, car, other, keep, wantValue, out; name invented, unconfirmed): a value along range (+0xbc..+0xc0).
+// With range flagged 0x4000 and keep 0: other's (its type +0x100 flag 1 (+4): +0x50; else its ride's (0x7a4610[+0x70] +8 -> +0x28 ->
+// +4) entry the type's +0x18 -> +0x2c (0x14 apart, +4) -> +0x34, none 0.0; no other: range's own pointer bits, sic) less half the
+// distance across x and z from node's +0x1c to its +0x2c node's (Vec3_Distance with y zeroed), then car's length set to its
+// fraction of car's type (+0x100 -> +0x18) +0xbc..+0xc0 (Car_SetLengthAt (it, car's +0, 1, 0)); otherwise the coaster's ([0x790fec])
+// +0x118. The value to *out when given; returned (st0, so double): with wantValue the value, else its fraction of range's span, held
+// to 0..1 (below 0 or a NaN 0) unless node's +0x30 is set. sic: a null range faults (in the fraction).
+double __cdecl Car_LengthFromNode(const u8 *node, const u8 *range, u8 *car, const u8 *other, u32 keep, u32 wantValue, u32 *out);
+
 // 0x432d50: unless 0x790afc is set, marks each car but the last 0x100 (+8), clearing it on
 // the last, and picks its coupling: +0x84 with the type's +0x44 for a marked car without
 // flag 0x2000 whose type has flag 8, else +0x78 with the type's +0x30.

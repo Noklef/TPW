@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include "../core/globalmem.h"
+#include "../math/matrix.h"
 #include "../math/x87.h"
 #include "../model/gridfit.h"
 #include "../model/parts.h"
@@ -552,6 +553,48 @@ void __cdecl Car_SetLengthAt(u32 length, u32 index, u32 unused, u32 keepContacts
     u8 *const car = reinterpret_cast<u8 *>((uintptr_t)Track_PieceAt(coaster + 0x3c, index));
     at<u32>(car, 0xe8) = length;
     Car_Edited(1, car, global<u8 *>(0x00790fec), unused, keepContacts);
+}
+
+double __cdecl Car_LengthFromNode(const u8 *node, const u8 *range, u8 *car, const u8 *other, u32 keep, u32 wantValue, u32 *out) {
+    u32 value = (u32)(uintptr_t)range;   // (the range argument's slot, sic)
+    if (range && (at<u32>(range, 0) & 0x4000) && !keep) {
+        float a[3], b[3];
+        std::memcpy(a, node + 0x1c, 12);
+        std::memcpy(b, at<const u8 *>(node, 0x2c) + 0x1c, 12);
+        a[1] = 0.0f;
+        b[1] = 0.0f;
+        if (other) {
+            const u8 *const type = at<const u8 *>(other, 0x100);
+            if (at<u8>(type, 4) & 1) {
+                value = at<u32>(other, 0x50);
+            } else {
+                const u8 *const list = at<const u8 *>(at<const u8 *>(at<const u8 *>(RideAt(at<u32>(other, 0x70)), 8), 0x28), 4);
+                const u8 *const entry = at<const u8 *>(list, 0x14 * at<u32>(at<const u8 *>(type, 0x18), 0x2c) + 4);
+                value = entry ? X87_FloatThrough(at<u32>(entry, 0x34)) : 0;
+            }
+        }
+        float v;
+        std::memcpy(&v, &value, 4);
+        v = (float)(v - X87Reg(Vec3_Distance(a, b)) * global<float>(0x006fdea0));   // (fmul -0.5; fsubr)
+        std::memcpy(&value, &v, 4);
+        const u8 *const model = at<const u8 *>(at<const u8 *>(car, 0x100), 0x18);
+        const float length = (float)((X87Reg(v) - at<float>(model, 0xbc)) / (X87Reg(at<float>(model, 0xc0)) - at<float>(model, 0xbc)));
+        u32 bits;
+        std::memcpy(&bits, &length, 4);
+        Car_SetLengthAt(bits, at<u32>(car, 0), 1, 0);
+    } else {
+        value = at<u32>(global<const u8 *>(0x00790fec), 0x118);
+    }
+    if (out) *out = value;
+    float v;
+    std::memcpy(&v, &value, 4);
+    const X87Reg top(at<float>(range, 0xc0));
+    double r = ((X87Reg(v) - at<float>(range, 0xbc)) / (top - at<float>(range, 0xbc))).v;
+    if (!at<u32>(node, 0x30)) {
+        if (!(r >= 0.0)) r = 0.0;
+        if (r > 1.0) r = 1.0;
+    }
+    return wantValue ? (double)X87_Through(v) : r;
 }
 }
 
