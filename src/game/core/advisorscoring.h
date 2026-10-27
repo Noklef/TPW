@@ -196,4 +196,41 @@ s32 __fastcall AdvisorScoring_Field5f8(const u8 *scoring);
 // 0x59f9a0 and 0x59f9b0 (thiscall, the object unread; names invented): the constants 10000 and 9999.
 s32 __fastcall AdvisorScoring_Const10000(const u8 *scoring);
 s32 __fastcall AdvisorScoring_Const9999(const u8 *scoring);
+
+// The park criteria of 0x5a02f0-0x5a08b0 (thiscall on the scoring; names invented). The analyser is the game table entry
+// (GameTable7cfb90_Get1da720_519510) of the game object [[0x7cf6ec]] (of [0x7cf83c] for 0x5a0780); "flagged" as above. Shares are
+// count * 100 / total (wrapping, signed), bounds signed; "the theme byte i" is GlobalSave_ThemeByte(GlobalSave_Instance(), i).
+// 0x5a02f0: not flagged (Game_Field1da710IsZero), n objects with definition +0x4ac 0 (Things_CountByDef4ac(0, 0)), n at least +0x57c,
+// and the idle ones' (Things_CountByDef4acIdle(0)) share above +0x580: +0x584. 0x5a0370 / 0x5a03d0: for +0x4ac 1 / 2, n not 0 (no
+// flag, no least): the share above +0x588 / +0x590: +0x58c / +0x594.
+s32 __fastcall AdvisorScoring_IdleObjects0Share(const u8 *scoring);
+s32 __fastcall AdvisorScoring_IdleObjects1Share(const u8 *scoring);
+s32 __fastcall AdvisorScoring_IdleObjects2Share(const u8 *scoring);
+// 0x5a0430: n the kind 3 things with flag bit 0 (Game_RecountKind3Flag1 on the analyser, sic), not 0, and the idle ones'
+// (Things_CountKind3Flag1) share above +0x598: +0x59c. 0x5a0490: the same for bit 1 (Things_CountKind3Flag2Any / Things_CountKind3Flag2),
+// +0x5a0 / +0x5a4.
+s32 __fastcall AdvisorScoring_IdleKind3Flag1Share(const u8 *scoring);
+s32 __fastcall AdvisorScoring_IdleKind3Flag2Share(const u8 *scoring);
+// 0x5a04f0: the analyser's tally ParkAnalyser_Tallied(0) above +0x5a8: +0x5ac.
+s32 __fastcall AdvisorScoring_Tallied0Above(const u8 *scoring);
+// 0x5a05a0: the analyser's total (ParkAnalyser_Total) above __ftol([0x785790] * float +0x5c4) and the theme byte 0 clear: +0x5c8.
+// 0x5a0670: the money's total (Money_Total of the game table entry GameTable7cfb90_Get1da726_5195d0) above __ftol([0x7857a0] * float
+// +0x5d4) and the theme byte 4 clear: +0x5d8.
+s32 __fastcall AdvisorScoring_TotalAboveTheme0(const u8 *scoring);
+s32 __fastcall AdvisorScoring_MoneyAboveTheme4(const u8 *scoring);
+// 0x5a05f0: k = __ftol([0x785798] * float +0x5cc) below the people's average +0x19c (Things_AveragePersonStat19c on the analyser; or
+// unordered with it, as fcompp's C0 has it), the people on plain cells (Things_CountKind1OnPlainCell) more than [0x78579c] and the
+// theme byte 2 clear: +0x5d0.
+s32 __fastcall AdvisorScoring_Mood19cTheme2(const u8 *scoring);
+// 0x5a0780: the analyser's count at +0x216d8 (with its byte +0x20 set its +0x1c, else its +0x18 + 1) exactly 1: +0x5f4.
+s32 __fastcall AdvisorScoring_AnalyserCountOne(const u8 *scoring);
+// 0x5a07d0 / 0x5a0820 / 0x5a0870: not flagged (Get1da710_51a280 of [[0x7cf6ec]]) and the definitions' percentage with controls
+// (ObjectDefs_PercentWithControls) above +0x5fc and at most +0x604 / above +0x604 and at most +0x60c / above +0x60c: +0x600 / +0x608 /
+// +0x610.
+s32 __fastcall AdvisorScoring_ControlsPercentLow(const u8 *scoring);
+s32 __fastcall AdvisorScoring_ControlsPercentMid(const u8 *scoring);
+s32 __fastcall AdvisorScoring_ControlsPercentHigh(const u8 *scoring);
+// 0x5a08b0: not flagged, [0x785794] not 0 and the people on plain cells' share of it (Things_CountKind1OnPlainCell, asked again when
+// the first share is not above 100; else 100) above +0x614: +0x618.
+s32 __fastcall AdvisorScoring_PeopleShare(const u8 *scoring);
 }
