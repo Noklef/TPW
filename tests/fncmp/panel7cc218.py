@@ -240,13 +240,17 @@ def route(kind, def_kind, d288, link, w284, flags):
 
 def show_thing_case(r):
     """ShowThing (0x486920, above)"""
-    kind = r.choice([3] * 8 + [4, 5, 6, 7, 8, 1, 1, 0, 2, 9, r.getrandbits(8)])
-    def_kind = r.choice([0, 0, 0, 0, 1, 2, 3, 3, 4, r.getrandbits(32)])
-    d288 = r.choice([2, 2, 0, 1, r.getrandbits(32)])
-    link = r.choice([0, 0, 1, 2, 3])
-    w284 = r.choice([0, 0, 1, r.getrandbits(16)])
-    flags = r.choice([0, 1, 2, 3, r.getrandbits(16)])
-    op = route(kind, def_kind, d288, link, w284, flags) or r.choice(list(SHOWS))
+    want = r.choice(list(SHOWS) + [None] * 2)   # (each route about as often: the fields drawn until they take it)
+    while True:
+        kind = r.choice([3] * 8 + [4, 5, 6, 7, 8, 1, 1, 0, 2, 9, r.getrandbits(8)])
+        def_kind = r.choice([0, 0, 0, 0, 1, 2, 3, 3, 4, r.getrandbits(32)])
+        d288 = r.choice([2, 2, 0, 1, r.getrandbits(32)])
+        link = r.choice([0, 0, 1, 2, 3])
+        w284 = r.choice([0, 0, 1, r.getrandbits(16)])
+        flags = r.choice([0, 1, 2, 3, r.getrandbits(16)])
+        if route(kind, def_kind, d288, link, w284, flags) == want:
+            break
+    op = want or r.choice(list(SHOWS))
     regions, masks = show_case(r, op, PANELS[op])
     thing = bytearray(regions[THING_SHOWN])
     ident = r.getrandbits(16)
@@ -276,6 +280,8 @@ def show_thing_case(r):
     put(defs, 0x528, 'i', n)
     regions[0x7890a0] = defs
     things = bytearray(r.bytes(0x14 * 16))   # (the linked things: entries mostly the thing shown; the advisor's entry kept)
+    for off in range(0, 0x14 * 4, 4):   # (the bytes between them another thing: a misplaced entry read shows that one)
+        put(things, off, 'I', THING_SHOWN + 4)
     for k in range(4):
         put(things, 0x14 * k, 'I', THING_SHOWN if r.random() < 0.95 else r.choice([0, RAM]))
     for at in [at for at in regions if 0x7cfb90 <= at < 0x7cfb90 + len(things)]:
