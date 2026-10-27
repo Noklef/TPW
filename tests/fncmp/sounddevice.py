@@ -5,23 +5,25 @@
 # PRIM or null; the singletons' guards set or not (0x67a7d0, atexit, logged). The caps holder (0x6c4040, 0x6c4060, 0x6c4090) at CAPS: DS or
 # null, a caps block or null; DirectSoundCreate a recorder that fills DS in, AddRef / GetCaps (filling the flags) recorders of DS;
 # the cached caps values (0x6c4170, 0x6c4180: 0xfb201c, 0xfb2020) any, their done byte (0xfb2024) set or not.
+# The 3D voices' choice (0x6b7470): the object any, a settings record (+0x40 small, +0x4c any), the caps' max and free counts small.
 # usage: sounddevice.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, _cdecl_log, blob_bytes, fail_mask, fill, heap, log_region, recorder, set_return  # noqa: E402
+from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, _cdecl_log, blob_bytes, fail_mask, fill, heap, log_region, recorder, set_return, strings  # noqa: E402
 
 CALLS = {'cominit': (0x6d3b10, 'a'), 'comdtor': (0x6d3b30, 'v'), 'comget': (0x6d3b40, 'a'), 'comsingle': (0x6d3b80, 'v'),
          'ctor': (0x6c42e0, 'a'), 'create': (0x6c4300, 'a'), 'createof': (0x6c4370, 'a'), 'setformat': (0x6c4390, 'a'),
          'open': (0x6c4410, 'a'), 'release': (0x6c4480, 'v'), 'cocreate': (0x6c44b0, 'a'), 'get': (0x6c4500, 'a'),
          'capsctor': (0x6c4040, 'a'), 'capsdtor': (0x6c4060, 'v'), 'caps': (0x6c4090, 'a'),
-         'max3d': (0x6c4170, 'a'), 'free3d': (0x6c4180, 'a')}
-B = Bench([(0x6c42e0, 0x6c4541), (0x6d3b10, 0x6d3b8a), (0x6d3a80, 0x6d3b04), (0x6c4040, 0x6c418b), (0x6d76e0, 0x6d76e6)],
+         'max3d': (0x6c4170, 'a'), 'free3d': (0x6c4180, 'a'), 'choose3d': (0x6b7470, 'v')}
+B = Bench([(0x6c42e0, 0x6c4541), (0x6d3b10, 0x6d3b8a), (0x6d3a80, 0x6d3b04), (0x6c4040, 0x6c418b), (0x6d76e0, 0x6d76e6), (0x6b7470, 0x6b7510), (0x6b9d10, 0x6b9d23)],
           hooks={0x67a7d0: _cdecl_log})
 DEV, DS, DS_VT, PRIM, PRIM_VT, OUT = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x600
 CAPS, CAPS_BLOCK = RAM + 0x700, RAM + 0x800   # (the caps holder: the sound, its caps block)
+SETTINGS = RAM + 0x900   # (0x6b7470's settings record)
 STATICS = 0xfb201c   # (Obj_CacheStatics's max and free 3D streaming buffers, then its done byte)
 DEVICE, DEVICE_GUARD, COM, COM_GUARD = 0xfb2030, 0xfb2028, 0xfb271c, 0xfb2720
 INIT_K, UNINIT_K, CREATE_K, WINDOW_K = 32, 33, 34, 35
@@ -64,6 +66,20 @@ def case(r):
                PRIM: struct.pack('<I', PRIM_VT) + r.bytes(0xc), PRIM_VT: table({2: (PRIM_REL_K, 1), 14: (FORMAT_K, 2)}),
                DEVICE_GUARD: bytes([r.choice([0, 0, 1, r.getrandbits(8)])]) + r.bytes(7) + device,
                COM: bytes([r.choice([0, 1, r.getrandbits(8)])]) + r.bytes(3) + bytes([r.choice([0, 1, r.getrandbits(8)])]) + r.bytes(3)}
+    if name == 'choose3d':   # (its own holder of no sound: DirectSoundCreate always; GetCaps fills +4-+0x43, max +0x34 and free +0x40 small)
+        caps = bytearray(r.bytes(0x40))
+        struct.pack_into('<I', caps, 0x30, r.choice([0, 1, 4, 5, 6, 8, 30, 31, r.getrandbits(32)]))
+        struct.pack_into('<I', caps, 0x3c, r.choice([0, 1, 2, 4, 5, 8, 30, r.getrandbits(32)]))
+        fill(log, DSCREATE_K, 1, struct.pack('<I', DS))
+        strings(log, DSCREATE_K, 0, out=0b10)   # (its out is the holder on the caller's stack)
+        fill(log, GETCAPS_K, 1, bytes(caps), which=1, offset=4)
+        for k in (DSCREATE_K, GETCAPS_K):
+            set_return(log, k, r.choice([0, 0, 0, 0, 1, 0x88780078, 0x80004005]))
+        settings = bytearray(r.bytes(0x70))
+        struct.pack_into('<I', settings, 0x40, r.choice([0, 1, 2, 4, 5, 8, 30, r.getrandbits(32)]))
+        regions.update({SETTINGS: settings, HEAP: heap(0x100),
+                        STATICS: r.bytes(8) + bytes([r.choice([0, 0, 0, 1, r.getrandbits(8)])]) + r.bytes(3)})
+        return Call(address, [r.getrandbits(32), SETTINGS], regions, conv='t', ret=ret)
     if name in ('capsctor', 'capsdtor', 'caps', 'max3d', 'free3d'):   # (the holder's sound DS or null, its caps block or null; DirectSoundCreate fills DS in)
         fill(log, DSCREATE_K, 1, struct.pack('<I', DS))
         fill(log, GETCAPS_K, 1, r.bytes(8), which=1, offset=4)

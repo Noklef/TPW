@@ -5159,6 +5159,7 @@ address,name,kind,confidence,notes
 0x006c3f70,SampleCopier_Install,function,low,reimplemented (src/game/core/soundsample); the memory samples' copier made (MMX or plain) into 0xfb2018
 0x006c3fc0,SampleCopier_MmxCopy,function,low,"reimplemented (src/game/core/soundsample); the MMX copier's copy: 32-byte blocks as qwords, then bytes"
 0x006b7390,SoundSample70a548_Ctor,function,low,"reimplemented (src/game/core/soundsample); thiscall; the base of 0x6b8ed0's 0x70a5d8: Class703770_Ctor, +8-+0x20 = 0, the copier at +0x24 (SampleCopier_Install), vtable 0x70a548; returns the object (name invented)"
+0x006b7470,SoundSample70a548_Choose3DVoices,function,low,"reimplemented (src/game/core/soundsample); thiscall (settings), pops 4; the object unused (0x6b7510 passes its copy of a settings record): a caps holder queried; with at least 5 max hardware 3D streaming buffers and as many free as +0x40, those (one fewer with +0x4c & 0x60) into +0x44, else +0x40 (SetThenFlag44_4c_6b9d10) (name invented)"
 0x006be140,ShuffleBag_Shuffle,function,low,"reimplemented (src/game/core/shufflebag); thiscall: index 0, the seed stepped, a pick k; entries k-1 and k swapped outward by alternating strides (name invented)"
 0x006be130,ShuffleBag_SetList,function,low,"reimplemented (src/game/core/shufflebag); thiscall (list), pops 4: +0 = list, then the shuffle (name invented)"
 0x006be100,ShuffleBag_Ctor,function,low,"reimplemented (src/game/core/shufflebag); thiscall (list), pops 4: strides 1 and 2, seed Time_GetMs, then SetList (name invented)"

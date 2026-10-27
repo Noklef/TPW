@@ -9,7 +9,9 @@
 #include "../files/substream.h"
 #include "gameheap.h"
 #include "misc.h"
+#include "fieldops.h"
 #include "semaphore.h"
+#include "sounddevice.h"
 #include "soundstream.h"
 #include "streampool.h"
 #include "vcall.h"
@@ -146,6 +148,20 @@ u8 *__fastcall SoundSample70a548_Ctor(u8 *self) {
     SampleCopier_Install(self + 0x24);
     at<u32>(self, 0) = 0x0070a548;
     return self;
+}
+
+void __fastcall SoundSample70a548_Choose3DVoices(u8 *, void *, u8 *settings) {
+    u8 caps[8];   // (a caps holder of no sound: DirectSoundCreate makes one)
+    SoundCaps_Ctor(caps, nullptr, nullptr);
+    u32 status;
+    u32 voices;
+    const u32 max = static_cast<s32>(*SoundCaps_Query(caps, nullptr, &status)) >= 0 ? SoundCaps_Max3DStreaming(caps) : 0;
+    if (max && SoundCaps_Free3DStreaming(caps) >= at<u32>(settings, 0x40) && max >= 5)
+        voices = at<u8>(settings, 0x4c) & 0x60 ? max - 1 : max;
+    else
+        voices = at<u32>(settings, 0x40);
+    SetThenFlag44_4c_6b9d10(settings, nullptr, voices);
+    SoundCaps_Dtor(caps);
 }
 
 }  // extern "C"
