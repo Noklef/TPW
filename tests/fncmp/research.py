@@ -129,7 +129,7 @@ def choose_case(r, op, lab):
 def levels_case(r, lab):
     c = queue(r, 'PostId')
     regions = c.regions
-    for code in (0x85, 0x86, 0x87, 0x88):
+    for code in (0x85, 0x86, 0x87, 0x88, 0x89):   # (0x89: the record a category 4 would post, were it not refused)
         if r.random() < 0.6:
             put(regions[0x76e300], 0x38 * code + 4, 'I', code)
         if r.random() < 0.6:
@@ -141,7 +141,7 @@ def levels_case(r, lab):
     world = bytearray(r.bytes(0x40))
     world[0:4] = regions[NOW][0:4]
     regions[NOW] = put(world, 0x10, 'H', h)
-    cat = r.choice([0, 1, 2, 3, 0, 1, 2, 3, 4, 5, 6, 7])
+    cat = r.choice([0, 1, 2, 3, 0, 1, 2, 3, 4, 4, 4, 5, 6, 7])
     thresholds = bytearray(r.bytes(0x400))
     for k in range(9):
         put(thresholds, 4 * k, 'I', r.choice([0, 1, 10, 25, 50, 50, 75, 99, 100, 100, 101, r.getrandbits(32)]))
