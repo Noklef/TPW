@@ -9,6 +9,7 @@
 #include "../sprite/screenmatrix.h"
 #include "../sprite/script.h"
 #include "../world/advisor.h"
+#include "../world/object.h"
 #include "../world/ridesweep.h"
 #include "../world/staff.h"
 #include "../world/things.h"
@@ -27,6 +28,12 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 }  // namespace
 
 extern "C" {
+
+void __fastcall Panel7cc328_ShowRefund(u8 *self) {
+    u8 *const thing = global<u8 *>(0x007c2658);
+    u8 *const child = Window_FindChild(at<u8 *>(self, 0x14), nullptr, 0x1e8a);
+    vcall<void>(child, 0x1c, Object_ScrapRefund(thing));
+}
 
 u32 __fastcall Obj_KillSlot24(u8 *object) {
     if (!at<u32>(object, 0x24))

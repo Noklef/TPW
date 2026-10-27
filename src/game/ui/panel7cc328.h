@@ -31,6 +31,10 @@ u32 __cdecl Panel7cc328_AddStaffRow(u8 *staff);
 // rows refreshed (Window7059f0_RefreshRows) and slot 8 of the panel 0x7cc328 called. Then (always) Window_CallDefault's result.
 s32 __cdecl Panel7cc328_OnMessage(u8 *window, u32 message, u32 id, u32 b);
 
+// 0x4b47a0 (thiscall; slot 5 of the vtable 0x6ffdd8; name invented): the window +0x14's child 0x1e8a (Window_FindChild, not checked)
+// told the shown thing [0x7c2658]'s refund (Object_ScrapRefund) through its slot 7.
+void __fastcall Panel7cc328_ShowRefund(u8 *self);
+
 // 0x4b4e30 (thiscall; slot 1 of the vtable 0x6ffdd8): the +0x20 object's slot 9 called with the panel's slot 13's answer (that object's
 // vtable read before the call, the object after), the panel's slot 6; then the list 0x1e7b of the window +0x10 (Window_FindChild, not
 // checked) cleared and remembered at [0x7cc314], the area [0x7cc310] the thing [0x7c2658]'s handle, the tab [0x7cc358] (written back as
