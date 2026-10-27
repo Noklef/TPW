@@ -5,8 +5,8 @@
 # NameIs (0x4ebf00, 0x4f7d70): a park of named chat players and others, looked up by a name of theirs, one near it or another. Move1 (0x4eace0):
 # Chat::MovePlayer with mode 1 alone. Room (0x4eeb50): the avatar's wide string +0xf00 (or none) as a std::wstring told to Chat::Goto (import
 # 0x6fd490) and released. Enter (0x4ea2d0): Move's world, the thing's script list as personscripts.py's Place's (entry point 3), a small ground.
-# AddName (0x4ee6d0): see add_name() below.
-# usage: chatavatar.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Move,Say,Move3,Cell,CellMove,GoTo,Arrive,Find,NameIs,Move1,Room,Enter,AddName)
+# AddName (0x4ee6d0): see add_name() below. EnterChat (0x4bd090, src/game/ui/window7cc8bc): see enter_chat() below.
+# usage: chatavatar.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Move,Say,Move3,Cell,CellMove,GoTo,Arrive,Find,NameIs,Move1,Room,Enter,AddName,EnterChat)
 import os
 import struct
 import sys
@@ -15,7 +15,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import things_methods  # noqa: E402
-from fncmp import HEAP, IMPORT_TABLE, LOG, Bench, Call, RAM, blob, heap, log_region, put, recorder  # noqa: E402
+from fncmp import CDECL_LOG4, HEAP, IMPORT_TABLE, LOG, Bench, Call, RAM, blob, heap, log_region, put, recorder  # noqa: E402
 import personscripts  # noqa: E402
 import stdtree  # noqa: E402
 import terrainheight  # noqa: E402
@@ -40,11 +40,15 @@ B = Bench(movingperson.RANGES + personscripts.PLACE_RANGES + [(0x4ea2d0, 0x4ea36
            (0x4eace0, 0x4eacfa), (0x4eeb50, 0x4eec32), (0x405280, 0x405390), (0x47bad0, 0x47bc10), (0x67acd0, 0x67ad00), (0x45b380, 0x45b5f0),
            (0x45b680, 0x45b9b0), (0x67bb90, 0x67bd98), (0x67d250, 0x67d2c0), (0x67d3a0, 0x67d400), (0x6918f0, 0x691a30), (0x691ba0, 0x691ce0),
            (0x4ee6d0, 0x4ee70d)] + wstringmap.RANGES   # (AddName's: window7cc8bc.py's list and the tree D insert)
-          + dialog7cc5f4.merged(w7.LIST_RANGES + [(0x4beb60, 0x4bedd1), (0x481820, 0x4818b3), (0x65f538, 0x65f5b7), (0x65e59b, 0x65e60a), (0x65f66e, 0x65f6e1)]),
+          + dialog7cc5f4.merged(w7.LIST_RANGES + [(0x4beb60, 0x4bedd1), (0x481820, 0x4818b3), (0x65f538, 0x65f5b7), (0x65e59b, 0x65e60a), (0x65f66e, 0x65f6e1),
+                                (0x4bd090, 0x4bd25c), (0x658d9f, 0x658e04), (0x659710, 0x659740), (0x659d00, 0x659d53), (0x659d90, 0x659dbc),
+                                (0x65a9d0, 0x65aa00), (0x65aa20, 0x65aaa0), (0x65d42e, 0x65d4b0), (0x65f697, 0x65f6e1), (0x66bff7, 0x66c01b)]),
           hooks=wstringmap.HOOKS)
 CALLS = {'Move': 0x4ea370, 'Say': 0x4ea3f0, 'Move3': 0x4ea410, 'Cell': 0x4ebfb0, 'CellMove': 0x4eab40, 'GoTo': 0x4eac30, 'Arrive': 0x4ea240,
-         'Find': 0x4ebf00, 'NameIs': 0x4f7d70, 'Move1': 0x4eace0, 'Room': 0x4eeb50, 'Enter': 0x4ea2d0, 'AddName': 0x4ee6d0}
+         'Find': 0x4ebf00, 'NameIs': 0x4f7d70, 'Move1': 0x4eace0, 'Room': 0x4eeb50, 'Enter': 0x4ea2d0, 'AddName': 0x4ee6d0,
+         'EnterChat': 0x4bd090}
 AVATAR, CHAT, NAME, CHARS, ROOM = RAM + 0x20000, RAM + 0x21000, RAM + 0x21100, RAM + 0x21200, RAM + 0x21300
+WIN_A, WIN_B = RAM + 0x23000, RAM + 0x23200   # (EnterChat's windows)
 GROUND = RAM + 0x22000   # (Enter's ground: the map, its grid, heights and cells)
 TNODES, THEAD, TNIL, TCHARS, NAMEW = RAM + 0x40000, RAM + 0x41000, RAM + 0x41100, RAM + 0x41200, RAM + 0x41800   # (AddName's set and name)
 
@@ -190,6 +194,32 @@ def add_name(r):
     return Call(CALLS['AddName'], [AVATAR, NAMEW, r.getrandbits(32)], regions, conv='t', ret='v', masks=c.masks if ready else [])
 
 
+def enter_chat(r, regions):
+    """EnterChat (0x4bd090, src/game/ui/window7cc8bc): Arrive's world with the avatar as the chat [0x7cddec] (none now and then, with a
+    heap whose first allocation fails: Arrive on none, a fault in both); the windows [0x7cc8bc] (now and then none) / [0x7cc8c0] random
+    (their byte +4 mostly 0, the handler +0x114 fncmp's logger or 0), the hook [0xfaa5fc] the logger or 0; the floats [0x7a1c70] /
+    [0x7a1c78] park positions mostly (negative, huge or NaN now and then); [0x790ab0] bit 2 half the time; the globals written random."""
+    def pos():
+        return r.choice([r.uniform(0, 2560), r.uniform(0, 2560), r.uniform(0, 300), r.randrange(256) * 10.0, -r.uniform(0, 50),
+                         r.uniform(-1e10, 1e10), float('nan')])
+    for at in (WIN_A, WIN_B):
+        win = bytearray(r.bytes(0x120))
+        win[4] = r.choice([0, 0, 0, 1])
+        put(win, 0x114, 'I', r.choice([CDECL_LOG4, CDECL_LOG4, 0]))
+        regions[at] = win
+    regions[0xfaa5fc] = struct.pack('<I', r.choice([0, 0, CDECL_LOG4]))
+    glob = bytearray(r.bytes(0x30))   # (0x7cc8ac-0x7cc8dc: the byte 0x7cc8b4 +8, the windows +0x10 / +0x14)
+    glob[8] = r.choice([0, 1, 1, 0x80])
+    put(glob, 0x10, '2I', r.choice([WIN_A] * 5 + [0]), WIN_B)
+    regions.update({0x7cc8ac: glob, 0x7cc690: r.bytes(8), 0x790ab0: struct.pack('<I', r.getrandbits(32)),
+                    0x7a1c70: struct.pack('<fIf', pos(), r.getrandbits(32), pos())})
+    if r.random() < 0.04:
+        regions[0x7cddec] = bytes(4)
+        regions[HEAP] = heap(0x100, fail=1)
+    else:
+        regions[0x7cddec] = struct.pack('<I', AVATAR)
+
+
 def case(r):
     op = r.deal(OPS)
     if op == 'AddName':
@@ -216,7 +246,7 @@ def case(r):
         personscripts.script_list(r, regions, person, 3)
         pool[thing - POOL:thing - POOL + 0x40] = person
         ground(r, regions)
-    if op == 'Arrive':   # (personscripts.py's release: script slots set or not, the script list not ready)
+    if op in ('Arrive', 'EnterChat'):   # (personscripts.py's release: script slots set or not, the script list not ready)
         for off in (0xc, 0x30, 0x210):
             struct.pack_into('<I', pool, thing - POOL + off, r.choice([0, 0, 1, 2, 7]))
         if r.random() < 0.2:
@@ -235,6 +265,9 @@ def case(r):
         return Call(CALLS[op], [r.getrandbits(32), handle | r.choice([0, 0, r.getrandbits(16) << 16]), cell], regions, conv='t', ret='b')
     if op == 'Say':
         return Call(CALLS[op], [AVATAR], regions, conv='t', ret='a')
+    if op == 'EnterChat':
+        enter_chat(r, regions)
+        return Call(CALLS[op], [], regions, ret='v')
     return Call(CALLS[op], [AVATAR, x, y], regions, conv='t', ret='v')
 
 

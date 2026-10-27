@@ -6,6 +6,9 @@
 #include "../core/language.h"
 #include "../core/vcall.h"
 #include "../frontend/helpbg.h"
+#include "../math/x87.h"
+#include "../online/chat.h"
+#include "../online/chatavatar.h"
 #include "../render/textparts.h"
 #include "guirect.h"
 #include "listrows.h"
@@ -62,7 +65,46 @@ void setData(u32 mode, const u16 *text, u32 data) {
     }
 }
 
+// The chat [0x7cddec], made first when there is none (0xf0c bytes, OnlineChat_Ctor; none when the allocation fails: kept, sic).
+u8 *chat() {
+    u8 *&chat = global<u8 *>(0x007cddec);
+    if (!chat) {
+        u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0xf0c));
+        chat = block ? OnlineChat_Ctor(block) : nullptr;
+    }
+    return chat;
+}
+
 }  // namespace
+
+void __cdecl Window7cc8bc_EnterChat() {
+    global<u32>(0x007cc8b8) = global<u8>(0x007cc8b4) ? global<u32>(0x007cc8bc) : global<u32>(0x007cc8c0);
+    u8 rect[12];
+    GuiRect_Ctor(rect);
+    Window_GetRect(window(0x007cc8c0), nullptr, rect, 1);
+    Window_SendMessage(window(0x007cc8bc), 6, 0, 0);
+    Window_SendMessage(window(0x007cc8c0), 6, 0, 0);
+    u32 last = 0;   // (the last __ftol's low dword: EAX's high word is pushed with x below)
+    const auto pack = [&last](u32 from, u8 *out) {
+        const X87Reg tenths = X87Reg(global<float>(from)) * 0.100000001f;  // 0x700184
+        const s32 whole = (s32)(long long)tenths.v;  // __ftol
+        out[1] = (u8)whole;
+        last = (u32)(s32)(long long)((tenths - X87Reg((double)(whole & 0xff))) * 256.0f).v;  // 0x700188
+        out[0] = (u8)last;
+    };
+    pack(0x007a1c70, &global<u8>(0x007cc690));
+    pack(0x007a1c78, &global<u8>(0x007cc694));
+    const bool had = global<u8 *>(0x007cddec) != nullptr;
+    u8 *const avatar = chat();
+    // x's high word EAX's (the __ftol's, or the new chat's); y's 0 (EDX's after a new chat is whatever the allocation left: 0 here)
+    const u32 high = had ? last : (u32)(uintptr_t)avatar;
+    ChatAvatar_Arrive(avatar, nullptr, (high & 0xffff0000u) | global<u16>(0x007cc690), global<u16>(0x007cc694));
+    if (global<u8>(0x00790ab0) & 4) ChatAvatar_SayPosition(chat());
+    global<u8>(0x007cc8d4) = 1;
+    global<u32>(0x007cc8ac) = global<u32>(0x00790ab0);
+    global<u32>(0x007cc8d8) = 5;
+    GuiRect_Dtor(rect);
+}
 
 void __cdecl Window7cc8bc_ListAdd(const u16 *text, u32 data) { add(0, text, data); }
 void __cdecl Window7cc8bc_ListAdd1(const u16 *text, u32 data) { add(1, text, data); }
