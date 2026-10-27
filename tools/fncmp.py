@@ -257,8 +257,9 @@ def put(buf, off, fmt, *values):
 
 def off_code(buf):
     """buf with each aligned dword that would point into the exe's image below its data (0x400000-0x6e7000) moved out of it (its top
-    bit set). The driver is linked over those addresses, so a read through such a pointer sees the driver's code natively and the
-    exe's in the emulator: a difference of the two environments, not of the code. For random object bytes a case dereferences."""
+    bit set). For random object bytes a case dereferences: while the driver was linked over those addresses (until 2026-10-27), a read
+    through such a pointer saw the driver's code natively and the exe's in the emulator. The driver now loads the exe's code there
+    (read-only, as the emulator has it); this stays so that the benches' cases stay the same."""
     for k in range(0, len(buf) - 3, 4):
         v = struct.unpack_from('<I', buf, k)[0]
         if 0x400000 <= v < GAME_LOW:

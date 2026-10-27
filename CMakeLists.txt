@@ -518,8 +518,9 @@ add_executable(tpw_tests
 )
 target_link_libraries(tpw_tests PRIVATE tpw_game)
 
-# Comparison driver for tools/fncmp.py: calls hooked functions by their original address,
-# fixed at the game's image base so absolute game addresses work as they do in tp.exe.
+# Comparison driver for tools/fncmp.py: calls hooked functions by their original address. Fixed at 0x100000, below the game's image
+# base, so its code ends below 0x400000 and its g_game section (the next one) covers the game's whole image, 0x400000-0xfc5200, where
+# absolute game addresses work as they do in tp.exe (tools/fncmp/driver.cpp's header; it checks the layout at start-up).
 add_executable(tpw_fncmp
     tools/fncmp/driver.cpp
     tools/fncmp/crt.cpp
@@ -530,4 +531,4 @@ add_executable(tpw_fncmp
 target_link_libraries(tpw_fncmp PRIVATE tpw_game)
 # Not incremental: an incremental link keeps an old, larger .bss when a static shrinks, and a case's wild pointer reads the driver's own
 # memory natively where the emulator has none, so the layout has to follow the source.
-target_link_options(tpw_fncmp PRIVATE /FIXED /DYNAMICBASE:NO /BASE:0x400000 /MAP /INCREMENTAL:NO)  # (the map names where FNCMP_CRASHAT's crashes are)
+target_link_options(tpw_fncmp PRIVATE /FIXED /DYNAMICBASE:NO /BASE:0x100000 /MAP /INCREMENTAL:NO)  # (the map names where FNCMP_CRASHAT's crashes are)
