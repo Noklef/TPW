@@ -59,9 +59,74 @@ void Scrap(const u8 *cell, u32 &slot) {
     Money_Credit(WorldMoney(), nullptr, (s32)(rate * value / 100));
 }
 
+// The pair of ints at table (a direction's step: 0x7cdba0...), as IntPair_Copy reads it.
+s32 PairX(u32 table) { return global<s32>(table); }
+s32 PairY(u32 table) { return global<s32>(table + 4); }
+
+bool PathOrEmpty(const u8 *cell) { return at<u32>(cell, 8) == 1 || at<u32>(cell, 8) == 0; }
+
+// A track cell emptied: no neighbours, direction or flags, kind 0 (MapCell_SetTrackKind), no owner.
+void EmptyTrackCell(u8 *cell) {
+    MapCell_RemoveNeighbours(cell, nullptr, 0xff);
+    MapCell_SetDirection(cell, nullptr, 0);
+    at<u16>(cell, 0xe) = 0;
+    MapCell_SetTrackKind(cell, nullptr, 0);
+    MapCell_SetParent(cell, nullptr, 0);
+}
+
 }  // namespace
 
 extern "C" {
+
+u32 __fastcall MapCell_SetTrackKind(u8 *cell, void *, u32 kind) {
+    u32 price = 0;
+    if (kind == 0xb && !global<u8>(0x008186d4)) price = Global81aebc_Get_52fb60();
+    if (kind == 0x10 && !global<u8>(0x008186d4)) price = Global81b43c_Get_52fb80();
+    MapHandle_Cell44(reinterpret_cast<const u16 *>(cell));   // (its answer dropped)
+    const u32 mine = at<u32>(cell, 8);
+    if (mine != 0x19 && mine != 7 && !(cell[0xe] & 0x40) && kind != 0 && mine != 0 && kind != mine) return kind == 0x19 ? 1 : 0;
+    if (mine == kind) {
+        at<u16>(cell, 0x20)++;
+        return 1;
+    }
+    bool affordable = true;
+    if (!global<u32>(0x00785a2c))
+        affordable = (s32)(Source_Field0c(reinterpret_cast<const TrackedSource *>(WorldMoney())) - price) >= 0;
+    if (kind != 0x19 && !affordable && kind != 0 && kind != 7) return 0;
+    at<u32>(cell, 8) = kind;
+    const u32 count = Counter7cdb98_Inc();
+    Map_SetBlockValue(World() + 0x2d8, nullptr, count, at<u16>(cell, 0));   // (the high half: a local's unset stack bytes; the callee reads the low)
+    const u32 now = at<u32>(cell, 8);
+    if ((now == 0xb || now == 0x10) && global<u32>(0x00820ad0)) {
+        u8 *const here = MapHandle_Cell44(reinterpret_cast<const u16 *>(cell));
+        if (here) {
+            u8 *const east = Map_StepCell(reinterpret_cast<const u16 *>(here), nullptr, PairX(0x007cdbc8), PairY(0x007cdbc8), 1);
+            if (east) {
+                u8 *const corner = Map_StepCell(reinterpret_cast<const u16 *>(here), nullptr, PairX(0x007cdbb8), PairY(0x007cdbb8), 1);
+                if (corner) {
+                    u8 *const south = Map_StepCell(reinterpret_cast<const u16 *>(here), nullptr, PairX(0x007cdba8), PairY(0x007cdba8), 1);
+                    if (south && PathOrEmpty(here) && PathOrEmpty(east) && PathOrEmpty(corner) && PathOrEmpty(south)) {
+                        MapCell_Clear(here, nullptr, 0, 0);
+                        MapCell_Clear(east, nullptr, 0, 0);
+                        MapCell_Clear(corner, nullptr, 0, 0);
+                        MapCell_Clear(south, nullptr, 0, 0);
+                    }
+                }
+            }
+        }
+    }
+    if (kind != 0 && kind != 7 && !global<u8>(0x008186d4)) Money_Debit(WorldMoney(), nullptr, (s32)price);
+    return 1;
+}
+
+void __fastcall TrackCell_ClearBlock(u8 *cell) {
+    EmptyTrackCell(cell);
+    static const u32 kSteps[] = {0x007cdba8u, 0x007cdbc8u, 0x007cdbb8u};   // (south, east, south-east)
+    for (const u32 table : kSteps) {
+        u8 *const next = Map_StepCell28(reinterpret_cast<const u16 *>(cell), nullptr, PairX(table), PairY(table), 1);
+        if (next) EmptyTrackCell(next);
+    }
+}
 
 void CellKind_SetEnv(const CellKindEnv *env) { g_env = env ? env : &kGameEnv; }
 

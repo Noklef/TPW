@@ -30,12 +30,13 @@ if _ops is not None:
 
 W1, W2, G = pathmodel.W1, pathmodel.W2, pathmodel.G
 objects.OBJ, objects.ITEMS, objects.WORLD, objects.OPS = RAM + 0x50000, RAM + 0x50400, W2, ['Scrap']
-MONEY, DECOYS, PARK = RAM + 0x54000, RAM + 0x55000, RAM + 0x60000
-CALLS = {'SetKind': 0x5346d0, 'Clear': 0x5367a0}
+MONEY, DECOYS, PARK, TRACK = RAM + 0x54000, RAM + 0x55000, RAM + 0x60000, RAM + 0x56000
+CALLS = {'SetKind': 0x5346d0, 'Clear': 0x5367a0, 'SetTrack': 0x538fc0, 'ClearBlock': 0x53bb20}
 B = Bench(pathapply.merged(pathapply.RANGES + objects.RANGES + money.RANGES +
                            [(0x5346d0, 0x5348c5), (0x5367a0, 0x536c0d), (0x522730, 0x522800), (0x522810, 0x522860), (0x4d8c00, 0x4d8cb0),
                             (0x4d97e0, 0x4d9a70), (0x539210, 0x539230), (0x52fb20, 0x52fb60), (0x5195d0, 0x519620), (0x535600, 0x535680),
-                            (0x6ad810, 0x6ad830)]),
+                            (0x6ad810, 0x6ad830), (0x538fc0, 0x539202), (0x53bb20, 0x53bc55), (0x52fb60, 0x52fba0), (0x4d0af0, 0x4d0b40),
+                            (0x4d96f0, 0x4d97e0), (0x50c320, 0x50c3f0)]),
           sines=256, hooks={**pathapply.HOOKS, 0x4de1f0: _recorder(26, 0)})
 DIAGONALS = {0x10: (-1, 1), 0x18: (1, 1), 0x20: (-1, -1), 0x38: (1, -1)}   # (0x20, 8, 0x80, 2's pairs)
 KINDS = [1, 1, 1, 9, 9, 3, 0, 0xa, 5]
@@ -63,13 +64,14 @@ def things(r, regions):
                     W1 + 0x1da720: struct.pack('<HHHH', 2, r.getrandbits(16), r.getrandbits(16), 1)})
 
 
-def patch(r, regions, x, y, owners):
-    """The 5 x 5 cells about (x, y) (inside the map) and the 3 x 3 entries; pathmodel.py's side cells and the cell's entry kept."""
-    for dy in range(-2, 3):
+def patch(r, regions, x, y, owners, reach=2, kinds=None):
+    """The cells within reach of (x, y) (inside the map; kinds: {(dx, dy): kind} given) and the entries within reach - 1; pathmodel.py's
+    side cells and the cell's entry kept."""
+    for dy in range(-reach, reach + 1):
         yy = y + dy
         if not 0 <= yy < 128:
             continue
-        x0, x1 = max(0, x - 2), min(127, x + 2)
+        x0, x1 = max(0, x - reach), min(127, x + reach)
         row = bytearray()
         for xx in range(x0, x1 + 1):
             cell = regions.pop(W2 + 0x294 + ident(xx, yy) * 0x44, None)
@@ -80,11 +82,13 @@ def patch(r, regions, x, y, owners):
                 put(cell, 4, 'I', r.choice([0, 0, 0, 5, r.getrandbits(32)]))
             cell = bytearray(cell)
             put(cell, 8, 'I', r.choice(KINDS + [r.getrandbits(32)]))
+            if kinds and (xx - x, dy) in kinds:
+                put(cell, 8, 'I', kinds[(xx - x, dy)])
             put(cell, 0x10, 'H', r.choice(owners))
             row += cell
         regions[W2 + 0x294 + ident(x0, yy) * 0x44] = row
-        if abs(dy) < 2:
-            x0, x1 = max(0, x - 1), min(127, x + 1)
+        if abs(dy) < reach:
+            x0, x1 = max(0, x - reach + 1), min(127, x + reach - 1)
             entries = bytearray()
             for xx in range(x0, x1 + 1):
                 entry = regions.pop(G + 0x10ffd8 + ident(xx, yy) * 0x28, None)
@@ -94,6 +98,47 @@ def patch(r, regions, x, y, owners):
                     entry[0xe] = r.choice([0, 0, 0, 1, 8, 0xf]) | r.getrandbits(8) & 0xf0
                 entries += entry
             regions[G + 0x10ffd8 + ident(x0, yy) * 0x28] = entries
+
+
+def track_cell(r, h, kind=None):
+    """A 0x28-byte track cell of id h: its kind (+8) of the track kinds mostly, flag 0x40 (+0xe) or not, its count +0x20 about 0."""
+    c = bytearray(r.bytes(0x28))
+    put(c, 0, 'H', h)
+    c[2] = r.choice([2, 2, 0, 1])
+    put(c, 8, 'I', r.choice([0, 0xb, 0x10, 0x19, 7, 1, 3, r.randrange(0x20)]) if kind is None else kind)
+    put(c, 0xe, 'H', r.choice([0, 0x40, r.getrandbits(16)]))
+    put(c, 0x20, 'h', r.choice([-1, 0, 1, r.getrandbits(16) - 0x8000]))
+    return c
+
+
+def track_case(r, op, regions, h, owners, clear):
+    """SetTrack: a track cell of id h whose map cell (MapHandle_Cell44: [0x8023a0] + (h - 1) * 0x44) is 1 or 0 when clear; ClearBlock:
+    the 3 x 3 track cells about it in [0x80239c]'s table (+ 0x10f2b0 + id * 0x28)."""
+    x, y = (h - 1) & 0x7f, (h - 1) >> 7
+    regions.update({0x81aebc: struct.pack('<I', r.choice([0, 1, 50, 100, 0x80000000, r.getrandbits(32)])), 0x820ad0: struct.pack('<I', r.choice([0, 1, 1])),
+                    0x81b43c: struct.pack('<I', r.choice([0, 1, 50, 100, 0x80000000, r.getrandbits(32)]))})
+    if op == 'ClearBlock':
+        for dy in (-1, 0, 1):
+            if 0 <= y + dy < 128:
+                x0, x1 = max(0, x - 1), min(127, x + 1)
+                regions[W2 + 0x10f2b0 + ident(x0, y + dy) * 0x28] = b''.join(track_cell(r, ident(xx, y + dy)) for xx in range(x0, x1 + 1))
+        regions[TRACK] = track_cell(r, h)
+        return Call(CALLS[op], [TRACK], regions, conv='t', ret='v')
+    here = bytearray(r.bytes(0x44))
+    put(here, 0, 'H', h)
+    here[2] = r.choice([2, 2, 0, 1])
+    here[0xc], here[0x22] = cellmodel.bits(r), cellmodel.bits(r)
+    put(here, 8, 'I', r.choice([1, 1, 0]) if clear else r.choice(KINDS))
+    put(here, 0xe, 'H', r.choice([0, 0x20, r.getrandbits(16)]))
+    put(here, 0x10, 'H', r.choice(owners))
+    put(here, 0x20, 'h', r.choice([-1, 0, 1]))
+    regions[G + (h - 1) * 0x44] = here
+    mine = r.choice([0, 0xb, 0x10, 0x10, 0x19, 7, 1, 3, r.randrange(0x20)])
+    kind = r.choice([0, 0xb, 0xb, 0x10, 0x10, 0x19, 7, mine, r.randrange(0x20), r.getrandbits(32)])
+    if clear:
+        kind = r.choice([0xb, 0x10])
+    regions[TRACK] = track_cell(r, h, mine)
+    return Call(CALLS[op], [TRACK, kind], regions, conv='t', ret='a')
 
 
 def case(r):
@@ -114,8 +159,12 @@ def case(r):
     for at, d in DIAGONALS.items():
         struct.pack_into('<ii', pairs, at, *(d if r.random() < 0.95 else (r.randrange(-1, 2), r.randrange(-1, 2))))
     regions[0x7cdba0] = pairs
-    patch(r, regions, x, y, owners)
-    price = [0, 1, 50, 99, 100, 101, 0x80000000, r.getrandbits(32)]
+    if op == 'SetTrack':   # (the cells east, south-east and south of the map cell 1 or 0 in half the cases)
+        clear = r.random() < 0.5
+        patch(r, regions, x, y, owners, 3, {d: r.choice([1, 1, 0]) for d in ((1, 0), (1, 1), (0, 1))} if clear else None)
+    else:
+        patch(r, regions, x, y, owners)
+    price =[0, 1, 50, 99, 100, 101, 0x80000000, r.getrandbits(32)]
     regions.update({0x81d7a8: struct.pack('<I', r.choice([0, 0, 0, 1])), 0x8186d4: bytes([r.choice([0, 0, 1, 0x80])]),
                     0x785a2c: struct.pack('<I', r.choice([0, 0, 1])), 0x820ab8: struct.pack('<I', r.choice([0, 0, 1])),
                     0x81b6dc: struct.pack('<I', r.choice(price)), 0x81ea14: struct.pack('<I', r.choice(price)), 0x7cdb98: r.bytes(4)})
@@ -123,6 +172,8 @@ def case(r):
         regions[W1 + 0x2d8 + 0x1b0000 + block(h) * 4] = r.bytes(4)
     put(cell, 0x10, 'H', r.choice(owners))
     put(cell, 0x20, 'h', r.choice([-1, 0, 1, 2, r.getrandbits(16) - 0x8000]))
+    if op in ('SetTrack', 'ClearBlock'):
+        return track_case(r, op, regions, h, owners, op == 'SetTrack' and clear)
     if op == 'SetKind':
         mine = r.choice([0, 1, 1, 3, 3, 4, 9, 0xa, 0x15, 2, r.randrange(0x20)])
         kind = r.choice([0, 1, 1, 3, 3, 4, 9, 0x15, mine, mine, r.randrange(0x20), r.getrandbits(32)])

@@ -43,4 +43,19 @@ u32 __fastcall MapCell_SetKind(u8 *cell, void *, u32 kind);
 // Then the cell loses all neighbour bits, its direction, owner and flags, is set to kind 0 (MapCell_SetKind) and gets its model
 // (MapCell_ApplyPathModel).
 void __fastcall MapCell_Clear(u8 *cell, void *, u32 a, u32 b);
+
+// 0x538fc0 (thiscall (kind), pops 4; name invented, unconfirmed): a track cell's (the 0x28-byte cells) kind set. The price: 0x81aebc for
+// kind 0xb, 0x81b43c for 0x10, none with the byte 0x8186d4. A cell of another kind (not 0) gives kind == 0x19 unless it is of kind 0x19,
+// 7 or 0, has flag 0x40 or the kind is 0; its own kind counts its +0x20 up and gives 1. Unless the game is free (0x785a2c), a kind other
+// than 0x19, 0 and 7 gives 0 when the money (as MapCell_SetKind's) less the price is negative. The kind set and the block value as
+// MapCell_SetKind's (the position's high half its own unset local, which the callee ignores). Kinds 0xb and 0x10 with 0x820ad0 set: the
+// map cell of its id (MapHandle_Cell44) and the cells east, south-east and south of it (Map_StepCell by the pairs 0x7cdbc8, 0x7cdbb8,
+// 0x7cdba8; any missing stops it), all four of kind 1 or 0, are cleared (MapCell_Clear (0, 0)) in that order. The price is debited for
+// a kind other than 0 and 7 without 0x8186d4. Returns 1.
+u32 __fastcall MapCell_SetTrackKind(u8 *cell, void *, u32 kind);
+
+// 0x53bb20 (thiscall; name invented, unconfirmed): a track cell and those south, east and south-east of it (Map_StepCell28 by the pairs
+// 0x7cdba8, 0x7cdbc8, 0x7cdbb8; missing ones skipped) emptied: all neighbour bits, direction and flags cleared, kind 0
+// (MapCell_SetTrackKind), the owner 0 (MapCell_SetParent).
+void __fastcall TrackCell_ClearBlock(u8 *cell);
 }
