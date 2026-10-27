@@ -79,6 +79,12 @@ s32 __cdecl Dialog7cdb0c_Child16007Message6On() {
     return Window_SendMessage(Window_FindChild(window(0x007cdb0c), nullptr, 0x16007), 6, 1, 0);
 }
 
+void __cdecl Dialog7cdb0c_SetChild16006State(u32 on) {
+    u8 *const dialog = *reinterpret_cast<u8 **>((uintptr_t)0x007cdb0c);
+    if (!dialog) return;
+    Window705a50_SetState(Window_FindChild(dialog, nullptr, 0x16006), nullptr, on == 1, 1);
+}
+
 s32 __cdecl Dialog7cdb0c_Child16007Message6Off() {
     return Window_SendMessage(Window_FindChild(window(0x007cdb0c), nullptr, 0x16007), 6, 0, 0);
 }

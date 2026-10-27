@@ -37,6 +37,10 @@ s32 __cdecl Dialog7cdb0c_Message6Off();
 s32 __cdecl Dialog7cdb0c_Child16007Message6On();
 s32 __cdecl Dialog7cdb0c_Child16007Message6Off();
 
+// 0x4c5820 (cdecl (on); called by 0x5dcf90, 0x5dcfaf, 0x5dd5d0; name invented): with the dialog [0x7cdb0c], its child 0x16006
+// (Window_FindChild, not checked) given the state on == 1 with notice (Window705a50_SetState(.., 1)). EAX not kept.
+void __cdecl Dialog7cdb0c_SetChild16006State(u32 on);
+
 // 0x48d990 (cdecl; name unconfirmed): when the window [0x7ca098] is not 0, Window_SendMessage of it with message 4 (0, 0); then the dword
 // 0x7ca090 = 0. Returns the send's result (0 without a window).
 s32 __cdecl Dialog7ca098_Message4IfUp();
