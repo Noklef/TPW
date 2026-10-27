@@ -88,8 +88,8 @@ def load_case(r, op, regions):
 
 
 def program(r):
-    """An entry's program: 0-8 ops (1 literal bytes below 0x7f, 2 an argument 0-4, 3 inline dwords, 4 a dword, 5 / 6 a word), then 0 (finish)
-    or now and then an op past 6."""
+    """An entry's program: 0-8 ops (1 literal bytes below 0x7f, 2 an argument 0-4, 3 inline dwords, 4 a dword, 5 / 6 a word; after 3-6 an
+    argument 0-2 half the time), then 0 (finish) or now and then an op past 6."""
     words = []
     for _ in range(r.choice([0, 1, 2, 3, 5, 8])):
         op = r.choice([1, 1, 2, 2, 2, 3, 4, 5, 6])
@@ -106,6 +106,8 @@ def program(r):
             words += [r.getrandbits(32) for _ in range(n)]
         else:
             words.append(op | r.getrandbits(24) << 8)
+        if op > 2 and r.random() < 0.5:   # (an argument told the state just set)
+            words.append(2 | r.choice([0, 1, 2]) << 8)
     words.append(0 | r.getrandbits(24) << 8 if r.random() < 0.9 else r.choice([7, 8, 0xff]) | r.getrandbits(24) << 8)
     return words[:0x1f] + [0]
 
