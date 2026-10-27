@@ -2,6 +2,7 @@
 #include <cstring>
 
 #include "../coaster/ridebounds.h"
+#include "../coaster/train.h"
 #include "../core/accessors.h"
 #include "../core/gameclock.h"
 #include "../core/indexed.h"
@@ -418,5 +419,48 @@ u32 __cdecl Rsse_TriggerNode(u8 *vm, u8 *node, u32 what, u32 extra, u32 value) {
         at<u8 *>(vm, 0xb0) = next;
     Mem_GlobalFree(node);
     return --global<u32>(0x008791b4);
+}
+
+void __cdecl Rsse_UpdateAll() {
+    if (global<u32>(0x008791a0) == 0)
+        return;
+    for (u8 *vm = global<u8 *>(0x008791b0); vm; vm = at<u8 *>(vm, 0)) {
+        for (s32 i = 0; i < at<s32>(vm, 0x64); ++i) {
+            const u8 *const entry = at<u8 *>(vm, 0x28) + 0x10 * i;
+            if (at<u32>(entry, 0) == 0)
+                continue;
+            const s32 elapsed = (s32)(Clocks_Now(reinterpret_cast<u8 *>(0x00785970)) - at<u32>(entry, 0xc));
+            u8 *const person = global<u8 *>(0x007cfb90 + 20 * (at<u32>(entry, 0) & 0xffff));
+            const s32 part = (s32)Model_FindPartByKey4(Ride(vm), 0x800, at<u32>(at<u8 *>(vm, 0x28) + 0x10 * i, 4));
+            if (part < 0)
+                continue;
+            const u8 *const node = at<u8 *>(at<u8 *>(at<u8 *>(at<u8 *>(Ride(vm), 8), 0x28), 4), 20 * (u32)part + 4);
+            u32 pos[3] = {0, 0, 0};
+            if (node)
+                Object_GetPosition(node, pos);
+            const float rootY = at<float>(at<u8 *>(at<u8 *>(at<u8 *>(Ride(vm), 8), 4), 0x78), 0x44);
+            const s32 seven = at<s32>(at<u8 *>(vm, 0x28) + 0x10 * i, 0) % 7;
+            float y;
+            if (at<u32>(at<u8 *>(vm, 0x1c), 0x1c) != 0) {
+                std::memcpy(&y, &pos[1], 4);
+                Person_PlaceScript(person, nullptr, pos[0], y, pos[2], (u32)seven, 3);
+                continue;
+            }
+            const X87Reg rate = X87_SubR(X87Reg((double)at<s16>(vm, 0xc0)) * global<float>(0x00701008), global<double>(0x00701010));
+            const s32 turns = Ftol(rate * X87Reg((double)elapsed));
+            const float phase = (float)(X87Reg((double)(turns % 1000)) * global<float>(0x00701018));
+            const SinTable sines = SinTable_Game();
+            const X87Reg sine = SinTable_At(sines, (float)(X87Reg(sines.scale) * phase));
+            const X87Reg bob = sine * (X87Reg((double)seven) - global<float>(0x0070101c)) + rootY + X87Reg((double)at<s16>(vm, 0x6e));
+            float posY;
+            std::memcpy(&posY, &pos[1], 4);
+            if (!(bob.v >= (double)posY))   // (fcomp: below or unordered)
+                y = posY;
+            else
+                y = (float)bob;
+            Person_PlaceScript(person, nullptr, pos[0], y, pos[2], (u32)(elapsed / 500), 2);
+        }
+        Rsse_UpdateWalkers(vm);
+    }
 }
 }  // extern "C"

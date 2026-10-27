@@ -14,7 +14,7 @@ from fncmp import HEAP, LOG, Bench, Call, RAM, blob, global_heap, heap, log_regi
 from particles import RANGES as PARTICLE_RANGES  # noqa: E402
 
 CALLS = {'Init': 0x551600, 'Event': 0x468600, 'Timer': 0x557160, 'GetVec': 0x556a80, 'TakeDone': 0x557110, 'Walk': 0x556f40, 'Step': 0x5580a0,
-         'Back': 0x5571a0, 'Walkers': 0x557d80, 'Trigger': 0x5573d0, 'Node': 0x557970}
+         'Back': 0x5571a0, 'Walkers': 0x557d80, 'Trigger': 0x5573d0, 'Node': 0x557970, 'All': 0x557ab0}
 B = Bench([(0x551600, 0x5516a3), (0x468600, 0x468708), (0x557160, 0x557197), (0x556a80, 0x556aac), (0x557110, 0x55715b),(0x402d70, 0x402d75), (0x402f10, 0x402f2d), (0x4031e0, 0x4031ef), (0x5da3c0, 0x5da3c1),
            (0x556f40, 0x557108), (0x466b70, 0x466c7f), (0x556af0, 0x556b8c), (0x556b90, 0x556ddb), (0x44b220, 0x44b267), (0x67a830, 0x67a860),
            # (Step's: the function, heightat.py's and personscripts.py's ranges)
@@ -25,7 +25,8 @@ B = Bench([(0x551600, 0x5516a3), (0x468600, 0x468708), (0x557160, 0x557197), (0x
            (0x50c0d0, 0x50c0f2), (0x50bab0, 0x50bac4), (0x50be40, 0x50be7c), (0x4fe900, 0x4fe944),
            (0x5571a0, 0x557395), (0x557d80, 0x5580a0), (0x44b410, 0x44b4d0), (0x44b4c0, 0x44b520), (0x450ea0, 0x4512a0), (0x475a10, 0x475b90),
            (0x4f9e60, 0x4f9f10), (0x4fcac0, 0x4fcb20), (0x466b70, 0x466c90), (0x475550, 0x4755a0), (0x5f5680, 0x5f56a0),
-           (0x5573d0, 0x557a4c), (0x412e90, 0x412eea), (0x4145d0, 0x4145e0), (0x4145e0, 0x4145f0), (0x51bfc0, 0x51c048)] + PARTICLE_RANGES)
+           (0x5573d0, 0x557a4c), (0x412e90, 0x412eea), (0x4145d0, 0x4145e0), (0x4145e0, 0x4145f0), (0x51bfc0, 0x51c048),
+           (0x557ab0, 0x557d80), (0x435710, 0x435740)] + PARTICLE_RANGES)
 STRINGS, SCRIPT, KEYS, TABLES, OUT = RAM + 0x100, RAM + 0x1000, RAM + 0x1400, RAM + 0x1500, RAM + 0x1800
 
 
@@ -370,8 +371,57 @@ def node_case(r):
     return Call(CALLS['Node'], [vm, node, what, extra, r.getrandbits(32)], c.regions, conv='c', ret='a')
 
 
+RIDERS, RFLAGS = RAM + 0x59000, RAM + 0x59100
+
+
+def all_case(r):
+    """0x557ab0 (cdecl): walkers_case()'s world with its vm the one record of the ride list [0x8791b0] (the system [0x8791a0] on
+    mostly), its riders (+0x28 at RIDERS, +0x64 of them: 0-4 or negative) each a handle dword (0 for none; the person's index, its
+    high half any, so % 7 runs negative too), a key found under 0x800, the centre's or none, and a start about the clock's time; the
+    record's +0x1c's +0x1c set or not, +0x6e and the bob rate +0xc0 any. With no ride (the record's index +0xc8 0) or a part without a
+    node the walkers that would face their part (state 2, kinds other than 1, 2 and 4) are made kind 2: Ride_PartPlace then leaves
+    the direction unwritten and 0x557d80 reads its stack's leftovers (sic), which differ under the two callers."""
+    c = walkers_case(r, 'Walkers')
+    vm = c.args[0]
+    o = vm - STEP_POSE
+    ram = bytearray(c.regions[STEP_POSE])
+    n = int.from_bytes(ram[0x268:0x26a], 'little')
+    found = [int.from_bytes(ram[0x600 + 0x14 * i + 4:0x600 + 0x14 * i + 8], 'little') for i in range(min(n, 4))
+             if int.from_bytes(ram[0x600 + 0x14 * i:0x600 + 0x14 * i + 4], 'little') & 0x800]
+    if int.from_bytes(ram[o + 0xc8:o + 0xcc], 'little') == 0 or \
+            any(int.from_bytes(ram[0x680 + 0x14 * i + 4:0x680 + 0x14 * i + 8], 'little') == 0 for i in range(min(n, 4))):
+        slots = bytearray(c.regions[WALK_SLOTS])
+        for k in range(6):
+            if int.from_bytes(slots[0x20 * k + 0x18:0x20 * k + 0x1a], 'little') == 2 and \
+                    int.from_bytes(slots[0x20 * k + 0x16:0x20 * k + 0x18], 'little') not in (1, 2, 4):
+                put(slots, 0x20 * k + 0x16, 'H', 2)
+        c.regions[WALK_SLOTS] = bytes(slots)
+    clock = c.regions[0x785970]
+    now = (int.from_bytes(clock[0x3c:0x40], 'little') + int.from_bytes(clock[0x48:0x4c], 'little')) & 0xffffffff
+    h = next(k for k in range(64) if int.from_bytes(c.regions[0x7cfb90][20 * k:20 * k + 4], 'little') == PERSON)
+    riders = bytearray(r.bytes(0x40))
+    for i in range(4):
+        handle = 0 if r.random() < 0.15 else h | r.choice([0, 0, r.getrandbits(16) << 16])
+        key = r.choice(found) if found and r.random() < 0.8 else r.choice([0xffff, r.randrange(8)])
+        start = (now - r.choice([0, 1, 999, 1000, r.randrange(100000), r.getrandbits(31), r.getrandbits(32)])) & 0xffffffff
+        put(riders, 0x10 * i, 'IIII', handle, key, r.getrandbits(32), start)
+    flags = bytearray(r.bytes(0x20))
+    put(flags, 0x1c, 'I', r.choice([0, 0, 1, r.getrandbits(32)]))
+    put(ram, o, 'I', 0)
+    put(ram, o + 0x1c, 'I', RFLAGS)
+    put(ram, o + 0x28, 'I', RIDERS)
+    put(ram, o + 0x64, 'i', r.choice([1, 2, 3, 4, 4, 0, -1]))
+    put(ram, o + 0x6e, 'H', r.choice([0, 1, 0xffff, r.getrandbits(16)]))
+    put(ram, o + 0xc0, 'H', r.choice([0, 1, 50, 0xffce, r.getrandbits(16)]))
+    c.regions.update({STEP_POSE: bytes(ram), RIDERS: riders, RFLAGS: flags, 0x8791a0: put(bytearray(4), 0, 'I', 0 if r.random() < 0.05 else 1),
+                      0x8791b0: put(bytearray(4), 0, 'I', vm)})
+    return Call(CALLS['All'], [], c.regions, conv='c', ret='v')
+
+
 def case(r):
     op = r.deal(OPS)
+    if op == 'All':
+        return all_case(r)
     if op == 'Trigger':
         return trigger_case(r)
     if op == 'Node':

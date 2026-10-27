@@ -2929,6 +2929,7 @@ address,name,kind,confidence,notes
 0x005571a0,Rsse_WalkerBack,function,low,"reimplemented (src/game/rsse/rsse_vm); cdecl (vm, value); name unconfirmed: the walker slot holding value sent back from its key +4 to +6"
 0x00557d80,Rsse_UpdateWalkers,function,low,"reimplemented (src/game/rsse/rsse_vm); cdecl (vm); name unconfirmed: each busy walker slot moved by its state (out, there, back, home), then the run-out wobble cleared"
 0x00557970,Rsse_TriggerNode,function,low,"reimplemented (src/game/rsse/rsse_vm); cdecl (vm, node, what, extra, value); name unconfirmed: a trigger node started, its part found, unlinked and freed when nothing started"
+0x00557ab0,Rsse_UpdateAll,function,low,"reimplemented (src/game/rsse/rsse_vm); cdecl; name unconfirmed: every ride record riders placed at their parts (bobbing unless the record flag says still), then its walkers updated"
 0x00569f30,Setting569f30_Set,function,high,"reimplemented (src/game/render/rasteriser); a setting stored, or a default restored"
 0x005c7d20,Records24_Field14,function,high,reimplemented (src/game/files/userslots); the dword at +0x14 of a 24-byte record
 0x005c7d00,Records24_IfUsed,function,high,reimplemented (src/game/files/userslots); a 24-byte record's address when its dword at +4 is set

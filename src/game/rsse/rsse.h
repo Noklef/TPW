@@ -110,4 +110,15 @@ s32 __cdecl Rsse_Trigger(u8 *vm, s32 kind, s32 key, u32 what, u32 extra);
 // value and the handle returned. None: the node unlinked (+0 next, +4 previous; the vm's first +0xb0 moved on when it is the node),
 // freed (Mem_GlobalFree) and the count [0x8791b4] decremented and returned (EAX as the original leaves it).
 u32 __cdecl Rsse_TriggerNode(u8 *vm, u8 *node, u32 what, u32 extra, u32 value);
+
+// 0x557ab0 (cdecl; name unconfirmed): with the ride system on ([0x8791a0]; off: the original's Debug_Printf, left out) each ride
+// record of the list [0x8791b0] (+0 next): each of its +0x64 riders (+0x28, 0x10 bytes each: +0 the person's handle, 0 for none;
+// +4 a key; +0xc the start time) whose key has a part under 0x800 (Model_FindPartByKey4 of the ride [0x7a4610 + 4 +0xc8]) is
+// placed (Person_PlaceScript) at that part's node's position (+0x30..+0x38: Object_GetPosition; no node: 0, 0, 0): with the
+// record's +0x1c's +0x1c set as it is, r15 the handle dword % 7 (signed), anim 3; else bobbing: y = the sine (the game's table) of
+// ((elapsed * ([0x701010] - s16 +0xc0 * [0x701008])) __ftol'd % 1000) * [0x701018], times (handle % 7 - [0x70101c]), plus the
+// ride model's root's y (+8 -> +4 -> +0x78, +0x44) and s16 +0x6e, kept at least the node's y (as the x87 compares: a NaN gives
+// the node's), r15 the time since the start (now less +0xc, signed) / 500, anim 2. Then the record's walkers updated
+// (Rsse_UpdateWalkers). The original's Debug_Printf (the things' first entry null) is left out.
+void __cdecl Rsse_UpdateAll();
 }
