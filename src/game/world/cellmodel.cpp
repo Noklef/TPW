@@ -12,13 +12,15 @@ namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-// The table's model for the bits: the first row with exactly them, else the first with bits all among them; -1 for none.
+// The table's model for the bits: the first row with exactly them, else (none, or its model -1: sic) the first with bits all among them;
+// -1 for none.
 u32 search(u32 table, s32 rows, u8 bits, s32 turn, s32 *angle) {
     for (s32 i = 0; i < rows; ++i) {
         const u32 row = table + i * 12;
         if (global<u8>(row + 8) == bits) {
             *angle = turn + global<s32>(row + 4);
-            return global<u32>(row);
+            if (global<u32>(row) != 0xffffffffu) return global<u32>(row);
+            break;
         }
     }
     for (s32 i = 0; i < rows; ++i) {

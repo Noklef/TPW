@@ -2,7 +2,7 @@
 # (3, 0xb, 0x10, 0x19, their negatives, the early-out ones and others), neighbour bits of the shapes the code tells apart (straight, corners,
 # junctions, single sides, now and then diagonals or random), facings among those it compares, flags with the low four bits now and then, the
 # three model tables (0x762f30, 0x762ff0, 0x763138, their row counts at 0x700c18 / 0x700c1c / 0x700c24 now and then 0 or negative) laid with
-# rows of those shapes, the two kept cells (0x7639f0..) on the cell now and then, and the variant counter (0x820aec) and last variant (0x820af0)
+# rows of those shapes (their model now and then -1, which sends an exact match on to the second search), the two kept cells (0x7639f0..) on the cell now and then, and the variant counter (0x820aec) and last variant (0x820af0)
 # with the world's random state.
 # usage: cellmodel.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
@@ -46,7 +46,7 @@ def case(r):
         rows = r.randrange(1, most + 1)
         data = bytearray(r.bytes(most * 12))
         for i in range(most):
-            put(data, i * 12, 'I', r.choice([(table & 0xf) << 16 | r.randrange(0x20), r.getrandbits(32)]))
+            put(data, i * 12, 'I', r.choice([(table & 0xf) << 16 | r.randrange(0x20)] * 3 + [r.getrandbits(32), 0xffffffff]))
             put(data, i * 12 + 4, 'i', r.choice([0, 90, 180, 270, 0, 90, 180, 270, -90, r.getrandbits(16)]))
             data[i * 12 + 8] = r.choice(SHAPES * 2 + [r.getrandbits(8), 0x1f, 0x7c, 0xf1])
         regions[table] = data

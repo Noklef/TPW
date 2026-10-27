@@ -7,8 +7,8 @@
 // count at 0x700c18), 0x762ff0 for 0x10 or 0x19 (0x700c1c), else 0x763138 (0x700c24). For the first two tables a straight cell (N-S or E-W
 // neighbours, MapCell_StraightNeighbours) facing 0x40 or 0x10 (MapCell_Direction) turns by 180. For 0x19 a cell at either of the two cells kept
 // at 0x7639f0 / 0x7639f4 and 0x7639f8 / 0x7639fc (its id - 1's column and row) has its neighbour bits or'ed with their reverse (Nibble_Scale)
-// first. The first row with exactly the cell's neighbour bits gives the model and *angle = its angle plus the turn; failing that the first row
-// whose bits are all among the cell's; failing that the model is -1.
+// first. The first row with exactly the cell's neighbour bits gives the model and *angle = its angle plus the turn; failing that (or when that
+// row's model is -1, sic) the first row whose bits are all among the cell's; failing that the model is -1.
 //
 // Then, by the type itself (not its magnitude):
 // - a cell neither at a corner nor at a junction (MapCell_CornerNeighbours / JunctionNeighbours) adds 9, 0xc and 0xf for its flags (+0xe) 1,
