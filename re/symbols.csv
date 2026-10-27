@@ -4545,6 +4545,7 @@ address,name,kind,confidence,notes
 0x006b5c10,SoundCmd700bb0_Run,function,low,reimplemented (src/game/core/soundcmd); slot 0 of 0x700bb0: the sound object's save (the stream at +4)
 0x006b5c30,SoundCmd700bb4_Run,function,low,"reimplemented (src/game/core/soundcmd); slot 0 of 0x700bb4: the sound object's load (the stream at +4, the restore byte at +8)"
 0x006b5c50,SoundCmd700b9c_Run,function,low,reimplemented (src/game/core/soundcmd); slot 0 of 0x700b9c: the sound object's functor 2 send (the id at +4)
+0x006b5860,SoundCmd700b44_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b44: the target's channel hidden or shown (SoundChannel_SetHidden, the flag at +4 not 0); *out = 0"
 0x006b5ab0,SoundManager_Dtor,function,low,reimplemented (src/game/core/soundmanager); thiscall: vtable reset to 0x70a288; the engine at +4 (if any) destroyed through its slot 0 (1) and +4 cleared
 0x006b5ad0,SoundManager_Call1,function,low,"reimplemented (src/game/core/soundmanager); slot 4, thiscall (out, a), pops 8: the engine's slot 1 (out, a); returns out"
 0x006b5af0,SoundManager_Release,function,low,"reimplemented (src/game/core/soundmanager); slot 0, thiscall (out), pops 4: the manager (unless null) destroyed through its slot 3 (1); *out = 0"

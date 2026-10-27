@@ -9,7 +9,8 @@
 # The sound object's category load (0x6b8720): case_load(obj=True); its record banks' release (0x6b8570): case_release()'s releaserec. A bank's flag 0x40 (0x6b9270): case_release()'s deque B.
 # The variation's flagged samples moved last (0x6c0bd0): case_release()'s deque B. A record released (0x6c0850): locate_case().
 # A command's sound found in an SFX.map sound table (0x6c5870): 'findsound' in case(). Every variation's flagged samples hidden or shown again (0x6c0c90): case_hide(),
-# also through a channel's switch (0x6b92f0: its byte +0x64 the same as the argument's low byte or not).
+# also through a channel's switch (0x6b92f0: its byte +0x64 the same as the argument's low byte or not), and through the command 0x700b44's
+# run (0x6b5860: its flag +4 0 or not; the target's +0x24 that channel).
 # usage: soundcategory.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,...)
 import os
 import struct
@@ -29,13 +30,13 @@ CALLS = {'count': 0x6bd7a0, 'simple': 0x6c0550, 'variation': 0x6c06e0, 'sound': 
          'locate': 0x6d1bd0, 'recordat': 0x6d1dc0, 'releaseall': 0x6b9660, 'releaserec': 0x6b9760,
          'recdtor': 0x6bea00, 'objload': 0x6b8720, 'bankflag': 0x6b9270,
          'partition': 0x6c0bd0, 'recrelease': 0x6c0850, 'findsound': 0x6c5870, 'objrelease': 0x6b8570,
-         'objrecrelease': 0x6ba090, 'hide': 0x6c0c90, 'chanhide': 0x6b92f0}
+         'objrecrelease': 0x6ba090, 'hide': 0x6c0c90, 'chanhide': 0x6b92f0, 'cmdhide': 0x6b5860}
 B = Bench([(0x6bd7a0, 0x6bd7ac), (0x6bf150, 0x6bf31c), (0x6bf850, 0x6c0303), (0x6c0310, 0x6c035f), (0x6c0360, 0x6c0844), (0x4036a0, 0x4036e0), (0x639100, 0x639120),
            (0x6b9b30, 0x6b9b94), (0x5e42d0, 0x5e431c), (0x6338b0, 0x633900), (0x6c1940, 0x6c1b00), (0x6c2990, 0x6c29c0), (0x4f6740, 0x4f67c0), (0x632200, 0x632230),
            (0x6bf330, 0x6bf850), (0x632150, 0x632380), (0x6c0860, 0x6c3200), (0x5f7980, 0x5f79cf), (0x67c250, 0x67c2a0),
            (0x6beb10, 0x6beb1a), (0x6bed80, 0x6bee0b), (0x6bee10, 0x6bf14c), (0x5ec210, 0x5ec220), (0x5f8240, 0x5f8310), (0x5f8420, 0x5f8460), (0x619800, 0x619870),
            (0x6beb20, 0x6bed76), (0x6bead0, 0x6beb03), (0x47db00, 0x47db30), (0x5f61a0, 0x5f61f0),
-           (0x6d1bd0, 0x6d1db5), (0x6d1dc0, 0x6d1e2f), (0x6b9660, 0x6b9760), (0x6b9760, 0x6b984c), (0x6c0bd0, 0x6c0c87), (0x6c0c90, 0x6c0d8a), (0x6c0850, 0x6c08ad), (0x6bea00, 0x6beac5), (0x6b8720, 0x6b87c5), (0x6b8690, 0x6b8711), (0x6b9270, 0x6b92ef), (0x6c5870, 0x6c58ce), (0x6b8570, 0x6b859f), (0x6ba090, 0x6ba0be), (0x6b92f0, 0x6b930e)]
+           (0x6d1bd0, 0x6d1db5), (0x6d1dc0, 0x6d1e2f), (0x6b9660, 0x6b9760), (0x6b9760, 0x6b984c), (0x6c0bd0, 0x6c0c87), (0x6c0c90, 0x6c0d8a), (0x6c0850, 0x6c08ad), (0x6bea00, 0x6beac5), (0x6b8720, 0x6b87c5), (0x6b8690, 0x6b8711), (0x6b9270, 0x6b92ef), (0x6c5870, 0x6c58ce), (0x6b8570, 0x6b859f), (0x6ba090, 0x6ba0be), (0x6b92f0, 0x6b930e), (0x6b5860, 0x6b5882)]
           + fileopen.RANGES,
           hooks={0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None, 0x67a7d0: _cdecl_log})   # (the STL lock the map's insert takes: the port leaves it out)
 CAT, OUT, RECS, NODES = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x400
@@ -480,6 +481,7 @@ def case_release(r, name):
 
 HIDE_BLOCK = RAM + 0x70000   # (case_hide(): deque A's block before its first, through the map slot before MAPA)
 HIDE_CHAN = RAM + 0x2f00   # (case_hide(): the channel of the switch 0x6b92f0)
+HIDE_CMD, HIDE_TARGET = RAM + 0x2f80, RAM + 0x2fa0   # (case_hide(): the command 0x700b44 and its target)
 
 
 def case_hide(r, name):
@@ -526,6 +528,15 @@ def case_hide(r, name):
         chan = bytearray(r.bytes(0x70))
         chan[0x64] = r.choice([hide & 0xff, hide & 0xff, 0, 1, r.getrandbits(8)])
         regions[HIDE_CHAN] = chan
+    if name == 'cmdhide':   # (the flag 0 or not; the channel's +0x64 0, 1 or any)
+        chan = bytearray(r.bytes(0x70))
+        chan[0x64] = r.choice([0, 1, 1, 0, r.getrandbits(8)])
+        regions[HIDE_CHAN] = chan
+        regions[HIDE_CMD] = r.bytes(4) + struct.pack('<I', r.choice([0, 0, 1, 0x100, r.getrandbits(32)]))
+        regions[HIDE_TARGET] = r.bytes(0x24) + struct.pack('<I', HIDE_CHAN)
+        regions[OUT] = r.bytes(4)
+        return Call(CALLS[name], [HIDE_CMD, OUT, HIDE_TARGET], regions, conv='t', ret='a')
+    if name == 'chanhide':
         return Call(CALLS[name], [HIDE_CHAN, hide], regions, conv='t', ret='v')
     return Call(CALLS['hide'], [SINGLETON, hide], regions, conv='t', ret='v')
 
@@ -538,7 +549,7 @@ def case(r):
         return locate_case(r, name)
     if name in ('ctor', 'get'):
         return case_ctor(r, name)
-    if name in ('hide', 'chanhide'):
+    if name in ('hide', 'chanhide', 'cmdhide'):
         return case_hide(r, name)
     if name in ('dtor', 'deldtor', 'singleton'):
         return case_dtor(r, name)
