@@ -83,6 +83,12 @@ u8 *__fastcall WindowAt10_ScalarDtor(u8 *object, void *, u32 flags);
 // object's slot 1 and the object as the window's dword 6.
 void __fastcall WindowAt10_Create(u8 *object, void *, u8 *script, u32 handler, u32 first, u32 second, u32 inner);
 
+// 0x493130 (thiscall (flag), pops 4; called at 0x48c855 / 0x48c8a0; name unconfirmed): with the window +0x10 and +0xc not yet set: +0xc
+// = 1, the window shown (Window_SetShown(1)), the depth Gui_TopDepth(0, 0) + 1 taken, Window7c24c8_Close for flag 0, then the window
+// (+0x10 read again) added to the GUI root [0xfaa5d8] (Window_AddChild(1, 1)), given that depth (Window_SetDepth) and the focus
+// (Window_SetFocus(0)). EAX not kept.
+void __fastcall WindowAt10_Show(u8 *object, void *, u32 flag);
+
 // 0x48d1a0 (cdecl (window, message, a, b); the handler WindowAt10_Create gives its window's child +0x18; name unconfirmed): on message
 // 0x10006 the camera centred on the thing [0x7c2658] (Thing_GetHandle, Camera_CentreOnThing; the handle's high word the thing pointer's)
 // and the window's dword 6 (Window_DwordA0, the object) told its slot 11; 0. Any other message: Window_CallDefault's result.
