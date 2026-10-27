@@ -95,8 +95,15 @@ u32 __cdecl Sound_VoiceInfo(u32 id);
 void __cdecl Sound_Shutdown();
 
 // The sound categories, each Sound_QueryFound of a category name in a folder object the named objects registry (0x786b9c, NamedList_Find)
-// holds under a key's name; a folder not found leaves its categories as they were. (Their releases, 0x51ea50, 0x51ea70, 0x51eda0 and 0x51ee40,
-// call SoundCategory_Release 0x51b620, not reimplemented.)
+// holds under a key's name; a folder not found leaves its categories as they were. Their releases (cdecl; names invented) give each one
+// that is not 0 to SoundCategory_Release, then clear them:
+// 0x51ea50: the lobby sfx 0x803a48. 0x51ea70: with an array at 0x803a4c, both of each of its 0x803a50 pairs (signed; not tested for 0),
+// then the array to Sound_Free; 0x803a4c and 0x803a50 cleared. 0x51eda0: 0x803a20, 0x803a28, 0x803a2c, 0x803a24, 0x803a30 and 0x803a34 in
+// that order. 0x51ee40: the theme's 0x803a38-0x803a44.
+void __cdecl Sound_ReleaseLobbySfx();
+void __cdecl Sound_ReleaseLobbyCategories();
+void __cdecl Sound_ReleaseGlobalCategories();
+void __cdecl Sound_ReleaseThemeCategories();
 //
 // 0x51e8f0 (cdecl; name; name unconfirmed): the folder named the global String 0x803768 with name appended (String_AppendStr): -1 when not
 // found; else its "cat_locallobbysfx" and "cat_locallobbymusic" are appended as a pair (+0, +4) to the array at 0x803a4c of 0x803a50 pairs (the

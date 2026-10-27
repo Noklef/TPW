@@ -308,6 +308,37 @@ void __cdecl Sound_RegisterThemeCategories(const StringView *theme) {
     String_Dtor(&key);
 }
 
+void __cdecl Sound_ReleaseLobbySfx() {
+    const u32 sfx = global<u32>(0x00803a48);
+    if (!sfx) return;
+    SoundCategory_Release(sfx);
+    global<u32>(0x00803a48) = 0;
+}
+
+void __cdecl Sound_ReleaseLobbyCategories() {
+    if (!global<u32>(0x00803a4c)) return;
+    for (s32 i = 0; i < global<s32>(0x00803a50); ++i) {
+        SoundCategory_Release(global<u32 *>(0x00803a4c)[2 * i]);
+        SoundCategory_Release(global<u32 *>(0x00803a4c)[2 * i + 1]);
+    }
+    Sound_Free(global<void *>(0x00803a4c));
+    global<u32>(0x00803a4c) = 0;
+    global<u32>(0x00803a50) = 0;
+}
+
+void __cdecl Sound_ReleaseGlobalCategories() {
+    static const u32 kCats[6] = {0x00803a20, 0x00803a28, 0x00803a2c, 0x00803a24, 0x00803a30, 0x00803a34};
+    for (const u32 cat : kCats)
+        if (global<u32>(cat)) SoundCategory_Release(global<u32>(cat));
+    for (const u32 cat : kCats) global<u32>(cat) = 0;
+}
+
+void __cdecl Sound_ReleaseThemeCategories() {
+    for (u32 cat = 0x00803a38; cat <= 0x00803a44; cat += 4)
+        if (global<u32>(cat)) SoundCategory_Release(global<u32>(cat));
+    for (u32 cat = 0x00803a38; cat <= 0x00803a44; cat += 4) global<u32>(cat) = 0;
+}
+
 void __cdecl Sound_Save(u8 *stream) {
     Stream *const s = reinterpret_cast<Stream *>(stream);
     s32 result;

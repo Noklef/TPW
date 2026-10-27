@@ -373,8 +373,8 @@ address,name,kind,confidence,notes
 0x0051b620,SoundCategory_Release,function,medium,"reimplemented (src/game/core/soundset); while on and started, the manager posts 0x700b2c (the sound object's slot 8 with the value)"
 0x0051eae0,Sound_RegisterGlobalCategories,function,high,"reimplemented (src/game/core/soundset); cdecl: cat_ambient, cat_rides, cat_ui, cat_kids, cat_staff (folder 0x8030d8) and cat_speech (0x803558) to 0x803a20-0x803a34"
 0x0051ec50,Sound_RegisterThemeCategories,function,high,"reimplemented (src/game/core/soundset); cdecl (theme): the theme folders' cat_ambient, cat_rides, cat_speech and cat_music to 0x803a38-0x803a44"
-0x0051eda0,Sound_ReleaseGlobalCategories,function,high,
-0x0051ee40,Sound_ReleaseThemeCategories,function,high,
+0x0051eda0,Sound_ReleaseGlobalCategories,function,high,reimplemented (src/game/core/soundset); the global categories 0x803a20-0x803a34 released and cleared
+0x0051ee40,Sound_ReleaseThemeCategories,function,high,reimplemented (src/game/core/soundset); the theme categories 0x803a38-0x803a44 released and cleared
 0x00803a20,gSndCatAmbient,data,high,
 0x00803a24,gSndCatKids,data,high,
 0x00803a28,gSndCatRides,data,high,
@@ -2587,6 +2587,8 @@ address,name,kind,confidence,notes
 0x0051c1d0,Sound_SetPlacement,function,low,"reimplemented (src/game/core/soundset); while on and started, the manager's placement (the position's y the float 0x700b28 when the word 0x803ad2 is set)"
 0x0051c8d0,Sound_SetEaxRecord,function,low,"reimplemented (src/game/core/soundset); while on and started, an EAX record other than 0x803ab4's kept there and posted (0x700b30)"
 0x0051c060,Sound_SendVoiceFunctor2,function,low,"reimplemented (src/game/core/soundset); while on and started, the manager posts 0x700b9c (the id's voice's functor 2)"
+0x0051ea50,Sound_ReleaseLobbySfx,function,low,reimplemented (src/game/core/soundset); the lobby sfx category 0x803a48 released (SoundCategory_Release) and cleared
+0x0051ea70,Sound_ReleaseLobbyCategories,function,low,"reimplemented (src/game/core/soundset); the lobby pairs released, the array to Sound_Free, 0x803a4c / 0x803a50 cleared"
 0x005af7f0,GlobalSave_ThemeByte,function,high,reimplemented (src/game/core/globalsave); thiscall u8 (i): byte i of the global save info's (0xf7c58c) current theme record (+0x48)
 0x005af800,GlobalSave_Byte26,function,high,reimplemented (src/game/core/globalsave); thiscall u8 (i): byte +0x26 + i of the global save info
 0x005afc30,GlobalSave_Inc20,function,high,reimplemented (src/game/core/globalsave); thiscall: the global save info's counter +0x20 incremented
