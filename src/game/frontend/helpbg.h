@@ -1,5 +1,5 @@
 // The help background (f_helpbg; vtable 0x6ff598, base 0x705a80): a frame-library window behind the help text. Reimplementation of 0x492320, 0x4922d0
-// 0x491fe0, 0x492180, 0x492160, 0x492130, 0x4922e0 and 0x492300.
+// 0x491fe0, 0x492180, 0x492160, 0x492130, 0x4922e0, 0x492300 and 0x4923d0.
 #pragma once
 
 #include "../../../re/types.h"
@@ -34,6 +34,10 @@ void __fastcall HelpBg_Hide(u8 *self);
 // (Window_Offset) by x and y less its inner rectangle's left and top (Window_GetRect through a GUI rectangle on the stack); a word 0xffff
 // for x or y keeps that one. EAX: the rectangle's destructor's (a stack address), or 0 without the window.
 u32 __fastcall HelpBg_MoveTo(u8 *self, void *, u32 x, u32 y);
+
+// 0x4923d0 (thiscall; not called, name unconfirmed): with the window +0x18, its rectangle +8 set (Window_SetRect) from its rectangle +0x14
+// (Window_GetRect14, through a GuiRect on the stack); EAX the rectangle's destructor's (0 without the window).
+u32 __fastcall HelpBg_RestoreRect(u8 *self);
 
 // 0x4924b0 (cdecl (text); name unconfirmed): the help background at 0x7ca0c0, while its words +0xc and +4 are set, shows a wide text: its
 // window +0x18 told Window_NotifyC00(1, 1 when the text has no '\n' (wcschr), else 0); an empty text (wcslen 0) then only calls the
