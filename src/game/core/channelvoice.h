@@ -73,4 +73,9 @@ u32 __fastcall ChannelVoices_Holds(u8 *pool, void *, const u32 *handle, u32 *out
 // whatever the count); returns the sum of their bytes.
 u32 __fastcall ChannelVoices_ReleaseEach(u8 *pool);
 
+// 0x6ba3e0 (thiscall; an SEH frame; name invented): the pool's destructor: each voice released (ChannelVoices_ReleaseEach), the voice
+// events (+0x10) stopped (VoiceEvents_Stop; not checked for null, sic), a spin while their flags' (+0x14) bit 1 is set, then their slot 0
+// (1: delete) unless null and the voices array's (+4) slot 0 (3: delete the array) unless null.
+void __fastcall ChannelVoices_Dtor(u8 *pool);
+
 }  // extern "C"

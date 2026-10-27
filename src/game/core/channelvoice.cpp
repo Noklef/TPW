@@ -207,6 +207,16 @@ u32 __fastcall ChannelVoice_Refill(u8 *voice) {
     return at<u32>(voice, 0x30);
 }
 
+void __fastcall ChannelVoices_Dtor(u8 *pool) {
+    ChannelVoices_ReleaseEach(pool);
+    VoiceEvents_Stop(*reinterpret_cast<u8 **>(pool + 0x10));
+    u8 *const events = *reinterpret_cast<u8 **>(pool + 0x10);
+    while (*reinterpret_cast<volatile u8 *>(events + 0x14) & 2) {
+    }
+    if (events) vcall<void>(events, 0, 1u);
+    if (u8 *const voices = *reinterpret_cast<u8 **>(pool + 4)) vcall<void>(voices, 0, 3u);
+}
+
 u32 __fastcall ChannelVoices_ReleaseEach(u8 *pool) {
     u8 *voice = at<u8 *>(pool, 4);
     u8 *const end = voice + at<u32>(pool, 8) * 0x8c;
