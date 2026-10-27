@@ -4356,6 +4356,7 @@ address,name,kind,confidence,notes
 0x006b5b80,SoundManager_Call3,function,low,"reimplemented (src/game/core/soundmanager); thiscall (a, b, c), pops 0xc: the engine's slot 3, its result returned"
 0x006b5bf0,SoundManager_DeletingDtor,function,low,"reimplemented (src/game/core/soundmanager); slot 3, thiscall (flags), pops 4: SoundManager_Dtor, then the manager freed for flags bit 0; returns the manager"
 0x006b5dc0,SoundManager_Create,function,low,"reimplemented (src/game/core/soundmanager); a new manager handle over an engine, its slot 4 called"
+0x006b5ba0,SoundManager_SetPlacement,function,low,"reimplemented (src/game/core/soundmanager); thiscall (out, position, direction, value), pops 0x10: SoundObject_SetPlacement on the engine +4 (the sound object), same arguments; returns out (name invented)"
 0x006b6120,SoundMixer_DeletingDtor,function,low,"reimplemented (src/game/core/soundmixer); thiscall (flags), pops 4: SoundMixer_Dtor, then freed for flags bit 0; returns the mixer"
 0x006b6170,SoundMixer_Dtor,function,low,"reimplemented (src/game/core/soundmixer); thiscall: stops the worker (+0x38 set, spins on +0x34), active voices' slot 3, frees the page list and the +0x44 / +0x40 blocks, +0x3c's slot 2 (3), deletes the critical section"
 0x006b6260,SoundMixer_TouchFlagged,function,low,reimplemented (src/game/core/soundmixer); thiscall: active voices with flag 0x400 counted (InterlockedIncrement) and their slot 0xb called; returns the count
