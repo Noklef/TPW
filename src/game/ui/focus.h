@@ -1,7 +1,7 @@
 // The game's choice of the window to take the focus back (after a dialog or a key: 0x4862a0) among its windows and dialogs: the object at
 // [0x7c2534] (its window +0x10 while its +0xc is set), the windows [0x7cb2ac], [0x7cb2b0], [0x7cb2b4], [0x7cc8bc], [0x7cc8c0], [0x7c24c8],
 // [0x7c24cc], [0x7ca1c8] and the frame's ([0xf82884] + 4); two windows closed before it; and the overlay [0x7cb2b4] toggled.
-// Reimplementation of 0x48c8d0, 0x4862a0, 0x485b40, 0x4a2790, 0x4a27c0, 0x48a6e0 and 0x4a29d0 (cdecl), 0x481490 and 0x4815d0. The names
+// Reimplementation of 0x48c8d0, 0x4862a0, 0x485b40, 0x4a2790, 0x4a27c0, 0x4a27f0, 0x48a6e0 and 0x4a29d0 (cdecl), 0x481490 and 0x4815d0. The names
 // are unconfirmed.
 #pragma once
 
@@ -43,6 +43,10 @@ u8 *__cdecl Window7cb2cc_OpenOnGui();
 // 0x4a27c0: with the window [0x7cb2cc] set, it is sent 4 (0, 0) (Window_SendMessage); it is forgotten either way and the focus restored
 // (Focus_Restore, its result returned).
 u32 __cdecl Window7cb2cc_Close();
+
+// 0x4a27f0 (name invented): with the window [0x7cb2cc] set, Window7cb2cc_Close's result (it sent 4, forgotten, the focus restored); else
+// the dialog made and kept there as Window7cb2cc_Open's, the window returned.
+u32 __cdecl Window7cb2cc_Toggle();
 
 // 0x4a29d0 (cdecl): with the window [0x7cb2ac] set, the toggle [0x7cb2e8] flipped (1 - it): when set, the overlay window [0x7cb2b4] (when
 // there is one) deleted through its slot 2 (1) and forgotten; when not, nothing (0) with any of the flags 0x16 of the byte 0x790ab0, else

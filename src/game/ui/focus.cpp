@@ -118,6 +118,11 @@ u32 __cdecl Window7cb2cc_Close() {
     return Focus_Restore();
 }
 
+u32 __cdecl Window7cb2cc_Toggle() {
+    if (global<u8 *>(0x007cb2cc)) return Window7cb2cc_Close();
+    return (u32)(uintptr_t)Window7cb2cc_Open();
+}
+
 u32 __cdecl Overlay7cb2b4_Toggle() {
     u32 &on = global<u32>(0x007cb2e8);
     u8 *&overlay = global<u8 *>(0x007cb2b4);
