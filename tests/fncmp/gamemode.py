@@ -1,7 +1,8 @@
 # The game mode changed (src/game/world/gamemode: GameMode_Set 0x52f200, GameMode_SetOnly 0x52f580) against the originals: the mode 0, 3,
 # 0x15, 0x16, 1, 0x35 or another, the current one [0x81ae2c] the same or another, record 0, 1, 0x100 (a clear low byte) or any; the global
 # recorder 0x785a08 as recorded_actions.py's (recording or not, its first stream a record stream); the advisor as advisor.py's PostId (its
-# table, scoring and queue; the message's unwritten stack bytes masked the same) for mode 3; mousemode.py's Holder scene for mode 0 (the
+# table, scoring and queue, the message 0xcb's records set so that it is let through mostly; the message's unwritten stack bytes masked
+# the same) for mode 3; mousemode.py's Holder scene for mode 0 (the
 # current mouse mode a recorder object or none, the holder [0x7b05e8] set or not, a heap whose allocations fail now and then, the mode
 # setting 0xfb3b7c 1 with its guard set so that the CMMOnline base is replaced by a CMMOnline: the base's own Assign 0x46c6b0 is not in the
 # bench), whose cursor windows serve GameCursor_Set too; the tool globals of mode 0 dwords of their own. Agent B's unported 0x59aa70 is
@@ -16,7 +17,7 @@ sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import advisor  # noqa: E402
 import mousemode  # noqa: E402
-from fncmp import HEAP, LOG, RAM, STUBS, Bench, Call, _cdecl_log, _recorder, heap, log_region, put, set_return  # noqa: E402
+from fncmp import HEAP, LOG, RAM, STUBS, Bench, Call, Mask, _cdecl_log, _recorder, heap, log_region, put, set_return  # noqa: E402
 
 
 def merged(ranges):   # (overlapping ranges joined: a listing line must not come twice)
@@ -50,6 +51,11 @@ def case(r):
     op = r.deal(OPS)
     mode = r.choice(MODES)
     adv = advisor.queue(r, 'PostId')
+    table, queue = adv.regions[0x76e300], adv.regions[advisor.ADVISOR]
+    if r.random() < 0.85:   # (the message 0xcb mostly let through: its record active, the advisor's record of it no time, no flag, no limit)
+        put(table, 0x38 * 0xcb + 4, 'I', 0xcb)
+    if r.random() < 0.7:
+        put(queue, 0xe0 + 0x10 * 0xcb, 'IIIi', 0, r.getrandbits(32), r.getrandbits(32) & ~0xff, 0)
     scene = mousemode.set_mode(r, True)
     regions = {**adv.regions, **scene.regions}
     regions[HEAP] = heap(fail=r.choice([0] * 6 + [1, 2, 3, 4]))
@@ -72,7 +78,10 @@ def case(r):
                     0x81b134: struct.pack('<I', r.choice([0, 0, 1, r.getrandbits(32)])),
                     0x8186ac: struct.pack('<I', r.choice([0, RAM + 0x21000, r.getrandbits(32)])), RAM + 0x21000: r.bytes(0x40)})
     record = r.choice([0, 1, 1, 0x100, r.getrandbits(32)])
-    return Call(CALLS[op], [mode, record], regions, masks=adv.masks)
+    offsets = sorted([0x16d0 + k for k in (2, 3, 0x17)] + [0x14 + 0x18 * s + k for s in range(8) for k in (2, 3, 0x17)])
+    mask = Mask(advisor.ADVISOR, offsets, "the stack message 0xcb's bytes +2, +3, +0x17, never written (0x52f200 / 0x52f580, Advisor_PostId's "
+                "inline copy), copied into a slot or +0x16d0")
+    return Call(CALLS[op], [mode, record], regions, masks=[mask])
 
 
 if __name__ == '__main__':
