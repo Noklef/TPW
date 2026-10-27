@@ -241,6 +241,13 @@ u8 *__fastcall Deleter_Minus8_458970(u8 *object, void *, u32 flags) {
     return object - 0x8;
 }
 
+u8 *__fastcall Class700620_ScalarDtor(u8 *object, void *, u32 flags) {
+    at<u32>(object, 0x0) = 0x00700620;
+    if (flags & 1)
+        GameHeap_Free(object);
+    return object;
+}
+
 u8 *__fastcall Deleter_Minus8_56a660(u8 *object, void *, u32 flags) {
     Vtbl701260_Set_565230(object);
     if (flags & 1)

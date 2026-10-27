@@ -4130,6 +4130,7 @@ address,name,kind,confidence,notes
 0x005ddb40,ListScalarDelete702c10_5ddb40,function,low,"reimplemented (src/game/core/vdel); thiscall (flags): a linked list scalar deleting destructor, the vtable pointer 0x702c10"
 0x005e2b70,ListScalarDelete702d00_5e2b70,function,low,"reimplemented (src/game/core/vdel); thiscall (flags): a linked list scalar deleting destructor, the vtable pointer 0x702d00"
 0x0041f6f0,ListScalarDelete6fdb08_41f6f0,function,low,"reimplemented (src/game/core/vdel); a linked list scalar deleting destructor: vtable pointer 0x6fdb08, every node freed, the list freed when bit 0 of the flags is set"
+0x004e5ba0,Class700620_ScalarDtor,function,low,reimplemented (src/game/core/vdel); slot 0 of 0x700620: scalar deleting destructor
 0x004dda20,Object_QueueHasRoom,function,high,reimplemented (src/game/world/objectmsg); whether the person queue is shorter than four times the limit
 0x005eb090,ArrayHolder_Clear,function,high,reimplemented (src/game/gfx/array3d); frees the four arrays of the holder
 0x005ea3f0,Image_CropInto,function,high,reimplemented (src/game/gfx/imageops); copies the part of an image that is left once moved into a fresh destination
