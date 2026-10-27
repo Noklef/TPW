@@ -5537,6 +5537,7 @@ const Hook kHooks[] = {
     {"Window705a20_SelectionStart", 0x00668447, (void *)&Window705a20_SelectionStart, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window705a20_Selection",    0x0066848f, (void *)&Window705a20_Selection, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window705a20_NotifyScroll", 0x0066679e, (void *)&Window705a20_NotifyScroll, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window705a20_SetSelection", 0x006668e9, (void *)&Window705a20_SetSelection, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Window7059f0_Layout",       0x00662530, (void *)&Window7059f0_Layout, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window7059f0_Ctor",         0x00662562, (void *)&Window7059f0_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Window7059f0_SetColumns",   0x00663554, (void *)&Window7059f0_SetColumns, {0x55, 0x8b, 0xec, 0x6a, 0xff}},

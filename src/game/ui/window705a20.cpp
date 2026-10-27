@@ -3,7 +3,9 @@
 #include <cstdint>
 
 #include "../core/accessors.h"
+#include "../core/crt.h"
 #include "../core/gameheap.h"
+#include "../core/initializers.h"
 #include "../core/vcall.h"
 #include "guirect.h"
 #include "window.h"
@@ -12,6 +14,8 @@
 namespace {
 
 template <typename T> T &at(void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 }  // namespace
 
@@ -170,5 +174,198 @@ void __fastcall Window705a20_Selection(u8 *window, void *, u16 *from, u16 *to) {
     const s16 anchor = at<s16>(window, 0x14c), cursor = at<s16>(window, 0x14a);
     if (from) *from = anchor != -1 && anchor < cursor ? anchor : cursor;
     if (to) *to = anchor > cursor ? anchor : cursor;
+}
+
+void __fastcall Window705a20_SetSelection(u8 *window, void *, u32 cursorArg, u32 mark, u32 anchorArg) {
+    const u16 *const text = at<const u16 *>(window, 0x138);
+    if (!text || !at<u8 *>(window, 0x4c)) return;
+    const s16 len = (s16)Crt().wcslen(text);
+    if (at<s16>(window, 0x156) == 0)
+        at<s16>(window, 0x156) = (s16)((s32)(s16)vcall<u32>(at<u8 *>(window, 0x4c), 0x4) * 0x600 / (s32)global<s16>(0x00faa5c0));
+    s16 cursor = at<s16>(window, 0x14a), anchor = at<s16>(window, 0x14c);
+    u8 *entry = nullptr;
+    bool backward = false;
+    switch ((s16)cursorArg) {
+    case -6:
+        backward = true;
+        [[fallthrough]];
+    case -7: {   // the character on the line below (above) the caret's nearest its x (+0x150)
+        if (!(at<u32>(window, 0x48) & 0x80)) return;
+        const s32 none = (s32)0xff7233d5;
+        s32 lineUp = none, lineDown = none, best = 0x4000, found = -1;
+        u8 *const chars = at<u8 *>(window, 0x9c);
+        if (!chars) break;
+        bool done = false;
+        vcall<u8 *>(chars, 0x10, 1u, 0u);
+        if (backward) {
+            for (s16 i = (s16)(at<s16>(window, 0x14a) - 1); i >= 0 && !done;) {
+                const u8 *const e = vcall<u8 *>(chars, 0x10, 1u, (u32)(s32)i);
+                if (lineUp != none) {
+                    if ((s32)at<s16>(e, 6) < lineUp) {
+                        done = true;
+                    } else if (s32 d = (s32)at<s16>(e, 4) - at<s16>(window, 0x150); (d < 0 ? -d : d) < best) {
+                        best = d < 0 ? -d : d;
+                        found = i;
+                        i = (s16)(i - 1);
+                    } else {
+                        done = true;
+                    }
+                } else if (at<s16>(e, 6) < at<s16>(window, 0x154)) {
+                    lineUp = at<s16>(e, 6);
+                } else {
+                    i = (s16)(i - 1);
+                }
+            }
+        } else {
+            for (s16 i = (s16)(at<s16>(window, 0x14a) + 1); i < len && !done;) {
+                const u8 *const e = vcall<u8 *>(chars, 0x10, 1u, (u32)(s32)i);
+                if (lineDown != none) {
+                    if ((s32)at<s16>(e, 6) > lineDown) {
+                        done = true;
+                    } else if (s32 d = (s32)at<s16>(e, 4) - at<s16>(window, 0x150); (d < 0 ? -d : d) < best) {
+                        best = d < 0 ? -d : d;
+                        found = i;
+                        i = (s16)(i + 1);
+                    } else {
+                        done = true;
+                    }
+                } else if (at<s16>(e, 6) > at<s16>(window, 0x154)) {
+                    lineDown = at<s16>(e, 6);
+                } else {
+                    i = (s16)(i + 1);
+                }
+            }
+        }
+        if (found <= -1) return;
+        cursor = (s16)found;
+        break;
+    }
+    case -5: cursor = (s16)Crt().wcslen(text); break;
+    case -4: cursor = 0; break;
+    case -3: cursor = (s16)(at<s16>(window, 0x14a) + 1); break;
+    case -2:
+        cursor = (s16)(at<s16>(window, 0x14a) - 1);
+        if (cursor < 0) cursor = 0;
+        break;
+    case -1: break;
+    default: cursor = (s16)cursorArg;
+    }
+    switch ((s16)anchorArg) {
+    case -5: anchor = (s16)Crt().wcslen(text); break;
+    case -4: anchor = 0; break;
+    case -3: anchor = (s16)((at<s16>(window, 0x14c) != -1 ? at<s16>(window, 0x14c) : at<s16>(window, 0x14a)) + 1); break;
+    case -2:
+        anchor = (s16)((at<s16>(window, 0x14c) != -1 ? at<s16>(window, 0x14c) : at<s16>(window, 0x14a)) - 1);
+        if (anchor < 0) anchor = 0;
+        break;
+    case -1: anchor = -1; break;
+    default: anchor = (s16)anchorArg;
+    }
+    if (anchor > len) anchor = len;
+    if (anchor == cursor) anchor = -1;
+    if (cursor > len) cursor = len;
+    if (at<u8>(window, 0x162) && cursor != len) return;
+    if (cursor == at<s16>(window, 0x14a) && anchor == at<s16>(window, 0x14c)) return;
+    if (cursor < 0 || (u32)(s32)cursor > Crt().wcslen(at<const u16 *>(window, 0x138))) return;
+    at<s16>(window, 0x14a) = cursor;
+    at<s16>(window, 0x14c) = anchor;
+    const s16 width = (s16)(at<s16>(window, 0x34) - at<s16>(window, 0x30));
+    const s16 height = (s16)(at<s16>(window, 0x36) - at<s16>(window, 0x32));
+    if (!(at<u32>(window, 0x48) & 0x80)) {   // the window scrolled sideways to the caret (or the anchor)
+        entry = vcall<u8 *>(at<u8 *>(window, 0x9c), 0x10, 1u, (u32)(s32)(anchor != -1 ? anchor : cursor));
+        const s16 x = at<s16>(entry, 4);
+        if (x > width) {
+            at<s16>(window, 0x148) = (s16)(at<s16>(window, 0x148) + (width - (x + 8)));
+            Window705a20_NotifyText(window, nullptr, 0);
+        } else if (x < 0) {
+            if (anchor == 0 || cursor == 0) at<s16>(window, 0x148) = 0;
+            else at<s16>(window, 0x148) = (s16)(at<s16>(window, 0x148) - (x + 8));
+            Window705a20_NotifyText(window, nullptr, 0);
+        }
+    }
+    if (width == 0) return;
+    volatile s16 unused = (s16)((s32)(s16)vcall<u32>(at<u8 *>(window, 0x4c), 0x4) * 0x600 / (s32)global<s16>(0x00faa5c0));   // (sic)
+    (void)unused;
+    if (at<u8 *>(window, 0x9c)) entry = vcall<u8 *>(at<u8 *>(window, 0x9c), 0x10, 1u, (u32)(s32)cursor);
+    s16 entryX = 0, top = 0, left = 0, right = 0, bottom = 0;   // (entryX and bottom unset in the original on the paths noted below)
+    if (entry) {
+        entryX = at<s16>(entry, 4);
+        top = at<s16>(entry, 6);
+    }
+    if (at<u32>(window, 0x48) & 0x80) {   // several lines: scrolled up or down to the caret's line
+        u8 *const chars = at<u8 *>(window, 0x9c);
+        entry = chars ? vcall<u8 *>(chars, 0x10, 1u, (u32)(s32)at<s16>(window, 0x14a)) : nullptr;
+        left = entry ? at<s16>(entry, 4) : 0;
+        top = entry ? at<s16>(entry, 6) : 0;
+        right = (s16)(left + 8);
+        if (chars) entry = vcall<u8 *>(chars, 0x10, 2u, at<u32>(window, 0x138));
+        if (entry) {   // (none: bottom stays unset, sic)
+            bool moved = false;
+            at<s16>(entry, 0xa) = (s16)(at<s16>(window, 0x36) - at<s16>(window, 0x32));
+            const s32 line = at<s16>(window, 0x156);
+            if ((s32)top + line > (s32)at<s16>(entry, 0xa)) {
+                const s32 n = ((s32)top + line - at<s16>(entry, 0xa)) / line + 1;
+                at<s16>(window, 0x14e) = (s16)(at<s16>(window, 0x14e) - (s16)(n * line));
+                Window705a20_NotifyScroll(window);
+                Window705a20_NotifyText(window, nullptr, 0);
+                moved = true;
+            } else if (top < 0) {
+                const s32 n = -(s32)top / line;
+                at<s16>(window, 0x14e) = (s16)(at<s16>(window, 0x14e) + (s16)(n * line));
+                Window705a20_NotifyScroll(window);
+                Window705a20_NotifyText(window, nullptr, 0);
+                moved = true;
+            }
+            if (moved) {
+                entry = vcall<u8 *>(chars, 0x10, 1u, (u32)(s32)at<s16>(window, 0x14a));
+                left = entry ? at<s16>(entry, 4) : 0;
+                top = entry ? at<s16>(entry, 6) : 0;
+                right = (s16)(left + 8);
+            }
+            bottom = (s16)(top + at<s16>(window, 0x156));
+            if (at<s16>(window, 0x14c) != -1) {
+                const s32 first = at<s16>(vcall<u8 *>(chars, 0x10, 1u, 0u), 6);
+                entry = vcall<u8 *>(chars, 0x10, 1u, (u32)(s32)at<s16>(window, 0x14c));
+                right = (s32)at<s16>(entry, 6) > first ? width : at<s16>(entry, 4);
+                bottom = (s16)(at<s16>(entry, 6) + at<s16>(window, 0x156));
+            }
+        }
+    } else {   // one line (entryX unset when the entry is none, sic)
+        left = entryX;
+        right = (s16)(left + 8);
+        bottom = (s16)(top + at<s16>(window, 0x156));
+        if (at<s16>(window, 0x14c) != -1) {
+            entry = vcall<u8 *>(at<u8 *>(window, 0x9c), 0x10, 1u, (u32)(s32)at<s16>(window, 0x14c));
+            right = at<s16>(entry, 4);
+        }
+    }
+    if (right > width) right = width;
+    else if (right < 0) right = 0;
+    if (left > width) left = width;
+    else if (left < 0) left = 0;
+    if (bottom > height) bottom = height;
+    if (left == at<s16>(window, 0x150) && top == at<s16>(window, 0x154) && right == at<s16>(window, 0x152)) return;
+    at<s16>(window, 0x150) = left;
+    at<s16>(window, 0x152) = right;
+    at<s16>(window, 0x154) = top;
+    if ((s16)mark != 0) at<s16>(window, 0x158) = 1;
+    if (global<u32>(0x00faa5d4)) Window_PostMessage(window, 3, 0, 0);
+    if (!at<u8 *>(window, 0x15c)) return;
+    u8 rect[12], event[0x18];   // (only the event's +0x14 set: the rectangle)
+    GuiRect_Ctor(rect);
+    const s32 x0 = at<s16>(window, 0x30), y0 = at<s16>(window, 0x32);
+    if (at<s16>(window, 0x152) < at<s16>(window, 0x150))
+        Fn_659dac(rect, nullptr, (u32)(x0 + at<s16>(window, 0x152)), (u32)(y0 + at<s16>(window, 0x154)), (u32)(x0 + at<s16>(window, 0x150)),
+                  (u32)(y0 + bottom));
+    else
+        Fn_659dac(rect, nullptr, (u32)(x0 + at<s16>(window, 0x150)), (u32)(y0 + at<s16>(window, 0x154)), (u32)(x0 + at<s16>(window, 0x152)),
+                  (u32)(y0 + bottom));
+    at<u8 *>(event, 0x14) = rect;
+    if (at<s16>(window, 0x158) != -1) {
+        vcall<void>(at<u8 *>(window, 0x15c), 0x14, 1u);
+        at<s16>(window, 0x158) = 1;
+    }
+    vcall<void>(at<u8 *>(window, 0x15c), 0xc, 0x10u, event);
+    GuiRect_Dtor(rect);
 }
 }
