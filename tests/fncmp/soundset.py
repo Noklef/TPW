@@ -124,6 +124,8 @@ def sender_case(r, fn):
         for _ in range(3):
             levels.append(ints() if r.random() < 0.2 else levels[-1] + r.choice([0, 1, 50, 100, 300, 1000]))
         radii = [r.choice([fb(1.0), fb(2.5), fb(5.0), fb(10.0), 0, 0x7f800001, 0x7fc00000, 0x7f800000, r.getrandbits(32)]) for _ in range(3)]
+        if r.random() < 0.15:   # (NaNs of each kind: the one the sums keep)
+            radii = [r.choice([0x7f800001, 0x7fc00000, 0x7fa00000, 0xffc00000, 0x7fc00001]) for _ in range(3)]
         block = bytearray(r.bytes(0x70))
         struct.pack_into('<i', block, 0xc, max(-0x80000000, min(0x7fffffff, levels[0])))
         for k in range(3):
