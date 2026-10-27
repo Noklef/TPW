@@ -74,5 +74,12 @@ void __cdecl Mp2StreamSamplePool_Shutdown();
 void __cdecl Mp2StreamSamplePool_Purge();
 void *__cdecl Mp2StreamSamplePool_New(u32 size);
 void __cdecl Mp2StreamSamplePool_Delete(void *block, u32 size);
+// The MP2 memory sample's (0x70ae30, core/mp2sample: 0x40, +0x28; [0xfb26dc], [0xfb26d8]): 0x6c8160, 0x6c8190, 0x6c81c0, 0x6c8200
+// and 0x6c8270 (its atexit registration 0x6c8180 left out).
+void __cdecl Mp2SamplePool_Init();
+void __cdecl Mp2SamplePool_Shutdown();
+void __cdecl Mp2SamplePool_Purge();
+void *__cdecl Mp2SamplePool_New(u32 size);
+void __cdecl Mp2SamplePool_Delete(void *block, u32 size);
 
 }  // extern "C"
