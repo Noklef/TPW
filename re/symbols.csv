@@ -5730,6 +5730,7 @@ address,name,kind,confidence,notes
 0x0043f4e0,TrackMesh_EmitPiece,function,low,"reimplemented (src/game/coaster/trackmesh); cdecl (piece, next, count, positions, restart): a piece's samples turned into track mesh: cross sections placed by the spline frame, their triangles listed"
 0x004402d0,TrackMesh_PlaceSections,function,low,"reimplemented (src/game/coaster/trackmesh); cdecl: the section records placed along the track by zone, from 0x792600 (each the spline value and position, a blend and the zone)"
 0x00439780,CoasterCar_SetSoundMode,function,low,"reimplemented (src/game/coaster/carsound); cdecl (car, mode, value): a new mode sets the looped sound's first parameter to its level, then the second parameter to value"
+0x00434740,CoasterPiece_CanPlaceAt,function,low,"reimplemented (src/game/coaster/placecheck); cdecl (x, z, piece, px, pz, nx, nz): whether a coaster piece may go on the tile: map, taken tiles, squared distance, the angle at the piece within the rules' limits, the coaster links' nodes on the tile, and the held piece's neighbours checked again"
 0x0044a590,RenderMode_Size,function,high,"reimplemented (src/game/render/mode); cdecl u32 (): first of 0x2000/0x1000/0x800 in 0x79d86c, else 0x4000 if set, else 0x1000"
 0x0044a5d0,RenderMode_Depth,function,high,"reimplemented (src/game/render/mode); cdecl u32 (): first of 8/0x10 in 0x79d86c, else 0x20 if set, else 8"
 0x0044a600,RenderMode_ResetScale,function,high,reimplemented (src/game/render/mode); cdecl (): 0x79d9e4 = 1.0f
