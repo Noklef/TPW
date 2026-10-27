@@ -1,7 +1,8 @@
 // The sound stream (vtable 0x70a778; the names are invented), the base of the stream filter (src/game/core/streamfilter) and the
 // sound sources: a stream in a chain, +4 the next stream downstream, +8 the one upstream, +0xc an id. Its slots: 0 the destructor, 1 the
 // next set, 2 the close, 3 the unlink, 4 the find by id, 5 a description, 6 the sample rate, 9 a query (out, record), 11 a send; the
-// chain's slots pass on to the next stream. Reimplementation of 0x6bab30, 0x6ba9a0, 0x6c61e0-0x6c6300, 0x6c6d70 and 0x6ba460.
+// chain's slots pass on to the next stream. Reimplementation of 0x6bab30, 0x6ba9a0, 0x6c61e0-0x6c6300, 0x6c6d70 and 0x6ba460; the
+// stream 0x70a6c8's and the notify stream's (0x70a748) slots.
 #pragma once
 
 #include "../../../re/types.h"
@@ -33,6 +34,35 @@ u32 *__fastcall SoundStream_Query(u8 *stream, void *, u32 *out, u8 *record);
 // 0x6baab0 (thiscall (flags), pops 4; slot 0 of 0x70a6c8): the base's vtable (Vtbl70a778_Set_6c7090), then, when flags bit 0, the
 // pool's delete (Stream70a6c8Pool_Delete, 0x1c). Returns the stream.
 u8 *__fastcall Stream70a6c8_Dtor(u8 *stream, void *, u32 flags);
+// 0x6c8e80 (thiscall (out, record), pops 8; name invented): SoundStream_Query (its out the record's own stack slot); a negative answer
+// *out = -1; else, when the record's flags +0x14 have 0x1000, +0x10 = the record's +0x48 (the user value), and *out = 0. Returns out.
+u32 *__fastcall SoundStream_QueryUser(u8 *stream, void *, u32 *out, u8 *record);
+// 0x6c8ed0 (thiscall (record), pops 4; slot 5 of 0x70a748; name invented): when the record's +0x18 has 0x1000, its +0x48 = +0x10 and
+// its flags +0x14 |= 0x1000 (SetThenFlag48_14_6c5090).
+void __fastcall SoundStream_DescribeUser(u8 *stream, void *, u8 *record);
+// 0x6c7460 (thiscall (out, record), pops 8; slot 9 of 0x70a6c8): SoundStream_QueryUser (its out the record's own stack slot); a
+// negative answer *out = -1; else, with the record's flag 0x800, +0x18 = its +0x4c, and *out = 0. Returns out.
+u32 *__fastcall Stream70a6c8_Query(u8 *stream, void *, u32 *out, u8 *record);
+// 0x6c74b0 (thiscall (record), pops 4; slot 5 of 0x70a6c8): SoundStream_DescribeUser, then when the record's +0x18 has 0x800, its
+// +0x4c = +0x18 (SetThenFlag4c_14_6c50f0).
+void __fastcall Stream70a6c8_Describe(u8 *stream, void *, u8 *record);
+
+// The notify stream (vtable 0x70a748, 0x1c bytes from its pool; the names are invented): a sound stream whose +0x10 is the record's
+// user value (+0x48) and +0x18 its callback object (+0x50), told once at the end (slot 11).
+// 0x6ba9b0 (thiscall, this unused (record), pops 4): without the record's flag 0x2000 (+0x14) 0; else the flag cleared and a new stream
+// (NotifyStreamPool_New, 0x1c): +4 / +8 / +0xc 0, +0x10 the record's +0x48, +0x18 its +0x50, the vtable (+0x14 left); 0 when the
+// pool fails.
+u8 *__fastcall NotifyStream_Create(void *, void *, u8 *record);
+// 0x6bac10 (thiscall (flags), pops 4; slot 0): the base's vtable (Vtbl70a778_Set_6c7090), then, when flags bit 0, the pool's delete
+// (NotifyStreamPool_Delete, 0x1c). Returns the stream.
+u8 *__fastcall NotifyStream_Dtor(u8 *stream, void *, u32 flags);
+// 0x6bab90 (thiscall (buffer, count, done, flag), pops 0x10; slot 7): the next's read (its slot 7) with them, or 0 without a next.
+u32 __fastcall NotifyStream_Read(u8 *stream, void *, u32 buffer, u32 count, u32 done, u32 flag);
+// 0x6c8e00 (thiscall (out, record), pops 8; slot 9): SoundStream_QueryUser (its out the record's own stack slot); a negative answer
+// *out = -1; else, with the record's flag 0x2000, +0x18 = its +0x50, and *out = 0. Returns out.
+u32 *__fastcall NotifyStream_Query(u8 *stream, void *, u32 *out, u8 *record);
+// 0x6c8e50 (thiscall (value), pops 4; slot 11): with a callback (+0x18), its slot 1 (+0xc, +0x10, the value's low byte), then +0x18 = 0.
+void __fastcall NotifyStream_Send(u8 *stream, void *, u32 value);
 // 0x6c6d70 (thiscall (out, ms), pops 8): without a next stream (+4) *out = -1. Else the byte offset of the time: the sample rate (slot 6)
 // times (ms times 0.001f) (x87 at 24 bits, through a float), doubled when slot 17 answers 2 (AL) and again when slot 16 answers 0x10,
 // rounded (fistp); its low two bits, when not 0, added to it (sic). Slot 12 (seek) to it when it is not past the length (slot 14,
