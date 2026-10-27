@@ -22,7 +22,8 @@
 # list or a wild one (shufflebag.py's layout), flag 4 of +0x30 any way. The voices 0x70a3e8 / 0x70a4f0's constructors; the new[] of 0-3
 # 0x70a4f0 voices into OUT and the new linked (switch) voice of VOICE, the heap failing now and then. The destructors: see dtor_case().
 # The group voice 0x70a390's slots and destructors: see group_case(). The creates (0x6be610, 0x6be680, 0x6bdc60, 0x6bdd30, 0x6bd7b0,
-# 0x6be330): the voices' game vtables (resolved by the driver), memory null now and then, the heap failing now and then.
+# 0x6be330, 0x6be750) and the queued voice's constructor (0x6be7a0: its block's +0x4c none or PARAMS; the info's pairs queued_case()'s
+# entries, 0-5, or none): the voices' game vtables (resolved by the driver), memory null now and then, the heap failing now and then.
 # The record's bank (slot 18, 0x6bc240) and its override 0x6bdf00 ('recordbanklinked'): see recordbank_case(). The mixer's voice added (0x6b6650): the creates' setup, the voice in the
 # first free slot of 0-6 (the driver resolves the vtable 0x70a4f0).
 # usage: soundvoice.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
@@ -53,7 +54,7 @@ CALLS = {'ensure': (0x6b7150, 'v'), 'pending': (0x6bc900, 'a'), 'apply': (0x6bbf
          'ddtor8d0': (0x6be9a0, 'a'), 'gdtor': (0x6bd930, 'v'), 'gddtor': (0x6b72b0, 'a'), 'gcommand': (0x6bd9b0, 'a'),
          'gposition': (0x6bda20, 'a'), 'gsetparam': (0x6bda90, 'v'), 'glevels': (0x6bdac0, 'v'), 'gstart': (0x6bdae0, 'a'),
          'gfirst': (0x6bdb10, 'a'), 'gstartkids': (0x6bdb50, 'v'), 'gadd': (0x6bdbb0, 'b'), 'gprune': (0x6bdc10, 'v'),
-         'create390': (0x6bdc60, 'a'), 'create2e0': (0x6bdd30, 'a'), 'create3e8': (0x6bd7b0, 'a'), 'create878': (0x6be330, 'a'),
+         'create390': (0x6bdc60, 'a'), 'create2e0': (0x6bdd30, 'a'), 'create3e8': (0x6bd7b0, 'a'), 'create878': (0x6be330, 'a'), 'create8d0': (0x6be750, 'a'), 'ctor8d0': (0x6be7a0, 'a'),
          'recordbank': (0x6bc240, 'a'), 'recordbanklinked': (0x6bdf00, 'a'), 'mixeradd': (0x6b6650, 'a'), 'queued': (0x6be880, 'b')}
 GROUP_OPS = ('gdtor', 'gddtor', 'gcommand', 'gposition', 'gsetparam', 'glevels', 'gstart', 'gfirst', 'gstartkids', 'gadd', 'gprune')
 DTOR_OPS = ('dtor7e0', 'ddtor7e0', 'dtor3e8', 'dtor338', 'ddtor3e8', 'ddtor338', 'vddtor4f0', 'dtor878', 'ddtor878', 'dtor8d0', 'ddtor8d0')
@@ -62,7 +63,7 @@ B = Bench([(0x6b7150, 0x6b7190), (0x6bb9f0, 0x6bba81), (0x6bc900, 0x6bcb56), (0x
            (0x6bc810, 0x6bc8f0), (0x6bd5f0, 0x6bd781), (0x6bd7a0, 0x6bd7ac), (0x6bb220, 0x6bb237), (0x5f5f10, 0x5f5f7d), (0x5f5fa0, 0x5f5faa),
            (0x6bcb80, 0x6bcce1), (0x6c50d0, 0x6c50e8), (0x6be450, 0x6be573), (0x6be5e0, 0x6be608), (0x6be6d0, 0x6be727), (0x6be660, 0x6be672),
            (0x6be730, 0x6be742), (0x6be380, 0x6be41d), (0x6be420, 0x6be44a), (0x6be100, 0x6be24f), (0x6bb950, 0x6bb98e), (0x6bbe90, 0x6bbef9), (0x6bbf60, 0x6bc034),
-           (0x6bbb80, 0x6bbbde), (0x6be580, 0x6be5d3), (0x6be610, 0x6be657), (0x6be680, 0x6be6c7), (0x6be960, 0x6be993),
+           (0x6bbb80, 0x6bbbde), (0x6be580, 0x6be5d3), (0x6be610, 0x6be657), (0x6be680, 0x6be6c7), (0x6be960, 0x6be993), (0x6be750, 0x6be872),
            (0x6c3a00, 0x6c3a80), (0x6c3de0, 0x6c3df9), (0x6c3a80, 0x6c3ad4), (0x6c3c70, 0x6c3d7e), (0x6c3e00, 0x6c3f63),
            (0x6b9260, 0x6b9280), (0x6bc090, 0x6bc240), (0x6bc3c0, 0x6bc410), (0x6c3ae0, 0x6c3c70), (0x6c5110, 0x6c5130), (0x6c5150, 0x6c51a0),
            (0x6c51d0, 0x6c5230), (0x6bc2d0, 0x6bc3bb), (0x6bba90, 0x6bbb72), (0x6bbbe0, 0x6bbcdd), (0x6bbce0, 0x6bbe3d), (0x6bb240, 0x6bb265),
@@ -91,7 +92,7 @@ CHILDREN, CHILD_PARAMS, CHVT = RAM + 0x1600, RAM + 0x1700, RAM + 0x1780   # (the
 NEWKID, NEWKID_PARAMS = RAM + 0x1800, RAM + 0x1860   # (the group voice's new child, from its slot 21)
 MIXER, MIX_SLOTS, MIX_VOICES = RAM + 0x3000, RAM + 0x3080, RAM + 0x3100   # (the mixer's voice added: its slots and voice array)
 BANK, BANK_MAP, BANK_BLOCK, CATEGORY = RAM + 0x1900, RAM + 0x1940, RAM + 0x2000, 0xfb1f28   # (the record's bank: recordbank_case())
-CREATE_OPS = ('swcreate', 'seqcreate', 'create390', 'create2e0', 'create3e8', 'create878', 'mixeradd')
+CREATE_OPS = ('swcreate', 'seqcreate', 'create390', 'create2e0', 'create3e8', 'create878', 'mixeradd', 'create8d0', 'ctor8d0')
 ROLL_OPS = ('rollvol', 'rollpitch', 'level', 'fillrec', 'rollword', 'levels', 'voicefill', 'voicefillx')
 CMD_K, TIME_K = 9, 12
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
@@ -639,6 +640,20 @@ def case(r):
             struct.pack_into('<I', info, 0x18, scale)
             regions.update({OWNER: struct.pack('<II', OVT, r.getrandbits(32)) + struct.pack('<I', OINFO), OVT: vtable({}), OINFO: r.bytes(0x10),
                             MEM: r.bytes(0x50), INFO: info, HEAP: heap(0x40, fail=r.choice([0] * 9 + [1]))})
+            if name in ('create8d0', 'ctor8d0'):   # (the queue's pairs: the info's +0x1c (0-5 of them, or none) and count +0x20; the
+                # three allocations (the parameter block when +0x4c is none, the queue, its pairs) failing now and then)
+                # (queued_case()'s category, sound tables and queue entries: the pairs the init's pick reads)
+                regions.setdefault(PARAMS, bytearray(r.bytes(0x20)))
+                regions[PARAMS] = bytearray(regions[PARAMS])
+                queued_case(r, bytearray(r.bytes(0x50)), d, regions)
+                count = struct.unpack_from('<I', regions[QUEUE])[0]
+                regions[INFO] = bytes(info) + struct.pack('<II', r.choice([QENTRIES] * 6 + [0]) if count else r.choice([QENTRIES, 0]), count)
+                regions[HEAP] = heap(0x100, fail=r.choice([0] * 9 + [1, 2, 3]))
+                if name == 'ctor8d0':
+                    mem = bytearray(regions[MEM])
+                    struct.pack_into('<I', mem, 0x4c, r.choice([0, 0, 0, PARAMS]))
+                    regions[MEM] = mem
+                    return Call(address, [MEM, INFO], regions, conv='t', ret=ret)
             if name == 'mixeradd':   # (0-6 slots, each taken (not 0) now and then; the voice array over random bytes)
                 n = r.choice([0, 1, 2, 4, 6])
                 taken = [r.choice([0, 0, 1, r.getrandbits(32)]) for _ in range(n)]

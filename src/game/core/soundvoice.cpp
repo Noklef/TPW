@@ -543,6 +543,27 @@ u8 *__fastcall Voice70a878_Ctor(u8 *voice) {
     return voice;
 }
 
+u8 *__cdecl Voice70a8d0_Create(u8 *owner, u8 *memory, u8 *definition, u8 *info) {
+    u8 *const voice = memory ? Voice70a8d0_Ctor(memory, nullptr, info) : nullptr;
+    return init_voice(voice, reinterpret_cast<u32 *>(&memory), owner, definition, info);
+}
+
+u8 *__fastcall Voice70a8d0_Ctor(u8 *voice, void *, const u8 *info) {
+    Class70a7e0_Ctor(voice);
+    at<u32>(voice, 0) = 0x0070a8d0;
+    SoundVoice_EnsureParams(voice);
+    u8 *queue = nullptr;   // (no block: +0x1c 0)
+    if (u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0xc))) {
+        at<u32>(block, 4) = 0;
+        at<u32>(block, 0) = at<u32>(info, 0x20);
+        VoicePairs_Alloc(reinterpret_cast<u32 *>(block + 8), nullptr, at<u32>(block, 0));
+        memcpy(at<u8 *>(block, 8), at<const u8 *>(info, 0x1c), at<u32>(block, 0) << 3);   // (no pairs and a count: a fault, sic)
+        queue = block;
+    }
+    at<u8 *>(at<u8 *>(voice, 0x4c), 0x1c) = queue;   // (no parameter block: a fault, sic)
+    return voice;
+}
+
 u8 *__fastcall Voice70a390_Ctor(u8 *voice) {
     Class70a7e0_Ctor(voice);
     at<u32>(voice, 0) = 0x0070a390;

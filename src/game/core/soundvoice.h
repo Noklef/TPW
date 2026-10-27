@@ -265,6 +265,13 @@ void __fastcall Voice70a878_Dtor(u8 *voice);
 u8 *__fastcall Voice70a878_DeletingDtor(u8 *voice, void *, u8 flags);
 // 0x6be9c0 (thiscall; name invented): the vtable 0x70a8d0, the parameter block's (+0x4c, not checked) +0x1c, unless null, freed after its
 // +8; the vtable 0x70a338, Class70a7e0_Dtor. 0x6be9a0 (slot 2 of 0x70a8d0, (flags), pops 4): it, the voice freed with flag 1; returns the voice.
+// 0x6be7a0 (thiscall (info), pops 4; an SEH frame; name invented): Class70a7e0_Ctor, the vtable 0x70a8d0, the parameter block ensured
+// (as SoundVoice_EnsureParams), then its +0x1c = a new 12-byte queue (null when the heap fails): the count the info's +0x20, +4 0, +8
+// that many 8-byte pairs (VoicePairs_Alloc) copied from the info's +0x1c (no pairs and a count: a fault, sic). Returns the voice.
+// 0x6be750 (cdecl (owner, memory, definition, info); name invented): with memory, that there (with the info), then slot 4 as the other
+// creates (null when it answers below 0).
+u8 *__fastcall Voice70a8d0_Ctor(u8 *voice, void *, const u8 *info);
+u8 *__cdecl Voice70a8d0_Create(u8 *owner, u8 *memory, u8 *definition, u8 *info);
 void __fastcall Voice70a8d0_Dtor(u8 *voice);
 u8 *__fastcall Voice70a8d0_DeletingDtor(u8 *voice, void *, u8 flags);
 // 0x6be960 (thiscall (count), pops 4; the 0x70a8d0 voice constructor's (0x6be7a0) parameter pairs; name invented): *self = a block of

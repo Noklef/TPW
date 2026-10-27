@@ -786,6 +786,7 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x0070a3e8, 21},   // creates'; 14 and 15 its picks)
                                    {0x0070a4f0, 21},   // the mixer's voices (slot 4 SoundVoice_Init: SoundMixer_AddVoice's)
                                    {0x0070a878, 21},
+                                   {0x0070a8d0, 21},   // the queued voice's (slot 4 SoundVoice_Init: Voice70a8d0_Create's)
                                    {0x0070a498, 21},   // the switch voice's (slot 4 SoundVoice_Init, 14 SoundVoice_SwitchVariation, 15 PickSample)
                                    {0x0070a440, 21},   // the sequence voice's (slot 4 SoundVoice_Init, 14 SoundVoice_NextVariation, 15 PickSample)
                                    {0x0070aa80, 16},   // the sound resources SoundResource_Create (0x6c5240) makes, which it loads through slot 3: the
