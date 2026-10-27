@@ -2,6 +2,9 @@
 
 #include <cstdint>
 
+#include "crt.h"
+#include "vcall.h"
+
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
@@ -39,6 +42,19 @@ u8 *__fastcall TextArgInt_Ctor(u8 *arg, void *, u32 n, s32 value, u32 isSigned) 
         at<u32>(arg, 0x10) = 0;
     }
     return arg;
+}
+
+s32 __fastcall TextArgInt_Write(u8 *arg, void *, u8 *writer, void *) {
+    static const u16 kFormat[] = {'%', 'd', 0};   // (0x74f9d8)
+    u16 text[0x12];
+    const s32 length = Crt().swprintf(text, kFormat, at<u32>(arg, 0xc));
+    vcall<void>(writer, 0x14, text, length);
+    return 0;
+}
+
+s32 __fastcall TextArgString_Write(u8 *arg, void *, u8 *writer, void *) {
+    vcall<void>(writer, 0x14, at<u32>(arg, 0xc), -1);
+    return 0;
 }
 }
 

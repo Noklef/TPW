@@ -56,6 +56,19 @@ void __cdecl CoasterCar_FindSegmentsInWindow(const u8 *coaster, const u8 *car, s
 // sic: with no segments the "last" is the one before the first.
 void __cdecl CoasterCar_SetExtent(const u8 *coaster, u8 *car);
 
+// 0x43be10 (cdecl (coaster, car); name invented): only with flag 4 of the coaster's byte +0x3c: the coaster's flag 0x800 set, Motion_Time (0;
+// its answer unused), the car's flag 2 set and each segment's (0x60 bytes from car+0x28, car+0xc of them) +0x1c cleared. Then from the last
+// segment back: flag 1 set; with a strip index (+0xc) its strip object (0x7a4610[index]) has its holder (+8) put back, into the grid over
+// +0xc0..+0xc4 (Holder_AddToGrid) when its flags (+4) have 0x4000, else Holder_Wake; +0x20 / +0x24 copied to +0x28 / +0x2c and +0x30 /
+// +0x34 cleared; unless bit 0 of the segment's type (the byte at [+4], read first) is set, a strip object gets Animator_Play (bank 5, entry 0,
+// mode 1, speed 1, layer 0). Then CoasterCar_StartSounds (not quiet). The count (+0xc) is read anew for each step.
+void __cdecl CoasterCar_Wake(u8 *coaster, u8 *car);
+
+// 0x43bf20 (cdecl (coaster, car); name invented): the car's segments from its first (+8) on, car+0xc of them (read once): flag 1 cleared
+// and, with a strip index (+0xc), its strip object's holder (+8) taken out, from the grid over +0xc0..+0xc4 (Obj_RemoveFromRect) when its
+// flags (+4) have 0x4000, else Holder_Sleep. Then CoasterCar_StopSounds and the car's flag 2 cleared.
+void __cdecl CoasterCar_Sleep(u8 *coaster, u8 *car);
+
 // 0x43bfb0: speed after the climb or drop from fromY to toY: speed + (fromY - toY) *
 // params+0x24 * (+0x28 going up, else +0x2c), but at least minimum (minimum too for NaN).
 // Left in st0, so double.
