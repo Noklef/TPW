@@ -136,7 +136,7 @@ def case(r):
     put(rg, 0x10, 'I', r.choice([1, 1, 1, 0]))
     put(rg, 0x20, 'I', r.choice([0, PREV]))
     regions.update({0x879190: rg, PREV: r.bytes(0xf4)})
-    handle = r.choice([0, 0, 1, 2, 3, 5, 7, 0x10005])
+    handle = r.choice([0, 0, 1, 2, 3, 5, 7, 0x10005, 0x10000])   # (only the low word counts)
     quiet = r.choice([0, 0, 0, 1, r.getrandbits(32)])
     return Call(0x5587f0, [vfs.NAME, handle, quiet], regions, ret='a')
 
