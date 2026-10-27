@@ -97,4 +97,12 @@ void __fastcall TgqVideo_DecodeFrame32(u8 *player, const u8 *data, u8 *out, u32 
 // so that adding the dword adds each: a borrow taken from the byte above each negative one (c's from b, then b's from a, a's from d,
 // each tested after its own borrow).
 u32 __fastcall TgqVideo_PackLanes(s32 a, s32 b, s32 c, s32 d);
+
+// 0x66fb60 (fastcall (value, state); name unconfirmed): the state's +0x608 the value, its +0x508, +0x50c, +0x510 and +0x60c 0. Returns 0.
+u32 __fastcall TgqVideo_SetBlockBase(u32 value, u8 *state);
+
+// 0x66fbd0 (thiscall; name unconfirmed): the colour tables for the player's pixel format (its dword +0): with the format's kind +0x48
+// 0x10 or 0xf (16 bits a pixel) TgqVideo_BuildTables (0xff, its bits +0x2c / +0x30 / +0x34 and shifts +0x38 / +0x3c / +0x40), else
+// the lanes' (TgqVideo_BuildLaneTables (0xff)).
+void __fastcall TgqVideo_SetupTables(u8 *player);
 }
