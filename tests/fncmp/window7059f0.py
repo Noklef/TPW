@@ -22,6 +22,8 @@
 # highlight, the bar child 1 or none, no row windows), the n / position around the count, the selection it or not, now and then no items.
 # Grow (0x66316b): items() of 4 + 0-3 columns (or a negative count), some free, the dword count +0x158 theirs or less, now and then no
 # array; n 0-20 or -1; the heap (its first allocation failing now and then).
+# RemoveData (0x493c10, src/game/ui/dialog7ca13c): list_env()'s list as the child 0x1e497 of the dialog [0x7ca13c] (none now and then),
+# first or after a decoy; the data one of the items' mostly, 0 or any; the count [0x7ca134] any.
 # SortsBefore (0x663edc): the sort column +0x168 0-3 (or -1 / -2: before the column array), +0x16a 0, 1 or any, the column bottoms 1 or not;
 # the texts four dwords (wide strings of a few short texts, or numbers around each other), the cells four counted strings (their text
 # or none) or 0 or numbers.
@@ -83,7 +85,7 @@ CALLS = {'ColumnBottom': 0x6636f6, 'NextItem': 0x663a93, 'NthItem': 0x663ba2, 'S
          'NotifySort': 0x6658b9, 'ColumnSpan': 0x664cb9, 'SetSortColumn': 0x66590f, 'SetSortOrder': 0x66594d, 'BuildRows': 0x6639cb,
          'SortBy': 0x6659af, 'OnHeader': 0x665a44,
          'SetColumnBottom': 0x6636b2, 'OffsetColumns': 0x664f6d, 'SelectAt': 0x66552e,
-         'OnMouseDown': 0x6655a2, 'OnDouble': 0x66563d}
+         'OnMouseDown': 0x6655a2, 'OnDouble': 0x66563d, 'RemoveData': 0x493c10}
 LIST_RANGES = (RANGES + [(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 0x664bf0), (0x664d2a, 0x664db7), (0x663324, 0x663554),
                     (0x4f0240, 0x4f0250), (0x65d547, 0x65d56b), (0x65d56b, 0x65d57c), (0x65c672, 0x65c707),
                     (0x663085, 0x66316b), (0x663cb8, 0x663d56), (0x664495, 0x6644ea), (0x66b47d, 0x66b508),
@@ -96,7 +98,8 @@ LIST_RANGES = (RANGES + [(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 
                     (0x65c9bd, 0x65cd95), (0x661700, 0x66176a), (0x65f16b, 0x65f246), (0x662eee, 0x663085), (0x664fde, 0x6650d2), (0x6650d4, 0x6651ee),
                     (0x663c11, 0x663cb8), (0x6628f4, 0x662eee), (0x4f76b0, 0x4f7718), (0x664ea3, 0x664f6d), (0x663d56, 0x663dfa), (0x665494, 0x66552c), (0x664bf0, 0x664c71),
                     (0x664c71, 0x664cb9), (0x665b51, 0x665bfb), (0x6656fa, 0x665739), (0x6658b9, 0x66590f), (0x664cb9, 0x664d2a), (0x66590f, 0x66594d), (0x66594d, 0x6659ad), (0x6659af, 0x665a44), (0x665a44, 0x665b4f), (0x658ccc, 0x658d9f),
-                    (0x6639cb, 0x663a93), (0x66b53e, 0x66b567), (0x6636b2, 0x6636f6), (0x664f6d, 0x664fde), (0x66552e, 0x6655a0), (0x6655a2, 0x66563d), (0x66563d, 0x6656a0)])
+                    (0x6639cb, 0x663a93), (0x66b53e, 0x66b567), (0x6636b2, 0x6636f6), (0x664f6d, 0x664fde), (0x66552e, 0x6655a0), (0x6655a2, 0x66563d), (0x66563d, 0x6656a0),
+                    (0x493c10, 0x493c47), (0x65d7bc, 0x65d822)])
 B = Bench(LIST_RANGES)
 WINDOW, COLUMNS, LINKS, OUT = RAM, RAM + 0x200, RAM + 0x400, RAM + 0x800
 LIST, LINKS2, COLS2, CELLS, ROWS2, ROWWINS = RAM + 0x9000, RAM + 0x9420, RAM + 0x9e00, RAM + 0x9f00, RAM + 0x9c00, RAM + 0xb000
@@ -941,6 +944,17 @@ def case(r):
         return column_case(r)
     if op in ('RemoveItem', 'Clear', 'ScrollTo', 'OnKey'):
         return list_case(r, op)
+    if op == 'RemoveData':   # (the dialog and a decoy at BUILDBAR + 0x400 on)
+        window, regions, idx = list_env(r)
+        put(window, 0x8c, 'I', 0x1e497)
+        links = struct.unpack('<%di' % (len(regions[LINKS3 - 0x20]) // 4), regions[LINKS3 - 0x20])[8:]
+        data = r.choice([links[i + 1] & 0xffffffff for i in idx] * 4 + [0, r.getrandbits(32)]) if idx else r.getrandbits(32)
+        dialog, decoy = BUILDBAR + 0x400, BUILDBAR + 0x500
+        regions[decoy] = put(put(bytearray(r.bytes(0x100)), 0x8c, 'I', r.choice([0x1e496, 0, 0x11e497])), 0x54, 'I', LIST3)
+        regions[dialog] = put(bytearray(r.bytes(0x100)), 0x5c, 'I', r.choice([LIST3, decoy]))
+        regions[0x7ca130] = struct.pack('<4I', r.getrandbits(32), r.choice([0, 1, 5, 0x80000000, r.getrandbits(32)]), r.getrandbits(32),
+                                        r.choice([dialog] * 12 + [0]))
+        return Call(CALLS[op], [data], regions, ret='v')
     if op == 'RefreshRows':
         return refresh_case(r)
     if op == 'BuildRows':
