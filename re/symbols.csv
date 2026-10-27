@@ -4899,6 +4899,7 @@ address,name,kind,confidence,notes
 0x006d1810,Mp2_HasMmx,function,low,"reimplemented (src/game/core/mp2decoder); cdecl: 1 when CPUID 1's EDX has the MMX bit (23), then EMMS, else 0; an SEH frame for a faulting CPUID (name invented)"
 0x006d1800,Mp2_InitFixedPoint,function,low,"reimplemented (src/game/core/mp2decoder); cdecl, static initializer: the dword 0xfb2704 (fixed-point decoding, the MMX synthesis) = Mp2_HasMmx() (name invented)"
 0x006d17b0,Mp2Decoder_DecodeFrame,function,low,"reimplemented (src/game/core/mp2decoder); thiscall (pcm), pops 4: 0 when its slot 4 answers nonzero; else the frame of the layer (+0x2442): II Mp2Decoder_DecodeLayer2, I Mp2Decoder_DecodeLayer1, others 0 (name invented)"
+0x006d1ab0,Mp2Decoder_Read,function,low,"reimplemented (src/game/core/mp2decoder); thiscall (out, bytes), pops 8: up to bytes of PCM frame by frame: whole frames decoded straight into out when the frame buffer (+0x1204) is used up, else decoded into it and copied out; +0x2410 = +0x246c * (frames - 1) + position; returns the bytes given (name invented)"
 0x006c8f00,Mp2BufferPool_Init,function,low,reimplemented (src/game/core/mp2pool); the buffer decoders' pool: its lock allocated and initialised
 0x006c8f30,Mp2BufferPool_Shutdown,function,low,"reimplemented (src/game/core/mp2pool); the buffer decoders' pool purged, its lock deleted and freed"
 0x006c8f60,Mp2BufferPool_Purge,function,low,"reimplemented (src/game/core/mp2pool); the buffer decoders' pool: every free block freed, under the lock"
