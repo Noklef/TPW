@@ -6,6 +6,7 @@ known skips are listed (SKIP) but not followed. Owners: A 0x4e0000-0x500000 and 
 0x500000-0x530000 and 0x658000-0x679000; B the rest.
 
 Totals: 217 functions, 0x2348a bytes: A 12 (0x1c72), B 91 (0x10f5d), C 114 (0x108bb).
+(A snapshot: the totals count 524960 (GameMode_MapClick, src/game/world/mapclick) and 4df390 (Object_Close), both ported since.)
 
 Flags: x87 (FPU code), vcalls (virtual or indirect calls: recorder benches), SKIP (a known skip). "Unported callees" are the
 callees inside this closure.
@@ -244,7 +245,7 @@ Layers with the hubs' incoming edges cut (callees marked * are hubs):
 | 14 | 446300 | 918 | B |  |  | 4423f0 (B) 4425c0 (B) 446740 (B) 446d50 (B) |
 | 14 | 52fe50 | 625 | C |  |  | 444f30 (B) 4de1f0 (C) 524960 (C)* 52c6f0 (C) 52ccb0 (C) 52f200 (C) 52f580 (C) 52fc80 (C) |
 | 14 | 5327e0 | 244 | B |  |  | 524960 (C)* 52ba50 (C) 52f200 (C) 5311c0 (B) |
-| hub | 524960 | 11530 | C |  | x87 | 435570 (B) 4419b0 (B) 445a70 (B) 446050 (B) 446300 (B) 4de1f0 (C) 4df390 (C) 5234d0 (C) 527ee0 (C)* 528a70 (C) 52a970 (C) 52b400 (C) 52bdd0 (C) 52c6f0 (C) 52ccb0 (C) 52f200 (C) 52f580 (C) 52fc80 (C) 530120 (B) 5327e0 (B) 536100 (B) 545450 (B) |
+| hub | 524960 | 11530 | C | GameMode_MapClick (ported since) | x87 | 435570 (B) 4419b0 (B) 445a70 (B) 446050 (B) 446300 (B) 4de1f0 (C) 4df390 (C) 5234d0 (C) 527ee0 (C)* 528a70 (C) 52a970 (C) 52b400 (C) 52bdd0 (C) 52c6f0 (C) 52ccb0 (C) 52f200 (C) 52f580 (C) 52fc80 (C) 530120 (B) 5327e0 (B) 536100 (B) 545450 (B) |
 | hub | 463060 | 2300 | B |  | x87 | 4368f0 (B) 469940 (B) |
 | hub | 527ee0 | 1974 | C | Path_CheckDeadEnds | x87 | 50b780 (C)* 52f200 (C) 52f580 (C) 52fe50 (C) 530120 (B) 5367a0 (B)* 53b280 (B) 545610 (B) |
 | hub | 5367a0 | 1133 | B |  |  | 4de1f0 (C) 5346d0 (B) 5365d0 (B) |
