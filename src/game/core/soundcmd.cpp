@@ -180,4 +180,9 @@ u32 *__fastcall SoundCmd700bb4_Run(const u8 *command, void *, u32 *out, u8 *targ
     return out;
 }
 
+u32 *__fastcall SoundCmd700b9c_Run(const u8 *command, void *, u32 *out, u8 *target) {
+    SoundObject_SendVoiceFunctor2(target, nullptr, out, at<u32>(command, 4));
+    return out;
+}
+
 }  // extern "C"

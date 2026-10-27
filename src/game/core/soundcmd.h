@@ -101,4 +101,7 @@ u32 *__fastcall SoundCmd700bb0_Run(const u8 *command, void *, u32 *out, u8 *targ
 // the byte; the dword's upper bytes the caller's EAX's, which nothing reads).
 u32 *__fastcall SoundCmd700bb4_Run(const u8 *command, void *, u32 *out, u8 *target);
 
+// 0x6b5c50 (vtable 0x700b9c; the id at +4): the sound object's functor 2 send (soundobject, 0x6b8a10: out, the id).
+u32 *__fastcall SoundCmd700b9c_Run(const u8 *command, void *, u32 *out, u8 *target);
+
 }  // extern "C"
