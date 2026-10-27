@@ -24,6 +24,7 @@
 #include "objectdefs.h"
 #include "personscripts.h"
 #include "random.h"
+#include "staff.h"
 #include "things.h"
 #include "world.h"
 
@@ -389,6 +390,33 @@ void __fastcall Sprite_SpawnParticle(u8 *sprite, void *, s32 effect) {
     const s32 py = (s32)(long long)(X87Reg(y) * global<float>(0x007006ec)).v;
     const s32 pz = (s32)(long long)(X87Reg(z) * global<float>(0x007006ec)).v;
     Particle_Spawn(effect, px, py, pz);
+}
+
+u32 __fastcall Sprite_WalkNav(u8 *sprite) {
+    u8 *const nav = sprite + 0xd4;
+    u32 x0, y0, x1, y1;
+    Nav_GetPos(nav, nullptr, &x0, &y0);
+    Nav_Update(nav);   // (through the jump 0x510150)
+    Nav_GetPos(nav, nullptr, &x1, &y1);
+    Thing_SetPos(sprite, nullptr, (u16)((s32)x1 >> 8), (u16)((s32)y1 >> 8));   // (the original's dwords' high halves are its stack's; only the words count)
+    at<u32>(sprite, 0x198) = 0;
+    if (at<u32>(sprite, 0x18c)) return 2;
+    if (Nav_PathProgress(nav) == 0x10000) return 0;   // (through the jump 0x510180)
+    at<u32>(sprite, 0x1c) = g_env->angle((s32)(x0 - x1), (s32)(y1 - y0)) & 0xffff;
+    const u32 running = at<u16>(sprite, 0xc2) > global<u16>(0x0075c7f0) && (sprite[2] == 1 || sprite[2] == 7) ? 1 : 0;
+    u32 code = 0x0074db60, action = 1;
+    if (sprite[2] == 7 && Guard_IsState12(sprite)) {
+        code = 0x0074ef90;
+        action = 0x17;
+    }
+    u8 *const ref = sprite + 0xc;
+    if (!running && !SpriteScript_IsAt(at<s32>(ref, 0), code)) Set4_4217f0(ref, nullptr, action);
+    if (running && !SpriteScript_IsAt(at<s32>(ref, 0), 0x0074dbc0)) Set4_4217f0(ref, nullptr, 2);
+    const u32 dx = x1 - x0, dy = y1 - y0;
+    float period = (float)(X87_Sqrt(X87Reg((double)(s32)(dx * dx + dy * dy))) * global<float>(0x007006e8));   // fild; fsqrt; fmul; fstp
+    if (!running) period = (float)(X87Reg(period) + X87Reg(period));   // fld; fadd st0, st0; fstp
+    ScriptRef_SetPeriodFor(ref, nullptr, period);
+    return 1;
 }
 
 void __fastcall Visitor_RideFeelings(u8 *visitor, void *, const u8 *object) {

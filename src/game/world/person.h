@@ -48,6 +48,15 @@ void __fastcall Stat100_Add(float *stat, void *, float delta);
 // script not there the original's x, y and z are its stack's leftovers; 0 here.)
 void __fastcall Sprite_SpawnParticle(u8 *sprite, void *, s32 effect);
 
+// 0x4fa2a0 (thiscall; x87; called from the staff's states 0x4d48e8-0x4da7b4; name invented): one step along the nav (+0xd4): its position
+// before and after Nav_Update (through 0x510150), the thing moved to the new one's 8.8 (Thing_SetPos), +0x198 = 0. Returns 2 when +0x18c is
+// set, 0 when the path is done (Nav_PathProgress 1.0, through 0x510180). Else +0x1c = the cseg angle (0x6e7074) of (old x - new x,
+// new y - old y), its low word; the person runs when its speed word +0xc2 is above the word 0x75c7f0 and its kind (+2) is 1 or 7. Running,
+// the script reference +0xc is started at action 2 unless its script is at 0x74dbc0; walking at 1 unless at 0x74db60 (a guard, kind 7, in
+// state 0x12 (Guard_IsState12): 0x17 unless at 0x74ef90). The period is set (ScriptRef_SetPeriodFor) for the step's length (fild of the
+// squares' 32-bit sum; fsqrt) times the float 0x7006e8, doubled when walking. Returns 1.
+u32 __fastcall Sprite_WalkNav(u8 *sprite);
+
 // 0x4fdcc0 (thiscall (object), pops 4, x87; name invented): nothing when the object's rating (Object_Rating (0), asked three times) is 0.
 // Else its distance from the visitor's wanted excitement (the byte of the 12-byte row 0x7850e4 by +0x1f0; absolute) picks the step:
 // below 5 the int 0x785064, below 15 0x785068, below 40 0x78506c (else +0x19c is left), added to +0x19c and kept to 0..100 (as
