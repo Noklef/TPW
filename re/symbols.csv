@@ -5743,6 +5743,9 @@ address,name,kind,confidence,notes
 0x00444770,CoasterEdit_SwitchToTool1,function,low,"reimplemented (src/game/coaster/edittools); cdecl (): tool 2 ended and tool 1 started (recorded 0x37), the dialog told"
 0x00442880,CoasterEdit_SetTools,function,low,"reimplemented (src/game/coaster/edittools); cdecl (tools): the tool ended, then each bit of tools started (tool 1, tool 2 or a mode) and chosen; RefreshTools"
 0x00445220,CoasterEdit_StartTool,function,low,"reimplemented (src/game/coaster/edittools); cdecl (tool): one tool started (1 as SwitchToTool1; 2 recorded 0x38, the end marked or begun; 4 .. 0x100 a mode) and chosen"
+0x004426a0,CoasterEdit_EndAll,function,low,reimplemented (src/game/coaster/edittools); The editor tool ended and the offer and chosen tools cleared
+0x004455c0,CoasterEdit_StartChosenTool,function,low,reimplemented (src/game/coaster/edittools); The tool picked by the game state started
+0x00446fa0,CoasterEdit_ToolButton,function,low,reimplemented (src/game/coaster/edittools); The editor tool buttons
 0x0043f4e0,TrackMesh_EmitPiece,function,low,"reimplemented (src/game/coaster/trackmesh); cdecl (piece, next, count, positions, restart): a piece's samples turned into track mesh: cross sections placed by the spline frame, their triangles listed"
 0x004402d0,TrackMesh_PlaceSections,function,low,"reimplemented (src/game/coaster/trackmesh); cdecl: the section records placed along the track by zone, from 0x792600 (each the spline value and position, a blend and the zone)"
 0x00439780,CoasterCar_SetSoundMode,function,low,"reimplemented (src/game/coaster/carsound); cdecl (car, mode, value): a new mode sets the looped sound's first parameter to its level, then the second parameter to value"
