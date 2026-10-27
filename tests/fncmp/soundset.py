@@ -51,7 +51,7 @@ def manager(r):
 SMGR = RAM + 0x8000   # (the senders' manager: +4 the sound object)
 SENDERS = [0x51c0a0, 0x51c0e0, 0x51c2c0, 0x51c300, 0x51c640, 0x51c6b0, 0x51bc70, 0x51bcb0, 0x51bcf0, 0x51bd30, 0x51bd70, 0x51c700, 0x51c570,
            0x51b810, 0x51b620, 0x51c060, 0x51c1d0, 0x51c5d0, 0x51c8d0, 0x51b920]
-ONLY = [int(k, 16) for k in os.environ.get('OPS', '').split(',') if k]
+ONLY = [int(k, 16) for k in (os.environ.get('OPS', '') if __name__ == '__main__' else '').split(',') if k]
 MIXB, TOPB = RAM + 0x9000, RAM + 0x9100   # (the settings update's mixer and its loudest array)
 CVT, OVT = RAM + 0x9200, RAM + 0x9300   # (the camera level's channel and object vtables)
 

@@ -112,7 +112,7 @@ def case(r):
     return person_case(r) if op == 0x4fa5f0 else nav_case(r, op)
 
 
-OPS = [int(k, 16) for k in os.environ.get('OPS', '').split(',') if k]
+OPS = [int(k, 16) for k in (os.environ.get('OPS', '') if __name__ == '__main__' else '').split(',') if k]
 
 
 if __name__ == '__main__':
