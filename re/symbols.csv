@@ -4871,6 +4871,8 @@ address,name,kind,confidence,notes
 0x006c4480,SoundDevice_Release,function,low,reimplemented (src/game/core/sounddevice); thiscall: +4 then +0 released and cleared (name invented)
 0x006c44b0,SoundDevice_CoCreate,function,low,"reimplemented (src/game/core/sounddevice); thiscall (out), pops 4: CoCreateInstance of the EAX DirectSound, else of CLSID_DirectSound (name invented)"
 0x006c4500,SoundDevice_Get,function,low,"reimplemented (src/game/core/sounddevice); the device singleton (0xfb2030, guard 0xfb2028, atexit 0x6c4540) (name invented)"
+0x006d21d0,SoundSource711920_SetRate,function,low,"reimplemented (src/game/core/soundsource); slot 16 of 0x711920, thiscall (out, low), pops 8: Obj_SetRateAtC; negative *out = 0; else SoundDevice_SetFormat (out, 2, 16, the rate +0xc) on SoundDevice_Get (name invented)"
+0x006d37b0,SoundSource711b08_SetOrientation,function,low,"reimplemented (src/game/core/soundsource); slot 35 of 0x711b08, thiscall (out, front, top), pops 0xc: without +0x1c *out = -1; else its COM slot 11 (front x, 0, front z, top x, y, z; floats through the x87) into *out (name invented)"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

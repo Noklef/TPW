@@ -190,6 +190,7 @@ add_library(tpw_game STATIC
     src/game/core/waveformat.cpp
     src/game/core/voiceevents.cpp
     src/game/core/sounddevice.cpp
+    src/game/core/soundsource.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
