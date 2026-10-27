@@ -5241,6 +5241,7 @@ address,name,kind,confidence,notes
 0x00481af0,Obj7b51f0_CheckOnline,function,low,reimplemented (src/game/world/advisorscore); thiscall on 0x7b51f0 (flag): with the flag the mode setting read under the guard 0xfb34c9 for an assert that it is 2
 0x00524960,GameMode_MapClick,function,low,"reimplemented (src/game/world/mapclick); cdecl (x, y, flags, useStored): what a click on the map does in the current game mode ([0x81ae2c]): drags (modes 1 / 3), path and queue pieces from the thing's entrance (4 / 0x3b), track drags (0xb / 0x10), ride entrances and exits (0xe / 0x13 / 0x1a), scenery lines, patrol regions (0x36), hoardings (0x39)"
 0x004d4b90,ObjectDef_IsUnlocked,function,low,"reimplemented (src/game/world/objectunlock); stdcall (id): the definition's s32 +0xc4 (ObjectDefs_Find, not checked) <= GlobalSave_CountSetLeft of GlobalSave_Instance (signed); only AL"
+0x004d4ad0,ObjectDef_Unlock,function,low,reimplemented (src/game/world/objectunlock); stdcall (id): mode setting 1 true; else when unlocked the id added to the global save set with its +0xc4
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved
