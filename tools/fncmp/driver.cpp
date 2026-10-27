@@ -778,6 +778,7 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x0070a950, 3},   // and category record (the same; slot 2 0x6c1110)
                                    {0x00700b90, 15},  // the sound play command (Get4_5dc650, Get8_51c050: Voice70a8d0_PickQueuedSound's SfxSounds_Find);
                                                       // its slots 4-14 the one-slot commands 0x700ba0-0x700bc8 (soundset.py's senders)
+                                   {0x00700b2c, 11},  // the one-slot commands 0x700b2c-0x700b54 (0x700b30 Sound_Load's EAX record apply)
                                    {0x00700b58, 13},  // the sound commands' base (_purecall) and the one-slot commands 0x700b5c-0x700b88
                                                       // (soundset.py's senders 0x51bc70-0x51bd70)
                                    {0x0070a390, 22},   // the group voice's (slot 4 SoundVoice_Init: Voice70a390_Create's; 21 its new child),

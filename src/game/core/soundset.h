@@ -116,4 +116,14 @@ void __cdecl Sound_RegisterGlobalLobbySfx();
 // cat_rides to 0x803a38 and 0x803a3c; then assigned 0x8039c0 (through the string's slot 6, String_AssignWide: its data as chars) with the theme:
 // cat_speech to 0x803a40; then 0x802e68 with the theme: cat_music to 0x803a44.
 void __cdecl Sound_RegisterThemeCategories(const StringView *theme);
+
+// The sound globals' save and load (cdecl (stream); what EAX holds after is not a result). 0x51c350: the started flag (0x802bd4), the on
+// flag (0x802bc8), 0x54 and the 0x54 bytes at 0x803aa0 written (Stream_Write); while on and started, the manager posts 0x700bb0 (the
+// sound object's save, the stream). 0x51c400: the on flag kept, then read (Stream_Read, the results unchecked) the started dword, the on
+// flag, a size and that many bytes into 0x803aa0 (the size unchecked, sic). Started (the dword read, not 0x802bd4): with a manager, it posts
+// 0x700bb4 (the sound object's load, the stream, 1) and 0x700b30 (the EAX record 0x803ab4); without one, the record skipped as the sound
+// object's load reads it (three dwords, then the mixer's size: a seek past the rest, size - 4 from here). Not started: an on flag that was
+// set is put back.
+void __cdecl Sound_Save(u8 *stream);
+void __cdecl Sound_Load(u8 *stream);
 }

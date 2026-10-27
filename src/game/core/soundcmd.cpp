@@ -170,4 +170,14 @@ u32 *__fastcall SoundCmd700ba0_Run(const u8 *command, void *, u32 *out, u8 *targ
     return out;
 }
 
+u32 *__fastcall SoundCmd700bb0_Run(const u8 *command, void *, u32 *out, u8 *target) {
+    SoundObject_Save(target, nullptr, out, at<u8 *>(command, 4));
+    return out;
+}
+
+u32 *__fastcall SoundCmd700bb4_Run(const u8 *command, void *, u32 *out, u8 *target) {
+    SoundObject_Load(target, nullptr, out, at<u8 *>(command, 4), at<u8>(command, 8));
+    return out;
+}
+
 }  // extern "C"

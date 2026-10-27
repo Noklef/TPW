@@ -16,7 +16,8 @@ from fncmp import (HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, blob_bytes, heap, 
                    set_return, strings, vtable)
 
 CALLS = {'mapfree': 0x6c10f0, 'freemap': 0x6c0d90, 'mapload': 0x6c1050, 'namesload': 0x6c0f50, 'vsave': 0x6bccf0, 'vload': 0x6bd0a0,
-         'msave': 0x6b6c30, 'mload': 0x6b6da0}
+         'msave': 0x6b6c30, 'mload': 0x6b6da0, 'osave': 0x6ba0c0, 'oload': 0x6ba150, 'csave': 0x6b5c10, 'cload': 0x6b5c30, 'gsave': 0x51c350,
+         'gload': 0x51c400}
 
 
 def merged(ranges):
@@ -35,7 +36,9 @@ B = Bench(merged([(0x5f5e20, 0x5f5e90), (0x6bb220, 0x6bb250), (0x6bb950, 0x6bb9a
            (0x67fa20, 0x67fa50), (0x681740, 0x681970), (0x682720, 0x6827d0), (0x682b40, 0x682e50), (0x682fc0, 0x6830a0), (0x688710, 0x688740),
            (0x6bead0, 0x6bed90), (0x6c0d90, 0x6c1120), (0x6c1240, 0x6c1280), (0x6c15f0, 0x6c1aa0), (0x6c2140, 0x6c2200), (0x6c2860, 0x6c29a0),
            (0x6c2ca0, 0x6c2d30), (0x6c31a0, 0x6c31f0)]
-          + [(0x5f5f10, 0x5f5fc0), (0x6b6440, 0x6b64c0), (0x6b6930, 0x6b6b50), (0x6b6c30, 0x6b7050), (0x6b7150, 0x6b71a0), (0x6b71d0, 0x6b7200)]))
+          + [(0x5f5f10, 0x5f5fc0), (0x6b6440, 0x6b64c0), (0x6b6930, 0x6b6b50), (0x6b6c30, 0x6b7050), (0x6b7150, 0x6b71a0), (0x6b71d0, 0x6b7200)]
+          + [(0x6ba0c0, 0x6ba200), (0x6b5c10, 0x6b5c60), (0x51c350, 0x51c580), (0x6b5bd0, 0x6b5c00), (0x6b8b40, 0x6b8b70), (0x6b5c90, 0x6b5cc0),
+             (0x5f5bf0, 0x5f5c20), (0x6b9260, 0x6b9280), (0x6b9c50, 0x6b9c80), (0x6b9cd0, 0x6b9d00), (0x6c6000, 0x6c60a0)]))
 SINGLETON, GUARD = 0xfb1f28, 0xfb1ff8
 OUT, STREAM, DATA, MAPAT, BLOCK = RAM + 0xa000, RAM + 0xa100, RAM + 0xa200, RAM + 0xa800, RAM + 0xa900
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
@@ -222,7 +225,7 @@ def mixer_case(r, name):
     struct.pack_into('<I', params, 0x18, 0)
     regions = {LOG: log, IMPORT_TABLE: iat, sm.CLOCK: bytes(0x20), VVT: vtable({RETIRE_K: 0, SLOT_K: 2, TYPE_K: 0}, 24), OUT: r.bytes(4), MIX: mixer,
                PARAMS: params}
-    if name == 'msave':
+    if name.endswith('save'):
         loc, info = located(r)
         regions.update(loc)
         regions[HEAP] = heap(0x800)
@@ -238,7 +241,7 @@ def mixer_case(r, name):
         struct.pack_into('<I', stream, 0x20 + 0x18, recorder(TELL_K, 0))
         set_return(log, TELL_K, r.choice([0, 0, 4, 8, 0x40, r.randrange(0x400), 0x401]))
         regions.update({PAGE: page, STREAM: stream, BUF: r.bytes(0x400)})
-        return Call(CALLS[name], [MIX, OUT, STREAM], regions, conv='t', ret='a')
+        return wrap(r, name, regions, None, 0)
     sing, names = singleton(r)
     regions.update(sing)
     regions[HEAP] = heap(0x2800, fail=r.choice([0] * 15 + [1, 2]))
@@ -253,15 +256,54 @@ def mixer_case(r, name):
         recs += struct.pack('<II', vid, r.choice([1, 2, 3, 4, 5, 6] * 2 + [0, 7, r.getrandbits(32)])) + voice_record(r, False, 0.02)
     data = struct.pack('<I', r.getrandbits(8)) + struct.pack('<I', r.choice([m, m, m, r.randrange(5)]))
     data += struct.pack('<II', len(body), count) + body + struct.pack('<I', pages & 0xffffffff) + recs + r.bytes(0x200)
-    regions.update({PAGE: page, STREAM: memory_stream(STREAM, BUF, len(data)), BUF: data})
-    return Call(CALLS[name], [MIX, OUT, STREAM, restore], regions, conv='t', ret='a')
+    regions[PAGE] = page
+    return wrap(r, name, regions, data, restore)
+
+
+OBJ, CMD, MGRH, CHAN = RAM + 0xb700, RAM + 0xb780, RAM + 0xb7c0, RAM + 0xb800
+GLOBALS, SETTINGS = 0x802bc0, 0x803aa0   # (on 0x802bc8, the manager 0x802bcc, started 0x802bd4; the 0x54 bytes, the EAX record +0x14)
+
+
+def wrap(r, name, regions, data, restore):
+    """The mixer's call (m*) or the callers' over it: the sound object (o*: its mixer +0x20; the load's three dropped dwords first), its
+    commands (c*: 0x700bb0 / 0x700bb4 with the stream and the restore byte) and the globals' save / load (g*: the manager's channel the sound
+    object; the load's on flag, size (0x54 mostly) and bytes first, short now and then before the mixer's part; its EAX record apply with
+    the channel's flags not both bits 0 and 1: *out = -1). data: the load's mixer part (None: a save)."""
+    kind = name[0]
+    obj = bytearray(r.bytes(0x40))
+    struct.pack_into('<II', obj, 0x20, MIX, CHAN)
+    chan = bytearray(r.bytes(0x40))
+    chan[0x28] = chan[0x28] & ~3 | r.choice([0, 1, 2])
+    regions.update({OBJ: obj, CHAN: chan, CMD: struct.pack('<II', r.getrandbits(32), STREAM) + bytes([restore & 0xff]) + r.bytes(7)})
+    if data is not None:
+        left = None
+        if kind in 'ocg':
+            data = r.bytes(12) + data
+        if kind == 'g':
+            size = r.choice([0x54] * 6 + [0, 0x10, 0x58])
+            head = struct.pack('<II', r.getrandbits(32), r.choice([0, 1, 1, r.getrandbits(32)])) + struct.pack('<I', size) + r.bytes(size)
+            data = head + data
+            if r.random() < 0.1:
+                left = r.randrange(len(head))
+        regions.update({STREAM: memory_stream(STREAM, BUF, len(data) if left is None else left), BUF: data})
+    if kind == 'm':
+        return Call(CALLS[name], [MIX, OUT, STREAM] + ([restore] if data is not None else []), regions, conv='t', ret='a')
+    if kind == 'o':
+        return Call(CALLS[name], [OBJ, OUT, STREAM] + ([restore] if data is not None else []), regions, conv='t', ret='a')
+    if kind == 'c':
+        return Call(CALLS[name], [CMD, OUT, OBJ], regions, conv='t', ret='a')
+    g = bytearray(r.bytes(0x20))
+    struct.pack_into('<II', g, 8, r.choice([0, 1, 1, 1, r.getrandbits(32)]), r.choice([MGRH, MGRH, 0]) if data is not None else MGRH)
+    struct.pack_into('<I', g, 0x14, r.choice([0, 1, 1, 1]))
+    regions.update({GLOBALS: g, SETTINGS: r.bytes(0x60), MGRH: struct.pack('<II', r.getrandbits(32), OBJ)})
+    return Call(CALLS[name], [STREAM], regions, conv='c', ret='v')
 
 
 def case(r):
     name = r.deal(OPS)
     if name in ('vsave', 'vload'):
         return voice_case(r, name)
-    if name in ('msave', 'mload'):
+    if name[0] in 'mocg':
         return mixer_case(r, name)
     return names_case(r, name)
 

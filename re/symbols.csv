@@ -65,8 +65,8 @@ address,name,kind,confidence,notes
 0x00437300,Coasters_Save,function,high,"reimplemented (src/game/coaster/save); cdecl u32 (stream): link count, three globals, per link a 0x20-byte record, its pieces' 0x22-byte records and word lists, its cars' 0x1b- and seats' 0xb-byte records and arrays; failed writes never stop it; returns 1"
 0x00599d00,Advisor_Load,function,high,module ADVS
 0x00599c30,Advisor_Save,function,high,"reimplemented (src/game/core/cheatmodule); the advisor module written: a tag, a 0x168 block and a counted buffer"
-0x0051c400,Sound_Load,function,high,module SOUN
-0x0051c350,Sound_Save,function,high,module SOUN
+0x0051c400,Sound_Load,function,high,reimplemented (src/game/core/soundset); the sound globals and settings read; complete: the manager posts 0x700bb4 and 0x700b30 (none: the object's record skipped); short: the on flag put back
+0x0051c350,Sound_Save,function,high,"reimplemented (src/game/core/soundset); the sound globals and the 0x54 settings bytes written; on and started, the manager posts 0x700bb0"
 0x00405570,CheatSystem_Load,function,high,reimplemented (src/game/core/cheatmodule); reads the cheat system's two bytes from a chunk's stream
 0x004055d0,CheatSystem_Save,function,high,reimplemented (src/game/core/cheatmodule); writes the cheat system's two bytes to a chunk's stream
 0x004053b0,CheatSystem_Construct,function,high,"reimplemented (src/game/core/cheatmodule); sets +0xa, +0xb, +0x9; returns the object"
@@ -4522,6 +4522,8 @@ address,name,kind,confidence,notes
 0x006b5a10,SoundCmd700b88_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b88, thiscall (out, target), pops 8: SoundChannel_SetRateModifier on target's +0x24 (out, index 1, the value * 0.01 as a float); returns out"
 0x006b5950,SoundCmd700b7c_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b7c, thiscall (out, target), pops 8: SoundChannel_SetRateModifier on target's +0x24 (out, index 2, the value * 0.01 as a float); returns out"
 0x006b59b0,SoundCmd700b84_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b84, thiscall (out, target), pops 8: SoundChannel_SetRateModifier on target's +0x24 (out, index 3, the value * 0.01 as a float); returns out"
+0x006b5c10,SoundCmd700bb0_Run,function,low,reimplemented (src/game/core/soundcmd); slot 0 of 0x700bb0: the sound object's save (the stream at +4)
+0x006b5c30,SoundCmd700bb4_Run,function,low,"reimplemented (src/game/core/soundcmd); slot 0 of 0x700bb4: the sound object's load (the stream at +4, the restore byte at +8)"
 0x006b5ab0,SoundManager_Dtor,function,low,reimplemented (src/game/core/soundmanager); thiscall: vtable reset to 0x70a288; the engine at +4 (if any) destroyed through its slot 0 (1) and +4 cleared
 0x006b5ad0,SoundManager_Call1,function,low,"reimplemented (src/game/core/soundmanager); slot 4, thiscall (out, a), pops 8: the engine's slot 1 (out, a); returns out"
 0x006b5af0,SoundManager_Release,function,low,"reimplemented (src/game/core/soundmanager); slot 0, thiscall (out), pops 4: the manager (unless null) destroyed through its slot 3 (1); *out = 0"
@@ -4639,6 +4641,8 @@ address,name,kind,confidence,notes
 0x006b8ce0,SoundObject_DeletingDtor,function,low,"reimplemented (src/game/core/soundobject); thiscall (flags), pops 4; slot 0 of 0x70a588: SoundObject_Dtor, then the object freed with flags bit 0; returns the object"
 0x006b8ad0,SoundObject_CallVoice10,function,low,"reimplemented (src/game/core/soundobject); thiscall (id, a, b), pops 0xc; slot 3 of 0x70a2a0 and 0x70a588: with an id and a mixer (+0x20), SoundMixer_CallVoice10 (id, a, b); else 0 (name invented)"
 0x006ba1b0,SoundObject_ApplyEaxRecord,function,low,"reimplemented (src/game/core/soundobject); thiscall (out, index), pops 8: when the channel's (+0x24) flags have bits 0 and 1 (Obj_Flags28_Bit1IfBit0), its EAX record applied (SoundChannel_ApplyEaxRecord); else *out = -1; returns out (name invented)"
+0x006ba0c0,SoundObject_Save,function,low,"reimplemented (src/game/core/soundobject); the sound object's +0x28-+0x30 written, then its mixer's voices (SoundMixer_Save)"
+0x006ba150,SoundObject_Load,function,low,"reimplemented (src/game/core/soundobject); three dwords read and dropped, then its mixer's voices (SoundMixer_Load with the restore flag)"
 0x006b7150,SoundVoice_EnsureParams,function,low,"reimplemented (src/game/core/soundvoice); thiscall: with no block at +0x4c, a 0x20-byte one (Mem_Alloc; the byte and +4-+0x18 cleared) stored there, or 0 when the allocation fails"
 0x006bc900,SoundVoice_SetPending,function,low,"reimplemented (src/game/core/soundvoice); thiscall (out, value), pops 8: with a sound at +0x24, a stack record (SetThenFlag28_14 value) handed to the sound system [0xfb1f24]'s slot 4 in a functor 0x70a850; else the value's low word at +0x48, flag 0x8000, *out = -1; returns out"
 0x006bbf00,SoundVoice_ApplyVariation,function,low,"reimplemented (src/game/core/soundvoice); copies the current variation's two parameter words' low bytes into the voice's parameter block (creating it), or clears them"

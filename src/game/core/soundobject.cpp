@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include "../math/vector.h"
+#include "../files/file.h"
 
 #include "fieldops.h"
 #include "gameheap.h"
@@ -224,6 +225,27 @@ u8 *__fastcall SoundObject_DeletingDtor(u8 *object, void *, u32 flags) {
 u32 __fastcall SoundObject_CallVoice10(u8 *object, void *, u32 id, u32 a, u32 b) {
     if (!id || !at<u8 *>(object, 0x20)) return 0;
     return SoundMixer_CallVoice10(at<u8 *>(object, 0x20), nullptr, id, a, b);
+}
+
+u32 *__fastcall SoundObject_Save(u8 *object, void *, u32 *out, u8 *stream) {
+    const u32 fields[3] = {at<u32>(object, 0x28), at<u32>(object, 0x2c), at<u32>(object, 0x30)};
+    for (const u32 &field : fields) {
+        s32 result, done;
+        Stream_Write(&result, reinterpret_cast<Stream *>(stream), &field, 4, &done);
+    }
+    u32 result;
+    SoundMixer_Save(at<u8 *>(object, 0x20), nullptr, &result, stream);
+    *out = 0;
+    return out;
+}
+
+u32 *__fastcall SoundObject_Load(u8 *object, void *, u32 *out, u8 *stream, u32 restore) {
+    u32 dropped;
+    for (int i = 0; i < 3; ++i) vcall<u32>(stream, 8, &dropped, 4u);
+    u32 result = restore;
+    SoundMixer_Load(at<u8 *>(object, 0x20), nullptr, &result, stream, restore);
+    *out = 0;
+    return out;
 }
 
 }  // extern "C"

@@ -95,4 +95,10 @@ u32 *__fastcall SoundCmd700bc8_Run(const u8 *command, void *, u32 *out, u8 *targ
 // 0x6b5c70 (vtable 0x700ba0; the id at +4): the sound object's functor 3 send (soundobject, 0x6b8a70: out, the id).
 u32 *__fastcall SoundCmd700ba0_Run(const u8 *command, void *, u32 *out, u8 *target);
 
+// 0x6b5c10 (vtable 0x700bb0; the stream at +4): the sound object's save (soundobject, 0x6ba0c0: out, the stream).
+u32 *__fastcall SoundCmd700bb0_Run(const u8 *command, void *, u32 *out, u8 *target);
+// 0x6b5c30 (vtable 0x700bb4; the stream at +4, the restore byte at +8): the sound object's load (soundobject, 0x6ba150: out, the stream,
+// the byte; the dword's upper bytes the caller's EAX's, which nothing reads).
+u32 *__fastcall SoundCmd700bb4_Run(const u8 *command, void *, u32 *out, u8 *target);
+
 }  // extern "C"

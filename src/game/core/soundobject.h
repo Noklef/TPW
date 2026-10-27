@@ -79,4 +79,13 @@ u8 *__fastcall SoundObject_DeletingDtor(u8 *object, void *, u32 flags);
 // SoundMixer_CallVoice10 (id, a, b); else 0.
 u32 __fastcall SoundObject_CallVoice10(u8 *object, void *, u32 id, u32 a, u32 b);
 
+
+// The sound object's save and load (names invented); each returns out with *out = 0.
+// 0x6ba0c0 (thiscall (out, stream), pops 8): +0x28, +0x2c and +0x30 written (Stream_Write, its done the stream argument's slot), then the
+// mixer's (+0x20) voices (SoundMixer_Save, out a local).
+u32 *__fastcall SoundObject_Save(u8 *object, void *, u32 *out, u8 *stream);
+// 0x6ba150 (thiscall (out, stream, restore), pops 0xc): three dwords read through the stream's read (+8) and dropped (the first into the
+// stream argument's slot, sic), then the mixer's (+0x20) voices (SoundMixer_Load (restore), out the restore argument's slot).
+u32 *__fastcall SoundObject_Load(u8 *object, void *, u32 *out, u8 *stream, u32 restore);
+
 }  // extern "C"

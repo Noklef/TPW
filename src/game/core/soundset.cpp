@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include "class6fd9d8.h"
+#include "../files/file.h"
 #include "gameheap.h"
 #include "soundmanager.h"
 #include "string.h"
@@ -305,5 +306,49 @@ void __cdecl Sound_RegisterThemeCategories(const StringView *theme) {
     String_Append(&key, nullptr, theme);
     if (find_folder(&key, &found)) global<u32>(0x00803a44) = Sound_QueryFound(text(0x00762e68), found);   // "cat_music"
     String_Dtor(&key);
+}
+
+void __cdecl Sound_Save(u8 *stream) {
+    Stream *const s = reinterpret_cast<Stream *>(stream);
+    s32 result;
+    Stream_Write(&result, s, &global<u32>(0x00802bd4), 4, nullptr);
+    Stream_Write(&result, s, &global<u32>(0x00802bc8), 4, nullptr);
+    const u32 size = 0x54;
+    Stream_Write(&result, s, &size, 4, nullptr);
+    Stream_Write(&result, s, &global<u8>(0x00803aa0), 0x54, nullptr);
+    if (!On()) return;
+    u32 out;
+    u32 functor[2] = {0x00700bb0, static_cast<u32>(reinterpret_cast<uintptr_t>(stream))};
+    Apply(&out, functor);
+}
+
+void __cdecl Sound_Load(u8 *stream) {
+    Stream *const s = reinterpret_cast<Stream *>(stream);
+    const u32 on = global<u32>(0x00802bc8);
+    s32 result;
+    u32 started, size;
+    Stream_Read(&result, s, &started, 4, nullptr);
+    Stream_Read(&result, s, &global<u32>(0x00802bc8), 4, nullptr);
+    Stream_Read(&result, s, &size, 4, nullptr);
+    Stream_Read(&result, s, &global<u8>(0x00803aa0), static_cast<s32>(size), nullptr);   // (into the 0x54 bytes whatever the size, sic)
+    if (!started) {
+        if (on) global<u32>(0x00802bc8) = on;
+        return;
+    }
+    u32 out;
+    if (global<u8 *>(0x00802bcc)) {
+        u32 load[3] = {0x00700bb4, static_cast<u32>(reinterpret_cast<uintptr_t>(stream)), 1};
+        Apply(&out, load);
+        u32 eax[2] = {0x00700b30, global<u32>(0x00803ab4)};
+        Apply(&out, eax);
+        return;
+    }
+    u32 skip = 0;
+    for (int i = 0; i < 3; ++i) {
+        out = 0;
+        Stream_Read(&result, s, &out, 4, nullptr);
+    }
+    Stream_Read(&result, s, &skip, 4, nullptr);
+    Stream_Seek(s, static_cast<s32>(skip - 4), 1);
 }
 }
