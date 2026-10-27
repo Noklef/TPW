@@ -5,6 +5,7 @@
 
 #include "../files/handles.h"
 #include "../files/file.h"
+#include "accessors.h"
 #include "dequeiter.h"
 #include "misc.h"
 #include "gameheap.h"
@@ -600,6 +601,46 @@ void __fastcall SoundCategory_LocateSample(void *, void *, u32 *category, u32 *s
         ++*category;
     }
     *category = 0;
+}
+
+void __cdecl SoundCategory_ReleaseBankResources() {
+    u8 *const cat = SoundCategory_Get();
+    if (!Get<u32>(cat, 0x94)) return;
+    u32 i = 0;
+    do {
+        u32 it[4], found[4];
+        std::memcpy(it, cat + 0x6c, sizeof it);
+        DequeIter_Advance(reinterpret_cast<u8 *>(it), nullptr, static_cast<s32>(i));
+        if (Get<u32>(Ptr(it[2]), 0)) {
+            const u32 *const begin = reinterpret_cast<const u32 *>(cat + 0x6c);
+            vcall<void>(Get<u8 *>(Get<u8 *>(Ptr(DequeIter_Plus(begin, nullptr, found, static_cast<s32>(i))[2]), 0), 8), 0);
+            Put<u32>(Get<u8 *>(Ptr(DequeIter_Plus(begin, nullptr, found, static_cast<s32>(i))[2]), 0), 8, 0);
+        }
+    } while (++i < Get<u32>(cat, 0x94));
+}
+
+u32 *__stdcall SoundCategory_ReleaseRecordBanks(u32 *out, const u8 *record) {
+    if (!record) {
+        *out = 0xffffffff;
+        return out;
+    }
+    u8 *const cat = SoundCategory_Get();
+    u32 *banks = nullptr;   // (the record's argument slot in the original)
+    SoundCategory_Get();
+    const u32 n = Fn_6c0200(static_cast<u32>(reinterpret_cast<uintptr_t>(record)), static_cast<u32>(reinterpret_cast<uintptr_t>(&banks)));
+    for (u32 i = 0; i < n; ++i) {
+        const s32 index = static_cast<s32>(banks[i]);
+        u32 it[4];
+        std::memcpy(it, cat + 0x6c, sizeof it);
+        DequeIter_Advance(reinterpret_cast<u8 *>(it), nullptr, index);
+        vcall<void>(Get<u8 *>(Get<u8 *>(Ptr(it[2]), 0), 8), 0);
+        std::memcpy(it, cat + 0x6c, sizeof it);
+        DequeIter_Advance(reinterpret_cast<u8 *>(it), nullptr, index);
+        Put<u32>(Get<u8 *>(Ptr(it[2]), 0), 8, 0);
+    }
+    if (banks) GameHeap_Free(banks);
+    *out = 0;
+    return out;
 }
 
 u8 *__fastcall SoundCategory_RecordAt(void *, void *, u32 index, u32) {

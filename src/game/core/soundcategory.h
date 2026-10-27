@@ -144,6 +144,13 @@ void __fastcall SoundCategory_LocateSample(void *self, void *, u32 *category, u3
 // 0x6d1dc0 (thiscall (index, unused), pops 8; `this` unused; name invented): deque A's record index of the singleton, 0 when index is not
 // under its count (+0x64).
 u8 *__fastcall SoundCategory_RecordAt(void *self, void *, u32 index, u32 unused);
+// 0x6b9660 (name invented): each bank of the singleton's deque B (its count +0x94 re-read each step) that is not null has its resource's
+// (+8, not tested for null) slot 0 called (no arguments) and +8 = 0.
+void __cdecl SoundCategory_ReleaseBankResources();
+// 0x6b9760 (stdcall (out, record), pops 8; name invented): no record: *out = -1. Else Fn_6c0200 (record, &banks) gives the count of a
+// list of deque B indices (0, and banks null: the loop never runs), each bank's resource (+8) slot 0 called and +8 = 0 (the bank and its
+// resource not tested for null); the list freed (GameHeap_Free) when not null and *out = 0. Returns out.
+u32 *__stdcall SoundCategory_ReleaseRecordBanks(u32 *out, const u8 *record);
 // 0x6c08b0 (thiscall (out, record), pops 8; from 0x6bea3c, the record's destructor; name invented): *out = -1 for no record. Else each bank
 // index in the record's list (+0x28 its first node {index, next}): the bank in deque B there, when not 0, released (slot 0); when that
 // answers 0, its +8 (read before) released too (slot 0, when not null) and the bank's cell 0. Then *out = -1 unless deque A's cell at the
