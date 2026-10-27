@@ -613,6 +613,16 @@ void __cdecl Car_ApplyAnglesAt(u32 a, u32 b, u32 index) {
     Car_Edited(4, car, global<u8 *>(0x00790fec), 0, 0);
 }
 
+void __cdecl Car_SwapWithNextAt(u32 index) {
+    u8 *const car = PieceAt(index & 0xffff);
+    Train_SwapCars(car, at<u8 *>(at<u8 *>(car, 0x100), 0x38 + 4 * at<u32>(car, 4)));
+}
+
+void __cdecl Car_SwapWithPrevAt(u32 index) {
+    u8 *const car = PieceAt(index & 0xffff);
+    Train_SwapCars(car, at<u8 *>(at<u8 *>(car, 0x100), 0x30 + 4 * at<u32>(car, 4)));
+}
+
 double __cdecl Car_LengthFromNode(const u8 *node, const u8 *range, u8 *car, const u8 *other, u32 keep, u32 wantValue, u32 *out) {
     u32 value = (u32)(uintptr_t)range;   // (the range argument's slot, sic)
     if (range && (at<u32>(range, 0) & 0x4000) && !keep) {

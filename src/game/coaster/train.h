@@ -72,6 +72,12 @@ void __cdecl Car_SetAnglesAt(u32 a, u32 b, u32 index, u32 mark, u32 keep);
 // 0x4442f0 (cdecl; a, b, index): as 0x444270 with mark 1 and keep 0.
 void __cdecl Car_ApplyAnglesAt(u32 a, u32 b, u32 index);
 
+// 0x447ae0 / 0x447b20 (cdecl; index; names invented, unconfirmed): the coaster's piece (index & 0xffff, as 0x444190) swapped with the
+// car in its train's (+0x100) slot after (+0x38 + 4 * its slot +4) or before it (+0x30 + ...: for slot 0 the train's count, sic)
+// (Train_SwapCars).
+void __cdecl Car_SwapWithNextAt(u32 index);
+void __cdecl Car_SwapWithPrevAt(u32 index);
+
 // 0x435340 (cdecl; node, range, car, other, keep, wantValue, out; name invented, unconfirmed): a value along range (+0xbc..+0xc0).
 // With range flagged 0x4000 and keep 0: other's (its type +0x100 flag 1 (+4): +0x50; else its ride's (0x7a4610[+0x70] +8 -> +0x28 ->
 // +4) entry the type's +0x18 -> +0x2c (0x14 apart, +4) -> +0x34, none 0.0; no other: range's own pointer bits, sic) less half the

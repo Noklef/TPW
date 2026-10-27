@@ -1,12 +1,14 @@
 # A train's cars swapped and edited (src/game/coaster/train: Train_SwapCars 0x4424e0, Car_Edited 0x443f40, Car_SetLengthAt 0x444150,
-# Car_ApplyLengthAt 0x444190, Car_SetE0At 0x4441d0, Car_ApplyE0At 0x444220, Car_SetAnglesAt 0x444270, Car_ApplyAnglesAt 0x4442f0)
+# Car_ApplyLengthAt 0x444190, Car_SetE0At 0x4441d0, Car_ApplyE0At 0x444220, Car_SetAnglesAt 0x444270, Car_ApplyAnglesAt 0x4442f0,
+# Car_SwapWithNextAt 0x447ae0, Car_SwapWithPrevAt 0x447b20)
 # against the originals, with what they call (Car_SetChannelRates, the couplings, Flags_SetChanged, Train_PlaceCars with Animator_Update
 # the cdecl recorder k 27, CarType_Lerp, Contacts_MarkLostPair, Track_PieceAt). The trains, rides and type are insertcar.py's (two cars
 # or more); the coaster [0x790fec] a block of its own: +0x54 the first car (the cars chained on by +0x64, now and then cut short), +0x60
 # one of the cars or another, flags any. Ops: Swap (two of the cars, now and then the same), Edited (what 0, 1, 4, 5 or any; the car
 # flag 0x40, the type flag 0x4000 now and then, its length a NaN 15%; keepContacts or not), SetLength (a length about 0..1, special or
 # a NaN, any of the pieces; ApplyLength the same), SetE0 / ApplyE0 / SetAngles / ApplyAngles (values any, the piece's flags 0x40 and
-# 0x1 / 0x6 now and then, half the time the coaster's +0x60 car; mark 0, 1 or any; keep 0 or 1). Swap: now and then a's length a NaN with b's rates skipped, or a's ride's value a NaN going to b's ride,
+# 0x1 / 0x6 now and then, half the time the coaster's +0x60 car; mark 0, 1 or any; keep 0 or 1), SwapNext / SwapPrev (a piece with a
+# car after / before it, 5% the last / first: past the slots, or the count, sic; the index's high bits any). Swap: now and then a's length a NaN with b's rates skipped, or a's ride's value a NaN going to b's ride,
 # which no placed car rewrites (b alone on it, flagged 0x2000): what the x87 makes of them reaches b.
 # usage: swapcars.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
@@ -18,13 +20,13 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fncmp import RAM, Bench, Call, _recorder, fb, put  # noqa: E402
 import insertcar  # noqa: E402
 
-B = Bench([(0x4424e0, 0x4425bb), (0x443f40, 0x444035), (0x444150, 0x44418e), (0x444190, 0x4441c8), (0x4441d0, 0x444217), (0x444220, 0x444261), (0x444270, 0x4442ee), (0x4442f0, 0x444360),
+B = Bench([(0x4424e0, 0x4425bb), (0x443f40, 0x444035), (0x444150, 0x44418e), (0x444190, 0x4441c8), (0x4441d0, 0x444217), (0x444220, 0x444261), (0x444270, 0x4442ee), (0x4442f0, 0x444360), (0x447ae0, 0x447b14), (0x447b20, 0x447b54),
            (0x432d50, 0x432df0), (0x434650, 0x434740), (0x43e520, 0x43e540),
            (0x5da3c0, 0x5da3c1), (0x432df0, 0x433220), (0x433220, 0x433240), (0x430ca0, 0x430ee0), (0x469940, 0x46a560), (0x46f150, 0x46f190),
            (0x46fc00, 0x46fcb0), (0x46fd40, 0x470100), (0x4702d0, 0x4704d0)], hooks={0x473c70: _recorder(27, 3, cdecl=True)})
 COASTER = RAM + 0x4000
 OPS = {'Swap': 0x4424e0, 'Edited': 0x443f40, 'SetLength': 0x444150, 'ApplyLength': 0x444190, 'SetE0': 0x4441d0, 'ApplyE0': 0x444220,
-       'SetAngles': 0x444270, 'ApplyAngles': 0x4442f0}
+       'SetAngles': 0x444270, 'ApplyAngles': 0x4442f0, 'SwapNext': 0x447ae0, 'SwapPrev': 0x447b20}
 
 
 def case(r):
@@ -43,6 +45,11 @@ def case(r):
     put(coaster, 0x60, 'I', r.choice(cars) if r.random() < 0.7 else insertcar.CARS + insertcar.CAR * 5)
     regions[COASTER] = coaster
     regions[0x790fec] = COASTER.to_bytes(4, 'little')
+    if op in ('SwapNext', 'SwapPrev'):   # (a car's train slot +4 is its piece index here: insertcar.py puts car k in slot k)
+        nxt = op == 'SwapNext'
+        edge = r.random() < 0.05
+        index = (n - 1 if nxt else 0) if edge else (r.randrange(n - 1) if nxt else r.randrange(1, n))
+        return Call(OPS[op], [index | r.choice([0, r.getrandbits(16) << 16])], regions)
     if op == 'Swap':
         a = r.randrange(n)
         b = a if r.random() < 0.05 else r.choice([k for k in range(n) if k != a])
