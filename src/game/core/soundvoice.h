@@ -265,8 +265,25 @@ void __fastcall Voice70a878_Dtor(u8 *voice);
 u8 *__fastcall Voice70a878_DeletingDtor(u8 *voice, void *, u8 flags);
 // 0x6be9c0 (thiscall; name invented): the vtable 0x70a8d0, the parameter block's (+0x4c, not checked) +0x1c, unless null, freed after its
 // +8; the vtable 0x70a338, Class70a7e0_Dtor. 0x6be9a0 (slot 2 of 0x70a8d0, (flags), pops 4): it, the voice freed with flag 1; returns the voice.
+// 0x6be7a0 (thiscall (info), pops 4; an SEH frame; name invented): Class70a7e0_Ctor, the vtable 0x70a8d0, the parameter block ensured
+// (as SoundVoice_EnsureParams), then its +0x1c = a new 12-byte queue (null when the heap fails): the count the info's +0x20, +4 0, +8
+// that many 8-byte pairs (VoicePairs_Alloc) copied from the info's +0x1c (no pairs and a count: a fault, sic). Returns the voice.
+// 0x6be750 (cdecl (owner, memory, definition, info); name invented): with memory, that there (with the info), then slot 4 as the other
+// creates (null when it answers below 0).
+u8 *__fastcall Voice70a8d0_Ctor(u8 *voice, void *, const u8 *info);
+u8 *__cdecl Voice70a8d0_Create(u8 *owner, u8 *memory, u8 *definition, u8 *info);
 void __fastcall Voice70a8d0_Dtor(u8 *voice);
 u8 *__fastcall Voice70a8d0_DeletingDtor(u8 *voice, void *, u8 flags);
+// 0x6be960 (thiscall (count), pops 4; the 0x70a8d0 voice constructor's (0x6be7a0) parameter pairs; name invented): *self = a block of
+// count 8-byte pairs from the game heap (null when it fails). Returns self.
+u32 *__fastcall VoicePairs_Alloc(u32 *self, void *, u32 count);
+// 0x6be880 (thiscall (unused), pops 4; slot 14 of 0x70a8d0; name invented): flag 2 (+0x30) set; the parameter block's (+0x4c) +0x1c a
+// queue (+0 its count, +4 the next index, +8 its 8-byte entries {a category index, a sound}): the index taken and moved on (even past the
+// count); none left: 0. Else the category singleton's deque A (its begin +0x3c, DequeIter_Advance) at the category index: a record, its +8
+// an SFX.map sound table; either null: 0. Else SfxSounds_Find with a stack play command (vtable 0x700b90: the category, the sound, the
+// voice's position +0x10-+0x18, range 0; its `this` an unset local, unused): none, 0; else it is the definition (+4) and
+// SoundVoice_PickVariation (0)'s answer. AL only on the failures (the rest of EAX left over).
+u8 __fastcall Voice70a8d0_PickQueuedSound(u8 *voice, void *, u32 unused);
 // The group voice 0x70a390's (names invented): its children (linked voices) listed at the parameter block's +0x18, each the next's in
 // its own block's +0x18. 0x6bd930 (thiscall; an SEH frame): the vtable 0x70a390, each child deleted (slot 2, flag 1; the next read
 // first), the vtable 0x70a3e8, Class70a7e0_Dtor. 0x6b72b0 (thiscall (flags), pops 4; slot 2): it, the voice freed with flag 1.
@@ -297,5 +314,24 @@ void __fastcall Voice70a390_PruneChildren(u8 *voice, void *, u32 time);
 // 0x6bdae0 (thiscall (out, time), pops 8; slot 5): unless the byte +0x30 has 0x50, Voice70a390_StartChildren and _PruneChildren;
 // *out = 0. Returns the out.
 u32 *__fastcall Voice70a390_Start(u8 *voice, void *, u32 *out, u32 time);
+
+// The voices' saved record (Stream_Write / Stream_Read; names invented): the type (slot 20; the mixer's load reads it), the magic
+// 0x12d591, +0x10-+0x18, a zero dword, +0x40, the sample's indices (SoundCategory_LocateSample: category, sound, variation, sample),
+// the magic, the parameter block's flag (1 / 0) and with it the block's +0, +4, +0xc, +8, +0x10, +0x14, the magic, a byte (flag
+// 0x1000), +0x2c, then the linked voice's (the block's +0x18) type and its own record, or a zero dword.
+// 0x6bccf0 (thiscall (out, stream, time), pops 0xc): that record written; type 0 or no category found: nothing more and *out = -1;
+// else *out = 0. The linked voice's save gets the time argument's own slot as its out (sic). Returns out.
+u32 *__fastcall SoundVoice_Save(u8 *voice, void *, u32 *out, u8 *stream, u32 time);
+// 0x6bd0a0 (thiscall (out, stream, time), pops 0xc; an SEH frame): that record read (from the magic): a magic that is not 0x12d591, *out
+// = -1 and nothing more. +0x10-+0x18 through Fn_6bb220; the zero dword and +0x2c read and dropped; with the flag, the parameter block
+// made when there is none (as SoundVoice_EnsureParams, not checked) and its six dwords read; the byte read into the stream argument's
+// slot (sic); a linked type not 0 put in the block's +0x18 (the block made as before). +0x24 = 0. The category through the singleton's
+// names' map (Array_AtOrZero on SoundCategory_Get): 0 sets flag 0x10 at the end. Not 0: the original pops 4 bytes more than it pushes
+// (SoundCategory_RecordAt pops 8 for the one argument pushed), so it runs on with its frame 4 bytes off and returns to its out pointer: a
+// fault (sic; the port faults there at once). With a linked type in the block: the block's +0x18 cleared, the parent this voice when its
+// slot 20 answers 6 or 4 (asked again), else the block's +0x1c; type 7 / 9 a LinkedVoice / LinkedSwitchVoice (Mem_Alloc 0x50; 0 when it
+// fails) to +0x18, any other none; a dword read and dropped; then that voice's load (out the time's slot, sic; a null one faults).
+// Returns out (*out 0 after the flag).
+u32 *__fastcall SoundVoice_Load(u8 *voice, void *, u32 *out, u8 *stream, u32 time);
 
 }  // extern "C"

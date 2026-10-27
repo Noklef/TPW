@@ -30,6 +30,13 @@ bool TerrainBlend_WeightMap(const Array3D *control, u32 x, u32 y, int channel, i
 void TerrainBlend_TileInto(const Lnd *lnd, u8 *out, u32 x, u32 y, const TerrainOverlay *overlay,
                            u8 *scratch);
 
+// 0x55e620 / 0x55e680 / 0x55e6e0 (cdecl; the game's exit handlers for the weight maps W1 / W3 / W2, registered by their
+// initializers 0x55e5f0 / 0x55e650 / 0x55e6b0; names unconfirmed): the map's block (+0xc) freed (GameHeap_Free) when set, then its
+// four dwords cleared.
+void __cdecl Lnd_FreeWeightMap1();
+void __cdecl Lnd_FreeWeightMap3();
+void __cdecl Lnd_FreeWeightMap2();
+
 // Hook entry for 0x55f780, using the game's scratch buffer (gTerrainBlendScratch 0x8798c8; nothing without one), its weight maps
 // (W1 0x8798a8, W2 0x8798b8, W3 0x879398, made over at the tile size first, then built from the control map) and its five ramps
 // (0x8793a8-0x8798a8, which Lnd_Read builds). With a tile size not a multiple of 16 the last size % 16 pixels of each row are not

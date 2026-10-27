@@ -8,17 +8,19 @@
 # flags with and without 0xc0000 and 0x2000000, material entries 0-3 with a material or none, a texture set or none, the texture's index
 # used or not (0x8bd550), textures 0 or with flags 0x400, 0x1000 and others, +0x3c 0 or not (as texformat.py's driver flags cases).
 # A model's triangles added to a batch (0x581a00): see triangles().
-# usage: batch.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Begin,Model,Fog,FogBatch,Triangles)
+# A batch's vertices transformed (0x565f50): fog()'s object and batch (counts 0-4), the transformer's slot 3 a recorder (cdecl, 5
+# arguments) answering a float (no NaN), the batch's +0x30 any (a NaN now and then).
+# usage: batch.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Begin,Model,Fog,FogBatch,Triangles,Transform)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import LOG, Bench, Call, RAM, bf, fb, log_region, put, vtable  # noqa: E402
+from fncmp import LOG, Bench, Call, RAM, bf, fb, log_region, put, set_float_return, vtable  # noqa: E402
 
 B = Bench([(0x565240, 0x56530d), (0x582640, 0x582804), (0x581880, 0x5819fd), (0x575f90, 0x575f9d), (0x5911d0, 0x591210), (0x581790, 0x581880),
            (0x590c40, 0x590ca8), (0x590fb0, 0x590fcb),
-           (0x565e70, 0x565f4d), (0x5747d0, 0x5749db), (0x581a00, 0x581cca)])
+           (0x565e70, 0x565f4d), (0x565f50, 0x565f8a), (0x5747d0, 0x5749db), (0x581a00, 0x581cca)])
 BUF, BATCHES, OBJECT = RAM + 0x20, RAM + 0x100, RAM + 0x1000
 VERTICES, BATCH = RAM + 0x2000, RAM + 0x2400
 FOG, SCRATCH = 0x8bd47c, 0xfb34a4
@@ -111,6 +113,14 @@ def fog(r, op):
                FOG: struct.pack('<I4I4I', r.getrandbits(32), r.getrandbits(32), *colour, start, end, fb(1 / span), r.getrandbits(32))}
     if op == 'Fog':
         return Call(0x565e70, [OBJECT, VERTICES, count], regions, conv='t')
+    if op == 'Transform':   # (the transformer's slot 3 a recorder answering a float)
+        log = log_region()
+        x = bf(r.f())
+        # (no NaN answer: the emulator's recorder pushes it as a Python float, its payload lost)
+        set_float_return(log, 3, r.choice([0.0, 1.5, -2.25, r.uniform(-1e4, 1e4), x if x == x else float('inf')]))
+        put(batch, 0x30, 'I', r.choice([fb(r.uniform(-1e4, 1e4)), fb(0.0), r.f(), 0x7fc00000, 0x7f800001]))
+        regions.update({LOG: log, TXF: struct.pack('<I', TVT), TVT: vtable({}, cdecl={3: 5}), 0x87b1d8: struct.pack('<I', TXF)})
+        return Call(0x565f50, [OBJECT, r.getrandbits(32)], regions, conv='t')
     return Call(0x565ee0, [OBJECT], regions, conv='t')
 
 
@@ -154,7 +164,7 @@ def triangles(r):
     return Call(0x581a00, [TMODEL, TBATCH, r.getrandbits(32), TSRC], regions, conv='t', ret='a')
 
 
-OPS = [k for k in os.environ.get('OPS', 'Begin,Model,Fog,FogBatch,Triangles').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Begin,Model,Fog,FogBatch,Triangles,Transform').split(',') if k]
 
 
 def case(r):

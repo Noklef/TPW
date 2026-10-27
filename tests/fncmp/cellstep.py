@@ -168,7 +168,7 @@ def case(r):
     return {0x4d8750: step, 0x510510: pair}[r.deal(OPS or [0x4d8750, 0x510510])](r)
 
 
-OPS = [int(k, 16) for k in os.environ.get('OPS', '').split(',') if k]
+OPS = [int(k, 16) for k in (os.environ.get('OPS', '') if __name__ == '__main__' else '').split(',') if k]
 
 
 if __name__ == '__main__':

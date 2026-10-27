@@ -4,9 +4,12 @@
 #include <cstring>
 
 #include "../math/vector.h"
+#include "../files/file.h"
 
 #include "fieldops.h"
+#include "gameheap.h"
 #include "initializers.h"
+#include "selectors.h"
 #include "soundcategory.h"
 #include "soundchannel.h"
 #include "soundmixer.h"
@@ -146,6 +149,15 @@ u32 *__fastcall SoundObject_SetPlacement(u8 *object, void *, u32 *out, const u32
     return out;
 }
 
+u32 *__fastcall SoundObject_ApplyEaxRecord(u8 *object, void *, u32 *out, u32 index) {
+    if (!Obj_Flags28_Bit1IfBit0(at<u8 *>(object, 0x24))) {
+        *out = 0xffffffff;
+        return out;
+    }
+    SoundChannel_ApplyEaxRecord(at<u8 *>(object, 0x24), nullptr, out, index);
+    return out;
+}
+
 u32 *__fastcall SoundObject_AddOccluder(u8 *object, void *, u32 *out, u32 x, u32 y, u32 z, u32 radius, u8 **node) {
     u8 *const channel = *reinterpret_cast<u8 **>(object + 0x24);
     if (!channel) {
@@ -202,6 +214,57 @@ u32 __fastcall SoundObject_ResolvePath(u8 *object, void *, const char *path, u8 
     if ((path[1] == ':' && slash(path[2])) || (slash(path[0]) && slash(path[1]))) return vcall<u32>(string, 0x14, path);
     vcall<u32>(string, 0x18, *reinterpret_cast<u8 **>(object + 0x24) + 0x30);
     return vcall<u32>(string, 0x20, path);
+}
+
+u8 *__fastcall SoundObject_DeletingDtor(u8 *object, void *, u32 flags) {
+    SoundObject_Dtor(object);
+    if (flags & 1) GameHeap_Free(object);
+    return object;
+}
+
+u32 __fastcall SoundObject_CallVoice10(u8 *object, void *, u32 id, u32 a, u32 b) {
+    if (!id || !at<u8 *>(object, 0x20)) return 0;
+    return SoundMixer_CallVoice10(at<u8 *>(object, 0x20), nullptr, id, a, b);
+}
+
+u32 *__fastcall SoundObject_Save(u8 *object, void *, u32 *out, u8 *stream) {
+    const u32 fields[3] = {at<u32>(object, 0x28), at<u32>(object, 0x2c), at<u32>(object, 0x30)};
+    for (const u32 &field : fields) {
+        s32 result, done;
+        Stream_Write(&result, reinterpret_cast<Stream *>(stream), &field, 4, &done);
+    }
+    u32 result;
+    SoundMixer_Save(at<u8 *>(object, 0x20), nullptr, &result, stream);
+    *out = 0;
+    return out;
+}
+
+u32 *__fastcall SoundObject_Load(u8 *object, void *, u32 *out, u8 *stream, u32 restore) {
+    u32 dropped;
+    for (int i = 0; i < 3; ++i) vcall<u32>(stream, 8, &dropped, 4u);
+    u32 result = restore;
+    SoundMixer_Load(at<u8 *>(object, 0x20), nullptr, &result, stream, restore);
+    *out = 0;
+    return out;
+}
+
+u8 *__fastcall SoundObject_CreateChannel(u8 *object) {
+    u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x68));
+    u8 *const channel = block ? SoundChannel_Ctor(block) : nullptr;
+    at<u8 *>(object, 0x24) = channel;
+    return channel;
+}
+
+u8 *__fastcall SoundObjectEax_CreateChannel(u8 *object) {
+    u8 *const channel = static_cast<u8 *>(GameHeap_Alloc(0x70));
+    if (channel) {
+        SoundChannel_Ctor(channel);
+        at<u32>(channel, 0x68) = 0;
+        at<u32>(channel, 0x6c) = 0;
+        at<u32>(channel, 0) = 0x0070a630;
+    }
+    at<u8 *>(object, 0x24) = channel;
+    return channel;
 }
 
 }  // extern "C"

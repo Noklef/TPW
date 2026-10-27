@@ -4,10 +4,12 @@
 #include <cstring>
 
 #include "class6fd9d8.h"
+#include "../files/file.h"
 #include "gameheap.h"
 #include "soundmanager.h"
 #include "string.h"
 #include "vcall.h"
+#include "../math/x87.h"
 
 namespace {
 
@@ -67,18 +69,156 @@ u32 __cdecl Sound_SetParam(u32 sound, u32 parameter, u32 value) {
     return SoundManager_Call3(global<u8 *>(0x00802bcc), nullptr, sound, parameter, value);
 }
 
-void __cdecl Sound_Place(u32 a, u32 level, u32 c, u32 x, u32 y, u32 z, u32 dx, u32 dy, u32 dz) {
-    if (!global<u32>(0x00802bc8) || !global<u32>(0x00802bd4)) return;
-    u32 v = global<u16>(0x00803ad2) ? global<u32>(0x00700b28) : level;
-    if ((v & 0x7f800000u) == 0x7f800000u && (v & 0x007fffffu)) v |= 0x00400000u;   // (through FLD / FSTP: a signalling NaN made quiet)
-    const u32 first[3] = {a, v, c}, second[3] = {x, y, z}, third[3] = {dx, dy, dz};
-    SoundManager_SetPlacement(global<u8 *>(0x00802bcc), nullptr, &a, first, second, third);   // (out: the first argument's own slot)
-}
-
 u32 __cdecl Sound_SetPosition(u32 sound, s32 x, s32 y, s32 z) {
     if (!global<u32>(0x00802bc8) || !global<u32>(0x00802bd4)) return 0;
     float position[3] = {(float)x, (float)y, (float)z};
     return SoundManager_Call5(global<u8 *>(0x00802bcc), nullptr, sound, (u32)(uintptr_t)position);
+}
+
+namespace {
+
+bool On() { return global<u32>(0x00802bc8) && global<u32>(0x00802bd4); }
+
+void Apply(u32 *out, u32 *functor) { SoundManager_Apply(global<u8 *>(0x00802bcc), nullptr, out, reinterpret_cast<u8 *>(functor)); }
+
+}  // namespace
+
+void __cdecl Sound_VoiceFunctor3(u32 id) {
+    if (!On()) return;
+    u32 functor[2] = {0x00700ba0, id};
+    Apply(&id, functor);
+}
+
+void __cdecl Sound_SetVoicePending(u32 id, u32 value) {
+    if (!On()) return;
+    u32 functor[3] = {0x00700ba4, value, id};
+    Apply(&value, functor);
+}
+
+void __cdecl Sound_Forward6(u32 value) {
+    if (!On()) return;
+    u32 functor[2] = {0x00700ba8, value};
+    Apply(&value, functor);
+}
+
+void __cdecl Sound_Stop(u32 id) {
+    if (!On()) return;
+    u32 functor[3] = {0x00700bac, id, 0x3c};
+    Apply(&id, functor);
+}
+
+u32 __cdecl Sound_AddOccluder(u32 x, u32, u32 y, u32 radius, u32 z) {
+    if (!On()) return 0;
+    u32 functor[6] = {0x00700bc0, x, y, z, radius, (u32)(uintptr_t)&x};
+    Apply(&y, functor);
+    return x;
+}
+
+void __cdecl Sound_Post700b5c() {
+    if (!On()) return;
+    u32 local[2];   // (the functor its vtable; the out unset)
+    local[0] = 0x00700b5c;
+    Apply(&local[1], local);
+}
+
+void __cdecl Sound_Post700b60() {
+    if (!On()) return;
+    u32 local[3];   // (the out unset; the functor {0x700b60, 0x5a})
+    local[1] = 0x00700b60;
+    local[2] = 0x5a;
+    Apply(&local[0], &local[1]);
+}
+
+void __cdecl Sound_Post700b64() {
+    if (!On()) return;
+    u32 local[2];
+    local[0] = 0x00700b64;
+    Apply(&local[1], local);
+}
+
+void __cdecl Sound_Post700b68() {
+    if (!On()) return;
+    u32 local[2];
+    local[0] = 0x00700b68;
+    Apply(&local[1], local);
+}
+
+void __cdecl Sound_ApplySettings() {
+    if (!On()) return;
+    u32 local[3];   // (local[0] the out, local[1-2] the command; the last command's {local[0]} with the out local[1])
+    if (global<u32>(0x00803ac8)) {
+        auto post = [&](u32 vtable, u32 value) {
+            local[1] = vtable;
+            local[2] = value;
+            Apply(&local[0], &local[1]);
+        };
+        const s32 scale = global<s32>(0x00785914);
+        auto scaled = [&](u32 value) { return (u32)((s32)(value * (u32)scale) / 100); };
+        if (global<u32>(0x00803acc) && global<u32>(0x00803ae0) && global<s32>(0x00803ac4) > 0) {
+            post(0x00700b88, global<u16>(0x00803ad0) ? 0 : scaled(global<u32>(0x00803ac0)));
+            post(0x00700b84, scaled(global<u32>(0x00803abc)));
+        } else {
+            post(0x00700b88, global<u16>(0x00803ad0) ? 0 : global<u32>(0x00803ac0));
+            post(0x00700b84, global<u32>(0x00803abc));
+        }
+        post(0x00700b80, global<u32>(0x00803ab8));
+        post(0x00700b7c, global<u32>(0x00803ac4));
+        post(0x00700b78, global<u32>(0x00803ae0));
+        post(0x00700b74, global<u32>(0x00803adc));
+        SoundCmd_Ctor(reinterpret_cast<u8 *>(&local[1]), nullptr, global<u32>(0x00803ad8));
+        local[1] = 0x00700b70;
+        Apply(&local[0], &local[1]);
+        global<u32>(0x00803ac8) = 0;
+    }
+    local[0] = 0x00700b6c;
+    Apply(&local[1], &local[0]);
+}
+
+u32 __cdecl Sound_VoiceInfo(u32 id) {
+    u32 result = 1;
+    if (On()) {
+        u32 functor[3] = {0x00700bb8, (u32)(uintptr_t)&result, id};
+        Apply(&id, functor);
+    }
+    return result;
+}
+
+void __cdecl Sound_SetCameraOcclusion(s32 level) {
+    if (!On()) return;
+    u32 functor[3] = {0x00700bc8, 0, 0};
+    const float &radius954 = global<float>(0x00785954), &radius95c = global<float>(0x0078595c), &radius964 = global<float>(0x00785964);
+    // Between two (level, radius) points: (level - low) * (high radius - low radius) / (high - low) + low radius; the level's slot
+    // then holds the divisor (sic).
+    auto between = [&](s32 low, s32 high, const float &lowRadius, const float &highRadius) {
+        const s32 span = (s32)((u32)high - (u32)low);
+        const X87Reg x = X87Reg((double)(s32)((u32)level - (u32)low)) * (X87Reg(highRadius) - lowRadius) / X87Reg((double)span) + lowRadius;
+        level = span;
+        const float radius = (float)x;
+        functor[1] = 1;
+        std::memcpy(&functor[2], &radius, 4);
+    };
+    if (global<u8>(0x00790ab0) & 0x16) {
+        const s32 high = global<s32>(0x00785968), mid = global<s32>(0x00785960), low = global<s32>(0x00785958);
+        if (level > high) {
+            functor[1] = 1;
+            functor[2] = X87_FloatThrough(global<u32>(0x00785964));
+        } else if (level > mid) {
+            between(mid, high, radius95c, radius964);
+        } else if (level > low) {
+            between(low, mid, radius954, radius95c);
+        } else if (level > global<s32>(0x0078590c)) {
+            functor[1] = 1;
+            functor[2] = X87_FloatThrough(global<u32>(0x00785954));
+        }
+    }
+    Apply(reinterpret_cast<u32 *>(&level), functor);
+}
+
+void __cdecl Sound_RemoveOccluder(u32 node) {
+    if (!On()) return;
+    u32 out;   // (unset: the run writes it)
+    u32 functor[2] = {0x00700bc4, (u32)(uintptr_t)&node};
+    Apply(&out, functor);
 }
 
 u32 __cdecl Sound_QueryFound(const char *name, u8 *folders) {
@@ -166,5 +306,171 @@ void __cdecl Sound_RegisterThemeCategories(const StringView *theme) {
     String_Append(&key, nullptr, theme);
     if (find_folder(&key, &found)) global<u32>(0x00803a44) = Sound_QueryFound(text(0x00762e68), found);   // "cat_music"
     String_Dtor(&key);
+}
+
+void __cdecl Sound_ReleaseLobbySfx() {
+    const u32 sfx = global<u32>(0x00803a48);
+    if (!sfx) return;
+    SoundCategory_Release(sfx);
+    global<u32>(0x00803a48) = 0;
+}
+
+void __cdecl Sound_ReleaseLobbyCategories() {
+    if (!global<u32>(0x00803a4c)) return;
+    for (s32 i = 0; i < global<s32>(0x00803a50); ++i) {
+        SoundCategory_Release(global<u32 *>(0x00803a4c)[2 * i]);
+        SoundCategory_Release(global<u32 *>(0x00803a4c)[2 * i + 1]);
+    }
+    Sound_Free(global<void *>(0x00803a4c));
+    global<u32>(0x00803a4c) = 0;
+    global<u32>(0x00803a50) = 0;
+}
+
+void __cdecl Sound_ReleaseGlobalCategories() {
+    static const u32 kCats[6] = {0x00803a20, 0x00803a28, 0x00803a2c, 0x00803a24, 0x00803a30, 0x00803a34};
+    for (const u32 cat : kCats)
+        if (global<u32>(cat)) SoundCategory_Release(global<u32>(cat));
+    for (const u32 cat : kCats) global<u32>(cat) = 0;
+}
+
+void __cdecl Sound_ReleaseThemeCategories() {
+    for (u32 cat = 0x00803a38; cat <= 0x00803a44; cat += 4)
+        if (global<u32>(cat)) SoundCategory_Release(global<u32>(cat));
+    for (u32 cat = 0x00803a38; cat <= 0x00803a44; cat += 4) global<u32>(cat) = 0;
+}
+
+void __cdecl Sound_Save(u8 *stream) {
+    Stream *const s = reinterpret_cast<Stream *>(stream);
+    s32 result;
+    Stream_Write(&result, s, &global<u32>(0x00802bd4), 4, nullptr);
+    Stream_Write(&result, s, &global<u32>(0x00802bc8), 4, nullptr);
+    const u32 size = 0x54;
+    Stream_Write(&result, s, &size, 4, nullptr);
+    Stream_Write(&result, s, &global<u8>(0x00803aa0), 0x54, nullptr);
+    if (!On()) return;
+    u32 out;
+    u32 functor[2] = {0x00700bb0, static_cast<u32>(reinterpret_cast<uintptr_t>(stream))};
+    Apply(&out, functor);
+}
+
+void __cdecl Sound_Load(u8 *stream) {
+    Stream *const s = reinterpret_cast<Stream *>(stream);
+    const u32 on = global<u32>(0x00802bc8);
+    s32 result;
+    u32 started, size;
+    Stream_Read(&result, s, &started, 4, nullptr);
+    Stream_Read(&result, s, &global<u32>(0x00802bc8), 4, nullptr);
+    Stream_Read(&result, s, &size, 4, nullptr);
+    Stream_Read(&result, s, &global<u8>(0x00803aa0), static_cast<s32>(size), nullptr);   // (into the 0x54 bytes whatever the size, sic)
+    if (!started) {
+        if (on) global<u32>(0x00802bc8) = on;
+        return;
+    }
+    u32 out;
+    if (global<u8 *>(0x00802bcc)) {
+        u32 load[3] = {0x00700bb4, static_cast<u32>(reinterpret_cast<uintptr_t>(stream)), 1};
+        Apply(&out, load);
+        u32 eax[2] = {0x00700b30, global<u32>(0x00803ab4)};
+        Apply(&out, eax);
+        return;
+    }
+    u32 skip = 0;
+    for (int i = 0; i < 3; ++i) {
+        out = 0;
+        Stream_Read(&result, s, &out, 4, nullptr);
+    }
+    Stream_Read(&result, s, &skip, 4, nullptr);
+    Stream_Seek(s, static_cast<s32>(skip - 4), 1);
+}
+
+void __cdecl Sound_SetVoicesForLevel(s32 level) {
+    const s32 a = global<s32>(0x00785938), b = global<s32>(0x0078593c), c = global<s32>(0x00785940), d = global<s32>(0x00785944);
+    u32 out;
+    if (level > global<s32>(0x0078594c)) {
+        const s32 original = level;
+        u32 query[2] = {0x00700b40, static_cast<u32>(reinterpret_cast<uintptr_t>(&level))};
+        Apply(&out, query);
+        const u32 c2 = global<u32>(0x00785940), d2 = global<u32>(0x00785944);
+        const u32 product = (static_cast<u32>(original) - d2) * (static_cast<u32>(level) - c2);
+        u32 value[2] = {0x00700b3c, product / (100u - d2) + c2};
+        Apply(&out, value);
+        return;
+    }
+    if (level > d) {
+        u32 value[2] = {0x00700b3c, static_cast<u32>(c)};
+        Apply(reinterpret_cast<u32 *>(&level), value);
+        return;
+    }
+    const s32 span = static_cast<s32>(global<u32>(0x00785944) - static_cast<u32>(b));
+    const s32 product = static_cast<s32>((static_cast<u32>(level) - static_cast<u32>(b)) * (global<u32>(0x00785940) - static_cast<u32>(a)));
+    u32 value[2] = {0x00700b3c, static_cast<u32>(product / span) + static_cast<u32>(a)};   // (idiv: a zero span or INT_MIN / -1 faults)
+    Apply(reinterpret_cast<u32 *>(&level), value);
+}
+
+void __cdecl SoundCategory_Release(u32 value) {
+    if (!On()) return;
+    u32 functor[2] = {0x00700b2c, value};
+    Apply(&value, functor);
+}
+
+void __cdecl Sound_SendVoiceFunctor2(u32 id) {
+    if (!On()) return;
+    u32 functor[2] = {0x00700b9c, id};
+    Apply(&id, functor);
+}
+
+void __cdecl Sound_SetPlacement(u32 x, u32 y, u32 z, u32 dx, u32 dy, u32 dz, u32 vx, u32 vy, u32 vz) {
+    if (!On()) return;
+    const u32 value[3] = {vx, vy, vz};
+    const u32 direction[3] = {dx, dy, dz};
+    const u32 position[3] = {x, X87_FloatThrough(global<u16>(0x00803ad2) ? global<u32>(0x00700b28) : y), z};   // (fld / fstp m32)
+    SoundManager_SetPlacement(global<u8 *>(0x00802bcc), nullptr, &x, position, direction, value);
+}
+
+void __cdecl Sound_SetArea(u32 sound, u32 x, u32 z, u32 w, u32 d) {
+    if (!On()) return;
+    u32 functor[6] = {0x00700bbc, sound, x, z, x + w, z + d};
+    Apply(&sound, functor);
+}
+
+void __cdecl Sound_SetEaxRecord(u32 index) {
+    if (!On() || index == global<u32>(0x00803ab4)) return;
+    global<u32>(0x00803ab4) = index;
+    u32 functor[2] = {0x00700b30, index};
+    Apply(&index, functor);
+}
+
+void __cdecl Sound_SetCameraLevel(s32 level) {
+    if (!On()) return;
+    const s32 lv = level;
+    u32 *const out = reinterpret_cast<u32 *>(&level);
+    u32 cmd[4] = {0x00700b54, lv > global<s32>(0x007858fc), lv > global<s32>(0x00785900), lv > global<s32>(0x00785904)};
+    Apply(out, cmd);
+    if (lv > global<s32>(0x00785908)) {
+        cmd[1] = 1;
+    } else {
+        if (On() && global<u32>(0x00803ab4)) {
+            global<u32>(0x00803ab4) = 0;
+            cmd[0] = 0x00700b30;
+            cmd[1] = 0;
+            Apply(out, cmd);
+        }
+        cmd[1] = 0;
+    }
+    cmd[0] = 0x00700b50;
+    Apply(out, cmd);
+    cmd[0] = 0x00700b4c;
+    cmd[1] = !(lv > global<s32>(0x00785910));
+    Apply(out, cmd);
+    Sound_SetCameraOcclusion(lv);
+    Sound_SetVoicesForLevel(lv);
+    cmd[0] = 0x00700b48;
+    cmd[1] = lv > global<s32>(0x00785920);
+    Apply(out, cmd);
+    const bool above = lv > global<s32>(0x00785918);
+    if (!On()) return;
+    SoundCmd_Ctor(reinterpret_cast<u8 *>(cmd), nullptr, !above);
+    cmd[0] = 0x00700b44;
+    Apply(out, cmd);
 }
 }

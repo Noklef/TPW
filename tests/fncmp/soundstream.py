@@ -3,23 +3,27 @@
 # then; the next and upstream recorder vtables too. The query's next answers its out (the local, the record's own stack slot: logged as
 # 0, a fill writing it now and then) or a dword in RAM; the user queries (0x6c8e80, 0x6c7460, 0x6c8e00) likewise, over a record of random
 # flags. The descriptions over the record; the notify stream's read (slot 7) and send (+0x18 a callback object, a recorder vtable, or
-# null). The destructor over the heap (Mem_Free), any flags.
+# null). The destructor over the heap (Mem_Free), any flags. The read's next source (0x6c75d0): the callback's slot 0 given +0xc
+# (now and then the stream's +4, which it fills with a next or 0) and +0x10; the old next's slot 2. The read (0x6c74e0): the next's
+# slot 7 filling its got (a local) from up to 8 records, answering 1 after 0-15 calls; the next source then taken in turn (the
+# callback filling +4 from a few nexts and a last 0), or none; the count 0, small or any; now and then no next at all.
 # usage: soundstream.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, LOG, LOG_RETURNS, RAM, Bench, Call, echo, fill, heap, log_region, set_return, strings, vtable  # noqa: E402
+from fncmp import HEAP, LOG, LOG_RETURNS, RAM, Bench, Call, echo, fail_after, fill, heap, log_region, set_return, strings, vtable  # noqa: E402
 
 # name: (address, convention, returns)
 CALLS = {'dtor': (0x6bab30, 't', 'a'), 'setnext': (0x6c61e0, 't', 'a'), 'chain': (0x6c6210, 'c', 'a'), 'close': (0x6c6230, 't', 'v'),
          'unlink': (0x6c6300, 't', 'v'), 'find': (0x6c62e0, 't', 'a'), 'describe': (0x6c62c0, 't', 'v'), 'send': (0x6c6260, 't', 'v'),
          'rate': (0x6ba9a0, 't', 'a'), 'query': (0x6c6280, 't', 'a'), 'seektime': (0x6c6d70, 't', 'a'),
          'queryuser': (0x6c8e80, 't', 'a'), 'describeuser': (0x6c8ed0, 't', 'v'), 'query6c8': (0x6c7460, 't', 'a'),
-         'describe6c8': (0x6c74b0, 't', 'v'), 'cbread': (0x6bab90, 't', 'a'), 'cbquery': (0x6c8e00, 't', 'a'), 'cbsend': (0x6c8e50, 't', 'v')}
+         'describe6c8': (0x6c74b0, 't', 'v'), 'cbread': (0x6bab90, 't', 'a'), 'cbquery': (0x6c8e00, 't', 'a'), 'cbsend': (0x6c8e50, 't', 'v'), 'nextsource': (0x6c75d0, 't', 'a'),
+         'read6c8': (0x6c74e0, 't', 'a')}
 RANGES = [(0x6bab30, 0x6bab50), (0x6ba9a0, 0x6ba9b0), (0x6c61e0, 0x6c632e), (0x6c6d70, 0x6c6e45), (0x6c8e00, 0x6c8eea), (0x6c7460, 0x6c74d6),
-          (0x6bab90, 0x6babb8), (0x6c5090, 0x6c50a3), (0x6c50f0, 0x6c5103)]
+          (0x6bab90, 0x6babb8), (0x6c5090, 0x6c50a3), (0x6c50f0, 0x6c5103), (0x6c75d0, 0x6c7605), (0x6c74e0, 0x6c75cb)]
 B = Bench(RANGES)
 STREAM, NEXT, PREV, VT, OUT, RECORD, WORD, CALLBACK, CALLBACK_VT = (RAM + 0x100 * i for i in range(9))
 SLOTS = {0: 1, 1: 1, 4: 1, 5: 1, 7: 4, 9: 2, 11: 1, 12: 1}
@@ -46,7 +50,7 @@ def case(r):
     stream = obj(r, r.choice([NEXT, NEXT, NEXT, 0, STREAM]), r.choice([PREV, PREV, 0, STREAM]), id_)
     regions = {STREAM: stream, NEXT: obj(r, r.choice([0, PREV]), r.choice([STREAM, 0]), r.getrandbits(32)),
                PREV: obj(r, r.choice([STREAM, NEXT]), 0, r.getrandbits(32)), VT: vtable(SLOTS), OUT: r.bytes(4), RECORD: r.bytes(0x60),
-               WORD: r.bytes(4), LOG: log, CALLBACK: struct.pack('<I', CALLBACK_VT) + r.bytes(0xc), CALLBACK_VT: vtable({1: 3})}
+               WORD: r.bytes(4), LOG: log, CALLBACK: struct.pack('<I', CALLBACK_VT) + r.bytes(0xc), CALLBACK_VT: vtable({0: 2, 1: 3})}
     if r.getrandbits(1):
         for k in (0, 1, 4, 6, 9):
             set_return(log, k, r.getrandbits(32))
@@ -86,6 +90,29 @@ def case(r):
         args = [r.choice([RECORD, r.getrandbits(32)])]
     elif name in ('describeuser', 'describe6c8'):
         args = [RECORD]
+    elif name == 'nextsource':   # (the callback's slot 0 (k 0, two arguments) given +0xc and +0x10: +0xc the stream's +4 now and then,
+        # which a fill sets to a next or 0; the callback object present)
+        struct.pack_into('<I', stream, 0x18, CALLBACK)
+        if r.random() < 0.6:
+            struct.pack_into('<I', stream, 0xc, STREAM + 4)
+            if r.random() < 0.7:
+                fill(log, 0, 0, struct.pack('<I', r.choice([NEXT, PREV, 0])))
+        args = []
+    elif name == 'read6c8':
+        struct.pack_into('<I', stream, 4, r.choice([NEXT, NEXT, NEXT, NEXT, PREV, 0]))
+        struct.pack_into('<I', stream, 0x18, CALLBACK)
+        count = r.choice([0, 1, r.randrange(2, 0x40), r.randrange(0x40, 0x200), r.getrandbits(32)])
+        records = r.randrange(1, 9)
+        gots = [r.choice([0, 1, r.randrange(2, 0x20), r.randrange(0x20, 0x100), count, r.getrandbits(32)]) & 0xffffffff for _ in range(records)]
+        fill(log, 7, 2, struct.pack('<%dI' % records, *gots), records=records)
+        strings(log, 7, 0, out=4)   # (got: the done argument's stack slot)
+        fail_after(log, 7, r.choice([0, 1, 2, 3, r.randrange(4, 16)]), 1, counted=True)
+        if r.random() < 0.7:   # (the callback fills +4: nexts, then 0 so that the loop ends)
+            struct.pack_into('<I', stream, 0xc, STREAM + 4)
+            n = r.randrange(1, 5)
+            sources = [r.choice([NEXT, PREV]) for _ in range(n - 1)] + [0]
+            fill(log, 0, 0, struct.pack('<%dI' % n, *sources), which=1, records=n)
+        args = [r.getrandbits(32), count, OUT, r.getrandbits(32)]
     elif name == 'cbread':
         args = [r.getrandbits(32) for _ in range(4)]
     else:

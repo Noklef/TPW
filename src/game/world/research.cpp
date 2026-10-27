@@ -5,8 +5,12 @@
 #include "../core/globalsave.h"
 #include "../core/savegame.h"
 #include "../math/x87.h"
+#include "advisor.h"
+#include "advisorscore.h"
+#include "messagecentre.h"
 #include "objectdefs.h"
 #include "things.h"
+#include "thingscan.h"
 #include "world.h"
 
 namespace {
@@ -211,4 +215,57 @@ u32 __cdecl Research_CountNotDoneCat3() { return ResearchLab_CountNotDone(labOfG
 void __fastcall ResearchLab_NextProject(u8 *lab, void *, u32 group) { chooseProject<false>(lab, group); }
 
 void __fastcall ResearchLab_PrevProject(u8 *lab, void *, u32 group) { chooseProject<true>(lab, group); }
+void __fastcall ResearchLab_UpdateLevels(u8 *lab, void *, u32 cat) {
+    u8 &highest = *const_cast<u8 *>(group_of(lab, cat) + 0xc);
+    bool changed = false;
+    for (;;) {
+        u32 count = 0, done = 0;
+        for (s32 i = at<s32>(lab, 0x145c) - 1; i >= 0; --i) {
+            const u8 *p = project(lab, i);
+            if (at<u32>(p, 4) != cat || (s32)at<u8>(p, 8) >= (s32)highest + 1) continue;
+            ++count;
+            if (!not_done(p)) ++done;
+        }
+        const u32 share = count ? done * 100 / count : 0;
+        if (share < reinterpret_cast<const u32 *>(0x00785540)[highest] || highest >= 7) break;
+        ++highest;
+        changed = true;
+    }
+    if (!changed || !ResearchLab_CountNotDone(lab, nullptr, cat) || cat > 3) return;
+    u8 message[0x18];   // (its bytes +2, +3 and +0x17 never written, sic)
+    AdvisorMsg_Init(message, nullptr, 0x85 + cat, 0, 0, 0xffffffffu, 0, -1);
+    Advisor_Post(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da71c_5194d0(*reinterpret_cast<u8 *const *>(0x0080239c))), nullptr, message);
+}
+
+void __fastcall ResearchLab_Init(u8 *lab) {
+    at<u32>(lab, 0x145c) = 0;
+    at<u32>(lab, 0x1464) = 0xffffffff;
+    at<u32>(lab, 0x1460) = *reinterpret_cast<const u32 *>(0x00785580);
+    GameTable7cfb90_Get1da720_519510(*reinterpret_cast<u8 *const *>(0x0080239c));   // (into ECX for the stdcall count, which ignores it)
+    at<u8>(lab, 0x1468) = Things_CountStaffOfKind(8) > 0;
+    ResearchLab_FillProjects(lab);
+    ResearchLab_ApplyEfforts(lab);
+    MessageCentre_AddThing(MessageCentre_Instance(), nullptr, lab, 0x11);
+}
+
+void __fastcall ResearchLab_ApplyEfforts(u8 *lab) {
+    const u32 *const settings = reinterpret_cast<const u32 *>(0x00785568);
+    for (u32 cat = 0; cat < 5; ++cat) {
+        const u32 setting = settings[cat];
+        at<u32>(lab, 0x140c + cat * 16) = setting < 100 ? setting : 100;
+        u32 effort = 0;
+        for (u32 g = 0; g < 5; ++g) effort += at<u32>(group_of(lab, g), 0);
+        for (u32 g = 0; g < 5; ++g)
+            at<u32>(lab, 0x1410 + g * 16) = effort ? at<u32>(group_of(lab, g), 0) * 100u / effort * at<u32>(lab, 0x1460) / 100u : 0;
+        const s32 n = at<s32>(lab, 0x145c);
+        for (s32 i = 0; i < n; ++i) {
+            const u8 *p = project(lab, i);
+            if (at<u32>(p, 4) == cat && at<u8>(p, 8) <= at<u8>(group_of(lab, cat), 0xc) && not_done(p)) {
+                at<s32>(lab, 0x1414 + cat * 16) = i;
+                break;
+            }
+        }
+        ResearchLab_UpdateLevels(lab, nullptr, cat);
+    }
+}
 }

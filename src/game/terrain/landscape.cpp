@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cstring>
 
+#include "../files/quickload.h"
 #include "../gfx/texman.h"
 #include "../gfx/texture.h"
 #include "../math/x87.h"
@@ -31,6 +32,37 @@ void Cells(u8 *landscape, u32 at, u32 first) {
             cell[4] = (u16)(a + 1);
             cell[5] = (u16)(a + 5);
         }
+}
+
+// The texture array at +offset released (Texture_Release on its first texture, the array destroyed when still set) and cleared.
+void ReleaseSlot(u8 *landscape, u32 offset) {
+    Texture_Release(at<u8 *>(landscape, offset));
+    if (u8 *const array = at<u8 *>(landscape, offset))
+        Texture_DestroyArray(array);
+    at<u32>(landscape, offset) = 0;
+}
+
+// One of the sky's textures: folder + "\" (0x7477fc) + file (120 bytes, unchecked) located (Quickload_Locate(path, 1, 0)), the old
+// array at +offset released when set, the path loaded (TexManager_Load at [0x87a268]) into +offset: none pushes the error (1,
+// 0xb0754001) twice (sic), got has its flags' 0x100 cleared and 0x30200 set. Returns the array.
+u8 *LoadSky(u8 *landscape, u32 offset, const char *folder, const char *file) {
+    char path[120];
+    std::strcpy(path, folder);
+    std::strcat(path, reinterpret_cast<const char *>((uintptr_t)0x007477fc));
+    std::strcat(path, file);
+    const char *const located = Quickload_Locate(path, 1, nullptr);
+    if (at<u8 *>(landscape, offset) != nullptr)
+        ReleaseSlot(landscape, offset);
+    u8 *const textures = TexManager_Load(*reinterpret_cast<u8 *const *>((uintptr_t)0x0087a268), nullptr, located);
+    at<u8 *>(landscape, offset) = textures;
+    if (textures == nullptr) {
+        u8 *const errors = reinterpret_cast<u8 *>((uintptr_t)0x00879ad0);
+        EngineErrors_Push(errors, nullptr, 1, 0xb0754001);
+        EngineErrors_Push(errors, nullptr, 1, 0xb0754001);
+    } else {
+        at<u32>(textures, 8) = (at<u32>(textures, 8) & ~0x100u) | 0x30200;
+    }
+    return textures;
 }
 
 }  // namespace
@@ -192,5 +224,15 @@ u32 __fastcall Landscape_RemoveTextureList(u8 **list) {
     for (s32 i = 0; i < count; i++)
         Landscape_RemoveTexture(reinterpret_cast<u8 *>(0x008c1828), nullptr, list[i]);
     return static_cast<u32>(count);
+}
+
+u32 __fastcall Landscape_LoadSky(u8 *landscape, void *, const char *folder) {
+    LoadSky(landscape, 0x1fd0, folder, reinterpret_cast<const char *>((uintptr_t)0x00768da0));   // "sky\sky.tga"
+    if (LoadSky(landscape, 0x1fd4, folder, reinterpret_cast<const char *>((uintptr_t)0x00768d90)) != nullptr) {   // "sky\sky_rgb.tga"
+        Landscape_SampleColours(landscape);
+        ReleaseSlot(landscape, 0x1fd4);
+    }
+    LoadSky(landscape, 0x1fd8, folder, reinterpret_cast<const char *>((uintptr_t)0x00768d80));   // "sky\sky_cyl.tga"
+    return 1;
 }
 }

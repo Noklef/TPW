@@ -5,6 +5,7 @@
 // skip work, so they are kept apart here to reproduce the output byte for byte.
 #include "terrain_blend.h"
 
+#include "../core/gameheap.h"
 #include "../gfx/array3d.h"
 
 #include <cstring>
@@ -105,6 +106,20 @@ void draw_overlay(const u8 *scratch, u32 size, const TerrainOverlay *ov, u8 *out
 }
 
 }  // namespace
+
+namespace {
+// A weight map's exit handler: its block (+0xc) freed when set, then its four dwords cleared.
+void free_weight_map(u32 address) {
+    u32 *const map = reinterpret_cast<u32 *>((uintptr_t)address);
+    if (map[3])
+        GameHeap_Free(reinterpret_cast<void *>((uintptr_t)map[3]));
+    map[0] = map[1] = map[2] = map[3] = 0;
+}
+}  // namespace
+
+extern "C" void __cdecl Lnd_FreeWeightMap1() { free_weight_map(0x008798a8); }
+extern "C" void __cdecl Lnd_FreeWeightMap3() { free_weight_map(0x00879398); }
+extern "C" void __cdecl Lnd_FreeWeightMap2() { free_weight_map(0x008798b8); }
 
 extern "C" void __cdecl Lnd_BuildRamp(u8 *table, s16 centre, s16 width) {
     int half = (width + 1) >> 1;

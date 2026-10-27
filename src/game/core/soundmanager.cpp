@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "gameheap.h"
+#include "soundchannel.h"
 #include "soundobject.h"
 #include "vcall.h"
 
@@ -57,6 +58,11 @@ u32 __fastcall SoundManager_Call5(u8 *manager, void *, u32 a, u32 b) { return vc
 
 u32 *__fastcall SoundManager_SetPlacement(u8 *manager, void *, u32 *out, const u32 *position, const u32 *direction, const u32 *value) {
     SoundObject_SetPlacement(at<u8 *>(manager, 4), nullptr, out, position, direction, value);
+    return out;
+}
+
+u32 *__fastcall SoundManager_Apply(u8 *manager, void *, u32 *out, u8 *functor) {
+    SoundChannel_Apply(at<u8 *>(manager, 4), nullptr, out, functor);
     return out;
 }
 

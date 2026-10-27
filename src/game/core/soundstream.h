@@ -46,6 +46,14 @@ u32 *__fastcall Stream70a6c8_Query(u8 *stream, void *, u32 *out, u8 *record);
 // 0x6c74b0 (thiscall (record), pops 4; slot 5 of 0x70a6c8): SoundStream_DescribeUser, then when the record's +0x18 has 0x800, its
 // +0x4c = +0x18 (SetThenFlag4c_14_6c50f0).
 void __fastcall Stream70a6c8_Describe(u8 *stream, void *, u8 *record);
+// 0x6c75d0 (thiscall; the read's (slot 7) helper; name invented): the next (+4) taken and cleared, the callback object's (+0x18) slot 0
+// (+0xc, +0x10: thiscall, pops 8), then the old next's slot 2 unless null. Returns whether +4 is still 0 (the callback set none).
+u32 __fastcall Stream70a6c8_NextSource(u8 *stream);
+// 0x6c74e0 (thiscall (buffer, count, done, unused), pops 0x10; slot 7 of 0x70a6c8; name invented): without a next (+4) 1, *done untouched;
+// else *done = 0 and the next's slot 7 (buffer + done, count - done, &got, 1) until done reaches the count (unsigned), got added each
+// time; a read answering 1 takes the next source (Stream70a6c8_NextSource): when there is none, got added and 1 returned; else the loop
+// goes on with it. On the way out, once a source was taken, the stream's slot 3. Returns 0.
+u32 __fastcall Stream70a6c8_Read(u8 *stream, void *, u8 *buffer, u32 count, u32 *done, u32);
 
 // The notify stream (vtable 0x70a748, 0x1c bytes from its pool; the names are invented): a sound stream whose +0x10 is the record's
 // user value (+0x48) and +0x18 its callback object (+0x50), told once at the end (slot 11).

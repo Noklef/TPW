@@ -2,7 +2,7 @@
 # 0x4fd950, 0x4fdc60, 0x501290, 0x502430, 0x4fec10, 0x4fe9c0, 0x4fea70, 0x4fb4f0, 0x4f9f00) and the thoughts' constructor (0x50ba80) against the
 # originals: positions anywhere, outs over the fields, ticks about the wrap; Raise / Lower / Add100: the global bytes and the floats as below;
 # Lerp (Sprite_InterpolatedPos): t about both ranges (NaN, infinities, denormals), the positions near or far apart.
-# usage: person.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=MapId,Record,TimeInPark,PushRide,State11,State11To14,Thoughts,State6To10,Raise,Lower,Add100,Lerp)
+# usage: person.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=MapId,Record,TimeInPark,PushRide,State11,State11To14,Thoughts,State6To10,Raise,Lower,Add100,Lerp,BlockMark)
 import os
 import struct
 import sys
@@ -11,12 +11,12 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
 
 B = Bench([(0x4e2650, 0x4e266d), (0x4f9460, 0x4f948b), (0x4fd950, 0x4fd967), (0x4fdc60, 0x4fdc89), (0x501290, 0x5012ac),
-           (0x502430, 0x502454), (0x50ba80, 0x50bab0), (0x4fe9c0, 0x4fea62), (0x4fea70, 0x4feb0a), (0x4fec10, 0x4fec48), (0x4fb4f0, 0x4fb52b), (0x4f9f00, 0x4fa021), (0x510160, 0x510190),
+           (0x502430, 0x502454), (0x50ba80, 0x50bab0), (0x4fe9c0, 0x4fea62), (0x4fea70, 0x4feb0a), (0x4fec10, 0x4fec48), (0x4fb4f0, 0x4fb52b), (0x4f9f00, 0x4fa021), (0x510160, 0x510190), (0x4fa670, 0x4fa6c7), (0x4d8c50, 0x4d8c5c), (0x50b350, 0x50b370),
            (0x5da3c0, 0x5da3c1)])
 THING, WORLD, OUTS = RAM, RAM + 0x1000, RAM + 0x2000
 GWORLD = 0x80239c
 CALLS = {'MapId': 0x4e2650, 'Record': 0x4f9460, 'TimeInPark': 0x4fd950, 'PushRide': 0x4fdc60, 'State11': 0x501290, 'State11To14': 0x502430, 'Thoughts': 0x50ba80,
-         'State6To10': 0x4fec10, 'Raise': 0x4fe9c0, 'Lower': 0x4fea70, 'Add100': 0x4fb4f0, 'Lerp': 0x4f9f00}
+         'State6To10': 0x4fec10, 'Raise': 0x4fe9c0, 'Lower': 0x4fea70, 'Add100': 0x4fb4f0, 'Lerp': 0x4f9f00, 'BlockMark': 0x4fa670}
 
 
 def word(r):
@@ -50,6 +50,9 @@ def case(r):
     if op == 'State6To10':
         put(thing, 0x220, 'I', r.choice([5, 6, 7, 8, 9, 10, 11, 0, 0x80000006, 0x106, r.getrandbits(32)]))
         return Call(CALLS[op], [THING], regions, conv='t', ret='a')
+    if op == 'BlockMark':   # the mark set (the counter 0x7cdb98 any, about the wrap) or cleared; the handle any
+        regions[0x7cdb98] = struct.pack('<I', word(r))
+        return Call(CALLS[op], [THING, r.choice([0, 1, 1, 0x100, r.getrandbits(32)])], regions, conv='t', ret='v')
     if op == 'Add100':   # the float and delta as Raise's float, the delta now and then whole and about -100..100
         put(thing, 0x1b8, 'I', stat(r))
         delta = stat(r) if r.random() < 0.6 else fb(float(r.randrange(-120, 121)))

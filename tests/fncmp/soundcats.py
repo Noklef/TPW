@@ -5,7 +5,10 @@
 # or none, their slot 1 answering alike) for Sound_QueryFound; the sound globals on or off with its manager's recorder (&folders, the found
 # text, the name, &name); the categories 0x803a20-0x803a44 random beforehand; Lobby's array [0x803a4c] of [0x803a50] pairs (none, or 0-3 in a
 # block of their own), grown from the heap (GlobalAlloc / GlobalFree served by fncmp's stubs).
-# usage: soundcats.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Lobby,Global,Theme,LobbySfx)
+# Their releases (0x51ea50 RelSfx, 0x51ea70 RelLobby, 0x51eda0 RelGlobal, 0x51ee40 RelTheme): the categories 0 or not, Lobby's array of 0-3
+# pairs (or a count of -1; none now and then), the sound on and started or not, the manager's +4 an object whose slot 8 (SoundCategory_Release's
+# 0x700b2c functor through SoundManager_Apply) is a recorder of (out, the category), the out logged as 0.
+# usage: soundcats.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Lobby,Global,Theme,LobbySfx,RelSfx,RelLobby,RelGlobal,RelTheme)
 import os
 import struct
 import sys
@@ -28,12 +31,15 @@ def merged(ranges):   # (overlapping ranges joined: a listing line must not come
     return out
 
 
-CALLS = {'Lobby': 0x51e8f0, 'Global': 0x51eae0, 'Theme': 0x51ec50, 'LobbySfx': 0x51e890}
+CALLS = {'Lobby': 0x51e8f0, 'Global': 0x51eae0, 'Theme': 0x51ec50, 'LobbySfx': 0x51e890, 'RelSfx': 0x51ea50, 'RelLobby': 0x51ea70, 'RelGlobal': 0x51eda0,
+         'RelTheme': 0x51ee40}
 B = Bench(merged(c6.RANGES + [(0x41e8e0, 0x41eab0), (0x421770, 0x4217f0), (0x424cf0, 0x424d20), (0x51b4a0, 0x51b500), (0x51b530, 0x51b630),
                               (0x51e890, 0x51e8e7), (0x51e8f0, 0x51ea60), (0x51eae0, 0x51edb0), (0x5f5660, 0x5f56a0), (0x5f6040, 0x5f6160), (0x5f61a0, 0x5f6210),
                               (0x5f76c0, 0x5f7740), (0x67ad90, 0x67af10), (0x67dcd0, 0x67ddb0), (0x67df40, 0x67e020), (0x67efc0, 0x67f1b0),
                               (0x67faf0, 0x67fc00), (0x680430, 0x6804e0), (0x682720, 0x6827d0), (0x682a70, 0x682c10), (0x688710, 0x688740),
-                              (0x688f50, 0x6891c0), (0x68a170, 0x68a450), (0x68a5d0, 0x68a720), (0x68efb0, 0x68f050), (0x5da3c0, 0x5da3c1)]))
+                              (0x688f50, 0x6891c0), (0x68a170, 0x68a450), (0x68a5d0, 0x68a720), (0x68efb0, 0x68f050), (0x5da3c0, 0x5da3c1),
+                              (0x51ea50, 0x51ea6d), (0x51ea70, 0x51ead8), (0x51eda0, 0x51eea5), (0x51b620, 0x51b670), (0x6b5bd0, 0x6b5c00), (0x6b8b40, 0x6b8b70),
+                              (0x6b5770, 0x6b5801), (0x51b4d0, 0x51b500)]))
 MANAGER, MVT = RAM + 0x7100, RAM + 0x7200
 REG, LIST, NODES, ITEMS, TEXTS = RAM + 0x8000, RAM + 0x8100, RAM + 0x8200, RAM + 0x9000, RAM + 0x9800
 NAME, THEME, OLD, GDATA = RAM + 0xa000, RAM + 0xa100, RAM + 0xa200, RAM + 0xb000
@@ -79,9 +85,30 @@ def folders(r, regions, log):
         fill(log, SOUND, 3, r.bytes(4), 1)
 
 
+RMGR, RTARGET, RVT = RAM + 0xc000, RAM + 0xc100, RAM + 0xc200
+
+
+def release_case(r, name, log):
+    g = bytearray(r.bytes(0x20))   # 0x802bc0.. (on +8, the manager +0xc, started +0x14)
+    put(g, 8, 'II', r.choice([1, 1, 1, 0, r.getrandbits(32)]), RMGR)
+    put(g, 0x14, 'I', r.choice([1, 1, 1, 0]))
+    strings(log, 8, 0, out=1)
+    cats = bytearray(r.bytes(0x38))
+    for off in range(0, 0x2c, 4):
+        put(cats, off, 'I', r.choice([0, 0, 1, r.getrandbits(32)]))
+    pairs = r.choice([0, 1, 2, 3, 3, 0xffffffff])
+    put(cats, 0x2c, 'II', OLD if r.random() < 0.85 else 0, pairs)
+    pair_words = [r.choice([0, 1, r.getrandbits(32)]) for _ in range(8)]
+    regions = {LOG: log, HEAP: heap(), **global_heap(), 0x802bc0: g, RMGR: struct.pack('<II', r.getrandbits(32), RTARGET) + r.bytes(8),
+               RTARGET: struct.pack('<I', RVT) + r.bytes(0x1c), RVT: vtable({8: 2}), 0x803a20: cats, OLD: struct.pack('<8I', *pair_words)}
+    return Call(CALLS[name], [], regions, ret='v')
+
+
 def case(r):
     name = r.deal(OPS)
     log = log_region()
+    if name in ('RelSfx', 'RelLobby', 'RelGlobal', 'RelTheme'):
+        return release_case(r, name, log)
     regions = {c6.OBJ: bytearray(r.bytes(0x60)), LOG: log, HEAP: heap(), **global_heap()}
     folders(r, regions, log)
     texts = {}

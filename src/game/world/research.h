@@ -88,4 +88,21 @@ u32 __cdecl Research_CountNotDoneCat3();
 // taken. None: a current project that is done is dropped (-1). (EAX is left as it happens; the callers 0x4aa0e9 and on ignore it.)
 void __fastcall ResearchLab_NextProject(u8 *lab, void *, u32 group);
 void __fastcall ResearchLab_PrevProject(u8 *lab, void *, u32 group);
+// 0x503b80 (thiscall (cat), pops 4; name invented): raises the category's group's highestGroupAvailable (+0x1418 + cat * 16) while the
+// share of its projects that are done, among the mNumProjects projects of the category whose mResearchGroup is at most it (done * 100 /
+// count, unsigned; 0 for none), reaches the threshold of the level (the dwords at 0x785540, unsigned) and it is below 7. When it rose,
+// with some project of the category not done (ResearchLab_CountNotDone) and the category 0-3, the advisor message 0x85 + cat (type 0, a
+// 0, b -1, flag 0, no score; on the stack, bytes +2, +3, +0x17 unwritten) is posted to the advisor of the world [0x80239c].
+void __fastcall ResearchLab_UpdateLevels(u8 *lab, void *, u32 cat);
+
+// 0x503330 (thiscall; name invented; called by the lab's 0x502d60 after ResearchLab_FillProjects): for each group 0-4, its effort set to
+// the dword at 0x785568 + group * 4, 100 at most (unsigned); the 5 groups' outputs recomputed (as ResearchLab_FillProjects's tail); the
+// group's current project set to the first of the mNumProjects projects with mCat the group, mResearchGroup at most its
+// highestGroupAvailable (bytes, unsigned) and not done (kept when there is none); then ResearchLab_UpdateLevels of the group.
+void __fastcall ResearchLab_ApplyEfforts(u8 *lab);
+// 0x502d60 (thiscall; name invented): the lab set up: no projects (+0x145c 0), the dearest project's index +0x1464 -1, the total output
+// +0x1460 the setting at 0x785580; the byte +0x1468 whether there are any staff of kind 8 (Things_CountStaffOfKind; the game table entry of
+// [0x80239c] looked up first, its answer unused); then ResearchLab_FillProjects, ResearchLab_ApplyEfforts and the lab added to the message
+// centre's slot 0x11.
+void __fastcall ResearchLab_Init(u8 *lab);
 }

@@ -7,25 +7,26 @@
 # on or off, audible or not by slot 7's float in st0, following the listener within a box), the loudest kept in the array at +0x44
 # (room for 1-6), the sound system [0xfb1f24] a recorder vtable (its functors logged by vtable and sound).
 # The page added (0x6b69b0): a whole page of 100 from a heap of 0x2100 bytes (failing now and then) after the page list.
-# The voice's slot 10 by id (0x6b6620): as the find's ids, two random arguments to the voice's recorder.
+# The voice's slot 10 by id (0x6b6620): as the find's ids, two random arguments to the voice's recorder. Its slot 9 (0x6b65e0): the
+# out (the id's stack slot) logged as 0, returned (filled with a status now and then, else the id) or a status in STATUS.
 # usage: soundmixer.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import (HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, blob_bytes, fb, fill, heap, import_table, log_region,  # noqa: E402
+from fncmp import (HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, blob_bytes, echo, fb, fill, heap, import_table, log_region,  # noqa: E402
                    set_float_return, set_return, strings, vtable)
 
 # name: (address, convention, returns)
 CALLS = {'dtor': (0x6b6170, 't', 'v'), 'deldtor': (0x6b6120, 't', 'a'), 'touch': (0x6b6260, 't', 'a'), 'retire': (0x6b6440, 't', 'v'),
          'each': (0x6b6550, 't', 'v'), 'find': (0x6b6830, 't', 'a'), 'stamp': (0x6b6990, 't', 'a'), 'page': (0x6b6ab0, 'c', 'a'),
          'clear': (0x6b6ba0, 't', 'a'), 'params': (0x6b64b0, 't', 'a'), 'pending': (0x6b6510, 't', 'a'), 'send': (0x6b65a0, 't', 'a'),
-         'update': (0x6b62b0, 't', 'v'), 'addpage': (0x6b69b0, 't', 'a'), 'voice10': (0x6b6620, 't', 'a')}
+         'update': (0x6b62b0, 't', 'v'), 'addpage': (0x6b69b0, 't', 'a'), 'voice10': (0x6b6620, 't', 'a'), 'voice9': (0x6b65e0, 't', 'a')}
 B = Bench([(0x6b6120, 0x6b62a1), (0x6b6440, 0x6b65a0), (0x6b6830, 0x6b68c3), (0x6b6990, 0x6b69ab), (0x6b6a50, 0x6b6bb4), (0x6b9da0, 0x6b9db0),
            (0x6b65a0, 0x6b65e0), (0x6b7150, 0x6b7190), (0x6bc900, 0x6bca10), (0x6c5130, 0x6c5150), (0x6b62b0, 0x6b6396), (0x6bcb60, 0x6bcb7e),
            (0x6b6bc0, 0x6b6c27), (0x6bc650, 0x6bc674), (0x6bc760, 0x6bc806), (0x6bca10, 0x6bcab0), (0x6bd5f0, 0x6bd781), (0x6bb220, 0x6bb237),
-           (0x5f5f10, 0x5f5f7d), (0x5f5fa0, 0x5f5faa), (0x6b69b0, 0x6b6a4e), (0x6b6620, 0x6b664c)])
+           (0x5f5f10, 0x5f5f7d), (0x5f5fa0, 0x5f5faa), (0x6b69b0, 0x6b6a4e), (0x6b6620, 0x6b664c), (0x6b65e0, 0x6b660f)])
 MIX, VVT, OBJ, OVT, LEVELS, NODE2, STATUS, OUTP = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x280, RAM + 0x300, RAM + 0x400, RAM + 0x500, RAM + 0x510
 PAGE = RAM + 0x10000
 PARAMS, SRC, SYS, SVT = RAM + 0x600, RAM + 0x640, RAM + 0x680, RAM + 0x700
@@ -118,7 +119,7 @@ def case(r):
     mixer[0x34] = r.randrange(1, 256)
     if name == 'update':
         update_regions(r, log, mixer, page, n)
-    regions = {MIX: mixer, PAGE: page, VVT: vtable({3: 0, 5: 2, 6: 2, 8: 1, 10: 2, 0xb: 0, 0xc: 1}), OBJ: struct.pack('<I', OVT), OVT: vtable({2: 1}),
+    regions = {MIX: mixer, PAGE: page, VVT: vtable({3: 0, 5: 2, 6: 2, 8: 1, 9: 2, 10: 2, 0xb: 0, 0xc: 1}), OBJ: struct.pack('<I', OVT), OVT: vtable({2: 1}),
                LEVELS: r.bytes(0x90), NODE2: struct.pack('<III', r.getrandbits(32), r.getrandbits(32), 0), STATUS: r.bytes(8),
                IMPORT_TABLE: iat, LOG: log, HEAP: heap(0x1000, fail=r.choice([0] * 9 + [1]))}
     if name == 'update':
@@ -139,9 +140,17 @@ def case(r):
         args = [r.choice(active or voices)]
     elif name == 'each':
         args = [r.choice([0, 0, 1, r.getrandbits(32)])]
-    elif name in ('find', 'params', 'pending', 'send', 'voice10'):
-        args = [STATUS] * (name not in ('find', 'voice10')) + [r.choice([0, 1, 2, 3, 4, r.getrandbits(32)] + [struct.unpack_from('<I', page, 0xc + 0x50 * i + 0x2c)[0] for i in range(n)] * 2)]
-        args += {'params': [SRC], 'pending': [r.choice([0, 1, 0xffff, r.getrandbits(32)])], 'send': [r.getrandbits(32)], 'voice10': [r.getrandbits(32), r.getrandbits(32)]}.get(name, [])
+    elif name in ('find', 'params', 'pending', 'send', 'voice10', 'voice9'):
+        if name == 'voice9':   # (slot 9's out: the id's stack slot, logged as 0; returned, or a status in STATUS)
+            strings(log, 9, 0, out=1)
+            if r.random() < 0.7:
+                echo(log, 9, 0)
+                if r.getrandbits(1):
+                    fill(log, 9, 0, struct.pack('<I', r.choice([0, 1, 0x7fffffff, 0x80000000, 0xffffffff, r.getrandbits(32)])))
+            else:
+                set_return(log, 9, r.choice([STATUS, STATUS + 4]))
+        args = [STATUS] * (name not in ('find', 'voice10', 'voice9')) + [r.choice([0, 1, 2, 3, 4, r.getrandbits(32)] + [struct.unpack_from('<I', page, 0xc + 0x50 * i + 0x2c)[0] for i in range(n)] * 2)]
+        args += {'params': [SRC], 'pending': [r.choice([0, 1, 0xffff, r.getrandbits(32)])], 'send': [r.getrandbits(32)], 'voice10': [r.getrandbits(32), r.getrandbits(32)], 'voice9': [r.getrandbits(32)]}.get(name, [])
     elif name == 'stamp':
         args = [r.choice(voices + [MIX + 4])] if voices else [MIX + 4]
     else:

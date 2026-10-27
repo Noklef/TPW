@@ -81,4 +81,9 @@ void __fastcall StdString_Freeze(StdString *s, void *edx);
 // byte copied, s emptied, then assign(x, 0, npos) inlined: as AssignSub, but without its max_size check, and with x's length
 // read after s is emptied (so copying s into itself leaves it empty: sic). Returns s.
 StdString *__fastcall StdString_CopyCtor(StdString *s, void *edx, const StdString *x);
+
+// 0x4f1400: erase(pos, n), emitted out of line apart from the others (name unconfirmed): pos past the length throws (_Xran);
+// a shared s gets its own copy (_Split inlined: of the old block's characters to their first NUL); the characters after
+// pos + n (n cut to what is left) moved down over them (memmove), then _Grow(length - n, false) and _Eos inlined. Returns s.
+StdString *__fastcall StdString_Erase(StdString *s, void *edx, u32 pos, u32 n);
 }

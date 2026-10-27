@@ -7,8 +7,8 @@
 # (0x5c7c70) and OnlineFolder (0x5c8980) are the same with the global wide "\" (0xf82508) and "users" (0xf81ff8) / "online" (0xf820e8) appended,
 # now and then other texts. SecondRoot (0x5aa650) takes a String by value (its five dwords on the stack: a drive letter mostly, any short text or
 # none) and assigns it with ":" and the String at 0xf79fe8 appended to the String at 0xf816d4 (the heap's allocations failing now and then: the
-# harness's countdown, a fault in both). FindDisc (0x5aa500): see find_disc().
-# usage: gamepaths.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=FontsFolder,TexFolders,SaveFolder,UsersFolder,OnlineFolder,SecondRoot,FindDisc)
+# harness's countdown, a fault in both). FindDisc (0x5aa500): see find_disc(). SetRoots (0x5c0c10): see set_roots().
+# usage: gamepaths.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=FontsFolder,TexFolders,SaveFolder,UsersFolder,OnlineFolder,SecondRoot,FindDisc,SetRoots)
 import os
 import struct
 import sys
@@ -20,7 +20,8 @@ import gamestring  # noqa: E402
 
 B = Bench([(0x468250, 0x4682b0), (0x5c5520, 0x5c5530), (0x67a400, 0x690000), (0x4688b0, 0x468902), (0x5c7bd0, 0x5c7c64), (0x424e10, 0x424e6e),
            (0x5f5660, 0x5f5690), (0x5f5fc0, 0x5f7f00), (0x5c7c70, 0x5c7cfd), (0x5c8980, 0x5c8a0d), (0x5aa650, 0x5aa720), (0x5c5530, 0x5c5560),
-           (0x5aa500, 0x5aa64e), (0x5f5f00, 0x5f5fc0), (0x5f7f00, 0x5f9000), (0x6ace60, 0x6acea0), (0x485ac0, 0x485af4)])
+           (0x5aa500, 0x5aa64e), (0x5f5f00, 0x5f5fc0), (0x5f7f00, 0x5f9000), (0x6ace60, 0x6acea0), (0x485ac0, 0x485af4),
+           (0x5c0c10, 0x5c0cff), (0x5c5510, 0x5c5520), (0x5c5560, 0x5c5580), (0x5f56f0, 0x5f5710)] + gamestring.B_RANGES)
 PATHS = 0xf816c0
 ROOT, OUT = RAM + 0x100, RAM + 0x1000
 CHARS = b'abcXYZ09:\\/. _%'
@@ -70,6 +71,25 @@ def second_root(r):
     gamestring.string(r, 0, 0xf79fe8, RAM + 0x4200, regions, tail)
     gamestring.string(r, 0, PATHS + 0x14, RAM + 0x4300, regions)
     return Call(0x5aa650, arg, regions)
+
+
+def set_roots(r):
+    """0x5c0c10 (cdecl; result): the five Strings of 0xf816c0 any texts; the base folder (0xfa6fd0) a text (never empty: Dir_InitBase not
+    reached); the Strings 0xf7eaf0 and 0xf7edf8 and the global "\\" (0xf80be0, now and then another text) any; the heap failing now and
+    then (its countdown; a fault in both)."""
+    regions = {HEAP: heap(0x4000, r.choice(range(1, 12)) if r.random() < 0.05 else 0), gamestring.LOCALE: bytes(4), OUT: r.bytes(4)}
+    paths, part = bytearray(r.bytes(0x64)), {}
+    for i in range(5):
+        gamestring.string(r, 0, PATHS + 0x14 * i, RAM + 0x4400 + 0x100 * i, part)
+        paths[0x14 * i:0x14 * i + 0x14] = part.pop(PATHS + 0x14 * i)[:0x14]
+    regions.update(part)
+    regions[PATHS] = bytes(paths)
+    base = bytes(r.choice(CHARS) for _ in range(r.choice([1, 2, 3, 12, 40])))
+    regions[0xfa6fd0] = base + b'\0' + r.bytes(0x103 - len(base))
+    gamestring.string(r, 0, 0xf7eaf0, RAM + 0x4a00, regions)
+    gamestring.string(r, 0, 0xf7edf8, RAM + 0x4b00, regions)
+    gamestring.string(r, 0, gamestring.SLASH2, RAM + 0x4c00, regions, b'\\' if r.random() < 0.85 else r.choice([b'', b'/', b'a\\']))
+    return Call(0x5c0c10, [OUT], regions, ret='a')
 
 
 DISC, RECORDS, LABEL = RAM + 0x5000, RAM + 0x5100, RAM + 0x5400
@@ -122,6 +142,8 @@ def case(r):
         return find_disc(r)
     if op == 'SecondRoot':
         return second_root(r)
+    if op == 'SetRoots':
+        return set_roots(r)
     if op == 'SaveFolder':
         return save_folder(r)
     if op == 'UsersFolder':
@@ -148,7 +170,7 @@ def case(r):
     return Call(0x468250, [OUT], regions, ret='a')
 
 
-OPS = [k for k in os.environ.get('OPS', 'FontsFolder,TexFolders,SaveFolder,UsersFolder,OnlineFolder,SecondRoot,FindDisc').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'FontsFolder,TexFolders,SaveFolder,UsersFolder,OnlineFolder,SecondRoot,FindDisc,SetRoots').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)

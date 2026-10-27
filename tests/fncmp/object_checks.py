@@ -13,9 +13,12 @@
 #   Rating, RatingOf (0x4e0560 Object_ComputeRating, 0x4e0860 Object_Rating): definitions of kinds 0-3 and track types with bases and row limits,
 #   the ride list's coaster index, the coasters' floats, a track ride's pieces; the arguments (the object's goods and settings) about the limits; Poor (0x4e0390 Object_InPoorCondition): Reset's fields.
 #   Gap (0x4fd4e0 Visitor_RatingGap): RatingOf's object with Poor's fields, a visitor whose byte +0x1f0 picks its row of wanted ratings (0x7850e4).
+#   Wear (0x4e2440 Object_Wear): Reset's object and map, the mode setting 1 or other (its guard set), the amount small or any.
+#   Use (0x4fe1e0 Visitor_UseObject, person.cpp's): Rating's object and definitions with the effects, Pay's money, Wear's map, the sprite script
+#   list and the sounds (see use()).
 #   QueueFull (0x4ddb60, src/game/world/objectmsg): Fill's object tuned to rates of 4-7 mostly, with objectmsg.py's queue of 0-6 visitors.
 # usage: object_checks.py [CASES [SEED]] [--wild|--both] [--show N]
-#   (env OPS=Capacity,Track,Score,Percent,Stand,History,Fill,Pay,Settings,Current,Diff,Average,Reset,WontPay,Rating,RatingOf,Poor,Gap,QueueFull)
+#   (env OPS=Capacity,Track,Score,Percent,Stand,History,Fill,Pay,Settings,Current,Diff,Average,Reset,WontPay,Rating,RatingOf,Poor,Gap,Wear,Use,QueueFull)
 import os
 import struct
 import sys
@@ -34,7 +37,12 @@ B = Bench([(0x412e90, 0x412f00), (0x4dd4e0, 0x4dd510), (0x4d8c00, 0x4d8c30), (0x
            (0x4d27a0, 0x4d2850), (0x519510, 0x519560), (0x5195d0, 0x519660), (0x4dfd80, 0x4dfe30), (0x4d8440, 0x4d8480), (0x4d8480, 0x4d8620),
            (0x4fde50, 0x4fe1b0), (0x4fd4e0, 0x4fd560), (0x4c74b0, 0x4c7500), (0x4d3d10, 0x4d3d90), (0x4e1a00, 0x4e1a30), (0x4e21b0, 0x4e21d0), (0x4e2740, 0x4e2780),
            (0x4e0560, 0x4e0860), (0x4e0860, 0x4e0900), (0x43e0b0, 0x43e0f0), (0x545310, 0x545460), (0x55a4e0, 0x55a540), (0x4e0390, 0x4e03c4),
-           (0x4ddb60, 0x4ddb82), (0x4ddf50, 0x4de040), (0x502430, 0x502460), (0x50b350, 0x50b360)])
+           (0x4e2440, 0x4e2647), (0x4cd4e0, 0x4cd4f7), (0x4e2650, 0x4e266d),
+           (0x4fe1e0, 0x4fe8e8), (0x4fdcc0, 0x4fde45), (0x50c100, 0x50c190), (0x4e21f0, 0x4e2200), (0x4e2180, 0x4e2187), (0x4fb4f0, 0x4fb52b),
+           (0x516330, 0x516370), (0x516370, 0x51637d), (0x541f70, 0x541fa0), (0x541fd0, 0x542010), (0x475a10, 0x475b7f), (0x4758f0, 0x475a10),
+           (0x5f5660, 0x5f56a0), (0x402d70, 0x403220), (0x4033a0, 0x4033f0), (0x540c60, 0x540c70), (0x4faa00, 0x4faa5b), (0x4754e0, 0x47554c),
+           (0x51bfc0, 0x51c048), (0x4dfd80, 0x4dfe30), (0x50b350, 0x50b370),
+           (0x4ddb60, 0x4ddb82), (0x4ddf50, 0x4de040), (0x502430, 0x502460)])
 OBJ, WORLD = RAM, RAM + 0x10000
 
 
@@ -450,9 +458,137 @@ def poor(r):
     return Call(0x4e0390, [OBJ], {OBJ: obj}, conv='t', ret='a')
 
 
+def wear(r):
+    """0x4e2440: reset()'s object, ride record and map; the mode setting 0xfb3b7c 1 now and then (else 0, 2 or any), its guard 0xfb34b8 with bit 0 set (the
+    first call's atexit is not run); the amount 0, small, about the 25 and 100 edges from the condition (x 20) or any."""
+    c = reset(r)
+    level = struct.unpack_from('<f', c.regions[OBJ], 0x44)[0]
+    edge = int(max(0.0, min(level - 25.0, 4000.0)) * 20) if level == level else 0
+    amount = r.choice([0, 1, 2, 19, 20, 21, 100, 500, 2000, edge, edge + 1, max(edge - 1, 0), edge + r.randrange(40), 0x7fffffff, 0x80000000,
+                       0xffffffff, r.getrandbits(32)])
+    c.regions[0xfb34b8] = bytes([r.choice([1, 1, 3, 0xff, 0x81])])
+    c.regions[0xfb3b7c] = struct.pack('<I', r.choice([1, 1, 0, 0, 2, r.getrandbits(32)]))
+    c.address, c.args, c.ret = 0x4e2440, [OBJ, amount], 'v'
+    return c
+
+
+USE_VISITOR, USE_TABLE, USE_SCRIPTS, USE_MANAGER, USE_VT, USE_SPRITES = RAM + 0x6000, RAM + 0x7000, RAM + 0x7100, RAM + 0x7800, RAM + 0x7900, RAM + 0xe000
+
+
+def use_stat(r):
+    if r.random() < 0.25:
+        return r.getrandbits(32) if r.random() < 0.2 else fb(r.uniform(-20, 300))
+    return fb(r.choice([0.0, 1.0, 5.0, 9.99, 10.0, 50.0, 55.5, 89.0, 90.0, 90.5, 91.0, 99.0, 100.0, 101.0, 255.0, 256.0, -1.0, -0.5, float('nan')]))
+
+
+def use(r):
+    """0x4fe1e0: rating_env's object and definitions (kinds 0-3) with the effects +0x144-+0x154 small, about 30 or any, the ingredient +0x158 0-5 and the
+    appearance +0x15c 0-3, its rides with an element array (reset's Rides_SetElement); pay()'s money and world (World_Rand's seed at +0x1da708), reset()'s
+    map, the mode setting 1 or not (Wear's guard set); feelings' rows and steps (the divisor 0 rarely: a fault in both); a visitor whose stats are about
+    0-100 (90 for the vomit test, NaN), cash, ring position, costume +0x24 2 or not, script slot +0xc; the object's quality +0x198, balloon byte +0x18c,
+    prize +0x188 and price +0x194 (0 too: an infinite or NaN log), flag +0x32 and condition +0x44; the balloon lives 0x75d0f0 / 0x75d0f4, the bytes
+    0x785058 / 0x78505c; the sprite script list (spritescript.py's: ready or not, its table full now and then so Start grows it from heap(), the clock,
+    folders and sprites) and the sounds on (soundplay.py's recorder of the manager's slot 2) or off."""
+    from fncmp import HEAP, LOG, blob, global_heap, heap, log_region, set_return, vtable
+    regions, obj = rating_env(r)
+    items = bytearray(regions[ITEMS])
+    effects = [0, 0, 1, 5, 10, 20, 29, 30, 50, 100, -5, -50, 0x7fffffff, -0x80000000]
+    for i in range(NITEMS):
+        for off in (0x144, 0x148, 0x14c, 0x150, 0x154):
+            put(items, i * ITEM + off, 'i', r.choice(effects) if r.random() < 0.9 else r.getrandbits(32) - (1 << 31))
+        put(items, i * ITEM + 0x158, 'I', r.choice([0, 1, 2, 3, 4, 5]))
+        put(items, i * ITEM + 0x15c, 'I', r.choice([0, 0, 1, 1, 2, 2, 3]))
+    regions[ITEMS] = items
+    nodes = bytearray(regions[RAM + 0x20000])
+    for k in range(3):
+        put(nodes, 0x100 * k + 0x1c, 'I', RAM + 0x25000)
+        put(nodes, 0x100 * k + 0x8c, 'i', r.choice([9, 9, 10, 8, 6]))
+    regions[RAM + 0x20000] = nodes
+    regions[RAM + 0x25000] = r.bytes(0x40)
+    obj = bytearray(regions[OBJ])
+    obj[0x32] = r.choice([1, 1, 0, 0, 0xff, 0xfe])
+    put(obj, 0x44, 'I', fb(r.choice([0.0, 10.0, 24.0, 25.0, 26.0, 30.0, 100.0, 255.0, 256.0, -1.0])) if r.random() < 0.7 else r.f(300.0))
+    obj[5], obj[7] = r.randrange(128), r.randrange(128)
+    for off in (0x188, 0x194):
+        put(obj, off, 'I', r.choice([0, 1, 2, 3, 5, 10, 100, 1000, 0xffffffff, r.getrandbits(32)]))
+    obj[0x198] = r.choice([0, 1, 10, 30, 50, 100, 255, r.getrandbits(8)])
+    obj[0x18c] = r.choice([0, 1, 50, 100, 255, r.getrandbits(8)])
+    regions[OBJ] = obj
+    money = pay(r).regions
+    for k in (RAM + 0x3000, RAM + 0x4000, 0x7cfb90, RAM + 0x10000 + 0x1da700, 0x80239c, 0x7cf83c, RAM + 0x5f5a0, RAM + 0x5fa40, RAM + 0x5fc90):
+        regions[k] = money[k]
+    worn = reset(r).regions
+    for k in (RAM + 0x100000 + 0x1d9104, RAM + 0x100000 + 0x1b1104, 0x8023a0):
+        regions[k] = worn[k]
+    regions[0xfb34b8] = bytes([r.choice([1, 1, 3, 0xff])])
+    regions[0xfb3b7c] = struct.pack('<I', r.choice([1, 0, 0, 2, r.getrandbits(32)]))
+    rows = bytearray(r.bytes(12 * 256))
+    for k in range(256):
+        rows[12 * k] = r.choice([0, 1, 5, 14, 15, 39, 40, 50, 100, 255, r.getrandbits(8)])
+    regions[0x7850e4] = rows
+    steps = [0, 1, 5, 10, -10, 100, 0x7fffffff]
+    regions[0x785064] = struct.pack('<4i', r.choice(steps), r.choice(steps), r.choice(steps), r.choice([1, 2, 5, 20, 100, -3] * 8 + [0]))
+    regions[0x785058] = bytes([r.choice([0, 1, 5, 10, 255])]) + r.bytes(3)
+    regions[0x78505c] = bytes([r.choice([0, 1, 5, 10, 20, 255])]) + r.bytes(3)
+    regions[0x75d0f0] = struct.pack('<II', r.choice([0, 1, 100, 1000, r.getrandbits(32)]), r.choice([0, 100, 1000, 0x10000, r.getrandbits(32)]))
+    regions[0x803a24] = r.bytes(4)
+
+    # the sprite script list: a table of nslots (full now and then), three scripts, the clock, the folders and their sprites
+    nslots = r.choice([1, 2, 4, 8, r.randrange(1, 13)])
+    scripts = bytearray(r.bytes(0x120 * 3))
+    for k in range(3):
+        put(scripts, 0x120 * k + 0x88, 'III', *(fb(r.choice([0.0, 1.5, -2.5, 100.0, 1e9, 3e9, float('nan'), r.uniform(-5000, 5000)])) for _ in range(3)))
+    full = r.random() < 0.3
+    slots = [0] + [USE_SCRIPTS + 0x120 * r.randrange(3) if full or r.random() < 0.5 else 0 for _ in range(nslots - 1)]
+    regions[USE_TABLE] = bytearray(struct.pack('<%dI' % nslots, *slots))
+    regions[USE_SCRIPTS] = scripts
+    g = bytearray(r.bytes(0x2c))
+    put(g, 0, 'Ii', USE_TABLE, nslots)
+    put(g, 0x24, 'I', r.choice([1, 1, 1, 0]))
+    regions[0x7b49f0] = g
+    regions[HEAP] = heap()
+    regions.update(global_heap())
+    clock = bytearray(r.bytes(0x80))
+    put(clock, 0x38, 'III', 1, r.getrandbits(31), r.getrandbits(32))
+    put(clock, 0x48, 'I', r.choice([0, r.getrandbits(8)]))
+    regions[0x785970] = clock
+    folders = bytearray(r.bytes(14 * 12))
+    for f in range(14):
+        put(folders, 12 * f + 4, 'Ii', r.randrange(40), r.choice([1, 2, 5, 8, r.randrange(1, 20)]))
+    regions[0x763f88] = folders
+    sprites = bytearray()
+    for _ in range(4):
+        sprite = bytearray(r.bytes(0x260))
+        put(sprite, 0x21e, 'H', r.choice([1, 2, 3, 5, 8]))
+        sprites += sprite
+    regions[USE_SPRITES] = sprites
+    regions[0x876b48] = struct.pack('<64I', *(USE_SPRITES + 0x260 * r.randrange(4) for _ in range(64)))
+
+    # the sounds (soundplay.py's): on and started, or not
+    log = log_region()
+    sound = bytearray(r.bytes(0x20))
+    put(sound, 8, 'I', r.choice([0, 1, 1]))
+    put(sound, 0xc, 'I', USE_MANAGER)
+    put(sound, 0x14, 'I', r.choice([0, 1, 1]))
+    blob(log, 2, 1, 0x7f)
+    if r.random() < 0.5:
+        set_return(log, 2, r.getrandbits(32))
+    regions.update({LOG: log, 0x802bc0: sound, USE_MANAGER: struct.pack('<I', USE_VT) + r.bytes(0xc), USE_VT: vtable({2: 2}, 4)})
+
+    visitor = bytearray(r.bytes(0x240))
+    for off in (0x19c, 0x1a4, 0x1a8, 0x1ac, 0x1b0, 0x1b4):
+        put(visitor, off, 'I', use_stat(r))
+    put(visitor, 0xc, 'I', r.choice([1, 2, r.randrange(1, 13), 0, nslots + 1]))
+    put(visitor, 0x24, 'I', r.choice([2, 2, 0, 1, r.getrandbits(32)]))
+    put(visitor, 0xb8, 'I', r.randrange(32))   # (the ring's position)
+    visitor[0x1f0] = r.choice([0, 1, 2, 3, r.getrandbits(8)])
+    regions[USE_VISITOR] = visitor
+    return Call(0x4fe1e0, [USE_VISITOR, OBJ], regions, conv='t', ret='v')
+
+
 CASES = {'Capacity': capacity, 'Track': track, 'Score': score, 'Percent': percent, 'Stand': stand, 'History': history, 'Fill': fill, 'Pay': pay,
          'Settings': settings, 'Current': current, 'Diff': diff, 'Average': average, 'Reset': reset,
-         'WontPay': wont_pay, 'Rating': rating, 'RatingOf': rating_of, 'Poor': poor, 'Gap': gap, 'QueueFull': queue_full}
+         'WontPay': wont_pay, 'Rating': rating, 'RatingOf': rating_of, 'Poor': poor, 'Gap': gap, 'Wear': wear, 'Use': use, 'QueueFull': queue_full}
 
 
 def case(r):

@@ -101,6 +101,11 @@ StdString *__fastcall StdString_CopyCtor(StdString *s, void *, const StdString *
     return s;
 }
 
+StdString *__fastcall StdString_Erase(StdString *s, void *, u32 pos, u32 n) {
+    erase(s, pos, n);
+    return s;
+}
+
 void __fastcall StdString_Tidy(StdString *s, void *, u8 built) {
     if (built && s->ptr) {
         if (refs(s->ptr) == 0 || refs(s->ptr) == kFrozen)

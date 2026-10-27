@@ -60,6 +60,10 @@ s32 *__fastcall SoundObject_LoadCategory(u8 *object, void *, s32 *out, const cha
 
 // The channel's (+0x24) forwards (names invented); without a channel *out = -1. Each returns out.
 // 0x6b8c70 (thiscall (out, x, y, z, radius, &node), pops 0x18): SoundChannel_TryAddOccluder with them.
+// 0x6ba1b0 (thiscall (out, index), pops 8; name invented): when the channel's (+0x24) flags (+0x28) have bits 0 and 1
+// (Obj_Flags28_Bit1IfBit0), its EAX record index applied (SoundChannel_ApplyEaxRecord); else *out = -1. Returns out.
+u32 *__fastcall SoundObject_ApplyEaxRecord(u8 *object, void *, u32 *out, u32 index);
+
 u32 *__fastcall SoundObject_AddOccluder(u8 *object, void *, u32 *out, u32 x, u32 y, u32 z, u32 radius, u8 **node);
 // 0x6b8cb0 (thiscall (out, &node), pops 8): SoundChannel_RemoveOccluder with them.
 u32 *__fastcall SoundObject_RemoveOccluder(u8 *object, void *, u32 *out, u8 **node);
@@ -68,5 +72,25 @@ u32 *__fastcall SoundObject_ReleaseRecordBanks(u8 *object, void *, u32 *out, con
 // 0x6ba090 (thiscall, this unused (out, index), pops 8; slot 7 of 0x70a2a0): with an index (not 0), SoundCategory_ReleaseRecordAt (out,
 // index) on the category singleton (SoundCategory_Get); else *out = -1.
 u32 *__fastcall SoundObject_ReleaseRecordAt(u8 *object, void *, u32 *out, u32 index);
+
+// 0x6b8ce0 (thiscall (flags), pops 4; slot 0 of 0x70a588): SoundObject_Dtor, then the object freed with flags bit 0. Returns the object.
+u8 *__fastcall SoundObject_DeletingDtor(u8 *object, void *, u32 flags);
+// 0x6b8ad0 (thiscall (id, a, b), pops 0xc; slot 3 of 0x70a2a0 and 0x70a588; name invented): with an id (not 0) and a mixer (+0x20),
+// SoundMixer_CallVoice10 (id, a, b); else 0.
+u32 __fastcall SoundObject_CallVoice10(u8 *object, void *, u32 id, u32 a, u32 b);
+
+
+// The sound object's save and load (names invented); each returns out with *out = 0.
+// 0x6ba0c0 (thiscall (out, stream), pops 8): +0x28, +0x2c and +0x30 written (Stream_Write, its done the stream argument's slot), then the
+// mixer's (+0x20) voices (SoundMixer_Save, out a local).
+u32 *__fastcall SoundObject_Save(u8 *object, void *, u32 *out, u8 *stream);
+// 0x6ba150 (thiscall (out, stream, restore), pops 0xc): three dwords read through the stream's read (+8) and dropped (the first into the
+// stream argument's slot, sic), then the mixer's (+0x20) voices (SoundMixer_Load (restore), out the restore argument's slot).
+u32 *__fastcall SoundObject_Load(u8 *object, void *, u32 *out, u8 *stream, u32 restore);
+// Slot 7 of the sound objects' vtables (thiscall, no arguments; an SEH frame; names invented): +0x24 = a new channel (null when the heap
+// fails), returned. 0x6b8410 (0x70a590's): a SoundChannel (0x68 bytes, SoundChannel_Ctor). 0x6b9db0 (0x70a2a8's): an EAX channel (0x70
+// bytes: SoundChannel_Ctor, its EAX records +0x68 and count +0x6c 0, vtable 0x70a630).
+u8 *__fastcall SoundObject_CreateChannel(u8 *object);
+u8 *__fastcall SoundObjectEax_CreateChannel(u8 *object);
 
 }  // extern "C"

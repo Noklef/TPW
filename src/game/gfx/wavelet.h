@@ -30,6 +30,11 @@ u32 __fastcall WaveletCodec_DecodeScaled(u8 *codec, void *, s32 version, u32 a, 
 // freed when set (GameHeap_Free).
 void __fastcall WaveletCodec_VBaseDtor(u8 *base);
 
+// 0x598800 (thiscall on the virtual base, flags: pops 4; reached by the thunk 0x5987f0; name unconfirmed): the codec's deleting destructor:
+// WaveletCodec_VBaseDtor, the base's vtable (+0) 0x7026e8 again, and with the flags' bit 0 the codec (0x54 below) freed (GameHeap_Free).
+// Returns the codec.
+u8 *__fastcall WaveletCodec_ScalarDelete(u8 *base, void *, u32 flags);
+
 // 0x5925e0 (thiscall; width, height, stride, pixels; pops 0x10; name unconfirmed): WaveletCodec_Encode's first step. height rows of width
 // 3-byte pixels, packed one after another, go as floats into the planes at +0x2c (byte 0), +0x1c (byte 1) and +0xc (byte 2), each row
 // stride floats below the last. The plane pointers are re-read for each store.
@@ -133,7 +138,11 @@ u8 *__cdecl WaveletCodec_Create();
 // .rdata with 1.5 * 2^23 subtracted and the table at 0xc27088; the column steps its chroma every odd row by half the stride (floats).
 void __fastcall WaveletCodec_YuvToRgb(u8 *codec, void *, u32 width, u32 height, u32 stride, u8 *dst);
 
-// 0x564b60 (cdecl; name unconfirmed): undoes 0x564b20, which keeps a codec (0x5985c0) at 0x879a64 and a block of the draw buffer at
+// 0x564b20 (cdecl; name unconfirmed): with a block at 0x879a68 already, 0. Else a codec (WaveletCodec_Create) kept at 0x879a64 (none: 0)
+// and the draw buffer [0x8bcbc4] begins a batch (DrawBuffer_Begin, mode 2) whose +0x28 (the stream's free vertices) is kept at 0x879a68: 1.
+u32 __cdecl Wavelet_Startup();
+
+// 0x564b60 (cdecl; name unconfirmed): undoes 0x564b20 (Wavelet_Startup), which keeps a codec (0x5985c0) at 0x879a64 and a block of the draw buffer at
 // 0x879a68: with no block, returns 0; otherwise the block is freed (TrackedGlobal_Free) and cleared, the codec (when set) told through
 // its slot 6 (+0x18; the codec pointer is kept) and 1 returned.
 u32 __cdecl Wavelet_Shutdown();

@@ -6,8 +6,11 @@
 
 #include "cpuinfo.h"
 #include "initializers.h"
+#include "mp2layer1.h"
+#include "mp2layer2.h"
 #include "mp2pool.h"
 #include "trivial.h"
+#include "vcall.h"
 
 namespace {
 
@@ -156,6 +159,43 @@ u8 *__fastcall Mp2StreamDecoder_DeletingDtor(u8 *decoder, void *, u32 flags) {
     Mp2Decoder_Dtor(decoder, nullptr);
     if (flags & 1) Mp2StreamPool_Delete(decoder, 0x2c80);
     return decoder;
+}
+
+s32 __fastcall Mp2Decoder_Read(u8 *decoder, void *, u8 *out, s32 bytes) {
+    const u32 d = Addr(decoder);
+    s32 done = 0;
+    if (bytes > 0) {
+        do {
+            const s32 position = Get<s32>(d + 0x2468), size = Get<s32>(d + 0x2474);
+            if (position == size && bytes - done >= size) {
+                if (!Mp2Decoder_DecodeFrame(decoder, nullptr, reinterpret_cast<s16 *>(out + done))) break;
+                Put<s32>(d + 0x2464, Get<s32>(d + 0x2464) + 1);
+                done += Get<s32>(d + 0x2474);
+                continue;
+            }
+            if (position >= size) {
+                if (!Mp2Decoder_DecodeFrame(decoder, nullptr, reinterpret_cast<s16 *>(decoder + 0x1204))) break;
+                Put<s32>(d + 0x2468, 0);
+                Put<s32>(d + 0x2464, Get<s32>(d + 0x2464) + 1);
+            }
+            const s32 at = Get<s32>(d + 0x2468);
+            s32 take = Get<s32>(d + 0x2474) - at;
+            if (take > bytes - done) take = bytes - done;
+            std::memcpy(out + done, decoder + 0x1204 + at, static_cast<u32>(take));   // (rep movs)
+            Put<s32>(d + 0x2468, Get<s32>(d + 0x2468) + take);
+            done += take;
+        } while (done < bytes);
+    }
+    Put<s32>(d + 0x2410, Get<s32>(d + 0x246c) * (Get<s32>(d + 0x2464) - 1) + Get<s32>(d + 0x2468));
+    return done;
+}
+
+s32 __fastcall Mp2Decoder_DecodeFrame(u8 *decoder, void *, s16 *pcm) {
+    if (vcall<u32>(decoder, 0x10)) return 0;
+    const u8 layer = decoder[0x2442];
+    if (layer == 2) return Mp2Decoder_DecodeLayer2(decoder, nullptr, pcm);
+    if (layer == 1) return Mp2Decoder_DecodeLayer1(decoder, nullptr, pcm);
+    return 0;
 }
 
 }  // extern "C"

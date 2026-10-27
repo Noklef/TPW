@@ -23,6 +23,12 @@ s32 __fastcall AdvisorScoring_BoothPeople(const u8 *scoring);
 s32 __fastcall AdvisorScoring_NoObjects0Or2(const u8 *scoring);
 // 0x59ca80: no staff of kind 4: Objects_CountKind0InState1 times +0xc4.
 s32 __fastcall AdvisorScoring_Objects0InState1NoStaff4(const u8 *scoring);
+// 0x59ca30: no staff of kind 4: Objects_CountKind0Below44OrState1(+0xc0) times +0xbc.
+s32 __fastcall AdvisorScoring_Objects0WornNoStaff4(const u8 *scoring);
+// 0x59cb40: not flagged, no staff of kind 5, the map's share of cells with +0x2c (Map_PercentWith2c) at most +0xd8: it times +0xd0
+// less +0xd4. 0x59cbb0: the same with the share at least +0xe0: it times +0xdc less +0xe0.
+s32 __fastcall AdvisorScoring_MapShareAtMostNoStaff5(const u8 *scoring);
+s32 __fastcall AdvisorScoring_MapShareAtLeastNoStaff5(const u8 *scoring);
 // 0x59cd30: not flagged, no staff of kind 7: ParkAnalyser_Tallied(0) times +0xfc plus +0xf8.
 s32 __fastcall AdvisorScoring_TalliedNoStaff7(const u8 *scoring);
 // 0x59ce30: not flagged, no staff of kind 6, more than 30 percent of the people below 30 (Things_PercentPeopleStat19cBelow): the
@@ -196,4 +202,69 @@ s32 __fastcall AdvisorScoring_Field5f8(const u8 *scoring);
 // 0x59f9a0 and 0x59f9b0 (thiscall, the object unread; names invented): the constants 10000 and 9999.
 s32 __fastcall AdvisorScoring_Const10000(const u8 *scoring);
 s32 __fastcall AdvisorScoring_Const9999(const u8 *scoring);
+
+// The park criteria of 0x5a02f0-0x5a08b0 (thiscall on the scoring; names invented). The analyser is the game table entry
+// (GameTable7cfb90_Get1da720_519510) of the game object [[0x7cf6ec]] (of [0x7cf83c] for 0x5a0780); "flagged" as above. Shares are
+// count * 100 / total (wrapping, signed), bounds signed; "the theme byte i" is GlobalSave_ThemeByte(GlobalSave_Instance(), i).
+// 0x5a02f0: not flagged (Game_Field1da710IsZero), n objects with definition +0x4ac 0 (Things_CountByDef4ac(0, 0)), n at least +0x57c,
+// and the idle ones' (Things_CountByDef4acIdle(0)) share above +0x580: +0x584. 0x5a0370 / 0x5a03d0: for +0x4ac 1 / 2, n not 0 (no
+// flag, no least): the share above +0x588 / +0x590: +0x58c / +0x594.
+s32 __fastcall AdvisorScoring_IdleObjects0Share(const u8 *scoring);
+s32 __fastcall AdvisorScoring_IdleObjects1Share(const u8 *scoring);
+s32 __fastcall AdvisorScoring_IdleObjects2Share(const u8 *scoring);
+// 0x5a0430: n the kind 3 things with flag bit 0 (Game_RecountKind3Flag1 on the analyser, sic), not 0, and the idle ones'
+// (Things_CountKind3Flag1) share above +0x598: +0x59c. 0x5a0490: the same for bit 1 (Things_CountKind3Flag2Any / Things_CountKind3Flag2),
+// +0x5a0 / +0x5a4.
+s32 __fastcall AdvisorScoring_IdleKind3Flag1Share(const u8 *scoring);
+s32 __fastcall AdvisorScoring_IdleKind3Flag2Share(const u8 *scoring);
+// 0x5a04f0: the analyser's tally ParkAnalyser_Tallied(0) above +0x5a8: +0x5ac.
+s32 __fastcall AdvisorScoring_Tallied0Above(const u8 *scoring);
+// 0x5a05a0: the analyser's total (ParkAnalyser_Total) above __ftol([0x785790] * float +0x5c4) and the theme byte 0 clear: +0x5c8.
+// 0x5a0670: the money's total (Money_Total of the game table entry GameTable7cfb90_Get1da726_5195d0) above __ftol([0x7857a0] * float
+// +0x5d4) and the theme byte 4 clear: +0x5d8.
+s32 __fastcall AdvisorScoring_TotalAboveTheme0(const u8 *scoring);
+s32 __fastcall AdvisorScoring_MoneyAboveTheme4(const u8 *scoring);
+// 0x5a05f0: k = __ftol([0x785798] * float +0x5cc) below the people's average +0x19c (Things_AveragePersonStat19c on the analyser; or
+// unordered with it, as fcompp's C0 has it), the people on plain cells (Things_CountKind1OnPlainCell) more than [0x78579c] and the
+// theme byte 2 clear: +0x5d0.
+s32 __fastcall AdvisorScoring_Mood19cTheme2(const u8 *scoring);
+// 0x5a0780: the analyser's count at +0x216d8 (with its byte +0x20 set its +0x1c, else its +0x18 + 1) exactly 1: +0x5f4.
+s32 __fastcall AdvisorScoring_AnalyserCountOne(const u8 *scoring);
+// 0x5a07d0 / 0x5a0820 / 0x5a0870: not flagged (Get1da710_51a280 of [[0x7cf6ec]]) and the definitions' percentage with controls
+// (ObjectDefs_PercentWithControls) above +0x5fc and at most +0x604 / above +0x604 and at most +0x60c / above +0x60c: +0x600 / +0x608 /
+// +0x610.
+s32 __fastcall AdvisorScoring_ControlsPercentLow(const u8 *scoring);
+s32 __fastcall AdvisorScoring_ControlsPercentMid(const u8 *scoring);
+s32 __fastcall AdvisorScoring_ControlsPercentHigh(const u8 *scoring);
+// 0x5a08b0: not flagged, [0x785794] not 0 and the people on plain cells' share of it (Things_CountKind1OnPlainCell, asked again when
+// the first share is not above 100; else 100) above +0x614: +0x618.
+s32 __fastcall AdvisorScoring_PeopleShare(const u8 *scoring);
+
+// More park criteria (thiscall on the scoring; names invented). 0x59f440: the analyser's (of [0x7cf83c]) count at +0x216d8 (as
+// 0x5a0780 has it) above 0, and the buffer's newest sample (size +0x1c above 0; the cursor +0x18 if not negative, else, with the byte
+// +0x20 set, cursor + size; the samples from +4) above +0x410: +8 the x of the bus stop B (Map_BusStopPos(G + 0x2d8, 1)), +0x414.
+s32 __fastcall AdvisorScoring_LatestCountBusStop(u8 *scoring);
+// 0x59f590: at least +0x42c staff (Things_CountStaff) and +0x430 not above their average +0x1f8 (Things_AverageStaffStat1f8; fcompp's
+// C3 / C0, so unordered counts as not above): +0x434. 0x59f5e0: the same for the people on plain cells (Things_CountKind1OnPlainCell,
+// Things_AveragePersonStat19c) against +0x438 / +0x43c: +0x440.
+s32 __fastcall AdvisorScoring_StaffStat1f8NotAbove(const u8 *scoring);
+s32 __fastcall AdvisorScoring_PeopleStat19cNotAbove(const u8 *scoring);
+// 0x59fb10: more staff than +0x4d0 and the byte +0x20 of the game table entry for G's +0x1da718 (GameTable7cfb90_Get1da718_519450)
+// clear: +0x4d4.
+s32 __fastcall AdvisorScoring_StaffEntryClear(const u8 *scoring);
+
+// The objects' wear criteria of 0x59e450-0x59e680 (names invented; "wear" is 100 less the low byte of an object's float +0x44, of the
+// objects (kind 3) with bit 0 of +0x32): not flagged (Get1da710_51a280), the staff of kind 5 absent (0x59e450, 0x59e5d0: none counted,
+// signed) or present (0x59e510, 0x59e680: a count not 0); the most worn object's handle (Things_MostKind3Flag1Of100Minus44) stored at
+// the word +4, none: 0; the average wear (Things_AverageKind3Flag1Of100Minus44) at least +0x2d0 and at most +0x2e0 (0x59e450), at least
+// +0x2d8 and at most +0x2e8 (0x59e510), at least +0x2e0 (0x59e5d0), at least +0x2e8 (0x59e680): it times +0x2d4 (the first two, sic),
+// +0x2e4, +0x2ec. The game table getters the originals call first are left out (their answers unused).
+s32 __fastcall AdvisorScoring_WornObjectsNoStaff5(u8 *scoring);
+s32 __fastcall AdvisorScoring_WornObjectsStaff5(u8 *scoring);
+s32 __fastcall AdvisorScoring_VeryWornObjectsNoStaff5(u8 *scoring);
+s32 __fastcall AdvisorScoring_VeryWornObjectsStaff5(u8 *scoring);
+// 0x59e730 / 0x59e790 (names invented): the analyser's (of [0x7cf83c]) ring 0 full (ParkAnalyser_RingFull) and its average (the byte
+// ParkAnalyser_RingAverage gives) below +0x2f0 (signed): +0x2f4 / above +0x2f8: +0x2fc; else 0.
+s32 __fastcall AdvisorScoring_RingAverageBelow(const u8 *scoring);
+s32 __fastcall AdvisorScoring_RingAverageAbove(const u8 *scoring);
 }

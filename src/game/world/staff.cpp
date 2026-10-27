@@ -6,6 +6,8 @@
 #include "../core/filetime.h"
 #include "../core/funnytime.h"
 #include "../core/gameheap.h"
+#include "../core/idmaps.h"
+#include "../core/indexed.h"
 #include "../core/savegame.h"
 #include "../core/timesig.h"
 #include "../core/selectors.h"
@@ -21,6 +23,7 @@
 #include "object.h"
 #include "person.h"
 #include "personscripts.h"
+#include "random.h"
 #include "things.h"
 #include "thingscan.h"
 #include "world.h"
@@ -195,6 +198,23 @@ u32 __fastcall StaffPool_FirstInvalid(const u8 *pool) {
         if (at<u8>(pool + i * 20, 0xa) == 0) return i;
     }
     return 0x20;
+}
+
+u32 __fastcall StaffPool_CountOfType(const u8 *pool, void *, u32 type) {
+    u32 count = 0;
+    for (u32 i = 0; i != 0x20; ++i) {
+        if (at<u8>(pool + i * 20, 0xa) && at<u32>(pool + i * 20, 0) == type) ++count;
+    }
+    return count;
+}
+
+u8 *__fastcall StaffPoolEntry_Ctor(u8 *entry) {
+    at<u32>(entry, 0xc) = 0;
+    at<u32>(entry, 0) = 0;
+    at<u8>(entry, 9) = 0;
+    at<u8>(entry, 0xa) = 0;
+    at<u8>(entry, 0xb) = 0;
+    return entry;
 }
 
 u16 *__fastcall Staff_NearestInList1da740(const u8 *object, void *, u16 *out) {
@@ -412,6 +432,19 @@ extern "C" void __fastcall Staff_InitBase(u8 *staff) {
     ParkAnalyser_StampTime21c38(reinterpret_cast<u8 *>(GameTable7cfb90_Get1da720_519510(global<u8 *>(0x0080239c))));
 }
 
+extern "C" u8 *__fastcall Staff_CtorTyped(u8 *staff, void *, u32 cell, u32 kind, u32 type, u32) {
+    MovingPerson_Ctor(staff, nullptr, cell, kind);
+    at<u32>(staff, 0x1e4) = type;
+    at<u32>(staff, 0x1f0) = 0;
+    at<u32>(staff, 0x1f4) = 0;
+    at<u32>(staff, 0x1f8) = 0;
+    at<u32>(staff, 0x1fc) = 0;
+    Staff_InitBase(staff);
+    return staff;
+}
+
+extern "C" u8 *__fastcall Staff_Ctor(u8 *staff, void *, u32 cell, u32 kind) { return Staff_CtorTyped(staff, nullptr, cell, kind, 0, 0); }
+
 namespace {
 
 // A staff type's serializer: Staff_Serialize, then (a version of 0..1) the type's fields; 1 at the first that fails, else 0.
@@ -593,5 +626,36 @@ void __fastcall Handyman_SetState(u8 *handyman, void *, u32 state) {
         Staff_SetState(handyman, nullptr, state);
     }
     at<u32>(handyman, 0x19c) = state;
+}
+
+void __fastcall Researcher_SetState(u8 *researcher, void *, u32 state) {
+    if (state == 0xf) {
+        at<u32>(researcher, 0x214) = global<u32>(global<u32>(0x0080239c) + 0x1da70c);
+        Set4_4217f0(researcher + 0xc, nullptr, 0xa);
+    } else {
+        Staff_SetState(researcher, nullptr, state);
+    }
+    at<u32>(researcher, 0x19c) = state;
+}
+
+void __fastcall Staff_HeadForEntrance(u8 *staff) {
+    const u32 roll = static_cast<u32>(World_Rand(global<u8 *>(0x0080239c)));
+    if (!(roll & 7)) {
+        const u32 value = (roll & 0xff) + at<u32>(staff, 0x1c) - 0x80;
+        at<u32>(staff, 0x1c) = value > 0x7ff ? 0x7ffu : value;   // (unsigned: below 0 too)
+    }
+    if (Get1da710_51a280(global<u8 *>(0x0080239c))) {
+        GameTable7cfb90_Get1da720_519510(global<u8 *>(0x0080239c));   // (its answer handed in ECX, which the count does not read)
+        if (!Things_CountKind1OnPlainCell())
+            Obj_ClearIndexed28(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da718_519450(global<u8 *>(0x0080239c))), nullptr,
+                               Byte2_ToIndex(staff));
+    }
+    const u32 index = Byte2_ToIndex(staff);
+    if (Obj_GetIndexed28(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da718_519450(global<u8 *>(0x0080239c))), nullptr, index))
+        return;
+    // (the cell is the low word of the dword slot that held the pushed ECX: its high word the staff pointer's)
+    const u16 cell = static_cast<u16>((global<u32>(0x007855c0) << 7) + global<u32>(0x007855bc) + 1);
+    const u32 arg = (static_cast<u32>(reinterpret_cast<uintptr_t>(staff)) & 0xffff0000u) | cell;
+    Staff_SetState(staff, nullptr, Sprite_SetDestinationCell(staff, nullptr, arg) ? 1u : 0u);   // (0: after the original's debug print)
 }
 }

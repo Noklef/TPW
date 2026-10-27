@@ -2,6 +2,10 @@
 
 #include <cstdint>
 
+#include "../core/gameheap.h"
+#include "../core/stdlist.h"
+#include "../files/chunkfile.h"
+
 namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 }  // namespace
@@ -23,5 +27,22 @@ void __fastcall AttrMap_ReadMapChunk(u8 *handler, void *, const u8 *chunk, u32) 
             at<u8>(at<u8 *>(handler, 8), id * 0x44 - 0x1e) = *data;
         }
     }
+}
+
+u32 __fastcall TP2M_ReadChunks(u8 *cells, void *, const char *name) {
+    u32 file[5] = {0x00700ab0, 0, 0, 0, 0x4d325054};   // ("TP2M")
+    u32 handler[3] = {0x00700aa8, 0x2050414d, static_cast<u32>(reinterpret_cast<uintptr_t>(cells))};   // ("MAP ")
+    List_PushHeadForward(reinterpret_cast<u8 *>(file), nullptr, static_cast<u32>(reinterpret_cast<uintptr_t>(handler)));
+    const u32 result = ChunkFile_Open(reinterpret_cast<u8 *>(file), nullptr, name);
+    file[0] = 0x00700aa0;
+    u8 *node = reinterpret_cast<u8 *>(static_cast<uintptr_t>(file[1]));
+    file[2] = 0;
+    file[1] = 0;
+    while (node) {
+        u8 *const next = at<u8 *>(node, 4);
+        GameHeap_Free(node);
+        node = next;
+    }
+    return result;
 }
 }

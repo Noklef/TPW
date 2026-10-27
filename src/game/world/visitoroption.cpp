@@ -3,10 +3,13 @@
 #include <cstdint>
 #include <cstring>
 
+#include "../core/rings.h"
 #include "../math/x87.h"
 #include "mapcell.h"
 #include "object.h"
 #include "objectmsg.h"
+#include "person.h"
+#include "route.h"
 #include "things.h"
 #include "world.h"
 
@@ -121,5 +124,84 @@ u32 __fastcall Visitor_ScoreOption(u8 *visitor, void *, u8 *object) {
         if (at<u16>(visitor, 0x1e8 + 2 * i) == *Thing_GetHandle(object, nullptr, &word)) score = (u32)((s32)score / (s32)kDivisors[i]);
     Thing_GetHandle(object, nullptr, &word);
     return score;
+}
+
+void __fastcall Visitor_ChooseMajorDest(u8 *visitor) {
+    s32 best = 0;
+    at<u16>(visitor, 0x1dc) = 0;
+    u16 handle = at<u16>(global<u8 *>(0x0080239c), 0x1da746);
+    while (handle) {
+        u8 *const object = global<u8 *>(0x007cfb90 + 20u * handle);
+        u16 back;
+        if ((at<u8>(object, 0x32) & 4) && *Object_BackOfQueueTo(object, nullptr, &back) != 0) {
+            const u32 score = Visitor_ScoreOption(visitor, nullptr, object);
+            if (score >= 10 && ((s32)score > best || ((s32)score == best && (at<u8>(global<u8 *>(0x0080239c), 0x1da70c) & 1))) &&
+                Object_QueueOpen(object) &&
+                Sprite_SetDestinationCell(visitor, nullptr, *Object_BackOfQueueTo(object, nullptr, &back))) {
+                best = (s32)score;
+                at<u16>(visitor, 0x1dc) = handle;
+            }
+        }
+        handle = at<u16>(object, 0xc);
+    }
+}
+
+void __fastcall Visitor_ChooseMinorDest(u8 *visitor) {
+    if (at<u16>(visitor, 0x1dc) == 0)
+        return;
+    s32 best = 0;
+    u16 bestHandle = 0;
+    u16 here;
+    Cell_MakeHandle(&here, at<u8>(visitor, 5), at<u8>(visitor, 7));
+    const u32 x0 = ((u32)here - 1) & 0x7f;
+    Cell_MakeHandle(&here, at<u8>(visitor, 5), at<u8>(visitor, 7));
+    const u32 y0 = ((u32)here - 1) >> 7;
+    u16 back;
+    Object_BackOfQueueTo(global<u8 *>(0x007cfb90 + 20u * at<u16>(visitor, 0x1dc)), nullptr, &back);
+    if (back == 0)
+        return;
+    const u32 bx = ((u32)back - 1) & 0x7f, by = ((u32)back - 1) >> 7;
+    const s32 radius = (s32)((x0 - bx) * (x0 - bx) + (y0 - by) * (y0 - by));
+    for (s32 dx = -2; dx < 2; ++dx) {
+        const s32 x = (s32)x0 + dx;
+        s32 y = (s32)y0 - 2;
+        for (s32 k = 0; k < 4; ++k, ++y) {
+            if (x < 0 || x >= 0x80 || y < 0 || y >= 0x80)
+                continue;
+            if ((s32)(((u32)x - bx) * ((u32)x - bx) + ((u32)y - by) * ((u32)y - by)) >= radius)
+                continue;
+            const u32 cell = ((u32)y * 0x80 + (u32)x + 1) & 0xffff;
+            u16 handle = at<u16>(global<u8 *>(0x008023a0), cell * 0x44 - 0x20);
+            while (handle != 0) {
+                u8 *const object = global<u8 *>(0x007cfb90 + 20u * handle);
+                if (at<u8>(object, 2) == 3 && handle != at<u16>(visitor, 0x1dc) && Object_QueueOpen(object)) {
+                    const s32 score = (s32)Visitor_ScoreOption(visitor, nullptr, object);
+                    if (score > best || (score == best && (at<u8>(global<u8 *>(0x0080239c), 0x1da70c) & 1))) {
+                        best = score;
+                        bestHandle = handle;
+                    }
+                }
+                handle = at<u16>(object, 0xa);
+            }
+        }
+    }
+    if (bestHandle == 0)
+        return;
+    // sic: the major destination's cell goes in the low word of the slot that held the radius, and that whole dword is passed
+    const u32 from = ((u32)radius & 0xffff0000u) | at<u16>(global<u8 *>(0x007cfb90 + 20u * at<u16>(visitor, 0x1dc)), 0x36);
+    const u16 target = at<u16>(global<u8 *>(0x007cfb90 + 20u * bestHandle), 0x36);
+    const u16 mine = (u16)(at<u8>(visitor, 7) * 0x80 + at<u8>(visitor, 5) + 1);
+    const s32 away = Route_CellDistance(from, mine, at<u32>(visitor, 0x188));
+    const s32 there = Route_CellDistance(from, target, at<u32>(visitor, 0x188));
+    if (away == -1 || there == -1 || away <= there)
+        return;
+    u8 *const object = global<u8 *>(0x007cfb90 + 20u * bestHandle);
+    const u16 cell = at<u16>(object, 0x36);
+    u16 handle;
+    Ring_PushUnique(visitor + 0x30, nullptr, 0x17, *Thing_GetHandle(object, nullptr, &handle));
+    const u16 major = at<u16>(visitor, 0x1dc);
+    at<u16>(visitor, 0x1dc) = bestHandle;
+    at<u16>(visitor, 0x1de) = major;
+    Sprite_SetDestinationCell(visitor, nullptr, cell);
 }
 }

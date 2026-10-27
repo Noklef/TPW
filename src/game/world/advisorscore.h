@@ -14,14 +14,13 @@ struct AdvisorScoreEnv {
 // The atexits of the statics built on first use go to env (nullptr: the game's).
 void AdvisorScore_SetEnv(const AdvisorScoreEnv *env);
 
-// The mode setting (0xfb3b7c), as the game's functions read it (not a game function; inlined in each): the first
-// time under the caller's own guard bit (guard_address & 1) Setting_ReadMode, its empty destructor 0x5d1750 given to atexit (through
-// this module's env).
-u32 ModeSetting_Read(u32 guard_address);
-
 // gAdvisorScoring (0xfb3540; not a game function, the game inlines it): built the first time under the guard 0xfb2766 & 1
 // (AdvisorScoring_Construct), AdvisorScoring_StaticDtor (0x415e70) then given to atexit.
 u8 *AdvisorScoring_Instance();
+
+// The mode setting (0xfb3b7c; not a game function, the game inlines it under each user's own guard byte): read the first time under bit 0
+// of the byte at guard_address (Setting_ReadMode), its (empty) destructor 0x5d1750 then given to atexit.
+u32 AdvisorScore_ModeSetting(u32 guard_address);
 
 extern "C" {
 

@@ -27,6 +27,18 @@ void copy_message(u8 *to, const u8 *from) {
         at<u32>(to, i) = at<u32>(from, i);
 }
 
+// An advisor message (b -1, flag 0, no score; its bytes +2, +3 and +0x17 never written, sic) for id posted.
+void post(u8 *self, u32 id, u16 type, u32 a) {
+    u8 message[0x18];
+    AdvisorMsg_Init(message, nullptr, id, type, a, 0xffffffffu, 0, -1);
+    Advisor_Post(self, nullptr, message);
+}
+
+u32 event_code(u8 *event) {
+    using Code = u32(__fastcall *)(u8 *, void *);
+    return reinterpret_cast<Code>((uintptr_t)at<u32>(at<u8 *>(event, 0), 0))(event, nullptr);
+}
+
 }  // namespace
 
 extern "C" {
@@ -172,6 +184,60 @@ u8 __fastcall Advisor_PostKindEvent(u8 *self, void *, const u8 *event) {
     u8 message[0x18];   // (its bytes +2, +3 and +0x17 never written, sic)
     AdvisorMsg_Init(message, nullptr, id, 0, 0, 0xffffffffu, 0, -1);
     return Advisor_Post(self, nullptr, message);
+}
+
+void __fastcall Advisor_HandleCode(u8 *self, void *, u32 code) {
+    switch (code) {
+    case 0:
+        post(self, 0, 0, 0);
+        if (AdvisorScore_ModeSetting(0x00fb2765) == 2) post(self, 0x143, 0, 0);
+        break;
+    case 2: post(self, 0x6a, 0, 0); break;
+    case 3: post(self, 0x80, 0, 0); break;
+    case 4: post(self, 0x81, 0, 0); break;
+    case 10: {
+        using Output = void(__stdcall *)(const char *);
+        (*reinterpret_cast<const Output *>((uintptr_t)0x006fd1e0))(reinterpret_cast<const char *>((uintptr_t)0x0076e190));
+        for (u32 i = 0; i < 0x15f; ++i) {
+            u8 *const record = self + 0xe0 + 0x10 * i;
+            at<u32>(record, 0xc) = 0;
+            at<s32>(record, 4) = -1;
+            at<u8>(record, 8) = 0;
+        }
+        break;
+    }
+    default: break;
+    }
+}
+
+void __fastcall Advisor_HandleMessage(u8 *self, void *, u8 *event) {
+    switch (event_code(event)) {
+    case 5:
+        if (at<u8>(event, 0x1c)) Advisor_Post(self, nullptr, event + 8);
+        break;
+    case 8: post(self, 0x102, at<u16>(event, 8), 0); break;
+    case 14: {
+        const u16 w = at<u16>(event, 8);
+        const u8 *const entry = global<const u8 *>(0x007cfb90 + 20 * (u32)w);
+        const u16 a = (u16)((at<u8>(entry, 7) << 7) + at<u8>(entry, 5) + 1);
+        static const u16 kIds[] = {0x7d, 0x7e, 0x7f};
+        const u32 kind = at<u32>(event, 0xc);
+        if (kind < 3) post(self, kIds[kind], w, a);
+        break;
+    }
+    case 17: {
+        static const u16 kIds[] = {0x5d, 0x5f, 0x60, 0x61, 0x5e};
+        const u32 kind = at<u32>(event, 0xc);
+        if (kind < 5) post(self, kIds[kind], 0, at<u16>(event, 8));
+        break;
+    }
+    case 19: Advisor_HandleCode(self, nullptr, at<u32>(event, 8)); break;
+    case 23: Advisor_PostKindEvent(self, nullptr, event); break;
+    case 25:
+        if (at<u32>(event, 0xc) != 0x160) post(self, at<u32>(event, 0xc), 0, 0);
+        break;
+    default: event_code(event); break;   // (for Debug_Printf, empty)
+    }
 }
 
 u8 __cdecl Advisor_PostId(u32 id) {

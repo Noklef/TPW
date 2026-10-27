@@ -9,6 +9,8 @@
 #include "../core/soundplay.h"
 #include "../math/x87.h"
 #include "../render/particles.h"
+#include "../core/soundset.h"
+#include "ridelist.h"
 #include "trackpools.h"
 #include "things.h"
 
@@ -21,14 +23,14 @@ bool loaded() { return global<u32>(0x00877b58) == 0x4a454647; }
 
 s32 Ftol(X87Reg x) { return (s32)(long long)x.v; }
 
-// Particle_Spawn(0x13) at 1024 times the position +0x40..+0x48 of the root (+0x78) of the model (+4) of the instance's holder (+8): z
-// through __ftol first.
-void SeatEffect(const u8 *instance) {
+// Particle_Spawn(0x13, or effect) at 1024 times the position +0x40..+0x48 of the root (+0x78) of the model (+4) of the instance's holder
+// (+8): z through __ftol first.
+void SeatEffect(const u8 *instance, s32 effect = 0x13) {
     const u8 *const root = at<const u8 *>(at<const u8 *>(at<const u8 *>(instance, 8), 4), 0x78);
     const s32 z = Ftol(X87Reg(at<float>(root, 0x48)) * 1024.0f);
     const s32 y = Ftol(X87Reg(at<float>(root, 0x44)) * 1024.0f);
     const s32 x = Ftol(X87Reg(at<float>(root, 0x40)) * 1024.0f);
-    Particle_Spawn(0x13, x, y, z);
+    Particle_Spawn(effect, x, y, z);
 }
 
 // The ride a handle indexes, or 0; whether the handle also names it (its index and serial).
@@ -804,5 +806,284 @@ void __cdecl TrakCar_PlaySounds(u8 *car) {
     }
     Sound_PlayRideElement(id, 0, global<u32>(0x00803a3c), state == 2 ? 3 : 4, x, 0, z);
     at<u32>(car, 0x18) = 0;
+}
+
+namespace {
+
+float FloatOf(u32 bits) {
+    float f;
+    std::memcpy(&f, &bits, 4);
+    return f;
+}
+
+u32 BitsOf(float f) {
+    u32 bits;
+    std::memcpy(&bits, &f, 4);
+    return bits;
+}
+
+u8 *Instance(u32 index) { return global<u8 *>(0x007a4610 + 4 * index); }
+
+// The game's own rand (0x877b90 = * 0x343fd + 0x269ec3): the new seed.
+u32 NextSeed() { return global<u32>(0x00877b90) = global<u32>(0x00877b90) * 0x343fd + 0x269ec3; }
+
+bool FrameDue() { return (global<u8>(0x00877b5c) & 0x1f) == 0; }
+
+// 256 - atan2(a, b) / pi * 256 truncated (__ftol): fild a; fild b; fpatan (unrounded); fmul 1 / pi [0x700eb8]; fmul 256 [0x700ec0];
+// fsubr 256, as collobj's RideTurn.
+s32 Heading(s32 a, s32 b) {
+    const double turned = X87_MulDouble(X87_MulDouble(X87_Atan2((double)a, (double)b), global<double>(0x00700eb8)), global<double>(0x00700ec0));
+    return (s32)(long long)X87_Add(global<double>(0x00700ec0), -turned);
+}
+
+// (heading - +0x54) & 0x1ff as -0xff..0x100, times speed (32-bit) over 1000 (signed, truncated).
+s32 TurnBy(const u8 *car, s32 heading, s32 speed) {
+    s32 d = (s32)((u32)(heading - at<s32>(car, 0x54)) & 0x1ff);
+    if (d > 0x100) d -= 0x200;
+    return (s32)((u32)d * (u32)speed) / 1000;
+}
+
+// The car's instance's holder's part state entries (20 bytes: flags, the part): [[[0x7a4610 + 4 * (+8)] + 8] + 0x28] + 4.
+const u8 *PartEntry(const u8 *car, u32 index) {
+    const u8 *const entries = at<const u8 *>(at<const u8 *>(at<const u8 *>(Instance(at<u32>(car, 8)), 8), 0x28), 4);
+    return entries + index * 20u;
+}
+
+// The entry's part's position (+0x30 and +0x34 as dwords, +0x38 loaded), or 0, 0 and [0x700ed0] (0.0) with no part.
+const u8 *PartPlace(const u8 *entry, u32 &x, u32 &y, X87Reg &z) {
+    const u8 *const part = at<const u8 *>(entry, 4);
+    if (part) {
+        x = at<u32>(part, 0x30);
+        y = at<u32>(part, 0x34);
+        z = X87Reg(at<float>(part, 0x38));
+    } else {
+        z = X87Reg(global<float>(0x00700ed0));
+        y = x = 0;
+    }
+    return part;
+}
+
+// Particle_SpawnWithVelocity(effect) at 1024 ([0x700ed4]) times the part's place, along its direction (+0x20..+0x28; negated through
+// fld / fchs / fstp when the entry has flag 0x10) over its length (fsqrt of x x + y y + z z, stored as a float to the original's argument
+// slot), each __ftol'd: z, y, x of the direction, then z, y, x of the place. No part: the direction (0, 0, 1) and the slot kept.
+void SpawnAlong(const u8 *car, u32 index, s32 effect, u32 &slot) {
+    const u8 *const entry = PartEntry(car, index);
+    u32 px, py;
+    X87Reg pz(0.0);
+    PartPlace(entry, px, py, pz);
+    X87Reg dz(0.0), dy(0.0);
+    u32 dx;
+    if (const u8 *const part = at<const u8 *>(entry, 4)) {
+        u32 v[3];
+        for (u32 k = 0; k < 3; k++) {
+            v[k] = at<u32>(part, 0x20 + 4 * k);
+            if (entry[0] & 0x10) v[k] = X87_FloatThrough(v[k]) ^ 0x80000000u;
+        }
+        const float x = FloatOf(v[0]), y = FloatOf(v[1]), z = FloatOf(v[2]);
+        const X87Reg length = X87_Sqrt(X87Reg(x) * X87Reg(x) + X87Reg(y) * y + X87Reg(z) * z);
+        const float stored = (float)length;
+        slot = BitsOf(stored);
+        dx = BitsOf((float)(X87Reg(x) / stored));
+        dy = X87Reg(y) / stored;
+        dz = X87Reg(z) / stored;
+    } else {
+        dz = X87Reg(global<float>(0x00700eb0));
+        dy = X87Reg(global<float>(0x00700ed0));
+        dx = 0;
+    }
+    const float scale = global<float>(0x00700ed4);
+    const s32 vz = Ftol(dz * scale), vy = Ftol(dy * scale), vx = Ftol(X87Reg(FloatOf(dx)) * scale);
+    const s32 z = Ftol(pz * scale), y = Ftol(X87Reg(FloatOf(py)) * scale), x = Ftol(X87Reg(FloatOf(px)) * scale);
+    Particle_SpawnWithVelocity(effect, x, y, z, vx, vy, vz);
+}
+
+// The particle system +0x2c (not -1) put at 1024 times the place of part +0x24 (not -1): ParticleSystem_SetVectorA.
+void SystemAtPart(const u8 *car) {
+    const u32 system = at<u32>(car, 0x2c);
+    if (system == 0xffffffff || at<s32>(car, 0x24) == -1)
+        return;
+    u32 px, py;
+    X87Reg pz(0.0);
+    PartPlace(PartEntry(car, at<u32>(car, 0x24)), px, py, pz);
+    const float scale = global<float>(0x00700ed4);
+    const s32 z = Ftol(pz * scale), y = Ftol(X87Reg(FloatOf(py)) * scale), x = Ftol(X87Reg(FloatOf(px)) * scale);
+    ParticleSystem_SetVectorA(system, x, y, z);
+}
+
+// The car's sound +0x20 (when not 0) moved to x = __ftol(+0x34 * 0.0033036), y 0, z = __ftol(+0x38 * ...) and given parameter
+// Rides_GetLinkedElement(the ride object's id +0x24 (none: 0), 10), value the speed +0x4c / 3; the object found by TrakRide_FindThing
+// (its handle written to slot's low word) or, with walk, by the park's things walked (World_NextThing's handle written there).
+void SoundAtCar(u8 *car, u32 &slot, bool walk) {
+    const u32 sound = at<u32>(car, 0x20);
+    if (!sound)
+        return;
+    const s32 x = Ftol(X87_MulIntDouble(at<s32>(car, 0x34), global<float>(0x00700f20)));
+    const s32 z = Ftol(X87_MulIntDouble(at<s32>(car, 0x38), global<float>(0x00700f20)));
+    at<u32>(car, 0x20) = Sound_SetPosition(sound, x, 0, z);
+    const u32 ride = NameOf(at<const u8 *>(car, 0x9c));
+    s32 id = 0;
+    if (!walk) {
+        if (const u16 found = *TrakRide_FindThing(reinterpret_cast<u16 *>(&slot), ride))
+            id = at<s32>(global<u8 *>(0x007cfb90 + 20u * found), 0x24);
+    } else {
+        void *const world = global<void *>(0x007cf83c);
+        u16 handle, found = 0;
+        World_FirstThing(world, nullptr, &handle);
+        while (handle != 0) {
+            const u8 *const thing = Thing_ByHandle(handle);
+            if (thing[2] == 3 && at<u32>(thing, 0x28) == ride) {
+                u16 own;
+                found = *Thing_GetHandle(thing, nullptr, &own);
+                break;
+            }
+            handle = *World_NextThing(world, nullptr, reinterpret_cast<u16 *>(&slot), thing);
+        }
+        if (found) {
+            (void)*reinterpret_cast<const volatile u32 *>(global<uintptr_t>(0x007cf6ec));   // (the world pointer, read for ECX)
+            id = at<s32>(Thing_ByHandle(found), 0x24);
+        }
+    }
+    const s32 value = at<s32>(car, 0x4c) / 3;
+    const u32 element = Rides_GetLinkedElement(id, 10);
+    at<u32>(car, 0x20) = Sound_SetParam(at<u32>(car, 0x20), element, (u32)value);
+}
+
+}  // namespace
+
+void __cdecl TrakCar_Move(u8 *car) {
+    const u8 *ride = at<const u8 *>(car, 0x9c);
+    u32 slot = at<u32>(car, 0);   // (the original's argument slot, reused: later calls' out values land in it and are read back)
+    s32 rate = at<s32>(ride, 0x24);
+    if (slot & 0x80000)
+        rate = (s32)((u32)rate * 7u) / 10;
+    else if (at<s32>(ride, 0x54) == 2)
+        rate = 1000;
+    const s32 px = (s32)((u32)rate * at<u32>(car, 0x3c)), py = (s32)((u32)rate * at<u32>(car, 0x40));
+    const s32 vx = (s32)((u32)px + ((u32)(px >> 31) & 0x3ff)) >> 10, vy = (s32)((u32)py + ((u32)(py >> 31) & 0x3ff)) >> 10;
+    const s32 squares = (s32)((u32)vx * (u32)vx + (u32)vy * (u32)vy);
+    at<s32>(car, 0x3c) = vx;
+    at<s32>(car, 0x44) = vx;
+    at<s32>(car, 0x40) = vy;
+    at<s32>(car, 0x48) = vy;
+    const s32 speed = Ftol(X87_Sqrt(X87Reg((double)squares)));
+    at<s32>(car, 0x4c) = speed;
+    at<u32>(car, 0x38) += (u32)vy;
+    at<u32>(car, 0x34) += (u32)vx;
+    const s32 kind = at<s32>(at<const u8 *>(car, 0x9c), 0);
+    bool steer = true;   // (the default's heading, after the kinds of group C too)
+    switch (kind) {
+    case -14: case -11: case -6: case -3: case -1:
+        ride = at<const u8 *>(car, 0x9c);
+        if (at<s32>(ride, 0x50) == 2) {
+            const s32 heading = kind == -1 ? at<s32>(car, 0x50) : Heading(vx, (s32)(0u - (u32)vy));
+            at<s32>(car, 0x58) = heading;
+            at<s32>(car, 0x5c) = TurnBy(car, heading, speed);
+        } else {
+            at<s32>(car, 0x5c) = 0;
+        }
+        if (at<s32>(at<const u8 *>(car, 0x9c), 0x50) == 2 && (slot & 0x4000) && FrameDue() && at<s32>(car, 0x28) != -1 &&
+            ((NextSeed() >> 16) & 3) == 2 && at<s32>(at<const u8 *>(car, 0x9c), 0) != -1 && at<u32>(car, 0x14) == 0) {
+            SpawnAlong(car, at<u32>(car, 0x28), 1, slot);
+            at<u32>(car, 0x14) = 4;
+        }
+        SoundAtCar(car, slot, false);
+        SystemAtPart(car);
+        steer = false;
+        break;
+    case -13: case -12: case -8: case -5: {
+        slot = at<u32>(car, 0x58);
+        const s32 turn = (s32)slot;
+        if ((turn < 0 ? (s32)(0u - (u32)turn) : turn) > 0x30)
+            at<s32>(car, 0x58) = Ftol(X87Reg((double)turn) * global<float>(0x00700f24) * global<float>(0x00700f28));
+        const s32 now = at<s32>(car, 0x58);
+        const s32 eighth = (s32)((u32)now + ((u32)(now >> 31) & 0x7f)) >> 7;
+        at<s32>(car, 0x5c) = eighth > 0x10 ? 0x10 : eighth < -0x10 ? -0x10 : eighth;
+        if (at<s32>(at<const u8 *>(car, 0x9c), 0x50) == 2 && FrameDue() && ((NextSeed() >> 16) & 7) == 2)
+            SeatEffect(Instance(at<u32>(car, 8)), 0x60);
+        SoundAtCar(car, slot, false);
+        steer = false;
+        break;
+    }
+    case -10: case -9: case -7: case -4: {
+        ride = at<const u8 *>(car, 0x9c);
+        if (at<s32>(ride, 0x50) == 2 && FrameDue() && speed > 0xe6 && at<u32>(car, 0x14) == 0)
+            at<u32>(car, 0x14) = 2;
+        const u32 state = at<u32>(car, 0x10);
+        if (speed > 0x28) {
+            if (state == 0xc) {
+                at<u32>(car, 0x10) = 5;
+                if (at<u32>(car, 8)) Layer_ClearQueue(Instance(at<u32>(car, 8)), 0);
+                if (at<u32>(car, 8)) Animator_Play(Instance(at<u32>(car, 8)), 5, 0, 1, 1.0f, 0);
+            }
+        } else if (state == 5 && !(slot & 0x400)) {
+            at<u32>(car, 0x10) = 0xc;
+            if (at<u32>(car, 8)) Layer_ClearQueue(Instance(at<u32>(car, 8)), 0);
+            if (at<u32>(car, 8)) Animator_Play(Instance(at<u32>(car, 8)), 0xc, 0, 2, 1.0f, 0);
+        }
+        ride = at<const u8 *>(car, 0x9c);
+        if (at<s32>(ride, 0x50) == 2 && at<s32>(ride, 0x54) == 1 && FrameDue() && at<s32>(car, 0x4c) > 0x50 && at<s32>(car, 0x24) != -1) {
+            const u32 roll = (NextSeed() >> 16) & 7;
+            if (roll <= 1) {
+                SpawnAlong(car, at<u32>(car, 0x24), 1, slot);
+            } else if (roll == 2 && at<u32>(car, 0x14) == 0) {
+                SpawnAlong(car, at<u32>(car, 0x24), 10, slot);
+                at<u32>(car, 0x14) = 1;
+            }
+        }
+        SoundAtCar(car, slot, true);
+        SystemAtPart(car);
+        break;
+    }
+    default:
+        break;
+    }
+    if (steer) {
+        slot = at<u32>(car, 0x3c);
+        slot = 0u - at<u32>(car, 0x40);
+        const s32 heading = Heading(at<s32>(car, 0x3c), (s32)slot);
+        at<s32>(car, 0x58) = heading;
+        const s32 previous = at<s32>(car, 0x5c);
+        at<s32>(car, 0x60) = previous;
+        const s32 turn = TurnBy(car, heading, at<s32>(car, 0x4c));
+        at<s32>(car, 0x5c) = turn;
+        at<s32>(car, 0x60) = turn - at<s32>(car, 0x60);
+    }
+    at<u32>(car, 0x54) = (at<u32>(car, 0x54) + at<u32>(car, 0x5c)) & 0x1ff;
+    u8 *const link = at<u8 *>(car, 0x98);
+    if (!link)
+        return;
+    if (!(at<u32>(link, 0) & 0x100)) {
+        if (at<u32>(car, 0) & 0x200)
+            TrakRide_SetAsleep(car, 0);
+        return;
+    }
+    u8 *const gate = at<u8 *>(link, 0x18);
+    if (!gate || at<u32>(gate, 0x10) != 0xdac)
+        return;
+    const s32 apart = at<u32>(gate, 4) == 0xc ? (s32)(at<u32>(car, 0x34) - at<u32>(link, 4)) : (s32)(at<u32>(car, 0x38) - at<u32>(link, 8));
+    const u32 flags = at<u32>(car, 0);
+    u32 entry;
+    if (at<u32>(gate, 8) == 0) {
+        if (!(flags & 0x200) && apart < 0x4b0 && apart > -0x4b0) {
+            at<u32>(car, 0) = apart < 0 ? flags | 0x800000 : flags & 0xff7fffff;
+            TrakRide_SetAsleep(car, 1);
+            if (at<u32>(gate, 0xc)) Layer_GetFlags(Instance(at<u32>(gate, 0xc)), &slot, &entry, 0);
+            if (slot != 5) {
+                if (at<u32>(gate, 0xc)) Layer_ClearQueue(Instance(at<u32>(gate, 0xc)), 0);
+                if (at<u32>(gate, 0xc)) Animator_Play(Instance(at<u32>(gate, 0xc)), 5, 0, 0, 1.0f, 0);
+                at<u32>(gate, 0) |= 2;
+            }
+        }
+    } else if (flags & 0x200) {
+        if ((flags & 0x800000) ? apart > 0x4b0 : apart < -0x4b0)
+            TrakRide_SetAsleep(car, 0);
+    }
+    if (gate[0] & 2) {
+        if (at<u32>(gate, 0xc)) Layer_GetQueued(Instance(at<u32>(gate, 0xc)), &slot, &entry, 0);
+        if (slot == 0xc) {
+            if (at<u32>(gate, 0xc)) Animator_Play(Instance(at<u32>(gate, 0xc)), 2, 0, 1, 1.0f, 0);
+            at<u32>(gate, 0) &= ~2u;
+        }
+    }
 }
 }

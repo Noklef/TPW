@@ -239,6 +239,9 @@ void __cdecl String_EnsureTrailingBackslash(String *s);
 // its vtable +0x18 (String's AssignWide), ends in "\" (String_EnsureTrailingBackslash), and gets name appended (vtable +0x28).
 void __fastcall Strings5_JoinPath(u8 *object, void *, const StringView *name);
 
+// 0x5c55c0 (thiscall; name, pops 4; name invented, unconfirmed): the same into the string at +0x50 (from +0x28).
+void __fastcall Strings5_JoinPathAt50(u8 *object, void *, const StringView *name);
+
 // 0x424db0 (cdecl; s, wide; name unconfirmed): the wide text (wide->data) converted to the ANSI code page by WideCharToMultiByte (the import 0x6fd1dc;
 // the size asked for first, NUL included), into a block of Mem_GlobalAlloc (none for a size of 0 or less, or a failed allocation), which goes to the
 // vtable's +0x14 of s (AssignStr) and is freed (Mem_GlobalFree). Returns the second conversion's count, else 0.

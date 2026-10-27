@@ -90,7 +90,12 @@
 #include "../../src/game/core/mp2synth.h"
 #include "../../src/game/world/mapclick.h"
 #include "../../src/game/world/mapline.h"
+#include "../../src/game/coaster/train.h"
 #include "../../src/game/world/mousemode.h"
+#include "../../src/game/world/person.h"
+#include "../../src/game/world/pathdrag.h"
+#include "../../src/game/world/queuepieces.h"
+#include "../../src/game/world/object.h"
 #include "crt.h"
 #include "../../src/hook/hooks.h"
 
@@ -372,6 +377,9 @@ const SharedGlobalsEnv kSharedGlobalsEnv = {reinterpret_cast<s32(__cdecl *)(void
 const ReleaseListEnv kReleaseListEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const SoundCategoryEnv kSoundCategoryEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const SoundDeviceEnv kSoundDeviceEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
+// The person's calls: the cseg angle 0x6e7074 stub_cdecl_log2; agent C's unported 0x501db0 the thiscall recorder 26 of 1 argument (recorder(26, 1), defined below), as tests/fncmp/visitorleave.py hooks 0x501db0.
+const PersonEnv kPersonEnv = {reinterpret_cast<u32(__cdecl *)(s32, s32)>((uintptr_t)(kStubs + 0x80)),
+                              reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)(kStubs + 0x1000 + 0x400 * 1 + 0x20 * 26))};
 const PtrListEnv kPtrListEnv = {&heap_alloc};
 const GameHeapEnv kGameHeapEnv = {&heap_alloc, &heap_free};
 // libjpeg 6b's calls outside itself (src/game/lib/jpeg6b.h): jmemansi.c's malloc / free the heap; jmemmgr.c's getenv, sscanf and
@@ -411,6 +419,17 @@ struct Rec {
     uintptr_t at;
     template <typename F> operator F() const { return reinterpret_cast<F>(at); }
 };
+// The queue pieces' and the path drag's calls into agent B's unported 0x463060 / 0x463c80 / 0x5367a0 / 0x536100: recorders (cdecl 30 of 10
+// arguments, cdecl 31 of 1, thiscall 28 of 2, cdecl 29 of 5), as tests/fncmp/queuepieces.py and pathdrag.py hook those addresses.
+const QueuePiecesEnv kQueuePiecesEnv = {reinterpret_cast<u32(__cdecl *)(u32, u32, const u32 *, u32, u32, u32, u32, u32, s32, u32)>((uintptr_t)jpeg_recorder(30, 10)),
+                                        reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(31, 1))};
+const PathDragEnv kPathDragEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32)>((uintptr_t)recorder(28, 2)),
+                                  reinterpret_cast<void(__cdecl *)(u32, s32, s32, s32 *, s32 *)>((uintptr_t)jpeg_recorder(29, 5))};
+// The objects' calls into the unported 0x40fb10 (agent B's) and 0x500870 / 0x5012f0 (agent C's): thiscall recorders 21 of 1 argument, 22 and 23
+// of none, as tests/fncmp/objectstate.py hooks those addresses.
+const ObjectEnv kObjectEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, u8 *)>((uintptr_t)recorder(21, 1)),
+                              reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(22, 0)),
+                              reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(23, 0))};
 
 // Optional settings in the log region: at + 0xa00 a mask per slot (k & 63): bits 0-15 the arguments that are C strings, logged and hashed as a hash of the string
 // (so that a path in a stack buffer, whose address differs between the sides, compares by its text), bits 16-31 out arguments, logged as 0 (a stack address;
@@ -746,6 +765,8 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x006fda18, 12},  // WadHandle_vtable
                                    {0x00703898, 13},  // RefObject2_vtable
                                    {0x00703100, 9},   // StreamBase_vtable
+                                   {0x0070a090, 6},   // the narrow-text writer (narrowwriter.h; slot 3 ByteBuf_Write)
+                                   {0x0070a0c0, 6},   // the wide-text writer (widewriter.h; slot 4 Obj_PutWord)
                                    {0x00703838, 12},  // RefObject_vtable
                                    {0x00703f78, 12},  // BufferedSource_vtable
                                    {0x00703868, 12},  // MemorySource_vtable
@@ -774,6 +795,7 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x00705920, 4},   // the GUI rectangle (GuiRect_Contains, _Centre, _Offset, _Adjust)
                                    {0x0070a260, 1},   // the sound channel's stack functor (SoundChannelFn70a260_Run; SoundCmd700b6c_Run's)
                                    {0x0070a278, 1},   // its settings functor (SoundChannelFn70a278_Run: the channel's setters')
+                                   {0x0070a610, 1},   // its rates functor (SoundChannel_ApplyVoiceRates: SoundChannel_SetRateModifier's)
                                    {0x007118e0, 6},   // the MP2 buffer decoder (Mp2BufferDecoder_DeletingDtor, _Open, Mp2Decoder_Close, ...)
                                    {0x0070af00, 6},   // the MP2 stream decoder (Mp2StreamDecoder_DeletingDtor, Mp2BufferDecoder_Open, ...)
                                    {0x0070adb8, 2},   // the voice codec's bit readers over memory (VoiceBits_Skip, _Read)
@@ -822,11 +844,18 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x006fe548, 4},
                                    {0x0070a960, 3},   // the sound library's bank (Release, AddRef, deleting destructor: SoundCategory_ReadBankMap's)
                                    {0x0070a950, 3},   // and category record (the same; slot 2 0x6c1110)
+                                   {0x00700aa8, 2},   // the TP2M reader's MAP handler (AttrMapHandler_MatchTag, AttrMap_ReadMapChunk: TP2M_ReadChunks's)
+                                   {0x00700b90, 15},  // the sound play command (Get4_5dc650, Get8_51c050: Voice70a8d0_PickQueuedSound's SfxSounds_Find);
+                                                      // its slots 4-14 the one-slot commands 0x700ba0-0x700bc8 (soundset.py's senders)
+                                   {0x00700b2c, 11},  // the one-slot commands 0x700b2c-0x700b54 (0x700b30 Sound_Load's EAX record apply)
+                                   {0x00700b58, 13},  // the sound commands' base (_purecall) and the one-slot commands 0x700b5c-0x700b88
+                                                      // (soundset.py's senders 0x51bc70-0x51bd70)
                                    {0x0070a390, 22},   // the group voice's (slot 4 SoundVoice_Init: Voice70a390_Create's; 21 its new child),
                                    {0x0070a2e0, 22},   // and those of the voices 0x70a2e0, 0x70a3e8 and 0x70a878 (slot 4 SoundVoice_Init: their
                                    {0x0070a3e8, 21},   // creates'; 14 and 15 its picks)
                                    {0x0070a4f0, 21},   // the mixer's voices (slot 4 SoundVoice_Init: SoundMixer_AddVoice's)
                                    {0x0070a878, 21},
+                                   {0x0070a8d0, 21},   // the queued voice's (slot 4 SoundVoice_Init: Voice70a8d0_Create's)
                                    {0x0070a498, 21},   // the switch voice's (slot 4 SoundVoice_Init, 14 SoundVoice_SwitchVariation, 15 PickSample)
                                    {0x0070a440, 21},   // the sequence voice's (slot 4 SoundVoice_Init, 14 SoundVoice_NextVariation, 15 PickSample)
                                    {0x0070aa80, 16},   // the sound resources SoundResource_Create (0x6c5240) makes, which it loads through slot 3: the
@@ -850,6 +879,8 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
 const u32 kRawCalled[] = {0x0065f6d1,   // Window_DefaultProc (src/game/ui/window's Window_Ctor; tests/fncmp/dialogbuild.py's helpbg())
                           0x0050f1f0,   // IntPair_Ctor and Stub_Ret, the game's constructor and destructor handed to the array iterators
                           0x005d1750,   // by address (tests/fncmp/crt_vector_iterators.py's GameCtor / GameDtor: below the old g_game)
+                          0x005f8e50,   // Font_Measure and Font_DrawGlyphShape, the text driver 0x7031c0's measure and draw (Text_SelectFont's
+                          0x005f8e80,   // mode 0; tests/fncmp/window705950draw.py)
                           0x00480d10,   // ImeHost_WindowProc, the IME's candidate window's handler (ui/imecandidates' ImeHost_OpenCandidates)
                           0x004959c0,   // List7ca158_RowProc, the objects' lists' row handler (ui/listrows' List7ca158_NewRow)
                           0x004bed60,   // Windows7cc8c4_Handler, told 0x11 when Window7cc8bc_Create hides its windows (ui/window7cc8bc)
@@ -1074,6 +1105,10 @@ int main(int argc, char **argv) {
     ReleaseList_SetEnv(&kReleaseListEnv);
     SoundCategory_SetEnv(&kSoundCategoryEnv);
     SoundDevice_SetEnv(&kSoundDeviceEnv);
+    Person_SetEnv(&kPersonEnv);   // (tests/fncmp/personwalk.py hooks 0x6e7074 with fncmp._cdecl_log2)
+    QueuePieces_SetEnv(&kQueuePiecesEnv);
+    PathDrag_SetEnv(&kPathDragEnv);
+    Object_SetEnv(&kObjectEnv);
     GlyphRender_SetEnv(&kGlyphRenderEnv);   // (tests/fncmp/glyphrender.py hooks 0x67a7d0 with fncmp._cdecl_log)
     PtrList_SetEnv(&kPtrListEnv);
     GameHeap_SetEnv(&kGameHeapEnv);
@@ -1130,6 +1165,10 @@ int main(int argc, char **argv) {
     // Game code a port calls directly that is not hooked (yet): a recorder, as the bench's hooks= has it in the emulator.
     static const MapLineEnv mapLine = {reinterpret_cast<u32(__fastcall *)(u8 *, void *, u32, s32, s32)>((uintptr_t)recorder(20, 3))};  // 0x5370e0: tests/fncmp/mapline.py
     MapLine_SetEnv(&mapLine);
+    // 0x473c70 (Animator_Update, under Train_PlaceCars): the cdecl recorder k 27 (three arguments), as tests/fncmp/placecars.py hooks it
+    // (fncmp.recorder(27, 3, cdecl=True)).
+    static const TrainEnv train = {reinterpret_cast<s32(__cdecl *)(u8 *, const u8 *, u32)>((uintptr_t)(kStubs + 0xb000 + 0x400 * 3 + 0x20 * 27))};
+    Train_SetEnv(&train);
     // GameMode_MapClick's calls (src/game/world/mapclick.h): each a recorder (k, n), cdecl ones logged as k | 0x200, as tests/fncmp/mapclick.py
     // hooks their addresses; its `advise` cdecl 9 (the bench's 0x59b590 hook logs the advisor message's id so).
     {

@@ -50,6 +50,22 @@ u8 __fastcall Advisor_PostKindEvent(u8 *self, void *, const u8 *event);
 // and +0x17 never written) posted to the advisor of the world [0x7cf83c] (GameTable7cfb90_Get1da71c_5194d0); Advisor_Post's answer.
 u8 __cdecl Advisor_PostId(u32 id);
 
+// 0x59ae20 (thiscall (code), pops 4; name invented, unconfirmed; Advisor_HandleMessage's case for message 0x13): code 0 posts the message
+// id 0 and, with the mode setting (0xfb3b7c, read under the guard 0xfb2765) 2, id 0x143; 2, 3, 4 post 0x6a, 0x80, 0x81 (each an advisor
+// message of type 0, a 0, b -1, flag 0 and no score, AdvisorMsg_Init, on the stack: its bytes +2, +3 and +0x17 never written; Advisor_Post);
+// 10 says "Clearing advisor history ..." (OutputDebugStringA, 0x76e190) and clears the 0x15f history records (+0xe0, 0x10 apart: +4 -1,
+// the byte +8 0, +0xc 0); any other nothing.
+void __fastcall Advisor_HandleCode(u8 *self, void *, u32 code);
+
+// 0x59b060 (thiscall (event), pops 4; the advisor thing's message handler, Thing_HandleMessage's case 11): the event's code (its slot 0)
+// 5: with the byte +0x1c, the message at +8 posted (Advisor_Post); 8: id 0x102 of type the word +8, a 0; 14: of type the word +8 (w), a
+// the low word of (the byte +7 << 7) + the byte +5 + 1 of the world table entry [0x7cfb90 + 20 w], id 0x7d, 0x7e, 0x7f as +0xc is 0, 1,
+// 2 (else nothing); 17: of type 0, a the word +8, id 0x5d, 0x5f, 0x60, 0x61, 0x5e as +0xc is 0-4 (else nothing); 19: Advisor_HandleCode
+// (the dword +8); 23: Advisor_PostKindEvent; 25: unless +0xc is 0x160, id +0xc of type 0, a 0; any other code: the code asked again (for
+// an empty debug print). Each message has b -1, flag 0 and no score (AdvisorMsg_Init; 8 and 14 inlined), on the stack (bytes +2, +3,
+// +0x17 never written), and posted (Advisor_Post).
+void __fastcall Advisor_HandleMessage(u8 *self, void *, u8 *event);
+
 // 0x599f60 (thiscall (stream, save, version, unused), pops 0x10): the advisor thing's serializer. 1 when Thing_Serialize fails; 0 for a version
 // outside 0..1; then its time stamp at +0xc (TimeSig_Serialize), mSoundId (+0x10), the 8 queued messages from +0x14 (AdvisorMsg_Serialize, 0x18
 // bytes apart), mNextAvailableQueuePos (+0xd4), mLastActionStarted (+0xd8), mLastActionDuration (+0xdc), the 0x15f history records of 0x10

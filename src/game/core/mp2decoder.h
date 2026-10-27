@@ -46,4 +46,15 @@ void __fastcall Mp2Decoder_Dtor(u8 *decoder, void *);
 u8 *__fastcall Mp2BufferDecoder_DeletingDtor(u8 *decoder, void *, u32 flags);
 u8 *__fastcall Mp2StreamDecoder_DeletingDtor(u8 *decoder, void *, u32 flags);
 
+// 0x6d17b0 (thiscall (pcm), pops 4; name invented): 0 when its slot 4 answers nonzero; else the frame of the layer (+0x2442): II
+// Mp2Decoder_DecodeLayer2, I Mp2Decoder_DecodeLayer1, others 0.
+s32 __fastcall Mp2Decoder_DecodeFrame(u8 *decoder, void *, s16 *pcm);
+
+// 0x6d1ab0 (thiscall (out, bytes), pops 8; name invented): up to bytes of PCM into out, frame by frame: with the frame buffer (+0x1204)
+// used up (its position +0x2468 at the frame's bytes +0x2474) and a whole frame wanted, the frame decoded straight into out
+// (Mp2Decoder_DecodeFrame; the frames +0x2464 counted); else, the buffer used up (or past), a frame decoded into it (counted, the position
+// 0), and then what is left of it (no more than wanted) copied out. A failed decode ends it. Then +0x2410 = +0x246c * (frames - 1) +
+// position. Returns the bytes given (signed compares throughout).
+s32 __fastcall Mp2Decoder_Read(u8 *decoder, void *, u8 *out, s32 bytes);
+
 }  // extern "C"
