@@ -293,6 +293,7 @@
 #include "../game/world/things.h"
 #include "../game/world/analysercell.h"
 #include "../game/world/bankaccount.h"
+#include "../game/world/cellbuild.h"
 #include "../game/world/linestep.h"
 #include "../game/world/money.h"
 #include "../game/world/objectmsg.h"
@@ -4755,6 +4756,7 @@ const Hook kHooks[] = {
     {"Visitor_ScoreOption",       0x004fcc30, (void *)&Visitor_ScoreOption, {0x83, 0xec, 0x38, 0x53, 0x55}},
     {"BankAccount_Serialize",     0x004cf920, (void *)&BankAccount_Serialize, {0x8b, 0x44, 0x24, 0x10, 0x83}},
     {"ParkGates_Serialize",       0x004cf050, (void *)&ParkGates_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"MapCell_CanBuild",          0x00535670, (void *)&MapCell_CanBuild, {0x53, 0x55, 0x56, 0x57, 0x8b}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
