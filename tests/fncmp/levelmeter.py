@@ -11,7 +11,8 @@
 # the chain of 0-3 things from the game's +0x1da742 (their +0x1e4 0-5, linked by +0x210), the globals 0x7852f8 / 0x78548c 0 or not; the
 # sound globals on / started or not, the manager's engine's slot 3 the recorder 3 of three.
 # Progress (0x4a9bd0): the group 0-4 mostly, now and then 5, 6 or -1; the lab as research.py's (its projects' costs and done any floats,
-# the groups' current projects -1 or any, the dearest +0x1464 any or the current), picked as Research's; the research panel's five meters (one
+# the groups' current projects -1 or any, the dearest +0x1464 any or the current; now and then plain costs, the current one's up to three
+# times the dearest's, so the gauge's value goes negative), picked as Research's; the research panel's five meters (one
 # missing now and then: a fault in both), each with its gauge 0xd2d05 (missing now and then: a fault in both) among 0-2 decoys, the gauge's
 # slot 7 the recorder 7.
 # usage: levelmeter.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetLevel,OnMessage,Research,Progress)
@@ -135,6 +136,12 @@ def progress_case(r):
     group = r.choice([0, 1, 2, 3, 4] * 4 + [5, 6, -1])
     current = struct.unpack_from('<i', lab, 0x140c + group * 16 + 8)[0]
     put(lab, 0x1464, 'i', r.choice([0, r.randrange(0x100), r.randrange(0x100), max(current, 0)]))
+    dearest = struct.unpack_from('<i', lab, 0x1464)[0]
+    if 0 <= current < 0x100 and current != dearest and r.random() < 0.4:   # (plain costs: left 0-300%, past 100 the gauge negative)
+        top = r.uniform(2, 1000)
+        put(lab, 0xc + dearest * 20 + 0xc, 'f', top)
+        cost = top * r.uniform(0.01, 3)
+        put(lab, 0xc + current * 20 + 0xc, 'ff', cost, cost * r.choice([0, r.random()]))
     regions[LAB] = lab
     slot = r.randrange(1, 4)
     regions[0x7cfb90] = put(bytearray(r.bytes(20 * 4)), 20 * slot, 'I', LAB)
