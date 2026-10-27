@@ -619,6 +619,16 @@ void __cdecl SoundCategory_ReleaseBankResources() {
     } while (++i < Get<u32>(cat, 0x94));
 }
 
+bool __fastcall SoundCategory_BankFlag40(void *, void *, u32 index) {
+    u8 *const cat = SoundCategory_Get();
+    const u8 *bank = nullptr;
+    if (index < Get<u32>(cat, 0x94)) {
+        u32 found[4];
+        bank = Get<u8 *>(Ptr(DequeIter_Plus(reinterpret_cast<const u32 *>(cat + 0x6c), nullptr, found, static_cast<s32>(index))[2]), 0);
+    }
+    return bank && (Get<u32>(bank, 0x20) >> 6 & 1);
+}
+
 void __fastcall CategoryRecord_Dtor(u8 *record) {
     Put<u32>(record, 0, 0x70a950);
     u32 status;
