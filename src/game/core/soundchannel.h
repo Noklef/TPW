@@ -159,4 +159,17 @@ u32 *__fastcall SoundChannel_TryAddOccluder(u8 *channel, void *, u32 *out, u32 x
 // SoundChannel_UpdateOcclusion (that byte); *out its status. Else *out = 0. Returns out.
 u32 *__fastcall SoundChannel_RemoveOccluder(u8 *channel, void *, u32 *out, u8 **node);
 
+// 0x6b9230 (thiscall; slot 0 of 0x70a5d8 and 0x70a630; name invented): the channel's slot 4 (an unset out, a stack functor of vtable
+// 0x70a5b0 whose second dword is unset), then Class703770_Release; returns its count.
+s32 __fastcall SoundChannel_Release(u8 *channel);
+// 0x6c5c50 (thiscall (out, record, value), pops 0xc; slot 7 of 0x70a630; name invented): SoundChannel_SetRecordValue40 with the value's
+// own stack slot as its out; not negative: SetThenFlag60_4c_6b9cb0 (record, 1) and *out = 0, else *out = -1. Returns out.
+u32 *__fastcall SoundChannel_SetRecordValue40Flagged(u8 *channel, void *, u32 *out, u8 *record, u32 value);
+// 0x6b98d0 (thiscall (out, index, modifier), pops 0xc; name invented): the rate modifier +0x48 + 4 * the index's low byte set (fld /
+// fstp), then SoundChannel_Apply (out, a stack functor {0x70a610, the modifier}). Returns out.
+u32 *__fastcall SoundChannel_SetRateModifier(u8 *channel, void *, u32 *out, u32 index, u32 modifier);
+// 0x6b9cd0 (thiscall (block), pops 4; name invented): a settings record's +0xc-+0x3f from the block's 13 dwords (rep movsd), its flags
+// +0x4c |= 0x40. Returns the record.
+u8 *__fastcall SoundChannel_SetRecordBlock(u8 *record, void *, const u32 *block);
+
 }  // extern "C"

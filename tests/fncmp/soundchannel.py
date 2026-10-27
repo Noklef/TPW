@@ -10,7 +10,12 @@
 # The voices' pick and play (0x6b9a60, 0x6b9ab0): see play_case().
 # The flag 2 switch (0x6b9160): see flag2_case(). The sound object's open (0x6b8480): see objopen_case(). The sound object's occluder
 # forwards (0x6b8c70, 0x6b8cb0): as the channel's add and remove, the object's channel +0x24 or none.
-# The channel's slot 13 (0x6b8f60): a settings record at REC (random bytes), any value; the channel argument random (unused).
+# The channel's slot 13 (0x6b8f60): a settings record at REC (random bytes), any value; the channel argument random (unused). Its flagged
+# form (0x6c5c50, slot 7 of 0x70a630): the same. The record's block set (0x6b9cd0): 0x34 random bytes.
+# The rate modifier's set (0x6b98d0): as slot 14's (the voices' modifiers +0x34 mostly the channel's +0x48), the modifier's index 0-5
+# (any upper bytes now and then) and any float (signalling NaNs now and then). The sound
+# commands 0x700bc0 / 0x700bc4 / 0x700bc8 (0x6b5cb0, 0x6b5ce0, 0x6b5890): as the object's occluder add and remove and the channel's
+# occlusion switch, their arguments the command's +4 on, the target an object whose +0x24 is the channel (none now and then).
 # The channel's slot 14 (0x6b5fc0): see rates_case(). The sound manager's placement (0x6b5ba0): as the object's, through a handle at MGRH.
 # The sound manager's apply (0x6b5bd0): as apply's, the channel through a handle at MGRH (+4 the channel, 0 now and then).
 # usage: soundchannel.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
@@ -26,8 +31,10 @@ CALLS = {'apply': 0x6b8b40, 'settings': 0x6b7d70, 'fn260': 0x6b5e40, 'eax0b': 0x
          'position': 0x6b79d0, 'fn278': 0x6b5e60, 'mode': 0x6b90d0, 'placement': 0x6b9930, 'voices': 0x6b84f0, 'b4c': 0x6b57b0, 'b3c': 0x6b5720,
          'b54': 0x6b5810, 'objplace': 0x6b8b60, 'voiceocc': 0x6b7fa0, 'clearocc': 0x6b7a70, 'pick': 0x6b9a60, 'play': 0x6b9ab0,
          'setocc': 0x6b8180, 'addocc': 0x6b8230, 'remocc': 0x6b82c0, 'listremove': 0x6c4ba0, 'flag2': 0x6b9160, 'objopen': 0x6b8480, 'occswitch': 0x6b99c0, 'occadd': 0x6b9a10,
-         'objoccadd': 0x6b8c70, 'objoccrem': 0x6b8cb0, 'rec40': 0x6b8f60, 'rates': 0x6b5fc0, 'mgrplace': 0x6b5ba0, 'mgrapply': 0x6b5bd0}
-SETTERS = ('occlusion', 'voiceocc', 'clearocc', 'position', 'fn278', 'mode', 'placement', 'voices', 'b4c', 'b3c', 'b54', 'objplace', 'setocc', 'addocc', 'remocc', 'listremove', 'occswitch', 'occadd', 'objoccadd', 'objoccrem', 'mgrplace')
+         'objoccadd': 0x6b8c70, 'objoccrem': 0x6b8cb0, 'rec40': 0x6b8f60, 'rates': 0x6b5fc0, 'mgrplace': 0x6b5ba0, 'mgrapply': 0x6b5bd0,
+         'rec40flag': 0x6c5c50, 'ratemod': 0x6b98d0, 'cmdoccadd': 0x6b5cb0, 'cmdoccrem': 0x6b5ce0, 'cmdoccswitch': 0x6b5890,
+         'release': 0x6b9230, 'recblock': 0x6b9cd0}
+SETTERS = ('occlusion', 'voiceocc', 'clearocc', 'position', 'fn278', 'mode', 'placement', 'voices', 'b4c', 'b3c', 'b54', 'objplace', 'setocc', 'addocc', 'remocc', 'listremove', 'occswitch', 'occadd', 'objoccadd', 'objoccrem', 'mgrplace', 'cmdoccadd', 'cmdoccrem', 'cmdoccswitch')
 B = Bench([(0x6b8b40, 0x6b8b60), (0x6b7d70, 0x6b7e5b), (0x6c4760, 0x6c47a3), (0x6b5e40, 0x6b5e59), (0x6b7910, 0x6b796b),
            (0x6b7970, 0x6b79cb), (0x6c4670, 0x6c46a7), (0x6c46b0, 0x6c475a), (0x6b7b60, 0x6b7d6e), (0x6b79d0, 0x6b7a6b), (0x6b5e60, 0x6b5fb4),
            (0x6c4c80, 0x6c4eff), (0x6c4f00, 0x6c4f54), (0x6b8330, 0x6b8358), (0x6bb7a0, 0x6bb7bd), (0x6bb7c0, 0x6bb856), (0x6babc0, 0x6bac04),
@@ -38,7 +45,10 @@ B = Bench([(0x6b8b40, 0x6b8b60), (0x6b7d70, 0x6b7e5b), (0x6c4760, 0x6c47a3), (0x
            (0x6b8180, 0x6b822d), (0x6b99c0, 0x6b9a05), (0x6b9a10, 0x6b9a5b), (0x6b8230, 0x6b82b1), (0x6c49b0, 0x6c4b93), (0x6c4fd0, 0x6c4fe3), (0x5e2a30, 0x5e2a80), (0x5e2a80, 0x5e2b80),
            (0x67acb0, 0x67acb1), (0x6b82c0, 0x6b832e), (0x6c4ba0, 0x6c4c1e),
            (0x6b9160, 0x6b91ce), (0x6b9660, 0x6b9760), (0x6bead0, 0x6beb03), (0x632150, 0x632380), (0x6b9b30, 0x6b9b94), (0x6b8480, 0x6b84ec),
-           (0x6b8c70, 0x6b8cda), (0x6b8f60, 0x6b8f90), (0x6b5fc0, 0x6b603d), (0x6bb860, 0x6bb8c9), (0x6b5ba0, 0x6b5bc3), (0x6b5bd0, 0x6b5be9)])
+           (0x6b8c70, 0x6b8cda), (0x6b8f60, 0x6b8f90), (0x6b5fc0, 0x6b603d), (0x6bb860, 0x6bb8c9), (0x6b5ba0, 0x6b5bc3), (0x6b5bd0, 0x6b5be9),
+           (0x6c5c50, 0x6c5c8f), (0x6b9cb0, 0x6b9cc2), (0x6b98d0, 0x6b98ff),
+           (0x6b5cb0, 0x6b5cd9), (0x6b5ce0, 0x6b5cf9), (0x6b5890, 0x6b58b0),
+           (0x6b9230, 0x6b925b), (0x6338d0, 0x6338f9), (0x6b9cd0, 0x6b9cf0)])
 CHAN, OUT, FUNCTOR, FVT, REC, INFO, SRC, SVT, EAXB, KSET, KVT = (RAM + 0x100 * i for i in range(11))
 GLOBAL = 0xfb2058
 VOICES, VVT, SND, SNDVT, POOL, NODES, OCCS, VEC, VEC2, OBJECT, MIXER, COMMAND, P1, P2, P3 = (RAM + 0x1000 + 0x200 * i for i in range(15))
@@ -60,14 +70,16 @@ def case(r):
         return voices_case(r, log, name)
     if name in ('pick', 'play'):
         return play_case(r, log, name)
-    if name == 'flag2':
-        return flag2_case(r, log)
+    if name in ('flag2', 'release'):
+        return flag2_case(r, log, name)
     if name == 'objopen':
         return objopen_case(r, log)
-    if name == 'rates':
-        return rates_case(r, log)
-    if name == 'rec40':
-        return Call(0x6b8f60, [r.getrandbits(32), OUT, REC, r.choice([0, 1, r.getrandbits(32)])], {OUT: r.bytes(4), REC: r.bytes(0x70)},
+    if name in ('rates', 'ratemod'):
+        return rates_case(r, log, name)
+    if name == 'recblock':
+        return Call(0x6b9cd0, [REC, FUNCTOR], {REC: r.bytes(0x70), FUNCTOR: r.bytes(0x34)}, conv='t', ret='a')
+    if name in ('rec40', 'rec40flag'):
+        return Call(CALLS[name], [r.getrandbits(32), OUT, REC, r.choice([0, 1, r.getrandbits(32)])], {OUT: r.bytes(4), REC: r.bytes(0x70)},
                     conv='t', ret='a')
     if name in ('eax0b', 'eaxall'):
         blob(log, 4, 5, 1 if name == 'eax0b' else 0x3fff)   # (Set's data)
@@ -143,10 +155,11 @@ def settings_case(r, log):
 F2_CHAN, F2_VT, F2_BANK, F2_RES, F2_RVT, F2_MAP, F2_BLOCK = (RAM + 0x6000 + 0x100 * i for i in range(7))
 
 
-def flag2_case(r, log):
+def flag2_case(r, log, name):
     """SoundChannel_SetFlag2 (0x6b9160): the channel's flags (+0x28) bits 0 and 1 any way, on 0, 1 or any; its slot 4 a recorder (its out on
     the stack, logged as 0; the functor's vtable hashed). The category singleton made already, its deque B 0-3 banks (null or one whose
-    resource's slot 0 is recorder 0) within one block."""
+    resource's slot 0 is recorder 0) within one block. The channel's slot 0 (0x6b9230): the same slot 4, then its Release
+    (InterlockedDecrement a recorder answering 0 now and then: its slot 2 a recorder)."""
     strings(log, 4, 0, out=1)
     blob(log, 4, 1, 1)
     set_return(log, 4, r.getrandbits(32))
@@ -158,14 +171,19 @@ def flag2_case(r, log):
     struct.pack_into('<4I', category, 0x6c, F2_BLOCK, F2_BLOCK + 0x1000, F2_BLOCK + 4 * j, F2_MAP)
     struct.pack_into('<I', category, 0x94, n)
     category[0xd0] = r.choice([1, r.getrandbits(8) | 1])
-    regions = {F2_CHAN: chan, F2_VT: vtable({4: 2}), OUT: r.bytes(4), LOG: log, 0xfb1f28: category,
+    regions = {F2_CHAN: chan, F2_VT: vtable({4: 2, 2: 1}), OUT: r.bytes(4), LOG: log, 0xfb1f28: category,
                F2_BANK: r.bytes(8) + struct.pack('<I', F2_RES) + r.bytes(0x34), F2_RES: struct.pack('<I', F2_RVT) + r.bytes(0xc),
                F2_RVT: vtable({}), F2_MAP: struct.pack('<II', F2_BLOCK, F2_BLOCK),
                F2_BLOCK: struct.pack('<1024I', *[r.choice([F2_BANK, F2_BANK, 0]) for _ in range(1024)])}
+    if name == 'release':
+        set_return(log, 41, r.choice([0, 0, 1, r.getrandbits(32)]))
+        set_return(log, 2, r.getrandbits(32))
+        regions[IMPORT_TABLE] = import_table(log, IMPORTS)
+        return Call(0x6b9230, [F2_CHAN], regions, conv='t', ret='a')
     return Call(0x6b9160, [F2_CHAN, OUT, r.choice([0, 1, r.getrandbits(32)])], regions, conv='t', ret='a')
 
 
-def rates_case(r, log):
+def rates_case(r, log, name):
     """The channel's slot 14 (0x6b5fc0): 0-3 voices in a pool (null now and then: none run; a count of 0: the first runs, sic), each's
     rate (+0x18), modifier mask (+0x24: 0, all four or any), id (+0x2c) and modifiers (+0x34: 0.5, 2.0 or any) as channelvoice.py's
     scaled rate takes them; the shift at 0x782db8 0, 1, 4 or any; the channel's source a recorder vtable whose slot 32 is recorder 8
@@ -178,6 +196,8 @@ def rates_case(r, log):
         struct.pack_into('<I', v, 0x18, r.choice([0, 22050, 44100, r.getrandbits(32)]))
         struct.pack_into('<I', v, 0x24, r.choice([0, 0, 0xf, r.getrandbits(4), r.getrandbits(32)]))
         struct.pack_into('<4I', v, 0x34, *[r.choice([fb(0.5), fb(2.0), fb(r.random()), r.getrandbits(32)]) for _ in range(4)])
+        if name == 'ratemod' and r.random() < 0.9:   # (the modifiers' pointer the channel's own, which the set writes)
+            struct.pack_into('<I', v, 0x34, CHAN + 0x48)
         voices += v
     pool = struct.pack('<IIII', r.getrandbits(32), r.choice([VOICES] * 8 + [0]), n, CHAN)
     chan = bytearray(r.bytes(0x60))
@@ -186,6 +206,9 @@ def rates_case(r, log):
     struct.pack_into('<I', svt, 0x80, recorder(8, 3))
     regions = {CHAN: chan, OUT: r.bytes(4), VOICES: voices, POOL: pool, SRC: struct.pack('<I', SVT) + r.bytes(0xc), SVT: svt,
                SHIFT: bytes([r.choice([0, 1, 4, r.getrandbits(8)])]) + r.bytes(3), LOG: log}
+    if name == 'ratemod':
+        index = r.randrange(6) | (r.getrandbits(24) << 8 if r.random() < 0.3 else 0)
+        return Call(0x6b98d0, [CHAN, OUT, index, r.choice([fb(0.5), fb(2.0), fb(r.random()), 0x7f800001, 0xff812345, 0x7fc00000, r.getrandbits(32)])], regions, conv='t', ret='a')
     return Call(0x6b5fc0, [r.getrandbits(32), OUT, CHAN], regions, conv='t', ret='a')
 
 
@@ -322,7 +345,7 @@ def voices_case(r, log, name):
         return Call(0x6b7b60, [CHAN, r.choice([0, 1, 0x100, r.getrandbits(32)])], regions, conv='t', ret='v')
     if name == 'position':
         return Call(0x6b79d0, [CHAN, OUT, REC], regions, conv='t', ret='a')
-    if name in ('setocc', 'occswitch'):   # (the switch at +0x18 and the radius at +0x14 as they were or not; NaNs; the byte argument's high bytes random)
+    if name in ('setocc', 'occswitch', 'cmdoccswitch'):   # (the switch at +0x18 and the radius at +0x14 as they were or not; NaNs; the byte argument's high bytes random)
         was = r.choice([0, 1, r.getrandbits(8)])
         occluders[0x18] = was
         on = r.choice([was, was, 0, 1, r.getrandbits(8)])
@@ -330,10 +353,15 @@ def voices_case(r, log, name):
         radius = r.choice([old, old, old, 0, fb(1.0), fb(3.0), 0x7fc00000, 0xffc00000, 0x7f800001, 0x80000000, r.getrandbits(32)])
         if r.random() < 0.15:
             struct.pack_into('<I', occluders, 0x14, r.choice([0x7fc00000, 0x7f800001]))
+        if name == 'cmdoccswitch':
+            obj = bytearray(r.bytes(0x40))
+            struct.pack_into('<I', obj, 0x24, r.choice([CHAN] * 16 + [0]))
+            regions.update({OBJECT: obj, COMMAND: struct.pack('<III', r.getrandbits(32), r.choice([0, 1, r.getrandbits(32)]), radius)})
+            return Call(0x6b5890, [COMMAND, OUT, OBJECT], regions, conv='t', ret='a')
         if name == 'occswitch':
             return Call(0x6b99c0, [CHAN, OUT, r.choice([0, 1, r.getrandbits(32)]), radius], regions, conv='t', ret='a')
         return Call(0x6b8180, [CHAN, OUT, r.getrandbits(24) << 8 | on, radius], regions, conv='t', ret='a')
-    if name in ('addocc', 'remocc', 'listremove', 'occadd', 'objoccadd', 'objoccrem'):   # (the occluders' list rebuilt with the list's own nodes {occluder, next, prev} and
+    if name in ('addocc', 'remocc', 'listremove', 'occadd', 'objoccadd', 'objoccrem', 'cmdoccadd', 'cmdoccrem'):   # (the occluders' list rebuilt with the list's own nodes {occluder, next, prev} and
         # tail; the switch on or off; the EAX buffer or the source's slot 0x13. The add: the new one's radius equal to one there, between,
         # NaN or random. The removes: one of the nodes (its occluder null now and then), or none; the count 0 now and then)
         m = r.choice([0, 1, 2, 3])
@@ -346,19 +374,26 @@ def voices_case(r, log, name):
         occluders[0x18] = r.choice([0, 1, r.getrandbits(8)])
         obj = bytearray(r.bytes(0x40))   # (the sound object's forwards: its channel +0x24 or none)
         struct.pack_into('<I', obj, 0x24, r.choice([CHAN] * 8 + [0]))
-        if name not in ('addocc', 'occadd', 'objoccadd'):
+        if name not in ('addocc', 'occadd', 'objoccadd', 'cmdoccadd'):
             pick = NODES + 0xc * r.randrange(m) if m and r.random() < 0.9 else r.choice([0, 0, NODES])
             if pick and r.random() < 0.15:
                 struct.pack_into('<I', nodes, pick - NODES, 0)
             if r.random() < 0.1:
                 struct.pack_into('<I', occluders, 0xc, 0)
             regions.update({OCCS: occs, NODES: nodes, HEAP: heap(), PNODE: struct.pack('<I', pick)})
+            if name == 'cmdoccrem':
+                regions.update({OBJECT: obj, COMMAND: struct.pack('<II', r.getrandbits(32), PNODE)})
+                return Call(0x6b5ce0, [COMMAND, OUT, OBJECT], regions, conv='t', ret='a')
             if name == 'objoccrem':
                 regions[OBJECT] = obj
                 return Call(0x6b8cb0, [OBJECT, OUT, PNODE], regions, conv='t', ret='a')
             return Call(CALLS[name], [OCCLUDERS if name == 'listremove' else CHAN, OUT, PNODE], regions, conv='t', ret='a')
         radius = r.choice([fb(float(r.randint(0, 7))), fb(radii[0]) if m else 0, fb(2.5), 0x7fc00000, r.getrandbits(32)])
         regions.update({OCCS: occs, NODES: nodes, HEAP: heap(fail=r.choice([0, 0, 0, 1]))})
+        if name == 'cmdoccadd':
+            regions.update({PNODE: r.bytes(4), OBJECT: obj,
+                            COMMAND: struct.pack('<6I', r.getrandbits(32), ints(), r.getrandbits(32), ints(), radius, PNODE)})
+            return Call(0x6b5cb0, [COMMAND, OUT, OBJECT], regions, conv='t', ret='a')
         if name == 'objoccadd':
             regions.update({PNODE: r.bytes(4), OBJECT: obj})
             return Call(0x6b8c70, [OBJECT, OUT, ints(), r.getrandbits(32), ints(), radius, PNODE], regions, conv='t', ret='a')

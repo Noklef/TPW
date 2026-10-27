@@ -13,6 +13,7 @@
 #include "gameheap.h"
 #include "initializers.h"
 #include "ptrlist.h"
+#include "refcounted.h"
 #include "selectors.h"
 #include "sfman.h"
 #include "soundbank.h"
@@ -593,6 +594,38 @@ u32 *__fastcall SoundChannel_RemoveOccluder(u8 *channel, void *, u32 *out, u8 **
     }
     *out = 0;
     return out;
+}
+
+s32 __fastcall SoundChannel_Release(u8 *channel) {
+    u32 out;          // (unset, as the original's)
+    u32 functor[2];   // (the second dword left unset, sic)
+    functor[0] = 0x0070a5b0;
+    vcall<void>(channel, 0x10, &out, functor);
+    return Class703770_Release(channel);
+}
+
+u32 *__fastcall SoundChannel_SetRecordValue40Flagged(u8 *channel, void *, u32 *out, u8 *record, u32 value) {
+    // (the status lands in the value's own stack slot, sic)
+    if (static_cast<s32>(*SoundChannel_SetRecordValue40(channel, nullptr, &value, record, value)) < 0) {
+        *out = 0xffffffff;
+        return out;
+    }
+    SetThenFlag60_4c_6b9cb0(record, nullptr, 1);
+    *out = 0;
+    return out;
+}
+
+u32 *__fastcall SoundChannel_SetRateModifier(u8 *channel, void *, u32 *out, u32 index, u32 modifier) {
+    at<u32>(channel, 0x48 + 4 * (index & 0xff)) = X87_FloatThrough(modifier);   // (fld; fstp)
+    u32 functor[2] = {0x0070a610, modifier};   // (the index's own stack slot, then the modifier's)
+    SoundChannel_Apply(channel, nullptr, out, reinterpret_cast<u8 *>(functor));
+    return out;
+}
+
+u8 *__fastcall SoundChannel_SetRecordBlock(u8 *record, void *, const u32 *block) {
+    for (u32 i = 0; i < 0xd; ++i) at<u32>(record, 0xc + 4 * i) = block[i];
+    at<u32>(record, 0x4c) |= 0x40;
+    return record;
 }
 
 }  // extern "C"
