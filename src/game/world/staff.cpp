@@ -10,9 +10,11 @@
 #include "../core/timesig.h"
 #include "../core/selectors.h"
 #include "../core/thunks.h"
+#include "../core/vcall.h"
 #include "../math/x87.h"
 #include "../sprite/scriptref.h"
 #include "analyser.h"
+#include "analysercell.h"
 #include "messagecentre.h"
 #include "money.h"
 #include "mousemode.h"
@@ -501,6 +503,27 @@ void __fastcall Staff_SetState(u8 *staff, void *, u32 state) {
         break;
     }
     at<u32>(staff, 0x19c) = state;
+}
+
+void __fastcall Staff_Settle(u8 *staff) {
+    if (!AnalyserRecord_ChecksCell(staff)) return;   // (inlined: not 4, 5, 7, 0xd or 0x12, and the cell plain)
+    if (at<u8>(staff, 2) == 7 && at<u32>(staff, 0x19c) == 0x12) return;
+    Staff_SetState(staff, nullptr, 0);
+}
+
+void __fastcall Staff_PickUp(u8 *staff) {
+    MouseModes_EnsureHolder();
+    u8 *const current = global<u8 *>(0x007b05d8);
+    if ((current ? vcall<s32>(current, 0x24) : 0) == 6) {
+        u8 *const block = static_cast<u8 *>(GameHeap_Alloc(8));
+        u8 *const mode = block ? MouseModeOnlineBase_Ctor(block) : nullptr;
+        MouseModes_EnsureHolder();
+        MouseMode_Set(mode);
+    }
+    u16 handle;
+    Fn_509ae0(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da718_519450(global<u8 *>(0x0080239c))), nullptr,
+              *Thing_GetHandle(staff, nullptr, &handle));
+    Staff_SetState(staff, nullptr, 7);
 }
 
 u16 *__fastcall Handyman_FindJob(u8 *staff, void *, u16 *out) {

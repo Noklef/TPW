@@ -7,6 +7,9 @@
 # posted), the point a or b as above, the inner rectangle +0x138 a GUI one, the buttons held +0x11c and the press table [0xfaa598].
 # NthNode (0x65ada4): a forest of 0-12 nodes (first child +0x48, next +0x44, parent +0x4c) from +0x144 (or none), the count +0x14c
 # theirs, fewer or negative (more would walk off the last one: a fault in both), n below it, at or past it, or negative.
+# SetNodeData / GetNodeData (0x65b766, 0x65b818): NthNode's forest and n, any value, the out pointer a dword. SetFont (0x65ad43): +0x98 /
+# +0x9c none, +0x4c the font or not, the font a recorder (slot 1 answering a height small, negative, big or 0: a fault in both) or none,
+# the inner top small or any, the bottom below it or any.
 # usage: window705950.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SelectAt,TrackAt,...)
 import os
 import struct
@@ -19,8 +22,9 @@ from fncmp import LOG, RAM, Bench, Call, log_region, put, set_return, vtable  # 
 from window import RANGES, queues  # noqa: E402
 
 CALLS = {'SelectAt': 0x65b93f, 'TrackAt': 0x65bac2, 'PostChosen': 0x65ba83, 'ClickAt': 0x65ba1e, 'Scrolled': 0x65b8dc, 'Proc': 0x65bb6b,
-         'NthNode': 0x65ada4}
-B = Bench(RANGES + [(0x65b8dc, 0x65bb10), (0x65bb3f, 0x65bc24), (0x65f6d1, 0x65fba8), (0x65dcaf, 0x65dd18), (0x680050, 0x68005b), (0x65ada4, 0x65ae3c)])
+         'NthNode': 0x65ada4, 'SetNodeData': 0x65b766, 'GetNodeData': 0x65b818, 'SetFont': 0x65ad43}
+B = Bench(RANGES + [(0x65b8dc, 0x65bb10), (0x65bb3f, 0x65bc24), (0x65f6d1, 0x65fba8), (0x65dcaf, 0x65dd18), (0x680050, 0x68005b), (0x65ada4, 0x65ae3c),
+          (0x65b766, 0x65b79a), (0x65b818, 0x65b84e), (0x65ad43, 0x65ada4)])
 LIST, PARENT, BAR, OTHER, VT = RAM + 0xa000, RAM + 0xa200, RAM + 0xa400, RAM + 0xa500, RAM + 0xa600
 MANAGER, MVT = RAM + 0xa700, RAM + 0xa800
 NODES = RAM + 0xb000
@@ -57,6 +61,27 @@ def forest(r, regions):
 
 def case(r):
     op = r.deal(OPS)
+    if op == 'SetFont':
+        log = log_region()
+        win = bytearray(r.bytes(0x160))
+        put(win, 0x98, 'II', 0, 0)
+        put(win, 0x4c, 'I', r.choice([OTHER, 0, r.getrandbits(32)]))
+        top = r.choice([0, 10, -20, r.randrange(-0x8000, 0x8000)])
+        put(win, 0x13e, 'h', top)
+        put(win, 0x142, 'H', r.choice([top + r.randrange(0, 400), top + r.randrange(0, 400), r.getrandbits(16)]) & 0xffff)
+        set_return(log, 1, r.choice([1, 12, 16, 16, 20, -3, 0x7fff, 0x8000, 0]) & 0xffff | r.getrandbits(16) << 16)
+        regions = {LIST: win, LOG: log, OTHER: struct.pack('<I', VT) + r.bytes(0x10), VT: vtable({1: 0})}
+        return Call(CALLS[op], [LIST, r.choice([OTHER, OTHER, OTHER, 0])], regions, conv='t', ret='v')
+    if op in ('SetNodeData', 'GetNodeData'):
+        regions = {}
+        win = bytearray(r.bytes(0x160))
+        count = forest(r, regions)
+        put(win, 0x144, 'I', NODES if count or r.random() < 0.3 else 0)
+        put(win, 0x14c, 'i', r.choice([count, count, count, max(count - 1, 0), 0, -1]) if count else r.choice([0, -1, 1]))
+        regions[LIST] = win
+        regions[BAR] = r.bytes(4)
+        n = r.choice([r.randrange(count) if count else 0] * 4 + [count, count + 1, -1, 0])
+        return Call(CALLS[op], [LIST, n & 0xffffffff, r.getrandbits(32) if op == 'SetNodeData' else BAR], regions, conv='t', ret='w')
     if op == 'NthNode':
         regions = {}
         win = bytearray(r.bytes(0x160))

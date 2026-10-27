@@ -24,6 +24,12 @@ u32 __fastcall ResearchLab_CountNotDone(const u8 *lab, void *, u32 cat);
 // 0x504040 (group): whether the group has a current project and it is not done (a byte).
 u8 __fastcall ResearchLab_CurrentNotDone(const u8 *lab, void *, u32 group);
 
+// 0x503ac0 (group, pops 4; name unconfirmed; called by 0x4a9be4, which takes it from 100): with a current project (+8 not negative), its
+// research left as a share of the dearest project's cost (+0x1464's mCost; its index not checked): (mCost - mResearchDone) * 100.0 /
+// that cost, at the x87's precision, truncated (__ftol's low dword); 0 without a current project, unless its mCost is above 0.1 and the
+// dearest cost above 1.0 (a NaN: 0).
+u32 __fastcall ResearchLab_LeftPercent(const u8 *lab, void *, u32 group);
+
 // 0x503ff0 (thiscall; name unconfirmed): for each of the mNumProjects projects, the last first, the byte +0x10 of its object control
 // record (ObjectControls_Find of its id in the game's table, not quiet) set to 1; a record not found faults (sic).
 void __fastcall ResearchLab_FlagProjectControls(const u8 *lab);

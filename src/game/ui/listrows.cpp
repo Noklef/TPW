@@ -7,6 +7,7 @@
 #include "../core/language.h"
 #include "../core/vcall.h"
 #include "../render/textparts.h"
+#include "../world/objectstatus.h"
 #include "panelparts.h"
 #include "window.h"
 #include "windowfactory.h"
@@ -116,6 +117,13 @@ u8 *__cdecl List7cc338_NewRow() {
     u8 *const window = newRow(0, 0x64, cachedHeight(0x007cc35c, fontAt(0x00756f38)));
     if (window) child(window, 9, 0x11, 1, 0x64, 0, 0xc8, 0x32);
     return window;
+}
+
+void __cdecl List7cc338_InitRow(u8 *row) {
+    setPart(row, TextPart_Ctor);
+    Window_Set4c(row, nullptr, Language_Font(global<u32>(0x00756f38)));
+    Window_NotifyImpl100(row, nullptr, 0);
+    vcall<void>(panelparts::barOf(firstChild(row), panelparts::kRideStatBar), 0x1c, 0u);
 }
 
 u8 *__cdecl List7cc530_NewRow() {
@@ -422,5 +430,72 @@ void __cdecl List7ca170_InitRow(u8 *row) {   // (sic: the original builds a GuiR
     window = nextSibling(window);
     vcall<void>(panelparts::barOf(window, panelparts::kRideStatBar, 0, 8), 0x1c, 0x1f4u);
     panelparts::barOf(nextSibling(window), panelparts::kHappyGrad, 0, 8);
+}
+
+u32 __cdecl List7ca158_RowProc(u8 *window, u32 message, u32 a, u32 b) {
+    if (message == 0x403) {
+        u8 *object = reinterpret_cast<u8 *>((uintptr_t)b);
+        u16 id = 0;
+        Fn_4e0df0(object, nullptr, (u32)(uintptr_t)&id);
+        if (id != 0) {
+            Fn_4e0df0(object, nullptr, (u32)(uintptr_t)&id);
+            object = global<u8 *>(0x007cfb90 + id * 20u);
+        }
+        const u32 colour = Table74fb50_Get(Object_Status(object, 2));
+        Window_Notify40000(window, nullptr, colour & 0xff, colour >> 8 & 0xff, colour >> 16 & 0xff, 0xff);
+    }
+    return (u32)Window_CallDefault(window, nullptr, message, a, b);
+}
+
+u32 __cdecl List7cb264_RowProc(u8 *window, u32 message, u32 a, u32 b) {
+    if (message == 0x403) {
+        if ((s32)b < 0)
+            Window_Notify40000(window, nullptr, 0x8c, 0, 0x3c, 0xff);
+        else
+            Window_Notify40000(window, nullptr, 0xff, 0xff, 0xff, 0xff);
+    }
+    return (u32)Window_CallDefault(window, nullptr, message, a, b);
+}
+
+u8 *__cdecl List758f04_NewRow() {
+    const u32 height = (u32)((s32)(s16)fontHeight(global<u32>(0x00758f04)) * 0x600 / (s32)global<s16>(0x00faa5c0) + 4);
+    u8 *const window = static_cast<u8 *>(GameHeap_Alloc(0x138));
+    return window ? build(window, height) : nullptr;
+}
+
+u8 *__cdecl List758f04_NewRowA() {
+    u8 *const row = List758f04_NewRow();
+    Window_SetHandler(row, nullptr, 0x004be730);   // (sic: not checked)
+    return row;
+}
+
+u8 *__cdecl List758f04_NewRowB() {
+    u8 *const row = List758f04_NewRow();
+    Window_SetHandler(row, nullptr, 0x004be7c0);   // (sic: not checked)
+    return row;
+}
+
+void __cdecl List758f04_InitRow(u8 *row) {
+    setPart(row, TextPart_Ctor);
+    Window_Set4c(row, nullptr, Language_Font(global<u32>(0x00758f04)));
+    Window_Notify40000(row, nullptr, 0xff, 0xff, 0xff, 0xff);
+}
+
+void __cdecl List758f04_InitRowJump(u8 *row) { List758f04_InitRow(row); }
+
+u32 __cdecl List758f04_RowProcA(u8 *window, u32 message, u32 a, u32 b) {
+    if (message == 0x403) {
+        const u32 colour = global<u32>(!(b & 1) ? 0x00758f30 : !(b & 2) ? 0x00758f3c : !(b & 4) ? 0x00758f34 : 0x00758f38);
+        Window_Notify40000(window, nullptr, colour & 0xff, colour >> 8 & 0xff, colour >> 16 & 0xff, 0xff);
+    }
+    return (u32)Window_CallDefault(window, nullptr, message, a, b);
+}
+
+u32 __cdecl List758f04_RowProcB(u8 *window, u32 message, u32 a, u32 b) {
+    if (message == 0x403) {
+        const u8 *const colour = reinterpret_cast<const u8 *>((uintptr_t)(0x00758f10 + (b & 7) * 4));
+        Window_Notify40000(window, nullptr, colour[0], colour[1], colour[2], 0xff);
+    }
+    return (u32)Window_CallDefault(window, nullptr, message, a, b);
 }
 }  // extern "C"

@@ -1,6 +1,6 @@
 // The GUI library's font (the vtable 0x7058d8, set up by 0x657d30: +4 0, the spacing words +6 / +8 2, the glyphs +0xc 0: 8 bytes a
-// character, the first a signed width; what else they hold is unconfirmed). Reimplementation of 0x658243 and 0x658334. The names are
-// unconfirmed.
+// character, the first a signed width; what else they hold is unconfirmed). Reimplementation of 0x658243, 0x6582ec, 0x658334 and 0x6583fe. The
+// names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -12,9 +12,17 @@ extern "C" {
 // dword +4 0, the word +0xa the height. The spacing +6 set either way. Returns the font.
 u8 *__fastcall GuiFont_Init(u8 *font, void *, u32 count, u32 width, u32 spacing, u32 height, u32 b);
 
+// 0x6582ec (thiscall (index: a word, width, b: bytes), pops 12; no direct callers; name unconfirmed): with glyphs +0xc and the index
+// (signed) below the count +4 (unsigned), the glyph's bytes +0 / +1 = width and b (a negative index writes before the glyphs, sic).
+void __fastcall GuiFont_SetGlyph(u8 *font, void *, u32 index, u32 width, u32 b);
+
 // 0x658334 (thiscall (text: wide, from, to: words), pops 12; name unconfirmed): the width (AX) of the text's characters from `from` to
 // `to` (both included): each glyph's width (signed) plus the spacing +6, summed in a word. `to` below `from` (signed) means the text's
 // last character (its length - 1). 0 with no text, no glyphs, an empty text, `from` negative or past the length, `to` not past `from`
 // (sic: a single character is 0 wide) or past the length; `to` at the length counts the terminator's glyph (sic).
 u16 __fastcall GuiFont_TextWidth(const u8 *font, void *, const u16 *text, s16 from, s16 to);
+
+// 0x6583fe (thiscall (character: a word), pops 4; name unconfirmed): the character's glyph width (signed) plus the spacing +6, in AX; 0
+// with no glyphs or a character not below the count +4.
+u16 __fastcall GuiFont_CharWidth(const u8 *font, void *, u32 character);
 }

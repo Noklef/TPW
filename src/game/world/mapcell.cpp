@@ -228,6 +228,22 @@ s32 __cdecl Map_PercentWithRE() {
     return total ? counted * 100 / total : 0;
 }
 
+s32 __cdecl Map_PercentWith2c() {
+    u8 *map = at<u8 *>(reinterpret_cast<const void *>(0x0080239c), 0) + 0x2d8;
+    s32 total = 0, counted = 0;
+    for (s32 x = 0x7f; x >= 0; x--) {
+        for (s32 y = 0x7f; y >= 0; y--) {
+            const u32 id = ((u32)y << 7) + (u32)x + 1;
+            const u8 *cell = map + (id & 0xffff) * 17 * 4 - 0x44;
+            const bool typed = MapCell_IsType1(cell) || MapCell_IsType3Or9(cell);
+            const bool set = at<u32>(cell, 0x2c) != 0;
+            if (typed || set) total++;
+            if (set) counted++;
+        }
+    }
+    return total ? counted * 100 / total : 0;
+}
+
 void __fastcall Map_SpreadValues(u8 *world, void *, u32 add, u32 index, u32 cell) {
     const u8 *source = world + index * 12;
     const s32 radius = (u16)source[0x1d910e];

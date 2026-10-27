@@ -13,9 +13,14 @@
 # Repeat (0x668dd9): Look's windows with flag 0x20 of +0x48 mostly set, the phase +0x15a 1 or 2 mostly, the clock [0x77c490] a recorder
 # vtable whose slot 0 answers a time near the time +0x144 (or any), the delay / interval +0x13c / +0x140 near the difference (or any),
 # the window +0x60 the window itself, another or 0, and window.py's message queues.
+# IsRepeatTick (0x668d98): the delay +0x13c 0, small or any, the interval +0x140 small of either sign (0 now and then: a fault in both), the
+# count about the delay or a multiple. StartRepeat (0x668ecf): Repeat's. StopRepeat (0x668eff): the phase +0x15a 0-2 or any.
+# StateField (0x669410): window()'s.
 # usage: window705a50.py [CASES [SEED]] [--wild|--both] [--show N]
 # SetFlag139 (0x668c99): SetState's cases for the byte +0x139, both objects' events masked to the look and the dword +0x18.
-#   (env OPS=Look,NotifyLook,SetState,SetPair,Set14c,Set154,SetEnabled,Repeat,SetFlag139)
+# Child16006 (0x4c5820, src/game/ui/dialogs): SetState's case with the window the child 0x16006 of the dialog [0x7cdb0c] (none now and
+# then), first or after a decoy; the argument 1 or not (the state it gives) and the state the window's now and then; notify 1.
+#   (env OPS=Look,NotifyLook,SetState,SetPair,Set14c,Set154,SetEnabled,Repeat,SetFlag139,Child16006)
 import os
 import struct
 import sys
@@ -26,11 +31,14 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from window import RANGES as WINDOW_RANGES, hover, queues, tree  # noqa: E402
 
 CALLS = {'Look': 0x668820, 'NotifyLook': 0x668ad3, 'SetState': 0x668bec, 'SetPair': 0x668f35, 'Set14c': 0x668f5a, 'Set154': 0x668f7b,
-         'SetEnabled': 0x668a23, 'Repeat': 0x668dd9, 'SetFlag139': 0x668c99}
+         'SetEnabled': 0x668a23, 'Repeat': 0x668dd9, 'SetFlag139': 0x668c99,
+         'IsRepeatTick': 0x668d98, 'StartRepeat': 0x668ecf, 'StopRepeat': 0x668eff, 'StateField': 0x669410, 'Child16006': 0x4c5820}
 RANGES = [(0x668820, 0x6688b3), (0x668ad3, 0x668bd4), (0x668bec, 0x668c89), (0x668f35, 0x668f9c), (0x6693d0, 0x669407),
           (0x658ccc, 0x658d9f), (0x6697e3, 0x6698a4), (0x659710, 0x659721)]
 B = Bench(sorted(set(RANGES + WINDOW_RANGES + [(0x668a23, 0x668aad), (0x65da8d, 0x65db25), (0x668dd9, 0x668ecf), (0x668c99, 0x668d5f),
-                                           (0x65968e, 0x6596a2)])))
+                                           (0x65968e, 0x6596a2), (0x668d98, 0x668dd9), (0x668ecf, 0x668f35), (0x669410, 0x66943e),
+                                           (0x4c5820, 0x4c584b), (0x65d7bc, 0x65d822)])))
+DIALOG, DECOY = RAM + 0x3000, RAM + 0x3100   # (Child16006's)
 WINDOW, OBJ98, OBJ9C, VT98, VT9C = RAM, RAM + 0x200, RAM + 0x240, RAM + 0x280, RAM + 0x300
 OTHER, CLOCK, CLOCK_VT = RAM + 0x380, RAM + 0x3c0, RAM + 0x400
 EVENT_MASK = 0x0f000030   # 0x668bec's event: the look +4 / +5, the dword +0x18
@@ -110,13 +118,32 @@ def case(r):
         return Call(CALLS[op], [WINDOW, enabled], regions, conv='t', ret='w')
     if op == 'Repeat':
         return repeat(r, regions, log, w)
+    if op == 'StartRepeat':   # (Repeat's flag and clock)
+        repeat(r, regions, log, w)
+        return Call(CALLS[op], [WINDOW], regions, conv='t', ret='v')
+    if op == 'StateField':   # (window()'s state byte +0x138)
+        return Call(CALLS[op], [WINDOW], regions, conv='t', ret='a')
+    if op == 'StopRepeat':
+        w[0x15a] = r.choice([0, 1, 2, 2, 0x82, r.getrandbits(8)])
+        return Call(CALLS[op], [WINDOW], regions, conv='t', ret='a')
+    if op == 'IsRepeatTick':   # (the interval small, now and then 0: a fault in both; the count about the delay or a multiple)
+        delay, interval = r.choice([0, 1, 125, 500, -3, r.getrandbits(31)]), r.choice([1, 2, 3, 125, -4, 7] * 6 + [0])
+        count = r.choice([delay, delay + 1, delay - 1, interval * r.randrange(-3, 20), r.getrandbits(31)])
+        put(w, 0x13c, 'ii', delay, interval)
+        return Call(CALLS[op], [WINDOW, count & 0xffffffff], regions, conv='t', ret='a')
     if op == 'SetPair':
         return Call(CALLS[op], [WINDOW, r.getrandbits(32), r.getrandbits(32)], regions, conv='t', ret='a')
     if op in ('Set14c', 'Set154'):   # (NotifyLook's, the value it hands on for some looks set first)
         objects(r, regions, log, w, [(0x9c, OBJ9C)])
         return Call(CALLS[op], [WINDOW, r.choice([0, 0xffffffff, r.getrandbits(32)])], regions, conv='t', ret='v')
     at = 0x139 if op == 'SetFlag139' else 0x138
-    state = w[at] if r.random() < 0.25 else r.choice([0, 1, 2, 3, r.getrandbits(8)])
+    if op == 'Child16006':
+        arg = r.choice([1, 1, 0, 0, 2, r.getrandbits(32)])
+        state = int(arg == 1)
+        if r.random() < 0.25:
+            w[0x138] = state
+    else:
+        state = w[at] if r.random() < 0.25 else r.choice([0, 1, 2, 3, r.getrandbits(8)])
     objects(r, regions, log, w, [(0x98, OBJ98), (0x9c, OBJ9C)])
     w2 = bytearray(w)   # the look the notification sees: after the state is set
     w2[0x138] = state
@@ -124,6 +151,12 @@ def case(r):
     blob_bytes(log, 3, 1, EVENT_MASK)
     queues(r, regions)
     regions[0xfaa5d4] = put(bytearray(4), 0, 'I', r.choice([0, 1, 0x80000000]))
+    if op == 'Child16006':
+        put(w, 0x8c, 'I', 0x16006)
+        regions[DECOY] = put(put(bytearray(r.bytes(0x100)), 0x8c, 'I', r.choice([0x16007, 0x16005, 0])), 0x54, 'I', WINDOW)
+        regions[DIALOG] = put(bytearray(r.bytes(0x100)), 0x5c, 'I', r.choice([WINDOW, DECOY]))
+        regions[0x7cdb0c] = struct.pack('<I', r.choice([DIALOG] * 12 + [0]))
+        return Call(CALLS[op], [arg], regions, ret='v')
     notify = r.choice([0, 1, 0xff]) | r.choice([0, r.getrandbits(24)]) << 8
     return Call(CALLS[op], [WINDOW, state | r.choice([0, r.getrandbits(24)]) << 8, notify], regions, conv='t', ret='w')
 

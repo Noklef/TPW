@@ -1,6 +1,6 @@
 // The GUI library's message queue (the objects at [0xfaa5f4] and [0xfaa5f0]): +0 the entries (16 bytes each: window, message, a, b; a
 // free entry has window 0), +4 the capacity, +8 the next to take, +0xc the next to fill (both counting down, wrapping to the last), +0x10
-// the count. Reimplementation of 0x669735, 0x669767, 0x6697e3, 0x6698a4, 0x6698e6, 0x669ad7, 0x669b3e and 0x669bdb.
+// the count. Reimplementation of 0x6596b0, 0x669735, 0x669767, 0x6697e3, 0x6698a4, 0x6698e6, 0x669ad7, 0x669b3e and 0x669bdb.
 #pragma once
 
 #include "../../../re/types.h"
@@ -45,4 +45,13 @@ void __fastcall MsgQueue_Clear(u8 *queue);
 // take comes before the check), uncounted; with it, each is first shown to the hook (the entry's window, message, a and b; MsgQueue_Peek,
 // none for a dropped one), the hook read again each time.
 s32 __cdecl MsgQueue_Pump(s32 most);
+
+// 0x658f0b (cdecl (most); called by 0x48a6bc; name unconfirmed): with the second queue [0xfaa5f4] (read again for each), its messages
+// dispatched (MsgQueue_DispatchOne) while one is (AX) and fewer than `most` were counted; the count. The dispatch comes before the check
+// (sic): one more is taken once `most` is reached, uncounted.
+s32 __cdecl MsgQueue_PumpSecond(s32 most);
+
+// 0x6596b0 (thiscall (flags), pops 4; name unconfirmed): the scalar deleting destructor: MsgQueue_Free, then with flag 1 the queue's block freed
+// (Mem_Free). Returns the queue.
+u8 *__fastcall MsgQueue_Delete(u8 *queue, void *, u32 flags);
 }

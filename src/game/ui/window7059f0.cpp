@@ -118,6 +118,17 @@ s32 __fastcall Window7059f0_ColumnBottom(u8 *window, void *, u32 column) {
     return at<s16>(at<u8 *>(window, 0x16c) + (s16)column * 0xc, 0xa);
 }
 
+void __fastcall Window7059f0_SetColumnBottom(u8 *window, void *, u32 column, u32 value) {
+    if ((s16)column < at<s16>(window, 0x164) && at<u8 *>(window, 0x16c))
+        at<u16>(at<u8 *>(window, 0x16c) + (s16)column * 0xc, 0xa) = (u16)value;   // (a negative column writes before the array, sic)
+}
+
+void __fastcall Window7059f0_OffsetColumns(u8 *window, void *, u32 dx, u32 dy) {
+    if (!at<u8 *>(window, 0x16c)) return;
+    for (s32 i = at<s16>(window, 0x164); i != 0; --i)   // (last first; a negative count runs on, sic)
+        vcall<void>(at<u8 *>(window, 0x16c) + (i - 1) * 0xc, 8, dx, dy);
+}
+
 s32 __fastcall Window7059f0_NextItem(u8 *window, void *, s32 item, s32 *level) {
     const s32 *const links = at<s32 *>(window, 0x144);
     s32 next = -2, depth = 0;
@@ -406,6 +417,13 @@ void __fastcall Window7059f0_FreeItem(u8 *window, void *, u32 unused, s32 item, 
     if (--at<s32>(window, 0x150) == 0) at<s32>(window, 0x160) = -1;
 }
 
+void __fastcall Window7059f0_SelectAt(u8 *window, void *, u32 x, u32 y) {
+    if (!at<s16>(window, 0x170)) return;
+    if (!(s16)vcall<u32>(window + 0x138, 0, x, y)) return;   // (the inner rectangle's slot 0: the point in it)
+    const s32 row = ((s32)(s16)y - at<s16>(window, 0x13e)) / at<s16>(window, 0x170);
+    if (row >= 0) Window7059f0_Select(window, nullptr, row);
+}
+
 void __fastcall Window7059f0_Select(u8 *window, void *, s32 row) {
     if (row < 0) {
         row = -1;
@@ -488,6 +506,23 @@ void __fastcall Window7059f0_RefreshRows(u8 *window) {
             level += delta;
         }
     }
+}
+
+void __fastcall Window7059f0_BuildRows(u8 *window, void *, u8 *(__cdecl *make)(), void(__cdecl *release)(u8 *)) {
+    if (!make) return;
+    u8 *row = make();
+    s16 count = (s16)Window7059f0_SetRowSize(window, nullptr, row);
+    if (u8 *const bar = Window_FindChild(window, nullptr, 1)) Fn_66b53e(bar, nullptr, (u32)(s32)count);
+    if (count) {
+        Window7059f0_SetRow(window, nullptr, 0, row);   // (the first row made kept at 0)
+        if (release) release(row);
+        for (--count; count; --count) {   // (then rows count-1 down to 1, each made anew)
+            row = make();
+            Window7059f0_SetRow(window, nullptr, count, row);
+            if (release) release(row);
+        }
+    }
+    Window7059f0_RefreshRows(window);
 }
 
 s32 *__fastcall Window7059f0_Grow(u8 *window, void *, s32 n) {
@@ -800,6 +835,40 @@ u32 __fastcall Window7059f0_SetSortOrder(u8 *window, void *, u32 order) {
     if ((s16)order == at<s16>(window, 0x16a)) return (u32)(s32)(s16)order & 0xffff0000u;
     at<s16>(window, 0x16a) = (s16)order == -1 ? (s16)(at<s16>(window, 0x16a) == 0) : (s16)order;
     return ((u32)Window7059f0_NotifySort(window) & 0xffff0000u) | 1;
+}
+
+void __fastcall Window7059f0_SortBy(u8 *window, void *, s32 by, u32 sort) {
+    const u32 magnitude = by < 0 ? 0u - (u32)by : (u32)by;   // (CRT abs 0x680050)
+    const bool column = (s16)Window7059f0_SetSortColumn(window, nullptr, magnitude - 1) == 1;
+    const bool order = (s16)Window7059f0_SetSortOrder(window, nullptr, by < 0 ? 1u : 0u) == 1;
+    if ((order || column) && (u8)sort) Window7059f0_Sort(window, nullptr, -1);
+}
+
+void __fastcall Window7059f0_OnHeader(u8 *window, void *, u32 id) {
+    const s16 column = (s16)(id - 0x10);
+    if (!(at<u32>(window, 0x48) & 0x10) || column < 0 || column >= at<s16>(window, 0x164)) return;
+    if (column == at<s16>(window, 0x168)) {
+        Window7059f0_SetSortOrder(window, nullptr, 0xffffffffu);
+    } else {
+        Window7059f0_SetSortOrder(window, nullptr, 0);
+        Window7059f0_SetSortColumn(window, nullptr, (u16)column);
+    }
+    Window7059f0_Sort(window, nullptr, -1);
+    Window7059f0_RefreshRows(window);
+    if (at<s32>(window, 0x14c) >= 0) Window_PostMessage(at<u8 *>(window, 0x60), 0x401, at<u32>(window, 0x8c), at<u32>(window, 0x14c));
+}
+
+void __fastcall Window7059f0_OnMouseDown(u8 *window, void *, u32 x, u32 y) {
+    Window7059f0_SelectAt(window, nullptr, x & 0xffff, y & 0xffff);
+    Window7059f0_PostColumnAt(window, nullptr, x & 0xffff, y & 0xffff);
+    if ((at<u32>(window, 0x48) & 0x80) && at<s32>(window, 0x14c) >= 0)
+        Window_PostMessage(at<u8 *>(window, 0x60), 0x400, at<u32>(window, 0x8c), at<u32>(window, 0x14c));
+}
+
+void __fastcall Window7059f0_OnDouble(u8 *window, void *, u32 x, u32 y) {
+    if (!(at<u32>(window, 0x48) & 0x80)) return;
+    Window7059f0_SelectAt(window, nullptr, x & 0xffff, y & 0xffff);
+    if (at<s32>(window, 0x14c) >= 0) Window_PostMessage(at<u8 *>(window, 0x60), 0x402, at<u32>(window, 0x8c), at<u32>(window, 0x14c));
 }
 
 u8 *__fastcall Window7059f0_DeletingDtor(u8 *window, void *, u32 flags) {

@@ -1,4 +1,4 @@
-// The game panel object at 0x7cc258 (its vtable 0x6ffc68). Reimplementation of 0x4afaa0, 0x4afc10, 0x4b0640. The names are unconfirmed.
+// The game panel object at 0x7cc258 (its vtable 0x6ffc68). Reimplementation of 0x4afaa0, 0x4afc10, 0x4b0640, 0x4b0950, 0x4b0ae0, 0x4b0e30. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -24,4 +24,21 @@ void __fastcall Panel7cc258_DressTip(u8 *self);
 // part the same way (0xc00 before the font) and shown the language text 0x27, the thing's ingredient's text (Thing_IngredientRecord,
 // Language_Widen) and the text 0x28 (Window_NotifyImpl100); then the hover label 0xc06e bound (HoverLabel_Bind) and +0x28 = 0.
 void __fastcall Panel7cc258_Open(u8 *self);
+
+// 0x4b0950 (thiscall; slot 1 of the vtable 0x6ffc68): with the thing [0x7c2658]: the object +0x20's slot 9 given the panel's slot 13
+// (the object's vtable read before that call, the object read again after it, sic), the panel's slots 6 and 5; then of the window +0x10's
+// children (Window_FindChild) each when found: the button 0xc082 the state 1 when the thing's +0x68 is 0 (Is68_Zero_4e0440), else 0,
+// notified (Window705a50_SetState); the slider 0xc06b's slot 7 the thing's byte +0x18c / 50, 0xc086's its byte +0x198; then, found or
+// not (sic), 0xc086 and 0xc084 shown when the thing's ingredient has a text (Thing_IngredientRecord, Language_Widen), 0xc084 told it
+// (Window_NotifyImpl100), else both hidden; the figure 0xc085's slot 7 the thing's dword +0x194.
+void __fastcall Panel7cc258_Update(u8 *self);
+
+// 0x4b0ae0 (cdecl (thing), the callback Things_Select (0x481bc0) is given for the group 0x200 when the panel's button 0xc081 is pressed;
+// name invented): a thing of the shown thing's [0x7c2658] kind (+0xe) given the panel's settings: +0x198 [0x7cc280] (Set198_4e21e0),
+// the quality of goods the signed byte [0x7cc27c] times 50 (its low byte), +0x194 [0x7cc284]. 1.
+u32 __cdecl Panel7cc258_ApplyToThing(u8 *thing);
+
+// 0x4b0e30 (thiscall (thing), pops 4; slot 10 of the vtable 0x6ffc68; name invented): the selected thing [0x7cc288] = thing, the
+// window built (WindowAt10_Create: the script 0x755908, the handler 0x4b0b30, the children 0xc06c and 0xc06f, the inner one 0xc06d), then the advisor posted 0xd1 (Advisor_PostId).
+void __fastcall Panel7cc258_Show(u8 *self, void *, u8 *thing);
 }

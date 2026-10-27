@@ -43,6 +43,14 @@ u32 __cdecl Sound_Query(u32 a, u32 b);
 // sound manager (0x802bcc) is asked through its vtable +4 (&folders, the found String's text, name, &name) and name as it left it is returned.
 u32 __cdecl Sound_QueryFound(const char *name, u8 *folders);
 
+// 0x51bc40 (cdecl (sound, parameter, value); name unconfirmed): 0 unless sound is on (0x802bc8) and started (0x802bd4); else the sound
+// manager (0x802bcc)'s SoundManager_Call3 (its engine's slot 3) with them, whose answer is returned (its callers keep it as the sound).
+u32 __cdecl Sound_SetParam(u32 sound, u32 parameter, u32 value);
+
+// 0x51c270 (cdecl (sound, x, y, z); name unconfirmed): 0 unless sound is on and started; else the manager's SoundManager_Call5 (its
+// engine's slot 5) with the sound and the position as three floats on the stack (each converted from the int), whose answer is returned.
+u32 __cdecl Sound_SetPosition(u32 sound, s32 x, s32 y, s32 z);
+
 // 0x51b7c0 (cdecl): when on and started, the sound manager's vtable +0 (&result, not read after); then not started. The
 // warning when the allocation count 0x802bd8 is not back to 0 is compiled out.
 void __cdecl Sound_Shutdown();
@@ -60,6 +68,10 @@ s32 __cdecl Sound_RegisterLobbyCategories(const char *name);
 // 0x803a28, 0x803a2c, 0x803a24 and 0x803a30; from the one named 0x803558, cat_speech to 0x803a34. (The debug prints of the six being 0
 // beforehand are left out.)
 void __cdecl Sound_RegisterGlobalCategories();
+
+// 0x51e890 (cdecl): from the folder named the global String 0x8030d8, cat_globallobbysfx to 0x803a48. (The debug print of 0x803a48 being
+// set beforehand is left out.)
+void __cdecl Sound_RegisterGlobalLobbySfx();
 
 // 0x51ec50 (cdecl; theme, a string or view): the String 0x803768 with the theme appended (String_Append): its folder's cat_ambient and
 // cat_rides to 0x803a38 and 0x803a3c; then assigned 0x8039c0 (through the string's slot 6, String_AssignWide: its data as chars) with the theme:

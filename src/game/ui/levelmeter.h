@@ -1,6 +1,6 @@
 // A GUI window that shows a level with an animated light (its child 0xd2d06; the callers about 0x4a9cc4 set four of them). Its state
 // lives in the window's dwords +0xa0 (Window_DwordA0): 0 the light's position (16.16), 1 the clock when last moved, 2 the speed, 3 the
-// phase (0-3). Reimplementation of 0x4a95b0 and 0x4a9fc0. The names are unconfirmed.
+// phase (0-3). Reimplementation of 0x4a95b0, 0x4a9fc0, 0x4a9c70 and 0x4a9bd0. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -17,4 +17,16 @@ void __cdecl LevelMeter_SetLevel(u8 *window, u32 level);
 // phase 0 at 0x30; phase 3 past 0x3f turns to phase 1 at 0. The light is told the position's integer part (in any other phase, 0x1e), the
 // position and the clock (GuiClock_Now) are kept. Every message then goes to Window_CallDefault (its result returned).
 s32 __cdecl LevelMeter_OnMessage(u8 *window, u32 message, u32 a, u32 b);
+
+// 0x4a9c70 (cdecl (group); name unconfirmed): the research panel [0x7cc1d8]'s meters. A group's level is 0 without a current project
+// (ResearchLab_CurrentObjId's id 0), else the lab's Table_ScaledBySum of the group; the lab the game [0x7cf83c]'s, found again for each.
+// Group -1: the groups 0, 4, 1, 2, 3 each shown on its meter (0xd2d01, 0xd2d07, 0xd2d08, 0xd2d09, 0xd2d0a: Window_FindChild, not checked;
+// LevelMeter_SetLevel); any other group's level taken and, for 0-4, shown. Then the five levels again (0, 4, 1, 2, 3), their sum / 5
+// (signed) the sound [0x7cc1d0]'s parameter 0x12 (Sound_SetParam). The original's ids land in its own argument's slot (sic, unseen).
+void __cdecl ResearchMeters_Update(s32 group);
+
+// 0x4a9bd0 (cdecl (group); name unconfirmed): the group's research left (ResearchLab_LeftPercent of the game [0x7cf83c]'s lab) taken
+// from 100; for groups 0-4 (unsigned) that meter's (as ResearchMeters_Update's: Window_FindChild, not checked) child 0xd2d05 (not checked)
+// given (done << 10) / 100 (signed) through its slot 7.
+void __cdecl ResearchMeters_ShowProgress(u32 group);
 }

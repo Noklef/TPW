@@ -67,6 +67,114 @@ void __fastcall GuiRect_Adjust(u8 *rect, void *, u32 dl, u32 dt, u32 dr, u32 db)
     at<u16>(rect, 0xa) += (u16)db;
 }
 
+u8 *__fastcall GuiRect_CopyCtor(u8 *rect, void *, const u8 *source) {
+    Fn_6617d0(rect, nullptr, (u32)(uintptr_t)source);
+    for (u32 off = 4; off < 0xc; off += 2)
+        at<u16>(rect, off) = at<u16>(const_cast<u8 *>(source), off);
+    at<u32>(rect, 0) = 0x705920;
+    return rect;
+}
+
+u8 *__fastcall GuiRectNode_Ctor(u8 *node) {
+    GuiRect_Ctor(node + 4);
+    Fn_659dac(node + 4, nullptr, 0, 0, 0, 0);
+    at<u32>(node, 0) = 0;
+    return node;
+}
+
+u8 *__fastcall GuiRectNode_CtorFrom(u8 *node, void *, const u8 *source) {
+    GuiRect_Ctor(node + 4);
+    if (source) GuiRect_Assign(node + 4, nullptr, source);
+    at<u32>(node, 0) = 0;
+    return node;
+}
+
+u32 __fastcall GuiRectNode_Dtor(u8 *node) {
+    if (u8 *const next = at<u8 *>(node, 0)) GuiRectNode_DeletingDtor(next, nullptr, 1);
+    return GuiRect_Dtor(node + 4);
+}
+
+u8 *__fastcall GuiRectNode_DeletingDtor(u8 *node, void *, u32 flags) {
+    GuiRectNode_Dtor(node);
+    if (flags & 1) GameHeap_Free(node);
+    return node;
+}
+
+namespace {
+
+// A new node of the rectangle (GuiRectNode_CtorFrom), or 0 when the allocation fails.
+u8 *new_node(const u8 *rect) {
+    u8 *const node = static_cast<u8 *>(GameHeap_Alloc(0x10));
+    return node ? GuiRectNode_CtorFrom(node, nullptr, rect) : nullptr;
+}
+
+}  // namespace
+
+void __fastcall GuiRectNode_AppendNode(u8 *list, void *, u8 *node) {
+    u8 *last = at<u8 *>(list, 0);
+    if (!last) {
+        at<u8 *>(list, 0) = node;
+        return;
+    }
+    while (at<u8 *>(last, 0)) last = at<u8 *>(last, 0);
+    at<u8 *>(last, 0) = node;
+}
+
+void __fastcall GuiRectNode_Append(u8 *list, void *, const u8 *rect) {
+    u8 *last = at<u8 *>(list, 0);
+    if (!last) {
+        at<u8 *>(list, 0) = new_node(rect);
+        return;
+    }
+    while (at<u8 *>(last, 0)) last = at<u8 *>(last, 0);
+    at<u8 *>(last, 0) = new_node(rect);
+}
+
+void __fastcall GuiRectNode_AppendRect(u8 *list, void *, u32 left, u32 top, u32 right, u32 bottom) {
+    u8 *last = at<u8 *>(list, 0);   // (read before the allocations, as the original)
+    u8 *rect = static_cast<u8 *>(GameHeap_Alloc(0xc));
+    if (rect) rect = GuiRect_CtorWith(rect, nullptr, left, top, right, bottom);   // (never freed, sic)
+    if (!last) {
+        at<u8 *>(list, 0) = new_node(rect);
+        return;
+    }
+    while (at<u8 *>(last, 0)) last = at<u8 *>(last, 0);
+    at<u8 *>(last, 0) = new_node(rect);
+}
+
+u32 __fastcall GuiRectNode_Overlap(u8 *node, void *, u8 *shape, u32 out) {
+    const u32 how = GuiRect_Overlap(node + 4, nullptr, shape) & 0xffff;
+    if (how) return how;   // (the original then stores the rectangle in its own argument out: lost, sic)
+    if (!at<u8 *>(node, 0)) return 0;
+    return GuiRectNode_Overlap(at<u8 *>(node, 0), nullptr, shape, out) & 0xffff;
+}
+
+u8 *__fastcall GuiRectNode_Subtract(u8 *node, void *, u8 *shape) {
+    u8 first[0xc], second[0xc];
+    GuiRect_Ctor(first);
+    GuiRect_Ctor(second);
+    u8 *list = nullptr;
+    if (shape) {
+        while (GuiRect_Split(node + 4, nullptr, shape, first, second) & 0xffff) {
+            GuiRect_Assign(node + 4, nullptr, second);
+            if (!list)
+                list = new_node(first);
+            else
+                GuiRectNode_Append(list, nullptr, first);
+        }
+    }
+    if (at<u8 *>(node, 0)) {
+        u8 *const rest = GuiRectNode_Subtract(at<u8 *>(node, 0), nullptr, shape);
+        if (list)
+            GuiRectNode_AppendNode(list, nullptr, rest);
+        else
+            list = rest;
+    }
+    GuiRect_Dtor(second);
+    GuiRect_Dtor(first);
+    return list;
+}
+
 u8 *__fastcall GuiRect_Assign(u8 *rect, void *, const u8 *source) {
     Fn_65aa80(rect, nullptr, (u32)(uintptr_t)source);
     for (u32 off = 4; off < 0xc; off += 2)
@@ -124,6 +232,13 @@ u32 __fastcall GuiRect_Overlap(u8 *rect, void *, u8 *shape) {
         if (sr > l && sr < r) bits |= 0x80;
     }
     return bits;
+}
+
+void __fastcall GuiRect_GetEdges(u8 *rect, void *, u16 *left, u16 *top, u16 *right, u16 *bottom) {
+    if (left) *left = at<u16>(rect, 4);
+    if (top) *top = at<u16>(rect, 6);
+    if (right) *right = at<u16>(rect, 8);
+    if (bottom) *bottom = at<u16>(rect, 0xa);
 }
 
 void __fastcall GuiRect_GetSize(u8 *rect, void *, u16 *width, u16 *height) {

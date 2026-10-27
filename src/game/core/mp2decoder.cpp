@@ -2,7 +2,9 @@
 
 #include <cstdint>
 #include <cstring>
+#include <mmintrin.h>
 
+#include "cpuinfo.h"
 #include "initializers.h"
 #include "mp2pool.h"
 #include "trivial.h"
@@ -79,6 +81,16 @@ s32 __fastcall Mp2Decoder_SetupOutput(u8 *decoder, void *) {
     Put<s32>(d + 0x2474, Get<u32>(kHalfRate) ? Get<s32>(d + 0x246c) / 2 : Get<s32>(d + 0x246c));
     return 0;
 }
+
+u32 __cdecl Mp2_HasMmx() {
+    u32 r[4];
+    CpuInfo_GetEnv()->cpuid(1, r);
+    if (!(r[3] & 0x800000)) return 0;
+    _mm_empty();
+    return 1;
+}
+
+void __cdecl Mp2_InitFixedPoint() { *reinterpret_cast<u32 *>(static_cast<uintptr_t>(kFixedPoint)) = Mp2_HasMmx(); }
 
 s32 __cdecl Mp2_MulDiv(s32 a, s32 b, s32 c) {
     s32 q;

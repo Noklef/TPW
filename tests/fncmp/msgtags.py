@@ -41,7 +41,8 @@ from fncmp import CDECL_LOG4, HEAP, LOG, RAM, Bench, Call, Mask, blob, blob_byte
 from window import RANGES, queues, tree  # noqa: E402
 
 CALLS = {'NewWindow': 0x48ea00, 'Create': 0x48eaa0, 'Open': 0x48d9c0, 'Add': 0x48eb20, 'Post': 0x48ede0, 'AddVersion': 0x48f090,
-         'Thunk': 0x481b70, 'KeyVersion': 0x40c820, 'PostThunk': 0x481580, 'Load': 0x48ef70, 'UILoad': 0x481680, 'Save': 0x48ee50}
+         'Thunk': 0x481b70, 'KeyVersion': 0x40c820, 'PostThunk': 0x481580, 'Load': 0x48ef70, 'UILoad': 0x481680, 'Save': 0x48ee50,
+         'WindowHandler': 0x4a11e0}
 TIMER_RANGES = [(0x661f9b, 0x661fe5), (0x6620e2, 0x66213e), (0x662306, 0x662384), (0x662500, 0x66252c), (0x661ece, 0x661f2b),
                 (0x661f2b, 0x661f9b), (0x66220d, 0x6622d2), (0x65968e, 0x6596a2), (0x6620ac, 0x6620cc), (0x6620cc, 0x6620e2),
                 (0x662097, 0x6620ac), (0x65ef90, 0x65f024), (0x65f024, 0x65f077), (0x65f077, 0x65f0ca)]
@@ -89,7 +90,13 @@ B = Bench(sorted(set(RANGES + listrows.REG_RANGES + TIMER_RANGES + ADVISOR_RANGE
     (0x48d9c0, 0x48dad2), (0x48eb20, 0x48edd1), (0x48ede0, 0x48ee18), (0x48f090, 0x48f10a), (0x481b70, 0x481b75), (0x40c820, 0x40c830),
     (0x481580, 0x481590), (0x48ef70, 0x48f08f), (0x481680, 0x481695), (0x5f5e20, 0x5f5e4d),
     (0x65d865, 0x65d8e7), (0x659e3e, 0x659e83), (0x65d3a3, 0x65d40c), (0x65d56b, 0x65d57c), (0x5222e0, 0x52231b), (0x51feb0, 0x51ff06),
-    (0x51bfc0, 0x51c048), (0x67a400, 0x6902c0), (0x48ee50, 0x48ef67), (0x5f5e50, 0x5f5e7d)])), hooks={0x67a7d0: advisor._cdecl_log, 0x67af00: _swprintf})
+    (0x51bfc0, 0x51c048), (0x67a400, 0x6902c0), (0x48ee50, 0x48ef67), (0x5f5e50, 0x5f5e7d),
+    (0x4a11e0, 0x4a1433), (0x6589f9, 0x658abb), (0x658ccc, 0x658e52), (0x65968e, 0x6596c0), (0x659710, 0x659740), (0x659d00, 0x659d53),
+    (0x659d90, 0x659dbc), (0x659e3e, 0x659e93), (0x65a43e, 0x65a4a3), (0x65a9d0, 0x65aa00), (0x65aa20, 0x65aaa0), (0x65c7fe, 0x65c989),
+    (0x65c9bd, 0x65ce20), (0x65d42e, 0x65d4b0), (0x65d56b, 0x65d59d), (0x65d773, 0x65d832), (0x65d865, 0x65d8f7), (0x65d90b, 0x65da9d),
+    (0x65db25, 0x65dc00), (0x65e5fa, 0x65e650), (0x65e6d5, 0x65e9a4), (0x65f16b, 0x65f256), (0x65f286, 0x65f330), (0x65f345, 0x65f420),
+    (0x65f447, 0x65f548), (0x65f66e, 0x65f6e1), (0x661700, 0x661800), (0x669c8d, 0x669d87), (0x66bff7, 0x66c01b), (0x65cf5e, 0x65cfd4),
+    (0x659d43, 0x659d90), (0x65dcaf, 0x65dd5f), (0x6590f7, 0x6591d4), (0x65f150, 0x65f16b)])), hooks={0x67a7d0: advisor._cdecl_log, 0x67af00: _swprintf})
 X = RAM + 0x20000
 TAGS, NODES, MSG, MTEXT, BOX, BOXKIDS, DIALOG, CHILD21, TAGSWIN = X, X + 0x1400, X + 0x1800, X + 0x1900, X + 0x1c00, X + 0x1e00, X + 0x2200, X + 0x2400, X + 0x2600
 OBJ, OVT, KVT, CLOCK, CVT, POOL, SNDMGR, SNDVT = X + 0x2800, X + 0x2840, X + 0x2900, X + 0x2a00, X + 0x2a10, X + 0x2b00, X + 0x2c00, X + 0x2c20
@@ -329,10 +336,106 @@ def save_case(r):
     return Call(CALLS['Save'], [STREAM], regions, ret='v', masks=masks)
 
 
+HW = RAM + 0x30000   # (WindowHandler's own windows: the tag, the child 0x2e, a leaf, the chain of tags)
+TAGW, KID2E, LEAF, CHAIN = HW, HW + 0x200, HW + 0x400, HW + 0x600
+HANDLER_MESSAGES = [0x100001] * 8 + [0x100002] * 4 + [0x100003] * 3 + [0x14, 0x14, 0x100000, 0x100004, 5, 0x80100002, 0]
+
+
+def full_window(r, regions, addr, size=0x120):
+    """a window of its own (no links) as windowtree.py's rect_env() makes them: GUI rectangles +8 / +0x2c and one +0x44 (+8 or its own after
+    the window), the margins, the flags (anchors too), the objects +0x98 / +0x9c, handlers +0x114 / +0x118 and the vtable window.VTABLE"""
+    from window import MISC, OBJECT98, VTABLE
+    buf = bytearray(r.bytes(size))
+    buf[4] = 0 if r.random() < 0.9 else r.choice([1, 0x80])
+    put(buf, 0, 'I', VTABLE)
+    flags = 1 if r.random() < 0.7 else r.choice([0x10000001, 0x80000000, 0, 2, 3, r.getrandbits(32)])
+    put(buf, 0x48, 'I', flags & 0xfff0ffff | r.choice([0, 0, 0x10000, 0x50000, 0xa0000, 0xf0000]))
+    left, top = r.randrange(-30, 30), r.randrange(-30, 30)
+    put(buf, 8, 'Ihhhh', 0x705920, left, top, left + r.choice([0, 5, 40, r.randrange(1, 90)]), top + r.choice([0, 5, 40, r.randrange(1, 60)]))
+    put(buf, 0x2c, 'Ihhhh', 0x705920, *[r.randrange(-30, 70) for _ in range(4)])
+    own = r.random() < 0.5
+    put(buf, 0x44, 'I', addr + 8 if own else addr + size)
+    if not own:
+        regions[addr + size] = struct.pack('<Ihhhh', 0x705920, *[r.randrange(-40, 70) for _ in range(4)]) + r.bytes(4)
+    put(buf, 0x54, 'IIII', 0, 0, 0, 0)
+    put(buf, 0x98, 'II', r.choice([OBJECT98, OBJECT98, 0]), r.choice([MISC + 0x40, MISC + 0x40, 0]))
+    put(buf, 0xe0, 'hhhh', r.choice([0, 1, 5, 0xff, 0x100, -3]), *[r.randrange(-5, 50) for _ in range(3)])
+    put(buf, 0xf8, 'hhhh', *[r.choice([0, 0, 1, 2, -1]) for _ in range(4)])
+    put(buf, 0x114, 'II', r.choice([CDECL_LOG4, CDECL_LOG4, 0]), CDECL_LOG4)
+    regions[addr] = buf
+    return buf
+
+
+def handler_case(r):
+    """WindowHandler (0x4a11e0): windowtree.py's rect_env() tree, its root the tags' window (handlers +0x114 / +0x118 loggers, the
+    vtable window.VTABLE's slot 5 a recorder) with now and then a child 0x2e of its own (0x140 bytes, running a script or not) at the head
+    of its children; the tag a window of its own (full_window(); now and then with a leaf child, or a link set: AddChild refuses it),
+    one of the tree's or 0; b 0, 1 or any; the chain [0x7cb2c8] of 0-4 tags; the timed table and queues (window.timers()), the clock
+    [0x77c490] (slot 0's time random), the focus [0xfaa5ec]. The objects' slot 3 events (recorders 3 and 22) hashed by what each sets:
+    Offset's (0x50) +0xc-+0xf and +0x14 (a window's rectangle), SetDepth's (2) +6 / +7, SetRect's (0x10) +0x14."""
+    import window as gui
+    from windowtree import rect_env
+    from fncmp import blob_when
+    log = log_region()
+    regions = {LOG: log}
+    wins = rect_env(r, regions, log)
+    for w in wins:
+        put(regions[w], 0, 'I', gui.VTABLE)
+        put(regions[w], 0x118, 'I', CDECL_LOG4)
+    win = wins[0]
+    message = r.choice(HANDLER_MESSAGES)
+    tag = r.choice([TAGW] * 6 + [0] + wins[1:])
+    full_window(r, regions, TAGW)
+    if r.random() < 0.15:
+        child = full_window(r, regions, LEAF)
+        put(child, 0x60, 'I', TAGW)
+        put(regions[TAGW], 0x5c, 'I', LEAF)
+    if r.random() < 0.08:
+        put(regions[TAGW], r.choice([0x54, 0x58, 0x60]), 'I', r.choice(wins))
+    if r.random() < 0.7:
+        kid = full_window(r, regions, KID2E, 0x140)
+        put(kid, 0x8c, 'I', r.choice([0x2e, 0x2e, 0x2e, 0x2f]))
+        kid[0x135] = r.choice([0, 0, 0, 1, 0x80])
+        put(kid, 0x54, 'I', struct.unpack_from('<I', regions[win], 0x5c)[0])
+        put(kid, 0x60, 'I', win)
+        put(regions[win], 0x5c, 'I', KID2E)
+    put(regions[TAGW], 0x8c, 'I', r.choice([0x2e, 0x2d, r.getrandbits(32)]) if r.random() < 0.2 else 0x384)
+    n = r.choice([0, 1, 2, 4])
+    for i in range(n):
+        regions[CHAIN + 0x60 * i] = put(bytearray(r.bytes(0x60)), 0x54, 'I', CHAIN + 0x60 * (i + 1) if i + 1 < n else 0)
+    regions[0x7cb2c8] = struct.pack('<I', CHAIN if n else r.choice([0, 0, 0x12345678]))
+    gui.timers(r, regions, TAGW)
+    if r.random() < 0.85:   # (a table with free entries (due 0) mostly: the posts land, their delays compared)
+        n = r.choice([1, 2, 4, 6])
+        entries = bytearray(r.bytes(0x14 * n))
+        for i in range(n):
+            if r.random() < 0.6:
+                put(entries, 0x14 * i + 0x10, 'I', 0)
+        regions[gui.TIMED] = struct.pack('<II', n, gui.TIMED + 0x20)
+        regions[gui.TIMED + 0x20] = entries
+        regions[0xfaa5f8] = struct.pack('<I', gui.TIMED)
+    if message == 0x100002:
+        put(regions[TAGW], 0x48, 'I', struct.unpack_from('<I', regions[TAGW], 0x48)[0] & ~3 | r.choice([0, 1, 2, 3]))
+    regions[CLOCK] = struct.pack('<I', CVT)
+    regions[CVT] = vtable({}, size=4)
+    regions[0x77c490] = struct.pack('<I', CLOCK)
+    set_return(log, 0, r.getrandbits(32))
+    regions[0xfaa5ec] = struct.pack('<I', r.choice([0, win, TAGW, r.choice(wins)]))
+    regions[gui.VTABLE] = vtable({5: 1, 3: 2})
+    for k in (3, 22):
+        blob_bytes(log, k, 1, 0xf0f000)
+        blob_when(log, k, 0, 2, 0xc0, 0 if k == 3 else 1)
+        blob_when(log, k, 0, 0x10, 0xf00000, 2 if k == 3 else 3)
+    b = r.choice([0, 0, 1, r.getrandbits(32)])
+    return Call(CALLS['WindowHandler'], [win, message, tag, b], regions, ret='a')
+
+
 def case(r):
     op = r.deal(OPS)
     if op == 'Save':
         return save_case(r)
+    if op == 'WindowHandler':
+        return handler_case(r)
     if op not in ('NewWindow', 'Create'):
         return tags_case(r, op)
     log = log_region()

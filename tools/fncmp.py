@@ -84,7 +84,7 @@ lowprio.below_normal()   # (every bench, the gate and the driver they start run 
 import x87emu  # noqa: E402
 
 EXE = os.path.join(ROOT, '.data', 'nocd', 'tp.exe')
-DRIVER = os.path.join(ROOT, 'build', 'tpw_fncmp.exe')
+DRIVER = os.environ.get('FNCMP_DRIVER') or os.path.join(ROOT, 'build', 'tpw_fncmp.exe')  # (FNCMP_DRIVER: another build of it, to compare two drivers)
 # FNCMP_COVER=file (tools/coverage.py): each run appends what it verified to the file, one JSON line: the addresses its cases called whose
 # cases matched without a crash ("direct", with their counts) and the hooked originals entered inside those cases ("indirect").
 COVER = os.environ.get('FNCMP_COVER')
@@ -266,8 +266,9 @@ def put(buf, off, fmt, *values):
 
 def off_code(buf):
     """buf with each aligned dword that would point into the exe's image below its data (0x400000-0x6e7000) moved out of it (its top
-    bit set). The driver is linked over those addresses, so a read through such a pointer sees the driver's code natively and the
-    exe's in the emulator: a difference of the two environments, not of the code. For random object bytes a case dereferences."""
+    bit set). For random object bytes a case dereferences: while the driver was linked over those addresses (until 2026-10-27), a read
+    through such a pointer saw the driver's code natively and the exe's in the emulator. The driver now loads the exe's code there
+    (read-only, as the emulator has it); this stays so that the benches' cases stay the same."""
     for k in range(0, len(buf) - 3, 4):
         v = struct.unpack_from('<I', buf, k)[0]
         if 0x400000 <= v < GAME_LOW:
@@ -444,7 +445,7 @@ LOG = STUBS + 0x100000  # their log (the case maps it, see log_region()): a coun
 LOG_ENTRY = 12
 LOG_ENTRIES = 40  # (the room: 4 + 48 * 40 bytes)
 LOG_RETURNS = 0x800  # from here an override for each slot: a flag and a value (flag 2: the value is an argument's index, see echo(); 3: see fail_after();
-#                      4: see set_float_return())
+#                      4: see set_float_return(); 5: see fail_mask(); 6: fail_after(counted=True))
 
 
 def recorder(k, n, com=False, cdecl=False):
@@ -477,12 +478,13 @@ def set_float_return(log, k, x):
     struct.pack_into('<If', log, LOG_RETURNS + 8 * k, 4, x)
 
 
-def fail_after(log, k, n, value=0xffffffff):
+def fail_after(log, k, n, value=0xffffffff, counted=False):
     """Makes slot k's recorder answer its first n calls (as counted in the log) as it would without an override, and every later one `value`
     (a 16-bit value sign-extended: INVALID_HANDLE_VALUE by default), so that a loop that runs until a call fails ends: a CreateFileA that opens
-    n files."""
+    n files. The log keeps only 40 entries, and calls past them are not counted; with counted, the calls are counted down in the override
+    itself (flag 6: its value's low word, written back by both sides on each call), so n can be past the log's room."""
     assert 0 <= n < 0x10000 and (value >> 15 == 0 or value | 0x7fff == 0xffffffff)
-    struct.pack_into('<II', log, LOG_RETURNS + 8 * k, 3, (value & 0xffff) << 16 | n)
+    struct.pack_into('<II', log, LOG_RETURNS + 8 * k, 6 if counted else 3, (value & 0xffff) << 16 | n)
 
 
 def fail_mask(log, k, mask):
@@ -497,15 +499,23 @@ def logged_calls(read, kk):
     return sum(1 for i in range(count) if struct.unpack('<I', read(LOG + 4 + 4 * LOG_ENTRY * i, 4))[0] == kk)
 
 
-def answer(flag, value, raw, n, h, earlier):
+def answer(flag, value, raw, n, h, earlier, read=None):
     """A recorder's return value: its override (LOG_RETURNS: flag and value) or the hash h (driver.cpp record_call)."""
     if flag == 2 and value < n:
         return raw[value]
+    if flag == 7:
+        return struct.unpack('<I', read(value + 4 * earlier, 4))[0]
     if flag == 3:
         return h if earlier < (value & 0xffff) else (value >> 16) - (0x10000 if value >> 31 else 0) & 0xffffffff
     if flag == 5:
         return h if earlier < 32 and value >> earlier & 1 else 0
     return value if flag else h
+
+
+def answers(log, k, table):
+    """Makes slot k's recorder answer its calls in turn from the dwords at `table` (an address the case maps, 40 dwords or more): its first
+    call table[0], the next table[1] and so on (its calls counted as fail_after() counts them: those in the log, which keeps 40)."""
+    struct.pack_into('<II', log, LOG_RETURNS + 8 * k, 7, table)
 
 
 def echo(log, k, arg):
@@ -660,13 +670,34 @@ def blob_when(log, k, arg, value, mask, entry=0, deref=False):
     struct.pack_into('<4I', log, LOG_BLOB_WHEN + 16 * entry, (k & 63) | 0x80000000, arg | (0x100 if deref else 0), value & 0xffffffff, mask)
 
 
+def blob_when_inner(log, k, arg, value, inner, entry=0):
+    """As blob_when(), but for those calls slot k's blob_bytes() hash takes inner = (offset, mask[, base]) as its second structure's selection in
+    place of its own (the outer mask kept): one slot told events whose second structures set different bytes (Window_NotifyC00's +4 / +5,
+    Window_Set4c's +8, Window_Notify40000's +0x10-+0x13). Shares blob_when()'s four entries (bit 30 of the entry's first dword)."""
+    assert 0 <= entry < 4
+    at, inner_mask, base = (tuple(inner) + (0,))[:3]
+    assert base % 4 == 0 and 0 <= base <= 28
+    how = base // 4 << 5 | (at + 1) << 8 | (inner_mask & 0x7fff) << 16
+    struct.pack_into('<4I', log, LOG_BLOB_WHEN + 16 * entry, (k & 63) | 0xc0000000, arg, value & 0xffffffff, how)
+
+
+LOG_BLOB_WIDE = 0xfc0  # two (k | 0x80000000, start, mask): a blob_bytes() second structure's bytes start to start + 31 (see blob_bytes())
+BLOB_WIDE = 2
+
+
 def blob_bytes(log, k, arg, mask, inner=None):
-    """As blob(), but `mask` selects bytes 0-31 (bit i: byte i), and inner = (offset, mask[, base]) also hashes bytes base to base + 14 of the structure
+    """As blob(), but `mask` selects bytes 0-31 (bit i: byte i), and inner = (offset, mask[, base]) also hashes bytes base to base + 46 of the structure
     that the pointer at that offset points to (unless null; base a multiple of 4 up to 28, default 0): an event on the stack that points to a second one,
-    both only partly set."""
+    both only partly set. Bits 0-14 of the inner mask go in the slot's own dwords; bits 15-46 (bytes base + 15 on) in one of the BLOB_WIDE entries at
+    LOG_BLOB_WIDE, which the slot's next blob_bytes() replaces or frees (a mask under 0x8000 hashes as it did before them)."""
     at, inner_mask, base = (tuple(inner) + (0,))[:3] if inner else (-1, 0, 0)
-    assert arg < 31 and base % 4 == 0 and 0 <= base <= 28
+    assert arg < 31 and base % 4 == 0 and 0 <= base <= 28 and 0 <= inner_mask < 1 << 47
     struct.pack_into('<II', log, LOG_BLOBS + 8 * (k & 63), 0x80000000 | (arg + 1) | base // 4 << 5 | (at + 1) << 8 | (inner_mask & 0x7fff) << 16, mask)
+    entries = [struct.unpack_from('<I', log, LOG_BLOB_WIDE + 16 * w)[0] for w in range(BLOB_WIDE)]
+    key = (k & 63) | 0x80000000
+    w = entries.index(key) if key in entries else entries.index(0) if inner_mask >> 15 else None
+    if w is not None:
+        struct.pack_into('<3I', log, LOG_BLOB_WIDE + 16 * w, key if inner_mask >> 15 else 0, base + 15, inner_mask >> 15)
 
 
 def bytes_hash(h, data, mask):
@@ -676,14 +707,25 @@ def bytes_hash(h, data, mask):
     return h
 
 
-def blob_bytes_hash(read, p, how, mask):
+def blob_bytes_hash(read, p, how, mask, wide=None):
+    """wide: the slot's LOG_BLOB_WIDE entry (start, mask), if it has one."""
     h = bytes_hash(0x811c9dc5, read(p, 32), mask)
     at = how >> 8 & 0xff
     if at:
         inner = struct.unpack('<I', read(p + at - 1, 4))[0]
         if inner:
             h = bytes_hash(h, read(inner + 4 * (how >> 5 & 7), 15), how >> 16 & 0x7fff)
+            if wide:
+                h = bytes_hash(h, read(inner + wide[0], wide[1].bit_length()), wide[1])
     return h
+
+
+def _blob_wide(e, k):
+    for w in range(BLOB_WIDE):
+        wk, start, mask = struct.unpack('<3I', e.read(LOG + LOG_BLOB_WIDE + 16 * w, 12))
+        if wk == (k & 63) | 0x80000000:
+            return start, mask
+    return None
 
 
 def blob_hash(read, p, mask):
@@ -739,10 +781,15 @@ def _log_args(e, k, raw, kk):
     earlier = logged_calls(e.read, kk)
     fills = [(_fill_at(f),) + struct.unpack('<4I', e.read(_fill_at(f), 16)) for f in range(FILLS)]
     blob_arg, blob_mask = struct.unpack('<2I', e.read(LOG + LOG_BLOBS + 8 * (k & 63), 8))
-    for w in range(4):   # (blob_when(): the mask for this call's argument)
+    for w in range(4):   # (blob_when(): the mask for this call's argument; blob_when_inner(): the second structure's selection)
         wk, wa, wv, wm = struct.unpack('<4I', e.read(LOG + LOG_BLOB_WHEN + 16 * w, 16))
-        if wk == (k & 63) | 0x80000000 and wa & 0xff < n and wa < 0x200 and (raw[wa & 0xff] if not wa & 0x100 else e.u32(raw[wa & 0xff]) if raw[wa & 0xff] else None) == wv:
-            blob_mask = wm   # (the argument's bit 8: the dword it points to, blob_when()'s deref)
+        if wa >= 0x200 or wa & 0xff >= n:   # (the argument's bit 8: the dword it points to, blob_when()'s deref; a null one matches nothing)
+            continue
+        got = raw[wa & 0xff] if not wa & 0x100 else e.u32(raw[wa & 0xff]) if raw[wa & 0xff] else None
+        if wk == (k & 63) | 0x80000000 and got == wv:
+            blob_mask = wm
+        elif wk == (k & 63) | 0xc0000000 and got == wv:
+            blob_arg = (blob_arg & 0x8000001f) | (wm & 0x7fffffe0)
     for i in range(n):
         for at, fk, fa, fn, how in fills:
             if fk == (k & 63) | 0x80000000 and fa == i and args[i]:
@@ -760,7 +807,7 @@ def _log_args(e, k, raw, kk):
                     if skip + length <= 0x70:
                         e.write(to, e.read(at + 0x10 + skip, length))
         if (blob_arg & 0x1f) == i + 1 and args[i]:
-            args[i] = blob_bytes_hash(e.read, args[i], blob_arg, blob_mask) if blob_arg & 0x80000000 else blob_hash(e.read, args[i], blob_mask)
+            args[i] = blob_bytes_hash(e.read, args[i], blob_arg, blob_mask, _blob_wide(e, k)) if blob_arg & 0x80000000 else blob_hash(e.read, args[i], blob_mask)
         if mask >> i & 1:
             args[i] = string_hash(e.read, args[i])
         if mask >> (16 + i) & 1:
@@ -799,7 +846,13 @@ def _recorder(k, n, com=False, cdecl=False):
             e.write(entry, struct.pack('<%dI' % LOG_ENTRY, kk, n, this, *(args + [0] * 7)[:7], tail_hash(args), 0))
             e.write(LOG, struct.pack('<I', count + 1))
         flag, value = struct.unpack('<2I', e.read(LOG + LOG_RETURNS + 8 * k, 8))
-        e.r['EAX'] = named_answer if by_name else copied if returns_copied else cursor if seeked else answer(flag, value, raw, n, vhash(kk, n, this, args), earlier)
+        e.r['EAX'] = named_answer if by_name else copied if returns_copied else cursor if seeked else answer(flag, value, raw, n, vhash(kk, n, this, args), earlier, e.read)
+        if flag == 6 and not by_name and not returns_copied and not seeked:   # (fail_after(counted=True): the countdown in the override)
+            if value & 0xffff:
+                e.write(LOG + LOG_RETURNS + 8 * k + 4, struct.pack('<I', value - 1))
+                e.r['EAX'] = vhash(kk, n, this, args)
+            else:
+                e.r['EAX'] = (value >> 16) - (0x10000 if value >> 31 else 0) & 0xffffffff
         if flag == 4 and not by_name and not returns_copied and not seeked:
             e.st.insert(0, struct.unpack('<f', struct.pack('<I', value))[0])
         if cdecl:  # (the caller pops them)
@@ -1115,7 +1168,7 @@ class Bench:
                     print('  %s +%x: cpp %s emu %s' % (name, d // 2, x[d:d + 16], y[d:d + 16]))
         if COVER:
             with open(COVER, 'a') as f:
-                f.write(json.dumps({'bench': os.path.basename(sys.argv[0]), 'cases': n, 'differ': bad, 'direct': {'%x' % k: v for k, v in sorted(direct.items())},
+                f.write(json.dumps({'bench': os.path.basename(sys.argv[0]), 'cases': n, 'differ': bad, 'crashed': crashed, 'direct': {'%x' % k: v for k, v in sorted(direct.items())},
                                     'indirect': ['%x' % k for k in sorted(indirect)]}) + '\n')
         if not quiet:
             print('%d cases%s, seed %d: %d differ%s' % (n, ' (wild)' if wild else '', seed, bad,

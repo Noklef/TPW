@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "soundset.h"
 #include "vcall.h"
 #include "../world/ridelist.h"
 
@@ -41,6 +42,12 @@ u32 __cdecl Sound_PlayAt(u32 owner, u32 category, u32 sound, s32 x, s32 y, s32 z
 u32 __cdecl Sound_PlayAtRange(u32 owner, u32 category, u32 sound, s32 x, s32 y, s32 z, s32 range) {
     if (!started() || !sound) return 0;
     return post(owner, category, sound, x, y, z, (float)range);
+}
+
+void __cdecl Sound_StartMusic() {
+    u32 &music = global<u32>(0x00803aa0);
+    music = Sound_PlayAt(music, global<u32>(0x00803a44), 2, 0, 0, 0);
+    music = Sound_SetParam(music, 4, 0);
 }
 
 u32 __cdecl SoundUi_Play(u32 sound) { return Sound_PlayAt(0, global<u32>(0x00803a2c), sound, 0, 0, 0); }

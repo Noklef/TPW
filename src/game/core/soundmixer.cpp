@@ -178,4 +178,52 @@ u32 *__fastcall SoundMixer_SendVoice(u8 *mixer, void *, u32 *out, u32 id, u32 va
     return out;
 }
 
+u32 __fastcall SoundMixer_CallVoice10(u8 *mixer, void *, u32 id, u32 a, u32 b) {
+    u8 *const voice = SoundMixer_FindVoice(mixer, nullptr, id);
+    if (!voice) return 0;
+    vcall<void>(voice, 0x28, a, b);
+    return id;
+}
+
+u32 *__fastcall SoundMixer_AddPage(u8 *mixer, void *, u32 *out) {
+    u8 *page;
+    s32 status;
+    if (*VoicePage_New(&status, &page, 100) < 0) {
+        *out = 0xffffffffu;
+        return out;
+    }
+    if (u8 *last = at<u8 *>(mixer, 0x1c)) {
+        while (at<u8 *>(last, 8)) last = at<u8 *>(last, 8);
+        at<u8 *>(last, 8) = page;
+    } else {
+        at<u8 *>(mixer, 0x1c) = page;
+    }
+    u8 *voice = page + 0xc;
+    for (int i = 0; i < 100; ++i, voice += 0x50) {
+        at<u32>(voice, 0x2c) = at<u32>(mixer, 0x2c)++;
+        at<u32>(voice, 0x30) = 0;
+        Chain20_PushFront(mixer, nullptr, voice);
+    }
+    ++at<u32>(mixer, 0x28);
+    *out = 0;
+    return out;
+}
+
+u32 __fastcall SoundMixer_AddVoice(u8 *mixer, void *, u8 *owner, u8 *definition, u8 *info) {
+    const u32 count = at<u32>(mixer, 0x4c);
+    u32 slot = 0;
+    if (count) {
+        const u32 *const slots = at<const u32 *>(mixer, 0x40);
+        while (slots[slot] && ++slot < count) {
+        }
+    }
+    if (slot >= count) return 0;
+    u8 *const memory = at<u8 *>(mixer, 0x3c) + slot * 0x50;
+    u8 *const voice = memory ? Voice70a4f0_Ctor(memory) : nullptr;
+    u32 *const out = reinterpret_cast<u32 *>(&info);   // (sic: the info argument's own slot)
+    if (static_cast<s32>(*vcall<u32 *>(voice, 0x10, out, owner, definition, info + 0xc, at<u32>(info, 0x18))) < 0) return 0;
+    at<u8 **>(mixer, 0x40)[slot] = voice;
+    return 1;
+}
+
 }  // extern "C"

@@ -56,6 +56,11 @@ u32 __fastcall CircBufU32_30_Count(const u8 *buf);
 // fadd of the sum: rounded to 24 bits). (The debug print of whether count is within the size is left out.)
 void __fastcall CircBufU32_30_Sum(const u8 *buf, void *, double *sum, s32 count);
 
+// 0x4cef30 (&sum, count; pops 8; name unconfirmed): CircBufU32_30_Sum for a CircBufU32 of 50 (cursor +0xcc, size +0xd0, wrapped +0xd4), its
+// look back inlined, the values loaded signed (fild of the dword). (The debug print of whether count is within the size is left out.) Returns
+// the count as cut to the entries held (the park analyser's 0x4c79fc divides by it).
+s32 __fastcall CircBufU32_50_Sum(const u8 *buf, void *, double *sum, s32 count);
+
 // 0x4e2c10 (thiscall; stream, save, version, unused): a CircBufU32 of 30 saved or loaded as a serializer does (Save_Field; the entries'
 // load through Save_ReadU32): mCurrentEntry (+0x7c), mNumEntries (+0x80), mWrappedAround (+0x84), mTemp (+0); then mData[i] (from +4)
 // while i < mNumEntries (signed, read again each time: a loaded count over 30 runs past the buffer, sic).

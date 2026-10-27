@@ -180,6 +180,18 @@ void __fastcall Staff_InitBase(u8 *staff);
 // Others: only stored (the original's debug print left out).
 void __fastcall Staff_SetState(u8 *staff, void *, u32 state);
 
+// 0x505c50 (thiscall; name unconfirmed): the staff member picked up: the mode holder made when missing (MouseModes_EnsureHolder); when
+// the current mode [0x7b05d8] answers 6 from its slot 9 (none: 0), a new CMMOnline base (8 bytes, MouseModeOnlineBase_Ctor; none when
+// the allocation fails) made, the holder ensured again and the mode set (MouseMode_Set); then the word +0x60 of the world's
+// GameTable7cfb90_Get1da718_519450 record the staff member's handle (Thing_GetHandle, Fn_509ae0) and the state 7 entered
+// (Staff_SetState). (The original's debug prints are left out, with the cell check, AnalyserCell_TypePlain, one of them makes.)
+void __fastcall Staff_PickUp(u8 *staff);
+
+// 0x505f50 (thiscall; name invented): unless the state +0x19c is 4, 5, 7, 0xd or 0x12, with the staff member's cell plain
+// (AnalyserCell_TypePlain; the two inlined as AnalyserRecord_ChecksCell) and not (byte +2 7 with the state 0x12), the state 0 entered
+// (Staff_SetState).
+void __fastcall Staff_Settle(u8 *staff);
+
 // 0x4da370 (thiscall (state), pops 4; name unconfirmed): a mechanic's state. 0xc: the reference's animation (+0xc, Set4_4217f0) 9. 0xd: the
 // animation 0x12, and the repair time +0x214 for the thing of the handle +0x218 (the game table 0x7cfb90; the original's Debug_Printf left
 // out) from the skill table 0x78542c's dword of the grade +0x1e4 (8 bytes apart): times its definition's dword +0x1fc + 0x40 * its byte

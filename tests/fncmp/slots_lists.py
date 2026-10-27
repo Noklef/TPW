@@ -1,22 +1,65 @@
 # The slot table functions and the counted list erase of src/game/core/slots_lists against the originals: slot selections around the limits,
-# matching and mismatching ids, entries naming object definitions or control records, nodes with counted buffers.
-# usage: slots_lists.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Add,Get,Erase)
+# matching and mismatching ids, entries naming object definitions or control records, nodes with counted buffers. Event (0x4d2860,
+# src/game/world/object): Add's object (the selected slot's id 0x18, 0x19, 0x1b, 0x10 or any, its +0x10 0-4 or not), an event whose slot 0
+# (a recorder) answers 0xb mostly, 0x11, 0x1a or another, its id / amount / kind word the slot's or not; thingenv's park of objects, people
+# and staff, their floats +0x44 / +0x1f8 0..100 mostly; the game [[0x7cf6ec]] whose word +0x1da720 names one of the park's slots.
+# usage: slots_lists.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Add,Get,Erase,Event)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, HEAP, RAM, heap, put  # noqa: E402
+from fncmp import LOG, Bench, Call, HEAP, RAM, heap, log_region, put, set_return, vtable  # noqa: E402
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from thingenv import park  # noqa: E402
+from thingenv import POOL, THING, park  # noqa: E402
 
-CALLS = {'Add': (0x4d27a0, 0xa0), 'Get': (0x503a20, 0xa0), 'Erase': (0x4f3400, 0xa0)}
-B = Bench([(a, a + n) for (a, n) in CALLS.values()] + [(0x5da3c0, 0x5da3c1), (0x412e90, 0x412eea), (0x4d3d80, 0x4d3df0)])
+CALLS = {'Add': (0x4d27a0, 0xa0), 'Get': (0x503a20, 0xa0), 'Erase': (0x4f3400, 0xa0), 'Event': (0x4d2860, 0x200)}
+B = Bench([(a, a + n) for (a, n) in CALLS.values()] + [(0x5da3c0, 0x5da3c1), (0x412e90, 0x412eea), (0x4d3d80, 0x4d3df0),
+                                                       (0x4d2a60, 0x4d2a6e), (0x59b540, 0x59b544), (0x51c050, 0x51c054), (0x409cd0, 0x409cdd),
+                                                       (0x519510, 0x51954d), (0x4c9cc0, 0x4c9d73), (0x4c9d80, 0x4c9e38), (0x4ca160, 0x4ca214),
+                                                       (0x516130, 0x516160), (0x516160, 0x5161b0), (0x5161b0, 0x516200), (0x50b350, 0x50b360),
+                                                       (0x41a960, 0x41a970), (0x4e0440, 0x4e0450), (0x4e2710, 0x4e2740), (0x4dd4e0, 0x4dd500)])
 LIST, BUFS, TABLE = RAM + 0x1000, RAM + 0x2000, RAM + 0x20000
+EVENT, EVTVT, PG, GAME = RAM + 0x1600, RAM + 0x1700, RAM + 0x1800, RAM + 0x40000
+
+
+def event_case(r):
+    """Event (above)"""
+    obj = bytearray(r.bytes(0x1500))
+    regions, _h, _a = park(r, kinds=(3, 3, 1, 4, 5, 6, 7, 8, 0), defs=False)
+    things = bytearray(regions[POOL])
+    for i in range(len(things) // THING):
+        for off in (0x44, 0x1f8):
+            f = r.choice([0.0, 1.0, 50.0, 99.9, 100.0, r.uniform(0, 100)]) if r.random() < 0.9 else r.choice([-1.0, 255.9, 300.0, float('nan')])
+            put(things, THING * i + off, 'f', f)
+    regions[POOL] = things
+    log = log_region()
+    set_return(log, 0, r.choice([0xb] * 5 + [0x11, 0x11, 0x1a, 0x1a, 0, 0x12, r.getrandbits(32)]))
+    index = r.choice([0, 1, 5, 19, r.randrange(20), r.randrange(20), -1, 20])
+    put(obj, 0x3cc, 'i', index)
+    obj[0x3d9] = r.choice([0, 1, 1, 1, 7])
+    put(obj, 0x3e0, 'H', r.choice([0, 0, 0, 5]))
+    ident = r.choice([0x18, 0x19, 0x1b, 0x1b, 0x10, 0x1a, r.getrandbits(32)])
+    kind = r.choice([0, 0, 0, 5, 0x1234])
+    if 0 <= index < 20:
+        put(obj, 0xc + 48 * index, 'I', ident)
+        put(obj, 0xc + 48 * index + 0xc, 'H', kind)
+        put(obj, 0xc + 48 * index + 0x10, 'I', r.choice([0, 1, 2, 3, 4, 4, 5, r.getrandbits(32)]))
+    ev = bytearray(r.bytes(0x20))
+    put(ev, 0, 'I', EVTVT)
+    put(ev, 8, 'I', r.choice([ident, ident, r.getrandbits(32)]))
+    put(ev, 0xc, 'I', r.choice([0, 0, 1, 100, r.getrandbits(32)]))
+    put(ev, 0x10, 'H', r.choice([kind, kind, kind ^ 1]))
+    game = put(bytearray(r.bytes(0x40)), 0x20, 'H', r.randrange(12))
+    regions.update({RAM: obj, LOG: log, EVENT: ev, EVTVT: vtable({0: 0}), PG: struct.pack('<I', GAME), GAME + 0x1da700: game,
+                    0x7cf6ec: struct.pack('<I', PG)})
+    return Call(0x4d2860, [RAM, EVENT], regions, conv='t', ret='v')
 
 
 def case(r):
     name = r.choice(OPS)
+    if name == 'Event':
+        return event_case(r)
     address, _n = CALLS[name]
     obj = bytearray(r.bytes(0x1500))
     regions = {RAM: obj, HEAP: heap()}

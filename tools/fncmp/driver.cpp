@@ -7,10 +7,24 @@
 // (ECX, EDX); RET d = also fstp the double the function leaves in st0). Prints per case
 //   EAX EDX ST0 REGION_HEX...     or "crash CODE" / "nohook".
 //
-// Memory is laid out as the emulator has it: the game's sections (all but .text) sit at their
-// own addresses, reloaded from tp.exe before each case, and any other region is mapped on
-// demand and zeroed before each case. The driver is fixed at 0x400000 like the game, so its
-// own code covers the game's .text; g_game, a .bss array, is placed to cover the rest.
+// Memory is laid out as the emulator has it: the game's data sections sit at their own addresses,
+// reloaded from tp.exe before each case, and any other region is mapped on demand and released
+// after each case. The driver's image is fixed at 0x100000 (CMakeLists.txt), so the game's
+// whole image lies in the driver's g_game, a section of its own (.game) that the linker puts
+// right after the driver's code; that it covers the range is checked at start-up:
+//   0x100000 ..             the driver's headers and code (.text), below the game's image
+//   .. 0x400000             g_game's head: no access (nothing of the game's)
+//   0x400000 - 0x401000     the game's headers: no access (the emulator has only its sections)
+//   0x401000 - 0x6e7000     the game's code, loaded once from tp.exe, read-only: the emulator reads
+//                           it (constants, wild pointers) and so does the driver; calling into it
+//                           faults, but at the addresses of kRawCalled, each a jump to its port
+//   0x6e7000 - 0xfc5200     the game's data (kGameLow - kGameHigh), reloaded before each case
+//   .. g_game's end         no access, so a pointer past the game's data faults as in the emulator
+//   then                    the driver's .rdata, .data and .bss (the CRT's statics among them)
+// Elsewhere: the stubs at kStubs, the case heap at kHeap, the token buffer at 0x5a000000 (no
+// access while a case runs) and the regions a case maps (0x10000000 and up), all 64 KB chunks.
+// (Until 2026-10-27 the driver was fixed at 0x400000 like the game: its own code covered the game's
+// .text, so a raw handler there could not be jumped to, and a pointer into it read driver code.)
 //
 // Each case runs with the x87 at single precision, as the game runs it (Direct3D sets it),
 // so that float code the compiler leaves on the x87 rounds there as it will in the game.
@@ -70,6 +84,8 @@
 #include "../../src/game/model/objmodel.h"
 #include "../../src/game/core/sharedglobals.h"
 #include "../../src/game/core/releaselist.h"
+#include "../../src/game/core/soundcategory.h"
+#include "../../src/game/core/sounddevice.h"
 #include "../../src/game/core/mp2synth.h"
 #include "../../src/game/world/mapline.h"
 #include "../../src/game/world/mousemode.h"
@@ -82,12 +98,16 @@ using u8 = std::uint8_t;
 using u32 = std::uint32_t;
 using s32 = std::int32_t;
 
+const u32 kGameBase = 0x00400000, kGameCode = 0x00401000;  // the game's image base, its .text
 const u32 kGameLow = 0x006e7000, kGameHigh = 0x00fc5200;  // cseg .. .rsrc
-// Last in the image (.bss$zzz sorts after every .bss, the CRT's too), so that what follows the game's data natively is g_game's own
-// tail, which load_exe takes all access from. In the middle of .bss the driver's and the CRT's statics followed it, where a case's
-// wild pointer read natively what the emulator does not have (windowtimers.py's 0x65f024 read the CRT's stdout buffer at 0x10d30e4).
-#pragma bss_seg(".bss$zzz")
-u8 g_game[0xb00000];
+const u32 kGameTailEnd = 0x01110000;                       // g_game reaches at least this far (see below)
+// The game's whole image, in a section of its own that the linker places right after the driver's .text (the image is fixed at 0x100000,
+// so the code ends below 0x400000: load_exe checks it). It reaches from wherever the code ends to past kGameTailEnd: the driver's
+// .rdata / .data / .bss follow it, and what follows the game's data natively is g_game's own tail, which load_exe takes all access from
+// (when the CRT's statics followed the game's data, a case's wild pointer read natively what the emulator does not have:
+// windowtimers.py's 0x65f024 read the CRT's stdout buffer at 0x10d30e4).
+#pragma bss_seg(".game")
+u8 g_game[kGameTailEnd - 0x00101000];  // (sized for a driver .text of no size at all; it is ~1.8 MB, so g_game ends near 0x12c0000)
 #pragma bss_seg()
 
 struct Section {
@@ -112,23 +132,31 @@ void load_exe(const char *path) {
     std::fclose(f);
     auto rd16 = [&](u32 o) { return (u32)(d[o] | d[o + 1] << 8); };
     auto rd32 = [&](u32 o) { return rd16(o) | rd16(o + 2) << 16; };
+    const u32 lo = (u32)(uintptr_t)g_game, end = lo + (u32)sizeof g_game;  // (page-aligned: the section starts on a page)
+    if (lo > kGameBase || end < kGameTailEnd) fail("g_game does not cover the game's image; it starts at", lo);
     const u32 pe = rd32(0x3c), count = rd16(pe + 6), opt = rd16(pe + 20), base = rd32(pe + 52);
+    if (base != kGameBase) fail("the exe's base is not 0x400000 but", base);
     for (u32 i = 0; i < count; ++i) {
         const u32 s = pe + 24 + opt + 40 * i;
         const u32 vsize = rd32(s + 8), va = base + rd32(s + 12), rsize = rd32(s + 16), raw = rd32(s + 20);
-        if (va < kGameLow) continue;  // .text: the driver's own code lives there
         Section sec{va, {}, vsize};
         sec.raw.assign(d.begin() + raw, d.begin() + raw + (rsize < vsize ? rsize : vsize));
-        g_sections.push_back(sec);
+        if (va >= kGameLow) {
+            g_sections.push_back(sec);
+            continue;
+        }
+        // The code: loaded once (read-only, nothing writes it), as the emulator reads it (x87emu's exe_sections: the raw bytes)
+        if (va < kGameCode || va + sec.raw.size() > kGameLow) fail("a section of the exe's code out of place at", va);
+        std::memcpy(reinterpret_cast<void *>((uintptr_t)va), sec.raw.data(), sec.raw.size());
     }
-    const u32 lo = (u32)(uintptr_t)g_game;
-    if (lo > kGameLow || lo + sizeof g_game < kGameHigh) fail("g_game does not cover the game's data; it starts at", lo);
-    // Past the game's data nothing is the game's and no region is mapped there (tools/fncmp.py's GAME_HIGH): no access, so a wild
-    // pointer into it faults natively as in the emulator. Up to g_game's last page: it is last in .data, the rest of that page padding.
-    // (Past it only the CRT's .fptable and .rsrc pages are left mapped.)
-    const u32 tail = (kGameHigh + 0xfff) & ~0xfffu, end = (lo + (u32)sizeof g_game + 0xfff) & ~0xfffu;
+    // No access below the game's code (g_game's head and the game's headers, which the emulator does not have) or past the game's data
+    // (nothing is the game's and no region is mapped there: tools/fncmp.py's GAME_HIGH), so a wild pointer there faults natively as in
+    // the emulator; the code read-only (map_raw_called makes the pages of its jumps executable).
+    const u32 tail = (kGameHigh + 0xfff) & ~0xfffu;
     DWORD was;
-    if (end > tail && !VirtualProtect((void *)(uintptr_t)tail, end - tail, PAGE_NOACCESS, &was)) fail("cannot protect g_game's tail at", tail);
+    if (!VirtualProtect((void *)(uintptr_t)lo, kGameCode - lo, PAGE_NOACCESS, &was)) fail("cannot protect g_game's head at", lo);
+    if (!VirtualProtect((void *)(uintptr_t)kGameCode, kGameLow - kGameCode, PAGE_READONLY, &was)) fail("cannot protect the game's code at", kGameCode);
+    if (!VirtualProtect((void *)(uintptr_t)tail, end - tail, PAGE_NOACCESS, &was)) fail("cannot protect g_game's tail at", tail);
 }
 
 void reset_memory() {
@@ -144,9 +172,9 @@ void reset_memory() {
 }
 
 void map(u32 addr, u32 size) {
-    const u32 lo = (u32)(uintptr_t)g_game;
-    if (addr >= lo && addr + size <= lo + sizeof g_game) return;
-    if (addr < kGameLow) fail("region inside the driver's image", addr);
+    const u32 end = (u32)(uintptr_t)g_game + sizeof g_game;
+    if (addr >= kGameLow && addr + size <= end) return;  // (the game's data, g_game's; past kGameHigh its tail, no access)
+    if (addr < kGameLow) fail("region in the game's code or below it", addr);
     for (u32 p = addr & ~0xffffu; p < addr + size; p += 0x10000) {  // allocation granularity
         if (g_chunks.count(p)) continue;
         if (!VirtualAlloc((void *)(uintptr_t)p, 0x10000, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)) fail("cannot map", p);
@@ -304,6 +332,8 @@ const GlyphRenderEnv kGlyphRenderEnv = {reinterpret_cast<s32(__cdecl *)(void(__c
 const ObjModelEnv kObjModelEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const SharedGlobalsEnv kSharedGlobalsEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const ReleaseListEnv kReleaseListEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
+const SoundCategoryEnv kSoundCategoryEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
+const SoundDeviceEnv kSoundDeviceEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const PtrListEnv kPtrListEnv = {&heap_alloc};
 const GameHeapEnv kGameHeapEnv = {&heap_alloc, &heap_free};
 // libjpeg 6b's calls outside itself (src/game/lib/jpeg6b.h): jmemansi.c's malloc / free the heap; jmemmgr.c's getenv, sscanf and
@@ -369,12 +399,17 @@ u32 bytes_hash(u32 h, const u8 *p, u32 mask) {
     return h;
 }
 
-u32 blob_bytes_hash(const u8 *p, u32 how, u32 mask) {
+// wide: the slot's entry at + 0xfc0 (two of (k | 0x80000000, start, mask), fncmp.LOG_BLOB_WIDE), or null: the second structure's bytes start to start + 31
+// that its mask selects, hashed after the first fifteen (an inner mask past bit 14).
+u32 blob_bytes_hash(const u8 *p, u32 how, u32 mask, const u32 *wide) {
     u32 h = bytes_hash(0x811c9dc5u, p, mask);
     if (const u32 at = how >> 8 & 0xff) {
         const u8 *inner;
         std::memcpy(&inner, p + at - 1, 4);
-        if (inner) h = bytes_hash(h, inner + 4 * (how >> 5 & 7), how >> 16 & 0x7fff);
+        if (inner) {
+            h = bytes_hash(h, inner + 4 * (how >> 5 & 7), how >> 16 & 0x7fff);
+            if (wide) h = bytes_hash(h, inner + wide[1], wide[2]);
+        }
     }
     return h;
 }
@@ -440,18 +475,24 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
         const u32 *blob = log + 0x340 + 2 * (k & 63);  // (LOG_BLOBS)
         if ((blob[0] & 0x1f) == i + 1 && args[i]) {
             const u8 *const p = reinterpret_cast<const u8 *>((uintptr_t)args[i]);
-            u32 blob_mask = blob[1];
-            for (u32 w = 0; w < 4; ++w) {  // (at + 0xf80, fncmp.blob_when(): (k | 0x80000000, argument, value, mask), the mask for this call's argument)
+            u32 blob_mask = blob[1], how = blob[0];
+            for (u32 w = 0; w < 4; ++w) {  // (at + 0xf80, fncmp.blob_when(): (k | 0x80000000, argument, value, mask), the mask for this call's argument;
+                                           // fncmp.blob_when_inner(): k | 0xc0000000 and the second structure's selection, bits 5-30 of how)
                 const u32 *const when = log + 0x3e0 + 4 * w;
-                if (when[0] != ((k & 63) | 0x80000000u) || when[1] >= 0x200u || (when[1] & 0xffu) >= n) continue;
+                if (when[1] >= 0x200u || (when[1] & 0xffu) >= n) continue;
                 u32 value = stack[1 + (when[1] & 0xffu)];
                 if (when[1] & 0x100u) {  // (the argument's bit 8, blob_when()'s deref: the dword it points to; a null one matches nothing)
                     if (!value) continue;
                     value = *reinterpret_cast<const u32 *>((uintptr_t)value);
                 }
-                if (value == when[2]) blob_mask = when[3];
+                if (value != when[2]) continue;
+                if (when[0] == ((k & 63) | 0x80000000u)) blob_mask = when[3];
+                else if (when[0] == ((k & 63) | 0xc0000000u)) how = (how & 0x8000001fu) | (when[3] & 0x7fffffe0u);
             }
-            args[i] = blob[0] & 0x80000000u ? blob_bytes_hash(p, blob[0], blob_mask) : blob_hash(p, blob_mask);
+            const u32 *wide = nullptr;
+            for (u32 w = 0; w < 2; ++w)
+                if (log[0x3f0 + 4 * w] == ((k & 63) | 0x80000000u)) wide = log + 0x3f0 + 4 * w;
+            args[i] = how & 0x80000000u ? blob_bytes_hash(p, how, blob_mask, wide) : blob_hash(p, blob_mask);
         }
         if (mask >> i & 1) args[i] = string_hash(reinterpret_cast<const u8 *>((uintptr_t)args[i]));
         if (mask >> (16 + i) & 1) args[i] = 0;
@@ -510,8 +551,18 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
     }
     if (override[0] == 3)                               //  3: the first value & 0xffff calls unanswered, then value >> 16 sign-extended;
         return earlier < (override[1] & 0xffff) ? h : (u32)(s32)(s16)(override[1] >> 16);
-    if (override[0] == 5)                               //  5: call j unanswered when bit j of the value is set, else 0: fncmp.fail_mask())
+    if (override[0] == 5)                               //  5: call j unanswered when bit j of the value is set, else 0: fncmp.fail_mask();
         return earlier < 32 && (override[1] >> earlier & 1) ? h : 0;
+    if (override[0] == 6) {                             //  6: as 3, the calls counted down in the value's low word (past the log's 40 entries)
+        u32 *const left = log + 0x200 + 2 * (k & 63) + 1;
+        if (*left & 0xffff) {
+            --*left;
+            return h;
+        }
+        return (u32)(s32)(s16)(*left >> 16);
+    }
+    if (override[0] == 7)                               //  7: the dword `earlier` of the table at value: fncmp.answers())
+        return reinterpret_cast<const u32 *>((uintptr_t)override[1])[earlier];
     return override[0] == 2 && override[1] < n ? stack[1 + override[1]] : override[0] ? override[1] : h;
 }
 
@@ -673,6 +724,7 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x00702250, 10},   // the texture surface B's virtual base (its thunks; slot 1 FreePixels' the destructor calls)
                                    {0x00705920, 4},   // the GUI rectangle (GuiRect_Contains, _Centre, _Offset, _Adjust)
                                    {0x0070a260, 1},   // the sound channel's stack functor (SoundChannelFn70a260_Run; SoundCmd700b6c_Run's)
+                                   {0x0070a278, 1},   // its settings functor (SoundChannelFn70a278_Run: the channel's setters')
                                    {0x007118e0, 6},   // the MP2 buffer decoder (Mp2BufferDecoder_DeletingDtor, _Open, Mp2Decoder_Close, ...)
                                    {0x0070af00, 6},   // the MP2 stream decoder (Mp2StreamDecoder_DeletingDtor, Mp2BufferDecoder_Open, ...)
                                    {0x0070adb8, 2},   // the voice codec's bit readers over memory (VoiceBits_Skip, _Read)
@@ -721,31 +773,52 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x006fe548, 4},
                                    {0x0070a960, 3},   // the sound library's bank (Release, AddRef, deleting destructor: SoundCategory_ReadBankMap's)
                                    {0x0070a950, 3},   // and category record (the same; slot 2 0x6c1110)
+                                   {0x0070a390, 22},   // the group voice's (slot 4 SoundVoice_Init: Voice70a390_Create's; 21 its new child),
+                                   {0x0070a2e0, 22},   // and those of the voices 0x70a2e0, 0x70a3e8 and 0x70a878 (slot 4 SoundVoice_Init: their
+                                   {0x0070a3e8, 21},   // creates'; 14 and 15 its picks)
+                                   {0x0070a4f0, 21},   // the mixer's voices (slot 4 SoundVoice_Init: SoundMixer_AddVoice's)
+                                   {0x0070a878, 21},
+                                   {0x0070a498, 21},   // the switch voice's (slot 4 SoundVoice_Init, 14 SoundVoice_SwitchVariation, 15 PickSample)
+                                   {0x0070a440, 21},   // the sequence voice's (slot 4 SoundVoice_Init, 14 SoundVoice_NextVariation, 15 PickSample)
+                                   {0x0070aa80, 16},   // the sound resources SoundResource_Create (0x6c5240) makes, which it loads through slot 3: the
+                                   {0x0070aac0, 16},   // stream index (SoundStreamIndex_Load), the mapped index (SoundMapIndex_Map) and the SoundFont
+                                   {0x00711ba8, 16},   // bank (SfBank_Load; 0x711ba0 / 0x711ba4 before it and 0x711be8 after it are floats, not slots)
+                                   {0x0070ab58, 20},   // the silence stream's (slot 15 Obj_SetRateBits20: SoundStream_SetFormat's in SilenceStream_Ctor)
+                                   {0x0070abf8, 19},   // the seeking stream's, the looping stream's and the plain filter's (slots 1 and 3, and
+                                   {0x0070aba8, 19},   // the filters' slots SoundStream_SeekTime calls: SoundStream_BuildChain's; slot 5 of
+                                   {0x0070a678, 19},   // 0x70abf8, 0x6c6e50, is not hooked)
+                                   {0x0070ac50, 21},   // the sample stream's (slot 15 Obj_SetRateBits20: SoundStream_SetFormat's in SoundSample_Ctor)
                                    {0x006fe980, 12},   // CMMOnline's (slot 10 Debug_Nop_46cfb0, which MouseMode_Set calls on the new mode; 11 its leave)
                                    {0x006fea10, 12},   // CMMOnline's base (slots 0, 9 and 11 MouseMode_Set's; 0x481a10 / 0x485b70 make it)
                                    {0x006fea70, 12},   // MMStaffDrop's (slots 9, 10 AssignDrop: MouseMode_Set's on the mode 0x5054d0 makes)
+                                   {0x006feaa0, 12},   // the 0x6feaa0 mode's (slots 9, 10 the empty 0x5da3c0: MouseMode_Set's on the mode 0x497bc0 makes)
                                    {0x006fead0, 12}};  // the 0x6fead0 mode's (slots 9, 10: MouseMode_Set's on the mode 0x481a10 makes)
 
 // Hooked game functions that ported code stores by their address and that are later called through it (a new window's handlers +0x114 /
-// +0x118: Window_DefaultProc). Below the game's data the driver's g_game lies, not its code, so each gets a jump there to its replacement,
-// as the hooked game's original jumps to it. (One inside the driver's own code could not.)
-const u32 kRawCalled[] = {0x0065f6d1};  // Window_DefaultProc (src/game/ui/window's Window_Ctor; tests/fncmp/dialogbuild.py's helpbg())
+// +0x118: Window_DefaultProc). The game's code lies in g_game, read-only, so each gets a jump there to its replacement, as the hooked
+// game's original jumps to it: anywhere in the game's code (0x401000-0x6e7000). The pages of the jumps become executable (the rest of such a
+// page is the original's code, which a call into it then runs natively, as the hooked game would; elsewhere a call into the code faults).
+const u32 kRawCalled[] = {0x0065f6d1,   // Window_DefaultProc (src/game/ui/window's Window_Ctor; tests/fncmp/dialogbuild.py's helpbg())
+                          0x0050f1f0,   // IntPair_Ctor and Stub_Ret, the game's constructor and destructor handed to the array iterators
+                          0x005d1750};  // by address (tests/fncmp/crt_vector_iterators.py's GameCtor / GameDtor: below the old g_game)
 
 void map_raw_called() {
     for (u32 a : kRawCalled) {
         void *const fn = find(a);
-        if (!fn || a < (u32)(uintptr_t)g_game || a + 5 > kGameLow) fail("cannot jump from", a);
+        if (!fn || a < kGameCode || a + 5 > kGameLow) fail("cannot jump from", a);
         DWORD was;
-        const u32 page = a & ~0xfffu;
-        if (!VirtualProtect((void *)(uintptr_t)page, ((a + 4) & ~0xfffu) + 0x1000 - page, PAGE_EXECUTE_READWRITE, &was)) fail("cannot run at", a);
+        const u32 page = a & ~0xfffu, size = ((a + 4) & ~0xfffu) + 0x1000 - page;
+        if (!VirtualProtect((void *)(uintptr_t)page, size, PAGE_READWRITE, &was)) fail("cannot write at", a);
         jump(reinterpret_cast<u8 *>((uintptr_t)a), fn);
+        if (!VirtualProtect((void *)(uintptr_t)page, size, PAGE_EXECUTE_READ, &was)) fail("cannot run at", a);
     }
 }
 
 void __cdecl debug_printf(const char *, ...) {}  // Debug_Printf 0x5da3c0 (RefObject's teardown slot among others)
 
-// Each slot once: a resolved slot holds a driver address, and the driver's code lies at the game's .text addresses, so resolving it again (two entries
-// overlapping) could take it for a hooked game function there (BalanceFile_GetValues was linked at 0x492320, HelpBg_Refresh's address).
+// Each slot once: a resolved slot holds a driver address, and while the driver's code lay at the game's .text addresses, resolving it again (two
+// entries overlapping) could take it for a hooked game function there (BalanceFile_GetValues was linked at 0x492320, HelpBg_Refresh's address).
+// The code now lies below 0x400000, where no game function is, but a slot is still resolved once.
 void resolve_vtables() {
     std::set<u32> done;
     for (const auto &v : kResolvedVtables)
@@ -945,6 +1018,8 @@ int main(int argc, char **argv) {
     ObjModel_SetEnv(&kObjModelEnv);
     SharedGlobals_SetEnv(&kSharedGlobalsEnv);
     ReleaseList_SetEnv(&kReleaseListEnv);
+    SoundCategory_SetEnv(&kSoundCategoryEnv);
+    SoundDevice_SetEnv(&kSoundDeviceEnv);
     GlyphRender_SetEnv(&kGlyphRenderEnv);   // (tests/fncmp/glyphrender.py hooks 0x67a7d0 with fncmp._cdecl_log)
     PtrList_SetEnv(&kPtrListEnv);
     GameHeap_SetEnv(&kGameHeapEnv);
@@ -976,7 +1051,7 @@ int main(int argc, char **argv) {
                                  reinterpret_cast<void(__cdecl *)(void *, void *)>((uintptr_t)0x005da3c0),  // (Debug_Printf: the stand-ins never free)
                                  reinterpret_cast<const char *>((uintptr_t)0x007780f0), reinterpret_cast<const u32 *>((uintptr_t)0x007780ec)};
     ZlibCodec_SetEnv(&zlib);
-    // Envs whose game defaults call game code by its address, which the driver cannot (its own code covers the game's .text): that code resolved to its hooked
+    // Envs whose game defaults call game code by its address, which the driver cannot (the game's code is data there, read-only): that code resolved to its hooked
     // replacement, as the hooked game resolves it; the CPU information constructor (CPUID, the host's) is stub_mark, as tools/fncmp.py's emulator has it.
     static DrivesEnv drives = *Drives_GetEnv();
     drives.cpuCtor = reinterpret_cast<void(__fastcall *)(SystemInfo *)>(&stub_mark);

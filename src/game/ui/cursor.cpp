@@ -6,6 +6,7 @@
 #include "../core/gameheap.h"
 #include "../core/initializers.h"
 #include "../core/vcall.h"
+#include "../gfx/palette.h"
 
 namespace {
 
@@ -200,6 +201,24 @@ void __cdecl GameCursors_LoadTga() {
         if (f.slot == 9) Fn_6618c7(cursor, nullptr, 10, 0x40);
         else if (f.slot == 0x15) Fn_6618c7(cursor, nullptr, 0x10, 0x10);
     }
+}
+
+u8 *__fastcall SysCursor_Ctor(u8 *cursor) {
+    Fn_661870(cursor);
+    *reinterpret_cast<u32 *>(cursor) = 0x007059d0;
+    *reinterpret_cast<u32 *>(cursor + 0x14) = 0;
+    return cursor;
+}
+
+u8 *__fastcall Cursor_Delete(u8 *cursor, void *, u32 flags) {
+    Fn_6618a6(cursor);
+    if (flags & 1) GameHeap_Free(cursor);
+    return cursor;
+}
+
+u8 *__fastcall PalColour_Ctor(u8 *colour, void *, u32 red, u32 green, u32 blue) {
+    PalColour_Set(colour, nullptr, red & 0xff, green & 0xff, blue & 0xff);
+    return colour;
 }
 
 }

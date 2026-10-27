@@ -162,4 +162,24 @@ void __fastcall Window705a50_Set154(u8 *window, void *, u32 value) {
     at<u32>(window, 0x154) = value;
     Window705a50_NotifyLook(window);
 }
+
+u32 __fastcall Window705a50_IsRepeatTick(u8 *window, void *, s32 count) {
+    return count > at<s32>(window, 0x13c) && count % at<s32>(window, 0x140) == 0;
+}
+
+void __fastcall Window705a50_StartRepeat(u8 *window) {
+    if (!(at<u32>(window, 0x48) & 0x20)) return;
+    at<u32>(window, 0x144) = GuiClock_Now();
+    at<u8>(window, 0x15a) = 1;
+}
+
+u32 __fastcall Window705a50_StateField(u8 *window) {
+    return at<s8>(window, 0x138) == 1 ? at<u32>(window, 0x94) : at<u32>(window, 0x90);
+}
+
+u32 __fastcall Window705a50_StopRepeat(u8 *window) {
+    const u16 result = at<s8>(window, 0x15a) == 2 ? 0 : 1;
+    at<u8>(window, 0x15a) = 0;
+    return ((u32)(uintptr_t)window & 0xffff0000u) | result;
+}
 }

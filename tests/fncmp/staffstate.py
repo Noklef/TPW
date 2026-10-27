@@ -8,7 +8,12 @@
 # into the skill table 0x78542c, the handle +0x218's thing (its +0x19c 2 or not, byte +0x50 small or any, float +0x44 0-100, past it,
 # negative, huge or NaN) and its definition (gObjectDefs as object.py's: 1-3 of 0x4000 bytes, the cache hit or not).
 # Handyman (0x4d7330): Staff_SetState's cases now and then, else the states 8-0xb: the word 0x75c7f2 and the world's tick any.
-# usage: staffstate.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetState,Mechanic,Handyman)
+# PickUp (0x505c50): SetState's surroundings (the old state +0x19c 4, 5, 7, 0xd or 0x12 mostly, else one whose debug print reads the
+# staff member's cell: the cells [0x8023a0] random, its column +5 and row +7 within them), the current mode's slot 9 answering 6 mostly
+# (else 8, 0, 7 or any), the world's handle +0x1da718 into the thing table 0x7cfb90 (a record whose word +0x60 is set).
+# Settle (0x505f50): PickUp's surroundings with the state +0x19c 0-7, 0xd, 0x12 or others, the type +8 of the staff member's cell
+# plain (0, 1, 3, 9, 0xa) or not, its byte +2 7 mostly.
+# usage: staffstate.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetState,Mechanic,Handyman,PickUp,Settle)
 import os
 import struct
 import sys
@@ -17,7 +22,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import wctimage  # noqa: E402
-from fncmp import HEAP, LOG, Bench, Call, RAM, heap, put, vtable  # noqa: E402
+from fncmp import HEAP, LOG, Bench, Call, RAM, heap, put, set_return, vtable  # noqa: E402
 from focus import MODES  # noqa: E402
 from mousemode import assign  # noqa: E402
 
@@ -28,11 +33,13 @@ B = Bench(wctimage.merged(MODES + [
     (0x5054d0, 0x5056f0), (0x505ea0, 0x505f60), (0x509af0, 0x509b50), (0x50b350, 0x50b370), (0x50c0d0, 0x50c110), (0x519450, 0x5194e0),
     (0x540c60, 0x540da0), (0x550ca0, 0x550d90), (0x5f5660, 0x5f56a0), (0x6590f7, 0x6591e4), (0x65f11d, 0x65f160), (0x67a740, 0x67a800),
     (0x67fa20, 0x67fa40), (0x5d1410, 0x5d1416), (0x5d1750, 0x5d1751), (0x5da3c0, 0x5da3c1),
-    (0x4da370, 0x4da483), (0x4e03e0, 0x4e03f0), (0x4dd4e0, 0x4dd4fb), (0x412e90, 0x412eea), (0x4d7330, 0x4d73b4)]))
+    (0x4da370, 0x4da483), (0x4e03e0, 0x4e03f0), (0x4dd4e0, 0x4dd4fb), (0x412e90, 0x412eea), (0x4d7330, 0x4d73b4),
+    (0x505c50, 0x505ea0), (0x509ae0, 0x509aec), (0x4fa990, 0x4fa9fa), (0x536300, 0x53644c), (0x505f50, 0x505fe0)]))
 STAFF, WORLD, MODE, MODE_VT, HOLDER = RAM + 0x20000, RAM + 0x21000, RAM + 0xc000, RAM + 0xc100, RAM + 0xc200
+RECORD, CELLS = RAM + 0x21400, RAM + 0x50000
 
 
-CALLS = {'SetState': 0x5054d0, 'Mechanic': 0x4da370, 'Handyman': 0x4d7330}
+CALLS = {'SetState': 0x5054d0, 'Mechanic': 0x4da370, 'Handyman': 0x4d7330, 'PickUp': 0x505c50, 'Settle': 0x505f50}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 TARGET, ITEMS = RAM + 0x38000, RAM + 0x40000
 
@@ -89,6 +96,26 @@ def case(r):
     regions[0xfb3b7c] = struct.pack('<I', 1)
     state = r.choice([0, 1, 2, 3, 4, 5, 6, 7, 7, 7]) if r.random() < 0.95 else r.choice([8, 9, 0xffffffff, r.getrandbits(32)])
     assert LOG in regions
+    if op in ('PickUp', 'Settle'):
+        if op == 'Settle':
+            put(staff, 0x19c, 'I', r.choice([0, 1, 2, 3, 4, 5, 6, 7, 0xd, 0x12, 8, 0x11, r.getrandbits(32)]))
+            staff[2] = r.choice([7, 7, 7, 0, 1, r.getrandbits(8)])
+        else:
+            put(staff, 0x19c, 'I', r.choice([4, 5, 7, 0xd, 0x12] * 3 + [0, 1, 2, 3, 6, 8, r.getrandbits(32)]))
+        staff[5], staff[7] = r.randrange(128), r.randrange(4)
+        regions[CELLS] = r.bytes(0x44 * 4 * 128)
+        regions[0x8023a0] = struct.pack('<I', CELLS)
+        regions[MODE_VT] = vtable({0: 1, 9: 0})
+        set_return(regions[LOG], 9, r.choice([6] * 5 + [8, 0, 7, r.getrandbits(32)]))
+        h = r.randrange(16)
+        regions[WORLD] = put(bytearray(r.bytes(0x10)), 0xc, 'H', h)
+        regions[0x7cfb90 + 20 * h] = struct.pack('<I', RECORD)
+        regions[RECORD] = r.bytes(0x80)
+        if op == 'Settle':
+            cells = bytearray(regions[CELLS])
+            put(cells, 0x44 * (staff[7] * 128 + staff[5]) + 8, 'I', r.choice([0, 1, 3, 9, 0xa, 2, 4, 0xc, 0x11, r.getrandbits(32)]))
+            regions[CELLS] = cells
+        return Call(CALLS[op], [STAFF], regions, conv='t', ret='v')
     return Call(CALLS[op], [STAFF, state], regions, conv='t', ret='v')
 
 

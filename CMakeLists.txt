@@ -181,6 +181,21 @@ add_library(tpw_game STATIC
     src/game/core/sfbank.cpp
     src/game/core/soundnames.cpp
     src/game/core/soundindex.cpp
+    src/game/core/channelvoice.cpp
+    src/game/core/soundoccluders.cpp
+    src/game/core/loopstream.cpp
+    src/game/core/streamfilter.cpp
+    src/game/core/soundstream.cpp
+    src/game/core/streampool.cpp
+    src/game/core/soundsample.cpp
+    src/game/core/voicesample.cpp
+    src/game/core/shufflebag.cpp
+    src/game/core/silencestream.cpp
+    src/game/core/waveformat.cpp
+    src/game/core/voiceevents.cpp
+    src/game/core/sounddevice.cpp
+    src/game/core/soundsource.cpp
+    src/game/core/widewriter.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
@@ -407,6 +422,7 @@ add_library(tpw_game STATIC
     src/game/frontend/islandcamera.cpp
     src/game/frontend/lobbyscene.cpp
     src/game/frontend/viewcontrols.cpp
+    src/game/frontend/postcard.cpp
     src/game/input/mouse.cpp
     src/game/ui/dialog7ca1c8.cpp
     src/game/ui/window.cpp
@@ -469,6 +485,17 @@ add_library(tpw_game STATIC
     src/game/ui/dialog7cca94.cpp
     src/game/ui/hoverlabel.cpp
     src/game/ui/dialog7cb25c.cpp
+    src/game/ui/dialog7cc444.cpp
+    src/game/ui/dialog7cc5f4.cpp
+    src/game/ui/dialog7cc47c.cpp
+    src/game/ui/staffrename.cpp
+    src/game/ui/window7cc8bc.cpp
+    src/game/ui/dialog7cb2b8.cpp
+    src/game/ui/dialog7ca308.cpp
+    src/game/ui/dialog7ca150.cpp
+    src/game/ui/guinamed.cpp
+    src/game/ui/dialog7ca13c.cpp
+    src/game/ui/imecandidates.cpp
 )
 # The libraries whose functions replace the exe's copies (src/game/lib); their headers stay private to those units.
 target_link_libraries(tpw_game PRIVATE tpw_zlib tpw_jpeg6b tpw_jpeg6a)
@@ -517,8 +544,9 @@ add_executable(tpw_tests
 )
 target_link_libraries(tpw_tests PRIVATE tpw_game)
 
-# Comparison driver for tools/fncmp.py: calls hooked functions by their original address,
-# fixed at the game's image base so absolute game addresses work as they do in tp.exe.
+# Comparison driver for tools/fncmp.py: calls hooked functions by their original address. Fixed at 0x100000, below the game's image
+# base, so its code ends below 0x400000 and its g_game section (the next one) covers the game's whole image, 0x400000-0xfc5200, where
+# absolute game addresses work as they do in tp.exe (tools/fncmp/driver.cpp's header; it checks the layout at start-up).
 add_executable(tpw_fncmp
     tools/fncmp/driver.cpp
     tools/fncmp/crt.cpp
@@ -529,4 +557,4 @@ add_executable(tpw_fncmp
 target_link_libraries(tpw_fncmp PRIVATE tpw_game)
 # Not incremental: an incremental link keeps an old, larger .bss when a static shrinks, and a case's wild pointer reads the driver's own
 # memory natively where the emulator has none, so the layout has to follow the source.
-target_link_options(tpw_fncmp PRIVATE /FIXED /DYNAMICBASE:NO /BASE:0x400000 /MAP /INCREMENTAL:NO)  # (the map names where FNCMP_CRASHAT's crashes are)
+target_link_options(tpw_fncmp PRIVATE /FIXED /DYNAMICBASE:NO /BASE:0x100000 /MAP /INCREMENTAL:NO)  # (the map names where FNCMP_CRASHAT's crashes are)

@@ -3,6 +3,8 @@
 #include <cstdint>
 
 #include "../core/accessors.h"
+#include "../core/crt.h"
+#include "../core/gameheap.h"
 #include "guimanager.h"
 #include "window.h"
 
@@ -32,6 +34,17 @@ u8 *__fastcall WindowTimer_Find(u8 *node, void *, u32 window, u32 id) {
 u8 *__fastcall WindowTimer_Delete(u8 *node, void *, u32 flags) {
     WindowTimer_Unlink(node);
     if (flags & 1) Fn_661f9b((u32)(uintptr_t)node);
+    return node;
+}
+
+u8 *__fastcall WindowTimer_VecDelete(u8 *node, void *, u32 flags) {
+    if (flags & 2) {
+        CRT_VectorDtorIterator(node, 0x20, at<s32>(node, (u32)-4), reinterpret_cast<void(__fastcall *)(void *)>(&WindowTimer_Unlink));
+        GameHeap_Free(node - 4);
+    } else {
+        WindowTimer_Unlink(node);
+        if (flags & 1) Fn_661f9b((u32)(uintptr_t)node);
+    }
     return node;
 }
 
@@ -65,6 +78,18 @@ u8 *__fastcall WindowTimer_Ctor(u8 *node, void *, u32 window, u32 interval, u32 
     at<u32>(node, 4) = GuiClock_Now();
     at<u32>(node, 0x10) = 0;
     at<u32>(node, 0x14) = 0;
+    return node;
+}
+
+u8 *__fastcall WindowTimer_PoolCtor(u8 *node) {
+    at<u32>(node, 0) = 0;
+    at<u32>(node, 8) = 0;
+    at<u32>(node, 0xc) = 0;
+    at<u32>(node, 0x18) = 0;
+    at<u32>(node, 0x1c) = 0;
+    at<u32>(node, 4) = GuiClock_Now();
+    at<u32>(node, 0x10) = 0;
+    at<u32>(node, 0x14) = 1;
     return node;
 }
 
@@ -144,5 +169,34 @@ u32 __cdecl WindowTimers_Remove(u8 *node) {
     if (node == timers()) timers() = at<u8 *>(node, 0x18);
     WindowTimer_Delete(node, nullptr, 1);
     return 1;
+}
+
+u32 __cdecl WindowTimers_Init(u32 count) {
+    timers() = nullptr;
+    u8 *nodes = nullptr;
+    if (u8 *const block = static_cast<u8 *>(GameHeap_Alloc(count * 0x20 + 4))) {
+        at<u32>(block, 0) = count;
+        CRT_VectorCtorIterator(block + 4, 0x20, (s32)count, reinterpret_cast<void(__fastcall *)(void *)>(&WindowTimer_PoolCtor),
+                               reinterpret_cast<void *>(&WindowTimer_Unlink));
+        nodes = block + 4;
+    }
+    *reinterpret_cast<u8 **>((uintptr_t)0x00faa630) = nodes;
+    *reinterpret_cast<u32 *>((uintptr_t)0x00faa62c) = count;
+    *reinterpret_cast<u32 *>((uintptr_t)0x00faa638) = 0;
+    return count;
+}
+
+void __cdecl WindowTimers_FireAll() {
+    if (*reinterpret_cast<u32 *>((uintptr_t)0x00faa638)) return;
+    for (u8 *node = timers(); node; node = at<u8 *>(node, 0x18)) WindowTimer_Fire(node);
+}
+
+u8 *__cdecl WindowTimers_Find(u32 window, u32 id) {
+    return timers() ? WindowTimer_Find(timers(), nullptr, window, id) : nullptr;
+}
+
+void __cdecl WindowTimers_Shutdown() {
+    if (u8 *const nodes = *reinterpret_cast<u8 **>((uintptr_t)0x00faa630)) WindowTimer_VecDelete(nodes, nullptr, 3);
+    timers() = nullptr;
 }
 }

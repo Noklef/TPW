@@ -4,6 +4,8 @@
 #include <cstring>
 
 #include "crt.h"
+#include "gameheap.h"
+#include "initializers.h"
 #include "vcall.h"
 
 namespace {
@@ -257,5 +259,45 @@ u32 __fastcall SfMan_Close(u8 *self) {
 }
 
 u32 __fastcall SfMan_Dtor(u8 *self) { return SfMan_Close(self); }
+
+u32 *__fastcall SfHost_Open(u8 *host, void *, u32 *out) {
+    u8 *sf = static_cast<u8 *>(GameHeap_Alloc(0x1c));
+    if (sf) Fn_6d3b90(sf);
+    *reinterpret_cast<u8 **>(host + 4) = sf;
+    u32 r;
+    if (static_cast<s32>(*SfMan_Open(sf, nullptr, &r)) >= 0) {
+        *out = 0;
+        return out;
+    }
+    sf = *reinterpret_cast<u8 **>(host + 4);
+    if (sf) {
+        SfMan_Dtor(sf);
+        GameHeap_Free(sf);
+    }
+    *reinterpret_cast<u8 **>(host + 4) = nullptr;
+    *out = 0xffffffffu;
+    return out;
+}
+
+u32 *__fastcall SfHost_OpenOut(u8 *host, void *, u32 *out) {
+    SfHost_Open(host, nullptr, out);
+    return out;
+}
+
+void __fastcall SfHost_Close(u8 *host) {
+    if (!*reinterpret_cast<u8 **>(host + 4)) return;
+    SfMan_Close(*reinterpret_cast<u8 **>(host + 4));
+    u8 *sf = *reinterpret_cast<u8 **>(host + 4);
+    if (sf) {
+        SfMan_Dtor(sf);
+        GameHeap_Free(sf);
+    }
+    *reinterpret_cast<u8 **>(host + 4) = nullptr;
+}
+
+void __fastcall SfHost_Dtor(u8 *host) {
+    SfHost_Close(host);
+    *reinterpret_cast<u32 *>(host) = 0;
+}
 
 }  // extern "C"

@@ -255,4 +255,14 @@ void __fastcall MMStaffDrop_Assign(u8 *self) {
     Obj7b51f0_SetCursor(reinterpret_cast<void *>(0x007b51f0), nullptr, 9);
     start_staff_script(self, at<u32>(self, 0xc), at<u8>(self, 0x10));
 }
+
+void __cdecl MouseMode_Ensure6feaa0() {
+    MouseModes_EnsureHolder();
+    u8 *const current = *reinterpret_cast<u8 **>(0x007b05d8);
+    if ((current ? vcall<s32>(current, 0x24) : 0) == 8) return;
+    u8 *const block = static_cast<u8 *>(GameHeap_Alloc(8));
+    u8 *const mode = block ? MouseMode6feaa0_Ctor(block) : nullptr;
+    MouseModes_EnsureHolder();
+    MouseMode_Set(mode);
+}
 }

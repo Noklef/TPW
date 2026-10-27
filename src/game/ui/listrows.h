@@ -141,6 +141,10 @@ void __cdecl List7cb264_InitRow(u8 *row);
 // ridestatbar bars; 1: two 0x6ff3b0 parts (the bytes 2, 1 as 0xc00, then the font) and a bar; 2: a bar, two such parts, a bar; 3: none.
 void __cdecl List7ca158_InitRow(u8 *row);
 
+// 0x4b4d40 (with List7cc338_NewRow; name unconfirmed): the row a TextPart_Ctor part, the font [0x756f38] and the text 0; its first
+// child a ridestatbar bar with its slot 7 called with 0.
+void __cdecl List7cc338_InitRow(u8 *row);
+
 // 0x4939d0 (with 0x4938c0): the row a TextPart6ff470_Ctor part, the font [0x7508b4] and the bytes 1, 1 as 0xc00; its first child a
 // 0x6ff3b0 part, the font, slot 7 with 0 and the bytes 2, 1; the next a 0x6ff4a0 part, the font and the bytes 1, 1; the next a 0x6ff350
 // part, the font and slot 7 with 0; the next inset by 4 and 0 and given the GUI window registered as "ti_hungry" (GuiWindows_FindByName,
@@ -151,4 +155,34 @@ void __cdecl List7ca140_InitRow(u8 *row);
 // 0x6ff3b0 part, the bytes 2, 1 as 0xc00, the font and slot 7 with 0; the next a ridestatbar bar inset by 0 and 8 with slot 7 given
 // 0x1f4; the next a happygrad bar inset by 0 and 8.
 void __cdecl List7ca170_InitRow(u8 *row);
+
+// 0x4959c0 (cdecl (window, message, a, b); name unconfirmed): List7ca158_NewRow's row handler. For 0x403 b is an object: its word +0x30
+// (Fn_4e0df0), when not 0, an index into the table at 0x7cfb90 (20-byte entries) whose dword is the object used instead; its status
+// (Object_Status with count 2) picks a colour (Table74fb50_Get) sent as its bytes 0-2 and 0xff (Window_Notify40000). Then, for every
+// message, the default handler's answer (Window_CallDefault).
+u32 __cdecl List7ca158_RowProc(u8 *window, u32 message, u32 a, u32 b);
+
+// 0x4a0710 (cdecl (window, message, a, b); name unconfirmed): List7cb264_InitRow's row handler: for 0x403 the colour 0x8c, 0, 0x3c
+// (b negative) or white, 0xff (Window_Notify40000); then the default handler's answer (Window_CallDefault).
+u32 __cdecl List7cb264_RowProc(u8 *window, u32 message, u32 a, u32 b);
+
+// 0x4bf760 (cdecl; name unconfirmed): a new 0x138-byte row window (0, 0, 0x64, height; no parent, flags and id 0; none when the
+// allocation fails), the height worked out first: the font [0x758f04]'s (Language_Font, its slot 1; signed word) * 0x600 / the word
+// [0xfaa5c0] + 4 (not cached). 0x4bf740 / 0x4bf8b0 (cdecl; names unconfirmed): that row given the handler 0x4be730 / 0x4be7c0
+// (Window_SetHandler; sic: not checked); each returns the row.
+u8 *__cdecl List758f04_NewRow();
+u8 *__cdecl List758f04_NewRowA();
+u8 *__cdecl List758f04_NewRowB();
+
+// 0x4bf810 (cdecl (row); name unconfirmed): a TextPart_Ctor part (0x1a4 bytes, none when the allocation fails) as the impl, the font
+// [0x758f04] (Window_Set4c) and white, 0xff (Window_Notify40000). 0x4bf800 (cdecl (row)): calls it.
+void __cdecl List758f04_InitRow(u8 *row);
+void __cdecl List758f04_InitRowJump(u8 *row);
+
+// 0x4be730 (cdecl (window, message, a, b); name unconfirmed): List758f04_NewRowA's row handler: for 0x403 the colour (bytes 0-2, 0xff;
+// Window_Notify40000) the dword [0x758f30] when b's bit 0 is clear, else [0x758f3c] with bit 1 clear, else [0x758f34] with bit 2 clear,
+// else [0x758f38]. 0x4be7c0 (likewise; List758f04_NewRowB's): the colour the bytes 0-2 of the entry b & 7 of the table 0x758f10 (4-byte
+// entries). Then the default handler's answer (Window_CallDefault).
+u32 __cdecl List758f04_RowProcA(u8 *window, u32 message, u32 a, u32 b);
+u32 __cdecl List758f04_RowProcB(u8 *window, u32 message, u32 a, u32 b);
 }

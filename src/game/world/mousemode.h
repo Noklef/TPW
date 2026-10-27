@@ -117,4 +117,9 @@ void __fastcall MouseMode6fead0_Assign(u8 *self);
 void __fastcall MMPlaceStaff_Assign(u8 *self);
 // 0x46cbf0 (the 0x6fea70 mode): the same with folder +0xc and sprite the byte +0x10.
 void __fastcall MMStaffDrop_Assign(u8 *self);
+
+// 0x497bc0 (cdecl; called from 0x498430-0x498500; name unconfirmed): the holder [0x7b05e8] made when missing (MouseModes_EnsureHolder);
+// then unless the current mode ([0x7b05d8], read after that) answers 8 through its slot 9 (none: 0), a new 0x6feaa0 mode (Mem_Alloc(8),
+// MouseMode6feaa0_Ctor; 0 when that failed) made, the holder made when missing again and the mode set (MouseMode_Set).
+void __cdecl MouseMode_Ensure6feaa0();
 }

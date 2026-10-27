@@ -2,8 +2,9 @@
 # arguments), the last position and the button flags are random. GuiButton (0x486c70, with ui/window's 0x658af1 / 0x658b5b and the GUI's
 # message queue): see gui(). GuiMove (0x6588ef): window.py's tree and hover (the capture [0xfaa5e8] mostly 0), the GUI up or not
 # ([0x77c488]), the point a point() (in the windows mostly) or any. GuiWheel (0x658bcb): gui()'s, the capture [0xfaa5e8] the window or 0,
-# the delta small or any, x and y as gui()'s.
-# usage: mouse.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Button,Moved,GuiButton,GuiMove,GuiWheel)
+# the delta small or any, x and y as gui()'s. GuiMoved (0x658840): GuiMove's, the last point seen [0xfaa5cc] / [0xfaa5d0] the mouse's, its x
+# or y changed, or any.
+# usage: mouse.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Button,Moved,GuiButton,GuiMove,GuiWheel,GuiMoved)
 import os
 import struct
 import sys
@@ -16,7 +17,7 @@ from window import RANGES as WINDOW_RANGES, hover, point, tree  # noqa: E402
 B = Bench([(0x46c210, 0x46c2a0), (0x46c2a0, 0x46c330), (0x5da3c0, 0x5da3c1), (0x486c70, 0x486d8f), (0x658af1, 0x658b5b), (0x658b5b, 0x658bcb),
            (0x658ccc, 0x658d9f), (0x6697e3, 0x6698a4), (0x659710, 0x659721),
            (0x658bcb, 0x658c38)] +
-          sorted(set(WINDOW_RANGES + [(0x6588ef, 0x6589f9)])))
+          sorted(set(WINDOW_RANGES + [(0x6588ef, 0x6589f9), (0x658840, 0x65889c)])))
 MOUSE, VT = RAM + 0x2000, RAM + 0x2100
 WINDOW, QUEUE = RAM + 0x3000, RAM + 0x3200
 
@@ -44,7 +45,7 @@ def gui(r):
 
 
 def case(r):
-    name = r.choice(OPS)
+    name = r.deal(OPS)   # (dealt: each op in a short run, the coverage gate's)
     if name == 'GuiButton':
         return gui(r)
     if name == 'GuiWheel':
@@ -53,13 +54,18 @@ def case(r):
         x, y = c.args[3:5]
         delta = r.choice([1, -1, 120, -120, 0, r.getrandbits(32)]) & 0xffffffff
         return Call(0x658bcb, [delta, x, y], c.regions, ret='w')
-    if name == 'GuiMove':
+    if name in ('GuiMove', 'GuiMoved'):
         regions = {LOG: log_region()}
         wins = tree(r, regions)
         hover(r, regions, wins)
         regions[0xfaa5d8] = put(bytearray(regions[0xfaa5d8]), 0x10, 'I', r.choice([0] * 6 + wins))   # (the capture: a window or none)
         regions[0x77c488] = struct.pack('<I', r.choice([1, 1, 1, 1, 0]))
         x, y = point(r, regions, wins)
+        if name == 'GuiMoved':
+            x, y = struct.unpack('<hxxhxx', regions[0xfaa540][:8])
+            sx, sy = r.choice([(x, y), (x, y), (x + 1, y), (x, y - 1), (x ^ 0x8000, y), (x, y ^ 0x8000), (r.getrandbits(15), r.getrandbits(15))])
+            regions[0xfaa5cc] = struct.pack('<hHhH', (sx + 0x8000 & 0xffff) - 0x8000, r.getrandbits(16), (sy + 0x8000 & 0xffff) - 0x8000, r.getrandbits(16))
+            return Call(0x658840, [], regions, ret='v')
         return Call(0x6588ef, [x, y], regions, ret='w')
     glob = bytearray(struct.pack('<IIIIIIII', *[r.choice([0, 1, 5, 0x80000000]) for _ in range(8)]))  # 0x7b05d4 .. 0x7b05f4: the last position, the mouse object, the flags
     put(glob, 4, 'I', MOUSE)
@@ -71,7 +77,7 @@ def case(r):
     return Call(0x46c2a0, [r.choice([0, 1, 5, 0x80000000, 0xffffffff]), r.choice([0, 1, 5, 7])], regions, conv='s', ret='v')
 
 
-OPS = [k for k in os.environ.get('OPS', 'Button,Moved,GuiButton,GuiMove,GuiWheel').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Button,Moved,GuiButton,GuiMove,GuiWheel,GuiMoved').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)
