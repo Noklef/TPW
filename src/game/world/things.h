@@ -118,6 +118,13 @@ struct ThingTableEnv {
 // The table's calls go to env (nullptr: the game's).
 void Things_SetEnv(const ThingTableEnv *env);
 
+// What Thing_Detach calls in the game that is not ported yet, so that it can run outside it (the benches point it at a recorder).
+struct ThingDetachEnv {
+    void(__cdecl *rideDestroy)(u32 ride);   // Ride_Destroy (0x463c80, agent B's)
+};
+// Thing_Detach's calls go to env (nullptr: the game's).
+void Things_SetDetachEnv(const ThingDetachEnv *env);
+
 extern "C" {
 
 // 0x4d91f0 (thiscall; handle, pops 4): when the word at +0x24 is not 0 the thing it names (in the table at 0x7cfb90) gets the word at +8 = handle; the
@@ -130,4 +137,10 @@ u8 *__stdcall Thing_ByHandle(u32 handle);
 // 0x502d20 (thiscall): the thing constructor (Thing_Construct) with cell 1 and kind 0xe, then the five 0x10-byte records at +0x1414 get -1 in their first dword and 1 in the byte at
 // +4. Returns the object. (The cell argument the original pushes has the object's high address bits above the 1: Thing_Construct takes 16 bits of it.)
 u8 *__fastcall ThingKindE_Ctor(u8 *object);
+
+// 0x50b980 (thiscall; name invented, unconfirmed): a thing taken out of the world: unlinked from its map cell's chain (Things_UnlinkFromChain
+// on the cell id (row +7 << 7) + column +5 + 1 of [0x8023a0], its handle word); a ride (kind +2 3) destroyed by its +0x20 (the env's Ride_Destroy,
+// 0x463c80); a thing of kind 1, 4, 5, 6, 7, 8 or 0x12 that is the one at 0x877350 clears it; then erased from the message centre
+// (MessageCentre_RemoveThing on MessageCentre_Instance). Returns the count erased.
+u32 __fastcall Thing_Detach(u8 *thing);
 }  // extern "C"

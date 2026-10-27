@@ -260,6 +260,7 @@ address,name,kind,confidence,notes
 0x00503d40,ResearchLab_HandleMessage,function,high,Thing_HandleMessage case 14
 0x00512880,Weather_Update,function,medium,Thing_Update case 15
 0x005127a0,Weather_HandleMessage,function,high,"reimplemented (src/game/world/weather); thiscall (message), pops 4: kind 1 sets the intensity (unless +0x64), kind 2 schedules +0x20 = now + days, +0x28 the value, +0x18 now"
+0x00512000,Weather_Detach,function,low,"reimplemented (src/game/world/weather); thiscall: Thing_Detach, then the renderer's ([0x8bcbac]) textures freed (WeatherFx_FreeTextures); returns 1"
 0x004d02d0,BankAccount_HandleMessage,function,high,Thing_HandleMessage case 16
 0x0050ca50,UIMsgReceiver_HandleMessage,function,high,Thing_HandleMessage case 17
 0x004f7c50,Stub_Ret4b,function,high,reimplemented (src/game/core/accessors); a virtual that does nothing (pops 4)
@@ -3649,6 +3650,8 @@ address,name,kind,confidence,notes
 0x004fa2a0,Sprite_WalkNav,function,low,"reimplemented (src/game/world/person); thiscall; x87; one step along the nav +0xd4: the thing moved, +0x1c the cseg angle, the walk / run / guard action and the period for the step's length; returns 0 (path done), 1 or 2 (+0x18c set) (name invented)"
 0x00500870,Visitor_QuitQueue,function,low,"reimplemented (src/game/world/person); when the object's ride record's element 0 is not its head, off the queue and state 0x10"
 0x005012f0,Visitor_SendAway,function,low,"reimplemented (src/game/world/person); (6, object) on the ring, sound 0x80 for a handle & 7 of 0, Lower19c(1), the queue fields cleared, state 6"
+0x004f8ae0,Person_Detach,function,low,"reimplemented (src/game/world/person); thiscall: Thing_Detach, the script slot +0xc killed when set, the action history's dump, the history's +0x84 script killed"
+0x004fb330,Visitor_Detach,function,low,"reimplemented (src/game/world/person); thiscall: the sprite script at +0x210 killed and cleared when set, then Person_Detach"
 0x00550d80,Setting_SetMode,function,high,reimplemented (src/game/core/options); stores a mode and sets its flag bits
 0x005633e0,Quad_Push,function,high,reimplemented (src/game/core/seqs); pushes four dwords into the next of four slots
 0x0059c390,Table76e300_GetObjectDword,function,high,reimplemented (src/game/world/objectdefs); a dword of the object indexed through a record of the table
@@ -4311,6 +4314,7 @@ address,name,kind,confidence,notes
 0x00502d20,ThingKindE_Ctor,function,high,reimplemented (src/game/world/things); a thing of kind 0xe with five records
 0x004f7e20,Thing_ResetPlaceAt,function,high,"reimplemented (src/game/world/things); thiscall (x, y, pops 8): +0x39c = 0, +0x10 = 3 (Set4_4217f0 on +0xc), then Thing_PlaceAt(x, y)"
 0x005153c0,ThingsToDelete_AtExit,function,low,"reimplemented (src/game/world/things); cdecl: the delete queue's atexit entry, its nodes freed once"
+0x0050b980,Thing_Detach,function,low,"reimplemented (src/game/world/things); thiscall: unlinked from its map cell's chain, a ride destroyed (Ride_Destroy through the env), 0x877350 cleared when it is the thing (kinds 1, 4-8, 0x12), erased from the message centre; returns the count erased"
 0x00565310,DrawBatch_Open,function,high,reimplemented (src/game/render/drawbuffer); a draw batch resumed and tagged
 0x0057b070,Object_ReleaseSavedPairs,function,high,reimplemented (src/game/core/vobj2); saved pairs written back and their arrays freed
 0x0057b5b0,Object_FreeBlock13c,function,low,reimplemented (src/game/core/vobj2); thiscall: the tracked block at +0x13c freed after its texture at +0x18 is released twice (sic) and freed (name unconfirmed)

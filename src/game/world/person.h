@@ -204,6 +204,14 @@ void __fastcall World_PlaceSprites(u8 *world, void *, float t);
 // counter, left in EAX; the caller ignores it).
 u32 __fastcall Person_DumpActionHistory(u8 *person);
 
+// 0x4f8ae0 (thiscall; name invented, unconfirmed): a person taken out of the world: Thing_Detach, the script slot at +0xc killed and cleared
+// when set (Obj_KillSlot), the action history's dump (Person_DumpActionHistory), the script slot at +0x84 of the history at +0x30 killed
+// (Person_KillScript84Keep).
+void __fastcall Person_Detach(u8 *person);
+// 0x4fb330 (thiscall; name invented, unconfirmed): a visitor's: its sprite script at +0x210, when set, killed (SpriteScript_Kill) and
+// cleared; then Person_Detach.
+void __fastcall Visitor_Detach(u8 *visitor);
+
 // 0x4fa870 (thiscall; name unconfirmed; called from 0x4f7c63, 0x501658, 0x505495): the speed +0xc8 = ((+0xc0 + +0xc2 + +0xc4, words) / the word
 // at 0x75c7fc - +0xc8 * -3.0) * 0.25 (x87), passed to the nav (+0xd4: Nav_SetSpeed); the word +0xc4 = its product with 99 (16 bits) / 100; the
 // position +0x190 / +0x194 read back from the nav (Nav_GetPos), and the script reference +0xc applied (ScriptRef_Apply).

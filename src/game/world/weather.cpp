@@ -168,4 +168,9 @@ void __fastcall Weather_HandleMessage(u8 *weather, void *, u8 *message) {
     weather[0x2c] = 1;
     *reinterpret_cast<FileTime *>(weather + 0x18) = *FunnyTime_Now(clock, nullptr, &now, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
 }
+
+u32 __fastcall Weather_Detach(u8 *weather) {
+    Thing_Detach(weather);
+    return WeatherFx_FreeTextures(*reinterpret_cast<u8 **>((uintptr_t)0x008bcbac));
+}
 }

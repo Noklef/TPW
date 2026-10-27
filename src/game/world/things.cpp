@@ -14,6 +14,7 @@
 #include "../sprite/script.h"
 #include "../sprite/sprite.h"
 #include "mapcell.h"
+#include "messagecentre.h"
 #include "nav.h"
 #include "objectdefs.h"
 #include "random.h"
@@ -55,6 +56,26 @@ u16 *handle_of(ThingSlot *slot, u16 *out) {
 }  // namespace
 
 void Things_SetEnv(const ThingTableEnv *e) { g_env = e ? e : &kGameEnv; }
+
+namespace {
+const ThingDetachEnv kGameDetachEnv = {reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)0x00463c80)};
+const ThingDetachEnv *g_detach = &kGameDetachEnv;
+}  // namespace
+
+void Things_SetDetachEnv(const ThingDetachEnv *e) { g_detach = e ? e : &kGameDetachEnv; }
+
+u32 __fastcall Thing_Detach(u8 *thing) {
+    Things_UnlinkFromChain(CellOf(thing[5], thing[7]), nullptr, at<u16>(thing, 0));
+    if (thing[2] == 3) g_detach->rideDestroy(at<u32>(thing, 0x20));
+    switch (thing[2]) {
+    case 1: case 4: case 5: case 6: case 7: case 8: case 0x12:
+        if (thing == global<u8 *>(0x00877350)) global<u8 *>(0x00877350) = nullptr;
+        break;
+    default:
+        break;
+    }
+    return MessageCentre_RemoveThing(MessageCentre_Instance(), nullptr, thing);
+}
 
 extern "C" void __cdecl Things_InitTable() {
     ThingSlot *const s = slots();

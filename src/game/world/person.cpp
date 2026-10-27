@@ -665,6 +665,22 @@ u32 __fastcall Person_DumpActionHistory(u8 *person) {
     return 0xffffffff;  // (the loop counter's last value, left in EAX)
 }
 
+void __fastcall Person_Detach(u8 *person) {
+    Thing_Detach(person);
+    if (*reinterpret_cast<u32 *>(person + 0xc)) Obj_KillSlot(person + 0xc);
+    Person_DumpActionHistory(person);
+    Person_KillScript84Keep(person + 0x30);
+}
+
+void __fastcall Visitor_Detach(u8 *visitor) {
+    s32 &script = *reinterpret_cast<s32 *>(visitor + 0x210);
+    if (script) {
+        SpriteScript_Kill(script);
+        script = 0;
+    }
+    Person_Detach(visitor);
+}
+
 void __fastcall Person_TickSpeed(u8 *person) {
     Person_UpdateSpeed(person);
     const u32 ticks = at<u32>(global<u8 *>(0x0080239c), 0x1da70c);
