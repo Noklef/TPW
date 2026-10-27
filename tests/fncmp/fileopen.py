@@ -118,6 +118,8 @@ def case(r):
     if kind == 'o':
         regions[TEXT] = path + b'\0' + r.bytes(0x20)
     if kind == 'e':
+        if r.random() < 0.9:   # (the handles' releases: a count left, mostly; 0 destroys the opened object through slot 0x30, a pure call)
+            set_return(log, K['InterlockedDecrement'], r.choice([1, 1, 2]))
         for k, off in enumerate((4, 0x18)):
             s = r.choice([b'', b'old', b'x.wad', b'p_a_b'])
             struct.pack_into('<5I', obj, off, STRING_VTABLE, len(s), OWN + 0x40 * k, len(s) + 8, 8)
