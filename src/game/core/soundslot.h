@@ -33,6 +33,9 @@ u32 *__fastcall SoundSlot_Free(u8 *slot, void *, u32 *out);
 // 0x6d7130 (thiscall (out, vector); pops 8): +0x24 |= 2; with an object, *out = -1 if any of the three floats is a NaN, else its slot
 // 20 (x, 0, z) (the y dropped, sic); without one, the vector kept at +4 and *out = -1. Returns out.
 u32 *__fastcall SoundSlot_SetPosition(u8 *slot, void *, u32 *out, const u32 *vector);
+// 0x6d70c0 (thiscall (out, vector); pops 8; name invented): with an object, its slot 21 (&x, &y, &z) and the three into the vector
+// (Fn_6bb220); without one, the vector kept at +4 copied out. *out = 0 either way (the slot's answer dropped). Returns out.
+u32 *__fastcall SoundSlot_GetPosition(u8 *slot, void *, u32 *out, u8 *vector);
 // 0x6d71f0 (thiscall (out, steps); pops 8): +0x24 |= 1; with an object, *out = its slot 42 (the float for steps: 0 for 0, the table at
 // 0x784010 for steps > 0 (through the x87), the dword at 0x784610 - 4 * steps for steps < 0); without one, steps kept at +0x10 and
 // *out = -1. Returns out.

@@ -5,6 +5,7 @@
 #include <cstring>
 
 #include "../math/x87.h"
+#include "initializers.h"
 #include "releaselist.h"
 #include "vcall.h"
 
@@ -92,6 +93,21 @@ u32 *__fastcall SoundSlot_Free(u8 *slot, void *, u32 *out) {
         comcall<u32>(object, 0x38);
         ReleaseList_Push(ReleaseList_Get(), nullptr, at<u32>(slot, 0));   // (+0 read again)
         at<u8 *>(slot, 0) = nullptr;
+    }
+    *out = 0;
+    return out;
+}
+
+u32 *__fastcall SoundSlot_GetPosition(u8 *slot, void *, u32 *out, u8 *vector) {
+    u8 *const object = at<u8 *>(slot, 0);
+    if (object) {
+        u32 x, y, z;
+        comcall<u32>(object, 0x54, &x, &y, &z);
+        Fn_6bb220(vector, nullptr, x, y, z);
+    } else {
+        at<u32>(vector, 0) = at<u32>(slot, 4);
+        at<u32>(vector, 4) = at<u32>(slot, 8);
+        at<u32>(vector, 8) = at<u32>(slot, 0xc);
     }
     *out = 0;
     return out;
