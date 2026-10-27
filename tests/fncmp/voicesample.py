@@ -113,7 +113,7 @@ def case(r):
     if name in ('copier', 'basector', 'chanctor'):   # (chanctor: the channel's constructor over the base's, its string's block from the heap)
         regions[COPIER_AT] = r.bytes(4)
         regions[0xfb2704] = struct.pack('<I', r.choice([0, 0, 1, r.getrandbits(32)]))
-        regions[SAMPLE] = sample   # (the object itself compared: the constructor's fields)
+        regions[SAMPLE] = sample + (r.bytes(8) if name == 'chanctor' else b'')   # (the object itself compared: the constructor's fields; the channel's to +0x68)
         return Call(address, [SAMPLE], regions, conv='t', ret=ret)
     if name == 'mmxcopy':
         regions[BUFFER] = r.bytes(0x200)
