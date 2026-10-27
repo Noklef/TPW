@@ -81,7 +81,7 @@ def font_setup(r, regions, log, rtl):
     length = r.randrange(0, 10)
     text = bytearray(0x40)
     for i in range(length):
-        text[i] = r.choice([r.randrange(1, 0x80), r.randrange(0x80, 0x100), 9, 10, 13, 0x20, 0x21, 0x42])
+        text[i] = r.choice([r.randrange(1, 0x80), r.randrange(0x80, 0x100), 9, 10, 13, 0x20, 0x21, 0x42, min(lead + 1, 0xff), max(lead, 1)])
     text[length + 1] = r.choice([0, 0, r.randrange(1, 0x100)])   # past the terminator (a lead byte there takes it)
     regions[TEXT] = text
     style = bytearray(r.bytes(0x50))
