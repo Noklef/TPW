@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/soundset.h"
+#include "../rsse/scream.h"
 
 namespace {
 
@@ -13,6 +14,13 @@ bool Silenced() { return *reinterpret_cast<const u32 *>(0x00785a2c) != 0; }
 }  // namespace
 
 extern "C" {
+
+void __cdecl CoasterCar_StopSounds(u8 *, u8 *car) {
+    if (at<u32>(car, 0x64) && !Silenced()) Sound_Forward6(at<u32>(car, 0x64));
+    if (at<u32>(car, 0x68) && !Silenced()) Sound_Forward6(at<u32>(car, 0x68));
+    if (at<u32>(car, 0x70) && !Silenced()) RSSE_StopScream(at<u32>(car, 0x70));
+    for (u32 offset = 0x54; offset <= 0x70; offset += 4) at<u32>(car, offset) = 0;
+}
 
 void __cdecl CoasterCar_SetSoundMode(u8 *car, s32 mode, u32 value) {
     if (mode != at<s32>(car, 0x38)) {

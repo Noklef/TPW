@@ -1,5 +1,5 @@
 // The RSSE's screams (the riders' screams of a ride: 0x555edb starts one, 0x439467 / 0x4394af move and level it): reimplementation of
-// their start (0x551130), volume (0x551290) and move (0x5512d0). A scream is a sound handle; the volume is the mean of two inputs as
+// their start (0x551130), volume (0x551290), move (0x5512d0) and stop (0x551300). A scream is a sound handle; the volume is the mean of two inputs as
 // Sound_SetParam's parameter 6 (signed halving, at most 100, at least 0).
 #pragma once
 
@@ -20,4 +20,8 @@ u32 __cdecl RSSE_SetScreamVolume(u32 scream, s32 a, s32 b);
 
 // 0x5512d0 (cdecl (scream, x, y, z); name invented): 0 for no scream; else Sound_SetPosition(scream, x, y, z)'s answer.
 u32 __cdecl RSSE_MoveScream(u32 scream, s32 x, s32 y, s32 z);
+
+// 0x551300 (cdecl (scream); name invented): a scream (not 0) stopped (Sound_Stop). (The original's EAX is the scream or Stop's
+// leftover: no caller reads it.)
+void __cdecl RSSE_StopScream(u32 scream);
 }
