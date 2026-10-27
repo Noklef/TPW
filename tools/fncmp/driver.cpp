@@ -97,6 +97,7 @@
 #include "../../src/game/world/placeobject.h"
 #include "../../src/game/world/endthing.h"
 #include "../../src/game/world/parkopen.h"
+#include "../../src/game/world/gamemode.h"
 #include "../../src/game/world/cellrun.h"
 #include "../../src/game/world/staff.h"
 #include "../../src/game/world/things.h"
@@ -417,6 +418,11 @@ const EndThingEnv kEndThingEnv = {reinterpret_cast<u8 *(__fastcall *)(u8 *, void
 // park end's gate call (agent C's unported 0x481b50): thiscall recorder 14 of 1, as tests/fncmp/parkend.py hooks it.
 const ParkOpenEnv kParkOpenEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(13, 0)),
                                   reinterpret_cast<void(__fastcall *)(void *, void *, u8 *)>((uintptr_t)recorder(14, 1))};
+// The game mode change's advisor cancel, track run show and tool reset (agent B's unported 0x59aa70, 0x4474d0, 0x446050): thiscall recorder
+// 13 of 1, cdecl recorders 14 of 2 and 15 of none, as tests/fncmp/gamemode.py hooks them.
+const GameModeEnv kGameModeEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)recorder(13, 1)),
+                                  reinterpret_cast<void(__cdecl *)(u32, u32)>((uintptr_t)jpeg_recorder(14, 2)),
+                                  reinterpret_cast<void(__cdecl *)()>((uintptr_t)jpeg_recorder(15, 0))};
 // Thing_Detach's call into agent B's unported Ride_Destroy (0x463c80): cdecl recorder 31 of 1, as tests/fncmp/thingdetach.py hooks it.
 const ThingDetachEnv kThingDetachEnv = {reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(31, 1))};
 // Thing_Delete's per-kind deletes (agent C's unported 0x4dd0a0, 0x4d9fe0, 0x4d6c90, 0x4d4620, 0x4d5eb0, 0x4c9040; thingdetach.py's k 10-15).
@@ -1104,6 +1110,7 @@ int main(int argc, char **argv) {
     PlaceObject_SetEnv(&kPlaceObjectEnv);
     EndThing_SetEnv(&kEndThingEnv);
     ParkOpen_SetEnv(&kParkOpenEnv);
+    GameMode_SetEnv(&kGameModeEnv);
     Things_SetDetachEnv(&kThingDetachEnv);
     Things_SetDeleteEnv(&kThingDeleteEnv);
     Staff_SetAdviceEnv(&kStaffAdviceEnv);
