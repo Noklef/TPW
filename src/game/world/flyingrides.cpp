@@ -12,6 +12,8 @@
 #include "../model/parts.h"
 #include "../model/partstate.h"
 #include "../motion/animator.h"
+#include "random.h"
+#include "../core/soundplay.h"
 #include "../render/particles.h"
 #include "../terrain/land.h"
 
@@ -405,6 +407,55 @@ void __cdecl FlyingRides_Init() {
         const X87Reg angle = X87_MulIntDouble(i, step);                                 // fild; fmul qword [0x701090]
         const X87Reg value = X87Reg(half) - X87Reg(X87_Sin(angle.v)) * X87Reg(scale);  // fsin; fmul [0x701098]; fsubr [0x7010a0]
         (*sines)[j] = (u32)(long long)value.v;                                          // __ftol, low half
+    }
+}
+
+void __cdecl FlyingRide_SetMode(s32 index, s32 mode) {
+    u8 *const rec = record(index);
+    if (!rec || at<s32>(rec, 0x34) == mode)
+        return;
+    at<s32>(rec, 0x34) = mode;
+    switch (mode) {
+    case 1:
+        at<u32>(rec, 0) = at<u32>(rec, 4);
+        if (at<u32>(rec, 0x114) != 0) {
+            FlyingRide_PlaySlotMotion(index, 0, 0xa, 0, 0);
+            at<u32>(rec, 0x114) = 0;
+            Sound_PlayAt(0, *reinterpret_cast<const u32 *>(0x00803a28), 0xbb, at<s32>(rec, 0x60) / 300, at<s32>(rec, 0x64) / 300,
+                         at<s32>(rec, 0x68) / 300);
+        }
+        if (at<u32>(rec, 0xd8) != 0) {
+            const s32 n = World_Rand(*reinterpret_cast<u8 *const *>(0x007cf83c));
+            const s32 size = n < 0 ? (s32)(0u - (u32)n) : n;
+            at<s32>(rec, 0xd8) = size % 100 + at<s32>(rec, 0x28);
+        }
+        if (at<u32>(rec, 0x120) != 0) {
+            ParticleSystem_End(at<u32>(rec, 0x120));
+            at<u32>(rec, 0x120) = 0;
+        }
+        break;
+    case 2:
+        at<u32>(rec, 0) = at<u32>(rec, 4);
+        if (at<u32>(rec, 0x120) != 0)
+            ParticleSystem_End(at<u32>(rec, 0x120));
+        at<s32>(rec, 0x120) = Particle_Spawn(0x27, at<s32>(rec, 0x60), at<s32>(rec, 0x64), at<s32>(rec, 0x68));
+        break;
+    case 3:
+    case 4: {
+        at<u32>(rec, 0x114) = 1;
+        at<u32>(rec, 0xe0) = 0;
+        if (at<u32>(rec, 0x120) != 0)
+            ParticleSystem_End(at<u32>(rec, 0x120));
+        const auto scaled = [&](u32 offset) { return (s32)((u32)at<s32>(rec, offset) << 10) / 300; };
+        const s32 z = scaled(0x68), y = scaled(0x64), x = scaled(0x60);
+        at<s32>(rec, 0x120) = Particle_Spawn(0x28, x, y, z);
+        if (mode == 4) {
+            while (FlyingRide_StepOutSlot(index) != 0) {
+            }
+            at<u32>(rec, 0) = 1;
+        }
+        break;
+    }
     }
 }
 }

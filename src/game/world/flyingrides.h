@@ -104,4 +104,14 @@ void __cdecl FlyingRides_LerpSlots(float t);
 // at 0x8791f8 cleared and a sine table of 0x1000 dwords made at [0x8791c8] (Mem_GlobalAlloc 0x4000, unchecked): entry j = __ftol(1/2 -
 // fsin(2j * [0x701090] (2 pi / 8192)) * [0x701098] (-1024)) (low half; x87 at the game's precision), the table pointer re-read each time.
 void __cdecl FlyingRides_Init();
+
+// 0x55da70 (cdecl (index, mode); name unconfirmed): for a record (index 1-99, its entry set) whose mode +0x34 is not mode already, +0x34
+// = mode, then by mode: 1 lands it: +0 = +4; with +0x114 set its slot 0 played motion (0xa, 0, not looping: FlyingRide_PlaySlotMotion),
+// +0x114 cleared and the sound 0xbb played in the category [0x803a28] at its position +0x60 / +0x64 / +0x68 over 300 (signed:
+// Sound_PlayAt, owner 0); with +0xd8 set, +0xd8 = |World_Rand([0x7cf83c])| % 100 + +0x28; its particle system +0x120 ended
+// (ParticleSystem_End) and cleared when set. 2: +0 = +4, +0x120 ended when set and replaced by Particle_Spawn(0x27) at the position.
+// 3 and 4: +0x114 = 1, +0xe0 = 0, +0x120 ended when set and replaced by Particle_Spawn(0x28) at the position times 1024 over 300
+// (signed, the shift wrapping); 4 then steps every slot out (FlyingRide_StepOutSlot until it answers 0) and sets +0 = 1. Other modes
+// are only stored.
+void __cdecl FlyingRide_SetMode(s32 index, s32 mode);
 }
