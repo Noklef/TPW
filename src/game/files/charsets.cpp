@@ -3,8 +3,10 @@
 #include <cstdint>
 
 #include "../core/gameheap.h"
+#include "../core/methods.h"
 #include "../core/refcounted.h"
 #include "../core/vcall.h"
+#include "resindex.h"
 
 namespace {
 
@@ -85,6 +87,65 @@ s32 *__fastcall CodeTable_Load(u8 *, void *, s32 *result, u8 *stream, u8 **objec
                 }
                 GameHeap_Free(block);
             }
+        }
+    }
+    *result = -1;
+    return result;
+}
+
+u8 *__fastcall Charset_Ctor(u8 *charset, void *, u32 count, u32 *table, u8 *index) {
+    Class70a078_Ctor(charset);
+    at<u32>(charset, 0) = 0x70a060;
+    at<u32>(charset, 8) = count;
+    at<u32 *>(charset, 0xc) = table;
+    for (u32 left = count; left; --left, ++table) *table += at<u32>(charset, 0xc);
+    s32 slot = (s32)count;
+    u8 *record = ResIndex_Find(index, nullptr, 2);
+    if (Record_Word4OrSix(record) == 1) {
+        ResIndex_GetEntry(index, nullptr, &slot, record, &at<u8 *>(charset, 0x14));
+    } else {
+        at<u32>(charset, 0x14) = 0;
+    }
+    record = ResIndex_Find(index, nullptr, 1);
+    if (Record_Word4OrSix(record) == 0) {
+        ResIndex_GetEntry(index, nullptr, &slot, record, &at<u8 *>(charset, 0x10));
+    } else {
+        at<u32>(charset, 0x10) = 0;
+    }
+    return charset;
+}
+
+void __fastcall Charset_Dtor(u8 *charset) {
+    at<u32>(charset, 0) = 0x70a060;
+    if (u8 *const range = at<u8 *>(charset, 0x14)) {
+        vcall<void>(range, 0);
+        at<u32>(charset, 0x14) = 0;
+    }
+    if (u8 *const code = at<u8 *>(charset, 0x10)) {
+        vcall<void>(code, 0);
+        at<u32>(charset, 0x10) = 0;
+    }
+    at<u32>(charset, 0) = 0x70a078;
+}
+
+u8 *__fastcall Charset_DeletingDtor(u8 *charset, void *, u32 flags) {
+    Charset_Dtor(charset);
+    if (flags & 1) GameHeap_Free(charset);
+    return charset;
+}
+
+s32 *__fastcall Charset_Load(u8 *, void *, s32 *result, u8 *stream, u8 **object, u32 key, u8 *index) {
+    u32 header[3];
+    if (vcall<s32>(stream, 8, header, 12u) == 12 && header[0] == 0x54534642 && header[1] == key) {   // "BFST"
+        const u32 size = BytesLeft(stream);
+        if (u8 *const block = static_cast<u8 *>(GameHeap_Alloc(size + 0x18))) {
+            if ((u32)vcall<s32>(stream, 8, block + 0x18, size) == size) {
+                Charset_Ctor(block, nullptr, header[2], reinterpret_cast<u32 *>(block + 0x18), index);
+                *object = block;
+                *result = 0;
+                return result;
+            }
+            GameHeap_Free(block);
         }
     }
     *result = -1;
