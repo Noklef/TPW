@@ -59,4 +59,13 @@ void __cdecl Window7cc8bc_Create();
 // [0x7cc8d4] = 1, [0x7cc8ac] = [0x790ab0], [0x7cc8d8] = 5.
 void __cdecl Window7cc8bc_EnterChat();
 
+// 0x4bf370 (cdecl (unused, window); name invented; nothing in the image calls it or holds its address): the window [0x7cc8cc] (read
+// first) becomes the last child of the list 0xc3124 of the child 0xc3123 of [0x7cc8bc] (Window_FindChild twice, unchecked;
+// Window_AddChild(1, 1)). The window's inner rectangle (Window_GetRect(.., 1) into a GuiRect on the stack) is taken, and the window is
+// moved (Window_Offset) by the mouse position (Gui_GetMousePos) less that rectangle's left / top. The original reads them as dwords
+// (the mouse words' upper halves are stack leftovers); only the low words count. Then [0x7cc8cc] (read again each time) gets its depth
+// word +0xe0 + 4 (Window_SetDepth; the pushed word's upper half is the rectangle's right, which the setter ignores), is shown
+// (Window_SetShown(1)) and takes the focus (Window_SetFocus(0)).
+void __cdecl Window7cc8cc_PlaceAtMouse(u32 unused, u8 *window);
+
 }  // extern "C"

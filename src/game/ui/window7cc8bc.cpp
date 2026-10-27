@@ -10,6 +10,7 @@
 #include "../online/chat.h"
 #include "../online/chatavatar.h"
 #include "../render/textparts.h"
+#include "guimanager.h"
 #include "guirect.h"
 #include "listrows.h"
 #include "radiogroup.h"
@@ -177,4 +178,20 @@ void __cdecl Window7cc8bc_Create() {
     HelpBg_Place(0xffffffff, 10);
     global<u32>(0x007cc8e4) = 0;
     global<u8>(0x007cc8d4) = 0;
+}
+
+void __cdecl Window7cc8cc_PlaceAtMouse(u32, u8 *window) {
+    u8 *const placed = global<u8 *>(0x007cc8cc);
+    u8 *const list = Window_FindChild(Window_FindChild(global<u8 *>(0x007cc8bc), nullptr, 0xc3123), nullptr, 0xc3124);
+    Window_AddChild(list, nullptr, placed, 1, 1);
+    u8 rect[12];
+    GuiRect_Ctor(rect);
+    Window_GetRect(window, nullptr, rect, 1);
+    u16 x, y;
+    Gui_GetMousePos(&x, &y);
+    Window_Offset(window, nullptr, (u16)(x - *reinterpret_cast<u16 *>(rect + 4)), (u16)(y - *reinterpret_cast<u16 *>(rect + 6)));
+    Window_SetDepth(global<u8 *>(0x007cc8cc), nullptr, (u16)(*reinterpret_cast<u16 *>(global<u8 *>(0x007cc8cc) + 0xe0) + 4));
+    Window_SetShown(global<u8 *>(0x007cc8cc), nullptr, 1);
+    Window_SetFocus(global<u8 *>(0x007cc8cc), nullptr, 0);
+    GuiRect_Dtor(rect);
 }

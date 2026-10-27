@@ -6970,6 +6970,7 @@ const Hook kHooks[] = {
     {"Window7cc8bc_ListSetData1Std", 0x004818a0, (void *)&Window7cc8bc_ListSetData1Std, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"Window7cc8bc_Create",       0x004bf460, (void *)&Window7cc8bc_Create, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Window7cc8bc_EnterChat",    0x004bd090, (void *)&Window7cc8bc_EnterChat, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Window7cc8cc_PlaceAtMouse", 0x004bf370, (void *)&Window7cc8cc_PlaceAtMouse, {0x6a, 0xff, 0x68, 0x48, 0xbb}},
     {"Dialog7cb2b8_ShowRightOf",  0x004a1440, (void *)&Dialog7cb2b8_ShowRightOf, {0x6a, 0xff, 0x68, 0x68, 0xa4}},
     {"Dialog7cb2b8_BoxHandler",   0x004a14f0, (void *)&Dialog7cb2b8_BoxHandler, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Dialog7cb2b8_BarHandler",   0x004a1cd0, (void *)&Dialog7cb2b8_BarHandler, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
