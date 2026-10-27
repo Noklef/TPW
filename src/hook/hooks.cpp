@@ -137,6 +137,7 @@
 #include "../game/gfx/dctvlc.h"
 #include "../game/gfx/dderrors.h"
 #include "../game/gfx/glyphrender.h"
+#include "../game/gfx/guitext.h"
 #include "../game/gfx/mmxblit.h"
 #include "../game/gfx/movieidct.h"
 #include "../game/gfx/moviepixels.h"
@@ -195,6 +196,7 @@
 #include "../game/core/mp2pool.h"
 #include "../game/core/mp2sample.h"
 #include "../game/core/mp2synth.h"
+#include "../game/core/narrowwriter.h"
 #include "../game/core/refcounted.h"
 #include "../game/core/parkinfo.h"
 #include "../game/core/releaselist.h"
@@ -2082,6 +2084,7 @@ const Hook kHooks[] = {
     {"Gauge_DrawBack",            0x0047fc00, (void *)&Gauge_DrawBack, {0x83, 0xec, 0x10, 0x8b, 0x41}},
     {"Gauge_DrawAxes",            0x0047fc50, (void *)&Gauge_DrawAxes, {0x53, 0x56, 0x8b, 0xf1, 0x57}},
     {"Gauge_Setup",               0x004806a0, (void *)&Gauge_Setup, {0x83, 0xec, 0x08, 0x0f, 0xbf}},
+    {"Gauge_DrawGrid",            0x0047fcd0, (void *)&Gauge_DrawGrid, {0x83, 0xec, 0x2c, 0x53, 0x55}},
     {"BarMesh_SetVertex",         0x00477c00, (void *)&BarMesh_SetVertex, {0x8b, 0x4c, 0x24, 0x08, 0x8b}},
     {"BarMesh_SetTopVertices",    0x00477cc0, (void *)&BarMesh_SetTopVertices, {0x8b, 0x41, 0x7c, 0x33, 0xd2}},
     {"BarMesh_SetTopTexCoords",   0x00477d20, (void *)&BarMesh_SetTopTexCoords, {0xd9, 0x81, 0x20, 0x01, 0x00}},
@@ -5285,6 +5288,17 @@ const Hook kHooks[] = {
     {"SoundSource711b08_GetSlotPosition", 0x006d35d0, (void *)&SoundSource711b08_GetSlotPosition, {0x8b, 0x44, 0x24, 0x0c, 0x56}},
     {"SoundSource_Destroy",       0x006c42b0, (void *)&SoundSource_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"WideWriter_Finish",         0x006b00e0, (void *)&WideWriter_Finish, {0x8b, 0xc1, 0x33, 0xd2, 0x53}},
+    {"WideWriter_PutChar",        0x006aff70, (void *)&WideWriter_PutChar, {0x56, 0x8b, 0x71, 0x0c, 0x33}},
+    {"WideWriter_PutNarrow",      0x006afe80, (void *)&WideWriter_PutNarrow, {0x53, 0x55, 0x56, 0x57, 0x8b}},
+    {"WideWriter_PutWide",        0x006affe0, (void *)&WideWriter_PutWide, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"WideWriter_Dtor",           0x006ad0b0, (void *)&WideWriter_Dtor, {0x6a, 0xff, 0x68, 0xe3, 0x55}},
+    {"WideWriter_DeletingDtor",   0x006ad110, (void *)&WideWriter_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x98}},
+    {"NarrowWriter_Finish",       0x006afe40, (void *)&NarrowWriter_Finish, {0x8b, 0xc1, 0x33, 0xd2, 0x53}},
+    {"NarrowWriter_PutChar",      0x006afd40, (void *)&NarrowWriter_PutChar, {0x8a, 0x41, 0x10, 0x84, 0xc0}},
+    {"NarrowWriter_PutWideChar",  0x006afe10, (void *)&NarrowWriter_PutWideChar, {0x56, 0x8b, 0xf1, 0x33, 0xc0}},
+    {"NarrowWriter_PutWide",      0x006afd90, (void *)&NarrowWriter_PutWide, {0x53, 0x55, 0x56, 0x8b, 0xf1}},
+    {"NarrowWriter_Dtor",         0x006ad030, (void *)&NarrowWriter_Dtor, {0x6a, 0xff, 0x68, 0xc3, 0x55}},
+    {"NarrowWriter_DeletingDtor", 0x006ad090, (void *)&NarrowWriter_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x98}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
@@ -5478,6 +5492,10 @@ const Hook kHooks[] = {
     {"TextLayout_BreakLines",     0x006aec80, (void *)&TextLayout_BreakLines, {0x51, 0x8b, 0x54, 0x24, 0x08}},
     {"TextLayout_Arrange",        0x006aeb10, (void *)&TextLayout_Arrange, {0x55, 0x56, 0x57, 0x8b, 0xf9}},
     {"TextLayout_SetOrigin",      0x006adfb0, (void *)&TextLayout_SetOrigin, {0x83, 0xec, 0x08, 0x53, 0x56}},
+    {"TextLayout_SetText",        0x006ae930, (void *)&TextLayout_SetText, {0x83, 0xec, 0x20, 0x53, 0x55}},
+    {"TextLayout_Place",          0x006ae550, (void *)&TextLayout_Place, {0x83, 0xec, 0x4c, 0x53, 0x55}},
+    {"TextLayout_Draw",           0x006ae0f0, (void *)&TextLayout_Draw, {0x8b, 0x44, 0x24, 0x0c, 0x56}},
+    {"TextLayout_Measure",        0x006ae1c0, (void *)&TextLayout_Measure, {0x8b, 0x44, 0x24, 0x0c, 0x53}},
     {"TexFile_Load",              0x00574bd0, (void *)&TexFile_Load, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Mmx_FillRows",              0x00678d30, (void *)&Mmx_FillRows, {0x55, 0x8b, 0xec, 0x53, 0x56}},
     {"AaLine_Draw8",              0x005edad0, (void *)&AaLine_Draw8, {0x83, 0xec, 0x54, 0x8b, 0x44}},
@@ -5581,6 +5599,8 @@ const Hook kHooks[] = {
     {"MovieSound_ReleaseStream",  0x00672bf0, (void *)&MovieSound_ReleaseStream, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
     {"MovieSound_PlayDistance",   0x00672730, (void *)&MovieSound_PlayDistance, {0x83, 0xec, 0x08, 0x56, 0x8b}},
     {"MovieSound_ReleaseAll",     0x00672990, (void *)&MovieSound_ReleaseAll, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
+    {"GuiText_Draw",              0x00492750, (void *)&GuiText_Draw, {0x6a, 0xff, 0x68, 0x1b, 0x9c}},
+    {"GuiText_Measure",           0x004929f0, (void *)&GuiText_Measure, {0x6a, 0xff, 0x68, 0x3b, 0x9c}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
@@ -5925,6 +5945,7 @@ const Hook kHooks[] = {
     {"ModelSlot_KillAdvisor",     0x00429d60, (void *)&ModelSlot_KillAdvisor, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"ModelSlot_CallAdvisor",     0x00429e90, (void *)&ModelSlot_CallAdvisor, {0x68, 0x64, 0xc9, 0x74, 0x00}},
     {"ModelSlot_Free",            0x00429e20, (void *)&ModelSlot_Free, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"ModelSlot_LoadAdvisor",     0x00429ba0, (void *)&ModelSlot_LoadAdvisor, {0x81, 0xec, 0x14, 0x01, 0x00}},
     {"WorldVerts_Alloc",          0x00462870, (void *)&WorldVerts_Alloc, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"WorldVerts_Free",           0x004628a0, (void *)&WorldVerts_Free, {0xa1, 0xd4, 0xec, 0x7a, 0x00}},
     {"WorldVerts_TransformFrame", 0x004628b0, (void *)&WorldVerts_TransformFrame, {0x83, 0xec, 0x4c, 0xb9, 0x10}},

@@ -2,22 +2,44 @@
 # original: init, marks, frame and colours on a gauge of random bytes; and its draws (0x47fc00, 0x47fc50) through the display front end
 # and the 8-bit primitives on a 64-pixel-pitch surface: frames and marks in and around the clip rectangle (the first mark's y often
 # negative), plain, remapped (0x20) or blended (8, 0x10) drawing. Setup (0x4806a0) on a window rectangle of random s16s with the screen
-# scales 0xfaa5c0 / 0xfaa5c4 and a random game palette (0xfa71f8).
+# scales 0xfaa5c0 / 0xfaa5c4 and a random game palette (0xfa71f8). The grid (0x47fcd0) in guitext.py's world (the lines to the draw
+# context's recorders, the labels through GuiText_Draw; swprintf crt.py's hook): 12, 36 or 144 columns (another count leaves the
+# original's step as the stack lies), none or negative; the labels' wide text narrowed through a table of the digits (each a lead byte,
+# so a label of one or two digits is one record) or, for 144 columns (labels of three digits), the global buffer's bytes as the case
+# writes them (no table); each label's record masked as guitext.py's one (its block: every label's layout allocates three).
 # usage: gauge.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, RAM, put  # noqa: E402
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import crt  # noqa: E402
+import guitext  # noqa: E402
+import textlayout as tl  # noqa: E402
+from fncmp import HEAP, LOG, Bench, Call, Mask, RAM, heap, log_region, put  # noqa: E402
 
-B = Bench([(0x47faa0, 0x47fbf3),  # 0x47fbe0's ret 8 is at 0x47fbf0
-           (0x47fc00, 0x47fc50), (0x47fc50, 0x47fcd0), (0x5f9780, 0x5f97c0), (0x5f9860, 0x5f98d0), (0x5f98d0, 0x5f9940), (0x5f9a80, 0x5f9ac0),
-           (0x61af40, 0x61af50), (0x61af50, 0x61af60), (0x61c2e0, 0x61c490), (0x61c490, 0x61c630), (0x61eed0, 0x61f0a0), (0x62f810, 0x62f890),
-           (0x62f890, 0x62f8d0), (0x62f940, 0x62f980), (0x4806a0, 0x480810), (0x5f73a0, 0x5f76b7)])
+
+def merged(ranges):   # (overlapping ranges joined: a listing line must not come twice)
+    out = []
+    for lo, hi in sorted(ranges):
+        if out and lo <= out[-1][1]:
+            out[-1] = (out[-1][0], max(out[-1][1], hi))
+        else:
+            out.append((lo, hi))
+    return out
+
+
+B = Bench(merged([(0x47faa0, 0x47fbf3),  # 0x47fbe0's ret 8 is at 0x47fbf0
+                  (0x47fc00, 0x47fc50), (0x47fc50, 0x47fcd0), (0x47fcd0, 0x47fe85), (0x5f9780, 0x5f97c0), (0x5f9860, 0x5f98d0),
+                  (0x5f98d0, 0x5f9940), (0x5f9a80, 0x5f9ac0), (0x61af40, 0x61af50), (0x61af50, 0x61af60), (0x61c2e0, 0x61c490),
+                  (0x61c490, 0x61c630), (0x61eed0, 0x61f0a0), (0x62f810, 0x62f890), (0x62f890, 0x62f8d0), (0x62f940, 0x62f980),
+                  (0x4806a0, 0x480810), (0x5f73a0, 0x5f76b7)] + guitext.RANGES), hooks={0x67af00: crt.swprintf_hook})
 CALLS = {'Init': (0x47faa0, 0), 'MarksX': (0x47fb10, 3), 'MarksY': (0x47fb30, 3), 'Rect': (0x47fb50, 4),
          'Colour0': (0x47fb80, 2), 'Colour1': (0x47fba0, 2), 'Colour2': (0x47fbc0, 2), 'Colour3': (0x47fbe0, 2),
-         'DrawBack': (0x47fc00, 0), 'DrawAxes': (0x47fc50, 0), 'Setup': (0x4806a0, 6)}
+         'DrawBack': (0x47fc00, 0), 'DrawAxes': (0x47fc50, 0), 'Setup': (0x4806a0, 6), 'Grid': (0x47fcd0, 0)}
+GRID, NARROWER, SEGMENT = RAM + 0x4000, RAM + 0x4100, RAM + 0x4140   # the grid's gauge, the narrowing table and its one segment
+LABEL_BLOCKS = 0x30   # (each label's layout: its records, positions and lines blocks)
 STATE, TABLE8 = 0xfa76b8, 0x7034d8
 SURFACE, BITS, REMAP, GHOST = RAM + 0x100, RAM + 0x1000, RAM + 0x200, RAM + 0x10000
 PITCH, ROWS = 64, 56
@@ -54,9 +76,60 @@ def draw(r, at):
     return Call(at, [RAM], regions, conv='t', ret='v')
 
 
+def grid(r):
+    """The grid (0x47fcd0) in guitext.py's world: a gauge of random bytes but for its frame, sizes and counts; the labels' font (entry
+    [0x74f9d4] 10) often none, so that the lines' log entries come before the log's room runs out."""
+    log = log_region()
+    regions = {LOG: log, HEAP: heap(0x800)}
+    lang, table, codes, lead = guitext.world(r, log, regions)
+    gauge = bytearray(r.bytes(0x50))
+    xs, ys = sorted(r.randrange(-50, 700) for _ in range(2)), sorted(r.randrange(-50, 500) for _ in range(2))
+    put(gauge, 8, '4i', xs[0], ys[0], xs[1], ys[1])
+    put(gauge, 0, '2i', xs[1] - xs[0], ys[1] - ys[0])
+    if r.random() < 0.2:
+        put(gauge, r.choice([0, 4, 8, 0xc, 0x10, 0x14]), 'I', r.getrandbits(32))
+    columns = r.choice([0xc, 0x24, 0x90] * 3 + [0, -3, -0x90])
+    rows = r.choice([r.randrange(1, 9)] * 4 + [0, -2, r.randrange(9, 30)])
+    put(gauge, 0x28, '2i', columns, rows)
+    regions[GRID] = gauge
+    font = r.choice([tl.FONTS, tl.FONTS + 0x40, 0, 0])
+    put(table, 24 * (10 + 13 * lang) + 0x14, 'I', font)
+    text = bytearray(r.bytes(0x10))
+    if columns == 0x90 or r.random() < 0.2:   # no narrowing table: the buffer's bytes, at most one record
+        text[0] = r.choice([0, r.randrange(1, 0x100), 0x20, min(lead + 1, 0xff), max(lead, 1)])
+        if text[0] and text[0] - 1 >= lead:
+            text[1] = r.choice([r.randrange(1, 0x100), 0])
+            if text[1]:
+                text[2] = 0
+            else:
+                text[2:4] = b'\0\0'   # (the terminator taken along: then the next byte ends it)
+        else:
+            text[1] = 0
+        n = tl.text_records(text, lead)
+    else:   # the digits narrowed to lead bytes: a label of one or two digits one record
+        lead = r.choice([0x80, 0x40, 0, r.randrange(0, 0xf0)])
+        codes_bytes = bytearray(regions[tl.CODES])
+        codes_bytes[8] = lead
+        regions[tl.CODES] = codes_bytes
+        regions[guitext.NARROW] = struct.pack('<I', NARROWER)
+        regions[NARROWER] = r.bytes(8) + struct.pack('<I', SEGMENT) + r.bytes(4)
+        regions[SEGMENT] = struct.pack('<4H10H', 0x30, 0, 0x39, 0, *[r.randrange(lead + 1, 0x100) for _ in range(10)])
+        text[2] = 0
+        n = 1
+    regions[guitext.BUFFER] = text
+    masks = []
+    if columns > 0 and font and codes and n == 1:
+        masks.append(Mask(HEAP, [0x10 + LABEL_BLOCKS * k + g for k in range(12) for g in tl.GARBAGE], "SetText (0x6ae930) never sets a record's bytes "
+                          "+5-+7 and +0xe-+0xf (the original's stack garbage); each label's one record (its layout's first block) is read "
+                          "only at +0, +2, +4, +8 and +0xc, and no glyph is right to left, so it is never moved (as in guitext.py)"))
+    return Call(0x47fcd0, [GRID], regions, conv='t', ret='v', masks=masks)
+
+
 def case(r):
     op = r.deal(OPS)
     at, n = CALLS[op]
+    if op == 'Grid':
+        return grid(r)
     if op.startswith('Draw'):
         return draw(r, at)
     if op == 'Setup':   # (the window's corners mostly in order and on screen; the scales the screen's size or wild)

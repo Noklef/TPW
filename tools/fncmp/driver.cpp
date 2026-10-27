@@ -722,6 +722,8 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x006fda18, 12},  // WadHandle_vtable
                                    {0x00703898, 13},  // RefObject2_vtable
                                    {0x00703100, 9},   // StreamBase_vtable
+                                   {0x0070a090, 6},   // the narrow-text writer (narrowwriter.h; slot 3 ByteBuf_Write)
+                                   {0x0070a0c0, 6},   // the wide-text writer (widewriter.h; slot 4 Obj_PutWord)
                                    {0x00703838, 12},  // RefObject_vtable
                                    {0x00703f78, 12},  // BufferedSource_vtable
                                    {0x00703868, 12},  // MemorySource_vtable

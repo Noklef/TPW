@@ -5,7 +5,8 @@
 // - The style holder (vtable 0x70a13c, 0x58 bytes): +4 the style, +0x54.
 // - The layout (vtable 0x70a10c, 0xbc bytes): +4 the holder; +0x5c, +0x70 and +0x84 one byte each before three vectors (begin, end, capacity
 //   at +0x60, +0x74, +0x88), +0x94 a flag, +0x98, +0x9c, +0xa0 / +0xa4 two kinds, +0xac-+0xb8.
-// Reimplementation of 0x6ad5d0, 0x6ad620, 0x6ad640, 0x6ad6e0, 0x6ad7c0, 0x6ade00, 0x6ade90, 0x6adeb0, 0x6b0230, 0x6b0250 and 0x6b0270.
+// Reimplementation of 0x6ad5d0, 0x6ad620, 0x6ad640, 0x6ad6e0, 0x6ad7c0, 0x6ade00, 0x6ade90, 0x6adeb0, 0x6b0230, 0x6b0250 and 0x6b0270, and
+// the layout's text setting, placing, drawing and measuring (0x6ae930, 0x6ae550, 0x6ae0f0, 0x6ae1c0).
 // The names are unconfirmed.
 #pragma once
 
@@ -113,5 +114,38 @@ s32 *__fastcall TextLayout_Arrange(u8 *layout, void *, s32 *status, s32 left, s3
 // centred on the line height +0xbc with an unsigned halving, sic; 5 the bottom less the line height) and the horizontal kind (+0xa4: 1 the
 // right, 2 centred), and copied into the first position. *status = 0. Returns status.
 s32 *__fastcall TextLayout_SetOrigin(u8 *layout, void *, s32 *status, const s32 *rect);
+
+// 0x6ae930 (thiscall (status, text, style), pops 0xc): the character records (+0x60) emptied and their counter (+0x6c) cleared; the
+// style's font (TextStyle_GetFont; its reference never released, sic), none giving *status = -1; the line height (+0xbc) its slot 8's low
+// word; its code table (slot 11: +8 the first lead byte + 1, +0xa the glyph count, +0xc the u16 glyphs), none giving *status = -1. Then each
+// byte of the text (a lead byte, >= the table's +8 after the -1, takes the next byte along: (c + 0x100) * 255 - lead * 254 + next, which can
+// step over the terminator, sic) appends a record (Vector16_InsertN): +0 the glyph (0 past the table), +2 the code, +4 the glyph's class
+// (TextLayout_CharClass), +8 the width (the dword the font's slot 7 (out, code) answers a pointer to), +0xc the counter. The code is worked
+// in the low word of a dword whose high word is left over (the records' begin at first), and slot 7 gets the whole dword (sic); the
+// record's bytes +5-+7 and +0xe-+0xf are never set (the original's stack garbage, sic). *status = 0. Returns status.
+s32 *__fastcall TextLayout_SetText(u8 *layout, void *, s32 *status, const u8 *text, u8 *style);
+
+// 0x6ae550 (thiscall (status, style, bounds, render), pops 0x10): the positions (+0x84) emptied and then sized to one per record and one
+// more (zeros inserted, Vector8_InsertN); the style taken by the holder (TextStyleHolder_SetStyle, a failure giving *status = -1). The pen
+// starts at the text box's top left (+0xac, +0xb0). Each line (+0x74: first, next, width) reordered for right to left reading
+// (Records16_ReorderRtl) and started at the box's left, right (+0xa4 1) or centre (2, an unsigned halving, sic); each record's position
+// (its +0xc indexes the positions) set to the pen, and (unless the index is below the line's last) the cursor (+0x98, +0x9c) to it, moved
+// on for a left to right character (a space before a right to left one is not one) by its width, or for a line break to the box's left /
+// right / centre and a line down. A record that is not a line break advances the pen by its width, and with render and no flag 0x40 is
+// drawn (TextStyleHolder_Render (status, &pen, code (the high word left over, sic), &glyph rect)), a non-empty glyph rect joined into the
+// bounds (Rect_Union). Each line moves the pen down the line height. The bounds copied to bounds (unless 0), the position after the last
+// record the cursor. *status = 0. Returns status.
+s32 *__fastcall TextLayout_Place(u8 *layout, void *, s32 *status, const u8 *style, s32 *bounds, u8 render);
+
+// 0x6ae0f0 (thiscall (status, rect, text, style, bounds), pops 0x14): the text set (TextLayout_SetText, a failure giving *status = -1);
+// without records the origin set from rect (TextLayout_SetOrigin) and that is all; otherwise the width (+0xa8) rect's, the lines arranged
+// in rect (TextLayout_Arrange, a failure -1) and placed and drawn (TextLayout_Place, render 1, its status not looked at), *status = 0.
+// Returns status.
+s32 *__fastcall TextLayout_Draw(u8 *layout, void *, s32 *status, const s32 *rect, const u8 *text, u8 *style, s32 *bounds);
+
+// 0x6ae1c0 (thiscall (status, rect, text, style, box), pops 0x14): as TextLayout_Draw up to the arrangement; then without box *status = -1;
+// with the flag +0x94 the text placed (TextLayout_Place, no bounds, no rendering), and the text box (+0xac-+0xb8) copied to box,
+// *status = 0. Returns status.
+s32 *__fastcall TextLayout_Measure(u8 *layout, void *, s32 *status, const s32 *rect, const u8 *text, u8 *style, s32 *box);
 
 }

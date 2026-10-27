@@ -3,10 +3,13 @@
 #include <cstdint>
 
 #include "../core/gameheap.h"
+#include "../core/methods.h"
+#include "../core/records16.h"
 #include "../core/seqs.h"
 #include "../core/trivial.h"
 #include "../core/vcall.h"
 #include "../files/wrapsources.h"
+#include "../math/rect.h"
 #include "surface.h"
 
 namespace {
@@ -448,6 +451,204 @@ s32 *__fastcall TextLayout_SetOrigin(u8 *layout, void *, s32 *status, const s32 
     u32 *const origin = at<u32 *>(layout, 0x88);
     origin[0] = at<u32>(layout, 0x98);
     origin[1] = at<u32>(layout, 0x9c);
+    *status = 0;
+    return status;
+}
+
+s32 *__fastcall TextLayout_SetText(u8 *layout, void *, s32 *status, const u8 *text, u8 *style) {
+    // the records erased (erase(begin(), end()) inlined), the counter cleared
+    u8 *const kept = Blocks16_Copy(at<u8 *>(layout, 0x64), at<u8 *>(layout, 0x64), at<u8 *>(layout, 0x60));
+    Stub_Ret8_6b70d0((u32)(uintptr_t)kept, (u32)(uintptr_t)at<u8 *>(layout, 0x64));
+    at<u8 *>(layout, 0x64) = kept;
+    at<u16>(layout, 0x6c) = 0;
+    u8 *const f = TextStyle_GetFont(style);  // (its reference is never released, sic)
+    if (!f) {
+        *status = -1;
+        return status;
+    }
+    at<u32>(layout, 0xbc) = vcall<u32>(f, 0x20) & 0xffff;
+    u8 *const table = vcall<u8 *>(f, 0x2c);
+    if (!table) {
+        *status = -1;
+        return status;
+    }
+    // The code is worked out in the low word of a dword whose high word is left over (first the records' begin, then the last code's), and
+    // the slot gets the whole dword; likewise the lead byte's product takes the text pointer's high word. Bytes +5-+7 and +0xe-+0xf of the
+    // record are never set (stack garbage in the original, sic).
+    u32 code = (u32)(uintptr_t)kept;
+    u16 glyph;
+    u8 record[16];
+    u8 out[8];
+    while (*text) {
+        const u8 c = *text++;
+        code = ((code & 0xffff0000) | c) + 0xffff;
+        const u32 lead = ((u32)(uintptr_t)text & 0xffff0000) | at<u8>(table, 8);
+        if ((u16)code >= (u16)lead) {  // a lead byte: the code from it and the next byte
+            code += 0x101;
+            const u32 scaled = (code << 8) - code;
+            code = scaled - lead * 0xfe + ((scaled & 0xffff0000) | *text++);
+        }
+        glyph = (u16)code < at<u16>(table, 0xa) ? at<u16 *>(table, 0xc)[(u16)code] : 0;
+        const u32 width = *vcall<u32 *>(f, 0x1c, out, code);
+        const u8 kind = TextLayout_CharClass(glyph);
+        const u16 index = at<u16>(layout, 0x6c);
+        at<u16>(layout, 0x6c) = (u16)(index + 1);
+        at<u16>(record, 0) = glyph;
+        at<u16>(record, 2) = (u16)code;
+        record[4] = kind;
+        at<u32>(record, 8) = width;
+        at<u16>(record, 0xc) = index;
+        Vector16_InsertN(layout + 0x5c, nullptr, at<u8 *>(layout, 0x64), 1, record);
+    }
+    *status = 0;
+    return status;
+}
+
+s32 *__fastcall TextLayout_Place(u8 *layout, void *, s32 *status, const u8 *style, s32 *bounds, u8 render) {
+    u8 *const positions = layout + 0x84;
+    Vector8_EraseTo(positions, nullptr, at<u8 *>(layout, 0x88), at<u8 *>(layout, 0x8c));
+    const u32 zero[2] = {0, 0};
+    u8 *const records = at<u8 *>(layout, 0x60);
+    const u32 wanted = (records ? (u32)Elements<16>(at<u8 *>(layout, 0x64), records) : 0) + 1;
+    if ((u32)Vector8_Count4(positions) < wanted) {
+        u8 *const end = at<u8 *>(layout, 0x8c);
+        Vector8_InsertN(positions, nullptr, end, wanted - (u32)Vector8_Count4(positions), reinterpret_cast<const u8 *>(zero));
+    } else if (wanted < (u32)Vector8_Count4(positions)) {
+        Vector8_EraseTo(positions, nullptr, at<u8 *>(layout, 0x88) + wanted * 8, at<u8 *>(layout, 0x8c));
+    }
+    s32 set;
+    if (*TextStyleHolder_SetStyle(layout + 4, nullptr, &set, style) < 0) {
+        *status = -1;
+        return status;
+    }
+    u32 pen[2] = {at<u32>(layout, 0xac), at<u32>(layout, 0xb0)};  // x, y
+    Rect box;
+    Rect_Set(&box, nullptr, 0, 0, 0, 0);
+    bool boxed = false;
+    u32 rendered[2] = {0, 0};  // Render's status
+    for (u8 *line = at<u8 *>(layout, 0x74); line != at<u8 *>(layout, 0x78); line += 0xc) {
+        u8 *const next = at<u8 *>(line, 4);
+        Records16_ReorderRtl(at<u8 *>(line, 0), next);
+        u32 x = at<u32>(layout, 0xac);
+        switch (at<s32>(layout, 0xa4)) {
+        case 1:
+            x += at<u32>(layout, 0xb4) - at<u32>(line, 8) - at<u32>(layout, 0xac);
+            break;
+        case 2:
+            x += (at<u32>(layout, 0xb4) - at<u32>(line, 8) - x) >> 1;  // sic: an unsigned halving
+            break;
+        }
+        pen[0] = x;
+        at<u32>(layout, 0x98) = x;
+        at<u32>(layout, 0x9c) = pen[1];
+        Rect glyph = {0, 0, 0, 0};
+        u16 last = 0;  // the last record's index (a record placed before it in the line is not moved)
+        u32 eax = x;   // (the register whose high word goes to the renderer with the code)
+        for (u8 *rec = at<u8 *>(line, 0); rec != next; rec += 0x10) {
+            const u16 index = at<u16>(rec, 0xc);
+            u32 *const slot = reinterpret_cast<u32 *>(at<u8 *>(layout, 0x88) + index * 8);
+            slot[0] = eax;
+            slot[1] = pen[1];
+            eax = pen[1];
+            if (index >= last) {
+                // a character outside the right-to-left range, but a space before one counts as one too
+                bool ltr = !Records16_AnyInRange5b0(rec, rec + 0x10);
+                if (ltr && (at<u8>(rec, 4) & 2) && rec + 0x10 != next && Records16_AnyInRange5b0(rec + 0x10, rec + 0x20)) ltr = false;
+                last = index;
+                const u32 *const p = reinterpret_cast<const u32 *>(at<u8 *>(layout, 0x88) + index * 8);
+                at<u32>(layout, 0x98) = p[0];
+                eax = p[1];
+                at<u32>(layout, 0x9c) = eax;
+                if (ltr) {
+                    if (at<u8>(rec, 4) & 4) {  // a line break: back to the line's start, a line down
+                        const u32 left = at<u32>(layout, 0xac);
+                        at<u32>(layout, 0x98) = left;
+                        switch (at<s32>(layout, 0xa4)) {
+                        case 1:
+                            at<u32>(layout, 0x98) = at<u32>(layout, 0xb4) - at<u32>(layout, 0xac) + left;
+                            break;
+                        case 2:
+                            at<u32>(layout, 0x98) = (u32)((s32)(at<u32>(layout, 0xb4) - left) / 2) + left;
+                            break;
+                        }
+                        eax = at<u32>(layout, 0xbc);
+                        at<u32>(layout, 0x9c) += eax;
+                    } else {
+                        eax = at<u32>(layout, 0x98) + at<u32>(rec, 8);
+                        at<u32>(layout, 0x98) = eax;
+                    }
+                }
+            }
+            const u8 flags = at<u8>(rec, 4);
+            if (flags & 4) {
+                eax = pen[0];
+                continue;
+            }
+            if (render && !(flags & 0x40)) {
+                TextStyleHolder_Render(layout + 4, nullptr, reinterpret_cast<s32 *>(rendered), (u32)(uintptr_t)pen,
+                                       (eax & 0xffff0000) | at<u16>(rec, 2), (u32)(uintptr_t)&glyph);
+                if (glyph.left != glyph.right || glyph.top != glyph.bottom) {
+                    if (boxed) {
+                        Rect joined;
+                        box = *Rect_Union(&box, nullptr, &joined, &glyph);
+                    } else {
+                        box = glyph;
+                    }
+                    boxed = true;
+                }
+            }
+            pen[0] += at<u32>(rec, 8);
+            eax = pen[0];
+        }
+        pen[1] += at<u32>(layout, 0xbc);
+    }
+    if (bounds) *reinterpret_cast<Rect *>(bounds) = box;
+    u8 *const first = at<u8 *>(layout, 0x60);
+    const u32 count = first ? (u32)Elements<16>(at<u8 *>(layout, 0x64), first) : 0;
+    u32 *const end = reinterpret_cast<u32 *>(at<u8 *>(layout, 0x88) + count * 8);
+    end[0] = at<u32>(layout, 0x98);
+    end[1] = at<u32>(layout, 0x9c);
+    *status = 0;
+    return status;
+}
+
+s32 *__fastcall TextLayout_Draw(u8 *layout, void *, s32 *status, const s32 *rect, const u8 *text, u8 *style, s32 *bounds) {
+    s32 step;
+    if (*TextLayout_SetText(layout, nullptr, &step, text, style) < 0) {
+        *status = -1;
+        return status;
+    }
+    if (!at<u8 *>(layout, 0x60) || !Elements<16>(at<u8 *>(layout, 0x64), at<u8 *>(layout, 0x60))) {
+        TextLayout_SetOrigin(layout, nullptr, status, rect);
+        return status;
+    }
+    at<u32>(layout, 0xa8) = (u32)rect[2] - (u32)rect[0];
+    if (*TextLayout_Arrange(layout, nullptr, &step, rect[0], rect[1], rect[2], rect[3]) < 0) {
+        *status = -1;
+        return status;
+    }
+    TextLayout_Place(layout, nullptr, &step, style, bounds, 1);  // (its status is not looked at, sic)
+    *status = 0;
+    return status;
+}
+
+s32 *__fastcall TextLayout_Measure(u8 *layout, void *, s32 *status, const s32 *rect, const u8 *text, u8 *style, s32 *box) {
+    s32 step;
+    if (*TextLayout_SetText(layout, nullptr, &step, text, style) < 0) {
+        *status = -1;
+        return status;
+    }
+    if (!at<u8 *>(layout, 0x60) || !Elements<16>(at<u8 *>(layout, 0x64), at<u8 *>(layout, 0x60))) {
+        TextLayout_SetOrigin(layout, nullptr, status, rect);
+        return status;
+    }
+    at<u32>(layout, 0xa8) = (u32)rect[2] - (u32)rect[0];
+    if (*TextLayout_Arrange(layout, nullptr, &step, rect[0], rect[1], rect[2], rect[3]) < 0 || !box) {
+        *status = -1;
+        return status;
+    }
+    if (at<u8>(layout, 0x94)) TextLayout_Place(layout, nullptr, &step, style, nullptr, 0);
+    for (u32 i = 0; i < 4; ++i) box[i] = at<s32>(layout, 0xac + 4 * i);
     *status = 0;
     return status;
 }

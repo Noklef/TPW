@@ -5301,6 +5301,17 @@ address,name,kind,confidence,notes
 0x006d35d0,SoundSource711b08_GetSlotPosition,function,low,"reimplemented (src/game/core/soundsource); slot 30 of 0x711b08, thiscall (out, index, vector), pops 0xc: the slot at the index (+0x28, 0x2c bytes each) asked for its position (SoundSlot_GetPosition); returns out (name invented)"
 0x006c42b0,SoundSource_Destroy,function,low,"reimplemented (src/game/core/soundsource); thiscall, this unused (slot): the source's slot 7, then its slot 0 (1) unless null; *slot = 0"
 0x006b00e0,WideWriter_Finish,function,low,"reimplemented (src/game/core/widewriter); slot 1 of 0x70a0c0, thiscall: with a cursor the full byte set at the end, a 0 cell at the cursor (or before it when full), the cursor cleared; the holder +0xc cleared and released (slot 0) (name invented)"
+0x006aff70,WideWriter_PutChar,function,low,reimplemented (src/game/core/widewriter); The wide-text writer's slot 2: a character decoded through its code table and written
+0x006afe80,WideWriter_PutNarrow,function,low,reimplemented (src/game/core/widewriter); The wide-text writer's slot 3: bytes decoded through its code table and written
+0x006affe0,WideWriter_PutWide,function,low,reimplemented (src/game/core/widewriter); The wide-text writer's slot 5: 16-bit cells copied to the cursor until the end
+0x006ad0b0,WideWriter_Dtor,function,low,"reimplemented (src/game/core/widewriter); The wide-text writer's destructor: finished, its range table released, the base vtable"
+0x006ad110,WideWriter_DeletingDtor,function,low,reimplemented (src/game/core/widewriter); The wide-text writer's deleting destructor
+0x006afe40,NarrowWriter_Finish,function,low,"reimplemented (src/game/core/narrowwriter); The narrow-text writer's slot 1: the text terminated, the cursor cleared, the range table released"
+0x006afd40,NarrowWriter_PutChar,function,low,reimplemented (src/game/core/narrowwriter); The narrow-text writer's slot 2: a character's bytes stored at the cursor until the end
+0x006afe10,NarrowWriter_PutWideChar,function,low,reimplemented (src/game/core/narrowwriter); The narrow-text writer's slot 4: a 16-bit character narrowed through the range table and written
+0x006afd90,NarrowWriter_PutWide,function,low,reimplemented (src/game/core/narrowwriter); The narrow-text writer's slot 5: 16-bit characters narrowed through the range table and written
+0x006ad030,NarrowWriter_Dtor,function,low,"reimplemented (src/game/core/narrowwriter); The narrow-text writer's destructor: finished, its range table released, the base vtable"
+0x006ad090,NarrowWriter_DeletingDtor,function,low,reimplemented (src/game/core/narrowwriter); The narrow-text writer's deleting destructor
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
@@ -5435,6 +5446,7 @@ address,name,kind,confidence,notes
 0x0047fc00,Gauge_DrawBack,function,low,reimplemented (src/game/gfx/gauge); thiscall: the frame filled in colour 3 (Display_BoxFill)
 0x0047fc50,Gauge_DrawAxes,function,low,"reimplemented (src/game/gfx/gauge); thiscall: the horizontal axis (colour 0) at bottom + 1 or scaled by the first mark, then the vertical one (colour 1)"
 0x004806a0,Gauge_Setup,function,low,"reimplemented (src/game/gfx/gauge); A gauge set up for a window: its rect from the window's size, green, black and dark green colours, then the marks"
+0x0047fcd0,Gauge_DrawGrid,function,low,"reimplemented (src/game/gfx/gauge); The gauge's grid: a numbered vertical line every few columns (GuiText_Draw labels), a horizontal line each row (x87 steps)"
 0x00477c00,BarMesh_SetVertex,function,high,reimplemented (src/game/gfx/barmesh); vertex i of a 4-lane x/y/z block array
 0x00477cc0,BarMesh_SetTopVertices,function,high,reimplemented (src/game/gfx/barmesh); virtual: the bar's top edge vertices at its level (+0x120)
 0x00477d20,BarMesh_SetTopTexCoords,function,high,reimplemented (src/game/gfx/barmesh); virtual: the bar's top edge texture v = level * 0.01
@@ -5622,6 +5634,10 @@ address,name,kind,confidence,notes
 0x006aec80,TextLayout_BreakLines,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (begin, end): the 16-byte character records broken into lines no wider than +0xa8, each appended to the lines (+0x70); returns the line count"
 0x006aeb10,TextLayout_Arrange,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (status, left, top, right, bottom): the lines rebuilt per paragraph, the text box (+0xac-+0xb8) placed by the kinds at +0xa0 / +0xa4; *status = 0; returns status"
 0x006adfb0,TextLayout_SetOrigin,function,low,"reimplemented (src/game/gfx/textlayout); thiscall (status, rect): the positions (+0x84) resized to one, the origin (+0x98/+0x9c) placed in the rect by the kinds at +0xa0 / +0xa4 and stored as the first position; *status = 0; returns status"
+0x006ae930,TextLayout_SetText,function,low,"reimplemented (src/game/gfx/textlayout); The layout's character records rebuilt from a text through the style's font: code table, glyph, class, width"
+0x006ae550,TextLayout_Place,function,low,"reimplemented (src/game/gfx/textlayout); Positions per character, the lines reordered and placed in the text box, glyphs rendered and their bounds joined"
+0x006ae0f0,TextLayout_Draw,function,low,"reimplemented (src/game/gfx/textlayout); The text set, arranged in a rect, placed and drawn"
+0x006ae1c0,TextLayout_Measure,function,low,reimplemented (src/game/gfx/textlayout); The text set and arranged in a rect; the text box copied out
 0x00574bd0,TexFile_Load,function,low,"reimplemented (src/game/gfx/texfile); cdecl (name, &width, &height, flags, table or 0, pixel size or 0); a texture's file read: flag 1 the raw bytes (rows flipped for a top-first TGA, sic twice), else the name as a WCT image, else the TGA converted to the format (with flag 2 an alpha mask made); 0x87a24c what was found"
 0x00678d30,Mmx_FillRows,function,low,"reimplemented (src/game/gfx/mmxfill); cdecl (width, rows, buffer, pitch): each row filled with the 8-byte pattern at 0x77e580, 16 bytes a store while the width (8 a store) stays above 0"
 0x005edad0,AaLine_Draw8,function,low,"reimplemented (src/game/gfx/aaline); cdecl (unused, surface info, clip, colour, from, to): an antialiased line of 1-byte pixels, three pixels a step blended by their distance from it"
@@ -5726,6 +5742,8 @@ address,name,kind,confidence,notes
 0x00672bf0,MovieSound_ReleaseStream,function,low,"reimplemented (src/game/gfx/moviesound); thiscall on the player, returns 0: the settings' streaming buffer (+0x5c) released and cleared unless null"
 0x00672730,MovieSound_PlayDistance,function,low,"reimplemented (src/game/gfx/moviesound); thiscall on the player: the play position (simulated, moved by 0x372 and wrapped, or the stream's play cursor) past the last write (+0x370), wrapped by the stream's size (+0x36c)"
 0x00672990,MovieSound_ReleaseAll,function,low,"reimplemented (src/game/gfx/moviesound); thiscall on the player, returns 0: with flag 0x800000 of the settings' +4, the primary buffer +0x58 (when +0x3d8) and the device +0x54 (when +0x3dc) released and cleared"
+0x00492750,GuiText_Draw,function,low,"reimplemented (src/game/gfx/guitext); The GUI's text drawn in a rectangle through a stack text layout: alignments, the language's font, colour, surface, clip; the glyphs' bounds out"
+0x004929f0,GuiText_Measure,function,low,"reimplemented (src/game/gfx/guitext); The GUI's text measured in a rectangle through a stack text layout: alignments, the language's font; the text box out"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"
@@ -6198,6 +6216,7 @@ address,name,kind,confidence,notes
 0x00429d60,ModelSlot_KillAdvisor,function,low,"reimplemented (src/game/model/slots); cdecl (slot): ""Kill advisor"": an awake holder plays bank 0xc and leaves the renderer (rectangle with flag 0x4000, else Holder_Sleep)"
 0x00429e90,ModelSlot_CallAdvisor,function,low,"reimplemented (src/game/model/slots); cdecl (entry, slot): ""Initial advisor call"": Animator_Play(holder, 5, entry - 1, 0x10, 1.0f, 0), or 1000 without a holder"
 0x00429e20,ModelSlot_Free,function,low,"reimplemented (src/game/model/slots); cdecl (slot): the slot model (+4) leaves the renderer (its +0x48 part through the virtual base, tag 0x10), is disposed, the +0 instance freed; both cleared"
+0x00429ba0,ModelSlot_LoadAdvisor,function,low,"reimplemented (src/game/model/slots); The advisor's model loaded into a model slot: its matrix and part set up, ""Advisor[suffix].md2"" located, loaded, cloned and added to the renderer"
 0x00462870,WorldVerts_Alloc,function,high,reimplemented (src/game/model/worldverts); 0x7aecd4 = a zeroed block of 12 bytes for each of 0x400 entries (large) or [0x7a42ac]
 0x004628a0,WorldVerts_Free,function,high,reimplemented (src/game/model/worldverts); frees the block at 0x7aecd4 (pointer left)
 0x004628b0,WorldVerts_TransformFrame,function,high,reimplemented (src/game/model/worldverts); the frame's vertices in world space (its matrix times its parents') into the 0x7aecd4 block

@@ -197,6 +197,7 @@ add_library(tpw_game STATIC
     src/game/core/sounddevice.cpp
     src/game/core/soundsource.cpp
     src/game/core/widewriter.cpp
+    src/game/core/narrowwriter.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
@@ -241,6 +242,7 @@ add_library(tpw_game STATIC
     src/game/gfx/dderrors.cpp
     src/game/gfx/moviesurface.cpp
     src/game/gfx/moviesound.cpp
+    src/game/gfx/guitext.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp
     src/game/math/rect.cpp

@@ -34,6 +34,15 @@ void __fastcall Gauge_DrawBack(const u8 *gauge);
 // (32-bit, truncated); then a vertical one in colour 1 from (left - 1, top - 1), bottom + 1 long (Display_HLine, Display_VLine).
 void __fastcall Gauge_DrawAxes(const u8 *gauge);
 
+// 0x47fcd0 (thiscall; name unconfirmed): the grid, for the marks' counts +0x28 (columns) and +0x2c (rows), none when either is 0 (x87 at
+// 24 bits): dx = (float)(width / columns), dy = (float)(height / rows); from x = (float)(left + dx), every (step + 1)th column (step 0, 2
+// and 0xb for 12, 36 and 144 columns; another count leaves the original's step as the stack lies) a vertical line in colour 2 at __ftol(x)
+// from top, bottom long (Display_VLine), and its number (column + 1, "%d" through swprintf) drawn (GuiText_Draw, font [0x74f9d4], left
+// aligned without fit, the surface kept) at (max(__ftol(x), 2), max(bottom + 4, 2)) in a rectangle 0x7d00 each way, in colour 0; x +=
+// dx each column (float). Then from y = (float)(bottom - dy + 1.0) a horizontal line in colour 2 for each row at (left, __ftol(y)), right
+// long (Display_HLine), y -= dy (float).
+void __fastcall Gauge_DrawGrid(const u8 *gauge);
+
 // 0x4806a0 (cdecl; name unconfirmed): sets a gauge up for a window whose s16 left, top, right, bottom are at +4..+0xa of `window`: the frame
 // (4, 4) to ((right - left) * s16 [0xfaa5c4] / 2048 - 20, (bottom - top) * s16 [0xfaa5c0] / 1536 - 20) (32-bit products, divisions truncated);
 // colours 0 and 1 green (0, 200, 0), 3 black, 2 dark green (0, 100, 0), each with its nearest entry of the game's palette 0xfa71f8 (Palette_Nearest),
