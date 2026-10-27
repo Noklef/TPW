@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/soundset.h"
+#include "../core/vcall.h"
 #include "../world/research.h"
 #include "../world/staff.h"
 #include "../world/world.h"
@@ -30,14 +31,24 @@ u32 researchLevel(s32 group) {
     return Table_ScaledBySum(lab, nullptr, group);
 }
 
+constexpr u32 kMeter[5] = {0xd2d01, 0xd2d08, 0xd2d09, 0xd2d0a, 0xd2d07};   // (by group)
+
 void showLevel(s32 group, u32 level) {
-    static const u32 kMeter[5] = {0xd2d01, 0xd2d08, 0xd2d09, 0xd2d0a, 0xd2d07};   // (by group)
     LevelMeter_SetLevel(Window_FindChild(global<u8 *>(0x007cc1d8), nullptr, kMeter[group]), level);
 }
 
 }  // namespace
 
 extern "C" {
+
+void __cdecl ResearchMeters_ShowProgress(u32 group) {
+    const u8 *const lab = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da722_519550(global<u8 *>(0x007cf83c)));
+    const s32 done = 100 - (s32)ResearchLab_LeftPercent(lab, nullptr, group);
+    if (group > 4) return;
+    u8 *const meter = Window_FindChild(global<u8 *>(0x007cc1d8), nullptr, kMeter[group]);
+    u8 *const gauge = Window_FindChild(meter, nullptr, 0xd2d05);
+    vcall<u32>(gauge, 0x1c, (u32)((s32)((u32)done << 10) / 100));
+}
 
 void __cdecl ResearchMeters_Update(s32 group) {
     static const s32 kOrder[5] = {0, 4, 1, 2, 3};
