@@ -88,6 +88,7 @@
 #include "../../src/game/core/sounddevice.h"
 #include "../../src/game/core/mp2synth.h"
 #include "../../src/game/world/mapline.h"
+#include "../../src/game/coaster/train.h"
 #include "../../src/game/world/mousemode.h"
 #include "crt.h"
 #include "../../src/hook/hooks.h"
@@ -1078,6 +1079,10 @@ int main(int argc, char **argv) {
     // Game code a port calls directly that is not hooked (yet): a recorder, as the bench's hooks= has it in the emulator.
     static const MapLineEnv mapLine = {reinterpret_cast<u32(__fastcall *)(u8 *, void *, u32, s32, s32)>((uintptr_t)recorder(20, 3))};  // 0x5370e0: tests/fncmp/mapline.py
     MapLine_SetEnv(&mapLine);
+    // 0x473c70 (Animator_Update, under Train_PlaceCars): the cdecl recorder k 27 (three arguments), as tests/fncmp/placecars.py hooks it
+    // (fncmp.recorder(27, 3, cdecl=True)).
+    static const TrainEnv train = {reinterpret_cast<s32(__cdecl *)(u8 *, const u8 *, u32)>((uintptr_t)(kStubs + 0xb000 + 0x400 * 3 + 0x20 * 27))};
+    Train_SetEnv(&train);
     // 0x564650 (the engine debug log, a file): stub_cdecl_log, as tests/fncmp/engineerrors.py hooks it (the text hashed: strings(log, 0x3f, 1)).
     static const EngineErrorsEnv engineErrors = {reinterpret_cast<void(__cdecl *)(const char *)>(&stub_cdecl_log)};
     EngineErrors_SetEnv(&engineErrors);
