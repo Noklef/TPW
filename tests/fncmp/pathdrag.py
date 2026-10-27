@@ -35,7 +35,7 @@ def case(r):
         regions[0x8023a0] = struct.pack('<I', CELLS)
         regions[CELLS + 0x10ffd8] = r.bytes(0x28 * 8)
         regions[0x763a00] = r.bytes(8)
-        return Call(0x52c150, [x, y, r.choice([0, 0, 1, r.getrandbits(32)])], regions)
+        return Call(0x52c150, [x, y, r.choice([0, 0, 1, 0x100, r.getrandbits(32)])], regions)
     held = r.random() < 0.85
     x, y = (r.randrange(128), r.randrange(4)) if held else (r.choice([0xffffffff, r.randrange(128)]), r.choice([0xffffffff, r.randrange(4)]))
     regions[0x763a00] = struct.pack('<2I', x, y)
