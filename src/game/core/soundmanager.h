@@ -31,6 +31,11 @@ u32 __fastcall SoundManager_Call5(u8 *manager, void *, u32 a, u32 b);
 // 0x6b5ad0 (slot 4; thiscall (out, a), pops 8): the engine's slot 1 (out, a). Returns out.
 u32 *__fastcall SoundManager_Call1(u8 *manager, void *, u32 *out, u32 a);
 
+// 0x6b5dc0 (stdcall (out, &manager, engine, a), pops 0x10; name invented): a new manager (Mem_Alloc(8): vtable 0x70a288, +4 = 0, then
+// the engine) put in *manager (0 when the block fails, then *out = -1); its slot 4 (SoundManager_Call1, called directly: its vtable was
+// just stored) (out, a). Returns out.
+u32 *__stdcall SoundManager_Create(u32 *out, u8 **manager, u8 *engine, u32 a);
+
 // 0x6b5bf0 (slot 3; thiscall (flags), pops 4): SoundManager_Dtor, then the manager freed for flags bit 0. Returns the manager.
 u8 *__fastcall SoundManager_DeletingDtor(u8 *manager, void *, u32 flags);
 

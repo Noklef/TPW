@@ -112,6 +112,17 @@ void __fastcall Mp2BufferSample_Restart(u8 *sample) {
     if (at<u8 *>(sample, 0x34)[0x2442] == 1) vcall<void>(sample, 0x5c, 0x00fb20d0u, 0x300u);
 }
 
+u32 __fastcall Mp2StreamWindow_Read(u8 *window, void *, u8 *buffer, u32 count) {
+    const u32 left = at<u32>(window - 0x40, 0x18) - at<u32>(window, 4);
+    const u32 n = count < left ? count : left;
+    if (static_cast<s32>(n) <= 0) return 0xffffffff;
+    return SubStream_Read(window, nullptr, buffer, n);
+}
+
+u32 __fastcall Mp2StreamWindow_Seek(u8 *window, void *, u32 offset) {
+    return SubStream_Seek(window, nullptr, offset) - at<u32>(window, 8);
+}
+
 void __fastcall Mp2StreamSample_Restart(u8 *sample) {
     at<u32>(sample, 0x14) = 0;
     SubStream_Rewind(sample + 0x40);

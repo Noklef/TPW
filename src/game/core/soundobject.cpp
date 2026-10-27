@@ -7,17 +7,50 @@
 
 #include "fieldops.h"
 #include "initializers.h"
+#include "soundcategory.h"
 #include "soundchannel.h"
 #include "soundmixer.h"
+#include "string.h"
 #include "vcall.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
+// 0x6b89b0 / 0x6b8a10 / 0x6b8a70's body: the functor of that vtable to the id's voice.
+u32 *SendVoiceFunctor(u8 *object, u32 *out, u32 id, u32 vtable) {
+    if (id && at<u8 *>(object, 0x20)) {
+        if (u8 *const voice = SoundMixer_FindVoice(at<u8 *>(object, 0x20), nullptr, id)) {
+            u32 functor[2];
+            functor[1] = at<u32>(voice, 0x24);
+            functor[0] = vtable;
+            vcall<void>(voice, 0x18, out, functor);
+            return out;
+        }
+    }
+    *out = 0xffffffff;
+    return out;
+}
+
 }  // namespace
 
 extern "C" {
+
+u32 *__fastcall SoundObject_Open(u8 *object, void *, u32 *out, u32 value) {
+    vcall<void>(object, 0x24);
+    if (static_cast<s32>(*vcall<u32 *>(at<u8 *>(object, 0x24), 0x1c, &value, value, at<u32>(object, 0x1c))) < 0) {
+        *out = 0xffffffff;
+        return out;
+    }
+    u8 *const channel = at<u8 *>(object, 0x24);
+    SoundCategory_Get();
+    *reinterpret_cast<u8 **>(static_cast<uintptr_t>(0xfb1ffc)) = channel;
+    at<u8 *>(at<u8 *>(object, 0x24), 0x60) = object + 0x28;
+    *reinterpret_cast<u8 **>(static_cast<uintptr_t>(0xfb1f24)) = at<u8 *>(object, 0x24);
+    vcall<void>(object, 0x1c, &value, 1u);
+    *out = 0;
+    return out;
+}
 
 u32 *__fastcall SoundObject_Broadcast(u8 *object, void *, u32 *out) {
     if (u8 *const mixer = at<u8 *>(object, 0x20)) SoundMixer_ForEachActive(mixer, nullptr, 0);
@@ -42,6 +75,16 @@ u32 *__fastcall SoundObject_BroadcastValue(u8 *object, void *, u32 *out, u32 val
     *out = 0;
     return out;
 }
+
+void __fastcall SoundObject_Dtor(u8 *object) {
+    at<u32>(object, 0) = 0x0070a588;
+    if (u8 *const channel = at<u8 *>(object, 0x24)) vcall<void>(channel, 0);
+    if (u8 *const mixer = at<u8 *>(object, 0x20)) vcall<void>(mixer, 0, 1u);
+}
+
+u32 *__fastcall SoundObject_SendVoiceFunctor1(u8 *object, void *, u32 *out, u32 id) { return SendVoiceFunctor(object, out, id, 0x0070a2d0); }
+u32 *__fastcall SoundObject_SendVoiceFunctor2(u8 *object, void *, u32 *out, u32 id) { return SendVoiceFunctor(object, out, id, 0x0070a5b8); }
+u32 *__fastcall SoundObject_SendVoiceFunctor3(u8 *object, void *, u32 *out, u32 id) { return SendVoiceFunctor(object, out, id, 0x0070a5c0); }
 
 u32 *__fastcall SoundObject_VoiceInfo(u8 *object, void *, u32 *out, u32 id, u32 *result) {
     if (u8 *const mixer = at<u8 *>(object, 0x20)) {
@@ -100,6 +143,57 @@ u32 *__fastcall SoundObject_SetPlacement(u8 *object, void *, u32 *out, const u32
                                   (u32)(uintptr_t)(object + 0x10));
     }
     *out = 0;
+    return out;
+}
+
+u32 *__fastcall SoundObject_AddOccluder(u8 *object, void *, u32 *out, u32 x, u32 y, u32 z, u32 radius, u8 **node) {
+    u8 *const channel = *reinterpret_cast<u8 **>(object + 0x24);
+    if (!channel) {
+        *out = 0xffffffff;
+        return out;
+    }
+    SoundChannel_TryAddOccluder(channel, nullptr, out, x, y, z, radius, node);
+    return out;
+}
+
+u32 *__fastcall SoundObject_RemoveOccluder(u8 *object, void *, u32 *out, u8 **node) {
+    u8 *const channel = *reinterpret_cast<u8 **>(object + 0x24);
+    if (!channel) {
+        *out = 0xffffffff;
+        return out;
+    }
+    SoundChannel_RemoveOccluder(channel, nullptr, out, node);
+    return out;
+}
+
+u32 *__fastcall SoundObject_ReleaseRecordBanks(u8 *object, void *, u32 *out, const u8 *record) {
+    if (!*reinterpret_cast<u8 **>(object + 0x24) || !record) {
+        *out = 0xffffffff;
+        return out;
+    }
+    SoundCategory_ReleaseRecordBanks(out, record);
+    return out;
+}
+
+u32 *__fastcall SoundObject_ReleaseRecordAt(u8 *, void *, u32 *out, u32 index) {
+    if (!index) {
+        *out = 0xffffffff;
+        return out;
+    }
+    SoundCategory_ReleaseRecordAt(SoundCategory_Get(), nullptr, out, index);
+    return out;
+}
+
+s32 *__fastcall SoundObject_LoadCategory(u8 *object, void *, s32 *out, const char *path, const char *name, u32 *index) {
+    if (!at<u32>(object, 0x24)) {
+        *out = -1;
+        return out;
+    }
+    String full;
+    String_Ctor(&full);
+    SoundObject_ResolvePath(object, nullptr, path, reinterpret_cast<u8 *>(&full));
+    SoundCategory_Load(SoundCategory_Get(), nullptr, out, full.data, name, index);
+    String_Dtor(&full);
     return out;
 }
 

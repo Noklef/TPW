@@ -22,5 +22,7 @@ u32 __fastcall SubStream_Read(u8 *self, void *, void *buffer, u32 count);
 u32 __fastcall SubStream_Seek(u8 *self, void *, u32 offset);
 // 0x6d4ec0 (thiscall): the position = 0 and the stream sought to (start, 0). Returns the stream's answer.
 u32 __fastcall SubStream_Rewind(u8 *self);
+// 0x6c7960 (thiscall; an SEH frame): the destructor: vtable 0x70ad50, Semaphore_Dtor (+0x14), StreamBase_Dtor (+0xc).
+void __fastcall SubStream_Dtor(u8 *self);
 
 }  // extern "C"

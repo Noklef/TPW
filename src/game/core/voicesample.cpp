@@ -151,4 +151,15 @@ u8 *__fastcall VoiceStream_Ctor(u8 *sample, void *, const u8 *stream, const u8 *
     return sample;
 }
 
+u32 __fastcall VoiceStreamWindow_Read(u8 *window, void *, u8 *buffer, u32 count) {
+    u8 *const sample = window - 0x40;
+    const u32 left = at<u32>(sample, 0x18) - at<u32>(window, 4);
+    const u32 got = SubStream_Read(window, nullptr, buffer, count < left ? count : left);
+    if (at<u32>(window, 4) >= at<u32>(sample, 0x18)) {
+        at<u32>(sample, 0x3c) = got + static_cast<u32>(reinterpret_cast<uintptr_t>(buffer));
+        at<u32>(sample, 0x34) |= 2;
+    }
+    return got;
+}
+
 }  // extern "C"

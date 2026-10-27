@@ -17,6 +17,71 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 extern "C" {
 
+u8 *__stdcall SoundResource_New(const u8 *owner, const u32 *desc, u8 *source) {
+    u32 *const out = reinterpret_cast<u32 *>(&desc);   // (sic: the arguments' own slots)
+    if (static_cast<s32>(*SoundResource_Create(out, &source, owner, desc, source)) < 0) return nullptr;
+    u8 *const ref = static_cast<u8 *>(GameHeap_Alloc(0xc));
+    if (!ref) return nullptr;
+    return SoundResourceRef_Ctor(ref, nullptr, source);
+}
+
+u8 *__fastcall SoundResourceRef_Ctor(u8 *ref, void *, u8 *resource) {
+    Class703770_Ctor(ref);
+    at<u32>(ref, 0) = 0x0070af18;
+    at<u8 *>(ref, 8) = resource;
+    return ref;
+}
+
+void __fastcall SoundResourceRef_Dtor(u8 *ref) {
+    at<u32>(ref, 0) = 0x0070af18;
+    vcall<void>(at<u8 *>(ref, 8), 0);
+    at<u32>(ref, 0) = 0x00703770;
+}
+
+u32 __fastcall SoundResourceRef_Slot11(u8 *ref) {
+    u8 *const resource = at<u8 *>(ref, 8);
+    return resource ? vcall<u32>(resource, 0x2c) : 0;
+}
+
+u32 __fastcall SoundResourceRef_Slot12(u8 *ref) {
+    u8 *const resource = at<u8 *>(ref, 8);
+    return resource ? vcall<u32>(resource, 0x30) : 0;
+}
+
+u32 __fastcall SoundResourceRef_Slot13(u8 *ref) {
+    u8 *const resource = at<u8 *>(ref, 8);
+    return resource ? vcall<u32>(resource, 0x34) : 0;
+}
+
+u32 __fastcall SoundResourceRef_Offset(u8 *ref, void *, u32 i) {
+    u8 *const resource = at<u8 *>(ref, 8);
+    return resource ? vcall<u32>(resource, 0x24, i) : 0;
+}
+
+u32 *__fastcall SoundResourceRef_Slot15(u8 *ref, void *, u32 *out, u32 a) {
+    u8 *const resource = at<u8 *>(ref, 8);
+    if (!resource) {
+        *out = 0xffffffff;
+        return out;
+    }
+    u32 slot = a;   // (the a argument's own stack slot)
+    *out = *vcall<const u32 *>(resource, 0x3c, &slot, a);
+    return out;
+}
+
+u32 __fastcall SoundResourceRef_ReadRecord(u8 *ref, void *, u32 record, u32 i) {
+    u8 *const resource = at<u8 *>(ref, 8);
+    if (!resource) return 0;
+    u32 slot = i;   // (the i argument's own stack slot)
+    return static_cast<s32>(*vcall<const u32 *>(resource, 0x18, &slot, record, i)) >= 0 ? 1 : 0;
+}
+
+u8 *__fastcall SoundResourceRef_DeletingDtor(u8 *ref, void *, u32 flags) {
+    SoundResourceRef_Dtor(ref);
+    if (flags & 1) GameHeap_Free(ref);
+    return ref;
+}
+
 u8 *__fastcall SoundResource_Ctor(u8 *self, void *, u8 *source) {
     Class703770_Ctor(self);
     at<u32>(self, 8) = 0;

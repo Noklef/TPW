@@ -1,6 +1,7 @@
 # The sound manager handle's methods (src/game/core/soundmanager) against the originals: the handle at MGR (a recorder vtable, slot 3
 # the deleting destructor; null now and then for Release, which tests it), its engine at ENG (a recorder vtable whose slots return a
 # random value; null now and then for the destructor, which tests it, else a fault in both), the out dword at OUT, arguments random.
+# The manager made (0x6b5dc0, 'create'): its block failing now and then (heap fail 1), the engine ENG, the slot and out random.
 # usage: soundmanager.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -11,9 +12,10 @@ from fncmp import HEAP, LOG, RAM, Bench, Call, heap, log_region, set_return, vta
 
 # name: (address, stack arguments after out (None: no out), returns)
 CALLS = {'dtor': (0x6b5ab0, None, 'v'), 'release': (0x6b5af0, 0, 'a'), 'query': (0x6b5b10, 3, 'a'), 'post': (0x6b5b40, None, 'a'),
-         'call3': (0x6b5b80, None, 'a'), 'call5': (0x6b5b60, None, 'a'), 'call1': (0x6b5ad0, 1, 'a'), 'deldtor': (0x6b5bf0, None, 'a')}
+         'call3': (0x6b5b80, None, 'a'), 'call5': (0x6b5b60, None, 'a'), 'call1': (0x6b5ad0, 1, 'a'), 'deldtor': (0x6b5bf0, None, 'a'),
+         'create': (0x6b5dc0, None, 'a')}
 NARGS = {'post': 2, 'call3': 3, 'call5': 2, 'deldtor': 1}
-B = Bench([(0x6b5ab0, 0x6b5ba0), (0x6b5bf0, 0x6b5c20)])
+B = Bench([(0x6b5ab0, 0x6b5ba0), (0x6b5bf0, 0x6b5c20), (0x6b5dc0, 0x6b5e14)])
 MGR, OUT, ENG, MVT, EVT = RAM, RAM + 0x10, RAM + 0x100, RAM + 0x200, RAM + 0x300
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
@@ -32,6 +34,9 @@ def case(r):
                EVT: vtable({0: 1, 1: 2, 2: 4, 3: 3, 4: 2, 5: 2}), LOG: log}
     if name == 'deldtor':   # (the manager freed for flags bit 0)
         regions[HEAP] = heap(0x40)
+    if name == 'create':   # (stdcall (out, &manager, engine, a))
+        regions[HEAP] = heap(0x40, fail=r.choice([0, 0, 0, 1]))
+        return Call(address, [OUT, MGR, ENG, r.getrandbits(32)], regions, ret=ret)
     this = 0 if name == 'release' and r.random() < 0.15 else MGR
     if after_out is None:
         args = [r.choice([0, 1, r.getrandbits(32)]) if name == 'deldtor' else r.getrandbits(32) for _ in range(NARGS.get(name, 0))]

@@ -10,6 +10,29 @@
 
 extern "C" {
 
+// 0x6b8160 (thiscall (desc), pops 4; name invented): 0x6c53c0's new resource (the channel's +0x1c the owner, desc, the channel the source).
+u8 *__fastcall SoundChannel_NewResource(u8 *channel, void *, const u32 *desc);
+// 0x6b9310 (thiscall (index), pops 4; an SEH frame; name invented): the category singleton's (SoundCategory_Get) deque B entry index
+// (DequeIter_Plus from its begin; past its count +0x94: none), a bank record: none, 0; its resource +8 when it has one. Else: the
+// record's opener (+0x24) slot 4 (&status, &name, &empty; its answer unused), path = the WString +0xc, SoundBank_Open (&status, the
+// opener, &path, &name, Obj_Flags28_Bit1IfBit0 of the channel): negative, 0. Then by the flags +0x20: 1 / 2 the opener's slot 3 (&status,
+// &stream, the path's text, 0x81000001 / 0x80008001, 0) and, not negative, +8 = SoundChannel_NewResource of {2 / 1, -, &stream, the
+// path's text}; 4 a SoundFont: name + path up to its last ".", ".sf2" appended, as {3, the cut length, the cut's text, the text}, and
+// when that fails the flag-1 open. The descriptor's +4 is uninitialised on flags 1 and 2 (0 here, sic; the loads ignore it).
+u8 *__fastcall SoundChannel_LoadBank(u8 *channel, void *, u32 index);
+// 0x6b9160 (thiscall (out, on), pops 8; name invented): without flag 1 (+0x28) *out = -1. Else, when on (nonzero) differs from flag 2:
+// flag 2 set or cleared to match, the channel's slot 4 (out: on's own stack slot, sic; a stack functor: vtable 0x70a5b0, its data
+// unset) and SoundCategory_ReleaseBankResources; *out = 0. Returns out.
+u32 *__fastcall SoundChannel_SetFlag2(u8 *channel, void *, u32 *out, u32 on);
+// 0x6b7840 (thiscall; name invented): the EAX buffer (+0x20), when there is one, released (EaxBuffer_Release), freed (GameHeap_Free) and
+// cleared.
+void __fastcall SoundChannel_FreeEax(u8 *channel);
+// 0x6b7870 (thiscall (out), pops 4; an SEH frame for the new; name invented): +0x1c = a new synthesiser holder (8 bytes, Init_6c47b0;
+// null when the heap fails) and SfHost_OpenOut on it (on null too, sic). Returns out.
+u32 *__fastcall SoundChannel_OpenSynth(u8 *channel, void *, u32 *out);
+// 0x6b78e0 (thiscall; name invented): the synthesiser holder (+0x1c), when there is one, destroyed (SfHost_Dtor), freed and cleared.
+void __fastcall SoundChannel_FreeSynth(u8 *channel);
+
 // 0x6b8b40 (thiscall (out, functor), pops 8): the functor's slot 0 (out, channel). Returns out.
 u32 *__fastcall SoundChannel_Apply(u8 *channel, void *, u32 *out, u8 *functor);
 
@@ -80,6 +103,21 @@ u32 *__fastcall SoundChannel_SetEaxAll(u8 *channel, void *, u32 *out, u8 *settin
 // stack slot, sic; the voice's id +0x2c shifted right by the byte at 0x782db8); when the dword it returns a pointer to is not negative,
 // the voice released (value). *out = -1 either way (sic). Returns out.
 u32 *__fastcall SoundChannel_ReleaseVoice(u8 *channel, void *, u32 *out, u8 *voice, u32 value);
+// 0x6b7eb0 (thiscall; name invented): with a voice array (the pool +0x14's +4), SoundChannel_ReleaseVoice (a local out, the voice, 0)
+// for each voice up to the count (+8, read once) of them, the first one even when the count is 0 (sic: the test comes after).
+void __fastcall SoundChannel_ReleaseVoices(u8 *channel);
+// The sound commands' stack functors' runs on a channel (slot 1 of each, thiscall (out, channel), pops 8; slot 0 the functor's type;
+// the names are invented). By a voice's handle (the functor's +4: ChannelVoices_Holds on the channel's pool +0x14, its index out the
+// channel argument's own stack slot, sic): 0x6b8d60 (0x70a2d0): the held voice released (SoundChannel_ReleaseVoice (out, the voice, 0)),
+// else *out = 0; 0x6b8df0 (0x70a5b8) / 0x6b8e60 (0x70a5c0): the source's (+0x18) slot 11 / 12 (out, the index), else *out = -1.
+// 0x6b8dd0 (0x70a5b0): SoundChannel_ReleaseVoices, *out = 0. 0x6b8e40 (0x70a268) / 0x6b8eb0 (0x70a270): the source's slot 14 / 15 (out).
+// Each returns out.
+u32 *__fastcall SoundChannelFn70a2d0_Run(const u8 *functor, void *, u32 *out, u8 *channel);
+u32 *__fastcall SoundChannelFn70a5b8_Run(const u8 *functor, void *, u32 *out, u8 *channel);
+u32 *__fastcall SoundChannelFn70a5c0_Run(const u8 *functor, void *, u32 *out, u8 *channel);
+u32 *__fastcall SoundChannelFn70a5b0_Run(const u8 *functor, void *, u32 *out, u8 *channel);
+u32 *__fastcall SoundChannelFn70a268_Run(const u8 *functor, void *, u32 *out, u8 *channel);
+u32 *__fastcall SoundChannelFn70a270_Run(const u8 *functor, void *, u32 *out, u8 *channel);
 
 // 0x6b9a60 (thiscall (a, &picked, record), pops 0xc; name invented): the channel's slot 6 (a, record) picks a voice, kept in *picked; none
 // and the record's flags (+0x14, read after) with bit 13: 0. Else the channel's slot 5 (the voice, or a without one; record), its result returned.
@@ -101,6 +139,13 @@ u32 *__fastcall SoundChannel_SetOcclusion(u8 *channel, void *, u32 *out, u8 on, 
 // occluder {x, y, z, radius} copied into the occluders' list (0xfb2038) by its radius (PtrList_InsertCopyByKey); with a node made and the
 // occlusion switched on (0xfb2050), SoundChannel_UpdateOcclusion (eax: the buffer's). Returns the node, 0 without one or without EAX.
 u8 *__fastcall SoundChannel_AddOccluder(u8 *channel, void *, u32 x, u32 y, u32 z, u32 radius);
+// 0x6b99c0 (thiscall (out, on, radius), pops 0xc; name invented): with `on` (a dword) and the flags (+0x28) & 0x42, their bit 7 set and
+// SoundChannel_SetOcclusion (out, 1, radius); else bit 7 cleared and (out, 0, radius). (The byte passed sits in a dword whose upper bytes
+// are the channel's address's: the callee reads the byte only.) Returns out.
+u32 *__fastcall SoundChannel_SwitchOcclusion(u8 *channel, void *, u32 *out, u32 on, u32 radius);
+// 0x6b9a10 (thiscall (out, x, y, z, radius, &node), pops 0x18; name invented): *node = 0; with the flags (+0x28) & 0x41,
+// *node = SoundChannel_AddOccluder (x, y, z, radius) and *out = 0 when it made one; else (or without the flags) *out = -1. Returns out.
+u32 *__fastcall SoundChannel_TryAddOccluder(u8 *channel, void *, u32 *out, u32 x, u32 y, u32 z, u32 radius, u8 **node);
 // 0x6b82c0 (thiscall (out, &node), pops 8): with a node (*node) and EAX (+0x20: 1, else the source's slot 0x13's byte, nonzero),
 // SoundOccluders_Remove on the occluders' list (0xfb2038; a local out) and, with the occlusion switched on (0xfb2050),
 // SoundChannel_UpdateOcclusion (that byte); *out its status. Else *out = 0. Returns out.

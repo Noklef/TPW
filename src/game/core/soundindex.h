@@ -53,5 +53,27 @@ u8 *__fastcall SoundMapIndex_DeletingDtor(u8 *self, void *, u32 flags);
 // SfBank_Ctor (source, the owner's +4)); *resource = the object (null when the block is). When *resource (read back) is not null, its
 // slot 3 (out, desc +0xc, desc +4); otherwise *out = -1. Returns out.
 u32 *__stdcall SoundResource_Create(u32 *out, u8 **resource, const u8 *owner, const u32 *desc, u8 *source);
+// 0x6c53c0 (stdcall (owner, desc, source), pops 0xc; an SEH frame; ECX unused; name invented): SoundResource_Create with its out and
+// resource the desc and source arguments' own slots (sic); a negative answer: 0. Else a SoundResourceRef (Mem_Alloc 0xc) over the new
+// resource, or 0 when the block is.
+u8 *__stdcall SoundResource_New(const u8 *owner, const u32 *desc, u8 *source);
+// 0x6c8b40 (thiscall (resource), pops 4; name invented): Class703770_Ctor, the vtable 0x70af18, +8 = the resource. Returns the object.
+u8 *__fastcall SoundResourceRef_Ctor(u8 *ref, void *, u8 *resource);
+// 0x6c8b80 (thiscall; an SEH frame; name invented): the vtable 0x70af18, the resource's (+8, not checked) slot 0, the vtable 0x703770.
+void __fastcall SoundResourceRef_Dtor(u8 *ref);
+// 0x6c8b60 (thiscall (flags), pops 4; name invented): SoundResourceRef_Dtor, the ref freed for flags bit 0. Returns the ref.
+u8 *__fastcall SoundResourceRef_DeletingDtor(u8 *ref, void *, u32 flags);
+// The ref's forwards to its resource (+8; names invented, after the resource's slots): without one, 0 (or *out = -1). 0x6c8bd0 / 0x6c8bf0
+// / 0x6c8be0 (thiscall): the resource's slot 11 / 12 / 13. 0x6c8c00 (thiscall (i), pops 4): its slot 9 (the offset i).
+u32 __fastcall SoundResourceRef_Slot11(u8 *ref);
+u32 __fastcall SoundResourceRef_Slot12(u8 *ref);
+u32 __fastcall SoundResourceRef_Slot13(u8 *ref);
+u32 __fastcall SoundResourceRef_Offset(u8 *ref, void *, u32 i);
+// 0x6c8c20 (thiscall (out, a), pops 8): the resource's slot 15 (its out the a argument's own stack slot, sic; a), *out = the dword the
+// answer points to; without a resource *out = -1. Returns out.
+u32 *__fastcall SoundResourceRef_Slot15(u8 *ref, void *, u32 *out, u32 a);
+// 0x6c8c60 (thiscall (record, i), pops 8): the resource's slot 6, the record read (its out the i argument's own stack slot, sic; record,
+// i): 1 when the dword the answer points to is not negative, else 0; 0 without a resource.
+u32 __fastcall SoundResourceRef_ReadRecord(u8 *ref, void *, u32 record, u32 i);
 
 }  // extern "C"

@@ -5,9 +5,12 @@
 
 #include "../files/handles.h"
 #include "../files/file.h"
+#include "accessors.h"
 #include "dequeiter.h"
 #include "misc.h"
 #include "gameheap.h"
+#include "ime.h"
+#include "initializers.h"
 #include "methods.h"
 #include "ptrlist.h"
 #include "seqs.h"
@@ -89,7 +92,12 @@ void EraseAll(u8 *deque) {
 const StringView *View(const String *s) { return reinterpret_cast<const StringView *>(s); }
 void *const *Vtable(u32 address) { return reinterpret_cast<void *const *>(static_cast<uintptr_t>(address)); }
 
+const SoundCategoryEnv kGameEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0)};
+const SoundCategoryEnv *g_env = &kGameEnv;
+
 }  // namespace
+
+void SoundCategory_SetEnv(const SoundCategoryEnv *env) { g_env = env ? env : &kGameEnv; }
 
 extern "C" {
 
@@ -462,6 +470,59 @@ u32 __fastcall SoundCategory_FindRecordIndex(u8 *category, void *, const char *n
     return 0;   // (as the first's index, sic)
 }
 
+u8 *__fastcall SoundCategory_Ctor(u8 *category) {
+    const u8 alloc = 0, comp = 0;   // sic: the original's are uninitialised stack bytes (the empty allocator and comparator objects)
+    Put<u32>(category, 4, 0);
+    Put<u32>(category, 8, 0);
+    StdMapH_Ctor(category + 0xc, nullptr, &comp, 0, &alloc);
+    category[0x1c] = comp;   // (tree J: its allocator and comparator, the multi byte 0)
+    category[0x1d] = comp;
+    category[0x24] = 0;
+    StdTree_CtorJ(category + 0x1c);
+    Handle_Ctor(reinterpret_cast<Handle *>(category + 0x30));
+    static const u32 kDeques[] = {0x38, 0x68};   // (A and B: the allocator byte, the iterators, map, map size and count 0)
+    for (const u32 deque : kDeques) {
+        category[deque] = comp;
+        for (u32 offset = 4; offset <= 0x2c; offset += 4) Put<u32>(category, deque + offset, 0);
+    }
+    category[0x98] = comp;   // (C the same, its end iterator by Init_5ec210)
+    for (u32 offset = 0x9c; offset <= 0xa8; offset += 4) Put<u32>(category, offset, 0);
+    Init_5ec210(category + 0xac);   // (deque C's end iterator)
+    for (u32 offset = 0xbc; offset <= 0xc4; offset += 4) Put<u32>(category, offset, 0);
+    Put<u32>(category, 0xc8, 1);
+    Put<u32>(category, 0, 0x70a95c);
+    u8 *record = static_cast<u8 *>(GameHeap_Alloc(0x34));   // (the first category record)
+    if (record) {
+        Class703770_Ctor(record);
+        Put<u32>(record, 8, 0);
+        String_Ctor(reinterpret_cast<String *>(record + 0xc));
+        Put<u32>(record, 0x20, 0);
+        Put<u32>(record, 0x24, 0x70a948);   // (its bank list)
+        for (u32 offset = 0x28; offset <= 0x30; offset += 4) Put<u32>(record, offset, 0);
+        Put<u32>(record, 0, 0x70a950);
+    }
+    Put<u32>(record, 8, Addr(GameHeap_Alloc(0x18)));   // (a null record: the fault, sic)
+    Put<u32>(Ptr(Get<u32>(record, 8)), 0, 0);
+    Put<u16>(Ptr(Get<u32>(record, 8)), 0xa, 0xd);
+    Put<u32>(Ptr(Get<u32>(record, 8)), 0xc, 0x3e4ccccd);   // 0.2f
+    Put<u32>(Ptr(Get<u32>(record, 8)), 0x10, 0x40000000);   // 2.0f
+    Put<u32>(Ptr(Get<u32>(record, 8)), 0x14, 0x3f000000);   // 0.5f
+    u8 *const a = category + 0x38;   // (deque A's push_back of the record)
+    if (Get<u32>(a, 0x2c) == 0 || Get<u32>(a, 0x1c) == Get<u32>(a, 0x18)) Deque32_GrowBack(a);
+    const u32 slot = Get<u32>(a, 0x1c);
+    Put<u32>(a, 0x1c, slot + 4);
+    const u32 value = Addr(record);
+    ImeVector_Construct(reinterpret_cast<u32 *>(Ptr(slot)), &value);
+    Put<u32>(a, 0x2c, Get<u32>(a, 0x2c) + 1);
+    u8 *const c = category + 0x98;   // (deque C cleared: erase(begin, end))
+    DequeIt first, last;
+    std::memcpy(&first, c + 4, sizeof first);
+    std::memcpy(&last, c + 0x14, sizeof last);
+    u32 out[4];
+    Deque32_Erase(c, nullptr, out, first, last);
+    return category;
+}
+
 void __fastcall SoundCategory_Dtor(u8 *category) {
     Put<u32>(category, 0, 0x70a95c);
     u8 it[16];
@@ -491,6 +552,180 @@ u8 *__fastcall SoundCategory_DeletingDtor(u8 *category, void *, u32 flags) {
 }
 
 void __cdecl SoundCategory_SingletonDtor() { SoundCategory_Dtor(Ptr(0xfb1f28)); }
+
+u8 *__cdecl SoundCategory_Get() {
+    u8 &guard = *Ptr(0xfb1ff8);
+    if (!(guard & 1)) {
+        guard |= 1;
+        SoundCategory_Ctor(Ptr(0xfb1f28));
+        g_env->atExit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x006beb10));
+    }
+    return Ptr(0xfb1f28);
+}
+
+void __fastcall SoundCategory_LocateSample(void *, void *, u32 *category, u32 *sound, u32 *variation, u32 *sample, const u32 *info) {
+    u8 *const cat = SoundCategory_Get();
+    *category = 0;
+    *sound = 0;
+    *variation = 0;
+    *sample = 0;
+    const u32 soundAt = info[1], variationAt = info[2], sampleAt = info[3];
+    if (!sampleAt || !variationAt || !soundAt) {
+        *sample = 0;
+        *variation = 0;
+        *sound = 0;
+    }
+    u32 it[4];
+    std::memcpy(it, cat + 0x3c, sizeof it);
+    while (it[2] != Get<u32>(cat, 0x54)) {
+        const u8 *const record = Get<u8 *>(Ptr(it[2]), 0);
+        const u8 *const entry = record ? Get<u8 *>(record, 8) : nullptr;
+        if (entry && Get<u32>(entry, 0) && soundAt >= Get<u32>(entry, 4) && soundAt <= Get<u32>(entry, 4) + Get<u32>(entry, 0) * 0x14) {
+            const s32 s = static_cast<s32>(soundAt - Get<u32>(Get<u8 *>(Get<u8 *>(Ptr(it[2]), 0), 8), 4)) / 0x14;
+            *sound = static_cast<u32>(s);
+            if (s < 0) *sound = 0;
+            const u32 sounds = Get<u32>(Get<u8 *>(Get<u8 *>(Ptr(it[2]), 0), 8), 0);
+            if (*sound >= sounds) *sound = sounds - 1;
+            const s32 v = static_cast<s32>(variationAt - Get<u32>(Ptr(soundAt), 8)) / 0x2a;
+            *variation = static_cast<u32>(v);
+            if (v < 0) *variation = 0;
+            const u32 variations = Get<u32>(Ptr(soundAt), 4);
+            if (*variation >= variations) *variation = variations - 1;
+            const s32 k = static_cast<s32>(sampleAt - Get<u32>(Ptr(variationAt), 8)) >> 4;
+            *sample = static_cast<u32>(k);
+            if (k < 0) *sample = 0;
+            if (*sample >= SfxVariation_SampleCount(Ptr(variationAt))) *sample = SfxVariation_SampleCount(Ptr(variationAt)) - 1;
+            return;
+        }
+        DequeIter_Inc(reinterpret_cast<u8 *>(it));
+        ++*category;
+    }
+    *category = 0;
+}
+
+void __cdecl SoundCategory_ReleaseBankResources() {
+    u8 *const cat = SoundCategory_Get();
+    if (!Get<u32>(cat, 0x94)) return;
+    u32 i = 0;
+    do {
+        u32 it[4], found[4];
+        std::memcpy(it, cat + 0x6c, sizeof it);
+        DequeIter_Advance(reinterpret_cast<u8 *>(it), nullptr, static_cast<s32>(i));
+        if (Get<u32>(Ptr(it[2]), 0)) {
+            const u32 *const begin = reinterpret_cast<const u32 *>(cat + 0x6c);
+            vcall<void>(Get<u8 *>(Get<u8 *>(Ptr(DequeIter_Plus(begin, nullptr, found, static_cast<s32>(i))[2]), 0), 8), 0);
+            Put<u32>(Get<u8 *>(Ptr(DequeIter_Plus(begin, nullptr, found, static_cast<s32>(i))[2]), 0), 8, 0);
+        }
+    } while (++i < Get<u32>(cat, 0x94));
+}
+
+bool __fastcall SoundCategory_BankFlag40(void *, void *, u32 index) {
+    u8 *const cat = SoundCategory_Get();
+    const u8 *bank = nullptr;
+    if (index < Get<u32>(cat, 0x94)) {
+        u32 found[4];
+        bank = Get<u8 *>(Ptr(DequeIter_Plus(reinterpret_cast<const u32 *>(cat + 0x6c), nullptr, found, static_cast<s32>(index))[2]), 0);
+    }
+    return bank && (Get<u32>(bank, 0x20) >> 6 & 1);
+}
+
+void __fastcall SfxVariation_MoveFlag40SamplesLast(void *, void *, u8 *variation) {
+    u32 first = Get<u32>(variation, 8);
+    u32 last = (SfxVariation_SampleCount(variation) << 4) + Get<u32>(variation, 8) - 0x10;
+    const u32 count = SfxVariation_SampleCount(variation);
+    Put<u32>(variation, 0, (Get<u32>(variation, 0) << 16) + static_cast<u32>(static_cast<s32>(static_cast<s16>(count))));
+    while (first <= last) {
+        if (SoundCategory_BankFlag40(Ptr(Get<u32>(Ptr(0xfb1ffc), 0)), nullptr, Get<u16>(Ptr(first), 0xc))) {
+            u32 held[4];
+            std::memcpy(held, Ptr(first), sizeof held);
+            std::memcpy(Ptr(first), Ptr(last), sizeof held);
+            std::memcpy(Ptr(last), held, sizeof held);
+            last -= 0x10;
+            Put<u32>(variation, 0, Get<u32>(variation, 0) - 1);
+        } else {
+            first += 0x10;
+        }
+    }
+}
+
+void __fastcall CategoryRecord_Dtor(u8 *record) {
+    Put<u32>(record, 0, 0x70a950);
+    u32 status;
+    SoundCategory_UnloadRecord(SoundCategory_Get(), nullptr, &status, record);
+    if (Get<u32>(record, 8)) {
+        GameHeap_Free(Ptr(Get<u32>(record, 8)));
+        Put<u32>(record, 8, 0);
+    }
+    u8 *node = Ptr(Get<u32>(record, 0x28));
+    Put<u32>(record, 0x2c, 0);
+    Put<u32>(record, 0x28, 0);
+    while (node) {
+        u8 *const next = Ptr(Get<u32>(node, 4));
+        GameHeap_Free(node);
+        node = next;
+    }
+    Put<u32>(record, 0x30, 0);
+    BankList_Dtor(record + 0x24);
+    String_Dtor(reinterpret_cast<String *>(record + 0xc));
+    Put<u32>(record, 0, 0x703770);
+}
+
+u32 *__stdcall SoundCategory_ReleaseRecordBanks(u32 *out, const u8 *record) {
+    if (!record) {
+        *out = 0xffffffff;
+        return out;
+    }
+    u8 *const cat = SoundCategory_Get();
+    u32 *banks = nullptr;   // (the record's argument slot in the original)
+    SoundCategory_Get();
+    const u32 n = Fn_6c0200(static_cast<u32>(reinterpret_cast<uintptr_t>(record)), static_cast<u32>(reinterpret_cast<uintptr_t>(&banks)));
+    for (u32 i = 0; i < n; ++i) {
+        const s32 index = static_cast<s32>(banks[i]);
+        u32 it[4];
+        std::memcpy(it, cat + 0x6c, sizeof it);
+        DequeIter_Advance(reinterpret_cast<u8 *>(it), nullptr, index);
+        vcall<void>(Get<u8 *>(Get<u8 *>(Ptr(it[2]), 0), 8), 0);
+        std::memcpy(it, cat + 0x6c, sizeof it);
+        DequeIter_Advance(reinterpret_cast<u8 *>(it), nullptr, index);
+        Put<u32>(Get<u8 *>(Ptr(it[2]), 0), 8, 0);
+    }
+    if (banks) GameHeap_Free(banks);
+    *out = 0;
+    return out;
+}
+
+u32 *__fastcall SoundCategory_ReleaseRecordAt(u8 *category, void *, u32 *out, u32 index) {
+    u32 it[4];
+    std::memcpy(it, category + 0x3c, sizeof it);
+    DequeIter_Advance(reinterpret_cast<u8 *>(it), nullptr, static_cast<s32>(index));
+    u8 *const record = Get<u8 *>(Ptr(it[2]), 0);
+    if (!record) {
+        *out = 0xffffffff;
+        return out;
+    }
+    vcall<void>(record, 0);
+    *out = 0;
+    return out;
+}
+
+u8 *__fastcall SoundCategory_RecordAt(void *, void *, u32 index, u32) {
+    if (index >= Get<u32>(SoundCategory_Get(), 0x64)) return nullptr;
+    u32 it[4], found[4];
+    std::memcpy(it, SoundCategory_Get() + 0x3c, sizeof it);
+    return Get<u8 *>(Ptr(DequeIter_Plus(it, nullptr, found, static_cast<s32>(index))[2]), 0);
+}
+
+u8 *__fastcall SfxSounds_Find(void *, void *, const u32 *sounds, u8 *command) {
+    if (!vcall<u32>(command, 4) || !vcall<u32>(command, 8) || !sounds) return nullptr;
+    u32 count = sounds[0];
+    u8 *entry = Ptr(sounds[1]);
+    if (!count) return nullptr;
+    do {
+        if (Get<u32>(entry, 0) == vcall<u32>(command, 8)) return Get<u32>(entry, 4) ? entry : nullptr;
+        entry += 0x14;
+    } while (--count);
+    return nullptr;
+}
 
 u32 *__fastcall SoundCategory_UnloadRecord(u8 *category, void *, u32 *out, u8 *record) {
     if (!record) {

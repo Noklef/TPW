@@ -6,12 +6,21 @@
 
 #include "../math/vector.h"
 #include "../math/x87.h"
+#include "../files/handles.h"
 #include "channelvoice.h"
+#include "dequeiter.h"
 #include "fieldops.h"
+#include "gameheap.h"
 #include "initializers.h"
 #include "ptrlist.h"
+#include "selectors.h"
+#include "sfman.h"
+#include "soundbank.h"
+#include "soundcategory.h"
 #include "soundeax.h"
+#include "soundindex.h"
 #include "soundoccluders.h"
+#include "string.h"
 #include "thunks.h"
 #include "vcall.h"
 
@@ -48,6 +57,109 @@ s32 fistp(float x) { return _mm_cvtss_si32(_mm_set_ss(x)); }
 }  // namespace
 
 extern "C" {
+
+u8 *__fastcall SoundChannel_NewResource(u8 *channel, void *, const u32 *desc) {
+    return SoundResource_New(at<u8 *>(channel, 0x1c), desc, channel);
+}
+
+void __fastcall SoundChannel_FreeEax(u8 *channel) {
+    if (!at<u8 *>(channel, 0x20)) return;
+    EaxBuffer_Release(at<u8 *>(channel, 0x20));
+    GameHeap_Free(at<u8 *>(channel, 0x20));
+    at<u8 *>(channel, 0x20) = nullptr;
+}
+
+u32 *__fastcall SoundChannel_OpenSynth(u8 *channel, void *, u32 *out) {
+    u8 *host = static_cast<u8 *>(GameHeap_Alloc(8));
+    if (host) host = Init_6c47b0(host);
+    at<u8 *>(channel, 0x1c) = host;
+    SfHost_OpenOut(host, nullptr, out);
+    return out;
+}
+
+void __fastcall SoundChannel_FreeSynth(u8 *channel) {
+    if (!at<u8 *>(channel, 0x1c)) return;
+    SfHost_Dtor(at<u8 *>(channel, 0x1c));
+    GameHeap_Free(at<u8 *>(channel, 0x1c));
+    at<u8 *>(channel, 0x1c) = nullptr;
+}
+
+u32 *__fastcall SoundChannel_SetFlag2(u8 *channel, void *, u32 *out, u32 on) {
+    const u32 flags = at<u32>(channel, 0x28);
+    if (!(flags & 1)) {
+        *out = 0xffffffff;
+        return out;
+    }
+    if (!on != !(flags & 2)) {
+        at<u32>(channel, 0x28) = on ? flags | 2 : flags & ~2u;
+        u32 functor[2];   // (the second dword left unset, sic)
+        functor[0] = 0x0070a5b0;
+        vcall<void>(channel, 0x10, &on, functor);
+        SoundCategory_ReleaseBankResources();
+    }
+    *out = 0;
+    return out;
+}
+
+u8 *__fastcall SoundChannel_LoadBank(u8 *channel, void *, u32 index) {
+    u8 *const category = SoundCategory_Get();
+    u8 *bank = nullptr;
+    if (index < at<u32>(category, 0x94)) {
+        u32 it[4], found[4];
+        for (int i = 0; i < 4; ++i) it[i] = at<u32>(category, 0x6c + 4 * i);
+        bank = *reinterpret_cast<u8 **>(static_cast<uintptr_t>(DequeIter_Plus(it, nullptr, found, static_cast<s32>(index))[2]));
+    }
+    if (!bank) return nullptr;
+    if (at<u8 *>(bank, 8)) return at<u8 *>(bank, 8);
+    String path, name, empty;
+    String_Ctor(&path);
+    String_Ctor(&name);
+    String_CtorStr(&empty, nullptr, reinterpret_cast<const char *>(static_cast<uintptr_t>(0x00786de4)));
+    u8 *const opener = bank + 0x24;
+    s32 status;
+    vcall<s32 *>(opener, 0x10, &status, &name, &empty);
+    String_Dtor(&empty);
+    String_AssignWide(&path, nullptr, reinterpret_cast<const WString *>(bank + 0xc));
+    u32 self;
+    if (*reinterpret_cast<s32 *>(SoundBank_Open(&self, nullptr, reinterpret_cast<u32 *>(&status), opener, &path,
+                                                static_cast<u32>(reinterpret_cast<uintptr_t>(&name)), Obj_Flags28_Bit1IfBit0(channel))) < 0) {
+        String_Dtor(&name);
+        String_Dtor(&path);
+        return nullptr;
+    }
+    StreamBase stream;
+    StreamBase_Ctor(&stream);
+    u32 desc[4] = {};   // (+4: the original's is uninitialised on flags 1 and 2, sic; the loads ignore it)
+    const auto open = [&](u32 mode, u32 type) {
+        if (*vcall<s32 *>(opener, 0xc, &status, &stream, path.data, mode, 0u) < 0) return;
+        desc[0] = type;
+        desc[2] = static_cast<u32>(reinterpret_cast<uintptr_t>(&stream));
+        desc[3] = static_cast<u32>(reinterpret_cast<uintptr_t>(path.data));
+        at<u8 *>(bank, 8) = SoundChannel_NewResource(channel, nullptr, desc);
+    };
+    const u32 flags = at<u32>(bank, 0x20);
+    if (flags & 1) {
+        open(0x81000001, 2);
+    } else if (flags & 2) {
+        open(0x80008001, 1);
+    } else if (flags & 4) {   // (a SoundFont: name + path up to its last ".", then ".sf2")
+        String dir;
+        String_CtorCopy(&dir, nullptr, reinterpret_cast<const StringView *>(&name));
+        String_Append(&dir, nullptr, reinterpret_cast<const StringView *>(&path));
+        const s32 dot = String_ReverseFind(&dir, nullptr, reinterpret_cast<const char *>(static_cast<uintptr_t>(0x00747800)), 0xffffffff);
+        String_Assign(&dir, nullptr, String_Left(&dir, nullptr, reinterpret_cast<StringView *>(desc), static_cast<u32>(dot)));
+        String_AppendStr(&dir, nullptr, reinterpret_cast<const char *>(static_cast<uintptr_t>(0x00782db0)));
+        const u32 sf2 = Fn_6c58d0(reinterpret_cast<u8 *>(desc), nullptr, 3, static_cast<u32>(reinterpret_cast<uintptr_t>(dir.data)));
+        at<u8 *>(bank, 8) = SoundChannel_NewResource(channel, nullptr, reinterpret_cast<const u32 *>(static_cast<uintptr_t>(sf2)));
+        if (!at<u8 *>(bank, 8)) open(0x81000001, 2);
+        String_Dtor(&dir);
+    }
+    u8 *const result = at<u8 *>(bank, 8);
+    StreamBase_Dtor(&stream);
+    String_Dtor(&name);
+    String_Dtor(&path);
+    return result;
+}
 
 u32 *__fastcall SoundChannel_Apply(u8 *channel, void *, u32 *out, u8 *functor) {
     vcall<void>(functor, 0, out, channel);
@@ -114,6 +226,18 @@ u32 *__fastcall SoundChannel_SetEaxAll(u8 *channel, void *, u32 *out, u8 *settin
     return source_eax(channel, out, settings);
 }
 
+void __fastcall SoundChannel_ReleaseVoices(u8 *channel) {
+    u8 *const pool = at<u8 *>(channel, 0x14);
+    u8 *voice = at<u8 *>(pool, 4);
+    u8 *const end = voice + at<u32>(pool, 8) * 0x8c;
+    if (!voice) return;
+    do {
+        u32 status;
+        SoundChannel_ReleaseVoice(channel, nullptr, &status, voice, 0);
+        voice += 0x8c;
+    } while (voice < end);
+}
+
 u32 *__fastcall SoundChannel_ReleaseVoice(u8 *channel, void *, u32 *out, u8 *voice, u32 value) {
     u8 *const target = voice;   // (the argument's slot is the source's out below)
     if (target) {
@@ -122,6 +246,57 @@ u32 *__fastcall SoundChannel_ReleaseVoice(u8 *channel, void *, u32 *out, u8 *voi
             ChannelVoice_Release(target, nullptr, value);
     }
     *out = 0xffffffff;
+    return out;
+}
+
+namespace {
+
+// ChannelVoices_Holds by the functor's handle (+4; a local); its index out the channel argument's own stack slot (sic).
+bool holds(const u8 *functor, u8 *channel, u32 *index) {
+    const u32 handle = at<u32>(functor, 4);
+    *index = static_cast<u32>(reinterpret_cast<uintptr_t>(channel));
+    return ChannelVoices_Holds(at<u8 *>(channel, 0x14), nullptr, &handle, index) != 0;
+}
+
+u32 *source_index(const u8 *functor, u32 *out, u8 *channel, u32 offset) {
+    u32 index;
+    if (!holds(functor, channel, &index)) {
+        *out = 0xffffffff;
+        return out;
+    }
+    vcall<void>(at<u8 *>(channel, 0x18), offset, out, index);
+    return out;
+}
+
+}  // namespace
+
+u32 *__fastcall SoundChannelFn70a2d0_Run(const u8 *functor, void *, u32 *out, u8 *channel) {
+    u32 index;
+    if (!holds(functor, channel, &index)) {
+        *out = 0;
+        return out;
+    }
+    SoundChannel_ReleaseVoice(channel, nullptr, out, at<u8 *>(at<u8 *>(channel, 0x14), 4) + index * 0x8c, 0);
+    return out;
+}
+
+u32 *__fastcall SoundChannelFn70a5b8_Run(const u8 *functor, void *, u32 *out, u8 *channel) { return source_index(functor, out, channel, 0x2c); }
+
+u32 *__fastcall SoundChannelFn70a5c0_Run(const u8 *functor, void *, u32 *out, u8 *channel) { return source_index(functor, out, channel, 0x30); }
+
+u32 *__fastcall SoundChannelFn70a5b0_Run(const u8 *, void *, u32 *out, u8 *channel) {
+    SoundChannel_ReleaseVoices(channel);
+    *out = 0;
+    return out;
+}
+
+u32 *__fastcall SoundChannelFn70a268_Run(const u8 *, void *, u32 *out, u8 *channel) {
+    vcall<void>(at<u8 *>(channel, 0x18), 0x38, out);
+    return out;
+}
+
+u32 *__fastcall SoundChannelFn70a270_Run(const u8 *, void *, u32 *out, u8 *channel) {
+    vcall<void>(at<u8 *>(channel, 0x18), 0x3c, out);
     return out;
 }
 
@@ -340,6 +515,32 @@ u32 *__fastcall SoundChannel_SetOcclusion(u8 *channel, void *, u32 *out, u8 on, 
         }
     }
     *out = 0;
+    return out;
+}
+
+u32 *__fastcall SoundChannel_SwitchOcclusion(u8 *channel, void *, u32 *out, u32 on, u32 radius) {
+    u8 flag = 1;
+    if (on && (at<u32>(channel, 0x28) & 0x42)) {
+        at<u32>(channel, 0x28) |= 0x80;
+    } else {
+        flag = 0;
+        at<u32>(channel, 0x28) &= ~0x80u;
+    }
+    SoundChannel_SetOcclusion(channel, nullptr, out, flag, radius);
+    return out;
+}
+
+u32 *__fastcall SoundChannel_TryAddOccluder(u8 *channel, void *, u32 *out, u32 x, u32 y, u32 z, u32 radius, u8 **node) {
+    *node = nullptr;
+    if (at<u8>(channel, 0x28) & 0x41) {
+        u8 *const made = SoundChannel_AddOccluder(channel, nullptr, x, y, z, radius);
+        *node = made;
+        if (made) {
+            *out = 0;
+            return out;
+        }
+    }
+    *out = 0xffffffff;
     return out;
 }
 

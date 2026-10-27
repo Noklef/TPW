@@ -776,6 +776,14 @@ u32 __fastcall StdMapH_FindValue(u8 *map, void *, const u8 *text, u32 *index) {
 
 void __fastcall StdTree_CtorH(u8 *tree) { TreeH::Ctor(tree); }
 
+u8 *__fastcall StdMapH_Ctor(u8 *map, void *, const u8 *comp, u32 multi, const u8 *alloc) {
+    map[0] = *alloc;
+    map[8] = static_cast<u8>(multi);
+    map[1] = *comp;
+    StdTree_CtorH(map);
+    return map;
+}
+
 void __fastcall StdMapH_ClearDtor(u8 *map) {
     u8 *out;
     TreeH::EraseRange(map, &out, TreeH::L(at<u8 *>(map, 4)), at<u8 *>(map, 4));

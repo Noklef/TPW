@@ -67,6 +67,13 @@ void __cdecl FileSamplePool_Shutdown();
 void __cdecl FileSamplePool_Purge();
 void *__cdecl FileSamplePool_New(u32 size);
 void __cdecl FileSamplePool_Delete(void *block, u32 size);
+// The notify stream's (0x70a748, core/soundstream: 0x1c, +0x14; [0xfb26f4], [0xfb26f0]): 0x6c8ca0, 0x6c8cd0, 0x6c8d00, 0x6c8d40 and
+// 0x6c8db0 (its atexit registration 0x6c8cc0 left out).
+void __cdecl NotifyStreamPool_Init();
+void __cdecl NotifyStreamPool_Shutdown();
+void __cdecl NotifyStreamPool_Purge();
+void *__cdecl NotifyStreamPool_New(u32 size);
+void __cdecl NotifyStreamPool_Delete(void *block, u32 size);
 // The MP2 streamed sample's (0x70ae90, core/mp2sample: 0x5c, +0x58; [0xfb26e8], [0xfb26e4]): 0x6c8660, 0x6c8690, 0x6c86c0, 0x6c8700 and
 // 0x6c8770 (its atexit registration 0x6c8680 left out).
 void __cdecl Mp2StreamSamplePool_Init();

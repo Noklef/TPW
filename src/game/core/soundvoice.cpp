@@ -494,6 +494,26 @@ u8 *__cdecl SequenceVoice_Create(u8 *owner, u8 *memory, u8 *definition, u8 *info
     return init_voice(voice, reinterpret_cast<u32 *>(&memory), owner, definition, info);
 }
 
+u8 *__cdecl Voice70a390_Create(u8 *owner, u8 *memory, u8 *definition, u8 *info) {
+    u8 *const voice = memory ? Voice70a390_Ctor(memory) : nullptr;
+    return init_voice(voice, reinterpret_cast<u32 *>(&memory), owner, definition, info);
+}
+
+u8 *__cdecl Voice70a2e0_Create(u8 *owner, u8 *memory, u8 *definition, u8 *info) {
+    u8 *const voice = memory ? Voice70a2e0_Ctor(memory) : nullptr;
+    return init_voice(voice, reinterpret_cast<u32 *>(&memory), owner, definition, info);
+}
+
+u8 *__cdecl Voice70a3e8_Create(u8 *owner, u8 *memory, u8 *definition, u8 *info) {
+    u8 *const voice = memory ? Voice70a3e8_Ctor(memory) : nullptr;
+    return init_voice(voice, reinterpret_cast<u32 *>(&memory), owner, definition, info);
+}
+
+u8 *__cdecl Voice70a878_Create(u8 *owner, u8 *memory, u8 *definition, u8 *info) {
+    u8 *const voice = memory ? Voice70a878_Ctor(memory) : nullptr;
+    return init_voice(voice, reinterpret_cast<u32 *>(&memory), owner, definition, info);
+}
+
 u8 *__fastcall SwitchVoice_Ctor(u8 *voice) {
     Class70a7e0_Ctor(voice);
     at<u32>(voice, 0) = 0x0070a498;
@@ -628,6 +648,27 @@ u32 __fastcall SoundVoice_RollVolume(u8 *voice) {
 u32 __fastcall SoundVoice_RollPitch(u8 *voice) {
     if (!at<u8 *>(voice, 8)) return 0;
     return roll<s8>(voice, 0xe, 2);
+}
+
+u32 __fastcall SoundVoice_SetRecordBankLinked(u8 *voice, void *, u8 *record) {
+    if (!SoundVoice_SetRecordBank(voice, nullptr, record)) return 0;
+    SetThenFlag4c_14_6c50f0(record, nullptr, static_cast<u32>(reinterpret_cast<uintptr_t>(voice)));
+    const u8 *const params = at<u8 *>(voice, 8);
+    if (at<u16>(params, 0x10) || at<u16>(params, 0x12)) FlagThenSet14_58_6c5220(record, nullptr, vcall<u32>(voice, 0x4c));
+    return 1;
+}
+
+u32 __fastcall SoundVoice_SetRecordBank(u8 *voice, void *, u8 *record) {
+    u8 *const resource = SoundChannel_LoadBank(system(), nullptr, at<u16>(at<u8 *>(voice, 0xc), 0xc));
+    if (!resource) return 0;
+    Obj_SetFirstFlag80(record, nullptr, at<u32>(at<u8 *>(voice, 0xc), 0));
+    Obj_SetSecondFlag8(record, nullptr, static_cast<u32>(reinterpret_cast<uintptr_t>(resource)));
+    if (at<u32>(voice, 0x30) & 0x200) {
+        SetThenFlag8_14_6c50b0(record, nullptr, at<u32>(voice, 4));
+        at<u32>(record, 0xc) |= 0x200;
+    }
+    at<u32>(record, 0xc) |= (at<u32>(voice, 0x30) & 0x20000) ? 4u : 0xc0u;
+    return 1;
 }
 
 u32 __fastcall SoundVoice_RollWord(u8 *voice) {

@@ -50,4 +50,14 @@ u8 *__fastcall FileSample_Ctor(u8 *sample, void *, const u8 *stream, u8 *record,
 void __fastcall FileSample_Dtor(u8 *sample);
 u8 *__fastcall FileSample_DeletingDtor(u8 *sample, void *, u32 flags);
 
+// The memory samples' copier [0xfb2018] (names invented): a 4-byte object whose slot 0 copies (dest, source, count): vtable 0x70aa34 the
+// plain one (Mem_CopyForward 0x6c4010), 0x70aa38 the MMX one. 0x6c3f70 (thiscall; called by the sound system's constructor 0x6b7360 on its
+// +0x24, which it leaves alone): a new copier (Mem_Alloc(4)), the MMX one when [0xfb2704] (the MMX switch) is set, else the plain one,
+// kept in [0xfb2018] (0 when the block fails). Returns the object.
+u8 *__fastcall SampleCopier_Install(u8 *self);
+// 0x6c3fc0 (thiscall (dest, source, count), pops 0xc; slot 0 of 0x70aa38; `this` unused): count / 32 blocks of 32 bytes, each read as four
+// qwords (MMX) before they are written, then EMMS (when there were blocks) and the count % 32 bytes left a byte at a time (rep movsb), all
+// forwards (so overlapping runs repeat as the original's do).
+void __fastcall SampleCopier_MmxCopy(void *self, void *, u8 *dest, const u8 *source, u32 count);
+
 }  // extern "C"

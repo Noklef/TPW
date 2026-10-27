@@ -4,6 +4,7 @@
 #include <xmmintrin.h>
 
 #include "../math/x87.h"
+#include "fieldops.h"
 #include "gameheap.h"
 #include "initializers.h"
 #include "silencestream.h"
@@ -119,6 +120,81 @@ u8 *__fastcall Stream70a6c8_Dtor(u8 *stream, void *, u32 flags) {
     Vtbl70a778_Set_6c7090(stream);
     if (flags & 1) Stream70a6c8Pool_Delete(stream, 0x1c);
     return stream;
+}
+
+u32 *__fastcall SoundStream_QueryUser(u8 *stream, void *, u32 *out, u8 *record) {
+    u32 slot = static_cast<u32>(reinterpret_cast<uintptr_t>(record));   // (the record's own stack slot)
+    if (static_cast<s32>(*SoundStream_Query(stream, nullptr, &slot, record)) < 0) {
+        *out = 0xffffffff;
+        return out;
+    }
+    if (at<u32>(record, 0x14) & 0x1000) at<u32>(stream, 0x10) = at<u32>(record, 0x48);
+    *out = 0;
+    return out;
+}
+
+void __fastcall SoundStream_DescribeUser(u8 *stream, void *, u8 *record) {
+    if (at<u32>(record, 0x18) & 0x1000) SetThenFlag48_14_6c5090(record, nullptr, at<u32>(stream, 0x10));
+}
+
+u32 *__fastcall Stream70a6c8_Query(u8 *stream, void *, u32 *out, u8 *record) {
+    u32 slot = static_cast<u32>(reinterpret_cast<uintptr_t>(record));   // (the record's own stack slot)
+    if (static_cast<s32>(*SoundStream_QueryUser(stream, nullptr, &slot, record)) < 0) {
+        *out = 0xffffffff;
+        return out;
+    }
+    if (at<u32>(record, 0x14) & 0x800) at<u32>(stream, 0x18) = at<u32>(record, 0x4c);
+    *out = 0;
+    return out;
+}
+
+void __fastcall Stream70a6c8_Describe(u8 *stream, void *, u8 *record) {
+    SoundStream_DescribeUser(stream, nullptr, record);
+    if (at<u32>(record, 0x18) & 0x800) SetThenFlag4c_14_6c50f0(record, nullptr, at<u32>(stream, 0x18));
+}
+
+u8 *__fastcall NotifyStream_Create(void *, void *, u8 *record) {
+    const u32 flags = at<u32>(record, 0x14);
+    if (!(flags & 0x2000)) return nullptr;
+    at<u32>(record, 0x14) = flags & ~0x2000u;
+    u8 *const stream = static_cast<u8 *>(NotifyStreamPool_New(0x1c));
+    if (!stream) return nullptr;
+    at<u32>(stream, 4) = 0;
+    at<u32>(stream, 8) = 0;
+    at<u32>(stream, 0xc) = 0;
+    at<u32>(stream, 0x10) = at<u32>(record, 0x48);
+    at<u32>(stream, 0x18) = at<u32>(record, 0x50);
+    at<u32>(stream, 0) = 0x0070a748;
+    return stream;
+}
+
+u8 *__fastcall NotifyStream_Dtor(u8 *stream, void *, u32 flags) {
+    Vtbl70a778_Set_6c7090(stream);
+    if (flags & 1) NotifyStreamPool_Delete(stream, 0x1c);
+    return stream;
+}
+
+u32 __fastcall NotifyStream_Read(u8 *stream, void *, u32 buffer, u32 count, u32 done, u32 flag) {
+    u8 *const next = next_of(stream);
+    return next ? vcall<u32>(next, 0x1c, buffer, count, done, flag) : 0;
+}
+
+u32 *__fastcall NotifyStream_Query(u8 *stream, void *, u32 *out, u8 *record) {
+    u32 slot = static_cast<u32>(reinterpret_cast<uintptr_t>(record));   // (the record's own stack slot)
+    if (static_cast<s32>(*SoundStream_QueryUser(stream, nullptr, &slot, record)) < 0) {
+        *out = 0xffffffff;
+        return out;
+    }
+    if (at<u32>(record, 0x14) & 0x2000) at<u32>(stream, 0x18) = at<u32>(record, 0x50);
+    *out = 0;
+    return out;
+}
+
+void __fastcall NotifyStream_Send(u8 *stream, void *, u32 value) {
+    u8 *const callback = at<u8 *>(stream, 0x18);
+    if (!callback) return;
+    vcall<void>(callback, 4, at<u32>(stream, 0xc), at<u32>(stream, 0x10), value & 0xff);
+    at<u32>(stream, 0x18) = 0;
 }
 
 void __fastcall SoundStream_SetFormat(u8 *stream, void *, const u8 *format) {
