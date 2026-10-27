@@ -12,6 +12,9 @@
 #include "nodes.h"
 #include "queue.h"
 #include "train.h"
+#include "carsound.h"
+#include "../model/holder.h"
+#include "../motion/animator.h"
 
 namespace {
 
@@ -35,6 +38,51 @@ double __cdecl CoasterCar_SwingRate(const u8 *coaster, const u8 *car, float x) {
     const X87Reg swing =
         (X87Reg(angle < 0.0f ? -kPi : kPi) - angle) * x / at<float>(at<const u8 *>(coaster, 4), 0x10);
     return X87_DivR(both, swing).v;
+}
+
+void __cdecl CoasterCar_Wake(u8 *coaster, u8 *car) {
+    if (!(coaster[0x3c] & 4)) return;
+    u8 *const *const strips = reinterpret_cast<u8 *const *>(0x007a4610);
+    at<u32>(coaster, 0) |= 0x800;
+    Motion_Time(0);   // (its answer unused)
+    at<u32>(car, 0) |= 2;
+    u8 *const segments = at<u8 *>(car, 0x28);
+    for (u32 i = 0; i < at<u32>(car, 0xc); ++i) at<u32>(segments + 0x60 * i, 0x1c) = 0;
+    u8 *segment = at<u8 *>(car, 0x28) + at<u32>(car, 0xc) * 0x60 - 0x60;   // the last first
+    for (u32 n = 0; n < at<u32>(car, 0xc); ++n, segment -= 0x60) {
+        at<u32>(segment, 0) |= 1;
+        if (const u32 index = at<u32>(segment, 0xc)) {
+            u8 *const strip = strips[index];
+            if (at<u32>(strip, 4) & 0x4000)
+                Holder_AddToGrid(at<u8 *>(strip, 8), at<u32>(strip, 0xc0), at<u32>(strip, 0xc4));
+            else
+                Holder_Wake(at<u8 *>(strip, 8));
+        }
+        at<u32>(segment, 0x28) = at<u32>(segment, 0x20);
+        at<u32>(segment, 0x2c) = at<u32>(segment, 0x24);
+        at<u32>(segment, 0x30) = 0;
+        at<u32>(segment, 0x34) = 0;
+        const u8 type = *at<const u8 *>(segment, 4);   // (read before the index is tested)
+        if (!(type & 1) && at<u32>(segment, 0xc)) Animator_Play(strips[at<u32>(segment, 0xc)], 5, 0, 1, 1.0f, 0);
+    }
+    CoasterCar_StartSounds(coaster, car, 0);
+}
+
+void __cdecl CoasterCar_Sleep(u8 *coaster, u8 *car) {
+    u8 *const *const strips = reinterpret_cast<u8 *const *>(0x007a4610);
+    u8 *segment = at<u8 *>(car, 0x28) + at<u32>(car, 8) * 0x60;
+    for (u32 n = at<u32>(car, 0xc); n != 0; --n, segment += 0x60) {
+        at<u32>(segment, 0) &= ~1u;
+        if (const u32 index = at<u32>(segment, 0xc)) {
+            u8 *const strip = strips[index];
+            if (at<u32>(strip, 4) & 0x4000)
+                Obj_RemoveFromRect(at<u8 *>(strip, 8), at<u32>(strip, 0xc0), at<u32>(strip, 0xc4));
+            else
+                Holder_Sleep(at<u8 *>(strip, 8));
+        }
+    }
+    CoasterCar_StopSounds(coaster, car);
+    at<u32>(car, 0) &= ~2u;
 }
 
 void __cdecl Coaster_SpaceCars(u8 *coaster) {

@@ -5812,6 +5812,8 @@ address,name,kind,confidence,notes
 0x0043b8b0,CoasterTrain_AtStation,function,low,"reimplemented (src/game/coaster/cars); the train at the station: riders off, boarding over the cars in the window, the window kept"
 0x00439840,CoasterCar_PlayClank,function,low,"reimplemented (src/game/coaster/cars); cdecl (coaster, car): a coaster car's clank, played (sound 0xc) at its place on the track (its distance modulo the track's length) unless 0x785a2c is set"
 0x0043cd60,CoasterCar_Bump,function,low,"reimplemented (src/game/coaster/cars); a car closing on the one ahead trades speeds with it (x87; flag 0x40 ahead), the clank played past a gap of 1"
+0x0043be10,CoasterCar_Wake,function,low,"reimplemented (src/game/coaster/cars); A coaster car woken: its segments' strip holders put back and animated, its sounds started"
+0x0043bf20,CoasterCar_Sleep,function,low,"reimplemented (src/game/coaster/cars); A coaster car put to sleep: its segments' strip holders taken out, its sounds stopped"
 0x0043b050,CoasterLink_Find,function,high,"reimplemented (src/game/coaster/registry); cdecl (key): +0x14 of the first entry of the list at 0x790fe0 (next +0x18) whose +0x24 is key, else 0"
 0x00438720,Coaster_Count,function,high,reimplemented (src/game/coaster/registry); cdecl (): the coaster count (0x792214)
 0x00438730,CoasterLink_Nodes,function,high,"reimplemented (src/game/coaster/registry); cdecl (n, value or null): link n of the list at 0x790fe0: its +0x28 to *value, returns its +0x54 -> +0x90 -> +4 node list"
