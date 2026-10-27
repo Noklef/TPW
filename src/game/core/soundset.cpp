@@ -67,6 +67,14 @@ u32 __cdecl Sound_SetParam(u32 sound, u32 parameter, u32 value) {
     return SoundManager_Call3(global<u8 *>(0x00802bcc), nullptr, sound, parameter, value);
 }
 
+void __cdecl Sound_Place(u32 a, u32 level, u32 c, u32 x, u32 y, u32 z, u32 dx, u32 dy, u32 dz) {
+    if (!global<u32>(0x00802bc8) || !global<u32>(0x00802bd4)) return;
+    u32 v = global<u16>(0x00803ad2) ? global<u32>(0x00700b28) : level;
+    if ((v & 0x7f800000u) == 0x7f800000u && (v & 0x007fffffu)) v |= 0x00400000u;   // (through FLD / FSTP: a signalling NaN made quiet)
+    const u32 first[3] = {a, v, c}, second[3] = {x, y, z}, third[3] = {dx, dy, dz};
+    SoundManager_SetPlacement(global<u8 *>(0x00802bcc), nullptr, &a, first, second, third);   // (out: the first argument's own slot)
+}
+
 u32 __cdecl Sound_SetPosition(u32 sound, s32 x, s32 y, s32 z) {
     if (!global<u32>(0x00802bc8) || !global<u32>(0x00802bd4)) return 0;
     float position[3] = {(float)x, (float)y, (float)z};
