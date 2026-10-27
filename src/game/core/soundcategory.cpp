@@ -8,6 +8,8 @@
 #include "dequeiter.h"
 #include "misc.h"
 #include "gameheap.h"
+#include "ime.h"
+#include "initializers.h"
 #include "methods.h"
 #include "ptrlist.h"
 #include "seqs.h"
@@ -460,6 +462,59 @@ u32 __fastcall SoundCategory_FindRecordIndex(u8 *category, void *, const char *n
         }
     }
     return 0;   // (as the first's index, sic)
+}
+
+u8 *__fastcall SoundCategory_Ctor(u8 *category) {
+    const u8 alloc = 0, comp = 0;   // sic: the original's are uninitialised stack bytes (the empty allocator and comparator objects)
+    Put<u32>(category, 4, 0);
+    Put<u32>(category, 8, 0);
+    StdMapH_Ctor(category + 0xc, nullptr, &comp, 0, &alloc);
+    category[0x1c] = comp;   // (tree J: its allocator and comparator, the multi byte 0)
+    category[0x1d] = comp;
+    category[0x24] = 0;
+    StdTree_CtorJ(category + 0x1c);
+    Handle_Ctor(reinterpret_cast<Handle *>(category + 0x30));
+    static const u32 kDeques[] = {0x38, 0x68};   // (A and B: the allocator byte, the iterators, map, map size and count 0)
+    for (const u32 deque : kDeques) {
+        category[deque] = comp;
+        for (u32 offset = 4; offset <= 0x2c; offset += 4) Put<u32>(category, deque + offset, 0);
+    }
+    category[0x98] = comp;   // (C the same, its end iterator by Init_5ec210)
+    for (u32 offset = 0x9c; offset <= 0xa8; offset += 4) Put<u32>(category, offset, 0);
+    Init_5ec210(category + 0xac);   // (deque C's end iterator)
+    for (u32 offset = 0xbc; offset <= 0xc4; offset += 4) Put<u32>(category, offset, 0);
+    Put<u32>(category, 0xc8, 1);
+    Put<u32>(category, 0, 0x70a95c);
+    u8 *record = static_cast<u8 *>(GameHeap_Alloc(0x34));   // (the first category record)
+    if (record) {
+        Class703770_Ctor(record);
+        Put<u32>(record, 8, 0);
+        String_Ctor(reinterpret_cast<String *>(record + 0xc));
+        Put<u32>(record, 0x20, 0);
+        Put<u32>(record, 0x24, 0x70a948);   // (its bank list)
+        for (u32 offset = 0x28; offset <= 0x30; offset += 4) Put<u32>(record, offset, 0);
+        Put<u32>(record, 0, 0x70a950);
+    }
+    Put<u32>(record, 8, Addr(GameHeap_Alloc(0x18)));   // (a null record: the fault, sic)
+    Put<u32>(Ptr(Get<u32>(record, 8)), 0, 0);
+    Put<u16>(Ptr(Get<u32>(record, 8)), 0xa, 0xd);
+    Put<u32>(Ptr(Get<u32>(record, 8)), 0xc, 0x3e4ccccd);   // 0.2f
+    Put<u32>(Ptr(Get<u32>(record, 8)), 0x10, 0x40000000);   // 2.0f
+    Put<u32>(Ptr(Get<u32>(record, 8)), 0x14, 0x3f000000);   // 0.5f
+    u8 *const a = category + 0x38;   // (deque A's push_back of the record)
+    if (Get<u32>(a, 0x2c) == 0 || Get<u32>(a, 0x1c) == Get<u32>(a, 0x18)) Deque32_GrowBack(a);
+    const u32 slot = Get<u32>(a, 0x1c);
+    Put<u32>(a, 0x1c, slot + 4);
+    const u32 value = Addr(record);
+    ImeVector_Construct(reinterpret_cast<u32 *>(Ptr(slot)), &value);
+    Put<u32>(a, 0x2c, Get<u32>(a, 0x2c) + 1);
+    u8 *const c = category + 0x98;   // (deque C cleared: erase(begin, end))
+    DequeIt first, last;
+    std::memcpy(&first, c + 4, sizeof first);
+    std::memcpy(&last, c + 0x14, sizeof last);
+    u32 out[4];
+    Deque32_Erase(c, nullptr, out, first, last);
+    return category;
 }
 
 void __fastcall SoundCategory_Dtor(u8 *category) {

@@ -114,6 +114,12 @@ u32 __fastcall SoundCategory_FindRecordIndex(u8 *category, void *, const char *n
 // empties (Deque32_FreeFront, inlined for C and B); the folder Handle (+0x30) destroyed, tree J (+0x1c, StdTree_DtorJ inlined) and map H
 // (+0xc, StdMapH_ClearDtor).
 void __fastcall SoundCategory_Dtor(u8 *category);
+// 0x6beb20 (thiscall; an SEH frame; name invented): the constructor (the singleton's, 0x6bead0's): +4, +8 0; map H (+0xc, StdMapH_Ctor), tree J
+// (+0x1c, StdTree_CtorJ), the folder Handle (+0x30), deques A, B and C (+0x38, +0x68, +0x98) empty; their allocator and comparator bytes
+// the original's uninitialised stack bytes (0 here, sic); +0xc8 = 1, the vtable 0x70a95c; a first category record (0x34 bytes: the vtable
+// 0x70a950, count 1, an empty String, the bank list 0x70a948) with a 0x18 block at +8 (+0xa 0xd, +0xc 0.2, +0x10 2.0, +0x14 0.5) pushed on
+// deque A (a null record faults, sic); deque C erased from begin to end (Deque32_Erase). Returns the category.
+u8 *__fastcall SoundCategory_Ctor(u8 *category);
 // 0x6bed80 (thiscall (flags), pops 4; slot 0 of 0x70a95c): the destructor, then Mem_Free with flags bit 0. Returns the category.
 u8 *__fastcall SoundCategory_DeletingDtor(u8 *category, void *, u32 flags);
 // 0x6beb10 (atexit, from 0x6bead0's guard): the destructor on the singleton at 0xfb1f28 (src/game/core/soundnames' table).
