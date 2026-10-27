@@ -5805,6 +5805,7 @@ const Hook kHooks[] = {
     {"Window7cc8bc_ListSetData1Std", 0x004818a0, (void *)&Window7cc8bc_ListSetData1Std, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"Dialog7cb2b8_ShowRightOf",  0x004a1440, (void *)&Dialog7cb2b8_ShowRightOf, {0x6a, 0xff, 0x68, 0x68, 0xa4}},
     {"Dialog7cb2b8_BoxHandler",   0x004a14f0, (void *)&Dialog7cb2b8_BoxHandler, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Dialog7cb2b8_BarHandler",   0x004a1cd0, (void *)&Dialog7cb2b8_BarHandler, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
     {"Dialog7ca308_ShowStaff",    0x0049ba00, (void *)&Dialog7ca308_ShowStaff, {0x6a, 0xff, 0x68, 0x78, 0xa1}},
     {"Dialog7ca150_ShowTab0",     0x00494ec0, (void *)&Dialog7ca150_ShowTab0, {0x8b, 0x0d, 0x50, 0xa1, 0x7c}},
     {"Dialog7ca150_ShowTab1",     0x00494c70, (void *)&Dialog7ca150_ShowTab1, {0x8b, 0x0d, 0x50, 0xa1, 0x7c}},

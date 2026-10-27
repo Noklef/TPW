@@ -5,6 +5,9 @@
 #include "../core/accessors.h"
 #include "../core/soundplay.h"
 #include "../core/vcall.h"
+#include "../math/x87.h"
+#include "../world/thingscan.h"
+#include "../world/world.h"
 #include "dialogs.h"
 #include "guirect.h"
 #include "window.h"
@@ -182,6 +185,20 @@ s32 __cdecl Dialog7cb2b8_BoxHandler(u8 *window, u32 message, u32 a, u32 b) {
         break;
     default:
         break;
+    }
+    return Window_CallDefault(window, nullptr, message, a, b);
+}
+
+s32 __cdecl Dialog7cb2b8_BarHandler(u8 *window, u32 message, u32 a, u32 b) {
+    if (message == 0x15) {
+        if ((u16)Window_SetTimer(window, nullptr, 0x80083, 2000)) Window_StartTimer(window, nullptr, 0x80083);
+    } else if (message == 0x10 && a == 0x80083) {
+        u8 *const thing = ptr(GameTable7cfb90_Get1da720_519510(*global<u8 **>(0x007cf6ec)));
+        if (thing && window) {
+            const double average = Things_AveragePersonStat19c(thing, nullptr, 4);
+            const double value = X87_MulDouble(average * global<float>(0x006ffa34), global<float>(0x006ffa38));   // (* 1024.0f exact)
+            vcall<void>(window, 0x1c, (u32)(long long)value);   // (__ftol's low half)
+        }
     }
     return Window_CallDefault(window, nullptr, message, a, b);
 }

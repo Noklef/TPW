@@ -1,5 +1,5 @@
 // The dialog at 0x7cb2b8 (the message panel: its child 0x21 the box of message tags, the handler 0x4a14f0 set by 0x4a238f). Reimplementation
-// of 0x4a1440 and 0x4a14f0. The names are unconfirmed.
+// of 0x4a1440, 0x4a14f0 and 0x4a1cd0. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -35,4 +35,11 @@ void __cdecl Dialog7cb2b8_ShowRightOf(u8 *window, u32 limit);
 // inner right edges past the parent's inner right (as Dialog7cb2b8_ShowRightOf).
 // 0x100 (a 0x24, the close button): Dialog7cb2b8_ResetChild21(1)'s work (inlined in the original). EAX the default handler's.
 s32 __cdecl Dialog7cb2b8_BoxHandler(u8 *window, u32 message, u32 a, u32 b);
+
+// 0x4a1cd0 (cdecl (window, message, a, b); the handler of a bar (BarMesh_Construct of 0x752f04) the dialog's builder makes, set at 0x4a24ad;
+// name unconfirmed): 0x15: its timer 0x80083 set to 2000 (Window_SetTimer) and, when that answers (AX), started. 0x10 with the timer
+// (a 0x80083): when the thing at the game [[0x7cf6ec]]'s handle +0x1da720 (GameTable7cfb90_Get1da720_519510) is not 0 and the window
+// is, the park's guests' average (Things_AveragePersonStat19c, 4) * 1024.0f * 0.01f (x87, single precision; [0x6ffa34], [0x6ffa38]) cut
+// to an integer (__ftol) handed to the window's vtable slot 7 (+0x1c). Then (always) Window_CallDefault's answer.
+s32 __cdecl Dialog7cb2b8_BarHandler(u8 *window, u32 message, u32 a, u32 b);
 }
