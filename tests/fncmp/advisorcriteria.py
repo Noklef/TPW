@@ -36,6 +36,7 @@ CALLS = {'Booth': (0x59c8d0, {}), 'No02': (0x59c960, {}), 'Obj0': (0x59ca80, {})
          'VWorn5s': (0x59e680, {0x2e8: WEAR}), 'RingLo': (0x59e730, {0x2f0: RING}), 'RingHi': (0x59e790, {0x2f8: RING}),
          'Obj0w': (0x59ca30, {0xc0: [0, 1, 30, 50, 100, 255, 256, -1]}), 'MapLo': (0x59cb40, {0xd8: PCT}), 'MapHi': (0x59cbb0, {0xe0: PCT})}
 WORN = {'Worn', 'Worn5s', 'VWorn', 'VWorn5s'}
+WEAR_AT = {'Worn': (0x2d0, 0x2e0, 0x2d4), 'Worn5s': (0x2d8, 0x2e8, 0x2d4), 'VWorn': (0x2e0, 0, 0x2e4), 'VWorn5s': (0x2e8, 0, 0x2ec)}   # (low, high, weight)
 IDLE = {'Idle0': 0, 'Idle1': 1, 'Idle2': 2, 'K3F1': None, 'K3F2': None}
 LATE = {'Idle0', 'Idle1', 'Idle2', 'K3F1', 'K3F2', 'Tal0', 'TotTh', 'Mood', 'Money', 'One', 'CtlLo', 'CtlMid', 'CtlHi', 'Share',
         'Bus', 'Stf1f8', 'Ppl19c', 'StfE'}
@@ -105,6 +106,14 @@ def wear_case(r, regions, info, name):
             if empty or r.random() < 0.7:
                 put(cells, 0x44 * (c + 1) + 0x2c, 'I', 0)
         regions[parkenv.BOOTHS] = cells
+        if r.random() < 0.4:   # (now and then the bound at the share itself, give or take one: Map_PercentWith2c's typed 1, 3, 9 or set cells)
+            total = counted = 0
+            for c in range(0x4000):
+                kind, value = struct.unpack_from('<I32xI', cells, 0x44 * (c + 1) + 8)
+                total += kind in (1, 3, 9) or value != 0
+                counted += value != 0
+            share = counted * 100 // total if total else 0
+            regions[SCORING] = put(bytearray(regions[SCORING]), 0xd8 if name == 'MapLo' else 0xe0, 'i', share + r.choice([-1, 0, 0, 1]))
         return
     if name in WORN or name == 'Obj0w':
         pool = bytearray(regions[POOL])
@@ -113,6 +122,18 @@ def wear_case(r, regions, info, name):
                 pool[THING * i + 0x32] = r.choice([1, 1, 1, 3, 0, 2, r.randrange(256)])
                 put(pool, THING * i + 0x44, 'f', r.choice([0.0, 10.0, 50.5, 99.9, 100.0, r.uniform(0, 100), r.uniform(0, 100), 300.7, -5.5,
                                                            float('nan')]))
+        if name in WORN and r.random() < 0.4:   # (now and then every object worn alike, flagged: the average 100 - w, the bounds about it)
+            w = r.randrange(101)
+            for i in range(len(info['things'])):
+                if pool[THING * i + 2] == 3:
+                    pool[THING * i + 0x32] |= 1
+                    put(pool, THING * i + 0x44, 'f', float(w))
+            low, high, _ = WEAR_AT[name]
+            s = bytearray(regions[SCORING])
+            put(s, low, 'i', 100 - w + r.choice([-1, 0, 0, 1, -30]))
+            if high:
+                put(s, high, 'i', 100 - w + r.choice([-1, 0, 0, 1, 30]))
+            regions[SCORING] = s
         regions[POOL] = pool
         return
     ring = bytearray(r.bytes(0x40))
