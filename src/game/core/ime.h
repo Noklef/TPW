@@ -76,6 +76,11 @@ u32 __fastcall ImeContext_Release(const u32 *context);
 void __fastcall Ime_Dtor(u8 *ime);
 u8 *__fastcall Ime_DeletingDtor(u8 *ime, void *, u32 flags);
 
+// 0x480960 (thiscall; the host's destructor, name unconfirmed): the wide strings of the vector +0x190 (first +0x190 up to last +0x194, read
+// once; 0x10 bytes each) reset (CountedBuf_Reset, releasing), its block freed (null too) and +0x190-+0x198 cleared; then the IME +0x1c
+// destroyed (Ime_Dtor).
+void __fastcall ImeHost_Dtor(u8 *host);
+
 // 0x47a830 (thiscall (value), pops 4; name unconfirmed): the window +0x4c's input context (ImmGetContext 0x6fd084); with one, ImmNotifyIME
 // (0x6fd068) 0x12 (NI_SELECTCANDIDATESTR) with the index +0x54 and value, then 0x11 (NI_CLOSECANDIDATE) with it and 0, and the context
 // released (ImmReleaseContext 0x6fd080). EAX not kept.

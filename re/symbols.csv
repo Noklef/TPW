@@ -3934,6 +3934,7 @@ address,name,kind,confidence,notes
 0x00480fd0,ImeHost_InsertResult,function,low,reimplemented (src/game/core/ime); thiscall on the host: the IME's result put into the text window +4 at its selection's start (the window's text fetched first when unfetched; no room: OutputDebugStringA)
 0x004809f0,ImeHost_OnMessage,function,low,"reimplemented (src/game/core/ime); thiscall on the host (window, message, a, b), pops 16: the candidate window's handler (0x14, 0x400, 0x401, 0x405), then Window_CallDefault"
 0x00480d10,ImeHost_WindowProc,function,low,"reimplemented (src/game/core/ime); cdecl (window, message, a, b): ImeHost_OnMessage on the host 0x7b4e38"
+0x00480960,ImeHost_Dtor,function,low,"reimplemented (src/game/core/ime); thiscall: the host's destructor: the wide strings of the vector +0x190 reset and its block freed, +0x190-+0x198 cleared, then Ime_Dtor on +0x1c"
 0x0047f9a0,TextMetrics_Width,function,high,reimplemented (src/game/gfx/text); width of a run of characters by the glyph width slot
 0x0047fa00,TextMetrics_FitIndex,function,high,reimplemented (src/game/gfx/text); index at which the width runs out
 0x0047f990,TextMetrics_ForwardSlot8,function,high,reimplemented (src/game/gfx/text); Forwards to virtual call 8 of the inner object (name unconfirmed)

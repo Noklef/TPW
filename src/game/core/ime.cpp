@@ -323,6 +323,17 @@ void __fastcall Ime_Dtor(u8 *ime) {
     TidyWide(ime + 8);
 }
 
+void __fastcall ImeHost_Dtor(u8 *host) {
+    u8 *const ime = host + 0x1c;
+    u8 *const last = at<u8 *>(ime, 0x178);
+    for (u8 *text = at<u8 *>(ime, 0x174); text != last; text += 0x10) CountedBuf_Reset(text, nullptr, 1);
+    GameHeap_Free(at<void *>(ime, 0x174));
+    at<u32>(ime, 0x174) = 0;
+    at<u32>(ime, 0x178) = 0;
+    at<u32>(ime, 0x17c) = 0;
+    Ime_Dtor(ime);
+}
+
 u8 *__fastcall Ime_DeletingDtor(u8 *ime, void *, u32 flags) {
     Ime_Dtor(ime);
     if (flags & 1) GameHeap_Free(ime);
