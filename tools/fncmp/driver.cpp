@@ -800,7 +800,9 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
 // page is the original's code, which a call into it then runs natively, as the hooked game would; elsewhere a call into the code faults).
 const u32 kRawCalled[] = {0x0065f6d1,   // Window_DefaultProc (src/game/ui/window's Window_Ctor; tests/fncmp/dialogbuild.py's helpbg())
                           0x0050f1f0,   // IntPair_Ctor and Stub_Ret, the game's constructor and destructor handed to the array iterators
-                          0x005d1750};  // by address (tests/fncmp/crt_vector_iterators.py's GameCtor / GameDtor: below the old g_game)
+                          0x005d1750,   // by address (tests/fncmp/crt_vector_iterators.py's GameCtor / GameDtor: below the old g_game)
+                          0x00480d10,   // ImeHost_WindowProc, the IME's candidate window's handler (ui/imecandidates' ImeHost_OpenCandidates)
+                          0x004959c0};  // List7ca158_RowProc, the objects' lists' row handler (ui/listrows' List7ca158_NewRow)
 
 void map_raw_called() {
     for (u32 a : kRawCalled) {
