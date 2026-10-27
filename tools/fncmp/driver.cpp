@@ -333,7 +333,11 @@ u32 __fastcall stub_stream_size(const u8 *self) { return *reinterpret_cast<const
 void __cdecl heap_throw() { RaiseException(0xe0000001, 0, 0, nullptr); }
 
 const StdStringEnv kStdStringEnv = {&heap_alloc, &heap_free, &heap_throw, &heap_throw};
-const MouseModeEnv kMouseModeEnv = {&heap_free, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
+// The mouse modes' calls: atexit stub_cdecl_log; agent A's unported 0x5234d0 and 0x52f200 the cdecl recorders 30 (3 arguments) and 24 (2)
+// (jpeg_recorder(30, 3) / (24, 2), defined below), as tests/fncmp/mousetile.py hooks the game addresses.
+const MouseModeEnv kMouseModeEnv = {&heap_free, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50)),
+                                    reinterpret_cast<void(__cdecl *)(s32, s32, u32)>((uintptr_t)(kStubs + 0x1000 + 0xa000 + 0x400 * 3 + 0x20 * 30)),
+                                    reinterpret_cast<void(__cdecl *)(u32, u32)>((uintptr_t)(kStubs + 0x1000 + 0xa000 + 0x400 * 2 + 0x20 * 24))};
 const AdvisorScoreEnv kAdvisorScoreEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const GlyphRenderEnv kGlyphRenderEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const ObjModelEnv kObjModelEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
