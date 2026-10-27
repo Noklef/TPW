@@ -385,10 +385,18 @@ const QueuePiecesEnv kQueuePiecesEnv = {reinterpret_cast<u32(__cdecl *)(u32, u32
                                         reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(31, 1))};
 const PathDragEnv kPathDragEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32)>((uintptr_t)recorder(28, 2)),
                                   reinterpret_cast<void(__cdecl *)(u32, s32, s32, s32 *, s32 *)>((uintptr_t)jpeg_recorder(29, 5))};
-// The rectangle sweep's demolish (0x527ee0, not ported yet) and agent B's unported 0x5367a0: cdecl recorder 2 of 3 and thiscall recorder 28 of 2,
-// as tests/fncmp/demolish.py hooks them.
+// The rectangle sweep's demolish (0x527ee0) and agent B's unported 0x5367a0: cdecl recorder 2 of 3 and thiscall recorder 28 of 2, as
+// tests/fncmp/demolish.py hooks them. The demolish's unported calls, as tests/fncmp/deadends.py hooks them: agent B's 0x530120 cdecl
+// recorder 3 of 1, 0x52f200 / 0x52f580 cdecl recorders 4 / 5 of 2, 0x52fe50 cdecl recorder 6 of 2, agent B's 0x53b280 thiscall recorder 7
+// of 3 and 0x545610 cdecl recorder 8 of 1.
 const DemolishEnv kDemolishEnv = {reinterpret_cast<void(__cdecl *)(s32, s32, u32)>((uintptr_t)jpeg_recorder(2, 3)),
-                                  reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32)>((uintptr_t)recorder(28, 2))};
+                                  reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32)>((uintptr_t)recorder(28, 2)),
+                                  reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)jpeg_recorder(3, 1)),
+                                  reinterpret_cast<void(__cdecl *)(u32, u32)>((uintptr_t)jpeg_recorder(4, 2)),
+                                  reinterpret_cast<void(__cdecl *)(u32, u32)>((uintptr_t)jpeg_recorder(5, 2)),
+                                  reinterpret_cast<u32(__cdecl *)(u8 *, u32)>((uintptr_t)jpeg_recorder(6, 2)),
+                                  reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32, u32)>((uintptr_t)recorder(7, 3)),
+                                  reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(8, 1))};
 // The track runs' call into agent B's unported 0x53afa0: thiscall recorder 24 of no arguments, as tests/fncmp/trackshape.py hooks it.
 const CellRunEnv kCellRunEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(24, 0))};
 // Thing_Detach's call into agent B's unported Ride_Destroy (0x463c80): cdecl recorder 31 of 1, as tests/fncmp/thingdetach.py hooks it.
