@@ -5718,6 +5718,8 @@ address,name,kind,confidence,notes
 0x00661dd0,Cursor_Delete,function,low,"reimplemented (src/game/ui/cursor); thiscall (flags): the base cursor's scalar deleting destructor: Fn_6618a6, freed with flag 1; returns it"
 0x00661e30,PalColour_Ctor,function,low,"reimplemented (src/game/ui/cursor); thiscall (red, green, blue: bytes): the colour built (PalColour_Set); returns it"
 0x00492d80,TextButton_Handler,function,low,"reimplemented (src/game/ui/textbutton); cdecl (window, message, a, b): 0x10006 plays the interface sound 0xc1 and sends the parent 0x100001 (id +0x8c, 0), 0; 0x14 releases the text row (Window_DwordA0 1); else Window_CallDefault"
+0x0048b220,TextButton_FlashStep,function,low,"reimplemented (src/game/ui/textbutton); cdecl (window): the flash value (Window_DwordA0 2) stepped by 0x20 up (grey) or down (0, 0xaf, 0xbe), sent as 0x40000 and stored"
+0x0048b2a0,TextButton_FlashHandler,function,low,"reimplemented (src/game/ui/textbutton); cdecl (window, message, a, b): 0x11 colour, 0x1e TextButton_FlashStep, 0x10001 / 0x10002 flash value 1 / -1; then TextButton_Handler"
 0x0048c8d0,Global7c2534_HasSource,function,low,reimplemented (src/game/ui/focus); whether the object at 0x7c2534 has its +0xc set (name unconfirmed)
 0x004862a0,Focus_Restore,function,low,reimplemented (src/game/ui/focus); the focus given back to the first shown of the game's windows (name unconfirmed)
 0x00485b40,Window7c24c8_Close,function,low,"reimplemented (src/game/ui/focus); cdecl: with the window [0x7c24c8], sent 5 (Window_SendMessage), forgotten, Focus_Restore; 1, else 0"
