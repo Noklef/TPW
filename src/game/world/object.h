@@ -12,7 +12,7 @@ extern "C" {
 
 // What the objects call in the game that is not yet ported, so that they can run outside it (the benches point these at recorders).
 struct ObjectEnv {
-    void(__fastcall *post40fb10)(u8 *centre, void *, u8 *msg);   // 0x40fb10 (agent B's; thiscall on the message centre, pops 4)
+    void(__fastcall *post40fb10)(u8 *centre, void *, u8 *msg);   // 0x40fb10, MessageCentre_Post of world/messagecentre; its 1 ignored
     void(__fastcall *person500870)(u8 *person);                  // 0x500870 (agent C's; thiscall on a person)
     void(__fastcall *person5012f0)(u8 *person);                  // 0x5012f0 (agent C's; thiscall on a person)
 };

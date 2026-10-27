@@ -5392,6 +5392,7 @@ address,name,kind,confidence,notes
 0x00405460,MessageSlot_Ctor,function,low,"reimplemented (src/game/world/messagecentre); thiscall on a slot: the map (tree B) at +4 constructed, its multi flag and allocator bytes zeroed (the original copies an uninitialised stack byte to +4 / +5); name unconfirmed"
 0x00415e00,MessageCentre_Instance,function,low,"reimplemented (src/game/world/messagecentre); cdecl (): the message centre (0x788d3c) made on the first call: 0x244 bytes, 29 slots (MessageSlot_Ctor); name unconfirmed"
 0x004a8bd0,MessageCentre_CtorSlots,function,low,reimplemented (src/game/world/messagecentre); thiscall: the 29 message slots constructed in place (CRT_VectorCtorIterator with MessageSlot_Ctor / MessageSlot_Dtor); returns the centre
+0x0040fb10,MessageCentre_Post,function,low,"reimplemented (src/game/world/messagecentre); thiscall (msg), pops 4: type 0x1b first erases the handle of the thing the message names from every slot map; then the things of the type's slot, in key order, get the message (Thing_HandleMessage 0x50b550 through an env); returns 1"
 0x0050ce50,SteerSeek_Ctor,function,low,"reimplemented (src/game/world/steering); thiscall: vtable 0x7009b8, name ""seek"" copied to +4; returns this"
 0x0050ced0,SteerArrival_Ctor,function,low,"reimplemented (src/game/world/steering); thiscall: vtable 0x7009c0, name ""arrival"" copied to +4; returns this"
 0x0050cf40,SteerSeparation_Ctor,function,low,"reimplemented (src/game/world/steering); thiscall: vtable 0x7009c4, name ""separation"" copied to +4; returns this"

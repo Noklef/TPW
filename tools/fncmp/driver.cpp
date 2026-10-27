@@ -89,6 +89,7 @@
 #include "../../src/game/core/mp2synth.h"
 #include "../../src/game/world/mapclick.h"
 #include "../../src/game/world/mapline.h"
+#include "../../src/game/world/messagecentre.h"
 #include "../../src/game/coaster/train.h"
 #include "../../src/game/world/mousemode.h"
 #include "../../src/game/world/person.h"
@@ -398,6 +399,9 @@ const PathDragEnv kPathDragEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void
 const RidesEnv kRidesEnv = {reinterpret_cast<void(__cdecl *)()>((uintptr_t)jpeg_recorder(18, 0)), reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(19, 1))};
 // The objects' calls into the unported 0x40fb10 (agent B's) and 0x500870 / 0x5012f0 (agent C's): thiscall recorders 21 of 1 argument, 22 and 23
 // of none, as tests/fncmp/objectstate.py hooks those addresses.
+// MessageCentre_Post's call into the unported Thing_HandleMessage 0x50b550 (agent C's): the thiscall recorder 27 of 1 argument, as
+// tests/fncmp/messagecentre.py hooks that address.
+const MessageCentreEnv kMessageCentreEnv = {reinterpret_cast<u32(__fastcall *)(u8 *, void *, u8 *)>((uintptr_t)recorder(27, 1))};
 const ObjectEnv kObjectEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, u8 *)>((uintptr_t)recorder(21, 1)),
                               reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(22, 0)),
                               reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(23, 0))};
@@ -1076,6 +1080,7 @@ int main(int argc, char **argv) {
     PathDrag_SetEnv(&kPathDragEnv);
     Rides_SetEnv(&kRidesEnv);
     Object_SetEnv(&kObjectEnv);
+    MessageCentre_SetEnv(&kMessageCentreEnv);
     GlyphRender_SetEnv(&kGlyphRenderEnv);   // (tests/fncmp/glyphrender.py hooks 0x67a7d0 with fncmp._cdecl_log)
     PtrList_SetEnv(&kPtrListEnv);
     GameHeap_SetEnv(&kGameHeapEnv);
