@@ -105,15 +105,17 @@ def main():
         for name, lines, secs, err in pool.map(lambda s: run(s, cases, budget), suites(only)):
             if err:
                 failed.append('%s: %s' % (name, err))
-            mine = set()
+            mine, ran = set(), []
             for line in lines:
+                ran.append([line['cases'], line.get('crashed', 0)])
                 if line['differ']:
                     failed.append('%s: %d differ' % (name, line['differ']))
                 for k, v in line['direct'].items():
                     direct[int(k, 16)] = direct.get(int(k, 16), 0) + v
                     mine.add(int(k, 16))
                 indirect |= set(int(k, 16) for k in line['indirect'])
-            by_suite[name] = {'seconds': round(secs, 1), 'direct': sorted('%x' % k for k in mine)}
+            # (runs: [cases, crash in both] per run, the 10-case one first: two gates compare where their case counts agree)
+            by_suite[name] = {'seconds': round(secs, 1), 'runs': ran, 'direct': sorted('%x' % k for k in mine)}
     covered = set(k for k in direct if k in hooks)
     only_indirect = (indirect & hooks) - covered
     none = hooks - covered - only_indirect

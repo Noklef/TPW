@@ -82,7 +82,7 @@ lowprio.below_normal()   # (every bench, the gate and the driver they start run 
 import x87emu  # noqa: E402
 
 EXE = os.path.join(ROOT, '.data', 'nocd', 'tp.exe')
-DRIVER = os.path.join(ROOT, 'build', 'tpw_fncmp.exe')
+DRIVER = os.environ.get('FNCMP_DRIVER') or os.path.join(ROOT, 'build', 'tpw_fncmp.exe')  # (FNCMP_DRIVER: another build of it, to compare two drivers)
 # FNCMP_COVER=file (tools/coverage.py): each run appends what it verified to the file, one JSON line: the addresses its cases called whose
 # cases matched without a crash ("direct", with their counts) and the hooked originals entered inside those cases ("indirect").
 COVER = os.environ.get('FNCMP_COVER')
@@ -1064,7 +1064,7 @@ class Bench:
                     print('  %s +%x: cpp %s emu %s' % (name, d // 2, x[d:d + 16], y[d:d + 16]))
         if COVER:
             with open(COVER, 'a') as f:
-                f.write(json.dumps({'bench': os.path.basename(sys.argv[0]), 'cases': n, 'differ': bad, 'direct': {'%x' % k: v for k, v in sorted(direct.items())},
+                f.write(json.dumps({'bench': os.path.basename(sys.argv[0]), 'cases': n, 'differ': bad, 'crashed': crashed, 'direct': {'%x' % k: v for k, v in sorted(direct.items())},
                                     'indirect': ['%x' % k for k in sorted(indirect)]}) + '\n')
         if not quiet:
             print('%d cases%s, seed %d: %d differ%s' % (n, ' (wild)' if wild else '', seed, bad,
