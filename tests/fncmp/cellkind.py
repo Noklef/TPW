@@ -82,6 +82,7 @@ def patch(r, regions, x, y, owners, reach=2, kinds=None):
                 cell[0xc], cell[0x22] = cellmodel.bits(r), cellmodel.bits(r)
                 put(cell, 4, 'I', r.choice([0, 0, 0, 5, r.getrandbits(32)]))
             cell = bytearray(cell)
+            put(cell, 0, 'H', ident(xx, yy))   # (its id: Map_StepCell from it steps from there)
             put(cell, 8, 'I', r.choice(KINDS + [r.getrandbits(32)]))
             if kinds and (xx - x, dy) in kinds:
                 put(cell, 8, 'I', kinds[(xx - x, dy)])

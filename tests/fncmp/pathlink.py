@@ -1,7 +1,7 @@
 # A path cell joined to the cells about it (src/game/world/pathlink: MapCell_LinkPath 0x5348d0) against the original. cellkind.py's Clear
 # scene (pathapply.py's cell and models, the 5 x 5 cells about it in [0x80239c]'s map, the entries, owners and things) with the side cells'
 # directions (+0xd) now and then a side's exactly; the cell of kind 3, 1 or others for mode 1, any for modes 0 and 3 (the kinds 0 and 3
-# then common about it); models' low byte set or not. The sound (Sound_PlayAt): sound started or not ([0x802bc8], [0x802bd4]), the
+# then common about it, the side cells now and then of one neighbour or none, the cell's bits any); models' low byte set or not. The sound (Sound_PlayAt): sound started or not ([0x802bc8], [0x802bd4]), the
 # manager [0x802bcc] whose vtable +8 is a recorder (2 of 2) logging the command's seven dwords; the game free (0x785a2c) or not. The drag
 # (modes 0 and 3): 0x820aa4 set or not, the stored step (0x763ac0 / 0x763ac4) and dx, dy -1, 0, 1, 0x80 or any; [0x8186ac] +0x36 the id
 # of a side cell or another, [0x7cf83c] now and then [0x80239c]'s world (the drag reads it for that cell only) so that it can be one;
@@ -56,19 +56,24 @@ def case(r):
             row[at[1] + 0xd] = r.choice([back, back, 1, 4, 0x10, 0x40])
         if mode in (0, 3) and r.random() < 0.4:
             put(row, at[1] + 8, 'I', mode)
+        if mode in (0, 3) and r.random() < 0.5:   # (under two neighbours: the drag joins it)
+            row[at[1] + 0xc] = row[at[1] + 0x22] = r.choice([0, back, 1 << r.randrange(8)])
         regions[at[0]] = row
         owners.append(struct.unpack_from('<H', row, at[1] + 0x10)[0])
         ids.append(cellkind.ident(x + dx, y + dy))
     if mode == 1:
         put(cell, 8, 'I', r.choice([3, 3, 3, 1, 1, 0, 9, 0xa, r.getrandbits(32)]))
     else:
-        put(cell, 8, 'I', r.choice([1, 1, 3, 0, 9, r.getrandbits(32)]))
+        put(cell, 8, 'I', r.choice([1, 1, 1, 3, 0, 9, r.getrandbits(32)]))
+        if r.random() < 0.5:   # (the diagonals a drag drops)
+            cell[0xc], cell[0x22] = r.getrandbits(8), r.getrandbits(8)
     regions[pathmodel.CELL] = cell
     if mode in (0, 3) and r.random() < 0.5:
         regions[0x7cf83c] = struct.pack('<I', W2)
     sel = bytearray(r.bytes(0x40))
     put(sel, 0x36, 'H', r.choice(ids[2:] * 3 + ids[:2]) if len(ids) > 2 else r.choice(ids))
     step = [-1, 0, 1, 1, -1, 0x80, r.getrandbits(32) - (1 << 31)]
+    stored = [-1, 0, 1, 1, -1, 0x80, 0x80, r.getrandbits(32) - (1 << 31)]
     log = regions[LOG]
     blob(log, 2, 1, 0x7f)
     g = bytearray(r.bytes(0x20))   # 0x802bc0..
@@ -76,7 +81,7 @@ def case(r):
     put(g, 0xc, 'I', MANAGER)
     put(g, 0x14, 'I', r.choice([0, 1, 1, 1]))
     regions.update({0x8186ac: struct.pack('<I', SEL), SEL: sel, 0x820aa4: struct.pack('<I', r.choice([0, 1])),
-                    0x763ac0: struct.pack('<2i', *(r.choice(step) for _ in range(2))), 0x818698: struct.pack('<H', r.choice(owners)),
+                    0x763ac0: struct.pack('<2i', *(r.choice(stored) for _ in range(2))), 0x818698: struct.pack('<H', r.choice(owners)),
                     0x803a2c: r.bytes(4), 0x802bc0: g, MANAGER: struct.pack('<I', VT) + r.bytes(12), VT: vtable({2: 2}, 4)})
     models = r.choice([0, 1, 1, 0x100, r.getrandbits(32)])
     return Call(0x5348d0, [pathmodel.CELL, mode, r.choice(step), r.choice(step), models], regions, conv='t', ret='v')
