@@ -2,7 +2,7 @@
 # 0x28-byte cells about the cell in [0x7cf83c] = [0x80239c], cellmodel.py's world, and their 0x44-byte cells at [0x8023a0]) and
 # cellapply.py's MapCell_ApplyModel scene; object.py's Scrap object (its clock in the same world) and cellkind.py's things table (handles 0,
 # 3, 4 the object, 1 money.py's record as the world's money, 2 the park thing, 5-7 decoys), the 0x44-byte cells' first things (+0x24) among
-# them. Agent C's unported 0x527ee0 (Path_CheckDeadEnds) a cdecl recorder (27 of 3, driver.cpp's kCellKindEnv).
+# them; the direction pairs (0x7cdba0) the real ones mostly. Agent C's unported 0x527ee0 (Path_CheckDeadEnds) a cdecl recorder (27 of 3, driver.cpp's kCellKindEnv).
 # The cell (in the world) of the line kinds 0xb, 0xd, 0x10, 0x12, 0x19 mostly, 0xc / 0x11 (its owner's cell, of a line kind, removed
 # instead) or others; its count +0x20 about 0; its owner and its neighbours' among a few ids nearby (the cells south, east and south-east
 # owned by it now and then), their kinds the line ones, 0xc / 0x11 and others. a and b 0, -1, +-2, 1 or any (-1 and -1 together often),
@@ -45,7 +45,8 @@ def put_cell(regions, x, y, x0, offset, fmt, value):
 def case(r):
     regions = dict(objects.case(r).regions)
     regions.update(cellapply.case(r, regions[LOG]).regions)
-    regions.update({0x80239c: struct.pack('<I', WORLD), 0x7cf83c: struct.pack('<I', WORLD), 0x8023a0: struct.pack('<I', MAPC)})
+    regions.update({0x80239c: struct.pack('<I', WORLD), 0x7cf83c: struct.pack('<I', WORLD), 0x8023a0: struct.pack('<I', MAPC),
+                    0x7cdba0: le.pairs(r)})
     cellkind.things(r, regions, WORLD)
     x, y = le.spot(r), le.spot(r)
     h = ident(x, y)

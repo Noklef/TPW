@@ -5,6 +5,7 @@
 # directions mostly; the end flags (+0xe's low four bits) of the sorts the code tells apart; a ride now and then) and their 0x44-byte cells
 # ([0x8023a0] + (id - 1) * 0x44, +8 0x15 or not). The line's start and end (0x7639e0 / 0x7639e4, 0x7639e8 / 0x7639ec) anywhere, -1, or
 # for Unlink: the end on the cell and the start two cells along a row or column from it, mostly.
+# The direction pairs (0x7cdba0) the real ones mostly.
 # Ends: the cell (in the world), the pairs mostly the opposite sides (west / east, north / south), now and then any of -1, 0 and 1. A cell
 # whose direction is none of the four sides has ends without end flags: its flags would be a stack address (sic), not the same on both sides.
 # Unlink: x and y the cell's (x now and then -1 or -2: its id a cell of the row before, x's high bytes in the direction's slot), dir 0, a
@@ -35,6 +36,12 @@ B = Bench(RANGES, sines=256, hooks=cellapply.HOOKS)
 SIDES = [1, 4, 0x10, 0x40]
 KINDS = [0, 5, -3, 0xd, 0xd, 0x12, 0x12, 3, 0xb, 0x10, 0x19, 1, 9, 0xc, 0x11]
 FLAGS = [0, 1, 2, 4, 8, 6, 0xa, 0xc, 3, 9, 0xf, 0x12, 0x18, 0x14]
+PAIRS = [(0, -1), (0, 1), (-1, 1), (1, 1), (-1, -1), (1, 0), (-1, 0), (1, -1)]   # (0x7cdba0..: N, S, SW, SE, NW, E, W, NE; .bss)
+
+
+def pairs(r):
+    """The direction pairs (0x7cdba0), the real ones mostly."""
+    return b''.join(struct.pack('<ii', *(d if r.random() < 0.97 else (r.randrange(-1, 2), r.randrange(-1, 2)))) for d in PAIRS)
 
 
 def ident(x, y):
@@ -73,7 +80,8 @@ def spot(r):
 def case(r):
     op = r.deal(OPS)
     regions = dict(cellapply.case(r).regions)
-    regions.update({0x80239c: struct.pack('<I', WORLD), 0x7cf83c: struct.pack('<I', WORLD), 0x8023a0: struct.pack('<I', MAPC)})
+    regions.update({0x80239c: struct.pack('<I', WORLD), 0x7cf83c: struct.pack('<I', WORLD), 0x8023a0: struct.pack('<I', MAPC),
+                    0x7cdba0: pairs(r)})
     ends = [r.choice([spot(r), -1]) for _ in range(4)]
     x, y = spot(r), spot(r)
     if op == 'Ends':
