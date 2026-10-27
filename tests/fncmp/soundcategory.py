@@ -6,7 +6,7 @@
 # holes in A, 0x6bf1c0 over bank objects and gaps, long runs crossing into the second block); the BANK.map entries read (0x6bf9e0) through a stream recorder whose reads hand out the file's bytes in turn (seq_read).
 # The constructor (0x6beb20) and the singleton's getter (0x6bead0): see case_ctor(). The sample's indices (0x6d1bd0) and deque A's record
 # (0x6d1dc0): see locate_case(). The banks' resources released (0x6b9660, 0x6b9760): see case_release(). The record's destructor (0x6bea00): case_unload()'s record on the singleton.
-# The sound object's category load (0x6b8720): case_load(obj=True). A bank's flag 0x40 (0x6b9270): case_release()'s deque B.
+# The sound object's category load (0x6b8720): case_load(obj=True); its record banks' release (0x6b8570): case_release()'s releaserec. A bank's flag 0x40 (0x6b9270): case_release()'s deque B.
 # The variation's flagged samples moved last (0x6c0bd0): case_release()'s deque B. A record released (0x6c0850): locate_case().
 # A command's sound found in an SFX.map sound table (0x6c5870): 'findsound' in case().
 # usage: soundcategory.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,...)
@@ -27,16 +27,18 @@ CALLS = {'count': 0x6bd7a0, 'simple': 0x6c0550, 'variation': 0x6c06e0, 'sound': 
          'dtor': 0x6bee10, 'deldtor': 0x6bed80, 'singleton': 0x6beb10, 'unload': 0x6c08b0, 'ctor': 0x6beb20, 'get': 0x6bead0,
          'locate': 0x6d1bd0, 'recordat': 0x6d1dc0, 'releaseall': 0x6b9660, 'releaserec': 0x6b9760,
          'recdtor': 0x6bea00, 'objload': 0x6b8720, 'bankflag': 0x6b9270,
-         'partition': 0x6c0bd0, 'recrelease': 0x6c0850, 'findsound': 0x6c5870}
+         'partition': 0x6c0bd0, 'recrelease': 0x6c0850, 'findsound': 0x6c5870, 'objrelease': 0x6b8570,
+         'objrecrelease': 0x6ba090}
 B = Bench([(0x6bd7a0, 0x6bd7ac), (0x6bf150, 0x6bf31c), (0x6bf850, 0x6c0303), (0x6c0310, 0x6c035f), (0x6c0360, 0x6c0844), (0x4036a0, 0x4036e0), (0x639100, 0x639120),
            (0x6b9b30, 0x6b9b94), (0x5e42d0, 0x5e431c), (0x6338b0, 0x633900), (0x6c1940, 0x6c1b00), (0x6c2990, 0x6c29c0), (0x4f6740, 0x4f67c0), (0x632200, 0x632230),
            (0x6bf330, 0x6bf850), (0x632150, 0x632380), (0x6c0860, 0x6c3200), (0x5f7980, 0x5f79cf), (0x67c250, 0x67c2a0),
            (0x6beb10, 0x6beb1a), (0x6bed80, 0x6bee0b), (0x6bee10, 0x6bf14c), (0x5ec210, 0x5ec220), (0x5f8240, 0x5f8310), (0x5f8420, 0x5f8460), (0x619800, 0x619870),
            (0x6beb20, 0x6bed76), (0x6bead0, 0x6beb03), (0x47db00, 0x47db30), (0x5f61a0, 0x5f61f0),
-           (0x6d1bd0, 0x6d1db5), (0x6d1dc0, 0x6d1e2f), (0x6b9660, 0x6b9760), (0x6b9760, 0x6b984c), (0x6c0bd0, 0x6c0c87), (0x6c0850, 0x6c08ad), (0x6bea00, 0x6beac5), (0x6b8720, 0x6b87c5), (0x6b8690, 0x6b8711), (0x6b9270, 0x6b92ef), (0x6c5870, 0x6c58ce)]
+           (0x6d1bd0, 0x6d1db5), (0x6d1dc0, 0x6d1e2f), (0x6b9660, 0x6b9760), (0x6b9760, 0x6b984c), (0x6c0bd0, 0x6c0c87), (0x6c0850, 0x6c08ad), (0x6bea00, 0x6beac5), (0x6b8720, 0x6b87c5), (0x6b8690, 0x6b8711), (0x6b9270, 0x6b92ef), (0x6c5870, 0x6c58ce), (0x6b8570, 0x6b859f), (0x6ba090, 0x6ba0be)]
           + fileopen.RANGES,
           hooks={0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None, 0x67a7d0: _cdecl_log})   # (the STL lock the map's insert takes: the port leaves it out)
 CAT, OUT, RECS, NODES = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x400
+OBJREL = RAM + 0x2e00   # (the sound object of the record banks' release forward, 0x6b8570)
 MAPA, MAPC, MAPB = RAM + 0x600, RAM + 0x640, RAM + 0x680
 BLOCKA, BLOCKC, BLOCKB = RAM + 0x10000, RAM + 0x20000, RAM + 0x40000   # (two blocks each, 0x1000 apart, only the used stretch mapped)
 IMAGE = RAM + 0x3000
@@ -392,14 +394,17 @@ def locate_case(r, name):
     regions[SINGLETON] = regions.pop(CAT)
     regions[0xfb1ff8] = bytes([r.choice([1, r.getrandbits(8) | 1])])
     count = struct.unpack_from('<I', regions[SINGLETON], 0x64)[0]
-    if name == 'recrelease':   # (the records' slot 0 recorder 0; an index under the count; the category the singleton's place)
+    if name in ('recrelease', 'objrecrelease'):   # (the records' slot 0 recorder 0; an index under the count; the category the singleton's place)
         recs = bytearray(regions[RECS])
         for i in range(len(recs) // 0x40):
             struct.pack_into('<I', recs, 0x40 * i, REC_VT)
         log = log_region()
         set_return(log, 0, r.getrandbits(32))
         regions.update({RECS: recs, REC_VT: vtable({}, 4), LOG: log, OUT: r.bytes(4)})
-        return Call(CALLS[name], [SINGLETON, OUT, r.randrange(count) if count else 0], regions, conv='t', ret='a')
+        index = r.randrange(count) if count else 0
+        if name == 'objrecrelease':   # (the sound object's forward: this unused; index 0 its -1)
+            return Call(CALLS[name], [r.getrandbits(32), OUT, r.choice([index, index, 0])], regions, conv='t', ret='a')
+        return Call(CALLS[name], [SINGLETON, OUT, index], regions, conv='t', ret='a')
     if name == 'recordat':   # (a record in the cell past the last: only the count check keeps it out)
         first, _last, cur, _node = struct.unpack_from('<4I', regions[SINGLETON], 0x3c)
         blocks = struct.unpack('<%dI' % (len(regions[MAPA]) // 4), regions[MAPA])
@@ -466,14 +471,17 @@ def case_release(r, name):
     if name == 'bankflag':
         return Call(CALLS[name], [r.getrandbits(32), r.choice([0, 1, 2, r.randrange(nb + 2), r.getrandbits(32)])], regions, conv='t', ret='b')
     regions[OUT] = r.bytes(4)
+    if name == 'objrelease':   # (the sound object's forward: its channel +0x24 (not read) or none)
+        regions[OBJREL] = r.bytes(0x24) + struct.pack('<I', r.choice([r.getrandbits(32) | 1] * 4 + [0]))
+        return Call(CALLS[name], [OBJREL, OUT, r.choice([RECS, RECS, 0])], regions, conv='t', ret='a')
     return Call(CALLS[name], [OUT, r.choice([RECS, 0])], regions, conv='s', ret='a')
 
 
 def case(r):
     name = r.deal(OPS)
-    if name in ('releaseall', 'releaserec', 'bankflag', 'partition'):
+    if name in ('releaseall', 'releaserec', 'bankflag', 'partition', 'objrelease'):
         return case_release(r, name)
-    if name in ('locate', 'recordat', 'recrelease'):
+    if name in ('locate', 'recordat', 'recrelease', 'objrecrelease'):
         return locate_case(r, name)
     if name in ('ctor', 'get'):
         return case_ctor(r, name)
