@@ -322,4 +322,12 @@ void __fastcall Window7059f0_SortBy(u8 *window, void *, s32 by, u32 sort);
 // 0x665e80 (thiscall (flags), pops 4; slot 2 of the vtable 0x7059f0; name unconfirmed): the destructor (Window7059f0_Dtor), the block
 // freed (Mem_Free) for flags bit 0; returns the window.
 u8 *__fastcall Window7059f0_DeletingDtor(u8 *window, void *, u32 flags);
+
+// 0x665c35 (cdecl (window, message, a, b); the handler; name invented): 0x100 OnHeader(a); 0x10003 OnDrag(a >> 16 (signed), a's low
+// word), then 0 returned at once; 0x10001 the same OnDrag; 0x13 OnMoved(a, b); 0x11 ShowRows(a); 0x11006 OnMouseDown (a 0) or OnDouble
+// at b's point (b >> 16, b's low word); 0x11007 with a 0 PostSelection; 0x800 ScrollFromBar; 0x1000d the child of id 1 (Window_FindChild),
+// when there, its slot 7 given its slot 8's answer less a; 0x1e SendToRows(0x1e, a, b); 0x1000a OnKey(a, b); 0x15 / 0x1a with flag 0x200
+// of +0x48 (Fn_65d57c) the window made modal with the pairs 0x77c4b8 (Window_SetModal). Then Window_DefaultProc (message, a, b), whose
+// answer it returns.
+u32 __cdecl Window7059f0_Proc(u8 *window, u32 message, u32 a, u32 b);
 }
