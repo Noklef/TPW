@@ -4518,6 +4518,7 @@ const Hook kHooks[] = {
     {"SoundChannel_SetRecordValue40Flagged", 0x006c5c50, (void *)&SoundChannel_SetRecordValue40Flagged, {0x8b, 0x44, 0x24, 0x0c, 0x56}},
     {"SoundChannel_SetRateModifier", 0x006b98d0, (void *)&SoundChannel_SetRateModifier, {0x8b, 0x44, 0x24, 0x08, 0x56}},
     {"SoundChannel_SetRecordBlock", 0x006b9cd0, (void *)&SoundChannel_SetRecordBlock, {0x8b, 0xc1, 0x56, 0x8b, 0x74}},
+    {"SoundChannel_SetHidden",    0x006b92f0, (void *)&SoundChannel_SetHidden, {0x8b, 0x44, 0x24, 0x04, 0x8a}},
     {"SoundObject_Broadcast",     0x006b85f0, (void *)&SoundObject_Broadcast, {0x83, 0xec, 0x08, 0x56, 0x8b}},
     {"SoundObject_BroadcastValue", 0x006b8640, (void *)&SoundObject_BroadcastValue, {0x8b, 0x41, 0x24, 0x85, 0xc0}},
     {"SoundObject_VoiceInfo",     0x006b8b00, (void *)&SoundObject_VoiceInfo, {0x8b, 0x49, 0x20, 0x85, 0xc9}},

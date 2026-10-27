@@ -628,4 +628,10 @@ u8 *__fastcall SoundChannel_SetRecordBlock(u8 *record, void *, const u32 *block)
     return record;
 }
 
+void __fastcall SoundChannel_SetHidden(u8 *channel, void *, u32 hide) {
+    if (at<u8>(channel, 0x64) == static_cast<u8>(hide)) return;
+    at<u8>(channel, 0x64) = static_cast<u8>(hide);
+    SoundCategory_HideFlag40Samples(SoundCategory_Get(), nullptr, hide);
+}
+
 }  // extern "C"

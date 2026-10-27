@@ -172,4 +172,8 @@ u32 *__fastcall SoundChannel_SetRateModifier(u8 *channel, void *, u32 *out, u32 
 // +0x4c |= 0x40. Returns the record.
 u8 *__fastcall SoundChannel_SetRecordBlock(u8 *record, void *, const u32 *block);
 
+// 0x6b92f0 (thiscall (hide), pops 4; name invented): with the byte +0x64 not the argument's low byte, that byte stored and
+// SoundCategory_HideFlag40Samples (the argument) on SoundCategory_Get's singleton.
+void __fastcall SoundChannel_SetHidden(u8 *channel, void *, u32 hide);
+
 }  // extern "C"
