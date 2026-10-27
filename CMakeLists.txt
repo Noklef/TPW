@@ -18,6 +18,7 @@ add_subdirectory(third_party)
 # Reimplemented game code, shared by the hook DLL and the tests.
 add_library(tpw_game STATIC
     src/game/rsse/rsse_vm.cpp
+    src/game/rsse/scream.cpp
     src/game/core/app.cpp
     src/game/core/crt.cpp
     src/game/core/fpu.cpp
@@ -496,6 +497,7 @@ add_library(tpw_game STATIC
     src/game/ui/guinamed.cpp
     src/game/ui/dialog7ca13c.cpp
     src/game/ui/imecandidates.cpp
+    src/game/ui/window705950draw.cpp
 )
 # The libraries whose functions replace the exe's copies (src/game/lib); their headers stay private to those units.
 target_link_libraries(tpw_game PRIVATE tpw_zlib tpw_jpeg6b tpw_jpeg6a)

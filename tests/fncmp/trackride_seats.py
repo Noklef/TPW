@@ -32,6 +32,10 @@ def coord(r):
 def case(r):
     load = r.deal(OPS) == 'Load'
     regions = dict(particles.spawn(r).regions)
+    defs = regions[0x804370]
+    for k in range(0x69):   # no voice marks (as particles.py's update()): a case spawns up to four times, and a later voice start's mark
+        if defs[0x140 * k + 0xba]:   # indexes by its counter (2 and up) past the game's image (0x816506 + 0x68 * 0x2xxxx), where the
+            put(defs, 0x140 * k + 0xb8, 'H', 0)   # driver may or may not have memory (main's gate: 3 cases crashed in some runs only)
     regions[HEAP] = heap()
     partstate.activation(r, regions)
     holder = bytearray(regions[partstate.INSTANCE])

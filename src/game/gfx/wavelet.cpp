@@ -8,6 +8,7 @@
 #include "../core/seqs.h"
 #include "../files/wrapsources.h"
 #include "../math/x87.h"
+#include "../render/drawbuffer.h"
 #include "../render/texformat.h"
 
 namespace {
@@ -439,6 +440,17 @@ void OutputScaled(u32 dstWidth, u32 dstHeight, u32 pitch, u32 pixelSize, u8 *pix
 
 extern "C" {
 
+u32 __cdecl Wavelet_Startup() {
+    if (global<u32>(0x00879a68))
+        return 0;
+    u8 *const codec = WaveletCodec_Create();
+    global<u8 *>(0x00879a64) = codec;
+    if (!codec)
+        return 0;
+    global<u32>(0x00879a68) = at<u32>(DrawBuffer_Begin(global<u8 *>(0x008bcbc4), nullptr, 2), 0x28);
+    return 1;
+}
+
 u32 __cdecl Wavelet_Shutdown() {
     const u32 block = global<u32>(0x00879a68);
     if (!block)
@@ -507,6 +519,15 @@ void __fastcall WaveletCodec_VBaseDtor(u8 *base) {
         if (void *const block = at<void *>(base, -0x10 * i + 8))
             GameHeap_Free(block);
     }
+}
+
+u8 *__fastcall WaveletCodec_ScalarDelete(u8 *base, void *, u32 flags) {
+    u8 *const codec = base - 0x54;
+    WaveletCodec_VBaseDtor(base);
+    at<u32>(base, 0) = 0x7026e8;
+    if (flags & 1)
+        GameHeap_Free(codec);
+    return codec;
 }
 
 void __fastcall WaveletCodec_UnpackBgr(u8 *codec, void *, u32 width, u32 height, u32 stride, const u8 *src) {
@@ -741,7 +762,8 @@ void __fastcall WaveletCodec_ReadCoefficients(u8 *, void *, const u8 **cursor, f
         } else {
             const u8 low = p[0], high = p[1];
             p += 2;
-            *dst++ = (float)((X87Reg(global<float>(0x00fb2fe0 + 4 * low)) + global<float>(0x00fb27e0 + 4 * high)) * q);
+            // fld; fld; faddp: both loaded (quiet), so a signalling NaN in the second table is compared as a register NaN.
+            *dst++ = (float)((X87Reg(global<float>(0x00fb2fe0 + 4 * low)) + X87Reg(global<float>(0x00fb27e0 + 4 * high))) * q);
         }
     } while (--count != 0);
     *cursor = p;
@@ -935,7 +957,8 @@ void __fastcall WaveletCodec_YuvToRgb(u8 *codec, void *, u32 width, u32 height, 
             o += global<u32>(0x00fb2790);
             y0 = at<float>(yp, 0);
             const X87Reg b2 = y0 + a, r2 = y0 + b, g2 = y0 + g;
-            const X87Reg b3 = a + X87Reg(at<float>(yp, 4)), r3 = b + X87Reg(at<float>(yp, 4)), g3 = g + X87Reg(at<float>(yp, 4));
+            // (fadd m32: the second luma a memory operand, so a signalling NaN there gives way to a NaN register)
+            const X87Reg b3 = a + at<float>(yp, 4), r3 = b + at<float>(yp, 4), g3 = g + at<float>(yp, 4);
             put(o, b2, r2, g2, b3, r3, g3);
             yp += global<u32>(0x00fb2798);
             o += global<u32>(0x00fb279c);

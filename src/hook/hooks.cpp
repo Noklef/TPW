@@ -244,6 +244,7 @@
 #include "../game/motion/uvanim.h"
 #include "../game/motion/vertexanim.h"
 #include "../game/rsse/rsse.h"
+#include "../game/rsse/scream.h"
 #include "../game/sprite/draw.h"
 #include "../game/sprite/loading.h"
 #include "../game/sprite/screenmatrix.h"
@@ -474,6 +475,7 @@
 #include "../game/ui/panel7cc408.h"
 #include "../game/ui/staffrename.h"
 #include "../game/ui/thingbrowser.h"
+#include "../game/ui/window705950draw.h"
 #include "../game/ui/window7cc8bc.h"
 #include "../game/ui/windowtimers.h"
 #include "../game/lib/jpeg6b.h"
@@ -3884,6 +3886,8 @@ const Hook kHooks[] = {
     {"WaveletCodec_DecodeColourOrGrey", 0x00592000, (void *)&WaveletCodec_DecodeColourOrGrey, {0x8a, 0x44, 0x24, 0x0c, 0x84}},
     {"WaveletCodec_Construct",    0x005916c0, (void *)&WaveletCodec_Construct, {0x6a, 0xff, 0x68, 0x26, 0xf5}},
     {"WaveletCodec_Create",       0x005985c0, (void *)&WaveletCodec_Create, {0x6a, 0xff, 0x68, 0x0b, 0xf6}},
+    {"Wavelet_Startup",           0x00564b20, (void *)&Wavelet_Startup, {0xa1, 0x68, 0x9a, 0x87, 0x00}},
+    {"WaveletCodec_ScalarDelete", 0x00598800, (void *)&WaveletCodec_ScalarDelete, {0x56, 0x57, 0x8d, 0x79, 0xac}},
     {"Record_IsActive",           0x0059c610, (void *)&Record_IsActive, {0x8b, 0x4c, 0x24, 0x04, 0x81}},
     {"ObjectDef_FindMarkedCells", 0x00413410, (void *)&ObjectDef_FindMarkedCells, {0x6a, 0xff, 0x68, 0x58, 0x7e}},
     {"ObjectDef_Ctor",            0x00412c20, (void *)&ObjectDef_Ctor, {0x56, 0x8b, 0xf1, 0x8d, 0x4e}},
@@ -3926,6 +3930,8 @@ const Hook kHooks[] = {
     {"StdListString_Next",        0x005cd440, (void *)&StdListString_Next, {0x8b, 0x41, 0x0c, 0x83, 0xec}},
     {"StdListString_First",       0x005cd430, (void *)&StdListString_First, {0x8b, 0x41, 0x04, 0x8b, 0x10}},
     {"StdListWString_Insert",     0x005d3600, (void *)&StdListWString_Insert, {0x53, 0x55, 0x56, 0x57, 0x8b}},
+    {"ListHead_Init18",           0x005cf7e0, (void *)&ListHead_Init18, {0x51, 0x8a, 0x44, 0x24, 0x03}},
+    {"ListHead_Init0c",           0x005cf810, (void *)&ListHead_Init0c, {0x51, 0x8a, 0x44, 0x24, 0x03}},
     {"Class6fda48_Dtor",          0x0041e2c0, (void *)&Class6fda48_Dtor, {0xc7, 0x01, 0x48, 0xda, 0x6f}},
     {"Class6fda68_Dtor",          0x0041e320, (void *)&Class6fda68_Dtor, {0xc7, 0x01, 0x68, 0xda, 0x6f}},
     {"Class6fdaa8_Dtor",          0x0041e4d0, (void *)&Class6fdaa8_Dtor, {0xc7, 0x01, 0xa8, 0xda, 0x6f}},
@@ -4797,6 +4803,15 @@ const Hook kHooks[] = {
     {"AdvisorScoring_StaffStat1f8NotAbove", 0x0059f590, (void *)&AdvisorScoring_StaffStat1f8NotAbove, {0x56, 0x8b, 0xf1, 0x8b, 0x0d}},
     {"AdvisorScoring_PeopleStat19cNotAbove", 0x0059f5e0, (void *)&AdvisorScoring_PeopleStat19cNotAbove, {0x56, 0x8b, 0xf1, 0x8b, 0x0d}},
     {"AdvisorScoring_StaffEntryClear", 0x0059fb10, (void *)&AdvisorScoring_StaffEntryClear, {0xa1, 0xec, 0xf6, 0x7c, 0x00}},
+    {"AdvisorScoring_WornObjectsNoStaff5", 0x0059e450, (void *)&AdvisorScoring_WornObjectsNoStaff5, {0xa1, 0xec, 0xf6, 0x7c, 0x00}},
+    {"AdvisorScoring_WornObjectsStaff5", 0x0059e510, (void *)&AdvisorScoring_WornObjectsStaff5, {0xa1, 0xec, 0xf6, 0x7c, 0x00}},
+    {"AdvisorScoring_VeryWornObjectsNoStaff5", 0x0059e5d0, (void *)&AdvisorScoring_VeryWornObjectsNoStaff5, {0xa1, 0xec, 0xf6, 0x7c, 0x00}},
+    {"AdvisorScoring_VeryWornObjectsStaff5", 0x0059e680, (void *)&AdvisorScoring_VeryWornObjectsStaff5, {0xa1, 0xec, 0xf6, 0x7c, 0x00}},
+    {"AdvisorScoring_RingAverageBelow", 0x0059e730, (void *)&AdvisorScoring_RingAverageBelow, {0x51, 0x56, 0x8b, 0xf1, 0x8b}},
+    {"AdvisorScoring_RingAverageAbove", 0x0059e790, (void *)&AdvisorScoring_RingAverageAbove, {0x51, 0x56, 0x8b, 0xf1, 0x8b}},
+    {"AdvisorScoring_Objects0WornNoStaff4", 0x0059ca30, (void *)&AdvisorScoring_Objects0WornNoStaff4, {0xa1, 0xec, 0xf6, 0x7c, 0x00}},
+    {"AdvisorScoring_MapShareAtMostNoStaff5", 0x0059cb40, (void *)&AdvisorScoring_MapShareAtMostNoStaff5, {0xa1, 0xec, 0xf6, 0x7c, 0x00}},
+    {"AdvisorScoring_MapShareAtLeastNoStaff5", 0x0059cbb0, (void *)&AdvisorScoring_MapShareAtLeastNoStaff5, {0xa1, 0xec, 0xf6, 0x7c, 0x00}},
     {"ParkInfo_Serialize",        0x00418da0, (void *)&ParkInfo_Serialize, {0x51, 0x8b, 0x44, 0x24, 0x0c}},
     {"AuthStamp_Text",           0x005d55a0, (void *)&AuthStamp_Text, {0x53, 0x56, 0x57, 0xbe, 0xd8}},
     {"Mp2Decoder_ParseHeader",   0x006cc7b0, (void *)&Mp2Decoder_ParseHeader, {0x83, 0xec, 0x0c, 0x53, 0x56}},
@@ -5756,6 +5771,7 @@ const Hook kHooks[] = {
     {"ObjModel_Load",             0x00579e00, (void *)&ObjModel_Load, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"ObjModel_SetMatrices",      0x0057a260, (void *)&ObjModel_SetMatrices, {0x81, 0xec, 0xc0, 0x00, 0x00}},
     {"ObjModel_LightMesh",        0x0057aa10, (void *)&ObjModel_LightMesh, {0x83, 0xec, 0x0c, 0x53, 0x55}},
+    {"ObjModel_BlendTerrainTiles", 0x0057ace0, (void *)&ObjModel_BlendTerrainTiles, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"HeightMap_Rasterize",       0x00451e20, (void *)&HeightMap_Rasterize, {0x83, 0xec, 0x70, 0x53, 0x55}},
     {"RideBase_TidyUVs",          0x00467310, (void *)&RideBase_TidyUVs, {0x83, 0xec, 0x38, 0x53, 0x55}},
     {"RideBase_TidyAllUVs",       0x004679d0, (void *)&RideBase_TidyAllUVs, {0x8b, 0x44, 0x24, 0x04, 0x53}},
@@ -5927,6 +5943,8 @@ const Hook kHooks[] = {
     {"Scene702dd0_HideDialog",    0x005e2640, (void *)&Scene702dd0_HideDialog, {0xe9, 0xeb, 0x61, 0xed, 0xff}},
     {"Scene702dd0_ShowDialogCallback", 0x005e2650, (void *)&Scene702dd0_ShowDialogCallback, {0xe9, 0xbb, 0x61, 0xed, 0xff}},
     {"Scene702dd0_DialogDone",    0x005e2660, (void *)&Scene702dd0_DialogDone, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"ViewCtl702bc8_Message",     0x005dced0, (void *)&ViewCtl702bc8_Message, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"ViewCtl702e70_Message",     0x005dd530, (void *)&ViewCtl702e70_Message, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"IslandCamera_LoadSettings", 0x005e2cc0, (void *)&IslandCamera_LoadSettings, {0x6a, 0xff, 0x68, 0x8b, 0x16}},
     {"Postcard_OnSent",           0x004a7bf0, (void *)&Postcard_OnSent, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"RSSE_Init",                 0x00551600, (void *)&RSSE_Init, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
@@ -5939,6 +5957,9 @@ const Hook kHooks[] = {
     {"Rsse_Trigger",              0x005573d0, (void *)&Rsse_Trigger, {0x8b, 0x44, 0x24, 0x08, 0x83}},
     {"Rsse_TriggerNode",          0x00557970, (void *)&Rsse_TriggerNode, {0x8b, 0x44, 0x24, 0x10, 0x8b}},
     {"Rsse_UpdateAll",            0x00557ab0, (void *)&Rsse_UpdateAll, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"RSSE_StartScream",          0x00551130, (void *)&RSSE_StartScream, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"RSSE_SetScreamVolume",      0x00551290, (void *)&RSSE_SetScreamVolume, {0x8b, 0x4c, 0x24, 0x04, 0x85}},
+    {"RSSE_MoveScream",           0x005512d0, (void *)&RSSE_MoveScream, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"Window_FindChild",          0x0065d7d0, (void *)&Window_FindChild, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Window_CallHandler",        0x0065f697, (void *)&Window_CallHandler, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window_SendMessage",        0x00658d9f, (void *)&Window_SendMessage, {0x55, 0x8b, 0xec, 0x83, 0x7d}},
@@ -6688,6 +6709,7 @@ const Hook kHooks[] = {
     {"Dialog7ca13c_RemoveData",   0x00493c10, (void *)&Dialog7ca13c_RemoveData, {0x8b, 0x0d, 0x3c, 0xa1, 0x7c}},
     {"ImeHost_OpenCandidates",    0x00480b00, (void *)&ImeHost_OpenCandidates, {0x6a, 0xff, 0x68, 0xb0, 0x90}},
     {"ImeHost_Update",            0x00481100, (void *)&ImeHost_Update, {0x83, 0xec, 0x08, 0x53, 0x55}},
+    {"Window705950_Draw",         0x0047de30, (void *)&Window705950_Draw, {0x81, 0xec, 0xcc, 0x00, 0x00}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},

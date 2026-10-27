@@ -86,10 +86,12 @@ address,name,kind,confidence,notes
 0x00556ab0,Mem_AllocLogged,function,high,reimplemented (src/game/core/gameheap); global allocation that refuses 0
 0x005584b0,RSSE_CheckLeaks,function,medium,'Something malloced but not freed'
 0x005573d0,Rsse_Trigger,function,low,"reimplemented (src/game/rsse/rsse_vm); cdecl (vm, kind, key, what, extra); name unconfirmed: a script effect at a ride part: kinds 1-2 a particle effect (plain or with the part direction as velocity), 3-10 a sound in one of eight categories"
-0x00551130,RSSE_StartScream,function,medium,'Started screaming without ...'
+0x00551130,RSSE_StartScream,function,medium,"reimplemented (src/game/rsse/scream); cdecl (scream, level, a, b, x, y, z): with no scream and a level, the level's scream sound played in the kids' category at the position, its volume set from a and b"
+0x00551290,RSSE_SetScreamVolume,function,low,"reimplemented (src/game/rsse/scream); cdecl (scream, a, b): the scream's parameter 6 set to (a + b) / 2 cut to 0..100"
+0x005512d0,RSSE_MoveScream,function,low,"reimplemented (src/game/rsse/scream); cdecl (scream, x, y, z): the scream's position set"
 0x00556f40,Rsse_StartWalker,function,low,"reimplemented (src/game/rsse/rsse_vm); cdecl (vm, value, from, to, a, b, kind, last): a walker slot filled between two ride parts, its time 100 times their distance, its octant the direction between them"
 0x00572780,Engine_Init,function,high,"'Initializing engine internals'; logs a checkpoint after each renderer subsystem (… 'wavelet/printf ok')"
-0x00564b20,Wavelet_Init,function,medium,creates the global wavelet codec (DAT_00879a64) during Engine_Init
+0x00564b20,Wavelet_Startup,function,low,"reimplemented (src/game/gfx/wavelet); cdecl: with no block at 0x879a68, a codec made and kept at 0x879a64 and the draw buffer's batch begun in mode 2, its +0x28 kept at 0x879a68"
 0x005985c0,WaveletCodec_Create,function,medium,"reimplemented (src/game/gfx/wavelet); Mem_Alloc 0x58 and WaveletCodec_Construct (most derived); null on failure, else the codec interface through the virtual base displacement"
 0x005916c0,WaveletCodec_Construct,function,high,"reimplemented (src/game/gfx/wavelet); thiscall (most derived), pops 4: the codec's fields and vtables, the decoders' clamp, pixel and YUV to RGB tables, its two blocks"
 0x00591ab0,WaveletCodec_Encode,function,high,"reimplemented (src/game/gfx/wavelet); thiscall on the interface (width, height, colour, pixels, dst, size out, qY, qCb, qCr): grey or YUV 4:2:0 encode"
@@ -103,7 +105,7 @@ address,name,kind,confidence,notes
 0x00591a60,Obj_IncBefore4c,function,high,reimplemented (src/game/core/selectors); increments the dword at -0x4c and returns it
 0x00591a70,WaveletCodec_GetRefCount,function,high,reimplemented (src/game/core/accessors); the dword at -0x4c
 0x00591a80,Refcounted_Release,function,high,reimplemented (src/game/core/vwrap); lowers a count and deletes the virtual base at zero
-0x00598800,WaveletCodec_DeletingDtor,function,medium,
+0x00598800,WaveletCodec_ScalarDelete,function,low,"reimplemented (src/game/gfx/wavelet); thiscall (flags) on the virtual base: WaveletCodec_VBaseDtor, the base's vtable 0x7026e8, the codec 0x54 below freed with bit 0; returns the codec"
 0x007026d8,WaveletCodec_vtable,data,high,"slots: DecodeV12, DecodeV13Scaled, DecodeV13"
 0x007026b8,IWaveletCodec_vtable,data,high,interface vtable (this-adjusting thunks at 0x598780..)
 0x0046ead0,TextureSet_Load,function,medium,"reimplemented (src/game/gfx/texdirs); cdecl (set, probe, unused); the set's textures given directories: the second's when the quickload stem or the .wct/.tga file is found there, else the third's, else the table's first"
@@ -4059,6 +4061,8 @@ address,name,kind,confidence,notes
 0x005cd440,StdListString_Next,function,low,"reimplemented (src/game/core/stdlist); thiscall: the string at the list cursor, the cursor moved on; at the sentinel an empty string made and released, its dead address returned"
 0x005cd430,StdListString_First,function,low,"reimplemented (src/game/core/stdlist); thiscall: the list's cursor put on its first node, then StdListString_Next (name unconfirmed)"
 0x005d3600,StdListWString_Insert,function,low,"reimplemented (src/game/core/stdlist); list<wstring>::insert: a 0x18-byte node linked before the given one holding a copy of x (allocator byte, assign(x, 0, npos)); count raised, *out = node"
+0x005cf7e0,ListHead_Init18,function,low,"reimplemented (src/game/core/stdlist); thiscall: the byte +0 the object pointer's top byte, a self-linked 0x18-byte head node at +4, the count +8 0; returns the node"
+0x005cf810,ListHead_Init0c,function,low,"reimplemented (src/game/core/stdlist); thiscall: the byte +0 the object pointer's top byte, a self-linked 0xc-byte head node at +4, the count +8 0; returns the node"
 0x0041e2c0,Class6fda48_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor
 0x0041e320,Class6fda68_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor
 0x0041e4d0,Class6fdaa8_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor
@@ -4858,6 +4862,15 @@ address,name,kind,confidence,notes
 0x0059f590,AdvisorScoring_StaffStat1f8NotAbove,function,low,reimplemented (src/game/core/advisorscoring); thiscall; name invented: at least +0x42c staff and +0x430 not above their average +0x1f8: +0x434
 0x0059f5e0,AdvisorScoring_PeopleStat19cNotAbove,function,low,reimplemented (src/game/core/advisorscoring); thiscall; name invented: at least +0x438 people on plain cells and +0x43c not above their average +0x19c: +0x440
 0x0059fb10,AdvisorScoring_StaffEntryClear,function,low,reimplemented (src/game/core/advisorscoring); thiscall; name invented: more staff than +0x4d0 and the byte +0x20 of the entry for +0x1da718 clear: +0x4d4
+0x0059e450,AdvisorScoring_WornObjectsNoStaff5,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: not flagged, no staff of kind 5, a most worn object (its handle at +4): the average wear within +0x2d0..+0x2e0 times +0x2d4"
+0x0059e510,AdvisorScoring_WornObjectsStaff5,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: not flagged, staff of kind 5, a most worn object (its handle at +4): the average wear within +0x2d8..+0x2e8 times +0x2d4"
+0x0059e5d0,AdvisorScoring_VeryWornObjectsNoStaff5,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: not flagged, no staff of kind 5, a most worn object (its handle at +4): the average wear from +0x2e0 on times +0x2e4"
+0x0059e680,AdvisorScoring_VeryWornObjectsStaff5,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: not flagged, staff of kind 5, a most worn object (its handle at +4): the average wear from +0x2e8 on times +0x2ec"
+0x0059e730,AdvisorScoring_RingAverageBelow,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the analyser's ring 0 full and its average below +0x2f0: +0x2f4
+0x0059e790,AdvisorScoring_RingAverageAbove,function,low,reimplemented (src/game/core/advisorscoring); thiscall: the analyser's ring 0 full and its average above +0x2f8: +0x2fc
+0x0059ca30,AdvisorScoring_Objects0WornNoStaff4,function,low,reimplemented (src/game/core/advisorscoring); thiscall: no staff of kind 4: Objects_CountKind0Below44OrState1(+0xc0) times +0xbc
+0x0059cb40,AdvisorScoring_MapShareAtMostNoStaff5,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: not flagged, no staff of kind 5, the map's share of cells with +0x2c at most +0xd8: it times +0xd0 less +0xd4"
+0x0059cbb0,AdvisorScoring_MapShareAtLeastNoStaff5,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: not flagged, no staff of kind 5, the map's share of cells with +0x2c at least +0xe0: it times +0xdc less +0xe0"
 0x00418da0,ParkInfo_Serialize,function,low,"reimplemented (src/game/core/parkinfo); thiscall (stream, save, version, unused), pops 0x10: the save's park information (strings, three dwords, the author's name and e-mail, the description, the publishing date) written or read field by field (name unconfirmed)"
 0x005d55a0,AuthStamp_Text,function,low,"reimplemented (src/game/core/authstamp); cdecl: ""No Authorization Stamp"" (0x774bc0) while the phrase at 0x763f3d is the plain one at 0x774bd8; else the phrase's bytes less the key's (0x774b78) written to 0xf827f8 until they meet, and 0xf827f8"
 0x006cc7b0,Mp2Decoder_ParseHeader,function,low,"reimplemented (src/game/core/mp2frame); parses an MPEG audio frame header into the decoder's fields, rate, bitrate and frame length; -1 without sync or bitrate"
@@ -6051,6 +6064,7 @@ address,name,kind,confidence,notes
 0x00579e00,ObjModel_Load,function,low,"reimplemented (src/game/model/objmodel); thiscall (model), pops 4: an engine object's model loaded (procedural textures set up, BlueprintMesh parts flagged, texture sets made and set up, sharp textures flagged, waiting loads run, the tracked mesh block laid out, a loading step); unloaded and 0 on failure"
 0x0057a260,ObjModel_SetMatrices,function,low,"reimplemented (src/game/model/objmodel); thiscall (which, matrix): the matrix (with a flip) through the vertex transformer slot 6 into the static 0xfb3400, copied to the object +0x10 (bit 1) / +0x50 (bit 2)"
 0x0057aa10,ObjModel_LightMesh,function,low,"reimplemented (src/game/model/objmodel); thiscall (mesh, matrix, lights, flags): a mesh's colours lit once a frame: the light list readied, the camera's direction and the view set, then lit (all lights for the 0x800000 kind when 0x8bd524 is 4)"
+0x0057ace0,ObjModel_BlendTerrainTiles,function,low,"reimplemented (src/game/model/objmodel); thiscall (x0, y0, x1, y1): the model's set textures of the terrain cells flagged 0x80 and 0x200 in the rectangle replaced by new ones with the terrain tile blended under them, the old slots saved as pairs at +0x124"
 0x00467310,RideBase_TidyUVs,function,low,"reimplemented (src/game/model/baseuvs); cdecl (model, part, tolerance, map, positions, warned): a ride base's texture coordinates snapped to whole numbers, moved down by their triangles' floors, groups on the base marked"
 0x004679d0,RideBase_TidyAllUVs,function,low,"reimplemented (src/game/model/baseuvs); RideBase_TidyUVs on the holder's model for the given part, or for each part not flagged 0x200; one warned flag shared"
 0x0045aee0,Online_ApplyBalance,function,high,reimplemented (src/game/online/servers); copies Online.sam (gBalanceOnline) into the servers object 0x7a14f0
@@ -6150,6 +6164,8 @@ address,name,kind,confidence,notes
 0x005e2640,Scene702dd0_HideDialog,function,low,"reimplemented (src/game/frontend/viewcontrols); Class702dd0 slot 11 (thiscall, self unused): Dialog7cc47c_Message6Off's result"
 0x005e2650,Scene702dd0_ShowDialogCallback,function,low,reimplemented (src/game/frontend/viewcontrols); cdecl callback of Class702dd0 slot 17 for 0x4c0ae0: Dialog7cc47c_Message6On's result
 0x005e2660,Scene702dd0_DialogDone,function,low,"reimplemented (src/game/frontend/viewcontrols); cdecl (accepted, self) callback of Class702dd0 slot 17: 0 calls self slot 0x44; else state +0x14 2 plays the +0xc +8 lobby model, +0x14 = 0, Dialog7cc47c_Message6On"
+0x005dced0,ViewCtl702bc8_Message,function,low,"reimplemented (src/game/frontend/viewcontrols); thiscall (message, key, unused): message 0x1000a's arrow keys move +0x48 / +0x50 by +0x14, message 0x10006 with 2 swaps the mode and sets the dialog's child 0x16006"
+0x005dd530,ViewCtl702e70_Message,function,low,"reimplemented (src/game/frontend/viewcontrols); thiscall (message, key, unused): as 0x5dced0, then message 0x10005 with key 0 and a target at +0x70: [0xf82888] = its +0xc, the view's slot 8 and the scene's +8 object's slot 7 called"
 0x005e2cc0,IslandCamera_LoadSettings,function,low,"reimplemented (src/game/frontend/islandcamera); thiscall: the lobby island camera settings read from a text file (FOV, spin, radii, ten camera positions)"
 0x004a7bf0,Postcard_OnSent,function,low,"reimplemented (src/game/frontend/postcard); cdecl (done, result): the postcard sender's callback; when done and the result is 0-4, the command of the table {0x34, 0x39, 0x3a, 0x3b, 0x3b} posted (CommandQueue_Post)"
 0x0065d7d0,Window_FindChild,function,low,"reimplemented (src/game/ui/window); thiscall (id), pops 4: the first child of the window (list +0x5c, next +0x54) whose id (+0x8c) is id, or 0"
@@ -6894,6 +6910,7 @@ address,name,kind,confidence,notes
 0x00493c10,Dialog7ca13c_RemoveData,function,low,"reimplemented (src/game/ui/dialog7ca13c); cdecl (data): with the dialog [0x7ca13c], its list 0x1e497 item holding data found and removed, the count [0x7ca134] lowered"
 0x00480b00,ImeHost_OpenCandidates,function,low,"reimplemented (src/game/ui/imecandidates); thiscall on the IME host (parent, second): the window of the script 0x74f9e0 (handler 0x480d10) into +0, placed by the host window +4 within 0x7f8 x 0x5f8, its depth the root's top; its list 0x7b79e3 (+8) given the hilight rows and highlight, cleared, then the IME's cached strings added"
 0x00481100,ImeHost_Update,function,low,"reimplemented (src/game/ui/imecandidates); thiscall on the IME host: with +0xc set, +0xd whether the IME's result has characters (told to the text window +4); without a candidate window the list opened (cached strings) or the result inserted; with one, the current entry cached again, the list +8 refilled with the cached strings when unchanged, scrolled to the cache's position, the result inserted"
+0x0047de30,Window705950_Draw,function,low,reimplemented (src/game/ui/window705950draw); the GUI list window's rows drawn as a tree (vtable 0x705950 slot 4)
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"
