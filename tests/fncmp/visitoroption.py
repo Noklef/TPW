@@ -36,7 +36,7 @@ def stat(r):
     return fb(r.choice([0.0, 1.0, 9.0, 9.99, 10.0, 50.0, 55.5, 100.0, 109.0, 110.0, 255.0, 255.9, 256.0, 266.0, -1.0, -0.5]))
 
 
-def case(r):
+def score_case(r):
     regions, obj = rating_env(r)
     for off in (0x188, 0x194, 0x58):
         put(obj, off, 'I', r.choice([0, 1, 5, 10, 50, 100, 200, 0xffffffff, r.getrandbits(32)]))
@@ -139,7 +139,7 @@ def feelings_case(r):
     regions[VISITOR] = visitor
     rows = bytearray(r.bytes(12 * 256))
     for k in range(256):
-        rows[12 * k] = r.choice([0, 1, 4, 5, 6, 14, 15, 16, 20, 39, 40, 41, 50, 99, 100, 150, 255, r.getrandbits(8)])
+        rows[12 * k] = r.choice([0, 1, 4, 5, 6, 14, 15, 16, 20, 39, 40, 41, 50, 99, 100, 150, 255]) if r.random() < 0.5 else r.getrandbits(8)
     regions[0x7850e4] = rows
     steps = [0, 1, 5, 10, 50, 99, 100, 101, -1, -10, -100, 0x7fffffff, -0x80000000]
     divisor = r.choice([1, 1, 2, 3, 5, 10, 20, 100, 255, 256, -1, -3, 0x7fffffff] * 4 + [0])
@@ -147,13 +147,13 @@ def feelings_case(r):
     return Call(0x4fdcc0, [VISITOR, OBJ], regions, conv='t', ret='v')
 
 
-CASES = {'score': case, 'feelings': feelings_case}
+CASES = {'score': score_case, 'feelings': feelings_case}
 OPS = [n for n in CASES if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
-def any_case(r):
+def case(r):
     return CASES[r.deal(OPS)](r)
 
 
 if __name__ == '__main__':
-    B.main(any_case)
+    B.main(case)
