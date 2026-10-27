@@ -448,11 +448,11 @@ def allocator_masks(fail, lengths, first=None):
 LIST3, COLS3, LINKS3, OBJS3, BUFS3, BAR3, OTHER3 = RAM + 0xf000, RAM + 0xf200, RAM + 0xf400, RAM + 0xf800, RAM + 0xf900, RAM + 0xfa00, RAM + 0xfc00
 
 
-def list_env(r):
+def list_env(r, columns=(0, 1, 2, 3)):
     """RemoveItem / Clear / ScrollTo's list: notify_env's windows (the list's parent one of them or none), the queues, 0xfaa5d4 set or not, the
     highlight a recorder (slot 3 as id 23, its event's rectangle hashed) or none, the bar (child 1: a recorder vtable, slot 7) first or after
     another child or none, no row windows; free_case's items at LINKS3 (4 + 0-3 columns, cells distinct objects with counted buffers or 0, some
-    free), the heap. Returns (window, regions, items)."""
+    free), the heap; the column count drawn from columns (dialog7cb25c.py's list has up to six). Returns (window, regions, items)."""
     log = log_region()
     regions = {LOG: log}
     wins = notify_env(r, regions, log)
@@ -485,10 +485,10 @@ def list_env(r):
     other = put(put(bytearray(r.bytes(0x90)), 0x8c, 'I', r.choice([0, 2, 3])), 0x54, 'I', BAR3)
     regions[OTHER3] = put(other, 0, 'I', VTABLE)
     put(window, 0x5c, 'I', r.choice([BAR3] * 6 + [OTHER3] * 3 + [0]))
-    ncols = r.choice([0, 1, 2, 3])
+    ncols = r.choice(columns)
     put(window, 0x164, 'h', ncols)
     regions[HEAP] = heap()
-    regions[COLS3] = b''.join(put(bytearray(r.bytes(0xc)), 0xa, 'h', r.choice([0, 0, 1, -1])) for _ in range(4))
+    regions[COLS3] = b''.join(put(bytearray(r.bytes(0xc)), 0xa, 'h', r.choice([0, 0, 1, -1])) for _ in range(max(4, ncols)))
     put(window, 0x16c, 'I', COLS3)
     bufs = bytearray(r.bytes(0x20 * 8))
     for i in range(8):
