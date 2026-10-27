@@ -133,3 +133,87 @@ s32 *__fastcall ResIndex_OpenEntry(u8 *index, void *, s32 *result, u32 stream, u
     *result = *vcall<s32 *>(HandleAt(index, 0x10), 0xc, &opened, stream, name, 0x80000001u, 0u) < 0 ? -1 : 0;
     return result;
 }
+
+s32 *__fastcall ResIndex_Load(u8 *index, void *, s32 *result, u8 *record, u8 **object) {
+    *object = nullptr;
+    if (at<u16>(record, 4) >= 6) {
+        *result = -1;
+        return result;
+    }
+    StreamBase stream;
+    StreamBase_Ctor(&stream);
+    s32 slot = (s32)(uintptr_t)object;
+    s32 status = -1;
+    if (*ResIndex_OpenEntry(index, nullptr, &slot, (u32)(uintptr_t)&stream, record) >= 0) {
+        u8 *const loader = *reinterpret_cast<u8 *const *>((uintptr_t)0x782d20 + at<u16>(record, 4) * 4);
+        if (loader && *vcall<s32 *>(loader, 0, &slot, &stream, object, at<u32>(record, 0), index) >= 0) {
+            u8 *const loaded = *object;
+            at<u8 *>(record, 8) = loaded;
+            vcall<void>(loaded, 0x10);
+            status = 0;
+        }
+    }
+    *result = status;
+    StreamBase_Dtor(&stream);
+    return result;
+}
+
+s32 *__fastcall ResFolder_LoadIndex(u8 *folder, void *, s32 *result, u32 path) {
+    if (u8 *const old = at<u8 *>(folder, 0)) {
+        vcall<void>(old, 0);
+        at<u32>(folder, 0) = 0;
+    }
+    Handle handle;
+    Handle_Ctor(&handle);
+    handle.vtable = reinterpret_cast<void *const *>((uintptr_t)0x6fd9e8);
+    s32 status = (s32)path;
+    if (*Handle_Open28(&handle, nullptr, &status, path) < 0) {
+        *result = -1;
+        Handle_Dtor(&handle);
+        return result;
+    }
+    StreamBase stream;
+    StreamBase_Ctor(&stream);
+    s32 outcome = -1;
+    if (*Handle_Vfn3(&handle, nullptr, &status, (u32)(uintptr_t)&stream, 0x782d14, 0x80000001u, 0) >= 0) {
+        u32 header[2];
+        const s32 got = stream.source ? vcall<s32>(stream.source, 4, header, 8u) : -1;
+        if (got == 8 && header[0] == 0x49524642) {   // "BFRI"
+            const s32 tell = StreamBase_Tell(&stream);
+            const u32 size = (u32)StreamBase_Size(&stream) - (u32)tell;
+            const u32 count = header[1];
+            if (count == 0) {
+                s32 slot = (s32)path;
+                ResFolder_Close(folder, nullptr, &slot);
+            } else if (u8 *const block = static_cast<u8 *>(GameHeap_Alloc(size + 0x18))) {
+                const s32 read = stream.source ? vcall<s32>(stream.source, 4, block + 0x18, size) : -1;
+                if ((u32)read != size) {
+                    GameHeap_Free(block);
+                } else {
+                    ResIndex_Ctor(block);
+                    s32 slot = (s32)path;
+                    if (*ResIndex_Init(block, nullptr, &slot, path, block + 0x18, count) < 0) {
+                        GameHeap_Free(block);
+                    } else {
+                        at<u8 *>(folder, 0) = block;
+                        outcome = 0;
+                    }
+                }
+            }
+        }
+    }
+    *result = outcome;
+    StreamBase_Dtor(&stream);
+    Handle_Dtor(&handle);
+    return result;
+}
+
+s32 *__fastcall ResFolder_Load(u8 *folder, void *, s32 *result, u32 name) {
+    char path[0x200];
+    s32 status;
+    if (*vcall<s32 *>(HandleAt(folder, 4), 0x14, &status, path, name, 0x200u) < 0) {
+        *result = -1;
+        return result;
+    }
+    return ResFolder_LoadIndex(folder, nullptr, result, (u32)(uintptr_t)path);
+}

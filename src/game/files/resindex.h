@@ -4,7 +4,7 @@
 // ResIndex (vtable 0x70a128; the counted base 0x70a078, its count at +4): +8 the records (12 bytes each: +0 a key, the keys strictly
 // increasing; +4 a 16-bit kind, +6 a 16-bit offset, +8 the object loaded for it), +0xc the last record, +0x10 the folder handle (a
 // Handle, vtable 0x6fd9e8). Its slots 0 and 1 are the counted base's Release and AddRef (refcounted.h).
-// Reimplementation of 0x6ad130, 0x6ad160, 0x6ad1b0, 0x6ad200, 0x6af810-0x6af953, 0x6afa30, 0x6afb70 and 0x6afbc0.
+// Reimplementation of 0x6ad130-0x6ad458, 0x6af810-0x6af953 and 0x6afa30-0x6afc56.
 #pragma once
 
 #include "../../../re/types.h"
@@ -60,4 +60,25 @@ s32 *__fastcall ResIndex_GetEntry(u8 *index, void *, s32 *result, u8 *record, u8
 // the records (+8) + the record's 16-bit name offset (+6), 0x80000001, 0; its result in the stream's own argument slot): -1 when below
 // 0, else 0. Returns &result.
 s32 *__fastcall ResIndex_OpenEntry(u8 *index, void *, s32 *result, u32 stream, u8 *record);
+
+// 0x6afa70 (thiscall (&result, record, &object); an SEH frame): *object cleared; -1 for a record kind (+4, 16-bit) of 6 or more. Else a
+// local stream (StreamBase_Ctor) opened on the record (ResIndex_OpenEntry, its result in the object argument's slot); then the kind's
+// loader ([0x782d20 + 4 * kind], read again) told slot 0 (&slot, &stream, &object, the record's key, the index): with no loader or
+// either below 0 -1; else the record's object (+8) = *object, told slot 4 (sic: a null one faults), and 0. The stream destroyed
+// (StreamBase_Dtor) last. Returns &result.
+s32 *__fastcall ResIndex_Load(u8 *index, void *, s32 *result, u8 *record, u8 **object);
+
+// 0x6ad2a0 (thiscall (&result, path); an SEH frame): the old index (+0) released through its slot 0 and cleared; a local folder handle
+// (Handle_Ctor, vtable 0x6fd9e8) opened on the path (Handle_Open28): -1 when that fails. Else "ResIdx.dat" (0x782d14) opened through it
+// on a local stream (Handle_Vfn3 (0x80000001, 0)) and its 8-byte header read through the stream's source (slot 1; none: -1): "BFRI" and a
+// record count. The size (StreamBase_Size) less the position (StreamBase_Tell) is the records' bytes. A count of 0 closes the folder
+// (ResFolder_Close, its result in the path's slot): -1. Else a block of the bytes + 0x18 (Mem_Alloc; none: -1) with the records read
+// to +0x18 (all of them or the block freed: -1), a ResIndex constructed in it (ResIndex_Ctor) and initialised (ResIndex_Init on the path,
+// the records and the count; below 0: the block freed (sic: not destroyed), -1); then it is the folder's index (+0): 0. The stream and
+// the handle destroyed. Any failure (but the handle's open) keeps -1. Returns &result.
+s32 *__fastcall ResFolder_LoadIndex(u8 *folder, void *, s32 *result, u32 path);
+
+// 0x6ad230 (thiscall (&result, name)): the name's full path (0x200 bytes on the stack) through the handle (+4) slot 5 (&r, buffer,
+// name, 0x200): -1 below 0, else ResFolder_LoadIndex on it. Returns &result.
+s32 *__fastcall ResFolder_Load(u8 *folder, void *, s32 *result, u32 name);
 }
