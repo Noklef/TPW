@@ -509,6 +509,12 @@ u32 __cdecl Window_PostTimed(u8 *window, u32 message, u32 a, u32 b, u32 delay) {
     return 1;
 }
 
+s32 __fastcall Window_Compare(u8 *window, void *, u8 *other) {
+    vcall<u32>(other, 0xc);
+    vcall<u32>(window, 0xc);
+    return 0;
+}
+
 void __cdecl Gui_ResetQueues() {
     if (u8 *const table = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f8)) GuiTimers_Reset(table);
     if (u8 *const first = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f4)) MsgQueue_Clear(first);
