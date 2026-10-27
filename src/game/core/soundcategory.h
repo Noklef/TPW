@@ -144,6 +144,11 @@ void __fastcall SoundCategory_LocateSample(void *self, void *, u32 *category, u3
 // 0x6d1dc0 (thiscall (index, unused), pops 8; `this` unused; name invented): deque A's record index of the singleton, 0 when index is not
 // under its count (+0x64).
 u8 *__fastcall SoundCategory_RecordAt(void *self, void *, u32 index, u32 unused);
+// 0x6c5870 (thiscall (sounds, command), pops 8; `this` unused; name invented): the entry of an SFX.map sound table (+0 the count, +4 the
+// entries, 0x14 bytes each, +0 the id) for a command (the play command, vtable 0x700b90): 0 when the command's slot 1 or slot 2 answers 0,
+// the table is null or empty; else the first entry whose id is the command's slot 2 (called again for each entry), itself when its +4 is
+// set, else 0; 0 when none is.
+u8 *__fastcall SfxSounds_Find(void *self, void *, const u32 *sounds, u8 *command);
 // 0x6c0850 (thiscall (out, index), pops 8; name invented): deque A's record index (its begin advanced, DequeIter_Advance; no count
 // check): none, *out = -1; else its slot 0 (Release) and *out = 0. Returns out.
 u32 *__fastcall SoundCategory_ReleaseRecordAt(u8 *category, void *, u32 *out, u32 index);

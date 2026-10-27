@@ -715,6 +715,18 @@ u8 *__fastcall SoundCategory_RecordAt(void *, void *, u32 index, u32) {
     return Get<u8 *>(Ptr(DequeIter_Plus(it, nullptr, found, static_cast<s32>(index))[2]), 0);
 }
 
+u8 *__fastcall SfxSounds_Find(void *, void *, const u32 *sounds, u8 *command) {
+    if (!vcall<u32>(command, 4) || !vcall<u32>(command, 8) || !sounds) return nullptr;
+    u32 count = sounds[0];
+    u8 *entry = Ptr(sounds[1]);
+    if (!count) return nullptr;
+    do {
+        if (Get<u32>(entry, 0) == vcall<u32>(command, 8)) return Get<u32>(entry, 4) ? entry : nullptr;
+        entry += 0x14;
+    } while (--count);
+    return nullptr;
+}
+
 u32 *__fastcall SoundCategory_UnloadRecord(u8 *category, void *, u32 *out, u8 *record) {
     if (!record) {
         *out = 0xffffffff;
