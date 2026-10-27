@@ -252,5 +252,21 @@ u8 *__fastcall Voice70a878_DeletingDtor(u8 *voice, void *, u8 flags);
 // +8; the vtable 0x70a338, Class70a7e0_Dtor. 0x6be9a0 (slot 2 of 0x70a8d0, (flags), pops 4): it, the voice freed with flag 1; returns the voice.
 void __fastcall Voice70a8d0_Dtor(u8 *voice);
 u8 *__fastcall Voice70a8d0_DeletingDtor(u8 *voice, void *, u8 flags);
+// The group voice 0x70a390's (names invented): its children (linked voices) listed at the parameter block's +0x18, each the next's in
+// its own block's +0x18. 0x6bd930 (thiscall; an SEH frame): the vtable 0x70a390, each child deleted (slot 2, flag 1; the next read
+// first), the vtable 0x70a3e8, Class70a7e0_Dtor. 0x6b72b0 (thiscall (flags), pops 4; slot 2): it, the voice freed with flag 1.
+void __fastcall Voice70a390_Dtor(u8 *voice);
+u8 *__fastcall Voice70a390_DeletingDtor(u8 *voice, void *, u32 flags);
+// 0x6bd9b0 (thiscall (out, command), pops 8; slot 6): each child: the command's +4 its sound (+0x24), its slot 6 (out: the command's own
+// argument slot), deleted (slot 2, 1) when the command's slot 0 answers 1; the list then emptied (the kept children too, sic), and
+// SoundVoice_Command (out, command). Returns the out.
+u32 *__fastcall Voice70a390_Command(u8 *voice, void *, u32 *out, u8 *command);
+// 0x6bda20 (thiscall (out, position), pops 8; slot 9): the position into +0x10, flag 8: Fn_6bb220 (0, 1, 0) on it, else Vec3_Scale by
+// the sound system's +0x2c; LinkedVoice_FollowParent on each child; *out = 0. Returns the out.
+u32 *__fastcall Voice70a390_SetPosition(u8 *voice, void *, u32 *out, const u32 *position);
+// 0x6bda90 (thiscall (key, value), pops 8; slot 10): SoundVoice_SetParam, then flag 0x40 cleared unless the block's byte +4 is 0x7f.
+void __fastcall Voice70a390_SetParam(u8 *voice, void *, u32 key, u32 value);
+// 0x6bdac0 (thiscall; slot 13): each child's slot 13.
+void __fastcall Voice70a390_SendLevels(u8 *voice);
 
 }  // extern "C"

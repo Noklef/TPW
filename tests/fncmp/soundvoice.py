@@ -21,6 +21,7 @@
 # The shuffle bag's (0x6be380, 0x6be420): the parameter block's bag none (a new one from the heap) or one over the definition, another
 # list or a wild one (shufflebag.py's layout), flag 4 of +0x30 any way. The voices 0x70a3e8 / 0x70a4f0's constructors; the new[] of 0-3
 # 0x70a4f0 voices into OUT and the new linked (switch) voice of VOICE, the heap failing now and then. The destructors: see dtor_case().
+# The group voice 0x70a390's slots and destructors: see group_case().
 # usage: soundvoice.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -45,7 +46,9 @@ CALLS = {'ensure': (0x6b7150, 'v'), 'pending': (0x6bc900, 'a'), 'apply': (0x6bbf
          'ctor3e8': (0x6b71d0, 'a'), 'ctor4f0': (0x6b7210, 'a'), 'new4f0': (0x6b7040, 'a'), 'newlinked': (0x6b7250, 'a'), 'newlinksw': (0x6b72f0, 'a'),
          'dtor7e0': (0x6bb9b0, 'v'), 'ddtor7e0': (0x6bb990, 'a'), 'dtor3e8': (0x6b7230, 'v'), 'dtor338': (0x6b7240, 'v'), 'ddtor3e8': (0x6b71f0, 'a'),
          'ddtor338': (0x6b72d0, 'a'), 'vddtor4f0': (0x6b70e0, 'a'), 'dtor878': (0x6be300, 'v'), 'ddtor878': (0x6be2e0, 'a'), 'dtor8d0': (0x6be9c0, 'v'),
-         'ddtor8d0': (0x6be9a0, 'a')}
+         'ddtor8d0': (0x6be9a0, 'a'), 'gdtor': (0x6bd930, 'v'), 'gddtor': (0x6b72b0, 'a'), 'gcommand': (0x6bd9b0, 'a'),
+         'gposition': (0x6bda20, 'a'), 'gsetparam': (0x6bda90, 'v'), 'glevels': (0x6bdac0, 'v')}
+GROUP_OPS = ('gdtor', 'gddtor', 'gcommand', 'gposition', 'gsetparam', 'glevels')
 DTOR_OPS = ('dtor7e0', 'ddtor7e0', 'dtor3e8', 'dtor338', 'ddtor3e8', 'ddtor338', 'vddtor4f0', 'dtor878', 'ddtor878', 'dtor8d0', 'ddtor8d0')
 LINKED_OPS = ('linkinit', 'linkfollow', 'linkbranch')
 B = Bench([(0x6b7150, 0x6b7190), (0x6bb9f0, 0x6bba81), (0x6bc900, 0x6bcb56), (0x6c5130, 0x6c5150), (0x6bbf00, 0x6bbf56), (0x6bc650, 0x6bc674), (0x6bc680, 0x6bc806),
@@ -60,7 +63,8 @@ B = Bench([(0x6b7150, 0x6b7190), (0x6bb9f0, 0x6bba81), (0x6bc900, 0x6bcb56), (0x
            (0x6b9a60, 0x6b9aa1), (0x6b9ab0, 0x6b9b26), (0x6c39c0, 0x6c39f3), (0x6bde00, 0x6bdef9), (0x6be260, 0x6be2da), (0x6bdd80, 0x6bddfa), (0x6bdcb0, 0x6bdd24),
            (0x6b71d0, 0x6b71e2), (0x6b7210, 0x6b7222), (0x6b7040, 0x6b70ae), (0x6b7250, 0x6b72ad), (0x6b72f0, 0x6b734d), (0x67acf0, 0x67ada0),
            (0x6bb9b0, 0x6bb9e2), (0x6bb990, 0x6bb9ae), (0x6b7230, 0x6b723c), (0x6b7240, 0x6b724c), (0x6b71f0, 0x6b720e), (0x6b72d0, 0x6b72ee),
-           (0x6b70e0, 0x6b7130), (0x6be300, 0x6be32b), (0x6be2e0, 0x6be2fe), (0x6be9c0, 0x6be9f9), (0x6be9a0, 0x6be9be), (0x67afa0, 0x67b0d0)])
+           (0x6b70e0, 0x6b7130), (0x6be300, 0x6be32b), (0x6be2e0, 0x6be2fe), (0x6be9c0, 0x6be9f9), (0x6be9a0, 0x6be9be), (0x67afa0, 0x67b0d0),
+           (0x6bd930, 0x6bd9a3), (0x6b72b0, 0x6b72ce), (0x6bd9b0, 0x6bda1b), (0x6bda20, 0x6bda8d), (0x6bda90, 0x6bdabd), (0x6bdac0, 0x6bdade)])
 VOICE, OUT, SYS, SVT, VVT, DEF, VARS, SAMPLES, PARAMS, LISTENER, CMD, CVT = (RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x500,
                                                                             RAM + 0x600, RAM + 0xa00, RAM + 0xb00, RAM + 0xb40, RAM + 0xb80, RAM + 0xbc0)
 SYSTEM, RANDOM, CLOCK, TIME_GET_TIME = 0xfb1f24, 0xfb1f20, 0xfa71e0, 0x6fd3ec
@@ -70,6 +74,7 @@ PARENT, PARENT_PARAMS = RAM + 0x1000, RAM + 0x1080
 RECORD = RAM + 0x1100
 BAG, LIST2 = RAM + 0x1200, RAM + 0x1240   # (the parameter block's shuffle bag: shufflebag.py's layout; another list over the variations)
 KEEPER, KVT, ARRAY, BAG2 = RAM + 0x1300, RAM + 0x1340, RAM + 0x1400, RAM + 0x1500   # (the destructors' owner +0x28, a voice array, a bag)
+CHILDREN, CHILD_PARAMS, CHVT = RAM + 0x1600, RAM + 0x1700, RAM + 0x1780   # (the group voice's children, their blocks and vtable)
 ROLL_OPS = ('rollvol', 'rollpitch', 'level', 'fillrec', 'rollword', 'levels', 'voicefill', 'voicefillx')
 CMD_K, TIME_K = 9, 12
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
@@ -304,11 +309,51 @@ def dtor_case(r, name, address, ret, regions):
     return Call(address, [VOICE] + flags, regions, conv='t', ret=ret)
 
 
+def group_case(r, name, address, ret, log, voice, params, regions):
+    """The group voice 0x70a390's: 0-3 children (linked voices at CHILDREN, their vtable CHVT's slots 2, 6 and 13 recorders, +0x24 a sound
+    or none, +0x30 any, their blocks at CHILD_PARAMS: +0x18 the next child, +0x1c the voice) listed at the voice's block's +0x18 (the block
+    null now and then for the set parameter); the command's slot 0 answering 1 deletes a child; the owner +0x28 KEEPER or null; the set
+    parameter's key and block as setparam's; the position's as position's."""
+    n = r.choice([0, 1, 2, 3])
+    kids, kparams = bytearray(), bytearray()
+    for i in range(n):
+        c = bytearray(r.bytes(0x50))
+        struct.pack_into('<I', c, 0, CHVT)
+        struct.pack_into('<I', c, 0x24, r.choice([0, r.getrandbits(32) | 1, r.getrandbits(32) | 1]))
+        struct.pack_into('<I', c, 0x30, r.getrandbits(32))
+        struct.pack_into('<I', c, 0x4c, CHILD_PARAMS + 0x20 * i)
+        kids += c
+        p = bytearray(r.bytes(0x20))
+        struct.pack_into('<II', p, 0x18, CHILDREN + 0x50 * (i + 1) if i + 1 < n else 0, VOICE)
+        kparams += p
+    struct.pack_into('<I', params, 0x18, CHILDREN if n else 0)
+    struct.pack_into('<I', voice, 0x4c, PARAMS if name != 'gsetparam' or r.random() < 0.8 else 0)
+    struct.pack_into('<I', voice, 0x30, r.getrandbits(32))
+    struct.pack_into('<I', voice, 0x28, r.choice([KEEPER, KEEPER, 0]))
+    regions.update({CHILDREN: kids or bytes(4), CHILD_PARAMS: kparams or bytes(4), CHVT: vtable({2: 1, 6: 2, 13: 0}),
+                    KEEPER: struct.pack('<I', KVT) + r.bytes(0xc), KVT: vtable({})})
+    strings(log, 6, 0, out=1)   # (the children's out: the command's argument slot)
+    if name == 'gsetparam':
+        params[:4] = bytes(r.choice([0, 1, 2, 3, r.getrandbits(8)]) for _ in range(4))
+        params[4] = r.choice([0, 0x7f, r.getrandbits(8)])
+        key = r.choice([params[r.randrange(4)], params[r.randrange(4)], r.getrandbits(8)]) | r.choice([0, r.getrandbits(32) & ~0xff])
+        regions[HEAP] = heap(0x40, fail=r.choice([0] * 7 + [1]))
+        return Call(address, [VOICE, key, r.getrandbits(32)], regions, conv='t', ret=ret)
+    if name == 'gposition':
+        regions[POS] = r.bytes(12) if r.random() < 0.2 else struct.pack('<3f', *(r.uniform(-1000, 1000) for _ in range(3)))
+        if r.random() < 0.3:
+            struct.pack_into('<I', regions[SYS], 0x2c, r.choice([fb(1.0), fb(0.5), fb(2.0)]))
+        return Call(address, [VOICE, OUT, POS], regions, conv='t', ret=ret)
+    if name == 'gcommand':
+        return Call(address, [VOICE, OUT, CMD], regions, conv='t', ret=ret)
+    return Call(address, [VOICE] + ([r.choice([0, 1, 2, 3, r.getrandbits(32)])] if name == 'gddtor' else []), regions, conv='t', ret=ret)
+
+
 def case(r):
     name = r.deal(OPS)
     address, ret = CALLS[name]
     log = log_region()
-    if name in ('follow', 'linkfollow'):
+    if name in ('follow', 'linkfollow', 'gposition'):
         blob_bytes(log, 4, 1, 0xff, inner=(8, 0xfff, 12))   # the functor: its vtable, the sound; the record's +0xc-+0x17
     elif name == 'byte44':
         hundred = r.random() < 0.5
@@ -316,7 +361,7 @@ def case(r):
         fill(log, 4, 1, struct.pack('<I', r.choice([0, 2, 3, 0xfffffffd, r.getrandbits(32)])), offset=0x18, through=8)   # or +0xc-+0x17; +0x18
     elif name in ('value20', 'position'):   # the record's flags +0x14 and the value +0x2c; the position's +0xc-+0x17 and its pointer +0x30 (the levels': in rolls())
         blob_bytes(log, 4, 1, 0xff, inner=(8, 0xf << 36 | 0x7000, 8) if name == 'value20' else (8, 0xf << 36 | 0xfff, 12))
-    elif name != 'command':
+    elif name not in ('command', 'gcommand'):
         blob_bytes(log, 4, 1, 0xff, inner=(8, 0x7000, 28) if name == 'pending' else None)   # (the stop's functor: two dwords)
     if name != 'pending':
         strings(log, 4, 0, out=1)   # (the out is the caller's local)
@@ -333,7 +378,7 @@ def case(r):
     struct.pack_into('<I', voice, 4, r.choice([DEF] * 6 + [0]))
     struct.pack_into('<I', voice, 8, VARS + 0x2a * r.randrange(2) if name != 'radius' or r.random() < 0.7 else 0)
     struct.pack_into('<I', voice, 0x4c, r.choice([0, PARAMS, PARAMS] if name not in ('follow', 'audible') + LINKED_OPS else [PARAMS]))
-    struct.pack_into('<I', voice, 0x24, r.choice([0, r.getrandbits(32) | 1, r.getrandbits(16) + 1 << 16]))   # (a sound whose low word is 0 too)
+    struct.pack_into('<I', voice, 0x24, r.choice([0, r.getrandbits(32) | 1, r.randrange(1, 0x10000) << 16]))   # (a sound whose low word is 0 too)
     struct.pack_into('<I', voice, 0x3c, r.choice([0, r.getrandbits(32)]))
     struct.pack_into('<I', voice, 0x40, r.f() if r.random() < 0.3 else fb(r.uniform(0, 10)))
     voice[0x45], voice[0x46] = r.choice([0, 1, 2, r.getrandbits(8)]), r.choice([0, 1, 2, r.getrandbits(8)])
@@ -404,6 +449,8 @@ def case(r):
         return Call(address, [VOICE], regions, conv='t', ret=ret)
     if name in DTOR_OPS:
         return dtor_case(r, name, address, ret, regions)
+    if name in GROUP_OPS:
+        return group_case(r, name, address, ret, log, voice, params, regions)
     if name in ('ctor3e8', 'ctor4f0'):
         return Call(address, [VOICE], regions, conv='t', ret=ret)
     if name == 'new4f0':   # (0-3 voices into the holder OUT, the allocation failing now and then)

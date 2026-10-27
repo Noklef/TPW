@@ -948,4 +948,59 @@ u8 *__fastcall Voice70a8d0_DeletingDtor(u8 *voice, void *, u8 flags) {
     return voice;
 }
 
+// (the children: the parameter block's +0x18, each the next's in its own block's +0x18)
+void __fastcall Voice70a390_Dtor(u8 *voice) {
+    at<u32>(voice, 0) = 0x0070a390;
+    for (u8 *child = at<u8 *>(at<u8 *>(voice, 0x4c), 0x18); child;) {
+        u8 *const next = at<u8 *>(at<u8 *>(child, 0x4c), 0x18);
+        vcall<void>(child, 8, 1u);
+        child = next;
+    }
+    at<u32>(voice, 0) = 0x0070a3e8;
+    Class70a7e0_Dtor(voice);
+}
+
+u8 *__fastcall Voice70a390_DeletingDtor(u8 *voice, void *, u32 flags) {
+    Voice70a390_Dtor(voice);
+    if (flags & 1) GameHeap_Free(voice);
+    return voice;
+}
+
+u32 *__fastcall Voice70a390_Command(u8 *voice, void *, u32 *out, u8 *command) {
+    u8 *scratch = command;   // (the children's out: the command's own argument slot, sic)
+    for (u8 *child = at<u8 *>(at<u8 *>(voice, 0x4c), 0x18); child;) {
+        u8 *const next = at<u8 *>(at<u8 *>(child, 0x4c), 0x18);
+        at<u32>(command, 4) = at<u32>(child, 0x24);
+        vcall<void>(child, 0x18, &scratch, command);
+        if (vcall<u32>(command, 0) == 1) vcall<void>(child, 8, 1u);
+        child = next;
+    }
+    at<u32>(at<u8 *>(voice, 0x4c), 0x18) = 0;   // (the children kept forgotten too, sic)
+    SoundVoice_Command(voice, nullptr, out, command);
+    return out;
+}
+
+u32 *__fastcall Voice70a390_SetPosition(u8 *voice, void *, u32 *out, const u32 *position) {
+    float *const at10 = &at<float>(voice, 0x10);
+    for (u32 i = 0; i < 3; ++i) at<u32>(voice, 0x10 + 4 * i) = position[i];
+    if (voice[0x30] & 8) {
+        Fn_6bb220(reinterpret_cast<u8 *>(at10), nullptr, 0, 1, 0);   // (ints: 1 is no 1.0f, sic)
+    } else {
+        Vec3_Scale(at10, nullptr, at<float>(system(), 0x2c));
+    }
+    for (u8 *child = at<u8 *>(at<u8 *>(voice, 0x4c), 0x18); child; child = at<u8 *>(at<u8 *>(child, 0x4c), 0x18))
+        LinkedVoice_FollowParent(child);
+    *out = 0;
+    return out;
+}
+
+void __fastcall Voice70a390_SetParam(u8 *voice, void *, u32 key, u32 value) {
+    SoundVoice_SetParam(voice, nullptr, key, value);
+    if (voice[0x30] & 0x40 && at<u8 *>(voice, 0x4c)[4] != 0x7f) at<u32>(voice, 0x30) &= ~0x40u;
+}
+
+void __fastcall Voice70a390_SendLevels(u8 *voice) {
+    for (u8 *child = at<u8 *>(at<u8 *>(voice, 0x4c), 0x18); child; child = at<u8 *>(at<u8 *>(child, 0x4c), 0x18)) vcall<void>(child, 0x34);
+}
+
 }  // extern "C"
