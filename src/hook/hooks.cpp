@@ -429,6 +429,7 @@
 #include "../game/ui/guinamed.h"
 #include "../game/ui/guitoken.h"
 #include "../game/ui/hoverlabel.h"
+#include "../game/ui/imecandidates.h"
 #include "../game/ui/levelmeter.h"
 #include "../game/ui/msgboxbutton.h"
 #include "../game/ui/msgtags.h"
@@ -5818,6 +5819,7 @@ const Hook kHooks[] = {
     {"GuiNamed_FreeAll",          0x00661b3c, (void *)&GuiNamed_FreeAll, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"GuiNamed_Find",             0x00661bab, (void *)&GuiNamed_Find, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Dialog7ca13c_Open",         0x00493530, (void *)&Dialog7ca13c_Open, {0xe8, 0x0b, 0x26, 0xff, 0xff}},
+    {"ImeHost_OpenCandidates",    0x00480b00, (void *)&ImeHost_OpenCandidates, {0x6a, 0xff, 0x68, 0xb0, 0x90}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
