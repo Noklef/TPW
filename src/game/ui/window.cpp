@@ -515,6 +515,12 @@ s32 __fastcall Window_Compare(u8 *window, void *, u8 *other) {
     return 0;
 }
 
+s32 __cdecl Window_FireTimers() {
+    u8 *const table = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f8);
+    if (!table) return -1;
+    return (s16)GuiTimers_Fire(table);
+}
+
 void __cdecl Gui_ResetQueues() {
     if (u8 *const table = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f8)) GuiTimers_Reset(table);
     if (u8 *const first = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5f4)) MsgQueue_Clear(first);

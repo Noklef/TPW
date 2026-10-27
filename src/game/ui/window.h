@@ -194,6 +194,9 @@ u32 __cdecl Window_CancelTimed(u8 *window);
 // than 1, 2 and 3, the four and the delay added to it (GuiTimers_Add; its result not used) and 1; else 0.
 u32 __cdecl Window_PostTimed(u8 *window, u32 message, u32 a, u32 b, u32 delay);
 
+// 0x658f4b (cdecl; name invented): with the timed table [0xfaa5f8], GuiTimers_Fire's count (its AX sign-extended); else -1.
+s32 __cdecl Window_FireTimers();
+
 // 0x65e6a4 (thiscall (other), pops 4; slot 6 of the base window and most kinds; name unconfirmed): the other window's slot 3 and this one's
 // asked (in that order), then 0 either way.
 s32 __fastcall Window_Compare(u8 *window, void *, u8 *other);
