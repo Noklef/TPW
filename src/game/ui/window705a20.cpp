@@ -412,6 +412,14 @@ void __fastcall Window705a20_SetCursor(u8 *window, void *, u32 cursor, u32 ancho
     Window705a20_SetSelection(window, nullptr, cursor, 1, anchor);
 }
 
+void __fastcall Window705a20_SelectAll(u8 *window) {
+    if (at<u8>(window, 0x162)) {
+        Window705a20_SetSelection(window, nullptr, (u32)-5, 1, (u32)-1);
+    } else if (const u16 *const text = at<const u16 *>(window, 0x138)) {
+        Window705a20_SetCursor(window, nullptr, 0, (u32)Crt().wcslen(text));
+    }
+}
+
 u8 *__fastcall Window705a20_DeletingDtor(u8 *window, void *, u32 flags) {
     Window705a20_Dtor(window);
     if (flags & 1) GameHeap_Free(window);
