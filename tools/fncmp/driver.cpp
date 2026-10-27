@@ -80,6 +80,7 @@
 #include "../../src/game/sprite/script.h"
 #include "../../src/game/ui/cursor.h"
 #include "../../src/game/world/advisorscore.h"
+#include "../../src/game/world/research.h"
 #include "../../src/game/model/holder.h"
 #include "../../src/game/model/objmodel.h"
 #include "../../src/game/core/sharedglobals.h"
@@ -339,6 +340,7 @@ void __cdecl heap_throw() { RaiseException(0xe0000001, 0, 0, nullptr); }
 const StdStringEnv kStdStringEnv = {&heap_alloc, &heap_free, &heap_throw, &heap_throw};
 const MouseModeEnv kMouseModeEnv = {&heap_free, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const AdvisorScoreEnv kAdvisorScoreEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
+const ResearchEnv kResearchEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const GlyphRenderEnv kGlyphRenderEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const ObjModelEnv kObjModelEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const SharedGlobalsEnv kSharedGlobalsEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
@@ -1082,6 +1084,7 @@ int main(int argc, char **argv) {
     StdStrings_SetEnv(&kStdStringEnv);
     MouseModes_SetEnv(&kMouseModeEnv);
     AdvisorScore_SetEnv(&kAdvisorScoreEnv);
+    Research_SetEnv(&kResearchEnv);
     ObjModel_SetEnv(&kObjModelEnv);
     SharedGlobals_SetEnv(&kSharedGlobalsEnv);
     ReleaseList_SetEnv(&kReleaseListEnv);

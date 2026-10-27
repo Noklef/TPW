@@ -307,6 +307,9 @@ def message_case(r, lab):
         for i in range(max(0, min(struct.unpack_from('<i', lab, 0x145c)[0], 0x100))):
             put(lab, 0xc + i * 20 + 0xc, 'ff', 1.0, r.choice([1.0, 2.0]))
     regions.update({DEFS: lst, ITEMS: items, newt: table[:0x12d0], newt + 0x12d0: now, 0x80239c: struct.pack('<I', WORLD2), LAB: lab})
+    if r.random() < 0.7:   # (the advisor message 0xa7's record found and not yet posted, as Levels' for its codes)
+        put(regions[0x76e300], 0x38 * 0xa7 + 4, 'I', 0xa7)
+        put(regions[ADVISOR], 0xe0 + 0x10 * 0xa7, 'I', 0)
     log = regions[LOG]
     set_return(log, 0, r.choice([0x11] * 8 + [0x10, 0x12, 0xe]))
     blob_bytes(log, 21, 0, 0xfff)
