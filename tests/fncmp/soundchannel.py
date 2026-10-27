@@ -8,6 +8,7 @@
 # The voices' occlusion (0x6b7b60), the position's set (0x6b79d0), the functor 0x70a278's run (0x6b5e60) and the setters that apply it
 # (0x6b90d0, 0x6b9930; the sound object's 0x6b84f0 and 0x6b8b60; the sound commands' runs 0x6b57b0, 0x6b5720, 0x6b5810): see voices_case().
 # The voices' pick and play (0x6b9a60, 0x6b9ab0): see play_case().
+# The flag 2 switch (0x6b9160): see flag2_case().
 # usage: soundchannel.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -20,7 +21,7 @@ from fncmp import (HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, blob, echo, fb, fi
 CALLS = {'apply': 0x6b8b40, 'settings': 0x6b7d70, 'fn260': 0x6b5e40, 'eax0b': 0x6b7910, 'eaxall': 0x6b7970, 'occlusion': 0x6b7b60,
          'position': 0x6b79d0, 'fn278': 0x6b5e60, 'mode': 0x6b90d0, 'placement': 0x6b9930, 'voices': 0x6b84f0, 'b4c': 0x6b57b0, 'b3c': 0x6b5720,
          'b54': 0x6b5810, 'objplace': 0x6b8b60, 'voiceocc': 0x6b7fa0, 'clearocc': 0x6b7a70, 'pick': 0x6b9a60, 'play': 0x6b9ab0,
-         'setocc': 0x6b8180, 'addocc': 0x6b8230, 'remocc': 0x6b82c0, 'listremove': 0x6c4ba0}
+         'setocc': 0x6b8180, 'addocc': 0x6b8230, 'remocc': 0x6b82c0, 'listremove': 0x6c4ba0, 'flag2': 0x6b9160}
 SETTERS = ('occlusion', 'voiceocc', 'clearocc', 'position', 'fn278', 'mode', 'placement', 'voices', 'b4c', 'b3c', 'b54', 'objplace', 'setocc', 'addocc', 'remocc', 'listremove')
 B = Bench([(0x6b8b40, 0x6b8b60), (0x6b7d70, 0x6b7e5b), (0x6c4760, 0x6c47a3), (0x6b5e40, 0x6b5e59), (0x6b7910, 0x6b796b),
            (0x6b7970, 0x6b79cb), (0x6c4670, 0x6c46a7), (0x6c46b0, 0x6c475a), (0x6b7b60, 0x6b7d6e), (0x6b79d0, 0x6b7a6b), (0x6b5e60, 0x6b5fb4),
@@ -30,7 +31,8 @@ B = Bench([(0x6b8b40, 0x6b8b60), (0x6b7d70, 0x6b7e5b), (0x6c4760, 0x6c47a3), (0x
            (0x6b9c50, 0x6b9c6a), (0x6b9c70, 0x6b9c82), (0x6b9c90, 0x6b9ca9), (0x6b9cf0, 0x6b9d02), (0x6b9d30, 0x6b9d43), (0x6b6140, 0x6b6163),
            (0x6b8b60, 0x6b8c63), (0x6b7fa0, 0x6b814e), (0x6b7a70, 0x6b7b5f), (0x6b9a60, 0x6b9aa1), (0x6b9ab0, 0x6b9b26),
            (0x6b8180, 0x6b822d), (0x6b8230, 0x6b82b1), (0x6c49b0, 0x6c4b93), (0x6c4fd0, 0x6c4fe3), (0x5e2a30, 0x5e2a80), (0x5e2a80, 0x5e2b80),
-           (0x67acb0, 0x67acb1), (0x6b82c0, 0x6b832e), (0x6c4ba0, 0x6c4c1e)])
+           (0x67acb0, 0x67acb1), (0x6b82c0, 0x6b832e), (0x6c4ba0, 0x6c4c1e),
+           (0x6b9160, 0x6b91ce), (0x6b9660, 0x6b9760), (0x6bead0, 0x6beb03), (0x632150, 0x632380), (0x6b9b30, 0x6b9b94)])
 CHAN, OUT, FUNCTOR, FVT, REC, INFO, SRC, SVT, EAXB, KSET, KVT = (RAM + 0x100 * i for i in range(11))
 GLOBAL = 0xfb2058
 VOICES, VVT, SND, SNDVT, POOL, NODES, OCCS, VEC, VEC2, OBJECT, MIXER, COMMAND, P1, P2, P3 = (RAM + 0x1000 + 0x200 * i for i in range(15))
@@ -51,6 +53,8 @@ def case(r):
         return voices_case(r, log, name)
     if name in ('pick', 'play'):
         return play_case(r, log, name)
+    if name == 'flag2':
+        return flag2_case(r, log)
     if name in ('eax0b', 'eaxall'):
         blob(log, 4, 5, 1 if name == 'eax0b' else 0x3fff)   # (Set's data)
         set_return(log, 4, r.getrandbits(32))
@@ -117,6 +121,31 @@ def settings_case(r, log):
                EAXB: r.bytes(4) + struct.pack('<I', KSET), KSET: struct.pack('<I', KVT) + r.bytes(4), KVT: vtable({}, com={3: 8}),
                GLOBAL: r.bytes(4), LOG: log}
     return Call(0x6b7d70, [CHAN, OUT, REC], regions, conv='t', ret='a')
+
+
+F2_CHAN, F2_VT, F2_BANK, F2_RES, F2_RVT, F2_MAP, F2_BLOCK = (RAM + 0x6000 + 0x100 * i for i in range(7))
+
+
+def flag2_case(r, log):
+    """SoundChannel_SetFlag2 (0x6b9160): the channel's flags (+0x28) bits 0 and 1 any way, on 0, 1 or any; its slot 4 a recorder (its out on
+    the stack, logged as 0; the functor's vtable hashed). The category singleton made already, its deque B 0-3 banks (null or one whose
+    resource's slot 0 is recorder 0) within one block."""
+    strings(log, 4, 0, out=1)
+    blob(log, 4, 1, 1)
+    set_return(log, 4, r.getrandbits(32))
+    chan = bytearray(r.bytes(0x60))
+    struct.pack_into('<II', chan, 0, F2_VT, r.choice([0, 1, 2, 3, r.getrandbits(32)]))
+    struct.pack_into('<I', chan, 0x28, r.choice([0, 1, 2, 3, r.getrandbits(32)]))
+    n, j = r.choice([0, 1, 2, 3]), r.randrange(0x3f0)
+    category = bytearray(r.bytes(0xd4))
+    struct.pack_into('<4I', category, 0x6c, F2_BLOCK, F2_BLOCK + 0x1000, F2_BLOCK + 4 * j, F2_MAP)
+    struct.pack_into('<I', category, 0x94, n)
+    category[0xd0] = r.choice([1, r.getrandbits(8) | 1])
+    regions = {F2_CHAN: chan, F2_VT: vtable({4: 2}), OUT: r.bytes(4), LOG: log, 0xfb1f28: category,
+               F2_BANK: r.bytes(8) + struct.pack('<I', F2_RES) + r.bytes(0x34), F2_RES: struct.pack('<I', F2_RVT) + r.bytes(0xc),
+               F2_RVT: vtable({}), F2_MAP: struct.pack('<II', F2_BLOCK, F2_BLOCK),
+               F2_BLOCK: struct.pack('<1024I', *[r.choice([F2_BANK, F2_BANK, 0]) for _ in range(1024)])}
+    return Call(0x6b9160, [F2_CHAN, OUT, r.choice([0, 1, r.getrandbits(32)])], regions, conv='t', ret='a')
 
 
 def voices_case(r, log, name):

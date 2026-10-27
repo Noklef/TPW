@@ -60,6 +60,23 @@ u8 *__fastcall SoundChannel_NewResource(u8 *channel, void *, const u32 *desc) {
     return SoundResource_New(at<u8 *>(channel, 0x1c), desc, channel);
 }
 
+u32 *__fastcall SoundChannel_SetFlag2(u8 *channel, void *, u32 *out, u32 on) {
+    const u32 flags = at<u32>(channel, 0x28);
+    if (!(flags & 1)) {
+        *out = 0xffffffff;
+        return out;
+    }
+    if (!on != !(flags & 2)) {
+        at<u32>(channel, 0x28) = on ? flags | 2 : flags & ~2u;
+        u32 functor[2];   // (the second dword left unset, sic)
+        functor[0] = 0x0070a5b0;
+        vcall<void>(channel, 0x10, &on, functor);
+        SoundCategory_ReleaseBankResources();
+    }
+    *out = 0;
+    return out;
+}
+
 u8 *__fastcall SoundChannel_LoadBank(u8 *channel, void *, u32 index) {
     u8 *const category = SoundCategory_Get();
     u8 *bank = nullptr;

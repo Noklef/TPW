@@ -20,6 +20,10 @@ u8 *__fastcall SoundChannel_NewResource(u8 *channel, void *, const u32 *desc);
 // path's text}; 4 a SoundFont: name + path up to its last ".", ".sf2" appended, as {3, the cut length, the cut's text, the text}, and
 // when that fails the flag-1 open. The descriptor's +4 is uninitialised on flags 1 and 2 (0 here, sic; the loads ignore it).
 u8 *__fastcall SoundChannel_LoadBank(u8 *channel, void *, u32 index);
+// 0x6b9160 (thiscall (out, on), pops 8; name invented): without flag 1 (+0x28) *out = -1. Else, when on (nonzero) differs from flag 2:
+// flag 2 set or cleared to match, the channel's slot 4 (out: on's own stack slot, sic; a stack functor: vtable 0x70a5b0, its data
+// unset) and SoundCategory_ReleaseBankResources; *out = 0. Returns out.
+u32 *__fastcall SoundChannel_SetFlag2(u8 *channel, void *, u32 *out, u32 on);
 
 // 0x6b8b40 (thiscall (out, functor), pops 8): the functor's slot 0 (out, channel). Returns out.
 u32 *__fastcall SoundChannel_Apply(u8 *channel, void *, u32 *out, u8 *functor);
