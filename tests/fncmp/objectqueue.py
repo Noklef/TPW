@@ -190,9 +190,9 @@ def close(r):
 
 
 def flag64(r):
-    """0x4dfe30: close()'s world, +0x64 0, 1 or any, the argument 0, 1 or any"""
+    """0x4dfe30: close()'s world, +0x64 0, 1, set with its low byte 0 or any, the argument 0, 1 or any"""
     c = close(r)
-    put(c.regions[RAM], 0x64, 'I', r.choice([0, 0, 1, 1, r.getrandbits(32)]))
+    put(c.regions[RAM], 0x64, 'I', r.choice([0, 0, 1, 1, 0x100, 0x80000000, r.getrandbits(32)]))
     c.address, c.ret, c.args = 0x4dfe30, 'a', c.args[:1] + [r.choice([0, 0, 1, 1, r.getrandbits(32)])]
     return c
 
