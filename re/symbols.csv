@@ -5734,6 +5734,8 @@ address,name,kind,confidence,notes
 0x00441a00,CoasterEdit_ToggleDrag,function,low,"reimplemented (src/game/coaster/edittools); cdecl: the coaster editor's drag tool (tool 1): its value +0xe8, range and cost, the money on putting it down"
 0x004423f0,CoasterEdit_MoveCarBack,function,low,"reimplemented (src/game/coaster/edittools); cdecl (): the move-back tool toggled; on, the selected car swapped with the one after it"
 0x004425c0,CoasterEdit_MoveCarForward,function,low,"reimplemented (src/game/coaster/edittools); cdecl (): the move-forward tool toggled; on, the selected car swapped with the one before it"
+0x00442220,CoasterEdit_EndTool,function,low,"reimplemented (src/game/coaster/edittools); cdecl (): the editor's tool ended (the mode's flash, the tool toggled off, the mode cleared)"
+0x00444360,CoasterEdit_SetMode,function,low,reimplemented (src/game/coaster/edittools); cdecl (mode): the editor's tool ended and the mode set; mode 1 flashes the car and may flag 0x40
 0x0043f4e0,TrackMesh_EmitPiece,function,low,"reimplemented (src/game/coaster/trackmesh); cdecl (piece, next, count, positions, restart): a piece's samples turned into track mesh: cross sections placed by the spline frame, their triangles listed"
 0x004402d0,TrackMesh_PlaceSections,function,low,"reimplemented (src/game/coaster/trackmesh); cdecl: the section records placed along the track by zone, from 0x792600 (each the spline value and position, a blend and the zone)"
 0x00439780,CoasterCar_SetSoundMode,function,low,"reimplemented (src/game/coaster/carsound); cdecl (car, mode, value): a new mode sets the looped sound's first parameter to its level, then the second parameter to value"

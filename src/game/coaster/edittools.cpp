@@ -8,7 +8,9 @@
 #include "../model/highlight.h"
 #include "../world/money.h"
 #include "../world/world.h"
+#include "cursor.h"
 #include "helpers.h"
+#include "registry.h"
 #include "train.h"
 
 namespace {
@@ -314,4 +316,64 @@ extern "C" {
 void __cdecl CoasterEdit_MoveCarBack() { MoveCar(8, 0x3d, true); }
 
 void __cdecl CoasterEdit_MoveCarForward() { MoveCar(0x10, 0x3e, false); }
+}
+
+namespace {
+
+// What 0x442220 and 0x444360 both do first: with 0x79c624 bit 0 and a game, the game's flag 4 cleared, Flags_SetChanged (game, 0)
+// and, unless its +0x3c has bit 0 without bit 1, Coaster_FlashCar (game, 1); then the tool in use (flags bits 0-5) toggled off.
+void EndTool() {
+    if ((g<u8>(0x0079c624) & 1) && g<u8 *>(0x00790fec)) {
+        at<u32>(g<u8 *>(0x00790fec), 0) &= ~4u;
+        Flags_SetChanged(g<u32 *>(0x00790fec), 0);
+        u8 *const game = g<u8 *>(0x00790fec);
+        const u32 f = at<u32>(game, 0x3c);
+        if (!(f & 1) || (f & 2)) Coaster_FlashCar(game, 1);
+    }
+    switch (Flags() & 0x3f) {
+    case 1: CoasterEdit_ToggleDrag(); break;
+    case 2: CoasterEdit_ToggleAdjustE0(); break;
+    case 4: CoasterEdit_ToggleAdjust(); break;   // (inlined in both)
+    case 8: CoasterEdit_MoveCarBack(); break;
+    case 0x10: CoasterEdit_MoveCarForward(); break;
+    case 0x20: TrackSelection_End(); break;   // (inlined in both)
+    default: break;
+    }
+}
+
+void SetModeState(u32 mode) {
+    g<u32>(0x0079c664) = 0;
+    g<u32>(0x0079c644) = 0;
+    g<u32>(0x0079c624) = mode;
+    Flags() &= ~0x40u;
+}
+
+}  // namespace
+
+extern "C" {
+
+void __cdecl CoasterEdit_EndTool() {
+    EndTool();
+    SetModeState(0);
+}
+
+void __cdecl CoasterEdit_SetMode(u32 mode) {
+    EndTool();
+    SetModeState(mode);
+    if ((u8)mode != 1) return;
+    Coaster_FlashCar(g<u8 *>(0x00790fec), 2);
+    at<u32>(g<u8 *>(0x00790fec), 0) |= 4;   // (sic: before the game is tested)
+    const u8 *const game = g<const u8 *>(0x00790fec);
+    if (!game || !(at<u8>(at<const u8 *>(game, 4), 0) & 2)) return;
+    const u32 f = at<u32>(game, 0x3c);
+    bool flagged;
+    if (!(f & 1))
+        flagged = at<u8>(at<const u8 *>(game, 0x58), 8) & 0x80;
+    else
+        flagged = (f & 2) && (at<u8>(at<const u8 *>(game, 0x60), 8) & 0x80);
+    if (flagged) {
+        g<u32>(0x0079c664) = 1;
+        Flags() |= 0x40;
+    }
+}
 }

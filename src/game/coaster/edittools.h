@@ -55,4 +55,16 @@ void __cdecl CoasterEdit_MoveCarBack();
 // 0x4425c0 (cdecl; name unconfirmed): the move-forward tool (0x10), as CoasterEdit_MoveCarBack with a car not its train's first (+4
 // above 0), recorded as 0x3e, swapped with the one before it.
 void __cdecl CoasterEdit_MoveCarForward();
+
+// 0x442220 (cdecl; name unconfirmed): the editor's tool ended. With the mode 0x79c624 bit 0 and a game: the game's flag 4 cleared,
+// Flags_SetChanged (game, 0) and, unless its +0x3c has bit 0 without bit 1, Coaster_FlashCar (game, 1). Then the tool in use (flags
+// bits 0-5) is toggled off: 1 CoasterEdit_ToggleDrag, 2 CoasterEdit_ToggleAdjustE0, 4 CoasterEdit_ToggleAdjust (inlined), 8
+// CoasterEdit_MoveCarBack, 0x10 CoasterEdit_MoveCarForward, 0x20 TrackSelection_End (inlined); another, nothing. Then 0x79c664,
+// 0x79c644 and the mode cleared and flag 0x40 too.
+void __cdecl CoasterEdit_EndTool();
+
+// 0x444360 (cdecl; mode; name unconfirmed): as CoasterEdit_EndTool, but the mode (0x79c624) becomes mode; mode 1 (its low byte) then
+// Coaster_FlashCar (game, 2), the game's flag 4 set (sic: before the game is tested), and with a game whose +4 has flag 2 (a byte),
+// when the car at +0x58 (the game's +0x3c bit 0 clear) or at +0x60 (bits 0 and 1 set) has flag 0x80 (+8), 0x79c664 = 1 and flag 0x40.
+void __cdecl CoasterEdit_SetMode(u32 mode);
 }
