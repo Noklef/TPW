@@ -2557,6 +2557,8 @@ address,name,kind,confidence,notes
 0x004a77a0,TextArg_Ctor,function,high,"reimplemented (src/game/core/textarg); thiscall (n): the abstract format argument (vtable 0x6ffb34: _purecall, tag 'MRAV', number +8)"
 0x004ea220,TextArgString_Ctor,function,high,"reimplemented (src/game/core/textarg); thiscall (n, string): a string format argument (vtable 0x6ff174)"
 0x0050aef0,TextArgInt_Ctor,function,high,"reimplemented (src/game/core/textarg); thiscall (n, value, isSigned): a number format argument (vtable 0x6ff170, L""%d""); signed negatives as magnitude + flag (+0x10)"
+0x006add40,TextArgInt_Write,function,low,"reimplemented (src/game/core/textarg); The text formatter's number argument written to a writer with L""%d"""
+0x006add70,TextArgString_Write,function,low,reimplemented (src/game/core/textarg); The text formatter's string argument written whole to a writer
 0x0051bb60,Sound_Set803ab8,function,high,"reimplemented (src/game/core/soundset); cdecl (value): [0x803ab8] = value, the changed flag [0x803ac8] = 1"
 0x0051bb80,Sound_Set803ac0,function,high,"reimplemented (src/game/core/soundset); cdecl (value): [0x803ac0] = value (a volume, scaled by [0x785914] %), changed"
 0x0051bba0,Sound_Set803abc,function,high,"reimplemented (src/game/core/soundset); cdecl (value): [0x803abc] = value (a volume, scaled by [0x785914] %), changed"
