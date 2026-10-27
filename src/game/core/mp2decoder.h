@@ -46,4 +46,8 @@ void __fastcall Mp2Decoder_Dtor(u8 *decoder, void *);
 u8 *__fastcall Mp2BufferDecoder_DeletingDtor(u8 *decoder, void *, u32 flags);
 u8 *__fastcall Mp2StreamDecoder_DeletingDtor(u8 *decoder, void *, u32 flags);
 
+// 0x6d17b0 (thiscall (pcm), pops 4; name invented): 0 when its slot 4 answers nonzero; else the frame of the layer (+0x2442): II
+// Mp2Decoder_DecodeLayer2, I Mp2Decoder_DecodeLayer1, others 0.
+s32 __fastcall Mp2Decoder_DecodeFrame(u8 *decoder, void *, s16 *pcm);
+
 }  // extern "C"

@@ -6,8 +6,11 @@
 
 #include "cpuinfo.h"
 #include "initializers.h"
+#include "mp2layer1.h"
+#include "mp2layer2.h"
 #include "mp2pool.h"
 #include "trivial.h"
+#include "vcall.h"
 
 namespace {
 
@@ -156,6 +159,14 @@ u8 *__fastcall Mp2StreamDecoder_DeletingDtor(u8 *decoder, void *, u32 flags) {
     Mp2Decoder_Dtor(decoder, nullptr);
     if (flags & 1) Mp2StreamPool_Delete(decoder, 0x2c80);
     return decoder;
+}
+
+s32 __fastcall Mp2Decoder_DecodeFrame(u8 *decoder, void *, s16 *pcm) {
+    if (vcall<u32>(decoder, 0x10)) return 0;
+    const u8 layer = decoder[0x2442];
+    if (layer == 2) return Mp2Decoder_DecodeLayer2(decoder, nullptr, pcm);
+    if (layer == 1) return Mp2Decoder_DecodeLayer1(decoder, nullptr, pcm);
+    return 0;
 }
 
 }  // extern "C"
