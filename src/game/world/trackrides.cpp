@@ -10,6 +10,7 @@
 #include "../math/x87.h"
 #include "../render/particles.h"
 #include "../core/soundset.h"
+#include "queuepieces.h"
 #include "ridelist.h"
 #include "trackpools.h"
 #include "things.h"
@@ -60,6 +61,23 @@ u8 *SectionNode(u8 *section, u32 x, u32 y, u32 size) {
 u8 *Flagged(u8 *node, u32 clear, u32 set) {
     at<u32>(node, 0) = (at<u32>(node, 0) & ~clear) | set;
     return node;
+}
+
+// A car's position dword (+0x34 or +0x38) as the sounds take it: fild; fmul 0.0033036 (0x700f20); __ftol.
+s32 SoundPlace(const u8 *car, u32 offset) { return Ftol(X87_MulIntDouble(at<s32>(car, offset), global<float>(0x00700f20))); }
+
+// The first thing in use (newest first) that is an object (+2 is 3) of the ride (its dword +0x28 the name): its handle, else 0
+// (TrakRide_FindThing's search, inlined, through Thing_ByHandle).
+u16 RideObject(u32 ride) {
+    void *const world = global<void *>(0x007cf83c);
+    u16 handle;
+    World_FirstThing(world, nullptr, &handle);
+    while (handle != 0) {
+        const u8 *const thing = Thing_ByHandle(handle);
+        if (thing[2] == 3 && at<u32>(thing, 0x28) == ride) return *Thing_GetHandle(thing, nullptr, &handle);
+        handle = *World_NextThing(world, nullptr, &handle, thing);
+    }
+    return 0;
 }
 
 }  // namespace
@@ -738,6 +756,49 @@ s32 __cdecl TrakRide_Unload(u8 *ride, u32 effect) {
     return at<s32>(at<u8 *>(ride, 0x9c), 0x60);
 }
 
+s32 __cdecl TrakCar_Remove(u8 *car) {
+    u8 *const ride = at<u8 *>(car, 0x9c);
+    TrakRide_Unload(car, 0);
+    if (at<u32>(car, 0) & 0x400000u) {
+        at<u32>(ride, 0x58) = 0;
+        at<u32>(car, 0) &= ~0x400000u;
+    }
+    if (at<s32>(ride, 0x50) != 4) SeatEffect(reinterpret_cast<u8 *const *>(0x007a4610)[at<u32>(car, 8)], 0xf);
+    QueuePiece_Remove(at<u32>(car, 8));   // (Ride_Destroy 0x463c80, through the queue pieces' env)
+    if (at<u32>(car, 0) & 0x2002000u) {
+        QueuePiece_Remove(at<u32>(car, 0xc));
+        at<u32>(car, 0) &= 0xfdffdfffu;
+    }
+    const u32 sound = at<u32>(car, 0x20);
+    if (sound && at<s32>(ride, 0x50) != 4) {
+        const s32 kind = at<s32>(ride, 0);
+        if (kind == -10 || kind == -9 || kind == -7 || kind == -4) {
+            const u16 found = RideObject(NameOf(at<const u8 *>(car, 0x9c)));
+            const s32 id = found ? at<s32>(Thing_ByHandle(found), 0x24) : 0;
+            const u32 played = Sound_PlayRideElement(id, sound, global<u32>(0x00803a3c), 1, 0, 0, 0);
+            at<u32>(car, 0x20) = played;
+            if (played) {
+                const s32 x = SoundPlace(car, 0x34), z = SoundPlace(car, 0x38);
+                at<u32>(car, 0x20) = Sound_SetPosition(played, x, 0, z);
+            }
+            at<u32>(car, 0x20) = 0;
+        } else {
+            Sound_Stop(sound);
+        }
+    }
+    if (at<s32>(car, 0x2c) != -1) {
+        ParticleSystem_End(at<u32>(car, 0x2c));
+        at<s32>(car, 0x2c) = -1;
+    }
+    at<u32>(car, 0) &= ~1u;
+    --global<s32>(0x00877b6c);
+    if (--at<s32>(ride, 0x5c) == 0) {
+        const s32 kind = at<s32>(ride, 0);
+        if (kind != -13 && kind != -12 && kind != -8 && kind != -5) at<s32>(ride, 0x50) = 1;
+    }
+    return at<s32>(ride, 0x5c);
+}
+
 void __cdecl TrakRide_Load(u8 *ride, u32 effect) {
     u8 *const *const instances = reinterpret_cast<u8 *const *>(0x007a4610);
     u32 seat = 1;
@@ -763,8 +824,6 @@ void __cdecl TrakCar_PlaySounds(u8 *car) {
     const u32 state = at<u32>(car, 0x18);
     if (state - 1 > 4)
         return;
-    // fild +0x34 / +0x38; fmul 0.0033036 (0x700f20); __ftol
-    const auto place = [&](u32 offset) { return Ftol(X87_MulIntDouble(at<s32>(car, offset), global<float>(0x00700f20))); };
     if (state == 2) {
         const u32 seed = global<u32>(0x00877b90) * 0x343fd + 0x269ec3;
         global<u32>(0x00877b90) = seed;
@@ -773,7 +832,7 @@ void __cdecl TrakCar_PlaySounds(u8 *car) {
             return;
         }
     }
-    const s32 x = place(0x34), z = place(0x38);
+    const s32 x = SoundPlace(car, 0x34), z = SoundPlace(car, 0x38);
     if (state == 1 || state == 3 || state == 5) {
         Sound_PlayAt(0, global<u32>(0x00803a28), state == 1 ? 0x18 : 0xc, x, 0, z);
         at<u32>(car, 0x18) = 0;
@@ -788,17 +847,7 @@ void __cdecl TrakCar_PlaySounds(u8 *car) {
         if (found)
             id = at<s32>(global<u8 *>(0x007cfb90 + 20u * found), 0x24);
     } else {
-        void *const world = global<void *>(0x007cf83c);
-        u16 handle;
-        World_FirstThing(world, nullptr, &handle);
-        while (handle != 0) {
-            const u8 *const thing = Thing_ByHandle(handle);
-            if (thing[2] == 3 && at<u32>(thing, 0x28) == ride) {
-                found = *Thing_GetHandle(thing, nullptr, &handle);
-                break;
-            }
-            handle = *World_NextThing(world, nullptr, &handle, thing);
-        }
+        found = RideObject(ride);
         if (found) {
             (void)*reinterpret_cast<const volatile u32 *>(global<uintptr_t>(0x007cf6ec));   // (the world pointer, read for ECX)
             id = at<s32>(Thing_ByHandle(found), 0x24);
