@@ -3,11 +3,14 @@
 #include <cstdint>
 
 #include "../model/holder.h"
+#include "../model/parts.h"
 #include "../model/partstate.h"
 #include "../motion/animator.h"
+#include "../core/soundplay.h"
 #include "../math/x87.h"
 #include "../render/particles.h"
 #include "trackpools.h"
+#include "things.h"
 
 namespace {
 
@@ -15,6 +18,18 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 bool loaded() { return global<u32>(0x00877b58) == 0x4a454647; }
+
+s32 Ftol(X87Reg x) { return (s32)(long long)x.v; }
+
+// Particle_Spawn(0x13) at 1024 times the position +0x40..+0x48 of the root (+0x78) of the model (+4) of the instance's holder (+8): z
+// through __ftol first.
+void SeatEffect(const u8 *instance) {
+    const u8 *const root = at<const u8 *>(at<const u8 *>(at<const u8 *>(instance, 8), 4), 0x78);
+    const s32 z = Ftol(X87Reg(at<float>(root, 0x48)) * 1024.0f);
+    const s32 y = Ftol(X87Reg(at<float>(root, 0x44)) * 1024.0f);
+    const s32 x = Ftol(X87Reg(at<float>(root, 0x40)) * 1024.0f);
+    Particle_Spawn(0x13, x, y, z);
+}
 
 // The ride a handle indexes, or 0; whether the handle also names it (its index and serial).
 u8 *RideOf(u32 handle) {
@@ -688,5 +703,106 @@ s32 __cdecl TrakRide_AddSection(u32 handle, s32 x, s32 y, u32 piece, u32 a, u32 
         }
     }
     return 1;
+}
+
+u16 *__cdecl TrakRide_FindThing(u16 *out, u32 ride) {
+    void *const world = global<void *>(0x007cf83c);
+    u16 handle;
+    World_FirstThing(world, nullptr, &handle);
+    while (handle != 0) {
+        const u8 *const thing = global<const u8 *>(0x007cfb90 + handle * 20u);
+        if (thing[2] == 3 && at<u32>(thing, 0x28) == ride) {
+            *out = *Thing_GetHandle(thing, nullptr, &handle);
+            return out;
+        }
+        handle = *World_NextThing(world, nullptr, &handle, thing);
+    }
+    *out = 0;
+    return out;
+}
+
+s32 __cdecl TrakRide_Unload(u8 *ride, u32 effect) {
+    u8 *const *const instances = reinterpret_cast<u8 *const *>(0x007a4610);
+    for (u8 *node; (node = at<u8 *>(ride, 0x30)) != nullptr;) {
+        at<u32>(ride, 0x30) = at<u32>(node, 0x10);
+        at<u32>(node, 0x10) = at<u32>(at<u8 *>(ride, 0x9c), 0xc8);
+        at<u8 *>(at<u8 *>(ride, 0x9c), 0xc8) = node;
+        --at<s32>(at<u8 *>(ride, 0x9c), 0x60);
+        if (at<s32>(node, 8) == -1) continue;
+        PartStates_Release(at<u8 *>(instances[at<u32>(ride, 8)], 8), at<u32>(node, 8));
+        at<s32>(node, 8) = -1;
+        if (effect) SeatEffect(instances[at<u32>(ride, 8)]);
+    }
+    return at<s32>(at<u8 *>(ride, 0x9c), 0x60);
+}
+
+void __cdecl TrakRide_Load(u8 *ride, u32 effect) {
+    u8 *const *const instances = reinterpret_cast<u8 *const *>(0x007a4610);
+    u32 seat = 1;
+    for (u8 *node = at<u8 *>(ride, 0x30); node; node = at<u8 *>(node, 0x10)) {
+        const u32 part = Model_FindPartByKey4(instances[at<u32>(ride, 8)], 0x80, seat);
+        at<u32>(node, 0xc) = seat++;
+        at<u32>(node, 8) = part;
+        if (part != 0xffffffffu) {
+            PartStates_Activate(at<u8 *>(instances[at<u32>(ride, 8)], 8), part, at<u32>(node, 0));
+            if (effect) SeatEffect(instances[at<u32>(ride, 8)]);
+        }
+        ++at<s32>(at<u8 *>(ride, 0x9c), 0x60);
+    }
+}
+
+void __cdecl TrakCar_PlaySounds(u8 *car) {
+    const u32 next = at<u32>(car, 0x14);
+    if (next != 0) {
+        if (next > at<u32>(car, 0x18))
+            at<u32>(car, 0x18) = next;
+        at<u32>(car, 0x14) = 0;
+    }
+    const u32 state = at<u32>(car, 0x18);
+    if (state - 1 > 4)
+        return;
+    // fild +0x34 / +0x38; fmul 0.0033036 (0x700f20); __ftol
+    const auto place = [&](u32 offset) { return Ftol(X87_MulIntDouble(at<s32>(car, offset), global<float>(0x00700f20))); };
+    if (state == 2) {
+        const u32 seed = global<u32>(0x00877b90) * 0x343fd + 0x269ec3;
+        global<u32>(0x00877b90) = seed;
+        if (seed & 0x70000) {
+            at<u32>(car, 0x18) = 0;
+            return;
+        }
+    }
+    const s32 x = place(0x34), z = place(0x38);
+    if (state == 1 || state == 3 || state == 5) {
+        Sound_PlayAt(0, global<u32>(0x00803a28), state == 1 ? 0x18 : 0xc, x, 0, z);
+        at<u32>(car, 0x18) = 0;
+        return;
+    }
+    const u32 ride = NameOf(at<const u8 *>(car, 0x9c));
+    u16 found = 0;
+    s32 id = 0;
+    if (state == 2) {
+        u16 handle;
+        found = *TrakRide_FindThing(&handle, ride);
+        if (found)
+            id = at<s32>(global<u8 *>(0x007cfb90 + 20u * found), 0x24);
+    } else {
+        void *const world = global<void *>(0x007cf83c);
+        u16 handle;
+        World_FirstThing(world, nullptr, &handle);
+        while (handle != 0) {
+            const u8 *const thing = Thing_ByHandle(handle);
+            if (thing[2] == 3 && at<u32>(thing, 0x28) == ride) {
+                found = *Thing_GetHandle(thing, nullptr, &handle);
+                break;
+            }
+            handle = *World_NextThing(world, nullptr, &handle, thing);
+        }
+        if (found) {
+            (void)*reinterpret_cast<const volatile u32 *>(global<uintptr_t>(0x007cf6ec));   // (the world pointer, read for ECX)
+            id = at<s32>(Thing_ByHandle(found), 0x24);
+        }
+    }
+    Sound_PlayRideElement(id, 0, global<u32>(0x00803a3c), state == 2 ? 3 : 4, x, 0, z);
+    at<u32>(car, 0x18) = 0;
 }
 }

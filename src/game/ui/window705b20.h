@@ -79,4 +79,9 @@ void __fastcall Window705b20_AddThumb(u8 *window);
 // flags & 0x40, +0x148 1; Window705b20_Layout; with flags & 0x80 the arrows (Window705b20_AddArrow1 / 2, not with bit 4 of +0x14c) and
 // the thumb (Window705b20_AddThumb); the handlers +0x114 / +0x118 0x66ba22. Returns the window.
 u8 *__fastcall Window705b20_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 id, u32 left, u32 top, u32 right, u32 bottom);
+
+// 0x66b9bc / 0x66b9ef (thiscall; names unconfirmed): the parent +0x60 sent 0x801 / 0x802 (the id +0x8c, the position +0x140;
+// Window_SendMessage). EAX not kept.
+void __fastcall Window705b20_NotifyScroll(u8 *window);
+void __fastcall Window705b20_NotifyScrollEnd(u8 *window);
 }

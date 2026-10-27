@@ -1,5 +1,5 @@
 # The thing table and its delete queue (src/game/world/things: 0x515f30, 0x516130, 0x516160, 0x5161b0, 0x516200, 0x516270, 0x516310, 0x518ea0,
-# 0x51ad40, 0x51ad90) against the originals: slots in use chained newest first, handles queued (some of the same slot), the free list head at
+# 0x51ad40, 0x51ad90; the queue's atexit entry 0x5153c0, its guard 0x7cf6d4 set or not) against the originals: slots in use chained newest first, handles queued (some of the same slot), the free list head at
 # 0x801bbc; blocks come from and go to the heap region.
 # usage: things.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Name,...; Init is heavy (the whole 0x2800-slot table) and not in the default)
 import os
@@ -14,7 +14,8 @@ from thingenv import POOL, SLOTS, THING, park  # noqa: E402
 # name: (address, size, convention, returns)
 CALLS = {'Rel518': (0x518ea0, 0xf0, 'c', 'v'), 'First': (0x516130, 0x30, 't', 'a'), 'Next': (0x516160, 0x50, 't', 'a'), 'Prev': (0x5161b0, 0x50, 't', 'a'),
          'SlotRel': (0x516200, 0x70, 't', 'v'), 'Add': (0x516270, 0xa0, 't', 'a'), 'QDel': (0x516310, 0x20, 't', 'v'), 'Push': (0x51ad40, 0x50, 't', 'v'),
-         'Pop': (0x51ad90, 0x50, 't', 'a'), 'Init': (0x515f30, 0x80, 'c', 'v'), 'World': (0x515660, 0x40, 't', 'a')}
+         'Pop': (0x51ad90, 0x50, 't', 'a'), 'Init': (0x515f30, 0x80, 'c', 'v'), 'World': (0x515660, 0x40, 't', 'a'),
+         'AtExit': (0x5153c0, 0x5b, 'c', 'v')}
 B = Bench([(a, a + n) for (a, n, _c, _r) in CALLS.values()] + [(0x515f30, 0x515fb0), (0x4d0a70, 0x4d0a90), (0x50b350, 0x50b360), (0x51ad40, 0x51ad90), (0x5da3c0, 0x5da3c1)])
 NODES, OUT = RAM + 0x3000, RAM + 0x300
 
@@ -30,7 +31,7 @@ def queue(r, handles, n):
 
 
 def case(r):
-    name = r.choice(OPS)
+    name = r.deal(OPS)
     address, _n, conv, ret = CALLS[name]
     if name == 'Init':
         slots = bytearray(r.bytes(0x2800 * 20))
@@ -43,16 +44,19 @@ def case(r):
     regions[OUT] = r.bytes(8)
     regions[RAM] = r.bytes(0x40)
     n = r.choice([0, 1, 2, 3, 4])
-    if name in ('Rel518', 'QDel', 'Push', 'Pop'):
+    if name in ('Rel518', 'QDel', 'Push', 'Pop', 'AtExit'):
         nodes, header = queue(r, handles, n)
         regions[NODES] = nodes
-        if name == 'Rel518' or name == 'QDel':
+        if name in ('Rel518', 'QDel', 'AtExit'):
             regions[0x801f38] = header
         else:
             regions[RAM] = bytearray(header) + r.bytes(0x30)
     regions[0x801bbc] = struct.pack('<I', r.choice([0, SLOTS + 20 * 3, SLOTS + 20 * 7, r.getrandbits(32)]) if name != 'Add' else r.choice([0, SLOTS + 20 * 3, SLOTS + 20 * 7]))
     k = r.randrange(len(handles))
     if name == 'Rel518':
+        return Call(address, [], regions, conv=conv, ret=ret)
+    if name == 'AtExit':
+        regions[0x7cf6d4] = bytes([r.choice([0, 0, 0, 1, 0xfe, 0xff])])
         return Call(address, [], regions, conv=conv, ret=ret)
     if name == 'First':
         return Call(address, [RAM, OUT], regions, conv=conv, ret=ret)

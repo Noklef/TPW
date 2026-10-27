@@ -6,7 +6,9 @@
 # products past 2^63; each field out null or a slot (at times the same one). The spans: of ticks about the same, and since ticks about
 # the world's. Its users' ages in days (an object's 0x4dd670, a staff member's 0x505b70): dates about whole days before now. The park
 # analyser's time stamps (Stamp: 0x4c7680, 0x4c76d0) of now, the analyser placed so that they land in OUT.
-# usage: funnytime.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Init,Now,SpanOf,Elapsed,SpanSince,ObjectDays,StaffDays,Stamp)
+# The world's constructor (World: 0x515540, src/game/world/world), which makes such a clock at +0x2a0: its whole block (0x1da748 bytes) any
+# bytes, the clock's imports as Init's.
+# usage: funnytime.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Init,Now,SpanOf,Elapsed,SpanSince,ObjectDays,StaffDays,Stamp,World)
 import os
 import struct
 import sys
@@ -17,8 +19,12 @@ from fncmp import IMPORT_TABLE as IAT, LOG, Bench, Call, RAM, fill, import_table
 RANGES = [(0x4f7e80, 0x4f7f2d), (0x4f8690, 0x4f8730), (0x4f8730, 0x4f8769), (0x4f8800, 0x4f88a6), (0x4f88b0, 0x4f88f6), (0x4dd670, 0x4dd6c3), (0x505b70, 0x505bc6),
           (0x5fc530, 0x5fc550), (0x5fc550, 0x5fc570), (0x5fc5c0, 0x5fc65e), (0x5fc660, 0x5fc733), (0x67c320, 0x67c3ca), (0x67c7f0, 0x67c824),
           (0x4c7680, 0x4c76c2), (0x4c76d0, 0x4c7712)]
-B = Bench(RANGES)
+WORLD_RANGES = [(0x515540, 0x515660), (0x507800, 0x507840), (0x4cf030, 0x4cf050), (0x401000, 0x401030), (0x4d8da0, 0x4d8dd0), (0x50c1d0, 0x50c1f0),
+                (0x502460, 0x502470), (0x4d0a90, 0x4d0ac0), (0x4d0ac0, 0x4d0af0), (0x51ad30, 0x51ad40),
+                (0x67acf0, 0x67ada0), (0x507080, 0x5070a0)]
+B = Bench(RANGES + WORLD_RANGES)
 CLOCK, OUT, TICKS = RAM, RAM + 0x100, RAM + 0x400
+WORLD_AT = RAM + 0x10000   # (World's world)
 DAY = 864000000000   # FILETIME ticks
 WORLD = TICKS - 0x1da70c   # (only its ticks are read)
 # The imports: slot, import table address, stack arguments, string arguments (mask), out arguments (mask).
@@ -50,7 +56,7 @@ def case(r):
     clock = bytearray(r.bytes(0x40))
     regions = {CLOCK: clock, OUT: bytearray(r.bytes(0x40))}
     log = clock_regions(r, regions)
-    if op == 'Init':
+    if op in ('Init', 'World'):
         st = bytearray(r.bytes(16))
         st[r.choice([1, 2, 3, 3, 3])] = 0   # (the string the SYSTEMTIME is hashed as ends within its year and month)
         fill(log, K['GetLocalTime'], 0, bytes(st), 1)
@@ -59,6 +65,9 @@ def case(r):
             set_return(log, K['SystemTimeToFileTime'], r.choice([0, 1, 1, r.getrandbits(32)]))
         if r.random() < 0.3:   # (the high dword at or past 2^31: a failure undone)
             put(log, 0xb10 + 4, 'I', r.choice([0x80000000, 0x7fffffff, 0xffffffff]))
+        if op == 'World':
+            regions.update({WORLD_AT: r.bytes(0x1da748), 0x7cf56c: r.bytes(4), 0x801bbc: r.bytes(4), 0x7cdb40: r.bytes(0x18)})
+            return Call(0x515540, [WORLD_AT], regions, conv='t', ret='a')
         return Call(0x4f7e80, [CLOCK], regions, conv='t', ret='a')
     put(clock, 0x1c, 'I', u32(r))
     if r.random() < 0.3:
@@ -92,7 +101,7 @@ def case(r):
     return Call(0x4f8690, [CLOCK, OUT + 0x20] + outs, regions, conv='t', ret='a')
 
 
-KINDS = ['Init', 'Now', 'Now', 'SpanOf', 'Elapsed', 'SpanSince', 'ObjectDays', 'StaffDays', 'Stamp']
+KINDS = ['Init', 'Now', 'Now', 'SpanOf', 'Elapsed', 'SpanSince', 'ObjectDays', 'StaffDays', 'Stamp', 'World']
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 if __name__ == '__main__':

@@ -1,4 +1,4 @@
-// The game panel object at 0x7ca178 (its vtable 0x6ff740). Reimplementation of 0x497100. The names are unconfirmed.
+// The game panel object at 0x7ca178 (its vtable 0x6ff740). Reimplementation of 0x496f90, 0x497100. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -10,4 +10,7 @@ extern "C" {
 // 0x15bbe text 0x3c, 0x15bbc text 0x3d, 0x15bbf text 0x3f, 0x15bbd a 0x6ff350 part with 0, 0x15bbb a ridestatbar bar with 0x32, 0x15bc0 a
 // 0x6ff3b0 part with 0.
 void __fastcall Panel7ca178_Dress(u8 *self);
+
+// 0x496f90 (thiscall; slot 4 of the vtable 0x6ff740): the window +0x1c dressed as panelparts::tip (the same code in four panels).
+void __fastcall Panel7ca178_DressTip(u8 *self);
 }

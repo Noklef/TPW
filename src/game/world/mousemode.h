@@ -21,12 +21,16 @@ struct MouseModeEnv {
 // The deleting destructors' frees and MouseMode_Set's atexit go to env (nullptr: the game's).
 void MouseModes_SetEnv(const MouseModeEnv *env);
 
-// Inlined in 0x481a10 and 0x485b70 (not a function of the game's): the one-byte object at [0x7b05e8] made the first time (Mem_Alloc(1),
-// its byte left as it is): its constructor sets the mouse mode to a new CMMOnline base (Mem_Alloc(8), MouseModeOnlineBase_Ctor; 0 when
-// that failed; MouseMode_Set) and 0x7b05e0 and 0x7b05d4 to -1. Its allocation failing: [0x7b05e8] stays 0 and nothing else is done.
-void MouseModes_EnsureHolder();
-
 extern "C" {
+
+// 0x40bed0 (cdecl; name unconfirmed; also inlined in 0x481a10 and 0x485b70): the one-byte object at [0x7b05e8] made the first time
+// (Mem_Alloc(1), its byte left as it is) and constructed (MouseModeHolder_Ctor, inlined there). Its allocation failing: [0x7b05e8] stays
+// 0 and nothing else is done. Returns [0x7b05e8] (EAX; the game's callers ignore it).
+u8 *__cdecl MouseModes_EnsureHolder();
+
+// 0x46d550 (thiscall; name unconfirmed): the one-byte mode holder's constructor: the mouse mode set to a new CMMOnline base
+// (Mem_Alloc(8), MouseModeOnlineBase_Ctor; 0 when that failed; MouseMode_Set), 0x7b05e0 and 0x7b05d4 = -1. Returns the holder.
+u8 *__fastcall MouseModeHolder_Ctor(u8 *holder);
 
 // 0x46c070 / 0x46c090: static initialisers of two floats nothing reads: 0x7b05a0 = 1 and
 // 0x7b05a4 = 1 / 2^23 (as camera's). 0x46c0b0: the pointer state's tile (0x7b05cc, u16) = 1
@@ -113,4 +117,9 @@ void __fastcall MouseMode6fead0_Assign(u8 *self);
 void __fastcall MMPlaceStaff_Assign(u8 *self);
 // 0x46cbf0 (the 0x6fea70 mode): the same with folder +0xc and sprite the byte +0x10.
 void __fastcall MMStaffDrop_Assign(u8 *self);
+
+// 0x497bc0 (cdecl; called from 0x498430-0x498500; name unconfirmed): the holder [0x7b05e8] made when missing (MouseModes_EnsureHolder);
+// then unless the current mode ([0x7b05d8], read after that) answers 8 through its slot 9 (none: 0), a new 0x6feaa0 mode (Mem_Alloc(8),
+// MouseMode6feaa0_Ctor; 0 when that failed) made, the holder made when missing again and the mode set (MouseMode_Set).
+void __cdecl MouseMode_Ensure6feaa0();
 }

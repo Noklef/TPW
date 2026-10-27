@@ -1,9 +1,10 @@
 // The out-of-line members of the game's MSVC6 list<string> (nodes of 0x18 bytes: next, previous, the string at +8; the list object holds the sentinel node at +4 and the count
-// at +8) and of a list of dwords (nodes of 0xc bytes: next, previous, value): reimplementation of 0x5cde80, 0x5cdf00, 0x5d0330 and 0x618160.
+// at +8) and of a list of dwords (nodes of 0xc bytes: next, previous, value): reimplementation of 0x5cde80, 0x5cdf00, 0x5d0330 and 0x618160, and list<wstring>'s insert (0x5d3600).
 #pragma once
 
 #include "../../../re/types.h"
 #include "stdstring.h"
+#include "stdwstring.h"
 
 extern "C" {
 
@@ -20,6 +21,9 @@ void __fastcall StdListString_PushBack(u8 *list, void *, const StdString *x);
 // the port returns a static copy of the released local).
 const StdString *__fastcall StdListString_Next(u8 *list);
 
+// 0x5cd430 (thiscall; name unconfirmed): the list's cursor (+0xc) put on its first node, then StdListString_Next (a tail jump).
+const StdString *__fastcall StdListString_First(u8 *list);
+
 // 0x4a8ad0 (thiscall on the owner of a list of std::string at +0x10 (sentinel +0x14, count +0x18); chars, pops 4; name unconfirmed): a std::string
 // made of the characters (_Grow(strlen, true); its allocator byte the low byte of the chars pointer, sic) is copied (StdString_CopyCtor) into a node linked in
 // front of the sentinel, the count raised; then released.
@@ -29,6 +33,10 @@ void __fastcall StringList34_PushChars(u8 *owner, void *, const char *chars);
 
 // 0x5d0330 (thiscall; out, before, x, pops 12): the same in front of the node before; *out = the new node.
 void __fastcall StdListString_Insert(u8 *list, void *, u8 **out, u8 *before, const StdString *x);
+
+// 0x5d3600 (thiscall; out, before, x, pops 12; name unconfirmed): the same for a list<wstring> (nodes of 0x18 bytes, the wide string at +8): the
+// node's allocator byte copied, then assign(x, 0, npos) (StdWString_AssignSub, npos the dword at 0x6fef00). The allocation is not checked.
+void __fastcall StdListWString_Insert(u8 *list, void *, u8 **out, u8 *before, const StdWString *x);
 
 // 0x618160 (thiscall; value pointer, pops 4): a node holding *value is linked in front of the sentinel of a list of dwords, the count raised.
 void __fastcall StdListDword_PushBack(u8 *list, void *, const u32 *value);

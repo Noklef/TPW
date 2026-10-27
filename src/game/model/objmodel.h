@@ -47,4 +47,14 @@ u32 __fastcall ObjModel_Load(u8 *object, void *, u8 *model);
 // share, its (empty) destructor 0x5d1750 given to atexit. The two stack matrices keep the game's layout (the flip, then the copy 0x40
 // on), which the bench hashes through the flip's pointer.
 void __fastcall ObjModel_SetMatrices(u8 *object, void *, u8 which, const u32 *matrix);
+
+// 0x57aa10 (thiscall on the engine object; mesh, matrix, lights, flags: pops 0x10; name unconfirmed): a mesh's vertex colours lit, once
+// a frame. Nothing (1) for a mesh of no vertices (+0x5e) or with flag 0x1000000, or whose colour buffer's stamp (the dword at [+0x9c])
+// is the frame number 0x8bd50c already, with 0x8bd508's 0x40000000 and the mesh's 0xc0000 clear. Else the stamp set; then, unless the
+// mesh's flag 0x1000000 (read again) or the render flag 0x800 (0x8bcbc8): the light list 0x879dec emptied, [[0x87a6d0] + 0x30] drained
+// (ListNodes_Drain) and [+0x2c] too without flags' 0x3000000, the zero-ended light list readied (Meshes_Ready) without render flag
+// 0x1000, the direction from the camera [0x87afe8]'s +0x30 to the mesh's +0x40 set (Meshes_SetDirection) with render flag 0x400, and
+// the view (Meshes_SetView of the matrix and the mesh's +0x78). Then Meshes_LightMesh into the buffer after the stamp: with the object's
+// [+8]+0x30 flag 0x800000 and 0x8bd524 = 4, under the mask 0xffff0000 at the lights object's +0x2c (its own put back). Returns 1.
+u32 __fastcall ObjModel_LightMesh(u8 *object, void *, u8 *mesh, const u32 *matrix, const u32 *lights, u32 flags);
 }

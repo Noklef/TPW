@@ -1,5 +1,5 @@
 // The renderer object's creation, accessors, entry lists and release: reimplementation of 0x5760a0, 0x5761b0, 0x576260, 0x5763f0,
-// 0x576400, 0x576540, 0x5765c0, 0x5766e0 and 0x576820.
+// 0x576400, 0x576540, 0x5765c0, 0x5766e0 and 0x576820; and the sign renderer's constructor 0x5ebfc0 (its teardown 0x5ec220).
 //
 // The renderer is the object at [0x87a6d0] (built at 0x576162 with a pool of 0x4800 8-byte nodes
 // at +0; its frame buffer, +0x38 wide by +0x3c high, at +0x10). +0x48 starts its render state
@@ -75,6 +75,14 @@ u32 __fastcall Grid_AddObject(u8 *grid, void *, s32 x0, s32 y0, s32 x1, s32 y1, 
 // +0x5c are Array3D_Free'd, the last one's block is freed and cleared and BufferC_FreeAndClear runs on +0x4c, +0x3c and +0x2c; then the blocks at +0x28 and +0x18 are freed
 // when set and their four dwords cleared.
 void __fastcall Renderer_Teardown(u8 *object);
+
+// 0x5ebfc0 (thiscall; Sign_Apply's local sign renderer (0x467aa6), Renderer_Teardown its destructor; name unconfirmed): +0x18..+0x34
+// cleared; two GDI LOGFONTs at +0x48 and +0x1d8 (sizes 0, weight 400, charset 1, output precision 4, clipping 1, quality 4, the face
+// the string at 0x774d80 copied with its NUL), +0x40 / +0x1d0 = 100 and +0x44 / +0x1d4 = 0; the array groups at +0x358 and +0x3c4:
+// +0x2c..+0x48 cleared and Init_5ec210 on +0x4c, +0x5c (the first) or +0x2c..+0x38 cleared and Init_5ec210 on +0x3c, +0x4c, +0x5c (the
+// second), then +0 = 3, +4 = 10.0f, +8 = +0x14 = 1.0f and Array3Ds_Free4; Fn_5ebef0 on +0x430, the bytes +0x444..+0x447 and the dwords
+// +0x448..+0x454 cleared; +0x14 = WaveletCodec_Create(). Returns the object.
+u8 *__fastcall Renderer_Construct(u8 *object);
 
 // 0x576410 (thiscall; object, tag; pops 8; name unconfirmed): with a bit of 0x70 in the tag the object goes into the seven slot lists, slot (tag >> 4), by Pool_AddSorted (its result).
 // Otherwise, for a tag with bit 1 and an object whose virtual call 2 returns 2 and call 3 a record, the rectangle packed in the record's word at +0xa8 (x0, x1, y0, y1 from the high byte

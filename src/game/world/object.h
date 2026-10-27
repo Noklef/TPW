@@ -53,6 +53,14 @@ u32 __fastcall Kinds_Compatible(const u8 *object, void *, u32 kind);
 // +0x3e0 is 0 or equal to the low 16 bits of extra, the dword at +0x3dc gains amount. Undefined return.
 void __fastcall Slots_AddIfMatch(u8 *object, void *, u32 id, u32 amount, u32 kind, u32 extra);
 
+// 0x4d2860 (thiscall (event), pops 4; through 0x50b643; name unconfirmed): by the event's type (its slot 0): 0x1a Slots_AddIfMatch with
+// the event's id +8, amount +0xc and kind word +0x10; 0x11 with +0xc 0, Slots_AddIfMatch(0x10, 1, 0, 0); 0xb on the selected slot (as
+// Slots_AddIfMatch's; none: nothing) by its id: 0x18 Slots_AddIfMatch(0x18, 100 - Things_AverageKind3Flag1Of100Minus44), 0x19 with
+// Things_AverageStaffStat1f8Int, 0x1b with Things_AverageStat1f8OfKind of the slot's +0x10 0-4 as the staff kinds 5, 4, 6, 7, 8 (else the
+// event's address, sic), the game [[0x7cf6ec]]'s GameTable7cfb90_Get1da720_519510 looked up first (unused). Any other type: nothing
+// (the original's debug message). The kind's high half and the extra's are the original's stack garbage, which AddIfMatch never reads.
+void __fastcall Slots_OnEvent(u8 *object, void *, u8 *event);
+
 // 0x503a20 (thiscall; slot, pops 4): the entries (20 bytes from +0xc) are chosen by the dwords at +0x1414 + 16 * slot (0 when below 0): for slot 4
 // the dword at +0x1ac of the object definition (word +0xc of the entry; ObjectDefs_Find) at 0x40 * (the byte at +0x15) + 0x1b8; for the others
 // the dword at +4 of the object control record (the entry's word at +0xc; the game's table, ObjectControls_FindUncached quiet).
@@ -109,6 +117,15 @@ u32 __fastcall Obj_TrackedPersonInState(u8 *object);
 // (the table at 0x7cfb90; the next at +0xc) that is in state 1 or 2 (+0x19c) or has the dword at +0x64 set: when Obj_GetTrackedHandle gives a handle,
 // Fn_4e0210 (core/initializers: +0x5e and +0x60 = 0) lets it go.
 void __fastcall Objects_ReleaseTracked(void *self, void *, u32 unused1, u32 unused2);
+
+// 0x4ca310 (cdecl; name unconfirmed): of the things on the list from the u16 at +0x1da746 of the object [0x80239c] (the table at 0x7cfb90; the
+// next at +0xc), those whose definition (ObjectDefs_Find on 0x7890a0 by the id +0xe; it must exist) has map kind (+0x4ac) 0 and that are in
+// state 1 (+0x19c, Is19c_Eq1_4e0370) counted.
+s32 __cdecl Objects_CountKind0InState1();
+
+// 0x4ca3a0 (thiscall, the analyser unused (least), pops 4; name unconfirmed): Objects_CountKind0InState1's walk, those of map kind 0 whose
+// float +0x44 cut to an integer (__ftol's low byte) is below least (signed) or that are in state 1 counted.
+s32 __stdcall Objects_CountKind0Below44OrState1(s32 least);
 
 // 0x4fa770 (thiscall; name unconfirmed): whether the largest block value (Map_BlockValue of the map at [0x80239c] + 0x2d8) at the nine offsets of 0x7ced88 (dword pairs
 // x, y: id + y * 0x80 + x as a word) from a cell is below the dword at +0x198 (unsigned; the search stops early once the largest is above it). The cell is the object's

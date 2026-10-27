@@ -176,6 +176,21 @@ u32 __fastcall TgqVideo_PackLanes(s32 a, s32 b, s32 c, s32 d) {
     return (u32)d << 24 | ((u32)a & 0xff) << 16 | ((u32)b & 0xff) << 8 | ((u32)c & 0xff);
 }
 
+void __fastcall TgqVideo_BuildLaneTables(s32 alpha) {
+    for (u32 i = 0; i < 0x80; ++i) {
+        const s32 v = (s8)(u8)(i * 2 + 1) + 0x80;
+        global<u32>(0x00fb7930 + i * 4) = TgqVideo_PackLanes(v, v, v, alpha);
+    }
+    for (u32 i = 0; i < 0x80; ++i) {
+        const s32 c = (s8)(u8)(i * 2 + 1);
+        global<u32>(0x00fb7d30 + i * 4) = TgqVideo_PackLanes(0, (s32)fixmul(c, -0x5816), (s32)fixmul(c, 0x1c5a1), 0);
+    }
+    for (u32 i = 0; i < 0x80; ++i) {
+        const s32 c = (s8)(u8)(i * 2 + 1);
+        global<u32>(0x00fb7b30 + i * 4) = TgqVideo_PackLanes((s32)fixmul(c, 0x166e9), (s32)fixmul(c, -0xb6cf), 0, 0);
+    }
+}
+
 void __cdecl TgqVideo_SetQuality(s32 quality) {
     const u32 d = 100u - (u32)quality;
     const s32 base = (s32)(d * 22) / 100 + 8;
@@ -322,5 +337,25 @@ void __cdecl TgqVideo_FillBlocks32(s32 y0, s32 y1, s32 y2, s32 y3, s32 c0, s32 c
     fill32(out + 0x20, entry(0x00fb7930, y1) + chroma, step);
     fill32(out + pitch * 8, entry(0x00fb7930, y2) + chroma, step);
     fill32(out + pitch * 8 + 0x20, entry(0x00fb7930, y3) + chroma, step);
+}
+
+u32 __fastcall TgqVideo_SetBlockBase(u32 value, u8 *state) {
+    at<u32>(state, 0x608) = value;
+    at<u32>(state, 0x510) = 0;
+    at<u32>(state, 0x50c) = 0;
+    at<u32>(state, 0x508) = 0;
+    at<u32>(state, 0x60c) = 0;
+    return 0;
+}
+
+void __fastcall TgqVideo_SetupTables(u8 *player) {
+    u8 *const format = at<u8 *>(player, 0);
+    const s32 kind = at<s32>(format, 0x48);
+    if (kind != 0x10 && kind != 0xf) {
+        TgqVideo_BuildLaneTables(0xff);
+        return;
+    }
+    TgqVideo_BuildTables(0xff, at<u32>(format, 0x2c), at<u32>(format, 0x30), at<u32>(format, 0x34), at<u32>(format, 0x38),
+                         at<u32>(format, 0x3c), at<u32>(format, 0x40));
 }
 }

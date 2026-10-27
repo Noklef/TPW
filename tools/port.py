@@ -198,7 +198,9 @@ def main():
 
     if msg:
         units = set(unit for _, _, unit in rows)
-        paths = ['src/hook/hooks.cpp', 're/symbols.csv', 'CMakeLists.txt', os.path.relpath(bench[0], ROOT)] + also
+        paths = ['src/hook/hooks.cpp', 're/symbols.csv', 'CMakeLists.txt', os.path.relpath(os.path.join(ROOT, bench[0]), ROOT)] + also
+        # (the bench resolved against ROOT as integrate.py resolves it: relpath alone takes a relative one from the working directory,
+        # and a new bench was left out of the commit when port.py ran from elsewhere)
         paths += ['src/game/%s.%s' % (u, e) for u in sorted(units) for e in ('h', 'cpp')]
         paths = [x.replace('\\', '/') for x in paths if os.path.exists(os.path.join(ROOT, x))]
         bad = [x for x in paths if x.startswith(('.data', '_re', 'build'))]

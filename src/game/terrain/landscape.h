@@ -50,6 +50,13 @@ void __fastcall Landscape_SampleColours(u8 *landscape);
 // the entry swapped with entry[count] (the new last; entry[-1] when the count was 0, sic). Returns 1.
 u32 __fastcall Landscape_RemoveTexture(u8 *landscape, void *, u8 *textures);
 
+// 0x5850c0 (thiscall (&textures, name, a, b, c, d, e, f), pops 0x20; name unconfirmed): with 0x10 entries or more (signed) the error
+// (1, 0xb0754012) pushed onto 0x879ad0 and 0 (the out pointer untouched). Else entry[count] taken (the count raised), its old array
+// released and destroyed when set, then the name loaded by the texture manager at [0x87a268] (TexManager_Load) into it: none, the
+// error (1, 0xb0754001) pushed twice (sic), *out = 0 and 0. Got: its flags' 0x100 cleared and 0x30200 set, the entry's +0xc, +0x10,
+// +0x14, +0x18 = a, b, c, d and +4, +8 = e, f, *out = the textures and 1.
+u32 __fastcall Landscape_AddTexture(u8 *landscape, void *, u8 **out, const char *name, u32 a, u32 b, u32 c, u32 d, u32 e, u32 f);
+
 // 0x418d70 (thiscall on a list of texture arrays; name unconfirmed): each of the first [0x785724] (the count re-read after each) removed
 // from the landscape at 0x8c1828 (Landscape_RemoveTexture). Returns the count last read.
 u32 __fastcall Landscape_RemoveTextureList(u8 **list);

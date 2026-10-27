@@ -3,6 +3,7 @@
 # handler or not, and 0), the entries now and then missing; the clock [0x77c490] a recorder vtable whose slot 0 answers a time near 0,
 # the sign bit or the top, or random. Init: the count 0-6, 0x1ff, 0x200 or -1, the allocation failing now and then. Add: the delay 0,
 # 1, 59999, 60000, below or anywhere. PostTimed (0x658df4, src/game/ui/window): Add's through [0xfaa5f8].
+# Delete (0x6596e0): Free's, the flags 0-3 or any (the block freed with bit 0: the heap's hash of the frees).
 # usage: guitimers.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Init,Free,Add,Fire,Cancel,Reset,PostTimed)
 import os
 import struct
@@ -11,8 +12,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import CDECL_LOG4, HEAP, LOG, RAM, Bench, Call, heap, log_region, put, set_return, vtable  # noqa: E402
 
-CALLS = {'Init': 0x669efb, 'Free': 0x669c62, 'Add': 0x669c8d, 'Fire': 0x669d77, 'Cancel': 0x669e3a, 'Reset': 0x669eb3, 'PostTimed': 0x658df4}
-B = Bench([(0x669c62, 0x669c8d), (0x669c8d, 0x669d77), (0x669d77, 0x669e3a), (0x669e3a, 0x669eb3), (0x669eb3, 0x669efb),
+CALLS = {'Delete': 0x6596e0, 'Init': 0x669efb, 'Free': 0x669c62, 'Add': 0x669c8d, 'Fire': 0x669d77, 'Cancel': 0x669e3a, 'Reset': 0x669eb3, 'PostTimed': 0x658df4}
+B = Bench([(0x6596e0, 0x65970e), (0x669c62, 0x669c8d), (0x669c8d, 0x669d77), (0x669d77, 0x669e3a), (0x669e3a, 0x669eb3), (0x669eb3, 0x669efb),
            (0x669efb, 0x669f79), (0x65968e, 0x6596a2), (0x65f697, 0x65f6d1), (0x658df4, 0x658e42)])
 TABLE, ENTRIES, WINDOWS, CLOCK, VTABLE = RAM, RAM + 0x100, RAM + 0x400, RAM + 0x800, RAM + 0x900
 WINS = [WINDOWS, WINDOWS + 0x200]
@@ -41,9 +42,11 @@ def case(r):
         regions[TABLE] = struct.pack('<II', r.getrandbits(32), r.choice([0] * 6 + [ENTRIES]))
         count = r.choice([0, 1, 3, 6, 6, 0x1ff, 0x200, -1, r.getrandbits(32)])
         return Call(CALLS[op], [TABLE, count & 0xffffffff], regions, conv='t', ret='w')
-    if op == 'Free':
+    if op in ('Free', 'Delete'):   # (Delete: Free's, the flags bit 0 either way)
         regions[HEAP] = heap(0x40)
         regions[TABLE] = struct.pack('<iI', n, r.choice([HEAP + 0x10, HEAP + 0x10, 0]))
+        if op == 'Delete':
+            return Call(CALLS[op], [TABLE, r.choice([0, 1, 2, 3, 0xffffffff])], regions, conv='t', ret='a')
         return Call(CALLS[op], [TABLE], regions, conv='t')
     if op == 'Add':
         delay = r.choice([0, 1, 59999, 60000, r.randrange(1, 60000), r.randrange(1, 60000), r.getrandbits(32)])

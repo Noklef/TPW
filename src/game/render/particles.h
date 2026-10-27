@@ -1,5 +1,5 @@
 // The particle systems' handle accessors: reimplementation of 0x51fa80, 0x51fd80, 0x51fe30, 0x51fd90, 0x51feb0,
-// 0x520030, 0x5200b0, 0x5204c0, 0x521810, 0x521850, 0x51ff10, 0x51ff70, 0x51ffd0, 0x520470, 0x5222e0, 0x522320, 0x520e00, 0x520560, 0x521e60, 0x5214a0, 0x521930, 0x520f10, 0x520130 and 0x486b90. Nothing works before the
+// 0x520030, 0x5200b0, 0x5204c0, 0x521810, 0x521850, 0x51ff10, 0x51ff70, 0x51ffd0, 0x520470, 0x5222e0, 0x522320, 0x520e00, 0x520560, 0x521e60, 0x5214a0, 0x521930, 0x520f10, 0x520130, 0x486b90, 0x51ef30, 0x51f240, 0x51f280, 0x51f2f0 and 0x51f320. Nothing works before the
 // particles are set up (0x816d40 set). A system handle is serial << 16 | slot: slot (u16) below
 // 0x78 in gParticleSystems (0x80cefc, 0x140 bytes each, copies of an effect definition), its
 // serial the system's u16 +0xa; 0 is none. A system's +0x20 is its age (-2 ends it) and +0xd4 its
@@ -167,4 +167,38 @@ u32 __cdecl Particles_Tick();
 // Emitters_Reset; returns 0. (A count not read is the name's address, the original's count sharing its slot; a size not read is left as is: 0 here, any
 // value in the game.)
 u32 __cdecl ParticleLib_Load(const char *name);
+
+// 0x51ef30 (cdecl (slot); the renderer's draw-list callback, Global8bba48_Create's +0x94; name unconfirmed): 0 without the particles
+// (0x816d40), or for a system with no word +0, no count (word +8) or word +0x2a set. Else a list of 0x1c-byte entries: the static one
+// [0x816d38] (marked in use, 0x816d3c) for a count of up to 100 when free, else count * 28 bytes (Mem_GlobalAlloc). One entry per node
+// (from [0x80cef8], 0x34 bytes) along the system's chain (word +6, then each node's word +0x30, ending at a negative one; the first always
+// taken). The system's byte +5 set (flat): +0 = ((x - 0xc35) << 4) / 49 and +4 = ((z << 4) - 0x927c) / 37 (x and z first scaled about
+// the system's +0x14 / +0x1c by the word +0xa2 per 1000 unless it is 1000), +8 the word +0x52, +0x18 = +0x70 | 0x54000, word +0x14 the
+// node's word +0x28 / 64; else +0 / +4 / +8 the position (scaled likewise) << 4, +0x18 = +0x70 | 0x4000, word +0x14 the node's word
+// +0x28 << 1. Both: +0xc the node's +0x18, +0x10 with a sprite (word +0x96) its frame entry (Sprite_FrameEntry (word +0x94, the node's
+// word +0x2c, 0)) and word +0x16 the node's word +0x2e, else -1. Returns the list.
+u8 *__cdecl ParticleSystem_DrawList(u32 slot);
+
+// 0x51f240 (cdecl (slot: a word); Global8bba48_Create's +0x9c; name unconfirmed): the system's count (word +8) with the particles set up
+// and its word +0 set, else 0.
+u32 __cdecl ParticleSystem_Count(u32 slot);
+
+// 0x51f280 (cdecl (slot, low, high); Global8bba48_Create's +0x84; name unconfirmed): with the particles set up, the system's +0x128..
+// +0x130 << 4 to low[0..2] and +0x134..+0x13c << 4 to high[0..2].
+void __cdecl ParticleSystem_Bounds(u32 slot, s32 *low, s32 *high);
+
+// 0x51f2f0 (cdecl (list); Global8bba48_Create's +0x98; name unconfirmed): with the particles set up, a ParticleSystem_DrawList list
+// given back: the static one marked free (0x816d3c = 0), another freed (Mem_GlobalFree); nothing for 0.
+void __cdecl ParticleSystem_FreeDrawList(u8 *list);
+
+// 0x51f320 (cdecl; name unconfirmed): the particles' own sine table (0x803b68, 0x200 dwords), built as IntSin_BuildTable builds its own
+// (256 sin(2i * 0.00613591796875) through the x87, truncated). Returns the table.
+u32 *__cdecl ParticleSines_Build();
+
+// 0x51faa0 (cdecl (callback, flag, count); name unconfirmed): nothing when the particles are set up (0x816d40); else the count clamped to
+// 100..0x7fff (signed), the globals 0x80ced0-0x816d37 zeroed, 0x80cef0 = flag (1 for 0), 0x80cee0 = 1, 0x80ceec = the sine table
+// (ParticleSines_Build), 0x80cedc = the count, 0x80ced8 = 0, 0x80cef4 = callback (0x5d60c0 for none), 0x80cef8 = the count's 0x34-byte
+// emitters (Mem_AllocChecked), 0x816d40 = 1, the emitters reset (Emitters_Reset), 0x816d38 = a 0xaf0-byte block (Mem_AllocChecked) and
+// 0x816d3c = 0.
+void __cdecl Particles_Init(u32 callback, u32 flag, s32 count);
 }

@@ -7,8 +7,13 @@
 # kind 1 on the map cells and objects whose definitions' +0x4ac are mostly the values it counts by; its analyser any pointer (only handed on).
 # CPlain / C4ac0 (0x4c7fa0 / 0x4c8070, the analyser's kept counts): its count at +0x1f0b8 / +0x1f0c4 kept or not (byte +8), taken some
 # quarters before the game time (or after it, wrapping), the age asked for about that. Avg1f8 (0x4c9cc0): the staff mostly, a kind asked
-# for (or with high bits), their floats +0x1f8; Avg44 (0x4ca160): objects with +0x32 bit 0 or not, their floats +0x44; the floats 0..100
-# mostly (else negative, past 255, huge or NaN).
+# for (or with high bits), their floats +0x1f8; AvgS1f8 (0x4c9d80) as Avg1f8, all the staff kinds; Avg44 (0x4ca160): objects with +0x32 bit 0 or not, their floats +0x44; the floats 0..100
+# mostly (else negative, past 255, huge or NaN); Most44 (0x4ca220) as Avg44, its two outputs random bytes before. Patrol (0x4c9b40, on the analyser, not read): the staff mostly, a kind asked for or any (0),
+# their patrol regions +0x20a / +0x20c the none (1, 0x4000) now and then. Half (0x4c81e0): CPlain's analyser, its kept count (+0x1f0bc)
+# about 0, 200 and negative, kept for age 0 mostly.
+# Rate9c1 / RateBest (0x4cc3b0 / 0x4ccd10) and RateAvg (0x4ccbf0, kept at +0x1f0f4 as CPlain's): the rides' ratings (Object_Rating on
+# object_checks.py's terms without a track ride or coaster: the definitions' +0x4ac 0 mostly, +0x9c 1, 0 or 4, the base +0x13c and the
+# rows' limits small or any, the things' rows +0x50 0-3, their +0x28 0).
 # usage: thingscan.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=C1,C2,Max,...)
 import os
 import struct
@@ -34,10 +39,13 @@ CALLS = {'C1': (0x4c9f90, 'c', 0xa0, 'n'), 'C2': (0x4ca0c0, 'c', 0xa0, 'n'), 'Ma
          'Step': (0x4b3340, 'c', 0x14c, 'kp'), 'Group': (0x48caf0, 't', 0xe4, 'kp'),
          'GroupB': (0x48cbe0, 't', 0xe4, 'kp'), 'Score': (0x4cceb0, 't', 0x449, 'a'),
          'CPlain': (0x4c7fa0, 't', 0xc6, 'gc'), 'C4ac0': (0x4c8070, 't', 0xde, 'gc'),
-         'Avg1f8': (0x4c9cc0, 's', 0xb3, 'v'), 'Avg44': (0x4ca160, 'c', 0xb4, 'n')}   # (Step's and Group's ranges take in their jump tables)
+         'Avg1f8': (0x4c9cc0, 's', 0xb3, 'v'), 'AvgS1f8': (0x4c9d80, 'c', 0xb8, 'n'), 'Avg44': (0x4ca160, 'c', 0xb4, 'n'), 'Most44': (0x4ca220, 's', 0xec, 'oo'), 'Patrol': (0x4c9b40, 's', 0xba, 'v'),
+         'Half': (0x4c81e0, 't', 0x53, 'gh'), 'Rate9c1': (0x4cc3b0, 's', 0xfb, 'o'), 'RateBest': (0x4ccd10, 's', 0xd6, 'o'),
+         'RateAvg': (0x4ccbf0, 't', 0x114, 'gc')}   # (Step's and Group's ranges take in their jump tables)
 B = Bench([(a, a + n) for (a, _c, n, _s) in CALLS.values()] + [(0x516130, 0x516160), (0x516160, 0x5161b0), (0x50b350, 0x50b360), (0x4e0440, 0x4e0450),
                                                               (0x4e2710, 0x4e2740), (0x4dd4e0, 0x4dd500), (0x412e90, 0x412eea), (0x5da3c0, 0x5da3c1), (0x41a960, 0x41a970), (0x5161b0, 0x516200), (0x4fa990, 0x4fa9fa), (0x536300, 0x53644c), (0x519510, 0x519550),
-                                                              (0x481f80, 0x481fa0), (0x481fc0, 0x482030), (0x4cd300, 0x4cd331), (0x41a990, 0x41a9a7)])
+                                                              (0x481f80, 0x481fa0), (0x481fc0, 0x482030), (0x4cd300, 0x4cd331), (0x41a990, 0x41a9a7),
+                                                              (0x506eb0, 0x506ecc), (0x4e0560, 0x4e0860), (0x4e0860, 0x4e0900)])
 OUT = RAM + 0x1000
 OWNER, OWNER_VT = RAM + 0x1100, RAM + 0x1180
 GROUPS = [-2, -1, 0, 1, 2, 3, 0x3ea, 0x3eb, 0x3ec]
@@ -49,10 +57,23 @@ def case(r):
     if shape == 'kp':
         return category(r, address)
     regions, handles, things = park(r, count=r.choice([1, 2, 3, 4, 6]) if shape in ('o', 'u') or name.startswith('B') else None,
-                                    defs=name not in ('C1', 'C2', 'Max', 'C3', 'Staff', 'Avg', 'Re', 'P1', 'P2', 'P3', 'Sum', 'Cs', 'Avg1f8', 'Avg44') and shape != 'u',
-                                    kinds=(4, 5, 6, 7, 8, 3, 1, 0) if name in ('Staff', 'S5', 'S6', 'S4', 'S7', 'S8', 'Cs', 'Avg1f8') else (1, 1, 1, 3, 0, 0xff) if name[0] == 'P' or name == 'CPlain' else
+                                    defs=name not in ('C1', 'C2', 'Max', 'C3', 'Staff', 'Avg', 'Re', 'P1', 'P2', 'P3', 'Sum', 'Cs', 'Avg1f8', 'AvgS1f8', 'Avg44', 'Most44', 'Patrol') and shape != 'u',
+                                    kinds=(4, 5, 6, 7, 8, 3, 1, 0) if name in ('Staff', 'S5', 'S6', 'S4', 'S7', 'S8', 'Cs', 'Avg1f8', 'AvgS1f8', 'Patrol') else (1, 1, 1, 3, 0, 0xff) if name[0] == 'P' or name in ('CPlain', 'Half') else
                                     (4, 5, 5, 6, 7, 8, 1, 1, 3, 3, 3, 0) if name == 'Score' else (3, 3, 3, 1, 2, 0xff, 0),
-                                    cells=name[0] == 'P' or name in ('Score', 'CPlain'))
+                                    cells=name[0] == 'P' or name in ('Score', 'CPlain', 'Half'))
+    if name.startswith('Rate'):   # (the ratings: no track ride (+0x28) or coaster (+0x9c 3), rows 0-3)
+        limits = [0, 1, 2, 5, 10, 50, 100, -1, -7]
+        for i in range(NITEMS):
+            struct.pack_into('<I', regions[ITEMS], ITEM * i + 0x4ac, r.choice([0, 0, 0, 1, 2]))
+            struct.pack_into('<I', regions[ITEMS], ITEM * i + 0x9c, r.choice([1, 1, 0, 4]))
+            struct.pack_into('<i', regions[ITEMS], ITEM * i + 0x13c, r.choice([0, 1, 5, 20, 50, 99, 100, 200, -10, 0x7fffffff]))
+            for row in range(4):
+                struct.pack_into('<i', regions[ITEMS], ITEM * i + 0x1a0 + 0x40 * row, r.choice(limits))
+                struct.pack_into('<i', regions[ITEMS], ITEM * i + 0x1a8 + 0x40 * row, r.choice(limits))
+        pool = regions[POOL]
+        for i in range(len(things)):
+            struct.pack_into('<I', pool, THING * i + 0x28, 0)
+            pool[THING * i + 0x50] = r.randrange(4)
     if name == 'Score':   # (the definitions' +0x4ac the values it counts by, mostly)
         for i in range(NITEMS):
             struct.pack_into('<I', regions[ITEMS], ITEM * i + 0x4ac, r.choice([0, 1, 2, 3, 3, 5]))
@@ -72,14 +93,16 @@ def case(r):
         regions[0x80239c] = struct.pack('<I', RAM + 0x20000 - 0x1da70c)
         regions[RAM + 0x20000] = r.bytes(0x20)
         regions[RAM + 0x4000 + 0x1f0d0] = r.bytes(0x20)
-    if shape == 'gc':  # the game time and the analyser's kept count (the module comment)
+    if shape in ('gc', 'gh'):  # the game time and the analyser's kept count (the module comment)
         now = r.getrandbits(32)
-        ago = r.choice([0, 1, 3, 4, 7, 8, 40, 400, r.getrandbits(32)])
+        ago = r.choice([0, 1, 3, 4, 7, 8, 40, 400, r.getrandbits(32)] if shape == 'gc' else [0, 0, 0, 1, 3, 4, 400])
         regions[0x80239c] = struct.pack('<I', RAM + 0x20000 - 0x1da70c)
         regions[RAM + 0x20000] = struct.pack('<I', now) + r.bytes(0x1c)
-        kept = bytearray(r.bytes(0x20))
-        at = 8 if name == 'CPlain' else 0x14
+        kept = bytearray(r.bytes(0x50 if name == 'RateAvg' else 0x20))
+        at = {'C4ac0': 0x14, 'RateAvg': 0x44}.get(name, 8)
         struct.pack_into('<I', kept, at, (now - ago) & 0xffffffff)
+        if shape == 'gh':
+            struct.pack_into('<I', kept, at + 4, r.choice([0, 1, 2, 3, 198, 199, 200, 201, 203, 0x7fffffff, -1, -2, -3, -0x80000000]) & 0xffffffff)
         kept[at + 8] = r.choice([0, 1, 1, 1, 0xff])
         regions[RAM + 0x4000 + 0x1f0b0] = kept
         q = ((now >> 2) - (((now - ago) & 0xffffffff) >> 2)) & 0xffffffff
@@ -104,20 +127,27 @@ def case(r):
             obj[off:off + 4] = struct.pack('<i', r.choice([-2, -1, 0, 1, 2, 5]))
             obj[off + 4:off + 8] = struct.pack('<I', r.choice([0, 7, 0xdead]))
         regions[RAM + 0x4000 + 0x360] = bytes(obj)
-    if name in ('Avg1f8', 'Avg44'):
+    if name in ('Avg1f8', 'AvgS1f8', 'Avg44', 'Most44'):
         pool = regions[POOL]
         for i in range(len(things)):
             f = r.choice([0.0, 1.0, 50.0, 99.9, 100.0, 0.5, r.uniform(0, 100)]) if r.random() < 0.85 else \
                 r.choice([-1.0, -0.5, 255.9, 256.0, 300.0, float('nan'), 1e10])
-            struct.pack_into('<f', pool, THING * i + (0x1f8 if name == 'Avg1f8' else 0x44), f)
+            struct.pack_into('<f', pool, THING * i + (0x1f8 if name in ('Avg1f8', 'AvgS1f8') else 0x44), f)
         value = r.choice([4, 5, 6, 7, 8, 4, 5, 3, 1, 0x104, 0xff])
+    if name == 'Patrol':   # (a kind of staff or any (0); their patrol regions +0x20a / +0x20c none (1, 0x4000) or not)
+        value = r.choice([0, 0, 4, 5, 6, 7, 8, 3, 0x104])
+        pool = regions[POOL]
+        for i in range(len(things)):
+            struct.pack_into('<HH', pool, THING * i + 0x20a, *r.choice([(1, 0x4000), (1, 0x4000), (1, 0x4001), (2, 0x4000), (0x81, 0x1f00)]))
     if name == 'Avg':
         value = r.choice([3, 1, 2, 0xff, 0, 0x103])
     if name in ('D4', 'D5'):
         value = r.choice([0, 3, 3, 5])
-    args = {'n': [], 'a': [r.getrandbits(32)], 'p': [prev], 'v': [value], 'vp': [r.choice([0, 3, 5, value]), prev], 'o': [OUT], 'g': [RAM + 0x4000], 'gc': [RAM + 0x4000, value], 's': [RAM + 0x4000],
-            'vv': [value, r.choice([0, 1, 5, 0x7f, 0x80, 0xff, 0xffffffff, 0x80000000])]}[shape]
+    args = {'n': [], 'a': [r.getrandbits(32)], 'p': [prev], 'v': [value], 'vp': [r.choice([0, 3, 5, value]), prev], 'o': [OUT], 'g': [RAM + 0x4000], 'gc': [RAM + 0x4000, value], 'gh': [RAM + 0x4000], 's': [RAM + 0x4000],
+            'oo': [OUT + 0x10, OUT + 0x14], 'vv': [value, r.choice([0, 1, 5, 0x7f, 0x80, 0xff, 0xffffffff, 0x80000000])]}[shape]
     regions[OUT] = r.bytes(4)
+    if shape == 'oo':
+        regions[OUT + 0x10] = r.bytes(8)
     return Call(address, args, regions, conv=conv, ret='a')
 
 

@@ -10,6 +10,7 @@
 #include "../core/timesig.h"
 #include "../core/selectors.h"
 #include "../core/thunks.h"
+#include "../core/vcall.h"
 #include "../math/x87.h"
 #include "../sprite/scriptref.h"
 #include "analyser.h"
@@ -503,6 +504,21 @@ void __fastcall Staff_SetState(u8 *staff, void *, u32 state) {
     at<u32>(staff, 0x19c) = state;
 }
 
+void __fastcall Staff_PickUp(u8 *staff) {
+    MouseModes_EnsureHolder();
+    u8 *const current = global<u8 *>(0x007b05d8);
+    if ((current ? vcall<s32>(current, 0x24) : 0) == 6) {
+        u8 *const block = static_cast<u8 *>(GameHeap_Alloc(8));
+        u8 *const mode = block ? MouseModeOnlineBase_Ctor(block) : nullptr;
+        MouseModes_EnsureHolder();
+        MouseMode_Set(mode);
+    }
+    u16 handle;
+    Fn_509ae0(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da718_519450(global<u8 *>(0x0080239c))), nullptr,
+              *Thing_GetHandle(staff, nullptr, &handle));
+    Staff_SetState(staff, nullptr, 7);
+}
+
 u16 *__fastcall Handyman_FindJob(u8 *staff, void *, u16 *out) {
     u16 word;
     u32 best = 0xffffffff;
@@ -537,5 +553,38 @@ u16 *__fastcall Handyman_FindJob(u8 *staff, void *, u16 *out) {
     if (found) Obj_StampAt5e(global<u8 *>(0x007cfb90 + 20 * found), nullptr, *Thing_GetHandle(staff, nullptr, &word));
     *out = found;
     return out;
+}
+
+void __fastcall Mechanic_SetState(u8 *mechanic, void *, u32 state) {
+    if (state == 0xc) {
+        Set4_4217f0(mechanic + 0xc, nullptr, 9);
+    } else if (state == 0xd) {
+        Set4_4217f0(mechanic + 0xc, nullptr, 0x12);
+        const u8 *const target = global<u8 *>(0x007cfb90 + 20 * (u32)at<u16>(mechanic, 0x218));
+        const u32 scale = global<u32>(0x0078542c + 8 * at<u32>(mechanic, 0x1e4));
+        if (Is19c_Eq2_4e03e0(target)) {
+            const u32 rate = target[0x50];
+            at<u32>(mechanic, 0x214) = at<u32>(Object_GetDef(target), 0x1fc + (rate << 6)) * scale;
+        } else {
+            const u32 condition = (u8)(long long)at<float>(target, 0x44);   // (__ftol's low byte)
+            at<s32>(mechanic, 0x214) = (s32)((0x64 - condition) * scale) / 100;
+        }
+    } else {
+        Staff_SetState(mechanic, nullptr, state);
+    }
+    at<u32>(mechanic, 0x19c) = state;
+}
+
+void __fastcall Handyman_SetState(u8 *handyman, void *, u32 state) {
+    if (state == 8 || state == 0xa) {
+        at<u16>(handyman, 0xc2) = global<u16>(0x0075c7f2);
+        Set4_4217f0(handyman + 0xc, nullptr, 9);
+    } else if (state == 9 || state == 0xb) {
+        at<u32>(handyman, 0x214) = global<u32>(global<u32>(0x0080239c) + 0x1da70c);
+        Set4_4217f0(handyman + 0xc, nullptr, 0x11);
+    } else {
+        Staff_SetState(handyman, nullptr, state);
+    }
+    at<u32>(handyman, 0x19c) = state;
 }
 }

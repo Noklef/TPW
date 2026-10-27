@@ -47,6 +47,26 @@ inline void part(u8 *window, PartCtor ctor, u32 id, u32 value) { vcall<void>(dre
 // a part made by ctor and nothing more
 inline void part(u8 *window, PartCtor ctor, u32 id) { dress(window, ctor, id); }
 
+// as dress(), when there is such a child (none allocated else); returns the child or none
+inline u8 *dressIfAny(u8 *window, PartCtor ctor, u32 id) {
+    u8 *const child = Window_FindChild(window, nullptr, id);
+    if (!child) return nullptr;
+    u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
+    Window_SetImpl(child, nullptr, memory ? ctor(memory, nullptr, 0) : nullptr);
+    Window_Set4c(child, nullptr, Language_Font(6));
+    return child;
+}
+
+// text(), when there is such a child
+inline void textIfAny(u8 *window, u32 id, u32 text) {
+    if (u8 *const child = dressIfAny(window, TextPart_Ctor, id)) Window_NotifyImpl100(child, nullptr, (u32)(uintptr_t)Language_WideText(text));
+}
+
+// part() with a value, when there is such a child
+inline void partIfAny(u8 *window, PartCtor ctor, u32 id, u32 value) {
+    if (u8 *const child = dressIfAny(window, ctor, id)) vcall<void>(child, 0x1c, value);
+}
+
 // the child `id`'s saved rectangle inset and a bar of the texture `name` as its implementation; returns the child
 inline u8 *barOf(u8 *child, const char *name, s32 dx = 0, s32 dy = 10) {
     Window_SaveInsetRect(child, dx, dy);
@@ -63,6 +83,23 @@ inline void bar(u8 *window, const char *name, u32 id, u32 value) {
 // a bar when there is such a child, and nothing more
 inline void barIfAny(u8 *window, const char *name, u32 id) {
     if (u8 *const child = Window_FindChild(window, nullptr, id)) barOf(child, name);
+}
+
+// the panels' slot 4 (the same code in each: 0x496f90, 0x4ad720, 0x4afaa0, 0x4b0ed0): with the window +0x1c set (read again for each
+// step), it raised (Window_SetDepth: its depth word +0xe0 plus 0xb) and hidden (Window_SetShown(0)), then given a TextPart_Ctor part
+// (none when the allocation fails), Window_NotifyC00(1, 1), font 8 (Language_Font; Window_Set4c), Window_Notify40000(0, 0, 0, 0xff)
+// and no text (Window_NotifyImpl100(0)). What the window is is unconfirmed (a tip, by its depth).
+inline void tip(u8 *panel) {
+    u8 *const *const window = reinterpret_cast<u8 *const *>(panel + 0x1c);
+    if (!*window) return;
+    Window_SetDepth(*window, nullptr, (u16)(*reinterpret_cast<const u16 *>(*window + 0xe0) + 0xb));
+    Window_SetShown(*window, nullptr, 0);
+    u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
+    Window_SetImpl(*window, nullptr, memory ? TextPart_Ctor(memory, nullptr, 0) : nullptr);
+    Window_NotifyC00(*window, nullptr, 1, 1);
+    Window_Set4c(*window, nullptr, Language_Font(8));
+    Window_Notify40000(*window, nullptr, 0, 0, 0, 0xff);
+    Window_NotifyImpl100(*window, nullptr, 0);
 }
 
 }  // namespace panelparts

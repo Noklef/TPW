@@ -1,6 +1,6 @@
 // The base of the model-backed screen overlays (vtable 0x6fee10, built at 0x476a90; the bar
 // mesh 0x6fee88 and others derive from it; itself a GUI dialog, ui/guidialog): reimplementation of
-// 0x476bf0, 0x476e80, 0x476f10 and the destructors 0x476b50 / 0x476b70, 0x477270 / 0x477290 and 0x4775a0 / 0x4775c0.
+// the constructor 0x476a90, 0x476bf0, 0x476e80, 0x476f10 and the destructors 0x476b50 / 0x476b70, 0x477270 / 0x477290 and 0x4775a0 / 0x4775c0.
 // +4 its holder (whose +4 model's +0x78 starts the node list, linked through +0xc), +0xa / +0xc
 // (u16) the shown node's index as base + frame, +0x10 (u16) set when the holder is only
 // destroyed, not disposed of, +0x7c the shown node.
@@ -9,6 +9,24 @@
 #include "../../../re/types.h"
 
 extern "C" {
+
+// 0x476a90 (thiscall (holder), pops 4; name unconfirmed): GuiDialog_Ctor with the holder (+4), the vtable 0x6fee10; with a holder its
+// model (holder +4, reread after each store) gets flag 0x200 at +0x30, its word +0x44 goes to +0xe, and each node of its list (+0x78,
+// linked through +0xc) gets 0xc8010 in its flags (+0), 0x80c8010 when the screen is 0x280 wide (0x7a1968, read per node); then the
+// holder's part is made (Holder_Create). +0x7c and +0x80 cleared. Returns the overlay.
+u8 *__fastcall Overlay_Ctor(u8 *overlay, void *, u8 *holder);
+
+// 0x4771a0 (thiscall; slot 8 of 0x6fee10; name unconfirmed): the overlay itself unless its words +0x10 and +0x12 and its holder (+4) are
+// all set. Then the holder copied (Holder_Clone with [0x7c249c], flags 1, mask 0; the copy 0 unless written), a new overlay (Mem_Alloc
+// 0x84; none when that fails: the overlay itself returned, the copy left) built on the copy (Overlay_Ctor) and given the words +0xa,
+// +0xc and +0xe; returns the new one.
+u8 *__fastcall Overlay_Clone(u8 *overlay);
+
+// 0x4774c0 / 0x4777b0 (thiscall; slot 8 of 0x6fee38 / 0x6fee60; names unconfirmed): as Overlay_Clone with flags 4, the new overlay given
+// the vtable 0x6fee38 / 0x6fee60 after Overlay_Ctor (their constructors 0x477250 / 0x477580 inlined).
+u8 *__fastcall Overlay_CloneResized(u8 *overlay);
+
+u8 *__fastcall Overlay_CloneResizedHeight(u8 *overlay);
 
 // 0x476e80: with flag 0x80000 takes the base from desc +0xa, with flag 1 the frame from desc
 // +4 (else, with neither, nothing); then shows node base + frame (u16; fewer when the list ends

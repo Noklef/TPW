@@ -3,16 +3,17 @@
 # 0x20 / 0x40, 0x200 (with or without bit 0x1000000 of 0x8bcbc8; the pointer near vertex 0 or not; a frame picked before or not),
 # 0x80000, 0x80 and 0x1000 each set or not (the picked frame's w a NaN now and then); vertices any (special values now and then). The x-z turn's angles stay under 1e7 radians
 # (fsin / fcos reduce larger ones by their own 66-bit pi, see quad.py).
-# usage: spritequad.py [CASES [SEED]] [--wild|--both] [--show N]
+# FillItem (0x589b50): a draw item filled from such a frame, see fill(). Ground (0x589410): its quad laid on the ground, see ground().
+# usage: spritequad.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Quad,FillItem,Ground)
 import math
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import RAM, SPECIAL, Bench, Call, bf, fb, put  # noqa: E402
+from fncmp import LOG, RAM, SPECIAL, Bench, Call, bf, fb, log_region, put, vtable  # noqa: E402
 
-B = Bench([(0x5890e0, 0x589410), (0x591430, 0x5915c0)])
+B = Bench([(0x5890e0, 0x589410), (0x591430, 0x5915c0), (0x589b50, 0x589f8f), (0x590c40, 0x590ca8), (0x590fb0, 0x590fcb), (0x589410, 0x589761)])
 FRAME, IMAGE, QUAD, PICKED = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300
 GAME_SINES = b''.join(struct.pack('<f', math.sin(i * math.pi / 128)) for i in range(256))
 
@@ -22,7 +23,7 @@ def angle(r):
     return fb(r.uniform(-1e6, 1e6)) if 1e6 < abs(bf(a)) < 1e40 else a
 
 
-def case(r):
+def quad(r):
     flags = r.getrandbits(32)
     for bit in (0x10, 0x20, 0x40, 0x200, 0x80000, 0x80, 0x1000):
         flags = flags | bit if r.random() < 0.4 else flags & ~bit
@@ -54,6 +55,96 @@ def case(r):
                0x8bd4ec: struct.pack('<IIIII', r.f(10), pointer[0], pointer[1], r.getrandbits(32), r.choice([0, PICKED])),
                0x87af60: struct.pack('<I', angle(r))}
     return Call(0x5890e0, [FRAME, QUAD] + size, regions, conv='t', ret='a')
+
+
+TEX, TERRAIN, GRID, ITEM, XF, VT, HEIGHTS = RAM + 0x380, RAM + 0x400, RAM + 0x500, RAM + 0x600, RAM + 0x700, RAM + 0x800, RAM + 0x1000
+
+
+def terrain(r, regions):
+    """The procedural terrain ([0x879d60]): a grid of 1-16 by 1-16 cells (the scales 1, 0.5, 0.25 or any, the cells their inverse or
+    any), its heights small mostly; and the transformer ([0x87b1d8]) a recorder (slot 1 cdecl). Returns a spot over it (or a cell off it)."""
+    width, depth = r.randrange(1, 17), r.randrange(1, 17)
+    scale = [r.choice([1.0, 0.5, 0.25, r.uniform(0.1, 2)]) for _ in range(2)]
+    origin = [r.uniform(-100, 100), r.uniform(-100, 100)]
+    cell = [r.choice([1 / scale[k], r.uniform(0.2, 4)]) for k in range(2)]
+    regions[TERRAIN] = struct.pack('<4I2f', GRID, r.getrandbits(32), width, depth, *scale)
+    grid = bytearray(r.bytes(0x30))
+    put(grid, 8, '4f', origin[0], origin[1], *cell)
+    put(grid, 0x28, 'I', HEIGHTS + 0x400)
+    regions[GRID] = grid
+    regions[HEIGHTS] = b''.join(struct.pack('<I', r.choice([fb(r.uniform(-20, 60)), fb(r.uniform(0, 10)), r.f()])) for _ in range(0x400))
+    regions[0x879d60] = struct.pack('<I', TERRAIN)
+    regions.update({XF: struct.pack('<I', VT), VT: vtable({}, cdecl={1: 8}), LOG: log_region(), 0x87b1d8: struct.pack('<I', XF),
+                    0x87b088: r.bytes(4)})
+    return (origin[0] + r.uniform(-0.9, width + 0.9) / scale[0], origin[1] + r.uniform(-0.9, depth + 0.9) / scale[1])
+
+
+def fill(r):
+    """0x589b50 (thiscall (item), pops 4): quad()'s frame and quad, the frame's flags 0x10000000 (mostly), 0x400, 0x40000, 0x80000, 0x200 and
+    0x8000 each set or not, its vertex +0 and position +0x14 floats; the image's first dword a texture (flags 0x1000, 0x100000, 0x300,
+    0x30000, 0x4000000 each set or not; [0x8bd524] 1 or not) or 0; the terrain ([0x879d60]) a grid of 1-16 by 1-16 cells, the position over
+    it (or a cell off it); the item's quad (+4) quad()'s; the transformer ([0x87b1d8]) a recorder (slot 1 cdecl)."""
+    c = quad(r)
+    regions = dict(c.regions)
+    frame = bytearray(regions[FRAME])
+    flags = struct.unpack_from('<I', frame, 0x10)[0]
+    for bit in (0x10000000, 0x400, 0x40000, 0x80000, 0x200, 0x8000):
+        flags = flags | bit if r.random() < (0.9 if bit == 0x10000000 else 0.4) else flags & ~bit
+    put(frame, 0x10, 'I', flags)
+    put(frame, 0, '4I', *(r.f(r.choice([1, 50, 600])) for _ in range(4)))
+    x, z = terrain(r, regions)
+    off = r.choice([fb(r.uniform(-300, 300)), 0x7fc00000, 0xff800000, fb(0.00125)])   # (off the grid; far ones would index any memory)
+    y = r.choice([r.f(50), r.f(50), r.f(50), r.f(50), 0x7f800001, 0xff812345])   # (signalling NaNs: the ground quad's y goes through the x87)
+    put(frame, 0x14, '3I', r.choice([fb(x), fb(x), off]), y, r.choice([fb(z), fb(z), off, fb(0.00125)]))
+    regions[FRAME] = frame
+    image = bytearray(regions[IMAGE])
+    put(image, 0, 'I', TEX if r.random() < 0.85 else 0)
+    regions[IMAGE] = image
+    tex = bytearray(r.bytes(0x30))
+    tflags = r.getrandbits(32)
+    for bit in (0x1000, 0x100000, 0x100, 0x200, 0x10000, 0x20000, 0x4000000):
+        tflags = tflags | bit if r.random() < 0.4 else tflags & ~bit
+    put(tex, 8, 'I', tflags)
+    put(tex, 0x20, '4I', *(r.f(r.choice([1, 300])) for _ in range(4)))
+    regions[TEX] = tex
+    regions[0x8bd524] = struct.pack('<I', r.choice([1, 1, 0, 2]))
+    item = bytearray(r.bytes(0x30))
+    put(item, 4, 'I', QUAD)
+    regions[ITEM] = item
+    return Call(0x589b50, [FRAME, ITEM], regions, conv='t', ret='a')
+
+
+def ground(r):
+    """0x589410 (thiscall (quad, matrix, width, height), pops 16): quad()'s frame (flags 0x10, 0x20, 0x80, 0x800 each set or not) and quad,
+    the frame over terrain()'s grid; width and height small (the quad's corners then on or near the grid) or any; the axis entry
+    (0x8c1798 + 12 * [0x8c181c], 0-3) unit-ish, small or any."""
+    c = quad(r)
+    regions = dict(c.regions)
+    frame = bytearray(regions[FRAME])
+    flags = struct.unpack_from('<I', frame, 0x10)[0]
+    for bit in (0x10, 0x20, 0x80, 0x800):
+        flags = flags | bit if r.random() < 0.4 else flags & ~bit
+    put(frame, 0x10, 'I', flags)
+    x, z = terrain(r, regions)
+    put(frame, 0x14, '3I', fb(x), r.f(50), fb(z))
+    put(frame, 0x20, 'I', r.f(20))
+    put(frame, 0x2c, 'I', r.choice([fb(1.0), fb(r.uniform(0.05, 1)), r.f(2)]))
+    regions[FRAME] = frame
+    axes = bytearray(r.bytes(0x88))   # (0x8c1798-0x8c1820: four axes, then the results at 0x8c1808)
+    for k in range(4):
+        put(axes, 12 * k, '3I', *(r.choice([fb(r.uniform(-1, 1)), fb(1.0), 0, r.f()]) for _ in range(3)))
+    put(axes, 0x84, 'I', r.choice([0, 1, 2, 3]))
+    regions[0x8c1798] = axes
+    size = [r.choice([fb(r.uniform(0, 0.05)), fb(r.uniform(-0.05, 0.05)), fb(1.0), r.f()]) for _ in range(2)]
+    return Call(0x589410, [FRAME, QUAD, r.getrandbits(32)] + size, regions, conv='t', ret='a')
+
+
+OPS = [k for k in os.environ.get('OPS', 'Quad,FillItem,Ground').split(',') if k]
+
+
+def case(r):
+    op = r.deal(OPS)
+    return fill(r) if op == 'FillItem' else ground(r) if op == 'Ground' else quad(r)
 
 
 if __name__ == '__main__':

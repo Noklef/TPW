@@ -35,20 +35,24 @@ const MouseModeEnv *g_env = &kGameEnv;
 
 void MouseModes_SetEnv(const MouseModeEnv *env) { g_env = env ? env : &kGameEnv; }
 
-void MouseModes_EnsureHolder() {
+extern "C" {
+
+u8 *__cdecl MouseModes_EnsureHolder() {
     u8 *&holder = *reinterpret_cast<u8 **>(0x007b05e8);
-    if (holder) return;
+    if (holder) return holder;
     u8 *const block = static_cast<u8 *>(GameHeap_Alloc(1));
-    if (block) {
-        u8 *const mode = static_cast<u8 *>(GameHeap_Alloc(8));
-        MouseMode_Set(mode ? MouseModeOnlineBase_Ctor(mode) : nullptr);
-        *reinterpret_cast<u32 *>(0x007b05e0) = 0xffffffffu;
-        *reinterpret_cast<u32 *>(0x007b05d4) = 0xffffffffu;
-    }
+    if (block) MouseModeHolder_Ctor(block);
     holder = block;
+    return block;
 }
 
-extern "C" {
+u8 *__fastcall MouseModeHolder_Ctor(u8 *holder) {
+    u8 *const mode = static_cast<u8 *>(GameHeap_Alloc(8));
+    MouseMode_Set(mode ? MouseModeOnlineBase_Ctor(mode) : nullptr);
+    *reinterpret_cast<u32 *>(0x007b05e0) = 0xffffffffu;
+    *reinterpret_cast<u32 *>(0x007b05d4) = 0xffffffffu;
+    return holder;
+}
 
 void __cdecl MouseModes_InitUnusedOne() { *reinterpret_cast<float *>(0x007b05a0) = 1.0f; }
 
@@ -250,5 +254,15 @@ void __fastcall MMPlaceStaff_Assign(u8 *self) {
 void __fastcall MMStaffDrop_Assign(u8 *self) {
     Obj7b51f0_SetCursor(reinterpret_cast<void *>(0x007b51f0), nullptr, 9);
     start_staff_script(self, at<u32>(self, 0xc), at<u8>(self, 0x10));
+}
+
+void __cdecl MouseMode_Ensure6feaa0() {
+    MouseModes_EnsureHolder();
+    u8 *const current = *reinterpret_cast<u8 **>(0x007b05d8);
+    if ((current ? vcall<s32>(current, 0x24) : 0) == 8) return;
+    u8 *const block = static_cast<u8 *>(GameHeap_Alloc(8));
+    u8 *const mode = block ? MouseMode6feaa0_Ctor(block) : nullptr;
+    MouseModes_EnsureHolder();
+    MouseMode_Set(mode);
 }
 }

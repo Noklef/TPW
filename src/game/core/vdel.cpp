@@ -560,6 +560,34 @@ u8 * __fastcall ListScalarDelete703084_5f46e0(u8 *o, void *, u32 v0) {
     const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x00703084; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0; if (v0 & 1) GameHeap_Free(o); return o;
 }
 
+u8 * __fastcall ListScalarDelete7027fc_5ad0d0(u8 *o, void *, u32 v0) {
+    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x007027fc; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0; if (v0 & 1) GameHeap_Free(o); return o;
+}
+
+u8 * __fastcall ListScalarDelete7028b0_5ba860(u8 *o, void *, u32 v0) {
+    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x007028b0; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0; if (v0 & 1) GameHeap_Free(o); return o;
+}
+
+u8 * __fastcall ListScalarDelete702954_5bec40(u8 *o, void *, u32 v0) {
+    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x00702954; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0; if (v0 & 1) GameHeap_Free(o); return o;
+}
+
+u8 * __fastcall ListScalarDelete702b28_5da520(u8 *o, void *, u32 v0) {
+    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x00702b28; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0; if (v0 & 1) GameHeap_Free(o); return o;
+}
+
+u8 * __fastcall ListScalarDelete702c10_5ddb40(u8 *o, void *, u32 v0) {
+    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x00702c10; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0; if (v0 & 1) GameHeap_Free(o); return o;
+}
+
+u8 * __fastcall ListScalarDelete702d00_5e2b70(u8 *o, void *, u32 v0) {
+    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x00702d00; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0; if (v0 & 1) GameHeap_Free(o); return o;
+}
+
+u8 * __fastcall ListScalarDelete6fdb08_41f6f0(u8 *o, void *, u32 v0) {
+    const u32 first = at<u32>(o, 4); at<u32>(o, 0) = 0x006fdb08; at<u32>(o, 8) = 0; at<u32>(o, 4) = 0; for (u32 node = first; node;) { const u32 next = at<u32>(reinterpret_cast<const u8 *>(node), 4); GameHeap_Free(reinterpret_cast<void *>(node)); node = next; } at<u32>(o, 0xc) = 0; if (v0 & 1) GameHeap_Free(o); return o;
+}
+
 u8 *__fastcall Class7037b8_ScalarDtor(u8 *object, void *, u32 flags) {
     Class7037b8_Dtor(object);
     if (flags & 1)

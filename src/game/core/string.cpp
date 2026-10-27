@@ -947,6 +947,24 @@ String *__cdecl String_ReadToken(String *out, const char **cursor, u32 delimiter
     return out;
 }
 
+WString *__cdecl WString_ReadToken(WString *out, const char **cursor, u32 delimiter) {
+    WString token;
+    WString_Ctor(&token);
+    const char stop = static_cast<char>(delimiter);
+    while (**cursor != stop) {
+        // The original's MOVSX DX stores the whole EDX over the delimiter's argument slot and passes that: the unit, then EDX's upper half (the
+        // cursor's after the first char; before it, what EDX held at the call: sic, AppendChar reads the unit only).
+        delimiter = (static_cast<u32>(reinterpret_cast<uintptr_t>(*cursor)) & 0xffff0000u)
+                  | static_cast<u16>(static_cast<s16>(static_cast<signed char>(**cursor)));
+        vcall<void>(&token, 0x24, &delimiter);
+        ++*cursor;
+    }
+    ++*cursor;
+    WString_CtorCopy(out, nullptr, &token);
+    WString_Dtor(&token);
+    return out;
+}
+
 u8 *__fastcall WString_CtorReturning(u8 *string) {
     WString_Ctor(reinterpret_cast<WString *>(string));
     return string;

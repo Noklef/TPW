@@ -5,7 +5,10 @@
 #include "../core/filetime.h"
 #include "../core/circbuf.h"
 #include "../core/funnytime.h"
+#include "../core/indexed.h"
+#include "../core/trivial.h"
 #include "../core/savegame.h"
+#include "mapcell.h"
 #include "messagecentre.h"
 #include "things.h"
 
@@ -45,6 +48,31 @@ void __fastcall ParkAnalyser_Record(u8 *analyser, void *, u32 ring, u32 value) {
         at<u8>(r, 0x3c) = 1;
     }
     at<u8>(r, (u32)at<s32>(r, 0x34) + 1) = (u8)value;
+}
+
+u8 __fastcall ParkAnalyser_RingFull(const u8 *analyser, void *, u32 ring) {
+    const u8 *const r = analyser + 0x216fc + (ring << 6);
+    if (at<u8>(r, 0x3c)) return at<s32>(r, 0x38) >= 0x32;
+    return at<s32>(r, 0x34) + 1 >= 0x32;
+}
+
+u8 __fastcall ParkAnalyser_RingAverage(const u8 *analyser, void *, u32 ring) {
+    const u8 *const r = analyser + 0x216fc + (ring << 6);
+    const bool wrapped = at<u8>(r, 0x3c) != 0;
+    s32 n = 0x32;
+    const s32 held = wrapped ? at<s32>(r, 0x38) : at<s32>(r, 0x34) + 1;
+    if (held < n) n = held;
+    if (n <= 0) return 0;
+    double sum = 0.0;   // (the double [0x700320]; byte sums and the quotient below are exact enough that x87's precision cannot matter)
+    for (s32 i = 0; i < n; ++i) {
+        const s32 size = at<s32>(r, 0x38), cursor = at<s32>(r, 0x34);
+        if (i >= size) continue;
+        if (i <= cursor)
+            sum += r[(u32)cursor - (u32)i + 1u];   // (32-bit address arithmetic, as the original's)
+        else if (wrapped)
+            sum += r[(u32)cursor - (u32)i + (u32)size + 1u];
+    }
+    return (u8)(long long)(sum / n);   // (__ftol's low byte)
 }
 
 void __fastcall ParkAnalyser_Tally(u8 *analyser, void *, u32 flag) {
@@ -146,6 +174,71 @@ u32 __fastcall AnalyserVal_Serialize(u8 *val, void *, Stream *stream, u32 save, 
     return Save_Fields(stream, save, val, kVal, 2) ? 0 : 1;
 }
 
+u32 __fastcall AnalyserCell_Serialize(u8 *cell, void *, Stream *stream, u32 save, s32 version, u32 unused) {
+    static const SaveSpec kHead[] = {{0x0, 4, 0x00759aec}, {0x4, 4, 0x00759ae4}, {0x8, 4, 0x00759adc}, {0xc, 4, 0x00759ad4}};
+    if (version < 0 || version > 1) return 0;
+    if (save != 0) {
+        if (!Save_Fields(stream, save, cell, kHead, 4)) return 1;
+        for (u32 at = 0x10; at < 0x58; at += 0xc) {   // the first six values inline (as Save_WriteU32 / U8), the last three as themselves
+            if (Save_WriteU32(stream, cell + at + 4, reinterpret_cast<const char *>(0x00759a48), 0)) return 1;
+            if (Save_WriteU8(stream, cell + at + 8, reinterpret_cast<const char *>(0x00759a3c), 0)) return 1;
+        }
+        for (u32 at = 0x58; at < 0x7c; at += 0xc)
+            if (AnalyserVal_Serialize(cell + at, nullptr, stream, save, version, unused)) return 1;
+        return 0;
+    }
+    if (!Save_Fields(stream, 0, cell, kHead, 1)) return 1;
+    for (u32 i = 1; i < 4; ++i)
+        if (Save_ReadU32(stream, cell + kHead[i].at, reinterpret_cast<const char *>(kHead[i].name), 0)) return 1;
+    for (u32 at = 0x10; at < 0x7c; at += 0xc)
+        if (AnalyserVal_Serialize(cell + at, nullptr, stream, 0, version, unused)) return 1;
+    return 0;
+}
+
+u32 __fastcall ParkAnalyser_Serialize(u8 *analyser, void *, Stream *stream, u32 save, s32 version, u32 unused) {
+    static const SaveSpec kHead[] = {{0xc, 4, 0x00759ac0}, {0x10, 4, 0x00759ab4}, {0x14, 4, 0x00759aa8}, {0x18, 4, 0x00759a9c},
+                                     {0x1c, 4, 0x00759a90}};   // mMapSquaresPerCell, mGridSizeX / Y, mMapSizeX / Y
+    static const SaveSpec kTail[] = {{0x0, 4, 0x00759a28}, {0x4, 4, 0x00759a04}, {0x8, 4, 0x007599ec}, {0xc, 4, 0x007599d8},
+                                     {0x14, 8, 0x007599cc}, {0x1c, 8, 0x007599c0}, {0x24, 8, 0x007599b4}, {0x2c, 8, 0x007599a4},
+                                     {0x34, 8, 0x00759990}, {0x3c, 8, 0x00759980}, {0x44, 4, 0x0075996c}, {0x48, 4, 0x0075995c},
+                                     {0x4c, 4, 0x0075994c}};   // from +0x21bfc: mMisbehavingKids ..., mLastStrike ...
+    if (Thing_Serialize(analyser, nullptr, stream, save, version, unused)) return 1;
+    if (version < 0 || version > 1) return 0;
+    // (saving, the original inlines the CircBufU16s, the values and the first nine CircBufU32s as their serializers write them)
+    if (save != 0) {
+        if (!Save_Fields(stream, save, analyser, kHead, 5)) return 1;
+    } else {
+        for (u32 i = 0; i < 5; ++i)
+            if (Save_ReadU32(stream, analyser + kHead[i].at, reinterpret_cast<const char *>(kHead[i].name), 0)) return 1;
+    }
+    for (u32 i = 0; i < 0x400; ++i)
+        if (AnalyserCell_Serialize(analyser + 0x20 + i * 0x7c, nullptr, stream, save, version, unused)) return 1;
+    for (u32 i = 0; i < 4; ++i)
+        if (CircBufU16_Serialize(analyser + 0x1f068 + i * 0x14, nullptr, stream, save, version, unused)) return 1;
+    for (u32 i = 0; i < 6; ++i)
+        if (AnalyserVal_Serialize(analyser + 0x1f0b8 + i * 0xc, nullptr, stream, save, version, unused)) return 1;
+    for (u32 i = 0; i < 16; ++i)
+        if (CircBufU32_144_Serialize(analyser + 0x1f100 + i * 0x250, nullptr, stream, save, version, unused)) return 1;
+    if (CircBufU32_50_Serialize(analyser + 0x21600, nullptr, stream, save, version, unused)) return 1;
+    if (CircBufU32_5_Serialize(analyser + 0x216d8, nullptr, stream, save, version, unused)) return 1;
+    for (u32 i = 0; i < 0x14; ++i)
+        if (CircBufU8_Serialize(analyser + 0x216fc + i * 0x40, nullptr, stream, save, version, unused)) return 1;
+    u8 *const tail = analyser + 0x21bfc;
+    for (u32 i = 0; i < 13; ++i) {
+        const SaveSpec &f = kTail[i];
+        const char *const name = reinterpret_cast<const char *>(f.name);
+        u32 failed;
+        if (save != 0)
+            failed = f.size == 8 ? Save_Write8Bytes(stream, tail + f.at, name, 0) : Save_WriteU32(stream, tail + f.at, name, 0);
+        else if (f.size == 8)
+            failed = Save_Read8Bytes(stream, tail + f.at, name, 0);
+        else   // sic: mMisbehavingKidsEver (+0x21c04) is written to the stream when loading, not read
+            failed = i == 2 ? Save_WriteU32(stream, tail + f.at, name, 0) : Save_ReadU32(stream, tail + f.at, name, 0);
+        if (failed) return 1;
+    }
+    return 0;
+}
+
 s32 __fastcall ParkAnalyser_AveragePersonStat19c(void *, void *, u32 cell, u32 radius) {
     const u32 id = (cell & 0xffff) - 1;
     const u32 column = id & 0x7f, row = id >> 7;
@@ -167,5 +260,49 @@ s32 __fastcall ParkAnalyser_AveragePersonStat19c(void *, void *, u32 cell, u32 r
             }
         }
     return count ? sum / count : 0;
+}
+
+u32 __fastcall AnalyserCell_CountBusy(u8 *cell, void *, u32 limit) {
+    if (!cell[0x6c] || limit < Game1da70c_MinusAt0Quarters(reinterpret_cast<const u32 *>(cell + 0x64))) {
+        u32 count = 0;
+        for (s32 x = at<s32>(cell, 0); x < at<s32>(cell, 0) + at<s32>(cell, 8); ++x)
+            for (s32 y = at<s32>(cell, 4); y < at<s32>(cell, 4) + at<s32>(cell, 0xc); ++y) {
+                const u16 id = (u16)((y << 7) + x + 1);
+                const u8 *const m = *reinterpret_cast<u8 *const *>(0x008023a0) + id * 0x44u - 0x44u;
+                count += MapCell_IsType1(m) || MapCell_IsType3Or9(m) || MapCell_IsType9(m) || MapCell_IsTypeA(m) || Zero_5d60c0() ||
+                                 MapCell_IsType4(m)
+                             ? 1
+                             : 0;
+            }
+        at<u32>(cell, 0x68) = count;
+        cell[0x6c] = 1;
+        Out_SetFromGame1da70c(reinterpret_cast<u32 *>(cell + 0x64));
+    }
+    return at<u32>(cell, 0x68);
+}
+
+u32 __fastcall ParkAnalyser_CountBusy(u8 *analyser, void *, u32 limit) {
+    u32 sum = 0;
+    for (u32 i = 0x400; i-- > 0;) sum += AnalyserCell_CountBusy(analyser + 0x20 + 0x7c * i, nullptr, limit);
+    return sum;
+}
+
+u32 __fastcall ParkAnalyser_CountAtTicketBooths(u8 *analyser) {
+    s32 count = 0;
+    for (u32 b = 0; b <= 1; ++b) {
+        u8 *const world = *reinterpret_cast<u8 *const *>(0x0080239c);
+        u16 pos;
+        const u32 id = *Map_TicketBoothPos(world + 0x2d8, nullptr, &pos, b);
+        u16 handle = at<u16>(world, id * 0x44 + 0x2b8);
+        while (handle) {
+            const u8 *thing = static_cast<const u8 *>(reinterpret_cast<ThingSlot *>(0x007cfb90)[handle].thing);
+            if (at<u8>(thing, 2) == 1 && at<u32>(thing, 0x220) == 3) ++count;
+            handle = at<u16>(thing, 0xa);
+        }
+    }
+    at<s32>(analyser, 0x1f0d4) = count;
+    analyser[0x1f0d8] = 1;
+    Out_SetFromGame1da70c(reinterpret_cast<u32 *>(analyser + 0x1f0d0));
+    return at<u32>(analyser, 0x1f0d4);
 }
 }

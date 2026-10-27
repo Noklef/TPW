@@ -3,6 +3,8 @@
 
 #include "../../../re/types.h"
 
+struct SurfaceDesc;  // (gfx/imageops)
+
 extern "C" {
 
 // 0x5b15a0 (thiscall): every node of the circular list at +4 (count at +8) is unlinked, its counted buffer at +8 reset (CountedBuf_Reset, releasing)
@@ -56,6 +58,10 @@ void __fastcall Blocks7_Free(u8 *object);
 
 // 0x5d45b0 (thiscall): all 0x70 bytes of the object (seven groups of 16 from +0; see Blocks7_Free) cleared. Returns the object.
 u8 *__fastcall Blocks7_Ctor(u8 *object);
+
+// 0x5d48a0 (thiscall (description), pops 4; name unconfirmed): the image at +0x60 made 320 x 240 from a copy of the surface description
+// (Image_ShrinkSurface; its result left in EAX's upper bytes). Returns 1 (AL).
+u8 __fastcall Blocks7_ShrinkSurface(u8 *object, void *, const SurfaceDesc *desc);
 
 // 0x598760 (thiscall on a pointer variable): the block it points to is freed when it is set; the pointer is left.
 void __fastcall Ptr_FreeIfSet(u8 **ref);

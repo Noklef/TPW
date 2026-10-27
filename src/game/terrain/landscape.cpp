@@ -3,8 +3,10 @@
 #include <cstdint>
 #include <cstring>
 
+#include "../gfx/texman.h"
 #include "../gfx/texture.h"
 #include "../math/x87.h"
+#include "../render/engineerrors.h"
 
 namespace {
 
@@ -148,6 +150,40 @@ u32 __fastcall Landscape_RemoveTexture(u8 *landscape, void *, u8 *textures) {
             b[k] = t;
         }
     }
+    return 1;
+}
+
+u32 __fastcall Landscape_AddTexture(u8 *landscape, void *, u8 **out, const char *name, u32 a, u32 b, u32 c, u32 d, u32 e, u32 f) {
+    u8 *const errors = reinterpret_cast<u8 *>((uintptr_t)0x00879ad0);
+    const s32 count = at<s32>(landscape, 0x21dc);
+    if (count >= 0x10) {
+        EngineErrors_Push(errors, nullptr, 1, 0xb0754012);
+        return 0;
+    }
+    u8 *const entry = landscape + 0x1fdc + 0x20 * count;
+    at<s32>(landscape, 0x21dc) = count + 1;
+    if (at<u8 *>(entry, 0) != nullptr) {
+        Texture_Release(at<u8 *>(entry, 0));
+        if (u8 *const array = at<u8 *>(entry, 0))
+            Texture_DestroyArray(array);
+        at<u32>(entry, 0) = 0;
+    }
+    u8 *const textures = TexManager_Load(*reinterpret_cast<u8 *const *>((uintptr_t)0x0087a268), nullptr, name);
+    at<u8 *>(entry, 0) = textures;
+    if (textures == nullptr) {
+        EngineErrors_Push(errors, nullptr, 1, 0xb0754001);
+        EngineErrors_Push(errors, nullptr, 1, 0xb0754001);
+        *out = nullptr;
+        return 0;
+    }
+    at<u32>(textures, 8) = (at<u32>(textures, 8) & ~0x100u) | 0x30200;
+    at<u32>(entry, 0xc) = a;
+    at<u32>(entry, 0x10) = b;
+    at<u32>(entry, 0x14) = c;
+    at<u32>(entry, 0x18) = d;
+    at<u32>(entry, 4) = e;
+    at<u32>(entry, 8) = f;
+    *out = textures;
     return 1;
 }
 

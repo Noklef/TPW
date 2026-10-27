@@ -4,7 +4,9 @@
 #include <cstdlib>
 
 #include "../core/gameheap.h"
+#include "../files/quickload.h"
 #include "../gfx/texture.h"
+#include "../gfx/texman.h"
 #include "../math/x87.h"
 #include "../terrain/landscape.h"
 
@@ -143,5 +145,32 @@ u32 __fastcall WeatherFx_FreeTextures(u8 *fx) {
         at<u32>(fx, offset) = 0;
     }
     return 1;
+}
+
+u32 __fastcall WeatherFx_LoadTexture(u8 *fx, void *, u32 which, const char *name) {
+    u8 **slot;
+    if (which == 1)
+        slot = reinterpret_cast<u8 **>(fx + 0x3350);
+    else if (which == 2)
+        slot = reinterpret_cast<u8 **>(fx + 0x3348);
+    else if (which == 3)
+        slot = reinterpret_cast<u8 **>(fx + 0x334c);
+    else
+        slot = reinterpret_cast<u8 **>((uintptr_t)which);
+    if (*slot == nullptr) {
+        *slot = TexManager_Load(*reinterpret_cast<u8 *const *>((uintptr_t)0x0087a268), nullptr, name);
+        if (*slot != nullptr)
+            *reinterpret_cast<u32 *>(*slot + 8) |= 0x80200;
+    }
+    return *slot != nullptr;
+}
+
+u32 __cdecl WeatherFx_LoadTextures() {
+    u8 *const *const fx = reinterpret_cast<u8 *const *>((uintptr_t)0x008bcbac);
+    if (!*fx) return 0;
+    const auto name = [](u32 address) { return Quickload_Locate(reinterpret_cast<const char *>((uintptr_t)address), 1, nullptr); };
+    WeatherFx_LoadTexture(*fx, nullptr, 2, name(0x00765218));          // "Data\Generic\Weather\snow.tga"
+    WeatherFx_LoadTexture(*fx, nullptr, 1, name(0x007651f4));          // "Data\Generic\Weather\raindrop.tga"
+    return WeatherFx_LoadTexture(*fx, nullptr, 3, name(0x007651d0));   // "Data\Generic\Weather\lightning.tga"
 }
 }

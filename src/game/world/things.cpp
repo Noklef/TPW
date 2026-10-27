@@ -290,6 +290,23 @@ u32 __fastcall Thing_Serialize(u8 *thing, void *, Stream *stream, u32 save, s32 
     return 0;
 }
 
+void __cdecl ThingsToDelete_AtExit() {
+    u8 &guard = global<u8>(0x007cf6d4);
+    if (guard & 1) return;
+    guard = (u8)(guard | 1);
+    HandleQueue *const queue = deleteQueue();
+    HandleNode *node = queue->head;
+    queue->unknown00 = 0x00700a9c;
+    queue->tail = nullptr;
+    queue->head = nullptr;
+    while (node) {
+        HandleNode *const next = node->next;
+        g_env->free(node);
+        node = next;
+    }
+    queue->count = 0;
+}
+
 u32 __fastcall ThingBasic_Serialize(u8 *thing, void *, Stream *stream, u32 save, s32 version, u32 unused) {
     return Thing_Serialize(thing, nullptr, stream, save, version, unused) != 0 ? 1 : 0;
 }

@@ -32,6 +32,11 @@ u32 __fastcall TgqVideo_PackColour(s32 r, s32 g, s32 b, u32 unused, u32 red_bits
 void __fastcall TgqVideo_BuildTables(u32 unused, u32 red_bits, u32 green_bits, u32 blue_bits, u32 red_shift, u32 green_shift,
                                      u32 blue_shift);
 
+// 0x66ffa0 (fastcall (alpha); name unconfirmed): the same three tables as TgqVideo_BuildTables, as packed lanes (TgqVideo_PackLanes)
+// instead of pixels: luma (c + 0x80 in the three low lanes, the alpha in the top one), 0xfb7d30 (0, c * -0.3441, c * 1.7720, 0) and
+// 0xfb7b30 (c * 1.4020, c * -0.7141, 0, 0).
+void __fastcall TgqVideo_BuildLaneTables(s32 alpha);
+
 // 0x671000 (cdecl (quality); name unconfirmed): the dequantiser 0xfb7820 (64 dwords) from the base matrix 0x705c88: with d = 100 -
 // quality, base = d * 22 / 100 + 8 and step = d * 50 / 100 + 10 - base (signed, truncated), entry (row, k) = the matrix's * ((row + k)
 // * step / 14 + base) << 16, as 16.16 rounded by bit 15 (the products wrapping).
@@ -92,4 +97,12 @@ void __fastcall TgqVideo_DecodeFrame32(u8 *player, const u8 *data, u8 *out, u32 
 // so that adding the dword adds each: a borrow taken from the byte above each negative one (c's from b, then b's from a, a's from d,
 // each tested after its own borrow).
 u32 __fastcall TgqVideo_PackLanes(s32 a, s32 b, s32 c, s32 d);
+
+// 0x66fb60 (fastcall (value, state); name unconfirmed): the state's +0x608 the value, its +0x508, +0x50c, +0x510 and +0x60c 0. Returns 0.
+u32 __fastcall TgqVideo_SetBlockBase(u32 value, u8 *state);
+
+// 0x66fbd0 (thiscall; name unconfirmed): the colour tables for the player's pixel format (its dword +0): with the format's kind +0x48
+// 0x10 or 0xf (16 bits a pixel) TgqVideo_BuildTables (0xff, its bits +0x2c / +0x30 / +0x34 and shifts +0x38 / +0x3c / +0x40), else
+// the lanes' (TgqVideo_BuildLaneTables (0xff)).
+void __fastcall TgqVideo_SetupTables(u8 *player);
 }

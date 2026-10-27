@@ -78,6 +78,7 @@
 #include "../../src/game/render/engineerrors.h"
 #include "../../src/game/sprite/draw.h"
 #include "../../src/game/sprite/script.h"
+#include "../../src/game/ui/cursor.h"
 #include "../../src/game/world/advisorscore.h"
 #include "../../src/game/model/holder.h"
 #include "../../src/game/model/objmodel.h"
@@ -318,6 +319,9 @@ s32 __fastcall stub_seek(u8 *self, void *, u32 offset, u32 origin) {
     return (s32)to;
 }
 
+// A memory stream's size (kStubs + 0xc0, tools/fncmp.py STREAM_SIZE), thiscall, no arguments: its +0x10, whatever the bytes left (+8) are.
+u32 __fastcall stub_stream_size(const u8 *self) { return *reinterpret_cast<const u32 *>(self + 0x10); }
+
 // What throws in the game (std::_Xlen, _Xran): a case that gets there reports a crash.
 void __cdecl heap_throw() { RaiseException(0xe0000001, 0, 0, nullptr); }
 
@@ -367,7 +371,7 @@ constexpr u32 recorder(u32 k, u32 n) { return kStubs + 0x1000 + 0x400 * n + 0x20
 
 // Optional settings in the log region: at + 0xa00 a mask per slot (k & 63): bits 0-15 the arguments that are C strings, logged and hashed as a hash of the string
 // (so that a path in a stack buffer, whose address differs between the sides, compares by its text), bits 16-31 out arguments, logged as 0 (a stack address;
-// what is written through them is a fill's, and shows in what the code does with it); at + 0xb00 and + 0xb80 two fills (k | 0x80000000, the argument, the
+// what is written through them is a fill's, and shows in what the code does with it); at + 0xb00 and + 0xb80 two fills and from + 0x1000 six more (k | 0x80000000, the argument, the
 // length; the bytes from + 0x10, at most 0x70; length bit 31: argument length & 0xff's value, fncmp.fill_arg()) written through that argument before the
 // recorder returns (an out structure, FindFirstFile's); at + 0xc00 a mask per slot of BYTE arguments, logged as their low byte (fncmp.LOG_BYTES); at + 0xd00
 // two dwords per slot, an argument + 1 (bits 0-4) and a dword mask: that argument (unless null) logged as a hash of the dwords it points to that the mask
@@ -416,6 +420,33 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
     const u32 mask = log[0x280 + (k & 63)];
     u32 earlier = 0;  // (this slot's calls in the log so far: fncmp.fail_after(), a fill's records)
     for (u32 i = 0; i < log[0] && i < 40; ++i) earlier += log[1 + 12 * i] == k;
+    // Answers by name at + 0x1400 (fncmp.named()): (k | 0x80000000, the name argument | (an offset + 1) << 8, the out argument + 1 | a length (0-8)
+    // << 8, the count (up to 30), a miss flag, the miss value), then from + 0x1420 four dwords an entry (a string hash, the answer, two dwords). A
+    // call whose name (the C string the argument points to or, with an offset, the one the pointer at that offset in the argument's structure points
+    // to) hashes as an entry's answers the entry's answer, the entry's first length bytes written through the out argument (unless null) before the
+    // fills; another name answers the miss value with the miss flag set, else as without the table.
+    const u32 *const named = log + 0x500;
+    bool by_name = false;
+    u32 named_answer = 0;
+    if (named[0] == ((k & 63) | 0x80000000u) && (named[1] & 0xffu) < n) {
+        u32 p = stack[1 + (named[1] & 0xffu)];
+        if (const u32 through = named[1] >> 8 & 0xffu)
+            if (p) std::memcpy(&p, reinterpret_cast<const u8 *>((uintptr_t)p) + through - 1, 4);
+        const u32 name = string_hash(reinterpret_cast<const u8 *>((uintptr_t)p));
+        for (u32 e = 0; e < named[3] && e < 30; ++e) {
+            const u32 *const entry = log + 0x508 + 4 * e;
+            if (entry[0] != name) continue;
+            by_name = true;
+            named_answer = entry[1];
+            const u32 out = named[2] & 0xffu, length = named[2] >> 8 & 0xffu;
+            if (out && out <= n && stack[out] && length <= 8) std::memcpy(reinterpret_cast<void *>((uintptr_t)stack[out]), entry + 2, length);
+            break;
+        }
+        if (!by_name && named[4]) {
+            by_name = true;
+            named_answer = named[5];
+        }
+    }
     for (u32 i = 0; i < n; ++i) {  // (stack[0] is the thunk's own return address)
         args[i] = stack[1 + i];
         // Eight fills: two at + 0xb00, six more from + 0x1000 (0x80 each; a log region that sets them is that much longer). Dword 3: bits 0-7 an offset
@@ -444,10 +475,24 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
         const u32 *blob = log + 0x340 + 2 * (k & 63);  // (LOG_BLOBS)
         if ((blob[0] & 0x1f) == i + 1 && args[i]) {
             const u8 *const p = reinterpret_cast<const u8 *>((uintptr_t)args[i]);
+            u32 blob_mask = blob[1], how = blob[0];
+            for (u32 w = 0; w < 4; ++w) {  // (at + 0xf80, fncmp.blob_when(): (k | 0x80000000, argument, value, mask), the mask for this call's argument;
+                                           // fncmp.blob_when_inner(): k | 0xc0000000 and the second structure's selection, bits 5-30 of how)
+                const u32 *const when = log + 0x3e0 + 4 * w;
+                if (when[1] >= 0x200u || (when[1] & 0xffu) >= n) continue;
+                u32 value = stack[1 + (when[1] & 0xffu)];
+                if (when[1] & 0x100u) {  // (the argument's bit 8, blob_when()'s deref: the dword it points to; a null one matches nothing)
+                    if (!value) continue;
+                    value = *reinterpret_cast<const u32 *>((uintptr_t)value);
+                }
+                if (value != when[2]) continue;
+                if (when[0] == ((k & 63) | 0x80000000u)) blob_mask = when[3];
+                else if (when[0] == ((k & 63) | 0xc0000000u)) how = (how & 0x8000001fu) | (when[3] & 0x7fffffe0u);
+            }
             const u32 *wide = nullptr;
             for (u32 w = 0; w < 2; ++w)
                 if (log[0x3f0 + 4 * w] == ((k & 63) | 0x80000000u)) wide = log + 0x3f0 + 4 * w;
-            args[i] = blob[0] & 0x80000000u ? blob_bytes_hash(p, blob[0], blob[1], wide) : blob_hash(p, blob[1]);
+            args[i] = how & 0x80000000u ? blob_bytes_hash(p, how, blob_mask, wide) : blob_hash(p, blob_mask);
         }
         if (mask >> i & 1) args[i] = string_hash(reinterpret_cast<const u8 *>((uintptr_t)args[i]));
         if (mask >> (16 + i) & 1) args[i] = 0;
@@ -493,6 +538,7 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
     u32 h = self * 0x9e3779b1u + (k + 1) * 0x10001u + n;
     for (u32 i = 0; i < n; ++i) h = h * 33 ^ args[i];
     const u32 *override = log + 0x200 + 2 * (k & 63);  // (LOG_RETURNS: a flag and a value for the slot; flag 2: argument value, as passed;
+    if (by_name) return named_answer;
     if (sequenced && (seq[7] & 1)) return copied;
     if (seeking) return seq[6];
     if (override[0] == 4) {                             //  (4: a float, its bits in EAX and pushed in st0)
@@ -719,6 +765,7 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x006ff500, 11},
                                    {0x006ff530, 11},
                                    {0x007011c8, 4},   // the WCT image's virtual base (the deleting destructor's thunk TexFile_Load calls)
+                                   {0x00701168, 4},   // the RLE image's (the deleting destructor's thunk SpriteImage_LoadRle calls)
                                    {0x006fdcc8, 4},   // the light parts' (directional, point: slot 2 the thunk to Stub_One the renderer's sorted add calls)
                                    {0x006fdcd8, 5},   // and a light's virtual base made by Obj_CtorVirtual (slot 2 the same; 5-7 are _purecall)
                                    {0x006fe548, 4},
@@ -742,6 +789,7 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x006fe980, 12},   // CMMOnline's (slot 10 Debug_Nop_46cfb0, which MouseMode_Set calls on the new mode; 11 its leave)
                                    {0x006fea10, 12},   // CMMOnline's base (slots 0, 9 and 11 MouseMode_Set's; 0x481a10 / 0x485b70 make it)
                                    {0x006fea70, 12},   // MMStaffDrop's (slots 9, 10 AssignDrop: MouseMode_Set's on the mode 0x5054d0 makes)
+                                   {0x006feaa0, 12},   // the 0x6feaa0 mode's (slots 9, 10 the empty 0x5da3c0: MouseMode_Set's on the mode 0x497bc0 makes)
                                    {0x006fead0, 12}};  // the 0x6fead0 mode's (slots 9, 10: MouseMode_Set's on the mode 0x481a10 makes)
 
 // Hooked game functions that ported code stores by their address and that are later called through it (a new window's handlers +0x114 /
@@ -788,7 +836,7 @@ void map_stubs() {
     const void *stubs[] = {(const void *)&stub_read, (const void *)&stub_write, (const void *)&stub_global_alloc,
                            (const void *)&stub_global_free, (const void *)&stub_mark, (const void *)&stub_cdecl_log, (const void *)&stub_counter,
                            (const void *)&stub_seek, (const void *)&stub_cdecl_log2, (const void *)&stub_cdecl_log4, (const void *)&stub_zalloc,
-                           (const void *)&stub_zfree};
+                           (const void *)&stub_zfree, (const void *)&stub_stream_size};
     for (u32 i = 0; i < sizeof stubs / sizeof stubs[0]; ++i) jump(p + 0x10 * i, stubs[i]);
     map_recorders(p);
 }
@@ -1169,6 +1217,12 @@ int main(int argc, char **argv) {
         (uintptr_t)(kStubs + 0xb000 + 0x400 * 6 + 0x20 * 30));
     pointer.endThread = reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)(kStubs + 0xb000 + 0x400 * 1 + 0x20 * 31));
     AsyncPointer_SetEnv(&pointer);
+    // The game cursors' file loaders (.ani / .cur and .tga) the cdecl recorders k 28 and 29 (one argument), as tests/fncmp/cursor.py hooks
+    // 0x4895b0 and 0x489670 (fncmp.recorder(k, 1, cdecl=True)).
+    static GameCursorsEnv gameCursors = *GameCursors_GetEnv();
+    gameCursors.loadAni = reinterpret_cast<u8 *(__cdecl *)(const char *)>((uintptr_t)(kStubs + 0xb000 + 0x400 * 1 + 0x20 * 28));
+    gameCursors.loadTga = reinterpret_cast<u8 *(__cdecl *)(const char *)>((uintptr_t)(kStubs + 0xb000 + 0x400 * 1 + 0x20 * 29));
+    GameCursors_SetEnv(&gameCursors);
     // A region of up to 8 MB, as hex. Mapped rather than static: a static this size grew the driver's .bss by 12 MB past the game's
     // addresses, where a case's wild pointer read memory natively that the emulator (the original's side) does not have. At 0x5a000000,
     // not top-down: that put it at 0x7ef00000-0x7fef0000, under the bits of +inf, NaN and big floats (0x7f800000, 0x7fc00000, 3e38),

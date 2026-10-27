@@ -72,6 +72,10 @@ void __fastcall ThemeRecord_Dtor(u8 *self);
 // horribly wrong...") and 0. Returns 1 (AL) with a file.
 u8 __fastcall ThemeRecord_LoadGlobalSam(u8 *self);
 
+// 0x5b11a0 (thiscall; name unconfirmed): the theme's balance file loaded when it has none (ThemeRecord_LoadGlobalSam); with one, its
+// dword +0x14, else -1.
+u32 __fastcall ThemeRecord_GlobalSamField14(u8 *self);
+
 // 0x415e80 (thiscall; name unconfirmed): the balance file at +0xc gets vtable 0x6fd958 back and is released (BalanceFile_Release).
 void __fastcall AdvisorScoring_Dtor(u8 *self);
 

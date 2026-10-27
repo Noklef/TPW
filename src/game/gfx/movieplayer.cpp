@@ -82,16 +82,7 @@ void __fastcall MoviePlayer_ReadHeader(u8 *player, void *) {
     if (at<u32>(settings(player), 0x88)) return;
     at<u32>(player, 0x3a8) = at<u32>(player, 0x1f4);
     const u8 *data = at<const u8 *>(player, 0x1e8);
-    if (!data) return;
-    switch (at<u32>(player, 0x3a8)) {
-    case 1: MoviePlayer_ReadPalette(player, data); return;
-    case 3: read_size(player, data); return;
-    case 4: MoviePlayer_ReadSizeFlags(player, data); return;
-    case 5:
-    case 6:
-    case 7: MoviePlayer_ReadSizeAt8(player, data); return;
-    default: return;
-    }
+    if (data) MoviePlayer_ReadByKind(player, data);   // (the original falls through into it)
 }
 
 void __fastcall MoviePlayer_BuildPixels(u8 *player, void *) {
@@ -177,6 +168,36 @@ void __fastcall MoviePlayer_DrawFrame(u8 *player, u8 *out, u32, u32 pitch) {
     } while (++row < at<u32>(settings(player), 0x60));
 }
 
+void __fastcall MoviePlayer_ReadSize(u8 *player, const u8 *data) { read_size(player, data); }
+
+void __fastcall MoviePlayer_ReadByKind(u8 *player, const u8 *data) {
+    switch (at<u32>(player, 0x3a8)) {
+    case 1: MoviePlayer_ReadPalette(player, data); return;
+    case 3: MoviePlayer_ReadSize(player, data); return;
+    case 4: MoviePlayer_ReadSizeFlags(player, data); return;
+    case 5:
+    case 6:
+    case 7: MoviePlayer_ReadSizeAt8(player, data); return;
+    default: return;
+    }
+}
+
+s32 __fastcall MovieTags_ReadNumber(const u8 **cursor) {
+    const u8 *p = *cursor + 1;
+    const u32 count = *p++;
+    u32 value = 0;
+    for (u32 i = count; i != 0; --i) value = (value << 8) + *p++;
+    if (count == 1) {
+        if ((s32)value > 0x7f) value -= 0x100;
+    } else if (count == 2) {
+        if ((s32)value > 0x7fff) value -= 0x10000;
+    } else if (count == 3) {
+        if ((s32)value > 0x7fffff) value -= 0x1000000;
+    }
+    *cursor = p;
+    return (s32)value;
+}
+
 void __fastcall MoviePlayer_ReadSizeFlags(u8 *player, const u8 *data) {
     read_size(player, data);
     at<u32>(player, 0x40) = data[7] & 2u;
@@ -242,5 +263,28 @@ void __fastcall MoviePlayer_ExpandBlocks(const u8 *records, u8 *out, s32 count) 
         const u32 indices = *reinterpret_cast<const u32 *>(records + 4);
         for (s32 k = 0; k < 0x10; ++k) out[0xf - k] = records[indices >> (k * 2) & 3];
     }
+}
+
+u8 *__fastcall MoviePlayer_SwapFields(u8 *player) {
+    u8 *const settings = at<u8 *>(player, 0);
+    const u32 second = at<u32>(settings, 0x20);
+    if (second && at<s32>(player, 0x4c) == 1) {
+        at<u32>(settings, 0x20) = at<u32>(settings, 0x1c);
+        at<u32>(settings, 0x1c) = second;
+    }
+    if (at<u32>(settings, 4) & 0x800) {
+        const u32 a = at<u32>(settings, 0x4c);
+        at<u32>(settings, 0x4c) = at<u32>(settings, 0x50);
+        at<u32>(settings, 0x50) = a;
+    }
+    return settings;
+}
+
+u32 __cdecl MoviePlayer_IsRunning(u8 *handle) {
+    u8 *const player = at<u8 *>(handle, 0);
+    if (!player) return 0;
+    const s32 state = at<s32>(handle, 0x9c);
+    if (at<u32>(player, 0x3e0)) return state != 7;
+    return state == 3 || state == 4;
 }
 }

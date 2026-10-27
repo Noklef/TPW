@@ -74,6 +74,20 @@ s32 __cdecl WindowText7cb4d0_Handler(u8 *window, u32 message, u32 a, u32 b);
 // (GameHeap_Free) for flags bit 0; returns the object.
 u8 *__fastcall WindowAt10_ScalarDtor(u8 *object, void *, u32 flags);
 
+// 0x48cea0 (thiscall (script, handler, first, second, inner), pops 0x14; called by the panels' builders 0x4979b4 to 0x4b79cf; name
+// unconfirmed): unless the object has its window +0x10: +0x18, +0x14, +0x1c and +8 = 0, Window7c24c8_Close, the window built on
+// [0x7cb2ac] from the script with the handler (WindowScript_Build; nothing more without it) kept in +0x10 and made the [0x7c24c8] one
+// (Window7c24c8_Set); the object's slot 0; +0x18 = its child first (Window_FindChild): when there, with inner not 0 +0x1c = that child's
+// child inner (not checked) and its slot 5 (0), then +0x18 given the handler 0x48d1a0 (Window_SetHandler) and the object as its dword 6
+// +0xa0 (Window_SetDwordA0) and the object's slot 4; +0x14 = the window's child second, and when there the object's slot 3; then the
+// object's slot 1 and the object as the window's dword 6.
+void __fastcall WindowAt10_Create(u8 *object, void *, u8 *script, u32 handler, u32 first, u32 second, u32 inner);
+
+// 0x48d1a0 (cdecl (window, message, a, b); the handler WindowAt10_Create gives its window's child +0x18; name unconfirmed): on message
+// 0x10006 the camera centred on the thing [0x7c2658] (Thing_GetHandle, Camera_CentreOnThing; the handle's high word the thing pointer's)
+// and the window's dword 6 (Window_DwordA0, the object) told its slot 11; 0. Any other message: Window_CallDefault's result.
+s32 __cdecl WindowAt10_CentreHandler(u8 *window, u32 message, u32 a, u32 b);
+
 // 0x48ee20 (cdecl; name unconfirmed): message 5 (0, 0) sent (Window_SendMessage) to the window (+0) of each of the ten entries of 0x208 bytes
 // from 0x7c26b0 whose word +4 is not 0.
 void __cdecl Windows7c26b0_Message5();
@@ -125,4 +139,14 @@ void __cdecl Window7ca2e8_ClearButtons(u32 mode);
 // GameHeap_Alloc; none when that fails; Window_SetImpl), the bytes 1, 1 as 0xc00 and 0x3000, the font 5 / 8 (Language_Font), the bytes
 // 0xff and the text 0; then [0x7cc4e4] = 0.
 void __cdecl Dialog7cc4c4_Create();
+
+// 0x4c4fb0 (cdecl (flag: a byte); called by 0x5dd650 / 0x5dd910 before Dialog7cc4c4_Create; name unconfirmed): unless the dialog [0x7cdb0c]
+// is made or the frame [0xf82884] has no window +4, it is built from the window script 0x7596b0 on that window (WindowScript_Build: the
+// last child it makes) with the handler 0x4c53f0 and its dword +0xa0 0 set to the flag (Window_SetDwordA0). With a flag its child 0x16007
+// is hidden (Window_SetShown 0) and its children 0x16003 and 0x16000 told slot 5 (0). Without one the child 0x16007 is told slot 5 (1) and
+// its own children 0x16008-0x1600c each get a 0x6ff350 text part (0x1a4 bytes, GameHeap_Alloc; TextPart6ff350_Ctor(0), none when that
+// fails; Window_SetImpl), font 6 (Language_Font; Window_Set4c), slot 7 (0), the bytes 1, 1 as 0xc00 (Window_NotifyC00), slot 7 (0) again,
+// the handler 0x4c56e0 (Window_SetHandler), the dword +0xa0 0 set to 1-5 in turn (Window_SetDwordA0) and slot 5 (1); then [0x7cdb10] = 1.
+// Either way the children 0x16002, 0x16004, 0x16005 and 0x16001 get the pair 0, 10 (Window705a50_SetPair). No child is checked.
+void __cdecl Dialog7cdb0c_Create(u32 flag);
 }

@@ -11,6 +11,7 @@
 #include "../render/particles.h"
 #include "../world/advisor.h"
 #include "dialogs.h"
+#include "guirect.h"
 #include "window.h"
 #include "windowreg.h"
 #include "windowtimers.h"
@@ -208,5 +209,60 @@ s32 *__cdecl MsgTags_Save(Stream *stream) {
 u32 __stdcall UI_Load(Stream *stream) {
     Windows7c26b0_Message5();
     return MsgTags_Load(stream);
+}
+
+s32 __cdecl MsgTags_WindowHandler(u8 *window, u32 message, u8 *tag, u32 b) {
+    if ((s32)message > 0x100001) {
+        if (message == 0x100002) {
+            if (tag && (Fn_65d57c(tag) & 1)) {
+                Window_SetShown(tag, nullptr, 0);
+                if (!b) {
+                    Window_PostTimed(tag, 5, 1, 0, 500);
+                } else {
+                    Window_SendMessage(tag, 5, 1, 0);
+                }
+            }
+        } else if (message == 0x100003) {
+            u32 delay = 100;
+            for (u8 *t = global<u8 *>(0x007cb2c8); t; t = reinterpret_cast<u8 *>((uintptr_t)Fn_65d56b(t))) {
+                Window_PostTimed(t, 5, 1, 0, delay);
+                delay += 100;
+            }
+        }
+    } else if (message == 0x100001) {
+        const u32 first = Window_DwordA0(window, nullptr, 0);
+        const u32 second = Window_DwordA0(window, nullptr, 1);
+        if (tag) {
+            u8 rect[0xc], tagRect[0xc];
+            GuiRect_Ctor(rect);
+            GuiRect_Ctor(tagRect);
+            Window_AddChild(window, nullptr, tag, 1, 0);
+            vcall<void>(tag, 0x14, 1u);
+            Window_PostTimed(tag, 6, 1, 0, 500);
+            Window_GetRect(tag, nullptr, tagRect, 1);
+            s16 width, height;
+            Window_GetSize(tag, nullptr, &width, &height, 1);
+            const u32 drop = (((u32)(uintptr_t)window & 0xffff0000u) | (u16)height) + 10;   // (the window argument's slot, sic)
+            Window_GetRect(window, nullptr, rect, 1);
+            Window_AdjustRect(window, nullptr, 0, 0u - drop, 0, 0);
+            Window_GetRect(window, nullptr, rect, 1);
+            const u32 dy = at<u32>(rect, 6) - at<u32>(tagRect, 6) + 8;
+            const u32 leftTop = at<u32>(rect, 4);
+            const u32 left = (u32)(s32)(s16)leftTop;
+            const s32 across = (s32)at<s16>(rect, 8) - (s32)left;
+            const u32 halfWidth = (left & 0xffff0000u) | (u16)(s16)(width >> 1);   // (only CX shifted: the left's sign above it)
+            const u32 dx = (u32)(across >> 1) - halfWidth + leftTop - at<u32>(tagRect, 4);
+            Window_Offset(tag, nullptr, dx, dy);
+            Window_SetDwordA0(window, nullptr, 0, first);
+            Window_SetDwordA0(window, nullptr, 1, second);
+            u8 *const child = Window_FindChild(window, nullptr, 0x2e);
+            if (child && !child[0x135]) Window_RunScript(child, nullptr, reinterpret_cast<u8 *>(0x00752e48), 0x32);
+            GuiRect_Dtor(tagRect);
+            GuiRect_Dtor(rect);
+        }
+    } else if (message == 0x14) {
+        global<u32>(0x007cb2c8) = 0;
+    }
+    return Window_CallDefault(window, nullptr, message, (u32)(uintptr_t)tag, b);
 }
 }  // extern "C"

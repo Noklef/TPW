@@ -7,6 +7,9 @@
 # 0x658b5b): buttons 0-7, the windows the window or none, the queues as for PostMessage.
 # PostIfHit (0x65dcaf): the rectangle +0x2c a GUI one or a recorder (its answer's upper half set or not), the point in it or near, the press
 # points [0xfaa598] small or negative words. Activate (0x65dd18): the active window [0xfaa5dc] the window, another or none.
+# MouseDouble (0x658ab4): MouseDown's, the button negative too (it only goes in the message). KeyDown / KeyUp / KeyChar (0x658c38, 0x658c67, 0x658c96): the GUI up or not, the queues as for
+# PostMessage (the second one there: a fault in both without it), the key and b any. SetModal (0x65e640): the focus [0xfaa5ec] the window,
+# another or none (upper halves its own), the modal one and its pairs random.
 # usage: windowmessages.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=CallHandler,SendMessage,...)
 import os
 import struct
@@ -20,8 +23,9 @@ from window import MISC, RANGES, VTABLE, WINDOW, WINDOW2, queues, timers  # noqa
 
 CALLS = {'CallHandler': 0x65f697, 'SendMessage': 0x658d9f, 'CallDefault': 0x65f66e, 'PostMessage': 0x658ccc,
          'CancelPosted': 0x658fe9, 'CancelPostedFirst': 0x659012, 'CancelTimed': 0x65903b, 'ResetQueues': 0x659064,
-         'MouseDown': 0x658af1, 'MouseUp': 0x658b5b, 'PostIfHit': 0x65dcaf, 'Activate': 0x65dd18}
-B = Bench(RANGES + [(0x65dcaf, 0x65dd18), (0x65dd18, 0x65dd5f)])
+         'MouseDown': 0x658af1, 'MouseUp': 0x658b5b, 'PostIfHit': 0x65dcaf, 'Activate': 0x65dd18,
+         'MouseDouble': 0x658ab4, 'KeyDown': 0x658c38, 'KeyUp': 0x658c67, 'KeyChar': 0x658c96, 'SetModal': 0x65e640}
+B = Bench(RANGES + [(0x65dcaf, 0x65dd18), (0x65dd18, 0x65dd5f), (0x658ab4, 0x658af1), (0x658c38, 0x658ccc), (0x65e640, 0x65e672)])
 
 
 def case(r):
@@ -34,7 +38,17 @@ def case(r):
     if op.startswith('Cancel'):
         timers(r, regions, WINDOW)
         return Call(CALLS[op], [r.choice([WINDOW] * 5 + [0])], regions, ret='w')
-    if op in ('MouseDown', 'MouseUp'):
+    if op == 'SetModal':
+        regions[WINDOW] = r.bytes(0x20)
+        regions[0xfaa5ec] = struct.pack('<I', r.choice([WINDOW, WINDOW, 0, WINDOW + 0x20, 0x12340000 | WINDOW & 0xffff]))
+        regions[0xfaa578] = r.bytes(8)
+        return Call(CALLS[op], [WINDOW, r.getrandbits(32)], regions, conv='t', ret='a')
+    if op in ('KeyDown', 'KeyUp', 'KeyChar'):
+        queues(r, regions)
+        regions[0x77c488] = struct.pack('<I', r.choice([1, 1, 1, 0, 0x100]))
+        key = r.choice([0, 0x1b, 0x41, 0x7fff, 0x8000, 0xffff, r.getrandbits(16)]) | r.choice([0, r.getrandbits(16)]) << 16
+        return Call(CALLS[op], [key, r.getrandbits(32)], regions, ret='w')
+    if op in ('MouseDown', 'MouseUp', 'MouseDouble'):
         # the GUI up ([0x77c488]) or not, the hovered window and the buttons' windows (0xfaa588) the window or none, the button bits
         # [0xfaa5bc]; buttons 0-7 (their high words random), x and y anything
         win = bytearray(r.bytes(0x120))
@@ -45,7 +59,7 @@ def case(r):
         regions[0xfaa588] = struct.pack('<8I', *[r.choice([WINDOW, 0]) for _ in range(8)])
         regions[0xfaa5bc] = r.bytes(2)
         regions[0xfaa5e0] = struct.pack('<I', r.choice([WINDOW, WINDOW, 0]))
-        button = r.choice([0, 1, 2, 2, 7]) | r.choice([0, 0, 0x10000, 0xffff0000])
+        button = r.choice([0, 1, 2, 2, 7] + ([0xffff, 0x8000] if op == 'MouseDouble' else [])) | r.choice([0, 0, 0x10000, 0xffff0000])
         return Call(CALLS[op], [button, r.getrandbits(32), r.choice([0, 5, 0x8000, r.getrandbits(32)])], regions, ret='w')
     if op == 'PostIfHit':   # the rectangle +0x2c a GUI one (small, empty now and then); the point in it or near (upper halves random);
         # the press points [0xfaa598] (four entries of 0xc bytes) small or negative words; buttons 0-3; the queues

@@ -95,6 +95,15 @@ void __fastcall Sprite_InterpolatedPos(const u8 *sprite, void *, float t, u32 un
 // the original passes its uninitialised locals; the port passes 0s.
 u32 __fastcall Sprite_PlaySound(const u8 *sprite, void *, u32 category, u32 sound);
 
+// 0x4f8940 (thiscall; cell, kind, pops 8; name unconfirmed): a moving person's constructor: the thing (Thing_Construct with the cell and kind),
+// the script reference at +0xc (Init_4d3ed0), the dwords +0x1c..+0x28 and the byte +0x2c 0, the thoughts at +0x30 (Thoughts_Ctor), the words +0xc0,
+// +0xc2, +0xc4, +0xcc and the dwords +0xc8, +0xd0 0, the nav at +0xd4 (Nav_Ctor), the dwords +0x190..+0x198 0; then the word +0xc0 one of the five
+// at 0x75c7f8 by World_Rand (of [0x80239c]) % 5, +0xc2 the word 0x75c7f0, the person added to the message centre's slot 0xa (MessageCentre_Instance,
+// inlined in the original), +0xcc the cell, the nav placed at the middle of the cell (column (id - 1) & 0x7f and row (id - 1) >> 7 of the cell's
+// low word, in 1/65536 cells; no speed: Nav_SetPosVel) and the position read back to +0x190 / +0x194 (Nav_GetPos); +0x28, +0xd0 and +0x24 0 again.
+// Returns the person.
+u8 *__fastcall MovingPerson_Ctor(u8 *sprite, void *, u32 cell, u32 kind);
+
 // 0x4f8b10 (thiscall; stream, save, version, unused): a moving person: 1 when the thing (Thing_Serialize) or the script reference (+0xc,
 // SpriteAnim_Serialize) fails. Then, for a version of 0..1, saved (save nonzero) or loaded: the words +0x18, +0x1a, +0xc4, +0xc0, the byte +0x2c,
 // the dword +0x24, the word +0xcc, the nav (+0xd4: Nav_Serialize; loading Nav_SerializeFwd with save 0), the dwords +0xc8, +0x190, +0x194, +0x198,
@@ -121,6 +130,11 @@ u32 __fastcall Visitor_Serialize(u8 *visitor, void *, Stream *stream, u32 save, 
 // for kind 2 ring 9. 1 when the price is above that or above mCash (+0x1a0), else 0.
 u32 __fastcall Visitor_WontPay(const u8 *visitor, void *, u8 *object);
 
+// 0x4fd4e0 (thiscall (object), pops 4; name unconfirmed): 100 for an object in poor condition (Object_InPoorCondition); else the gap
+// between the visitor's wanted rating (the byte of 0x7850e4's 12-byte row +0x1f0) and the object's (Object_Rating(0)), its size held to
+// 50, negative when the wanted one is at least the object's.
+s32 __fastcall Visitor_RatingGap(const u8 *visitor, void *, u8 *object);
+
 // 0x4fa030 (thiscall; t, pops 4; x87; name unconfirmed): a moving person's sprite placed for the moment t: its position at t - 0.35 (unit 0) and at t
 // (unit 1) by Sprite_InterpolatedPos. Unless +0x28 is set, the script reference +0xc's slot is moved there (SpriteScript_SetPosition; r15 the
 // frame less 0x380, & 0x7ff, >> 8). The timer +0x198 is zeroed when the counter 0x7cdb98 (Counter7cdb98_Inc) is below it; while it is set, a square
@@ -131,9 +145,19 @@ u32 __fastcall Visitor_WontPay(const u8 *visitor, void *, u8 *object);
 // row 0x7cedd4 moves on (modulo the count). All x87 at 24 bits.
 void __fastcall Person_PlaceSprite(u8 *person, void *, float t);
 
+// 0x518f90 (thiscall on the world [0x7cf83c], unused; t, pops 4; name unconfirmed): over the thing table's chain (the first entry [0x7cf56c]'s
+// handle +4, each thing's next by its own handle: entry +8, 0 ends it; a null thing faults at its handle as the original does) every person
+// (kind 1, 4, 5, 6, 7, 8 or 0x12) whose byte +3 is clear has its sprite placed for t (Person_PlaceSprite).
+void __fastcall World_PlaceSprites(u8 *world, void *, float t);
+
 // 0x4faa60 (thiscall; name unconfirmed; called from 0x4f8af9 before the history at +0x30 goes, 0x50bab0): a debug dump of the action history (the
 // thoughts at +0x30): from the 32nd entry from the end to the last (Ring_FromEnd), the thing its handle (+2) names (its definition id +0xe when an
 // object, its cell +5 / +7) and the action (+0, by its kind 0..0x19) to the empty Debug_Printf: only the reads remain. Returns -1 (the loop's
 // counter, left in EAX; the caller ignores it).
 u32 __fastcall Person_DumpActionHistory(u8 *person);
+
+// 0x4fa870 (thiscall; name unconfirmed; called from 0x4f7c63, 0x501658, 0x505495): the speed +0xc8 = ((+0xc0 + +0xc2 + +0xc4, words) / the word
+// at 0x75c7fc - +0xc8 * -3.0) * 0.25 (x87), passed to the nav (+0xd4: Nav_SetSpeed); the word +0xc4 = its product with 99 (16 bits) / 100; the
+// position +0x190 / +0x194 read back from the nav (Nav_GetPos), and the script reference +0xc applied (ScriptRef_Apply).
+void __fastcall Person_UpdateSpeed(u8 *person);
 }

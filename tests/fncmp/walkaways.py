@@ -9,8 +9,10 @@
 # (0x4cc810, MostCars) and the tallest (0x4cc920, Tallest): the same park, its things' definitions of kind 3 mostly (+0x9c), each thing's
 # coaster link (+0x20; mostly one of up to six at [0x790fe0], chained by +0x18, ids +0x10) with cars +0x108 small, tied or past 2^31 and a
 # height +0x110 whole, fractional (a later 5.5 against a 5.7 cut to 5), negative, past 2^32 or NaN; the definition asked for 0, a thing's
-# or another.
-# usage: walkaways.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Of,Of156,...)
+# or another. The advisor scoring's object criteria (core/advisorscoring: 0x59fb60-0x59ff50 and 0x59ffc0-0x5a0290, op = the criterion's
+# name): the scan's park as above, its category the criterion's; the game object [[0x7cf6ec]] with a word +0x1da720 small or any (the
+# game table entry it names is not read); the scoring's bound about 0 or 100 (or anything) and its weight small, negative or any.
+# usage: walkaways.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Of,Of156,...,FewestWalkAways2,...)
 import os
 import struct
 import sys
@@ -27,11 +29,23 @@ B = Bench([(0x412e90, 0x412f00), (0x495cf0, 0x495d50), (0x4caae0, 0x4cae00), (0x
            (0x67c7f0, 0x67c840), (0x5da3c0, 0x5da3c1), (0x4cadf0, 0x4cb100), (0x4cb640, 0x4cb980), (0x4cbba0, 0x4cbec0), (0x4cc090, 0x4cc3b0),
            (0x4cb100, 0x4cb300), (0x4cb980, 0x4cbba0), (0x4cbec0, 0x4cc090), (0x4e1e30, 0x4e1f30),
            (0x4cc810, 0x4cc914), (0x4cc920, 0x4cca3e), (0x43e0e0, 0x43e120), (0x4418f0, 0x441910), (0x436860, 0x436880), (0x4e2b50, 0x4e2b7b),
-           (0x67a830, 0x67a860)])
+           (0x67a830, 0x67a860), (0x59fb60, 0x5a02e0), (0x519510, 0x519550)])
 CALLS = {'Of': 0x4caae0, 'Of156': 0x4cb300, 'FewestOf': 0x4cadf0, 'FewestOf156': 0x4cb640, 'MostDef4ac2': 0x4cbba0, 'FewestDef4ac2': 0x4cc090,
          'HappiestOf': 0x4cb100, 'UnhappiestOf': 0x4cb200, 'HappiestOf156': 0x4cb980, 'UnhappiestOf156': 0x4cba90, 'HappiestDef4ac2': 0x4cbec0,
          'MostCars': 0x4cc810, 'Tallest': 0x4cc920}
+# the advisor scoring's object criteria (core/advisorscoring): name: (address, the scan's op here, its category, the bound's offset)
+CRITERIA = {'FewestWalkAways2': (0x59fb60, 'FewestOf', 2, 0x4d8), 'FewestWalkAways156': (0x59fbd0, 'FewestOf156', None, 0x4e0),
+            'FewestWalkAways3': (0x59fc40, 'FewestOf', 3, 0x4e8), 'FewestWalkAways4': (0x59fcb0, 'FewestOf', 4, 0x4f0),
+            'FewestWalkAwaysDef4ac2': (0x59fd20, 'FewestDef4ac2', None, 0x4f8), 'Unhappiest2': (0x59fd90, 'UnhappiestOf', 2, 0x500),
+            'Unhappiest156': (0x59fe00, 'UnhappiestOf156', None, 0x508), 'Unhappiest3': (0x59fe70, 'UnhappiestOf', 3, 0x510),
+            'Unhappiest4': (0x59fee0, 'UnhappiestOf', 4, 0x518), 'UnhappiestDef4ac2': (0x59ff50, 'FewestDef4ac2', None, 0x520),
+            'MostWalkAways2': (0x59ffc0, 'Of', 2, 0x528), 'MostWalkAways156': (0x5a0010, 'Of156', None, 0x530),
+            'MostWalkAways3': (0x5a0060, 'Of', 3, 0x538), 'MostWalkAways4': (0x5a00b0, 'Of', 4, 0x540),
+            'MostWalkAwaysDef4ac2': (0x5a0100, 'MostDef4ac2', None, 0x548), 'Happiest2': (0x5a0150, 'HappiestOf', 2, 0x550),
+            'Happiest156': (0x5a01a0, 'HappiestOf156', None, 0x558), 'Happiest3': (0x5a01f0, 'HappiestOf', 3, 0x560),
+            'Happiest4': (0x5a0240, 'HappiestOf', 4, 0x568), 'CritHappiestDef4ac2': (0x5a0290, 'HappiestDef4ac2', None, 0x570)}
 OUT, CLOCK, LINKS = RAM + 0x1000, RAM + 0x28000, RAM + 0x40000
+GAMEPTR, SCORING = RAM + 0x1800, RAM + 0x50000
 DAY = funnytime.DAY
 
 
@@ -77,8 +91,13 @@ def coasters(r, name, regions, things):
 
 def case(r):
     name = r.deal(OPS)
+    criterion = CRITERIA.get(name)
+    if criterion:
+        name = criterion[1]
     regions, handles, things = park(r, count=r.choice([0, 1, 2, 3, 4, 6, 6]), kinds=(3, 3, 3, 3, 3, 3, 1, 2, 0))
     category = r.choice([0, 1, 2, 3, 5, 6, 7, 0x10, r.getrandbits(32)])
+    if criterion and criterion[2] is not None:
+        category = criterion[2]
     items = regions[ITEMS]
     for i in range(NITEMS):
         wanted = [category] if name.endswith('Of') else [1, 5, 6]
@@ -109,6 +128,15 @@ def case(r):
                 put(pool, THING * i + 0x344 + 4 * k, 'i', r.choice([0, 1, -1, 5, -5, 20, -50, 100]))
     if name in ('MostCars', 'Tallest'):
         return coasters(r, name, regions, things)
+    if criterion:
+        regions[0x7cf6ec] = struct.pack('<I', GAMEPTR)
+        regions[GAMEPTR] = struct.pack('<I', RAM)
+        regions[RAM + 0x1da720] = struct.pack('<H', r.choice([0, 1, 2, r.getrandbits(16)]))
+        s = bytearray(r.bytes(0x580))
+        put(s, criterion[3], 'i', r.choice([0, 0, -1, 1, 50, 100, 100, 200, r.randrange(-300, 300), -0x80000000, 0x7fffffff, r.getrandbits(31)]))
+        put(s, criterion[3] + 4, 'I', r.choice([1, 2, 5, 0, 0xffffffff, r.getrandbits(32)]))
+        regions[SCORING] = s
+        return Call(criterion[0], [SCORING], regions, conv='t', ret='a')
     regions[OUT] = r.bytes(4)
     analyser = r.getrandbits(32)
     if name.endswith('Of'):
@@ -116,7 +144,7 @@ def case(r):
     return Call(CALLS[name], [analyser, OUT], regions, conv='t', ret='a')
 
 
-OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
+OPS = [k for k in os.environ.get('OPS', ','.join(list(CALLS) + list(CRITERIA))).split(',') if k]
 
 
 if __name__ == '__main__':

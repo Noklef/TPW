@@ -4,12 +4,16 @@
 
 #include "../math/x87.h"
 #include "../model/parts.h"
+#include "../render/particles.h"
+#include "../world/objectdefs.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) {
     return *reinterpret_cast<T *>((uintptr_t)p + offset);
 }
+
+s32 Ftol(X87Reg x) { return (s32)(long long)x.v; }
 
 }  // namespace
 
@@ -47,6 +51,36 @@ u32 __cdecl Ride_Centre(const s32 *handle, float *x, float *y, float *z) {
     *x = cx;
     *z = cz;
     return 0;
+}
+
+void __cdecl Ride_SetEffect(u8 *context, u32 on) {
+    if (!on) {
+        const u32 handle = at<u32>(context, 0xcc);
+        if (handle) {
+            ParticleSystem_SetAge(handle, 0xfffffffeu);
+            at<u32>(context, 0xcc) = 0;
+        }
+        return;
+    }
+    const u16 slot = at<u16>(context, 0xac);
+    if (!slot) return;
+    const u8 *const thing = *reinterpret_cast<const u8 *const *>((uintptr_t)0x007cfb90 + slot * 0x14u);
+    const u8 *const def = ObjectDefs_Find(reinterpret_cast<u8 *>((uintptr_t)0x007890a0), nullptr, at<u16>(thing, 0xe));
+    const s32 effect = at<s32>(def, 0x68);
+    if (!effect) return;
+    const s32 index = at<s32>(context, 0xc8);
+    float box[6], x = 0.0f, y = 0.0f;
+    X87Reg z = 0.0;
+    if (index && Ride_Bounds(index, box)) {
+        const u8 *const ride = reinterpret_cast<const u8 *const *>(0x007a4610)[index];
+        x = (float)((X87Reg(box[0]) + box[3]) * 0.5f);
+        z = (X87Reg(box[2]) + box[5]) * 0.5f;
+        y = X87_Through(at<float>(at<const u8 *>(at<const u8 *>(at<const u8 *>(ride, 8), 4), 0x78), 0x44));
+    }
+    const s32 iz = Ftol(z * 1024.0f);
+    const s32 iy = Ftol(X87Reg(y) * 1024.0f);
+    const s32 ix = Ftol(X87Reg(x) * 1024.0f);
+    at<s32>(context, 0xcc) = Particle_Spawn(effect, ix, iy, iz);
 }
 
 u32 __cdecl Ride_PartPlace(const u8 *obj, float *pos, float *dir, s32 key, u32 mask) {

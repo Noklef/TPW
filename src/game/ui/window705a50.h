@@ -1,6 +1,6 @@
 // The GUI library's window subclass with the vtable 0x705a50 (built by 0x6688b3 over Window_Ctor: the handlers 0x668f9c, a text row
 // (ui/textpool) at +0x148, the dwords +0x13c 500 and +0x140 125, colour-like bytes +0x14c-+0x14f 0xff; what it is is unconfirmed).
-// Reimplementation of 0x6689bc, 0x6693a0, 0x66852b, 0x668820, 0x668ad3, 0x668bec, 0x668f35, 0x668f5a, 0x668f7b, 0x668dd9 and 0x668c99. 0x66852b reads a wide text at +0x138 (it may be a
+// Reimplementation of 0x6689bc, 0x6693a0, 0x66852b, 0x668820, 0x668ad3, 0x668bec, 0x668f35, 0x668f5a, 0x668f7b, 0x668dd9, 0x668c99, 0x668d98, 0x668ecf, 0x668eff and 0x669410. 0x66852b reads a wide text at +0x138 (it may be a
 // sibling class's); the constructor and 0x668bec keep a state byte there, +0x139 a byte, +0x13c a limit.
 #pragma once
 
@@ -65,4 +65,19 @@ void __fastcall Window705a50_Repeat(u8 *window);
 // set) get slot 3 (1, event), the event's word +4 the look (Window705a50_Look) and its dword +0x18 1 (the rest unset); then 1 (AX).
 // As Window705a50_SetState, without the NotifyLook.
 u16 __fastcall Window705a50_SetFlag139(u8 *window, void *, u8 flag, u8 notify);
+
+// 0x668d98 (thiscall (count), pops 4; name unconfirmed): 1 when the count is past the delay +0x13c and a whole number of intervals +0x140
+// (its remainder 0; signed), else 0.
+u32 __fastcall Window705a50_IsRepeatTick(u8 *window, void *, s32 count);
+
+// 0x668ecf (thiscall; name unconfirmed): with flag 0x20 of +0x48, the held press's time +0x144 now (GuiClock_Now) and its phase +0x15a 1.
+// EAX not kept.
+void __fastcall Window705a50_StartRepeat(u8 *window);
+
+// 0x668eff (thiscall; name unconfirmed): the phase +0x15a cleared; 0 in AX when it was 2 (repeating), else 1 (the rest of EAX the
+// window's).
+u32 __fastcall Window705a50_StopRepeat(u8 *window);
+
+// 0x669410 (thiscall; slot 11 of the vtable 0x705a50; name unconfirmed): +0x94 when the state byte +0x138 is 1 (pressed), else +0x90.
+u32 __fastcall Window705a50_StateField(u8 *window);
 }

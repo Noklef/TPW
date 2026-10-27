@@ -73,4 +73,6 @@ void __fastcall Panel7cc298_Dress(u8 *self) {
     part(window14(self), TextPart6ff3b0_Ctor, 0xa0a0, 0);
     bar(window14(self), kHappyGrad, 0xa09e, 0x64);
 }
+
+void __fastcall Panel7cc298_DressTip(u8 *self) { panelparts::tip(self); }
 }

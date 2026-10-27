@@ -424,6 +424,30 @@ void __fastcall Class702d78_Dtor(u8 *object) {
     Class7029d0_Release(object);
 }
 
+void __fastcall Class7029f0_Dtor(u8 *object) {
+    at<u32>(object, 0) = 0x007029f0;
+    DrainList(object, 0x18);
+}
+
+u8 *__fastcall Class7029f0_Ctor(u8 *object) {
+    at<u32>(object, 0x20) = 0;
+    at<u32>(object, 0x24) = 0;
+    at<u32>(object, 0) = 0x007029f0;
+    at<u32>(object, 0x14) = 0;
+    at<u8 *>(object, 0x18) = Helper(0x007029e8);
+    at<u32>(object, 4) = 0;
+    at<u32>(object, 0xc) = 0;
+    at<u32>(object, 0x10) = 0;
+    at<u32>(object, 0x2c) = 0;
+    at<u32>(object, 0x28) = 0;
+    at<u32>(object, 0x30) = 0;
+    at<u32>(object, 0x1c) = 0;
+    at<u32>(object, 0x20) = 0x400;
+    at<u32>(object, 0x24) = 0x300;
+    at<s32>(object, 0x34) = Crt().time(nullptr);
+    return object;
+}
+
 void __fastcall Class702ec0_Dtor(u8 *object) {
     *reinterpret_cast<u32 *>(object) = 0x00702ec0;
     Class702cb0_Dtor(object);

@@ -8,6 +8,8 @@
 # (0x66b771): a rectangle and by-value bounds of small words (now and then the edges or any), the move small or any, across either way.
 # Proc (0x66ba22): set_pos()'s with the bar's and the tree's vtable a recorder's (slot 7 one argument), window.py's queues, [0xfaa5d4] set or 0;
 # the handled messages and a few others, a 1, 2 or any, b any.
+# NotifyScroll / NotifyScrollEnd (0x66b9bc / 0x66b9ef): a bar whose parent +0x60 is a window (or 0) with byte +4 clear mostly and
+# fncmp's logger (or 0) as its handler +0x114, the send hook [0xfaa5fc] 0 mostly (else the logger).
 # usage: window705b20.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetRange,SetEnabled,SetPos,PosFromThumb,PageToward,MoveInside,Proc)
 import os
 import struct
@@ -19,13 +21,15 @@ sys.path.insert(0, HERE)
 from fncmp import CDECL_LOG4, LOG, RAM, Bench, Call, blob_bytes, log_region, put, recorder, vtable  # noqa: E402
 from window import RANGES as WINDOW_RANGES, hover, queues, tree  # noqa: E402
 
-CALLS = {'SetRange': 0x66b47d, 'SetEnabled': 0x66ae83, 'SetPos': 0x66b088, 'PosFromThumb': 0x66af19, 'PageToward': 0x66b8aa, 'MoveInside': 0x66b771, 'Proc': 0x66ba22}
+CALLS = {'SetRange': 0x66b47d, 'SetEnabled': 0x66ae83, 'SetPos': 0x66b088, 'PosFromThumb': 0x66af19, 'PageToward': 0x66b8aa, 'MoveInside': 0x66b771, 'Proc': 0x66ba22,
+         'NotifyScroll': 0x66b9bc, 'NotifyScrollEnd': 0x66b9ef}
 B = Bench(sorted(set(WINDOW_RANGES + [(0x66b47d, 0x66b508), (0x66ae83, 0x66af19), (0x65d56b, 0x65d57c), (0x65da8d, 0x65db25),
                                       (0x668a23, 0x668aad), (0x668820, 0x6688b3),
                                       (0x66b088, 0x66b438), (0x661525, 0x661596), (0x65c9bd, 0x65cd95), (0x661700, 0x66176a),
                                       (0x659e3e, 0x659e83), (0x659d43, 0x659d90), (0x66af19, 0x66b088), (0x66b8aa, 0x66b9ba),
                                       (0x66b771, 0x66b8aa), (0x659d90, 0x659dac), (0x66bff7, 0x66c00b),
-                                      (0x66ba22, 0x66bb9b), (0x65f6d1, 0x65fba8), (0x680050, 0x68005b), (0x65c707, 0x65c778), (0x65dcaf, 0x65dd18)])))
+                                      (0x66ba22, 0x66bb9b), (0x65f6d1, 0x65fba8), (0x680050, 0x68005b), (0x65c707, 0x65c778), (0x65dcaf, 0x65dd18),
+                                      (0x66b9bc, 0x66b9ef), (0x66b9ef, 0x66ba22)])))
 OBJ98, OBJ9C, VT98, VT9C = RAM + 0xa000, RAM + 0xa040, RAM + 0xa080, RAM + 0xa100
 BAR, BAR98, BAR9C, BARVT98, BARVT9C = RAM + 0xa200, RAM + 0xa380, RAM + 0xa3c0, RAM + 0xa400, RAM + 0xa480
 BARVT = RAM + 0xa600
@@ -119,8 +123,21 @@ def move_inside(r):
     return Call(CALLS['MoveInside'], args, {RAM: rect}, ret='v')
 
 
+def notify(r, op):
+    """NotifyScroll / NotifyScrollEnd (see the top)"""
+    log = log_region()
+    bar, parent = bytearray(r.bytes(0x150)), bytearray(r.bytes(0x120))
+    put(bar, 0x60, 'I', r.choice([BAR + 0x200] * 5 + [0]))
+    parent[4] = r.choice([0, 0, 0, 1])
+    put(parent, 0x114, 'I', r.choice([CDECL_LOG4, CDECL_LOG4, 0]))
+    regions = {LOG: log, BAR: bar, BAR + 0x200: parent, 0xfaa5fc: struct.pack('<I', r.choice([0, 0, 0, CDECL_LOG4]))}
+    return Call(CALLS[op], [BAR], regions, conv='t', ret='v')
+
+
 def case(r):
     op = r.deal(OPS)
+    if op.startswith('Notify'):
+        return notify(r, op)
     if op == 'MoveInside':
         return move_inside(r)
     if op == 'SetEnabled':

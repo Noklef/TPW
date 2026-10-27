@@ -6,6 +6,9 @@
 #include "methods.h"
 #include "seqs.h"
 #include "sync.h"
+#include "language.h"
+#include "methods.h"
+#include "vcall.h"
 
 namespace {
 
@@ -85,6 +88,40 @@ u8 *__fastcall Class703c14_Ctor(u8 *object) {
     at<u8>(object, 0x34) = top;
     at<u32>(object, 0) = 0x00703c14;
     return object;
+}
+
+u32 __cdecl CommandQueue_ShowNext() {
+    u8 *const q = reinterpret_cast<u8 *>(0x007b4ba8);
+    u8 *const lock = reinterpret_cast<u8 *>(0x007b4bd8);
+    CritSec_Enter(lock);
+    if (at<u32>(q, 0x2c) == 0) {
+        CritSec_Leave(lock);
+        return 1;
+    }
+    const u32 *const element = at<const u32 *>(q, 0xc);
+    const u8 *const text = Records_DataIfTerminated(reinterpret_cast<const u8 *>((uintptr_t)element[0]), nullptr, element[1]);
+    vcall<void>(*reinterpret_cast<u8 **>(0x007b4ba0), 0x24, Language_Widen(text));
+    const u32 cursor = at<u32>(q, 0xc) + 8;
+    const u32 count = at<u32>(q, 0x2c) - 1;
+    at<u32>(q, 0xc) = cursor;
+    at<u32>(q, 0x2c) = count;
+    if (count == 0 || cursor == at<u32>(q, 8)) {
+        u32 *const slot = at<u32 *>(q, 0x10);
+        at<u32 *>(q, 0x10) = slot + 1;
+        GameHeap_Free(reinterpret_cast<void *>((uintptr_t)*slot));
+        if (at<u32>(q, 0x2c) == 0) {
+            for (u32 offset = 4; offset < 0x24; offset += 4)
+                at<u32>(q, offset) = 0;
+            GameHeap_Free(at<void *>(q, 0x24));
+        } else {
+            const u32 first = *at<u32 *>(q, 0x10);
+            at<u32>(q, 4) = first;
+            at<u32>(q, 0xc) = first;
+            at<u32>(q, 8) = first + 0x1000;
+        }
+    }
+    CritSec_Leave(lock);
+    return 0;
 }
 
 void __fastcall Deque8_Clear(u8 *deque) {

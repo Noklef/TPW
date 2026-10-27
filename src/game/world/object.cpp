@@ -11,6 +11,7 @@
 #include "../core/gameheap.h"
 #include "../core/initializers.h"
 #include "../core/savegame.h"
+#include "../core/vcall.h"
 #include "../math/x87.h"
 #include "../model/stripanim.h"
 #include "objectdefs.h"
@@ -19,6 +20,7 @@
 #include "ridelist.h"
 #include "money.h"
 #include "things.h"
+#include "thingscan.h"
 #include "trackrides.h"
 #include "world.h"
 
@@ -108,6 +110,47 @@ u32 __fastcall Kinds_Compatible(const u8 *object, void *, u32 kind) {
     if (kind == 3 && mine == 1)
         return global<u32>(0x00820ab8) == 0 ? 1 : 0;
     return 0;
+}
+
+void __fastcall Slots_OnEvent(u8 *object, void *, u8 *event) {
+    // (the game [[0x7cf6ec]]'s GameTable7cfb90_Get1da720_519510, only looked up: the averages ignore it)
+    const auto lookUp = [] { GameTable7cfb90_Get1da720_519510(global<u8 *>(global<u32>(0x007cf6ec))); };
+    const u32 type = vcall<u32>(event, 0);
+    if (type == 0x1a) {   // (the event's id +8, amount +0xc and kind word +0x10; the original parks the kind in its own argument's slot, sic)
+        Slots_AddIfMatch(object, nullptr, at<u32>(event, 8), at<u32>(event, 0xc), at<u16>(event, 0x10), 0);
+        return;
+    }
+    if (type == 0x11) {
+        if (!at<u32>(event, 0xc)) Slots_AddIfMatch(object, nullptr, 0x10, 1, 0, 0);
+        return;
+    }
+    if (type != 0xb) return;   // (any other: the original's debug message)
+    const s32 index = at<s32>(object, 0x3cc);
+    if (index < 0 || index >= 20) return;
+    const u8 *const slot = object + 0xc + 48 * (u32)index;
+    switch (at<u32>(slot, 0)) {
+    case 0x18: {
+        lookUp();
+        const s32 average = Things_AverageKind3Flag1Of100Minus44();
+        Slots_AddIfMatch(object, nullptr, 0x18, (u32)(100 - average), 0, 0);
+        return;
+    }
+    case 0x19: {
+        lookUp();
+        Slots_AddIfMatch(object, nullptr, 0x19, (u32)Things_AverageStaffStat1f8Int(), 0, 0);
+        return;
+    }
+    case 0x1b: {
+        static const u32 kKinds[5] = {5, 4, 6, 7, 8};
+        const u32 which = at<u32>(slot, 0x10);
+        const u32 kind = which <= 4 ? kKinds[which] : (u32)(uintptr_t)event;   // (else the event's address, sic, after a debug message)
+        lookUp();
+        Slots_AddIfMatch(object, nullptr, 0x1b, (u32)Things_AverageStat1f8OfKind(kind), 0, 0);
+        return;
+    }
+    default:
+        return;
+    }
 }
 
 void __fastcall Slots_AddIfMatch(u8 *object, void *, u32 id, u32 amount, u32 kind, u32 extra) {
@@ -284,6 +327,30 @@ void __fastcall Objects_ReleaseTracked(void *, void *, u32, u32) {
         }
         handle = at<u16>(object, 0xc);
     }
+}
+
+s32 __cdecl Objects_CountKind0InState1() {
+    s32 count = 0;
+    u16 handle = global<u16>(global<u32>(0x0080239c) + 0x1da746);
+    while (handle) {
+        const u8 *object = global<u8 *>(0x007cfb90 + 20 * (u32)handle);
+        const u8 *def = ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, at<u16>(object, 0xe));
+        if (at<u32>(def, 0x4ac) == 0 && Is19c_Eq1_4e0370(object)) ++count;
+        handle = at<u16>(object, 0xc);
+    }
+    return count;
+}
+
+s32 __stdcall Objects_CountKind0Below44OrState1(s32 least) {
+    s32 count = 0;
+    u16 handle = global<u16>(global<u32>(0x0080239c) + 0x1da746);
+    while (handle) {
+        const u8 *object = global<u8 *>(0x007cfb90 + 20 * (u32)handle);
+        const u8 *def = ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, at<u16>(object, 0xe));
+        if (at<u32>(def, 0x4ac) == 0 && ((s32)((u32)(long long)at<float>(object, 0x44) & 0xff) < least || Is19c_Eq1_4e0370(object))) ++count;
+        handle = at<u16>(object, 0xc);
+    }
+    return count;
 }
 
 u16 *__fastcall Objects_NearestFreeFor(u8 *self, void *, u16 *out, u32 person) {

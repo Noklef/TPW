@@ -5,7 +5,11 @@
 # A texture's load (0x5755f0): the load flags (not 1) and texfile.py's scene for them, the textures' block failing now and then; its
 # lookup (0x575870): 0-4 slots (or 0x1000 and more), the folder and name found among them (pointers or equal strings) or loaded from
 # texfile.py's name split into [0x786de4], the folder and the name (at a backslash, or anywhere), the fallback slot or none.
-# usage: texman.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetLoadFlags,Destroy,Release,Load,Acquire)
+# The landscape's texture added (src/game/terrain/landscape: 0x5850c0): its count 0-0x10 or more (or negative), the slot's old array
+# (plain textures) set or not, the load's scene as above with the manager at [0x87a268]. The same scene for the weather renderer's
+# texture (src/game/render/weatherfx: 0x57d7f0; slot 1-3 or a pointer, set already or not) and the sprite queue's (src/game/render/
+# spritequeue: 0x58a5c0; its old array plain textures or none).
+# usage: texman.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetLoadFlags,Destroy,Release,Load,Acquire,LandAdd,WeatherLoad,QueueLoad)
 import os
 import struct
 import sys
@@ -18,10 +22,12 @@ import vfs  # noqa: E402
 import wctimage  # noqa: E402
 from fncmp import Bench, Call, HEAP, LOG, RAM, global_heap, heap, log_region, put  # noqa: E402
 
-CALLS = {'SetLoadFlags': 0x575b80, 'Destroy': 0x574b10, 'Release': 0x575ad0, 'Load': 0x5755f0, 'Acquire': 0x575870}
+CALLS = {'SetLoadFlags': 0x575b80, 'Destroy': 0x574b10, 'Release': 0x575ad0, 'Load': 0x5755f0, 'Acquire': 0x575870, 'LandAdd': 0x5850c0, 'WeatherLoad': 0x57d7f0, 'QueueLoad': 0x58a5c0,
+         'WeatherLoadAll': 0x5508c0}
 RANGES = wctimage.merged(texfile.RANGES + [(0x575b80, 0x575b8d), (0x575ad0, 0x575b7a), (0x574b10, 0x574bc6), (0x590a70, 0x590a75), (0x590b90, 0x590c39),
                                              (0x579b40, 0x579c13), (0x58dc50, 0x58dd5e), (0x67afa0, 0x67b0d0), (0x67acb0, 0x67acb1), (0x5755f0, 0x575acb),
-                                             (0x590a00, 0x590a70), (0x590d40, 0x590f7e)])
+                                             (0x590a00, 0x590a70), (0x590d40, 0x590f7e), (0x5850c0, 0x5851c6), (0x57d7f0, 0x57d849), (0x58a5c0, 0x58a630),
+                                             (0x56af20, 0x56af9c), (0x5508c0, 0x550927)])
 B = Bench(RANGES)
 MANAGER, ARRAYS = RAM + 0x10000, RAM + 0x5000   # (texturemem.py's regions below RAM + 0x4000)
 
@@ -86,6 +92,88 @@ def load(r):
     return Call(0x5755f0, [MGR, vfs.NAME], regions, conv='t', ret='a')
 
 
+LAND, OUT = RAM + 0xa0000, RAM + 0xa3000   # (a landscape: 0x10 texture entries of 0x20 at +0x1fdc, their count at +0x21dc)
+WEATHER, QUEUE = RAM + 0xa4000, RAM + 0xa8000   # (only their slots: +0x3348..+0x3357, +0x2400)
+
+
+def plain_array(r, regions):
+    """1 or 2 plain textures at ARRAYS + 4 (texturemem.py's regions would overlap vfs.py's) half the time, else 0; returns it."""
+    if r.random() < 0.5:
+        return 0
+    n = r.choice([1, 2])
+    tex = bytearray(r.bytes(0x60 * n))
+    for k in range(n):
+        put(tex, 0x60 * k + 8, 'I', r.getrandbits(32) & ~0x10801000)
+        put(tex, 0x60 * k + 0x3c, 'II', 0, 0)
+    regions[ARRAYS] = struct.pack('<I', n) + bytes(tex)
+    return ARRAYS + 4
+
+
+def scene_at_manager(r):
+    regions = load_scene(r)
+    regions[0x87a268] = struct.pack('<I', MGR)
+    return regions
+
+
+def weather_load(r):
+    regions = scene_at_manager(r)
+    slots = bytearray(r.bytes(0x10))
+    for k in range(4):
+        put(slots, 4 * k, 'I', r.choice([0, 0, 0, r.getrandbits(32)]))
+    regions[WEATHER + 0x3348] = slots
+    which = r.choice([1, 2, 3, 1, 2, 3, WEATHER + 0x3354])
+    return Call(0x57d7f0, [WEATHER, which, vfs.NAME], regions, conv='t', ret='a')
+
+
+DIRS = RAM + 0xb0000   # (Quickload_Locate's directories, [0x79cb4c])
+
+
+def weather_load_all(r):
+    """0x5508c0: texfile.py's scene for flags 0 as texset.py's (the heap not failing, room for three loads; the memory source over three
+    texfile.exact() files, a load after a load reading on), the manager at [0x87a268] with load flags 0, 2, 4 or 8, the renderer at
+    [0x8bcbac] (or none, now and then) with weather_load()'s slots; its three loads take the names through Quickload_Locate(name, 1, 0):
+    copied to 0x79c9d0 (up to the directories' pointer [0x79cb4c], read too) and kept if the mounts open them (the memory source opens
+    any), quickload's loaded flag [0x7a445c] any (flag 1 never searches its tables)."""
+    regions = texfile.scene(r, 0)
+    regions[HEAP] = heap(0x40000)
+    vfs.memory_source(r, regions[LOG], regions, b''.join(texfile.exact(r) for _ in range(3)))
+    if r.random() < 0.2:   # (the tracked blocks full: each load's pixels not got, TexManager_Load 0, so the last load answers 0)
+        regions[wctimage.COUNT] = struct.pack('<I', 0x8000)
+    regions[MGR + 0x10008] = struct.pack('<I', r.choice([0, 2, 4, 8]))
+    regions[0x87a268] = struct.pack('<I', MGR)
+    slots = bytearray(r.bytes(0x10))
+    for k in range(4):
+        put(slots, 4 * k, 'I', r.choice([0, 0, 0, r.getrandbits(32)]))
+    regions[WEATHER + 0x3348] = slots
+    regions[0x8bcbac] = struct.pack('<I', WEATHER if r.random() < 0.9 else 0)
+    regions[0x79c9d0] = r.bytes(0x17c)
+    regions[0x79cb4c] = struct.pack('<I', DIRS)
+    regions[DIRS] = r.bytes(0x100)
+    regions[0x7a445c] = r.bytes(4)
+    return Call(0x5508c0, [], regions, ret='a')
+
+
+
+def queue_load(r):
+    regions = scene_at_manager(r)
+    regions[QUEUE + 0x2400] = struct.pack('<I', plain_array(r, regions)) + r.bytes(4)
+    return Call(0x58a5c0, [QUEUE, vfs.NAME], regions, conv='t', ret='a')
+
+
+def land_add(r):
+    regions = scene_at_manager(r)
+    regions[0x879ad0] = put(bytearray(r.bytes(0x204)), 0x200, 'i', r.choice([r.randrange(0x40), 0, 0x3f, 0x40]))
+    regions[0x8798c8] = bytes(4)
+    count = r.choice([0, 1, 5, 0xe, 0xf, 0xf, 0x10, 0x11, -1])
+    land = put(bytearray(r.bytes(0x21e0)), 0x21dc, 'i', count)
+    if count < 0x10:   # (-1: the entry below the first, sic)
+        put(land, 0x1fdc + 0x20 * count, 'I', plain_array(r, regions))
+    regions[LAND] = bytes(land)
+    regions[OUT] = r.bytes(4)
+    args = [OUT, vfs.NAME] + [r.getrandbits(32) for _ in range(6)]
+    return Call(0x5850c0, [LAND] + args, regions, conv='t', ret='a')
+
+
 def acquire(r):
     """0-4 slots (or 0x1000 and more, zero), the folder and name looked up among them (the same pointers, equal strings, others; a null
     folder), else loaded: [0x786de4] + folder + name split from texfile.py's name (at a backslash, so the path is the file's, or anywhere);
@@ -142,6 +230,14 @@ def case(r):
         return load(r)
     if op == 'Acquire':
         return acquire(r)
+    if op == 'LandAdd':
+        return land_add(r)
+    if op == 'WeatherLoad':
+        return weather_load(r)
+    if op == 'QueueLoad':
+        return queue_load(r)
+    if op == 'WeatherLoadAll':
+        return weather_load_all(r)
     if op == 'Destroy':
         return destroy(r)
     if op == 'Release':

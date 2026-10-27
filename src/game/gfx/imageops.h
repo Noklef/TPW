@@ -25,9 +25,32 @@ void __fastcall Panel_Reset(u8 *panel);
 // those taken kept, sic), freed at the end; returns 1.
 u8 __fastcall Image_ShrinkInto(const u8 *image, void *, u8 *dest, s32 width, s32 height, u32 format);
 
+// 0x5e80d0 (thiscall on the source image; the destination image {width, height, ?, pixels}, pops 4; name unconfirmed): the source shrunk
+// into the destination's size and pixels as Image_ShrinkInto does it, but signed: the steps (source size << 16 | 0x8000) / destination size
+// by IDIV, the loops over the destination's width and height only when they are above 0, the scratch band (row step + 1) x width x 4. Down
+// the band all four bytes of each column's average go to the destination's pixels as they are. The same scratch blocks, failures (0 with
+// those taken kept, sic) and divisions by a count of 0 (sic). Returns 1.
+u8 __fastcall Image_ShrinkToImage(const u8 *image, void *, u8 *dest);
+
 // 0x5d4970 (thiscall on a panel; dest, width, height, format, pops 16): the panel's image (+0x50) shrunk into dest (Image_ShrinkInto), after a
 // Panel_Reset (inline) when the image's pixels (+0x5c) are null (sic: the reset then fills through the null pointer unless the image is empty).
 u8 __fastcall Panel_ShrinkInto(u8 *panel, void *, u8 *dest, s32 width, s32 height, u32 format);
+
+// A DDSURFACEDESC2 (0x7c bytes) passed by value: height +8, width +0xc, pitch +0x10, bits +0x24, the pixel format's bit count +0x54 and
+// red / green / blue masks +0x58 / +0x5c / +0x60.
+struct SurfaceDesc {
+    u32 d[31];
+};
+
+// 0x5d3ac0 (thiscall on an image {width, height, depth, pixels}; a surface description by value, pops 0x7c; name unconfirmed): the image
+// made 320 x 240 x 4 (its pixels freed and a block of 0x4b000 taken: the sizes set only when it is had) from the surface shrunk as
+// Image_ShrinkInto does it (steps (size << 16 | 0x8000) / 320 and / 240, byte counts, a scratch band of rows; the scratch blocks' failures
+// return 0, those taken kept, sic). 16 bits: each pixel's channels by the masks (down by the mask's
+// lowest set bit, up by 8 - the run of set bits from it, modulo 32; a mask of 0 never ends, sic) averaged into bytes 1-3, byte 0 a running
+// ((value + 255 x count) & 0xffff) / count never reset (the previous row's last column sum carried in, sic); the rows pitch & ~1 apart.
+// 32 bits: the four bytes averaged and stored reversed. Down the band bytes 1-3 averaged into the image's pixels after 0xff. 24 bits
+// return 0, other counts 1 (both with nothing more done); a count of 0 (a surface smaller than 320 x 240) divides by 0, sic. Returns 1.
+u8 __fastcall Image_ShrinkSurface(u8 *image, void *, SurfaceDesc desc);
 
 // 0x5ea3f0 (cdecl; destination image, source image, x, y; images {width, height, bytes per pixel, data}): the destination is made over (Array3D_Realloc: the source's width
 // and height, one byte per pixel, cleared) and the part of the source that is left once it is moved by (x, y) (its rows and columns clamped to the source) is copied into it, the

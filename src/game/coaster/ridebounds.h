@@ -27,4 +27,12 @@ u32 __cdecl Ride_PartPlace(const u8 *obj, float *pos, float *dir, s32 key, u32 m
 // Ride_PartPlace finds it), dir is the node's +0x20..+0x28 (negated when the entry's flag 0x10 is set) and up, when not null, its
 // +0x10..+0x18 (as they are), each divided by its length made a float; with no node, dir is (0, 0, 1) and up (0, 1, 0).
 void __cdecl Ride_PartAxes(s32 index, const u32 *part, float *dir, float *up);
+
+// 0x556de0 (name unconfirmed; called by a ride script instruction with the script's context and an operand): on 0 the context's particle
+// system +0xcc, when there is one, is aged -2 (ParticleSystem_SetAge) and cleared. Otherwise, for the thing whose slot is the context's word
+// +0xac (none: nothing), the effect +0x68 of the definition gObjectDefs finds for the thing's type +0xe (0: nothing; no definition is not
+// checked) is spawned (Particle_Spawn) and its handle stored at +0xcc (the old one is not ended): at 1024 times the ride's box centre
+// (+0xc8 the ride's index; x and z the middles, made a float only for x; y the model root's +0x44, as Ride_Centre has them), or at 0, 0, 0
+// for no ride or box. The three go through __ftol z first.
+void __cdecl Ride_SetEffect(u8 *context, u32 on);
 }

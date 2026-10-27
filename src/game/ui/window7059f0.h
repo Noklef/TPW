@@ -48,6 +48,15 @@ u32 __fastcall Window7059f0_Item148Depth(const u8 *window);
 // array +0x16c (0xc bytes each).
 s32 __fastcall Window7059f0_ColumnBottom(u8 *window, void *, u32 column);
 
+// 0x6636b2 (thiscall (column, value: words), pops 8; 69 callers, the panels' builders 0x480c27, 0x49359f, 0x4935aa and others; name
+// unconfirmed): with the column (signed) below the columns +0x164 and the array +0x16c set, its rectangle's bottom word +0xa = value (a
+// negative column writes before the array, sic).
+void __fastcall Window7059f0_SetColumnBottom(u8 *window, void *, u32 column, u32 value);
+
+// 0x664f6d (thiscall (dx, dy: words), pops 8; called by 0x665251; name unconfirmed): with the column array +0x16c set, each column's
+// rectangle from the last (+0x164, signed) to the first moved by its slot 2 (dx, dy); a negative count does not end the loop (sic).
+void __fastcall Window7059f0_OffsetColumns(u8 *window, void *, u32 dx, u32 dy);
+
 // 0x663a93 (thiscall (item, level), pops 8; name unconfirmed): the item after the given one in the tree's order: its first child (level
 // 1), else its next sibling (0), else its parent's next sibling, going up while a parent has none but a parent of its own (level -1 for
 // each step up; the last one's next sibling, -1 or less, when none has one); -2 (level 0) with no sibling and no parent. The level
@@ -150,6 +159,11 @@ void __fastcall Window7059f0_FreeItem(u8 *window, void *, u32 unused, s32 item, 
 // * (selection - +0x154), the bottom one row further (32-bit, wrapping).
 void __fastcall Window7059f0_Select(u8 *window, void *, s32 row);
 
+// 0x66552e (thiscall (x, y: words), pops 8; called by 0x6655c6, 0x665620, 0x665661, 0x6656ef; name unconfirmed): with a row height +0x170
+// and the point in the inner rectangle +0x138 (its slot 0, AX), the row (y - the top +0x13e) / the height (signed) selected
+// (Window7059f0_Select) when it is not negative.
+void __fastcall Window7059f0_SelectAt(u8 *window, void *, u32 x, u32 y);
+
 // 0x664db7 (thiscall (text, column), pops 8; name unconfirmed): the position (from 0) of the first item from the first shown one whose
 // cell in the column (1 to the columns +0x164, clamped; from 1) is a wide string equal to text (WString_CompareText), stepping as
 // Window7059f0_FindItemData; -1 when none, without columns +0x16c or when that column's bottom (Window7059f0_ColumnBottom) is not 0.
@@ -163,6 +177,12 @@ s32 __fastcall Window7059f0_FindText(u8 *window, void *, const u16 *text, s32 co
 // (Window7059f0_ColumnBottom) is 1, else as that dword's object's +4 (Obj_Get4Or6fd6c4) through its slot 9, the first column told the level
 // * 0x14 and 0 first (Window_NotifyC000). Then the next item (Window7059f0_NextItem), its level change added.
 void __fastcall Window7059f0_RefreshRows(u8 *window);
+
+// 0x6639cb (thiscall (make, release: cdecl functions), pops 8; name unconfirmed): nothing without make. A row window made (make ()) sizes
+// the rows (Window7059f0_SetRowSize), whose count goes to the bar child 1 (Fn_66b53e, sign-extended) when there is one; with a count, the
+// row is stored at 0 (Window7059f0_SetRow) and given to release (when not 0), then the rows count-1 down to 1 each made, stored and
+// released likewise. Last the rows refreshed (Window7059f0_RefreshRows).
+void __fastcall Window7059f0_BuildRows(u8 *window, void *, u8 *(__cdecl *make)(), void(__cdecl *release)(u8 *));
 
 // 0x66316b (thiscall (n), pops 4; name unconfirmed): 0 for n 0 or no columns (+0x164, signed). Else the item array +0x144 grown by n items
 // of columns + 4 dwords: a block of (the dword count +0x158 + that) * 4 bytes (Mem_Alloc; none: 0) cleared, the new items from the old
@@ -214,4 +234,83 @@ void __fastcall Window7059f0_Clear(u8 *window);
 // selected (Select, the row on screen). Then the rows refreshed, the bar (child 1, Window_FindChild; none a fault, sic) given +0x154
 // through its slot 7 and, when +0x154 changed, the parent +0x60 sent 0x405 (+0x154, the last row shown, below the count).
 void __fastcall Window7059f0_ScrollTo(u8 *window, void *, s32 position);
+
+// 0x664ea3 (thiscall; name unconfirmed): with the bar (child 1, Window_FindChild), its slot 8's answer as the first row shown: when it
+// differs from +0x154, +0x154 = it, the rows refreshed (Window7059f0_RefreshRows), the parent +0x60 sent 0x405 (+0x154, the last row
+// shown, below the count +0x150) and, with [0xfaa5d4] set, the list posted 3 (0, 0). EAX not kept.
+void __fastcall Window7059f0_ScrollFromBar(u8 *window);
+
+// 0x663d56 (thiscall (row, column: a word), pops 8; name unconfirmed): 0 unless the column is below the columns +0x164 and the row (a
+// signed dword) below the rows shown +0x172 (both signed words). Column 0: the row's window (+0x148[row]); else, with that set, its
+// first child (Fn_65d547) and then column times the next sibling (Fn_65d56b; 0 stays 0): the cell's window (sic: column 1 is the first
+// child's sibling).
+u8 *__fastcall Window7059f0_Cell(u8 *window, void *, s32 row, u32 column);
+
+// 0x665494 (thiscall (x, y: words; y unread), pops 8; name unconfirmed): with a selection (+0x14c not negative), the first column (of
+// +0x164, signed; the array +0x16c, 0xc bytes each) whose words +4 / +8 hold x strictly between them: the parent +0x60 posted 0x404 (the
+// id +0x8c, the column) (Window_PostMessage). EAX not kept.
+void __fastcall Window7059f0_PostColumnAt(u8 *window, void *, u32 x, u32 y);
+
+// 0x664bf0 (thiscall (n, column, out), pops 12; name unconfirmed): 0 in AX when the n-th item (Window7059f0_NthItem) is none (negative)
+// or the column (signed) is not below the columns +0x164; else *out = the item's cell (its dword 4 + column): in a column whose bottom
+// (Window7059f0_ColumnBottom) is 0 the text of the counted string there (Obj_Get4Or6fd6c4), else the dword itself; 1 in AX. The rest of
+// EAX not kept.
+u16 __fastcall Window7059f0_NthItemCell(u8 *window, void *, s32 n, s32 column, u32 *out);
+
+// 0x664c71 (thiscall (n, out), pops 8; name unconfirmed): the n-th item's (Window7059f0_NthItem) data dword (the item array +0x144's
+// dword after the item's index) into out (when given); 1 in AX, 0 when the item is none (-1). EAX's upper half: the out's, the item's
+// without one, 0xffff for none (sic).
+u32 __fastcall Window7059f0_NthItemData(u8 *window, void *, s32 n, u32 *out);
+
+// 0x665a44 (thiscall (id), pops 4; name unconfirmed): a header button's id: with flag 0x10 of +0x48 (sorted) and its column (the id less
+// 0x10, a word) among the columns +0x164 (signed): the sort column +0x168's order flipped (Window7059f0_SetSortOrder -1), or another
+// column made the sort column ascending (SetSortOrder 0, then Window7059f0_SetSortColumn); the items sorted (Window7059f0_Sort -1), the
+// rows refreshed (Window7059f0_RefreshRows) and, with a selection +0x14c (not negative), the parent +0x60 posted 0x401 (the id +0x8c,
+// the selection; Window_PostMessage). EAX not kept.
+void __fastcall Window7059f0_OnHeader(u8 *window, void *, u32 id);
+
+// 0x6655a2 (thiscall (x, y: words), pops 8; name unconfirmed): a click: the row at the point selected (Window7059f0_SelectAt) and its
+// column told (Window7059f0_PostColumnAt); then, with flag 0x80 of +0x48 and a selection +0x14c (not negative), the parent +0x60
+// posted 0x400 (the id +0x8c, the selection; Window_PostMessage). EAX not kept.
+void __fastcall Window7059f0_OnMouseDown(u8 *window, void *, u32 x, u32 y);
+
+// 0x66563d (thiscall (x, y: words), pops 8; name unconfirmed): a double click: with flag 0x80 of +0x48, the row at the point selected
+// (Window7059f0_SelectAt) and, with a selection +0x14c (not negative), the parent +0x60 posted 0x402 (the id +0x8c, the selection).
+// EAX not kept.
+void __fastcall Window7059f0_OnDouble(u8 *window, void *, u32 x, u32 y);
+
+// 0x665b51 (thiscall (key: a word, unused), pops 8; name unconfirmed): with flag 0x200 of +0x48, the keys scroll (Window7059f0_ScrollTo):
+// 0x2400 (Home) to 0, 0x2300 (End) to the count +0x150 less one, 0x2600 (Up) / 0x2800 (Down) to the selection +0x14c less / plus one.
+// EAX not kept.
+void __fastcall Window7059f0_OnKey(u8 *window, void *, u32 key, u32);
+
+// 0x6656fa (thiscall; name unconfirmed): with a selection (+0x14c not negative) the parent +0x60 posted 0x400 (Window_PostMessage: the
+// id +0x8c, the selection). EAX the post's, or the window when none (sic).
+u32 __fastcall Window7059f0_PostSelection(u8 *window);
+
+// 0x6658b9 (thiscall; name unconfirmed): the parent +0x60 sent 0x406 (Window_SendMessage: the id +0x8c and the sort column word +0x168
+// plus one, sign-extended, negated when the sort order word +0x16a is 1). Returns the send's.
+s32 __fastcall Window7059f0_NotifySort(u8 *window);
+
+// 0x664cb9 (thiscall (column, first, second), pops 12; name unconfirmed): with the columns +0x16c set, both outs given and the column
+// below the count word +0x164 (signed), the column's (12 bytes each) words +4 and +8 into the outs: 1 in AX (EAX's upper half the
+// column times 12's), else 0 (the window's upper half).
+u32 __fastcall Window7059f0_ColumnSpan(u8 *window, void *, s32 column, u16 *first, u16 *second);
+
+// 0x66590f (thiscall (a word), pops 4; name unconfirmed): a new sort column word +0x168 set and told (Window7059f0_NotifySort): 1 in AX
+// (the send's upper half); the same one: 0 (the word sign-extended's upper half).
+u32 __fastcall Window7059f0_SetSortColumn(u8 *window, void *, u32 column);
+
+// 0x66594d (thiscall (a word), pops 4; name unconfirmed): as Window7059f0_SetSortColumn for the sort order word +0x16a, -1 flipping it
+// (1 when it was 0, else 0).
+u32 __fastcall Window7059f0_SetSortOrder(u8 *window, void *, u32 order);
+
+// 0x6659af (thiscall (by, sort), pops 8; name unconfirmed): the sort column abs(by) - 1 (CRT abs: abs(INT_MIN) stays) and the order 1
+// for a negative by, 0 else (Window7059f0_SetSortColumn, then SetSortOrder, both called); when either changed (1 in AX) and the byte sort
+// is set, Window7059f0_Sort(-1). EAX not kept (the callers drop it).
+void __fastcall Window7059f0_SortBy(u8 *window, void *, s32 by, u32 sort);
+
+// 0x665e80 (thiscall (flags), pops 4; slot 2 of the vtable 0x7059f0; name unconfirmed): the destructor (Window7059f0_Dtor), the block
+// freed (Mem_Free) for flags bit 0; returns the window.
+u8 *__fastcall Window7059f0_DeletingDtor(u8 *window, void *, u32 flags);
 }

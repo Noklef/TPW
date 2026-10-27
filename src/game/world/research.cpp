@@ -4,6 +4,7 @@
 
 #include "../core/globalsave.h"
 #include "../core/savegame.h"
+#include "../math/x87.h"
 #include "objectdefs.h"
 #include "things.h"
 #include "world.h"
@@ -62,6 +63,9 @@ template <bool back> void chooseProject(u8 *lab, u32 group) {
     if (current >= 0 && !not_done(project(lab, current))) at<s32>(g, 8) = -1;
 }
 
+// The research lab: the game object's ([0x80239c]) entry GameTable7cfb90_Get1da722_519550.
+const u8 *labOfGame() { return reinterpret_cast<const u8 *>(GameTable7cfb90_Get1da722_519550(*reinterpret_cast<u8 *const *>(0x0080239c))); }
+
 }  // namespace
 
 extern "C" {
@@ -87,6 +91,15 @@ u32 __fastcall ResearchLab_CountNotDone(const u8 *lab, void *, u32 cat) {
 u8 __fastcall ResearchLab_CurrentNotDone(const u8 *lab, void *, u32 group) {
     const s32 current = at<s32>(group_of(lab, group), 8);
     return current >= 0 && not_done(project(lab, current));
+}
+
+u32 __fastcall ResearchLab_LeftPercent(const u8 *lab, void *, u32 group) {
+    const s32 current = at<s32>(group_of(lab, group), 8);
+    if (current < 0) return 0;
+    const float dearest = at<float>(project(lab, at<s32>(lab, 0x1464)), 0xc);
+    const u8 *const p = project(lab, current);
+    if (!(at<float>(p, 0xc) > 0.1f) || !(dearest > 1.0f)) return 0;
+    return (u32)(long long)((X87Reg(at<float>(p, 0xc)) - X87Reg(at<float>(p, 0x10))) * X87Reg(100.0) / X87Reg(dearest)).v;  // __ftol
 }
 
 void __fastcall ResearchLab_FlagProjectControls(const u8 *lab) {
@@ -189,6 +202,11 @@ u8 __cdecl Research_AllDone() {
     }
     return 1;
 }
+
+u32 __cdecl Research_CountNotDoneCat0() { return ResearchLab_CountNotDone(labOfGame(), nullptr, 0); }
+u32 __cdecl Research_CountNotDoneCat1() { return ResearchLab_CountNotDone(labOfGame(), nullptr, 1); }
+u32 __cdecl Research_CountNotDoneCat2() { return ResearchLab_CountNotDone(labOfGame(), nullptr, 2); }
+u32 __cdecl Research_CountNotDoneCat3() { return ResearchLab_CountNotDone(labOfGame(), nullptr, 3); }
 
 void __fastcall ResearchLab_NextProject(u8 *lab, void *, u32 group) { chooseProject<false>(lab, group); }
 

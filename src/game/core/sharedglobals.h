@@ -1,7 +1,7 @@
 // The counted shared objects kept in globals (each set by a setter that gives it a use and its release to atexit): their releases and setters.
 // Reimplementation of 0x4f7a10, 0x699650, 0x699770, 0x699890, 0x6a5ae0, 0x6a5c00, 0x6a5d20, 0x6a5e40, 0x6a5f60, 0x6a6080, 0x6a61a0,
-// 0x6a62c0, 0x6a6360, 0x6a6400, 0x6a64a0, 0x6ac0b0, 0x6ac1d0, 0x6ac2f0, 0x6ac410, 0x6ac530, 0x6ac650, 0x6ac6f0, 0x6ac790, and of the
-// setters 0x4f7770, 0x4f77f0, 0x6995d0, 0x6996f0, 0x699810, 0x6a5a60, 0x6a5b80, 0x6a5ca0, 0x6a5dc0, 0x6a5ee0, 0x6a6000, 0x6a6120,
+// 0x5d1670, 0x6a62c0, 0x6a6360, 0x6a6400, 0x6a64a0, 0x6ac0b0, 0x6ac1d0, 0x6ac2f0, 0x6ac410, 0x6ac530, 0x6ac650, 0x6ac6f0, 0x6ac790, and of the
+// setters 0x4f7770, 0x4f77f0, 0x5d1460, 0x5d14e0, 0x6995d0, 0x6996f0, 0x699810, 0x6a5a60, 0x6a5b80, 0x6a5ca0, 0x6a5dc0, 0x6a5ee0, 0x6a6000, 0x6a6120,
 // 0x6a6240, 0x6ac030, 0x6ac150, 0x6ac270, 0x6ac390, 0x6ac4b0, 0x6ac5d0. The names are unconfirmed.
 #pragma once
 
@@ -19,12 +19,15 @@ extern "C" {
 // deleted (slot 0 with 1) when it has none left; the global is cleared. (A null global faults.) The STL lock the originals take
 // around it (0x691de0 / 0x691ea0, twice) is left out, as in core/globals' Global7ced44_Release.
 void __cdecl Global7ced48_Release();   // 0x4f7a10
+void __cdecl Globalf827e8_Release();   // 0x5d1670
 
 // (cdecl) the global set to the counted object given, which gains a use (none when it has ~0; a null one faults after the global is
-// set), its release (above; 0x4f7970 Global7ced44_Release of core/globals for 0x7ced44) given to atexit (0x67a7d0); returns the object.
+// set), its release (above; 0x4f7970 Global7ced44_Release / 0x5d15d0 Globalf827dc_Release of core/globals for 0x7ced44 / 0xf827dc) given to atexit (0x67a7d0); returns the object.
 // The STL lock is left out as in the releases.
 u8 *__cdecl Global7ced44_Set(u8 *shared);   // 0x4f7770
 u8 *__cdecl Global7ced48_Set(u8 *shared);   // 0x4f77f0
+u8 *__cdecl Globalf827dc_Set(u8 *shared);   // 0x5d1460
+u8 *__cdecl Globalf827e8_Set(u8 *shared);   // 0x5d14e0
 u8 *__cdecl Globalfb1dc0_Set(u8 *shared);   // 0x6995d0
 u8 *__cdecl Globalfb1dbc_Set(u8 *shared);   // 0x6996f0
 u8 *__cdecl Globalfb1dc4_Set(u8 *shared);   // 0x699810

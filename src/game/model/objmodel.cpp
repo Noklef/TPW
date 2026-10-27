@@ -1,12 +1,16 @@
 #include "objmodel.h"
 
 #include <cstdint>
+#include <cstring>
 
 #include "../core/gameheap.h"
 #include "../core/vobj2.h"
 #include "../gfx/loadscreen.h"
 #include "../gfx/texset.h"
+#include "../core/vwrap.h"
+#include "../math/x87.h"
 #include "../render/engineerrors.h"
+#include "../render/meshlist.h"
 #include "../render/mode.h"
 #include "../terrain/procedural.h"
 
@@ -16,6 +20,7 @@ template <typename T> T &at(const void *p, u32 offset) {
     return *reinterpret_cast<T *>((uintptr_t)p + offset);
 }
 u8 *ptr(const void *p, u32 offset) { return reinterpret_cast<u8 *>((uintptr_t)at<u32>(p, offset)); }
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 bool same(const char *a, const char *b) {
     for (; *a == *b; ++a, ++b)
@@ -197,5 +202,46 @@ void __fastcall ObjModel_SetMatrices(u8 *object, void *, u8 which, const u32 *ma
         transform_into(frame, &at<u32>(object, 0x50));
         at<u32>(object, 4) |= 2;
     }
+}
+
+u32 __fastcall ObjModel_LightMesh(u8 *object, void *, u8 *mesh, const u32 *matrix, const u32 *lights, u32 flags) {
+    const u32 kind = at<u32>(mesh, 0);
+    if (at<u16>(mesh, 0x5e) == 0 || (kind & 0x1000000))
+        return 1;
+    u32 *colours = reinterpret_cast<u32 *>(ptr(mesh, 0x9c));
+    const u32 frame = global<u32>(0x008bd50c);
+    if (*colours == frame && !(global<u32>(0x008bd508) & 0x40000000) && !(kind & 0xc0000))
+        return 1;
+    *colours++ = frame;
+    if (!(at<u32>(mesh, 0) & 0x1000000) && !(global<u32>(0x008bcbc8) & 0x800)) {   // (the flag read again: the stamp may be the mesh's +0)
+        global<u32>(0x00879dec) = 0;
+        ListNodes_Drain(ptr(global<u8 *>(0x0087a6d0), 0x30));
+        if (!(flags & 0x3000000))
+            ListNodes_Drain(ptr(global<u8 *>(0x0087a6d0), 0x2c));
+        if (!(global<u32>(0x008bcbc8) & 0x1000))
+            Meshes_Ready(global<u8 *>(0x0087a248), nullptr, lights);
+        if (global<u32>(0x008bcbc8) & 0x400) {
+            // fld cam+0x34; fld cam+0x30; fsubr mesh+0x40; fld cam+0x38; fxch st2; fsubr mesh+0x44; ...; fsubr mesh+0x48
+            const u8 *const camera = global<u8 *>(0x0087afe8);
+            const float x = (float)(at<float>(mesh, 0x40) - X87Reg(at<float>(camera, 0x30)));
+            const float y = (float)(at<float>(mesh, 0x44) - X87Reg(at<float>(camera, 0x34)));
+            const float z = (float)(at<float>(mesh, 0x48) - X87Reg(at<float>(camera, 0x38)));
+            u32 xb, yb, zb;
+            std::memcpy(&xb, &x, 4);
+            std::memcpy(&yb, &y, 4);
+            std::memcpy(&zb, &z, 4);
+            Meshes_SetDirection(global<u8 *>(0x0087a248), nullptr, xb, yb, zb);
+        }
+        Meshes_SetView(global<u8 *>(0x0087a248), nullptr, matrix, (u32)(uintptr_t)(mesh + 0x78));
+    }
+    if ((at<u32>(ptr(object, 8), 0x30) & 0x800000) && global<s32>(0x008bd524) == 4) {
+        const u32 mask = at<u32>(global<u8 *>(0x0087a248), 0x2c);
+        at<u32>(global<u8 *>(0x0087a248), 0x2c) = 0xffff0000;
+        Meshes_LightMesh(global<u8 *>(0x0087a248), nullptr, colours, mesh);
+        at<u32>(global<u8 *>(0x0087a248), 0x2c) = mask;
+        return 1;
+    }
+    Meshes_LightMesh(global<u8 *>(0x0087a248), nullptr, colours, mesh);
+    return 1;
 }
 }

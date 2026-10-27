@@ -268,4 +268,12 @@ u8 *__fastcall Window705b20_Ctor(u8 *window, void *, u8 *parent, u32 flags, u32 
     at<u32>(window, 0x118) = at<u32>(window, 0x114);
     return window;
 }
+
+void __fastcall Window705b20_NotifyScroll(u8 *window) {
+    Window_SendMessage(at<u8 *>(window, 0x60), 0x801, at<u32>(window, 0x8c), at<u32>(window, 0x140));
+}
+
+void __fastcall Window705b20_NotifyScrollEnd(u8 *window) {
+    Window_SendMessage(at<u8 *>(window, 0x60), 0x802, at<u32>(window, 0x8c), at<u32>(window, 0x140));
+}
 }

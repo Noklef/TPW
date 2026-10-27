@@ -1,7 +1,7 @@
 # The render state setters (src/game/render/state: 0x4080e0, 0x5836b0, 0x5d9680-0x5d96c0) against the
 # originals: flags words in any state, fog settings of any bits; and 0x583720's call through the object at 0x8bd52c (a recorder vtable, any result).
 # The display's restore (0x583730): the focus (GetFocus, a recorder) the game's window (0x8bd518) or not, the device's slot 1 any result,
-# the error list as engineerrors.py's lost_list(). The ambient colour's setter (0x5d9230): on (any dword, 0 a third of the time) with a 0xRRGGBB dword of any bits, or off.
+# the error list as engineerrors.py's lost_list(); three rounds of it with the device's slot 0 (0x583790, the scene's flags any). The ambient colour's setter (0x5d9230): on (any dword, 0 a third of the time) with a 0xRRGGBB dword of any bits, or off.
 # usage: renderstate.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Touch,FogOn,...)
 import os
 import struct
@@ -12,8 +12,8 @@ from fncmp import LOG, Bench, Call, RAM, log_region, put, recorder, set_return, 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import engineerrors  # noqa: E402
 
-B = Bench([(0x44dd50, 0x44de16), (0x423b50, 0x423b58), (0x4080e0, 0x4081e0), (0x52fb10, 0x52fb20), (0x52fb30, 0x52fb40), (0x52fb50, 0x52fb60), (0x52fb70, 0x52fb80), (0x5836b0, 0x5836c2), (0x583720, 0x58372a), (0x5d9680, 0x5d96c4), (0x5d96c0, 0x5d974f), (0x5d9230, 0x5d92d8), (0x583730, 0x583786), (0x56afc0, 0x56b02a)])
-CALLS = ['Device0', 'Touch', 'FogOn', 'FogOff', 'SetFog', 'FadeFog', 'Apply', 'Options', 'Ambient', 'Restore']
+B = Bench([(0x44dd50, 0x44de16), (0x423b50, 0x423b58), (0x4080e0, 0x4081e0), (0x52fb10, 0x52fb20), (0x52fb30, 0x52fb40), (0x52fb50, 0x52fb60), (0x52fb70, 0x52fb80), (0x5836b0, 0x5836c2), (0x583720, 0x58372a), (0x5d9680, 0x5d96c4), (0x5d96c0, 0x5d974f), (0x5d9230, 0x5d92d8), (0x583730, 0x583786), (0x56afc0, 0x56b02a), (0x583790, 0x5838a1)])
+CALLS = ['Device0', 'Touch', 'FogOn', 'FogOff', 'SetFog', 'FadeFog', 'Apply', 'Options', 'Ambient', 'Restore', 'Restore3']
 
 
 def case(r):
@@ -51,7 +51,7 @@ def case(r):
         regions = {0x8bd520: put(bytearray(r.bytes(0x10)), 0xc, 'I', RAM + 0x100), RAM + 0x100: struct.pack('<I', RAM + 0x200) + r.bytes(0xc),
                    RAM + 0x200: vtable({}), LOG: log}
         return Call(0x583720, [], regions, ret='a')
-    if op == 'Restore':
+    if op in ('Restore', 'Restore3'):
         log = log_region()
         window = r.getrandbits(32)
         set_return(log, 0, r.choice([window, window, r.getrandbits(32)]))
@@ -60,7 +60,7 @@ def case(r):
                    RAM + 0x100: struct.pack('<I', RAM + 0x200) + r.bytes(0xc), RAM + 0x200: vtable({}), LOG: log,
                    0x6fd328: struct.pack('<I', recorder(0, 0, True)), 0x879ad0: engineerrors.lost_list(r), 0x8bcc40: r.bytes(8),
                    0x8bd508: r.bytes(4)}
-        return Call(0x583730, [], regions, ret='a')
+        return Call(0x583730 if op == 'Restore' else 0x583790, [], regions, ret='a')
     if op == 'Ambient':   # (thiscall on [0xf83778] in its callers, unused; on, colour)
         regions[0x879dd8] = r.bytes(0x10)
         return Call(0x5d9230, [RAM, r.choice([0, r.getrandbits(32), 1]), r.choice([r.getrandbits(32), r.getrandbits(24), 0xffffff, 0])], regions, conv='t',

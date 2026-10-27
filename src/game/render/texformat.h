@@ -1,4 +1,5 @@
-// The renderer settings' texture format helpers: reimplementation of 0x573820, 0x581790, 0x583ba0, 0x5839a0, 0x5839e0, 0x5839f0 and 0x583360.
+// The renderer settings' texture format helpers: reimplementation of 0x573820, 0x581790, 0x583ba0, 0x5839a0, 0x5839e0, 0x5839f0, 0x583360
+// and 0x583900.
 //
 // The renderer settings are the object at 0x8bd550 (its +0 the renderer flags; +4 the current
 // texture format, read all over as 0x8bd554). 0x5839f0 fills its tables, 0x1000 bytes per format
@@ -48,6 +49,12 @@ void __fastcall TexFormat_SetArgb32(u8 *settings);
 
 // 0x5839e0 (thiscall): the current format's table, +0x88 + 0x1000 * (+4).
 u8 *__fastcall TexFormat_Table(u8 *settings);
+
+// 0x583900 (thiscall; the static initialiser 0x5838f0 calls it on 0x8bd550; name unconfirmed): the settings' defaults: the flags 0x17a,
+// the format -1, the format records (+8, 0x80 bytes) and the four tables (+0x88, 0x4000 bytes) zeroed, then at +0x3088 (the last
+// table) 256 rows of 16 bytes, row i (i << 24, i << 16, i << 8, i); +0x40c8 = 1.5, +0x40cc = 0.8, +0x40d0 = 0, +0x40d8 = 0.5, +0x40dc
+// = 2500, +0x40e0 and +0x40e4 = -1.0. Returns the settings.
+u8 *__fastcall TexSettings_Init(u8 *settings);
 
 // 0x562f70 (cdecl; to, from, side; name unconfirmed): side * side 32-bit ARGB pixels put into the current texture format (0x8bd554) at to: 0 RGB565,
 // 1 ARGB1555, 2 ARGB4444 (each field the channel's top bits, the fields added together), 3 a copy, of only `side` dwords (sic). Any other format pushes

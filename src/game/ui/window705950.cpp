@@ -108,4 +108,40 @@ void __fastcall Window705950_Scrolled(u8 *window) {
     at<u32>(window, 0x150) = first;
     if (*reinterpret_cast<u32 *>((uintptr_t)0x00faa5d4)) Window_PostMessage(window, 3, 0, 0);
 }
+
+u8 *__fastcall Window705950_NthNode(u8 *window, void *, s32 n) {
+    if (n >= at<s32>(window, 0x14c) || !at<u8 *>(window, 0x144)) return nullptr;
+    u8 *node = at<u8 *>(window, 0x144);
+    for (s32 i = 0; i < n; ++i) {
+        if (at<u8 *>(node, 0x48)) {
+            node = at<u8 *>(node, 0x48);
+            continue;
+        }
+        while (!at<u8 *>(node, 0x44)) node = at<u8 *>(node, 0x4c);
+        node = at<u8 *>(node, 0x44);
+    }
+    return node;
+}
+
+u16 __fastcall Window705950_SetNodeData(u8 *window, void *, s32 n, u32 value) {
+    u8 *const node = Window705950_NthNode(window, nullptr, n);
+    if (!node) return 0;
+    at<u32>(node, 0x40) = value;
+    return 1;
+}
+
+u16 __fastcall Window705950_GetNodeData(u8 *window, void *, s32 n, u32 *out) {
+    u8 *const node = Window705950_NthNode(window, nullptr, n);
+    if (!node) return 0;
+    *out = at<u32>(node, 0x40);
+    return 1;
+}
+
+void __fastcall Window705950_SetFont(u8 *window, void *, u8 *font) {
+    Window_Set4c(window, nullptr, font);
+    if (!font) return;
+    at<u16>(window, 0x154) = vcall<u16>(font, 4);
+    const s32 height = (s32)at<s16>(window, 0x142) - (s32)at<s16>(window, 0x13e);
+    at<u16>(window, 0x156) = (u16)(height / (s32)at<s16>(window, 0x154));  // (0 faults, sic)
+}
 }

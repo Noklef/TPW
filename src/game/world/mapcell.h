@@ -41,6 +41,11 @@ u8 *__fastcall Map_RECell(u8 *map, void *, u32 pos);
 // returns the second count times 100 over the first (a signed division), or 0 when the first is 0.
 s32 __cdecl Map_PercentWithRE();
 
+// 0x4ccdf0 (cdecl; name unconfirmed): over all 128 x 128 cells of the world's map, those of type 1, 3 or 9 or with a dword at +0x2c
+// other than 0 count; of those, the ones with +0x2c set are counted too; returns the second count times 100 over the first (a signed
+// division), or 0 when the first is 0.
+s32 __cdecl Map_PercentWith2c();
+
 // 0x4cd7f0 (cdecl): over all 128 x 128 cells, how many are of type 9, 0xa, 4 or 0x15 or pass MapHandle_IsTypeBDOr10Or12Or19 on their first word taken as a handle (sic).
 s32 __cdecl Map_CountSpecialCells();
 

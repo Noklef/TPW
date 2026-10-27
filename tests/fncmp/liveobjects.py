@@ -1,9 +1,9 @@
-# The live objects list (src/game/core/liveobjects: 0x5775d0, 0x577600, and the constructor 0x579cd0 and deleting destructors 0x57ca00 and
-# 0x57abf0 that use it) against the originals: lists from empty to full (and beyond), objects present once, twice or not at all; objects most
+# The live objects list (src/game/core/liveobjects: 0x5775d0, 0x577600, and the constructors 0x579cd0 and 0x5407a0 and deleting destructors
+# 0x57ca00 and 0x57abf0 that use it) against the originals: lists from empty to full (and beyond), objects present once, twice or not at all; objects most
 # derived or not, their virtual base tables the exe's or made up (other offsets, inside the object, one rewriting the table), any
 # flags (the heap region given, whose free logs the pointer); 0x57abf0's object with no model (+8) or one with no meshes or sets, and
 # its thunk 0x57abe0 (core/thunks) given the base 0, 0x10 or 0x20 above, the dword before saying so.
-# usage: liveobjects.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Add,Remove,Construct,Delete,DeleteModel,WrapDeleteModel)
+# usage: liveobjects.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Add,Remove,Construct,ConstructSet,Delete,...)
 import os
 import sys
 
@@ -12,8 +12,9 @@ from fncmp import HEAP, Bench, Call, heap, put  # noqa: E402
 
 B = Bench([(0x5775d0, 0x5775f3), (0x577600, 0x57764b), (0x579cd0, 0x579df1), (0x57ca00, 0x57ca5a),
            (0x57abe0, 0x57ac56), (0x57a100, 0x57a258), (0x579b80, 0x579c13), (0x57b2e0, 0x57b393), (0x57b070, 0x57b130),
-           (0x57b5b0, 0x57b608)])
-CALLS = {'Add': 0x5775d0, 'Remove': 0x577600, 'Construct': 0x579cd0, 'Delete': 0x57ca00, 'DeleteModel': 0x57abf0, 'WrapDeleteModel': 0x57abe0}
+           (0x57b5b0, 0x57b608), (0x5407a0, 0x54083c)])
+CALLS = {'Add': 0x5775d0, 'Remove': 0x577600, 'Construct': 0x579cd0, 'Delete': 0x57ca00, 'DeleteModel': 0x57abf0, 'WrapDeleteModel': 0x57abe0,
+         'ConstructSet': 0x5407a0}
 OBJECT, TABLE, MODEL = 0x30001000, 0x30002000, 0x30003000
 LIST = 0x87a6d8
 
@@ -26,19 +27,23 @@ def case(r):
     for i, o in enumerate(objs):
         put(mem, i * 4, 'I', o)
     put(mem, 0x800, 'I', n & 0xffffffff)
-    if op in ('Construct', 'Delete', 'DeleteModel', 'WrapDeleteModel'):
-        base_offset = 0xa4 if op == 'Delete' else 0x154
+    if op in ('Construct', 'ConstructSet', 'Delete', 'DeleteModel', 'WrapDeleteModel'):
+        base_offset = 0xa4 if op == 'Delete' else 0x20 if op == 'ConstructSet' else 0x154
         offset = r.choice([base_offset, base_offset, 0x100, 0x40] + ([0x8] if 'Model' not in op else []))   # (0x8: over the model)
         regions = {LIST: mem, OBJECT: r.bytes(0x200), TABLE: put(bytearray(r.bytes(8)), 4, 'I', offset), HEAP: heap()}
         table = TABLE
         if op == 'Construct' and r.random() < 0.3:
             table = 0x701a08
+        elif op == 'ConstructSet' and r.random() < 0.3:
+            table = 0x6ff318
         elif r.random() < 0.2:  # the table inside the object, its offset where the dword before the base goes (so it is read again)
             table, offset = OBJECT + 0x100, 0x108
             put(regions[OBJECT], 0x104, 'I', offset)
         put(regions[OBJECT], 0, 'I', table)
         if r.random() < 0.3:  # the base already listed (a destructor finds it)
             put(mem, 4 * r.randrange(0x200), 'I', OBJECT + offset)
+        if op == 'ConstructSet':
+            return Call(0x5407a0, [OBJECT, r.choice([0, 1, r.getrandbits(32)])], regions, conv='t', ret='a')
         if op == 'Construct':
             return Call(0x579cd0, [OBJECT, r.choice([0, 1, r.getrandbits(32)])], regions, conv='t', ret='a')
         if op in ('DeleteModel', 'WrapDeleteModel'):   # (no model, or one without meshes or sets; the saved pairs and block off)

@@ -1,16 +1,17 @@
 # The sound settings' setters and flag, and the sound commands' base constructor
-# (src/game/core/soundset: 0x51bb60-0x51bc20, 0x51e6f0, 0x51e710, 0x51c1c0, 0x51c6f0, 0x51bb40)
+# (src/game/core/soundset: 0x51bb60-0x51bc20, 0x51bc40 / 0x51c270 (the manager's engine's slots 3 / 5 recorders, the position's floats hashed), 0x51e6f0, 0x51e710, 0x51c1c0, 0x51c6f0, 0x51bb40)
 # against the originals.
 # usage: soundset.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import LOG, Bench, Call, RAM, fill, log_region, strings, vtable  # noqa: E402
+from fncmp import LOG, Bench, Call, RAM, blob, fill, log_region, strings, vtable  # noqa: E402
 
 B = Bench([(0x51bb40, 0x51bb52), (0x51bb60, 0x51bc34), (0x51e6f0, 0x51e704), (0x51e710, 0x51e726),
-           (0x51c1c0, 0x51c1cc), (0x51c6f0, 0x51c6f6), (0x51b4f0, 0x51b530), (0x51b7c0, 0x51b810), (0x5da3c0, 0x5da3c1)])
-MANAGER, VT = RAM + 0x100, RAM + 0x200
+           (0x51c1c0, 0x51c1cc), (0x51c6f0, 0x51c6f6), (0x51b4f0, 0x51b530), (0x51b7c0, 0x51b810), (0x5da3c0, 0x5da3c1),
+           (0x51bc40, 0x51bc70), (0x6b5b80, 0x6b5b9a), (0x51c270, 0x51c2bc), (0x6b5b60, 0x6b5b75)])
+MANAGER, VT, ENGINE, EVT = RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400
 
 
 def manager(r):
@@ -32,9 +33,23 @@ def manager(r):
 def case(r):
     value = r.choice([0, 1, 100, 0xffff, 0x10000, r.getrandbits(32)])
     fn = r.choice([0x51bb60, 0x51bb80, 0x51bba0, 0x51bbc0, 0x51bbe0, 0x51bc00, 0x51bc20, 0x51e6f0, 0x51e710,
-                   0x51c1c0, 0x51c6f0, 0x51bb40, 0x51b4f0, 0x51b4f0, 0x51b7c0, 0x51b7c0])
+                   0x51c1c0, 0x51c6f0, 0x51bb40, 0x51b4f0, 0x51b4f0, 0x51b7c0, 0x51b7c0, 0x51bc40, 0x51bc40, 0x51c270, 0x51c270])
     if fn == 0x51b4f0:
         return Call(fn, [value, r.getrandbits(32)], manager(r), ret='a')
+    if fn == 0x51bc40:   # (the manager's engine +4: its slot 3 a recorder of three)
+        regions = manager(r)
+        regions[MANAGER] = VT.to_bytes(4, 'little') + ENGINE.to_bytes(4, 'little') + r.bytes(8)
+        regions[ENGINE] = EVT.to_bytes(4, 'little') + r.bytes(0x30)
+        regions[EVT] = vtable({3: 3})
+        return Call(fn, [r.getrandbits(32), r.choice([2, 4, 0xc, 0xd, r.getrandbits(32)]), value], regions, ret='a')
+    if fn == 0x51c270:   # (the engine's slot 5 a recorder of two, the position (three floats on the stack) hashed)
+        regions = manager(r)
+        regions[MANAGER] = VT.to_bytes(4, 'little') + ENGINE.to_bytes(4, 'little') + r.bytes(8)
+        regions[ENGINE] = EVT.to_bytes(4, 'little') + r.bytes(0x30)
+        regions[EVT] = vtable({5: 2})
+        blob(regions[LOG], 5, 1, 7)
+        xyz = [r.choice([0, 1, -1, r.randrange(-0x8000, 0x8000), 0x1000001, -0x7fffffff, r.getrandbits(32)]) & 0xffffffff for _ in range(3)]
+        return Call(fn, [r.getrandbits(32)] + xyz, regions, ret='a')
     if fn == 0x51b7c0:
         return Call(fn, [], manager(r))
     if fn == 0x51c6f0:

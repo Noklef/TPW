@@ -1,4 +1,5 @@
-// Starting a draw batch for a primitive kind, and one for a model's material: reimplementation of 0x565240 and 0x581880.
+// Starting a draw batch for a primitive kind, and one for a model's material: reimplementation of 0x565240 and 0x581880; a model's
+// triangles added to a batch (0x581a00).
 #pragma once
 
 #include "../../../re/types.h"
@@ -30,4 +31,16 @@ void __fastcall Batch_FogVertices(u8 *object, void *, u8 *vertices, u32 count);
 // 0x565ee0 (thiscall on the same object; name unconfirmed): with the driver kind (0x8bd524) 1, the same on the batch's own vertices
 // (+0x28) and count (+0x20), without the fog bit's test.
 void __fastcall Batch_Fog(u8 *object, void *);
+
+// 0x581a00 (thiscall on a model (+4 its settings); batch, matrix, vertices; pops 12; returns 1; name unconfirmed): the transformer
+// ([0x87b1d8]) slot 2 (cdecl: transformer, matrix, vertices, the settings' +0x60, 0x10, 0, the vertex count +0x58) first. Then for each
+// material entry (16 bytes from the settings' +0x6c, read once; as many as the word +0x5a, read again each time): the vertex count's
+// vertices (0x10 bytes each) appended to the batch's (+0x28, 0x20 bytes each, from its count +0x20, which then grows by the count): x and
+// z (the dwords 0 and 8) times the int at 0x8bd4ac (x87, as floats) to +0 and +4, the dwords 4 and 0xc to +8 and +0xc, -1 to +0x10. Then
+// the entry's faces (8 bytes each from the settings' +0x70, from the entry's word +4, as many as its word +6): the corners (the words
+// +2, +4, +6, less the entry's word +8, through the settings' u16 table +0x94) of each face that Tri_WindingTest would pass (its x, y
+// and w copied to 0x8c63b0-0x8c63d0 the same way, the first x through the x87; the same products) go to the batch's indices (+0x2c, from
+// its count +0x24, which grows by 3) plus the vertex count the entry's vertices started at. The settings and the batch's vertices are
+// read again for each face.
+u32 __fastcall Model_AddTriangles(u8 *model, void *, u8 *batch, const void *matrix, const u8 *vertices);
 }

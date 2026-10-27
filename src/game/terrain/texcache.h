@@ -1,4 +1,4 @@
-// The procedural terrain textures' tile cache: reimplementation of 0x5720d0 and 0x572350.
+// The procedural terrain textures' tile cache: reimplementation of 0x5720d0, 0x572110, 0x572350 and 0x572630.
 //
 // TerrainTex_Init (0x56e550) allocates it (0x10014 bytes, kept at the terrain's +0x230) and reads
 // the .lnd into it (0x5723f0); TerrainTexCache_Update (0x572440) is an LRU of tiles keyed by
@@ -29,4 +29,11 @@ u32 __fastcall TerrainTexCache_Dtor(u8 *cache);
 // built by CRT_VectorVbaseCtorIterator with Texture_Ctor) with Texture_Alloc(size, 0) at +0xc. A failed block or texture: the error
 // pushed, TerrainTexCache_Dtor and 0. Last +0x1000c = the middle tile (count >> 1, signed). Returns 1.
 u32 __fastcall TerrainTexCache_Init(u8 *cache, void *, s32 count, u32 size);
+
+// 0x572630 (thiscall (texture, x, y, overlay), pops 0x10; name unconfirmed): a tile blended into a texture. Texture_Alloc(texture, the
+// cache's size +4, 0); not got: 0. With the format [0x8bd554] of 2-byte pixels (0x701548) the landscape at +0 blends the tile (x, y)
+// with the overlay (TerrainBlend_Tile) into the dword at 0x879a68, put into the texture's pixels (Texture_Lock) by
+// TexFormat_ConvertSquare at that size (0x879a68 read again after the blend); else into the pixels themselves, each of the size squared
+// (signed; re-read each turn) then byte-reversed. Returns 1.
+u32 __fastcall TerrainTexCache_BlendTile(u8 *cache, void *, u8 *texture, u32 x, u32 y, const TerrainOverlay *overlay);
 }

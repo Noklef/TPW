@@ -53,6 +53,22 @@ s32 __cdecl strncmp(const char *a, const char *b, u32 n) {
     return 0;
 }
 
+s32 __cdecl strcmp(const char *a, const char *b) {
+    for (;;) {
+        const u8 x = (u8)*a++, y = (u8)*b++;
+        if (x != y) return x < y ? -1 : 1;
+        if (!x) return 0;
+    }
+}
+
+// time(): a fixed clock, 2000-01-01 00:00:00 UTC (fncmp._time, the emulator's hook of 0x67d3f0, answers the same), so that ports storing the
+// time compare.
+s32 __cdecl time(s32 *t) {
+    const s32 now = 0x386d4380;
+    if (t) *t = now;
+    return now;
+}
+
 char *__cdecl strstr(const char *s, const char *find) { return const_cast<char *>(std::strstr(s, find)); }
 
 s32 __cdecl toupper(s32 c) { return c >= 'a' && c <= 'z' ? c - 0x20 : c; }
@@ -263,7 +279,7 @@ const CrtEnv kDriverCrt = {&msvc6::stricmp, &msvc6::strrchr, &msvc6::strchr, &ms
                            &msvc6::strncpy, &msvc6::iswspace, &msvc6::wcscpy,
                            &msvc6::isalpha, &msvc6::isdigit, &msvc6::isspace,
                            &msvc6::isalnum, &msvc6::atof, &msvc6::swprintf, &msvc6::wcsncpy, &msvc6::wcsicmp,
-                           &msvc6::wcscat, &msvc6::wcscmp};
+                           &msvc6::wcscat, &msvc6::wcscmp, &msvc6::strcmp, &msvc6::time};
 
 const LibcEnv kDriverLibc = {&msvc6::strncpy, &msvc6::strncat, &msvc6::atoi,    &msvc6::iswctype, &msvc6::vsprintf,
                              &msvc6::vsnprintf, &msvc6::wcslen,  &msvc6::wcscpy,  &msvc6::wcsncpy,  &msvc6::wcscat,
@@ -278,6 +294,6 @@ const CrtStandIn kCrtStandIns[] = {
     {0x0067a530, (void *)&msvc6::isalpha}, {0x0067a560, (void *)&msvc6::isdigit}, {0x0067a590, (void *)&msvc6::isspace},
     {0x0067a5c0, (void *)&msvc6::isalnum}, {0x0067a6c0, (void *)&msvc6::atof},    {0x0067af00, (void *)&msvc6::swprintf},
     {0x0067b0d0, (void *)&msvc6::wcsncpy}, {0x0067b140, (void *)&msvc6::wcsicmp}, {0x0067bed0, (void *)&msvc6::wcscat},
-    {0x0067c290, (void *)&msvc6::wcscmp},
+    {0x0067c290, (void *)&msvc6::wcscmp},  {0x00680060, (void *)&msvc6::strcmp},
 };
 const u32 kCrtStandInCount = sizeof kCrtStandIns / sizeof kCrtStandIns[0];

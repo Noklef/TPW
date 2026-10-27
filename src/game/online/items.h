@@ -1,6 +1,6 @@
 // The online items an owner keeps in its list at +0x2c (see online/itemlist for the searches over it): reimplementation of their constructors
 // (0x5bdac0, 0x5bdcd0, 0x5bde30, 0x5be1c0, 0x5be3e0, 0x5be610), 0x70293c's assignment (0x5bdfd0) and the owner's loads of a record array (0x5bc940,
-// 0x5bd1b0, 0x5bd5f0, 0x5bda40). Their destructors are in core/vdtor and core/vdel.
+// 0x5bc9f0, 0x5bd1b0, 0x5bd5f0, 0x5bda40). Their destructors are in core/vdtor and core/vdel.
 //
 // Every item is {vtable, owner (+4), id (+8), ...}; a constructor from a record copies the record's fields, gives its strings the record's texts
 // (the vtable's +0x14, AssignStr) and then appends a node for the item at the tail of the owner's list (PtrList_Append's code, inline). Records
@@ -46,10 +46,12 @@ u8 *__fastcall Class702944_Ctor(u8 *item, void *, const u8 *record, u8 *owner);
 // the owner's list. Returns the item.
 u8 *__fastcall Class702948_Ctor(u8 *item, void *, const u8 *record, u8 *owner);
 
-// 0x5bc940 / 0x5bd1b0 / 0x5bd5f0 / 0x5bda40 (thiscall; array; pops 4; names unconfirmed): an item of each of the array's records ({count,
-// records}; the count reread every time) made and listed by the owner: Mem_Alloc 0x68 / 0x48 / 0x80 / 0x6c, then Class702938_Ctor /
-// Class702940_Ctor / Class702944_Ctor / Class702948_Ctor on it (none when the allocation fails); records 0x30 / 0x10 / 0x26 / 0x34 bytes apart.
+// 0x5bc940 / 0x5bc9f0 / 0x5bd1b0 / 0x5bd5f0 / 0x5bda40 (thiscall; array; pops 4; names unconfirmed): an item of each of the array's records
+// ({count, records}; the count reread every time) made and listed by the owner: Mem_Alloc 0x68 / 0xc0 / 0x48 / 0x80 / 0x6c, then Class702938_Ctor /
+// Class70293c_CtorFrom / Class702940_Ctor / Class702944_Ctor / Class702948_Ctor on it (none when the allocation fails); records 0x30 / 0x66 /
+// 0x10 / 0x26 / 0x34 bytes apart.
 void __fastcall Owner2c_Add702938s(u8 *owner, void *, const u32 *array);
+void __fastcall Owner2c_Add70293cs(u8 *owner, void *, const u32 *array);
 void __fastcall Owner2c_Add702940s(u8 *owner, void *, const u32 *array);
 void __fastcall Owner2c_Add702944s(u8 *owner, void *, const u32 *array);
 void __fastcall Owner2c_Add702948s(u8 *owner, void *, const u32 *array);

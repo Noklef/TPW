@@ -29,9 +29,16 @@ FUNCS = [
     (0x5ddaf0, 0x5ddb40, 't', 1, 'a', [], ()),
     (0x5e4320, 0x5e4370, 't', 1, 'a', [], ()),
     (0x5f46e0, 0x5f4730, 't', 1, 'a', [], ()),
+    (0x5ad0d0, 0x5ad120, 't', 1, 'a', [], ()),
+    (0x5ba860, 0x5ba8b0, 't', 1, 'a', [], ()),
+    (0x5bec40, 0x5bec90, 't', 1, 'a', [], ()),
+    (0x5da520, 0x5da570, 't', 1, 'a', [], ()),
+    (0x5ddb40, 0x5ddb90, 't', 1, 'a', [], ()),
+    (0x5e2b70, 0x5e2bc0, 't', 1, 'a', [], ()),
+    (0x41f6f0, 0x41f740, 't', 1, 'a', [], ()),
 ]
 EXTRA = []
-LISTY = (4322976, 5353136, 5353216,6006720, 6006800, 6024096, 6024176, 6133584, 6133664, 6137040, 6177648, 6119152, 6150896, 6177568, 6244064)  # linked list destructors: a real chain (next at +4) is built for them
+LISTY = (4322976, 5353136, 5353216,6006720, 6006800, 6024096, 6024176, 6133584, 6133664, 6137040, 6177648, 6119152, 6150896, 6177568, 6244064, 0x5ad0d0, 0x5ba860, 0x5bec40, 0x5da520, 0x5ddb40, 0x5e2b70, 0x41f6f0)  # linked list destructors: a real chain (next at +4) is built for them
 B = Bench([(a, e) for a, e, *_ in FUNCS] + EXTRA)
 
 
@@ -53,7 +60,7 @@ def case(r):
         regions[RAM + 0x1000] = chain
     for g in globs:
         regions[g & ~0xf] = r.bytes(0x20)
-    args = [r.choice([0, 1, 0xff, 0x7fffffff, 0xffffffff, r.getrandbits(32)]) for _ in range(n)]
+    args = [r.choice([0, 1, 2, 0xfe, 0xff, 0x7fffffff, 0xfffffffe, 0xffffffff, r.getrandbits(32)]) for _ in range(n)]   # (bit 0 clear, others set too)
     for i in ptr:
         args[i] = RAM + 0x200 + 0x40 * min(i, 3) + r.choice([0, 4, 0x20])
     if conv == 't':

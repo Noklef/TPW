@@ -81,6 +81,16 @@ u8 *__fastcall TileSet_Ctor(u8 *object);
 // +0x48, +0x88, +0x98, +0x28, +0x58, +0xa8, +0x68, +0x78, +0xb8 and +0xc8 in that order. Returns 1 in AL over the upper bytes of the last read's return.
 u32 __fastcall Lnd_ReadLevel(u8 *object, void *, u8 *stream);
 
+// 0x560ff0 (thiscall; name, pops 4; the game pushes a second argument to VFS_Open, 0x74cfb8, unread): base.lnd read. Lnd_Clear, then the
+// file opened (VFS_Open; none: 0); its version byte (not 3: the stream finished and deleted, 0); the bytes +2 .. +0xb; the ramps at 0x8794a8
+// (centre +0xa, width +0xb) and 0x8793a8 (+6, +7): with w = width + 1, lo = centre - w / 2 and hi = centre + w / 2 (both as s16), entry i
+// (0..255) is 0 below lo, 0xff above hi, else (255 i - 255 lo) / w; then Lnd_BuildRamp of 0x8797a8 (+8, +9), 0x8796a8 (+4, +5) and
+// 0x8795a8 (+2, +3); the control map Array3D_Read into +0x14, its width - 1 and height - 1 (+0x14, +0x18) over 4 (sar) into +0xc and +0x10.
+// Then for each of the three levels (0xd8 bytes each from +0x24): the one byte +1 names read with Lnd_ReadLevel; the others skipped: a u32
+// and a byte read and dropped, then thirteen times three dwords read and a seek from here (Stream_SeekFailed, whence 1) by their product.
+// The stream finished and deleted; returns 1 (in AL over Object_FinishAndDelete's 0).
+u32 __fastcall Lnd_Read(u8 *object, void *, const char *name);
+
 // 0x55f530 (thiscall; name unconfirmed): the dwords +0x14 .. +0x20 cleared, the three levels at +0x24 (0xd8 bytes each) made with TileSet_Ctor, then
 // Lnd_Clear. Returns the object.
 u8 *__fastcall Lnd_Ctor(u8 *object);
@@ -129,4 +139,11 @@ double __cdecl Terrain_FootprintHeight(s32 x, s32 y, const u8 *cells, s32 width,
 // times __ftol(v -0.1) less __ftol(u -0.1), times 100 / 255 plus the origin's +0x44. Otherwise *slot = 0 and 0 when slot is given, else
 // Terrain_HeightAt of the position.
 double __cdecl Terrain_SurfaceHeight(s32 x, s32 y, u32 *slot);
+
+// 0x536ca0 (cdecl; cell, height, x, y; float in st0; name unconfirmed): the height a 0x44-byte cell and three of its neighbours give,
+// rounded up to tens. When the cell's type (+8) is 0xb, 0x10, 0x19, 7, 4, 9 or 0xa, height = ((__ftol(Terrain_SurfaceHeight(x, y, null)) + 9)
+// / 10 (signed)) * 10 (0x700d94; fild, fmul). Then for the (dx, dy) pairs at 0x7cdba8, 0x7cdbc8 and 0x7cdbb8 in turn, the cell
+// Map_StepCell(cell, dx, dy, 1) gives (none: skipped) does the same with its own id's x and y ((id - 1) & 0x7f, (id - 1) >> 7, 32-bit).
+// Returns the last height.
+float __cdecl Terrain_RoundedCellHeight(const u8 *cell, float height, s32 x, s32 y);
 }

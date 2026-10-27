@@ -30,6 +30,7 @@
 # sets (sic), different in the two runs: allocator_masks() leaves those bytes of the heap out (the strings' first byte; the listing reads
 # no string's allocator: CopyCells only stores the new string, StdWString_CtorChars writes the byte and nothing after it reads one).
 # SetRowSize / SetRow (0x663718, 0x663864): see row_case(). SetHighlight (0x662eee): see highlight_case().
+# BuildRows (0x6639cb): see build_case().
 # ShowRows (0x664fde): see show_case(). SendToRows (0x6650d4): RefreshRows' list, rows and items; the message 0x1e mostly (else 3,
 # 0x15, 7 or one with the top bit), a and b any (the row windows' handlers fncmp's logger or none).
 # NthChild (0x663c11): NthItem's forest, the n likewise, the parent -1, -2, an item's place or past them.
@@ -38,6 +39,28 @@
 # list's length, the first shown its head; the sort column 0 to the last (now and then -1: the parent dword), the mode +0x16a 0 or 1
 # (now and then 2), the column bottoms 1 (numbers: a few values, ties included, or the extremes) or 0 / 2 (counted wide strings of
 # short texts from ALPHA, ties and prefixes included, or none); the columns 0 now and then.
+# Cell (0x663d56): RefreshRows' list and rows (now and then one 0 or one without children), the row 0 to the rows shown (only 0 without the row array), the
+# column a word 0 to past the columns (upper half random).
+# NthItemCell (0x664bf0): NthItem's items eight dwords apart, their cells strings of CELLS (text or none); 0-4 columns (or -1), the
+# bottoms 0 mostly, 1 or -1; the column 0 to past them.
+# PostColumnAt (0x665494): the selection +0x14c -1, 0, small or any, 0-4 columns (or -1) of edges small or any, x on them, between or
+# any (upper half random); the parent +0x60 a window (its byte +4 mostly clear) or 0, window.py's queues.
+# ScrollFromBar (0x664ea3): RefreshRows' list, its children (+0x5c) a bar of id 1 (a recorder vtable: slot 8 answers the first row
+# shown RefreshRows' set-up chose; the list's +0x154 then another value mostly, or the same), one of another id before it, or none;
+# window.py's queues and [0xfaa5d4] set or not, the list's byte +4 mostly clear.
+# NthItemData (0x664c71): SetNthItemData's set-up, the out a dword or 0. OnKey (0x665b51): ScrollTo's, flag 0x200 of +0x48 mostly set,
+# the keys Home / End / Up / Down or others. PostSelection / NotifySort (0x6656fa, 0x6658b9), SetSortColumn / SetSortOrder (0x66590f,
+# 0x66594d: the word the current one a third of the time, -1, small or any, the dword's upper half random): notify_case() below.
+# ColumnSpan (0x664cb9): column_case() below. SortBy (0x6659af): Sort's tree (sort_case()) with notify_case()'s parent and queues, by
+# +-(the current column + 1), +-1, 0 or -0x80000000 (abs(INT_MIN) - 1 the column -1), the byte sort set mostly (upper bits random).
+# OnMouseDown (0x6655a2) / OnDouble (0x66563d): SelectAt's, flag 0x80 of +0x48 set half the time, PostColumnAt's columns (0-4 or -1), x on a
+# column's edges half the time.
+# OnHeader (0x665a44): SortBy's, flag 0x10 of +0x48 set mostly, the columns +0x164 0-4 or -1, the button's column the sort column's
+# mostly, -1 to 5 or any (the id that plus 0x10, its upper half random now and then); no rows (+0x148 0: the refresh not compared).
+# SetColumnBottom (0x6636b2): ColumnBottom's array (or none), the columns +0x164 0-12 or negative, the column 0-11, -1 or -2, the value
+# any (upper halves random). OffsetColumns (0x664f6d): 0-4 columns of real GUI rectangles (or no array), dx / dy words (upper halves
+# random; a negative count would run for ever). SelectAt (0x66552e): select_case()'s, the inner rectangle +0x138 a real one, the point in
+# it, near it or any.
 # usage: window7059f0.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ColumnBottom,NextItem,...)
 import os
 import struct
@@ -54,7 +77,13 @@ CALLS = {'ColumnBottom': 0x6636f6, 'NextItem': 0x663a93, 'NthItem': 0x663ba2, 'S
          'FreeItem': 0x664605, 'Select': 0x66525c, 'FindText': 0x664db7, 'RemoveItem': 0x6647cb, 'Clear': 0x6649d5,
          'ScrollTo': 0x665739, 'Grow': 0x66316b, 'SortsBefore': 0x663edc, 'CopyCells': 0x663dfa,
          'AddItem': 0x66403b, 'SetRowSize': 0x663718, 'SetRow': 0x663864,
-         'SetHighlight': 0x662eee, 'ShowRows': 0x664fde, 'SendToRows': 0x6650d4, 'NthChild': 0x663c11, 'Sort': 0x6628f4}
+         'SetHighlight': 0x662eee, 'ShowRows': 0x664fde, 'SendToRows': 0x6650d4, 'NthChild': 0x663c11, 'Sort': 0x6628f4,
+         'ScrollFromBar': 0x664ea3, 'Cell': 0x663d56,
+         'PostColumnAt': 0x665494, 'NthItemCell': 0x664bf0, 'NthItemData': 0x664c71, 'OnKey': 0x665b51, 'PostSelection': 0x6656fa,
+         'NotifySort': 0x6658b9, 'ColumnSpan': 0x664cb9, 'SetSortColumn': 0x66590f, 'SetSortOrder': 0x66594d, 'BuildRows': 0x6639cb,
+         'SortBy': 0x6659af, 'OnHeader': 0x665a44,
+         'SetColumnBottom': 0x6636b2, 'OffsetColumns': 0x664f6d, 'SelectAt': 0x66552e,
+         'OnMouseDown': 0x6655a2, 'OnDouble': 0x66563d}
 LIST_RANGES = (RANGES + [(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 0x664bf0), (0x664d2a, 0x664db7), (0x663324, 0x663554),
                     (0x4f0240, 0x4f0250), (0x65d547, 0x65d56b), (0x65d56b, 0x65d57c), (0x65c672, 0x65c707),
                     (0x663085, 0x66316b), (0x663cb8, 0x663d56), (0x664495, 0x6644ea), (0x66b47d, 0x66b508),
@@ -65,7 +94,9 @@ LIST_RANGES = (RANGES + [(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 
                     (0x67d3a0, 0x67d400), (0x6918f0, 0x691a30), (0x691ba0, 0x691ce0),
                     (0x663718, 0x663864), (0x663864, 0x6639cb), (0x65d865, 0x65d8e7), (0x659e3e, 0x659e83), (0x65cf5e, 0x65cfd4),
                     (0x65c9bd, 0x65cd95), (0x661700, 0x66176a), (0x65f16b, 0x65f246), (0x662eee, 0x663085), (0x664fde, 0x6650d2), (0x6650d4, 0x6651ee),
-                    (0x663c11, 0x663cb8), (0x6628f4, 0x662eee), (0x4f76b0, 0x4f7718)])
+                    (0x663c11, 0x663cb8), (0x6628f4, 0x662eee), (0x4f76b0, 0x4f7718), (0x664ea3, 0x664f6d), (0x663d56, 0x663dfa), (0x665494, 0x66552c), (0x664bf0, 0x664c71),
+                    (0x664c71, 0x664cb9), (0x665b51, 0x665bfb), (0x6656fa, 0x665739), (0x6658b9, 0x66590f), (0x664cb9, 0x664d2a), (0x66590f, 0x66594d), (0x66594d, 0x6659ad), (0x6659af, 0x665a44), (0x665a44, 0x665b4f), (0x658ccc, 0x658d9f),
+                    (0x6639cb, 0x663a93), (0x66b53e, 0x66b567), (0x6636b2, 0x6636f6), (0x664f6d, 0x664fde), (0x66552e, 0x6655a0), (0x6655a2, 0x66563d), (0x66563d, 0x6656a0)])
 B = Bench(LIST_RANGES)
 WINDOW, COLUMNS, LINKS, OUT = RAM, RAM + 0x200, RAM + 0x400, RAM + 0x800
 LIST, LINKS2, COLS2, CELLS, ROWS2, ROWWINS = RAM + 0x9000, RAM + 0x9420, RAM + 0x9e00, RAM + 0x9f00, RAM + 0x9c00, RAM + 0xb000
@@ -76,6 +107,9 @@ ROWLIST, ROWARR, ROWCOLS, ROWHL, ROWHLVT, ROWWIN = RAM + 0x10000, RAM + 0x10200,
 HL_A, HL_B, HL_VT, HL_PARENTS = RAM + 0x11000, RAM + 0x11040, RAM + 0x11080, RAM + 0x11200
 ALPHA = [0x41, 0x42, 0x100, 0xffff]
 SORTW, SORTCOLS, SORTLINKS, SORTSTRS, SORTCHARS = RAM + 0x12000, RAM + 0x12200, RAM + 0x12400, RAM + 0x12c00, RAM + 0x13000
+BARS = RAM + 0x14000
+BUILDROW, BUILDBAR = RAM + 0x16000, RAM + 0x16800
+PARENT = RAM + 0x600
 
 
 def none(r):
@@ -221,6 +255,41 @@ def refresh_case(r):
     put(window, 0x154, 'i', first)
     put(window, 0x160, 'i', shown)
     return Call(CALLS['RefreshRows'], [LIST], regions, conv='t', ret='v')
+
+
+def build_case(r):
+    """BuildRows (0x6639cb): refresh_case()'s list, rows and items with the heap; the row the maker (a cdecl recorder) answers each
+    time the list's first row (its windows as refresh_case() made them), a new one (row_windows()) or none, its rectangle +8 a few pixels
+    high (0 now and then: a fault in both) and its insets 0; the list's inner words +0x13c-+0x142 as high as the rows the array +0x148
+    holds (now and then one less or one more); the highlight none; the children +0x5c none, the bar (id 1) or another; the releaser a
+    cdecl recorder or none; now and then no maker (nothing done)."""
+    c = refresh_case(r)
+    regions = c.regions
+    log, window = regions[LOG], regions[LIST]
+    regions[HEAP] = heap()
+    nrows, ncols = struct.unpack_from('<h', window, 0x172)[0], struct.unpack_from('<h', window, 0x164)[0]
+    old = struct.unpack_from('<I', regions[ROWS2], 0)[0] if nrows > 0 else 0
+    row = r.choice([old, old, 0] if old else [0]) if r.random() < 0.5 else row_windows(r, regions, [], 1, ncols, LIST, base=BUILDROW)[0]
+    if not row and nrows < 0:   # (the count kept: -1 would make and store 65535 rows, past the emulator's step limit)
+        put(window, 0x172, 'h', 0)
+    high = r.choice([5, 8, 12, 20, 20, 0]) if r.random() < 0.97 else 0
+    if row:
+        buf = regions[row]
+        top = r.randrange(-30, 100)
+        put(buf, 8, 'Ihhhh', 0x705920, r.randrange(-30, 100), top, r.randrange(-30, 100), top + (high or r.choice([1, 0])))
+        put(buf, 0xf8, 'hhhh', 0, 0, 0, 0)
+    shown = max(nrows, 0) + r.choice([0, 0, 0, -1, 1])
+    top = r.randrange(-40, 200)
+    put(window, 0x13c, 'hhhh', r.randrange(-40, 200), top, r.randrange(-40, 300), top + max(shown, 0) * max(high, 1) + r.randrange(0, max(high, 1)))
+    put(window, 0x174, 'I', 0)
+    bar = put(bytearray(r.bytes(0x160)), 0x54, 'I', 0)
+    put(bar, 0x8c, 'I', r.choice([1, 1, 2]))
+    regions[BUILDBAR] = bar
+    put(window, 0x5c, 'I', r.choice([BUILDBAR, BUILDBAR, 0]))
+    set_return(log, 26, row)
+    make = recorder(26, 0, cdecl=True) if r.random() < 0.95 else 0
+    release = r.choice([recorder(27, 1, cdecl=True), 0])
+    return Call(CALLS['BuildRows'], [LIST, make, release], regions, conv='t', ret='v')
 
 
 def free_case(r, window, regions):
@@ -452,6 +521,10 @@ def list_case(r, op):
         put(window, 0x144, 'I', 0)
     n = r.choice([-1, 0, 0, 1, 2, count - 1, count - 1, count, r.randrange(len(idx) + 1), 0x7fffffff])
     put(window, 0x14c, 'i', r.choice([n, n, -1, count - 1, r.randrange(10)]))
+    if op == 'OnKey':   # (flag 0x200 of +0x48 either way; the keys Home, End, Up and Down or others, the upper half random now and then)
+        window[0x49] = (window[0x49] & 0xfd) | r.choice([2, 2, 2, 0])
+        key = r.choice([0x2300, 0x2400, 0x2600, 0x2800] * 3 + [0x2500, 0x2700, 0, r.getrandbits(16)])
+        return Call(CALLS[op], [LIST3, key | r.choice([0, 0, r.getrandbits(16)]) << 16, r.getrandbits(32)], regions, conv='t', ret='v')
     if op == 'Clear':   # (the count mostly at most the items the walk from the first shown one reaches: past them it reads cells as links)
         links = struct.unpack('<%di' % (len(regions[LINKS3 - 0x20]) // 4), regions[LINKS3 - 0x20])[8:]
         item, reach = struct.unpack_from('<i', window, 0x160)[0], 0
@@ -474,18 +547,61 @@ def list_case(r, op):
     return Call(CALLS[op], [LIST3, n & 0xffffffff], regions, conv='t', ret='w' if op == 'RemoveItem' else 'v')
 
 
+
+def parent_env(r, regions, w):
+    """the parent +0x60 a window (byte +4 mostly clear, its handler +0x114 fncmp's logger or 0) or none; window.py's queues, the hook
+    [0xfaa5fc]"""
+    put(w, 0x60, 'I', r.choice([PARENT, PARENT, PARENT, 0]))
+    parent = bytearray(r.bytes(0x120))
+    parent[4] = r.choice([0, 0, 0, 1])
+    put(parent, 0x114, 'I', r.choice([CDECL_LOG4, CDECL_LOG4, 0]))
+    regions[PARENT] = parent
+    regions[0xfaa5fc] = put(bytearray(4), 0, 'I', r.choice([0, CDECL_LOG4]))
+    queues(r, regions)
+
+
+def notify_case(r, op):
+    """PostSelection (0x6656fa) / NotifySort (0x6658b9) / SetSortColumn / SetSortOrder: the selection +0x14c and the words +0x168 / +0x16a small, -1 or any, the parent
+    +0x60 a window (byte +4 mostly clear, its handler +0x114 fncmp's logger or 0) or none; window.py's queues, the hook [0xfaa5fc]"""
+    regions = {LOG: log_region()}
+    w = bytearray(r.bytes(0x180))
+    put(w, 0x14c, 'i', r.choice([-1, 0, 1, 5, r.getrandbits(31), -r.randrange(1, 1 << 31)]))
+    put(w, 0x168, 'h', r.choice([0, 1, -1, 5, 0x7fff, -0x8000, r.getrandbits(15)]))
+    put(w, 0x16a, 'h', r.choice([1, 1, 0, 2, -1, r.getrandbits(15)]))
+    regions[WINDOW] = w
+    parent_env(r, regions, w)
+    if op in ('SetSortColumn', 'SetSortOrder'):
+        current = struct.unpack_from('<h', w, 0x168 if op == 'SetSortColumn' else 0x16a)[0]
+        value = r.choice([current] * 4 + [-1, -1, 0, 1, 2, r.getrandbits(16)]) & 0xffff
+        return Call(CALLS[op], [WINDOW, value | r.choice([0, r.getrandbits(16)]) << 16], regions, conv='t', ret='a')
+    return Call(CALLS[op], [WINDOW], regions, conv='t', ret='a')
+
+
+def column_case(r):
+    """ColumnSpan (0x664cb9): the columns +0x16c (12 bytes each, random, after 0x30 bytes of room) or none, their count word +0x164 0-4
+    (now and then negative), the column -2 to past the count, the two word outs each set or 0"""
+    w = bytearray(r.bytes(0x180))
+    count = r.choice([0, 1, 2, 3, 4, -1])
+    put(w, 0x164, 'h', count)
+    put(w, 0x16c, 'I', r.choice([COLUMNS + 0x30] * 5 + [0]))
+    column = r.choice([-2, -1, 0, 0, 1, 2, 3, 4, 5, r.getrandbits(32)]) & 0xffffffff
+    regions = {WINDOW: w, COLUMNS: r.bytes(0x30 + 12 * 6), OUT: r.bytes(8)}
+    return Call(CALLS['ColumnSpan'], [WINDOW, column, r.choice([OUT, OUT, OUT, 0]), r.choice([OUT + 4, OUT + 4, OUT + 4, 0])], regions,
+                conv='t', ret='a')
+
+
 ACHARS, ATEXTS = RAM + 0xfd00, RAM + 0xfe00
 
 
-def add_case(r):
+def add_case(r, columns=(0, 1, 2, 3, 3)):
     """AddItem (0x66403b): list_env()'s windows, a new forest at LINKS3 (4 + 0-3 columns) whose last root goes on to the free items'
     chain (parent -2, no child; their cells 0) or ends; the cells of a number column (bottom 1) numbers, the others string objects (+4
     one of 8 short strings of ALPHA, now and then none) or 0; the dword count theirs or the used ones' (the array grown: the heap's first
     block) or 0, now and then no array; the sort column and direction, flag 0x10 (sorted) set or not; the texts like the cells (strings
     for the string columns, mostly set) or none; the parent -1, a position or past the count; refresh or not. The new strings' allocator
-    bytes masked (allocator_masks)."""
+    bytes masked (allocator_masks). The column counts drawn from columns (window7cc8bc.py's callers give one text: at most one)."""
     window, regions, _ = list_env(r)
-    ncols = r.choice([0, 1, 2, 3, 3])
+    ncols = r.choice(columns)
     put(window, 0x164, 'h', ncols)
     stride = 4 + ncols
     bottoms = [r.choice([0, 0, 1, 1, -1]) for _ in range(4)]
@@ -746,10 +862,65 @@ def sort_case(r):
     return Call(CALLS['Sort'], [SORTW, r.choice([0xffffffff, r.getrandbits(32)])], regions, conv='t', ret='v')
 
 
+def sort_by_case(r):
+    """SortBy (see the top)"""
+    c = sort_case(r)
+    regions, w = c.regions, c.regions[SORTW]
+    regions[LOG] = log_region()
+    put(w, 0x14c, 'i', r.choice([-1, 0, 1, r.getrandbits(31)]))
+    parent_env(r, regions, w)
+    column = struct.unpack_from('<h', w, 0x168)[0]
+    by = r.choice([column + 1] * 4 + [1, 1, 0, -0x80000000]) * r.choice([1, -1])
+    sort = r.choice([1, 1, 1, 0, 0x100]) | r.getrandbits(24) << 8 * r.choice([0, 1])
+    return Call(CALLS['SortBy'], [SORTW, by & 0xffffffff, sort & 0xffffffff], regions, conv='t', ret='v')
+
+
+def bar_scroll_case(r):
+    """ScrollFromBar (0x664ea3): see the top"""
+    c = refresh_case(r)
+    regions, log, window = c.regions, c.regions[LOG], c.regions[LIST]
+    first = struct.unpack_from('<i', window, 0x154)[0]
+    set_return(log, 8, first)
+    n = r.choice([0, 1, 1, 1, 2])
+    kids = [BARS + 0x100 * i for i in range(n)]
+    for i, kid in enumerate(kids):
+        buf = bytearray(r.bytes(0x100))
+        put(buf, 0, 'I', VTABLE)
+        put(buf, 0x54, 'I', kids[i + 1] if i + 1 < n else 0)
+        put(buf, 0x8c, 'I', 1 if i == n - 1 and r.random() < 0.9 else r.choice([2, 3, r.getrandbits(32)]))
+        regions[kid] = buf
+    put(window, 0x5c, 'I', kids[0] if kids else 0)
+    if r.random() < 0.85:
+        put(window, 0x154, 'i', r.choice([first + 1, first - 1, r.getrandbits(31)]))
+    window[4] = r.choice([0, 0, 0, 1])   # (going or not: posts to it refused)
+    queues(r, regions)
+    regions[0xfaa5d4] = struct.pack('<I', r.choice([0, 1]))
+    return Call(CALLS['ScrollFromBar'], [LIST], regions, conv='t', ret='v')
+
+
+def header_case(r):
+    """OnHeader (see the top)"""
+    c = sort_case(r)
+    regions, w = c.regions, c.regions[SORTW]
+    regions[LOG] = log_region()
+    put(w, 0x14c, 'i', r.choice([-1, 0, 1, r.getrandbits(31), -r.randrange(2, 1 << 31)]))
+    parent_env(r, regions, w)
+    w[0x48] = (w[0x48] & ~0x10) | r.choice([0x10] * 6 + [0])
+    put(w, 0x164, 'h', r.choice([1, 2, 3, 4, 4, 0, -1]))
+    put(w, 0x148, 'I', 0)   # (no rows: Window7059f0_RefreshRows does nothing)
+    current = struct.unpack_from('<h', w, 0x168)[0]
+    column = r.choice([current] * 4 + list(range(-1, 6)) + [r.getrandbits(15)])
+    return Call(CALLS['OnHeader'], [SORTW, (column + 0x10) & 0xffff | r.choice([0, 0, r.getrandbits(16)]) << 16], regions, conv='t', ret='v')
+
+
 def case(r):
     op = r.deal(OPS)
     if op == 'Sort':
         return sort_case(r)
+    if op == 'OnHeader':
+        return header_case(r)
+    if op == 'SortBy':
+        return sort_by_case(r)
     if op == 'SetHighlight':
         return highlight_case(r)
     if op == 'ShowRows':
@@ -764,14 +935,77 @@ def case(r):
         return row_case(r, op)
     if op == 'AddItem':
         return add_case(r)
-    if op in ('RemoveItem', 'Clear', 'ScrollTo'):
+    if op in ('PostSelection', 'NotifySort', 'SetSortColumn', 'SetSortOrder'):
+        return notify_case(r, op)
+    if op == 'ColumnSpan':
+        return column_case(r)
+    if op in ('RemoveItem', 'Clear', 'ScrollTo', 'OnKey'):
         return list_case(r, op)
     if op == 'RefreshRows':
         return refresh_case(r)
+    if op == 'BuildRows':
+        return build_case(r)
+    if op == 'ScrollFromBar':
+        return bar_scroll_case(r)
+    if op == 'PostColumnAt':
+        window = bytearray(r.bytes(0x180))
+        regions = {LIST: window, OWNER: put(bytearray(r.bytes(0x20)), 4, 'B', r.choice([0, 0, 0, 1]))}
+        put(window, 0x14c, 'i', r.choice([-1, 0, 0, 2, r.randrange(-0x80000000, 0x80000000)]))
+        ncols = r.choice([0, 1, 2, 3, 4, 4, -1])
+        put(window, 0x164, 'h', ncols)
+        edges = []
+        for _ in range(4):
+            left = r.choice([r.randrange(-20, 200), r.randrange(-0x8000, 0x8000)])
+            edges.append((left, (r.choice([left + r.randrange(-2, 60), r.randrange(-0x8000, 0x8000)]) + 0x8000 & 0xffff) - 0x8000))
+        regions[COLS2] = b''.join(struct.pack('<Ihhhh', r.getrandbits(32), left, r.getrandbits(15), right, r.getrandbits(15)) for left, right in edges)
+        put(window, 0x16c, 'I', COLS2)
+        put(window, 0x60, 'I', r.choice([OWNER, OWNER, 0]))
+        queues(r, regions)
+        left, right = r.choice(edges)
+        x = r.choice([left, right, left + 1, right - 1, (left + right) // 2, r.getrandbits(16)]) & 0xffff
+        return Call(CALLS[op], [LIST, x | r.getrandbits(16) << 16, r.getrandbits(32)], regions, conv='t', ret='v')
+    if op == 'Cell':
+        c = refresh_case(r)
+        window = c.regions[LIST]
+        nrows, ncols = struct.unpack_from('<h', window, 0x172)[0], struct.unpack_from('<h', window, 0x164)[0]
+        arr = bytearray(c.regions[ROWS2])
+        if nrows > 0 and r.random() < 0.2:
+            put(arr, 4 * r.randrange(nrows), 'I', 0)
+        for k in range(max(nrows, 0)):   # (now and then a row without children: its walk reaches 0 early)
+            w = struct.unpack_from('<I', arr, 4 * k)[0]
+            if w in c.regions and r.random() < 0.25:
+                put(c.regions[w], 0x5c, 'I', 0)
+        c.regions[ROWS2] = arr
+        has = struct.unpack_from('<I', window, 0x148)[0] != 0
+        row = r.choice([r.randrange(max(nrows, 0) + 1), 0, nrows if nrows > 0 else 0]) if has else 0
+        column = r.randrange(max(ncols, 0) + 2) | r.choice([0, r.getrandbits(16)]) << 16
+        return Call(CALLS[op], [LIST, row, column], c.regions, conv='t', ret='a')
     if op == 'FitBar':
         return bar_case(r)
     if op == 'Select':
         return select_case(r)
+    if op in ('SelectAt', 'OnMouseDown', 'OnDouble'):
+        c = select_case(r)
+        window = c.regions[WINDOW]
+        if op != 'SelectAt':   # (the clicks: flag 0x80 mostly; OnMouseDown's columns as PostColumnAt's)
+            window[0x48] = (window[0x48] & 0x7f) | r.choice([0x80, 0])
+            ncols = r.choice([0, 1, 2, 3, 4, 4, -1])
+            put(window, 0x164, 'h', ncols)
+            edges = []
+            for _ in range(4):
+                left = r.choice([r.randrange(-20, 200), r.randrange(-0x8000, 0x8000)])
+                edges.append((left, (r.choice([left + r.randrange(-2, 60), r.randrange(-0x8000, 0x8000)]) + 0x8000 & 0xffff) - 0x8000))
+            c.regions[COLS2] = b''.join(struct.pack('<Ihhhh', r.getrandbits(32), left, r.getrandbits(15), right, r.getrandbits(15)) for left, right in edges)
+            put(window, 0x16c, 'I', COLS2)
+        top = r.randrange(-30, 100)
+        rect = (r.randrange(-30, 100), top, r.randrange(-30, 300), top + r.choice([0, 5, 40, 200, r.randrange(-20, 300)]))
+        put(window, 0x138, 'Ihhhh', 0x705920, *rect)
+        x = r.choice([rect[0], rect[0] + 3, rect[2] - 1, rect[2], r.randrange(-0x8000, 0x8000)])
+        y = r.choice([rect[1], rect[1] + r.randrange(0, 60), rect[3] - 1, rect[3], rect[1] - 1, r.randrange(-0x8000, 0x8000)])
+        if op != 'SelectAt' and r.random() < 0.5:   # (the click on a column's edges)
+            left, right = r.choice(edges)
+            x = r.choice([left, right, left + 1, right - 1, (left + right) // 2])
+        return Call(CALLS[op], [WINDOW] + [(v & 0xffff) | r.choice([0, r.getrandbits(16)]) << 16 for v in (x, y)], c.regions, conv='t', ret='v')
     window = bytearray(r.bytes(0x180))
     regions = {WINDOW: window}
     if op == 'SetRowHeight':   # (the inner rectangle's top and bottom near each other or any; the height small, negative or 0: a fault in both)
@@ -780,6 +1014,19 @@ def case(r):
             put(window, 0x13e, 'hh', top, top + r.randrange(-10, 400))
         height = r.choice([1, 2, 7, 12, 16, 20, -3, -1, 0x7fff, 0x8000, r.getrandbits(16), 0]) & 0xffff
         return Call(CALLS[op], [WINDOW, height | r.choice([0, r.getrandbits(16)]) << 16], regions, conv='t', ret='v')
+    if op == 'SetColumnBottom':
+        regions[COLUMNS - 0x20] = r.bytes(0x20 + 12 * 12)
+        put(window, 0x16c, 'I', r.choice([COLUMNS] * 5 + [0]))
+        put(window, 0x164, 'h', r.choice([0, 1, 3, 12, 12, -1, r.getrandbits(16) - 0x8000]))
+        column = r.choice(list(range(12)) + [-1, -2]) & 0xffff
+        return Call(CALLS[op], [WINDOW, column | r.choice([0, r.getrandbits(16)]) << 16, r.getrandbits(32)], regions, conv='t', ret='v')
+    if op == 'OffsetColumns':
+        n = r.choice([0, 1, 2, 3, 4])
+        regions[COLUMNS] = b''.join(struct.pack('<Ihhhh', 0x705920, *[r.getrandbits(16) - 0x8000 for _ in range(4)]) for _ in range(n)) or bytes(1)
+        put(window, 0x16c, 'I', r.choice([COLUMNS] * 5 + [0]))
+        put(window, 0x164, 'h', n)
+        return Call(CALLS[op], [WINDOW] + [r.choice([0, 1, -3, r.getrandbits(16)]) & 0xffff | r.choice([0, r.getrandbits(16)]) << 16 for _ in range(2)],
+                    regions, conv='t', ret='v')
     if op == 'ColumnBottom':
         regions[COLUMNS - 0x20] = r.bytes(0x20 + 12 * 12)
         put(window, 0x16c, 'I', COLUMNS)
@@ -854,6 +1101,25 @@ def case(r):
             put(window, 0x144, 'I', 0)
         regions[HEAP] = heap(fail=r.choice([0] * 9 + [1]))
         return Call(CALLS[op], [WINDOW, r.choice([1, 2, 3, 10, 20, 20, 0, -1]) & 0xffffffff], regions, conv='t', ret='a')
+    if op == 'NthItemCell':
+        idx = items(r, window, regions, stride=8)
+        links = bytearray(regions[LINKS])
+        cells = [CELLS + 8 * j for j in range(8)]
+        regions[CELLS] = b''.join(struct.pack('<II', r.getrandbits(32), r.choice([0, r.getrandbits(32)])) for _ in cells)
+        for i in idx:
+            for c in range(4):
+                put(links, 4 * (i + 4 + c), 'I', r.choice(cells))
+        regions[LINKS] = links
+        regions[COLS2] = b''.join(put(bytearray(r.bytes(0xc)), 0xa, 'h', r.choice([0, 0, 0, 1, -1])) for _ in range(4))
+        put(window, 0x16c, 'I', COLS2)
+        put(window, 0x164, 'h', r.choice([0, 1, 2, 3, 4, 4, -1]))
+        put(window, 0x150, 'i', r.choice([0, 1, len(idx), len(idx) + 3, r.randrange(len(idx) + 1), -1]))
+        put(window, 0x160, 'i', r.choice(idx + [idx[0], -1]))
+        if r.random() < 0.1:
+            put(window, 0x144, 'I', 0)
+        regions[OUT] = r.bytes(4)
+        n = r.choice([-1, 0, 1, 2, r.randrange(len(idx) + 2), len(idx) - 1, len(idx)])
+        return Call(CALLS[op], [WINDOW, n & 0xffffffff, r.choice([0, 1, 2, 3, 4]), OUT], regions, conv='t', ret='w')
     idx = items(r, window, regions)
     if op == 'RootEnd':   # (some items free: their parent -2; the outputs' old values random)
         links = bytearray(regions[LINKS])
@@ -879,12 +1145,15 @@ def case(r):
         regions[OUT] = r.bytes(4)
         return Call(CALLS[op], [WINDOW, r.choice(idx), r.choice([OUT, OUT, 0])], regions, conv='t', ret='a')
     put(window, 0x150, 'i', r.choice([0, 1, len(idx), len(idx) + 3, r.randrange(len(idx) + 1), -1]))
-    put(window, 0x160, 'i', r.choice(idx + [idx[0], -1]))
+    put(window, 0x160, 'i', r.choice(idx + [idx[0], -1, -2]))   # (-2: a head that is no item but not none, read as one)
     if r.random() < 0.1:
         put(window, 0x144, 'I', 0)
     n = r.choice([-1, 0, 1, 2, 3, r.randrange(len(idx) + 2), len(idx) - 1, len(idx), 0x7fffffff, -0x80000000])
     if op == 'SetNthItemData':
         return Call(CALLS[op], [WINDOW, n & 0xffffffff, r.getrandbits(32)], regions, conv='t', ret='w')
+    if op == 'NthItemData':
+        regions[OUT] = r.bytes(4)
+        return Call(CALLS[op], [WINDOW, n & 0xffffffff, r.choice([OUT, OUT, 0])], regions, conv='t', ret='a')
     if op == 'NthChild':
         parent = r.choice([-1, -1, -2, 0, 0, 1, 2, r.randrange(len(idx) + 2)])
         return Call(CALLS[op], [WINDOW, n & 0xffffffff, parent & 0xffffffff], regions, conv='t', ret='a')

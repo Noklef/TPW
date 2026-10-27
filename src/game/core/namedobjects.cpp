@@ -14,6 +14,8 @@
 #include "vcall.h"
 #include "vobj2.h"
 #include "vobj3.h"
+#include "../files/direntry.h"
+#include "../files/handles.h"
 
 namespace {
 
@@ -99,6 +101,38 @@ void __fastcall NamedObjects_Dtor(u8 *self) {
     }
     at<u32>(self, 0x30) = 0;
     String_Dtor(reinterpret_cast<String *>(self));
+}
+
+s32 *__cdecl NamedObjects_AddSubfolders(s32 *out, const String *folder) {
+    Handle handle;
+    Handle_Ctor(&handle);
+    handle.vtable = reinterpret_cast<void *const *>(0x006fd9e8);
+    u8 entry[0x124];   // (a DirEntry: +0x20 its name pointer, +0x24 the path buffer; the rest as the search leaves it)
+    *reinterpret_cast<u8 **>(entry + 0x20) = entry + 0x24;
+    entry[0x24] = 0;
+    String path;
+    String_Ctor(&path);
+    vcall<void>(&path, 0x18, folder);
+    String_EnsureTrailingBackslash(&path);
+    vcall<void>(&path, 0x28, reinterpret_cast<const String *>(0x00f7f908));
+    s32 found = -1;
+    s32 status;
+    if (*Handle_Open28(&handle, nullptr, &status, static_cast<u32>(reinterpret_cast<uintptr_t>(path.data))) >= 0 &&
+        *Handle_Vfn1(&handle, nullptr, &status, *reinterpret_cast<const u32 *>(0x00f80768), static_cast<u32>(reinterpret_cast<uintptr_t>(entry))) >= 0) {
+        found = 0;
+        do {
+            if (DirEntry_IsRealDir(entry)) {
+                String name;
+                String_CtorStr(&name, nullptr, *reinterpret_cast<const char *const *>(entry + 0x20));
+                NamedObjects_AddName(reinterpret_cast<u8 *>(0x00786b68), nullptr, &name);
+                String_Dtor(&name);
+            }
+        } while (*Handle_Vfn2(&handle, nullptr, &status, static_cast<u32>(reinterpret_cast<uintptr_t>(entry))) >= 0);
+    }
+    *out = found;
+    String_Dtor(&path);
+    Handle_Dtor(&handle);
+    return out;
 }
 
 void __fastcall NamedObjects_AddName(u8 *self, void *, const String *name) {

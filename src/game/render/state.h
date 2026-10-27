@@ -38,6 +38,10 @@ u32 __cdecl RenderDevice_Call0();
 // done, 1; else EngineErrors_DropSurfaceLost on the engine's error list (0x879ad0) answers.
 u32 __cdecl Display_RestoreIfFocused();
 
+// 0x583790 (cdecl; name unconfirmed): with bit 0 of the scene's flags (0x8bd508) off meanwhile (then put back as they were), three
+// rounds of the render device's slot 0 (RenderDevice_Call0) and Display_RestoreIfFocused (inline: its answer unused). 1.
+u32 __cdecl Display_Restore();
+
 // 0x5d9680 / 0x5d9690 (thiscall, the object unused): fog (0x8bcbc8 flag 0x2000) on / off.
 void __fastcall Render_FogOn(void *);
 void __fastcall Render_FogOff(void *);

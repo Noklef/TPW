@@ -1,7 +1,9 @@
 # The string maps record's destructor of src/game/core/stringmapsrecord (0x4e54c0) against the original: two wide strings (null, counted,
 # frozen), three valid red-black trees (stdtree.py's) of 0-5 nodes holding counted strings (kinds D, C and E, each with its own nil node and
 # map counter: 1 so the nil node is freed, more, or 0) and a list of 0-3 counted-buffer nodes.
-# usage: stringmapsrecord.py [CASES [SEED]] [--wild|--both] [--show N]
+# Ctor (0x4f0010, the constructor): the three kinds' nil nodes made already (with any counter) or not; the record any bytes; the
+# allocator bytes the original copies from uninitialised stack masked.
+# usage: stringmapsrecord.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Dtor,Ctor)
 import os
 import struct
 import sys
@@ -9,12 +11,12 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import stdtree  # noqa: E402
-from fncmp import Bench, Call, HEAP, RAM, heap  # noqa: E402
+from fncmp import Bench, Call, HEAP, Mask, RAM, heap  # noqa: E402
 
 B = Bench([(0x4e54c0, 0x4e5700), (0x4e5800, 0x4e596b), (0x4f2590, 0x4f26f8), (0x4f2960, 0x4f2ac8), (0x4f3290, 0x4f33f8), (0x4f4070, 0x4f4120),
            (0x4f4ac0, 0x4f4b70), (0x4f4fd0, 0x4f5080), (0x4f3b10, 0x4f4070), (0x4f4580, 0x4f4ac0), (0x4f2d50, 0x4f3290), (0x4f44d0, 0x4f4580),
            (0x4f4f20, 0x4f4fd0), (0x4f5430, 0x4f54e0), (0x4f54e0, 0x4f5560), (0x4f23f0, 0x4f2450), (0x5ce530, 0x5ce53e), (0x5ce910, 0x5ce91f),
-           (0x67acb0, 0x67acb1)],
+           (0x67acb0, 0x67acb1), (0x4f0010, 0x4f00f0), (0x4f4120, 0x4f41d0), (0x4f4b70, 0x4f4c20), (0x4f5080, 0x4f5130)],
           hooks={0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None})
 REC, LNODES, POOL, GLOB = RAM, RAM + 0x3000, RAM + 0x5000, 0x7ced20
 HEADS, NILS, NODES = RAM + 0x200, RAM + 0x400, RAM + 0x10000
@@ -32,7 +34,22 @@ def block(r, pool, slots):
     return POOL + 0x40 * k + 2
 
 
+def ctor_case(r):
+    glob = bytearray(r.bytes(0x20))
+    regions = {HEAP: heap()}
+    for t, (_kind, _at, nil_at, counter, colour) in enumerate(TREES):
+        nil = NILS + 0x40 * t
+        regions[nil] = r.bytes(0x40)
+        struct.pack_into('<I', glob, nil_at - GLOB, r.choice([nil, nil, 0]))
+        struct.pack_into('<I', glob, counter - GLOB, r.choice([0, 1, 2, 5, r.getrandbits(32)]))
+    regions.update({REC: r.bytes(0x60), GLOB: glob})
+    masks = [Mask(REC, [0, 0x10, 0x20, 0x21, 0x30, 0x31, 0x40, 0x41, 0x54], 'the allocator bytes the original copies from uninitialised stack (sic)')]
+    return Call(0x4f0010, [REC], regions, conv='t', ret='a', masks=masks)
+
+
 def case(r):
+    if r.deal(OPS) == 'Ctor':
+        return ctor_case(r)
     pool = bytearray(r.bytes(0x40 * SLOTS))
     slots = list(range(SLOTS))
     r.shuffle(slots)
@@ -75,6 +92,8 @@ def case(r):
     regions.update({REC: rec, GLOB: glob, LNODES: lnodes, POOL: pool})
     return Call(0x4e54c0, [REC], regions, conv='t', ret='v')
 
+
+OPS = [k for k in os.environ.get('OPS', 'Dtor,Ctor').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)

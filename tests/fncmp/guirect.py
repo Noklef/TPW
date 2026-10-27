@@ -1,20 +1,30 @@
 # The GUI library's rectangle (src/game/ui/guirect: 0x659d00-0x65a43e) against the originals: a rectangle of random bytes (now and then
 # four words near each other, or edge values), the words given random, small or edge values (the upper halves random: only the low words
 # count), and the centre's pointers given or 0. Overlap (0x659f3d): see overlap_case. Split (0x65a1c3): overlap_case's rectangle and
-# shape (now and then none), the two out rectangles given or 0.
+# shape (now and then none), the two out rectangles given or 0. Delete (0x665eb0, flags 0-3 or any): one rectangle, or with flag 2 an
+# array of 0-4 (the count dword before them, now and then negative) destroyed last first (CRT_VectorDtorIterator) and its block freed.
+# Copy (0x661770): another rectangle of random bytes copied. Node / NodeFrom (0x65a493 / 0x65a4f5): a node of random bytes, the source a
+# rectangle or (NodeFrom) none. The list ops (0x65a55b-0x65aa90): see list_case.
+# GetEdges (0x659de5): the four word pointers each given (apart) or 0.
 # usage: guirect.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Ctor,CtorWith,...)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, RAM  # noqa: E402
+from fncmp import HEAP, Bench, Call, RAM, heap  # noqa: E402
 
 CALLS = {'Equals': 0x661700, 'GetSize': 0x659e3e, 'Ctor': 0x659d00, 'CtorWith': 0x659d43, 'Dtor': 0x659d90, 'Contains': 0x659e83, 'Centre': 0x659ee2, 'Offset': 0x65a3e9,
-         'Adjust': 0x65a43e, 'Overlap': 0x659f3d, 'Split': 0x65a1c3}
-B = Bench([(0x661700, 0x66176a), (0x659e3e, 0x659e83), (0x659d00, 0x659dbc), (0x659e83, 0x65a1c3), (0x65a3e9, 0x65a4a3), (0x65a1c3, 0x65a3e9), (0x659dbc, 0x659de3), (0x65a9d0, 0x65aa00), (0x66bff7, 0x66c01b), (0x66c01a, 0x66c7dc),
-           (0x67acb0, 0x67acb1)])
-RECT, OUT, SHAPE, POINTS, OUT2 = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400
+         'Adjust': 0x65a43e, 'Overlap': 0x659f3d, 'Split': 0x65a1c3, 'Delete': 0x665eb0, 'Copy': 0x661770, 'Node': 0x65a493,
+         'NodeFrom': 0x65a4f5, 'NodeDtor': 0x65a55b, 'NodeDelete': 0x65aa90, 'Append': 0x65a5d2, 'AppendRect': 0x65a6b0,
+         'AppendNode': 0x65a7e3, 'NodeOverlap': 0x65a824, 'Subtract': 0x65a887, 'GetEdges': 0x659de5}
+LIST_OPS = ('NodeDtor', 'NodeDelete', 'Append', 'AppendRect', 'AppendNode', 'NodeOverlap', 'Subtract')
+B = Bench([(0x661700, 0x66176a), (0x659e3e, 0x659e83), (0x659d00, 0x659dbc), (0x659e83, 0x65a1c3), (0x65a3e9, 0x65a4a3), (0x65a1c3, 0x65a3e9), (0x659dbc, 0x659de3), (0x659de5, 0x659e3e), (0x65a9d0, 0x65aa00), (0x66bff7, 0x66c01b), (0x66c01a, 0x66c7dc),
+           (0x67acb0, 0x67acb1), (0x665eb0, 0x665f0e), (0x67afa0, 0x67b0d0), (0x67b050, 0x67b0d0),
+           (0x661770, 0x6617cd), (0x6617d0, 0x6617f0), (0x65a493, 0x65a4f5), (0x65a4f5, 0x65a55b), (0x65aa20, 0x65aa80), (0x65aa80, 0x65aa90),
+           (0x65a55b, 0x65a5d2), (0x65a5d2, 0x65a6b0), (0x65a6b0, 0x65a7e3), (0x65a7e3, 0x65a824), (0x65a824, 0x65a887), (0x65a887, 0x65a9d0),
+           (0x65aa90, 0x65aabe)])
+RECT, OUT, SHAPE, POINTS, OUT2, ARRAY, NODES = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x500, RAM + 0x600
 SHAPES = {'rect': 0x705920, 'circle': 0x705b50, 'ellipse': 0x705b68, 'polygon': 0x705b80}
 
 
@@ -59,6 +69,50 @@ def overlap_case(r, rect, regions):
     return Call(CALLS['Overlap'], [RECT, SHAPE], regions, conv='t', ret='w')
 
 
+def list_case(r, op, rect, regions):
+    """The list ops: a head node at NODES and 0-4 nodes after it (+0 the next, the last 0; +4 a GuiRect of the rectangle's words, the
+    others now and then moved a little, or random words), the heap's allocations failing now and then. NodeOverlap / Subtract: the shape
+    overlap_case makes about the rectangle (Subtract's now and then none)."""
+    n = r.choice([0, 1, 2, 2, 3, 4])
+    blob = bytearray(r.bytes(0x20 * 5))
+    left, top, right, bottom = struct.unpack_from('<hhhh', rect, 4)
+    for i in range(n + 1):
+        struct.pack_into('<II', blob, 0x20 * i, NODES + 0x20 * (i + 1) if i < n else 0, SHAPES['rect'])
+        how = r.random() if i else 0
+        if how < 0.6:
+            words = (left, top, right, bottom)
+        elif how < 0.85:
+            dx, dy = r.randrange(-30, 30), r.randrange(-30, 30)
+            words = (left + dx, top + dy, right + dx, bottom + dy)
+        else:
+            words = struct.unpack('<4h', r.bytes(8))
+        struct.pack_into('<4H', blob, 0x20 * i + 8, *[w & 0xffff for w in words])
+    regions[NODES] = blob
+    regions[HEAP] = heap(0x800, r.choice([0] * 6 + [1, 2, 3, 5]))
+    if op in ('NodeDtor', 'NodeDelete'):
+        args = [NODES] + ([r.choice([0, 1, 1, 2, 3, r.getrandbits(32)])] if op == 'NodeDelete' else [])
+        return Call(CALLS[op], args, regions, conv='t', ret='a')
+    if op == 'Append':
+        return Call(CALLS[op], [NODES, r.choice([RECT] * 5 + [0])], regions, conv='t')
+    if op == 'AppendRect':
+        return Call(CALLS[op], [NODES] + [word(r) for _ in range(4)], regions, conv='t')
+    if op == 'AppendNode':
+        return Call(CALLS[op], [NODES, r.choice([OUT, 0, r.getrandbits(32)])], regions, conv='t')
+    struct.pack_into('<I', rect, 0, SHAPES['rect'])
+    overlap_case(r, rect, regions)
+    if op == 'NodeOverlap':
+        return Call(CALLS[op], [NODES, SHAPE, r.getrandbits(32)], regions, conv='t', ret='w')
+    # Subtract cuts at the edge of a shape corner a rectangle contains and finds the corner still in it: for ever, in both. Such shapes
+    # (their words +4..+a read as a rectangle's, as GuiRect_Overlap reads every shape's) are made again, at the last given as none.
+    for _ in range(20):
+        sl, st, sr, sb = struct.unpack_from('<4h', regions[SHAPE], 4)
+        if not any(px >= l and py >= t and px < rr and py < b for i in range(n + 1)
+                   for l, t, rr, b in [struct.unpack_from('<4h', blob, 0x20 * i + 8)] for px in (sl, sr) for py in (st, sb)):
+            return Call(CALLS[op], [NODES, r.choice([SHAPE] * 7 + [0])], regions, conv='t', ret='a')
+        overlap_case(r, rect, regions)
+    return Call(CALLS[op], [NODES, 0], regions, conv='t', ret='a')
+
+
 def case(r):
     op = r.deal(OPS)
     rect = bytearray(r.bytes(0x10))
@@ -66,13 +120,27 @@ def case(r):
         x, y = r.randrange(-50, 50), r.randrange(-50, 50)
         struct.pack_into('<hhhh', rect, 4, x, y, x + r.randrange(-5, 40), y + r.randrange(-5, 40))
     regions = {RECT: rect, OUT: r.bytes(8)}
+    if op in LIST_OPS:
+        return list_case(r, op, rect, regions)
     if op == 'Overlap':
         return overlap_case(r, rect, regions)
+    if op in ('Copy', 'Node', 'NodeFrom'):
+        regions[OUT] = r.bytes(0x10)
+        if op == 'Copy':
+            return Call(CALLS[op], [OUT, RECT], regions, conv='t', ret='a')
+        if op == 'Node':
+            return Call(CALLS[op], [OUT], regions, conv='t', ret='a')
+        return Call(CALLS[op], [OUT, r.choice([RECT, RECT, RECT, 0])], regions, conv='t', ret='a')
     if op == 'Split':
         overlap_case(r, rect, regions)
         regions[OUT], regions[OUT2] = r.bytes(0x10), r.bytes(0x10)
         args = [RECT, r.choice([SHAPE] * 15 + [0]), r.choice([OUT] * 4 + [0]), r.choice([OUT2] * 4 + [0])]
         return Call(CALLS[op], args, regions, conv='t', ret='w')
+    if op == 'Delete':
+        flags = r.choice([0, 1, 2, 3, 3, r.getrandbits(32)])
+        count = r.choice([0, 1, 2, 3, 4, -1])
+        block = struct.pack('<i', count) + b''.join(bytes(rect if i == 0 else r.bytes(0xc))[:0xc] for i in range(4))
+        return Call(CALLS[op], [ARRAY + 4, flags], {ARRAY: block, HEAP: heap(0x100)}, conv='t', ret='a')
     if op in ('Ctor', 'Dtor'):
         return Call(CALLS[op], [RECT], regions, conv='t', ret='a')
     if op == 'CtorWith':
@@ -91,6 +159,8 @@ def case(r):
             other[k] ^= r.choice([1, 0x80, 0xff])
         regions[OUT] = bytes(other)
         return Call(CALLS[op], [RECT, OUT], regions, conv='t', ret='a')
+    if op == 'GetEdges':
+        return Call(CALLS[op], [RECT] + [r.choice([OUT + 2 * k, OUT + 2 * k, 0]) for k in range(4)], regions, conv='t')
     if op in ('Centre', 'GetSize'):
         return Call(CALLS[op], [RECT, r.choice([OUT, OUT, 0]), r.choice([OUT + 4, OUT + 4, 0])], regions, conv='t')
     if op == 'Offset':

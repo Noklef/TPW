@@ -2,6 +2,9 @@
 #include "regkey.h"
 
 #include <cstdint>
+#include <cstring>
+
+#include "language.h"
 
 namespace {
 
@@ -147,4 +150,42 @@ u8 __cdecl Registry_GameInstalled() {
     return ok ? 1 : 0;
 }
 
+
+s32 *__cdecl Registry_LoadLanguage(s32 *out) {
+    RegKey key;
+    RegKey_Ctor(&key);
+    s32 result;
+    u32 value = 0x809;
+    if (*RegKey_Open(&key, nullptr, &result, *reinterpret_cast<const char *const *>(0x00f7f6b8), 0) >= 0 &&
+        *RegKey_GetU32Or(&key, nullptr, &result, *reinterpret_cast<const char *const *>(0x00f7ee18), &value, 0x809) >= 0) {
+        u32 flag;
+        switch (value) {
+        case 6: flag = 0x100; break;
+        case 7: flag = 4; break;
+        case 10: flag = 8; break;
+        case 0x10: flag = 0x20; break;
+        case 0x11: flag = 0x200; break;
+        case 0x13: flag = 0x40; break;
+        case 0x15: flag = 0x80; break;
+        case 0x1d: flag = 0x10; break;
+        case 0x404: flag = 0x400; break;
+        case 0x409: flag = 0x8000; break;
+        case 0x40c: flag = 2; break;
+        case 0x40d: flag = 0x4000; break;
+        case 0x412: flag = 0x2000; break;
+        case 0x41e: flag = 0x1000; break;
+        case 0x804: flag = 0x800; break;
+        case 0x809: flag = 1; break;
+        default: flag = 0x809; break;  // (not a single bit, sic: its lowest, entry 0, is taken)
+        }
+        *reinterpret_cast<u32 *>(0x0079d868) = flag;
+        u32 bit = 0;
+        while ((flag >> bit & 1) == 0) ++bit;
+        std::strcpy(reinterpret_cast<char *>(0x00f7f230), *reinterpret_cast<const char *const *>(0x00f7ec30 + bit * 0x14));
+        Language_SetId(reinterpret_cast<u8 *>(0x0078b530), nullptr, value);
+    }
+    *out = 0;
+    RegKey_Dtor(&key);
+    return out;
+}
 }  // extern "C"
