@@ -110,16 +110,23 @@ void __cdecl ResearchMeters_Refresh(u32 group) {
 
 void __fastcall Obj7b51f0_RefreshResearch(void *, void *, u32 group) { ResearchMeters_Refresh(group); }
 
-s32 __cdecl ResearchMeters_ArrowProc(u8 *window, u32 message, u32 a, u32 b) {
+// The five project arrows' handlers, one for each group (the original has five copies).
+static s32 arrowProc(u32 group, u8 *window, u32 message, u32 a, u32 b) {
     if (message == 0x100) {
         u8 *const lab = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da722_519550(global<u8 *>(0x007cf83c)));
-        if (a == 0xd2d03) ResearchLab_PrevProject(lab, nullptr, 0);
-        else ResearchLab_NextProject(lab, nullptr, 0);
-        ResearchMeters_ShowName(0);
-        ResearchMeters_ShowProgress(0);
+        if (a == 0xd2d03) ResearchLab_PrevProject(lab, nullptr, group);
+        else ResearchLab_NextProject(lab, nullptr, group);
+        ResearchMeters_ShowName(group);
+        ResearchMeters_ShowProgress(group);
     }
     return LevelMeter_OnMessage(window, message, a, b);
 }
+
+s32 __cdecl ResearchMeters_ArrowProc(u8 *window, u32 message, u32 a, u32 b) { return arrowProc(0, window, message, a, b); }
+s32 __cdecl ResearchMeters_ArrowProc1(u8 *window, u32 message, u32 a, u32 b) { return arrowProc(1, window, message, a, b); }
+s32 __cdecl ResearchMeters_ArrowProc2(u8 *window, u32 message, u32 a, u32 b) { return arrowProc(2, window, message, a, b); }
+s32 __cdecl ResearchMeters_ArrowProc3(u8 *window, u32 message, u32 a, u32 b) { return arrowProc(3, window, message, a, b); }
+s32 __cdecl ResearchMeters_ArrowProc4(u8 *window, u32 message, u32 a, u32 b) { return arrowProc(4, window, message, a, b); }
 
 void __cdecl LevelMeter_SetLevel(u8 *window, u32 level) {
     if (level == 0) {

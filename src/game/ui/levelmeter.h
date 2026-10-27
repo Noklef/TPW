@@ -50,4 +50,10 @@ void __fastcall Obj7b51f0_RefreshResearch(void *, void *, u32 group);
 // for any other (ResearchLab_NextProject), then ResearchMeters_ShowName and ResearchMeters_ShowProgress of group 0. Every message then
 // goes to LevelMeter_OnMessage, whose answer is returned.
 s32 __cdecl ResearchMeters_ArrowProc(u8 *window, u32 message, u32 a, u32 b);
+// 0x4aa360, 0x4aa3c0, 0x4aa420, 0x4aa300 (set at 0x4aa961, 0x4aaa72, 0x4aab82, 0x4aa850; names invented): ResearchMeters_ArrowProc for
+// the groups 1, 2, 3 and 4.
+s32 __cdecl ResearchMeters_ArrowProc1(u8 *window, u32 message, u32 a, u32 b);
+s32 __cdecl ResearchMeters_ArrowProc2(u8 *window, u32 message, u32 a, u32 b);
+s32 __cdecl ResearchMeters_ArrowProc3(u8 *window, u32 message, u32 a, u32 b);
+s32 __cdecl ResearchMeters_ArrowProc4(u8 *window, u32 message, u32 a, u32 b);
 }
