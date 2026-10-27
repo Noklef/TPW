@@ -10,6 +10,8 @@
 #include "../core/savegame.h"
 #include "mapcell.h"
 #include "messagecentre.h"
+#include "object.h"
+#include "objectdefs.h"
 #include "things.h"
 
 namespace {
@@ -346,6 +348,48 @@ u32 __fastcall ParkAnalyser_CountWith2c(u8 *analyser, void *, u32 limit) {
     u32 sum = 0;
     for (u32 i = 0x400; i-- > 0;) sum += AnalyserCell_CountWith2c(analyser + 0x20 + 0x7c * i, nullptr, limit);
     return sum;
+}
+
+u32 __fastcall ParkAnalyser_ParkScore(u8 *analyser, void *, u32 limit) {
+    if (!analyser[0x1f0f0] || limit < Game1da70c_MinusAt0Quarters(reinterpret_cast<const u32 *>(analyser + 0x1f0e8))) {
+        s32 score = 0;
+        u8 *const cells = *reinterpret_cast<u8 *const *>(0x0080239c) + 0x2d8;
+        for (s32 x = 0x7f; x >= 0; --x)
+            for (s32 y = 0x7f; y >= 0; --y) {
+                const u16 id = (u16)((y << 7) + x + 1);
+                u8 *const cell = cells + id * 0x44u - 0x44u;
+                if (MapCell_HasFlags(cell, nullptr, 0x40)) continue;
+                if (MapCell_IsType2(cell)) score += 1;
+                if (MapCell_IsType1(cell)) score += 3;
+                if (MapCell_IsType3Or9(cell)) score += 5;
+                if (MapCell_IsType9(cell)) score += 1;
+                if (MapCell_IsTypeA(cell)) score += 1;
+                if (Zero_5d60c0()) score += 10;
+                if (MapCell_IsType0(cell)) score += 2;
+                if (MapHandle_IsTypeBDOr10Or12Or19(reinterpret_cast<const u16 *>(cell))) score += 0x32;
+            }
+        u16 handle = at<u16>(*reinterpret_cast<u8 *const *>(0x0080239c), 0x1da746);
+        while (handle) {
+            u8 *const thing = static_cast<u8 *>(reinterpret_cast<ThingSlot *>(0x007cfb90)[handle].thing);
+            s32 value = 0;
+            if (!Is19c_Eq4_4e0380(thing)) {
+                s32 sum = 0;
+                u32 i = 0;
+                do {   // (the original's JC after a TEST never jumps: at least once)
+                    const u8 *const def = ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, at<u16>(thing, 0xe));
+                    sum += at<s32>(def, 0x1b8 + i * 0x40);
+                    ++i;
+                } while (i <= thing[0x50]);
+                value = (s32)(((u32)(long long)at<float>(thing, 0x44) & 0xff) * (u32)sum) / 100;   // (__ftol's low byte)
+            }
+            score += value;
+            handle = at<u16>(thing, 0xc);
+        }
+        at<s32>(analyser, 0x1f0ec) = score;
+        analyser[0x1f0f0] = 1;
+        Out_SetFromGame1da70c(reinterpret_cast<u32 *>(analyser + 0x1f0e8));
+    }
+    return at<u32>(analyser, 0x1f0ec);
 }
 
 u32 __fastcall ParkAnalyser_CountAtTicketBooths(u8 *analyser) {

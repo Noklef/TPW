@@ -128,6 +128,15 @@ u32 __fastcall AnalyserCell_CountWith2c(u8 *cell, void *, u32 limit);
 // summed.
 u32 __fastcall ParkAnalyser_CountWith2c(u8 *analyser, void *, u32 limit);
 
+// 0x4c7db0 (thiscall (limit), pops 4; name unconfirmed): the park's score, kept in the value at +0x1f0e8 (+0x1f0e8 the ticks, +0x1f0ec the
+// score, +0x1f0f0 worked out) as AnalyserCell_CountBusy's. Worked out again: over the whole map (the world [0x80239c] read once, its cells
+// from +0x2d8 for the id (row << 7) + column + 1; the columns 0x7f down to 0, in each the rows 0x7f down to 0) each cell without flag 0x40
+// (MapCell_HasFlags) scores 1 for type 2, 3 for 1, 5 for 3 or 9, 1 for 9, 1 for 0xa, 10 for Zero_5d60c0, 2 for 0, 0x32 for
+// MapHandle_IsTypeBDOr10Or12Or19; then each thing of the world's chain (+0x1da746, then +0xc; the world read again once) not with +0x19c 4
+// (Is19c_Eq4_4e0380) adds (__ftol(+0x44)'s low byte) * the sum of its definition's (ObjectDefs_Find of +0xe, found again each time, not
+// checked) dwords +0x1b8 + 0x40 * i for i 0 to +0x50 (at least once) / 100 (signed). Returns +0x1f0ec.
+u32 __fastcall ParkAnalyser_ParkScore(u8 *analyser, void *, u32 limit);
+
 // 0x4c91c0 (thiscall; name unconfirmed): the people (kind 1) whose +0x220 is 3 in the chains (+0xa, from the cell's first thing, the word
 // [0x80239c] + id * 0x44 + 0x2b8) of the two ticket booths' cells (Map_TicketBoothPos 0 and 1 on [0x80239c] + 0x2d8; the same cell counted
 // twice when they are one), the world read again for each; the value +0x1f0d0's count +0x1f0d4 = that, +0x1f0d8 = 1, its ticks +0x1f0d0

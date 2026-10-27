@@ -7,7 +7,11 @@
 # map's first rows, now and then the same) each heading a chain (+0xa) of up to six things (the slots at 0x7cfb90) of kind 1 mostly,
 # their +0x220 3 or not, the chains one list's tails; its value +0x1f0d0 set. Paths / SumPaths (0x4c8ae0, 0x4c8150: types 1, 3 and 9, the
 # cache at +0x4c) and Held / SumHeld (0x4c8ba0, 0x4c8180: the map cells' +0x2c not 0, half of them 0; the cache at +0x58) as Count / Sum.
-# usage: analyserbusy.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Count,Sum,Booth,Paths,SumPaths,Held,SumHeld)
+# Score (0x4c7db0): the analyser's value +0x1f0e8 fresh mostly; 3% of the time stale or not worked out, then the whole map (128 x 128 cells
+# from the world [0x80239c] + 0x2d8: types of those counted, flags +0xe 0x40 or not, handles and parents 0-0x40 into the 0x28-byte entries
+# of [0x8023a0] and [0x7cf83c]) and the world's chain of 0-6 things (+0x1da746, +0xc; their definitions 1-3 of 0x7890a0's, their +0x19c 4
+# or not, +0x44 a float, +0x50 0-3 or 8).
+# usage: analyserbusy.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Count,Sum,Booth,Paths,SumPaths,Held,SumHeld,Score)
 import os
 import struct
 import sys
@@ -15,12 +19,14 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import RAM, Bench, Call, put  # noqa: E402
 
-CALLS = {'Count': 0x4c8c40, 'Sum': 0x4c81b0, 'Booth': 0x4c91c0, 'Paths': 0x4c8ae0, 'SumPaths': 0x4c8150, 'Held': 0x4c8ba0, 'SumHeld': 0x4c8180}
+CALLS = {'Count': 0x4c8c40, 'Sum': 0x4c81b0, 'Booth': 0x4c91c0, 'Paths': 0x4c8ae0, 'SumPaths': 0x4c8150, 'Held': 0x4c8ba0, 'SumHeld': 0x4c8180, 'Score': 0x4c7db0}
 CACHE = {'Count': 0x64, 'Sum': 0x64, 'Paths': 0x4c, 'SumPaths': 0x4c, 'Held': 0x58, 'SumHeld': 0x58}   # (the cell's cached value: ticks, count, flag)
 SUMS = {'Sum': 'Count', 'SumPaths': 'Paths', 'SumHeld': 'Held'}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 B = Bench([(0x4c8c40, 0x4c8d2c), (0x4c81b0, 0x4c81de), (0x41a960, 0x41a9a7), (0x536300, 0x536390), (0x5d60c0, 0x5d60c3), (0x4c91c0, 0x4c9283), (0x4d8610, 0x4d8750), (0x5da3c0, 0x5da3c1),
-           (0x4c8ae0, 0x4c8b96), (0x4c8ba0, 0x4c8c3a), (0x4c8150, 0x4c817e), (0x4c8180, 0x4c81ae)])
+           (0x4c8ae0, 0x4c8b96), (0x4c8ba0, 0x4c8c3a), (0x4c8150, 0x4c817e), (0x4c8180, 0x4c81ae),
+           (0x4c7db0, 0x4c7f98), (0x412e90, 0x412eea), (0x4d0af0, 0x4d0b20), (0x4e0380, 0x4e03a0),
+           (0x535db0, 0x535de0), (0x536390, 0x5363b0), (0x5363f0, 0x536450), (0x53ad30, 0x53ad70), (0x53ad90, 0x53adc0)])
 CELL, ANALYSER, MAP, TICKS, THINGS = RAM, RAM + 0x1000, RAM + 0x40000, RAM + 0x200000, RAM + 0x100000
 WORLD = TICKS - 0x1da70c   # (its map cells from +0x294, each one's first thing the word +0x24)
 ROWS = 6
@@ -73,6 +79,74 @@ def booth(r, regions):
     return Call(CALLS['Booth'], [ANALYSER], regions, conv='t', ret='a')
 
 
+SW = RAM + 0x400000       # (Score: the world [0x80239c]; its map cells from +0x2d8 (id 1), its ticks +0x1da70c and things' head +0x1da746)
+SCORE_AT = RAM + 0x20000  # (Score: the analyser, only its value +0x1f0e8 mapped)
+E28, W28, DEFS = RAM + 0x700000, RAM + 0x900000, RAM + 0x300000   # (the 0x28-byte entries by [0x8023a0] and [0x7cf83c]; the definitions)
+HANDLES = 0x41            # (the map cells' handles and parents 0-0x40)
+SCORE_TYPES = TYPES + [0xb, 0xc, 0xd, 0x10, 0x11, 0x12, 0x19, 0x1e, 0x15]
+
+
+def score(r, regions):
+    """Score (0x4c7db0): see above."""
+    ticks = struct.unpack_from('<I', regions[TICKS])[0]
+    scan = r.random() < 0.03
+    value = bytearray(r.bytes(12))
+    stamp = (ticks - (r.choice([0, 0, 1, 4, 9, 400] if not scan else [400, 4000, 1 << 29]) << 2)) & 0xffffffff
+    put(value, 0, 'I', stamp)
+    age = ((ticks >> 2) - (stamp >> 2)) & 0xffffffff   # (in quarters, unsigned: Game1da70c_MinusAt0Quarters)
+    if not scan:   # (worked out and fresh: the limit at least its age)
+        value[8] = r.choice([1, 1, 0x40])
+        limit = r.choice([age, min(age + 1, 0xffffffff), 0xffffffff, min(age + r.randrange(100), 0xffffffff)])
+    else:          # (not worked out, or stale: the limit below its age)
+        value[8] = r.choice([0, 1]) if age else 0
+        limit = r.choice([0, age - 1, r.randrange(age)]) if value[8] else r.getrandbits(32)
+    tail = bytearray(r.bytes(0x3c))
+    put(tail, 0, 'I', ticks)
+    regions = {0x80239c: struct.pack('<I', SW), SCORE_AT + 0x1f0e8: value}
+    if not scan:
+        regions[SW + 0x1da70c] = tail
+        return Call(CALLS['Score'], [SCORE_AT, limit & 0xffffffff], regions, conv='t', ret='a')
+    cells = bytearray(r.bytes(0x44 * 0x4000))
+    for i in range(0x4000):
+        o = 0x44 * i
+        put(cells, o, 'H', r.randrange(HANDLES))
+        put(cells, o + 8, 'I', r.choice(SCORE_TYPES))
+        put(cells, o + 0xe, 'H', r.choice([0, 0, 0x40, 0xffbf, r.getrandbits(16)]))
+    regions[SW + 0x2d8] = cells
+    for base, at, key in ((E28, 0x10ffd8, 0x8023a0), (W28, 0x1102b0, 0x7cf83c)):
+        e = bytearray(r.bytes(0x28 * HANDLES))
+        for h in range(HANDLES):
+            put(e, 0x28 * h + 8, 'I', r.choice(SCORE_TYPES))
+            put(e, 0x28 * h + 0x10, 'H', r.choice([0, r.randrange(HANDLES)]))
+        regions[base + at] = e
+        regions[key] = struct.pack('<I', base)
+    n = r.randrange(1, 4)
+    ids = r.sample(range(0x10000), n)
+    table = bytearray(r.bytes(0x740))
+    for i in range(n):
+        put(table, 4 * i, 'I', DEFS + 0x400 * i)
+        regions[DEFS + 0x400 * i] = put(bytearray(r.bytes(0x400)), 0, 'H', ids[i])
+    put(table, 0x528, 'i', n)
+    k = r.randrange(n)
+    put(table, 0x730, 'HHI', r.choice([ids[k], r.getrandbits(16)]), 0, DEFS + 0x400 * k)
+    regions[0x7890a0] = table
+    handles = r.sample(range(1, 12), r.choice([0, 1, 2, 4, 6]))
+    slots = bytearray(r.bytes(20 * 12))
+    for j, h in enumerate(handles):
+        thing = bytearray(r.bytes(0x1a0))
+        put(thing, 0xc, 'H', handles[j + 1] if j + 1 < len(handles) else 0)
+        put(thing, 0xe, 'H', r.choice(ids) if r.random() < 0.98 else r.getrandbits(16))
+        put(thing, 0x44, 'f', r.choice([0.0, 1.5, 99.9, 255.0, 256.5, 1000.0, -3.0, r.uniform(0, 300)]))
+        thing[0x50] = r.choice([0, 0, 1, 2, 3, 8])
+        put(thing, 0x19c, 'I', r.choice([4, 0, 0, 1, 0x104]))
+        regions[THINGS + 0x400 * j] = thing
+        put(slots, 20 * h, 'I', THINGS + 0x400 * j)
+    regions[0x7cfb90] = slots
+    put(tail, 0x3a, 'H', handles[0] if handles else 0)
+    regions[SW + 0x1da70c] = tail
+    return Call(CALLS['Score'], [SCORE_AT, limit & 0xffffffff], regions, conv='t', ret='a')
+
+
 def case(r):
     op = r.deal(OPS)
     ticks = r.choice([0, 3, 0x1000, 0xfffffffc, r.getrandbits(32)])
@@ -86,6 +160,8 @@ def case(r):
     limit = r.choice([0, 1, 2, 3, 10, 100, 0xffffffff, r.getrandbits(32)])
     if op == 'Booth':
         return booth(r, regions)
+    if op == 'Score':
+        return score(r, regions)
     at = CACHE[op]
     if op not in SUMS:
         regions[CELL] = cell(r, ticks, at=at)
