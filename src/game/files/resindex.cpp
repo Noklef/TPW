@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/gameheap.h"
+#include "../core/refcounted.h"
 #include "../core/vcall.h"
 #include "handles.h"
 
@@ -72,5 +73,63 @@ s32 *__fastcall ResIndex_Init(u8 *index, void *, s32 *result, u32 path, u8 *reco
         at<u32>(record, 8) = 0;
     }
     *result = 0;
+    return result;
+}
+
+u8 *__fastcall ResIndex_Ctor(u8 *index) {
+    Class70a078_Ctor(index);
+    Handle_Ctor(HandleAt(index, 0x10));
+    at<u32>(index, 0x10) = 0x6fd9e8;
+    at<u32>(index, 0) = 0x70a128;
+    at<u32>(index, 8) = 0;
+    at<u32>(index, 0xc) = 0;
+    return index;
+}
+
+void __fastcall ResIndex_Dtor(u8 *index) {
+    at<u32>(index, 0) = 0x70a128;
+    ResIndex_ReleaseAll(index);
+    Handle_Dtor(HandleAt(index, 0x10));
+    at<u32>(index, 0) = 0x70a078;
+}
+
+u8 *__fastcall ResIndex_DeletingDtor(u8 *index, void *, u32 flags) {
+    ResIndex_Dtor(index);
+    if (flags & 1) GameHeap_Free(index);
+    return index;
+}
+
+void __fastcall ResIndex_ReleaseEntry(u8 *, void *, u8 *record) {
+    if (!record) return;
+    if (u8 *const object = at<u8 *>(record, 8)) vcall<void>(object, 0xc);
+    at<u32>(record, 8) = 0;
+}
+
+void __fastcall ResIndex_ReleaseAll(u8 *index) {
+    if (u8 *record = at<u8 *>(index, 8)) {
+        for (; (u32)(uintptr_t)record <= at<u32>(index, 0xc); record += 12) ResIndex_ReleaseEntry(index, nullptr, record);
+        at<u32>(index, 8) = 0;
+    }
+    vcall<void>(HandleAt(index, 0x10), 0);
+}
+
+s32 *__fastcall ResIndex_GetEntry(u8 *, void *, s32 *result, u8 *record, u8 **object) {
+    if (record) {
+        if (u8 *const held = at<u8 *>(record, 8)) vcall<void>(held, 4);
+        u8 *const held = at<u8 *>(record, 8);
+        *object = held;
+        if (held) {
+            *result = 0;
+            return result;
+        }
+    }
+    *result = -1;
+    return result;
+}
+
+s32 *__fastcall ResIndex_OpenEntry(u8 *index, void *, s32 *result, u32 stream, u8 *record) {
+    const u32 name = at<u16>(record, 6) + at<u32>(index, 8);
+    s32 opened = (s32)stream;
+    *result = *vcall<s32 *>(HandleAt(index, 0x10), 0xc, &opened, stream, name, 0x80000001u, 0u) < 0 ? -1 : 0;
     return result;
 }

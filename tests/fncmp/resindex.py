@@ -13,15 +13,19 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from fncmp import IMPORT_TABLE, LOG, Bench, Call, HEAP, RAM, echo, heap, import_table, log_region, set_return, vtable  # noqa: E402
+from fncmp import IMPORT_TABLE, LOG, Bench, Call, HEAP, RAM, blob, echo, fill, heap, import_table, log_region, set_return, vtable  # noqa: E402
 import fileopen as fo  # noqa: E402
 
-B = Bench(fo.RANGES + [(0x6ad130, 0x6ad230), (0x6afbc0, 0x6afc57)])
+B = Bench(fo.RANGES + [(0x6ad130, 0x6ad230), (0x6afbc0, 0x6afc57), (0x6acfd0, 0x6acff0), (0x6af760, 0x6af770), (0x6af810, 0x6af954),
+                       (0x6afa30, 0x6afa6c), (0x6afb70, 0x6afbbc)])
 THIS, RESULT, OBJ, NAME, INDEX, RECORDS = RAM, RAM + 0x80, RAM + 0xc0, RAM + 0x400, RAM + 0x500, RAM + 0x600
 VT_HANDLE, VT_OBJ, VT_INDEX = RAM + 0x200, RAM + 0x280, RAM + 0x300
 FOLDER_HANDLE_VTABLE = 0x6fd9e8
-OPS = {'FolderCtor': 0x6ad130, 'FolderDtor': 0x6ad160, 'FolderOpen': 0x6ad1b0, 'FolderClose': 0x6ad200, 'IndexInit': 0x6afbc0}
-RETURNS = {'FolderDtor': 'v'}
+OPS = {'FolderCtor': 0x6ad130, 'FolderDtor': 0x6ad160, 'FolderOpen': 0x6ad1b0, 'FolderClose': 0x6ad200, 'IndexInit': 0x6afbc0,
+       'BaseCtor': 0x6af760, 'BaseDelete': 0x6acfd0, 'IndexCtor': 0x6af810, 'IndexDtor': 0x6af8a0, 'IndexDelete': 0x6af880,
+       'ReleaseEntry': 0x6af900, 'ReleaseAll': 0x6af920, 'GetEntry': 0x6afa30, 'OpenEntry': 0x6afb70}
+RETURNS = {'FolderDtor': 'v', 'IndexDtor': 'v', 'ReleaseEntry': 'v', 'ReleaseAll': 'v'}
+ENTRY_OBJ, VT_ENTRY, OUT = RAM + 0x700, RAM + 0x380, RAM + 0x90
 PICK = [k for k in os.environ.get('OPS', ','.join(OPS)).split(',') if k]
 
 
@@ -69,6 +73,37 @@ def case(r):
             stack.append(RESULT)
         if op == 'FolderOpen':
             stack.append(path(r, regions))
+    elif op in ('BaseCtor', 'IndexCtor'):
+        pass
+    elif op == 'BaseDelete':
+        stack.append(r.choice([0, 1, 1, 2, 3, r.getrandbits(32)]))
+    elif op != 'IndexInit':   # an index: records (12 bytes: key, kind, name offset, object: ENTRY_OBJ or none) and the last one
+        n = r.choice([0, 1, 2, 3, 5])
+        recs = bytearray(r.bytes(12 * 6))
+        for k in range(6):
+            struct.pack_into('<I', recs, 12 * k + 8, ENTRY_OBJ if r.random() < 0.6 else 0)
+        regions[RECORDS] = bytes(recs)
+        regions[VT_ENTRY] = vtable({})
+        regions[ENTRY_OBJ] = struct.pack('<2I', VT_ENTRY, 1)
+        records = 0 if r.random() < 0.12 else RECORDS
+        last = RECORDS + 12 * (n - 1) if r.random() < 0.85 else r.choice([RECORDS - 12, RECORDS + 1, r.getrandbits(32)])
+        obj[0:0x10] = struct.pack('<4I', VT_INDEX, 1, records, last & 0xffffffff)
+        obj[0x10:0x18] = handle(r)
+        record = 0 if r.random() < 0.1 else RECORDS + 12 * r.randrange(5)
+        if op == 'IndexDelete':
+            stack.append(r.choice([0, 1, 1, 2, 3, r.getrandbits(32)]))
+        elif op == 'ReleaseEntry':
+            stack.append(record)
+        elif op == 'GetEntry':
+            regions[OUT] = r.bytes(4)
+            stack += [RESULT, record, OUT]
+        elif op == 'OpenEntry':   # the handle's slot 3 (or the object's slot 1 through Handle_Vfn3): its result written through &slot
+            log = regions[LOG]
+            for k in (1, 3):
+                blob(log, k, 0, 1)   # (&slot: the caller's stack; logged as the stream it holds)
+                echo(log, k, 0)
+                fill(log, k, 0, struct.pack('<I', r.choice([0, 0, 1, 0xffffffff, 0x80000000, r.getrandbits(32)])), which=k // 3)
+            stack += [RESULT, r.getrandbits(32), RECORDS + 12 * r.randrange(5)]
     else:   # IndexInit: (&result, path, records, count)
         obj[0:8] = struct.pack('<2I', VT_INDEX, 1)
         obj[0x10:0x18] = handle(r)

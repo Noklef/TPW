@@ -2997,6 +2997,13 @@ address,name,kind,confidence,notes
 0x006ad1b0,ResFolder_Open,function,low,reimplemented (src/game/files/resindex); The resource folder opened on a path as a folder handle once (Handle_Open28)
 0x006ad200,ResFolder_Close,function,low,"reimplemented (src/game/files/resindex); The resource folder closed: the handle reset, the index released and cleared"
 0x006afbc0,ResIndex_Init,function,low,"reimplemented (src/game/files/resindex); The resource index's folder opened and its 12-byte records taken, the keys checked strictly increasing"
+0x006af810,ResIndex_Ctor,function,low,"reimplemented (src/game/files/resindex); The resource index's constructor: the counted base, the folder handle, the records cleared"
+0x006af8a0,ResIndex_Dtor,function,low,"reimplemented (src/game/files/resindex); The resource index's destructor: the records released, the folder handle destroyed"
+0x006af880,ResIndex_DeletingDtor,function,low,reimplemented (src/game/files/resindex); The resource index's deleting destructor
+0x006af900,ResIndex_ReleaseEntry,function,low,reimplemented (src/game/files/resindex); A resource index record's object released through its slot 3 and cleared
+0x006af920,ResIndex_ReleaseAll,function,low,"reimplemented (src/game/files/resindex); The resource index's records released and cleared, its folder handle reset"
+0x006afa30,ResIndex_GetEntry,function,low,reimplemented (src/game/files/resindex); A resource index record's object handed out with a reference added
+0x006afb70,ResIndex_OpenEntry,function,low,reimplemented (src/game/files/resindex); A resource index record's file opened on a stream through the folder handle
 0x005c9040,Class70295c_Ctor,function,high,"reimplemented (src/game/core/vdtor); Init_5d36c0, vtable 0x70295c and four zeroed dwords"
 0x005d03b0,Obj_SwapPair,function,high,reimplemented (src/game/core/stdlist); the dwords at +4 and +8 swapped with another object's
 0x005dd3d0,Obj_ChooseVector,function,high,reimplemented (src/game/frontend/viewcontrols); the vector at +0x10 taken from one of two others
@@ -4724,6 +4731,8 @@ address,name,kind,confidence,notes
 0x006c0c90,SoundCategory_HideFlag40Samples,function,low,"reimplemented (src/game/core/soundcategory); thiscall (hide), pops 4: every variation of every sound of deque A's category records (the cells computed inline): hide's low byte set SfxVariation_MoveFlag40SamplesLast, else dword +0 >>= 16 (name invented)"
 0x006338c0,Class703770_AddRef,function,low,"reimplemented (src/game/core/refcounted); thiscall: the counted base class's AddRef, InterlockedIncrement (+4)"
 0x006338d0,Class703770_Release,function,low,"reimplemented (src/game/core/refcounted); thiscall: its Release: InterlockedDecrement (+4), at 0 deleted (vtable +8 (1)) and 0, else the count re-read"
+0x006af760,Class70a078_Ctor,function,low,"reimplemented (src/game/core/refcounted); The text library's counted base constructor: its vtable, the count 1"
+0x006acfd0,Class70a078_DeletingDtor,function,low,"reimplemented (src/game/core/refcounted); The text library's counted base deleting destructor: its vtable, freed for flags bit 0"
 0x006c9580,Mp2_Dct64,function,low,"reimplemented (src/game/core/mp2synth); cdecl (out0, out1, in): the MP2 synthesis's 32-point DCT (dct64), 17 values to out0 and 16 to out1 at a stride of 16 floats"
 0x006c9270,Mp2Decoder_Synth,function,low,"reimplemented (src/game/core/mp2synth); thiscall (out, fraction): the polyphase synthesis of one granule per channel into interleaved 16-bit PCM (the DCT into the ring buffers, the window, fistp, clip)"
 0x006ca580,Mp2Decoder_SynthFixed,function,low,"reimplemented (src/game/core/mp2synth); thiscall (out, fraction): the fixed-point (MMX) polyphase synthesis: the transform into the ring buffers, the 16-bit window sums in 32 bits, shift and saturate"
