@@ -7,7 +7,7 @@
 # (rssescream.py's manager), the ride's object found among thingenv's park (its id one of ridesound.py's records, some linking an array
 # of 11 or more); a link (+0x98) of flag 0x100 or not with a gate (0xdac at +0x10) whose instance (a second animator) is behind
 # [0x7a4610 + 4 * (+0xc)] or none, the car near its line or not, asleep (0x200) or not: the car put to sleep and woken through
-# Holder_Sleep / Holder_Wake (a renderer with no nodes).
+# Holder_Sleep / Holder_Wake (a renderer with no nodes). Now and then a speed at the boats' thresholds exactly.
 # usage: trackride_move.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SpinA,SteerB,BoatC,Other)
 import os
 import struct
@@ -181,6 +181,12 @@ def case(r):
     put(car, 0x34, 'II', coord(), coord())
     v = lambda: r.choice([0, 1, -1, r.randrange(-300, 300), r.randrange(-300, 300), r.randrange(-3000, 3000), r.getrandbits(32) - (1 << 31)])  # noqa: E731
     put(car, 0x3c, 'ii', v(), v())
+    if r.random() < 0.15:   # a speed at the boat thresholds exactly: rate 1024, one axis
+        edge = r.choice([0x28, 0x29, 0x50, 0x51, 0xe6, 0xe7])
+        put(car, 0x3c, 'ii', *r.choice([(edge, 0), (0, edge), (-edge, 0), (0, -edge)]))
+        put(car, 0, 'I', struct.unpack_from('<I', car, 0)[0] & ~0x80000)
+        put(rides, 0xd0 * index + 0x24, 'i', 1024)
+        put(rides, 0xd0 * index + 0x54, 'I', 1)
     put(car, 0x50, 'i', r.choice([0, 0x100, 0x1ff, r.randrange(0x200), r.getrandbits(32) - (1 << 31)]))
     put(car, 0x54, 'i', r.choice([0, 0x100, 0x1ff, r.randrange(0x200), r.randrange(0x200), r.getrandbits(32) - (1 << 31)]))
     put(car, 0x58, 'i', r.choice([0, 0x30, -0x30, 0x31, -0x31, 0x7f, -0x80, 0x880, -0x881, r.randrange(-0x1000, 0x1000), r.getrandbits(32) - (1 << 31)]))
