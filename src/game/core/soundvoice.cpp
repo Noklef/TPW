@@ -8,6 +8,7 @@
 #include "../files/file.h"
 #include "../math/vector.h"
 #include "../math/x87.h"
+#include "crt.h"
 #include "fieldops.h"
 #include "gameheap.h"
 #include "initializers.h"
@@ -835,6 +836,40 @@ u8 __fastcall SoundVoice_ShuffleVariation(u8 *voice, void *, u32) {
     u8 *const next = ShuffleBag_Next(bag, nullptr, *reinterpret_cast<u32 *>(voice + 0x30) & 4);
     *reinterpret_cast<u8 **>(voice + 8) = next;
     return next != nullptr;
+}
+
+u8 *__fastcall Voice70a3e8_Ctor(u8 *voice) {
+    Class70a7e0_Ctor(voice);
+    at<u32>(voice, 0) = 0x0070a3e8;
+    return voice;
+}
+
+u8 *__fastcall Voice70a4f0_Ctor(u8 *voice) {
+    Class70a7e0_Ctor(voice);
+    at<u32>(voice, 0) = 0x0070a4f0;
+    return voice;
+}
+
+u8 *__fastcall Voices70a4f0_New(u8 *holder, void *, u32 count) {
+    u8 *array = nullptr;
+    if (u32 *const block = static_cast<u32 *>(GameHeap_Alloc(count * 0x50 + 4))) {
+        block[0] = count;
+        array = reinterpret_cast<u8 *>(block + 1);
+        CRT_VectorCtorIterator(array, 0x50, static_cast<s32>(count), reinterpret_cast<void(__fastcall *)(void *)>(Voice70a4f0_Ctor),
+                               reinterpret_cast<void *>(static_cast<uintptr_t>(0x006b7230)));
+    }
+    at<u8 *>(holder, 0) = array;
+    return holder;
+}
+
+u8 *__fastcall Voice70a390_NewLinked(u8 *voice) {
+    u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x50));
+    return block ? LinkedVoice_Ctor(block, nullptr, voice) : nullptr;
+}
+
+u8 *__fastcall Voice70a2e0_NewLinkedSwitch(u8 *voice) {
+    u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x50));
+    return block ? LinkedSwitchVoice_Ctor(block, nullptr, voice) : nullptr;
 }
 
 }  // extern "C"

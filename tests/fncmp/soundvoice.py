@@ -19,7 +19,8 @@
 # system null now and then. The value +0x20 and its record (flag 1 either way); the levels' record (flag 0x400 either way); the position's
 # (floats or any, flag 8 either way, the scale 1, 0.5 or 2 now and then). The starts: see start_case().
 # The shuffle bag's (0x6be380, 0x6be420): the parameter block's bag none (a new one from the heap) or one over the definition, another
-# list or a wild one (shufflebag.py's layout), flag 4 of +0x30 any way.
+# list or a wild one (shufflebag.py's layout), flag 4 of +0x30 any way. The voices 0x70a3e8 / 0x70a4f0's constructors; the new[] of 0-3
+# 0x70a4f0 voices into OUT and the new linked (switch) voice of VOICE, the heap failing now and then.
 # usage: soundvoice.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -40,7 +41,8 @@ CALLS = {'ensure': (0x6b7150, 'v'), 'pending': (0x6bc900, 'a'), 'apply': (0x6bbf
          'linkctor': (0x6c3a00, 'a'), 'linkswctor': (0x6c3de0, 'a'), 'linkinit': (0x6c3a80, 'b'), 'linkfollow': (0x6c3c70, 'v'),
          'linkbranch': (0x6c3e00, 'b'), 'rollvol': (0x6bc090, 'a'), 'rollpitch': (0x6bc170, 'a'), 'level': (0x6bc3c0, 'a'),
          'rollword': (0x6bc2d0, 'a'), 'value20': (0x6bba90, 'v'), 'levels': (0x6bbbe0, 'v'), 'position': (0x6bbce0, 'a'),
-         'fillrec': (0x6c3ae0, 'a'), 'voicefill': (0x6bc410, 'a'), 'voicefillx': (0x6c39c0, 'a'), 'start': (0x6bd800, 'a'), 'startcnt': (0x6bdf50, 'a'), 'pickch': (0x6bde00, 'a'), 'ctor878': (0x6be260, 'a'), 'ctor2e0': (0x6bdd80, 'a'), 'ctor390': (0x6bdcb0, 'a')}
+         'fillrec': (0x6c3ae0, 'a'), 'voicefill': (0x6bc410, 'a'), 'voicefillx': (0x6c39c0, 'a'), 'start': (0x6bd800, 'a'), 'startcnt': (0x6bdf50, 'a'), 'pickch': (0x6bde00, 'a'), 'ctor878': (0x6be260, 'a'), 'ctor2e0': (0x6bdd80, 'a'), 'ctor390': (0x6bdcb0, 'a'),
+         'ctor3e8': (0x6b71d0, 'a'), 'ctor4f0': (0x6b7210, 'a'), 'new4f0': (0x6b7040, 'a'), 'newlinked': (0x6b7250, 'a'), 'newlinksw': (0x6b72f0, 'a')}
 LINKED_OPS = ('linkinit', 'linkfollow', 'linkbranch')
 B = Bench([(0x6b7150, 0x6b7190), (0x6bb9f0, 0x6bba81), (0x6bc900, 0x6bcb56), (0x6c5130, 0x6c5150), (0x6bbf00, 0x6bbf56), (0x6bc650, 0x6bc674), (0x6bc680, 0x6bc806),
            (0x6bc810, 0x6bc8f0), (0x6bd5f0, 0x6bd781), (0x6bd7a0, 0x6bd7ac), (0x6bb220, 0x6bb237), (0x5f5f10, 0x5f5f7d), (0x5f5fa0, 0x5f5faa),
@@ -51,7 +53,8 @@ B = Bench([(0x6b7150, 0x6b7190), (0x6bb9f0, 0x6bba81), (0x6bc900, 0x6bcb56), (0x
            (0x6b9260, 0x6b9280), (0x6bc090, 0x6bc240), (0x6bc3c0, 0x6bc410), (0x6c3ae0, 0x6c3c70), (0x6c5110, 0x6c5130), (0x6c5150, 0x6c51a0),
            (0x6c51d0, 0x6c5230), (0x6bc2d0, 0x6bc3bb), (0x6bba90, 0x6bbb72), (0x6bbbe0, 0x6bbcdd), (0x6bbce0, 0x6bbe3d), (0x6bb240, 0x6bb265),
            (0x6bc410, 0x6bc650), (0x6bcb60, 0x6bcb80), (0x6c5090, 0x6c50c0), (0x6bd800, 0x6bd92e), (0x6bdf50, 0x6be08f),
-           (0x6b9a60, 0x6b9aa1), (0x6b9ab0, 0x6b9b26), (0x6c39c0, 0x6c39f3), (0x6bde00, 0x6bdef9), (0x6be260, 0x6be2da), (0x6bdd80, 0x6bddfa), (0x6bdcb0, 0x6bdd24)])
+           (0x6b9a60, 0x6b9aa1), (0x6b9ab0, 0x6b9b26), (0x6c39c0, 0x6c39f3), (0x6bde00, 0x6bdef9), (0x6be260, 0x6be2da), (0x6bdd80, 0x6bddfa), (0x6bdcb0, 0x6bdd24),
+           (0x6b71d0, 0x6b71e2), (0x6b7210, 0x6b7222), (0x6b7040, 0x6b70ae), (0x6b7250, 0x6b72ad), (0x6b72f0, 0x6b734d), (0x67acf0, 0x67ada0)])
 VOICE, OUT, SYS, SVT, VVT, DEF, VARS, SAMPLES, PARAMS, LISTENER, CMD, CVT = (RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x500,
                                                                             RAM + 0x600, RAM + 0xa00, RAM + 0xb00, RAM + 0xb40, RAM + 0xb80, RAM + 0xbc0)
 SYSTEM, RANDOM, CLOCK, TIME_GET_TIME = 0xfb1f24, 0xfb1f20, 0xfa71e0, 0x6fd3ec
@@ -367,6 +370,14 @@ def case(r):
         return rolls(r, name, address, ret, log, voice, variations, system, regions)
     if name in ('ctor878', 'ctor2e0', 'ctor390'):   # (the allocation failing now and then; voice's +0x4c any, as the base constructor leaves it)
         regions[HEAP] = heap(0x40, fail=r.choice([0] * 9 + [1]))
+        return Call(address, [VOICE], regions, conv='t', ret=ret)
+    if name in ('ctor3e8', 'ctor4f0'):
+        return Call(address, [VOICE], regions, conv='t', ret=ret)
+    if name == 'new4f0':   # (0-3 voices into the holder OUT, the allocation failing now and then)
+        regions[HEAP] = heap(0x200, fail=r.choice([0, 0, 0, 1]))
+        return Call(address, [OUT, r.choice([0, 1, 2, 3])], regions, conv='t', ret=ret)
+    if name in ('newlinked', 'newlinksw'):   # (the voice the parent; the voice's or its parameter block's allocation failing now and then)
+        regions[HEAP] = heap(0x100, fail=r.choice([0] * 6 + [1, 2]))
         return Call(address, [VOICE], regions, conv='t', ret=ret)
     if name in ('linkctor', 'linkswctor'):
         regions[HEAP] = heap(0x40, fail=r.choice([0] * 9 + [1]))

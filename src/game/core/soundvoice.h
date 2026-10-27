@@ -217,5 +217,16 @@ void __fastcall SoundVoice_EnsureShuffleBag(u8 *voice, void *, u8 *list);
 // 0x6be420 (thiscall (unused), pops 4; slot 14 of 0x70a878; name invented): SoundVoice_EnsureShuffleBag with the definition (+4), the
 // current variation (+8) = ShuffleBag_Next (refill: flag 4 of +0x30); 1 when there is one (a byte: SETNZ over the pointer in EAX).
 u8 __fastcall SoundVoice_ShuffleVariation(u8 *voice, void *, u32 unused);
+// 0x6b71d0 / 0x6b7210 (thiscall; names invented): Class70a7e0_Ctor, then the vtable 0x70a3e8 / 0x70a4f0. Return the voice.
+u8 *__fastcall Voice70a3e8_Ctor(u8 *voice);
+u8 *__fastcall Voice70a4f0_Ctor(u8 *voice);
+// 0x6b7040 (thiscall (count), pops 4; an SEH frame; name invented): new[] of count voices 0x70a4f0: a block of count * 0x50 + 4 (Mem_Alloc),
+// the count at +0, the voices from +4 constructed (CRT_VectorCtorIterator with Voice70a4f0_Ctor; 0x6b7230, the 0x70a3e8 voice's
+// destructor, for the unwinding); the array (null when the allocation fails) into the holder's +0. Returns the holder.
+u8 *__fastcall Voices70a4f0_New(u8 *holder, void *, u32 count);
+// 0x6b7250 / 0x6b72f0 (thiscall; slot 21 of the vtables 0x70a390 / 0x70a2e0; an SEH frame; names invented): a new linked voice / linked
+// switch voice (Mem_Alloc 0x50, LinkedVoice_Ctor / LinkedSwitchVoice_Ctor) whose parent is this voice; null when the allocation fails.
+u8 *__fastcall Voice70a390_NewLinked(u8 *voice);
+u8 *__fastcall Voice70a2e0_NewLinkedSwitch(u8 *voice);
 
 }  // extern "C"
