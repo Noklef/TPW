@@ -480,7 +480,7 @@ address,name,kind,confidence,notes
 0x006c0510,SfxMap_Fixup,function,medium,"reimplemented (src/game/core/soundcategory); thiscall (data, out, count): *out = data; each category record fixed from the end of the records"
 0x006c5d20,SndReverb_Load,function,medium,"reimplemented (src/game/core/sndreverb); thiscall: SndReverb.map (version 2000, a count, records of a byte and 13 dwords) read from the system's folder into +0x68 / +0x6c"
 0x00450900,TerrainAttrMap_Load,function,medium,"formats %s\Terrain\Base.map and reads it through TP2M_ReadChunks"
-0x005192d0,TP2M_ReadChunks,function,medium,"TP2M chunk reader set up with one handler for the MAP chunk (vtable 0x700aa8)"
+0x005192d0,TP2M_ReadChunks,function,medium,"reimplemented (src/game/terrain/attrmap); thiscall (name): a TP2M chunk file on the stack with one MAP handler (vtable 0x700aa8, +8 the cells) read through ChunkFile_Open; its list's nodes freed; returns Open's answer"
 0x00519390,AttrMapHandler_MatchTag,function,medium,reimplemented (src/game/terrain/attrmap); thiscall (tag): the handler's tag +4 the one asked for or not
 0x004d8cf0,AttrMap_ReadMapChunk,function,high,"reimplemented (src/game/terrain/attrmap); thiscall (chunk, unused): the chunk's bytes into the map cells' +0x26, offset by 0x785584 / 0x785588"
 0x00450420,Terrain_IsParkLand,function,high,"reimplemented (src/game/terrain/land); cdecl u32 (x, y): bit 0 of the cell clear; 0 off the grid, 1 without map or grid"

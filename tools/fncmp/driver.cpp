@@ -792,6 +792,7 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x006fe548, 4},
                                    {0x0070a960, 3},   // the sound library's bank (Release, AddRef, deleting destructor: SoundCategory_ReadBankMap's)
                                    {0x0070a950, 3},   // and category record (the same; slot 2 0x6c1110)
+                                   {0x00700aa8, 2},   // the TP2M reader's MAP handler (AttrMapHandler_MatchTag, AttrMap_ReadMapChunk: TP2M_ReadChunks's)
                                    {0x00700b90, 15},  // the sound play command (Get4_5dc650, Get8_51c050: Voice70a8d0_PickQueuedSound's SfxSounds_Find);
                                                       // its slots 4-14 the one-slot commands 0x700ba0-0x700bc8 (soundset.py's senders)
                                    {0x00700b2c, 11},  // the one-slot commands 0x700b2c-0x700b54 (0x700b30 Sound_Load's EAX record apply)
