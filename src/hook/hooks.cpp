@@ -325,6 +325,7 @@
 #include "../game/world/trackpools.h"
 #include "../game/world/wallfollow.h"
 #include "../game/world/cellmodel.h"
+#include "../game/world/mapclick.h"
 #include "../game/world/objectstatus.h"
 #include "../game/world/parkgates.h"
 #include "../game/world/uimsgreceiver.h"
@@ -5194,6 +5195,7 @@ const Hook kHooks[] = {
     {"Visitor_ScoreOption",       0x004fcc30, (void *)&Visitor_ScoreOption, {0x83, 0xec, 0x38, 0x53, 0x55}},
     {"BankAccount_Serialize",     0x004cf920, (void *)&BankAccount_Serialize, {0x8b, 0x44, 0x24, 0x10, 0x83}},
     {"ParkGates_Serialize",       0x004cf050, (void *)&ParkGates_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"GameMode_MapClick",         0x00524960, (void *)&GameMode_MapClick, {0x8b, 0x44, 0x24, 0x04, 0x83}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},

@@ -87,6 +87,7 @@
 #include "../../src/game/core/soundcategory.h"
 #include "../../src/game/core/sounddevice.h"
 #include "../../src/game/core/mp2synth.h"
+#include "../../src/game/world/mapclick.h"
 #include "../../src/game/world/mapline.h"
 #include "../../src/game/world/mousemode.h"
 #include "crt.h"
@@ -368,6 +369,11 @@ const WrapSourcesEnv kWrapSourcesEnv = {&heap_alloc, &heap_free, reinterpret_cas
 // entry holds the first seven arguments and, for more, a hash of the rest.
 const u32 kLog = kStubs + 0x100000;  // (the case maps it)
 constexpr u32 recorder(u32 k, u32 n) { return kStubs + 0x1000 + 0x400 * n + 0x20 * k; }
+// A recorder's address that converts to whichever function pointer an env's field is (the MapClick env's).
+struct Rec {
+    uintptr_t at;
+    template <typename F> operator F() const { return reinterpret_cast<F>(at); }
+};
 
 // Optional settings in the log region: at + 0xa00 a mask per slot (k & 63): bits 0-15 the arguments that are C strings, logged and hashed as a hash of the string
 // (so that a path in a stack buffer, whose address differs between the sides, compares by its text), bits 16-31 out arguments, logged as 0 (a stack address;
@@ -1078,6 +1084,20 @@ int main(int argc, char **argv) {
     // Game code a port calls directly that is not hooked (yet): a recorder, as the bench's hooks= has it in the emulator.
     static const MapLineEnv mapLine = {reinterpret_cast<u32(__fastcall *)(u8 *, void *, u32, s32, s32)>((uintptr_t)recorder(20, 3))};  // 0x5370e0: tests/fncmp/mapline.py
     MapLine_SetEnv(&mapLine);
+    // GameMode_MapClick's calls (src/game/world/mapclick.h): each a recorder (k, n), cdecl ones logged as k | 0x200, as tests/fncmp/mapclick.py
+    // hooks their addresses; its `advise` cdecl 9 (the bench's 0x59b590 hook logs the advisor message's id so).
+    {
+        const auto c = [](u32 k, u32 n) { return Rec{(uintptr_t)(kStubs + 0x1000 + 0xa000 + 0x400 * n + 0x20 * k)}; };
+        const auto t = [](u32 k, u32 n) { return Rec{(uintptr_t)recorder(k, n)}; };
+        static const MapClickEnv mapClick = {
+            c(30, 3), c(12, 0), c(15, 1), c(16, 1), c(13, 4), c(23, 2), c(31, 3), c(17, 6), c(5, 1), c(8, 3), c(14, 4), c(6, 4), c(15, 4),
+            c(24, 2), c(25, 2), c(17, 1), c(18, 1), c(16, 4), c(0, 5), c(19, 1),
+            c(10, 6), c(1, 5), c(26, 2), c(2, 2), c(20, 1), c(3, 3), c(4, 4), c(11, 3), c(12, 3), c(27, 2), c(28, 2), c(21, 1), c(13, 0),
+            c(7, 5), c(14, 0), c(22, 1), c(29, 2), c(9, 1),
+            t(26, 0), t(27, 0), t(16, 0), t(28, 0), t(20, 1), t(30, 2), t(22, 2), t(24, 1), t(25, 1), t(12, 0), t(13, 0), t(14, 0), t(15, 0),
+            t(18, 3), t(19, 2), t(31, 3), t(31, 4), t(29, 0), t(30, 1)};
+        MapClick_SetEnv(&mapClick);
+    }
     // 0x564650 (the engine debug log, a file): stub_cdecl_log, as tests/fncmp/engineerrors.py hooks it (the text hashed: strings(log, 0x3f, 1)).
     static const EngineErrorsEnv engineErrors = {reinterpret_cast<void(__cdecl *)(const char *)>(&stub_cdecl_log)};
     EngineErrors_SetEnv(&engineErrors);
