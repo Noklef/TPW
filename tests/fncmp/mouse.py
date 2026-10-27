@@ -45,7 +45,7 @@ def gui(r):
 
 
 def case(r):
-    name = r.choice(OPS)
+    name = r.deal(OPS)   # (dealt: each op in a short run, the coverage gate's)
     if name == 'GuiButton':
         return gui(r)
     if name == 'GuiWheel':
@@ -77,7 +77,7 @@ def case(r):
     return Call(0x46c2a0, [r.choice([0, 1, 5, 0x80000000, 0xffffffff]), r.choice([0, 1, 5, 7])], regions, conv='s', ret='v')
 
 
-OPS = [k for k in os.environ.get('OPS', 'Button,Moved,GuiButton,GuiMove,GuiWheel').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Button,Moved,GuiButton,GuiMove,GuiWheel,GuiMoved').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)
