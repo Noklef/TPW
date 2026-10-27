@@ -53,7 +53,7 @@
 # 0x66594d: the word the current one a third of the time, -1, small or any, the dword's upper half random): notify_case() below.
 # ColumnSpan (0x664cb9): column_case() below. SortBy (0x6659af): Sort's tree (sort_case()) with notify_case()'s parent and queues, by
 # +-(the current column + 1), +-1, 0 or -0x80000000 (abs(INT_MIN) - 1 the column -1), the byte sort set mostly (upper bits random).
-# OnMouseDown (0x6655a2) / OnDouble (0x66563d): SelectAt's, flag 0x80 of +0x48 set mostly, PostColumnAt's columns (0-4 or -1), x on a
+# OnMouseDown (0x6655a2) / OnDouble (0x66563d): SelectAt's, flag 0x80 of +0x48 set half the time, PostColumnAt's columns (0-4 or -1), x on a
 # column's edges half the time.
 # OnHeader (0x665a44): SortBy's, flag 0x10 of +0x48 set mostly, the columns +0x164 0-4 or -1, the button's column the sort column's
 # mostly, -1 to 5 or any (the id that plus 0x10, its upper half random now and then); no rows (+0x148 0: the refresh not compared).
@@ -988,7 +988,7 @@ def case(r):
         c = select_case(r)
         window = c.regions[WINDOW]
         if op != 'SelectAt':   # (the clicks: flag 0x80 mostly; OnMouseDown's columns as PostColumnAt's)
-            window[0x48] = (window[0x48] & 0x7f) | r.choice([0x80] * 4 + [0])
+            window[0x48] = (window[0x48] & 0x7f) | r.choice([0x80, 0])
             ncols = r.choice([0, 1, 2, 3, 4, 4, -1])
             put(window, 0x164, 'h', ncols)
             edges = []
