@@ -994,6 +994,15 @@ def _time(e):  # cdecl (t) -> the fixed clock, also through t unless null (the o
     e.r['EAX'] = TIME
 
 
+RAND_SEED = STUBS + 0x200000   # the CRT rand()'s stand-in seed (driver crt.cpp msvc6::rand, kDriverCrt): a case drawing from rand maps 4 bytes here
+
+
+def _rand(e):  # cdecl () -> the MSVC6 generator on the seed at RAND_SEED (the original's is the thread's: _getptd()'s +0x14)
+    seed = (e.u32(RAND_SEED) * 214013 + 2531011) & 0xffffffff
+    e.write(RAND_SEED, struct.pack('<I', seed))
+    e.r['EAX'] = seed >> 16 & 0x7fff
+
+
 def _throw(name):
     def hook(e):
         raise RuntimeError('the original called %s' % name)
@@ -1032,7 +1041,7 @@ class Bench:
                                STREAM_SIZE: _stream_size,
                                0x6351a0: _zlib_init(0x140, 7), 0x635450: _zlib_copy(1), 0x6357c0: _zlib_end(0x142), 0x636600: _zlib_init(0x143, 3),
                                0x636710: _zlib_copy(2), 0x6365b0: _zlib_end(0x145),
-                               0x67acc0: _alloc, 0x67acb0: _free, 0x67bb90: _memmove, ZALLOC: _zalloc, ZFREE: _zfree, 0x67d3f0: _time,
+                               0x67acc0: _alloc, 0x67acb0: _free, 0x67bb90: _memmove, ZALLOC: _zalloc, ZFREE: _zfree, 0x67d3f0: _time, 0x67b5c0: _rand,
                                0x6918f0: _throw('_Xlen'), 0x691ba0: _throw('_Xran')})
         self.emu.hooks.update({recorder(k, n): _recorder(k, n) for k in range(32) for n in range(16)})  # (n up to 15 fits below the COM recorders at +0x4000)
         self.emu.hooks.update({recorder(k, n, True): _recorder(k, n, True) for k in range(64) for n in range(16)})
