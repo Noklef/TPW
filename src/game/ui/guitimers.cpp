@@ -77,4 +77,10 @@ void __fastcall GuiTimers_Reset(u8 *table) {
     if (!entries(table)) return;
     for (s32 i = 0; i < count(table); ++i) field(table, i, 4) = 0;
 }
+
+u8 *__fastcall GuiTimers_Delete(u8 *table, void *, u32 flags) {
+    GuiTimers_Free(table);
+    if (flags & 1) GameHeap_Free(table);
+    return table;
+}
 }

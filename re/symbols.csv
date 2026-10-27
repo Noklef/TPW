@@ -5599,6 +5599,7 @@ address,name,kind,confidence,notes
 0x00669c8d,GuiTimers_Add,function,low,"reimplemented (src/game/ui/guitimers); thiscall (window, message, a, b, delay): delay 1-59999 and a free entry: it gets the four, due GuiClock_Now() + delay; 1 (AX), else 0"
 0x00669d77,GuiTimers_Fire,function,low,reimplemented (src/game/ui/guitimers); thiscall: each set entry due by GuiClock_Now() (unsigned) sent (Window_CallHandler) and freed; their number (AX)
 0x00669e3a,GuiTimers_Cancel,function,low,"reimplemented (src/game/ui/guitimers); thiscall (window): the window's entries freed; their number (AX), -1 without entries"
+0x006596e0,GuiTimers_Delete,function,low,"reimplemented (src/game/ui/guitimers); thiscall (flags): the scalar deleting destructor: GuiTimers_Free, the table freed with flag 1; returns it"
 0x0048a3d0,Panel7b9940_Detach,function,low,"reimplemented (src/game/ui/panel7b9940); cdecl: GuiManager_CallSlot4, then the 0x7b9940 object's virtual base out of the renderer's tag 0x20 list; returns that result"
 0x004855d0,Panel7b9940_Ctor,function,low,"reimplemented (src/game/ui/panel7b9940); thiscall (complete), pops 4: the constructor: complete sets the vbtables and vtable, then through the vbtable the vtable 0x6fdcc8, displacements, +0x50 2, scene flags touched twice, 1.0f fields, +0x54 -1; returns the object"
 0x0048a290,Panel7b9940_Close,function,low,"reimplemented (src/game/ui/panel7b9940); cdecl: message 5 to the 0x7c26b0 windows, the panel out of the renderer, the GUI manager slot 4, the front-end globals released and two windows sent message 4"

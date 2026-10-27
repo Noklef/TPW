@@ -1,5 +1,5 @@
 // The GUI library's timed messages: a table of +0 the count and +4 the entries (0x14 bytes each: window, message, a, b, the time due
-// by the GUI clock (GuiClock_Now), 0 for a free entry). Reimplementation of 0x669c62, 0x669c8d, 0x669d77, 0x669e3a, 0x669eb3 and
+// by the GUI clock (GuiClock_Now), 0 for a free entry). Reimplementation of 0x6596e0, 0x669c62, 0x669c8d, 0x669d77, 0x669e3a, 0x669eb3 and
 // 0x669efb.
 #pragma once
 
@@ -29,4 +29,8 @@ u32 __fastcall GuiTimers_Cancel(u8 *table, void *, u32 window);
 
 // 0x669eb3 (thiscall; name unconfirmed): with entries, each one freed.
 void __fastcall GuiTimers_Reset(u8 *table);
+
+// 0x6596e0 (thiscall (flags), pops 4; name unconfirmed): the scalar deleting destructor: GuiTimers_Free, then with flag 1 the table's block freed
+// (Mem_Free). Returns the table.
+u8 *__fastcall GuiTimers_Delete(u8 *table, void *, u32 flags);
 }
