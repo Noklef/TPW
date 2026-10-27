@@ -5364,6 +5364,8 @@ address,name,kind,confidence,notes
 0x0059b590,AdvisorMsg_Init,function,low,"reimplemented (src/game/world/advisorscore); thiscall (id, type, a, b, flag, score): an advisor message; a score below 0 taken from gAdvisorScoring (built on first use)"
 0x00535670,MapCell_CanBuild,function,low,"reimplemented (src/game/world/cellbuild); thiscall (kind, alone), pops 8; name unconfirmed: whether a kind can be built on a map cell (0, 1, 2, 8, 0xb or 0xd), its findings in 0x816d4c-0x816d60"
 0x00539760,MapCell_CanBuildTrack,function,low,"reimplemented (src/game/world/cellbuild); thiscall (kind, alone, direction), pops 0xc; name unconfirmed: whether a track-like kind (0xb / 0x10, 0xe / 0x13, 0xf, 0x19) can be built on a map cell facing a direction (0, 1, 9, 0xb or 0xd), its findings in 0x816d4c-0x816d5c"
+0x005229e0,QueuePiece_Place,function,low,"reimplemented (src/game/world/queuepieces); a queue piece of the table 0x763388 claimed (Ride_Claim) or created (0x463060 through the env) at x, y with the turn 360 - angle, key 0x33a"
+0x00522a90,QueuePiece_Remove,function,low,"reimplemented (src/game/world/queuepieces); Ride_Destroy (0x463c80, through the env) of the ride"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved

@@ -14,4 +14,12 @@ struct QueuePiecesEnv {
 };
 // The queue pieces' calls go to env (nullptr: the game's).
 void QueuePieces_SetEnv(const QueuePiecesEnv *env);
+
+// 0x5229e0 (cdecl (x, y, unused, piece, angle, claim); called by 0x536682 / 0x536730; name invented): a description on the stack {x, y,
+// 360 - angle (0 for an angle of 0), 0x816d68}; with claim, Ride_Claim(0, the piece's type, 0x33a, it, the piece's flag byte, 0, 0, 0),
+// else the env's create (0x463060: the type, 0x33a, it, the flag byte, 0, 0, 0, 0, -1, 0). Returns that call's result.
+u32 __cdecl QueuePiece_Place(u32 x, u32 y, u32 unused, u32 piece, u32 angle, u32 claim);
+
+// 0x522a90 (cdecl (ride); name invented): the env's destroy (0x463c80) of the ride.
+void __cdecl QueuePiece_Remove(u32 ride);
 }
