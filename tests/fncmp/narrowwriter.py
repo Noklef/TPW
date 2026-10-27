@@ -1,6 +1,6 @@
 # The narrow-text writer (src/game/core/narrowwriter) against the original. A writer at W with the game's vtable (0x70a090: slot 2 its
 # PutChar, run, so the slots that write through it are compared through the buffer), the cursor in a buffer at BUF (room for 0-0x20
-# bytes, or the end any) or null for Finish, the full byte 0 mostly (else 1 or any), the range table at TABLE or none: an object (a
+# bytes (0 twice as often), or the end any) or null for Finish, the full byte 0 70% (else 1 or any), the range table at TABLE or none: an object (a
 # recorder vtable, its slot 0 Finish's release) whose +8 is a chain of three segments (methods.py's Range op's: first 3, 10 or 20, up to
 # four more, the links any of the three or none; the values random).
 # Finish (0x6afe40), Dtor (0x6ad030) and Delete (0x6ad090: flags any, Mem_Free hooked); Char (0x6afd40: any character, its high byte 0 now and then); WideChar (0x6afe10: a key mostly in the segments,
@@ -24,12 +24,12 @@ def key(r):
 
 def world(r, cursor_null=False):
     regions = {LOG: log_region(), HVT: vtable({})}
-    room = r.choice([0, 1, 2, 5, 0x20, r.randrange(0x21)])
+    room = r.choice([0, 0, 1, 2, 5, 0x20, r.randrange(0x21)])
     cursor = 0 if cursor_null and r.random() < 0.2 else BUF + r.randrange(2)
     end = cursor + room if r.random() < 0.9 else r.getrandbits(32)
     w = bytearray(r.bytes(0x14))
     struct.pack_into('<IIII', w, 0, 0x70a090, cursor, end, TABLE if r.random() < 0.92 else 0)
-    w[0x10] = 0 if r.random() < 0.85 else r.choice([1, r.getrandbits(8)])
+    w[0x10] = 0 if r.random() < 0.7 else r.choice([1, r.getrandbits(8), r.getrandbits(8)])
     regions[W] = w
     regions[BUF - 4] = r.bytes(0x50)
     segs = bytearray(r.bytes(0xc0))
