@@ -27,8 +27,9 @@ if _ops is not None:
 
 WORLD, TABLE, MAPC, ident = le.WORLD, le.TABLE, le.MAPC, le.ident
 objects.WORLD = WORLD   # (the clock at + 0x2a0 / + 0x1da70c of the line's world)
-B = Bench(cellapply.merged(le.RANGES + cellkind.RANGES + [(0x53b280, 0x53baa2)]), sines=256,
-          hooks={**cellapply.HOOKS, **cellkind.HOOKS, 0x527ee0: _recorder(27, 3, cdecl=True)})
+RANGES = cellapply.merged(le.RANGES + cellkind.RANGES + [(0x53b280, 0x53baa2)])
+HOOKS = {**cellapply.HOOKS, **cellkind.HOOKS, 0x527ee0: _recorder(27, 3, cdecl=True)}
+B = Bench(RANGES, sines=256, hooks=HOOKS)
 LINES = [0xb, 0xd, 0x10, 0x12, 0x19]
 STEPS = [0, 0, -1, -1, 1, 2, 2, -2, -2, 3]
 PRICES = [0, 1, 50, 99, 100, 101, 0x80000000]
