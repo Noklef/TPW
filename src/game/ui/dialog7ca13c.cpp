@@ -3,9 +3,12 @@
 #include <cstdint>
 
 #include "../core/accessors.h"
+#include "../core/filetime.h"
+#include "../core/funnytime.h"
 #include "../core/language.h"
 #include "../core/vwrap.h"
 #include "../world/advisor.h"
+#include "../world/person.h"
 #include "../world/ridesweep.h"
 #include "buttontext.h"
 #include "focus.h"
@@ -20,6 +23,8 @@
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
+template <typename T> T field(const u8 *object, u32 offset) { return *reinterpret_cast<const T *>(object + offset); }
 
 }  // namespace
 
@@ -64,6 +69,28 @@ void __cdecl Dialog7ca13c_RemoveData(u32 data) {
     if (position < 0) return;
     Window7059f0_RemoveItem(list, nullptr, position);
     --global<s32>(0x007ca134);
+}
+
+void __cdecl Dialog7ca13c_AddRow(u8 *guest) {
+    FileTime span;
+    const FileTime *const s = FunnyTime_SpanOf(global<u8 *>(0x007cf83c) + 0x2a0, nullptr, &span, Visitor_TimeInPark(guest));
+    const long long hours = (long long)(((unsigned long long)s->high << 32) | s->low) / 36000000000LL;   // (_alldiv: an hour of ticks)
+    const u32 left = field<u32>(guest, 0x30);
+    const u32 happy = (u32)(long long)field<float>(guest, 0x19c) & 0xff;   // (FLD, __ftol's low byte)
+    const u32 texts[6] = {field<u32>(guest, 0x1d8), field<u32>(guest, 0x1a0), (u32)hours, field<u32>(guest, 0x1c4), left ? left - 1 : 999,
+                          (u32)((s32)(happy << 10) / 100)};
+    Window7059f0_AddItem(global<u8 *>(0x007ca138), nullptr, texts, (u32)(uintptr_t)guest, -1, 0);
+}
+
+void __cdecl Dialog7ca13c_AddGuest(u8 *guest) {
+    if (!global<u8 *>(0x007ca13c)) return;
+    global<u8 *>(0x007ca138) = Window_FindChild(global<u8 *>(0x007ca13c), nullptr, 0x1e497);
+    Dialog7ca13c_AddRow(guest);
+    Window7059f0_RefreshRows(global<u8 *>(0x007ca138));
+}
+
+void __fastcall Obj7b51f0_OnGuestAdded(void *, void *, u32 handle) {
+    Dialog7ca13c_AddGuest(global<u8 *>(0x007cfb90 + (handle & 0xffff) * 20));   // (the original's empty assert that the table is there left out)
 }
 
 void __fastcall Obj7b51f0_OnGuestRemoved(void *, void *, u32 handle) {

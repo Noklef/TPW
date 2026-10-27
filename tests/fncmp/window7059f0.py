@@ -28,6 +28,12 @@
 # mostly) at the handle's entry of the table 0x7cfb90 (the handle 0-7, its high word any); the object at 0x7cc408 (+0x10 set or not, its
 # slot 11 the recorder 11) and the focus thing [0x7c2658] the guest or not; the browser's thing [0x7cc308] the guest now and then, the
 # dialog then none ([0x7cb2ac] or [0x7cb2b8] 0: Dialog7cb2b8_ResetChild21's work is dialogs.py's).
+# AddRow (0x493800, src/game/ui/dialog7ca13c), AddGuest (0x493c50), OnGuestAdded (0x481920; thiscall on 0x7b51f0): AddItem's list of
+# 1-6 columns ([0x7ca138]; the first column add_case()'s, the others number columns, the sort column a string or number one), a guest
+# (GUEST2: its name +0x1d8 one of add_case()'s strings or none when the first column holds strings, else any; +0x30 0, 1, small or any;
+# its float +0x19c 0..100 mostly, else past a byte, negative or NaN; its arrival +0x1d4 ticks some quarters back or any) in the world
+# WORLD2 ([0x80239c] and [0x7cf83c]; its clock +0x2a0 at a rate small or any). AddGuest: RemoveData's dialog (or none); OnGuestAdded:
+# the guest at the handle's entry of the table 0x7cfb90 (the handle 0-7, its high word any).
 # SortsBefore (0x663edc): the sort column +0x168 0-3 (or -1 / -2: before the column array), +0x16a 0, 1 or any, the column bottoms 1 or not;
 # the texts four dwords (wide strings of a few short texts, or numbers around each other), the cells four counted strings (their text
 # or none) or 0 or numbers.
@@ -91,7 +97,7 @@ CALLS = {'ColumnBottom': 0x6636f6, 'NextItem': 0x663a93, 'NthItem': 0x663ba2, 'S
          'SortBy': 0x6659af, 'OnHeader': 0x665a44,
          'SetColumnBottom': 0x6636b2, 'OffsetColumns': 0x664f6d, 'SelectAt': 0x66552e,
          'OnMouseDown': 0x6655a2, 'OnDouble': 0x66563d, 'RemoveData': 0x493c10, 'OnDrag': 0x6656a0, 'OnMoved': 0x66521e,
-         'OnGuestRemoved': 0x4818c0}
+         'OnGuestRemoved': 0x4818c0, 'AddRow': 0x493800, 'AddGuest': 0x493c50, 'OnGuestAdded': 0x481920}
 LIST_RANGES = (RANGES + [(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 0x664bf0), (0x664d2a, 0x664db7), (0x663324, 0x663554),
                     (0x4f0240, 0x4f0250), (0x65d547, 0x65d56b), (0x65d56b, 0x65d57c), (0x65c672, 0x65c707),
                     (0x663085, 0x66316b), (0x663cb8, 0x663d56), (0x664495, 0x6644ea), (0x66b47d, 0x66b508),
@@ -107,7 +113,9 @@ LIST_RANGES = (RANGES + [(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 
                     (0x6639cb, 0x663a93), (0x66b53e, 0x66b567), (0x6636b2, 0x6636f6), (0x664f6d, 0x664fde), (0x66552e, 0x6655a0), (0x6655a2, 0x66563d), (0x66563d, 0x6656a0),
                     (0x493c10, 0x493c47), (0x65d7bc, 0x65d822)])
 B = Bench(LIST_RANGES + [(0x6656a0, 0x6656fa), (0x66521e, 0x66525c), (0x4818c0, 0x481916), (0x48ccd0, 0x48cd00), (0x4b3620, 0x4b3638),
-                         (0x4b7a00, 0x4b7a30), (0x4a25f0, 0x4a2690), (0x5da3c0, 0x5da3c1)])
+                         (0x4b7a00, 0x4b7a30), (0x4a25f0, 0x4a2690), (0x5da3c0, 0x5da3c1),
+                         (0x481920, 0x481970), (0x493800, 0x4938d0), (0x493c50, 0x493ca0), (0x4f8730, 0x4f8780), (0x4fd950, 0x4fd980),
+                         (0x67c320, 0x67c3e0), (0x67c7f0, 0x67c840)])   # (and tools/ranges.py 481920's)
 WINDOW, COLUMNS, LINKS, OUT = RAM, RAM + 0x200, RAM + 0x400, RAM + 0x800
 LIST, LINKS2, COLS2, CELLS, ROWS2, ROWWINS = RAM + 0x9000, RAM + 0x9420, RAM + 0x9e00, RAM + 0x9f00, RAM + 0x9c00, RAM + 0xb000
 BAR, OBJS, BUFS = RAM + 0xd000, RAM + 0x1000, RAM + 0x1200
@@ -120,6 +128,7 @@ SORTW, SORTCOLS, SORTLINKS, SORTSTRS, SORTCHARS = RAM + 0x12000, RAM + 0x12200, 
 BARS = RAM + 0x14000
 BUILDROW, BUILDBAR = RAM + 0x16000, RAM + 0x16800
 GUEST, GUESTVT = RAM + 0x17000, RAM + 0x17100   # (OnGuestRemoved)
+GUEST2, WORLD2 = RAM + 0x17400, RAM + 0x200000   # (AddRow: the guest and the world)
 PARENT = RAM + 0x600
 
 
@@ -615,7 +624,7 @@ def add_case(r, columns=(0, 1, 2, 3, 3)):
     ncols = r.choice(columns)
     put(window, 0x164, 'h', ncols)
     stride = 4 + ncols
-    bottoms = [r.choice([0, 0, 1, 1, -1]) for _ in range(4)]
+    bottoms = [r.choice([0, 0, 1, 1, -1]) for _ in range(max(4, ncols))]
     regions[COLS3] = b''.join(put(bytearray(r.bytes(0xc)), 0xa, 'h', v) for v in bottoms)
     chars = bytearray(0x100)
     for j in range(8):
@@ -689,6 +698,55 @@ def add_case(r, columns=(0, 1, 2, 3, 3)):
     p = r.choice([-1] * 4 + [r.randrange(count)] * 4 + [count, -2] if count else [-1, -1, 0, 1])
     args = [LIST3, r.choice([ATEXTS] * 19 + [0]), r.getrandbits(32), p & 0xffffffff, r.choice([0, 1])]
     return Call(CALLS['AddItem'], args, regions, conv='t', ret='a', masks=allocator_masks(fail, lengths, first) if args[1] else [])
+
+
+def guest_case(r, op):
+    """AddRow / AddGuest / OnGuestAdded: see above (add_case()'s list, its column bottoms past the first numbers)"""
+    regions = add_case(r, columns=(1, 2, 3, 4, 5, 6, 6, 6)).regions
+    window = regions[LIST3]
+    ncols, sort = struct.unpack_from('<h', window, 0x164)[0], struct.unpack_from('<h', window, 0x168)[0]
+    first = struct.unpack_from('<h', regions[COLS3], 0xa)[0]
+    if sort == 0 and first == -1:   # (numbers sorted as text: a fault in both)
+        first = 1
+    bottoms = [first] + [1 if k == sort or r.random() < 0.7 else r.choice([-1, 2]) for k in range(1, ncols)]
+    regions[COLS3] = b''.join(put(bytearray(r.bytes(0xc)), 0xa, 'h', v) for v in bottoms + [1] * (4 - len(bottoms)))
+    guest = bytearray(r.bytes(0x200))
+    j = r.randrange(8)
+    name = r.choice([ACHARS + 0x20 * j] * 19 + [0]) if first == 0 else r.getrandbits(32)
+    put(guest, 0x1d8, 'I', name)
+    put(guest, 0x30, 'I', r.choice([0, 0, 1, 2, 5, 100, r.getrandbits(32)]))
+    put(guest, 0x19c, 'f', r.choice([0.0, 1.0, 50.0, 99.9, 100.0, r.uniform(0, 100)]) if r.random() < 0.85 else
+        r.choice([-1.0, 255.9, 256.0, 300.0, 1e10, float('nan')]))
+    ticks = r.getrandbits(32)
+    put(guest, 0x1d4, 'I', (ticks - 4 * r.choice([0, 1, 100, 14400, 1000000])) & 0xffffffff if r.random() < 0.9 else r.getrandbits(32))
+    regions[GUEST2] = guest
+    regions[WORLD2 + 0x1da70c] = put(bytearray(r.bytes(0x10)), 0, 'I', ticks)
+    regions[WORLD2 + 0x2a0] = put(bytearray(r.bytes(0x40)), 0x1c, 'I', r.choice([1, 4, 60, 15000, 1000000, r.getrandbits(32)]))
+    regions[0x80239c] = regions[0x7cf83c] = struct.pack('<I', WORLD2)
+    # (the new string's allocator byte: as add_case()'s, the first column the only string one)
+    chars = regions[ACHARS]
+    n = struct.unpack_from('<16H', chars, 0x20 * j).index(0) if name and first == 0 else None
+    fail = struct.unpack_from('<I', regions[HEAP])[0] - HEAP - 0x10
+    count, dwords, stride = struct.unpack_from('<i', window, 0x150)[0], struct.unpack_from('<i', window, 0x158)[0], 4 + ncols
+    grows = count * stride >= dwords
+    masks = allocator_masks(fail, [n], (dwords + (20 if dwords == 0 else 10) * stride) * 4 if grows else None)
+    if op == 'AddRow':
+        regions[0x7ca130] = struct.pack('<4I', r.getrandbits(32), r.getrandbits(32), LIST3, r.getrandbits(32))
+        return Call(CALLS[op], [GUEST2], regions, ret='v', masks=masks)
+    put(window, 0x8c, 'I', 0x1e497)
+    dialog, decoy = BUILDBAR + 0x400, BUILDBAR + 0x500
+    regions[decoy] = put(put(bytearray(r.bytes(0x100)), 0x8c, 'I', r.choice([0x1e496, 0, 0x11e497])), 0x54, 'I', LIST3)
+    regions[dialog] = put(bytearray(r.bytes(0x100)), 0x5c, 'I', r.choice([LIST3, LIST3, decoy]))
+    shown = r.choice([dialog] * 12 + [0])
+    regions[0x7ca130] = struct.pack('<4I', r.getrandbits(32), r.getrandbits(32), r.getrandbits(32), shown)
+    masks = masks if shown else []
+    if op == 'AddGuest':
+        return Call(CALLS[op], [GUEST2], regions, ret='v', masks=masks)
+    handle = r.randrange(8)
+    table = bytearray(r.bytes(20 * 8))
+    put(table, 20 * handle, 'I', GUEST2)
+    regions[0x7cfb90] = table
+    return Call(CALLS[op], [0x7b51f0, handle | r.getrandbits(16) << 16], regions, conv='t', ret='v', masks=masks)
 
 
 def row_case(r, op):
@@ -946,6 +1004,8 @@ def case(r):
         return row_case(r, op)
     if op == 'AddItem':
         return add_case(r)
+    if op in ('AddRow', 'AddGuest', 'OnGuestAdded'):
+        return guest_case(r, op)
     if op in ('PostSelection', 'NotifySort', 'SetSortColumn', 'SetSortOrder'):
         return notify_case(r, op)
     if op == 'ColumnSpan':
