@@ -7,7 +7,8 @@
 # world's record +0x30 (0x519590's); the weights and multipliers 0x785090-0x7850c8 and the wanted ratings 0x7850e4 small or any (the
 # game's are 0 until its settings load).
 # The visitor's feelings after a ride (0x4fdcc0, person): feelings_case(). Its major destination (0x4fcb10): choose_case().
-# usage: visitoroption.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=score,feelings,choose)
+# Its minor destination (0x4fd570): minor_case().
+# usage: visitoroption.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=score,feelings,choose,minor)
 import os
 import struct
 import sys
@@ -18,6 +19,8 @@ sys.path.insert(0, HERE)
 import funnytime  # noqa: E402
 _ops = os.environ.pop('OPS', None)   # (navpath.py and cellstep.py read their own OPS, as hex addresses)
 import navpath  # noqa: E402
+import cellstep  # noqa: E402
+import routesearch  # noqa: E402
 if _ops is not None:
     os.environ['OPS'] = _ops
 from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
@@ -29,11 +32,14 @@ B = Bench([(0x412e90, 0x412f00), (0x43e0b0, 0x43e0f0), (0x4d8300, 0x4d8340), (0x
            (0x4fcc30, 0x4fd4f0), (0x502430, 0x502470), (0x50b350, 0x50b370), (0x519590, 0x5195e0), (0x522770, 0x5227a0), (0x522850, 0x522870),
            (0x536320, 0x536360), (0x545310, 0x545460), (0x55a4e0, 0x55a540), (0x5fc530, 0x5fc580), (0x5fc660, 0x5fc750), (0x67c320, 0x67c3e0),
            (0x67c7f0, 0x67c840), (0x5da3c0, 0x5da3c1), (0x4fdcc0, 0x4fde45),
-           (0x4fcb10, 0x4fcc22), (0x4dd920, 0x4dda20), (0x412e90, 0x412eea), (0x441970, 0x4419b0), (0x436860, 0x436880), (0x4fa530, 0x4fa5e7)]
+           (0x4fcb10, 0x4fcc22), (0x4dd920, 0x4dda20), (0x412e90, 0x412eea), (0x441970, 0x4419b0), (0x436860, 0x436880), (0x4fa530, 0x4fa5e7),
+           (0x4fd570, 0x4fd948), (0x4cd4e0, 0x4cd510), (0x50c100, 0x50c1a0), (0x4fa770, 0x4fa880), (0x4d8ca0, 0x4d8ce0), (0x436860, 0x436890),
+           (0x441970, 0x4419c0), (0x4d8b40, 0x4d8c10)]
           + navpath.RANGES)   # (choose's: the queue test as objectqueue.py's Open, the destination as navpath.py's person)
 VISITOR, RIDE, RECORD, POOL, CLOCK = RAM + 0x6000, RAM + 0x6400, RAM + 0x6800, RAM + 0x2000, RAM + 0x28000
 CELLS = RAM + 0x30000   # (the RE cells of map ids 1-0x800: [0x8023a0] + 0x1b1104)
 COPIES, LINKS = RAM + 0x50000, RAM + 0x58000   # (choose's other objects, 0x200 apart; the coaster links)
+WORLD2 = RAM + 0xc00000   # (minor's clock world: its +0x2a0 and +0x1da70c past routesearch.py's cells, entries and parents)
 DAY = funnytime.DAY
 
 
@@ -216,7 +222,110 @@ def choose_case(r):
     return Call(0x4fcb10, [VISITOR], regions, conv='t', ret='v')
 
 
-CASES = {'score': score_case, 'feelings': feelings_case, 'choose': choose_case}
+def poke(regions, r, address, data):
+    """data written into the 0x1000-byte pages of the route's world (a new page's bytes random)"""
+    for i, b in enumerate(data):
+        a = address + i
+        page = regions.get(a & ~0xfff)
+        if page is None:
+            page = regions[a & ~0xfff] = bytearray(r.bytes(0x1000))
+        elif not isinstance(page, bytearray):
+            page = regions[a & ~0xfff] = bytearray(page)
+        page[a & 0xfff] = b
+
+
+def minor_case(r):
+    """Visitor_ChooseMinorDest (0x4fd570): choose_case()'s visitor, object and copies (the world's clock moved to WORLD2, clear of the cells) on
+    routesearch.py's box of cells in mode 0, 1 or 3 (mode 2's ride cells would read the thing slots, which are the score's here); the visitor's
+    map id a cell of the box, its major destination +0x1dc the object (mostly), a copy or 0; the destination's queue back 1-6 cells away (at
+    times 0 or anywhere), so that some of the 16 cells round the visitor are nearer to it; the object, the copies and now and then the other
+    ride (its model not 3) in chains (+0xa) of those cells' things (the first handle at [0x8023a0] + id * 0x44 - 0x20, the other cells' 0), of
+    model 3 mostly, each with its own queue back near the visitor and its RE cell; their cells +0x36 the destination's, the box's, the visitor's
+    or the ring's; the ring position +0xb8 0-0x1f; the nav (+0xd4) in the visitor's cell, its mode the route's; the steps 0x7cf3a4 low."""
+    c = choose_case(r)
+    regions = c.regions
+    visitor, obj = regions[VISITOR], regions[OBJ]
+    world = struct.unpack('<I', regions[0x80239c])[0]
+    regions[WORLD2 + 0x2a0] = regions.pop(world + 0x2a0)
+    regions[WORLD2 + 0x1da70c] = regions.pop(world + 0x1da70c)
+    regions[0x80239c] = struct.pack('<I', WORLD2)
+    del regions[CELLS]
+    mode = r.choice([0, 1, 3])
+    cells, box, ring, bx, by, size = routesearch.boxed(r, mode)
+    for k, v in cells.items():
+        if cellstep.WORLD <= k < RAM + 0x1000000:
+            regions[k] = v
+    for k in (0x7cf6ec, cellstep.POINTER, 0x8023a0, 0x7cf83c, 0x81b4cc):
+        regions[k] = cells[k]
+    base = cellstep.ENTRIES
+    box = sorted(box)
+
+    vx, vy = r.choice(box)
+    visitor[5], visitor[7] = vx, vy
+    put(visitor, 0x188, 'I', mode)
+    put(visitor, 0xb8, 'I', r.randrange(0x20) if r.random() < 0.95 else r.getrandbits(32))
+    put(visitor, 0xd4 + 8, 'II', navpath.fixed(vx, r), navpath.fixed(vy, r))
+    put(visitor, 0xd4 + 0xb4, 'I', mode)
+    g = bytearray(regions[routesearch.GLOBALS])
+    put(g, 0x7cf3a4 - routesearch.GLOBALS, 'I', r.choice([0, 0, 0, 1]))
+    put(g, 0x7cf3c0 - routesearch.GLOBALS, 'I', mode)
+    regions[routesearch.GLOBALS] = bytes(g)
+
+    def cell_id(x, y):
+        return (y << 7) + x + 1
+
+    def near_back():
+        if r.random() < 0.85:
+            x = min(max(vx + r.choice([-6, -4, -3, -2, 2, 3, 4, 6, 0, 1, -1]), 0), 0x7f)
+            y = min(max(vy + r.choice([-6, -4, -3, -2, 2, 3, 4, 6, 0, 1, -1]), 0), 0x7f)
+            return cell_id(x, y)
+        return r.randrange(1, 0x4001)
+
+    def back_of(thing, back):
+        put(thing, 0x3a, 'H', back)
+        if back:
+            rec = bytearray(r.bytes(10))
+            put(rec, 8, 'h', r.choice([0, 0, 0, 1, 2, 3, -1, 7]))
+            poke(regions, r, base + 0x1b1104 + (back - 1) * 10, rec)
+
+    slots = regions[SLOTS]
+    h_obj = struct.unpack_from('<H', obj, 0)[0]
+    h_ride = next(h for h in range(1, 12) if struct.unpack_from('<I', slots, 20 * h)[0] == RIDE)
+    copies = [h for h in range(12, 16) if 20 * h + 4 <= len(slots) and struct.unpack_from('<I', slots, 20 * h)[0] == COPIES + 0x200 * (h - 12)]
+    things = {h_obj: obj, h_ride: regions[RIDE]}
+    if copies:
+        blob = regions[COPIES]
+        for h in copies:
+            things[h] = memoryview(blob)[0x200 * (h - 12):0x200 * (h - 12) + 0x200]
+    major = r.choice([h_obj] * 6 + copies + [0])
+    put(visitor, 0x1dc, 'H', major)
+    from_cell = cell_id(*r.choice(box)) if r.random() < 0.9 else cell_id(*r.choice(sorted(ring)))
+    mine = cell_id(vx, vy)
+    for h, thing in things.items():
+        back_of(thing, near_back() if r.random() < 0.95 else 0)
+        if h == major:
+            put(thing, 0x36, 'H', from_cell)
+        else:
+            put(thing, 0x36, 'H', r.choice([from_cell, from_cell, mine, cell_id(*r.choice(box)), cell_id(*r.choice(box))]
+                                            + ([cell_id(*r.choice(sorted(ring)))] if r.random() < 0.1 else [])))
+    regions[RIDE][2] = r.choice([0, 1, 2, 4])
+    members = copies + [h_obj] + ([h_ride] if r.random() < 0.3 else [])
+    r.shuffle(members)
+    for h in copies:
+        things[h][2] = 3 if r.random() < 0.85 else r.choice([0, 1, 2])
+    around = [(vx + dx, vy + dy) for dx in range(-2, 2) for dy in range(-2, 2) if 0 <= vx + dx < 0x80 and 0 <= vy + dy < 0x80]
+    chains = {}
+    for h in members:
+        chains.setdefault(r.choice(around), []).append(h)
+    for x, y in around:
+        chain = chains.get((x, y), [])
+        for i, h in enumerate(chain):
+            struct.pack_into('<H', things[h], 0xa, chain[i + 1] if i + 1 < len(chain) else 0)
+        poke(regions, r, base + cell_id(x, y) * 0x44 - 0x20, struct.pack('<H', chain[0] if chain else 0))
+    return Call(0x4fd570, [VISITOR], regions, conv='t', ret='v')
+
+
+CASES = {'score': score_case, 'feelings': feelings_case, 'choose': choose_case, 'minor': minor_case}
 OPS = [n for n in CASES if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
