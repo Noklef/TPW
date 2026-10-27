@@ -19,6 +19,7 @@ add_subdirectory(third_party)
 add_library(tpw_game STATIC
     src/game/rsse/rsse_vm.cpp
     src/game/rsse/scream.cpp
+    src/game/rsse/scriptfile.cpp
     src/game/core/app.cpp
     src/game/core/crt.cpp
     src/game/core/fpu.cpp

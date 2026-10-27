@@ -78,7 +78,7 @@ address,name,kind,confidence,notes
 0x00551cb0,RSSE_ExecuteInstruction,function,high,"fetches one code word, dispatches via 106-entry jump table (0x5567d8); needs tools/FixJumpTable.java to decompile. ctx: +0x18 code*, +0x1c vars*, +0x3c pc (-10000 = error), +0x50 code_len"
 0x005567d8,RSSE_OpcodeHandlerTable,data,high,106 handler addresses indexed by opcode; see re/rsse_opcodes.csv
 0x00765280,RSSE_OpcodeNameTable,data,high,"106 x {char* mnemonic, char* operand_count}"
-0x005587f0,RSSE_LoadScriptFile,function,high,"'Not a RSSE script file', 'Zero length script', 'Cannot load Script file'"
+0x005587f0,RSSE_LoadScriptFile,function,high,"reimplemented (src/game/rsse/scriptfile); cdecl (name, handle, quiet): a ride script's file read into a new record at the script list's head (header, counts and arrays, code, data, the fixed fields, the folder, the thing's ride and its keyed parts); unless quiet the thing's effect spawned at the ride's box and a sound occluder added; returns the record's id (0 without the system, a stream or the magic)"
 0x00551600,RSSE_Init,function,high,reimplemented (src/game/rsse/rsse_vm); Initialises the script system and sums the opcode names into the version
 0x00468600,RsseScript_EventName,function,high,reimplemented (src/game/rsse/rsse_vm); Finds the event table holding a key and names it (name unconfirmed)
 0x00557160,RSSE_StartTimer,function,low,"reimplemented (src/game/rsse/rsse_vm); cdecl (context, ms, a, b): +0x80 = Clocks_Now(0x785970), +0x84 = ms, words +0x88 = a and +0x8a = b; EAX left as ms's high half with b"

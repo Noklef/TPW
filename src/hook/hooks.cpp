@@ -249,6 +249,7 @@
 #include "../game/motion/vertexanim.h"
 #include "../game/rsse/rsse.h"
 #include "../game/rsse/scream.h"
+#include "../game/rsse/scriptfile.h"
 #include "../game/sprite/draw.h"
 #include "../game/sprite/loading.h"
 #include "../game/sprite/screenmatrix.h"
@@ -6238,6 +6239,7 @@ const Hook kHooks[] = {
     {"RSSE_SetScreamVolume",      0x00551290, (void *)&RSSE_SetScreamVolume, {0x8b, 0x4c, 0x24, 0x04, 0x85}},
     {"RSSE_MoveScream",           0x005512d0, (void *)&RSSE_MoveScream, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"RSSE_StopScream",           0x00551300, (void *)&RSSE_StopScream, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"RSSE_LoadScriptFile",       0x005587f0, (void *)&RSSE_LoadScriptFile, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
     {"Window_FindChild",          0x0065d7d0, (void *)&Window_FindChild, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Window_CallHandler",        0x0065f697, (void *)&Window_CallHandler, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window_SendMessage",        0x00658d9f, (void *)&Window_SendMessage, {0x55, 0x8b, 0xec, 0x83, 0x7d}},
