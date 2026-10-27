@@ -49,6 +49,10 @@ u16 __fastcall Window705a50_SetEnabled(u8 *window, void *, u32 enabled);
 // returned): the two dwords the constructor sets to 500 and 125.
 u32 __fastcall Window705a50_SetPair(u8 *window, void *, u32 a, u32 b);
 
+// 0x668d5f (thiscall (a), pops 4; slot 9 of 0x705a50; name unconfirmed, after the base's Window_NotifyBoth100): Window705a50_NotifyLook,
+// then Window_NotifyBoth100(a); 1 (AX).
+u16 __fastcall Window705a50_NotifyBoth100(u8 *window, void *, u32 a);
+
 // 0x668f5a / 0x668f7b (thiscall (value), pops 4; names unconfirmed): +0x14c / +0x154 = value (the values Window705a50_NotifyLook hands
 // on: +0x14c for the looks 4, 0 and 2, +0x154 for 3 and 5), then Window705a50_NotifyLook.
 void __fastcall Window705a50_Set14c(u8 *window, void *, u32 value);

@@ -6386,6 +6386,7 @@ address,name,kind,confidence,notes
 0x00668ecf,Window705a50_StartRepeat,function,low,"reimplemented (src/game/ui/window705a50); thiscall: with flag 0x20, the time +0x144 now (GuiClock_Now) and the phase +0x15a 1"
 0x00668eff,Window705a50_StopRepeat,function,low,"reimplemented (src/game/ui/window705a50); thiscall: the phase +0x15a cleared; 0 in AX when it was 2, else 1"
 0x00669410,Window705a50_StateField,function,low,"reimplemented (src/game/ui/window705a50); thiscall (slot 11): +0x94 when the state byte +0x138 is 1, else +0x90"
+0x00668d5f,Window705a50_NotifyBoth100,function,low,"reimplemented (src/game/ui/window705a50); thiscall (a), pops 4; slot 9 of 0x705a50: Window705a50_NotifyLook, then Window_NotifyBoth100(a); 1 (AX)"
 0x00486530,ThingPreview_Show,function,low,"reimplemented (src/game/ui/thingpreview); cdecl (rect, thing, depth, scale float): any shown copy killed, [0x7c24d8] = thing; its script +0xc cloned at a position from the rect (x87, __ftol) and Sprite_FlipY(depth), the slot to [0x7c24a0] and returned (no script: [0x7c24d8] 0, the thing returned)"
 0x00486630,ThingPreview_Hide,function,low,reimplemented (src/game/ui/thingpreview); cdecl: with [0x7c24d8] set the copy (slot [0x7c24a0]) killed and [0x7c24d8] cleared
 0x00480d30,HilightList_NewRow,function,low,"reimplemented (src/game/ui/listrows); cdecl: the ""hilight"" list's row window (0x138 bytes, Window_Ctor (0, 0, 100, font 7's height * 0x600 / [0xfaa5c0] + 6)), the height first"
