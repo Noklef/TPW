@@ -228,5 +228,29 @@ u8 *__fastcall Voices70a4f0_New(u8 *holder, void *, u32 count);
 // switch voice (Mem_Alloc 0x50, LinkedVoice_Ctor / LinkedSwitchVoice_Ctor) whose parent is this voice; null when the allocation fails.
 u8 *__fastcall Voice70a390_NewLinked(u8 *voice);
 u8 *__fastcall Voice70a2e0_NewLinkedSwitch(u8 *voice);
+// 0x6bb9b0 (thiscall; the voice class 0x70a7e0's destructor; name invented): the vtable 0x70a7e0, +0x2c's high word cleared, the parameter
+// block (+0x4c) freed (Mem_Free) unless null, then the owner's (+0x28, unless null) slot 0.
+void __fastcall Class70a7e0_Dtor(u8 *voice);
+// 0x6bb990 (thiscall (flags), pops 4; slot 2 of 0x70a7e0; name invented): Class70a7e0_Dtor, the voice freed with flag 1. Returns the voice.
+u8 *__fastcall Class70a7e0_DeletingDtor(u8 *voice, void *, u8 flags);
+// 0x6b7230 / 0x6b7240 (thiscall; names invented): the vtable 0x70a3e8 / 0x70a338, then Class70a7e0_Dtor.
+void __fastcall Voice70a3e8_Dtor(u8 *voice);
+void __fastcall Voice70a338_Dtor(u8 *voice);
+// 0x6b71f0 / 0x6b72d0 (thiscall (flags), pops 4; slot 2 of 0x70a3e8 / 0x70a338; names invented): the destructor, the voice freed with
+// flag 1. Return the voice.
+u8 *__fastcall Voice70a3e8_DeletingDtor(u8 *voice, void *, u8 flags);
+u8 *__fastcall Voice70a338_DeletingDtor(u8 *voice, void *, u8 flags);
+// 0x6b70e0 (thiscall (flags), pops 4; slot 2 of 0x70a4f0; name invented): flag 2, the array's (count at -4) voices destroyed, the last first
+// (CRT_VectorDtorIterator with Voice70a3e8_Dtor), and its block freed (sic: flag 1 not tested); else Voice70a3e8_Dtor and the voice
+// freed with flag 1. Returns the voice.
+u8 *__fastcall Voice70a4f0_VectorDeletingDtor(u8 *voice, void *, u8 flags);
+// 0x6be300 (thiscall; name invented): the vtable 0x70a878, the parameter block's (+0x4c, not checked) +0x1c freed unless null, the
+// vtable 0x70a338, Class70a7e0_Dtor. 0x6be2e0 (slot 2 of 0x70a878, (flags), pops 4): it, the voice freed with flag 1; returns the voice.
+void __fastcall Voice70a878_Dtor(u8 *voice);
+u8 *__fastcall Voice70a878_DeletingDtor(u8 *voice, void *, u8 flags);
+// 0x6be9c0 (thiscall; name invented): the vtable 0x70a8d0, the parameter block's (+0x4c, not checked) +0x1c, unless null, freed after its
+// +8; the vtable 0x70a338, Class70a7e0_Dtor. 0x6be9a0 (slot 2 of 0x70a8d0, (flags), pops 4): it, the voice freed with flag 1; returns the voice.
+void __fastcall Voice70a8d0_Dtor(u8 *voice);
+u8 *__fastcall Voice70a8d0_DeletingDtor(u8 *voice, void *, u8 flags);
 
 }  // extern "C"

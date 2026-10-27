@@ -872,4 +872,80 @@ u8 *__fastcall Voice70a2e0_NewLinkedSwitch(u8 *voice) {
     return block ? LinkedSwitchVoice_Ctor(block, nullptr, voice) : nullptr;
 }
 
+void __fastcall Class70a7e0_Dtor(u8 *voice) {
+    u8 *const params = at<u8 *>(voice, 0x4c);
+    at<u32>(voice, 0) = 0x0070a7e0;
+    at<u32>(voice, 0x2c) &= 0xffff;
+    if (params) GameHeap_Free(params);
+    if (u8 *const owner = at<u8 *>(voice, 0x28)) vcall<void>(owner, 0);
+}
+
+u8 *__fastcall Class70a7e0_DeletingDtor(u8 *voice, void *, u8 flags) {
+    Class70a7e0_Dtor(voice);
+    if (flags & 1) GameHeap_Free(voice);
+    return voice;
+}
+
+void __fastcall Voice70a3e8_Dtor(u8 *voice) {
+    at<u32>(voice, 0) = 0x0070a3e8;
+    Class70a7e0_Dtor(voice);
+}
+
+void __fastcall Voice70a338_Dtor(u8 *voice) {
+    at<u32>(voice, 0) = 0x0070a338;
+    Class70a7e0_Dtor(voice);
+}
+
+u8 *__fastcall Voice70a3e8_DeletingDtor(u8 *voice, void *, u8 flags) {
+    Voice70a3e8_Dtor(voice);
+    if (flags & 1) GameHeap_Free(voice);
+    return voice;
+}
+
+u8 *__fastcall Voice70a338_DeletingDtor(u8 *voice, void *, u8 flags) {
+    Voice70a338_Dtor(voice);
+    if (flags & 1) GameHeap_Free(voice);
+    return voice;
+}
+
+u8 *__fastcall Voice70a4f0_VectorDeletingDtor(u8 *voice, void *, u8 flags) {
+    if (flags & 2) {
+        CRT_VectorDtorIterator(voice, 0x50, at<s32>(voice, (u32)-4), reinterpret_cast<void(__fastcall *)(void *)>(Voice70a3e8_Dtor));
+        GameHeap_Free(voice - 4);   // (sic: flag 1 not tested)
+        return voice;
+    }
+    Voice70a3e8_Dtor(voice);
+    if (flags & 1) GameHeap_Free(voice);
+    return voice;
+}
+
+void __fastcall Voice70a878_Dtor(u8 *voice) {
+    at<u32>(voice, 0) = 0x0070a878;
+    if (u8 *const bag = at<u8 *>(at<u8 *>(voice, 0x4c), 0x1c)) GameHeap_Free(bag);
+    at<u32>(voice, 0) = 0x0070a338;
+    Class70a7e0_Dtor(voice);
+}
+
+u8 *__fastcall Voice70a878_DeletingDtor(u8 *voice, void *, u8 flags) {
+    Voice70a878_Dtor(voice);
+    if (flags & 1) GameHeap_Free(voice);
+    return voice;
+}
+
+void __fastcall Voice70a8d0_Dtor(u8 *voice) {
+    at<u32>(voice, 0) = 0x0070a8d0;
+    if (u8 *const bag = at<u8 *>(at<u8 *>(voice, 0x4c), 0x1c)) {
+        GameHeap_Free(at<u8 *>(bag, 8));
+        GameHeap_Free(bag);
+    }
+    at<u32>(voice, 0) = 0x0070a338;
+    Class70a7e0_Dtor(voice);
+}
+
+u8 *__fastcall Voice70a8d0_DeletingDtor(u8 *voice, void *, u8 flags) {
+    Voice70a8d0_Dtor(voice);
+    if (flags & 1) GameHeap_Free(voice);
+    return voice;
+}
+
 }  // extern "C"
