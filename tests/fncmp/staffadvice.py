@@ -7,7 +7,8 @@
 # clock ([[0x7cf6ec]] + 0x2a0) at a rate of 4 (whole seconds) mostly, so its elapsed time is about 24 30-day months (or any); the kind's
 # state +0x24 + 12 * kind 0-5 or any and its flag; the message centre [0x788d3c] made, the posts (agent B's unported 0x40fb10) a recorder
 # (k 21) hashing the message's 16 bytes.
-# usage: staffadvice.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=KindLow,Update)
+# Its caller (Tick: StaffAdvice_Tick 0x508e70) with Update's surroundings, see tick().
+# usage: staffadvice.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=KindLow,Update,Tick)
 import os
 import struct
 import sys
@@ -18,8 +19,14 @@ from fncmp import LOG, RAM, Bench, Call, _recorder, blob_bytes, log_region, put,
 sys.path.insert(0, HERE)
 import funnytime  # noqa: E402
 
+# (Tick's: Staff_TrainAll and the analyser's count, over no things)
+TICK_RANGES = [(0x40f6f0, 0x40f720), (0x40fb10, 0x40fc90), (0x40ff80, 0x4104c0), (0x410610, 0x410730), (0x41a960, 0x41a980), (0x41a990, 0x41a9c0),
+               (0x4c7fa0, 0x4c8080), (0x4c8150, 0x4c81c0), (0x4c8ae0, 0x4c8c50), (0x4d01f0, 0x4d0270), (0x4f8800, 0x4f88c0), (0x4fa990, 0x4faa10),
+               (0x505a10, 0x505b80), (0x508e70, 0x508f50), (0x50b350, 0x50b370), (0x50b550, 0x50b6b0), (0x50c800, 0x50c9c0), (0x516130, 0x5161c0),
+               (0x51a280, 0x51a2a0), (0x5195d0, 0x519620), (0x536310, 0x536370), (0x536390, 0x5363b0), (0x5fc530, 0x5fc580), (0x5fc660, 0x5fc750),
+               (0x67acf0, 0x67ada0), (0x67b050, 0x67b0d0), (0x67c320, 0x67c3e0), (0x67c7f0, 0x67c840)]
 B = Bench([(0x509360, 0x50996d), (0x519510, 0x51954d), (0x5da3c0, 0x5da3c1), (0x67a830, 0x67a860), (0x508f70, 0x509336), (0x40f6f0, 0x40f710)]
-          + funnytime.RANGES, hooks={0x4c8180: _recorder(16, 1), 0x4c8150: _recorder(17, 1), 0x40fb10: _recorder(21, 1)})
+          + funnytime.RANGES + TICK_RANGES, hooks={0x4c8180: _recorder(16, 1), 0x4c8150: _recorder(17, 1), 0x40fb10: _recorder(21, 1)})
 SELF, WORLD, THINGS, RECORD = RAM, RAM + 0x1000, RAM + 0x2000, RAM + 0x1800
 HEADS = (0x1c, 0x1e, 0x20, 0x24, 0x22)   # (the world's +0x1da73c... from WORLD = its +0x1da720)
 SLOTS = 40
@@ -80,10 +87,32 @@ def update(r, self, kind):
     return Call(0x508f70, [SELF, kind if kind < 6 else r.randrange(5)], regions, conv='t')
 
 
+
+def tick(r, self):
+    """StaffAdvice_Tick: Update's surroundings; the world's +0x1da710 0 mostly; the kinds' stamps +0x2c + 12 * kind the world's +0x1da70c
+    or not (their flags set or not); the analyser's kept count (+0x1f0b8 of the world's record: stamp, count, flag) kept or taken again over
+    no things (0x7cf56c 0, as for Staff_TrainAll's walks)."""
+    c = update(r, self, 0)
+    regions = c.regions
+    ticks = regions[funnytime.TICKS]
+    put(ticks, 4, 'I', r.choice([0] * 6 + [1, r.getrandbits(32)]))
+    month = struct.unpack_from('<I', ticks, 0)[0]
+    for k in range(5):
+        put(self, 0x2c + 12 * k, 'I', month if r.random() < 0.3 else r.choice([0, month ^ 1, r.getrandbits(32)]))
+    cache = bytearray(r.bytes(0xc))
+    put(cache, 0, 'I', (month - 4 * r.choice([0, 1, 5, 6, 100])) & 0xffffffff)
+    put(cache, 4, 'I', r.choice([0, 0, 0, 1, 7]))
+    cache[8] = r.choice([1, 1, 1, 0])
+    regions.update({RECORD + 0x1f0b8: cache, 0x7cf56c: struct.pack('<I', 0), 0x7cf83c: struct.pack('<I', RAM + 0x3f00)})
+    return Call(0x508e70, [SELF], regions, conv='t')
+
 def case(r):
     self = put(bytearray(r.bytes(0x80)), 0x64, 'I', r.choice([0] * 6 + [1, r.getrandbits(32)]))
     kind = r.choice([0, 0, 1, 2, 3, 4] * 3 + [5, 0xffffffff, r.getrandbits(32)])
-    if r.deal(OPS) == 'Update':
+    op = r.deal(OPS)
+    if op == 'Tick':
+        return tick(r, self)
+    if op == 'Update':
         return update(r, self, kind)
     log = log_region()
     regions = chains(r, WORLD, log)
@@ -91,7 +120,7 @@ def case(r):
     return Call(0x509360, [SELF, kind], regions, conv='t', ret='a')
 
 
-OPS = [k for k in os.environ.get('OPS', 'KindLow,Update').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'KindLow,Update,Tick').split(',') if k]
 
 
 if __name__ == '__main__':

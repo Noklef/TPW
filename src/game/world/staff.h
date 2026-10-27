@@ -275,4 +275,10 @@ u32 __fastcall StaffAdvice_KindLow(const u8 *self, void *, u32 kind);
 // (message 17 of (kind, 2)), others stay; else message 17 of (kind, 3) when the state is 1, and the state and flag cleared.
 // (The messages through Object_PostMessage: agent B's unported 0x40fb10.)
 void __fastcall StaffAdvice_Update(u8 *self, void *, u32 kind);
+// 0x508e70 (thiscall; name invented, unconfirmed): the staff trained (Staff_TrainAll on the five amounts at +0xc). Unless the dword +0x64 is
+// set, nothing more while the world's +0x1da710 (Get1da710_51a280) is set or its analyser counts kind 1 things on plain cells
+// (ParkAnalyser_CountKind1OnPlainCell, age 5). Then for each kind 0-4 whose staff chain is not empty (heads +0x1da73c, +0x1da73e,
+// +0x1da740, +0x1da744, +0x1da742 of [0x80239c]) and whose stamp +0x2c + 12 * kind is not the world's +0x1da70c: stamped, and its flag
+// +0x28 + 12 * kind cleared when set, else StaffAdvice_Update(kind). (The original's debug prints are left out.)
+void __fastcall StaffAdvice_Tick(u8 *self);
 }

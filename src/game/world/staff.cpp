@@ -771,4 +771,24 @@ void __fastcall StaffAdvice_Update(u8 *self, void *, u32 kind) {
     state[0] = 0;
     state[1] = 0;
 }
+
+void __fastcall StaffAdvice_Tick(u8 *self) {
+    Staff_TrainAll(reinterpret_cast<const s32 *>(self + 0xc));
+    if (!at<u32>(self, 0x64)) {
+        if (Get1da710_51a280(global<u8 *>(0x0080239c))) return;   // (the original's debug print)
+        u8 *const analyser = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(global<u8 *>(0x0080239c)));
+        if (ParkAnalyser_CountKind1OnPlainCell(analyser, nullptr, 5)) return;   // (the same print)
+    }
+    static const u32 kHeads[5] = {0x1da73c, 0x1da73e, 0x1da740, 0x1da744, 0x1da742};
+    for (u32 kind = 0; kind < 5; ++kind) {
+        const u8 *const world = global<u8 *>(0x0080239c);
+        if (!at<u16>(world, kHeads[kind])) continue;
+        u32 *const state = reinterpret_cast<u32 *>(self + 0x24 + 12 * kind);
+        const u32 month = at<u32>(world, 0x1da70c);
+        if (state[2] == month) continue;
+        state[2] = month;
+        if (state[1]) state[1] = 0;
+        else StaffAdvice_Update(self, nullptr, kind);
+    }
+}
 }
