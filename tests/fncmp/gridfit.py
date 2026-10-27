@@ -2,7 +2,7 @@
 # (0xa0 apart in one array, as the object's frames are) beside their nodes, 1-9 vertices each, put mostly on and near the grid's lines
 # (whole cells, a hair off, half way, outside now and then) through identity-like matrices with a translation (any floats now and
 # then); grids of 1-6 cells a side with the heights padded for the unchecked reads around a cell; the edge marks at 0x7afe20 (20 x 20)
-# with their bounds [0x7afe18] / [0x7b0460] at 1-20; the cursor's index list.
+# with their bounds [0x7afe18] / [0x7b0460] at 1-20 (mostly 1-7); the cursor's index list.
 # Ops: Place / Contact (0x469a80, place or not), Model (0x469940).
 # usage: gridfit.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
@@ -56,8 +56,8 @@ def case(r, op=None):
         struct.pack_into('<I', heights, k, r.f(scale) if r.random() < 0.97 else r.f(scale, special=1))
     flags = bytearray(r.getrandbits(8) & 4 for _ in range(4 * (w + 1) * (h + 2)))
     marks = bytearray(r.bytes(0x64c))
-    struct.pack_into('<I', marks, 0, r.randrange(1, 21))
-    struct.pack_into('<I', marks, 0x648, r.randrange(1, 21))
+    for at in (0, 0x648):   # (as often as not within the grid's columns / rows, so a vertex's column or row meets the bound)
+        struct.pack_into('<I', marks, at, r.choice([r.randrange(1, 8), r.randrange(1, 8), r.randrange(1, 21)]))
     shift = [r.uniform(-20, 20) for _ in range(3)] if r.random() < 0.7 else [0.0, 0.0, 0.0]
     # the tree: frame k at FRAMES + k * 0xa0, node k at NODES + k * 0x70; children of 0 (and of 1)
     n = r.choice([1, 1, 2, 3, 4])
@@ -93,7 +93,7 @@ def case(r, op=None):
             z = coordinate(r, origin[1], cell[1], h) - shift[2]
             y = (r.choice([0.0, r.uniform(-0.02, 0.02), r.uniform(-200, 200)]) if contact else r.uniform(-50, 50)) - shift[1]
             for axis, v in enumerate((x, y, z)):
-                struct.pack_into('<I', node_v, g + lane * 4 + axis * 0x10, fb(v) if r.random() < 0.98 else r.f())
+                struct.pack_into('<I', node_v, g + lane * 4 + axis * 0x10, fb(v) if r.random() < 0.98 else r.f(special=r.choice([0.06, 1])))
         verts += node_v + r.bytes(0x30 * groups)
         struct.pack_into('<I', nodes, no + 0x60, nv)
         struct.pack_into('<I', frames, fo + 0x60, fv)
