@@ -22,6 +22,7 @@
 #include "soundeax.h"
 #include "soundindex.h"
 #include "soundoccluders.h"
+#include "soundsample.h"
 #include "string.h"
 #include "thunks.h"
 #include "vcall.h"
@@ -69,6 +70,23 @@ void __fastcall SoundChannel_FreeEax(u8 *channel) {
     EaxBuffer_Release(at<u8 *>(channel, 0x20));
     GameHeap_Free(at<u8 *>(channel, 0x20));
     at<u8 *>(channel, 0x20) = nullptr;
+}
+
+u8 *__fastcall SoundChannel_Ctor(u8 *channel) {
+    SoundSample70a548_Ctor(channel);
+    at<u32>(channel, 0x28) = 8;
+    at<u32>(channel, 0x2c) = 0;
+    String_Ctor(reinterpret_cast<String *>(channel + 0x30));
+    at<u32>(channel, 0x58) = 0;
+    at<u32>(channel, 0x5c) = 0;
+    for (u32 i = 0x48; i <= 0x54; i += 4) at<u32>(channel, i) = 0x3f800000;   // (1.0f)
+    at<u32>(channel, 0x60) = 0;
+    at<u8>(channel, 0x64) = 0;
+    at<u32>(channel, 0) = 0x0070a5d8;
+    for (u32 i = 0x44; i <= 0x47; ++i) at<u8>(channel, i) = 1;
+    at<u32>(channel, 0x5c) = 4;
+    at<u8 *>(channel, 0x58) = channel + 0x48;
+    return channel;
 }
 
 u32 *__fastcall SoundChannel_OpenEax(u8 *channel, void *, u32 *out) {

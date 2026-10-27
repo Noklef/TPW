@@ -10,6 +10,11 @@
 
 extern "C" {
 
+// 0x6b8ed0 (thiscall; an SEH frame; name invented): the constructor: the base (SoundSample70a548_Ctor), +0x28 = 8, +0x2c = 0, the
+// string +0x30 empty (String_Ctor), the floats +0x48-+0x54 = 1, +0x58 = the array +0x48 and +0x5c = its count 4, +0x60 = 0, the byte
+// +0x64 = 0, the bytes +0x44-+0x47 = 1, the vtable 0x70a5d8. Returns the channel.
+u8 *__fastcall SoundChannel_Ctor(u8 *channel);
+
 // 0x6b8160 (thiscall (desc), pops 4; name invented): 0x6c53c0's new resource (the channel's +0x1c the owner, desc, the channel the source).
 u8 *__fastcall SoundChannel_NewResource(u8 *channel, void *, const u32 *desc);
 // 0x6b9310 (thiscall (index), pops 4; an SEH frame; name invented): the category singleton's (SoundCategory_Get) deque B entry index
