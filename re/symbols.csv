@@ -4412,6 +4412,8 @@ address,name,kind,confidence,notes
 0x006b7870,SoundChannel_OpenSynth,function,low,"reimplemented (src/game/core/soundchannel); thiscall (out), pops 4: +0x1c = a new synthesiser holder (Init_6c47b0) and SfHost_OpenOut on it (on null too, sic) (name invented)"
 0x006b78e0,SoundChannel_FreeSynth,function,low,"reimplemented (src/game/core/soundchannel); thiscall: the synthesiser holder (+0x1c) destroyed, freed and cleared (name invented)"
 0x006b7840,SoundChannel_FreeEax,function,low,"reimplemented (src/game/core/soundchannel); thiscall: the EAX buffer (+0x20) released, freed and cleared when there is one (name invented)"
+0x006b99c0,SoundChannel_SwitchOcclusion,function,low,reimplemented (src/game/core/soundchannel); the channel's occlusion switch (flag 0x80 over 0x42) passed to SetOcclusion
+0x006b9a10,SoundChannel_TryAddOccluder,function,low,"reimplemented (src/game/core/soundchannel); an occluder added for a channel with the flags 0x41, the node out"
 0x006b85f0,SoundObject_Broadcast,function,low,"reimplemented (src/game/core/soundobject); thiscall (out), pops 4: the mixer's active voices run (ForEachActive 0), then the channel's slot 4 with a stack functor 0x70a5b0; *out = -1 without a channel; returns out"
 0x006b8640,SoundObject_BroadcastValue,function,low,"reimplemented (src/game/core/soundobject); thiscall (out, value), pops 8: with a channel flagged 0x400 the mixer's ForEachActive (value), else SoundObject_Broadcast; *out = 0; returns out"
 0x006b8b00,SoundObject_VoiceInfo,function,low,"reimplemented (src/game/core/soundobject); thiscall (out, id, result), pops 0xc: the mixer's voice for the id; its +0xc's +8 into *result and *out = 0, else *out = -1; returns out"

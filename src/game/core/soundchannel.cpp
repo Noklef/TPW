@@ -455,6 +455,32 @@ u32 *__fastcall SoundChannel_SetOcclusion(u8 *channel, void *, u32 *out, u8 on, 
     return out;
 }
 
+u32 *__fastcall SoundChannel_SwitchOcclusion(u8 *channel, void *, u32 *out, u32 on, u32 radius) {
+    u8 flag = 1;
+    if (on && (at<u32>(channel, 0x28) & 0x42)) {
+        at<u32>(channel, 0x28) |= 0x80;
+    } else {
+        flag = 0;
+        at<u32>(channel, 0x28) &= ~0x80u;
+    }
+    SoundChannel_SetOcclusion(channel, nullptr, out, flag, radius);
+    return out;
+}
+
+u32 *__fastcall SoundChannel_TryAddOccluder(u8 *channel, void *, u32 *out, u32 x, u32 y, u32 z, u32 radius, u8 **node) {
+    *node = nullptr;
+    if (at<u8>(channel, 0x28) & 0x41) {
+        u8 *const made = SoundChannel_AddOccluder(channel, nullptr, x, y, z, radius);
+        *node = made;
+        if (made) {
+            *out = 0;
+            return out;
+        }
+    }
+    *out = 0xffffffff;
+    return out;
+}
+
 u8 *__fastcall SoundChannel_AddOccluder(u8 *channel, void *, u32 x, u32 y, u32 z, u32 radius) {
     const u8 eax = at<u32>(channel, 0x20) != 0;
     if (!eax && !vcall<u8>(at<u8 *>(channel, 0x18), 0x4c)) return nullptr;
