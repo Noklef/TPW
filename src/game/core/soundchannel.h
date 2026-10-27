@@ -41,6 +41,11 @@ void __fastcall SoundChannel_FreeSynth(u8 *channel);
 // 0x6b8b40 (thiscall (out, functor), pops 8): the functor's slot 0 (out, channel). Returns out.
 u32 *__fastcall SoundChannel_Apply(u8 *channel, void *, u32 *out, u8 *functor);
 
+// 0x6c6000 (thiscall (out, index), pops 8; name invented): with the EAX records (+0x68, 13 dwords each; +0x6c their count) and index one
+// of them whose first dword is not -1: a settings record (Init_6b9c50, on the stack) given its block (SoundChannel_SetRecordBlock: flags
+// 0x40, the EAX properties) applied through the stack functor 0x70a278 (SoundChannel_Apply). Else *out = -1. Returns out.
+u32 *__fastcall SoundChannel_ApplyEaxRecord(u8 *channel, void *, u32 *out, u32 index);
+
 // 0x6b5e40 (the stack functor 0x70a260's slot 0: thiscall (out, channel), pops 8; the functor is not read): the channel's source
 // (+0x18)'s slot 1; *out = 0. Returns out.
 u32 *__fastcall SoundChannelFn70a260_Run(const u8 *functor, void *, u32 *out, u8 *channel);

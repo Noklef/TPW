@@ -193,6 +193,20 @@ u32 *__fastcall SoundChannel_Apply(u8 *channel, void *, u32 *out, u8 *functor) {
     return out;
 }
 
+u32 *__fastcall SoundChannel_ApplyEaxRecord(u8 *channel, void *, u32 *out, u32 index) {
+    const u8 *const table = at<u8 *>(channel, 0x68);
+    if (!table || index >= at<u32>(channel, 0x6c) || at<s32>(table, index * 0x34) == -1) {
+        *out = 0xffffffff;
+        return out;
+    }
+    u8 settings[0x70];
+    Init_6b9c50(settings);
+    SoundChannel_SetRecordBlock(settings, nullptr, reinterpret_cast<const u32 *>(at<u8 *>(channel, 0x68) + index * 0x34));
+    u32 functor[2] = {0x0070a278, static_cast<u32>(reinterpret_cast<uintptr_t>(settings))};
+    SoundChannel_Apply(channel, nullptr, out, reinterpret_cast<u8 *>(functor));
+    return out;
+}
+
 u32 *__fastcall SoundChannelFn70a260_Run(const u8 *, void *, u32 *out, u8 *channel) {
     vcall<void>(at<u8 *>(channel, 0x18), 4);
     *out = 0;
