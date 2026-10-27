@@ -1,4 +1,5 @@
 # The map cell handles' lookups and the memory ranges (src/game/world/mapcell: 0x4d0a70-0x4d0b10)
+# (0x4cd720 and 0x4ccdf0: the whole map's percentages, +0x2c of the cells 0 mostly for 0x4ccdf0)
 # and the map's bounds check, RE cells, fixed positions, block values and cell constructor
 # (0x4d8300-0x4d8ca0, 0x4d8da0) and the RE cells' constructor and comparison (0x502460, 0x502470)
 # the track cell's constructor (0x50c1d0), the map id of a cell (0x510870) and the 0x28-byte
@@ -14,7 +15,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
 B = Bench([(0x4d0a70, 0x4d0a86), (0x4d0a90, 0x4d0ab1), (0x4d0ac0, 0x4d0ae1), (0x4d0af0, 0x4d0b06),
-           (0x4d0b10, 0x4d0b27), (0x4d8300, 0x4d8328), (0x4d8410, 0x4d8434), (0x4d8610, 0x4d8750), (0x4d8c60, 0x4d8cc8), (0x4d8cd0, 0x4d8ceb), (0x4cd720, 0x4cd7e6), (0x5d60c0, 0x5d60d0),
+           (0x4d0b10, 0x4d0b27), (0x4d8300, 0x4d8328), (0x4d8410, 0x4d8434), (0x4d8610, 0x4d8750), (0x4d8c60, 0x4d8cc8), (0x4d8cd0, 0x4d8ceb), (0x4cd720, 0x4cd7e6), (0x4ccdf0, 0x4ccea6), (0x5d60c0, 0x5d60d0),
            (0x4d8da0, 0x4d8dc2), (0x502460, 0x502487), (0x50c1d0, 0x50c1e6), (0x510870, 0x51089d), (0x522700, 0x5228b5), (0x535db0, 0x535dc3), (0x536300, 0x536484),
            (0x539210, 0x53921c), (0x539670, 0x53975e), (0x53a510, 0x53a53d), (0x53ad20, 0x53aefc), (0x536c50, 0x536c55)])
 CELL = {0x522700: 'v', 0x522730: 'v', 0x522770: 'b', 0x522790: 'a', 0x5227e0: 'v', 0x5227f0: 'v', 0x522810: 'a',
@@ -28,7 +29,7 @@ TYPES = [0, 1, 2, 3, 4, 5, 7, 9, 0xa, 0xb, 0xc, 0xd, 0x10, 0x11, 0x12, 0x15, 0x1
 TABLE = RAM + 0x400  # the world's cells for handles 0-5: gWorld and gMapCells placed to reach it
 OPS = [int(a, 16) for a in os.environ.get('OPS', '').split(',') if a]
 POS = [0x4d8610, 0x4d8650, 0x4d8690, 0x4d86d0, 0x4d8710]
-OTHER = {0x4cd720: 'map', 0x4d0af0: 0, 0x4d0b10: 0, 0x4d0a70: 1, 0x4d0a90: 2, 0x4d0ac0: 2, 0x4d8300: 4, 0x4d8410: 5, **{a: 6 for a in POS},
+OTHER = {0x4cd720: 'map', 0x4ccdf0: 'map', 0x4d0af0: 0, 0x4d0b10: 0, 0x4d0a70: 1, 0x4d0a90: 2, 0x4d0ac0: 2, 0x4d8300: 4, 0x4d8410: 5, **{a: 6 for a in POS},
          0x4d8cd0: 7, 0x4d8ca0: 7, 0x4d8c60: 7, 0x4d8da0: 8, 0x502460: 9, 0x502470: 10, 0x50c1d0: 11, 0x510870: 12,
          0x539670: 'step'}   # the function -> its case kind
 
@@ -42,13 +43,16 @@ def case(r):
     fn = r.deal(OPS or list(CELL) + list(OTHER))   # (dealt, not chosen: every function gets its cases in a short run)
     op = 13 if fn in CELL else OTHER[fn]
     if op == 'map':  # the whole-map percentage: 128 x 128 cells
-        types = [2, 7, 0x1e, 0, 1, 3, 9, 0xa, 0x12]
+        empty = r.random() < 0.15   # (0x4ccdf0: no cell of type 1, 3 or 9 or with +0x2c, sometimes)
+        types = [2, 7, 0x1e, 0, 0xa, 0x12] if empty and fn == 0x4ccdf0 else [2, 7, 0x1e, 0, 1, 3, 9, 0xa, 0x12]
         cells = bytearray(r.bytes(0x44 * 0x4000))
         for c in range(0x4000):
             put(cells, 0x44 * c + 8, 'I', r.choice(types) if r.random() < 0.9 else r.getrandbits(32))
+            if fn == 0x4ccdf0 and (empty or r.random() < 0.7):
+                put(cells, 0x44 * c + 0x2c, 'I', 0)
         re_cells = bytearray(r.bytes(0x29000))
         world = RAM - 0x2d8  # so that the map (world + 0x2d8) is the cells region
-        return Call(0x4cd720, [], {0x802390: put(bytearray(r.bytes(0x20)), 0xc, 'I', world), RAM: cells, RAM + 0x1b1000: re_cells}, ret='a')
+        return Call(fn, [], {0x802390: put(bytearray(r.bytes(0x20)), 0xc, 'I', world), RAM: cells, RAM + 0x1b1000: re_cells}, ret='a')
     if op == 'step':  # the step direction: cells named 1-4 among 0x44-byte cells at RAM + 0x1000
         cell = bytearray(r.bytes(0x28))
         put(cell, 0, 'H', r.randrange(1, 5))

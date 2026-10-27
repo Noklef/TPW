@@ -30,6 +30,13 @@ u8 *__fastcall GuiFont_Init(u8 *font, void *, u32 count, u32 width, u32 spacing,
     return font;
 }
 
+u16 __fastcall GuiFont_CharWidth(const u8 *font, void *, u32 character) {
+    const u8 *const glyphs = at<const u8 *>(font, 0xc);
+    const u32 c = character & 0xffff;
+    if (!glyphs || c >= at<u16>(font, 4)) return 0;
+    return (u16)((s8)glyphs[c * 8] + at<u16>(font, 6));
+}
+
 u16 __fastcall GuiFont_TextWidth(const u8 *font, void *, const u16 *text, s16 from, s16 to) {
     u16 width = 0;
     const u8 *const glyphs = at<const u8 *>(font, 0xc);

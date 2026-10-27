@@ -7,6 +7,7 @@
 # Windows7cc8bc_SelectSecond (0x4bce80): SetFocus's set-up, the two windows [0x7cc8bc] / [0x7cc8c0] of the tree with handlers the logger or none.
 # Overlay7cb2b4_Toggle / Obj7b51f0_ToggleOverlay / Obj7b51f0_CloseOverlay (0x4a29d0, 0x481490, 0x4815d0): see overlay_case.
 # Enter6fead0 / Set7c24c8 (0x481a10 / 0x485b70, the mouse mode and the window [0x7c24c8]): see modes_case.
+# CaptureMouse / ReleaseMouse (0x65e549 / 0x65e56e): SetFocus's set-up, the capture [0xfaa5e8] the window, another or none.
 # usage: focus.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetFocus,KillFocus,...)
 import os
 import struct
@@ -22,13 +23,14 @@ from windowfactory import FACTORY, timer_env  # noqa: E402
 CALLS = {'SetFocus': 0x65e59b, 'KillFocus': 0x65e5fa, 'Dialog7ca1c8_Focus': 0x498a80, 'FocusRestore': 0x4862a0, 'HasSource': 0x48c8d0,
          'Close7c24c8': 0x485b40, 'Close7cb2cc': 0x4a27c0, 'Windows7cc8bc_SelectSecond': 0x4bce80,
          'Overlay7cb2b4_Toggle': 0x4a29d0, 'Obj7b51f0_ToggleOverlay': 0x481490, 'Obj7b51f0_CloseOverlay': 0x4815d0,
-         'Enter6fead0': 0x481a10, 'Set7c24c8': 0x485b70}
+         'Enter6fead0': 0x481a10, 'Set7c24c8': 0x485b70, 'CaptureMouse': 0x65e549, 'ReleaseMouse': 0x65e56e}
 MODES = [(0x40cb40, 0x40cb90), (0x46c350, 0x46c460), (0x46c6a0, 0x46c6c0), (0x46cff0, 0x46d010), (0x4814a0, 0x481500), (0x481a10, 0x481b00),
          (0x485b40, 0x485d30), (0x4862a0, 0x486420), (0x4a25f0, 0x4a2690), (0x4a2aa0, 0x4a2ad0), (0x550ca0, 0x550d90), (0x6590f7, 0x6591e4),
          (0x65e6d5, 0x65e73d), (0x65f11d, 0x65f160), (0x66190a, 0x66192b), (0x661d96, 0x661de0), (0x668ad3, 0x668c99), (0x67a740, 0x67a800),
          (0x67fa20, 0x67fa50), (0x681740, 0x681970), (0x5da3c0, 0x5da3c1), (0x46ce80, 0x46ceca), (0x46cfb0, 0x46cfc0), (0x40f3a0, 0x40f3a6),
          (0x40f440, 0x40f446), (0x5d1410, 0x5d1416), (0x46d590, 0x46d59d), (0x46c710, 0x46c72e), (0x46ced0, 0x46ced7), (0x5d1750, 0x5d1751)]
-B = Bench(sorted(set(RANGES + FACTORY + MODES + [(0x4a29d0, 0x4a2a8a), (0x4a2a90, 0x4a2a96), (0x481490, 0x481495), (0x4815d0, 0x4815df)])))
+B = Bench(sorted(set(RANGES + FACTORY + MODES + [(0x4a29d0, 0x4a2a8a), (0x4a2a90, 0x4a2a96), (0x481490, 0x481495), (0x4815d0, 0x4815df),
+                                            (0x65e549, 0x65e56e), (0x65e56e, 0x65e59b)])))
 OVERLAY, OVERLAY_VT = RAM + 0xb000, RAM + 0xb040   # (an overlay to delete: its slot 2 a recorder)
 MODE, MODE_VT, HOLDER = RAM + 0xc000, RAM + 0xc100, RAM + 0xc200   # (the current mouse mode, a recorder object; the holder, never read)
 
@@ -144,6 +146,9 @@ def case(r, ops=None):
         if op in ('Enter6fead0', 'Set7c24c8'):
             return modes_case(r, op, regions, log, wins)
         return Call(CALLS[op], [], regions, ret='a')
+    if op in ('CaptureMouse', 'ReleaseMouse'):
+        regions[0xfaa5d8] = put(bytearray(regions[0xfaa5d8]), 0x10, 'I', r.choice([window, window, 0] + wins))
+        return Call(CALLS[op], [window], regions, conv='t', ret='w')
     if op == 'Dialog7ca1c8_Focus':   # (the window [0x7ca1c8])
         regions[0x7ca1c8] = struct.pack('<I', window)
         return Call(CALLS[op], [], regions, ret='w')

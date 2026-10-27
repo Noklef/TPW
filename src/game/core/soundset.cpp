@@ -5,6 +5,7 @@
 
 #include "class6fd9d8.h"
 #include "gameheap.h"
+#include "soundmanager.h"
 #include "string.h"
 #include "vcall.h"
 
@@ -59,6 +60,17 @@ u32 __cdecl Sound_Query(u32 a, u32 b) {
     u32 first = a, out = b;
     vcall<void>(manager, 4, &first, a, b, &out);
     return out;
+}
+
+u32 __cdecl Sound_SetParam(u32 sound, u32 parameter, u32 value) {
+    if (!global<u32>(0x00802bc8) || !global<u32>(0x00802bd4)) return 0;
+    return SoundManager_Call3(global<u8 *>(0x00802bcc), nullptr, sound, parameter, value);
+}
+
+u32 __cdecl Sound_SetPosition(u32 sound, s32 x, s32 y, s32 z) {
+    if (!global<u32>(0x00802bc8) || !global<u32>(0x00802bd4)) return 0;
+    float position[3] = {(float)x, (float)y, (float)z};
+    return SoundManager_Call5(global<u8 *>(0x00802bcc), nullptr, sound, (u32)(uintptr_t)position);
 }
 
 u32 __cdecl Sound_QueryFound(const char *name, u8 *folders) {

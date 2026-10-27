@@ -541,6 +541,21 @@ u32 __cdecl Window_UpdateHover() {
     return 1;
 }
 
+u32 __fastcall Window_CaptureMouse(u8 *window) {
+    u8 *&capture = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5e8);
+    if (capture) return 0;
+    capture = window;
+    return 1;
+}
+
+u32 __fastcall Window_ReleaseMouse(u8 *window) {
+    u8 *&capture = *reinterpret_cast<u8 **>((uintptr_t)0x00faa5e8);
+    if (capture != window) return 0;
+    capture = nullptr;
+    Window_UpdateHover();
+    return 1;
+}
+
 void __cdecl Window_SaveInsetRect(u8 *window, s32 dx, s32 dy) {
     u8 rect[12];
     GuiRect_Ctor(rect);
@@ -617,6 +632,22 @@ u32 __cdecl Gui_MouseMove(u32 x, u32 y) {
         Window_PostMessage(hovered, 0x10003, xy, 0);
     }
     return 1;
+}
+
+void __cdecl Gui_PollMouseMove() {
+    s16 *const now = reinterpret_cast<s16 *>((uintptr_t)0x00faa540);   // (x, then y at +4)
+    s16 *const seen = reinterpret_cast<s16 *>((uintptr_t)0x00faa5cc);  // (x, then y at +4)
+    const u32 x_high = (u32)(s32)seen[0] & 0xffff0000u;
+    u32 y_high;
+    if (now[0] != seen[0])
+        y_high = (u32)(s32)now[0] & 0xffff0000u;
+    else if (now[2] != seen[2])
+        y_high = (u32)(s32)seen[2] & 0xffff0000u;
+    else
+        return;
+    seen[0] = now[0];
+    seen[2] = now[2];
+    Gui_MouseMove(x_high | (u16)now[0], y_high | (u16)now[2]);
 }
 }
 

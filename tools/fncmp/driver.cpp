@@ -410,12 +410,15 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
         const u32 *blob = log + 0x340 + 2 * (k & 63);  // (LOG_BLOBS)
         if ((blob[0] & 0x1f) == i + 1 && args[i]) {
             const u8 *const p = reinterpret_cast<const u8 *>((uintptr_t)args[i]);
-            u32 blob_mask = blob[1];
-            for (u32 w = 0; w < 4; ++w) {  // (at + 0xf80, fncmp.blob_when(): (k | 0x80000000, argument, value, mask), the mask for this call's argument)
+            u32 blob_mask = blob[1], how = blob[0];
+            for (u32 w = 0; w < 4; ++w) {  // (at + 0xf80, fncmp.blob_when(): (k | 0x80000000, argument, value, mask), the mask for this call's argument;
+                                           // fncmp.blob_when_inner(): k | 0xc0000000 and the second structure's selection, bits 5-30 of how)
                 const u32 *const when = log + 0x3e0 + 4 * w;
-                if (when[0] == ((k & 63) | 0x80000000u) && when[1] < n && stack[1 + when[1]] == when[2]) blob_mask = when[3];
+                if (when[1] >= n || stack[1 + when[1]] != when[2]) continue;
+                if (when[0] == ((k & 63) | 0x80000000u)) blob_mask = when[3];
+                else if (when[0] == ((k & 63) | 0xc0000000u)) how = (how & 0x8000001fu) | (when[3] & 0x7fffffe0u);
             }
-            args[i] = blob[0] & 0x80000000u ? blob_bytes_hash(p, blob[0], blob_mask) : blob_hash(p, blob_mask);
+            args[i] = how & 0x80000000u ? blob_bytes_hash(p, how, blob_mask) : blob_hash(p, blob_mask);
         }
         if (mask >> i & 1) args[i] = string_hash(reinterpret_cast<const u8 *>((uintptr_t)args[i]));
         if (mask >> (16 + i) & 1) args[i] = 0;
@@ -690,6 +693,7 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x006fe980, 12},   // CMMOnline's (slot 10 Debug_Nop_46cfb0, which MouseMode_Set calls on the new mode; 11 its leave)
                                    {0x006fea10, 12},   // CMMOnline's base (slots 0, 9 and 11 MouseMode_Set's; 0x481a10 / 0x485b70 make it)
                                    {0x006fea70, 12},   // MMStaffDrop's (slots 9, 10 AssignDrop: MouseMode_Set's on the mode 0x5054d0 makes)
+                                   {0x006feaa0, 12},   // the 0x6feaa0 mode's (slots 9, 10 the empty 0x5da3c0: MouseMode_Set's on the mode 0x497bc0 makes)
                                    {0x006fead0, 12}};  // the 0x6fead0 mode's (slots 9, 10: MouseMode_Set's on the mode 0x481a10 makes)
 
 // Hooked game functions that ported code stores by their address and that are later called through it (a new window's handlers +0x114 /

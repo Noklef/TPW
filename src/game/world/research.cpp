@@ -4,6 +4,7 @@
 
 #include "../core/globalsave.h"
 #include "../core/savegame.h"
+#include "../math/x87.h"
 #include "objectdefs.h"
 #include "things.h"
 #include "world.h"
@@ -90,6 +91,15 @@ u32 __fastcall ResearchLab_CountNotDone(const u8 *lab, void *, u32 cat) {
 u8 __fastcall ResearchLab_CurrentNotDone(const u8 *lab, void *, u32 group) {
     const s32 current = at<s32>(group_of(lab, group), 8);
     return current >= 0 && not_done(project(lab, current));
+}
+
+u32 __fastcall ResearchLab_LeftPercent(const u8 *lab, void *, u32 group) {
+    const s32 current = at<s32>(group_of(lab, group), 8);
+    if (current < 0) return 0;
+    const float dearest = at<float>(project(lab, at<s32>(lab, 0x1464)), 0xc);
+    const u8 *const p = project(lab, current);
+    if (!(at<float>(p, 0xc) > 0.1f) || !(dearest > 1.0f)) return 0;
+    return (u32)(long long)((X87Reg(at<float>(p, 0xc)) - X87Reg(at<float>(p, 0x10))) * X87Reg(100.0) / X87Reg(dearest)).v;  // __ftol
 }
 
 void __fastcall ResearchLab_FlagProjectControls(const u8 *lab) {

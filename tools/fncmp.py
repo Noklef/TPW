@@ -608,6 +608,17 @@ def blob_when(log, k, arg, value, mask, entry=0):
     struct.pack_into('<4I', log, LOG_BLOB_WHEN + 16 * entry, (k & 63) | 0x80000000, arg, value & 0xffffffff, mask)
 
 
+def blob_when_inner(log, k, arg, value, inner, entry=0):
+    """As blob_when(), but for those calls slot k's blob_bytes() hash takes inner = (offset, mask[, base]) as its second structure's selection in
+    place of its own (the outer mask kept): one slot told events whose second structures set different bytes (Window_NotifyC00's +4 / +5,
+    Window_Set4c's +8, Window_Notify40000's +0x10-+0x13). Shares blob_when()'s four entries (bit 30 of the entry's first dword)."""
+    assert 0 <= entry < 4
+    at, inner_mask, base = (tuple(inner) + (0,))[:3]
+    assert base % 4 == 0 and 0 <= base <= 28
+    how = base // 4 << 5 | (at + 1) << 8 | (inner_mask & 0x7fff) << 16
+    struct.pack_into('<4I', log, LOG_BLOB_WHEN + 16 * entry, (k & 63) | 0xc0000000, arg, value & 0xffffffff, how)
+
+
 def blob_bytes(log, k, arg, mask, inner=None):
     """As blob(), but `mask` selects bytes 0-31 (bit i: byte i), and inner = (offset, mask[, base]) also hashes bytes base to base + 14 of the structure
     that the pointer at that offset points to (unless null; base a multiple of 4 up to 28, default 0): an event on the stack that points to a second one,
@@ -687,10 +698,12 @@ def _log_args(e, k, raw, kk):
     earlier = logged_calls(e.read, kk)
     fills = [(_fill_at(f),) + struct.unpack('<4I', e.read(_fill_at(f), 16)) for f in range(FILLS)]
     blob_arg, blob_mask = struct.unpack('<2I', e.read(LOG + LOG_BLOBS + 8 * (k & 63), 8))
-    for w in range(4):   # (blob_when(): the mask for this call's argument)
+    for w in range(4):   # (blob_when(): the mask for this call's argument; blob_when_inner(): the second structure's selection)
         wk, wa, wv, wm = struct.unpack('<4I', e.read(LOG + LOG_BLOB_WHEN + 16 * w, 16))
         if wk == (k & 63) | 0x80000000 and wa < n and raw[wa] == wv:
             blob_mask = wm
+        elif wk == (k & 63) | 0xc0000000 and wa < n and raw[wa] == wv:
+            blob_arg = (blob_arg & 0x8000001f) | (wm & 0x7fffffe0)
     for i in range(n):
         for at, fk, fa, fn, how in fills:
             if fk == (k & 63) | 0x80000000 and fa == i and args[i]:

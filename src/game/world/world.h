@@ -8,6 +8,8 @@
 
 #include "../../../re/types.h"
 
+struct Stream;
+
 extern "C" {
 
 // 0x51aad0 (thiscall): 1 when the current arrival vehicle is set and is not the size-1 one.
@@ -25,6 +27,13 @@ void __fastcall World_MarkRideBuilt(u8 *world, void *, u32 id);
 // 0x7cfb70 (those with +0x98 set left out when leave_out); 0 when a wanted ride is not among
 // them, else 1. Only bit 0 of each byte is ever compared (sic: (byte & bit) == 1).
 u32 __fastcall World_HasRides(u8 *world, void *, const u8 *wanted, u32 leave_out);
+
+// 0x515540 (thiscall; name unconfirmed): the world's constructor: +0 Class507800_Ctor, the calendar clock at +0x2a0 (FunnyTime_Construct), +0x2c4
+// Init_4cf030; the map's 0x4000 cells at +0x2d8 (MapCell_Ctor, 0x44 bytes each), the 0x4000 track cells 0x110000 past them (TrackCell_Ctor, 0x28
+// bytes) and the 0x4000 RE cells at map +0x1b1104 (RECell_Ctor, 10 bytes), constructed through CRT_VectorCtorIteratorNoEh, and the memory ranges
+// of the first two set (MemRanges_SetCells44 / 28); 0x96 0x20-byte records at +0x1d943c (Empty_Ctor); the words +0x1da73c..+0x1da746 0, the dword
+// +0x1da710 1, [0x7cf56c] 0 and [0x801bbc] 0x7cfb90. Returns the world.
+u8 *__fastcall World_Ctor(u8 *world);
 
 // 0x51ad30 (thiscall): an empty constructor (the vector constructor's for several types);
 // returns this.
@@ -64,4 +73,9 @@ u32 __fastcall GameTable7cfb90_Get1da736_519610(u8 *o);
 // 0x51a9d0 (thiscall on the game object; name unconfirmed; the debug print is not reproduced): the bus stop position (Map_BusStopPos with 0) gives four cells: it, it + 1, it - 0x100 and
 // it - 0xff; the handles at +0x2b8 + cell * 0x44 that are not 0 name things (table 0x7cfb90, 20 bytes each) and 1 is returned for the first whose byte +2 is 1 and dword +0x220 is 0x15, else 0.
 u32 __fastcall World_BusStopBlocked(u8 *world);
+
+// 0x4d7a70 (thiscall (stream, save, version, unused), pops 16; called by 0x51756a and 0x518202): the world globals through
+// its serializers, each given the same arguments: the staff pool at +0 (StaffPool_Serialize), the calendar clock at +0x2a0
+// (GameClock_Serialize), the park's gates at +0x2c4 (ParkGates_Serialize). 1 at the first that fails (a nonzero result), else 0.
+u32 __fastcall WorldGlobals_Serialize(u8 *world, void *, Stream *stream, u32 save, s32 version, u32 unused);
 }

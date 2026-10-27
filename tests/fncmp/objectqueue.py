@@ -5,7 +5,8 @@
 # Path: the back of the queue's cell or the cell ahead of a quarter-turn angle) and whether the object can be opened (0x4df290 Object_CanOpen: Open's states with Path's
 # cells). The angles are quarter turns only: another leaves the original's direction bit a stale stack byte (see objectmsg.h). Where a person at a place in the
 # queue stands (0x4de840 Object_QueueSpot, Spot: Path's world, places in the first cells or past the end, the world's random state, now and then the one drawing 0x80000000); EntSpot (0x4dec30 Object_EntranceQueueSpot) on Spot's cases.
-# usage: objectqueue.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Back,BackTo,None,Open,Path,CanOpen,Spot,EntSpot)
+# AnySpot (0x4de7e0 Object_AnyQueueSpot): Spot's cases, the object's bit 3 of +0x32 set or clear.
+# usage: objectqueue.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Back,BackTo,None,Open,Path,CanOpen,Spot,EntSpot,AnySpot)
 import os
 import struct
 import sys
@@ -18,7 +19,7 @@ from fncmp import Bench, Call, RAM, put  # noqa: E402
 from thingenv import park  # noqa: E402
 
 B = Bench([(0x4d8300, 0x4d8340), (0x4d8c00, 0x4d8c30), (0x4d96f0, 0x4d99f0), (0x4de4a0, 0x4de5b0), (0x4df290, 0x4df310), (0x4de840, 0x4dede8), (0x516330, 0x516380),
-           (0x4ddf40, 0x4de200), (0x4de040, 0x4de100), (0x4de670, 0x4de7f0), (0x502430, 0x502470), (0x50b350, 0x50b370),
+           (0x4ddf40, 0x4de200), (0x4de040, 0x4de100), (0x4de670, 0x4de7e0), (0x4de7e0, 0x4de83e), (0x502430, 0x502470), (0x50b350, 0x50b370),
            (0x522770, 0x5227a0), (0x522850, 0x522870), (0x536300, 0x53644c), (0x5da3c0, 0x5da3c1),
            (0x4dd920, 0x4dda20), (0x412e90, 0x412eea), (0x441970, 0x4419b0), (0x436860, 0x436880)])
 OUT = RAM + 0x7000
@@ -146,7 +147,17 @@ def entrance_spot(r):
     return c
 
 
-CASES = {'Back': back, 'BackTo': back_to, 'None': none, 'Open': open_, 'Path': path, 'CanOpen': can_open, 'Spot': spot, 'EntSpot': entrance_spot}
+def any_spot(r):
+    """0x4de7e0: Spot's cases, the object's +0x32 bit 3 either way."""
+    c = spot(r)
+    c.address = 0x4de7e0
+    obj = bytearray(c.regions[RAM])
+    obj[0x32] = obj[0x32] & ~8 | r.choice([0, 8])
+    c.regions[RAM] = obj
+    return c
+
+
+CASES = {'Back': back, 'BackTo': back_to, 'None': none, 'Open': open_, 'Path': path, 'CanOpen': can_open, 'Spot': spot, 'EntSpot': entrance_spot, 'AnySpot': any_spot}
 
 
 def case(r):

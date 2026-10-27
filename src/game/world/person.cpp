@@ -6,6 +6,7 @@
 #include "../core/accessors.h"
 #include "../core/gameheap.h"
 #include "../core/globals.h"
+#include "../core/initializers.h"
 #include "../core/rings.h"
 #include "../core/savegame.h"
 #include "../core/soundplay.h"
@@ -14,10 +15,12 @@
 #include "../sprite/script.h"
 #include "../sprite/scriptref.h"
 #include "analyser.h"
+#include "messagecentre.h"
 #include "nav.h"
 #include "object.h"
 #include "objectdefs.h"
 #include "personscripts.h"
+#include "random.h"
 #include "things.h"
 #include "world.h"
 
@@ -129,6 +132,41 @@ u8 *__fastcall Person_BaseCtor(u8 *object, void *, u32) {
     at<u32>(object, 0x1f8) = 0;
     at<u32>(object, 0x1fc) = 0;
     return object;
+}
+
+u8 *__fastcall MovingPerson_Ctor(u8 *sprite, void *, u32 cell, u32 kind) {
+    Thing_Construct(sprite, nullptr, cell, kind);
+    Init_4d3ed0(sprite + 0xc);
+    at<u32>(sprite, 0x1c) = 0;
+    at<u32>(sprite, 0x20) = 0;
+    at<u32>(sprite, 0x24) = 0;
+    at<u32>(sprite, 0x28) = 0;
+    at<u8>(sprite, 0x2c) = 0;
+    Thoughts_Ctor(sprite + 0x30);
+    at<u16>(sprite, 0xc0) = 0;
+    at<u16>(sprite, 0xc2) = 0;
+    at<u16>(sprite, 0xc4) = 0;
+    at<u32>(sprite, 0xc8) = 0;
+    at<u16>(sprite, 0xcc) = 0;
+    at<u32>(sprite, 0xd0) = 0;
+    Nav_Ctor(sprite + 0xd4);
+    at<u32>(sprite, 0x190) = 0;
+    at<u32>(sprite, 0x194) = 0;
+    at<u32>(sprite, 0x198) = 0;
+    const u32 pick = (u32)World_Rand(global<u8 *>(0x0080239c)) % 5;
+    at<u16>(sprite, 0xc0) = global<u16>(0x0075c7f8 + pick * 2);
+    at<u16>(sprite, 0xc2) = global<u16>(0x0075c7f0);
+    MessageCentre_AddThing(MessageCentre_Instance(), nullptr, sprite, 0xa);
+    at<u16>(sprite, 0xcc) = (u16)cell;
+    const u32 id = cell & 0xffff;
+    const u32 x = (((id << 16) - 0x10000) & 0x7f0000) + 0x8000;
+    const u32 y = ((id - 1) >> 7 << 16) + 0x8000;
+    Nav_SetPosVel(sprite + 0xd4, nullptr, x, y, 0, 0);
+    Nav_GetPos(sprite + 0xd4, nullptr, &at<u32>(sprite, 0x190), &at<u32>(sprite, 0x194));
+    at<u32>(sprite, 0x28) = 0;
+    at<u32>(sprite, 0xd0) = 0;
+    at<u32>(sprite, 0x24) = 0;
+    return sprite;
 }
 
 u8 *__fastcall Person_PartsCtor(u8 *object, void *, u32) {
@@ -391,6 +429,23 @@ void __fastcall Person_PlaceSprite(u8 *person, void *, float t) {
     }
 }
 
+void __fastcall World_PlaceSprites(u8 *, void *, float t) {
+    const u8 *const first = global<const u8 *>(0x007cf56c);
+    u16 handle = first ? at<u16>(first, 4) : 0;
+    while (handle) {
+        // (the debug print of the table's first thing missing is left out)
+        u8 *const thing = global<u8 *>(0x007cfb90 + handle * 20u);
+        if (thing && !thing[3]) {
+            const u8 kind = thing[2];
+            if (kind == 1 || kind == 4 || kind == 5 || kind == 6 || kind == 8 || kind == 7 || kind == 0x12) Person_PlaceSprite(thing, nullptr, t);
+        }
+        u16 own;
+        const u16 at_handle = *Thing_GetHandle(thing, nullptr, &own);
+        const u8 *const next = global<const u8 *>(0x007cfb98 + at_handle * 20u);
+        handle = next ? at<u16>(next, 4) : 0;
+    }
+}
+
 u32 __fastcall Person_DumpActionHistory(u8 *person) {
     auto read = [](const void *p, u32 offset) { (void)*reinterpret_cast<const volatile u16 *>((uintptr_t)p + offset); };
     for (s32 i = 0x1f; i >= 0; --i) {
@@ -407,5 +462,16 @@ u32 __fastcall Person_DumpActionHistory(u8 *person) {
         read(entry, 0);  // the action, printed by its kind
     }
     return 0xffffffff;  // (the loop counter's last value, left in EAX)
+}
+
+void __fastcall Person_UpdateSpeed(u8 *person) {
+    const u32 sum = (u32)at<u16>(person, 0xc2) + at<u16>(person, 0xc0) + at<u16>(person, 0xc4);
+    const X87Reg pace = X87Reg((double)(s32)sum) / X87Reg((double)(global<u32>(0x0075c7fc) & 0xffff));
+    const float speed = (float)((pace - X87Reg(at<float>(person, 0xc8)) * X87Reg(-3.0)) * X87Reg(0.25));
+    at<float>(person, 0xc8) = speed;
+    Nav_SetSpeed(person + 0xd4, nullptr, speed);
+    at<u16>(person, 0xc4) = (u16)((u16)(at<u16>(person, 0xc4) * 99u) / 100u);
+    Nav_GetPos(person + 0xd4, nullptr, &at<u32>(person, 0x190), &at<u32>(person, 0x194));
+    ScriptRef_Apply(person + 0xc);
 }
 }

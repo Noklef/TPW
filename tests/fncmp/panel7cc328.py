@@ -11,7 +11,13 @@
 # columns (bottom 1): the rows' cells are the texts themselves (the name's address and the number), so no strings are made (their
 # allocator byte is a stack byte the original never sets: window7059f0.py).
 # AddStaffRow (0x4b47e0): OnMessage's surroundings, the list empty; one of the park's things.
-# usage: panel7cc328.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Kill24,OnMessage,AddStaffRow)
+# Reopen (0x4b4e30), AddStaff (0x4b4f00), RemoveStaff (0x4b4f90): the panel 0x7cc328 itself (in OnMessage's surroundings: its window +0x10
+# the panel window [0x7cc338], for AddStaff / RemoveStaff 0 now and then), its recorder vtable (slot 13's answer any), its +0x20 object a
+# recorder vtable (slot 9 of one); the tab [0x7cc358] 0-4 mostly (Reopen) or one of the things' group bytes +2 (4-8 and others); AddStaff
+# with the list empty, RemoveStaff with OnMessage's list, some of its items' data dwords the thing.
+# OnStaff (0x481960): AddStaff's or RemoveStaff's set-up by its flag (0, 1 or any), the staff member in a random slot of the thing table
+# (the handle's high half any).
+# usage: panel7cc328.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Kill24,OnMessage,AddStaffRow,Reopen,AddStaff,RemoveStaff,OnStaff)
 import os
 import struct
 import sys
@@ -21,16 +27,17 @@ sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import ridesweep  # noqa: E402
 import window7059f0  # noqa: E402
-from fncmp import CDECL_LOG4, LOG, RAM, Bench, Call, put, vtable  # noqa: E402
+from fncmp import CDECL_LOG4, LOG, RAM, Bench, Call, put, set_return, vtable  # noqa: E402
 from window import VTABLE, notify_blobs  # noqa: E402
 from thingenv import THING  # noqa: E402
 
-CALLS = {'Kill24': 0x4b4670, 'OnMessage': 0x4b4850, 'AddStaffRow': 0x4b47e0}
+CALLS = {'Kill24': 0x4b4670, 'OnMessage': 0x4b4850, 'AddStaffRow': 0x4b47e0, 'Reopen': 0x4b4e30, 'AddStaff': 0x4b4f00,
+         'RemoveStaff': 0x4b4f90, 'OnStaff': 0x481960}
 B = Bench(sorted(set(window7059f0.LIST_RANGES + ridesweep.SWEEP_RANGES + [
     (0x4b4670, 0x4b4695), (0x475550, 0x47558b), (0x4b47e0, 0x4b4850), (0x4b4850, 0x4b4a3c), (0x506650, 0x506675), (0x506860, 0x506867),
-    (0x65f66e, 0x65f697)])))
+    (0x65f66e, 0x65f697), (0x4b4e30, 0x4b4ee9), (0x4b4f00, 0x4b4f8b), (0x4b4f90, 0x4b4fc0), (0x506490, 0x5064d4), (0x5da3c0, 0x5da3c1), (0x481960, 0x4819db)])))
 POOL2, PANEL, OTHER, WIN, AREA, PVT = RAM + 0x40000, RAM + 0x50000, RAM + 0x50100, RAM + 0x50200, RAM + 0x50400, RAM + 0x50500
-ROWS, ROWWINS = RAM + 0x50600, RAM + 0x52000   # (the rows' windows past the park's definitions)
+ROWS, ROWWINS, OBJ20, OVT = RAM + 0x50600, RAM + 0x52000, RAM + 0x50580, RAM + 0x50700   # (the rows' windows past the park's definitions)
 FLOATS = [0.0, 0.5, 1.0, 50.0, 99.9, 100.0, 255.9, 256.0, 300.5, -1.5, -0.5, 1e10, -1e10]
 
 
@@ -96,10 +103,50 @@ def message_case(r):
     return Call(CALLS['OnMessage'], [WIN, message, tab, b], regions, ret='a')
 
 
+def panel_case(r, op):
+    """Reopen, AddStaff, RemoveStaff on the panel 0x7cc328 (above); OnStaff as either by its flag"""
+    flag = None
+    if op == 'OnStaff':
+        flag = r.choice([0, 1, 0, 1, r.getrandbits(32)])
+        op = 'AddStaff' if flag else 'RemoveStaff'
+    regions, area = env(r, op == 'AddStaff')
+    globs = regions[0x7cc310]
+    put(globs, 0x38, 'I', OBJ20)
+    regions[OBJ20] = struct.pack('<I', OVT)
+    regions[OVT] = vtable({9: 1})
+    set_return(regions[LOG], 13, r.choice([0, 1, r.getrandbits(32)]))
+    if op == 'Reopen':
+        put(globs, 0x48, 'I', r.choice(list(range(5)) * 3 + [5, 0xffffffff, r.getrandbits(32)]))
+        return Call(CALLS[op], [0x7cc328], regions, conv='t', ret='v')
+    if r.random() < 0.1:
+        put(globs, 0x28, 'I', 0)
+    things = regions[POOL2]
+    for t in range(0, len(things), THING):
+        things[t + 2] = r.choice([4, 5, 6, 7, 8] * 2 + [3, 9, r.getrandbits(8)])
+    staff = POOL2 + THING * r.randrange(6)
+    put(globs, 0, 'H', r.choice([area, area, area, area ^ 1]))
+    put(globs, 0x48, 'I', r.choice([{4: 1, 5: 0, 6: 2, 7: 3, 8: 4}.get(things[staff - POOL2 + 2], 5)] * 3 + [0, 1, 2, 3, 4, 5]))
+    if op == 'RemoveStaff':
+        list3 = regions[window7059f0.LIST3]
+        stride = 4 + max(struct.unpack_from('<h', list3, 0x164)[0], 0)
+        links = bytearray(regions[window7059f0.LINKS3 - 0x20])
+        for j in range(1, (len(links) - 0x20) // 4, stride):
+            if r.random() < 0.3:
+                put(links, 0x20 + 4 * j, 'I', r.choice([staff, staff, staff + THING]))
+        regions[window7059f0.LINKS3 - 0x20] = links
+    if flag is not None:
+        h = r.randrange(1, 12)
+        put(regions[0x7cfb90], 20 * h, 'I', staff)
+        return Call(CALLS['OnStaff'], [0x7b51f0, h | r.choice([0, r.getrandbits(16) << 16]), flag], regions, conv='t', ret='v')
+    return Call(CALLS[op], [0x7cc328, staff], regions, conv='t', ret='v')
+
+
 def case(r):
     op = r.deal(OPS)
     if op == 'OnMessage':
         return message_case(r)
+    if op in ('Reopen', 'AddStaff', 'RemoveStaff', 'OnStaff'):
+        return panel_case(r, op)
     if op == 'AddStaffRow':   # (env()'s, the list empty: the area [0x7cc310] the things' or not, the list [0x7cc314]; one of the things)
         regions, area = env(r, True)
         put(regions[0x7cc310], 0, 'H', r.choice([area, area, area, area ^ 1]))

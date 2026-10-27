@@ -536,15 +536,15 @@ def column_case(r):
 ACHARS, ATEXTS = RAM + 0xfd00, RAM + 0xfe00
 
 
-def add_case(r):
+def add_case(r, columns=(0, 1, 2, 3, 3)):
     """AddItem (0x66403b): list_env()'s windows, a new forest at LINKS3 (4 + 0-3 columns) whose last root goes on to the free items'
     chain (parent -2, no child; their cells 0) or ends; the cells of a number column (bottom 1) numbers, the others string objects (+4
     one of 8 short strings of ALPHA, now and then none) or 0; the dword count theirs or the used ones' (the array grown: the heap's first
     block) or 0, now and then no array; the sort column and direction, flag 0x10 (sorted) set or not; the texts like the cells (strings
     for the string columns, mostly set) or none; the parent -1, a position or past the count; refresh or not. The new strings' allocator
-    bytes masked (allocator_masks)."""
+    bytes masked (allocator_masks). The column counts drawn from columns (window7cc8bc.py's callers give one text: at most one)."""
     window, regions, _ = list_env(r)
-    ncols = r.choice([0, 1, 2, 3, 3])
+    ncols = r.choice(columns)
     put(window, 0x164, 'h', ncols)
     stride = 4 + ncols
     bottoms = [r.choice([0, 0, 1, 1, -1]) for _ in range(4)]

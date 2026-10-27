@@ -272,4 +272,9 @@ u32 __fastcall Object_CanOpen(u8 *object) {
     if (at<s32>(def, 0x9c) == 3 && !Object_LinkOtherOpen(object)) return 0;
     return 1;
 }
+
+u32 __fastcall Object_AnyQueueSpot(u8 *object, void *, u32 place, u16 *cell, u8 *x, u8 *y) {
+    if (at<u8>(object, 0x32) & 8) return Object_QueueSpot(object, nullptr, place, cell, x, y);
+    return Object_EntranceQueueSpot(object, nullptr, place, cell, x, y);
+}
 }  // extern "C"

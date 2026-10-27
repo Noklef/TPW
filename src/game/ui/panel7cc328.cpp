@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../core/idmaps.h"
 #include "../core/vcall.h"
 #include "../sprite/script.h"
 #include "../world/ridesweep.h"
@@ -56,6 +57,53 @@ s32 __cdecl Panel7cc328_OnMessage(u8 *window, u32 message, u32 id, u32 b) {
         vcall<void>(reinterpret_cast<u8 *>((uintptr_t)0x007cc328), 0x20);
     }
     return Window_CallDefault(window, nullptr, message, id, b);
+}
+
+void __fastcall Panel7cc328_Reopen(u8 *self) {
+    void *const *const vtable = at<void *const *>(at<u8 *>(self, 0x20), 0);   // (read before slot 13, the object after: as the original)
+    const u32 value = vcall<u32>(self, 0x34);
+    reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>(vtable[9])(at<u8 *>(self, 0x20), nullptr, value);
+    vcall<void>(self, 0x18);
+    const u32 tab = global<u32>(0x007cc358);
+    u8 *const list = Window_FindChild(at<u8 *>(self, 0x10), nullptr, 0x1e7b);
+    Window7059f0_Clear(list);
+    global<u8 *>(0x007cc314) = list;
+    u16 handle;
+    global<u16>(0x007cc310) = *Thing_GetHandle(global<u8 *>(0x007c2658), nullptr, &handle);
+    global<u32>(0x007cc358) = tab;
+    static const u32 kMask[5] = {2, 4, 0x10, 8, 0x20};   // (by the tab)
+    if (tab <= 4) Things_ForEachSelected(kMask[tab], reinterpret_cast<ObjectCallback>(&Panel7cc328_AddStaffRow));
+    Window7059f0_RefreshRows(list);
+    vcall<void>(self, 0x20);
+    vcall<void>(self, 0x14);
+}
+
+void __fastcall Panel7cc328_AddStaff(u8 *self, void *, u8 *staff) {
+    if (!at<u8 *>(self, 0x10)) return;
+    u8 *const list = Window_FindChild(at<u8 *>(self, 0x10), nullptr, 0x1e7b);
+    if (!Staff_IsState3At(staff, nullptr, global<u16>(0x007cc310))) return;
+    if (Byte2_ToIndex(staff) != global<u32>(0x007cc358)) return;
+    u32 texts[2];
+    texts[0] = (u32)(uintptr_t)Staff_GetName(staff);
+    const u32 low = (u32)(long long)at<float>(staff, 0x1fc) & 0xff;   // (__ftol's low byte)
+    texts[1] = (u32)((s32)(low << 10) / 100);
+    Window7059f0_AddItem(list, nullptr, texts, (u32)(uintptr_t)staff, -1, 1);
+}
+
+void __fastcall Panel7cc328_RemoveStaff(u8 *self, void *, u8 *staff) {
+    if (!at<u8 *>(self, 0x10)) return;
+    u8 *const list = Window_FindChild(at<u8 *>(self, 0x10), nullptr, 0x1e7b);
+    const s32 n = Window7059f0_FindItemData(list, nullptr, (u32)(uintptr_t)staff);
+    if (n >= 0) Window7059f0_RemoveItem(list, nullptr, n);
+}
+
+void __fastcall Panel7cc328_OnStaff(void *, void *, u32 handle, u32 added) {
+    u8 *const staff = global<u8 *>(0x007cfb90 + (handle & 0xffff) * 20u);
+    u8 *const panel = reinterpret_cast<u8 *>((uintptr_t)0x007cc328);
+    if (added)
+        Panel7cc328_AddStaff(panel, nullptr, staff);
+    else
+        Panel7cc328_RemoveStaff(panel, nullptr, staff);
 }
 
 void __fastcall Panel7cc328_Dress(u8 *self) {

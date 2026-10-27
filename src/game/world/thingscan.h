@@ -246,11 +246,12 @@ u32 __fastcall ParkAnalyser_CountDef4ac0(u8 *analyser, void *, u32 maxAge);
 // giving 0, else again, 100 when at least 100; then once more, below 0 giving 0, else the fourth.
 s32 __fastcall ParkAnalyser_Kind1OnPlainHalfClamped(u8 *analyser);
 
-// 0x4c9340 / 0x4c93f0 (thiscall, the analyser unused (least), pops 4; names unconfirmed): how many things of kind 1 on a plain analyser
-// cell (AnalyserCell_TypePlain) have the low byte of their float +0x1a8 / +0x1a4 cut to an integer above least's low byte (unsigned).
+// 0x4c9340 / 0x4c93f0 / 0x4c9290 (thiscall, the analyser unused (least), pops 4; names unconfirmed): how many things of kind 1 on a plain
+// analyser cell (AnalyserCell_TypePlain) have the low byte of their float +0x1a8 / +0x1a4 / +0x1ac cut to an integer above least's low byte (unsigned).
 // The debug prints of the slot check are left out.
 s32 __fastcall Things_CountPeopleStat1a8Above(void *self, void *, u32 least);
 s32 __fastcall Things_CountPeopleStat1a4Above(void *self, void *, u32 least);
+s32 __fastcall Things_CountPeopleStat1acAbove(void *self, void *, u32 least);
 
 // 0x4c9670 / 0x4c9750 (as 0x4c9340; names unconfirmed): the percentage (count * 100 / all, signed) of those things whose float +0x19c's
 // low byte (as 0x4c9340's) is above / below bound (signed), 0 when there are none.
@@ -262,9 +263,32 @@ s32 __fastcall Things_PercentPeopleStat19cBelow(void *self, void *, s32 bound);
 // slot check are left out.
 s32 __stdcall Things_AverageStat1f8OfKind(u32 kind);
 
+// 0x4c9d80 (no arguments; name unconfirmed): Things_AverageStat1f8OfKind over all the staff (kind byte +2 4 to 8). The debug prints of
+// the slot check are left out.
+s32 __cdecl Things_AverageStaffStat1f8Int();
+
 // 0x4ca160 (thiscall, the analyser unused, no arguments; name unconfirmed): over the objects (kind 3) with bit 0 of +0x32 set, the
 // average (signed) of 100 less the low byte of their float +0x44 cut to an integer, 0 when there are none.
 s32 __cdecl Things_AverageKind3Flag1Of100Minus44();
+
+// 0x4ca220 (stdcall (&handle, &value), pops 8; ECX unused; name unconfirmed): *value = 0, then of the objects (kind 3) with bit 0 of
+// +0x32 set the first with the greatest (signed) 100 less the low byte of its float +0x44 cut to an integer: its handle to *handle and
+// that to *value; *handle = 0 when there is none (*value left 0). Returns handle. The debug print of the slot check is left out.
+u16 *__stdcall Things_MostKind3Flag1Of100Minus44(u16 *handle, s32 *value);
+
+// 0x4cc3b0 (stdcall (&handle), pops 4; ECX unused; name unconfirmed): *handle = 0, then of the rides (objects, kind 3, whose definition
+// (ObjectDefs_Find) has 0 at +0x4ac) whose definition (Object_GetDef) has 1 at +0x9c the first with the highest Object_Rating(0): its handle
+// to *handle; returns that rating, 0 for none. The debug print of the slot check is left out.
+u32 __stdcall Things_BestRatedDef9c1(u16 *out);
+
+// 0x4ccd10 (stdcall (&handle), pops 4; ECX unused; name unconfirmed): of the rides (as 0x4cc3b0's, any +0x9c) the first with the highest
+// Object_Rating(0): its handle to *handle (0 for none); returns that rating (0 for none).
+s32 __stdcall Things_BestRatedDef4ac0(u16 *out);
+
+// 0x4ccbf0 (thiscall on the analyser (maxAge), pops 4; name unconfirmed): the rides' (as 0x4cc3b0's) average Object_Rating(0) (a signed
+// division; 0 for none) the analyser keeps at +0x1f0f4 (+0 the game time it was taken, +4 the average, byte +8 set), kept as
+// ParkAnalyser_CountKind1OnPlainCell's count is. Returns +4.
+s32 __fastcall ParkAnalyser_AverageRatingDef4ac0(u8 *analyser, void *, u32 maxAge);
 
 // 0x4c9b40 (thiscall on the analyser, unused (kind), pops 4; name unconfirmed): the staff (things of kind 4, 5, 6, 8 or 7) of that kind,
 // or of any when it is 0, with a patrol region (Staff_HasPatrolRegion), counted.
