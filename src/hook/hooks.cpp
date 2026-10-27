@@ -137,6 +137,7 @@
 #include "../game/gfx/dctvlc.h"
 #include "../game/gfx/dderrors.h"
 #include "../game/gfx/glyphrender.h"
+#include "../game/gfx/guitext.h"
 #include "../game/gfx/mmxblit.h"
 #include "../game/gfx/movieidct.h"
 #include "../game/gfx/moviepixels.h"
@@ -5438,6 +5439,8 @@ const Hook kHooks[] = {
     {"MovieSound_Release",        0x006729e0, (void *)&MovieSound_Release, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
     {"MovieSound_ReleaseStream",  0x00672bf0, (void *)&MovieSound_ReleaseStream, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
     {"MovieSound_PlayDistance",   0x00672730, (void *)&MovieSound_PlayDistance, {0x83, 0xec, 0x08, 0x56, 0x8b}},
+    {"GuiText_Draw",              0x00492750, (void *)&GuiText_Draw, {0x6a, 0xff, 0x68, 0x1b, 0x9c}},
+    {"GuiText_Measure",           0x004929f0, (void *)&GuiText_Measure, {0x6a, 0xff, 0x68, 0x3b, 0x9c}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

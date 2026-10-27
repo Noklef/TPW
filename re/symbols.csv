@@ -5599,6 +5599,8 @@ address,name,kind,confidence,notes
 0x006729e0,MovieSound_Release,function,low,"reimplemented (src/game/gfx/moviesound); thiscall on a COM pointer's place, returns 0: the object released and the place cleared unless null"
 0x00672bf0,MovieSound_ReleaseStream,function,low,"reimplemented (src/game/gfx/moviesound); thiscall on the player, returns 0: the settings' streaming buffer (+0x5c) released and cleared unless null"
 0x00672730,MovieSound_PlayDistance,function,low,"reimplemented (src/game/gfx/moviesound); thiscall on the player: the play position (simulated, moved by 0x372 and wrapped, or the stream's play cursor) past the last write (+0x370), wrapped by the stream's size (+0x36c)"
+0x00492750,GuiText_Draw,function,low,"reimplemented (src/game/gfx/guitext); The GUI's text drawn in a rectangle through a stack text layout: alignments, the language's font, colour, surface, clip; the glyphs' bounds out"
+0x004929f0,GuiText_Measure,function,low,"reimplemented (src/game/gfx/guitext); The GUI's text measured in a rectangle through a stack text layout: alignments, the language's font; the text box out"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"
