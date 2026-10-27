@@ -5,7 +5,28 @@
 
 #include "../../../re/types.h"
 
+// Train_PlaceCars's call into the game: Animator_Update (0x473c70).
+struct TrainEnv {
+    s32(__cdecl *animate)(u8 *animator, const u8 *block, u32 mode);
+};
+// nullptr restores the game's.
+void Train_SetEnv(const TrainEnv *e);
+const TrainEnv *Train_GetEnv();
+
 extern "C" {
+
+// 0x432df0 (cdecl; type, train, force, keep; name unconfirmed): nothing while 0x790afc is set unless force. Each car (+0x30, +0x34):
+// without keep its +8 and its piece's (+0x68, when there) +8 get 0x200000; a car with flag 0x2000 is then skipped. Its ride's (table
+// 0x7a4610 [car+0x70]) model (+8) root frame (+4 -> +0x78) +0x44 takes the base: for the first car the train's +0x20; for a later one
+// the car before's +0x50 plus the train type's (+0x18) gap +0xc4 when that car has flag 0x2000, else that car's ride model's top (+0x28
+// -> +4, row type +0x18 of 20 bytes, +4) +0x34, or 0 with no top. Animator_Update (ride, 1, 0). A later car's model flags (+0x2c, when
+// there) get 0x80000010 unless the type has flag 0x10; the first car's lose 0x10 and Model_FitToGrid (model, [0x7a0854], the car part's
+// (+0x100) +0x20, 0). Then the model's frames at the type's indexes +0x1c / +0x20 / +0x24 / +0x28 past the root's +0x46 (below the
+// root's +0x44 count its +0x70 frames, 0xa0 apart, else its +0x74 ones, 0x58 apart): the last car Flags_SetMoved (+0x1c, type 0x400)
+// and clears 0x10 (+0x20, 0x800); the others clear 0x10 (+0x1c, 0x400, unless the next car has flag 0x2000) and Flags_SetMoved (+0x20,
+// 0x800); the first car Flags_SetMoved (+0x24, 0x1000) and clears 0x10 (+0x28, 0x2000); the others clear 0x10 (+0x24, 0x1000) and set
+// 0x80000010 (+0x28, 0x2000).
+void __cdecl Train_PlaceCars(const u8 *type, u8 *train, u32 force, u32 keep);
 
 // 0x432d50: unless 0x790afc is set, marks each car but the last 0x100 (+8), clearing it on
 // the last, and picks its coupling: +0x84 with the type's +0x44 for a marked car without
