@@ -48,10 +48,6 @@ void __fastcall Stat100_Add(float *stat, void *, float delta);
 // script not there the original's x, y and z are its stack's leftovers; 0 here.)
 void __fastcall Sprite_SpawnParticle(u8 *sprite, void *, s32 effect);
 
-// 0x4fa670 (thiscall (on), pops 4; name invented): +0x198 (Sprite_SetDestination's mark) the next count of 0x7cdb98 (Counter7cdb98_Inc)
-// when on is nonzero (the handle read for the empty Debug_Printf), else 0.
-void __fastcall Sprite_SetBlockedMark(u8 *sprite, void *, u32 on);
-
 // 0x4fdcc0 (thiscall (object), pops 4, x87; name invented): nothing when the object's rating (Object_Rating (0), asked three times) is 0.
 // Else its distance from the visitor's wanted excitement (the byte of the 12-byte row 0x7850e4 by +0x1f0; absolute) picks the step:
 // below 5 the int 0x785064, below 15 0x785068, below 40 0x78506c (else +0x19c is left), added to +0x19c and kept to 0..100 (as
