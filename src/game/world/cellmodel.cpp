@@ -5,7 +5,9 @@
 
 #include "../core/accessors.h"
 #include "../core/crt.h"
+#include "../terrain/land.h"
 #include "mapcell.h"
+#include "queuepieces.h"
 #include "random.h"
 
 namespace {
@@ -157,6 +159,42 @@ u32 __fastcall MapCell_PickPathModel(const u8 *cell, void *, s32 *angle) {
         side = static_cast<u8>(Byte_ShiftLog2(side, 4));
     } while (side != 1);
     return model;
+}
+
+void __fastcall MapCell_ApplyPathModel(u8 *cell) {
+    s32 angle = static_cast<s32>(reinterpret_cast<uintptr_t>(cell));   // (unset by some picks: the original's slot holds its saved ECX)
+    const s32 kind = at<s32>(cell, 8);
+    u32 model = 0x37;
+    if (kind > 0 && kind != 5)
+        model = MapCell_PickPathModel(cell, nullptr, &angle);
+    else
+        angle = 0;
+    s32 *const paint = reinterpret_cast<s32 *>(0x00820aa8);
+    paint[0] = static_cast<s32>(model) >> 16;
+    paint[1] = static_cast<s32>(model & 0xffff);
+    paint[2] = angle;
+    const u32 index = static_cast<u32>(at<u16>(cell, 0)) - 1;
+    const s32 x = static_cast<s32>(index & 0x7f), y = static_cast<s32>(index >> 7);
+    at<s32>(cell, 0x14) = paint[0];
+    at<s32>(cell, 0x18) = paint[1];
+    at<s32>(cell, 0x1c) = paint[2];
+    if (at<s32>(cell, 0x14) == 2) {
+        if (at<u32>(cell, 4)) {
+            QueuePiece_Remove(at<u32>(cell, 4));
+            at<u32>(cell, 4) = 0;
+        }
+        at<u32>(cell, 4) = QueuePiece_Place(x, y, at<u32>(cell, 0x14), at<u32>(cell, 0x18), at<u32>(cell, 0x1c), 0);
+        paint[1] = 8;   // (the erasing tile: set 0, tile 8)
+        paint[0] = 0;
+        paint[2] = 0;
+        Terrain_PaintAt(x, y, paint);
+        return;
+    }
+    if (at<u32>(cell, 4)) {
+        QueuePiece_Remove(at<u32>(cell, 4));
+        at<u32>(cell, 4) = 0;
+    }
+    Terrain_PaintAt(x, y, reinterpret_cast<const s32 *>(cell + 0x14));
 }
 
 }  // extern "C"

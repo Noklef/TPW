@@ -37,4 +37,12 @@ u32 __fastcall MapCell_PickModel(const u8 *cell, void *, s32 *angle);
 // own entry (MapHandle_Entry28; for a type 0xc / 0x11 one, MapCell_IsTypeCOr11, the parent [0x7cf83c] + (its word +0x10 + 0x6cde) * 0x28)
 // has none of its low flags (MapCell_HasLowFlags).
 u32 __fastcall MapCell_PickPathModel(const u8 *cell, void *, s32 *angle);
+
+// 0x5365d0 (thiscall; name invented, unconfirmed): a path cell's model applied. Its kind (+8) positive but 5 picks the model
+// (MapCell_PickPathModel; an angle it leaves unset is the cell's address, the original's stack slot holding its saved ECX), else 0x37 at
+// angle 0; the model's high half (signed), low half and the angle go to 0x820aa8 / 0x820aac / 0x820ab0 and the cell's +0x14 / +0x18 / +0x1c.
+// The cell's position: its id (the word +0) - 1, x its low 7 bits, y the rest. A model of group 2 (+0x14) replaces the cell's queue ride (+4:
+// QueuePiece_Remove, then QueuePiece_Place (x, y, +0x14, +0x18, +0x1c, no claim)) and paints the erasing tile (0x820aa8 = {0, 8, 0}); any
+// other removes the ride and paints its model (Terrain_PaintAt (x, y, the cell + 0x14)).
+void __fastcall MapCell_ApplyPathModel(u8 *cell);
 }
