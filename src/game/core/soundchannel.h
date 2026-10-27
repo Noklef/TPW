@@ -121,6 +121,11 @@ u32 *__fastcall SoundChannelFn70a270_Run(const u8 *functor, void *, u32 *out, u8
 // 0x6b8f60 (slot 13 of 0x70a5d8, thiscall (out, record, value), pops 0xc, the channel unused; name invented): a settings record's +0x40
 // = value (SetThenFlag40_4c_6b9cf0), its +0x68 = 0 (SetThenFlag68_4c_6b9d30), its +4 |= 0xc; *out = 0. Returns out.
 u32 *__fastcall SoundChannel_SetRecordValue40(u8 *channel, void *, u32 *out, u8 *record, u32 value);
+// 0x6b5fc0 (slot 14 of 0x70a5d8, thiscall (out, channel), pops 8, this unused; name invented): with a voice array (the channel's pool
+// +0x14, its +4), for each voice up to the count (+8, read once) of them, the first one even when the count is 0 (sic), the channel's
+// source (+0x18, re-read each time; its vtable read before the rate) slot 32 (a local out, the voice's id, ChannelVoice_ScaledRate);
+// *out = 0. Returns out.
+u32 *__fastcall SoundChannel_ApplyVoiceRates(u8 *self, void *, u32 *out, u8 *channel);
 
 // 0x6b9a60 (thiscall (a, &picked, record), pops 0xc; name invented): the channel's slot 6 (a, record) picks a voice, kept in *picked; none
 // and the record's flags (+0x14, read after) with bit 13: 0. Else the channel's slot 5 (the voice, or a without one; record), its result returned.

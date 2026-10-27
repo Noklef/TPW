@@ -308,6 +308,24 @@ u32 *__fastcall SoundChannel_SetRecordValue40(u8 *, void *, u32 *out, u8 *record
     return out;
 }
 
+u32 *__fastcall SoundChannel_ApplyVoiceRates(u8 *, void *, u32 *out, u8 *channel) {
+    u8 *const pool = at<u8 *>(channel, 0x14);
+    u8 *voice = at<u8 *>(pool, 4);
+    u8 *const end = voice + at<u32>(pool, 8) * 0x8c;
+    if (voice) {
+        do {
+            u32 local;
+            const u32 id = voice_id(voice);
+            u8 *const source = at<u8 *>(channel, 0x18);
+            const u32 rate = ChannelVoice_ScaledRate(voice);
+            vcall<void>(source, 0x80, &local, id, rate);
+            voice += 0x8c;
+        } while (voice < end && voice);
+    }
+    *out = 0;
+    return out;
+}
+
 u32 *__fastcall SoundChannelFn70a278_Run(const u8 *functor, void *, u32 *out, u8 *channel) {
     u32 local;   // (the original's is the channel argument's own slot)
     auto record = [functor] { return at<u8 *>(functor, 4); };

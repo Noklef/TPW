@@ -11,6 +11,7 @@
 # The flag 2 switch (0x6b9160): see flag2_case(). The sound object's open (0x6b8480): see objopen_case(). The sound object's occluder
 # forwards (0x6b8c70, 0x6b8cb0): as the channel's add and remove, the object's channel +0x24 or none.
 # The channel's slot 13 (0x6b8f60): a settings record at REC (random bytes), any value; the channel argument random (unused).
+# The channel's slot 14 (0x6b5fc0): see rates_case().
 # usage: soundchannel.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -24,7 +25,7 @@ CALLS = {'apply': 0x6b8b40, 'settings': 0x6b7d70, 'fn260': 0x6b5e40, 'eax0b': 0x
          'position': 0x6b79d0, 'fn278': 0x6b5e60, 'mode': 0x6b90d0, 'placement': 0x6b9930, 'voices': 0x6b84f0, 'b4c': 0x6b57b0, 'b3c': 0x6b5720,
          'b54': 0x6b5810, 'objplace': 0x6b8b60, 'voiceocc': 0x6b7fa0, 'clearocc': 0x6b7a70, 'pick': 0x6b9a60, 'play': 0x6b9ab0,
          'setocc': 0x6b8180, 'addocc': 0x6b8230, 'remocc': 0x6b82c0, 'listremove': 0x6c4ba0, 'flag2': 0x6b9160, 'objopen': 0x6b8480, 'occswitch': 0x6b99c0, 'occadd': 0x6b9a10,
-         'objoccadd': 0x6b8c70, 'objoccrem': 0x6b8cb0, 'rec40': 0x6b8f60}
+         'objoccadd': 0x6b8c70, 'objoccrem': 0x6b8cb0, 'rec40': 0x6b8f60, 'rates': 0x6b5fc0}
 SETTERS = ('occlusion', 'voiceocc', 'clearocc', 'position', 'fn278', 'mode', 'placement', 'voices', 'b4c', 'b3c', 'b54', 'objplace', 'setocc', 'addocc', 'remocc', 'listremove', 'occswitch', 'occadd', 'objoccadd', 'objoccrem')
 B = Bench([(0x6b8b40, 0x6b8b60), (0x6b7d70, 0x6b7e5b), (0x6c4760, 0x6c47a3), (0x6b5e40, 0x6b5e59), (0x6b7910, 0x6b796b),
            (0x6b7970, 0x6b79cb), (0x6c4670, 0x6c46a7), (0x6c46b0, 0x6c475a), (0x6b7b60, 0x6b7d6e), (0x6b79d0, 0x6b7a6b), (0x6b5e60, 0x6b5fb4),
@@ -36,7 +37,7 @@ B = Bench([(0x6b8b40, 0x6b8b60), (0x6b7d70, 0x6b7e5b), (0x6c4760, 0x6c47a3), (0x
            (0x6b8180, 0x6b822d), (0x6b99c0, 0x6b9a05), (0x6b9a10, 0x6b9a5b), (0x6b8230, 0x6b82b1), (0x6c49b0, 0x6c4b93), (0x6c4fd0, 0x6c4fe3), (0x5e2a30, 0x5e2a80), (0x5e2a80, 0x5e2b80),
            (0x67acb0, 0x67acb1), (0x6b82c0, 0x6b832e), (0x6c4ba0, 0x6c4c1e),
            (0x6b9160, 0x6b91ce), (0x6b9660, 0x6b9760), (0x6bead0, 0x6beb03), (0x632150, 0x632380), (0x6b9b30, 0x6b9b94), (0x6b8480, 0x6b84ec),
-           (0x6b8c70, 0x6b8cda), (0x6b8f60, 0x6b8f90)])
+           (0x6b8c70, 0x6b8cda), (0x6b8f60, 0x6b8f90), (0x6b5fc0, 0x6b603d), (0x6bb860, 0x6bb8c9)])
 CHAN, OUT, FUNCTOR, FVT, REC, INFO, SRC, SVT, EAXB, KSET, KVT = (RAM + 0x100 * i for i in range(11))
 GLOBAL = 0xfb2058
 VOICES, VVT, SND, SNDVT, POOL, NODES, OCCS, VEC, VEC2, OBJECT, MIXER, COMMAND, P1, P2, P3 = (RAM + 0x1000 + 0x200 * i for i in range(15))
@@ -61,6 +62,8 @@ def case(r):
         return flag2_case(r, log)
     if name == 'objopen':
         return objopen_case(r, log)
+    if name == 'rates':
+        return rates_case(r, log)
     if name == 'rec40':
         return Call(0x6b8f60, [r.getrandbits(32), OUT, REC, r.choice([0, 1, r.getrandbits(32)])], {OUT: r.bytes(4), REC: r.bytes(0x70)},
                     conv='t', ret='a')
@@ -155,6 +158,30 @@ def flag2_case(r, log):
                F2_RVT: vtable({}), F2_MAP: struct.pack('<II', F2_BLOCK, F2_BLOCK),
                F2_BLOCK: struct.pack('<1024I', *[r.choice([F2_BANK, F2_BANK, 0]) for _ in range(1024)])}
     return Call(0x6b9160, [F2_CHAN, OUT, r.choice([0, 1, r.getrandbits(32)])], regions, conv='t', ret='a')
+
+
+def rates_case(r, log):
+    """The channel's slot 14 (0x6b5fc0): 0-3 voices in a pool (null now and then: none run; a count of 0: the first runs, sic), each's
+    rate (+0x18), modifier mask (+0x24: 0, all four or any), id (+0x2c) and modifiers (+0x34: 0.5, 2.0 or any) as channelvoice.py's
+    scaled rate takes them; the shift at 0x782db8 0, 1, 4 or any; the channel's source a recorder vtable whose slot 32 is recorder 8
+    (three arguments, its out on the stack logged as 0), null now and then (a fault in both)."""
+    strings(log, 8, 0, out=1)
+    n = r.choice([0, 1, 2, 3])
+    voices = bytearray()
+    for _ in range(max(n, 1)):
+        v = bytearray(r.bytes(0x8c))
+        struct.pack_into('<I', v, 0x18, r.choice([0, 22050, 44100, r.getrandbits(32)]))
+        struct.pack_into('<I', v, 0x24, r.choice([0, 0, 0xf, r.getrandbits(4), r.getrandbits(32)]))
+        struct.pack_into('<4I', v, 0x34, *[r.choice([fb(0.5), fb(2.0), fb(r.random()), r.getrandbits(32)]) for _ in range(4)])
+        voices += v
+    pool = struct.pack('<IIII', r.getrandbits(32), r.choice([VOICES] * 8 + [0]), n, CHAN)
+    chan = bytearray(r.bytes(0x60))
+    struct.pack_into('<II', chan, 0x14, POOL, r.choice([SRC] * 12 + [0]))
+    svt = vtable({}, size=33)
+    struct.pack_into('<I', svt, 0x80, recorder(8, 3))
+    regions = {CHAN: chan, OUT: r.bytes(4), VOICES: voices, POOL: pool, SRC: struct.pack('<I', SVT) + r.bytes(0xc), SVT: svt,
+               SHIFT: bytes([r.choice([0, 1, 4, r.getrandbits(8)])]) + r.bytes(3), LOG: log}
+    return Call(0x6b5fc0, [r.getrandbits(32), OUT, CHAN], regions, conv='t', ret='a')
 
 
 def objopen_case(r, log):
