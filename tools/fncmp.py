@@ -479,7 +479,7 @@ def answer(flag, value, raw, n, h, earlier, read=None):
     """A recorder's return value: its override (LOG_RETURNS: flag and value) or the hash h (driver.cpp record_call)."""
     if flag == 2 and value < n:
         return raw[value]
-    if flag == 4:
+    if flag == 7:
         return struct.unpack('<I', read(value + 4 * earlier, 4))[0]
     if flag == 3:
         return h if earlier < (value & 0xffff) else (value >> 16) - (0x10000 if value >> 31 else 0) & 0xffffffff
@@ -489,7 +489,7 @@ def answer(flag, value, raw, n, h, earlier, read=None):
 def answers(log, k, table):
     """Makes slot k's recorder answer its calls in turn from the dwords at `table` (an address the case maps, 40 dwords or more): its first
     call table[0], the next table[1] and so on (its calls counted as fail_after() counts them: those in the log, which keeps 40)."""
-    struct.pack_into('<II', log, LOG_RETURNS + 8 * k, 4, table)
+    struct.pack_into('<II', log, LOG_RETURNS + 8 * k, 7, table)
 
 
 def echo(log, k, arg):

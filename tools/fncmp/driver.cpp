@@ -461,7 +461,7 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
     if (seeking) return seq[6];
     if (override[0] == 3)                               //  3: the first value & 0xffff calls unanswered, then value >> 16 sign-extended)
         return earlier < (override[1] & 0xffff) ? h : (u32)(s32)(s16)(override[1] >> 16);
-    if (override[0] == 4)                               //  4: the dword `earlier` of the table at value: fncmp.answers())
+    if (override[0] == 7)                               //  7: the dword `earlier` of the table at value: fncmp.answers())
         return reinterpret_cast<const u32 *>((uintptr_t)override[1])[earlier];
     return override[0] == 2 && override[1] < n ? stack[1 + override[1]] : override[0] ? override[1] : h;
 }
