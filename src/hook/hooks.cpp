@@ -327,6 +327,7 @@
 #include "../game/world/trackpools.h"
 #include "../game/world/wallfollow.h"
 #include "../game/world/cellmodel.h"
+#include "../game/world/demolish.h"
 #include "../game/world/objectstatus.h"
 #include "../game/world/parkgates.h"
 #include "../game/world/pathdrag.h"
@@ -5377,6 +5378,7 @@ const Hook kHooks[] = {
     {"PathDrag_Finish",           0x0052c1c0, (void *)&PathDrag_Finish, {0x83, 0xec, 0x08, 0xa1, 0x00}},
     {"AdvisorSlot_Ctor",          0x00518e60, (void *)&AdvisorSlot_Ctor, {0x8b, 0xc1, 0xc6, 0x40, 0x14}},
     {"AdvisorRecord_Ctor",        0x00518e80, (void *)&AdvisorRecord_Ctor, {0x8b, 0xc1, 0x33, 0xc9, 0x89}},
+    {"Map_DemolishRect",          0x0052bdd0, (void *)&Map_DemolishRect, {0x83, 0xec, 0x1c, 0x8b, 0x54}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
