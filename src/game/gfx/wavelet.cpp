@@ -521,6 +521,15 @@ void __fastcall WaveletCodec_VBaseDtor(u8 *base) {
     }
 }
 
+u8 *__fastcall WaveletCodec_ScalarDelete(u8 *base, void *, u32 flags) {
+    u8 *const codec = base - 0x54;
+    WaveletCodec_VBaseDtor(base);
+    at<u32>(base, 0) = 0x7026e8;
+    if (flags & 1)
+        GameHeap_Free(codec);
+    return codec;
+}
+
 void __fastcall WaveletCodec_UnpackBgr(u8 *codec, void *, u32 width, u32 height, u32 stride, const u8 *src) {
     if (height == 0)
         return;

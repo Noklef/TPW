@@ -105,7 +105,7 @@ address,name,kind,confidence,notes
 0x00591a60,Obj_IncBefore4c,function,high,reimplemented (src/game/core/selectors); increments the dword at -0x4c and returns it
 0x00591a70,WaveletCodec_GetRefCount,function,high,reimplemented (src/game/core/accessors); the dword at -0x4c
 0x00591a80,Refcounted_Release,function,high,reimplemented (src/game/core/vwrap); lowers a count and deletes the virtual base at zero
-0x00598800,WaveletCodec_DeletingDtor,function,medium,
+0x00598800,WaveletCodec_ScalarDelete,function,low,"reimplemented (src/game/gfx/wavelet); thiscall (flags) on the virtual base: WaveletCodec_VBaseDtor, the base's vtable 0x7026e8, the codec 0x54 below freed with bit 0; returns the codec"
 0x007026d8,WaveletCodec_vtable,data,high,"slots: DecodeV12, DecodeV13Scaled, DecodeV13"
 0x007026b8,IWaveletCodec_vtable,data,high,interface vtable (this-adjusting thunks at 0x598780..)
 0x0046ead0,TextureSet_Load,function,medium,"reimplemented (src/game/gfx/texdirs); cdecl (set, probe, unused); the set's textures given directories: the second's when the quickload stem or the .wct/.tga file is found there, else the third's, else the table's first"
