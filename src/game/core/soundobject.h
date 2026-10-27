@@ -1,7 +1,7 @@
 // The sound object (vtable 0x70a588, made by 0x6b8380; the target the sound commands run on; the class name is invented): +0x1c a
 // voice count (SoundObject_SetVoices), +0x20 its sound mixer (0x54 bytes, made by 0x6b6050), +0x24 its channel (soundchannel). The commands' out is a status
 // dword: 0, or -1 when the object lacks the part. +4, +0x10 and +0x28 three vectors (the placement: 0x6b8b60). Reimplementation of
-// 0x6b85f0, 0x6b8640, 0x6b8930, 0x6b8b00, 0x6b84f0, 0x6b8b60 and 0x6b8690; the names are unconfirmed.
+// 0x6b85f0, 0x6b8640, 0x6b8930, 0x6b8b00, 0x6b84f0, 0x6b8b60, 0x6b8690 and 0x6b8720; the names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -39,5 +39,9 @@ u32 *__fastcall SoundObject_SetPlacement(u8 *object, void *, u32 *out, const u32
 // string by its slot 5 (assign, path); else the string assigned the channel's (+0x24) base directory (its +0x30, slot 6) and the path
 // appended (slot 8). Returns the last slot's answer.
 u32 __fastcall SoundObject_ResolvePath(u8 *object, void *, const char *path, u8 *string);
+// 0x6b8720 (thiscall (out, path, name, index), pops 0x10; an SEH frame; name invented): without a channel (+0x24) *out = -1. Else the
+// path resolved into a String (SoundObject_ResolvePath) and SoundCategory_Load (out, its text, name, index) on the category singleton.
+// Returns out.
+s32 *__fastcall SoundObject_LoadCategory(u8 *object, void *, s32 *out, const char *path, const char *name, u32 *index);
 
 }  // extern "C"

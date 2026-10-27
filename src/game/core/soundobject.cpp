@@ -7,8 +7,10 @@
 
 #include "fieldops.h"
 #include "initializers.h"
+#include "soundcategory.h"
 #include "soundchannel.h"
 #include "soundmixer.h"
+#include "string.h"
 #include "vcall.h"
 
 namespace {
@@ -100,6 +102,19 @@ u32 *__fastcall SoundObject_SetPlacement(u8 *object, void *, u32 *out, const u32
                                   (u32)(uintptr_t)(object + 0x10));
     }
     *out = 0;
+    return out;
+}
+
+s32 *__fastcall SoundObject_LoadCategory(u8 *object, void *, s32 *out, const char *path, const char *name, u32 *index) {
+    if (!at<u32>(object, 0x24)) {
+        *out = -1;
+        return out;
+    }
+    String full;
+    String_Ctor(&full);
+    SoundObject_ResolvePath(object, nullptr, path, reinterpret_cast<u8 *>(&full));
+    SoundCategory_Load(SoundCategory_Get(), nullptr, out, full.data, name, index);
+    String_Dtor(&full);
     return out;
 }
 
