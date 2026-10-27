@@ -9,33 +9,62 @@
 # RestoreRect (0x4923d0): windowtree.py's rect_env() tree, the window +0x18 one of it or none, its rectangle +0x14's words the same as
 # +8's, moved, sized or any (Window_SetRect's cases).
 # Place (0x492530, cdecl (x, y)): RestoreRect's tree with both low words 0xffff a third of the time, else MoveTo's; the object at 0x7ca0c0.
+# FrameExpire / FrameExpireB / FrameExpireIf / FrameDelete (ui/frame's 0x66a0bb, 0x66a0f1, 0x66a148, 0x66a180): a frame with the words
+# +4 / +0xc set or not, +0x14 0, small or any (FrameExpireIf's value mostly that), its slot 1 a recorder (its result set or not);
+# FrameDelete's flags any (bit 0: the frame freed; fncmp's heap hashes the pointer).
 # usage: helpbg.py [CASES [SEED]] [--wild|--both] [--show N]
-#   (env OPS=Clear,Handler,SetInterval,FrameSetInterval,Close,Show,Hide,FrameStop,MoveTo,SetText,RestoreRect)
+#   (env OPS=Clear,Handler,SetInterval,FrameSetInterval,Close,Show,Hide,FrameStop,MoveTo,SetText,RestoreRect,Place,
+#    FrameExpire,FrameExpireB,FrameExpireIf,FrameDelete)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import CDECL_LOG4, LOG, Bench, Call, RAM, log_region, put, set_return, vtable  # noqa: E402
+from fncmp import CDECL_LOG4, HEAP, LOG, Bench, Call, RAM, heap, log_region, put, set_return, vtable  # noqa: E402
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from window import RANGES as WINDOW_RANGES, VTABLE as WINDOW_VTABLE, notify_blobs, notify_env, offset_env, shown_env, word  # noqa: E402
 
 CALLS = {'Clear': 0x4922d0, 'Handler': 0x491fe0, 'SetInterval': 0x492160, 'FrameSetInterval': 0x66a084, 'Close': 0x492130, 'Show': 0x4922e0,
-         'Hide': 0x492300, 'FrameStop': 0x66a016, 'MoveTo': 0x492330, 'SetText': 0x4924b0, 'RestoreRect': 0x4923d0, 'Place': 0x492530}
+         'Hide': 0x492300, 'FrameStop': 0x66a016, 'MoveTo': 0x492330, 'SetText': 0x4924b0, 'RestoreRect': 0x4923d0, 'Place': 0x492530,
+         'FrameExpire': 0x66a0bb, 'FrameExpireB': 0x66a0f1, 'FrameExpireIf': 0x66a148, 'FrameDelete': 0x66a180}
 PLACED = 0x7ca0c0   # (Place's object)
 B = Bench([(0x4922d0, 0x4922e0), (0x491fe0, 0x492014), (0x65e705, 0x65e73d), (0x65f66e, 0x65f697), (0x492160, 0x49217c), (0x66a084, 0x66a0b9),
            (0x65968e, 0x6596a2), (0x492130, 0x492151), (0x4922e0, 0x492320), (0x66a016, 0x66a040), (0x669f94, 0x669fa8),
            (0x66a002, 0x66a016), (0x492330, 0x4923c5), (0x4924b0, 0x492522), (0x67c2f0, 0x67c330), (0x67acd0, 0x67ad00),
            (0x4923d0, 0x49243e), (0x65c9bd, 0x65ce10), (0x659e3e, 0x659e93), (0x659d00, 0x659d53), (0x659d90, 0x659df5), (0x65a9d0, 0x65aa00),
            (0x65aa20, 0x65aaa0), (0x65d4cb, 0x65d4f6), (0x66bff7, 0x66c01b),
-           (0x661700, 0x66176a), (0x661770, 0x661800), (0x492530, 0x49255b)] + WINDOW_RANGES)
+           (0x661700, 0x66176a), (0x661770, 0x661800), (0x492530, 0x49255b),
+           (0x66a0bb, 0x66a127), (0x66a148, 0x66a173), (0x66a180, 0x66a1ac), (0x669fee, 0x66a002), (0x67acb0, 0x67acb1)] + WINDOW_RANGES)
 BG_VTABLE, TEXT = 0x33400000, 0x33500000
 WINDOW, OBJECT, VTABLE = RAM + 0x100, RAM + 0x300, RAM + 0x400
 FRAME = 0x30008000
 
 
+def frame_case(r, op):
+    """FrameExpire / FrameExpireB / FrameExpireIf / FrameDelete (above)"""
+    log = log_region()
+    obj = bytearray(r.bytes(0x20))
+    put(obj, 0, 'I', FRAME + 0x40)
+    for off in (4, 0xc):
+        put(obj, off, 'H', r.choice([0, 1, 1, 1, 0x100, 0x8000, r.getrandbits(16)]))
+    put(obj, 0x14, 'I', r.choice([0, 1, 7, r.getrandbits(32)]))
+    if r.random() < 0.5:
+        set_return(log, 1, r.getrandbits(32))
+    regions = {LOG: log, FRAME: obj, FRAME + 0x40: vtable({}, size=8)}
+    if op == 'FrameExpireIf':
+        value = struct.unpack_from('<I', obj, 0x14)[0]
+        return Call(CALLS[op], [FRAME, r.choice([value] * 3 + [value ^ 1, value ^ 0x80000000, 0, r.getrandbits(32)])], regions, conv='t',
+                    ret='v')
+    if op == 'FrameDelete':
+        regions[HEAP] = heap()
+        return Call(CALLS[op], [FRAME, r.choice([0, 1, 1, 2, 3, r.getrandbits(32)])], regions, conv='t', ret='a')
+    return Call(CALLS[op], [FRAME], regions, conv='t', ret='v')
+
+
 def case(r):
     op = r.deal(OPS)
+    if op in ('FrameExpire', 'FrameExpireB', 'FrameExpireIf', 'FrameDelete'):
+        return frame_case(r, op)
     if op == 'SetText':
         log = log_region()
         regions = {LOG: log}
