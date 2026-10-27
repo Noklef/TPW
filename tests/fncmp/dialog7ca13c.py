@@ -9,8 +9,8 @@
 # font 7's vtable a recorder); the GUI's registered windows ("hilight" among others or not: dialog7ca150.py's registry()); the texts' record
 # table about 0x71-0x76 (panelparts.py's texts()); the buttons' font [0x7508b8] 0-12, 7 mostly; the sort dword [0x7508bc] 1 (any other
 # changes the new list's column or order: Window7059f0_NotifySort's message to the dialog, whose handler 0x493230 is unported, stored
-# raw and below g_game); an empty park (the things' callback 0x4937e0 is unported: none called); the selected data 0 or any (the list is new and its rows
-# empty: never found); advisor.py's PostId surroundings for 0x11e (its record its own mostly; the stack message's unwritten bytes masked).
+# raw and below g_game); an empty park (the things' callback 0x4937e0 is unported: none called); the selected data 0, 1 or any (the list is new and its
+# rows empty: never found); the dword [0x7cb2a0] random (Global7cb28c_Select's); advisor.py's PostId surroundings for 0x11e (its record its own mostly; the stack message's unwritten bytes masked).
 # usage: dialog7ca13c.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Open)
 import os
 import struct
@@ -106,6 +106,7 @@ def case(r):
     regions[0x7508b8] = struct.pack('<I', r.choice([7] * 6 + list(range(13))))
     regions[0x7508bc] = struct.pack('<I', 1)   # (the new list's column 0 ascending: any other changes it, the dialog's handler 0x493230 told)
     regions[0x7cf56c] = struct.pack('<I', 0)   # (an empty park)
+    regions[0x7cb2a0] = r.bytes(4)   # (Global7cb28c_Select(2, 6)'s dword)
     # the advisor (advisor.py's PostId surroundings, the id 0x11e)
     adv = advisor.queue(r, 'PostId')
     for k, v in adv.regions.items():
@@ -117,7 +118,7 @@ def case(r):
     regions[0x76e300] = table
     set_return(log, 20, r.choice([0, 1, 5, 100, -1, r.getrandbits(32)]))
     masks = [Mask(m.region, m.offsets + [0x16d0 + k for k in (2, 3, 0x17)], m.reason) for m in adv.masks]
-    return Call(CALLS[op], [r.choice([0, 0, r.getrandbits(32)])], regions, ret='v', masks=masks)
+    return Call(CALLS[op], [r.choice([0, 0, 1, r.getrandbits(32)])], regions, ret='v', masks=masks)
 
 
 if __name__ == '__main__':
