@@ -9,6 +9,7 @@
 #include "../model/highlight.h"
 #include "../world/money.h"
 #include "../world/object.h"
+#include "../world/pathdrag.h"
 #include "../world/world.h"
 #include "cars.h"
 #include "cursor.h"
@@ -553,5 +554,56 @@ void __cdecl CoasterEdit_EditRide(const u8 *object, u32 on) {
         CoasterEdit_SetEditing(link, 1);
     else
         CoasterEdit_SetEditing(nullptr, 0);
+}
+
+// The pieces from the lower handle (+0) of a and b up to the other (by +0x64, the other left out): flag 0x1000000 set, or 0x1004000 cleared.
+static void mark_span(u8 *a, u8 *b, bool set) {
+    u8 *from = a, *to = b;
+    if (at<u32>(a, 0) > at<u32>(b, 0)) {
+        from = b;
+        to = a;
+    }
+    for (; from != to; from = at<u8 *>(from, 0x64)) {
+        if (set)
+            at<u32>(from, 8) |= 0x1000000u;
+        else
+            at<u32>(from, 8) &= 0xfeffbfffu;
+    }
+}
+
+u32 __cdecl CoasterEdit_SelectPiece(u8 *piece) {
+    if (piece && (at<u8>(at<u8 *>(piece, 0x100), 4) & 2)) return 0;
+    g<u32>(0x0079c69c) = 0;
+    if (!piece) return 0;
+    const u32 many = at<u32>(at<u8 *>(piece, 0x100), 0x30) > 1 ? 1 : 0;
+    g<u8 *>(0x0079c6a4) = piece;
+    Flags() |= 0x100;
+    g<u8 *>(0x0079c660) = at<u8 *>(piece, 0x100);
+    g<float>(0x0079c694) = static_cast<float>(Car_TrainLength(piece));
+    ActionRec_WriteWWW(Recorder(), nullptr, 0x3c, 0, 0, at<u16>(piece, 0));
+    at<u32>(g<u8 *>(0x00790fec), 0) &= ~0x2000u;
+    u8 *const first = at<u8 *>(piece, 0x68) ? at<u8 *>(piece, 0x68) : piece;
+    u8 *const prev = g<u8 *>(0x0079c628);
+    g<u8 *>(0x0079c62c) = first;
+    g<u32>(0x007925d0) = 3;
+    u8 *const next = at<u8 *>(piece, 0x64);
+    if (prev) mark_span(first, prev, false);
+    g<u8 *>(0x0079c628) = next ? next : piece;
+    mark_span(first, next ? next : piece, true);
+    Flags_SetChanged(g<u32 *>(0x00790fec), 0);
+    const u8 *const def = at<u8 *>(piece, 0x100);
+    s32 x = at<s32>(def, 0xc), y = at<s32>(def, 0x10);
+    g<s32>(0x0079c6d8) = x;
+    g<s32>(0x0079c6a0) = y;
+    if (x < 0) x = 0;
+    if (y < 0) y = 0;
+    if (x >= g<s32>(0x007a0314)) x = g<s32>(0x007a0314) - 1;
+    if (y >= g<s32>(0x007a0374)) y = g<s32>(0x007a0374) - 1;
+    PathDrag_Begin(x, y, at<u32>(at<u8 *>(piece, 0x100), 0x30) > 1 ? 1 : 0);
+    Highlight_SetShown(1);
+    CoasterEdit_SetBounds();
+    g<float>(0x0079c698) = static_cast<float>(Car_TravelCost(g<u8 *>(0x00790fec), 0, piece, nullptr, nullptr, nullptr, nullptr));
+    g<float>(0x0079c64c) = static_cast<float>(Car_TravelCost(g<u8 *>(0x00790fec), 0, at<u8 *>(piece, 0x64), nullptr, nullptr, nullptr, nullptr));
+    return many;
 }
 }
