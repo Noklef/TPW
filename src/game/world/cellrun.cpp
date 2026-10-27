@@ -7,6 +7,7 @@
 #include "../motion/animator.h"
 #include "../model/highlight.h"
 #include "dirstep.h"
+#include "hoardinggrid.h"
 #include "mapcell.h"
 
 namespace {
@@ -115,7 +116,9 @@ u32 animate_run(s32 x, s32 y, u8 direction, u32 start) {
     return ((u32)direction - 1) & 0xffffff00;
 }
 
-const CellRunEnv kGameEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x0053afa0)};
+const CellRunEnv kGameEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x0053afa0),
+                             reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32, u32)>((uintptr_t)0x005370e0),
+                             reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)0x00538fc0)};
 const CellRunEnv *g_env = &kGameEnv;
 
 u32 has_low(const u8 *cell) { return MapCell_HasLowFlags(cell); }
@@ -432,6 +435,67 @@ void __cdecl TrackCell_Relink(u32 corners) {
         }
         d = static_cast<u8>(Byte_ShiftLog2(d, 4));
     } while (d != 1);
+}
+
+u32 __cdecl CellRun_Lay(s32 x, s32 y, s32 endX, s32 endY, u32 direction, u32 setDirection) {
+    u8 dir = static_cast<u8>(direction);
+    global<s32>(0x00818c0c) = 0;
+    global<s32>(0x00818c08) = 0;
+    global<s32>(0x008186e4) = 0x400;
+    global<s32>(0x008186e8) = 0x400;
+    bool done = false;
+    do {
+        u8 *const cell = cell_at(x, y);
+        if (at<u32>(cell, 8) != 0x19 && !(global<u8>(0x0081b4cc) && MapCell_NeighbourCount(cell))) {
+            dir = 0;
+        } else {
+            if (MapCell_CornerNeighbours(cell)) {   // (a corner turns: the reverse side, or the direction, against the neighbours)
+                u8 back = static_cast<u8>(Nibble_Scale(dir));
+                if (!(back & MapCell_Neighbours(cell))) back = dir;
+                dir = MapCell_Neighbours(cell) ^ back;
+            }
+            if (MapCell_JunctionNeighbours(cell)) {   // (a junction: the first side from the left one round that is a neighbour)
+                u8 side = 0;
+                u8 bit = static_cast<u8>(Byte_ShiftLog2(dir, 0x40));
+                do {
+                    if (bit & MapCell_Neighbours(cell)) side = bit;
+                    bit = static_cast<u8>(Byte_ShiftLog2(bit, 4));
+                } while (!side);
+                u8 clear;
+                if (dir != side) {
+                    MapCell_SetDirection(cell, nullptr, side);
+                    MapCell_RemoveNeighbours(cell, nullptr, dir);
+                    clear = static_cast<u8>(Nibble_Scale(side));
+                } else {
+                    clear = static_cast<u8>(~(static_cast<u8>(Nibble_Scale(dir)) | dir));
+                }
+                MapCell_RemoveNeighbours(cell, nullptr, clear);
+                g_env->cell5370e0(cell, nullptr, 0x81, 0, 0);
+                g_env->cell53afa0(cell);
+                dir = side;
+            }
+        }
+        if (x == endX && y == endY) done = true;
+        if (static_cast<u8>(setDirection) && MapCell_Direction(cell) != dir) {
+            MapCell_SetDirection(cell, nullptr, dir);
+            g_env->cell5370e0(cell, nullptr, 0x81, 0, 0);
+        }
+        static const u32 kPairs[] = {0x007cdba8, 0x007cdbc8, 0x007cdbb8};   // (the pairs of the directions 0x10, 4 and 8)
+        for (const u32 pair : kPairs) {
+            const s32 *const step = reinterpret_cast<const s32 *>((uintptr_t)pair);
+            if (u8 *const next = Map_StepCell28(reinterpret_cast<const u16 *>(cell), nullptr, step[0], step[1], 1)) {
+                MapCell_SetParent(next, nullptr, at<u16>(cell, 0));
+                g_env->cell538fc0(next, nullptr, 0xc);
+            }
+        }
+        move(dir, x, y);
+        if (x < global<s32>(0x008186e4)) global<s32>(0x008186e4) = x;
+        if (y < global<s32>(0x008186e8)) global<s32>(0x008186e8) = y;
+        if (x > global<s32>(0x00818c0c)) global<s32>(0x00818c0c) = x;
+        if (y > global<s32>(0x00818c08)) global<s32>(0x00818c08) = y;
+    } while (!done);
+    HoardingGrid_Fill();
+    return 1;
 }
 
 }  // extern "C"
