@@ -435,7 +435,9 @@ def case(r):
         fill(log, 4, 1, struct.pack('<I', r.choice([0, 2, 3, 0xfffffffd, r.getrandbits(32)])), offset=0x18, through=8)   # or +0xc-+0x17; +0x18
     elif name in ('value20', 'position'):   # the record's flags +0x14 and the value +0x2c; the position's +0xc-+0x17 and its pointer +0x30 (the levels': in rolls())
         blob_bytes(log, 4, 1, 0xff, inner=(8, 0xf << 36 | 0x7000, 8) if name == 'value20' else (8, 0xf << 36 | 0xfff, 12))
-    elif name not in ('command', 'gcommand'):
+    elif name == 'command':   # slot 4 writes its out (the command argument's own stack slot, sic), the -1 of a failed command now and then
+        fill(log, 4, 0, struct.pack('<I', r.choice([0, 0xffffffff, 0xffffffff, r.getrandbits(32)])))
+    elif name != 'gcommand':
         blob_bytes(log, 4, 1, 0xff, inner=(8, 0x7000, 28) if name == 'pending' else None)   # (the stop's functor: two dwords)
     if name != 'pending':
         strings(log, 4, 0, out=1)   # (the out is the caller's local)

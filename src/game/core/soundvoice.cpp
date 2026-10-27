@@ -309,8 +309,9 @@ void __fastcall SoundVoice_Cull(u8 *voice) {
     if (voice[0x30] & 1 && at<u32>(voice, 0x24)) stop_sound(at<u32>(voice, 0x24));
 }
 
-u32 *__fastcall SoundVoice_Command(u8 *voice, void *, u32 *out, u8 *command) {
-    if (at<u32>(voice, 0x24)) vcall<void>(system(), 0x10, &out, command);   // (out's own slot as the sound system's out, sic)
+u32 *__fastcall SoundVoice_Command(u8 *voice, void *, u32 *out, u8 *command_arg) {
+    u8 *const command = command_arg;   // (kept in EDI: the sound system's write into the argument's slot below is not read back)
+    if (at<u32>(voice, 0x24)) vcall<void>(system(), 0x10, &command_arg, command);   // (the command argument's own slot as the out, sic)
     if (vcall<u32>(command, 0) == 1) {
         at<u32>(voice, 0x30) |= 0x10;
     } else if (vcall<u32>(command, 0) == 2) {
