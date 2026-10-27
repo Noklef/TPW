@@ -5,6 +5,7 @@
 
 #include "../core/accessors.h"
 #include "../motion/animator.h"
+#include "../model/highlight.h"
 #include "dirstep.h"
 #include "mapcell.h"
 
@@ -114,6 +115,67 @@ u32 animate_run(s32 x, s32 y, u8 direction, u32 start) {
     return ((u32)direction - 1) & 0xffffff00;
 }
 
+const CellRunEnv kGameEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x0053afa0)};
+const CellRunEnv *g_env = &kGameEnv;
+
+u32 has_low(const u8 *cell) { return MapCell_HasLowFlags(cell); }
+u32 is_end(const u8 *cell) { return MapCell_IsTypeBDOr10Or12Or19(cell); }
+u16 owner(const u8 *cell) { return at<u16>(cell, 0x10); }
+u8 *thing_of(u32 thing) { return global<u8 *>(0x007a4610 + thing * 4); }
+u8 *step(const u8 *cell, u32 direction) { return Map_StepCell28InDirection(reinterpret_cast<const u16 *>(cell), nullptr, direction, 2); }
+
+// The cell's low flags cleared (0xf) and then set to value; with of_a, value is (a is an end ? on : off), looked at after the clear.
+void shape(u8 *cell, u32 value) {
+    MapCell_ClearFlags(cell, nullptr, 0xf);
+    MapCell_SetFlags(cell, nullptr, value);
+}
+void shape_by(u8 *cell, const u8 *a, u32 on, u32 off) {
+    MapCell_ClearFlags(cell, nullptr, 0xf);
+    MapCell_SetFlags(cell, nullptr, is_end(a) ? on : off);
+}
+
+// A rule's effect: the cell 8 or 2 (on and off: by a), then 4 when other has low flags.
+void apply(u8 *cell, const u8 *a, const u8 *other, u32 on, u32 off) {
+    if (has_low(cell)) shape_by(cell, a, on, off);
+    if (has_low(other)) shape(cell, 4);
+}
+
+void play(const u8 *cell, u32 bank5) {
+    const u32 thing = at<u32>(cell, 4);
+    if (thing != 0) Animator_Play(thing_of(thing), static_cast<u8>(bank5) ? 5 : 0xc, 0, 7, 1.0f, 0);
+}
+
+// The turn at a corner (as AnimateA's).
+void turn(const u8 *cell, u8 &direction) {
+    u8 back = static_cast<u8>(Nibble_Scale(direction));
+    if (!(back & MapCell_Neighbours(cell))) back = direction;
+    direction = static_cast<u8>(MapCell_Neighbours(cell) ^ back);
+}
+
+// The end of a run at a cell not at a corner whose neighbour bits lack the direction: its thing flashes or stops flashing.
+bool stop_here(const u8 *cell, u8 direction, u32 flash) {
+    if (MapCell_CornerNeighbours(cell) || (MapCell_Neighbours(cell) & direction)) return false;
+    const u32 thing = at<u32>(cell, 4);
+    if (thing != 0) {
+        u8 *const holder = thing_of(thing);
+        const u32 flags = at<u32>(holder, 4);
+        if (static_cast<u8>(flash)) {
+            if (!(flags & 0x4000000)) Highlight_Flash(holder);
+        } else if (flags & 0x4000000) {
+            Highlight_Unflash(holder);
+        }
+    }
+    return true;
+}
+
+// A next cell (two on) that is an end of the cell's +0x10 word with the reverse side.
+bool end_ahead(const u8 *cell, u8 direction) {
+    const u8 *const next = step(cell, direction);
+    if (!next || !MapCell_IsTypeDOr12ViaParent(next) || owner(next) != owner(cell)) return false;
+    const u8 bits = MapCell_Neighbours(next);
+    return (static_cast<u8>(Nibble_Scale(direction)) & bits) != 0;
+}
+
 }  // namespace
 
 extern "C" {
@@ -215,6 +277,114 @@ s32 __cdecl PairTable_Commit() {
     global<s32>(0x00820a90) = count;
     global<u32>(0x00820a94) = 0;
     return count > 0 ? count : 0;
+}
+
+void CellRun_SetEnv(const CellRunEnv *env) { g_env = env ? env : &kGameEnv; }
+
+u8 __cdecl TrackRun_UpdateA(u8 *thing, u32 flash, u32 start, u32 bank5) {
+    const u32 t = (static_cast<u32>(thing[7]) << 7) + thing[5];
+    s32 x = static_cast<s32>(t & 0x7f), y = static_cast<s32>(t >> 7);
+    u8 direction;
+    switch (at<s32>(thing, 0x10)) {  // (Position_StepA inlined)
+    case 0: x += 4; y += 1; direction = 4; break;
+    case 90: x += 1; y -= 5; direction = 1; break;
+    case 180: x -= 5; y -= 2; direction = 0x40; break;
+    case 270: x -= 2; y += 4; direction = 0x10; break;
+    default: direction = static_cast<u8>(start); break;  // (sic)
+    }
+    global<u8>(0x00818c50) = direction;
+    bool done = false;
+    u8 found = 0;
+    if (!is_end(cell_at(x, y))) found = 1, done = true;
+    do {
+        u8 *const cell = cell_at(x, y);
+        if (MapCell_IsTypeBOr10(cell)) {
+            if (MapCell_CornerNeighbours(cell)) {
+                turn(cell, direction);
+            } else if (has_low(cell)) {
+                const u8 *const a = step(cell, direction);
+                const u8 *const b = step(cell, Nibble_Scale(direction));
+                if (MapCell_NeighbourCount(cell) == 2) {
+                    if (has_low(a) && has_low(b))
+                        shape(cell, 4);
+                    else if (!has_low(a) && !has_low(b))
+                        shape(cell, 1);
+                    else if (has_low(a) && !has_low(b))
+                        shape(cell, 2);
+                    else if (!has_low(a) && has_low(b))
+                        shape(cell, 8);
+                }
+                if (!is_end(b) || (is_end(b) && owner(cell) != owner(b)) ||
+                    (is_end(a) && MapCell_NeighbourCount(cell) == 1 && (MapCell_Neighbours(cell) & direction)))
+                    apply(cell, a, a, 8, 2);
+                if (!is_end(a) || (is_end(a) && owner(cell) != owner(a)) || (is_end(b) && MapCell_NeighbourCount(cell) == 1 && [&] {
+                        const u8 bits = MapCell_Neighbours(cell);
+                        return (static_cast<u8>(Nibble_Scale(direction)) & bits) != 0;
+                    }()))
+                    apply(cell, a, b, 8, 2);
+                g_env->cell53afa0(cell);
+                if (static_cast<u8>(start)) play(cell, bank5);
+            }
+            if (stop_here(cell, direction, flash)) done = true;
+            if (end_ahead(cell, direction)) {
+                found = 1;
+                done = true;
+                move(direction, x, y);
+            }
+        }
+        if (!done) move(direction, x, y);
+    } while (!done);
+    return found;
+}
+
+void __cdecl TrackRun_UpdateB(u8 *thing, u32 flash, u32 start, u32 bank5) {
+    const u32 t = (static_cast<u32>(thing[7]) << 7) + thing[5];
+    s32 x = static_cast<s32>(t & 0x7f), y = static_cast<s32>(t >> 7);
+    u32 code;
+    switch (at<s32>(thing, 0x10)) {  // (Position_StepB inlined)
+    case 0: x -= 2; y += 1; code = 4; break;
+    case 90: x += 1; y += 1; code = 1; break;
+    case 180: x += 1; y -= 2; code = 0x40; break;
+    case 270: x -= 2; y -= 2; code = 0x10; break;
+    default: code = start; break;  // (sic)
+    }
+    u8 direction = static_cast<u8>(Nibble_Scale(code));
+    global<u8>(0x00818c50) = direction;
+    bool done = !is_end(cell_at(x, y));
+    do {
+        u8 *const cell = cell_at(x, y);
+        if (MapCell_IsTypeBOr10(cell)) {
+            if (MapCell_CornerNeighbours(cell)) {
+                turn(cell, direction);
+            } else if (has_low(cell)) {
+                const u8 *const a = step(cell, direction);
+                const u8 *const b = step(cell, Nibble_Scale(direction));
+                const u32 count = MapCell_NeighbourCount(cell);
+                if (static_cast<u8>(start)) play(cell, bank5);
+                if (count == 2) {
+                    if (has_low(a) && has_low(b))
+                        shape(cell, 4);
+                    else if (!has_low(a) && !has_low(b))
+                        shape(cell, 1);
+                    else if (has_low(a) && !has_low(b))
+                        shape(cell, 8);
+                    else if (!has_low(a) && has_low(b))
+                        shape(cell, 2);
+                }
+                if (!is_end(b) || (is_end(b) && owner(cell) != owner(b))) apply(cell, a, a, 8, 2);
+                if (is_end(b) && MapCell_NeighbourCount(cell) == 1 && (MapCell_Neighbours(cell) & direction)) apply(cell, a, a, 8, 2);
+                if (!is_end(a) || (is_end(a) && owner(cell) != owner(a))) apply(cell, a, b, 8, 2);
+                if (is_end(a) && MapCell_NeighbourCount(cell) == 1) {
+                    const u8 bits = MapCell_Neighbours(cell);
+                    if (static_cast<u8>(Nibble_Scale(direction)) & bits) apply(cell, a, b, 2, 8);
+                }
+                g_env->cell53afa0(cell);
+            }
+            if (stop_here(cell, direction, flash)) done = true;
+            if (end_ahead(cell, direction)) done = true;
+        }
+        if (!done) move(direction, x, y);
+    } while (!done);
 }
 
 }  // extern "C"
