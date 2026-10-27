@@ -18,7 +18,7 @@
 # is among 0-2 decoys in any order and missing now and then (a fault in both). The kinds' slots 5 and 7 recorders, the edit box's slot 9
 # too; the parts' slots 3, 4, 5 and 9 recorders; dialog7ca150.py's registry with "hilight"; the rows' font [0x758f04] 7 (its slot 1 the
 # height, the divisor [0xfaa5c0] about 0x600), the edit box's [0x758f08] 0-12; the GUI manager [0x77c48c] a recorder (slot 13: told of
-# the hidden windows); the globals written random; HelpBg_Place's object 0x7ca0c0 without a window; a heap of 0x80000 (failing rarely).
+# the hidden windows); the globals written random; HelpBg_Place's object 0x7ca0c0 with a lone window (moved) or none; a heap of 0x80000 (failing rarely).
 # usage: window7cc8bc.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Add,Remove,...)
 import os
 import struct
@@ -48,6 +48,7 @@ CREATE_RANGES = dialog7ca150.ALL_RANGES + dialog7ca150.OPEN_RANGES + dialog7cc5f
 B = Bench(dialog7cc5f4.merged(w7.LIST_RANGES + [(0x4beb60, 0x4bedd1), (0x481820, 0x4818b3), (0x65f538, 0x65f5b7), (0x65e59b, 0x65e60a),
                                                 (0x65f66e, 0x65f6e1)] + CREATE_RANGES))
 TOP, MIDDLE, DECOYS, TEXT = RAM + 0x30000, RAM + 0x30200, RAM + 0x30400, RAM + 0x30800
+HELPWIN = RAM + 0x3fa00   # (Create's: HelpBg_Place's window)
 
 
 def among(r, regions, want, base):
@@ -247,7 +248,15 @@ def create_case(r):
     regions[0x7cc8b4] = r.bytes(0x34)   # (0x7cc8b4-0x7cc8e7: the module's globals, written)
     for k in (0x7a192c, 0x7a194c, 0x7a162c, 0x7a0c9c, 0x7a1c54, 0x74d104):
         regions[k] = r.bytes(8 if k in (0x7a1c54, 0x74d104) else 4)
-    regions[0x7ca0c0] = put(bytearray(r.bytes(0x20)), 0x18, 'I', 0)   # (HelpBg_Place's object: no window, nothing moved)
+    # (HelpBg_Place's object: its window a lone one (moved: its rectangles, position and handler, fncmp's logger, seen) or none)
+    helpwin = bytearray(r.bytes(0x120))
+    helpwin[4] = 0
+    put(helpwin, 8, 'I', 0x705920)
+    put(helpwin, 0x2c, 'I', 0x705920)
+    for off, v in ((0x44, HELPWIN + 8), (0x5c, 0), (0x98, 0), (0x9c, 0), (0x114, CDECL_LOG4)):
+        put(helpwin, off, 'I', v)
+    regions[HELPWIN] = helpwin
+    regions[0x7ca0c0] = put(bytearray(r.bytes(0x20)), 0x18, 'I', r.choice([0, HELPWIN, HELPWIN]))
     regions[0x77c48c] = struct.pack('<I', MANAGER)   # (the manager told of the hidden windows: its slot 13 a recorder)
     regions[MANAGER] = struct.pack('<I', MANAGER + 0x40)
     regions[MANAGER + 0x40] = vtable({13: 1})
