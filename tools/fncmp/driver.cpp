@@ -91,6 +91,7 @@
 #include "../../src/game/world/mousemode.h"
 #include "../../src/game/world/person.h"
 #include "../../src/game/world/pathdrag.h"
+#include "../../src/game/world/demolish.h"
 #include "../../src/game/world/cellrun.h"
 #include "../../src/game/world/staff.h"
 #include "../../src/game/world/things.h"
@@ -384,6 +385,10 @@ const QueuePiecesEnv kQueuePiecesEnv = {reinterpret_cast<u32(__cdecl *)(u32, u32
                                         reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(31, 1))};
 const PathDragEnv kPathDragEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32)>((uintptr_t)recorder(28, 2)),
                                   reinterpret_cast<void(__cdecl *)(u32, s32, s32, s32 *, s32 *)>((uintptr_t)jpeg_recorder(29, 5))};
+// The rectangle sweep's demolish (0x527ee0, not ported yet) and agent B's unported 0x5367a0: cdecl recorder 2 of 3 and thiscall recorder 28 of 2,
+// as tests/fncmp/demolish.py hooks them.
+const DemolishEnv kDemolishEnv = {reinterpret_cast<void(__cdecl *)(s32, s32, u32)>((uintptr_t)jpeg_recorder(2, 3)),
+                                  reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32)>((uintptr_t)recorder(28, 2))};
 // The track runs' call into agent B's unported 0x53afa0: thiscall recorder 24 of no arguments, as tests/fncmp/trackshape.py hooks it.
 const CellRunEnv kCellRunEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(24, 0))};
 // Thing_Detach's call into agent B's unported Ride_Destroy (0x463c80): cdecl recorder 31 of 1, as tests/fncmp/thingdetach.py hooks it.
@@ -1064,6 +1069,7 @@ int main(int argc, char **argv) {
     Person_SetEnv(&kPersonEnv);   // (tests/fncmp/personwalk.py hooks 0x6e7074 with fncmp._cdecl_log2)
     QueuePieces_SetEnv(&kQueuePiecesEnv);
     PathDrag_SetEnv(&kPathDragEnv);
+    Demolish_SetEnv(&kDemolishEnv);
     CellRun_SetEnv(&kCellRunEnv);
     Things_SetDetachEnv(&kThingDetachEnv);
     Things_SetDeleteEnv(&kThingDeleteEnv);
