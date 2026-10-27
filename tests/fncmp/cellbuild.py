@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import RAM, Bench, Call, put  # noqa: E402
 
 RANGES = [(0x412e90, 0x412f00), (0x4d0af0, 0x4d0b40), (0x4d8300, 0x4d8340), (0x4d8c00, 0x4d8c30), (0x4d96f0, 0x4d9a70), (0x50c320, 0x50c3f0),
-          (0x5195d0, 0x519620), (0x522770, 0x5227f0), (0x522810, 0x522860), (0x527940, 0x527960), (0x52fb20, 0x52fbe0), (0x535600, 0x535de0),
+          (0x5195d0, 0x519620), (0x522770, 0x5227f0), (0x522810, 0x522860), (0x527940, 0x527960), (0x52fb20, 0x52fbe0), (0x535600, 0x535de0), (0x539760, 0x53a520),
           (0x536320, 0x5363a0), (0x53ad30, 0x53ad70), (0x53ad90, 0x53adc0), (0x53ae00, 0x53ae60), (0x53ae90, 0x53aed0), (0x6ad810, 0x6ad830),
           (0x5da3c0, 0x5da3c1)]
 B = Bench(RANGES)
@@ -65,18 +65,20 @@ def cell44(ident):
     return W + 0x294 + (ident & 0xffff) * 0x44
 
 
-def flags(r):
-    return r.choice([0, 0, 0x10, 0x20, 0x40, 0x100, 0x120, 0x30, r.randrange(0x10), r.getrandbits(16)])
+def flags(r, calm=False):
+    if calm:   # (flag 0x40 now and then only: it answers before the rest)
+        return r.choice([0, 0, 0x10, 0x20, 0x100, 0x200, 0x300, 0x120, 0x30, r.randrange(0x10), r.getrandbits(16) & ~0x40, 0x40])
+    return r.choice([0, 0, 0x10, 0x20, 0x40, 0x100, 0x200, 0x120, 0x30, r.randrange(0x10), r.getrandbits(16)])
 
 
-def lay_cell(r, mem, ident, window, own):
+def lay_cell(r, mem, ident, window, own, calm=False):
     a = cell44(ident)
     mem.ensure(a, 0x44)
     mem.put(a, 'H', ident if r.random() < 0.9 else r.choice(window))
     mem.put(a + 8, 'I', r.choice(CELL_TYPES) if r.random() < 0.95 else r.getrandbits(32))
     mem.put8(a + 0xc, r.choice(BITS))
     mem.put8(a + 0xd, r.choice([1, 4, 0x10, 0x40, 0, 0x11, r.getrandbits(8)]))
-    mem.put(a + 0xe, 'H', flags(r))
+    mem.put(a + 0xe, 'H', flags(r, calm))
     mem.put(a + 0x10, 'H', r.choice([own, own, r.choice(window), r.choice(window), 0]))
     mem.put8(a + 0x22, r.choice(BITS))
     mem.put(a + 0x24, 'H', r.choice([0, r.randrange(1, 14), r.randrange(1, 14), r.randrange(1, 14)]))
@@ -91,16 +93,21 @@ def lay_entry(r, mem, at, window, own):
     mem.put8(at + 0x22, r.choice(BITS))
 
 
-def world(r):
-    """(regions, the cell's address): the world about one cell, the things, definitions, money and flag globals."""
+def world(r, calm=False, inner=False):
+    """(regions, the cell's address): the world about one cell, the things, definitions, money and flag globals. calm: the cells' flag
+    0x40 and the flag globals set less often (so the later rules are reached). inner: the cell off the map's edges mostly (its steps on it)."""
     x = r.choice([0, 1, 0x7e, 0x7f, r.randrange(0x80), r.randrange(0x80)])
     y = r.choice([0, 1, 0x7f, r.randrange(0x80), r.randrange(0x80)])
+    if inner and r.random() < 0.9:
+        x, y = r.randrange(1, 0x7f), r.randrange(1, 0x7f)
     ident = ((y << 7) + x + 1) & 0xffff
     window = [(ident + dy * 128 + dx) & 0xffff for dy in (-1, 0, 1) for dx in (-1, 0, 1)]
-    own = r.choice([r.getrandbits(16), r.choice(window)])
+    own = r.choice([r.getrandbits(16), r.choice(window), r.choice(window)])
     mem = Sparse(r)
     for k in window:
-        lay_cell(r, mem, k, window, own)
+        lay_cell(r, mem, k, window, own, calm)
+    if r.random() < 0.7:
+        mem.put(cell44(ident), 'H', ident)
     # the cells' 0x28-byte entries (MapHandle_Entry28: W + 0x1102b0 + id * 0x28) and the parents' (W + 0x10ffb0 + id * 0x28)
     for k in window:
         lay_entry(r, mem, W + 0x1102b0 + k * 0x28, window, own)
@@ -137,7 +144,7 @@ def world(r):
     pairs = bytearray(0x40)
     for k, (dx, dy) in enumerate(PAIRS):
         put(pairs, 8 * k, 'ii', *((dx, dy) if r.random() < 0.95 else (r.randrange(-1, 2), r.randrange(-1, 2))))
-    flag = lambda: r.choice([0, 0, 1, 1, 0, 1, 2])  # noqa: E731
+    flag = lambda: r.choice([0, 0, 0, 0, 1] if calm else [0, 0, 1, 1, 0, 1, 2])  # noqa: E731
     globals_ = {
         0x816d48: struct.pack('<7I', *[flag() for _ in range(7)]),
         0x818c10: struct.pack('<2i', level + r.choice([-1, 0, 1, 2]), r.choice([level, -5, 50])),
@@ -145,7 +152,9 @@ def world(r):
                           0x38, 'I', SEEN), 0x48, 'IB', flag(), r.choice([0, 0, 1])),
         SEEN: struct.pack('<H', own if r.random() < 0.3 else r.choice(window)),
         0x8187f8: struct.pack('<I', flag()),
-        0x820aa4: put(put(bytearray(r.bytes(0x18)), 0, 'I', flag()), 0x14, 'I', flag()),
+        0x820aa4: put(put(put(put(bytearray(r.bytes(0x30)), 0, 'I', flag()), 0x14, 'I', flag()), 0x24, 'I', flag()), 0x2c, 'I', flag()),
+        0x7639f0: struct.pack('<4I', *[v if r.random() < 0.6 else r.choice([v + 1, v - 1, 0, 0xffffffff]) & 0xffffffff
+                                      for v in (x, y, x, y)]),
         0x785a2c: struct.pack('<I', r.choice([0, 0, 0, 1])),
         0x81af4c: struct.pack('<I', cost),
         0x81b6dc: struct.pack('<I', r.choice([0, 10, 5000, r.getrandbits(32)])),
@@ -171,7 +180,32 @@ def can_build(r):
     return Call(0x535670, [cell, kind, r.choice([0, 1, 1, 2])], regions, conv='t', ret='a')
 
 
-CASES = {'CanBuild': can_build}
+def can_build_rules(r):
+    """The rules' kinds on calm worlds, the cell of the kind's own type or a neighbouring one mostly."""
+    regions, cell = world(r, calm=True)
+    kind = r.choice([1, 3, 4, 0xb, 0x10, 0x15, 0x16, 0x14, 0x18])
+    buf = regions[max(a for a in regions if W <= a <= cell)]
+    base = cell - max(a for a in regions if W <= a <= cell)
+    if r.random() < 0.7:
+        put(buf, base + 8, 'I', r.choice([kind, kind, 1, 3, 4, 9, 0x15, 0]))
+    return Call(0x535670, [cell, kind, r.choice([0, 1, 1])], regions, conv='t', ret='a')
+
+
+def can_build_track(r):
+    """0x539760: track, hoarding and the other kinds it names, the cell of a track type mostly, directions the cell's or not."""
+    regions, cell = world(r, calm=r.random() < 0.8, inner=True)
+    kind = r.choice([0xb, 0x10, 0xb, 0x10, 0x19, 0x19, 0xe, 0x13, 0xf, 0x39, 0, 1, 0xd, 0x12]) if r.random() < 0.95 else r.randrange(0x40)
+    start = max(a for a in regions if W <= a <= cell)
+    buf, base = regions[start], cell - start
+    if r.random() < 0.7:
+        put(buf, base + 8, 'I', r.choice([kind, kind, 0xb, 0x10, 0xd, 0x12, 0x19, 0, 7]))
+    d = buf[base + 0xd]
+    turned = 0 if d == 0 else (d << 4) & 0xff if d < 0x10 else d >> 4
+    direction = r.choice([d, d, turned, 0, 1, 4, 0x10, 0x40, r.getrandbits(8)]) | r.choice([0, 0, r.getrandbits(24) << 8])
+    return Call(0x539760, [cell, kind, r.choice([0, 1, 1]), direction], regions, conv='t', ret='a')
+
+
+CASES = {'CanBuild': can_build, 'Rules': can_build_rules, 'Track': can_build_track, 'Track2': can_build_track}
 OPS = [k for k in os.environ.get('OPS', ','.join(CASES)).split(',') if k]
 
 
