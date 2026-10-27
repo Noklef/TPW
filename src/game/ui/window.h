@@ -9,6 +9,10 @@ extern "C" {
 // 0x65d7d0 (thiscall (id), pops 4; name unconfirmed): the first child of the window whose id is `id`, 0 when none is.
 u8 *__fastcall Window_FindChild(u8 *window, void *, u32 id);
 
+// 0x65d822 (thiscall; no callers; name unconfirmed): the number of children (a word, in AX). With none the rest of EAX is the window's
+// (sic), else 0.
+u32 __fastcall Window_ChildCount(u8 *window);
+
 // 0x65f697 (thiscall (message, a, b), pops 12; name unconfirmed): the window's handler (the cdecl function at +0x114) called with
 // (window, message, a, b) and its result returned; -1 when there is none.
 s32 __fastcall Window_CallHandler(u8 *window, void *, u32 message, u32 a, u32 b);
@@ -24,6 +28,9 @@ s32 __cdecl Window_SendMessage(u8 *window, u32 message, u32 a, u32 b);
 // 0x65d6db (thiscall (a, b), pops 8; name unconfirmed): slot 7 (thiscall (a, b)) of the window's object at +0x9c, its result; 0 when there is
 // none.
 u32 __fastcall Window_ImplSlot7(u8 *window, void *, u32 a, u32 b);
+
+// 0x65d69f (thiscall (a, b), pops 8; no direct callers; name unconfirmed): Window_ImplSlot7 for the object at +0x98.
+u32 __fastcall Window_Object98Slot7(u8 *window, void *, u32 a, u32 b);
 
 // 0x65d745 (thiscall; name unconfirmed): slot 6 (thiscall, no arguments) of the window's object at +0x9c, its result; the window itself when
 // there is none (sic: EAX still holds it).
@@ -66,6 +73,22 @@ u16 __fastcall Window_GetRect(u8 *window, void *, u8 *rect, u32 inner);
 // 0x65cfd4 (thiscall (rect), pops 4; name unconfirmed): 0 for no rect; otherwise it is assigned to the saved rectangle +0x2c
 // (GuiRect_Assign); 1 (AX).
 u16 __fastcall Window_SetSavedRect(u8 *window, void *, const u8 *rect);
+
+// The rectangles +0x14 and +0x20 (+0x20 is where Window_SetRect keeps the old +8; +0x14's use unknown). 1 in AX for each below (the
+// rest of EAX what the call left), or 0 for no pointer where one is checked.
+// 0x65cef7 (thiscall (rect), pops 4; name unconfirmed): +0x20 assigned from rect (GuiRect_Assign; no check for none).
+u16 __fastcall Window_SetRect20(u8 *window, void *, const u8 *rect);
+// 0x65cf17 (thiscall (rect), pops 4; name unconfirmed): +0x14 assigned from rect when given; 1 either way.
+u16 __fastcall Window_SetRect14(u8 *window, void *, const u8 *rect);
+// 0x65cf3d (thiscall; name unconfirmed): +0x20 assigned from the rectangle +8.
+u16 __fastcall Window_KeepRect(u8 *window);
+// 0x65d4a0 / 0x65d4cb / 0x65d4f6 (thiscall (rect), pops 4; names unconfirmed): rect (0 for none) assigned from +0x20, +0x14 or the saved
+// rectangle +0x2c.
+u16 __fastcall Window_GetRect20(u8 *window, void *, u8 *rect);
+u16 __fastcall Window_GetRect14(u8 *window, void *, u8 *rect);
+u16 __fastcall Window_GetSavedRect(u8 *window, void *, u8 *rect);
+// 0x65d8e7 (thiscall (width, height: word pointers, each may be 0), pops 8; name unconfirmed): the size of +0x14 (GuiRect_GetSize).
+u16 __fastcall Window_GetSize14(u8 *window, void *, u16 *width, u16 *height);
 
 // 0x65cfff (thiscall (area), pops 4; name unconfirmed): the hit area +0x44 replaced: the old one, unless none or the window's own rectangle +8,
 // deleted (slot 4 (1)); then +0x44 = area, or +8 for none. EAX is left the window.
@@ -117,6 +140,9 @@ void __fastcall Window_NotifyImpl100(u8 *window, void *, u32 a);
 // 0x65f5fe (thiscall (a), pops 4; name unconfirmed): Window_NotifyImpl100 for the object +0x98.
 void __fastcall Window_NotifyObject98_100(u8 *window, void *, u32 a);
 
+// 0x65f645 (thiscall (a), pops 4; name unconfirmed): Window_NotifyImpl100 (a), then Window_NotifyObject98_100 (a); 1 in AX.
+u16 __fastcall Window_NotifyBoth100(u8 *window, void *, u32 a);
+
 // 0x65d070 (thiscall (object), pops 4; name unconfirmed): as Window_SetImpl for the object +0x98, except that the old one's own slot 0
 // (1) is called when its release (WindowImpl_Release) answers -1, and the event's word +6 is +0xe0 itself and its +0x14 the window + 8.
 void __fastcall Window_SetObject98(u8 *window, void *, u8 *object);
@@ -145,6 +171,11 @@ u32 __cdecl Window_ForgetGlobals(u8 *window);
 // 0x65e672 (thiscall; name unconfirmed): when the window is the modal one [0xfaa57c] (msgqueue's first taker of 0x1000a-0x1000c), it and
 // its pairs [0xfaa578] are cleared and 1 is in AX; else 0. Only AX is set (sic: the rest of EAX is [0xfaa57c]'s).
 u32 __fastcall Window_DropModal(u8 *window);
+
+// 0x65e640 (thiscall (pairs), pops 4; called by 0x665e55; name unconfirmed): Window_DropModal's opposite: 0 in AX when the window has the
+// focus [0xfaa5ec]; else it becomes the modal one [0xfaa57c] with the pairs [0xfaa578], 1 in AX. Only AX is set (sic: the rest of EAX
+// is the focus's).
+u32 __fastcall Window_SetModal(u8 *window, void *, u32 pairs);
 
 // 0x65c2d8 (thiscall; name unconfirmed): the window and its children (from +0x5c by +0x54, each in turn) told they are going: sent 0x14
 // (0, 0) (Window_SendMessage), then the byte +4 set; after the children, Window_DropModal, and [0xfaa5ec] and [0xfaa5dc] cleared when
@@ -242,6 +273,18 @@ u32 __cdecl Gui_MouseUp(u32 button, u32 x, u32 y);
 // Gui_MouseDown's) (Window_PostMessage); 1 in AX.
 u32 __cdecl Gui_MouseWheel(u32 delta, u32 x, u32 y);
 
+// 0x658ab4 (cdecl (button, x, y: words); no callers; name unconfirmed, a double click going by the message): 0 in AX while [0x77c488]
+// is 0; else the hovered window [0xfaa5e0] is posted 0x10007 (button, x << 16 | y; all three signed, sic as Gui_MouseDown's)
+// (Window_PostMessage); 1 in AX. Only AX is set.
+u32 __cdecl Gui_MouseDouble(u32 button, u32 x, u32 y);
+
+// 0x658c38 / 0x658c67 / 0x658c96 (cdecl (key: a word, b); called from the window procedure 0x46b752; names unconfirmed, key down, key
+// up and a character going by it): 0 in AX while [0x77c488] is 0; else 0x1000a / 0x1000b / 0x1000c (key signed, b) posted with the
+// window 1 (Window_PostMessage, which sends those to the first window that takes them); 1 in AX. Only AX is set.
+u32 __cdecl Gui_KeyDown(u32 key, u32 b);
+u32 __cdecl Gui_KeyUp(u32 key, u32 b);
+u32 __cdecl Gui_KeyChar(u32 key, u32 b);
+
 // 0x6588ef (cdecl (x, y: words); name unconfirmed): the mouse moved. 0 in AX while [0x77c488] is 0. Else the words 0xfaa540 / 0xfaa544
 // = x / y; without the root window [0xfaa5d8], 0 in AX. With a capture window [0xfaa5e8], it is posted 0x10003 (x << 16 | y, both signed:
 // sic, a negative y fills the top half; 0); else the window under the point (Window_HitTest on the root), when it is not the hovered one
@@ -279,6 +322,15 @@ u32 __fastcall Window_Notify80(u8 *window, void *, u32 value);
 // 0x66160c (thiscall (value: a word), pops 4; name unconfirmed): the objects +0x98 and +0x9c (when set) told through their slot 3
 // (0x80000, an event on the stack whose only word set, +0xa, is the value). EAX not kept.
 void __fastcall Window_Notify80000(u8 *window, void *, u32 value);
+
+// 0x65d323 / 0x65d363 (thiscall (value: a word), pops 4; no direct callers; names unconfirmed): Window_Notify1 for only the object +0x98
+// / only +0x9c (when set).
+void __fastcall Window_NotifyObject98_1(u8 *window, void *, u32 value);
+void __fastcall Window_NotifyImpl1(u8 *window, void *, u32 value);
+
+// 0x65f246 (thiscall (value: a word), pops 4; no direct callers; name unconfirmed): the object +0x9c (when set) told through its slot 3
+// (2, an event on the stack whose only word set, +6, is the value). EAX not kept.
+void __fastcall Window_NotifyImpl2(u8 *window, void *, u32 value);
 
 // 0x65d865 (thiscall (width, height: word pointers, each may be 0; inner: a word), pops 12; name unconfirmed): the size of the rectangle
 // +8 (GuiRect_GetSize); with inner not 0 each one set less the margins: width less +0xfc - +0xf8, height less +0xfe - +0xfa. 1 in AX (the
@@ -335,6 +387,10 @@ u32 __fastcall Window_MoveTo(u8 *window, void *, const s16 *x, const s16 *y);
 // (+0x5c, then +0x54) given the same. EAX not kept.
 void __fastcall Window_SetWordsE4(u8 *window, void *, u32 a, u32 b);
 
+// 0x65f410 (thiscall (da, db: words), pops 8; no callers; name unconfirmed): Window_SetWordsE4 with +0xe4 + da and +0xe6 + db (signed
+// words added as dwords). EAX not kept.
+void __fastcall Window_AddWordsE4(u8 *window, void *, u32 da, u32 db);
+
 // 0x65f447 (thiscall (child, depth, words: bytes), pops 12; name unconfirmed): 0 in AX for no child or one with a parent (+0x60), a next
 // (+0x54) or a previous (+0x58) already. Else it becomes the window's last child (its parent the window, its previous the old last one
 // or 0; the window's first +0x5c when it had none); with depth (signed byte) not 0 it is given the window's depth +0xe0 + 2
@@ -366,6 +422,33 @@ u32 __fastcall Window_SlideTo(u8 *window, void *, const u8 *target, s32 time, s3
 // 0x65c357 (thiscall; name unconfirmed): the manager [0x77c48c]'s slot 12 (no arguments) when its +0x14 is the window; then the script's
 // step (Window_ScriptStep), whose answer it returns.
 u32 __fastcall Window_ScriptTick(u8 *window);
+
+// 0x65e72d (thiscall (script, interval), pops 8; called by the panels 0x48a85b, 0x48a935, 0x48ad7a and others; name unconfirmed): a
+// running script (+0x135 set, signed) first undone (the rectangle +8 less the margins +0xf8..+0xfe set by Window_SetRect, the margins 0);
+// then with a script: +0x135 = 1, the step +0xec 0, the script +0xe8, the interval +0xf0 and the last time +0xf4 now (GuiClock_Now); 1 in
+// AX. Without one 0 in AX (the rest of EAX left in both, by no caller read).
+u16 __fastcall Window_RunScript(u8 *window, void *, u8 *script, s32 interval);
+
+// 0x65e855 (thiscall (paused: a word), pops 4; no direct callers; name unconfirmed): with a script running (+0x135 set) +0x135 = 2 when the
+// word is not 0, else 1; 1 in AX. Else 0.
+u16 __fastcall Window_PauseScript(u8 *window, void *, u32 paused);
+
+// 0x65e897 (thiscall; name unconfirmed): with a script running (+0x135 set) +0x135, the step +0xec and the script +0xe8 0, then the
+// rectangle +8 less the margins set (Window_SetRect) and the margins 0; 1 in AX. Else 0.
+u16 __fastcall Window_StopScript(u8 *window);
+
+// 0x65ee1b (thiscall (move: a word), pops 4; name unconfirmed): with a slide running (+0x136 set, signed) its timer +0x100 stopped
+// (Fn_662097), +0x136 and the count +0x10c 0 and, when the word is not 0, the rectangle set to the target +0x38 (Window_SetRect); 1 in AX.
+// Else 0.
+u16 __fastcall Window_StopSlide(u8 *window, void *, u32 move);
+
+// 0x65edd3 (thiscall (paused: a word), pops 4; no direct callers; name unconfirmed): with a slide timer +0x100 it is stopped (Fn_662097)
+// when the word is not 0, else started (WindowTimer_Start); 1 in AX. Without one 0.
+u16 __fastcall Window_PauseSlide(u8 *window, void *, u32 paused);
+
+// 0x65cd95 (thiscall (dl, dt, dr, db: words), pops 16; called by 0x48dc92, 0x4a12e3; name unconfirmed): the rectangle +8 moved edge by
+// edge by the words (GuiRect_CopyCtor, GuiRect_Adjust) and set (Window_SetRect). EAX the rectangle's address (its destructor's), by neither caller read.
+void __fastcall Window_AdjustRect(u8 *window, void *, u32 dl, u32 dt, u32 dr, u32 db);
 
 // 0x65f6d1 (cdecl; name unconfirmed): a window's default handler (+0x114 / +0x118 of a new window). Messages with the top bit set: nothing.
 // 1 / 2 the tree opened / closed (Window_OpenTree / Window_CloseTree); 3 the window's slot 4; 4 its slot 2 (1: its deleting destructor);

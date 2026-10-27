@@ -50,6 +50,11 @@ void __fastcall Window705a20_ToggleInsert(u8 *window);
 // +0x8c, 0). EAX not kept.
 void __fastcall Window705a20_NotifyText(u8 *window, void *, u32 post);
 
+// 0x66679e (thiscall; called by 0x667272, 0x6672e4 after they move the scroll word +0x14e; name unconfirmed): the object +0x9c (when
+// set) told 0x8000 through its slot 3, the event's +0x10 pointing to a second one on the stack whose only word set, +0xc, is +0x14e.
+// EAX not kept.
+void __fastcall Window705a20_NotifyScroll(u8 *window);
+
 // 0x666875 (thiscall (mode: a word), pops 4; name unconfirmed): the word +0x158 the mode, -1 for 0; the caret +0x15c (when set) told the
 // mode through its slot 5 (the pushed dword's upper half EDX's: the caller's for mode 0, else the window's address's; sic), and with
 // [0xfaa5d4] set the window posted 3 (0, 0). EAX not kept.

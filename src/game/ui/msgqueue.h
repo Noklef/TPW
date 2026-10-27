@@ -45,4 +45,9 @@ void __fastcall MsgQueue_Clear(u8 *queue);
 // take comes before the check), uncounted; with it, each is first shown to the hook (the entry's window, message, a and b; MsgQueue_Peek,
 // none for a dropped one), the hook read again each time.
 s32 __cdecl MsgQueue_Pump(s32 most);
+
+// 0x658f0b (cdecl (most); called by 0x48a6bc; name unconfirmed): with the second queue [0xfaa5f4] (read again for each), its messages
+// dispatched (MsgQueue_DispatchOne) while one is (AX) and fewer than `most` were counted; the count. The dispatch comes before the check
+// (sic): one more is taken once `most` is reached, uncounted.
+s32 __cdecl MsgQueue_PumpSecond(s32 most);
 }

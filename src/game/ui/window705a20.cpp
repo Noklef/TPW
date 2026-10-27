@@ -132,6 +132,13 @@ void __fastcall Window705a20_NotifyText(u8 *window, void *, u32 post) {
     if (post) Window_PostMessage(at<u8 *>(window, 0x60), 0x801, at<u32>(window, 0x8c), 0);
 }
 
+void __fastcall Window705a20_NotifyScroll(u8 *window) {
+    u8 inner[0x14], event[0x18];  // (only the inner's word +0xc and the event's +0x10 set; the original's inner lies just before it)
+    at<u16>(inner, 0xc) = at<u16>(window, 0x14e);
+    at<u8 *>(event, 0x10) = inner;
+    if (at<u8 *>(window, 0x9c)) vcall<void>(at<u8 *>(window, 0x9c), 0xc, 0x8000u, event);
+}
+
 void __fastcall Window705a20_SetInsertMode(u8 *window, void *edx, u32 mode) {
     const bool none = (s16)mode == 0;
     at<u16>(window, 0x158) = none ? 0xffff : (u16)mode;

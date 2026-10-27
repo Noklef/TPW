@@ -8,6 +8,9 @@
 #include "../core/vcall.h"
 #include "../render/particles.h"
 #include "../render/textparts.h"
+#include "../world/camera.h"
+#include "../world/things.h"
+#include "focus.h"
 #include "guirect.h"
 #include "window.h"
 #include "window705a50.h"
@@ -264,5 +267,46 @@ void __cdecl Dialog7cdb0c_Create(u32 flag) {
     }
     static const u32 kPairs[] = {0x16002, 0x16004, 0x16005, 0x16001};
     for (u32 id : kPairs) Window705a50_SetPair(Window_FindChild(window(0x007cdb0c), nullptr, id), nullptr, 0, 10);
+}
+
+void __fastcall WindowAt10_Create(u8 *object, void *, u8 *script, u32 handler, u32 first, u32 second, u32 inner) {
+    u8 **const fields = reinterpret_cast<u8 **>(object);   // (+8 [2], +0x10 [4], +0x14 [5], +0x18 [6], +0x1c [7])
+    if (fields[4]) return;
+    fields[6] = nullptr;
+    fields[5] = nullptr;
+    fields[7] = nullptr;
+    fields[2] = nullptr;
+    Window7c24c8_Close();
+    u8 *const built = WindowScript_Build(window(0x007cb2ac), nullptr, script, handler);
+    if (!built) return;
+    fields[4] = built;
+    Window7c24c8_Set(built);
+    vcall<void>(object, 0);
+    fields[6] = Window_FindChild(fields[4], nullptr, first);
+    if (fields[6]) {
+        if (inner) {
+            u8 *const child = Window_FindChild(fields[6], nullptr, inner);
+            fields[7] = child;
+            vcall<void>(child, 0x14, 0u);
+        }
+        Window_SetHandler(fields[6], nullptr, 0x0048d1a0);
+        Window_SetDwordA0(fields[6], nullptr, 6, (u32)(uintptr_t)object);
+        vcall<void>(object, 0x10);
+    }
+    fields[5] = Window_FindChild(fields[4], nullptr, second);
+    if (fields[5]) vcall<void>(object, 0xc);
+    vcall<void>(object, 4);
+    Window_SetDwordA0(fields[4], nullptr, 6, (u32)(uintptr_t)object);
+}
+
+s32 __cdecl WindowAt10_CentreHandler(u8 *window, u32 message, u32 a, u32 b) {
+    if (message != 0x10006) return Window_CallDefault(window, nullptr, message, a, b);
+    u8 *const object = reinterpret_cast<u8 *>((uintptr_t)Window_DwordA0(window, nullptr, 6));
+    const u8 *const thing = *reinterpret_cast<const u8 *const *>((uintptr_t)0x007c2658);
+    u16 handle;
+    Thing_GetHandle(thing, nullptr, &handle);
+    Camera_CentreOnThing((static_cast<u32>(reinterpret_cast<uintptr_t>(thing)) & 0xffff0000u) | handle);   // (ECX's high word: the thing's)
+    vcall<void>(object, 0x2c);
+    return 0;
 }
 }

@@ -19,6 +19,10 @@
 # HelpBg_Build (0x492180, src/game/frontend/helpbg), helpbg(): the dialogs' surroundings without the script, the GUI root [0xfaa5d8]
 # windowfactory.py's (or none: a fault in both), font 7's vtable a recorder whose slot 1 gives its height (0-40 mostly, edges too), the
 # GUI's registered windows of listrows.py's register() with "f_helpbg" among them or not, the background's bytes random.
+# WindowAt10_Create (0x48cea0, thiscall), windowat10(): focused()'s surroundings with the object (its vtable's slots 0, 1, 3 and 4
+# recorders, its window +0x10 none mostly, else any: nothing done) and the script generated: 0-2 plain children, then the dialog (kind 1)
+# whose children are first (its own children inner among 0-2 decoys, inner 0 now and then; inner missing a fault in both, rarely) and
+# second among 0-2 decoys, each missing now and then; the window kinds' slots 5 and 7 recorders; the handler 0 now and then.
 # usage: dialogbuild.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=List7cc94c_InitRow,HelpBg_Build,...)
 import os
 import struct
@@ -27,6 +31,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
+import focus  # noqa: E402
 import listrows  # noqa: E402
 import window  # noqa: E402
 import windowfactory  # noqa: E402
@@ -34,7 +39,7 @@ import windowscript  # noqa: E402
 from fncmp import HEAP, LOG, RAM, Bench, Call, heap, put, recorder, set_return, vtable  # noqa: E402
 
 CALLS = {'List7cc94c_InitRow': 0x4c03e0, 'List7cca90_InitRow': 0x4c1c30, 'List7cc200_InitRow': 0x4ad340, 'List7cb264_InitRow': 0x4a03d0,
-         'Dialog7cc4c4_Create': 0x4b9a70, 'HelpBg_Build': 0x492180}
+         'Dialog7cc4c4_Create': 0x4b9a70, 'HelpBg_Build': 0x492180, 'WindowAt10_Create': 0x48cea0}
 # each list row's initialiser: (the children it dresses, the GUI name it looks up or None, the font dword it reads or None)
 SHAPES = {'List7cc94c_InitRow': (5, None, None), 'List7cca90_InitRow': (4, None, None), 'List7cc200_InitRow': (2, 'i_boxtick', 0x755134),
           'List7cb264_InitRow': (5, None, 0x752934)}
@@ -44,7 +49,7 @@ ALL_RANGES = sorted(set(window.RANGES + listrows.PART_RANGES + listrows.REG_RANG
     (0x48f6a0, 0x491aac), (0x65c388, 0x65c55a), (0x65d56b, 0x65d58c), (0x65d773, 0x65d7cc), (0x6616b0, 0x661710), (0x6617f0, 0x661820),
     (0x65e526, 0x65e549), (0x4c03e0, 0x4c0653), (0x4c1c30, 0x4c1e33), (0x4ad340, 0x4ad46d), (0x4a03d0, 0x4a06a4), (0x4b9a70, 0x4b9bf6), (0x492180, 0x4922d0),
     (0x65e6d5, 0x65e705), (0x65f16b, 0x65f246), (0x65f6d1, 0x65fba8), (0x65b8dc, 0x65bb10), (0x65bb3f, 0x65bc24), (0x65dcaf, 0x65dd18),
-    (0x680050, 0x68005b)]))
+    (0x680050, 0x68005b), (0x48cea0, 0x48cf6f), (0x65e705, 0x65e73d)] + focus.MODES + focus.RANGES))
 B = Bench(ALL_RANGES)
 ROW = listrows.ROW
 KIDS, KIDVT = RAM + 0xb000, RAM + 0xbc00
@@ -214,8 +219,54 @@ def helpbg(r):
     return regions
 
 
+WINDOWAT10, WINDOWAT10VT, WINDOWAT10SCRIPT = RAM + 0x3e800, RAM + 0x3e900, RAM + 0x3f000
+KIND_VTABLES = (0x705980, 0x705a50, 0x705b20, 0x705950, 0x705a20, 0x705c58, 0x7059f0, 0x705ac0, 0x705c28, 0x705bf8, 0x705bc8, 0x705af0,
+                0x705b98)   # (the factory's kinds 1-13)
+DIALOGS['WindowAt10_Create'] = (WINDOWAT10 + 0x10, WINDOWAT10SCRIPT, (0x100,), ())   # (scripted()'s script, replaced below)
+
+
+def windowat10(r):
+    """WindowAt10_Create's surroundings (above); returns its arguments and the regions"""
+    regions = focused(r, 'WindowAt10_Create')
+    regions.pop(WINDOWAT10 + 0x10)
+    obj = bytearray(r.bytes(0x20))
+    put(obj, 0, 'I', WINDOWAT10VT)
+    put(obj, 0x10, 'I', r.choice([0] * 15 + [r.getrandbits(32) | 1]))
+    regions[WINDOWAT10] = obj
+    regions[WINDOWAT10VT] = vtable({}, 8)
+    for vt in KIND_VTABLES:   # (the built windows' slots 5 and 7: game code the driver cannot run natively)
+        regions[vt + 0x14] = struct.pack('<I', recorder(28, 1))
+        regions[vt + 0x1c] = struct.pack('<I', recorder(29, 1))
+    first, second, inner = r.sample(range(0x100, 0x10000), 3)
+    if r.random() < 0.15:
+        inner = 0
+    decoys = [r.choice([0, 1, r.getrandbits(32)]) for _ in range(r.choice([0, 1, 2]))]
+    sub = []
+    ids = decoys + ([inner] if inner and r.random() < 0.97 else [])
+    r.shuffle(ids)
+    for ident in ids:
+        child(r, sub, ident)
+    top = []
+    ids = [r.choice([0, 1, r.getrandbits(32)]) for _ in range(r.choice([0, 1, 2]))]
+    ids += [ident for ident in (first, second) if r.random() < 0.8]
+    r.shuffle(ids)
+    for ident in ids:
+        child(r, top, ident, sub + [5] if ident == first else (5,))
+    w = []
+    for _ in range(r.choice([0, 0, 1, 2])):
+        child(r, w, r.choice([0, 1, r.getrandbits(32)]))
+    child(r, w, r.choice([0, 1, r.getrandbits(32)]), top + [5], 160, 1)
+    w += [5] * 4
+    regions[WINDOWAT10SCRIPT] = struct.pack('<%dH' % len(w), *w)
+    handler = r.choice([0x497640, 0x499bb0, 0x4af600, 0x4b0b30, 0])
+    return [WINDOWAT10, WINDOWAT10SCRIPT, handler, first, second, inner], regions
+
+
 def case(r):
     op = r.deal(OPS)
+    if op == 'WindowAt10_Create':
+        args, regions = windowat10(r)
+        return Call(CALLS[op], args, regions, conv='t', ret='v')
     if op == 'HelpBg_Build':
         return Call(CALLS[op], [HELPBG], helpbg(r), conv='t', ret='v')
     if op in DIALOGS:

@@ -7,6 +7,9 @@
 # (only with no columns to make). SetColumn (0x663662): a column array of up to 6 (or none), the index about the count. SetRange705bc8
 # (0x66cad3): the kind 11 window's range ends any (near each other mostly), the new ends given or not. SetRange2705bc8 (0x66cb69): the
 # same for its second range, its value +0x158 near the ends (or any).
+# SetRect20 / SetRect14 / KeepRect / GetRect20 / GetRect14 / GetSavedRect / GetSize14 (0x65cef7, 0x65cf17, 0x65cf3d, 0x65d4a0, 0x65d4cb,
+# 0x65d4f6, 0x65d8e7): random rectangles +8 / +0x14 / +0x20 / +0x2c, the other one random or none (not for SetRect20), the out pointers
+# each set or 0.
 # usage: windowrect.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=RectAssign,SaveRect,...)
 import os
 import struct
@@ -21,9 +24,11 @@ from window import MISC, RANGES, VTABLE, WINDOW  # noqa: E402
 CALLS = {'GetSize': 0x65d865, 'RectAssign': 0x65aa20, 'SaveRect': 0x65bc90, 'GetRect': 0x65d42e, 'SetSavedRect': 0x65cfd4, 'SaveInsetRect': 0x485e30,
          'SetHitArea': 0x65cfff, 'SetInner': 0x65bb10, 'OffsetInner': 0x65bb3f,
          'SetInner7059f0': 0x6651ef, 'SetColumns': 0x663554, 'SetColumn': 0x663662, 'SetRange705bc8': 0x66cad3,
-         'SetRange2705bc8': 0x66cb69}
+         'SetRange2705bc8': 0x66cb69, 'SetRect20': 0x65cef7, 'SetRect14': 0x65cf17, 'KeepRect': 0x65cf3d, 'GetRect20': 0x65d4a0,
+         'GetRect14': 0x65d4cb, 'GetSavedRect': 0x65d4f6, 'GetSize14': 0x65d8e7}
 B = Bench(RANGES + [(0x65d865, 0x65d8e7), (0x659e3e, 0x659e83), (0x65cfff, 0x65d070), (0x65bb10, 0x65bb6b), (0x659dac, 0x659de5), (0x6651ef, 0x66521e),
-                       (0x663554, 0x663662), (0x663662, 0x6636b2), (0x66cad3, 0x66cb69), (0x66cb69, 0x66cc4d), (0x67acf0, 0x67ada0), (0x5da3c0, 0x5da3c1)])
+                       (0x663554, 0x663662), (0x663662, 0x6636b2), (0x66cad3, 0x66cb69), (0x66cb69, 0x66cc4d), (0x67acf0, 0x67ada0), (0x5da3c0, 0x5da3c1),
+                       (0x65cef7, 0x65cf5e), (0x65d4a0, 0x65d521), (0x65d8e7, 0x65d90b)])
 
 
 def case(r):
@@ -38,6 +43,13 @@ def case(r):
         regions[MISC] = r.bytes(8)
         inner = r.choice([0, 1, 0x10000, 0xffff0000, r.getrandbits(32)])
         return Call(CALLS[op], [WINDOW, r.choice([MISC, MISC, 0]), r.choice([MISC + 4, MISC + 4, 0]), inner], regions, conv='t', ret='w')
+    if op in ('SetRect20', 'SetRect14', 'KeepRect', 'GetRect20', 'GetRect14', 'GetSavedRect', 'GetSize14'):
+        regions[WINDOW] = r.bytes(0x40)
+        regions[MISC] = r.bytes(0x10)
+        if op == 'GetSize14':
+            return Call(CALLS[op], [WINDOW, r.choice([MISC, MISC, 0]), r.choice([MISC + 4, MISC + 4, 0])], regions, conv='t', ret='w')
+        args = [] if op == 'KeepRect' else [MISC if op == 'SetRect20' else r.choice([MISC] * 6 + [0])]
+        return Call(CALLS[op], [WINDOW] + args, regions, conv='t', ret='w')
     if op in ('GetRect', 'SetSavedRect'):   # the rectangle a GUI one, a recorder (slot 3: four) or 0; insets small or edges; inner's low word 0 or not
         win = bytearray(r.bytes(0x120))
         for k in range(0xf8, 0x100, 2):

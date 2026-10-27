@@ -53,6 +53,13 @@ u8 *__fastcall Window_FindChild(u8 *window, void *, u32 id) {
     return found;
 }
 
+u32 __fastcall Window_ChildCount(u8 *window) {
+    if (!at<u8 *>(window, 0x5c)) return (u32)(uintptr_t)window & 0xffff0000u;  // sic: only AX is set, EAX held the window
+    u16 count = 0;
+    for (u8 *child = at<u8 *>(window, 0x5c); child; child = at<u8 *>(child, 0x54)) ++count;
+    return count;
+}
+
 s32 __fastcall Window_CallHandler(u8 *window, void *, u32 message, u32 a, u32 b) {
     using Handler = s32(__cdecl *)(u8 *, u32, u32, u32);
     const Handler handler = at<Handler>(window, 0x114);
@@ -75,6 +82,12 @@ u32 __fastcall Window_ImplSlot7(u8 *window, void *, u32 a, u32 b) {
     u8 *const impl = at<u8 *>(window, 0x9c);
     if (!impl) return 0;
     return reinterpret_cast<u32(__fastcall *)(u8 *, void *, u32, u32)>(at<void **>(impl, 0)[7])(impl, nullptr, a, b);
+}
+
+u32 __fastcall Window_Object98Slot7(u8 *window, void *, u32 a, u32 b) {
+    u8 *const object = at<u8 *>(window, 0x98);
+    if (!object) return 0;
+    return reinterpret_cast<u32(__fastcall *)(u8 *, void *, u32, u32)>(at<void **>(object, 0)[7])(object, nullptr, a, b);
 }
 
 u32 __fastcall Window_ImplSlot6(u8 *window) {
@@ -162,6 +175,44 @@ u8 *__fastcall Window_SetHitArea(u8 *window, void *, u8 *area) {
 u16 __fastcall Window_SetSavedRect(u8 *window, void *, const u8 *rect) {
     if (!rect) return 0;
     GuiRect_Assign(window + 0x2c, nullptr, rect);
+    return 1;
+}
+
+u16 __fastcall Window_SetRect20(u8 *window, void *, const u8 *rect) {
+    GuiRect_Assign(window + 0x20, nullptr, rect);
+    return 1;
+}
+
+u16 __fastcall Window_SetRect14(u8 *window, void *, const u8 *rect) {
+    if (rect) GuiRect_Assign(window + 0x14, nullptr, rect);
+    return 1;
+}
+
+u16 __fastcall Window_KeepRect(u8 *window) {
+    GuiRect_Assign(window + 0x20, nullptr, window + 8);
+    return 1;
+}
+
+u16 __fastcall Window_GetRect20(u8 *window, void *, u8 *rect) {
+    if (!rect) return 0;
+    GuiRect_Assign(rect, nullptr, window + 0x20);
+    return 1;
+}
+
+u16 __fastcall Window_GetRect14(u8 *window, void *, u8 *rect) {
+    if (!rect) return 0;
+    GuiRect_Assign(rect, nullptr, window + 0x14);
+    return 1;
+}
+
+u16 __fastcall Window_GetSavedRect(u8 *window, void *, u8 *rect) {
+    if (!rect) return 0;
+    GuiRect_Assign(rect, nullptr, window + 0x2c);
+    return 1;
+}
+
+u16 __fastcall Window_GetSize14(u8 *window, void *, u16 *width, u16 *height) {
+    GuiRect_GetSize(window + 0x14, nullptr, width, height);
     return 1;
 }
 
@@ -270,6 +321,12 @@ void __fastcall Window_NotifyImpl100(u8 *window, void *, u32 a) {
     at<u8 *>(event, 0x10) = inner;
     at<u32>(inner, 0) = a;
     vcall<void>(at<u8 *>(window, 0x9c), 0xc, 0x100u, event);
+}
+
+u16 __fastcall Window_NotifyBoth100(u8 *window, void *, u32 a) {
+    Window_NotifyImpl100(window, nullptr, a);
+    Window_NotifyObject98_100(window, nullptr, a);
+    return 1;
 }
 
 void __fastcall Window_NotifyObject98_100(u8 *window, void *, u32 a) {
@@ -401,6 +458,15 @@ u32 __fastcall Window_DropModal(u8 *window) {
     if (modal != window) return high;
     modal = nullptr;
     *reinterpret_cast<u32 *>((uintptr_t)0x00faa578) = 0;
+    return high | 1;
+}
+
+u32 __fastcall Window_SetModal(u8 *window, void *, u32 pairs) {
+    u8 *const focus = *reinterpret_cast<u8 *const *>((uintptr_t)0x00faa5ec);
+    const u32 high = (u32)(uintptr_t)focus & 0xffff0000u;  // sic: only AX is set, EAX held the focus
+    if (focus == window) return high;
+    *reinterpret_cast<u8 **>((uintptr_t)0x00faa57c) = window;
+    *reinterpret_cast<u32 *>((uintptr_t)0x00faa578) = pairs;
     return high | 1;
 }
 
@@ -611,6 +677,23 @@ u32 __cdecl Gui_MouseWheel(u32 delta, u32 x, u32 y) {
     return 1;  // (AX; the rest the post's answer, 0)
 }
 
+u32 __cdecl Gui_MouseDouble(u32 button, u32 x, u32 y) {
+    if (*reinterpret_cast<const u32 *>((uintptr_t)0x0077c488) == 0) return 0;  // only AX is set
+    Window_PostMessage(*reinterpret_cast<u8 *const *>((uintptr_t)0x00faa5e0), 0x10007, (u32)(s32)(s16)button,
+                       ((u32)(s32)(s16)x << 16) | (u32)(s32)(s16)y);
+    return 1;
+}
+
+static u32 Gui_PostKey(u32 message, u32 key, u32 b) {
+    if (*reinterpret_cast<const u32 *>((uintptr_t)0x0077c488) == 0) return 0;  // only AX is set
+    Window_PostMessage(reinterpret_cast<u8 *>((uintptr_t)1), message, (u32)(s32)(s16)key, b);
+    return 1;
+}
+
+u32 __cdecl Gui_KeyDown(u32 key, u32 b) { return Gui_PostKey(0x1000a, key, b); }
+u32 __cdecl Gui_KeyUp(u32 key, u32 b) { return Gui_PostKey(0x1000b, key, b); }
+u32 __cdecl Gui_KeyChar(u32 key, u32 b) { return Gui_PostKey(0x1000c, key, b); }
+
 u32 __cdecl Gui_MouseMove(u32 x, u32 y) {
     if (*reinterpret_cast<const u32 *>((uintptr_t)0x0077c488) == 0) return 0;  // only AX is set
     *reinterpret_cast<u16 *>((uintptr_t)0x00faa540) = (u16)x;
@@ -700,6 +783,24 @@ void __fastcall Window_Notify1b(u8 *window, void *, u32 value) {
     at<u16>(event, 4) = (u16)value;
     if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 1u, event);
     if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 1u, event);
+}
+
+void __fastcall Window_NotifyObject98_1(u8 *window, void *, u32 value) {
+    u8 event[0x18];  // (only the word +4 set)
+    at<u16>(event, 4) = (u16)value;
+    if (u8 *const o = at<u8 *>(window, 0x98)) vcall<void>(o, 0xc, 1u, event);
+}
+
+void __fastcall Window_NotifyImpl1(u8 *window, void *, u32 value) {
+    u8 event[0x18];  // (only the word +4 set)
+    at<u16>(event, 4) = (u16)value;
+    if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 1u, event);
+}
+
+void __fastcall Window_NotifyImpl2(u8 *window, void *, u32 value) {
+    u8 event[0x18];  // (only the word +6 set)
+    at<u16>(event, 6) = (u16)value;
+    if (u8 *const o = at<u8 *>(window, 0x9c)) vcall<void>(o, 0xc, 2u, event);
 }
 
 u32 __fastcall Window_Notify80(u8 *window, void *, u32 value) {
@@ -883,6 +984,10 @@ void __fastcall Window_SetWordsE4(u8 *window, void *, u32 a, u32 b) {
     for (u8 *child = at<u8 *>(window, 0x5c); child; child = at<u8 *>(child, 0x54)) Window_SetWordsE4(child, nullptr, (u16)a, (u16)b);
 }
 
+void __fastcall Window_AddWordsE4(u8 *window, void *, u32 da, u32 db) {
+    Window_SetWordsE4(window, nullptr, (u32)(at<s16>(window, 0xe4) + (s16)da), (u32)(at<s16>(window, 0xe6) + (s16)db));
+}
+
 u32 __fastcall Window_AddChild(u8 *window, void *, u8 *child, u32 depth, u32 words) {
     if (!child || at<u8 *>(child, 0x60) || at<u8 *>(child, 0x54) || at<u8 *>(child, 0x58)) return 0;
     u8 *last = nullptr;
@@ -981,6 +1086,72 @@ u32 __fastcall Window_ScriptTick(u8 *window) {
     u8 *const manager = *reinterpret_cast<u8 **>((uintptr_t)0x0077c48c);
     if (at<u8 *>(manager, 0x14) == window) vcall<void>(manager, 0x30);
     return Window_ScriptStep(window);
+}
+
+namespace {
+// The rectangle +8 less the script's margins +0xf8..+0xfe set (Window_SetRect) and the margins 0 (inlined in RunScript and StopScript).
+void unmove(u8 *window) {
+    u8 rect[0x10];
+    GuiRect_CopyCtor(rect, nullptr, window + 8);
+    GuiRect_Adjust(rect, nullptr, (u32)-(s32)at<s16>(window, 0xf8), (u32)-(s32)at<s16>(window, 0xfa), (u32)-(s32)at<s16>(window, 0xfc),
+                   (u32)-(s32)at<s16>(window, 0xfe));
+    Window_SetRect(window, nullptr, rect);
+    at<u16>(window, 0xfe) = 0;
+    at<u16>(window, 0xfc) = 0;
+    at<u16>(window, 0xfa) = 0;
+    at<u16>(window, 0xf8) = 0;
+    GuiRect_Dtor(rect);
+}
+}  // namespace
+
+u16 __fastcall Window_RunScript(u8 *window, void *, u8 *script, s32 interval) {
+    if (at<s8>(window, 0x135)) unmove(window);
+    if (!script) return 0;
+    at<u8>(window, 0x135) = 1;
+    at<u16>(window, 0xec) = 0;
+    at<u8 *>(window, 0xe8) = script;
+    at<s32>(window, 0xf0) = interval;
+    at<u32>(window, 0xf4) = GuiClock_Now();
+    return 1;
+}
+
+u16 __fastcall Window_PauseScript(u8 *window, void *, u32 paused) {
+    if (!at<s8>(window, 0x135)) return 0;
+    at<u8>(window, 0x135) = (s16)paused ? 2 : 1;
+    return 1;
+}
+
+u16 __fastcall Window_StopScript(u8 *window) {
+    if (!at<s8>(window, 0x135)) return 0;
+    at<u8>(window, 0x135) = 0;
+    at<u16>(window, 0xec) = 0;
+    at<u8 *>(window, 0xe8) = nullptr;
+    unmove(window);
+    return 1;
+}
+
+u16 __fastcall Window_StopSlide(u8 *window, void *, u32 move) {
+    if (!at<s8>(window, 0x136)) return 0;
+    Fn_662097(at<u8 *>(window, 0x100));
+    at<u8>(window, 0x136) = 0;
+    at<u16>(window, 0x10c) = 0;
+    if ((s16)move) Window_SetRect(window, nullptr, window + 0x38);
+    return 1;
+}
+
+u16 __fastcall Window_PauseSlide(u8 *window, void *, u32 paused) {
+    if (!at<u8 *>(window, 0x100)) return 0;
+    if ((s16)paused) Fn_662097(at<u8 *>(window, 0x100));
+    else WindowTimer_Start(at<u8 *>(window, 0x100));
+    return 1;
+}
+
+void __fastcall Window_AdjustRect(u8 *window, void *, u32 dl, u32 dt, u32 dr, u32 db) {
+    u8 rect[0x10];
+    GuiRect_CopyCtor(rect, nullptr, window + 8);
+    GuiRect_Adjust(rect, nullptr, dl, dt, dr, db);   // (only the words are read: the original's pushes carry other upper halves)
+    Window_SetRect(window, nullptr, rect);
+    GuiRect_Dtor(rect);
 }
 
 namespace {

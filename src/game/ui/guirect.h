@@ -96,6 +96,10 @@ u32 __fastcall GuiRect_Split(u8 *rect, void *, u8 *shape, u8 *first, u8 *second)
 // each pointer given.
 void __fastcall GuiRect_GetSize(u8 *rect, void *, u16 *width, u16 *height);
 
+// 0x659de5 (thiscall (left, top, right, bottom: word pointers, each may be 0), pops 16; called by 0x47de65, 0x47de84; name
+// unconfirmed): the four words stored through each pointer given.
+void __fastcall GuiRect_GetEdges(u8 *rect, void *, u16 *left, u16 *top, u16 *right, u16 *bottom);
+
 // 0x661700 (thiscall (other), pops 4; name unconfirmed): 1 when the four words equal the other's, else 0.
 u32 __fastcall GuiRect_Equals(const u8 *rect, void *, const u8 *other);
 }
