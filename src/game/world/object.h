@@ -10,6 +10,15 @@
 
 extern "C" {
 
+// What the objects call in the game that is not yet ported, so that they can run outside it (the benches point these at recorders).
+struct ObjectEnv {
+    void(__fastcall *post40fb10)(u8 *centre, void *, u8 *msg);   // 0x40fb10 (agent B's; thiscall on the message centre, pops 4)
+    void(__fastcall *person500870)(u8 *person);                  // 0x500870 (agent C's; thiscall on a person)
+    void(__fastcall *person5012f0)(u8 *person);                  // 0x5012f0 (agent C's; thiscall on a person)
+};
+// The objects' calls go to env (nullptr: the game's).
+void Object_SetEnv(const ObjectEnv *env);
+
 // 0x4dd4e0: the object's definition, ObjectDefs_Find on gObjectDefs (0x7890a0) by its id (+0xe).
 u8 *__fastcall Object_GetDef(const u8 *object);
 
