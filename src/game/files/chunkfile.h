@@ -15,4 +15,8 @@ extern "C" {
 // handler (the list +4, each one's next read before its calls) is asked (slot 0 (tag), any non-zero yes) and each taker reads it (slot 1
 // (data, length)), and the walk goes on at its end (a negative length goes back: sic). The block freed, 1. (Debug_Printf notes left out.)
 u32 __fastcall ChunkFile_ReadStream(u8 *file, void *, u8 *stream, const char *name);
+
+// 0x4d3a60 (thiscall (name), pops 4; called by 0x519340; name invented): the file named opened (VFS_Open; the game pushes 0x74cfb8 too);
+// none: error 3 (GameError_Set of 0x785de8, arg 0, the name), 0; else ChunkFile_ReadStream(the stream, no name)'s answer.
+u32 __fastcall ChunkFile_Open(u8 *file, void *, const char *name);
 }

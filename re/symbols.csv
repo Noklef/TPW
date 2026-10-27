@@ -2933,6 +2933,7 @@ address,name,kind,confidence,notes
 0x005c7490,WString_CtorReturning,function,high,"reimplemented (src/game/core/string); an empty wide string, returned"
 0x005c5230,DirEntry_IsRealDir,function,high,reimplemented (src/game/files/direntry); a directory entry whose name does not start with a full stop
 0x004d3860,ChunkFile_ReadStream,function,low,"reimplemented (src/game/files/chunkfile); thiscall (stream, name), pops 8: the stream read whole into a GlobalAlloc block; the magic +0x10 checked; each chunk from +0x24 (tag, length, data) offered to the handlers on the list +4 until ""END "" or the end"
+0x004d3a60,ChunkFile_Open,function,low,"reimplemented (src/game/files/chunkfile); thiscall (name): VFS_Open(name); none: GameError_Set(0x785de8, 3, 0, name), 0; else ChunkFile_ReadStream(stream, 0)"
 0x0041cff0,Path_StripBase,function,low,"reimplemented (src/game/files/vfs); cdecl (path, base, out); the path taken relative to a base folder (an archive's pattern dropped), leading backslashes dropped; 1 when under it, else out empty and 0"
 0x0067850c,RefPack_DecodeIf,function,low,"reimplemented (src/game/files/refpack); cdecl (src, dst, decode): the video library's RefPack decoder (hand-written assembly): src decoded into dst when src is not null and decode is nonzero (EAX restored by its POPAD: no result)"
 0x005c9040,Class70295c_Ctor,function,high,"reimplemented (src/game/core/vdtor); Init_5d36c0, vtable 0x70295c and four zeroed dwords"
