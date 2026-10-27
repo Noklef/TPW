@@ -1,5 +1,5 @@
 # The staff's patrol region, rest area check and wage, and the staff pool's entry lookups
-# (src/game/world/staff: 0x506650, 0x5068f0, 0x506e50-0x506ed0, 0x507bd0, 0x5087b0) and the staff
+# (src/game/world/staff: 0x506650, 0x5068f0, 0x506e50-0x506ed0, 0x507bd0, 0x5087b0, 0x508380) and the staff
 # training's constructor (0x50c620) and the world's list pushes (0x519650-0x519d80) against the
 # originals: regions none, whole, inverted or wild, map ids 0 and about the edges, indices about
 # 0x20, pools full or with gaps, heads empty or not, things over them.
@@ -11,12 +11,12 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
 B = Bench([(0x506650, 0x506674), (0x5068f0, 0x50690f), (0x506870, 0x5068d4), (0x5da3c0, 0x5da3c1), (0x506e50, 0x506f2e), (0x507bd0, 0x507beb),
-           (0x5087b0, 0x5087c9), (0x50c620, 0x50c638), (0x50b350, 0x50b35d),
+           (0x5087b0, 0x5087c9), (0x508380, 0x5083a4), (0x50c620, 0x50c638), (0x50b350, 0x50b35d),
            (0x519650, 0x519686), (0x5197c0, 0x5197f6), (0x519930, 0x519966), (0x519aa0, 0x519ad6), (0x519c10, 0x519c46),
            (0x519d80, 0x519db3)])
 STAFF = RAM
 CALLS = {'State3': 0x506650, 'Wage': 0x5068f0, 'GetWage': 0x506870, 'Set': 0x506e50, 'Get': 0x506e70, 'Clear': 0x506e90,
-         'Has': 0x506eb0, 'In': 0x506ed0, 'Entry': 0x507bd0, 'FirstInvalid': 0x5087b0, 'Training': 0x50c620, 'Push': 0}
+         'Has': 0x506eb0, 'In': 0x506ed0, 'Entry': 0x507bd0, 'FirstInvalid': 0x5087b0, 'CountType': 0x508380, 'Training': 0x50c620, 'Push': 0}
 
 
 def mapid(r):
@@ -66,11 +66,16 @@ def case(r):
                         (tr + r.choice([-1, 1, -128, 128])) & 0xffff])
         return Call(0x506ed0, [STAFF, pos | (r.getrandbits(16) << 16 if r.random() < 0.3 else 0)], regions,
                     conv='t', ret='a')
-    if op in ('Entry', 'FirstInvalid'):
+    if op in ('Entry', 'FirstInvalid', 'CountType'):
         pool = bytearray(r.bytes(0x20 * 20 + 0x20))
         full = r.random() < 0.3
         for i in range(0x21):
             pool[i * 20 + 0xa] = r.choice([1, 0xff, r.getrandbits(8)]) if full or r.random() < 0.85 else 0
+        if op == 'CountType':   # (the entries' types +0 a few, the type asked one of them or not)
+            types = [r.getrandbits(32) for _ in range(3)] + [0, 1]
+            for i in range(0x21):
+                put(pool, i * 20, 'I', r.choice(types))
+            return Call(0x508380, [RAM + 0x400, r.choice(types + [r.getrandbits(32)])], {RAM + 0x400: pool}, conv='t', ret='a')
         if op == 'FirstInvalid':
             return Call(0x5087b0, [RAM + 0x400], {RAM + 0x400: pool}, conv='t', ret='a')
         return Call(0x507bd0, [RAM + 0x400, r.choice([r.randrange(0x22), 0xffffffff, 0x80000000, r.getrandbits(32)])],
