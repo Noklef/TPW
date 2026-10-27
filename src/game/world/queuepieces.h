@@ -22,4 +22,12 @@ u32 __cdecl QueuePiece_Place(u32 x, u32 y, u32 unused, u32 piece, u32 angle, u32
 
 // 0x522a90 (cdecl (ride); name invented): the env's destroy (0x463c80) of the ride.
 void __cdecl QueuePiece_Remove(u32 ride);
+
+// 0x522b90 / 0x522d50 / 0x522f20 (cdecl (x, y, unused, piece, angle, claim); names invented): as QueuePiece_Place over the tables at
+// 0x7633e8 (the track queues: gk_trckQ.md2, ...), 0x7634d8 (likewise) and 0x763608 (ho_end1.md2, ...), the description's last dword
+// 0x8179f8, and the position moved by the turn (90: y + 1; 180: x + 1 and y + 1; 270: x + 1). 0x522d50's ride (when not 0) then plays bank
+// 0xc, entry 0, mode 7, speed 1, layer 0 (its entry of 0x7a4610, Animator_Play). Each returns the ride.
+u32 __cdecl TrackQueuePiece_Place(s32 x, s32 y, u32 unused, u32 piece, u32 angle, u32 claim);
+u32 __cdecl TrackQueuePiece_PlaceAnimated(s32 x, s32 y, u32 unused, u32 piece, u32 angle, u32 claim);
+u32 __cdecl EndPiece_Place(s32 x, s32 y, u32 unused, u32 piece, u32 angle, u32 claim);
 }
