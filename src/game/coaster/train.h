@@ -41,6 +41,23 @@ void __cdecl Train_PlaceCars(const u8 *type, u8 *train, u32 force, u32 keep);
 void __cdecl Train_InsertCar(const u8 *owner, u8 *car, u8 *train, u32 slot, float height, float *out, u32 mark, u32 noInsert,
                              u32 noShrink, u32 free);
 
+// 0x4424e0 (cdecl; a, b; name unconfirmed): two cars of a's train (+0x100) swapped: their slots (+4) and the train's slot pointers
+// (+0x34), their rides' (table 0x7a4610 [+0x70]) root frame (+8 -> +4 -> +0x78) values +0x44 and their lengths +0xe8 (each moved
+// through the x87 but b's +0xe8 to a); Car_SetChannelRates ([0x790fec]+4) for a and b, Train_SetCouplings, Flags_SetChanged
+// ([0x790fec], 1) and Train_PlaceCars (the train's type, train, 0, 0).
+void __cdecl Train_SwapCars(u8 *a, u8 *b);
+
+// 0x443f40 (cdecl; what, car, coaster, unused, keepContacts; name unconfirmed): after an edit of car. With what bit 0: for the
+// coaster's +0x60 car, unless the train type (car +0x100 -> +0x18) has flag 0x4000, the coaster's +0x118 = CarType_Lerp of the car's
+// length +0xe8 held to 0..1 (below 0 or a NaN 0); with bit 2 instead, the coaster's +0x60 car without flag 0x40 (+8) gives its +0xd8
+// to the coaster's +0x11c. Flags_SetChanged (coaster, 1); with bit 0 then Car_SetChannelRates (coaster +4, car) and Train_PlaceCars
+// (type, train, 0, 0). Unless keepContacts, Contacts_MarkLostPair (car).
+void __cdecl Car_Edited(u32 what, u8 *car, u8 *coaster, u32 unused, u32 keepContacts);
+
+// 0x444150 (cdecl; length (a float's bits), index, unused, keepContacts; name unconfirmed): the length +0xe8 of the coaster's
+// ([0x790fec]) piece index (Track_PieceAt of its +0x3c), then Car_Edited (1, it, the coaster, unused, keepContacts).
+void __cdecl Car_SetLengthAt(u32 length, u32 index, u32 unused, u32 keepContacts);
+
 // 0x432d50: unless 0x790afc is set, marks each car but the last 0x100 (+8), clearing it on
 // the last, and picks its coupling: +0x84 with the type's +0x44 for a marked car without
 // flag 0x2000 whose type has flag 8, else +0x78 with the type's +0x30.

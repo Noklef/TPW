@@ -8,6 +8,8 @@
 #include "../model/gridfit.h"
 #include "../model/parts.h"
 #include "../motion/animator.h"
+#include "contacts.h"
+#include "cursor.h"
 #include "helpers.h"
 
 namespace {
@@ -497,6 +499,59 @@ void __cdecl Train_InsertCar(const u8 *owner, u8 *car, u8 *train, u32 slot, floa
     if (!noShrink) Train_ShrinkToTop(owner, type, train);
     Train_SetCouplings(0, train);
     Train_PlaceCars(type, train, 0, 0);
+}
+
+void __cdecl Train_SwapCars(u8 *a, u8 *b) {
+    u8 *const train = at<u8 *>(a, 0x100);
+    const u32 slot = at<u32>(b, 4);
+    at<u32>(b, 4) = at<u32>(a, 4);
+    at<u32>(a, 4) = slot;
+    at<u8 *>(train, 0x34 + 4 * slot) = a;
+    at<u8 *>(train, 0x34 + 4 * at<u32>(b, 4)) = b;
+    // The rides' (table 0x7a4610 [+0x70]) root frame (+8 -> +4 -> +0x78) values +0x44 swapped through the x87 (a's loaded first).
+    const auto value = [](const u8 *car) -> u32 & {
+        return at<u32>(at<u8 *>(at<u8 *>(at<u8 *>(RideAt(at<u32>(car, 0x70)), 8), 4), 0x78), 0x44);
+    };
+    const u32 va = value(a), vb = value(b);
+    value(a) = X87_FloatThrough(vb);
+    value(b) = X87_FloatThrough(va);
+    const u32 la = at<u32>(a, 0xe8);
+    at<u32>(a, 0xe8) = at<u32>(b, 0xe8);
+    at<u32>(b, 0xe8) = X87_FloatThrough(la);
+    Car_SetChannelRates(at<u32>(global<const u8 *>(0x00790fec), 4), a);
+    Car_SetChannelRates(at<u32>(global<const u8 *>(0x00790fec), 4), b);
+    Train_SetCouplings(at<u32>(train, 0x18), train);
+    Flags_SetChanged(global<u32 *>(0x00790fec), 1);
+    Train_PlaceCars(at<const u8 *>(train, 0x18), train, 0, 0);
+}
+
+void __cdecl Car_Edited(u32 what, u8 *car, u8 *coaster, u32, u32 keepContacts) {
+    u8 *const train = at<u8 *>(car, 0x100);
+    const u8 *const type = at<const u8 *>(train, 0x18);
+    if (what & 1) {
+        if (car == at<u8 *>(coaster, 0x60)) {
+            float t = at<float>(car, 0xe8);
+            if (!(t >= 0.0f)) t = 0.0f;   // (0x6fe1b4; a NaN too)
+            else if (t > 1.0f) t = 1.0f;   // (0x6fe1a8)
+            if (!(at<u32>(type, 0) & 0x4000)) at<float>(coaster, 0x118) = (float)CarType_Lerp(t, type);
+        }
+        // (with the coaster's flag 0x800, the empty Debug_Printf (0x5da3c0): nothing)
+    } else if ((what & 4) && !(at<u8>(car, 8) & 0x40) && car == at<u8 *>(coaster, 0x60)) {
+        at<u32>(coaster, 0x11c) = at<u32>(car, 0xd8);
+    }
+    Flags_SetChanged(reinterpret_cast<u32 *>(coaster), 1);
+    if (what & 1) {
+        Car_SetChannelRates(at<u32>(coaster, 4), car);
+        Train_PlaceCars(type, train, 0, 0);
+    }
+    if (!keepContacts) Contacts_MarkLostPair(car);
+}
+
+void __cdecl Car_SetLengthAt(u32 length, u32 index, u32 unused, u32 keepContacts) {
+    u8 *const coaster = global<u8 *>(0x00790fec);
+    u8 *const car = reinterpret_cast<u8 *>((uintptr_t)Track_PieceAt(coaster + 0x3c, index));
+    at<u32>(car, 0xe8) = length;
+    Car_Edited(1, car, global<u8 *>(0x00790fec), unused, keepContacts);
 }
 }
 
