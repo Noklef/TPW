@@ -10,11 +10,11 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from fncmp import LOG, Bench, Call, RAM, blob, log_region, put, set_return, sine_table, vtable  # noqa: E402
+from fncmp import HEAP, LOG, Bench, Call, RAM, blob, global_heap, heap, log_region, put, set_return, sine_table, vtable  # noqa: E402
 from particles import RANGES as PARTICLE_RANGES  # noqa: E402
 
 CALLS = {'Init': 0x551600, 'Event': 0x468600, 'Timer': 0x557160, 'GetVec': 0x556a80, 'TakeDone': 0x557110, 'Walk': 0x556f40, 'Step': 0x5580a0,
-         'Back': 0x5571a0, 'Walkers': 0x557d80, 'Trigger': 0x5573d0}
+         'Back': 0x5571a0, 'Walkers': 0x557d80, 'Trigger': 0x5573d0, 'Node': 0x557970}
 B = Bench([(0x551600, 0x5516a3), (0x468600, 0x468708), (0x557160, 0x557197), (0x556a80, 0x556aac), (0x557110, 0x55715b),(0x402d70, 0x402d75), (0x402f10, 0x402f2d), (0x4031e0, 0x4031ef), (0x5da3c0, 0x5da3c1),
            (0x556f40, 0x557108), (0x466b70, 0x466c7f), (0x556af0, 0x556b8c), (0x556b90, 0x556ddb), (0x44b220, 0x44b267), (0x67a830, 0x67a860),
            # (Step's: the function, heightat.py's and personscripts.py's ranges)
@@ -25,7 +25,7 @@ B = Bench([(0x551600, 0x5516a3), (0x468600, 0x468708), (0x557160, 0x557197), (0x
            (0x50c0d0, 0x50c0f2), (0x50bab0, 0x50bac4), (0x50be40, 0x50be7c), (0x4fe900, 0x4fe944),
            (0x5571a0, 0x557395), (0x557d80, 0x5580a0), (0x44b410, 0x44b4d0), (0x44b4c0, 0x44b520), (0x450ea0, 0x4512a0), (0x475a10, 0x475b90),
            (0x4f9e60, 0x4f9f10), (0x4fcac0, 0x4fcb20), (0x466b70, 0x466c90), (0x475550, 0x4755a0), (0x5f5680, 0x5f56a0),
-           (0x5573d0, 0x557970), (0x412e90, 0x412eea), (0x4145d0, 0x4145e0), (0x4145e0, 0x4145f0), (0x51bfc0, 0x51c048)] + PARTICLE_RANGES)
+           (0x5573d0, 0x557a4c), (0x412e90, 0x412eea), (0x4145d0, 0x4145e0), (0x4145e0, 0x4145f0), (0x51bfc0, 0x51c048)] + PARTICLE_RANGES)
 STRINGS, SCRIPT, KEYS, TABLES, OUT = RAM + 0x100, RAM + 0x1000, RAM + 0x1400, RAM + 0x1500, RAM + 0x1800
 
 
@@ -349,10 +349,33 @@ def trigger_case(r):
     return Call(CALLS['Trigger'], [vm, kind & 0xffffffff, key, what & 0xffffffff, extra], regions, conv='c', ret='a')
 
 
+TNODES = RAM + 0x62000
+
+
+def node_case(r):
+    """0x557970 (cdecl; vm, node, what, extra, value): trigger_case()'s world and arguments, the kind and key in a node (of three
+    0x20 apart at TNODES, the middle one passed) linked to the others or not, the vm's first node +0xb0 it, another or none; the node
+    count [0x8791b4] any; the node freed to global_heap()'s GlobalFree (its pointer hashed)."""
+    c = trigger_case(r)
+    vm, kind, key, what, extra = c.args
+    nodes = bytearray(r.bytes(0x60))
+    node = TNODES + 0x20
+    put(nodes, 0x28, 'I', kind)
+    put(nodes, 0x30, 'I', key)
+    put(nodes, 0x20, 'II', r.choice([0, TNODES + 0x40]), r.choice([0, TNODES]))
+    ram = bytearray(c.regions[STEP_POSE])
+    put(ram, vm - STEP_POSE + 0xb0, 'I', r.choice([node, node, TNODES, 0]))
+    c.regions.update({STEP_POSE: bytes(ram), TNODES: nodes, 0x8791b4: r.bytes(4), HEAP: heap(0x100)})
+    c.regions.update(global_heap())
+    return Call(CALLS['Node'], [vm, node, what, extra, r.getrandbits(32)], c.regions, conv='c', ret='a')
+
+
 def case(r):
     op = r.deal(OPS)
     if op == 'Trigger':
         return trigger_case(r)
+    if op == 'Node':
+        return node_case(r)
     if op in ('Back', 'Walkers'):
         return walkers_case(r, op)
     return {'Init': init_case, 'Event': event_case, 'Timer': timer_case, 'GetVec': vector_case, 'TakeDone': finished_case,

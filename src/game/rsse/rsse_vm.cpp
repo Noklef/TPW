@@ -6,6 +6,7 @@
 #include "../core/gameclock.h"
 #include "../core/indexed.h"
 #include "../core/soundplay.h"
+#include "../files/file.h"
 #include "../math/sintable.h"
 #include "../math/x87.h"
 #include "../model/heightat.h"
@@ -397,5 +398,25 @@ s32 __cdecl Rsse_Trigger(u8 *vm, s32 kind, s32 key, u32 what, u32 extra) {
     if (kind != 10)
         category = global<u32>(categories[kind - 3]);
     return (s32)Sound_PlayAt(0, category, what, x, y, z);
+}
+
+u32 __cdecl Rsse_TriggerNode(u8 *vm, u8 *node, u32 what, u32 extra, u32 value) {
+    at<s32>(node, 0xc) = Rsse_Trigger(vm, at<s32>(node, 8), at<s32>(node, 0x10), what, extra);
+    const u32 kind = at<u32>(node, 8);
+    if (kind - 1 < 10)
+        at<u32>(node, 0x14) = Model_FindPartByKey4(Ride(vm), kind <= 2 ? 0x100 : 0x200, at<u32>(node, 0x10));
+    if (at<s32>(node, 0xc) != 0) {
+        at<u32>(node, 0x18) = value;
+        return at<u32>(node, 0xc);
+    }
+    u8 *const next = at<u8 *>(node, 0), *const prev = at<u8 *>(node, 4);
+    if (prev)
+        at<u8 *>(prev, 0) = next;
+    if (next)
+        at<u8 *>(next, 4) = prev;
+    if (at<u8 *>(vm, 0xb0) == node)
+        at<u8 *>(vm, 0xb0) = next;
+    Mem_GlobalFree(node);
+    return --global<u32>(0x008791b4);
 }
 }  // extern "C"
