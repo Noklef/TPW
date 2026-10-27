@@ -461,8 +461,8 @@ class Emu:
             a, kind = self.mem_operand(o[0])
             n = SIZES.get(kind, 4) if kind != 'dword' else 4
             self.st.insert(0, float(int.from_bytes(self.read(a, n), 'little', signed=True)))
-        elif mn in ('FLD1', 'FLDZ', 'FLDPI'):
-            self.st.insert(0, {'FLD1': 1.0, 'FLDZ': 0.0, 'FLDPI': math.pi}[mn])
+        elif mn in ('FLD1', 'FLDZ', 'FLDPI', 'FLDLN2', 'FLDLG2', 'FLDL2E'):
+            self.st.insert(0, {'FLD1': 1.0, 'FLDZ': 0.0, 'FLDPI': math.pi, 'FLDLN2': math.log(2), 'FLDLG2': math.log10(2), 'FLDL2E': 1 / math.log(2)}[mn])
         elif mn in ('FST', 'FSTP'):
             self.fstore(o[0], self.st[0])
             if mn == 'FSTP':
@@ -500,6 +500,20 @@ class Emu:
             if not self.c2:
                 self.st[0] = INDEFINITE if math.isinf(v) else v if math.isnan(v) else hw_trig(v)[2]
                 self.st.insert(0, self.st[0] if math.isnan(self.st[0]) else 1.0)
+        elif mn == 'FYL2X':
+            # ST1 * log2(ST0), popped; exempt from precision control (evaluated in double, as FPATAN). A NaN operand comes through; log2 of a
+            # negative number, 0 * log2(0 or infinity) and infinity * log2(1) are invalid (the indefinite); log2(0) is -infinity.
+            x, y = self.st.pop(0), self.st[0]
+
+            def yl2x(y, x):
+                if x < 0 or (y == 0 and (x == 0 or math.isinf(x))) or (math.isinf(y) and x == 1):
+                    return INDEFINITE
+                if x == 0:
+                    return -math.copysign(math.inf, y)
+                if math.isinf(x):
+                    return math.copysign(math.inf, y)
+                return y * math.log2(x)
+            self.st[0] = farith(yl2x, y, x)
         elif mn == 'FPATAN':
             x, y = self.st.pop(0), self.st[0]
             # a NaN operand comes through (Python's atan2 would give its own NaN)

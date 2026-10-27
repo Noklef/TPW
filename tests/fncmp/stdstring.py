@@ -1,5 +1,6 @@
 # The game's MSVC6 std::string members (0x45b340-0x45b998) and their users (the online
-# servers' settings 0x45aee0 their constructor 0x5d2a80 and destructor 0x45ad90) against the originals; the copy constructor 0x4a9420 from x or s itself (npos 0x6fe5ac now and then small).
+# servers' settings 0x45aee0 their constructor 0x5d2a80 and destructor 0x45ad90) against the originals; the copy constructor 0x4a9420 from x or s itself (npos 0x6fe5ac now and then small);
+# erase 0x4f1400 at 0, the end or within, of npos, 0, the rest or any count.
 # usage: stdstring.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import sys
@@ -7,7 +8,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, HEAP, RAM, heap, put  # noqa: E402
 
-B = Bench([(0x45b340, 0x45b9a0), (0x45aee0, 0x45b1e4), (0x47b1c0, 0x47b2f6), (0x4a9420, 0x4a953c), (0x5d2a80, 0x5d2d0f), (0x45ad90, 0x45aedc)])
+B = Bench([(0x45b340, 0x45b9a0), (0x45aee0, 0x45b1e4), (0x47b1c0, 0x47b2f6), (0x4a9420, 0x4a953c), (0x5d2a80, 0x5d2d0f), (0x45ad90, 0x45aedc), (0x4f1400, 0x4f1510)])
 STRS, BLOCKS, CHARS = RAM, RAM + 0x1000, RAM + 0x2000
 S, X = STRS, STRS + 0x10  # the string under test and a second one
 SLOT = 0x80  # a block per string in BLOCKS: count byte, then up to 0x7e characters + NUL
@@ -126,6 +127,10 @@ def case(r):
         if r.random() < 0.2:   # npos (0x6fe5ac) small: the copy cut short
             regions[0x6fe5ac] = put(bytearray(4), 0, 'I', r.choice([0, 1, 5, 0x20]))
         return Call(0x4a9420, [S, r.choice([X, X, X, S])], regions, conv='t', ret='a')
+    if op == 'Erase':
+        pos = r.choice([0, s[1], r.randrange(s[1] + 1), r.randrange(s[1] + 1)])   # (not past the length: _Xran ends the case)
+        count = r.choice([0xffffffff, 0, 1, r.randrange(50), s[1] - pos, max(0, s[1] - pos - 1), r.getrandbits(32)]) & 0xffffffff
+        return Call(0x4f1400, [S, pos, count], regions, conv='t', ret='a')
     if op == 'Split':
         return Call(0x45b8d0, [S], regions, conv='t')
     # AssignSub: from x, or from s itself
@@ -135,7 +140,7 @@ def case(r):
     return Call(0x45b380, [S, src, pos, count], regions, conv='t', ret='a')
 
 
-KINDS = ['Dtor', 'Tidy', 'AssignChars', 'Eos', 'Grow', 'MaxSize', 'Copy', 'Split', 'AssignSub', 'AssignSub', 'Online', 'Fill', 'Freeze', 'CopyCtor', 'ServersCtor', 'ServersDtor']
+KINDS = ['Dtor', 'Tidy', 'AssignChars', 'Eos', 'Grow', 'MaxSize', 'Copy', 'Split', 'AssignSub', 'AssignSub', 'Online', 'Fill', 'Freeze', 'CopyCtor', 'ServersCtor', 'ServersDtor', 'Erase']
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 if __name__ == '__main__':

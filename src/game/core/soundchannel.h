@@ -10,6 +10,19 @@
 
 extern "C" {
 
+// 0x6b8ed0 (thiscall; an SEH frame; name invented): the constructor: the base (SoundSample70a548_Ctor), +0x28 = 8, +0x2c = 0, the
+// string +0x30 empty (String_Ctor), the floats +0x48-+0x54 = 1, +0x58 = the array +0x48 and +0x5c = its count 4, +0x60 = 0, the byte
+// +0x64 = 0, the bytes +0x44-+0x47 = 1, the vtable 0x70a5d8. Returns the channel.
+u8 *__fastcall SoundChannel_Ctor(u8 *channel);
+// 0x6b9c00 (thiscall; an SEH frame; name invented): the destructor: the vtable 0x70a5d8, the string +0x30 destroyed (String_Dtor), the
+// base's destructor (SoundSample70a548_Dtor).
+void __fastcall SoundChannel_Dtor(u8 *channel);
+// 0x6b76d0 (thiscall; the base 0x70a548's destructor's; name invented): the source's (+0x18) slot 13 (a local out: the channel's own
+// pushed copy, sic) unless null; with a voice pool (+0x14), each voice released (ChannelVoices_ReleaseEach) and the pool destroyed
+// (ChannelVoices_Dtor) and freed, +0x14 = 0; the EAX buffer and the synthesiser freed (SoundChannel_FreeEax / FreeSynth); with a
+// source, its slot 7 then its slot 0 (1: delete), +0x18 = 0; the device singleton's objects released (SoundDevice_Get / Release).
+void __fastcall SoundChannel_ReleaseAll(u8 *channel);
+
 // 0x6b8160 (thiscall (desc), pops 4; name invented): 0x6c53c0's new resource (the channel's +0x1c the owner, desc, the channel the source).
 u8 *__fastcall SoundChannel_NewResource(u8 *channel, void *, const u32 *desc);
 // 0x6b9310 (thiscall (index), pops 4; an SEH frame; name invented): the category singleton's (SoundCategory_Get) deque B entry index
@@ -27,6 +40,11 @@ u32 *__fastcall SoundChannel_SetFlag2(u8 *channel, void *, u32 *out, u32 on);
 // 0x6b7840 (thiscall; name invented): the EAX buffer (+0x20), when there is one, released (EaxBuffer_Release), freed (GameHeap_Free) and
 // cleared.
 void __fastcall SoundChannel_FreeEax(u8 *channel);
+// 0x6b7750 (thiscall (out), pops 4; an SEH frame; name invented): the EAX buffer freed (SoundChannel_FreeEax); the source's (+0x18) sound
+// (its slot 3, into a stack dword the slot must set); with one that has hardware 3D streaming buffers (a SoundCaps holder of it,
+// SoundCaps_Max3DStreaming) +0x20 = a new zeroed 12-byte EAX buffer (null when the heap fails) opened (EaxBuffer_Open: out, the sound, the
+// source's rate +0xc), else *out = -1. Returns out.
+u32 *__fastcall SoundChannel_OpenEax(u8 *channel, void *, u32 *out);
 // 0x6b7870 (thiscall (out), pops 4; an SEH frame for the new; name invented): +0x1c = a new synthesiser holder (8 bytes, Init_6c47b0;
 // null when the heap fails) and SfHost_OpenOut on it (on null too, sic). Returns out.
 u32 *__fastcall SoundChannel_OpenSynth(u8 *channel, void *, u32 *out);
@@ -35,6 +53,11 @@ void __fastcall SoundChannel_FreeSynth(u8 *channel);
 
 // 0x6b8b40 (thiscall (out, functor), pops 8): the functor's slot 0 (out, channel). Returns out.
 u32 *__fastcall SoundChannel_Apply(u8 *channel, void *, u32 *out, u8 *functor);
+
+// 0x6c6000 (thiscall (out, index), pops 8; name invented): with the EAX records (+0x68, 13 dwords each; +0x6c their count) and index one
+// of them whose first dword is not -1: a settings record (Init_6b9c50, on the stack) given its block (SoundChannel_SetRecordBlock: flags
+// 0x40, the EAX properties) applied through the stack functor 0x70a278 (SoundChannel_Apply). Else *out = -1. Returns out.
+u32 *__fastcall SoundChannel_ApplyEaxRecord(u8 *channel, void *, u32 *out, u32 index);
 
 // 0x6b5e40 (the stack functor 0x70a260's slot 0: thiscall (out, channel), pops 8; the functor is not read): the channel's source
 // (+0x18)'s slot 1; *out = 0. Returns out.
@@ -158,5 +181,22 @@ u32 *__fastcall SoundChannel_TryAddOccluder(u8 *channel, void *, u32 *out, u32 x
 // SoundOccluders_Remove on the occluders' list (0xfb2038; a local out) and, with the occlusion switched on (0xfb2050),
 // SoundChannel_UpdateOcclusion (that byte); *out its status. Else *out = 0. Returns out.
 u32 *__fastcall SoundChannel_RemoveOccluder(u8 *channel, void *, u32 *out, u8 **node);
+
+// 0x6b9230 (thiscall; slot 0 of 0x70a5d8 and 0x70a630; name invented): the channel's slot 4 (an unset out, a stack functor of vtable
+// 0x70a5b0 whose second dword is unset), then Class703770_Release; returns its count.
+s32 __fastcall SoundChannel_Release(u8 *channel);
+// 0x6c5c50 (thiscall (out, record, value), pops 0xc; slot 7 of 0x70a630; name invented): SoundChannel_SetRecordValue40 with the value's
+// own stack slot as its out; not negative: SetThenFlag60_4c_6b9cb0 (record, 1) and *out = 0, else *out = -1. Returns out.
+u32 *__fastcall SoundChannel_SetRecordValue40Flagged(u8 *channel, void *, u32 *out, u8 *record, u32 value);
+// 0x6b98d0 (thiscall (out, index, modifier), pops 0xc; name invented): the rate modifier +0x48 + 4 * the index's low byte set (fld /
+// fstp), then SoundChannel_Apply (out, a stack functor {0x70a610, the modifier}). Returns out.
+u32 *__fastcall SoundChannel_SetRateModifier(u8 *channel, void *, u32 *out, u32 index, u32 modifier);
+// 0x6b9cd0 (thiscall (block), pops 4; name invented): a settings record's +0xc-+0x3f from the block's 13 dwords (rep movsd), its flags
+// +0x4c |= 0x40. Returns the record.
+u8 *__fastcall SoundChannel_SetRecordBlock(u8 *record, void *, const u32 *block);
+
+// 0x6b92f0 (thiscall (hide), pops 4; name invented): with the byte +0x64 not the argument's low byte, that byte stored and
+// SoundCategory_HideFlag40Samples (the argument) on SoundCategory_Get's singleton.
+void __fastcall SoundChannel_SetHidden(u8 *channel, void *, u32 hide);
 
 }  // extern "C"

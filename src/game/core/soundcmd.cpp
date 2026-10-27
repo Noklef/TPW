@@ -124,4 +124,25 @@ u32 *__fastcall SoundCmd700b54_Run(const u8 *command, void *, u32 *out, u8 *targ
     return out;
 }
 
+u32 *__fastcall SoundCmd700bc0_Run(const u8 *command, void *, u32 *out, u8 *target) {
+    SoundObject_AddOccluder(target, nullptr, out, at<u32>(command, 4), at<u32>(command, 8), at<u32>(command, 0xc), at<u32>(command, 0x10),
+                            at<u8 **>(command, 0x14));
+    return out;
+}
+
+u32 *__fastcall SoundCmd700b30_Run(const u8 *command, void *, u32 *out, u8 *target) {
+    SoundObject_ApplyEaxRecord(target, nullptr, out, at<u32>(command, 4));
+    return out;
+}
+
+u32 *__fastcall SoundCmd700bc4_Run(const u8 *command, void *, u32 *out, u8 *target) {
+    SoundObject_RemoveOccluder(target, nullptr, out, at<u8 **>(command, 4));
+    return out;
+}
+
+u32 *__fastcall SoundCmd700bc8_Run(const u8 *command, void *, u32 *out, u8 *target) {
+    SoundChannel_SwitchOcclusion(at<u8 *>(target, 0x24), nullptr, out, at<u32>(command, 4), at<u32>(command, 8));
+    return out;
+}
+
 }  // extern "C"

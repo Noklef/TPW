@@ -32,6 +32,10 @@ u32 __fastcall SoundManager_Call5(u8 *manager, void *, u32 a, u32 b);
 // engine (+4: the sound object) with the same arguments. Returns out.
 u32 *__fastcall SoundManager_SetPlacement(u8 *manager, void *, u32 *out, const u32 *position, const u32 *direction, const u32 *value);
 
+// 0x6b5bd0 (thiscall (out, functor), pops 8; called on the manager [0x802bcc] with stack functors such as 0x700b2c's; name invented):
+// SoundChannel_Apply on the engine (+4: the sound object) with the same arguments (the functor's slot 0 (out, engine)). Returns out.
+u32 *__fastcall SoundManager_Apply(u8 *manager, void *, u32 *out, u8 *functor);
+
 // 0x6b5ad0 (slot 4; thiscall (out, a), pops 8): the engine's slot 1 (out, a). Returns out.
 u32 *__fastcall SoundManager_Call1(u8 *manager, void *, u32 *out, u32 a);
 

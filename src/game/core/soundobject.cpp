@@ -6,7 +6,9 @@
 #include "../math/vector.h"
 
 #include "fieldops.h"
+#include "gameheap.h"
 #include "initializers.h"
+#include "selectors.h"
 #include "soundcategory.h"
 #include "soundchannel.h"
 #include "soundmixer.h"
@@ -146,6 +148,15 @@ u32 *__fastcall SoundObject_SetPlacement(u8 *object, void *, u32 *out, const u32
     return out;
 }
 
+u32 *__fastcall SoundObject_ApplyEaxRecord(u8 *object, void *, u32 *out, u32 index) {
+    if (!Obj_Flags28_Bit1IfBit0(at<u8 *>(object, 0x24))) {
+        *out = 0xffffffff;
+        return out;
+    }
+    SoundChannel_ApplyEaxRecord(at<u8 *>(object, 0x24), nullptr, out, index);
+    return out;
+}
+
 u32 *__fastcall SoundObject_AddOccluder(u8 *object, void *, u32 *out, u32 x, u32 y, u32 z, u32 radius, u8 **node) {
     u8 *const channel = *reinterpret_cast<u8 **>(object + 0x24);
     if (!channel) {
@@ -202,6 +213,17 @@ u32 __fastcall SoundObject_ResolvePath(u8 *object, void *, const char *path, u8 
     if ((path[1] == ':' && slash(path[2])) || (slash(path[0]) && slash(path[1]))) return vcall<u32>(string, 0x14, path);
     vcall<u32>(string, 0x18, *reinterpret_cast<u8 **>(object + 0x24) + 0x30);
     return vcall<u32>(string, 0x20, path);
+}
+
+u8 *__fastcall SoundObject_DeletingDtor(u8 *object, void *, u32 flags) {
+    SoundObject_Dtor(object);
+    if (flags & 1) GameHeap_Free(object);
+    return object;
+}
+
+u32 __fastcall SoundObject_CallVoice10(u8 *object, void *, u32 id, u32 a, u32 b) {
+    if (!id || !at<u8 *>(object, 0x20)) return 0;
+    return SoundMixer_CallVoice10(at<u8 *>(object, 0x20), nullptr, id, a, b);
 }
 
 }  // extern "C"

@@ -60,4 +60,16 @@ u8 *__fastcall SampleCopier_Install(u8 *self);
 // forwards (so overlapping runs repeat as the original's do).
 void __fastcall SampleCopier_MmxCopy(void *self, void *, u8 *dest, const u8 *source, u32 count);
 
+// 0x6b7390 (thiscall; the base of 0x6b8ed0's 0x70a5d8; name invented): Class703770_Ctor, +8-+0x20 = 0, the copier at +0x24
+// (SampleCopier_Install), vtable 0x70a548. Returns the object.
+u8 *__fastcall SoundSample70a548_Ctor(u8 *self);
+// 0x6b7410 (thiscall; an SEH frame; name invented): the destructor: the vtable 0x70a548, the channel's release (SoundChannel_ReleaseAll),
+// the shared copier (0xfb2018) freed (sic: not cleared), the vtable 0x703770.
+void __fastcall SoundSample70a548_Dtor(u8 *self);
+
+// 0x6b7470 (thiscall (settings), pops 4; the object unused; called by 0x6b7510 on its copy of a 0x70-byte settings record; name
+// invented): a caps holder queried (SoundCaps_Query); with it, at least 5 max hardware 3D streaming buffers and as many free as the
+// settings' +0x40, those (one fewer with +0x4c & 0x60) into +0x44, else +0x40 (SetThenFlag44_4c_6b9d10). The holder destroyed.
+void __fastcall SoundSample70a548_Choose3DVoices(u8 *object, void *, u8 *settings);
+
 }  // extern "C"

@@ -89,6 +89,7 @@
 #include "../../src/game/core/mp2synth.h"
 #include "../../src/game/world/mapline.h"
 #include "../../src/game/world/mousemode.h"
+#include "../../src/game/world/person.h"
 #include "crt.h"
 #include "../../src/hook/hooks.h"
 
@@ -334,6 +335,7 @@ const SharedGlobalsEnv kSharedGlobalsEnv = {reinterpret_cast<s32(__cdecl *)(void
 const ReleaseListEnv kReleaseListEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const SoundCategoryEnv kSoundCategoryEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const SoundDeviceEnv kSoundDeviceEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
+const PersonEnv kPersonEnv = {reinterpret_cast<u32(__cdecl *)(s32, s32)>((uintptr_t)(kStubs + 0x80))};  // the cseg angle 0x6e7074: stub_cdecl_log2
 const PtrListEnv kPtrListEnv = {&heap_alloc};
 const GameHeapEnv kGameHeapEnv = {&heap_alloc, &heap_free};
 // libjpeg 6b's calls outside itself (src/game/lib/jpeg6b.h): jmemansi.c's malloc / free the heap; jmemmgr.c's getenv, sscanf and
@@ -725,6 +727,7 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x00705920, 4},   // the GUI rectangle (GuiRect_Contains, _Centre, _Offset, _Adjust)
                                    {0x0070a260, 1},   // the sound channel's stack functor (SoundChannelFn70a260_Run; SoundCmd700b6c_Run's)
                                    {0x0070a278, 1},   // its settings functor (SoundChannelFn70a278_Run: the channel's setters')
+                                   {0x0070a610, 1},   // its rates functor (SoundChannel_ApplyVoiceRates: SoundChannel_SetRateModifier's)
                                    {0x007118e0, 6},   // the MP2 buffer decoder (Mp2BufferDecoder_DeletingDtor, _Open, Mp2Decoder_Close, ...)
                                    {0x0070af00, 6},   // the MP2 stream decoder (Mp2StreamDecoder_DeletingDtor, Mp2BufferDecoder_Open, ...)
                                    {0x0070adb8, 2},   // the voice codec's bit readers over memory (VoiceBits_Skip, _Read)
@@ -773,6 +776,7 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x006fe548, 4},
                                    {0x0070a960, 3},   // the sound library's bank (Release, AddRef, deleting destructor: SoundCategory_ReadBankMap's)
                                    {0x0070a950, 3},   // and category record (the same; slot 2 0x6c1110)
+                                   {0x00700b90, 5},   // the sound play command (Get4_5dc650, Get8_51c050: Voice70a8d0_PickQueuedSound's SfxSounds_Find)
                                    {0x0070a390, 22},   // the group voice's (slot 4 SoundVoice_Init: Voice70a390_Create's; 21 its new child),
                                    {0x0070a2e0, 22},   // and those of the voices 0x70a2e0, 0x70a3e8 and 0x70a878 (slot 4 SoundVoice_Init: their
                                    {0x0070a3e8, 21},   // creates'; 14 and 15 its picks)
@@ -1022,6 +1026,7 @@ int main(int argc, char **argv) {
     ReleaseList_SetEnv(&kReleaseListEnv);
     SoundCategory_SetEnv(&kSoundCategoryEnv);
     SoundDevice_SetEnv(&kSoundDeviceEnv);
+    Person_SetEnv(&kPersonEnv);   // (tests/fncmp/personwalk.py hooks 0x6e7074 with fncmp._cdecl_log2)
     GlyphRender_SetEnv(&kGlyphRenderEnv);   // (tests/fncmp/glyphrender.py hooks 0x67a7d0 with fncmp._cdecl_log)
     PtrList_SetEnv(&kPtrListEnv);
     GameHeap_SetEnv(&kGameHeapEnv);

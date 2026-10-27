@@ -12,8 +12,11 @@
 #include "../core/soundplay.h"
 #include "../math/x87.h"
 #include "../render/dynfaces.h"
+#include "../render/particles.h"
 #include "../sprite/script.h"
 #include "../sprite/scriptref.h"
+#include "../sprite/sprite.h"
+#include "../terrain/land.h"
 #include "analyser.h"
 #include "messagecentre.h"
 #include "nav.h"
@@ -21,6 +24,7 @@
 #include "objectdefs.h"
 #include "personscripts.h"
 #include "random.h"
+#include "staff.h"
 #include "things.h"
 #include "world.h"
 
@@ -30,6 +34,9 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 u16 map_id(const u8 *thing) { return (u16)((at<u8>(thing, 7) << 7) + at<u8>(thing, 5) + 1); }
+
+const PersonEnv kGameEnv = {reinterpret_cast<u32(__cdecl *)(s32, s32)>((uintptr_t)0x006e7074)};
+const PersonEnv *g_env = &kGameEnv;
 
 // The float at p = v kept to 0..100 (fcom 100.0: above it 100; fcom 0.0: below it, or unordered, 0).
 void set100(void *p, X87Reg v) {
@@ -51,6 +58,30 @@ void RecordMargin(u32 ring, u32 willing, u32 price) {
         value = 100;
     u8 *const analyser = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(*reinterpret_cast<u8 **>(0x007cf83c)));
     ParkAnalyser_Record(analyser, nullptr, ring, value);
+}
+
+// m * ln(a / b) / ln(2.0 at 0x700758) as the original's x87 sequence (fild; fidiv; fldln2; fxch; fyl2x; fldln2; fld; fyl2x; fdivp; fild; fmulp),
+// under the caller's control word (the game's 24-bit precision; fyl2x is not rounded to it): the register stored to a double (exact).
+double sideshow_log2(s32 a, s32 b, s32 m) {
+    double result;
+    __asm {
+        fild a
+        fidiv b
+        fldln2
+        fxch st(1)
+        fyl2x
+        fldln2
+        mov eax, 0x00700758
+        fld qword ptr [eax]
+        fyl2x
+        _emit 0xde   // fdivp st(1), st
+        _emit 0xf9
+        fild m
+        _emit 0xde   // fmulp st(1), st
+        _emit 0xc9
+        fstp result
+    }
+    return result;
 }
 
 }  // namespace
@@ -349,6 +380,149 @@ void __fastcall Visitor_Lower19c(u8 *visitor, void *, u32 index) {
 
 void __fastcall Stat100_Add(float *stat, void *, float delta) { set100(stat, X87Reg(delta) + X87Reg(*stat)); }
 
+void __fastcall Sprite_SpawnParticle(u8 *sprite, void *, s32 effect) {
+    float x = 0.0f, y = 0.0f, z = 0.0f;   // (the original's are its stack's leftovers when the script is not there)
+    SpriteScript_GetPosition(at<s32>(sprite, 0xc), reinterpret_cast<u32 *>(&x), reinterpret_cast<u32 *>(&y), reinterpret_cast<u32 *>(&z), nullptr);
+    x = (float)(X87Reg((double)(s32)Global785584_Get_519410()) * global<float>(0x00700698) + x);   // fild; fmul 10.0; fadd x; fstp
+    z = (float)(X87Reg((double)(s32)Global785588_Get_519420()) * global<float>(0x00700698) + z);
+    y = (float)Terrain_HeightAt(x, z);
+    const s32 px = (s32)(long long)(X87Reg(x) * global<float>(0x007006ec)).v;   // fld; fmul 1024.0; __ftol (low half)
+    const s32 py = (s32)(long long)(X87Reg(y) * global<float>(0x007006ec)).v;
+    const s32 pz = (s32)(long long)(X87Reg(z) * global<float>(0x007006ec)).v;
+    Particle_Spawn(effect, px, py, pz);
+}
+
+u32 __fastcall Sprite_WalkNav(u8 *sprite) {
+    u8 *const nav = sprite + 0xd4;
+    u32 x0, y0, x1, y1;
+    Nav_GetPos(nav, nullptr, &x0, &y0);
+    Nav_Update(nav);   // (through the jump 0x510150)
+    Nav_GetPos(nav, nullptr, &x1, &y1);
+    Thing_SetPos(sprite, nullptr, (u16)((s32)x1 >> 8), (u16)((s32)y1 >> 8));   // (the original's dwords' high halves are its stack's; only the words count)
+    at<u32>(sprite, 0x198) = 0;
+    if (at<u32>(sprite, 0x18c)) return 2;
+    if (Nav_PathProgress(nav) == 0x10000) return 0;   // (through the jump 0x510180)
+    at<u32>(sprite, 0x1c) = g_env->angle((s32)(x0 - x1), (s32)(y1 - y0)) & 0xffff;
+    const u32 running = at<u16>(sprite, 0xc2) > global<u16>(0x0075c7f0) && (sprite[2] == 1 || sprite[2] == 7) ? 1 : 0;
+    u32 code = 0x0074db60, action = 1;
+    if (sprite[2] == 7 && Guard_IsState12(sprite)) {
+        code = 0x0074ef90;
+        action = 0x17;
+    }
+    u8 *const ref = sprite + 0xc;
+    if (!running && !SpriteScript_IsAt(at<s32>(ref, 0), code)) Set4_4217f0(ref, nullptr, action);
+    if (running && !SpriteScript_IsAt(at<s32>(ref, 0), 0x0074dbc0)) Set4_4217f0(ref, nullptr, 2);
+    const u32 dx = x1 - x0, dy = y1 - y0;
+    float period = (float)(X87_Sqrt(X87Reg((double)(s32)(dx * dx + dy * dy))) * global<float>(0x007006e8));   // fild; fsqrt; fmul; fstp
+    if (!running) period = (float)(X87Reg(period) + X87Reg(period));   // fld; fadd st0, st0; fstp
+    ScriptRef_SetPeriodFor(ref, nullptr, period);
+    return 1;
+}
+
+void __fastcall Visitor_RideFeelings(u8 *visitor, void *, const u8 *object) {
+    if (!Object_Rating(object, nullptr, 0)) return;
+    const s32 wanted = *reinterpret_cast<const u8 *>(0x7850e4 + 12 * visitor[0x1f0]);
+    s32 gap = wanted - Object_Rating(object, nullptr, 0);
+    if (gap < 0) gap = -gap;
+    const u32 step = gap < 5 ? 0x785064 : gap < 15 ? 0x785068 : gap < 0x28 ? 0x78506c : 0;
+    if (step) set100(visitor + 0x19c, X87Reg((double)*reinterpret_cast<const s32 *>(step)) + at<float>(visitor, 0x19c));   // fild; fadd [mem]
+    const s32 divisor = *reinterpret_cast<const s32 *>(0x785070);
+    const s32 rating = Object_Rating(object, nullptr, 0);
+    const s32 share = rating / divisor;   // (idiv: 0 faults)
+    const s32 calm = (100 - static_cast<s32>(static_cast<u8>(static_cast<long long>(at<float>(visitor, 0x1a8))))) / 20;
+    set100(visitor + 0x1b0, X87Reg((double)(calm * share)) + at<float>(visitor, 0x1b0));
+}
+
+void __fastcall Visitor_UseObject(u8 *visitor, void *, u8 *object) {
+    u8 *const ring = visitor + 0x30;
+    u16 handle;
+    Ring_PushUnique(ring, nullptr, 8, *Thing_GetHandle(object, nullptr, &handle));
+    if (at<s32>(Object_GetDef(object), 0x4ac) == 2) {
+        Object_PayRunningCost(object, nullptr, (s32)Obj_Get188(object));
+        at<u32>(visitor, 0x1a0) += Obj_Get188(object);
+    } else if (at<s32>(Object_GetDef(object), 0x4ac) == 1) {
+        Object_PayRunningCost(object, nullptr, (s32)Object_CurrentSettingsValue(object));
+    }
+    Visitor_RideFeelings(visitor, nullptr, object);
+    const u8 *const def = Object_GetDef(object);
+    // the effects: thirst +0x1a4 and hunger +0x1a8 down by +0x144 / +0x148, vomit +0x1b0, happiness +0x19c and litter +0x1b4 up (fild; fadd [mem])
+    set100(visitor + 0x1a4, X87Reg(-(double)at<s32>(def, 0x144)) + at<float>(visitor, 0x1a4));
+    set100(visitor + 0x1a8, X87Reg(-(double)at<s32>(def, 0x148)) + at<float>(visitor, 0x1a8));
+    if (at<s32>(def, 0x144) > at<s32>(def, 0x148))
+        Sprite_PlaySound(visitor, nullptr, global<u32>(0x00803a24), 0x83);
+    else if (at<s32>(def, 0x144) < at<s32>(def, 0x148))
+        Sprite_PlaySound(visitor, nullptr, global<u32>(0x00803a24), 0x84);
+    set100(visitor + 0x1b0, X87Reg((double)at<s32>(def, 0x14c)) + at<float>(visitor, 0x1b0));
+    set100(visitor + 0x19c, X87Reg((double)at<s32>(def, 0x150)) + at<float>(visitor, 0x19c));
+    set100(visitor + 0x1b4, X87Reg((double)at<s32>(def, 0x154)) + at<float>(visitor, 0x1b4));
+    const u32 quality = GetByte198_4e21f0(object);
+    // a small happiness drop when the effect plus quality plus a random 0-7 stays below 30 (unsigned): hunger first, then thirst
+    const auto drop = [&](u32 offset) {
+        if (at<s32>(def, offset) != 0 && ((u32)World_Rand(global<u8 *>(0x0080239c)) & 7) + quality + at<u32>(def, offset) < 0x1e)
+            Stat100_Add(&at<float>(visitor, 0x19c), nullptr, (float)-(double)global<u8>(0x00785058));
+    };
+    drop(0x148);
+    drop(0x144);
+    set100(visitor + 0x19c, X87Reg((double)MulDiv100((s32)quality, at<s32>(def, 0x150))) + at<float>(visitor, 0x19c));
+    switch (at<u32>(def, 0x158)) {   // the ingredient
+    case 1:
+        set100(visitor + 0x1ac, X87Reg((double)quality) + at<float>(visitor, 0x1ac));
+        break;
+    case 2:
+        set100(visitor + 0x1a4, X87Reg((double)quality) + at<float>(visitor, 0x1a4));
+        break;
+    case 3:
+        set100(visitor + 0x1a4, X87Reg((double)MulDiv100((s32)quality, at<s32>(def, 0x144))) + at<float>(visitor, 0x1a4));
+        break;
+    case 4:
+        at<u16>(visitor, 0xc4) += (u16)MulDiv100((s32)quality, 6);
+        break;
+    }
+    const s32 appearance = at<s32>(def, 0x15c);
+    if (appearance == 1) {   // a balloon (the Debug_Printf calls left out)
+        World_SetSeed(global<u8 *>(0x0080239c), nullptr, *Thing_GetHandle(visitor, nullptr, &handle));
+        const u32 sprite = SpriteFolder_RandomSprite(10);
+        const u32 anim = Sprite_RandomAnim(10, sprite);
+        at<s32>(visitor, 0x210) = SpriteScript_Start(0x0074f480, 10, sprite, anim, 0, 0, 0);
+        u32 life = (u32)Obj_GetByte18c(object) * global<u32>(0x0075d0f4) / 100;   // (the product wraps)
+        at<u32>(visitor, 0x214) = life;
+        if (life < global<u32>(0x0075d0f0))
+            life = global<u32>(0x0075d0f0);
+        else if (life > global<u32>(0x0075d0f4))
+            life = global<u32>(0x0075d0f4);
+        at<u32>(visitor, 0x214) = life;
+        Ring_PushUnique(ring, nullptr, 0xc, *Thing_GetHandle(object, nullptr, &handle));
+    } else if (appearance == 2) {   // a costume: put on, or returned
+        if (at<u32>(visitor, 0x24) == 2) {
+            at<u32>(visitor, 0x24) = 0;
+            World_SetSeed(global<u8 *>(0x0080239c), nullptr, *Thing_GetHandle(visitor, nullptr, &handle));
+            at<u32>(visitor, 0x20) = SpriteFolder_RandomSprite(at<u32>(visitor, 0x24));
+        } else {
+            at<u32>(visitor, 0x24) = 2;
+            at<u32>(visitor, 0x20) = SpriteFolder_RandomSprite(2);
+            Ring_PushUnique(ring, nullptr, 0xb, *Thing_GetHandle(object, nullptr, &handle));
+        }
+    }
+    if (at<u8>(object, 0x32) & 1) {   // a toilet
+        Object_Wear(object, nullptr, (u8)(long long)at<float>(visitor, 0x1ac));
+        at<u32>(visitor, 0x1ac) = 0;
+        Ring_PushUnique(ring, nullptr, 0x11, *Thing_GetHandle(object, nullptr, &handle));
+        if ((u8)(long long)at<float>(visitor, 0x1b0) > 0x5a) {
+            Ring_PushUnique(ring, nullptr, 0x12, 0);
+            at<u32>(visitor, 0x1b0) = 0;
+        }
+        at<u16>(visitor, 0xc2) = global<u16>(0x0075c7f2);
+    }
+    if (at<s32>(Object_GetDef(object), 0x4ac) == 2) {   // a sideshow won
+        ++at<u32>(visitor, 0x1d0);
+        const s32 prize = (s32)Obj_Get188(object);
+        const s32 price = (s32)Obj_Get194(object);
+        const s32 gain = (s32)(long long)sideshow_log2(prize, price, global<u8>(0x0078505c));
+        set100(visitor + 0x19c, X87Reg((double)gain) + at<float>(visitor, 0x19c));
+        World_Rand(global<u8 *>(0x0080239c));
+    }
+}
+
 void __fastcall Sprite_InterpolatedPos(const u8 *sprite, void *, float t, u32 unit, float *x, u32 *height, float *z, u32 *frame) {
     if (unit)
         t = !(t >= 0.0f) ? 0.0f : t > 1.0f ? 1.0f : t;
@@ -483,4 +657,11 @@ void __fastcall Person_UpdateSpeed(u8 *person) {
     Nav_GetPos(person + 0xd4, nullptr, &at<u32>(person, 0x190), &at<u32>(person, 0x194));
     ScriptRef_Apply(person + 0xc);
 }
+
+void __fastcall Person_UpdateSpeedParticle(u8 *person) {
+    Person_UpdateSpeed(person);
+    Sprite_SpawnParticle(person, nullptr, at<u8>(person, 0x3a0) ? 0x35 : 0x39);
+}
+
+void Person_SetEnv(const PersonEnv *env) { g_env = env ? env : &kGameEnv; }
 }
