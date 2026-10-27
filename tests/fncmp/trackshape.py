@@ -7,7 +7,10 @@
 # (Highlight_Unflash: listed at 0x7afe14 first or second; no 0x20000, the model without 0x100000; the meshes' blocks copied or not). Agent B's
 # unported 0x53afa0 is thiscall recorder 24 (driver.cpp's kCellRunEnv). A run that would not stop (or leaves the laid out cells) is skipped by a
 # model of the walk, so a case is redrawn, as is one that would shape a cell from cells two on that are not laid out (or off the map: null).
-# usage: trackshape.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=A,B)
+# Relink (TrackCell_Relink 0x52fc80): trackanim.py's map around the cell at 0x7639e0 / 0x7639e4 (its id word right; out of the map now and
+# then), mostly of the run's types; a case whose linked side leads off the map (a null cell the original reads) is redrawn; corners 0, 1,
+# 0x100 or any.
+# usage: trackshape.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=A,B,Relink)
 import os
 import struct
 import sys
@@ -20,14 +23,14 @@ import trackanim  # noqa: E402
 from fncmp import LOG, RAM, Bench, Call, _recorder, log_region, put  # noqa: E402
 from trackrun import MOVES, PAIRS, STEPS, corner, ident, nib, u16, u32  # noqa: E402
 
-B = Bench(trackanim.merged([(0x52c6f0, 0x52d1e8), (0x4d0b10, 0x4d0b27), (0x4d8c00, 0x4d8c30), (0x4d8300, 0x4d8328), (0x522700, 0x5228b5),
+B = Bench(trackanim.merged([(0x52c6f0, 0x52d1e8), (0x4d0b10, 0x4d0b27), (0x4d8c00, 0x4d8c4e), (0x4d8300, 0x4d8328), (0x522700, 0x5228b5),
                             (0x53a510, 0x53a53d), (0x53ad20, 0x53aefc), (0x50c320, 0x50c540), (0x536300, 0x53644c), (0x4d99c0, 0x4d99e0),
                             (0x4d97b0, 0x4d97e0), (0x5da3c0, 0x5da3c1), (0x469180, 0x469350), (0x469580, 0x469850), (0x45b9d0, 0x45ba30),
                             # (animator.py's, for Animator_Play)
                             (0x46f150, 0x475010), (0x67a400, 0x690000), (0x402d70, 0x402e00), (0x402e60, 0x4030f0), (0x403150, 0x403172),
-                            (0x4031e0, 0x403202), (0x4033a0, 0x4033f0), (0x5f5f10, 0x5f5fc0), (0x429df0, 0x429e17)]),
+                            (0x4031e0, 0x403202), (0x4033a0, 0x4033f0), (0x5f5f10, 0x5f5fc0), (0x429df0, 0x429e17), (0x52fc80, 0x52fe42)]),
           sines=256, hooks={0x53afa0: _recorder(24, 0)})
-CALLS = {'A': 0x52c6f0, 'B': 0x52ccb0}
+CALLS = {'A': 0x52c6f0, 'B': 0x52ccb0, 'Relink': 0x52fc80}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 THING = trackanim.THING
 HL, H2, MODEL, BASE, OTHER = RAM + 0xb000, RAM + 0xb100, RAM + 0xb200, RAM + 0xb300, RAM + 0xb400
@@ -126,8 +129,34 @@ def holder(r, flash, regions):
     regions[0x7afe14] = struct.pack('<I', r.choice([HL, HL, OTHER]))
 
 
+def relink(r):
+    """Relink: the map around the focus cell; no linked side of it leads off the map."""
+    while True:
+        x0, y0, d, hoarding, rows, cells, thing = trackanim.draw(r, False, r.getrandbits(32))
+        focus = cells.get(ident(x0, y0))
+        if focus is None:
+            continue
+        nb = focus[0x22] if hoarding and focus[2] == 2 else focus[0xc]
+        if all(not d & nb or (0 <= x0 + 2 * STEPS[d][0] < 0x80 and 0 <= y0 + 2 * STEPS[d][1] < 0x80) for d in (1, 4, 0x10, 0x40)):
+            break
+    put(focus, 0, 'H', ident(x0, y0))
+    if r.random() < 0.8:
+        put(focus, 8, 'I', r.choice(RUN))
+    regions = dict(rows)
+    x, y = (x0, y0) if r.random() < 0.95 else r.choice([(-1, y0), (x0, 0x80), (0x100 + x0, y0), (x0, -0x80 + y0)])
+    regions[0x7639e0] = struct.pack('<ii', x, y)
+    regions[0x81b4cc] = struct.pack('<I', r.choice([1, 0xff, 0x101]) if hoarding else r.choice([0, 0x100]))
+    regions[0x7cf83c] = struct.pack('<I', trackanim.WORLD)
+    regions[0x80239c] = struct.pack('<I', trackanim.WORLD)
+    regions[0x7cdba0] = PAIRS
+    regions[LOG] = log_region()
+    return Call(CALLS['Relink'], [r.choice([0, 1, 1, 0x100, r.getrandbits(32)])], regions, conv='c', ret='v')
+
+
 def case(r):
     op = r.deal(OPS)
+    if op == 'Relink':
+        return relink(r)
     b = op == 'B'
     start = r.choice([0, 1, 1, 0x100, 0xffffff01, 4, 0x10, 0x40, 0x41, r.getrandbits(32)])
     while True:

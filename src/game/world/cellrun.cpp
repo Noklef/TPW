@@ -387,4 +387,51 @@ void __cdecl TrackRun_UpdateB(u8 *thing, u32 flash, u32 start, u32 bank5) {
     } while (!done);
 }
 
+void __cdecl TrackCell_Relink(u32 corners) {
+    const s32 x = global<s32>(0x007639e0), y = global<s32>(0x007639e4);
+    if (!Map_InBounds(x, y)) return;
+    u8 *const cell = cell_at(x, y);
+    if (!is_end(cell)) return;
+    u8 d = 1;
+    do {
+        u8 *const next = step(cell, d);
+        if (!(d & MapCell_Neighbours(cell))) {   // (a side not linked: linked to an end of the same +0x10 word two on)
+            if (next && MapCell_IsTypeDOr12ViaParent(next) && owner(next) == owner(cell)) {
+                MapCell_SetDirection(cell, nullptr, Nibble_Scale(d));
+                MapCell_AddNeighbours(cell, nullptr, d);
+                g_env->cell53afa0(cell);
+            }
+        } else {   // (a linked side: unlinked unless the cell two on is an end, or a piece linked back; next is not checked for null, sic)
+            bool keep;
+            if (!is_end(next))
+                keep = MapCell_IsTypeDOr12ViaParent(next) != 0;
+            else
+                keep = (static_cast<u8>(Nibble_Scale(d)) & MapCell_Neighbours(next)) != 0;
+            if (!keep) {
+                MapCell_RemoveNeighbours(cell, nullptr, d);
+                g_env->cell53afa0(cell);
+            }
+        }
+        d = static_cast<u8>(Byte_ShiftLog2(d, 4));
+    } while (d != 1);
+    if (!static_cast<u8>(corners) || !MapCell_CornerNeighbours(cell)) return;
+    do {
+        if (d & MapCell_Neighbours(cell)) {
+            u8 *const next = step(cell, d);
+            if (next) {
+                if (!MapCell_IsTypeDOr12ViaParent(next)) {
+                    MapCell_RemoveNeighbours(cell, nullptr, d);
+                    g_env->cell53afa0(cell);
+                    MapCell_RemoveNeighbours(next, nullptr, Nibble_Scale(d));
+                    g_env->cell53afa0(next);
+                } else {
+                    MapCell_ClearDirection(cell, nullptr, 0xff);
+                    MapCell_SetDirection(cell, nullptr, Nibble_Scale(d));
+                }
+            }
+        }
+        d = static_cast<u8>(Byte_ShiftLog2(d, 4));
+    } while (d != 1);
+}
+
 }  // extern "C"

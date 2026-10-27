@@ -77,4 +77,14 @@ void CellRun_SetEnv(const CellRunEnv *env);
 // reverse side stops it too (A: answers 1 and moves on to it). The run moves on as AnimateA unless stopped. A answers 0 or 1 in AL.
 u8 __cdecl TrackRun_UpdateA(u8 *thing, u32 flash, u32 start, u32 bank5);
 void __cdecl TrackRun_UpdateB(u8 *thing, u32 flash, u32 start, u32 bank5);
+
+// 0x52fc80 (cdecl (corners); name invented, unconfirmed): the links of the track piece at the cell 0x7639e0 / 0x7639e4 (when Map_InBounds
+// and of type 0xb, 0xd, 0x10, 0x12 or 0x19) mended. For each side d = 1, 4, 0x10, 0x40 (Byte_ShiftLog2(d, 4) until back at 1), with the
+// cell two on that side (Map_StepCell28InDirection): a side not among its neighbour bits is linked (MapCell_SetDirection Nibble_Scale(d),
+// MapCell_AddNeighbours d, the env's 0x53afa0) when that cell is an end (MapCell_IsTypeDOr12ViaParent) of the same +0x10 word; a linked
+// side is unlinked (MapCell_RemoveNeighbours d, 0x53afa0) when that cell is neither of the types above nor an end, or of them but without
+// the reverse side among its neighbour bits (that cell is not checked for null, sic). Then with corners' low byte set and the cell at a
+// corner (MapCell_CornerNeighbours), for each linked side whose cell two on is in the map: one not an end is unlinked both ways (the
+// cell's d and its Nibble_Scale(d), 0x53afa0 on each); at an end the cell's direction becomes Nibble_Scale(d) (MapCell_ClearDirection 0xff).
+void __cdecl TrackCell_Relink(u32 corners);
 }
