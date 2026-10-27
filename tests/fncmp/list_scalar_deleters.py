@@ -35,9 +35,10 @@ FUNCS = [
     (0x5da520, 0x5da570, 't', 1, 'a', [], ()),
     (0x5ddb40, 0x5ddb90, 't', 1, 'a', [], ()),
     (0x5e2b70, 0x5e2bc0, 't', 1, 'a', [], ()),
+    (0x41f6f0, 0x41f740, 't', 1, 'a', [], ()),
 ]
 EXTRA = []
-LISTY = (4322976, 5353136, 5353216,6006720, 6006800, 6024096, 6024176, 6133584, 6133664, 6137040, 6177648, 6119152, 6150896, 6177568, 6244064, 0x5ad0d0, 0x5ba860, 0x5bec40, 0x5da520, 0x5ddb40, 0x5e2b70)  # linked list destructors: a real chain (next at +4) is built for them
+LISTY = (4322976, 5353136, 5353216,6006720, 6006800, 6024096, 6024176, 6133584, 6133664, 6137040, 6177648, 6119152, 6150896, 6177568, 6244064, 0x5ad0d0, 0x5ba860, 0x5bec40, 0x5da520, 0x5ddb40, 0x5e2b70, 0x41f6f0)  # linked list destructors: a real chain (next at +4) is built for them
 B = Bench([(a, e) for a, e, *_ in FUNCS] + EXTRA)
 
 
