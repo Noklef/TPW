@@ -9,7 +9,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, HEAP, LOG, RAM, heap, log_region, put, vtable  # noqa: E402
 
 # name: (address, list offset or None for a constructor, size)
-CALLS = {'CtorA': (0x5da200, None, 0x70), 'CtorB': (0x5e3c20, None, 0x70), 'DtorA': (0x5da2f0, 4, 0xb0), 'DtorB': (0x5e03b0, 8, 0xb0), 'DtorC': (0x5e3d10, 0x18, 0xb0)}
+CALLS = {'CtorA': (0x5da200, None, 0x70), 'CtorB': (0x5e3c20, None, 0x70), 'DtorA': (0x5da2f0, 4, 0xb0), 'DtorB': (0x5e03b0, 8, 0xb0), 'DtorC': (0x5e3d10, 0x18, 0xb0),
+         'DtorD': (0x5d5840, 0x18, 0x6c)}
 B = Bench([(a, a + n) for (a, _o, n) in CALLS.values()] + [(0x5d5700, 0x5d5720), (0x5d5750, 0x5d5770), (0x5e3c00, 0x5e3c20)])
 LIST, NODES, OBJS, VT, VTL, OTHER, OTHER2 = RAM + 0x400, RAM + 0x500, RAM + 0x1000, RAM + 0x3000, RAM + 0x3100, RAM + 0x200, RAM + 0x300
 
