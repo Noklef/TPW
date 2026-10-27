@@ -83,4 +83,14 @@ s32 __fastcall Game_GetRideElement1(const u8 *game);
 // 0x4685c0 (cdecl; index, value; name unconfirmed): for a non-zero index, the ride in table 0x7a4610 gets the dword at +0xd4 = value and, when bit 0x40000 of its flags (+4) is set,
 // Objects_SetRideId(index, value) hands the value to the objects.
 void __cdecl Ride_SetRecordId(u32 index, u32 value);
+
+// 0x55a100 (cdecl (id); name unconfirmed): the ride record with the id (Rides_FindById; none: its +0xac read through null, sic) and
+// its thing (the u16 +0xac, 0 for none: nothing; 0x7cfb90, 20 bytes each): the thing's definition (ObjectDefs_Find of 0x7890a0 by
+// its u16 +0xe) names an effect at +0x6c (0: nothing). With the ride index +0xc8 set and its box (Ride_Bounds; none: nothing) the
+// effect starts (Particle_Spawn) at 1024 ([0x700fdc]) times the box's middle x and z (sums times 0.5, z unrounded, x as a float)
+// and the ride model's root's y (+8 -> +4 -> +0x78, +0x44); the box read again (when the index is still set and it has one) gives
+// the system's vector B (ParticleSystem_SetVectorB) the box's extents x and z times [0x701050] and y times [0x701054] (z and y
+// unrounded, x a float); then sound 0xb8 plays in the category [0x803a28] (Sound_PlayAt, owner 0) at the float x, y, z, __ftol'd.
+// Each __ftol'd z first. The original's Debug_Printf calls (no system; no things) are left out.
+void __cdecl Ride_PlayEffect(s32 id);
 }  // extern "C"
