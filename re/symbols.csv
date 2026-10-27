@@ -5147,6 +5147,7 @@ address,name,kind,confidence,notes
 0x006ba9b0,NotifyStream_Create,function,low,"reimplemented (src/game/core/soundstream); the record's notify stream (flag 0x2000, cleared), or 0"
 0x006bac10,NotifyStream_Dtor,function,low,"reimplemented (src/game/core/soundstream); slot 0 of 0x70a748: the base vtable, the pool's delete for flags bit 0"
 0x006c75d0,Stream70a6c8_NextSource,function,low,"reimplemented (src/game/core/soundstream); thiscall: the next (+4) taken and cleared, the callback object's (+0x18) slot 0 (+0xc, +0x10), the old next's slot 2 unless null; returns +4 == 0 (name invented)"
+0x006c74e0,Stream70a6c8_Read,function,low,"reimplemented (src/game/core/soundstream); slot 7 of 0x70a6c8: the next's reads until the count, the next source taken when one answers 1"
 0x006c6450,StreamFilterPool_Delete,function,low,"reimplemented (src/game/core/streampool); cdecl (block, size); the stream filter's operator delete: nothing for null; 0x18: under the lock [0xfb206c], onto the free list [0xfb2068] (next at +0x10); else Mem_Free"
 0x006c69b0,LoopStreamPool_Delete,function,low,"reimplemented (src/game/core/streampool); cdecl (block, size); the looping stream's operator delete: nothing for null; 0x24: under the lock [0xfb2084], onto the free list [0xfb2080] (next at +0x18); else Mem_Free"
 0x006c6ce0,Stream70abf8Pool_Delete,function,low,"reimplemented (src/game/core/streampool); cdecl (block, size); the stream 0x70abf8's operator delete: nothing for null; 0x14: under the lock [0xfb2090], onto the free list [0xfb208c] (next at +0x10); else Mem_Free"
