@@ -23,7 +23,7 @@
 # 0x70a4f0 voices into OUT and the new linked (switch) voice of VOICE, the heap failing now and then. The destructors: see dtor_case().
 # The group voice 0x70a390's slots and destructors: see group_case(). The creates (0x6be610, 0x6be680, 0x6bdc60, 0x6bdd30, 0x6bd7b0,
 # 0x6be330): the voices' game vtables (resolved by the driver), memory null now and then, the heap failing now and then.
-# The record's bank (slot 18, 0x6bc240): see recordbank_case(). The mixer's voice added (0x6b6650): the creates' setup, the voice in the
+# The record's bank (slot 18, 0x6bc240) and its override 0x6bdf00 ('recordbanklinked'): see recordbank_case(). The mixer's voice added (0x6b6650): the creates' setup, the voice in the
 # first free slot of 0-6 (the driver resolves the vtable 0x70a4f0).
 # usage: soundvoice.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
@@ -53,7 +53,7 @@ CALLS = {'ensure': (0x6b7150, 'v'), 'pending': (0x6bc900, 'a'), 'apply': (0x6bbf
          'gposition': (0x6bda20, 'a'), 'gsetparam': (0x6bda90, 'v'), 'glevels': (0x6bdac0, 'v'), 'gstart': (0x6bdae0, 'a'),
          'gfirst': (0x6bdb10, 'a'), 'gstartkids': (0x6bdb50, 'v'), 'gadd': (0x6bdbb0, 'b'), 'gprune': (0x6bdc10, 'v'),
          'create390': (0x6bdc60, 'a'), 'create2e0': (0x6bdd30, 'a'), 'create3e8': (0x6bd7b0, 'a'), 'create878': (0x6be330, 'a'),
-         'recordbank': (0x6bc240, 'a'), 'mixeradd': (0x6b6650, 'a')}
+         'recordbank': (0x6bc240, 'a'), 'recordbanklinked': (0x6bdf00, 'a'), 'mixeradd': (0x6b6650, 'a')}
 GROUP_OPS = ('gdtor', 'gddtor', 'gcommand', 'gposition', 'gsetparam', 'glevels', 'gstart', 'gfirst', 'gstartkids', 'gadd', 'gprune')
 DTOR_OPS = ('dtor7e0', 'ddtor7e0', 'dtor3e8', 'dtor338', 'ddtor3e8', 'ddtor338', 'vddtor4f0', 'dtor878', 'ddtor878', 'dtor8d0', 'ddtor8d0')
 LINKED_OPS = ('linkinit', 'linkfollow', 'linkbranch')
@@ -73,7 +73,7 @@ B = Bench([(0x6b7150, 0x6b7190), (0x6bb9f0, 0x6bba81), (0x6bc900, 0x6bcb56), (0x
            (0x6bd930, 0x6bd9a3), (0x6b72b0, 0x6b72ce), (0x6bd9b0, 0x6bda1b), (0x6bda20, 0x6bda8d), (0x6bda90, 0x6bdabd), (0x6bdac0, 0x6bdade),
            (0x6bdae0, 0x6bdb0b), (0x6bdb10, 0x6bdb4c), (0x6bdb50, 0x6bdbad), (0x6bdbb0, 0x6bdc0b), (0x6bdc10, 0x6bdc55),
            (0x6bdc60, 0x6bdca7), (0x6bdd30, 0x6bdd77), (0x6bd7b0, 0x6bd7f7), (0x6be330, 0x6be377),
-           (0x6bc240, 0x6bc2c4), (0x6b9310, 0x6b9652), (0x6bead0, 0x6beb03), (0x632230, 0x632290), (0x6c51b0, 0x6c51c2), (0x6b6650, 0x6b66c8)])
+           (0x6bc240, 0x6bc2c4), (0x6b9310, 0x6b9652), (0x6bead0, 0x6beb03), (0x632230, 0x632290), (0x6c51b0, 0x6c51c2), (0x6b6650, 0x6b66c8), (0x6bdf00, 0x6bdf49), (0x6c50f0, 0x6c5103), (0x6c5230, 0x6c5235)])
 VOICE, OUT, SYS, SVT, VVT, DEF, VARS, SAMPLES, PARAMS, LISTENER, CMD, CVT = (RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x500,
                                                                             RAM + 0x600, RAM + 0xa00, RAM + 0xb00, RAM + 0xb40, RAM + 0xb80, RAM + 0xbc0)
 SYSTEM, RANDOM, CLOCK, TIME_GET_TIME = 0xfb1f24, 0xfb1f20, 0xfa71e0, 0x6fd3ec
@@ -360,7 +360,10 @@ def group_case(r, name, address, ret, log, voice, params, regions):
         regions.update({NEWKID: kid, NEWKID_PARAMS: kp})
         set_return(log, 21, NEWKID)   # (a null one is LinkedVoice_Init's fault in both)
         struct.pack_into('<I', regions[DEF], 0x10, r.getrandbits(32))
-        for k, choices in ((14, [0, 0x100, 1, r.getrandbits(32)]), (15, [0, SAMPLES, SAMPLES, SAMPLES, r.getrandbits(32)]), (19, [0, r.getrandbits(32)])):
+        # (slot 19, the new child's length: its end (+0x1c) the time plus it, not wrapping: the bench's slot 21 answers the one NEWKID, so a
+        # new child ending before the time would be added after itself again, a loop in both that the game's fresh voices never make)
+        for k, choices in ((14, [0, 0x100, 1, r.getrandbits(32)]), (15, [0, SAMPLES, SAMPLES, SAMPLES, r.getrandbits(32)]),
+                           (19, [0, r.randrange(0x100000000 - time)])):
             set_return(log, k, r.choice(choices))
         struct.pack_into('<I', voice, 4, DEF)
         strings(log, 5, 0, out=1)
@@ -387,7 +390,7 @@ def group_case(r, name, address, ret, log, voice, params, regions):
     return Call(address, [VOICE] + ([r.choice([0, 1, 2, 3, r.getrandbits(32)])] if name == 'gddtor' else []), regions, conv='t', ret=ret)
 
 
-def recordbank_case(r):
+def recordbank_case(r, name='recordbank'):
     """SoundVoice_SetRecordBank (0x6bc240): the sample's word +0xc an index into the category singleton's deque B (made already: its guard's
     bit 0 set; its begin anywhere in a block that the map repeats, its count small or not), the entries BANK (its resource +8 not null, so
     the bank is not loaded: soundindex.py's loadbank() runs that) or null; the voice's flags 0x200 and 0x20000 any way."""
@@ -406,14 +409,23 @@ def recordbank_case(r):
     regions = {VOICE: voice, SAMPLES: sample, RECORD: r.bytes(0x60), SYSTEM: struct.pack('<I', SYS), SYS: r.bytes(0x40), CATEGORY: category,
                BANK: bank, BANK_MAP: struct.pack('<II', BANK_BLOCK, BANK_BLOCK),
                BANK_BLOCK: struct.pack('<1024I', *[r.choice([BANK] * 5 + [0]) for _ in range(1024)])}
+    if name == 'recordbanklinked':   # (the voice a recorder vtable, slot 19 answering any; its +8's words +0x10 / +0x12 zero or not)
+        struct.pack_into('<I', voice, 0, VVT)
+        struct.pack_into('<I', voice, 8, PARAMS)
+        log = log_region()
+        set_return(log, 19, r.getrandbits(32))
+        params = bytearray(r.bytes(0x20))
+        struct.pack_into('<HH', params, 0x10, r.choice([0, 0, 1, r.getrandbits(16)]), r.choice([0, 0, 1, r.getrandbits(16)]))
+        regions.update({VVT: vtable({}), PARAMS: params, LOG: log})
+        return Call(0x6bdf00, [VOICE, RECORD], regions, conv='t', ret='a')
     return Call(0x6bc240, [VOICE, RECORD], regions, conv='t', ret='a')
 
 
 def case(r):
     name = r.deal(OPS)
     address, ret = CALLS[name]
-    if name == 'recordbank':
-        return recordbank_case(r)
+    if name in ('recordbank', 'recordbanklinked'):
+        return recordbank_case(r, name)
     log = log_region()
     if name in ('follow', 'linkfollow', 'gposition'):
         blob_bytes(log, 4, 1, 0xff, inner=(8, 0xfff, 12))   # the functor: its vtable, the sound; the record's +0xc-+0x17

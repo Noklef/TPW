@@ -650,6 +650,14 @@ u32 __fastcall SoundVoice_RollPitch(u8 *voice) {
     return roll<s8>(voice, 0xe, 2);
 }
 
+u32 __fastcall SoundVoice_SetRecordBankLinked(u8 *voice, void *, u8 *record) {
+    if (!SoundVoice_SetRecordBank(voice, nullptr, record)) return 0;
+    SetThenFlag4c_14_6c50f0(record, nullptr, static_cast<u32>(reinterpret_cast<uintptr_t>(voice)));
+    const u8 *const params = at<u8 *>(voice, 8);
+    if (at<u16>(params, 0x10) || at<u16>(params, 0x12)) FlagThenSet14_58_6c5220(record, nullptr, vcall<u32>(voice, 0x4c));
+    return 1;
+}
+
 u32 __fastcall SoundVoice_SetRecordBank(u8 *voice, void *, u8 *record) {
     u8 *const resource = SoundChannel_LoadBank(system(), nullptr, at<u16>(at<u8 *>(voice, 0xc), 0xc));
     if (!resource) return 0;

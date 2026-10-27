@@ -164,6 +164,10 @@ u32 __fastcall SoundVoice_RollPitch(u8 *voice);
 // Obj_SetSecondFlag8 (the resource); with flag 0x200 (+0x30) SetThenFlag8_14_6c50b0 (the voice's +4) and the record's +0xc |= 0x200;
 // then +0xc |= 4 with flag 0x20000, else 0xc0. Returns 1.
 u32 __fastcall SoundVoice_SetRecordBank(u8 *voice, void *, u8 *record);
+// 0x6bdf00 (thiscall (record), pops 4; slot 18 of 0x70a338, 0x70a440, 0x70a498, 0x70a878 and 0x70a8d0; name invented):
+// SoundVoice_SetRecordBank; 0 when it answers 0. Else the record's SetThenFlag4c_14_6c50f0 (the voice) and, when either word +0x10 /
+// +0x12 of the voice's +8 is nonzero, its FlagThenSet14_58_6c5220 (the voice's slot 19). Returns 1.
+u32 __fastcall SoundVoice_SetRecordBankLinked(u8 *voice, void *, u8 *record);
 // 0x6bc2d0 (thiscall; slot 19): the current variation's (+8, not tested for null) words +0x10 / +0x12 both 0: 0. With a parameter block
 // (+0x4c) and slot 16 (4) answering (AL): +0x10 + (+0x12 - +0x10) * the percentage / 100 (signed). Else the words put in order (swapped
 // in place) and +0x10 + a random draw (the full rotated number) modulo their difference, or +0x10 when they are equal.
