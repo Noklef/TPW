@@ -32,6 +32,14 @@ u32 mode_setting(u32 guard_address) {
     return global<u32>(0x00fb3b7c);
 }
 
+}  // namespace
+
+extern "C" void __fastcall Obj7b51f0_CheckOnline(void *, void *, u8 flag) {
+    if (flag) mode_setting(0x00fb34c9);   // (2 or not, only the empty assert 0x5da3c0 differs)
+}
+
+namespace {
+
 // Whether the record applies: +0xc 2; 0 with the setting 0; (re-read) 1 with the setting 2.
 bool applies(u32 record) {
     const u32 when = global<u32>(record + 0xc);
@@ -50,6 +58,8 @@ s32 call(u8 *self, u32 record) {
 }  // namespace
 
 void AdvisorScore_SetEnv(const AdvisorScoreEnv *env) { g_env = env ? env : &kGameEnv; }
+
+u32 ModeSetting_Read(u32 guard_address) { return mode_setting(guard_address); }
 
 u8 *AdvisorScoring_Instance() {
     u8 &guard = global<u8>(0x00fb2766);
