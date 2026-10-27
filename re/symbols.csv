@@ -4558,6 +4558,7 @@ address,name,kind,confidence,notes
 0x006c0bd0,SfxVariation_MoveFlag40SamplesLast,function,low,"reimplemented (src/game/core/soundcategory); thiscall (variation), pops 4: the samples whose bank has flag 0x40 swapped to the end, the count kept in the high word and the low word the samples not flagged (name invented)"
 0x006c0850,SoundCategory_ReleaseRecordAt,function,low,"reimplemented (src/game/core/soundcategory); thiscall (out, index), pops 8: deque A's record index (no count check) released (slot 0), *out = 0; none: -1 (name invented)"
 0x006c5870,SfxSounds_Find,function,low,reimplemented (src/game/core/soundcategory); a command's entry in an SFX.map sound table
+0x006c0c90,SoundCategory_HideFlag40Samples,function,low,"reimplemented (src/game/core/soundcategory); thiscall (hide), pops 4: every variation of every sound of deque A's category records (the cells computed inline): hide's low byte set SfxVariation_MoveFlag40SamplesLast, else dword +0 >>= 16 (name invented)"
 0x006338c0,Class703770_AddRef,function,low,"reimplemented (src/game/core/refcounted); thiscall: the counted base class's AddRef, InterlockedIncrement (+4)"
 0x006338d0,Class703770_Release,function,low,"reimplemented (src/game/core/refcounted); thiscall: its Release: InterlockedDecrement (+4), at 0 deleted (vtable +8 (1)) and 0, else the count re-read"
 0x006c9580,Mp2_Dct64,function,low,"reimplemented (src/game/core/mp2synth); cdecl (out0, out1, in): the MP2 synthesis's 32-point DCT (dct64), 17 values to out0 and 16 to out1 at a stride of 16 floats"
