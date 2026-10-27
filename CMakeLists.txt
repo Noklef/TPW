@@ -334,6 +334,7 @@ add_library(tpw_game STATIC
     src/game/world/rides.cpp
     src/game/world/cellkind.cpp
     src/game/world/lineends.cpp
+    src/game/world/pathlink.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp

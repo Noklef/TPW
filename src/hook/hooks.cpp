@@ -342,6 +342,7 @@
 #include "../game/world/objectunlock.h"
 #include "../game/world/parkgates.h"
 #include "../game/world/pathdrag.h"
+#include "../game/world/pathlink.h"
 #include "../game/world/queuepieces.h"
 #include "../game/world/rides.h"
 #include "../game/world/uimsgreceiver.h"
@@ -5507,6 +5508,7 @@ const Hook kHooks[] = {
     {"TrackCell_Remove",          0x0053b280, (void *)&TrackCell_Remove, {0x83, 0xec, 0x0c, 0x53, 0x55}},
     {"TrackCell_ResetEnds",       0x00532dd0, (void *)&TrackCell_ResetEnds, {0x6a, 0xff, 0x68, 0x40, 0xea}},
     {"LineEnd_Unlink",            0x0053bc60, (void *)&LineEnd_Unlink, {0x51, 0x8b, 0x44, 0x24, 0x0c}},
+    {"MapCell_LinkPath",          0x005348d0, (void *)&MapCell_LinkPath, {0x83, 0xec, 0x08, 0x53, 0x55}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
