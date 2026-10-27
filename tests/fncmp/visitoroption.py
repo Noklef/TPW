@@ -156,8 +156,8 @@ def feelings_case(r):
 
 def choose_case(r):
     """Visitor_ChooseMajorDest (0x4fcb10): score_case()'s visitor and object, the world's list ([0x80239c] +0x1da746, next +0xc) of the object
-    and 0-4 copies of it (handles 12-15) or none; flag 4 of +0x32 set or not, the queue test's state +0x19c, +0x68, +0x2c and room +0x40 about
-    its tests (objectqueue.py's Open, with its coaster links for the track type 3), the tick's bit 0 either way; the visitor's +0x198 0 and its
+    and 0-4 copies of it (handles 12-15; their handle words +0 mostly theirs, the visitor's last rides now and then of them, so that their scores
+    differ) or none; flag 4 of +0x32 set or not, the queue test's state +0x19c, +0x68, +0x2c (mostly all open) and room +0x40 about its tests (objectqueue.py's Open, with its coaster links for the track type 3), the tick's bit 0 either way; the visitor's +0x198 0 and its
     nav (+0xd4) in the queue back's cell, as navpath.py's person (so the route needs no map), the route and counter navpath.py's."""
     c = score_case(r)
     regions = c.regions
@@ -177,12 +177,22 @@ def choose_case(r):
         thing = obj if h == handle else memoryview(blob)[0x200 * (h - 12):0x200 * (h - 12) + 0x200]
         nxt = members[members.index(h) + 1] if members.index(h) + 1 < len(members) else 0
         struct.pack_into('<H', thing, 0xc, nxt)
-        if h != handle:   # (the copies' own flags, states and rooms)
-            thing[0x32] = r.choice([0xff, 0xfe, 4, 0xc, 0xfb, 0, obj[0x32]])
-            struct.pack_into('<I', thing, 0x40, r.choice([0, 1, 2, 3, 5, 100, 0xffffffff]))
-        struct.pack_into('<I', thing, 0x19c, r.choice([0, 2, 3, 3, 3, 1, 4, 5]))
-        struct.pack_into('<I', thing, 0x68, r.choice([1, 1, 1, 0]))
-        struct.pack_into('<I', thing, 0x2c, r.choice([0, 1, 0x100]))
+        if h != handle:   # (the copies' own flags, rooms and mostly handles, so that their scores differ: the visitor's rides of them)
+            thing[0x32] = r.choice([0xff, 0xfe, 4, 0xc, 0xff, 0xfe, 4, 0xc, 0xfb, 0, obj[0x32]])
+            struct.pack_into('<I', thing, 0x40, r.choice([1, 2, 3, 5, 100, 0, 0xffffffff]))
+            if r.random() < 0.7:
+                struct.pack_into('<H', thing, 0, h)
+        if r.random() < 0.7:   # (open: past each of Object_QueueOpen's tests but the queue's length and the track type's)
+            struct.pack_into('<I', thing, 0x19c, r.choice([0, 2, 3, 3, 3, 5]))
+            struct.pack_into('<I', thing, 0x68, 1)
+            struct.pack_into('<I', thing, 0x2c, r.choice([1, 0x100]))
+        else:
+            struct.pack_into('<I', thing, 0x19c, r.choice([0, 2, 3, 3, 3, 1, 4, 5]))
+            struct.pack_into('<I', thing, 0x68, r.choice([1, 1, 1, 0]))
+            struct.pack_into('<I', thing, 0x2c, r.choice([0, 1, 0x100]))
+    for off in range(0x1e0, 0x1f0, 2):   # (the visitor's rides now and then of the copies)
+        if copies and r.random() < 0.3:
+            put(visitor, off, 'H', r.randrange(12, 12 + copies))
     if copies:
         regions[COPIES] = blob
     world = struct.unpack('<I', regions[0x80239c])[0]
