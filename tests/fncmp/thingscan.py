@@ -14,6 +14,7 @@
 # Rate9c1 / RateBest (0x4cc3b0 / 0x4ccd10) and RateAvg (0x4ccbf0, kept at +0x1f0f4 as CPlain's): the rides' ratings (Object_Rating on
 # object_checks.py's terms without a track ride or coaster: the definitions' +0x4ac 0 mostly, +0x9c 1, 0 or 4, the base +0x13c and the
 # rows' limits small or any, the things' rows +0x50 0-3, their +0x28 0).
+# StaffAvg (0x4964d0, src/game/ui/dialogs): see staff_average().
 # usage: thingscan.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=C1,C2,Max,...)
 import os
 import struct
@@ -22,7 +23,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
-from fncmp import LOG, Bench, Call, RAM, log_region, vtable  # noqa: E402
+from fncmp import LOG, Bench, Call, RAM, log_region, put, vtable  # noqa: E402
 from thingenv import ITEM, ITEMS, NITEMS, POOL, THING, park  # noqa: E402
 
 # name: (address, convention, size, arguments: n none, p previous thing, vp value then previous thing, v value, o an output word)
@@ -41,11 +42,11 @@ CALLS = {'C1': (0x4c9f90, 'c', 0xa0, 'n'), 'C2': (0x4ca0c0, 'c', 0xa0, 'n'), 'Ma
          'CPlain': (0x4c7fa0, 't', 0xc6, 'gc'), 'C4ac0': (0x4c8070, 't', 0xde, 'gc'),
          'Avg1f8': (0x4c9cc0, 's', 0xb3, 'v'), 'AvgS1f8': (0x4c9d80, 'c', 0xb8, 'n'), 'Avg44': (0x4ca160, 'c', 0xb4, 'n'), 'Most44': (0x4ca220, 's', 0xec, 'oo'), 'Patrol': (0x4c9b40, 's', 0xba, 'v'),
          'Half': (0x4c81e0, 't', 0x53, 'gh'), 'Rate9c1': (0x4cc3b0, 's', 0xfb, 'o'), 'RateBest': (0x4ccd10, 's', 0xd6, 'o'),
-         'RateAvg': (0x4ccbf0, 't', 0x114, 'gc')}   # (Step's and Group's ranges take in their jump tables)
+         'RateAvg': (0x4ccbf0, 't', 0x114, 'gc'), 'StaffAvg': (0x4964d0, 'c', 0xa0, 'v')}   # (Step's, Group's and StaffAvg's ranges take in their jump tables)
 B = Bench([(a, a + n) for (a, _c, n, _s) in CALLS.values()] + [(0x516130, 0x516160), (0x516160, 0x5161b0), (0x50b350, 0x50b360), (0x4e0440, 0x4e0450),
                                                               (0x4e2710, 0x4e2740), (0x4dd4e0, 0x4dd500), (0x412e90, 0x412eea), (0x5da3c0, 0x5da3c1), (0x41a960, 0x41a970), (0x5161b0, 0x516200), (0x4fa990, 0x4fa9fa), (0x536300, 0x53644c), (0x519510, 0x519550),
                                                               (0x481f80, 0x481fa0), (0x481fc0, 0x482030), (0x4cd300, 0x4cd331), (0x41a990, 0x41a9a7),
-                                                              (0x506eb0, 0x506ecc), (0x4e0560, 0x4e0860), (0x4e0860, 0x4e0900)])
+                                                              (0x506eb0, 0x506ecc), (0x4e0560, 0x4e0860), (0x4e0860, 0x4e0900), (0x65d7bc, 0x65d832)])
 OUT = RAM + 0x1000
 OWNER, OWNER_VT = RAM + 0x1100, RAM + 0x1180
 GROUPS = [-2, -1, 0, 1, 2, 3, 0x3ea, 0x3eb, 0x3ec]
@@ -56,6 +57,8 @@ def case(r):
     address, conv, _n, shape = CALLS[name]
     if shape == 'kp':
         return category(r, address)
+    if name == 'StaffAvg':
+        return staff_average(r)
     regions, handles, things = park(r, count=r.choice([1, 2, 3, 4, 6]) if shape in ('o', 'u') or name.startswith('B') else None,
                                     defs=name not in ('C1', 'C2', 'Max', 'C3', 'Staff', 'Avg', 'Re', 'P1', 'P2', 'P3', 'Sum', 'Cs', 'Avg1f8', 'AvgS1f8', 'Avg44', 'Most44', 'Patrol') and shape != 'u',
                                     kinds=(4, 5, 6, 7, 8, 3, 1, 0) if name in ('Staff', 'S5', 'S6', 'S4', 'S7', 'S8', 'Cs', 'Avg1f8', 'AvgS1f8', 'Patrol') else (1, 1, 1, 3, 0, 0xff) if name[0] == 'P' or name in ('CPlain', 'Half') else
@@ -149,6 +152,44 @@ def case(r):
     if shape == 'oo':
         regions[OUT + 0x10] = r.bytes(8)
     return Call(address, args, regions, conv=conv, ret='a')
+
+
+BARS = RAM + 0x40000   # (StaffAvg: the window [0x7ca168], its children and theirs, 0x100 apart; their vtable)
+
+
+def staff_average(r):
+    """StaffAvg (0x4964d0): Avg1f8's park and floats; the tab 0-4 mostly (else a kind or any); the window [0x7ca168]'s child 0x329 and its
+    child 0x32d (each among 0-2 decoys; now and then missing, a fault in both), with its slot 7 a recorder of one."""
+    regions, handles, things = park(r, defs=False, kinds=(4, 5, 6, 7, 8, 3, 1, 0))
+    pool = regions[POOL]
+    for i in range(len(things)):
+        f = r.choice([0.0, 1.0, 50.0, 99.9, 100.0, 0.5, r.uniform(0, 100)]) if r.random() < 0.85 else \
+            r.choice([-1.0, -0.5, 255.9, 256.0, 300.0, float('nan'), 1e10])
+        struct.pack_into('<f', pool, THING * i + 0x1f8, f)
+    regions[LOG] = log_region()
+    regions[BARS + 0xf00] = vtable({7: 1})
+    at = BARS + 0x100
+    parent = BARS
+    regions[BARS] = bytearray(r.bytes(0x100))
+    for ident in (0x329, 0x32d):
+        ids = [ident] if r.random() < 0.97 else []
+        ids += [r.choice([0, ident - 1, ident + 1, ident | 0x10000, r.getrandbits(32)]) for _ in range(r.choice([0, 1, 2]))]
+        r.shuffle(ids)
+        head = 0
+        for k, kid in reversed(list(enumerate(ids))):
+            w = put(put(put(bytearray(r.bytes(0x100)), 0, 'I', BARS + 0xf00), 0x8c, 'I', kid), 0x54, 'I', head)
+            regions[at + 0x100 * k] = put(w, 0x5c, 'I', 0)
+            head = at + 0x100 * k
+        put(regions[parent], 0x5c, 'I', head)
+        parent = at + 0x100 * ids.index(ident) if ident in ids else None
+        if parent is None:
+            break
+        at += 0x400
+    regions[0x7ca168] = struct.pack('<I', BARS)
+    world = struct.unpack('<I', regions[0x7cf83c][:4])[0]   # (the game's word +0x1da720: GameTable7cfb90_Get1da720_519510, its answer unused)
+    regions[world + 0x1da720] = struct.pack('<H', r.randrange(4))
+    tab =r.choice([0, 1, 2, 3, 4, 2, 3, 4, 5, 6, 8, 0xffffffff, r.getrandbits(32)])
+    return Call(0x4964d0, [tab], regions, conv='c', ret='v')
 
 
 CATEGORIES = [1 << k for k in range(16)]

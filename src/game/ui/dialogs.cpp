@@ -11,6 +11,8 @@
 #include "../world/camera.h"
 #include "../world/mousemode.h"
 #include "../world/things.h"
+#include "../world/thingscan.h"
+#include "../world/world.h"
 #include "cursor.h"
 #include "focus.h"
 #include "guidepth.h"
@@ -115,6 +117,16 @@ u32 __cdecl Dialog7ca168_ShowText(u32 which) {
     u8 *const label = Window_FindChild(Window_FindChild(window(0x007ca168), nullptr, 0x329), nullptr, 0x32a);
     if (which > 4) return which;
     return vcall<u32>(label, 0x24, Language_WideText(kTexts[which]));
+}
+
+void __cdecl Dialog7ca168_ShowStaffAverage(u32 tab) {
+    static const u32 kKinds[5] = {5, 4, 6, 7, 8};
+    u8 *const bar = Window_FindChild(Window_FindChild(window(0x007ca168), nullptr, 0x329), nullptr, 0x32d);
+    const u32 kind = tab <= 4 ? kKinds[tab] : tab;
+    void *const *const table = *reinterpret_cast<void *const *const *>(bar);
+    GameTable7cfb90_Get1da720_519510(*reinterpret_cast<u8 *const *>((uintptr_t)0x007cf83c));   // (its answer only the ECX of the stdcall)
+    const s32 average = Things_AverageStat1f8OfKind(kind);
+    reinterpret_cast<void(__fastcall *)(u8 *, void *, s32)>(table[7])(bar, nullptr, (s32)((u32)average << 10) / 100);
 }
 
 s32 __cdecl Dialog7cb2b8_Handler(u8 *window, u32 message, u32 a, u32 b) {

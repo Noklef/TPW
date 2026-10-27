@@ -63,6 +63,12 @@ s32 __cdecl WindowAt10_Handler(u8 *window, u32 message, u32 a, u32 b);
 // slot 9 (thiscall, one argument), whose result is returned; for any other which (unsigned) nothing is set and which is returned.
 u32 __cdecl Dialog7ca168_ShowText(u32 which);
 
+// 0x4964d0 (cdecl (tab); called at 0x4962e0 with 2, 3 or 4; name invented): the child 0x32d of the child 0x329 of the window [0x7ca168]
+// (Window_FindChild, unchecked) is given through its slot 7 the average +0x1f8 of the staff of the tab's kind (tabs 0-4: kinds 5, 4, 6, 7,
+// 8; any other tab is taken as the kind; Things_AverageStat1f8OfKind), times 1024 / 100 (signed, truncated). GameTable7cfb90_Get1da720_519510
+// of [0x7cf83c] is called first, its answer only the ECX of that stdcall. The child's vtable is read before.
+void __cdecl Dialog7ca168_ShowStaffAverage(u32 tab);
+
 // 0x4a0a20 (cdecl (window, message, a, b); the handler of the dialog [0x7cb2b8]; name unconfirmed): on message 0x14 [0x7cb2b8] = 0; then
 // Window_CallDefault, its result returned (a GUI rectangle built and destroyed on the stack around it, unused, is left out).
 s32 __cdecl Dialog7cb2b8_Handler(u8 *window, u32 message, u32 a, u32 b);
