@@ -171,7 +171,12 @@ def coder(r, op):
 
 
 def tables(r):
-    """the coefficient reader's flag and tables: not built (any bytes, overwritten), or built, the true tables or any floats."""
+    """the coefficient reader's flag and tables: not built (any bytes, overwritten), or built, the true tables, any floats, or now and
+    then NaNs quiet and signalling (an escape's two loads are both register operands: a signalling NaN in the second table meets a
+    quiet one in the first as fld; fld; faddp has them)."""
+    if r.random() < 0.08:
+        nans = [0x7f800001, 0xff812345, 0x7fc00000, 0xffc00000, 0x7fc00001, 0x7f800000, 0xff800000, 0x3f800000]
+        return {BUILT: struct.pack('<I', 1), TABLES: struct.pack('<768I', *(r.choice(nans) for _ in range(768)))}
     if r.random() < 0.4:
         return {BUILT: struct.pack('<I', 0), TABLES: r.bytes(0xc00)}
     if r.random() < 0.5:

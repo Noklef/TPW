@@ -741,7 +741,8 @@ void __fastcall WaveletCodec_ReadCoefficients(u8 *, void *, const u8 **cursor, f
         } else {
             const u8 low = p[0], high = p[1];
             p += 2;
-            *dst++ = (float)((X87Reg(global<float>(0x00fb2fe0 + 4 * low)) + global<float>(0x00fb27e0 + 4 * high)) * q);
+            // fld; fld; faddp: both loaded (quiet), so a signalling NaN in the second table is compared as a register NaN.
+            *dst++ = (float)((X87Reg(global<float>(0x00fb2fe0 + 4 * low)) + X87Reg(global<float>(0x00fb27e0 + 4 * high))) * q);
         }
     } while (--count != 0);
     *cursor = p;
@@ -935,7 +936,8 @@ void __fastcall WaveletCodec_YuvToRgb(u8 *codec, void *, u32 width, u32 height, 
             o += global<u32>(0x00fb2790);
             y0 = at<float>(yp, 0);
             const X87Reg b2 = y0 + a, r2 = y0 + b, g2 = y0 + g;
-            const X87Reg b3 = a + X87Reg(at<float>(yp, 4)), r3 = b + X87Reg(at<float>(yp, 4)), g3 = g + X87Reg(at<float>(yp, 4));
+            // (fadd m32: the second luma a memory operand, so a signalling NaN there gives way to a NaN register)
+            const X87Reg b3 = a + at<float>(yp, 4), r3 = b + at<float>(yp, 4), g3 = g + at<float>(yp, 4);
             put(o, b2, r2, g2, b3, r3, g3);
             yp += global<u32>(0x00fb2798);
             o += global<u32>(0x00fb279c);
