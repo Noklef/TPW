@@ -1,4 +1,4 @@
-// The game panel object at 0x7cc218 (its vtable 0x6ffbe8). Reimplementation of 0x4ad4e0, 0x4ad720, 0x4ad890, 0x4ae8e0, 0x4ae980. The
+// The game panel object at 0x7cc218 (its vtable 0x6ffbe8). Reimplementation of 0x4ad4e0, 0x4ad720, 0x4ad890, 0x4ae8e0, 0x4ae980, 0x4af980. The
 // names are unconfirmed.
 #pragma once
 
@@ -28,6 +28,12 @@ void __fastcall Panel7cc218_SetUpGauges(u8 *self);
 // the selected thing [0x7cc208]), the window +0x10's children 0x3e26 and 0x3e27 hidden (not checked); then the gauges set up
 // (Panel7cc218_SetUpGauges), the window +0x10 shown (Window_SetShown) and the hover label 0x3e28 bound (HoverLabel_Bind).
 void __fastcall Panel7cc218_Open(u8 *self);
+
+// 0x4af980 (thiscall (thing), pops 4; slot 10 of the vtable 0x6ffbe8; called by 0x4869cb / 0x4869f1 on 0x7cc218): the selected thing
+// [0x7cc208] = thing, the window built (WindowAt10_Create: the script 0x755150, the handler 0x4af600, the children 0x3e24, 0x3e15 and
+// 0x3e25), +0x24 = 0, and the advisor posted 0x129 when the low byte of the thing's float +0x44 (__ftol) is 1-20, else 0xcf
+// (Advisor_PostId).
+void __fastcall Panel7cc218_Show(u8 *self, void *, u8 *thing);
 
 // 0x4ad4e0 (thiscall; called from 0x4ae0fb and by slot 1, 0x4ae940): with the thing [0x7c2658] (nothing without one) and its definition
 // (Object_GetDef), the window +0x10's children (Window_FindChild, none checked): with the mode +8 3 all of 0x3e38, 0x3e34, 0x3e2a, 0x3e36,

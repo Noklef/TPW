@@ -9,9 +9,11 @@
 #include "../core/accessors.h"
 #include "../core/trivial.h"
 #include "../render/textparts.h"
+#include "../world/advisor.h"
 #include "../world/object.h"
 #include "../world/objectmsg.h"
 #include "../world/ridesweep.h"
+#include "dialogs.h"
 #include "guirect.h"
 #include "hoverlabel.h"
 #include "panelparts.h"
@@ -85,6 +87,14 @@ void __fastcall Panel7cc218_SetUpGauges(u8 *self) {
         label(self, 0x3e32);
     }
     GuiRect_Dtor(rect);
+}
+
+void __fastcall Panel7cc218_Show(u8 *self, void *, u8 *thing) {
+    *reinterpret_cast<u8 **>((uintptr_t)0x007cc208) = thing;
+    WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00755150), 0x004af600, 0x3e24, 0x3e15, 0x3e25);
+    at<u32>(self, 0x24) = 0;
+    const u8 value = (u8)(u32)(long long)at<float>(thing, 0x44);   // (__ftol's low byte)
+    Advisor_PostId(value <= 0x14 && value != 0 ? 0x129 : 0xcf);
 }
 
 void __fastcall Panel7cc218_Open(u8 *self) {
