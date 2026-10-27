@@ -263,7 +263,7 @@ address,name,kind,confidence,notes
 0x004d2860,Slots_OnEvent,function,low,"reimplemented (src/game/world/object); thiscall (event), pops 4: by the event type (its slot 0): 0x1a Slots_AddIfMatch with its id, amount and kind word; 0x11 with +0xc 0 AddIfMatch(0x10, 1); 0xb on the selected slot by its id 0x18 / 0x19 / 0x1b the park averages added"
 0x004d1e90,Challenges_Update,function,medium,Thing_Update case 19 (works on a global; skipped when DAT_00fb3b7c == 1)
 0x004fcc30,Visitor_ScoreOption,function,medium,"reimplemented (src/game/world/visitoroption); thiscall (visitor; object), pops 4: 0 for a last ride of the object's id; else the weighted mean of the distance, queue, rating, two stat-match and two need scores (weights 0x7850b0-0x7850c8), times the age and record multipliers, the definition's x87 factors (+0xc4, +0x1b8), divided down for recent rides of the object"
-0x004fe1e0,Visitor_UseObject,function,medium,"thiscall(visitor, object); applies the object def effects (+0x144 thirst, +0x148 hunger, +0x14c illness, +0x150 happiness, +0x154 litter) to the needs, balloons, costumes, sideshow wins"
+0x004fe1e0,Visitor_UseObject,function,medium,"reimplemented (src/game/world/person); a visitor uses a shop, sideshow or toilet"
 0x00506680,Staff_IsTooTired,function,high,"reimplemented (src/game/world/staff); thiscall: mEnergy (+0x1fc) __ftol'd to its low byte below gBalanceLevel.mRestLevel ([0x785324], signed)"
 0x005066a0,Staff_TireA,function,high,"reimplemented (src/game/world/staff); thiscall: mEnergy less (6 - pay grade) * 0.012, mHappiness less * 0.005, each clamped to 0-100 (NaN to 0)"
 0x00506760,Staff_TireB,function,high,reimplemented (src/game/world/staff); thiscall: as Staff_TireA by 0.025f and 0.01

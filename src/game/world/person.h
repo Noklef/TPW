@@ -53,6 +53,18 @@ void __fastcall Sprite_SetBlockedMark(u8 *sprite, void *, u32 on);
 // kept to 0..100 the same way.
 void __fastcall Visitor_RideFeelings(u8 *visitor, void *, const u8 *object);
 
+// 0x4fe1e0 (thiscall (object), pops 4; x87): a visitor uses an object (a shop, a sideshow, a toilet). Its ring +0x30 gets (8, the object's handle); a
+// sideshow (definition kind 2) is paid its running cost of the prize Obj_Get188 and the visitor's cash +0x1a0 gains it, a kind 1 pays
+// Object_CurrentSettingsValue; Visitor_RideFeelings; the definition's effects move thirst +0x1a4 and hunger +0x1a8 down by +0x144 / +0x148
+// (Sprite_PlaySound 0x83 / 0x84 by the larger), vomit +0x1b0, happiness +0x19c, litter +0x1b4 up (each kept to 0..100); with the object's
+// quality (GetByte198_4e21f0) a small happiness drop (0x785058) for each of hunger and thirst when effect + quality + World_Rand & 7 < 30, the
+// happiness up by quality * +0x150 / 100; the ingredient +0x158: 1 toilet +0x1ac, 2 thirst by the quality, 3 thirst by quality * +0x144 / 100,
+// 4 the word +0xc4 by quality * 6 / 100; the appearance +0x15c: 1 a balloon (script 0x74f480 at +0x210, its life +0x214 from Obj_GetByte18c
+// kept to 0x75d0f0..0x75d0f4; ring 0xc), 2 a costume (+0x24 2 and its sprite, ring 0xb; or returned: 0 and the folder's sprite); a toilet (+0x32
+// bit 0): Object_Wear by the toilet need, which is emptied, ring 0x11, and above 90 vomit ring (0x12, 0) and emptied, +0xc2 = [0x75c7f2]; a
+// sideshow: +0x1d0 counted, the happiness up by 0x78505c * log2(prize / price), then a World_Rand. (Debug_Printf calls left out.)
+void __fastcall Visitor_UseObject(u8 *visitor, void *, u8 *object);
+
 // 0x50ba80: a person's thoughts (serialized at 0x50bad0) cleared: +0, the 32 u16 pairs of
 // the action history (+4), mThoughtScript (+0x84), mActionHistIndex (+0x88) and
 // mTimeBubbleShown (+0x8c). Returns them.
