@@ -494,7 +494,7 @@ def case_hide(r):
         regions[BANKS + 0x40 * i] = r.bytes(0x30)
     if r.random() < 0.15:   # (the begin iterator's block start past its position: the first cells' offsets negative, block -1 through the map slot before it)
         cat = bytearray(regions[SINGLETON])
-        struct.pack_into('<I', cat, 0x3c, struct.unpack_from('<I', cat, 0x44)[0] + 4 * r.randrange(1, 0x401))
+        struct.pack_into('<I', cat, 0x3c, struct.unpack_from('<I', cat, 0x44)[0] + 4 * r.choice([r.randrange(1, 0x401), 0x3ff, 0x400]))
         regions[SINGLETON] = cat
         regions[MAPA - 4] = struct.pack('<I', HIDE_BLOCK) + regions.pop(MAPA)
         regions[HIDE_BLOCK] = struct.pack('<1024I', *[r.choice([0, 0, RECS, RECS + 0x40, RECS + 0x80]) for _ in range(0x400)])
@@ -519,7 +519,7 @@ def case_hide(r):
     for i in range(6):
         struct.pack_into('<H', samples, 0x10 * i + 0xc, r.choice([r.randrange(nb + 2), r.randrange(nb + 2), r.getrandbits(16)]))
     regions[SFX_SAMPLES] = samples
-    return Call(CALLS['hide'], [SINGLETON, r.choice([0, 1, 1, r.getrandbits(32)])], regions, conv='t', ret='v')
+    return Call(CALLS['hide'], [SINGLETON, r.choice([0, 1, 1, 0x100, r.getrandbits(32)])], regions, conv='t', ret='v')
 
 
 def case(r):
