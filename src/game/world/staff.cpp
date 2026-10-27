@@ -715,4 +715,40 @@ void __fastcall Staff_HandleMessage(u8 *staff, void *, u8 *message) {
         Staff_SetState(staff, nullptr, 0);
     }
 }
+
+namespace {
+using SumFn = s32(__fastcall *)(u8 *, void *, u32);
+s32 __fastcall game_sumA(u8 *record, void *, u32 n) { return reinterpret_cast<SumFn>((uintptr_t)0x004c8180)(record, nullptr, n); }
+s32 __fastcall game_sumB(u8 *record, void *, u32 n) { return reinterpret_cast<SumFn>((uintptr_t)0x004c8150)(record, nullptr, n); }
+const StaffAdviceEnv kGameAdviceEnv = {&game_sumA, &game_sumB};
+const StaffAdviceEnv *g_advice = &kGameAdviceEnv;
+const u32 kKindHeads[5] = {0x1da73c, 0x1da73e, 0x1da740, 0x1da744, 0x1da742};
+
+// The chain at the world's head word: more than 3 members and the average of the low bytes of their truncated floats at field below 15.
+bool chain_low(u32 head, u32 field) {
+    u32 count = 0, sum = 0;
+    for (u16 h = *reinterpret_cast<const u16 *>(*reinterpret_cast<u8 **>((uintptr_t)0x0080239c) + head); h;) {
+        ++count;
+        const u8 *const thing = *reinterpret_cast<u8 **>((uintptr_t)0x007cfb90 + h * 20u);
+        sum += (u32)(s32)(long long)X87Reg(*reinterpret_cast<const float *>(thing + field)).v & 0xff;   // (__ftol 0x67a830)
+        h = *reinterpret_cast<const u16 *>(thing + 0x210);
+    }
+    return count > 3 && sum / count < 15;
+}
+}  // namespace
+
+void Staff_SetAdviceEnv(const StaffAdviceEnv *e) { g_advice = e ? e : &kGameAdviceEnv; }
+
+u32 __fastcall StaffAdvice_KindLow(const u8 *self, void *, u32 kind) {
+    if (*reinterpret_cast<const u32 *>(self + 0x64)) return 1;
+    if (kind > 4) return 0;
+    if (kind == 0) {
+        u8 *const record = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(*reinterpret_cast<u8 **>((uintptr_t)0x0080239c)));
+        const float a = (float)g_advice->sumA(record, nullptr, 1);   // (fild, fstp m32)
+        const X87Reg ratio = a / X87Reg((double)g_advice->sumB(record, nullptr, 1));   // (fild, fdivr m32)
+        if (ratio.v > (double)0.2f) return 1;   // (fcomp [0x7008dc]: not when below, equal or unordered)
+    }
+    if (chain_low(kKindHeads[kind], 0x1fc)) return 1;
+    return chain_low(kKindHeads[kind], 0x1f8) ? 1 : 0;
+}
 }
