@@ -4576,6 +4576,8 @@ const Hook kHooks[] = {
     {"SoundResource_Create",      0x006c5240, (void *)&SoundResource_Create, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"SoundResourceRef_Ctor",     0x006c8b40, (void *)&SoundResourceRef_Ctor, {0x56, 0x8b, 0xf1, 0xe8, 0x68}},
     {"SoundResource_New",         0x006c53c0, (void *)&SoundResource_New, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"SoundResourceRef_Dtor",     0x006c8b80, (void *)&SoundResourceRef_Dtor, {0x6a, 0xff, 0x68, 0xb8, 0x66}},
+    {"SoundResourceRef_DeletingDtor", 0x006c8b60, (void *)&SoundResourceRef_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"ChannelVoiceCount_Reset",   0x006c5060, (void *)&ChannelVoiceCount_Reset, {0xc7, 0x05, 0x58, 0x20, 0xfb}},
     {"ChannelVoiceCount_Increment", 0x006c5070, (void *)&ChannelVoiceCount_Increment, {0x51, 0xff, 0x15, 0xc0, 0xd0}},
     {"ChannelVoiceCount_Decrement", 0x006c5080, (void *)&ChannelVoiceCount_Decrement, {0x51, 0xff, 0x15, 0x2c, 0xd1}},

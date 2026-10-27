@@ -32,6 +32,18 @@ u8 *__fastcall SoundResourceRef_Ctor(u8 *ref, void *, u8 *resource) {
     return ref;
 }
 
+void __fastcall SoundResourceRef_Dtor(u8 *ref) {
+    at<u32>(ref, 0) = 0x0070af18;
+    vcall<void>(at<u8 *>(ref, 8), 0);
+    at<u32>(ref, 0) = 0x00703770;
+}
+
+u8 *__fastcall SoundResourceRef_DeletingDtor(u8 *ref, void *, u32 flags) {
+    SoundResourceRef_Dtor(ref);
+    if (flags & 1) GameHeap_Free(ref);
+    return ref;
+}
+
 u8 *__fastcall SoundResource_Ctor(u8 *self, void *, u8 *source) {
     Class703770_Ctor(self);
     at<u32>(self, 8) = 0;

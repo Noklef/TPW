@@ -5,7 +5,7 @@
 # recorder answering 0 or more, the RefObject's slots 9 and 0 recorders). The counts small, or ones whose size wraps (count * 4 past 32 bits);
 # the offsets' block TABLE (any index from 0 to past the count); the blocks from the heap region, freed blocks any pointer.
 # SoundResource_New (0x6c53c0) and SoundChannel_NewResource (0x6b8160: the source the channel) as the create; the ref's constructor
-# (0x6c8b40) over random bytes. SoundChannel_LoadBank (0x6b9310): see loadbank().
+# (0x6c8b40) over random bytes; its destructors (0x6c8b80, 0x6c8b60: the resource at REF, its slot 0 a recorder; flags 0-3 or any). SoundChannel_LoadBank (0x6b9310): see loadbank().
 # usage: soundindex.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -18,7 +18,7 @@ B = Bench([(0x6d4910, 0x6d4964), (0x6c5450, 0x6c5497), (0x6c54e0, 0x6c54fc), (0x
            (0x6d47a0, 0x6d47ea), (0x6c55c0, 0x6c562c), (0x6c55a0, 0x6c55bc), (0x6d47f0, 0x6d4856), (0x6d4860, 0x6d4885), (0x6c5520, 0x6c558c),
            (0x6c5500, 0x6c551c), (0x6338b0, 0x6338c0), (0x5f71e0, 0x5f7208), (0x618d30, 0x618d72), (0x67a400, 0x690000),
            (0x6c5240, 0x6c5440), (0x5f71b0, 0x5f71e0), (0x5f7208, 0x5f72a0), (0x618d20, 0x618d30), (0x4036a0, 0x4036d0), (0x6d49f0, 0x6d4a30),
-           (0x6d4aa0, 0x6d4b10), (0x6d44a0, 0x6d4522), (0x6c8b40, 0x6c8b5b), (0x6b8160, 0x6b8176),
+           (0x6d4aa0, 0x6d4b10), (0x6d44a0, 0x6d4522), (0x6c8b40, 0x6c8b5b), (0x6c8b60, 0x6c8bc8), (0x6b8160, 0x6b8176),
            (0x6b9310, 0x6b9652), (0x6bead0, 0x6beb03), (0x632230, 0x632290), (0x6b9260, 0x6b9280), (0x6c58d0, 0x6c58e2), (0x6c58f0, 0x6c59f4),
            (0x6c5a00, 0x6c5aca), (0x5f5fc0, 0x5f71b0), (0x5f72a0, 0x5f7f00)])
 SELF, OUT, SOURCE, SELF_VT, INNER_VT, REF, REF_VT, MAPPED, TABLE, RECORD = (RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x500,
@@ -26,7 +26,7 @@ SELF, OUT, SOURCE, SELF_VT, INNER_VT, REF, REF_VT, MAPPED, TABLE, RECORD = (RAM,
 DECREMENT = 0x6fd12c   # the import table's InterlockedDecrement
 CALLS = {'ctor': 0x6d4910, 'dtor': 0x6c5450, 'deldtor': 0x6c54e0, 'load': 0x6d46e0, 'unload': 0x6d4760, 'offset': 0x6d4790, 'record': 0x6d47a0,
          'sdtor': 0x6c55c0, 'sdeldtor': 0x6c55a0, 'map': 0x6d47f0, 'unmap': 0x6d4860, 'mdtor': 0x6c5520, 'mdeldtor': 0x6c5500,
-         'create': 0x6c5240, 'new': 0x6c53c0, 'refctor': 0x6c8b40, 'channelnew': 0x6b8160, 'loadbank': 0x6b9310}
+         'create': 0x6c5240, 'new': 0x6c53c0, 'refctor': 0x6c8b40, 'refdtor': 0x6c8b80, 'refdel': 0x6c8b60, 'channelnew': 0x6b8160, 'loadbank': 0x6b9310}
 INCREMENT = 0x6fd0c0   # the import table's InterlockedIncrement
 DESC, STREAM, OWNER, SYNTH, API = RAM + 0xa00, RAM + 0xa40, RAM + 0xa80, RAM + 0xac0, RAM + 0xb00
 BANK, OPENER_VT, WIDE, NAME, STATUS1, STATUS3, DMAP, BLOCK0, BLOCK1 = (RAM + 0xc00, RAM + 0xc80, RAM + 0xd00, RAM + 0xd80, RAM + 0xe00, RAM + 0xe10,
@@ -154,6 +154,12 @@ def case(r):
     name = r.deal(OPS)
     if name in ('create', 'new', 'channelnew', 'loadbank'):
         return create(r, name)
+    if name in ('refdtor', 'refdel'):
+        regions = {SELF: struct.pack('<II', r.getrandbits(32), r.getrandbits(32)) + struct.pack('<II', REF, r.getrandbits(32)),
+                   REF: struct.pack('<I', REF_VT) + r.bytes(0xc), REF_VT: table({0: recorder(0, 0)}), LOG: log_region(), HEAP: heap(0x40)}
+        if name == 'refdel':
+            return Call(0x6c8b60, [SELF, r.choice([0, 1, 2, 3, r.getrandbits(32)])], regions, conv='t', ret='a')
+        return Call(0x6c8b80, [SELF], regions, conv='t')
     if name == 'refctor':
         return Call(0x6c8b40, [SELF, r.getrandbits(32)], {SELF: r.bytes(0x10)}, conv='t', ret='a')
     mapped = name in ('map', 'unmap', 'mdtor', 'mdeldtor')

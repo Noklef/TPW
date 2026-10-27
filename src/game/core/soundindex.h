@@ -59,5 +59,9 @@ u32 *__stdcall SoundResource_Create(u32 *out, u8 **resource, const u8 *owner, co
 u8 *__stdcall SoundResource_New(const u8 *owner, const u32 *desc, u8 *source);
 // 0x6c8b40 (thiscall (resource), pops 4; name invented): Class703770_Ctor, the vtable 0x70af18, +8 = the resource. Returns the object.
 u8 *__fastcall SoundResourceRef_Ctor(u8 *ref, void *, u8 *resource);
+// 0x6c8b80 (thiscall; an SEH frame; name invented): the vtable 0x70af18, the resource's (+8, not checked) slot 0, the vtable 0x703770.
+void __fastcall SoundResourceRef_Dtor(u8 *ref);
+// 0x6c8b60 (thiscall (flags), pops 4; name invented): SoundResourceRef_Dtor, the ref freed for flags bit 0. Returns the ref.
+u8 *__fastcall SoundResourceRef_DeletingDtor(u8 *ref, void *, u32 flags);
 
 }  // extern "C"
