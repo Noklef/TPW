@@ -209,9 +209,11 @@ void __fastcall Person_UpdateSpeedParticle(u8 *person);
 void __fastcall Person_TickSpeed(u8 *person);
 
 // The hand-written angle routine in cseg (0x6e7074, cdecl (dx, dy), the angle in AX; not in the listing, not ported): the game's own by
-// default; tools/fncmp's driver points it at its two-argument logger (the bench hooks 0x6e7074 with the same).
+// default; tools/fncmp's driver points it at its two-argument logger (the bench hooks 0x6e7074 with the same). And 0x501db0 (thiscall on a
+// person; a state, pops 4; agent C's, waiting on 0x4c7600): the game's by default, a thiscall recorder (k 26) in the driver.
 struct PersonEnv {
     u32(__cdecl *angle)(s32 dx, s32 dy);
+    void(__fastcall *state501db0)(u8 *person, void *, u32 state);
 };
 void Person_SetEnv(const PersonEnv *env);
 }
