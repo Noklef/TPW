@@ -411,4 +411,10 @@ u32 __fastcall Window705a20_GetText(u8 *window, void *, u16 *to, u32 n) {
 void __fastcall Window705a20_SetCursor(u8 *window, void *, u32 cursor, u32 anchor) {
     Window705a20_SetSelection(window, nullptr, cursor, 1, anchor);
 }
+
+u8 *__fastcall Window705a20_DeletingDtor(u8 *window, void *, u32 flags) {
+    Window705a20_Dtor(window);
+    if (flags & 1) GameHeap_Free(window);
+    return window;
+}
 }

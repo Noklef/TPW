@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../core/gameheap.h"
 #include "../core/vcall.h"
 #include "guirect.h"
 #include "window.h"
@@ -42,5 +43,11 @@ u32 __fastcall Window705c28_Dtor(u8 *window) {
     at<u32>(window, 0) = 0x705c28;
     GuiRect_Dtor(window + 0x148);
     return Window_Dtor(window);
+}
+
+u8 *__fastcall Window705c28_DeletingDtor(u8 *window, void *, u32 flags) {
+    Window705c28_Dtor(window);
+    if (flags & 1) GameHeap_Free(window);
+    return window;
 }
 }

@@ -1,5 +1,5 @@
 // The GUI library's window subclass with the vtable 0x705c28 (kind 9 of the factory 0x65dd7b: a GUI rectangle +0x148, dwords +0x138-+0x140;
-// what it is is unconfirmed). Reimplementation of 0x66d750, 0x66d885 and 0x66d81e. The names are unconfirmed.
+// what it is is unconfirmed). Reimplementation of 0x66d750, 0x66d885, 0x66d81e and 0x66d9b0. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -19,4 +19,8 @@ u16 __fastcall Window705c28_SetValue(u8 *window, void *, s32 value);
 // 0x66d81e (thiscall; name unconfirmed): the destructor: the vtable 0x705c28, the rectangle +0x148 destroyed (GuiRect_Dtor), then
 // Window_Dtor, whose EAX is left.
 u32 __fastcall Window705c28_Dtor(u8 *window);
+
+// 0x66d9b0 (thiscall (flags), pops 4; slot 2 of the vtable 0x705c28; name unconfirmed): the destructor, the block freed for flags bit 0;
+// returns the window.
+u8 *__fastcall Window705c28_DeletingDtor(u8 *window, void *, u32 flags);
 }
