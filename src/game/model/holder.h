@@ -42,6 +42,11 @@ void __cdecl Holder_Create(u8 *holder);
 // raised.
 void __cdecl Holder_CreateAt20(u8 *holder);
 
+// 0x46dcf0 (cdecl; name, unused, noPart, third, flag; name unconfirmed): the .md2 file loaded (MD2_Load with flags 6 for a flag, else
+// 2; none: 0), a holder for it (GlobalMem_AllocCounted with the model), the model's textures given their directories (TextureSet_Load
+// of the model, probe 0, the third argument) and, without noPart, the part made at +0x20 (Holder_CreateAt20). Returns the holder.
+u8 *__cdecl Holder_LoadMd2(const char *name, u32 unused, u32 noPart, u32 third, u32 flag);
+
 // 0x45bda0 (cdecl; holder, matrix; name unconfirmed): the holder's part (+0x1c, unadjusted) gets the matrix as its first
 // (ObjModel_SetMatrices with 1).
 void __cdecl Holder_SetMatrix(u8 *holder, const u32 *matrix);
