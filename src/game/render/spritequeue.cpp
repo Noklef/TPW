@@ -119,4 +119,18 @@ u32 __fastcall SpriteQueue_LoadTexture(u8 *queue, void *, const char *name) {
         *reinterpret_cast<u32 *>(*slot + 8) = (*reinterpret_cast<u32 *>(*slot + 8) & ~0x80u) | 0x40040;
     return *slot != nullptr;
 }
+
+void __cdecl Global8c47b0_Release() {
+    u8 *const record = reinterpret_cast<u8 *>((uintptr_t)0x008c47b0);
+    if (at<u8 *>(record, 8)) {
+        Texture_Release(at<u8 *>(record, 8));
+        if (u8 *const textures = at<u8 *>(record, 8))
+            Texture_DestroyArray(textures);
+    }
+    if (const u32 block = at<u32>(record, 0xc)) {
+        TrackedGlobal_Free(block);
+        at<u32>(record, 4) = 0;
+        at<u32>(record, 0) = 0;
+    }
+}
 }

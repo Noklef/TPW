@@ -6,6 +6,7 @@
 # 0-40 characters or none, limits about them. The double-byte character 0x479260 (Char): the imports and the IME's handler as recorders.
 # The input context's get / release (0x4791a0 / 0x478d20): ImmGetContext / ImmReleaseContext as recorders, a context or none.
 # The destructors (0x478be0 / 0x478bc0, the heap region): entries with 0-2 strings each, the wide strings sole, shared or frozen, or none.
+# The host's (0x480960, HostDtor): that IME at +0x1c, the vector +0x190 of 0-4 such strings or none.
 # usage: ime.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -18,11 +19,11 @@ B = Bench([(0x478b60, 0x478bc0), (0x47c910, 0x47c93e), (0x47c940, 0x47c963), (0x
            (0x47c720, 0x47c733), (0x47c700, 0x47c713), (0x47ae40, 0x47ae53), (0x47b300, 0x47b313),
            (0x47a960, 0x47a975), (0x47a980, 0x47a99f), (0x47ba30, 0x47ba43), (0x480e70, 0x480eb8),
            (0x480f90, 0x480fce), (0x66852b, 0x668564), (0x67acd0, 0x67ad00), (0x479260, 0x47937b),
-           (0x4791a0, 0x4791b8), (0x478d20, 0x478d31), (0x6b559a, 0x6b55ac), (0x478bc0, 0x478bde), (0x478be0, 0x478cea),
+           (0x4791a0, 0x4791b8), (0x478d20, 0x478d31), (0x6b559a, 0x6b55ac), (0x478bc0, 0x478bde), (0x478be0, 0x478cea), (0x480960, 0x4809e5), (0x4f23f0, 0x4f2450),
            (0x47aba0, 0x47ac01)])
 CONTEXT_IMPORTS = {'ImmGetContext': (0, 0x6fd084, 1, 0, 0), 'ImmReleaseContext': (1, 0x6fd080, 2, 0, 0),
                    'ImmDestroyContext': (2, 0x6fd07c, 1, 0, 0)}
-ENTRIES, STRINGS, TEXTS = RAM + 0x400, RAM + 0x800, RAM + 0xc00
+ENTRIES, STRINGS, TEXTS, HOST = RAM + 0x400, RAM + 0x800, RAM + 0xc00, RAM + 0x1000
 COUNTS = [0, 1, 2, 5, 0x7f, 0xfe, 0xff]
 CHAR_IMPORTS = {'IsDBCSLeadByte': (0, 0x6fd154, 1, 0, 0), 'PeekMessageA': (1, 0x6fd354, 5, 0, 1),
                 'MultiByteToWideChar': (2, 0x6fd174, 6, 0, 0x10), 'DefWindowProcA': (3, 0x6fd340, 4, 0, 0)}
@@ -74,10 +75,10 @@ def case(r):
             return Call(0x4791a0, [RAM + 0x100, r.choice([0, r.getrandbits(32)])], regions, conv='t', ret='a')
         put(mem, 0x104, 'I', r.choice([0, 0, 1, r.getrandbits(32)]))
         return Call(0x478d20, [RAM + 0x100], regions, conv='t', ret='a')
-    if op in ('Dtor', 'DelDtor'):   # 0x478be0 / 0x478bc0: entries with 0-2 strings each, the wide strings sole, shared or frozen, or none
+    if op in ('Dtor', 'DelDtor', 'HostDtor'):   # 0x478be0 / 0x478bc0: entries with 0-2 strings each, the wide strings sole, shared or frozen, or none
         log = log_region()
         ime = bytearray(r.bytes(0x60))
-        entries, strings, texts = bytearray(r.bytes(0x80)), bytearray(r.bytes(0x100)), bytearray(r.bytes(0x200))
+        entries, strings, texts = bytearray(r.bytes(0x80)), bytearray(r.bytes(0x180)), bytearray(r.bytes(0x200))
         regions = {LOG: log, IMPORT_TABLE: import_table(log, CONTEXT_IMPORTS), HEAP: heap(), RAM: ime, ENTRIES: entries,
                    STRINGS: strings, TEXTS: texts}
         put(ime, 0x5c, 'I', r.choice([0, 0, 1, r.getrandbits(32)]))
@@ -101,6 +102,17 @@ def case(r):
             put(ime, at, 'I', text())
         if op == 'Dtor':
             return Call(0x478be0, [RAM], regions, conv='t')
+        if op == 'HostDtor':   # (the IME at HOST + 0x1c, the vector's strings at STRINGS + 0x100)
+            host = bytearray(r.bytes(0x1a0))
+            host[0x1c:0x7c] = ime
+            n = r.choice([0, 0, 1, 2, 4])
+            first = STRINGS + 0x100 if n or r.random() < 0.5 else 0
+            put(host, 0x190, 'II', first, first + 0x10 * n if first else 0)
+            for j in range(n):
+                put(strings, 0x100 + 0x10 * j + 4, 'I', text())
+            regions[HOST] = host
+            del regions[RAM]
+            return Call(0x480960, [HOST], regions, conv='t')
         return Call(0x478bc0, [RAM, r.choice([0, 1, 2, 3, 0x100, r.getrandbits(32)])], regions, conv='t', ret='a')
     if op == 'Size':
         first = r.choice([0, RAM + 0x400])
@@ -128,7 +140,7 @@ def case(r):
     return Call(0x47c940, [r.getrandbits(32), dst, n, value], {RAM: mem}, conv='t')
 
 
-OPS_ALL = ['Ctor', 'Copy', 'Fill', 'Size', 'Current', 'Limit', 'Construct', 'SetLength', 'Host', 'TextLength', 'OnWindow', 'Char', 'GetContext', 'ReleaseContext', 'Dtor', 'DelDtor']
+OPS_ALL = ['Ctor', 'Copy', 'Fill', 'Size', 'Current', 'Limit', 'Construct', 'SetLength', 'Host', 'TextLength', 'OnWindow', 'Char', 'GetContext', 'ReleaseContext', 'Dtor', 'DelDtor', 'HostDtor']
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 

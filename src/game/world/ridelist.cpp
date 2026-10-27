@@ -5,11 +5,17 @@
 #include "objectdefs.h"
 #include "random.h"
 #include "things.h"
+#include "../coaster/ridebounds.h"
+#include "../core/soundplay.h"
+#include "../math/x87.h"
+#include "../render/particles.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
+s32 Ftol(X87Reg x) { return (s32)(long long)x.v; }
 
 bool system() { return global<u32>(0x008791a0) != 0; }
 
@@ -218,5 +224,46 @@ void __cdecl Ride_SetRecordId(u32 index, u32 value) {
     at<u32>(ride, 0xd4) = value;
     if (at<u32>(ride, 4) & 0x40000)
         Objects_SetRideId(index, value);
+}
+
+void __cdecl Ride_PlayEffect(s32 id) {
+    const u8 *const node = Rides_FindById(id);
+    const u16 handle = at<u16>(node, 0xac);   // (no record: read through null, sic)
+    if (handle == 0)
+        return;
+    const u8 *const thing = global<u8 *>(0x007cfb90 + 20 * (u32)handle);
+    const u8 *const def = ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, at<u16>(thing, 0xe));
+    const s32 effect = at<s32>(def, 0x6c);
+    if (effect == 0 || at<s32>(node, 0xc8) == 0)
+        return;
+    float box[6];
+    if (Ride_Bounds(at<s32>(node, 0xc8), box) == 0)
+        return;
+    const float &half = global<float>(0x00700fd0), &scale = global<float>(0x00700fdc);
+    const X87Reg zc = (X87Reg(box[2]) + box[5]) * half;
+    const X87Reg xc = (X87Reg(box[0]) + box[3]) * half;
+    const u8 *const ride = global<u8 *>(0x007a4610 + 4 * at<u32>(node, 0xc8));
+    const float z = (float)zc;
+    const float y = at<float>(at<u8 *>(at<u8 *>(at<u8 *>(ride, 8), 4), 0x78), 0x44);
+    const float x = (float)xc;
+    const s32 iz = Ftol(zc * scale);   // (the centre's z unrounded, still in the register)
+    const s32 iy = Ftol(X87Reg(y) * scale);
+    const s32 ix = Ftol(X87Reg(x) * scale);
+    const s32 system = Particle_Spawn(effect, ix, iy, iz);
+    const s32 index = at<s32>(node, 0xc8);
+    if (index != 0 && Ride_Bounds(index, box) != 0) {
+        const float &across = global<float>(0x00701050), &up = global<float>(0x00701054);
+        const X87Reg dz = X87Reg(box[5]) - box[2];
+        const X87Reg dy = X87Reg(box[4]) - box[1];
+        const float dx = (float)(X87Reg(box[3]) - box[0]);
+        const s32 vz = Ftol(dz * across);
+        const s32 vy = Ftol(dy * up);
+        const s32 vx = Ftol(X87Reg(dx) * across);
+        ParticleSystem_SetVectorB((u32)system, vx, vy, vz);
+    }
+    const s32 sz = Ftol(X87Reg(z));
+    const s32 sy = Ftol(X87Reg(y));
+    const s32 sx = Ftol(X87Reg(x));
+    Sound_PlayAt(0, global<u32>(0x00803a28), 0xb8, sx, sy, sz);
 }
 }  // extern "C"

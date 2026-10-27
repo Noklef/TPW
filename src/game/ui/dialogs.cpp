@@ -11,6 +11,7 @@
 #include "../world/camera.h"
 #include "../world/things.h"
 #include "focus.h"
+#include "guidepth.h"
 #include "guirect.h"
 #include "window.h"
 #include "window705a50.h"
@@ -76,6 +77,12 @@ s32 __cdecl Dialog7cdb0c_Message6Off() { return Window_SendMessage(window(0x007c
 
 s32 __cdecl Dialog7cdb0c_Child16007Message6On() {
     return Window_SendMessage(Window_FindChild(window(0x007cdb0c), nullptr, 0x16007), 6, 1, 0);
+}
+
+void __cdecl Dialog7cdb0c_SetChild16006State(u32 on) {
+    u8 *const dialog = *reinterpret_cast<u8 **>((uintptr_t)0x007cdb0c);
+    if (!dialog) return;
+    Window705a50_SetState(Window_FindChild(dialog, nullptr, 0x16006), nullptr, on == 1, 1);
 }
 
 s32 __cdecl Dialog7cdb0c_Child16007Message6Off() {
@@ -297,6 +304,28 @@ void __fastcall WindowAt10_Create(u8 *object, void *, u8 *script, u32 handler, u
     if (fields[5]) vcall<void>(object, 0xc);
     vcall<void>(object, 4);
     Window_SetDwordA0(fields[4], nullptr, 6, (u32)(uintptr_t)object);
+}
+
+void __fastcall WindowAt10_Show(u8 *object, void *, u32 flag) {
+    u8 **const fields = reinterpret_cast<u8 **>(object);   // (+0xc [3], +0x10 [4])
+    if (!fields[4] || fields[3]) return;
+    fields[3] = reinterpret_cast<u8 *>(1);
+    Window_SetShown(fields[4], nullptr, 1);
+    const s32 depth = Gui_TopDepth(nullptr, nullptr) + 1;
+    if (!flag) Window7c24c8_Close();
+    Window_AddChild(window(0x00faa5d8), nullptr, fields[4], 1, 1);
+    Window_SetDepth(fields[4], nullptr, (u32)depth);
+    Window_SetFocus(fields[4], nullptr, 0);
+}
+
+void __fastcall WindowAt10_Hide(u8 *object) {
+    u8 **const fields = reinterpret_cast<u8 **>(object);   // (+0xc [3], +0x10 [4])
+    if (!fields[3]) return;
+    fields[3] = nullptr;
+    Window_SetShown(fields[4], nullptr, 0);
+    if (fields[4]) Window_Unlink(fields[4]);
+    Window_KillFocus(fields[4], nullptr, 0);
+    Focus_Restore();
 }
 
 s32 __cdecl WindowAt10_CentreHandler(u8 *window, u32 message, u32 a, u32 b) {

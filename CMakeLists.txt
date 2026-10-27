@@ -319,6 +319,7 @@ add_library(tpw_game STATIC
     src/game/world/visitoroption.cpp
     src/game/world/bankaccount.cpp
     src/game/world/parkgates.cpp
+    src/game/world/cellbuild.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp
@@ -421,6 +422,7 @@ add_library(tpw_game STATIC
     src/game/frontend/islandcamera.cpp
     src/game/frontend/lobbyscene.cpp
     src/game/frontend/viewcontrols.cpp
+    src/game/frontend/postcard.cpp
     src/game/input/mouse.cpp
     src/game/ui/dialog7ca1c8.cpp
     src/game/ui/window.cpp

@@ -4,9 +4,11 @@
 
 #include "../core/accessors.h"
 #include "../core/vcall.h"
+#include "../world/advisor.h"
 #include "../world/object.h"
 #include "../world/ridesweep.h"
 #include "../world/things.h"
+#include "dialogs.h"
 #include "guirect.h"
 #include "hoverlabel.h"
 #include "panelparts.h"
@@ -110,5 +112,21 @@ void __fastcall Panel7cc258_Update(u8 *self) {
         Window_SetShown(label, nullptr, 0);
     }
     if (u8 *const figure = Window_FindChild(root(self), nullptr, 0xc085)) vcall<void>(figure, 0x1c, Obj_Get194(thing));
+}
+
+void __fastcall Panel7cc258_Show(u8 *self, void *, u8 *thing) {
+    *reinterpret_cast<u8 **>((uintptr_t)0x007cc288) = thing;
+    WindowAt10_Create(self, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00755908), 0x004b0b30, 0xc06c, 0xc06f, 0xc06d);
+    Advisor_PostId(0xd1);
+}
+
+u32 __cdecl Panel7cc258_ApplyToThing(u8 *thing) {
+    const u8 *const shown = *reinterpret_cast<u8 *const *>((uintptr_t)0x007c2658);
+    if (*reinterpret_cast<const u16 *>(thing + 0xe) == *reinterpret_cast<const u16 *>(shown + 0xe)) {
+        Set198_4e21e0(thing, nullptr, *reinterpret_cast<const u32 *>((uintptr_t)0x007cc280));
+        Object_SetQualityOfGoods(thing, nullptr, (u8)(*reinterpret_cast<const s8 *>((uintptr_t)0x007cc27c) * 0x32));   // (IMUL CL: the low byte)
+        Obj_Set194(thing, nullptr, *reinterpret_cast<const u32 *>((uintptr_t)0x007cc284));
+    }
+    return 1;
 }
 }

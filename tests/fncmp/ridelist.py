@@ -1,5 +1,7 @@
 # The ride list accessors (src/game/world/ridelist) against the originals: the system flag set or not, an empty list or up to four records
 # (ids, link ids, arrays of up to four dwords), records and indexes in and outside the list and the arrays.
+# Apply218 (0x4af440, slot 15 of the panel 0x7cc218's vtable 0x6ffbe8, src/game/ui/panel7cc218): Dur's surroundings with the object the
+# shown thing [0x7c2658] (its definition's +0x70 any: the duration set or not) and the panel's settings +0x2c-+0x37 random.
 # usage: ridelist.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Find,...)
 import os
 import struct
@@ -15,8 +17,9 @@ CALLS = {'Find': (0x55a070, 0x40, 'id'), 'Set': (0x55a0b0, 0x50, 'rec2v'), 'Get'
          'GetW': (0x55a330, 0x30, 'rec'), 'G9c': (0x55a360, 0x30, 'rec'), 'GE0': (0x55a4e0, 0x42, 'id'), 'Link': (0x55a3e0, 0x90, 'id2'), 'Clr4': (0x4e03f0, 0x30, 'this'), 'E7': (0x4e0410, 0x30, 'this'), 'E0': (0x4e0a70, 0x40, 'this'),
          'Spd': (0x4dd6e0, 0x40, 'thisv'), 'Dur': (0x4dd720, 0xd0, 'thisv'), 'GameE': (0x51a290, 0x60, 'this'), 'E41': (0x4e0db0, 0x30, 'this'), 'Fill': (0x4396e0, 0xa0, 'this'), 'Roll': (0x4e2670, 0xa0, 'thisv'), 'SetId': (0x436f60, 0x40, 'this'), 'RideId': (0x4685c0, 0x40, 'this'), 'Take': (0x51a690, 0xd0, 'this'),
          'Clr0': (0x4e0ac0, 0xd0, 'thisv'), 'Claim': (0x4e0900, 0x170, 'thisv'),
-         'Poll': (0x51a760, 0x263, 'this')}
-B = Bench([(a, a + n) for (a, n, _s) in CALLS.values()] + [(0x5da3c0, 0x5da3c1), (0x412e90, 0x412eea), (0x516330, 0x516370), (0x50b350, 0x50b360), (0x4cd300, 0x4cd331)])
+         'Poll': (0x51a760, 0x263, 'this'), 'Apply218': (0x4af440, 0x3c, 'panel')}
+B = Bench([(a, a + n) for (a, n, _s) in CALLS.values()] + [(0x5da3c0, 0x5da3c1), (0x412e90, 0x412eea), (0x516330, 0x516370), (0x50b350, 0x50b360), (0x4cd300, 0x4cd331),
+           (0x4dd7f0, 0x4dd930), (0x4dd4e0, 0x4dd510)])
 NODES, ARRAYS = RAM + 0x1000, RAM + 0x4000
 
 
@@ -44,7 +47,7 @@ def case(r):
     put(obj, 0x24, 'I', ident)
     put(obj, 0x3c, 'H', r.choice([0, 1, 0x7fff, r.getrandbits(16)]))
     regions[RAM] = obj
-    if name == 'Dur':  # the object definitions the limits come from, the object one of them
+    if name in ('Dur', 'Apply218'):  # the object definitions the limits come from, the object one of them
         defs, _h, _a = park(r, count=0, defs=True)
         regions.update({k: v for k, v in defs.items() if k in (0x7890a0, 0x30008000)})
         items = defs[0x30008000]
@@ -145,6 +148,19 @@ def case(r):
         regions[0x7cf83c] = struct.pack('<I', world - 0x1da708)
         regions[world] = r.bytes(4)
         return Call(address, [RAM, r.getrandbits(32)], regions, conv='t', ret='a')
+    if name == 'Apply218':   # the panel's settings: the speed +0x2c, the capacity byte +0x30, the duration byte +0x34
+        panel = bytearray(r.bytes(0x40))
+        put(panel, 0x2c, 'I', value)
+        panel[0x30] = r.choice([0, 1, 5, 99, 0x80, 0xff, r.getrandbits(8)])
+        panel[0x34] = r.choice([0, 1, 5, 99, 0x80, 0xff, r.getrandbits(8)])
+        regions[RAM + 0x3000] = panel
+        regions[0x7c2658] = struct.pack('<I', RAM)
+        if r.random() < 0.5:   # (the definitions' +0x70 clear: no duration)
+            items = bytearray(regions[0x30008000])
+            for k in range(16):
+                put(items, 0x500 * k + 0x70, 'I', 0)
+            regions[0x30008000] = items
+        return Call(address, [RAM + 0x3000], regions, conv='t', ret='v')
     args = {'this': [RAM], 'id': [ident], 'rec2v': [rec, index, value], 'rec2': [rec, index], 'recv': [rec, value], 'rec': [rec], 'id2': [ident, index], 'thisv': [RAM, r.choice([0, 1, 5, 99, 0x100, 0x1ff, 0x80, 0xffffffff])]}[shape]
     return Call(address, args, regions, conv='t' if shape.startswith('this') else 'c', ret='v' if name in ('Set', 'SetW', 'Clr4', 'Spd', 'Dur', 'E41') else 'a')
 

@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/savegame.h"
+#include "../math/x87.h"
 #include "script.h"
 
 namespace {
@@ -24,6 +25,11 @@ u32 __fastcall ScriptRef_IsAt(const u8 *ref, void *, u32 anim) {
     if (!SpriteScript_IsAt(at<s32>(ref, 0), Entry(anim)) && at<u32>(ref, 4) != anim)
         return 0;
     return 1;
+}
+
+void __fastcall ScriptRef_SetPeriodFor(u8 *ref, void *, float speed) {
+    const s32 period = (s32)(long long)(X87Reg(62.0f) / X87Reg(speed)).v;   // (0x7003a0, __ftol)
+    *reinterpret_cast<s32 *>(ref + 8) = period < 0 ? 0 : period > 0xfa ? 0xfa : period;
 }
 
 void __fastcall ScriptRef_Apply(u8 *ref) {

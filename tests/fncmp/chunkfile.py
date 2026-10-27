@@ -1,16 +1,23 @@
 # The chunked file's stream reader (src/game/files/chunkfile: 0x4d3860) against the original: a stream recorder whose size (slot 5) and read (slot 2)
 # answer the data's size, -1, 0, short or long ones; the block from the heap (failing now and then) holding the data as read (the read recorder writes
 # nothing): the magic (the file's +0x10 or not), a header, chunks of 2-3 tags ("END " among them) whose lengths are small, 0, past the end or far
-# below the block; 0-3 handlers (a recorder pair each, their answers 0 or not) on the list +4.
-# usage: chunkfile.py [CASES [SEED]] [--wild|--both] [--show N]
+# below the block; 0-3 handlers (a recorder pair each, their answers 0 or not) on the list +4. Open (0x4d3a60): the file opened by name
+# through vfs.py's mounts (as tct.py's), its memory source over such data mostly (else the mounts' own answers), the size recorder (k 8) the
+# data's mostly; the heap one block for both (failing now and then), the handlers' recorders from k 20 (vfs.py's take 2-11).
+# usage: chunkfile.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Read,Open)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fncmp import HEAP, LOG, RAM, Bench, Call, global_heap, heap, log_region, put, recorder, set_return, vtable  # noqa: E402
+import vfs  # noqa: E402
+from gamestring import LOCALE  # noqa: E402
+from texdirs import merged  # noqa: E402
 
-B = Bench([(0x4d3860, 0x4d3a60), (0x405710, 0x405760), (0x5f5660, 0x5f56a0), (0x67ae00, 0x67af10), (0x5da3c0, 0x5da3c1)])
+B = Bench(merged(vfs.RANGES + [(0x4d3860, 0x4d3a9e), (0x405710, 0x405760), (0x5f5660, 0x5f56a0), (0x5c4d50, 0x5c5020), (0x5da3c0, 0x5da3c1),
+                               (0x67a400, 0x690000)]))
 FILE, STREAM, NODES, HANDLERS, NAME = RAM, RAM + 0x40, RAM + 0x100, RAM + 0x200, RAM + 0x300
 SVT, HVT = RAM + 0x400, RAM + 0x500
 MAGIC, TAGS = 0x4d325054, [0x2050414d, 0x20444e45, 0x41544144]
@@ -31,7 +38,41 @@ def data(r):
     return out
 
 
+def handlers(r, log, base):
+    """0-3 handlers on the list (nodes, handler table, their vtables), recorders base + 2i (slot 0) and base + 2i + 1 (slot 1)"""
+    n = r.choice([0, 1, 2, 3, 3])
+    nodes, table, hvt = bytearray(8 * max(n, 1)), bytearray(4 * max(n, 1)), bytearray(8 * max(n, 1))
+    for i in range(n):
+        put(nodes, 8 * i, 'II', HANDLERS + 4 * i, NODES + 8 * (i + 1) if i + 1 < n else 0)
+        put(table, 4 * i, 'I', HVT + 8 * i)
+        put(hvt, 8 * i, 'II', recorder(base + 2 * i, 1), recorder(base + 1 + 2 * i, 2))
+        set_return(log, base + 2 * i, r.choice([0, 1, 1, 0x100, 0x80000000]))
+    return n, {NODES: nodes, HANDLERS: table, HVT: hvt}
+
+
+def open_case(r):
+    """Open (above)"""
+    log = log_region()
+    regions = {LOG: log, HEAP: heap(0x8000, fail=r.choice([0] * 12 + [1])), LOCALE: bytes(4), **global_heap()}
+    root = vfs.mounts(r, log, regions)
+    raw = data(r)
+    if r.random() < 0.85:
+        vfs.memory_source(r, log, regions, raw)
+        set_return(log, 8, r.choice([len(raw)] * 10 + [0, 0x2b, len(raw) - 1, len(raw) + 5, -1]))
+    n, parts = handlers(r, log, 20)
+    regions.update(parts)
+    f = bytearray(r.bytes(0x14))
+    put(f, 4, 'I', NODES if n else 0)
+    put(f, 0x10, 'I', MAGIC)
+    regions[FILE] = f
+    regions[vfs.NAME] = vfs.name_under(r, root) + r.choice([b'.tp2', b'', b'.TP2']) + bytes(1) + r.bytes(7)
+    regions[0x785de8] = r.bytes(0x5c)
+    return Call(0x4d3a60, [FILE, vfs.NAME], regions, conv='t', ret='a')
+
+
 def case(r):
+    if r.deal(OPS) == 'Open':
+        return open_case(r)
     log = log_region()
     raw = data(r)
     size = r.choice([len(raw)] * 10 + [-1, 0, 0x2b, 0x2c, len(raw) - 1, len(raw) + 5, 0x80000000])
@@ -53,6 +94,9 @@ def case(r):
                NAME: b'maps\\park01.tp2' + bytes(1) + r.bytes(0x10), 0x785de8: r.bytes(0x5c)}
     regions.update(global_heap())
     return Call(0x4d3860, [FILE, STREAM, NAME], regions, conv='t', ret='a')
+
+
+OPS = [k for k in os.environ.get('OPS', 'Read,Open').split(',') if k]
 
 
 if __name__ == '__main__':

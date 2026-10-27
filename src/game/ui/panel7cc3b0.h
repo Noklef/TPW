@@ -1,9 +1,27 @@
-// The game panel object at 0x7cc3b0 (its vtable 0x6ffe50). Reimplementation of 0x4b53c0. The names are unconfirmed.
+// The game panel object at 0x7cc3b0 (its vtable 0x6ffe50). Reimplementation of 0x4b53c0, 0x4b5330, 0x4b5a60 and 0x4b6080. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
 
 extern "C" {
+
+// 0x4b5330 (thiscall; slot 6 of the vtable 0x6ffe50): with a thing selected ([0x7c2658]), its preview shown (ThingPreview_Show) over the
+// window +0x18's saved rectangle (a GuiRect on the stack: Window_GetSavedRect), at that window's depth +0xe0 (sign-extended) + 1,
+// scaled 8.0.
+void __fastcall Panel7cc3b0_ShowPreview(u8 *self);
+
+// 0x4b5a60 (thiscall; slot 0 of the vtable 0x6ffe50): as Panel7ca228_Open, with the selected thing [0x7cc3a4], the children 0x50d and
+// 0x50f and the hover label 0x520.
+void __fastcall Panel7cc3b0_Open(u8 *self);
+
+// 0x4b6080 (thiscall (thing), pops 4; slot 10 of the vtable 0x6ffe50): the selected thing [0x7cc3a4] = thing, the window built
+// (WindowAt10_Create: the script 0x756f48, the handler 0x4b5cb0, the children 0x511 and 0x512, no inner one), the window +0x18 given the
+// handler 0x4b5c80 (Window_SetHandler, not checked) and the advisor posted 0xc0 (Advisor_PostId).
+void __fastcall Panel7cc3b0_Show(u8 *self, void *, u8 *thing);
+
+// 0x4b5c80 (cdecl (window, message, a, b); the handler Panel7cc3b0_Show gives the window +0x18; name invented): on 0x10006 the camera
+// centred on the shown thing (Camera_CentreOnGlobalThing); every message then to the default handler (Window_CallDefault), its answer returned.
+s32 __cdecl Panel7cc3b0_WindowHandler(u8 *window, u32 message, u32 a, u32 b);
 
 // 0x4b53c0 (thiscall; slot 3 of the vtable 0x6ffe50): with the window +0x14 set (read again for each child), its children dressed in this
 // order (ui/panelparts; a text a TextPart_Ctor part with that language text, a part's or a bar's value given to the child's slot 7): 0x51a

@@ -33,6 +33,13 @@ u32 __fastcall Money_PayOffLoan(u8 *money, void *, u32 index);
 // first dword as the term, as Money_PayOffLoan reads them.)
 s32 __fastcall Obj_SmallestEntry(const u8 *object);
 
+// 0x4d0970 (thiscall (loan), pops 4; called by 0x59e975; name invented): the amount the loan owes, as Obj_SmallestEntry reckons it:
+// (term - months paid) * rate when taken, else 0.
+u32 __fastcall Money_LoanOwed(const u8 *money, void *, u32 loan);
+
+// 0x4d0a00 (thiscall; called by 0x59e93b; name invented): the eight loans' amounts owed added up (Money_LoanOwed's, wrapping).
+u32 __fastcall Money_TotalOwed(const u8 *money);
+
 // 0x4d09f0 (thiscall): the total at +0x124.
 u32 __fastcall Money_Total(const u8 *money);
 

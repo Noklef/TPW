@@ -12,6 +12,9 @@
 #include "../model/parts.h"
 #include "../model/partstate.h"
 #include "../motion/animator.h"
+#include "camera.h"
+#include "random.h"
+#include "../core/soundplay.h"
 #include "../render/particles.h"
 #include "../terrain/land.h"
 
@@ -280,6 +283,92 @@ s32 __cdecl FlyingRides_FloorAt(s32 x, s32 y) {
 
 namespace {
 
+s32 wrap_add(s32 a, s32 b) { return (s32)((u32)a + (u32)b); }
+
+// A coordinate's 20000 square's centre: v / 20000 * 20000 (truncated), less 20000 below 0, plus 10000.
+s32 square_centre(s32 v) {
+    u32 corner = (u32)(v / 20000) * 20000u;
+    if (v < 0)
+        corner -= 20000;
+    return (s32)(corner + 10000);
+}
+
+bool in_bounds(s32 x, s32 z) {
+    return x < bound(0x007660b8) && z < bound(0x007660c0) && x >= bound(0x007660bc) && z >= bound(0x007660c4);
+}
+
+// The surface's height (by __ftol, times 300) at a position's cell, clamped by hand as 0x55c350 does; 0 outside the bounds.
+s32 surface_at(s32 x, s32 z) {
+    if (!in_bounds(x, z))
+        return 0;
+    s32 cx = x / 300 / 10, cz = z / 300 / 10;
+    if (cx < 0)
+        cx = 0;
+    if (cz < 0)
+        cz = 0;
+    if (cx >= bound(0x007a0314))
+        cx = bound(0x007a0314) - 1;
+    if (cz >= bound(0x007a0374))
+        cz = bound(0x007a0374) - 1;
+    return (s32)((u32)(long long)Terrain_SurfaceHeight(cx, cz, nullptr) * 300);
+}
+
+}  // namespace
+
+extern "C" {
+void __cdecl FlyingRide_PickWaypoint(u8 *rec) {
+    s32 &x = at<s32>(rec, 0x4c), &z = at<s32>(rec, 0x54);
+    const s32 dx = wrap_add(x, -at<s32>(rec, 0x58)), dz = wrap_add(z, -at<s32>(rec, 0x60));
+    s32 stepX = 0, stepZ = 0;
+    if (magnitude(dx) > magnitude(dz))
+        stepX = dx == 0 ? 0 : dx > 0 ? 20000 : -20000;
+    else
+        stepZ = dz == 0 ? 0 : dz > 0 ? 20000 : -20000;
+    at<s32>(rec, 0x58) = x;
+    at<s32>(rec, 0x5c) = at<s32>(rec, 0x50);
+    at<s32>(rec, 0x60) = z;
+    s32 limit = wrap_add(at<s32>(rec, 8), 5000);
+    if (magnitude(World_Rand(*reinterpret_cast<u8 **>(0x007cf83c))) % 4 != 0 && FlyingRides_FloorAt(wrap_add(x, stepX), wrap_add(z, stepZ)) < limit) {
+        x = wrap_add(square_centre(x), stepX);
+        z = wrap_add(square_centre(z), stepZ);
+    } else {
+        // Sideways first (either way), then ahead or back; the floor allowed rising by 5000 each round.
+        for (;; limit = wrap_add(limit, 5000)) {
+            if (FlyingRides_FloorAt(wrap_add(x, stepZ), wrap_add(z, stepX)) < limit) {
+                x = wrap_add(x, stepZ), z = wrap_add(z, stepX);
+                break;
+            }
+            if (FlyingRides_FloorAt(wrap_add(x, -stepZ), wrap_add(z, -stepX)) < limit) {
+                x = wrap_add(x, -stepZ), z = wrap_add(z, -stepX);
+                break;
+            }
+            if (FlyingRides_FloorAt(wrap_add(x, stepX), wrap_add(z, stepZ)) < limit) {
+                x = wrap_add(x, stepX), z = wrap_add(z, stepZ);
+                break;
+            }
+            if (FlyingRides_FloorAt(wrap_add(x, -stepX), wrap_add(z, -stepZ)) < limit) {
+                x = wrap_add(x, -stepX), z = wrap_add(z, -stepZ);
+                break;
+            }
+        }
+        x = square_centre(x);
+        z = square_centre(z);
+    }
+    const bool there = surface_at(x, z) > surface_at(at<s32>(rec, 4), at<s32>(rec, 0xc));
+    const s32 px = there ? x : at<s32>(rec, 4), pz = there ? z : at<s32>(rec, 0xc);
+    s32 y = 0;
+    if (in_bounds(px, pz)) {
+        s32 cx = px / 300 / 10, cz = pz / 300 / 10;
+        Camera_ClampCell(&cx, &cz);
+        y = (s32)((u32)(long long)Terrain_SurfaceHeight(cx, cz, nullptr) * 300);
+    }
+    y = wrap_add(y, 5000);
+    at<s32>(rec, 0x50) = y > 12000 ? y : 12000;
+}
+}
+
+namespace {
+
 float &global_float(u32 address) { return *reinterpret_cast<float *>((uintptr_t)address); }
 u32 bits_of(float f) { u32 b; std::memcpy(&b, &f, 4); return b; }
 
@@ -405,6 +494,55 @@ void __cdecl FlyingRides_Init() {
         const X87Reg angle = X87_MulIntDouble(i, step);                                 // fild; fmul qword [0x701090]
         const X87Reg value = X87Reg(half) - X87Reg(X87_Sin(angle.v)) * X87Reg(scale);  // fsin; fmul [0x701098]; fsubr [0x7010a0]
         (*sines)[j] = (u32)(long long)value.v;                                          // __ftol, low half
+    }
+}
+
+void __cdecl FlyingRide_SetMode(s32 index, s32 mode) {
+    u8 *const rec = record(index);
+    if (!rec || at<s32>(rec, 0x34) == mode)
+        return;
+    at<s32>(rec, 0x34) = mode;
+    switch (mode) {
+    case 1:
+        at<u32>(rec, 0) = at<u32>(rec, 4);
+        if (at<u32>(rec, 0x114) != 0) {
+            FlyingRide_PlaySlotMotion(index, 0, 0xa, 0, 0);
+            at<u32>(rec, 0x114) = 0;
+            Sound_PlayAt(0, *reinterpret_cast<const u32 *>(0x00803a28), 0xbb, at<s32>(rec, 0x60) / 300, at<s32>(rec, 0x64) / 300,
+                         at<s32>(rec, 0x68) / 300);
+        }
+        if (at<u32>(rec, 0xd8) != 0) {
+            const s32 n = World_Rand(*reinterpret_cast<u8 *const *>(0x007cf83c));
+            const s32 size = n < 0 ? (s32)(0u - (u32)n) : n;
+            at<s32>(rec, 0xd8) = size % 100 + at<s32>(rec, 0x28);
+        }
+        if (at<u32>(rec, 0x120) != 0) {
+            ParticleSystem_End(at<u32>(rec, 0x120));
+            at<u32>(rec, 0x120) = 0;
+        }
+        break;
+    case 2:
+        at<u32>(rec, 0) = at<u32>(rec, 4);
+        if (at<u32>(rec, 0x120) != 0)
+            ParticleSystem_End(at<u32>(rec, 0x120));
+        at<s32>(rec, 0x120) = Particle_Spawn(0x27, at<s32>(rec, 0x60), at<s32>(rec, 0x64), at<s32>(rec, 0x68));
+        break;
+    case 3:
+    case 4: {
+        at<u32>(rec, 0x114) = 1;
+        at<u32>(rec, 0xe0) = 0;
+        if (at<u32>(rec, 0x120) != 0)
+            ParticleSystem_End(at<u32>(rec, 0x120));
+        const auto scaled = [&](u32 offset) { return (s32)((u32)at<s32>(rec, offset) << 10) / 300; };
+        const s32 z = scaled(0x68), y = scaled(0x64), x = scaled(0x60);
+        at<s32>(rec, 0x120) = Particle_Spawn(0x28, x, y, z);
+        if (mode == 4) {
+            while (FlyingRide_StepOutSlot(index) != 0) {
+            }
+            at<u32>(rec, 0) = 1;
+        }
+        break;
+    }
     }
 }
 }

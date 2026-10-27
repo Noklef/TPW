@@ -71,4 +71,40 @@ u32 __fastcall Window705a20_SelectionStart(u8 *window);
 // 0x66848f (thiscall (from, to: word pointers, each optional), pops 8; name unconfirmed): from = the selection's start as
 // Window705a20_SelectionStart gives it, to = the anchor +0x14c when above the cursor +0x14a, else the cursor (signed). EAX not kept.
 void __fastcall Window705a20_Selection(u8 *window, void *, u16 *from, u16 *to);
+
+// 0x6668e9 (thiscall (cursor, mark, anchor: words), pops 12; name unconfirmed): moves the caret and the selection. Nothing without a text
+// +0x138 or a font +0x4c; the line height +0x156 worked out when 0 (the font's slot 1 * 0x600 / the word [0xfaa5c0]). The cursor: -1 kept,
+// -2 / -3 one back (not below 0) / on, -4 the start, -5 the end (the text's length), -6 / -7 (only with flag 0x80 of +0x48, several lines)
+// the character on the line above / below nearest the caret's x +0x150 (the object +0x9c's slot 4 (1, index) gives each one's position:
+// x +4, y +6; nothing when none is found; the cursor kept without the object), any other the word itself. The anchor likewise (-1 none,
+// -2 / -3 from the anchor or else the cursor). Both at most the length, the anchor none when it is the cursor; nothing when the byte +0x162
+// is set and the cursor is not at the end, when neither changes, or the cursor is past the text. Then: one line: the scroll +0x148 brought
+// to the anchor's (or the cursor's) x (Window705a20_NotifyText 0); several: the scroll +0x14e to the caret's line (slot 4 (2, text): the
+// layout's height +0xa set; Window705a20_NotifyScroll, NotifyText 0). The caret's left / right / top +0x150 / +0x152 / +0x154 (each in
+// the window) when changed: +0x158 1 for a mark, [0xfaa5d4]'s post 3 (Window_PostMessage), and the caret +0x15c (when set) told: slot 5
+// (1) unless +0x158 is -1 (then 1), and 0x10 with the rectangle (Fn_659dac) through slot 3. Sic: the x or the bottom left unset when the
+// object answers none (one line: the cursor's entry; several: the layout).
+void __fastcall Window705a20_SetSelection(u8 *window, void *, u32 cursor, u32 mark, u32 anchor);
+
+// 0x666308 (thiscall (text, notify: a byte), pops 8; name unconfirmed): sets the text. Nothing for no text. With its own buffer (flag 0x40
+// of +0x48): only a text longer than +0x13c (wcslen) replaces it: the old block freed (Mem_Free), a new one of the length's (Mem_Alloc;
+// +0x13c the length) and the text copied into it (wcscpy, when got); sic: one that fits is not copied. Without: with a size +0x13c and a
+// buffer +0x138, when the text differs (wcscmp) or the byte +0x160 is set, at most the size copied (wcsncpy) and ended, +0x160 0; else
+// only when the text is the buffer itself, +0x160 0. Then, when set or copied: [0xfaa5d4]'s post 3 (Window_PostMessage), the objects told
+// the buffer (Window_NotifyBoth100), Window705a20_SetSelection(-5, 0, -1) and with notify the parent +0x60 posted 0x801 (the id +0x8c, 0).
+// AX 0.
+u32 __fastcall Window705a20_SetText(u8 *window, void *, const u16 *text, u32 notify);
+
+// 0x6664fa (thiscall (text), pops 4; name unconfirmed): Window705a20_SetText(text, 1), its EAX.
+u32 __fastcall Window705a20_SetTextNotify(u8 *window, void *, const u16 *text);
+
+// 0x666515 (thiscall (text), pops 4; name unconfirmed): Window705a20_SetText(text, 0), its EAX.
+u32 __fastcall Window705a20_SetTextQuiet(u8 *window, void *, const u16 *text);
+
+// 0x666530 (thiscall (to, n), pops 8; name unconfirmed): with a buffer +0x138, at most n characters of it copied to `to` (wcsncpy), AX 1
+// (the rest of EAX the copy's); without, AX 0 (the rest the window's address's).
+u32 __fastcall Window705a20_GetText(u8 *window, void *, u16 *to, u32 n);
+
+// 0x66778d (thiscall (cursor, anchor: words), pops 8; name unconfirmed): Window705a20_SetSelection(cursor, 1, anchor). EAX not kept.
+void __fastcall Window705a20_SetCursor(u8 *window, void *, u32 cursor, u32 anchor);
 }

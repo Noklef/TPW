@@ -1,11 +1,11 @@
-# The sound categories' registration (src/game/core/soundset: 0x51e8f0 Lobby, 0x51eae0 Global, 0x51ec50 Theme) against the originals: the named
+# The sound categories' registration (src/game/core/soundset: 0x51e8f0 Lobby, 0x51eae0 Global, 0x51ec50 Theme, 0x51e890 LobbySfx) against the originals: the named
 # objects registry [0x786b9c] (named_lists.py's layout: a list of 0 to 4 folder objects, nodes {item, next}, each item's name a String at +4)
 # whose items are named after the keys (the global Strings 0x803768, 0x8039c0, 0x802e68 with the lobby's name or the theme appended; 0x8030d8,
 # 0x803558; case varied) or not; each item a folder list as soundfile.py's (class6fd9d8.py's FindFirstMatch: +0x2c a list of folder objects
 # or none, their slot 1 answering alike) for Sound_QueryFound; the sound globals on or off with its manager's recorder (&folders, the found
 # text, the name, &name); the categories 0x803a20-0x803a44 random beforehand; Lobby's array [0x803a4c] of [0x803a50] pairs (none, or 0-3 in a
 # block of their own), grown from the heap (GlobalAlloc / GlobalFree served by fncmp's stubs).
-# usage: soundcats.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Lobby,Global,Theme)
+# usage: soundcats.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Lobby,Global,Theme,LobbySfx)
 import os
 import struct
 import sys
@@ -28,9 +28,9 @@ def merged(ranges):   # (overlapping ranges joined: a listing line must not come
     return out
 
 
-CALLS = {'Lobby': 0x51e8f0, 'Global': 0x51eae0, 'Theme': 0x51ec50}
+CALLS = {'Lobby': 0x51e8f0, 'Global': 0x51eae0, 'Theme': 0x51ec50, 'LobbySfx': 0x51e890}
 B = Bench(merged(c6.RANGES + [(0x41e8e0, 0x41eab0), (0x421770, 0x4217f0), (0x424cf0, 0x424d20), (0x51b4a0, 0x51b500), (0x51b530, 0x51b630),
-                              (0x51e8f0, 0x51ea60), (0x51eae0, 0x51edb0), (0x5f5660, 0x5f56a0), (0x5f6040, 0x5f6160), (0x5f61a0, 0x5f6210),
+                              (0x51e890, 0x51e8e7), (0x51e8f0, 0x51ea60), (0x51eae0, 0x51edb0), (0x5f5660, 0x5f56a0), (0x5f6040, 0x5f6160), (0x5f61a0, 0x5f6210),
                               (0x5f76c0, 0x5f7740), (0x67ad90, 0x67af10), (0x67dcd0, 0x67ddb0), (0x67df40, 0x67e020), (0x67efc0, 0x67f1b0),
                               (0x67faf0, 0x67fc00), (0x680430, 0x6804e0), (0x682720, 0x6827d0), (0x682a70, 0x682c10), (0x688710, 0x688740),
                               (0x688f50, 0x6891c0), (0x68a170, 0x68a450), (0x68a5d0, 0x68a720), (0x68efb0, 0x68f050), (0x5da3c0, 0x5da3c1)]))
@@ -95,6 +95,8 @@ def case(r):
     elif name == 'Theme':
         gamestring.string(r, 0, THEME, GDATA + 0x400, regions, suffix)
         keys = [texts[g] + suffix for g in GLOBALS[:3]]
+    elif name == 'LobbySfx':
+        keys = [texts[0x8030d8]]
     else:
         keys = [texts[0x8030d8], texts[0x803558]]
     # the registry: 0-4 items, each named one of the keys (case varied) or not, its folder list the shared one or none

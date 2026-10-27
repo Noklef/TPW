@@ -54,4 +54,13 @@ void __cdecl Dialog7ca13c_Open(u32 selected) {
     if ((u16)Window_SetTimer(global<u8 *>(0x007ca13c), nullptr, 0x80083, 2000)) Window_StartTimer(global<u8 *>(0x007ca13c), nullptr, 0x80083);
     Advisor_PostId(0x11e);
 }
+
+void __cdecl Dialog7ca13c_RemoveData(u32 data) {
+    if (!global<u8 *>(0x007ca13c)) return;
+    u8 *const list = Window_FindChild(global<u8 *>(0x007ca13c), nullptr, 0x1e497);
+    const s32 position = Window7059f0_FindItemData(list, nullptr, data);
+    if (position < 0) return;
+    Window7059f0_RemoveItem(list, nullptr, position);
+    --global<s32>(0x007ca134);
+}
 }  // extern "C"

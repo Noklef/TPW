@@ -1,6 +1,6 @@
 // A GUI window that shows a level with an animated light (its child 0xd2d06; the callers about 0x4a9cc4 set four of them). Its state
 // lives in the window's dwords +0xa0 (Window_DwordA0): 0 the light's position (16.16), 1 the clock when last moved, 2 the speed, 3 the
-// phase (0-3). Reimplementation of 0x4a95b0 and 0x4a9fc0. The names are unconfirmed.
+// phase (0-3). Reimplementation of 0x4a95b0, 0x4a9fc0, 0x4a9c70 and 0x4a9bd0. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -24,4 +24,9 @@ s32 __cdecl LevelMeter_OnMessage(u8 *window, u32 message, u32 a, u32 b);
 // LevelMeter_SetLevel); any other group's level taken and, for 0-4, shown. Then the five levels again (0, 4, 1, 2, 3), their sum / 5
 // (signed) the sound [0x7cc1d0]'s parameter 0x12 (Sound_SetParam). The original's ids land in its own argument's slot (sic, unseen).
 void __cdecl ResearchMeters_Update(s32 group);
+
+// 0x4a9bd0 (cdecl (group); name unconfirmed): the group's research left (ResearchLab_LeftPercent of the game [0x7cf83c]'s lab) taken
+// from 100; for groups 0-4 (unsigned) that meter's (as ResearchMeters_Update's: Window_FindChild, not checked) child 0xd2d05 (not checked)
+// given (done << 10) / 100 (signed) through its slot 7.
+void __cdecl ResearchMeters_ShowProgress(u32 group);
 }

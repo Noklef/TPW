@@ -17,6 +17,18 @@ extern "C" {
 
 void __fastcall Backdrop_Clear5c(u8 *backdrop) { at<u32>(backdrop, 0x5c) = 0; }
 
+void __cdecl Backdrop_Release() {
+    u8 *const backdrop = reinterpret_cast<u8 *>((uintptr_t)0x0087aee8);
+    if (!at<u8 *>(backdrop, 0x1c))
+        return;
+    for (s32 i = 0; i < at<s32>(backdrop, 0x58); ++i)   // (the count and the tiles read again each turn)
+        at<u32>(at<u8 *>(backdrop, 0x1c), 0x60 * (u32)i + 0x40) = 0;
+    if (u8 *const tiles = at<u8 *>(backdrop, 0x1c))
+        Texture_DestroyArray(tiles);
+    at<u32>(backdrop, 0x1c) = 0;
+    at<u32>(backdrop, 0x58) = 0;
+}
+
 u32 __fastcall Backdrop_Create(u8 *backdrop, void *, u8 *pixels, s32 width, s32 height, s32 pitch) {
     at<s32>(backdrop, 4) = width;
     at<s32>(backdrop, 0xc) = pitch;

@@ -227,6 +227,8 @@ u32 __fastcall Sprite_SetDestination(u8 *sprite, void *, s32 x, s32 y) {
     return Nav_PathToPoint(sprite + 0xd4, nullptr, (s32)((u32)(s32)(s16)x << 8), (s32)((u32)(s32)(s16)y << 8));
 }
 
+void __fastcall Sprite_SetStranded(u8 *sprite, void *, u32 flag) { at<u32>(sprite, 0x198) = flag ? Counter7cdb98_Inc() : 0; }
+
 u32 __fastcall Sprite_SetDestinationCell(u8 *sprite, void *, u32 cell) {
     const u32 index = cell - 1;
     const u32 x = (index & 0x7f) << 8 | 0x80;
@@ -615,6 +617,13 @@ u32 __fastcall Person_DumpActionHistory(u8 *person) {
         read(entry, 0);  // the action, printed by its kind
     }
     return 0xffffffff;  // (the loop counter's last value, left in EAX)
+}
+
+void __fastcall Person_TickSpeed(u8 *person) {
+    Person_UpdateSpeed(person);
+    const u32 ticks = at<u32>(global<u8 *>(0x0080239c), 0x1da70c);
+    u16 handle;
+    if (((*Thing_GetHandle(person, nullptr, &handle) ^ ticks) & 3) == 0) Person_KillScript84After(person + 0x30);
 }
 
 void __fastcall Person_UpdateSpeed(u8 *person) {

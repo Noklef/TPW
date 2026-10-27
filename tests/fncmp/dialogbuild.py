@@ -225,8 +225,9 @@ KIND_VTABLES = (0x705980, 0x705a50, 0x705b20, 0x705950, 0x705a20, 0x705c58, 0x70
 DIALOGS['WindowAt10_Create'] = (WINDOWAT10 + 0x10, WINDOWAT10SCRIPT, (0x100,), ())   # (scripted()'s script, replaced below)
 
 
-def windowat10(r):
-    """WindowAt10_Create's surroundings (above); returns its arguments and the regions"""
+def windowat10(r, fixed=None):
+    """WindowAt10_Create's surroundings (above); returns its arguments and the regions (fixed: the caller's (handler, first, second,
+    inner), inner never 0)"""
     regions = focused(r, 'WindowAt10_Create')
     regions.pop(WINDOWAT10 + 0x10)
     obj = bytearray(r.bytes(0x20))
@@ -237,8 +238,8 @@ def windowat10(r):
     for vt in KIND_VTABLES:   # (the built windows' slots 5 and 7: game code the driver cannot run natively)
         regions[vt + 0x14] = struct.pack('<I', recorder(28, 1))
         regions[vt + 0x1c] = struct.pack('<I', recorder(29, 1))
-    first, second, inner = r.sample(range(0x100, 0x10000), 3)
-    if r.random() < 0.15:
+    first, second, inner = r.sample(range(0x100, 0x10000), 3) if fixed is None else fixed[1:]
+    if fixed is None and r.random() < 0.15:
         inner = 0
     decoys = [r.choice([0, 1, r.getrandbits(32)]) for _ in range(r.choice([0, 1, 2]))]
     sub = []
@@ -258,7 +259,7 @@ def windowat10(r):
     child(r, w, r.choice([0, 1, r.getrandbits(32)]), top + [5], 160, 1)
     w += [5] * 4
     regions[WINDOWAT10SCRIPT] = struct.pack('<%dH' % len(w), *w)
-    handler = r.choice([0x497640, 0x499bb0, 0x4af600, 0x4b0b30, 0])
+    handler = r.choice([0x497640, 0x499bb0, 0x4af600, 0x4b0b30, 0]) if fixed is None else fixed[0]
     return [WINDOWAT10, WINDOWAT10SCRIPT, handler, first, second, inner], regions
 
 

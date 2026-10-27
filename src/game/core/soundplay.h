@@ -15,6 +15,10 @@ u32 __cdecl Sound_PlayAt(u32 owner, u32 category, u32 sound, s32 x, s32 y, s32 z
 // 0x51c130 (cdecl (owner, category, sound, x, y, z, range)): Sound_PlayAt with the range (an int too) as a float at +0x18.
 u32 __cdecl Sound_PlayAtRange(u32 owner, u32 category, u32 sound, s32 x, s32 y, s32 z, s32 range);
 
+// 0x51e730 (cdecl; called by 0x54ec9f; name invented): the music [0x803aa0] = Sound_PlayAt([0x803aa0] as the owner, cat_music
+// [0x803a44], 2, 0, 0, 0), then [0x803aa0] = Sound_SetParam(it, 4, 0). EAX not kept.
+void __cdecl Sound_StartMusic();
+
 // 0x485aa0 (cdecl (sound); name unconfirmed): Sound_PlayAt(0, [0x803a2c], sound, 0, 0, 0).
 u32 __cdecl SoundUi_Play(u32 sound);
 

@@ -2,7 +2,8 @@
 # against the original: the static initialisers, the follow tests, the part face, the view
 # setter, flag 0x80, the control flags' handlers 0x42a500 / 0x42a520, the matrix closeness test 0x42b070 and the cell clamp. CentreCell (0x4868d0) sets the view's point from a cell id (0, 1,
 # 0xffff or any); CentreThing (0x4867b0) from a thing's cell (a handle naming a slot of a thing, an empty slot or 0, high bits random);
-# CentreGlobal (0x48ce80) the same for the handle of the thing [0x7c2658] points to.
+# CentreGlobal (0x48ce80) the same for the handle of the thing [0x7c2658] points to. Handler3b0 (0x4b5c80, src/game/ui/panel7cc3b0):
+# CentreGlobal's surroundings, the message 0x10006 mostly, the window's default handler +0x118 fncmp's logger (its answer now and then set).
 # Reset (0x42a990): the camera back to its defaults (see reset()). SnapYaw (0x42aff0): the yaw to the nearest quarter turn.
 # Input (0x42a760): the mouse messages (see the case).
 # usage: camera.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
@@ -12,10 +13,11 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
+from fncmp import CDECL_LOG4, LOG, Bench, Call, RAM, fb, log_region, put, set_return  # noqa: E402
 
 B = Bench([(0x42a0f0, 0x42a183), (0x42a410, 0x42a43a), (0x42a4e0, 0x42a4fb), (0x42a720, 0x42a75f), (0x42aab0, 0x42ab1d),
            (0x42afd0, 0x42afed), (0x42a500, 0x42a553), (0x42b070, 0x42b1b6), (0x42cd40, 0x42cd7f), (0x42cd80, 0x42cdb8), (0x4bd020, 0x4bd08f), (0x4867b0, 0x486858), (0x4868d0, 0x48691f), (0x48ce80, 0x48ce9f), (0x50b350, 0x50b35d),
+           (0x4b5c80, 0x4b5cad), (0x65f66e, 0x65f697),
            (0x5da3c0, 0x5da3c1),
            (0x42a990, 0x42aaac), (0x46f150, 0x46f190), (0x56b790, 0x56b827), (0x578bc0, 0x578bd4), (0x578be0, 0x578d20), (0x583220, 0x583280),
            (0x402d80, 0x403220), (0x4033a0, 0x4033f0), (0x5f5e20, 0x5f5e90), (0x5f5fa0, 0x5f5fc0), (0x42aff0, 0x42b063), (0x42a760, 0x42a949)])
@@ -48,7 +50,7 @@ def case(r):
         yaw = r.choice([fb(q), fb(q + r.uniform(-0.01, 0.01)), fb(q + r.uniform(-1, 1)), fb(r.uniform(-1e4, 1e4)), r.f(), r.f(), 0x80000000,
                         0x7f800000, 0xff800000, 0x7fc00000, 0x7f800001, 0xffc12345])
         return Call(0x42aff0, [], {0x790a38: struct.pack('<I', yaw)}, ret='v')
-    if op in ('CentreCell', 'CentreThing', 'CentreGlobal'):
+    if op in ('CentreCell', 'CentreThing', 'CentreGlobal', 'Handler3b0'):
         regions = {0x790a88: bytearray(r.bytes(12)), 0x7908f0: bytearray(r.bytes(12)), 0x7909ec: bytearray(r.bytes(4)),
                    0x790a38: bytearray(r.bytes(4)), 0x74c9bc: bytearray(r.bytes(4))}
         if op == 'CentreCell':
@@ -61,9 +63,16 @@ def case(r):
             regions[thing] = r.bytes(0x10)
         regions[0x7cfb90] = table
         handle = r.choice([0, 1, 2, 3, 4, 5, 5]) | (r.choice([0, 0, r.getrandbits(16)]) << 16)
-        if op == 'CentreGlobal':   # (the thing's handle word at +0; the pointer's high word goes along)
+        if op in ('CentreGlobal', 'Handler3b0'):   # (the thing's handle word at +0; the pointer's high word goes along)
             regions[RAM + 0x400] = struct.pack('<I', handle)
             regions[0x7c2658] = struct.pack('<I', RAM + 0x400)
+            if op == 'Handler3b0':
+                log = regions[LOG] = log_region()
+                regions[RAM + 0x800] = put(bytearray(r.bytes(0x120)), 0x118, 'I', CDECL_LOG4)
+                if r.random() < 0.5:
+                    set_return(log, 0x3d, r.choice([0, 1, -1, r.getrandbits(32)]))
+                message = r.choice([0x10006] * 4 + [0x10005, 0x10007, 6, 0x14, r.getrandbits(32)])
+                return Call(0x4b5c80, [RAM + 0x800, message, r.getrandbits(32), r.getrandbits(32)], regions, ret='a')
             return Call(0x48ce80, [], regions)
         return Call(0x4867b0, [handle], regions)
     if op == 'Close':  # two matrices, often nearly equal so the 1e-5 threshold decides
@@ -144,7 +153,7 @@ def reset(r):
     return Call(0x42a990, [], regions, ret='v')
 
 
-OPS_ALL = list(INITS) + ['Follow'] * 6 + ['Close'] * 6 + ['Followed'] * 3 + ['Face', 'View', 'Clamp', 'CellOf', 'Pack'] * 4 + ['Flag80', 'Control100', 'Control200'] * 2 + ['CentreCell', 'CentreThing', 'CentreGlobal'] * 3 + ['Reset'] * 3 + ['SnapYaw'] * 4 + ['Input'] * 4
+OPS_ALL = list(INITS) + ['Follow'] * 6 + ['Close'] * 6 + ['Followed'] * 3 + ['Face', 'View', 'Clamp', 'CellOf', 'Pack'] * 4 + ['Flag80', 'Control100', 'Control200'] * 2 + ['CentreCell', 'CentreThing', 'CentreGlobal', 'Handler3b0'] * 3 + ['Reset'] * 3 + ['SnapYaw'] * 4 + ['Input'] * 4
 OPS = [k for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 

@@ -1,6 +1,6 @@
 // The game panel object at 0x7cc328 (built by 0x4b44d0: the panel base 0x48c9e0 with vtable 0x6ff1f0, then its own vtable 0x6ffdd8 and
 // id 0x3eb; its methods 0x4b4a50, 0x4b4e30, 0x4b46a0, 0x4b4650 and 0x4b47a0 open the GUI windows 0x1e8a / 0x1e8b), with a sprite
-// script slot at +0x24. Reimplementation of 0x4b4670, 0x4b47e0, 0x4b4850 and 0x4b46a0. The names are unconfirmed.
+// script slot at +0x24. Reimplementation of 0x4b4670, 0x4b47e0, 0x4b4850, 0x4b46a0 and 0x4b5290. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -31,6 +31,10 @@ u32 __cdecl Panel7cc328_AddStaffRow(u8 *staff);
 // rows refreshed (Window7059f0_RefreshRows) and slot 8 of the panel 0x7cc328 called. Then (always) Window_CallDefault's result.
 s32 __cdecl Panel7cc328_OnMessage(u8 *window, u32 message, u32 id, u32 b);
 
+// 0x4b47a0 (thiscall; slot 5 of the vtable 0x6ffdd8; name invented): the window +0x14's child 0x1e8a (Window_FindChild, not checked)
+// told the shown thing [0x7c2658]'s refund (Object_ScrapRefund) through its slot 7.
+void __fastcall Panel7cc328_ShowRefund(u8 *self);
+
 // 0x4b4e30 (thiscall; slot 1 of the vtable 0x6ffdd8): the +0x20 object's slot 9 called with the panel's slot 13's answer (that object's
 // vtable read before the call, the object after), the panel's slot 6; then the list 0x1e7b of the window +0x10 (Window_FindChild, not
 // checked) cleared and remembered at [0x7cc314], the area [0x7cc310] the thing [0x7c2658]'s handle, the tab [0x7cc358] (written back as
@@ -55,4 +59,8 @@ void __fastcall Panel7cc328_OnStaff(void *self, void *, u32 handle, u32 added);
 // 0x4b46a0 (thiscall; slot 3 of the vtable 0x6ffdd8): the window +0x14's children dressed (ui/panelparts; the window and the children not
 // checked, the window read again for each): 0x1e8b text 0x38, 0x1e8a a 0x6ff3b0 part with 0.
 void __fastcall Panel7cc328_Dress(u8 *self);
+
+// 0x4b5290 (thiscall (thing), pops 4; slot 10 of the vtable 0x6ffdd8; name invented): the selected thing [0x7cc318] = thing, the
+// window built (WindowAt10_Create: the script 0x756ba0, the handler 0x4b4fc0, the children 0x1e84 and 0x1e89, no inner one), then the advisor posted 0x12c (Advisor_PostId).
+void __fastcall Panel7cc328_Show(u8 *self, void *, u8 *thing);
 }  // extern "C"

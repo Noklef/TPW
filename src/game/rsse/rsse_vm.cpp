@@ -2,10 +2,20 @@
 #include <cstring>
 
 #include "../coaster/ridebounds.h"
+#include "../coaster/train.h"
+#include "../core/accessors.h"
 #include "../core/gameclock.h"
+#include "../core/indexed.h"
+#include "../core/soundplay.h"
+#include "../files/file.h"
 #include "../math/sintable.h"
 #include "../math/x87.h"
 #include "../model/heightat.h"
+#include "../model/partstate.h"
+#include "../model/parts.h"
+#include "../model/scratch.h"
+#include "../render/particles.h"
+#include "../world/objectdefs.h"
 #include "../world/personscripts.h"
 
 namespace {
@@ -15,6 +25,46 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 s32 Ftol(X87Reg x) { return (s32)(long long)x.v; }
+
+// A walk's time: 100 times the distance from p1 to p2 (its x87 sums, fsqrt, __ftol), 100 for none.
+u32 WalkTime(const float *p1, const float *p2) {
+    const X87Reg dx = X87Reg(p1[0]) - p2[0];
+    const X87Reg dy = X87Reg(p1[1]) - p2[1];
+    const X87Reg dz = X87Reg(p1[2]) - p2[2];
+    const X87Reg squares = dx * (float)dx + dy * dy + dz * (float)dz;
+    const u32 time = (u32)Ftol(X87_Sqrt(squares)) * 100;
+    return time == 0 ? 100 : time;
+}
+
+// The octant (C's % 8, signed) of __ftol(0.5 - (6.28318 - (angle - 1.570795)) * -1.27324...) (the doubles 0x700fe8..0x701000).
+s32 Octant(double angle) {
+    const X87Reg turn = X87_SubR(X87_SubR(X87Reg(angle) - global<double>(0x00700fe8), global<double>(0x00700ff0)) * global<double>(0x00700ff8),
+                                 global<double>(0x00701000));
+    return Ftol(turn) % 8;
+}
+
+// Particle_Spawn(0x13) at 1024 times the place (each __ftol'd: z, y, then x).
+void Puff(const float *place) {
+    const s32 z = (s32)((u32)Ftol(X87Reg(place[2])) << 10);
+    const s32 y = (s32)((u32)Ftol(X87Reg(place[1])) << 10);
+    const s32 x = (s32)((u32)Ftol(X87Reg(place[0])) << 10);
+    Particle_Spawn(0x13, x, y, z);
+}
+
+u8 *Ride(const u8 *vm) { return global<u8 *>(0x007a4610 + 4 * at<u32>(vm, 0xc8)); }
+
+// The definition (ObjectDefs_Find of 0x7890a0 by its type +0xe) of the vm's thing (the u16 +0xac; 0x7cfb90, 20 bytes each).
+u8 *ThingDef(const u8 *vm) {
+    const u8 *const thing = global<u8 *>(0x007cfb90 + 20 * (u32)at<u16>(vm, 0xac));
+    return ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, at<u16>(thing, 0xe));
+}
+
+// A leg's progress in thousandths: (now * 1000 - start * 1000) / (end - start), unsigned (the start +8 read before the clock).
+u32 Progress(u8 *slot) {
+    const u32 start = at<u32>(slot, 8);
+    const u32 now = Clocks_Now(reinterpret_cast<u8 *>(0x00785970));
+    return (now * 1000 - start * 1000) / (at<u32>(slot, 0xc) - start);
+}
 
 }  // namespace
 
@@ -116,13 +166,7 @@ s32 __cdecl Rsse_StartWalker(u8 *vm, u32 value, s32 from, s32 to, u32 a, u32 b, 
     float p1[3], p2[3];
     Ride_PartPlace(vm, p1, nullptr, from, 0x800);
     Ride_PartPlace(vm, p2, nullptr, to, kind == 4 ? 0x80 : 0x800);
-    const X87Reg dx = X87Reg(p1[0]) - p2[0];
-    const X87Reg dy = X87Reg(p1[1]) - p2[1];
-    const X87Reg dz = X87Reg(p1[2]) - p2[2];
-    const X87Reg squares = dx * (float)dx + dy * dy + dz * (float)dz;
-    u32 time = (u32)Ftol(X87_Sqrt(squares)) * 100;
-    if (time == 0)
-        time = 100;
+    const u32 time = WalkTime(p1, p2);
     const s32 count = at<s32>(vm, 0x7c);
     s32 i = 0;
     u8 *slot = at<u8 *>(vm, 0x2c);
@@ -140,10 +184,7 @@ s32 __cdecl Rsse_StartWalker(u8 *vm, u32 value, s32 from, s32 to, u32 a, u32 b, 
     u8 *const clock = reinterpret_cast<u8 *>(0x00785970);
     at<u32>(slot, 8) = Clocks_Now(clock);
     at<u32>(slot, 0xc) = Clocks_Now(clock) + time;
-    const double angle = X87_Atan2((X87Reg(p2[2]) - p1[2]).v, (X87Reg(p2[0]) - p1[0]).v);
-    const X87Reg turn = X87_SubR(X87_SubR(X87Reg(angle) - global<double>(0x00700fe8), global<double>(0x00700ff0)) * global<double>(0x00700ff8),
-                                 global<double>(0x00701000));
-    const s32 octant = Ftol(turn) % 8;
+    const s32 octant = Octant(X87_Atan2((X87Reg(p2[2]) - p1[2]).v, (X87Reg(p2[0]) - p1[0]).v));
     at<u16>(slot, 0x18) = 1;
     at<u16>(slot, 0x1a) = (u16)last;
     at<u16>(slot, 0x14) = (u16)octant;
@@ -217,5 +258,209 @@ void __cdecl Rsse_MoveWalker(u8 *vm, u8 *slot, s32 from, s32 to, s32 mode, s32 t
     const s16 octant = (s16)(((s32)(s16)q + at<s16>(slot, 0x14)) % 8);
     at<s16>(slot, 0x14) = octant;
     place(octant, 2);
+}
+
+void __cdecl Rsse_WalkerBack(u8 *vm, u32 value) {
+    const s32 count = at<s32>(vm, 0x7c);
+    u8 *slot = at<u8 *>(vm, 0x2c);
+    s32 i = 0;
+    for (; i < count; ++i, slot += 0x20)
+        if (at<u16>(slot, 0x18) != 0 && at<u32>(slot, 0x10) == value)
+            break;
+    if (i >= count)
+        return;
+    float p1[3], p2[3];
+    Ride_PartPlace(vm, p1, nullptr, at<s16>(slot, 4), at<u16>(slot, 0x16) == 4 ? 0x80 : 0x800);
+    Ride_PartPlace(vm, p2, nullptr, at<s16>(slot, 6), 0x800);
+    const u32 time = WalkTime(p1, p2);
+    at<u16>(slot, 0x14) = (u16)Octant(X87_Atan2((X87Reg(p2[2]) - p1[2]).v, (X87Reg(p2[0]) - p1[0]).v));
+    u8 *const clock = reinterpret_cast<u8 *>(0x00785970);
+    at<u32>(slot, 0xc) = Clocks_Now(clock) + time;
+    at<u32>(slot, 8) = Clocks_Now(clock);
+    if (at<u16>(slot, 0x16) == 2) {
+        float place[3];
+        Ride_PartPlace(vm, place, nullptr, at<s16>(slot, 4), 0x800);
+        Puff(place);
+    }
+    if (at<u16>(slot, 0x16) == 4 && at<u16>(slot, 0x18) == 2) {
+        const u32 part = Model_FindPartByKey4(Ride(vm), 0x80, (u32)(s32)at<s16>(slot, 2));
+        if (part != 0xffffffffu)
+            PartStates_Release(at<u8 *>(Ride(vm), 8), part);
+    }
+    at<u16>(slot, 0x18) = 3;
+}
+
+void __cdecl Rsse_UpdateWalkers(u8 *vm) {
+    if (at<s32>(vm, 0x7c) == 0)
+        return;
+    Model_BeginView(at<u8 *>(Ride(vm), 8));
+    u8 *const clock = reinterpret_cast<u8 *>(0x00785970);
+    for (s32 i = 0; i < at<s32>(vm, 0x7c); ++i) {
+        u8 *const slot = at<u8 *>(vm, 0x2c) + 0x20 * i;
+        if (at<u16>(slot, 0x18) == 0)
+            continue;
+        switch (at<s16>(slot, 0x18)) {
+        case 1: {   // walking out
+            const u32 t = Progress(slot);
+            Rsse_MoveWalker(vm, slot, at<s16>(slot, 0), at<s16>(slot, 2), at<u16>(slot, 0x16) == 4 ? 2 : 0, (s32)t);
+            if (t < 1000)
+                break;
+            at<u16>(slot, 0x18) = 2;
+            at<u32>(slot, 8) = Clocks_Now(clock);
+            if (at<u16>(slot, 0x16) == 4) {
+                const u32 part = Model_FindPartByKey4(Ride(vm), 0x80, (u32)(s32)at<s16>(slot, 2));
+                if (part != 0xffffffffu)
+                    PartStates_Activate(at<u8 *>(Ride(vm), 8), part, at<u32>(slot, 0x10));
+            }
+            if (at<u16>(slot, 0x16) == 2) {
+                float place[3];
+                Ride_PartPlace(vm, place, nullptr, at<s16>(slot, 2), 0x800);
+                Puff(place);
+            }
+            break;
+        }
+        case 2: {   // there
+            const u16 kind = at<u16>(slot, 0x16);
+            if (kind == 4) {
+                Rsse_MoveWalker(vm, slot, at<s16>(slot, 0), at<s16>(slot, 2), 2, 1);
+            } else if (kind == 1 || kind == 2) {
+                Rsse_MoveWalker(vm, slot, at<s16>(slot, 0), at<s16>(slot, 2), 0, 1);
+            } else {
+                float buffer[5];   // (the original's direction and place share a float: the place from buffer + 2, sic)
+                Ride_PartPlace(vm, buffer + 2, buffer, at<s16>(slot, 2), 0x800);
+                at<u16>(slot, 0x14) = (u16)Octant(X87_Atan2(buffer[2], buffer[0]));
+                Rsse_MoveWalker(vm, slot, at<s16>(slot, 2), at<s16>(slot, 2), 0, 0);
+            }
+            break;
+        }
+        case 3: {   // walking back
+            const u32 t = Progress(slot);
+            Rsse_MoveWalker(vm, slot, at<s16>(slot, 4), at<s16>(slot, 6), at<u16>(slot, 0x16) == 4 ? 1 : 0, (s32)t);
+            if (t >= 1000)
+                at<u16>(slot, 0x18) = 4;
+            break;
+        }
+        case 4:   // back
+            Rsse_MoveWalker(vm, slot, at<s16>(slot, 6), at<s16>(slot, 6), 0, 0);
+            break;
+        }
+    }
+    if (at<u32>(vm, 0x84) != 0) {
+        const u32 now = Clocks_Now(clock);
+        if (at<u32>(vm, 0x80) + at<u32>(vm, 0x84) < now)
+            at<u32>(vm, 0x84) = 0;
+    }
+}
+
+s32 __cdecl Rsse_Trigger(u8 *vm, s32 kind, s32 key, u32 what, u32 extra) {
+    static const u32 categories[7] = {0x00803a3c, 0x00803a38, 0x00803a28, 0x00803a24, 0x00803a30, 0x00803a20, 0x00803a2c};   // kinds 3-9
+    float place[3], dir[3];
+    if (kind == 1 || kind == 2) {
+        if (Ride_PartPlace(vm, place, kind == 2 ? dir : nullptr, key, 0x100) == 0)
+            return 0;
+        u32 effect = what;
+        if (what & 0x8000)
+            effect = Obj_GetIndexed4e0(ThingDef(vm), nullptr, what & 0x7fff);
+        const float &scale = global<float>(0x00700fdc);
+        s32 system;
+        if (kind == 1) {
+            const s32 z = Ftol(X87Reg(place[2]) * scale);
+            const s32 y = Ftol(X87Reg(place[1]) * scale);
+            const s32 x = Ftol(X87Reg(place[0]) * scale);
+            system = Particle_Spawn((s32)effect, x, y, z);
+        } else {
+            const s32 vz = Ftol(X87Reg(dir[2]));
+            const s32 vy = Ftol(X87Reg(dir[1]));
+            const s32 vx = Ftol(X87Reg(dir[0]));
+            const s32 z = Ftol(X87Reg(place[2]) * scale);
+            const s32 y = Ftol(X87Reg(place[1]) * scale);
+            const s32 x = Ftol(X87Reg(place[0]) * scale);
+            system = Particle_SpawnWithVelocity((s32)effect, x, y, z, vx, vy, vz);
+        }
+        if (extra != 1000)
+            ParticleSystem_SetA2((u32)system, extra);
+        return system;
+    }
+    u32 category;
+    if (kind >= 3 && kind <= 9) {
+        category = 0;
+    } else if (kind == 10) {
+        category = Get4f0_4145e0(ThingDef(vm));
+        if (category == 0)
+            return 0;
+    } else {
+        return 0;
+    }
+    if (Ride_PartPlace(vm, place, nullptr, key, 0x200) == 0)
+        return 0;
+    const s32 z = Ftol(X87Reg(place[2]));
+    const s32 y = Ftol(X87Reg(place[1]));
+    const s32 x = Ftol(X87Reg(place[0]));
+    if (kind != 10)
+        category = global<u32>(categories[kind - 3]);
+    return (s32)Sound_PlayAt(0, category, what, x, y, z);
+}
+
+u32 __cdecl Rsse_TriggerNode(u8 *vm, u8 *node, u32 what, u32 extra, u32 value) {
+    at<s32>(node, 0xc) = Rsse_Trigger(vm, at<s32>(node, 8), at<s32>(node, 0x10), what, extra);
+    const u32 kind = at<u32>(node, 8);
+    if (kind - 1 < 10)
+        at<u32>(node, 0x14) = Model_FindPartByKey4(Ride(vm), kind <= 2 ? 0x100 : 0x200, at<u32>(node, 0x10));
+    if (at<s32>(node, 0xc) != 0) {
+        at<u32>(node, 0x18) = value;
+        return at<u32>(node, 0xc);
+    }
+    u8 *const next = at<u8 *>(node, 0), *const prev = at<u8 *>(node, 4);
+    if (prev)
+        at<u8 *>(prev, 0) = next;
+    if (next)
+        at<u8 *>(next, 4) = prev;
+    if (at<u8 *>(vm, 0xb0) == node)
+        at<u8 *>(vm, 0xb0) = next;
+    Mem_GlobalFree(node);
+    return --global<u32>(0x008791b4);
+}
+
+void __cdecl Rsse_UpdateAll() {
+    if (global<u32>(0x008791a0) == 0)
+        return;
+    for (u8 *vm = global<u8 *>(0x008791b0); vm; vm = at<u8 *>(vm, 0)) {
+        for (s32 i = 0; i < at<s32>(vm, 0x64); ++i) {
+            const u8 *const entry = at<u8 *>(vm, 0x28) + 0x10 * i;
+            if (at<u32>(entry, 0) == 0)
+                continue;
+            const s32 elapsed = (s32)(Clocks_Now(reinterpret_cast<u8 *>(0x00785970)) - at<u32>(entry, 0xc));
+            u8 *const person = global<u8 *>(0x007cfb90 + 20 * (at<u32>(entry, 0) & 0xffff));
+            const s32 part = (s32)Model_FindPartByKey4(Ride(vm), 0x800, at<u32>(at<u8 *>(vm, 0x28) + 0x10 * i, 4));
+            if (part < 0)
+                continue;
+            const u8 *const node = at<u8 *>(at<u8 *>(at<u8 *>(at<u8 *>(Ride(vm), 8), 0x28), 4), 20 * (u32)part + 4);
+            u32 pos[3] = {0, 0, 0};
+            if (node)
+                Object_GetPosition(node, pos);
+            const float rootY = at<float>(at<u8 *>(at<u8 *>(at<u8 *>(Ride(vm), 8), 4), 0x78), 0x44);
+            const s32 seven = at<s32>(at<u8 *>(vm, 0x28) + 0x10 * i, 0) % 7;
+            float y;
+            if (at<u32>(at<u8 *>(vm, 0x1c), 0x1c) != 0) {
+                std::memcpy(&y, &pos[1], 4);
+                Person_PlaceScript(person, nullptr, pos[0], y, pos[2], (u32)seven, 3);
+                continue;
+            }
+            const X87Reg rate = X87_SubR(X87Reg((double)at<s16>(vm, 0xc0)) * global<float>(0x00701008), global<double>(0x00701010));
+            const s32 turns = Ftol(rate * X87Reg((double)elapsed));
+            const float phase = (float)(X87Reg((double)(turns % 1000)) * global<float>(0x00701018));
+            const SinTable sines = SinTable_Game();
+            const X87Reg sine = SinTable_At(sines, (float)(X87Reg(sines.scale) * phase));
+            const X87Reg bob = sine * (X87Reg((double)seven) - global<float>(0x0070101c)) + rootY + X87Reg((double)at<s16>(vm, 0x6e));
+            float posY;
+            std::memcpy(&posY, &pos[1], 4);
+            if (!(bob.v >= (double)posY))   // (fcomp: below or unordered)
+                y = posY;
+            else
+                y = (float)bob;
+            Person_PlaceScript(person, nullptr, pos[0], y, pos[2], (u32)(elapsed / 500), 2);
+        }
+        Rsse_UpdateWalkers(vm);
+    }
 }
 }  // extern "C"

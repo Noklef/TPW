@@ -211,6 +211,11 @@ u32 __stdcall UI_Load(Stream *stream) {
     return MsgTags_Load(stream);
 }
 
+s32 __cdecl MsgTags_ButtonHandler(u8 *window, u32 message, u32 a, u32 b) {
+    if (message == 0x10006 && a == 1) Window_PostMessage(*reinterpret_cast<u8 **>((uintptr_t)0x007cb2c4), 0x100003, 0, 0);
+    return Window_CallDefault(window, nullptr, message, a, b);
+}
+
 s32 __cdecl MsgTags_WindowHandler(u8 *window, u32 message, u8 *tag, u32 b) {
     if ((s32)message > 0x100001) {
         if (message == 0x100002) {

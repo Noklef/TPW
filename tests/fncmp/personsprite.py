@@ -11,7 +11,10 @@
 # Particle (0x4fa470): the script list ready and the reference +0xc one of its scripts, their x / z (+0x88 / +0x90) about
 # terrainheight.py's ground and point less the dwords 0x785584 / 0x785588 (small or any) times 10; particles.py's Spawn set-up and effect.
 # SpeedParticle (0x4f7c60): UpdateSpeed's person with Particle's, the byte +0x3a0 set or not.
-# usage: personsprite.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=PlaceSprite,CentreOnSprite,PlaceAll,UpdateSpeed,Particle,SpeedParticle)
+# TickSpeed (0x505490): UpdateSpeed's surroundings; the world [0x80239c]'s ticks +0x1da70c with their low two bits the handle +0's mostly,
+# Person_KillScript84After's world ([[0x7cf6ec]]) the same mostly, the stamp +0xbc about the ticks less 12 (the script +0xb4 sprite_env's).
+# usage: personsprite.py [CASES [SEED]] [--wild|--both] [--show N]
+#        (env OPS=PlaceSprite,CentreOnSprite,PlaceAll,UpdateSpeed,Particle,SpeedParticle,TickSpeed)
 import os
 import struct
 import sys
@@ -28,7 +31,7 @@ RANGES = []
 for a, b in sorted([(0x475480, 0x4754f0), (0x4d8c50, 0x4d8c70), (0x4f9f00, 0x4fa2b0), (0x4fe900, 0x4fe960), (0x50b350, 0x50b370), (0x510160, 0x510190),
            (0x53c8d0, 0x53c9d0), (0x5da3c0, 0x5da3c1), (0x486860, 0x4868c1), (0x42aab0, 0x42ab1d), (0x518f90, 0x51905c),
            (0x4fa870, 0x4fa928), (0x510190, 0x5101e9), (0x4d4190, 0x4d41d0), (0x475010, 0x475480), (0x4754f0, 0x476a30),
-           (0x540b90, 0x540d78), (0x541f60, 0x541f70),
+           (0x540b90, 0x540d78), (0x541f60, 0x541f70), (0x505490, 0x5054c9), (0x50be40, 0x50be7c), (0x5f5660, 0x5f56a0),
            (0x4fa470, 0x4fa52b), (0x4f7c60, 0x4f7c88), (0x519410, 0x519426), (0x4527f0, 0x452a70), (0x67a830, 0x67a860)] + particles.RANGES):
     if RANGES and a <= RANGES[-1][1]:
         RANGES[-1] = (RANGES[-1][0], max(RANGES[-1][1], b))
@@ -36,8 +39,9 @@ for a, b in sorted([(0x475480, 0x4754f0), (0x4d8c50, 0x4d8c70), (0x4f9f00, 0x4fa
         RANGES.append((a, b))
 B = Bench(RANGES)
 CALLS = {'PlaceSprite': 0x4fa030, 'CentreOnSprite': 0x486860, 'PlaceAll': 0x518f90, 'UpdateSpeed': 0x4fa870, 'Particle': 0x4fa470,
-         'SpeedParticle': 0x4f7c60}
+         'SpeedParticle': 0x4f7c60, 'TickSpeed': 0x505490}
 GROUND = RAM + 0x30000   # (terrainheight.py's regions, clear of particles.py's at RAM + 0x1000 and the script list's)
+TICKS, OTHER_TICKS, HOLDER = RAM + 0x28000, RAM + 0x28100, RAM + 0x28200   # (the worlds' +0x1da70c; [0x7cf6ec]'s holder)
 OTHERS = RAM + 0x24000   # (PlaceAll's other things, 0x40 bytes each)
 PEOPLE = [1, 4, 5, 6, 7, 8, 0x12]
 THING = RAM + 0x20000
@@ -128,8 +132,20 @@ def case(r):
     if op == 'CentreOnSprite':
         centre_env(r, regions)
         return Call(CALLS[op], [r.choice([THING] * 9 + [0])], regions, ret='v')
-    if op == 'UpdateSpeed':
+    if op in ('UpdateSpeed', 'TickSpeed'):
         speed_env(r, regions)
+        if op == 'TickSpeed':
+            thing = regions[THING]
+            ticks = r.choice([0, 1, 12, 13, 100, 0xfffffff3, r.getrandbits(32)])
+            if r.random() < 0.6:
+                ticks = (ticks & ~3) | (thing[0] & 3)
+            other = ticks if r.random() < 0.8 else r.getrandbits(32)
+            put(thing, 0xbc, 'I', (other + r.choice([-13, -12, -11, 0, 5, r.getrandbits(32)])) & 0xffffffff)
+            regions[TICKS] = struct.pack('<I', ticks)
+            regions[OTHER_TICKS] = struct.pack('<I', other)
+            regions[0x80239c] = struct.pack('<I', TICKS - 0x1da70c)
+            regions[HOLDER] = struct.pack('<I', OTHER_TICKS - 0x1da70c)
+            regions[0x7cf6e0] = put(bytearray(r.bytes(0x10)), 0xc, 'I', HOLDER)
         return Call(CALLS[op], [THING], regions, conv='t', ret='v')
     if op == 'Particle':
         return Call(CALLS[op], [THING, particle_env(r, regions)], regions, conv='t', ret='v')

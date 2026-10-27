@@ -48,4 +48,9 @@ void __fastcall SpriteSet_Dtor(u8 *set);
 // (+0x2404, +0x2408, +0x240c) and texture array (+0x2400) cleared: 1. 0 when there was one, or when the allocation failed (left null, the
 // error (3, 0xb0754000) pushed onto the engine's list, EngineErrors_Push).
 u32 __cdecl SpriteQueue_Create();
+
+// 0x58ac10 (cdecl; the exit handler of the record at 0x8c47b0, registered by its initializer 0x58abd0, which clears it and sets its
+// +0x10 to 1.0; nothing else is known to use it; name unconfirmed): with textures at +8, Texture_Release on the first, then (still set)
+// the array destroyed (Texture_DestroyArray); +8 is left. With a block at +0xc, it freed (TrackedGlobal_Free) and +4 and +0 cleared.
+void __cdecl Global8c47b0_Release();
 }

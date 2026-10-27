@@ -37,6 +37,10 @@ u32 __fastcall WeatherFx_LoadTexture(u8 *fx, void *, u32 which, const char *name
 // leaves it), or 0 without a renderer.
 u32 __cdecl WeatherFx_LoadTextures();
 
+// 0x57d850 (thiscall; name unconfirmed): WeatherFx_LoadTextures on this renderer (the same three names and slots, each name through
+// Quickload_Locate whether or not its slot is set), then its +4 (the reload asked for) cleared. Returns 1.
+u32 __fastcall WeatherFx_ReloadTextures(u8 *fx);
+
 // 0x57d1a0 (cdecl; name unconfirmed): with a renderer at [0x8bcbac], its textures freed (WeatherFx_FreeTextures), it freed (GameHeap_Free)
 // and [0x8bcbac] cleared: 1. Without one 0.
 u32 __cdecl WeatherFx_Delete();

@@ -10,19 +10,26 @@
 # (+0x140c + 16 * group, +8; groups 0-6) -1 or 0-3, their ids (+0xc + 20 * current) 0 or not, their dwords +4 (Table_ScaledBySum's) small or any;
 # the chain of 0-3 things from the game's +0x1da742 (their +0x1e4 0-5, linked by +0x210), the globals 0x7852f8 / 0x78548c 0 or not; the
 # sound globals on / started or not, the manager's engine's slot 3 the recorder 3 of three.
-# usage: levelmeter.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetLevel,OnMessage,Research)
+# Progress (0x4a9bd0): the group 0-4 mostly, now and then 5, 6 or -1; the lab as research.py's (its projects' costs and done any floats,
+# the groups' current projects -1 or any, the dearest +0x1464 any or the current; now and then plain costs, the current one's up to three
+# times the dearest's, so the gauge's value goes negative), picked as Research's; the research panel's five meters (one
+# missing now and then: a fault in both), each with its gauge 0xd2d05 (missing now and then: a fault in both) among 0-2 decoys, the gauge's
+# slot 7 the recorder 7.
+# usage: levelmeter.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetLevel,OnMessage,Research,Progress)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fncmp import LOG, RAM, Bench, Call, blob_bytes, log_region, put, recorder, set_return, vtable  # noqa: E402
 
-CALLS = {'SetLevel': 0x4a95b0, 'OnMessage': 0x4a9fc0, 'Research': 0x4a9c70}
+CALLS = {'SetLevel': 0x4a95b0, 'OnMessage': 0x4a9fc0, 'Research': 0x4a9c70, 'Progress': 0x4a9bd0}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 B = Bench([(0x4a95b0, 0x4a96af), (0x4a9fc0, 0x4aa0b1), (0x65e6d5, 0x65e73d), (0x65d3a3, 0x65d40e), (0x65d7bc, 0x65d832),
            (0x65f66e, 0x65f697), (0x65968e, 0x6596a2), (0x4a9c70, 0x4a9f84), (0x519550, 0x51958d), (0x5039f0, 0x503a20), (0x503980, 0x5039f0),
-           (0x4c9e60, 0x4c9ed0), (0x4c9ed0, 0x4c9ef0), (0x519510, 0x519550), (0x51bc40, 0x51bc70), (0x6b5b80, 0x6b5b9a), (0x5da3c0, 0x5da3c1)])
+           (0x4c9e60, 0x4c9ed0), (0x4c9ed0, 0x4c9ef0), (0x519510, 0x519550), (0x51bc40, 0x51bc70), (0x6b5b80, 0x6b5b9a), (0x5da3c0, 0x5da3c1),
+           (0x4a9bd0, 0x4a9c68), (0x503ac0, 0x503b26)])
 WINDOW, KIDS, OBJ98, OBJ9C, VT98, VT9C, CLOCK, CLOCKVT = RAM, RAM + 0x400, RAM + 0x1000, RAM + 0x1040, RAM + 0x1080, RAM + 0x1100, RAM + 0x1200, RAM + 0x1240
 KID = 0x120
 LIGHT = 0xd2d06
@@ -97,8 +104,56 @@ def research_case(r):
     return Call(CALLS['Research'], [group & 0xffffffff], regions, ret='v')
 
 
+def progress_case(r):
+    """Progress (above)"""
+    from research import fbits
+    log = log_region()
+    regions = {LOG: log, VT98: vtable({7: 1})}
+    ids = list(METERS) if r.random() < 0.95 else r.sample(METERS, 4)
+    r.shuffle(ids)
+    for i, ident in enumerate(ids):
+        w = bytearray(r.bytes(0x100))
+        put(w, 0x8c, 'I', ident)
+        put(w, 0x54, 'I', MWINS + 0x200 * (i + 1) if i + 1 < len(ids) else 0)
+        kids = [r.choice([0, LIGHT, r.getrandbits(32)]) for _ in range(r.choice([0, 0, 1, 2]))]
+        kids.insert(r.randrange(len(kids) + 1), 0xd2d05 if r.random() < 0.97 else LIGHT)
+        put(w, 0x5c, 'I', (RAM + 0x10000) + 0x1000 * i)
+        regions[MWINS + 0x200 * i] = w
+        for j, kid in enumerate(kids):   # (the meter's children, 0x100 apart)
+            kw = bytearray(r.bytes(0x90))
+            put(kw, 0, 'I', VT98)
+            put(kw, 0x8c, 'I', kid)
+            put(kw, 0x54, 'I', (RAM + 0x10000) + 0x1000 * i + 0x100 * (j + 1) if j + 1 < len(kids) else 0)
+            regions[(RAM + 0x10000) + 0x1000 * i + 0x100 * j] = kw
+    regions[PANEL] = put(put(bytearray(r.bytes(0x100)), 0x5c, 'I', MWINS), 0x8c, 'I', 0)
+    regions[0x7cc1d8] = struct.pack('<I', PANEL)
+    lab = bytearray(r.bytes(0x1480))
+    for i in range(0x100):
+        cost = fbits(r)
+        put(lab, 0xc + i * 20 + 0xc, 'II', cost, r.choice([cost, cost, fbits(r)]) if r.random() < 0.5 else fbits(r))
+    for g in range(7):
+        put(lab, 0x140c + 16 * g + 8, 'i', r.choice([-1, -2, 0, r.randrange(0x100), r.randrange(0x100)]))
+    group = r.choice([0, 1, 2, 3, 4] * 4 + [5, 6, -1])
+    current = struct.unpack_from('<i', lab, 0x140c + group * 16 + 8)[0]
+    put(lab, 0x1464, 'i', r.choice([0, r.randrange(0x100), r.randrange(0x100), max(current, 0)]))
+    dearest = struct.unpack_from('<i', lab, 0x1464)[0]
+    if 0 <= current < 0x100 and current != dearest and r.random() < 0.4:   # (plain costs: left 0-300%, past 100 the gauge negative)
+        top = r.uniform(2, 1000)
+        put(lab, 0xc + dearest * 20 + 0xc, 'f', top)
+        cost = top * r.uniform(0.01, 3)
+        put(lab, 0xc + current * 20 + 0xc, 'ff', cost, cost * r.choice([0, r.random()]))
+    regions[LAB] = lab
+    slot = r.randrange(1, 4)
+    regions[0x7cfb90] = put(bytearray(r.bytes(20 * 4)), 20 * slot, 'I', LAB)
+    regions[GAME + 0x1da700] = put(bytearray(r.bytes(0x60)), 0x22, 'H', slot)
+    regions[0x7cf83c] = struct.pack('<I', GAME)
+    return Call(CALLS['Progress'], [group & 0xffffffff], regions, ret='v')
+
+
 def case(r):
     op = r.deal(OPS)
+    if op == 'Progress':
+        return progress_case(r)
     if op == 'Research':
         return research_case(r)
     log = log_region()

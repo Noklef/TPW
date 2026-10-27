@@ -37,6 +37,10 @@ s32 __cdecl Dialog7cdb0c_Message6Off();
 s32 __cdecl Dialog7cdb0c_Child16007Message6On();
 s32 __cdecl Dialog7cdb0c_Child16007Message6Off();
 
+// 0x4c5820 (cdecl (on); called by 0x5dcf90, 0x5dcfaf, 0x5dd5d0; name invented): with the dialog [0x7cdb0c], its child 0x16006
+// (Window_FindChild, not checked) given the state on == 1 with notice (Window705a50_SetState(.., 1)). EAX not kept.
+void __cdecl Dialog7cdb0c_SetChild16006State(u32 on);
+
 // 0x48d990 (cdecl; name unconfirmed): when the window [0x7ca098] is not 0, Window_SendMessage of it with message 4 (0, 0); then the dword
 // 0x7ca090 = 0. Returns the send's result (0 without a window).
 s32 __cdecl Dialog7ca098_Message4IfUp();
@@ -82,6 +86,17 @@ u8 *__fastcall WindowAt10_ScalarDtor(u8 *object, void *, u32 flags);
 // +0xa0 (Window_SetDwordA0) and the object's slot 4; +0x14 = the window's child second, and when there the object's slot 3; then the
 // object's slot 1 and the object as the window's dword 6.
 void __fastcall WindowAt10_Create(u8 *object, void *, u8 *script, u32 handler, u32 first, u32 second, u32 inner);
+
+// 0x493130 (thiscall (flag), pops 4; called at 0x48c855 / 0x48c8a0; name unconfirmed): with the window +0x10 and +0xc not yet set: +0xc
+// = 1, the window shown (Window_SetShown(1)), the depth Gui_TopDepth(0, 0) + 1 taken, Window7c24c8_Close for flag 0, then the window
+// (+0x10 read again) added to the GUI root [0xfaa5d8] (Window_AddChild(1, 1)), given that depth (Window_SetDepth) and the focus
+// (Window_SetFocus(0)). EAX not kept.
+void __fastcall WindowAt10_Show(u8 *object, void *, u32 flag);
+
+// 0x4931b0 (thiscall; called directly, no table; name invented): WindowAt10_Show undone: with +0xc set, +0xc = 0, the window +0x10
+// hidden (Window_SetShown(0)), unlinked from its parent when there is one (Window_Unlink), its focus let go (Window_KillFocus(0)) and the
+// focus restored (Focus_Restore). EAX not kept.
+void __fastcall WindowAt10_Hide(u8 *object);
 
 // 0x48d1a0 (cdecl (window, message, a, b); the handler WindowAt10_Create gives its window's child +0x18; name unconfirmed): on message
 // 0x10006 the camera centred on the thing [0x7c2658] (Thing_GetHandle, Camera_CentreOnThing; the handle's high word the thing pointer's)
