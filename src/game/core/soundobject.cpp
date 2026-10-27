@@ -76,6 +76,12 @@ u32 *__fastcall SoundObject_BroadcastValue(u8 *object, void *, u32 *out, u32 val
     return out;
 }
 
+void __fastcall SoundObject_Dtor(u8 *object) {
+    at<u32>(object, 0) = 0x0070a588;
+    if (u8 *const channel = at<u8 *>(object, 0x24)) vcall<void>(channel, 0);
+    if (u8 *const mixer = at<u8 *>(object, 0x20)) vcall<void>(mixer, 0, 1u);
+}
+
 u32 *__fastcall SoundObject_SendVoiceFunctor1(u8 *object, void *, u32 *out, u32 id) { return SendVoiceFunctor(object, out, id, 0x0070a2d0); }
 u32 *__fastcall SoundObject_SendVoiceFunctor2(u8 *object, void *, u32 *out, u32 id) { return SendVoiceFunctor(object, out, id, 0x0070a5b8); }
 u32 *__fastcall SoundObject_SendVoiceFunctor3(u8 *object, void *, u32 *out, u32 id) { return SendVoiceFunctor(object, out, id, 0x0070a5c0); }

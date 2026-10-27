@@ -22,6 +22,9 @@ u32 *__fastcall SoundObject_VoiceInfo(u8 *object, void *, u32 *out, u32 id, u32 
 // 0x6b89b0 / 0x6b8a10 / 0x6b8a70 (thiscall (out, id), pops 8; names invented): with an id (not 0) and a mixer (+0x20), the mixer's voice
 // for it (SoundMixer_FindVoice) gets its slot 6 (out, a stack functor: vtable 0x70a2d0 / 0x70a5b8 / 0x70a5c0, whose slot 0 answers
 // 1 / 2 / 3; data the voice's +0x24); else (no voice too) *out = -1. Returns out.
+// 0x6b8d00 (thiscall; an SEH frame; name invented): the destructor: vtable 0x70a588, the channel's (+0x24) slot 0 (no arguments) and the
+// mixer's (+0x20) slot 0 (1: its deleting destructor), each when there is one.
+void __fastcall SoundObject_Dtor(u8 *object);
 u32 *__fastcall SoundObject_SendVoiceFunctor1(u8 *object, void *, u32 *out, u32 id);
 u32 *__fastcall SoundObject_SendVoiceFunctor2(u8 *object, void *, u32 *out, u32 id);
 u32 *__fastcall SoundObject_SendVoiceFunctor3(u8 *object, void *, u32 *out, u32 id);
