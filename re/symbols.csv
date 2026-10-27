@@ -2571,6 +2571,11 @@ address,name,kind,confidence,notes
 0x0051c300,Sound_Stop,function,low,"reimplemented (src/game/core/soundset); cdecl (id): with sound on and started, the manager's apply with the stack command 0x700bac {id, 0x3c} (the out the id's slot)"
 0x0051c640,Sound_AddOccluder,function,low,"reimplemented (src/game/core/soundset); cdecl (x, unused, y, radius, z): with sound on and started, the manager's apply with the stack command 0x700bc0 {x, y, z, radius, &x} (the out y's slot); returns x's slot after it, else 0"
 0x0051c6b0,Sound_RemoveOccluder,function,low,"reimplemented (src/game/core/soundset); cdecl (node): with sound on and started, the manager's apply with the stack command 0x700bc4 {&node} (the out an unset local)"
+0x0051bc70,Sound_Post700b5c,function,low,"reimplemented (src/game/core/soundset); cdecl: with sound on and started, the manager's apply with the stack command 0x700b5c (the out an unset local)"
+0x0051bcb0,Sound_Post700b60,function,low,"reimplemented (src/game/core/soundset); cdecl: with sound on and started, the manager's apply with the stack command 0x700b60 {0x5a} (the out an unset local)"
+0x0051bcf0,Sound_Post700b64,function,low,"reimplemented (src/game/core/soundset); cdecl: with sound on and started, the manager's apply with the stack command 0x700b64 (the out an unset local)"
+0x0051bd30,Sound_Post700b68,function,low,"reimplemented (src/game/core/soundset); cdecl: with sound on and started, the manager's apply with the stack command 0x700b68 (the out an unset local)"
+0x0051bd70,Sound_ApplySettings,function,low,"reimplemented (src/game/core/soundset); cdecl: with sound on and started and the settings changed (0x803ac8), the commands 0x700b88-0x700b70 with the settings (the two volumes scaled by [0x785914] % when 0x803acc, 0x803ae0 and 0x803ac4 > 0), the flag cleared; then the command 0x700b6c"
 0x005af7f0,GlobalSave_ThemeByte,function,high,reimplemented (src/game/core/globalsave); thiscall u8 (i): byte i of the global save info's (0xf7c58c) current theme record (+0x48)
 0x005af800,GlobalSave_Byte26,function,high,reimplemented (src/game/core/globalsave); thiscall u8 (i): byte +0x26 + i of the global save info
 0x005afc30,GlobalSave_Inc20,function,high,reimplemented (src/game/core/globalsave); thiscall: the global save info's counter +0x20 incremented

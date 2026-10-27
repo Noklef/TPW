@@ -67,6 +67,19 @@ void __cdecl Sound_Stop(u32 id);
 u32 __cdecl Sound_AddOccluder(u32 x, u32 unused, u32 y, u32 radius, u32 z);
 // 0x51c6b0 (node): the command 0x700bc4 {&node} (the occluder remove), the out a local (unset before the run).
 void __cdecl Sound_RemoveOccluder(u32 node);
+// 0x51bc70 / 0x51bcf0 / 0x51bd30 (names invented): the command 0x700b5c / 0x700b64 / 0x700b68 alone (its runs read no value), the out a
+// local (unset before the run).
+void __cdecl Sound_Post700b5c();
+void __cdecl Sound_Post700b64();
+void __cdecl Sound_Post700b68();
+// 0x51bcb0 (name invented): the command 0x700b60 {0x5a}, the out a local (unset before the run).
+void __cdecl Sound_Post700b60();
+// 0x51bd70 (name invented): with the changed flag [0x803ac8] set, the settings posted as commands (each {value}, the out one local, a
+// second its functor): 0x700b88 with 0 when the u16 [0x803ad0] is set, else [0x803ac0]; 0x700b84 with [0x803abc] (both times [0x785914]
+// / 100, signed, when [0x803acc] and [0x803ae0] are set and [0x803ac4] > 0); 0x700b80 [0x803ab8]; 0x700b7c [0x803ac4]; 0x700b78
+// [0x803ae0]; 0x700b74 [0x803adc]; 0x700b70 [0x803ad8] (built by SoundCmd_Ctor); then the flag cleared. Then (changed or not) the
+// command 0x700b6c, its out the dword after its vtable.
+void __cdecl Sound_ApplySettings();
 
 // 0x51b7c0 (cdecl): when on and started, the sound manager's vtable +0 (&result, not read after); then not started. The
 // warning when the allocation count 0x802bd8 is not back to 0 is compiled out.

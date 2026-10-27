@@ -112,6 +112,66 @@ u32 __cdecl Sound_AddOccluder(u32 x, u32, u32 y, u32 radius, u32 z) {
     return x;
 }
 
+void __cdecl Sound_Post700b5c() {
+    if (!On()) return;
+    u32 local[2];   // (the functor its vtable; the out unset)
+    local[0] = 0x00700b5c;
+    Apply(&local[1], local);
+}
+
+void __cdecl Sound_Post700b60() {
+    if (!On()) return;
+    u32 local[3];   // (the out unset; the functor {0x700b60, 0x5a})
+    local[1] = 0x00700b60;
+    local[2] = 0x5a;
+    Apply(&local[0], &local[1]);
+}
+
+void __cdecl Sound_Post700b64() {
+    if (!On()) return;
+    u32 local[2];
+    local[0] = 0x00700b64;
+    Apply(&local[1], local);
+}
+
+void __cdecl Sound_Post700b68() {
+    if (!On()) return;
+    u32 local[2];
+    local[0] = 0x00700b68;
+    Apply(&local[1], local);
+}
+
+void __cdecl Sound_ApplySettings() {
+    if (!On()) return;
+    u32 local[3];   // (local[0] the out, local[1-2] the command; the last command's {local[0]} with the out local[1])
+    if (global<u32>(0x00803ac8)) {
+        auto post = [&](u32 vtable, u32 value) {
+            local[1] = vtable;
+            local[2] = value;
+            Apply(&local[0], &local[1]);
+        };
+        const s32 scale = global<s32>(0x00785914);
+        auto scaled = [&](u32 value) { return (u32)((s32)(value * (u32)scale) / 100); };
+        if (global<u32>(0x00803acc) && global<u32>(0x00803ae0) && global<s32>(0x00803ac4) > 0) {
+            post(0x00700b88, global<u16>(0x00803ad0) ? 0 : scaled(global<u32>(0x00803ac0)));
+            post(0x00700b84, scaled(global<u32>(0x00803abc)));
+        } else {
+            post(0x00700b88, global<u16>(0x00803ad0) ? 0 : global<u32>(0x00803ac0));
+            post(0x00700b84, global<u32>(0x00803abc));
+        }
+        post(0x00700b80, global<u32>(0x00803ab8));
+        post(0x00700b7c, global<u32>(0x00803ac4));
+        post(0x00700b78, global<u32>(0x00803ae0));
+        post(0x00700b74, global<u32>(0x00803adc));
+        SoundCmd_Ctor(reinterpret_cast<u8 *>(&local[1]), nullptr, global<u32>(0x00803ad8));
+        local[1] = 0x00700b70;
+        Apply(&local[0], &local[1]);
+        global<u32>(0x00803ac8) = 0;
+    }
+    local[0] = 0x00700b6c;
+    Apply(&local[1], &local[0]);
+}
+
 void __cdecl Sound_RemoveOccluder(u32 node) {
     if (!On()) return;
     u32 out;   // (unset: the run writes it)
