@@ -6615,6 +6615,8 @@ address,name,kind,confidence,notes
 0x00665a44,Window7059f0_OnHeader,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (id): a header button's column (id - 0x10) sorted by: flipped when it is the sort column, else made it ascending; sorted, rows refreshed, the selection posted 0x401 to the parent"
 0x006655a2,Window7059f0_OnMouseDown,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (x, y): the row at the point selected, its column told, then with flag 0x80 the selection posted 0x400 to the parent"
 0x0066563d,Window7059f0_OnDouble,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (x, y): with flag 0x80, the row at the point selected and the selection posted 0x402 to the parent"
+0x006656a0,Window7059f0_OnDrag,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (x, y: words), pops 8: with flag 0x80 of +0x48, no +0x11c and the point in the saved rectangle +0x2c (slot 0), the row at the point selected (Window7059f0_SelectAt)"
+0x0066521e,Window7059f0_OnMoved,function,low,"reimplemented (src/game/ui/window7059f0); thiscall (dx, dy: words), pops 8: the inner rectangle +0x138 moved (its slot 2), then the columns (Window7059f0_OffsetColumns)"
 0x0065fbf0,WindowScript_ReadDword,function,low,reimplemented (src/game/ui/windowscript); a window script's next dword (two words)
 0x0065fc18,WindowScript_ReadWord,function,low,reimplemented (src/game/ui/windowscript); a window script's next word
 0x0065fc38,WindowScript_ReadRect,function,low,reimplemented (src/game/ui/windowscript); a window script's next four words to four outputs
