@@ -27,7 +27,9 @@ OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].s
 GROUPED = {3: 5, 5: 7, 9: 10}                # d: the code's bits
 FIXED_POINT, HALF = 0xfb2704, 0xfb2708
 PCM = RAM + 0x6000
-VTABLE = 0x7118e0   # the buffer decoder's vtable, in the float factors' row 74 (the fixed ones' 47): a group's byte past 26 reads its slots
+# the resolved vtables a group's byte past 26 reads as factors (float rows 27-255 reach 0x71cdff, fixed ones 0x71e8ff): the MP2 buffer
+# decoder's 0x7118e0 (float row 74, fixed 47; 6 slots) and the SoundFont bank's 0x711ba8 (float row 77, fixed 50; 16 slots)
+VTABLES = {0x7118e0: 0x18, 0x711ba8: 0x40}
 
 
 def image(address, n):
@@ -38,8 +40,8 @@ def image(address, n):
 
 CHOICE = struct.unpack('<96I', image(0x7114f0, 0x180))   # the allocation table by 16 (2 sampling rate + 2 - channels) + bitrate
 SUBBANDS = struct.unpack('<5i', image(0x711670, 0x14))   # each table's sblimit
-# (the driver resolves that vtable's slots to its replacements, which the hooked game does not: both sides read the game's own slots)
-SLOTS = image(VTABLE, 0x18)
+# (the driver resolves those vtables' slots to its replacements, which the hooked game does not: both sides read the game's own slots)
+SLOTS = {a: image(a, n) for a, n in VTABLES.items()}
 
 
 def entry(r):
@@ -112,7 +114,7 @@ def case_frame(r):
     out = 0 if r.random() < 0.05 else PCM
     regions = {DECODER: decoder, FRAME: r.bytes(0x2000), PCM: r.bytes(36 * 2 * 80 + 0x100), GROUPS: tables(r),
                FIXED_POINT: struct.pack('<I', r.choice([1, r.getrandbits(32)]) if fixed else 0),
-               HALF: struct.pack('<I', r.choice([0, 0, 0, 1])), VTABLE: SLOTS}
+               HALF: struct.pack('<I', r.choice([0, 0, 0, 1])), **SLOTS}
     return Call(CALLS['frame'], [DECODER, out], regions, conv='t', ret='a')
 
 
@@ -147,7 +149,7 @@ def case(r):
     else:
         rows = b''.join(struct.pack('<I', r.choice([r.getrandbits(16), r.getrandbits(20), r.getrandbits(32)])) for _ in range(27 * 64 + 0x80))
         regions = {FIXED - 0x100: r.bytes(0x100) + rows}
-    regions.update({DECODER: decoder, FRAME: r.bytes(0x500), BITS: bits + r.bytes(0x40), OUT: r.bytes(0x500), SCALE: scale, TABLE: tab, VTABLE: SLOTS,
+    regions.update({DECODER: decoder, FRAME: r.bytes(0x500), BITS: bits + r.bytes(0x40), OUT: r.bytes(0x500), SCALE: scale, TABLE: tab, **SLOTS,
                     GROUPS: bytearray(r.choice([r.randrange(27), r.randrange(27), r.getrandbits(8)]) for _ in range(GROUPS_END - GROUPS))})
     return Call(CALLS[name], [DECODER, BITS, OUT, SCALE, r.randrange(0, 4), TABLE], regions, conv='t', ret='v')
 
