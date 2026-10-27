@@ -54,6 +54,12 @@ u8 *__fastcall ParkAnalyser_Cell(u8 *analyser, void *, u32 pos);
 void __fastcall ParkAnalyser_StampTime21c30(u8 *analyser);
 void __fastcall ParkAnalyser_StampTime21c38(u8 *analyser);
 
+// 0x4c7600 (thiscall (ticks), pops 4; name unconfirmed; called by 0x502357): the whole days (_alldiv by 864000000000, signed; the low
+// dword) of the funny time span of `ticks` (FunnyTime_SpanOf of the clock at [[0x7cf6ec]] + 0x2a0) pushed onto the 50-day ring at
+// +0x21600: the cursor (+0x216cc) on, back to 0 at the size (+0x216d0, signed) with the wrapped flag (+0x216d4) set; the value at
+// +0x21604 + cursor * 4 (not checked).
+void __fastcall ParkAnalyser_RecordDays(u8 *analyser, void *, u32 ticks);
+
 // 0x4c7a90 (thiscall; name unconfirmed): the analyser added to the message centre's slots 0xc, 0x11 and 0x13, then each of its +0x14 * +0x10
 // cells (rows * columns, a 32-bit product; none when not positive; 0x7c bytes from +0x20) gets its rectangle: x = column * size, y = row * size,
 // w and h = size (+0xc), cut back where the cell passes the width (+0x18) or the height (+0x1c): w = width - (column + 1) * size + size. Column

@@ -114,6 +114,21 @@ void __fastcall ParkAnalyser_StampTime21c30(u8 *analyser) { stamp(analyser, 0x21
 
 void __fastcall ParkAnalyser_StampTime21c38(u8 *analyser) { stamp(analyser, 0x21c38); }
 
+void __fastcall ParkAnalyser_RecordDays(u8 *analyser, void *, u32 ticks) {
+    FileTime span;
+    const FileTime *t = FunnyTime_SpanOf(**reinterpret_cast<u8 *const *const *>(0x007cf6ec) + 0x2a0, nullptr, &span, ticks);
+    const long long value = (long long)(((unsigned long long)t->high << 32) | t->low);
+    const u32 days = (u32)(value / 864000000000LL);   // (_alldiv; the quotient's low dword)
+    const s32 size = at<s32>(analyser, 0x216d0);
+    const s32 cursor = at<s32>(analyser, 0x216cc) + 1;
+    at<s32>(analyser, 0x216cc) = cursor;
+    if (cursor >= size) {
+        at<s32>(analyser, 0x216cc) = 0;
+        at<u8>(analyser, 0x216d4) = 1;
+    }
+    at<u32>(analyser, 0x21604 + (u32)at<s32>(analyser, 0x216cc) * 4u) = days;
+}
+
 u32 __fastcall ParkAnalyser_InitCells(u8 *analyser) {
     MessageCentre_AddThing(MessageCentre_Instance(), nullptr, analyser, 0xc);
     MessageCentre_AddThing(MessageCentre_Instance(), nullptr, analyser, 0x11);
