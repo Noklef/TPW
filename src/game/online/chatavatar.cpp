@@ -4,8 +4,10 @@
 
 #include "../core/crt.h"
 #include "../core/gameheap.h"
+#include "../core/stdtree.h"
 #include "../core/stdwstring.h"
 #include "../sprite/script.h"
+#include "../ui/window7cc8bc.h"
 #include "../world/person.h"
 #include "../world/personscripts.h"
 #include "../world/things.h"
@@ -97,6 +99,14 @@ void __fastcall ChatAvatar_GotoRoom(u8 *avatar) {
         else
             GameHeap_Free(reinterpret_cast<u8 *>(name.ptr) - 2);
     }
+}
+
+void __fastcall ChatAvatar_AddName(u8 *avatar, void *, const StdWString *name, u32) {
+    const u16 *text = name->ptr;
+    if (!text) text = reinterpret_cast<const u16 *>(0x006fd6c4);
+    Window7cc8bc_ListAddStd(text, 0);
+    u8 *result[2];
+    StdMapD_Insert(avatar + 0xe80, nullptr, result, name);
 }
 
 u8 __fastcall ChatAvatar_PlaceAtCell(u8 *self, void *, u32 handle, u32 cell) {

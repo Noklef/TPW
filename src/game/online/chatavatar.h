@@ -6,6 +6,8 @@
 
 #include "../../../re/types.h"
 
+struct StdWString;
+
 extern "C" {
 
 // 0x4ea370 (thiscall; x, y, pops 8): Chat::MovePlayer(x, y as 16-bit values, mode 0, the avatar); then the thing in the thing table's slot
@@ -34,6 +36,11 @@ u32 __fastcall ChatAvatar_MovePlayer1(u8 *avatar, void *, u32 x, u32 y);
 // to Chat::Goto(const wstring &, void *context) (import 0x6fd490, __thiscall on the Chat at +0) with the avatar; then the string is
 // released (_Tidy inlined: its block loses a count, or is freed when owned alone or frozen).
 void __fastcall ChatAvatar_GotoRoom(u8 *avatar);
+
+// 0x4ee6d0 (thiscall; name (a std::wstring), a dword not read, pops 8; name invented; called from 0x4e6d9c with the avatar's own +8): the
+// name's characters (null: the empty string at 0x6fd6c4) added to the window [0x7cc8bc]'s name list (Window7cc8bc_ListAddStd, data 0), and
+// the name inserted into the avatar's set of names at +0xe80 (tree D: StdMapD_Insert, the result not read).
+void __fastcall ChatAvatar_AddName(u8 *avatar, void *, const StdWString *name, u32 unused);
 
 // 0x4ebfb0 (thiscall, the object not used but for ECX's high word in x (sic); handle, cell, pops 8): the thing in the thing table's slot for
 // the handle's low word, when of kind 0x12, placed at the centre of the map cell (1-based: column (cell - 1) & 0x7f, row (cell - 1) >> 7; x
