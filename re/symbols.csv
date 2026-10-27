@@ -216,6 +216,8 @@ address,name,kind,confidence,notes
 0x00504760,ResearchGroup_Serialize,function,high,reimplemented (src/game/world/research); a group's 4 fields
 0x00512010,Weather_Serialize,function,high,"reimplemented (src/game/world/weather); thing model 15: thing, fields, forecast at +0x20, fields"
 0x00512c50,Weather_RandomBolt,function,low,"reimplemented (src/game/world/weather); thiscall (&start, &end, unused): a lightning bolt's random ends, start on the ground inside the map, end 300 up and within 50 of it"
+0x005131f0,Weather_SetMode,function,low,"reimplemented (src/game/world/weather); thiscall (mode), pops 4: the renderer's +0 = 1 / 2 for modes 0 / 1, mode 2 no drops; mode 0 plays sound 0x21 when none, modes 1 and 2 stop it"
+0x00512f00,Weather_SetIntensity,function,low,"reimplemented (src/game/world/weather); thiscall (value), pops 4: +0xc the value cut to 1..100, the time, rain or snow by the ranges at 0x785504, the drops, the wind's strength and angle"
 0x005132a0,Forecast_Serialize,function,high,"reimplemented (src/game/world/forecast); thiscall (stream, save, version, unused): the forecast's time (8 bytes), quality and valid byte saved or loaded"
 0x004cf920,BankAccount_Serialize,function,high,"reimplemented (src/game/world/bankaccount); thiscall (stream, save, version, unused): the bank account's serializer (thing model 16: the head dwords, eight loans of eight dwords; loads past the third through Save_ReadU32)"
 0x004d2320,Challenges_Serialize,function,high,"reimplemented (src/game/world/challenges); thing model 19: thing, 0x14 challenges, then 7 fields"
@@ -257,7 +259,7 @@ address,name,kind,confidence,notes
 0x004c7370,ParkAnalyser_HandleMessage,function,high,Thing_HandleMessage case 13
 0x00503d40,ResearchLab_HandleMessage,function,high,Thing_HandleMessage case 14
 0x00512880,Weather_Update,function,medium,Thing_Update case 15
-0x005127a0,Weather_HandleMessage,function,high,Thing_HandleMessage case 15
+0x005127a0,Weather_HandleMessage,function,high,"reimplemented (src/game/world/weather); thiscall (message), pops 4: kind 1 sets the intensity (unless +0x64), kind 2 schedules +0x20 = now + days, +0x28 the value, +0x18 now"
 0x004d02d0,BankAccount_HandleMessage,function,high,Thing_HandleMessage case 16
 0x0050ca50,UIMsgReceiver_HandleMessage,function,high,Thing_HandleMessage case 17
 0x004f7c50,Stub_Ret4b,function,high,reimplemented (src/game/core/accessors); a virtual that does nothing (pops 4)
