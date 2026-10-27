@@ -42,6 +42,12 @@ void __fastcall Visitor_Lower19c(u8 *visitor, void *, u32 index);
 // Visitor_Raise19c's (the visitor's 0..100 values: +0x1b8 and others).
 void __fastcall Stat100_Add(float *stat, void *, float delta);
 
+// 0x4fa470 (thiscall (effect), pops 4; x87; name invented; called from 0x4f7c60, 0x4fb26e, 0x500c35, 0x501fce, 0x5020ed, 0x5059c3): the
+// effect spawned (Particle_Spawn) where the sprite's script (the reference +0xc: SpriteScript_GetPosition's x and z) is, moved by the dwords
+// 0x785584 / 0x785588 times 10.0 (0x700698), on the ground there (Terrain_HeightAt); each times 1024.0 (0x7006ec), __ftol'd. (With the
+// script not there the original's x, y and z are its stack's leftovers; 0 here.)
+void __fastcall Sprite_SpawnParticle(u8 *sprite, void *, s32 effect);
+
 // 0x4fa670 (thiscall (on), pops 4; name invented): +0x198 (Sprite_SetDestination's mark) the next count of 0x7cdb98 (Counter7cdb98_Inc)
 // when on is nonzero (the handle read for the empty Debug_Printf), else 0.
 void __fastcall Sprite_SetBlockedMark(u8 *sprite, void *, u32 on);
@@ -183,4 +189,8 @@ u32 __fastcall Person_DumpActionHistory(u8 *person);
 // at 0x75c7fc - +0xc8 * -3.0) * 0.25 (x87), passed to the nav (+0xd4: Nav_SetSpeed); the word +0xc4 = its product with 99 (16 bits) / 100; the
 // position +0x190 / +0x194 read back from the nav (Nav_GetPos), and the script reference +0xc applied (ScriptRef_Apply).
 void __fastcall Person_UpdateSpeed(u8 *person);
+
+// 0x4f7c60 (thiscall; name invented; called from 0x50b495 after a test of the mode setting 0xfb3b7c): Person_UpdateSpeed, then the effect 0x35
+// (the byte +0x3a0 set) or 0x39 spawned at the person (Sprite_SpawnParticle).
+void __fastcall Person_UpdateSpeedParticle(u8 *person);
 }

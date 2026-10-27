@@ -12,9 +12,11 @@
 #include "../core/soundplay.h"
 #include "../math/x87.h"
 #include "../render/dynfaces.h"
+#include "../render/particles.h"
 #include "../sprite/script.h"
 #include "../sprite/scriptref.h"
 #include "../sprite/sprite.h"
+#include "../terrain/land.h"
 #include "analyser.h"
 #include "messagecentre.h"
 #include "nav.h"
@@ -372,6 +374,18 @@ void __fastcall Visitor_Lower19c(u8 *visitor, void *, u32 index) {
 
 void __fastcall Stat100_Add(float *stat, void *, float delta) { set100(stat, X87Reg(delta) + X87Reg(*stat)); }
 
+void __fastcall Sprite_SpawnParticle(u8 *sprite, void *, s32 effect) {
+    float x = 0.0f, y = 0.0f, z = 0.0f;   // (the original's are its stack's leftovers when the script is not there)
+    SpriteScript_GetPosition(at<s32>(sprite, 0xc), reinterpret_cast<u32 *>(&x), reinterpret_cast<u32 *>(&y), reinterpret_cast<u32 *>(&z), nullptr);
+    x = (float)(X87Reg((double)(s32)Global785584_Get_519410()) * global<float>(0x00700698) + x);   // fild; fmul 10.0; fadd x; fstp
+    z = (float)(X87Reg((double)(s32)Global785588_Get_519420()) * global<float>(0x00700698) + z);
+    y = (float)Terrain_HeightAt(x, z);
+    const s32 px = (s32)(long long)(X87Reg(x) * global<float>(0x007006ec)).v;   // fld; fmul 1024.0; __ftol (low half)
+    const s32 py = (s32)(long long)(X87Reg(y) * global<float>(0x007006ec)).v;
+    const s32 pz = (s32)(long long)(X87Reg(z) * global<float>(0x007006ec)).v;
+    Particle_Spawn(effect, px, py, pz);
+}
+
 void __fastcall Sprite_SetBlockedMark(u8 *sprite, void *, u32 on) {
     if (!on) {
         at<u32>(sprite, 0x198) = 0;
@@ -612,5 +626,10 @@ void __fastcall Person_UpdateSpeed(u8 *person) {
     at<u16>(person, 0xc4) = (u16)((u16)(at<u16>(person, 0xc4) * 99u) / 100u);
     Nav_GetPos(person + 0xd4, nullptr, &at<u32>(person, 0x190), &at<u32>(person, 0x194));
     ScriptRef_Apply(person + 0xc);
+}
+
+void __fastcall Person_UpdateSpeedParticle(u8 *person) {
+    Person_UpdateSpeed(person);
+    Sprite_SpawnParticle(person, nullptr, at<u8>(person, 0x3a0) ? 0x35 : 0x39);
 }
 }
