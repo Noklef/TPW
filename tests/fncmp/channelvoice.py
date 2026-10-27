@@ -6,29 +6,31 @@
 # count from the settings' +0x40 (below, at or above the capacity). SoundChannel_ReleaseVoice (soundchannel, 0x6b7e60) is benched here
 # ('releasevoice'): a voice or null. ChannelVoice_SetFlag: the byte on over random upper bytes, any mask. The pool's constructor: 0-3
 # voices, the heap failing now and then (the array, a voice's buffer, the events, their handles). The refill: slot 7 (the read, its out
-# logged as 0) answering 1 or else, Reset / SetEvent recorders.
+# logged as 0) answering 1 or else, Reset / SetEvent recorders. The scaled rate (0x6bb860) and the id's high part (0x6bb8d0): see case().
 # usage: channelvoice.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, echo, fill, heap, import_table, log_region, set_return, strings, vtable  # noqa: E402
+from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, echo, fb, fill, heap, import_table, log_region, set_return, strings, vtable  # noqa: E402
 
 # name: (address, convention, returns)
 CALLS = {'reset': (0x6c5060, 'c', 'v'), 'inc': (0x6c5070, 't', 'a'), 'dec': (0x6c5080, 't', 'a'), 'sound': (0x6bb7a0, 't', 'a'),
          'release': (0x6bb7c0, 't', 'b'), 'releaseall': (0x6babc0, 't', 'v'), 'setcount': (0x6bac30, 't', 'v'),
          'releasevoice': (0x6b7e60, 't', 'a'), 'setflag': (0x6b8330, 't', 'v'),
          'apply': (0x6bb3e0, 't', 'a'), 'ctor': (0x6bb270, 't', 'a'), 'new': (0x6baf50, 't', 'a'),
-         'poolctor': (0x6ba230, 't', 'a'), 'refill': (0x6bb590, 't', 'a')}
+         'poolctor': (0x6ba230, 't', 'a'), 'refill': (0x6bb590, 't', 'a'), 'scaled': (0x6bb860, 't', 'a'), 'sethigh': (0x6bb8d0, 't', 'v')}
 RANGES = [(0x6c5060, 0x6c506b), (0x6c5070, 0x6c5078), (0x6c5080, 0x6c5088), (0x6bb7a0, 0x6bb7bd), (0x6bb7c0, 0x6bb856), (0x6babc0, 0x6bac04),
           (0x6bac30, 0x6bac5c), (0x6b7e60, 0x6b7ea5), (0x6b8330, 0x6b8358),
           (0x6bb3e0, 0x6bb468), (0x6bb270, 0x6bb311), (0x6baf50, 0x6bafc9), (0x67acf0, 0x67ada0),
-          (0x6ba230, 0x6ba2b5), (0x6bb590, 0x6bb5d2), (0x6c6120, 0x6c615d)]
+          (0x6ba230, 0x6ba2b5), (0x6bb590, 0x6bb5d2), (0x6c6120, 0x6c615d), (0x6bb860, 0x6bb8c9),
+          (0x6bb8d0, 0x6bb922)]
 B = Bench(RANGES)
 VOICES, VVT, SND, SVT, POOL, CHAN, SRC, SRCVT, SETS, OUT = (RAM + 0x400 * i for i in range(10))
 COUNT, SHIFT = 0xfb2058, 0x782db8
 REC, PAIR = RAM + 0x2800, RAM + 0x2c00   # (the apply's record and its pair)
+MODS = RAM + 0x2e00   # (the scaled rate's four modifiers)
 IMPORTS = {'InterlockedIncrement': (40, 0x6fd0c0, 1, 0, 0), 'InterlockedDecrement': (41, 0x6fd12c, 1, 0, 0),
            'EnterCriticalSection': (42, 0x6fd140, 1, 0, 0), 'LeaveCriticalSection': (43, 0x6fd130, 1, 0, 0),
            'CreateEventA': (44, 0x6fd0d4, 4, 0, 0), 'InitializeCriticalSection': (45, 0x6fd144, 1, 0, 0),
@@ -96,6 +98,19 @@ def case(r):
         return Call(address, [VOICES, r.choice([0, 1, 0x80, 0x100, 0xffff7f00, r.getrandbits(32)]), r.getrandbits(32)], regions, conv=conv, ret=ret)
     if name == 'reset':
         return Call(address, [], regions, conv=conv, ret=ret)
+    if name == 'scaled':   # (the rate any; the mask 0, bits 0-3 any way or any; the modifiers ordinary, 1.0, 0, infinities, NaNs, any bits)
+        v = bytearray(regions[VOICES][:0x8c] or r.bytes(0x8c))
+        struct.pack_into('<III', v, 0x18, r.choice([0, 1, 22050, 44100, 0x7fffffff, 0xffffffff, r.getrandbits(32), r.getrandbits(16)]),
+                         r.getrandbits(32), r.getrandbits(32))
+        struct.pack_into('<I', v, 0x24, r.choice([0, r.randrange(16), r.randrange(16), r.randrange(16), r.getrandbits(32)]))
+        struct.pack_into('<I', v, 0x34, MODS)
+        regions[VOICES] = v
+        regions[MODS] = struct.pack('<4I', *[r.choice([fb(r.f()), fb(r.f()), 0x3f800000, 0, 0x80000000, 0x7f800000, 0xff800000, 0x7fc00000,
+                                                       0x7f800001, 0xffc12345, 0x00000001, r.getrandbits(32)]) for _ in range(4)])
+        return Call(address, [VOICES], regions, conv=conv, ret=ret)
+    if name == 'sethigh':   # (the guard set or not, the mask kept any; the shift any byte)
+        regions[0xfb1f18] = bytes([r.choice([0, 1, r.getrandbits(8)])]) + r.bytes(3) + struct.pack('<I', r.getrandbits(32))
+        return Call(address, [OUT, r.getrandbits(32)], regions, conv=conv, ret=ret)
     if name in ('inc', 'dec'):
         return Call(address, [r.choice([COUNT, OUT])], regions, conv=conv, ret=ret)
     if name in ('sound', 'release'):

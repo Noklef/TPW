@@ -2,6 +2,10 @@
 
 #include <cstdint>
 
+#include <emmintrin.h>
+
+#include "../math/x87.h"
+
 #include "crt.h"
 #include "gameheap.h"
 #include "soundchannel.h"
@@ -91,6 +95,35 @@ void __fastcall ChannelVoices_ReleaseAll(u8 *pool) {
         SoundChannel_ReleaseVoice(at<u8 *>(pool, 0xc), nullptr, &out, voice, 1);
         voice += 0x8c;
     } while (voice < end);
+}
+
+u32 __fastcall ChannelVoice_ScaledRate(const u8 *voice) {
+    const u32 rate = at<u32>(voice, 0x18);
+    const u32 mask = at<u32>(voice, 0x24);
+    if (!mask) return rate;
+    X87Reg factor = 1.0;
+    if (mask & 1) factor = X87Reg(at<float>(at<const u8 *>(voice, 0x34), 0));
+    if (mask & 2) factor = factor * at<float>(at<const u8 *>(voice, 0x34), 4);
+    if (mask & 4) factor = factor * at<float>(at<const u8 *>(voice, 0x34), 8);
+    if (mask & 8) factor = factor * at<float>(at<const u8 *>(voice, 0x34), 0xc);
+    const float scaled = static_cast<float>(X87_MulUIntDouble(rate, factor.v));
+    return static_cast<u32>(_mm_cvtss_si32(_mm_set_ss(scaled)));   // (fld; fistp)
+}
+
+void __fastcall VoiceId_SetHigh(u32 *id, void *, u32 value) {
+    u8 &guard = *reinterpret_cast<u8 *>(static_cast<uintptr_t>(0xfb1f18));
+    u32 &kept = *reinterpret_cast<u32 *>(static_cast<uintptr_t>(0xfb1f1c));
+    const u32 *const shift = reinterpret_cast<const u32 *>(static_cast<uintptr_t>(0x782db8));
+    u32 mask;
+    if (!(guard & 1)) {
+        guard |= 1;
+        mask = (1u << ((*shift + 1) & 31)) - 1;
+        kept = mask;
+    } else {
+        mask = kept;
+    }
+    *id &= mask;
+    *id += (value & 0xffff) << (*shift & 31);
 }
 
 u8 *__fastcall ChannelVoice_Ctor(u8 *voice) {

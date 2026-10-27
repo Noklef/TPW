@@ -23,6 +23,13 @@ u8 *__fastcall ChannelVoice_Sound(u8 *voice);
 // +0x2c, +0x34 / +0x38 0; +0x64 a block of 0x2420 bytes (Mem_Alloc) and +0x68 that 32-byte aligned up; +0x6c an event (CreateEventA
 // (0, 1, 0, 0): manual reset, not signalled); the critical section +0x74 initialised; +0x58 0; vtable 0x70a7a8. Returns the voice.
 u8 *__fastcall ChannelVoice_Ctor(u8 *voice);
+// 0x6bb860 (thiscall; name invented): the rate (+0x18) as it is when the modifier mask (+0x24) is 0; else the rate (fild qword: as
+// unsigned) times the product of the modifiers (+0x34, four floats) whose bits (0-3) are set (1.0 for none of them; the first loaded,
+// the rest multiplied in at the game's 24-bit precision), stored to a float and fistp'd (to nearest; 0x80000000 past the range).
+u32 __fastcall ChannelVoice_ScaledRate(const u8 *voice);
+// 0x6bb8d0 (thiscall (value), pops 4; name invented): the dword at this keeps its bits below the shift (the byte at 0x782db8) + 1 (that
+// mask made once: the guard 0xfb1f18 bit 0, the mask at 0xfb1f1c), stored, then the value's low word shifted left by the shift added in.
+void __fastcall VoiceId_SetHigh(u32 *id, void *, u32 value);
 // 0x6baf50 (thiscall (count), pops 4; an SEH frame): new[] of count voices: a block of count * 0x8c + 4 (Mem_Alloc), the count at +0,
 // the voices from +4 constructed (CRT_VectorCtorIterator with ChannelVoice_Ctor; the destructor 0x6bb050 for the unwinding); the array
 // (null when the allocation fails) into the holder's +0. Returns the holder.
