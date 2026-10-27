@@ -521,6 +521,13 @@ u8 *__fastcall Voice70a878_Ctor(u8 *voice) {
     return voice;
 }
 
+u8 *__fastcall Voice70a390_Ctor(u8 *voice) {
+    Class70a7e0_Ctor(voice);
+    at<u32>(voice, 0) = 0x0070a390;
+    SoundVoice_EnsureParams(voice);
+    return voice;
+}
+
 u8 *__fastcall Voice70a2e0_Ctor(u8 *voice) {
     Class70a7e0_Ctor(voice);
     at<u32>(voice, 0) = 0x0070a390;

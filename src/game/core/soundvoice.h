@@ -131,6 +131,9 @@ u8 *__fastcall Voice70a878_Ctor(u8 *voice);
 // 0x6bdd80 (thiscall; name invented): Class70a7e0_Ctor, the vtable 0x70a390, the parameter block (SoundVoice_EnsureParams), then the
 // vtable 0x70a2e0. Returns the voice.
 u8 *__fastcall Voice70a2e0_Ctor(u8 *voice);
+// 0x6bdcb0 (thiscall; an SEH frame; name invented): Class70a7e0_Ctor, the vtable 0x70a390 and the parameter block (SoundVoice_EnsureParams,
+// inlined). Returns the voice.
+u8 *__fastcall Voice70a390_Ctor(u8 *voice);
 // 0x6c3a80 (thiscall (definition, time), pops 8): +4 = the definition, SoundVoice_SetFlags (0), the categories (+0x47) the parent's;
 // slot 14 (0) answering 0, or slot 15 (0) (it becomes +0xc) 0: 0. Else +0x1c = slot 19 () + the time; 1.
 u8 __fastcall LinkedVoice_Init(u8 *voice, void *, u8 *definition, u32 time);
