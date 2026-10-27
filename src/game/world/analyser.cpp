@@ -1,18 +1,24 @@
 #include "analyser.h"
 
 #include <cstdint>
+#include <cstring>
 
 #include "../core/filetime.h"
 #include "../core/circbuf.h"
 #include "../core/funnytime.h"
 #include "../core/indexed.h"
 #include "../core/trivial.h"
+#include "../core/vcall.h"
 #include "../core/savegame.h"
+#include "../files/wrapsources.h"
+#include "../math/x87.h"
 #include "mapcell.h"
 #include "messagecentre.h"
 #include "object.h"
 #include "objectdefs.h"
 #include "things.h"
+#include "thingscan.h"
+#include "world.h"
 
 namespace {
 
@@ -348,6 +354,59 @@ u32 __fastcall ParkAnalyser_CountWith2c(u8 *analyser, void *, u32 limit) {
     u32 sum = 0;
     for (u32 i = 0x400; i-- > 0;) sum += AnalyserCell_CountWith2c(analyser + 0x20 + 0x7c * i, nullptr, limit);
     return sum;
+}
+
+void __fastcall ParkAnalyser_Sample(u8 *analyser) {
+    u8 *const world = **reinterpret_cast<u8 *const *const *>(0x007cf6ec);
+    const u32 position = Source_Field0c(reinterpret_cast<const TrackedSource *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(world)));
+    CircBufU32_144_Push(analyser + 0x1f100, nullptr, position);
+    // (the first four through 0x4ce290, the rest inlined: each the dword at its +0 pushed, then cleared)
+    static const u32 kAccumulators[] = {0x1f5a0u, 0x1f7f0u, 0x1fa40u, 0x1fc90u, 0x1fee0u, 0x20130u, 0x20380u, 0x20cc0u};
+    for (const u32 ring : kAccumulators) {
+        CircBufU32_144_Push(analyser + ring, nullptr, at<u32>(analyser, ring));
+        at<u32>(analyser, ring) = 0;
+    }
+    CircBufU32_144_Push(analyser + 0x205d0, nullptr, ParkAnalyser_CountKind1OnPlainCell(analyser, nullptr, 0));
+    CircBufU32_144_Push(analyser + 0x20820, nullptr, at<u32>(analyser, 0x21c08));
+    CircBufU32_144_Push(analyser + 0x20a70, nullptr, ParkAnalyser_CountDef4ac0(analyser, nullptr, 0));
+    const float average = static_cast<float>(Things_AveragePersonStat19c(analyser, nullptr, 0));   // (fstp m32)
+    u32 bits;
+    std::memcpy(&bits, &average, 4);
+    CircBufU32_144_Push(analyser + 0x20f10, nullptr, bits);
+    CircBufU32_144_Push(analyser + 0x1f350, nullptr, ParkAnalyser_ParkScore(analyser, nullptr, 0));
+    at<u32>(analyser, 0x21bfc) = 0;
+    at<u32>(analyser, 0x21c00) = 0;
+    double sum;
+    const s32 count = CircBufU32_50_Sum(analyser + 0x21600, nullptr, &sum, 0x32);
+    CircBufU32_144_Push(analyser + 0x21160, nullptr, count > 0 ? (u32)(long long)(X87Reg(sum) / X87Reg((double)count)).v : 0);
+    CircBufU32_144_Push(analyser + 0x213b0, nullptr, (u32)Things_FacilityScore(analyser));
+}
+
+void __fastcall ParkAnalyser_HandleMessage(u8 *analyser, void *, u8 *message) {
+    switch (vcall<u32>(message, 0)) {
+    case 0xc:
+        ParkAnalyser_Sample(analyser);
+        return;
+    case 0x11: {   // (a u16 ring of the definition's +0x4ac: +8 cursor, +0xc size, +0x10 wrapped, the values from +2)
+        const u16 id = at<u16>(message, 8);
+        u8 *const r = analyser + (at<u32>(ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, id), 0x4ac) + 0x18d2) * 0x14;
+        const s32 size = at<s32>(r, 0xc);
+        const s32 cursor = at<s32>(r, 8) + 1;
+        at<s32>(r, 8) = cursor;
+        if (cursor >= size) {
+            at<s32>(r, 8) = 0;
+            at<u8>(r, 0x10) = 1;
+        }
+        at<u16>(r, 2 + 2 * at<s32>(r, 8)) = id;
+        return;
+    }
+    case 0x13:
+        if (at<u32>(message, 8) == 3) stamp(analyser, 0x21c28);
+        return;
+    case 0x17:
+        if (at<u32>(message, 0xc) == 2) stamp(analyser, 0x21c10);
+        return;
+    }
 }
 
 u32 __fastcall ParkAnalyser_ParkScore(u8 *analyser, void *, u32 limit) {

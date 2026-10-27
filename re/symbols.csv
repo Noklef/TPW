@@ -253,7 +253,7 @@ address,name,kind,confidence,notes
 0x0059b060,Advisor_HandleMessage,function,high,Thing_HandleMessage case 11
 0x0059a550,Advisor_Update,function,medium,Thing_Update case 11 (works on a global; skipped when DAT_00fb3b7c == 1)
 0x00509bf0,TagSystem_HandleMessage,function,high,Thing_HandleMessage case 12
-0x004c7370,ParkAnalyser_HandleMessage,function,high,Thing_HandleMessage case 13
+0x004c7370,ParkAnalyser_HandleMessage,function,high,"reimplemented (src/game/world/analyser); thiscall (message), pops 4: the analyser message handler"
 0x00503d40,ResearchLab_HandleMessage,function,high,Thing_HandleMessage case 14
 0x00512880,Weather_Update,function,medium,Thing_Update case 15
 0x005127a0,Weather_HandleMessage,function,high,Thing_HandleMessage case 15
@@ -863,6 +863,7 @@ address,name,kind,confidence,notes
 0x004c8ba0,AnalyserCell_CountWith2c,function,low,reimplemented (src/game/world/analyser); an analyser cell's cached count of map cells whose +0x2c is set
 0x004c8180,ParkAnalyser_CountWith2c,function,low,reimplemented (src/game/world/analyser); the 0x400 analyser cells' counts of map cells whose +0x2c is set summed
 0x004c7db0,ParkAnalyser_ParkScore,function,low,"reimplemented (src/game/world/analyser); the park score over the whole map and the things, cached"
+0x004c7720,ParkAnalyser_Sample,function,low,reimplemented (src/game/world/analyser); thiscall: the periodic sample pushed onto the analyser rings
 0x004d0af0,MapHandle_Entry28,function,high,reimplemented (src/game/world/mapcell); thiscall on a u16 handle: gMapCells + 0x10ffd8 + handle * 0x28
 0x004d0b10,MapHandle_Cell44,function,high,reimplemented (src/game/world/mapcell); thiscall on a u16 handle: gMapCells + (handle - 1) * 0x44
 0x004d0a70,MemRanges_Set,function,high,"reimplemented (src/game/world/mapcell); thiscall on 0x7cdb30 (index, a, b, name): entry index = (a, b); name unused (""World Struture"")"
