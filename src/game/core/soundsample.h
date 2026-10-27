@@ -60,4 +60,8 @@ u8 *__fastcall SampleCopier_Install(u8 *self);
 // forwards (so overlapping runs repeat as the original's do).
 void __fastcall SampleCopier_MmxCopy(void *self, void *, u8 *dest, const u8 *source, u32 count);
 
+// 0x6b7390 (thiscall; the base of 0x6b8ed0's 0x70a5d8; name invented): Class703770_Ctor, +8-+0x20 = 0, the copier at +0x24
+// (SampleCopier_Install), vtable 0x70a548. Returns the object.
+u8 *__fastcall SoundSample70a548_Ctor(u8 *self);
+
 }  // extern "C"

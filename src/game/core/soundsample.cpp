@@ -8,6 +8,7 @@
 #include "../files/handles.h"
 #include "../files/substream.h"
 #include "gameheap.h"
+#include "misc.h"
 #include "semaphore.h"
 #include "soundstream.h"
 #include "streampool.h"
@@ -137,6 +138,14 @@ void __fastcall SampleCopier_MmxCopy(void *, void *, u8 *dest, const u8 *source,
         std::memcpy(dest, q, sizeof q);
     }
     __movsb(dest, source, count & 31);
+}
+
+u8 *__fastcall SoundSample70a548_Ctor(u8 *self) {
+    Class703770_Ctor(self);
+    for (u32 offset = 8; offset <= 0x20; offset += 4) at<u32>(self, offset) = 0;
+    SampleCopier_Install(self + 0x24);
+    at<u32>(self, 0) = 0x0070a548;
+    return self;
 }
 
 }  // extern "C"

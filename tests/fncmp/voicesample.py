@@ -14,7 +14,8 @@
 # REF: InterlockedIncrement and CreateSemaphoreA recorders; the start any) and the file / MP2 samples' destructors (as the others; the
 # file sample's window at +0x2c, its source at +0x3c; the pools 0xfb20b0 and 0xfb26d8-0xfb26eb).
 # The memory copier's install (0x6c3f70: the MMX switch 0xfb2704 any, the block failing now and then) and the MMX copy (0x6c3fc0: runs
-# within one buffer, overlapping either way by a few bytes now and then; counts about the 32-byte blocks).
+# within one buffer, overlapping either way by a few bytes now and then; counts about the 32-byte blocks). The sound base's constructor
+# (0x6b7390) that installs it, on the sample's bytes.
 # usage: voicesample.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -32,7 +33,7 @@ CALLS = {'decode': (0x6c7cf0, 'a'), 'read': (0x6c7c20, 'a'), 'query': (0x6c7bc0,
          'memread': (0x6c7250, 'a'), 'fileread': (0x6c7890, 'a'), 'filerewind': (0x6c7920, 'a'),
          'vctor': (0x6c7b20, 'a'), 'vsctor': (0x6c7f70, 'a'), 'fctor': (0x6c7780, 'a'), 'mctor': (0x6c82c0, 'a'), 'msctor': (0x6c87c0, 'a'),
          'fdtor': (0x6c7820, 'v'), 'fddtor': (0x6c7800, 'a'), 'mddtor': (0x6c8310, 'a'), 'msdtor': (0x6c8850, 'v'), 'msddtor': (0x6c8830, 'a'),
-         'copier': (0x6c3f70, 'a'), 'mmxcopy': (0x6c3fc0, 'v')}
+         'copier': (0x6c3f70, 'a'), 'mmxcopy': (0x6c3fc0, 'v'), 'basector': (0x6b7390, 'a')}
 CTORS = ('vctor', 'vsctor', 'fctor', 'mctor', 'msctor')
 DTORS = ('sdtor', 'dtor', 'sdtor2', 'ddtor', 'sddtor', 'sdel', 'fdtor', 'fddtor', 'mddtor', 'msdtor', 'msddtor')
 B = Bench([(0x6c7bc0, 0x6c7dfb), (0x6c80c0, 0x6c8138), (0x6c7010, 0x6c7082), (0x6bb1d0, 0x6bb1dd), (0x6c6230, 0x6c625a),
@@ -46,7 +47,8 @@ B = Bench([(0x6c7bc0, 0x6c7dfb), (0x6c80c0, 0x6c8138), (0x6c7010, 0x6c7082), (0x
            (0x6c7250, 0x6c72e9), (0x6c7890, 0x6c7911), (0x6c7920, 0x6c7925),
            (0x6c7b20, 0x6c7b9e), (0x6c7f70, 0x6c7fd7), (0x6c7780, 0x6c77f2), (0x6c7800, 0x6c788a), (0x6c82c0, 0x6c8301), (0x6c8310, 0x6c832e),
            (0x6c87c0, 0x6c882c), (0x6c8830, 0x6c88ba), (0x6d4d10, 0x6d4d72), (0x6d4d80, 0x6d4de2), (0x5f71b0, 0x5f71d1), (0x618d20, 0x618d2b),
-           (0x6307c0, 0x6307d7), (0x6c7730, 0x6c7775), (0x6c8270, 0x6c82b5), (0x6c8770, 0x6c87b5), (0x6c3f70, 0x6c3fbf), (0x6c3fc0, 0x6c400f)])
+           (0x6307c0, 0x6307d7), (0x6c7730, 0x6c7775), (0x6c8270, 0x6c82b5), (0x6c8770, 0x6c87b5), (0x6c3f70, 0x6c3fbf), (0x6c3fc0, 0x6c400f),
+           (0x6b7390, 0x6b73ed), (0x6338b0, 0x6338c0)])
 SAMPLE, SVT, NEXT, SUBVT, FILEVT, OUT, RECORD, MEMREADER = (RAM + 0x100 * i for i in range(8))
 # (the buffer ends at the regions' 64 KB chunk: a wild count's frames run off it there at once, in both, where at RAM + 0x800 the
 # original wrote on through the decoder and the rest of the chunk, 0x7c00 samples and 37 frames decoded, past the emulator's 5M steps)
@@ -108,7 +110,7 @@ def case(r):
                OUT: r.bytes(4), RECORD: r.bytes(0x48), MEMREADER: struct.pack('<2I', MEMORY_VTABLE, 0), LOG: log,
                CLOCK: bytes(0x20), TIME_GET_TIME: struct.pack('<I', recorder(TIME_K, 0, True)), HEAP: heap(0x2100, fail=r.choice([0, 0, 0, 1]))}
     args = []
-    if name == 'copier':
+    if name in ('copier', 'basector'):
         regions[COPIER_AT] = r.bytes(4)
         regions[0xfb2704] = struct.pack('<I', r.choice([0, 0, 1, r.getrandbits(32)]))
         return Call(address, [SAMPLE], regions, conv='t', ret=ret)
