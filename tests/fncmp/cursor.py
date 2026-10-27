@@ -15,27 +15,55 @@
 # few then 0 (for the .tga ones never past the carry cursor's, whose +5 a hash would be).
 # usage: cursor.py [CASES [SEED]] [--wild|--both] [--show N]
 # Colour (0x661e30): palcolour.py's Set cases. SysCtor (0x661935): any bytes. Delete (0x661dd0): any bytes, the flags 0-3 or any (the block freed with bit 0).
+# Draw (0x65921f) / Arrow (0x661a06): draw_case() below; the point's words small, edges or any (upper halves random now and then).
 #   (env OPS=Get,SetCursor,WindowSetCursor,ApplyCursor,Set,ObjSet,Update,Clear,Init,SetTable,TableSet,LoadAni,LoadTga)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, LOG, RAM, Bench, Call, _recorder, echo, fail_after, heap, log_region, put, set_return, strings, vtable  # noqa: E402
+from fncmp import HEAP, LOG, LOG_BYTES, RAM, Bench, Call, _recorder, echo, fail_after, heap, log_region, put, set_return, strings, vtable  # noqa: E402
 
 CALLS = {'Get': 0x661d96, 'SetCursor': 0x6590f7, 'WindowSetCursor': 0x65f11d, 'ApplyCursor': 0x65f150, 'Set': 0x4a2aa0, 'ObjSet': 0x4814a0,
          'Update': 0x52f950, 'Clear': 0x661c36, 'Init': 0x661cca, 'SetTable': 0x659248, 'TableSet': 0x661d3f, 'LoadAni': 0x489720,
          'LoadTga': 0x4899c0, 'SysCtor': 0x661935, 'Delete': 0x661dd0,
-         'Colour': 0x661e30}
+         'Colour': 0x661e30, 'Draw': 0x65921f, 'Arrow': 0x661a06}
 RANGES = [(0x661d96, 0x661dca), (0x6590f7, 0x6591d4), (0x65f11d, 0x65f14e), (0x66190a, 0x66191b), (0x65f150, 0x65f16b),
           (0x4a2aa0, 0x4a2abf), (0x4814a0, 0x4814e3), (0x52f950, 0x52fa1a), (0x527950, 0x527956), (0x661c36, 0x661cca), (0x661cca, 0x661d3f), (0x659248, 0x6592b6),
           (0x661d3f, 0x661d96), (0x489720, 0x4899b5), (0x4899c0, 0x489c71), (0x6618c7, 0x6618e6),
           (0x661935, 0x66195e), (0x661dd0, 0x661dfe), (0x661870, 0x6618a6), (0x6618a6, 0x6618ba),
-          (0x661e30, 0x661e54), (0x47ddc0, 0x47ddf2), (0x5f7360, 0x5f76b7)]
+          (0x661e30, 0x661e54), (0x47ddc0, 0x47ddf2), (0x5f7360, 0x5f76b7),
+          (0x65921f, 0x659248), (0x661a06, 0x661a93), (0x5f9780, 0x5f9eb0), (0x61af60, 0x61b040), (0x61b090, 0x61b1f0),
+          (0x62f890, 0x62f8e0), (0x62f940, 0x62f990)]
 LOADERS = {'LoadAni': (0x7b9e88, 28), 'LoadTga': (0x7b9ab0, 29)}
 B = Bench(RANGES, hooks={0x4895b0: _recorder(28, 1, cdecl=True), 0x489670: _recorder(29, 1, cdecl=True)})
 TABLE, ENTRIES, CURSORS, CVTABLE, WINDOW = RAM + 0x100, RAM + 0x200, RAM + 0x400, RAM + 0x800, RAM + 0x1000
 SLOTS, LOADED = RAM + 0x2000, RAM + 0x2200
+DRAWN, DRAWVT, DTABLE, DINFO = RAM + 0x3000, RAM + 0x3100, RAM + 0x3200, RAM + 0x3300   # (Draw, Arrow)
+DSTATE = 0xfa76b8
+
+
+def draw_case(r, op, log, regions):
+    """Draw: the current cursor [0xfaa608] a recorder object (slot 5; its two words logged as words) or 0. Arrow: display.py's world
+    (the clip near the point, the draw table's slot 10 a recorder whose colour index is logged as its byte), the palette random."""
+    words = [r.choice([0, 5, 100, 0x7fff, 0x8000, 0xffff, r.randrange(-30, 120) & 0xffff]) | r.choice([0, r.getrandbits(16)]) << 16
+             for _ in range(2)]
+    if op == 'Draw':
+        put(log, LOG_BYTES + 4 * 5, 'I', 3 << 16)
+        regions[DRAWN] = struct.pack('<I', DRAWVT) + r.bytes(0x1c)
+        regions[DRAWVT] = vtable({5: 2}, 8)
+        regions[0xfaa608] = struct.pack('<I', r.choice([DRAWN] * 5 + [0]))
+        return Call(CALLS[op], words, regions, ret='v')
+    put(log, LOG_BYTES + 4 * 10, 'I', 1 << 7)
+    state = bytearray(r.bytes(0x74))
+    xs, ys = sorted([r.randrange(-20, 100), r.randrange(-20, 100)]), sorted([r.randrange(-20, 100), r.randrange(-20, 100)])
+    put(state, 8, '4i', xs[0], ys[0], xs[1], ys[1])
+    put(state, 0x18, 'I', DSTATE + r.choice([0x38, 0x40, 0x44, 0x48]))
+    put(state, 0x30, 'I', DINFO)
+    for at in (0x38, 0x40, 0x44, 0x48):
+        put(state, at, 'I', DTABLE)
+    regions.update({DSTATE: state, DTABLE: vtable({10: 8}, 16), DINFO: r.bytes(0x28), 0xfa71f8: r.bytes(0x400), DRAWN: r.bytes(0x20)})
+    return Call(CALLS[op], [DRAWN] + words, regions, conv='t', ret='v')
 
 
 def table(r, regions):
@@ -78,6 +106,8 @@ def case(r):
     op = r.deal(OPS)
     log = log_region()
     regions = {LOG: log}
+    if op in ('Draw', 'Arrow'):
+        return draw_case(r, op, log, regions)
     if op == 'Colour':   # (palcolour.py's Set: the colour in, near or off a random palette; junk in the high bits)
         pal = r.bytes(0x400)
         k = r.randrange(256)
