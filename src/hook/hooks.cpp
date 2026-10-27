@@ -4222,6 +4222,7 @@ const Hook kHooks[] = {
     {"NamedObjects_AddListedFolders", 0x004081e0, (void *)&NamedObjects_AddListedFolders, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"NamedObjects_AddFixedFolders", 0x00408470, (void *)&NamedObjects_AddFixedFolders, {0x6a, 0xff, 0x68, 0xbf, 0x7a}},
     {"NamedObjects_AddSubfolders", 0x005c2ce0, (void *)&NamedObjects_AddSubfolders, {0x6a, 0xff, 0x68, 0xbc, 0x02}},
+    {"NamedObjects_CreateWorld",  0x00407d80, (void *)&NamedObjects_CreateWorld, {0x6a, 0xff, 0x68, 0x9b, 0x79}},
     {"Save_FieldName",            0x00416e10, (void *)&Save_FieldName, {0x33, 0xc0, 0xc2, 0x0c, 0x00}},
     {"Save_InitUnusedOne",        0x00416e20, (void *)&Save_InitUnusedOne, {0x51, 0xc7, 0x44, 0x24, 0x00}},
     {"Save_InitUnusedEpsilon",    0x00416e40, (void *)&Save_InitUnusedEpsilon, {0xd9, 0x05, 0x8c, 0xd9, 0x6f}},

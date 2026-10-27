@@ -4319,6 +4319,7 @@ address,name,kind,confidence,notes
 0x004081e0,NamedObjects_AddListedFolders,function,low,"reimplemented (src/game/core/namedobjects); three objects per listed name made with folders under the root 0x785e48, given their folders and WADs, registered"
 0x00408470,NamedObjects_AddFixedFolders,function,low,"reimplemented (src/game/core/namedobjects); the 13 fixed folder objects made on global names and folders, given their folders (and WADs), registered; the listed folders between the 7th and 8th"
 0x005c2ce0,NamedObjects_AddSubfolders,function,low,"reimplemented (src/game/core/namedobjects); the real subfolders of a folder (Handle_Open28, Vfn1 / Vfn2 with the pattern [0xf80768]) added by name to the registry owner 0x786b68; *out 0 or -1"
+0x00407d80,NamedObjects_CreateWorld,function,low,"reimplemented (src/game/core/namedobjects); The world block allocated, constructed and attached; stored at 0x7cf83c"
 0x00407b20,FloatConsts_InitOne_407b20,function,low,reimplemented (src/game/core/floatconsts); cdecl static initialiser: unused 0x78639c = 1.0f (unit unknown)
 0x00407b40,FloatConsts_InitEpsilon_407b40,function,low,reimplemented (src/game/core/floatconsts); cdecl static initialiser: unused 0x786aec = 1 / 2^23 (unit unknown)
 0x00409f60,FloatConsts_InitOne_409f60,function,low,reimplemented (src/game/core/floatconsts); cdecl static initialiser: unused 0x78736c = 1.0f (unit unknown)
