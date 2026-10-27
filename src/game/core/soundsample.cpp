@@ -1,6 +1,8 @@
 #include "soundsample.h"
 
 #include <cstdint>
+#include <cstring>
+#include <intrin.h>
 
 #include "../files/file.h"
 #include "../files/handles.h"
@@ -118,6 +120,23 @@ u8 *__fastcall FileSample_DeletingDtor(u8 *sample, void *, u32 flags) {
     FileSample_Dtor(sample);
     if (flags & 1) FileSamplePool_Delete(sample, 0x48);
     return sample;
+}
+
+u8 *__fastcall SampleCopier_Install(u8 *self) {
+    const bool mmx = *reinterpret_cast<u32 *>(static_cast<uintptr_t>(0x00fb2704)) != 0;
+    u32 *const copier = static_cast<u32 *>(GameHeap_Alloc(4));
+    if (copier) *copier = mmx ? 0x0070aa38 : 0x0070aa34;
+    *reinterpret_cast<u32 **>(static_cast<uintptr_t>(0x00fb2018)) = copier;
+    return self;
+}
+
+void __fastcall SampleCopier_MmxCopy(void *, void *, u8 *dest, const u8 *source, u32 count) {
+    for (u32 blocks = count >> 5; blocks; --blocks, source += 32, dest += 32) {
+        uint64_t q[4];   // (the four qwords read before any is written)
+        std::memcpy(q, source, sizeof q);
+        std::memcpy(dest, q, sizeof q);
+    }
+    __movsb(dest, source, count & 31);
 }
 
 }  // extern "C"
