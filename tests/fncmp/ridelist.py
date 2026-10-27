@@ -155,6 +155,11 @@ def case(r):
         panel[0x34] = r.choice([0, 1, 5, 99, 0x80, 0xff, r.getrandbits(8)])
         regions[RAM + 0x3000] = panel
         regions[0x7c2658] = struct.pack('<I', RAM)
+        if r.random() < 0.5:   # (the definitions' +0x70 clear: no duration)
+            items = bytearray(regions[0x30008000])
+            for k in range(16):
+                put(items, 0x500 * k + 0x70, 'I', 0)
+            regions[0x30008000] = items
         return Call(address, [RAM + 0x3000], regions, conv='t', ret='v')
     args = {'this': [RAM], 'id': [ident], 'rec2v': [rec, index, value], 'rec2': [rec, index], 'recv': [rec, value], 'rec': [rec], 'id2': [ident, index], 'thisv': [RAM, r.choice([0, 1, 5, 99, 0x100, 0x1ff, 0x80, 0xffffffff])]}[shape]
     return Call(address, args, regions, conv='t' if shape.startswith('this') else 'c', ret='v' if name in ('Set', 'SetW', 'Clr4', 'Spd', 'Dur', 'E41') else 'a')
