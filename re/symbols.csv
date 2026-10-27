@@ -388,6 +388,9 @@ address,name,kind,confidence,notes
 0x0055e710,Lnd_BuildRamp,function,high,"reimplemented (src/game/terrain/terrain_blend); (table, centre, width): 256-entry 0..255 ramp"
 0x0055ee10,Lnd_BlendRow16,function,high,reimplemented (src/game/terrain/terrain_blend); blend of 16 texels from two colour pairs
 0x0055eaa0,Lnd_BlendRow16x3,function,high,reimplemented (src/game/terrain/terrain_blend); Sixteen texels blended from three weighted colour-row pairs (name unconfirmed)
+0x0055e620,Lnd_FreeWeightMap1,function,low,"reimplemented (src/game/terrain/terrain_blend); cdecl; name invented: W1 exit handler, the block freed when set, the four dwords cleared"
+0x0055e680,Lnd_FreeWeightMap3,function,low,"reimplemented (src/game/terrain/terrain_blend); cdecl; name invented: W3 exit handler, as W1"
+0x0055e6e0,Lnd_FreeWeightMap2,function,low,"reimplemented (src/game/terrain/terrain_blend); cdecl; name invented: W2 exit handler, as W1"
 0x008798c8,gTerrainBlendScratch,data,high,"tile-sized RGBA scratch the blend writes bottom-up"
 0x005e78b0,Array3D_Read,function,high,"reimplemented (src/game/gfx/array3d); Reads width, height, depth and the pixel bytes from a stream into a new block"
 0x00467a80,Sign_Apply,function,high,"splits a name into two lines, loads <theme>/<style>.sgn, renders it onto the model's sign1/sign2.tga with GDI"
