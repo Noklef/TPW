@@ -6,6 +6,8 @@
 #include "fieldops.h"
 #include "gameheap.h"
 #include "selectors.h"
+#include "soundcategory.h"
+#include "soundnames.h"
 #include "soundvoice.h"
 #include "vcall.h"
 
@@ -232,6 +234,100 @@ u32 __fastcall SoundMixer_AddVoice(u8 *mixer, void *, u8 *owner, u8 *definition,
     if (static_cast<s32>(*vcall<u32 *>(voice, 0x10, out, owner, definition, info + 0xc, at<u32>(info, 0x18))) < 0) return 0;
     at<u8 **>(mixer, 0x40)[slot] = voice;
     return 1;
+}
+
+u32 *__fastcall SoundMixer_Save(u8 *mixer, void *, u32 *out, u8 *stream) {
+    Lock(mixer);
+    u32 size = 0, count = 0;
+    const u32 now = Time_GetMs();
+    const u32 start = vcall<u32>(stream, 0x18);
+    vcall<u32>(stream, 0xc, &size, 4u);
+    vcall<u32>(stream, 0xc, &count, 4u);
+    u32 slot;   // (the stream argument's own slot in the original: the names' out, then each voice's id)
+    SoundNames_Save(SoundCategory_Get(), nullptr, &slot, stream);
+    vcall<u32>(stream, 0xc, mixer + 0x28, 4u);
+    if (u8 *voice = at<u8 *>(mixer, 0x24)) {
+        while (at<u8 *>(voice, 0x34)) voice = at<u8 *>(voice, 0x34);
+        for (; voice; voice = at<u8 *>(voice, 0x38)) {
+            if (voice[0x30] & 0x10 && at<u32>(voice, 0x30) & 0x400) continue;
+            ++count;
+            slot = at<u32>(voice, 0x2c);
+            vcall<u32>(stream, 0xc, &slot, 4u);
+            u32 result;
+            SoundVoice_Save(voice, nullptr, &result, stream, now);
+        }
+        const u32 end = vcall<u32>(stream, 0x18);
+        vcall<u32>(stream, 0x10, start, 0u);
+        size = end - start;
+        vcall<u32>(stream, 0xc, &size, 4u);
+        vcall<u32>(stream, 0xc, &count, 4u);
+        vcall<u32>(stream, 0x10, end, 0u);
+    }
+    *out = 0;
+    Unlock(mixer);
+    return out;
+}
+
+u32 *__fastcall SoundMixer_Load(u8 *mixer, void *, u32 *out, u8 *stream, u32 restore) {
+    Lock(mixer);
+    const u32 now = Time_GetMs();
+    for (u8 *voice = at<u8 *>(mixer, 0x24); voice;) {
+        u8 *const next = at<u8 *>(voice, 0x34);
+        u32 result;
+        u32 functor[2] = {0x0070a2d0, at<u32>(voice, 0x24)};
+        vcall<void>(voice, 0x18, &result, functor);
+        SoundMixer_Retire(mixer, nullptr, voice);
+        voice = next;
+    }
+    u32 size = 0;
+    vcall<u32>(stream, 8, &size, 4u);
+    if (!(u8)restore) {
+        vcall<u32>(stream, 0x10, size - 4, 1u);
+        *out = 0;
+        Unlock(mixer);
+        return out;
+    }
+    u32 count;
+    vcall<u32>(stream, 8, &count, 4u);
+    u32 slot = restore;   // (the restore argument's slot: the names' out, the pages' outs, then each id)
+    SoundNames_Load(SoundCategory_Get(), nullptr, &slot, stream);
+    u32 pages = 0;
+    vcall<u32>(stream, 8, &pages, 4u);
+    const s32 more = static_cast<s32>(pages - at<u32>(mixer, 0x28));
+    slot = static_cast<u32>(more);
+    for (u32 n = more > 0 ? static_cast<u32>(more) : 0u; n; --n) SoundMixer_AddPage(mixer, nullptr, &slot);
+    while (count--) {
+        u32 type;
+        vcall<u32>(stream, 8, &slot, 4u);
+        vcall<u32>(stream, 8, &type, 4u);
+        u8 *const voice = Chain20_Find2c(mixer, nullptr, slot & 0xffff);
+        if (!voice || type - 1 > 5) continue;
+        switch (type) {
+        case 1: Class70a7e0_Ctor(voice); at<u32>(voice, 0) = 0x0070a498; break;
+        case 2: Class70a7e0_Ctor(voice); at<u32>(voice, 0) = 0x0070a440; break;
+        case 3: Class70a7e0_Ctor(voice); at<u32>(voice, 0) = 0x0070a3e8; break;
+        case 4:
+            Class70a7e0_Ctor(voice);
+            at<u32>(voice, 0) = 0x0070a390;
+            SoundVoice_EnsureParams(voice);
+            break;
+        case 5: Class70a7e0_Ctor(voice); at<u32>(voice, 0) = 0x0070a338; break;
+        default:
+            Voice70a3e8_Ctor(voice);
+            at<u32>(voice, 0) = 0x0070a390;
+            SoundVoice_EnsureParams(voice);
+            at<u32>(voice, 0) = 0x0070a2e0;
+            break;
+        }
+        u32 result;
+        SoundVoice_Load(voice, nullptr, &result, stream, now);
+        at<u32>(voice, 0x2c) = slot;
+        Chain20_MoveTo24(mixer, nullptr, voice);
+    }
+    SoundNames_FreeMap(SoundCategory_Get());
+    *out = 0;
+    Unlock(mixer);
+    return out;
 }
 
 }  // extern "C"
