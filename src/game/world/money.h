@@ -47,6 +47,10 @@ u32 __fastcall Money_TotalOwed(const u8 *money);
 // the record is copied to out, which is returned.
 u32 *__fastcall Money_LoanOffer(u8 *money, void *, u32 *out, u32 index);
 
+// 0x4d0810 (thiscall; name invented): 1 when one of the eight offers (Money_LoanOffer, in turn) is not taken (+0x14 0) and within the
+// credit (+0 set), else 0.
+u32 __fastcall Money_AnyLoanOffer(u8 *money);
+
 // 0x4d09f0 (thiscall): the total at +0x124.
 u32 __fastcall Money_Total(const u8 *money);
 

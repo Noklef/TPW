@@ -128,4 +128,13 @@ u32 *__fastcall Money_LoanOffer(u8 *money, void *, u32 *out, u32 index) {
     return out;
 }
 
+u32 __fastcall Money_AnyLoanOffer(u8 *money) {
+    for (u32 i = 0; i < 8; ++i) {
+        u32 offer[8];
+        Money_LoanOffer(money, nullptr, offer, i);
+        if (offer[5] == 0 && offer[0] != 0) return 1;
+    }
+    return 0;
+}
+
 }  // extern "C"
