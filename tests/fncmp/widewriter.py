@@ -2,7 +2,8 @@
 # 0-8, the end at the cursor now and then, else any cell), the full byte 0, 1 or any, a holder at HOLD (a recorder vtable, slot 0 no
 # arguments) or null. The buffer starts two cells before BUF (the cell before the cursor).
 # Finish (0x6b00e0): as above. Dtor (0x6ad0b0) and Delete (0x6ad110: flags any, Mem_Free hooked) as Finish.
-# Char / Narrow (0x6aff70 / 0x6afe80): the writer's vtable the game's (0x70a0c0: slot 4 Obj_PutWord, the words written to the buffer
+# Char / Narrow (0x6aff70 / 0x6afe80; lead bytes near the table's and the bytes after them high now and then, so that their codes
+# come out small): the writer's vtable the game's (0x70a0c0: slot 4 Obj_PutWord, the words written to the buffer
 # until the end; the pushed word's high half is the register's leftovers, so it is not logged), its cursor in the buffer (0-0x20 cells
 # before the end, or at it, or full); the code table at TABLE or none: the lead byte 0, 1, 0x80-0xff or any, the count 0-0x400 (codes
 # random), the codes at CODES. Char: a random character (low byte 0 now and then). Narrow: 0-12 bytes (lead bytes followed by another;
@@ -49,45 +50,59 @@ def delete(r):
 
 def writer(r, regions, table):
     """The writer at W (the game's vtable) writing into the buffer at BUF: room for 0-0x20 cells, or none, or full."""
-    room = r.choice([0, 1, 2, 5, 0x20, r.randrange(0x21)])
+    room = r.choice([0, 0, 1, 2, 5, 0x20, r.randrange(0x21)])
     w = bytearray(r.bytes(0x14))
     struct.pack_into('<III', w, 0, 0x70a0c0, BUF, BUF + 2 * room)
     struct.pack_into('<I', w, 0xc, table)
-    w[0x10] = 0 if r.random() < 0.85 else r.choice([1, r.getrandbits(8)])
+    w[0x10] = 0 if r.random() < 0.7 else r.choice([1, r.getrandbits(8)])
     regions[W] = w
     regions[BUF] = r.bytes(0x48)
 
 
 def code_table(r, regions):
     if r.random() < 0.08:
-        return 0, 0
+        return 0, 0, 0
     lead = r.choice([0, 1, 0x80, 0x81, 0xa0, 0xff, r.getrandbits(8)])
-    count = r.choice([0, 1, 0x40, 0x100, 0x400, r.randrange(0x401)])
+    count = r.choice([0, 1, 0x40, 0x100, 0x400, r.randrange(0x401), r.randrange(1, 0x80), r.randrange(1, 0x80)])
     regions[TABLE] = struct.pack('<IIBBHI', r.getrandbits(32), r.getrandbits(32), lead, r.getrandbits(8), count, CODES) + r.bytes(8)
     regions[CODES] = r.bytes(2 * 0x400)
-    return TABLE, lead
+    return TABLE, lead, count
+
+
+def pair(r, lead):
+    """A lead byte (just above the table's, so that the code comes out small now and then) and the byte after it; none (an ordinary
+    byte, None) for the lead 0xff."""
+    if lead == 0xff:
+        return r.randrange(1, 0x100), None
+    b = r.choice([min(lead + 1 + r.randrange(3), 0xff), r.randrange(lead + 1, 0x100)])
+    return b, r.choice([r.getrandbits(8), r.randrange(min(0x100 - lead, 0xff), 0x100)]) or 1
 
 
 def char(r):
     regions = {}
-    table, _ = code_table(r, regions)
+    table, lead, _ = code_table(r, regions)
     writer(r, regions, table)
     c = r.getrandbits(16)
     if r.random() < 0.1:
         c &= 0xff00
+    elif r.random() < 0.5:
+        b, after = pair(r, lead)
+        c = b | (after or r.getrandbits(8)) << 8
     return Call(0x6aff70, [W, c if r.random() < 0.9 else c | r.getrandbits(32) & 0xffff0000], regions, conv='t', ret='v')
 
 
 def narrow(r):
     regions = {}
-    table, lead = code_table(r, regions)
+    table, lead, count = code_table(r, regions)
     writer(r, regions, table)
     text = bytearray()
     for _ in range(r.choice([0, 1, 3, 12, r.randrange(13)])):
-        b = r.choice([r.randrange(1, 0x80), r.randrange(1, 0x100), max(lead, 1)])
-        text.append(b)
-        if b - 1 >= lead:
-            text.append(r.getrandbits(8) or 1)
+        b = r.choice([r.randrange(1, 0x80), r.randrange(1, 0x100), 0] + [count + 1] * (count < lead))   # (the code the count: none)
+        if b - 1 >= lead or not b:
+            b, after = pair(r, lead)
+            text += bytes([b] if after is None else [b, after])
+        else:
+            text.append(b)
     if r.random() < 0.5:
         regions[TEXT] = bytes(text) + b'\0' + r.bytes(3)
         return Call(0x6afe80, [W, TEXT, 0xffffffff], regions, conv='t', ret='v')
