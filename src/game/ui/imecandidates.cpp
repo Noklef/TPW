@@ -2,7 +2,10 @@
 
 #include <cstdint>
 
+#include "../core/accessors.h"
+#include "../core/crt.h"
 #include "../core/ime.h"
+#include "../core/stdwstring.h"
 #include "guidepth.h"
 #include "guirect.h"
 #include "listrows.h"
@@ -70,5 +73,71 @@ void __fastcall ImeHost_OpenCandidates(u8 *host, void *, u8 *parent, u32 second)
     Window7059f0_RefreshRows(at<u8 *>(host, 8));
     GuiRect_Dtor(own);
     GuiRect_Dtor(anchor);
+}
+
+void __fastcall ImeHost_Update(u8 *host) {
+    if (!at<u8>(host, 0xc)) return;
+    const u8 had = at<u8>(host, 0xd);
+    u8 *const ime = host + 0x1c;
+    const u32 result = Crt().wcslen(reinterpret_cast<const u16 *>((uintptr_t)Obj_GetCOr6fd6c4(ime))) != 0 ? 1 : 0;
+    at<u8>(host, 0xd) = (u8)result;
+    Fn_668564(at<u8 *>(host, 4), nullptr, result);
+    if (!at<u32>(host, 0)) {
+        if (Ime_CacheCurrent(ime)) {
+            u8 *const window = at<u8 *>(host, 4);
+            const u32 second = (u32)((s32)at<s16>(window, 0xe0) + 2);
+            ImeHost_OpenCandidates(host, nullptr, reinterpret_cast<u8 *>((uintptr_t)Fn_65d55a(window)), second);
+        } else if (at<u8>(host, 0xd) || had) {
+            ImeHost_InsertResult(host);
+        }
+        return;
+    }
+    if (!Ime_CacheCurrent(ime)) {
+        Window_SendMessage(at<u8 *>(host, 0), 4, 0, 0);
+        return;
+    }
+    const u8 *const entry = Ime_Current(ime);
+    if (!entry) {
+        at<u8>(ime, 0x184) = 0;
+    } else if (!at<u8>(ime, 0x184) || at<u32>(entry, 0) != at<u32>(ime, 0x160)) {   // (Ime_CacheCurrent's copy, inlined again)
+        at<u32>(ime, 0x160) = at<u32>(entry, 0);
+        at<u32>(ime, 0x164) = at<u32>(entry, 4);
+        at<u32>(ime, 0x168) = at<u32>(entry, 8);
+        at<u32>(ime, 0x16c) = at<u32>(entry, 0xc);
+        StdWStringVector_Assign(ime + 0x170, nullptr, entry + 0x10);
+        at<u32>(ime, 0x180) = at<u32>(entry, 0x20);
+        at<u8>(ime, 0x184) = 1;
+    }
+    const bool same = at<u8>(ime, 0x184) && at<u32>(entry, 0x20) == at<u32>(ime, 0x180);
+    at<u32>(ime, 0x188) = at<u32>(ime, 0x180);
+    if (same) {
+        at<u32>(host, 0x10) = 0;
+        at<u32>(host, 0x14) = 0;
+        at<u32>(host, 0x18) = 0;
+        Window7059f0_Clear(at<u8 *>(host, 8));
+        u32 texts[2];   // (the texts: the string, then the count's slot; a third column reads the stack past them, sic)
+        const s32 count = (s32)Ime_CacheCurrent(ime);
+        texts[1] = (u32)count;
+        for (s32 i = 0; i < count; ++i) {
+            u32 text = 0;
+            if (at<u8>(ime, 0x184)) {
+                const u8 *const first = at<u8 *>(ime, 0x174);
+                const u32 n = first ? (u32)((s32)(at<u8 *>(ime, 0x178) - first) >> 4) : 0;
+                if ((u32)i < n) {
+                    text = at<u32>(at<u8 *>(ime, 0x174) + 0x10 * i, 4);
+                    if (!text) text = 0x006fd6c4;
+                }
+            }
+            texts[0] = text;
+            Window7059f0_AddItem(at<u8 *>(host, 8), nullptr, texts, (u32)i, -1, 0);
+        }
+        Window7059f0_RefreshRows(at<u8 *>(host, 8));
+    } else if (at<u32>(host, 0x10) == (at<u8>(ime, 0x184) ? at<u32>(ime, 0x16c) : 0)) {
+        return;
+    }
+    const u32 position = at<u8>(ime, 0x184) ? at<u32>(ime, 0x16c) : 0;
+    at<u32>(host, 0x10) = position;
+    Window7059f0_ScrollTo(at<u8 *>(host, 8), nullptr, (s32)position);
+    ImeHost_InsertResult(host);
 }
 }  // extern "C"
