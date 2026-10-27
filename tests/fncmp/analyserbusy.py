@@ -19,14 +19,16 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import RAM, Bench, Call, put  # noqa: E402
 
-CALLS = {'Count': 0x4c8c40, 'Sum': 0x4c81b0, 'Booth': 0x4c91c0, 'Paths': 0x4c8ae0, 'SumPaths': 0x4c8150, 'Held': 0x4c8ba0, 'SumHeld': 0x4c8180, 'Score': 0x4c7db0}
+CALLS = {'Count': 0x4c8c40, 'Sum': 0x4c81b0, 'Booth': 0x4c91c0, 'Paths': 0x4c8ae0, 'SumPaths': 0x4c8150, 'Held': 0x4c8ba0, 'SumHeld': 0x4c8180, 'Score': 0x4c7db0,
+         'LoanOffer': 0x4d06b0}
 CACHE = {'Count': 0x64, 'Sum': 0x64, 'Paths': 0x4c, 'SumPaths': 0x4c, 'Held': 0x58, 'SumHeld': 0x58}   # (the cell's cached value: ticks, count, flag)
 SUMS = {'Sum': 'Count', 'SumPaths': 'Paths', 'SumHeld': 'Held'}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 B = Bench([(0x4c8c40, 0x4c8d2c), (0x4c81b0, 0x4c81de), (0x41a960, 0x41a9a7), (0x536300, 0x536390), (0x5d60c0, 0x5d60c3), (0x4c91c0, 0x4c9283), (0x4d8610, 0x4d8750), (0x5da3c0, 0x5da3c1),
            (0x4c8ae0, 0x4c8b96), (0x4c8ba0, 0x4c8c3a), (0x4c8150, 0x4c817e), (0x4c8180, 0x4c81ae),
            (0x4c7db0, 0x4c7f98), (0x412e90, 0x412eea), (0x4d0af0, 0x4d0b20), (0x4e0380, 0x4e03a0),
-           (0x535db0, 0x535de0), (0x536390, 0x5363b0), (0x5363f0, 0x536450), (0x53ad30, 0x53ad70), (0x53ad90, 0x53adc0)])
+           (0x535db0, 0x535de0), (0x536390, 0x5363b0), (0x5363f0, 0x536450), (0x53ad30, 0x53ad70), (0x53ad90, 0x53adc0),
+           (0x4d06b0, 0x4d074a), (0x519510, 0x519550), (0x67a830, 0x67a860)])
 CELL, ANALYSER, MAP, TICKS, THINGS = RAM, RAM + 0x1000, RAM + 0x40000, RAM + 0x200000, RAM + 0x100000
 WORLD = TICKS - 0x1da70c   # (its map cells from +0x294, each one's first thing the word +0x24)
 ROWS = 6
@@ -81,30 +83,46 @@ def booth(r, regions):
 
 SW = RAM + 0x400000       # (Score: the world [0x80239c]; its map cells from +0x2d8 (id 1), its ticks +0x1da70c and things' head +0x1da746)
 SCORE_AT = RAM + 0x20000  # (Score: the analyser, only its value +0x1f0e8 mapped)
+MONEY = RAM + 0x60000     # (LoanOffer: the money record, the out 0x400 on)
 E28, W28, DEFS = RAM + 0x700000, RAM + 0x900000, RAM + 0x300000   # (the 0x28-byte entries by [0x8023a0] and [0x7cf83c]; the definitions)
 HANDLES = 0x41            # (the map cells' handles and parents 0-0x40)
 SCORE_TYPES = TYPES + [0xb, 0xc, 0xd, 0x10, 0x11, 0x12, 0x19, 0x1e, 0x15]
 
 
-def score(r, regions):
-    """Score (0x4c7db0): see above."""
+def score(r, regions, fixed=None):
+    """Score (0x4c7db0): see above. fixed: LoanOffer's limit; then the regions are returned, the analyser the table 0x7cfb90's entry 0
+    for the world's word +0x1da720."""
     ticks = struct.unpack_from('<I', regions[TICKS])[0]
+    if fixed is not None:
+        ticks |= 0x10000   # (LoanOffer: the stamp at most fixed quarters back without wrapping, so a scan stays rare)
     scan = r.random() < 0.03
     value = bytearray(r.bytes(12))
-    stamp = (ticks - (r.choice([0, 0, 1, 4, 9, 400] if not scan else [400, 4000, 1 << 29]) << 2)) & 0xffffffff
+    ages =[0, 0, 1, 4, 9, 400] if fixed is None else [0, 1, 4, 9, fixed]
+    stamp = (ticks - (r.choice(ages if not scan else [400, 4000, 1 << 29]) << 2)) & 0xffffffff
     put(value, 0, 'I', stamp)
     age = ((ticks >> 2) - (stamp >> 2)) & 0xffffffff   # (in quarters, unsigned: Game1da70c_MinusAt0Quarters)
+    if fixed is not None and age > fixed:
+        scan = True
     if not scan:   # (worked out and fresh: the limit at least its age)
         value[8] = r.choice([1, 1, 0x40])
-        limit = r.choice([age, min(age + 1, 0xffffffff), 0xffffffff, min(age + r.randrange(100), 0xffffffff)])
-    else:          # (not worked out, or stale: the limit below its age)
+        limit = r.choice([age, min(age + 1, 0xffffffff), 0xffffffff, min(age + r.randrange(100), 0xffffffff)]) if fixed is None else fixed
+    elif fixed is None:   # (not worked out, or stale: the limit below its age)
         value[8] = r.choice([0, 1]) if age else 0
         limit = r.choice([0, age - 1, r.randrange(age)]) if value[8] else r.getrandbits(32)
+    else:
+        value[8] = r.choice([0, 1]) if age > fixed else 0
+        limit = fixed
     tail = bytearray(r.bytes(0x3c))
     put(tail, 0, 'I', ticks)
+    put(tail, 0x14, 'H', 0)
     regions = {0x80239c: struct.pack('<I', SW), SCORE_AT + 0x1f0e8: value}
+    slots = bytearray(r.bytes(20 * 12))
+    put(slots, 0, 'I', SCORE_AT)
+    regions[0x7cfb90] = slots
     if not scan:
         regions[SW + 0x1da70c] = tail
+        if fixed is not None:
+            return regions
         return Call(CALLS['Score'], [SCORE_AT, limit & 0xffffffff], regions, conv='t', ret='a')
     cells = bytearray(r.bytes(0x44 * 0x4000))
     for i in range(0x4000):
@@ -131,7 +149,6 @@ def score(r, regions):
     put(table, 0x730, 'HHI', r.choice([ids[k], r.getrandbits(16)]), 0, DEFS + 0x400 * k)
     regions[0x7890a0] = table
     handles = r.sample(range(1, 12), r.choice([0, 1, 2, 4, 6]))
-    slots = bytearray(r.bytes(20 * 12))
     for j, h in enumerate(handles):
         thing = bytearray(r.bytes(0x1a0))
         put(thing, 0xc, 'H', handles[j + 1] if j + 1 < len(handles) else 0)
@@ -144,7 +161,24 @@ def score(r, regions):
     regions[0x7cfb90] = slots
     put(tail, 0x3a, 'H', handles[0] if handles else 0)
     regions[SW + 0x1da70c] = tail
+    if fixed is not None:
+        return regions
     return Call(CALLS['Score'], [SCORE_AT, limit & 0xffffffff], regions, conv='t', ret='a')
+
+
+def loan_offer(r, regions):
+    """LoanOffer (0x4d06b0): see above."""
+    regions = score(r, regions, fixed=0x14)
+    money = bytearray(r.bytes(0x200))
+    for i in range(8):
+        e = 0x14 + 0x20 * i
+        put(money, e + 4, 'i', r.choice([0, 1000, 5000, 20000, 100000, -1, r.randrange(-0x80000000, 0x80000000)]))
+        put(money, e + 0xc, 'iiii', r.choice([0, 1, 12, 36, 60]), r.choice([0, 1, 100, 500, 3000, -7]), r.choice([0, 0, 1, 0x100]),
+            r.choice([0, 1, 5, 12, 40]))
+    regions[MONEY] = money
+    regions[MONEY + 0x400] = r.bytes(0x20)
+    index = r.choice([0, 1, 2, 3, 4, 5, 6, 7] * 3 + [8, 9])
+    return Call(CALLS['LoanOffer'], [MONEY, MONEY + 0x400, index], regions, conv='t', ret='a')
 
 
 def case(r):
@@ -162,6 +196,8 @@ def case(r):
         return booth(r, regions)
     if op == 'Score':
         return score(r, regions)
+    if op == 'LoanOffer':
+        return loan_offer(r, regions)
     at = CACHE[op]
     if op not in SUMS:
         regions[CELL] = cell(r, ticks, at=at)
