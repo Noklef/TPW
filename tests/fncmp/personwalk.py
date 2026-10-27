@@ -47,23 +47,25 @@ def nav(r, mem, at):
     """navupdate.py's nav at mem + at: pos in rows 0-3, vel, max_force, max_speed, the target, the path's points, distances, flags"""
     cells = [r.randrange(256), r.choice([0, 1, 2, 3, r.randrange(4)])]
     pos = [(c << 16) + r.randrange(0x10000) for c in cells]
-    if r.random() < 0.05:
+    if r.random() < 0.02:
         pos = [r.getrandbits(32) for _ in range(2)]
     put(mem, at + 4, 'I', r.randrange(0, 0x40000))
     put(mem, at + 8, 'II', *pos)
-    vel = [r.choice([0, near(r, 0x10000), near(r, 0x40000), r.randrange(-0x20000, 0x20000)]) & 0xffffffff for _ in range(2)]
+    vel = [r.choice([near(r, 0x10000), near(r, 0x40000), r.randrange(-0x20000, 0x20000)]) & 0xffffffff for _ in range(2)]
+    if r.random() < 0.03:   # (no speed: Nav_Update's normalizing divides by zero)
+        vel = [0, 0]
     if r.random() < 0.05:
         vel = [r.getrandbits(32) for _ in range(2)]
     put(mem, at + 0x10, 'II', *vel)
-    put(mem, at + 0x18, 'I', r.choice([0x6666, 0x10000, 0x3333, r.randrange(0, 0x40000)]))
-    put(mem, at + 0x1c, 'I', r.choice([0x3333, 0x10000, 0x8000, r.randrange(0, 0x40000), r.getrandbits(32)]))
+    put(mem, at + 0x18, 'I', r.choice([0x6666, 0x10000, 0x3333, r.randrange(0x100, 0x40000)]))
+    put(mem, at + 0x1c, 'I', r.choice([0x3333, 0x10000, 0x8000, r.randrange(0x100, 0x40000)] * 6 + [r.getrandbits(32)]))   # (any: IntPair_Truncate's IDIV faults)
     put(mem, at + 0x30, 'I', TARGET)
     mem[at + 0x60] = r.choice([0, 0, 1, 1, 2])
     put(mem, at + 0x5c, 'I', r.randrange(5))
     for k in range(5):
         put(mem, at + 0x64 + 8 * k, 'II', *((p + r.randrange(-0x80000, 0x80000)) & 0xffffffff for p in pos))
     put(mem, at + 0xa4, 'II', r.randrange(0, 0x400000), r.randrange(0, 0x400000))
-    put(mem, at + 0xa0, 'I', r.choice([0, r.randrange(0x1000, 0x2000000), 0x100000]))
+    put(mem, at + 0xa0, 'I', r.choice([0, r.randrange(0x1000, 0x2000000), 0x100000, -0x100000, -r.randrange(0x1000, 0x2000000)]) & 0xffffffff)   # (negative: progress past 1.0)
     put(mem, at + 0xac, 'I', r.choice([0, 0x10000, 0x8000, r.getrandbits(32)]))
     return pos
 
