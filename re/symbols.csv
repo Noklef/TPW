@@ -4061,6 +4061,8 @@ address,name,kind,confidence,notes
 0x005cd440,StdListString_Next,function,low,"reimplemented (src/game/core/stdlist); thiscall: the string at the list cursor, the cursor moved on; at the sentinel an empty string made and released, its dead address returned"
 0x005cd430,StdListString_First,function,low,"reimplemented (src/game/core/stdlist); thiscall: the list's cursor put on its first node, then StdListString_Next (name unconfirmed)"
 0x005d3600,StdListWString_Insert,function,low,"reimplemented (src/game/core/stdlist); list<wstring>::insert: a 0x18-byte node linked before the given one holding a copy of x (allocator byte, assign(x, 0, npos)); count raised, *out = node"
+0x005cf7e0,ListHead_Init18,function,low,"reimplemented (src/game/core/stdlist); thiscall: the byte +0 the object pointer's top byte, a self-linked 0x18-byte head node at +4, the count +8 0; returns the node"
+0x005cf810,ListHead_Init0c,function,low,"reimplemented (src/game/core/stdlist); thiscall: the byte +0 the object pointer's top byte, a self-linked 0xc-byte head node at +4, the count +8 0; returns the node"
 0x0041e2c0,Class6fda48_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor
 0x0041e320,Class6fda68_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor
 0x0041e4d0,Class6fdaa8_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor

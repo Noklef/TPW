@@ -114,6 +114,12 @@ u32 *__fastcall List_EraseRange(u8 *object, void *, u32 *out, u8 *first, u8 *las
 // dword at +0xc is not set. Returns the object.
 u8 *__fastcall ListHead_CtorFrom(u8 *object, void *, const u8 *source);
 
+// 0x5cf7e0 / 0x5cf810 (thiscall; names unconfirmed; the element constructors 0x5ce1e3 / 0x5cc3eb and 0x5ce5f4 hand the vector
+// constructor iterator): as ListHead_Ctor (the byte at +0 the top byte of the object pointer, sic) with a head node of 0x18 / 0xc bytes
+// and no first dword at +0xc. Return the head node.
+u8 *__fastcall ListHead_Init18(u8 *object);
+u8 *__fastcall ListHead_Init0c(u8 *object);
+
 // 0x5d0690 (stdcall; a, b): a new block of 12 bytes (otherwise left as it is) with a at +0 and b at +4, each the block itself when 0. Returns it.
 u8 *__stdcall Node0c_New(u32 a, u32 b);
 

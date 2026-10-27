@@ -419,6 +419,26 @@ u8 *__fastcall ListHead_CtorFrom(u8 *object, void *, const u8 *source) {
     return object;
 }
 
+u8 *__fastcall ListHead_Init18(u8 *object) {
+    at<u8>(object, 0) = (u8)((u32)(uintptr_t)object >> 24);  // sic
+    u8 *head = static_cast<u8 *>(GameHeap_Alloc(0x18));
+    at<u8 *>(head, 0) = head;
+    at<u8 *>(head, 4) = head;
+    at<u8 *>(object, 4) = head;
+    at<u32>(object, 8) = 0;
+    return head;
+}
+
+u8 *__fastcall ListHead_Init0c(u8 *object) {
+    at<u8>(object, 0) = (u8)((u32)(uintptr_t)object >> 24);  // sic
+    u8 *head = static_cast<u8 *>(GameHeap_Alloc(0xc));
+    at<u8 *>(head, 0) = head;
+    at<u8 *>(head, 4) = head;
+    at<u8 *>(object, 4) = head;
+    at<u32>(object, 8) = 0;
+    return head;
+}
+
 u8 *__stdcall Node0c_New(u32 a, u32 b) {
     u8 *node = static_cast<u8 *>(GameHeap_Alloc(0xc));
     at<u32>(node, 0) = a ? a : (u32)(uintptr_t)node;
