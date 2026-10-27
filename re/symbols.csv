@@ -4743,6 +4743,8 @@ address,name,kind,confidence,notes
 0x006bab90,NotifyStream_Read,function,low,"reimplemented (src/game/core/soundstream); slot 7 of 0x70a748: the next's read, or 0"
 0x006c8e00,NotifyStream_Query,function,low,"reimplemented (src/game/core/soundstream); slot 9 of 0x70a748: the user query, then the record's callback +0x50 into +0x18 (flag 0x2000)"
 0x006c8e50,NotifyStream_Send,function,low,"reimplemented (src/game/core/soundstream); slot 11 of 0x70a748: the callback's slot 1 (id, user value, the byte), then forgotten"
+0x006ba9b0,NotifyStream_Create,function,low,"reimplemented (src/game/core/soundstream); the record's notify stream (flag 0x2000, cleared), or 0"
+0x006bac10,NotifyStream_Dtor,function,low,"reimplemented (src/game/core/soundstream); slot 0 of 0x70a748: the base vtable, the pool's delete for flags bit 0"
 0x006c6450,StreamFilterPool_Delete,function,low,"reimplemented (src/game/core/streampool); cdecl (block, size); the stream filter's operator delete: nothing for null; 0x18: under the lock [0xfb206c], onto the free list [0xfb2068] (next at +0x10); else Mem_Free"
 0x006c69b0,LoopStreamPool_Delete,function,low,"reimplemented (src/game/core/streampool); cdecl (block, size); the looping stream's operator delete: nothing for null; 0x24: under the lock [0xfb2084], onto the free list [0xfb2080] (next at +0x18); else Mem_Free"
 0x006c6ce0,Stream70abf8Pool_Delete,function,low,"reimplemented (src/game/core/streampool); cdecl (block, size); the stream 0x70abf8's operator delete: nothing for null; 0x14: under the lock [0xfb2090], onto the free list [0xfb208c] (next at +0x10); else Mem_Free"
@@ -4793,6 +4795,11 @@ address,name,kind,confidence,notes
 0x006c81c0,Mp2SamplePool_Purge,function,low,"reimplemented (src/game/core/streampool); the MP2 memory sample's block pool's purge: under the lock, the free list [0xfb26d8] freed block by block (name invented)"
 0x006c8200,Mp2SamplePool_New,function,low,"reimplemented (src/game/core/streampool); cdecl (size): the MP2 memory sample's block pool's new: size 0 as 1; not 0x40, the heap's; else the free list's first block under the lock, or a new 0x40 (name invented)"
 0x006c8270,Mp2SamplePool_Delete,function,low,"reimplemented (src/game/core/streampool); cdecl (block, size): the MP2 memory sample's block pool's delete: null nothing; size not 0x40, freed; else pushed on the free list under the lock (name invented)"
+0x006c8ca0,NotifyStreamPool_Init,function,low,reimplemented (src/game/core/streampool); the notify stream's pool: its lock allocated and initialised
+0x006c8cd0,NotifyStreamPool_Shutdown,function,low,"reimplemented (src/game/core/streampool); the notify stream's pool purged, its lock deleted, freed and cleared"
+0x006c8d00,NotifyStreamPool_Purge,function,low,reimplemented (src/game/core/streampool); the notify stream's pool: every free block freed under the lock
+0x006c8d40,NotifyStreamPool_New,function,low,reimplemented (src/game/core/streampool); the notify stream's operator new (0x1c blocks from the free list)
+0x006c8db0,NotifyStreamPool_Delete,function,low,reimplemented (src/game/core/streampool); the notify stream's operator delete (0x1c blocks onto the free list)
 0x006c7cf0,VoiceSample_Decode,function,low,"reimplemented (src/game/core/voicesample); thiscall (buffer, bytes, done), pops 0xc: frames of the channels (slot 17) from the decoder's float samples, a frame decoded (VoiceCodec_DecodeFrame) each 0x1b0 samples, 1 at the data's end (+0x3c); each sample rounded, 17 bits kept, 0x8000-0x17fff clamped to 0x7fff / 0x8000 (sic), 16 bits stored; returns 0"
 0x006c7c20,VoiceSample_Read,function,low,"reimplemented (src/game/core/voicesample); thiscall (buffer, bytes, done, flag), pops 0x10; slot 7 of 0x70ad60 / 0x70adc0: with an end time (+0x1c) *done = 0 and SoundSample_Drained; else VoiceSample_Decode, its 1 asking slot 19 (flag, *done): 0 returns 1; else 0"
 0x006c7bc0,VoiceSample_Query,function,low,"reimplemented (src/game/core/voicesample); thiscall (out, record), pops 8; slot 9 of 0x70ad60 / 0x70adc0: slot 20 (+0x10), *out = 0; returns the out"
