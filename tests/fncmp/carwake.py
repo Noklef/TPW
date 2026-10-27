@@ -19,13 +19,14 @@ from fncmp import Bench, Call, RAM, put  # noqa: E402
 
 SOUND = [(0x4392a0, 0x439386), (0x439670, 0x4396db), (0x439780, 0x439812), (0x551300, 0x551312), (0x51c2c0, 0x51c360), (0x51eeb0, 0x51eeec),
          (0x55a3e0, 0x55a470), (0x55a070, 0x55a0b0), (0x51bfc0, 0x51c048), (0x51bc40, 0x51bc70)]
-B = Bench(sorted(set(holder.RANGES + SOUND + [(0x43be10, 0x43bf1d), (0x43bf20, 0x43bfa5), (0x46f150, 0x475010)])), hooks=holder.HOOKS)
+RANGES = sorted(set(holder.RANGES + SOUND + [(0x43be10, 0x43bf1d), (0x43bf20, 0x43bfa5), (0x46f150, 0x475010)]))
+B = Bench(RANGES, hooks=holder.HOOKS)
 CALLS = {'Wake': 0x43be10, 'Sleep': 0x43bf20}
 COASTER, CAR, SEGS, TYPES, LAYERS = RAM + 0x30000, RAM + 0x30100, RAM + 0x30200, RAM + 0x30600, RAM + 0x30700
 
 
-def case(r):
-    op = r.deal(OPS)
+def world(r, op):
+    """The case's regions for op (Wake or Sleep): the car CAR, its segments SEGS, the coaster COASTER."""
     c = holder.acquire(r, True)
     regions = dict(c.regions)
     target = bytearray(regions[holder.ACQ_TARGET])
@@ -61,7 +62,12 @@ def case(r):
     put(sound, r.choice([8, 0x14]), 'I', 0)
     regions.update({COASTER: coaster, CAR: car, SEGS: segs, 0x802bc0: sound, 0x8791a0: bytes(4), 0x8791b0: bytes(4),
                     0x785a2c: struct.pack('<I', r.choice([0, 0, 1])), 0x803a3c: r.bytes(4), 0x7b4960: r.bytes(0x40)})
-    return Call(CALLS[op], [COASTER, CAR], regions, ret='v')
+    return regions
+
+
+def case(r):
+    op = r.deal(OPS)
+    return Call(CALLS[op], [COASTER, CAR], world(r, op), ret='v')
 
 
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]

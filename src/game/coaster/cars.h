@@ -69,6 +69,20 @@ void __cdecl CoasterCar_Wake(u8 *coaster, u8 *car);
 // flags (+4) have 0x4000, else Holder_Sleep. Then CoasterCar_StopSounds and the car's flag 2 cleared.
 void __cdecl CoasterCar_Sleep(u8 *coaster, u8 *car);
 
+// 0x435730 (cdecl (coaster, value); name invented): the coaster's state (the low 4 bits of +8) and mode (bits 4-6) set from the value's.
+// A new state (value & 0xf, when not 0), by the old one (+8 read once): 1 -> 2 wakes the cars (+0x2c = 1.0 first unless the old +8 had
+// 0x40; CoasterCar_Wake for each, cars from +0x128 read once, the count +0xf4 re-read) and Coaster_FlashCar (0); 2 -> 1 puts them to sleep
+// (CoasterCar_Sleep, +0x128 re-read for each), clears the coaster's flag 0x800 and Coaster_FlashCar (2); 4 or 8 -> 2 unloads each car on
+// both sides (CoasterTrain_Unload 0 then 1) and then CoasterQueue_Advance; 1, 2, 4 or 8 -> 8 only CoasterQueue_Advance. Then the state
+// stored. A new mode (value & 0x70, when not 0), by the old one: 0x10 or 0x20 -> 0x40 sets +0x2c to 0; 0x40 -> 0x10 or 0x20 sets +0x2c
+// to 1.0 and each car's flag 0x80 (+0), clearing its 0x40. Then the mode stored.
+void __cdecl Coaster_SetState(u8 *coaster, u32 value);
+
+// 0x442c70 (cdecl (coaster); name invented): the piece at +0x60 loses its flags 0x50000 (+8); the one at +0x64 loses 0x20000 when the
+// first's +8 (re-read) has 0x400, else 0xa0000. Then the coaster's +0x3c loses bit 1, +0x60 takes +0x58, Coaster_SetState (2) and
+// Flags_SetChanged (the coaster, 1).
+void __cdecl Coaster_ResumeRunning(u8 *coaster);
+
 // 0x43bfb0: speed after the climb or drop from fromY to toY: speed + (fromY - toY) *
 // params+0x24 * (+0x28 going up, else +0x2c), but at least minimum (minimum too for NaN).
 // Left in st0, so double.
