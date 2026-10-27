@@ -21,6 +21,12 @@ struct BankFolder {
     Handle handle;
 };
 
+struct SoundCategoryEnv {
+    s32(__cdecl *atExit)(void(__cdecl *fn)());  // crt_atexit (0x67a7d0)
+};
+// The singleton's atexit goes to env (nullptr: the game's).
+void SoundCategory_SetEnv(const SoundCategoryEnv *env);
+
 extern "C" {
 
 // 0x6bd7a0 (cdecl; a variation; name unconfirmed): its sample count, the low word of its first dword.
@@ -124,6 +130,9 @@ u8 *__fastcall SoundCategory_Ctor(u8 *category);
 u8 *__fastcall SoundCategory_DeletingDtor(u8 *category, void *, u32 flags);
 // 0x6beb10 (atexit, from 0x6bead0's guard): the destructor on the singleton at 0xfb1f28 (src/game/core/soundnames' table).
 void __cdecl SoundCategory_SingletonDtor();
+// 0x6bead0 (name invented): the singleton category at 0xfb1f28: the first time (bit 0 of the guard byte 0xfb1ff8 clear) the bit set,
+// SoundCategory_Ctor on it and SoundCategory_SingletonDtor (0x6beb10) given to atexit. Returns the singleton.
+u8 *__cdecl SoundCategory_Get();
 // 0x6c08b0 (thiscall (out, record), pops 8; from 0x6bea3c, the record's destructor; name invented): *out = -1 for no record. Else each bank
 // index in the record's list (+0x28 its first node {index, next}): the bank in deque B there, when not 0, released (slot 0); when that
 // answers 0, its +8 (read before) released too (slot 0, when not null) and the bank's cell 0. Then *out = -1 unless deque A's cell at the

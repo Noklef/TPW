@@ -4,7 +4,7 @@
 # 0-3 banks) and C (the bank indices) are small stretches of one or two blocks (the block boundary crossed now and then); a variation's sample
 # count (0x6bd7a0) and the simple sound mark (0x6c0550: each of its conditions met or missed). The free slots in deques A and B (0x6bf150 with
 # holes in A, 0x6bf1c0 over bank objects and gaps, long runs crossing into the second block); the BANK.map entries read (0x6bf9e0) through a stream recorder whose reads hand out the file's bytes in turn (seq_read).
-# The constructor (0x6beb20): see case_ctor().
+# The constructor (0x6beb20) and the singleton's getter (0x6bead0): see case_ctor().
 # usage: soundcategory.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,...)
 import os
 import struct
@@ -14,20 +14,20 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import fileopen  # noqa: E402  (the file library's ranges, imports and globals)
-from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, Mask, echo, fill, fill_arg, heap, import_table, log_region, recorder, seq_read, seq_seek, set_return, strings, vtable  # noqa: E402
+from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, Mask, _cdecl_log, echo, fill, fill_arg, heap, import_table, log_region, recorder, seq_read, seq_seek, set_return, strings, vtable  # noqa: E402
 
 CALLS = {'count': 0x6bd7a0, 'simple': 0x6c0550, 'variation': 0x6c06e0, 'sound': 0x6c0610, 'record': 0x6c05b0, 'fixup': 0x6c0510, 'readimage': 0x6c0360,
          'readmap': 0x6c0450, 'freecat': 0x6bf150, 'freebank': 0x6bf1c0, 'entries': 0x6bf9e0, 'bankdtor': 0x6c01b0, 'bankdel': 0x6c0190,
          'openfolder': 0x6bf850, 'setfolder': 0x6bf260, 'findbank': 0x6bfa60, 'readbankmap': 0x6bfe40, 'loadbankmap': 0x6c0210,
          'addref': 0x6338c0, 'release': 0x6338d0, 'load': 0x6bf330, 'listdtor': 0x6c2f40, 'listdel': 0x6c30c0, 'findrec': 0x6c0f70,
-         'dtor': 0x6bee10, 'deldtor': 0x6bed80, 'singleton': 0x6beb10, 'unload': 0x6c08b0, 'ctor': 0x6beb20}
+         'dtor': 0x6bee10, 'deldtor': 0x6bed80, 'singleton': 0x6beb10, 'unload': 0x6c08b0, 'ctor': 0x6beb20, 'get': 0x6bead0}
 B = Bench([(0x6bd7a0, 0x6bd7ac), (0x6bf150, 0x6bf31c), (0x6bf850, 0x6c0303), (0x6c0310, 0x6c035f), (0x6c0360, 0x6c0844), (0x4036a0, 0x4036e0), (0x639100, 0x639120),
            (0x6b9b30, 0x6b9b94), (0x5e42d0, 0x5e431c), (0x6338b0, 0x633900), (0x6c1940, 0x6c1b00), (0x6c2990, 0x6c29c0), (0x4f6740, 0x4f67c0), (0x632200, 0x632230),
            (0x6bf330, 0x6bf850), (0x632150, 0x632380), (0x6c0860, 0x6c3200), (0x5f7980, 0x5f79cf), (0x67c250, 0x67c2a0),
            (0x6beb10, 0x6beb1a), (0x6bed80, 0x6bee0b), (0x6bee10, 0x6bf14c), (0x5ec210, 0x5ec220), (0x5f8240, 0x5f8310), (0x5f8420, 0x5f8460), (0x619800, 0x619870),
-           (0x6beb20, 0x6bed76), (0x47db00, 0x47db30), (0x5f61a0, 0x5f61f0)]
+           (0x6beb20, 0x6bed76), (0x6bead0, 0x6beb03), (0x47db00, 0x47db30), (0x5f61a0, 0x5f61f0)]
           + fileopen.RANGES,
-          hooks={0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None})   # (the STL lock the map's insert takes: the port leaves it out)
+          hooks={0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None, 0x67a7d0: _cdecl_log})   # (the STL lock the map's insert takes: the port leaves it out)
 CAT, OUT, RECS, NODES = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x400
 MAPA, MAPC, MAPB = RAM + 0x600, RAM + 0x640, RAM + 0x680
 BLOCKA, BLOCKC, BLOCKB = RAM + 0x10000, RAM + 0x20000, RAM + 0x40000   # (two blocks each, 0x1000 apart, only the used stretch mapped)
@@ -343,7 +343,7 @@ def case_unload(r):
     return Call(CALLS['unload'], [CAT, OUT, RECS + 0x40 * j if r.random() < 0.95 else 0], regions, conv='t', ret='a')
 
 
-def case_ctor(r):
+def case_ctor(r, name):
     """The constructor over random bytes: tree J's and map H's nil nodes made already or not (their counters any), the heap failing now
     and then (a failed record faults in both). The allocator and comparator bytes it copies from its uninitialised locals (+0xc, +0xd, +0x1c,
     +0x1d and the deques' +0x38, +0x68, +0x98) are masked: the listing's only reads of them are those copies (0x6beb5d / 0x6beb61 /
@@ -356,13 +356,19 @@ def case_ctor(r):
                0xfb2000: struct.pack('<4I', r.choice([0, J_NIL]), r.getrandbits(32), r.choice([0, TREE_NIL]), r.getrandbits(32))}
     mask = Mask(CAT, [0xc, 0xd, 0x1c, 0x1d, 0x38, 0x68, 0x98], 'the allocator and comparator bytes: the original copies its uninitialised '
                 'stack bytes there (the port 0); nothing reads them')
+    if name == 'get':   # (the singleton: made unless the guard's bit 0 is set (its other bits any); atexit a recorder)
+        regions[0xfb1ff8] = bytes([r.choice([0, 1, r.getrandbits(8)])])
+        regions[SINGLETON] = regions.pop(CAT)
+        regions[LOG] = log_region()
+        mask.region = SINGLETON
+        return Call(CALLS['get'], [], regions, ret='a', masks=[mask])
     return Call(CALLS['ctor'], [CAT], regions, conv='t', ret='a', masks=[mask])
 
 
 def case(r):
     name = r.deal(OPS)
-    if name == 'ctor':
-        return case_ctor(r)
+    if name in ('ctor', 'get'):
+        return case_ctor(r, name)
     if name in ('dtor', 'deldtor', 'singleton'):
         return case_dtor(r, name)
     if name == 'unload':

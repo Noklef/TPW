@@ -91,7 +91,12 @@ void EraseAll(u8 *deque) {
 const StringView *View(const String *s) { return reinterpret_cast<const StringView *>(s); }
 void *const *Vtable(u32 address) { return reinterpret_cast<void *const *>(static_cast<uintptr_t>(address)); }
 
+const SoundCategoryEnv kGameEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0)};
+const SoundCategoryEnv *g_env = &kGameEnv;
+
 }  // namespace
+
+void SoundCategory_SetEnv(const SoundCategoryEnv *env) { g_env = env ? env : &kGameEnv; }
 
 extern "C" {
 
@@ -546,6 +551,16 @@ u8 *__fastcall SoundCategory_DeletingDtor(u8 *category, void *, u32 flags) {
 }
 
 void __cdecl SoundCategory_SingletonDtor() { SoundCategory_Dtor(Ptr(0xfb1f28)); }
+
+u8 *__cdecl SoundCategory_Get() {
+    u8 &guard = *Ptr(0xfb1ff8);
+    if (!(guard & 1)) {
+        guard |= 1;
+        SoundCategory_Ctor(Ptr(0xfb1f28));
+        g_env->atExit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x006beb10));
+    }
+    return Ptr(0xfb1f28);
+}
 
 u32 *__fastcall SoundCategory_UnloadRecord(u8 *category, void *, u32 *out, u8 *record) {
     if (!record) {
