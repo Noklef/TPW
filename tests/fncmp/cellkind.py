@@ -113,7 +113,7 @@ def track_cell(r, h, kind=None):
 
 def track_case(r, op, regions, h, owners, clear):
     """SetTrack: a track cell of id h whose map cell (MapHandle_Cell44: [0x8023a0] + (h - 1) * 0x44) is 1 or 0 when clear; ClearBlock:
-    the 3 x 3 track cells about it in [0x80239c]'s table (+ 0x10f2b0 + id * 0x28)."""
+    the 3 x 3 track cells about it in [0x80239c]'s table (+ 0x1102b0 + id * 0x28: Map_StepCell28's (id + 0x6cde) * 0x28)."""
     x, y = (h - 1) & 0x7f, (h - 1) >> 7
     regions.update({0x81aebc: struct.pack('<I', r.choice([0, 1, 50, 100, 0x80000000, r.getrandbits(32)])), 0x820ad0: struct.pack('<I', r.choice([0, 1, 1])),
                     0x81b43c: struct.pack('<I', r.choice([0, 1, 50, 100, 0x80000000, r.getrandbits(32)]))})
@@ -121,7 +121,7 @@ def track_case(r, op, regions, h, owners, clear):
         for dy in (-1, 0, 1):
             if 0 <= y + dy < 128:
                 x0, x1 = max(0, x - 1), min(127, x + 1)
-                regions[W2 + 0x10f2b0 + ident(x0, y + dy) * 0x28] = b''.join(track_cell(r, ident(xx, y + dy)) for xx in range(x0, x1 + 1))
+                regions[W2 + 0x1102b0 + ident(x0, y + dy) * 0x28] = b''.join(track_cell(r, ident(xx, y + dy)) for xx in range(x0, x1 + 1))
         regions[TRACK] = track_cell(r, h)
         return Call(CALLS[op], [TRACK], regions, conv='t', ret='v')
     here = bytearray(r.bytes(0x44))
@@ -137,6 +137,8 @@ def track_case(r, op, regions, h, owners, clear):
     kind = r.choice([0, 0xb, 0xb, 0x10, 0x10, 0x19, 7, mine, r.randrange(0x20), r.getrandbits(32)])
     if clear:
         kind = r.choice([0xb, 0x10])
+    elif r.random() < 0.15:   # (kind 7 onto a cell it may replace: set, no debit)
+        mine, kind = r.choice([0, 0x19]), 7
     regions[TRACK] = track_cell(r, h, mine)
     return Call(CALLS[op], [TRACK, kind], regions, conv='t', ret='a')
 
