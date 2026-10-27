@@ -28,4 +28,11 @@ void __cdecl Dialog7cb25c_Refresh();
 // (Dialog7cb25c_SetTexts). Every message then goes to Window_CallDefault, whose answer is returned.
 s32 __cdecl Dialog7cb25c_ListProc(u8 *list, u32 message, u32 a, u32 b);
 
+// 0x49f460 / 0x49f4a0 (cdecl (index); names invented): the callbacks that the dialog's handler (0x49f4e0) hands to a confirmation box
+// (pushed at 0x49f646 / 0x49f789). Loan `index` of the world's money record (the table 0x7cfb90's entry for [0x7cf83c]'s word +0x1da726)
+// is paid off (Money_PayOffLoan) / taken out (Money_TakeLoan), whatever that answers. Then the dialog's child 0x12c4bd (Window_FindChild
+// on [0x7cb25c], unchecked) is refilled (Dialog7cb25c_FillList). Both return 1.
+u32 __cdecl Dialog7cb25c_PayOffLoan(u32 index);
+u32 __cdecl Dialog7cb25c_TakeLoan(u32 index);
+
 }

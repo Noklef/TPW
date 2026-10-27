@@ -72,4 +72,20 @@ s32 __cdecl Dialog7cb25c_ListProc(u8 *list, u32 message, u32 a, u32 b) {
     }
     return Window_CallDefault(list, nullptr, message, a, b);
 }
+
+static u8 *money() {
+    return reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(*reinterpret_cast<u8 **>((uintptr_t)0x007cf83c)));
+}
+
+u32 __cdecl Dialog7cb25c_PayOffLoan(u32 index) {
+    Money_PayOffLoan(money(), nullptr, index);
+    Dialog7cb25c_FillList(Window_FindChild(dialog(), nullptr, 0x12c4bd));
+    return 1;
+}
+
+u32 __cdecl Dialog7cb25c_TakeLoan(u32 index) {
+    Money_TakeLoan(money(), nullptr, index);
+    Dialog7cb25c_FillList(Window_FindChild(dialog(), nullptr, 0x12c4bd));
+    return 1;
+}
 }  // extern "C"

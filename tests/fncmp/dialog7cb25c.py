@@ -10,7 +10,8 @@
 # or 1 mostly. The new strings' allocator bytes masked (the items added, the list's growth and the strings worked out as the original's).
 # Refresh (0x4a0770): FillList's, the list the child 0x12c4bd of the dialog [0x7cb25c] (among 0-2 decoys; none now and then), or no dialog.
 # Proc (0x4a06b0): the handler on FillList's list with SetTexts' dialog (proc_case()).
-# usage: dialog7cb25c.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetTexts,FillList,Refresh,Proc)
+# PayOff / Take (0x49f460 / 0x49f4a0): a loan paid off / taken out, then the list refilled (loan_case()).
+# usage: dialog7cb25c.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetTexts,FillList,Refresh,Proc,PayOff,Take)
 import os
 import struct
 import sys
@@ -22,14 +23,15 @@ import panelparts  # noqa: E402
 import window7059f0 as wl  # noqa: E402
 from fncmp import HEAP, LOG, RAM, Bench, Call, Mask, blob_bytes, log_region, put, recorder, vtable  # noqa: E402
 
-CALLS = {'SetTexts': 0x49f860, 'FillList': 0x49fa00, 'Refresh': 0x4a0770, 'Proc': 0x4a06b0}
+CALLS = {'SetTexts': 0x49f860, 'FillList': 0x49fa00, 'Refresh': 0x4a0770, 'Proc': 0x4a06b0, 'PayOff': 0x49f460, 'Take': 0x49f4a0}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 B = Bench(sorted(set(wl.LIST_RANGES + [
     (0x485b00, 0x485b40), (0x49f860, 0x49f9ff), (0x65d7bc, 0x65d832), (0x65f5b7, 0x65f5fe), (0x6ace60, 0x6aceb0), (0x6adc80, 0x6add40),
     (0x41a990, 0x41a9c0), (0x47db20, 0x47db90), (0x485ac0, 0x485b00), (0x49fa00, 0x49fb40), (0x4a0770, 0x4a07a0), (0x4c7db0, 0x4c8160),
     (0x4d06b0, 0x4d0760), (0x4f0240, 0x4f0260), (0x519510, 0x519560), (0x5195d0, 0x519620), (0x535db0, 0x535de0), (0x536300, 0x536330),
     (0x658ccc, 0x658e04), (0x659710, 0x659740), (0x65d773, 0x65d7bc), (0x65d9dd, 0x65da9d), (0x6649d5, 0x664b78), (0x6697e3, 0x6698b4),
-    (0x66b47d, 0x66b518), (0x5da3c0, 0x5da3c1), (0x4a06b0, 0x4a070b), (0x65f66e, 0x65f6a7)])))   # (tools/ranges.py 4a0770 / 4a06b0, window7059f0.py's)
+    (0x66b47d, 0x66b518), (0x5da3c0, 0x5da3c1), (0x4a06b0, 0x4a070b), (0x65f66e, 0x65f6a7), (0x49f460, 0x49f4d6), (0x4d06b0, 0x4d0820),
+    (0x4d0850, 0x4d0980)])))   # (tools/ranges.py 4a0770 / 4a06b0 / 49f460 / 49f4a0, window7059f0.py's)
 ROOT, PANEL, NODES, VT, IMPL, IMPLVT = RAM + 0x1000, RAM + 0x1200, RAM + 0x2000, RAM + 0x3000, RAM + 0x3100, RAM + 0x3200
 NODE = 0x120
 
@@ -76,6 +78,8 @@ def case(r):
     op = r.deal(OPS)
     if op == 'Proc':
         return proc_case(r)
+    if op in ('PayOff', 'Take'):
+        return loan_case(r, op)
     if op != 'SetTexts':
         return fill_case(r, op)
     log = log_region()
@@ -218,6 +222,13 @@ def fill_case(r, op):
         return Call(CALLS['FillList'], [wl.LIST3], regions, ret='v', masks=masks_of(regions, flag, env))
     flag = r.choice([1, 1, 1, flag])
     regions[0x7cb260] = struct.pack('<I', flag)
+    dialog, ids = dialog_env(r, regions)
+    masks = masks_of(regions, flag, env) if dialog and flag == 1 and 0x12c4bd in ids else []
+    return Call(CALLS['Refresh'], [], regions, ret='v', masks=masks)
+
+
+def dialog_env(r, regions):
+    """Refresh's dialog [0x7cb25c] (none now and then) with FillList's list as its child 0x12c4bd among 0-2 decoys (missing now and then)"""
     ids = [0x12c4bd] if r.random() < 0.97 else []
     ids += [r.choice([0, 0x12c4be, 0x11, r.getrandbits(32)]) for _ in range(r.choice([0, 1, 2]))]
     r.shuffle(ids)
@@ -231,8 +242,45 @@ def fill_case(r, op):
     regions[DIALOG2] = put(bytearray(r.bytes(NODE)), 0x5c, 'I', head)
     dialog = DIALOG2 if r.random() < 0.9 else 0
     regions[0x7cb25c] = struct.pack('<I', dialog)
-    masks = masks_of(regions, flag, env) if dialog and flag == 1 and 0x12c4bd in ids else []
-    return Call(CALLS['Refresh'], [], regions, ret='v', masks=masks)
+    return dialog, ids
+
+
+def loan_state(regions, money):
+    """the offers and the credit (signed) as fill_env() works them out, from the money record `money`"""
+    score = struct.unpack_from('<i', regions[SCORE_AT + 0x1f0e8], 4)[0]
+    owed = 0
+    for i in range(8):
+        term, rate, taken, paid = struct.unpack_from('<4I', money, 0x20 + 0x20 * i)
+        owed += (term - paid) * rate if taken else 0
+    credit = (int(f32(float(score))) - owed) & 0xffffffff
+    signed = credit - (1 << 32) if credit >> 31 else credit
+    return [struct.unpack_from('<8i', money, 0x14 + 0x20 * i) for i in range(8)], signed
+
+
+def loan_case(r, op):
+    """PayOff / Take (0x49f460 / 0x49f4a0): FillList's world with Refresh's dialog, the analyser's +0x1fc90 and +0x1f5a0; the loan 0-7
+    mostly (8 or any now and then: any is a fault in both). The list's masks from the offers and credit after the loan's change, as
+    Money_PayOffLoan / Money_TakeLoan make it."""
+    regions, env, flag = fill_env(r)
+    dialog, ids = dialog_env(r, regions)
+    regions[SCORE_AT + 0x1fc90] = r.bytes(4)
+    regions[SCORE_AT + 0x1f5a0] = r.bytes(4)
+    index = r.choice(list(range(8)) * 3 + [8, r.getrandbits(32)])
+    masks = []
+    if index <= 8:
+        money, loan = bytearray(regions[MONEY]), 0x20 * index   # (a copy, changed as the loan's function changes the record)
+        taken, = struct.unpack_from('<I', money, loan + 0x28)
+        if op == 'Take':
+            if not taken:
+                put(money, loan + 0x28, 'I', 1)
+        elif taken:
+            term, rate, _, paid = struct.unpack_from('<4I', money, loan + 0x20)
+            if struct.unpack_from('<I', money, 0xc)[0] >= ((term - paid) * rate) & 0xffffffff:
+                put(money, loan + 0x28, 'II', 0, 0)
+        offers, signed = loan_state(regions, money)
+        if dialog and 0x12c4bd in ids:
+            masks = masks_of(regions, flag, env[:3] + (offers, signed) + env[5:])
+    return Call(CALLS[op], [index], regions, ret='a', masks=masks)
 
 
 PROC_OFF, TABLE2 = 0x30000, RAM + 0x34000   # (Proc: SetTexts' dialog moved past FillList's world; its texts' record table)
