@@ -352,6 +352,7 @@
 #include "../game/model/objmodel.h"
 #include "../game/model/stripanim.h"
 #include "../game/model/baseuvs.h"
+#include "../game/model/gridfit.h"
 #include "../game/model/md2file.h"
 #include "../game/model/worldverts.h"
 #include "../game/render/frame.h"
@@ -5776,6 +5777,8 @@ const Hook kHooks[] = {
     {"RideBase_TidyUVs",          0x00467310, (void *)&RideBase_TidyUVs, {0x83, 0xec, 0x38, 0x53, 0x55}},
     {"RideBase_TidyAllUVs",       0x004679d0, (void *)&RideBase_TidyAllUVs, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"MD2_Load",                  0x0046d6d0, (void *)&MD2_Load, {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"Frame_FitToGrid",           0x00469a80, (void *)&Frame_FitToGrid, {0x55, 0x8b, 0xec, 0x83, 0xe4}},
+    {"Model_FitToGrid",           0x00469940, (void *)&Model_FitToGrid, {0x83, 0xec, 0x48, 0x53, 0x55}},
     {"Terrain_IsParkLand",        0x00450420, (void *)&Terrain_IsParkLand, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
     {"Terrain_CopyAttrs",         0x00450a30, (void *)&Terrain_CopyAttrs, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Terrain_GridSize",          0x00450b00, (void *)&Terrain_GridSize, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
