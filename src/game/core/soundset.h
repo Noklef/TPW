@@ -131,4 +131,16 @@ void __cdecl Sound_Load(u8 *stream);
 // 0x785938-0x78594c (a, b, c, d, -, e; no on / started test). Above e: the level slot handed to 0x700b40 (the channel's query, 0x6b9060, may
 // write it), then (level - d) * (that - c) / (100 - d) (unsigned) + c. Above d: c. Else (level - b) * (c - a) / (d - b) (signed) + a.
 void __cdecl Sound_SetVoicesForLevel(s32 level);
+
+// The manager's posts while on and started (0x802bc8, 0x802bd4; cdecl, void; the out each one's first argument's slot). 0x51b620: 0x700b2c
+// (the sound object's slot 8 with the value). 0x51c060 (name invented): 0x700b9c (the id's voice's functor 2, SoundObject_SendVoiceFunctor2).
+// 0x51c5d0: 0x700bbc with the sound and the area (x, z)..(x + w, z + d). 0x51c8d0 (name invented): an EAX record other than 0x803ab4's
+// kept there and posted (0x700b30).
+void __cdecl SoundCategory_Release(u32 value);
+void __cdecl Sound_SendVoiceFunctor2(u32 id);
+void __cdecl Sound_SetArea(u32 sound, u32 x, u32 z, u32 w, u32 d);
+void __cdecl Sound_SetEaxRecord(u32 index);
+// 0x51c1d0 (cdecl, nine dwords; name invented): while on and started, SoundManager_SetPlacement (out the first argument's slot) with the
+// position (x, y, z; y the float [0x700b28] when the word 0x803ad2 is set; through the x87), the direction and the value triples.
+void __cdecl Sound_SetPlacement(u32 x, u32 y, u32 z, u32 dx, u32 dy, u32 dz, u32 vx, u32 vy, u32 vz);
 }

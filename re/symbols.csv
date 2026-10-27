@@ -363,10 +363,10 @@ address,name,kind,confidence,notes
 0x00551320,KidSound_PlayGraded,function,low,"reimplemented (src/game/core/soundplay); cdecl (level, a, b, x, y, z): a kids' sound for a level (base 0x4b / 0x4f / 0x53 / 0x57) graded by (a + b) / 50 (at most 3; nothing for level 0 or a negative grade) played at a position in gSndCatKids"
 0x0051eeb0,Sound_PlayRideElement,function,low,"reimplemented (src/game/core/soundplay); cdecl (id, owner, category, index, x, y, z): a ride's linked sound element played at a position"
 0x0051e730,Sound_StartMusic,function,low,"reimplemented (src/game/core/soundplay); cdecl: the music [0x803aa0] = Sound_PlayAt([0x803aa0], cat_music [0x803a44], 2, 0, 0, 0), then Sound_SetParam(it, 4, 0) into [0x803aa0]"
-0x0051c5d0,Sound_SetArea,function,medium,"(sound, x, z, w, d): spreads an emitter over the rect (x, z)..(x+w, z+d)"
+0x0051c5d0,Sound_SetArea,function,medium,"reimplemented (src/game/core/soundset); while on and started, the manager posts 0x700bbc with the sound and the area (x, z)..(x + w, z + d)"
 0x00521e60,Particle_Spawn,function,high,"reimplemented (src/game/render/particles); cdecl (effect, x, y, z): starts a particle system from the effect definition: a free system to the live list, the definition copied, its first burst emitted, its linked voice or effect started; returns its handle, 0 for an optional effect while reduced, -1 when none"
 0x0051b530,Sound_QueryFound,function,low,"reimplemented (src/game/core/soundset); cdecl (name, folders): the name found in a folder list (Class6fd9d8_FindFirstMatch), then the sound manager's +4 (&folders, found text, name, &name) when on and started; else 0"
-0x0051b620,SoundCategory_Release,function,medium,
+0x0051b620,SoundCategory_Release,function,medium,"reimplemented (src/game/core/soundset); while on and started, the manager posts 0x700b2c (the sound object's slot 8 with the value)"
 0x0051eae0,Sound_RegisterGlobalCategories,function,high,"reimplemented (src/game/core/soundset); cdecl: cat_ambient, cat_rides, cat_ui, cat_kids, cat_staff (folder 0x8030d8) and cat_speech (0x803558) to 0x803a20-0x803a34"
 0x0051ec50,Sound_RegisterThemeCategories,function,high,"reimplemented (src/game/core/soundset); cdecl (theme): the theme folders' cat_ambient, cat_rides, cat_speech and cat_music to 0x803a38-0x803a44"
 0x0051eda0,Sound_ReleaseGlobalCategories,function,high,
@@ -2579,6 +2579,9 @@ address,name,kind,confidence,notes
 0x0051c700,Sound_SetCameraOcclusion,function,low,"reimplemented (src/game/core/soundset); cdecl (level): with sound on and started, the occlusion switch command 0x700bc8 {on, radius}: with the ground-level camera (0x790ab0 & 0x16) the radius by the level's band (0x78590c / 0x785958 / 0x785960 / 0x785968; interpolated between the radii 0x785954 / 0x78595c / 0x785964), else off"
 0x0051c570,Sound_VoiceInfo,function,low,"reimplemented (src/game/core/soundset); cdecl (id): a result 1, then with sound on and started the manager's apply with the stack command 0x700bb8 {&result, id} (the out the id's slot); returns the result"
 0x0051b810,Sound_SetVoicesForLevel,function,low,"reimplemented (src/game/core/soundset); the sound object's voice count for a level: queried and scaled above the top level, the top count above the next, else interpolated"
+0x0051c1d0,Sound_SetPlacement,function,low,"reimplemented (src/game/core/soundset); while on and started, the manager's placement (the position's y the float 0x700b28 when the word 0x803ad2 is set)"
+0x0051c8d0,Sound_SetEaxRecord,function,low,"reimplemented (src/game/core/soundset); while on and started, an EAX record other than 0x803ab4's kept there and posted (0x700b30)"
+0x0051c060,Sound_SendVoiceFunctor2,function,low,"reimplemented (src/game/core/soundset); while on and started, the manager posts 0x700b9c (the id's voice's functor 2)"
 0x005af7f0,GlobalSave_ThemeByte,function,high,reimplemented (src/game/core/globalsave); thiscall u8 (i): byte i of the global save info's (0xf7c58c) current theme record (+0x48)
 0x005af800,GlobalSave_Byte26,function,high,reimplemented (src/game/core/globalsave); thiscall u8 (i): byte +0x26 + i of the global save info
 0x005afc30,GlobalSave_Inc20,function,high,reimplemented (src/game/core/globalsave); thiscall: the global save info's counter +0x20 incremented

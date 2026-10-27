@@ -375,4 +375,37 @@ void __cdecl Sound_SetVoicesForLevel(s32 level) {
     u32 value[2] = {0x00700b3c, static_cast<u32>(product / span) + static_cast<u32>(a)};   // (idiv: a zero span or INT_MIN / -1 faults)
     Apply(reinterpret_cast<u32 *>(&level), value);
 }
+
+void __cdecl SoundCategory_Release(u32 value) {
+    if (!On()) return;
+    u32 functor[2] = {0x00700b2c, value};
+    Apply(&value, functor);
+}
+
+void __cdecl Sound_SendVoiceFunctor2(u32 id) {
+    if (!On()) return;
+    u32 functor[2] = {0x00700b9c, id};
+    Apply(&id, functor);
+}
+
+void __cdecl Sound_SetPlacement(u32 x, u32 y, u32 z, u32 dx, u32 dy, u32 dz, u32 vx, u32 vy, u32 vz) {
+    if (!On()) return;
+    const u32 value[3] = {vx, vy, vz};
+    const u32 direction[3] = {dx, dy, dz};
+    const u32 position[3] = {x, X87_FloatThrough(global<u16>(0x00803ad2) ? global<u32>(0x00700b28) : y), z};   // (fld / fstp m32)
+    SoundManager_SetPlacement(global<u8 *>(0x00802bcc), nullptr, &x, position, direction, value);
+}
+
+void __cdecl Sound_SetArea(u32 sound, u32 x, u32 z, u32 w, u32 d) {
+    if (!On()) return;
+    u32 functor[6] = {0x00700bbc, sound, x, z, x + w, z + d};
+    Apply(&sound, functor);
+}
+
+void __cdecl Sound_SetEaxRecord(u32 index) {
+    if (!On() || index == global<u32>(0x00803ab4)) return;
+    global<u32>(0x00803ab4) = index;
+    u32 functor[2] = {0x00700b30, index};
+    Apply(&index, functor);
+}
 }
