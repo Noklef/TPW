@@ -69,4 +69,10 @@ u32 *__fastcall SoundObject_ReleaseRecordBanks(u8 *object, void *, u32 *out, con
 // index) on the category singleton (SoundCategory_Get); else *out = -1.
 u32 *__fastcall SoundObject_ReleaseRecordAt(u8 *object, void *, u32 *out, u32 index);
 
+// 0x6b8ce0 (thiscall (flags), pops 4; slot 0 of 0x70a588): SoundObject_Dtor, then the object freed with flags bit 0. Returns the object.
+u8 *__fastcall SoundObject_DeletingDtor(u8 *object, void *, u32 flags);
+// 0x6b8ad0 (thiscall (id, a, b), pops 0xc; slot 3 of 0x70a2a0 and 0x70a588; name invented): with an id (not 0) and a mixer (+0x20),
+// SoundMixer_CallVoice10 (id, a, b); else 0.
+u32 __fastcall SoundObject_CallVoice10(u8 *object, void *, u32 id, u32 a, u32 b);
+
 }  // extern "C"

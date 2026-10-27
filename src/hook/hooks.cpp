@@ -4535,6 +4535,8 @@ const Hook kHooks[] = {
     {"SoundObject_RemoveOccluder", 0x006b8cb0, (void *)&SoundObject_RemoveOccluder, {0x8b, 0x49, 0x24, 0x85, 0xc9}},
     {"SoundObject_ReleaseRecordBanks", 0x006b8570, (void *)&SoundObject_ReleaseRecordBanks, {0x8b, 0x49, 0x24, 0x56, 0x85}},
     {"SoundObject_ReleaseRecordAt", 0x006ba090, (void *)&SoundObject_ReleaseRecordAt, {0x8b, 0x44, 0x24, 0x08, 0x85}},
+    {"SoundObject_DeletingDtor",  0x006b8ce0, (void *)&SoundObject_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"SoundObject_CallVoice10",   0x006b8ad0, (void *)&SoundObject_CallVoice10, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"SoundVoice_EnsureParams",   0x006b7150, (void *)&SoundVoice_EnsureParams, {0x53, 0x56, 0x8b, 0xf1, 0x33}},
     {"SoundVoice_SetPending",     0x006bc900, (void *)&SoundVoice_SetPending, {0x81, 0xec, 0xac, 0x00, 0x00}},
     {"SoundVoice_ApplyVariation", 0x006bbf00, (void *)&SoundVoice_ApplyVariation, {0x53, 0x56, 0x8b, 0xf1, 0x33}},

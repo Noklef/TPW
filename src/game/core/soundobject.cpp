@@ -6,6 +6,7 @@
 #include "../math/vector.h"
 
 #include "fieldops.h"
+#include "gameheap.h"
 #include "initializers.h"
 #include "soundcategory.h"
 #include "soundchannel.h"
@@ -202,6 +203,17 @@ u32 __fastcall SoundObject_ResolvePath(u8 *object, void *, const char *path, u8 
     if ((path[1] == ':' && slash(path[2])) || (slash(path[0]) && slash(path[1]))) return vcall<u32>(string, 0x14, path);
     vcall<u32>(string, 0x18, *reinterpret_cast<u8 **>(object + 0x24) + 0x30);
     return vcall<u32>(string, 0x20, path);
+}
+
+u8 *__fastcall SoundObject_DeletingDtor(u8 *object, void *, u32 flags) {
+    SoundObject_Dtor(object);
+    if (flags & 1) GameHeap_Free(object);
+    return object;
+}
+
+u32 __fastcall SoundObject_CallVoice10(u8 *object, void *, u32 id, u32 a, u32 b) {
+    if (!id || !at<u8 *>(object, 0x20)) return 0;
+    return SoundMixer_CallVoice10(at<u8 *>(object, 0x20), nullptr, id, a, b);
 }
 
 }  // extern "C"
