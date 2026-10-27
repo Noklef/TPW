@@ -1,6 +1,7 @@
 #include "soundcmd.h"
 
 #include <cstdint>
+#include <cstring>
 
 #include "accessors.h"
 #include "fieldops.h"
@@ -9,6 +10,7 @@
 #include "soundmixer.h"
 #include "soundobject.h"
 #include "vcall.h"
+#include "../math/x87.h"
 
 namespace {
 
@@ -23,6 +25,16 @@ u32 *Functor(u8 *target, u32 *out, u32 vtable) {
     u32 functor[2];   // (the second dword left unset, sic)
     functor[0] = vtable;
     vcall<void>(at<u8 *>(target, 0x24), 0x10, out, functor);
+    return out;
+}
+
+// The channel's rate modifier of the index (SoundChannel_SetRateModifier on target's +0x24): the command's value times 0.01 ([0x70a280];
+// fild qword of the zero-extended value, fmul float, fstp float).
+u32 *SetRate(const u8 *command, u32 *out, u8 *target, u32 index) {
+    const float modifier = (float)X87_MulInt(at<u32>(command, 4), *reinterpret_cast<const float *>(0x0070a280));
+    u32 bits;
+    std::memcpy(&bits, &modifier, 4);
+    SoundChannel_SetRateModifier(at<u8 *>(target, 0x24), nullptr, out, index, bits);
     return out;
 }
 
@@ -65,6 +77,14 @@ u32 *__fastcall SoundCmd700b70_Run(const u8 *command, void *, u32 *out, u8 *targ
 u32 *__fastcall SoundCmd700b74_Run(const u8 *command, void *, u32 *out, u8 *target) { return SetByte(target, out, 1, at<u32>(command, 4)); }
 
 u32 *__fastcall SoundCmd700b78_Run(const u8 *command, void *, u32 *out, u8 *target) { return SetByte(target, out, 2, at<u32>(command, 4)); }
+
+u32 *__fastcall SoundCmd700b80_Run(const u8 *command, void *, u32 *out, u8 *target) { return SetRate(command, out, target, 0); }
+
+u32 *__fastcall SoundCmd700b88_Run(const u8 *command, void *, u32 *out, u8 *target) { return SetRate(command, out, target, 1); }
+
+u32 *__fastcall SoundCmd700b7c_Run(const u8 *command, void *, u32 *out, u8 *target) { return SetRate(command, out, target, 2); }
+
+u32 *__fastcall SoundCmd700b84_Run(const u8 *command, void *, u32 *out, u8 *target) { return SetRate(command, out, target, 3); }
 
 u32 *__fastcall SoundCmd700ba8_Run(const u8 *command, void *, u32 *out, u8 *target) { return Forward(target, 0x18, out, at<u32>(command, 4)); }
 
@@ -142,6 +162,26 @@ u32 *__fastcall SoundCmd700bc4_Run(const u8 *command, void *, u32 *out, u8 *targ
 
 u32 *__fastcall SoundCmd700bc8_Run(const u8 *command, void *, u32 *out, u8 *target) {
     SoundChannel_SwitchOcclusion(at<u8 *>(target, 0x24), nullptr, out, at<u32>(command, 4), at<u32>(command, 8));
+    return out;
+}
+
+u32 *__fastcall SoundCmd700ba0_Run(const u8 *command, void *, u32 *out, u8 *target) {
+    SoundObject_SendVoiceFunctor3(target, nullptr, out, at<u32>(command, 4));
+    return out;
+}
+
+u32 *__fastcall SoundCmd700bb0_Run(const u8 *command, void *, u32 *out, u8 *target) {
+    SoundObject_Save(target, nullptr, out, at<u8 *>(command, 4));
+    return out;
+}
+
+u32 *__fastcall SoundCmd700bb4_Run(const u8 *command, void *, u32 *out, u8 *target) {
+    SoundObject_Load(target, nullptr, out, at<u8 *>(command, 4), at<u8>(command, 8));
+    return out;
+}
+
+u32 *__fastcall SoundCmd700b9c_Run(const u8 *command, void *, u32 *out, u8 *target) {
+    SoundObject_SendVoiceFunctor2(target, nullptr, out, at<u32>(command, 4));
     return out;
 }
 

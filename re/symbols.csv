@@ -65,8 +65,8 @@ address,name,kind,confidence,notes
 0x00437300,Coasters_Save,function,high,"reimplemented (src/game/coaster/save); cdecl u32 (stream): link count, three globals, per link a 0x20-byte record, its pieces' 0x22-byte records and word lists, its cars' 0x1b- and seats' 0xb-byte records and arrays; failed writes never stop it; returns 1"
 0x00599d00,Advisor_Load,function,high,module ADVS
 0x00599c30,Advisor_Save,function,high,"reimplemented (src/game/core/cheatmodule); the advisor module written: a tag, a 0x168 block and a counted buffer"
-0x0051c400,Sound_Load,function,high,module SOUN
-0x0051c350,Sound_Save,function,high,module SOUN
+0x0051c400,Sound_Load,function,high,reimplemented (src/game/core/soundset); the sound globals and settings read; complete: the manager posts 0x700bb4 and 0x700b30 (none: the object's record skipped); short: the on flag put back
+0x0051c350,Sound_Save,function,high,"reimplemented (src/game/core/soundset); the sound globals and the 0x54 settings bytes written; on and started, the manager posts 0x700bb0"
 0x00405570,CheatSystem_Load,function,high,reimplemented (src/game/core/cheatmodule); reads the cheat system's two bytes from a chunk's stream
 0x004055d0,CheatSystem_Save,function,high,reimplemented (src/game/core/cheatmodule); writes the cheat system's two bytes to a chunk's stream
 0x004053b0,CheatSystem_Construct,function,high,"reimplemented (src/game/core/cheatmodule); sets +0xa, +0xb, +0x9; returns the object"
@@ -218,6 +218,8 @@ address,name,kind,confidence,notes
 0x00504760,ResearchGroup_Serialize,function,high,reimplemented (src/game/world/research); a group's 4 fields
 0x00512010,Weather_Serialize,function,high,"reimplemented (src/game/world/weather); thing model 15: thing, fields, forecast at +0x20, fields"
 0x00512c50,Weather_RandomBolt,function,low,"reimplemented (src/game/world/weather); thiscall (&start, &end, unused): a lightning bolt's random ends, start on the ground inside the map, end 300 up and within 50 of it"
+0x005131f0,Weather_SetMode,function,low,"reimplemented (src/game/world/weather); thiscall (mode), pops 4: the renderer's +0 = 1 / 2 for modes 0 / 1, mode 2 no drops; mode 0 plays sound 0x21 when none, modes 1 and 2 stop it"
+0x00512f00,Weather_SetIntensity,function,low,"reimplemented (src/game/world/weather); thiscall (value), pops 4: +0xc the value cut to 1..100, the time, rain or snow by the ranges at 0x785504, the drops, the wind's strength and angle"
 0x005132a0,Forecast_Serialize,function,high,"reimplemented (src/game/world/forecast); thiscall (stream, save, version, unused): the forecast's time (8 bytes), quality and valid byte saved or loaded"
 0x004cf920,BankAccount_Serialize,function,high,"reimplemented (src/game/world/bankaccount); thiscall (stream, save, version, unused): the bank account's serializer (thing model 16: the head dwords, eight loans of eight dwords; loads past the third through Save_ReadU32)"
 0x004d2320,Challenges_Serialize,function,high,"reimplemented (src/game/world/challenges); thing model 19: thing, 0x14 challenges, then 7 fields"
@@ -259,7 +261,7 @@ address,name,kind,confidence,notes
 0x004c7370,ParkAnalyser_HandleMessage,function,high,Thing_HandleMessage case 13
 0x00503d40,ResearchLab_HandleMessage,function,high,Thing_HandleMessage case 14
 0x00512880,Weather_Update,function,medium,Thing_Update case 15
-0x005127a0,Weather_HandleMessage,function,high,Thing_HandleMessage case 15
+0x005127a0,Weather_HandleMessage,function,high,"reimplemented (src/game/world/weather); thiscall (message), pops 4: kind 1 sets the intensity (unless +0x64), kind 2 schedules +0x20 = now + days, +0x28 the value, +0x18 now"
 0x004d02d0,BankAccount_HandleMessage,function,high,Thing_HandleMessage case 16
 0x0050ca50,UIMsgReceiver_HandleMessage,function,high,Thing_HandleMessage case 17
 0x004f7c50,Stub_Ret4b,function,high,reimplemented (src/game/core/accessors); a virtual that does nothing (pops 4)
@@ -363,10 +365,10 @@ address,name,kind,confidence,notes
 0x00551320,KidSound_PlayGraded,function,low,"reimplemented (src/game/core/soundplay); cdecl (level, a, b, x, y, z): a kids' sound for a level (base 0x4b / 0x4f / 0x53 / 0x57) graded by (a + b) / 50 (at most 3; nothing for level 0 or a negative grade) played at a position in gSndCatKids"
 0x0051eeb0,Sound_PlayRideElement,function,low,"reimplemented (src/game/core/soundplay); cdecl (id, owner, category, index, x, y, z): a ride's linked sound element played at a position"
 0x0051e730,Sound_StartMusic,function,low,"reimplemented (src/game/core/soundplay); cdecl: the music [0x803aa0] = Sound_PlayAt([0x803aa0], cat_music [0x803a44], 2, 0, 0, 0), then Sound_SetParam(it, 4, 0) into [0x803aa0]"
-0x0051c5d0,Sound_SetArea,function,medium,"(sound, x, z, w, d): spreads an emitter over the rect (x, z)..(x+w, z+d)"
+0x0051c5d0,Sound_SetArea,function,medium,"reimplemented (src/game/core/soundset); while on and started, the manager posts 0x700bbc with the sound and the area (x, z)..(x + w, z + d)"
 0x00521e60,Particle_Spawn,function,high,"reimplemented (src/game/render/particles); cdecl (effect, x, y, z): starts a particle system from the effect definition: a free system to the live list, the definition copied, its first burst emitted, its linked voice or effect started; returns its handle, 0 for an optional effect while reduced, -1 when none"
 0x0051b530,Sound_QueryFound,function,low,"reimplemented (src/game/core/soundset); cdecl (name, folders): the name found in a folder list (Class6fd9d8_FindFirstMatch), then the sound manager's +4 (&folders, found text, name, &name) when on and started; else 0"
-0x0051b620,SoundCategory_Release,function,medium,
+0x0051b620,SoundCategory_Release,function,medium,"reimplemented (src/game/core/soundset); while on and started, the manager posts 0x700b2c (the sound object's slot 8 with the value)"
 0x0051eae0,Sound_RegisterGlobalCategories,function,high,"reimplemented (src/game/core/soundset); cdecl: cat_ambient, cat_rides, cat_ui, cat_kids, cat_staff (folder 0x8030d8) and cat_speech (0x803558) to 0x803a20-0x803a34"
 0x0051ec50,Sound_RegisterThemeCategories,function,high,"reimplemented (src/game/core/soundset); cdecl (theme): the theme folders' cat_ambient, cat_rides, cat_speech and cat_music to 0x803a38-0x803a44"
 0x0051eda0,Sound_ReleaseGlobalCategories,function,high,
@@ -969,6 +971,7 @@ address,name,kind,confidence,notes
 0x004ca670,Research_CountNotDoneCat2,function,low,reimplemented (src/game/world/research); cdecl: the lab's projects of category 2 not done
 0x004ca690,Research_CountNotDoneCat3,function,low,reimplemented (src/game/world/research); cdecl: the lab's projects of category 3 not done
 0x00503ac0,ResearchLab_LeftPercent,function,low,"reimplemented (src/game/world/research); thiscall (group), pops 4: the current project's (mCost - mResearchDone) * 100 / the dearest project's (+0x1464) mCost, __ftol; 0 without one or unless mCost > 0.1 and the dearest > 1.0"
+0x00503b80,ResearchLab_UpdateLevels,function,low,"reimplemented (src/game/world/research); thiscall (cat), pops 4: raises the category's group's highest level while the share of its eligible projects done reaches 0x785540's threshold (below 7); when raised, some not done and cat 0-3, posts advisor message 0x85 + cat"
 0x005100e0,Nav_SetPosVel,function,high,"reimplemented (src/game/world/nav); thiscall (x, y, vx, vy): pos (+8) and vel (+0x10) set"
 0x00510160,Nav_GetPos,function,high,"reimplemented (src/game/world/nav); thiscall (&x, &y): pos (+8, +0xc) read"
 0x0051aad0,World_ArrivalVehicleNotSize1,function,high,reimplemented (src/game/world/world); thiscall: 1 when mCurrentArrivalVehicle (+0x1da72a) is set and is not mArrivalVehicle_Size1 (+0x1da72c)
@@ -2564,7 +2567,23 @@ address,name,kind,confidence,notes
 0x0051bc40,Sound_SetParam,function,low,"reimplemented (src/game/core/soundset); cdecl (sound, parameter, value): 0 unless sound is on (0x802bc8) and started (0x802bd4); else the manager 0x802bcc's SoundManager_Call3 (its engine's slot 3) with them, its answer returned"
 0x0051c270,Sound_SetPosition,function,low,"reimplemented (src/game/core/soundset); cdecl (sound, x, y, z): 0 unless sound is on and started; else the manager's SoundManager_Call5 (its engine's slot 5) with the sound and the position as three floats on the stack, its answer returned"
 0x0051e890,Sound_RegisterGlobalLobbySfx,function,low,"reimplemented (src/game/core/soundset); cdecl: from the folder named the String 0x8030d8, cat_globallobbysfx to 0x803a48"
-0x0051c1d0,Sound_Place,function,low,"reimplemented (src/game/core/soundset); cdecl (nine dwords): when on and started, the manager's SoundManager_SetPlacement with three vectors on the stack, (a, level (a float; 10000.0 with the u16 0x803ad2 set), c), (x, y, z), (dx, dy, dz), its out the first argument's slot"
+0x0051c0a0,Sound_VoiceFunctor3,function,low,"reimplemented (src/game/core/soundset); cdecl (id): with sound on and started, the manager's apply with the stack command 0x700ba0 {id} (the out the id's slot)"
+0x0051c0e0,Sound_SetVoicePending,function,low,"reimplemented (src/game/core/soundset); cdecl (id, value): with sound on and started, the manager's apply with the stack command 0x700ba4 {value, id} (the out the value's slot)"
+0x0051c2c0,Sound_Forward6,function,low,"reimplemented (src/game/core/soundset); cdecl (value): with sound on and started, the manager's apply with the stack command 0x700ba8 {value} (the out the value's slot)"
+0x0051c300,Sound_Stop,function,low,"reimplemented (src/game/core/soundset); cdecl (id): with sound on and started, the manager's apply with the stack command 0x700bac {id, 0x3c} (the out the id's slot)"
+0x0051c640,Sound_AddOccluder,function,low,"reimplemented (src/game/core/soundset); cdecl (x, unused, y, radius, z): with sound on and started, the manager's apply with the stack command 0x700bc0 {x, y, z, radius, &x} (the out y's slot); returns x's slot after it, else 0"
+0x0051c6b0,Sound_RemoveOccluder,function,low,"reimplemented (src/game/core/soundset); cdecl (node): with sound on and started, the manager's apply with the stack command 0x700bc4 {&node} (the out an unset local)"
+0x0051bc70,Sound_Post700b5c,function,low,"reimplemented (src/game/core/soundset); cdecl: with sound on and started, the manager's apply with the stack command 0x700b5c (the out an unset local)"
+0x0051bcb0,Sound_Post700b60,function,low,"reimplemented (src/game/core/soundset); cdecl: with sound on and started, the manager's apply with the stack command 0x700b60 {0x5a} (the out an unset local)"
+0x0051bcf0,Sound_Post700b64,function,low,"reimplemented (src/game/core/soundset); cdecl: with sound on and started, the manager's apply with the stack command 0x700b64 (the out an unset local)"
+0x0051bd30,Sound_Post700b68,function,low,"reimplemented (src/game/core/soundset); cdecl: with sound on and started, the manager's apply with the stack command 0x700b68 (the out an unset local)"
+0x0051bd70,Sound_ApplySettings,function,low,"reimplemented (src/game/core/soundset); cdecl: with sound on and started and the settings changed (0x803ac8), the commands 0x700b88-0x700b70 with the settings (the two volumes scaled by [0x785914] % when 0x803acc, 0x803ae0 and 0x803ac4 > 0), the flag cleared; then the command 0x700b6c"
+0x0051c700,Sound_SetCameraOcclusion,function,low,"reimplemented (src/game/core/soundset); cdecl (level): with sound on and started, the occlusion switch command 0x700bc8 {on, radius}: with the ground-level camera (0x790ab0 & 0x16) the radius by the level's band (0x78590c / 0x785958 / 0x785960 / 0x785968; interpolated between the radii 0x785954 / 0x78595c / 0x785964), else off"
+0x0051c570,Sound_VoiceInfo,function,low,"reimplemented (src/game/core/soundset); cdecl (id): a result 1, then with sound on and started the manager's apply with the stack command 0x700bb8 {&result, id} (the out the id's slot); returns the result"
+0x0051b810,Sound_SetVoicesForLevel,function,low,"reimplemented (src/game/core/soundset); the sound object's voice count for a level: queried and scaled above the top level, the top count above the next, else interpolated"
+0x0051c1d0,Sound_SetPlacement,function,low,"reimplemented (src/game/core/soundset); while on and started, the manager's placement (the position's y the float 0x700b28 when the word 0x803ad2 is set)"
+0x0051c8d0,Sound_SetEaxRecord,function,low,"reimplemented (src/game/core/soundset); while on and started, an EAX record other than 0x803ab4's kept there and posted (0x700b30)"
+0x0051c060,Sound_SendVoiceFunctor2,function,low,"reimplemented (src/game/core/soundset); while on and started, the manager posts 0x700b9c (the id's voice's functor 2)"
 0x005af7f0,GlobalSave_ThemeByte,function,high,reimplemented (src/game/core/globalsave); thiscall u8 (i): byte i of the global save info's (0xf7c58c) current theme record (+0x48)
 0x005af800,GlobalSave_Byte26,function,high,reimplemented (src/game/core/globalsave); thiscall u8 (i): byte +0x26 + i of the global save info
 0x005afc30,GlobalSave_Inc20,function,high,reimplemented (src/game/core/globalsave); thiscall: the global save info's counter +0x20 incremented
@@ -4041,6 +4060,7 @@ address,name,kind,confidence,notes
 0x004d7330,Handyman_SetState,function,low,"reimplemented (src/game/world/staff); thiscall (state): a handyman's states 8-0xb, else Staff_SetState; the state stored"
 0x00505c50,Staff_PickUp,function,low,reimplemented (src/game/world/staff); thiscall: the holder made when missing; when the current mode answers 6 a new CMMOnline base set; the world's 0x519450 record's +0x60 the staff member's handle; state 7 entered
 0x00505f50,Staff_Settle,function,low,"reimplemented (src/game/world/staff); thiscall: unless the state +0x19c is 4, 5, 7, 0xd or 0x12, on a plain cell, the state 0 entered"
+0x00506300,Staff_HeadForEntrance,function,low,"reimplemented (src/game/world/staff); a staff member sent to the cell past the park's entrance (state 1, or 0 when it cannot go) unless the world's 0x1da718 record has its kind's entry"
 0x00520d60,FreeList_Take,function,high,reimplemented (src/game/core/voices); takes a record off the free list into a table entry
 0x00521890,FreeList_Return,function,high,reimplemented (src/game/core/voices); puts a record back on the free list
 0x00521d60,Voice_ScaleLevels,function,high,reimplemented (src/game/core/voices); scales a voice's levels by the factor over 1024
@@ -4508,6 +4528,14 @@ address,name,kind,confidence,notes
 0x006b5ce0,SoundCmd700bc4_Run,function,low,"reimplemented (src/game/core/soundcmd); slot 0 of 0x700bc4: SoundObject_RemoveOccluder on the target (out, the command's +4); returns out"
 0x006b5890,SoundCmd700bc8_Run,function,low,"reimplemented (src/game/core/soundcmd); slot 0 of 0x700bc8: SoundChannel_SwitchOcclusion on the target's channel +0x24 (out, the command's +4, +8); returns out"
 0x006b5c90,SoundCmd700b30_Run,function,low,"reimplemented (src/game/core/soundcmd); slot 0 of 0x700b30, thiscall (out, target), pops 8: SoundObject_ApplyEaxRecord on the target (out, the command's +4); returns out"
+0x006b5c70,SoundCmd700ba0_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700ba0, thiscall (out, target), pops 8: SoundObject_SendVoiceFunctor3 on the target (out, the id at +4); returns out"
+0x006b58f0,SoundCmd700b80_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b80, thiscall (out, target), pops 8: SoundChannel_SetRateModifier on target's +0x24 (out, index 0, the value * 0.01 as a float); returns out"
+0x006b5a10,SoundCmd700b88_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b88, thiscall (out, target), pops 8: SoundChannel_SetRateModifier on target's +0x24 (out, index 1, the value * 0.01 as a float); returns out"
+0x006b5950,SoundCmd700b7c_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b7c, thiscall (out, target), pops 8: SoundChannel_SetRateModifier on target's +0x24 (out, index 2, the value * 0.01 as a float); returns out"
+0x006b59b0,SoundCmd700b84_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b84, thiscall (out, target), pops 8: SoundChannel_SetRateModifier on target's +0x24 (out, index 3, the value * 0.01 as a float); returns out"
+0x006b5c10,SoundCmd700bb0_Run,function,low,reimplemented (src/game/core/soundcmd); slot 0 of 0x700bb0: the sound object's save (the stream at +4)
+0x006b5c30,SoundCmd700bb4_Run,function,low,"reimplemented (src/game/core/soundcmd); slot 0 of 0x700bb4: the sound object's load (the stream at +4, the restore byte at +8)"
+0x006b5c50,SoundCmd700b9c_Run,function,low,reimplemented (src/game/core/soundcmd); slot 0 of 0x700b9c: the sound object's functor 2 send (the id at +4)
 0x006b5ab0,SoundManager_Dtor,function,low,reimplemented (src/game/core/soundmanager); thiscall: vtable reset to 0x70a288; the engine at +4 (if any) destroyed through its slot 0 (1) and +4 cleared
 0x006b5ad0,SoundManager_Call1,function,low,"reimplemented (src/game/core/soundmanager); slot 4, thiscall (out, a), pops 8: the engine's slot 1 (out, a); returns out"
 0x006b5af0,SoundManager_Release,function,low,"reimplemented (src/game/core/soundmanager); slot 0, thiscall (out), pops 4: the manager (unless null) destroyed through its slot 3 (1); *out = 0"
@@ -4558,6 +4586,8 @@ address,name,kind,confidence,notes
 0x006b6650,SoundMixer_AddVoice,function,low,"reimplemented (src/game/core/soundmixer); thiscall (owner, definition, info), pops 0xc: the first free slot (+0x40, count +0x4c); none: 0; its voice in the array +0x3c constructed (Voice70a4f0_Ctor) and initialised (slot 4: out the info argument's slot, sic); negative: 0; else the slot = the voice, 1 (name invented)"
 0x006b6620,SoundMixer_CallVoice10,function,low,"reimplemented (src/game/core/soundmixer); thiscall (id, a, b), pops 0xc: SoundMixer_FindVoice (id): none 0; else the voice slot 10 (a, b), the id returned (name invented)"
 0x006b65e0,SoundMixer_CallVoice9,function,low,"reimplemented (src/game/core/soundmixer); thiscall (id, value), pops 8: the voice for the id (SoundMixer_FindVoice): none 0; else its slot 9 (an out that is the id's own stack slot, value): the id when the status it points to is not negative, else 0 (name invented)"
+0x006b6c30,SoundMixer_Save,function,low,"reimplemented (src/game/core/soundmixer); the mixer's saved voices (size and count patched in after the names, the pages' count and each active voice's id and record)"
+0x006b6da0,SoundMixer_Load,function,low,"reimplemented (src/game/core/soundmixer); the mixer's voices loaded back (the active ones retired; the names, pages and each record onto its free voice by id and type)"
 0x006b8b40,SoundChannel_Apply,function,low,"reimplemented (src/game/core/soundchannel); thiscall (out, functor), pops 8: the functor's slot 0 (out, channel); returns out"
 0x006b7d70,SoundChannel_GetSettings,function,low,"reimplemented (src/game/core/soundchannel); thiscall (out, settings), pops 8: fills a settings record from the channel per its asked-for flags (+4, +8): the info at +0x14, the source at +0x18 (slots 0x13, 3), the EAX buffer at +0x20 (EaxBuffer_QueryAll), [0xfb2058]; the filled flags at +0x4c; *out = 0; returns out"
 0x006b5e40,SoundChannelFn70a260_Run,function,low,"reimplemented (src/game/core/soundchannel); the stack functor 0x70a260's run on a channel: its source's slot 1, then the out zeroed"
@@ -4603,6 +4633,8 @@ address,name,kind,confidence,notes
 0x006b8ed0,SoundChannel_Ctor,function,low,"reimplemented (src/game/core/soundchannel); thiscall: the base (SoundSample70a548_Ctor), +0x28 = 8, +0x2c = 0, the string +0x30 empty, the floats +0x48-+0x54 = 1 with +0x58 = them and +0x5c = 4, +0x60 = 0, the byte +0x64 = 0, the bytes +0x44-+0x47 = 1, vtable 0x70a5d8; returns the channel (name invented)"
 0x006b76d0,SoundChannel_ReleaseAll,function,low,"reimplemented (src/game/core/soundchannel); thiscall: the source's (+0x18) slot 13 (a local out); with a voice pool (+0x14) each voice released, the pool destroyed and freed, +0x14 = 0; the EAX buffer and synthesiser freed; with a source its slot 7 then slot 0 (1), +0x18 = 0; the device singleton's objects released (name invented)"
 0x006b9c00,SoundChannel_Dtor,function,low,"reimplemented (src/game/core/soundchannel); thiscall: vtable 0x70a5d8, the string +0x30 destroyed (String_Dtor), SoundSample70a548_Dtor (name invented)"
+0x006c5be0,SoundChannelEax_Dtor,function,low,"reimplemented (src/game/core/soundchannel); the EAX channel's destructor: its records (+0x68) freed and cleared, then SoundChannel_Dtor"
+0x006ba200,SoundChannelEax_DeletingDtor,function,low,"reimplemented (src/game/core/soundchannel); slot 2 of 0x70a630: SoundChannelEax_Dtor, then freed with flag bit 0; returns the channel"
 0x006b85f0,SoundObject_Broadcast,function,low,"reimplemented (src/game/core/soundobject); thiscall (out), pops 4: the mixer's active voices run (ForEachActive 0), then the channel's slot 4 with a stack functor 0x70a5b0; *out = -1 without a channel; returns out"
 0x006b8640,SoundObject_BroadcastValue,function,low,"reimplemented (src/game/core/soundobject); thiscall (out, value), pops 8: with a channel flagged 0x400 the mixer's ForEachActive (value), else SoundObject_Broadcast; *out = 0; returns out"
 0x006b8b00,SoundObject_VoiceInfo,function,low,"reimplemented (src/game/core/soundobject); thiscall (out, id, result), pops 0xc: the mixer's voice for the id; its +0xc's +8 into *result and *out = 0, else *out = -1; returns out"
@@ -4623,6 +4655,10 @@ address,name,kind,confidence,notes
 0x006b8ce0,SoundObject_DeletingDtor,function,low,"reimplemented (src/game/core/soundobject); thiscall (flags), pops 4; slot 0 of 0x70a588: SoundObject_Dtor, then the object freed with flags bit 0; returns the object"
 0x006b8ad0,SoundObject_CallVoice10,function,low,"reimplemented (src/game/core/soundobject); thiscall (id, a, b), pops 0xc; slot 3 of 0x70a2a0 and 0x70a588: with an id and a mixer (+0x20), SoundMixer_CallVoice10 (id, a, b); else 0 (name invented)"
 0x006ba1b0,SoundObject_ApplyEaxRecord,function,low,"reimplemented (src/game/core/soundobject); thiscall (out, index), pops 8: when the channel's (+0x24) flags have bits 0 and 1 (Obj_Flags28_Bit1IfBit0), its EAX record applied (SoundChannel_ApplyEaxRecord); else *out = -1; returns out (name invented)"
+0x006ba0c0,SoundObject_Save,function,low,"reimplemented (src/game/core/soundobject); the sound object's +0x28-+0x30 written, then its mixer's voices (SoundMixer_Save)"
+0x006ba150,SoundObject_Load,function,low,"reimplemented (src/game/core/soundobject); three dwords read and dropped, then its mixer's voices (SoundMixer_Load with the restore flag)"
+0x006b8410,SoundObject_CreateChannel,function,low,"reimplemented (src/game/core/soundobject); slot 7 of 0x70a590: +0x24 = a new SoundChannel (null when the heap fails), returned"
+0x006b9db0,SoundObjectEax_CreateChannel,function,low,"reimplemented (src/game/core/soundobject); slot 7 of 0x70a2a8: +0x24 = a new EAX channel (vtable 0x70a630, records +0x68 / +0x6c 0; null when the heap fails), returned"
 0x006b7150,SoundVoice_EnsureParams,function,low,"reimplemented (src/game/core/soundvoice); thiscall: with no block at +0x4c, a 0x20-byte one (Mem_Alloc; the byte and +4-+0x18 cleared) stored there, or 0 when the allocation fails"
 0x006bc900,SoundVoice_SetPending,function,low,"reimplemented (src/game/core/soundvoice); thiscall (out, value), pops 8: with a sound at +0x24, a stack record (SetThenFlag28_14 value) handed to the sound system [0xfb1f24]'s slot 4 in a functor 0x70a850; else the value's low word at +0x48, flag 0x8000, *out = -1; returns out"
 0x006bbf00,SoundVoice_ApplyVariation,function,low,"reimplemented (src/game/core/soundvoice); copies the current variation's two parameter words' low bytes into the voice's parameter block (creating it), or clears them"
@@ -4705,6 +4741,10 @@ address,name,kind,confidence,notes
 0x006bdf00,SoundVoice_SetRecordBankLinked,function,low,"reimplemented (src/game/core/soundvoice); slot 18's override: the record's bank, then the voice and slot 19 linked in"
 0x006be880,Voice70a8d0_PickQueuedSound,function,low,reimplemented (src/game/core/soundvoice); slot 14 of 0x70a8d0: the queued sound's pick
 0x006be960,VoicePairs_Alloc,function,low,"reimplemented (src/game/core/soundvoice); thiscall (count), pops 4: *self = a game-heap block of count 8-byte pairs (null when it fails); returns self (name invented)"
+0x006bccf0,SoundVoice_Save,function,low,"reimplemented (src/game/core/soundvoice); a voice's saved record written (type, magic, position, sample indices, parameter block, flag byte, id, the linked voice)"
+0x006bd0a0,SoundVoice_Load,function,low,reimplemented (src/game/core/soundvoice); a voice's saved record read back (a named category faults: the original's frame is off by 4)
+0x006be7a0,Voice70a8d0_Ctor,function,low,"reimplemented (src/game/core/soundvoice); the queued voice's constructor: the voice class, vtable 0x70a8d0, the parameter block ensured, its +0x1c a new queue of the info's pairs"
+0x006be750,Voice70a8d0_Create,function,low,reimplemented (src/game/core/soundvoice); the queued voice made in the memory given and initialised (slot 4); null when there is no memory or the init answers below 0
 0x006c4760,EaxBuffer_QueryAll,function,low,"reimplemented (src/game/core/soundeax); thiscall (out, unused), pops 8: IKsPropertySet::Get of the EAX 2.0 buffer properties (id 1, 0x38 bytes) into a stack block that is also the size out, dropped; *out = 0 on success, else -1; returns out"
 0x006d6cf0,EaxListener_SetAll,function,low,reimplemented (src/game/core/soundeax); an object's buffer (its slot 4 for a key) asked for IKsPropertySet and handed all the EAX 2.0 listener properties
 0x006c4670,EaxBuffer_SetProperty0b,function,low,"reimplemented (src/game/core/soundeax); thiscall (out, value), pops 8: the buffer's IKsPropertySet::Set (EAX20 buffer properties, id 0xb, the value's own slot, 4 bytes), *out its result; without a set *out = -1"
@@ -5010,6 +5050,10 @@ address,name,kind,confidence,notes
 0x006d4a40,SfBank_Dtor,function,low,"reimplemented (src/game/core/sfbank); thiscall: SfBank_Unload, then the sound resource's destructor"
 0x006d4a20,SfBank_DeletingDtor,function,low,"reimplemented (src/game/core/sfbank); thiscall (flags), pops 4, slot 2: the destructor, freed for bit 0"
 0x006c0dc0,SoundNames_Save,function,low,"reimplemented (src/game/core/soundnames); thiscall (out, stream), pops 8: the table at 0xfb1f28 saved: the count (+0x64) twice, that many zero dwords, each deque element's name as a length + 1 byte and that many bytes, then the size less 8 written back at the start; *out = 0"
+0x006c10f0,SoundNameMap_Free,function,low,reimplemented (src/game/core/soundnames); the loaded names' map's block freed and cleared
+0x006c0d90,SoundNames_FreeMap,function,low,reimplemented (src/game/core/soundnames); SoundNameMap_Free on the singleton's +4
+0x006c1050,SoundNameMap_Load,function,low,"reimplemented (src/game/core/soundnames); the loaded names' map read from a stream, each name's record index looked up"
+0x006c0f50,SoundNames_Load,function,low,reimplemented (src/game/core/soundnames); SoundNameMap_Load on +4 (its out the stream's slot); *out = 0
 0x006d4910,SoundResource_Ctor,function,low,"reimplemented (src/game/core/soundindex); thiscall (source), pops 4: the base class, +8 = +0xc = 0, the source kept and AddRef'd; vtable 0x70ab00"
 0x006c5450,SoundResource_Dtor,function,low,"reimplemented (src/game/core/soundindex); thiscall: the source's Release, back to the base vtable"
 0x006c54e0,SoundResource_DeletingDtor,function,low,"reimplemented (src/game/core/soundindex); thiscall (flags), pops 4: the destructor, freed for bit 0"

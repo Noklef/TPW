@@ -6,6 +6,8 @@
 #include "../core/filetime.h"
 #include "../core/funnytime.h"
 #include "../core/gameheap.h"
+#include "../core/idmaps.h"
+#include "../core/indexed.h"
 #include "../core/savegame.h"
 #include "../core/timesig.h"
 #include "../core/selectors.h"
@@ -21,6 +23,7 @@
 #include "object.h"
 #include "person.h"
 #include "personscripts.h"
+#include "random.h"
 #include "things.h"
 #include "thingscan.h"
 #include "world.h"
@@ -593,5 +596,26 @@ void __fastcall Handyman_SetState(u8 *handyman, void *, u32 state) {
         Staff_SetState(handyman, nullptr, state);
     }
     at<u32>(handyman, 0x19c) = state;
+}
+
+void __fastcall Staff_HeadForEntrance(u8 *staff) {
+    const u32 roll = static_cast<u32>(World_Rand(global<u8 *>(0x0080239c)));
+    if (!(roll & 7)) {
+        const u32 value = (roll & 0xff) + at<u32>(staff, 0x1c) - 0x80;
+        at<u32>(staff, 0x1c) = value > 0x7ff ? 0x7ffu : value;   // (unsigned: below 0 too)
+    }
+    if (Get1da710_51a280(global<u8 *>(0x0080239c))) {
+        GameTable7cfb90_Get1da720_519510(global<u8 *>(0x0080239c));   // (its answer handed in ECX, which the count does not read)
+        if (!Things_CountKind1OnPlainCell())
+            Obj_ClearIndexed28(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da718_519450(global<u8 *>(0x0080239c))), nullptr,
+                               Byte2_ToIndex(staff));
+    }
+    const u32 index = Byte2_ToIndex(staff);
+    if (Obj_GetIndexed28(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da718_519450(global<u8 *>(0x0080239c))), nullptr, index))
+        return;
+    // (the cell is the low word of the dword slot that held the pushed ECX: its high word the staff pointer's)
+    const u16 cell = static_cast<u16>((global<u32>(0x007855c0) << 7) + global<u32>(0x007855bc) + 1);
+    const u32 arg = (static_cast<u32>(reinterpret_cast<uintptr_t>(staff)) & 0xffff0000u) | cell;
+    Staff_SetState(staff, nullptr, Sprite_SetDestinationCell(staff, nullptr, arg) ? 1u : 0u);   // (0: after the original's debug print)
 }
 }

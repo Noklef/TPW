@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "gameheap.h"
+#include "soundcategory.h"
 #include "vcall.h"
 
 namespace {
@@ -41,6 +43,42 @@ u32 *__fastcall SoundNames_Save(u8 *self, void *, u32 *out, u8 *stream) {
     u32 size = end - start - 8;
     vcall<u32>(stream, 0xc, &size, 4u);
     vcall<u32>(stream, 0x10, end, 0u);
+    *out = 0;
+    return out;
+}
+
+void __fastcall SoundNameMap_Free(u8 *map) {
+    if (void *const block = at<void *>(map, 4)) GameHeap_Free(block);
+    at<void *>(map, 4) = nullptr;
+}
+
+void __fastcall SoundNames_FreeMap(u8 *self) { SoundNameMap_Free(self + 4); }
+
+u32 *__fastcall SoundNameMap_Load(u8 *map, void *, u32 *out, u8 *stream) {
+    SoundNameMap_Free(map);
+    u32 size = static_cast<u32>(reinterpret_cast<uintptr_t>(map));   // (the original's slot for it holds the pushed ECX, the map)
+    vcall<u32>(stream, 8, &size, 4u);
+    vcall<u32>(stream, 8, map, 4u);
+    u8 *const block = static_cast<u8 *>(GameHeap_Alloc(size));
+    at<u8 *>(map, 4) = block;
+    vcall<u32>(stream, 8, block, size);
+    const u8 *name = block + at<u32>(map, 0) * 4;
+    for (u32 i = 0; i < at<u32>(map, 0); ++i) {
+        const u32 length = *name++;
+        if (length) {
+            const u32 index = SoundCategory_FindRecordIndex(SoundCategory_Get(), nullptr, reinterpret_cast<const char *>(name));
+            at<u32 *>(map, 4)[i] = index;
+            name += length;
+        } else {
+            at<u32 *>(map, 4)[i] = 0;
+        }
+    }
+    *out = 0;
+    return out;
+}
+
+u32 *__fastcall SoundNames_Load(u8 *self, void *, u32 *out, u8 *stream) {
+    SoundNameMap_Load(self + 4, nullptr, reinterpret_cast<u32 *>(&stream), stream);
     *out = 0;
     return out;
 }

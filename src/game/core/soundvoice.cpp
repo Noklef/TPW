@@ -544,6 +544,27 @@ u8 *__fastcall Voice70a878_Ctor(u8 *voice) {
     return voice;
 }
 
+u8 *__cdecl Voice70a8d0_Create(u8 *owner, u8 *memory, u8 *definition, u8 *info) {
+    u8 *const voice = memory ? Voice70a8d0_Ctor(memory, nullptr, info) : nullptr;
+    return init_voice(voice, reinterpret_cast<u32 *>(&memory), owner, definition, info);
+}
+
+u8 *__fastcall Voice70a8d0_Ctor(u8 *voice, void *, const u8 *info) {
+    Class70a7e0_Ctor(voice);
+    at<u32>(voice, 0) = 0x0070a8d0;
+    SoundVoice_EnsureParams(voice);
+    u8 *queue = nullptr;   // (no block: +0x1c 0)
+    if (u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0xc))) {
+        at<u32>(block, 4) = 0;
+        at<u32>(block, 0) = at<u32>(info, 0x20);
+        VoicePairs_Alloc(reinterpret_cast<u32 *>(block + 8), nullptr, at<u32>(block, 0));
+        memcpy(at<u8 *>(block, 8), at<const u8 *>(info, 0x1c), at<u32>(block, 0) << 3);   // (no pairs and a count: a fault, sic)
+        queue = block;
+    }
+    at<u8 *>(at<u8 *>(voice, 0x4c), 0x1c) = queue;   // (no parameter block: a fault, sic)
+    return voice;
+}
+
 u8 *__fastcall Voice70a390_Ctor(u8 *voice) {
     Class70a7e0_Ctor(voice);
     at<u32>(voice, 0) = 0x0070a390;
@@ -1126,6 +1147,156 @@ u32 *__fastcall Voice70a390_Start(u8 *voice, void *, u32 *out, u32 time) {
         Voice70a390_StartChildren(voice, nullptr, time);
         Voice70a390_PruneChildren(voice, nullptr, time);
     }
+    *out = 0;
+    return out;
+}
+
+}  // extern "C"
+
+namespace {
+
+constexpr u32 kSaveMagic = 0x12d591;
+
+void Put(u8 *stream, const void *buffer, s32 count) {
+    s32 result, done;
+    Stream_Write(&result, reinterpret_cast<Stream *>(stream), buffer, count, &done);
+}
+
+void Get(u8 *stream, void *buffer, s32 count) {
+    s32 result, done;
+    Stream_Read(&result, reinterpret_cast<Stream *>(stream), buffer, count, &done);
+}
+
+u8 *Params(u8 *voice) { return at<u8 *>(voice, 0x4c); }
+
+}  // namespace
+
+extern "C" {
+
+u32 *__fastcall SoundVoice_Save(u8 *voice, void *, u32 *out, u8 *stream, u32 time) {
+    const u32 type = vcall<u32>(voice, 0x50);
+    if (!type) {
+        *out = 0xffffffff;
+        return out;
+    }
+    Put(stream, &type, 4);
+    const u32 position[4] = {at<u32>(voice, 0x10), at<u32>(voice, 0x14), at<u32>(voice, 0x18), 0};
+    u32 category, sound, variation, sample;
+    SoundCategory_LocateSample(nullptr, nullptr, &category, &sound, &variation, &sample, reinterpret_cast<const u32 *>(voice));
+    if (!category) {
+        *out = 0xffffffff;
+        return out;
+    }
+    const u32 magic = kSaveMagic;
+    Put(stream, &magic, 4);
+    for (u32 i = 0; i < 4; ++i) Put(stream, &position[i], 4);
+    Put(stream, voice + 0x40, 4);
+    Put(stream, &category, 4);
+    Put(stream, &sound, 4);
+    Put(stream, &variation, 4);
+    Put(stream, &sample, 4);
+    Put(stream, &magic, 4);
+    u32 flag = 0;
+    if (!Params(voice)) {
+        Put(stream, &flag, 4);
+    } else {
+        flag = 1;
+        Put(stream, &flag, 4);
+        Put(stream, Params(voice), 4);
+        Put(stream, Params(voice) + 4, 4);
+        Put(stream, Params(voice) + 0xc, 4);
+        Put(stream, Params(voice) + 8, 4);
+        Put(stream, Params(voice) + 0x10, 4);
+        Put(stream, Params(voice) + 0x14, 4);
+    }
+    Put(stream, &magic, 4);
+    const u8 bit = (at<u32>(voice, 0x30) >> 12) & 1;
+    Put(stream, &bit, 1);
+    Put(stream, voice + 0x2c, 4);
+    if (Params(voice) && at<u8 *>(Params(voice), 0x18)) {
+        const u32 linkedType = vcall<u32>(at<u8 *>(Params(voice), 0x18), 0x50);
+        Put(stream, &linkedType, 4);
+        SoundVoice_Save(at<u8 *>(Params(voice), 0x18), nullptr, &time, stream, time);   // (out: the time's own slot, sic)
+    } else {
+        const u32 zero = 0;
+        Put(stream, &zero, 4);
+    }
+    *out = 0;
+    return out;
+}
+
+u32 *__fastcall SoundVoice_Load(u8 *voice, void *, u32 *out, u8 *stream, u32 time) {
+    u32 magic;
+    Get(stream, &magic, 4);
+    if (magic != kSaveMagic) {
+        *out = 0xffffffff;
+        return out;
+    }
+    u32 x, y, z;
+    Get(stream, &x, 4);
+    Get(stream, &y, 4);
+    Get(stream, &z, 4);
+    Fn_6bb220(voice + 0x10, nullptr, x, y, z);
+    u32 dropped;
+    Get(stream, &dropped, 4);
+    Get(stream, voice + 0x40, 4);
+    u32 category, sound, variation, sample;
+    Get(stream, &category, 4);
+    Get(stream, &sound, 4);
+    Get(stream, &variation, 4);
+    Get(stream, &sample, 4);
+    Get(stream, &magic, 4);
+    if (magic != kSaveMagic) {
+        *out = 0xffffffff;
+        return out;
+    }
+    u32 flag;
+    Get(stream, &flag, 4);
+    if (flag) {
+        SoundVoice_EnsureParams(voice);   // (inlined in the original, the same steps)
+        Get(stream, Params(voice), 4);
+        Get(stream, Params(voice) + 4, 4);
+        Get(stream, Params(voice) + 0xc, 4);
+        Get(stream, Params(voice) + 8, 4);
+        Get(stream, Params(voice) + 0x10, 4);
+        Get(stream, Params(voice) + 0x14, 4);
+    }
+    Get(stream, &magic, 4);
+    if (magic != kSaveMagic) {
+        *out = 0xffffffff;
+        return out;
+    }
+    u8 bit;   // (the original reads it into its stream argument's slot)
+    Get(stream, &bit, 1);
+    Get(stream, &dropped, 4);
+    u32 linked;
+    Get(stream, &linked, 4);
+    if (linked) {
+        SoundVoice_EnsureParams(voice);
+        at<u32>(Params(voice), 0x18) = linked;
+    }
+    at<u32>(voice, 0x24) = 0;
+    if (Array_AtOrZero(SoundCategory_Get(), nullptr, category)) {
+        // The original pushes one argument for SoundCategory_RecordAt, which pops two: from here its frame is 4 bytes off and every path
+        // ends returning to its out pointer, a fault (sic). The port faults at once.
+        *reinterpret_cast<volatile u32 *>(static_cast<uintptr_t>(0)) = 0;
+    }
+    if (Params(voice) && at<u32>(Params(voice), 0x18)) {
+        const u32 type = at<u32>(Params(voice), 0x18);
+        at<u32>(Params(voice), 0x18) = 0;
+        u8 *parent = voice;
+        if (vcall<u32>(voice, 0x50) != 6 && vcall<u32>(voice, 0x50) != 4) parent = at<u8 *>(Params(voice), 0x1c);
+        if (type == 7) {
+            u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x50));
+            at<u8 *>(Params(voice), 0x18) = memory ? LinkedVoice_Ctor(memory, nullptr, parent) : nullptr;
+        } else if (type == 9) {
+            u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x50));
+            at<u8 *>(Params(voice), 0x18) = memory ? LinkedSwitchVoice_Ctor(memory, nullptr, parent) : nullptr;
+        }
+        Get(stream, &dropped, 4);
+        SoundVoice_Load(at<u8 *>(Params(voice), 0x18), nullptr, &time, stream, time);   // (out: the time's own slot, sic)
+    }
+    at<u32>(voice, 0x30) |= 0x10;   // (the category's 0: unnamed)
     *out = 0;
     return out;
 }

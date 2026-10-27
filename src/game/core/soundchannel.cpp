@@ -721,4 +721,19 @@ void __fastcall SoundChannel_SetHidden(u8 *channel, void *, u32 hide) {
     SoundCategory_HideFlag40Samples(SoundCategory_Get(), nullptr, hide);
 }
 
+void __fastcall SoundChannelEax_Dtor(u8 *channel) {
+    at<u32>(channel, 0) = 0x0070a630;
+    if (void *const records = at<void *>(channel, 0x68)) {
+        GameHeap_Free(records);
+        at<void *>(channel, 0x68) = nullptr;
+    }
+    SoundChannel_Dtor(channel);
+}
+
+u8 *__fastcall SoundChannelEax_DeletingDtor(u8 *channel, void *, u32 flags) {
+    SoundChannelEax_Dtor(channel);
+    if (flags & 1) GameHeap_Free(channel);
+    return channel;
+}
+
 }  // extern "C"

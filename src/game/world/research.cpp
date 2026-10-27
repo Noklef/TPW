@@ -5,6 +5,8 @@
 #include "../core/globalsave.h"
 #include "../core/savegame.h"
 #include "../math/x87.h"
+#include "advisor.h"
+#include "advisorscore.h"
 #include "objectdefs.h"
 #include "things.h"
 #include "world.h"
@@ -211,4 +213,25 @@ u32 __cdecl Research_CountNotDoneCat3() { return ResearchLab_CountNotDone(labOfG
 void __fastcall ResearchLab_NextProject(u8 *lab, void *, u32 group) { chooseProject<false>(lab, group); }
 
 void __fastcall ResearchLab_PrevProject(u8 *lab, void *, u32 group) { chooseProject<true>(lab, group); }
+void __fastcall ResearchLab_UpdateLevels(u8 *lab, void *, u32 cat) {
+    u8 &highest = *const_cast<u8 *>(group_of(lab, cat) + 0xc);
+    bool changed = false;
+    for (;;) {
+        u32 count = 0, done = 0;
+        for (s32 i = at<s32>(lab, 0x145c) - 1; i >= 0; --i) {
+            const u8 *p = project(lab, i);
+            if (at<u32>(p, 4) != cat || (s32)at<u8>(p, 8) >= (s32)highest + 1) continue;
+            ++count;
+            if (!not_done(p)) ++done;
+        }
+        const u32 share = count ? done * 100 / count : 0;
+        if (share < reinterpret_cast<const u32 *>(0x00785540)[highest] || highest >= 7) break;
+        ++highest;
+        changed = true;
+    }
+    if (!changed || !ResearchLab_CountNotDone(lab, nullptr, cat) || cat > 3) return;
+    u8 message[0x18];   // (its bytes +2, +3 and +0x17 never written, sic)
+    AdvisorMsg_Init(message, nullptr, 0x85 + cat, 0, 0, 0xffffffffu, 0, -1);
+    Advisor_Post(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da71c_5194d0(*reinterpret_cast<u8 *const *>(0x0080239c))), nullptr, message);
+}
 }
