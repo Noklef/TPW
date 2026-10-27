@@ -163,7 +163,7 @@ def case(r):
         struct.pack_into('<3I', sample, 0x10, r.getrandbits(32), pos, length)
         set_return(log, 19, r.choice([0, 1, 0x100, r.getrandbits(32)]))
         regions[COPIER] = struct.pack('<I', COPIER_VT) + r.bytes(0xc)
-        regions[COPIER_VT] = struct.pack('<I', recorder(37, 3))
+        regions[COPIER_VT] = struct.pack('<I', recorder(25, 3))
         regions[COPIER_AT] = struct.pack('<I', COPIER)
         left = (length - pos) & 0xffffffff
         args = [BUFFER, r.choice([0, 1, left, left + 1, left - 1, r.getrandbits(32)]) & 0xffffffff, OUT, r.getrandbits(32)]
