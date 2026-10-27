@@ -62,7 +62,14 @@ def draw_case(r, op, log, regions):
     put(state, 0x30, 'I', DINFO)
     for at in (0x38, 0x40, 0x44, 0x48):
         put(state, at, 'I', DTABLE)
-    regions.update({DSTATE: state, DTABLE: vtable({10: 8}, 16), DINFO: r.bytes(0x28), 0xfa71f8: r.bytes(0x400), DRAWN: r.bytes(0x20)})
+    cursor = bytearray(r.bytes(0x20))
+    hot = [r.choice([0, 3, 0x7f, 0x80, 0xf0, 0xff, r.getrandbits(8)]) for _ in range(2)]
+    cursor[5], cursor[6] = hot
+    for i in range(2):   # mostly the point near the clip once less the (signed) hot spot, so the triangle is drawn
+        if r.randrange(4):
+            near = (hot[i] - 0x100 if hot[i] & 0x80 else hot[i]) + r.randrange(-40, 110)
+            words[i] = (near & 0xffff) | (words[i] & 0xffff0000)
+    regions.update({DSTATE: state, DTABLE: vtable({10: 8}, 16), DINFO: r.bytes(0x28), 0xfa71f8: r.bytes(0x400), DRAWN: cursor})
     return Call(CALLS[op], [DRAWN] + words, regions, conv='t', ret='v')
 
 
