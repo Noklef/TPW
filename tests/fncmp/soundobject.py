@@ -83,7 +83,7 @@ def case(r):
     address, extra = CALLS[name]
     log = log_region()
     regions = {}
-    ids = object_regions(r, log, regions, slot6=name != 'send')   # (send: slot 6 is the object's own (out, id))
+    ids = object_regions(r, log, regions, slot6=name not in ('send', 'path'))   # (send: slot 6 is the object's own (out, id); path: the string's)
     if name == 'path':   # (drive letters, slashes of either kind and others in the first three characters)
         path = bytes(r.choice(b'C:\\/a.') if r.random() < 0.9 else r.getrandbits(8) for _ in range(3)) + r.bytes(5) + b'\0'
         for k in (5, 6, 8):
