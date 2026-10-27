@@ -2443,6 +2443,7 @@ address,name,kind,confidence,notes
 0x0047b1c0,StdString_AssignFill,function,low,"reimplemented (src/game/core/stdstring); thiscall (n, ch), pops 8: assign(n, ch)"
 0x0047b280,StdString_Freeze,function,low,reimplemented (src/game/core/stdstring); thiscall: _Freeze
 0x004a9420,StdString_CopyCtor,function,low,"reimplemented (src/game/core/stdstring); thiscall (x), pops 4: basic_string(const basic_string &x): the allocator byte copied, s emptied, then assign(x, 0, npos) inlined (x's length read after the emptying; no max_size check); returns s"
+0x004f1400,StdString_Erase,function,high,"reimplemented (src/game/core/stdstring); thiscall (pos, n), pops 8: std::string::erase(pos, n) out of line: _Xran past the length, _Split, the tail moved down, _Grow(length - n, false) and _Eos inlined; returns s"
 0x0045b9d0,GlobalMem_Alloc,function,high,"reimplemented (src/game/core/globalmem); GlobalAlloc(GMEM_ZEROINIT or GMEM_FIXED, size) through the import slot; null for 0"
 0x0045ba00,GlobalMem_Free,function,high,reimplemented (src/game/core/globalmem); GlobalFree through the import slot; null for null
 0x0045ba70,GlobalMem_AllocCounted,function,high,reimplemented (src/game/core/globalmem); a zeroed 0x40-byte block with count at +4; null for 0
