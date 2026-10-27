@@ -9,6 +9,7 @@
 # Pump (0x658e42): DispatchOne's queue as [0xfaa5f0] (or 0), the hook [0xfaa5fc] fncmp's logger or 0, `most` 0 to past the capacity or
 # negative.
 # PumpSecond (0x658f0b): Pump's, the queue as [0xfaa5f4] (or 0).
+# Delete (0x6596b0): Free's, the flags 0-3 or any (the block freed with bit 0: the heap's hash of the frees).
 # usage: msgqueue.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Free,Push,Contains,DispatchOne,Init,Peek,Cancel,Clear,Pump)
 import os
 import struct
@@ -17,9 +18,9 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import CDECL_LOG4, HEAP, LOG, RAM, Bench, Call, heap, log_region, put  # noqa: E402
 
-CALLS = {'Free': 0x669735, 'Push': 0x6697e3, 'Contains': 0x6698a4, 'DispatchOne': 0x6698e6, 'Init': 0x669767, 'Peek': 0x669ad7,
+CALLS = {'Delete': 0x6596b0, 'Free': 0x669735, 'Push': 0x6697e3, 'Contains': 0x6698a4, 'DispatchOne': 0x6698e6, 'Init': 0x669767, 'Peek': 0x669ad7,
          'Cancel': 0x669b3e, 'Clear': 0x669bdb, 'Pump': 0x658e42, 'PumpSecond': 0x658f0b}
-B = Bench([(0x669735, 0x669767), (0x6697e3, 0x6698a4), (0x6698a4, 0x6698e6), (0x6698e6, 0x669ad7), (0x65d57c, 0x65d58d),
+B = Bench([(0x6596b0, 0x6596de), (0x669735, 0x669767), (0x6697e3, 0x6698a4), (0x6698a4, 0x6698e6), (0x6698e6, 0x669ad7), (0x65d57c, 0x65d58d),
            (0x65f697, 0x65f6d1), (0x669767, 0x6697e3), (0x669ad7, 0x669bdb), (0x669bdb, 0x669c30), (0x67fff0, 0x680048), (0x658e42, 0x658f0b), (0x658f0b, 0x658f4b)])
 QUEUE, ENTRIES, WINDOWS, PAIRS = RAM, RAM + 0x100, RAM + 0x400, RAM + 0x1000
 WINDOW = 0x120
@@ -52,9 +53,11 @@ def case(r):
     op = r.deal(OPS)
     regions = {}
     cap = queue(r, regions)
-    if op == 'Free':
+    if op in ('Free', 'Delete'):   # (Delete: Free's, the flags bit 0 either way)
         regions[HEAP] = heap(0x20)
         put(regions[QUEUE], 0, 'I', r.choice([HEAP + 0x10, HEAP + 0x10, 0]))
+        if op == 'Delete':
+            return Call(CALLS[op], [QUEUE, r.choice([0, 1, 2, 3, 0xffffffff])], regions, conv='t', ret='a')
         return Call(CALLS[op], [QUEUE], regions, conv='t')
     if op == 'Contains':
         words = pairs(r, regions)
