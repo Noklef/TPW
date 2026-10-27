@@ -380,7 +380,10 @@ def all_case(r):
     high half any, so % 7 runs negative too), a key found under 0x800, the centre's or none, and a start about the clock's time; the
     record's +0x1c's +0x1c set or not, +0x6e and the bob rate +0xc0 any. With no ride (the record's index +0xc8 0) or a part without a
     node the walkers that would face their part (state 2, kinds other than 1, 2 and 4) are made kind 2: Ride_PartPlace then leaves
-    the direction unwritten and 0x557d80 reads its stack's leftovers (sic), which differ under the two callers."""
+    the direction unwritten and 0x557d80 reads its stack's leftovers (sic), which differ under the two callers. Now and then a rider's
+    handle is the person's at an index above 0xff (the things' entry at its low byte any), a start lies ahead of the clock (the time
+    since it negative), or a start at the clock's time (the sine 0) with the root's y a whole number and the nodes' y that plus +0x6e
+    (the bob equal to the node's y) or a NaN."""
     c = walkers_case(r, 'Walkers')
     vm = c.args[0]
     o = vm - STEP_POSE
@@ -400,18 +403,43 @@ def all_case(r):
     now = (int.from_bytes(clock[0x3c:0x40], 'little') + int.from_bytes(clock[0x48:0x4c], 'little')) & 0xffffffff
     h = next(k for k in range(64) if int.from_bytes(c.regions[0x7cfb90][20 * k:20 * k + 4], 'little') == PERSON)
     riders = bytearray(r.bytes(0x40))
+    high = 0x100 + r.choice([k for k in range(16) if k != h])   # (a handle above 0xff whose low byte's entry is not the person)
+    things = bytearray(c.regions[0x7cfb90]) + bytearray(r.bytes(20 * (high + 1) - len(c.regions[0x7cfb90])))
+    put(things, 20 * high, 'I', PERSON)
+    c.regions[0x7cfb90] = bytes(things)
+    level = r.random() < 0.25
+    if level:
+        y = r.choice([0, 1, 5, -3, 100])
+        put(ram, 0x344, 'f', y)
+        extra = r.choice([0, 1, 0xffff, 7])
+        put(ram, o + 0x6e, 'H', extra)
+        for i in range(4):
+            want = y + (extra if extra < 0x8000 else extra - 0x10000)
+            if want == 0 and r.random() < 0.5:
+                put(ram, 0x700 + 0x40 * i + 0x34, 'I', 0x80000000)   # (-0: equal to the bob's +0, its bits not)
+            elif r.random() < 0.8:
+                put(ram, 0x700 + 0x40 * i + 0x34, 'f', want)
+            else:
+                put(ram, 0x700 + 0x40 * i + 0x34, 'I', r.choice([0x7fc00000, 0xffc00000, 0x7f800001]))
+        if r.random() < 0.3:
+            put(ram, 0x344, 'I', 0x7fc00000)
     for i in range(4):
-        handle = 0 if r.random() < 0.15 else h | r.choice([0, 0, r.getrandbits(16) << 16])
+        handle = 0 if r.random() < 0.15 else (high if r.random() < 0.2 else h) | r.choice([0, 0, r.getrandbits(16) << 16])
         key = r.choice(found) if found and r.random() < 0.8 else r.choice([0xffff, r.randrange(8)])
         start = (now - r.choice([0, 1, 999, 1000, r.randrange(100000), r.getrandbits(31), r.getrandbits(32)])) & 0xffffffff
+        if level and r.random() < 0.8:
+            start = now
+        elif r.random() < 0.2:
+            start = (now + r.choice([1, 500, 1001, r.randrange(1, 1 << 31)])) & 0xffffffff
         put(riders, 0x10 * i, 'IIII', handle, key, r.getrandbits(32), start)
     flags = bytearray(r.bytes(0x20))
-    put(flags, 0x1c, 'I', r.choice([0, 0, 1, r.getrandbits(32)]))
+    put(flags, 0x1c, 'I', r.choice([0, 0, 0, 0, 1, r.getrandbits(32)]))
     put(ram, o, 'I', 0)
     put(ram, o + 0x1c, 'I', RFLAGS)
     put(ram, o + 0x28, 'I', RIDERS)
     put(ram, o + 0x64, 'i', r.choice([1, 2, 3, 4, 4, 0, -1]))
-    put(ram, o + 0x6e, 'H', r.choice([0, 1, 0xffff, r.getrandbits(16)]))
+    if not level:
+        put(ram, o + 0x6e, 'H', r.choice([0, 1, 0xffff, r.getrandbits(16)]))
     put(ram, o + 0xc0, 'H', r.choice([0, 1, 50, 0xffce, r.getrandbits(16)]))
     c.regions.update({STEP_POSE: bytes(ram), RIDERS: riders, RFLAGS: flags, 0x8791a0: put(bytearray(4), 0, 'I', 0 if r.random() < 0.05 else 1),
                       0x8791b0: put(bytearray(4), 0, 'I', vm)})
