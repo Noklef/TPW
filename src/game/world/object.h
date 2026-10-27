@@ -34,6 +34,12 @@ void __fastcall Object_SetState(u8 *object, void *, u32 state);
 // debug print, left out with the others), +0x68 = 1, the strip animation shrunk again, element 6 of the ride record (Rides_FindById of
 // +0x24) = 0 and Object_SetState (0); 1.
 u32 __fastcall Object_SetOpen(u8 *object, void *, u32 open);
+// 0x4e1220 (thiscall; name invented; called by 0x4e14e0): without +0x68 Object_DismissQueueHead. Else, with the ride record (Rides_FindById
+// of +0x24): when its element 0 is 0, and its element 5 is below element 2 (signed) or the definition (ObjectDefs_Find of the id +0xe, looked
+// up twice) is of kind 3 or 2 (+0x9c), and element 9 is 0 or the flag 1 of the byte +0x33 is set, and no rider (the word +0x6c): the queue's
+// head (the word +0x3c; none: nothing), when Visitor_IsState11AtQueuePos0, gets Visitor_Set1f8One and becomes the rider. Otherwise a rider
+// whose state (+0x220) is not 0xd is forgotten (+0x6c = 0). The debug prints are left out (element 2 is still read for the first).
+void __fastcall Object_CallQueueHead(u8 *object);
 
 // 0x4dd4e0: the object's definition, ObjectDefs_Find on gObjectDefs (0x7890a0) by its id (+0xe).
 u8 *__fastcall Object_GetDef(const u8 *object);

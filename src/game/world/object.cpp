@@ -293,6 +293,38 @@ void __fastcall Object_SetCapacity(u8 *object, void *, u32 capacity) {
     at<u8>(object, 0x5d) = value;
 }
 
+void __fastcall Object_CallQueueHead(u8 *object) {
+    u8 *const record = Rides_FindById(at<s32>(object, 0x24));
+    if (!at<u32>(object, 0x68)) {
+        Object_DismissQueueHead(object);
+        return;
+    }
+    u8 *const defs = reinterpret_cast<u8 *>(0x007890a0);
+    Rides_GetElement(record, 2);   // (for a debug print)
+    bool call = false;
+    if (Rides_GetElement(record, 0) == 0) {
+        const s32 loaded = static_cast<s32>(Rides_GetElement(record, 2));
+        call = static_cast<s32>(Rides_GetElement(record, 5)) < loaded ||
+               at<s32>(ObjectDefs_Find(defs, nullptr, at<u16>(object, 0xe)), 0x9c) == 3 ||
+               at<s32>(ObjectDefs_Find(defs, nullptr, at<u16>(object, 0xe)), 0x9c) == 2;
+        if (call && Rides_GetElement(record, 9) && !(at<u8>(object, 0x33) & 1)) call = false;
+        if (call && at<u16>(object, 0x6c)) call = false;
+    }
+    if (call) {
+        const u16 head = at<u16>(object, 0x3c);
+        if (!head) return;
+        u8 *const person = global<u8 *>(0x007cfb90 + 20 * (u32)head);
+        if (!Visitor_IsState11AtQueuePos0(person)) return;
+        Visitor_Set1f8One(person);
+        at<u16>(object, 0x6c) = head;
+        return;
+    }
+    const u16 rider = at<u16>(object, 0x6c);
+    if (!rider) return;
+    if (at<s32>(global<u8 *>(0x007cfb90 + 20 * (u32)rider), 0x220) == 0xd) return;
+    at<u16>(object, 0x6c) = 0;
+}
+
 u32 __fastcall Object_SetOpen(u8 *object, void *, u32 open) {
     u8 *const *const strips = reinterpret_cast<u8 *const *>(0x007a4610);
     if (open) {
