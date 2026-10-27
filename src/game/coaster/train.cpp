@@ -13,7 +13,10 @@
 #include "contacts.h"
 #include "cursor.h"
 #include "helpers.h"
+#include "../core/globals.h"
 #include "../terrain/land.h"
+#include "placecheck.h"
+#include "registry.h"
 
 namespace {
 
@@ -679,6 +682,96 @@ void __cdecl Train_PlaceCarAtBrace(u8 *coaster, u8 *car, u8 *train, u32, u32 sav
     at<u32>(car, 0xe8) = 0;
     at<float>(car, 0x4c) = (float)X87_SubR(X87_MulInt(at<u32>(train, 0xc), -10.0f), X87Reg(5.0f)).v;   // 0x6fdef0, 0x6fdef4
     at<float>(car, 0x54) = (float)X87_SubR(X87_MulInt(at<u32>(train, 0x10), -10.0f), X87Reg(5.0f)).v;
+}
+
+}
+
+namespace {
+
+// The pending piece (the track's +0x30) and its previous two flagged 0x200000 (the previous twice), then renumbered from the piece.
+void MarkPlaced(u8 *track) {
+    u8 *const p = at<u8 *>(track, 0x30);
+    at<u32>(p, 8) |= 0x200000;
+    if (u8 *const q = at<u8 *>(p, 0x68)) at<u32>(q, 8) |= 0x200000;
+    u8 *const q = at<u8 *>(at<u8 *>(track, 0x30), 0x68);
+    at<u32>(q, 8) |= 0x200000;
+    if (u8 *const r = at<u8 *>(q, 0x68)) at<u32>(r, 8) |= 0x200000;
+    TrackPieces_Renumber(at<u8 *>(track, 0x30));
+}
+
+}  // namespace
+
+extern "C" {
+
+void __cdecl Coaster_PlacePendingPiece(u8 *coaster) {
+    u8 *const track = coaster + 0x3c;
+    const s32 gx = (s32)(long long)(X87Reg(global<float>(0x007a1c70)) * 0.100000001f).v;   // 0x6fdedc, __ftol
+    const s32 gz = (s32)(long long)(X87Reg(global<float>(0x007a1c78)) * 0.100000001f).v;
+    const u32 cell = at<u32>(at<const u8 *>(global<const u8 *>(0x007a0854), 0x6c), 0x18) * (u32)gz + (u32)gx;
+    u8 *const link = CoasterLinks_FindKey(cell);
+    global<u8 *>(0x00790fd4) = link;
+    const float fx = (float)X87_MulInt((u32)gx, 10.0f), fz = (float)X87_MulInt((u32)gz, 10.0f);   // fild qword; 0x6fde7c
+    const u8 *const last = at<const u8 *>(track, 0x24);
+    const X87Reg dx = X87Reg(at<float>(last, 0x4c)) - fx, dz = X87Reg(at<float>(last, 0x54)) - fz;
+    const float dxf = (float)dx.v;
+    if ((dx * dxf + dz * dz).v > 90000.0) return;   // 0x6fdeec
+    const s32 open = CoasterPiece_CanPlaceAt((u32)gx, (u32)gz, nullptr, 0, 0, 0, 0);
+    if (link) {
+        const u32 flag2 = at<u32>(track, 0) & 2;
+        const u32 count = at<u32>(link, 0x30);
+        for (u32 k = 0; flag2 && k < count; ++k) {
+            if (at<u32>(link, 0x34 + 4 * k) != at<u32>(track, 0x28)) continue;
+            at<u32>(coaster, 0) |= 8;
+            at<u32>(at<u8 *>(track, 0x24), 8) &= 0xfffaffff;
+            at<u32>(at<u8 *>(track, 0x28), 8) |= 0x800000;
+            at<u32>(at<u8 *>(track, 0x28), 8) |= open ? 0x800000 : 0x804000;
+            at<u32>(at<u8 *>(track, 0x28), 8) &= 0xfff5ffff;
+            const u32 ends[] = {0x24, 0x28};
+            for (const u32 end : ends) {
+                u8 *const p = at<u8 *>(track, end);
+                at<u32>(p, 8) |= 0x200000;
+                if (u8 *const q = at<u8 *>(p, 0x68)) at<u32>(q, 8) |= 0x200000;
+            }
+            return;
+        }
+        for (u32 k = 0; k < count; ++k)
+            if (at<u32>(link, 0x34 + 4 * k) == at<u32>(track, flag2 ? 0x24 : 0x1c)) return;
+        const u8 *const type = at<const u8 *>(link, 0x18);
+        if (count >= at<u32>(type, 0xcc)) return;
+        if (((global<u32>(0x0079c658) & 0x40) != 0) != ((at<u32>(type, 0) & 0x4000) != 0)) return;
+        Track_AppendPiece(at<u8 *>(track, 0x30), track, (u32)open);
+        Train_PlaceCarAtBrace(coaster, at<u8 *>(track, 0x30), link, at<u32>(coaster, 0x118), 1);
+    } else {
+        u8 *const t = at<u8 *>(track, 0x2c);
+        at<u32>(t, 4) |= 8;
+        at<u32>(t, 8) = cell;
+        at<s32>(t, 0xc) = gx;
+        at<s32>(t, 0x10) = gz;
+        at<float>(t, 0x1c) = fx;
+        at<float>(t, 0x24) = fz;
+        at<float>(t, 0x20) = (float)Terrain_FootprintHeight(gx, gz, nullptr, 1, 1, 0, 0);
+        u8 *const head = at<u8 *>(track, 0x14);
+        at<u8 *>(t, 0x2c) = head;
+        at<u32>(t, 0x28) = at<u32>(head, 0x28);   // (a null head faults, sic)
+        if (head) at<u8 *>(head, 0x28) = t;
+        if (u8 *const prev = at<u8 *>(t, 0x28)) at<u8 *>(prev, 0x2c) = t;
+        const u32 number = at<u32>(track, 4);
+        at<u8 *>(track, 0x14) = t;
+        at<u32>(t, 0) = number;
+        at<u32>(track, 4) += 1;
+        Track_AppendPiece(at<u8 *>(track, 0x30), track, (u32)open);
+        Train_PlaceCarAtBrace(coaster, at<u8 *>(track, 0x30), at<u8 *>(track, 0x2c), at<u32>(coaster, 0x118), 0);
+    }
+    MarkPlaced(track);
+    u8 *const piece = at<u8 *>(track, 0x30);
+    const double cost = at<const u8 *>(piece, 0x100)
+        ? Car_TravelCost(coaster, 1, piece, reinterpret_cast<const float *>(piece + 0x4c), reinterpret_cast<const float *>(piece + 0x54),
+                         nullptr, nullptr)
+        : 0.0;   // 0x6fde74
+    if (global<u32>(0x00785a2c)) return;
+    u32 amount = (u32)(s32)(long long)cost;   // __ftol
+    if ((s32)amount < 0) amount += 0xf1111112;   // (sic)
+    Global81af4c_Add(amount);
 }
 
 void __cdecl Coasters_DropPendingPiece() {

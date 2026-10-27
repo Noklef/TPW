@@ -105,6 +105,22 @@ void __cdecl Train_PlaceCarAtBrace(u8 *coaster, u8 *car, u8 *train, u32 unused, 
 // piece's train = 0, its flags 0xc0 cleared, and TrackPieces_Renumber (the previous). 0x792218 = 0 at the end.
 void __cdecl Coasters_DropPendingPiece();
 
+// 0x435d50 (cdecl; coaster; name invented, unconfirmed): the coaster's pending piece (its track +0x3c's +0x30) placed at the point
+// 0x7a1c70 / 0x7a1c78: its cell (gx, gz) the __ftol of each times 0.1, the key gz * the map's width (0x7a0854 -> +0x6c -> +0x18) + gx;
+// the link there (CoasterLinks_FindKey) to 0x790fd4. Nothing when the squared distance from the track's last piece (+0x24; its +0x4c,
+// +0x54) to (gx, gz) * 10 (each through a float) is over 90000. With a link: with the track's flag 2 a link car that is the track's
+// +0x28 piece joins them (the coaster's flag 8; the last piece loses 0x50000, the +0x28 one gains 0x800000 (0x804000 when the cell is
+// not CoasterPiece_CanPlaceAt's), loses 0xa0000, each and its previous 0x200000); nothing when a link car is the track's +0x24 (flag
+// 2) or +0x1c piece, when its count (+0x30) reaches its type's (+0x18) +0xcc, or when 0x79c658's flag 0x40 and the type's 0x4000
+// differ; else Track_AppendPiece (open: the cell placeable), Train_PlaceCarAtBrace (coaster, the piece, the link, its +0x118, save).
+// Without a link the track's +0x2c block becomes a pylon there (flag 8 at +4, the key +8, gx, gz +0xc / +0x10, the corner (as floats)
+// +0x1c / +0x24, Terrain_FootprintHeight (gx, gz, none, 1, 1, 0, 0) +0x20), linked in before the track's +0x14 one (whose +0x28 is
+// read even when it is null, sic) and numbered by the track's +4 (raised), then Track_AppendPiece and Train_PlaceCarAtBrace (without
+// save). Either way the piece and its previous two flagged 0x200000 (the previous twice) and TrackPieces_Renumber (the piece). Then,
+// unless 0x785a2c is set, Global81af4c_Add of the __ftol of the piece's Car_TravelCost (coaster, 1, piece, its +0x4c, +0x54) (0 for a
+// piece without a train), a negative one plus 0xf1111112 (sic).
+void __cdecl Coaster_PlacePendingPiece(u8 *coaster);
+
 // 0x435340 (cdecl; node, range, car, other, keep, wantValue, out; name invented, unconfirmed): a value along range (+0xbc..+0xc0).
 // With range flagged 0x4000 and keep 0: other's (its type +0x100 flag 1 (+4): +0x50; else its ride's (0x7a4610[+0x70] +8 -> +0x28 ->
 // +4) entry the type's +0x18 -> +0x2c (0x14 apart, +4) -> +0x34, none 0.0; no other: range's own pointer bits, sic) less half the
