@@ -1,9 +1,11 @@
-# The coaster editor's tools switched (src/game/coaster/edittools: CoasterEdit_SwitchToTool1 0x444770, CoasterEdit_SetTools 0x442880)
+# The coaster editor's tools switched (src/game/coaster/edittools: CoasterEdit_SwitchToTool1 0x444770, CoasterEdit_SetTools 0x442880,
+# CoasterEdit_StartTool 0x445220)
 # against the originals, with all they call. The world is coaster.py's: its edit-tool world (EditBounds' link as the game, moved to a
 # block of 0x150 of its own, its pieces on rides 3 / 4; the recorder, its stream moved clear of the dialog's) and its RefreshTools
 # dialog (up or not), with endtool.py's cars (+0x54 / +0x64 / +0x144) and rides' holders. The tool in use none / another (0, 3, 6,
 # 0x3f) or the selection (0x20, endtool.py's, flag 0x80 or not); the mode 0x79c624 bit 0 or not; the chosen tools 0x79c638 and the
-# offer 0x79c6e0 any. SetTools' tools: one of bits 0-9, a few, none or any.
+# offer 0x79c6e0 any. SetTools' tools: one of bits 0-9, a few, none or any; StartTool's
+# tool: 1 or 2 mostly, one of bits 2-9, 3, none or any.
 # usage: settools.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -16,10 +18,10 @@ import coaster  # noqa: E402
 import endtool  # noqa: E402
 import recorded_actions  # noqa: E402
 
-B = Bench(sorted(set(coaster.RANGES + endtool.RANGES + [(0x444770, 0x444ab2), (0x442880, 0x442b23)])), sines=256)
+B = Bench(sorted(set(coaster.RANGES + endtool.RANGES + [(0x444770, 0x444ab2), (0x442880, 0x442b23), (0x445220, 0x4454ab)])), sines=256)
 GAME, VT, BUF, SEL = RAM + 0x9000, RAM + 0x9200, RAM + 0x9240, RAM + 0xa000
 PIECES = RAM + 0x6800   # (coaster.edit_bounds's: four, 0x200 apart)
-OPS = {'Switch': 0x444770, 'Set': 0x442880}
+OPS = {'Switch': 0x444770, 'Set': 0x442880, 'Start': 0x445220}
 
 
 def case(r):
@@ -58,6 +60,9 @@ def case(r):
     endtool.rides(r, regions)
     if op == 'Switch':
         return Call(0x444770, [], regions)
+    if op == 'Start':
+        tool = r.choice([1, 1, 2, 2, 2, 1 << r.randrange(2, 10), 1 << r.randrange(2, 10), 3, 0, r.getrandbits(32)])
+        return Call(0x445220, [tool], regions)
     tools = r.choice([1, 2, 3, 4, 1 << r.randrange(10), 1 << r.randrange(10), r.getrandbits(10), 0, r.getrandbits(32)])
     return Call(0x442880, [tools], regions)
 

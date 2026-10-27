@@ -81,4 +81,11 @@ void __cdecl CoasterEdit_SwitchToTool1();
 // up to CoasterLink_CheckEnd, then CoasterEdit_SetTool (1); 2 CoasterEdit_SetMode (1) and CoasterEdit_SetTool (2); 4, 8, 0x10, 0x20,
 // 0x40, 0x80, 0x100 CoasterEdit_SetMode (2, 4, 8, 0x10, 0x80, 0x20, 0x40); higher ones only set. Then CoasterEdit_RefreshTools.
 void __cdecl CoasterEdit_SetTools(u32 tools);
+
+// 0x445220 (cdecl; tool; name invented, unconfirmed): one tool started and set in the chosen tools 0x79c638. 1 as
+// CoasterEdit_SwitchToTool1 starts it; 2 the same up to CoasterLink_CheckEnd (inlined), then ActionRec_Write (0x785a08, 0x38), the
+// game's flag 0x2000 cleared and, with CoasterLink_EndMarked, 0x79c664 = 1 and flag 0x40 of 0x79c658, without CoasterLink_BeginEnd;
+// 0x79c644 = 2 and CoasterEdit_SetBounds. 4 .. 0x100: CoasterEdit_SetMode (2, 4, 8, 0x10, 0x80, 0x20, 0x40; all but the last inlined
+// as CoasterEdit_EndTool and the mode set); any other only set.
+void __cdecl CoasterEdit_StartTool(u32 tool);
 }
