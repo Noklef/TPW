@@ -5381,6 +5381,8 @@ address,name,kind,confidence,notes
 0x00522a90,QueuePiece_Remove,function,low,"reimplemented (src/game/world/queuepieces); Ride_Destroy (0x463c80, through the env) of the ride"
 0x0052c150,PathDrag_Begin,function,low,"reimplemented (src/game/world/pathdrag); the drag's cell becomes (x, y); its entry's dword +4 saved at 0x818c58 and cleared; without keep, 0x5367a0 on the cell; the held byte set"
 0x0052c1c0,PathDrag_Finish,function,low,"reimplemented (src/game/world/pathdrag); with a cell held, three 0x536100 steps (0x15, 0x83, 0x81); the stepped cell's entry gets the saved value back; the held byte cleared, the cell -1, -1"
+0x00518e60,AdvisorSlot_Ctor,function,low,reimplemented (src/game/world/advisorrecords); the element constructor of the 8 records of 0x18 at +0x14: the byte +0x14 cleared; returns the record
+0x00518e80,AdvisorRecord_Ctor,function,low,"reimplemented (src/game/world/advisorrecords); the element constructor of the 0x15f records of 0x10 at +0xe0: +0 = 0, +4 = -1, +8 (byte) = 0, +0xc = 0; returns the record"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved
