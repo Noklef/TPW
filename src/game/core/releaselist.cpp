@@ -92,4 +92,10 @@ u32 __fastcall ReleaseList_Push(ReleaseList *list, void *, u32 value) {
     return Import<OnLock>(0x006fd130)(list->lock);   // LeaveCriticalSection
 }
 
+ReleaseList *__fastcall ReleaseListBase_DeletingDtor(ReleaseList *list, void *, u32 flags) {
+    ReleaseList_BaseDtor(list);   // (inlined in the original)
+    if (flags & 1) GameHeap_Free(list);
+    return list;
+}
+
 }  // extern "C"

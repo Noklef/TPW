@@ -47,4 +47,8 @@ ReleaseList *__fastcall ReleaseList_BaseDeletingDtor(ReleaseList *list, void *, 
 // as the original). Returns what LeaveCriticalSection does.
 u32 __fastcall ReleaseList_Push(ReleaseList *list, void *, u32 value);
 
+// 0x6d7690 (thiscall flags; pops 4; slot 0 of the base's vtable 0x711c1c; name invented): as ReleaseList_BaseDeletingDtor, the base's
+// destructor inlined. Returns the list.
+ReleaseList *__fastcall ReleaseListBase_DeletingDtor(ReleaseList *list, void *, u32 flags);
+
 }  // extern "C"

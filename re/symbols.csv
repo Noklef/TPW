@@ -4957,6 +4957,7 @@ address,name,kind,confidence,notes
 0x006d74b0,ReleaseList_Ctor,function,low,"reimplemented (src/game/core/releaselist); an empty release list, its lock initialised"
 0x006d7500,ReleaseList_BaseDeletingDtor,function,low,"reimplemented (src/game/core/releaselist); the base list's destructor, then the list freed with flags bit 0"
 0x006d7520,ReleaseList_Push,function,low,"reimplemented (src/game/core/releaselist); under the lock, a node of a value pushed at the head of the release list"
+0x006d7690,ReleaseListBase_DeletingDtor,function,low,"reimplemented (src/game/core/releaselist); thiscall (flags), pops 4; slot 0 of the base's vtable 0x711c1c: ReleaseList_BaseDtor inlined, then freed with flags bit 0; returns the list (name invented)"
 0x006d6dd0,SoundSlot_Init,function,low,reimplemented (src/game/core/soundslot); a sound object's slot cleared (all but +0x10 and +0x20)
 0x006d6df0,SoundSlot_Call7,function,low,"reimplemented (src/game/core/soundslot); the slot's COM object's slot 7 (a value), 0 without one"
 0x006d6e10,SoundSlot_Call5,function,low,"reimplemented (src/game/core/soundslot); the slot's COM object's slot 5 (a value) into an out, -1 without one"
