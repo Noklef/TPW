@@ -103,4 +103,11 @@ void __cdecl Rsse_UpdateWalkers(u8 *vm);
 // the place, 0: nothing, 0 returned), and return its result. Other kinds: 0. Each __ftol'd z first. The original's Debug_Printf calls
 // are left out.
 s32 __cdecl Rsse_Trigger(u8 *vm, s32 kind, s32 key, u32 what, u32 extra);
+
+// 0x557970 (cdecl (vm, node, what, extra, value); name unconfirmed): a trigger node's effect started: +0xc = Rsse_Trigger(vm, kind +8,
+// key +0x10, what, extra); kinds 1 and 2 then find their part under 0x100, 3-10 under 0x200 (Model_FindPartByKey4 of the ride
+// [0x7a4610 + 4 vm +0xc8] by the key) into +0x14 (others: untouched; the original's Debug_Printf left out). A handle got: +0x18 =
+// value and the handle returned. None: the node unlinked (+0 next, +4 previous; the vm's first +0xb0 moved on when it is the node),
+// freed (Mem_GlobalFree) and the count [0x8791b4] decremented and returned (EAX as the original leaves it).
+u32 __cdecl Rsse_TriggerNode(u8 *vm, u8 *node, u32 what, u32 extra, u32 value);
 }
