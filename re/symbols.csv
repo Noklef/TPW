@@ -4681,6 +4681,12 @@ address,name,kind,confidence,notes
 0x006bb8d0,VoiceId_SetHigh,function,low,"reimplemented (src/game/core/channelvoice); thiscall (value), pops 4: the dword keeps its bits below shift + 1 (a mask made once), then the value's low word shifted in (name invented)"
 0x006c4c80,SoundOccluders_Occlusion,function,low,"reimplemented (src/game/core/soundoccluders); thiscall on the occluders (0xfb2038) (from, to, out), pops 0xc: the largest occlusion of the path, through out; returns it is neither 0 nor NaN"
 0x006c4ba0,SoundOccluders_Remove,function,low,"reimplemented (src/game/core/soundoccluders); thiscall (out, &node), pops 8: with occluders, the node unlinked, the count lowered, the node freed; its occluder freed, *node = 0 and *out = 0 when there is one, else *out = -1 (none in the list too); returns out (name invented)"
+0x006c4c20,SoundOccluders_Clear,function,low,reimplemented (src/game/core/soundoccluders); the occluders cleared (each node and its occluder freed)
+0x006c4940,SoundOccluders_Dtor,function,low,"reimplemented (src/game/core/soundoccluders); the occluders' destructor: clear, then the base list's"
+0x006c4ff0,OccluderList_Dtor,function,low,"reimplemented (src/game/core/soundoccluders); the base pointer list's destructor (vtable 0x70aa70, the nodes freed)"
+0x006c4f60,OccluderList_DeletingDtor,function,low,reimplemented (src/game/core/soundoccluders); the base list's deleting destructor
+0x006c5030,SoundOccluders_DeletingDtor,function,low,reimplemented (src/game/core/soundoccluders); the occluders' deleting destructor (slot 0 of 0x70aa7c)
+0x006c4920,SoundOccluders_SingletonDtor,function,low,"reimplemented (src/game/core/soundoccluders); the singleton's exit (guard 0xfb2054, list 0xfb2038)"
 0x006c6a60,LoopStream_Read,function,low,"reimplemented (src/game/core/loopstream); thiscall (buffer, count, done, unused), pops 0x10; slot 7 of 0x70aba8: the inner stream read until the count, up to the loop's end while looping, the loops counted down and the inner seeked to the start; slot 3 once the looping ends; 1 when a read answers 1"
 0x006c6a40,LoopStream_Dtor,function,low,"reimplemented (src/game/core/loopstream); thiscall (flags), pops 4; slot 0 of 0x70aba8: Vtbl70a778_Set_6c7090, then LoopStreamPool_Delete (0x24) when flags bit 0; returns the stream"
 0x006bb130,StreamFilter_SampleRate,function,low,"reimplemented (src/game/core/streamfilter); thiscall; slot 6 of 0x70a678 / 0x70aba8 / 0x70abf8: the inner stream's (slot 18) slot 6, a tail jump"

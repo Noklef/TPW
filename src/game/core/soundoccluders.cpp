@@ -86,4 +86,61 @@ u32 *__fastcall SoundOccluders_Remove(u8 *list, void *, u32 *out, u8 **node) {
     return out;
 }
 
+void __fastcall SoundOccluders_Clear(u8 *list) {
+    while (at<u32>(list, 0xc)) {
+        u8 *const node = at<u8 *>(list, 4);
+        void *occluder = nullptr;
+        if (node) {
+            u8 *const next = at<u8 *>(node, 4);
+            at<u8 *>(list, 4) = next;
+            if (!next)
+                at<u32>(list, 8) = 0;
+            else
+                at<u32>(next, 8) = 0;
+            occluder = at<void *>(node, 0);
+            --at<u32>(list, 0xc);
+            GameHeap_Free(node);
+        }
+        GameHeap_Free(occluder);   // (no node: the count unchanged, an endless loop, sic)
+    }
+}
+
+void __fastcall OccluderList_Dtor(u8 *list) {
+    u8 *node = at<u8 *>(list, 4);
+    at<u32>(list, 0) = 0x70aa70;
+    at<u32>(list, 8) = 0;
+    at<u32>(list, 4) = 0;
+    while (node) {
+        u8 *const next = at<u8 *>(node, 4);
+        GameHeap_Free(node);
+        node = next;
+    }
+    at<u32>(list, 0xc) = 0;
+}
+
+u8 *__fastcall OccluderList_DeletingDtor(u8 *list, void *, u32 flags) {
+    OccluderList_Dtor(list);
+    if (flags & 1) GameHeap_Free(list);
+    return list;
+}
+
+void __fastcall SoundOccluders_Dtor(u8 *list) {
+    SoundOccluders_Clear(list);
+    OccluderList_Dtor(list);
+}
+
+u8 *__fastcall SoundOccluders_DeletingDtor(u8 *list, void *, u32 flags) {
+    OccluderList_Dtor(list);
+    if (flags & 1) GameHeap_Free(list);
+    return list;
+}
+
+void SoundOccluders_SingletonDtor() {
+    u8 &guard = *reinterpret_cast<u8 *>(static_cast<uintptr_t>(0x00fb2054));
+    if (!(guard & 1)) {
+        guard |= 1;
+        SoundOccluders_Dtor(reinterpret_cast<u8 *>(static_cast<uintptr_t>(0x00fb2038)));
+    }
+}
+
 }  // extern "C"
