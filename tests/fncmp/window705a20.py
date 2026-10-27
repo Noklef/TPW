@@ -31,13 +31,14 @@ CALLS = {'SetCaret': 0x66656c, 'MoveCaret': 0x66836a, 'KeyToParent': 0x667fee, '
          'SetInsertMode': 0x666875, 'NotifyText': 0x66671d, 'SetBuffer': 0x6662b7, 'SelectionStart': 0x668447, 'Selection': 0x66848f, 'NotifyScroll': 0x66679e,
          'SetSelection': 0x6668e9, 'SetText': 0x666308, 'SetTextNotify': 0x6664fa, 'SetTextQuiet': 0x666515, 'GetText': 0x666530,
          'SetCursor': 0x66778d}
-B = Bench(sorted(set(RANGES + [(0x66656c, 0x66671d), (0x659d43, 0x659d90), (0x659d90, 0x659dbc), (0x65a9d0, 0x65aa00),
+WIN_RANGES = sorted(set(RANGES + [(0x66656c, 0x66671d), (0x659d43, 0x659d90), (0x659d90, 0x659dbc), (0x65a9d0, 0x65aa00),
                             (0x66bff7, 0x66c01b), (0x66836a, 0x668447), (0x667fee, 0x6680c7), (0x658d9f, 0x658e04),
                             (0x6667eb, 0x666875), (0x666875, 0x6668e9), (0x66671d, 0x66679e), (0x66679e, 0x6667eb), (0x658ccc, 0x658d9f), (0x6697e3, 0x6698b4), (0x680050, 0x68005b),
                             (0x6662b7, 0x666308), (0x668447, 0x66852b), (0x6668e9, 0x66775d), (0x659d00, 0x659d43),
                             (0x659710, 0x659740), (0x67acd0, 0x67ad00), (0x659dbc, 0x659de5),
                             (0x666308, 0x666515), (0x666515, 0x66656c), (0x66778d, 0x6677ae), (0x65f5b7, 0x65f66e),
-                            (0x67bf10, 0x67bf50), (0x67c290, 0x67c320), (0x67b0d0, 0x67b140)])))
+                            (0x67bf10, 0x67bf50), (0x67c290, 0x67c320), (0x67b0d0, 0x67b140)]))
+B = Bench(WIN_RANGES)
 WINDOW, OBJ_A, OBJ_B, VT, PARENTS = RAM, RAM + 0x200, RAM + 0x240, RAM + 0x280, RAM + 0x400
 
 
@@ -230,15 +231,25 @@ def set_text(r, op):
     bytes, or none), flag 0x40 of +0x48 either way, the size +0x13c 0, about the texts' lengths or 0xff; the text a second one of 0-30
     characters (now and then the buffer's own text, or the same as it), the buffer itself or none; the byte +0x160 0 or 1; +0x98 none
     or the object +0x9c (slot 3's 0x100 hashed: the second event's dword +0); heap() for its blocks (failing now and then)."""
-    regions, log, n = sel_fixture(r)
-    w = regions[SEL]
-    w[0x48] = (w[0x48] & 0xbf) | r.choice([0, 0x40])
+    regions, log, n = text_fixture(r)
     m = r.choice([0, 1, 3, 12, 20, 30])
     src = b''.join(struct.pack('<H', r.randrange(1, 0x10000)) for _ in range(m)) + bytes(2)
     if r.random() < 0.25:
         m, src = n, regions[SEL_TEXT][:2 * n + 2]
     regions[SEL_SRC] = src + r.bytes(0x40)
-    put(w, 0x13c, 'I', r.choice([0, 1, n, m, m - 1 if m else 0, m + 1, 0xff]))
+    put(regions[SEL], 0x13c, 'I', r.choice([0, 1, n, m, m - 1 if m else 0, m + 1, 0xff]))
+    text = r.choice([SEL_SRC] * 6 + [SEL_TEXT, 0])
+    if op == 'SetText':
+        return Call(CALLS[op], [SEL, text, r.choice([0, 1, 0x100, r.getrandbits(32)])], regions, conv='t', ret='w')
+    return Call(CALLS[op], [SEL, text], regions, conv='t', ret='w')
+
+
+def text_fixture(r):
+    """SetSelection's fixture for setting the text: flag 0x40 of +0x48 either way, the byte +0x160 0 or 1, +0x98 none or the object
+    +0x9c (always it), the parent +0x60 or none, heap(); the size +0x13c left to the caller. Returns (regions, log, n)."""
+    regions, log, n = sel_fixture(r)
+    w = regions[SEL]
+    w[0x48] = (w[0x48] & 0xbf) | r.choice([0, 0x40])
     w[0x160] = r.choice([0, 1])
     put(w, 0x98, 'I', r.choice([0, SEL_CHARS]))
     put(w, 0x9c, 'I', SEL_CHARS)   # (none with several lines leaves SetSelection's bottom unset: the stack's)
@@ -246,10 +257,7 @@ def set_text(r, op):
     regions[PARENTS] = put(bytearray(r.bytes(0x20)), 4, 'B', r.choice([0, 0, 0, 1]))
     regions[HEAP] = heap(0x1000, r.choice([0] * 10 + [1]))
     blob_when_inner(log, 3, 0, 0x100, (0x10, 0xf), 2)
-    text = r.choice([SEL_SRC] * 6 + [SEL_TEXT, 0])
-    if op == 'SetText':
-        return Call(CALLS[op], [SEL, text, r.choice([0, 1, 0x100, r.getrandbits(32)])], regions, conv='t', ret='w')
-    return Call(CALLS[op], [SEL, text], regions, conv='t', ret='w')
+    return regions, log, n
 
 
 def get_text(r):
