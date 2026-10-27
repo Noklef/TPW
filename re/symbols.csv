@@ -5586,6 +5586,7 @@ address,name,kind,confidence,notes
 0x0046a550,Face_MarkTextures,function,high,reimplemented (src/game/model/faces); sets or clears bit 0x800 of each of a face's texture entries
 0x00469930,Flags_AnyLow4,function,high,reimplemented (src/game/model/faces); 1 when flags has any of its low 4 bits
 0x00461ed0,Ride_MarkModel,function,high,"reimplemented (src/game/model/ridemodel); flags a loading ride's model, its root and its instance"
+0x00461f10,RideModel_Load,function,low,"reimplemented (src/game/model/ridemodel); a ride's model and its motions loaded, an animator made for them"
 0x0046ed80,Model_TransformBounds,function,high,reimplemented (src/game/model/bounds); puts the model's bounds through its root's matrix
 0x004543c0,StripAnim_Apply,function,high,reimplemented (src/game/model/stripanim); the strip animation of a growing object
 0x004547c0,StripAnim_StartShrink,function,high,"reimplemented (src/game/model/stripanim); cdecl (object): when +0xb0 is set, +0xbc = -0.3f and, with flags (+4) 0x20, flag 0x40 traded for 0x80"
