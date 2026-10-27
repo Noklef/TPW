@@ -5686,6 +5686,14 @@ address,name,kind,confidence,notes
 0x00496c10,List7ca170_NewRow,function,low,"reimplemented (src/game/ui/listrows); cdecl; the row factory of the list built at 0x496680: the cache [0x7ca170] (font [0x751184]); when made, the children (1, 1, 0x3e7) twice (sic), (9, 0x11, 4), (9, 0x11, 5)"
 0x004b4d40,List7cc338_InitRow,function,low,"reimplemented (src/game/ui/listrows); cdecl (row): the row window made a TextPart (0x6ff320), its font the language's font [0x756f38], NotifyImpl100(0), and its first child's ride stat bar (panelparts barOf: the ""ridestatbar.wct"" mesh overlay) slot 7 with 0"
 0x004959c0,List7ca158_RowProc,function,low,"reimplemented (src/game/ui/listrows); cdecl (window, message, a, b): List7ca158_NewRow's row handler: for 0x403 the object b (or the table 0x7cfb90's entry its word +0x30 names) has its status's colour sent as 0x40000; then the default handler's answer"
+0x004a0710,List7cb264_RowProc,function,low,"reimplemented (src/game/ui/listrows); cdecl (window, message, a, b): List7cb264_InitRow's row handler: for 0x403 0x8c, 0, 0x3c (b negative) or white sent as 0x40000; then Window_CallDefault"
+0x004bf760,List758f04_NewRow,function,low,"reimplemented (src/game/ui/listrows); cdecl: a new 0x138-byte row window, the font [0x758f04]'s height * 0x600 / [0xfaa5c0] + 4 high"
+0x004bf740,List758f04_NewRowA,function,low,reimplemented (src/game/ui/listrows); cdecl: List758f04_NewRow with the handler 0x4be730
+0x004bf8b0,List758f04_NewRowB,function,low,reimplemented (src/game/ui/listrows); cdecl: List758f04_NewRow with the handler 0x4be7c0
+0x004bf810,List758f04_InitRow,function,low,"reimplemented (src/game/ui/listrows); cdecl (row): a TextPart_Ctor part, the font [0x758f04], white as 0x40000"
+0x004bf800,List758f04_InitRowJump,function,low,reimplemented (src/game/ui/listrows); cdecl (row): List758f04_InitRow
+0x004be730,List758f04_RowProcA,function,low,"reimplemented (src/game/ui/listrows); cdecl (window, message, a, b): for 0x403 the colour [0x758f30] / [0x758f3c] / [0x758f34] / [0x758f38] by b's bits 0-2; then Window_CallDefault"
+0x004be7c0,List758f04_RowProcB,function,low,"reimplemented (src/game/ui/listrows); cdecl (window, message, a, b): for 0x403 the colour of the table 0x758f10's entry b & 7; then Window_CallDefault"
 0x0066a084,Frame_SetInterval,function,low,"reimplemented (src/game/ui/frame); thiscall (value): +0x14 = value; with the words +4 and +0xc set, +0x10 = GuiClock_Now"
 0x0066a016,Frame_Stop,function,low,"reimplemented (src/game/ui/frame); thiscall: the word +4 = 0, then with the word +6 set slot 1 (its result returned, else the frame)"
 0x004a4ab0,Dialog7cb398_ShowTopThree,function,low,"reimplemented (src/game/ui/dialog7cb398); cdecl: the window [0x7cb398]'s child 0x4a68d1, then Things_TopThreeValues shown by its children 0x4a68d4/d3/d2 (1..0x16: slot 7 with value - 1, else hidden)"
