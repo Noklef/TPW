@@ -105,7 +105,8 @@ def open_case(r, log, name):
         regions.update({HEAP: heap(0x100), CHANNEL: r.bytes(0x20) + struct.pack('<I', r.choice([BUF, BUF, 0])) + r.bytes(0xc)})
         return Call(CALLS[name], [CHANNEL], regions, conv='t', ret='v')
     blob_bytes(log, CREATE_K, 1, 0xffff, inner=(0x10, 0x3ffff))
-    fill(log, CREATE_K, 2, struct.pack('<I', DSB), which=2)
+    if name != 'chanopen' or r.random() < 0.8:   # (chanopen's sometimes not: a failed create leaving the new buffer's +8 as it was, which
+        fill(log, CREATE_K, 2, struct.pack('<I', DSB), which=2)   # the release then reads)
     answer(CREATE_K, [0, 0, 0, 1, 0x88780078, 0x80000000])
     fill(log, DSB_QI_K, 2, struct.pack('<I', D3), which=3)
     answer(DSB_QI_K, [0, 0, 0, 1, 0x80004002])
