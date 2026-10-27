@@ -4,7 +4,9 @@
 # 0-4 voices or null, +8 the count in use (0 now and then, the first voice still released), +0xc a channel whose source's slot 10 (a
 # recorder) writes a status through its out (negative now and then) and returns the out; the shift at 0x782db8 any byte). The pool's
 # count from the settings' +0x40 (below, at or above the capacity). SoundChannel_ReleaseVoice (soundchannel, 0x6b7e60) is benched here
-# ('releasevoice'): a voice or null. ChannelVoice_SetFlag: the byte on over random upper bytes, any mask.
+# ('releasevoice'): a voice or null. ChannelVoice_SetFlag: the byte on over random upper bytes, any mask. The pool's constructor: 0-3
+# voices, the heap failing now and then (the array, a voice's buffer, the events, their handles). The refill: slot 7 (the read, its out
+# logged as 0) answering 1 or else, Reset / SetEvent recorders.
 # usage: channelvoice.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -17,17 +19,20 @@ from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, echo, fill, heap, i
 CALLS = {'reset': (0x6c5060, 'c', 'v'), 'inc': (0x6c5070, 't', 'a'), 'dec': (0x6c5080, 't', 'a'), 'sound': (0x6bb7a0, 't', 'a'),
          'release': (0x6bb7c0, 't', 'b'), 'releaseall': (0x6babc0, 't', 'v'), 'setcount': (0x6bac30, 't', 'v'),
          'releasevoice': (0x6b7e60, 't', 'a'), 'setflag': (0x6b8330, 't', 'v'),
-         'apply': (0x6bb3e0, 't', 'a'), 'ctor': (0x6bb270, 't', 'a'), 'new': (0x6baf50, 't', 'a')}
+         'apply': (0x6bb3e0, 't', 'a'), 'ctor': (0x6bb270, 't', 'a'), 'new': (0x6baf50, 't', 'a'),
+         'poolctor': (0x6ba230, 't', 'a'), 'refill': (0x6bb590, 't', 'a')}
 RANGES = [(0x6c5060, 0x6c506b), (0x6c5070, 0x6c5078), (0x6c5080, 0x6c5088), (0x6bb7a0, 0x6bb7bd), (0x6bb7c0, 0x6bb856), (0x6babc0, 0x6bac04),
           (0x6bac30, 0x6bac5c), (0x6b7e60, 0x6b7ea5), (0x6b8330, 0x6b8358),
-          (0x6bb3e0, 0x6bb468), (0x6bb270, 0x6bb311), (0x6baf50, 0x6bafc9), (0x67acf0, 0x67ada0)]
+          (0x6bb3e0, 0x6bb468), (0x6bb270, 0x6bb311), (0x6baf50, 0x6bafc9), (0x67acf0, 0x67ada0),
+          (0x6ba230, 0x6ba2b5), (0x6bb590, 0x6bb5d2), (0x6c6120, 0x6c615d)]
 B = Bench(RANGES)
 VOICES, VVT, SND, SVT, POOL, CHAN, SRC, SRCVT, SETS, OUT = (RAM + 0x400 * i for i in range(10))
 COUNT, SHIFT = 0xfb2058, 0x782db8
 REC, PAIR = RAM + 0x2800, RAM + 0x2c00   # (the apply's record and its pair)
 IMPORTS = {'InterlockedIncrement': (40, 0x6fd0c0, 1, 0, 0), 'InterlockedDecrement': (41, 0x6fd12c, 1, 0, 0),
            'EnterCriticalSection': (42, 0x6fd140, 1, 0, 0), 'LeaveCriticalSection': (43, 0x6fd130, 1, 0, 0),
-           'CreateEventA': (44, 0x6fd0d4, 4, 0, 0), 'InitializeCriticalSection': (45, 0x6fd144, 1, 0, 0)}
+           'CreateEventA': (44, 0x6fd0d4, 4, 0, 0), 'InitializeCriticalSection': (45, 0x6fd144, 1, 0, 0),
+           'ResetEvent': (46, 0x6fd168, 1, 0, 0), 'SetEvent': (47, 0x6fd124, 1, 0, 0)}
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
@@ -44,14 +49,16 @@ def voices(r, n):
 def common(r, log, n):
     set_return(log, 11, r.getrandbits(32))
     set_return(log, 2, r.getrandbits(32))
-    for k in (40, 41, 44):
+    for k in (40, 41, 44, 46, 47):
         set_return(log, k, r.getrandbits(32))
     strings(log, 10, 0, out=1)   # (the source's out: the voice argument's own stack slot)
+    strings(log, 7, 0, out=4)   # (the refill's read: its out a local)
+    set_return(log, 7, r.choice([0, 1, 1, 2, r.getrandbits(32)]))
     fill(log, 10, 0, b''.join(struct.pack('<I', r.choice([0, 1, 0x80000000, 0xffffffff, r.getrandbits(32)])) for _ in range(4)), records=4)
     echo(log, 10, 0)   # (slot 10 returns its out)
     chan = bytearray(r.bytes(0x40))
     struct.pack_into('<I', chan, 0x18, SRC)
-    return {VOICES: voices(r, n), VVT: vtable({11: 1}), SND: struct.pack('<I', SVT) + r.bytes(0xc), SVT: vtable({}), CHAN: chan,
+    return {VOICES: voices(r, n), VVT: vtable({11: 1, 7: 4}), SND: struct.pack('<I', SVT) + r.bytes(0xc), SVT: vtable({}), CHAN: chan,
             SRC: struct.pack('<I', SRCVT) + r.bytes(0xc), SRCVT: vtable({10: 2}), COUNT: r.bytes(4), SHIFT: bytes([r.getrandbits(8)]) + r.bytes(3),
             OUT: r.bytes(4), IMPORT_TABLE: import_table(log, IMPORTS), LOG: log}
 
@@ -64,6 +71,14 @@ def case(r):
     regions = common(r, log, max(n, 1))
     if name == 'releasevoice':
         return Call(address, [CHAN, OUT, r.choice([VOICES] * 6 + [0]), r.getrandbits(32)], regions, conv=conv, ret=ret)
+    if name == 'poolctor':   # (0-3 voices, the heap failing now and then: the array, a voice's buffer, the events or their handles)
+        count = r.choice([0, 1, 2, 3])
+        regions[HEAP] = heap(0xa000, fail=r.choice([0, 0, 0, 1, 2, count + 2, count + 3]))
+        regions[POOL] = r.bytes(0x14)
+        return Call(address, [POOL, CHAN, count], regions, conv=conv, ret=ret)
+    if name == 'refill':   # (the buffer +0x68 and the events +0x6c / *+0x70 any; slot 7 answering 1 (the end) or not)
+        struct.pack_into('<I', regions[VOICES], 0x70, OUT)
+        return Call(address, [VOICES], regions, conv=conv, ret=ret)
     if name in ('ctor', 'new'):   # (the heap failing now and then: the array's block, or a voice's buffer; 0-3 voices)
         regions[HEAP] = heap(0xa000, fail=r.choice([0, 0, 0, 1, 2, 3]))
         if name == 'ctor':

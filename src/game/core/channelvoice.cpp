@@ -6,6 +6,7 @@
 #include "gameheap.h"
 #include "soundchannel.h"
 #include "vcall.h"
+#include "voiceevents.h"
 
 namespace {
 
@@ -133,6 +134,25 @@ void __fastcall ChannelVoices_SetCount(u8 *pool, void *, const u8 *settings) {
     const u32 count = wanted < at<u32>(pool, 0) ? wanted : at<u32>(pool, 0);
     ChannelVoices_ReleaseAll(pool);
     at<u32>(pool, 8) = count;
+}
+
+u8 *__fastcall ChannelVoices_Ctor(u8 *pool, void *, u8 *channel, u32 count) {
+    at<u32>(pool, 0) = count;
+    ChannelVoices_New(pool + 4, nullptr, count);
+    at<u32>(pool, 8) = 0;
+    at<u8 *>(pool, 0xc) = channel;
+    u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x18));
+    at<u8 *>(pool, 0x10) = block ? VoiceEvents_Ctor(block, nullptr, at<u8 *>(pool, 4), at<u32>(pool, 0)) : nullptr;
+    return pool;
+}
+
+u32 __fastcall ChannelVoice_Refill(u8 *voice) {
+    u32 done;   // (the read's out: not read after)
+    const u32 read = vcall<u32>(voice, 0x1c, at<u32>(voice, 0x68), 0x2400u, &done, 0u);
+    at<u32>(voice, 0x30) = read != 1;
+    Import<OnObject>(0x006fd168)(reinterpret_cast<void *>(static_cast<uintptr_t>(*at<u32 *>(voice, 0x70))));   // ResetEvent
+    Import<OnObject>(0x006fd124)(reinterpret_cast<void *>(static_cast<uintptr_t>(at<u32>(voice, 0x6c))));    // SetEvent
+    return at<u32>(voice, 0x30);
 }
 
 }  // extern "C"

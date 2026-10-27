@@ -44,5 +44,13 @@ void __fastcall ChannelVoices_ReleaseAll(u8 *pool);
 // 0x6bac30 (thiscall (settings), pops 4): the settings' +0x40 or the capacity, the smaller (unsigned), becomes the count in use (+8),
 // after ChannelVoices_ReleaseAll.
 void __fastcall ChannelVoices_SetCount(u8 *pool, void *, const u8 *settings);
+// 0x6ba230 (thiscall (channel, count), pops 8; an SEH frame; name invented): the pool: +0 the count, +4 the voices (ChannelVoices_New),
+// +8 0, +0xc the channel, +0x10 the voices' events (Mem_Alloc 0x18, VoiceEvents_Ctor (the voices, the count); null when it fails).
+// Returns the pool.
+u8 *__fastcall ChannelVoices_Ctor(u8 *pool, void *, u8 *channel, u32 count);
+// 0x6bb590 (thiscall; from the channel's service loop 0x6c6180; name invented): the voice's buffer (+0x68) refilled by its slot 7 (the
+// read: the buffer, 0x2400 bytes, a local out, 0); +0x30 = 1 unless the read answered 1 (the end); ResetEvent (*+0x70), SetEvent (+0x6c).
+// Returns +0x30.
+u32 __fastcall ChannelVoice_Refill(u8 *voice);
 
 }  // extern "C"
