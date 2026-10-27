@@ -3,7 +3,9 @@
 # the cdecl recorder k 27, CarType_Lerp, Contacts_MarkLostPair, Track_PieceAt). The trains, rides and type are insertcar.py's (two cars
 # or more); the coaster [0x790fec] a block of its own: +0x54 the first car (the cars chained on by +0x64, now and then cut short), +0x60
 # one of the cars or another, flags any. Ops: Swap (two of the cars, now and then the same), Edited (what 0, 1, 4, 5 or any; the car
-# flag 0x40, the type flag 0x4000 now and then; keepContacts or not), SetLength (a length about 0..1 or special, any of the pieces).
+# flag 0x40, the type flag 0x4000 now and then, its length a NaN 15%; keepContacts or not), SetLength (a length about 0..1, special or
+# a NaN, any of the pieces). Swap: now and then a's length a NaN with b's rates skipped, or a's ride's value a NaN going to b's ride,
+# which no placed car rewrites (b alone on it, flagged 0x2000): what the x87 makes of them reaches b.
 # usage: swapcars.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -40,6 +42,20 @@ def case(r):
     if op == 'Swap':
         a = r.randrange(n)
         b = a if r.random() < 0.05 else r.choice([k for k in range(n) if k != a])
+        nan = r.choice([0x7f800001, 0xff812345, 0x7fc00000])
+        if r.random() < 0.25:   # (a's length a NaN, kept while b's rates are skipped: the train's flag 1 or b's 0x2000)
+            put(carbuf, insertcar.CAR * a + 0xe8, 'I', nan)
+            train = regions[insertcar.TRAIN]
+            train[4] |= r.choice([0, 1])
+            o = insertcar.CAR * b + 8
+            put(carbuf, o, 'I', struct.unpack_from('<I', carbuf, o)[0] | r.choice([0, 0x2000]))
+        if r.random() < 0.25 and a != b:   # (a's ride's value a NaN, to b's ride, which b alone has, flagged 0x2000: no placed car rewrites it)
+            ride = struct.unpack_from('<I', carbuf, insertcar.CAR * a + 0x70)[0]
+            put(regions[insertcar.FRAMES], insertcar.NF * 0xa0 * ride + 0x44, 'I', nan)
+            for k in range(n):
+                put(carbuf, insertcar.CAR * k + 0x70, 'I', (ride + 1) % insertcar.NR if k == b else ride)
+            o = insertcar.CAR * b + 8
+            put(carbuf, o, 'I', struct.unpack_from('<I', carbuf, o)[0] | 0x2000)
         return Call(0x4424e0, [cars[a], cars[b]], regions)
     tp = regions[insertcar.TYPE]
     put(tp, 0, 'I', struct.unpack_from('<I', tp, 0)[0] & ~0x4000 | (0x4000 if r.random() < 0.3 else 0))
@@ -47,9 +63,11 @@ def case(r):
         car = r.choice(cars) if r.random() < 0.3 else struct.unpack_from('<I', coaster, 0x60)[0]
         o = car - insertcar.CARS
         put(carbuf, o + 8, 'I', struct.unpack_from('<I', carbuf, o + 8)[0] & ~0x40 | r.choice([0, 0x40]))
+        if r.random() < 0.15:
+            put(carbuf, o + 0xe8, 'I', r.choice([0x7f800001, 0xff812345, 0x7fc00000, 0xffc00000]))
         what = r.choice([0, 1, 1, 4, 4, 5, r.getrandbits(32)])
         return Call(0x443f40, [what, car, COASTER, r.getrandbits(32), r.choice([0, 1])], regions)
-    length = r.choice([fb(r.uniform(-0.5, 1.5)), fb(r.random()), fb(r.choice([0.0, 1.0])), r.f()])
+    length = r.choice([fb(r.uniform(-0.5, 1.5)), fb(r.random()), fb(r.choice([0.0, 1.0])), r.f(), r.choice([0x7f800001, 0xffc00000])])
     return Call(0x444150, [length, r.randrange(n), r.getrandbits(32), r.choice([0, 1])], regions)
 
 
