@@ -83,4 +83,12 @@ void __cdecl MoviePlayer_UnpackIndices(u32 *out, const u8 *source, s32 count, u3
 // (index - split) * 16, a dword a row. Both counts are tested after their pass (signed: 0 or below runs once).
 void __cdecl MoviePlayer_DrawBlocks(const s32 *indices, u8 *previous, u8 *out, s32 split, const u32 *offsets, u8 *codebook, u32 pitch,
                                     s32 across, s32 rows);
+
+// 0x66fb90 (thiscall; called by 0x66f22e; name unconfirmed): in the settings (the player's dword +0), with the player's +0x4c 1 and the
+// settings' +0x20 set, +0x1c and +0x20 swapped; with flag 0x800 of the settings' +4, +0x4c and +0x50 swapped. Returns the settings.
+u8 *__fastcall MoviePlayer_SwapFields(u8 *player);
+
+// 0x66f540 (cdecl (handle); called by 0x51b332 and others; name unconfirmed): 0 without a player (the handle's dword +0); else, with the
+// player's +0x3e0 set, whether the handle's state +0x9c is not 7, otherwise whether it is 3 or 4.
+u32 __cdecl MoviePlayer_IsRunning(u8 *handle);
 }

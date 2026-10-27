@@ -51,7 +51,12 @@
 # NthItemData (0x664c71): SetNthItemData's set-up, the out a dword or 0. OnKey (0x665b51): ScrollTo's, flag 0x200 of +0x48 mostly set,
 # the keys Home / End / Up / Down or others. PostSelection / NotifySort (0x6656fa, 0x6658b9), SetSortColumn / SetSortOrder (0x66590f,
 # 0x66594d: the word the current one a third of the time, -1, small or any, the dword's upper half random): notify_case() below.
-# ColumnSpan (0x664cb9): column_case() below.
+# ColumnSpan (0x664cb9): column_case() below. SortBy (0x6659af): Sort's tree (sort_case()) with notify_case()'s parent and queues, by
+# +-(the current column + 1), +-1, 0 or -0x80000000 (abs(INT_MIN) - 1 the column -1), the byte sort set mostly (upper bits random).
+# OnMouseDown (0x6655a2) / OnDouble (0x66563d): SelectAt's, flag 0x80 of +0x48 set half the time, PostColumnAt's columns (0-4 or -1), x on a
+# column's edges half the time.
+# OnHeader (0x665a44): SortBy's, flag 0x10 of +0x48 set mostly, the columns +0x164 0-4 or -1, the button's column the sort column's
+# mostly, -1 to 5 or any (the id that plus 0x10, its upper half random now and then); no rows (+0x148 0: the refresh not compared).
 # SetColumnBottom (0x6636b2): ColumnBottom's array (or none), the columns +0x164 0-12 or negative, the column 0-11, -1 or -2, the value
 # any (upper halves random). OffsetColumns (0x664f6d): 0-4 columns of real GUI rectangles (or no array), dx / dy words (upper halves
 # random; a negative count would run for ever). SelectAt (0x66552e): select_case()'s, the inner rectangle +0x138 a real one, the point in
@@ -76,7 +81,9 @@ CALLS = {'ColumnBottom': 0x6636f6, 'NextItem': 0x663a93, 'NthItem': 0x663ba2, 'S
          'ScrollFromBar': 0x664ea3, 'Cell': 0x663d56,
          'PostColumnAt': 0x665494, 'NthItemCell': 0x664bf0, 'NthItemData': 0x664c71, 'OnKey': 0x665b51, 'PostSelection': 0x6656fa,
          'NotifySort': 0x6658b9, 'ColumnSpan': 0x664cb9, 'SetSortColumn': 0x66590f, 'SetSortOrder': 0x66594d, 'BuildRows': 0x6639cb,
-         'SetColumnBottom': 0x6636b2, 'OffsetColumns': 0x664f6d, 'SelectAt': 0x66552e}
+         'SortBy': 0x6659af, 'OnHeader': 0x665a44,
+         'SetColumnBottom': 0x6636b2, 'OffsetColumns': 0x664f6d, 'SelectAt': 0x66552e,
+         'OnMouseDown': 0x6655a2, 'OnDouble': 0x66563d}
 LIST_RANGES = (RANGES + [(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 0x664bf0), (0x664d2a, 0x664db7), (0x663324, 0x663554),
                     (0x4f0240, 0x4f0250), (0x65d547, 0x65d56b), (0x65d56b, 0x65d57c), (0x65c672, 0x65c707),
                     (0x663085, 0x66316b), (0x663cb8, 0x663d56), (0x664495, 0x6644ea), (0x66b47d, 0x66b508),
@@ -88,8 +95,8 @@ LIST_RANGES = (RANGES + [(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 
                     (0x663718, 0x663864), (0x663864, 0x6639cb), (0x65d865, 0x65d8e7), (0x659e3e, 0x659e83), (0x65cf5e, 0x65cfd4),
                     (0x65c9bd, 0x65cd95), (0x661700, 0x66176a), (0x65f16b, 0x65f246), (0x662eee, 0x663085), (0x664fde, 0x6650d2), (0x6650d4, 0x6651ee),
                     (0x663c11, 0x663cb8), (0x6628f4, 0x662eee), (0x4f76b0, 0x4f7718), (0x664ea3, 0x664f6d), (0x663d56, 0x663dfa), (0x665494, 0x66552c), (0x664bf0, 0x664c71),
-                    (0x664c71, 0x664cb9), (0x665b51, 0x665bfb), (0x6656fa, 0x665739), (0x6658b9, 0x66590f), (0x664cb9, 0x664d2a), (0x66590f, 0x66594d), (0x66594d, 0x6659ad),
-                    (0x6639cb, 0x663a93), (0x66b53e, 0x66b567), (0x6636b2, 0x6636f6), (0x664f6d, 0x664fde), (0x66552e, 0x6655a0)])
+                    (0x664c71, 0x664cb9), (0x665b51, 0x665bfb), (0x6656fa, 0x665739), (0x6658b9, 0x66590f), (0x664cb9, 0x664d2a), (0x66590f, 0x66594d), (0x66594d, 0x6659ad), (0x6659af, 0x665a44), (0x665a44, 0x665b4f), (0x658ccc, 0x658d9f),
+                    (0x6639cb, 0x663a93), (0x66b53e, 0x66b567), (0x6636b2, 0x6636f6), (0x664f6d, 0x664fde), (0x66552e, 0x6655a0), (0x6655a2, 0x66563d), (0x66563d, 0x6656a0)])
 B = Bench(LIST_RANGES)
 WINDOW, COLUMNS, LINKS, OUT = RAM, RAM + 0x200, RAM + 0x400, RAM + 0x800
 LIST, LINKS2, COLS2, CELLS, ROWS2, ROWWINS = RAM + 0x9000, RAM + 0x9420, RAM + 0x9e00, RAM + 0x9f00, RAM + 0x9c00, RAM + 0xb000
@@ -541,6 +548,18 @@ def list_case(r, op):
 
 
 
+def parent_env(r, regions, w):
+    """the parent +0x60 a window (byte +4 mostly clear, its handler +0x114 fncmp's logger or 0) or none; window.py's queues, the hook
+    [0xfaa5fc]"""
+    put(w, 0x60, 'I', r.choice([PARENT, PARENT, PARENT, 0]))
+    parent = bytearray(r.bytes(0x120))
+    parent[4] = r.choice([0, 0, 0, 1])
+    put(parent, 0x114, 'I', r.choice([CDECL_LOG4, CDECL_LOG4, 0]))
+    regions[PARENT] = parent
+    regions[0xfaa5fc] = put(bytearray(4), 0, 'I', r.choice([0, CDECL_LOG4]))
+    queues(r, regions)
+
+
 def notify_case(r, op):
     """PostSelection (0x6656fa) / NotifySort (0x6658b9) / SetSortColumn / SetSortOrder: the selection +0x14c and the words +0x168 / +0x16a small, -1 or any, the parent
     +0x60 a window (byte +4 mostly clear, its handler +0x114 fncmp's logger or 0) or none; window.py's queues, the hook [0xfaa5fc]"""
@@ -549,13 +568,8 @@ def notify_case(r, op):
     put(w, 0x14c, 'i', r.choice([-1, 0, 1, 5, r.getrandbits(31), -r.randrange(1, 1 << 31)]))
     put(w, 0x168, 'h', r.choice([0, 1, -1, 5, 0x7fff, -0x8000, r.getrandbits(15)]))
     put(w, 0x16a, 'h', r.choice([1, 1, 0, 2, -1, r.getrandbits(15)]))
-    put(w, 0x60, 'I', r.choice([PARENT, PARENT, PARENT, 0]))
-    parent = bytearray(r.bytes(0x120))
-    parent[4] = r.choice([0, 0, 0, 1])
-    put(parent, 0x114, 'I', r.choice([CDECL_LOG4, CDECL_LOG4, 0]))
-    regions[WINDOW], regions[PARENT] = w, parent
-    regions[0xfaa5fc] = put(bytearray(4), 0, 'I', r.choice([0, CDECL_LOG4]))
-    queues(r, regions)
+    regions[WINDOW] = w
+    parent_env(r, regions, w)
     if op in ('SetSortColumn', 'SetSortOrder'):
         current = struct.unpack_from('<h', w, 0x168 if op == 'SetSortColumn' else 0x16a)[0]
         value = r.choice([current] * 4 + [-1, -1, 0, 1, 2, r.getrandbits(16)]) & 0xffff
@@ -848,6 +862,19 @@ def sort_case(r):
     return Call(CALLS['Sort'], [SORTW, r.choice([0xffffffff, r.getrandbits(32)])], regions, conv='t', ret='v')
 
 
+def sort_by_case(r):
+    """SortBy (see the top)"""
+    c = sort_case(r)
+    regions, w = c.regions, c.regions[SORTW]
+    regions[LOG] = log_region()
+    put(w, 0x14c, 'i', r.choice([-1, 0, 1, r.getrandbits(31)]))
+    parent_env(r, regions, w)
+    column = struct.unpack_from('<h', w, 0x168)[0]
+    by = r.choice([column + 1] * 4 + [1, 1, 0, -0x80000000]) * r.choice([1, -1])
+    sort = r.choice([1, 1, 1, 0, 0x100]) | r.getrandbits(24) << 8 * r.choice([0, 1])
+    return Call(CALLS['SortBy'], [SORTW, by & 0xffffffff, sort & 0xffffffff], regions, conv='t', ret='v')
+
+
 def bar_scroll_case(r):
     """ScrollFromBar (0x664ea3): see the top"""
     c = refresh_case(r)
@@ -871,10 +898,29 @@ def bar_scroll_case(r):
     return Call(CALLS['ScrollFromBar'], [LIST], regions, conv='t', ret='v')
 
 
+def header_case(r):
+    """OnHeader (see the top)"""
+    c = sort_case(r)
+    regions, w = c.regions, c.regions[SORTW]
+    regions[LOG] = log_region()
+    put(w, 0x14c, 'i', r.choice([-1, 0, 1, r.getrandbits(31), -r.randrange(2, 1 << 31)]))
+    parent_env(r, regions, w)
+    w[0x48] = (w[0x48] & ~0x10) | r.choice([0x10] * 6 + [0])
+    put(w, 0x164, 'h', r.choice([1, 2, 3, 4, 4, 0, -1]))
+    put(w, 0x148, 'I', 0)   # (no rows: Window7059f0_RefreshRows does nothing)
+    current = struct.unpack_from('<h', w, 0x168)[0]
+    column = r.choice([current] * 4 + list(range(-1, 6)) + [r.getrandbits(15)])
+    return Call(CALLS['OnHeader'], [SORTW, (column + 0x10) & 0xffff | r.choice([0, 0, r.getrandbits(16)]) << 16], regions, conv='t', ret='v')
+
+
 def case(r):
     op = r.deal(OPS)
     if op == 'Sort':
         return sort_case(r)
+    if op == 'OnHeader':
+        return header_case(r)
+    if op == 'SortBy':
+        return sort_by_case(r)
     if op == 'SetHighlight':
         return highlight_case(r)
     if op == 'ShowRows':
@@ -938,14 +984,27 @@ def case(r):
         return bar_case(r)
     if op == 'Select':
         return select_case(r)
-    if op == 'SelectAt':
+    if op in ('SelectAt', 'OnMouseDown', 'OnDouble'):
         c = select_case(r)
         window = c.regions[WINDOW]
+        if op != 'SelectAt':   # (the clicks: flag 0x80 mostly; OnMouseDown's columns as PostColumnAt's)
+            window[0x48] = (window[0x48] & 0x7f) | r.choice([0x80, 0])
+            ncols = r.choice([0, 1, 2, 3, 4, 4, -1])
+            put(window, 0x164, 'h', ncols)
+            edges = []
+            for _ in range(4):
+                left = r.choice([r.randrange(-20, 200), r.randrange(-0x8000, 0x8000)])
+                edges.append((left, (r.choice([left + r.randrange(-2, 60), r.randrange(-0x8000, 0x8000)]) + 0x8000 & 0xffff) - 0x8000))
+            c.regions[COLS2] = b''.join(struct.pack('<Ihhhh', r.getrandbits(32), left, r.getrandbits(15), right, r.getrandbits(15)) for left, right in edges)
+            put(window, 0x16c, 'I', COLS2)
         top = r.randrange(-30, 100)
         rect = (r.randrange(-30, 100), top, r.randrange(-30, 300), top + r.choice([0, 5, 40, 200, r.randrange(-20, 300)]))
         put(window, 0x138, 'Ihhhh', 0x705920, *rect)
         x = r.choice([rect[0], rect[0] + 3, rect[2] - 1, rect[2], r.randrange(-0x8000, 0x8000)])
         y = r.choice([rect[1], rect[1] + r.randrange(0, 60), rect[3] - 1, rect[3], rect[1] - 1, r.randrange(-0x8000, 0x8000)])
+        if op != 'SelectAt' and r.random() < 0.5:   # (the click on a column's edges)
+            left, right = r.choice(edges)
+            x = r.choice([left, right, left + 1, right - 1, (left + right) // 2])
         return Call(CALLS[op], [WINDOW] + [(v & 0xffff) | r.choice([0, r.getrandbits(16)]) << 16 for v in (x, y)], c.regions, conv='t', ret='v')
     window = bytearray(r.bytes(0x180))
     regions = {WINDOW: window}

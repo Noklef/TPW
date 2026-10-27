@@ -11,6 +11,14 @@ extern "C" {
 // +0x24 = 0, +0x28 = +0x2c = -1; returns -1 for that, else 0.
 u32 __fastcall Obj_KillSlot24(u8 *object);
 
+// 0x4b4510 (thiscall (staff), pops 4; called by 0x4b51ea; name unconfirmed): the staff member's figure shown in the window +0x10's child
+// 0x1e84 (Window_FindChild; its saved rectangle, Window_GetSavedRect): at x ((right - left) / 2 + left - 1016) * [0x6ffdcc], y ((bottom -
+// top) / 4 - bottom + 768) * [0x6ffdd0] and z Sprite_FlipY(the child's depth word +0xe0 + 1), all floats (computed every time). Only when
+// the staff's dwords +0x24 / +0x20 differ from the panel's +0x28 / +0x2c: those kept, the script at +0x24 killed when set
+// (SpriteScript_Kill), a new one started (SpriteScript_Start of 0x74f758 with the two, anim 1 and the position) into +0x24, its float
+// register 8 set to 8.0 (SpriteScript_SetRegF). EAX not kept.
+void __fastcall Panel7cc328_ShowStaff(u8 *panel, void *, const u8 *staff);
+
 // 0x4b47e0 (cdecl (staff); the callback 0x4b4850 sweeps the staff with): a staff member resting (state 3) in the area [0x7cc310]
 // (Staff_IsState3At) is added to the list [0x7cc314] (Window7059f0_AddItem: the texts its name (Staff_GetName) and the low byte of its
 // float +0x1fc truncated, times 1024 / 100; the data the staff; no parent, no refresh). Returns 1.

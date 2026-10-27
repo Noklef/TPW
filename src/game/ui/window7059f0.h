@@ -262,6 +262,23 @@ u16 __fastcall Window7059f0_NthItemCell(u8 *window, void *, s32 n, s32 column, u
 // without one, 0xffff for none (sic).
 u32 __fastcall Window7059f0_NthItemData(u8 *window, void *, s32 n, u32 *out);
 
+// 0x665a44 (thiscall (id), pops 4; name unconfirmed): a header button's id: with flag 0x10 of +0x48 (sorted) and its column (the id less
+// 0x10, a word) among the columns +0x164 (signed): the sort column +0x168's order flipped (Window7059f0_SetSortOrder -1), or another
+// column made the sort column ascending (SetSortOrder 0, then Window7059f0_SetSortColumn); the items sorted (Window7059f0_Sort -1), the
+// rows refreshed (Window7059f0_RefreshRows) and, with a selection +0x14c (not negative), the parent +0x60 posted 0x401 (the id +0x8c,
+// the selection; Window_PostMessage). EAX not kept.
+void __fastcall Window7059f0_OnHeader(u8 *window, void *, u32 id);
+
+// 0x6655a2 (thiscall (x, y: words), pops 8; name unconfirmed): a click: the row at the point selected (Window7059f0_SelectAt) and its
+// column told (Window7059f0_PostColumnAt); then, with flag 0x80 of +0x48 and a selection +0x14c (not negative), the parent +0x60
+// posted 0x400 (the id +0x8c, the selection; Window_PostMessage). EAX not kept.
+void __fastcall Window7059f0_OnMouseDown(u8 *window, void *, u32 x, u32 y);
+
+// 0x66563d (thiscall (x, y: words), pops 8; name unconfirmed): a double click: with flag 0x80 of +0x48, the row at the point selected
+// (Window7059f0_SelectAt) and, with a selection +0x14c (not negative), the parent +0x60 posted 0x402 (the id +0x8c, the selection).
+// EAX not kept.
+void __fastcall Window7059f0_OnDouble(u8 *window, void *, u32 x, u32 y);
+
 // 0x665b51 (thiscall (key: a word, unused), pops 8; name unconfirmed): with flag 0x200 of +0x48, the keys scroll (Window7059f0_ScrollTo):
 // 0x2400 (Home) to 0, 0x2300 (End) to the count +0x150 less one, 0x2600 (Up) / 0x2800 (Down) to the selection +0x14c less / plus one.
 // EAX not kept.
@@ -287,6 +304,11 @@ u32 __fastcall Window7059f0_SetSortColumn(u8 *window, void *, u32 column);
 // 0x66594d (thiscall (a word), pops 4; name unconfirmed): as Window7059f0_SetSortColumn for the sort order word +0x16a, -1 flipping it
 // (1 when it was 0, else 0).
 u32 __fastcall Window7059f0_SetSortOrder(u8 *window, void *, u32 order);
+
+// 0x6659af (thiscall (by, sort), pops 8; name unconfirmed): the sort column abs(by) - 1 (CRT abs: abs(INT_MIN) stays) and the order 1
+// for a negative by, 0 else (Window7059f0_SetSortColumn, then SetSortOrder, both called); when either changed (1 in AX) and the byte sort
+// is set, Window7059f0_Sort(-1). EAX not kept (the callers drop it).
+void __fastcall Window7059f0_SortBy(u8 *window, void *, s32 by, u32 sort);
 
 // 0x665e80 (thiscall (flags), pops 4; slot 2 of the vtable 0x7059f0; name unconfirmed): the destructor (Window7059f0_Dtor), the block
 // freed (Mem_Free) for flags bit 0; returns the window.

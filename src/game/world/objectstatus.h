@@ -15,4 +15,10 @@ extern "C" {
 // kind (+0x4ac) 0 with no word at +0x284 (Object_DefWord284), +0x288 not 2 and the exit not open (Object_ExitOpen) gives 0x18. Else 1 for a
 // count of 0 or one above 1 (signed) with +0x68 0, otherwise 0.
 u32 __cdecl Object_Status(u8 *object, s32 count);
+
+// 0x4861e0 (cdecl (window, status); name unconfirmed; called from 0x48d18d): the status shown on a window: its colour
+// (the table 0x74fb50, the status's dword: bytes 0, 1, 2 and 0xff) told (Window_Notify40000), then its text (the record of [0x78ba94] whose
+// index is the table 0x74fbc0's dword, widened: Language_WideText; 0 when there is none) set by the window's slot 9, whose EAX is returned.
+// No bound on the status (past 27 the text ids' table is read as colours, sic).
+u32 __cdecl ObjectStatus_Show(u8 *window, u32 status);
 }

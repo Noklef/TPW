@@ -135,4 +135,10 @@ s32 __cdecl MsgQueue_Pump(s32 most) {
     }
     return done;
 }
+
+u8 *__fastcall MsgQueue_Delete(u8 *queue, void *, u32 flags) {
+    MsgQueue_Free(queue);
+    if (flags & 1) GameHeap_Free(queue);
+    return queue;
+}
 }
