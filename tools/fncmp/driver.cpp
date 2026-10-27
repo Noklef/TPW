@@ -748,7 +748,9 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
 // +0x118: Window_DefaultProc). The game's code lies in g_game, read-only, so each gets a jump there to its replacement, as the hooked
 // game's original jumps to it: anywhere in the game's code (0x401000-0x6e7000). The pages of the jumps become executable (the rest of such a
 // page is the original's code, which a call into it then runs natively, as the hooked game would; elsewhere a call into the code faults).
-const u32 kRawCalled[] = {0x0065f6d1};  // Window_DefaultProc (src/game/ui/window's Window_Ctor; tests/fncmp/dialogbuild.py's helpbg())
+const u32 kRawCalled[] = {0x0065f6d1,   // Window_DefaultProc (src/game/ui/window's Window_Ctor; tests/fncmp/dialogbuild.py's helpbg())
+                          0x0050f1f0,   // IntPair_Ctor and Stub_Ret, the game's constructor and destructor handed to the array iterators
+                          0x005d1750};  // by address (tests/fncmp/crt_vector_iterators.py's GameCtor / GameDtor: below the old g_game)
 
 void map_raw_called() {
     for (u32 a : kRawCalled) {
