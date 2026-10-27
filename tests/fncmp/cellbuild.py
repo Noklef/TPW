@@ -108,12 +108,11 @@ def world(r, calm=False, inner=False):
         lay_cell(r, mem, k, window, own, calm)
     if r.random() < 0.7:
         mem.put(cell44(ident), 'H', ident)
-    # the cells' 0x28-byte entries (MapHandle_Entry28: W + 0x1102b0 + id * 0x28) and the parents' (W + 0x10ffb0 + id * 0x28)
+    # the cells' 0x28-byte entries (MapHandle_Entry28: W + 0x1102b0 + id * 0x28; a parent's, W + (id + 0x6cde) * 0x28, is the same)
     for k in window:
         lay_entry(r, mem, W + 0x1102b0 + k * 0x28, window, own)
-        lay_entry(r, mem, W + 0x10ffb0 + k * 0x28, window, own)
-    lay_entry(r, mem, W + 0x10ffb0 + own * 0x28, window, own)
-    lay_entry(r, mem, W + 0x10ffb0, window, own)   # (parent 0)
+    lay_entry(r, mem, W + 0x1102b0 + own * 0x28, window, own)
+    lay_entry(r, mem, W + 0x1102b0, window, own)   # (parent 0)
     mem.put(W + 0x1da726, 'H', 14)
     regions = dict(mem.parts)
     # the things: kind 3 mostly, chained downwards (no cycles), their definitions' ids
@@ -188,6 +187,18 @@ def can_build_rules(r):
     base = cell - max(a for a in regions if W <= a <= cell)
     if r.random() < 0.7:
         put(buf, base + 8, 'I', r.choice([kind, kind, 1, 3, 4, 9, 0x15, 0]))
+    if kind == 0x15 and r.random() < 0.5:   # (an owned lane with flag 0x100, 0x200, both or neither: 0xb for 0x100)
+        put(buf, base + 8, 'I', 0x15)
+        put(buf, base + 0xe, 'H', r.choice([0x100, 0x200, 0x300, 0]))
+        put(buf, base + 0x10, 'H', struct.unpack_from('<H', regions[0x818688], 0x10)[0])
+    if kind in (0x15, 0x16) and r.random() < 0.5:   # (the cell's entry a 0xc / 0x11 one with parent 0, whose entry is track or not)
+        e = W + 0x1102b0 + struct.unpack_from('<H', buf, base)[0] * 0x28
+        start = max(a for a in regions if a <= e)
+        assert e + 0x28 <= start + len(regions[start])
+        put(regions[start], e - start + 8, 'I', r.choice([0xc, 0x11]))
+        put(regions[start], e - start + 0x10, 'H', 0)
+        start = max(a for a in regions if a <= W + 0x1102b0)
+        put(regions[start], W + 0x1102b0 - start + 8, 'I', r.choice([0xb, 0xd, 0x10, 0x12, 3]))
     return Call(0x535670, [cell, kind, r.choice([0, 1, 1])], regions, conv='t', ret='a')
 
 
@@ -197,7 +208,10 @@ def can_build_track(r):
     kind = r.choice([0xb, 0x10, 0xb, 0x10, 0x19, 0x19, 0xe, 0x13, 0xf, 0x39, 0, 1, 0xd, 0x12]) if r.random() < 0.95 else r.randrange(0x40)
     start = max(a for a in regions if W <= a <= cell)
     buf, base = regions[start], cell - start
-    if r.random() < 0.7:
+    if kind in (0xe, 0x13) and r.random() < 0.7:   # (on owned track: 9 unless it spreads past two side neighbours)
+        put(buf, base + 8, 'I', r.choice([0xb, 0x10]))
+        put(buf, base + 0x10, 'H', struct.unpack_from('<H', regions[0x818688], 0x10)[0])
+    elif r.random() < 0.7:
         put(buf, base + 8, 'I', r.choice([kind, kind, 0xb, 0x10, 0xd, 0x12, 0x19, 0, 7]))
     d = buf[base + 0xd]
     turned = 0 if d == 0 else (d << 4) & 0xff if d < 0x10 else d >> 4
