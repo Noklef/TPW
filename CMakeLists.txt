@@ -341,6 +341,7 @@ add_library(tpw_game STATIC
     src/game/coaster/tracktypes.cpp
     src/game/coaster/edittools.cpp
     src/game/coaster/trackmesh.cpp
+    src/game/coaster/carsound.cpp
     src/game/terrain/terrain_blend.cpp
     src/game/terrain/land.cpp
     src/game/terrain/procedural.cpp
