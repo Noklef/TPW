@@ -19,6 +19,12 @@ u32 *__fastcall SoundObject_BroadcastValue(u8 *object, void *, u32 *out, u32 val
 // 0x6b8b00 (thiscall (out, id, result), pops 0xc): the mixer's voice for the id (SoundMixer_FindVoice); with one whose +0xc is set,
 // *result = that +0xc's +8 and *out = 0, else *out = -1 (also with no mixer). Returns out.
 u32 *__fastcall SoundObject_VoiceInfo(u8 *object, void *, u32 *out, u32 id, u32 *result);
+// 0x6b89b0 / 0x6b8a10 / 0x6b8a70 (thiscall (out, id), pops 8; names invented): with an id (not 0) and a mixer (+0x20), the mixer's voice
+// for it (SoundMixer_FindVoice) gets its slot 6 (out, a stack functor: vtable 0x70a2d0 / 0x70a5b8 / 0x70a5c0, whose slot 0 answers
+// 1 / 2 / 3; data the voice's +0x24); else (no voice too) *out = -1. Returns out.
+u32 *__fastcall SoundObject_SendVoiceFunctor1(u8 *object, void *, u32 *out, u32 id);
+u32 *__fastcall SoundObject_SendVoiceFunctor2(u8 *object, void *, u32 *out, u32 id);
+u32 *__fastcall SoundObject_SendVoiceFunctor3(u8 *object, void *, u32 *out, u32 id);
 
 // 0x6b8930 (thiscall (out, id, value), pops 0xc): *out = -1 for id 0; with a channel whose flag 0x400 is set, the mixer's
 // SoundMixer_SendVoice (out, id, value); else the object's own slot 6 (out, id). Returns out.

@@ -17,6 +17,21 @@ namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
+// 0x6b89b0 / 0x6b8a10 / 0x6b8a70's body: the functor of that vtable to the id's voice.
+u32 *SendVoiceFunctor(u8 *object, u32 *out, u32 id, u32 vtable) {
+    if (id && at<u8 *>(object, 0x20)) {
+        if (u8 *const voice = SoundMixer_FindVoice(at<u8 *>(object, 0x20), nullptr, id)) {
+            u32 functor[2];
+            functor[1] = at<u32>(voice, 0x24);
+            functor[0] = vtable;
+            vcall<void>(voice, 0x18, out, functor);
+            return out;
+        }
+    }
+    *out = 0xffffffff;
+    return out;
+}
+
 }  // namespace
 
 extern "C" {
@@ -60,6 +75,10 @@ u32 *__fastcall SoundObject_BroadcastValue(u8 *object, void *, u32 *out, u32 val
     *out = 0;
     return out;
 }
+
+u32 *__fastcall SoundObject_SendVoiceFunctor1(u8 *object, void *, u32 *out, u32 id) { return SendVoiceFunctor(object, out, id, 0x0070a2d0); }
+u32 *__fastcall SoundObject_SendVoiceFunctor2(u8 *object, void *, u32 *out, u32 id) { return SendVoiceFunctor(object, out, id, 0x0070a5b8); }
+u32 *__fastcall SoundObject_SendVoiceFunctor3(u8 *object, void *, u32 *out, u32 id) { return SendVoiceFunctor(object, out, id, 0x0070a5c0); }
 
 u32 *__fastcall SoundObject_VoiceInfo(u8 *object, void *, u32 *out, u32 id, u32 *result) {
     if (u8 *const mixer = at<u8 *>(object, 0x20)) {
