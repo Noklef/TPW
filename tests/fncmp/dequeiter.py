@@ -22,6 +22,24 @@ def iterator(block, off):
     return struct.pack('<IIII', first, first + 0x1000, first + 4 * off, MAP + 4 * block)
 
 
+def queue(r, regions):
+    """Post's surroundings (the regions given have the map and blocks): the queue (0x7b4ba8), its log and imports, the heap."""
+    log = log_region()
+    table = import_table(log, IMPORTS)
+    set_return(log, 1, r.getrandbits(32))
+    set_return(log, 2, r.getrandbits(32))
+    q = bytearray(r.bytes(0x48))
+    size = r.choice([2, 3, 5])
+    a = r.randrange(size)
+    b = r.choice([a, size - 1, r.randrange(a, size)])
+    cursor = r.choice([0, 1, 2, 511, 512, 512, 512, r.randrange(1, 513)])
+    put(q, 4, 'IIII', BLOCKS + 0x1000 * a, BLOCKS + 0x1000 * a + 0x1000, BLOCKS + 0x1000 * a + 8 * r.randrange(512), MAP + 4 * a)
+    put(q, 0x14, 'IIII', BLOCKS + 0x1000 * b, BLOCKS + 0x1000 * b + 0x1000, BLOCKS + 0x1000 * b + 8 * cursor, MAP + 4 * b)
+    put(q, 0x24, 'III', MAP, size, r.choice([0, 0, 1, 2, 3, 700, r.getrandbits(32)]))
+    regions.update({QUEUE: q, LOG: log, IMPORT_TABLE: table, HEAP: heap(fail=r.choice([0] * 12 + [1, 2])), 0x78ba88: r.bytes(4)})
+    return regions
+
+
 def case(r):
     op = r.deal(OPS)
     kb, off = r.randrange(5), r.choice([0, 1, 1023, r.randrange(1024)])
@@ -38,19 +56,7 @@ def case(r):
         regions[HEAP] = heap()
         return Call(0x47f340, [RAM], regions, conv='t', ret='v')
     if op == 'Post':   # the queue: +4 the begin iterator, +0x14 the end one {first, end, cursor, map slot}, +0x24 the map, +0x28 its size, +0x2c the count
-        log = log_region()
-        table = import_table(log, IMPORTS)
-        set_return(log, 1, r.getrandbits(32))
-        set_return(log, 2, r.getrandbits(32))
-        q = bytearray(r.bytes(0x48))
-        size = r.choice([2, 3, 5])
-        a = r.randrange(size)
-        b = r.choice([a, size - 1, r.randrange(a, size)])
-        cursor = r.choice([0, 1, 2, 511, 512, 512, 512, r.randrange(1, 513)])
-        put(q, 4, 'IIII', BLOCKS + 0x1000 * a, BLOCKS + 0x1000 * a + 0x1000, BLOCKS + 0x1000 * a + 8 * r.randrange(512), MAP + 4 * a)
-        put(q, 0x14, 'IIII', BLOCKS + 0x1000 * b, BLOCKS + 0x1000 * b + 0x1000, BLOCKS + 0x1000 * b + 8 * cursor, MAP + 4 * b)
-        put(q, 0x24, 'III', MAP, size, r.choice([0, 0, 1, 2, 3, 700, r.getrandbits(32)]))
-        regions.update({QUEUE: q, LOG: log, IMPORT_TABLE: table, HEAP: heap(fail=r.choice([0] * 12 + [1, 2])), 0x78ba88: r.bytes(4)})
+        queue(r, regions)
         return Call(0x47f410, [r.getrandbits(32), r.choice([0, 0, 1, r.getrandbits(32)])], regions, conv='c', ret='a')
     if op == 'Set':
         return Call(0x632200, [IT, BLOCKS + 0x1000 * kb + 4 * off, MAP + 4 * r.randrange(5)], regions, conv='t', ret='a')
