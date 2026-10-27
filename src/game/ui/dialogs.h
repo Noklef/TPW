@@ -115,6 +115,13 @@ s32 __cdecl Windows7cc8bc_Message6Pair();
 // (Window_SendMessage), the byte 0x7cc6a0 = 1, then [0x7cc8c0] (read again) takes the focus (Window_SetFocus(0)), whose result is returned.
 u32 __cdecl Windows7cc8bc_SelectSecond();
 
+// 0x4bcf50 (cdecl; name invented): with the byte 0x7cc8b4 set and 0x7cc6a0 not, message 6 (0, 0) to the window [0x7cc8bc] and message 6
+// (that byte, 0) to [0x7cc8c0] (Window_SendMessage); then, the byte read again, when set the chain 0xc3123 / 0xc312b / 0xc312c under
+// [0x7cc8bc] (Window_FindChild) takes the focus (Window_SetFocus(0)), the mouse modes' holder is made (MouseModes_EnsureHolder) and,
+// when the mode [0x7b05d8] answers 9 from its slot 9 (none: 0), [0x7cc8bc]'s cursor is 0x13 (Window_SetCursor); else [0x7cc8c0] takes
+// the focus. EAX not kept.
+void __cdecl Windows7cc8bc_SelectFirst();
+
 // 0x4bcec0 (cdecl): the window 0x7cc698 (that Windows7cc8bc_Message6Pair compares) = [0x7cc8b8] if set, else [0x7cc8bc] if the byte
 // 0x7cc8b4 is set, else [0x7cc8c0]. Returns the value stored in the first two cases, else 0.
 u32 __cdecl Global7cc698_Choose();

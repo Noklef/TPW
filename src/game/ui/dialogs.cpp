@@ -9,7 +9,9 @@
 #include "../render/particles.h"
 #include "../render/textparts.h"
 #include "../world/camera.h"
+#include "../world/mousemode.h"
 #include "../world/things.h"
+#include "cursor.h"
 #include "focus.h"
 #include "guidepth.h"
 #include "guirect.h"
@@ -156,6 +158,22 @@ u32 __cdecl Windows7cc8bc_SelectSecond() {
     Window_SendMessage(window(0x007cc8c0), 6, 1, 0);
     *reinterpret_cast<u8 *>((uintptr_t)0x007cc6a0) = 1;
     return Window_SetFocus(window(0x007cc8c0), nullptr, 0);
+}
+
+void __cdecl Windows7cc8bc_SelectFirst() {
+    const u8 shown = *reinterpret_cast<u8 *>((uintptr_t)0x007cc8b4);
+    if (!shown || *reinterpret_cast<u8 *>((uintptr_t)0x007cc6a0)) return;
+    Window_SendMessage(window(0x007cc8bc), 6, 0, 0);
+    Window_SendMessage(window(0x007cc8c0), 6, shown, 0);
+    if (!*reinterpret_cast<u8 *>((uintptr_t)0x007cc8b4)) {   // (read again)
+        Window_SetFocus(window(0x007cc8c0), nullptr, 0);
+        return;
+    }
+    u8 *const names = Window_FindChild(window(0x007cc8bc), nullptr, 0xc3123);
+    Window_SetFocus(Window_FindChild(Window_FindChild(names, nullptr, 0xc312b), nullptr, 0xc312c), nullptr, 0);
+    MouseModes_EnsureHolder();
+    u8 *const mode = window(0x007b05d8);
+    if ((mode ? vcall<u32>(mode, 0x24) : 0) == 9) Window_SetCursor(window(0x007cc8bc), nullptr, 0x13);
 }
 
 void __cdecl Windows7c26b0_Message5() {
