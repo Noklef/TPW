@@ -1,5 +1,5 @@
-# The wave format holder's build (src/game/core/waveformat, 0x6d3a80) against the original: the holder built already (its tag +4 set) now
-# and then, else from a sound format record (+0x18: its rate word +0x18, bits byte +0x1a, stereo bit 0 of +0x1b; the game's or any) or,
+# The wave format holder's build (src/game/core/waveformat, 0x6d3a80) against the original: the holder built already (its tag +4 set, 0x100
+# among them) now and then, else from a sound format record (+0x18: its rate word +0x18, bits byte +0x1a, stereo bit 0 of +0x1b; the game's or any) or,
 # without one, from its own +0 / +1 / +2.
 # usage: waveformat.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
@@ -15,7 +15,7 @@ HOLDER, RECORD = RAM, RAM + 0x100
 
 def case(r):
     holder = bytearray(r.bytes(0x20))
-    struct.pack_into('<H', holder, 4, r.choice([0, 0, 0, 0, 1, r.getrandbits(16)]))
+    struct.pack_into('<H', holder, 4, r.choice([0, 0, 0, 0, 1, 0x100, r.getrandbits(16)]))
     struct.pack_into('<I', holder, 0x18, r.choice([0, RECORD, RECORD]))
     holder[0] = r.choice([1, 2, r.getrandbits(8)])
     holder[1] = r.choice([8, 16, r.getrandbits(8)])
