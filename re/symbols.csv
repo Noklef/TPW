@@ -4241,6 +4241,7 @@ address,name,kind,confidence,notes
 0x004de840,Object_QueueSpot,function,low,"reimplemented (src/game/world/objectmsg); thiscall, x87: where a person at a place in the queue stands (the cell 4 places a step along the queue, along = __ftol(place / 4 * 255), across random, by the cell's or the next cell's direction)"
 0x004dec30,Object_EntranceQueueSpot,function,low,"reimplemented (src/game/world/objectmsg); thiscall, x87: Object_QueueSpot's along and across, the back of the queue to *cell (asked twice, sic), x / y by the direction of the object's own cell"
 0x004de7e0,Object_AnyQueueSpot,function,low,"reimplemented (src/game/world/objectmsg); thiscall (place, &cell, &x, &y), pops 0x10: Object_QueueSpot when the byte +0x32 has bit 3, else Object_EntranceQueueSpot"
+0x004ddb60,Object_QueueFull,function,low,"reimplemented (src/game/world/objectmsg); thiscall: whether the queue (Object_QueuePosition of the person whose handle word is 0, as Object_QueuePositionOfNone) is at least Object_FillRate (unsigned)"
 0x004fa930,Thing_PlaceAt,function,high,reimplemented (src/game/world/things); a thing placed on the navigation block and moved
 0x0051fa20,TrackTypeSlot_ReadIntoFree,function,high,reimplemented (src/game/coaster/tracktypes); a stream read into the first free 0x140-byte slot
 0x004fcac0,Thing_SpriteChoice,function,high,"reimplemented (src/game/world/things); the flags of a sprite, or a random sprite of folder 1"
