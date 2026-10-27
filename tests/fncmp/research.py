@@ -204,7 +204,7 @@ def case(r):
         return efforts_case(r, lab)
     if op in ('Choose', 'ChooseBack'):
         return choose_case(r, op, lab)
-    if op.startswith('Cat'):   # (the lab as AllDone's: the game object's word +0x1da722 picks its entry at 0x7cfb90)
+    if op in ('Cat0', 'Cat1', 'Cat2', 'Cat3'):   # (the lab as AllDone's: the game object's word +0x1da722 picks its entry at 0x7cfb90)
         k = r.randrange(4)
         regions = {LAB: lab, TABLE: put(bytearray(r.bytes(0x1400)), 0x1da722 - 0x1d943c, 'H', k),
                    0x80239c: struct.pack('<I', TABLE - 0x1d943c), 0x7cfb90: put(bytearray(r.bytes(80)), 20 * k, 'I', LAB)}
