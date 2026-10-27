@@ -3591,6 +3591,7 @@ address,name,kind,confidence,notes
 0x00518f90,World_PlaceSprites,function,low,"reimplemented (src/game/world/person); thiscall on the world, unused (t): every person (kinds 1, 4-8, 0x12) in the thing table chain with byte +3 clear placed for t (Person_PlaceSprite)"
 0x004fa870,Person_UpdateSpeed,function,low,reimplemented (src/game/world/person); thiscall: speed +0xc8 = ((+0xc0 + +0xc2 + +0xc4) / word [0x75c7fc] - +0xc8 * -3.0) * 0.25 to Nav_SetSpeed; +0xc4 * 99 / 100; Nav_GetPos to +0x190; ScriptRef_Apply(+0xc)
 0x004fdcc0,Visitor_RideFeelings,function,low,reimplemented (src/game/world/person); a visitor's excitement and nausea after an object
+0x004fa670,Sprite_SetBlockedMark,function,low,reimplemented (src/game/world/person); +0x198 the next count or 0
 0x00550d80,Setting_SetMode,function,high,reimplemented (src/game/core/options); stores a mode and sets its flag bits
 0x005633e0,Quad_Push,function,high,reimplemented (src/game/core/seqs); pushes four dwords into the next of four slots
 0x0059c390,Table76e300_GetObjectDword,function,high,reimplemented (src/game/world/objectdefs); a dword of the object indexed through a record of the table

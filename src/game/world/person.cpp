@@ -347,6 +347,16 @@ void __fastcall Visitor_Lower19c(u8 *visitor, void *, u32 index) {
 
 void __fastcall Stat100_Add(float *stat, void *, float delta) { set100(stat, X87Reg(delta) + X87Reg(*stat)); }
 
+void __fastcall Sprite_SetBlockedMark(u8 *sprite, void *, u32 on) {
+    if (!on) {
+        at<u32>(sprite, 0x198) = 0;
+        return;
+    }
+    at<u32>(sprite, 0x198) = Counter7cdb98_Inc();
+    u16 handle;
+    Thing_GetHandle(sprite, nullptr, &handle);   // (for the empty Debug_Printf)
+}
+
 void __fastcall Visitor_RideFeelings(u8 *visitor, void *, const u8 *object) {
     if (!Object_Rating(object, nullptr, 0)) return;
     const s32 wanted = *reinterpret_cast<const u8 *>(0x7850e4 + 12 * visitor[0x1f0]);
