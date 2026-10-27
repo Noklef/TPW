@@ -6419,6 +6419,7 @@ address,name,kind,confidence,notes
 0x004bf800,List758f04_InitRowJump,function,low,reimplemented (src/game/ui/listrows); cdecl (row): List758f04_InitRow
 0x004be730,List758f04_RowProcA,function,low,"reimplemented (src/game/ui/listrows); cdecl (window, message, a, b): for 0x403 the colour [0x758f30] / [0x758f3c] / [0x758f34] / [0x758f38] by b's bits 0-2; then Window_CallDefault"
 0x004be7c0,List758f04_RowProcB,function,low,"reimplemented (src/game/ui/listrows); cdecl (window, message, a, b): for 0x403 the colour of the table 0x758f10's entry b & 7; then Window_CallDefault"
+0x004bf8d0,List758f04_InitRowJumpB,function,low,"reimplemented (src/game/ui/listrows); cdecl (row): List758f04_InitRow(row) (the second name list's row initialiser, as 0x4bf800 the first's)"
 0x0066a084,Frame_SetInterval,function,low,"reimplemented (src/game/ui/frame); thiscall (value): +0x14 = value; with the words +4 and +0xc set, +0x10 = GuiClock_Now"
 0x0066a016,Frame_Stop,function,low,"reimplemented (src/game/ui/frame); thiscall: the word +4 = 0, then with the word +6 set slot 1 (its result returned, else the frame)"
 0x004a4ab0,Dialog7cb398_ShowTopThree,function,low,"reimplemented (src/game/ui/dialog7cb398); cdecl: the window [0x7cb398]'s child 0x4a68d1, then Things_TopThreeValues shown by its children 0x4a68d4/d3/d2 (1..0x16: slot 7 with value - 1, else hidden)"

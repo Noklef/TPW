@@ -175,9 +175,11 @@ u8 *__cdecl List758f04_NewRowA();
 u8 *__cdecl List758f04_NewRowB();
 
 // 0x4bf810 (cdecl (row); name unconfirmed): a TextPart_Ctor part (0x1a4 bytes, none when the allocation fails) as the impl, the font
-// [0x758f04] (Window_Set4c) and white, 0xff (Window_Notify40000). 0x4bf800 (cdecl (row)): calls it.
+// [0x758f04] (Window_Set4c) and white, 0xff (Window_Notify40000). 0x4bf800 / 0x4bf8d0 (cdecl (row); the first and second name lists'
+// of Window7cc8bc_Create): call it.
 void __cdecl List758f04_InitRow(u8 *row);
 void __cdecl List758f04_InitRowJump(u8 *row);
+void __cdecl List758f04_InitRowJumpB(u8 *row);
 
 // 0x4be730 (cdecl (window, message, a, b); name unconfirmed): List758f04_NewRowA's row handler: for 0x403 the colour (bytes 0-2, 0xff;
 // Window_Notify40000) the dword [0x758f30] when b's bit 0 is clear, else [0x758f3c] with bit 1 clear, else [0x758f34] with bit 2 clear,
