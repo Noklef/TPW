@@ -43,7 +43,7 @@ CRITERIA = {'FewestWalkAways2': (0x59fb60, 'FewestOf', 2, 0x4d8), 'FewestWalkAwa
             'MostWalkAways3': (0x5a0060, 'Of', 3, 0x538), 'MostWalkAways4': (0x5a00b0, 'Of', 4, 0x540),
             'MostWalkAwaysDef4ac2': (0x5a0100, 'MostDef4ac2', None, 0x548), 'Happiest2': (0x5a0150, 'HappiestOf', 2, 0x550),
             'Happiest156': (0x5a01a0, 'HappiestOf156', None, 0x558), 'Happiest3': (0x5a01f0, 'HappiestOf', 3, 0x560),
-            'Happiest4': (0x5a0240, 'HappiestOf', 4, 0x568), 'HappiestDef4ac2': (0x5a0290, 'HappiestDef4ac2', None, 0x570)}
+            'Happiest4': (0x5a0240, 'HappiestOf', 4, 0x568), 'CritHappiestDef4ac2': (0x5a0290, 'HappiestDef4ac2', None, 0x570)}
 OUT, CLOCK, LINKS = RAM + 0x1000, RAM + 0x28000, RAM + 0x40000
 GAMEPTR, SCORING = RAM + 0x1800, RAM + 0x50000
 DAY = funnytime.DAY
