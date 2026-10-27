@@ -10,7 +10,7 @@
 # a scratch dword, groups (+0x6c, +0x5a of them) pointing at scratch words or none, 0-3 texture coordinates (+0x5e at +0x68) and no
 # triangles (+0x5c) for RideBase_TidyAllUVs (flags 0x400: the other nodes flagged 0x200, skipped), the parts (+0x48 of them from node
 # +0x46, records +0x7c) none mostly. The globals the maxima are raised in small, [0x7a445c] 0 mostly (else the quickload tables are asked: slow).
-# The name and the directories short (each kind's paths are printed with sprintf, slow in the emulator). Flags of the bits the code reads (and now and then
+# The name and the directories short (the name now and then starting with its only '.'; each kind's paths are printed with sprintf, slow in the emulator). Flags of the bits the code reads (and now and then
 # others); outName a buffer or none; layers 0-4.
 # usage: ridemodel.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
@@ -152,7 +152,7 @@ def case(r):
     log = regions[LOG]
     regions[HEAP] = heap(0x20000)
     directory = first_dir(regions)
-    name = r.choice([b'', b'', b'rides\\']) + bytes(r.choice(b'abcxyz019_') for _ in range(r.randint(1, 6))) +r.choice([b'.md2'] * 6 + [b'', b'.MD2', b'.x\\a'])
+    name = r.choice([b'', b'', b'rides\\', b'.']) +bytes(r.choice(b'abcxyz019_') for _ in range(r.randint(1, 6))) +r.choice([b'.md2'] * 6 + [b'', b'.MD2', b'.x\\a'])
     data, total, geo = ride_model(r, flags)
     files = {}
     if r.random() < 0.95:
