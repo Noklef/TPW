@@ -10,8 +10,9 @@
 # texture (src/game/render/weatherfx: 0x57d7f0; slot 1-3 or a pointer, set already or not) and the sprite queue's (src/game/render/
 # spritequeue: 0x58a5c0; its old array plain textures or none). The landscape's sky (src/game/terrain/landscape: 0x5852b0): as
 # weather_load_all()'s three loads through Quickload_Locate, a folder name of 0-40 characters, the old arrays at +0x1fd0..+0x1fd8 plain
-# textures or none, the second's colours sampled (its file a TGA).
-# usage: texman.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetLoadFlags,Destroy,Release,Load,Acquire,LandAdd,WeatherLoad,QueueLoad,WeatherLoadAll,LandSky)
+# textures or none, the second's colours sampled (its file a TGA). The weather renderer's reload (src/game/render/weatherfx: 0x57d850):
+# weather_load_all()'s scene on the renderer itself, its +4 any.
+# usage: texman.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetLoadFlags,Destroy,Release,Load,Acquire,LandAdd,WeatherLoad,QueueLoad,WeatherLoadAll,LandSky,WeatherReload)
 import os
 import struct
 import sys
@@ -25,11 +26,12 @@ import wctimage  # noqa: E402
 from fncmp import Bench, Call, HEAP, LOG, RAM, global_heap, heap, log_region, put  # noqa: E402
 
 CALLS = {'SetLoadFlags': 0x575b80, 'Destroy': 0x574b10, 'Release': 0x575ad0, 'Load': 0x5755f0, 'Acquire': 0x575870, 'LandAdd': 0x5850c0, 'WeatherLoad': 0x57d7f0, 'QueueLoad': 0x58a5c0,
-         'WeatherLoadAll': 0x5508c0, 'LandSky': 0x5852b0}
+         'WeatherLoadAll': 0x5508c0, 'LandSky': 0x5852b0, 'WeatherReload': 0x57d850}
 RANGES = wctimage.merged(texfile.RANGES + [(0x575b80, 0x575b8d), (0x575ad0, 0x575b7a), (0x574b10, 0x574bc6), (0x590a70, 0x590a75), (0x590b90, 0x590c39),
                                              (0x579b40, 0x579c13), (0x58dc50, 0x58dd5e), (0x67afa0, 0x67b0d0), (0x67acb0, 0x67acb1), (0x5755f0, 0x575acb),
                                              (0x590a00, 0x590a70), (0x590d40, 0x590f7e), (0x5850c0, 0x5851c6), (0x57d7f0, 0x57d849), (0x58a5c0, 0x58a630),
-                                             (0x56af20, 0x56af9c), (0x5508c0, 0x550927), (0x5852b0, 0x58568c), (0x585ce0, 0x585e1e)])
+                                             (0x56af20, 0x56af9c), (0x5508c0, 0x550927), (0x5852b0, 0x58568c), (0x585ce0, 0x585e1e),
+                                             (0x57d850, 0x57d909)])
 B = Bench(RANGES)
 MANAGER, ARRAYS = RAM + 0x10000, RAM + 0x5000   # (texturemem.py's regions below RAM + 0x4000)
 
@@ -156,6 +158,13 @@ def weather_load_all(r):
 
 
 
+def weather_reload(r):
+    """0x57d850 (thiscall on the renderer): weather_load_all()'s scene, the renderer's +4 any."""
+    regions = weather_load_all(r).regions
+    regions[WEATHER] = r.bytes(8)
+    return Call(0x57d850, [WEATHER], regions, conv='t', ret='a')
+
+
 def land_sky(r):
     """0x5852b0: weather_load_all()'s scene (its three files, the second a TGA; the loads failing now and then), the folder a
     name of 0-40 characters, the landscape's old arrays plain textures (1 or 2) or none."""
@@ -279,6 +288,8 @@ def case(r):
         return land_sky(r)
     if op == 'WeatherLoadAll':
         return weather_load_all(r)
+    if op == 'WeatherReload':
+        return weather_reload(r)
     if op == 'Destroy':
         return destroy(r)
     if op == 'Release':
