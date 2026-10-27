@@ -106,6 +106,11 @@ void __fastcall Class702d78_Dtor(u8 *object);
 // the list deleted the same way and +0x18 = 0). No base is released.
 void __fastcall Class7029f0_Dtor(u8 *object);
 
+// 0x5d5770 (thiscall, no arguments; returns the object): its constructor: +0x20 / +0x24 cleared, the vtable 0x7029f0, +0x14 cleared, the list at +0x18
+// a new 0x10-byte {vtable 0x7029e8, three zero dwords} (0 when the allocation fails), +4, +0xc, +0x10, +0x2c, +0x28, +0x30, +0x1c cleared, 0x400 and
+// 0x300 at +0x20 / +0x24 and time(0) at +0x34.
+u8 *__fastcall Class7029f0_Ctor(u8 *object);
+
 // Each sets the vtable pointer named and runs Class702cb0_Dtor on the object.
 void __fastcall Class702ec0_Dtor(u8 *object);
 
