@@ -19,6 +19,11 @@ u8 *__fastcall Challenges_Current(u8 *challenges);
 // 0x19 posted (a = Kind_ToIdC of its +0, b = 0x110, d = its +0x14, the rest 0) through the objects' post (Object_PostMessage).
 void __fastcall Challenge_Finish(u8 *challenge);
 
+// 0x4d1ae0 (thiscall (thing), pops 4; name invented): the current challenge (re)started by 0x4d3180 with the challenges' +0x3dc: its
+// count +0x24 incremented, then message 0x19 posted (a = Kind_ToIdD of its +0, b = 0x111, c = 0, d = its +0x14, e = its +4, f = its +8,
+// g = 0, h = thing, the rest 0) through the objects' post (Object_PostMessage).
+void __fastcall Challenge_Attempt(u8 *challenge, void *, u32 thing);
+
 // 0x4d2df0: an offer accepted: when waiting for the reply (+0x3da) and there is a current challenge, the wait ends, the challenge is on
 // (+0x3d9 = 1) and mNextChallengeEventTime (+0x3d0, 8 bytes) = the world's funny time now (FunnyTime_Now) + its mTargetTime (+4) days.
 void __fastcall Challenges_AcceptOffer(u8 *challenges);

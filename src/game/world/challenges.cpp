@@ -108,6 +108,14 @@ void __fastcall Challenge_Finish(u8 *challenge) {
     Object_PostMessage(msg);
 }
 
+void __fastcall Challenge_Attempt(u8 *challenge, void *, u32 thing) {
+    ++at<u32>(challenge, 0x24);
+    u8 msg[0x30];   // (bytes 0x11-0x13 left as the stack had them, as the original's)
+    ThingMsg19_Ctor(msg, nullptr, Kind_ToIdD(reinterpret_cast<const u32 *>(challenge)), 0x111, 0, Get14_6bb1a0(challenge),
+                    Get4_5dc650(challenge), Get8_51c050(challenge), 0, thing, 0, 0, 0);
+    Object_PostMessage(msg);
+}
+
 void __fastcall Challenges_AcceptOffer(u8 *challenges) {
     if (!at<u8>(challenges, 0x3da)) return;
     const u8 *const current = Challenges_Current(challenges);
