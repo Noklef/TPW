@@ -1206,4 +1206,13 @@ void __cdecl TrakRides_DestroyAll() {
     }
     global<u8 *>(0x00877b8c) = global<u8 *>(0x00877b88);
 }
+
+void __cdecl TrakRides_Shutdown() {
+    if (global<u32>(0x00877b58) != 0x4a454647) return;   // (the module not loaded: nothing)
+    TrakRides_DestroyAll();   // (inlined in the original: the same walk, each ride's RemoveCars called, and CollPool_Reset called)
+    static const u32 kBlocks[] = {0x00877b80, 0x00877b78, 0x00877b70, 0x00877b68, 0x00877b60, 0x00877b88};
+    for (const u32 block : kBlocks)   // (the original stores each GlobalFree result back: the words cleared just below)
+        (*Files_GetEnv()->globalFree)(global<void *>(block));
+    for (u32 i = 0; i < 15; ++i) global<u32>(0x00877b58 + 4 * i) = 0;   // (the module's words 0x877b58-0x877b93)
+}
 }

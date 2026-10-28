@@ -217,4 +217,9 @@ void __cdecl TrakRide_RemoveCars(u32 handle);
 // destroys its name (inlined in the original); then the 0x400 free records of [0x877b88] (0x14 bytes) chained again by +0x10 (the last
 // none) and [0x877b8c] = the first.
 void __cdecl TrakRides_DestroyAll();
+
+// 0x544450 (cdecl; name invented, unconfirmed): with the module loaded ([0x877b58] 'JEFG'), TrakRides_DestroyAll's work (inlined), then
+// the blocks [0x877b80], [0x877b78], [0x877b70], [0x877b68], [0x877b60] and [0x877b88] given to GlobalFree in that order and the module's
+// 15 words from 0x877b58 cleared.
+void __cdecl TrakRides_Shutdown();
 }

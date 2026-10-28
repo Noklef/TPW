@@ -6,7 +6,9 @@
 # All (0x5445d0 TrakRides_DestroyAll): the module loaded, the other rides unused (+0 clear) but for one now and then (no lists, no used
 # car on it), the used count those (or one short: the walk stops early), the free records' block [0x877b88] (0x400 of 0x14 bytes).
 # Cars (0x544b50 TrakRide_RemoveCars): Strip's world.
-# usage: trakride_destroy.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Strip,Destroy,All,Cars)
+# Shutdown (0x544450 TrakRides_Shutdown): All's world, the module's blocks freed through the GlobalFree import (global_heap: the
+# pointers hashed in order), its words cleared; the module not loaded now and then.
+# usage: trakride_destroy.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Strip,Destroy,All,Cars,Shutdown)
 import os
 import struct
 import sys
@@ -14,13 +16,13 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
-from fncmp import RAM, Bench, Call, put  # noqa: E402
+from fncmp import RAM, Bench, Call, global_heap, put  # noqa: E402
 _ops = os.environ.pop('OPS', None)   # (the imported benches read OPS as their own)
 import trackcar_remove as tcr  # noqa: E402
 if _ops is not None:
     os.environ['OPS'] = _ops
 
-B = Bench(tcr.merged(tcr.RANGES + [(0x545450, 0x5457db), (0x544a10, 0x544b50), (0x5445d0, 0x54483d), (0x5457e0, 0x545809), (0x544b50, 0x544bf3)]), hooks=tcr.HOOKS)
+B = Bench(tcr.merged(tcr.RANGES + [(0x545450, 0x5457db), (0x544a10, 0x544b50), (0x5445d0, 0x54483d), (0x5457e0, 0x545809), (0x544b50, 0x544bf3), (0x544450, 0x5445cd), (0x545810, 0x545888), (0x54b290, 0x54b2f0), (0x544330, 0x544356)]), hooks=tcr.HOOKS)
 RECS, LISTS, FREE = RAM + 0x70000, RAM + 0x71000, RAM + 0x72000
 
 
@@ -81,8 +83,8 @@ def case(r):
     regions[LISTS] = lists
     handle = r.choice([name] * 6 + [name ^ 0x100, name ^ 1, r.getrandbits(32)])
     func = r.choice(FUNCS)
-    if func == 0x5445d0:
-        put(module, 0, 'I', 0x4a454647)
+    if func in (0x5445d0, 0x544450):
+        put(module, 0, 'I', 0x4a454647 if func == 0x5445d0 or r.random() < 0.9 else r.getrandbits(32))
         busy = {struct.unpack_from('<I', recs, 0xac * k + 0x9c)[0] for k in range(n) if recs[0xac * k] & 1}
         spare = [j for j in range(4) if j != index and tcr.RIDES + 0xd0 * j not in busy]
         for j in range(4):
@@ -97,11 +99,13 @@ def case(r):
         put(module, 0xc, 'I', r.choice([used] * 4 + [max(used - 1, 0)]))
         put(module, 0x30, 'I', FREE)
         regions[FREE] = r.bytes(0x5000)
+        if func == 0x544450:
+            regions.update(global_heap())
         return Call(func, [], regions, ret='v')
     return Call(func, [handle], regions)
 
 
-OPS_ALL = {'Strip': 0x545450, 'Destroy': 0x545610, 'All': 0x5445d0, 'Cars': 0x544b50}
+OPS_ALL = {'Strip': 0x545450, 'Destroy': 0x545610, 'All': 0x5445d0, 'Cars': 0x544b50, 'Shutdown': 0x544450}
 FUNCS = [OPS_ALL[k] for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 
