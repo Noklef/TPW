@@ -11,6 +11,7 @@
 #include "../core/savegame.h"
 #include "../core/timesig.h"
 #include "../core/selectors.h"
+#include "../core/textarg.h"
 #include "../core/thunks.h"
 #include "../core/vcall.h"
 #include "../math/x87.h"
@@ -219,6 +220,12 @@ u8 *__fastcall StaffPoolEntry_Ctor(u8 *entry) {
     at<u8>(entry, 0xa) = 0;
     at<u8>(entry, 0xb) = 0;
     return entry;
+}
+
+void __fastcall StaffPoolEntry_FormatName(const u8 *entry, void *, u16 *to, u32 size) {
+    const u32 kind = at<u32>(entry, 0);
+    if (kind > 4) return;   // (Debug_Printf, empty in the retail build)
+    TextFormat().format(global<void *>(0x0078baa8 + 4 * kind), to, size, at<u32>(entry, 4));
 }
 
 u16 *__fastcall Staff_NearestInList1da740(const u8 *object, void *, u16 *out) {

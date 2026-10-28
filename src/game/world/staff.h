@@ -105,6 +105,10 @@ u32 __fastcall StaffPool_CountOfType(const u8 *pool, void *, u32 type);
 // 0x507080 (thiscall; the pool's element constructor, passed to the array constructor by 0x507800; name invented): mType +0 and +0xc
 // cleared, the bytes +9 (mSubType), +0xa (mValid) and +0xb (mOnPointer) cleared. Returns the entry.
 u8 *__fastcall StaffPoolEntry_Ctor(u8 *entry);
+// 0x5074a0 (thiscall (to, size), pops 8; called by 0x49b60f, 0x49c9de, 0x49ca35, 0x5075c6, 0x508411; name invented, unconfirmed): the
+// entry's name: the text id +4 formatted (0x6acd60, TextFormat) from the text table of its kind +0 (0-4: [0x78baa8 + 4 * kind]) into
+// size characters at to; another kind only a debug print (empty). (The original leaves the formatter's result in EAX; no caller reads it.)
+void __fastcall StaffPoolEntry_FormatName(const u8 *entry, void *, u16 *to, u32 size);
 
 // 0x50c620: the staff training (serialized at 0x50c640: 5 x u32 mBudget, u8 mHaveEverTrained)
 // zeroed. Returns it.
