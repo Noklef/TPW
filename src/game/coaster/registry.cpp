@@ -530,11 +530,9 @@ void __cdecl CoasterLink_SetUpCars(const u8 *train, u8 *link, u32 quiet) {
     }
 }
 
-void __cdecl CoasterLink_Destroy(u32 id) {
+// A link destroyed (CoasterLink_Destroy's and CoasterLinks_DestroyAll's, inlined in both originals).
+static void DestroyLink(u8 *link) {
     u8 **const head = reinterpret_cast<u8 **>(0x00790fe0);
-    u8 *link = *head;
-    while (link && at<u32>(link, 0x10) != id) link = at<u8 *>(link, 0x18);
-    if (!link) return;
     IdTable_Remove(reinterpret_cast<u32 *>(0x00790b04), reinterpret_cast<u32 *>(0x00790b00), reinterpret_cast<u32 *>(0x00791ce0),
                    reinterpret_cast<u32 *>(0x00790bd0), at<u32>(link, 0x14));
     --*reinterpret_cast<u32 *>(0x00792214);
@@ -571,6 +569,24 @@ void __cdecl CoasterLink_Destroy(u32 id) {
     CoasterRing_Free(link + 0xb0);
     CoasterRing_Free(link + 0xd0);
     GlobalMem_Free(link);
+}
+
+void __cdecl CoasterLink_Destroy(u32 id) {
+    u8 **const head = reinterpret_cast<u8 **>(0x00790fe0);
+    u8 *link = *head;
+    while (link && at<u32>(link, 0x10) != id) link = at<u8 *>(link, 0x18);
+    if (!link) return;
+    DestroyLink(link);
+}
+
+void __cdecl CoasterLinks_DestroyAll() {
+    u8 **const head = reinterpret_cast<u8 **>(0x00790fe0);
+    for (u8 *link = *head; link;) {
+        u8 *const next = at<u8 *>(link, 0x18);   // (read first)
+        DestroyLink(link);
+        link = next;
+    }
+    *head = nullptr;
 }
 u8 *__cdecl CoasterLink_AddCar(u8 *train, u32 a, u32 b, float height, u32 flags, const u8 *desc, u32 half, u32 slot, u32 claim) {
     u8 *const link = *reinterpret_cast<u8 *const *>(0x00790fec) + 0x3c;   // (kept from +0x3c)

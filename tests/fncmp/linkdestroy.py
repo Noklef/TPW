@@ -6,7 +6,8 @@
 # (+4) and segments (+0x28) whose rides (+0xc) are 0 or a ride with no holder (Ride_Sleep: nothing; Ride_Destroy 0x463c80 a cdecl
 # recorder, 31, as queuepieces.py's); its blocks +0x148, +0x130, +0x128, +0x12c, the rings' buffers (+0xb4, +0xd4) and the link itself
 # freed through the GlobalFree import (global_heap: the pointers hashed); no children (+0x38) and no entries (+0x4c).
-# usage: linkdestroy.py [CASES [SEED]] [--wild|--both] [--show N]
+# All (0x437150 CoasterLinks_DestroyAll): every link of the same world destroyed (their train and cars shared).
+# usage: linkdestroy.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=One,All)
 import os
 import struct
 import sys
@@ -17,7 +18,7 @@ sys.path.insert(0, HERE)
 from fncmp import HEAP, LOG, RAM, Bench, Call, _recorder, global_heap, heap, log_region, put  # noqa: E402
 import carwake  # noqa: E402
 
-B = Bench(sorted(set(carwake.RANGES + [(0x436fa0, 0x437144), (0x468810, 0x4688c0), (0x43b0c0, 0x43b0f0), (0x43eaf0, 0x43eb6b)])),
+B = Bench(sorted(set(carwake.RANGES + [(0x436fa0, 0x437144), (0x468810, 0x4688c0), (0x43b0c0, 0x43b0f0), (0x43eaf0, 0x43eb6b), (0x437150, 0x4372f7)])),
           hooks={**carwake.holder.HOOKS, 0x463c80: _recorder(31, 1, cdecl=True)})
 LINKS, TRAIN, CARS, SHAPES, SEGS = RAM + 0x40000, RAM + 0x41000, RAM + 0x41400, RAM + 0x41800, RAM + 0x42000
 IDS = 0x30
@@ -87,7 +88,12 @@ def case(r):
     put(sound, r.choice([8, 0x14]), 'I', 0)
     regions.update({0x802bc0: sound, 0x8791a0: bytes(4), 0x8791b0: bytes(4), 0x785a2c: struct.pack('<I', r.choice([0, 0, 1])),
                     0x803a3c: r.bytes(4), 0x7b4960: r.bytes(0x40)})
+    if r.choice(OPS) == 'All':
+        return Call(0x437150, [], regions, ret='v')
     return Call(0x436fa0, [r.choice([want] * 6 + [0, want + 1])], regions, ret='v')
+
+
+OPS = [k for k in os.environ.get('OPS', 'One,All').split(',') if k]
 
 
 if __name__ == '__main__':

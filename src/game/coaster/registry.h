@@ -222,6 +222,10 @@ void __cdecl CoasterLink_SetUpCars(const u8 *train, u8 *link, u32 quiet);
 // +0x130, +0x128 (left set) and +0x12c freed, its children disposed (Owner_DisposeChildren), its entries freed (CoasterLink_FreeEntries),
 // the link taken off the list (the walk goes on past it), its two rings (+0xb0, +0xd0) freed and the link itself (GlobalMem_Free).
 void __cdecl CoasterLink_Destroy(u32 id);
+
+// 0x437150 (cdecl; name invented, unconfirmed): every link of the list at 0x790fe0 destroyed as CoasterLink_Destroy destroys one (its
+// next, +0x18, read first), then the list's head cleared.
+void __cdecl CoasterLinks_DestroyAll();
 // 0x434060 (cdecl (train, a, b, height, flags, desc, half, slot, claim); name invented, unconfirmed): a new car piece (0x104 bytes,
 // GlobalMem_Alloc zeroed) for the current link (0x790fec, from its +0x3c: L), returned. Flags 2 (spare): its +8 gets 0x2000. Unless desc's
 // +0 has 0x4000 (wide) or spare, L+0x20 = it. With L's 2: put after L+0x24 (P: its +8 loses 0x50000, the piece's gains it; the piece's
