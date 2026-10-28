@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "methods.h"
+#include "../files/resindex.h"
 #include "vcall.h"
 
 namespace {
@@ -59,5 +60,29 @@ u16 *__cdecl Language_WideText(u32 index) {
 u32 __cdecl Language_SetObjectText(u8 *object, u32 index) {
     const u8 *const text = Records_DataIfTerminated(global<const u8 *>(0x0078baa4), nullptr, index);
     return vcall<u32>(object, 0x24, text ? widen(text, &index) : nullptr);
+}
+
+void __fastcall Language_FreeFonts(u8 *lang) {
+    at<u32>(lang, 0) = 0;
+    for (u32 entry = 0; entry < 13; ++entry) {
+        for (u32 set = 0; set < 4; ++set) {
+            u8 *&font = at<u8 *>(lang, 0x30 + entry * 0x18 + set * 0x138);
+            if (font) {
+                vcall<void>(font, 0);
+                font = nullptr;
+            }
+        }
+    }
+    static const u16 kObjects[23] = {0x54c, 0x550, 0x554, 0x558, 0x55c, 0x560, 0x564, 0x568, 0x56c, 0x570, 0x574, 0x578,
+                                     0x57c, 0x580, 0x584, 0x588, 0x590, 0x594, 0x58c, 0x598, 0x59c, 0x5a0, 0x5a4};
+    for (const u16 offset : kObjects) {
+        u8 *&object = at<u8 *>(lang, offset);
+        if (object) {
+            vcall<void>(object, 0);
+            object = nullptr;
+        }
+    }
+    s32 result;   // (the original's: the counter's slot, 0 by then)
+    ResFolder_Close(lang + 0xc, nullptr, &result);
 }
 }

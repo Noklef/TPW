@@ -39,4 +39,9 @@ u32 __cdecl Language_SetObjectText(u8 *object, u32 index);
 
 // 0x4925a0 (cdecl): in Hebrew, an alignment of 0 becomes 2 and 2 becomes 0.
 void __cdecl Language_MirrorAlign(u32 *align);
+
+// 0x41a5f0 (thiscall; name invented, unconfirmed): +0 = 0; the fonts of the four sets (+0x30, 0x18 apart, 13 to a set, sets 0x138
+// apart; by entry, then set) and the objects at +0x54c to +0x5a4 (+0x58c after +0x594) each released through its slot 0 (thiscall, no
+// arguments) and cleared when set; then the resource folder at +0xc closed (ResFolder_Close; its result a local).
+void __fastcall Language_FreeFonts(u8 *lang);
 }
