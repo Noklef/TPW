@@ -18,6 +18,18 @@ constexpr u32 kMaps[5] = {0x0078718c, 0x00787a60, 0x00787c14, 0x0078733c, 0x0078
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
+// A map of 0x18 bytes (Mem_Alloc; none: null) over count entries, enabled, its name (strncpy, 15) from the game's data.
+u8 *NewMap(u32 entries, s16 count, u32 name) {
+    u8 *const m = static_cast<u8 *>(GameHeap_Alloc(0x18));
+    if (!m)
+        return nullptr;
+    at<u32>(m, 0) = entries;
+    at<s16>(m, 4) = count;
+    at<s16>(m, 6) = 1;
+    Crt().strncpy(reinterpret_cast<char *>(m + 8), reinterpret_cast<const char *>((uintptr_t)name), 0xf);
+    return m;
+}
+
 u32 Fire(u8 *table, u32 a, u32 b, u32 handlerAt, u16 flag) {
     if (at<u16>(table, 6) == 0)
         return 0;
@@ -129,6 +141,43 @@ void __cdecl KeyMaps_EnableAllAndClearFlag() {
 void __cdecl KeyMaps_ResetAllAndSetFlag() {
     KeyMaps_ResetAll();
     global<u8>(0x007c24d0) = 1;
+}
+
+void __cdecl KeyMaps_Init() {
+    // (the maps, their static entry tables and counts, and their names in the game's data: "system", "game", "camera", "cheat",
+    // "coaster", "shortcuts")
+    global<u8 *>(0x0078718c) = NewMap(0x00747f38, 0xc, 0x00748700);
+    global<u8 *>(0x00787a60) = NewMap(0x00748028, 0xf, 0x007486f8);
+    global<u8 *>(0x00787c14) = NewMap(0x00748158, 0x19, 0x007486f0);
+    global<u8 *>(0x0078733c) = NewMap(0x007484d0, 0xc, 0x007486e8);
+    global<u8 *>(0x00787294) = NewMap(0x00748350, 2, 0x00747940);
+    u8 *map = NewMap(0x00748378, 0x11, 0x007486dc);
+    global<u8 *>(0x0078721c) = map;
+    // the shortcuts' actions 1-4: their keys from the texts 0-3 (a null map faults, sic)
+    u32 slot = 0;   // (the original's stack slot: the formatter's two characters land over it)
+    for (s16 action = 1; action <= 4; ++action) {
+        if (action > 1)
+            map = global<u8 *>(0x0078721c);
+        if (at<s16>(map, 4) <= action)
+            continue;
+        TextFormat().format(global<void *>(0x0078ba84), reinterpret_cast<u16 *>(&slot), 2, (u32)(action - 1));
+        u8 *const entries = at<u8 *>(map, 0);
+        if (at<s16>(entries, action * 0x14) == action) {
+            at<u16>(entries, action * 0x14 + 2) = (u16)slot;
+            continue;
+        }
+        const s16 found = (s16)KeyMap_FindAction(map, nullptr, action);
+        if (found > -1)
+            at<u16>(at<u8 *>(map, 0), found * 0x14 + 2) = (u16)slot;
+    }
+    // the keys from texts: (map, action, text)
+    static const u32 kKeys[17][3] = {{0x0078721c, 5, 4},    {0x0078721c, 6, 5},    {0x0078721c, 7, 6},    {0x0078721c, 8, 7},
+                                     {0x0078721c, 9, 8},    {0x0078721c, 10, 9},   {0x0078721c, 0xb, 10}, {0x0078721c, 0x10, 0xb},
+                                     {0x0078721c, 0xd, 0xc}, {0x0078721c, 0xe, 0xd}, {0x0078721c, 0xf, 0xe}, {0x00787a60, 1, 0x12},
+                                     {0x00787a60, 2, 0x13}, {0x00787a60, 9, 0x10}, {0x00787a60, 10, 0x11}, {0x0078718c, 0, 0x14},
+                                     {0x0078718c, 1, 0xf}};
+    for (const auto &key : kKeys)
+        KeyMap_SetKeyFromText(global<u8 *>(key[0]), nullptr, key[1], key[2]);
 }
 
 void __cdecl KeyMaps_FreeAll() {

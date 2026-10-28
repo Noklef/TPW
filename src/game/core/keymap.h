@@ -43,6 +43,15 @@ void __cdecl KeyMaps_EnableAllAndClearFlag();
 
 void __cdecl KeyMaps_ResetAllAndSetFlag();
 
+// 0x40cb80 (cdecl; name invented, unconfirmed): the maps made (each 0x18 bytes of Mem_Alloc, null when that fails): system (0x78718c; 0xc
+// entries at 0x747f38), game (0x787a60; 0xf at 0x748028), camera (0x787c14; 0x19 at 0x748158), cheat (0x78733c; 0xc at 0x7484d0), 0x787294
+// ("coaster"; 2 at 0x748350) and shortcuts (0x78721c; 0x11 at 0x748378), each enabled with its name (strncpy 15). The shortcuts' actions
+// 1-4 (each while the count is above it) get the keys the formatter (table [0x78ba84], two characters into one stack slot) writes for the
+// texts 0-3 (the action's own entry, else the first for it; none: nothing); then 17 keys set from texts (KeyMap_SetKeyFromText): shortcuts
+// 5-0xb, 0x10, 0xd-0xf from 4-0xe; game 1, 2, 9, 0xa from 0x12, 0x13, 0x10, 0x11; system 0, 1 from 0x14, 0xf. The maps re-read each time
+// (a null one faults, sic).
+void __cdecl KeyMaps_Init();
+
 // 0x40d070 (cdecl; name unconfirmed): the blocks of the maps system, game, camera, cheat, 0x787294 and shortcuts freed (each when set; the
 // pointers are left as they were).
 void __cdecl KeyMaps_FreeAll();
