@@ -45,7 +45,7 @@ def put_cell(regions, x, y, x0, offset, fmt, value):
 
 def case(r):
     regions = dict(objects.case(r).regions)
-    regions.update(cellapply.case(r, regions[LOG]).regions)
+    regions.update(cellapply.apply_case(r, regions[LOG]).regions)
     regions.update({0x80239c: struct.pack('<I', WORLD), 0x7cf83c: struct.pack('<I', WORLD), 0x8023a0: struct.pack('<I', MAPC),
                     0x7cdba0: le.pairs(r)})
     cellkind.things(r, regions, WORLD)

@@ -79,7 +79,7 @@ def spot(r):
 
 def case(r):
     op = r.deal(OPS)
-    regions = dict(cellapply.case(r).regions)
+    regions = dict(cellapply.apply_case(r).regions)
     regions.update({0x80239c: struct.pack('<I', WORLD), 0x7cf83c: struct.pack('<I', WORLD), 0x8023a0: struct.pack('<I', MAPC),
                     0x7cdba0: pairs(r)})
     ends = [r.choice([spot(r), -1]) for _ in range(4)]

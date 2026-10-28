@@ -46,7 +46,7 @@ HOOKS = {0x463c80: _recorder(31, 1, cdecl=True), 0x522b90: _recorder(20, 6, cdec
 B = Bench(RANGES + [(0x53b1a0, 0x53b279)], sines=256, hooks=HOOKS)
 
 
-def case(r, log=None):
+def apply_case(r, log=None):
     regions, _, _ = animator.world(r)
     regions.update(cellmodel.case(r).regions)
     for table, _, most in cellmodel.TABLES:   # (the models' groups the code tells apart)
@@ -83,7 +83,7 @@ def case(r, log=None):
 
 
 def place(r):
-    c = case(r)
+    c = apply_case(r)
     cell = bytearray(c.regions[cellmodel.CELL])
     put(cell, 0x14, 'I', r.choice([3, 3, 4, 4, 5, 5, 0, 2, r.getrandbits(32)]))
     cell[0xe] = cell[0xe] & ~0x10 | r.choice([0, 0, 0x10])
@@ -95,9 +95,9 @@ def place(r):
 OPS = [k for k in os.environ.get('OPS', 'Apply,Place').split(',') if k]
 
 
-def bench_case(r):
-    return case(r) if r.deal(OPS) == 'Apply' else place(r)
+def case(r):
+    return apply_case(r) if r.deal(OPS) == 'Apply' else place(r)
 
 
 if __name__ == '__main__':
-    B.main(bench_case)
+    B.main(case)

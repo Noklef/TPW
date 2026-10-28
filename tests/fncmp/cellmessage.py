@@ -241,7 +241,7 @@ def ends(r):
 
 
 def reset(r):
-    regions = dict(cellapply.case(r).regions)
+    regions = dict(cellapply.apply_case(r).regions)
     world, mapc = lineends.WORLD, lineends.MAPC
     regions.update({0x80239c: struct.pack('<I', world), 0x7cf83c: struct.pack('<I', world), 0x7cdba0: lineends.pairs(r)})
     x, y = r.choice([r.randrange(4, 124)] * 4 + [0, 1, 126, 127]), r.choice([r.randrange(4, 124)] * 4 + [0, 1, 126, 127])
@@ -264,6 +264,7 @@ def reset(r):
 
 def link(r):
     cellkind.OPS = ['Clear']
+    pathlink.OPS = ['Link']   # (pathlink.py's other op, Reset, takes other arguments)
     c = pathlink.case(r)
     regions = dict(c.regions)
     setg(regions, 0x816d64, struct.pack('<I', c.args[1]))
