@@ -450,14 +450,15 @@ struct Rec {
     uintptr_t at;
     template <typename F> operator F() const { return reinterpret_cast<F>(at); }
 };
-// The queue pieces' and the path drag's calls into agent B's unported 0x463060 / 0x463c80 / 0x5367a0 / 0x536100: recorders (cdecl 30 of 10
+// The queue pieces' and the path drag's calls into agent B's unported 0x463060 and the ports Ride_Destroy 0x463c80 / MapCell_Clear
+// 0x5367a0 / 0x536100: recorders (cdecl 30 of 10
 // arguments, cdecl 31 of 1, thiscall 28 of 2, cdecl 29 of 5), as tests/fncmp/queuepieces.py and pathdrag.py hook those addresses.
 const QueuePiecesEnv kQueuePiecesEnv = {reinterpret_cast<u32(__cdecl *)(u32, u32, const u32 *, u32, u32, u32, u32, u32, s32, u32)>((uintptr_t)jpeg_recorder(30, 10)),
                                         reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(31, 1))};
 const PathDragEnv kPathDragEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32)>((uintptr_t)recorder(28, 2)),
                                   reinterpret_cast<void(__cdecl *)(u32, s32, s32, s32 *, s32 *)>((uintptr_t)jpeg_recorder(29, 5))};
-// The rectangle sweep's demolish (0x527ee0) and agent B's unported 0x5367a0: cdecl recorder 2 of 3 and thiscall recorder 28 of 2, as
-// tests/fncmp/demolish.py hooks them. The demolish's unported calls, as tests/fncmp/deadends.py hooks them: agent B's 0x530120 cdecl
+// The rectangle sweep's demolish (0x527ee0) and agent B's MapCell_Clear (0x5367a0): cdecl recorder 2 of 3 and thiscall recorder 28 of 2, as
+// tests/fncmp/demolish.py hooks them. The demolish's calls, as tests/fncmp/deadends.py hooks them: agent B's 0x530120 (ported) cdecl
 // recorder 3 of 1, 0x52f200 / 0x52f580 cdecl recorders 4 / 5 of 2, 0x52fe50 cdecl recorder 6 of 2, agent B's 0x53b280 thiscall recorder 7
 // of 3 and 0x545610 cdecl recorder 8 of 1.
 const DemolishEnv kDemolishEnv = {reinterpret_cast<void(__cdecl *)(s32, s32, u32)>((uintptr_t)jpeg_recorder(2, 3)),
@@ -468,8 +469,8 @@ const DemolishEnv kDemolishEnv = {reinterpret_cast<void(__cdecl *)(s32, s32, u32
                                   reinterpret_cast<u32(__cdecl *)(u8 *, u32)>((uintptr_t)jpeg_recorder(6, 2)),
                                   reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32, u32)>((uintptr_t)recorder(7, 3)),
                                   reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(8, 1))};
-// The track runs' call into agent B's unported 0x53afa0: thiscall recorder 24 of no arguments, as tests/fncmp/trackshape.py hooks it;
-// CellRun_Lay's 0x5370e0 (agent B's, unported; recorder 20 of 3 as Map_ApplyLine's, which CellRun_Connect calls) and 0x538fc0 (recorder 26
+// The track runs' call into agent B's 0x53afa0 (ported): thiscall recorder 24 of no arguments, as tests/fncmp/trackshape.py hooks it;
+// CellRun_Lay's 0x5370e0 (agent B's, unported; recorder 20 of 3 as Map_ApplyLine's, which CellRun_Connect calls) and 0x538fc0 (ported; recorder 26
 // of 1); CellRun_Connect's 0x53b280 (recorder 7 of 3, as tests/fncmp/deadends.py's), 0x53bc60 and 0x545450 (cdecl recorders 27 of 3 and
 // 28 of 1): as tests/fncmp/cellrun.py hooks them.
 const CellRunEnv kCellRunEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(24, 0)),
@@ -478,7 +479,7 @@ const CellRunEnv kCellRunEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uint
                                 reinterpret_cast<void(__fastcall *)(u8 *, void *, s32, s32, u32)>((uintptr_t)recorder(7, 3)),
                                 reinterpret_cast<void(__cdecl *)(s32, s32, u32)>((uintptr_t)jpeg_recorder(27, 3)),
                                 reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(28, 1))};
-// The track square test's call into agent B's unported 0x532fc0: thiscall recorder 9 of 3, as tests/fncmp/tracksquare.py hooks it.
+// The track square test's call into agent B's MapCell_HandleMessage (0x532fc0): thiscall recorder 9 of 3, as tests/fncmp/tracksquare.py hooks it.
 const TrackSquareEnv kTrackSquareEnv = {reinterpret_cast<u32(__fastcall *)(u8 *, void *, u32, u32, u32)>((uintptr_t)recorder(9, 3))};
 // The placed object's constructor (agent C's unported 0x4db090): thiscall recorder 11 of 4, as tests/fncmp/placeobject.py hooks it.
 const PlaceObjectEnv kPlaceObjectEnv = {reinterpret_cast<u8 *(__fastcall *)(u8 *, void *, u32, u32, s32, u32)>((uintptr_t)recorder(11, 4))};
@@ -490,12 +491,12 @@ const EndThingEnv kEndThingEnv = {reinterpret_cast<u8 *(__fastcall *)(u8 *, void
 // park end's gate call (agent C's unported 0x481b50): thiscall recorder 14 of 1, as tests/fncmp/parkend.py hooks it.
 const ParkOpenEnv kParkOpenEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(13, 0)),
                                   reinterpret_cast<void(__fastcall *)(void *, void *, u8 *)>((uintptr_t)recorder(14, 1))};
-// The game mode change's advisor cancel, track run show and tool reset (agent B's unported 0x59aa70, 0x4474d0, 0x446050): thiscall recorder
+// The game mode change's advisor cancel, track run show and tool reset (agent B's 0x59aa70, 0x4474d0 and CoasterEdit_CancelSelected 0x446050, all ported): thiscall recorder
 // 13 of 1, cdecl recorders 14 of 2 and 15 of none, as tests/fncmp/gamemode.py hooks them.
 const GameModeEnv kGameModeEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)recorder(13, 1)),
                                   reinterpret_cast<void(__cdecl *)(u32, u32)>((uintptr_t)jpeg_recorder(14, 2)),
                                   reinterpret_cast<void(__cdecl *)()>((uintptr_t)jpeg_recorder(15, 0))};
-// Thing_Detach's call into agent B's unported Ride_Destroy (0x463c80): cdecl recorder 31 of 1, as tests/fncmp/thingdetach.py hooks it.
+// Thing_Detach's call into agent B's Ride_Destroy (0x463c80): cdecl recorder 31 of 1, as tests/fncmp/thingdetach.py hooks it.
 const ThingDetachEnv kThingDetachEnv = {reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(31, 1))};
 // Thing_Delete's per-kind deletes (agent C's unported 0x4dd0a0, 0x4d9fe0, 0x4d6c90, 0x4d4620, 0x4d5eb0, 0x4c9040; thingdetach.py's k 10-15).
 using ThingKindFn = void(__fastcall *)(u8 *);
@@ -515,7 +516,7 @@ const ThingMessageEnv kThingMessageEnv = {{thing_message(0), nullptr, thing_mess
 using StaffSumFn = s32(__fastcall *)(u8 *, void *, u32);
 const StaffAdviceEnv kStaffAdviceEnv = {reinterpret_cast<StaffSumFn>((uintptr_t)recorder(16, 1)), reinterpret_cast<StaffSumFn>((uintptr_t)recorder(17, 1)),
                                         reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)recorder(18, 1))};
-// Ride_Destroy's calls into the unported 0x42a190 and 0x436fa0 (agent B's): cdecl recorders 18 of no arguments and 19 of 1, as
+// Ride_Destroy's calls into agent B's unported 0x42a190 and ported 0x436fa0: cdecl recorders 18 of no arguments and 19 of 1, as
 // tests/fncmp/ridedestroy.py hooks those addresses.
 // The cell kinds' calls into agent C's unported 0x4de1f0 and agent A's Path_CheckDeadEnds (0x527ee0): the thiscall recorder 26 of no
 // arguments and the cdecl recorder 27 of 3, as tests/fncmp/cellkind.py and tests/fncmp/trackremove.py hook them.
@@ -541,7 +542,7 @@ const RidesEnv kRidesEnv = {reinterpret_cast<void(__cdecl *)()>((uintptr_t)jpeg_
 const CellModelEnv kCellModelEnv = {reinterpret_cast<u32(__cdecl *)(s32, s32, s32, s32, s32, u32)>((uintptr_t)jpeg_recorder(20, 6)),
                                     reinterpret_cast<u32(__cdecl *)(s32, s32, s32, s32, s32, u32)>((uintptr_t)jpeg_recorder(21, 6)),
                                     reinterpret_cast<u32(__cdecl *)(s32, s32, s32, s32, s32, u32)>((uintptr_t)jpeg_recorder(22, 6))};
-// The objects' calls into the unported 0x40fb10 (agent B's) and 0x500870 / 0x5012f0 (agent C's): thiscall recorders 21 of 1 argument, 22 and 23
+// The objects' calls into agent B's 0x40fb10 (ported) and 0x500870 / 0x5012f0 (agent C's): thiscall recorders 21 of 1 argument, 22 and 23
 // of none, as tests/fncmp/objectstate.py hooks those addresses.
 // MessageCentre_Post's call into the unported Thing_HandleMessage 0x50b550 (agent C's): the thiscall recorder 27 of 1 argument, as
 // tests/fncmp/messagecentre.py hooks that address.
@@ -552,7 +553,7 @@ const StatsGraphEnv kStatsGraphEnv = {reinterpret_cast<void(__cdecl *)(u8 *)>((u
 const ObjectEnv kObjectEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, u8 *)>((uintptr_t)recorder(21, 1)),
                               reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(22, 0)),
                               reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(23, 0))};
-// Object_Delete's call into agent B's unported RSSE_KillScript (0x559060): cdecl recorder 20 of 2, as tests/fncmp/objectdelete.py hooks it.
+// Object_Delete's call into agent B's RSSE_KillScript (0x559060): cdecl recorder 20 of 2, as tests/fncmp/objectdelete.py hooks it.
 const ObjectDeleteEnv kObjectDeleteEnv = {reinterpret_cast<void(__cdecl *)(s32, u32)>((uintptr_t)jpeg_recorder(20, 2))};
 // BankAccount_HandleMessage's call into agent A's unported 0x5168f0 (the game lost): the thiscall recorder 24 of 0, as tests/fncmp/money.py
 // hooks it.
