@@ -15,6 +15,8 @@
 #include "camera.h"
 #include "random.h"
 #include "../core/soundplay.h"
+#include "../core/soundset.h"
+#include "queuepieces.h"
 #include "../render/particles.h"
 #include "../terrain/land.h"
 
@@ -96,6 +98,19 @@ void __cdecl FlyingRide_NextCameraCorner(s32 *camera) {
 // The part a slot of the record at index (not checked: the table entry is used as it is) steps to.
 void __cdecl FlyingRide_ReleaseSlotPart(s32 index, s32 slotIndex, s32 step) {
     release(slot(table()[index], (u32)slotIndex), step);
+}
+
+void __cdecl FlyingRide_ClearSlot(s32 index, u32 slotIndex) {
+    const auto field = [&](u32 offset) -> u32 & { return at<u32>(slot(table()[index], slotIndex), offset); };
+    if (const u32 system = field(0xc4)) ParticleSystem_End(system);
+    field(0xc4) = 0;   // (the original clears it twice after an end)
+    QueuePiece_Remove(field(0xc0));   // (Ride_Destroy 0x463c80, through the queue pieces' env)
+    field(0xc0) = 0;
+    --at<s32>(table()[index], 0xc);
+    u8 *const kept = slot(table()[index], slotIndex);
+    if (const u32 sound = field(0xe0)) Sound_Forward6(sound);
+    at<u32>(kept, 0xe0) = 0;
+    field(0xe0) = 0;
 }
 
 u32 __cdecl FlyingRide_StepInSlot(s32 index) {

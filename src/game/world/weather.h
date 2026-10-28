@@ -38,4 +38,8 @@ void __fastcall Weather_SetIntensity(u8 *weather, void *, s32 value);
 // its +8; 2: +0x20 = the funny time now plus its +0xc days (FileTime_FromSpan, FileTime_Add; the span's out the message's own stack
 // slot), +0x28 = its +8, +0x2c = 1, +0x18 = the funny time now. Other kinds nothing.
 void __fastcall Weather_HandleMessage(u8 *weather, void *, u8 *message);
+
+// 0x512000 (thiscall; name invented, unconfirmed): the weather taken out of the world (Thing_Detach), then the renderer's ([0x8bcbac])
+// textures freed (WeatherFx_FreeTextures, a tail jump): returns its 1.
+u32 __fastcall Weather_Detach(u8 *weather);
 }

@@ -4,7 +4,10 @@
 # Load (0x40fd60) empties the maps, then reads the counts and keys back from a record stream (whole, or cut anywhere), duplicates among them now and then.
 # Ctor (0x405460) constructs one slot over random bytes (the nil node made already or not); Instance (0x415e00) makes the centre (29 slots) or finds it made; an allocation now and then fails.
 # CtorSlots (0x4a8bd0) constructs the 29 slots over random bytes, as Instance does for its block.
-# usage: messagecentre.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Slot,Slots,Remove,Save,Add,Load,Ctor,Instance,CtorSlots)
+# Post (0x40fb10) hands a message (its slot 0 a recorder answering the type: 0x1b often, else 0-28) to the things of its type's slot (the
+# thing table 0x7cfb90 of things whose handles are their slots, or now and then another key) through Thing_HandleMessage 0x50b550, the
+# thiscall recorder 27 of 1 argument; type 0x1b first erases the handle of the thing its word +8 names from every map.
+# usage: messagecentre.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Slot,Slots,Remove,Save,Add,Load,Ctor,Instance,CtorSlots,Post)
 import os
 import struct
 import sys
@@ -13,16 +16,17 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import stdtree  # noqa: E402
-from fncmp import Bench, Call, HEAP, RAM, heap, record_stream  # noqa: E402
+from fncmp import LOG, Bench, Call, HEAP, RAM, _recorder, heap, log_region, record_stream, set_return, vtable  # noqa: E402
 
 B = Bench([(0x409250, 0x409260), (0x40f970, 0x40f9e0), (0x40fa40, 0x40fb03), (0x40f950, 0x40f961), (0x410ac0, 0x410b11), (0x50b350, 0x50b35d), (0x40fc80, 0x40fd5b), (0x5f5e50, 0x5f5e80), (0x5da3c0, 0x5da3c1), (0x40ff80, 0x4104e0), (0x4104b0, 0x410610), (0x410670, 0x410720), (0x410720, 0x4107a0), (0x67acb0, 0x67acb1),
            (0x67afa0, 0x67b0d0), (0x40f9e0, 0x40fa40), (0x40fe60, 0x40ff80), (0x4107b0, 0x410ac0), (0x410b20, 0x410bf0), (0x5e7720, 0x5e7750), (0x40fd60, 0x40fe50), (0x5f5e20, 0x5f5e50),
-           (0x405460, 0x405530), (0x415e00, 0x415e80), (0x67acf0, 0x67ada0), (0x4a8bd0, 0x4a8beb)],
-          hooks={0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None})
+           (0x405460, 0x405530), (0x415e00, 0x415e80), (0x67acf0, 0x67ada0), (0x4a8bd0, 0x4a8beb), (0x40fb10, 0x40fc7f), (0x410610, 0x410670)],
+          hooks={0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None, 0x50b550: _recorder(27, 1)})
 SLOTS, HEADS, NIL, NODES, THING = RAM, RAM + 0x400, RAM + 0x800, RAM + 0x1000, RAM + 0x3000
 CHUNK, STREAM, SINK = RAM + 0x3100, RAM + 0x3200, RAM + 0x3400
 COUNTER = 0x785de0   # (the nil node's pointer follows at 0x785de4)
 CENTRE = 0x788d3c   # the message centre (0x415e00 makes it)
+THINGS, MSG, MVT, TABLE, KEYS = RAM + 0x5000, RAM + 0x6000, RAM + 0x6100, 0x7cfb90, 100   # (stdtree.build's keys are below 100)
 SLOT_COUNT, MAX_NODES = 0x1d, 4
 
 
@@ -71,7 +75,7 @@ def case(r):
     op = r.deal(OPS)
     if op in ('Ctor', 'Instance', 'CtorSlots'):
         return made(r, op)
-    count = SLOT_COUNT if op in ('Slots', 'Remove', 'Save', 'Add', 'Load') else 1
+    count = SLOT_COUNT if op in ('Slots', 'Remove', 'Save', 'Add', 'Load', 'Post') else 1
     slots, heads, nodes_blob = bytearray(0x14 * count), bytearray(0x20 * count), bytearray(r.bytes(0x20 * MAX_NODES * count))
     keys = []
     for k in range(count):
@@ -105,6 +109,18 @@ def case(r):
         regions[THING] = struct.pack('<HH', handle, r.getrandbits(16)) + r.bytes(8)
         index = r.randrange(SLOT_COUNT) if r.random() < 0.85 else r.choice([0x1d, 0x1e, 0x7fffffff, 0xffffffff, 0x80000000])
         return Call(0x40f9e0, [SLOTS, THING, index], regions, conv='t', ret='b')
+    if op == 'Post':
+        table, things = bytearray(r.bytes(0x14 * KEYS)), bytearray(r.bytes(0x10 * KEYS))
+        for i in range(KEYS):
+            struct.pack_into('<I', table, 0x14 * i, THINGS + 0x10 * i)
+            struct.pack_into('<H', things, 0x10 * i, i if r.random() < 0.9 else r.randrange(KEYS))
+        log = log_region()
+        typ = r.choice([0x1b] * 8 + list(range(SLOT_COUNT)))
+        set_return(log, 0, typ)
+        msg = bytearray(r.bytes(0x20))
+        struct.pack_into('<IIH', msg, 0, MVT, r.getrandbits(32), r.choice(keys) if keys and r.random() < 0.8 else r.randrange(KEYS))
+        regions.update({TABLE: table, THINGS: things, LOG: log, MSG: msg, MVT: vtable({})})
+        return Call(0x40fb10, [SLOTS, MSG], regions, conv='t', ret='a')
     if op == 'Remove':   # (a thing whose u16 handle is one of the keys, mostly; the dword above it random)
         handle = r.choice(keys) if keys and r.random() < 0.8 else r.getrandbits(16)
         regions[THING] = struct.pack('<HH', handle, r.getrandbits(16)) + r.bytes(8)
@@ -112,7 +128,7 @@ def case(r):
     return Call(0x409250 if op == 'Slots' else 0x40f970, [SLOTS], regions, conv='t', ret='v')
 
 
-OPS = [k for k in os.environ.get('OPS', 'Slot,Slots,Remove,Save,Add,Load,Ctor,Instance,CtorSlots').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Slot,Slots,Remove,Save,Add,Load,Ctor,Instance,CtorSlots,Post').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)

@@ -72,4 +72,19 @@ void __fastcall Advisor_HandleMessage(u8 *self, void *, u8 *event);
 // bytes from +0xe0 (mHistory[i]), the message at +0x16d0 (AdvisorMsg_Serialize), mRequestedLastTutorial (the byte +0x16e8) and the dword at
 // +0x16ec, each saved or loaded as a serializer's field (the last loaded through Save_ReadU32); 1 at the first that fails, else 0.
 u32 __fastcall Advisor_Serialize(u8 *self, void *, Stream *stream, u32 save, s32 version, u32 unused);
+
+// 0x5994e0 (cdecl; name invented, unconfirmed): the advisor's speech stopped. Only while it speaks (0xf7966c): its voice (0xf79680, the
+// one read first) marked (Sound_SetVoicePending (voice, 0)); with 0xf797c4, the byte 0x78d90c and a voice, Sound_VoiceFunctor3 (voice)
+// and 0xf797c4 cleared; 0xf7966c cleared, Sound_Set803acc (0), particle pool 0 emptied (ParticlePool_Resize (0, 0, 0)), the advisor's
+// model slot (0xf79674) told (ModelSlot_KillAdvisor); its text (0xf797a0) freed (the CRT's free) unless it is the static 0xf797d0 (then
+// 0xf79bb8 cleared), and 0xf797a0 / 0xf79794 / 0xf7979c cleared; the voice (re-read) Sound_Forward6 and cleared. With a voice at first,
+// one of the sounds 0x27f-0x281 (rand () % 3) played (Sound_PlayAt, the owner the voice re-read: 0) in the category [0x803a34] at 0, 0, 0.
+void __cdecl Advisor_StopSpeech();
+
+// 0x59aa70 (thiscall (id), pops 4; name invented, unconfirmed): the advisor's messages of id withdrawn. With the byte +0x16e4, it is
+// cleared when DefField8 of id is 1 (gAdvisorScoring built first) and +0x16dc is id. The queued slots of id (+0x14 + 0x18 k: the byte
+// +0x14 set, +0xc id) unset. The message spoken: +0x16ec while the game clock's real time (Clocks_RealNow (0x785970)) is below (unsigned)
+// +0xd8 + +0xdc, else 0x160; when it is id, Advisor_StopSpeech, the history record's byte +8 (+0xe0 + 0x10 id) cleared, its +0xc counted
+// up, and +0xdc cleared. AL: 1 when a slot or the speech was id's, else 0.
+u8 __fastcall Advisor_Cancel(u8 *self, void *, u32 id);
 }

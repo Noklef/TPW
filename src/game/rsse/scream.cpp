@@ -35,4 +35,8 @@ u32 __cdecl RSSE_SetScreamVolume(u32 scream, s32 a, s32 b) {
 }
 
 u32 __cdecl RSSE_MoveScream(u32 scream, s32 x, s32 y, s32 z) { return scream ? Sound_SetPosition(scream, x, y, z) : 0; }
+
+void __cdecl RSSE_StopScream(u32 scream) {
+    if (scream) Sound_Stop(scream);
+}
 }

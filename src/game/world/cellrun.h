@@ -54,4 +54,37 @@ u32 __cdecl PairTable_Add(u32 a, u32 b);
 // 0x52fc30 (cdecl): the pair table at 0x81b740 (count 0x820a8c) copied to 0x818d98; then 0x820a90 = the
 // count and 0x820a94 = 0. Returns the count when above 0, else 0.
 s32 __cdecl PairTable_Commit();
+
+// What the runs call in the game that is not ported yet, so that they can run outside it (the benches point it at a recorder).
+struct CellRunEnv {
+    void(__fastcall *cell53afa0)(u8 *cell);   // 0x53afa0 (agent B's; thiscall on a 0x28-byte cell, no arguments)
+};
+// The runs' calls go to env (nullptr: the game's).
+void CellRun_SetEnv(const CellRunEnv *env);
+
+// The track's piece shapes along a run from a thing (0x52c6f0 UpdateA, 0x52ccb0 UpdateB; cdecl (thing, flash, start, bank5); names
+// unconfirmed): the thing's cell stepped as by AnimateA / AnimateB (a direction other than the right angles: A start's low byte, B
+// Nibble_Scale of start), its code to 0x818c50. The run stops at once when the start is not of type 0xb, 0xd, 0x10, 0x12 or 0x19 (A: and
+// answers 1). On each track cell (MapCell_IsTypeBOr10; others only move): a corner turns (as AnimateA); else a cell with low flags
+// (MapCell_HasLowFlags) gets its shape from the cells two on ahead (a) and behind (b, Map_StepCell28InDirection by the direction and its
+// Nibble_Scale): with 2 neighbours, flags 0xf cleared and 4 / 1 / 2 / 8 set (A; B 4 / 1 / 8 / 2) for a and b both with low flags / neither /
+// a only / b only; then rules on whether a and b are ends (type 0xb, 0xd, 0x10, 0x12 or 0x19) of the cell's +0x10 word, with one neighbour
+// facing them, set the cell 8 or 2 (by whether a is such a type; B's last rule 2 or 8) and then 4 when a or b has low flags (see the
+// .cpp); then the env's 0x53afa0 on it. Its thing (+4, entry of 0x7a4610) plays bank 5 (bank5's low byte) or 0xc, entry 0, mode 7, speed 1,
+// layer 0 when start's low byte is set (A after the rules, B before them). Then on every track cell, as AnimateA: a cell not at a corner
+// whose neighbour bits lack the direction stops the run, and its thing (when not 0) starts flashing (flash's low byte; Highlight_Flash)
+// unless its flags (+4) have 0x4000000, or stops (Highlight_Unflash) if they have; a next cell that is an end of the same +0x10 word with the
+// reverse side stops it too (A: answers 1 and moves on to it). The run moves on as AnimateA unless stopped. A answers 0 or 1 in AL.
+u8 __cdecl TrackRun_UpdateA(u8 *thing, u32 flash, u32 start, u32 bank5);
+void __cdecl TrackRun_UpdateB(u8 *thing, u32 flash, u32 start, u32 bank5);
+
+// 0x52fc80 (cdecl (corners); name invented, unconfirmed): the links of the track piece at the cell 0x7639e0 / 0x7639e4 (when Map_InBounds
+// and of type 0xb, 0xd, 0x10, 0x12 or 0x19) mended. For each side d = 1, 4, 0x10, 0x40 (Byte_ShiftLog2(d, 4) until back at 1), with the
+// cell two on that side (Map_StepCell28InDirection): a side not among its neighbour bits is linked (MapCell_SetDirection Nibble_Scale(d),
+// MapCell_AddNeighbours d, the env's 0x53afa0) when that cell is an end (MapCell_IsTypeDOr12ViaParent) of the same +0x10 word; a linked
+// side is unlinked (MapCell_RemoveNeighbours d, 0x53afa0) when that cell is neither of the types above nor an end, or of them but without
+// the reverse side among its neighbour bits (that cell is not checked for null, sic). Then with corners' low byte set and the cell at a
+// corner (MapCell_CornerNeighbours), for each linked side whose cell two on is in the map: one not an end is unlinked both ways (the
+// cell's d and its Nibble_Scale(d), 0x53afa0 on each); at an end the cell's direction becomes Nibble_Scale(d) (MapCell_ClearDirection 0xff).
+void __cdecl TrackCell_Relink(u32 corners);
 }

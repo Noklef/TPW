@@ -14,10 +14,16 @@
 #include "../sprite/script.h"
 #include "../sprite/sprite.h"
 #include "mapcell.h"
+#include "messagecentre.h"
 #include "nav.h"
+#include "object.h"
 #include "objectdefs.h"
+#include "person.h"
 #include "random.h"
+#include "staff.h"
+#include "thingmsg.h"
 #include "thingscan.h"
+#include "weather.h"
 
 namespace {
 
@@ -37,7 +43,7 @@ u8 *CellOf(u32 column, u32 row) {
     return global<u8 *>(0x008023a0) + id * 0x44 - 0x44;
 }
 
-void __cdecl game_destroy(void *thing) { reinterpret_cast<void(__fastcall *)(void *)>(0x0050b780)(thing); }
+void __cdecl game_destroy(void *thing) { Thing_Delete(static_cast<u8 *>(thing)); }   // (0x50b780, ported)
 void __cdecl game_free(void *block) { GameHeap_Free(block); }  // the game's operator delete / new (0x67acb0 / 0x67acc0), through core/gameheap
 void *__cdecl game_alloc(u32 size) { return GameHeap_Alloc(size); }
 const ThingTableEnv kGameEnv = {
@@ -55,6 +61,56 @@ u16 *handle_of(ThingSlot *slot, u16 *out) {
 }  // namespace
 
 void Things_SetEnv(const ThingTableEnv *e) { g_env = e ? e : &kGameEnv; }
+
+namespace {
+const ThingDetachEnv kGameDetachEnv = {reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)0x00463c80)};
+const ThingDetachEnv *g_detach = &kGameDetachEnv;
+}  // namespace
+
+void Things_SetDetachEnv(const ThingDetachEnv *e) { g_detach = e ? e : &kGameDetachEnv; }
+
+namespace {
+template <u32 address> void __fastcall game_kind(u8 *thing) { reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)address)(thing); }
+const ThingDeleteEnv kGameDeleteEnv = {&game_kind<0x004dd0a0>, &game_kind<0x004d9fe0>, &game_kind<0x004d6c90>,
+                                       &game_kind<0x004d4620>, &game_kind<0x004d5eb0>, &game_kind<0x004c9040>};
+const ThingDeleteEnv *g_delete = &kGameDeleteEnv;
+}  // namespace
+
+void Things_SetDeleteEnv(const ThingDeleteEnv *e) { g_delete = e ? e : &kGameDeleteEnv; }
+
+void __fastcall Thing_Delete(u8 *thing) {
+    u32 msg[3];
+    Object_PostMessage(ThingMsg1b_Ctor(reinterpret_cast<u8 *>(msg), nullptr, at<u16>(thing, 0)));
+    switch (thing[2]) {
+    case 1: Visitor_Detach(thing); break;
+    case 3: g_delete->kind3(thing); break;
+    case 4: g_delete->kind4(thing); break;
+    case 5: g_delete->kind5(thing); break;
+    case 6: g_delete->kind6(thing); break;
+    case 7: g_delete->kind7(thing); break;
+    case 8: Researcher_Detach(thing); break;
+    case 9: case 0xa: case 0xb: case 0xc: case 0xd: case 0xe: case 0x10: case 0x11: g_delete->kinds9to11(thing); break;
+    case 0xf: Weather_Detach(thing); break;
+    case 0x12: Staff_Detach(thing); break;
+    default: break;   // (2, 0x13 and others: the original's debug prints)
+    }
+    thing[3] = 1;
+    World_QueueDelete(global<u8 *>(0x0080239c), nullptr, at<u16>(thing, 0));
+    thing[2] = 2;
+}
+
+u32 __fastcall Thing_Detach(u8 *thing) {
+    Things_UnlinkFromChain(CellOf(thing[5], thing[7]), nullptr, at<u16>(thing, 0));
+    if (thing[2] == 3) g_detach->rideDestroy(at<u32>(thing, 0x20));
+    switch (thing[2]) {
+    case 1: case 4: case 5: case 6: case 7: case 8: case 0x12:
+        if (thing == global<u8 *>(0x00877350)) global<u8 *>(0x00877350) = nullptr;
+        break;
+    default:
+        break;
+    }
+    return MessageCentre_RemoveThing(MessageCentre_Instance(), nullptr, thing);
+}
 
 extern "C" void __cdecl Things_InitTable() {
     ThingSlot *const s = slots();

@@ -34,7 +34,7 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const ObjectEnv kGameEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, u8 *)>((uintptr_t)0x0040fb10),
+const ObjectEnv kGameEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, u8 *)>(&MessageCentre_Post),
                             reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x00500870),
                             reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x005012f0)};
 const ObjectEnv *g_env = &kGameEnv;
@@ -44,6 +44,8 @@ const ObjectEnv *g_env = &kGameEnv;
 extern "C" {
 
 void Object_SetEnv(const ObjectEnv *env) { g_env = env ? env : &kGameEnv; }
+
+void Object_PostMessage(u8 *msg) { g_env->post40fb10(MessageCentre_Instance(), nullptr, msg); }
 
 void __fastcall Object_DismissQueueHead(u8 *object) {
     const u16 head = at<u16>(object, 0x3c);
@@ -344,7 +346,7 @@ u32 __fastcall Object_SetOpen(u8 *object, void *, u32 open) {
 }
 
 void __fastcall Object_Close(u8 *object) {
-    Object_CanOpen(object);   // (Object_Close: the original's inline checks pick only a debug print, five times; their calls are kept)
+    Object_CanOpen(object);   // (the original's inline checks pick only a debug print; their calls are kept)
     at<u32>(object, 0x68) = 1;
     StripAnim_StartShrink(reinterpret_cast<u8 *const *>(0x007a4610)[at<u32>(object, 0x20)]);
     Rides_SetElement(Rides_FindById(at<s32>(object, 0x24)), 6, 0);

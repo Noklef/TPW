@@ -19,6 +19,7 @@ add_subdirectory(third_party)
 add_library(tpw_game STATIC
     src/game/rsse/rsse_vm.cpp
     src/game/rsse/scream.cpp
+    src/game/rsse/scriptfile.cpp
     src/game/core/app.cpp
     src/game/core/crt.cpp
     src/game/core/fpu.cpp
@@ -74,6 +75,8 @@ add_library(tpw_game STATIC
     src/game/files/vfs.cpp
     src/game/files/substream.cpp
     src/game/files/fontfiles.cpp
+    src/game/files/resindex.cpp
+    src/game/files/charsets.cpp
     src/game/core/regkey.cpp
     src/game/core/stdstring.cpp
     src/game/core/globalmem.cpp
@@ -328,6 +331,7 @@ add_library(tpw_game STATIC
     src/game/world/queuepieces.cpp
     src/game/world/pathdrag.cpp
     src/game/world/advisorrecords.cpp
+    src/game/world/rides.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp

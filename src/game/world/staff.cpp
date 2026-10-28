@@ -25,6 +25,9 @@
 #include "person.h"
 #include "personscripts.h"
 #include "random.h"
+#include "research.h"
+#include "ridelist.h"
+#include "thingmsg.h"
 #include "things.h"
 #include "thingscan.h"
 #include "world.h"
@@ -692,5 +695,115 @@ void __fastcall Staff_HeadForEntrance(u8 *staff) {
     const u16 cell = static_cast<u16>((global<u32>(0x007855c0) << 7) + global<u32>(0x007855bc) + 1);
     const u32 arg = (static_cast<u32>(reinterpret_cast<uintptr_t>(staff)) & 0xffff0000u) | cell;
     Staff_SetState(staff, nullptr, Sprite_SetDestinationCell(staff, nullptr, arg) ? 1u : 0u);   // (0: after the original's debug print)
+}
+
+void __fastcall Staff_LeaveRestArea(u8 *staff) {
+    u16 handle;
+    u32 msg[4] = {0x00700868, 0, *Thing_GetHandle(staff, nullptr, &handle), 0};   // (the original leaves the word above the handle as it was)
+    Object_PostMessage(reinterpret_cast<u8 *>(msg));
+    const u16 area = *reinterpret_cast<u16 *>(staff + 0x208);
+    const u8 *const thing = *reinterpret_cast<u8 **>((uintptr_t)0x007cfb90 + area * 20u);
+    u8 *const record = Rides_FindById(*reinterpret_cast<const s32 *>(thing + 0x24));
+    Rides_SetElement(record, 0, Rides_GetElement(record, 0) - 1);
+    *reinterpret_cast<u16 *>(staff + 0x208) = 0;
+    ScriptRef_Start(staff + 0xc, nullptr, 3, *reinterpret_cast<u32 *>(staff + 0x24), *reinterpret_cast<u32 *>(staff + 0x20));
+    Staff_SetState(staff, nullptr, 0);
+}
+
+void __fastcall Staff_Detach(u8 *staff) { Person_Detach(staff); }
+
+void __fastcall Researcher_Detach(u8 *researcher) {
+    u8 **const game = reinterpret_cast<u8 **>((uintptr_t)0x0080239c);   // (reloaded for each call, as the original does)
+    Things_Unlink1da742(*game, nullptr, researcher);
+    Staff_Detach(researcher);
+    if (GameTable7cfb90_Get1da722_519550(*game))
+        ResearchLab_SyncFlag(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da722_519550(*game)));
+}
+
+namespace {
+s32 handler_wage(const u8 *staff) {   // (as 0x504c70 has it: the grade's whole dword)
+    const s32 factor = *reinterpret_cast<const s32 *>((uintptr_t)0x00785380 + Byte2_ToIndex(staff) * 4u);
+    return factor * *reinterpret_cast<const s32 *>((uintptr_t)0x0078532c + (*reinterpret_cast<const u32 *>(staff + 0x1e4) << 4));
+}
+}  // namespace
+
+void __fastcall Staff_HandleMessage(u8 *staff, void *, u8 *message) {
+    u8 **const game = reinterpret_cast<u8 **>((uintptr_t)0x0080239c);
+    const u32 kind = vcall<u32>(message, 0);
+    if (kind == 0xc) {
+        Money_Debit(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(*game)), nullptr, handler_wage(staff));
+        s32 *const paid = reinterpret_cast<s32 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(*game) + 0x1f7f0);
+        *paid += handler_wage(staff);
+        return;
+    }
+    if (kind != 0xa || *reinterpret_cast<u16 *>(staff + 0x208) != *reinterpret_cast<const u16 *>(message + 8)) return;
+    const u32 state = *reinterpret_cast<const u32 *>(staff + 0x19c);
+    if (state == 3) {
+        Staff_LeaveRestArea(staff);
+        u16 area = static_cast<u16>(reinterpret_cast<uintptr_t>(message));   // (the out word is the original's argument slot)
+        Things_NearestRestArea(staff, nullptr, &area);
+        if (!area) return;
+        const u8 *const thing = *reinterpret_cast<u8 **>((uintptr_t)0x007cfb90 + area * 20u);
+        if (Sprite_SetDestinationCell(staff, nullptr, *reinterpret_cast<const u16 *>(thing + 0x36)))
+            *reinterpret_cast<u16 *>(staff + 0x208) = area;   // (either way after the original's debug print)
+    } else if (state == 2) {
+        *reinterpret_cast<u16 *>(staff + 0x208) = 0;
+        Staff_SetState(staff, nullptr, 0);
+    }
+}
+
+namespace {
+using SumFn = s32(__fastcall *)(u8 *, void *, u32);
+s32 __fastcall game_sumA(u8 *record, void *, u32 n) { return reinterpret_cast<SumFn>((uintptr_t)0x004c8180)(record, nullptr, n); }
+s32 __fastcall game_sumB(u8 *record, void *, u32 n) { return reinterpret_cast<SumFn>((uintptr_t)0x004c8150)(record, nullptr, n); }
+const StaffAdviceEnv kGameAdviceEnv = {&game_sumA, &game_sumB};
+const StaffAdviceEnv *g_advice = &kGameAdviceEnv;
+const u32 kKindHeads[5] = {0x1da73c, 0x1da73e, 0x1da740, 0x1da744, 0x1da742};
+
+// The chain at the world's head word: more than 3 members and the average of the low bytes of their truncated floats at field below 15.
+bool chain_low(u32 head, u32 field) {
+    u32 count = 0, sum = 0;
+    for (u16 h = *reinterpret_cast<const u16 *>(*reinterpret_cast<u8 **>((uintptr_t)0x0080239c) + head); h;) {
+        ++count;
+        const u8 *const thing = *reinterpret_cast<u8 **>((uintptr_t)0x007cfb90 + h * 20u);
+        sum += (u32)(s32)(long long)X87Reg(*reinterpret_cast<const float *>(thing + field)).v & 0xff;   // (__ftol 0x67a830)
+        h = *reinterpret_cast<const u16 *>(thing + 0x210);
+    }
+    return count > 3 && sum / count < 15;
+}
+}  // namespace
+
+void Staff_SetAdviceEnv(const StaffAdviceEnv *e) { g_advice = e ? e : &kGameAdviceEnv; }
+
+u32 __fastcall StaffAdvice_KindLow(const u8 *self, void *, u32 kind) {
+    if (*reinterpret_cast<const u32 *>(self + 0x64)) return 1;
+    if (kind > 4) return 0;
+    if (kind == 0) {
+        u8 *const record = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(*reinterpret_cast<u8 **>((uintptr_t)0x0080239c)));
+        const float a = (float)g_advice->sumA(record, nullptr, 1);   // (fild, fstp m32)
+        const X87Reg ratio = a / X87Reg((double)g_advice->sumB(record, nullptr, 1));   // (fild, fdivr m32)
+        if (ratio.v > (double)0.2f) return 1;   // (fcomp [0x7008dc]: not when below, equal or unordered)
+    }
+    if (chain_low(kKindHeads[kind], 0x1fc)) return 1;
+    return chain_low(kKindHeads[kind], 0x1f8) ? 1 : 0;
+}
+
+void __fastcall StaffAdvice_Update(u8 *self, void *, u32 kind) {
+    FileTime out;
+    const FileTime *const age = FunnyTime_Elapsed(**reinterpret_cast<u8 ***>((uintptr_t)0x007cf6ec) + 0x2a0, nullptr, &out);
+    if ((s32)((long long)((unsigned long long)age->high << 32 | age->low) / 25920000000000LL) < 0x18) return;   // (_alldiv by 30 days)
+    u32 *const state = reinterpret_cast<u32 *>(self + 0x24 + 12 * kind);
+    u32 msg[4];
+    if (StaffAdvice_KindLow(self, nullptr, kind)) {
+        const u32 now = state[0];
+        if (now > 4) return;
+        state[0] = now == 0 ? 1 : now == 4 ? 4 : now + 1;
+        if (now) state[1] = 1;
+        Object_PostMessage(ThingMsg17_Ctor(reinterpret_cast<u8 *>(msg), nullptr, kind, now ? 2 : 0));
+        return;
+    }
+    if (state[0] == 1) Object_PostMessage(ThingMsg17_Ctor(reinterpret_cast<u8 *>(msg), nullptr, kind, 3));
+    state[0] = 0;
+    state[1] = 0;
 }
 }

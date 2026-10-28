@@ -248,4 +248,44 @@ u16 *__fastcall Handyman_FindJob(u8 *staff, void *, u16 *out);
 // entry is set, nothing more; else Sprite_SetDestinationCell to the cell past the entrance ((row 0x7855c0 << 7) + column 0x7855bc + 1, a
 // word: the dword's upper half the staff pointer's) and the state 1, or 0 when it cannot go.
 void __fastcall Staff_HeadForEntrance(u8 *staff);
+
+// 0x506d10 (thiscall; name invented, unconfirmed): the staff member leaves its rest area: a message {vtable 0x700868, +4 0, +8 its handle
+// word, +0xc 0} posted (Object_PostMessage: agent B's unported 0x40fb10 through the objects' env); element 0 of the ride record
+// (Rides_FindById of +0x24) of the thing the rest area handle (+0x208) names (its slot of 0x7cfb90) less 1; +0x208 = 0; the script at
+// +0xc started at entry 3 with the folder +0x24 and sprite +0x20 (ScriptRef_Start); Staff_SetState 0.
+void __fastcall Staff_LeaveRestArea(u8 *staff);
+
+// 0x4f7c40 (thiscall; name invented, unconfirmed): a jump to Person_Detach (Thing_Delete's kind 0x12, Researcher_Detach's base).
+void __fastcall Staff_Detach(u8 *staff);
+// 0x502920 (thiscall; name invented, unconfirmed): a researcher (kind 8) taken out of the world: out of the game object's list of them
+// (Things_Unlink1da742 on [0x80239c]), Staff_Detach, then the lab (GameTable7cfb90_Get1da722_519550, when there is one) has its flag
+// synced (ResearchLab_SyncFlag: set while the list is not empty).
+void __fastcall Researcher_Detach(u8 *researcher);
+// 0x504c70 (thiscall (message), pops 4; name invented, unconfirmed): a staff member's message (its type the message's vtable slot 0).
+// 0xc (pay day): the wage ([0x785380 + Byte2_ToIndex * 4] times [0x78532c + the grade +0x1e4 * 16], as it is here, not Staff_GetWage)
+// debited from the park's money (Money_Debit on GameTable7cfb90_Get1da726_5195d0) and added to the dword +0x1f7f0 of
+// GameTable7cfb90_Get1da720_519510's record (the wage computed again). 0xa, for the rest area +0x208 when the word +8 names it: in
+// state 3 (+0x19c), Staff_LeaveRestArea, then the nearest rest area (Things_NearestRestArea) set as +0x208 when there is one and
+// Sprite_SetDestinationCell to its cell (+0x36) succeeds; in state 2, +0x208 cleared and Staff_SetState(0). Others: nothing.
+void __fastcall Staff_HandleMessage(u8 *staff, void *, u8 *message);
+
+// What StaffAdvice_KindLow calls in the game that is not ported yet (agent C's, thiscall (n), pops 4: sums over the 0x400 records of 0x7c
+// bytes from +0x1efa4 down of GameTable7cfb90_Get1da720_519510's record; the benches point them at recorders).
+struct StaffAdviceEnv {
+    s32(__fastcall *sumA)(u8 *record, void *, u32 n);   // 0x4c8180 (0x4c8ba0 of each)
+    s32(__fastcall *sumB)(u8 *record, void *, u32 n);   // 0x4c8150 (0x4c8ae0 of each)
+};
+// StaffAdvice_KindLow's calls go to env (nullptr: the game's).
+void Staff_SetAdviceEnv(const StaffAdviceEnv *env);
+// 0x509360 (thiscall (kind), pops 4; name invented, unconfirmed; 0x508f70's test): 1 when the dword +0x64 is set; else for the kinds 0-4
+// (the staff chains of [0x80239c]: heads +0x1da73c, +0x1da73e, +0x1da740, +0x1da744, +0x1da742, next +0x210; kind 0 first 1 when sumA(1)
+// as a float over sumB(1) is above 0.2) 1 when the chain has more than 3 members and the average low byte of the truncated float +0x1fc
+// is below 15, else the same for +0x1f8; 0 otherwise (others: 0 after the original's debug print).
+u32 __fastcall StaffAdvice_KindLow(const u8 *self, void *, u32 kind);
+// 0x508f70 (thiscall (kind), pops 4; name invented, unconfirmed): nothing until the game clock's elapsed time ([[0x7cf6ec]] + 0x2a0,
+// FunnyTime_Elapsed) is 24 30-day months (the signed 64-bit quotient's low dword). Then the kind's state +0x24 + 12 * kind and flag
+// (+4): while StaffAdvice_KindLow, the state 0 becomes 1 (message 17 of (kind, 0) posted), 1-4 become 2, 3, 4, 4 with the flag set
+// (message 17 of (kind, 2)), others stay; else message 17 of (kind, 3) when the state is 1, and the state and flag cleared.
+// (The messages through Object_PostMessage: agent B's unported 0x40fb10.)
+void __fastcall StaffAdvice_Update(u8 *self, void *, u32 kind);
 }

@@ -16,8 +16,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fncmp import RAM, RAND_SEED, Bench, Call, put  # noqa: E402
 import cellmodel  # noqa: E402
 
-B = Bench([(0x535dd0, 0x5360fe), (0x522700, 0x5228b5), (0x4d8c00, 0x4d8c4e), (0x4d96f0, 0x4d97b0), (0x4d97b0, 0x4d97e0), (0x4d8300, 0x4d8328), (0x4d97e0, 0x4d9920), (0x4d99c0, 0x4d99e0),
+RANGES = ([(0x535dd0, 0x5360fe), (0x522700, 0x5228b5), (0x4d8c00, 0x4d8c4e), (0x4d96f0, 0x4d97b0), (0x4d97b0, 0x4d97e0), (0x4d8300, 0x4d8328), (0x4d97e0, 0x4d9920), (0x4d99c0, 0x4d99e0),
            (0x4d0af0, 0x4d0b27), (0x53ad20, 0x53aefc), (0x5da3c0, 0x5da3c1)])
+B = Bench(RANGES)
 CELL, OUT = RAM, RAM + 0x1000
 W1, W2, G = 0x31000000, 0x33000000, 0x32000000   # ([0x7cf83c], [0x80239c], [0x8023a0])
 SIDES = {1: (0, (0, -1)), 0x10: (8, (0, 1)), 4: (0x28, (1, 0)), 0x40: (0x30, (-1, 0))}
@@ -34,8 +35,9 @@ def model(r):
                      2 << 16 | r.randrange(0x20), 2 << 16 | r.randrange(0x20), r.getrandbits(32), 0xffffffff])
 
 
-def case(r):
-    x, y = (r.choice([r.randrange(1, 127)] * 5 + [0, 127]) for _ in range(2))
+def case(r, xy=None):
+    """xy: the cell's (x, y) given (pathapply.py's), else drawn."""
+    x, y = xy or (r.choice([r.randrange(1, 127)] * 5 + [0, 127]) for _ in range(2))
     h = ident(x, y)
     cell = bytearray(r.bytes(0x28))
     put(cell, 0, 'H', h)

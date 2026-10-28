@@ -2,8 +2,12 @@
 
 #include <cstdint>
 
+#include "../core/crt.h"
+#include "../core/gameclock.h"
 #include "../core/indexed.h"
 #include "../core/savegame.h"
+#include "../core/soundplay.h"
+#include "../core/soundset.h"
 #include "../core/timesig.h"
 #include "../core/selectors.h"
 #include "../model/parts.h"
@@ -263,5 +267,63 @@ u32 __fastcall Advisor_Serialize(u8 *self, void *, Stream *stream, u32 save, s32
     if (!Save_Field(stream, save, self + 0x16e8, 1, 0x0076e120)) return 1;   // mRequestedLastTutorial
     if (save != 0) return Save_Field(stream, save, self + 0x16ec, 4, 0x0076e110) ? 0 : 1;
     return Save_ReadU32(stream, self + 0x16ec, reinterpret_cast<const char *>((uintptr_t)0x0076e110), 0) != 0 ? 1 : 0;
+}
+
+void __cdecl Advisor_StopSpeech() {
+    if (!global<u32>(0x00f7966c)) return;
+    const u32 had = global<u32>(0x00f79680);
+    Sound_SetVoicePending(had, 0);
+    if (global<u32>(0x00f797c4) && global<u8>(0x0078d90c) && global<u32>(0x00f79680)) {
+        Sound_VoiceFunctor3(global<u32>(0x00f79680));
+        global<u32>(0x00f797c4) = 0;
+    }
+    global<u32>(0x00f7966c) = 0;
+    Sound_Set803acc(0);
+    ParticlePool_Resize(0, 0, 0);
+    ModelSlot_KillAdvisor(global<u32>(0x00f79674));
+    if (u8 *const text = global<u8 *>(0x00f797a0)) {
+        if (text != reinterpret_cast<u8 *>(0x00f797d0))
+            Crt().free(text);
+        else
+            global<u32>(0x00f79bb8) = 0;
+        global<u32>(0x00f797a0) = 0;
+        global<u32>(0x00f79794) = 0;
+        global<u32>(0x00f7979c) = 0;
+    }
+    if (global<u32>(0x00f79680)) {
+        Sound_Forward6(global<u32>(0x00f79680));
+        global<u32>(0x00f79680) = 0;
+    }
+    if (!had) return;
+    const s32 k = Crt().rand() % 3;   // (each tested in turn; the voice re-read, 0 by now)
+    if (k == 0) Sound_PlayAt(global<u32>(0x00f79680), global<u32>(0x00803a34), 0x27f, 0, 0, 0);
+    if (k == 1) Sound_PlayAt(global<u32>(0x00f79680), global<u32>(0x00803a34), 0x280, 0, 0, 0);
+    if (k == 2) Sound_PlayAt(global<u32>(0x00f79680), global<u32>(0x00803a34), 0x281, 0, 0, 0);
+}
+
+u8 __fastcall Advisor_Cancel(u8 *self, void *, u32 id) {
+    u8 found = 0;
+    if (at<u8>(self, 0x16e4)) {
+        AdvisorScoring_Instance();
+        if (DefField8_59c500(id) == 1 && at<u32>(self, 0x16dc) == id) at<u8>(self, 0x16e4) = 0;
+    }
+    for (u32 i = 0; i < 8; ++i) {
+        u8 *const slot = self + 0x14 + 0x18 * i;
+        if (at<u8>(slot, 0x14) && at<u32>(slot, 0xc) == id) {
+            at<u8>(slot, 0x14) = 0;
+            found = 1;
+        }
+    }
+    const u32 now = Clocks_RealNow(reinterpret_cast<u8 *>(0x00785970));
+    const u32 speaking = now < at<u32>(self, 0xd8) + at<u32>(self, 0xdc) ? at<u32>(self, 0x16ec) : 0x160;
+    if (speaking == id) {
+        found = 1;
+        Advisor_StopSpeech();
+        u8 *const record = self + (id << 4);
+        at<u8>(record, 0xe8) = 0;
+        ++at<u32>(record, 0xec);
+        at<u32>(self, 0xdc) = 0;
+    }
+    return found;
 }
 }

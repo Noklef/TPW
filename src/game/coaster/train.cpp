@@ -15,6 +15,7 @@
 #include "helpers.h"
 #include "../core/globals.h"
 #include "../terrain/land.h"
+#include "../world/queuepieces.h"
 #include "placecheck.h"
 #include "registry.h"
 
@@ -315,6 +316,23 @@ void __cdecl Car_FreeCoupling(const u8 *car, u32 *coupling) {
     GlobalMem_Free(reinterpret_cast<void *>(coupling[2]));
     coupling[1] = 0;
     coupling[2] = 0;
+}
+
+void __cdecl Car_Free(u8 *car, const u8 *other) {
+    if (at<u32>(car, 0x70)) {
+        QueuePiece_Remove(at<u32>(car, 0x70));   // (Ride_Destroy 0x463c80, through the queue pieces' env)
+        at<u32>(car, 0x70) = 0;
+    }
+    u32 *const back = &at<u32>(car, 0x84);
+    Car_FreeCoupling(car, &at<u32>(car, 0x78));
+    if (other && (other[0] & 8)) {
+        Car_FreeCoupling(car, back);
+    } else {
+        back[1] = 0;
+        back[2] = 0;
+    }
+    if (Coaster_SelectedCar() == car) Coaster_SelectCar(nullptr);
+    GlobalMem_Free(car);
 }
 }
 

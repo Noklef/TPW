@@ -38,6 +38,8 @@ struct CrtEnv {
     s32(__cdecl *time)(s32 *t);                                    // 0x67d3f0: the seconds since 1970 (UTC), also through t unless null
     // The generator (the driver's stand-in: the same on a seed at fncmp.RAND_SEED, as the emulator's hook, fncmp._rand).
     s32(__cdecl *rand)();                                          // 0x67b5c0: the thread's seed (_getptd +0x14) * 214013 + 2531011, bits 16-30
+    // The heap (the driver's stand-in: fncmp's heap, as the emulator's hook a bench gives, fncmp._free).
+    void(__cdecl *free)(void *block);                              // 0x67ad90: free (the CRT heap's, under its lock)
 };
 
 // The CRT ports call (the game's unless swapped).

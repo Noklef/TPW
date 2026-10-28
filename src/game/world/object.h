@@ -12,12 +12,15 @@ extern "C" {
 
 // What the objects call in the game that is not yet ported, so that they can run outside it (the benches point these at recorders).
 struct ObjectEnv {
-    void(__fastcall *post40fb10)(u8 *centre, void *, u8 *msg);   // 0x40fb10 (agent B's; thiscall on the message centre, pops 4)
+    void(__fastcall *post40fb10)(u8 *centre, void *, u8 *msg);   // 0x40fb10, MessageCentre_Post of world/messagecentre; its 1 ignored
     void(__fastcall *person500870)(u8 *person);                  // 0x500870 (agent C's; thiscall on a person)
     void(__fastcall *person5012f0)(u8 *person);                  // 0x5012f0 (agent C's; thiscall on a person)
 };
 // The objects' calls go to env (nullptr: the game's).
 void Object_SetEnv(const ObjectEnv *env);
+// A message posted to the message centre (MessageCentre_Instance, made on the first call, then the env's 0x40fb10): what the things'
+// code in 0x4e0000-0x530000 does inline; the staff and the research labs share the objects' env through it.
+void Object_PostMessage(u8 *msg);
 
 // 0x4e0450 (thiscall; name invented): the queue's head (the handle at +0x3c, a person of the table 0x7cfb90): when it is not element 0 of the
 // object's ride record (Rides_GetElement of Rides_FindById of +0x24) and its state (+0x220) is 0xe, the env's 0x500870 on it. Otherwise, unless
@@ -34,9 +37,9 @@ void __fastcall Object_SetState(u8 *object, void *, u32 state);
 // debug print, left out with the others), +0x68 = 1, the strip animation shrunk again, element 6 of the ride record (Rides_FindById of
 // +0x24) = 0 and Object_SetState (0); 1.
 u32 __fastcall Object_SetOpen(u8 *object, void *, u32 open);
-// 0x4df390 (thiscall; name invented): SetOpen's closing without its state test and first shrink: Object_CanOpen's checks made inline
-// (they only pick a debug print, five times, left out), +0x68 = 1, the strip animation of 0x7a4610[+0x20] shrunk (StripAnim_StartShrink),
-// element 6 of the ride record (Rides_FindById of +0x24) = 0 and Object_SetState (0).
+// 0x4df390 (thiscall; name invented): the object closed: Object_CanOpen's checks made inline (they only pick a debug print, left out; their
+// calls are kept), +0x68 = 1, the strip animation of 0x7a4610[+0x20] shrunk (StripAnim_StartShrink), element 6 of the ride record
+// (Rides_FindById of +0x24) = 0 and Object_SetState (0).
 void __fastcall Object_Close(u8 *object);
 // 0x4dfe30 (thiscall (on), pops 4; name invented: what +0x64 means is not known): on, unless +0x64 is set already, +0x64 = 1 and the ride
 // restarted (Object_RestartRide, inline); off, when +0x64 is set, +0x64 = 0 and, when Object_CanOpen (its checks inline), Object_Close. 1.
