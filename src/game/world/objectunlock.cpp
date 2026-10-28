@@ -45,12 +45,12 @@ void __fastcall ObjectUnlock_FirstAdvice(u8 *) {
 }
 
 void __fastcall ObjectUnlock_AdviseLevel(u8 *self, void *, u32 group, s32 level) {
-    switch (level) {   // (other levels: a debug print)
-    case 1: post_advice(0xd7, group); break;
-    case 2: post_advice(0xd8, group); break;
-    case 3: post_advice(0xd9, group); break;
-    default: break;
-    }
+    if (level >= 1 && level <= 3) post_advice(0xd6 + (u32)level, group);   // (other levels: a debug print)
+    ObjectUnlock_FirstAdvice(self);
+}
+
+void __fastcall ObjectUnlock_AdviseExtraLevel(u8 *self, void *, u32 group, s32 level) {
+    if (level >= 1 && level <= 3) post_advice(0xe0 + (u32)level, group);   // (other levels: a debug print)
     ObjectUnlock_FirstAdvice(self);
 }
 }
