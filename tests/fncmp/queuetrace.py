@@ -6,7 +6,7 @@
 # path's or another, its +0x10 word the first queue cell's now and then (so that the walk starts at the entrance). The hoarding flag
 # (0x81b4cc) and the cells' +2 either way (both bit bytes alike). A walk that would not stop, or would leave the laid-out cells, is caught
 # by a model of it and the line redrawn (else the entrance's bits 0). The thing's angle (+0x10) one of the four mostly, its address's low
-# byte (the facing for other angles) one of several. The point list (0x81b740) and its count start random (the count is cleared).
+# byte (the facing for other angles) one of several. The point list (0x81b740) and its count start random (the count is cleared), the end's spot (0x81ede4) too.
 # usage: queuetrace.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -143,7 +143,8 @@ def case(r):
     thing = bytearray(r.bytes(0x40))
     put(thing, 0x36, 'H', handle)
     put(thing, 0x10, 'i', r.choice([0, 90, 180, 270] * 3 + [45, -90, 360, r.getrandbits(32) - (1 << 31)]))
-    regions.update({THING + low: thing, 0x81b4cc: bytes([gate]), 0x81b740: r.bytes(0x100), 0x820a8c: r.bytes(4)})
+    regions.update({THING + low: thing, 0x81b4cc: bytes([gate]), 0x81b740: r.bytes(0x100), 0x820a8c: r.bytes(4),
+                    0x81ede4: r.bytes(8)})
     return Call(0x530120, [THING + low], regions, ret='b')
 
 
