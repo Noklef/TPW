@@ -110,14 +110,18 @@ def case(r):
     else:
         message = r.choice([0x19, 0x19, 0xb, 0xc, 0x15, 0, r.getrandbits(8) & ~0x80]) | high(r) & ~0x100
     code, e = message & 0x1ff, 0x28 * ident
-    if code in (0x81, 0x83, 0x85) and r.random() < 0.7:   # (a hoarding or track cell mostly, at an end, a corner or a junction)
-        put(c28, e + 8, 'I', r.choice([0x19, 0x19, 0x19, 0x19, 0xb, 0xc, 0x10, 0x11, 0xd, 0x12, 3, 0]))
+    if code in (0x81, 0x83, 0x85) and r.random() < 0.7:   # (a hoarding or track cell mostly, at an end, a corner or a junction; the
+        # model's hoardings at the corners that do not match their direction more often, the end flag's at an end or alone)
+        hoarding = r.random() < 0.6 if code == 0x81 else r.random() < 0.35
+        put(c28, e + 8, 'I', 0x19 if hoarding else r.choice([0x19, 0xb, 0xc, 0x10, 0x11, 0xd, 0x12, 3, 0]))
         c28[e + 0xd] = r.choice(SIDES)
-        c28[e + 0xc] = c28[e + 0x22] = r.choice([0x41, 0x14, 5, 0x50, 0x11, 0x44, 0x55])
-    if code == 0x85 and r.random() < 0.4:   # (the 0x44-byte cells about it empty mostly)
+        shapes = [0x11, 0x44, 1, 4, 0x10, 0x40, 0, 0x14, 0x50] if code == 0x85 else [0x41, 0x14, 5, 0x50, 0x11, 0x44, 0x55, 0x14, 0x50]
+        c28[e + 0xc] = c28[e + 0x22] = r.choice(shapes)
+    if code == 0x85 and r.random() < 0.4:   # (the 0x44-byte cells about it empty mostly, its own of the types the flag reads)
         c44 = regions[C44]
         for k in (ident + dy * 128 + dx for dy in (-1, 0, 1) for dx in (-1, 0, 1)):
             put(c44, 0x44 * k + 8, 'I', 0 if r.random() < 0.9 else r.choice([1, 2, 7]))
+        put(c44, 0x44 * ident + 8, 'I', r.choice([0, 7, 0x1e, 2, 1, 3, 0x15]))
     if code == 0x86 and r.random() < 0.7:
         put(c28, 0x28 * ident + 8, 'I', r.choice([0xb, 0xd, 0x10, 0x12, 0x19]))
         put(c28, 0x28 * ident + 0x10, 'H', r.choice([0, r.randrange(1, IDS)]))
