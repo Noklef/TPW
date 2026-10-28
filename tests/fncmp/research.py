@@ -251,11 +251,17 @@ def progress_case(r):
     done = r.choice([0.0, cost, cost - 1.0, cost * 0.5, cost + 1.0, r.uniform(0, 1000), float('nan')])
     gap = cost - done
     amount = r.choice([0.0, gap, gap, gap + 0.5, gap - 0.5, gap * 0.5, 1.0, -1.0, float('nan'), r.uniform(-10, 1000)])
-    put(project, 0xc, 'II', fb(cost), fb(done))
+    cost, done, amount = fb(cost), fb(done), fb(amount)
+    if r.random() < 0.15:   # (past the float range in the register, against an infinite cost)
+        cost, done, amount = r.choice([fb(float('inf')), fb(3e38)]), fb(3e38), fb(3e38)
+    nan = lambda: r.choice([0x7fc00000, 0xffc00000, 0x7f800001, 0x7fa00000, 0xff812345, 0x7fffffff])  # noqa: E731
+    if r.random() < 0.1:   # (two NaNs: the x87 keeps the larger significand)
+        done, amount = nan(), nan()
+    put(project, 0xc, 'II', cost, done)
     log = log_region()
     blob_bytes(log, 21, 0, 0xf3ff)
     regions.update({LAB: project, 0x788d3c: struct.pack('<I', RAM + 0x3800), LOG: log})
-    return Call(0x504630, [LAB, fb(amount)], regions, conv='t')
+    return Call(0x504630, [LAB, amount], regions, conv='t')
 
 
 def flag_case(r, op):

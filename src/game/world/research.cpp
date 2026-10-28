@@ -197,9 +197,9 @@ u8 __fastcall ResearchProject_SetNextUpgrade(u8 *project, void *, const u8 *def)
 
 void __fastcall ResearchProject_AddResearch(u8 *project, void *, float amount) {
     if (at<float>(project, 0x10) >= at<float>(project, 0xc)) return;   // (done already; a NaN either side goes on)
-    const float done = amount + at<float>(project, 0x10);
-    at<float>(project, 0x10) = done;
-    if (!(done >= at<float>(project, 0xc))) return;
+    const X87Reg done = X87Reg(amount) + at<float>(project, 0x10);   // (fld amount; fadd [+0x10]; fcom [+0xc] before the store)
+    at<float>(project, 0x10) = (float)done;
+    if (!(done.v >= at<float>(project, 0xc))) return;
     at<u8>(controls(project), 0x10) = 1;
     at<u32>(controls(project), 0x14) = at<u8>(project, 9);
     u32 msg[4];
