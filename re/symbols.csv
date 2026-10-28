@@ -3714,6 +3714,7 @@ address,name,kind,confidence,notes
 0x005012f0,Visitor_SendAway,function,low,"reimplemented (src/game/world/person); (6, object) on the ring, sound 0x80 for a handle & 7 of 0, Lower19c(1), the queue fields cleared, state 6"
 0x004f8ae0,Person_Detach,function,low,"reimplemented (src/game/world/person); thiscall: Thing_Detach, the script slot +0xc killed when set, the action history's dump, the history's +0x84 script killed"
 0x004fb330,Visitor_Detach,function,low,"reimplemented (src/game/world/person); thiscall: the sprite script at +0x210 killed and cleared when set, then Person_Detach"
+0x00501db0,Visitor_SetState,function,low,"reimplemented (src/game/world/person); thiscall (state), pops 4: the state stored at +0x220, then by state the reference +0xc's +4 (1 or 3) and the state's own work (see person.h)"
 0x00550d80,Setting_SetMode,function,high,reimplemented (src/game/core/options); stores a mode and sets its flag bits
 0x005633e0,Quad_Push,function,high,reimplemented (src/game/core/seqs); pushes four dwords into the next of four slots
 0x0059c390,Table76e300_GetObjectDword,function,high,reimplemented (src/game/world/objectdefs); a dword of the object indexed through a record of the table

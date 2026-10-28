@@ -18,6 +18,7 @@
 #include "../sprite/sprite.h"
 #include "../terrain/land.h"
 #include "analyser.h"
+#include "mapcell.h"
 #include "messagecentre.h"
 #include "nav.h"
 #include "object.h"
@@ -38,7 +39,7 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 u16 map_id(const u8 *thing) { return (u16)((at<u8>(thing, 7) << 7) + at<u8>(thing, 5) + 1); }
 
 const PersonEnv kGameEnv = {reinterpret_cast<u32(__cdecl *)(s32, s32)>((uintptr_t)0x006e7074),
-                             reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)0x00501db0)};
+                             &Visitor_SetState};
 const PersonEnv *g_env = &kGameEnv;
 
 // The float at p = v kept to 0..100 (fcom 100.0: above it 100; fcom 0.0: below it, or unordered, 0).
@@ -702,6 +703,123 @@ void __fastcall Person_UpdateSpeed(u8 *person) {
 void __fastcall Person_UpdateSpeedParticle(u8 *person) {
     Person_UpdateSpeed(person);
     Sprite_SpawnParticle(person, nullptr, at<u8>(person, 0x3a0) ? 0x35 : 0x39);
+}
+
+namespace {
+u8 *world80239c() { return global<u8 *>(0x0080239c); }
+u8 *visitorObject(const u8 *visitor) { return global<u8 *>(0x007cfb90 + 20 * (u32)at<u16>(visitor, 0x1dc)); }   // (re-read at each use)
+}  // namespace
+
+void __fastcall Visitor_SetState(u8 *visitor, void *, u32 state) {
+    u8 *const ref = visitor + 0xc;
+    at<u32>(visitor, 0x220) = state;
+    switch (state) {
+    case 0: case 2: case 5: case 9: case 10: case 13: case 20:
+        Set4_4217f0(ref, nullptr, 1);
+        return;
+    case 1: case 6: case 19:
+        Set4_4217f0(ref, nullptr, 3);
+        return;
+    case 3:
+        Set4_4217f0(ref, nullptr, 3);
+        at<u32>(visitor, 0x200) = (u32)World_Rand(world80239c()) % 0x96u + 0xc8u;
+        return;
+    case 4: {   // at the ticket booth A or B (the first position goes to the state's own stack slot in the original)
+        u16 pos[2];
+        u8 *const map = global<u8 *>(0x008023a0);
+        if (*Map_TicketBoothPos(map, nullptr, pos, 0) == map_id(visitor)) {
+            at<u32>(visitor, 0x1c) = 0x200;
+        } else if (*Map_TicketBoothPos(map, nullptr, pos, 1) == map_id(visitor)) {
+            at<u32>(visitor, 0x1c) = 0x600;
+        }
+        Set4_4217f0(ref, nullptr, 3);
+        return;
+    }
+    case 7:
+        if (at<u32>(visitor, 0xd0))
+            Sprite_SetDestination(visitor, nullptr, at<u16>(visitor, 0x18), at<u16>(visitor, 0x1a));
+        Set4_4217f0(ref, nullptr, 1);
+        return;
+    case 8:
+        at<u32>(visitor, 0x208) = at<u32>(world80239c(), 0x1da70c);
+        return;
+    case 11:
+        Set4_4217f0(ref, nullptr, 3);
+        at<u32>(visitor, 0x1fc) = at<u32>(world80239c(), 0x1da70c);
+        at<u32>(visitor, 0x1f4) = (u32)(long long)X87_MulInt(at<u8>(visitor, 0x1f1), global<float>(0x007007a4));   // fild; fmul 1.2f; __ftol
+        return;
+    case 12:
+        at<u16>(visitor, 0xc2) = global<u16>(0x0075c7f0);
+        Set4_4217f0(ref, nullptr, 1);
+        return;
+    case 14:
+        Set4_4217f0(ref, nullptr, 3);
+        at<u8>(visitor, 0x1f1) = (u8)Obj_RollChance(visitorObject(visitor), nullptr, (u32)(uintptr_t)visitor);
+        return;
+    case 15: {
+        if (at<u32>(ref, 0))
+            Set4_4217f0(ref, nullptr, 1);
+        else
+            ScriptRef_Start(ref, nullptr, 1, at<u32>(visitor, 0x24), at<u32>(visitor, 0x20));
+        at<u32>(visitor, 0x28) = 0;
+        if (at<u32>(Object_GetDef(visitorObject(visitor)), 0x100)) {
+            Person_PlaceSprite(visitor, nullptr, 0.0f);
+            Sprite_SpawnParticle(visitor, nullptr, 0x13);
+        }
+        if (!at<u32>(visitor, 0x214)) return;
+        if (at<u32>(Object_GetDef(visitorObject(visitor)), 0x15c) == 1) return;
+        u16 handle;
+        World_SetSeed(world80239c(), nullptr, *Thing_GetHandle(visitor, nullptr, &handle));
+        const u32 sprite = SpriteFolder_RandomSprite(10);
+        const u32 anim = Sprite_RandomAnim(10, sprite);
+        at<s32>(visitor, 0x210) = SpriteScript_Start(0x0074f480, 10, sprite, anim, 0, 0, 0);
+        return;
+    }
+    case 16: {
+        if (at<u32>(Object_GetDef(visitorObject(visitor)), 0x100))
+            Sprite_SpawnParticle(visitor, nullptr, 0x13);
+        if (at<u8>(visitorObject(visitor), 0x32) & 0x20) {
+            at<u32>(visitor, 0x28) = 1;
+            Set4_4217f0(ref, nullptr, 3);
+        } else {
+            Obj_KillSlot(ref);
+        }
+        Person_KillScript84(visitor + 0x30);
+        if (at<s32>(visitor, 0x210)) {
+            SpriteScript_Kill(at<s32>(visitor, 0x210));
+            at<u32>(visitor, 0x210) = 0;
+        }
+        Ring_PushUnique(visitor + 0x30, nullptr, 0x14, 0);
+        static const u32 kIds[3] = {0x11, 0x14, 0x16};
+        for (const u32 id : kIds) {
+            const u32 kind = at<u16>(visitorObject(visitor), 0xe);
+            Slots_AddIfMatch(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da736_519610(world80239c())), nullptr, id, 1, kind,
+                             at<u16>(visitor, 0x1dc));
+        }
+        return;
+    }
+    case 17:
+        Ring_PushUnique(visitor + 0x30, nullptr, 0x10, 0);
+        Person_KillScript84(visitor + 0x30);
+        at<u16>(visitor, 0x1dc) = 0;
+        if (at<u32>(visitor, 0x210)) Person_JumpScript210(visitor);
+        Obj_KillSlot(ref);
+        return;
+    case 18:
+        Ring_PushUnique(visitor + 0x30, nullptr, 0x13, 0);
+        at<u16>(visitor, 0x1dc) = 0;
+        Set4_4217f0(ref, nullptr, 1);
+        return;
+    case 21:
+        if (at<u32>(visitor, 0x204)) {
+            const u32 ticks = Visitor_TimeInPark(visitor) << 2;
+            ParkAnalyser_RecordDays(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(world80239c())), nullptr, ticks);
+        }
+        Set4_4217f0(ref, nullptr, 3);
+        return;
+    default:   // (past 0x15: only stored)
+        return;
+    }
 }
 
 void Person_SetEnv(const PersonEnv *env) { g_env = env ? env : &kGameEnv; }
