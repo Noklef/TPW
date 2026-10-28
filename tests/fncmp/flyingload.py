@@ -35,6 +35,9 @@ def image(r):
         table = bytearray(400)
         put(table, 0, 'I', r.getrandbits(32))
         entries = r.sample(range(1, 100), r.choice([0, 1, 1, 2, 3]))
+        if entries and r.random() < 0.5:   # (the first and last entries now and then: the walk's ends)
+            entries[0] = r.choice([1, 99])
+            entries = sorted(set(entries))
         for i in entries:
             put(table, 4 * i, 'I', r.getrandbits(32) | 1)
         d += struct.pack('<I', size) + table[:size] + r.bytes(16) + b'PAD_' * 5
