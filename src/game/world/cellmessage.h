@@ -46,4 +46,19 @@ extern "C" {
 //   is 0x15 and the cell has flag 0x100 (+0xe) or a type of 4, 9 or 0xa (else 0); MapCell_SetKind (the message); 0 for its 0, else
 //   0x816d64 = the message.
 u32 __fastcall MapCell_HandleMessage(u8 *cell, void *, u32 message, u32 a, u32 b);
+
+// 0x452d30 (cdecl (unused, x, y, ride, flagged); name invented, unconfirmed): the map cell at (x, y), each clamped to 0 .. [0x7a0314] - 1
+// / [0x7a0374] - 1 (signed), when Map_InBounds, of [0x7cf83c]'s map (+0x294 + id * 0x44, the id ((y << 7) + x + 1) & 0xffff) is made a
+// kind 0x15 cell keeping its owner word (+0x10): MapCell_Clear (0, 0), MapCell_HandleMessage (0x15, 0, 0), then MapCell_SetParent of the
+// first argument's slot after the old owner word went into its low half (sic: only the word is kept); its entry (MapHandle_Entry28, taken
+// first) gets the ride at +4, and the cell's flag 0x100 is set when flagged, else cleared.
+void __cdecl Map_SetRideCell(u32 unused, s32 x, s32 y, u32 ride, u32 flagged);
+
+// 0x536100 (cdecl (message, x0, y0, &x1, &y1); name invented, unconfirmed): the message to the map cells of [0x7cf83c]'s map along a line
+// from (x0, y0) to (*x1, *y1) on its longer way (|x1 - x0| > |y1 - y0|, signed: along x at y0, else along y at x0), with 0x820aa4 set and
+// 0x820ab8 cleared first. Each cell before the end (the end read again each step), when Map_InBounds, gets MapCell_HandleMessage (message,
+// the step (1 towards the end, -1 away), 0) along x or (message, 0, the step) along y, which clears 0x820aa4; its 0 returns 0. Then
+// 0x820ab8 is set and the end's cell, when Map_InBounds (else 1 returned), gets the message too: both flags cleared, 1 for its answer
+// other than 0, else 0. (Along y the original writes the cells' ids into the &x1 argument's slot, which no caller reads.)
+u32 __cdecl Map_SendLine(u32 message, s32 x0, s32 y0, const s32 *x1, const s32 *y1);
 }

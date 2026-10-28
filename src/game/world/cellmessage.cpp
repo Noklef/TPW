@@ -229,3 +229,62 @@ u32 __fastcall MapCell_HandleMessage(u8 *cell, void *, u32 message, u32 a, u32 b
     return 1;
 }
 }
+
+namespace {
+
+u8 *map_cell(s32 x, s32 y) {
+    return global<u8 *>(0x007cf83c) + 0x294 + (((u32)y << 7) + (u32)x + 1 & 0xffff) * 0x44;
+}
+
+}   // namespace
+
+extern "C" {
+
+void __cdecl Map_SetRideCell(u32 unused, s32 x, s32 y, u32 ride, u32 flagged) {
+    if (x < 0) x = 0;
+    if (y < 0) y = 0;
+    if (x >= global<s32>(0x007a0314)) x = global<s32>(0x007a0314) - 1;
+    if (y >= global<s32>(0x007a0374)) y = global<s32>(0x007a0374) - 1;
+    if (!Map_InBounds(x, y)) return;
+    u8 *const cell = map_cell(x, y);
+    if (!cell) return;
+    u8 *const entry = MapHandle_Entry28(reinterpret_cast<const u16 *>(cell));
+    const u32 slot = (unused & 0xffff0000u) | at<u16>(cell, 0x10);   // (the first argument's slot, its low word the owner's)
+    MapCell_Clear(cell, nullptr, 0, 0);
+    MapCell_HandleMessage(cell, nullptr, 0x15, 0, 0);
+    MapCell_SetParent(cell, nullptr, slot);
+    at<u32>(entry, 4) = ride;
+    const u32 flags = MapCell_Flags(cell);
+    MapCell_SetFlags(cell, nullptr, flagged ? flags | 0x100 : flags & 0xfeff);
+}
+
+u32 __cdecl Map_SendLine(u32 message, s32 x0, s32 y0, const s32 *x1, const s32 *y1) {
+    global<u32>(0x00820aa4) = 1;
+    global<u32>(0x00820ab8) = 0;
+    const s32 ex = *x1, ey = *y1;
+    const s32 dx = (s32)((u32)ex - (u32)x0), dy = (s32)((u32)ey - (u32)y0);
+    const bool along_x = (dx < 0 ? (s32)(0u - (u32)dx) : dx) > (dy < 0 ? (s32)(0u - (u32)dy) : dy);
+    s32 x = x0, y = y0;
+    s32 &walk = along_x ? x : y;
+    const s32 step = along_x ? (x0 <= ex ? 1 : -1) : (y0 <= ey ? 1 : -1);
+    const s32 *const end = along_x ? x1 : y1;
+    if (walk != (along_x ? ex : ey)) {
+        do {
+            if (Map_InBounds(x, y)) {
+                const u32 answer = along_x ? MapCell_HandleMessage(map_cell(x, y), nullptr, message, (u32)step, 0)
+                                           : MapCell_HandleMessage(map_cell(x, y), nullptr, message, 0, (u32)step);
+                global<u32>(0x00820aa4) = 0;
+                if (!answer) return 0;
+            }
+            walk = (s32)((u32)walk + (u32)step);
+        } while (walk != *end);
+    }
+    global<u32>(0x00820ab8) = 1;
+    if (!Map_InBounds(x, y)) return 1;
+    const u32 answer = along_x ? MapCell_HandleMessage(map_cell(x, y), nullptr, message, (u32)step, 0)
+                               : MapCell_HandleMessage(map_cell(x, y), nullptr, message, 0, (u32)step);
+    global<u32>(0x00820aa4) = 0;
+    global<u32>(0x00820ab8) = 0;
+    return answer ? 1 : 0;
+}
+}

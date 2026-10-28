@@ -50,7 +50,7 @@ if _ops is not None:
 
 RANGES = pathapply.merged(
     cellkind.RANGES + pathlink.RANGES + lineends.RANGES + cellbuild.RANGES + [
-        (0x532fc0, 0x5345f4), (0x52f840, 0x52f850), (0x527940, 0x527950), (0x4d0af0, 0x4d0b40), (0x53a510, 0x53a540),
+        (0x532fc0, 0x5345f4), (0x452d30, 0x452e03), (0x536100, 0x5362f8), (0x52f840, 0x52f850), (0x527940, 0x527950), (0x4d0af0, 0x4d0b40), (0x53a510, 0x53a540),
         (0x53ad20, 0x53aefc), (0x522700, 0x5228b5), (0x532dd0, 0x532f5e),
         # (rideat.py's: Terrain_SurfaceHeight and its lookups)
         (0x452ae0, 0x452c97), (0x4527f0, 0x452a70), (0x53bf30, 0x53bfa0), (0x527e80, 0x527ed8), (0x527d60, 0x527e76), (0x4d8300, 0x4d8328),
@@ -364,9 +364,62 @@ def run(r):
     return c
 
 
+def ride_cell(r):
+    """Map_SetRideCell: cellkind.py's Clear world, its cell moved to [0x7cf83c]'s map at the clamped (x, y) when inside it."""
+    c, regions = kind_world(r, 'Clear')
+    limits = [r.choice([128] * 6 + [0, 1, 50, 200, -1, r.getrandbits(32) - (1 << 31)]) for _ in range(2)]
+    setg(regions, 0x7a0314, struct.pack('<i', limits[0]))
+    setg(regions, 0x7a0374, struct.pack('<i', limits[1]))
+    xy = [r.choice([r.randrange(128)] * 6 + [-1, -0x8000, 127, 128, 200, r.getrandbits(32) - (1 << 31)]) for _ in range(2)]
+    cx, cy = (max(0, v) for v in xy)
+    cx, cy = (v if v < lim else lim - 1 for v, lim in ((cx, limits[0]), (cy, limits[1])))
+    cell = pathmodel.CELL
+    if 0 <= cx < 128 and 0 <= cy < 128:
+        at = cellkind.W1 + 0x294 + (((cy << 7) + cx + 1) & 0xffff) * 0x44
+        data = regions.pop(cell)
+        if lay(regions, at, data):
+            cell = at
+        else:
+            regions[cell] = data
+    return Call(0x452d30, [r.getrandbits(32), xy[0] & 0xffffffff, xy[1] & 0xffffffff, r.getrandbits(32), r.choice([0, 1, 0x100, r.getrandbits(32)])],
+                regions, conv='c', ret='v')
+
+
+LINE, ENDS = RAM + 0x200000, RAM + 0x1f0000
+
+
+def line(r):
+    """Map_SendLine: [0x7cf83c]'s map cells along a short line (now and then past the map's edges, or a point), the messages 3 (a
+    kind 3 cell's count up, or 0 for an incompatible type and a type 1 end under 0x820ab8), 0x82 (directions from the steps), 0x83 and
+    0x84 (owner and count words)."""
+    x0, y0 = (r.choice([r.randrange(128)] * 8 + [-2, 0, 127, 129]) for _ in range(2))
+    reach = r.choice([0, 1, 3, 6, 6, 12])
+    x1, y1 = (v + r.randrange(-reach, reach + 1) for v in (x0, y0))
+    if r.random() < 0.1:
+        x1, y1 = r.choice([(x0, y0), (x0 + 3, y0 + 3), (x0 - 2, y0 + 2)])
+    message = r.choice([3, 3, 3, 0x82, 0x83, 0x84])
+    regions = {0x7cf83c: struct.pack('<I', LINE), ENDS: struct.pack('<2i', x1, y1), 0x820aa4: r.bytes(0x20),
+               0x816d64: r.bytes(4), 0x818698: r.bytes(4), 0x8186bc: r.bytes(4)}
+    along_x = abs(x1 - x0) > abs(y1 - y0)
+    step = 1 if (x0 <= x1 if along_x else y0 <= y1) else -1
+    walk = list(range(x0, x1 + step, step)) if along_x else list(range(y0, y1 + step, step))
+    for i, v in enumerate(walk):
+        x, y = (v, y0) if along_x else (x0, v)
+        if not (0 <= x < 128 and 0 <= y < 128):
+            continue
+        cell = bytearray(r.bytes(0x44))
+        last = i == len(walk) - 1
+        put(cell, 8, 'I', r.choice([3] * 8 + [9, 0xa, 2] + ([1, 1] if last else [])))
+        cell[0xd] = r.choice([0, 0, 0, 1, 4, r.getrandbits(8)])
+        regions[LINE + 0x294 + (((y << 7) + x + 1) & 0xffff) * 0x44] = cell
+    xs, ys = ENDS, ENDS + 4
+    return Call(0x536100, [message | r.choice([0, 0, 0x10000]) if message != 3 else 3, x0 & 0xffffffff, y0 & 0xffffffff, xs, ys], regions,
+                conv='c', ret='a')
+
+
 CASES = {'Build': build, 'Walls': walls, 'Direction': lambda r: simple(r, 0x82), 'Owner': lambda r: simple(r, 0x83),
          'Count': lambda r: simple(r, 0x84), 'EndFlag': lambda r: simple(r, 0x85), 'Ends': ends, 'Reset': reset, 'Link': link, 'Model': model,
-         'Kind': kind, 'DeadEnds': dead_ends, 'Run': run}
+         'Kind': kind, 'DeadEnds': dead_ends, 'Run': run, 'RideCell': ride_cell, 'Line': line}
 OPS = [k for k in os.environ.get('OPS', ','.join(CASES)).split(',') if k]
 
 
