@@ -43,9 +43,10 @@ s32 turn_of(const u8 *cell, u8 direction) {
     return MapCell_StraightNeighbours(cell) && (direction == 0x40 || direction == 0x10) ? 0xb4 : 0;
 }
 
-const CellModelEnv kGameEnv = {reinterpret_cast<u32(__cdecl *)(s32, s32, s32, s32, s32, u32)>((uintptr_t)0x00522b90),
-                               reinterpret_cast<u32(__cdecl *)(s32, s32, s32, s32, s32, u32)>((uintptr_t)0x00522d50),
-                               reinterpret_cast<u32(__cdecl *)(s32, s32, s32, s32, s32, u32)>((uintptr_t)0x00522f20)};
+// The ports of 0x522b90 / 0x522d50 / 0x522f20 (agent A's queuepieces); their unsigned arguments pass the same dwords.
+using PlaceFn = u32(__cdecl *)(s32, s32, s32, s32, s32, u32);
+const CellModelEnv kGameEnv = {reinterpret_cast<PlaceFn>(&TrackQueuePiece_Place), reinterpret_cast<PlaceFn>(&TrackQueuePiece_PlaceAnimated),
+                               reinterpret_cast<PlaceFn>(&EndPiece_Place)};
 const CellModelEnv *g_env = &kGameEnv;
 
 // The cell's ride (+4), if any, removed (QueuePiece_Remove) and the field cleared.

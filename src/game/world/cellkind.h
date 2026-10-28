@@ -1,7 +1,7 @@
 // A map cell's kind (+8) changed and a cell cleared (names invented, unconfirmed): the 0x44-byte map cells (id word +0, kind +8,
 // neighbour bits +0xc, direction +0xd, flags word +0xe, owner word +0x10, count word +0x20). Reimplementation of 0x5346d0 and 0x5367a0,
-// which call each other, and of the track cells' 0x538fc0, 0x53bb20 and 0x53b280. Agent C's unported 0x4de1f0 and 0x527ee0 go through
-// the env.
+// which call each other, and of the track cells' 0x538fc0, 0x53bb20 and 0x53b280. Agent C's unported 0x4de1f0 and agent A's 0x527ee0
+// (Path_CheckDeadEnds, not ported here yet) go through the env.
 #pragma once
 
 #include "../../../re/types.h"
