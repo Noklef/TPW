@@ -888,6 +888,7 @@ address,name,kind,confidence,notes
 0x004c7db0,ParkAnalyser_ParkScore,function,low,"reimplemented (src/game/world/analyser); the park score over the whole map and the things, cached"
 0x004c7720,ParkAnalyser_Sample,function,low,reimplemented (src/game/world/analyser); thiscall: the periodic sample pushed onto the analyser rings
 0x004c7520,ParkAnalyser_Count,function,low,"reimplemented (src/game/world/analyser); thiscall (value), pops 4; called by 0x4d0686: the running total +0x21c08 counted up, +0x21c40 raised to the value (signed), message 0x1a (0xb, 1) posted"
+0x004ccb00,ParkAnalyser_FindCutOff,function,low,"reimplemented (src/game/world/analyser); thiscall (&handle, any), pops 8: the first object (flags 4 and 8 of +0x32) whose entrance does not meet the path, not [0x8186ac]'s unless any; its handle to *out"
 0x004d0af0,MapHandle_Entry28,function,high,reimplemented (src/game/world/mapcell); thiscall on a u16 handle: gMapCells + 0x10ffd8 + handle * 0x28
 0x004d0b10,MapHandle_Cell44,function,high,reimplemented (src/game/world/mapcell); thiscall on a u16 handle: gMapCells + (handle - 1) * 0x44
 0x004d0a70,MemRanges_Set,function,high,"reimplemented (src/game/world/mapcell); thiscall on 0x7cdb30 (index, a, b, name): entry index = (a, b); name unused (""World Struture"")"
