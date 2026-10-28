@@ -4,7 +4,8 @@
 #   0-4. Walls: 0x81b604 set or not; the codes 4, 0x18, 0xb, 0x10 and cellbuild.py's kinds, a 5 often; the ground (Terrain_HeightAt:
 #   a 128 x 128 grid of 10-unit cells, only the rows about the cell laid out, heights -60..150) under every laid out entry, whose dwords
 #   +4 are rides without records (an entry of type 0xc / 0x11 with parent 0 gets the cell as its parent: a ride of 0 would look up the
-#   cell's objects, not laid out here); the face queue (0x871ee0) empty, part full, near full or full.
+#   cell's objects, not laid out here); the face queue (0x871ee0) empty, part full, near full or full. A share of kind 0x18 on a flag 0x20
+#   type 1 cell (MapCell_CanBuild's 0: the kept a and b go into the squares), modes 3 and 4 and 0x874fc4 clear mostly.
 # - Direction (0x82), Owner (0x83), Count (0x84), EndFlag (0x85): cellbuild.py's world; the cell's direction 0 mostly (0x82); the cell's
 #   entry of the track types mostly (its parent's for 0xc / 0x11), with low flags or not (0x85).
 # - Ends (0x32): cellkind.py's Clear world; the cell's entry (and its parent: pathmodel.py's) of the track types mostly, its id word the
@@ -14,11 +15,12 @@
 #   entries are lineends.py's 0x28-byte cells), the cell of flag 0x20 and a type other than 1 (MapCell_Clear leaves it alone, 0x81d7a8
 #   clear); its entry's parent (0xc / 0x11) a cell next to it.
 # - Link (0x80): pathlink.py's case (its mode in 0x816d64, its steps a and b). Model (0x81): cellkind.py's Clear world. Kind (others):
-#   cellkind.py's SetKind cases (the kind the message; 0x15, 0x415 and others), 0x820ab8 / 0x820abc set or not. DeadEnds (0x87):
+#   cellkind.py's SetKind cases (the kind the message; 0x15, 0x415 and others), 0x820ab8 / 0x820abc set or not; a share of 0x15 under
+#   other bits on a type 1 / 3 cell with 0x820ab8 set. DeadEnds (0x87):
 #   cellkind.py's Clear world, the cell of type 1 often, 0x818c10 / 0x818c14 about each other, the mode 0x81ae2c 0-4; 0x527ee0 and
 #   0x52f580 (agent A's, unported) cdecl recorders 27 of 3 and 28 of 2 (driver.cpp's kCellMessageEnv).
-# - Run (0x86): trackshape.py's run world (start 1, flash 1 for UpdateA, then UpdateB; no things on the cells: their plays and flashes are
-#   trackshape.py's); a run that would not stop for either is redrawn. The cell's entry (laid out apart from the run's) of the track types
+# - Run (0x86): trackshape.py's run world (start 1, flash 1 for UpdateA, then UpdateB), the cells' things (animator.py's animator, the
+#   start 1 giving no highlights) half the time, else none; a run that would not stop for either is redrawn. The cell's entry (laid out apart from the run's) of the track types
 #   mostly, with a parent word whose world cell's object chain (0x7cfb90) holds the run's thing (kind 3) after a decoy, or none; the thing's
 #   +0x2c 0 or not. 0x53afa0 is the thiscall recorder 24 (driver.cpp's kCellRunEnv) for these cases only: the others' ends reset runs it.
 # The messages' bits past the low byte (0x400 and up) any now and then.
@@ -32,6 +34,7 @@ sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 from fncmp import LOG, RAM, Bench, Call, _recorder, log_region, put  # noqa: E402
 _ops = os.environ.pop('OPS', None)   # (the imported benches read OPS as their own)
+import animator  # noqa: E402
 import cellapply  # noqa: E402
 import cellbuild  # noqa: E402
 import cellkind  # noqa: E402
@@ -55,7 +58,10 @@ RANGES = pathapply.merged(
         (0x53c8d0, 0x53c9c0),
         # (trackshape.py's runs)
         (0x52c6f0, 0x52d1e8), (0x4d0b10, 0x4d0b27), (0x4d8c00, 0x4d8c4e), (0x50c320, 0x50c540), (0x536300, 0x53644c), (0x4d99c0, 0x4d99e0),
-        (0x4d97b0, 0x4d97e0), (0x5da3c0, 0x5da3c1), (0x469180, 0x469350), (0x469580, 0x469850), (0x45b9d0, 0x45ba30)])
+        (0x4d97b0, 0x4d97e0), (0x5da3c0, 0x5da3c1), (0x469180, 0x469350), (0x469580, 0x469850), (0x45b9d0, 0x45ba30),
+        # (animator.py's, for Animator_Play: trackshape.py's)
+        (0x46f150, 0x475010), (0x67a400, 0x690000), (0x402d70, 0x402e00), (0x402e60, 0x4030f0), (0x403150, 0x403172),
+        (0x4031e0, 0x403202), (0x4033a0, 0x4033f0), (0x5f5f10, 0x5f5fc0), (0x429df0, 0x429e17), (0x52fc80, 0x52fe42)])
 HOOKS = {**pathapply.HOOKS, **cellkind.HOOKS, **cellapply.HOOKS, 0x527ee0: _recorder(27, 3, cdecl=True), 0x52f580: _recorder(28, 2, cdecl=True)}
 RUN_HOOK = _recorder(24, 0)
 
@@ -175,8 +181,15 @@ def walls(r):
     setg(regions, 0x81b604, struct.pack('<I', r.choice([0, 0, 1])))
     code = r.choice([4, 0x18, 0xb, 0x10, 4, 0x18, 0xb, 0x10] + cellbuild.KINDS)
     a = r.choice([5, 5, 0, 1, 2, 3, r.getrandbits(32)])
-    return Call(0x532fc0, [cell, 0x100 | code | r.choice([0, 0, 0x400, r.getrandbits(32) & ~0x3ff]), a, r.choice([0, 1, 2, r.getrandbits(32)])],
-                regions, conv='t', ret='a')
+    b = r.choice([0, 1, 2, r.getrandbits(32)])
+    if r.random() < 0.3:   # (MapCell_CanBuild's 0: kind 0x18 on a flag 0x20 type 1 cell; the kept a and b apart, the side squares' mode flag kept)
+        code, b = 0x18, r.choice([0, 1, 2, 3, r.getrandbits(32)])
+        poke(regions, cell + 8, 'I', 1)
+        poke(regions, cell + 0xe, 'B', peek(regions, cell + 0xe, 'B') | 0x20)
+        setg(regions, 0x81b604, bytes(4))
+        setg(regions, 0x874fc4, struct.pack('<I', r.choice([0, 0, 1])))
+        setg(regions, 0x81ae2c, struct.pack('<I', r.choice([3, 4, 0, 1])))
+    return Call(0x532fc0, [cell, 0x100 | code | r.choice([0, 0, 0x400, r.getrandbits(32) & ~0x3ff]), a, b], regions, conv='t', ret='a')
 
 
 def simple(r, code):
@@ -267,6 +280,10 @@ def kind(r):
         message = r.choice([0x15, 1, 3, 0x415, (message & ~0x3ff) | 0x15])
     if r.random() < 0.15:
         message = r.choice([0x15, 0x415])
+    if r.random() < 0.15:   # (a 0x15 low byte under other bits, on a type 1 / 3 cell with 0x820ab8 set)
+        message = 0x15 | r.choice([0x400, 0x800, r.getrandbits(32) & ~0x3ff])
+        poke(regions, pathmodel.CELL + 8, 'I', r.choice([1, 3]))
+        setg(regions, 0x820ab8, struct.pack('<I', 1))
     return Call(0x532fc0, [pathmodel.CELL, message, r.getrandbits(32), r.getrandbits(32)], regions, conv='t', ret='a')
 
 
@@ -288,12 +305,21 @@ def run(r):
         sx, sy, db = STEP_B[angle] if angle in STEP_B else (0, 0, nib(1))
         if trackshape.stops(cells, x0, y0, d, hoarding) and trackshape.stops(cells, thing[5] + sx, thing[7] + sy, db, hoarding):
             break
+    things = r.random() < 0.5   # (the cells' things (+4 1) played by animator.py's animator, or none; start 1: no highlights, trackshape.py's)
     for cell in cells.values():
         if r.random() < 0.3:
             cell[0xe] &= 0xf0
-        struct.pack_into('<I', cell, 4, 0)
+        if not things:
+            struct.pack_into('<I', cell, 4, 0)
     world, table = trackanim.WORLD, trackanim.CELLS
-    regions = dict(rows)
+    regions = {}
+    if things:
+        regions, nlayers, blocks = animator.world(r)
+        anim = bytearray(regions[animator.ANIM])
+        put(anim, 4, 'I', u32(anim, 4) | 0x4000000 if r.random() < 0.5 else u32(anim, 4) & ~0x4000000)
+        regions[animator.ANIM] = anim
+        regions[0x7a4610] = struct.pack('<II', r.getrandbits(32), animator.ANIM)
+    regions.update(rows)
     thing = bytearray(thing) + bytearray(r.bytes(0x10))
     put(thing, 0x2c, 'I', r.choice([0, 0, 1, r.getrandbits(32)]))
     thing[2] = 3
