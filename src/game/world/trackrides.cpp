@@ -1140,7 +1140,7 @@ void __cdecl TrakCar_Move(u8 *car) {
 
 namespace {
 
-// 0x545450's and 0x545610's start (inlined in both): the cars of the pool [0x877b68] (the used ones, as many as [0x877b6c] counts, read
+// 0x544b50 (TrakRide_RemoveCars) past its handle check, and 0x545450's and 0x545610's start (inlined in both): the cars of the pool [0x877b68] (the used ones, as many as [0x877b6c] counts, read
 // once) on ride (+0x9c) taken off (TrakCar_Remove), then the ride closed (TrakRide_Close). (Both originals check the handle against the
 // ride a second time first, always alike.)
 void RemoveCarsAndClose(u32 handle, const u8 *ride) {
@@ -1179,6 +1179,12 @@ void __cdecl TrakRide_Destroy(u32 handle) {
     Collider_ReleaseC0(ride);   // (inlined)
     at<u32>(ride, 0) = 0;
     --global<s32>(0x00877b64);
+}
+
+void __cdecl TrakRide_RemoveCars(u32 handle) {
+    const u8 *const ride = RideOf(handle);
+    if (handle != NameOf(ride)) return;
+    RemoveCarsAndClose(handle, ride);
 }
 
 void __cdecl TrakRides_DestroyAll() {

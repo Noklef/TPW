@@ -5,7 +5,8 @@
 # flags 2 / 4 either way), +0xbc chunks (0-3, each with 0-3 nodes at +0x1c) and +0xc0 nodes (0-3), all chained by +0x14 (chunks by +0x24).
 # All (0x5445d0 TrakRides_DestroyAll): the module loaded, the other rides unused (+0 clear) but for one now and then (no lists, no used
 # car on it), the used count those (or one short: the walk stops early), the free records' block [0x877b88] (0x400 of 0x14 bytes).
-# usage: trakride_destroy.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Strip,Destroy,All)
+# Cars (0x544b50 TrakRide_RemoveCars): Strip's world.
+# usage: trakride_destroy.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Strip,Destroy,All,Cars)
 import os
 import struct
 import sys
@@ -19,7 +20,7 @@ import trackcar_remove as tcr  # noqa: E402
 if _ops is not None:
     os.environ['OPS'] = _ops
 
-B = Bench(tcr.merged(tcr.RANGES + [(0x545450, 0x5457db), (0x544a10, 0x544b50), (0x5445d0, 0x54483d), (0x5457e0, 0x545809)]), hooks=tcr.HOOKS)
+B = Bench(tcr.merged(tcr.RANGES + [(0x545450, 0x5457db), (0x544a10, 0x544b50), (0x5445d0, 0x54483d), (0x5457e0, 0x545809), (0x544b50, 0x544bf3)]), hooks=tcr.HOOKS)
 RECS, LISTS, FREE = RAM + 0x70000, RAM + 0x71000, RAM + 0x72000
 
 
@@ -100,7 +101,7 @@ def case(r):
     return Call(func, [handle], regions)
 
 
-OPS_ALL = {'Strip': 0x545450, 'Destroy': 0x545610, 'All': 0x5445d0}
+OPS_ALL = {'Strip': 0x545450, 'Destroy': 0x545610, 'All': 0x5445d0, 'Cars': 0x544b50}
 FUNCS = [OPS_ALL[k] for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 
