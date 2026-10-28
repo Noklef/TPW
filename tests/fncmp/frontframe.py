@@ -2,7 +2,7 @@
 # (Sound_ReleaseLobbySfx: the categories, the sound on and started or not, the manager's object's slot 8 a recorder): the frame random bytes,
 # its list at +0x18 (a sentinel whose +4 is the first of 0-4 nodes {object, next}) of recorder objects (slot 4), the objects [0xf83784],
 # [0xf83778], [0xf83774], [0xf85614] and +0x10 each a recorder object (slot 0 with one argument) or 0, the window +4 viewcontrols.py's (byte
-# +4 now and then set, its handler the four-argument logger or 0) or 0, the hook [0xfaa5fc] the logger or 0.
+# +4 now and then set, its handler the four-argument logger or 0) or 0, the hook [0xfaa5fc] the logger or 0. The result (+0x14) compared.
 # usage: frontframe.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -45,7 +45,7 @@ def case(r):
         regions[g] = struct.pack('<I', r.choice([OBJS + 0x20 * (5 + k), OBJS + 0x20 * (5 + k), 0]))
     regions.update({FRAME: frame, SENT: sent, NODES: nodes, WIN: viewcontrols.window(r),
                     0xfaa5fc: struct.pack('<I', r.choice([0, 0, CDECL_LOG4]))})
-    return Call(0x5d5cf0, [FRAME], regions, conv='t')
+    return Call(0x5d5cf0, [FRAME], regions, conv='t', ret='a')
 
 
 if __name__ == '__main__':
