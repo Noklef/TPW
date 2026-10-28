@@ -1299,6 +1299,10 @@ int main(int argc, char **argv) {
         // GameMode_StepBack's calls (src/game/world/gamemode.h GameModeStepEnv), as tests/fncmp/gamemodestep.py hooks their addresses.
         static const GameModeStepEnv gameModeStep = {c(1, 0), t(2, 0), c(3, 4), c(4, 2), c(5, 2), c(6, 1), c(7, 4), c(8, 4)};
         GameMode_SetStepEnv(&gameModeStep);
+        // PlaceObject_Footprint's calls (src/game/world/placeobject.h PlaceFootprintEnv), as tests/fncmp/footprint.py hooks their addresses
+        // (0x532fc0 the track square test's recorder too).
+        static const PlaceFootprintEnv footprint = {t(9, 3), t(28, 2), t(10, 0), t(11, 0), t(12, 4), c(13, 1), c(14, 1), c(15, 6)};
+        PlaceFootprint_SetEnv(&footprint);
     }
     // 0x564650 (the engine debug log, a file): stub_cdecl_log, as tests/fncmp/engineerrors.py hooks it (the text hashed: strings(log, 0x3f, 1)).
     static const EngineErrorsEnv engineErrors = {reinterpret_cast<void(__cdecl *)(const char *)>(&stub_cdecl_log)};
