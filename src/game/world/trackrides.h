@@ -145,6 +145,17 @@ s32 __cdecl TrakRide_AddSection(u32 handle, s32 x, s32 y, u32 piece, u32 a, u32 
 // (Its Debug_Printf of the node's +0 and the record's handle only reads.)
 s32 __cdecl TrakRide_Unload(u8 *ride, u32 effect);
 
+// 0x54ae50 (cdecl (car): a 0xac-byte record of the pool [0x877b68]; called by 0x545450 / 0x545610; name invented): the car taken off its
+// ride (+0x9c): TrakRide_Unload (car, 0); flag 0x400000 cleared (and the ride's +0x58 with it); unless the ride's state (+0x50) is 4,
+// Particle_Spawn (0xf) at 1024 times the car's instance's position (as Unload's; the original reads it either way); Ride_Destroy 0x463c80 (through
+// the queue pieces' env) of +8, and of +0xc with the flags 0x2002000 (then cleared); with a sound (+0x20) and the state not 4,
+// for the ride kinds (+0) -10, -9, -7 and -4 Sound_PlayRideElement (the ride's object's +0x24 (the inlined search of TrakRide_FindThing),
+// the sound, [0x803a3c], 1, 0, 0, 0) and, when it plays, Sound_SetPosition at the car's +0x34 / +0x38 (as TrakCar_PlaySounds'); +0x20
+// left 0; other kinds Sound_Stop (the sound). A particle system (+0x2c) ended (ParticleSystem_End) and set to -1; flag 1 cleared, the
+// count 0x877b6c down, the ride's +0x5c down: at 0 its state becomes 1 (loading), except for the kinds -13, -12, -8 and -5. Returns the
+// ride's +0x5c. (Its Debug_Printf lines left out.)
+s32 __cdecl TrakCar_Remove(u8 *car);
+
 // 0x549c60 (cdecl; ride, effect; name unconfirmed): Unload's reverse for the node list +0x30 (the next at +0x10): each node in turn is
 // given the seat number +0xc (1, 2, ...) and the part +8 Model_FindPartByKey4(the instance [0x7a4610 + 4 * (+8)], 0x80, that number) finds;
 // a part found (not -1) is activated (PartStates_Activate on the instance's holder +8, with the node's +0 as the handle) and with effect

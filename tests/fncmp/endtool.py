@@ -83,8 +83,8 @@ def rides(r, regions):
                     0x7afe14: struct.pack('<I', listed[0] if listed else 0)})
 
 
-def case(r):
-    op = r.deal(['End', 'Mode'])
+def world(r):
+    """The case's regions (the tool in use dealt) and whether there is a game."""
     kind = r.deal(['adjust', 'adjust', 'move', 'move', 'select', 'none'])
     glob = None
     game_src = b''
@@ -129,9 +129,15 @@ def case(r):
         regions[0x790fec] = bytes(4)
     rides(r, regions)
     regions[TFLAGS] = r.bytes(4)
+    return regions, bool(game_src)
+
+
+def case(r):
+    op = r.deal(['End', 'Mode'])
+    regions, game = world(r)
     if op == 'End':
         return Call(0x442220, [], regions)
-    mode = r.choice([0, 1, 1, 1, 2, r.getrandbits(32), r.getrandbits(32) & ~0xff | 1]) if game_src else r.choice([0, 2])
+    mode = r.choice([0, 1, 1, 1, 2, r.getrandbits(32), r.getrandbits(32) & ~0xff | 1]) if game else r.choice([0, 2])
     return Call(0x444360, [mode], regions)
 
 

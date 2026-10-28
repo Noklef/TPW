@@ -9,7 +9,6 @@
 # id, the car's position floats small, large, past the int range or NaN, its old sounds 0 unless nothing reaches them (sound off or not
 # started, or 0x785a2c set), quiet 0 mostly.
 # usage: carsound.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Mode,Stop,Scream,Start)
-import ast
 import os
 import struct
 import sys
@@ -25,16 +24,10 @@ if _ops is not None:
     os.environ['OPS'] = _ops
 
 
-def _ranges(path):
-    """The ranges of the bench at path (its B = Bench([...]) literal)."""
-    tree = ast.parse(open(path).read())
-    return next(ast.literal_eval(n.value.args[0]) for n in tree.body if isinstance(n, ast.Assign) and getattr(n.targets[0], 'id', '') == 'B')
-
-
 B = Bench(sorted(set([(0x439780, 0x439812), (0x51bfc0, 0x51c048), (0x51bc40, 0x51bc70), (0x6b5b60, 0x6b5b75),
                       (0x6b5b80, 0x6b5b9a), (0x5da3c0, 0x5da3c1), (0x439670, 0x4396db), (0x551300, 0x551312),
                       (0x4392a0, 0x439386), (0x51eeb0, 0x51eeec), (0x55a3e0, 0x55a470), (0x55a070, 0x55a0b0)]
-                     + _ranges(soundset.__file__))))
+                     + soundset.RANGES)))
 MANAGER, VT, ENGINE, EVT, CAR = RAM + 0x100, RAM + 0x200, RAM + 0x800, RAM + 0x900, RAM + 0x1000
 SCAR = RAM + 0x20000   # (Stop's car: past the sound benches' regions)
 COASTER = RAM + 0x21000

@@ -17,8 +17,11 @@
 struct MouseModeEnv {
     void(__cdecl *free)(void *block);                  // Mem_Free (0x67acb0)
     s32(__cdecl *atExit)(void(__cdecl *fn)());        // crt_atexit (0x67a7d0)
+    void(__cdecl *clickTile)(s32 x, s32 y, u32 flags);   // 0x5234d0 (unported; as MapClickEnv's click5234d0)
+    void(__cdecl *f52f200)(u32 a, u32 b);              // 0x52f200 (unported)
 };
-// The deleting destructors' frees and MouseMode_Set's atexit go to env (nullptr: the game's).
+// The deleting destructors' frees, MouseMode_Set's atexit and MouseModeTile_Assign's two unported calls go to env (nullptr: the
+// game's).
 void MouseModes_SetEnv(const MouseModeEnv *env);
 
 extern "C" {
@@ -117,6 +120,17 @@ void __fastcall MouseMode6fead0_Assign(u8 *self);
 void __fastcall MMPlaceStaff_Assign(u8 *self);
 // 0x46cbf0 (the 0x6fea70 mode): the same with folder +0xc and sprite the byte +0x10.
 void __fastcall MMStaffDrop_Assign(u8 *self);
+// 0x46d5a0 (the tile modes, vtable 0x6fe9e0): with the flag +0xc the definition of the id +0x10 (ObjectDefs_Find on 0x7890a0); the
+// env's clickTile on the tile [0x7b05cc] (a word) - 1: x its low 7 bits, y the rest (unsigned: tile 0 gives 0x7f, 0x1ffffff), flags 0;
+// the env's f52f200 (+8, 1). Then with the flag (re-read): Global8186e0_SetRecorded (&+0x10, the definition's +0x9c when its +0x288 is
+// 1, else 0); and when +8 is 4 or 0x3b too, Global81b0cc_SetRecorded (its +0x40 not 0) and Global81ecac_SetRecorded (its +0x9c). (No
+// definition found: the original reads through null.)
+void __fastcall MouseModeTile_Assign(u8 *self);
+
+// 0x46cf10 (cdecl; name invented; in CMMOnline's unit, before its destructor; an SEH frame for the constructor): the online chat
+// [0x7cddec], made when there is none: 0xf0c bytes from the game's heap (GameHeap_Alloc) constructed by OnlineChat_Ctor (online/chat), or
+// 0 when that failed; stored and returned.
+u8 *__cdecl OnlineChat_Instance();
 
 // 0x497bc0 (cdecl; called from 0x498430-0x498500; name unconfirmed): the holder [0x7b05e8] made when missing (MouseModes_EnsureHolder);
 // then unless the current mode ([0x7b05d8], read after that) answers 8 through its slot 9 (none: 0), a new 0x6feaa0 mode (Mem_Alloc(8),

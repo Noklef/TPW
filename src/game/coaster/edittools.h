@@ -103,4 +103,25 @@ void __cdecl CoasterEdit_StartChosenTool(u32 *out);
 // tool 1 up to CoasterLink_CheckEnd and then CoasterEdit_SetTool (2); tool set in 0x79c638. Else bit 2: CoasterEdit_EndAll
 // (inlined). Then, with tool not 0, CoasterEdit_Tools (0) and the dialog (0x7b51f0) told the tools on offer (0x79c6e0).
 void __cdecl CoasterEdit_ToolButton(u32 tool, u32 action);
+// 0x447520 (cdecl (coaster, on); name invented): recorded (0x44, the coaster's +0x14 with a coaster and on, else 0). Editing a coaster (one
+// and on): with no game (0x790fec) yet, Object_RestartRide of its object (+0x28) and Coaster_SetState (2 when its +0x3c has bit 0 without
+// bit 1, else 1); then it is the game (CoasterLink_SetCurrent). Else, with a game: the tool in use ended as CoasterEdit_EndTool does (inlined),
+// 0x79c664, 0x79c644, 0x79c624, 0x79c6e0 and 0x79c638 cleared and flag 0x40 of 0x79c658, Flags_SetChanged (game, 0), no game, and
+// Object_Close of the game's object (+0x28) when its +8 has bit 1.
+void __cdecl CoasterEdit_SetEditing(u8 *coaster, u32 on);
+
+// 0x4474d0 (cdecl (object, on); name invented): the coaster of the object's ride id (+0x20; CoasterLink_ById, none without an object); unless
+// 0x785a2c is set, CoasterEdit_SetEditing (that coaster, 1) when on, else (none, 0).
+void __cdecl CoasterEdit_EditRide(const u8 *object, u32 on);
+
+// 0x446d50 (cdecl (piece); name invented, unconfirmed): a track piece selected for editing. 0 for one whose definition (+0x100) has flag 2
+// (+4); else 0x79c69c cleared and, with a piece: it becomes the selection (0x79c6a4; 0x79c658's flag 0x100, its definition at 0x79c660, its
+// Car_TrainLength at 0x79c694), recorded (ActionRec_WriteWWW 0x3c, 0, 0, its handle +0), the game's (0x790fec) flag 0x2000 cleared; the span's
+// first end (0x79c62c) its +0x68 or itself and 0x7925d0 3; the pieces between the first end and the old other end (0x79c628, when set) lose
+// flags 0x1004000 and those between the first end and the new other end (+0x64, or itself; 0x79c628) get 0x1000000 (each span from the
+// lower handle (+0) along +0x64, the higher left out); Flags_SetChanged (game, 0); its definition's cell (+0xc, +0x10 to 0x79c6d8 / 0x79c6a0)
+// clamped to the map (0..[0x7a0314] - 1, 0..[0x7a0374] - 1, signed) begins a path drag (PathDrag_Begin, kept with a train (+0x30) above 1);
+// Highlight_SetShown (1), CoasterEdit_SetBounds, and its Car_TravelCost (game, 0, it) and its next's (+0x64) to the floats 0x79c698 /
+// 0x79c64c. Returns 1 when the definition's train (+0x30) is above 1 (unsigned), else 0.
+u32 __cdecl CoasterEdit_SelectPiece(u8 *piece);
 }

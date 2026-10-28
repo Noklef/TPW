@@ -11,6 +11,7 @@
 #include "contacts.h"
 #include "nodes.h"
 #include "queue.h"
+#include "registry.h"
 #include "train.h"
 #include "carsound.h"
 #include "../model/holder.h"
@@ -83,6 +84,56 @@ void __cdecl CoasterCar_Sleep(u8 *coaster, u8 *car) {
     }
     CoasterCar_StopSounds(coaster, car);
     at<u32>(car, 0) &= ~2u;
+}
+
+void __cdecl Coaster_SetState(u8 *coaster, u32 value) {
+    const u32 state = value & 0xf;
+    if (state) {
+        const u32 old = at<u32>(coaster, 8);
+        const u32 from = old & 0xf;
+        if (from == 1 && state == 2) {
+            if (!(old & 0x40)) at<u32>(coaster, 0x2c) = 0x3f800000;   // 1.0f
+            u8 *car = at<u8 *>(coaster, 0x128);
+            for (u32 i = 0; i < at<u32>(coaster, 0xf4); ++i, car += 0x80) CoasterCar_Wake(coaster, car);
+            Coaster_FlashCar(coaster, 0);
+        } else if (from == 2 && state == 1) {
+            for (u32 i = 0; i < at<u32>(coaster, 0xf4); ++i) CoasterCar_Sleep(coaster, at<u8 *>(coaster, 0x128) + i * 0x80);
+            at<u32>(coaster, 0) &= ~0x800u;
+            Coaster_FlashCar(coaster, 2);
+        } else if ((from == 4 || from == 8) && state == 2) {
+            u8 *car = at<u8 *>(coaster, 0x128);
+            for (u32 i = 0; i < at<u32>(coaster, 0xf4); ++i, car += 0x80) {
+                CoasterTrain_Unload(coaster, car, 0);
+                CoasterTrain_Unload(coaster, car, 1);
+            }
+            CoasterQueue_Advance(coaster);
+        } else if ((from == 1 || from == 2 || from == 4 || from == 8) && state == 8) {
+            CoasterQueue_Advance(coaster);
+        }
+        at<u32>(coaster, 8) = (at<u32>(coaster, 8) & ~0xfu) | state;
+    }
+    const u32 mode = value & 0x70;
+    if (!mode) return;
+    const u32 was = at<u32>(coaster, 8) & 0x70;
+    if ((was == 0x10 || was == 0x20) && mode == 0x40) {
+        at<u32>(coaster, 0x2c) = 0;
+    } else if (was == 0x40 && (mode == 0x10 || mode == 0x20)) {
+        at<u32>(coaster, 0x2c) = 0x3f800000;   // 1.0f
+        u8 *const cars = at<u8 *>(coaster, 0x128);
+        for (u32 i = 0; i < at<u32>(coaster, 0xf4); ++i) at<u32>(cars + i * 0x80, 0) = (at<u32>(cars + i * 0x80, 0) & ~0x40u) | 0x80;
+    }
+    at<u32>(coaster, 8) = (at<u32>(coaster, 8) & ~0x70u) | mode;
+}
+
+void __cdecl Coaster_ResumeRunning(u8 *coaster) {
+    at<u32>(at<u8 *>(coaster, 0x60), 8) &= ~0x50000u;
+    const u32 first = at<u32>(at<u8 *>(coaster, 0x60), 8);
+    at<u32>(at<u8 *>(coaster, 0x64), 8) &= (first & 0x400) ? ~0x20000u : ~0xa0000u;
+    const u32 flags = at<u32>(coaster, 0x3c);
+    at<u32>(coaster, 0x60) = at<u32>(coaster, 0x58);
+    at<u32>(coaster, 0x3c) = flags & ~2u;
+    Coaster_SetState(coaster, 2);
+    Flags_SetChanged(reinterpret_cast<u32 *>(coaster), 1);
 }
 
 void __cdecl Coaster_SpaceCars(u8 *coaster) {
