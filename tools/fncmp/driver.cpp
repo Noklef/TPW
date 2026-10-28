@@ -77,6 +77,7 @@
 #include "../../src/game/gfx/surfbuf.h"
 #include "../../src/game/gfx/tga.h"
 #include "../../src/game/render/engineerrors.h"
+#include "../../src/game/online/chatavatar.h"
 #include "../../src/game/sprite/draw.h"
 #include "../../src/game/sprite/script.h"
 #include "../../src/game/ui/cursor.h"
@@ -1205,6 +1206,9 @@ int main(int argc, char **argv) {
     SoundCategory_SetEnv(&kSoundCategoryEnv);
     SoundDevice_SetEnv(&kSoundDeviceEnv);
     Person_SetEnv(&kPersonEnv);   // (tests/fncmp/personwalk.py hooks 0x6e7074 with fncmp._cdecl_log2)
+    // The chat player's step (ChatPlayer_StepWalk): Sprite_WalkNav the thiscall recorder 5 of 0, as tests/fncmp/chatavatar.py hooks 0x4fa2a0.
+    static const ChatAvatarEnv chatAvatarEnv = {reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)recorder(5, 0))};
+    ChatAvatar_SetEnv(&chatAvatarEnv);
     QueuePieces_SetEnv(&kQueuePiecesEnv);
     PathDrag_SetEnv(&kPathDragEnv);
     Demolish_SetEnv(&kDemolishEnv);
