@@ -11,6 +11,7 @@
 #include "../model/highlight.h"
 #include "../model/parts.h"
 #include "../motion/animator.h"
+#include "../motion/placement.h"
 #include "contacts.h"
 #include "cursor.h"
 #include "helpers.h"
@@ -30,7 +31,9 @@ template <typename T> T &at(const void *p, u32 offset) {
 template <typename T> T &global(uintptr_t address) { return *reinterpret_cast<T *>(address); }
 
 const TrainEnv kGameEnv = {&Animator_Update, &Train_RemoveCar, &Highlight_Unflash, &Contacts_ClearPair, &Car_Free, &CoasterLink_RemoveEntry,
-                           &Map_SetRideCell, &Train_SetCouplings, &Train_PlaceCars, &CoasterEdit_SetBounds};
+                           &Map_SetRideCell, &Train_SetCouplings, &Train_PlaceCars, &CoasterEdit_SetBounds, &Train_ShrinkToTop,
+                           &Train_InsertCar, &Pylon_FindBraceLevel, &Animator_PlaceOnGround, &CoasterLink_AddEntry,
+                           &Contacts_MarkLostPair, &Model_FitToGrid};
 const TrainEnv *g_trainEnv = &kGameEnv;
 
 u8 *RideAt(u32 index) { return reinterpret_cast<u8 *const *>(0x007a4610)[index]; }
@@ -422,6 +425,76 @@ void __cdecl Coaster_DeleteFlaggedEnd(u8 *owner) {
         car = before;
     }
     at<u32>(owner, 0x3c) &= ~1u;
+}
+
+void __cdecl Coaster_DropCar(u8 *owner, u8 *car, u8 *pylon, s32 x, s32 y, float *outX, float *outY, u32, u32 noShrink) {
+    const TrainEnv *const env = g_trainEnv;
+    u8 *const train = at<u8 *>(car, 0x100);
+    if (at<s32>(train, 0xc) == x && at<s32>(train, 0x10) == y) {
+        const u8 *type;
+        if (!noShrink && owner && train && (type = at<const u8 *>(train, 0x18)) && env->shrinkToTop(owner, type, train)) {
+            u8 *t = at<u8 *>(car, 0x100);
+            env->setCouplings(at<u32>(t, 0x18), t);
+            t = at<u8 *>(car, 0x100);
+            env->placeCars(at<u8 *>(t, 0x18), t, 0, 0);
+        }
+    } else {
+        if (pylon == train) pylon = nullptr;
+        const u8 *const type = at<const u8 *>(train, 0x18);
+        s32 cx = x < 0 ? 0 : x, cy = y < 0 ? 0 : y;
+        if (cx >= global<s32>(0x007a0314)) cx = global<s32>(0x007a0314) - 1;
+        if (cy >= global<s32>(0x007a0374)) cy = global<s32>(0x007a0374) - 1;
+        const u32 several = at<u32>(train, 0x30) > 1 ? 1 : 0;
+        if (several) {
+            env->removeCar(owner, car);
+            if (!(at<u8>(train, 4) & 2))
+                env->setRideCell((u32)(uintptr_t)owner, at<s32>(train, 0xc), at<s32>(train, 0x10), at<u32>(at<u8 *>(train, 0x34), 0x70), 0);
+            env->setCouplings(at<u32>(train, 0x18), train);
+            env->placeCars(at<u8 *>(train, 0x18), train, 0, 0);
+        }
+        const u32 *const event = CoasterEvent_Make(at<u32>(type, 0xb4), at<u32>(type, 0xb8), (u32)cx, (u32)cy);
+        env->placeOnGround(RideAt(at<u32>(car, 0x70)), cx, cy, reinterpret_cast<const u8 *>((uintptr_t)event[3]), at<s32>(type, 0xb4),
+                           at<s32>(type, 0xb8), 0x3fa);
+        const u32 tile = at<u32>(at<const u8 *>(global<const u8 *>(0x007a0854), 0x6c), 0x18) * (u32)y + (u32)x;
+        // (Pylon_FindBraceLevel writes the level and height into stack slots that held other values: those are kept here, for when
+        // it leaves them)
+        if (several) {
+            if (pylon) {
+                const float wanted = global<float>(0x0079c694);
+                u32 level = several, height = (u32)cx;
+                if (env->findBraceLevel(wanted, pylon, &level, &at<float>(&height, 0), 0))
+                    env->insertCar(owner, car, pylon, level, at<float>(&height, 0), nullptr, 0, 0, noShrink, 0);
+            } else {
+                u8 *const entry = env->addEntry(x, y, 0, 0, (u32)(uintptr_t)type, nullptr);
+                env->insertCar(owner, car, entry, 0, global<float>(0x0079c694), nullptr, 0, 0, noShrink, 0);
+            }
+        } else if (pylon) {
+            const float wanted = global<float>(0x0079c694);
+            u8 *const own = at<u8 *>(car, 0x100);
+            env->removeCar(owner, car);
+            env->removeEntry(owner, own, 1);
+            if (own == global<u8 *>(0x0079c660)) global<u8 *>(0x0079c660) = nullptr;
+            u32 level = (u32)cx, height = (u32)(uintptr_t)owner;
+            if (env->findBraceLevel(wanted, pylon, &level, &at<float>(&height, 0), 0))
+                env->insertCar(owner, car, pylon, level, at<float>(&height, 0), nullptr, 0, 0, noShrink, 0);
+        } else {   // (the lone car's train moved: x / y unclamped)
+            const double fx = X87_MulInt((u32)x, global<float>(0x006fe1e0));
+            at<s32>(at<u8 *>(car, 0x100), 0xc) = x;
+            const double fy = X87_MulInt((u32)y, global<float>(0x006fe1e0));
+            at<s32>(at<u8 *>(car, 0x100), 0x10) = y;
+            at<u32>(at<u8 *>(car, 0x100), 8) = tile;
+            at<float>(at<u8 *>(car, 0x100), 0x1c) = (float)fx;
+            at<float>(at<u8 *>(car, 0x100), 0x24) = (float)fy;
+            const u8 *const frame = at<const u8 *>(at<const u8 *>(at<const u8 *>(RideAt(at<u32>(car, 0x70)), 8), 4), 0x78);
+            at<u32>(at<u8 *>(car, 0x100), 0x20) = X87_FloatThrough(at<u32>(frame, 0x44));
+        }
+        env->markLostPair(car);
+        u8 *const holder = RideAt(at<u32>(car, 0x70));
+        at<u32>(at<u8 *>(at<u8 *>(holder, 8), 4), 0x30) |= 0x4000;
+        env->fitToGrid(at<u8 *>(holder, 8), global<u8 *>(0x007a0854), at<u32>(at<u8 *>(car, 0x100), 0x20), 0);
+    }
+    if (outX) *outX = (float)(global<float>(0x006fe1e8) - X87Reg(X87_MulInt((u32)x, global<float>(0x006fe1e4))));
+    if (outY) *outY = (float)(global<float>(0x006fe1e8) - X87Reg(X87_MulInt((u32)y, global<float>(0x006fe1e4))));
 }
 }
 

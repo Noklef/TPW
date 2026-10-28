@@ -18,6 +18,15 @@ struct TrainEnv {
     void(__cdecl *setCouplings)(u32 unused, u8 *train);                           // Train_SetCouplings (0x432d50)
     void(__cdecl *placeCars)(const u8 *type, u8 *train, u32 force, u32 keep);     // Train_PlaceCars (0x432df0)
     void(__cdecl *setBounds)();                                                   // CoasterEdit_SetBounds (0x434f10)
+    u32(__cdecl *shrinkToTop)(const u8 *owner, const u8 *type, const u8 *train);  // Train_ShrinkToTop (0x433a90)
+    void(__cdecl *insertCar)(const u8 *owner, u8 *car, u8 *train, u32 slot, float height, float *out, u32 mark, u32 noInsert,
+                             u32 noShrink, u32 free);                             // Train_InsertCar (0x433bd0)
+    u32(__cdecl *findBraceLevel)(float wanted, const u8 *train, u32 *level, float *height, u32 quiet);  // Pylon_FindBraceLevel (0x433300)
+    void(__cdecl *placeOnGround)(u8 *animator, s32 x, s32 y, const u8 *cells, s32 width, s32 depth, u32 flags);  // Animator_PlaceOnGround
+                                                                                  // (0x4671f0)
+    u8 *(__cdecl *addEntry)(s32 x, s32 y, u32 flags, u32 unused, u32 value, const float *position);  // CoasterLink_AddEntry (0x432c10)
+    void(__cdecl *markLostPair)(u8 *node);                                        // Contacts_MarkLostPair (0x4346f0)
+    void(__cdecl *fitToGrid)(const u8 *object, const u8 *owner, u32 lift, u32 flags);  // Model_FitToGrid (0x469940)
 };
 // nullptr restores the game's.
 void Train_SetEnv(const TrainEnv *e);
@@ -275,6 +284,22 @@ void __cdecl Coaster_DeleteCar(u8 *owner, u8 *car);
 // 0x435530 (cdecl (owner); name invented, unconfirmed): from the owner's last car (+0x58) back (+0x68), each car whose train (+0x100)
 // has flag 1 (+4) deleted (Coaster_DeleteCar; sic: past the first car the walk reads through null); then the owner's +0x3c loses flag 1.
 void __cdecl Coaster_DeleteFlaggedEnd(u8 *owner);
+
+// 0x442f40 (cdecl, nine arguments, the eighth unused; name invented, unconfirmed): a car (its train +0x100) dropped on cell (x, y), onto
+// pylon (a train) or none. On its train's own cell (+0xc / +0x10): unless noShrink, with an owner, a train and its type (+0x18), when
+// Train_ShrinkToTop (owner, type, train) answers, Train_SetCouplings and Train_PlaceCars (type, train, 0, 0). Elsewhere (a pylon that is
+// the car's own train taken as none): the cell held to the map (0x7a0314 / 0x7a0374) for the ride's animator (CoasterEvent_Make of the
+// type's +0xb4 / +0xb8 and the cell, Animator_PlaceOnGround (the ride (0x7a4610 [+0x70]), the cell, the event's +0xc, +0xb4, +0xb8,
+// 0x3fa)); a train of more than one car first loses it (Train_RemoveCar; Map_SetRideCell (owner, the train's cell, its first car's
+// ride, 0) unless its +4 byte has flag 2; Train_SetCouplings, Train_PlaceCars), then with a pylon Pylon_FindBraceLevel (0x79c694, pylon)
+// and Train_InsertCar (owner, car, pylon, the level, the height, ..., noShrink), else Train_InsertCar onto a new link entry
+// (CoasterLink_AddEntry (x, y, 0, 0, type)) at slot 0, height 0x79c694. A lone car with a pylon: Train_RemoveCar, CoasterLink_RemoveEntry
+// (owner, train, 1) (0x79c660 cleared when the train), Pylon_FindBraceLevel and Train_InsertCar as above; a lone car without one: its
+// train moves to (x, y) (+0xc / +0x10, +8 the map tile, +0x1c / +0x24 x / y times [0x6fe1e0], +0x20 the ride's frame (+8 -> +4 -> +0x78)
+// +0x44). Both then Contacts_MarkLostPair (car), the ride model's (+8 -> +4) +0x30 flag 0x4000, Model_FitToGrid (the ride's +8, the map,
+// the train's +0x20, 0). Finally outX / outY (when given) = [0x6fe1e8] - x / y times [0x6fe1e4]. The x87 throughout; the stale stack
+// slots Pylon_FindBraceLevel writes into are kept (a level and height it leaves are the clamped x / the owner, or the count flag / x).
+void __cdecl Coaster_DropCar(u8 *owner, u8 *car, u8 *pylon, s32 x, s32 y, float *outX, float *outY, u32 unused, u32 noShrink);
 
 // 0x433300: picks the level of a pylon (a train: +0x18 its type with base +0x68, top +0x6c and
 // gap +0xc4; cars counted at +0x30, from +0x34) for a brace at height wanted (first lowered to

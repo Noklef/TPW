@@ -1330,10 +1330,13 @@ int main(int argc, char **argv) {
     // 0x473c70 (Animator_Update, under Train_PlaceCars): the cdecl recorder k 27 (three arguments), as tests/fncmp/placecars.py hooks it
     // (fncmp.recorder(27, 3, cdecl=True)).
     // Coaster_DeleteCar's calls: the cdecl recorders (k, n) 9 / 2, 10 / 1, 11 / 2, 12 / 2, 13 / 3, 14 / 5, 15 / 2, 16 / 4 and 17 / 0, as
-    // tests/fncmp/cardelete.py hooks 0x442d70, 0x469650, 0x43af70, 0x434570, 0x442ea0, 0x452d30, 0x432d50, 0x432df0 and 0x434f10.
+    // tests/fncmp/cardelete.py hooks 0x442d70, 0x469650, 0x43af70, 0x434570, 0x442ea0, 0x452d30, 0x432d50, 0x432df0 and 0x434f10;
+    // Coaster_DropCar's others 19 / 3, 20 / 10, 21 / 5, 22 / 7, 23 / 6, 24 / 1 and 25 / 4, as tests/fncmp/cardrop.py hooks 0x433a90,
+    // 0x433bd0, 0x433300, 0x4671f0, 0x432c10, 0x4346f0 and 0x469940.
     const auto trainRec = [](u32 k, u32 n) { return Rec{(uintptr_t)(kStubs + 0xb000 + 0x400 * n + 0x20 * k)}; };
     static const TrainEnv train = {trainRec(27, 3), trainRec(9, 2), trainRec(10, 1), trainRec(11, 2), trainRec(12, 2), trainRec(13, 3),
-                                   trainRec(14, 5), trainRec(15, 2), trainRec(16, 4), trainRec(17, 0)};
+                                   trainRec(14, 5), trainRec(15, 2), trainRec(16, 4), trainRec(17, 0), trainRec(19, 3), trainRec(20, 10),
+                                   trainRec(21, 5), trainRec(22, 7), trainRec(23, 6), trainRec(24, 1), trainRec(25, 4)};
     Train_SetEnv(&train);
     // The coaster editor's car deletions' calls: the cdecl recorders (k, n) 18 / 2, 19 / 1, 20 / 2 and 21 / 0, as tests/fncmp/deletecars.py
     // hooks 0x444cb0, 0x435530, 0x435730 and 0x497d20.
