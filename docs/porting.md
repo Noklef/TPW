@@ -111,6 +111,9 @@ range, open items, known skips and the paths of the two memory files it should r
   and blocker); don't port the blocker.
 - **Slow benches:** fncmp counts every case left when its 600 s budget runs out as differing. A burst of differences at the end of a run is
   a timeout: time the bench rather than reading them as bugs. mapcell.py's `OPS=ADDR,...` filter helps aim mutants at one accessor.
+  A bench should run 1000 cases --both in under 5 minutes (0.15 s a case). Merge checks cap slower ones by their gate timing, so a slow
+  bench is checked on fewer cases: shrink its fixture (smaller worlds, buffers, loop counts) when you touch it. Worst at the 2026-10-28
+  gate, seconds a case: panel.py 5.4, mapcount.py 4.1, createworld.py 2.5, terraintile.py 0.8, modelslot_load.py 0.5.
 - **Don't stall.** Commit each batch as soon as its port.py run passes. If one function or bench resists after about two looks (or ~20
   minutes), skip it, note it, and move on. If no job of yours is running, you should be working.
 - **Saved work from a previous agent** may be handed to you as files in the scratchpad. Treat it as a draft: read it against the listing,
