@@ -213,4 +213,13 @@ void __cdecl CoasterLink_FreeEntries(const u8 *link);
 // else Holder_Sleep) and set playing (Animator_SetPlaying); a type without one leaves the holder null. Quiet, the holder (null) is never
 // set, so none plays (the link argument's slot holds it, sic).
 void __cdecl CoasterLink_SetUpCars(const u8 *train, u8 *link, u32 quiet);
+
+// 0x436fa0 (cdecl (id); name invented, unconfirmed): the first link of the list at 0x790fe0 whose +0x10 is id (none: nothing) destroyed:
+// its id (+0x14) taken out of the id table (IdTable_Remove of 0x790b04 / 0x790b00 / 0x791ce0 / 0x790bd0), the count (0x792214) down, its
+// slots (+0x148) freed and cleared. With cars (+0x128, 0x80 bytes each; the train's (+4) +0x2e8 of them, re-read each time): a car with
+// flag 2 (byte +0) put to sleep (CoasterCar_Sleep), then each segment (+0x28, 0x60 bytes each; the car's +4 -> +4 of them, re-read) with
+// a ride (+0xc) has it put to sleep (Ride_Sleep) and destroyed (Ride_Destroy 0x463c80, through the queue pieces' env). Then its blocks
+// +0x130, +0x128 (left set) and +0x12c freed, its children disposed (Owner_DisposeChildren), its entries freed (CoasterLink_FreeEntries),
+// the link taken off the list (the walk goes on past it), its two rings (+0xb0, +0xd0) freed and the link itself (GlobalMem_Free).
+void __cdecl CoasterLink_Destroy(u32 id);
 }

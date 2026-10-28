@@ -12,7 +12,11 @@
 #include "../terrain/land.h"
 #include "../ui/dialog7ca1c8.h"
 #include "../world/objectdefs.h"
+#include "../world/queuepieces.h"
+#include "../world/ridestate.h"
 #include "../world/trackline.h"
+#include "cars.h"
+#include "queue.h"
 #include "train.h"
 
 namespace {
@@ -521,5 +525,48 @@ void __cdecl CoasterLink_SetUpCars(const u8 *train, u8 *link, u32 quiet) {
         }
         at<u8 *>(car, 0x34) = at<u8 *>(car, 0x28) + (at<u32>(train, 0x2fc) == at<u32>(train, 0x300) ? 0 : 0x60);
     }
+}
+
+void __cdecl CoasterLink_Destroy(u32 id) {
+    u8 **const head = reinterpret_cast<u8 **>(0x00790fe0);
+    u8 *link = *head;
+    while (link && at<u32>(link, 0x10) != id) link = at<u8 *>(link, 0x18);
+    if (!link) return;
+    IdTable_Remove(reinterpret_cast<u32 *>(0x00790b04), reinterpret_cast<u32 *>(0x00790b00), reinterpret_cast<u32 *>(0x00791ce0),
+                   reinterpret_cast<u32 *>(0x00790bd0), at<u32>(link, 0x14));
+    --*reinterpret_cast<u32 *>(0x00792214);
+    const u8 *const train = at<const u8 *>(link, 4);
+    u8 *car = at<u8 *>(link, 0x128);   // (read before the slots are freed)
+    GlobalMem_Free(at<void *>(link, 0x148));
+    at<u32>(link, 0x148) = 0;
+    if (at<u32>(link, 0x128)) {
+        for (u32 i = 0; i < at<u32>(train, 0x2e8); ++i, car += 0x80) {
+            if (car[0] & 2) CoasterCar_Sleep(link, car);
+            const u8 *const shape = at<const u8 *>(car, 4);
+            u8 *segment = at<u8 *>(car, 0x28) + 0xc;
+            for (u32 j = 0; j < at<u32>(shape, 4); ++j, segment += 0x60) {
+                if (!at<u32>(segment, 0)) continue;
+                Ride_Sleep(at<u32>(segment, 0));
+                QueuePiece_Remove(at<u32>(segment, 0));   // (Ride_Destroy 0x463c80, through the queue pieces' env)
+            }
+        }
+    }
+    GlobalMem_Free(at<void *>(link, 0x130));
+    GlobalMem_Free(at<void *>(link, 0x128));
+    GlobalMem_Free(at<void *>(link, 0x12c));
+    Owner_DisposeChildren(link);
+    CoasterLink_FreeEntries(link);
+    if (*head == link) {
+        *head = at<u8 *>(link, 0x18);
+    } else {
+        u8 *prev = nullptr;
+        for (u8 *node = *head; node; node = at<u8 *>(node, 0x18)) {
+            if (node == link) at<u8 *>(prev, 0x18) = at<u8 *>(node, 0x18);   // (the walk goes on past it)
+            prev = node;
+        }
+    }
+    CoasterRing_Free(link + 0xb0);
+    CoasterRing_Free(link + 0xd0);
+    GlobalMem_Free(link);
 }
 }
