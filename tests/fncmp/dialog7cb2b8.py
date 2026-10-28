@@ -13,7 +13,14 @@
 # surroundings, the root then its dialog), others now and then; b any. window.py's queues and timed table; the sound globals as
 # msgtags.py's (the manager's slot 2 command hashed). The objects' slot 3 events hashed by what each sets: SetDepth's (2) +6 / +7,
 # SetRect's (0x10) +0x14, SetWordsE4's (0x40) +0xc-+0xf; Offset's (0x50) +0xc-+0xf of what it sets.
-# usage: dialog7cb2b8.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ShowRightOf,BoxHandler,BarHandler)
+# ShowDate (0x4a0e30) and OnDate (0x481560, thiscall on 0x7b51f0: its fourth to sixth of nine): the dialog [0x7cb2b8] (none now and then)
+# with its child 0x20 (the label: +0x9c an object whose slot 3 is the recorder 24, the text it is sent hashed: blob_inner_text(); or none)
+# among 0-2 decoys (missing now and then: a fault in both); [0x7cb2ac]'s child 0x2f and its child 0x31 (the light: +0x98 / +0x9c recorders
+# of slot 3, k 23, their event's word +4 hashed, or none) among decoys (now and then missing: a fault in both); the analyser (the table
+# 0x7cfb90's entry for the game [[0x7cf6ec]]'s word +0x1da720) with its CircBufU32s +0x1f5a0 and +0x1fc90 (statsgraph.py's circbuf(), the
+# cursor -1 now and then); the language's converter and table (panelparts.py's texts()). The narrow formatter 0x6acca0 is the log stub with
+# its three number arguments hashed (text_args(); the stub's wide digits in the narrow buffer, widened: what the label is sent).
+# usage: dialog7cb2b8.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ShowRightOf,BoxHandler,BarHandler,ShowDate,OnDate)
 import os
 import struct
 import sys
@@ -23,13 +30,16 @@ sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import dialogs  # noqa: E402
 import msgtags  # noqa: E402
+import panelparts  # noqa: E402
+import statsgraph  # noqa: E402
 import window as gui  # noqa: E402
-from fncmp import CDECL_LOG4, LOG, RAM, Bench, Call, blob, blob_bytes, blob_when, log_region, put, set_return, vtable  # noqa: E402
+from fncmp import (CDECL_LOG4, LOG, RAM, Bench, Call, _cdecl_log4, blob, blob_bytes, blob_inner_text, blob_when, log_region, put, recorder,  # noqa: E402
+                   set_return, strings, text_args, vtable)
 from window import RANGES  # noqa: E402
 from thingenv import SLOTS, THING, park  # noqa: E402
 from windowtree import rect_env  # noqa: E402
 
-CALLS = {'ShowRightOf': 0x4a1440, 'BoxHandler': 0x4a14f0, 'BarHandler': 0x4a1cd0}
+CALLS = {'ShowRightOf': 0x4a1440, 'BoxHandler': 0x4a14f0, 'BarHandler': 0x4a1cd0, 'ShowDate': 0x4a0e30, 'OnDate': 0x481560}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 BOX_RANGES = [(0x4a14f0, 0x4a1bbf), (0x485aa0, 0x485abd), (0x51bfc0, 0x51c060), (0x658ccc, 0x658e04), (0x659e3e, 0x659e93),
               (0x65c7fe, 0x65c989), (0x65cc04, 0x65cda5), (0x65cf5e, 0x65cfe4), (0x65d42e, 0x65d506), (0x65d547, 0x65d58c), (0x65d7d0, 0x65d832),
@@ -41,15 +51,22 @@ BOX_RANGES = [(0x4a14f0, 0x4a1bbf), (0x485aa0, 0x485abd), (0x51bfc0, 0x51c060), 
               (0x51feb0, 0x51ff06), (0x680050, 0x68005b)]
 BAR_RANGES = [(0x4a1cd0, 0x4a1d70), (0x519510, 0x51954d), (0x4c7bb0, 0x4c7cb4), (0x51a280, 0x51a287), (0x516130, 0x5161b0), (0x50b350, 0x50b360),
               (0x4fa990, 0x4fa9fa), (0x536300, 0x53644c), (0x5da3c0, 0x5da3c1), (0x67a830, 0x67a860)]   # (BarHandler's: the park's average)
+DATE_RANGES = [(0x481560, 0x481590), (0x485ac0, 0x485b10), (0x4a0e30, 0x4a0fc0), (0x519510, 0x519560), (0x65d3a3, 0x65d41c),
+               (0x65d7bc, 0x65d832), (0x65f5b7, 0x65f60e), (0x6adc80, 0x6add40), (0x6ace20, 0x6ace70), (0x5da3c0, 0x5da3c1)]   # (ranges.py 481560's)
 B = Bench(sorted(set(RANGES + msgtags.TIMER_RANGES + BOX_RANGES + [
     (0x4a1440, 0x4a14e1), (0x6589f9, 0x658abb), (0x658ccc, 0x658daf), (0x659710, 0x659740), (0x659d00, 0x659d53), (0x659d90, 0x659dbc),
     (0x65a9d0, 0x65aa00), (0x65aa20, 0x65aaa0), (0x65d42e, 0x65d4b0), (0x65d547, 0x65d56a), (0x65d56b, 0x65d58c), (0x65d773, 0x65d7cc),
-    (0x65d90b, 0x65da9d), (0x65db25, 0x65dc00), (0x6697e3, 0x6698b4), (0x66bff7, 0x66c01b), (0x661700, 0x661800)] + BAR_RANGES)))
+    (0x65d90b, 0x65da9d), (0x65db25, 0x65dc00), (0x6697e3, 0x6698b4), (0x66bff7, 0x66c01b), (0x661700, 0x661800)] + BAR_RANGES + DATE_RANGES)),
+          hooks={0x6acca0: _cdecl_log4})   # (the narrow text formatter: a log stub, driver: TextFormatEnv)
 BW = RAM + 0x30000   # (BoxHandler's own: the box, the tag, its leaf, the close button, the timer node and pool, the clock, the sound)
 BOX, TAG, LEAF, CLOSE, NODE, POOL, CLOCK, CVT, SND = BW, BW + 0x200, BW + 0x400, BW + 0x600, BW + 0x800, BW + 0x900, BW + 0xa00, BW + 0xa10, BW + 0xb00
 SNDMGR, SNDVT = SND + 0x40, SND + 0x60
 BARW = RAM + 0x50000   # (BarHandler's own: the bar window, its vtable, timer node, pool and clock, the game pointer, the park's things)
 BAR, BARVT, BAR_NODE, BAR_POOL, BAR_CLOCK, BAR_GAME, BAR_THINGS = BARW, BARW + 0x200, BARW + 0x300, BARW + 0x400, BARW + 0x500, BARW + 0x600, BARW + 0x1000
+DATEW = RAM + 0x60000   # (ShowDate's own: the dialogs, their children and decoys, the objects, the game pointer, the analyser's buffers)
+DDLG, DLABEL, DPARENT, DBAR, DLIGHT, DOBJ, DOVT, DTOBJ, DTVT, DGAME = (DATEW + 0x200 * i for i in range(10))
+DDECOY = DATEW + 0x2000
+DREC = RAM + 0x80000
 BOX_MESSAGES = [0xa] * 8 + [0xb] * 3 + [0x10] * 9 + [0x12] * 4 + [0x100] * 2 + [0, 5, 0x11, 0x14, 0x101, 0x10a]
 
 
@@ -203,8 +220,74 @@ def box_case(r):
     return Call(CALLS['BoxHandler'], [BOX, message, a, b], regions, ret='a')
 
 
+def children(r, regions, parent, kids):
+    """the windows `kids` (address, id) the parent's children in that order among 0-2 decoys of other ids (each its own window)"""
+    items = list(kids)
+    for d in range(r.choice([0, 0, 1, 2])):
+        items.insert(r.randrange(len(items) + 1), (DDECOY + 4 * (parent - DATEW) + 0x200 * d, r.choice([0, 0x21, 0x30, 0x1f, r.getrandbits(32)])))
+    for at, ident in items:
+        if at not in regions:
+            regions[at] = bytearray(r.bytes(0x120))
+        put(regions[at], 0x8c, 'I', ident)
+    for i, (at, _) in enumerate(items):
+        put(regions[at], 0x54, 'I', items[i + 1][0] if i + 1 < len(items) else 0)
+    put(regions[parent], 0x5c, 'I', items[0][0] if items else 0)
+
+
+def ring(r):
+    buf = bytearray(statsgraph.circbuf(r))
+    if r.random() < 0.2:
+        put(buf, 0x244, 'i', r.choice([-1, -1, -2, r.randrange(-144, 0)]))
+    return buf
+
+
+def date_case(r, op):
+    log = log_region()
+    regions = {LOG: log, DOVT: put(vtable({}, size=8), 0xc, 'I', recorder(23, 2)), DTVT: put(vtable({}, size=8), 0xc, 'I', recorder(24, 2))}
+    regions[DOBJ] = put(bytearray(r.bytes(0x20)), 0, 'I', DOVT)
+    regions[DTOBJ] = put(bytearray(r.bytes(0x20)), 0, 'I', DTVT)
+    blob_bytes(log, 23, 1, 0x30)
+    blob_bytes(log, 24, 1, 0, (0x10, 0))
+    blob_inner_text(log, 24, 0)
+    text_args(log, 3)
+    strings(log, 0x3d, 0, 2)   # (the buffer: a stack address, logged as 0)
+    for at in (DDLG, DLABEL, DPARENT, DBAR, DLIGHT):
+        regions[at] = bytearray(r.bytes(0x120))
+    put(regions[DLABEL], 0x9c, 'I', DTOBJ if r.random() < 0.9 else 0)
+    put(regions[DLIGHT], 0x98, 'II', *(DOBJ if r.random() < 0.8 else 0 for _ in range(2)))
+    children(r, regions, DDLG, [(DLABEL, 0x20)] if r.random() < 0.97 else [])
+    children(r, regions, DPARENT, [(DBAR, 0x2f)] if r.random() < 0.97 else [])
+    children(r, regions, DBAR, [(DLIGHT, 0x31)] if r.random() < 0.97 else [])
+    regions[0x7cb2b8] = struct.pack('<I', DDLG if r.random() < 0.95 else 0)
+    regions[0x7cb2ac] = struct.pack('<I', DPARENT)
+    regions[0x78b530] = b''
+    panelparts.texts(r, regions, [0x1c0])
+    index = r.randrange(4)
+    table = bytearray(r.bytes(0x50))
+    put(table, 20 * index, 'I', DREC)
+    regions[0x7cfb90] = table
+    regions[RAM + 0x1da720] = struct.pack('<H', index) + r.bytes(2)
+    regions[DGAME] = struct.pack('<I', RAM)
+    regions[0x7cf6ec] = struct.pack('<I', DGAME)
+    regions[DREC + 0x1f5a0] = ring(r)
+    regions[DREC + 0x1fc90] = ring(r)
+    day = r.choice([1, 15, 28, 31, r.randrange(1, 32)] * 3 + [0, r.getrandbits(32)])
+    month = r.choice([1, 2, 6, 12, r.randrange(1, 13)] * 3 + [0, 13, r.getrandbits(32)])
+    year = r.choice([0, 1, 99, 100, 125, r.randrange(200)] * 2 + [5, -1, r.getrandbits(32)]) & 0xffffffff
+    if r.random() < 0.3:   # (the buffers' newest about the year)
+        for off in (0x1f5a0, 0x1fc90):
+            put(regions[DREC + off], 4, '144I', *[(year + r.choice([-1, 0, 0, 1])) & 0xffffffff for _ in range(144)])
+    if op == 'ShowDate':
+        return Call(CALLS[op], [day, month, year], regions, ret='v')
+    args = [r.getrandbits(32) for _ in range(9)]
+    args[3:6] = day, (month - 1) & 0xffffffff, year
+    return Call(CALLS[op], [0x7b51f0] + args, regions, conv='t', ret='v')
+
+
 def case(r):
     op = r.deal(OPS)
+    if op in ('ShowDate', 'OnDate'):
+        return date_case(r, op)
     if op == 'BoxHandler':
         return box_case(r)
     if op == 'BarHandler':

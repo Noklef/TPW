@@ -20,6 +20,14 @@ const SaveSpec kMessage[] = {{0, 2, 0x0076e2f4}, {4, 4, 0x0076e2e8}, {0xc, 4, 0x
 const AdvisorScoreEnv kGameEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0)};
 const AdvisorScoreEnv *g_env = &kGameEnv;
 
+}  // namespace
+
+extern "C" void __fastcall Obj7b51f0_CheckOnline(void *, void *, u8 flag) {
+    if (flag) AdvisorScore_ModeSetting(0x00fb34c9);   // (2 or not, only the empty assert 0x5da3c0 differs)
+}
+
+namespace {
+
 // Whether the record applies: +0xc 2; 0 with the setting 0; (re-read) 1 with the setting 2.
 bool applies(u32 record) {
     const u32 when = global<u32>(record + 0xc);

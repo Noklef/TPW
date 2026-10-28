@@ -24,6 +24,11 @@ u32 AdvisorScore_ModeSetting(u32 guard_address);
 
 extern "C" {
 
+// 0x481af0 (thiscall on the object at 0x7b51f0, this not used (flag), pops 4; name unconfirmed): with the flag (a byte) the mode setting
+// (0xfb3b7c) read, the first time under this function's own guard 0xfb34c9 & 1 (Setting_ReadMode, atexit 0x5d1750), for an assert that
+// it is 2 (online; the assert, the empty 0x5da3c0, left out). Without the flag nothing.
+void __fastcall Obj7b51f0_CheckOnline(void *, void *, u8 flag);
+
 // 0x59bf20 (thiscall (id), pops 4; name unconfirmed): id's record of the table at 0x76e300 (Table76e300_FindRecord, looked up twice; its
 // failed search's message goes to the empty Debug_Printf): none, -1. Its +0xc 2, or 0 with the mode setting (0xfb3b7c, read the first time
 // under the guard 0xfb34bc & 1 (Setting_ReadMode, atexit 0x5d1750)) 0, or 1 with the setting 2: the record's method (+0x10, thiscall, no

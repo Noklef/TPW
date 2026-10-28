@@ -32,6 +32,7 @@
 #include <windows.h>
 
 #include <cfloat>
+#include <cstdarg>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -298,10 +299,46 @@ u32 __cdecl stub_cdecl_log2(u32 a, u32 b) {
     return record_call(0x13e, 2, 0, stack);
 }
 
-// The same with four arguments (kStubs + 0x90, tools/fncmp.py CDECL_LOG4): the entry k 0x13d.
-u32 __cdecl stub_cdecl_log4(u32 a, u32 b, u32 c, u32 d) {
-    const u32 stack[5] = {0, a, b, c, d};
-    return record_call(0x13d, 4, 0, stack);
+u32 wide_hash(u32 h, const u16 *s) {
+    if (!s) return h;
+    for (u32 i = 0; i < 0x400 && s[i]; ++i) h = (h ^ s[i]) * 0x01000193u;
+    return h;
+}
+
+// A text argument of the formatter's (src/game/core/textarg.h) as one dword: its vtable, tag and number, then a string's text (vtable 0x6ff174;
+// it lives on the stack) or the dwords +0xc and +0x10 (a number's); 0 for none.
+u32 text_arg_hash(const u32 *arg) {
+    if (!arg) return 0;
+    u32 h = 0x811c9dc5u;
+    for (u32 i = 0; i < 3; ++i) h = (h ^ arg[i]) * 0x01000193u;
+    if (arg[0] == 0x006ff174u) return wide_hash(h, reinterpret_cast<const u16 *>((uintptr_t)arg[3]));
+    h = (h ^ arg[3]) * 0x01000193u;
+    return (h ^ arg[4]) * 0x01000193u;
+}
+
+// The same with four arguments (kStubs + 0x90, tools/fncmp.py CDECL_LOG4): the entry k 0x13d. As the text formatter 0x6acd60 (fncmp.text_args()):
+// with a count of text arguments (1-3) at log + 0x7e0, that many more (pointers to them) logged as text_arg_hash()es, and the buffer (b; c its size
+// in characters, 9 or more) given the hash of the text's id and those as 8 hex digits, so that what shows the text compares it.
+u32 __cdecl stub_cdecl_log4(u32 a, u32 b, u32 c, u32 d, ...) {
+    const u32 texts = *reinterpret_cast<const u32 *>((uintptr_t)(kStubs + 0x100000 + 0x7e0));
+    u32 stack[8] = {0, a, b, c, d};
+    u32 n = 4;
+    if (texts) {
+        va_list rest;
+        va_start(rest, d);
+        u32 h = (0x811c9dc5u ^ d) * 0x01000193u;
+        for (; n < 4 + (texts < 3 ? texts : 3); ++n) {
+            stack[1 + n] = text_arg_hash(reinterpret_cast<const u32 *>((uintptr_t)va_arg(rest, u32)));
+            h = (h ^ stack[1 + n]) * 0x01000193u;
+        }
+        va_end(rest);
+        if (b && c >= 9) {
+            u16 *const to = reinterpret_cast<u16 *>((uintptr_t)b);
+            for (u32 i = 0; i < 8; ++i) to[i] = (u16)"0123456789ABCDEF"[h >> (28 - 4 * i) & 0xf];
+            to[8] = 0;
+        }
+    }
+    return record_call(0x13d, n, 0, stack);
 }
 
 // QueryPerformanceFrequency / QueryPerformanceCounter (stdcall) for code that calls through the game's import slots (kStubs + 0x60, tools/fncmp.py COUNTER;
@@ -376,7 +413,7 @@ const WrapSourcesEnv kWrapSourcesEnv = {&heap_alloc, &heap_free, reinterpret_cas
                                         reinterpret_cast<ZlibCodec *>((uintptr_t)0x00fa75fc)};
 
 // The recorders (tools/fncmp.py recorder(k, n)): thunks at kStubs + 0x1000 + 0x400 * n + 0x20 * k, thiscall with n stack arguments (popped by the thunk), that
-// log (k, n, this, the arguments) at kLog and return a hash of them, ECX left as this. The log is a count, then 12 dwords an entry; room for 80. An
+// log (k, n, this, the arguments) at kLog and return a hash of them, ECX left as this. The log is a count, then 12 dwords an entry; room for 40 (calls past them neither logged nor counted). An
 // entry holds the first seven arguments and, for more, a hash of the rest.
 const u32 kLog = kStubs + 0x100000;  // (the case maps it)
 constexpr u32 recorder(u32 k, u32 n) { return kStubs + 0x1000 + 0x400 * n + 0x20 * k; }
@@ -440,7 +477,7 @@ u32 bytes_hash(u32 h, const u8 *p, u32 mask) {
 }
 
 // wide: the slot's entry at + 0xfc0 (two of (k | 0x80000000, start, mask), fncmp.LOG_BLOB_WIDE), or null: the second structure's bytes start to start + 31
-// that its mask selects, hashed after the first fifteen (an inner mask past bit 14).
+// that its mask selects, hashed after the first fifteen (an inner mask past bit 14); start bit 31: the wide text its dword at start & 0xff points to.
 u32 blob_bytes_hash(const u8 *p, u32 how, u32 mask, const u32 *wide) {
     u32 h = bytes_hash(0x811c9dc5u, p, mask);
     if (const u32 at = how >> 8 & 0xff) {
@@ -448,7 +485,13 @@ u32 blob_bytes_hash(const u8 *p, u32 how, u32 mask, const u32 *wide) {
         std::memcpy(&inner, p + at - 1, 4);
         if (inner) {
             h = bytes_hash(h, inner + 4 * (how >> 5 & 7), how >> 16 & 0x7fff);
-            if (wide) h = bytes_hash(h, inner + wide[1], wide[2]);
+            if (wide && wide[1] & 0x80000000u) {  // (fncmp.blob_inner_text(): the wide text the second structure's dword at that offset points to)
+                const u16 *text;
+                std::memcpy(&text, inner + (wide[1] & 0xff), 4);
+                h = wide_hash(h, text);
+            } else if (wide) {
+                h = bytes_hash(h, inner + wide[1], wide[2]);
+            }
         }
     }
     return h;
@@ -1153,9 +1196,9 @@ int main(int argc, char **argv) {
         const auto t = [](u32 k, u32 n) { return Rec{(uintptr_t)recorder(k, n)}; };
         static const MapClickEnv mapClick = {
             c(30, 3), c(12, 0), c(15, 1), c(16, 1), c(13, 4), c(23, 2), c(31, 3), c(17, 6), c(5, 1), c(8, 3), c(14, 4), c(6, 4), c(15, 4),
-            c(24, 2), c(25, 2), c(17, 1), c(18, 1), c(16, 4), c(0, 5), c(19, 1),
-            c(10, 6), c(1, 5), c(26, 2), c(2, 2), c(20, 1), c(3, 3), c(4, 4), c(11, 3), c(12, 3), c(27, 2), c(28, 2), c(21, 1), c(13, 0),
-            c(7, 5), c(14, 0), c(22, 1), c(29, 2), c(9, 1),
+            c(21, 2), c(17, 2), c(17, 1), c(18, 1), c(16, 4), c(0, 5), c(19, 1),
+            c(10, 6), c(1, 5), c(26, 2), c(2, 2), c(10, 1), c(3, 3), c(4, 4), c(11, 3), c(12, 3), c(27, 2), c(28, 2), c(21, 1), c(13, 0),
+            c(7, 5), c(14, 0), c(11, 1), c(29, 2), c(9, 1),
             t(26, 0), t(27, 0), t(16, 0), t(28, 0), t(20, 1), t(30, 2), t(22, 2), t(24, 1), t(25, 1), t(12, 0), t(13, 0), t(14, 0), t(15, 0),
             t(18, 3), t(19, 2), t(31, 3), t(31, 4), t(29, 0), t(30, 1)};
         MapClick_SetEnv(&mapClick);
@@ -1167,8 +1210,10 @@ int main(int argc, char **argv) {
     // hooks them (their own benches are texdirs.py and objmodel.py).
     static const AnimatorMeshEnv animatorMeshEnv = {reinterpret_cast<void(__cdecl *)(u8 *, u8 *)>(&stub_cdecl_log2), reinterpret_cast<void(__cdecl *)(u8 *)>(&stub_cdecl_log)};
     Animator_SetMeshEnv(&animatorMeshEnv);
-    // 0x6acd60 (the text formatter, library code): stub_cdecl_log4, as tests/fncmp/objectdefs.py hooks it.
-    static const TextFormatEnv textFormat = {reinterpret_cast<u32(__cdecl *)(void *, u16 *, u32, u32, ...)>(&stub_cdecl_log4)};
+    // 0x6acd60 and 0x6acca0 (the text formatters, wide and narrow, library code): stub_cdecl_log4, as tests/fncmp/objectdefs.py and
+    // dialog7cb2b8.py hook them (the narrow buffer given the stub's wide digits all the same).
+    static const TextFormatEnv textFormat = {reinterpret_cast<u32(__cdecl *)(void *, u16 *, u32, u32, ...)>(&stub_cdecl_log4),
+                                             reinterpret_cast<u32(__cdecl *)(void *, u8 *, u32, u32, ...)>(&stub_cdecl_log4)};
     TextFormat_SetEnv(&textFormat);
     // The 8-bit sprite's hand-written blitter (0x6e73c0, cseg: not in the listing): stub_cdecl_log4, as tests/fncmp/draw8.py hooks it; the rest the game's.
     static const DrawEnv draw = {reinterpret_cast<DrawContext *>((uintptr_t)0x00fa76b8), reinterpret_cast<const u8 *>((uintptr_t)0x00778108),

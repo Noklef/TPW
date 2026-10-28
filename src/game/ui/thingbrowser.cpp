@@ -60,6 +60,10 @@ void __cdecl ThingBrowser_ShowName() {
     Camera_CentreOnSprite(global<u8 *>(0x007cc308));
 }
 
+void __cdecl ThingBrowser_ResetIfThing(u8 *thing) {
+    if (global<u8 *>(0x007cc308) == thing) Dialog7cb2b8_ResetChild21(1);
+}
+
 void __cdecl ThingBrowser_ShowDetail() {
     u8 *const thing = global<u8 *>(0x007cc308);
     if (!thing) return;

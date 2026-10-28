@@ -29,9 +29,11 @@ s32 __fastcall TextArgString_Write(u8 *arg, void *, u8 *writer, void *state);
 }
 
 // The text formatter 0x6acd60 (cdecl: a text table, the buffer, its size in characters, the text's id, then the arguments for its %n
-// places; library code under SEH, not ported): ports call it through TextFormat(), which tools/fncmp's driver swaps for a log stub.
+// places; library code under SEH, not ported) and its narrow twin 0x6acca0 (the same into a byte buffer): ports call them through
+// TextFormat(), which tools/fncmp's driver swaps for log stubs.
 struct TextFormatEnv {
     u32(__cdecl *format)(void *table, u16 *to, u32 size, u32 id, ...);
+    u32(__cdecl *formatNarrow)(void *table, u8 *to, u32 size, u32 id, ...);
 };
 const TextFormatEnv &TextFormat();
 void TextFormat_SetEnv(const TextFormatEnv *env);  // nullptr: the game's

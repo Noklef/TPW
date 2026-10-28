@@ -54,6 +54,12 @@ u8 *__fastcall ParkAnalyser_Cell(u8 *analyser, void *, u32 pos);
 void __fastcall ParkAnalyser_StampTime21c30(u8 *analyser);
 void __fastcall ParkAnalyser_StampTime21c38(u8 *analyser);
 
+// 0x4c7600 (thiscall (ticks), pops 4; name unconfirmed; called by 0x502357): the whole days (_alldiv by 864000000000, signed; the low
+// dword) of the funny time span of `ticks` (FunnyTime_SpanOf of the clock at [[0x7cf6ec]] + 0x2a0) pushed onto the 50-day ring at
+// +0x21600: the cursor (+0x216cc) on, back to 0 at the size (+0x216d0, signed) with the wrapped flag (+0x216d4) set; the value at
+// +0x21604 + cursor * 4 (not checked).
+void __fastcall ParkAnalyser_RecordDays(u8 *analyser, void *, u32 ticks);
+
 // 0x4c7a90 (thiscall; name unconfirmed): the analyser added to the message centre's slots 0xc, 0x11 and 0x13, then each of its +0x14 * +0x10
 // cells (rows * columns, a 32-bit product; none when not positive; 0x7c bytes from +0x20) gets its rectangle: x = column * size, y = row * size,
 // w and h = size (+0xc), cut back where the cell passes the width (+0x18) or the height (+0x1c): w = width - (column + 1) * size + size. Column
@@ -103,6 +109,47 @@ u32 __fastcall AnalyserCell_CountBusy(u8 *cell, void *, u32 limit);
 // 0x4c81b0 (thiscall (limit), pops 4; name unconfirmed): AnalyserCell_CountBusy of the 0x400 cells (+0x20, 0x7c apart), the last first,
 // summed.
 u32 __fastcall ParkAnalyser_CountBusy(u8 *analyser, void *, u32 limit);
+
+// 0x4c8ae0 (thiscall on a cell (limit), pops 4; name unconfirmed): as AnalyserCell_CountBusy, the map cells of type 1, 3 or 9
+// (MapCell_IsType1, MapCell_IsType3Or9) in the cell's rectangle, kept in its value at +0x4c (+0x4c the ticks, +0x50 the count, +0x54 worked
+// out). Returns +0x50.
+u32 __fastcall AnalyserCell_CountType1Or3Or9(u8 *cell, void *, u32 limit);
+
+// 0x4c8150 (thiscall (limit), pops 4; name unconfirmed): AnalyserCell_CountType1Or3Or9 of the 0x400 cells (+0x20, 0x7c apart), the last
+// first, summed.
+u32 __fastcall ParkAnalyser_CountType1Or3Or9(u8 *analyser, void *, u32 limit);
+
+// 0x4c8ba0 (thiscall on a cell (limit), pops 4; name unconfirmed): as AnalyserCell_CountBusy, the map cells in the cell's rectangle (its
+// bounds and gMapCells read once) whose dword +0x2c is not 0, kept in its value at +0x58 (+0x58 the ticks, +0x5c the count, +0x60 worked
+// out). Returns +0x5c.
+u32 __fastcall AnalyserCell_CountWith2c(u8 *cell, void *, u32 limit);
+
+// 0x4c8180 (thiscall (limit), pops 4; name unconfirmed): AnalyserCell_CountWith2c of the 0x400 cells (+0x20, 0x7c apart), the last first,
+// summed.
+u32 __fastcall ParkAnalyser_CountWith2c(u8 *analyser, void *, u32 limit);
+
+// 0x4c7db0 (thiscall (limit), pops 4; name unconfirmed): the park's score, kept in the value at +0x1f0e8 (+0x1f0e8 the ticks, +0x1f0ec the
+// score, +0x1f0f0 worked out) as AnalyserCell_CountBusy's. Worked out again: over the whole map (the world [0x80239c] read once, its cells
+// from +0x2d8 for the id (row << 7) + column + 1; the columns 0x7f down to 0, in each the rows 0x7f down to 0) each cell without flag 0x40
+// (MapCell_HasFlags) scores 1 for type 2, 3 for 1, 5 for 3 or 9, 1 for 9, 1 for 0xa, 10 for Zero_5d60c0, 2 for 0, 0x32 for
+// MapHandle_IsTypeBDOr10Or12Or19; then each thing of the world's chain (+0x1da746, then +0xc; the world read again once) not with +0x19c 4
+// (Is19c_Eq4_4e0380) adds (__ftol(+0x44)'s low byte) * the sum of its definition's (ObjectDefs_Find of +0xe, found again each time, not
+// checked) dwords +0x1b8 + 0x40 * i for i 0 to +0x50 (at least once) / 100 (signed). Returns +0x1f0ec.
+u32 __fastcall ParkAnalyser_ParkScore(u8 *analyser, void *, u32 limit);
+
+// 0x4c7720 (thiscall; name invented, unconfirmed): the analyser's periodic sample, onto its CircBufU32s of 144 (each +4 values, +0x244
+// cursor, +0x248 size, +0x24c wrapped; pushed as CircBufU32_144_Push, most inlined in the original): +0x1f100 the tracked source's
+// position (Source_Field0c of the table 0x7cfb90's entry for [[0x7cf6ec]]'s word +0x1da726); +0x1f5a0, +0x1f7f0, +0x1fa40, +0x1fc90,
+// +0x1fee0, +0x20130, +0x20380 and +0x20cc0 their own +0 (each then cleared); +0x205d0 ParkAnalyser_CountKind1OnPlainCell(0); +0x20820
+// the total +0x21c08; +0x20a70 ParkAnalyser_CountDef4ac0(0); +0x20f10 Things_AveragePersonStat19c as a float; +0x1f350
+// ParkAnalyser_ParkScore(0), then the tallies +0x21bfc and +0x21c00 cleared; +0x21160 the average of the CircBufU32 of 50 at +0x21600
+// (CircBufU32_50_Sum of 0x32: the sum / the count, x87, __ftol's low dword; 0 for no count); +0x213b0 Things_FacilityScore.
+void __fastcall ParkAnalyser_Sample(u8 *analyser);
+
+// 0x4c7370 (thiscall (message), pops 4; name invented): on the message's kind (its slot 0): 0xc ParkAnalyser_Sample; 0x11 the id (+8, a
+// word) recorded in the u16 ring of its definition's +0x4ac (ObjectDefs_Find): analyser + (that + 0x18d2) * 0x14 (+8 cursor, +0xc size,
+// +0x10 wrapped, the values from +2); 0x13 with +8 3 the funny time stamped at +0x21c28; 0x17 with +0xc 2 at +0x21c10; else nothing.
+void __fastcall ParkAnalyser_HandleMessage(u8 *analyser, void *, u8 *message);
 
 // 0x4c91c0 (thiscall; name unconfirmed): the people (kind 1) whose +0x220 is 3 in the chains (+0xa, from the cell's first thing, the word
 // [0x80239c] + id * 0x44 + 0x2b8) of the two ticket booths' cells (Map_TicketBoothPos 0 and 1 on [0x80239c] + 0x2d8; the same cell counted

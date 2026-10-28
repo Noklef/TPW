@@ -5,10 +5,11 @@
 # month (its day of the week is the stack's on the original side). Now: rates and the world's ticks (+0x1da70c) about 0, 2^32 and
 # products past 2^63; each field out null or a slot (at times the same one). The spans: of ticks about the same, and since ticks about
 # the world's. Its users' ages in days (an object's 0x4dd670, a staff member's 0x505b70): dates about whole days before now. The park
-# analyser's time stamps (Stamp: 0x4c7680, 0x4c76d0) of now, the analyser placed so that they land in OUT.
+# analyser's time stamps (Stamp: 0x4c7680, 0x4c76d0) of now, the analyser placed so that they land in OUT. Its day ring (DayRing: 0x4c7600):
+# the days of a span of any ticks at the clock [[0x7cf6ec]] + 0x2a0 pushed, the ring's cursor about its size (0, 1, 50 or any up to 60).
 # The world's constructor (World: 0x515540, src/game/world/world), which makes such a clock at +0x2a0: its whole block (0x1da748 bytes) any
 # bytes, the clock's imports as Init's.
-# usage: funnytime.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Init,Now,SpanOf,Elapsed,SpanSince,ObjectDays,StaffDays,Stamp,World)
+# usage: funnytime.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Init,Now,SpanOf,Elapsed,SpanSince,ObjectDays,StaffDays,Stamp,World,DayRing)
 import os
 import struct
 import sys
@@ -18,7 +19,7 @@ from fncmp import IMPORT_TABLE as IAT, LOG, Bench, Call, RAM, fill, import_table
 
 RANGES = [(0x4f7e80, 0x4f7f2d), (0x4f8690, 0x4f8730), (0x4f8730, 0x4f8769), (0x4f8800, 0x4f88a6), (0x4f88b0, 0x4f88f6), (0x4dd670, 0x4dd6c3), (0x505b70, 0x505bc6),
           (0x5fc530, 0x5fc550), (0x5fc550, 0x5fc570), (0x5fc5c0, 0x5fc65e), (0x5fc660, 0x5fc733), (0x67c320, 0x67c3ca), (0x67c7f0, 0x67c824),
-          (0x4c7680, 0x4c76c2), (0x4c76d0, 0x4c7712)]
+          (0x4c7680, 0x4c76c2), (0x4c76d0, 0x4c7712), (0x4c7600, 0x4c7675)]
 WORLD_RANGES = [(0x515540, 0x515660), (0x507800, 0x507840), (0x4cf030, 0x4cf050), (0x401000, 0x401030), (0x4d8da0, 0x4d8dd0), (0x50c1d0, 0x50c1f0),
                 (0x502460, 0x502470), (0x4d0a90, 0x4d0ac0), (0x4d0ac0, 0x4d0af0), (0x51ad30, 0x51ad40),
                 (0x67acf0, 0x67ada0), (0x507080, 0x5070a0)]
@@ -27,6 +28,7 @@ CLOCK, OUT, TICKS = RAM, RAM + 0x100, RAM + 0x400
 WORLD_AT = RAM + 0x10000   # (World's world)
 DAY = 864000000000   # FILETIME ticks
 WORLD = TICKS - 0x1da70c   # (only its ticks are read)
+CLOCK_AT, RING = RAM + 0x600, RAM + 0x800   # (DayRing: the world pointer [0x7cf6ec] points at; the ring's +0x21604-+0x216d8)
 # The imports: slot, import table address, stack arguments, string arguments (mask), out arguments (mask).
 IMPORTS = {'GetLocalTime': (40, 0x6fd164, 1, 0, 1), 'SystemTimeToFileTime': (41, 0x6fd150, 2, 1, 0), 'FileTimeToSystemTime': (42, 0x6fd0bc, 2, 0, 3)}
 K = {name: v[0] for name, v in IMPORTS.items()}
@@ -73,6 +75,15 @@ def case(r):
     if r.random() < 0.3:
         put(clock, 0, 'I', r.choice([0, 0xffffffff]))
         put(clock, 4, 'I', r.choice([0, 0x01bf53eb, 0x7fffffff, 0xffffffff]))
+    if op == 'DayRing':
+        regions[0x7cf6ec] = struct.pack('<I', CLOCK_AT)
+        regions[CLOCK_AT] = struct.pack('<I', CLOCK - 0x2a0)
+        ring = bytearray(r.bytes(0xd4))
+        size = r.choice([50, 50, 50, 0, 1, 2, -1, r.randrange(60)])
+        put(ring, 0xc8, 'i', r.choice([size - 1, size - 2, size, -1, 0, r.randrange(-1, 50), r.randrange(-1, 50)]))
+        put(ring, 0xcc, 'i', size)
+        regions[RING] = ring
+        return Call(0x4c7600, [RING - 0x21604, u32(r)], regions, conv='t')
     if op in ('ObjectDays', 'StaffDays', 'Stamp'):   # (the world's own clock: the world at CLOCK - 0x2a0, its ticks moved to match)
         world = CLOCK - 0x2a0
         regions[0x80239c] = struct.pack('<I', world)
@@ -101,7 +112,7 @@ def case(r):
     return Call(0x4f8690, [CLOCK, OUT + 0x20] + outs, regions, conv='t', ret='a')
 
 
-KINDS = ['Init', 'Now', 'Now', 'SpanOf', 'Elapsed', 'SpanSince', 'ObjectDays', 'StaffDays', 'Stamp', 'World']
+KINDS = ['Init', 'Now', 'Now', 'SpanOf', 'Elapsed', 'SpanSince', 'ObjectDays', 'StaffDays', 'Stamp', 'World', 'DayRing']
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 if __name__ == '__main__':

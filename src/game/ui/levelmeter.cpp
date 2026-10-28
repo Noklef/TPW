@@ -2,8 +2,12 @@
 
 #include <cstdint>
 
+#include "../core/language.h"
 #include "../core/soundset.h"
+#include "../core/textarg.h"
 #include "../core/vcall.h"
+#include "../world/object.h"
+#include "../world/objectdefs.h"
 #include "../world/research.h"
 #include "../world/staff.h"
 #include "../world/world.h"
@@ -21,6 +25,8 @@ void set(u8 *window, u32 index, u32 value) { Window_SetDwordA0(window, nullptr, 
 void tell(u8 *window, u32 value) { Window_Notify1(Window_FindChild(window, nullptr, kLight), nullptr, value); }
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
+template <typename T> T &at(void *p, u32 offset) { return *reinterpret_cast<T *>(static_cast<u8 *>(p) + offset); }
 
 // A research group's level: 0 without a current project (ResearchLab_CurrentObjId's id 0), else the lab's Table_ScaledBySum of it; the
 // lab the game [0x7cf83c]'s (GameTable7cfb90_Get1da722_519550), found again for each.
@@ -65,6 +71,44 @@ void __cdecl ResearchMeters_Update(s32 group) {
     for (const s32 g : kOrder) sum += researchLevel(g);
     Sound_SetParam(global<u32>(0x007cc1d0), 0x12, (u32)((s32)sum / 5));
 }
+
+void __cdecl ResearchMeters_ShowName(u32 group) {
+    u8 *const defs = reinterpret_cast<u8 *>((uintptr_t)0x007890a0);
+    u8 *const lab = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da722_519550(global<u8 *>(0x007cf83c)));
+    u32 id = 0;   // (the original's dword: its high word not set, and not read)
+    ResearchLab_CurrentObjId(lab, nullptr, reinterpret_cast<u16 *>(&id), group);
+    u8 *gauge = nullptr;
+    if (group <= 4) gauge = Window_FindChild(Window_FindChild(global<u8 *>(0x007cc1d8), nullptr, kMeter[group]), nullptr, 0xd2d05);
+    if (!ObjectDefs_Find(defs, nullptr, (u16)id)) {
+        Window_NotifyImpl100(gauge, nullptr, (u32)(uintptr_t)Language_WideText(0xb9));
+        ResearchMeters_Update((s32)group);
+        return;
+    }
+    u16 name[0x44];
+    ObjectDefs_GetFullName(defs, nullptr, id, name, 0x42);
+    u8 count[0x14], title[0x10];   // (TextArgInt_Ctor (0xd, the value, unsigned) and TextArgString_Ctor (0xe, the name), inline)
+    at<u32>(count, 0xc) = Slots_GetValue(lab, nullptr, group);
+    at<u32>(count, 4) = at<u32>(title, 4) = 0x5641524d;
+    at<u32>(title, 0xc) = (u32)(uintptr_t)name;
+    at<u32>(count, 8) = 0xd;
+    at<u32>(count, 0) = 0x006ff170;
+    at<u32>(count, 0x10) = 0;
+    at<u32>(title, 8) = 0xe;
+    at<u32>(title, 0) = 0x006ff174;
+    u16 text[0x80];
+    TextFormat().format(global<void *>(0x0078ba94), text, 0x7f, 0x1be, title, count);
+    Window_NotifyImpl100(gauge, nullptr, (u32)(uintptr_t)text);
+}
+
+void __cdecl ResearchMeters_Refresh(u32 group) {
+    u8 *const lab = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da722_519550(global<u8 *>(0x007cf83c)));
+    if (!ResearchLab_CurrentNotDone(lab, nullptr, group)) ResearchLab_NextProject(lab, nullptr, group);
+    if (!global<u8 *>(0x007cc1d8)) return;
+    ResearchMeters_ShowName(group);
+    ResearchMeters_ShowProgress(group);
+}
+
+void __fastcall Obj7b51f0_RefreshResearch(void *, void *, u32 group) { ResearchMeters_Refresh(group); }
 
 void __cdecl LevelMeter_SetLevel(u8 *window, u32 level) {
     if (level == 0) {

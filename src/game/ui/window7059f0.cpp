@@ -598,7 +598,9 @@ s32 __fastcall Window7059f0_AddItem(u8 *window, void *, const u32 *texts, u32 da
     } else {
         item = at<s32>(window, 0x160);
     }
-    s32 added, last;   // (the first free item and the one before it, Window7059f0_RootEnd)
+    // (the first free item and the one before it, Window7059f0_RootEnd; without the array it stores neither and the original goes on
+    // with its two stack slots unset, sic: 0 here, as the emulator's stack gives them, so that the read of the item's parent faults)
+    s32 added = 0, last = 0;
     if (item == -1) {
         if (child) {   // (the parent's first child)
             Window7059f0_RootEnd(window, nullptr, &added, &last);

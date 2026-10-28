@@ -40,6 +40,13 @@ u32 __fastcall Money_LoanOwed(const u8 *money, void *, u32 loan);
 // 0x4d0a00 (thiscall; called by 0x59e93b; name invented): the eight loans' amounts owed added up (Money_LoanOwed's, wrapping).
 u32 __fastcall Money_TotalOwed(const u8 *money);
 
+// 0x4d06b0 (thiscall (out, index), pops 8; name invented): the loan offer `index` (the 0x20-byte record at +0x14 + 0x20 * index, whose +4
+// is its amount) checked against the park's credit: the analyser's score (the table 0x7cfb90's entry for the world's [0x80239c] word
+// +0x1da720; ParkAnalyser_ParkScore, at most 0x14 quarters old) times the float [0x700370] (x87, __ftol's low dword) less what the loans
+// owe (Money_TotalOwed, inlined in the original). The record's first dword becomes 1 when its amount is within that (signed), else 0, and
+// the record is copied to out, which is returned.
+u32 *__fastcall Money_LoanOffer(u8 *money, void *, u32 *out, u32 index);
+
 // 0x4d09f0 (thiscall): the total at +0x124.
 u32 __fastcall Money_Total(const u8 *money);
 
