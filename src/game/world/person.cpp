@@ -10,6 +10,7 @@
 #include "../core/rings.h"
 #include "../core/savegame.h"
 #include "../core/soundplay.h"
+#include "../core/vcall.h"
 #include "../math/x87.h"
 #include "../render/dynfaces.h"
 #include "../render/particles.h"
@@ -819,6 +820,55 @@ void __fastcall Visitor_SetState(u8 *visitor, void *, u32 state) {
         return;
     default:   // (past 0x15: only stored)
         return;
+    }
+}
+
+void __fastcall Visitor_Arrive(u8 *visitor, void *, u32 cell) {
+    const u32 index = cell - 1;
+    // (the words passed keep the stack's high halves: x's the visitor pointer's (the PUSH ECX slot), y's the cell argument's own)
+    const u32 x = ((u32)(uintptr_t)visitor & 0xffff0000u) | (index & 0x7f) << 8 | 0x80;
+    const u32 y = (cell & 0xffff0000u) | (index >> 7 & 0xff) << 8 | 0x80;
+    Thing_PlaceAt(visitor, nullptr, x, y);
+    ScriptRef_Start(visitor + 0xc, nullptr, 1, at<u32>(visitor, 0x24), at<u32>(visitor, 0x20));
+    Sprite_PlaySound(visitor, nullptr, global<u32>(0x00803a24), 0x80);
+    at<u32>(visitor, 0x188) = 1;
+    const u8 *const map = global<const u8 *>(0x008023a0);   // (read before the roll)
+    const u32 side = (u32)World_Rand(world80239c()) & 1;
+    u16 pos;
+    const u16 destination = *Map_CrossingParkSidePos(map, nullptr, &pos, side);
+    if (Sprite_SetDestinationCell(visitor, nullptr, destination))
+        g_env->state501db0(visitor, nullptr, 0x12);
+    else
+        Thing_Delete(visitor);
+}
+
+void __fastcall Visitor_HandleMessage(u8 *visitor, void *, u8 *message) {
+    if (vcall<u32>(message, 0) != 0xa)
+        return;
+    if (at<u16>(visitor, 0x1dc) == at<u16>(message, 8)) {
+        if (at<u32>(visitor, 0x220) == 0x10) {
+            u8 *const ref = visitor + 0xc;
+            if (at<u32>(ref, 0))
+                Set4_4217f0(ref, nullptr, 1);
+            else
+                ScriptRef_Start(ref, nullptr, 3, at<u32>(visitor, 0x24), at<u32>(visitor, 0x20));
+            at<u32>(visitor, 0x28) = 0;
+            Ring_PushUnique(visitor + 0x30, nullptr, 0xd, at<u16>(visitor, 0x1dc));
+            Sprite_PlaySound(visitor, nullptr, global<u32>(0x00803a24), 0x80);
+        } else if (Visitor_IsState11To14(visitor)) {
+            Visitor_SendAway(visitor);
+        }
+        Stat100_Add(&at<float>(visitor, 0x19c), nullptr, -(float)Bytes785058_Get(0));   // (fild of the byte; fchs)
+        at<u16>(visitor, 0x1dc) = 0;
+        g_env->state501db0(visitor, nullptr, 6);
+    }
+    if (at<u16>(visitor, 0x1de) == at<u16>(message, 8))
+        at<u16>(visitor, 0x1de) = 0;
+    for (u32 i = 0; i < 4; ++i) {
+        if (at<u16>(visitor, 0x1e0 + 2 * i) == at<u16>(message, 8)) {
+            at<u16>(visitor, 0x1e0 + 2 * i) = 0;
+            at<u16>(visitor, 0x1e8 + 2 * i) = 0;
+        }
     }
 }
 

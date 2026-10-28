@@ -118,6 +118,21 @@ void __fastcall Visitor_SendAway(u8 *visitor);
 // +0x1da720 records the days of 4 times the time in the park (ParkAnalyser_RecordDays, Visitor_TimeInPark); 3. The debug prints are left out.
 void __fastcall Visitor_SetState(u8 *visitor, void *, u32 state);
 
+// 0x4feb50 (thiscall (cell), pops 4; name invented, unconfirmed; called by 0x4d5f8b, 0x4d66ff, 0x4d69eb, 0x4d6ac6): the visitor placed at the
+// cell's centre (Thing_PlaceAt: column (cell - 1) & 0x7f, row (cell - 1) >> 7, each << 8 | 0x80), its script reference +0xc started
+// (ScriptRef_Start 1, folder +0x24, sprite +0x20), the sound 0x80 of the category [0x803a24] (Sprite_PlaySound), +0x188 = 1; then sent to the
+// crossing's park side (Map_CrossingParkSidePos of [0x8023a0], side World_Rand ([0x80239c]) & 1) with Sprite_SetDestinationCell: on success
+// state 0x12 (the env's 0x501db0), else the visitor deleted (Thing_Delete). The debug print is left out.
+void __fastcall Visitor_Arrive(u8 *visitor, void *, u32 cell);
+
+// 0x4fb360 (thiscall (message), pops 4; Thing_HandleMessage's case 1; returns nothing a caller reads): for a message of type 0xa (its vtable's
+// slot 0) whose word +8 is the visitor's object handle +0x1dc: in state 0x10 the reference +0xc set to 1 (Set4_4217f0) or, when 0, started
+// (ScriptRef_Start 3, folder +0x24, sprite +0x20), +0x28 cleared, (0xd, the handle) on the ring +0x30 (Ring_PushUnique) and the sound 0x80 of
+// the category [0x803a24]; in the states 11-14 (Visitor_IsState11To14) sent away (Visitor_SendAway); then happiness +0x19c less the byte
+// 0x785058 (Stat100_Add), the handle cleared and state 6 (the env's 0x501db0). Then whatever the handle: the word +0x1de and each of the four
+// words +0x1e0.. equal to the message's +8 cleared (the latter with their words +0x1e8..). The debug prints are left out.
+void __fastcall Visitor_HandleMessage(u8 *visitor, void *, u8 *message);
+
 // 0x506580 (thiscall; word, pops 4): for the kind byte at +2 being 4 the word at +0x218, for 5 the word at +0x21a, is equal to the low 16 bits of
 // word (1 or 0); any other kind gives 0 (the original reports it to its empty debug printf).
 u32 __fastcall Person_HasWord(const u8 *object, void *, u32 word);

@@ -235,7 +235,7 @@ address,name,kind,confidence,notes
 0x0050b6a0,Thing_SetPos,function,high,reimplemented (src/game/world/things); a thing's move between cells
 0x00501650,Visitor_Update,function,medium,Thing_Update case 1 (first call)
 0x005019f0,Visitor_PostUpdate,function,medium,Thing_Update case 1 (second call)
-0x004fb360,Visitor_HandleMessage,function,high,Thing_HandleMessage case 1
+0x004fb360,Visitor_HandleMessage,function,high,"reimplemented (src/game/world/person); thiscall (message), pops 4; Thing_HandleMessage's case 1: the object's type 0xa message"
 0x004e0b90,Object_Update,function,medium,Thing_Update case 3 (first call)
 0x004e0e00,Object_PostUpdate,function,medium,Thing_Update case 3 (second call)
 0x004dd320,Object_HandleDayMessage,function,high,reimplemented (src/game/world/objectmsg); advances the six history rings at the end of the day
@@ -3715,6 +3715,7 @@ address,name,kind,confidence,notes
 0x004f8ae0,Person_Detach,function,low,"reimplemented (src/game/world/person); thiscall: Thing_Detach, the script slot +0xc killed when set, the action history's dump, the history's +0x84 script killed"
 0x004fb330,Visitor_Detach,function,low,"reimplemented (src/game/world/person); thiscall: the sprite script at +0x210 killed and cleared when set, then Person_Detach"
 0x00501db0,Visitor_SetState,function,low,"reimplemented (src/game/world/person); thiscall (state), pops 4: the state stored at +0x220, then by state the reference +0xc's +4 (1 or 3) and the state's own work (see person.h)"
+0x004feb50,Visitor_Arrive,function,low,"reimplemented (src/game/world/person); thiscall (cell), pops 4; placed at the cell, script, sound, walks to the crossing's park side or deleted"
 0x00550d80,Setting_SetMode,function,high,reimplemented (src/game/core/options); stores a mode and sets its flag bits
 0x005633e0,Quad_Push,function,high,reimplemented (src/game/core/seqs); pushes four dwords into the next of four slots
 0x0059c390,Table76e300_GetObjectDword,function,high,reimplemented (src/game/world/objectdefs); a dword of the object indexed through a record of the table
