@@ -356,6 +356,7 @@
 #include "../game/world/trackline.h"
 #include "../game/world/uimsgreceiver.h"
 #include "../game/world/visitoroption.h"
+#include "../game/world/visitorsteps.h"
 #include "../game/world/weather.h"
 #include "../game/world/world.h"
 #include "../game/model/holder.h"
@@ -5587,6 +5588,11 @@ const Hook kHooks[] = {
     {"TrackLine_Prune",           0x005311c0, (void *)&TrackLine_Prune, {0x83, 0xec, 0x28, 0xa1, 0xf0}},
     {"TrackCell_ClearAt",         0x00452ca0, (void *)&TrackCell_ClearAt, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
     {"RideQueue_Trace",           0x00530120, (void *)&RideQueue_Trace, {0x83, 0xec, 0x0c, 0x8b, 0x44}},
+    {"Visitor_StepArriving",      0x004ff7f0, (void *)&Visitor_StepArriving, {0x51, 0x53, 0x56, 0x8b, 0xf1}},
+    {"Visitor_StepLeavingRide",   0x00500900, (void *)&Visitor_StepLeavingRide, {0x83, 0xec, 0x08, 0x56, 0x8b}},
+    {"Visitor_GoToBusStop",       0x00500ad0, (void *)&Visitor_GoToBusStop, {0x83, 0xec, 0x14, 0x56, 0x8b}},
+    {"Visitor_StepAtBusStop",     0x00500bd0, (void *)&Visitor_StepAtBusStop, {0x83, 0xec, 0x14, 0x53, 0x56}},
+    {"Visitor_FindQueueDestination", 0x00501160, (void *)&Visitor_FindQueueDestination, {0x83, 0xec, 0x10, 0x53, 0x8b}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
