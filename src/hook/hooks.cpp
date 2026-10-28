@@ -319,6 +319,7 @@
 #include "../game/world/bankaccount.h"
 #include "../game/world/cellbuild.h"
 #include "../game/world/cellkind.h"
+#include "../game/world/cellmessage.h"
 #include "../game/world/linestep.h"
 #include "../game/world/money.h"
 #include "../game/world/objectmsg.h"
@@ -5549,6 +5550,7 @@ const Hook kHooks[] = {
     {"TrackLine_Prune",           0x005311c0, (void *)&TrackLine_Prune, {0x83, 0xec, 0x28, 0xa1, 0xf0}},
     {"TrackCell_ClearAt",         0x00452ca0, (void *)&TrackCell_ClearAt, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
     {"RideQueue_Trace",           0x00530120, (void *)&RideQueue_Trace, {0x83, 0xec, 0x0c, 0x8b, 0x44}},
+    {"MapCell_HandleMessage",     0x00532fc0, (void *)&MapCell_HandleMessage, {0x6a, 0xff, 0x68, 0x70, 0xea}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
