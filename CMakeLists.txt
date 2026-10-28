@@ -77,6 +77,7 @@ add_library(tpw_game STATIC
     src/game/files/fontfiles.cpp
     src/game/files/resindex.cpp
     src/game/files/charsets.cpp
+    src/game/files/fontloaders.cpp
     src/game/core/regkey.cpp
     src/game/core/stdstring.cpp
     src/game/core/globalmem.cpp
@@ -331,6 +332,12 @@ add_library(tpw_game STATIC
     src/game/world/queuepieces.cpp
     src/game/world/pathdrag.cpp
     src/game/world/advisorrecords.cpp
+    src/game/world/demolish.cpp
+    src/game/world/tracksquare.cpp
+    src/game/world/placeobject.cpp
+    src/game/world/endthing.cpp
+    src/game/world/parkopen.cpp
+    src/game/world/gamemode.cpp
     src/game/world/rides.cpp
     src/game/world/cellkind.cpp
     src/game/world/lineends.cpp

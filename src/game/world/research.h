@@ -112,4 +112,22 @@ void __fastcall ResearchLab_Init(u8 *lab);
 void __fastcall ResearchLab_FlagOn(u8 *lab);
 void __fastcall ResearchLab_FlagOff(u8 *lab);
 void __fastcall ResearchLab_SyncFlag(u8 *lab);
+
+// What the lab's message handler calls in the game's C library (the benches point it at a logging stub).
+struct ResearchEnv {
+    s32(__cdecl *atExit)(void(__cdecl *fn)());   // crt_atexit (0x67a7d0)
+};
+// The calls go to env (nullptr: the game's).
+void Research_SetEnv(const ResearchEnv *env);
+
+// 0x503d40 (thiscall (message), pops 4): a message of type 0x11 (its vtable's slot 0; any other: nothing), the lab's slot in the message
+// centre: the project after the definition of the message's id (+8; ObjectDefs_Find) set up past the projects (ResearchProject_SetNextUpgrade)
+// and counted when it was; ResearchLab_UpdateLevels of the message's category (+0xc) and a message 12 of it (ThingMsg12_Ctor) posted
+// (Object_PostMessage: agent B's unported 0x40fb10 through the objects' env). Then, when no project is left undone (each one's mResearchDone
+// +0x10 at or above its mCost +0xc, the last first; a NaN is undone): the global save info's (GlobalSave_Instance, inlined) current theme
+// marked mAllResearchCompleted; with the mode setting (0xfb3b7c, read the first time under the guard 0xfb34ac & 1 by Setting_ReadMode, its
+// empty destructor 0x5d1750 given to atexit) 2, or 0 when every theme's is set (StdTreeF_AllFlagged on the info), the advisor message 0xa7
+// (type 0, a 0, b -1, flag 0, no score; on the stack, its bytes +2, +3 and +0x17 never written) posted to the advisor of the world
+// [0x80239c] (GameTable7cfb90_Get1da71c_5194d0) and the "End" object made (EndThing_Create).
+void __fastcall ResearchLab_HandleMessage(u8 *lab, void *, u8 *message);
 }

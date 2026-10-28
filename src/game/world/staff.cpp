@@ -756,7 +756,10 @@ namespace {
 using SumFn = s32(__fastcall *)(u8 *, void *, u32);
 s32 __fastcall game_sumA(u8 *record, void *, u32 n) { return reinterpret_cast<SumFn>((uintptr_t)0x004c8180)(record, nullptr, n); }
 s32 __fastcall game_sumB(u8 *record, void *, u32 n) { return reinterpret_cast<SumFn>((uintptr_t)0x004c8150)(record, nullptr, n); }
-const StaffAdviceEnv kGameAdviceEnv = {&game_sumA, &game_sumB};
+void __fastcall game_sendGuard(u8 *guard, void *, u32 handle) {
+    reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)0x004d6260)(guard, nullptr, handle);
+}
+const StaffAdviceEnv kGameAdviceEnv = {&game_sumA, &game_sumB, &game_sendGuard};
 const StaffAdviceEnv *g_advice = &kGameAdviceEnv;
 const u32 kKindHeads[5] = {0x1da73c, 0x1da73e, 0x1da740, 0x1da744, 0x1da742};
 
@@ -805,5 +808,43 @@ void __fastcall StaffAdvice_Update(u8 *self, void *, u32 kind) {
     if (state[0] == 1) Object_PostMessage(ThingMsg17_Ctor(reinterpret_cast<u8 *>(msg), nullptr, kind, 3));
     state[0] = 0;
     state[1] = 0;
+}
+
+void __fastcall StaffAdvice_Tick(u8 *self) {
+    Staff_TrainAll(reinterpret_cast<const s32 *>(self + 0xc));
+    if (!at<u32>(self, 0x64)) {
+        if (Get1da710_51a280(global<u8 *>(0x0080239c))) return;   // (the original's debug print)
+        u8 *const analyser = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(global<u8 *>(0x0080239c)));
+        if (ParkAnalyser_CountKind1OnPlainCell(analyser, nullptr, 5)) return;   // (the same print)
+    }
+    static const u32 kHeads[5] = {0x1da73c, 0x1da73e, 0x1da740, 0x1da744, 0x1da742};
+    for (u32 kind = 0; kind < 5; ++kind) {
+        const u8 *const world = global<u8 *>(0x0080239c);
+        if (!at<u16>(world, kHeads[kind])) continue;
+        u32 *const state = reinterpret_cast<u32 *>(self + 0x24 + 12 * kind);
+        const u32 month = at<u32>(world, 0x1da70c);
+        if (state[2] == month) continue;
+        state[2] = month;
+        if (state[1]) state[1] = 0;
+        else StaffAdvice_Update(self, nullptr, kind);
+    }
+}
+
+void __fastcall StaffHQ_HandleMessage(u8 *self, void *, u8 *message) {
+    const u32 type = (*reinterpret_cast<u32(__fastcall *const *const *)(u8 *)>(message))[0](message);
+    if (type == 0xc) {
+        StaffAdvice_Tick(self);
+        return;
+    }
+    if (type != 0xe) return;
+    // (sic: the handle's argument slot keeps the message pointer's high word, as the original's stack slot does)
+    const u32 handle = at<u16>(message, 8) | ((u32)(uintptr_t)message & 0xffff0000u);
+    const u8 *const thing = global<u8 *>(0x007cfb90 + 20 * (handle & 0xffff));
+    const u32 pos = (((u32)thing[7] << 7) + thing[5] + 1) & 0xffff;
+    if (at<s16>(Map_RECell(global<u8 *>(0x008023a0), nullptr, pos), 6) <= 0) return;
+    u16 guard = 0;
+    Guard_NearestFree(self, nullptr, &guard, pos);
+    if (!guard) return;
+    g_advice->sendGuard(global<u8 *>(0x007cfb90 + 20 * (u32)guard), nullptr, handle);
 }
 }

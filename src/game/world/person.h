@@ -101,6 +101,38 @@ void __fastcall Visitor_QuitQueue(u8 *visitor);
 // +0x22a, +0x228 and +0x1dc, the dword +0x1f8 and the byte +0x1f1 cleared; then state 6 (the env's 0x501db0). The debug print is left out.
 void __fastcall Visitor_SendAway(u8 *visitor);
 
+// 0x501db0 (thiscall (state), pops 4; name invented, unconfirmed; called by 0x500870, 0x5012f0 and others): the state stored at +0x220, then
+// (past 0x15 nothing more) by state, the script reference +0xc's +4 set to 1 or 3 (Set4_4217f0) in most: 0, 2, 5, 9, 10, 13, 20: 1; 1, 6, 19:
+// 3; 3: 3 and +0x200 a wait of 200 + World_Rand ([0x80239c]) % 150 (unsigned); 4: at ticket booth A (Map_TicketBoothPos 0, the visitor's
+// map id) +0x1c 0x200, else at B 0x600; 3; 7: with +0xd0 set Sprite_SetDestination to the words +0x18 / +0x1a; 1; 8: +0x208 the world's tick
+// (+0x1da70c); 11: 3, +0x1fc the tick, +0x1f4 the byte +0x1f1 times 1.2f (0x7007a4) __ftol'd; 12: the word +0xc2 from 0x75c7f0; 1; 14: 3, the
+// byte +0x1f1 Obj_RollChance of its object (the handle +0x1dc in the table 0x7cfb90); 15: the reference 1 when set, else started (ScriptRef_Start
+// 1, folder +0x24, sprite +0x20); +0x28 cleared; for an object whose definition's +0x100 is set Person_PlaceSprite (0.0) and
+// Sprite_SpawnParticle (0x13); then with +0x214 set and the definition's +0x15c not 1, World_SetSeed of [0x80239c] to the handle
+// (Thing_GetHandle) and the script +0x210 a random sprite and animation of folder 10 started (SpriteScript_Start, code 0x74f480); 16: the
+// particle as 15's, then for an object with flag 0x20 at +0x32 +0x28 set and 3, else the reference's slot killed (Obj_KillSlot); the script
+// +0x84 of +0x30 killed (Person_KillScript84), the script +0x210 killed and cleared, (0x14, 0) on the ring +0x30 (Ring_PushUnique), and the
+// slots of [0x80239c]'s +0x1da736 (GameTable7cfb90_Get1da736_519610) get 1 of 0x11, 0x14 and 0x16 for the object's +0xe word and the handle
+// (Slots_AddIfMatch); 17: (0x10, 0) on the ring, its script killed, the handle cleared, the script +0x210 jumped (Person_JumpScript210)
+// when set, the reference's slot killed; 18: (0x13, 0) on the ring, the handle cleared, 1; 21: with +0x204 set the analyser of [0x80239c]'s
+// +0x1da720 records the days of 4 times the time in the park (ParkAnalyser_RecordDays, Visitor_TimeInPark); 3. The debug prints are left out.
+void __fastcall Visitor_SetState(u8 *visitor, void *, u32 state);
+
+// 0x4feb50 (thiscall (cell), pops 4; name invented, unconfirmed; called by 0x4d5f8b, 0x4d66ff, 0x4d69eb, 0x4d6ac6): the visitor placed at the
+// cell's centre (Thing_PlaceAt: column (cell - 1) & 0x7f, row (cell - 1) >> 7, each << 8 | 0x80), its script reference +0xc started
+// (ScriptRef_Start 1, folder +0x24, sprite +0x20), the sound 0x80 of the category [0x803a24] (Sprite_PlaySound), +0x188 = 1; then sent to the
+// crossing's park side (Map_CrossingParkSidePos of [0x8023a0], side World_Rand ([0x80239c]) & 1) with Sprite_SetDestinationCell: on success
+// state 0x12 (the env's 0x501db0), else the visitor deleted (Thing_Delete). The debug print is left out.
+void __fastcall Visitor_Arrive(u8 *visitor, void *, u32 cell);
+
+// 0x4fb360 (thiscall (message), pops 4; Thing_HandleMessage's case 1; returns nothing a caller reads): for a message of type 0xa (its vtable's
+// slot 0) whose word +8 is the visitor's object handle +0x1dc: in state 0x10 the reference +0xc set to 1 (Set4_4217f0) or, when 0, started
+// (ScriptRef_Start 3, folder +0x24, sprite +0x20), +0x28 cleared, (0xd, the handle) on the ring +0x30 (Ring_PushUnique) and the sound 0x80 of
+// the category [0x803a24]; in the states 11-14 (Visitor_IsState11To14) sent away (Visitor_SendAway); then happiness +0x19c less the byte
+// 0x785058 (Stat100_Add), the handle cleared and state 6 (the env's 0x501db0). Then whatever the handle: the word +0x1de and each of the four
+// words +0x1e0.. equal to the message's +8 cleared (the latter with their words +0x1e8..). The debug prints are left out.
+void __fastcall Visitor_HandleMessage(u8 *visitor, void *, u8 *message);
+
 // 0x506580 (thiscall; word, pops 4): for the kind byte at +2 being 4 the word at +0x218, for 5 the word at +0x21a, is equal to the low 16 bits of
 // word (1 or 0); any other kind gives 0 (the original reports it to its empty debug printf).
 u32 __fastcall Person_HasWord(const u8 *object, void *, u32 word);
@@ -228,7 +260,7 @@ void __fastcall Person_TickSpeed(u8 *person);
 
 // The hand-written angle routine in cseg (0x6e7074, cdecl (dx, dy), the angle in AX; not in the listing, not ported): the game's own by
 // default; tools/fncmp's driver points it at its two-argument logger (the bench hooks 0x6e7074 with the same). And 0x501db0 (thiscall on a
-// person; a state, pops 4; agent C's, waiting on 0x4c7600): the game's by default, a thiscall recorder (k 26) in the driver.
+// person; a state, pops 4): Visitor_SetState by default, a thiscall recorder (k 26) in the driver.
 struct PersonEnv {
     u32(__cdecl *angle)(s32 dx, s32 dy);
     void(__fastcall *state501db0)(u8 *person, void *, u32 state);

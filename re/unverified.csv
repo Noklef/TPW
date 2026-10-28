@@ -3,7 +3,6 @@ address,name,module,reason
 50b350,Thing_GetHandle,world/things,todo: indirect only
 515660,World_Attach,world/things,todo
 515f30,Things_InitTable,world/things,todo
-515fb0,World_DeleteAllThings,world/things,todo
 51a280,Get1da710_51a280,core/accessors,todo: indirect only
 57cb90,Cpu_Ticks16,core/cpuinfo,"reads the time-stamp counter (rdtsc): the hardware's value, nothing to compare"
 591210,Cpu_Ticks,core/cpuinfo,"reads the time-stamp counter (rdtsc): the hardware's value, nothing to compare"

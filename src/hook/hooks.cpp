@@ -38,6 +38,7 @@
 #include "../game/files/direntry.h"
 #include "../game/files/filestream.h"
 #include "../game/files/fontfiles.h"
+#include "../game/files/fontloaders.h"
 #include "../game/files/gamepaths.h"
 #include "../game/files/userslots.h"
 #include "../game/files/quickload.h"
@@ -337,14 +338,20 @@
 #include "../game/world/wallfollow.h"
 #include "../game/world/cellmodel.h"
 #include "../game/world/lineends.h"
+#include "../game/world/demolish.h"
+#include "../game/world/endthing.h"
+#include "../game/world/gamemode.h"
 #include "../game/world/mapclick.h"
 #include "../game/world/objectstatus.h"
 #include "../game/world/objectunlock.h"
 #include "../game/world/parkgates.h"
+#include "../game/world/parkopen.h"
 #include "../game/world/pathdrag.h"
 #include "../game/world/pathlink.h"
 #include "../game/world/queuepieces.h"
 #include "../game/world/queuetrace.h"
+#include "../game/world/placeobject.h"
+#include "../game/world/tracksquare.h"
 #include "../game/world/rides.h"
 #include "../game/world/trackline.h"
 #include "../game/world/uimsgreceiver.h"
@@ -983,6 +990,7 @@ const Hook kHooks[] = {
     {"ResearchLab_FlagOn",        0x00504090, (void *)&ResearchLab_FlagOn, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"ResearchLab_FlagOff",       0x00504140, (void *)&ResearchLab_FlagOff, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"ResearchLab_SyncFlag",      0x005041f0, (void *)&ResearchLab_SyncFlag, {0xa1, 0x9c, 0x23, 0x80, 0x00}},
+    {"ResearchLab_HandleMessage", 0x00503d40, (void *)&ResearchLab_HandleMessage, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_SetPosVel",             0x005100e0, (void *)&Nav_SetPosVel, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Nav_GetPos",                0x00510160, (void *)&Nav_GetPos, {0x8b, 0x54, 0x24, 0x04, 0x8b}},
     {"World_ArrivalVehicleNotSize1", 0x0051aad0, (void *)&World_ArrivalVehicleNotSize1, {0x66, 0x8b, 0x81, 0x2a, 0xa7}},
@@ -2933,6 +2941,10 @@ const Hook kHooks[] = {
     {"Charset_Format",            0x006acb70, (void *)&Charset_Format, {0x83, 0xec, 0x14, 0x8b, 0x41}},
     {"Charset_FormatNarrow",      0x006acca0, (void *)&Charset_FormatNarrow, {0x6a, 0xff, 0x68, 0x70, 0x55}},
     {"Charset_FormatWide",        0x006acd60, (void *)&Charset_FormatWide, {0x6a, 0xff, 0x68, 0xa0, 0x55}},
+    {"BitmapFont_Load",           0x006b0340, (void *)&BitmapFont_Load, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"FontBase_Ctor",             0x006b4a10, (void *)&FontBase_Ctor, {0x56, 0x8b, 0xf1, 0xe8, 0x48}},
+    {"Font_Ctor",                 0x006b0480, (void *)&Font_Ctor, {0x6a, 0xff, 0x68, 0x38, 0x57}},
+    {"Font_Load",                 0x006b0680, (void *)&Font_Load, {0x53, 0x55, 0x56, 0x57, 0x8b}},
     {"Class70295c_Ctor",          0x005c9040, (void *)&Class70295c_Ctor, {0x56, 0x8b, 0xf1, 0xe8, 0x78}},
     {"Obj_SwapPair",              0x005d03b0, (void *)&Obj_SwapPair, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Obj_ChooseVector",          0x005dd3d0, (void *)&Obj_ChooseVector, {0x8b, 0x41, 0x58, 0x85, 0xc0}},
@@ -3577,6 +3589,9 @@ const Hook kHooks[] = {
     {"Visitor_SendAway",          0x005012f0, (void *)&Visitor_SendAway, {0x51, 0x56, 0x8b, 0xf1, 0x33}},
     {"Person_Detach",             0x004f8ae0, (void *)&Person_Detach, {0x56, 0x8b, 0xf1, 0xe8, 0x98}},
     {"Visitor_Detach",            0x004fb330, (void *)&Visitor_Detach, {0x56, 0x8b, 0xf1, 0x8b, 0x86}},
+    {"Visitor_SetState",          0x00501db0, (void *)&Visitor_SetState, {0x8b, 0x44, 0x24, 0x04, 0x83}},
+    {"Visitor_Arrive",            0x004feb50, (void *)&Visitor_Arrive, {0x51, 0x8b, 0x44, 0x24, 0x08}},
+    {"Visitor_HandleMessage",     0x004fb360, (void *)&Visitor_HandleMessage, {0x51, 0x53, 0x8b, 0x5c, 0x24}},
     {"Setting_SetMode",           0x00550d80, (void *)&Setting_SetMode, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Quad_Push",                 0x005633e0, (void *)&Quad_Push, {0x56, 0x8b, 0x74, 0x24, 0x14}},
     {"Table76e300_GetObjectDword", 0x0059c390, (void *)&Table76e300_GetObjectDword, {0x56, 0x8b, 0xf1, 0x8b, 0x4c}},
@@ -4030,6 +4045,8 @@ const Hook kHooks[] = {
     {"Staff_HandleMessage",       0x00504c70, (void *)&Staff_HandleMessage, {0x51, 0x56, 0x57, 0x8b, 0x7c}},
     {"StaffAdvice_KindLow",       0x00509360, (void *)&StaffAdvice_KindLow, {0x51, 0x8b, 0x41, 0x64, 0x53}},
     {"StaffAdvice_Update",        0x00508f70, (void *)&StaffAdvice_Update, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"StaffAdvice_Tick",          0x00508e70, (void *)&StaffAdvice_Tick, {0x53, 0x55, 0x56, 0x57, 0x8b}},
+    {"StaffHQ_HandleMessage",     0x00508a30, (void *)&StaffHQ_HandleMessage, {0x51, 0x55, 0x56, 0x8b, 0x74}},
     {"FreeList_Take",             0x00520d60, (void *)&FreeList_Take, {0x56, 0x66, 0x8b, 0x35, 0x24}},
     {"FreeList_Return",           0x00521890, (void *)&FreeList_Return, {0x8b, 0x4c, 0x24, 0x04, 0x85}},
     {"Voice_ScaleLevels",         0x00521d60, (void *)&Voice_ScaleLevels, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
@@ -5482,6 +5499,7 @@ const Hook kHooks[] = {
     {"Route_Find",                0x00511420, (void *)&Route_Find, {0x8b, 0x44, 0x24, 0x08, 0x56}},
     {"Route_CellDistance",        0x004d8b40, (void *)&Route_CellDistance, {0x81, 0xec, 0x00, 0x02, 0x00}},
     {"FocusCell_Update",          0x005276d0, (void *)&FocusCell_Update, {0x66, 0xa1, 0x98, 0x86, 0x81}},
+    {"FocusCell_TrackDrag",       0x00527960, (void *)&FocusCell_TrackDrag, {0x8b, 0x0d, 0xac, 0x86, 0x81}},
     {"HoardingGrid_Fill",         0x00532960, (void *)&HoardingGrid_Fill, {0xa1, 0xb0, 0xb1, 0x81, 0x00}},
     {"HoardingGrid_Flood",        0x005328e0, (void *)&HoardingGrid_Flood, {0x53, 0x55, 0x56, 0x8b, 0x74}},
     {"HoardingGrid_CheckArea",    0x00531a50, (void *)&HoardingGrid_CheckArea, {0x83, 0xec, 0x58, 0x8b, 0x4c}},
@@ -5499,6 +5517,8 @@ const Hook kHooks[] = {
     {"TrackRun_UpdateA",          0x0052c6f0, (void *)&TrackRun_UpdateA, {0x83, 0xec, 0x14, 0x8b, 0x54}},
     {"TrackRun_UpdateB",          0x0052ccb0, (void *)&TrackRun_UpdateB, {0x83, 0xec, 0x18, 0x8b, 0x4c}},
     {"TrackCell_Relink",          0x0052fc80, (void *)&TrackCell_Relink, {0x51, 0xa1, 0xe4, 0x39, 0x76}},
+    {"CellRun_Lay",               0x0052ba50, (void *)&CellRun_Lay, {0x83, 0xec, 0x1c, 0x8a, 0x44}},
+    {"CellRun_Connect",           0x0052b400, (void *)&CellRun_Connect, {0x83, 0xec, 0x40, 0x53, 0x55}},
     {"ParkMap_Classify",          0x005f2050, (void *)&ParkMap_Classify, {0x83, 0xec, 0x28, 0xa1, 0x3c}},
     {"ParkMap_PlaceSprite",       0x005f4180, (void *)&ParkMap_PlaceSprite, {0x83, 0xec, 0x14, 0x56, 0x8b}},
     {"ParkMap_ApplyView",         0x005f1050, (void *)&ParkMap_ApplyView, {0x83, 0xec, 0x08, 0x56, 0x8b}},
@@ -5543,6 +5563,15 @@ const Hook kHooks[] = {
     {"PathDrag_Finish",           0x0052c1c0, (void *)&PathDrag_Finish, {0x83, 0xec, 0x08, 0xa1, 0x00}},
     {"AdvisorSlot_Ctor",          0x00518e60, (void *)&AdvisorSlot_Ctor, {0x8b, 0xc1, 0xc6, 0x40, 0x14}},
     {"AdvisorRecord_Ctor",        0x00518e80, (void *)&AdvisorRecord_Ctor, {0x8b, 0xc1, 0x33, 0xc9, 0x89}},
+    {"Map_DemolishRect",          0x0052bdd0, (void *)&Map_DemolishRect, {0x83, 0xec, 0x1c, 0x8b, 0x54}},
+    {"Path_CheckDeadEnds",        0x00527ee0, (void *)&Path_CheckDeadEnds, {0x83, 0xec, 0x34, 0x53, 0x55}},
+    {"TrackSquare_Check",         0x005286a0, (void *)&TrackSquare_Check, {0x53, 0x55, 0x56, 0x8b, 0x74}},
+    {"PlaceObject_Create",        0x00529e10, (void *)&PlaceObject_Create, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"EndThing_Create",           0x00516b00, (void *)&EndThing_Create, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Game_OpenPark",             0x00519ef0, (void *)&Game_OpenPark, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Game_EndPark",              0x005168f0, (void *)&Game_EndPark, {0x83, 0xec, 0x08, 0x53, 0x56}},
+    {"GameMode_Set",              0x0052f200, (void *)&GameMode_Set, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"GameMode_SetOnly",          0x0052f580, (void *)&GameMode_SetOnly, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Ride_Destroy",              0x00463c80, (void *)&Ride_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"MapCell_SetKind",           0x005346d0, (void *)&MapCell_SetKind, {0x53, 0x55, 0x56, 0x57, 0x8b}},
     {"MapCell_Clear",             0x005367a0, (void *)&MapCell_Clear, {0x83, 0xec, 0x08, 0x53, 0x55}},

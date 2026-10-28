@@ -81,6 +81,7 @@
 #include "../../src/game/sprite/script.h"
 #include "../../src/game/ui/cursor.h"
 #include "../../src/game/world/advisorscore.h"
+#include "../../src/game/world/research.h"
 #include "../../src/game/model/holder.h"
 #include "../../src/game/model/objmodel.h"
 #include "../../src/game/core/sharedglobals.h"
@@ -97,6 +98,12 @@
 #include "../../src/game/world/person.h"
 #include "../../src/game/world/pathdrag.h"
 #include "../../src/game/world/cellkind.h"
+#include "../../src/game/world/demolish.h"
+#include "../../src/game/world/tracksquare.h"
+#include "../../src/game/world/placeobject.h"
+#include "../../src/game/world/endthing.h"
+#include "../../src/game/world/parkopen.h"
+#include "../../src/game/world/gamemode.h"
 #include "../../src/game/world/cellrun.h"
 #include "../../src/game/world/staff.h"
 #include "../../src/game/world/things.h"
@@ -383,6 +390,7 @@ const MouseModeEnv kMouseModeEnv = {&heap_free, reinterpret_cast<s32(__cdecl *)(
                                     reinterpret_cast<void(__cdecl *)(s32, s32, u32)>((uintptr_t)(kStubs + 0x1000 + 0xa000 + 0x400 * 3 + 0x20 * 30)),
                                     reinterpret_cast<void(__cdecl *)(u32, u32)>((uintptr_t)(kStubs + 0x1000 + 0xa000 + 0x400 * 2 + 0x20 * 24))};
 const AdvisorScoreEnv kAdvisorScoreEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
+const ResearchEnv kResearchEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const GlyphRenderEnv kGlyphRenderEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const ObjModelEnv kObjModelEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const SharedGlobalsEnv kSharedGlobalsEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
@@ -437,8 +445,45 @@ const QueuePiecesEnv kQueuePiecesEnv = {reinterpret_cast<u32(__cdecl *)(u32, u32
                                         reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(31, 1))};
 const PathDragEnv kPathDragEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32)>((uintptr_t)recorder(28, 2)),
                                   reinterpret_cast<void(__cdecl *)(u32, s32, s32, s32 *, s32 *)>((uintptr_t)jpeg_recorder(29, 5))};
-// The track runs' call into agent B's unported 0x53afa0: thiscall recorder 24 of no arguments, as tests/fncmp/trackshape.py hooks it.
-const CellRunEnv kCellRunEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(24, 0))};
+// The rectangle sweep's demolish (0x527ee0) and agent B's unported 0x5367a0: cdecl recorder 2 of 3 and thiscall recorder 28 of 2, as
+// tests/fncmp/demolish.py hooks them. The demolish's unported calls, as tests/fncmp/deadends.py hooks them: agent B's 0x530120 cdecl
+// recorder 3 of 1, 0x52f200 / 0x52f580 cdecl recorders 4 / 5 of 2, 0x52fe50 cdecl recorder 6 of 2, agent B's 0x53b280 thiscall recorder 7
+// of 3 and 0x545610 cdecl recorder 8 of 1.
+const DemolishEnv kDemolishEnv = {reinterpret_cast<void(__cdecl *)(s32, s32, u32)>((uintptr_t)jpeg_recorder(2, 3)),
+                                  reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32)>((uintptr_t)recorder(28, 2)),
+                                  reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)jpeg_recorder(3, 1)),
+                                  reinterpret_cast<void(__cdecl *)(u32, u32)>((uintptr_t)jpeg_recorder(4, 2)),
+                                  reinterpret_cast<void(__cdecl *)(u32, u32)>((uintptr_t)jpeg_recorder(5, 2)),
+                                  reinterpret_cast<u32(__cdecl *)(u8 *, u32)>((uintptr_t)jpeg_recorder(6, 2)),
+                                  reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32, u32)>((uintptr_t)recorder(7, 3)),
+                                  reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(8, 1))};
+// The track runs' call into agent B's unported 0x53afa0: thiscall recorder 24 of no arguments, as tests/fncmp/trackshape.py hooks it;
+// CellRun_Lay's 0x5370e0 (agent B's, unported; recorder 20 of 3 as Map_ApplyLine's, which CellRun_Connect calls) and 0x538fc0 (recorder 26
+// of 1); CellRun_Connect's 0x53b280 (recorder 7 of 3, as tests/fncmp/deadends.py's), 0x53bc60 and 0x545450 (cdecl recorders 27 of 3 and
+// 28 of 1): as tests/fncmp/cellrun.py hooks them.
+const CellRunEnv kCellRunEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(24, 0)),
+                                reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32, u32)>((uintptr_t)recorder(20, 3)),
+                                reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)recorder(26, 1)),
+                                reinterpret_cast<void(__fastcall *)(u8 *, void *, s32, s32, u32)>((uintptr_t)recorder(7, 3)),
+                                reinterpret_cast<void(__cdecl *)(s32, s32, u32)>((uintptr_t)jpeg_recorder(27, 3)),
+                                reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(28, 1))};
+// The track square test's call into agent B's unported 0x532fc0: thiscall recorder 9 of 3, as tests/fncmp/tracksquare.py hooks it.
+const TrackSquareEnv kTrackSquareEnv = {reinterpret_cast<u32(__fastcall *)(u8 *, void *, u32, u32, u32)>((uintptr_t)recorder(9, 3))};
+// The placed object's constructor (agent C's unported 0x4db090): thiscall recorder 11 of 4, as tests/fncmp/placeobject.py hooks it.
+const PlaceObjectEnv kPlaceObjectEnv = {reinterpret_cast<u8 *(__fastcall *)(u8 *, void *, u32, u32, s32, u32)>((uintptr_t)recorder(11, 4))};
+// The "End" object's constructor (0x4db090) and its pass to 0x481b60 (agent C's, both unported): thiscall recorders 11 of 4 and 12 of
+// 1, as tests/fncmp/endthing.py hooks them.
+const EndThingEnv kEndThingEnv = {reinterpret_cast<u8 *(__fastcall *)(u8 *, void *, u32, u32, s32, u32)>((uintptr_t)recorder(11, 4)),
+                                  reinterpret_cast<void(__fastcall *)(void *, void *, u8 *)>((uintptr_t)recorder(12, 1))};
+// The park opening's object open (agent C's unported 0x4df390): thiscall recorder 13 of none, as tests/fncmp/parkopen.py hooks it; the
+// park end's gate call (agent C's unported 0x481b50): thiscall recorder 14 of 1, as tests/fncmp/parkend.py hooks it.
+const ParkOpenEnv kParkOpenEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(13, 0)),
+                                  reinterpret_cast<void(__fastcall *)(void *, void *, u8 *)>((uintptr_t)recorder(14, 1))};
+// The game mode change's advisor cancel, track run show and tool reset (agent B's unported 0x59aa70, 0x4474d0, 0x446050): thiscall recorder
+// 13 of 1, cdecl recorders 14 of 2 and 15 of none, as tests/fncmp/gamemode.py hooks them.
+const GameModeEnv kGameModeEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)recorder(13, 1)),
+                                  reinterpret_cast<void(__cdecl *)(u32, u32)>((uintptr_t)jpeg_recorder(14, 2)),
+                                  reinterpret_cast<void(__cdecl *)()>((uintptr_t)jpeg_recorder(15, 0))};
 // Thing_Detach's call into agent B's unported Ride_Destroy (0x463c80): cdecl recorder 31 of 1, as tests/fncmp/thingdetach.py hooks it.
 const ThingDetachEnv kThingDetachEnv = {reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(31, 1))};
 // Thing_Delete's per-kind deletes (agent C's unported 0x4dd0a0, 0x4d9fe0, 0x4d6c90, 0x4d4620, 0x4d5eb0, 0x4c9040; thingdetach.py's k 10-15).
@@ -446,9 +491,11 @@ using ThingKindFn = void(__fastcall *)(u8 *);
 const ThingDeleteEnv kThingDeleteEnv = {reinterpret_cast<ThingKindFn>((uintptr_t)recorder(10, 0)), reinterpret_cast<ThingKindFn>((uintptr_t)recorder(11, 0)),
                                         reinterpret_cast<ThingKindFn>((uintptr_t)recorder(12, 0)), reinterpret_cast<ThingKindFn>((uintptr_t)recorder(13, 0)),
                                         reinterpret_cast<ThingKindFn>((uintptr_t)recorder(14, 0)), reinterpret_cast<ThingKindFn>((uintptr_t)recorder(15, 0))};
-// StaffAdvice_KindLow's sums (agent C's unported 0x4c8180 / 0x4c8150; staffadvice.py's k 16 / 17).
+// StaffAdvice_KindLow's sums (agent C's unported 0x4c8180 / 0x4c8150; staffadvice.py's k 16 / 17) and StaffHQ_HandleMessage's guard call
+// (agent C's unported 0x4d6260; staffadvice.py's k 18, thiscall of 1).
 using StaffSumFn = s32(__fastcall *)(u8 *, void *, u32);
-const StaffAdviceEnv kStaffAdviceEnv = {reinterpret_cast<StaffSumFn>((uintptr_t)recorder(16, 1)), reinterpret_cast<StaffSumFn>((uintptr_t)recorder(17, 1))};
+const StaffAdviceEnv kStaffAdviceEnv = {reinterpret_cast<StaffSumFn>((uintptr_t)recorder(16, 1)), reinterpret_cast<StaffSumFn>((uintptr_t)recorder(17, 1)),
+                                        reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)recorder(18, 1))};
 // Ride_Destroy's calls into the unported 0x42a190 and 0x436fa0 (agent B's): cdecl recorders 18 of no arguments and 19 of 1, as
 // tests/fncmp/ridedestroy.py hooks those addresses.
 // The cell kinds' calls into agent C's unported 0x4de1f0 and 0x527ee0: the thiscall recorder 26 of no arguments and the cdecl recorder 27
@@ -1142,6 +1189,7 @@ int main(int argc, char **argv) {
     StdStrings_SetEnv(&kStdStringEnv);
     MouseModes_SetEnv(&kMouseModeEnv);
     AdvisorScore_SetEnv(&kAdvisorScoreEnv);
+    Research_SetEnv(&kResearchEnv);
     ObjModel_SetEnv(&kObjModelEnv);
     SharedGlobals_SetEnv(&kSharedGlobalsEnv);
     ReleaseList_SetEnv(&kReleaseListEnv);
@@ -1150,7 +1198,13 @@ int main(int argc, char **argv) {
     Person_SetEnv(&kPersonEnv);   // (tests/fncmp/personwalk.py hooks 0x6e7074 with fncmp._cdecl_log2)
     QueuePieces_SetEnv(&kQueuePiecesEnv);
     PathDrag_SetEnv(&kPathDragEnv);
+    Demolish_SetEnv(&kDemolishEnv);
     CellRun_SetEnv(&kCellRunEnv);
+    TrackSquare_SetEnv(&kTrackSquareEnv);
+    PlaceObject_SetEnv(&kPlaceObjectEnv);
+    EndThing_SetEnv(&kEndThingEnv);
+    ParkOpen_SetEnv(&kParkOpenEnv);
+    GameMode_SetEnv(&kGameModeEnv);
     Things_SetDetachEnv(&kThingDetachEnv);
     Things_SetDeleteEnv(&kThingDeleteEnv);
     Staff_SetAdviceEnv(&kStaffAdviceEnv);

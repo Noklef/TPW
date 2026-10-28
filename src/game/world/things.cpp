@@ -20,6 +20,7 @@
 #include "objectdefs.h"
 #include "person.h"
 #include "random.h"
+#include "rides.h"
 #include "staff.h"
 #include "thingmsg.h"
 #include "thingscan.h"
@@ -63,7 +64,7 @@ u16 *handle_of(ThingSlot *slot, u16 *out) {
 void Things_SetEnv(const ThingTableEnv *e) { g_env = e ? e : &kGameEnv; }
 
 namespace {
-const ThingDetachEnv kGameDetachEnv = {reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)0x00463c80)};
+const ThingDetachEnv kGameDetachEnv = {&Ride_Destroy};
 const ThingDetachEnv *g_detach = &kGameDetachEnv;
 }  // namespace
 

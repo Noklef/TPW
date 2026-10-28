@@ -34,19 +34,23 @@ B = Bench([(0x50b980, 0x50ba10), (0x4d9280, 0x4d93b0), (0x4f8ae0, 0x4f8b08), (0x
            # (Thing_Delete and what it reaches: the researcher's unlink and lab, the delete queue)
            (0x50b780, 0x50b917), (0x4f7c40, 0x4f7c45), (0x502920, 0x502959), (0x519c50, 0x519d7d), (0x519550, 0x51958d), (0x504090, 0x504132),
            (0x504140, 0x5041e2), (0x5041f0, 0x504209), (0x40f630, 0x40f650), (0x40f900, 0x40f91b), (0x516310, 0x516322), (0x51ad40, 0x51ad90),
+           # (World_DeleteAllThings: the slot release)
+           (0x515fb0, 0x516121), (0x516200, 0x516270),
            # (weatherfx.py's, for FreeTextures)
            (0x57d720, 0x57d7ed), (0x590a70, 0x590a75), (0x590b90, 0x590c39), (0x579b40, 0x579c13), (0x58dc50, 0x58dd5e)],
           hooks={0x463c80: _recorder(31, 1, cdecl=True), 0x40fb10: _recorder(21, 1),
                  **{a: _recorder(10 + i, 0) for i, a in enumerate((0x4dd0a0, 0x4d9fe0, 0x4d6c90, 0x4d4620, 0x4d5eb0, 0x4c9040))},
                  0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None})
-CALLS = {'Thing': 0x50b980, 'Person': 0x4f8ae0, 'Visitor': 0x4fb330, 'Weather': 0x512000, 'Delete': 0x50b780, 'Staff': 0x4f7c40, 'Researcher': 0x502920}
+CALLS = {'Thing': 0x50b980, 'Person': 0x4f8ae0, 'Visitor': 0x4fb330, 'Weather': 0x512000, 'Delete': 0x50b780, 'Staff': 0x4f7c40, 'Researcher': 0x502920,
+         'DeleteAll': 0x515fb0}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 POOL, CELL, TABLE = RAM + 0x40000, RAM + 0x48000, RAM + 0x58000
 CENTRE, HEADS, NIL, NODES = RAM + 0x50000, RAM + 0x50400, RAM + 0x50800, RAM + 0x51000
 COUNTER, SLOT_COUNT, MAX_NODES = 0x785de0, 0x1d, 4
 KINDS = [1, 3, 3, 4, 5, 6, 7, 8, 0x12, 0, 2, 9, 0x11, 0x13, 0xff]
 DELETE_KINDS = [1, 1, 3, 4, 5, 6, 7, 8, 8, 8, 9, 0xa, 0xb, 0xc, 0xd, 0xe, 0xf, 0xf, 0x10, 0x11, 0x12, 0x12, 0, 2, 0x13, 0x14, 0xff]
-QNODES, GAME, LAB = RAM + 0x5c000, RAM + 0x5d000, RAM + 0x60000
+QNODES, GAME, LAB, FLAG = RAM + 0x5c000, RAM + 0x5d000, RAM + 0x60000, RAM + 0x62000
+DELETE_ALL_KINDS = [3, 4, 5, 6, 7, 9, 0xa, 0xb, 0xc, 0xd, 0xe, 0x10, 0x11, 0, 2, 0x13, 0xff]
 
 
 def centre(r, regions):
@@ -127,8 +131,31 @@ def delete_world(r, regions, pool, slots, handles, i):
     regions[0x80239c] = struct.pack('<I', GAME - 0x1da720)
 
 
+def delete_all(r):
+    """World_DeleteAllThings: thingenv's park (0-6 things of the kinds Thing_Delete sends to the recorders or to nothing, +3 set or not), the
+    delete queue with 0-3 of their handles (repeats too), the post's log; the world's +0x1da738 a dword of its own."""
+    regions = {HEAP: heap(), **global_heap()}
+    count = r.choice([0, 1, 2, 3, 4, 6])
+    world, handles, _things = park(r, count=count, kinds=DELETE_ALL_KINDS, defs=False, pool=POOL)
+    regions.update(world)
+    n = r.choice([0, 1, 2, 3]) if handles else 0
+    nodes = bytearray(r.bytes(0x24))
+    for k in range(n):
+        put(nodes, 0xc * k, 'HHII', r.choice(handles), r.getrandbits(16), QNODES + 0xc * (k + 1) if k + 1 < n else 0, QNODES + 0xc * (k - 1) if k else 0)
+    regions[QNODES] = nodes
+    regions[0x801f38] = struct.pack('<IIII', r.getrandbits(32), QNODES if n else 0, QNODES + 0xc * (n - 1) if n else 0, n)
+    regions[0x801bbc] = struct.pack('<I', r.choice([0, SLOTS + 20 * 13, r.getrandbits(32) | 0x80000000]))
+    log = log_region()
+    blob_bytes(log, 21, 0, 0x3ff)
+    regions[LOG] = log
+    regions[FLAG] = r.bytes(4)
+    return Call(0x515fb0, [FLAG - 0x1da738], regions, conv='t', ret='v')
+
+
 def case(r):
     op = r.deal(OPS)
+    if op == 'DeleteAll':
+        return delete_all(r)
     regions = {HEAP: heap(), **global_heap(), LOG: log_region()}
     deleting = op in ('Delete', 'Staff', 'Researcher')
     kind = {'Delete': r.choice(DELETE_KINDS), 'Staff': 0x12, 'Researcher': 8}.get(op) or r.choice(KINDS)

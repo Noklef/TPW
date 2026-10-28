@@ -269,13 +269,15 @@ void __fastcall Researcher_Detach(u8 *researcher);
 // Sprite_SetDestinationCell to its cell (+0x36) succeeds; in state 2, +0x208 cleared and Staff_SetState(0). Others: nothing.
 void __fastcall Staff_HandleMessage(u8 *staff, void *, u8 *message);
 
-// What StaffAdvice_KindLow calls in the game that is not ported yet (agent C's, thiscall (n), pops 4: sums over the 0x400 records of 0x7c
-// bytes from +0x1efa4 down of GameTable7cfb90_Get1da720_519510's record; the benches point them at recorders).
+// What StaffAdvice_KindLow and StaffHQ_HandleMessage call in the game that is not ported yet (agent C's; the benches point them at
+// recorders): sumA / sumB thiscall (n), pops 4: sums over the 0x400 records of 0x7c bytes from +0x1efa4 down of
+// GameTable7cfb90_Get1da720_519510's record; sendGuard thiscall on a guard (handle), pops 4.
 struct StaffAdviceEnv {
-    s32(__fastcall *sumA)(u8 *record, void *, u32 n);   // 0x4c8180 (0x4c8ba0 of each)
-    s32(__fastcall *sumB)(u8 *record, void *, u32 n);   // 0x4c8150 (0x4c8ae0 of each)
+    s32(__fastcall *sumA)(u8 *record, void *, u32 n);         // 0x4c8180 (0x4c8ba0 of each)
+    s32(__fastcall *sumB)(u8 *record, void *, u32 n);         // 0x4c8150 (0x4c8ae0 of each)
+    void(__fastcall *sendGuard)(u8 *guard, void *, u32 handle);   // 0x4d6260
 };
-// StaffAdvice_KindLow's calls go to env (nullptr: the game's).
+// StaffAdvice_KindLow's and StaffHQ_HandleMessage's calls go to env (nullptr: the game's).
 void Staff_SetAdviceEnv(const StaffAdviceEnv *env);
 // 0x509360 (thiscall (kind), pops 4; name invented, unconfirmed; 0x508f70's test): 1 when the dword +0x64 is set; else for the kinds 0-4
 // (the staff chains of [0x80239c]: heads +0x1da73c, +0x1da73e, +0x1da740, +0x1da744, +0x1da742, next +0x210; kind 0 first 1 when sumA(1)
@@ -288,4 +290,15 @@ u32 __fastcall StaffAdvice_KindLow(const u8 *self, void *, u32 kind);
 // (message 17 of (kind, 2)), others stay; else message 17 of (kind, 3) when the state is 1, and the state and flag cleared.
 // (The messages through Object_PostMessage: agent B's unported 0x40fb10.)
 void __fastcall StaffAdvice_Update(u8 *self, void *, u32 kind);
+// 0x508e70 (thiscall; name invented, unconfirmed): the staff trained (Staff_TrainAll on the five amounts at +0xc). Unless the dword +0x64 is
+// set, nothing more while the world's +0x1da710 (Get1da710_51a280) is set or its analyser counts kind 1 things on plain cells
+// (ParkAnalyser_CountKind1OnPlainCell, age 5). Then for each kind 0-4 whose staff chain is not empty (heads +0x1da73c, +0x1da73e,
+// +0x1da740, +0x1da744, +0x1da742 of [0x80239c]) and whose stamp +0x2c + 12 * kind is not the world's +0x1da70c: stamped, and its flag
+// +0x28 + 12 * kind cleared when set, else StaffAdvice_Update(kind). (The original's debug prints are left out.)
+void __fastcall StaffAdvice_Tick(u8 *self);
+// 0x508a30 (thiscall (message), pops 4; Thing_HandleMessage's case 9): the staff HQ's message (its type the message's vtable slot 0).
+// 0xc: StaffAdvice_Tick. 0xe: the thing of the message's handle (+8) is on a cell (bytes +5 / +7) whose RE cell (Map_RECell of
+// [0x8023a0]) has its word +6 above 0: the free guard nearest the HQ (Guard_NearestFree), when there is one, gets 0x4d6260 (the handle;
+// the argument's high word the message pointer's, sic). Others: nothing. (The original's debug prints are left out.)
+void __fastcall StaffHQ_HandleMessage(u8 *self, void *, u8 *message);
 }
