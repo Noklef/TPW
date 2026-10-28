@@ -10,6 +10,7 @@
 #include "../online/chat.h"
 #include "../online/chatavatar.h"
 #include "../render/textparts.h"
+#include "cursor.h"
 #include "guimanager.h"
 #include "guirect.h"
 #include "listrows.h"
@@ -105,6 +106,31 @@ void __cdecl Window7cc8bc_EnterChat() {
     global<u32>(0x007cc8ac) = global<u32>(0x00790ab0);
     global<u32>(0x007cc8d8) = 5;
     GuiRect_Dtor(rect);
+}
+
+void __cdecl Window7cc8bc_LeaveChat() {
+    if (global<u32>(0x00790ab0) & 0x400) return;
+    const bool first = global<u32>(0x007cc8b8) == global<u32>(0x007cc8bc);
+    Window_SendMessage(window(0x007cc8bc), 6, first, 0);
+    Window_SendMessage(window(0x007cc8c0), 6, !first, 0);
+    global<u32>(0x007cc8b8) = 0;
+    if (window(0x007cc8bc)) Window_SetCursor(window(0x007cc8bc), nullptr, 0);
+    if (window(0x007cc8c0)) Window_SetCursor(window(0x007cc8c0), nullptr, 0);
+    u32 last = 0;   // (the last __ftol's: y's high word)
+    const auto pack = [&last](u32 from, u8 *out) {   // (as Window7cc8bc_EnterChat's)
+        const X87Reg tenths = X87Reg(global<float>(from)) * 0.100000001f;  // 0x700184
+        const s32 whole = (s32)(long long)tenths.v;  // __ftol
+        out[1] = (u8)whole;
+        last = (u32)(s32)(long long)((tenths - X87Reg((double)(whole & 0xff))) * 256.0f).v;  // 0x700188
+        out[0] = (u8)last;
+    };
+    pack(0x00790aa0, &global<u8>(0x007cc690));
+    pack(0x00790aa8, &global<u8>(0x007cc694));
+    ChatAvatar_Enter(chat(), nullptr, global<u16>(0x007cc690), (last & 0xffff0000u) | global<u16>(0x007cc694));
+    global<u8>(0x007cc8d4) = 0;
+    // (fraction / 256 + whole) * 10, exact before the store)
+    global<float>(0x00790ad0) = (float)(((double)global<u8>(0x007cc690) * 0.00390625 + global<u8>(0x007cc691)) * 10.0);
+    global<float>(0x00790ad8) = (float)(((double)global<u8>(0x007cc694) * 0.00390625 + global<u8>(0x007cc695)) * 10.0);
 }
 
 void __cdecl Window7cc8bc_ListAdd(const u16 *text, u32 data) { add(0, text, data); }

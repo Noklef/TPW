@@ -59,6 +59,13 @@ void __cdecl Window7cc8bc_Create();
 // [0x7cc8d4] = 1, [0x7cc8ac] = [0x790ab0], [0x7cc8d8] = 5.
 void __cdecl Window7cc8bc_EnterChat();
 
+// 0x4bd260 (cdecl; name invented): nothing with [0x790ab0] bit 10; else message 6 (1 for the window [0x7cc8b8] was, else 0; 0) to
+// [0x7cc8bc] and the other to [0x7cc8c0], [0x7cc8b8] = 0, the cursor 0 on each of them that is set (Window_SetCursor); the floats
+// [0x790aa0] / [0x790aa8] in tenths packed into 0x7cc690 / 0x7cc694 as Window7cc8bc_EnterChat packs its; the chat (OnlineChat_Instance)
+// enters at (the words [0x7cc690], [0x7cc694]) (ChatAvatar_Enter: y's high word the last __ftol's, sic); the byte [0x7cc8d4] = 0, and
+// the floats [0x790ad0] / [0x790ad8] = (fraction / 256 + whole) * 10 of the packed bytes.
+void __cdecl Window7cc8bc_LeaveChat();
+
 // 0x4bf370 (cdecl (unused, window); name invented; nothing in the image calls it or holds its address): the window [0x7cc8cc] (read
 // first) becomes the last child of the list 0xc3124 of the child 0xc3123 of [0x7cc8bc] (Window_FindChild twice, unchecked;
 // Window_AddChild(1, 1)). The window's inner rectangle (Window_GetRect(.., 1) into a GuiRect on the stack) is taken, and the window is
