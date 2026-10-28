@@ -6,18 +6,21 @@
 # the far edges' unsigned sums wrap and are cut); the map cells it reads (gMapCells [0x8023a0], each one's first thing, runs of ids each a region) and chains of up to eight things
 # (the slots at 0x7cfb90, their next +0xa; each thing in one chain or none) of kind 1 mostly, their floats +0x19c 0..100 mostly (else
 # negative, past 255 or NaN). RingFull (0x4c9920): the rings 0-19, wrapped or not, their sizes and cursors about 50. RingAverage
-# (0x4c9830): RingFull's rings, their values any bytes, mostly small, or all 255.
+# (0x4c9830): RingFull's rings, their values any bytes, mostly small, or all 255. Count (0x4c7520): the total and the peak +0x21c40
+# random, the value about the peak (signed) or any; the message centre [0x788d3c] made (an address the post logs), the post (0x40fb10)
+# recorder 21 hashing message 0x1a's 0x14 bytes.
 # usage: analyser.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Ctor,Record,Tally,Get4a0,Get4c0,Back,Pos,Around,RingFull,
-#        RingAverage)
+#        RingAverage,Count)
 import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, RAM, put  # noqa: E402
+from fncmp import LOG, Bench, Call, RAM, _recorder, blob_bytes, log_region, put  # noqa: E402
 
 B = Bench([(0x4c5d10, 0x4c5d70), (0x4c74b0, 0x4c74e9), (0x4c74f0, 0x4c751b), (0x4c7b70, 0x4c7bab),
-           (0x4c94a0, 0x4c952b), (0x4cd880, 0x4cd9b8), (0x5da3c0, 0x5da3c1), (0x4c9920, 0x4c9956), (0x4c9830, 0x4c9912)])
-NAMES = ['Ctor', 'Record', 'Tally', 'Get4a0', 'Get4c0', 'Back', 'Pos', 'Around', 'RingFull', 'RingAverage']
+           (0x4c94a0, 0x4c952b), (0x4cd880, 0x4cd9b8), (0x5da3c0, 0x5da3c1), (0x4c9920, 0x4c9956), (0x4c9830, 0x4c9912),
+           (0x4c7520, 0x4c75f0), (0x409cd0, 0x409cdd), (0x40f840, 0x40f872)], hooks={0x40fb10: _recorder(21, 1)})
+NAMES = ['Ctor', 'Record', 'Tally', 'Get4a0', 'Get4c0', 'Back', 'Pos', 'Around', 'RingFull', 'RingAverage', 'Count']
 OPS = [k for k in os.environ.get('OPS', ','.join(NAMES)).split(',') if k]
 A = RAM  # the analyser; its +0x20800 on is the region at HI
 HI = RAM + 0x20800
@@ -90,6 +93,14 @@ def case(r):
     op = NAMES.index(r.deal(OPS))
     if op == 7:
         return around(r)
+    if op == 10:
+        peak = r.choice([0, 1, -1, 100, r.getrandbits(32)])
+        put(hi, 0x21c40 - 0x20800, 'I', peak & 0xffffffff)
+        value = r.choice([peak, peak + 1, peak - 1, 0, -1, 0x7fffffff, r.getrandbits(32)]) & 0xffffffff
+        log = log_region()
+        blob_bytes(log, 21, 0, 0xfffff)
+        regions.update({LOG: log, 0x788d3c: put(bytearray(4), 0, 'I', RAM + 0x1fff0)})
+        return Call(0x4c7520, [A, value], regions, conv='t')
     if op in (8, 9):
         ring = r.randrange(20)
         off = 0x216fc + ring * 0x40 - 0x20800

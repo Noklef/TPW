@@ -16,6 +16,7 @@
 #include "messagecentre.h"
 #include "object.h"
 #include "objectdefs.h"
+#include "thingmsg.h"
 #include "things.h"
 #include "thingscan.h"
 #include "world.h"
@@ -87,6 +88,13 @@ void __fastcall ParkAnalyser_Tally(u8 *analyser, void *, u32 flag) {
     ++at<u32>(analyser, 0x21bfc);
     ++at<u32>(analyser, 0x21c04);
     if (flag == 0) ++at<u32>(analyser, 0x21c00);
+}
+
+void __fastcall ParkAnalyser_Count(u8 *analyser, void *, s32 value) {
+    ++at<u32>(analyser, 0x21c08);
+    if (value > at<s32>(analyser, 0x21c40)) at<s32>(analyser, 0x21c40) = value;
+    alignas(4) u8 msg[0x14];
+    Object_PostMessage(ThingMsg1a_Ctor(msg, nullptr, 0xb, 1, 0, 0));
 }
 
 u32 __fastcall ParkAnalyser_Tallied(const u8 *analyser, void *, u32 flag) {
