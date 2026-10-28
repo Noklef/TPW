@@ -6464,6 +6464,7 @@ const Hook kHooks[] = {
     {"Dialog7ca168_ShowStaffAverage", 0x004964d0, (void *)&Dialog7ca168_ShowStaffAverage, {0x8b, 0x0d, 0x68, 0xa1, 0x7c}},
     {"Dialog7ca168_AddStaffRow",  0x00496320, (void *)&Dialog7ca168_AddStaffRow, {0x83, 0xec, 0x14, 0x53, 0x55}},
     {"Dialog7ca168_FillStaffList", 0x00496400, (void *)&Dialog7ca168_FillStaffList, {0x8b, 0x0d, 0x68, 0xa1, 0x7c}},
+    {"Dialog7ca168_Handler",      0x004960a0, (void *)&Dialog7ca168_Handler, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
     {"GuiManager_Word4Set",       0x00659631, (void *)&GuiManager_Word4Set, {0x55, 0x8b, 0xec, 0x8b, 0x0d}},
     {"GuiManager_CallSlot3",      0x0065961c, (void *)&GuiManager_CallSlot3, {0x55, 0x8b, 0xec, 0xa1, 0x8c}},
     {"GuiManager_CallSlot4",      0x00659607, (void *)&GuiManager_CallSlot4, {0x55, 0x8b, 0xec, 0xa1, 0x8c}},
