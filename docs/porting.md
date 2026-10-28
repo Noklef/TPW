@@ -103,7 +103,8 @@ range, open items, known skips and the paths of the two memory files it should r
   sounds crashed. Before writing one, count every PUSH and each callee's RET n between them, and get the bench to run the path to its
   fault on real-shaped data. Otherwise port what the listing does.
 - **"crash in both" is not coverage:** a case the original faults in too counts as the same, so a path whose fixture always faults is
-  never compared. When a bench reports many, see where they fault (the emulator's PC); a path you ported should also run to its end.
+  never compared. When a bench reports many, see where they fault (env FNCMP_CRASHES=1 lists the original's fault PCs with counts); a
+  path you ported should also run to its end.
 - **Ghidra mis-splits:** a "function" starting with a conditional jump, or in the middle of another, is not one. Skip it.
 - **x87:** the emulator (x87emu) runs x87 code; tools/x87sym.py helps read it. Prefer the portable functions first, then take x87 ones.
 - **Shared modules:** adding a function to a module another branch also touches is fine. Never reformat or reorder existing code in it.

@@ -26,7 +26,8 @@ the driver: an access outside the regions' 64 KB chunks, the stack and the game'
 exe's code is readable too) faults, so a case with a wild pointer shows up as such ("crash
 ... (emu: write of ADDR at PC)") instead of passing in the emulator and crashing natively. A
 case that faults in both counts as the same and is tallied ("crash in both"). STRICT=0 turns
-it off.
+it off. FNCMP_CRASHES=1 also lists where the original faulted in those cases (its PC, the
+count and the first case), to check they are fixture gaps and not the path under test.
 
 Mutation testing: B.mutants(case, [(path, old, new), ...]) applies each edit to the source
 (old must occur once), rebuilds, runs, restores, and reports which edits were caught.
@@ -88,6 +89,7 @@ DRIVER = os.environ.get('FNCMP_DRIVER') or os.path.join(ROOT, 'build', 'tpw_fncm
 # FNCMP_COVER=file (tools/coverage.py): each run appends what it verified to the file, one JSON line: the addresses its cases called whose
 # cases matched without a crash ("direct", with their counts) and the hooked originals entered inside those cases ("indirect").
 COVER = os.environ.get('FNCMP_COVER')
+CRASHES = os.environ.get('FNCMP_CRASHES') == '1'
 
 
 def hooked_addresses():
@@ -1210,7 +1212,7 @@ class Bench:
         cases = self.cases(gen, n, seed, wild)
         nat = self.native(cases)
         bad = crashed = 0
-        direct, indirect = {}, set()
+        direct, indirect, sites = {}, set(), {}
         for i, (c, cpp) in enumerate(zip(cases, nat)):
             emu = self.original(c)
             emu, cpp = _blank(c, _unmasked(c, emu)), _blank(c, _unmasked(c, cpp))
@@ -1221,6 +1223,8 @@ class Bench:
                 continue
             if isinstance(emu, str) and isinstance(cpp, str) and cpp.startswith('crash ') and emu.split(' (emu:')[0] == cpp:
                 crashed += 1  # the original faults too, with the same exception: the same
+                pc = emu.rsplit(' at ', 1)[-1].rstrip(')') if ' at ' in emu else emu
+                sites.setdefault(pc, [0, i])[0] += 1
                 continue
             bad += 1
             if bad > show:
@@ -1241,6 +1245,9 @@ class Bench:
         if not quiet:
             print('%d cases%s, seed %d: %d differ%s' % (n, ' (wild)' if wild else '', seed, bad,
                                                        ' (%d crash in both)' % crashed if crashed else ''))
+            if CRASHES:
+                for pc, (k, first) in sorted(sites.items(), key=lambda kv: -kv[1][0]):
+                    print('  crash in both at %s: %d (first case %d)' % (pc, k, first))
         return bad
 
     def main(self, gen):
@@ -1257,7 +1264,9 @@ class Bench:
 
     def mutants(self, gen, edits, n=1500, seed=7, wild=False):
         """Applies each (path, old, new) edit alone to a copy of the sources (build/mut), builds
-        its driver there and runs; True where caught. The working tree and build/ are untouched."""
+        its driver there and runs; True where caught. The working tree and build/ are untouched.
+        One run at a time per tree: a second one waits for the first's lock on build/mut."""
+        lock = mut_lock()
         tree = mirror()
         out = os.path.join(MUT, 'out')
         results = []
@@ -1280,7 +1289,27 @@ class Bench:
             print('%-9s %s: %r -> %r' % ('BUILD ERR' if bad is None else 'caught' if bad else 'SURVIVED',
                                         os.path.basename(path), old[:50], new[:50]))
             results.append(bool(bad))
+        lock.close()
         return results
+
+
+def mut_lock():
+    """Locks build/mut for this process (released when the file closes or the process ends), waiting for another run's."""
+    import msvcrt
+    import time
+    os.makedirs(MUT, exist_ok=True)
+    f = open(os.path.join(MUT, 'lock'), 'a+')
+    f.seek(0)
+    waited = False
+    while True:
+        try:
+            msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
+            return f
+        except OSError:
+            if not waited:
+                print('mutants: waiting for another run on build/mut')
+                waited = True
+            time.sleep(5)
 
 
 def mirror():

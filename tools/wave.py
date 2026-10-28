@@ -135,7 +135,8 @@ def cmd_list(lo, hi, unlock=False):
     hooked = hooked | generated
     # Ghidra's mis-splits, starts in the middle of another function (agents' reports): starts still, never listed.
     missplit = {0x44adc0, 0x470330, 0x431ce0, 0x539490, 0x534d10, 0x538a40,   # B r21 (0x44adc0: the FADDP tail of 0x44ab90)
-                0x6c9a00, 0x6c9fd0}                                           # A r31: inside Mp2_Dct64 0x6c9580-0x6ca573
+                0x6c9a00, 0x6c9fd0,                                           # A r31: inside Mp2_Dct64 0x6c9580-0x6ca573
+                0x4d5020, 0x4d58f0}                                           # C r42: chunks of 0x4d4fa0 / 0x4d5870
     hooked = hooked | missplit
     # Not port targets though unhooked: MSVC's __CxxFrameHandler 0x67a910 (every EH-framed function's handler stub jumps to it; the
     # ports' exception handling is the compiler's: A r34 saw it 'unlock' 1120), and TgqVideo_DecodeMacroblock32 / 16 0x67380f / 0x673fee
