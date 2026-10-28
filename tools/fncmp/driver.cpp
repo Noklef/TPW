@@ -46,6 +46,7 @@
 #include "../../src/game/gfx/cursor.h"
 #include "../../src/game/gfx/pointer.h"
 #include "../../src/game/gfx/screen.h"
+#include "../../src/game/gfx/statsgraph.h"
 #include "../../src/game/core/fpu.h"
 #include "../../src/game/core/gameheap.h"
 #include "../../src/game/core/string.h"
@@ -465,6 +466,9 @@ const CellModelEnv kCellModelEnv = {reinterpret_cast<u32(__cdecl *)(s32, s32, s3
 // MessageCentre_Post's call into the unported Thing_HandleMessage 0x50b550 (agent C's): the thiscall recorder 27 of 1 argument, as
 // tests/fncmp/messagecentre.py hooks that address.
 const MessageCentreEnv kMessageCentreEnv = {reinterpret_cast<u32(__fastcall *)(u8 *, void *, u8 *)>((uintptr_t)recorder(27, 1))};
+// The statistics graph's lines 0x49aa30 (StatsGraph_Redraw's after): the cdecl recorder 22 (tests/fncmp/gauge.py hooks 0x49aa30 with it).
+const StatsGraphEnv kStatsGraphEnv = {reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)jpeg_recorder(22, 1))};
+
 const ObjectEnv kObjectEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, u8 *)>((uintptr_t)recorder(21, 1)),
                               reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(22, 0)),
                               reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(23, 0))};
@@ -1162,6 +1166,7 @@ int main(int argc, char **argv) {
     Rides_SetEnv(&kRidesEnv);
     CellModel_SetEnv(&kCellModelEnv);
     Object_SetEnv(&kObjectEnv);
+    StatsGraph_SetEnv(&kStatsGraphEnv);
     Object_SetDeleteEnv(&kObjectDeleteEnv);
     BankAccount_SetEnv(&kBankAccountEnv);
     MessageCentre_SetEnv(&kMessageCentreEnv);
