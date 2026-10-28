@@ -5152,6 +5152,8 @@ address,name,kind,confidence,notes
 0x006c8830,Mp2StreamSample_DeletingDtor,function,low,"reimplemented (src/game/core/mp2sample); thiscall (flags), pops 4; slot 0 of 0x70ae90: Mp2StreamSample_Dtor, with flags bit 0 Mp2StreamSamplePool_Delete (0x5c); returns the sample (name invented)"
 0x006c8a60,Mp2StreamWindow_Read,function,low,"reimplemented (src/game/core/mp2sample); the MP2 streamed sample's window read, clipped to the sample's length; -1 at the end"
 0x006c8aa0,Mp2StreamWindow_Seek,function,low,"reimplemented (src/game/core/mp2sample); the MP2 streamed sample's window seek, less the start"
+0x006c8630,Mp2Sample_Decode,function,low,"reimplemented (src/game/core/mp2sample); thiscall (out, bytes), pops 8; slot 23 of 0x70ae30: Mp2Decoder_Read of the decoder (+0x34) into out (name invented)"
+0x006c8ac0,Mp2StreamSample_Decode,function,low,"reimplemented (src/game/core/mp2sample); thiscall (out, bytes), pops 8; slot 23 of 0x70ae90: Mp2Decoder_Read of the decoder (+0x34), 0 without one (name invented)"
 0x006d3f80,SfMan_PackMsg,function,low,"reimplemented (src/game/core/sfman); the SoundFont synthesiser's short MIDI message on channel 2 (stdcall status, data1, data2)"
 0x006d4530,SfMan_UnloadBank,function,low,"reimplemented (src/game/core/sfman); the SoundFont API's slot 14 (unload bank) on the device with the pair {1, 0}: 1 when it answers 0"
 0x006d4570,SfMan_NotesOff,function,low,"reimplemented (src/game/core/sfman); all notes off on the SoundFont MIDI out device, midiOutShortMsg's answer"
