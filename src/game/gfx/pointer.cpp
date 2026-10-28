@@ -212,4 +212,16 @@ void __fastcall PointerFrames_Hide(u8 *self) {
     self[4] = 0;
 }
 
+void __fastcall PointerFrames_Step(u8 *self, void *, s32 now) {
+    s32 *const frame = reinterpret_cast<s32 *>(self + 0xc);
+    s32 *const last = reinterpret_cast<s32 *>(self + 0x10);
+    if (!self[4] || !*at<AsyncPointer **>(0x007b4b84) || (s32)((u32)now - (u32)*last) <= 300) return;
+    if (++*frame >= *reinterpret_cast<s32 *>(self + 8)) *frame = 0;
+    const s32 hot[2] = {static_cast<s8>(self[5]), static_cast<s8>(self[6])};
+    const Rect rect = {*frame << 5, 0, (*frame + 1) << 5, 0x20};
+    s32 out;   // (the original's: the now argument's slot)
+    AsyncPointer_SetImage(*at<AsyncPointer **>(0x007b4b84), nullptr, &out, reinterpret_cast<Surface *>(self + 0x14), &rect, hot);
+    *last = now;
+}
+
 }  // extern "C"
