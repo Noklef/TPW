@@ -1,6 +1,7 @@
 #include "carsound.h"
 
 #include <cstdint>
+#include <xmmintrin.h>
 
 #include "../core/soundplay.h"
 #include "../core/soundset.h"
@@ -54,5 +55,41 @@ void __cdecl CoasterCar_SetSoundMode(u8 *car, s32 mode, u32 value) {
     }
     if (!Silenced())
         at<u32>(car, 0x68) = Sound_SetParam(at<u32>(car, 0x68), at<u32>(car, 0x60), value);
+}
+
+void __cdecl CoasterCar_UpdateScream(u8 *link, u8 *car, s32 x, s32 y, s32 z) {
+    const s32 index = _mm_cvtss_si32(_mm_set_ss(at<float>(car, 0x74)));   // (fistp)
+    u8 *const entry = at<u8 *>(link, 0x9c) + index * 0x38;
+    const u8 bits = entry[0];
+    const u32 flags = at<u32>(car, 0);   // (as read at the start)
+    if (flags & 0x100) {
+        const u32 sound = at<u32>(car, 0x6c);
+        if (bits & 2) {
+            if (sound) {
+                if (!Silenced()) at<u32>(car, 0x6c) = RSSE_MoveScream(sound, x, y, z);
+            } else if (!(flags & 0x10) && !(link[8] & 0x40)) {
+                at<u32>(car, 0x6c) = KidSound_PlayGraded(1, 100, 100, x, y, z);   // (0x785a2c not looked at)
+            }
+        } else if (sound) {
+            at<u32>(car, 0x6c) = RSSE_MoveScream(sound, x, y, z);   // (0x785a2c not looked at)
+        }
+        if ((entry[0] & 4) && !(car[0] & 0x10) && !(link[8] & 0x40)) {
+            if (Silenced()) return;
+            RSSE_MoveScream(at<u32>(car, 0x70), x, y, z);
+            RSSE_SetScreamVolume(at<u32>(car, 0x70), 0x4b, 0x4b);
+            return;
+        }
+        if (!Silenced()) RSSE_StopScream(at<u32>(car, 0x70));
+        at<u32>(car, 0x70) = 0;
+        at<u32>(car, 0) &= ~0x100u;
+        return;
+    }
+    if ((bits & 2) && !(flags & 0x10) && !(link[8] & 0x40) && !Silenced())
+        at<u32>(car, 0x6c) = KidSound_PlayGraded(1, 100, 100, x, y, z);
+    if ((entry[0] & 4) && !(car[0] & 0x10) && !(link[8] & 0x40)) {
+        if (!at<u32>(car, 0x70) && !Silenced())
+            at<u32>(car, 0x70) = RSSE_StartScream(0, (at<u32>(car, 0x10) >> 1) + 1, 0x4b, 0x4b, x, y, z);
+        at<u32>(car, 0) |= 0x100;
+    }
 }
 }

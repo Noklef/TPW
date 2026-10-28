@@ -6035,6 +6035,7 @@ address,name,kind,confidence,notes
 0x00439780,CoasterCar_SetSoundMode,function,low,"reimplemented (src/game/coaster/carsound); cdecl (car, mode, value): a new mode sets the looped sound's first parameter to its level, then the second parameter to value"
 0x00439670,CoasterCar_StopSounds,function,low,"reimplemented (src/game/coaster/carsound); A coaster car's looped sounds told Sound_Forward6 and its scream stopped, its sound fields cleared"
 0x004392a0,CoasterCar_StartSounds,function,low,reimplemented (src/game/coaster/carsound); A coaster car's sounds started: its ride's linked elements and two looped sounds at its position
+0x004393e0,CoasterCar_UpdateScream,function,low,reimplemented (src/game/coaster/carsound); a coaster car's scream and kid sound kept up to its place on the track
 0x00434740,CoasterPiece_CanPlaceAt,function,low,"reimplemented (src/game/coaster/placecheck); cdecl (x, z, piece, px, pz, nx, nz): whether a coaster piece may go on the tile: map, taken tiles, squared distance, the angle at the piece within the rules' limits, the coaster links' nodes on the tile, and the held piece's neighbours checked again"
 0x0044a590,RenderMode_Size,function,high,"reimplemented (src/game/render/mode); cdecl u32 (): first of 0x2000/0x1000/0x800 in 0x79d86c, else 0x4000 if set, else 0x1000"
 0x0044a5d0,RenderMode_Depth,function,high,"reimplemented (src/game/render/mode); cdecl u32 (): first of 8/0x10 in 0x79d86c, else 0x20 if set, else 8"
