@@ -28,6 +28,13 @@ void __fastcall Money_Credit(u8 *money, void *, s32 amount) {
     at<u32>(money, 0x124) += (u32)amount;
 }
 
+void __fastcall Money_CreditTakings(u8 *money) {
+    Money_Credit(money, nullptr, at<s32>(money, 0x118));   // (inlined in the original)
+    u8 *const record = reinterpret_cast<u8 *>(GameTable7cfb90_Get1da720_519510(global<u8 *>(0x007cf83c)));
+    at<u32>(record, 0x1fee0) += at<u32>(money, 0x118);
+    ParkAnalyser_Count(record, nullptr, at<s32>(money, 0x118));
+}
+
 void __fastcall Money_Debit(u8 *money, void *, s32 amount) {
     if (!at<u32>(money, 0x114))
         return;

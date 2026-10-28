@@ -13,6 +13,11 @@ extern "C" {
 // reproduced).
 void __fastcall Money_Credit(u8 *money, void *, s32 amount);
 
+// 0x4d0600 (thiscall; called from 0x4ffae5 on the world's record (0x5195d0); name invented): the amount at +0x118 credited (as
+// Money_Credit, inlined there), added to +0x1fee0 of the same game table thing as well, then counted by its analyser (ParkAnalyser_Count
+// of the amount on that thing). (The debug check of an amount under 1000000 is left out.)
+void __fastcall Money_CreditTakings(u8 *money);
+
 // 0x4d01f0 (thiscall; amount, pops 4): nothing unless the dword at +0x114 is set; then the balance at +0xc loses amount and is copied to +0x11c; going below 0
 // while the dword there was not below 0 records the time (the dword at +0x1da70c of the object [0x80239c]) at +0x120; the dword at +0x1f5a0 of that thing gains amount and the total at +0x124 loses it.
 void __fastcall Money_Debit(u8 *money, void *, s32 amount);

@@ -8,8 +8,9 @@
 # message centre made or not (thing_ctors.py's), the post (agent B's 0x40fb10 through the objects' env) recorder 21 logging the message's
 # bytes 0-0xb. The messages (BankAccount_HandleMessage 0x4d02d0): types (a vtable of the recorder 19, answering) 0xb, 0xc (that month's
 # end), 0xd, 0x12 and 0x13 with +8 2, 0xa or other; the game object's mode 4 or not, the word 0x7cf4f4 0 or not, agent A's unported 0x5168f0 thiscall recorder 24
-# (driver.cpp's kBankAccountEnv).
-# usage: money.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Credit,Debit,Take,Repay,Total,InRed,Smallest,Owed,TotalOwed,Month,Handle)
+# (driver.cpp's kBankAccountEnv). Takings (0x4d0600): the amount +0x118 any, the game's thing with the analyser's total +0x21c08 and
+# peak +0x21c40 (about the amount or any), the message centre made or not, recorder 21 hashing message 0x1a's 0x14 bytes.
+# usage: money.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Credit,Debit,Take,Repay,Total,InRed,Smallest,Owed,TotalOwed,Month,Handle,Takings)
 import os
 import struct
 import sys
@@ -20,9 +21,11 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import thing_ctors  # noqa: E402
 
 CALLS = {'Credit': (0x4d0190, 0x60), 'Debit': (0x4d01f0, 0x70), 'Take': (0x4d0750, 0x100), 'Repay': (0x4d0850, 0x150), 'Total': (0x4d09f0, 7), 'InRed': (0x4d0260, 0x68),
-         'Smallest': (0x4d09a0, 0x46), 'Owed': (0x4d0970, 0x2d), 'TotalOwed': (0x4d0a00, 0x2d), 'Month': (0x4d0370, 0x25a), 'Handle': (0x4d02d0, 0x97)}
+         'Smallest': (0x4d09a0, 0x46), 'Owed': (0x4d0970, 0x2d), 'TotalOwed': (0x4d0a00, 0x2d), 'Month': (0x4d0370, 0x25a), 'Handle': (0x4d02d0, 0x97),
+         'Takings': (0x4d0600, 0x8e)}
 B = Bench([(a, a + n) for (a, n) in CALLS.values()] + [(0x519510, 0x519550), (0x5da3c0, 0x5da3c1), (0x4f88b0, 0x4f88f6), (0x67c320, 0x67c3ca),
-                                                             (0x67c7f0, 0x67c824), (0x40f630, 0x40f649), (0x516c00, 0x516c0c)]
+                                                             (0x67c7f0, 0x67c824), (0x40f630, 0x40f649), (0x516c00, 0x516c0c),
+                                                             (0x4c7520, 0x4c75f0), (0x409cd0, 0x409cdd), (0x40f840, 0x40f872)]
           + thing_ctors.CENTRE_RANGES, hooks={**thing_ctors.CENTRE_HOOKS, 0x40fb10: _recorder(21, 1), 0x5168f0: _recorder(24, 0)})
 GAME, THING, TIME, WORLD = RAM + 0x40000, RAM + 0x80000, RAM + 0xc0000, RAM + 0x100000   # (WORLD: the time in the red's)
 AMOUNTS = [0, 1, 5, 100, 999999, 1000000, 1000001, 0x7fffffff, -1, -100, -0x80000000, 0x40000000]
@@ -42,6 +45,15 @@ def case(r):
                0x7cf83c: struct.pack('<I', GAME - 0x1da720), GAME: struct.pack('<H', handle), 0x7cfb90: slots,
                0x80239c: struct.pack('<I', TIME - 0x1da70c), TIME: r.bytes(4),
                THING + 0x1fc90: r.bytes(4), THING + 0x1f5a0: r.bytes(4)}
+    if name == 'Takings':
+        amount = r.choice(AMOUNTS + [r.getrandbits(32)]) & 0xffffffff
+        put(money, 0x118, 'I', amount)
+        tally = bytearray(r.bytes(0x3c))
+        put(tally, 0x38, 'I', r.choice([amount, amount - 1 & 0xffffffff, amount + 1 & 0xffffffff, 0, r.getrandbits(32)]))
+        regions.update({THING + 0x1fee0: r.bytes(4), THING + 0x21c08: tally, HEAP: heap(), LOG: log_region()})
+        thing_ctors.centre(r, regions)
+        blob_bytes(regions[LOG], 21, 0, 0xfffff)
+        return Call(address, [RAM], regions, conv='t', ret='v')
     if name in ('Month', 'Handle'):
         return month(r, name, money, regions)
     if name == 'InRed':

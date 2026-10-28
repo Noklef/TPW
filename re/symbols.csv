@@ -2992,6 +2992,7 @@ address,name,kind,confidence,notes
 0x004d06b0,Money_LoanOffer,function,low,"reimplemented (src/game/world/money); thiscall (out, index): the loan offer flagged by whether its amount is within the park score less what is owed, copied out"
 0x004d0810,Money_AnyLoanOffer,function,low,"reimplemented (src/game/world/money); thiscall; 1 when any of the 8 loan offers (Money_LoanOffer) has its +0x14 clear and its first dword set, else 0"
 0x004d0370,Money_MonthEnd,function,low,"reimplemented (src/game/world/money); the month's end: pending income credited, the taken loans' rates debited and months counted (paid-up ones cleared), message 0x13 (2) after 6 months in the red"
+0x004d0600,Money_CreditTakings,function,low,"reimplemented (src/game/world/money); thiscall: the amount +0x118 credited (as Money_Credit), added to the game table thing's +0x1fee0, counted by its analyser (ParkAnalyser_Count)"
 0x00458310,Obj_CtorVirtual,function,high,reimplemented (src/game/render/lightsource); a class with a virtual base: vtables and the offset word
 0x004583d0,Obj_SetVectorAt2c,function,high,"reimplemented (src/game/render/lightsource); the scene flags touched, then three dwords at +0x2c"
 0x005651c0,Class701260_Ctor,function,high,"reimplemented (src/game/render/device); vtable 0x701260 and its defaults, plus a driver quirk flag"
