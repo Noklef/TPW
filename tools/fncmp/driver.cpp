@@ -1339,10 +1339,13 @@ int main(int argc, char **argv) {
                                    trainRec(21, 5), trainRec(22, 7), trainRec(23, 6), trainRec(24, 1), trainRec(25, 4)};
     Train_SetEnv(&train);
     // The coaster editor's car deletions' calls: the cdecl recorders (k, n) 18 / 2, 19 / 1, 20 / 2 and 21 / 0, as tests/fncmp/deletecars.py
-    // hooks 0x444cb0, 0x435530, 0x435730 and 0x497d20.
+    // hooks 0x444cb0, 0x435530, 0x435730 and 0x497d20; CoasterEdit_PlaceSelected's (tests/fncmp/placeselected.py) 29 / 0, 30 / 3, 31 / 9,
+    // 18 / 0, 19 / 5, 20 / 7, 21 / 2, 17 / 0, 16 / 0 and 15 / 0.
     static const EditToolsEnv editTools = {trainRec(18, 2), trainRec(19, 1), trainRec(20, 2), trainRec(21, 0), trainRec(22, 0),
                                            trainRec(23, 0), trainRec(24, 0), trainRec(25, 0), trainRec(26, 0), trainRec(27, 0),
-                                           trainRec(28, 0), trainRec(22, 1)};
+                                           trainRec(28, 0), trainRec(22, 1), trainRec(29, 0), trainRec(30, 3), trainRec(31, 9),
+                                           trainRec(18, 0), trainRec(19, 5), trainRec(20, 7), trainRec(21, 2), trainRec(17, 0),
+                                           trainRec(16, 0), trainRec(15, 0)};
     EditTools_SetEnv(&editTools);
     // GameMode_MapClick's calls (src/game/world/mapclick.h): each a recorder (k, n), cdecl ones logged as k | 0x200, as tests/fncmp/mapclick.py
     // hooks their addresses; its `advise` cdecl 9 (the bench's 0x59b590 hook logs the advisor message's id so).

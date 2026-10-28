@@ -2,11 +2,13 @@
 
 #include <cstdint>
 
+#include "../core/accessors.h"
 #include "../core/actionrec.h"
 #include "../files/wrapsources.h"
 #include "../math/x87.h"
 #include "../ui/dialog7ca1c8.h"
 #include "../model/highlight.h"
+#include "../world/cellmessage.h"
 #include "../world/money.h"
 #include "../world/mousemode.h"
 #include "../world/object.h"
@@ -33,7 +35,11 @@ void ClearChanged() { at<u32>(g<u8 *>(0x00790fec), 0) &= ~0x2000u; }
 const EditToolsEnv kPortEnv = {&Coaster_DeleteCar,           &Coaster_DeleteFlaggedEnd,       &Coaster_SetState,
                                &MouseMode_EnterTile15,       &CoasterEdit_ToggleAdjustF8,     &CoasterEdit_ToggleAdjustAngles,
                                &CoasterEdit_ToggleDrag,      &CoasterEdit_ToggleAdjustE0,     &CoasterEdit_MoveCarBack,
-                               &CoasterEdit_MoveCarForward,  &CoasterEdit_DeleteSpan,         &CoasterEdit_SelectPiece};
+                               &CoasterEdit_MoveCarForward,  &CoasterEdit_DeleteSpan,         &CoasterEdit_SelectPiece,
+                               &TrackSelection_ClearFlags,   &CoasterLinks_FindTile,          &Coaster_DropCar,
+                               &PathDrag_Finish,             &Map_SetRideCell,                &Car_TravelCost,
+                               &Coaster_FlashCar,            &CoasterEdit_ToggleAdjust,       &TrackSelection_End,
+                               &TrackSelection_Clear};
 const EditToolsEnv *g_env = &kPortEnv;
 
 // The current link's end car (+0x58 without +0x3c flag 1, +0x60 with flags 1 and 2, else none) when its +4 byte has flag 2: whether that
@@ -854,6 +860,107 @@ u32 __cdecl CoasterEdit_Click(u32 press) {
     default:
         return 0;
     }
+}
+}
+
+namespace {
+
+// The end 0x445a70 has twice: CoasterEdit_EndTool inlined, its calls through the env; tool 0x20 is TrackSelection_End called (inline
+// false) or inlined (its flag 0x80 as read before the switch).
+void EndToolVia(bool inlineEnd) {
+    const EditToolsEnv *const env = g_env;
+    if ((g<u8>(0x0079c624) & 1) && g<u8 *>(0x00790fec)) {
+        at<u32>(g<u8 *>(0x00790fec), 0) &= ~4u;
+        Flags_SetChanged(g<u32 *>(0x00790fec), 0);
+        u8 *const game = g<u8 *>(0x00790fec);
+        const u32 f = at<u32>(game, 0x3c);
+        if (!(f & 1) || (f & 2)) env->flashCar(game, 1);
+    }
+    const u32 flags = Flags();
+    switch (flags & 0x3f) {
+    case 1: env->toggleDrag(); break;
+    case 2: env->toggleAdjustE0(); break;
+    case 4: env->toggleAdjust(); break;
+    case 8: env->moveCarBack(); break;
+    case 0x10: env->moveCarForward(); break;
+    case 0x20:
+        if (!inlineEnd) {
+            env->selectionEnd();
+            break;
+        }
+        if (flags & 0x80) {
+            Highlight_SetShown(0);
+            g<u32>(0x0079c6dc) = 0;
+            env->selectionClear();
+        }
+        Flags() &= ~0xa0u;
+        break;
+    default: break;
+    }
+    SetModeState(0);
+}
+
+}  // namespace
+
+extern "C" {
+
+u32 __cdecl CoasterEdit_PlaceSelected(s32 x, s32 y) {
+    const EditToolsEnv *const env = g_env;
+    g<u32>(0x0079c69c) = 0;
+    if (g<u32>(0x0079c624) != 2 || !g<u8 *>(0x0079c6a4)) {
+        Fn_52c2a0();
+        Flags() &= ~0x100u;
+        g<u8 *>(0x0079c6a4) = nullptr;
+        if (g<u32>(0x00785a2c)) EndToolVia(true);
+        return 0;
+    }
+    const u8 *const placed = g<u8 *>(0x0079c6a4);
+    const u32 cleared = env->clearSelectionFlags();
+    g<u32>(0x0079c62c) = 0;
+    g<u32>(0x0079c628) = 0;
+    g<u32>(0x007925d0) = 0;
+    if (cleared) Flags_SetChanged(g<u32 *>(0x00790fec), 0);
+    u8 *const tile = env->findTile((u32)x, (u32)y, nullptr);
+    u8 *const piece = g<u8 *>(0x0079c6a4);
+    bool settled = false;
+    if (tile && (at<u32>(tile, 0x18) != at<u32>(Def(piece), 0x18) || at<u32>(tile, 0x14) != at<u32>(Def(piece), 0x14))) {
+        env->dropCar(g<u8 *>(0x00790fec), piece, g<u8 *>(0x0079c660), g<s32>(0x0079c6d8), g<s32>(0x0079c6a0), nullptr, nullptr, 1, 0);
+        env->pathDragFinish();
+        if (!(at<u8>(tile, 4) & 2))
+            env->setRideCell((u32)(uintptr_t)g<u8 *>(0x00790fec), at<s32>(tile, 0xc), at<s32>(tile, 0x10),
+                             at<u32>(at<const u8 *>(tile, 0x34), 0x70), 0);
+    } else {
+        float outX, outY;
+        env->dropCar(g<u8 *>(0x00790fec), piece, tile, x, y, &outX, &outY, 1, 0);
+        if (!g<u32>(0x00785a2c) && (g<s32>(0x0079c6d8) != x || g<s32>(0x0079c6a0) != y)) {
+            u8 *const game = g<u8 *>(0x00790fec);
+            s32 cost;
+            u8 *money;
+            if (at<u8>(game, 0x3c) & 1) {
+                const u8 *const sel = g<u8 *>(0x0079c6a4);
+                cost = Float_RoundUp(static_cast<float>(env->travelCost(game, 0, sel, &outX, &outY, nullptr, nullptr)));
+                cost += Float_RoundUp(static_cast<float>(env->travelCost(game, 0, at<const u8 *>(sel, 0x64), nullptr, nullptr, &outX, &outY)));
+                money = reinterpret_cast<u8 *>(GameTable7cfb90_Get1da726_5195d0(g<u8 *>(0x007cf83c)));
+                Money_Credit(money, nullptr, (s32)(long long)g<float>(0x0079c698));   // __ftol
+                Money_Credit(money, nullptr, (s32)(long long)g<float>(0x0079c64c));   // (behind a test of its address: always)
+            } else {
+                cost = Float_RoundUp(static_cast<float>(env->travelCost(game, 0, g<u8 *>(0x0079c6a4), &outX, &outY, nullptr, nullptr)));
+                money = reinterpret_cast<u8 *>(GameTable7cfb90_Get1da726_5195d0(g<u8 *>(0x007cf83c)));
+                Money_Credit(money, nullptr, (s32)(long long)g<float>(0x0079c698));
+            }
+            Source_Field0c(reinterpret_cast<const TrackedSource *>(money));   // (its result unused)
+            Money_Debit(money, nullptr, cost);
+            g<u32>(0x0079c698) = 0;
+        }
+        settled = true;
+    }
+    Flags_SetChanged(g<u32 *>(0x00790fec), 1);
+    Highlight_SetShown(0);
+    Flags() &= ~0x100u;
+    g<u8 *>(0x0079c6a4) = nullptr;
+    g<u8 *>(0x0079c660) = nullptr;
+    if (g<u32>(0x00785a2c)) EndToolVia(false);
+    return settled ? at<u32>(placed, 0x70) : 0;
 }
 }
 
