@@ -322,12 +322,16 @@ u32 text_arg_hash(const u32 *arg) {
 
 // The same with four arguments (kStubs + 0x90, tools/fncmp.py CDECL_LOG4): the entry k 0x13d. As the text formatter 0x6acd60 (fncmp.text_args()):
 // with a count of text arguments (1-3) at log + 0x7e0, that many more (pointers to them) logged as text_arg_hash()es, and the buffer (b; c its size
-// in characters, 9 or more) given the hash of the text's id and those as 8 hex digits, so that what shows the text compares it.
+// in characters, 9 or more) given the hash of the text's id and those as 8 hex digits, so that what shows the text compares it. With a range
+// of ids at log + 0x7e4 (its first and last words: text_args()'s only), any other id (d) takes none (its buffer still given the hash): so
+// the texts formatted without arguments, and other calls of the stub (a window's handler), read nothing past their four.
 u32 __cdecl stub_cdecl_log4(u32 a, u32 b, u32 c, u32 d, ...) {
-    const u32 texts = *reinterpret_cast<const u32 *>((uintptr_t)(kStubs + 0x100000 + 0x7e0));
+    const u32 given = *reinterpret_cast<const u32 *>((uintptr_t)(kStubs + 0x100000 + 0x7e0));
+    const u32 only = *reinterpret_cast<const u32 *>((uintptr_t)(kStubs + 0x100000 + 0x7e4));
+    const u32 texts = only && (d < (only & 0xffff) || d > (only >> 16)) ? 0 : given;
     u32 stack[8] = {0, a, b, c, d};
     u32 n = 4;
-    if (texts) {
+    if (given) {
         va_list rest;
         va_start(rest, d);
         u32 h = (0x811c9dc5u ^ d) * 0x01000193u;

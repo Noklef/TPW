@@ -1,4 +1,4 @@
-// The game panel object at 0x7cc218 (its vtable 0x6ffbe8). Reimplementation of 0x4ad4e0, 0x4ad720, 0x4ad890, 0x4ae8e0, 0x4ae980, 0x4af980, 0x4af440. The
+// The game panel object at 0x7cc218 (its vtable 0x6ffbe8). Reimplementation of 0x4ad4e0, 0x4ad720, 0x4ad890, 0x4ae8e0, 0x4ae980, 0x4af980, 0x4af440, 0x4aec30. The
 // names are unconfirmed.
 #pragma once
 
@@ -39,6 +39,16 @@ void __fastcall Panel7cc218_Show(u8 *self, void *, u8 *thing);
 // +0x2c (Obj_SetSpeed), the capacity byte +0x30 (Object_SetCapacity) and, when its definition's +0x70 is set, the duration byte +0x34
 // (Obj_SetDuration).
 void __fastcall Panel7cc218_ApplyToShown(u8 *self);
+
+// 0x4aec30 (thiscall (flags: a byte), pops 4; called by 0x4af030 and the handler 0x4af600; name invented): the settings' texts, each
+// formatted into the shared buffer 0x7ba058 (the formatter 0x6acd60 with the table [0x78ba94], 0x3fff characters; one number argument,
+// TextArgInt_Ctor (n, value, signed)) and sent to a child of the window +0x10 (Window_FindChild, not checked; Window_NotifyImpl100):
+// flag 1 the speed +0x2c (text 0x1aa, argument 5) to 0x3e33; flag 2 the capacity +0x30 (argument 6) to 0x3e31, the text 0x1cf for the
+// definition's (Object_GetDef of the thing [0x7c2658], read once) track type +0x9c 3, 0x1cd for 2 (the definition looked up again),
+// else 0x1ab; flag 4 the duration +0x34 (argument 7) to 0x3e32 by the definition's +0x70: 0 the child hidden (Window_SetShown) and
+// the buffer sent as it is (sic), 1-4 the child shown and the text 0x1ac (the duration 1) / 0x1ad, 0x1ae, 0x1af, 0x1b0; past 4 the
+// buffer sent as it is (sic).
+void __fastcall Panel7cc218_ShowSettings(u8 *self, void *, u8 flags);
 
 // 0x4ad4e0 (thiscall; called from 0x4ae0fb and by slot 1, 0x4ae940): with the thing [0x7c2658] (nothing without one) and its definition
 // (Object_GetDef), the window +0x10's children (Window_FindChild, none checked): with the mode +8 3 all of 0x3e38, 0x3e34, 0x3e2a, 0x3e36,

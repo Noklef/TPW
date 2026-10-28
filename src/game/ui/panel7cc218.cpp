@@ -10,6 +10,7 @@
 #include "../core/trivial.h"
 #include "../render/textparts.h"
 #include "../core/soundplay.h"
+#include "../core/textarg.h"
 #include "../files/wrapsources.h"
 #include "../world/advisor.h"
 #include "../world/focuscell.h"
@@ -57,6 +58,14 @@ void label(u8 *self, u32 id) {
     Window_Set4c(child, nullptr, Language_Font(6));
     Window_Notify40000(child, nullptr, 0, 0, 0, 0xff);
     Window_NotifyImpl100(child, nullptr, 0);
+}
+
+// The text `id` formatted into the shared buffer 0x7ba058 with one number argument n: the panel's setting at `offset` (signed: a
+// negative one's magnitude and the minus flag, as the original builds it inline).
+void settingText(u8 *self, u32 id, u32 n, u32 offset) {
+    u8 arg[0x14];
+    TextArgInt_Ctor(arg, nullptr, n, at<s32>(self, offset), 1);
+    TextFormat().format(*reinterpret_cast<void **>((uintptr_t)0x0078ba94), reinterpret_cast<u16 *>((uintptr_t)0x007ba058), 0x3fff, id, arg);
 }
 }  // namespace
 
@@ -177,5 +186,48 @@ u32 __fastcall Panel7cc218_Choose(u8 *, void *, s32 index, u8 close) {
     Global7c2654_Set((u32)(uintptr_t)thing);
     FocusCell_Update(1);
     return 1;
+}
+
+void __fastcall Panel7cc218_ShowSettings(u8 *self, void *, u8 flags) {
+    u8 *const thing = *reinterpret_cast<u8 **>((uintptr_t)0x007c2658);
+    if (flags & 1) {
+        u8 *const child = Window_FindChild(root(self), nullptr, 0x3e33);
+        settingText(self, 0x1aa, 5, 0x2c);
+        Window_NotifyImpl100(child, nullptr, 0x007ba058u);
+    }
+    if (flags & 2) {
+        u8 *const child = Window_FindChild(root(self), nullptr, 0x3e31);
+        if (at<s32>(Object_GetDef(thing), 0x9c) == 3) settingText(self, 0x1cf, 6, 0x30);
+        else if (at<s32>(Object_GetDef(thing), 0x9c) == 2) settingText(self, 0x1cd, 6, 0x30);   // (the definition looked up again)
+        else settingText(self, 0x1ab, 6, 0x30);
+        Window_NotifyImpl100(child, nullptr, 0x007ba058u);
+    }
+    if (flags & 4) {
+        u8 *const child = Window_FindChild(root(self), nullptr, 0x3e32);
+        switch (at<u32>(Object_GetDef(thing), 0x70)) {
+        case 0:
+            Window_SetShown(child, nullptr, 0);   // (the buffer's text sent all the same, sic)
+            break;
+        case 1:
+            Window_SetShown(child, nullptr, 1);
+            settingText(self, at<s32>(self, 0x34) == 1 ? 0x1ac : 0x1ad, 7, 0x34);
+            break;
+        case 2:
+            Window_SetShown(child, nullptr, 1);
+            settingText(self, 0x1ae, 7, 0x34);
+            break;
+        case 3:
+            Window_SetShown(child, nullptr, 1);
+            settingText(self, 0x1af, 7, 0x34);
+            break;
+        case 4:
+            Window_SetShown(child, nullptr, 1);
+            settingText(self, 0x1b0, 7, 0x34);
+            break;
+        default:   // (the buffer's text sent as it is, sic)
+            break;
+        }
+        Window_NotifyImpl100(child, nullptr, 0x007ba058u);
+    }
 }
 }
