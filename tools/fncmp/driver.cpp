@@ -995,6 +995,9 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x0070a748, 12},   // the notify stream (SoundStream_BuildChain's);
                                    {0x0070a7a8, 13},   // the channel voice they hang off (ChannelVoice_Release's, the reads');
                                    {0x0070aa34, 1},    // the memory samples' plain copier ([0xfb2018], SoundSample_ReadMemory's)
+                                   {0x0070aef0, 3},    // the streamed samples' windows on their files (slots 1 the read, 2 the seek; 0 an
+                                   {0x0070ae18, 3},    // adjusting thunk, not hooked): MP2 (+0x40), voice-coded (+0x40) and the file
+                                   {0x0070ad40, 3},    // sample's (+0x2c)
                                    {0x006fe980, 12},   // CMMOnline's (slot 10 Debug_Nop_46cfb0, which MouseMode_Set calls on the new mode; 11 its leave)
                                    {0x006fea10, 12},   // CMMOnline's base (slots 0, 9 and 11 MouseMode_Set's; 0x481a10 / 0x485b70 make it)
                                    {0x006fea70, 12},   // MMStaffDrop's (slots 9, 10 AssignDrop: MouseMode_Set's on the mode 0x5054d0 makes)
