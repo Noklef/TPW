@@ -5,12 +5,12 @@
 
 #include "../../../re/types.h"
 
-// What the cell messages call in the game's unported code, so that they can run outside it (the benches point these at recorders).
+// What the cell messages call in agent A's modules, so that the benches can point it at recorders.
 struct CellMessageEnv {
-    void(__cdecl *deadEnds)(s32 x, s32 y, u32 flag);   // 0x527ee0 (Path_CheckDeadEnds, agent A's)
-    void(__cdecl *setMode)(u32 mode, u32 record);      // 0x52f580 (agent A's)
+    void(__cdecl *deadEnds)(s32 x, s32 y, u32 flag);   // Path_CheckDeadEnds (0x527ee0, agent A's)
+    void(__cdecl *setMode)(u32 mode, u32 record);      // GameMode_SetOnly (0x52f580, agent A's)
 };
-// The cell messages' calls go to env (nullptr: the game's).
+// The cell messages' calls go to env (nullptr: the ports).
 void CellMessage_SetEnv(const CellMessageEnv *env);
 
 extern "C" {

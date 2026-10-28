@@ -14,6 +14,36 @@
 
 #include "../../../re/types.h"
 
+// What the editor's car deletions call (the ports by default; their benches run them as recorders).
+struct EditToolsEnv {
+    void(__cdecl *deleteCar)(u8 *owner, u8 *car);    // Coaster_DeleteCar (0x444cb0)
+    void(__cdecl *deleteFlaggedEnd)(u8 *owner);      // Coaster_DeleteFlaggedEnd (0x435530)
+    void(__cdecl *setState)(u8 *coaster, u32 value); // Coaster_SetState (0x435730)
+    void(__cdecl *enterTile15)();                    // MouseMode_EnterTile15 (0x497d20)
+    u32(__cdecl *toggleAdjustF8)();                  // CoasterEdit_ToggleAdjustF8 (0x441cd0)
+    u32(__cdecl *toggleAdjustAngles)();              // CoasterEdit_ToggleAdjustAngles (0x442010)
+    u32(__cdecl *toggleDrag)();                      // CoasterEdit_ToggleDrag (0x441a00)
+    u32(__cdecl *toggleAdjustE0)();                  // CoasterEdit_ToggleAdjustE0 (0x441e80)
+    void(__cdecl *moveCarBack)();                    // CoasterEdit_MoveCarBack (0x4423f0)
+    void(__cdecl *moveCarForward)();                 // CoasterEdit_MoveCarForward (0x4425c0)
+    void(__cdecl *deleteSpan)();                     // CoasterEdit_DeleteSpan (0x446740)
+    u32(__cdecl *selectPiece)(u8 *piece);            // CoasterEdit_SelectPiece (0x446d50)
+    u32(__cdecl *clearSelectionFlags)();             // TrackSelection_ClearFlags (0x444040)
+    u8 *(__cdecl *findTile)(u32 x, u32 y, u32 *key); // CoasterLinks_FindTile (0x434000)
+    void(__cdecl *dropCar)(u8 *owner, u8 *car, u8 *pylon, s32 x, s32 y, float *outX, float *outY, u32 unused,
+                           u32 noShrink);            // Coaster_DropCar (0x442f40)
+    void(__cdecl *pathDragFinish)();                 // PathDrag_Finish (0x52c1c0)
+    void(__cdecl *setRideCell)(u32 unused, s32 x, s32 y, u32 ride, u32 flagged);   // Map_SetRideCell (0x452d30)
+    double(__cdecl *travelCost)(const u8 *ride, u32 withBase, const u8 *car, const float *x, const float *z, const float *fromX,
+                                const float *fromZ); // Car_TravelCost (0x447830)
+    void(__cdecl *flashCar)(u8 *coaster, u32 which); // Coaster_FlashCar (0x441840)
+    u32(__cdecl *toggleAdjust)();                    // CoasterEdit_ToggleAdjust (0x4421e0)
+    void(__cdecl *selectionEnd)();                   // TrackSelection_End (0x445fb0)
+    void(__cdecl *selectionClear)();                 // TrackSelection_Clear (0x445f30)
+};
+// The calls go to env (nullptr: the ports).
+void EditTools_SetEnv(const EditToolsEnv *env);
+
 extern "C" {
 
 // 0x441cd0 (cdecl): tool 4 for type flag 0x200: the value at +0xf8 (recorded as 0x3b with it, 0 and the handle). Taking it on a piece with
@@ -130,4 +160,62 @@ void __cdecl CoasterEdit_SetEditingAt(u32 index);
 // Highlight_SetShown (1), CoasterEdit_SetBounds, and its Car_TravelCost (game, 0, it) and its next's (+0x64) to the floats 0x79c698 /
 // 0x79c64c. Returns 1 when the definition's train (+0x30) is above 1 (unsigned), else 0.
 u32 __cdecl CoasterEdit_SelectPiece(u8 *piece);
+
+// 0x444f30 (cdecl; name invented, unconfirmed): the current link's (0x790fec) last car deleted. Recorded (ActionRec_Write 0x41) and the
+// link's flag 0x2000 cleared; then, as the link's +4 byte has flag 2 and its end car (+0x58 without +0x3c flag 1, +0x60 with flags 1 and
+// 2) flag 0x80 (+8), or 0x40 without 0x80: with flag 2 (+0x3c) the car +0x60, else (without flag 1) +0x58, unless none or its train's
+// (+0x100) +4 byte has flag 2; the +0x60 one is replaced by its previous (+0x68) first. The car deleted (Coaster_DeleteCar, EditToolsEnv);
+// unless 0x785a2c: for the 0x80 end car CoasterEdit_Tools (0), CoasterEdit_EndTool, tool 2 out of 0x79c638 and CoasterEdit_StartTool (1);
+// for the 0x40 one CoasterEdit_Tools (0); either way the 0x7ca1c8 dialog (0x7b51f0) told 0x79c6e0 and 0x79c638. On the +0x60 path the
+// link's new +0x60, when set, gets flags 0x50000 (+8).
+void __cdecl CoasterEdit_DeleteLastCar();
+
+// 0x446740 (cdecl; name invented, unconfirmed): the delete-span tool, for a current link (0x790fec) whose +0x40 is set. Without 0x79c658's
+// flag 0x80 the span's first end is picked: the selected car (0x79c640) to 0x79c6dc and, when set, to 0x79c62c, 0x79c658 |= 0xa0 and
+// 0x7925d0 = 1. With it, for a selected car: TrackSelection_ClearFlags (Flags_SetChanged (link, 0) when it cleared), 0x79c62c, 0x79c628 and
+// 0x7925d0 cleared; the car being the first end with its train's (+0x100) +4 byte flag 2: 0x79c6dc cleared and 0x79c658 loses 0x80. Else
+// recorded (ActionRec_WriteWW 0x3f, the two ends' handle words), the link's flag 0x2000 cleared; an end with handle 0 is the link's
+// last car (+0x58; the span then reaches the end); the ends ordered by handle (the lower to 0x79c6dc), moved out past a coupled pair
+// (flags 0x40 / 0x80) and off each other, and the span's inner ends found; the link's +0x3c gets flag 2. Ends adjacent: they become the
+// link's +0x60 / +0x64 (flags 0x50000 / 0xa0000) and +0x118 the part entry value of the first end (or the first car before it without
+// flag 0x40; sic: none is read through null). Else the same flags and every car between them deleted (Coaster_DeleteCar, EditToolsEnv),
+// +0x118 the type's +0xa4 when the far end's train has flag 1. A span to the end: the near end loses 0x50000, the link's +0x3c flags 1 and
+// 2, and Coaster_DeleteFlaggedEnd. Then 0x79c6dc cleared, Flags_SetChanged (link, 1), 0x79c658 loses 0xa0, CoasterEdit_EndTool with
+// 0x79c6e0 / 0x79c638 cleared and, by the link's end car's flag 0x80 (as CoasterEdit_DeleteLastCar), CoasterEdit_StartTool (2) or
+// CoasterEdit_SetMode (1), CoasterEdit_SetTool (1) and tool 1 chosen; CoasterEdit_Tools (0), the 0x7ca1c8 dialog told 0x79c6e0 / 0x79c638,
+// CoasterEdit_SetBounds, Coaster_SetState (link, 1) and MouseMode_EnterTile15 (EditToolsEnv).
+void __cdecl CoasterEdit_DeleteSpan();
+
+// 0x446300 (cdecl; name invented, unconfirmed): a click (press nonzero) or release in the coaster editor, by the tool in use (0x79c624's
+// low byte), unless 0x785a2c. The car under the cursor is CoasterLink_FindCarOnRide (Highlight_Current); where a tool takes it, it goes to
+// 0x79c640. Tool 2, a press without 0x7a1c7c: that car selected (CoasterEdit_SelectPiece, whose result is returned). Tool 4, a press
+// without 0x79c658 flag 4 (the car found) or a release with it (0x79c640 kept): with a link whose +0x40 is set and a car whose train's
+// (+0x100) +4 byte lacks flag 2, CoasterEdit_ToggleAdjustF8 for a car with +8 flag 0x40, else CoasterEdit_ToggleAdjustAngles. Tool 8: a
+// press without flag 1 (the car found) or a release with it, CoasterEdit_ToggleDrag. Tool 0x10: the same by flag 2, CoasterEdit_ToggleAdjustE0.
+// Tools 0x20 / 0x40 / 0x80, a release: the car found, CoasterEdit_MoveCarBack / CoasterEdit_MoveCarForward / CoasterEdit_DeleteSpan. The
+// tools go through EditToolsEnv. Returns 0 otherwise. (sic: with no link, a find faults.)
+u32 __cdecl CoasterEdit_Click(u32 press);
+
+// 0x445a70 (cdecl (x, y); name invented, unconfirmed; agent A's 0x5234d0 calls it): the selected piece (0x79c6a4, as
+// CoasterEdit_SelectPiece made it) put down on the cell (x, y). 0x79c69c cleared. In mode 2 (0x79c624) with a selection:
+// TrackSelection_ClearFlags, 0x79c62c / 0x79c628 / 0x7925d0 cleared, Flags_SetChanged (game, 0) when it cleared; then
+// CoasterLinks_FindTile (x, y). A tile of another train (its +0x18, or its +0x14, not the piece's definition's) sends the piece back:
+// Coaster_DropCar (game, piece, 0x79c660, the old cell 0x79c6d8 / 0x79c6a0, no outs, 1, 0), PathDrag_Finish and, unless the tile's
+// flag 2 (+4), Map_SetRideCell (game, the tile's cell +0xc / +0x10, its car's (+0x34) ride +0x70, 0); the answer 0. Otherwise (no tile,
+// or the piece's train's) Coaster_DropCar (game, piece, the tile, x, y, &outX, &outY, 1, 0); unless the game is free (0x785a2c) or the
+// cell is the old one, the money settled: with the game's +0x3c bit 0 the cost is Float_RoundUp of Car_TravelCost (game, 0, piece,
+// &outX, &outY) plus that of its next's (+0x64; game, 0, next, -, -, &outX, &outY), both kept costs (0x79c698, 0x79c64c, each __ftol'd)
+// credited; without it only the first and 0x79c698; Source_Field0c (its result unused), the cost debited, 0x79c698 = 0. The answer the
+// piece's (as first read) +0x70. Then, both ways: Flags_SetChanged (game, 1), Highlight_SetShown (0), 0x79c6a4 / 0x79c660 cleared and
+// 0x79c658's flag 0x100. Outside mode 2 or without a selection: Fn_52c2a0, flag 0x100 and 0x79c6a4 cleared; the answer 0. With
+// 0x785a2c set, either way then ends with CoasterEdit_EndTool inlined (its tool 0x20 TrackSelection_End called on a put-down, inlined
+// otherwise; tool 4 CoasterEdit_ToggleAdjust called).
+u32 __cdecl CoasterEdit_PlaceSelected(s32 x, s32 y);
+
+// 0x446050 (cdecl; name invented, unconfirmed; agent A's world/gamemode and world/mapclick call it): the piece being moved (0x79c658's
+// flag 0x100) put back. 0x79c69c cleared; with the flag: the flag cleared, TrackSelection_Clear (inlined), 0x79c660 cleared when it is
+// the selection's (0x79c6a4) definition (+0x100); Coaster_DropCar (game, selection, 0x79c660, the old cell 0x79c6d8 / 0x79c6a0, no outs,
+// 1, 0), PathDrag_Finish, Highlight_SetShown (0), 0x79c6a4 and 0x79c660 cleared; with 0x785a2c set, CoasterEdit_EndTool's work inlined
+// (CoasterEdit_ToggleAdjust and TrackSelection_End inlined).
+void __cdecl CoasterEdit_CancelSelected();
 }

@@ -2,12 +2,15 @@
 
 #include <cstdint>
 
+#include "../core/accessors.h"
 #include "../core/actionrec.h"
 #include "../files/wrapsources.h"
 #include "../math/x87.h"
 #include "../ui/dialog7ca1c8.h"
 #include "../model/highlight.h"
+#include "../world/cellmessage.h"
 #include "../world/money.h"
+#include "../world/mousemode.h"
 #include "../world/object.h"
 #include "../world/pathdrag.h"
 #include "../world/world.h"
@@ -28,6 +31,38 @@ const u8 *Def(const u8 *piece) { return at<const u8 *>(piece, 0x100); }
 const u8 *Type(const u8 *piece) { return at<const u8 *>(Def(piece), 0x18); }
 ActionRec *Recorder() { return reinterpret_cast<ActionRec *>(0x00785a08); }
 void ClearChanged() { at<u32>(g<u8 *>(0x00790fec), 0) &= ~0x2000u; }
+
+const EditToolsEnv kPortEnv = {&Coaster_DeleteCar,           &Coaster_DeleteFlaggedEnd,       &Coaster_SetState,
+                               &MouseMode_EnterTile15,       &CoasterEdit_ToggleAdjustF8,     &CoasterEdit_ToggleAdjustAngles,
+                               &CoasterEdit_ToggleDrag,      &CoasterEdit_ToggleAdjustE0,     &CoasterEdit_MoveCarBack,
+                               &CoasterEdit_MoveCarForward,  &CoasterEdit_DeleteSpan,         &CoasterEdit_SelectPiece,
+                               &TrackSelection_ClearFlags,   &CoasterLinks_FindTile,          &Coaster_DropCar,
+                               &PathDrag_Finish,             &Map_SetRideCell,                &Car_TravelCost,
+                               &Coaster_FlashCar,            &CoasterEdit_ToggleAdjust,       &TrackSelection_End,
+                               &TrackSelection_Clear};
+const EditToolsEnv *g_env = &kPortEnv;
+
+// The current link's end car (+0x58 without +0x3c flag 1, +0x60 with flags 1 and 2, else none) when its +4 byte has flag 2: whether that
+// car's +8 has all of on and none of off.
+u32 EndCarHas(const u8 *game, u32 on, u32 off) {
+    if (!game || !(*at<const u8 *>(game, 4) & 2)) return 0;
+    const u32 state = at<u32>(game, 0x3c);
+    const u8 *car;
+    if (!(state & 1)) car = at<const u8 *>(game, 0x58);
+    else if (state & 2) car = at<const u8 *>(game, 0x60);
+    else return 0;
+    const u32 flags = at<u32>(car, 8);
+    return (flags & on) == on && !(flags & off) ? 1 : 0;
+}
+
+// A car's ride part entry's +0x34 (the train type's +0x2c a 0x14-byte index into its ride's model (+8) +0x28 -> +4, its +4), or
+// [0x6fe1b4] for none: fld / fstp, as bits.
+u32 PartEntryValue(const u8 *car) {
+    const u8 *const model = at<const u8 *>(reinterpret_cast<const u8 *const *>(0x007a4610)[at<u32>(car, 0x70)], 8);
+    const u32 part = at<u32>(at<const u8 *>(at<const u8 *>(car, 0x100), 0x18), 0x2c);
+    const u8 *const entry = at<const u8 *>(at<const u8 *>(at<const u8 *>(model, 0x28), 4), part * 0x14 + 4);
+    return X87_FloatThrough(entry ? at<u32>(entry, 0x34) : g<u32>(0x006fe1b4));
+}
 
 // The tool off: flags 0x1e00 cleared, the highlight hidden.
 u32 Off(u32 flags) {
@@ -612,4 +647,359 @@ u32 __cdecl CoasterEdit_SelectPiece(u8 *piece) {
     g<float>(0x0079c64c) = static_cast<float>(Car_TravelCost(g<u8 *>(0x00790fec), 0, at<u8 *>(piece, 0x64), nullptr, nullptr, nullptr, nullptr));
     return many;
 }
+
+void __cdecl CoasterEdit_DeleteLastCar() {
+    u8 *const state = g<u8 *>(0x00790fec) + 0x3c;   // (the link's +0x3c, taken first)
+    ActionRec_Write(Recorder(), nullptr, 0x41);
+    ClearChanged();
+    u8 *const game = g<u8 *>(0x00790fec);
+    const u32 retool = EndCarHas(game, 0x80, 0), offer = EndCarHas(game, 0x40, 0x80);
+    u8 *car;
+    const bool reversed = (at<u32>(state, 0) & 2) != 0;
+    if (reversed) {
+        car = at<u8 *>(state, 0x24);   // (the link's +0x60)
+        if (!car || (at<u8>(at<const u8 *>(car, 0x100), 4) & 2)) return;
+        at<u8 *>(state, 0x24) = at<u8 *>(car, 0x68);
+        g_env->deleteCar(g<u8 *>(0x00790fec), car);
+    } else {
+        if (at<u32>(state, 0) & 1) return;
+        car = at<u8 *>(state, 0x1c);   // (the link's +0x58)
+        if (!car || (at<u8>(at<const u8 *>(car, 0x100), 4) & 2)) return;
+        g_env->deleteCar(game, car);
+    }
+    if (!g<u32>(0x00785a2c)) {
+        if (retool) {
+            CoasterEdit_Tools(nullptr);
+            CoasterEdit_EndTool();
+            g<u32>(0x0079c638) &= ~2u;
+            CoasterEdit_StartTool(1);
+        } else if (offer) {
+            CoasterEdit_Tools(nullptr);
+        }
+        if (retool || offer) {
+            Dialog7ca1c8_SetChecksIfUpThis(reinterpret_cast<void *>(0x007b51f0), nullptr, g<u32>(0x0079c6e0));
+            Dialog7ca1c8_SelectButtonIfUpThis(reinterpret_cast<void *>(0x007b51f0), nullptr, g<u32>(0x0079c638));
+        }
+    }
+    if (reversed) {   // (the link's new +0x60, read again)
+        if (u8 *const end = at<u8 *>(state, 0x24)) at<u32>(end, 8) |= 0x50000;
+    }
 }
+
+void __cdecl CoasterEdit_DeleteSpan() {
+    u8 *const game = g<u8 *>(0x00790fec);
+    if (!game || !at<u32>(game, 0x40)) return;
+    u8 *const state = game + 0x3c;   // (the link's +0x3c, taken first)
+    if (!(g<u8>(0x0079c658) & 0x80)) {   // (the span's first end picked)
+        u8 *const piece = Piece();
+        g<u8 *>(0x0079c6dc) = piece;
+        if (!piece) return;
+        g<u8 *>(0x0079c62c) = piece;
+        Flags() |= 0xa0;
+        g<u32>(0x007925d0) = 1;
+        return;
+    }
+    u8 *hi = Piece();
+    if (!hi) return;
+    const bool go = !(hi == g<u8 *>(0x0079c6dc) && (at<u8>(Def(hi), 4) & 2));
+    const u32 cleared = TrackSelection_ClearFlags();
+    g<u32>(0x0079c62c) = 0;
+    g<u32>(0x0079c628) = 0;
+    g<u32>(0x007925d0) = 0;
+    if (cleared) Flags_SetChanged(reinterpret_cast<u32 *>(game), 0);
+    if (!go) {
+        g<u32>(0x0079c6dc) = 0;
+        Flags() &= ~0x80u;
+        return;
+    }
+    ActionRec_WriteWW(Recorder(), nullptr, 0x3f, at<u16>(g<u8 *>(0x0079c6dc), 0), at<u16>(hi, 0));
+    ClearChanged();
+    u8 *lo = g<u8 *>(0x0079c6dc);
+    const u8 *const link = g<u8 *>(0x00790fec);
+    u32 atEnd = 0;
+    if (!at<u32>(lo, 0)) {
+        lo = at<u8 *>(link, 0x58);
+        g<u8 *>(0x0079c6dc) = lo;
+        atEnd = 1;
+    } else if (!at<u32>(hi, 0)) {
+        hi = at<u8 *>(link, 0x58);
+        atEnd = 1;
+    }
+    if (at<u32>(lo, 0) > at<u32>(hi, 0)) {
+        u8 *const t = lo;
+        lo = hi;
+        g<u8 *>(0x0079c6dc) = lo;
+        hi = t;
+    }
+    if (at<u8 *>(lo, 0x64) == hi && (at<u32>(lo, 8) & 0xc0) == 0xc0 && (at<u8>(hi, 8) & 0x40)) {
+        if (at<u8 *>(lo, 0x68)) {
+            lo = at<u8 *>(lo, 0x68);
+            g<u8 *>(0x0079c6dc) = lo;
+        }
+        if (at<u8 *>(hi, 0x64)) hi = at<u8 *>(hi, 0x64);
+    }
+    if (lo == hi) {
+        lo = at<u8 *>(lo, 0x68);
+        g<u8 *>(0x0079c6dc) = lo;
+        hi = at<u8 *>(hi, 0x64);
+    }
+    u8 *last = hi;
+    if (at<u8 *>(lo, 0x64) != hi) {
+        u8 *const next = at<u8 *>(lo, 0x64);
+        g<u8 *>(0x0079c6dc) = next;
+        hi = at<u8 *>(hi, 0x68);
+        if ((at<u32>(next, 8) & 0xc0) == 0x40) {
+            g<u8 *>(0x0079c6dc) = at<u8 *>(next, 0x68);
+            lo = at<u8 *>(lo, 0x68);
+        }
+        if (at<u8>(hi, 8) & 0x80) last = at<u8 *>(last, 0x64);
+    }
+    if (last == at<u8 *>(link, 0x58)) atEnd = 1;
+    at<u32>(state, 0) |= 2;
+    if (at<u8 *>(lo, 0x64) == last) {
+        at<u8 *>(state, 0x24) = lo;     // (the link's +0x60 / +0x64)
+        at<u8 *>(state, 0x28) = last;
+        at<u32>(lo, 8) |= 0x50000;
+        at<u32>(last, 8) |= 0xa0000;
+        const u8 *p = lo;
+        if (at<u8>(lo, 8) & 0x40) {
+            p = at<u8 *>(lo, 0x68);
+            while (p && (at<u8>(p, 8) & 0x40)) p = at<u8 *>(p, 0x68);
+        }
+        const u32 value = PartEntryValue(p);   // (sic: none is read through null)
+        at<u32>(g<u8 *>(0x00790fec), 0x118) = value;
+    } else {
+        u8 *const owner = g<u8 *>(0x00790fec);
+        at<u32>(lo, 8) |= 0x50000;
+        at<u32>(last, 8) |= 0xa0000;
+        for (u8 *car = at<u8 *>(last, 0x68); car != lo;) {
+            u8 *const before = at<u8 *>(car, 0x68);
+            g_env->deleteCar(owner, car);
+            car = before;
+        }
+        if (at<u8>(Def(last), 4) & 1) at<u32>(owner, 0x118) = at<u32>(at<u8 *>(owner, 4), 0xa4);
+    }
+    if (atEnd) {
+        at<u32>(lo, 8) &= 0xfffaffff;
+        at<u32>(g<u8 *>(0x00790fec), 0x3c) &= ~3u;
+        g_env->deleteFlaggedEnd(g<u8 *>(0x00790fec));
+    }
+    g<u32>(0x0079c6dc) = 0;
+    Flags_SetChanged(reinterpret_cast<u32 *>(g<u8 *>(0x00790fec)), 1);
+    Flags() &= ~0xa0u;
+    const u32 retool = EndCarHas(g<u8 *>(0x00790fec), 0x80, 0);
+    CoasterEdit_EndTool();
+    g<u32>(0x0079c6e0) = 0;
+    g<u32>(0x0079c638) = 0;
+    if (retool) {
+        CoasterEdit_StartTool(2);
+    } else {
+        CoasterEdit_SetMode(1);
+        CoasterEdit_SetTool(1);
+        g<u32>(0x0079c638) |= 1;
+    }
+    CoasterEdit_Tools(nullptr);
+    Dialog7ca1c8_SetChecksIfUpThis(reinterpret_cast<void *>(0x007b51f0), nullptr, g<u32>(0x0079c6e0));
+    Dialog7ca1c8_SelectButtonIfUpThis(reinterpret_cast<void *>(0x007b51f0), nullptr, g<u32>(0x0079c638));
+    CoasterEdit_SetBounds();
+    g_env->setState(g<u8 *>(0x00790fec), 1);
+    g_env->enterTile15();
+}
+
+u32 __cdecl CoasterEdit_Click(u32 press) {
+    if (g<u32>(0x00785a2c)) return 0;
+    const u32 ride = static_cast<u32>(reinterpret_cast<uintptr_t>(Highlight_Current()));
+    const u8 flags = g<u8>(0x0079c658);
+    const auto find = [ride]() {   // (the car under the cursor, to 0x79c640; sic: with no link this faults)
+        u8 *const car = CoasterLink_FindCarOnRide(ride);
+        g<u8 *>(0x0079c640) = car;
+        return car;
+    };
+    switch (g<u8>(0x0079c624)) {
+    case 2:
+        if (!press || g<u32>(0x007a1c7c)) return 0;
+        return g_env->selectPiece(find());
+    case 4: {
+        if (press ? (flags & 4) : !(flags & 4)) return 0;
+        u8 *const car = press ? find() : Piece();
+        const u8 *const game = g<u8 *>(0x00790fec);
+        if (!game || !at<u32>(game, 0x40) || !car || (at<u8>(Def(car), 4) & 2)) return 0;
+        if (at<u8>(car, 8) & 0x40)
+            g_env->toggleAdjustF8();
+        else
+            g_env->toggleAdjustAngles();
+        return 0;
+    }
+    case 8:
+        if (press && !(flags & 1))
+            find();
+        else if (press || !(flags & 1))
+            return 0;
+        g_env->toggleDrag();
+        return 0;
+    case 0x10:
+        if (press ? (flags & 2) : !(flags & 2)) return 0;
+        if (press) find();
+        g_env->toggleAdjustE0();
+        return 0;
+    case 0x20:
+        if (press) return 0;
+        find();
+        g_env->moveCarBack();
+        return 0;
+    case 0x40:
+        if (press) return 0;
+        find();
+        g_env->moveCarForward();
+        return 0;
+    case 0x80:
+        if (press) return 0;
+        find();
+        g_env->deleteSpan();
+        return 0;
+    default:
+        return 0;
+    }
+}
+}
+
+namespace {
+
+// The end 0x445a70 has twice and 0x446050 once: CoasterEdit_EndTool inlined, its calls through the env. How each has tools 4 and 0x20:
+enum EndCopy {
+    kEndCalled,    // CoasterEdit_ToggleAdjust and TrackSelection_End called (0x445a70's first)
+    kEndInlined,   // CoasterEdit_ToggleAdjust called, TrackSelection_End inlined (flag 0x80 as read before the switch) calling
+                   // TrackSelection_Clear (0x445a70's second)
+    kAllInlined,   // both inlined, TrackSelection_Clear too (0x446050's)
+};
+
+void EndToolVia(EndCopy copy) {
+    const EditToolsEnv *const env = g_env;
+    if ((g<u8>(0x0079c624) & 1) && g<u8 *>(0x00790fec)) {
+        at<u32>(g<u8 *>(0x00790fec), 0) &= ~4u;
+        Flags_SetChanged(g<u32 *>(0x00790fec), 0);
+        u8 *const game = g<u8 *>(0x00790fec);
+        const u32 f = at<u32>(game, 0x3c);
+        if (!(f & 1) || (f & 2)) env->flashCar(game, 1);
+    }
+    const u32 flags = Flags();
+    switch (flags & 0x3f) {
+    case 1: env->toggleDrag(); break;
+    case 2: env->toggleAdjustE0(); break;
+    case 4: {
+        if (copy != kAllInlined) {
+            env->toggleAdjust();
+            break;
+        }
+        const u8 *const game = g<const u8 *>(0x00790fec);
+        const u8 *const piece = Piece();
+        if (!game || !at<u32>(game, 0x40) || !piece || (at<u8>(Def(piece), 4) & 2)) break;
+        if (at<u8>(piece, 8) & 0x40)
+            env->toggleAdjustF8();
+        else
+            env->toggleAdjustAngles();
+        break;
+    }
+    case 8: env->moveCarBack(); break;
+    case 0x10: env->moveCarForward(); break;
+    case 0x20:
+        if (copy == kEndCalled) {
+            env->selectionEnd();
+            break;
+        }
+        if (flags & 0x80) {
+            Highlight_SetShown(0);
+            g<u32>(0x0079c6dc) = 0;
+            if (copy == kAllInlined)
+                TrackSelection_Clear();
+            else
+                env->selectionClear();
+        }
+        Flags() &= ~0xa0u;
+        break;
+    default: break;
+    }
+    SetModeState(0);
+}
+
+}  // namespace
+
+extern "C" {
+
+u32 __cdecl CoasterEdit_PlaceSelected(s32 x, s32 y) {
+    const EditToolsEnv *const env = g_env;
+    g<u32>(0x0079c69c) = 0;
+    if (g<u32>(0x0079c624) != 2 || !g<u8 *>(0x0079c6a4)) {
+        Fn_52c2a0();
+        Flags() &= ~0x100u;
+        g<u8 *>(0x0079c6a4) = nullptr;
+        if (g<u32>(0x00785a2c)) EndToolVia(kEndInlined);
+        return 0;
+    }
+    const u8 *const placed = g<u8 *>(0x0079c6a4);
+    const u32 cleared = env->clearSelectionFlags();
+    g<u32>(0x0079c62c) = 0;
+    g<u32>(0x0079c628) = 0;
+    g<u32>(0x007925d0) = 0;
+    if (cleared) Flags_SetChanged(g<u32 *>(0x00790fec), 0);
+    u8 *const tile = env->findTile((u32)x, (u32)y, nullptr);
+    u8 *const piece = g<u8 *>(0x0079c6a4);
+    bool settled = false;
+    if (tile && (at<u32>(tile, 0x18) != at<u32>(Def(piece), 0x18) || at<u32>(tile, 0x14) != at<u32>(Def(piece), 0x14))) {
+        env->dropCar(g<u8 *>(0x00790fec), piece, g<u8 *>(0x0079c660), g<s32>(0x0079c6d8), g<s32>(0x0079c6a0), nullptr, nullptr, 1, 0);
+        env->pathDragFinish();
+        if (!(at<u8>(tile, 4) & 2))
+            env->setRideCell((u32)(uintptr_t)g<u8 *>(0x00790fec), at<s32>(tile, 0xc), at<s32>(tile, 0x10),
+                             at<u32>(at<const u8 *>(tile, 0x34), 0x70), 0);
+    } else {
+        float outX, outY;
+        env->dropCar(g<u8 *>(0x00790fec), piece, tile, x, y, &outX, &outY, 1, 0);
+        if (!g<u32>(0x00785a2c) && (g<s32>(0x0079c6d8) != x || g<s32>(0x0079c6a0) != y)) {
+            u8 *const game = g<u8 *>(0x00790fec);
+            s32 cost;
+            u8 *money;
+            if (at<u8>(game, 0x3c) & 1) {
+                const u8 *const sel = g<u8 *>(0x0079c6a4);
+                cost = Float_RoundUp(static_cast<float>(env->travelCost(game, 0, sel, &outX, &outY, nullptr, nullptr)));
+                cost += Float_RoundUp(static_cast<float>(env->travelCost(game, 0, at<const u8 *>(sel, 0x64), nullptr, nullptr, &outX, &outY)));
+                money = reinterpret_cast<u8 *>(GameTable7cfb90_Get1da726_5195d0(g<u8 *>(0x007cf83c)));
+                Money_Credit(money, nullptr, (s32)(long long)g<float>(0x0079c698));   // __ftol
+                Money_Credit(money, nullptr, (s32)(long long)g<float>(0x0079c64c));   // (behind a test of its address: always)
+            } else {
+                cost = Float_RoundUp(static_cast<float>(env->travelCost(game, 0, g<u8 *>(0x0079c6a4), &outX, &outY, nullptr, nullptr)));
+                money = reinterpret_cast<u8 *>(GameTable7cfb90_Get1da726_5195d0(g<u8 *>(0x007cf83c)));
+                Money_Credit(money, nullptr, (s32)(long long)g<float>(0x0079c698));
+            }
+            Source_Field0c(reinterpret_cast<const TrackedSource *>(money));   // (its result unused)
+            Money_Debit(money, nullptr, cost);
+            g<u32>(0x0079c698) = 0;
+        }
+        settled = true;
+    }
+    Flags_SetChanged(g<u32 *>(0x00790fec), 1);
+    Highlight_SetShown(0);
+    Flags() &= ~0x100u;
+    g<u8 *>(0x0079c6a4) = nullptr;
+    g<u8 *>(0x0079c660) = nullptr;
+    if (g<u32>(0x00785a2c)) EndToolVia(kEndCalled);
+    return settled ? at<u32>(placed, 0x70) : 0;
+}
+
+void __cdecl CoasterEdit_CancelSelected() {
+    const EditToolsEnv *const env = g_env;
+    g<u32>(0x0079c69c) = 0;
+    if (!(Flags() & 0x100)) return;
+    Flags() &= ~0x100u;
+    TrackSelection_Clear();   // (inlined)
+    u8 *const piece = g<u8 *>(0x0079c6a4);
+    if (at<u8 *>(piece, 0x100) == g<u8 *>(0x0079c660)) g<u8 *>(0x0079c660) = nullptr;
+    env->dropCar(g<u8 *>(0x00790fec), piece, g<u8 *>(0x0079c660), g<s32>(0x0079c6d8), g<s32>(0x0079c6a0), nullptr, nullptr, 1, 0);
+    env->pathDragFinish();
+    Highlight_SetShown(0);
+    g<u8 *>(0x0079c6a4) = nullptr;
+    g<u8 *>(0x0079c660) = nullptr;
+    if (g<u32>(0x00785a2c)) EndToolVia(kAllInlined);
+}
+}
+
+void EditTools_SetEnv(const EditToolsEnv *env) { g_env = env ? env : &kPortEnv; }

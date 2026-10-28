@@ -5,9 +5,28 @@
 
 #include "../../../re/types.h"
 
-// Train_PlaceCars's call into the game: Animator_Update (0x473c70).
+// Train_PlaceCars's call into the game: Animator_Update (0x473c70). The rest are Coaster_DeleteCar's calls (the ports by default; its
+// bench runs them as recorders).
 struct TrainEnv {
     s32(__cdecl *animate)(u8 *animator, const u8 *block, u32 mode);
+    void(__cdecl *removeCar)(const u8 *owner, const u8 *car);                     // Train_RemoveCar (0x442d70)
+    void(__cdecl *unflash)(u8 *holder);                                           // Highlight_Unflash (0x469650)
+    void(__cdecl *clearContacts)(u8 *node, u8 *owner);                            // Contacts_ClearPair (0x43af70)
+    void(__cdecl *freeCar)(u8 *car, const u8 *other);                             // Car_Free (0x434570)
+    void(__cdecl *removeEntry)(u8 *link, u8 *entry, u32 keep);                    // CoasterLink_RemoveEntry (0x442ea0)
+    void(__cdecl *setRideCell)(u32 unused, s32 x, s32 y, u32 ride, u32 flagged);  // Map_SetRideCell (0x452d30)
+    void(__cdecl *setCouplings)(u32 unused, u8 *train);                           // Train_SetCouplings (0x432d50)
+    void(__cdecl *placeCars)(const u8 *type, u8 *train, u32 force, u32 keep);     // Train_PlaceCars (0x432df0)
+    void(__cdecl *setBounds)();                                                   // CoasterEdit_SetBounds (0x434f10)
+    u32(__cdecl *shrinkToTop)(const u8 *owner, const u8 *type, const u8 *train);  // Train_ShrinkToTop (0x433a90)
+    void(__cdecl *insertCar)(const u8 *owner, u8 *car, u8 *train, u32 slot, float height, float *out, u32 mark, u32 noInsert,
+                             u32 noShrink, u32 free);                             // Train_InsertCar (0x433bd0)
+    u32(__cdecl *findBraceLevel)(float wanted, const u8 *train, u32 *level, float *height, u32 quiet);  // Pylon_FindBraceLevel (0x433300)
+    void(__cdecl *placeOnGround)(u8 *animator, s32 x, s32 y, const u8 *cells, s32 width, s32 depth, u32 flags);  // Animator_PlaceOnGround
+                                                                                  // (0x4671f0)
+    u8 *(__cdecl *addEntry)(s32 x, s32 y, u32 flags, u32 unused, u32 value, const float *position);  // CoasterLink_AddEntry (0x432c10)
+    void(__cdecl *markLostPair)(u8 *node);                                        // Contacts_MarkLostPair (0x4346f0)
+    void(__cdecl *fitToGrid)(const u8 *object, const u8 *owner, u32 lift, u32 flags);  // Model_FitToGrid (0x469940)
 };
 // nullptr restores the game's.
 void Train_SetEnv(const TrainEnv *e);
@@ -245,6 +264,42 @@ void __cdecl Car_FreeCoupling(const u8 *car, u32 *coupling);
 // one (+0x88 / +0x8c) too when other is a car with flag 8 (+0), else only cleared; the selected car (0x79c640) cleared when it is this
 // one; the car itself freed (GlobalMem_Free).
 void __cdecl Car_Free(u8 *car, const u8 *other);
+
+// 0x444cb0 (cdecl (owner, car); name invented, unconfirmed): a car deleted from a coaster link (owner; its train the car's +0x100). In
+// turn (the calls through TrainEnv): Train_RemoveCar (owner, car); the owner's +0x144 cleared when it is the car (its ride's holder
+// unflashed when flashing, +4 flag 0x4000000); the owner's +0x5c, when the car, the first before it (+0x68 on) without flag 0x40 (+8) or
+// none; the car unlinked (+0x64 next, +0x68 previous; the owner's first +0x54 and last +0x58 moved off it), its previous to the owner's
+// +0x60 and its next to +0x64 when set; then the owner's end car (+0x60 with +0x3c flag 2, else +0x58), when there is one: for a car
+// whose train has flag 1 (+4) the owner's +0x118 is its type's (+4) +0xa4 (and without flag 2 the owner's +0x3c loses flag 4), else
+// the first car from it back without flag 0x40 (sic: none faults) gives +0x118 its ride's part entry's +0x34 (the train type's +0x2c a
+// 0x14-byte index into the ride's model (+8) +0x28 -> +4, its +4; no entry: [0x6fe1b4]; fld / fstp). The owner's count +0x44 lowered;
+// the cars after the car renumbered (+0 from the one before's plus 1, or 0; +0x6c the number as a float). A car with flag 0x40 and a
+// current link (0x790fec) whose +4 byte has flag 2: 0x79c664 = 0 and 0x79c658 loses 0x40 for flag 0x80, else 1 and 0x40 set. Then
+// Contacts_ClearPair (car, owner), the selected car (0x79c640) cleared when it is the car, Car_Free (car, the train's +0x18); a train
+// left without cars (+0x30) CoasterLink_RemoveEntry (owner, train, 0), else Map_SetRideCell (owner, the train's +0xc / +0x10, its first
+// car's (+0x34) ride +0x70, 0), Train_SetCouplings and Train_PlaceCars (the train's +0x18, train, 0, 0); CoasterEdit_SetBounds and
+// Flags_SetChanged (owner, 1).
+void __cdecl Coaster_DeleteCar(u8 *owner, u8 *car);
+
+// 0x435530 (cdecl (owner); name invented, unconfirmed): from the owner's last car (+0x58) back (+0x68), each car whose train (+0x100)
+// has flag 1 (+4) deleted (Coaster_DeleteCar; sic: past the first car the walk reads through null); then the owner's +0x3c loses flag 1.
+void __cdecl Coaster_DeleteFlaggedEnd(u8 *owner);
+
+// 0x442f40 (cdecl, nine arguments, the eighth unused; name invented, unconfirmed): a car (its train +0x100) dropped on cell (x, y), onto
+// pylon (a train) or none. On its train's own cell (+0xc / +0x10): unless noShrink, with an owner, a train and its type (+0x18), when
+// Train_ShrinkToTop (owner, type, train) answers, Train_SetCouplings and Train_PlaceCars (type, train, 0, 0). Elsewhere (a pylon that is
+// the car's own train taken as none): the cell held to the map (0x7a0314 / 0x7a0374) for the ride's animator (CoasterEvent_Make of the
+// type's +0xb4 / +0xb8 and the cell, Animator_PlaceOnGround (the ride (0x7a4610 [+0x70]), the cell, the event's +0xc, +0xb4, +0xb8,
+// 0x3fa)); a train of more than one car first loses it (Train_RemoveCar; Map_SetRideCell (owner, the train's cell, its first car's
+// ride, 0) unless its +4 byte has flag 2; Train_SetCouplings, Train_PlaceCars), then with a pylon Pylon_FindBraceLevel (0x79c694, pylon)
+// and Train_InsertCar (owner, car, pylon, the level, the height, ..., noShrink), else Train_InsertCar onto a new link entry
+// (CoasterLink_AddEntry (x, y, 0, 0, type)) at slot 0, height 0x79c694. A lone car with a pylon: Train_RemoveCar, CoasterLink_RemoveEntry
+// (owner, train, 1) (0x79c660 cleared when the train), Pylon_FindBraceLevel and Train_InsertCar as above; a lone car without one: its
+// train moves to (x, y) (+0xc / +0x10, +8 the map tile, +0x1c / +0x24 x / y times [0x6fe1e0], +0x20 the ride's frame (+8 -> +4 -> +0x78)
+// +0x44). Both then Contacts_MarkLostPair (car), the ride model's (+8 -> +4) +0x30 flag 0x4000, Model_FitToGrid (the ride's +8, the map,
+// the train's +0x20, 0). Finally outX / outY (when given) = [0x6fe1e8] - x / y times [0x6fe1e4]. The x87 throughout; the stale stack
+// slots Pylon_FindBraceLevel writes into are kept (a level and height it leaves are the clamped x / the owner, or the count flag / x).
+void __cdecl Coaster_DropCar(u8 *owner, u8 *car, u8 *pylon, s32 x, s32 y, float *outX, float *outY, u32 unused, u32 noShrink);
 
 // 0x433300: picks the level of a pylon (a train: +0x18 its type with base +0x68, top +0x6c and
 // gap +0xc4; cars counted at +0x30, from +0x34) for a brace at height wanted (first lowered to

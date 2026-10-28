@@ -7,6 +7,7 @@
 #include "../files/wrapsources.h"
 #include "../terrain/land.h"
 #include "cellmodel.h"
+#include "demolish.h"
 #include "mapcell.h"
 #include "money.h"
 #include "object.h"
@@ -20,7 +21,7 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 const CellKindEnv kGameEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x004de1f0),
-                              reinterpret_cast<u32(__cdecl *)(s32, s32, u32)>((uintptr_t)0x00527ee0)};
+                              &Path_CheckDeadEnds};
 const CellKindEnv *g_env = &kGameEnv;
 
 u8 *World() { return global<u8 *>(0x007cf83c); }

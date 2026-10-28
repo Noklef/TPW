@@ -20,6 +20,7 @@
 #include "../core/actionrec.h"
 #include "../online/chat.h"
 #include "focuscell.h"
+#include "gamemode.h"
 #include "mapcell.h"
 #include "objectdefs.h"
 #include "thingscan.h"
@@ -37,7 +38,7 @@ u32 bits(float f) {
 const MouseModeEnv kGameEnv = {reinterpret_cast<void(__cdecl *)(void *)>(0x0067acb0),
                                 reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0),
                                 reinterpret_cast<void(__cdecl *)(s32, s32, u32)>(0x005234d0),
-                                reinterpret_cast<void(__cdecl *)(u32, u32)>(0x0052f200)};
+                                &GameMode_Set};
 const MouseModeEnv *g_env = &kGameEnv;
 
 }  // namespace
