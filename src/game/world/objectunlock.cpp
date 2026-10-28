@@ -13,10 +13,10 @@ namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
-// An advisor message (id, type 0, a 0, b -1, flag 0, scored) posted as message 05.
-void post_advice(u32 id) {
+// An advisor message (id, type 0, a 0, b, flag 0, scored) posted as message 05.
+void post_advice(u32 id, u32 b = 0xffffffffu) {
     u8 advice[0x18];   // (its bytes +2, +3 and +0x17 never written, sic; the message copies none of them)
-    AdvisorMsg_Init(advice, nullptr, id, 0, 0, 0xffffffffu, 0, -1);
+    AdvisorMsg_Init(advice, nullptr, id, 0, 0, b, 0, -1);
     u8 msg[0x20];   // (its bytes +0xa, +0xb and +0x1f left as the stack had them, as the original's)
     Obj_CtorPart8(msg, nullptr, (u32)(uintptr_t)advice);
     Object_PostMessage(msg);
@@ -42,5 +42,15 @@ void __fastcall ObjectUnlock_FirstAdvice(u8 *) {
     if (GlobalSave_CountSet(GlobalSave_Instance()) != 1) return;
     post_advice(0x137);
     post_advice(0x13b);
+}
+
+void __fastcall ObjectUnlock_AdviseLevel(u8 *self, void *, u32 group, s32 level) {
+    switch (level) {   // (other levels: a debug print)
+    case 1: post_advice(0xd7, group); break;
+    case 2: post_advice(0xd8, group); break;
+    case 3: post_advice(0xd9, group); break;
+    default: break;
+    }
+    ObjectUnlock_FirstAdvice(self);
 }
 }

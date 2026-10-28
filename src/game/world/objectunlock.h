@@ -1,5 +1,5 @@
 // An object definition's availability against the global save (the count of set bytes left), and its unlocking: reimplementation of
-// 0x4d4b90, 0x4d4ad0 and 0x4d5b30. The names are invented.
+// 0x4d4b90, 0x4d4ad0, 0x4d5b30 and 0x4d4fa0. The names are invented.
 #pragma once
 
 #include "../../../re/types.h"
@@ -20,4 +20,10 @@ u8 __stdcall ObjectDef_Unlock(u32 id);
 // GlobalSave_Instance, inlined there) is 1, the advisor messages 0x137 and 0x13b (AdvisorMsg_Init: type 0, a 0, b -1, flag 0, scored)
 // each posted as message 05 (Obj_CtorPart8, Object_PostMessage).
 void __fastcall ObjectUnlock_FirstAdvice(u8 *self);
+
+// 0x4d4fa0 (thiscall (group, level), pops 8; called from 0x4d4c0c and five more with the group 0-3 and the level an unlock count
+// gave; its chunk from 0x4d5020 listed as a function of its own): the advisor message 0xd7, 0xd8 or 0xd9 for the level 1, 2 or 3
+// (AdvisorMsg_Init: type 0, a 0, b the group, flag 0, scored) posted as message 05 (Obj_CtorPart8, Object_PostMessage); another level
+// none (a debug print there). Then ObjectUnlock_FirstAdvice either way.
+void __fastcall ObjectUnlock_AdviseLevel(u8 *self, void *, u32 group, s32 level);
 }

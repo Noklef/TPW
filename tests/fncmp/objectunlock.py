@@ -6,8 +6,9 @@
 # holding the id or not (an insert: the heap's block). FirstAdvice (0x4d5b30): globalsave.py's count() set-up for the count, mostly
 # cut to one set byte or none (its bytes and the records' flags cleared, then one set); advisor.py's queue() for the scoring (its
 # table, gAdvisorScoring built); thing_ctors.py's message centre, the post (0x40fb10) recorder 21 hashing message 05's bytes 0-0x1f
-# but +0xa, +0xb and +0x1f (the stack's).
-# usage: objectunlock.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=IsUnlocked,Unlock,FirstAdvice)
+# but +0xa, +0xb and +0x1f (the stack's). AdviseLevel (0x4d4fa0): FirstAdvice's world, the group 0-3 or any, the level 1-3 mostly
+# (0, 4, -1 or any now and then).
+# usage: objectunlock.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=IsUnlocked,Unlock,FirstAdvice,AdviseLevel)
 import os
 import struct
 import sys
@@ -19,9 +20,9 @@ import advisor  # noqa: E402
 import globalsave  # noqa: E402
 import stdtree  # noqa: E402
 import thing_ctors  # noqa: E402
-from fncmp import LOG, RAM, Bench, Call, _cdecl_log, _recorder, blob_bytes, log_region, put  # noqa: E402
+from fncmp import HEAP, LOG, RAM, Bench, Call, _cdecl_log, _recorder, blob_bytes, log_region, put  # noqa: E402
 
-CALLS = {'IsUnlocked': 0x4d4b90, 'Unlock': 0x4d4ad0, 'FirstAdvice': 0x4d5b30}
+CALLS = {'IsUnlocked': 0x4d4b90, 'Unlock': 0x4d4ad0, 'FirstAdvice': 0x4d5b30, 'AdviseLevel': 0x4d4fa0}
 
 
 def merged(ranges):   # (overlapping ranges joined: a listing line must not come twice)
@@ -39,7 +40,7 @@ B = Bench(merged([(0x5af7f0, 0x5af80b), (0x5afc30, 0x5afc5a), (0x5b09a0, 0x5b09b
            (0x5af4a0, 0x5af52a), (0x5af530, 0x5af5cf), (0x5af5d0, 0x5af674), (0x5af680, 0x5af734), (0x5b11c0, 0x5b12d3), (0x5b2480, 0x5b2530),
            (0x5b11a0, 0x5b11b9), (0x4d4b90, 0x4d4bbb), (0x412e90, 0x412eea),
            (0x4d4ad0, 0x4d4b6b), (0x550ca0, 0x550d90), (0x5d1750, 0x5d1751), (0x5da3c0, 0x5da3c1), (0x5af740, 0x5af77e), (0x5b1930, 0x5b1a30),
-           (0x5b2ba0, 0x5b2ea0), (0x5b3130, 0x5b3200), (0x5b3210, 0x5b3230), (0x4d5b30, 0x4d5cc2), (0x40f300, 0x40f329), (0x59b550, 0x59b589)]
+           (0x5b2ba0, 0x5b2ea0), (0x5b3130, 0x5b3200), (0x5b3210, 0x5b3230), (0x4d5b30, 0x4d5cc2), (0x4d4fa0, 0x4d5252), (0x40f300, 0x40f329), (0x59b550, 0x59b589)]
           + advisor.RANGES + thing_ctors.CENTRE_RANGES),
           hooks={0x691de0: globalsave.lock, 0x691ea0: lambda e: None, 0x67a7d0: _cdecl_log, 0x40fb10: _recorder(21, 1)})   # (globalsave.py's ranges and STL lock stand-ins)
 DEFS = RAM + 0x8000
@@ -75,7 +76,7 @@ def key_set(r, regions, key):
     regions.setdefault(LOG, log_region())
 
 
-def first_advice(r):
+def first_advice(r, op='FirstAdvice'):
     c = globalsave.count(r, 'Count')
     regions = dict(c.regions)
     info = bytearray(regions[globalsave.INFO])
@@ -96,13 +97,20 @@ def first_advice(r):
     regions[LOG] = log_region()
     thing_ctors.centre(r, regions)
     blob_bytes(regions[LOG], 21, 0, 0x7ffff3ff)
+    if op == 'AdviseLevel':
+        level = r.choice([1, 2, 3, 1, 2, 3, 0, 4, -1, r.getrandbits(32) - (1 << 31)])
+        while level in (1, 2, 3) and HEAP in regions and regions[HEAP][0] & 15 == 1 and not any(regions.get(0x788d3c, bytes(4))[:4]):
+            # (the centre made already: else the level's post would make it, the heap failing its block instead of the global save's
+            # later one, and that global.sam block given takes the balance file's load, BalanceFile_Init 0x401030, out of the bench)
+            thing_ctors.centre(r, regions)
+        return Call(0x4d4fa0, [RAM + 0x7000, r.choice([0, 1, 2, 3, r.getrandbits(32)]), level], regions, conv='t')
     return Call(0x4d5b30, [RAM + 0x7000], regions, conv='t')
 
 
 def case(r):
     op = r.deal(OPS)
-    if op == 'FirstAdvice':
-        return first_advice(r)
+    if op in ('FirstAdvice', 'AdviseLevel'):
+        return first_advice(r, op)
     c = globalsave.count(r, 'CountLeft')
     regions = dict(c.regions)
     regions[0xf7c58c] = struct.pack('<I', globalsave.INFO)
