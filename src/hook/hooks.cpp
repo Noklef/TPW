@@ -4396,6 +4396,7 @@ const Hook kHooks[] = {
     {"CoasterEdit_SetEditingById", 0x00447da0, (void *)&CoasterEdit_SetEditingById, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"CoasterEdit_SetEditingAt",  0x00447dd0, (void *)&CoasterEdit_SetEditingAt, {0x8b, 0x4c, 0x24, 0x04, 0x85}},
     {"CoasterEdit_DeleteLastCar", 0x00444f30, (void *)&CoasterEdit_DeleteLastCar, {0x51, 0xa1, 0xec, 0x0f, 0x79}},
+    {"CoasterEdit_DeleteSpan",    0x00446740, (void *)&CoasterEdit_DeleteSpan, {0x83, 0xec, 0x08, 0x53, 0x55}},
     {"TrackMesh_EmitPiece",       0x0043f4e0, (void *)&TrackMesh_EmitPiece, {0x83, 0xec, 0x5c, 0xa1, 0x18}},
     {"TrackMesh_PlaceSections",   0x004402d0, (void *)&TrackMesh_PlaceSections, {0x81, 0xec, 0x80, 0x00, 0x00}},
     {"CoasterCar_SetSoundMode",   0x00439780, (void *)&CoasterCar_SetSoundMode, {0x56, 0x8b, 0x74, 0x24, 0x08}},

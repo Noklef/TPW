@@ -149,4 +149,20 @@ u32 __cdecl CoasterEdit_SelectPiece(u8 *piece);
 // for the 0x40 one CoasterEdit_Tools (0); either way the 0x7ca1c8 dialog (0x7b51f0) told 0x79c6e0 and 0x79c638. On the +0x60 path the
 // link's new +0x60, when set, gets flags 0x50000 (+8).
 void __cdecl CoasterEdit_DeleteLastCar();
+
+// 0x446740 (cdecl; name invented, unconfirmed): the delete-span tool, for a current link (0x790fec) whose +0x40 is set. Without 0x79c658's
+// flag 0x80 the span's first end is picked: the selected car (0x79c640) to 0x79c6dc and, when set, to 0x79c62c, 0x79c658 |= 0xa0 and
+// 0x7925d0 = 1. With it, for a selected car: TrackSelection_ClearFlags (Flags_SetChanged (link, 0) when it cleared), 0x79c62c, 0x79c628 and
+// 0x7925d0 cleared; the car being the first end with its train's (+0x100) +4 byte flag 2: 0x79c6dc cleared and 0x79c658 loses 0x80. Else
+// recorded (ActionRec_WriteWW 0x3f, the two ends' handle words), the link's flag 0x2000 cleared; an end with handle 0 is the link's
+// last car (+0x58; the span then reaches the end); the ends ordered by handle (the lower to 0x79c6dc), moved out past a coupled pair
+// (flags 0x40 / 0x80) and off each other, and the span's inner ends found; the link's +0x3c gets flag 2. Ends adjacent: they become the
+// link's +0x60 / +0x64 (flags 0x50000 / 0xa0000) and +0x118 the part entry value of the first end (or the first car before it without
+// flag 0x40; sic: none is read through null). Else the same flags and every car between them deleted (Coaster_DeleteCar, EditToolsEnv),
+// +0x118 the type's +0xa4 when the far end's train has flag 1. A span to the end: the near end loses 0x50000, the link's +0x3c flags 1 and
+// 2, and Coaster_DeleteFlaggedEnd. Then 0x79c6dc cleared, Flags_SetChanged (link, 1), 0x79c658 loses 0xa0, CoasterEdit_EndTool with
+// 0x79c6e0 / 0x79c638 cleared and, by the link's end car's flag 0x80 (as CoasterEdit_DeleteLastCar), CoasterEdit_StartTool (2) or
+// CoasterEdit_SetMode (1), CoasterEdit_SetTool (1) and tool 1 chosen; CoasterEdit_Tools (0), the 0x7ca1c8 dialog told 0x79c6e0 / 0x79c638,
+// CoasterEdit_SetBounds, Coaster_SetState (link, 1) and MouseMode_EnterTile15 (EditToolsEnv).
+void __cdecl CoasterEdit_DeleteSpan();
 }

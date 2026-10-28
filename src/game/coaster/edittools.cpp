@@ -46,6 +46,15 @@ u32 EndCarHas(const u8 *game, u32 on, u32 off) {
     return (flags & on) == on && !(flags & off) ? 1 : 0;
 }
 
+// A car's ride part entry's +0x34 (the train type's +0x2c a 0x14-byte index into its ride's model (+8) +0x28 -> +4, its +4), or
+// [0x6fe1b4] for none: fld / fstp, as bits.
+u32 PartEntryValue(const u8 *car) {
+    const u8 *const model = at<const u8 *>(reinterpret_cast<const u8 *const *>(0x007a4610)[at<u32>(car, 0x70)], 8);
+    const u32 part = at<u32>(at<const u8 *>(at<const u8 *>(car, 0x100), 0x18), 0x2c);
+    const u8 *const entry = at<const u8 *>(at<const u8 *>(at<const u8 *>(model, 0x28), 4), part * 0x14 + 4);
+    return X87_FloatThrough(entry ? at<u32>(entry, 0x34) : g<u32>(0x006fe1b4));
+}
+
 // The tool off: flags 0x1e00 cleared, the highlight hidden.
 u32 Off(u32 flags) {
     Flags() = flags & 0xffffe1ff;
@@ -666,6 +675,126 @@ void __cdecl CoasterEdit_DeleteLastCar() {
     if (reversed) {   // (the link's new +0x60, read again)
         if (u8 *const end = at<u8 *>(state, 0x24)) at<u32>(end, 8) |= 0x50000;
     }
+}
+
+void __cdecl CoasterEdit_DeleteSpan() {
+    u8 *const game = g<u8 *>(0x00790fec);
+    if (!game || !at<u32>(game, 0x40)) return;
+    u8 *const state = game + 0x3c;   // (the link's +0x3c, taken first)
+    if (!(g<u8>(0x0079c658) & 0x80)) {   // (the span's first end picked)
+        u8 *const piece = Piece();
+        g<u8 *>(0x0079c6dc) = piece;
+        if (!piece) return;
+        g<u8 *>(0x0079c62c) = piece;
+        Flags() |= 0xa0;
+        g<u32>(0x007925d0) = 1;
+        return;
+    }
+    u8 *hi = Piece();
+    if (!hi) return;
+    const bool go = !(hi == g<u8 *>(0x0079c6dc) && (at<u8>(Def(hi), 4) & 2));
+    const u32 cleared = TrackSelection_ClearFlags();
+    g<u32>(0x0079c62c) = 0;
+    g<u32>(0x0079c628) = 0;
+    g<u32>(0x007925d0) = 0;
+    if (cleared) Flags_SetChanged(reinterpret_cast<u32 *>(game), 0);
+    if (!go) {
+        g<u32>(0x0079c6dc) = 0;
+        Flags() &= ~0x80u;
+        return;
+    }
+    ActionRec_WriteWW(Recorder(), nullptr, 0x3f, at<u16>(g<u8 *>(0x0079c6dc), 0), at<u16>(hi, 0));
+    ClearChanged();
+    u8 *lo = g<u8 *>(0x0079c6dc);
+    const u8 *const link = g<u8 *>(0x00790fec);
+    u32 atEnd = 0;
+    if (!at<u32>(lo, 0)) {
+        lo = at<u8 *>(link, 0x58);
+        g<u8 *>(0x0079c6dc) = lo;
+        atEnd = 1;
+    } else if (!at<u32>(hi, 0)) {
+        hi = at<u8 *>(link, 0x58);
+        atEnd = 1;
+    }
+    if (at<u32>(lo, 0) > at<u32>(hi, 0)) {
+        u8 *const t = lo;
+        lo = hi;
+        g<u8 *>(0x0079c6dc) = lo;
+        hi = t;
+    }
+    if (at<u8 *>(lo, 0x64) == hi && (at<u32>(lo, 8) & 0xc0) == 0xc0 && (at<u8>(hi, 8) & 0x40)) {
+        if (at<u8 *>(lo, 0x68)) {
+            lo = at<u8 *>(lo, 0x68);
+            g<u8 *>(0x0079c6dc) = lo;
+        }
+        if (at<u8 *>(hi, 0x64)) hi = at<u8 *>(hi, 0x64);
+    }
+    if (lo == hi) {
+        lo = at<u8 *>(lo, 0x68);
+        g<u8 *>(0x0079c6dc) = lo;
+        hi = at<u8 *>(hi, 0x64);
+    }
+    u8 *last = hi;
+    if (at<u8 *>(lo, 0x64) != hi) {
+        u8 *const next = at<u8 *>(lo, 0x64);
+        g<u8 *>(0x0079c6dc) = next;
+        hi = at<u8 *>(hi, 0x68);
+        if ((at<u32>(next, 8) & 0xc0) == 0x40) {
+            g<u8 *>(0x0079c6dc) = at<u8 *>(next, 0x68);
+            lo = at<u8 *>(lo, 0x68);
+        }
+        if (at<u8>(hi, 8) & 0x80) last = at<u8 *>(last, 0x64);
+    }
+    if (last == at<u8 *>(link, 0x58)) atEnd = 1;
+    at<u32>(state, 0) |= 2;
+    if (at<u8 *>(lo, 0x64) == last) {
+        at<u8 *>(state, 0x24) = lo;     // (the link's +0x60 / +0x64)
+        at<u8 *>(state, 0x28) = last;
+        at<u32>(lo, 8) |= 0x50000;
+        at<u32>(last, 8) |= 0xa0000;
+        const u8 *p = lo;
+        if (at<u8>(lo, 8) & 0x40) {
+            p = at<u8 *>(lo, 0x68);
+            while (p && (at<u8>(p, 8) & 0x40)) p = at<u8 *>(p, 0x68);
+        }
+        const u32 value = PartEntryValue(p);   // (sic: none is read through null)
+        at<u32>(g<u8 *>(0x00790fec), 0x118) = value;
+    } else {
+        u8 *const owner = g<u8 *>(0x00790fec);
+        at<u32>(lo, 8) |= 0x50000;
+        at<u32>(last, 8) |= 0xa0000;
+        for (u8 *car = at<u8 *>(last, 0x68); car != lo;) {
+            u8 *const before = at<u8 *>(car, 0x68);
+            g_env->deleteCar(owner, car);
+            car = before;
+        }
+        if (at<u8>(Def(last), 4) & 1) at<u32>(owner, 0x118) = at<u32>(at<u8 *>(owner, 4), 0xa4);
+    }
+    if (atEnd) {
+        at<u32>(lo, 8) &= 0xfffaffff;
+        at<u32>(g<u8 *>(0x00790fec), 0x3c) &= ~3u;
+        g_env->deleteFlaggedEnd(g<u8 *>(0x00790fec));
+    }
+    g<u32>(0x0079c6dc) = 0;
+    Flags_SetChanged(reinterpret_cast<u32 *>(g<u8 *>(0x00790fec)), 1);
+    Flags() &= ~0xa0u;
+    const u32 retool = EndCarHas(g<u8 *>(0x00790fec), 0x80, 0);
+    CoasterEdit_EndTool();
+    g<u32>(0x0079c6e0) = 0;
+    g<u32>(0x0079c638) = 0;
+    if (retool) {
+        CoasterEdit_StartTool(2);
+    } else {
+        CoasterEdit_SetMode(1);
+        CoasterEdit_SetTool(1);
+        g<u32>(0x0079c638) |= 1;
+    }
+    CoasterEdit_Tools(nullptr);
+    Dialog7ca1c8_SetChecksIfUpThis(reinterpret_cast<void *>(0x007b51f0), nullptr, g<u32>(0x0079c6e0));
+    Dialog7ca1c8_SelectButtonIfUpThis(reinterpret_cast<void *>(0x007b51f0), nullptr, g<u32>(0x0079c638));
+    CoasterEdit_SetBounds();
+    g_env->setState(g<u8 *>(0x00790fec), 1);
+    g_env->enterTile15();
 }
 }
 
