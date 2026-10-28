@@ -38,6 +38,7 @@
 #include "../game/files/direntry.h"
 #include "../game/files/filestream.h"
 #include "../game/files/fontfiles.h"
+#include "../game/files/fontloaders.h"
 #include "../game/files/gamepaths.h"
 #include "../game/files/userslots.h"
 #include "../game/files/quickload.h"
@@ -2929,6 +2930,10 @@ const Hook kHooks[] = {
     {"Charset_Format",            0x006acb70, (void *)&Charset_Format, {0x83, 0xec, 0x14, 0x8b, 0x41}},
     {"Charset_FormatNarrow",      0x006acca0, (void *)&Charset_FormatNarrow, {0x6a, 0xff, 0x68, 0x70, 0x55}},
     {"Charset_FormatWide",        0x006acd60, (void *)&Charset_FormatWide, {0x6a, 0xff, 0x68, 0xa0, 0x55}},
+    {"BitmapFont_Load",           0x006b0340, (void *)&BitmapFont_Load, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"FontBase_Ctor",             0x006b4a10, (void *)&FontBase_Ctor, {0x56, 0x8b, 0xf1, 0xe8, 0x48}},
+    {"Font_Ctor",                 0x006b0480, (void *)&Font_Ctor, {0x6a, 0xff, 0x68, 0x38, 0x57}},
+    {"Font_Load",                 0x006b0680, (void *)&Font_Load, {0x53, 0x55, 0x56, 0x57, 0x8b}},
     {"Class70295c_Ctor",          0x005c9040, (void *)&Class70295c_Ctor, {0x56, 0x8b, 0xf1, 0xe8, 0x78}},
     {"Obj_SwapPair",              0x005d03b0, (void *)&Obj_SwapPair, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Obj_ChooseVector",          0x005dd3d0, (void *)&Obj_ChooseVector, {0x8b, 0x41, 0x58, 0x85, 0xc0}},
