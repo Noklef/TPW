@@ -5554,6 +5554,7 @@ address,name,kind,confidence,notes
 0x00500a50,Visitor_StepLeavingPark,function,low,"reimplemented (src/game/world/visitorsteps); thiscall; name invented, unconfirmed: +0x1bc above 0, __ftol(+0x19c)'s low byte set, +0x1da710 0 and a plain cell: stays (+0x188 0, state 6); else one step: arrived state 0x13, stuck (2) stays"
 0x004faec0,Visitor_Ctor,function,low,"reimplemented (src/game/world/visitorsteps); thiscall (cell), pops 4; the visitor constructor, name invented: the moving person (kind 1), the visitor fields cleared, exit level, type, starting cash, happiness 50, stats and prankery from gBalanceLevel and rolls, the random state set to its handle, the sprite started, then on a plain cell counted in (state 6), else walking from the crossing (state 0 / 6, placed, particle 0x13); message 0x1c posted"
 0x004fc890,Visitor_ReenterState,function,low,reimplemented (src/game/world/visitorsteps); thiscall: Visitor_SetState (env) of the visitor's own state +0x224
+0x004fc800,Visitor_StartEmote,function,low,"reimplemented (src/game/world/visitorsteps); thiscall (mode): sound 0x7e for mode 4 and handle & 0xf 0; the script reference's mode; +0x208, +0x224; state 8"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved

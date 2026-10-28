@@ -18,6 +18,7 @@ struct VisitorStepsEnv {
     s32(__fastcall *queuePosition)(u8 *object, void *, u32 person);                       // Object_QueuePosition 0x4ddf50
     u32(__fastcall *anyQueueSpot)(u8 *object, void *, u32 place, u16 *cell, u8 *x, u8 *y);  // Object_AnyQueueSpot 0x4de7e0
     void(__fastcall *placeSprite)(u8 *visitor, void *, float t);                          // Person_PlaceSprite 0x4fa030
+    u32(__fastcall *playSound)(const u8 *visitor, void *, u32 category, u32 sound);       // Sprite_PlaySound 0x4faa00
 };
 void VisitorSteps_SetEnv(const VisitorStepsEnv *env);
 
@@ -59,6 +60,10 @@ void __fastcall Visitor_StepEntering(u8 *visitor);
 void __fastcall Visitor_StepLeavingPark(u8 *visitor);
 // 0x4fc890 (thiscall; called by 0x501d3f): the visitor's state set again to its own state +0x224 (Visitor_SetState). Name invented, unconfirmed.
 void __fastcall Visitor_ReenterState(u8 *visitor);
+// 0x4fc800 (thiscall (mode), pops 4; called with 4 and 5 from the step functions; name invented, unconfirmed): the sprite script's position
+// fetched and not used (SpriteScript_GetPosition of +0xc); for mode 4 with the handle's low 4 bits 0 sound 0x7e of category [0x803a24]
+// (Sprite_PlaySound); the script reference's mode +0x10 the mode (Set4_4217f0), +0x208 the park's +0x1da70c, +0x224 the +0x220; state 8.
+void __fastcall Visitor_StartEmote(u8 *visitor, void *, u32 mode);
 
 // 0x4faec0 (thiscall (cell), pops 4; the constructor, its name invented): the moving person (MovingPerson_Ctor (cell, 1)), the visitor's
 // fields 0x19c-0x22a cleared (+0x220 / +0x224 6), +0x1d4 the park's +0x1da70c; the exit level +0x1bc gBalanceLevel's (0x78504c) give or

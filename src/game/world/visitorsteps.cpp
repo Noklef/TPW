@@ -26,7 +26,7 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 const VisitorStepsEnv kGameEnv = {&Sprite_WalkNav,       &Sprite_SetDestination, &Sprite_SetDestinationCell,
                                   &Sprite_SpawnParticle, &Thing_Delete,          &Visitor_SetState,
                                   &Object_BackOfQueueTo, &Object_QueuePosition,  &Object_AnyQueueSpot,
-                                  &Person_PlaceSprite};
+                                  &Person_PlaceSprite,   &Sprite_PlaySound};
 const VisitorStepsEnv *g_env = &kGameEnv;
 
 u8 *world() { return global<u8 *>(0x0080239c); }
@@ -236,6 +236,19 @@ void __fastcall Visitor_StepLeavingPark(u8 *visitor) {
 }
 
 void __fastcall Visitor_ReenterState(u8 *visitor) { g_env->setState(visitor, nullptr, at<u32>(visitor, 0x224)); }
+
+void __fastcall Visitor_StartEmote(u8 *visitor, void *, u32 mode) {
+    u32 x, y, z, r15;   // (read back by nothing)
+    SpriteScript_GetPosition(at<s32>(visitor, 0xc), &x, &y, &z, &r15);
+    if (mode == 4) {
+        u16 handle;
+        if ((*Thing_GetHandle(visitor, nullptr, &handle) & 0xf) == 0) g_env->playSound(visitor, nullptr, global<u32>(0x00803a24), 0x7e);
+    }
+    Set4_4217f0(visitor + 0xc, nullptr, mode);
+    at<u32>(visitor, 0x208) = at<u32>(world(), 0x1da70c);
+    at<u32>(visitor, 0x224) = at<u32>(visitor, 0x220);
+    g_env->setState(visitor, nullptr, 8);
+}
 
 u8 *__fastcall Visitor_Ctor(u8 *visitor, void *, u32 cell) {
     MovingPerson_Ctor(visitor, nullptr, cell, 1);

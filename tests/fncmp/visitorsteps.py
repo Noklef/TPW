@@ -1,5 +1,5 @@
 # A visitor's per-state steps (src/game/world/visitorsteps: 0x4ff7f0, 0x500900, 0x500ad0, 0x500bd0, 0x501160, 0x4feb10, 0x4ff520,
-# 0x4ff730, 0x4ffb20, 0x500a50) against the originals. The
+# 0x4ff730, 0x4ffb20, 0x500a50, 0x4fc890, 0x4fc800) against the originals. The
 # calls they make through VisitorStepsEnv are thiscall recorders (driver.cpp): Sprite_WalkNav 1 of 0, Sprite_SetDestination 2 of 2 (x and y
 # logged as their low words: the original's high halves are stack garbage), Sprite_SetDestinationCell 3 of 1 (a word), Sprite_SpawnParticle
 # 4 of 1, Thing_Delete 5 of 0, Visitor_SetState 26 of 1, Object_BackOfQueueTo 6 of 1 (writing a cell), Object_QueuePosition 7 of 1 (a word),
@@ -17,8 +17,10 @@
 #   Kill (0x4feb10): personscripts.py's script list, the sprite script +0x210 0 or one of its slots.
 #   Booth (0x4ff520) as Go; WalkIn (0x4ff730): the take's element 3 mostly, the speeds 0x75c7f0 - 0x75c7f5 any; Enter (0x4ffb20) as Arrive;
 #   Out (0x500a50): +0x1bc about 0, happiness +0x19c 0-300 (its __ftol low byte 0 at 0, 256), the cell's type plain or not.
-#   Again (0x4fc890): the state +0x224 any.
-# usage: visitorsteps.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Arrive,Leave,Go,Stop,Queue,Kill,Booth,WalkIn,Enter,Out,Again)
+#   Again (0x4fc890): the state +0x224 any. Emote (0x4fc800): the mode 4 or 5 mostly, the handle's low 4 bits 0 half the time, Kill's script
+#   list; Sprite_PlaySound a thiscall recorder (10 of 2).
+# usage: visitorsteps.py [CASES [SEED]] [--wild|--both] [--show N]
+#   (env OPS=Arrive,Leave,Go,Stop,Queue,Kill,Booth,WalkIn,Enter,Out,Again,Emote)
 import os
 import struct
 import sys
@@ -35,15 +37,16 @@ B = Bench([(0x4ff7f0, 0x4ff9ca), (0x500900, 0x500a4e), (0x500ad0, 0x500bc2), (0x
            (0x4d8610, 0x4d8750), (0x4cd4e0, 0x4cd4f7), (0x50b350, 0x50b370), (0x5da3c0, 0x5da3c1), (0x55a070, 0x55a0b0),
            (0x55a0b0, 0x55a100), (0x55a390, 0x55a3e0), (0x412e90, 0x412eea), (0x4cd300, 0x4cd331), (0x4dd7f0, 0x4dd930),
            (0x4dd4e0, 0x4dd510), (0x4feb10, 0x4feb43), (0x4ff520, 0x4ff5b0), (0x4ff730, 0x4ff7e1), (0x4ffb20, 0x4ffbbe),
-           (0x500a50, 0x500acc), (0x4fc890, 0x4fc89d), (0x51aaf0, 0x51ab1a), (0x67a830, 0x67a860), (0x4fa990, 0x4fa9fa), (0x536300, 0x53644c),
+           (0x500a50, 0x500acc), (0x4fc890, 0x4fc89d), (0x4fc800, 0x4fc88b), (0x4217f0, 0x421800), (0x51aaf0, 0x51ab1a), (0x67a830, 0x67a860), (0x4fa990, 0x4fa9fa), (0x536300, 0x53644c),
            # (personscripts.py's script list: SpriteScript_Kill, the heap)
            (0x475010, 0x476a30), (0x540b90, 0x540da0), (0x541f60, 0x541fb0), (0x4d4100, 0x4d4134), (0x4d4170, 0x4d4186),
            (0x5f5e20, 0x5f5e90), (0x5f5fa0, 0x5f5fc0), (0x5f5660, 0x5f56a0)],
           hooks={0x4fa2a0: _recorder(1, 0), 0x4fa5f0: _recorder(2, 2), 0x4fa530: _recorder(3, 1), 0x4fa470: _recorder(4, 1),
                  0x50b780: _recorder(5, 0), 0x501db0: _recorder(26, 1), 0x4de110: _recorder(6, 1), 0x4ddf50: _recorder(7, 1),
-                 0x4de7e0: _recorder(8, 4)})
+                 0x4de7e0: _recorder(8, 4), 0x4faa00: _recorder(10, 2)})
 CALLS = {'Arrive': 0x4ff7f0, 'Leave': 0x500900, 'Go': 0x500ad0, 'Stop': 0x500bd0, 'Queue': 0x501160, 'Kill': 0x4feb10, 'Booth': 0x4ff520,
-         'WalkIn': 0x4ff730, 'Enter': 0x4ffb20, 'Out': 0x500a50, 'Again': 0x4fc890}
+         'WalkIn': 0x4ff730, 'Enter': 0x4ffb20, 'Out': 0x500a50, 'Again': 0x4fc890,
+         'Emote': 0x4fc800}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 WORLD = RAM   # (thingenv.py's world pointers)
 NODES, ARRAYS, VIS = RAM + 0x1000, RAM + 0x4000, RAM + 0x9000
@@ -142,6 +145,11 @@ def case(r):
     fill(log, 8, 1, struct.pack('<H', r.getrandbits(16)), which=1)
     fill(log, 8, 2, bytes([r.getrandbits(8)]), which=2)
     fill(log, 8, 3, bytes([r.getrandbits(8)]), which=3)
+    if name == 'Emote':   # (the handle's low 4 bits 0 half the time)
+        put(v, 0, 'H', r.choice([0x10, 0x20, 0x100, 0, me, me | 0x10]) & 0xffff)
+        regions[0x803a24] = struct.pack('<I', r.getrandbits(32))
+        set_return(log, 10, r.getrandbits(32))
+        return Call(CALLS[name], [VIS, r.choice([4, 4, 4, 5, 5, 0, r.getrandbits(32)])], regions, conv='t')
     return Call(CALLS[name], [VIS], regions, conv='t', ret='a' if name == 'Queue' else 'v')
 
 
