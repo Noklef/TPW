@@ -507,6 +507,7 @@
 #include "../game/ui/thingbrowser.h"
 #include "../game/ui/window705950draw.h"
 #include "../game/ui/thingpanel.h"
+#include "../game/ui/uimessage.h"
 #include "../game/ui/window7cc8bc.h"
 #include "../game/ui/windowtimers.h"
 #include "../game/lib/jpeg6b.h"
@@ -7162,6 +7163,7 @@ const Hook kHooks[] = {
     {"Dialog7ca1bc_Create",       0x00497b20, (void *)&Dialog7ca1bc_Create, {0x8b, 0x0d, 0xd8, 0xa5, 0xfa}},
     {"Gui_Init",                  0x006584df, (void *)&Gui_Init, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Gui_Shutdown",              0x00658708, (void *)&Gui_Shutdown, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"UiObject_HandleMessage",    0x0050ca50, (void *)&UiObject_HandleMessage, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},

@@ -265,7 +265,7 @@ address,name,kind,confidence,notes
 0x005127a0,Weather_HandleMessage,function,high,"reimplemented (src/game/world/weather); thiscall (message), pops 4: kind 1 sets the intensity (unless +0x64), kind 2 schedules +0x20 = now + days, +0x28 the value, +0x18 now"
 0x00512000,Weather_Detach,function,low,"reimplemented (src/game/world/weather); thiscall: Thing_Detach, then the renderer's ([0x8bcbac]) textures freed (WeatherFx_FreeTextures); returns 1"
 0x004d02d0,BankAccount_HandleMessage,function,high,Thing_HandleMessage case 16
-0x0050ca50,UIMsgReceiver_HandleMessage,function,high,Thing_HandleMessage case 17
+0x0050ca50,UiObject_HandleMessage,function,low,"reimplemented (src/game/ui/uimessage); stdcall (message): its type picks what 0x7b51f0 is told (CheckOnline, RefreshResearch, PassThing, guest removed / added, staff)"
 0x004f7c50,Stub_Ret4b,function,high,reimplemented (src/game/core/accessors); a virtual that does nothing (pops 4)
 0x004d2860,Slots_OnEvent,function,low,"reimplemented (src/game/world/object); thiscall (event), pops 4: by the event type (its slot 0): 0x1a Slots_AddIfMatch with its id, amount and kind word; 0x11 with +0xc 0 AddIfMatch(0x10, 1); 0xb on the selected slot by its id 0x18 / 0x19 / 0x1b the park averages added"
 0x004d1e90,Challenges_Update,function,medium,Thing_Update case 19 (works on a global; skipped when DAT_00fb3b7c == 1)
