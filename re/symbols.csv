@@ -2522,6 +2522,8 @@ address,name,kind,confidence,notes
 0x00485b00,Language_WideText,function,low,reimplemented (src/game/core/language); cdecl (index): the record table [0x78ba94]'s text at the index widened as Language_Widen; 0 for none
 0x00485f00,Language_SetObjectText,function,low,"reimplemented (src/game/core/language); cdecl (object, index): the text of [0x78baa4] at the index widened (or 0) to the object's slot 9"
 0x0041a5f0,Language_FreeFonts,function,low,reimplemented (src/game/core/language); the language's fonts and objects released and its resource folder closed
+0x00419570,Language_Ctor,function,low,"reimplemented (src/game/core/language); the language object constructed: its folder, font entries and text style"
+0x004196a0,Language_Dtor,function,low,"reimplemented (src/game/core/language); the language object destroyed: its text style, font entries and folder"
 0x00423ad0,Options_Revert,function,high,"reimplemented (src/game/core/options); thiscall; the copy +0x3c..+0x78 back over +0..+0x3c, +0x94 = 0, +0x98 &= ~7"
 0x00423b00,Options_Keep,function,high,"reimplemented (src/game/core/options); thiscall; +0..+0x3c over the copy at +0x3c, +0x94 raised to 0 when negative, +0x98 &= ~7"
 0x00423b40,Options_Set30,function,high,reimplemented (src/game/core/options); thiscall (value); +0x30 = value
