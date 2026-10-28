@@ -474,6 +474,7 @@
 #include "../game/ui/dialog7cc444.h"
 #include "../game/ui/dialog7cc47c.h"
 #include "../game/ui/dialog7cc5f4.h"
+#include "../game/ui/dialog7cc654.h"
 #include "../game/ui/dialog7cca94.h"
 #include "../game/ui/guifont.h"
 #include "../game/ui/guinamed.h"
@@ -7114,6 +7115,7 @@ const Hook kHooks[] = {
     {"Dialog7ca1bc_Create",       0x00497b20, (void *)&Dialog7ca1bc_Create, {0x8b, 0x0d, 0xd8, 0xa5, 0xfa}},
     {"Gui_Init",                  0x006584df, (void *)&Gui_Init, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Gui_Shutdown",              0x00658708, (void *)&Gui_Shutdown, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Dialog7cc654_FitText",      0x004bc100, (void *)&Dialog7cc654_FitText, {0x6a, 0xff, 0x68, 0x58, 0xb8}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
