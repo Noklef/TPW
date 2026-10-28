@@ -536,7 +536,15 @@ const CoasterLinksEnv kCoasterLinksEnv = {Rec{jpeg_recorder(30, 10)}, Rec{jpeg_r
 // tests/fncmp/cellmessage.py hooks them.
 const CellMessageEnv kCellMessageEnv = {reinterpret_cast<void(__cdecl *)(s32, s32, u32)>((uintptr_t)jpeg_recorder(27, 3)),
                                         reinterpret_cast<void(__cdecl *)(u32, u32)>((uintptr_t)jpeg_recorder(28, 2))};
-const RidesEnv kRidesEnv = {reinterpret_cast<void(__cdecl *)()>((uintptr_t)jpeg_recorder(18, 0)), reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(19, 1))};
+// (Ride_Destroy's two above.) Ride_Create's (0x463060) calls: the cdecl recorders 1 of 5, 2 of 4, 3 of 3, 4 of 6, 5 of 7, 6 of 10, 7 of 4,
+// the thiscall 8 of 4 and the cdecl 9 of 2, 10 of 1, 11 of 3, 12 and 13 of 1, 14 of 6 and 15 to 17 of 1, as tests/fncmp/ridecreate.py
+// hooks them.
+const RidesEnv kRidesEnv = {reinterpret_cast<void(__cdecl *)()>((uintptr_t)jpeg_recorder(18, 0)), reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(19, 1)),
+                            Rec{jpeg_recorder(1, 5)},  Rec{jpeg_recorder(2, 4)},  Rec{jpeg_recorder(3, 3)},  Rec{jpeg_recorder(4, 6)},
+                            Rec{jpeg_recorder(5, 7)},  Rec{jpeg_recorder(6, 10)}, Rec{jpeg_recorder(7, 4)},  Rec{recorder(8, 4)},
+                            Rec{jpeg_recorder(9, 2)},  Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 3)}, Rec{jpeg_recorder(12, 1)},
+                            Rec{jpeg_recorder(13, 1)}, Rec{jpeg_recorder(14, 6)}, Rec{jpeg_recorder(15, 1)}, Rec{jpeg_recorder(16, 1)},
+                            Rec{jpeg_recorder(17, 1)}};
 // MapCell_ApplyModel's calls into agent A's unported placers 0x522b90 / 0x522d50 / 0x522f20: cdecl recorders 20, 21 and 22 of 6 arguments,
 // as tests/fncmp/cellapply.py hooks those addresses.
 const CellModelEnv kCellModelEnv = {reinterpret_cast<u32(__cdecl *)(s32, s32, s32, s32, s32, u32)>((uintptr_t)jpeg_recorder(20, 6)),

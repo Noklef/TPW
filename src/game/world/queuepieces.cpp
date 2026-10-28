@@ -8,8 +8,7 @@
 
 namespace {
 
-const QueuePiecesEnv kGameEnv = {reinterpret_cast<u32(__cdecl *)(u32, u32, const u32 *, u32, u32, u32, u32, u32, s32, u32)>((uintptr_t)0x00463060),
-                                 &Ride_Destroy};
+const QueuePiecesEnv kGameEnv = {&Ride_Create, &Ride_Destroy};
 const QueuePiecesEnv *g_env = &kGameEnv;
 
 // A piece of the table at `table` (12-byte rows: the ride type, the flag byte +8) placed at (x, y) moved by the turn.

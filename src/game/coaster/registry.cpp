@@ -15,6 +15,7 @@
 #include "../ui/dialog7ca1c8.h"
 #include "../world/objectdefs.h"
 #include "../world/queuepieces.h"
+#include "../world/rides.h"
 #include "../world/ridestate.h"
 #include "../world/trackline.h"
 #include "../world/cellmessage.h"
@@ -29,8 +30,7 @@ template <typename T> T &at(const void *p, u32 offset) {
     return *reinterpret_cast<T *>((uintptr_t)p + offset);
 }
 
-const CoasterLinksEnv kGameEnv = {reinterpret_cast<u32(__cdecl *)(u32, u32, const u32 *, u32, u32, u32, u32, u32, s32, u32)>((uintptr_t)0x00463060),
-                                  &Model_FindPartByKey4, &CoasterLink_AddEntry, &CoasterLink_AddCar, &Car_SetChannelRates,
+const CoasterLinksEnv kGameEnv = {&Ride_Create, &Model_FindPartByKey4, &CoasterLink_AddEntry, &CoasterLink_AddCar, &Car_SetChannelRates,
                                   &CoasterEdit_SetBounds, &Coaster_FlashCar, &GlobalMem_Alloc, &IdTable_Add, &GlobalMem_Free,
                                   &CoasterRing_Init, &Coaster_SetState, &Coaster_SetMix, &CoasterLink_SetUpCars, &Coaster_SetupCars,
                                   &CoasterLink_AddFixedPieces};

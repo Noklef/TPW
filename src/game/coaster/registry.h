@@ -4,8 +4,8 @@
 
 #include "../../../re/types.h"
 
-// What the coaster links call in the game's unported 0x463060 (a ride created; agent B's hub), so that they can run outside it (the
-// benches point it at a recorder).
+// What the coaster links call in the game (0x463060 a ride created: Ride_Create, world/rides; and the rest below), so that they can run
+// outside it (the benches point these at recorders; the ports by default).
 struct CoasterLinksEnv {
     u32(__cdecl *createRide)(u32 type, u32 key, const u32 *desc, u32 flag, u32, u32, u32, u32, s32, u32);   // 0x463060
     u32(__cdecl *findPart)(const u8 *holder, u32 mask, u32 key);   // Model_FindPartByKey4 (0x44b220)
