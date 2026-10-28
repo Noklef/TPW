@@ -116,5 +116,14 @@ void __fastcall TextPart6ff440_SetLayout(u8 *part, void *, u32 flags, const u8 *
 // 0x490ff0 (vtable 0x6ff4a0): over 0x30 a 24th by 0x1bb, over 0x18 by 0x1ba (n 8; the original's minus branches there dead), else its
 // magnitude and minus flag by 0x1b9 (n 0xb).
 void __fastcall TextPart6ff4a0_SetLayout(u8 *part, void *, u32 flags, const u8 *info);
+// The next three format with the CRT's swprintf (0x67af00) into the stack, then send the text as above.
+// 0x48ff70 (vtable 0x6ff350): with the flag 0x80 the value by L"%d"; else with the flag 8 the value as a percent of a 1024th by
+// L"%.2f %%" (the value times the floats 1 / 1024 and 100); else TextPart_SetLayout(flags, info).
+void __fastcall TextPart6ff350_SetLayout(u8 *part, void *, u32 flags, const u8 *info);
+// 0x490dc0 (vtable 0x6ff470): 0 by the text 0x1c9 (no argument), else the value by L"%d".
+void __fastcall TextPart6ff470_SetLayout(u8 *part, void *, u32 flags, const u8 *info);
+// 0x4918a0 (vtable 0x6ff500): 0x7fffffff as L"-", else the value by L"%d" (into 8 characters, sic: a longer one's characters 8 and
+// 9 then the buffer's address, the record that sends it stored over them).
+void __fastcall TextPart6ff500_SetLayout(u8 *part, void *, u32 flags, const u8 *info);
 
 }

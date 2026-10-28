@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include "../core/accessors.h"
+#include "../core/crt.h"
 #include "../core/gameheap.h"
 #include "../core/initializers.h"
 #include "../core/language.h"
@@ -223,6 +224,8 @@ void set_text(u8 *part, u16 *text) {
 }
 
 u32 magnitude(s32 value) { return value < 0 ? 0u - (u32)value : (u32)value; }
+
+const u16 *const kDecimal = reinterpret_cast<const u16 *>((uintptr_t)0x0074f9d8);   // L"%d"
 
 u8 *const kStyle = reinterpret_cast<u8 *>(0x0078ba2c);
 
@@ -457,6 +460,43 @@ void __fastcall TextPart6ff4a0_SetLayout(u8 *part, void *, u32 flags, const u8 *
     if (value > 0x30) format_number(text, 0x1bb, 8, (u32)value / 24, 0);
     else if (value > 0x18) format_number(text, 0x1ba, 8, (u32)value / 24, 0);
     else format_number(text, 0x1b9, 0xb, magnitude(value), value < 0 ? 1 : 0);
+    set_text(part, text);
+}
+
+void __fastcall TextPart6ff350_SetLayout(u8 *part, void *, u32 flags, const u8 *info) {
+    u16 text[0x40];
+    if (flags & 0x80) {
+        Crt().swprintf(text, kDecimal, *reinterpret_cast<const s32 *>(info));
+    } else if (flags & 8) {
+        // fild; fmul by the floats 1 / 1024 (0x6ff2c4) and 100 (0x6ff2d0), at the FPU's 24-bit precision; fstp to the double argument
+        const s32 value = *reinterpret_cast<const s32 *>(info);
+        const X87Reg scaled = value < 0 ? X87Reg(-X87_MulInt(0u - (u32)value, 1.0f / 1024)) : X87Reg(X87_MulInt((u32)value, 1.0f / 1024));
+        Crt().swprintf(text, reinterpret_cast<const u16 *>((uintptr_t)0x007506a8), (scaled * 100.0f).v);
+    } else {
+        return TextPart_SetLayout(part, nullptr, flags, info);
+    }
+    set_text(part, text);
+}
+
+void __fastcall TextPart6ff470_SetLayout(u8 *part, void *, u32 flags, const u8 *info) {
+    if (!(flags & 0x80)) return TextPart_SetLayout(part, nullptr, flags, info);
+    const s32 value = *reinterpret_cast<const s32 *>(info);
+    u16 text[0x40];
+    if (!value) TextFormat().format(*reinterpret_cast<void **>((uintptr_t)0x0078ba94), text, 0x3f, 0x1c9);
+    else Crt().swprintf(text, kDecimal, value);
+    set_text(part, text);
+}
+
+void __fastcall TextPart6ff500_SetLayout(u8 *part, void *, u32 flags, const u8 *info) {
+    if (!(flags & 0x80)) return TextPart_SetLayout(part, nullptr, flags, info);
+    const s32 value = *reinterpret_cast<const s32 *>(info);
+    u16 text[0x40];
+    if (value == 0x7fffffff) Crt().swprintf(text, reinterpret_cast<const u16 *>((uintptr_t)0x007506b8));   // "-"
+    else Crt().swprintf(text, kDecimal, value);
+    // sic: the original's buffer is 8 characters with the record that sends it next on the stack, so a longer number runs into the
+    // record, whose +0 (the buffer's address) is stored after the formatting: over the characters 8 and 9
+    const u32 address = (u32)(uintptr_t)text;
+    std::memcpy(text + 8, &address, 4);
     set_text(part, text);
 }
 }
