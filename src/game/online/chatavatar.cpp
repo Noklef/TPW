@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../core/accessors.h"
 #include "../core/crt.h"
 #include "../core/gameheap.h"
 #include "../core/stdtree.h"
@@ -10,6 +11,7 @@
 #include "../ui/window7cc8bc.h"
 #include "../world/person.h"
 #include "../world/personscripts.h"
+#include "../world/mousemode.h"
 #include "../world/things.h"
 
 namespace {
@@ -47,9 +49,29 @@ void moveTo(u8 *avatar, u32 x, u32 y, s32 mode) {
     placeThing(slotThing(got), x, y);
 }
 
+const ChatAvatarEnv kGameEnv = {&Sprite_WalkNav};
+const ChatAvatarEnv *g_env = &kGameEnv;
+
 }  // namespace
 
 extern "C" {
+
+void ChatAvatar_SetEnv(const ChatAvatarEnv *env) { g_env = env ? env : &kGameEnv; }
+
+void __fastcall ChatPlayer_StepWalk(u8 *player) {
+    const u32 mode = at<u32>(player, 0x39c);
+    if (mode != 1 && mode != 2) return;
+    const u32 walked = g_env->walkNav(player);
+    if (walked == 0) {
+        at<u32>(player, 0x39c) = 0;
+        Set4_4217f0(player + 0xc, nullptr, 3);
+        if (at<u8>(player, 0x3a0) != 0) ChatAvatar_MovePlayer1(OnlineChat_Instance(), nullptr, at<u16>(player, 4), at<u16>(player, 6));
+    } else if (walked == 2) {
+        // Debug_Printf(3, ...)
+        at<u32>(player, 0x39c) = 3;
+        Set4_4217f0(player + 0xc, nullptr, 5);
+    }
+}
 
 void __fastcall ChatAvatar_MoveTo(u8 *avatar, void *, u32 x, u32 y) { moveTo(avatar, x, y, 0); }
 
@@ -75,6 +97,11 @@ u32 __fastcall ChatAvatar_SayPosition(u8 *avatar) {
 void __fastcall ChatAvatar_MoveTo3(u8 *avatar, void *, u32 x, u32 y) { moveTo(avatar, x, y, 3); }
 
 u32 __fastcall ChatAvatar_MovePlayer1(u8 *avatar, void *, u32 x, u32 y) { return movePlayer(avatar, (s16)x, (s16)y, 1); }
+
+u32 __cdecl ChatAvatar_GotoRoomCallback() {
+    ChatAvatar_GotoRoom(OnlineChat_Instance());
+    return 1;
+}
 
 void __fastcall ChatAvatar_GotoRoom(u8 *avatar) {
     const u16 *text = at<const u16 *>(avatar, 0xf00);

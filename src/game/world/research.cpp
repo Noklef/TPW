@@ -195,6 +195,17 @@ u8 __fastcall ResearchProject_SetNextUpgrade(u8 *project, void *, const u8 *def)
     return 0;
 }
 
+void __fastcall ResearchProject_AddResearch(u8 *project, void *, float amount) {
+    if (at<float>(project, 0x10) >= at<float>(project, 0xc)) return;   // (done already; a NaN either side goes on)
+    const X87Reg done = X87Reg(amount) + at<float>(project, 0x10);   // (fld amount; fadd [+0x10]; fcom [+0xc] before the store)
+    at<float>(project, 0x10) = (float)done;
+    if (!(done.v >= at<float>(project, 0xc))) return;
+    at<u8>(controls(project), 0x10) = 1;
+    at<u32>(controls(project), 0x14) = at<u8>(project, 9);
+    u32 msg[4];
+    Object_PostMessage(ThingMsg11_Ctor(reinterpret_cast<u8 *>(msg), nullptr, at<u16>(project, 0), at<u32>(project, 4)));
+}
+
 void __fastcall ResearchLab_FillProjects(u8 *lab) {
     u8 *const defs = reinterpret_cast<u8 *>(0x007890a0);
     for (u8 *def = ObjectDefs_First(defs); def; def = ObjectDefs_Next(defs)) {

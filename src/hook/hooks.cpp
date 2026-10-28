@@ -356,6 +356,7 @@
 #include "../game/world/trackline.h"
 #include "../game/world/uimsgreceiver.h"
 #include "../game/world/visitoroption.h"
+#include "../game/world/visitorsteps.h"
 #include "../game/world/weather.h"
 #include "../game/world/world.h"
 #include "../game/model/holder.h"
@@ -507,6 +508,7 @@
 #include "../game/ui/thingbrowser.h"
 #include "../game/ui/window705950draw.h"
 #include "../game/ui/thingpanel.h"
+#include "../game/ui/uimessage.h"
 #include "../game/ui/window7cc8bc.h"
 #include "../game/ui/windowtimers.h"
 #include "../game/lib/jpeg6b.h"
@@ -1003,6 +1005,7 @@ const Hook kHooks[] = {
     {"ResearchLab_FlagOff",       0x00504140, (void *)&ResearchLab_FlagOff, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"ResearchLab_SyncFlag",      0x005041f0, (void *)&ResearchLab_SyncFlag, {0xa1, 0x9c, 0x23, 0x80, 0x00}},
     {"ResearchLab_HandleMessage", 0x00503d40, (void *)&ResearchLab_HandleMessage, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"ResearchProject_AddResearch", 0x00504630, (void *)&ResearchProject_AddResearch, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_SetPosVel",             0x005100e0, (void *)&Nav_SetPosVel, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Nav_GetPos",                0x00510160, (void *)&Nav_GetPos, {0x8b, 0x54, 0x24, 0x04, 0x8b}},
     {"World_ArrivalVehicleNotSize1", 0x0051aad0, (void *)&World_ArrivalVehicleNotSize1, {0x66, 0x8b, 0x81, 0x2a, 0xa7}},
@@ -4071,6 +4074,9 @@ const Hook kHooks[] = {
     {"Handyman_HandleMessage",    0x004d6cf0, (void *)&Handyman_HandleMessage, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"Guard_HandleMessage",       0x004d5fb0, (void *)&Guard_HandleMessage, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Staff_HandleMessageDefault", 0x004d4450, (void *)&Staff_HandleMessageDefault, {0x8b, 0x44, 0x24, 0x04, 0x50}},
+    {"StaffPoolEntry_FormatName", 0x005074a0, (void *)&StaffPoolEntry_FormatName, {0x8b, 0x01, 0x83, 0xf8, 0x04}},
+    {"Staff_WalkToRestArea",      0x00505fe0, (void *)&Staff_WalkToRestArea, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Staff_Dismiss",             0x00505790, (void *)&Staff_Dismiss, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"FreeList_Take",             0x00520d60, (void *)&FreeList_Take, {0x56, 0x66, 0x8b, 0x35, 0x24}},
     {"FreeList_Return",           0x00521890, (void *)&FreeList_Return, {0x8b, 0x4c, 0x24, 0x04, 0x85}},
     {"Voice_ScaleLevels",         0x00521d60, (void *)&Voice_ScaleLevels, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
@@ -4369,6 +4375,8 @@ const Hook kHooks[] = {
     {"Thing_Detach",              0x0050b980, (void *)&Thing_Detach, {0x51, 0x56, 0x8b, 0xf1, 0x33}},
     {"Thing_Delete",              0x0050b780, (void *)&Thing_Delete, {0x6a, 0xff, 0x68, 0x93, 0xe2}},
     {"ThingKinds9To11_Detach",    0x004c9040, (void *)&ThingKinds9To11_Detach, {0xe9, 0x3b, 0x29, 0x04, 0x00}},
+    {"Thing_HandleMessage",       0x0050b550, (void *)&Thing_HandleMessage, {0x33, 0xc0, 0x8a, 0x41, 0x02}},
+    {"Things_ReleaseAll",         0x005191e0, (void *)&Things_ReleaseAll, {0xa1, 0x6c, 0xf5, 0x7c, 0x00}},
     {"DrawBatch_Open",            0x00565310, (void *)&DrawBatch_Open, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Object_ReleaseSavedPairs",  0x0057b070, (void *)&Object_ReleaseSavedPairs, {0x56, 0x8b, 0xf1, 0xf7, 0x46}},
     {"Object_FreeBlock13c",       0x0057b5b0, (void *)&Object_FreeBlock13c, {0x56, 0x8b, 0xf1, 0x8b, 0x86}},
@@ -5588,6 +5596,11 @@ const Hook kHooks[] = {
     {"TrackQueuePiece_Place",     0x00522b90, (void *)&TrackQueuePiece_Place, {0x8b, 0x54, 0x24, 0x14, 0xb8}},
     {"TrackQueuePiece_PlaceAnimated", 0x00522d50, (void *)&TrackQueuePiece_PlaceAnimated, {0x8b, 0x54, 0x24, 0x14, 0xb8}},
     {"EndPiece_Place",            0x00522f20, (void *)&EndPiece_Place, {0x8b, 0x54, 0x24, 0x14, 0xb8}},
+    {"QueuePieces_Destroy",       0x005229b0, (void *)&QueuePieces_Destroy, {0x56, 0xbe, 0x88, 0x33, 0x76}},
+    {"TrackQueuePieces_Destroy",  0x00522b60, (void *)&TrackQueuePieces_Destroy, {0x56, 0xbe, 0xec, 0x33, 0x76}},
+    {"TrackQueuePiecesAnimated_Destroy", 0x00522d20, (void *)&TrackQueuePiecesAnimated_Destroy, {0x56, 0xbe, 0xd8, 0x34, 0x76}},
+    {"EndPieces_Destroy",         0x00522ef0, (void *)&EndPieces_Destroy, {0x56, 0xbe, 0x08, 0x36, 0x76}},
+    {"AllPieces_Destroy",         0x0052f190, (void *)&AllPieces_Destroy, {0xe8, 0x1b, 0x38, 0xff, 0xff}},
     {"PathDrag_Begin",            0x0052c150, (void *)&PathDrag_Begin, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"PathDrag_Finish",           0x0052c1c0, (void *)&PathDrag_Finish, {0x83, 0xec, 0x08, 0xa1, 0x00}},
     {"AdvisorSlot_Ctor",          0x00518e60, (void *)&AdvisorSlot_Ctor, {0x8b, 0xc1, 0xc6, 0x40, 0x14}},
@@ -5596,11 +5609,13 @@ const Hook kHooks[] = {
     {"Path_CheckDeadEnds",        0x00527ee0, (void *)&Path_CheckDeadEnds, {0x83, 0xec, 0x34, 0x53, 0x55}},
     {"TrackSquare_Check",         0x005286a0, (void *)&TrackSquare_Check, {0x53, 0x55, 0x56, 0x8b, 0x74}},
     {"PlaceObject_Create",        0x00529e10, (void *)&PlaceObject_Create, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"PlaceObject_Footprint",     0x00528a70, (void *)&PlaceObject_Footprint, {0x83, 0xec, 0x6c, 0x33, 0xc0}},
     {"EndThing_Create",           0x00516b00, (void *)&EndThing_Create, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Game_OpenPark",             0x00519ef0, (void *)&Game_OpenPark, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Game_EndPark",              0x005168f0, (void *)&Game_EndPark, {0x83, 0xec, 0x08, 0x53, 0x56}},
     {"GameMode_Set",              0x0052f200, (void *)&GameMode_Set, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"GameMode_SetOnly",          0x0052f580, (void *)&GameMode_SetOnly, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"GameMode_StepBack",         0x0052fe50, (void *)&GameMode_StepBack, {0x51, 0x53, 0x55, 0x56, 0x57}},
     {"Ride_Destroy",              0x00463c80, (void *)&Ride_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"MapCell_SetKind",           0x005346d0, (void *)&MapCell_SetKind, {0x53, 0x55, 0x56, 0x57, 0x8b}},
     {"MapCell_Clear",             0x005367a0, (void *)&MapCell_Clear, {0x83, 0xec, 0x08, 0x53, 0x55}},
@@ -5613,6 +5628,19 @@ const Hook kHooks[] = {
     {"TrackLine_Prune",           0x005311c0, (void *)&TrackLine_Prune, {0x83, 0xec, 0x28, 0xa1, 0xf0}},
     {"TrackCell_ClearAt",         0x00452ca0, (void *)&TrackCell_ClearAt, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
     {"RideQueue_Trace",           0x00530120, (void *)&RideQueue_Trace, {0x83, 0xec, 0x0c, 0x8b, 0x44}},
+    {"Visitor_StepArriving",      0x004ff7f0, (void *)&Visitor_StepArriving, {0x51, 0x53, 0x56, 0x8b, 0xf1}},
+    {"Visitor_StepLeavingRide",   0x00500900, (void *)&Visitor_StepLeavingRide, {0x83, 0xec, 0x08, 0x56, 0x8b}},
+    {"Visitor_GoToBusStop",       0x00500ad0, (void *)&Visitor_GoToBusStop, {0x83, 0xec, 0x14, 0x56, 0x8b}},
+    {"Visitor_StepAtBusStop",     0x00500bd0, (void *)&Visitor_StepAtBusStop, {0x83, 0xec, 0x14, 0x53, 0x56}},
+    {"Visitor_FindQueueDestination", 0x00501160, (void *)&Visitor_FindQueueDestination, {0x83, 0xec, 0x10, 0x53, 0x8b}},
+    {"Visitor_KillScripts",       0x004feb10, (void *)&Visitor_KillScripts, {0x56, 0x8b, 0xf1, 0x8b, 0x86}},
+    {"Visitor_GoToTicketBooth",   0x004ff520, (void *)&Visitor_GoToTicketBooth, {0x83, 0xec, 0x0c, 0x56, 0x8b}},
+    {"Visitor_StepWalkingIn",     0x004ff730, (void *)&Visitor_StepWalkingIn, {0x51, 0x56, 0x8b, 0xf1, 0x8b}},
+    {"Visitor_StepEntering",      0x004ffb20, (void *)&Visitor_StepEntering, {0x51, 0x56, 0x8b, 0xf1, 0x8b}},
+    {"Visitor_StepLeavingPark",   0x00500a50, (void *)&Visitor_StepLeavingPark, {0x56, 0x8b, 0xf1, 0x8b, 0x86}},
+    {"Visitor_Ctor",              0x004faec0, (void *)&Visitor_Ctor, {0x6a, 0xff, 0x68, 0x1b, 0xdf}},
+    {"Visitor_ReenterState",      0x004fc890, (void *)&Visitor_ReenterState, {0x8b, 0x81, 0x24, 0x02, 0x00}},
+    {"Visitor_StartEmote",        0x004fc800, (void *)&Visitor_StartEmote, {0x83, 0xec, 0x10, 0x8d, 0x44}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
@@ -6310,6 +6338,8 @@ const Hook kHooks[] = {
     {"ChatAvatar_GotoRoom",       0x004eeb50, (void *)&ChatAvatar_GotoRoom, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"ChatAvatar_Enter",          0x004ea2d0, (void *)&ChatAvatar_Enter, {0x53, 0x56, 0x57, 0x6a, 0x03}},
     {"ChatAvatar_AddName",        0x004ee6d0, (void *)&ChatAvatar_AddName, {0x83, 0xec, 0x08, 0x56, 0x57}},
+    {"ChatAvatar_GotoRoomCallback", 0x004e5210, (void *)&ChatAvatar_GotoRoomCallback, {0xe8, 0xfb, 0x7c, 0xf8, 0xff}},
+    {"ChatPlayer_StepWalk",       0x004f7c90, (void *)&ChatPlayer_StepWalk, {0x56, 0x8b, 0xf1, 0x8b, 0x86}},
     {"Ftp_ListLineSize",          0x005d2720, (void *)&Ftp_ListLineSize, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"OnlineChat_Set29And2a",     0x004e6130, (void *)&OnlineChat_Set29And2a, {0x56, 0x8b, 0xf1, 0x57, 0x8d}},
     {"OnlineChat_Get2a",          0x004e6150, (void *)&OnlineChat_Get2a, {0x53, 0x56, 0x8b, 0xf1, 0x57}},
@@ -7190,6 +7220,7 @@ const Hook kHooks[] = {
     {"Gui_Init",                  0x006584df, (void *)&Gui_Init, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Gui_Shutdown",              0x00658708, (void *)&Gui_Shutdown, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Dialog7cc654_FitText",      0x004bc100, (void *)&Dialog7cc654_FitText, {0x6a, 0xff, 0x68, 0x58, 0xb8}},
+    {"UiObject_HandleMessage",    0x0050ca50, (void *)&UiObject_HandleMessage, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},

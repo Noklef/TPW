@@ -30,9 +30,31 @@ u32 place_turned(u32 table, s32 x, s32 y, u32 piece, u32 angle, u32 claim) {
     return g_env->create(type, 0x33a, desc, flag, 0, 0, 0, 0, -1, 0);
 }
 
+// The env's destroy of each row's +0 among `count` rows from `table` whose name (+4) is set (and, with dash, does not start with '-').
+void destroy_rows(u32 table, u32 count, bool dash) {
+    for (u32 i = 0; i < count; ++i) {
+        const u8 *const row = reinterpret_cast<const u8 *>((uintptr_t)(table + i * 12));
+        const char *const name = *reinterpret_cast<const char *const *>(row + 4);
+        if (name == nullptr || (dash && *name == '-')) continue;
+        g_env->destroy(*reinterpret_cast<const u32 *>(row));
+    }
+}
+
 }  // namespace
 
 extern "C" {
+
+void __cdecl QueuePieces_Destroy() { destroy_rows(0x00763388, 8, false); }
+void __cdecl TrackQueuePieces_Destroy() { destroy_rows(0x007633e8, 20, true); }
+void __cdecl TrackQueuePiecesAnimated_Destroy() { destroy_rows(0x007634d8, 25, false); }
+void __cdecl EndPieces_Destroy() { destroy_rows(0x00763608, 28, false); }
+
+void __cdecl AllPieces_Destroy() {
+    QueuePieces_Destroy();
+    TrackQueuePieces_Destroy();
+    TrackQueuePiecesAnimated_Destroy();
+    EndPieces_Destroy();
+}
 
 void QueuePieces_SetEnv(const QueuePiecesEnv *env) { g_env = env ? env : &kGameEnv; }
 

@@ -31,4 +31,14 @@ void __cdecl QueuePiece_Remove(u32 ride);
 u32 __cdecl TrackQueuePiece_Place(s32 x, s32 y, u32 unused, u32 piece, u32 angle, u32 claim);
 u32 __cdecl TrackQueuePiece_PlaceAnimated(s32 x, s32 y, u32 unused, u32 piece, u32 angle, u32 claim);
 u32 __cdecl EndPiece_Place(s32 x, s32 y, u32 unused, u32 piece, u32 angle, u32 claim);
+
+// 0x5229b0 / 0x522b60 / 0x522d20 / 0x522ef0 (cdecl, no arguments; names invented, unconfirmed): the env's destroy (0x463c80) of each row's
+// +0 in the tables 0x763388 (8 rows), 0x7633e8 (20), 0x7634d8 (25) and 0x763608 (28) whose name pointer (+4) is set; 0x522b60's also
+// not when the name starts with '-'.
+void __cdecl QueuePieces_Destroy();
+void __cdecl TrackQueuePieces_Destroy();
+void __cdecl TrackQueuePiecesAnimated_Destroy();
+void __cdecl EndPieces_Destroy();
+// 0x52f190 (cdecl, no arguments; called by 0x457d97; name invented, unconfirmed): the four above in that order.
+void __cdecl AllPieces_Destroy();
 }

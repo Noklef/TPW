@@ -6,9 +6,11 @@
 #include "../core/accessors.h"
 #include "../motion/animator.h"
 #include "../model/highlight.h"
+#include "cellkind.h"
 #include "cellmodel.h"
 #include "dirstep.h"
 #include "hoardinggrid.h"
+#include "lineends.h"
 #include "mapcell.h"
 #include "mapline.h"
 
@@ -120,9 +122,9 @@ u32 animate_run(s32 x, s32 y, u8 direction, u32 start) {
 
 const CellRunEnv kGameEnv = {&MapCell_ApplyModel,
                              reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32, u32)>((uintptr_t)0x005370e0),
-                             reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)0x00538fc0),
-                             reinterpret_cast<void(__fastcall *)(u8 *, void *, s32, s32, u32)>((uintptr_t)0x0053b280),
-                             reinterpret_cast<void(__cdecl *)(s32, s32, u32)>((uintptr_t)0x0053bc60),
+                             reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>(&MapCell_SetTrackKind),   // (its EAX unread)
+                             &TrackCell_Remove,
+                             reinterpret_cast<void(__cdecl *)(s32, s32, u32)>(&LineEnd_Unlink),              // (its EAX unread)
                              reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)0x00545450)};
 const CellRunEnv *g_env = &kGameEnv;
 

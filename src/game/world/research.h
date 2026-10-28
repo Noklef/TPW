@@ -57,6 +57,12 @@ u32 __fastcall ResearchLab_Serialize(u8 *lab, void *, Stream *stream, u32 save, 
 // written to the record's +0x14. 0 (AL) when none is left.
 u8 __fastcall ResearchProject_SetNextUpgrade(u8 *project, void *, const u8 *def);
 
+// 0x504630 (thiscall on a project; amount (float), pops 4; called by 0x5034d3; name invented, unconfirmed): a project not done (a NaN
+// either side: not done) gets the amount added to mResearchDone; done now (mResearchDone >= mCost), its object control record
+// (ObjectControls_Find, not quiet, in the game's table) has +0x10 1 and +0x14 mUpgradeLevel, and message 0x11 (ThingMsg11: mObjId, mCat)
+// is posted (Object_PostMessage).
+void __fastcall ResearchProject_AddResearch(u8 *project, void *, float amount);
+
 // 0x5031a0 (thiscall; name unconfirmed): the lab's projects from the object definitions (0x7890a0, First / Next): each definition with
 // no dword at +0x508 and +0x4ac below 4 adds the project mNumProjects: with a cost (+0x180) the definition's own (its id, mCat +0x17c,
 // mResearchGroup the byte +0x178, mUpgradeLevel 0, mCost the cost as a float, mResearchDone 0); without one its control record's byte

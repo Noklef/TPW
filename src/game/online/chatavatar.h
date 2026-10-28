@@ -37,6 +37,10 @@ u32 __fastcall ChatAvatar_MovePlayer1(u8 *avatar, void *, u32 x, u32 y);
 // released (_Tidy inlined: its block loses a count, or is freed when owned alone or frozen).
 void __fastcall ChatAvatar_GotoRoom(u8 *avatar);
 
+// 0x4e5210 (cdecl, no arguments; a button's callback, pushed by 0x4edb0f; name invented, unconfirmed): ChatAvatar_GotoRoom of the online
+// chat (OnlineChat_Instance, made when missing). Returns 1.
+u32 __cdecl ChatAvatar_GotoRoomCallback();
+
 // 0x4ee6d0 (thiscall; name (a std::wstring), a dword not read, pops 8; name invented; called from 0x4e6d9c with the avatar's own +8): the
 // name's characters (null: the empty string at 0x6fd6c4) added to the window [0x7cc8bc]'s name list (Window7cc8bc_ListAddStd, data 0), and
 // the name inserted into the avatar's set of names at +0xe80 (tree D: StdMapD_Insert, the result not read).
@@ -56,6 +60,18 @@ u8 __fastcall ChatAvatar_MoveToCell(u8 *avatar, void *, u32 cell);
 // when of kind 0x12 and sent to the cell (Sprite_SetDestinationCellMarked), has Chat::MovePlayer told the cell's corner (column and row of the
 // cell's low word less 1, shifted left 8; mode 0). Returns 1 when sent, else 0 (AL).
 u8 __fastcall ChatAvatar_GoToCell(u8 *avatar, void *, u32 cell);
+
+// 0x4f7c90 (thiscall on a chat player; called by 0x50b49c after Person_UpdateSpeedParticle; name invented, unconfirmed): with the walk mode
+// +0x39c 1 or 2, one step (Sprite_WalkNav, through the env): arrived (0), the mode 0, the script reference's +0x10 3 (Set4_4217f0 on +0xc)
+// and, with the byte +0x3a0 set, the online chat (OnlineChat_Instance) told the player's position (ChatAvatar_MovePlayer1 of the words +4
+// and +6; the original's high halves are other registers', not read); stuck (2), the mode 3 and +0x10 5. Other modes: nothing.
+void __fastcall ChatPlayer_StepWalk(u8 *player);
+
+// What ChatPlayer_StepWalk calls through an environment (the fncmp driver's recorder; the game's by default, the port).
+struct ChatAvatarEnv {
+    u32(__fastcall *walkNav)(u8 *sprite);   // Sprite_WalkNav 0x4fa2a0
+};
+void ChatAvatar_SetEnv(const ChatAvatarEnv *env);   // nullptr: the game's
 
 // 0x4f7d70 (thiscall on a thing of kind 0x12, a chat player; name, pops 4): whether the std::wstring's characters (null: the empty
 // string 0x6fd6c4) equal the player's name, the wide characters at +0x19c (wcscmp 0x67c290 == 0, inlined here). Returns 1 or 0 (AL).

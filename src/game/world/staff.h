@@ -105,6 +105,10 @@ u32 __fastcall StaffPool_CountOfType(const u8 *pool, void *, u32 type);
 // 0x507080 (thiscall; the pool's element constructor, passed to the array constructor by 0x507800; name invented): mType +0 and +0xc
 // cleared, the bytes +9 (mSubType), +0xa (mValid) and +0xb (mOnPointer) cleared. Returns the entry.
 u8 *__fastcall StaffPoolEntry_Ctor(u8 *entry);
+// 0x5074a0 (thiscall (to, size), pops 8; called by 0x49b60f, 0x49c9de, 0x49ca35, 0x5075c6, 0x508411; name invented, unconfirmed): the
+// entry's name: the text id +4 formatted (0x6acd60, TextFormat) from the text table of its kind +0 (0-4: [0x78baa8 + 4 * kind]) into
+// size characters at to; another kind only a debug print (empty). (The original leaves the formatter's result in EAX; no caller reads it.)
+void __fastcall StaffPoolEntry_FormatName(const u8 *entry, void *, u16 *to, u32 size);
 
 // 0x50c620: the staff training (serialized at 0x50c640: 5 x u32 mBudget, u8 mHaveEverTrained)
 // zeroed. Returns it.
@@ -255,6 +259,19 @@ void __fastcall Staff_HeadForEntrance(u8 *staff);
 // +0xc started at entry 3 with the folder +0x24 and sprite +0x20 (ScriptRef_Start); Staff_SetState 0.
 void __fastcall Staff_LeaveRestArea(u8 *staff);
 
+// 0x505fe0 (thiscall; name invented, unconfirmed; the walk to a rest area): one step (Sprite_WalkNav, through StaffWalkEnv). Arrived (0):
+// element 0 of the ride record (Rides_FindById of +0x24) of the rest area +0x208's thing (its slot of 0x7cfb90) plus 1, Staff_SetState 3,
+// a message {vtable 0x700868, +4 0, +8 the handle word, +0xc 1} posted (Object_PostMessage). Stuck (2): +0x1f8 less the int at 0x785328
+// (x87: fild, fchs, fadd), above 100.0 100.0, below 0 (or NaN) 0, else the sum; Staff_SetState 0. Otherwise nothing.
+void __fastcall Staff_WalkToRestArea(u8 *staff);
+// What Staff_WalkToRestArea and Staff_Dismiss call through an environment (the fncmp driver's recorders; the game's by default, the ports).
+struct StaffWalkEnv {
+    u32(__fastcall *walkNav)(u8 *sprite);                          // Sprite_WalkNav 0x4fa2a0
+    void(__fastcall *spawnParticle)(u8 *sprite, void *, s32 effect);   // Sprite_SpawnParticle 0x4fa470
+    void(__fastcall *destroy)(u8 *thing);                          // Thing_Delete 0x50b780
+};
+void Staff_SetWalkEnv(const StaffWalkEnv *env);   // nullptr: the game's
+
 // 0x4f7c40 (thiscall; name invented, unconfirmed): a jump to Person_Detach (Thing_Delete's kind 0x12, Researcher_Detach's base).
 void __fastcall Staff_Detach(u8 *staff);
 // 0x502920 (thiscall; name invented, unconfirmed): a researcher (kind 8) taken out of the world: out of the game object's list of them
@@ -268,6 +285,10 @@ void __fastcall Researcher_Detach(u8 *researcher);
 // state 3 (+0x19c), Staff_LeaveRestArea, then the nearest rest area (Things_NearestRestArea) set as +0x208 when there is one and
 // Sprite_SetDestinationCell to its cell (+0x36) succeeds; in state 2, +0x208 cleared and Staff_SetState(0). Others: nothing.
 void __fastcall Staff_HandleMessage(u8 *staff, void *, u8 *message);
+// 0x505790 (thiscall; name invented, unconfirmed; the staff member sacked): Staff_PickUp's mode step (the holder made when missing; the
+// current mode answering 6 from its slot 9: a new CMMOnline base set), the wage paid as Staff_HandleMessage's pay day has it, the effect
+// 0x13 (Sprite_SpawnParticle) and the staff member deleted (Thing_Delete); both through StaffWalkEnv.
+void __fastcall Staff_Dismiss(u8 *staff);
 
 // What StaffAdvice_KindLow and StaffHQ_HandleMessage call in the game that is not ported yet (agent C's; the benches point them at
 // recorders): sumA / sumB thiscall (n), pops 4: sums over the 0x400 records of 0x7c bytes from +0x1efa4 down of

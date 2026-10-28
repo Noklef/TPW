@@ -55,6 +55,10 @@ u16 *__fastcall World_AddThing(void *world, void *edx, u16 *out, void *thing);
 // 0x516200 (__thiscall on a slot in use): takes it off the list, frees it and deletes
 // its thing (operator delete, 0x67acb0).
 void __fastcall ThingSlot_Release(ThingSlot *slot);
+// 0x50b550 (thiscall on a thing (message), pops 4): the message handed to the handler of the thing's model (the byte +2, 1 to 0x13:
+// ThingMessageEnv); model 2 and any other model none. (The original jumps to the handler, so EAX is the handler's or the model - 1; no
+// caller reads it.)
+void __fastcall Thing_HandleMessage(u8 *thing, void *, u8 *message);
 // 0x50b350 (__thiscall on a thing; &handle): its handle (+0). Returns the pointer.
 u16 *__fastcall Thing_GetHandle(const u8 *thing, void *edx, u16 *out);
 // 0x50b090 (thiscall on a thing; stream, save, version, unused): the thing's words +4, +6, +0xa and +8 (mX, mY, mMapChild, mMapParent) saved
@@ -137,6 +141,15 @@ struct ThingDeleteEnv {
 // Thing_Delete's calls go to env (nullptr: the game's).
 void Things_SetDeleteEnv(const ThingDeleteEnv *env);
 
+// Thing_HandleMessage's handlers by the thing's model (+2) 1 to 0x13 (thiscall (message), pops 4; [1], model 2, has none). The game's: the
+// ported handlers, and the game's addresses of agent C's unported 0x4da0c0 (4), 0x4d6cf0 (5), 0x4d4450 (6, 8), 0x4d5fb0 (7), 0x4d02d0
+// (0x10) and this module's own unported 0x509bf0 (0xc) and 0x50ca50 (0x11) (the benches point them all at recorders).
+struct ThingMessageEnv {
+    void(__fastcall *handle[0x13])(u8 *thing, void *, u8 *message);
+};
+// Thing_HandleMessage's calls go to env (nullptr: the game's).
+void Things_SetMessageEnv(const ThingMessageEnv *env);
+
 extern "C" {
 
 // 0x4d91f0 (thiscall; handle, pops 4): when the word at +0x24 is not 0 the thing it names (in the table at 0x7cfb90) gets the word at +8 = handle; the
@@ -165,4 +178,10 @@ u32 __fastcall ThingKinds9To11_Detach(u8 *thing);
 // game's addresses in game); 2, 0x13 and others only the original's debug prints. Then +3 = 1, the handle queued for deletion
 // (World_QueueDelete) and the kind +2 = 2.
 void __fastcall Thing_Delete(u8 *thing);
+
+// 0x5191e0 (thiscall on the thing world [0x7cf83c], not read; called by 0x41504a; name invented, unconfirmed): the things in use walked
+// from [0x7cf56c] (each next one the word +4 of the slot +8 of the slot of the thing's own handle, Thing_GetHandle): a thing not being
+// deleted (+3 0) of kind 1, 4-8 or 0x12 has its script slot +0xc killed when set (Obj_KillSlot); of kind 3 its ride +0x20 destroyed
+// (Ride_Destroy, through QueuePiece_Remove's env).
+void __fastcall Things_ReleaseAll(u8 *world);
 }  // extern "C"

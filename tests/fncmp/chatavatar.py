@@ -4,10 +4,11 @@
 # words. GoTo: movingperson.py's person sent to a cell. Arrive (0x4ea240): the thing's script slots as personscripts.py's release. Find and
 # NameIs (0x4ebf00, 0x4f7d70): a park of named chat players and others, looked up by a name of theirs, one near it or another. Move1 (0x4eace0):
 # Chat::MovePlayer with mode 1 alone. Room (0x4eeb50): the avatar's wide string +0xf00 (or none) as a std::wstring told to Chat::Goto (import
-# 0x6fd490) and released. Enter (0x4ea2d0): Move's world, the thing's script list as personscripts.py's Place's (entry point 3), a small ground.
+# 0x6fd490) and released; RoomButton (0x4e5210) the same through the online chat [0x7cddec] (the avatar). Enter (0x4ea2d0): Move's world, the thing's script list as personscripts.py's Place's (entry point 3), a small ground.
 # AddName (0x4ee6d0): see add_name() below. EnterChat (0x4bd090, src/game/ui/window7cc8bc): see enter_chat() below. LeaveChat
-# (0x4bd260, the same): see leave_chat() below.
-# usage: chatavatar.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Move,Say,Move3,Cell,CellMove,GoTo,Arrive,Find,NameIs,Move1,Room,Enter,AddName,EnterChat,LeaveChat)
+# (0x4bd260, the same): see leave_chat() below. Walk (0x4f7c90): see walk() below.
+# usage: chatavatar.py [CASES [SEED]] [--wild|--both] [--show N]
+#   (env OPS=Move,Say,Move3,Cell,CellMove,GoTo,Arrive,Find,NameIs,Move1,Room,Enter,AddName,EnterChat,LeaveChat,RoomButton,Walk)
 import os
 import struct
 import sys
@@ -16,7 +17,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import things_methods  # noqa: E402
-from fncmp import CDECL_LOG4, HEAP, IMPORT_TABLE, LOG, Bench, Call, RAM, blob, heap, log_region, put, recorder  # noqa: E402
+from fncmp import CDECL_LOG4, HEAP, IMPORT_TABLE, LOG, Bench, Call, RAM, _recorder, blob, heap, log_region, put, recorder, set_return  # noqa: E402
 import personscripts  # noqa: E402
 import stdtree  # noqa: E402
 import terrainheight  # noqa: E402
@@ -38,18 +39,19 @@ B = Bench(movingperson.RANGES + personscripts.PLACE_RANGES + [(0x4ea2d0, 0x4ea36
            (0x515f30, 0x516310), (0x4f9ed0, 0x4f9efc), (0x4d4170, 0x4d4186), (0x475550, 0x47558b), (0x4fe950, 0x4fe977), (0x475010, 0x476a30),
            (0x540b90, 0x540da0), (0x50c0d0, 0x50c0f2), (0x50bab0, 0x50bac4), (0x50be40, 0x50be7c), (0x4d91f0, 0x4d93c0), (0x4fa930, 0x4fa9a0), (0x50b350, 0x50b370), (0x50b6a0, 0x50b790), (0x5100e0, 0x510110), (0x510160, 0x510190),
            (0x412e90, 0x412f00), (0x516270, 0x516320), (0x516330, 0x516390), (0x541f60, 0x541fb0), (0x6ace60, 0x6aceb0), (0x5da3c0, 0x5da3c1),
-           (0x4eace0, 0x4eacfa), (0x4eeb50, 0x4eec32), (0x405280, 0x405390), (0x47bad0, 0x47bc10), (0x67acd0, 0x67ad00), (0x45b380, 0x45b5f0),
+           (0x4eace0, 0x4eacfa), (0x4eeb50, 0x4eec32), (0x4e5210, 0x4e5222), (0x46cf10, 0x46cf7d), (0x4f7c90, 0x4f7d58), (0x405280, 0x405390), (0x47bad0, 0x47bc10), (0x67acd0, 0x67ad00), (0x45b380, 0x45b5f0),
            (0x45b680, 0x45b9b0), (0x67bb90, 0x67bd98), (0x67d250, 0x67d2c0), (0x67d3a0, 0x67d400), (0x6918f0, 0x691a30), (0x691ba0, 0x691ce0),
            (0x4ee6d0, 0x4ee70d)] + wstringmap.RANGES   # (AddName's: window7cc8bc.py's list and the tree D insert)
           + dialog7cc5f4.merged(w7.LIST_RANGES + [(0x4beb60, 0x4bedd1), (0x481820, 0x4818b3), (0x65f538, 0x65f5b7), (0x65e59b, 0x65e60a), (0x65f66e, 0x65f6e1),
                                 (0x4bd090, 0x4bd25c), (0x658d9f, 0x658e04), (0x659710, 0x659740), (0x659d00, 0x659d53), (0x659d90, 0x659dbc),
                                 (0x65a9d0, 0x65aa00), (0x65aa20, 0x65aaa0), (0x65d42e, 0x65d4b0), (0x65f697, 0x65f6e1), (0x66bff7, 0x66c01b),
                                 (0x4bd260, 0x4bd3f5), (0x65f11d, 0x65f150), (0x46cf10, 0x46cf7d)]),
-          hooks=wstringmap.HOOKS)
+          hooks={**wstringmap.HOOKS, 0x4fa2a0: _recorder(5, 0)})   # (Walk's Sprite_WalkNav)
 CALLS = {'Move': 0x4ea370, 'Say': 0x4ea3f0, 'Move3': 0x4ea410, 'Cell': 0x4ebfb0, 'CellMove': 0x4eab40, 'GoTo': 0x4eac30, 'Arrive': 0x4ea240,
          'Find': 0x4ebf00, 'NameIs': 0x4f7d70, 'Move1': 0x4eace0, 'Room': 0x4eeb50, 'Enter': 0x4ea2d0, 'AddName': 0x4ee6d0,
-         'EnterChat': 0x4bd090, 'LeaveChat': 0x4bd260}
+         'EnterChat': 0x4bd090, 'LeaveChat': 0x4bd260, 'RoomButton': 0x4e5210, 'Walk': 0x4f7c90}
 AVATAR, CHAT, NAME, CHARS, ROOM = RAM + 0x20000, RAM + 0x21000, RAM + 0x21100, RAM + 0x21200, RAM + 0x21300
+PLAYER = RAM + 0x24000   # (Walk's chat player)
 WIN_A, WIN_B = RAM + 0x23000, RAM + 0x23200   # (EnterChat's windows)
 GROUND = RAM + 0x22000   # (Enter's ground: the map, its grid, heights and cells)
 TNODES, THEAD, TNIL, TCHARS, NAMEW = RAM + 0x40000, RAM + 0x41000, RAM + 0x41100, RAM + 0x41200, RAM + 0x41800   # (AddName's set and name)
@@ -85,6 +87,18 @@ def move1(r):
     imports(regions)
     x, y = [r.choice([0, 1, 0x7fff, 0x8000, 0xffff, 0x10000, r.getrandbits(16), r.getrandbits(32)]) for _ in range(2)]
     return Call(CALLS['Move1'], [AVATAR, x, y], regions, conv='t', ret='a')
+
+
+def walk(r):
+    """Walk (0x4f7c90): the walk mode +0x39c 1 or 2 mostly, Sprite_WalkNav a recorder (5 of 0) answering 0, 2 or another, the byte +0x3a0
+    set or not, the online chat [0x7cddec] the avatar (Move1's)."""
+    player = bytearray(r.bytes(0x3a4))
+    put(player, 0x39c, 'I', r.choice([1, 1, 2, 2, 0, 3, 4, r.getrandbits(32)]))
+    player[0x3a0] = r.choice([0, 1, r.getrandbits(8)])
+    regions = {AVATAR: put(bytearray(r.bytes(0x10)), 0, 'I', CHAT), PLAYER: player, 0x7cddec: struct.pack('<I', AVATAR)}
+    imports(regions)
+    set_return(regions[LOG], 5, r.choice([0, 0, 2, 2, 1, 3, r.getrandbits(32)]))
+    return Call(CALLS['Walk'], [PLAYER], regions, conv='t')
 
 
 def room(r):
@@ -248,6 +262,13 @@ def case(r):
         return move1(r)
     if op == 'Room':
         return room(r)
+    if op == 'Walk':
+        return walk(r)
+    if op == 'RoomButton':   # (Room's avatar the online chat [0x7cddec], made already)
+        c = room(r)
+        regions = dict(c.regions)
+        regions[0x7cddec] = struct.pack('<I', AVATAR)
+        return Call(CALLS[op], [], regions, ret='a')
     if op in ('Find', 'NameIs'):
         regions, things = names(r)
         if op == 'Find' or not things:

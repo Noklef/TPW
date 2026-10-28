@@ -78,9 +78,11 @@
 #include "../../src/game/gfx/surfbuf.h"
 #include "../../src/game/gfx/tga.h"
 #include "../../src/game/render/engineerrors.h"
+#include "../../src/game/online/chatavatar.h"
 #include "../../src/game/sprite/draw.h"
 #include "../../src/game/sprite/script.h"
 #include "../../src/game/ui/cursor.h"
+#include "../../src/game/ui/uimessage.h"
 #include "../../src/game/world/advisorscore.h"
 #include "../../src/game/world/research.h"
 #include "../../src/game/model/holder.h"
@@ -103,6 +105,7 @@
 #include "../../src/game/world/demolish.h"
 #include "../../src/game/world/tracksquare.h"
 #include "../../src/game/world/placeobject.h"
+#include "../../src/game/world/visitorsteps.h"
 #include "../../src/game/world/endthing.h"
 #include "../../src/game/world/parkopen.h"
 #include "../../src/game/world/gamemode.h"
@@ -403,7 +406,7 @@ const SharedGlobalsEnv kSharedGlobalsEnv = {reinterpret_cast<s32(__cdecl *)(void
 const ReleaseListEnv kReleaseListEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const SoundCategoryEnv kSoundCategoryEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const SoundDeviceEnv kSoundDeviceEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
-// The person's calls: the cseg angle 0x6e7074 stub_cdecl_log2; agent C's unported 0x501db0 the thiscall recorder 26 of 1 argument (recorder(26, 1), defined below), as tests/fncmp/visitorleave.py hooks 0x501db0.
+// The person's calls: the cseg angle 0x6e7074 stub_cdecl_log2; 0x501db0 (Visitor_SetState, ported; its own bench is visitorstate.py) the thiscall recorder 26 of 1 argument (recorder(26, 1), defined below), as tests/fncmp/visitorleave.py hooks 0x501db0.
 const PersonEnv kPersonEnv = {reinterpret_cast<u32(__cdecl *)(s32, s32)>((uintptr_t)(kStubs + 0x80)),
                               reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)(kStubs + 0x1000 + 0x400 * 1 + 0x20 * 26))};
 const PtrListEnv kPtrListEnv = {&heap_alloc};
@@ -497,6 +500,14 @@ using ThingKindFn = void(__fastcall *)(u8 *);
 const ThingDeleteEnv kThingDeleteEnv = {reinterpret_cast<ThingKindFn>((uintptr_t)recorder(10, 0)), reinterpret_cast<ThingKindFn>((uintptr_t)recorder(11, 0)),
                                         reinterpret_cast<ThingKindFn>((uintptr_t)recorder(12, 0)), reinterpret_cast<ThingKindFn>((uintptr_t)recorder(13, 0)),
                                         reinterpret_cast<ThingKindFn>((uintptr_t)recorder(14, 0)), reinterpret_cast<ThingKindFn>((uintptr_t)recorder(15, 0))};
+// Thing_HandleMessage's handlers by model - 1: the thiscall recorder k of 1 argument, k the index (models 6 and 8 share 0x4d4450: k 5), as
+// tests/fncmp/thingmessage.py hooks their addresses.
+using ThingMessageFn = void(__fastcall *)(u8 *, void *, u8 *);
+ThingMessageFn thing_message(u32 k) { return reinterpret_cast<ThingMessageFn>((uintptr_t)recorder(k, 1)); }
+const ThingMessageEnv kThingMessageEnv = {{thing_message(0), nullptr, thing_message(2), thing_message(3), thing_message(4), thing_message(5),
+                                           thing_message(6), thing_message(5), thing_message(8), thing_message(9), thing_message(10),
+                                           thing_message(11), thing_message(12), thing_message(13), thing_message(14), thing_message(15),
+                                           thing_message(16), thing_message(17), thing_message(18)}};
 // StaffAdvice_KindLow's sums (agent C's unported 0x4c8180 / 0x4c8150; staffadvice.py's k 16 / 17) and StaffHQ_HandleMessage's guard call
 // (agent C's unported 0x4d6260; staffadvice.py's k 18, thiscall of 1).
 using StaffSumFn = s32(__fastcall *)(u8 *, void *, u32);
@@ -1213,6 +1224,18 @@ int main(int argc, char **argv) {
     SoundCategory_SetEnv(&kSoundCategoryEnv);
     SoundDevice_SetEnv(&kSoundDeviceEnv);
     Person_SetEnv(&kPersonEnv);   // (tests/fncmp/personwalk.py hooks 0x6e7074 with fncmp._cdecl_log2)
+    // The chat player's step (ChatPlayer_StepWalk): Sprite_WalkNav the thiscall recorder 5 of 0, as tests/fncmp/chatavatar.py hooks 0x4fa2a0.
+    static const ChatAvatarEnv chatAvatarEnv = {reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)recorder(5, 0))};
+    ChatAvatar_SetEnv(&chatAvatarEnv);
+    // The interface object's message handler (UiObject_HandleMessage): what 0x7b51f0 is told the thiscall recorders 1-6, as tests/fncmp/uimessage.py
+    // hooks 0x481af0, 0x481520, 0x481530, 0x4818c0, 0x481920 and 0x481960.
+    static const UiMessageEnv uiMessageEnv = {reinterpret_cast<void(__fastcall *)(void *, void *, u8)>((uintptr_t)recorder(1, 1)),
+                                              reinterpret_cast<void(__fastcall *)(void *, void *, u32)>((uintptr_t)recorder(2, 1)),
+                                              reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)recorder(3, 1)),
+                                              reinterpret_cast<void(__fastcall *)(void *, void *, u32)>((uintptr_t)recorder(4, 1)),
+                                              reinterpret_cast<void(__fastcall *)(void *, void *, u32)>((uintptr_t)recorder(5, 1)),
+                                              reinterpret_cast<void(__fastcall *)(void *, void *, u32, u32)>((uintptr_t)recorder(6, 2))};
+    UiMessage_SetEnv(&uiMessageEnv);
     QueuePieces_SetEnv(&kQueuePiecesEnv);
     PathDrag_SetEnv(&kPathDragEnv);
     Demolish_SetEnv(&kDemolishEnv);
@@ -1224,7 +1247,14 @@ int main(int argc, char **argv) {
     GameMode_SetEnv(&kGameModeEnv);
     Things_SetDetachEnv(&kThingDetachEnv);
     Things_SetDeleteEnv(&kThingDeleteEnv);
+    Things_SetMessageEnv(&kThingMessageEnv);
     Staff_SetAdviceEnv(&kStaffAdviceEnv);
+    // Staff_WalkToRestArea's and Staff_Dismiss's calls: Sprite_WalkNav, Sprite_SpawnParticle and Thing_Delete the thiscall recorders 28 of
+    // 0, 29 of 1 and 30 of 0, as tests/fncmp/staffstate.py hooks 0x4fa2a0, 0x4fa470 and 0x50b780.
+    static const StaffWalkEnv staffWalkEnv = {reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)recorder(28, 0)),
+                                              reinterpret_cast<void(__fastcall *)(u8 *, void *, s32)>((uintptr_t)recorder(29, 1)),
+                                              reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(30, 0))};
+    Staff_SetWalkEnv(&staffWalkEnv);
     Rides_SetEnv(&kRidesEnv);
     CoasterLinks_SetEnv(&kCoasterLinksEnv);
     CellKind_SetEnv(&kCellKindEnv);
@@ -1307,6 +1337,17 @@ int main(int argc, char **argv) {
             t(26, 0), t(27, 0), t(16, 0), t(28, 0), t(20, 1), t(30, 2), t(22, 2), t(24, 1), t(25, 1), t(12, 0), t(13, 0), t(14, 0), t(15, 0),
             t(18, 3), t(19, 2), t(31, 3), t(31, 4), t(29, 0), t(30, 1)};
         MapClick_SetEnv(&mapClick);
+        // GameMode_StepBack's calls (src/game/world/gamemode.h GameModeStepEnv), as tests/fncmp/gamemodestep.py hooks their addresses.
+        static const GameModeStepEnv gameModeStep = {c(1, 0), t(2, 0), c(3, 4), c(4, 2), c(5, 2), c(6, 1), c(7, 4), c(8, 4)};
+        GameMode_SetStepEnv(&gameModeStep);
+        // PlaceObject_Footprint's calls (src/game/world/placeobject.h PlaceFootprintEnv), as tests/fncmp/placefootprint.py hooks their addresses
+        // (0x532fc0 the track square test's recorder too).
+        static const PlaceFootprintEnv footprint = {t(9, 3), t(28, 2), t(10, 0), t(11, 0), t(12, 4), c(13, 1), c(14, 1), c(15, 6)};
+        PlaceFootprint_SetEnv(&footprint);
+        // The visitor steps' calls (src/game/world/visitorsteps.h VisitorStepsEnv), as tests/fncmp/visitorsteps.py hooks their addresses
+        // (Visitor_SetState the person env's recorder 26).
+        static const VisitorStepsEnv visitorSteps = {t(1, 0), t(2, 2), t(3, 1), t(4, 1), t(5, 0), t(26, 1), t(6, 1), t(7, 1), t(8, 4), t(9, 1), t(10, 2)};
+        VisitorSteps_SetEnv(&visitorSteps);
     }
     // 0x564650 (the engine debug log, a file): stub_cdecl_log, as tests/fncmp/engineerrors.py hooks it (the text hashed: strings(log, 0x3f, 1)).
     static const EngineErrorsEnv engineErrors = {reinterpret_cast<void(__cdecl *)(const char *)>(&stub_cdecl_log)};

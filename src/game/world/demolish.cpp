@@ -6,6 +6,7 @@
 #include "../core/globals.h"
 #include "../core/soundplay.h"
 #include "../math/x87.h"
+#include "cellkind.h"
 #include "cellrun.h"
 #include "gamemode.h"
 #include "mapcell.h"
@@ -24,12 +25,12 @@ bool lineType(s32 type) { return type == 4 || type == 9 || type == 10; }
 
 template <typename F> F game(u32 address) { return reinterpret_cast<F>((uintptr_t)address); }
 const DemolishEnv kGameEnv = {&Path_CheckDeadEnds,
-                              game<void(__fastcall *)(u8 *, void *, u32, u32)>(0x005367a0),
+                              &MapCell_Clear,
                               game<void(__cdecl *)(u8 *)>(0x00530120),
                               &GameMode_Set,
                               &GameMode_SetOnly,
                               game<u32(__cdecl *)(u8 *, u32)>(0x0052fe50),
-                              game<void(__fastcall *)(u8 *, void *, u32, u32, u32)>(0x0053b280),
+                              reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32, u32)>(&TrackCell_Remove),
                               game<void(__cdecl *)(u32)>(0x00545610)};
 const DemolishEnv *g_env = &kGameEnv;
 
