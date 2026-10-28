@@ -1296,6 +1296,9 @@ int main(int argc, char **argv) {
             t(26, 0), t(27, 0), t(16, 0), t(28, 0), t(20, 1), t(30, 2), t(22, 2), t(24, 1), t(25, 1), t(12, 0), t(13, 0), t(14, 0), t(15, 0),
             t(18, 3), t(19, 2), t(31, 3), t(31, 4), t(29, 0), t(30, 1)};
         MapClick_SetEnv(&mapClick);
+        // GameMode_StepBack's calls (src/game/world/gamemode.h GameModeStepEnv), as tests/fncmp/gamemodestep.py hooks their addresses.
+        static const GameModeStepEnv gameModeStep = {c(1, 0), t(2, 0), c(3, 4), c(4, 2), c(5, 2), c(6, 1), c(7, 4), c(8, 4)};
+        GameMode_SetStepEnv(&gameModeStep);
     }
     // 0x564650 (the engine debug log, a file): stub_cdecl_log, as tests/fncmp/engineerrors.py hooks it (the text hashed: strings(log, 0x3f, 1)).
     static const EngineErrorsEnv engineErrors = {reinterpret_cast<void(__cdecl *)(const char *)>(&stub_cdecl_log)};
