@@ -8,6 +8,7 @@
 #include "../math/matrix.h"
 #include "../math/x87.h"
 #include "../model/gridfit.h"
+#include "../model/highlight.h"
 #include "../model/parts.h"
 #include "../motion/animator.h"
 #include "contacts.h"
@@ -15,6 +16,7 @@
 #include "helpers.h"
 #include "../core/globals.h"
 #include "../terrain/land.h"
+#include "../world/cellmessage.h"
 #include "../world/queuepieces.h"
 #include "placecheck.h"
 #include "registry.h"
@@ -27,7 +29,8 @@ template <typename T> T &at(const void *p, u32 offset) {
 
 template <typename T> T &global(uintptr_t address) { return *reinterpret_cast<T *>(address); }
 
-const TrainEnv kGameEnv = {&Animator_Update};
+const TrainEnv kGameEnv = {&Animator_Update, &Train_RemoveCar, &Highlight_Unflash, &Contacts_ClearPair, &Car_Free, &CoasterLink_RemoveEntry,
+                           &Map_SetRideCell, &Train_SetCouplings, &Train_PlaceCars, &CoasterEdit_SetBounds};
 const TrainEnv *g_trainEnv = &kGameEnv;
 
 u8 *RideAt(u32 index) { return reinterpret_cast<u8 *const *>(0x007a4610)[index]; }
@@ -333,6 +336,82 @@ void __cdecl Car_Free(u8 *car, const u8 *other) {
     }
     if (Coaster_SelectedCar() == car) Coaster_SelectCar(nullptr);
     GlobalMem_Free(car);
+}
+
+void __cdecl Coaster_DeleteCar(u8 *owner, u8 *car) {
+    const TrainEnv *const env = g_trainEnv;
+    u8 *const train = at<u8 *>(car, 0x100);
+    env->removeCar(owner, car);
+    if (at<u8 *>(owner, 0x144) == car) {
+        u8 *const ride = RideAt(at<u32>(car, 0x70));
+        if (at<u32>(ride, 4) & 0x4000000) env->unflash(ride);
+        at<u8 *>(owner, 0x144) = nullptr;
+    }
+    if (at<u8 *>(owner, 0x5c) == car) {
+        u8 *p = at<u8 *>(car, 0x68);
+        while (p && (at<u8>(p, 8) & 0x40)) p = at<u8 *>(p, 0x68);
+        at<u8 *>(owner, 0x5c) = p;
+    }
+    if (u8 *const prev = at<u8 *>(car, 0x68)) at<u8 *>(prev, 0x64) = at<u8 *>(car, 0x64);
+    if (u8 *const next = at<u8 *>(car, 0x64)) at<u8 *>(next, 0x68) = at<u8 *>(car, 0x68);
+    if (at<u8 *>(owner, 0x54) == car) at<u8 *>(owner, 0x54) = at<u8 *>(car, 0x64);
+    if (at<u8 *>(owner, 0x58) == car) at<u8 *>(owner, 0x58) = at<u8 *>(car, 0x68);
+    const u32 reversed = at<u32>(owner, 0x3c) & 2;
+    if (at<u8 *>(car, 0x68)) at<u8 *>(owner, 0x60) = at<u8 *>(car, 0x68);   // (the same either way round)
+    if (at<u8 *>(car, 0x64)) at<u8 *>(owner, 0x64) = at<u8 *>(car, 0x64);
+    u8 *end = reversed ? at<u8 *>(owner, 0x60) : at<u8 *>(owner, 0x58);
+    if (end) {
+        if (at<u8>(at<u8 *>(end, 0x100), 4) & 1) {
+            at<u32>(owner, 0x118) = at<u32>(at<u8 *>(owner, 4), 0xa4);
+            if (!(at<u32>(owner, 0x3c) & 2)) at<u32>(owner, 0x3c) &= ~4u;
+        } else {
+            if (at<u8>(end, 8) & 0x40) {
+                do end = at<u8 *>(end, 0x68);
+                while (end && (at<u8>(end, 8) & 0x40));
+            }
+            // sic: with every car before it flagged 0x40, end is null and read
+            const u8 *const model = at<u8 *>(RideAt(at<u32>(end, 0x70)), 8);
+            const u32 part = at<u32>(at<u8 *>(at<u8 *>(end, 0x100), 0x18), 0x2c);
+            const u8 *const entry = at<u8 *>(at<u8 *>(at<u8 *>(model, 0x28), 4), part * 0x14 + 4);
+            at<u32>(owner, 0x118) = X87_FloatThrough(entry ? at<u32>(entry, 0x34) : global<u32>(0x006fe1b4));
+        }
+    }
+    at<u32>(owner, 0x44) -= 1;
+    if (u8 *p = at<u8 *>(car, 0x64)) {
+        const u8 *const before = at<u8 *>(p, 0x68);
+        u32 n = before ? at<u32>(before, 0) + 1 : 0;
+        do {
+            at<u32>(p, 0) = n;
+            at<float>(p, 0x6c) = (float)(double)n;   // (fild qword (n, 0); fstp)
+            ++n;
+            p = at<u8 *>(p, 0x64);
+        } while (p);
+    }
+    const u32 flags = at<u32>(car, 8);
+    if (flags & 0x40) {
+        const u8 *const game = global<u8 *>(0x00790fec);
+        if (game && (*at<const u8 *>(game, 4) & 2)) {
+            if (flags & 0x80) {
+                global<u32>(0x0079c664) = 0;
+                global<u32>(0x0079c658) &= ~0x40u;
+            } else {
+                global<u32>(0x0079c664) = 1;
+                global<u32>(0x0079c658) |= 0x40;
+            }
+        }
+    }
+    env->clearContacts(car, owner);
+    if (Coaster_SelectedCar() == car) Coaster_SelectCar(nullptr);
+    env->freeCar(car, at<u8 *>(train, 0x18));
+    if (!at<u32>(train, 0x30)) {
+        env->removeEntry(owner, train, 0);
+    } else {
+        env->setRideCell(reinterpret_cast<uintptr_t>(owner), at<s32>(train, 0xc), at<s32>(train, 0x10), at<u32>(at<u8 *>(train, 0x34), 0x70), 0);
+        env->setCouplings(at<u32>(train, 0x18), train);
+        env->placeCars(at<u8 *>(train, 0x18), train, 0, 0);
+    }
+    env->setBounds();
+    Flags_SetChanged(reinterpret_cast<u32 *>(owner), 1);
 }
 }
 
