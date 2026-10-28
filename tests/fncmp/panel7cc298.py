@@ -18,7 +18,12 @@
 # Stats7cc258 (0x4b01d0, slot 5 of the panel 0x7cc258's vtable 0x6ffc68, src/game/ui/panel7cc258): the same world with that panel's
 # children 0xc070 / 0xc076-0xc079 / 0xc07c / 0xc07d (always there) among its decoys, the definition's kind +0x158 for
 # Object_SettingsValue (1 / 3 negating its second setting) 0-3 or any.
-# usage: panel7cc298.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Update,Stats,Stats7cc258)
+# Stats7cc3b0 (0x4b58b0, slot 5 of the panel 0x7cc3b0's vtable 0x6ffe50, src/game/ui/panel7cc3b0): the window +0x14 (now and then none)
+# with the children 0x51b / 0x51e / 0x514 / 0x51f / 0x517 / 0x513 / 0x515 (always there; slot 9 hashing the 32 bytes of the text it is
+# sent, 0x51f's +0x98 a recorder (k 25: the event's word +4) or none) among decoys; the staff member [0x7c2658] as stafflist.py's staff()
+# with its float +0x1fc as +0x1f8 and its hire date +0x1f0 object.py's clock() date; stafflist.py's texts() (the record table [0x78baa4],
+# the wage table 0x785300). The formatter the log stub with its number argument hashed (text_args()).
+# usage: panel7cc298.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Update,Stats,Stats7cc258,Stats7cc3b0)
 import os
 import struct
 import sys
@@ -35,8 +40,12 @@ from dialog7cb398 import KVTABLE, children, window  # noqa: E402
 from language import text  # noqa: E402
 from window import RANGES as WINDOW_RANGES, shown_env  # noqa: E402
 from window705a50 import EVENT_MASK, INNER, NOTIFY_MASK, RANGES as BUTTON_RANGES, look, window as button  # noqa: E402
+import stafflist  # noqa: E402
 
-CALLS = {'Update': 0x4b1ee0, 'Stats': 0x4b16c0, 'Stats7cc258': 0x4b01d0}
+CALLS = {'Update': 0x4b1ee0, 'Stats': 0x4b16c0, 'Stats7cc258': 0x4b01d0, 'Stats7cc3b0': 0x4b58b0}
+STAFF_RANGES = [(0x485ec0, 0x485f70), (0x4b58b0, 0x4b5a70), (0x4f8690, 0x4f8740), (0x505b70, 0x505be0), (0x5064f0, 0x506590), (0x506870, 0x506900),
+                (0x506eb0, 0x506ee0), (0x5fc530, 0x5fc580), (0x5fc660, 0x5fc750), (0x65d3a3, 0x65d41c), (0x65d7bc, 0x65d832), (0x67c320, 0x67c3e0),
+                (0x67c7f0, 0x67c840), (0x6acb70, 0x6accb0), (0x6adc80, 0x6add40), (0x6b00e0, 0x6b0140), (0x5da3c0, 0x5da3c1), (0x67a830, 0x67a860)]
 STATS_RANGES = [(0x412e90, 0x412f00), (0x43e0b0, 0x43e0f0), (0x441910, 0x441980), (0x485f60, 0x4861e0), (0x495cf0, 0x495d70), (0x4b16c0, 0x4b1b60),
                 (0x4cd880, 0x4cd9d0), (0x4dd4e0, 0x4dd510), (0x4de4a0, 0x4de680), (0x4e0220, 0x4e03a0), (0x4e03d0, 0x4e0400), (0x4e0440, 0x4e0460),
                 (0x4e0560, 0x4e0870), (0x4e1c70, 0x4e1e10), (0x4e1e30, 0x4e2190), (0x4e2290, 0x4e2450), (0x4e2710, 0x4e2750), (0x4f8690, 0x4f8740),
@@ -45,7 +54,7 @@ STATS_RANGES = [(0x412e90, 0x412f00), (0x43e0b0, 0x43e0f0), (0x441910, 0x441980)
                 (0x4b01d0, 0x4b063e), (0x436860, 0x436890), (0x4e1a30, 0x4e1b50), (0x506580, 0x506660), (0x50b350, 0x50b370)]
 B = Bench(merged([(0x4b1ee0, 0x4b20a4), (0x4e0440, 0x4e0450), (0x4e21b0, 0x4e21b7), (0x4e1a00, 0x4e1a07), (0x4e1a10, 0x4e1a17), (0x4dd4e0, 0x4dd4fb),
                   (0x412e90, 0x412eea), (0x485b00, 0x485b40), (0x6adc80, 0x6add25), (0x6ace60, 0x6acea0)] + WINDOW_RANGES + BUTTON_RANGES
-                 + STATS_RANGES + CLOCK_RANGES), hooks={0x6acd60: _cdecl_log4})
+                 + STATS_RANGES + CLOCK_RANGES + STAFF_RANGES), hooks={0x6acd60: _cdecl_log4})
 PANEL, OBJECT, THING, ROOT, KIDS, DECOYS = 0x33100000, 0x33110000, 0x33120000, 0x33130000, 0x33140000, 0x33150000
 OBJS, DEFS, ITEMS, TEXTS = 0x33160000, 0x7890a0, 0x33170000, 0x33180000
 IDS = [0xa08e, 0xa08f, 0xa090, 0xa0a5, 0xa0a6, 0xa0a7]
@@ -157,8 +166,46 @@ def stats_case(r, op='Stats'):
     return Call(CALLS[op], [PANEL], regions, conv='t', ret='v')
 
 
+STAFF_IDS = [0x51b, 0x51e, 0x514, 0x51f, 0x517, 0x513, 0x515]
+
+
+def staff_case(r):
+    """Stats7cc3b0's world (the module comment)"""
+    regions = {}
+    date = bytearray(0x60)
+    clock(r, regions, date)
+    log = regions[LOG]
+    text_args(log, 1)
+    blob_bytes(log, 9, 0, 0xffffffff)
+    blob_bytes(log, 25, 1, 0x30)
+    staff = bytearray(r.bytes(0x220))
+    stafflist.staff(r, staff, 0)
+    staff[0x1fc:0x200] = staff[0x1f8:0x1fc] if r.random() < 0.3 else struct.pack('<f', r.choice([0.0, 1.0, 50.5, 99.9, 100.0, 255.9, 256.0, -1.0]))
+    staff[0x1f0:0x1f8] = date[0x18:0x20]
+    regions[THING] = staff
+    regions[0x7c2658] = struct.pack('<I', THING)
+    stafflist.texts(r, regions)
+    regions[0x78ba94] = struct.pack('<I', r.getrandbits(32))
+    kids = [(KIDS + 0x200 * k, ident) for k, ident in enumerate(STAFF_IDS)]
+    for addr, ident in kids:
+        window(r, regions, addr, ROOT, 0)
+        if ident == 0x51f and r.random() < 0.8:
+            put(regions[addr], 0x98, 'I', OBJS + 0x200)
+    regions[OBJS + 0x200] = struct.pack('<I', OBJS + 0x240) + r.bytes(0x3c)
+    regions[OBJS + 0x240] = put(vtable({}, size=8), 0xc, 'I', recorder(25, 2))
+    regions[KVTABLE] = vtable({7: 1, 9: 1})
+    window(r, regions, ROOT, 0, 0)
+    put(regions[ROOT], 0x5c, 'I', children(r, regions, kids, ROOT, DECOYS, [0, 0x516, 0x518, 0x51a, 0x51c, 0x51d]))
+    panel = bytearray(r.bytes(0x40))
+    put(panel, 0x14, 'I', ROOT if r.random() < 0.95 else 0)
+    regions[PANEL] = panel
+    return Call(CALLS['Stats7cc3b0'], [PANEL], regions, conv='t', ret='v')
+
+
 def case(r):
     op = r.deal(OPS)
+    if op == 'Stats7cc3b0':
+        return staff_case(r)
     if op != 'Update':
         return stats_case(r, op)
     log = log_region()

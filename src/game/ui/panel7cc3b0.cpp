@@ -2,9 +2,14 @@
 
 #include <cstdint>
 
+#include "../core/idmaps.h"
+#include "../core/language.h"
+#include "../core/textarg.h"
+#include "../core/vcall.h"
 #include "../world/advisor.h"
 #include "../world/camera.h"
 #include "../world/ridesweep.h"
+#include "../world/staff.h"
 #include "dialogs.h"
 #include "guirect.h"
 #include "hoverlabel.h"
@@ -64,5 +69,33 @@ void __fastcall Panel7cc3b0_Dress(u8 *self) {
     part(window(self), TextPart6ff3b0_Ctor, 0x51e, 0);
     bar(window(self), kRideStatBar, 0x515, 0x1f4);
     textNone(window(self), 0x517);
+}
+
+void __fastcall Panel7cc3b0_ShowStats(u8 *self) {
+    u8 *const staff = *reinterpret_cast<u8 **>((uintptr_t)0x007c2658);
+    if (!window(self)) return;
+    u32 index = Mode19c_ToIndex(staff);
+    const s32 days = Staff_AgeDays(staff);
+    u8 age[0x14];   // (a number argument, as TextArgInt_Ctor builds it inline)
+    *reinterpret_cast<u32 *>(age) = 0x006ff170;
+    *reinterpret_cast<u32 *>(age + 4) = 0x5641524d;
+    *reinterpret_cast<u32 *>(age + 8) = 8;
+    *reinterpret_cast<s32 *>(age + 0xc) = days;
+    *reinterpret_cast<u32 *>(age + 0x10) = 0;
+    TextFormat().format(*reinterpret_cast<void **>((uintptr_t)0x0078ba94), reinterpret_cast<u16 *>((uintptr_t)0x007ba058), 0x3fff, 0x1bb, age);
+    vcall<void>(Window_FindChild(window(self), nullptr, 0x51b), 0x24, 0x007ba058u);   // (none of the children checked)
+    u8 *child = Window_FindChild(window(self), nullptr, 0x51e);
+    vcall<void>(child, 0x1c, (u32)Staff_GetWage(staff));
+    child = Window_FindChild(window(self), nullptr, 0x514);
+    vcall<void>(child, 0x1c, (Staff_GradeLevel(staff) << 10) / 100u);
+    child = Window_FindChild(window(self), nullptr, 0x51f);
+    Window_Notify1(child, nullptr, Index_ToCode485ec0(index));
+    child = Window_FindChild(window(self), nullptr, 0x517);
+    if (index == 1 && !Staff_HasPatrolRegion(staff)) index = 0;
+    Language_SetObjectText(child, index);
+    child = Window_FindChild(window(self), nullptr, 0x513);
+    vcall<void>(child, 0x1c, (u32)((s32)((u32)(u8)(long long)*reinterpret_cast<const float *>(staff + 0x1f8) << 10) / 100));
+    child = Window_FindChild(window(self), nullptr, 0x515);
+    vcall<void>(child, 0x1c, (u32)((s32)((u32)(u8)(long long)*reinterpret_cast<const float *>(staff + 0x1fc) << 10) / 100));
 }
 }
