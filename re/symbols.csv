@@ -6589,6 +6589,15 @@ address,name,kind,confidence,notes
 0x004e9fa0,ChatToken_Text,function,low,"reimplemented (src/game/online/chatcommand); thiscall on a chat token (out), pops 4; the token's std::wstring (+0x10) copied into out (StdWString_CtorCopy); returns out (name invented)"
 0x004ea890,ChatAvatar_Notice,function,low,"reimplemented (src/game/online/chatcommand); thiscall (a std::wstring by value, colour), pops 0x14; censored when the global save's byte +0x25 is set (0x5d3230), added to the chat window (Window7cc8bc_ChatAddStd) and released (name invented)"
 0x004ec030,ChatAvatar_RunCommand,function,low,"reimplemented (src/game/online/chatcommand); thiscall (tokens), pops 4; a typed chat line's command run: the Chat's methods (Say, Tell, RoomShout, Ignore, buddies, Page, AFK, Goto, Locate, the vote) or a notice (name invented)"
+0x004ead00,ChatAvatar_Blackmark,function,low,"reimplemented (src/game/online/chatcommand); thiscall on the chat avatar (name), pops 4; the command 0xe (Blackmark) run on the name (tokens built as CountedPairs) (name invented)"
+0x004eae80,ChatAvatar_Page,function,low,"reimplemented (src/game/online/chatcommand); thiscall on the chat avatar (name), pops 4; the command 0x11 (Page) run on the name (name invented)"
+0x004eb000,ChatAvatar_Locate,function,low,"reimplemented (src/game/online/chatcommand); thiscall on the chat avatar (name), pops 4; the command 0x14 (Locate) run on the name (name invented)"
+0x004eb180,ChatAvatar_Goto,function,low,"reimplemented (src/game/online/chatcommand); thiscall on the chat avatar (name), pops 4; the command 0x13 (Goto) run on the name (name invented)"
+0x004eb450,ChatAvatar_ToggleIgnore,function,low,"reimplemented (src/game/online/chatcommand); thiscall on the chat avatar (name), pops 4; the command 0xd (UnIgnore / Ignore) run on the name (name invented)"
+0x004eb300,ChatAvatar_Vote,function,low,reimplemented (src/game/online/chatcommand); thiscall on the chat avatar; the command 0x15 (the vote) run alone (name invented)
+0x004eb5d0,ChatAvatar_ToggleEarmuffs,function,low,reimplemented (src/game/online/chatcommand); thiscall on the chat avatar; the command 0xc (the earmuffs toggled) run alone (name invented)
+0x004ee590,ChatAvatar_NoticeText,function,low,"reimplemented (src/game/online/chatcommand); thiscall on the chat avatar (text), pops 4; a copy of the text shown with ChatAvatar_Notice in colour 7 (name invented)"
+0x004eea50,ChatAvatar_GotoDone,function,low,reimplemented (src/game/online/chatcommand); thiscall on the chat avatar; notice 0x9d and the goto-in-progress byte +0xef8 cleared (name invented)
 0x005d8190,LobbyModel_SetPosition,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (v): the lobby model's (+4: 0x7a4610 index) matrix (+8 -> +4 -> +0x78, +0x10) translation = v[0..2] (x87 loads, all read first)"
 0x005d8380,LobbyModel_TurnY,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (angle): Matrix_RotateEulerFast(the lobby model's matrix, 2 ""Y"", &angle)"
 0x005d83b0,LobbyModel_SetScale,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (x, y, z): Holder_SetScale(the lobby model's entry +8, (x, y, z))"

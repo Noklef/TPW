@@ -4,6 +4,7 @@
 
 #include "../core/accessors.h"
 #include "../core/buffers.h"
+#include "../core/countedpair.h"
 #include "../core/crt.h"
 #include "../core/gameheap.h"
 #include "../core/globalsave.h"
@@ -267,6 +268,36 @@ void gotoName(u8 *avatar, const u8 *tokens) {
     reset(&key, 1);
 }
 
+// The command run alone (name null) or on a name, its tokens made as the callbacks 0x4ead00-0x4eb5d0 make them (see the header).
+void runOn(u8 *avatar, u32 command, const StdWString *name) {
+    const u8 allocator = (u8)(uintptr_t)name;   // (the name's address's low byte, sic; alone: stack garbage in the original)
+    alignas(4) u8 tokens[16] = {};               // a vector of CountedPairs: the allocator byte, first, last, end
+    tokens[0] = allocator;
+    CountedPair t;
+    t.narrow.allocator = allocator;
+    StdString_Tidy(&t.narrow, nullptr, 0);
+    t.wide.allocator = allocator;
+    reset(&t.wide, 0);
+    t.value = command;
+    CountedPairVector_InsertN(tokens, nullptr, at<u32>(tokens, 8), 1, &t);
+    if (name) {
+        reset(&t.wide, 1);
+        StdString_Tidy(&t.narrow, nullptr, 1);
+        StdWString copy;
+        copy.allocator = *reinterpret_cast<const u8 *>(name);
+        reset(&copy, 0);
+        StdWString_AssignSub(&copy, nullptr, name, 0, npos());
+        CountedPair_CtorWide(&t, nullptr, copy);
+        CountedPairVector_InsertN(tokens, nullptr, at<u32>(tokens, 8), 1, &t);
+    }
+    reset(&t.wide, 1);   // (the original's releases, some inlined: the same)
+    StdString_Tidy(&t.narrow, nullptr, 1);
+    ChatAvatar_RunCommand(avatar, nullptr, tokens);
+    for (u8 *e = at<u8 *>(tokens, 4); e != at<u8 *>(tokens, 8); e += 0x24)
+        CountedPair_Clear(e);
+    GameHeap_Free(at<u8 *>(tokens, 4));
+}
+
 }  // namespace
 
 extern "C" {
@@ -288,6 +319,25 @@ void __fastcall ChatAvatar_Notice(u8 *, void *, StdWString text, u32 color) {
         else
             GameHeap_Free(reinterpret_cast<u8 *>(text.ptr) - 2);
     }
+}
+
+void __fastcall ChatAvatar_Blackmark(u8 *avatar, void *, const StdWString *name) { runOn(avatar, 0xe, name); }
+void __fastcall ChatAvatar_Page(u8 *avatar, void *, const StdWString *name) { runOn(avatar, 0x11, name); }
+void __fastcall ChatAvatar_Locate(u8 *avatar, void *, const StdWString *name) { runOn(avatar, 0x14, name); }
+void __fastcall ChatAvatar_Goto(u8 *avatar, void *, const StdWString *name) { runOn(avatar, 0x13, name); }
+void __fastcall ChatAvatar_ToggleIgnore(u8 *avatar, void *, const StdWString *name) { runOn(avatar, 0xd, name); }
+void __fastcall ChatAvatar_Vote(u8 *avatar) { runOn(avatar, 0x15, nullptr); }
+void __fastcall ChatAvatar_ToggleEarmuffs(u8 *avatar) { runOn(avatar, 0xc, nullptr); }
+
+void __fastcall ChatAvatar_NoticeText(u8 *avatar, void *, const StdWString *text) {
+    StdWString copy;
+    StdWString_CtorCopy(&copy, nullptr, text);
+    ChatAvatar_Notice(avatar, nullptr, copy, 7);
+}
+
+void __fastcall ChatAvatar_GotoDone(u8 *avatar) {
+    notice(avatar, 0x9d, kAssignGrow);
+    at<u8>(avatar, 0xef8) = 0;
 }
 
 StdWString *__fastcall ChatCommand_AssignChars(StdWString *s, void *, const u16 *chars, u32 n) {

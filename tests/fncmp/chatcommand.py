@@ -13,7 +13,12 @@
 # ChatCommand_AssignChars), session constructor (0x5b50b0: answering the session) and dialog (0x47f020: its message hashed but byte 7).
 # The vote's session [0xf7d88c] (none: made) has its +0x3a4 object (+0x48 the key, +8 y) and the owner +0xe0 whose list always holds an
 # item with the key (its +0x60 flag set or not); the Vote's constructor answering 0 now and then, Connect 1 or not.
-# usage: chatcommand.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Text,Notice,Run)
+# The callbacks (0x4ead00-0x4eb5d0: Blackmark, Page, Locate, Goto, Ignore with a name; Vote, Earmuffs alone): Run's world for their
+# command, the name a std::wstring (at an address of any low byte: the allocator bytes' source) of the avatar's names or not; their tokens
+# built by the originals' CountedPair inserts (countedpair.py's ranges) on the heap and run by 0x4ec030. NoticeText (0x4ee590): the name
+# as the text; GotoDone (0x4eea50): Run's world (notice 0x9d).
+# usage: chatcommand.py [CASES [SEED]] [--wild|--both] [--show N]
+#   (env OPS=Text,Notice,Run,Blackmark,Page,Locate,Goto,Ignore,Vote,Earmuffs,NoticeText,GotoDone)
 import os
 import struct
 import sys
@@ -31,13 +36,21 @@ GLOBALSAVE = [(0x5af7f0, 0x5af80b), (0x5afc30, 0x5afc5a), (0x5b09a0, 0x5b09b4), 
 WSTDSTRING = [(0x4f21d0, 0x4f23e2), (0x4f23f0, 0x4f2437), (0x4f39e0, 0x4f3b06), (0x4f6080, 0x4f6086), (0x4f6090, 0x4f618e), (0x4f6190, 0x4f6266),
               (0x479150, 0x47919d), (0x47ba30, 0x47ba50), (0x67acd0, 0x67acee), (0x4f0250, 0x4f0367), (0x479230, 0x479256), (0x4f7720, 0x4f776f),
               (0x4f7900, 0x4f7966), (0x67c8d0, 0x67c9f0)]
+COUNTEDPAIR = [(0x405280, 0x405390), (0x45b380, 0x45b5f0), (0x45b680, 0x45b9b0), (0x479230, 0x479270), (0x4e6410, 0x4e6560), (0x4f23f0, 0x4f2450),
+               (0x4f5860, 0x4f5988), (0x4f6080, 0x4f60a0), (0x67acd0, 0x67ad00), (0x4f5560, 0x4f5852), (0x4e51a0, 0x4e520e),
+               (0x4f67b0, 0x4f67e1), (0x4f67f0, 0x4f6819), (0x4f7410, 0x4f7423), (0x4f6e70, 0x4f6ee9), (0x4f36c0, 0x4f36e1)]
 B = Bench([(0x4e9fa0, 0x4ea0d3), (0x4ea890, 0x4ea998), (0x4ec030, 0x4ee584), (0x4051d0, 0x405272), (0x4a77a0, 0x4a77d0), (0x5b96b0, 0x5b96b7),
            (0x5bc9c0, 0x5bc9e7), (0x5b6490, 0x5b6494), (0x41ce80, 0x41ce94), (0x4bd450, 0x4bd492), (0x4bae30, 0x4bae3f), (0x6918f0, 0x691a30),
-           (0x691ba0, 0x691ce0)] + wstringmap.RANGES + WSTDSTRING + GLOBALSAVE,
+           (0x691ba0, 0x691ce0), (0x4ead00, 0x4eb720), (0x4ee590, 0x4ee5b5), (0x4eea50, 0x4eeb49), (0x4ea740, 0x4ea7d9)]
+          + wstringmap.RANGES + WSTDSTRING + GLOBALSAVE + COUNTEDPAIR,
           hooks={**wstringmap.HOOKS, 0x6acd60: _recorder(25, 5, cdecl=True), 0x5d3230: _recorder(21, 2), 0x481800: _recorder(24, 2, com=True),
                  0x5b50b0: _recorder(22, 0), 0x47f020: _recorder(26, 8, cdecl=True)})
 CALLS = {'Text': 0x4e9fa0, 'Notice': 0x4ea890, 'Run': 0x4ec030}
-AVATAR, CHAT, TOKVEC, TOKENS, OUT = RAM, RAM + 0x1000, RAM + 0x1100, RAM + 0x1200, RAM + 0x1300
+# The callbacks: the address, the command they run (Run's world), whether they take a name (a std::wstring *)
+CALLBACKS = {'Blackmark': (0x4ead00, 0xe, True), 'Page': (0x4eae80, 0x11, True), 'Locate': (0x4eb000, 0x14, True), 'Goto': (0x4eb180, 0x13, True),
+             'Ignore': (0x4eb450, 0xd, True), 'Vote': (0x4eb300, 0x15, False), 'Earmuffs': (0x4eb5d0, 0xc, False),
+             'NoticeText': (0x4ee590, 0x40, True), 'GotoDone': (0x4eea50, 0x40, False)}
+AVATAR, CHAT, TOKVEC, TOKENS, OUT, NAMEW = RAM, RAM + 0x1000, RAM + 0x1100, RAM + 0x1200, RAM + 0x1300, RAM + 0x1400
 POOL = RAM + 0x2000   # the strings' blocks: a count byte, then the characters
 TREES = {'D': (RAM + 0x3000, 0xe80), 'B': (RAM + 0x4000, 0xe90), 'I': (RAM + 0x5000, 0xea0)}   # nodes (+0x800 the head, +0x900 the nil), the avatar's offset
 GSAVE, SESSION, OBJ, OWNER, ITEMS, HOST, NILS = RAM + 0x6000, RAM + 0x6100, RAM + 0x6600, RAM + 0x6700, RAM + 0x6800, RAM + 0x6a00, RAM + 0x6b00
@@ -213,7 +226,7 @@ def vote(r, regions, log):
     set_return(log, 18, r.choice([1, 1, 1, 0, 2]))
 
 
-def run_case(r):
+def run_case(r, op='Run'):
     pool = Pool(r)
     avatar = bytearray(r.bytes(0xf10))
     put(avatar, 0, 'I', CHAT)
@@ -237,7 +250,7 @@ def run_case(r):
     avatar[0xeb0] = r.choice([0, 0, 1, 0xff])
     avatar[0xeb1] = r.choice([0, 0, 1, 0xff])
     avatar[0xef8] = r.choice([0, 0, 0, 1, 2])
-    command = r.deal(COMMANDS)
+    command = r.deal(COMMANDS) if op == 'Run' else CALLBACKS[op][1]
     put(avatar, 0xec4, 'I', r.getrandbits(32) if r.random() < 0.15 else 0)
     candidates = people + dnames + sets['B'] + sets['I'] + [own]
     toks = bytearray(r.bytes(0x90))
@@ -254,6 +267,13 @@ def run_case(r):
     vec = put(bytearray(r.bytes(0x10)), 4, '3I', TOKENS, last & 0xffffffff, TOKENS + 0x90)
     if count == 0 and r.random() < 0.5:
         put(vec, 4, '2I', 0, 0)
+    if op != 'Run':   # (the callbacks' name: a std::wstring at an address with any low byte, one of the avatar's names or not)
+        at = NAMEW + r.randrange(0x40)
+        word = bytearray(r.bytes(0x10))
+        pool.string(word, 0, flip(r.choice(candidates), 0.4, r) if r.random() < 0.8 else name(r), null=0.5)
+        chars = struct.unpack_from('<I', word, 4)[0]
+        if chars and op != 'NoticeText':   # (shared, not copied: no block of its own before the vector's, see ignore below)
+            pool.buf[chars - POOL - 1] = r.choice([0, 0, 1, 2])
     log = log_region()
     regions.update({AVATAR: avatar, CHAT: r.bytes(0x20), TOKVEC: vec, TOKENS: toks, POOL: pool.buf, HEAP: heap(0x4000),
                     0x7ced24: struct.pack('<5I', nil_d, TREES['D'][0] + 0x800, nil_b, TREES['B'][0] + 0x800, nil_i),
@@ -264,7 +284,19 @@ def run_case(r):
     set_return(log, 21, r.getrandbits(32))
     if command == 0x15:
         vote(r, regions, log)
-    return Call(CALLS['Run'], [AVATAR, TOKVEC], regions, conv='t', ret='v')
+    if op == 'Run':
+        return Call(CALLS['Run'], [AVATAR, TOKVEC], regions, conv='t', ret='v')
+    del regions[TOKVEC], regions[TOKENS]
+    # The tokens copied from the stack token (CountedPair_CopyCtor) take the low byte of its address as their strings' allocator bytes (sic),
+    # which the two sides' stacks cannot share: the command's in the vector's first block (the heap's first), the name's in its second
+    # (the next: the name's block is shared, not copied); the first token's copy in the second block takes the first block's address's.
+    ignore = [(HEAP + 0x10, 1), (HEAP + 0x20, 1)] if op not in ('NoticeText', 'GotoDone') else []
+    if CALLBACKS[op][2]:
+        regions[at] = word
+        if ignore:
+            ignore += [(HEAP + 0x40 + 0x24, 1), (HEAP + 0x40 + 0x34, 1)]
+        return Call(CALLBACKS[op][0], [AVATAR, at], regions, conv='t', ret='v', ignore=ignore)
+    return Call(CALLBACKS[op][0], [AVATAR], regions, conv='t', ret='v', ignore=ignore)
 
 
 def case(r):
@@ -273,10 +305,10 @@ def case(r):
         return text_case(r)
     if op == 'Notice':
         return notice_case(r)
-    return run_case(r)
+    return run_case(r, op)
 
 
-OPS = [k for k in os.environ.get('OPS', 'Text,Notice,Run,Run,Run,Run,Run,Run').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Text,Notice,Run,Run,Run,Run,Run,Run,' + ','.join(CALLBACKS)).split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)

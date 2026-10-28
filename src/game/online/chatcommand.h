@@ -44,6 +44,32 @@ void __fastcall ChatAvatar_Notice(u8 *avatar, void *, StdWString text, u32 color
 //   0x72 (0xe: 0x69). The strings' allocator bytes are uninitialised stack bytes in the original (0 here).
 void __fastcall ChatAvatar_RunCommand(u8 *avatar, void *, const u8 *tokens);
 
+// 0x4ead00 / 0x4eae80 / 0x4eb000 / 0x4eb180 / 0x4eb450 (thiscall on the avatar; a name (a const std::wstring *), pops 4; SEH frames):
+// the command 0xe (Blackmark) / 0x11 (Page) / 0x14 (Locate) / 0x13 (Goto) / 0xd (UnIgnore / Ignore) run on the name. A vector of tokens
+// (countedpair.h's CountedPairs) gets the command's token (both strings empty) and the name's (CountedPair_CtorWide of a copy of the name:
+// its allocator byte, emptied, StdWString_AssignSub of all of it), each by CountedPairVector_InsertN at the end and the temporary token
+// released after; ChatAvatar_RunCommand on the vector; its tokens cleared (CountedPair_Clear) and its block freed (Mem_Free, null or not).
+// The vector's and the command token's strings' allocator bytes are the low byte of the name's address (sic). Names invented, unconfirmed.
+void __fastcall ChatAvatar_Blackmark(u8 *avatar, void *, const StdWString *name);
+void __fastcall ChatAvatar_Page(u8 *avatar, void *, const StdWString *name);
+void __fastcall ChatAvatar_Locate(u8 *avatar, void *, const StdWString *name);
+void __fastcall ChatAvatar_Goto(u8 *avatar, void *, const StdWString *name);
+void __fastcall ChatAvatar_ToggleIgnore(u8 *avatar, void *, const StdWString *name);
+
+// 0x4eb300 / 0x4eb5d0 (thiscall on the avatar; SEH frames): the command 0x15 (the vote) / 0xc (the earmuffs toggled) run alone, as the
+// five above without the name's token (the allocator bytes stack garbage in the original: 0 here; the token's strings released inline,
+// the vector's tokens by CountedBuf_Reset and StdString_Tidy). Names invented, unconfirmed.
+void __fastcall ChatAvatar_Vote(u8 *avatar);
+void __fastcall ChatAvatar_ToggleEarmuffs(u8 *avatar);
+
+// 0x4ee590 (thiscall on the avatar; a text (a const std::wstring *), pops 4): a copy of the text (StdWString_CtorCopy) shown with
+// ChatAvatar_Notice in colour 7. Name invented, unconfirmed.
+void __fastcall ChatAvatar_NoticeText(u8 *avatar, void *, const StdWString *text);
+
+// 0x4eea50 (thiscall on the avatar; SEH frame): the notice 0x9d (its string made by _Grow and the characters, as Goto's 0x72) and the
+// goto-in-progress byte +0xef8 cleared. Name invented, unconfirmed.
+void __fastcall ChatAvatar_GotoDone(u8 *avatar);
+
 // std::wstring::assign(chars, n) as 0x4ec030 inlines it (case 0x17) and agent B's 0x4051d0 is (not hooked: the fncmp driver's stand-in
 // for 0x4051d0): n above max_size (0x7ffffffd) is std::_Xlen; a shared block (count not 0 or 0xff) with n 0 loses a count and s is
 // emptied; else n 0 empties s (the block released); a block of 31 or fewer characters with room for n is kept, else released and a new
