@@ -106,10 +106,19 @@ def case(r):
         if code in (0xb, 0x10) and r.random() < 0.5:
             a = 5
     elif pick < 0.85:
-        message = r.choice(SPECIAL) | high(r)
+        message = r.choice(SPECIAL + [0x81, 0x81, 0x85]) | high(r)
     else:
         message = r.choice([0x19, 0x19, 0xb, 0xc, 0x15, 0, r.getrandbits(8) & ~0x80]) | high(r) & ~0x100
-    if message & 0x1ff == 0x86 and r.random() < 0.7:
+    code, e = message & 0x1ff, 0x28 * ident
+    if code in (0x81, 0x83, 0x85) and r.random() < 0.7:   # (a hoarding or track cell mostly, at an end, a corner or a junction)
+        put(c28, e + 8, 'I', r.choice([0x19, 0x19, 0x19, 0x19, 0xb, 0xc, 0x10, 0x11, 0xd, 0x12, 3, 0]))
+        c28[e + 0xd] = r.choice(SIDES)
+        c28[e + 0xc] = c28[e + 0x22] = r.choice([0x41, 0x14, 5, 0x50, 0x11, 0x44, 0x55])
+    if code == 0x85 and r.random() < 0.4:   # (the 0x44-byte cells about it empty mostly)
+        c44 = regions[C44]
+        for k in (ident + dy * 128 + dx for dy in (-1, 0, 1) for dx in (-1, 0, 1)):
+            put(c44, 0x44 * k + 8, 'I', 0 if r.random() < 0.9 else r.choice([1, 2, 7]))
+    if code == 0x86 and r.random() < 0.7:
         put(c28, 0x28 * ident + 8, 'I', r.choice([0xb, 0xd, 0x10, 0x12, 0x19]))
         put(c28, 0x28 * ident + 0x10, 'H', r.choice([0, r.randrange(1, IDS)]))
     return Call(0x5370e0, [cell, message, a, b], regions, conv='t', ret='a')
