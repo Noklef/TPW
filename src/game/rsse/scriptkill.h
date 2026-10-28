@@ -27,4 +27,9 @@ RsseContext *__cdecl RSSE_FreeContext(RsseContext *ctx, u32 flags);
 // one), the record of the id +0x10 (its parent) gets +0xc = 0 (sic: a parent not in the list faults, the write going to 0xc), and the
 // record is freed.
 void __cdecl RSSE_KillScript(s32 id, u32 flags);
+
+// 0x5584b0 (cdecl): with the system on ([0x8791a0]), every record of the list freed from its head (RSSE_FreeContext with flags 0, each
+// giving the next) and the head cleared; the system's flag cleared. (The original's leak report, Debug_Printf when 0x8791b8 is set, is
+// left out.)
+void __cdecl RSSE_CheckLeaks();
 }

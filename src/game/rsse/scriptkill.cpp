@@ -144,4 +144,14 @@ void __cdecl RSSE_KillScript(s32 id, u32 flags) {
     }
     RSSE_FreeContext(ctx, flags);
 }
+
+void __cdecl RSSE_CheckLeaks() {
+    if (global<u32>(0x008791a0)) {
+        for (RsseContext *ctx = global<RsseContext *>(0x008791b0); ctx;)   // (the head read once)
+            ctx = RSSE_FreeContext(ctx, 0);
+        global<RsseContext *>(0x008791b0) = nullptr;
+    }
+    global<u32>(0x008791a0) = 0;
+    // (with blocks still counted, 0x8791b8, the original prints "Something malloced but not freed": left out)
+}
 }

@@ -8,7 +8,8 @@
 # - effect: rideeffect.py's (ridebounds.py's ride and box, particles.py's systems, things and definitions with kill effects at +0x64);
 # - sound: soundset.py's sender world for one of Sound_Stop (+0xd0), Sound_Forward6 (object nodes 3-10) or Sound_RemoveOccluder (+0xd4);
 # the sound off in the others. Kill: the id one of the list's mostly, the system off now and then.
-# usage: killscript.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Free,Kill)
+# Leaks (0x5584b0 RSSE_CheckLeaks): every record freed from the head, the system on mostly.
+# usage: killscript.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Free,Kill,Leaks)
 import os
 import struct
 import sys
@@ -27,10 +28,10 @@ if _ops is not None:
     os.environ['OPS'] = _ops
 
 B = Bench(fc.merged(fc.RANGES + [(0x558500, 0x5587ea), (0x559060, 0x559344), (0x51e710, 0x51e730), (0x466b70, 0x466c7f), (0x412e90, 0x412eec),
-                                 (0x67a830, 0x67a860), (0x5da3c0, 0x5da3c1)]), hooks=fc.HOOKS)
+                                 (0x67a830, 0x67a860), (0x5da3c0, 0x5da3c1), (0x5584b0, 0x5584fe)]), hooks=fc.HOOKS)
 CTX, ARR, OBJ, FLY = RAM + 0x30000, RAM + 0x31000, RAM + 0x32000, RAM + 0x34000
 DEFS, THINGS = RAM + 0x38000, RAM + 0x39000
-FREE, KILL = 0x558500, 0x559060
+FREE, KILL, LEAKS = 0x558500, 0x559060, 0x5584b0
 
 
 def handle(r, regions):
@@ -164,20 +165,24 @@ def case(r):
         regions[CTX + 0x100 * k] = c
     head = CTX if r.random() < 0.95 else 0
     rsse = bytearray(r.bytes(0x18))
-    put(rsse, 0, 'I', r.choice([1] * 9 + [0]) if op == KILL else r.getrandbits(32))
+    put(rsse, 0, 'I', r.choice([1] * 9 + [0]) if op in (KILL, LEAKS) else r.getrandbits(32))
     put(rsse, 0xc, 'i', r.choice([n, r.randrange(-5, 50)]))
     put(rsse, 0x10, 'II', head, r.randrange(-2, 20) & 0xffffffff)
     regions[0x8791a0] = rsse
     flags = r.getrandbits(8) | r.choice([0, r.getrandbits(32)])
     if kind != 'parts':
         flags &= ~4
+    if op == LEAKS:
+        rsse += r.bytes(4)   # (0x8791b8: the blocks counted)
+        regions[0x8791a0] = rsse
+        return Call(LEAKS, [], regions, ret='v')
     if op == FREE:
         target = r.choice([CTX + 0x100 * r.randrange(n)] * 9 + [0])
         return Call(FREE, [target, flags], regions, ret='a')
     return Call(KILL, [r.choice([r.choice(ids)] * 9 + [0, 999]), flags], regions, ret='v')
 
 
-OPS_ALL = {'Free': FREE, 'Kill': KILL}
+OPS_ALL = {'Free': FREE, 'Kill': KILL, 'Leaks': LEAKS}
 OPS = [OPS_ALL[k] for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 
