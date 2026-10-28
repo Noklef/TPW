@@ -69,6 +69,19 @@ u32 __cdecl Dialog7ca168_ShowText(u32 which);
 // of [0x7cf83c] is called first, its answer only the ECX of that stdcall. The child's vtable is read before.
 void __cdecl Dialog7ca168_ShowStaffAverage(u32 tab);
 
+// 0x496320 (cdecl (staff), returns 1; Dialog7ca168_FillStaffList's callback; name invented): a row of five numbers added to the list
+// [0x7ca164] (Window7059f0_AddItem: data the staff member, parent -1, no refresh): the name (Staff_GetName); the text of the record table
+// [0x78baa4] (Records_DataIfTerminated, widened by Language_Widen) at Mode19c_ToIndex, 0 in place of 1 when there is no patrol region
+// (Staff_HasPatrolRegion); the wage (Staff_GetWage); the grade (Staff_GradeLevel) and the low byte of __ftol(+0x1f8), each * 1024 / 100
+// (signed, truncated). Mode19c_ToIndex is called once before as well, its answer unused; [0x7ca164] is read after the name.
+u32 __cdecl Dialog7ca168_AddStaffRow(u8 *staff);
+
+// 0x496400 (cdecl (tab, clear); nothing in the image calls it or holds its address; name invented): [0x7ca16c] = tab; the list is the
+// child 0x321 of the window [0x7ca168] (Window_FindChild, unchecked), emptied (Window7059f0_Clear) with clear set, then kept in
+// [0x7ca164]; tabs 0-4 add a row for each of the handymen, mechanics, entertainers, guards or researchers (Things_ForEachSelected's masks
+// 2, 4, 0x10, 8, 0x20 with Dialog7ca168_AddStaffRow); any other tab adds none. The rows refreshed last (Window7059f0_RefreshRows).
+void __cdecl Dialog7ca168_FillStaffList(u32 tab, u32 clear);
+
 // 0x4a0a20 (cdecl (window, message, a, b); the handler of the dialog [0x7cb2b8]; name unconfirmed): on message 0x14 [0x7cb2b8] = 0; then
 // Window_CallDefault, its result returned (a GUI rectangle built and destroyed on the stack around it, unused, is left out).
 s32 __cdecl Dialog7cb2b8_Handler(u8 *window, u32 message, u32 a, u32 b);
