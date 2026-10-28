@@ -24,6 +24,11 @@ void __fastcall Challenge_Finish(u8 *challenge);
 // g = 0, h = thing, the rest 0) through the objects' post (Object_PostMessage).
 void __fastcall Challenge_Attempt(u8 *challenge, void *, u32 thing);
 
+// 0x4d2c50 (thiscall (challenge, offer), pops 8, this unused; returns AL; name invented): none: 0. Else message 0x19 posted (Object_PostMessage)
+// with a = Kind_ToIdA of the challenge's +0, b = 0x158 when the low byte of offer is set (else 0x10e), c = 1, d = its mPrize (+0x14),
+// e = mTargetTime (+4), f = mTargetVal (+8), g = h = 0, i / j = mTargetObj / mTargetObj2 (+0xc, +0xe), k = mTargetStaffType (+0x10); 1.
+u8 __fastcall Challenges_Announce(u8 *challenges, void *, u8 *challenge, u32 offer);
+
 // 0x4d2df0: an offer accepted: when waiting for the reply (+0x3da) and there is a current challenge, the wait ends, the challenge is on
 // (+0x3d9 = 1) and mNextChallengeEventTime (+0x3d0, 8 bytes) = the world's funny time now (FunnyTime_Now) + its mTargetTime (+4) days.
 void __fastcall Challenges_AcceptOffer(u8 *challenges);

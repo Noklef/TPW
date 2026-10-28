@@ -10,8 +10,10 @@
 # message centre (empty maps), then that load. A challenge finished (0x4d1a00): its kind (+0) one Kind_ToIdC maps or not, named by another
 # (+0x18) or not, its +0x14 any; the message centre made or not (thing_ctors.py's), the post (agent B's 0x40fb10 through the objects' env)
 # recorder 21 logging the message's bytes 0-0x1f but 0x11-0x13 (the stack's). A challenge attempted (0x4d1ae0): as finished, its +4, +8
-# and count +0x24 any, the thing any; recorder 21 logging the message's dwords 0-11 but 4 (c, 0, and the stack's bytes).
-# usage: challenges.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Drop,Current,Schema,Guard,Accept,Decline,LoadSam,Dtor,Ctor,Finish,Attempt)
+# and count +0x24 any, the thing any; recorder 21 logging the message's dwords 0-11 but 4 (c, 0, and the stack's bytes). A challenge
+# announced (0x4d2c50): as attempted, the challenge none now and then, the offer flag 0, 1, 0x100 or any (its byte tested); the same
+# dwords logged (c, always 1, is in dword 4 with the stack's bytes: not compared).
+# usage: challenges.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Drop,Current,Schema,Guard,Accept,Decline,LoadSam,Dtor,Ctor,Finish,Attempt,Announce)
 import os
 import struct
 import sys
@@ -32,7 +34,7 @@ B = Bench([(0x4d1c80, 0x4d1cdc), (0x4d1e60, 0x4d1e74), (0x4d2840, 0x4d285d), (0x
            (0x519510, 0x519550), (0x5da3c0, 0x5da3c1), (0x4d1ce0, 0x4d1e5e), (0x4d1e80, 0x4d1e8c), (0x4d1bd0, 0x4d1c73), (0x4d91f0, 0x4d9290),
            (0x50afe0, 0x50b090), (0x50b350, 0x50b370), (0x516270, 0x516320), (0x67b050, 0x67b0d0), (0x4d1a00, 0x4d1add),
            (0x409cd0, 0x409cdd), (0x6bb1a0, 0x6bb1a4), (0x4d3500, 0x4d374e), (0x40f7a0, 0x40f803),
-           (0x4d1ae0, 0x4d1bc6), (0x5dc650, 0x5dc654), (0x51c050, 0x51c054)] + CLOCK_RANGES + FILE_RANGES + thing_ctors.CENTRE_RANGES,
+           (0x4d1ae0, 0x4d1bc6), (0x4d2c50, 0x4d2de8), (0x4d3220, 0x4d3500), (0x5dc650, 0x5dc654), (0x51c050, 0x51c054)] + CLOCK_RANGES + FILE_RANGES + thing_ctors.CENTRE_RANGES,
           hooks={**thing_ctors.CENTRE_HOOKS, 0x40fb10: _recorder(21, 1)})
 VALUES = balanceload.VALUES
 LEVEL = 0x7857d4   # gBalanceLevel's challenge indices (20 dwords)
@@ -159,22 +161,26 @@ def finish(r, mem):
     return Call(0x4d1a00, [RAM + at], regions, conv='t')
 
 
-def attempt(r, mem):
-    """Challenge_Attempt (0x4d1ae0) on one of the 20 challenges."""
+def attempt(r, mem, op='Attempt'):
+    """Challenge_Attempt (0x4d1ae0) or Challenges_Announce (0x4d2c50) on one of the 20 challenges."""
     at = 0x100 + 0xc + 0x30 * r.randrange(0x14)
     put(mem, at, 'I', r.choice([r.randrange(0x30), r.randrange(0x170), r.getrandbits(32)]))
     put(mem, at + 0x24, 'I', r.choice([0, 1, 0xffffffff, r.getrandbits(32)]))
     regions = {RAM: mem, HEAP: heap(), LOG: log_region()}
     thing_ctors.centre(r, regions)
     blob(regions[LOG], 21, 0, 0xfef)
+    if op == 'Announce':
+        put(mem, at + 0xc, 'I', r.getrandbits(32))
+        challenge = r.choice([RAM + at] * 9 + [0])
+        return Call(0x4d2c50, [C, challenge, r.choice([0, 1, 1, 0x100, r.getrandbits(32)])], regions, conv='t', ret='b')
     return Call(0x4d1ae0, [RAM + at, r.choice([0, 1, r.getrandbits(32)])], regions, conv='t')
 
 
 def case(r):
     mem = r.bytes(0x600)
     op = r.deal(OPS)
-    if op == 'Attempt':
-        return attempt(r, bytearray(mem))
+    if op in ('Attempt', 'Announce'):
+        return attempt(r, bytearray(mem), op)
     if op == 'Finish':
         return finish(r, bytearray(mem))
     if op in ('Accept', 'Decline'):
@@ -201,7 +207,7 @@ def case(r):
     return Call(r.choice([0x4d6330, 0x4d6350]), [C], {RAM: mem}, conv='t', ret='a')
 
 
-OPS = [k for k in os.environ.get('OPS', 'Drop,Current,Schema,Guard,Guard,Accept,Decline,LoadSam,LoadSam,Dtor,Ctor,Finish,Finish,Attempt,Attempt').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Drop,Current,Schema,Guard,Guard,Accept,Decline,LoadSam,LoadSam,Dtor,Ctor,Finish,Finish,Attempt,Attempt,Announce,Announce').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)
