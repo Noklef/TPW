@@ -8,6 +8,7 @@
 #include "../coaster/edittools.h"
 #include "../ui/cursor.h"
 #include "advisor.h"
+#include "cellrun.h"
 #include "mousemode.h"
 #include "world.h"
 
@@ -101,5 +102,92 @@ void __cdecl GameMode_Set(u32 mode, u32 record) {
         global<u32>(0x00763b00) = 0x80;
         global<u32>(0x00763b04) = 0x80;
     }
+}
+}
+
+namespace {
+
+const GameModeStepEnv kGameStepEnv = {reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x00444f30),
+                                      reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x004de1f0),
+                                      reinterpret_cast<void(__cdecl *)(s32, s32, u32, u32)>((uintptr_t)0x00524960),  // (hooked: GameMode_MapClick)
+                                      &GameMode_Set,
+                                      &GameMode_SetOnly,
+                                      &TrackCell_Relink,
+                                      &TrackRun_UpdateA,
+                                      &TrackRun_UpdateB};
+const GameModeStepEnv *g_step = &kGameStepEnv;
+
+// Modes 0xb, 0x10 and 0x35: the track cell relinked and, with relink's low byte and a track run, the run updated.
+void relink_run(u32 mode, u32 corners, u32 relink) {
+    if (mode != 0xb && mode != 0x10 && mode != 0x35) return;
+    g_step->relink(corners);
+    u8 *const run = global<u8 *>(0x008186ac);
+    if ((u8)relink && run && !g_step->updateA(run, 0, 0, 0)) g_step->updateB(global<u8 *>(0x008186ac), 1, 0, 0);
+}
+
+}  // namespace
+
+extern "C" {
+
+void GameMode_SetStepEnv(const GameModeStepEnv *env) { g_step = env ? env : &kGameStepEnv; }
+
+u32 __cdecl GameMode_StepBack(u8 *thing, u32 relink) {
+    const u32 mode = global<u32>(0x0081ae2c);
+    if (mode == 0x15) {
+        g_step->endRun();
+        return 0;
+    }
+    if (mode == 0xe || mode == 0x13 || mode == 4 || mode == 0x3b || mode == 0x16) return 0;
+    s32 *const point = &global<s32>(0x0081adb0);
+    s32 &count = global<s32>(0x00820a8c);
+    bool popped = false;
+    if (count > 0) {
+        point[0] = global<s32>(0x0081b738 + count * 8);
+        point[1] = global<s32>(0x0081b73c + count * 8);
+        if (--count != 0)
+            popped = true;
+        else
+            count = 1;
+    }
+    if (!popped) {
+        relink_run(mode, 0, relink);
+        g_step->setOnly(mode, 1);
+        return 0;
+    }
+    Global816d48_Set(0);
+    bool arm = false;
+    switch (mode) {
+    case 1: case 3: case 0x34:
+        g_step->set(0x34, 1);
+        arm = true;
+        break;
+    case 0xb: case 0x10: case 0x19: case 0x35:
+        g_step->set(0x35, 1);
+        global<u32>(0x00763b00) = 0x80;
+        global<u32>(0x00763b04) = 0x80;
+        break;
+    }
+    g_step->mapClick(point[0], point[1], 0, 0);
+    const s32 left = count;
+    u32 corners = 0;
+    if (left > 0) {
+        point[0] = global<s32>(0x0081b738 + left * 8);
+        point[1] = global<s32>(0x0081b73c + left * 8);
+    }
+    if (left == 1) corners = 1;
+    if (left > 0) {
+        const s32 x = point[0], y = point[1];
+        const u8 *const cell = global<u8 *>(0x007cf83c) + 0x294 + ((((u32)y << 7) + (u32)x + 1) & 0xffff) * 0x44;
+        if (mode != 3 || *reinterpret_cast<const s32 *>(cell + 8) != 1) g_step->mapClick(x, y, 0, 0);
+        global<s32>(0x0081ede4) = point[0];
+        global<s32>(0x0081ede8) = point[1];
+    }
+    g_step->setOnly(mode, 1);
+    if (arm) {
+        u8 *const target = thing ? thing : global<u8 *>(0x008186ac);
+        if (target) g_step->thing4de1f0(target);
+    }
+    relink_run(mode, corners, relink);
+    return 1;
 }
 }
