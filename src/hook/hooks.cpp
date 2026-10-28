@@ -422,6 +422,7 @@
 #include "../game/frontend/lobbyscene.h"
 #include "../game/frontend/postcard.h"
 #include "../game/frontend/scenequeue.h"
+#include "../game/frontend/frame.h"
 #include "../game/frontend/viewcontrols.h"
 #include "../game/online/itemlist.h"
 #include "../game/online/items.h"
@@ -6313,6 +6314,7 @@ const Hook kHooks[] = {
     {"Postcard_OnSent",           0x004a7bf0, (void *)&Postcard_OnSent, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"Class702da0_Clear",         0x005d6060, (void *)&Class702da0_Clear, {0xa1, 0x6c, 0x96, 0xf7, 0x00}},
     {"Class702da0_Push",          0x005d6110, (void *)&Class702da0_Push, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"Class7029f0_Close",         0x005d5cf0, (void *)&Class7029f0_Close, {0x53, 0x8b, 0xd9, 0x56, 0x57}},
     {"RSSE_Init",                 0x00551600, (void *)&RSSE_Init, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
     {"RsseScript_EventName",      0x00468600, (void *)&RsseScript_EventName, {0x53, 0x55, 0x56, 0x8b, 0x74}},
     {"RSSE_StartTimer",           0x00557160, (void *)&RSSE_StartTimer, {0xb9, 0x70, 0x59, 0x78, 0x00}},

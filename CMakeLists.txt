@@ -446,6 +446,7 @@ add_library(tpw_game STATIC
     src/game/frontend/viewcontrols.cpp
     src/game/frontend/postcard.cpp
     src/game/frontend/scenequeue.cpp
+    src/game/frontend/frame.cpp
     src/game/input/mouse.cpp
     src/game/ui/dialog7ca1c8.cpp
     src/game/ui/window.cpp
