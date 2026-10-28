@@ -78,3 +78,7 @@ u32 __fastcall CircBufU32_5_Serialize(u8 *buf, void *, Stream *stream, u32 save,
 u32 __fastcall CircBufU16_Serialize(u8 *buf, void *, Stream *stream, u32 save, s32 version, u32 unused);
 u32 __fastcall CircBufU8_Serialize(u8 *buf, void *, Stream *stream, u32 save, s32 version, u32 unused);
 }
+
+// The CHistory sum of the newest 30 entries as the panels inline it (0x4b16c0, 0x4b01d0): CircBufU32_30_Sum's loop with the count cut by
+// CircBufU32_30_Count, each entry's look back through the caller's own slot *out (the original's stack slot, which it reads later).
+double CircBufU32_30_SumVia(const u8 *buf, u32 *out);

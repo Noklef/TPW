@@ -1,12 +1,18 @@
 #include "panel7cc298.h"
 
 #include <cstdint>
+#include <cstring>
 
 #include "../core/accessors.h"
+#include "../core/circbuf.h"
 #include "../core/language.h"
+#include "../core/textarg.h"
 #include "../core/vcall.h"
 #include "../world/advisor.h"
+#include "../world/analyser.h"
 #include "../world/object.h"
+#include "../world/objectstatus.h"
+#include "../world/world.h"
 #include "dialogs.h"
 #include "panelparts.h"
 #include "window.h"
@@ -102,5 +108,61 @@ u32 __cdecl Panel7cc298_ApplyToThing(u8 *thing) {
         }
     }
     return 1;
+}
+
+void __fastcall Panel7cc298_ShowStats(u8 *self) {
+    u8 *const thing = global<u8 *>(0x007c2658);
+    Object_GetDef(thing);  // (its result not used)
+    if (window14(self)) {
+        // (each sum's debug print of whether 30 is within the size is left out)
+        u8 *const text = Window_FindChild(window14(self), nullptr, 0xa09d);
+        u32 seen0, seen1;
+        const double sum0 = CircBufU32_30_SumVia(thing + 0x1a8, &seen0);
+        const double sum1 = CircBufU32_30_SumVia(thing + 0x230, &seen1);
+        u8 both[0x14], recent[0x14];   // (number arguments, as TextArgInt_Ctor builds them inline)
+        at<u32>(both, 0) = 0x006ff170;
+        at<u32>(both, 4) = 0x5641524d;
+        at<u32>(both, 8) = 0x1a;
+        at<u32>(both, 0xc) = (u32)(long long)sum0 + (u32)(long long)sum1;  // (__ftol, the low halves)
+        at<u32>(both, 0x10) = 0;
+        // the slot the later look backs write to: until then the low half of the first sum (it was stored there)
+        u32 slot;
+        std::memcpy(&slot, &sum0, 4);
+        const double sum2 = CircBufU32_30_SumVia(thing + 0x1a8, &slot);
+        at<u32>(recent, 0) = 0x006ff170;
+        at<u32>(recent, 4) = 0x5641524d;
+        at<u32>(recent, 8) = 0x19;
+        at<u32>(recent, 0xc) = (u32)(long long)sum2;
+        at<u32>(recent, 0x10) = 0;
+        TextFormat().format(global<void *>(0x0078ba94), reinterpret_cast<u16 *>((uintptr_t)0x007ba058), 0x3fff, 0x1cc, recent, both);
+        vcall<void>(text, 0x24, 0x007ba058u);  // (not checked)
+        if (u8 *const bar = Window_FindChild(window14(self), nullptr, 0xa096))
+            vcall<void>(bar, 0x1c, (u32)((s32)(Object_HistoryPercent(thing) << 10) / 100));
+        if (u8 *const part = Window_FindChild(window14(self), nullptr, 0xa093)) {
+            const double sum3 = CircBufU32_30_SumVia(thing + 0x70, &slot);
+            vcall<void>(part, 0x1c, (u32)(long long)sum3);
+        }
+        if (u8 *const part = Window_FindChild(window14(self), nullptr, 0xa092))
+            vcall<void>(part, 0x1c, Object_HistoryDifference(thing));
+        if (u8 *const bar = Window_FindChild(window14(self), nullptr, 0xa099)) {
+            const u32 rating = Object_ComputeRating(thing, nullptr, at<s32>(self, 0x28), at<s32>(self, 0x2c), at<s32>(self, 0x24));
+            vcall<void>(bar, 0x1c, (u32)((s32)(rating << 10) / 100));
+        }
+        if (u8 *const bar = Window_FindChild(window14(self), nullptr, 0xa094))
+            vcall<void>(bar, 0x1c, (u32)((s32)(Object_HistoryAverage(thing) << 10) / 100));
+        u8 *const refund = Window_FindChild(window14(self), nullptr, 0xa0a0);  // (not checked)
+        vcall<void>(refund, 0x1c, Object_ScrapRefund(thing));
+        u8 *const grad = Window_FindChild(window14(self), nullptr, 0xa09e);  // (not checked)
+        // the cell id a word over the slot's upper half (sic: the dword is passed)
+        const u32 cell = (slot & 0xffff0000u) | (u16)(((u32)thing[7] << 7) + thing[5] + 1);
+        u8 *const analyser = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(global<u8 *>(0x007cf83c)));
+        const s32 average = ParkAnalyser_AveragePersonStat19c(analyser, nullptr, cell, 1);
+        vcall<void>(grad, 0x1c, (u32)((s32)((u32)average << 10) / 100));
+    }
+    const u32 status = Object_Status(thing, 2);
+    if (status != at<u32>(self, 8)) {
+        at<u32>(self, 8) = status;
+        vcall<void>(self, 0x24);
+    }
 }
 }

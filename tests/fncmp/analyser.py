@@ -35,6 +35,13 @@ def around(r):
     if radius > 5 and r.random() < 0.7:   # (column and row 0: the far edges' sums wrap and are cut, the cells past the near ones read)
         column, row = 0, 0
     cell = (row << 7) + column + 1 if r.random() < 0.9 else r.choice([0, r.getrandbits(16)])
+    regions = people(r, cell, radius)
+    high = r.getrandbits(16) << 16 if r.random() < 0.2 else 0
+    return Call(0x4cd880, [r.getrandbits(32), cell | high, radius], regions, conv='t', ret='a')
+
+
+def people(r, cell, radius):
+    """0x4cd880's world about the cell id (its low word) and radius: the map cells, the slots and the people (the module comment)"""
     cid = ((cell & 0xffff) - 1) & 0xffffffff
     cx, cy = cid & 0x7f, cid >> 7
     left, top = s32(cx - radius), s32(cy - radius)
@@ -74,8 +81,7 @@ def around(r):
             run = []
         if k is not None:
             run.append(k)
-    high = r.getrandbits(16) << 16 if r.random() < 0.2 else 0
-    return Call(0x4cd880, [r.getrandbits(32), cell | high, radius], regions, conv='t', ret='a')
+    return regions
 
 
 def case(r):

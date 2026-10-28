@@ -1,5 +1,5 @@
 // The game panel object at 0x7cc298 (built by 0x4b0eb0: the panel base 0x48c9e0 with its window at +0x10, then its own vtable 0x6ffce8
-// and +4 = 2), with an object at +0x20; it shows the thing [0x7c2658]. Reimplementation of 0x4b0ed0, 0x4b1ee0, 0x4b1040, 0x4b20f0, 0x4b2430 and 0x4b20b0. The names are unconfirmed.
+// and +4 = 2), with an object at +0x20; it shows the thing [0x7c2658]. Reimplementation of 0x4b0ed0, 0x4b1ee0, 0x4b1040, 0x4b20f0, 0x4b2430, 0x4b20b0 and 0x4b16c0. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -36,4 +36,13 @@ void __fastcall Panel7cc298_Show(u8 *self, void *, u8 *thing);
 // test) with the panel's own settings: +0x194 its +0x2c (Obj_Set194) and, unless the thing's definition +0x10c, the chance of winning its
 // byte +0x24 (Object_SetChanceOfWinning) and +0x188 its +0x28 (Obj_Set188).
 void __fastcall Panel7cc298_ApplyToShown(u8 *self);
+
+// 0x4b16c0 (thiscall; slot 5 of the vtable 0x6ffce8; name invented): the shown thing's [0x7c2658] figures in the window +0x14's children
+// (with that window set; each child's slot 7): 0xa09d (not checked) its slot 9 given the text 0x1cc (the formatter into 0x7ba058) with the
+// newest-30 CHistory sums of the rings +0x1a8 (0x19) and +0x1a8 plus +0x230 (0x1a); bars 0xa096 / 0xa099 / 0xa094 (each when found) the
+// history percent, the rating of the panel's +0x28 / +0x2c / +0x24 (Object_ComputeRating) and the history average, each * 1024 / 100;
+// 0xa093 the sum of the ring +0x70, 0xa092 the history difference; 0xa0a0 (not checked) the scrap refund; 0xa09e (not checked) the park
+// analyser's average of the people about the thing's cell (radius 1) * 1024 / 100, the cell id's upper half the stack slot's (sic). Then
+// the panel's +8 set to Object_Status(thing, 2) and its slot 9 called when that changes it.
+void __fastcall Panel7cc298_ShowStats(u8 *self);
 }
