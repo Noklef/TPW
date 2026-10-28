@@ -8,6 +8,7 @@
 #include "../ui/dialog7ca1c8.h"
 #include "../model/highlight.h"
 #include "../world/money.h"
+#include "../world/mousemode.h"
 #include "../world/object.h"
 #include "../world/pathdrag.h"
 #include "../world/world.h"
@@ -28,6 +29,22 @@ const u8 *Def(const u8 *piece) { return at<const u8 *>(piece, 0x100); }
 const u8 *Type(const u8 *piece) { return at<const u8 *>(Def(piece), 0x18); }
 ActionRec *Recorder() { return reinterpret_cast<ActionRec *>(0x00785a08); }
 void ClearChanged() { at<u32>(g<u8 *>(0x00790fec), 0) &= ~0x2000u; }
+
+const EditToolsEnv kPortEnv = {&Coaster_DeleteCar, &Coaster_DeleteFlaggedEnd, &Coaster_SetState, &MouseMode_EnterTile15};
+const EditToolsEnv *g_env = &kPortEnv;
+
+// The current link's end car (+0x58 without +0x3c flag 1, +0x60 with flags 1 and 2, else none) when its +4 byte has flag 2: whether that
+// car's +8 has all of on and none of off.
+u32 EndCarHas(const u8 *game, u32 on, u32 off) {
+    if (!game || !(*at<const u8 *>(game, 4) & 2)) return 0;
+    const u32 state = at<u32>(game, 0x3c);
+    const u8 *car;
+    if (!(state & 1)) car = at<const u8 *>(game, 0x58);
+    else if (state & 2) car = at<const u8 *>(game, 0x60);
+    else return 0;
+    const u32 flags = at<u32>(car, 8);
+    return (flags & on) == on && !(flags & off) ? 1 : 0;
+}
 
 // The tool off: flags 0x1e00 cleared, the highlight hidden.
 u32 Off(u32 flags) {
@@ -612,4 +629,44 @@ u32 __cdecl CoasterEdit_SelectPiece(u8 *piece) {
     g<float>(0x0079c64c) = static_cast<float>(Car_TravelCost(g<u8 *>(0x00790fec), 0, at<u8 *>(piece, 0x64), nullptr, nullptr, nullptr, nullptr));
     return many;
 }
+
+void __cdecl CoasterEdit_DeleteLastCar() {
+    u8 *const state = g<u8 *>(0x00790fec) + 0x3c;   // (the link's +0x3c, taken first)
+    ActionRec_Write(Recorder(), nullptr, 0x41);
+    ClearChanged();
+    u8 *const game = g<u8 *>(0x00790fec);
+    const u32 retool = EndCarHas(game, 0x80, 0), offer = EndCarHas(game, 0x40, 0x80);
+    u8 *car;
+    const bool reversed = (at<u32>(state, 0) & 2) != 0;
+    if (reversed) {
+        car = at<u8 *>(state, 0x24);   // (the link's +0x60)
+        if (!car || (at<u8>(at<const u8 *>(car, 0x100), 4) & 2)) return;
+        at<u8 *>(state, 0x24) = at<u8 *>(car, 0x68);
+        g_env->deleteCar(g<u8 *>(0x00790fec), car);
+    } else {
+        if (at<u32>(state, 0) & 1) return;
+        car = at<u8 *>(state, 0x1c);   // (the link's +0x58)
+        if (!car || (at<u8>(at<const u8 *>(car, 0x100), 4) & 2)) return;
+        g_env->deleteCar(game, car);
+    }
+    if (!g<u32>(0x00785a2c)) {
+        if (retool) {
+            CoasterEdit_Tools(nullptr);
+            CoasterEdit_EndTool();
+            g<u32>(0x0079c638) &= ~2u;
+            CoasterEdit_StartTool(1);
+        } else if (offer) {
+            CoasterEdit_Tools(nullptr);
+        }
+        if (retool || offer) {
+            Dialog7ca1c8_SetChecksIfUpThis(reinterpret_cast<void *>(0x007b51f0), nullptr, g<u32>(0x0079c6e0));
+            Dialog7ca1c8_SelectButtonIfUpThis(reinterpret_cast<void *>(0x007b51f0), nullptr, g<u32>(0x0079c638));
+        }
+    }
+    if (reversed) {   // (the link's new +0x60, read again)
+        if (u8 *const end = at<u8 *>(state, 0x24)) at<u32>(end, 8) |= 0x50000;
+    }
 }
+}
+
+void EditTools_SetEnv(const EditToolsEnv *env) { g_env = env ? env : &kPortEnv; }

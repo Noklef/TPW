@@ -6133,6 +6133,7 @@ address,name,kind,confidence,notes
 0x00446d50,CoasterEdit_SelectPiece,function,low,"reimplemented (src/game/coaster/edittools); cdecl (piece): a track piece selected for editing (0 for a definition with flag 2): the selection, its train length, recorded (0x3c), the span flags between its ends, a path drag at its definition's cell, the highlight shown, the edit bounds and its travel costs; 1 when its train is above 1"
 0x00447da0,CoasterEdit_SetEditingById,function,low,reimplemented (src/game/coaster/edittools); the coaster of an id edited (id not 0) or left
 0x00447dd0,CoasterEdit_SetEditingAt,function,low,"reimplemented (src/game/coaster/edittools); coaster index edited, or none left for index 0"
+0x00444f30,CoasterEdit_DeleteLastCar,function,low,"reimplemented (src/game/coaster/edittools); cdecl: the current link's last car deleted; name invented, unconfirmed"
 0x0043f4e0,TrackMesh_EmitPiece,function,low,"reimplemented (src/game/coaster/trackmesh); cdecl (piece, next, count, positions, restart): a piece's samples turned into track mesh: cross sections placed by the spline frame, their triangles listed"
 0x004402d0,TrackMesh_PlaceSections,function,low,"reimplemented (src/game/coaster/trackmesh); cdecl: the section records placed along the track by zone, from 0x792600 (each the spline value and position, a blend and the zone)"
 0x00439780,CoasterCar_SetSoundMode,function,low,"reimplemented (src/game/coaster/carsound); cdecl (car, mode, value): a new mode sets the looped sound's first parameter to its level, then the second parameter to value"

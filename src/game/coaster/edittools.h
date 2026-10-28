@@ -14,6 +14,16 @@
 
 #include "../../../re/types.h"
 
+// What the editor's car deletions call (the ports by default; their benches run them as recorders).
+struct EditToolsEnv {
+    void(__cdecl *deleteCar)(u8 *owner, u8 *car);    // Coaster_DeleteCar (0x444cb0)
+    void(__cdecl *deleteFlaggedEnd)(u8 *owner);      // Coaster_DeleteFlaggedEnd (0x435530)
+    void(__cdecl *setState)(u8 *coaster, u32 value); // Coaster_SetState (0x435730)
+    void(__cdecl *enterTile15)();                    // MouseMode_EnterTile15 (0x497d20)
+};
+// The calls go to env (nullptr: the ports).
+void EditTools_SetEnv(const EditToolsEnv *env);
+
 extern "C" {
 
 // 0x441cd0 (cdecl): tool 4 for type flag 0x200: the value at +0xf8 (recorded as 0x3b with it, 0 and the handle). Taking it on a piece with
@@ -130,4 +140,13 @@ void __cdecl CoasterEdit_SetEditingAt(u32 index);
 // Highlight_SetShown (1), CoasterEdit_SetBounds, and its Car_TravelCost (game, 0, it) and its next's (+0x64) to the floats 0x79c698 /
 // 0x79c64c. Returns 1 when the definition's train (+0x30) is above 1 (unsigned), else 0.
 u32 __cdecl CoasterEdit_SelectPiece(u8 *piece);
+
+// 0x444f30 (cdecl; name invented, unconfirmed): the current link's (0x790fec) last car deleted. Recorded (ActionRec_Write 0x41) and the
+// link's flag 0x2000 cleared; then, as the link's +4 byte has flag 2 and its end car (+0x58 without +0x3c flag 1, +0x60 with flags 1 and
+// 2) flag 0x80 (+8), or 0x40 without 0x80: with flag 2 (+0x3c) the car +0x60, else (without flag 1) +0x58, unless none or its train's
+// (+0x100) +4 byte has flag 2; the +0x60 one is replaced by its previous (+0x68) first. The car deleted (Coaster_DeleteCar, EditToolsEnv);
+// unless 0x785a2c: for the 0x80 end car CoasterEdit_Tools (0), CoasterEdit_EndTool, tool 2 out of 0x79c638 and CoasterEdit_StartTool (1);
+// for the 0x40 one CoasterEdit_Tools (0); either way the 0x7ca1c8 dialog (0x7b51f0) told 0x79c6e0 and 0x79c638. On the +0x60 path the
+// link's new +0x60, when set, gets flags 0x50000 (+8).
+void __cdecl CoasterEdit_DeleteLastCar();
 }

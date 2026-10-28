@@ -98,6 +98,7 @@
 #include "../../src/game/coaster/registry.h"
 #include "../../src/game/world/money.h"
 #include "../../src/game/coaster/train.h"
+#include "../../src/game/coaster/edittools.h"
 #include "../../src/game/world/mousemode.h"
 #include "../../src/game/world/person.h"
 #include "../../src/game/world/pathdrag.h"
@@ -1334,6 +1335,10 @@ int main(int argc, char **argv) {
     static const TrainEnv train = {trainRec(27, 3), trainRec(9, 2), trainRec(10, 1), trainRec(11, 2), trainRec(12, 2), trainRec(13, 3),
                                    trainRec(14, 5), trainRec(15, 2), trainRec(16, 4), trainRec(17, 0)};
     Train_SetEnv(&train);
+    // The coaster editor's car deletions' calls: the cdecl recorders (k, n) 18 / 2, 19 / 1, 20 / 2 and 21 / 0, as tests/fncmp/deletecars.py
+    // hooks 0x444cb0, 0x435530, 0x435730 and 0x497d20.
+    static const EditToolsEnv editTools = {trainRec(18, 2), trainRec(19, 1), trainRec(20, 2), trainRec(21, 0)};
+    EditTools_SetEnv(&editTools);
     // GameMode_MapClick's calls (src/game/world/mapclick.h): each a recorder (k, n), cdecl ones logged as k | 0x200, as tests/fncmp/mapclick.py
     // hooks their addresses; its `advise` cdecl 9 (the bench's 0x59b590 hook logs the advisor message's id so).
     {
