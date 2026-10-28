@@ -149,7 +149,7 @@ def finish(r, mem):
     """Challenge_Finish (0x4d1a00) on one of the 20 challenges."""
     at = 0x100 + 0xc + 0x30 * r.randrange(0x14)
     put(mem, at, 'I', r.choice([r.randrange(0x30), r.randrange(0x170), r.getrandbits(32)]))
-    put(mem, at + 0x18, 'I', r.choice([0, 0, 0, 1, r.getrandbits(32)]))
+    put(mem, at + 0x18, 'I', r.choice([0, 0, 0, 1, 0x10000, r.getrandbits(32)]))
     put(mem, at + 0x2c, 'B', r.choice([0, 1, 0xff]))
     regions = {RAM: mem, HEAP: heap(), LOG: log_region()}
     thing_ctors.centre(r, regions)

@@ -3,7 +3,8 @@
 # either side of 0, the time it went below about the world's ticks; the world's calendar clock's rate. The loan owing least (0x4d09a0):
 # eight loans' terms, rates, taken flags and months paid. A loan's amount owed and their sum (0x4d0970, 0x4d0a00): the same, the loan
 # 0-7 mostly (8-13 now and then: the record's later bytes). The month's end (0x4d0370): the pending income, the eight loans (taken or not,
-# terms about the months paid, amounts about rate * term), the balance about 0 after them and the time in the red about 6 months; the
+# terms about the months paid, amounts about rate * term), the balance about 0 after them (or all 0) and the time in the red (+0x11c
+# negative mostly) about 5 and 6 months; the
 # message centre made or not (thing_ctors.py's), the post (agent B's 0x40fb10 through the objects' env) recorder 21 logging the message's
 # bytes 0-0xb. The messages (BankAccount_HandleMessage 0x4d02d0): types (a vtable of the recorder 19, answering) 0xb, 0xc (that month's
 # end), 0xd, 0x12 and 0x13 with +8 2, 0xa or other; the game object's mode 4 or not, the word 0x7cf4f4 0 or not, agent A's unported 0x5168f0 thiscall recorder 24
@@ -74,18 +75,23 @@ def case(r):
 
 def month(r, name, money, regions):
     """The month's end (or a message to the record, one of whose types is the month's end)."""
-    put(money, 0x10, 'i', r.choice(AMOUNTS + [r.getrandbits(32) - (1 << 31), r.randrange(-5000, 5000)]))
+    zero = r.random() < 0.1   # (no income, no loan taken and the balance 0)
+    put(money, 0x10, 'i', 0 if zero else r.choice(AMOUNTS + [r.getrandbits(32) - (1 << 31), r.randrange(-5000, 5000)]))
     for i in range(8):
         term = r.choice([0, 1, 3, 12, 24, 0xffffffff])
         rate = r.choice([0, 1, 10, 110, 1000, r.getrandbits(32)])
-        put(money, 0x20 + 0x20 * i, 'IIII', term, rate, r.choice([0, 1, 1, 5]), r.choice([0, 1, term - 1 & 0xffffffff, term - 1 & 0xffffffff, term, r.getrandbits(32)]))
+        put(money, 0x20 + 0x20 * i, 'IIII', term, rate, 0 if zero else r.choice([0, 1, 1, 5, 0x100]),
+            r.choice([0, 1, term - 1 & 0xffffffff, term - 1 & 0xffffffff, term, r.getrandbits(32)]))
         put(money, 0x18 + 0x20 * i, 'I', r.choice([0, 1000, rate * term & 0xffffffff, rate * term - 7 & 0xffffffff, r.getrandbits(32)]))
-    put(money, 0xc, 'i', r.choice([0, 1, 50, -1, -50, -1000, -0x80000000, 0x7fffffff, r.randrange(-3000, 3000), r.getrandbits(32) - (1 << 31)]))
+    put(money, 0xc, 'i', 0 if zero else r.choice([0, 1, 50, -1, -50, -1000, -0x80000000, 0x7fffffff, r.randrange(-3000, 3000), r.getrandbits(32) - (1 << 31)]))
+    put(money, 0x11c, 'i', r.choice([-1, -1, -1, -0x80000000, 0, 5]))   # (in the red already mostly)
+    rate = r.choice([15000, 15000, 15000, 1, 0, 100, r.getrandbits(32)])
     ticks = r.choice([r.randrange(1 << 20), r.getrandbits(32)])
-    put(money, 0x120, 'I', r.choice([ticks, ticks - r.randrange(1 << 8) & 0xffffffff, ticks - r.randrange(1 << 16) & 0xffffffff,
-                                     ticks - r.randrange(1 << 24) & 0xffffffff, r.getrandbits(32)]))
+    months = [ticks - (m * 2592000 * 4 // rate + r.randrange(-2, 3)) & 0xffffffff for m in (5, 6)] if rate else [ticks]   # (about 5 and 6 months)
+    put(money, 0x120, 'I', r.choice(months * 5 + [ticks, ticks - r.randrange(1 << 8) & 0xffffffff, ticks - r.randrange(1 << 16) & 0xffffffff,
+                                                  ticks - r.randrange(1 << 24) & 0xffffffff, r.getrandbits(32)]))
     clock = bytearray(r.bytes(0x20))
-    put(clock, 0x1c, 'I', r.choice([15000, 1, 0, 100, r.getrandbits(32)]))
+    put(clock, 0x1c, 'I', rate)
     regions.update({0x80239c: struct.pack('<I', WORLD), WORLD + 0x2a0: clock, WORLD + 0x1da70c: struct.pack('<I', ticks), HEAP: heap(), LOG: log_region()})
     thing_ctors.centre(r, regions)
     blob_bytes(regions[LOG], 21, 0, 0xfff)
