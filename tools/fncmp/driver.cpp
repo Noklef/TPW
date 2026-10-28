@@ -404,8 +404,11 @@ const DemolishEnv kDemolishEnv = {reinterpret_cast<void(__cdecl *)(s32, s32, u32
                                   reinterpret_cast<u32(__cdecl *)(u8 *, u32)>((uintptr_t)jpeg_recorder(6, 2)),
                                   reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32, u32)>((uintptr_t)recorder(7, 3)),
                                   reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(8, 1))};
-// The track runs' call into agent B's unported 0x53afa0: thiscall recorder 24 of no arguments, as tests/fncmp/trackshape.py hooks it.
-const CellRunEnv kCellRunEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(24, 0))};
+// The track runs' call into agent B's unported 0x53afa0: thiscall recorder 24 of no arguments, as tests/fncmp/trackshape.py hooks it;
+// CellRun_Lay's 0x5370e0 and 0x538fc0 (agent B's, unported): thiscall recorders 25 of 3 and 26 of 1, as tests/fncmp/cellrun.py hooks them.
+const CellRunEnv kCellRunEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(24, 0)),
+                                reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32, u32)>((uintptr_t)recorder(25, 3)),
+                                reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)recorder(26, 1))};
 // The track square test's call into agent B's unported 0x532fc0: thiscall recorder 9 of 3, as tests/fncmp/tracksquare.py hooks it.
 const TrackSquareEnv kTrackSquareEnv = {reinterpret_cast<u32(__fastcall *)(u8 *, void *, u32, u32, u32)>((uintptr_t)recorder(9, 3))};
 // The placed object's constructor (agent C's unported 0x4db090): thiscall recorder 11 of 4, as tests/fncmp/placeobject.py hooks it.
