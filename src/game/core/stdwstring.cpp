@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "buffers.h"
+#include "crt.h"
 #include "gameheap.h"
 #include "stdstring.h"
 #include "trivial.h"
@@ -550,6 +551,37 @@ void __fastcall WStdString_Split(StdWString *s, void *) {
         s->len = n;
         s->ptr[n] = 0;
     }
+}
+
+StdWString *__fastcall WStdString_CtorCopy(StdWString *s, void *, const StdWString *x) {
+    *reinterpret_cast<u8 *>(s) = *reinterpret_cast<const u8 *>(x);
+    empty(s);
+    return WStdString_AssignSub(s, nullptr, x, 0, *reinterpret_cast<const u32 *>(0x00700628));
+}
+
+s32 __fastcall WStdString_Compare(const StdWString *s, void *, const StdWString *x) {
+    const u32 length = s->len, other = x->len;
+    const s32 r = Crt().wcsnicmp(s->ptr, c_str(x), length < other ? length : other);
+    if (r)
+        return r;
+    if (length < other)
+        return -1;
+    return length != other;
+}
+
+s32 __fastcall WStdString_CompareSub(const StdWString *s, void *, u32 pos, u32 n, const u16 *chars, u32 count) {
+    if (s->len < pos)
+        xran();
+    const u32 rest = s->len - pos;
+    if (rest < n)
+        n = rest;
+    const u16 *const from = s->ptr ? s->ptr + pos : nullptr;
+    const s32 r = Crt().wcsnicmp(from, chars, n < count ? n : count);
+    if (r)
+        return r;
+    if (n < count)
+        return -1;
+    return n != count;
 }
 }
 

@@ -127,4 +127,17 @@ void __fastcall WStdString_Copy(StdWString *s, void *edx, u32 n);
 // 0x4f6190: _Split(): a shared s gets its own copy: the old block loses a count, s is emptied and assigned the old characters up to their
 // first 0 (wcslen).
 void __fastcall WStdString_Split(StdWString *s, void *edx);
+
+// 0x4f0250 (thiscall (x), pops 4): basic_string(const wstring &x): x's allocator byte, then empty and assign(x, 0, npos [0x700628])
+// (inlined, as WStdString_AssignSub). Returns s.
+StdWString *__fastcall WStdString_CtorCopy(StdWString *s, void *edx, const StdWString *x);
+
+// This copy's traits compare without case (the online chat's names): _wcsnicmp (0x67c8d0, through Crt()).
+// 0x4f7720 (thiscall (x), pops 4): compare(x): s's characters (a null pointer passed as it is, sic) against x's (null: 0x700624) up to
+// the shorter length; equal so far, the shorter is less. The _wcsnicmp difference, or -1, 0 or 1.
+s32 __fastcall WStdString_Compare(const StdWString *s, void *edx, const StdWString *x);
+
+// 0x4f7900 (thiscall (pos, n, chars, count), pops 16): compare(pos, n, chars, count): past the length a pos is std::_Xran; at most n
+// characters from pos (no data stays a null pointer, sic) against the count at chars, as WStdString_Compare.
+s32 __fastcall WStdString_CompareSub(const StdWString *s, void *edx, u32 pos, u32 n, const u16 *chars, u32 count);
 }

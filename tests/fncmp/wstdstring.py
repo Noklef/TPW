@@ -1,7 +1,9 @@
 # The game's second copy of the MSVC6 std::wstring members (src/game/core/stdwstring: assign 0x4f21d0, _Grow 0x4f39e0, _Copy 0x4f6090, _Split 0x4f6190) against
 # the originals, as stdstring.py's narrow ones: a string under test and a second one, each null or a block (a byte, the count byte, up to
 # 0x7c characters, usually a terminator) with counts about 0 and 0xff, at times sharing one block; Mem_Alloc / Mem_Free on the heap region.
-# _Grow also on strings left unterminated (some empty), assign also for exactly the room s has.
+# _Grow also on strings left unterminated (some empty), assign also for exactly the room s has. The copy constructor (0x4f0250) from x or
+# s itself; compare(x) and compare(pos, n, chars, count) (0x4f7720, 0x4f7900; without case, _wcsnicmp 0x67c8d0) on short strings of
+# letters about A-Z / a-z, x often s with case flips.
 # usage: wstdstring.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import sys
@@ -10,7 +12,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, HEAP, RAM, heap, put  # noqa: E402
 
 B = Bench([(0x4f21d0, 0x4f23e2), (0x4f23f0, 0x4f2437), (0x4f39e0, 0x4f3b06), (0x4f6080, 0x4f6086), (0x4f6090, 0x4f618e), (0x4f6190, 0x4f6266),
-           (0x479150, 0x47919d), (0x47ba30, 0x47ba50), (0x67acd0, 0x67acee)])
+           (0x479150, 0x47919d), (0x47ba30, 0x47ba50), (0x67acd0, 0x67acee), (0x4f0250, 0x4f0367), (0x479230, 0x479256), (0x4f7720, 0x4f776f),
+           (0x4f7900, 0x4f7966), (0x67c8d0, 0x67c9f0)])
+NOCASE = [0x40, 0x41, 0x5a, 0x5b, 0x60, 0x61, 0x7a, 0x7b, 0xc9, 0xe9, 0x8000, 0xffff]   # (the compares fold A-Z only: _wcsnicmp's "C" locale)
 STRS, BLOCKS = RAM, RAM + 0x1000
 S, X = STRS, STRS + 0x10  # the string under test and a second one
 SLOT = 0x100  # a block per string in BLOCKS: a byte, the count byte, then up to 0x7c characters + NUL
@@ -45,7 +49,31 @@ def case(r):
     put(strs, 4, '3I', *s)
     put(strs, 0x14, '3I', *x)
     regions = {STRS: strs, BLOCKS: blocks, HEAP: heap()}
-    small = r.choice([0, 1, r.randrange(40), r.randrange(30, 0x90), s[1], s[2], s[2] + 1])
+    if op in ('Compare', 'CompareSub'):   # short strings of letters about A-Z and a-z, x often s's with case flips, cut or changed
+        regions[0xfb1440] = bytes(4)   # (no locale handle: _wcsnicmp's "C" path)
+        a = [r.choice(NOCASE) for _ in range(r.choice([0, 1, 2, 3, 5, 8]))]
+        o = [c ^ 0x20 if 0x41 <= (c & ~0x20) <= 0x5a and r.random() < 0.5 else c for c in a] if r.random() < 0.6 else \
+            [r.choice(NOCASE) for _ in range(r.choice([0, 1, 2, 3, 5]))]
+        if o and r.random() < 0.25:
+            o = o[:r.randrange(len(o) + 1)] if r.random() < 0.5 else o[:-1] + [r.choice(NOCASE)]
+        for k, us in ((0, a), (1, o)):
+            for i, c in enumerate(us):
+                put(blocks, k * SLOT + 2 + 2 * i, 'H', c)
+        sp = BLOCKS + 2 if a or r.random() < 0.6 else 0
+        put(strs, 4, '3I', sp, len(a), len(a) + r.choice([0, 3]))
+        put(strs, 0x14, '3I', BLOCKS + SLOT + 2 if o or r.random() < 0.6 else 0, len(o), len(o))
+        if op == 'Compare':
+            return Call(0x4f7720, [S, X], regions, conv='t', ret='a')
+        pos = r.randrange(len(a) + 1)   # (past the length is std::_Xran)
+        n = r.choice([0, 1, 2, len(a), len(a) - pos, 0xffffffff, r.randrange(6)])
+        if not sp and pos:
+            pos = 0
+        sub = o[r.randrange(len(o) + 1):] if o and r.random() < 0.3 else o
+        count = r.choice([len(sub), len(sub), 0, r.randrange(len(sub) + 1)])
+        return Call(0x4f7900, [S, pos, n, BLOCKS + SLOT + 2 + 2 * (len(o) - len(sub)), count], regions, conv='t', ret='a')
+    if op == 'CtorCopy':   # into s (its old fields not read), from x or from s itself
+        return Call(0x4f0250, [S, r.choice([X, X, X, S])], regions, conv='t', ret='a')
+    small =r.choice([0, 1, r.randrange(40), r.randrange(30, 0x90), s[1], s[2], s[2] + 1])
     if op == 'Grow':
         if s[0] and r.random() < 0.3:  # no terminator where the length ends (an emptied string's is written)
             put(blocks, s[0] - BLOCKS + 2 * s[1], 'H', r.randrange(1, 0x10000))
@@ -67,7 +95,7 @@ def case(r):
     return Call(0x4f21d0, [S, src, pos, count], regions, conv='t', ret='a')
 
 
-KINDS = ['Grow', 'Copy', 'Split', 'AssignSub', 'AssignSub']
+KINDS = ['Grow', 'Copy', 'Split', 'AssignSub', 'AssignSub', 'CtorCopy', 'Compare', 'CompareSub']
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 if __name__ == '__main__':
