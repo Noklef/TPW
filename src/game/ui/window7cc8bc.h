@@ -1,6 +1,6 @@
 // The window [0x7cc8bc]'s name list (its child 0xc3123's child 0xc3124, a 0x7059f0 list) kept by name in either of its modes (the dword
-// [0x7cc8d0] 0 or 1), the handler of the windows [0x7cc8c4] / [0x7cc8c8], and their creation. Reimplementation of 0x4beb60-0x4bedd1,
-// 0x4bf460, 0x4bd090 and the stdcall wrappers 0x481820-0x4818b2. The names are unconfirmed (the callers are 0x4e7000-0x4ee800's).
+// [0x7cc8d0] 0 or 1), the handler of the windows [0x7cc8c4] / [0x7cc8c8], and their creation. Reimplementation of 0x4be970, 0x4beb60-0x4bedd1,
+// 0x4bf460, 0x4bd090 and the stdcall wrappers 0x481800-0x4818b2. The names are unconfirmed (the callers are 0x4e7000-0x4ee800's).
 #pragma once
 
 #include "../../../re/types.h"
@@ -23,6 +23,16 @@ void __cdecl Window7cc8bc_ListRemove1(const u16 *text);
 void __cdecl Window7cc8bc_ListSetData(const u16 *text, u32 data);
 void __cdecl Window7cc8bc_ListSetData1(const u16 *text, u32 data);
 
+// 0x4be970 (cdecl (text, data); name invented): with the window [0x7cc8bc] set, the text added to its chat list (the child 0xc312b of
+// its child 0xc3123; neither checked) in lines that fit the list's column 0 (Window7059f0_ColumnSpan: its width (second - first) times
+// the screen width word [0xfaa5c4] / 2048, signed): each line from its start runs while the widths (the font Language_Font([0x758f04])'s
+// slot 3, signed words; a 0 character not measured) stay below the width, its first character always measured; one whose first
+// character is as wide ends the text (sic: the rest is dropped). Each line is cut out (its next character 0 for the while) and added
+// (Window7059f0_AddItem(texts: the line, data, parent -1, refresh 1)). Then the list's first item removed (Window7059f0_RemoveItem(0))
+// for each count (+0x150, read once) from the count down to [0x758f0c] (read each time), and the list scrolled to its last item
+// (Window7059f0_ScrollTo(+0x150 - 1)). The text is written to (restored after each line).
+void __cdecl Window7cc8bc_ChatAdd(u16 *text, u32 data);
+
 // 0x481820 / 0x481840 / 0x481850 / 0x481870 / 0x481890 / 0x4818a0 (stdcall): the six above, in that order (0x4beb60, 0x4bebb0, 0x4bec00,
 // 0x4bec60, 0x4becb0, 0x4bed00).
 void __stdcall Window7cc8bc_ListAddStd(const u16 *text, u32 data);
@@ -31,6 +41,8 @@ void __stdcall Window7cc8bc_ListSetDataStd(const u16 *text, u32 data);
 void __stdcall Window7cc8bc_ListAdd1Std(const u16 *text, u32 data);
 void __stdcall Window7cc8bc_ListRemove1Std(const u16 *text);
 void __stdcall Window7cc8bc_ListSetData1Std(const u16 *text, u32 data);
+// 0x481800 (stdcall (text, data)): Window7cc8bc_ChatAdd.
+void __stdcall Window7cc8bc_ChatAddStd(u16 *text, u32 data);
 
 // 0x4bed60 (cdecl (window, message, a, b); the handler 0x4bf650 / 0x4bf699 give): message 0x14: the dword [0x7cc8c4] cleared when it is
 // the window, else [0x7cc8c8] cleared; 0x10006: the window [0x7cc8cc] hidden (Window_SetShown(0)) and unlinked (Window_Unlink), the

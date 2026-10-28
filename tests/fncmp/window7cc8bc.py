@@ -19,6 +19,14 @@
 # too; the parts' slots 3, 4, 5 and 9 recorders; dialog7ca150.py's registry with "hilight"; the rows' font [0x758f04] 7 (its slot 1 the
 # height, the divisor [0xfaa5c0] about 0x600), the edit box's [0x758f08] 0-12; the GUI manager [0x77c48c] a recorder (slot 13: told of
 # the hidden windows); the globals written random; HelpBg_Place's object 0x7ca0c0 with a lone window (moved) or none; a heap of 0x80000 (failing rarely).
+# Chat (0x4be970) / ChatStd (0x481800): top()'s windows with the list 0xc312b in place of 0xc3124, add_case()'s list with one number
+# column (the line's address its number: no strings made; the callers' texts are one stack slot), its span (+4 / +8: second - first)
+# about 0-400 or any, the screen width word [0xfaa5c4] about 0x800; the font [0x758f04] (7 mostly, 0-12) of the language object
+# 0x78b530's set +4 (0 or 1) a GuiFont (the vtable 0x7058d8: its slot 3 the original GuiFont_CharWidth 0x6583fe, which reads only the
+# character's word, as the original pushes it with ECX's upper half left over), its count word +4 0x80 mostly, the spacing +6 small,
+# the glyphs' widths small, 0, negative or any; the text 0-80 characters of a few letters and spaces (now and then past the count);
+# [0x758f0c] (the lines kept) small. Remade as stafflist.py's Fill while the emulator runs past its step limit or its stack (several
+# AddItems on add_case()'s forests), else the text empty.
 # usage: window7cc8bc.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Add,Remove,...)
 import os
 import struct
@@ -38,7 +46,7 @@ from window import notify_blobs, shown_env  # noqa: E402
 
 CALLS = {'Add': 0x4beb60, 'Remove': 0x4bebb0, 'SetData': 0x4bec00, 'Add1': 0x4bec60, 'Remove1': 0x4becb0, 'SetData1': 0x4bed00,
          'AddStd': 0x481820, 'RemoveStd': 0x481840, 'SetDataStd': 0x481850, 'Add1Std': 0x481870, 'Remove1Std': 0x481890,
-         'SetData1Std': 0x4818a0, 'Handler': 0x4bed60, 'Create': 0x4bf460}
+         'SetData1Std': 0x4818a0, 'Handler': 0x4bed60, 'Create': 0x4bf460, 'Chat': 0x4be970, 'ChatStd': 0x481800}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 CREATE_RANGES = dialog7ca150.ALL_RANGES + dialog7ca150.OPEN_RANGES + dialog7cc5f4.RANGES + [
     (0x4bf460, 0x4bf73a), (0x4bf740, 0x4bf8de), (0x4be730, 0x4be830), (0x492330, 0x4923c5),
@@ -46,7 +54,9 @@ CREATE_RANGES = dialog7ca150.ALL_RANGES + dialog7ca150.OPEN_RANGES + dialog7cc5f
 # (the create's: dialog7ca150.py's (the scripted builds, lists, rows, radio group), dialog7cc5f4.py's (the edit box), its own, the rows'
 # makers and handlers, HelpBg_Place's)
 B = Bench(dialog7cc5f4.merged(w7.LIST_RANGES + [(0x4beb60, 0x4bedd1), (0x481820, 0x4818b3), (0x65f538, 0x65f5b7), (0x65e59b, 0x65e60a),
-                                                (0x65f66e, 0x65f6e1)] + CREATE_RANGES))
+                                                (0x65f66e, 0x65f6e1)] + CREATE_RANGES + [
+    (0x481800, 0x481830), (0x485a70, 0x485ab0), (0x4be970, 0x4beb70), (0x664605, 0x6649e5), (0x664cb9, 0x664d3a), (0x665739, 0x6658c9),
+    (0x67acd0, 0x67ad00), (0x6583fe, 0x658458)]))
 TOP, MIDDLE, DECOYS, TEXT = RAM + 0x30000, RAM + 0x30200, RAM + 0x30400, RAM + 0x30800
 HELPWIN = RAM + 0x3fa00   # (Create's: HelpBg_Place's window)
 
@@ -263,8 +273,58 @@ def create_case(r):
     return Call(CALLS['Create'], [], regions, ret='v')
 
 
+GLYPHS = RAM + 0x31400   # (Chat's font's glyphs)
+
+
+def chat_once(r, op):
+    """Chat's world (the module comment)"""
+    c = w7.add_case(r, columns=(1,))
+    regions = c.regions
+    top(r, regions, 0)
+    put(regions[w7.LIST3], 0x8c, 'I', 0xc312b)
+    first = r.choice([0, 0, 10, 100, -20])
+    second = first + r.choice([30, 60, 100, 200, 400, 0, -10, r.randrange(1000)]) if r.random() < 0.95 else r.getrandbits(15)
+    cols = put(bytearray(r.bytes(0x30)), 4, 'hhh', first, r.getrandbits(16) - 0x8000, second)
+    put(cols, 0xa, 'h', 1)   # (column 0 a number one: the line's address its number, no string made)
+    regions[w7.COLS3] = bytes(cols)
+    regions[0xfaa5c4] = struct.pack('<h', r.choice([0x800, 0x800, 0x400, 0x500, 0x1000, r.getrandbits(15)]))
+    index, page = r.choice([7] * 4 + list(range(13))), r.choice([0, 0, 1])
+    regions[0x758f04] = struct.pack('<I', index)
+    regions[0x758f0c] = struct.pack('<i', r.choice([1, 3, 5, 20, 100, 0, r.randrange(10)]))
+    lang = bytearray(r.bytes(0x1c + 26 * 0x18))
+    put(lang, 4, 'I', page)
+    font = 0x1c + (index + page * 13) * 0x18
+    put(lang, font, 'IHhxxxxI', 0x7058d8, r.choice([0x80, 0x80, 0x70, 0]), r.choice([0, 1, 2, -1]), GLYPHS)
+    regions[0x78b530] = lang
+    glyphs = bytearray(r.bytes(0x80 * 8))
+    for k in range(0x80):
+        glyphs[8 * k] = r.choice([4, 5, 6, 8, 10, 0, 0xff, r.getrandbits(8)]) if r.random() < 0.9 else r.choice([0x7f, 0x80])
+    regions[GLYPHS] = glyphs
+    n = r.choice([0, 1, 2, 5, 10, 20, 40, r.randrange(80)])
+    chars = [r.choice(b'abc ijklmnwz. ') if r.random() < 0.95 else r.choice([0x7a, 0x7f, 0x80, 0x100, 0xffff]) for _ in range(n)]
+    regions[TEXT] = struct.pack('<%dH' % (n + 1), *chars, 0) + r.bytes(4)
+    return Call(CALLS[op], [TEXT, r.getrandbits(32)], regions, conv='s' if op == 'ChatStd' else 'c', ret='v')
+
+
+def chat_case(r, op):
+    """chat_once(), made again (up to 8 times, else with an empty text: no lines) while the emulator runs it past its step limit, as
+    stafflist.py's fill_case(), or past its stack (0x10000000 down: a loop in the forest's links, Window7059f0_FreeItem's recursion,
+    natively a stack overflow, another fault): add_case()'s forests are made for one AddItem"""
+    for _ in range(8):
+        c = chat_once(r, op)
+        probe = Call(c.address, c.args, dict(c.regions), conv=c.conv, ret=c.ret)
+        probe.regions.update({k: v for k, v in B.extra.items() if k not in probe.regions})
+        got = B.original(probe)
+        if got != 'step limit' and not (isinstance(got, str) and ' of 0ffe' in got):
+            return c
+    c.regions[TEXT] = bytes(4)
+    return c
+
+
 def case(r):
     op = r.deal(OPS)
+    if op.startswith('Chat'):
+        return chat_case(r, op)
     if op == 'Create':
         return create_case(r)
     if op == 'Handler':

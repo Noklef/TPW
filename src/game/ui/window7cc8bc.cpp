@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../core/crt.h"
 #include "../core/gameheap.h"
 #include "../core/language.h"
 #include "../core/vcall.h"
@@ -221,3 +222,40 @@ void __cdecl Window7cc8cc_PlaceAtMouse(u32, u8 *window) {
     Window_SetFocus(global<u8 *>(0x007cc8cc), nullptr, 0);
     GuiRect_Dtor(rect);
 }
+
+void __cdecl Window7cc8bc_ChatAdd(u16 *text, u32 data) {
+    if (!global<u8 *>(0x007cc8bc)) return;
+    u8 *const list = Window_FindChild(Window_FindChild(window(0x007cc8bc), nullptr, 0xc3123), nullptr, 0xc312b);
+    u8 *const font = Language_Font(global<u32>(0x00758f04));
+    u16 first = 0, second = 0;   // (sic: the original's are the stack's leftovers when ColumnSpan fails)
+    Window7059f0_ColumnSpan(list, nullptr, 0, &first, &second);
+    const s32 width = (s32)((u32)((s32)(s16)second - (s16)first) * (u32)(s32)global<s16>(0x00faa5c4)) / 2048;
+    for (s32 start = 0;;) {
+        const s32 length = (s32)Crt().wcslen(text);
+        s32 last = -1;
+        if (start < length) {
+            s32 taken = (s16)vcall<u16>(font, 0xc, (u32)text[start]);
+            if (taken < width) {
+                for (s32 j = start; j < length;) {
+                    const u16 c = text[j + 1];
+                    last = j++;
+                    if (c) taken += (s16)vcall<u16>(font, 0xc, (u32)c);
+                    if (taken >= width) break;
+                }
+            }
+        }
+        if (last == -1) break;
+        // the line text[start..last] added as the list's one column, the text cut after it for the while
+        const u16 kept = text[last + 1];
+        text[last + 1] = 0;
+        const u32 texts[1] = {(u32)(uintptr_t)(text + start)};
+        Window7059f0_AddItem(list, nullptr, texts, data, -1, 1);
+        text[last + 1] = kept;
+        start = last + 1;
+    }
+    for (s32 count = *reinterpret_cast<const s32 *>(list + 0x150); count >= global<s32>(0x00758f0c); --count)
+        Window7059f0_RemoveItem(list, nullptr, 0);
+    Window7059f0_ScrollTo(list, nullptr, *reinterpret_cast<const s32 *>(list + 0x150) - 1);
+}
+
+void __stdcall Window7cc8bc_ChatAddStd(u16 *text, u32 data) { Window7cc8bc_ChatAdd(text, data); }

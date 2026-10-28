@@ -911,6 +911,7 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x006fea70, 12},   // MMStaffDrop's (slots 9, 10 AssignDrop: MouseMode_Set's on the mode 0x5054d0 makes)
                                    {0x006feaa0, 12},   // the 0x6feaa0 mode's (slots 9, 10 the empty 0x5da3c0: MouseMode_Set's on the mode 0x497bc0 makes)
                                    {0x006fead0, 12},   // the 0x6fead0 mode's (slots 9, 10: MouseMode_Set's on the mode 0x481a10 makes)
+                                   {0x007058d8, 4},    // the GUI font's (slot 3 GuiFont_CharWidth: Window7cc8bc_ChatAdd's measure)
                                    {0x006fe9e0, 12}};  // MouseModeTile's (slots 9 Const3_6b71c0, 10 MouseModeTile_Assign: MouseMode_Set's on the
                                                        // mode MouseMode_EnterTile15 / 16 make)
 
