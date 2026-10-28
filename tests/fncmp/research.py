@@ -16,7 +16,8 @@
 # not yet posted; the stack message's unwritten bytes masked in the slots and the copy at +0x16d0 (as headquarters.py).
 # Efforts (0x503330): see efforts_case(). Init (0x502d60): see init_case(). FlagOn / FlagOff / Sync (0x504090 / 0x504140 / 0x5041f0): the
 # flag +0x1468 0, 1 or any, the game object's word +0x1da742 0 or not; the message centre [0x788d3c] made, agent B's unported 0x40fb10 a
-# thiscall recorder 21 (driver.cpp's kObjectEnv) logging the message's 12 bytes. Message (0x503d40): see message_case().
+# thiscall recorder 21 (driver.cpp's kObjectEnv) logging the message's 12 bytes. Message (0x503d40): see message_case(). Progress
+# (0x504630): see progress_case().
 # usage: research.py [CASES [SEED]] [--wild|--both] [--show N]
 #   (env OPS=Effort,ObjId,Count,NotDone,Ctor,Next,Fill,AllDone,Flag,Choose,ChooseBack,Cat0,Cat1,Cat2,Cat3,Left,Levels,Efforts,Init,FlagOn,FlagOff,Sync,Message)
 import os
@@ -29,7 +30,7 @@ import stdtree  # noqa: E402
 from advisor import ADVISOR, NOW, queue  # noqa: E402
 from thing_ctors import CENTRE_RANGES, centre  # noqa: E402
 from thingenv import park  # noqa: E402
-from fncmp import HEAP, LOG, LOG_BYTES, Bench, Call, Mask, RAM, _cdecl_log, _recorder, blob_bytes, heap, log_region, put, set_return, vtable  # noqa: E402
+from fncmp import HEAP, LOG, LOG_BYTES, Bench, Call, Mask, RAM, _cdecl_log, _recorder, blob_bytes, fb, heap, log_region, put, set_return, vtable  # noqa: E402
 
 
 
@@ -50,7 +51,7 @@ MESSAGE_RANGES = [(0x409cd0, 0x409cf0), (0x40f5e0, 0x40f610), (0x40ff80, 0x4104c
                   (0x5b3110, 0x5b3140)]   # (Message's: tools/ranges.py 503d40's but the hooked)
 INIT_RANGES = [(0x502d60, 0x502dc0), (0x519510, 0x51954d), (0x4c9960, 0x4c9a20), (0x401030, 0x401260), (0x401650, 0x401710), (0x516130, 0x5161c0)]
 B = Bench(merged(INIT_RANGES + CENTRE_RANGES + [(0x503850, 0x503861), (0x5039f0, 0x503a20), (0x503b30, 0x503b79), (0x504040, 0x504081),
-           (0x504750, 0x50475e), (0x504580, 0x504627), (0x5031a0, 0x503325), (0x412e60, 0x412e6d), (0x412e70, 0x412e8f),
+           (0x504750, 0x50475e), (0x504580, 0x504627), (0x504630, 0x50473e), (0x40f580, 0x40f5a2), (0x5031a0, 0x503325), (0x412e60, 0x412e6d), (0x412e70, 0x412e8f),
            (0x4d3d10, 0x4d3d80), (0x5da3c0, 0x5da3c1), (0x4ca6b0, 0x4ca733), (0x4d3d80, 0x4d3df0), (0x519550, 0x51958d), (0x503ff0, 0x504037),
            (0x5034f0, 0x503693), (0x5036a0, 0x503844), (0x412e90, 0x412eea), (0x4d4b70, 0x4d4b84), (0x5af780, 0x5af7f0), (0x410ac0, 0x410b20),
            (0x47d460, 0x47d4b0), (0x5b30b0, 0x5b3110), (0x409410, 0x40947a), (0x4ca630, 0x4ca6a5), (0x503ac0, 0x503b26),
@@ -65,7 +66,7 @@ LAB = RAM
 CALLS = {'Effort': 0x503850, 'ObjId': 0x5039f0, 'Count': 0x503b30, 'NotDone': 0x504040, 'Ctor': 0x504750, 'Next': 0x504580, 'Fill': 0x5031a0, 'AllDone': 0x4ca6b0,
          'Flag': 0x503ff0, 'Choose': 0x5034f0, 'ChooseBack': 0x5036a0, 'Cat0': 0x4ca630, 'Cat1': 0x4ca650, 'Cat2': 0x4ca670, 'Cat3': 0x4ca690, 'Left': 0x503ac0,
          'Levels': 0x503b80, 'Efforts': 0x503330, 'Init': 0x502d60, 'FlagOn': 0x504090, 'FlagOff': 0x504140, 'Sync': 0x5041f0,
-         'Message': 0x503d40}
+         'Message': 0x503d40, 'Progress': 0x504630}
 TABLE, ITEMS, DEFS = RAM + 0x2000, RAM + 0x4000, 0x7890a0   # (the game's object control table, the object definitions and their list)
 IDS = [1, 2, 3, 4, 5, 9]
 SAVE, THEAD, TNIL, TNODES = RAM + 0x9000, RAM + 0x9100, RAM + 0x9200, RAM + 0xa000   # (the global save info and its tree of keys)
@@ -236,6 +237,27 @@ def init_case(r, lab):
     return Call(0x502d60, [LAB], regions, conv='t')
 
 
+def progress_case(r):
+    """Progress (0x504630): a project of defs()'s table's ids mostly (one missing faults in both), mCost 0-1000 (or NaN, an infinity),
+    mResearchDone about it, the amount about the gap (or NaN, negative); the message centre made, 0x40fb10 recorder 21 logging the
+    message's bytes but its unwritten +0xa / +0xb."""
+    regions = {}
+    defs(r, regions)
+    table = regions[TABLE]
+    known = [struct.unpack_from('<H', table, 0x20 * k)[0] for k in range(struct.unpack_from('<i', table, 0x12c0)[0])]
+    project = bytearray(r.bytes(20))
+    put(project, 0, 'H', r.choice(known) if r.random() < 0.97 else r.choice(IDS))
+    cost = r.choice([0.0, 1.0, 10.0, 250.0, 1000.0, r.uniform(0, 1000), float('nan'), float('inf')])
+    done = r.choice([0.0, cost, cost - 1.0, cost * 0.5, cost + 1.0, r.uniform(0, 1000), float('nan')])
+    gap = cost - done
+    amount = r.choice([0.0, gap, gap, gap + 0.5, gap - 0.5, gap * 0.5, 1.0, -1.0, float('nan'), r.uniform(-10, 1000)])
+    put(project, 0xc, 'II', fb(cost), fb(done))
+    log = log_region()
+    blob_bytes(log, 21, 0, 0xf3ff)
+    regions.update({LAB: project, 0x788d3c: struct.pack('<I', RAM + 0x3800), LOG: log})
+    return Call(0x504630, [LAB, fb(amount)], regions, conv='t')
+
+
 def flag_case(r, op):
     lab = bytearray(r.bytes(0x1480))
     lab[0x1468] = r.choice([0, 1, 0, 1, r.getrandbits(8)])
@@ -332,6 +354,8 @@ def case(r):
         return flag_case(r, op)
     if op == 'Message':
         return message_case(r, bytearray(r.bytes(0x1800)))
+    if op == 'Progress':
+        return progress_case(r)
     lab = bytearray(r.bytes(0x1800))
     for i in range(0x100):
         p = 0xc + i * 20

@@ -992,6 +992,7 @@ address,name,kind,confidence,notes
 0x00504090,ResearchLab_FlagOn,function,low,"reimplemented (src/game/world/research); thiscall: the flag +0x1468 set from clear, then a message 13 of 5 posted"
 0x00504140,ResearchLab_FlagOff,function,low,"reimplemented (src/game/world/research); thiscall: the flag +0x1468 cleared from set, then a message 13 of 6 posted"
 0x005041f0,ResearchLab_SyncFlag,function,low,"reimplemented (src/game/world/research); thiscall: FlagOn when the game object's word +0x1da742 is set, else FlagOff"
+0x00504630,ResearchProject_AddResearch,function,low,"reimplemented (src/game/world/research); thiscall (amount float): a project not done gets amount added; done now: its control record +0x10 1, +0x14 the level; message 0x11 posted"
 0x005100e0,Nav_SetPosVel,function,high,"reimplemented (src/game/world/nav); thiscall (x, y, vx, vy): pos (+8) and vel (+0x10) set"
 0x00510160,Nav_GetPos,function,high,"reimplemented (src/game/world/nav); thiscall (&x, &y): pos (+8, +0xc) read"
 0x0051aad0,World_ArrivalVehicleNotSize1,function,high,reimplemented (src/game/world/world); thiscall: 1 when mCurrentArrivalVehicle (+0x1da72a) is set and is not mArrivalVehicle_Size1 (+0x1da72c)
