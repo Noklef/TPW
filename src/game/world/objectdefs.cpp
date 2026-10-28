@@ -522,4 +522,30 @@ void __fastcall ObjectDefs_GetSuffix(u8 *defs, void *, u32 id, u16 *out, u32 siz
     u8 *def = ObjectDefs_Find(defs, nullptr, (u16)id);
     Crt().wcsncpy(out, at<const u16 *>(def, 0x4fc), size);  // (no definition: a fault, sic)
 }
+
+void __fastcall ObjectDefs_Free(u8 *defs) {
+    ObjectDefs_ReleaseEffects(defs);   // (inlined)
+    for (s32 i = 0; i < at<s32>(defs, 0x528); ++i) {   // (the count re-read each step)
+        u8 **const slot = reinterpret_cast<u8 **>(defs + 4 * i);
+        u16 **const texts = reinterpret_cast<u16 **>(*slot + 0x4f4);   // (a null entry: a fault, sic)
+        for (u32 k = 0; k < 4; ++k) {
+            if (texts[k] && texts[k] != reinterpret_cast<u16 *>((uintptr_t)0x006fd880)) {   // (not the shared "MISSING STRING")
+                Mem_GlobalFree(texts[k]);
+                texts[k] = nullptr;
+            }
+        }
+        if (u8 *const def = *slot) {
+            ObjectDef_Dtor(def);
+            GameHeap_Free(def);
+        }
+        *slot = nullptr;
+    }
+    at<s32>(defs, 0x528) = 0;
+    at<u16>(defs, 0x730) = 0;
+    at<u32>(defs, 0x734) = 0;
+}
+
+void __cdecl ObjectDefs_FreeAll() {
+    ObjectDefs_Free(reinterpret_cast<u8 *>(0x007890a0));   // (inlined, the table's words read as globals)
+}
 }

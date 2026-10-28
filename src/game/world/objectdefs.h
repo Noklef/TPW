@@ -145,6 +145,15 @@ void __fastcall ObjectDef_Dtor(u8 *def);
 // entry, stopping at a null one.
 void __fastcall ObjectDefs_ReleaseEffects(u8 *defs);
 
+// 0x412d50 (thiscall; name invented, unconfirmed): ObjectDefs_ReleaseEffects (inlined); then for each entry below the count +0x528 (signed,
+// re-read each step) the definition's four texts (+0x4f4) freed (Mem_GlobalFree) and cleared unless null or the shared "MISSING STRING"
+// (0x6fd880), the definition destroyed (ObjectDef_Dtor) and freed (Mem_Free) unless null, and the entry cleared; the count, the word +0x730
+// and the dword +0x734 cleared.
+void __fastcall ObjectDefs_Free(u8 *defs);
+
+// 0x412a90 (cdecl; name invented, unconfirmed): ObjectDefs_Free of the definitions table 0x7890a0 (inlined).
+void __cdecl ObjectDefs_FreeAll();
+
 // The object texts (names unconfirmed): the table 0x7488d8 .. 0x749850 of 0xc-byte rows (an object id, its name's text id, its suffix's;
 // an id 0 ends it) whose texts the text formatter (TextFormat, with the text table at 0x78bacc) writes. The object set's +0x52c holds
 // three buffers of 0x40 characters for them: a name, a suffix and the two joined.
