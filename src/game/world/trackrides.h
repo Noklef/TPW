@@ -198,4 +198,13 @@ void __cdecl TrakCar_PlaySounds(u8 *car);
 // into it (the length of a part's direction, a handle found, the heading's fild operands); with no animator the gate tests read that
 // (sic). The original's Debug_Printf calls are left out.
 void __cdecl TrakCar_Move(u8 *car);
+// 0x545450 (cdecl (handle); name invented, unconfirmed): for a handle that names its ride (the module not loaded: only 0, then the null ride
+// is read), the pool's cars (0x877b68, 0xac bytes each; the used ones, bit 0, as many as 0x877b6c counts) on the ride (+0x9c) taken off
+// (TrakCar_Remove), the ride closed (TrakRide_Close), its +0xa8 pieces cut to those with flag 2 or 4 (Collider_KeepA8 (ride, 6), inlined)
+// and its +0xbc chunks freed (Pool_FreeAll, inlined).
+void __cdecl TrakRide_Strip(u32 handle);
+
+// 0x545610 (cdecl (handle); name invented, unconfirmed): as TrakRide_Strip, but every +0xa8 piece dropped (Collider_KeepA8 (ride, 0)), then
+// the +0xc0 list released (Collider_ReleaseC0), the ride's +0 cleared and the ride count 0x877b64 down (all inlined).
+void __cdecl TrakRide_Destroy(u32 handle);
 }

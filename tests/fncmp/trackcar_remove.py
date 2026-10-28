@@ -44,11 +44,12 @@ def merged(ranges):   # (overlapping ranges joined: a listing line must not come
     return out
 
 
-B = Bench(merged(particles.RANGES + soundset.RANGES + partstate.RANGES + [
+RANGES = merged(particles.RANGES + soundset.RANGES + partstate.RANGES + [
     (0x44b4c0, 0x44b505), (0x44b220, 0x44b267), (0x44b410, 0x44b4c0), (0x475550, 0x47558b),
     (0x54ae50, 0x54b0f8), (0x54ac70, 0x54ad8e), (0x67a830, 0x67a860), (0x516130, 0x516160), (0x516160, 0x5161b0), (0x50b350, 0x50b360),
-    (0x4cd300, 0x4cd331), (0x51eeb0, 0x51eeec), (0x55a3e0, 0x55a470), (0x55a070, 0x55a0b0), (0x51bfc0, 0x51c048)]),
-    hooks={0x463c80: _recorder(31, 1, cdecl=True)})
+    (0x4cd300, 0x4cd331), (0x51eeb0, 0x51eeec), (0x55a3e0, 0x55a470), (0x55a070, 0x55a0b0), (0x51bfc0, 0x51c048)])
+HOOKS = {0x463c80: _recorder(31, 1, cdecl=True)}
+B = Bench(RANGES, hooks=HOOKS)
 
 
 def case(r):
