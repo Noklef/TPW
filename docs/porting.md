@@ -40,6 +40,9 @@ range, open items, known skips and the paths of the two memory files it should r
 - **No backslash escapes through heredoc Python** (`\r\n`, `\x10`): they get mangled. Use Edit/Write, or chr(13)/chr(10).
 - **Killing a stuck run:** stop only your own processes, matched by your full worktree path in the command line, never by a short substring.
   All agents share the scratchpad path, so a short match once killed another agent's port.py.
+- **No polling loops or watchers:** no `until ...; do sleep` loops, no `tail -f` / `grep` watchers, no `py -I -` REPL loops left running. Run
+  long jobs in the background and wait to be told they finished; one such loop once ran for 8 hours. Before your report, check that none
+  of your processes (bash, tail, grep, sleep, py) are still running.
 
 ## Read first (short)
 - The two memory files your prompt names: port-lessons (the port.py cycle, bench ranges and pitfalls, calling conventions, driver envs; follow
@@ -95,6 +98,12 @@ range, open items, known skips and the paths of the two memory files it should r
   siblings return something, the port returns it and the bench uses ret 'a', even when no caller reads EAX today.
 - **Skips:** functions that read uninitialised stack slots, or pass uninitialised stack bytes (struct padding) to recorded callees, cannot be
   compared. Skip them and list them. Don't spend more than a couple of looks.
+- **No deliberate faults from a reading:** a port that faults on purpose ("the original always faults here, sic") crashes the game if the
+  reading is wrong. SoundVoice_Load did (5db98e10): "pushes one argument for a function that pops two" was a miscount, and every save with
+  sounds crashed. Before writing one, count every PUSH and each callee's RET n between them, and get the bench to run the path to its
+  fault on real-shaped data. Otherwise port what the listing does.
+- **"crash in both" is not coverage:** a case the original faults in too counts as the same, so a path whose fixture always faults is
+  never compared. When a bench reports many, see where they fault (the emulator's PC); a path you ported should also run to its end.
 - **Ghidra mis-splits:** a "function" starting with a conditional jump, or in the middle of another, is not one. Skip it.
 - **x87:** the emulator (x87emu) runs x87 code; tools/x87sym.py helps read it. Prefer the portable functions first, then take x87 ones.
 - **Shared modules:** adding a function to a module another branch also touches is fine. Never reformat or reorder existing code in it.
