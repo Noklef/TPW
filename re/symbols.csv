@@ -5891,6 +5891,8 @@ address,name,kind,confidence,notes
 0x0043bf20,CoasterCar_Sleep,function,low,"reimplemented (src/game/coaster/cars); A coaster car put to sleep: its segments' strip holders taken out, its sounds stopped"
 0x00435730,Coaster_SetState,function,low,"reimplemented (src/game/coaster/cars); cdecl (coaster, value): the state (+8 low 4 bits) and mode (bits 4-6) set, waking, sleeping or unloading the cars and advancing the queue by the transition"
 0x00442c70,Coaster_ResumeRunning,function,low,"reimplemented (src/game/coaster/cars); cdecl (coaster): the pieces +0x60 / +0x64 flags cleared, +0x3c bit 1 cleared, +0x60 = +0x58, Coaster_SetState (2), Flags_SetChanged (1)"
+0x0043b270,Coaster_SetModeAt,function,low,"reimplemented (src/game/coaster/cars); coaster index's mode set: 0x10, 0x40 or 0x20 by which"
+0x0043b2f0,Coaster_StepStateAt,function,low,"reimplemented (src/game/coaster/cars); coaster index's state stepped: 8 when on with state bit 4, 4 when off with 0xa"
 0x0043b050,CoasterLink_Find,function,high,"reimplemented (src/game/coaster/registry); cdecl (key): +0x14 of the first entry of the list at 0x790fe0 (next +0x18) whose +0x24 is key, else 0"
 0x00438720,Coaster_Count,function,high,reimplemented (src/game/coaster/registry); cdecl (): the coaster count (0x792214)
 0x00438730,CoasterLink_Nodes,function,high,"reimplemented (src/game/coaster/registry); cdecl (n, value or null): link n of the list at 0x790fe0: its +0x28 to *value, returns its +0x54 -> +0x90 -> +4 node list"

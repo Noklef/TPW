@@ -313,6 +313,26 @@ void __cdecl Coaster_SetMixAtPinned(u32 index, u32 value) {
     if (u32 *const pinned = reinterpret_cast<u32 **>(0x00790bd0)[index]) *pinned |= 0x8000;
 }
 
+void __cdecl Coaster_SetModeAt(u32 index, u32 which) {
+    u8 *const coaster = reinterpret_cast<u8 **>(0x00790bd0)[index];
+    switch (which) {
+    case 0: Coaster_SetState(coaster, 0x10); break;
+    case 1: Coaster_SetState(coaster, 0x40); break;
+    case 2: Coaster_SetState(coaster, 0x20); break;
+    default: break;
+    }
+}
+
+void __cdecl Coaster_StepStateAt(u32 index, u32 on) {
+    u8 *const coaster = reinterpret_cast<u8 **>(0x00790bd0)[index];
+    const u8 low = at<u8>(coaster, 8);
+    if (on) {
+        if (low & 4) Coaster_SetState(coaster, 8);
+    } else if (low & 0xa) {
+        Coaster_SetState(coaster, 4);
+    }
+}
+
 void __cdecl Coaster_BoardRiders(u8 *queue, u8 *coaster, u32 first, u32 count) {
     while (at<u32>(coaster, 0x14) && count) {
         if (!at<u32>(queue, 0xbc)) return;
