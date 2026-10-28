@@ -72,6 +72,18 @@ u8 *__fastcall Overlay_Ctor(u8 *overlay, void *, u8 *holder) {
 }
 
 // Slot 8's copy (see Overlay_Clone): flags for Holder_Clone, vtable the derived one's (0: the base's, left by Overlay_Ctor).
+u8 *__fastcall Overlay_CtorResized(u8 *overlay, void *, u8 *holder) {
+    Overlay_Ctor(overlay, nullptr, holder);
+    at<u32>(overlay, 0) = 0x006fee38u;
+    return overlay;
+}
+
+u8 *__fastcall Overlay_CtorResizedHeight(u8 *overlay, void *, u8 *holder) {
+    Overlay_Ctor(overlay, nullptr, holder);
+    at<u32>(overlay, 0) = 0x006fee60u;
+    return overlay;
+}
+
 static u8 *CloneOverlay(u8 *overlay, u32 flags, u32 vtable) {
     if (!at<u16>(overlay, 0x10) || !at<u16>(overlay, 0x12) || !at<u8 *>(overlay, 4)) return overlay;
     u8 *holder = nullptr;

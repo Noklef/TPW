@@ -5605,6 +5605,8 @@ address,name,kind,confidence,notes
 0x004771a0,Overlay_Clone,function,low,reimplemented (src/game/gfx/overlay); slot 8 of 0x6fee10: the overlay copied on a copy of its holder
 0x004774c0,Overlay_CloneResized,function,low,"reimplemented (src/game/gfx/overlay); slot 8 of 0x6fee38: as Overlay_Clone, flags 4, vtable 0x6fee38"
 0x004777b0,Overlay_CloneResizedHeight,function,low,"reimplemented (src/game/gfx/overlay); slot 8 of 0x6fee60: as Overlay_Clone, flags 4, vtable 0x6fee60"
+0x00477250,Overlay_CtorResized,function,low,reimplemented (src/game/gfx/overlay); the 0x6fee38 overlay built on a holder
+0x00477580,Overlay_CtorResizedHeight,function,low,reimplemented (src/game/gfx/overlay); the 0x6fee60 overlay built on a holder
 0x0047e2f0,ScreenSurfaces_Ctor,function,high,reimplemented (src/game/gfx/screensurfaces); the screen surfaces source: both Surfaces cleared and their infos constructed
 0x0047e390,SurfaceSource_Dtor,function,high,reimplemented (src/game/gfx/screensurfaces); the abstract surface source's destructor (vtable 0x6fef90 back)
 0x0047e570,ScreenSurfaces_Bounds,function,high,"reimplemented (src/game/gfx/screensurfaces); virtual: out = {0, 0, width - 1, height - 1}"

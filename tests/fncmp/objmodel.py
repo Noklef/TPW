@@ -5,7 +5,7 @@
 # table, the model's flag 2 with the procedural texture object (no cache; a tracked block or none) there or not.
 # The load (0x579e00): see load(). A holder's part made (0x45bbc0, model/holder): see create(). The object's matrices set (0x57a260):
 # see matrices() and matrices_env(). A mesh's colours lit once a frame (0x57aa10): see light_mesh(). The overlay base's constructor
-# (0x476a90, gfx/overlay): see overlay_ctor(). Its three clones (slot 8: 0x4771a0, 0x4774c0, 0x4777b0): see overlay_clone().
+# (0x476a90, gfx/overlay): see overlay_ctor(); the 0x6fee38 / 0x6fee60 overlays' constructors (0x477250 / 0x477580) on the same. Its three clones (slot 8: 0x4771a0, 0x4774c0, 0x4777b0): see overlay_clone().
 # The holder's part made at +0x20 (0x46dd50, model/holder): create()'s case.
 # usage: objmodel.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Unload,Load,Create,Matrices,LightMesh,OverlayCtor,OverlayClone,OverlayCloneR,OverlayCloneRH,CreateAt20)
 import os
@@ -27,10 +27,11 @@ RANGES = wctimage.merged([(0x57a100, 0x57a258), (0x579b80, 0x579c13), (0x57b2e0,
                           (0x575f00, 0x575f8d), (0x56e4e0, 0x56e549), (0x67afa0, 0x67b0d0), (0x67acb0, 0x67acb1), (0x579e00, 0x57a0f2),
                           (0x54dcc0, 0x54dce8), (0x45bbc0, 0x45bc58), (0x579cd0, 0x579df1), (0x5775d0, 0x5775f3), (0x57a260, 0x57a41c), (0x57aa10, 0x57aba6), (0x576230, 0x576260),
                           (0x476a90, 0x476b4a), (0x6597b0, 0x659896), (0x659994, 0x6599bc), (0x659d00, 0x659d53), (0x65a9d0, 0x65aa00),
-                          (0x4771a0, 0x47724e), (0x4774c0, 0x47757e), (0x4777b0, 0x47786e), (0x46dd50, 0x46ddb9)] + clone.RANGES + meshlist.RANGES + texset.RANGES + texcache.RANGES
+                          (0x4771a0, 0x47724e), (0x4774c0, 0x47757e), (0x4777b0, 0x47786e), (0x46dd50, 0x46ddb9), (0x477250, 0x477269), (0x477580, 0x477599)] + clone.RANGES + meshlist.RANGES + texset.RANGES + texcache.RANGES
                          + loadscreen.RANGES)
 B = Bench(RANGES, hooks={0x67a7d0: _cdecl_log})
-CALLS = {'Unload': 0x57a100, 'Load': 0x579e00, 'Create': 0x45bbc0, 'Matrices': 0x57a260, 'LightMesh': 0x57aa10, 'OverlayCtor': 0x476a90, 'CreateAt20': 0x46dd50}
+CALLS = {'Unload': 0x57a100, 'Load': 0x579e00, 'Create': 0x45bbc0, 'Matrices': 0x57a260, 'LightMesh': 0x57aa10, 'OverlayCtor': 0x476a90, 'CreateAt20': 0x46dd50,
+         'OverlayCtorR': 0x477250, 'OverlayCtorRH': 0x477580}
 CLONES = {'OverlayClone': 0x4771a0, 'OverlayCloneR': 0x4774c0, 'OverlayCloneRH': 0x4777b0}
 CALLS.update(CLONES)
 OBJ, MODEL, SETS, SET, MESHES, FACES, WORDS, BLOCK, TEX = (RAM, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x1000, RAM + 0x2000,
@@ -381,6 +382,9 @@ def case(r):
         return overlay_clone(r, CLONES[op])
     if op == 'OverlayCtor':
         return overlay_ctor(r)
+    if op in ('OverlayCtorR', 'OverlayCtorRH'):
+        c = overlay_ctor(r)
+        return Call(CALLS[op], c.args, c.regions, conv='t', ret='a')
     if op == 'LightMesh':
         return light_mesh(r)
     if op == 'Load':
