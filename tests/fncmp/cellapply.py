@@ -5,7 +5,9 @@
 # 22 of 6), their results now and then set (0, a ride of the instances' table 0x7a4610: animator.py's animator, or another); the animator
 # world animator.py's. The variant counter (0x820aec) stays under 0x1e: past it MapCell_PickModel's variant is the angle's pointer
 # (sic), here a stack local, whose address the original and the port do not share.
-# usage: cellapply.py [CASES [SEED]] [--wild|--both] [--show N]
+# Place (0x53b1a0 MapCell_PlaceRide): Apply's world, the cell's group (+0x14) 3, 4, 5 mostly, else 0, 2 or any, its flags (+0xe)
+# with 0x10 or not, its +0x18 / +0x1c any; the 0x44-byte cell's +8 0x15 or not.
+# usage: cellapply.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Apply,Place)
 import os
 import struct
 import sys
@@ -41,7 +43,7 @@ RANGES = merged([   # (animator.py's)
     (0x53afa0, 0x53b19e)]
 HOOKS = {0x463c80: _recorder(31, 1, cdecl=True), 0x522b90: _recorder(20, 6, cdecl=True), 0x522d50: _recorder(21, 6, cdecl=True),
          0x522f20: _recorder(22, 6, cdecl=True)}
-B = Bench(RANGES, sines=256, hooks=HOOKS)
+B = Bench(RANGES + [(0x53b1a0, 0x53b279)], sines=256, hooks=HOOKS)
 
 
 def case(r, log=None):
@@ -80,5 +82,22 @@ def case(r, log=None):
     return Call(0x53afa0, [cellmodel.CELL], regions, conv='t', ret='v')
 
 
+def place(r):
+    c = case(r)
+    cell = bytearray(c.regions[cellmodel.CELL])
+    put(cell, 0x14, 'I', r.choice([3, 3, 4, 4, 5, 5, 0, 2, r.getrandbits(32)]))
+    cell[0xe] = cell[0xe] & ~0x10 | r.choice([0, 0, 0x10])
+    put(cell, 0x18, 'II', r.choice([0, 1, 0x37, r.getrandbits(16)]), r.choice([0, 1, 2, 3, r.getrandbits(32)]))
+    c.regions[cellmodel.CELL] = cell
+    return Call(0x53b1a0, [cellmodel.CELL], c.regions, conv='t', ret='v')
+
+
+OPS = [k for k in os.environ.get('OPS', 'Apply,Place').split(',') if k]
+
+
+def bench_case(r):
+    return case(r) if r.deal(OPS) == 'Apply' else place(r)
+
+
 if __name__ == '__main__':
-    B.main(case)
+    B.main(bench_case)

@@ -247,4 +247,21 @@ void __fastcall MapCell_ApplyModel(u8 *cell) {
     }
 }
 
+void __fastcall MapCell_PlaceRide(u8 *cell) {
+    const u32 index = static_cast<u32>(at<u16>(cell, 0)) - 1;
+    const s32 x = static_cast<s32>(index & 0x7f), y = static_cast<s32>(index >> 7);
+    if (at<u32>(MapHandle_Cell44(reinterpret_cast<const u16 *>(cell)), 8) != 0x15) at<u32>(cell, 4) = 0;   // (the ride forgotten, not removed)
+    const s32 group = at<s32>(cell, 0x14);
+    PlaceFn place;
+    if (group == 3 || group == 4) {
+        if (at<u8>(cell, 0xe) & 0x10) return;
+        place = group == 3 ? g_env->place3 : g_env->place4;
+    } else if (group == 5) {
+        place = g_env->place5;
+    } else {
+        return;
+    }
+    at<u32>(cell, 4) = place(x, y, at<s32>(cell, 0x14), at<s32>(cell, 0x18), at<s32>(cell, 0x1c), 1);
+}
+
 }  // extern "C"
