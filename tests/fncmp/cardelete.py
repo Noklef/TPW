@@ -98,7 +98,7 @@ def case(r):
     regions[0x79c600] = glob
     if op == 'FlaggedEnd':   # (each car its own train, those of the last few with flag 1; now and then all: the walk reads null)
         own = bytearray(r.bytes(0x80 * m))
-        k = r.choice([0, 1, 1, 2, 3, m - 1, m] if r.random() < 0.95 else [m])
+        k = min(r.choice([0, 1, 1, 2, 3, m - 1]), m - 1) if r.random() < 0.95 else m
         for i in range(m):
             t = 0x80 * i
             own[t + 4] = own[t + 4] & ~1 | (1 if i >= m - k else 0)
