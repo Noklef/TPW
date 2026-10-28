@@ -26,7 +26,9 @@ range, open items, known skips and the paths of the two memory files it should r
 - Never weaken verification. Never exclude a failing case from a bench. If a port is wrong, fix the port, not the bench. If the bench is
   wrong, fix the bench's cases, never by dropping cases.
 - Naming: never create bucket files (smallNN, tiny_*, misc*). Put each function in the module for its class/subject: an existing one, or a
-  new module named for the subject. Benches are tests/fncmp/<module>.py. Keep names from re/symbols.csv. A name you invent is "low" confidence
+  new module named for the subject. Benches are tests/fncmp/<module>.py. A new bench takes a name no file has yet (`git ls-files
+  tests/fncmp/NAME.py` prints nothing): writing over an existing bench drops the functions it covered (panel7cc218.py, footprint.py).
+  Keep names from re/symbols.csv. A name you invent is "low" confidence
   in symbols.csv, and you say "unconfirmed" in your report. port.py does this by default: a new or renamed row is "low", a row that
   already had the name keeps its confidence. Pass `--known NAME...` only for a name the binary confirms (RTTI, a string, a library's own
   function name). A failed port.py run puts hooks.cpp, symbols.csv, CMakeLists.txt and unverified.csv back as they were; don't revert
