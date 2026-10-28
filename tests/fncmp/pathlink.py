@@ -6,7 +6,8 @@
 # (modes 0 and 3): 0x820aa4 set or not, the stored step (0x763ac0 / 0x763ac4) and dx, dy -1, 0, 1, 0x80 or any; [0x8186ac] +0x36 the id
 # of a side cell or another, [0x7cf83c] now and then [0x80239c]'s world (the drag reads it for that cell only) so that it can be one;
 # the owner word 0x818698 a side cell's, 0 or any. Modes 2 and any do nothing but store the step.
-# usage: pathlink.py [CASES [SEED]] [--wild|--both] [--show N]
+# Reset (0x536490 MapCell_Reset): mode 1's world, the cell's attribute byte (+0x26) any bits of 1, 2, 4, 8, 0x10, 0x80, models as Link's.
+# usage: pathlink.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Link,Reset)
 import os
 import struct
 import sys
@@ -25,7 +26,7 @@ if _ops is not None:
 cellkind.OPS = ['Clear']
 W2 = pathmodel.W2
 MANAGER, VT, SEL = RAM + 0x58000, RAM + 0x58100, RAM + 0x58200
-RANGES = pathapply.merged(cellkind.RANGES + [(0x5348d0, 0x535600), (0x51bfc0, 0x51c050), (0x67a830, 0x67a860)])
+RANGES = pathapply.merged(cellkind.RANGES + [(0x5348d0, 0x535600), (0x51bfc0, 0x51c050), (0x67a830, 0x67a860), (0x536490, 0x5365cf)])
 B = Bench(RANGES, sines=256, hooks=cellkind.HOOKS)
 SIDES = {(0, -1): 0x10, (1, 0): 0x40, (0, 1): 1, (-1, 0): 4}   # (the side cells and the direction facing back)
 
@@ -44,7 +45,8 @@ def case(r):
     cell = bytearray(regions[pathmodel.CELL])
     h = struct.unpack_from('<H', cell)[0]
     x, y = (h - 1) & 0x7f, (h - 1) >> 7
-    mode = r.choice([1] * 8 + [0, 0, 3, 3, 2, r.getrandbits(32)])
+    op = r.deal(OPS)
+    mode = 1 if op == 'Reset' else r.choice([1] * 8 + [0, 0, 3, 3, 2, r.getrandbits(32)])
     owners = [0, r.getrandbits(16)]
     ids = [h, r.getrandbits(16)]
     for (dx, dy), back in SIDES.items():
@@ -84,7 +86,13 @@ def case(r):
                     0x763ac0: struct.pack('<2i', *(r.choice(stored) for _ in range(2))), 0x818698: struct.pack('<H', r.choice(owners)),
                     0x803a2c: r.bytes(4), 0x802bc0: g, MANAGER: struct.pack('<I', VT) + r.bytes(12), VT: vtable({2: 2}, 4)})
     models = r.choice([0, 1, 1, 0x100, r.getrandbits(32)])
+    if op == 'Reset':
+        cell[0x26] = sum(b for b in (1, 2, 4, 8, 8, 0x10, 0x80) if r.random() < 0.4) & 0xff | (r.getrandbits(8) & 0x60)
+        return Call(0x536490, [pathmodel.CELL, models], regions, conv='t', ret='v')
     return Call(0x5348d0, [pathmodel.CELL, mode, r.choice(step), r.choice(step), models], regions, conv='t', ret='v')
+
+
+OPS = [k for k in os.environ.get('OPS', 'Link,Reset').split(',') if k]
 
 
 if __name__ == '__main__':
