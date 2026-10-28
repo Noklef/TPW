@@ -10,7 +10,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, IMPORT_TABLE, LOG, Bench, Call, RAM, blob, blob_bytes, fill, fb, heap, import_table, log_region, recorder, set_return, strings, vtable  # noqa: E402
 
-B = Bench([(0x51b4f0, 0x51b530), (0x51b620, 0x51b670), (0x51b7c0, 0x51b913), (0x51b920, 0x51bb35), (0x51bb40, 0x51bc34), (0x51bc40, 0x51bfd0),
+RANGES = ([(0x51b4f0, 0x51b530), (0x51b620, 0x51b670), (0x51b7c0, 0x51b913), (0x51b920, 0x51bb35), (0x51bb40, 0x51bc34), (0x51bc40, 0x51bfd0),
            (0x51c060, 0x51c140), (0x51c1c0, 0x51c1cc), (0x51c1d0, 0x51c2bc), (0x51c2c0, 0x51c360), (0x51c570, 0x51c5c2),
            (0x51c5d0, 0x51c8c6), (0x51c8d0, 0x51c930), (0x51e6f0, 0x51e704), (0x51e710, 0x51e726), (0x5da3c0, 0x5da3c1),
            (0x5e2a30, 0x5e2b80), (0x5f5f10, 0x5f5f7d), (0x5f5fa0, 0x5f5fc0), (0x632150, 0x632380), (0x6338d0, 0x6338f9),
@@ -29,6 +29,7 @@ B = Bench([(0x51b4f0, 0x51b530), (0x51b620, 0x51b670), (0x51b7c0, 0x51b913), (0x
            (0x6bead0, 0x6beb03), (0x6c4670, 0x6c46a7), (0x6c46b0, 0x6c475a), (0x6c4760, 0x6c47a3), (0x6c49b0, 0x6c4c30),
            (0x6c4c80, 0x6c4f70), (0x6c4fd0, 0x6c5000), (0x6c5080, 0x6c5088), (0x6c5130, 0x6c5160), (0x6c5c50, 0x6c5c8f),
            (0x6c6000, 0x6c60a0), (0x6d1bc0, 0x6d1bca)])
+B = Bench(RANGES)
 MANAGER, VT, ENGINE, EVT = RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400
 
 
@@ -51,7 +52,7 @@ def manager(r):
 SMGR = RAM + 0x8000   # (the senders' manager: +4 the sound object)
 SENDERS = [0x51c0a0, 0x51c0e0, 0x51c2c0, 0x51c300, 0x51c640, 0x51c6b0, 0x51bc70, 0x51bcb0, 0x51bcf0, 0x51bd30, 0x51bd70, 0x51c700, 0x51c570,
            0x51b810, 0x51b620, 0x51c060, 0x51c1d0, 0x51c5d0, 0x51c8d0, 0x51b920]
-ONLY = [int(k, 16) for k in os.environ.get('OPS', '').split(',') if k]
+ONLY = [int(k, 16) for k in (os.environ.get('OPS', '') if __name__ == '__main__' else '').split(',') if k]
 MIXB, TOPB = RAM + 0x9000, RAM + 0x9100   # (the settings update's mixer and its loudest array)
 CVT, OVT = RAM + 0x9200, RAM + 0x9300   # (the camera level's channel and object vtables)
 
@@ -260,6 +261,8 @@ def case(r):
         return Call(fn, [RAM + 4, value], {RAM: r.bytes(0x10)}, conv='t', ret='a')
     return Call(fn, [value], {0x803ab0: r.bytes(0x40)})
 
+
+OPS = [k for k in os.environ.get('OPS', 'Setters,Place').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)

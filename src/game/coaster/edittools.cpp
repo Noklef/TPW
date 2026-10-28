@@ -5,10 +5,16 @@
 #include "../core/actionrec.h"
 #include "../files/wrapsources.h"
 #include "../math/x87.h"
+#include "../ui/dialog7ca1c8.h"
 #include "../model/highlight.h"
 #include "../world/money.h"
+#include "../world/object.h"
+#include "../world/pathdrag.h"
 #include "../world/world.h"
+#include "cars.h"
+#include "cursor.h"
 #include "helpers.h"
+#include "registry.h"
 #include "train.h"
 
 namespace {
@@ -266,5 +272,338 @@ u32 __cdecl CoasterEdit_ToggleDrag() {
         g<u32>(0x0079c698) = 0;
     }
     return Off(Flags());
+}
+}
+
+namespace {
+
+// 0x4423f0 / 0x4425c0: the move tool (bit) toggled; on, the selected car swapped with its neighbour (next: the one after, else the
+// one before), recorded as code with the car's handle, and again while there is a game (the tool then going off).
+void MoveCar(u32 bit, u32 code, bool next) {
+    for (u8 *game = g<u8 *>(0x00790fec); game; game = g<u8 *>(0x00790fec)) {
+        if (!at<u32>(game, 0x40)) return;
+        u32 flags = Flags();
+        u8 *const car = Piece();
+        const u32 on = flags & bit;
+        if (!on) {
+            if (!car) return;
+            if (next ? at<u32>(car, 4) >= at<u32>(Def(car), 0x30) - 1 : at<u32>(car, 4) == 0) return;
+        }
+        if (at<u8>(Def(car), 4) & 2) return;   // (sic: with the tool on, a missing car faults)
+        if (!(flags & 0x3f)) {
+            Flags() = flags |= bit;
+        } else if (on) {
+            Flags() = flags &= ~bit;
+        }
+        if (!(flags & bit)) {
+            Highlight_SetShown(0);
+            return;
+        }
+        if (!car) {
+            Flags() = flags & ~bit;
+            Highlight_SetShown(0);
+            return;
+        }
+        // (the word pushed with the pointer's high half, sic)
+        ActionRec_WriteW(Recorder(), nullptr, code, ((u32)(uintptr_t)car & 0xffff0000u) | at<u16>(car, 0));
+        ClearChanged();
+        u8 *const piece = Piece();
+        Train_SwapCars(piece, at<u8 *>(Def(piece), 0x34 + 4 * at<u32>(piece, 4) + (next ? 4 : -4)));
+        Highlight_SetShown(1);
+    }
+}
+
+}  // namespace
+
+extern "C" {
+
+void __cdecl CoasterEdit_MoveCarBack() { MoveCar(8, 0x3d, true); }
+
+void __cdecl CoasterEdit_MoveCarForward() { MoveCar(0x10, 0x3e, false); }
+}
+
+namespace {
+
+// What 0x442220 and 0x444360 both do first: with 0x79c624 bit 0 and a game, the game's flag 4 cleared, Flags_SetChanged (game, 0)
+// and, unless its +0x3c has bit 0 without bit 1, Coaster_FlashCar (game, 1); then the tool in use (flags bits 0-5) toggled off.
+void EndTool() {
+    if ((g<u8>(0x0079c624) & 1) && g<u8 *>(0x00790fec)) {
+        at<u32>(g<u8 *>(0x00790fec), 0) &= ~4u;
+        Flags_SetChanged(g<u32 *>(0x00790fec), 0);
+        u8 *const game = g<u8 *>(0x00790fec);
+        const u32 f = at<u32>(game, 0x3c);
+        if (!(f & 1) || (f & 2)) Coaster_FlashCar(game, 1);
+    }
+    switch (Flags() & 0x3f) {
+    case 1: CoasterEdit_ToggleDrag(); break;
+    case 2: CoasterEdit_ToggleAdjustE0(); break;
+    case 4: CoasterEdit_ToggleAdjust(); break;   // (inlined in both)
+    case 8: CoasterEdit_MoveCarBack(); break;
+    case 0x10: CoasterEdit_MoveCarForward(); break;
+    case 0x20: TrackSelection_End(); break;   // (inlined in both)
+    default: break;
+    }
+}
+
+void SetModeState(u32 mode) {
+    g<u32>(0x0079c664) = 0;
+    g<u32>(0x0079c644) = 0;
+    g<u32>(0x0079c624) = mode;
+    Flags() &= ~0x40u;
+}
+
+}  // namespace
+
+extern "C" {
+
+void __cdecl CoasterEdit_EndTool() {
+    EndTool();
+    SetModeState(0);
+}
+
+void __cdecl CoasterEdit_SetMode(u32 mode) {
+    EndTool();
+    SetModeState(mode);
+    if ((u8)mode != 1) return;
+    Coaster_FlashCar(g<u8 *>(0x00790fec), 2);
+    at<u32>(g<u8 *>(0x00790fec), 0) |= 4;   // (sic: before the game is tested)
+    const u8 *const game = g<const u8 *>(0x00790fec);
+    if (!game || !(at<u8>(at<const u8 *>(game, 4), 0) & 2)) return;
+    const u32 f = at<u32>(game, 0x3c);
+    bool flagged;
+    if (!(f & 1))
+        flagged = at<u8>(at<const u8 *>(game, 0x58), 8) & 0x80;
+    else
+        flagged = (f & 2) && (at<u8>(at<const u8 *>(game, 0x60), 8) & 0x80);
+    if (flagged) {
+        g<u32>(0x0079c664) = 1;
+        Flags() |= 0x40;
+    }
+}
+
+// Tool 1 started (0x444770 and 0x442880 alike): CoasterEdit_EndTool, the mode 1, the car flashed, the game's flag 4, the end checked.
+static void StartTool1() {
+    CoasterEdit_EndTool();
+    g<u32>(0x0079c624) = 1;
+    Coaster_FlashCar(g<u8 *>(0x00790fec), 2);
+    at<u32>(g<u8 *>(0x00790fec), 0) |= 4;
+    CoasterLink_CheckEnd();
+}
+
+// The rest of tool 1's start (0x444770 and 0x445220): recorded (0x37), the game's flag 0x2000 cleared, CoasterLink_ClearEnd when
+// 0x79c644 and 0x79c664 are both 2, 0x79c664 = 0, 0x79c644 = 1, the bounds set.
+static void Tool1Rest() {
+    ActionRec_Write(Recorder(), nullptr, 0x37);
+    at<u32>(g<u8 *>(0x00790fec), 0) &= ~0x2000u;
+    if (g<u32>(0x0079c644) == 2 && g<u32>(0x0079c664) == 2) CoasterLink_ClearEnd();
+    g<u32>(0x0079c664) = 0;
+    g<u32>(0x0079c644) = 1;
+    CoasterEdit_SetBounds();
+}
+
+void __cdecl CoasterEdit_SwitchToTool1() {
+    CoasterEdit_Tools(nullptr);
+    CoasterEdit_EndTool();
+    g<u32>(0x0079c638) &= ~2u;
+    StartTool1();
+    Tool1Rest();
+    g<u32>(0x0079c638) |= 1;
+    Dialog7ca1c8_SetChecksIfUpThis(reinterpret_cast<void *>(0x007b51f0), nullptr, g<u32>(0x0079c6e0));
+    Dialog7ca1c8_SelectButtonIfUpThis(reinterpret_cast<void *>(0x007b51f0), nullptr, g<u32>(0x0079c638));
+}
+
+void __cdecl CoasterEdit_SetTools(u32 tools) {
+    EndTool();
+    SetModeState(0);
+    g<u32>(0x0079c6e0) = 0;
+    g<u32>(0x0079c638) = 0;
+    for (u32 bit = 1, left = tools; left; bit <<= 1) {
+        if (!(left & bit)) continue;
+        switch (bit) {
+        case 1:
+            StartTool1();
+            CoasterEdit_SetTool(1);
+            break;
+        case 2:
+            CoasterEdit_SetMode(1);
+            CoasterEdit_SetTool(2);
+            break;
+        case 4: CoasterEdit_SetMode(2); break;
+        case 8: CoasterEdit_SetMode(4); break;
+        case 0x10: CoasterEdit_SetMode(8); break;
+        case 0x20: CoasterEdit_SetMode(0x10); break;
+        case 0x40: CoasterEdit_SetMode(0x80); break;
+        case 0x80: CoasterEdit_SetMode(0x20); break;
+        case 0x100: CoasterEdit_SetMode(0x40); break;
+        default: break;
+        }
+        g<u32>(0x0079c638) |= bit;
+        left &= ~bit;
+    }
+    CoasterEdit_RefreshTools();
+}
+
+void __cdecl CoasterEdit_StartTool(u32 tool) {
+    switch (tool) {
+    case 1:
+        StartTool1();
+        Tool1Rest();
+        break;
+    case 2:
+        StartTool1();
+        ActionRec_Write(Recorder(), nullptr, 0x38);
+        at<u32>(g<u8 *>(0x00790fec), 0) &= ~0x2000u;
+        if (CoasterLink_EndMarked()) {   // (the original tests the game and its type's flag 2 again: EndMarked's own tests)
+            g<u32>(0x0079c664) = 1;
+            Flags() |= 0x40;
+        } else {
+            CoasterLink_BeginEnd();
+        }
+        g<u32>(0x0079c644) = 2;
+        CoasterEdit_SetBounds();
+        break;
+    case 4: CoasterEdit_SetMode(2); break;   // (4 .. 0x80 inlined: CoasterEdit_EndTool, the mode set)
+    case 8: CoasterEdit_SetMode(4); break;
+    case 0x10: CoasterEdit_SetMode(8); break;
+    case 0x20: CoasterEdit_SetMode(0x10); break;
+    case 0x40: CoasterEdit_SetMode(0x80); break;
+    case 0x80: CoasterEdit_SetMode(0x20); break;
+    case 0x100: CoasterEdit_SetMode(0x40); break;
+    default: break;
+    }
+    g<u32>(0x0079c638) |= tool;
+}
+
+void __cdecl CoasterEdit_EndAll() {
+    EndTool();
+    SetModeState(0);
+    g<u32>(0x0079c6e0) = 0;
+    g<u32>(0x0079c638) = 0;
+}
+
+void __cdecl CoasterEdit_StartChosenTool(u32 *tool) {
+    const u8 *const game = g<const u8 *>(0x00790fec);
+    const u32 f = at<u32>(game, 0x3c);   // (sic: before the game is tested)
+    if ((f & 1) && !(f & 2)) {
+        *tool = 0x10;
+    } else {
+        u32 marked;
+        if (CoasterLink_EndMarked()) {   // (inlined)
+            Flags() |= 0x40;
+            marked = g<u32>(0x0079c664) = 1;
+        } else {
+            marked = g<u32>(0x0079c664);
+        }
+        *tool = marked != 1 ? 1 : 2;
+    }
+    CoasterEdit_StartTool(*tool);   // (inlined in full; the CoasterLink_SetEnd it calls tests the game and its type again)
+}
+
+void __cdecl CoasterEdit_ToolButton(u32 tool, u32 action) {
+    if (action & 2) {
+        if (tool & 0x1ff) {
+            EndTool();
+            SetModeState(0);
+            g<u32>(0x0079c638) &= ~tool;
+        }
+    } else if (action & 1) {
+        if (tool == 2) {
+            StartTool1();
+            CoasterEdit_SetTool(2);
+            g<u32>(0x0079c638) |= tool;
+        } else {
+            CoasterEdit_StartTool(tool);   // (1 and 4 .. 0x100 as StartTool; SetMode called, not inlined)
+        }
+    } else if (action & 4) {
+        CoasterEdit_EndAll();   // (inlined)
+    }
+    if (tool) {
+        CoasterEdit_Tools(nullptr);
+        Dialog7ca1c8_SetChecksIfUpThis(reinterpret_cast<void *>(0x007b51f0), nullptr, g<u32>(0x0079c6e0));
+    }
+}
+void __cdecl CoasterEdit_SetEditing(u8 *coaster, u32 on) {
+    ActionRec_WriteW(Recorder(), nullptr, 0x44, coaster && on ? at<u32>(coaster, 0x14) : 0);
+    if (coaster && on) {
+        if (!g<u8 *>(0x00790fec)) {
+            Object_RestartRide(at<u8 *>(coaster, 0x28));
+            const u32 f = at<u32>(coaster, 0x3c);
+            Coaster_SetState(coaster, (f & 1) && !(f & 2) ? 2 : 1);
+        }
+        CoasterLink_SetCurrent(coaster);
+        return;
+    }
+    if (!g<u8 *>(0x00790fec)) return;
+    EndTool();
+    g<u32>(0x0079c664) = 0;
+    g<u32>(0x0079c644) = 0;
+    Flags() &= ~0x40u;
+    g<u32>(0x0079c624) = 0;
+    g<u32>(0x0079c6e0) = 0;
+    g<u32>(0x0079c638) = 0;
+    u8 *const game = g<u8 *>(0x00790fec);
+    Flags_SetChanged(reinterpret_cast<u32 *>(game), 0);
+    CoasterLink_SetCurrent(nullptr);
+    if (at<u8>(game, 8) & 2) Object_Close(at<u8 *>(game, 0x28));
+}
+
+void __cdecl CoasterEdit_EditRide(const u8 *object, u32 on) {
+    u8 *const link = object ? CoasterLink_ById(at<u32>(object, 0x20)) : nullptr;
+    if (g<u32>(0x00785a2c)) return;
+    if (on)
+        CoasterEdit_SetEditing(link, 1);
+    else
+        CoasterEdit_SetEditing(nullptr, 0);
+}
+
+// The pieces from the lower handle (+0) of a and b up to the other (by +0x64, the other left out): flag 0x1000000 set, or 0x1004000 cleared.
+static void mark_span(u8 *a, u8 *b, bool set) {
+    u8 *from = a, *to = b;
+    if (at<u32>(a, 0) > at<u32>(b, 0)) {
+        from = b;
+        to = a;
+    }
+    for (; from != to; from = at<u8 *>(from, 0x64)) {
+        if (set)
+            at<u32>(from, 8) |= 0x1000000u;
+        else
+            at<u32>(from, 8) &= 0xfeffbfffu;
+    }
+}
+
+u32 __cdecl CoasterEdit_SelectPiece(u8 *piece) {
+    if (piece && (at<u8>(at<u8 *>(piece, 0x100), 4) & 2)) return 0;
+    g<u32>(0x0079c69c) = 0;
+    if (!piece) return 0;
+    const u32 many = at<u32>(at<u8 *>(piece, 0x100), 0x30) > 1 ? 1 : 0;
+    g<u8 *>(0x0079c6a4) = piece;
+    Flags() |= 0x100;
+    g<u8 *>(0x0079c660) = at<u8 *>(piece, 0x100);
+    g<float>(0x0079c694) = static_cast<float>(Car_TrainLength(piece));
+    ActionRec_WriteWWW(Recorder(), nullptr, 0x3c, 0, 0, at<u16>(piece, 0));
+    at<u32>(g<u8 *>(0x00790fec), 0) &= ~0x2000u;
+    u8 *const first = at<u8 *>(piece, 0x68) ? at<u8 *>(piece, 0x68) : piece;
+    u8 *const prev = g<u8 *>(0x0079c628);
+    g<u8 *>(0x0079c62c) = first;
+    g<u32>(0x007925d0) = 3;
+    u8 *const next = at<u8 *>(piece, 0x64);
+    if (prev) mark_span(first, prev, false);
+    g<u8 *>(0x0079c628) = next ? next : piece;
+    mark_span(first, next ? next : piece, true);
+    Flags_SetChanged(g<u32 *>(0x00790fec), 0);
+    const u8 *const def = at<u8 *>(piece, 0x100);
+    s32 x = at<s32>(def, 0xc), y = at<s32>(def, 0x10);
+    g<s32>(0x0079c6d8) = x;
+    g<s32>(0x0079c6a0) = y;
+    if (x < 0) x = 0;
+    if (y < 0) y = 0;
+    if (x >= g<s32>(0x007a0314)) x = g<s32>(0x007a0314) - 1;
+    if (y >= g<s32>(0x007a0374)) y = g<s32>(0x007a0374) - 1;
+    PathDrag_Begin(x, y, at<u32>(at<u8 *>(piece, 0x100), 0x30) > 1 ? 1 : 0);
+    Highlight_SetShown(1);
+    CoasterEdit_SetBounds();
+    g<float>(0x0079c698) = static_cast<float>(Car_TravelCost(g<u8 *>(0x00790fec), 0, piece, nullptr, nullptr, nullptr, nullptr));
+    g<float>(0x0079c64c) = static_cast<float>(Car_TravelCost(g<u8 *>(0x00790fec), 0, at<u8 *>(piece, 0x64), nullptr, nullptr, nullptr, nullptr));
+    return many;
 }
 }

@@ -84,4 +84,9 @@ void __fastcall NamedObjects_AddListedFolders(u8 *self);
 // 12th AddFolderAndWad again), a null object too, and added to the registry at +0x34 (ObserverList0_Add). The listed folders
 // (NamedObjects_AddListedFolders) come between the seventh and the eighth.
 void __fastcall NamedObjects_AddFixedFolders(u8 *self);
+
+// 0x407d80 (thiscall, plain RET; name invented, unconfirmed): the world made, by the start-up's call on the global 0x786b68 (this unused):
+// a 0x1da748-byte block (Mem_Alloc) constructed (World_Ctor; none when the allocation fails) and stored at 0x7cf83c; 0 without a world,
+// otherwise 1 when World_Attach answers non-zero.
+u32 __fastcall NamedObjects_CreateWorld(u8 *self);
 }

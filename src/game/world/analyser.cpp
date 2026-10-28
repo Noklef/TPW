@@ -1,16 +1,24 @@
 #include "analyser.h"
 
 #include <cstdint>
+#include <cstring>
 
 #include "../core/filetime.h"
 #include "../core/circbuf.h"
 #include "../core/funnytime.h"
 #include "../core/indexed.h"
 #include "../core/trivial.h"
+#include "../core/vcall.h"
 #include "../core/savegame.h"
+#include "../files/wrapsources.h"
+#include "../math/x87.h"
 #include "mapcell.h"
 #include "messagecentre.h"
+#include "object.h"
+#include "objectdefs.h"
 #include "things.h"
+#include "thingscan.h"
+#include "world.h"
 
 namespace {
 
@@ -113,6 +121,21 @@ u8 *__fastcall ParkAnalyser_Cell(u8 *analyser, void *, u32 pos) {
 void __fastcall ParkAnalyser_StampTime21c30(u8 *analyser) { stamp(analyser, 0x21c30); }
 
 void __fastcall ParkAnalyser_StampTime21c38(u8 *analyser) { stamp(analyser, 0x21c38); }
+
+void __fastcall ParkAnalyser_RecordDays(u8 *analyser, void *, u32 ticks) {
+    FileTime span;
+    const FileTime *t = FunnyTime_SpanOf(**reinterpret_cast<u8 *const *const *>(0x007cf6ec) + 0x2a0, nullptr, &span, ticks);
+    const long long value = (long long)(((unsigned long long)t->high << 32) | t->low);
+    const u32 days = (u32)(value / 864000000000LL);   // (_alldiv; the quotient's low dword)
+    const s32 size = at<s32>(analyser, 0x216d0);
+    const s32 cursor = at<s32>(analyser, 0x216cc) + 1;
+    at<s32>(analyser, 0x216cc) = cursor;
+    if (cursor >= size) {
+        at<s32>(analyser, 0x216cc) = 0;
+        at<u8>(analyser, 0x216d4) = 1;
+    }
+    at<u32>(analyser, 0x21604 + (u32)at<s32>(analyser, 0x216cc) * 4u) = days;
+}
 
 u32 __fastcall ParkAnalyser_InitCells(u8 *analyser) {
     MessageCentre_AddThing(MessageCentre_Instance(), nullptr, analyser, 0xc);
@@ -285,6 +308,147 @@ u32 __fastcall ParkAnalyser_CountBusy(u8 *analyser, void *, u32 limit) {
     u32 sum = 0;
     for (u32 i = 0x400; i-- > 0;) sum += AnalyserCell_CountBusy(analyser + 0x20 + 0x7c * i, nullptr, limit);
     return sum;
+}
+
+u32 __fastcall AnalyserCell_CountType1Or3Or9(u8 *cell, void *, u32 limit) {
+    if (!cell[0x54] || limit < Game1da70c_MinusAt0Quarters(reinterpret_cast<const u32 *>(cell + 0x4c))) {
+        u32 count = 0;
+        for (s32 x = at<s32>(cell, 0); x < at<s32>(cell, 0) + at<s32>(cell, 8); ++x)
+            for (s32 y = at<s32>(cell, 4); y < at<s32>(cell, 4) + at<s32>(cell, 0xc); ++y) {
+                const u16 id = (u16)((y << 7) + x + 1);
+                const u8 *const m = *reinterpret_cast<u8 *const *>(0x008023a0) + id * 0x44u - 0x44u;
+                count += MapCell_IsType1(m) || MapCell_IsType3Or9(m) ? 1 : 0;
+            }
+        at<u32>(cell, 0x50) = count;
+        cell[0x54] = 1;
+        Out_SetFromGame1da70c(reinterpret_cast<u32 *>(cell + 0x4c));
+    }
+    return at<u32>(cell, 0x50);
+}
+
+u32 __fastcall ParkAnalyser_CountType1Or3Or9(u8 *analyser, void *, u32 limit) {
+    u32 sum = 0;
+    for (u32 i = 0x400; i-- > 0;) sum += AnalyserCell_CountType1Or3Or9(analyser + 0x20 + 0x7c * i, nullptr, limit);
+    return sum;
+}
+
+u32 __fastcall AnalyserCell_CountWith2c(u8 *cell, void *, u32 limit) {
+    if (!cell[0x60] || limit < Game1da70c_MinusAt0Quarters(reinterpret_cast<const u32 *>(cell + 0x58))) {
+        u32 count = 0;
+        const s32 x0 = at<s32>(cell, 0), x1 = x0 + at<s32>(cell, 8);
+        const s32 y0 = at<s32>(cell, 4), y1 = y0 + at<s32>(cell, 0xc);   // (the bounds and the map read once)
+        const u8 *const map = *reinterpret_cast<u8 *const *>(0x008023a0);
+        for (s32 x = x0; x < x1; ++x)
+            for (s32 y = y0; y < y1; ++y) {
+                const u16 id = (u16)((y << 7) + x + 1);
+                count += at<u32>(map, id * 0x44u - 0x18u) != 0 ? 1 : 0;
+            }
+        at<u32>(cell, 0x5c) = count;
+        cell[0x60] = 1;
+        Out_SetFromGame1da70c(reinterpret_cast<u32 *>(cell + 0x58));
+    }
+    return at<u32>(cell, 0x5c);
+}
+
+u32 __fastcall ParkAnalyser_CountWith2c(u8 *analyser, void *, u32 limit) {
+    u32 sum = 0;
+    for (u32 i = 0x400; i-- > 0;) sum += AnalyserCell_CountWith2c(analyser + 0x20 + 0x7c * i, nullptr, limit);
+    return sum;
+}
+
+void __fastcall ParkAnalyser_Sample(u8 *analyser) {
+    u8 *const world = **reinterpret_cast<u8 *const *const *>(0x007cf6ec);
+    const u32 position = Source_Field0c(reinterpret_cast<const TrackedSource *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(world)));
+    CircBufU32_144_Push(analyser + 0x1f100, nullptr, position);
+    // (the first four through 0x4ce290, the rest inlined: each the dword at its +0 pushed, then cleared)
+    static const u32 kAccumulators[] = {0x1f5a0u, 0x1f7f0u, 0x1fa40u, 0x1fc90u, 0x1fee0u, 0x20130u, 0x20380u, 0x20cc0u};
+    for (const u32 ring : kAccumulators) {
+        CircBufU32_144_Push(analyser + ring, nullptr, at<u32>(analyser, ring));
+        at<u32>(analyser, ring) = 0;
+    }
+    CircBufU32_144_Push(analyser + 0x205d0, nullptr, ParkAnalyser_CountKind1OnPlainCell(analyser, nullptr, 0));
+    CircBufU32_144_Push(analyser + 0x20820, nullptr, at<u32>(analyser, 0x21c08));
+    CircBufU32_144_Push(analyser + 0x20a70, nullptr, ParkAnalyser_CountDef4ac0(analyser, nullptr, 0));
+    const float average = static_cast<float>(Things_AveragePersonStat19c(analyser, nullptr, 0));   // (fstp m32)
+    u32 bits;
+    std::memcpy(&bits, &average, 4);
+    CircBufU32_144_Push(analyser + 0x20f10, nullptr, bits);
+    CircBufU32_144_Push(analyser + 0x1f350, nullptr, ParkAnalyser_ParkScore(analyser, nullptr, 0));
+    at<u32>(analyser, 0x21bfc) = 0;
+    at<u32>(analyser, 0x21c00) = 0;
+    double sum;
+    const s32 count = CircBufU32_50_Sum(analyser + 0x21600, nullptr, &sum, 0x32);
+    CircBufU32_144_Push(analyser + 0x21160, nullptr, count > 0 ? (u32)(long long)(X87Reg(sum) / X87Reg((double)count)).v : 0);
+    CircBufU32_144_Push(analyser + 0x213b0, nullptr, (u32)Things_FacilityScore(analyser));
+}
+
+void __fastcall ParkAnalyser_HandleMessage(u8 *analyser, void *, u8 *message) {
+    switch (vcall<u32>(message, 0)) {
+    case 0xc:
+        ParkAnalyser_Sample(analyser);
+        return;
+    case 0x11: {   // (a u16 ring of the definition's +0x4ac: +8 cursor, +0xc size, +0x10 wrapped, the values from +2)
+        const u16 id = at<u16>(message, 8);
+        u8 *const r = analyser + (at<u32>(ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, id), 0x4ac) + 0x18d2) * 0x14;
+        const s32 size = at<s32>(r, 0xc);
+        const s32 cursor = at<s32>(r, 8) + 1;
+        at<s32>(r, 8) = cursor;
+        if (cursor >= size) {
+            at<s32>(r, 8) = 0;
+            at<u8>(r, 0x10) = 1;
+        }
+        at<u16>(r, 2 + 2 * at<s32>(r, 8)) = id;
+        return;
+    }
+    case 0x13:
+        if (at<u32>(message, 8) == 3) stamp(analyser, 0x21c28);
+        return;
+    case 0x17:
+        if (at<u32>(message, 0xc) == 2) stamp(analyser, 0x21c10);
+        return;
+    }
+}
+
+u32 __fastcall ParkAnalyser_ParkScore(u8 *analyser, void *, u32 limit) {
+    if (!analyser[0x1f0f0] || limit < Game1da70c_MinusAt0Quarters(reinterpret_cast<const u32 *>(analyser + 0x1f0e8))) {
+        s32 score = 0;
+        u8 *const cells = *reinterpret_cast<u8 *const *>(0x0080239c) + 0x2d8;
+        for (s32 x = 0x7f; x >= 0; --x)
+            for (s32 y = 0x7f; y >= 0; --y) {
+                const u16 id = (u16)((y << 7) + x + 1);
+                u8 *const cell = cells + id * 0x44u - 0x44u;
+                if (MapCell_HasFlags(cell, nullptr, 0x40)) continue;
+                if (MapCell_IsType2(cell)) score += 1;
+                if (MapCell_IsType1(cell)) score += 3;
+                if (MapCell_IsType3Or9(cell)) score += 5;
+                if (MapCell_IsType9(cell)) score += 1;
+                if (MapCell_IsTypeA(cell)) score += 1;
+                if (Zero_5d60c0()) score += 10;
+                if (MapCell_IsType0(cell)) score += 2;
+                if (MapHandle_IsTypeBDOr10Or12Or19(reinterpret_cast<const u16 *>(cell))) score += 0x32;
+            }
+        u16 handle = at<u16>(*reinterpret_cast<u8 *const *>(0x0080239c), 0x1da746);
+        while (handle) {
+            u8 *const thing = static_cast<u8 *>(reinterpret_cast<ThingSlot *>(0x007cfb90)[handle].thing);
+            s32 value = 0;
+            if (!Is19c_Eq4_4e0380(thing)) {
+                s32 sum = 0;
+                u32 i = 0;
+                do {   // (the original's JC after a TEST never jumps: at least once)
+                    const u8 *const def = ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, at<u16>(thing, 0xe));
+                    sum += at<s32>(def, 0x1b8 + i * 0x40);
+                    ++i;
+                } while (i <= thing[0x50]);
+                value = (s32)(((u32)(long long)at<float>(thing, 0x44) & 0xff) * (u32)sum) / 100;   // (__ftol's low byte)
+            }
+            score += value;
+            handle = at<u16>(thing, 0xc);
+        }
+        at<s32>(analyser, 0x1f0ec) = score;
+        analyser[0x1f0f0] = 1;
+        Out_SetFromGame1da70c(reinterpret_cast<u32 *>(analyser + 0x1f0e8));
+    }
+    return at<u32>(analyser, 0x1f0ec);
 }
 
 u32 __fastcall ParkAnalyser_CountAtTicketBooths(u8 *analyser) {

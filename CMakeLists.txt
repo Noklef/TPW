@@ -18,6 +18,8 @@ add_subdirectory(third_party)
 # Reimplemented game code, shared by the hook DLL and the tests.
 add_library(tpw_game STATIC
     src/game/rsse/rsse_vm.cpp
+    src/game/rsse/scream.cpp
+    src/game/rsse/scriptfile.cpp
     src/game/core/app.cpp
     src/game/core/crt.cpp
     src/game/core/fpu.cpp
@@ -73,6 +75,8 @@ add_library(tpw_game STATIC
     src/game/files/vfs.cpp
     src/game/files/substream.cpp
     src/game/files/fontfiles.cpp
+    src/game/files/resindex.cpp
+    src/game/files/charsets.cpp
     src/game/core/regkey.cpp
     src/game/core/stdstring.cpp
     src/game/core/globalmem.cpp
@@ -196,6 +200,7 @@ add_library(tpw_game STATIC
     src/game/core/sounddevice.cpp
     src/game/core/soundsource.cpp
     src/game/core/widewriter.cpp
+    src/game/core/narrowwriter.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
@@ -240,6 +245,7 @@ add_library(tpw_game STATIC
     src/game/gfx/dderrors.cpp
     src/game/gfx/moviesurface.cpp
     src/game/gfx/moviesound.cpp
+    src/game/gfx/guitext.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp
     src/game/math/rect.cpp
@@ -320,6 +326,8 @@ add_library(tpw_game STATIC
     src/game/world/bankaccount.cpp
     src/game/world/parkgates.cpp
     src/game/world/cellbuild.cpp
+    src/game/world/mapclick.cpp
+    src/game/world/objectunlock.cpp
     src/game/world/queuepieces.cpp
     src/game/world/pathdrag.cpp
     src/game/world/advisorrecords.cpp
@@ -329,6 +337,7 @@ add_library(tpw_game STATIC
     src/game/world/endthing.cpp
     src/game/world/parkopen.cpp
     src/game/world/gamemode.cpp
+    src/game/world/rides.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp
@@ -349,6 +358,8 @@ add_library(tpw_game STATIC
     src/game/coaster/tracktypes.cpp
     src/game/coaster/edittools.cpp
     src/game/coaster/trackmesh.cpp
+    src/game/coaster/carsound.cpp
+    src/game/coaster/placecheck.cpp
     src/game/terrain/terrain_blend.cpp
     src/game/terrain/land.cpp
     src/game/terrain/procedural.cpp
@@ -378,6 +389,7 @@ add_library(tpw_game STATIC
     src/game/model/heightmap.cpp
     src/game/model/baseuvs.cpp
     src/game/model/md2file.cpp
+    src/game/model/gridfit.cpp
     src/game/render/mode.cpp
     src/game/render/frame.cpp
     src/game/render/screen.cpp
@@ -505,6 +517,10 @@ add_library(tpw_game STATIC
     src/game/ui/guinamed.cpp
     src/game/ui/dialog7ca13c.cpp
     src/game/ui/imecandidates.cpp
+    src/game/ui/window705950draw.cpp
+    src/game/ui/thingpanel.cpp
+    src/game/ui/dialog7ca1bc.cpp
+    src/game/ui/dialog7ca1e0.cpp
 )
 # The libraries whose functions replace the exe's copies (src/game/lib); their headers stay private to those units.
 target_link_libraries(tpw_game PRIVATE tpw_zlib tpw_jpeg6b tpw_jpeg6a)
@@ -521,7 +537,7 @@ add_library(tpw_hook SHARED
 set_target_properties(tpw_hook PROPERTIES OUTPUT_NAME dinput)
 target_link_libraries(tpw_hook PRIVATE tpw_game)
 
-# Test tooling (tpw.log, the startup trace, the FPU watcher): NOT part of the decompilation.
+# Test tooling (tpw.log, the startup trace, the FPU watcher, the profiler): NOT part of the decompilation.
 # It lives in src/testing, links into the hook DLL only, and is never visible to tpw_game.
 # OFF builds the DLL as the reimplementation alone. See .docs/06-in-game-testing.md.
 option(TPW_TEST_TOOLING "Build the in-game test tooling into the hook DLL" ON)
@@ -531,6 +547,7 @@ if(TPW_TEST_TOOLING)
         src/testing/log.cpp
         src/testing/trace.cpp
         src/testing/fpu_watch.cpp
+        src/testing/profiler.cpp
     )
     target_link_libraries(tpw_hook PRIVATE tpw_testing)
     target_compile_definitions(tpw_hook PRIVATE TPW_TEST_TOOLING)

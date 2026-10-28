@@ -7,7 +7,9 @@
 # (its window's slot 8 answering 0: an implementation would be told about the frame through a block on the stack); guidepth.py's globals.
 # Window7cb2cc_Open / _OpenOnGui (src/game/ui/focus: 0x4a2790, 0x48a6e0): Create's set-up with the script at 0x752e00, the window
 # [0x7cb2cc] none (mostly) or set, [0xfaa638] random.
-# usage: dialogbase.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=BaseHandler,Create,Open,OpenOnGui)
+# Toggle (src/game/ui/focus: 0x4a27f0): Open's set-up with the window [0x7cb2cc] none, or focus.py's Close7cb2cc set-up with it one of
+# the tree's windows.
+# usage: dialogbase.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=BaseHandler,Create,Open,OpenOnGui,Toggle)
 import os
 import sys
 
@@ -34,7 +36,7 @@ CREATE = [(0x47ed80, 0x47eea0), (0x6588b6, 0x6588ff), (0x6589f9, 0x658abb), (0x6
           (0x66c4a1, 0x66c578), (0x66cad3, 0x66cb79), (0x66c760, 0x66c7dc), (0x66c568, 0x66c5a4), (0x67acf0, 0x67ada0), (0x67b050, 0x67b0d0)]     + [(a, a + 0x10) for a in (0x65c2c8, 0x65ad33, 0x6628e4, 0x6662a7, 0x668aad, 0x66ae73, 0x66c84a, 0x66cac3, 0x66d1e8, 0x66d875, 0x66da3d,
                                0x66a5b4, 0x66a271)]
 B = Bench(sorted(set(window.RANGES + [(0x47ee90, 0x47eed0), (0x65d55a, 0x65d57b), (0x4a2790, 0x4a27b3), (0x48a6e0, 0x48a6f4),
-                                      (0x662411, 0x662420)] + FACTORY + CREATE)))
+                                      (0x662411, 0x662420), (0x4a27f0, 0x4a2831)] + FACTORY + CREATE)))
 OPENS = {'Open': 0x4a2790, 'OpenOnGui': 0x48a6e0}
 
 
@@ -82,6 +84,19 @@ def open_case(r, op):
     return Call(OPENS[op], [], regions, ret='a')
 
 
+def toggle_case(r):
+    """Toggle (0x4a27f0): Open's set-up with the window [0x7cb2cc] none, or focus.py's Close7cb2cc set-up with it one of the tree's"""
+    if r.random() < 0.5:
+        c = open_case(r, 'Open')
+        c.regions[0x7cb2cc] = bytes(4)
+    else:
+        c = focus.case(r, ['Close7cb2cc'])
+        if not struct.unpack('<I', c.regions[0x7cb2cc])[0]:
+            c.regions[0x7cb2cc] = struct.pack('<I', r.choice(sorted(k for k in c.regions if window.TREE <= k < window.RECTS)))
+    c.address = 0x4a27f0
+    return c
+
+
 def case(r, ops=None):
     """one of ops (OPS when None: port.py's mutants call case(r)); BaseHandler without dealing for none ([])"""
     ops = OPS if ops is None else ops
@@ -90,6 +105,8 @@ def case(r, ops=None):
         return create_case(r)
     if op in OPENS:
         return open_case(r, op)
+    if op == 'Toggle':
+        return toggle_case(r)
     c = focus.case(r, ['FocusRestore'])
     wins = sorted(k for k in c.regions if window.TREE <= k < window.RECTS)
     w = r.choice(wins)
@@ -102,7 +119,7 @@ def case(r, ops=None):
     return c
 
 
-OPS = [k for k in os.environ.get('OPS', 'BaseHandler,Create,Open,OpenOnGui').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'BaseHandler,Create,Open,OpenOnGui,Toggle').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)

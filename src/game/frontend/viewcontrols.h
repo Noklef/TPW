@@ -44,6 +44,15 @@ s32 __cdecl Scene702dd0_DialogDone(s32 accepted, u8 *self);
 // 0x5dd3d0 (thiscall; UseFirst / UseSecond end with it): the three dwords at +0x10 take those at +0x28 when +0x58 is set, else those at +0x1c.
 void __fastcall Obj_ChooseVector(u8 *object);
 
+// 0x5dced0 (Class702bc8 slot 5; thiscall (message, key, unused), pops 0xc; name invented): message 0x1000a with key 0x2500 / 0x2600 /
+// 0x2700 / 0x2800: ViewCtl_Lower48 / Raise50 / Raise48 / Lower50 (inline in the original); message 0x10006 with 2: the mode swapped
+// (ViewCtl_UseFirstVector when +0x58 is set, else ViewCtl_UseSecondVector: the original inlines the vector's copy) and the dialog's child
+// 0x16006 set to it (Dialog7cdb0c_SetChild16006State). EAX not kept. 0x5dd530 (Class702e70 slot 5; name invented): the same, then for
+// message 0x10005 with key 0 and an object at +0x70: [0xf82888] = its +0xc, the view's slot 8 (+0x20) and the scene's ([0xf85614]) +8
+// object's slot 7 (+0x1c) called.
+void __fastcall ViewCtl702bc8_Message(u8 *self, void *, u32 message, u32 key, u32 unused);
+void __fastcall ViewCtl702e70_Message(u8 *self, void *, u32 message, u32 key, u32 unused);
+
 // 0x5dd810 (Class702e70 slot 16; stdcall; object, pops 4): 1 when the signed dword at +0x40 is above 0, else 0.
 u32 __stdcall Obj_Positive40(const u8 *object);
 

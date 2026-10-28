@@ -6,7 +6,10 @@
 # accepted 0 or not; the object's vtable recorders (slot 0x11's result now and then set), its state +0x14 0-2 or random, its +0xc a holder
 # whose +8 is a lobby model with no model (+4 0; a holder of 0 now and then: a fault in both when the state is 2). Choose: the mode +0x58
 # 0, 1 or 7. Positive40 / Pending (slot 16s): +0x40 about 0 and the signed limits, Pending's +0x60 0 or not and +0x64 on either side of
-# +0x40. SetOrKeep (slot 19): a value of 0 or not.
+# +0x40. SetOrKeep (slot 19): a value of 0 or not. Msg2bc8 / Msg2e70 (the slot 5 message handlers): as UseSecond's set-up, the message
+# 0x1000a (keys 0x2500-0x2800 or others), 0x10006 (key 2 or not) or 0x10005 (key 0 or not); the dialog's child 0x16006 there with its
+# state byte (+0x138) the one the swap gives (0x668bec then returns at once: its other path is the GUI library's, unbenched), the object's
+# vtable recorders, +0x70 a target or 0, [0xf85614]'s +8 an object of recorders.
 # usage: viewcontrols.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Lower48,Raise48,...)
 import os
 import struct
@@ -17,10 +20,12 @@ from fncmp import CDECL_LOG4, LOG, Bench, Call, RAM, log_region, put, set_return
 
 CALLS = {'Lower48': 0x5dd310, 'Raise48': 0x5dd320, 'Raise50': 0x5dd330, 'Lower50': 0x5dd340, 'UseSecond': 0x5dd350, 'UseFirst': 0x5dd390,
          'Show70': 0x5dd7a0, 'Show20': 0x5dda70, 'Show8': 0x5e2620, 'Hide8': 0x5e2640, 'Callback': 0x5e2650, 'Done': 0x5e2660,
-         'Choose': 0x5dd3d0, 'Positive40': 0x5dd810, 'Pending': 0x5ddac0, 'SetOrKeep': 0x5e2750}
+         'Choose': 0x5dd3d0, 'Positive40': 0x5dd810, 'Pending': 0x5ddac0, 'SetOrKeep': 0x5e2750, 'Msg2bc8': 0x5dced0, 'Msg2e70': 0x5dd530}
 B = Bench([(0x5dd310, 0x5dd3fd), (0x4c57e0, 0x4c5830), (0x658d9f, 0x658e04), (0x659710, 0x659740), (0x65d7bc, 0x65d832), (0x65f697, 0x65f6e1),
            (0x5dd7a0, 0x5dd7c0), (0x5dda70, 0x5dda90), (0x5e2620, 0x5e26a0), (0x4b8810, 0x4b8850), (0x4b9c20, 0x4b9c40), (0x4c57a0, 0x4c57c0),
-           (0x5d83f0, 0x5d8431), (0x5dd810, 0x5dd822), (0x5ddac0, 0x5ddae0), (0x5e2750, 0x5e2763)])
+           (0x5d83f0, 0x5d8431), (0x5dd810, 0x5dd822), (0x5ddac0, 0x5ddae0), (0x5e2750, 0x5e2763), (0x5dced0, 0x5dcfbb), (0x5dd530, 0x5dd60e),
+           (0x4c5830, 0x4c584b), (0x668bec, 0x668c89)])
+SCENE, OTHER, OVT, TARGET = RAM + 0x2400, RAM + 0x2500, RAM + 0x2600, RAM + 0x2800
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 WINDOW, KIDS, WIN2, WIN3, HOLDER, VTABLE = RAM + 0x1000, RAM + 0x1200, RAM + 0x1800, RAM + 0x1a00, RAM + 0x2000, RAM + 0x2200
 DIALOGS = {'Show70': (0x7cdb0c, 0x7cc4c4), 'Show20': (0x7cdb0c, 0x7cc4c4)}
@@ -53,20 +58,24 @@ def case(r):
         return Call(CALLS[op], [RAM], regions, conv='s', ret='a')
     if op == 'SetOrKeep':
         return Call(CALLS[op], [RAM, r.choice([0, 0, 1, r.getrandbits(32)])], regions, conv='t')
-    if op.startswith('Use') or op == 'Show70':
+    if op.startswith('Use') or op == 'Show70' or op.startswith('Msg'):
         put(obj, 0x58, 'I', r.choice([0, 1, 2, r.getrandbits(32)]))
         regions[LOG] = log = log_region()
         win = window(r) if op == 'Show70' else bytearray(r.bytes(0x90))
         ids = [r.choice([0x16006, 0x16008, 1]) for _ in range(r.choice([0, 1, 2]))]
         if r.random() < 0.85:
             ids.insert(r.randrange(len(ids) + 1), 0x16007)
+        if op.startswith('Msg') and 0x16006 not in ids:
+            ids.insert(r.randrange(len(ids) + 1), 0x16006)
         for i, ident in enumerate(ids):
-            kid = bytearray(r.bytes(0x120))
+            kid = bytearray(r.bytes(0x140))
+            if ident == 0x16006:   # (the state the swap gives: 0x668bec has nothing to do)
+                kid[0x138] = 0 if struct.unpack_from('<I', obj, 0x58)[0] else 1
             kid[4] = r.choice([0, 0, 0, 1])
-            put(kid, 0x54, 'I', KIDS + 0x120 * (i + 1) if i + 1 < len(ids) else 0)
+            put(kid, 0x54, 'I', KIDS + 0x140 * (i + 1) if i + 1 < len(ids) else 0)
             put(kid, 0x8c, 'I', ident)
             put(kid, 0x114, 'I', r.choice([CDECL_LOG4, CDECL_LOG4, 0]))
-            regions[KIDS + 0x120 * i] = kid
+            regions[KIDS + 0x140 * i] = kid
         put(win, 0x5c, 'I', KIDS if ids else 0)
         regions[WINDOW] = win
         regions[0x7cdb0c] = struct.pack('<I', WINDOW)
@@ -77,6 +86,19 @@ def case(r):
             if r.random() < 0.5:
                 set_return(log, 0x3d, r.choice([0, 1, -1, r.getrandbits(32)]))
             return Call(CALLS[op], [RAM], regions, conv='t', ret='a')
+        if op.startswith('Msg'):
+            message = r.choice([0x1000a, 0x1000a, 0x10006, 0x10005, 0x10005, r.getrandbits(32)])
+            key = r.choice([0x2500, 0x2600, 0x2700, 0x2800, 0x2501, 0, r.getrandbits(32)] if message == 0x1000a else [2, 2, 0, 1, r.getrandbits(32)])
+            put(obj, 0, 'I', VTABLE)
+            regions[VTABLE] = vtable({})
+            put(obj, 0x70, 'I', r.choice([TARGET, TARGET, 0]))
+            regions[TARGET] = r.bytes(0x10)
+            regions[0xf85614] = struct.pack('<I', SCENE)
+            regions[SCENE] = put(bytearray(r.bytes(0x10)), 8, 'I', OTHER)
+            regions[OTHER] = struct.pack('<I', OVT)
+            regions[OVT] = vtable({})
+            regions[0xf82888] = r.bytes(4)
+            return Call(CALLS[op], [RAM, message, key, r.getrandbits(32)], regions, conv='t')
     elif op in ('Show20', 'Show8', 'Hide8', 'Callback', 'Done'):
         regions[LOG] = log = log_region()
         if r.random() < 0.5:

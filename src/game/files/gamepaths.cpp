@@ -143,4 +143,23 @@ WString *__stdcall GamePaths_OnlineFolder(WString *out) {
     WString_Dtor(&path);
     return out;
 }
+
+u32 *__cdecl GamePaths_SetRoots(u32 *result) {
+    u8 *const paths = at<u8 *>(0x00f816c0);
+    String text;
+    String_CtorStr(&text, nullptr, Dir_GetBase());
+    Obj_CallSlot18(paths, nullptr, static_cast<u32>(reinterpret_cast<std::uintptr_t>(&text)));
+    String_Dtor(&text);
+    String_CtorCopy(&text, nullptr, at<const StringView *>(0x00f7eaf0));
+    Obj_CallSub28Slot18(paths, nullptr, static_cast<u32>(reinterpret_cast<std::uintptr_t>(&text)));
+    String_Dtor(&text);
+    String_CtorStr(&text, nullptr, at<const char *>(0x00747810));
+    Strings5_JoinPath(paths, nullptr, reinterpret_cast<const StringView *>(&text));
+    String_Dtor(&text);
+    String_CtorCopy(&text, nullptr, at<const StringView *>(0x00f7edf8));
+    Strings5_JoinPathAt50(paths, nullptr, reinterpret_cast<const StringView *>(&text));
+    String_Dtor(&text);
+    *result = 0;
+    return result;
+}
 }  // extern "C"

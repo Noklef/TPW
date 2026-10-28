@@ -16,6 +16,8 @@
 #include "vobj3.h"
 #include "../files/direntry.h"
 #include "../files/handles.h"
+#include "../world/things.h"
+#include "../world/world.h"
 
 namespace {
 
@@ -327,5 +329,13 @@ void __fastcall NamedObjects_AddFixedFolders(u8 *self) {
         }
         ObserverList0_Add(at<u8 *>(self, 0x34), nullptr, object);
     }
+}
+
+u32 __fastcall NamedObjects_CreateWorld(u8 *) {
+    u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x1da748));
+    u8 *const world = block ? World_Ctor(block) : nullptr;
+    *reinterpret_cast<u8 **>(0x007cf83c) = world;
+    if (!world) return 0;
+    return World_Attach(world) != 0;
 }
 }

@@ -441,7 +441,7 @@ def _global_alloc(e):  # stdcall (flags, size)
 
 
 VSTUBS = STUBS + 0x1000  # the recorders: slot k (0-31) with n (0-15) stack arguments at VSTUBS + 0x400 * n + 0x20 * k
-LOG = STUBS + 0x100000  # their log (the case maps it, see log_region()): a count, then 12 dwords an entry (k, n, this, up to 7 arguments), room for 80
+LOG = STUBS + 0x100000  # their log (the case maps it, see log_region()): a count, then 12 dwords an entry (k, n, this, up to 7 arguments), room for 40
 LOG_ENTRY = 12
 LOG_ENTRIES = 40  # (the room: 4 + 48 * 40 bytes)
 LOG_RETURNS = 0x800  # from here an override for each slot: a flag and a value (flag 2: the value is an argument's index, see echo(); 3: see fail_after();
@@ -700,6 +700,15 @@ def blob_bytes(log, k, arg, mask, inner=None):
         struct.pack_into('<3I', log, LOG_BLOB_WIDE + 16 * w, key if inner_mask >> 15 else 0, base + 15, inner_mask >> 15)
 
 
+def blob_inner_text(log, k, offset=0):
+    """After blob_bytes(log, k, arg, mask, (at, inner_mask)) with an inner mask under 0x8000 (else in place of its bytes past the fifteenth): the
+    wide text (up to 0x400 characters) that the second structure's dword at offset points to (unless null) hashed in too, a text sent in an event."""
+    entries = [struct.unpack_from('<I', log, LOG_BLOB_WIDE + 16 * w)[0] for w in range(BLOB_WIDE)]
+    key = (k & 63) | 0x80000000
+    w = entries.index(key) if key in entries else entries.index(0)
+    struct.pack_into('<3I', log, LOG_BLOB_WIDE + 16 * w, key, 0x80000000 | offset, 0)
+
+
 def bytes_hash(h, data, mask):
     for i in range(32):
         if mask >> i & 1:
@@ -715,7 +724,9 @@ def blob_bytes_hash(read, p, how, mask, wide=None):
         inner = struct.unpack('<I', read(p + at - 1, 4))[0]
         if inner:
             h = bytes_hash(h, read(inner + 4 * (how >> 5 & 7), 15), how >> 16 & 0x7fff)
-            if wide:
+            if wide and wide[0] & 0x80000000:   # (blob_inner_text())
+                h = wide_hash(read, h, struct.unpack('<I', read(inner + (wide[0] & 0xff), 4))[0])
+            elif wide:
                 h = bytes_hash(h, read(inner + wide[0], wide[1].bit_length()), wide[1])
     return h
 
@@ -907,16 +918,61 @@ CDECL_LOG4 = STUBS + 0x90  # a callback of four cdecl arguments that logs them (
 # fills, strings / out arguments, blobs, LOG_BYTES, LOG_RETURNS)
 
 
+TEXT_ARGS = 0x7e0  # in the log region: the count of text arguments CDECL_LOG4 takes past its four (see text_args())
+
+
+def text_args(log, n):
+    """CDECL_LOG4 as the text formatter 0x6acd60 (cdecl: table, buffer, size, id, then pointers to its text arguments, src/game/core/textarg.h): the
+    n (1-3) arguments past the four logged as hashes of the text arguments they point to (their vtable, tag and number, then a string's wide text or
+    a number's dwords +0xc / +0x10; 0 for none), and the buffer (its size 9 or more) given 8 hex digits, the hash of the id and those, so that what
+    shows the text (a window it is sent to: blob_inner_text()) compares it."""
+    assert 1 <= n <= 3
+    struct.pack_into('<I', log, TEXT_ARGS, n)
+
+
+def wide_hash(read, h, p):
+    if not p:
+        return h
+    for i in range(0x400):
+        c = struct.unpack('<H', read(p + 2 * i, 2))[0]
+        if not c:
+            break
+        h = ((h ^ c) * 0x01000193) & 0xffffffff
+    return h
+
+
+def text_arg_hash(read, p):
+    if not p:
+        return 0
+    d = struct.unpack('<5I', read(p, 20))
+    h = 0x811c9dc5
+    for v in d[:3]:
+        h = ((h ^ v) * 0x01000193) & 0xffffffff
+    if d[0] == 0x6ff174:
+        return wide_hash(read, h, d[3])
+    for v in d[3:5]:
+        h = ((h ^ v) * 0x01000193) & 0xffffffff
+    return h
+
+
 def _cdecl_log4(e):  # (driver.cpp stub_cdecl_log4)
     sp = e.r['ESP'] + (4 if e.tail else 0)
     raw = [e.u32(sp + 4 * i) for i in range(4)]
+    texts = min(e.u32(LOG + TEXT_ARGS), 3)
+    if texts:
+        h = ((0x811c9dc5 ^ raw[3]) * 0x01000193) & 0xffffffff
+        for i in range(texts):
+            raw.append(text_arg_hash(e.read, e.u32(sp + 16 + 4 * i)))
+            h = ((h ^ raw[-1]) * 0x01000193) & 0xffffffff
+        if raw[1] and raw[2] >= 9:
+            e.write(raw[1], ''.join('0123456789ABCDEF'[h >> (28 - 4 * i) & 0xf] for i in range(8)).encode('utf-16-le') + bytes(2))
     args = _log_args(e, 0x3d, raw, 0x13d)
     count = e.u32(LOG)
     if count < LOG_ENTRIES:
-        e.write(LOG + 4 + 4 * LOG_ENTRY * count, struct.pack('<%dI' % LOG_ENTRY, 0x13d, 4, 0, *args, *([0] * 5)))
+        e.write(LOG + 4 + 4 * LOG_ENTRY * count, struct.pack('<%dI' % LOG_ENTRY, 0x13d, len(raw), 0, *args, *([0] * (9 - len(raw)))))
         e.write(LOG, struct.pack('<I', count + 1))
     flag, value = struct.unpack('<2I', e.read(LOG + LOG_RETURNS + 8 * 0x3d, 8))
-    e.r['EAX'] = raw[value] if flag == 2 and value < 4 else value if flag else vhash(0x13d, 4, 0, args)
+    e.r['EAX'] = raw[value] if flag == 2 and value < 4 else value if flag else vhash(0x13d, len(raw), 0, args)
 
 
 
@@ -994,11 +1050,13 @@ def _time(e):  # cdecl (t) -> the fixed clock, also through t unless null (the o
     e.r['EAX'] = TIME
 
 
-RAND = 0x2a6b   # the CRT rand()'s stand-in answer (driver crt.cpp msvc6::rand, kDriverCrt)
+RAND_SEED = STUBS + 0x200000   # the CRT rand()'s stand-in seed (driver crt.cpp msvc6::rand, kDriverCrt): a case drawing from rand maps 4 bytes here
 
 
-def _rand(e):  # cdecl () -> RAND (the original's seed is per thread, in its TLS block)
-    e.r['EAX'] = RAND
+def _rand(e):  # cdecl () -> the MSVC6 generator on the seed at RAND_SEED (the original's is the thread's: _getptd()'s +0x14)
+    seed = (e.u32(RAND_SEED) * 214013 + 2531011) & 0xffffffff
+    e.write(RAND_SEED, struct.pack('<I', seed))
+    e.r['EAX'] = seed >> 16 & 0x7fff
 
 
 def _throw(name):

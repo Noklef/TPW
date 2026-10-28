@@ -1,7 +1,7 @@
 // TEST TOOLING, NOT PART OF THE DECOMPILATION.
 //
 // Everything under src/testing exists to diagnose in-game runs: tpw.log, the startup trace
-// (trace.h) and the FPU watcher (fpu_watch.h). None of it reimplements or fixes game code, and
+// (trace.h), the FPU watcher (fpu_watch.h) and the sampling profiler (profiler.h). None of it reimplements or fixes game code, and
 // game code (src/game) must never include it; CMake refuses to configure if it does. The hook
 // DLL calls in through this header only, and only when built with TPW_TEST_TOOLING=ON, so a
 // build with it OFF is the reimplementation alone. See .docs/06-in-game-testing.md.

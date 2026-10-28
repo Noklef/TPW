@@ -10,6 +10,21 @@ namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
+// The view objects' shared part of their message handlers (0x5dced0, 0x5dd530): message 0x1000a's keys move the values, message 0x10006
+// with 2 swaps the mode.
+void view_message(u8 *self, u32 message, u32 key) {
+    if (message == 0x1000a) {
+        if (key == 0x2500) ViewCtl_Lower48(self);
+        else if (key == 0x2600) ViewCtl_Raise50(self);
+        else if (key == 0x2700) ViewCtl_Raise48(self);
+        else if (key == 0x2800) ViewCtl_Lower50(self);
+    } else if (message == 0x10006 && key == 2) {
+        if (at<u32>(self, 0x58)) ViewCtl_UseFirstVector(self);
+        else ViewCtl_UseSecondVector(self);
+        Dialog7cdb0c_SetChild16006State(at<u32>(self, 0x58));
+    }
+}
+
 }  // namespace
 
 extern "C" {
@@ -65,6 +80,19 @@ s32 __cdecl Scene702dd0_DialogDone(s32 accepted, u8 *self) {
         at<u32>(self, 0x14) = 0;
     }
     return Dialog7cc47c_Message6On();
+}
+
+void __fastcall ViewCtl702bc8_Message(u8 *self, void *, u32 message, u32 key, u32) { view_message(self, message, key); }
+
+void __fastcall ViewCtl702e70_Message(u8 *self, void *, u32 message, u32 key, u32) {
+    view_message(self, message, key);
+    if (message == 0x10005 && key == 0) {
+        if (const u8 *const target = at<const u8 *>(self, 0x70)) {
+            *reinterpret_cast<u32 *>((uintptr_t)0x00f82888) = at<u32>(target, 0xc);
+            vcall<void>(self, 0x20);
+            vcall<void>(at<u8 *>(*reinterpret_cast<u8 **>((uintptr_t)0x00f85614), 8), 0x1c);
+        }
+    }
 }
 
 void __fastcall Obj_ChooseVector(u8 *object) {

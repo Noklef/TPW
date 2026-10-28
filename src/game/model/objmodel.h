@@ -1,5 +1,5 @@
 // An engine object's model (the class with vtable 0x7019f8, LiveObject7019f8_Construct in core/liveobjects): reimplementation of its
-// unload, 0x57a100, and load, 0x579e00, and of the object's matrices set (0x57a260).
+// unload, 0x57a100, and load, 0x579e00, of the object's matrices set (0x57a260) and of its textures blended with the terrain (0x57ace0).
 //
 // The object keeps its model at +8 (flags +0x30; +0x36 texture sets as 8-byte pairs from +0x50, the set at +4 of each; +0x44 meshes
 // of 0xa0 bytes from +0x70), its flags at +4 and a tracked block at +0x144 (the load, 0x579e00, makes it and unloads on failure).
@@ -57,4 +57,19 @@ void __fastcall ObjModel_SetMatrices(u8 *object, void *, u8 which, const u32 *ma
 // the view (Meshes_SetView of the matrix and the mesh's +0x78). Then Meshes_LightMesh into the buffer after the stamp: with the object's
 // [+8]+0x30 flag 0x800000 and 0x8bd524 = 4, under the mask 0xffff0000 at the lights object's +0x2c (its own put back). Returns 1.
 u32 __fastcall ObjModel_LightMesh(u8 *object, void *, u8 *mesh, const u32 *matrix, const u32 *lights, u32 flags);
+
+// 0x57ace0 (thiscall on the engine object; x0, y0, x1, y1: pops 0x10; name unconfirmed): the terrain cells (x, y) of the rectangle
+// (inclusive, signed, rows outer; the map at [[0x879d60]], width +0x18, cells +0x2c, read again each time) with flags 0x80 and 0x200
+// counted at +0x12c; that many saved pairs (Mem_Alloc, zeroed) at +0x124 and texture sets (a counted array, TexSet_Ctor) at +0x128.
+// Neither got: Object_ReleaseSavedPairs, the error (2, 0xb0754000) pushed and 0. Else each such cell in turn: the model's (+8) set
+// slot (+0x50 table, the cell's high word's entry +4) gives its first texture's slot (TexSet_TextureSlot); a new texture (a block of
+// 100, Texture_Ctor) gets the cell's terrain tile blended ([[0x879d60]+0x230]'s TerrainTexCache_BlendTile at (x, y)) under an overlay
+// of the old texture's pixels (Texture_LockFlipped), s16 width +0x10 and height +0x12, the pixel size 0x701a18[[0x8bd554]] and the
+// cell's low word as its flags; the results ANDed. The old texture is unlinked from the cache [0x8c4b44] (TexCache_UnlinkItem), the
+// next set made the new texture's own (TexSet_InitShared), the pair saves the slot's value and address and the slot takes the set.
+// No texture got: the error pushed, the sets made so far released (the last first), the pairs freed (Mem_Free, even null), the sets
+// destroyed (their dtor 0x575bf0, a jump to TexSet_Release, over the count before them: those released again just lose a user) and
+// freed, and 0; the slots already relinked stay so and +0x124 / +0x128 keep the freed blocks (sic). Otherwise the result, with the
+// flags' (+4) 0x20000000 set when it is 1.
+u32 __fastcall ObjModel_BlendTerrainTiles(u8 *object, void *, s32 x0, s32 y0, s32 x1, s32 y1);
 }

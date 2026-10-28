@@ -14,7 +14,10 @@
 #include "../sprite/script.h"
 #include "../ui/cursor.h"
 #include "../ui/focus.h"
+#include "../core/actionrec.h"
+#include "../online/chat.h"
 #include "mapcell.h"
+#include "objectdefs.h"
 #include "thingscan.h"
 
 namespace {
@@ -28,7 +31,9 @@ u32 bits(float f) {
 }
 
 const MouseModeEnv kGameEnv = {reinterpret_cast<void(__cdecl *)(void *)>(0x0067acb0),
-                                reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0)};
+                                reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0),
+                                reinterpret_cast<void(__cdecl *)(s32, s32, u32)>(0x005234d0),
+                                reinterpret_cast<void(__cdecl *)(u32, u32)>(0x0052f200)};
 const MouseModeEnv *g_env = &kGameEnv;
 
 }  // namespace
@@ -254,6 +259,29 @@ void __fastcall MMPlaceStaff_Assign(u8 *self) {
 void __fastcall MMStaffDrop_Assign(u8 *self) {
     Obj7b51f0_SetCursor(reinterpret_cast<void *>(0x007b51f0), nullptr, 9);
     start_staff_script(self, at<u32>(self, 0xc), at<u8>(self, 0x10));
+}
+
+void __fastcall MouseModeTile_Assign(u8 *self) {
+    u8 *def = nullptr;
+    if (at<u32>(self, 0xc)) def = ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, at<u16>(self, 0x10));
+    const u32 tile = *reinterpret_cast<u16 *>(0x007b05cc) - 1u;
+    g_env->clickTile(static_cast<s32>(tile & 0x7f), static_cast<s32>(tile >> 7), 0);
+    g_env->f52f200(at<u32>(self, 8), 1);
+    if (at<u32>(self, 0xc)) Global8186e0_SetRecorded(&at<u16>(self, 0x10), at<u32>(def, 0x288) == 1 ? at<u32>(def, 0x9c) : 0);
+    const u32 kind = at<u32>(self, 8);
+    if ((kind == 4 || kind == 0x3b) && at<u32>(self, 0xc)) {
+        Global81b0cc_SetRecorded(at<u32>(def, 0x40) != 0);
+        Global81ecac_SetRecorded(at<u32>(def, 0x9c));
+    }
+}
+
+u8 *__cdecl OnlineChat_Instance() {
+    u8 *&chat = *reinterpret_cast<u8 **>(0x007cddec);
+    if (!chat) {
+        u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0xf0c));
+        chat = block ? OnlineChat_Ctor(block) : nullptr;
+    }
+    return chat;
 }
 
 void __cdecl MouseMode_Ensure6feaa0() {

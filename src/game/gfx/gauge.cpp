@@ -3,7 +3,10 @@
 #include <cstdint>
 #include <cstring>
 
+#include "../core/crt.h"
+#include "../math/x87.h"
 #include "display.h"
+#include "guitext.h"
 #include "palette.h"
 
 namespace {
@@ -18,6 +21,8 @@ DrawColour colourAt(const u8 *gauge, u32 offset) {
     c.index = gauge[offset + 4];
     return c;
 }
+
+s32 Ftol(X87Reg x) { return (s32)(long long)x.v; }   // __ftol (0x67a830)
 
 void setColour(u8 *gauge, u32 offset, const DrawColour &c) {
     std::memcpy(gauge + offset, &c.rgb, 4);
@@ -75,6 +80,43 @@ void __fastcall Gauge_DrawAxes(const u8 *gauge) {
     const s32 left = at<s32>(gauge, 8);
     Display_HLine(left - 1, y, at<s32>(gauge, 0x10) + 1, colourAt(gauge, 0x30));
     Display_VLine(left - 1, at<s32>(gauge, 0xc) - 1, bottom + 1, colourAt(gauge, 0x35));
+}
+
+void __fastcall Gauge_DrawGrid(const u8 *gauge) {
+    const s32 columns = at<s32>(gauge, 0x28), rows = at<s32>(gauge, 0x2c);
+    if (!columns || !rows) return;
+    const float dy = (float)(X87Reg(at<s32>(gauge, 4)) / X87Reg(rows));
+    const X87Reg low = X87Reg(at<s32>(gauge, 0x14)) - dy;
+    const float dx = (float)(X87Reg(at<s32>(gauge, 0)) / X87Reg(columns));
+    float x = (float)(X87Reg(at<s32>(gauge, 8)) + dx);
+    float y = (float)(low - -1.0f);   // (fsub [0x6ff06c], -1.0)
+    s32 step = 0;   // (another column count leaves the original's as the stack lies)
+    if (columns == 0xc)
+        step = 0;
+    else if (columns == 0x24)
+        step = 2;
+    else if (columns == 0x90)
+        step = 0xb;
+    s32 skipped = 0;
+    for (s32 i = 0; i < at<s32>(gauge, 0x28); ++i) {
+        if (++skipped > step) {
+            skipped = 0;
+            s32 left = Ftol(X87Reg(x));
+            Display_VLine(left, at<s32>(gauge, 0xc), at<s32>(gauge, 0x14), colourAt(gauge, 0x3a));
+            u16 label[4];
+            Crt().swprintf(label, reinterpret_cast<const u16 *>(0x0074f9d8), i + 1);   // "%d"
+            s32 top = at<s32>(gauge, 0x14) + 4;
+            if (top < 2) top = 2;
+            if (left < 2) left = 2;
+            const s32 rect[4] = {left, top, left + 0x7d00, top + 0x7d00};
+            GuiText_Draw(label, rect, gauge + 0x30, *reinterpret_cast<const s8 *>(0x0074f9d4), 0, 0, 0, nullptr, 1);
+        }
+        x = (float)(X87Reg(x) + dx);
+    }
+    for (s32 j = 0; j < at<s32>(gauge, 0x2c); ++j) {
+        Display_HLine(at<s32>(gauge, 8), Ftol(X87Reg(y)), at<s32>(gauge, 0x10), colourAt(gauge, 0x3a));
+        y = (float)(X87Reg(y) - dy);
+    }
 }
 
 void __cdecl Gauge_Setup(u8 *gauge, const u8 *window, u32 y0, u32 y1, u32 y2, u32 x0, u32 x1, u32 x2) {

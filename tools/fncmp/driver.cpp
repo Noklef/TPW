@@ -32,6 +32,7 @@
 #include <windows.h>
 
 #include <cfloat>
+#include <cstdarg>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -88,7 +89,10 @@
 #include "../../src/game/core/soundcategory.h"
 #include "../../src/game/core/sounddevice.h"
 #include "../../src/game/core/mp2synth.h"
+#include "../../src/game/world/mapclick.h"
 #include "../../src/game/world/mapline.h"
+#include "../../src/game/world/messagecentre.h"
+#include "../../src/game/coaster/train.h"
 #include "../../src/game/world/mousemode.h"
 #include "../../src/game/world/person.h"
 #include "../../src/game/world/pathdrag.h"
@@ -102,6 +106,8 @@
 #include "../../src/game/world/staff.h"
 #include "../../src/game/world/things.h"
 #include "../../src/game/world/queuepieces.h"
+#include "../../src/game/world/cellmodel.h"
+#include "../../src/game/world/rides.h"
 #include "../../src/game/world/object.h"
 #include "crt.h"
 #include "../../src/hook/hooks.h"
@@ -303,10 +309,46 @@ u32 __cdecl stub_cdecl_log2(u32 a, u32 b) {
     return record_call(0x13e, 2, 0, stack);
 }
 
-// The same with four arguments (kStubs + 0x90, tools/fncmp.py CDECL_LOG4): the entry k 0x13d.
-u32 __cdecl stub_cdecl_log4(u32 a, u32 b, u32 c, u32 d) {
-    const u32 stack[5] = {0, a, b, c, d};
-    return record_call(0x13d, 4, 0, stack);
+u32 wide_hash(u32 h, const u16 *s) {
+    if (!s) return h;
+    for (u32 i = 0; i < 0x400 && s[i]; ++i) h = (h ^ s[i]) * 0x01000193u;
+    return h;
+}
+
+// A text argument of the formatter's (src/game/core/textarg.h) as one dword: its vtable, tag and number, then a string's text (vtable 0x6ff174;
+// it lives on the stack) or the dwords +0xc and +0x10 (a number's); 0 for none.
+u32 text_arg_hash(const u32 *arg) {
+    if (!arg) return 0;
+    u32 h = 0x811c9dc5u;
+    for (u32 i = 0; i < 3; ++i) h = (h ^ arg[i]) * 0x01000193u;
+    if (arg[0] == 0x006ff174u) return wide_hash(h, reinterpret_cast<const u16 *>((uintptr_t)arg[3]));
+    h = (h ^ arg[3]) * 0x01000193u;
+    return (h ^ arg[4]) * 0x01000193u;
+}
+
+// The same with four arguments (kStubs + 0x90, tools/fncmp.py CDECL_LOG4): the entry k 0x13d. As the text formatter 0x6acd60 (fncmp.text_args()):
+// with a count of text arguments (1-3) at log + 0x7e0, that many more (pointers to them) logged as text_arg_hash()es, and the buffer (b; c its size
+// in characters, 9 or more) given the hash of the text's id and those as 8 hex digits, so that what shows the text compares it.
+u32 __cdecl stub_cdecl_log4(u32 a, u32 b, u32 c, u32 d, ...) {
+    const u32 texts = *reinterpret_cast<const u32 *>((uintptr_t)(kStubs + 0x100000 + 0x7e0));
+    u32 stack[8] = {0, a, b, c, d};
+    u32 n = 4;
+    if (texts) {
+        va_list rest;
+        va_start(rest, d);
+        u32 h = (0x811c9dc5u ^ d) * 0x01000193u;
+        for (; n < 4 + (texts < 3 ? texts : 3); ++n) {
+            stack[1 + n] = text_arg_hash(reinterpret_cast<const u32 *>((uintptr_t)va_arg(rest, u32)));
+            h = (h ^ stack[1 + n]) * 0x01000193u;
+        }
+        va_end(rest);
+        if (b && c >= 9) {
+            u16 *const to = reinterpret_cast<u16 *>((uintptr_t)b);
+            for (u32 i = 0; i < 8; ++i) to[i] = (u16)"0123456789ABCDEF"[h >> (28 - 4 * i) & 0xf];
+            to[8] = 0;
+        }
+    }
+    return record_call(0x13d, n, 0, stack);
 }
 
 // QueryPerformanceFrequency / QueryPerformanceCounter (stdcall) for code that calls through the game's import slots (kStubs + 0x60, tools/fncmp.py COUNTER;
@@ -340,7 +382,11 @@ u32 __fastcall stub_stream_size(const u8 *self) { return *reinterpret_cast<const
 void __cdecl heap_throw() { RaiseException(0xe0000001, 0, 0, nullptr); }
 
 const StdStringEnv kStdStringEnv = {&heap_alloc, &heap_free, &heap_throw, &heap_throw};
-const MouseModeEnv kMouseModeEnv = {&heap_free, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
+// The mouse modes' calls: atexit stub_cdecl_log; agent A's unported 0x5234d0 and 0x52f200 the cdecl recorders 30 (3 arguments) and 24 (2)
+// (jpeg_recorder(30, 3) / (24, 2), defined below), as tests/fncmp/mousetile.py hooks the game addresses.
+const MouseModeEnv kMouseModeEnv = {&heap_free, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50)),
+                                    reinterpret_cast<void(__cdecl *)(s32, s32, u32)>((uintptr_t)(kStubs + 0x1000 + 0xa000 + 0x400 * 3 + 0x20 * 30)),
+                                    reinterpret_cast<void(__cdecl *)(u32, u32)>((uintptr_t)(kStubs + 0x1000 + 0xa000 + 0x400 * 2 + 0x20 * 24))};
 const AdvisorScoreEnv kAdvisorScoreEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const ResearchEnv kResearchEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const GlyphRenderEnv kGlyphRenderEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
@@ -382,10 +428,15 @@ const WrapSourcesEnv kWrapSourcesEnv = {&heap_alloc, &heap_free, reinterpret_cas
                                         reinterpret_cast<ZlibCodec *>((uintptr_t)0x00fa75fc)};
 
 // The recorders (tools/fncmp.py recorder(k, n)): thunks at kStubs + 0x1000 + 0x400 * n + 0x20 * k, thiscall with n stack arguments (popped by the thunk), that
-// log (k, n, this, the arguments) at kLog and return a hash of them, ECX left as this. The log is a count, then 12 dwords an entry; room for 80. An
+// log (k, n, this, the arguments) at kLog and return a hash of them, ECX left as this. The log is a count, then 12 dwords an entry; room for 40 (calls past them neither logged nor counted). An
 // entry holds the first seven arguments and, for more, a hash of the rest.
 const u32 kLog = kStubs + 0x100000;  // (the case maps it)
 constexpr u32 recorder(u32 k, u32 n) { return kStubs + 0x1000 + 0x400 * n + 0x20 * k; }
+// A recorder's address that converts to whichever function pointer an env's field is (the MapClick env's).
+struct Rec {
+    uintptr_t at;
+    template <typename F> operator F() const { return reinterpret_cast<F>(at); }
+};
 // The queue pieces' and the path drag's calls into agent B's unported 0x463060 / 0x463c80 / 0x5367a0 / 0x536100: recorders (cdecl 30 of 10
 // arguments, cdecl 31 of 1, thiscall 28 of 2, cdecl 29 of 5), as tests/fncmp/queuepieces.py and pathdrag.py hook those addresses.
 const QueuePiecesEnv kQueuePiecesEnv = {reinterpret_cast<u32(__cdecl *)(u32, u32, const u32 *, u32, u32, u32, u32, u32, s32, u32)>((uintptr_t)jpeg_recorder(30, 10)),
@@ -443,8 +494,19 @@ const ThingDeleteEnv kThingDeleteEnv = {reinterpret_cast<ThingKindFn>((uintptr_t
 using StaffSumFn = s32(__fastcall *)(u8 *, void *, u32);
 const StaffAdviceEnv kStaffAdviceEnv = {reinterpret_cast<StaffSumFn>((uintptr_t)recorder(16, 1)), reinterpret_cast<StaffSumFn>((uintptr_t)recorder(17, 1)),
                                         reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)recorder(18, 1))};
+// Ride_Destroy's calls into the unported 0x42a190 and 0x436fa0 (agent B's): cdecl recorders 18 of no arguments and 19 of 1, as
+// tests/fncmp/ridedestroy.py hooks those addresses.
+const RidesEnv kRidesEnv = {reinterpret_cast<void(__cdecl *)()>((uintptr_t)jpeg_recorder(18, 0)), reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(19, 1))};
+// MapCell_ApplyModel's calls into agent A's unported placers 0x522b90 / 0x522d50 / 0x522f20: cdecl recorders 20, 21 and 22 of 6 arguments,
+// as tests/fncmp/cellapply.py hooks those addresses.
+const CellModelEnv kCellModelEnv = {reinterpret_cast<u32(__cdecl *)(s32, s32, s32, s32, s32, u32)>((uintptr_t)jpeg_recorder(20, 6)),
+                                    reinterpret_cast<u32(__cdecl *)(s32, s32, s32, s32, s32, u32)>((uintptr_t)jpeg_recorder(21, 6)),
+                                    reinterpret_cast<u32(__cdecl *)(s32, s32, s32, s32, s32, u32)>((uintptr_t)jpeg_recorder(22, 6))};
 // The objects' calls into the unported 0x40fb10 (agent B's) and 0x500870 / 0x5012f0 (agent C's): thiscall recorders 21 of 1 argument, 22 and 23
 // of none, as tests/fncmp/objectstate.py hooks those addresses.
+// MessageCentre_Post's call into the unported Thing_HandleMessage 0x50b550 (agent C's): the thiscall recorder 27 of 1 argument, as
+// tests/fncmp/messagecentre.py hooks that address.
+const MessageCentreEnv kMessageCentreEnv = {reinterpret_cast<u32(__fastcall *)(u8 *, void *, u8 *)>((uintptr_t)recorder(27, 1))};
 const ObjectEnv kObjectEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, u8 *)>((uintptr_t)recorder(21, 1)),
                               reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(22, 0)),
                               reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(23, 0))};
@@ -480,7 +542,7 @@ u32 bytes_hash(u32 h, const u8 *p, u32 mask) {
 }
 
 // wide: the slot's entry at + 0xfc0 (two of (k | 0x80000000, start, mask), fncmp.LOG_BLOB_WIDE), or null: the second structure's bytes start to start + 31
-// that its mask selects, hashed after the first fifteen (an inner mask past bit 14).
+// that its mask selects, hashed after the first fifteen (an inner mask past bit 14); start bit 31: the wide text its dword at start & 0xff points to.
 u32 blob_bytes_hash(const u8 *p, u32 how, u32 mask, const u32 *wide) {
     u32 h = bytes_hash(0x811c9dc5u, p, mask);
     if (const u32 at = how >> 8 & 0xff) {
@@ -488,7 +550,13 @@ u32 blob_bytes_hash(const u8 *p, u32 how, u32 mask, const u32 *wide) {
         std::memcpy(&inner, p + at - 1, 4);
         if (inner) {
             h = bytes_hash(h, inner + 4 * (how >> 5 & 7), how >> 16 & 0x7fff);
-            if (wide) h = bytes_hash(h, inner + wide[1], wide[2]);
+            if (wide && wide[1] & 0x80000000u) {  // (fncmp.blob_inner_text(): the wide text the second structure's dword at that offset points to)
+                const u16 *text;
+                std::memcpy(&text, inner + (wide[1] & 0xff), 4);
+                h = wide_hash(h, text);
+            } else if (wide) {
+                h = bytes_hash(h, inner + wide[1], wide[2]);
+            }
         }
     }
     return h;
@@ -777,6 +845,9 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x006fda18, 12},  // WadHandle_vtable
                                    {0x00703898, 13},  // RefObject2_vtable
                                    {0x00703100, 9},   // StreamBase_vtable
+                                   {0x0070a090, 6},   // the narrow-text writer (narrowwriter.h; slot 3 ByteBuf_Write)
+                                   {0x0070a0c0, 6},   // the wide-text writer (widewriter.h; slot 4 Obj_PutWord)
+                                   {0x006ff170, 2},   // the text formatter's number and string arguments (textarg.h; one slot each)
                                    {0x00703838, 12},  // RefObject_vtable
                                    {0x00703f78, 12},  // BufferedSource_vtable
                                    {0x00703868, 12},  // MemorySource_vtable
@@ -888,7 +959,14 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
 // page is the original's code, which a call into it then runs natively, as the hooked game would; elsewhere a call into the code faults).
 const u32 kRawCalled[] = {0x0065f6d1,   // Window_DefaultProc (src/game/ui/window's Window_Ctor; tests/fncmp/dialogbuild.py's helpbg())
                           0x0050f1f0,   // IntPair_Ctor and Stub_Ret, the game's constructor and destructor handed to the array iterators
-                          0x005d1750};  // by address (tests/fncmp/crt_vector_iterators.py's GameCtor / GameDtor: below the old g_game)
+                          0x005d1750,   // by address (tests/fncmp/crt_vector_iterators.py's GameCtor / GameDtor: below the old g_game)
+                          0x005f8e50,   // Font_Measure and Font_DrawGlyphShape, the text driver 0x7031c0's measure and draw (Text_SelectFont's
+                          0x005f8e80,   // mode 0; tests/fncmp/window705950draw.py)
+                          0x00480d10,   // ImeHost_WindowProc, the IME's candidate window's handler (ui/imecandidates' ImeHost_OpenCandidates)
+                          0x004959c0,   // List7ca158_RowProc, the objects' lists' row handler (ui/listrows' List7ca158_NewRow)
+                          0x004bed60,   // Windows7cc8c4_Handler, told 0x11 when Window7cc8bc_Create hides its windows (ui/window7cc8bc)
+                          0x004be730,   // List758f04_RowProcA and RowProcB, the name lists' row handlers (ui/listrows' List758f04_NewRowA /
+                          0x004be7c0};  // NewRowB; the kept rows sent 0x12)
 
 void map_raw_called() {
     for (u32 a : kRawCalled) {
@@ -1122,7 +1200,10 @@ int main(int argc, char **argv) {
     Things_SetDetachEnv(&kThingDetachEnv);
     Things_SetDeleteEnv(&kThingDeleteEnv);
     Staff_SetAdviceEnv(&kStaffAdviceEnv);
+    Rides_SetEnv(&kRidesEnv);
+    CellModel_SetEnv(&kCellModelEnv);
     Object_SetEnv(&kObjectEnv);
+    MessageCentre_SetEnv(&kMessageCentreEnv);
     GlyphRender_SetEnv(&kGlyphRenderEnv);   // (tests/fncmp/glyphrender.py hooks 0x67a7d0 with fncmp._cdecl_log)
     PtrList_SetEnv(&kPtrListEnv);
     GameHeap_SetEnv(&kGameHeapEnv);
@@ -1179,6 +1260,24 @@ int main(int argc, char **argv) {
     // Game code a port calls directly that is not hooked (yet): a recorder, as the bench's hooks= has it in the emulator.
     static const MapLineEnv mapLine = {reinterpret_cast<u32(__fastcall *)(u8 *, void *, u32, s32, s32)>((uintptr_t)recorder(20, 3))};  // 0x5370e0: tests/fncmp/mapline.py
     MapLine_SetEnv(&mapLine);
+    // 0x473c70 (Animator_Update, under Train_PlaceCars): the cdecl recorder k 27 (three arguments), as tests/fncmp/placecars.py hooks it
+    // (fncmp.recorder(27, 3, cdecl=True)).
+    static const TrainEnv train = {reinterpret_cast<s32(__cdecl *)(u8 *, const u8 *, u32)>((uintptr_t)(kStubs + 0xb000 + 0x400 * 3 + 0x20 * 27))};
+    Train_SetEnv(&train);
+    // GameMode_MapClick's calls (src/game/world/mapclick.h): each a recorder (k, n), cdecl ones logged as k | 0x200, as tests/fncmp/mapclick.py
+    // hooks their addresses; its `advise` cdecl 9 (the bench's 0x59b590 hook logs the advisor message's id so).
+    {
+        const auto c = [](u32 k, u32 n) { return Rec{(uintptr_t)(kStubs + 0x1000 + 0xa000 + 0x400 * n + 0x20 * k)}; };
+        const auto t = [](u32 k, u32 n) { return Rec{(uintptr_t)recorder(k, n)}; };
+        static const MapClickEnv mapClick = {
+            c(30, 3), c(12, 0), c(15, 1), c(16, 1), c(13, 4), c(23, 2), c(31, 3), c(17, 6), c(5, 1), c(8, 3), c(14, 4), c(6, 4), c(15, 4),
+            c(21, 2), c(17, 2), c(17, 1), c(18, 1), c(16, 4), c(0, 5), c(19, 1),
+            c(10, 6), c(1, 5), c(26, 2), c(2, 2), c(10, 1), c(3, 3), c(4, 4), c(11, 3), c(12, 3), c(27, 2), c(28, 2), c(21, 1), c(13, 0),
+            c(7, 5), c(14, 0), c(11, 1), c(29, 2), c(9, 1),
+            t(26, 0), t(27, 0), t(16, 0), t(28, 0), t(20, 1), t(30, 2), t(22, 2), t(24, 1), t(25, 1), t(12, 0), t(13, 0), t(14, 0), t(15, 0),
+            t(18, 3), t(19, 2), t(31, 3), t(31, 4), t(29, 0), t(30, 1)};
+        MapClick_SetEnv(&mapClick);
+    }
     // 0x564650 (the engine debug log, a file): stub_cdecl_log, as tests/fncmp/engineerrors.py hooks it (the text hashed: strings(log, 0x3f, 1)).
     static const EngineErrorsEnv engineErrors = {reinterpret_cast<void(__cdecl *)(const char *)>(&stub_cdecl_log)};
     EngineErrors_SetEnv(&engineErrors);
@@ -1186,8 +1285,10 @@ int main(int argc, char **argv) {
     // hooks them (their own benches are texdirs.py and objmodel.py).
     static const AnimatorMeshEnv animatorMeshEnv = {reinterpret_cast<void(__cdecl *)(u8 *, u8 *)>(&stub_cdecl_log2), reinterpret_cast<void(__cdecl *)(u8 *)>(&stub_cdecl_log)};
     Animator_SetMeshEnv(&animatorMeshEnv);
-    // 0x6acd60 (the text formatter, library code): stub_cdecl_log4, as tests/fncmp/objectdefs.py hooks it.
-    static const TextFormatEnv textFormat = {reinterpret_cast<u32(__cdecl *)(void *, u16 *, u32, u32, ...)>(&stub_cdecl_log4)};
+    // 0x6acd60 and 0x6acca0 (the text formatters, wide and narrow, library code): stub_cdecl_log4, as tests/fncmp/objectdefs.py and
+    // dialog7cb2b8.py hook them (the narrow buffer given the stub's wide digits all the same).
+    static const TextFormatEnv textFormat = {reinterpret_cast<u32(__cdecl *)(void *, u16 *, u32, u32, ...)>(&stub_cdecl_log4),
+                                             reinterpret_cast<u32(__cdecl *)(void *, u8 *, u32, u32, ...)>(&stub_cdecl_log4)};
     TextFormat_SetEnv(&textFormat);
     // The 8-bit sprite's hand-written blitter (0x6e73c0, cseg: not in the listing): stub_cdecl_log4, as tests/fncmp/draw8.py hooks it; the rest the game's.
     static const DrawEnv draw = {reinterpret_cast<DrawContext *>((uintptr_t)0x00fa76b8), reinterpret_cast<const u8 *>((uintptr_t)0x00778108),
@@ -1237,7 +1338,9 @@ int main(int argc, char **argv) {
         reinterpret_cast<s32 *(__fastcall *)(BufferedSource *, void *, s32 *, u32)>(hooked(0x00638f20)),
         reinterpret_cast<void(__fastcall *)(StreamBase *, void *, RefObject *)>(hooked(0x005f7240))};
     StreamOpen_SetEnv(&streamOpen);
-    Crt_SetEnv(&kDriverCrt);
+    static CrtEnv crt = kDriverCrt;   // (free: the stand-in heap, as a bench's hook of 0x67ad90 gives the emulator)
+    crt.free = &heap_free;
+    Crt_SetEnv(&crt);
     Libc_SetEnv(&kDriverLibc);
     static FpuEnv fpu = *Fpu_GetEnv();  // (the guard's deleting destructors free with the stand-in heap)
     fpu.free = &heap_free;

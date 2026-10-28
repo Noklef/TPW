@@ -598,7 +598,9 @@ s32 __fastcall Window7059f0_AddItem(u8 *window, void *, const u32 *texts, u32 da
     } else {
         item = at<s32>(window, 0x160);
     }
-    s32 added, last;   // (the first free item and the one before it, Window7059f0_RootEnd)
+    // (the first free item and the one before it, Window7059f0_RootEnd; without the array it stores neither and the original goes on
+    // with its two stack slots unset, sic: 0 here, as the emulator's stack gives them, so that the read of the item's parent faults)
+    s32 added = 0, last = 0;
     if (item == -1) {
         if (child) {   // (the parent's first child)
             Window7059f0_RootEnd(window, nullptr, &added, &last);
@@ -869,6 +871,16 @@ void __fastcall Window7059f0_OnDouble(u8 *window, void *, u32 x, u32 y) {
     if (!(at<u32>(window, 0x48) & 0x80)) return;
     Window7059f0_SelectAt(window, nullptr, x & 0xffff, y & 0xffff);
     if (at<s32>(window, 0x14c) >= 0) Window_PostMessage(at<u8 *>(window, 0x60), 0x402, at<u32>(window, 0x8c), at<u32>(window, 0x14c));
+}
+
+void __fastcall Window7059f0_OnDrag(u8 *window, void *, u32 x, u32 y) {
+    if (!(at<u32>(window, 0x48) & 0x80) || at<u32>(window, 0x11c) != 0) return;
+    if ((s16)vcall<u32>(window + 0x2c, 0, x & 0xffff, y & 0xffff)) Window7059f0_SelectAt(window, nullptr, x & 0xffff, y & 0xffff);
+}
+
+void __fastcall Window7059f0_OnMoved(u8 *window, void *, u32 dx, u32 dy) {
+    vcall<void>(window + 0x138, 8, dx & 0xffff, dy & 0xffff);   // (the inner rectangle's slot 2: moved)
+    Window7059f0_OffsetColumns(window, nullptr, dx & 0xffff, dy & 0xffff);
 }
 
 u8 *__fastcall Window7059f0_DeletingDtor(u8 *window, void *, u32 flags) {

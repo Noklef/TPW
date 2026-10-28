@@ -13,7 +13,8 @@
 # 0, 1 or any, the parent +0x60 a window (byte +4 mostly clear) or none, window.py's queues.
 # SetBuffer (0x6662b7): flag 0x40 of +0x48 either way, the buffer and the size 0 or any. SelectionStart / Selection (0x668447, 0x66848f):
 # the anchor +0x14c and the cursor +0x14a -1, small or any (signed both ways), Selection's word pointers each a slot of the window or 0.
-# NotifyScroll (0x66679e): see notify_scroll(). SetSelection / SetCursor (0x6668e9, 0x66778d): see set_selection(). SetText and its two
+# NotifyScroll (0x66679e): see notify_scroll(). SetSelection / SetCursor / SelectAll (0x6668e9, 0x66778d, 0x6677ae; SelectAll's
+# byte +0x162 set more often): see set_selection(). SetText and its two
 # callers (0x666308, 0x6664fa, 0x666515): see set_text(). GetText (0x666530): see get_text().
 # usage: window705a20.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetCaret,MoveCaret,KeyToParent,ToggleInsert,SetInsertMode,
 # NotifyText,SetBuffer,SelectionStart,Selection,NotifyScroll,SetSelection)
@@ -30,13 +31,13 @@ from window import RANGES, queues  # noqa: E402
 CALLS = {'SetCaret': 0x66656c, 'MoveCaret': 0x66836a, 'KeyToParent': 0x667fee, 'ToggleInsert': 0x6667eb,
          'SetInsertMode': 0x666875, 'NotifyText': 0x66671d, 'SetBuffer': 0x6662b7, 'SelectionStart': 0x668447, 'Selection': 0x66848f, 'NotifyScroll': 0x66679e,
          'SetSelection': 0x6668e9, 'SetText': 0x666308, 'SetTextNotify': 0x6664fa, 'SetTextQuiet': 0x666515, 'GetText': 0x666530,
-         'SetCursor': 0x66778d}
+         'SetCursor': 0x66778d, 'SelectAll': 0x6677ae}
 WIN_RANGES = sorted(set(RANGES + [(0x66656c, 0x66671d), (0x659d43, 0x659d90), (0x659d90, 0x659dbc), (0x65a9d0, 0x65aa00),
                             (0x66bff7, 0x66c01b), (0x66836a, 0x668447), (0x667fee, 0x6680c7), (0x658d9f, 0x658e04),
                             (0x6667eb, 0x666875), (0x666875, 0x6668e9), (0x66671d, 0x66679e), (0x66679e, 0x6667eb), (0x658ccc, 0x658d9f), (0x6697e3, 0x6698b4), (0x680050, 0x68005b),
                             (0x6662b7, 0x666308), (0x668447, 0x66852b), (0x6668e9, 0x66775d), (0x659d00, 0x659d43),
                             (0x659710, 0x659740), (0x67acd0, 0x67ad00), (0x659dbc, 0x659de5),
-                            (0x666308, 0x666515), (0x666515, 0x66656c), (0x66778d, 0x6677ae), (0x65f5b7, 0x65f66e),
+                            (0x666308, 0x666515), (0x666515, 0x66656c), (0x66778d, 0x6677ae), (0x6677ae, 0x667801), (0x65f5b7, 0x65f66e),
                             (0x67bf10, 0x67bf50), (0x67c290, 0x67c320), (0x67b0d0, 0x67b140)]))
 B = Bench(WIN_RANGES)
 WINDOW, OBJ_A, OBJ_B, VT, PARENTS = RAM, RAM + 0x200, RAM + 0x240, RAM + 0x280, RAM + 0x400
@@ -219,6 +220,9 @@ def sel_args(r, n):
 
 def set_selection(r, op='SetSelection'):
     regions, log, n = sel_fixture(r)
+    if op == 'SelectAll':   # (the byte +0x162 set more often; the text +0x138 or none)
+        regions[SEL][0x162] = r.choice([0, 0, 1, r.getrandbits(8)])
+        return Call(CALLS[op], [SEL], regions, conv='t', ret='v')
     cursor, anchor = sel_args(r, n)
     if op == 'SetCursor':
         return Call(CALLS[op], [SEL, cursor, anchor], regions, conv='t', ret='v')
@@ -279,7 +283,7 @@ def case(r):
             'Selection': lambda r: selection(r, 'Selection'), 'SetSelection': set_selection,
             'SetText': lambda r: set_text(r, 'SetText'), 'SetTextNotify': lambda r: set_text(r, 'SetTextNotify'),
             'SetTextQuiet': lambda r: set_text(r, 'SetTextQuiet'), 'GetText': get_text,
-            'SetCursor': lambda r: set_selection(r, 'SetCursor')}[op](r)
+            'SetCursor': lambda r: set_selection(r, 'SetCursor'), 'SelectAll': lambda r: set_selection(r, 'SelectAll')}[op](r)
 
 
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]

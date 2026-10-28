@@ -115,6 +115,13 @@ s32 __cdecl Windows7cc8bc_Message6Pair();
 // (Window_SendMessage), the byte 0x7cc6a0 = 1, then [0x7cc8c0] (read again) takes the focus (Window_SetFocus(0)), whose result is returned.
 u32 __cdecl Windows7cc8bc_SelectSecond();
 
+// 0x4bcf50 (cdecl; name invented): with the byte 0x7cc8b4 set and 0x7cc6a0 not, message 6 (0, 0) to the window [0x7cc8bc] and message 6
+// (that byte, 0) to [0x7cc8c0] (Window_SendMessage); then, the byte read again, when set the chain 0xc3123 / 0xc312b / 0xc312c under
+// [0x7cc8bc] (Window_FindChild) takes the focus (Window_SetFocus(0)), the mouse modes' holder is made (MouseModes_EnsureHolder) and,
+// when the mode [0x7b05d8] answers 9 from its slot 9 (none: 0), [0x7cc8bc]'s cursor is 0x13 (Window_SetCursor); else [0x7cc8c0] takes
+// the focus. EAX not kept.
+void __cdecl Windows7cc8bc_SelectFirst();
+
 // 0x4bcec0 (cdecl): the window 0x7cc698 (that Windows7cc8bc_Message6Pair compares) = [0x7cc8b8] if set, else [0x7cc8bc] if the byte
 // 0x7cc8b4 is set, else [0x7cc8c0]. Returns the value stored in the first two cases, else 0.
 u32 __cdecl Global7cc698_Choose();
@@ -154,6 +161,10 @@ void __cdecl Window7ca2e8_ClearButtons(u32 mode);
 // GameHeap_Alloc; none when that fails; Window_SetImpl), the bytes 1, 1 as 0xc00 and 0x3000, the font 5 / 8 (Language_Font), the bytes
 // 0xff and the text 0; then [0x7cc4e4] = 0.
 void __cdecl Dialog7cc4c4_Create();
+
+// 0x4b9950 (cdecl (window, message, a, b); name invented): Dialog7cc4c4_Create's handler: the message 0x14 forgets the dialog ([0x7cc4c4]
+// = 0); Window_CallDefault's result.
+s32 __cdecl Dialog7cc4c4_Handler(u8 *window, u32 message, u32 a, u32 b);
 
 // 0x4c4fb0 (cdecl (flag: a byte); called by 0x5dd650 / 0x5dd910 before Dialog7cc4c4_Create; name unconfirmed): unless the dialog [0x7cdb0c]
 // is made or the frame [0xf82884] has no window +4, it is built from the window script 0x7596b0 on that window (WindowScript_Build: the

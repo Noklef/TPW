@@ -148,6 +148,12 @@ u16 __fastcall Window705a50_SetState(u8 *window, void *, u8 state, u8 notify) {
     return 1;
 }
 
+u16 __fastcall Window705a50_NotifyBoth100(u8 *window, void *, u32 a) {
+    Window705a50_NotifyLook(window);
+    Window_NotifyBoth100(window, nullptr, a);
+    return 1;
+}
+
 u32 __fastcall Window705a50_SetPair(u8 *window, void *, u32 a, u32 b) {
     Fn_6693f0(window, nullptr, a);
     return Fn_6693d0(window, nullptr, b);

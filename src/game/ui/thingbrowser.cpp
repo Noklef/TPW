@@ -16,6 +16,8 @@
 #include "cursor.h"
 #include "dialogs.h"
 #include "focus.h"
+#include "panel7cc3b0.h"
+#include "panel7cc408.h"
 #include "radiogroup.h"
 #include "window.h"
 #include "window705a50.h"
@@ -58,6 +60,10 @@ void __cdecl ThingBrowser_ShowName() {
     Camera_CentreOnSprite(global<u8 *>(0x007cc308));
 }
 
+void __cdecl ThingBrowser_ResetIfThing(u8 *thing) {
+    if (global<u8 *>(0x007cc308) == thing) Dialog7cb2b8_ResetChild21(1);
+}
+
 void __cdecl ThingBrowser_ShowDetail() {
     u8 *const thing = global<u8 *>(0x007cc308);
     if (!thing) return;
@@ -80,6 +86,19 @@ u32 __cdecl ThingBrowser_GroupHandler(u8 *group, u32 message, u32 a, u32 b) {
     if (b != 1) Window705a50_SetState(child, nullptr, 1, 1);
     Window_PostMessage(reinterpret_cast<u8 *>((uintptr_t)Fn_65d55a(group)), 0x101, a, 1);
     return 1;
+}
+
+u32 __cdecl ThingBrowser_PanelHandler(u8 *panel, u32 message, u32 a, u32 b) {
+    if (message == 0x14) {
+        global<u32>(0x007cc304) = 0;
+    } else if (message == 0x10001 || message == 0x10002) {
+        Window_SetShown(Window_FindChild(panel, nullptr, 0x149), nullptr, message == 0x10001);
+    } else if (message == 0x10006 && a == 0) {
+        u8 *const thing = global<u8 *>(0x007cc308);
+        if (is_staff(thing[2])) Panel7cc3b0_Show(reinterpret_cast<u8 *>(0x007cc3b0), nullptr, thing);
+        else Panel7cc408_Show(reinterpret_cast<u8 *>(0x007cc408), nullptr, thing);
+    }
+    return (u32)Window_CallDefault(panel, nullptr, message, a, b);
 }
 
 void __cdecl ThingBrowser_Create() {

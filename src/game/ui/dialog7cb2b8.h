@@ -42,4 +42,15 @@ s32 __cdecl Dialog7cb2b8_BoxHandler(u8 *window, u32 message, u32 a, u32 b);
 // is, the park's guests' average (Things_AveragePersonStat19c, 4) * 1024.0f * 0.01f (x87, single precision; [0x6ffa34], [0x6ffa38]) cut
 // to an integer (__ftol) handed to the window's vtable slot 7 (+0x1c). Then (always) Window_CallDefault's answer.
 s32 __cdecl Dialog7cb2b8_BarHandler(u8 *window, u32 message, u32 a, u32 b);
+
+// 0x4a0e30 (cdecl (day, month, year from 1900); name invented): with the dialog, its child 0x20 (Window_FindChild, not checked) sent the
+// text 0x1c0 of the record table [0x78ba94] formatted narrow (0x6acca0, TextFormat().formatNarrow; 0x1f characters) with the day (%16),
+// month (%17) and year + 1900 (%18) as unsigned number arguments, then widened (Language_Widen; Window_NotifyImpl100). Then the child 0x31
+// of [0x7cb2ac]'s child 0x2f (neither checked) told (Window_Notify1) 1 when the newest value of the analyser's (the game [[0x7cf6ec]]'s
+// GameTable7cfb90_Get1da720_519510) CircBufU32 +0x1fc90 is below that of +0x1f5a0 (signed; the year argument for a buffer with none), else 0.
+void __cdecl Dialog7cb2b8_ShowDate(u32 day, u32 month, u32 year);
+
+// 0x481560 (thiscall on the object at 0x7b51f0, this not used (nine dwords), pops 0x24; name invented): Dialog7cb2b8_ShowDate with the
+// fourth, the fifth + 1 and the sixth.
+void __fastcall Obj7b51f0_ShowDate(void *, void *, u32, u32, u32, u32 day, u32 month, u32 year, u32, u32, u32);
 }

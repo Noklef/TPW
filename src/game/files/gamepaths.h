@@ -48,4 +48,10 @@ WString *__stdcall GamePaths_UsersFolder(WString *out);
 
 // 0x5c8980 (stdcall; out; name unconfirmed): the same with "online" (0xf820e8) for "users".
 WString *__stdcall GamePaths_OnlineFolder(WString *out);
+
+// 0x5c0c10 (cdecl; result; name invented, unconfirmed): at start-up, after the base folder is set: the paths object 0xf816c0's first String
+// given the base folder (Dir_GetBase, as a String: Obj_CallSlot18, String's AssignWide on it (sic: read as a WString, the same layout)),
+// its +0x28 String the String 0xf7eaf0 (Obj_CallSub28Slot18), its +0x3c the C string 0x747810 joined on (Strings5_JoinPath) and its +0x50
+// the String 0xf7edf8 (Strings5_JoinPathAt50), each through a temporary String. *result = 0; returns result.
+u32 *__cdecl GamePaths_SetRoots(u32 *result);
 }  // extern "C"

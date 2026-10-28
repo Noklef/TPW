@@ -18,10 +18,11 @@ import texdirs  # noqa: E402
 import vfs  # noqa: E402
 from fncmp import Bench, Call, LOG, RAM, fail_after, set_return  # noqa: E402
 
-B = Bench(texdirs.merged(vfs.RANGES + [
+RANGES = texdirs.merged(vfs.RANGES + [
     (0x41ce90, 0x41ceb0), (0x4273e0, 0x427460), (0x4274e0, 0x427630), (0x4618a0, 0x461930), (0x461a60, 0x461ee0), (0x46e640, 0x46e660),
     (0x46e670, 0x46ea90), (0x5c4d50, 0x5c4fb0), (0x5c5000, 0x5c5020), (0x5f60b0, 0x5f6160), (0x5f61a0, 0x5f6210), (0x5f7180, 0x5f71a0),
-    (0x67a400, 0x690000), (0x5da3c0, 0x5da3c1)]))
+    (0x67a400, 0x690000), (0x5da3c0, 0x5da3c1)])
+B = Bench(RANGES)
 ARGS, DIRECTORIES, SECOND = RAM + 0x68000, RAM + 0x3d00, 0x7af650
 SEPARATORS = [b' ', b'\r\n', b'\n', b'\t', b'  ', b'\r\n\r\n', b' \t']
 

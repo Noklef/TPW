@@ -5,10 +5,46 @@
 #include "../core/crt.h"
 #include "../core/gameheap.h"
 #include "../core/stdtree.h"
+#include "../core/vcall.h"
 #include "../files/file.h"
 #include "things.h"
 
+namespace {
+
+const MessageCentreEnv kGameEnv = {reinterpret_cast<u32(__fastcall *)(u8 *, void *, u8 *)>((uintptr_t)0x0050b550)};
+const MessageCentreEnv *g_env = &kGameEnv;
+
+u8 *thing_slot(u16 handle) { return *reinterpret_cast<u8 **>((uintptr_t)0x007cfb90 + 0x14u * handle); }
+
+}  // namespace
+
 extern "C" {
+
+void MessageCentre_SetEnv(const MessageCentreEnv *env) { g_env = env ? env : &kGameEnv; }
+
+u32 __fastcall MessageCentre_Post(u8 *centre, void *, u8 *msg) {
+    const u32 type = vcall<u32>(msg, 0);
+    if (type == 0x1b) {
+        const u8 *const thing = thing_slot(*reinterpret_cast<const u16 *>(msg + 8));
+        for (u32 k = 0; k < 0x1d; ++k) {
+            u8 *const map = centre + 0x14 * k + 4;
+            u16 handle;
+            const u16 key = *Thing_GetHandle(thing, nullptr, &handle);
+            u8 *it;
+            Tree16a_Find(map, nullptr, &it, &key);
+            if (it != *reinterpret_cast<u8 **>(map + 4)) {
+                u8 *out;
+                StdTree_EraseB(map, nullptr, &out, it);
+            }
+        }
+    }
+    u8 *const *const head = reinterpret_cast<u8 *const *>(centre + 0x14 * type + 8);
+    for (u8 *node = *reinterpret_cast<u8 **>(*head); node != *head;) {
+        g_env->handleMessage(thing_slot(*reinterpret_cast<const u16 *>(node + 0xc)), nullptr, msg);
+        StdTree_IncB(&node);
+    }
+    return 1;
+}
 
 void __fastcall MessageSlot_Dtor(u8 *slot) { StdTree_DtorB(slot + 4); }
 

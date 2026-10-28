@@ -1,5 +1,5 @@
 // The thing browser's panel (the thing shown [0x7cc308], the panel window [0x7cc304]): its labels filled for the thing, and the handler of
-// its windows' radio groups. Reimplementation of 0x4b3490, 0x4b3580, 0x4b3b90, 0x4b3cf0 and 0x4b3f60. The names are unconfirmed.
+// its windows' radio groups. Reimplementation of 0x4b3490, 0x4b3580, 0x4b3b90, 0x4b3c10, 0x4b3cf0 and 0x4b3f60. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -23,6 +23,12 @@ void __cdecl ThingBrowser_ShowDetail();
 // posted 0x101 (a, 1); 1 returned. Other messages: Window_CallDefault's result.
 u32 __cdecl ThingBrowser_GroupHandler(u8 *group, u32 message, u32 a, u32 b);
 
+// 0x4b3c10 (cdecl (window, message, a, b); the handler ThingBrowser_Create gives the panel [0x7cc304]; name invented): message 0x14 the
+// panel forgotten ([0x7cc304] 0); 0x10001 / 0x10002 its child 0x149 (the "hilight" window; not checked) shown / hidden (Window_SetShown);
+// 0x10006 with a 0 the thing shown [0x7cc308] (not checked) opened in the staff panel 0x7cc3b0 for the kinds 4-8 (Panel7cc3b0_Show),
+// else in the panel 0x7cc408 (Panel7cc408_Show). Every message then goes to Window_CallDefault, its result returned.
+u32 __cdecl ThingBrowser_PanelHandler(u8 *panel, u32 message, u32 a, u32 b);
+
 // 0x4b3cf0 (cdecl; name unconfirmed): the browser's windows built on [0xfaa5d8] (WindowScript_Build): from the script 0x756950 (no
 // handler) the windows 0x95c and 0x963 found on [0xfaa5d8] (Window_FindChild, not checked) as [0x7cc2fc] / [0x7cc300], each the handler
 // 0x4b3790, unlinked (Window_Unlink), its dword +0xa0 index 0 set to 3 (Window_SetDwordA0), its child 0x95d the handler 0x4b3b90
@@ -43,4 +49,7 @@ void __cdecl ThingBrowser_Create();
 // [0x7b05e8] made when missing and, when the current mode [0x7b05d8] answers 9 from its slot 9, a new CMMOnline base set (as
 // Window7c24c8_Set's).
 void __cdecl ThingBrowser_Open(u8 *thing);
+
+// 0x4b3620 (cdecl (thing); name invented): when the browser's thing [0x7cc308] is this one, Dialog7cb2b8_ResetChild21(1).
+void __cdecl ThingBrowser_ResetIfThing(u8 *thing);
 }

@@ -1,7 +1,7 @@
 # The online chat's flags under its lock (src/game/online/chat: 0x4e6130, 0x4e6150) against the originals: a chat of random bytes, its
 # critical section (+0x48) entered and left through recording imports.
 # Ctor (0x4e5260, the constructor): a chat of random bytes; its critical sections made through a recording import; stringmapsrecord.py's
-# trees' nil nodes made already (any counter) or not; rand() the fixed stand-in (fncmp.RAND) through the CRT's swprintf; the global string
+# trees' nil nodes made already (any counter) or not; rand() the MSVC6 generator on a random seed (fncmp.RAND_SEED) through the CRT's swprintf; the global string
 # 0x7a1500 null, empty or 1-0x7f characters in a block whose count byte is 0-2 or 0xfd-0xff (shared or copied), npos (0x6fe5ac) now and then
 # small; mbtowc (0x687690, which swprintf's %08x goes through) the C locale's in Python; the four allocator bytes the original copies from an uninitialised stack byte (and the record's) masked.
 # Queue (0x4e4fc0, stdcall: code and three unread dwords): the chat 0x7cddec at CHAT with its queue (+0xec8) of 16-byte entries in 0x1000-byte
@@ -14,7 +14,7 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, Mask, heap, import_table, log_region, put  # noqa: E402
+from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, RAND_SEED, Bench, Call, Mask, heap, import_table, log_region, put  # noqa: E402
 
 
 
@@ -43,7 +43,7 @@ MASKED = [8, 0x18, 0xec8, 0xefc] + [0xe60 + k for k in (0, 0x10, 0x20, 0x21, 0x3
 def ctor(r, chat=CHAT):
     log = log_region()
     regions = {CHAT: r.bytes(0xf0c), HEAP: heap(0x6000), LOG: log,
-               IMPORT_TABLE: import_table(log, {'InitializeCriticalSection': (3, 0x6fd144, 1, 0, 0), **IMPORTS})}
+               IMPORT_TABLE: import_table(log, {'InitializeCriticalSection': (3, 0x6fd144, 1, 0, 0), **IMPORTS}), RAND_SEED: r.bytes(4)}
     glob = bytearray(r.bytes(0x20))
     for t, (nil_at, counter) in enumerate(TREES):
         nil = NILS + 0x40 * t

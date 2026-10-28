@@ -16,7 +16,8 @@ import clone  # noqa: E402
 
 RANGES = [(0x424ef0, 0x425440), (0x45b9d0, 0x45ba15), (0x45ba70, 0x45bab0), (0x46f150, 0x46f190), (0x67ae00, 0x67af10)]
 HOOKS = {0x46e4e0: _cdecl_log2, 0x45bbc0: _cdecl_log}
-B = Bench(RANGES + [(0x455690, 0x4557bf), (0x4557c0, 0x455a42), (0x454a10, 0x455689), (0x44b140, 0x44b220)], hooks=HOOKS)
+CLONE_RANGES = [(0x455690, 0x4557bf), (0x4557c0, 0x455a42), (0x454a10, 0x455689), (0x44b140, 0x44b220)]   # (Animator_Clone, Instance_Clone, Holder_Clone)
+B = Bench(RANGES + CLONE_RANGES, hooks=HOOKS)
 ANIM, NODES, REC, ENTRIES, TEXTS = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400
 
 

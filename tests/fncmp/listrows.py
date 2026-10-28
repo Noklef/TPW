@@ -35,7 +35,8 @@ CALLS = {'HilightList_NewRow': 0x480d30, 'List7cc188_NewRow': 0x4a8380, 'Hilight
          'List7ca314_InitRow': 0x49c880, 'List7cb24c_InitRow': 0x49f170, 'List7cc250_InitRow': 0x4ae7d0, 'List7cc654_InitRow': 0x4bcca0,
          'List7cc94c_NewRow': 0x4c02d0, 'List7cca90_NewRow': 0x4c1b30, 'List7ca170_NewRow': 0x496c10, 'List7ca158_RowProc': 0x4959c0,
          'List7cb264_RowProc': 0x4a0710, 'List758f04_NewRow': 0x4bf760, 'List758f04_NewRowA': 0x4bf740, 'List758f04_NewRowB': 0x4bf8b0,
-         'List758f04_InitRow': 0x4bf810, 'List758f04_InitRowJump': 0x4bf800, 'List758f04_RowProcA': 0x4be730, 'List758f04_RowProcB': 0x4be7c0}
+         'List758f04_InitRow': 0x4bf810, 'List758f04_InitRowJump': 0x4bf800, 'List758f04_RowProcA': 0x4be730, 'List758f04_RowProcB': 0x4be7c0,
+         'List758f04_InitRowJumpB': 0x4bf8d0}
 COLOUR_PROCS = {'List7cb264_RowProc', 'List758f04_RowProcA', 'List758f04_RowProcB'}
 TEXT_ROWS = {'List7ca314_InitRow', 'List7cb24c_InitRow', 'List7cc250_InitRow', 'List7cc654_InitRow'}
 # the factories that make children (with windowfactory.py's surroundings), those whose first allocation failing would fault in both
@@ -58,7 +59,8 @@ PART_RANGES = [(0x48f150, 0x48f290), (0x5775d0, 0x577660), (0x579b40, 0x579c30),
 REG_RANGES = [(0x659bc9, 0x659c42), (0x6588b6, 0x6588ef), (0x65d070, 0x65d1c8), (0x65f5b7, 0x65f5fe), (0x668f5a, 0x668f9c), (0x65d547, 0x65d558)]
 B = Bench(objectstatus.merged(sorted(set(RANGES + PART_RANGES + REG_RANGES + windowfactory.FACTORY + [
     (0x4b4c70, 0x4b4d34), (0x4bacc0, 0x4bad69), (0x4bad70, 0x4bae2b), (0x4938c0, 0x4939c7), (0x4944d0, 0x494679), (0x49bbb0, 0x49bc74),
-    (0x4bf740, 0x4bf758), (0x4bf760, 0x4bf7f7), (0x4bf800, 0x4bf80e), (0x4bf810, 0x4bf8a6), (0x4bf8b0, 0x4bf8c8), (0x4be730, 0x4be7b9),
+    (0x4bf740, 0x4bf758), (0x4bf760, 0x4bf7f7), (0x4bf800, 0x4bf80e), (0x4bf810, 0x4bf8a6), (0x4bf8b0, 0x4bf8c8), (0x4bf8d0, 0x4bf8de),
+    (0x4be730, 0x4be7b9),
     (0x4be7c0, 0x4be81f), (0x4a0710, 0x4a0768), (0x49f0b0, 0x49f16e), (0x4a02b0, 0x4a03c1), (0x4ad240, 0x4ad334), (0x4ae700, 0x4ae7c9), (0x4bcbc0, 0x4bcc9d), (0x490250, 0x490300),
     (0x4907b0, 0x490860), (0x49c870, 0x49c96b), (0x49f170, 0x49f27f), (0x4ae7d0, 0x4ae8d6), (0x4bcca0, 0x4bce08), (0x65c388, 0x65c55a),
     (0x65d56b, 0x65d58c), (0x65d773, 0x65d7cc), (0x6616b0, 0x661710), (0x6617f0, 0x661820), (0x4903e0, 0x4904d0), (0x490940, 0x490a00), (0x6acb70, 0x6accb0),
@@ -193,7 +195,7 @@ def case(r):
     if op in ('List758f04_NewRowA', 'List758f04_NewRowB'):
         c = case_for(r, 'List758f04_NewRow')
         return Call(CALLS[op], c.args, c.regions, ret='a')
-    if op in ('List758f04_InitRow', 'List758f04_InitRowJump'):   # (init_case()'s with the font index [0x758f04] 0-12)
+    if op in ('List758f04_InitRow', 'List758f04_InitRowJump', 'List758f04_InitRowJumpB'):   # (init_case()'s, the font index [0x758f04] 0-12)
         regions = dict(init_case(r, op).regions)
         regions[0x758f04] = struct.pack('<I', r.choice([7] * 4 + list(range(13))))
         return Call(CALLS[op], [ROW], regions, ret='v')

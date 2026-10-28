@@ -3,6 +3,8 @@
 // With an exe path it also verifies every hook's expected prologue bytes against
 // the file on disk (read as data; nothing from the exe is executed).
 #include <algorithm>
+#include <cfloat>
+#include <cmath>
 #include <cstdio>
 #include <cstring>
 #include <fstream>
@@ -865,6 +867,168 @@ static void test_x87_nan_rule() {
     }
 }
 
+// X87_Round, X87_Add and the X87_Mul forms work on a double's bits; the frexp / ldexp forms they replaced (kept here as the reference) on random
+// doubles of every exponent, with the dropped bits often a midpoint or next to one, and sums placed on midpoints. In the normal
+// range both also have to give what this machine's x87 gives at 24-bit precision (fadd / fmul of two doubles, stored as a double).
+static double x87_round_reference(double x) {
+    if (x == 0 || !std::isfinite(x)) return x;
+    int e;
+    const double frac = std::frexp(std::fabs(x), &e);
+    unsigned long long m = (unsigned long long)std::ldexp(frac, 53);
+    const unsigned long long rest = m & ((1ull << 29) - 1);
+    m >>= 29;
+    if (rest > (1ull << 28) || (rest == (1ull << 28) && (m & 1))) ++m;
+    const double r = std::ldexp((double)m, e - 24);
+    return x < 0 ? -r : r;
+}
+static double x87_add_reference(double a, double b) {
+    if (a != a || b != b) return X87_Add(a, b);
+    const double s = a + b;
+    if (!std::isfinite(s) || s == 0) return s;
+    const double bb = s - a, e = (a - (s - bb)) + (b - bb);
+    int exp;
+    const double frac = std::frexp(std::fabs(s), &exp);
+    const unsigned long long m = (unsigned long long)std::ldexp(frac, 53);
+    if (e == 0 || (m & ((1ull << 29) - 1)) != (1ull << 28)) return x87_round_reference(s);
+    const unsigned long long kept = (m >> 29) + (((e > 0) == (s > 0)) ? 1 : 0);
+    const double r = std::ldexp((double)kept, exp - 24);
+    return s < 0 ? -r : r;
+}
+static double x87_round24_reference(unsigned long long m, int e) {
+    if (m == 0) return 0.0;
+    int bits = 0;
+    while (bits < 64 && (m >> bits) != 0) ++bits;
+    if (bits > 24) {
+        const int shift = bits - 24;
+        const unsigned long long half = 1ull << (shift - 1), rest = m & ((half << 1) - 1);
+        m >>= shift;
+        if (rest > half || (rest == half && (m & 1))) ++m;
+        e += shift;
+    }
+    return std::ldexp((double)m, e);
+}
+static double x87_mulint_reference(u32 n, float f) {
+    if (n == 0 || f == 0 || !std::isfinite(f)) return (double)n * (double)f;
+    int e;
+    const double frac = std::frexp(std::fabs((double)f), &e);
+    const double r = x87_round24_reference((unsigned long long)n * (unsigned long long)std::ldexp(frac, 24), e - 24);
+    return f < 0 ? -r : r;
+}
+
+static double x87_mulintdouble_reference(s32 n, double d) {
+    if (n == 0 || d == 0 || !std::isfinite(d)) return (double)n * d;
+    int e;
+    const double frac = std::frexp(std::fabs(d), &e);
+    const unsigned long long m = (unsigned long long)std::ldexp(frac, 53);
+    const unsigned long long k = n < 0 ? 0ull - (unsigned long long)(long long)n : (unsigned long long)n;
+    // k * m = top * 2^32 + rest (top below 2^54).
+    const unsigned long long lo = k * (m & 0xffffffffull);
+    const unsigned long long top = k * (m >> 32) + (lo >> 32), rest = lo & 0xffffffffull;
+    double r;
+    if (top < (1ull << 32)) {
+        r = x87_round24_reference((top << 32) | rest, e - 53);
+    } else {
+        // At least 33 bits, so 9 or more go; rest only decides a tie, as a sticky bit.
+        r = x87_round24_reference(top | (rest != 0 ? 1 : 0), e - 53 + 32);
+    }
+    return (n < 0) != (d < 0) ? -r : r;
+}
+
+static double x87_muluintdouble_reference(u32 n, double d) {
+    if (n == 0 || d == 0 || !std::isfinite(d)) return (double)n * d;
+    int e;
+    const double frac = std::frexp(std::fabs(d), &e);
+    const unsigned long long m = (unsigned long long)std::ldexp(frac, 53);
+    const unsigned long long k = n;
+    const unsigned long long lo = k * (m & 0xffffffffull);
+    const unsigned long long top = k * (m >> 32) + (lo >> 32), rest = lo & 0xffffffffull;
+    const double r = top < (1ull << 32) ? x87_round24_reference((top << 32) | rest, e - 53) : x87_round24_reference(top | (rest != 0 ? 1 : 0), e - 53 + 32);
+    return d < 0 ? -r : r;
+}
+
+static double x87_mulfloatdouble_reference(float f, double d) {
+    const double x = f;
+    if (x == 0 || d == 0 || !std::isfinite(x) || !std::isfinite(d)) return x * d;
+    int ex, ed;
+    const unsigned long long k = (unsigned long long)std::ldexp(std::frexp(std::fabs(x), &ex), 24);
+    const unsigned long long m = (unsigned long long)std::ldexp(std::frexp(std::fabs(d), &ed), 53);
+    const unsigned long long lo = k * (m & 0xffffffffull);
+    const unsigned long long top = k * (m >> 32) + (lo >> 32), rest = lo & 0xffffffffull;
+    const int e = ex - 24 + ed - 53;
+    const double r = top < (1ull << 32) ? x87_round24_reference((top << 32) | rest, e) : x87_round24_reference(top | (rest != 0 ? 1 : 0), e + 32);
+    return (x < 0) != (d < 0) ? -r : r;
+}
+static double x87_hardware(bool add, double a, double b) {
+    double r;
+    unsigned old, now;
+    _controlfp_s(&old, 0, 0);
+    _controlfp_s(&now, _PC_24, _MCW_PC);
+    if (add) {
+        __asm { fld qword ptr a
+                fadd qword ptr b
+                fstp qword ptr r }
+    } else {
+        __asm { fld qword ptr a
+                fmul qword ptr b
+                fstp qword ptr r }
+    }
+    _controlfp_s(&now, old, _MCW_PC);
+    return r;
+}
+
+static void test_x87_rounding() {
+    unsigned long long state = 0x9e3779b97f4a7c15ull;
+    auto next = [&]() {
+        state ^= state << 13;
+        state ^= state >> 7;
+        state ^= state << 17;
+        return state;
+    };
+    auto random_double = [&]() {
+        unsigned long long b = next();
+        switch (b & 7) {
+        case 0: b = (b & 0x800fffffffffffffull) | ((next() % 3 == 0 ? 0ull : 0x7ffull) << 52); break;   // denormals, infinities, NaNs
+        case 1: b = (b & ~0x1fffffffull) | 0x10000000; break;                                             // on a midpoint
+        case 2: b = (b & ~0x1fffffffull) | (next() & 1 ? 0x0fffffff : 0x10000001); break;                // next to one
+        case 3: b = (b & ~0x1fffffffull) | (next() & 1 ? 0x1fffffff : 0); break;                          // a carry, or exact
+        case 4: b = (b & 0x800fffffffffffffull) | ((0x3ff - 40 + next() % 80) << 52); break;              // the game's range
+        }
+        return X87_FromBits(b);
+    };
+    auto same = [](double x, double y) { return X87_Bits(x) == X87_Bits(y); };
+    int round_bad = 0, add_bad = 0, hardware_bad = 0, mul_bad = 0;
+    for (int i = 0; i < 2000000; ++i) {
+        const double x = random_double();
+        if (!same(X87_Round(x), x87_round_reference(x))) ++round_bad;
+        double a = random_double(), b = random_double();
+        if ((i & 3) == 0) {
+            // b about 2^-24 of a, so that the sum's double lands on a midpoint now and then
+            const unsigned long long ab = X87_Bits(a);
+            const int ea = (int)((ab >> 52) & 0x7ff);
+            if (ea > 60 && ea < 0x7ff - 60) b = X87_FromBits((X87_Bits(b) & 0x800fffffffffffffull) | ((unsigned long long)(ea - 24 - (int)(next() % 30)) << 52));
+        }
+        if (!same(X87_Add(a, b), x87_add_reference(a, b))) ++add_bad;
+        const double s = a + b, p = a * b;
+        const auto normal = [](double v) { const int e = (int)((X87_Bits(v) >> 52) & 0x7ff); return e > 1 && e < 0x7fe; };
+        if (normal(a) && normal(b) && normal(s) && !same(X87_Add(a, b), x87_hardware(true, a, b))) ++hardware_bad;
+        const float fa = (float)a, fb = (float)b;   // X87Reg's * is exact for 24-bit operands only
+        const double pa = fa, pb = fb, pp = pa * pb;
+        if (normal(pa) && normal(pb) && normal(pp) && !same((X87Reg(pa) * X87Reg(pb)).v, x87_hardware(false, pa, pb))) ++hardware_bad;
+        (void)p;
+        const u32 n = (u32)next();
+        const float f = (float)random_double();
+        if (!same(X87_MulInt(n, f), x87_mulint_reference(n, f))) ++mul_bad;
+        if (!same(X87_MulIntDouble((s32)n, a), x87_mulintdouble_reference((s32)n, a))) ++mul_bad;
+        if (!same(X87_MulUIntDouble(n, a), x87_muluintdouble_reference(n, a))) ++mul_bad;
+        // (Of two NaNs, x * d gives whichever operand the compiler put first: unspecified, the same in both forms.)
+        if (!(f != f && a != a) && !same(X87_MulFloatDouble(f, a), x87_mulfloatdouble_reference(f, a))) ++mul_bad;
+    }
+    if (round_bad || add_bad || hardware_bad || mul_bad)
+        std::printf("x87 rounding: %d round, %d add, %d hardware, %d mul differ\n", round_bad, add_bad, hardware_bad, mul_bad);
+    CHECK(round_bad == 0 && add_bad == 0 && hardware_bad == 0 && mul_bad == 0);
+    CHECK(X87_Round(X87_FromBits(0x7fefffffffffffffull)) == HUGE_VAL && X87_Round(-0.0) == 0 && std::signbit(X87_Round(-0.0)));
+}
+
 static void test_sprite_script() {
     // fild n; fadd f rounds the exact sum once: 2^30 + 64 is a 24-bit midpoint, and a tiny
     // f says which way it goes, where the double sum alone would tie to even.
@@ -1184,6 +1348,7 @@ int main(int argc, char **argv) {
     test_animator_reset();
     test_sprite_script();
     test_x87_nan_rule();
+    test_x87_rounding();
     test_patcher();
     if (argc > 1) test_hook_table(argv[1]);
     std::printf(g_failures ? "%d FAILED\n" : "all tests passed\n", g_failures);

@@ -129,7 +129,7 @@ def case(r):
     return Call(at, [OBJ, STREAM, save, version & 0xffffffff, r.getrandbits(32)], regions, conv='t', ret='a')
 
 
-OPS = [int(k, 16) for k in os.environ.get('OPS', '').split(',') if k] or list(FIELDS) + [0x4c5d70]
+OPS = [int(k, 16) for k in (os.environ.get('OPS', '') if __name__ == '__main__' else '').split(',') if k] or list(FIELDS) + [0x4c5d70]
 
 if __name__ == '__main__':
     B.main(case)

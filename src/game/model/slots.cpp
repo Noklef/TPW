@@ -2,11 +2,15 @@
 
 #include <cstdint>
 
+#include "../core/crt.h"
+#include "../files/quickload.h"
+#include "../math/matrix.h"
 #include "../motion/animator.h"
 #include "../render/renderer.h"
 #include "../render/state.h"
 #include "holder.h"
 #include "parts.h"
+#include "ridemodel.h"
 
 namespace {
 
@@ -100,6 +104,45 @@ u8 *__fastcall ModelSlot_Ctor(u8 *slot) {
         at<u32>(base, offset) = 0x3f800000;
     at<u32>(base, 0x54) = 0xffffffff;
     return slot;
+}
+
+void __cdecl ModelSlot_LoadAdvisor(const char *folder, const char *c, const char *suffix, u32 slot) {
+    u8 *const s = reinterpret_cast<u8 *>((uintptr_t)(0x00790398 + slot * 0xb0));
+    Matrix_Identity(reinterpret_cast<float *>(s + 8));
+    u8 *const part = s + 0x48;
+    at<u32>(s, 0x38) = 0x3f19999a;   // 0.6f
+    at<u32>(s, 0x3c) = 0xbf19999a;   // -0.6f
+    at<u32>(s, 0x40) = 0x3e4ccccd;   // 0.2f
+    u32 *const sceneFlags = reinterpret_cast<u32 *>((uintptr_t)0x008bd508);
+    u8 *base = part + at<u32>(at<u8 *>(part, 0), 8);
+    const u32 one = global<u32>(0x006fdcb0);   // 1.0f
+    SceneFlags_Touch(sceneFlags);
+    at<u32>(base, 0x54) = 0xffffffff;
+    for (u32 offset = 4; offset <= 0x10; offset += 4)
+        at<u32>(base, offset) = one;
+    base = part + at<u32>(at<u8 *>(part, 0), 8);
+    SceneFlags_Touch(sceneFlags);
+    at<u32>(base, 0x2c) = 0x41d55556;   // 26.666666f
+    at<u32>(base, 0x30) = 0xc1d55556;   // -26.666666f
+    at<u32>(base, 0x34) = 0x44480000;   // 800.0f
+    char name[0x104];
+    if (suffix)
+        Crt().sprintf(name, reinterpret_cast<const char *>((uintptr_t)0x0074c944), suffix);   // "Advisor%s.md2"
+    else
+        Crt().sprintf(name, reinterpret_cast<const char *>((uintptr_t)0x0074c938));   // "Advisor.md2"
+    Quickload_LoadRide(name, folder, c);
+    RideModel_Load(name, 0x50120, reinterpret_cast<u8 **>(s), nullptr, 1);
+    u8 **const instance = reinterpret_cast<u8 **>(s + 4);
+    Instance_Clone(at<u8 *>(s, 0), 0, 0x2117, instance, 0);
+    Animator_Reset(*instance, 1, 1, 1);
+    at<u32>(*instance, 4) |= 4;
+    if (!*instance) return;
+    Holder_FlagModel(reinterpret_cast<const u8 *const *>(*instance + 8));
+    at<u8 *>(*instance, 0xc8) = s + 8;
+    Renderer_Add(global<u8 *>(0x0087a6d0), nullptr, part + at<u32>(at<u8 *>(part, 0), 4), 0x10);
+    const u32 scale[3] = {0x3c3851eb, 0x3a83126f, 0x3c75c28f};   // 0.01125f, 0.001f, 0.015f
+    Matrix_ScaleAxesV(reinterpret_cast<float *>(at<u8 *>(at<u8 *>(at<u8 *>(*instance, 8), 4), 0x78) + 0x10),
+                      reinterpret_cast<const float *>(scale));
 }
 
 void __cdecl ModelSlot_ApplySelection(s32 kind) {
