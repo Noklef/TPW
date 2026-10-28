@@ -28,6 +28,17 @@ extern "C" {
 
 void __fastcall SoundSample_Describe(u8 *sample, void *, u8 *record) { SoundStream_Describe(sample, nullptr, record); }
 
+u32 *__fastcall SoundSample_Query(u8 *sample, void *, u32 *out, u8 *record) {
+    SoundStream_Query(sample, nullptr, out, record);
+    return out;
+}
+
+u8 *__fastcall MemorySample_DeletingDtor(u8 *sample, void *, u32 flags) {
+    SoundSample_Dtor(sample);   // (0x6c8330, a jump to it)
+    if (flags & 1) MemorySamplePool_Delete(sample, 0x2c);
+    return sample;
+}
+
 u8 __fastcall SoundSample_ScheduleEnd(u8 *sample, void *, u32 flag, u32 bytes) {
     if (static_cast<u8>(flag)) return 0;
     const u8 format = at<u8>(sample, 0x20);

@@ -11,6 +11,12 @@ extern "C" {
 
 // 0x6bb1d0 (thiscall (record), pops 4; slot 5): SoundStream_Describe (record).
 void __fastcall SoundSample_Describe(u8 *sample, void *, u8 *record);
+// 0x6bb1b0 (thiscall (out, record), pops 8; slot 9 of the samples 0x70a6f8, 0x70ab58, 0x70ac50 and 0x70acf0; name invented):
+// SoundStream_Query (out, record); returns out.
+u32 *__fastcall SoundSample_Query(u8 *sample, void *, u32 *out, u8 *record);
+// 0x6bb1f0 (thiscall (flags), pops 4; slot 0 of 0x70a6f8, the memory sample; name invented): SoundSample_Dtor (0x6c8330's jump), with
+// flags bit 0 the block back to its pool (MemorySamplePool_Delete, 0x2c); returns the sample.
+u8 *__fastcall MemorySample_DeletingDtor(u8 *sample, void *, u32 flags);
 // 0x6c7010 (thiscall (flag, bytes), pops 8; slot 19): with the flag's low byte 0, the time the bytes left take to play (halved for 16-bit
 // and again for stereo, * 1000 / the sample rate (slot 6), unsigned) + 200 ms from now (Time_GetMs) into +0x1c; returns 1. Else 0.
 u8 __fastcall SoundSample_ScheduleEnd(u8 *sample, void *, u32 flag, u32 bytes);

@@ -31,6 +31,7 @@ constexpr Pool kFileSample = {0x00fb20b4, 0x00fb20b0, 0x48, 0x44};
 constexpr Pool kMp2Stream = {0x00fb26e8, 0x00fb26e4, 0x5c, 0x58};
 constexpr Pool kMp2Sample = {0x00fb26dc, 0x00fb26d8, 0x40, 0x28};
 constexpr Pool kCallback = {0x00fb26f4, 0x00fb26f0, 0x1c, 0x14};
+constexpr Pool kMemorySample = {0x00fb209c, 0x00fb2098, 0x2c, 0x28};
 
 void Init(const Pool &p) {
     void *const lock = GameHeap_Alloc(0x18);
@@ -139,5 +140,10 @@ void __cdecl NotifyStreamPool_Shutdown() { Shutdown(kCallback); }
 void __cdecl NotifyStreamPool_Purge() { Purge(kCallback); }
 void *__cdecl NotifyStreamPool_New(u32 size) { return New(kCallback, size); }
 void __cdecl NotifyStreamPool_Delete(void *block, u32 size) { Delete(kCallback, block, size); }
+void __cdecl MemorySamplePool_Init() { Init(kMemorySample); }
+void __cdecl MemorySamplePool_Shutdown() { Shutdown(kMemorySample); }
+void __cdecl MemorySamplePool_Purge() { Purge(kMemorySample); }
+void *__cdecl MemorySamplePool_New(u32 size) { return New(kMemorySample, size); }
+void __cdecl MemorySamplePool_Delete(void *block, u32 size) { Delete(kMemorySample, block, size); }
 
 }  // extern "C"
