@@ -93,7 +93,7 @@ def insert_case(r):
     train[4] = train[4] & ~1 | (1 if r.random() < 0.25 else 0)
     put(train, 0xc, 'II', r.randrange(-5, 300) & 0xffffffff, r.randrange(-5, 300) & 0xffffffff)
     set_return(log, 30, r.randrange(NR))
-    height, slot = c.args[4], c.args[3]
+    height, slot = r.choice([c.args[4]] * 9 + [0x7f800001 | r.getrandbits(22)]), c.args[3]   # (a signalling NaN now and then)
     return Call(0x434060, [insertcar.TRAIN, r.getrandbits(32), r.getrandbits(32), height, flags(r, False), desc, r.choice([0, 1]), slot,
                            r.randrange(1, NR)], regions, ret='a')
 
