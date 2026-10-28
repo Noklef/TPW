@@ -90,6 +90,7 @@
 #include "../../src/game/world/mapclick.h"
 #include "../../src/game/world/mapline.h"
 #include "../../src/game/world/messagecentre.h"
+#include "../../src/game/coaster/registry.h"
 #include "../../src/game/coaster/train.h"
 #include "../../src/game/world/mousemode.h"
 #include "../../src/game/world/person.h"
@@ -402,6 +403,8 @@ const PathDragEnv kPathDragEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void
 // of 3, as tests/fncmp/cellkind.py and tests/fncmp/trackremove.py hook them.
 const CellKindEnv kCellKindEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(26, 0)),
                                   reinterpret_cast<u32(__cdecl *)(s32, s32, u32)>((uintptr_t)jpeg_recorder(27, 3))};
+// The coaster links' call into agent B's unported 0x463060: the cdecl recorder 30 of 10 arguments, as tests/fncmp/linkcars.py hooks it.
+const CoasterLinksEnv kCoasterLinksEnv = {reinterpret_cast<u32(__cdecl *)(u32, u32, const u32 *, u32, u32, u32, u32, u32, s32, u32)>((uintptr_t)jpeg_recorder(30, 10))};
 const RidesEnv kRidesEnv = {reinterpret_cast<void(__cdecl *)()>((uintptr_t)jpeg_recorder(18, 0)), reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(19, 1))};
 // MapCell_ApplyModel's calls into agent A's unported placers 0x522b90 / 0x522d50 / 0x522f20: cdecl recorders 20, 21 and 22 of 6 arguments,
 // as tests/fncmp/cellapply.py hooks those addresses.
@@ -1090,6 +1093,7 @@ int main(int argc, char **argv) {
     QueuePieces_SetEnv(&kQueuePiecesEnv);
     PathDrag_SetEnv(&kPathDragEnv);
     Rides_SetEnv(&kRidesEnv);
+    CoasterLinks_SetEnv(&kCoasterLinksEnv);
     CellKind_SetEnv(&kCellKindEnv);
     CellModel_SetEnv(&kCellModelEnv);
     Object_SetEnv(&kObjectEnv);
