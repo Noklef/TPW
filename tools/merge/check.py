@@ -25,6 +25,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 EXE = os.path.join(ROOT, '.data', 'nocd', 'tp.exe')
@@ -253,12 +254,13 @@ def main():
         todo += users
     runs = [f for f in runs if '.main(' in worktree(f)]
     for f in sorted(set(runs)):
+        t0 = time.time()
         p = run([sys.executable, '-I', f, cases, '5', '--both'])
         res = [l.strip() for l in p.stdout.splitlines() if 'differ' in l]
         name = os.path.basename(f)[:-3]
         if p.returncode or not res or any(not re.search(r'\b0 differ', l) for l in res):
             fail('bench %s\n%s' % (name, (p.stdout + p.stderr).strip()[-3000:]))
-        print('bench %-24s %s' % (name, ' | '.join(res)))
+        print('bench %-24s %s  [%d s]' % (name, ' | '.join(res), time.time() - t0))   # (the time: a slow bench is a merge's cost)
     print('check: all passed')
 
 
