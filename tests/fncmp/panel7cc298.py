@@ -283,9 +283,10 @@ def patrol_case(r):
     put(staff, 0x20a, 'HH', *((1, 0x4000) if r.random() < 0.3 else (r.getrandbits(16), r.getrandbits(16))))
     regions[THING] = staff
     regions[0x7c2658] = struct.pack('<I', THING)
+    regions[0x7c2650] = r.bytes(4)   # (Global7c2650_Set's)
     regions[PANEL] = put(bytearray(r.bytes(0x40)), 0, 'I', PANEL + 0x40)
     regions[PANEL + 0x40] = vtable({})
-    on = r.choice([1, 1, 1, 0, 0, 2, r.getrandbits(32)])
+    on = r.choice([1, 1, 1, 0, 0, 2, 0x100, 0x10000, r.getrandbits(32)])
     return Call(CALLS['Patrol7cc3b0'], [PANEL, on], regions, conv='t', ret='a', masks=masks)
 
 
