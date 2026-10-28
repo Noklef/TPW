@@ -125,9 +125,10 @@ The libraries in tp.exe (zlib 1.1.3, libjpeg 6b and 6a) are replaced by builds o
 Only the agent assigned to them reads docs/porting-libraries.md; everyone else leaves 0x630ca0-0x658000 and src/game/lib alone.
 
 ## Scope and stop
-- Port within your address range, bottom-up, a module at a time.
-- Stop after about 40 committed functions or 20 KB of ported code (wave.py's sizes), whichever comes first, or earlier if your context is
-  getting large. Then reply with a short report of exceptions only (the lead reads your commits from git):
+- Port within your address range, bottom-up, a module at a time. Blockers other agents reported in your range come first: the lead puts
+  them at the top of your round prompt, since their ports turn others' env stand-ins into the real thing.
+- Stop after about 30 KB of ported code (wave.py's sizes; no function count: the big functions left are the work), or earlier if your
+  context is getting large. Then reply with a short report of exceptions only (the lead reads your commits from git):
   - the count and KB ported, counted from the hooks rows your commits added (not from memory);
   - new modules created and names you invented (unconfirmed);
   - fncmp/driver changes;
@@ -146,7 +147,10 @@ In the main tree, one branch at a time:
    no duplicates or lone CRs, the branch's added hooks count, then build, tpw_tests, retcheck, convcheck and every touched bench at 1000
    cases --both. It stops at the first failure. Check the agent's reported function count against its hooks count.
 4. Commit the merge (message: the round, what it ported, anything not merged).
-5. Fast-forward the worktree (`git -C .worktrees/X merge -q --ff-only main`) and start the agent's next round right away (a fresh agent
-   per round).
+5. Fast-forward the worktree (`git -C .worktrees/X merge -q --ff-only main`) and start the agent's next round right away. Continue the
+   same agent (SendMessage) when its round ended with room in its context: it keeps what it learned, and a fresh agent's start (the
+   brief, docs and tools again) is paid only when needed. A branch with commits main lacks (a round merged late) is not fast-forwarded:
+   merge main into it only when the agent needs something only main has, or the merge back would conflict; then check it with
+   `check.py main --both-sides` from the worktree.
 6. Then `python -I tools/coverage.py --check` (about 400 s; nothing else in the main tree builds or edits tests/fncmp while it runs). If it
    fails, fix it on main and tell the running agents what changed.
