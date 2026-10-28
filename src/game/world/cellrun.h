@@ -58,7 +58,7 @@ s32 __cdecl PairTable_Commit();
 // What the runs call in the game that is not ported yet, so that they can run outside it (the benches point it at a recorder).
 struct CellRunEnv {
     void(__fastcall *cell53afa0)(u8 *cell);   // 0x53afa0 (agent B's; thiscall on a 0x28-byte cell, no arguments)
-    void(__fastcall *cell5370e0)(u8 *cell, void *, u32 a, u32 b, u32 c);   // 0x5370e0 (agent B's; thiscall on a cell (0x81, 0, 0), pops 12)
+    void(__fastcall *cell5370e0)(u8 *cell, void *, u32 a, u32 b, u32 c);   // the track cell messages (0x5370e0, trackmessage.h; (0x81, 0, 0))
     void(__fastcall *cell538fc0)(u8 *cell, void *, u32 a);                 // 0x538fc0 (agent B's; thiscall on a cell (0xc), pops 4)
     void(__fastcall *cell53b280)(u8 *cell, void *, s32 a, s32 b, u32 c);   // 0x53b280 (agent B's; thiscall on a cell (-1, -1, 1) or (0, 0, 1), pops 12)
     void(__cdecl *at53bc60)(s32 x, s32 y, u32 direction);                  // 0x53bc60 (agent B's; cdecl (x, y, direction))
@@ -101,7 +101,7 @@ void __cdecl TrackCell_Relink(u32 corners);
 // when they share a bit, else xor the direction; then a junction (MapCell_JunctionNeighbours) picks the first neighbour side from
 // Byte_ShiftLog2(direction, 0x40) on, round by Byte_ShiftLog2(side, 4) (none: it never stops, sic): a side other than the direction becomes
 // the cell's direction (MapCell_SetDirection) and the direction's bit and the side's reverse (Nibble_Scale) are taken off its neighbours;
-// the same side takes off every bit but it and its reverse (MapCell_RemoveNeighbours); then agent B's unported 0x5370e0 (0x81, 0, 0) and
+// the same side takes off every bit but it and its reverse (MapCell_RemoveNeighbours); then the track cell message 0x5370e0 (0x81, 0, 0) and
 // 0x53afa0 on the cell (CellRunEnv), and the side is the direction. With setDirection's low byte, a cell whose direction (MapCell_Direction)
 // differs gets it, and 0x5370e0 again. The cells one south, east and south-east (Map_StepCell28 by the pairs 0x7cdba8, 0x7cdbc8, 0x7cdbb8,
 // the cell's own id; in the map) get the cell's id as parent (MapCell_SetParent) and agent B's unported 0x538fc0 (0xc). Then two cells on

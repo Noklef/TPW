@@ -4,13 +4,14 @@
 #include <cstdint>
 
 #include "mapcell.h"
+#include "trackmessage.h"
 
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 const MapLineEnv kGameEnv = {
-    reinterpret_cast<u32(__fastcall *)(u8 *, void *, u32, s32, s32)>((uintptr_t)0x005370e0),
+    reinterpret_cast<u32(__fastcall *)(u8 *, void *, u32, s32, s32)>(&MapCell_HandleTrackMessage),   // (a and b signed here)
 };
 const MapLineEnv *g_env = &kGameEnv;
 

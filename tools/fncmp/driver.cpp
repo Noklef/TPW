@@ -111,6 +111,7 @@
 #include "../../src/game/world/parkopen.h"
 #include "../../src/game/world/gamemode.h"
 #include "../../src/game/world/cellmessage.h"
+#include "../../src/game/world/trackmessage.h"
 #include "../../src/game/world/cellrun.h"
 #include "../../src/game/world/staff.h"
 #include "../../src/game/world/things.h"
@@ -538,6 +539,12 @@ const CoasterLinksEnv kCoasterLinksEnv = {Rec{jpeg_recorder(30, 10)}, Rec{jpeg_r
 // tests/fncmp/cellmessage.py hooks them.
 const CellMessageEnv kCellMessageEnv = {reinterpret_cast<void(__cdecl *)(s32, s32, u32)>((uintptr_t)jpeg_recorder(27, 3)),
                                         reinterpret_cast<void(__cdecl *)(u32, u32)>((uintptr_t)jpeg_recorder(28, 2))};
+// The track cell messages' (0x5370e0) calls: the thiscall recorder 1 of 3, the cdecl 2 of 11, the thiscall 3 and 4 of 3, 5 of 2, 6 and 7
+// of 0 and 8 of 1, the cdecl 9 and 10 of 4 and 11 of 3, the thiscall 12 of 2 and the cdecl 13 of 2, as tests/fncmp/trackmessage.py hooks them.
+const TrackMessageEnv kTrackMessageEnv = {Rec{recorder(1, 3)},       Rec{jpeg_recorder(2, 11)}, Rec{recorder(3, 3)},       Rec{recorder(4, 3)},
+                                          Rec{recorder(5, 2)},       Rec{recorder(6, 0)},       Rec{recorder(7, 0)},       Rec{recorder(8, 1)},
+                                          Rec{jpeg_recorder(9, 4)},  Rec{jpeg_recorder(10, 4)}, Rec{jpeg_recorder(11, 3)}, Rec{recorder(12, 2)},
+                                          Rec{jpeg_recorder(13, 2)}};
 // (Ride_Destroy's two above.) Ride_Create's (0x463060) calls: the cdecl recorders 1 of 5, 2 of 4, 3 of 3, 4 of 6, 5 of 7, 6 of 10, 7 of 4,
 // the thiscall 8 of 4 and the cdecl 9 of 2, 10 of 1, 11 of 3, 12 and 13 of 1, 14 of 6 and 15 to 17 of 1, as tests/fncmp/ridecreate.py
 // hooks them.
@@ -1297,6 +1304,7 @@ int main(int argc, char **argv) {
     CellKind_SetEnv(&kCellKindEnv);
     CellModel_SetEnv(&kCellModelEnv);
     CellMessage_SetEnv(&kCellMessageEnv);
+    TrackMessage_SetEnv(&kTrackMessageEnv);
     Object_SetEnv(&kObjectEnv);
     StatsGraph_SetEnv(&kStatsGraphEnv);
     SpriteLoading_SetEnv(&kSpriteLoadingEnv);
