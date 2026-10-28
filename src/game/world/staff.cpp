@@ -8,6 +8,7 @@
 #include "../core/gameheap.h"
 #include "../core/idmaps.h"
 #include "../core/indexed.h"
+#include "../core/initializers.h"
 #include "../core/savegame.h"
 #include "../core/timesig.h"
 #include "../core/selectors.h"
@@ -711,6 +712,33 @@ void __fastcall Staff_LeaveRestArea(u8 *staff) {
 }
 
 void __fastcall Staff_Detach(u8 *staff) { Person_Detach(staff); }
+
+void __fastcall Mechanic_Detach(u8 *mechanic) {
+    Things_Unlink1da73e(*reinterpret_cast<u8 **>((uintptr_t)0x0080239c), nullptr, mechanic);
+    const u16 handle = at<u16>(mechanic, 0x218);
+    if (handle) {
+        u8 *const object = *reinterpret_cast<u8 **>((uintptr_t)0x007cfb90 + handle * 20u);
+        u16 tracked;
+        Obj_GetTrackedHandle(object, nullptr, &tracked);   // (compared with the mechanic's handle only in the original's debug print)
+        Fn_4e0210(object);
+    }
+    Staff_Detach(mechanic);
+}
+
+void __fastcall Handyman_Detach(u8 *handyman) {
+    Things_Unlink1da73c(*reinterpret_cast<u8 **>((uintptr_t)0x0080239c), nullptr, handyman);
+    const u16 handle = at<u16>(handyman, 0x21a);
+    if (handle) Fn_4e0210(*reinterpret_cast<u8 **>((uintptr_t)0x007cfb90 + handle * 20u));
+    Staff_Detach(handyman);
+}
+
+void __fastcall Entertainer_Detach(u8 *entertainer) {
+    Things_Unlink1da740(*reinterpret_cast<u8 **>((uintptr_t)0x0080239c), nullptr, entertainer);
+    u8 *const map = *reinterpret_cast<u8 **>((uintptr_t)0x008023a0);
+    u16 cell;
+    Map_SpreadRemove(map, nullptr, 0, *Sprite_RecordMapId(entertainer, nullptr, &cell));
+    Staff_Detach(entertainer);
+}
 
 void __fastcall Researcher_Detach(u8 *researcher) {
     u8 **const game = reinterpret_cast<u8 **>((uintptr_t)0x0080239c);   // (reloaded for each call, as the original does)

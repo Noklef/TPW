@@ -288,4 +288,16 @@ u32 __fastcall StaffAdvice_KindLow(const u8 *self, void *, u32 kind);
 // (message 17 of (kind, 2)), others stay; else message 17 of (kind, 3) when the state is 1, and the state and flag cleared.
 // (The messages through Object_PostMessage: agent B's unported 0x40fb10.)
 void __fastcall StaffAdvice_Update(u8 *self, void *, u32 kind);
+
+// 0x4d9fe0 (thiscall; name invented, unconfirmed; Thing_Delete's kind 4): a mechanic taken out of the world: out of the game object's
+// list of them (Things_Unlink1da73e on [0x80239c]); when it has an object (the handle +0x218, in the thing table 0x7cfb90), that object's
+// tracked handle asked (Obj_GetTrackedHandle, for the original's debug check only) and dropped (Fn_4e0210); then Staff_Detach.
+void __fastcall Mechanic_Detach(u8 *mechanic);
+// 0x4d6c90 (thiscall; name invented, unconfirmed; Thing_Delete's kind 5): a handyman: out of the list at +0x1da73c (Things_Unlink1da73c),
+// the object of its handle +0x21a (when there is one) has its tracked handle dropped (Fn_4e0210); then Staff_Detach.
+void __fastcall Handyman_Detach(u8 *handyman);
+// 0x4d4620 (thiscall; name invented, unconfirmed; Thing_Delete's kind 6): an entertainer: out of the list at +0x1da740
+// (Things_Unlink1da740), the map's spread record 0 taken back (Map_SpreadRemove on [0x8023a0]) around the map id it last recorded
+// (Sprite_RecordMapId's old +0xcc, the current one recorded); then Staff_Detach.
+void __fastcall Entertainer_Detach(u8 *entertainer);
 }

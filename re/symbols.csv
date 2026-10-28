@@ -4154,6 +4154,9 @@ address,name,kind,confidence,notes
 0x00504c70,Staff_HandleMessage,function,low,"reimplemented (src/game/world/staff); thiscall (message), pops 4: pay day (0xc) debits the wage and adds it to the record's +0x1f7f0; 0xa for the rest area: state 3 leaves it and heads to the nearest one, state 2 clears it and returns to state 0"
 0x00509360,StaffAdvice_KindLow,function,low,"reimplemented (src/game/world/staff); thiscall (kind), pops 4: 1 when +0x64 is set, or (kind 0) the sums' ratio is above 0.2, or the kind's staff chain has more than 3 members averaging below 15 in the low byte of +0x1fc, then +0x1f8; else 0"
 0x00508f70,StaffAdvice_Update,function,low,"reimplemented (src/game/world/staff); thiscall (kind), pops 4: once the game clock's elapsed time is 24 30-day months, the kind's advice state +0x24 + 12 * kind steps on (message 17 of (kind, 0 or 2) posted) while StaffAdvice_KindLow, else is cleared with its flag (message 17 of (kind, 3) when it was 1)"
+0x004d9fe0,Mechanic_Detach,function,low,"reimplemented (src/game/world/staff); Thing_Delete's kind 4: out of the list +0x1da73e, its object's tracked handle dropped, Staff_Detach"
+0x004d6c90,Handyman_Detach,function,low,"reimplemented (src/game/world/staff); Thing_Delete's kind 5: out of the list +0x1da73c, its object's tracked handle dropped, Staff_Detach"
+0x004d4620,Entertainer_Detach,function,low,"reimplemented (src/game/world/staff); Thing_Delete's kind 6: out of the list +0x1da740, spread record 0 taken back at its last map id, Staff_Detach"
 0x00520d60,FreeList_Take,function,high,reimplemented (src/game/core/voices); takes a record off the free list into a table entry
 0x00521890,FreeList_Return,function,high,reimplemented (src/game/core/voices); puts a record back on the free list
 0x00521d60,Voice_ScaleLevels,function,high,reimplemented (src/game/core/voices); scales a voice's levels by the factor over 1024
@@ -4391,6 +4394,7 @@ address,name,kind,confidence,notes
 0x004f7e20,Thing_ResetPlaceAt,function,high,"reimplemented (src/game/world/things); thiscall (x, y, pops 8): +0x39c = 0, +0x10 = 3 (Set4_4217f0 on +0xc), then Thing_PlaceAt(x, y)"
 0x005153c0,ThingsToDelete_AtExit,function,low,"reimplemented (src/game/world/things); cdecl: the delete queue's atexit entry, its nodes freed once"
 0x0050b980,Thing_Detach,function,low,"reimplemented (src/game/world/things); thiscall: unlinked from its map cell's chain, a ride destroyed (Ride_Destroy through the env), 0x877350 cleared when it is the thing (kinds 1, 4-8, 0x12), erased from the message centre; returns the count erased"
+0x004c9040,ThingKinds9To11_Detach,function,low,"reimplemented (src/game/world/things); Thing_Delete's kinds 9-0xe, 0x10, 0x11: a jump to Thing_Detach"
 0x00565310,DrawBatch_Open,function,high,reimplemented (src/game/render/drawbuffer); a draw batch resumed and tagged
 0x0057b070,Object_ReleaseSavedPairs,function,high,reimplemented (src/game/core/vobj2); saved pairs written back and their arrays freed
 0x0057b5b0,Object_FreeBlock13c,function,low,reimplemented (src/game/core/vobj2); thiscall: the tracked block at +0x13c freed after its texture at +0x18 is released twice (sic) and freed (name unconfirmed)

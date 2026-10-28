@@ -71,8 +71,9 @@ void Things_SetDetachEnv(const ThingDetachEnv *e) { g_detach = e ? e : &kGameDet
 
 namespace {
 template <u32 address> void __fastcall game_kind(u8 *thing) { reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)address)(thing); }
-const ThingDeleteEnv kGameDeleteEnv = {&game_kind<0x004dd0a0>, &game_kind<0x004d9fe0>, &game_kind<0x004d6c90>,
-                                       &game_kind<0x004d4620>, &game_kind<0x004d5eb0>, &game_kind<0x004c9040>};
+void __fastcall kinds9to11(u8 *thing) { ThingKinds9To11_Detach(thing); }
+const ThingDeleteEnv kGameDeleteEnv = {&game_kind<0x004dd0a0>, &Mechanic_Detach, &Handyman_Detach,
+                                       &Entertainer_Detach, &game_kind<0x004d5eb0>, &kinds9to11};
 const ThingDeleteEnv *g_delete = &kGameDeleteEnv;
 }  // namespace
 
@@ -111,6 +112,8 @@ u32 __fastcall Thing_Detach(u8 *thing) {
     }
     return MessageCentre_RemoveThing(MessageCentre_Instance(), nullptr, thing);
 }
+
+u32 __fastcall ThingKinds9To11_Detach(u8 *thing) { return Thing_Detach(thing); }
 
 extern "C" void __cdecl Things_InitTable() {
     ThingSlot *const s = slots();
