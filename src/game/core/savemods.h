@@ -47,4 +47,11 @@ u32 __cdecl Camera_Load(Stream *stream);
 // at the head of +0xb0, 0x8791b4 up) read over (its links kept). A read that falls short leaves its value as it was. Returns 0.
 u32 __cdecl RSSE_Load(Stream *stream);
 
+// 0x55e020 (stream): the mirror of FlyingRides_Save. A running module (0x8791ec) is shut first (FlyingRides_Shutdown, inlined in the
+// original). 'FLY_' (else 1 returned), then
+// the flag; 0: nothing more (returns 0). Else the module set up (FlyingRides_Init, inlined), a size and that many bytes over the table
+// 0x8791f8, the dwords 0x7660b8 to 0x7660c4, five dwords and the record size; each entry 1-99 the read left non-null gets a block of that
+// size (Mem_GlobalAlloc) read in. A read that falls short leaves its value as it was. Returns 0.
+u32 __cdecl FlyingRides_Load(Stream *stream);
+
 }  // extern "C"

@@ -573,3 +573,15 @@ extern "C" void __cdecl FlyingRide_Free(s32 index) {
     Mem_GlobalFree(table()[index]);
     reinterpret_cast<u8 **>(0x008791f8)[index] = nullptr;
 }
+
+extern "C" void __cdecl FlyingRides_Shutdown() {
+    u32 *const flag = reinterpret_cast<u32 *>(0x008791ec);
+    if (!*flag)
+        return;
+    void **const sines = reinterpret_cast<void **>(0x008791c8);
+    Mem_GlobalFree(*sines);
+    *sines = nullptr;
+    for (s32 index = 1; index < 100; ++index)
+        FlyingRide_Free(index);   // (inlined in the original; an empty entry passed over)
+    *flag = 0;
+}

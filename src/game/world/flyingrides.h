@@ -136,4 +136,8 @@ void __cdecl FlyingRide_SetMode(s32 index, s32 mode);
 // FlyingRide_ReleaseSlotPart: the key (+0xd8 + step) % +0xdc + 1 among the flag-0x80 parts of the ride +0xc0, PartStates_Release; INT_MIN
 // stays as it is) and is cleared (FlyingRide_ClearSlot); then the record goes (Mem_GlobalFree) and the table entry is cleared.
 void __cdecl FlyingRide_Free(s32 index);
+
+// 0x55d4d0 (cdecl; name invented, unconfirmed): with the module on (0x8791ec), its sines block [0x8791c8] freed (Mem_GlobalFree) and
+// cleared, each record of the table (indices 1-99) freed as FlyingRide_Free frees one (inlined in the original), the flag cleared.
+void __cdecl FlyingRides_Shutdown();
 }

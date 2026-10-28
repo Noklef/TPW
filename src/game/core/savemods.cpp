@@ -8,6 +8,7 @@
 #include "../rsse/rsse.h"
 #include "../rsse/scriptkill.h"
 #include "../world/camera.h"
+#include "../world/flyingrides.h"
 #include "soundset.h"
 
 namespace {
@@ -360,6 +361,32 @@ u32 __cdecl RSSE_Load(Stream *stream) {
             Read(stream, node, value);
             at<u8 *>(node, 0) = link_next;
             at<u8 *>(node, 4) = link_prev;
+        }
+    }
+    return 0;
+}
+
+u32 __cdecl FlyingRides_Load(Stream *stream) {
+    FlyingRides_Shutdown();   // (inlined in the original)
+    // The original's stack slot: a read that falls short leaves it as it was (uninitialised before the magic).
+    u32 value = 0;
+    Read(stream, &value, 4);
+    if (value != 0x5f594c46)
+        return 1;   // ("Load Fail - Missing header": Debug_Printf, left out)
+    Read(stream, &value, 4);
+    if (!value)
+        return 0;
+    FlyingRides_Init();   // (inlined in the original: the flag is clear here)
+    Read(stream, &value, 4);
+    Read(stream, &global<u8>(0x008791f8), value);
+    for (u32 address = 0x007660b8; address <= 0x007660c4; address += 4)
+        Read(stream, &global<u32>(address), 4);
+    for (int i = 0; i < 6; ++i)   // (five pads, then the record size)
+        Read(stream, &value, 4);
+    for (u32 address = 0x008791fc; address < 0x00879388; address += 4) {
+        if (global<u32>(address)) {   // (the saved pointer: a record follows)
+            global<void *>(address) = Mem_GlobalAlloc(value);
+            Read(stream, global<void *>(address), value);
         }
     }
     return 0;

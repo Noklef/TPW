@@ -55,7 +55,7 @@ address,name,kind,confidence,notes
 0x00464140,RideSystem_Save,function,high,module RSYS
 0x00543560,TrackRides_Load,function,high,module TRAK
 0x005428e0,TrackRides_Save,function,high,module TRAK
-0x0055e020,FlyingRides_Load,function,high,module FLYR
+0x0055e020,FlyingRides_Load,function,high,"reimplemented (src/game/core/savemods); cdecl (stream): the flying rides module's save game read: the module shut, then FLY_ and the flag; set: the module set up (FlyingRides_Init), the table, four dwords and each record read back; 1 for a missing header, else 0"
 0x0055de70,FlyingRides_Save,function,high,reimplemented (src/game/core/savemods); writes the flying rides module to the save game
 0x005597a0,RSSE_Load,function,high,"reimplemented (src/game/core/savemods); cdecl (stream): the RSSE module's save game read: the running scripts freed, the system set up again, then the globals, each script record with its blocks and object nodes read back (an occluder made again for a ride's box); 1 for a missing header or object list, else 0"
 0x00559350,RSSE_Save,function,high,reimplemented (src/game/core/savemods); writes the script contexts to the save game
@@ -1062,6 +1062,7 @@ address,name,kind,confidence,notes
 0x0055c350,FlyingRide_PickWaypoint,function,low,"reimplemented (src/game/world/flyingrides); cdecl; name invented: the next waypoint on the 20000 grid, ahead or by a search under the floor limit, its y the higher surface plus 5000"
 0x0055cda0,FlyingRide_ClearSlot,function,low,"reimplemented (src/game/world/flyingrides); cdecl (index, slot): a flying ride's slot emptied: its particle system ended, its ride destroyed, the record's +0xc counted down, its sound forwarded, all cleared"
 0x0055d3d0,FlyingRide_Free,function,low,"reimplemented (src/game/world/flyingrides); cdecl (index): the flying ride record's slots in use released (their parts for each step, then FlyingRide_ClearSlot), the record freed and its table entry cleared"
+0x0055d4d0,FlyingRides_Shutdown,function,low,"reimplemented (src/game/world/flyingrides); cdecl: with the module on, its sines block freed and cleared, each record of the table freed (as FlyingRide_Free), the flag cleared"
 0x004fa990,AnalyserCell_TypePlain,function,high,"reimplemented (src/game/world/analysercell); 1 when the cell under the record is type 0, 1, 3, 9 or 0xa"
 0x004de040,Object_NeighbourCellId,function,high,reimplemented (src/game/world/analysercell); the id of the cell a neighbour bit points to
 0x00505bd0,AnalyserRecord_ChecksCell,function,high,reimplemented (src/game/world/analysercell); 0 for kinds 4 5 7 d 12 else the cell type test
