@@ -60,6 +60,9 @@ struct CellRunEnv {
     void(__fastcall *cell53afa0)(u8 *cell);   // 0x53afa0 (agent B's; thiscall on a 0x28-byte cell, no arguments)
     void(__fastcall *cell5370e0)(u8 *cell, void *, u32 a, u32 b, u32 c);   // 0x5370e0 (agent B's; thiscall on a cell (0x81, 0, 0), pops 12)
     void(__fastcall *cell538fc0)(u8 *cell, void *, u32 a);                 // 0x538fc0 (agent B's; thiscall on a cell (0xc), pops 4)
+    void(__fastcall *cell53b280)(u8 *cell, void *, s32 a, s32 b, u32 c);   // 0x53b280 (agent B's; thiscall on a cell (-1, -1, 1) or (0, 0, 1), pops 12)
+    void(__cdecl *at53bc60)(s32 x, s32 y, u32 direction);                  // 0x53bc60 (agent B's; cdecl (x, y, direction))
+    void(__cdecl *track545450)(u32 track);                                 // 0x545450 (agent B's; cdecl ([[0x8186ac] + 0x28]))
 };
 // The runs' calls go to env (nullptr: the game's).
 void CellRun_SetEnv(const CellRunEnv *env);
@@ -104,4 +107,23 @@ void __cdecl TrackCell_Relink(u32 corners);
 // the cell's own id; in the map) get the cell's id as parent (MapCell_SetParent) and agent B's unported 0x538fc0 (0xc). Then two cells on
 // (1 north, 4 east, 0x10 south, 0x40 west; another direction stays, sic). At the end HoardingGrid_Fill. Returns 1.
 u32 __cdecl CellRun_Lay(s32 x, s32 y, s32 endX, s32 endY, u32 direction, u32 setDirection);
+
+// The run between two cells (0x52b400, cdecl (from, to, link); name invented, unconfirmed; called from 0x52405c, 0x524099, 0x526372,
+// 0x526b5e, 0x527c9e, 0x527cdd). Each end of type 0xc or 0x11 (MapCell_IsTypeCOr11) stands for the cell its +0x10 word names. With link,
+// a to whose +0x24 word (MapCell_Word24) is less than from's (signed 16 bits) skips the walk. The walk: from from's cell (its id less 1:
+// x the low 7 bits, y the rest), in from's direction (MapCell_Direction), two cells a step until it has been at to, each cell taken as the ends
+// are; a cell not of type 0xb, 0xd, 0x10, 0x12 or 0x19 returns -1 at once. With link, the first cell with from's +0x24 word, else the first
+// junction (MapCell_JunctionNeighbours), is the from side's (A, with a flag when a junction); likewise the first with to's word, which a later
+// one replaces (sic), else the first junction, the to side's (B). A corner (MapCell_CornerNeighbours) turns the direction after the first cell
+// (as CellRun_Lay) and ends the straight before it; to ends it at itself. With link each cell's direction becomes the walk's (or'd with its
+// own at a junction). A straight ended while one is open (and the cell is counted first) goes to Map_ApplyLine (0x10f, from its start to its
+// end) and a new one starts at the cell. Then, with link, when A and B are both found and differ, the side run from A (in from's direction
+// when A is a junction, else A's) to B: each cell (taken as above) not of those types or 0x19 stops it after itself; one with a single side
+// direction (MapCell_SideDirectionCount) takes its direction, others lose the walk's direction from theirs; B stops it after itself; a junction
+// gets agent B's 0x53b280 (-1, -1, 1), a straight, a corner or a cell with one neighbour 0x53b280 (0, 0, 1); then two on. Last, with link:
+// agent B's 0x545450 on [[0x8186ac] + 0x28] (when there is one); then, when from is a straight or a corner, agent B's 0x53bc60 on from's
+// (x, y) with 0 when the words differ by at most 1 and again when A is a junction, on to's with Nibble_Scale of from's direction when B is
+// one (the direction byte over from's pointer: a direction 0 passes the pointer's upper three bytes on, sic), and 0x53b280 (0, 0, 1) on A
+// when A is B. Returns the cells walked (0 when skipped).
+s32 __cdecl CellRun_Connect(u8 *from, u8 *to, u32 link);
 }

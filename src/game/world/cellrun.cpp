@@ -9,6 +9,7 @@
 #include "dirstep.h"
 #include "hoardinggrid.h"
 #include "mapcell.h"
+#include "mapline.h"
 
 namespace {
 
@@ -118,7 +119,10 @@ u32 animate_run(s32 x, s32 y, u8 direction, u32 start) {
 
 const CellRunEnv kGameEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x0053afa0),
                              reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32, u32)>((uintptr_t)0x005370e0),
-                             reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)0x00538fc0)};
+                             reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)0x00538fc0),
+                             reinterpret_cast<void(__fastcall *)(u8 *, void *, s32, s32, u32)>((uintptr_t)0x0053b280),
+                             reinterpret_cast<void(__cdecl *)(s32, s32, u32)>((uintptr_t)0x0053bc60),
+                             reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)0x00545450)};
 const CellRunEnv *g_env = &kGameEnv;
 
 u32 has_low(const u8 *cell) { return MapCell_HasLowFlags(cell); }
@@ -177,6 +181,16 @@ bool end_ahead(const u8 *cell, u8 direction) {
     if (!next || !MapCell_IsTypeDOr12ViaParent(next) || owner(next) != owner(cell)) return false;
     const u8 bits = MapCell_Neighbours(next);
     return (static_cast<u8>(Nibble_Scale(direction)) & bits) != 0;
+}
+
+// A cell as CellRun_Connect takes it: one of type 0xc or 0x11 stands for the cell its +0x10 word names.
+u8 *taken(u8 *cell) { return MapCell_IsTypeCOr11(cell) ? global<u8 *>(0x007cf83c) + ((u32)owner(cell) + 0x6cde) * 0x28 : cell; }
+
+// The cell's (x, y) from its id less 1 (x the low 7 bits, y the rest).
+void cell_xy(const u8 *cell, s32 &x, s32 &y) {
+    const u32 id = (u32)at<u16>(cell, 0) - 1;
+    x = static_cast<s32>(id & 0x7f);
+    y = static_cast<s32>(id >> 7);
 }
 
 }  // namespace
@@ -496,6 +510,98 @@ u32 __cdecl CellRun_Lay(s32 x, s32 y, s32 endX, s32 endY, u32 direction, u32 set
     } while (!done);
     HoardingGrid_Fill();
     return 1;
+}
+
+s32 __cdecl CellRun_Connect(u8 *from, u8 *to, u32 link) {
+    u8 *sideA = nullptr, *sideB = nullptr;
+    s32 count = 0;
+    u32 aJunction = 0, bJunction = 0;
+    from = taken(from);
+    to = taken(to);
+    const u16 wordFrom = MapCell_Word24(from), wordTo = MapCell_Word24(to);
+    if (!link || static_cast<s16>(wordTo) - static_cast<s16>(wordFrom) >= 0) {
+        s32 x, y;
+        cell_xy(from, x, y);
+        s32 lineX = x, lineY = y, endX = -1, endY = -1, prevX = -1, prevY = -1;
+        u8 dir = MapCell_Direction(from);
+        bool done = false;
+        do {
+            u8 *const cell = taken(cell_at(x, y));
+            if (!MapCell_IsTypeBDOr10Or12Or19(cell)) return -1;
+            const u16 word = MapCell_Word24(cell);
+            if (link) {
+                if (!sideA) {
+                    if (word == wordFrom) aJunction = 0, sideA = cell;
+                    if (!sideA && MapCell_JunctionNeighbours(cell)) sideA = cell, aJunction = 1;
+                }
+                if (word == wordTo) sideB = cell, bJunction = 0;
+                if (!sideB && MapCell_JunctionNeighbours(cell)) sideB = cell, bJunction = 1;
+            }
+            if ((MapCell_IsTypeBDOr10Or12Or19(cell) || at<u32>(cell, 8) == 0x19) && MapCell_CornerNeighbours(cell)) {
+                if (count) {
+                    u8 back = static_cast<u8>(Nibble_Scale(dir));
+                    if (!(back & MapCell_Neighbours(cell))) back = dir;
+                    dir = MapCell_Neighbours(cell) ^ back;
+                }
+                endX = prevX;
+                endY = prevY;
+            }
+            if (cell == to) done = true, endX = x, endY = y;
+            if (link) MapCell_SetDirection(cell, nullptr, MapCell_JunctionNeighbours(cell) ? static_cast<u8>(MapCell_Direction(cell) | dir) : dir);
+            ++count;
+            if (lineX != -1 && endX != -1) {
+                Map_ApplyLine(0x10f, lineX, lineY, &endX, &endY);
+                lineX = x;
+                lineY = y;
+                endX = endY = -1;
+            }
+            prevX = x;
+            prevY = y;
+            move(dir, x, y);
+        } while (!done);
+        if (link && sideA && sideB && sideA != sideB) {   // (the side run from A to B)
+            cell_xy(sideA, x, y);
+            dir = MapCell_Direction(MapCell_JunctionNeighbours(sideA) ? from : sideA);
+            bool stop = false;
+            do {
+                u8 *const cell = taken(cell_at(x, y));
+                MapCell_Word24(cell);   // (sic: unused)
+                if (!MapCell_IsTypeBDOr10Or12Or19(cell) && at<u32>(cell, 8) != 0x19) {
+                    stop = true;
+                } else if (MapCell_SideDirectionCount(cell) == 1) {
+                    dir = MapCell_Direction(cell);
+                } else {
+                    MapCell_SetDirection(cell, nullptr, static_cast<u8>(MapCell_Direction(cell) & ~dir));
+                }
+                if (cell == sideB) stop = true;
+                if (MapCell_JunctionNeighbours(cell))
+                    g_env->cell53b280(cell, nullptr, -1, -1, 1);
+                else if (MapCell_StraightNeighbours(cell) || MapCell_CornerNeighbours(cell) || MapCell_NeighbourCount(cell) == 1)
+                    g_env->cell53b280(cell, nullptr, 0, 0, 1);
+                move(dir, x, y);
+            } while (!stop);
+        }
+    }
+    if (link) {
+        const bool shaped = MapCell_StraightNeighbours(from) || MapCell_CornerNeighbours(from);
+        if (u8 *const track = global<u8 *>(0x008186ac)) g_env->track545450(at<u32>(track, 0x28));
+        s32 x, y;
+        if (static_cast<s16>(wordTo) - static_cast<s16>(wordFrom) <= 1) {
+            cell_xy(from, x, y);
+            if (shaped) g_env->at53bc60(x, y, 0);
+        }
+        if (aJunction) {
+            cell_xy(from, x, y);
+            if (shaped) g_env->at53bc60(x, y, 0);
+        }
+        if (bJunction) {   // (the direction byte over from's pointer: a direction 0 passes its upper three bytes on, sic)
+            const u32 d = ((u32)(uintptr_t)from & 0xffffff00) | MapCell_Direction(from);
+            cell_xy(to, x, y);
+            if (shaped) g_env->at53bc60(x, y, Nibble_Scale(d));
+        }
+        if (sideA == sideB && sideA && shaped) g_env->cell53b280(sideA, nullptr, 0, 0, 1);
+    }
+    return count;
 }
 
 }  // extern "C"

@@ -11,10 +11,16 @@
 # Lay (0x52ba50): draw()'s cells (every cell's own id right) from a start anywhere in them, the direction a side mostly (else 0, a diagonal or
 # any), its end a cell the walk (modelled by lay_walk, neighbour bits taken off as it goes) reaches before it would leave the laid out cells
 # (with the cells one south / east of it) or hang; setDirection 0, 1, 0x100 or any; agent B's unported 0x5370e0, 0x538fc0 and 0x53afa0
-# thiscall recorders 25 of 3, 26 of 1 and 24 of none (driver.cpp's kCellRunEnv); the bounds 0x8186e4 / 0x8186e8 / 0x818c0c / 0x818c08
+# thiscall recorders 20 of 3, 26 of 1 and 24 of none (driver.cpp's kCellRunEnv); the bounds 0x8186e4 / 0x8186e8 / 0x818c0c / 0x818c08
 # dwords of their own; HoardingGrid_Fill's area (0x81d740 x 0x81b1b0) none mostly, else the one cell (0, 0) (its 0x28-byte cell, of type
 # 0x19 or not, and the 0x44-byte cell its first word names, flag 0x40 or not; the start's rows then away from row 0).
-# usage: cellrun.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Mark,Corners,Add,Commit,Lay)
+# Connect (0x52b400): draw()'s cells (ids right, +0x24 words mostly one of three) from a cell near the start (its direction a side mostly),
+# to a cell its walk (modelled by connect_model, directions set as it goes) handles, or with the walk at a cell of another type (-1) any cell
+# off it; either end now and then a cell of type 0xc or 0x11 apart naming it; link 0, 1, 0x100 or any; the side run between the junctions
+# modelled too (a case either walk of which would leave the laid out cells or not end is redrawn); [0x8186ac] 0 or a thing whose +0x28 the
+# call to agent B's 0x545450 passes. Agent B's 0x5370e0 (also Map_ApplyLine's, which is emulated) recorder 20 of 3, 0x53b280 7 of 3, 0x53bc60
+# and 0x545450 cdecl recorders 27 of 3 and 28 of 1 (driver.cpp's kCellRunEnv).
+# usage: cellrun.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Mark,Corners,Add,Commit,Lay,Connect)
 import os
 import struct
 import sys
@@ -25,8 +31,10 @@ from fncmp import LOG, Bench, Call, RAM, _recorder, log_region, put  # noqa: E40
 B = Bench([(0x531040, 0x531167), (0x530e80, 0x530fe7),(0x4d8c00, 0x4d8c30), (0x4d8300, 0x4d8328), (0x522700, 0x5228b5), (0x53a510, 0x53a53d), (0x53ad20, 0x53aefc),
            (0x50c320, 0x50c3e0), (0x50c3e0, 0x50c540), (0x536300, 0x53644c), (0x522850, 0x522860), (0x4d99c0, 0x4d99e0), (0x4d97b0, 0x4d97e0), (0x5da3c0, 0x5da3c1),
            (0x52fbf0, 0x52fc21), (0x52fc30, 0x52fc79),
-           (0x52ba50, 0x52bdd0), (0x539210, 0x539230), (0x532960, 0x532a50), (0x4d0b10, 0x4d0b40), (0x4d8c30, 0x4d8c50), (0x535db0, 0x535dc3)],   # (Lay's)
-          hooks={0x53afa0: _recorder(24, 0), 0x5370e0: _recorder(25, 3), 0x538fc0: _recorder(26, 1)})
+           (0x52ba50, 0x52bdd0), (0x539210, 0x539230), (0x532960, 0x532a50), (0x4d0b10, 0x4d0b40), (0x4d8c30, 0x4d8c50), (0x535db0, 0x535dc3),   # (Lay's)
+           (0x52b400, 0x52b99a), (0x53aac0, 0x53ad1c)],   # (Connect's)
+          hooks={0x53afa0: _recorder(24, 0), 0x5370e0: _recorder(20, 3), 0x538fc0: _recorder(26, 1), 0x53b280: _recorder(7, 3),
+                 0x53bc60: _recorder(27, 3, cdecl=True), 0x545450: _recorder(28, 1, cdecl=True)})
 CELLS = RAM + 0x10000
 WORLD = (CELLS - 0x6cde * 0x28) & 0xffffffff
 REACH = 4  # cells two apart either side of the start
@@ -36,7 +44,8 @@ PAIRS = bytearray(0x40)
 for _d, _at in TABLE.items():
     struct.pack_into('<ii', PAIRS, _at, *STEPS[_d])
 MOVES = {1: (0, -2), 4: (2, 0), 0x10: (0, 2), 0x40: (-2, 0)}
-OPS = [k for k in os.environ.get('OPS', 'Mark,Corners,Add,Commit,Lay').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Mark,Corners,Add,Commit,Lay,Connect').split(',') if k]
+BD = (0xb, 0xd, 0x10, 0x12, 0x19)   # (MapCell_IsTypeBDOr10Or12Or19)
 
 
 def ident(x, y):
@@ -243,10 +252,154 @@ def lay_case(r):
     return Call(0x52ba50, [sx, sy, ex, ey, d, flag], regions, conv='c', ret='a')
 
 
+def corner(nb):
+    return bits(nb, 0x55) == 2 and bool((nb & 1 and nb & 4) or (nb & 1 and nb & 0x40) or (nb & 0x10 and nb & 4) or (nb & 0x10 and nb & 0x40))
+
+
+def straight(nb):
+    return bits(nb, 0x55) == 2 and bool((nb & 1 and nb & 0x10) or (nb & 4 and nb & 0x40))
+
+
+def junction(nb):
+    return bits(nb, 0x55) > 2
+
+
+def kind(cell):
+    return struct.unpack_from('<I', cell, 8)[0]
+
+
+def word(cell):
+    return struct.unpack_from('<H', cell, 0x24)[0]
+
+
+def s16(v):
+    return v - 0x10000 if v & 0x8000 else v
+
+
+def xy_of(key):
+    index = (key - 1) & 0xffffffff
+    return index & 0x7f, index >> 7
+
+
+def connect_model(cells, fkey, tkey, hoarding, link, limit=40):
+    """Connect's walks modelled on copies of the cells. tkey None: the keys of the cells the walk handles as far as it goes within limit steps
+    and the laid out cells, and whether it then meets a cell of another type (-1). Else True when the walk and the side run both end."""
+    cells = {k: bytearray(v) for k, v in cells.items()}
+    wf = word(cells[fkey])
+    wt = word(cells[tkey]) if tkey is not None else 0
+    if link and tkey is not None and s16(wt) - s16(wf) < 0:
+        return True
+    x, y = xy_of(fkey)
+    d = cells[fkey][0xd]
+    path, a, b = [], None, None
+    for _ in range(limit):
+        key = ident(x, y)
+        cell = cells.get(key)
+        if cell is None:
+            break
+        if kind(cell) not in BD:
+            return (path, True) if tkey is None else True
+        nb = neighbours(cell, hoarding)
+        if link:
+            if a is None:
+                if word(cell) == wf:
+                    a = key
+                if a is None and junction(nb):
+                    a = key
+            if word(cell) == wt:
+                b = key
+            if b is None and junction(nb):
+                b = key
+        if corner(nb) and path:
+            back = nibble(d)
+            if not back & nb:
+                back = d
+            d = (nb ^ back) & 0xff
+        if link:
+            cell[0xd] = (cell[0xd] | d) if junction(nb) else d
+        path.append(key)
+        if key == tkey:
+            break
+        mx, my = MOVES.get(d, (0, 0))
+        x, y = x + mx, y + my
+    else:
+        return (path, False) if tkey is None else False
+    if tkey is None:
+        return path, False
+    if path[-1] != tkey:
+        return False
+    if link and a is not None and b is not None and a != b:
+        x, y = xy_of(a)
+        d = cells[fkey][0xd] if junction(neighbours(cells[a], hoarding)) else cells[a][0xd]
+        for _ in range(limit):
+            key = ident(x, y)
+            cell = cells.get(key)
+            if cell is None:
+                return False
+            stop = key == b
+            if kind(cell) not in BD:
+                stop = True
+            elif bits(cell[0xd], 0x55) == 1:
+                d = cell[0xd]
+            else:
+                cell[0xd] &= ~d & 0xff
+            mx, my = MOVES.get(d, (0, 0))
+            x, y = x + mx, y + my
+            if stop:
+                return True
+        return False
+    return True
+
+
+def connect_case(r):
+    while True:
+        x0, y0, hoarding, rows, cells = draw(r)
+        words = [r.getrandbits(16) for _ in range(3)]
+        for own, cell in cells.items():
+            struct.pack_into('<H', cell, 0, own)
+            if r.random() < 0.7:
+                struct.pack_into('<H', cell, 0x24, r.choice(words))
+        fkey = ident(x0 + r.choice([0, 0, 0, -2, 2, -1, 1]), y0 + r.choice([0, 0, 0, -2, 2, 1]))
+        if fkey not in cells or not fkey:
+            continue
+        cells[fkey][0xd] = r.choice([4, 4, 1, 0x10, 0x40, r.getrandbits(8)])
+        link = r.choice([0, 1, 1, 1, 0x100, r.getrandbits(32)])
+        path, failed = connect_model(cells, fkey, None, hoarding, link)
+        if not path and not failed:
+            continue
+        if failed and (not path or r.random() < 0.3):
+            off = [k for k in cells if k not in path and k]
+            if not off:
+                continue
+            tkey = r.choice(off)
+        else:
+            tkey = r.choice([path[-1], path[-1], r.choice(path)])
+        if connect_model(cells, fkey, tkey, hoarding, link):
+            break
+    regions = dict(rows)
+    args = []
+    for at, key in ((RAM + 0x100, fkey), (RAM + 0x140, tkey)):
+        if r.random() < 0.15:   # (an end of type 0xc or 0x11 naming the cell)
+            stand = put(put(bytearray(r.bytes(0x28)), 8, 'I', r.choice([0xc, 0x11])), 0x10, 'H', key)
+            regions[at] = stand
+            args.append(at)
+        else:
+            args.append((CELLS + key * 0x28) & 0xffffffff)
+    track = r.choice([0, RAM + 0x200])
+    if track:
+        regions[track] = r.bytes(0x30)
+    regions.update({LOG: log_region(), 0x7cdba0: PAIRS, 0x7cf83c: struct.pack('<I', WORLD), 0x80239c: struct.pack('<I', WORLD),
+                    0x81b4cc: struct.pack('<I', r.choice([1, 0xff, 0x101]) if hoarding else r.choice([0, 0x100])),
+                    0x8186ac: struct.pack('<I', track)})
+    return Call(0x52b400, args + [link], regions, conv='c', ret='a')
+
+
 def case(r):
     op = r.deal(OPS)
     if op == 'Lay':
         return lay_case(r)
+    if op == 'Connect':
+        return connect_case(r)
     if op == 'Add':
         count = r.choice([0, 1, 5, 0x3ff, 0x400, 0x401, 0x402, 0xffffffff, r.randrange(0x400)])
         regions = {0x81b740: r.bytes(0x2010), 0x820a80: put(bytearray(r.bytes(0x20)), 0xc, 'I', count)}
