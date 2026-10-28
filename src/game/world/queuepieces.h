@@ -39,4 +39,6 @@ void __cdecl QueuePieces_Destroy();
 void __cdecl TrackQueuePieces_Destroy();
 void __cdecl TrackQueuePiecesAnimated_Destroy();
 void __cdecl EndPieces_Destroy();
+// 0x52f190 (cdecl, no arguments; called by 0x457d97; name invented, unconfirmed): the four above in that order.
+void __cdecl AllPieces_Destroy();
 }

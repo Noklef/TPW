@@ -49,6 +49,13 @@ void __cdecl TrackQueuePieces_Destroy() { destroy_rows(0x007633e8, 20, true); }
 void __cdecl TrackQueuePiecesAnimated_Destroy() { destroy_rows(0x007634d8, 25, false); }
 void __cdecl EndPieces_Destroy() { destroy_rows(0x00763608, 28, false); }
 
+void __cdecl AllPieces_Destroy() {
+    QueuePieces_Destroy();
+    TrackQueuePieces_Destroy();
+    TrackQueuePiecesAnimated_Destroy();
+    EndPieces_Destroy();
+}
+
 void QueuePieces_SetEnv(const QueuePiecesEnv *env) { g_env = env ? env : &kGameEnv; }
 
 u32 __cdecl QueuePiece_Place(u32 x, u32 y, u32, u32 piece, u32 angle, u32 claim) {
