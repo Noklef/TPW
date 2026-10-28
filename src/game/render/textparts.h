@@ -81,4 +81,20 @@ u8 *__fastcall TextPart6ff530_DeletingDtor(u8 *part, void *, u32 flags);
 // dword +0 set: slot 9 called with it.
 void __fastcall TextPart_SetLayout(u8 *part, void *, u32 flags, const u8 *info);
 
+// Slot 3 of the number classes (thiscall (flags, info), pops 8; names after the vtables): without the flag 0x80 TextPart_SetLayout
+// (flags, info); with it the info's dword +0 formatted (0x6acd60 with the table [0x78ba94], a number argument 'MRAV' (n, value, minus)
+// into 0x3f characters on the stack) and that text sent by TextPart_SetLayout's flag 0x100 alone (to slot 9).
+// 0x4903e0 (vtable 0x6ff3b0): a negative value's magnitude by the text 0x1c2 (n 0x13), else the value by 0x1c1 (n 0xd).
+void __fastcall TextPart6ff3b0_SetLayout(u8 *part, void *, u32 flags, const u8 *info);
+// 0x490650 (vtable 0x6ff3e0): a magnitude over 0xeeeeeee (signed) less 0xeeeeeee as 0x4903e0's; else a negative value's magnitude by 0x1c7
+// (n 0x17), a positive one by 0x1c1 (n 0xd).
+void __fastcall TextPart6ff3e0_SetLayout(u8 *part, void *, u32 flags, const u8 *info);
+// 0x490940 (vtable 0x6ff410): 0 an empty text (not formatted), else by 0x1c1 (n 0xd).
+void __fastcall TextPart6ff410_SetLayout(u8 *part, void *, u32 flags, const u8 *info);
+// 0x490b80 (vtable 0x6ff440): by 0x1c3 (n 0x14).
+void __fastcall TextPart6ff440_SetLayout(u8 *part, void *, u32 flags, const u8 *info);
+// 0x490ff0 (vtable 0x6ff4a0): over 0x30 a 24th by 0x1bb, over 0x18 by 0x1ba (n 8; the original's minus branches there dead), else its
+// magnitude and minus flag by 0x1b9 (n 0xb).
+void __fastcall TextPart6ff4a0_SetLayout(u8 *part, void *, u32 flags, const u8 *info);
+
 }

@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/gameheap.h"
+#include "../core/textarg.h"
 #include "../core/vcall.h"
 #include "../gfx/textlayout.h"
 #include "../math/x87.h"
@@ -193,5 +194,73 @@ void __fastcall TextPart_SetLayout(u8 *part, void *, u32 flags, const u8 *info) 
         const u32 object = *reinterpret_cast<const u32 *>(text);
         if (object) vcall<void>(part, 0x24, object);   // (slot 9; 0x48f830 in this class)
     }
+}
+
+namespace {
+
+// The number classes' SetLayouts: the text id's text with the number argument n (value, minus flag) into 0x3f characters on the stack.
+void format_number(u16 *text, u32 id, u32 n, u32 value, u32 minus) {
+    u32 number[5] = {0x006ff170, 0x5641524d, n, value, minus};
+    TextFormat().format(*reinterpret_cast<void **>((uintptr_t)0x0078ba94), text, 0x3f, id, number);
+}
+
+// ... then that text sent through SetLayout's flag 0x100 (the info's +0x10 a record whose +0 is the text; nothing else of either read).
+void set_text(u8 *part, u16 *text) {
+    u32 record[5] = {(u32)(uintptr_t)text, 0, 0, 0, 0};
+    u32 info[5] = {0, 0, 0, 0, (u32)(uintptr_t)record};
+    TextPart_SetLayout(part, nullptr, 0x100, reinterpret_cast<const u8 *>(info));
+}
+
+u32 magnitude(s32 value) { return value < 0 ? 0u - (u32)value : (u32)value; }
+
+}  // namespace
+
+void __fastcall TextPart6ff3b0_SetLayout(u8 *part, void *, u32 flags, const u8 *info) {
+    if (!(flags & 0x80)) return TextPart_SetLayout(part, nullptr, flags, info);
+    const s32 value = *reinterpret_cast<const s32 *>(info);
+    u16 text[0x40];
+    format_number(text, value < 0 ? 0x1c2 : 0x1c1, value < 0 ? 0x13 : 0xd, magnitude(value), 0);
+    set_text(part, text);
+}
+
+void __fastcall TextPart6ff3e0_SetLayout(u8 *part, void *, u32 flags, const u8 *info) {
+    if (!(flags & 0x80)) return TextPart_SetLayout(part, nullptr, flags, info);
+    const s32 value = *reinterpret_cast<const s32 *>(info);
+    u16 text[0x40];
+    if ((s32)magnitude(value) > 0xeeeeeee) {   // (signed: 0x80000000 stays below)
+        if (value < 0) format_number(text, 0x1c2, 0x13, magnitude((s32)((u32)value + 0xeeeeeee)), 0);
+        else format_number(text, 0x1c1, 0xd, (u32)value - 0xeeeeeee, 0);
+    } else if (value < 0) {
+        format_number(text, 0x1c7, 0x17, magnitude(value), 0);
+    } else {
+        format_number(text, 0x1c1, 0xd, (u32)value, 0);
+    }
+    set_text(part, text);
+}
+
+void __fastcall TextPart6ff410_SetLayout(u8 *part, void *, u32 flags, const u8 *info) {
+    if (!(flags & 0x80)) return TextPart_SetLayout(part, nullptr, flags, info);
+    const s32 value = *reinterpret_cast<const s32 *>(info);
+    u16 text[0x40];
+    if (!value) text[0] = 0;
+    else format_number(text, 0x1c1, 0xd, (u32)value, 0);
+    set_text(part, text);
+}
+
+void __fastcall TextPart6ff440_SetLayout(u8 *part, void *, u32 flags, const u8 *info) {
+    if (!(flags & 0x80)) return TextPart_SetLayout(part, nullptr, flags, info);
+    u16 text[0x40];
+    format_number(text, 0x1c3, 0x14, *reinterpret_cast<const u32 *>(info), 0);
+    set_text(part, text);
+}
+
+void __fastcall TextPart6ff4a0_SetLayout(u8 *part, void *, u32 flags, const u8 *info) {
+    if (!(flags & 0x80)) return TextPart_SetLayout(part, nullptr, flags, info);
+    const s32 value = *reinterpret_cast<const s32 *>(info);
+    u16 text[0x40];
+    if (value > 0x30) format_number(text, 0x1bb, 8, (u32)value / 24, 0);
+    else if (value > 0x18) format_number(text, 0x1ba, 8, (u32)value / 24, 0);
+    else format_number(text, 0x1b9, 0xb, magnitude(value), value < 0 ? 1 : 0);
+    set_text(part, text);
 }
 }
