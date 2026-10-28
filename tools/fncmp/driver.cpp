@@ -111,6 +111,7 @@
 #include "../../src/game/world/gamemode.h"
 #include "../../src/game/world/cellmessage.h"
 #include "../../src/game/world/cellrun.h"
+#include "../../src/game/world/trackcircuit.h"
 #include "../../src/game/world/staff.h"
 #include "../../src/game/world/things.h"
 #include "../../src/game/world/queuepieces.h"
@@ -477,6 +478,11 @@ const CellRunEnv kCellRunEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uint
                                 reinterpret_cast<void(__fastcall *)(u8 *, void *, s32, s32, u32)>((uintptr_t)recorder(7, 3)),
                                 reinterpret_cast<void(__cdecl *)(s32, s32, u32)>((uintptr_t)jpeg_recorder(27, 3)),
                                 reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(28, 1))};
+// The track circuit walk's calls into agent B's code: TrakRide_Strip and TrakRide_AddSection cdecl recorders 28 of 1 and 29 of 7,
+// MapCell_ApplyModel the thiscall recorder 24 of none, as tests/fncmp/trackcircuit.py hooks them.
+const TrackCircuitEnv kTrackCircuitEnv = {reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(28, 1)),
+                                          reinterpret_cast<s32(__cdecl *)(u32, s32, s32, u32, u32, u32, u32)>((uintptr_t)jpeg_recorder(29, 7)),
+                                          reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(24, 0))};
 // The track square test's call into agent B's unported 0x532fc0: thiscall recorder 9 of 3, as tests/fncmp/tracksquare.py hooks it.
 const TrackSquareEnv kTrackSquareEnv = {reinterpret_cast<u32(__fastcall *)(u8 *, void *, u32, u32, u32)>((uintptr_t)recorder(9, 3))};
 // The placed object's constructor (agent C's unported 0x4db090): thiscall recorder 11 of 4, as tests/fncmp/placeobject.py hooks it.
@@ -1258,6 +1264,7 @@ int main(int argc, char **argv) {
     PathDrag_SetEnv(&kPathDragEnv);
     Demolish_SetEnv(&kDemolishEnv);
     CellRun_SetEnv(&kCellRunEnv);
+    TrackCircuit_SetEnv(&kTrackCircuitEnv);
     TrackSquare_SetEnv(&kTrackSquareEnv);
     PlaceObject_SetEnv(&kPlaceObjectEnv);
     EndThing_SetEnv(&kEndThingEnv);
