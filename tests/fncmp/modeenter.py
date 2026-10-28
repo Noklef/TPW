@@ -26,12 +26,13 @@ from fncmp import LOG, RAM, Bench, Call, _cdecl_log, _recorder, put, set_return 
 CALLS = {'Ensure6feaa0': 0x497bc0, 'Tile15': 0x497d20, 'Tile16': 0x497e10, 'ChatSelect': 0x4a2ac0, 'SetChat': 0x481470}
 GAME = RAM + 0x20000   # (the game object [0x7cf83c]: its mode +0x1da738 alone)
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
-B = Bench(dialog7cc5f4.merged(focus.RANGES + focus.FACTORY + focus.MODES + [(0x497bc0, 0x497d1c), (0x46cfc0, 0x46cfd0), (0x40f3f0, 0x40f3f6)]
+RANGES = (dialog7cc5f4.merged(focus.RANGES + focus.FACTORY + focus.MODES + [(0x497bc0, 0x497d1c), (0x46cfc0, 0x46cfd0), (0x40f3f0, 0x40f3f6)]
                               + [(0x497d20, 0x497e08), (0x497e10, 0x497ef8), (0x46c580, 0x46c5a0), (0x6b71c0, 0x6b71c6), (0x46d5a0, 0x46d65f)]
                               + focuscell.RANGES + [(0x403be0, 0x403f00), (0x52fad0, 0x52fb00), (0x51ab20, 0x51ab70), (0x412e60, 0x412e6d),
                                                     (0x412e70, 0x412e8f)]
-                              + [(0x4a2ac0, 0x4a2b73), (0x481470, 0x481487), (0x516c00, 0x516c0c), (0x4bd260, 0x4bd3f5)]),
-          hooks={0x5234d0: _recorder(30, 3, cdecl=True), 0x52f200: _recorder(24, 2, cdecl=True), 0x67a7d0: _cdecl_log})
+                              + [(0x4a2ac0, 0x4a2b73), (0x481470, 0x481487), (0x516c00, 0x516c0c), (0x4bd260, 0x4bd3f5)]))
+HOOKS = {0x5234d0: _recorder(30, 3, cdecl=True), 0x52f200: _recorder(24, 2, cdecl=True), 0x67a7d0: _cdecl_log}
+B = Bench(RANGES, hooks=HOOKS)
 
 
 def chat_case(r, op, c):

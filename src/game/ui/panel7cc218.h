@@ -48,4 +48,13 @@ void __fastcall Panel7cc218_ApplyToShown(u8 *self);
 // only when the definition's track type +0x9c is not 0; 0x3e36 (a 0x705a50 button) the state 1 for the modes 0x11-0x15, else 0,
 // notifying; 0x3e2c's slot 5 whether the track's neighbours are right (Object_TrackNeighboursOk, its low byte).
 void __fastcall Panel7cc218_UpdateButtons(u8 *self);
+
+// 0x4af480 (thiscall; index, close, pops 8; this not read; name invented): the shown thing [0x7c2658] and the balance of the money record
+// (the game's handle +0x1da726 in the thing slots: GameTable7cfb90_Get1da726_5195d0, Source_Field0c) read first. With close (a byte) 1
+// the thing closed (Object_SetOpen 0), 1. Else with index negative: opened (Object_SetOpen 1) when the balance is over its definition's
+// dword at +0x1b8 - index * 0x40 (Object_GetDef; signed), 0. Else the object control index (ObjectControls_Find on the game's +0x1d943c,
+// quiet 0): with the balance under its cost (+4, signed) the UI sound 0x1d (SoundUi_Play1d), 0; else a new tile mode of kind 4 for it
+// (MouseModeTile_CtorKind; none when the 0x14 bytes fail) made current (the holder made first: MouseModes_EnsureHolder, inline in the
+// original; MouseMode_Set), the thing selected (Global7c2654_Set) and the focus cell updated with the record 1 (FocusCell_Update), 1.
+u32 __fastcall Panel7cc218_Choose(u8 *self, void *, s32 index, u8 close);
 }

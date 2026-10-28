@@ -9,7 +9,13 @@
 #include "../core/accessors.h"
 #include "../core/trivial.h"
 #include "../render/textparts.h"
+#include "../core/soundplay.h"
+#include "../files/wrapsources.h"
 #include "../world/advisor.h"
+#include "../world/focuscell.h"
+#include "../world/mousemode.h"
+#include "../world/objectdefs.h"
+#include "../world/world.h"
 #include "../world/object.h"
 #include "../world/objectmsg.h"
 #include "../world/ridelist.h"
@@ -146,5 +152,30 @@ void __fastcall Panel7cc218_UpdateButtons(u8 *self) {
     Window_SetShown(track, nullptr, 1);
     vcall<void>(track, 0x14, (u8)Object_TrackNeighboursOk(thing) ? 1u : 0u);
     Window_SetShown(Window_FindChild(root(self), nullptr, 0x3e37), nullptr, 1);
+}
+
+u32 __fastcall Panel7cc218_Choose(u8 *, void *, s32 index, u8 close) {
+    u8 *const thing = *reinterpret_cast<u8 **>(0x007c2658);
+    u8 *const game = *reinterpret_cast<u8 **>(0x007cf83c);
+    const s32 balance = (s32)Source_Field0c(reinterpret_cast<const TrackedSource *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(game)));
+    if (close == 1) {
+        Object_SetOpen(thing, nullptr, 0);
+        return 1;
+    }
+    if (index < 0) {
+        if (balance > at<s32>(Object_GetDef(thing), 0x1b8 - (u32)index * 0x40)) Object_SetOpen(thing, nullptr, 1);
+        return 0;
+    }
+    if (balance < at<s32>(ObjectControls_Find(game + 0x1d943c, nullptr, (u32)index, 0), 4)) {
+        SoundUi_Play1d();
+        return 0;
+    }
+    u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x14));
+    u8 *const mode = block ? MouseModeTile_CtorKind(block, nullptr, 4, (u16)index) : nullptr;
+    MouseModes_EnsureHolder();
+    MouseMode_Set(mode);
+    Global7c2654_Set((u32)(uintptr_t)thing);
+    FocusCell_Update(1);
+    return 1;
 }
 }
