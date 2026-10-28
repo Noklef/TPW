@@ -269,6 +269,18 @@ u32 __fastcall Advisor_Serialize(u8 *self, void *, Stream *stream, u32 save, s32
     return Save_ReadU32(stream, self + 0x16ec, reinterpret_cast<const char *>((uintptr_t)0x0076e110), 0) != 0 ? 1 : 0;
 }
 
+void __cdecl Advisor_PauseSpeech() {
+    if (!global<u32>(0x00f7966c) || !global<u8>(0x0078d90c) || !global<u32>(0x00f79680)) return;
+    Sound_SendVoiceFunctor2(global<u32>(0x00f79680));
+    global<u32>(0x00f797c4) = 1;
+}
+
+void __cdecl Advisor_ResumeSpeech() {
+    if (!global<u32>(0x00f797c4) || !global<u8>(0x0078d90c) || !global<u32>(0x00f79680)) return;
+    Sound_VoiceFunctor3(global<u32>(0x00f79680));
+    global<u32>(0x00f797c4) = 0;
+}
+
 void __cdecl Advisor_StopSpeech() {
     if (!global<u32>(0x00f7966c)) return;
     const u32 had = global<u32>(0x00f79680);

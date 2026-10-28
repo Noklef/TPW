@@ -3023,6 +3023,8 @@ address,name,kind,confidence,notes
 0x0059ae20,Advisor_HandleCode,function,low,"reimplemented (src/game/world/advisor); thiscall (code), pops 4: 0 posts id 0 (and 0x143 with the mode setting 2), 2/3/4 post 0x6a/0x80/0x81, 10 clears the history"
 0x005994e0,Advisor_StopSpeech,function,low,"reimplemented (src/game/world/advisor); cdecl: while the advisor speaks (0xf7966c), its voice marked and told, the speech flag cleared, particle pool 0 emptied, its model slot killed, its text freed, the voice forwarded and cleared; with a voice at first one of the sounds 0x27f-0x281 (rand % 3) played"
 0x0059aa70,Advisor_Cancel,function,low,"reimplemented (src/game/world/advisor); thiscall (id), pops 4: the advisor's messages of id withdrawn (the tutorial copy's flag, the queued slots, the speech when it is id's: Advisor_StopSpeech and its history record); AL 1 when any was"
+0x00598960,Advisor_PauseSpeech,function,low,reimplemented (src/game/world/advisor); the advisor's voice held (functor 2) while speaking
+0x00598990,Advisor_ResumeSpeech,function,low,reimplemented (src/game/world/advisor); the held advisor voice let go (functor 3)
 0x00486610,Global7c24d8_CopyScript,function,high,reimplemented (src/game/ui/thingpreview); a sprite script slot made a copy of another
 0x00557110,Rsse_TakeFinished,function,high,"reimplemented (src/game/rsse/rsse_vm); the value of the first finished entry, which is cleared"
 0x0054dcc0,Flag54dcc0_Test,function,high,reimplemented (src/game/render/mode); a flag test on two settings
