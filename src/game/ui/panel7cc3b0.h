@@ -1,4 +1,4 @@
-// The game panel object at 0x7cc3b0 (its vtable 0x6ffe50). Reimplementation of 0x4b53c0, 0x4b5330, 0x4b5a60, 0x4b6080 and 0x4b58b0. The names are unconfirmed.
+// The game panel object at 0x7cc3b0 (its vtable 0x6ffe50). Reimplementation of 0x4b53c0, 0x4b5330, 0x4b5a60, 0x4b6080, 0x4b58b0 and 0x4b5ab0. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -36,4 +36,10 @@ void __fastcall Panel7cc3b0_Dress(u8 *self);
 // language text of that index (Language_SetObjectText; 0 for 1 with no patrol region), 0x513 / 0x515 the low bytes of the floats
 // +0x1f8 / +0x1fc (__ftol) * 1024 / 100 (signed).
 void __fastcall Panel7cc3b0_ShowStats(u8 *self);
+
+// 0x4b5ab0 (thiscall; slot 1 of the vtable 0x6ffe50; name as Panel7cc258_Update's): with a staff member [0x7c2658], the object +0x20's
+// slot 9 given its name (Staff_GetName), this panel's slots 6 and 5 called, the window +0x10's child 0x510 (a 0x705a50 button)
+// set to state 1 with notice when it has a patrol region (Staff_HasPatrolRegion; the advisor posted 0xd4 first), else 0, and the
+// child 0x50e's slot 5 given whether its cell checks (AnalyserRecord_ChecksCell, 1 / 0). No child checked.
+void __fastcall Panel7cc3b0_Update(u8 *self);
 }

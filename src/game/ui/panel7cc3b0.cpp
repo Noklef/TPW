@@ -7,6 +7,7 @@
 #include "../core/textarg.h"
 #include "../core/vcall.h"
 #include "../world/advisor.h"
+#include "../world/analysercell.h"
 #include "../world/camera.h"
 #include "../world/ridesweep.h"
 #include "../world/staff.h"
@@ -16,6 +17,7 @@
 #include "panelparts.h"
 #include "thingpreview.h"
 #include "window.h"
+#include "window705a50.h"
 
 using namespace panelparts;
 
@@ -97,5 +99,22 @@ void __fastcall Panel7cc3b0_ShowStats(u8 *self) {
     vcall<void>(child, 0x1c, (u32)((s32)((u32)(u8)(long long)*reinterpret_cast<const float *>(staff + 0x1f8) << 10) / 100));
     child = Window_FindChild(window(self), nullptr, 0x515);
     vcall<void>(child, 0x1c, (u32)((s32)((u32)(u8)(long long)*reinterpret_cast<const float *>(staff + 0x1fc) << 10) / 100));
+}
+
+void __fastcall Panel7cc3b0_Update(u8 *self) {
+    u8 *const staff = *reinterpret_cast<u8 **>((uintptr_t)0x007c2658);
+    if (!staff) return;
+    vcall<void>(*reinterpret_cast<u8 **>(self + 0x20), 0x24, Staff_GetName(staff));
+    vcall<void>(self, 0x18);
+    vcall<void>(self, 0x14);
+    u8 *const patrol = Window_FindChild(*reinterpret_cast<u8 **>(self + 0x10), nullptr, 0x510);   // (neither child checked)
+    if (Staff_HasPatrolRegion(staff)) {
+        Advisor_PostId(0xd4);
+        Window705a50_SetState(patrol, nullptr, 1, 1);
+    } else {
+        Window705a50_SetState(patrol, nullptr, 0, 1);
+    }
+    u8 *const cell = Window_FindChild(*reinterpret_cast<u8 **>(self + 0x10), nullptr, 0x50e);
+    vcall<void>(cell, 0x14, AnalyserRecord_ChecksCell(staff) ? 1u : 0u);
 }
 }
