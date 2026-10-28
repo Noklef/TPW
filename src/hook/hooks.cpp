@@ -4088,6 +4088,8 @@ const Hook kHooks[] = {
     {"ObjectDefs_CountKind3WithControls10", 0x004ca5d0, (void *)&ObjectDefs_CountKind3WithControls10, {0x56, 0xb9, 0xa0, 0x90, 0x78}},
     {"ObjectDefs_CountKind0WithControls10", 0x004ca450, (void *)&ObjectDefs_CountKind0WithControls10, {0x56, 0x57, 0xb9, 0xa0, 0x90}},
     {"ObjectDefs_CountKindWithControls18", 0x004ca7b0, (void *)&ObjectDefs_CountKindWithControls18, {0x56, 0x57, 0xb9, 0xa0, 0x90}},
+    {"ObjectDef_Dtor",            0x00412cb0, (void *)&ObjectDef_Dtor, {0x6a, 0xff, 0x68, 0x35, 0x7e}},
+    {"ObjectDefs_ReleaseEffects", 0x004145f0, (void *)&ObjectDefs_ReleaseEffects, {0x55, 0x8b, 0xe9, 0x57, 0xc7}},
     {"IntArray_SetSize",          0x00598630, (void *)&IntArray_SetSize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
     {"CountedPair_Clear",         0x004e51a0, (void *)&CountedPair_Clear, {0x53, 0x56, 0x8b, 0xf1, 0x33}},
     {"CountedPair_ClearRange",    0x004f36f0, (void *)&CountedPair_ClearRange, {0x56, 0x8b, 0x74, 0x24, 0x08}},
