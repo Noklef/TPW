@@ -5,6 +5,10 @@
 # surroundings (window.py's shown_env, cut down: shown or not, the text window and the window its parents, no children or objects, its
 # handler +0x114 a logger or none, the hover's root [0xfaa5d8] none, the manager [0x77c48c]'s slot 13 a recorder), its range (+0x138-+0x144)
 # small, its slot 7 a recorder answering 0 in AX or not.
+# Three mutants survive as equivalent here: the measure's area height (its 1536 divisor, its top +6) is read by TextLayout_Arrange only for the
+# vertical alignments 2 and 5, and FitText measures top-aligned (0: the default case), so it is never read; the fit flag 1 -> 0 only widens the
+# line from the area's width to 0x4000, and the text measured is at most one record (guitext.py's buffer_text: more records leave SetText's
+# stack garbage in the heap, which can be masked only for one), which takes a line by itself whatever the width, left-aligned at the area's left.
 # usage: dialog7cc654.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Fit)
 import os
 import struct
