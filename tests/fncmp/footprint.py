@@ -1,5 +1,5 @@
 # The footprint of the object being placed (src/game/world/placeobject: PlaceObject_Footprint 0x528a70) against the original: the
-# definition of the id at [0x8186e0] (gObjectDefs 0x7890a0, found through its cache or its list) with a shape of 1-3 columns and rows (now
+# definition of the id at [0x8186e0] (gObjectDefs 0x7890a0, found through its cache or its list) with a shape of 1-5 columns and rows (now
 # and then none), its cells' types mostly 0, 1, 4, 9, 0xa, 0xb, 0x10 and 0x17 (a 9 and an 0xa put in half the time) and their direction
 # bytes 1, 4, 0x10, 0x40 or others, its offsets +0xa4 - +0xc0 small; (x, y) on the map mostly (near its edges now and then, off it
 # rarely), the angle 0, 0x5a, 0xb4, 0x10e or another, place and check either way, the centring flag [0x81af7c], the flag [0x8187f8] and
@@ -84,12 +84,13 @@ def case(r):
     for off in range(0xa4, 0xc4, 4):
         put(d, off, 'i', r.randrange(-3, 4))
     regions[DEF] = d
-    cols, rows = r.choice([1, 1, 2, 2, 3, 3, 0, -1]), r.choice([1, 1, 2, 2, 3, 3, 0, -1])
-    shape = bytearray(r.bytes(8 + 0xa0 * 3))
+    cols, rows = r.choice([1, 1, 2, 2, 3, 3, 4, 5, 0, -1]), r.choice([1, 1, 2, 2, 3, 3, 4, 5, 0, -1])
+    shape = bytearray(r.bytes(8 + 0xa0 * 5))
     put(shape, 0, 'ii', cols, rows)
     spots = [(c, w) for w in range(max(rows, 0)) for c in range(max(cols, 0))]
+    many = r.random() < 0.25   # (mostly type 4: the sound's counts 4-9)
     for c, w in spots:
-        put(shape, 8 + 0xa0 * w + 8 * c, 'I', r.choice(TYPES))
+        put(shape, 8 + 0xa0 * w + 8 * c, 'I', 4 if many and r.random() < 0.85 else r.choice(TYPES))
         shape[8 + 0xa0 * w + 8 * c + 4] = r.choice(DIRS)
     if len(spots) >= 2 and r.random() < 0.5:
         for (c, w), t in zip(r.sample(spots, 2), (9, 0xa)):
