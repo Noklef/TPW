@@ -7,6 +7,7 @@
 #include "../core/soundplay.h"
 #include "../math/x87.h"
 #include "cellrun.h"
+#include "gamemode.h"
 #include "mapcell.h"
 #include "money.h"
 #include "object.h"
@@ -25,8 +26,8 @@ template <typename F> F game(u32 address) { return reinterpret_cast<F>((uintptr_
 const DemolishEnv kGameEnv = {&Path_CheckDeadEnds,
                               game<void(__fastcall *)(u8 *, void *, u32, u32)>(0x005367a0),
                               game<void(__cdecl *)(u8 *)>(0x00530120),
-                              game<void(__cdecl *)(u32, u32)>(0x0052f200),
-                              game<void(__cdecl *)(u32, u32)>(0x0052f580),
+                              &GameMode_Set,
+                              &GameMode_SetOnly,
                               game<u32(__cdecl *)(u8 *, u32)>(0x0052fe50),
                               game<void(__fastcall *)(u8 *, void *, u32, u32, u32)>(0x0053b280),
                               game<void(__cdecl *)(u32)>(0x00545610)};

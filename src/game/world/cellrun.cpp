@@ -6,6 +6,7 @@
 #include "../core/accessors.h"
 #include "../motion/animator.h"
 #include "../model/highlight.h"
+#include "cellmodel.h"
 #include "dirstep.h"
 #include "hoardinggrid.h"
 #include "mapcell.h"
@@ -117,7 +118,7 @@ u32 animate_run(s32 x, s32 y, u8 direction, u32 start) {
     return ((u32)direction - 1) & 0xffffff00;
 }
 
-const CellRunEnv kGameEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x0053afa0),
+const CellRunEnv kGameEnv = {&MapCell_ApplyModel,
                              reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32, u32)>((uintptr_t)0x005370e0),
                              reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)0x00538fc0),
                              reinterpret_cast<void(__fastcall *)(u8 *, void *, s32, s32, u32)>((uintptr_t)0x0053b280),

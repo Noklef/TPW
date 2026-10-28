@@ -5,6 +5,7 @@
 #include "../core/accessors.h"
 #include "../core/actionrec.h"
 #include "../core/gameheap.h"
+#include "../coaster/edittools.h"
 #include "../ui/cursor.h"
 #include "advisor.h"
 #include "mousemode.h"
@@ -15,8 +16,8 @@ namespace {
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 const GameModeEnv kGameEnv = {
-    reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)0x0059aa70),
-    reinterpret_cast<void(__cdecl *)(u32, u32)>((uintptr_t)0x004474d0),
+    reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>(&Advisor_Cancel),   // (its AL unread)
+    reinterpret_cast<void(__cdecl *)(u32, u32)>(&CoasterEdit_EditRide),
     reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x00446050),
 };
 const GameModeEnv *g_env = &kGameEnv;

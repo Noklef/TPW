@@ -14,7 +14,7 @@ namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
-const ParkOpenEnv kGameEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x004df390),
+const ParkOpenEnv kGameEnv = {&Object_Close,
                               reinterpret_cast<void(__fastcall *)(void *, void *, u8 *)>((uintptr_t)0x00481b50)};
 const ParkOpenEnv *g_env = &kGameEnv;
 
