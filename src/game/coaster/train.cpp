@@ -413,6 +413,16 @@ void __cdecl Coaster_DeleteCar(u8 *owner, u8 *car) {
     env->setBounds();
     Flags_SetChanged(reinterpret_cast<u32 *>(owner), 1);
 }
+
+void __cdecl Coaster_DeleteFlaggedEnd(u8 *owner) {
+    u8 *car = at<u8 *>(owner, 0x58);
+    while (at<u8>(at<u8 *>(car, 0x100), 4) & 1) {   // (sic: a car before the last deleted read through null)
+        u8 *const before = at<u8 *>(car, 0x68);
+        Coaster_DeleteCar(owner, car);
+        car = before;
+    }
+    at<u32>(owner, 0x3c) &= ~1u;
+}
 }
 
 namespace {

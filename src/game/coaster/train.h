@@ -272,6 +272,10 @@ void __cdecl Car_Free(u8 *car, const u8 *other);
 // Flags_SetChanged (owner, 1).
 void __cdecl Coaster_DeleteCar(u8 *owner, u8 *car);
 
+// 0x435530 (cdecl (owner); name invented, unconfirmed): from the owner's last car (+0x58) back (+0x68), each car whose train (+0x100)
+// has flag 1 (+4) deleted (Coaster_DeleteCar; sic: past the first car the walk reads through null); then the owner's +0x3c loses flag 1.
+void __cdecl Coaster_DeleteFlaggedEnd(u8 *owner);
+
 // 0x433300: picks the level of a pylon (a train: +0x18 its type with base +0x68, top +0x6c and
 // gap +0xc4; cars counted at +0x30, from +0x34) for a brace at height wanted (first lowered to
 // the top), returning 1 with the level and height out. Unless 0x79c658 has flag 0x100, a pylon

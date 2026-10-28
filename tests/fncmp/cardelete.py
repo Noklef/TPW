@@ -7,7 +7,9 @@
 # holder flashes (+4 0x4000000) or not, its model's (+8) part entries (+0x28 -> +4, 0x14 bytes each) with a +0x34 or none), each on one
 # of two trains (+0x100: +4 flag 1 or not, +0x18 a type with a part index +0x2c, +0x30 no cars or some, +0x34 a car); the car deleted
 # any of them; the selected car (0x79c640) it, another or none; the current link (0x790fec) none or one whose +4 byte has flag 2 or not.
-# usage: cardelete.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Delete)
+# FlaggedEnd (Coaster_DeleteFlaggedEnd 0x435530, Coaster_DeleteCar running): the same world, each car its own train, the last few (none,
+# one to all) with flag 1, the owner's +0x58 the last car mostly.
+# usage: cardelete.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Delete,FlaggedEnd)
 import os
 import struct
 import sys
@@ -18,7 +20,7 @@ from fncmp import LOG, RAM, Bench, Call, _recorder, log_region, put  # noqa: E40
 HOOKS = {0x442d70: _recorder(9, 2, cdecl=True), 0x469650: _recorder(10, 1, cdecl=True), 0x43af70: _recorder(11, 2, cdecl=True),
          0x434570: _recorder(12, 2, cdecl=True), 0x442ea0: _recorder(13, 3, cdecl=True), 0x452d30: _recorder(14, 5, cdecl=True),
          0x432d50: _recorder(15, 2, cdecl=True), 0x432df0: _recorder(16, 4, cdecl=True), 0x434f10: _recorder(17, 0, cdecl=True)}
-RANGES = [(0x444cb0, 0x444f30), (0x4346c0, 0x434700), (0x5da3c0, 0x5da3d0)]
+RANGES = [(0x444cb0, 0x444f30), (0x4346c0, 0x434700), (0x5da3c0, 0x5da3d0), (0x435530, 0x43556d)]
 B = Bench(RANGES, hooks=HOOKS)
 OWNER, TYPE, GAME, CARS, TRAINS, HOLD = RAM + 0x1000, RAM + 0x1200, RAM + 0x1300, RAM + 0x2000, RAM + 0x3000, RAM + 0x4000
 NRIDES = 6
@@ -42,7 +44,7 @@ def rides(r, regions):
 
 
 def case(r):
-    r.deal(OPS)
+    op = r.deal(OPS)
     regions = {LOG: log_region()}
     rides(r, regions)
     m = r.randrange(1, 7)
@@ -94,10 +96,23 @@ def case(r):
     glob = bytearray(r.bytes(0x70))
     put(glob, 0x40, 'I', r.choice([car, car, cars[0], 0]))
     regions[0x79c600] = glob
+    if op == 'FlaggedEnd':   # (each car its own train, those of the last few with flag 1; now and then all: the walk reads null)
+        own = bytearray(r.bytes(0x80 * m))
+        k = r.choice([0, 1, 1, 2, 3, m - 1, m] if r.random() < 0.95 else [m])
+        for i in range(m):
+            t = 0x80 * i
+            own[t + 4] = own[t + 4] & ~1 | (1 if i >= m - k else 0)
+            put(own, t + 0x18, 'I', TRAINS + 0x100 + r.choice([0, 0x80]))
+            put(own, t + 0x30, 'I', r.choice([0, 1, 2]))
+            put(own, t + 0x34, 'I', r.choice(cars))
+            put(block, 0x110 * i + 0x100, 'I', TRAINS + 0x200 + t)
+        regions[TRAINS + 0x200] = own
+        put(owner, 0x58, 'I', cars[-1] if r.random() < 0.9 else r.choice(cars))
+        return Call(0x435530, [OWNER], regions, ret='v')
     return Call(0x444cb0, [OWNER, car], regions, ret='v')
 
 
-OPS = [k for k in os.environ.get('OPS', 'Delete').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Delete,FlaggedEnd').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)
