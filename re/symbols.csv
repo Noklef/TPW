@@ -6029,6 +6029,7 @@ address,name,kind,confidence,notes
 0x00434060,CoasterLink_AddCar,function,low,"reimplemented (src/game/coaster/registry); cdecl (train, a, b, height, flags, desc, half, slot, claim): a new car piece for the current link, chained, its ride made (0x463060, the env) or claimed and set up (layers played, couplings), then put into the train (Train_InsertCar)"
 0x00437150,CoasterLinks_DestroyAll,function,low,reimplemented (src/game/coaster/registry); every coaster link destroyed and the list's head cleared
 0x00436ac0,CoasterLink_AddFixedPieces,function,low,"reimplemented (src/game/coaster/registry); cdecl (link, -, -, -, flag): a new coaster link's station entries and cars from its ride's keyed parts, then the zero entry; name invented, unconfirmed"
+0x004368f0,CoasterLink_Create,function,low,"reimplemented (src/game/coaster/registry); cdecl (type id, ride, height, +0x20, loaded, +0x28): a new coaster link, its id, type, rings and set-up; name invented, unconfirmed"
 0x0043b0e0,Coaster_QueuePush,function,high,"reimplemented (src/game/coaster/queue); cdecl (index, peep): appends the peep to the queue ring (+0xb0) of coaster index (table 0x790bd0) when it has room"
 0x0043b130,CoasterQueue_Add,function,high,"reimplemented (src/game/coaster/queue); cdecl (coaster, peep): appends the peep to the queue ring (+0xb0), else to the boarding ring (+0xd0), whichever has room"
 0x0043b1f0,Coaster_QueueRoom,function,high,"reimplemented (src/game/coaster/queue); cdecl (index): the queue ring's limit - reserved - count, at least 0"

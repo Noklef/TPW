@@ -15,6 +15,15 @@ struct CoasterLinksEnv {
     void(__cdecl *setChannelRates)(u32 unused, u8 *car);   // Car_SetChannelRates (0x430ca0)
     void(__cdecl *setBounds)();                            // CoasterEdit_SetBounds (0x434f10)
     void(__cdecl *flashCar)(u8 *coaster, u32 which);       // Coaster_FlashCar (0x441840)
+    void *(__cdecl *alloc)(u32 size, u32 zero);            // GlobalMem_Alloc (0x45b9d0)
+    u32(__cdecl *idAdd)(u32 *used, u32 *holes, u32 *next, u32 capacity, u32 *table, u32 value, s32 id);   // IdTable_Add (0x468760)
+    void *(__cdecl *freeBlock)(void *block);               // GlobalMem_Free (0x45ba00)
+    void(__cdecl *ringInit)(u8 *ring, u32 capacity);       // CoasterRing_Init (0x43b080)
+    void(__cdecl *setState)(u8 *coaster, u32 value);       // Coaster_SetState (0x435730)
+    void(__cdecl *setMix)(u8 *coaster, u32 value, u32 quiet);                    // Coaster_SetMix (0x43c3d0)
+    void(__cdecl *setUpCars)(const u8 *train, u8 *link, u32 quiet);              // CoasterLink_SetUpCars (0x436d10)
+    void(__cdecl *setupCars)(u8 *coaster, u32 riders, u32 segments, u32 flags);  // Coaster_SetupCars (0x43ba90)
+    void(__cdecl *addFixed)(u8 *link, u32, u32, float, u32 flag);                // CoasterLink_AddFixedPieces (0x436ac0)
 };
 // The coaster links' calls go to env (nullptr: the game's).
 void CoasterLinks_SetEnv(const CoasterLinksEnv *env);
@@ -253,8 +262,8 @@ void __cdecl CoasterLinks_DestroyAll();
 // subtracted). Without flags 1 +8 |= 0x200000, and +0x68's too when there is one.
 u8 *__cdecl CoasterLink_AddCar(u8 *train, u32 a, u32 b, float height, u32 flags, const u8 *desc, u32 half, u32 slot, u32 claim);
 
-// 0x436ac0 (cdecl (link, -, -, -, flag); name invented, unconfirmed; the new coaster's (0x4368f0) set-up passes its height, twice, and
-// its ride frame's +0x44, all unused): a new coaster link's fixed pieces. Unless the link's +0x40 is set: for each of the ride's
+// 0x436ac0 (cdecl (link, -, -, -, flag); name invented, unconfirmed; the new coaster's (0x4368f0) set-up passes its height, its
+// +0x20 and its ride frame's +0x44, all unused): a new coaster link's fixed pieces. Unless the link's +0x40 is set: for each of the ride's
 // (+0x10, table 0x7a4610) parts keyed (Model_FindPartByKey4, mask 0x400000) 1 to 3 when the type's (+4) flags (+0) have 0x20, else 2
 // and 3, found, its object's (holder +8 -> +0x28 -> +4: 0x14-byte entries, +4) position (+0x30, three dwords; zeros without one):
 // with flag 0x20 (re-read), keys 1 and 3 a station entry (CoasterLink_AddEntry (__ftol of x and z times 0.1f, 0x12, 0, the type's
@@ -264,4 +273,16 @@ u8 *__cdecl CoasterLink_AddCar(u8 *train, u32 a, u32 b, float height, u32 flags,
 // flag != 0, | 0x3c with the type's flag 0x20 (re-read). Then an entry at zeros (flags 7) and its car (flags 2). Always: CoasterEdit_SetBounds,
 // Coaster_FlashCar (link, 1), the empty Debug_Printf, and the link's flags (+0) gain 0x1001.
 void __cdecl CoasterLink_AddFixedPieces(u8 *link, u32 unused1, u32 unused2, float unused3, u32 flag);
+
+// 0x4368f0 (cdecl (type id, ride, height, +0x20, loaded, +0x28); name invented, unconfirmed; 0x463060 calls it): a new coaster link.
+// A zeroed 0x14c-byte block (GlobalMem_Alloc); unless loaded, an id for it in the coaster table (IdTable_Add (0x790b04, 0x790b00,
+// 0x791ce0, 0xff, 0x790bd0, link, -1)) at +0x14, none freeing it (GlobalMem_Free) and answering 0. It heads the link list (0x790fe0,
+// the old head at +0x18); its type the first of the 0x790fe8 types at 0x790b08 whose +4 is the id (none: a fault, sic) at +4, the id
+// +0xc, the ride +0x10, the height +0x1c, +0x20 and +0x28 as given, +0x118 the type's +0xa4, +0x11c 0, +0xac 3.0f; rings at +0xb0 (the
+// type's +0x2f8 slots) and +0xd0 (twice its +0x318) (CoasterRing_Init); the type's flag 8 sets +0x3c's, its flag 4 a zeroed buffer of
+// its +0x20 dwords at +0x13c. As the current link (0x790fec): Coaster_SetState (0x11), Coaster_SetMix (0x3c, loaded) and, unless loaded,
+// CoasterLink_SetUpCars (type, link, 0), Coaster_SetupCars (link, 0, the type's +0x2f4, 1) and CoasterLink_AddFixedPieces (link,
+// height, +0x20's, the ride frame's +0x44 (fld / fstp), 0). The coaster count 0x792214 gains 1 and 0x790fec is cleared. Answers the id;
+// loaded, the original answers the caller's ECX (sic; its caller ignores it): 0 here.
+u32 __cdecl CoasterLink_Create(u32 typeId, u32 ride, u32 height, u32 a3, u32 loaded, u32 a5);
 }

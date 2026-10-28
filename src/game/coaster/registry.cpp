@@ -31,7 +31,9 @@ template <typename T> T &at(const void *p, u32 offset) {
 
 const CoasterLinksEnv kGameEnv = {reinterpret_cast<u32(__cdecl *)(u32, u32, const u32 *, u32, u32, u32, u32, u32, s32, u32)>((uintptr_t)0x00463060),
                                   &Model_FindPartByKey4, &CoasterLink_AddEntry, &CoasterLink_AddCar, &Car_SetChannelRates,
-                                  &CoasterEdit_SetBounds, &Coaster_FlashCar};
+                                  &CoasterEdit_SetBounds, &Coaster_FlashCar, &GlobalMem_Alloc, &IdTable_Add, &GlobalMem_Free,
+                                  &CoasterRing_Init, &Coaster_SetState, &Coaster_SetMix, &CoasterLink_SetUpCars, &Coaster_SetupCars,
+                                  &CoasterLink_AddFixedPieces};
 const CoasterLinksEnv *g_env = &kGameEnv;
 
 const u8 *coaster_at(u32 index) { return reinterpret_cast<u8 *const *>(0x00790bd0)[index]; }
@@ -740,5 +742,61 @@ void __cdecl CoasterLink_AddFixedPieces(u8 *link, u32, u32, float, u32 flag) {
     env->setBounds();
     env->flashCar(link, 1);
     at<u32>(link, 0) |= 0x1001;   // (after the empty Debug_Printf)
+}
+
+u32 __cdecl CoasterLink_Create(u32 typeId, u32 ride, u32 height, u32 a3, u32 loaded, u32 a5) {
+    const CoasterLinksEnv *const env = g_env;
+    u8 *const link = static_cast<u8 *>(env->alloc(0x14c, 1));
+    u32 id = 0;   // (loaded: the original's is the caller's ECX, sic)
+    if (!loaded) {
+        id = env->idAdd(reinterpret_cast<u32 *>(0x00790b04), reinterpret_cast<u32 *>(0x00790b00), reinterpret_cast<u32 *>(0x00791ce0), 0xff,
+                        reinterpret_cast<u32 *>(0x00790bd0), (u32)(uintptr_t)link, -1);
+        if (!id) {
+            env->freeBlock(link);
+            return 0;
+        }
+        at<u32>(link, 0x14) = id;
+    }
+    u8 *&head = *reinterpret_cast<u8 **>(0x00790fe0);
+    at<u8 *>(link, 0x18) = head;
+    head = link;
+    const u8 *type = nullptr;   // (none: the reads below fault, sic)
+    const u32 n = *reinterpret_cast<const u32 *>(0x00790fe8);
+    for (u32 i = 0; i < n; ++i) {
+        const u8 *const t = reinterpret_cast<const u8 *const *>(0x00790b08)[i];
+        if (at<u32>(t, 4) == typeId) {
+            type = t;
+            break;
+        }
+    }
+    at<u32>(link, 0xc) = typeId;
+    at<const u8 *>(link, 4) = type;
+    at<u32>(link, 0x10) = ride;
+    at<u32>(link, 0x1c) = height;
+    at<u32>(link, 0x20) = a3;
+    at<u32>(link, 0x118) = at<u32>(type, 0xa4);
+    at<u32>(link, 0x11c) = 0;
+    at<u32>(link, 0xac) = 0x40400000;   // 3.0f
+    env->ringInit(link + 0xb0, at<u32>(type, 0x2f8));
+    env->ringInit(link + 0xd0, at<u32>(type, 0x318) * 2);
+    if (at<u8>(type, 0) & 8) at<u32>(link, 0x3c) |= 8;
+    if (at<u8>(type, 0) & 4) at<void *>(link, 0x13c) = env->alloc(at<u32>(type, 0x20) * 4, 1);
+    at<u32>(link, 0x28) = a5;
+    *reinterpret_cast<u8 **>(0x00790fec) = link;
+    env->setState(link, 0x11);
+    env->setMix(link, 0x3c, loaded);
+    if (!loaded) {
+        env->setUpCars(type, link, 0);
+        env->setupCars(link, 0, at<u32>(type, 0x2f4), 1);
+        const u8 *const holder = reinterpret_cast<const u8 *const *>(0x007a4610)[ride];
+        const u8 *const frame = at<const u8 *>(at<const u8 *>(at<const u8 *>(holder, 8), 4), 0x78);
+        const u32 bits = X87_FloatThrough(at<u32>(frame, 0x44));   // fld / fstp
+        float through;
+        std::memcpy(&through, &bits, 4);
+        env->addFixed(link, height, a3, through, 0);
+    }
+    ++*reinterpret_cast<u32 *>(0x00792214);
+    *reinterpret_cast<u8 **>(0x00790fec) = nullptr;
+    return id;
 }
 }
