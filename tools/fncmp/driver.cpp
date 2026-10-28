@@ -101,6 +101,7 @@
 #include "../../src/game/world/demolish.h"
 #include "../../src/game/world/tracksquare.h"
 #include "../../src/game/world/placeobject.h"
+#include "../../src/game/world/visitorsteps.h"
 #include "../../src/game/world/endthing.h"
 #include "../../src/game/world/parkopen.h"
 #include "../../src/game/world/gamemode.h"
@@ -1303,6 +1304,10 @@ int main(int argc, char **argv) {
         // (0x532fc0 the track square test's recorder too).
         static const PlaceFootprintEnv footprint = {t(9, 3), t(28, 2), t(10, 0), t(11, 0), t(12, 4), c(13, 1), c(14, 1), c(15, 6)};
         PlaceFootprint_SetEnv(&footprint);
+        // The visitor steps' calls (src/game/world/visitorsteps.h VisitorStepsEnv), as tests/fncmp/visitorsteps.py hooks their addresses
+        // (Visitor_SetState the person env's recorder 26).
+        static const VisitorStepsEnv visitorSteps = {t(1, 0), t(2, 2), t(3, 1), t(4, 1), t(5, 0), t(26, 1), t(6, 1), t(7, 1), t(8, 4)};
+        VisitorSteps_SetEnv(&visitorSteps);
     }
     // 0x564650 (the engine debug log, a file): stub_cdecl_log, as tests/fncmp/engineerrors.py hooks it (the text hashed: strings(log, 0x3f, 1)).
     static const EngineErrorsEnv engineErrors = {reinterpret_cast<void(__cdecl *)(const char *)>(&stub_cdecl_log)};
