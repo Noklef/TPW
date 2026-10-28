@@ -11,19 +11,22 @@
 # Step (0x4548f0): Grow's environment (hidden mostly, for the shrink's end), t near 0 and 1, steps and dt reaching them or not.
 # Restart (0x4df300, src/game/world/object): Grow's environment as the ride at 0x7a4610[+0x20] (0-3) of an object of random bytes whose ride id
 # (+0x24) has a record in ridelist.py's list or not (the system flag set or not; arrays of 0-16 dwords, so element 6 is there or not).
-# usage: stripanim.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=apply,shrink,fit,show,grow,refresh,restart,step)
+# Reopen (0x4df150): Restart's world, the object closed (+0x68 set) or not, the message centre [0x788d3c] made (an address the post
+# logs), the post (0x40fb10) recorder 21 hashing message 0x14's bytes 0-9 (its +0xa on the stack's).
+# usage: stripanim.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=apply,shrink,fit,show,grow,refresh,restart,step,reopen)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from fncmp import Bench, Call, RAM, fb, put  # noqa: E402
+from fncmp import LOG, Bench, Call, RAM, _recorder, blob_bytes, fb, log_region, put  # noqa: E402
 import holder  # noqa: E402
 
 RANGES = ([(0x454050, 0x45453b), (0x4547c0, 0x4547e7), (0x454670, 0x4547b6), (0x46f150, 0x475010), (0x454550, 0x454661), (0x4547f0, 0x4548eb), (0x4548f0, 0x4549d0),
-           (0x4df300, 0x4df389), (0x50b350, 0x50b360), (0x55a070, 0x55a0b0), (0x55a0b0, 0x55a100)] + holder.RANGES)
-B = Bench(RANGES, sines=256, hooks=holder.HOOKS)
+           (0x4df300, 0x4df389), (0x50b350, 0x50b360), (0x55a070, 0x55a0b0), (0x55a0b0, 0x55a100), (0x4df150, 0x4df27f),
+           (0x40f680, 0x40f69b)] + holder.RANGES)
+B = Bench(RANGES, sines=256, hooks={**holder.HOOKS, 0x40fb10: _recorder(21, 1)})
 OBJECT, SHAPE, CHAIN, VERTS, COORDS = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x1000, RAM + 0x2000
 
 
@@ -134,7 +137,7 @@ def strips_case(r, op):   # Grow / Refresh / Step (hidden when it ends a shrink:
 ROBJ, RNODES, RARRAYS = RAM + 0xf000, RAM + 0xf100, RAM + 0xf600
 
 
-def restart_case(r):
+def restart_case(r, reopen=False):
     c = strips_case(r, 'grow')
     regions = dict(c.regions)
     count = r.choice([0, 1, 2, 3, 4])
@@ -153,13 +156,19 @@ def restart_case(r):
     put(table, 4 * k, 'I', SOBJ)
     regions.update({ROBJ: obj, RNODES: nodes, RARRAYS: r.bytes(0x100), 0x7a4610: table, 0x8791a0: struct.pack('<I', r.choice([0, 1, 1, 1])),
                     0x8791b0: struct.pack('<I', RNODES if count else 0)})
+    if reopen:
+        put(obj, 0x68, 'I', r.choice([0, 1, 1, 1, 0x100, r.getrandbits(32)]))
+        log = bytearray(regions.get(LOG) or log_region())
+        blob_bytes(log, 21, 0, 0x3ff)
+        regions.update({LOG: log, 0x788d3c: struct.pack('<I', RAM + 0x1fff0)})
+        return Call(0x4df150, [ROBJ], regions, conv='t', ret='v')
     return Call(0x4df300, [ROBJ], regions, conv='t', ret='v')
 
 
 def case(r):
     op = r.deal(OPS)
-    if op == 'restart':
-        return restart_case(r)
+    if op in ('restart', 'reopen'):
+        return restart_case(r, op == 'reopen')
     if op == 'fit':
         return fit_case(r)
     if op == 'show':
@@ -185,7 +194,7 @@ def case(r):
     return Call(0x4543c0, [OBJECT, t], {RAM: ram})
 
 
-OPS = [k for k in os.environ.get('OPS', 'apply,apply,shrink,fit,show,show,grow,grow,refresh,refresh,restart,restart,step,step').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'apply,apply,shrink,fit,show,show,grow,grow,refresh,refresh,restart,restart,step,step,reopen,reopen').split(',') if k]
 
 
 if __name__ == '__main__':

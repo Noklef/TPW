@@ -164,6 +164,11 @@ void __fastcall Object_SetCapacity(u8 *object, void *, u32 capacity);
 // animation of the ride at 0x7a4610[+0x20] grown from frame 1 (StripAnim_StartGrow).
 void __fastcall Object_RestartRide(u8 *object);
 
+// 0x4df150 (thiscall; called from 0x5015f0 (agent A's); name invented): a closed object (+0x68 set) opened again: message 0x14 of its
+// handle (ThingMsg14_Ctor of Thing_GetHandle) posted (Object_PostMessage), then Object_RestartRide (inlined; the debug prints of the
+// handle and the word +0x6c left out). Not closed: nothing.
+void __fastcall Object_Reopen(u8 *object);
+
 // 0x52c2b0 (cdecl; the object): 1 unless the object definition's track type (+0x9c) is 1 or 2 and the cell a few steps ahead (by the angle at +0x10: 0 is (+4, +1), 0x5a (+1, -5), 0xb4
 // (-5, -2), 0x10e (-2, +4) from the cell of columns/rows at +5 and +7; any other angle stays) and the one beside it (the second offsets: 0 is (-2, +1), 0x5a (+1, +1), 0xb4 (+1, -2), 0x10e (-2, -2)) each have exactly one neighbour
 // bit (MapCell_NeighbourCount, on the 0x28-byte cells of the world at [0x7cf83c]).

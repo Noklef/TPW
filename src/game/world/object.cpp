@@ -401,6 +401,15 @@ u32 __fastcall Object_SetFlag64(u8 *object, void *, u32 on) {
     return 1;
 }
 
+void __fastcall Object_Reopen(u8 *object) {
+    if (!at<u32>(object, 0x68)) return;
+    u16 handle;
+    Thing_GetHandle(object, nullptr, &handle);
+    alignas(4) u8 msg[0x10];   // (its bytes +0xa on left as the stack had them, as the original's)
+    Object_PostMessage(ThingMsg14_Ctor(msg, nullptr, handle));
+    Object_RestartRide(object);   // (inlined there, its debug prints between the post and it)
+}
+
 void __fastcall Object_RestartRide(u8 *object) {
     at<u32>(object, 0x68) = 0;
     at<u16>(object, 0x6c) = 0;

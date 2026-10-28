@@ -3796,6 +3796,7 @@ address,name,kind,confidence,notes
 0x004df390,Object_Close,function,low,"reimplemented (src/game/world/object); thiscall; Object_CanOpen's checks (debug prints only), +0x68 = 1, the strip animation shrunk, ride record element 6 = 0, Object_SetState(0)"
 0x004dfe30,Object_SetFlag64,function,low,"reimplemented (src/game/world/object); thiscall (on), pops 4; on: unless +0x64 is set, +0x64 = 1 and Object_RestartRide; off: when +0x64 is set, +0x64 = 0 and, if Object_CanOpen, Object_Close; 1"
 0x004dd0a0,Object_Delete,function,low,"reimplemented (src/game/world/object); Thing_Delete's kind 3: the control's count down, out of the list +0x1da746, message 0xa posted, the scrap refund credited, spread records 4/7/6-or-1 taken back, its scripts killed, the global 0x7c2654 cleared if it, Thing_Detach"
+0x004df150,Object_Reopen,function,low,"reimplemented (src/game/world/object); thiscall; called from 0x5015f0: a closed object (+0x68 set) opened again: message 0x14 of its handle posted, then Object_RestartRide (inlined there)"
 0x005d46d0,Blocks7_Free,function,high,reimplemented (src/game/core/buffers); frees the seven blocks of an object and clears its groups
 0x00424cc0,Names_FirstAfter,function,high,"reimplemented (src/game/core/string); whether the first name is after the second, case blind"
 0x00424cf0,Names_Equal,function,high,"reimplemented (src/game/core/string); whether two names are equal, case blind"
