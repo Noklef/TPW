@@ -103,4 +103,31 @@ void __cdecl Camera_SnapYaw();
 // 0x10004 / 0x10005: button param 0, 1 or 2 clears / sets 0x790aac bit 1, 4 or 2. 0x1000d: 0x7909ec less -10 for a negative param,
 // else less 10. Others nothing.
 void __cdecl Camera_Input(s32 message, u32 param);
+
+// What the camera's mode change calls in the game, so that it can run outside it (the benches point these at recorders; the ports by
+// default).
+struct CameraEnv {
+    void(__cdecl *suspendHighlight)(u32 suspend);              // Highlight_Suspend (0x45d660)
+    void(__fastcall *setChat)(void *buttons, void *, u32 on);  // ChatButtons_SetChat (0x481470, thiscall on 0x7b51f0)
+    void(__cdecl *leaveProcedural)();                          // Terrain_ProceduralLeave (0x457a40)
+    void(__cdecl *enterProcedural)();                          // Terrain_ProceduralEnter (0x457a00)
+    void(__cdecl *addToGrid)(u8 *holder, u32 from, u32 to);    // Holder_AddToGrid (0x45bcb0)
+    void(__cdecl *wake)(u8 *holder);                           // Holder_Wake (0x45bd00)
+};
+// The camera's calls go to env (nullptr: the game's).
+void Camera_SetEnv(const CameraEnv *env);
+
+// 0x42ab20 (cdecl; mode, toggle, ride, force, out, fresh): gCameraFlags (0x790ab0) loses 0x800; was = its 0x16 (a camera mode on); *out =
+// 0 when given. Mode 0x40 (the park view): the low byte keeps only 0x41; changed, and leaving when was. Mode 4 (follow) unless the flags
+// have 0x92 and not force: the low byte keeps 0x45, bit 4 cleared when toggle and set, else set; set: was gives 0x400, else entering
+// (fresh: 0x800 and 0x790ae0 / 0x790adc cleared); changed either way. Cleared and was: with 0x400 it becomes 2 (*out = 1), else leaving.
+// Mode 2 (walk) unless 0x84 and not force: the low byte keeps 0x43, bit 2 as bit 4 in mode 4; set: changed, entering unless was;
+// cleared: leaving when was. Entering: Highlight_Suspend (1), ChatButtons_SetChat (1), with procedural terrain on (Terrain_ProceduralOn)
+// flag 0x200 and Terrain_ProceduralLeave, and the instance at 0x790a34 back into the grid (Holder_AddToGrid over +0xc0 / +0xc4 with +4's
+// 0x4000, else Holder_Wake). Leaving: Highlight_Suspend (0), ChatButtons_SetChat (0) and with flag 0x200 it cleared and
+// Terrain_ProceduralEnter. Then every ride's (0x7a4610, 1 to holes + count) model parts (+8 -> +4: +0x48 of them from +0x46, parts +0x7c
+// 0x14 bytes each; faces +0x70 0xa0 bytes below +0x44, then +0x74 0x58 bytes): face bit 0x8000 set by the part's 0x4000000, else
+// cleared by its 0x8000000 while the flags' byte has 0x16, else cleared. With a ride and flag 4 its parts likewise by 0x10000000 /
+// 0x20000000. The flags lose 0x1000. Answers changed.
+u32 __cdecl Camera_SetMode(u32 mode, u32 toggle, u32 ride, u32 force, u32 *out, u32 fresh);
 }

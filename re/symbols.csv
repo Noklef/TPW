@@ -434,7 +434,7 @@ address,name,kind,confidence,notes
 0x00542420,Sprites_UseGroundFrames,function,high,reloads .fpc frames for sprites whose ESP ground-frames flag is set
 0x00542640,Sprites_UseParkFrames,function,high,reloads the .tpc frames
 0x00587db0,SpriteFrames_Load,function,medium,reads a .tpc/.fpc stream into a frame set
-0x0042ab20,Camera_SetMode,function,medium,"2 = walk, 4 = follow a thing, 0x40 = park view; flags in gCameraFlags"
+0x0042ab20,Camera_SetMode,function,medium,"reimplemented (src/game/world/camera); cdecl (mode, toggle, ride, force, out, fresh): the camera's park view (0x40), follow (4) or walk (2) mode set or toggled in gCameraFlags 0x790ab0; entering or leaving a mode suspends the highlight, sets the chat buttons, swaps procedural terrain and wakes the camera's instance; every ride's model parts' faces marked by their flags; answers whether the mode changed"
 0x0042ae70,Camera_ToggleWalkMode,function,medium,switches sprite frame sets with the camera
 0x0042a560,Camera_FollowThing,function,low,sets camera mode 4 on a thing and picks the sprite frame set
 0x00763f88,gSpriteFolders,data,high,"14 x (char* folder, first sprite index, count)"

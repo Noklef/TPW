@@ -117,6 +117,7 @@
 #include "../../src/game/world/queuepieces.h"
 #include "../../src/game/world/cellmodel.h"
 #include "../../src/game/world/rides.h"
+#include "../../src/game/world/camera.h"
 #include "../../src/game/world/object.h"
 #include "crt.h"
 #include "../../src/hook/hooks.h"
@@ -545,6 +546,10 @@ const RidesEnv kRidesEnv = {reinterpret_cast<void(__cdecl *)()>((uintptr_t)jpeg_
                             Rec{jpeg_recorder(9, 2)},  Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 3)}, Rec{jpeg_recorder(12, 1)},
                             Rec{jpeg_recorder(13, 1)}, Rec{jpeg_recorder(14, 6)}, Rec{jpeg_recorder(15, 1)}, Rec{jpeg_recorder(16, 1)},
                             Rec{jpeg_recorder(17, 1)}};
+// Camera_SetMode's calls: the cdecl recorders 20 of 1, 22 and 23 of none, 24 of 3 and 25 of 1 and the thiscall 21 of 1, as
+// tests/fncmp/cameramode.py hooks Highlight_Suspend, Terrain_ProceduralLeave / Enter, Holder_AddToGrid / Wake and ChatButtons_SetChat.
+const CameraEnv kCameraEnv = {Rec{jpeg_recorder(20, 1)}, Rec{recorder(21, 1)},     Rec{jpeg_recorder(22, 0)},
+                              Rec{jpeg_recorder(23, 0)}, Rec{jpeg_recorder(24, 3)}, Rec{jpeg_recorder(25, 1)}};
 // MapCell_ApplyModel's calls into agent A's unported placers 0x522b90 / 0x522d50 / 0x522f20: cdecl recorders 20, 21 and 22 of 6 arguments,
 // as tests/fncmp/cellapply.py hooks those addresses.
 const CellModelEnv kCellModelEnv = {reinterpret_cast<u32(__cdecl *)(s32, s32, s32, s32, s32, u32)>((uintptr_t)jpeg_recorder(20, 6)),
@@ -1279,6 +1284,7 @@ int main(int argc, char **argv) {
                                               reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(30, 0))};
     Staff_SetWalkEnv(&staffWalkEnv);
     Rides_SetEnv(&kRidesEnv);
+    Camera_SetEnv(&kCameraEnv);
     CoasterLinks_SetEnv(&kCoasterLinksEnv);
     CellKind_SetEnv(&kCellKindEnv);
     CellModel_SetEnv(&kCellModelEnv);
