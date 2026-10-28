@@ -15,6 +15,10 @@ void __fastcall Challenges_DropOrphans(u8 *challenges);
 // 0x4d2840: the current challenge (index +0x3cc, 0-19 signed), or null.
 u8 *__fastcall Challenges_Current(u8 *challenges);
 
+// 0x4d1a00 (name unconfirmed): a challenge (0x30 bytes) finished: its byte +0x2c = 1, and when it names no other (+0x18 clear) message
+// 0x19 posted (a = Kind_ToIdC of its +0, b = 0x110, d = its +0x14, the rest 0) through the objects' post (Object_PostMessage).
+void __fastcall Challenge_Finish(u8 *challenge);
+
 // 0x4d2df0: an offer accepted: when waiting for the reply (+0x3da) and there is a current challenge, the wait ends, the challenge is on
 // (+0x3d9 = 1) and mNextChallengeEventTime (+0x3d0, 8 bytes) = the world's funny time now (FunnyTime_Now) + its mTargetTime (+4) days.
 void __fastcall Challenges_AcceptOffer(u8 *challenges);

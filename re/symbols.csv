@@ -963,6 +963,7 @@ address,name,kind,confidence,notes
 0x004d2ec0,Challenges_DeclineOffer,function,low,"reimplemented (src/game/world/challenges); thiscall: the offered challenge declined: half the prize credited unless independent, next event after the declined wait"
 0x004d1e80,BalanceChallenges_Dtor,function,low,"reimplemented (src/game/world/challenges); thiscall: vtable 0x700398 back, then BalanceFile_Release"
 0x004d1bd0,Challenges_Ctor,function,low,"reimplemented (src/game/world/challenges); thiscall: Thing_Construct (cell 1, kind 0x13), the 20 challenges' state and the fields after them zeroed (+0x3cc = -1), message centre slots 0x1a, 0xb, 0x11, then Challenges_LoadSam; returns it"
+0x004d1a00,Challenge_Finish,function,low,"reimplemented (src/game/world/challenges); a challenge finished: +0x2c = 1; unless it names another (+0x18), message 0x19 (Kind_ToIdC of +0, 0x110, +0x14) posted"
 0x004e2650,Thing_MapId,function,high,reimplemented (src/game/world/person); thiscall (&out): the thing's map id ((mY >> 8) * 128 + (mX >> 8) + 1)
 0x004f9460,Sprite_RecordMapId,function,high,"reimplemented (src/game/world/person); thiscall (&out): the old mLastRecordedMapId (+0xcc) out, the current map id recorded"
 0x004fd950,Visitor_TimeInPark,function,high,reimplemented (src/game/world/person); thiscall: (gWorld tick +0x1da70c - mArrivalDate +0x1d4) >> 2

@@ -7,14 +7,16 @@
 # (0x4d1ce0): the file served as balanceload.py serves a stack balance file (its values block the heap's first, at VALUES), its text
 # comment lines or a "Challenges[row].Type n" line, gBalanceLevel's 20 indices rows of the file (1-59; 0 or less skipped); and the
 # file's destructor (0x4d1e80) with or without a values block. The constructor (0x4d1bd0): the thing made (thing_ctors.py's thing table), added to the
-# message centre (empty maps), then that load.
-# usage: challenges.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Drop,Current,Schema,Guard,Accept,Decline,LoadSam,Dtor,Ctor)
+# message centre (empty maps), then that load. A challenge finished (0x4d1a00): its kind (+0) one Kind_ToIdC maps or not, named by another
+# (+0x18) or not, its +0x14 any; the message centre made or not (thing_ctors.py's), the post (agent B's 0x40fb10 through the objects' env)
+# recorder 21 logging the message's bytes 0-0x1f but 0x11-0x13 (the stack's).
+# usage: challenges.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Drop,Current,Schema,Guard,Accept,Decline,LoadSam,Dtor,Ctor,Finish)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, IMPORT_TABLE as IAT, LOG, Bench, Call, RAM, fill, global_heap, heap, import_table, log_region, put, set_return  # noqa: E402
+from fncmp import HEAP, IMPORT_TABLE as IAT, LOG, Bench, Call, RAM, _recorder, blob_bytes, fill, global_heap, heap, import_table, log_region, put, set_return  # noqa: E402
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from funnytime import IMPORTS, K, RANGES as CLOCK_RANGES  # noqa: E402
 import balanceload  # noqa: E402
@@ -27,8 +29,9 @@ FILE_RANGES = [(0x401030, 0x401212), (0x401250, 0x40127a), (0x401280, 0x4013dc),
 B = Bench([(0x4d1c80, 0x4d1cdc), (0x4d1e60, 0x4d1e74), (0x4d2840, 0x4d285d), (0x4d6330, 0x4d6348),
            (0x4d6350, 0x4d635f), (0x4d2df0, 0x4d2eb7), (0x4d2ec0, 0x4d2fac), (0x4d0190, 0x4d01f0), (0x5195d0, 0x519610),
            (0x519510, 0x519550), (0x5da3c0, 0x5da3c1), (0x4d1ce0, 0x4d1e5e), (0x4d1e80, 0x4d1e8c), (0x4d1bd0, 0x4d1c73), (0x4d91f0, 0x4d9290),
-           (0x50afe0, 0x50b090), (0x50b350, 0x50b370), (0x516270, 0x516320), (0x67b050, 0x67b0d0)] + CLOCK_RANGES + FILE_RANGES + thing_ctors.CENTRE_RANGES,
-          hooks=thing_ctors.CENTRE_HOOKS)
+           (0x50afe0, 0x50b090), (0x50b350, 0x50b370), (0x516270, 0x516320), (0x67b050, 0x67b0d0), (0x4d1a00, 0x4d1add),
+           (0x409cd0, 0x409cdd), (0x6bb1a0, 0x6bb1a4), (0x4d3500, 0x4d3670), (0x40f7a0, 0x40f803)] + CLOCK_RANGES + FILE_RANGES + thing_ctors.CENTRE_RANGES,
+          hooks={**thing_ctors.CENTRE_HOOKS, 0x40fb10: _recorder(21, 1)})
 VALUES = balanceload.VALUES
 LEVEL = 0x7857d4   # gBalanceLevel's challenge indices (20 dwords)
 SCHEMA = 12        # the BalanceChallenges schema's records: a group of 10 fields (60 rows) and its end
@@ -142,9 +145,23 @@ def offer(r, mem, op):
     return Call(0x4d2df0 if op == 'Accept' else 0x4d2ec0, [C], regions, conv='t')
 
 
+def finish(r, mem):
+    """Challenge_Finish (0x4d1a00) on one of the 20 challenges."""
+    at = 0x100 + 0xc + 0x30 * r.randrange(0x14)
+    put(mem, at, 'I', r.choice([r.randrange(0x30), r.randrange(0x170), r.getrandbits(32)]))
+    put(mem, at + 0x18, 'I', r.choice([0, 0, 0, 1, r.getrandbits(32)]))
+    put(mem, at + 0x2c, 'B', r.choice([0, 1, 0xff]))
+    regions = {RAM: mem, HEAP: heap(), LOG: log_region()}
+    thing_ctors.centre(r, regions)
+    blob_bytes(regions[LOG], 21, 0, 0xfff1ffff)
+    return Call(0x4d1a00, [RAM + at], regions, conv='t')
+
+
 def case(r):
     mem = r.bytes(0x600)
     op = r.deal(OPS)
+    if op == 'Finish':
+        return finish(r, bytearray(mem))
     if op in ('Accept', 'Decline'):
         return offer(r, bytearray(mem), op)
     if op == 'LoadSam':
@@ -169,7 +186,7 @@ def case(r):
     return Call(r.choice([0x4d6330, 0x4d6350]), [C], {RAM: mem}, conv='t', ret='a')
 
 
-OPS = [k for k in os.environ.get('OPS', 'Drop,Current,Schema,Guard,Guard,Accept,Decline,LoadSam,LoadSam,Dtor,Ctor').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Drop,Current,Schema,Guard,Guard,Accept,Decline,LoadSam,LoadSam,Dtor,Ctor,Finish,Finish').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)

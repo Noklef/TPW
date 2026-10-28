@@ -3,12 +3,16 @@
 #include <cstdint>
 #include <cstring>
 
+#include "../core/accessors.h"
 #include "../core/balancefile.h"
 #include "../core/filetime.h"
 #include "../core/funnytime.h"
+#include "../core/idmaps.h"
 #include "../core/savegame.h"
 #include "messagecentre.h"
 #include "money.h"
+#include "object.h"
+#include "thingmsg.h"
 #include "things.h"
 #include "world.h"
 
@@ -93,6 +97,15 @@ u8 *__fastcall Challenges_Current(u8 *challenges) {
     const s32 index = at<s32>(challenges, 0x3cc);
     if (index < 0 || index >= 0x14) return nullptr;
     return challenges + 0xc + index * 0x30;
+}
+
+void __fastcall Challenge_Finish(u8 *challenge) {
+    at<u8>(challenge, 0x2c) = 1;
+    if (at<u32>(challenge, 0x18)) return;
+    u8 msg[0x30];   // (bytes 0x11-0x13 left as the stack had them, as the original's)
+    ThingMsg19_Ctor(msg, nullptr, Kind_ToIdC(reinterpret_cast<const u32 *>(challenge)), 0x110, 0, Get14_6bb1a0(challenge), 0, 0, 0, 0, 0, 0,
+                    0);
+    Object_PostMessage(msg);
 }
 
 void __fastcall Challenges_AcceptOffer(u8 *challenges) {
