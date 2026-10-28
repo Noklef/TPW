@@ -112,6 +112,7 @@
 #include "../../src/game/world/cellmessage.h"
 #include "../../src/game/world/cellrun.h"
 #include "../../src/game/world/trackcircuit.h"
+#include "../../src/game/world/mappreview.h"
 #include "../../src/game/world/staff.h"
 #include "../../src/game/world/things.h"
 #include "../../src/game/world/queuepieces.h"
@@ -1374,6 +1375,10 @@ int main(int argc, char **argv) {
         // (Visitor_SetState the person env's recorder 26).
         static const VisitorStepsEnv visitorSteps = {t(1, 0), t(2, 2), t(3, 1), t(4, 1), t(5, 0), t(26, 1), t(6, 1), t(7, 1), t(8, 4), t(9, 1), t(10, 2)};
         VisitorSteps_SetEnv(&visitorSteps);
+        // GameMode_MapPreview's calls (src/game/world/mappreview.h MapPreviewEnv), as tests/fncmp/mappreview.py hooks their addresses.
+        static const MapPreviewEnv mapPreview = {c(0, 5), c(1, 5), c(2, 6),  c(3, 2),  c(4, 3),  c(5, 4),  c(6, 2),  c(7, 0),  c(8, 3),
+                                                 c(9, 5), c(10, 4), c(11, 7), c(12, 0), t(13, 3), t(14, 1), t(15, 1), t(16, 1), t(17, 0)};
+        MapPreview_SetEnv(&mapPreview);
     }
     // 0x564650 (the engine debug log, a file): stub_cdecl_log, as tests/fncmp/engineerrors.py hooks it (the text hashed: strings(log, 0x3f, 1)).
     static const EngineErrorsEnv engineErrors = {reinterpret_cast<void(__cdecl *)(const char *)>(&stub_cdecl_log)};
