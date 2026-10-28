@@ -72,7 +72,7 @@ void Things_SetDetachEnv(const ThingDetachEnv *e) { g_detach = e ? e : &kGameDet
 namespace {
 template <u32 address> void __fastcall game_kind(u8 *thing) { reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)address)(thing); }
 void __fastcall kinds9to11(u8 *thing) { ThingKinds9To11_Detach(thing); }
-const ThingDeleteEnv kGameDeleteEnv = {&game_kind<0x004dd0a0>, &Mechanic_Detach, &Handyman_Detach,
+const ThingDeleteEnv kGameDeleteEnv = {&Object_Delete, &Mechanic_Detach, &Handyman_Detach,
                                        &Entertainer_Detach, &game_kind<0x004d5eb0>, &kinds9to11};
 const ThingDeleteEnv *g_delete = &kGameDeleteEnv;
 }  // namespace

@@ -12,9 +12,11 @@
 #include "../core/initializers.h"
 #include "../core/options.h"
 #include "../core/savegame.h"
+#include "../core/thunks.h"
 #include "../core/vcall.h"
 #include "../math/x87.h"
 #include "../model/stripanim.h"
+#include "../sprite/script.h"
 #include "objectdefs.h"
 #include "person.h"
 #include "mapcell.h"
@@ -46,6 +48,39 @@ extern "C" {
 void Object_SetEnv(const ObjectEnv *env) { g_env = env ? env : &kGameEnv; }
 
 void Object_PostMessage(u8 *msg) { g_env->post40fb10(MessageCentre_Instance(), nullptr, msg); }
+
+namespace {
+const ObjectDeleteEnv kGameDeleteEnv = {reinterpret_cast<void(__cdecl *)(s32, u32)>((uintptr_t)0x00559060)};
+const ObjectDeleteEnv *g_delete = &kGameDeleteEnv;
+}  // namespace
+
+void Object_SetDeleteEnv(const ObjectDeleteEnv *env) { g_delete = env ? env : &kGameDeleteEnv; }
+
+void __fastcall Object_Delete(u8 *object) {
+    --at<s32>(ObjectControls_Find(global<u8 *>(0x0080239c) + 0x1d943c, nullptr, at<u16>(object, 0xe), 0), 0x18);
+    Things_Unlink1da746(global<u8 *>(0x0080239c), nullptr, object);
+    u16 handle;
+    u8 msg[0xc];
+    ThingMsg0a_Ctor(msg, nullptr, *Thing_GetHandle(object, nullptr, &handle));
+    Object_PostMessage(msg);
+    Money_Credit(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(global<u8 *>(0x0080239c))), nullptr,
+                 (s32)Object_ScrapRefund(object));   // (the definition found first, then the scrap value, as the original's inline copy)
+    const u32 cell = ((u32)object[7] << 7) + object[5] + 1;
+    if (object[0x32] & 0x10) Map_SpreadRemove(global<u8 *>(0x008023a0), nullptr, 4, cell);
+    if (object[0x32] & 0x80 && (s32)Rides_GetElement(Rides_FindById(at<s32>(object, 0x24)), 0) < 2)
+        Map_SpreadRemove(global<u8 *>(0x008023a0), nullptr, 7, cell);
+    if (object[0x32] & 1) {
+        const u32 level = (u32)(s32)(long long)at<float>(object, 0x44) & 0xff;   // (__ftol)
+        Map_SpreadRemove(global<u8 *>(0x008023a0), nullptr, (double)(s32)level < (double)global<float>(0x00700550) ? 6 : 1, cell);
+    }
+    if (at<s32>(object, 0x54)) SpriteScript_Kill(at<s32>(object, 0x54));
+    if (at<u32>(global<u8 *>(0x0080239c), 0x1da738) == 2)
+        g_delete->killScript(at<s32>(object, 0x24), 0);
+    else
+        g_delete->killScript(at<s32>(object, 0x24), global<u32>(0x00785a2c) ? 4 : 7);
+    if ((uintptr_t)object == Wrap_Global7c2654_Get_4815a0()) Wrap_Global7c2654_Set_4815b0(0);
+    Thing_Detach(object);
+}
 
 void __fastcall Object_DismissQueueHead(u8 *object) {
     const u16 head = at<u16>(object, 0x3c);
