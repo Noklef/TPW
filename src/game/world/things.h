@@ -118,6 +118,25 @@ struct ThingTableEnv {
 // The table's calls go to env (nullptr: the game's).
 void Things_SetEnv(const ThingTableEnv *env);
 
+// What Thing_Detach calls in the game that is not ported yet, so that it can run outside it (the benches point it at a recorder).
+struct ThingDetachEnv {
+    void(__cdecl *rideDestroy)(u32 ride);   // Ride_Destroy (0x463c80, agent B's)
+};
+// Thing_Detach's calls go to env (nullptr: the game's).
+void Things_SetDetachEnv(const ThingDetachEnv *env);
+
+// What Thing_Delete calls in the game that is not ported yet (agent C's, thiscall on the thing; the benches point them at recorders).
+struct ThingDeleteEnv {
+    void(__fastcall *kind3)(u8 *thing);      // 0x4dd0a0
+    void(__fastcall *kind4)(u8 *thing);      // 0x4d9fe0
+    void(__fastcall *kind5)(u8 *thing);      // 0x4d6c90
+    void(__fastcall *kind6)(u8 *thing);      // 0x4d4620
+    void(__fastcall *kind7)(u8 *thing);      // 0x4d5eb0
+    void(__fastcall *kinds9to11)(u8 *thing); // 0x4c9040 (kinds 9-0xe, 0x10, 0x11)
+};
+// Thing_Delete's calls go to env (nullptr: the game's).
+void Things_SetDeleteEnv(const ThingDeleteEnv *env);
+
 extern "C" {
 
 // 0x4d91f0 (thiscall; handle, pops 4): when the word at +0x24 is not 0 the thing it names (in the table at 0x7cfb90) gets the word at +8 = handle; the
@@ -130,4 +149,17 @@ u8 *__stdcall Thing_ByHandle(u32 handle);
 // 0x502d20 (thiscall): the thing constructor (Thing_Construct) with cell 1 and kind 0xe, then the five 0x10-byte records at +0x1414 get -1 in their first dword and 1 in the byte at
 // +4. Returns the object. (The cell argument the original pushes has the object's high address bits above the 1: Thing_Construct takes 16 bits of it.)
 u8 *__fastcall ThingKindE_Ctor(u8 *object);
+
+// 0x50b980 (thiscall; name invented, unconfirmed): a thing taken out of the world: unlinked from its map cell's chain (Things_UnlinkFromChain
+// on the cell id (row +7 << 7) + column +5 + 1 of [0x8023a0], its handle word); a ride (kind +2 3) destroyed by its +0x20 (the env's Ride_Destroy,
+// 0x463c80); a thing of kind 1, 4, 5, 6, 7, 8 or 0x12 that is the one at 0x877350 clears it; then erased from the message centre
+// (MessageCentre_RemoveThing on MessageCentre_Instance). Returns the count erased.
+u32 __fastcall Thing_Detach(u8 *thing);
+
+// 0x50b780 (thiscall): a thing deleted: message 1b of its handle posted (Object_PostMessage: agent B's unported 0x40fb10 through the objects'
+// env), then taken out of the world by its kind (+2): 1 Visitor_Detach, 8 Researcher_Detach, 0xf Weather_Detach, 0x12 Staff_Detach; 3, 4, 5,
+// 6, 7 and 9-0xe, 0x10, 0x11 agent C's unported 0x4dd0a0, 0x4d9fe0, 0x4d6c90, 0x4d4620, 0x4d5eb0 and 0x4c9040 (through ThingDeleteEnv, the
+// game's addresses in game); 2, 0x13 and others only the original's debug prints. Then +3 = 1, the handle queued for deletion
+// (World_QueueDelete) and the kind +2 = 2.
+void __fastcall Thing_Delete(u8 *thing);
 }  // extern "C"

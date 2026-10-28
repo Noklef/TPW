@@ -176,7 +176,8 @@ void __cdecl ThingBrowser_Step();
 // 0x4cceb0 (thiscall on the park analyser, which it only hands on; name unconfirmed; the analyser's 0x4c7a49 records it in its sixteenth ring):
 // the sum of capped counts: the things of kind 1 on a plain analyser cell (AnalyserCell_TypePlain; at most 1000) * 20 / 1000;
 // Things_CountByDef4ac(0, 0) * 3 / 2 (at most 20); (1, 0) * 2, (2, 0) * 2, (3, 0) and (0, 2) (at most 10 each); and the staff of kinds 5, 4, 6,
-// 7 and 8 (Things_CountStaffOfKind; at most 4 each). Each capped count is counted again when under its cap (the same answer).
+// 7 and 8 (Things_CountStaffOfKind; at most 4 each). Each capped count is counted again when under its cap: the same answer, but for the
+// definition counts, whose ObjectDefs_Find lookups move its last-found id (+0x730) between the two (so a stale one shows).
 s32 __fastcall Things_FacilityScore(void *analyser);
 
 // 0x4caae0 (thiscall on an object it does not read, from 0x519510; category, &out; pops 8; name unconfirmed): of the objects (kind 3) whose

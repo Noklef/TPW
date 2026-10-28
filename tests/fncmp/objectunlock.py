@@ -1,7 +1,10 @@
 # An object definition's availability (src/game/world/objectunlock: 0x4d4b90) against the original: globalsave.py's count() set-up for
 # the count left (the instance [0xf7c58c] made: its info), the object definitions 0x7890a0 (1-3 of 0x100 bytes, the cache hit or not,
 # the id now and then none of them: a crash in both), the definition's +0xc4 about the count or any (signed both ways).
-# usage: objectunlock.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=IsUnlocked)
+# Unlock (0x4d4ad0): the same, the mode setting (0xfb3b7c) 0, 1, 2 or any and its guard (0xfb34ba) set or not (then read from 0x7a1a8c's
+# bits 23-25, the atexit logged), the info's set (+0x28: a red-black tree of 0-8 16-bit keys, stdtree.py's build, its nil 0xf7c970)
+# holding the id or not (an insert: the heap's block).
+# usage: objectunlock.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=IsUnlocked,Unlock)
 import os
 import struct
 import sys
@@ -10,15 +13,48 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import globalsave  # noqa: E402
-from fncmp import RAM, Bench, Call, put  # noqa: E402
+import stdtree  # noqa: E402
+from fncmp import LOG, RAM, Bench, Call, _cdecl_log, log_region, put  # noqa: E402
 
-CALLS = {'IsUnlocked': 0x4d4b90}
+CALLS = {'IsUnlocked': 0x4d4b90, 'Unlock': 0x4d4ad0}
 B = Bench([(0x5af7f0, 0x5af80b), (0x5afc30, 0x5afc5a), (0x5b09a0, 0x5b09b4), (0x5b0ca0, 0x5b0cc5), (0x5b0940, 0x5b0996), (0x67b0d0, 0x67b10f),
            (0x5aef50, 0x5af0dc), (0x409410, 0x40947a), (0x5b3110, 0x5b3130), (0x5b2fd0, 0x5b2ff0), (0x5b1680, 0x5b16a6),
            (0x5af4a0, 0x5af52a), (0x5af530, 0x5af5cf), (0x5af5d0, 0x5af674), (0x5af680, 0x5af734), (0x5b11c0, 0x5b12d3), (0x5b2480, 0x5b2530),
-           (0x5b11a0, 0x5b11b9), (0x4d4b90, 0x4d4bbb), (0x412e90, 0x412eea)],
-          hooks={0x691de0: globalsave.lock, 0x691ea0: lambda e: None})   # (globalsave.py's ranges and STL lock stand-ins)
+           (0x5b11a0, 0x5b11b9), (0x4d4b90, 0x4d4bbb), (0x412e90, 0x412eea),
+           (0x4d4ad0, 0x4d4b6b), (0x550ca0, 0x550d90), (0x5d1750, 0x5d1751), (0x5da3c0, 0x5da3c1), (0x5af740, 0x5af77e), (0x5b1930, 0x5b1a30),
+           (0x5b2ba0, 0x5b2ea0), (0x5b3130, 0x5b3200), (0x5b3210, 0x5b3230)],
+          hooks={0x691de0: globalsave.lock, 0x691ea0: lambda e: None, 0x67a7d0: _cdecl_log})   # (globalsave.py's ranges and STL lock stand-ins)
 DEFS = RAM + 0x8000
+SET_HEAD, SET_NIL, SET_NODES = RAM + 0x3800, RAM + 0x3900, RAM + 0x4000   # (Unlock: the info's set)
+
+
+def key_set(r, regions, key):
+    """Unlock: the info's set at +0x28 (head +0x2c, unique +0x30, size +0x34): 0-8 keys, key among them or not."""
+    n = r.choice([0, 1, 2, 3, 5, 8])
+    nodes, root = stdtree.build(r, n, pool=[key] + [x for x in r.sample(range(0x10000), n + 1) if x != key][:n]) if n else ({}, None)
+    keys = sorted(nodes)
+    addr = {k: SET_NODES + 0x20 * i for i, k in enumerate(keys)}
+    blob = bytearray(r.bytes(0x20 * max(n, 1)))
+    for i, k in enumerate(keys):
+        left, parent, right, colour = nodes[k]
+        put(blob, 0x20 * i, 'IIII', SET_NIL if left is None else addr[left], SET_HEAD if parent is None else addr[parent],
+            SET_NIL if right is None else addr[right], k | r.getrandbits(16) << 16)
+        put(blob, 0x20 * i + 0x10, 'I', colour)
+    head = struct.pack('<III', addr[keys[0]], addr[root], addr[keys[-1]]) if n else struct.pack('<III', SET_HEAD, SET_NIL, SET_HEAD)
+    info = bytearray(regions[globalsave.INFO])
+    put(info, 0x2c, 'I', SET_HEAD)
+    info[0x30] = 0
+    put(info, 0x34, 'I', n)
+    regions[globalsave.INFO] = info
+    regions[SET_HEAD] = head + bytes(0x20)
+    regions[SET_NIL] = put(bytearray(0x20), 0x10, 'I', stdtree.BLACK)
+    regions[0xf7c970] = struct.pack('<I', SET_NIL)
+    if n:
+        regions[SET_NODES] = blob
+    regions[0xfb34ba] = bytes([r.choice([1, 1, 1, 3, 0, 2, r.getrandbits(8)])])
+    regions[0xfb3b7c] = put(bytearray(4), 0, 'I', r.choice([0, 1, 2, 0, 2, 1, 3, r.getrandbits(32)]))
+    regions[0x7a1a8c] = put(bytearray(4), 0, 'I', r.getrandbits(32) & ~(7 << 23) | r.choice([0, 1, 2, 3, 4, 6, 7]) << 23)
+    regions.setdefault(LOG, log_region())
 
 
 def case(r):
@@ -39,6 +75,8 @@ def case(r):
     put(table, 0x730, 'HHI', r.choice([ids[k], r.getrandbits(16)]), 0, DEFS + 0x100 * k)
     regions[0x7890a0] = table
     want = ids[k] if r.random() < 0.97 else r.getrandbits(16)
+    if op == 'Unlock':
+        key_set(r, regions, want)
     return Call(CALLS[op], [want | r.choice([0, r.getrandbits(16)]) << 16], regions, conv='s', ret='b')
 
 

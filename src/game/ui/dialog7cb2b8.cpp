@@ -3,6 +3,8 @@
 #include <cstdint>
 
 #include "../core/accessors.h"
+#include "../core/language.h"
+#include "../core/textarg.h"
 #include "../core/soundplay.h"
 #include "../core/vcall.h"
 #include "../math/x87.h"
@@ -20,6 +22,17 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 u8 *ptr(u32 value) { return reinterpret_cast<u8 *>((uintptr_t)value); }
+
+// a CircBufU32 of 144's newest value (inlined in the original): the cursor's (+0x244) when it is not negative, the one before the end
+// (cursor + size) when it is and the buffer has wrapped (+0x24c); the fallback for none (size +0x248 not above 0) or neither.
+s32 newest(const u8 *ring, s32 fallback) {
+    const s32 size = at<s32>(ring, 0x248);
+    if (size <= 0) return fallback;
+    const s32 cursor = at<s32>(ring, 0x244);
+    if (cursor >= 0) return at<s32>(ring, 4 + 4 * cursor);
+    if (!at<u8>(ring, 0x24c)) return fallback;
+    return at<s32>(ring, 4 + 4 * (cursor + size));
+}
 
 // The tag shown when its inner right edge is past the limit's low word, then its children by Dialog7cb2b8_ShowRightOf (the loop the
 // original has twice, after its own rectangle D).
@@ -187,6 +200,27 @@ s32 __cdecl Dialog7cb2b8_BoxHandler(u8 *window, u32 message, u32 a, u32 b) {
         break;
     }
     return Window_CallDefault(window, nullptr, message, a, b);
+}
+
+void __cdecl Dialog7cb2b8_ShowDate(u32 day, u32 month, u32 year) {
+    if (!global<u8 *>(0x007cb2b8)) return;
+    u8 *const label = Window_FindChild(global<u8 *>(0x007cb2b8), nullptr, 0x20);
+    // (the three number arguments built inline, unsigned: %16 the day, %17 the month, %18 the year from 1900)
+    u32 years[5] = {0x006ff170, 0x5641524d, 0x12, year + 1900, 0};
+    u32 months[5] = {0x006ff170, 0x5641524d, 0x11, month, 0};
+    u32 days[5] = {0x006ff170, 0x5641524d, 0x10, day, 0};
+    u8 text[0x20];
+    TextFormat().formatNarrow(global<void *>(0x0078ba94), text, 0x1f, 0x1c0, days, months, years);
+    Window_NotifyImpl100(label, nullptr, (u32)(uintptr_t)Language_Widen(text));
+    u8 *const light = Window_FindChild(Window_FindChild(global<u8 *>(0x007cb2ac), nullptr, 0x2f), nullptr, 0x31);
+    const u8 *const analyser = ptr(GameTable7cfb90_Get1da720_519510(*global<u8 **>(0x007cf6ec)));
+    const s32 first = newest(analyser + 0x1f5a0, (s32)year);
+    const s32 second = newest(analyser + 0x1fc90, (s32)year);
+    Window_Notify1(light, nullptr, second < first ? 1 : 0);
+}
+
+void __fastcall Obj7b51f0_ShowDate(void *, void *, u32, u32, u32, u32 day, u32 month, u32 year, u32, u32, u32) {
+    Dialog7cb2b8_ShowDate(day, month + 1, year);
 }
 
 s32 __cdecl Dialog7cb2b8_BarHandler(u8 *window, u32 message, u32 a, u32 b) {

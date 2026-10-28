@@ -105,4 +105,11 @@ void __fastcall ResearchLab_ApplyEfforts(u8 *lab);
 // [0x80239c] looked up first, its answer unused); then ResearchLab_FillProjects, ResearchLab_ApplyEfforts and the lab added to the message
 // centre's slot 0x11.
 void __fastcall ResearchLab_Init(u8 *lab);
+
+// 0x504090 / 0x504140 (thiscall; names invented, unconfirmed): the lab's flag +0x1468 set (from clear) or cleared (from set), and then a
+// message 13 of 5 or 6 (ThingMsg13_Ctor) posted (Object_PostMessage: agent B's unported 0x40fb10 through the objects' env); nothing when
+// it already was. 0x5041f0: the first when the game object's [0x80239c] word +0x1da742 is set, else the second.
+void __fastcall ResearchLab_FlagOn(u8 *lab);
+void __fastcall ResearchLab_FlagOff(u8 *lab);
+void __fastcall ResearchLab_SyncFlag(u8 *lab);
 }
