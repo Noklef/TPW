@@ -491,6 +491,14 @@ using ThingKindFn = void(__fastcall *)(u8 *);
 const ThingDeleteEnv kThingDeleteEnv = {reinterpret_cast<ThingKindFn>((uintptr_t)recorder(10, 0)), reinterpret_cast<ThingKindFn>((uintptr_t)recorder(11, 0)),
                                         reinterpret_cast<ThingKindFn>((uintptr_t)recorder(12, 0)), reinterpret_cast<ThingKindFn>((uintptr_t)recorder(13, 0)),
                                         reinterpret_cast<ThingKindFn>((uintptr_t)recorder(14, 0)), reinterpret_cast<ThingKindFn>((uintptr_t)recorder(15, 0))};
+// Thing_HandleMessage's handlers by model - 1: the thiscall recorder k of 1 argument, k the index (models 6 and 8 share 0x4d4450: k 5), as
+// tests/fncmp/thingmessage.py hooks their addresses.
+using ThingMessageFn = void(__fastcall *)(u8 *, void *, u8 *);
+ThingMessageFn thing_message(u32 k) { return reinterpret_cast<ThingMessageFn>((uintptr_t)recorder(k, 1)); }
+const ThingMessageEnv kThingMessageEnv = {{thing_message(0), nullptr, thing_message(2), thing_message(3), thing_message(4), thing_message(5),
+                                           thing_message(6), thing_message(5), thing_message(8), thing_message(9), thing_message(10),
+                                           thing_message(11), thing_message(12), thing_message(13), thing_message(14), thing_message(15),
+                                           thing_message(16), thing_message(17), thing_message(18)}};
 // StaffAdvice_KindLow's sums (agent C's unported 0x4c8180 / 0x4c8150; staffadvice.py's k 16 / 17) and StaffHQ_HandleMessage's guard call
 // (agent C's unported 0x4d6260; staffadvice.py's k 18, thiscall of 1).
 using StaffSumFn = s32(__fastcall *)(u8 *, void *, u32);
@@ -1207,6 +1215,7 @@ int main(int argc, char **argv) {
     GameMode_SetEnv(&kGameModeEnv);
     Things_SetDetachEnv(&kThingDetachEnv);
     Things_SetDeleteEnv(&kThingDeleteEnv);
+    Things_SetMessageEnv(&kThingMessageEnv);
     Staff_SetAdviceEnv(&kStaffAdviceEnv);
     Rides_SetEnv(&kRidesEnv);
     CoasterLinks_SetEnv(&kCoasterLinksEnv);
