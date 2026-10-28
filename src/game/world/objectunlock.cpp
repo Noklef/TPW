@@ -49,6 +49,12 @@ void __fastcall ObjectUnlock_AdviseLevel(u8 *self, void *, u32 group, s32 level)
     ObjectUnlock_FirstAdvice(self);
 }
 
+void __fastcall ObjectUnlock_AdviseScore(u8 *self, void *, u32 group, s32 level) {
+    if (level >= 1 && level <= 3) post_advice(0xdb + (u32)level, group);
+    else if (level == 4 && group <= 3) post_advice(0xea + group);   // (b -1; other levels and groups: debug prints)
+    ObjectUnlock_FirstAdvice(self);
+}
+
 void __fastcall ObjectUnlock_AdviseExtraLevel(u8 *self, void *, u32 group, s32 level) {
     if (level >= 1 && level <= 3) post_advice(0xe0 + (u32)level, group);   // (other levels: a debug print)
     ObjectUnlock_FirstAdvice(self);

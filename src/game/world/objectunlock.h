@@ -1,5 +1,5 @@
 // An object definition's availability against the global save (the count of set bytes left), and its unlocking: reimplementation of
-// 0x4d4b90, 0x4d4ad0, 0x4d5b30, 0x4d4fa0 and 0x4d5870. The names are invented.
+// 0x4d4b90, 0x4d4ad0, 0x4d5b30, 0x4d4fa0, 0x4d5270 and 0x4d5870. The names are invented.
 #pragma once
 
 #include "../../../re/types.h"
@@ -26,6 +26,11 @@ void __fastcall ObjectUnlock_FirstAdvice(u8 *self);
 // (AdvisorMsg_Init: type 0, a 0, b the group, flag 0, scored) posted as message 05 (Obj_CtorPart8, Object_PostMessage); another level
 // none (a debug print there). Then ObjectUnlock_FirstAdvice either way.
 void __fastcall ObjectUnlock_AdviseLevel(u8 *self, void *, u32 group, s32 level);
+
+// 0x4d5270 (thiscall (group, level), pops 8; called from 0x4d4e96 and three more with the group 0-3 and GlobalSave_MarkScore's
+// answer): as ObjectUnlock_AdviseLevel with the advisor messages 0xdc, 0xdd and 0xde for the levels 1-3; for 4 (a score beaten) the
+// message 0xea + the group with b -1 for the groups 0-3 (unsigned; another none). Two jump tables (0x4d5844, 0x4d5854) there.
+void __fastcall ObjectUnlock_AdviseScore(u8 *self, void *, u32 group, s32 level);
 
 // 0x4d5870 (thiscall (group, level), pops 8; called from 0x4d4a92 with the group 0 and GlobalSave_MarkExtra's level): as
 // ObjectUnlock_AdviseLevel with the advisor messages 0xe1, 0xe2 and 0xe3.
