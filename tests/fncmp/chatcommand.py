@@ -248,7 +248,10 @@ def run_case(r):
         pool.string(toks, 0x24 * i + 0x10, s, null=0.5)
         put(toks, 0x24 * i + 0x20, 'I', command if i == 0 else r.choice([0, 1, 5, 0x40, r.getrandbits(32)]))
     count = r.choice([1, 1, 2, 2, 2, 3, 4, 0])
-    vec = put(bytearray(r.bytes(0x10)), 4, '3I', TOKENS, TOKENS + 0x24 * count, TOKENS + 0x90)
+    last = TOKENS + 0x24 * count
+    if r.random() < 0.1:   # (a size that is not a whole number of tokens, or negative: the count's signed division)
+        last = TOKENS + r.choice([0x20, 0x23, 0x44, 0x47, -4, -0x24, -0x48])
+    vec = put(bytearray(r.bytes(0x10)), 4, '3I', TOKENS, last & 0xffffffff, TOKENS + 0x90)
     if count == 0 and r.random() < 0.5:
         put(vec, 4, '2I', 0, 0)
     log = log_region()
