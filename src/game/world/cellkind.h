@@ -11,9 +11,9 @@ extern "C" {
 // What the cell kinds call in the game, so that they can run outside it (the benches point these at recorders).
 struct CellKindEnv {
     void(__fastcall *thing4de1f0)(u8 *thing);                // 0x4de1f0 (thiscall on a thing, no arguments)
-    u32(__cdecl *deadEnds527ee0)(s32 x, s32 y, u32 flag);   // 0x527ee0 (Path_CheckDeadEnds; its answer dropped)
+    void(__cdecl *deadEnds527ee0)(s32 x, s32 y, u32 flag);  // Path_CheckDeadEnds (0x527ee0, agent A's)
 };
-// The cell kinds' calls go to env (nullptr: the game's).
+// The cell kinds' calls go to env (nullptr: the game's 0x4de1f0, the port of Path_CheckDeadEnds).
 void CellKind_SetEnv(const CellKindEnv *env);
 
 // 0x5346d0 (thiscall (kind), pops 4; name invented, unconfirmed): 0 when the kind does not fit the cell (Kinds_Compatible). The cell's

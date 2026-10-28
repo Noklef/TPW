@@ -13,6 +13,8 @@
 #include "cellkind.h"
 #include "cellmodel.h"
 #include "cellrun.h"
+#include "demolish.h"
+#include "gamemode.h"
 #include "lineends.h"
 #include "mapcell.h"
 #include "pathlink.h"
@@ -23,8 +25,7 @@ namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const CellMessageEnv kGameEnv = {reinterpret_cast<void(__cdecl *)(s32, s32, u32)>((uintptr_t)0x00527ee0),
-                                 reinterpret_cast<void(__cdecl *)(u32, u32)>((uintptr_t)0x0052f580)};
+const CellMessageEnv kGameEnv = {&Path_CheckDeadEnds, &GameMode_SetOnly};
 const CellMessageEnv *g_env = &kGameEnv;
 
 u32 bits(float f) {

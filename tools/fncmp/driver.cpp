@@ -517,13 +517,13 @@ const StaffAdviceEnv kStaffAdviceEnv = {reinterpret_cast<StaffSumFn>((uintptr_t)
                                         reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)recorder(18, 1))};
 // Ride_Destroy's calls into the unported 0x42a190 and 0x436fa0 (agent B's): cdecl recorders 18 of no arguments and 19 of 1, as
 // tests/fncmp/ridedestroy.py hooks those addresses.
-// The cell kinds' calls into agent C's unported 0x4de1f0 and 0x527ee0: the thiscall recorder 26 of no arguments and the cdecl recorder 27
-// of 3, as tests/fncmp/cellkind.py and tests/fncmp/trackremove.py hook them.
+// The cell kinds' calls into agent C's unported 0x4de1f0 and agent A's Path_CheckDeadEnds (0x527ee0): the thiscall recorder 26 of no
+// arguments and the cdecl recorder 27 of 3, as tests/fncmp/cellkind.py and tests/fncmp/trackremove.py hook them.
 const CellKindEnv kCellKindEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(26, 0)),
-                                  reinterpret_cast<u32(__cdecl *)(s32, s32, u32)>((uintptr_t)jpeg_recorder(27, 3))};
+                                  reinterpret_cast<void(__cdecl *)(s32, s32, u32)>((uintptr_t)jpeg_recorder(27, 3))};
 // The coaster links' call into agent B's unported 0x463060: the cdecl recorder 30 of 10 arguments, as tests/fncmp/linkcars.py hooks it.
 const CoasterLinksEnv kCoasterLinksEnv = {reinterpret_cast<u32(__cdecl *)(u32, u32, const u32 *, u32, u32, u32, u32, u32, s32, u32)>((uintptr_t)jpeg_recorder(30, 10))};
-// The cell messages' calls into agent A's unported 0x527ee0 and 0x52f580: the cdecl recorders 27 of 3 and 28 of 2, as
+// The cell messages' calls into agent A's Path_CheckDeadEnds (0x527ee0) and GameMode_SetOnly (0x52f580): the cdecl recorders 27 of 3 and 28 of 2, as
 // tests/fncmp/cellmessage.py hooks them.
 const CellMessageEnv kCellMessageEnv = {reinterpret_cast<void(__cdecl *)(s32, s32, u32)>((uintptr_t)jpeg_recorder(27, 3)),
                                         reinterpret_cast<void(__cdecl *)(u32, u32)>((uintptr_t)jpeg_recorder(28, 2))};

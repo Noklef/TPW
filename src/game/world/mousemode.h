@@ -18,10 +18,10 @@ struct MouseModeEnv {
     void(__cdecl *free)(void *block);                  // Mem_Free (0x67acb0)
     s32(__cdecl *atExit)(void(__cdecl *fn)());        // crt_atexit (0x67a7d0)
     void(__cdecl *clickTile)(s32 x, s32 y, u32 flags);   // 0x5234d0 (unported; as MapClickEnv's click5234d0)
-    void(__cdecl *f52f200)(u32 a, u32 b);              // 0x52f200 (unported)
+    void(__cdecl *f52f200)(u32 a, u32 b);              // GameMode_Set (0x52f200, agent A's)
 };
-// The deleting destructors' frees, MouseMode_Set's atexit and MouseModeTile_Assign's two unported calls go to env (nullptr: the
-// game's).
+// The deleting destructors' frees, MouseMode_Set's atexit and MouseModeTile_Assign's two calls go to env (nullptr: the game's, GameMode_Set
+// the port).
 void MouseModes_SetEnv(const MouseModeEnv *env);
 
 extern "C" {
