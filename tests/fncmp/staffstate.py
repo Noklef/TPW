@@ -26,8 +26,10 @@
 # or found with navpath.py's person as the staff member (as Head; the destination the area's cell) so that the walk there works.
 # WalkRest (0x505fe0): LeaveRest's surroundings, Sprite_WalkNav a thiscall recorder (28 of 0, driver.cpp's StaffWalkEnv) answering 0, 2
 # or another; +0x1f8 about 0-100 (or past them, a NaN, an infinity, huge), the int 0x785328 small, negative or huge.
+# Dismiss (0x505790): PickUp's mode surroundings (slot 9 answering 6 mostly) and Message's pay day records; Sprite_SpawnParticle and
+# Thing_Delete thiscall recorders (29 of 1, 30 of 0: driver.cpp's StaffWalkEnv).
 # usage: staffstate.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetState,Mechanic,Handyman,PickUp,Settle,Head,Researcher,LeaveRest,
-#   Message,WalkRest)
+#   Message,WalkRest,Dismiss)
 import os
 import struct
 import sys
@@ -54,13 +56,15 @@ B = Bench(wctimage.merged(MODES + [
     (0x506300, 0x5064a0), (0x4c9130, 0x4c91d0), (0x4fa530, 0x4fa600), (0x509990, 0x5099d0), (0x516130, 0x5161c0), (0x516330, 0x516380),
     (0x519510, 0x519560), (0x51a280, 0x51a2a0), (0x4d4170, 0x4d41a0), (0x506d10, 0x506e41), (0x55a070, 0x55a100), (0x55a390, 0x55a3e0),
     (0x415e00, 0x415e80), (0x504c70, 0x504dd2), (0x40f440, 0x40f446), (0x40f490, 0x40f496), (0x40f510, 0x40f516), (0x40f920, 0x40f926),
-    (0x506490, 0x5064d4), (0x506910, 0x506a38), (0x5195d0, 0x51960d), (0x4d01f0, 0x4d0259)] + navpath.RANGES + [(0x505fe0, 0x506183)]), hooks={0x40fb10: _recorder(21, 1), 0x4fa2a0: _recorder(28, 0)})
+    (0x506490, 0x5064d4), (0x506910, 0x506a38), (0x5195d0, 0x51960d), (0x4d01f0, 0x4d0259)] + navpath.RANGES + [(0x505fe0, 0x506183),
+    (0x505790, 0x5059e2), (0x5059e4, 0x505a0c)]),
+          hooks={0x40fb10: _recorder(21, 1), 0x4fa2a0: _recorder(28, 0), 0x4fa470: _recorder(29, 1), 0x50b780: _recorder(30, 0)})
 STAFF, WORLD, MODE, MODE_VT, HOLDER = RAM + 0x20000, RAM + 0x21000, RAM + 0xc000, RAM + 0xc100, RAM + 0xc200
 RECORD, CELLS = RAM + 0x21400, RAM + 0x50000
 
 
 CALLS = {'SetState': 0x5054d0, 'Mechanic': 0x4da370, 'Handyman': 0x4d7330, 'PickUp': 0x505c50, 'Settle': 0x505f50, 'Head': 0x506300,
-         'Researcher': 0x502c20, 'LeaveRest': 0x506d10, 'Message': 0x504c70, 'WalkRest': 0x505fe0}
+         'Researcher': 0x502c20, 'LeaveRest': 0x506d10, 'Message': 0x504c70, 'WalkRest': 0x505fe0, 'Dismiss': 0x505790}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 TARGET, ITEMS, AREA, RIDES = RAM + 0x38000, RAM + 0x40000, RAM + 0x39000, RAM + 0x3a000
 MSG, MONEY, PAID, RESTS = RAM + 0x3c000, RAM + 0x3d000, RAM + 0x10000, RAM + 0x3e000
@@ -153,6 +157,21 @@ def leave_rest(r, regions, table, h):
     regions[0x8791b0] = struct.pack('<I', RIDES)
 
 
+def pay_records(r, regions, world, table, h):
+    """The pay day's records: the world's (+0x1da708 on) handles +0x1da726 (a money record, +0x114 set mostly) and +0x1da720 (a record
+    whose +0x1f5a0 and +0x1f7f0 take the wage) in table (not h), the wage table 0x78532c small. Returns the two handles."""
+    h_money, h_paid = r.sample([k for k in range(1, 16) if k != h], 2)
+    put(world, 0x1e, 'H', h_money)
+    put(world, 0x18, 'H', h_paid)
+    put(table, 20 * h_money, 'I', MONEY)
+    put(table, 20 * h_paid, 'I', PAID)
+    regions[MONEY] = put(bytearray(r.bytes(0x130)), 0x114, 'I', r.choice([1, 1, 1, 0]))
+    regions[PAID + 0x1f5a0] = r.bytes(4)
+    regions[PAID + 0x1f7f0] = r.bytes(4)
+    regions[0x78532c] = b''.join(struct.pack('<i', r.choice([0, 1, 50, 300, -20, r.getrandbits(16)])) for _ in range(0x54 // 4 + 8))
+    return h_money, h_paid
+
+
 def message(r, regions, staff):
     """Message (0x504c70): see the header."""
     kind = r.choice([0xc] * 3 + [0xa] * 6 + [0x1b, 9])
@@ -189,15 +208,7 @@ def message(r, regions, staff):
     regions[MSG] = put(put(bytearray(r.bytes(0x10)), 0, 'I', MSG + 0x40), 8, 'H', h if r.random() < 0.85 else r.randrange(16))
     world = bytearray(r.bytes(0x40))   # (the world's +0x1da708-0x1da747)
     table = bytearray(r.bytes(20 * 16))
-    h_money, h_paid = r.sample([k for k in range(1, 16) if k != h], 2)
-    put(world, 0x1e, 'H', h_money)
-    put(world, 0x18, 'H', h_paid)
-    put(table, 20 * h_money, 'I', MONEY)
-    put(table, 20 * h_paid, 'I', PAID)
-    regions[MONEY] = put(bytearray(r.bytes(0x130)), 0x114, 'I', r.choice([1, 1, 1, 0]))
-    regions[PAID + 0x1f5a0] = r.bytes(4)
-    regions[PAID + 0x1f7f0] = r.bytes(4)
-    regions[0x78532c] = b''.join(struct.pack('<i', r.choice([0, 1, 50, 300, -20, r.getrandbits(16)])) for _ in range(0x54 // 4 + 8))
+    h_money, h_paid = pay_records(r, regions, world, table, h)
     leave_rest(r, regions, table, h)
     others = [k for k in range(1, 16) if k not in (h, h_money, h_paid)]
     rests = r.sample(others, r.choice([1, 1, 2, 3])) if found else r.sample(others, r.choice([0, 0, 1, 2]))
@@ -270,6 +281,18 @@ def case(r):
         return Call(CALLS[op], [STAFF], regions, conv='t', ret='v')
     if op == 'Message':
         return message(r, regions, staff)
+    if op == 'Dismiss':
+        regions[MODE_VT] = vtable({0: 1, 9: 0})
+        set_return(regions[LOG], 9, r.choice([6] * 4 + [8, 0, 7, r.getrandbits(32)]))
+        staff[2] = r.choice([4, 5, 6, 7, 8] * 2 + [0, 1, r.getrandbits(8)])
+        put(staff, 0x1e4, 'I', r.choice([0, 1, 2, 3, 4]))
+        world, table = bytearray(r.bytes(0x40)), bytearray(r.bytes(20 * 16))
+        pay_records(r, regions, world, table, 0)
+        regions.pop(WORLD)
+        regions[WORLD - 4] = world
+        regions[0x7cf83c] = regions[0x80239c]
+        regions[0x7cfb90] = table
+        return Call(CALLS[op], [STAFF], regions, conv='t', ret='v')
     if op == 'WalkRest':
         h = r.randrange(16)
         put(staff, 0x208, 'H', h)

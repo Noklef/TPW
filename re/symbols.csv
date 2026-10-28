@@ -4164,6 +4164,7 @@ address,name,kind,confidence,notes
 0x00508e70,StaffAdvice_Tick,function,low,"reimplemented (src/game/world/staff); thiscall: Staff_TrainAll on +0xc; unless +0x64, nothing while the world's +0x1da710 or the analyser's kind 1 plain count (age 5); then each kind 0-4 with staff whose stamp +0x2c + 12 * kind is not the world's +0x1da70c: stamped, the flag +0x28 cleared when set, else StaffAdvice_Update(kind)"
 0x005074a0,StaffPoolEntry_FormatName,function,low,"reimplemented (src/game/world/staff); thiscall (to, size): the text id +4 formatted from the kind +0's text table [0x78baa8 + 4 * kind] (0-4)"
 0x00505fe0,Staff_WalkToRestArea,function,low,"reimplemented (src/game/world/staff); thiscall: a step to the rest area: arrived, its ride element 0 + 1, state 3, message 0x700868 posted; stuck, +0x1f8 less [0x785328] clamped 0-100, state 0"
+0x00505790,Staff_Dismiss,function,low,"reimplemented (src/game/world/staff); thiscall: the staff member sacked: the mode 6 dropped (as Staff_PickUp), the wage paid (as the pay day), effect 0x13 and Thing_Delete"
 0x00520d60,FreeList_Take,function,high,reimplemented (src/game/core/voices); takes a record off the free list into a table entry
 0x00521890,FreeList_Return,function,high,reimplemented (src/game/core/voices); puts a record back on the free list
 0x00521d60,Voice_ScaleLevels,function,high,reimplemented (src/game/core/voices); scales a voice's levels by the factor over 1024

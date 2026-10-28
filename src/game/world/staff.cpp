@@ -555,7 +555,10 @@ void __fastcall Staff_Settle(u8 *staff) {
     Staff_SetState(staff, nullptr, 0);
 }
 
-void __fastcall Staff_PickUp(u8 *staff) {
+namespace {
+// The holder made when missing; when the current mode answers 6 from its slot 9 (none: 0), a new CMMOnline base set (as 0x505c50 and
+// 0x505790 have it inlined).
+void drop_staff_mode() {
     MouseModes_EnsureHolder();
     u8 *const current = global<u8 *>(0x007b05d8);
     if ((current ? vcall<s32>(current, 0x24) : 0) == 6) {
@@ -564,6 +567,11 @@ void __fastcall Staff_PickUp(u8 *staff) {
         MouseModes_EnsureHolder();
         MouseMode_Set(mode);
     }
+}
+}  // namespace
+
+void __fastcall Staff_PickUp(u8 *staff) {
+    drop_staff_mode();
     u16 handle;
     Fn_509ae0(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da718_519450(global<u8 *>(0x0080239c))), nullptr,
               *Thing_GetHandle(staff, nullptr, &handle));
@@ -718,7 +726,7 @@ void __fastcall Staff_LeaveRestArea(u8 *staff) {
 }
 
 namespace {
-const StaffWalkEnv kGameWalkEnv = {&Sprite_WalkNav};
+const StaffWalkEnv kGameWalkEnv = {&Sprite_WalkNav, &Sprite_SpawnParticle, &Thing_Delete};
 const StaffWalkEnv *g_walk = &kGameWalkEnv;
 }  // namespace
 
@@ -761,15 +769,27 @@ s32 handler_wage(const u8 *staff) {   // (as 0x504c70 has it: the grade's whole 
     const s32 factor = *reinterpret_cast<const s32 *>((uintptr_t)0x00785380 + Byte2_ToIndex(staff) * 4u);
     return factor * *reinterpret_cast<const s32 *>((uintptr_t)0x0078532c + (*reinterpret_cast<const u32 *>(staff + 0x1e4) << 4));
 }
+
+// The wage debited from the park's money and added to the paid total (the wage computed again), as 0x504c70 and 0x505790 have it.
+void pay_wage(const u8 *staff) {
+    u8 **const game = reinterpret_cast<u8 **>((uintptr_t)0x0080239c);
+    Money_Debit(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(*game)), nullptr, handler_wage(staff));
+    s32 *const paid = reinterpret_cast<s32 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(*game) + 0x1f7f0);
+    *paid += handler_wage(staff);
+}
 }  // namespace
 
+void __fastcall Staff_Dismiss(u8 *staff) {
+    drop_staff_mode();
+    pay_wage(staff);
+    g_walk->spawnParticle(staff, nullptr, 0x13);
+    g_walk->destroy(staff);
+}
+
 void __fastcall Staff_HandleMessage(u8 *staff, void *, u8 *message) {
-    u8 **const game = reinterpret_cast<u8 **>((uintptr_t)0x0080239c);
     const u32 kind = vcall<u32>(message, 0);
     if (kind == 0xc) {
-        Money_Debit(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(*game)), nullptr, handler_wage(staff));
-        s32 *const paid = reinterpret_cast<s32 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(*game) + 0x1f7f0);
-        *paid += handler_wage(staff);
+        pay_wage(staff);
         return;
     }
     if (kind != 0xa || *reinterpret_cast<u16 *>(staff + 0x208) != *reinterpret_cast<const u16 *>(message + 8)) return;

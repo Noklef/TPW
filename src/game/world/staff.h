@@ -264,9 +264,11 @@ void __fastcall Staff_LeaveRestArea(u8 *staff);
 // a message {vtable 0x700868, +4 0, +8 the handle word, +0xc 1} posted (Object_PostMessage). Stuck (2): +0x1f8 less the int at 0x785328
 // (x87: fild, fchs, fadd), above 100.0 100.0, below 0 (or NaN) 0, else the sum; Staff_SetState 0. Otherwise nothing.
 void __fastcall Staff_WalkToRestArea(u8 *staff);
-// What Staff_WalkToRestArea's step calls through an environment (the fncmp driver's recorder; the game's by default, the port).
+// What Staff_WalkToRestArea and Staff_Dismiss call through an environment (the fncmp driver's recorders; the game's by default, the ports).
 struct StaffWalkEnv {
-    u32(__fastcall *walkNav)(u8 *sprite);   // Sprite_WalkNav 0x4fa2a0
+    u32(__fastcall *walkNav)(u8 *sprite);                          // Sprite_WalkNav 0x4fa2a0
+    void(__fastcall *spawnParticle)(u8 *sprite, void *, s32 effect);   // Sprite_SpawnParticle 0x4fa470
+    void(__fastcall *destroy)(u8 *thing);                          // Thing_Delete 0x50b780
 };
 void Staff_SetWalkEnv(const StaffWalkEnv *env);   // nullptr: the game's
 
@@ -283,6 +285,10 @@ void __fastcall Researcher_Detach(u8 *researcher);
 // state 3 (+0x19c), Staff_LeaveRestArea, then the nearest rest area (Things_NearestRestArea) set as +0x208 when there is one and
 // Sprite_SetDestinationCell to its cell (+0x36) succeeds; in state 2, +0x208 cleared and Staff_SetState(0). Others: nothing.
 void __fastcall Staff_HandleMessage(u8 *staff, void *, u8 *message);
+// 0x505790 (thiscall; name invented, unconfirmed; the staff member sacked): Staff_PickUp's mode step (the holder made when missing; the
+// current mode answering 6 from its slot 9: a new CMMOnline base set), the wage paid as Staff_HandleMessage's pay day has it, the effect
+// 0x13 (Sprite_SpawnParticle) and the staff member deleted (Thing_Delete); both through StaffWalkEnv.
+void __fastcall Staff_Dismiss(u8 *staff);
 
 // What StaffAdvice_KindLow and StaffHQ_HandleMessage call in the game that is not ported yet (agent C's; the benches point them at
 // recorders): sumA / sumB thiscall (n), pops 4: sums over the 0x400 records of 0x7c bytes from +0x1efa4 down of
