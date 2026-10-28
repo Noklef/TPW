@@ -37,6 +37,22 @@ u8 *__fastcall ChannelVoices_New(u8 *holder, void *, u32 count);
 // 0x6bb7c0 (thiscall (value), pops 4): inside its critical section: with a sound, slot 11 (value), the sound's slot 2, +4 = 0 and the
 // count decremented; then flag 2 (+0x10) cleared and +0x58 = 0 either way. Returns 1 when there was a sound, else 0 (a byte).
 u8 __fastcall ChannelVoice_Release(u8 *voice, void *, u32 value);
+// The voice's own slots (vtable 0x70a7a8; names invented). 0x6bb050 (thiscall; an SEH frame): the destructor: vtable 0x70a7a8, the
+// critical section deleted, the event (+0x6c) closed (CloseHandle), the buffer block (+0x64) freed (Mem_Free), vtable 0x70a778.
+// 0x6baff0 (thiscall (flags), pops 4; slot 0): flags bit 1 the array's delete (CRT_VectorDtorIterator over the count at -4 with the
+// destructor, the block from -4 freed; sic: bit 0 not tested), else the destructor and the block freed for bit 0; returns the voice.
+// Each of the rest inside the voice's critical section: 0x6bb730 (thiscall (next), pops 4; slot 1) SoundStream_SetNext; 0x6bb6c0
+// (thiscall (id pointer), pops 4; slot 4) SoundStream_Find of *id; 0x6bb470 (thiscall (out, record), pops 8; slot 9) SoundStream_Query
+// (its out the record argument's own stack slot), +0x58 the record's +0x2c with its flag 0x400 (+0x14), then *out = 0 (sic: the answer
+// dropped), out returned; 0x6bb5e0 (thiscall (buffer, bytes, out, flag), pops 0x10; slot 7) *out = 0, the sound's (+4) slot 7 (buffer,
+// bytes, out, 0) when there is one, ChannelVoice_Release (0) when it answers 1; the buffer past *out to bytes zeroed; returns 1 after a
+// release, else 0.
+void __fastcall ChannelVoice_Dtor(u8 *voice);
+u8 *__fastcall ChannelVoice_DeletingDtor(u8 *voice, void *, u32 flags);
+u8 *__fastcall ChannelVoice_SetNext(u8 *voice, void *, u8 *next);
+u8 *__fastcall ChannelVoice_Find(u8 *voice, void *, const u32 *id);
+u32 *__fastcall ChannelVoice_Query(u8 *voice, void *, u32 *out, u8 *record);
+u32 __fastcall ChannelVoice_Read(u8 *voice, void *, u8 *buffer, u32 bytes, u32 *out, u32 flag);
 // 0x6b8330 (thiscall (on, mask), pops 8): the mask set in the flags (+0x10) when the byte on is set, else cleared.
 void __fastcall ChannelVoice_SetFlag(u8 *voice, void *, u8 on, u32 mask);
 // 0x6bb3e0 (thiscall (record, out), pops 8; a sound record's settings taken): without flag 2 (+0x10), +0x24 and +0x1c 0, the flags 2 and
@@ -77,5 +93,17 @@ u32 __fastcall ChannelVoices_ReleaseEach(u8 *pool);
 // events (+0x10) stopped (VoiceEvents_Stop; not checked for null, sic), a spin while their flags' (+0x14) bit 1 is set, then their slot 0
 // (1: delete) unless null and the voices array's (+4) slot 0 (3: delete the array) unless null.
 void __fastcall ChannelVoices_Dtor(u8 *pool);
+// 0x6ba610 (thiscall (voice, play), pops 8; the pool unused; name invented): a sample stream for the play record (+0 the sample's index,
+// +4 its resource reference, +0x14 flags): the sample's 0x28-byte header read (SoundResourceHandle_ReadRecord through a local pointer
+// the read may move; none, or its +4 zero: nothing). With a voice: the header copied to its +0x3c, and for play flag 0x8000 its +0x20 =
+// the play's +0x1c. By the header's +0x1b: 0x20 an MP2 sample, 0x10 a voice-coded one (each streamed from the reference's stream (slot
+// 11; at its offset (slot 9) + 0x28 for MP2) when the reference's slot 13 says so, else over memory, from their pools), 0x40 the
+// reference's slot 15 (out the play's stack slot) and 0 returned (no voice released, sic), else PCM (a file sample likewise, or a memory
+// sample from its pool: SoundSample_Ctor, the vtable 0x70a6f8); the source the reference's +8. Then the filters
+// (SoundStream_BuildChain), for play flag 0x800 a 0x70a6c8 stream (+0x18 the play's +0x4c; null chained anyway, sic) in front and the
+// flag cleared; the voice's +0x2c counter stepped into the stream's slot 10 (no voice: a fault, as in the original); the stream's slot 9
+// (out the play's stack slot, the play): not negative: for an MP2 sample with a voice, its +0x54 word = slot 6's rate when it differs;
+// the stream returned. Else the stream closed (slot 2). Failures release the voice (ChannelVoice_Release (0)) and return 0.
+u8 *__fastcall ChannelVoices_CreateStream(u8 *pool, void *, u8 *voice, u32 *play);
 
 }  // extern "C"
