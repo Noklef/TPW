@@ -242,16 +242,16 @@ address,name,kind,confidence,notes
 0x004ddb90,Object_QueueAddPerson,function,high,reimplemented (src/game/world/objectmsg); appends a person to the object's queue
 0x004ddf50,Object_QueuePosition,function,high,reimplemented (src/game/world/objectmsg); a person's place in the object's queue
 0x004da490,Mechanic_PostUpdate,function,medium,Thing_Update case 4 (second call; the first goes through a thunk to 0x505490)
-0x004da0c0,Mechanic_HandleMessage,function,high,Thing_HandleMessage case 4
+0x004da0c0,Mechanic_HandleMessage,function,high,"reimplemented (src/game/world/staff); kind 4's messages: type 0xa for its object clears +0x218 and sets state 0, then Staff_HandleMessage"
 0x004d7060,Handyman_Update,function,medium,Thing_Update case 5 (first call)
 0x004d73c0,Handyman_PostUpdate,function,medium,Thing_Update case 5 (second call)
-0x004d6cf0,Handyman_HandleMessage,function,high,Thing_HandleMessage case 5
+0x004d6cf0,Handyman_HandleMessage,function,high,"reimplemented (src/game/world/staff); kind 5's messages: type 0xa for its object clears +0x21a (animation 3 in state 0xb), state 0, then Staff_HandleMessage"
 0x004d4660,Entertainer_Update,function,medium,"reimplemented (src/game/world/staff); thiscall; Thing_Update case 6 (first call): the cell recorded (Sprite_RecordMapId); moved, spread record 0 taken back from the last cell and spread round the new one (Map_SpreadRemove / Map_SpreadAdd on [0x8023a0]); Person_TickSpeed"
 0x004d4810,Entertainer_PostUpdate,function,medium,Thing_Update case 6 (second call)
-0x004d4450,Staff_HandleMessageDefault,function,medium,Thing_HandleMessage for both Entertainer (6) and Researcher (8)
+0x004d4450,Staff_HandleMessageDefault,function,medium,reimplemented (src/game/world/staff); kinds 6 and 8's messages: Staff_HandleMessage
 0x004d6360,Guard_Update,function,medium,"reimplemented (src/game/world/staff); thiscall; Thing_Update case 7 (first call): the cell recorded (Sprite_RecordMapId); moved, spread record 3 taken back from the last cell and spread round the new one (Map_SpreadRemove / Map_SpreadAdd on [0x8023a0]); Person_TickSpeed"
 0x004d6410,Guard_PostUpdate,function,medium,Thing_Update case 7 (second call)
-0x004d5fb0,Guard_HandleMessage,function,high,Thing_HandleMessage case 7
+0x004d5fb0,Guard_HandleMessage,function,high,"reimplemented (src/game/world/staff); kind 7's messages: type 0x1b naming +0x212 clears it, then Staff_HandleMessage"
 0x00502960,Researcher_Update,function,medium,Thing_Update case 8 (first call)
 0x005029f0,Researcher_PostUpdate,function,medium,Thing_Update case 8 (second call)
 0x00508a30,StaffHQ_HandleMessage,function,high,Thing_HandleMessage case 9

@@ -740,6 +740,31 @@ void __fastcall Entertainer_Detach(u8 *entertainer) {
     Staff_Detach(entertainer);
 }
 
+void __fastcall Mechanic_HandleMessage(u8 *mechanic, void *, u8 *message) {
+    if (vcall<u32>(message, 0) == 0xa && at<u16>(mechanic, 0x218) == at<u16>(message, 8)) {
+        at<u16>(mechanic, 0x218) = 0;
+        Mechanic_SetState(mechanic, nullptr, 0);
+    }
+    Staff_HandleMessage(mechanic, nullptr, message);
+}
+
+void __fastcall Handyman_HandleMessage(u8 *handyman, void *, u8 *message) {
+    if (vcall<u32>(message, 0) == 0xa && at<u16>(handyman, 0x21a) == at<u16>(message, 8)) {
+        const u32 state = at<u32>(handyman, 0x19c);
+        at<u16>(handyman, 0x21a) = 0;
+        if (state == 0xb) Set4_4217f0(handyman + 0xc, nullptr, 3);
+        Handyman_SetState(handyman, nullptr, 0);
+    }
+    Staff_HandleMessage(handyman, nullptr, message);
+}
+
+void __fastcall Guard_HandleMessage(u8 *guard, void *, u8 *message) {
+    if (vcall<u32>(message, 0) == 0x1b && at<u16>(message, 8) == at<u16>(guard, 0x212)) at<u16>(guard, 0x212) = 0;
+    Staff_HandleMessage(guard, nullptr, message);
+}
+
+void __fastcall Staff_HandleMessageDefault(u8 *staff, void *, u8 *message) { Staff_HandleMessage(staff, nullptr, message); }
+
 void __fastcall Researcher_Detach(u8 *researcher) {
     u8 **const game = reinterpret_cast<u8 **>((uintptr_t)0x0080239c);   // (reloaded for each call, as the original does)
     Things_Unlink1da742(*game, nullptr, researcher);

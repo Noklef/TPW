@@ -300,4 +300,15 @@ void __fastcall Handyman_Detach(u8 *handyman);
 // (Things_Unlink1da740), the map's spread record 0 taken back (Map_SpreadRemove on [0x8023a0]) around the map id it last recorded
 // (Sprite_RecordMapId's old +0xcc, the current one recorded); then Staff_Detach.
 void __fastcall Entertainer_Detach(u8 *entertainer);
+// 0x4da0c0 (thiscall (message), pops 4; Thing_HandleMessage's kind 4): a message of type 0xa (its vtable slot 0) for the object the
+// mechanic works on (its word +8 the handle +0x218) clears that handle and sets state 0 (Mechanic_SetState); then Staff_HandleMessage.
+void __fastcall Mechanic_HandleMessage(u8 *mechanic, void *, u8 *message);
+// 0x4d6cf0 (thiscall (message), pops 4; kind 5): as Mechanic_HandleMessage with the handle +0x21a; in state 0xb (+0x19c) the reference's
+// animation (+0xc, Set4_4217f0) 3 first; Handyman_SetState(0); then Staff_HandleMessage.
+void __fastcall Handyman_HandleMessage(u8 *handyman, void *, u8 *message);
+// 0x4d5fb0 (thiscall (message), pops 4; kind 7): a message of type 0x1b (a thing gone) naming the handle +0x212 clears it; then
+// Staff_HandleMessage.
+void __fastcall Guard_HandleMessage(u8 *guard, void *, u8 *message);
+// 0x4d4450 (thiscall (message), pops 4; kinds 6 and 8): Staff_HandleMessage.
+void __fastcall Staff_HandleMessageDefault(u8 *staff, void *, u8 *message);
 }

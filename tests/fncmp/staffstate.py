@@ -24,8 +24,11 @@
 # (a money record, +0x114 set mostly) and +0x1da720 (a record whose +0x1f5a0 and +0x1f7f0 take the wage). 0xa: the state +0x19c 3, 2 or
 # others; in state 3 LeaveRest's surroundings and the world's rest areas (head +0x1da746, next +0xc, flags +0x32 bit 2, cell +0x36): none,
 # or found with navpath.py's person as the staff member (as Head; the destination the area's cell) so that the walk there works.
+# MechMsg / HandyMsg / GuardMsg / DefaultMsg (0x4da0c0, 0x4d6cf0, 0x4d5fb0, 0x4d4450: the kinds' handlers in front of Message): Message's
+# surroundings, the type the handler takes (0xa, 0xa, 0x1b) mostly, the staff member's handle word (+0x218, +0x21a, +0x212) the message's
+# word +8 mostly; HandyMsg's state +0x19c 0xb or others.
 # usage: staffstate.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetState,Mechanic,Handyman,PickUp,Settle,Head,Researcher,LeaveRest,
-#   Message)
+#   Message,MechMsg,HandyMsg,GuardMsg,DefaultMsg)
 import os
 import struct
 import sys
@@ -52,13 +55,17 @@ B = Bench(wctimage.merged(MODES + [
     (0x506300, 0x5064a0), (0x4c9130, 0x4c91d0), (0x4fa530, 0x4fa600), (0x509990, 0x5099d0), (0x516130, 0x5161c0), (0x516330, 0x516380),
     (0x519510, 0x519560), (0x51a280, 0x51a2a0), (0x4d4170, 0x4d41a0), (0x506d10, 0x506e41), (0x55a070, 0x55a100), (0x55a390, 0x55a3e0),
     (0x415e00, 0x415e80), (0x504c70, 0x504dd2), (0x40f440, 0x40f446), (0x40f490, 0x40f496), (0x40f510, 0x40f516), (0x40f920, 0x40f926),
-    (0x506490, 0x5064d4), (0x506910, 0x506a38), (0x5195d0, 0x51960d), (0x4d01f0, 0x4d0259)] + navpath.RANGES), hooks={0x40fb10: _recorder(21, 1)})
+    (0x506490, 0x5064d4), (0x506910, 0x506a38), (0x5195d0, 0x51960d), (0x4d01f0, 0x4d0259),
+    (0x4da0c0, 0x4da10e), (0x4d6cf0, 0x4d6d53), (0x4d5fb0, 0x4d5ff5), (0x4d4450, 0x4d445d)] + navpath.RANGES), hooks={0x40fb10: _recorder(21, 1)})
 STAFF, WORLD, MODE, MODE_VT, HOLDER = RAM + 0x20000, RAM + 0x21000, RAM + 0xc000, RAM + 0xc100, RAM + 0xc200
 RECORD, CELLS = RAM + 0x21400, RAM + 0x50000
 
 
 CALLS = {'SetState': 0x5054d0, 'Mechanic': 0x4da370, 'Handyman': 0x4d7330, 'PickUp': 0x505c50, 'Settle': 0x505f50, 'Head': 0x506300,
-         'Researcher': 0x502c20, 'LeaveRest': 0x506d10, 'Message': 0x504c70}
+         'Researcher': 0x502c20, 'LeaveRest': 0x506d10, 'Message': 0x504c70,
+         'MechMsg': 0x4da0c0, 'HandyMsg': 0x4d6cf0, 'GuardMsg': 0x4d5fb0, 'DefaultMsg': 0x4d4450}
+# the kinds' handlers: (the staff member's handle word, the message type it takes)
+HANDLERS = {'MechMsg': (0x218, 0xa), 'HandyMsg': (0x21a, 0xa), 'GuardMsg': (0x212, 0x1b), 'DefaultMsg': (None, None)}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 TARGET, ITEMS, AREA, RIDES = RAM + 0x38000, RAM + 0x40000, RAM + 0x39000, RAM + 0x3a000
 MSG, MONEY, PAID, RESTS = RAM + 0x3c000, RAM + 0x3d000, RAM + 0x10000, RAM + 0x3e000
@@ -213,6 +220,22 @@ def message(r, regions, staff):
     return Call(0x504c70, [me, MSG], regions, conv='t', ret='v')
 
 
+def kind_message(r, regions, staff, op):
+    """MechMsg / HandyMsg / GuardMsg / DefaultMsg: see the header."""
+    c = message(r, regions, staff)
+    off, kind = HANDLERS[op]
+    me = c.args[0]
+    if off is not None:
+        set_return(c.regions[LOG], 19, r.choice([kind] * 4 + [0xc, 0xa, 0x1b, 9]))
+        person = bytearray(c.regions[me])
+        word = struct.unpack_from('<H', c.regions[MSG], 8)[0]
+        put(person, off, 'H', word if r.random() < 0.8 else r.getrandbits(16))
+        if op == 'HandyMsg':
+            put(person, 0x19c, 'I', r.choice([0xb, 0xb, 0xb, 3, 2, 8, 0]))
+        c.regions[me] = person
+    return Call(CALLS[op], c.args, c.regions, conv='t', ret='v')
+
+
 def case(r):
     op = r.deal(OPS)
     if op == 'Head':
@@ -268,6 +291,8 @@ def case(r):
         return Call(CALLS[op], [STAFF], regions, conv='t', ret='v')
     if op == 'Message':
         return message(r, regions, staff)
+    if op in HANDLERS:
+        return kind_message(r, regions, staff, op)
     if op == 'LeaveRest':
         h = r.randrange(16)
         put(staff, 0x208, 'H', h)
