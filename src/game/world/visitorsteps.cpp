@@ -6,12 +6,15 @@
 #include "../core/globals.h"
 #include "../sprite/script.h"
 #include "../sprite/scriptref.h"
+#include "../sprite/sprite.h"
 #include "analysercell.h"
 #include "mapcell.h"
+#include "object.h"
 #include "objectmsg.h"
 #include "person.h"
 #include "random.h"
 #include "ridelist.h"
+#include "thingmsg.h"
 #include "things.h"
 #include "world.h"
 
@@ -22,7 +25,8 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 
 const VisitorStepsEnv kGameEnv = {&Sprite_WalkNav,       &Sprite_SetDestination, &Sprite_SetDestinationCell,
                                   &Sprite_SpawnParticle, &Thing_Delete,          &Visitor_SetState,
-                                  &Object_BackOfQueueTo, &Object_QueuePosition,  &Object_AnyQueueSpot};
+                                  &Object_BackOfQueueTo, &Object_QueuePosition,  &Object_AnyQueueSpot,
+                                  &Person_PlaceSprite};
 const VisitorStepsEnv *g_env = &kGameEnv;
 
 u8 *world() { return global<u8 *>(0x0080239c); }
@@ -229,4 +233,82 @@ void __fastcall Visitor_StepLeavingPark(u8 *visitor) {
     }
     at<u32>(visitor, 0x188) = 0;
     g_env->setState(visitor, nullptr, 6);
+}
+
+u8 *__fastcall Visitor_Ctor(u8 *visitor, void *, u32 cell) {
+    MovingPerson_Ctor(visitor, nullptr, cell, 1);
+    for (u32 offset = 0x19c; offset <= 0x1bc; offset += 4) at<u32>(visitor, offset) = 0;
+    at<u8>(visitor, 0x1c0) = 0;
+    for (u32 offset = 0x1c4; offset <= 0x1d4; offset += 4) at<u32>(visitor, offset) = 0;
+    at<u16>(visitor, 0x1dc) = 0;
+    at<u16>(visitor, 0x1de) = 0;
+    at<u8>(visitor, 0x1f0) = 0;
+    at<u8>(visitor, 0x1f1) = 0;
+    for (u32 offset = 0x1f4; offset <= 0x21c; offset += 4) at<u32>(visitor, offset) = 0;
+    at<u32>(visitor, 0x220) = 6;
+    at<u32>(visitor, 0x224) = 6;
+    at<u16>(visitor, 0x228) = 0;
+    at<u16>(visitor, 0x22a) = 0;
+    at<u32>(visitor, 0x1d8) = 0;
+    at<u32>(visitor, 0x1d4) = at<u32>(world(), 0x1da70c);
+    // (gBalanceLevel: the exit level and its variance, the peep types' count and table, the cash percentage, the prankery likelihood)
+    at<s32>(visitor, 0x1bc) = global<s32>(0x0078504c);
+    const s32 variance = global<s32>(0x00785050);
+    at<s32>(visitor, 0x1bc) += World_Rand(world()) % (variance * 2) - variance;
+    const s32 type = World_Rand(world()) % global<s32>(0x007851d4);
+    at<u8>(visitor, 0x1f0) = (u8)type;
+    const u32 base = global<u32>(0x007850e8 + 12 * (u32)type);
+    const s32 percent = global<s32>(0x00785054);
+    const s32 roll = World_Rand(world()) % (percent * 2 + 1);
+    const s32 cash = (s32)((u32)(roll - global<s32>(0x00785054) + 100) * base) / 100;   // (imul, wrapping; signed / 100)
+    at<s32>(visitor, 0x1a0) = cash < 0 ? 0 : cash;
+    at<u32>(visitor, 0x19c) = 0x42480000u;   // 50.0f
+    at<float>(visitor, 0x1a4) = (float)(long long)((u32)World_Rand(world()) % 50u);   // (fild qword: the high dword 0)
+    at<float>(visitor, 0x1a8) = (float)(long long)((u32)World_Rand(world()) % 50u);
+    const u32 r30 = (u32)World_Rand(world()) % 30u;
+    at<u32>(visitor, 0x1b4) = 0;
+    at<u32>(visitor, 0x1b0) = 0;
+    at<u32>(visitor, 0x1b8) = 0;
+    at<float>(visitor, 0x1ac) = (float)(long long)r30;
+    World_Rand(world());
+    const u8 prank = (u32)World_Rand(world()) % 100u < global<u32>(0x007850dc) ? 100 : 0;
+    at<u8>(visitor, 0x1c0) = prank;
+    if (prank == 100) at<u8>(visitor, 0x1c0) += (u8)(handleOf(visitor) % 3u);
+    at<u16>(visitor, 0x1dc) = 0;
+    at<u16>(visitor, 0x1de) = 0;
+    at<u16>(visitor, 0x228) = 0;
+    at<u16>(visitor, 0x22a) = 0;
+    at<u8>(visitor, 0x1f1) = 0;
+    at<u32>(visitor, 0x1f8) = 0;
+    at<u32>(visitor, 0x208) = 0;
+    World_SetSeed(world(), nullptr, handleOf(visitor));
+    at<u32>(visitor, 0x24) = 0;
+    at<u32>(visitor, 0x20) = SpriteFolder_RandomSprite(0);
+    ScriptRef_Start(visitor + 0xc, nullptr, 1, at<u32>(visitor, 0x24), at<u32>(visitor, 0x20));
+    at<u16>(visitor, 0xc2) = global<u16>(0x0075c7f2);
+    if (AnalyserCell_TypePlain(visitor) != 0) {
+        at<u32>(visitor, 0x1d8) = World_AddVisitorToDate(world());
+        g_env->setState(visitor, nullptr, 6);
+    } else {
+        const u32 side = (u32)World_Rand(world()) & 1;
+        u16 p;
+        const u16 crossing = *Map_CrossingBSSidePos(map(), nullptr, &p, side);
+        const u32 rx = (u32)World_Rand(world());
+        const u32 index = (u32)crossing - 1;
+        // (x's high half is the stack's in the original; y is built in the cell argument's own slot, so its high half is the argument's)
+        const u32 x = (index & 0x7f) << 8 | (rx & 0xff);
+        const u32 y = (cell & 0xffff0000u) | (index >> 7 & 0xff) << 8 | 0xc8;
+        const u32 walking = g_env->setDestination(visitor, nullptr, (s32)x, (s32)y);
+        g_env->setState(visitor, nullptr, walking ? 0 : 6);
+        g_env->placeSprite(visitor, nullptr, 0.0f);
+        g_env->spawnParticle(visitor, nullptr, 0x13);
+    }
+    at<u32>(visitor, 0x204) = 0;
+    for (u32 i = 0; i < 4; ++i) {
+        at<u16>(visitor, 0x1e0 + 2 * i) = 0;
+        at<u16>(visitor, 0x1e8 + 2 * i) = 0;
+    }
+    u32 msg[3];
+    Object_PostMessage(ThingMsg1c_Ctor(reinterpret_cast<u8 *>(msg), nullptr, handleOf(visitor)));
+    return visitor;
 }

@@ -17,6 +17,7 @@ struct VisitorStepsEnv {
     u16 *(__fastcall *backOfQueueTo)(u8 *object, void *, u16 *out);                       // Object_BackOfQueueTo 0x4de110
     s32(__fastcall *queuePosition)(u8 *object, void *, u32 person);                       // Object_QueuePosition 0x4ddf50
     u32(__fastcall *anyQueueSpot)(u8 *object, void *, u32 place, u16 *cell, u8 *x, u8 *y);  // Object_AnyQueueSpot 0x4de7e0
+    void(__fastcall *placeSprite)(u8 *visitor, void *, float t);                          // Person_PlaceSprite 0x4fa030
 };
 void VisitorSteps_SetEnv(const VisitorStepsEnv *env);
 
@@ -56,4 +57,15 @@ void __fastcall Visitor_StepEntering(u8 *visitor);
 // (AnalyserCell_TypePlain) the visitor stays ("Make up your mind!"); otherwise one step: arrived, state 0x13; stuck (2), it stays too:
 // +0x188 0, state 6. Name invented, unconfirmed.
 void __fastcall Visitor_StepLeavingPark(u8 *visitor);
+
+// 0x4faec0 (thiscall (cell), pops 4; the constructor, its name invented): the moving person (MovingPerson_Ctor (cell, 1)), the visitor's
+// fields 0x19c-0x22a cleared (+0x220 / +0x224 6), +0x1d4 the park's +0x1da70c; the exit level +0x1bc gBalanceLevel's (0x78504c) give or
+// take its variance (0x785050: roll % (2 * var) - var); the type +0x1f0 roll % the type count (0x7851d4), its starting cash (0x7850e8 + 12 *
+// type) give or take the percentage 0x785054 into +0x1a0 (at least 0), happiness +0x19c 50.0, +0x1a4 / +0x1a8 roll % 50, +0x1ac roll % 30;
+// a roll passed over, the prankery byte +0x1c0 100 + handle % 3 when roll % 100 is below 0x7850dc, else 0. The park's random state set to
+// the handle (World_SetSeed), the sprite (+0x20, folder 0) started (ScriptRef_Start 1), the speed +0xc2 [0x75c7f2]; on a plain cell
+// (AnalyserCell_TypePlain) +0x1d8 the visitor count to date and state 6, else the walk to a random crossing (bus stop side) at x a roll's
+// byte, y 0xc8 (state 0, or 6 when it does not start), the sprite placed (0.0) and the particle 0x13; +0x204 and the words +0x1e0-+0x1ee
+// cleared; message 0x1c of its handle posted. Returns the visitor.
+u8 *__fastcall Visitor_Ctor(u8 *visitor, void *, u32 cell);
 }
