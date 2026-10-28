@@ -20,11 +20,13 @@
 #   cellkind.py's Clear world, the cell of type 1 often, 0x818c10 / 0x818c14 about each other, the mode 0x81ae2c 0-4; 0x527ee0 and
 #   0x52f580 (agent A's, unported) cdecl recorders 27 of 3 and 28 of 2 (driver.cpp's kCellMessageEnv).
 # - Run (0x86): trackshape.py's run world (start 1, flash 1 for UpdateA, then UpdateB), the cells' things (animator.py's animator, the
-#   start 1 giving no highlights) half the time, else none; a run that would not stop for either is redrawn. The cell's entry (laid out apart from the run's) of the track types
-#   mostly, with a parent word whose world cell's object chain (0x7cfb90) holds the run's thing (kind 3) after a decoy, or none; the thing's
+#   start 1 giving no highlights) half the time, else none; a run that would not stop for either is redrawn. The cell's entry (laid out
+#   apart from the run's) of the track types mostly, with a parent word whose world cell's object chain (0x7cfb90) holds the run's thing (kind 3) after a decoy, or none; the thing's
 #   +0x2c 0 or not. 0x53afa0 is the thiscall recorder 24 (driver.cpp's kCellRunEnv) for these cases only: the others' ends reset runs it.
 # The messages' bits past the low byte (0x400 and up) any now and then.
-# usage: cellmessage.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Build,Walls,Direction,Owner,Count,EndFlag,Ends,Reset,Link,Model,Kind,DeadEnds,Run)
+# Map_SetRideCell (0x452d30) RideCell and Map_SendLine (0x536100) Line: see ride_cell and line.
+# usage: cellmessage.py [CASES [SEED]] [--wild|--both] [--show N]
+#   (env OPS=Build,Walls,Direction,Owner,Count,EndFlag,Ends,Reset,Link,Model,Kind,DeadEnds,Run,RideCell,Line)
 import os
 import struct
 import sys
@@ -391,7 +393,17 @@ LINE, ENDS = RAM + 0x200000, RAM + 0x1f0000
 def line(r):
     """Map_SendLine: [0x7cf83c]'s map cells along a short line (now and then past the map's edges, or a point), the messages 3 (a
     kind 3 cell's count up, or 0 for an incompatible type and a type 1 end under 0x820ab8), 0x82 (directions from the steps), 0x83 and
-    0x84 (owner and count words)."""
+    0x84 (owner and count words). A third of them: the build check (0x200, cellbuild.py's kinds) along cellbuild.py's 3 x 3 cells, whose
+    answers read 0x820ab8 (so a cell answering 0 must end the line there)."""
+    if r.random() < 0.35:
+        regions, cell = build_world(r, calm=r.random() < 0.5)
+        ident, window = window_of(cell)
+        x, y = (ident - 1) & 0x7f, ((ident - 1) & 0xffff) >> 7
+        d = r.choice([-1, 1])
+        x0, y0, x1, y1 = r.choice([(x - d, y, x + d, y), (x, y - d, x, y + d), (x, y, x + d, y), (x, y, x, y + d), (x - d, y, x, y)])
+        assert lay(regions, ENDS, struct.pack('<2i', x1, y1))
+        kind = r.choice(cellbuild.KINDS)
+        return Call(0x536100, [0x200 | kind, x0 & 0xffffffff, y0 & 0xffffffff, ENDS, ENDS + 4], regions, conv='c', ret='a')
     x0, y0 = (r.choice([r.randrange(128)] * 8 + [-2, 0, 127, 129]) for _ in range(2))
     reach = r.choice([0, 1, 3, 6, 6, 12])
     x1, y1 = (v + r.randrange(-reach, reach + 1) for v in (x0, y0))
