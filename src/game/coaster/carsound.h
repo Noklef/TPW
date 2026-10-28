@@ -29,4 +29,8 @@ void __cdecl CoasterCar_StartSounds(u8 *coaster, u8 *car, u32 quiet);
 // 2 plays the +0x6c sound (neither flag, 0x785a2c 0); bit 4 (neither flag) starts a scream (RSSE_StartScream (0, +0x10 / 2 + 1, 0x4b,
 // 0x4b)) when +0x70 is none and 0x785a2c 0, and sets the flag 0x100.
 void __cdecl CoasterCar_UpdateScream(u8 *link, u8 *car, s32 x, s32 y, s32 z);
+
+// 0x439390 (cdecl; name invented, unconfirmed): every car (+0x128, 0x80 bytes each, as many as +0xf4 counts) of every coaster link of the
+// list 0x790fe0 (next +0x18) gets its sounds started (CoasterCar_StartSounds (link, car, 0)).
+void __cdecl CoasterCars_StartAllSounds();
 }
