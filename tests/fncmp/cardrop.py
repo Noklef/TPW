@@ -66,6 +66,8 @@ def case(r):
         put(hold, o + 0x20 + 4, 'I', HOLD + o + 0x40)
         put(hold, o + 0x40 + 0x78, 'I', HOLD + o + 0xb0)
         r.floats(hold, [o + 0xb0 + 0x44])
+        if r.random() < 0.1:
+            put(hold, o + 0xb0 + 0x44, 'I', 0x7f800001 | r.getrandbits(22) | (r.getrandbits(1) << 31))   # (a signalling NaN)
     mp = bytearray(r.bytes(0x100))
     put(mp, 0x6c, 'I', MAP + 0x80)
     put(mp, 0x80 + 0x18, 'I', r.choice([width, r.randrange(1, 300)]))
