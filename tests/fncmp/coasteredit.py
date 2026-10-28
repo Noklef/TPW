@@ -6,8 +6,9 @@
 # SetState's own cases are coasterstate.py's). The action recorder (0x785a08) writing or not. Edit (EditRide (object, on)): Enter's world
 # with the coaster on the link list (0x790fe0, by +0x18) under the object's ride id (+0x20) or not (no object now and then), on; or
 # Leave's world, off; 0x785a2c set now and then. ById (0x447da0 CoasterEdit_SetEditingById (id)): Enter's world with the coaster on the
-# link list, its id or a missing one; or Leave's world with a list and the id 0. At (0x447dd0 CoasterEdit_SetEditingAt (index)): Enter's
-# world, the coaster at its index (1-3) of the table 0x790bd0; or Leave's world and the index 0.
+# link list, its id or a missing one; or Leave's world with a list, or Enter's with the coaster's link of id 0, and the id 0. At
+# (0x447dd0 CoasterEdit_SetEditingAt (index)): Enter's world, the coaster at its index (1-3) of the table 0x790bd0; or Leave's world and
+# the index 0 (SetEditing (coaster, 0), (none, 0) and (none, 1) all leave alike).
 # usage: coasteredit.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Leave,Close,Enter,Edit,ById,At)
 import os
 import sys
@@ -110,8 +111,11 @@ def case(r):
         return Call(0x447520, [COAST, r.choice([1, 1, r.getrandbits(32) | 1])], enter(r), ret='v')
     on = r.deal([1, 0])
     if op == 'ById':
-        regions = enter(r) if on else leave(r)
-        rid = links(r, regions, COAST if on else None)
+        zero = not on and r.random() < 0.4   # (a link of id 0, the coaster on Enter's world: found, and left)
+        regions = enter(r) if on or zero else leave(r)
+        rid = links(r, regions, COAST if on or zero else None)
+        if zero:
+            regions[COAST] = put(bytearray(regions[COAST]), 0x10, 'I', 0)
         if on and rid == 60:
             regions[0x790fec] = bytes(4)   # (no coaster: SetEditing (none, 1) leaves, with no game)
         return Call(0x447da0, [rid if on else 0], regions, ret='v')
