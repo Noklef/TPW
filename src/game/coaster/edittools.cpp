@@ -30,7 +30,10 @@ const u8 *Type(const u8 *piece) { return at<const u8 *>(Def(piece), 0x18); }
 ActionRec *Recorder() { return reinterpret_cast<ActionRec *>(0x00785a08); }
 void ClearChanged() { at<u32>(g<u8 *>(0x00790fec), 0) &= ~0x2000u; }
 
-const EditToolsEnv kPortEnv = {&Coaster_DeleteCar, &Coaster_DeleteFlaggedEnd, &Coaster_SetState, &MouseMode_EnterTile15};
+const EditToolsEnv kPortEnv = {&Coaster_DeleteCar,           &Coaster_DeleteFlaggedEnd,       &Coaster_SetState,
+                               &MouseMode_EnterTile15,       &CoasterEdit_ToggleAdjustF8,     &CoasterEdit_ToggleAdjustAngles,
+                               &CoasterEdit_ToggleDrag,      &CoasterEdit_ToggleAdjustE0,     &CoasterEdit_MoveCarBack,
+                               &CoasterEdit_MoveCarForward,  &CoasterEdit_DeleteSpan,         &CoasterEdit_SelectPiece};
 const EditToolsEnv *g_env = &kPortEnv;
 
 // The current link's end car (+0x58 without +0x3c flag 1, +0x60 with flags 1 and 2, else none) when its +4 byte has flag 2: whether that
@@ -795,6 +798,62 @@ void __cdecl CoasterEdit_DeleteSpan() {
     CoasterEdit_SetBounds();
     g_env->setState(g<u8 *>(0x00790fec), 1);
     g_env->enterTile15();
+}
+
+u32 __cdecl CoasterEdit_Click(u32 press) {
+    if (g<u32>(0x00785a2c)) return 0;
+    const u32 ride = static_cast<u32>(reinterpret_cast<uintptr_t>(Highlight_Current()));
+    const u8 flags = g<u8>(0x0079c658);
+    const auto find = [ride]() {   // (the car under the cursor, to 0x79c640; sic: with no link this faults)
+        u8 *const car = CoasterLink_FindCarOnRide(ride);
+        g<u8 *>(0x0079c640) = car;
+        return car;
+    };
+    switch (g<u8>(0x0079c624)) {
+    case 2:
+        if (!press || g<u32>(0x007a1c7c)) return 0;
+        return g_env->selectPiece(find());
+    case 4: {
+        if (press ? (flags & 4) : !(flags & 4)) return 0;
+        u8 *const car = press ? find() : Piece();
+        const u8 *const game = g<u8 *>(0x00790fec);
+        if (!game || !at<u32>(game, 0x40) || !car || (at<u8>(Def(car), 4) & 2)) return 0;
+        if (at<u8>(car, 8) & 0x40)
+            g_env->toggleAdjustF8();
+        else
+            g_env->toggleAdjustAngles();
+        return 0;
+    }
+    case 8:
+        if (press && !(flags & 1))
+            find();
+        else if (press || !(flags & 1))
+            return 0;
+        g_env->toggleDrag();
+        return 0;
+    case 0x10:
+        if (press ? (flags & 2) : !(flags & 2)) return 0;
+        if (press) find();
+        g_env->toggleAdjustE0();
+        return 0;
+    case 0x20:
+        if (press) return 0;
+        find();
+        g_env->moveCarBack();
+        return 0;
+    case 0x40:
+        if (press) return 0;
+        find();
+        g_env->moveCarForward();
+        return 0;
+    case 0x80:
+        if (press) return 0;
+        find();
+        g_env->deleteSpan();
+        return 0;
+    default:
+        return 0;
+    }
 }
 }
 

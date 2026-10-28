@@ -20,6 +20,14 @@ struct EditToolsEnv {
     void(__cdecl *deleteFlaggedEnd)(u8 *owner);      // Coaster_DeleteFlaggedEnd (0x435530)
     void(__cdecl *setState)(u8 *coaster, u32 value); // Coaster_SetState (0x435730)
     void(__cdecl *enterTile15)();                    // MouseMode_EnterTile15 (0x497d20)
+    u32(__cdecl *toggleAdjustF8)();                  // CoasterEdit_ToggleAdjustF8 (0x441cd0)
+    u32(__cdecl *toggleAdjustAngles)();              // CoasterEdit_ToggleAdjustAngles (0x442010)
+    u32(__cdecl *toggleDrag)();                      // CoasterEdit_ToggleDrag (0x441a00)
+    u32(__cdecl *toggleAdjustE0)();                  // CoasterEdit_ToggleAdjustE0 (0x441e80)
+    void(__cdecl *moveCarBack)();                    // CoasterEdit_MoveCarBack (0x4423f0)
+    void(__cdecl *moveCarForward)();                 // CoasterEdit_MoveCarForward (0x4425c0)
+    void(__cdecl *deleteSpan)();                     // CoasterEdit_DeleteSpan (0x446740)
+    u32(__cdecl *selectPiece)(u8 *piece);            // CoasterEdit_SelectPiece (0x446d50)
 };
 // The calls go to env (nullptr: the ports).
 void EditTools_SetEnv(const EditToolsEnv *env);
@@ -165,4 +173,14 @@ void __cdecl CoasterEdit_DeleteLastCar();
 // CoasterEdit_SetMode (1), CoasterEdit_SetTool (1) and tool 1 chosen; CoasterEdit_Tools (0), the 0x7ca1c8 dialog told 0x79c6e0 / 0x79c638,
 // CoasterEdit_SetBounds, Coaster_SetState (link, 1) and MouseMode_EnterTile15 (EditToolsEnv).
 void __cdecl CoasterEdit_DeleteSpan();
+
+// 0x446300 (cdecl; name invented, unconfirmed): a click (press nonzero) or release in the coaster editor, by the tool in use (0x79c624's
+// low byte), unless 0x785a2c. The car under the cursor is CoasterLink_FindCarOnRide (Highlight_Current); where a tool takes it, it goes to
+// 0x79c640. Tool 2, a press without 0x7a1c7c: that car selected (CoasterEdit_SelectPiece, whose result is returned). Tool 4, a press
+// without 0x79c658 flag 4 (the car found) or a release with it (0x79c640 kept): with a link whose +0x40 is set and a car whose train's
+// (+0x100) +4 byte lacks flag 2, CoasterEdit_ToggleAdjustF8 for a car with +8 flag 0x40, else CoasterEdit_ToggleAdjustAngles. Tool 8: a
+// press without flag 1 (the car found) or a release with it, CoasterEdit_ToggleDrag. Tool 0x10: the same by flag 2, CoasterEdit_ToggleAdjustE0.
+// Tools 0x20 / 0x40 / 0x80, a release: the car found, CoasterEdit_MoveCarBack / CoasterEdit_MoveCarForward / CoasterEdit_DeleteSpan. The
+// tools go through EditToolsEnv. Returns 0 otherwise. (sic: with no link, a find faults.)
+u32 __cdecl CoasterEdit_Click(u32 press);
 }
