@@ -4376,6 +4376,10 @@ address,name,kind,confidence,notes
 0x004d9620,Litter_Remove,function,high,reimplemented (src/game/world/litter); takes a piece of litter off its cell
 0x004f2b40,WStringMap_Find,function,high,reimplemented (src/game/core/wstringmap); a wide string map lookup
 0x004f2ad0,WStringMap_EraseKey,function,high,"reimplemented (src/game/core/wstringmap); thiscall (key, pops 4): erase(key): the nodes from the lower to the upper bound counted and erased (tree D's range erase); returns the count"
+0x004f65b0,ChatIgnoreSet_LowerBound,function,low,"reimplemented (src/game/core/wstringmap); thiscall (key), pops 4; lower bound over a case-insensitive wide string set, sentinel 0x7ced34 (name invented)"
+0x004f6270,ChatBuddySet_LowerBound,function,low,"reimplemented (src/game/core/wstringmap); thiscall (key), pops 4; lower bound over a case-insensitive wide string set, sentinel 0x7ced2c (name invented)"
+0x004f03c0,ChatIgnoreSet_Find,function,low,"reimplemented (src/game/core/wstringmap); thiscall (out, key), pops 8; find over the 0x7ced34 set: the lower bound unless the head or the key sorts before it (name invented)"
+0x004f2770,ChatBuddySet_Find,function,low,"reimplemented (src/game/core/wstringmap); thiscall (out, key), pops 8; find over the 0x7ced2c set: the lower bound unless the head or the key sorts before it (name invented)"
 0x004de130,Object_BackOfQueue,function,high,reimplemented (src/game/world/objectmsg); the back of a queue found by walking neighbours
 0x0041e270,Class6fda58_DtorA,function,high,"reimplemented (src/game/core/class6fd9d8); complete destructor, handle at +0x40"
 0x0041e2d0,Class6fda58_DtorB,function,high,"reimplemented (src/game/core/class6fd9d8); complete destructor, handle at +0x40"
