@@ -264,7 +264,7 @@ address,name,kind,confidence,notes
 0x00512880,Weather_Update,function,medium,Thing_Update case 15
 0x005127a0,Weather_HandleMessage,function,high,"reimplemented (src/game/world/weather); thiscall (message), pops 4: kind 1 sets the intensity (unless +0x64), kind 2 schedules +0x20 = now + days, +0x28 the value, +0x18 now"
 0x00512000,Weather_Detach,function,low,"reimplemented (src/game/world/weather); thiscall: Thing_Detach, then the renderer's ([0x8bcbac]) textures freed (WeatherFx_FreeTextures); returns 1"
-0x004d02d0,BankAccount_HandleMessage,function,high,Thing_HandleMessage case 16
+0x004d02d0,BankAccount_HandleMessage,function,high,"reimplemented (src/game/world/money); the money record's messages: 0xc the month's end, 0xd the total zeroed, 0x13 (2) the game lost (BankAccountEnv) or (0xa) the balance reset"
 0x0050ca50,UIMsgReceiver_HandleMessage,function,high,Thing_HandleMessage case 17
 0x004f7c50,Stub_Ret4b,function,high,reimplemented (src/game/core/accessors); a virtual that does nothing (pops 4)
 0x004d2860,Slots_OnEvent,function,low,"reimplemented (src/game/world/object); thiscall (event), pops 4: by the event type (its slot 0): 0x1a Slots_AddIfMatch with its id, amount and kind word; 0x11 with +0xc 0 AddIfMatch(0x10, 1); 0xb on the selected slot by its id 0x18 / 0x19 / 0x1b the park averages added"
@@ -2983,6 +2983,7 @@ address,name,kind,confidence,notes
 0x004d0a00,Money_TotalOwed,function,low,reimplemented (src/game/world/money); thiscall: the eight loans amounts owed added up
 0x004d06b0,Money_LoanOffer,function,low,"reimplemented (src/game/world/money); thiscall (out, index): the loan offer flagged by whether its amount is within the park score less what is owed, copied out"
 0x004d0810,Money_AnyLoanOffer,function,low,"reimplemented (src/game/world/money); thiscall; 1 when any of the 8 loan offers (Money_LoanOffer) has its +0x14 clear and its first dword set, else 0"
+0x004d0370,Money_MonthEnd,function,low,"reimplemented (src/game/world/money); the month's end: pending income credited, the taken loans' rates debited and months counted (paid-up ones cleared), message 0x13 (2) after 6 months in the red"
 0x00458310,Obj_CtorVirtual,function,high,reimplemented (src/game/render/lightsource); a class with a virtual base: vtables and the offset word
 0x004583d0,Obj_SetVectorAt2c,function,high,"reimplemented (src/game/render/lightsource); the scene flags touched, then three dwords at +0x2c"
 0x005651c0,Class701260_Ctor,function,high,"reimplemented (src/game/render/device); vtable 0x701260 and its defaults, plus a driver quirk flag"

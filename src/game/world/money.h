@@ -58,4 +58,24 @@ u32 __fastcall Money_Total(const u8 *money);
 // world's funny time span since the time it went below (+0x120, the world's ticks then; FunnyTime_SpanSince). Returns out.
 FileTime *__fastcall Money_TimeInRed(const u8 *money, void *edx, FileTime *out);
 
+// 0x4d0370 (thiscall; name invented): the month's end. The income pending at +0x10 is credited (as Money_Credit) and cleared; each of the
+// eight loans taken (as Money_LoanOwed reads them: +0x28 set) pays its rate +0x24 (as Money_Debit) and a month (+0x2c), the total +0x124
+// gaining rate - (rate * term - amount +0x18) / term (unsigned; not when the term, the next record's first dword, is 0), and a loan paid up
+// (months == term) is cleared (+0x28 and +0x2c = 0). Then, the balance +0xc below 0, when it has been in the red (Money_TimeInRed) for 6
+// or more months of 30 days (the quotient's low dword, signed), message 0x13 (2) is posted (Object_PostMessage). (The original has those
+// three inline, and its debug prints are not reproduced.)
+void __fastcall Money_MonthEnd(u8 *money);
+
+// BankAccount_HandleMessage's call into agent A's unported 0x5168f0 (thiscall on the game object [0x7cf83c]: the game lost; mode
+// +0x1da738 = 4). The game's by default; the fncmp driver points it at a recorder.
+struct BankAccountEnv {
+    void(__fastcall *gameOver)(u8 *game);
+};
+void BankAccount_SetEnv(const BankAccountEnv *env);
+
+// 0x4d02d0 (thiscall (message), pops 4): the money record's messages, by the message's type (its vtable's first function): 0xc the month's
+// end (Money_MonthEnd); 0xd the total +0x124 zeroed; 0x13 with +8 2 the game lost (BankAccountEnv) unless the game object's mode
+// +0x1da738 is 4 already or the word 0x7cf4f4 is set, with +8 0xa the balance +0xc = the starting money 0x7851d8 and +0x10 = 0.
+void __fastcall BankAccount_HandleMessage(u8 *money, void *, u8 *message);
+
 }  // extern "C"
