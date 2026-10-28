@@ -12,6 +12,7 @@
 #include "../core/savegame.h"
 #include "../files/file.h"
 #include "../sprite/script.h"
+#include "../sprite/scriptref.h"
 #include "../sprite/sprite.h"
 #include "advisor.h"
 #include "analyser.h"
@@ -23,6 +24,7 @@
 #include "objectdefs.h"
 #include "objectmsg.h"
 #include "person.h"
+#include "queuepieces.h"
 #include "random.h"
 #include "research.h"
 #include "rides.h"
@@ -392,5 +394,25 @@ void __cdecl ThingsToDelete_AtExit() {
 
 u32 __fastcall ThingBasic_Serialize(u8 *thing, void *, Stream *stream, u32 save, s32 version, u32 unused) {
     return Thing_Serialize(thing, nullptr, stream, save, version, unused) != 0 ? 1 : 0;
+}
+
+void __fastcall Things_ReleaseAll(u8 *) {
+    const ThingSlot *const first = used();
+    u16 handle = first ? (u16)first->id : 0;
+    while (handle) {
+        // (Debug_Printf of whether slot 0's thing is null: empty)
+        u8 *const thing = static_cast<u8 *>(slots()[handle].thing);
+        if (thing && thing[3] == 0) {
+            const u8 kind = thing[2];
+            if (kind == 1 || kind == 4 || kind == 5 || kind == 6 || kind == 8 || kind == 7 || kind == 0x12) {
+                if (at<u32>(thing, 0xc) != 0) Obj_KillSlot(thing + 0xc);
+            } else if (kind == 3) {
+                QueuePiece_Remove(at<u32>(thing, 0x20));
+            }
+        }
+        u16 out;
+        const ThingSlot *const next = slots()[*Thing_GetHandle(thing, nullptr, &out)].next;
+        handle = next ? (u16)next->id : 0;
+    }
 }
 }  // extern "C"

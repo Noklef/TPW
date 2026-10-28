@@ -4399,6 +4399,7 @@ address,name,kind,confidence,notes
 0x004f7e20,Thing_ResetPlaceAt,function,high,"reimplemented (src/game/world/things); thiscall (x, y, pops 8): +0x39c = 0, +0x10 = 3 (Set4_4217f0 on +0xc), then Thing_PlaceAt(x, y)"
 0x005153c0,ThingsToDelete_AtExit,function,low,"reimplemented (src/game/world/things); cdecl: the delete queue's atexit entry, its nodes freed once"
 0x0050b980,Thing_Detach,function,low,"reimplemented (src/game/world/things); thiscall: unlinked from its map cell's chain, a ride destroyed (Ride_Destroy through the env), 0x877350 cleared when it is the thing (kinds 1, 4-8, 0x12), erased from the message centre; returns the count erased"
+0x005191e0,Things_ReleaseAll,function,low,"reimplemented (src/game/world/things); thiscall (ECX not read): the things in use: kinds 1, 4-8, 0x12 their script slot +0xc killed, kind 3 its ride +0x20 destroyed"
 0x00565310,DrawBatch_Open,function,high,reimplemented (src/game/render/drawbuffer); a draw batch resumed and tagged
 0x0057b070,Object_ReleaseSavedPairs,function,high,reimplemented (src/game/core/vobj2); saved pairs written back and their arrays freed
 0x0057b5b0,Object_FreeBlock13c,function,low,reimplemented (src/game/core/vobj2); thiscall: the tracked block at +0x13c freed after its texture at +0x18 is released twice (sic) and freed (name unconfirmed)

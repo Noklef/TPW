@@ -175,4 +175,10 @@ u32 __fastcall Thing_Detach(u8 *thing);
 // game's addresses in game); 2, 0x13 and others only the original's debug prints. Then +3 = 1, the handle queued for deletion
 // (World_QueueDelete) and the kind +2 = 2.
 void __fastcall Thing_Delete(u8 *thing);
+
+// 0x5191e0 (thiscall on the thing world [0x7cf83c], not read; called by 0x41504a; name invented, unconfirmed): the things in use walked
+// from [0x7cf56c] (each next one the word +4 of the slot +8 of the slot of the thing's own handle, Thing_GetHandle): a thing not being
+// deleted (+3 0) of kind 1, 4-8 or 0x12 has its script slot +0xc killed when set (Obj_KillSlot); of kind 3 its ride +0x20 destroyed
+// (Ride_Destroy, through QueuePiece_Remove's env).
+void __fastcall Things_ReleaseAll(u8 *world);
 }  // extern "C"
