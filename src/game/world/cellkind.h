@@ -61,6 +61,12 @@ u32 __fastcall MapCell_SetTrackKind(u8 *cell, void *, u32 kind);
 // (MapCell_SetTrackKind), the owner 0 (MapCell_SetParent).
 void __fastcall TrackCell_ClearBlock(u8 *cell);
 
+// 0x53af00 (fastcall; name invented, unconfirmed): a track cell reset: its kind 0 on park land (Terrain_IsParkLand of its id's x, y),
+// else 7 (MapCell_SetTrackKind); all its neighbours dropped (MapCell_RemoveNeighbours 0xff) without, then with 0x81b4cc set (the
+// hoarding neighbours; the byte cleared after); direction 0 (MapCell_SetDirection), flags (+0xe) 0, owner 0 (MapCell_SetParent); +4,
+// the count +0x20 and +0x14-+0x1f cleared, +0x24 0xffff.
+void __fastcall TrackCell_Reset(u8 *cell);
+
 // 0x53b280 (thiscall (a, b, models), pops 0xc; name invented, unconfirmed): a line cell (the world's 0x28-byte cells, [0x7cf83c] +
 // 0x1102b0 + id * 0x28) removed. The price: 0x81aebc for kind 0xb, 0x81b43c for 0x10. A cell of kind 0xc or 0x11 removes its owner's
 // cell (+0x10) instead (a, b, models 1). Else the line's start and end ids (0x7639e0 / 0x7639e4, 0x7639e8 / 0x7639ec, 0 when out of the

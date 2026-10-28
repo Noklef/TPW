@@ -10,7 +10,8 @@
 # set or not, the prices 0x81b6dc / 0x81ea14 about the money's balance, the counter 0x7cdb98 and the cell's block value.
 # SetKind: kinds 0, 1, 3, 4, 9, 0x15, the cell's own or any on cells of those types (kind 1 on a type 3 cell and kind 3 on a type 1 one
 # often). Clear: the cell's type 1, 0xa, 3, 9, 4, 0x15 or others, its flag 0x20 set or not, its count +0x20 about 0, a and b 0 or not.
-# usage: cellkind.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetKind,Clear)
+# Reset (0x53af00 TrackCell_Reset): SetTrack's world and ClearBlock's track cells about the cell, 0x81b4cc set or not.
+# usage: cellkind.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetKind,Clear,SetTrack,ClearBlock,Reset)
 import os
 import struct
 import sys
@@ -31,12 +32,12 @@ if _ops is not None:
 W1, W2, G = pathmodel.W1, pathmodel.W2, pathmodel.G
 objects.OBJ, objects.ITEMS, objects.WORLD, objects.OPS = RAM + 0x50000, RAM + 0x50400, W2, ['Scrap']
 MONEY, DECOYS, PARK, TRACK = RAM + 0x54000, RAM + 0x55000, RAM + 0x60000, RAM + 0x56000
-CALLS = {'SetKind': 0x5346d0, 'Clear': 0x5367a0, 'SetTrack': 0x538fc0, 'ClearBlock': 0x53bb20}
+CALLS = {'SetKind': 0x5346d0, 'Clear': 0x5367a0, 'SetTrack': 0x538fc0, 'ClearBlock': 0x53bb20, 'Reset': 0x53af00}
 RANGES = (pathapply.merged(pathapply.RANGES + objects.RANGES + money.RANGES +
                            [(0x5346d0, 0x5348c5), (0x5367a0, 0x536c0d), (0x522730, 0x522800), (0x522810, 0x522860), (0x4d8c00, 0x4d8cb0),
                             (0x4d97e0, 0x4d9a70), (0x539210, 0x539230), (0x52fb20, 0x52fb60), (0x5195d0, 0x519620), (0x535600, 0x535680),
                             (0x6ad810, 0x6ad830), (0x538fc0, 0x539202), (0x53bb20, 0x53bc55), (0x52fb60, 0x52fba0), (0x4d0af0, 0x4d0b40),
-                            (0x4d96f0, 0x4d97e0), (0x50c320, 0x50c3f0)]))
+                            (0x4d96f0, 0x4d97e0), (0x50c320, 0x50c3f0), (0x53af00, 0x53af96)]))
 HOOKS = {**pathapply.HOOKS, 0x4de1f0: _recorder(26, 0)}
 B = Bench(RANGES, sines=256, hooks=HOOKS)
 DIAGONALS = {0x10: (-1, 1), 0x18: (1, 1), 0x20: (-1, -1), 0x38: (1, -1)}   # (0x20, 8, 0x80, 2's pairs)
@@ -119,12 +120,14 @@ def track_case(r, op, regions, h, owners, clear):
     x, y = (h - 1) & 0x7f, (h - 1) >> 7
     regions.update({0x81aebc: struct.pack('<I', r.choice([0, 1, 50, 100, 0x80000000, r.getrandbits(32)])), 0x820ad0: struct.pack('<I', r.choice([0, 1, 1])),
                     0x81b43c: struct.pack('<I', r.choice([0, 1, 50, 100, 0x80000000, r.getrandbits(32)]))})
-    if op == 'ClearBlock':
+    if op in ('ClearBlock', 'Reset'):
         for dy in (-1, 0, 1):
             if 0 <= y + dy < 128:
                 x0, x1 = max(0, x - 1), min(127, x + 1)
                 regions[W2 + 0x1102b0 + ident(x0, y + dy) * 0x28] = b''.join(track_cell(r, ident(xx, y + dy)) for xx in range(x0, x1 + 1))
         regions[TRACK] = track_cell(r, h)
+        if op == 'Reset':
+            regions[0x81b4cc] = bytes([r.choice([0, 0, 1])])
         return Call(CALLS[op], [TRACK], regions, conv='t', ret='v')
     here = bytearray(r.bytes(0x44))
     put(here, 0, 'H', h)
@@ -163,7 +166,7 @@ def case(r):
     for at, d in DIAGONALS.items():
         struct.pack_into('<ii', pairs, at, *(d if r.random() < 0.95 else (r.randrange(-1, 2), r.randrange(-1, 2))))
     regions[0x7cdba0] = pairs
-    if op == 'SetTrack':   # (the cells east, south-east and south of the map cell 1 or 0 in half the cases)
+    if op in ('SetTrack', 'Reset'):   # (the cells east, south-east and south of the map cell 1 or 0 in half the cases)
         clear = r.random() < 0.5
         patch(r, regions, x, y, owners, 3, {d: r.choice([1, 1, 0]) for d in ((1, 0), (1, 1), (0, 1))} if clear else None)
     else:
@@ -176,8 +179,8 @@ def case(r):
         regions[W1 + 0x2d8 + 0x1b0000 + block(h) * 4] = r.bytes(4)
     put(cell, 0x10, 'H', r.choice(owners))
     put(cell, 0x20, 'h', r.choice([-1, 0, 1, 2, r.getrandbits(16) - 0x8000]))
-    if op in ('SetTrack', 'ClearBlock'):
-        return track_case(r, op, regions, h, owners, op == 'SetTrack' and clear)
+    if op in ('SetTrack', 'ClearBlock', 'Reset'):
+        return track_case(r, op, regions, h, owners, op in ('SetTrack', 'Reset') and clear)
     if op == 'SetKind':
         mine = r.choice([0, 1, 1, 3, 3, 4, 9, 0xa, 0x15, 2, r.randrange(0x20)])
         kind = r.choice([0, 1, 1, 3, 3, 4, 9, 0x15, mine, mine, r.randrange(0x20), r.getrandbits(32)])
