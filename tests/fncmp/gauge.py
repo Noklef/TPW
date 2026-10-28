@@ -7,7 +7,7 @@
 # original's step as the stack lies), none or negative; the labels' wide text narrowed through a table of the digits (each a lead byte,
 # so a label of one or two digits is one record) or, for 144 columns (labels of three digits), the global buffer's bytes as the case
 # writes them (no table); each label's record masked as guitext.py's one (its block: every label's layout allocates three). InWindow
-# (0x480810): see in_window().
+# (0x480810): see in_window(). The statistics graph's redraw (0x49b520): see redraw().
 # usage: gauge.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -17,8 +17,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import crt  # noqa: E402
 import guitext  # noqa: E402
+import statsgraph  # noqa: E402
 import textlayout as tl  # noqa: E402
-from fncmp import HEAP, LOG, LOG_BYTES, Bench, Call, Mask, RAM, blob, fill, heap, log_region, put, recorder, set_return, strings, vtable  # noqa: E402
+from fncmp import HEAP, LOG, LOG_BYTES, Bench, Call, Mask, RAM, _recorder, blob, fill, heap, log_region, put, recorder, set_return, strings, vtable  # noqa: E402
 
 
 def merged(ranges):   # (overlapping ranges joined: a listing line must not come twice)
@@ -37,11 +38,14 @@ RANGES = merged([(0x47faa0, 0x47fbf3),  # 0x47fbe0's ret 8 is at 0x47fbf0
                   (0x61c490, 0x61c630), (0x61eed0, 0x61f0a0), (0x62f810, 0x62f890), (0x62f890, 0x62f8d0), (0x62f940, 0x62f980),
                   (0x4806a0, 0x480810), (0x5f73a0, 0x5f76b7),
                   (0x480810, 0x4808ec), (0x4925d0, 0x492660), (0x5f9a80, 0x5f9da0), (0x61af60, 0x61b040), (0x61b090, 0x61b140),
-                  (0x62f890, 0x62f8e0), (0x62f940, 0x62f990), (0x65d6db, 0x65d727), (0x65d745, 0x65d783)] + guitext.RANGES)
-B = Bench(RANGES, hooks={0x67af00: crt.swprintf_hook})
+                  (0x62f890, 0x62f8e0), (0x62f940, 0x62f990), (0x65d6db, 0x65d727), (0x65d745, 0x65d783),
+                  (0x49b520, 0x49b569), (0x65d7bc, 0x65d832), (0x49a7b0, 0x49a8e6), (0x49a8f0, 0x49aa26), (0x519510, 0x519550),
+                  (0x4801d0, 0x480390), (0x480380, 0x480456), (0x5da3c0, 0x5da3c1)] + guitext.RANGES)
+B = Bench(RANGES, hooks={0x67af00: crt.swprintf_hook, 0x49aa30: _recorder(22, 1, cdecl=True)})
 CALLS = {'Init': (0x47faa0, 0), 'MarksX': (0x47fb10, 3), 'MarksY': (0x47fb30, 3), 'Rect': (0x47fb50, 4),
          'Colour0': (0x47fb80, 2), 'Colour1': (0x47fba0, 2), 'Colour2': (0x47fbc0, 2), 'Colour3': (0x47fbe0, 2),
-         'DrawBack': (0x47fc00, 0), 'DrawAxes': (0x47fc50, 0), 'Setup': (0x4806a0, 6), 'Grid': (0x47fcd0, 0), 'InWindow': (0x480810, 3)}
+         'DrawBack': (0x47fc00, 0), 'DrawAxes': (0x47fc50, 0), 'Setup': (0x4806a0, 6), 'Grid': (0x47fcd0, 0), 'InWindow': (0x480810, 3),
+         'Redraw': (0x49b520, 0)}
 WINDOW, IMPL, IMPL_VT = RAM + 0x4200, RAM + 0x4300, RAM + 0x4340   # (InWindow's window, its surface object and that one's vtable)
 FORMAT = 0x8bd554   # (the current format's index, then its records of 32 bytes)
 GRID, NARROWER, SEGMENT = RAM + 0x4000, RAM + 0x4100, RAM + 0x4140   # the grid's gauge, the narrowing table and its one segment
@@ -160,8 +164,32 @@ def in_window(r):
     return Call(0x480810, [WINDOW, GRID, after], regions, ret='a', masks=c.masks, ignore=[(guitext.STATE + 0x30, 4)])
 
 
+def redraw(r):
+    """Redraw (0x49b520): in_window()'s world, its gauge at 0x7ca250 and its window the child 0x12272 (+0x8c) of the dialog [0x7ca2e8]
+    (none now and then), after 0-2 decoys; statsgraph.py's record and lines for the least and greatest sample; the lines' draw 0x49aa30 a
+    cdecl recorder (k 22)."""
+    c = in_window(r)
+    regions = dict(c.regions)
+    regions[0x7ca250] = regions.pop(GRID)
+    sg = statsgraph.case(r, 'Max')
+    regions.update(sg.regions)
+    parent = put(bytearray(r.bytes(0x60)), 0x5c, 'I', WINDOW)
+    put(regions[WINDOW], 0x54, 'I', 0)
+    put(regions[WINDOW], 0x8c, 'I', 0x12272)
+    for k in range(r.choice([0, 0, 1, 2])):
+        decoy = RAM + 0x4500 + 0x100 * k
+        first = struct.unpack_from('<I', parent, 0x5c)[0]
+        regions[decoy] = put(put(bytearray(r.bytes(0x90)), 0x54, 'I', first), 0x8c, 'I', r.choice([0x12271, 0x12273, 0x2272, r.getrandbits(32)]))
+        put(parent, 0x5c, 'I', decoy)
+    regions[RAM + 0x4400] = parent
+    regions[0x7ca2e8] = struct.pack('<I', r.choice([RAM + 0x4400] * 9 + [0]))
+    return Call(0x49b520, [], regions, ret='v', masks=c.masks, ignore=[(guitext.STATE + 0x30, 4)])
+
+
 def case(r):
     op = r.deal(OPS)
+    if op == 'Redraw':
+        return redraw(r)
     at, n = CALLS[op]
     if op == 'Grid':
         return grid(r)

@@ -35,14 +35,14 @@ def circbuf(r):
     return bytes(buf)
 
 
-def case(r):
+def case(r, op=None):
     index = r.randrange(4)
     table = bytearray(r.bytes(0x50))
     put(table, 20 * index, 'I', RECORD)
     regions = {GAME + 0x1da720: struct.pack('<H', index) + r.bytes(2), 0x7cf83c: struct.pack('<I', GAME), 0x7cfb90: bytes(table),
                0x751fa0: bytes([r.choice([0, 1, 0x80, 0xff, r.getrandbits(8), r.getrandbits(8)])]) + r.bytes(3),
                0x7ca2ec: struct.pack('<I', r.choice([0, 1, 2, 3]))}
-    op = r.deal(OPS)
+    op = op or r.deal(OPS)
     if op == 'Max2':
         regions[0x753c48] = bytes([r.choice([0, 1, 2, 0x1f, 0xff, r.getrandbits(8), r.getrandbits(8)])]) + r.bytes(3)
         regions[0x7cb39c] = struct.pack('<I', r.choice([0, 1, 2, 3]))
