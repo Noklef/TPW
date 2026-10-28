@@ -5,8 +5,10 @@
 # case as the coaster's object (+0x28), no game mostly; the coaster's state any but 4 / 8, its +0x3c bits 0 / 1 either, no cars (Coaster_
 # SetState's own cases are coasterstate.py's). The action recorder (0x785a08) writing or not. Edit (EditRide (object, on)): Enter's world
 # with the coaster on the link list (0x790fe0, by +0x18) under the object's ride id (+0x20) or not (no object now and then), on; or
-# Leave's world, off; 0x785a2c set now and then.
-# usage: coasteredit.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Leave,Close,Enter,Edit)
+# Leave's world, off; 0x785a2c set now and then. ById (0x447da0 CoasterEdit_SetEditingById (id)): Enter's world with the coaster on the
+# link list, its id or a missing one; or Leave's world with a list and the id 0. At (0x447dd0 CoasterEdit_SetEditingAt (index)): Enter's
+# world, the coaster at its index (1-3) of the table 0x790bd0; or Leave's world and the index 0.
+# usage: coasteredit.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Leave,Close,Enter,Edit,ById,At)
 import os
 import sys
 
@@ -26,7 +28,7 @@ HOOKS = dict(holder.HOOKS)
 HOOKS[0x473c70] = _recorder(27, 3, cdecl=True)   # (endtool.py's)
 B = Bench(sorted(set(endtool.RANGES + objectqueue.RANGES + stripanim.RANGES
                      + [(0x447520, 0x447751), (0x4474d0, 0x447513), (0x435730, 0x435a40), (0x430ac0, 0x430ae0), (0x436860, 0x436890),
-                        (0x4346c0, 0x434700)])), sines=256, hooks=HOOKS)
+                        (0x4346c0, 0x434700), (0x447da0, 0x447e05)])), sines=256, hooks=HOOKS)
 COAST, VT, BUF, GAME, OBJ, LINKS = RAM + 0xc0000, RAM + 0xc0200, RAM + 0xc0300, RAM + 0xc0400, RAM + 0xc0600, RAM + 0xc0800
 
 
@@ -107,6 +109,17 @@ def case(r):
     if op == 'Enter':
         return Call(0x447520, [COAST, r.choice([1, 1, r.getrandbits(32) | 1])], enter(r), ret='v')
     on = r.deal([1, 0])
+    if op == 'ById':
+        regions = enter(r) if on else leave(r)
+        rid = links(r, regions, COAST if on else None)
+        if on and rid == 60:
+            regions[0x790fec] = bytes(4)   # (no coaster: SetEditing (none, 1) leaves, with no game)
+        return Call(0x447da0, [rid if on else 0], regions, ret='v')
+    if op == 'At':
+        regions = enter(r) if on else leave(r)
+        index = r.randrange(1, 4) if on else 0
+        regions[0x790bd0] = put(bytearray(r.bytes(16)), 4 * index, 'I', COAST)
+        return Call(0x447dd0, [index], regions, ret='v')
     regions = enter(r) if on else leave(r)
     rid = links(r, regions, COAST if on else None)
     if on and rid == 60:
@@ -119,7 +132,7 @@ def case(r):
     return Call(0x4474d0, [obj, r.getrandbits(32) | 1 if on and r.random() < 0.3 else on], regions, ret='v')
 
 
-OPS = [k for k in os.environ.get('OPS', 'Leave,Close,Enter,Edit').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Leave,Close,Enter,Edit,ById,At').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)
