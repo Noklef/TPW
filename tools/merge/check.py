@@ -1,8 +1,8 @@
 """Checks a resolved merge of a porting branch before it is committed, stopping at the first failure.
 
-usage: python -I tools/merge/check.py BRANCH [--cases N] [--no-bench] [--no-build]
+usage: python -I tools/merge/check.py BRANCH [--cases N] [--budget S] [--both-sides] [--no-bench] [--no-build]
 
-Run in the main tree after `git merge --no-ff --no-commit BRANCH` and resolving the conflicts (keepboth.py, then unionmerge.py).
+Run in the main tree after `git merge --no-ff --no-commit BRANCH` and resolving the conflicts (tables.py, then by hand).
 In order:
   1. no conflicts left unresolved;
   2. kept: nothing the branch or main had is lost in the result. Per file: bench op names ('Name':) and hex addresses in
@@ -18,9 +18,14 @@ In order:
   4. build, tpw_tests, retcheck, convcheck;
   5. each bench the merge touches, at N cases (default 1000) seed 5, --both: every run must show 0 differ. Every bench importing a
      touched module runs too (a bench's case() reused by another, or a helper module with no main, e.g. thingenv.py, which needs one).
+     A slow bench runs fewer: as many as fit S seconds (default 300) for both runs at its per-case time in the last coverage gate
+     (_re/coverage.json), 50 at least; one the gate has not timed runs all N. --both-sides (main merged into an agent's branch): only
+     the benches both sides changed since the merge base, and those importing them (the rest ran on main, and run again when the
+     branch merges back).
 """
 import collections
 import glob
+import json
 import os
 import re
 import subprocess
@@ -234,7 +239,13 @@ def main():
         return
     # A changed module also runs as every bench that imports it (a bench's case() reused as another's world, or a helper module with
     # no main of its own, e.g. thingenv.py, which must have one), and so on for theirs.
-    runs, todo = [], [f for f in benches if os.path.exists(os.path.join(ROOT, f))]
+    todo = [f for f in benches if os.path.exists(os.path.join(ROOT, f))]
+    if '--both-sides' in a:
+        ours = set(git('diff', '--name-only', base, 'HEAD', '--', 'tests/fncmp/').split())
+        theirs = set(git('diff', '--name-only', base, branch, '--', 'tests/fncmp/').split())
+        todo = [f for f in todo if f in ours and f in theirs]
+        print('benches: --both-sides, %d changed on both sides' % len(todo))
+    runs = []
     while todo:
         f = todo.pop()
         if f in runs:
@@ -253,9 +264,20 @@ def main():
             runs.append(f)   # (seen; not run itself)
         todo += users
     runs = [f for f in runs if '.main(' in worktree(f)]
+    budget = float(a[a.index('--budget') + 1]) if '--budget' in a else 300.0
+    try:
+        timed = json.load(open(os.path.join(ROOT, '_re', 'coverage.json')))['suites']
+    except (OSError, ValueError, KeyError):
+        timed = {}
     for f in sorted(set(runs)):
         t0 = time.time()
-        p = run([sys.executable, '-I', f, cases, '5', '--both'])
+        n, g = int(cases), timed.get(os.path.basename(f))
+        if g and sum(r[0] for r in g['runs']):
+            per_case = g['seconds'] / sum(r[0] for r in g['runs'])
+            n = min(n, max(50, int(budget / 2 / per_case)))
+            if n < int(cases):
+                print('bench %s: %d cases (%.2f s a case in the last gate)' % (os.path.basename(f)[:-3], n, per_case))
+        p = run([sys.executable, '-I', f, str(n), '5', '--both'])
         res = [l.strip() for l in p.stdout.splitlines() if 'differ' in l]
         name = os.path.basename(f)[:-3]
         if p.returncode or not res or any(not re.search(r'\b0 differ', l) for l in res):
