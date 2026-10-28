@@ -63,4 +63,29 @@ void __cdecl Dialog7cb25c_Refresh() {
     if (dialog() && *reinterpret_cast<const u32 *>((uintptr_t)0x007cb260) == 1)
         Dialog7cb25c_FillList(Window_FindChild(dialog(), nullptr, 0x12c4bd));
 }
+
+s32 __cdecl Dialog7cb25c_ListProc(u8 *list, u32 message, u32 a, u32 b) {
+    if (message != 0x15 && message == 0x101 && b == 1) {
+        *reinterpret_cast<u32 *>((uintptr_t)0x007cb260) = a == 0x12c4bf ? 1 : 0;
+        Dialog7cb25c_FillList(list);
+        Dialog7cb25c_SetTexts();
+    }
+    return Window_CallDefault(list, nullptr, message, a, b);
+}
+
+static u8 *money() {
+    return reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(*reinterpret_cast<u8 **>((uintptr_t)0x007cf83c)));
+}
+
+u32 __cdecl Dialog7cb25c_PayOffLoan(u32 index) {
+    Money_PayOffLoan(money(), nullptr, index);
+    Dialog7cb25c_FillList(Window_FindChild(dialog(), nullptr, 0x12c4bd));
+    return 1;
+}
+
+u32 __cdecl Dialog7cb25c_TakeLoan(u32 index) {
+    Money_TakeLoan(money(), nullptr, index);
+    Dialog7cb25c_FillList(Window_FindChild(dialog(), nullptr, 0x12c4bd));
+    return 1;
+}
 }  // extern "C"

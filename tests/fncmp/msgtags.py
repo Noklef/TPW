@@ -36,6 +36,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import advisor  # noqa: E402
+import crt  # noqa: E402
 import listrows  # noqa: E402
 from fncmp import CDECL_LOG4, HEAP, LOG, RAM, Bench, Call, Mask, blob, blob_bytes, heap, log_region, put, record_stream, set_return, vtable  # noqa: E402
 from window import RANGES, queues, tree  # noqa: E402
@@ -50,41 +51,6 @@ ADVISOR_RANGES = [(0x429fe0, 0x42a010), (0x44b2e0, 0x44b3d0), (0x474070, 0x4740e
                   (0x59a940, 0x59aa63), (0x59abc0, 0x59ae1c), (0x59c2b0, 0x59c680), (0x41a980, 0x41a986), (0x41a990, 0x41a9a7),
                   (0x5da3c0, 0x5da3c1), (0x409cd0, 0x409cdd), (0x59b590, 0x59b611), (0x59bf20, 0x59c093), (0x550ca0, 0x550d90),
                   (0x5d1750, 0x5d1751), (0x486b00, 0x486b3a), (0x5194d0, 0x51950d)]
-def _swprintf(e):
-    """the CRT's swprintf (0x67af00) for AddVersion's "Ver %d.%d": %d, %s (wide) and %% only. The ports' side has the driver's stand-in
-    (the host's), whose integers the emulator cannot follow into MSVC6's code (its locale lock's imports); tests/fncmp/crt.py checks the rest."""
-    sp = e.r['ESP'] + (4 if e.tail else 0)
-    to, fmt = e.u32(sp), e.u32(sp + 4)
-    arg, out, i = sp + 8, '', 0
-    while True:
-        c = struct.unpack('<H', e.read(fmt + 2 * i, 2))[0]
-        i += 1
-        if not c:
-            break
-        if c != 0x25:
-            out += chr(c)
-            continue
-        f = chr(struct.unpack('<H', e.read(fmt + 2 * i, 2))[0])
-        i += 1
-        if f == 'd':
-            out += str(struct.unpack('<i', e.read(arg, 4))[0])
-            arg += 4
-        elif f == 's':
-            p, k = e.u32(arg), 0
-            arg += 4
-            while True:
-                u = struct.unpack('<H', e.read(p + 2 * k, 2))[0]
-                if not u:
-                    break
-                out += chr(u)
-                k += 1
-        else:
-            assert f == '%', f
-            out += '%'
-    e.write(to, out.encode('utf-16-le') + b'\0\0')
-    e.r['EAX'] = len(out)
-
-
 B = Bench(sorted(set(RANGES + listrows.REG_RANGES + TIMER_RANGES + ADVISOR_RANGES + [
     (0x48ea00, 0x48ea9b), (0x48eaa0, 0x48eae5), (0x65e526, 0x65e549), (0x65e6d5, 0x65e705),
     (0x48d9c0, 0x48dad2), (0x48eb20, 0x48edd1), (0x48ede0, 0x48ee18), (0x48f090, 0x48f10a), (0x481b70, 0x481b75), (0x40c820, 0x40c830),
@@ -96,7 +62,7 @@ B = Bench(sorted(set(RANGES + listrows.REG_RANGES + TIMER_RANGES + ADVISOR_RANGE
     (0x65c9bd, 0x65ce20), (0x65d42e, 0x65d4b0), (0x65d56b, 0x65d59d), (0x65d773, 0x65d832), (0x65d865, 0x65d8f7), (0x65d90b, 0x65da9d),
     (0x65db25, 0x65dc00), (0x65e5fa, 0x65e650), (0x65e6d5, 0x65e9a4), (0x65f16b, 0x65f256), (0x65f286, 0x65f330), (0x65f345, 0x65f420),
     (0x65f447, 0x65f548), (0x65f66e, 0x65f6e1), (0x661700, 0x661800), (0x669c8d, 0x669d87), (0x66bff7, 0x66c01b), (0x65cf5e, 0x65cfd4),
-    (0x659d43, 0x659d90), (0x65dcaf, 0x65dd5f), (0x6590f7, 0x6591d4), (0x65f150, 0x65f16b)])), hooks={0x67a7d0: advisor._cdecl_log, 0x67af00: _swprintf})
+    (0x659d43, 0x659d90), (0x65dcaf, 0x65dd5f), (0x6590f7, 0x6591d4), (0x65f150, 0x65f16b)])), hooks={0x67a7d0: advisor._cdecl_log, 0x67af00: crt.swprintf_hook})
 X = RAM + 0x20000
 TAGS, NODES, MSG, MTEXT, BOX, BOXKIDS, DIALOG, CHILD21, TAGSWIN = X, X + 0x1400, X + 0x1800, X + 0x1900, X + 0x1c00, X + 0x1e00, X + 0x2200, X + 0x2400, X + 0x2600
 OBJ, OVT, KVT, CLOCK, CVT, POOL, SNDMGR, SNDVT = X + 0x2800, X + 0x2840, X + 0x2900, X + 0x2a00, X + 0x2a10, X + 0x2b00, X + 0x2c00, X + 0x2c20

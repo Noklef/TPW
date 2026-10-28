@@ -44,4 +44,16 @@ void __cdecl ResearchMeters_Refresh(u32 group);
 
 // 0x481520 (thiscall on the object at 0x7b51f0, this not used (group), pops 4): ResearchMeters_Refresh.
 void __fastcall Obj7b51f0_RefreshResearch(void *, void *, u32 group);
+
+// 0x4aa0c0 (cdecl (window, message, a, b); name invented): the handler set at 0x4aa740 (group 0's project arrows). On 0x100 the game
+// [0x7cf83c]'s lab (GameTable7cfb90_Get1da722_519550) steps group 0's project back for the arrow 0xd2d03 (ResearchLab_PrevProject) or on
+// for any other (ResearchLab_NextProject), then ResearchMeters_ShowName and ResearchMeters_ShowProgress of group 0. Every message then
+// goes to LevelMeter_OnMessage, whose answer is returned.
+s32 __cdecl ResearchMeters_ArrowProc(u8 *window, u32 message, u32 a, u32 b);
+// 0x4aa360, 0x4aa3c0, 0x4aa420, 0x4aa300 (set at 0x4aa961, 0x4aaa72, 0x4aab82, 0x4aa850; names invented): ResearchMeters_ArrowProc for
+// the groups 1, 2, 3 and 4.
+s32 __cdecl ResearchMeters_ArrowProc1(u8 *window, u32 message, u32 a, u32 b);
+s32 __cdecl ResearchMeters_ArrowProc2(u8 *window, u32 message, u32 a, u32 b);
+s32 __cdecl ResearchMeters_ArrowProc3(u8 *window, u32 message, u32 a, u32 b);
+s32 __cdecl ResearchMeters_ArrowProc4(u8 *window, u32 message, u32 a, u32 b);
 }

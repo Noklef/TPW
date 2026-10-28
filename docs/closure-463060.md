@@ -8,6 +8,7 @@ A snapshot: hooks.cpp is the record of what is ported. Since it was written the 
 (Thing_Delete), 527ee0 (Path_CheckDeadEnds), 40fb10, 463c80, 53afa0 and 5367a0 have all been ported (527ee0 and 5367a0 first on the agents' branches).
 
 Totals (by the owners when written): 217 functions, 0x2348a bytes: A 12 (0x1c72), B 91 (0x10f5d), C 114 (0x108bb).
+(A snapshot: the totals count 524960 (GameMode_MapClick, src/game/world/mapclick) and 4df390 (Object_Close), both ported since.)
 
 Flags: x87 (FPU code), vcalls (virtual or indirect calls: recorder benches), SKIP (a known skip). "Unported callees" are the
 callees inside this closure.
@@ -246,7 +247,7 @@ Layers with the hubs' incoming edges cut (callees marked * are hubs):
 | 14 | 446300 | 918 | B |  |  | 4423f0 (B) 4425c0 (B) 446740 (B) 446d50 (B) |
 | 14 | 52fe50 | 625 | A |  |  | 444f30 (B) 4de1f0 (C) 524960 (A)* 52c6f0 (A) 52ccb0 (A) 52f200 (A) 52f580 (A) 52fc80 (A) |
 | 14 | 5327e0 | 244 | B |  |  | 524960 (A)* 52ba50 (A) 52f200 (A) 5311c0 (B) |
-| hub | 524960 | 11530 | A |  | x87 | 435570 (B) 4419b0 (B) 445a70 (B) 446050 (B) 446300 (B) 4de1f0 (C) 4df390 (C) 5234d0 (A) 527ee0 (A)* 528a70 (A) 52a970 (A) 52b400 (A) 52bdd0 (A) 52c6f0 (A) 52ccb0 (A) 52f200 (A) 52f580 (A) 52fc80 (A) 530120 (B) 5327e0 (B) 536100 (B) 545450 (B) |
+| hub | 524960 | 11530 | A | GameMode_MapClick (ported since, by C) | x87 | 435570 (B) 4419b0 (B) 445a70 (B) 446050 (B) 446300 (B) 4de1f0 (C) 4df390 (C) 5234d0 (A) 527ee0 (A)* 528a70 (A) 52a970 (A) 52b400 (A) 52bdd0 (A) 52c6f0 (A) 52ccb0 (A) 52f200 (A) 52f580 (A) 52fc80 (A) 530120 (B) 5327e0 (B) 536100 (B) 545450 (B) |
 | hub | 463060 | 2300 | B |  | x87 | 4368f0 (B) 469940 (B) |
 | hub | 527ee0 | 1974 | A | Path_CheckDeadEnds | x87 | 50b780 (A)* 52f200 (A) 52f580 (A) 52fe50 (A) 530120 (B) 5367a0 (B)* 53b280 (B) 545610 (B) |
 | hub | 5367a0 | 1133 | B |  |  | 4de1f0 (C) 5346d0 (B) 5365d0 (B) |

@@ -4,7 +4,10 @@
 
 #include "../core/vcall.h"
 #include "../world/advisor.h"
+#include "../world/object.h"
+#include "../world/objectdefs.h"
 #include "../world/ridesweep.h"
+#include "../world/world.h"
 #include "dialogs.h"
 #include "hoverlabel.h"
 #include "panelparts.h"
@@ -52,6 +55,21 @@ void __fastcall Panel7ca228_Dress(u8 *self) {
     partIfAny(at<u8 *>(self, 0x14), TextPart6ff350_Ctor, 0x1586, 0);
     textIfAny(at<u8 *>(self, 0x14), 0x1585, 0x36);
     partIfAny(at<u8 *>(self, 0x14), TextPart6ff3b0_Ctor, 0x1584, 0);
+}
+
+void __fastcall Panel7ca228_ShowValues(u8 *self) {
+    using SetValue = void(__fastcall *)(u8 *, void *, u32);
+    const u8 *const thing = global<const u8 *>(0x007c2658);
+    Object_GetDef(thing);
+    if (!at<u8 *>(self, 0x14)) return;
+    if (u8 *const child = Window_FindChild(at<u8 *>(self, 0x14), nullptr, 0x1586)) {
+        const SetValue set = at<SetValue const *>(child, 0)[7];
+        GameTable7cfb90_Get1da720_519510(global<u8 *>(0x007cf83c));   // (its answer only the ECX of the stdcall)
+        set(child, nullptr, ObjectControls_GetWord18(at<u16>(thing, 0xe)));
+    }
+    u8 *const child = Window_FindChild(at<u8 *>(self, 0x14), nullptr, 0x1584);
+    const SetValue set = at<SetValue const *>(child, 0)[7];
+    set(child, nullptr, Object_ScrapRefund(thing));
 }
 
 }

@@ -3,7 +3,7 @@
 // hovered window [0xfaa5e0]). The game sets its cursor on the window [0x7cb2ac], or with none on the two at 0x7cc8c0 and 0x7cc8bc.
 // The game's cursor files fill two tables: 0x7b9e88 (the .ani / .cur files) and 0x7b9ab0 (the .tga ones).
 // Reimplementation of 0x661d96, 0x661c36, 0x661cca, 0x661d3f, 0x659248, 0x6590f7, 0x65f11d, 0x65f150, 0x4a2aa0, 0x4814a0, 0x52f950,
-// 0x489720, 0x4899c0, 0x661935, 0x661dd0 and 0x661e30. The names are unconfirmed.
+// 0x489720, 0x4899c0, 0x661935, 0x661dd0, 0x661e30, 0x65921f and 0x661a06. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -86,5 +86,14 @@ u8 *__fastcall Cursor_Delete(u8 *cursor, void *, u32 flags);
 // 0x661e30 (thiscall (red, green, blue: bytes), pops 12; called by 0x661a47 (the cursor code's white); name unconfirmed): a palette
 // colour (gfx/palette's 5-byte kind) built: PalColour_Set with the three bytes. Returns the colour.
 u8 *__fastcall PalColour_Ctor(u8 *colour, void *, u32 red, u32 green, u32 blue);
+
+// 0x65921f (cdecl (x, y: words); no direct callers; name invented): the current cursor [0xfaa608], when set, drawn at the point (its
+// slot 5 with the two words; the pushed registers' upper halves are the caller's, not compared).
+void __cdecl Gui_DrawCursor(u32 x, u32 y);
+
+// 0x661a06 (thiscall (x, y: words), pops 8; no references; name invented): an arrow drawn for a cursor: the point less its hot spot
+// (the signed bytes +5 / +6, in 16 bits), then the white triangle (PalColour_Ctor (0xff, 0xff, 0xff); the colour's padding 0) from
+// there to (+8, +0x10) and (+0x10, +8) (Display_Triangle). EAX not kept.
+void __fastcall Cursor_DrawArrow(u8 *cursor, void *, u32 x, u32 y);
 
 }

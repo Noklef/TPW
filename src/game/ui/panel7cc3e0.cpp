@@ -3,7 +3,10 @@
 #include <cstdint>
 
 #include "../world/advisor.h"
+#include "../world/object.h"
+#include "../world/objectdefs.h"
 #include "../world/ridesweep.h"
+#include "../world/world.h"
 #include "dialogs.h"
 #include "hoverlabel.h"
 #include "panelparts.h"
@@ -37,5 +40,20 @@ void __fastcall Panel7cc3e0_Dress(u8 *self) {
     partIfAny(window(self), TextPart6ff350_Ctor, 0x5210, 0);
     textIfAny(window(self), 0x520f, 0x38);
     partIfAny(window(self), TextPart6ff3b0_Ctor, 0x520e, 0);
+}
+
+void __fastcall Panel7cc3e0_ShowValues(u8 *self) {
+    using SetValue = void(__fastcall *)(u8 *, void *, u32);
+    const u8 *const thing = *reinterpret_cast<const u8 *const *>((uintptr_t)0x007c2658);
+    Object_GetDef(thing);
+    if (!window(self)) return;
+    if (u8 *const child = Window_FindChild(window(self), nullptr, 0x5210)) {
+        const SetValue set = (*reinterpret_cast<SetValue const *const *>(child))[7];
+        GameTable7cfb90_Get1da720_519510(*reinterpret_cast<u8 *const *>((uintptr_t)0x007cf83c));   // (its answer only the ECX of the stdcall)
+        set(child, nullptr, ObjectControls_GetWord18(*reinterpret_cast<const u16 *>(thing + 0xe)));
+    }
+    u8 *const child = Window_FindChild(window(self), nullptr, 0x520e);
+    const SetValue set = (*reinterpret_cast<SetValue const *const *>(child))[7];
+    set(child, nullptr, Object_ScrapRefund(thing));
 }
 }

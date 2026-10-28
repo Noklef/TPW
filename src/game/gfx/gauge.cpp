@@ -5,6 +5,7 @@
 
 #include "../core/crt.h"
 #include "../math/x87.h"
+#include "../ui/window.h"
 #include "display.h"
 #include "guitext.h"
 #include "palette.h"
@@ -138,5 +139,25 @@ void __cdecl Gauge_Setup(u8 *gauge, const u8 *window, u32 y0, u32 y1, u32 y2, u3
     Gauge_SetColour2(gauge, nullptr, c);
     Gauge_SetMarksY(gauge, nullptr, y0, y1, y2);
     Gauge_SetMarksX(gauge, nullptr, x0, x1, x2);
+}
+
+u32 __cdecl Gauge_DrawInWindow(u8 *window, u8 *gauge, void(__cdecl *after)(u8 *)) {
+    SurfaceInfo info;
+    SurfaceInfo_Ctor(&info);
+    u32 width, height;
+    const u32 bits = Window_ImplSlot7(window, nullptr, (u32)(uintptr_t)&width, (u32)(uintptr_t)&height);
+    if (!bits) return 0;
+    Format_FillInfo(bits, reinterpret_cast<u32 *>(&info), width, height);
+    Display_SetSurfaceInfo(&info);   // (the stack info stays the display's surface, sic)
+    DrawColour black = {};
+    black.rgb = 0xff000000u;
+    black.index = Palette_Nearest(reinterpret_cast<const u8 *>((uintptr_t)0x00fa71f8), 0, 0, 0);
+    const Rect rect = {0, 0, static_cast<s32>(width), static_cast<s32>(height)};
+    Display_BoxFill(&rect, black);
+    Gauge_DrawBack(gauge);
+    Gauge_DrawGrid(gauge);
+    Gauge_DrawAxes(gauge);
+    if (after) after(gauge);
+    return Window_ImplSlot6(window);
 }
 }

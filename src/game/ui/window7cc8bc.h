@@ -1,6 +1,6 @@
 // The window [0x7cc8bc]'s name list (its child 0xc3123's child 0xc3124, a 0x7059f0 list) kept by name in either of its modes (the dword
 // [0x7cc8d0] 0 or 1), the handler of the windows [0x7cc8c4] / [0x7cc8c8], and their creation. Reimplementation of 0x4beb60-0x4bedd1,
-// 0x4bf460 and the stdcall wrappers 0x481820-0x4818b2. The names are unconfirmed (the callers are 0x4e7000-0x4ee800's).
+// 0x4bf460, 0x4bd090 and the stdcall wrappers 0x481820-0x4818b2. The names are unconfirmed (the callers are 0x4e7000-0x4ee800's).
 #pragma once
 
 #include "../../../re/types.h"
@@ -50,5 +50,22 @@ s32 __cdecl Windows7cc8c4_Handler(u8 *window, u32 message, u32 a, u32 b);
 // root (Window_CreateChild: flags 0, id 0xfff04d2a, 0, 0, 0x7ff, 0x5ff) with the handler 0x4bd4a0; the help background placed
 // (HelpBg_Place(-1, 10)); [0x7cc8e4] = 0 and the byte [0x7cc8d4] = 0.
 void __cdecl Window7cc8bc_Create();
+
+// 0x4bd090 (cdecl; name invented): [0x7cc8b8] = [0x7cc8bc] with the byte [0x7cc8b4] set, else [0x7cc8c0]; the inner rectangle of
+// [0x7cc8c0] got (Window_GetRect, unused); message 6 (0, 0) to [0x7cc8bc] and [0x7cc8c0]; the floats [0x7a1c70] / [0x7a1c78] in tenths
+// packed as Camera_PackCellFractions does into 0x7cc690 / 0x7cc694 (inlined); the chat [0x7cddec] (made when there is none: 0xf0c
+// bytes, OnlineChat_Ctor) arrives at (the words [0x7cc690], [0x7cc694]) (ChatAvatar_Arrive: x's high word EAX's, the last __ftol's or
+// the new chat's, sic) and, with [0x790ab0] bit 2, says its position (ChatAvatar_SayPosition, the chat made again when none); the byte
+// [0x7cc8d4] = 1, [0x7cc8ac] = [0x790ab0], [0x7cc8d8] = 5.
+void __cdecl Window7cc8bc_EnterChat();
+
+// 0x4bf370 (cdecl (unused, window); name invented; nothing in the image calls it or holds its address): the window [0x7cc8cc] (read
+// first) becomes the last child of the list 0xc3124 of the child 0xc3123 of [0x7cc8bc] (Window_FindChild twice, unchecked;
+// Window_AddChild(1, 1)). The window's inner rectangle (Window_GetRect(.., 1) into a GuiRect on the stack) is taken, and the window is
+// moved (Window_Offset) by the mouse position (Gui_GetMousePos) less that rectangle's left / top. The original reads them as dwords
+// (the mouse words' upper halves are stack leftovers); only the low words count. Then [0x7cc8cc] (read again each time) gets its depth
+// word +0xe0 + 4 (Window_SetDepth; the pushed word's upper half is the rectangle's right, which the setter ignores), is shown
+// (Window_SetShown(1)) and takes the focus (Window_SetFocus(0)).
+void __cdecl Window7cc8cc_PlaceAtMouse(u32 unused, u8 *window);
 
 }  // extern "C"

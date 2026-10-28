@@ -76,6 +76,11 @@
 # random; a negative count would run for ever). SelectAt (0x66552e): select_case()'s, the inner rectangle +0x138 a real one, the point in
 # it, near it or any. OnDrag (0x6656a0): OnMouseDown's, +0x11c 0 mostly, the saved rectangle +0x2c a real one (the inner one's mostly, else
 # around the point). OnMoved (0x66521e): OffsetColumns', the inner rectangle +0x138 a real one of any words.
+# Proc (0x665c35): one of the handled messages on its callee's world (OnHeader's 0x100, OnDrag's 0x10003 / 0x10001, OnMoved's 0x13,
+# ShowRows' 0x11, OnMouseDown's / OnDouble's 0x11006 (a 0 or not), PostSelection's 0x11007 (a 0, 1 or any), ScrollFromBar's 0x800,
+# SendToRows' 0x1e, OnKey's 0x1000a), 0x1000d on a window of 0-3 recorder children (ids 1 or others), 0x15 / 0x1a on a window with
+# flag 0x200 mostly (the focus [0xfaa5ec] it now and then), or a few others DefaultProc leaves; the manager [0x77c48c] a recorder object
+# for 0x1e / 0x10001 / 0x10002 (the window's script byte +0x135 not 1), the cursor table [0xfaa604] 0 for 0x10001. EAX compared.
 # usage: window7059f0.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ColumnBottom,NextItem,...)
 import os
 import struct
@@ -99,7 +104,7 @@ CALLS = {'ColumnBottom': 0x6636f6, 'NextItem': 0x663a93, 'NthItem': 0x663ba2, 'S
          'SortBy': 0x6659af, 'OnHeader': 0x665a44,
          'SetColumnBottom': 0x6636b2, 'OffsetColumns': 0x664f6d, 'SelectAt': 0x66552e,
          'OnMouseDown': 0x6655a2, 'OnDouble': 0x66563d, 'RemoveData': 0x493c10, 'OnDrag': 0x6656a0, 'OnMoved': 0x66521e,
-         'OnGuestRemoved': 0x4818c0, 'AddRow': 0x493800, 'AddGuest': 0x493c50, 'OnGuestAdded': 0x481920}
+         'OnGuestRemoved': 0x4818c0, 'AddRow': 0x493800, 'AddGuest': 0x493c50, 'OnGuestAdded': 0x481920, 'Proc': 0x665c35}
 LIST_RANGES = (RANGES + [(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 0x664bf0), (0x664d2a, 0x664db7), (0x663324, 0x663554),
                     (0x4f0240, 0x4f0250), (0x65d547, 0x65d56b), (0x65d56b, 0x65d57c), (0x65c672, 0x65c707),
                     (0x663085, 0x66316b), (0x663cb8, 0x663d56), (0x664495, 0x6644ea), (0x66b47d, 0x66b508),
@@ -117,7 +122,9 @@ LIST_RANGES = (RANGES + [(0x6636f6, 0x663718), (0x663a93, 0x663c11), (0x664b68, 
 B = Bench(LIST_RANGES + [(0x6656a0, 0x6656fa), (0x66521e, 0x66525c), (0x4818c0, 0x481916), (0x48ccd0, 0x48cd00), (0x4b3620, 0x4b3638),
                          (0x4b7a00, 0x4b7a30), (0x4a25f0, 0x4a2690), (0x5da3c0, 0x5da3c1),
                          (0x481920, 0x481970), (0x493800, 0x4938d0), (0x493c50, 0x493ca0), (0x4f8730, 0x4f8780), (0x4fd950, 0x4fd980),
-                         (0x67c320, 0x67c3e0), (0x67c7f0, 0x67c840)])   # (and tools/ranges.py 481920's)
+                         (0x67c320, 0x67c3e0), (0x67c7f0, 0x67c840), (0x665c35, 0x665e80),
+                         (0x65e9a4, 0x65ecb0), (0x65c357, 0x65c388), (0x65f6d1, 0x65fbf0), (0x65e640, 0x65e672), (0x6590f7, 0x659248),
+                         (0x65f150, 0x65f16b), (0x65968e, 0x6596a2)])   # (and tools/ranges.py 481920's)
 WINDOW, COLUMNS, LINKS, OUT = RAM, RAM + 0x200, RAM + 0x400, RAM + 0x800
 LIST, LINKS2, COLS2, CELLS, ROWS2, ROWWINS = RAM + 0x9000, RAM + 0x9420, RAM + 0x9e00, RAM + 0x9f00, RAM + 0x9c00, RAM + 0xb000
 BAR, OBJS, BUFS = RAM + 0xd000, RAM + 0x1000, RAM + 0x1200
@@ -132,6 +139,7 @@ BUILDROW, BUILDBAR = RAM + 0x16000, RAM + 0x16800
 GUEST, GUESTVT = RAM + 0x17000, RAM + 0x17100   # (OnGuestRemoved)
 GUEST2, WORLD2, WORLD3 = RAM + 0x17400, RAM + 0x200000, RAM + 0x400000   # (AddRow: the guest, the world and the game)
 PARENT = RAM + 0x600
+PROCMGR, PROCVT, PROCKIDS = RAM + 0x18000, RAM + 0x18100, RAM + 0x18200   # (Proc)
 
 
 def none(r):
@@ -1014,8 +1022,78 @@ def header_case(r):
     return Call(CALLS['OnHeader'], [SORTW, (column + 0x10) & 0xffff | r.choice([0, 0, r.getrandbits(16)]) << 16], regions, conv='t', ret='v')
 
 
-def case(r):
-    op = r.deal(OPS)
+def unmapped(regions, address, size):
+    """no region of the case covers [address, address + size)"""
+    return all(a + len(d) <= address or address + size <= a for a, d in regions.items())
+
+
+def proc_case(r):
+    """Proc (see the top): a sub-case's world, its call turned into the message"""
+    sub = r.choice(['OnHeader', 'OnDrag', 'OnDrag', 'OnMoved', 'ShowRows', 'OnMouseDown', 'OnDouble', 'PostSelection',
+                    'PostSelection', 'ScrollFromBar', 'SendToRows', 'OnKey', 'Child', 'Modal', 'Modal', 'Other'])
+    if sub in ('Child', 'Modal', 'Other'):
+        window = bytearray(r.bytes(0x180))
+        regions = {WINDOW: window, LOG: log_region()}
+        args = [WINDOW]
+    else:
+        c = case(r, sub)
+        if sub == 'SendToRows' and c.args[1] != 0x1e:
+            sub = 'Other'
+        regions, args = c.regions, c.args
+        regions.setdefault(LOG, log_region())
+        window = regions[args[0]]
+    b = r.getrandbits(32)
+    if sub == 'OnHeader':
+        message, a = 0x100, args[1]
+    elif sub == 'OnDrag':
+        message, a = r.choice([0x10003, 0x10001]), (args[1] & 0xffff) << 16 | (args[2] & 0xffff)
+    elif sub == 'OnMoved':
+        message, a, b = 0x13, args[1], args[2]
+    elif sub == 'ShowRows':
+        message, a = 0x11, args[1]
+    elif sub in ('OnMouseDown', 'OnDouble'):
+        message, a, b = 0x11006, 0 if sub == 'OnMouseDown' else r.choice([1, 2, r.getrandbits(32)]), (args[1] & 0xffff) << 16 | (args[2] & 0xffff)
+    elif sub == 'PostSelection':
+        message, a = 0x11007, r.choice([0, 1, r.getrandbits(32)])
+    elif sub == 'ScrollFromBar':
+        message, a = 0x800, r.getrandbits(32)
+    elif sub == 'SendToRows':
+        message, a, b = 0x1e, args[2], args[3]
+    elif sub == 'OnKey':
+        message, a, b = 0x1000a, args[1], args[2]
+    elif sub == 'Child':   # (0-3 children, ids 1 or others; the first with id 1 told its slot 8's answer less a through slot 7)
+        message, a = 0x1000d, r.choice([0, 1, 5, -3 & 0xffffffff, r.getrandbits(32)])
+        regions[PROCVT] = vtable({7: 1}, size=12)
+        set_return(regions[LOG], 8, r.choice([0, 7, 100, r.getrandbits(32)]))
+        n = r.choice([0, 1, 2, 3])
+        put(window, 0x5c, 'I', PROCKIDS if n else 0)
+        for i in range(n):
+            kid = bytearray(r.bytes(0xa0))
+            put(kid, 0, 'I', PROCVT)
+            put(kid, 0x54, 'I', PROCKIDS + 0xa0 * (i + 1) if i + 1 < n else 0)
+            put(kid, 0x8c, 'I', r.choice([1, 1, 2, 0x10001, r.getrandbits(32)]))
+            regions[PROCKIDS + 0xa0 * i] = kid
+    elif sub == 'Modal':   # (flag 0x200 of +0x48 mostly; the focus [0xfaa5ec] the window now and then)
+        message, a = r.choice([0x15, 0x1a]), r.getrandbits(32)
+        window[0x49] = (window[0x49] & 0xfd) | r.choice([2, 2, 0])
+        regions[0xfaa578] = r.bytes(8)
+        regions[0xfaa5ec] = struct.pack('<I', r.choice([WINDOW, 0, r.getrandbits(32)]))
+    else:
+        message, a = r.choice([0x12, 0x16, 0x10002, 0x1000b, 0x80000100, 0x80010003, 0x8001000d]), r.getrandbits(32)
+    if message in (0x1e, 0x10001, 0x10002) and unmapped(regions, 0x77c48c, 4):   # (the manager: no script running in the window)
+        regions[0x77c48c] = struct.pack('<I', PROCMGR)
+        regions[PROCMGR] = put(bytearray(r.bytes(0x20)), 0, 'I', PROCMGR + 0x40)
+        regions[PROCMGR + 0x40] = vtable({9: 1}, size=16)
+        window[0x135] = r.choice([0, 0, 2])
+    if message == 0x10001 and unmapped(regions, 0xfaa604, 4):   # (no cursor table: the cursor not set)
+        regions[0xfaa604] = bytes(4)
+    return Call(CALLS['Proc'], [args[0], message, a & 0xffffffff, b], regions, ret='a')
+
+
+def case(r, op=None):
+    op = op or r.deal(OPS)
+    if op == 'Proc':
+        return proc_case(r)
     if op == 'Sort':
         return sort_case(r)
     if op == 'OnHeader':

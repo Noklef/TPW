@@ -13,8 +13,9 @@
 # SpeedParticle (0x4f7c60): UpdateSpeed's person with Particle's, the byte +0x3a0 set or not.
 # TickSpeed (0x505490): UpdateSpeed's surroundings; the world [0x80239c]'s ticks +0x1da70c with their low two bits the handle +0's mostly,
 # Person_KillScript84After's world ([[0x7cf6ec]]) the same mostly, the stamp +0xbc about the ticks less 12 (the script +0xb4 sprite_env's).
+# EntertainerUpdate / GuardUpdate (0x4d4660 / 0x4d6360): TickSpeed's world with spread_env()'s cells and map.
 # usage: personsprite.py [CASES [SEED]] [--wild|--both] [--show N]
-#        (env OPS=PlaceSprite,CentreOnSprite,PlaceAll,UpdateSpeed,Particle,SpeedParticle,TickSpeed)
+#        (env OPS=PlaceSprite,CentreOnSprite,PlaceAll,UpdateSpeed,Particle,SpeedParticle,TickSpeed,EntertainerUpdate,GuardUpdate)
 import os
 import struct
 import sys
@@ -32,14 +33,16 @@ for a, b in sorted([(0x475480, 0x4754f0), (0x4d8c50, 0x4d8c70), (0x4f9f00, 0x4fa
            (0x53c8d0, 0x53c9d0), (0x5da3c0, 0x5da3c1), (0x486860, 0x4868c1), (0x42aab0, 0x42ab1d), (0x518f90, 0x51905c),
            (0x4fa870, 0x4fa928), (0x510190, 0x5101e9), (0x4d4190, 0x4d41d0), (0x475010, 0x475480), (0x4754f0, 0x476a30),
            (0x540b90, 0x540d78), (0x541f60, 0x541f70), (0x505490, 0x5054c9), (0x50be40, 0x50be7c), (0x5f5660, 0x5f56a0),
-           (0x4fa470, 0x4fa52b), (0x4f7c60, 0x4f7c88), (0x519410, 0x519426), (0x4527f0, 0x452a70), (0x67a830, 0x67a860)] + particles.RANGES):
+           (0x4fa470, 0x4fa52b), (0x4f7c60, 0x4f7c88), (0x519410, 0x519426), (0x4527f0, 0x452a70), (0x67a830, 0x67a860),
+           (0x4d4660, 0x4d46cc), (0x4d6360, 0x4d63cc), (0x4f9460, 0x4f948b), (0x4e2650, 0x4e266d), (0x4d8440, 0x4d8620)] + particles.RANGES):
     if RANGES and a <= RANGES[-1][1]:
         RANGES[-1] = (RANGES[-1][0], max(RANGES[-1][1], b))
     else:
         RANGES.append((a, b))
 B = Bench(RANGES)
 CALLS = {'PlaceSprite': 0x4fa030, 'CentreOnSprite': 0x486860, 'PlaceAll': 0x518f90, 'UpdateSpeed': 0x4fa870, 'Particle': 0x4fa470,
-         'SpeedParticle': 0x4f7c60, 'TickSpeed': 0x505490}
+         'SpeedParticle': 0x4f7c60, 'TickSpeed': 0x505490, 'EntertainerUpdate': 0x4d4660, 'GuardUpdate': 0x4d6360}
+MAP = RAM + 0x100000   # (EntertainerUpdate / GuardUpdate: the map [0x8023a0])
 GROUND = RAM + 0x30000   # (terrainheight.py's regions, clear of particles.py's at RAM + 0x1000 and the script list's)
 TICKS, OTHER_TICKS, HOLDER = RAM + 0x28000, RAM + 0x28100, RAM + 0x28200   # (the worlds' +0x1da70c; [0x7cf6ec]'s holder)
 OTHERS = RAM + 0x24000   # (PlaceAll's other things, 0x40 bytes each)
@@ -97,6 +100,19 @@ def speed_env(r, regions):
     regions[0x75c7fc] = struct.pack('<I', r.choice([0, 1, 3, 10, 100, 0x10000, 0x10001, r.getrandbits(32)]))
 
 
+def spread_env(r, regions):
+    """EntertainerUpdate / GuardUpdate: the cell (+5 / +7) and the last recorded one +0xcc (the same mostly, a neighbour, another or
+    0); the map [0x8023a0] (MAP) with its spread records (radius +0xa 0-3) and cells"""
+    thing = regions[THING]
+    thing[5], thing[7] = r.randrange(128), r.randrange(128)
+    cell = (thing[7] << 7) + thing[5] + 1
+    put(thing, 0xcc, 'H', r.choice([cell, cell, cell, (cell + 1) & 0xffff, (cell - 128) & 0xffff, r.randrange(1, 0x4001), 0]))
+    records = bytearray(r.bytes(12 * 8))
+    for k in range(8):
+        records[12 * k + 0xa] = r.choice([0, 1, 2, 3])
+    regions.update({MAP + 0x1d9104: records, MAP + 0x1b1104: r.bytes(10 * 0x4000), 0x8023a0: struct.pack('<I', MAP)})
+
+
 def particle_env(r, regions):
     """Particle's script position, ground, offsets and Spawn's set-up (see the header); returns the effect. (With the script missing the
     original's x, y and z are its stack's leftovers: the reference is always one of the list's scripts.)"""
@@ -132,9 +148,9 @@ def case(r):
     if op == 'CentreOnSprite':
         centre_env(r, regions)
         return Call(CALLS[op], [r.choice([THING] * 9 + [0])], regions, ret='v')
-    if op in ('UpdateSpeed', 'TickSpeed'):
+    if op in ('UpdateSpeed', 'TickSpeed', 'EntertainerUpdate', 'GuardUpdate'):
         speed_env(r, regions)
-        if op == 'TickSpeed':
+        if op != 'UpdateSpeed':
             thing = regions[THING]
             ticks = r.choice([0, 1, 12, 13, 100, 0xfffffff3, r.getrandbits(32)])
             if r.random() < 0.6:
@@ -146,6 +162,8 @@ def case(r):
             regions[0x80239c] = struct.pack('<I', TICKS - 0x1da70c)
             regions[HOLDER] = struct.pack('<I', OTHER_TICKS - 0x1da70c)
             regions[0x7cf6e0] = put(bytearray(r.bytes(0x10)), 0xc, 'I', HOLDER)
+        if op in ('EntertainerUpdate', 'GuardUpdate'):
+            spread_env(r, regions)
         return Call(CALLS[op], [THING], regions, conv='t', ret='v')
     if op == 'Particle':
         return Call(CALLS[op], [THING, particle_env(r, regions)], regions, conv='t', ret='v')

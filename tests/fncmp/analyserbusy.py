@@ -10,8 +10,8 @@
 # Score (0x4c7db0): the analyser's value +0x1f0e8 fresh mostly; 3% of the time stale or not worked out, then the whole map (128 x 128 cells
 # from the world [0x80239c] + 0x2d8: types of those counted, flags +0xe 0x40 or not, handles and parents 0-0x40 into the 0x28-byte entries
 # of [0x8023a0] and [0x7cf83c]) and the world's chain of 0-6 things (+0x1da746, +0xc; their definitions 1-3 of 0x7890a0's, their +0x19c 4
-# or not, +0x44 a float, +0x50 0-3 or 8).
-# usage: analyserbusy.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Count,Sum,Booth,Paths,SumPaths,Held,SumHeld,Score)
+# or not, +0x44 a float, +0x50 0-3 or 8). LoanOffer (0x4d06b0): see loan_offer(); AnyOffer (0x4d0810): its world, all eight offers asked.
+# usage: analyserbusy.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Count,Sum,Booth,Paths,SumPaths,Held,SumHeld,Score,LoanOffer,AnyOffer)
 import os
 import struct
 import sys
@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import RAM, Bench, Call, put  # noqa: E402
 
 CALLS = {'Count': 0x4c8c40, 'Sum': 0x4c81b0, 'Booth': 0x4c91c0, 'Paths': 0x4c8ae0, 'SumPaths': 0x4c8150, 'Held': 0x4c8ba0, 'SumHeld': 0x4c8180, 'Score': 0x4c7db0,
-         'LoanOffer': 0x4d06b0}
+         'LoanOffer': 0x4d06b0, 'AnyOffer': 0x4d0810}
 CACHE = {'Count': 0x64, 'Sum': 0x64, 'Paths': 0x4c, 'SumPaths': 0x4c, 'Held': 0x58, 'SumHeld': 0x58}   # (the cell's cached value: ticks, count, flag)
 SUMS = {'Sum': 'Count', 'SumPaths': 'Paths', 'SumHeld': 'Held'}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
@@ -28,7 +28,7 @@ B = Bench([(0x4c8c40, 0x4c8d2c), (0x4c81b0, 0x4c81de), (0x41a960, 0x41a9a7), (0x
            (0x4c8ae0, 0x4c8b96), (0x4c8ba0, 0x4c8c3a), (0x4c8150, 0x4c817e), (0x4c8180, 0x4c81ae),
            (0x4c7db0, 0x4c7f98), (0x412e90, 0x412eea), (0x4d0af0, 0x4d0b20), (0x4e0380, 0x4e03a0),
            (0x535db0, 0x535de0), (0x536390, 0x5363b0), (0x5363f0, 0x536450), (0x53ad30, 0x53ad70), (0x53ad90, 0x53adc0),
-           (0x4d06b0, 0x4d074a), (0x519510, 0x519550), (0x67a830, 0x67a860)])
+           (0x4d06b0, 0x4d074a), (0x519510, 0x519550), (0x67a830, 0x67a860), (0x4d0810, 0x4d0850)])
 CELL, ANALYSER, MAP, TICKS, THINGS = RAM, RAM + 0x1000, RAM + 0x40000, RAM + 0x200000, RAM + 0x100000
 WORLD = TICKS - 0x1da70c   # (its map cells from +0x294, each one's first thing the word +0x24)
 ROWS = 6
@@ -210,6 +210,9 @@ def case(r):
         return score(r, regions)
     if op == 'LoanOffer':
         return loan_offer(r, regions)
+    if op == 'AnyOffer':   # (0x4d0810: LoanOffer's world, all eight offers asked; the money object the only argument)
+        c = loan_offer(r, regions)
+        return Call(CALLS[op], [MONEY], c.regions, conv='t', ret='a')
     at = CACHE[op]
     if op not in SUMS:
         regions[CELL] = cell(r, ticks, at=at)

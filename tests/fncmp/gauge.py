@@ -6,7 +6,8 @@
 # context's recorders, the labels through GuiText_Draw; swprintf crt.py's hook): 12, 36 or 144 columns (another count leaves the
 # original's step as the stack lies), none or negative; the labels' wide text narrowed through a table of the digits (each a lead byte,
 # so a label of one or two digits is one record) or, for 144 columns (labels of three digits), the global buffer's bytes as the case
-# writes them (no table); each label's record masked as guitext.py's one (its block: every label's layout allocates three).
+# writes them (no table); each label's record masked as guitext.py's one (its block: every label's layout allocates three). InWindow
+# (0x480810): see in_window().
 # usage: gauge.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -17,7 +18,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import crt  # noqa: E402
 import guitext  # noqa: E402
 import textlayout as tl  # noqa: E402
-from fncmp import HEAP, LOG, Bench, Call, Mask, RAM, heap, log_region, put  # noqa: E402
+from fncmp import HEAP, LOG, LOG_BYTES, Bench, Call, Mask, RAM, blob, fill, heap, log_region, put, recorder, set_return, strings, vtable  # noqa: E402
 
 
 def merged(ranges):   # (overlapping ranges joined: a listing line must not come twice)
@@ -34,10 +35,15 @@ B = Bench(merged([(0x47faa0, 0x47fbf3),  # 0x47fbe0's ret 8 is at 0x47fbf0
                   (0x47fc00, 0x47fc50), (0x47fc50, 0x47fcd0), (0x47fcd0, 0x47fe85), (0x5f9780, 0x5f97c0), (0x5f9860, 0x5f98d0),
                   (0x5f98d0, 0x5f9940), (0x5f9a80, 0x5f9ac0), (0x61af40, 0x61af50), (0x61af50, 0x61af60), (0x61c2e0, 0x61c490),
                   (0x61c490, 0x61c630), (0x61eed0, 0x61f0a0), (0x62f810, 0x62f890), (0x62f890, 0x62f8d0), (0x62f940, 0x62f980),
-                  (0x4806a0, 0x480810), (0x5f73a0, 0x5f76b7)] + guitext.RANGES), hooks={0x67af00: crt.swprintf_hook})
+                  (0x4806a0, 0x480810), (0x5f73a0, 0x5f76b7),
+                  (0x480810, 0x4808ec), (0x4925d0, 0x492660), (0x5f9a80, 0x5f9da0), (0x61af60, 0x61b040), (0x61b090, 0x61b140),
+                  (0x62f890, 0x62f8e0), (0x62f940, 0x62f990), (0x65d6db, 0x65d727), (0x65d745, 0x65d783)] + guitext.RANGES),
+          hooks={0x67af00: crt.swprintf_hook})
 CALLS = {'Init': (0x47faa0, 0), 'MarksX': (0x47fb10, 3), 'MarksY': (0x47fb30, 3), 'Rect': (0x47fb50, 4),
          'Colour0': (0x47fb80, 2), 'Colour1': (0x47fba0, 2), 'Colour2': (0x47fbc0, 2), 'Colour3': (0x47fbe0, 2),
-         'DrawBack': (0x47fc00, 0), 'DrawAxes': (0x47fc50, 0), 'Setup': (0x4806a0, 6), 'Grid': (0x47fcd0, 0)}
+         'DrawBack': (0x47fc00, 0), 'DrawAxes': (0x47fc50, 0), 'Setup': (0x4806a0, 6), 'Grid': (0x47fcd0, 0), 'InWindow': (0x480810, 3)}
+WINDOW, IMPL, IMPL_VT = RAM + 0x4200, RAM + 0x4300, RAM + 0x4340   # (InWindow's window, its surface object and that one's vtable)
+FORMAT = 0x8bd554   # (the current format's index, then its records of 32 bytes)
 GRID, NARROWER, SEGMENT = RAM + 0x4000, RAM + 0x4100, RAM + 0x4140   # the grid's gauge, the narrowing table and its one segment
 LABEL_BLOCKS = 0x30   # (each label's layout: its records, positions and lines blocks)
 STATE, TABLE8 = 0xfa76b8, 0x7034d8
@@ -125,11 +131,42 @@ def grid(r):
     return Call(0x47fcd0, [GRID], regions, conv='t', ret='v', masks=masks)
 
 
+def in_window(r):
+    """InWindow (0x480810): grid()'s world and gauge (the draw table's slot 3, the box fill, given its three arguments, the rectangle on the
+    stack logged as a hash of its four dwords, the colour's index dword as its byte: DrawBack passes its caller's stack as the pad); the window's surface object +0x9c (none now and then) with slot 7 (k 21) answering the
+    bits (0 now and then) and writing the width and height (0-64 mostly) through its two out arguments (logged as 0), slot 6 (k 20); the
+    current format (index 0-3) a record whose bit count is 8, 16, 24, 32 or other; the game palette random; after a cdecl recorder (k 22)
+    or none. The display's surface is left the stack's SurfaceInfo (STATE +0x30: ignored, the two stacks differ)."""
+    c = grid(r)
+    regions, log = dict(c.regions), bytearray(c.regions[LOG])
+    regions[guitext.DTABLE] = vtable({3: 3, 8: 5, 9: 5}, 16)
+    blob(log, 3, 0, 0xf)
+    struct.pack_into('<I', log, LOG_BYTES + 4 * 3, 1 << 2)   # (the colour's index logged as its byte: DrawBack's pad bytes are its caller's stack)
+    vt = bytearray(0x20)
+    put(vt, 0x18, 'II', recorder(20, 0), recorder(21, 2))
+    impl = put(bytearray(r.bytes(0x10)), 0, 'I', IMPL_VT)
+    window = put(bytearray(r.bytes(0xa0)), 0x9c, 'I', r.choice([IMPL] * 9 + [0]))
+    set_return(log, 21, r.choice([RAM + 0x6000] * 5 + [r.getrandbits(32) | 0x80000000, 0]))
+    set_return(log, 20, r.getrandbits(32))
+    strings(log, 21, 0, out=0b11)
+    fill(log, 21, 0, struct.pack('<i', r.choice([r.randrange(0, 65)] * 4 + [r.randrange(-5, 300)])), which=4)
+    fill(log, 21, 1, struct.pack('<i', r.choice([r.randrange(0, 57)] * 4 + [r.randrange(-5, 300)])), which=5)
+    index = r.randrange(4)
+    records = bytearray(r.bytes(32 * 4))
+    put(records, 32 * index + 12, 'I', r.choice([8, 8, 16, 24, 32, r.getrandbits(8)]))
+    regions.update({LOG: log, WINDOW: window, IMPL: impl, IMPL_VT: vt, FORMAT: struct.pack('<I', index) + records,
+                    0xfa71f8: r.bytes(0x400)})
+    after = r.choice([recorder(22, 1, cdecl=True), 0])
+    return Call(0x480810, [WINDOW, GRID, after], regions, ret='a', masks=c.masks, ignore=[(guitext.STATE + 0x30, 4)])
+
+
 def case(r):
     op = r.deal(OPS)
     at, n = CALLS[op]
     if op == 'Grid':
         return grid(r)
+    if op == 'InWindow':
+        return in_window(r)
     if op.startswith('Draw'):
         return draw(r, at)
     if op == 'Setup':   # (the window's corners mostly in order and on screen; the scales the screen's size or wild)

@@ -888,4 +888,32 @@ u8 *__fastcall Window7059f0_DeletingDtor(u8 *window, void *, u32 flags) {
     if (flags & 1) GameHeap_Free(window);
     return window;
 }
+
+u32 __cdecl Window7059f0_Proc(u8 *window, u32 message, u32 a, u32 b) {
+    switch ((s32)message) {
+    case 0x100: Window7059f0_OnHeader(window, nullptr, a); break;
+    case 0x10003: Window7059f0_OnDrag(window, nullptr, (u32)((s32)a >> 16), a & 0xffff); return 0;
+    case 0x10001: Window7059f0_OnDrag(window, nullptr, (u32)((s32)a >> 16), a & 0xffff); break;
+    case 0x13: Window7059f0_OnMoved(window, nullptr, a, b); break;
+    case 0x11: Window7059f0_ShowRows(window, nullptr, a); break;
+    case 0x11006:
+        if (a == 0) Window7059f0_OnMouseDown(window, nullptr, (u32)((s32)b >> 16), b & 0xffff);
+        else Window7059f0_OnDouble(window, nullptr, (u32)((s32)b >> 16), b & 0xffff);
+        break;
+    case 0x11007:
+        if (a == 0) Window7059f0_PostSelection(window);
+        break;
+    case 0x800: Window7059f0_ScrollFromBar(window); break;
+    case 0x1000d:
+        if (u8 *const child = Window_FindChild(window, nullptr, 1)) vcall<void>(child, 0x1c, vcall<u32>(child, 0x20) - a);
+        break;
+    case 0x1e: Window7059f0_SendToRows(window, nullptr, message, a, b); break;
+    case 0x1000a: Window7059f0_OnKey(window, nullptr, a, b); break;
+    case 0x15:
+    case 0x1a:
+        if (Fn_65d57c(window) & 0x200) Window_SetModal(window, nullptr, 0x0077c4b8);
+        break;
+    }
+    return Window_DefaultProc(window, message, a, b);
+}
 }

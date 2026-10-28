@@ -21,7 +21,8 @@
 # other child, mostly 0x21: posted to unless its dword 2 is set; the panel linked already now and then: not added), the root [0xfaa5d8] none (no hover) and the focus another; advisor.py's
 # PostId surroundings for 0x11f / 0xc6 (its message's unwritten bytes masked, +0x16d0 too), [0x7c24c8] none, focus.py's mouse modes (the
 # setting 0xfb3b7c 1, the current mode's slot 9 answering 9 mostly, the heap failing now and then).
-# usage: thingbrowser.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ShowName,ShowDetail,GroupHandler,Create,Open)
+# OpenShown (0x481790): Open's world, the thing the shown one [0x7c2658] when the flag [0x7cc3c0] is set (else none, [0x7c2658] any).
+# usage: thingbrowser.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ShowName,ShowDetail,GroupHandler,Create,Open,OpenShown)
 import os
 import struct
 import sys
@@ -43,12 +44,12 @@ from msgtags import ADVISOR_RANGES  # noqa: E402
 from window import RANGES  # noqa: E402
 from personsprite import THING, centre_env, sprite_env  # noqa: E402
 
-CALLS = {'ShowName': 0x4b3490, 'ShowDetail': 0x4b3580, 'GroupHandler': 0x4b3b90, 'Create': 0x4b3cf0, 'Open': 0x4b3f60}
+CALLS = {'ShowName': 0x4b3490, 'ShowDetail': 0x4b3580, 'GroupHandler': 0x4b3b90, 'Create': 0x4b3cf0, 'Open': 0x4b3f60, 'OpenShown': 0x481790}
 B = Bench(merged(RANGES + radiogroup.RANGES + dialogbuild.ALL_RANGES + listrows.REG_RANGES + CURSOR_RANGES + focus.MODES + ADVISOR_RANGES + [
            (0x4b3f60, 0x4b4255), (0x65f447, 0x65f538), (0x65f345, 0x65f410),(0x4b3cf0, 0x4b3f1b), (0x65f538, 0x65f5b7),(0x4b3b90, 0x4b3c09), (0x65d55a, 0x65d56b), (0x475480, 0x4754f0), (0x4d8c50, 0x4d8c70), (0x4f9f00, 0x4fa2b0), (0x4fe900, 0x4fe960), (0x50b350, 0x50b370), (0x510160, 0x510190),
            (0x53c8d0, 0x53c9d0), (0x5da3c0, 0x5da3c1), (0x486860, 0x4868c1), (0x42aab0, 0x42ab1d),
            (0x4b3490, 0x4b3576), (0x4b3580, 0x4b3612), (0x65d7bc, 0x65d832), (0x65d3a3, 0x65d40c), (0x506860, 0x506867), (0x5064f0, 0x506523),
-           (0x485ec0, 0x485eea)]), hooks={0x6acd60: _cdecl_log4})
+           (0x485ec0, 0x485eea), (0x481790, 0x4817b3)]), hooks={0x6acd60: _cdecl_log4})
 PANEL, KIDS, VT, OBJ, OVT = RAM + 0x30000, RAM + 0x30200, RAM + 0x30800, RAM + 0x30900, RAM + 0x30a00
 PARENT = RAM + 0x3000   # (GroupHandler's: past radiogroup.py's group and children, before window.py's queues' end)
 MANAGER = RAM + 0x30c00
@@ -147,7 +148,8 @@ def plain(r, ident, nxt=0, parent=0):
     return w
 
 
-def open_case(r):
+def open_case(r, shown=False):
+    """Open's world; shown: OpenShown's (the thing [0x7c2658] when [0x7cc3c0] is set, else none)"""
     log = log_region()
     regions = {LOG: log}
     thing = sprite_env(r, regions)
@@ -157,6 +159,11 @@ def open_case(r):
     put(thing, 0x30, 'I', r.choice([0, 0, 1, 2, 0x29b, r.getrandbits(32)]))
     put(thing, 0x19c, 'I', r.choice([0, 1, 2, 3, 4, 5, 6, r.getrandbits(32)]))
     arg = THING if r.random() < 0.9 else 0
+    if shown:
+        flag = r.choice([0, 1, 1, 1, r.getrandbits(32) | 1])
+        arg = arg if flag else 0
+        regions[0x7cc3c0] = struct.pack('<I', flag)
+        regions[0x7c2658] = struct.pack('<I', arg if flag else r.choice([THING, r.getrandbits(32)]))
     ids = [0x147, 0x148, 0x14a] + r.choice([[], [1], [0x149, 0x147]])
     r.shuffle(ids)
     for i, n in enumerate(ids):
@@ -198,6 +205,8 @@ def open_case(r):
     for k, v in adv.regions.items():
         if k != LOG:
             regions[k] = v
+    if 0xfb34bc in regions:   # (the mode setting's static built already: its first build's atexit call reaches CRT code the ranges leave out)
+        regions[0xfb34bc] = bytes([regions[0xfb34bc][0] | 1])
     set_return(log, 20, r.choice([0, 1, 5, 100, -1, r.getrandbits(32)]))
     masks = [Mask(m.region, m.offsets + [0x16d0 + k for k in (2, 3, 0x17)], m.reason) for m in adv.masks]
     regions[0x7c24c8] = struct.pack('<I', r.choice([0, CLOSING]))   # (a window to close: sent 5, then the focus restored to nothing)
@@ -213,13 +222,15 @@ def open_case(r):
     regions[0x7b05d4] = put(put(bytearray(r.bytes(0x18)), 4, 'I', r.choice([focus.MODE, focus.MODE, 0])), 0x14, 'I', r.choice([0, focus.HOLDER]))
     regions[0xfb3518] = bytes([r.choice([1, 3, 0xff])])
     regions[0xfb3b7c] = struct.pack('<I', 1)
+    if shown:
+        return Call(CALLS['OpenShown'], [], regions, ret='v', masks=masks)
     return Call(CALLS['Open'], [arg], regions, ret='v', masks=masks)
 
 
 def case(r):
     op = r.deal(OPS)
-    if op == 'Open':
-        return open_case(r)
+    if op in ('Open', 'OpenShown'):
+        return open_case(r, op == 'OpenShown')
     if op == 'GroupHandler':
         return group_case(r)
     if op == 'Create':

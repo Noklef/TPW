@@ -11,6 +11,7 @@
 # WindowAt10_Show (0x493130, thiscall (flag); src/game/ui/dialogs): see show_case.
 # WindowAt10_Hide (0x4931b0, thiscall; src/game/ui/dialogs): show_case's surroundings with the holder's +0xc set mostly (no flag).
 # Windows7cc8bc_SelectFirst (0x4bcf50; src/game/ui/dialogs): see select_first_case.
+# Window7cc8cc_PlaceAtMouse (0x4bf370, cdecl (unused, window); src/game/ui/window7cc8bc): see place_case.
 # usage: focus.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetFocus,KillFocus,...)
 import os
 import struct
@@ -19,7 +20,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
-from fncmp import CDECL_LOG4, HEAP, LOG, RAM, Bench, Call, blob_bytes, heap, log_region, put, recorder, set_return, vtable  # noqa: E402
+from fncmp import CDECL_LOG4, HEAP, LOG, RAM, Bench, Call, blob_bytes, blob_when, heap, log_region, put, recorder, set_return, vtable  # noqa: E402
 from window import FOCUS, MISC, OBJECT98, RANGES, VTABLE, hover, shown_env, tree  # noqa: E402
 from windowfactory import FACTORY, timer_env  # noqa: E402
 
@@ -27,7 +28,7 @@ CALLS = {'SetFocus': 0x65e59b, 'KillFocus': 0x65e5fa, 'Dialog7ca1c8_Focus': 0x49
          'Close7c24c8': 0x485b40, 'Close7cb2cc': 0x4a27c0, 'Windows7cc8bc_SelectSecond': 0x4bce80,
          'Overlay7cb2b4_Toggle': 0x4a29d0, 'Obj7b51f0_ToggleOverlay': 0x481490, 'Obj7b51f0_CloseOverlay': 0x4815d0,
          'Enter6fead0': 0x481a10, 'Set7c24c8': 0x485b70, 'CaptureMouse': 0x65e549, 'ReleaseMouse': 0x65e56e, 'WindowAt10_Show': 0x493130,
-         'WindowAt10_Hide': 0x4931b0, 'Windows7cc8bc_SelectFirst': 0x4bcf50}
+         'WindowAt10_Hide': 0x4931b0, 'Windows7cc8bc_SelectFirst': 0x4bcf50, 'Window7cc8cc_PlaceAtMouse': 0x4bf370}
 MODES = [(0x40cb40, 0x40cb90), (0x46c350, 0x46c460), (0x46c6a0, 0x46c6c0), (0x46cff0, 0x46d010), (0x4814a0, 0x481500), (0x481a10, 0x481b00),
          (0x485b40, 0x485d30), (0x4862a0, 0x486420), (0x4a25f0, 0x4a2690), (0x4a2aa0, 0x4a2ad0), (0x550ca0, 0x550d90), (0x6590f7, 0x6591e4),
          (0x65e6d5, 0x65e73d), (0x65f11d, 0x65f160), (0x66190a, 0x66192b), (0x661d96, 0x661de0), (0x668ad3, 0x668c99), (0x67a740, 0x67a800),
@@ -36,7 +37,9 @@ MODES = [(0x40cb40, 0x40cb90), (0x46c350, 0x46c460), (0x46c6a0, 0x46c6c0), (0x46
 B = Bench(sorted(set(RANGES + FACTORY + MODES + [(0x4a29d0, 0x4a2a8a), (0x4a2a90, 0x4a2a96), (0x481490, 0x481495), (0x4815d0, 0x4815df),
                                             (0x65e549, 0x65e56e), (0x65e56e, 0x65e59b),
     (0x493130, 0x49319f), (0x4931b0, 0x4931e8), (0x65f538, 0x65f5b7), (0x659409, 0x65959a), (0x659730, 0x659760), (0x65d547, 0x65d56a), (0x65d56b, 0x65d59d),   # (WindowAt10_Show's:
-    (0x65f447, 0x65f538), (0x65f345, 0x65f410), (0x65f16b, 0x65f246), (0x65d9dd, 0x65da8d), (0x65d90b, 0x65d9dd), (0x4bcf50, 0x4bd015), (0x40bed0, 0x40bf65)])))   # top depth, AddChild)
+    (0x65f447, 0x65f538), (0x65f345, 0x65f410), (0x65f16b, 0x65f246), (0x65d9dd, 0x65da8d), (0x65d90b, 0x65d9dd), (0x4bcf50, 0x4bd015), (0x40bed0, 0x40bf65),
+    (0x4bf370, 0x4bf45a), (0x65958a, 0x6595b8), (0x659d00, 0x659d53), (0x659d90, 0x659dbc), (0x65a9d0, 0x65aa00), (0x65aa20, 0x65aaa0),   # (Window7cc8cc_PlaceAtMouse's: the
+    (0x65a43e, 0x65a4a3), (0x65d42e, 0x65d4b0), (0x66bff7, 0x66c01b)])))   # rectangle, GetRect)
 OVERLAY, OVERLAY_VT = RAM + 0xb000, RAM + 0xb040   # (an overlay to delete: its slot 2 a recorder)
 MODE, MODE_VT, HOLDER = RAM + 0xc000, RAM + 0xc100, RAM + 0xc200   # (the current mouse mode, a recorder object; the holder, never read)
 CHAIN = RAM + 0xe000   # (Windows7cc8bc_SelectFirst's child chain, its rectangles at +0x400)
@@ -220,6 +223,8 @@ def show_case(r, op='WindowAt10_Show'):
     for at, m in zip((0x787c14, 0x787a60, 0x78733c), [FOCUS + 0x80 + 0x10 * k for k in range(3)]):
         regions[at] = struct.pack('<I', m)
         regions[m] = r.bytes(8)
+    if op == 'Window7cc8cc_PlaceAtMouse':
+        return place_case(r, regions, log, wins)
     if op == 'WindowAt10_Hide':   # (the tree's handlers fncmp's logger or none: hidden, unlinked and unfocused windows are told)
         for w in wins + [SHOWN_KID]:
             put(regions[w], 0x114, 'I', r.choice([CDECL_LOG4, 0]))
@@ -232,9 +237,48 @@ def show_case(r, op='WindowAt10_Show'):
     return Call(CALLS['WindowAt10_Show'], [SHOWN_OBJ, flag], regions, conv='t', ret='v')
 
 
+PLACE_TOP, PLACE_MIDDLE, PLACE_DECOY = RAM + 0xd600, RAM + 0xd800, RAM + 0xda00
+
+
+def place_case(r, regions, log, wins):
+    """Window7cc8cc_PlaceAtMouse (0x4bf370): show_case()'s surroundings; [0x7cc8bc] a window (now and then none: a fault in both) whose
+    child 0xc3123 (after a decoy now and then; missing now and then: a fault in both) has one of the tree's windows below the root as its
+    first child, the id 0xc3124 on it or one of its later siblings (now and then on none: a fault in both); [0x7cc8cc] the new window
+    (none now and then: a fault in both); the window moved the new one, one of the tree's or none; the windows' GUI rectangles at +8 and
+    +0x2c, +0x44 one of them now and then (as window.py's offset_env()); the objects' slot 3 events hashed by kind (Offset's 0x50: the
+    dwords +0xc and +0x14; SetDepth's 2: the word +6)."""
+    for w in wins + [SHOWN, SHOWN_KID]:
+        put(regions[w], 8, 'I', 0x705920)
+        put(regions[w], 0x2c, 'I', 0x705920)
+        if w in (SHOWN, SHOWN_KID) or r.random() < 0.5:
+            put(regions[w], 0x44, 'I', w + 8)
+    for k, entry in ((3, 0), (22, 2)):
+        blob_when(log, k, 0, 0x50, 0x00f0f000, entry)
+        blob_when(log, k, 0, 2, 0xc0, entry + 1)
+    regions[PLACE_MIDDLE] = put(put(bytearray(r.bytes(0x120)), 0x8c, 'I', 0xc3123 if r.random() < 0.97 else 0xc3124), 0x54, 'I', 0)
+    regions[PLACE_DECOY] = put(bytearray(r.bytes(0x120)), 0x54, 'I', PLACE_MIDDLE)
+    regions[PLACE_TOP] = put(bytearray(r.bytes(0x120)), 0x5c, 'I', r.choice([PLACE_MIDDLE] * 3 + [PLACE_DECOY]))
+    if len(wins) < 2:   # (a lone root: a plain window under the middle one)
+        regions[PLACE_DECOY + 0x200] = bytearray(0x120)
+    first = r.choice(wins[1:] or [PLACE_DECOY + 0x200])
+    put(regions[PLACE_MIDDLE], 0x5c, 'I', first)
+    chain, c = [], first
+    while c and len(chain) < 16:
+        chain.append(c)
+        c = struct.unpack_from('<I', regions[c], 0x54)[0]
+    if r.random() < 0.95:
+        put(regions[r.choice(chain)], 0x8c, 'I', 0xc3124)
+    regions[0x7cc8bc] = put(bytearray(regions[0x7cc8bc]), 0, 'I', PLACE_TOP if r.random() < 0.97 else 0)
+    regions[0x7cc8cc] = struct.pack('<I', SHOWN if r.random() < 0.95 else 0)
+    if r.random() < 0.3:
+        regions[0xfaa540] = r.bytes(8)
+    window = r.choice([SHOWN] * 12 + wins + [0])
+    return Call(CALLS['Window7cc8cc_PlaceAtMouse'], [r.getrandbits(32), window], regions, ret='v')
+
+
 def case(r, ops=None):
     op = r.deal(ops or OPS)
-    if op in ('WindowAt10_Show', 'WindowAt10_Hide'):
+    if op in ('WindowAt10_Show', 'WindowAt10_Hide', 'Window7cc8cc_PlaceAtMouse'):
         return show_case(r, op)
     log = log_region()
     regions = {LOG: log, VTABLE: vtable({5: 1})}

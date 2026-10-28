@@ -6,6 +6,7 @@
 #include "../core/gameheap.h"
 #include "../core/initializers.h"
 #include "../core/vcall.h"
+#include "../gfx/display.h"
 #include "../gfx/palette.h"
 
 namespace {
@@ -219,6 +220,22 @@ u8 *__fastcall Cursor_Delete(u8 *cursor, void *, u32 flags) {
 u8 *__fastcall PalColour_Ctor(u8 *colour, void *, u32 red, u32 green, u32 blue) {
     PalColour_Set(colour, nullptr, red & 0xff, green & 0xff, blue & 0xff);
     return colour;
+}
+
+void __cdecl Gui_DrawCursor(u32 x, u32 y) {
+    if (u8 *const cursor = global<u8 *>(0x00faa608)) vcall<void>(cursor, 0x14, x & 0xffff, y & 0xffff);
+}
+
+void __fastcall Cursor_DrawArrow(u8 *cursor, void *, u32 x, u32 y) {
+    const s32 left = (s16)((u16)x - (u16)(s16)(s8)cursor[5]);
+    const s32 top = (s16)((u16)y - (u16)(s16)(s8)cursor[6]);
+    u8 white[8];
+    PalColour_Ctor(white, nullptr, 0xff, 0xff, 0xff);
+    DrawColour colour;
+    colour.rgb = at<u32>(white, 0);
+    colour.index = white[4];
+    colour.pad[0] = colour.pad[1] = colour.pad[2] = 0;   // (the stack under it: the upper bytes of the 0xff pushed for the colour)
+    Display_Triangle(left, top, left + 8, top + 0x10, left + 0x10, top + 8, colour);
 }
 
 }

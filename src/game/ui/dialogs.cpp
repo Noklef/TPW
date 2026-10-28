@@ -4,18 +4,25 @@
 
 #include "../core/gameheap.h"
 #include "../core/globals.h"
+#include "../core/idmaps.h"
 #include "../core/language.h"
+#include "../core/methods.h"
 #include "../core/vcall.h"
 #include "../render/particles.h"
 #include "../render/textparts.h"
 #include "../world/camera.h"
 #include "../world/mousemode.h"
+#include "../world/ridesweep.h"
+#include "../world/staff.h"
 #include "../world/things.h"
+#include "../world/thingscan.h"
+#include "../world/world.h"
 #include "cursor.h"
 #include "focus.h"
 #include "guidepth.h"
 #include "guirect.h"
 #include "window.h"
+#include "window7059f0.h"
 #include "window705a50.h"
 #include "windowscript.h"
 
@@ -115,6 +122,44 @@ u32 __cdecl Dialog7ca168_ShowText(u32 which) {
     u8 *const label = Window_FindChild(Window_FindChild(window(0x007ca168), nullptr, 0x329), nullptr, 0x32a);
     if (which > 4) return which;
     return vcall<u32>(label, 0x24, Language_WideText(kTexts[which]));
+}
+
+void __cdecl Dialog7ca168_ShowStaffAverage(u32 tab) {
+    static const u32 kKinds[5] = {5, 4, 6, 7, 8};
+    u8 *const bar = Window_FindChild(Window_FindChild(window(0x007ca168), nullptr, 0x329), nullptr, 0x32d);
+    const u32 kind = tab <= 4 ? kKinds[tab] : tab;
+    void *const *const table = *reinterpret_cast<void *const *const *>(bar);
+    GameTable7cfb90_Get1da720_519510(*reinterpret_cast<u8 *const *>((uintptr_t)0x007cf83c));   // (its answer only the ECX of the stdcall)
+    const s32 average = Things_AverageStat1f8OfKind(kind);
+    reinterpret_cast<void(__fastcall *)(u8 *, void *, s32)>(table[7])(bar, nullptr, (s32)((u32)average << 10) / 100);
+}
+
+u32 __cdecl Dialog7ca168_AddStaffRow(u8 *staff) {
+    const u32 stat = (u32)(long long)*reinterpret_cast<const float *>(staff + 0x1f8) & 0xff;   // (__ftol's low byte)
+    const u32 grade = Staff_GradeLevel(staff);
+    Mode19c_ToIndex(staff);   // (its answer unused)
+    u32 texts[5];
+    texts[0] = (u32)(uintptr_t)Staff_GetName(staff);
+    u8 *const list = window(0x007ca164);
+    u32 mode = Mode19c_ToIndex(staff);
+    if (mode == 1 && !Staff_HasPatrolRegion(staff)) mode = 0;
+    texts[1] = (u32)(uintptr_t)Language_Widen(Records_DataIfTerminated(window(0x0078baa4), nullptr, mode));
+    texts[2] = (u32)Staff_GetWage(staff);
+    texts[3] = (u32)((s32)(grade << 10) / 100);
+    texts[4] = (u32)((s32)(stat << 10) / 100);
+    Window7059f0_AddItem(list, nullptr, texts, (u32)(uintptr_t)staff, -1, 0);
+    return 1;
+}
+
+void __cdecl Dialog7ca168_FillStaffList(u32 tab, u32 clear) {
+    static const u32 kMasks[5] = {2, 4, 0x10, 8, 0x20};
+    u8 *const dialog = window(0x007ca168);
+    *reinterpret_cast<u32 *>((uintptr_t)0x007ca16c) = tab;
+    u8 *const list = Window_FindChild(dialog, nullptr, 0x321);
+    if (clear) Window7059f0_Clear(list);
+    *reinterpret_cast<u8 **>((uintptr_t)0x007ca164) = list;
+    if (tab <= 4) Things_ForEachSelected(kMasks[tab], reinterpret_cast<ObjectCallback>(&Dialog7ca168_AddStaffRow));
+    Window7059f0_RefreshRows(list);
 }
 
 s32 __cdecl Dialog7cb2b8_Handler(u8 *window, u32 message, u32 a, u32 b) {

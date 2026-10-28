@@ -1,4 +1,4 @@
-// The GUI's text drawing and measuring (0x492750, 0x4929f0): a text layout (gfx/textlayout) built on the stack for one call, the global text
+// The GUI's text drawing and measuring (0x492750, 0x4929f0, 0x492c40):a text layout (gfx/textlayout) built on the stack for one call, the global text
 // style (0x78ba2c) given a font of the current language's table (0x78b54c: 13 entries of 24 bytes a language (0x78b534), the font at +0x14),
 // the wide text narrowed into the global buffer (Text_NarrowToGlobalBuffer) and laid out in a rectangle.
 //
@@ -25,4 +25,11 @@ void __cdecl GuiText_Draw(const u16 *text, const s32 *rect, const u8 *colour, s8
 // 0x4929f0 (cdecl (text, rect, font, hAlign, vAlign, fit, box)): with a text, as GuiText_Draw without the colour, the surface and the clip:
 // the text measured (TextLayout_Measure) and its box copied to box (unless 0).
 void __cdecl GuiText_Measure(const u16 *text, const s32 *rect, s8 font, s8 hAlign, s8 vAlign, u32 fit, s32 *box);
+
+// 0x492c40 (cdecl (text, a, c, d, left, top, right, bottom, rgb); name invented): the text drawn onto a surface of its own: the colour
+// rgb's bytes (blue low) with alpha 0xff and the game palette's (0xfa71f8) nearest entry (Palette_Nearest), the GUI's SurfaceInfo
+// (0x7ca0e8) filled as kind 3 from a, c, d (Format_FillInfoByKind), the surface flag 0x7ca120 set around it and the global style's +0x10
+// on (Obj_SetOn10 / Obj_SetOff10), GuiText_Draw with font 0xc, left / top aligned, fit 1, no bounds, keepSurface 0. Its one caller
+// is 0x4a8585.
+void __cdecl GuiText_DrawRgb(const u16 *text, u32 a, u32 c, u32 d, s32 left, s32 top, s32 right, s32 bottom, u32 rgb);
 }

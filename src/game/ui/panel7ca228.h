@@ -25,4 +25,11 @@ void __fastcall Panel7ca228_Show(u8 *self, void *, u8 *thing);
 // 0x1585 text 0x36, 0x1584 a 0x6ff3b0 part with 0.
 void __fastcall Panel7ca228_Dress(u8 *self);
 
+// 0x499a70 (thiscall; slot 5 of the vtable 0x6ff8d0; name invented): for the shown thing [0x7c2658] (Object_GetDef called, its answer
+// unused), when the window +0x14 is set: its child 0x1586, if there, is given through its slot 7 the +0x18 of the thing's control record
+// (ObjectControls_GetWord18 of its word +0xe; GameTable7cfb90_Get1da720_519510 of [0x7cf83c] called first for the ECX of that stdcall);
+// then its child 0x1584 (Window_FindChild of +0x14 read again, unchecked) is given the thing's scrap refund (Object_ScrapRefund) the
+// same way. Each child's vtable is read before its value is worked out.
+void __fastcall Panel7ca228_ShowValues(u8 *self);
+
 }

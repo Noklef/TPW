@@ -7,6 +7,7 @@
 #include "../core/string.h"
 #include "../math/rect.h"
 #include "display.h"
+#include "palette.h"
 #include "textlayout.h"
 
 namespace {
@@ -111,5 +112,22 @@ void __cdecl GuiText_Measure(const u16 *text, const s32 *rect, s8 font, s8 hAlig
             for (u32 i = 0; i < 4; ++i) box[i] = measured[i];
     }
     TextLayout_Dtor(layout);
+}
+
+void __cdecl GuiText_DrawRgb(const u16 *text, u32 a, u32 c, u32 d, s32 left, s32 top, s32 right, s32 bottom, u32 rgb) {
+    u8 colour[8] = {};   // blue, green, red, 0xff, the palette index (the original's last three bytes are never read)
+    colour[0] = (u8)rgb;
+    colour[1] = (u8)(rgb >> 8);
+    colour[2] = (u8)(rgb >> 16);
+    colour[3] = 0xff;
+    colour[4] = Palette_Nearest(reinterpret_cast<const u8 *>(0x00fa71f8), rgb >> 16, rgb >> 8, rgb);
+    Format_FillInfoByKind(a, c, d, 3, reinterpret_cast<u32 *>(0x007ca0e8));
+    global<u32>(0x007ca120) = 1;
+    u32 status;
+    Obj_SetOn10(kStyle, nullptr, &status);
+    const s32 rect[4] = {left, top, right, bottom};
+    GuiText_Draw(text, rect, colour, 0xc, 0, 0, 1, nullptr, 0);
+    Obj_SetOff10(kStyle, nullptr, &status);
+    global<u32>(0x007ca120) = 0;
 }
 }

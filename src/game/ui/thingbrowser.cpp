@@ -181,4 +181,8 @@ void __cdecl ThingBrowser_Open(u8 *thing) {
         MouseMode_Set(mode);
     }
 }
+
+void __cdecl ThingBrowser_OpenShown() {
+    ThingBrowser_Open(global<u32>(0x007cc3c0) ? global<u8 *>(0x007c2658) : nullptr);
+}
 }
