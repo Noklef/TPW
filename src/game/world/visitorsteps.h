@@ -57,6 +57,8 @@ void __fastcall Visitor_StepEntering(u8 *visitor);
 // (AnalyserCell_TypePlain) the visitor stays ("Make up your mind!"); otherwise one step: arrived, state 0x13; stuck (2), it stays too:
 // +0x188 0, state 6. Name invented, unconfirmed.
 void __fastcall Visitor_StepLeavingPark(u8 *visitor);
+// 0x4fc890 (thiscall; called by 0x501d3f): the visitor's state set again to its own state +0x224 (Visitor_SetState). Name invented, unconfirmed.
+void __fastcall Visitor_ReenterState(u8 *visitor);
 
 // 0x4faec0 (thiscall (cell), pops 4; the constructor, its name invented): the moving person (MovingPerson_Ctor (cell, 1)), the visitor's
 // fields 0x19c-0x22a cleared (+0x220 / +0x224 6), +0x1d4 the park's +0x1da70c; the exit level +0x1bc gBalanceLevel's (0x78504c) give or

@@ -235,6 +235,8 @@ void __fastcall Visitor_StepLeavingPark(u8 *visitor) {
     g_env->setState(visitor, nullptr, 6);
 }
 
+void __fastcall Visitor_ReenterState(u8 *visitor) { g_env->setState(visitor, nullptr, at<u32>(visitor, 0x224)); }
+
 u8 *__fastcall Visitor_Ctor(u8 *visitor, void *, u32 cell) {
     MovingPerson_Ctor(visitor, nullptr, cell, 1);
     for (u32 offset = 0x19c; offset <= 0x1bc; offset += 4) at<u32>(visitor, offset) = 0;
