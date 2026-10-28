@@ -4380,6 +4380,7 @@ address,name,kind,confidence,notes
 0x004f6270,ChatBuddySet_LowerBound,function,low,"reimplemented (src/game/core/wstringmap); thiscall (key), pops 4; lower bound over a case-insensitive wide string set, sentinel 0x7ced2c (name invented)"
 0x004f03c0,ChatIgnoreSet_Find,function,low,"reimplemented (src/game/core/wstringmap); thiscall (out, key), pops 8; find over the 0x7ced34 set: the lower bound unless the head or the key sorts before it (name invented)"
 0x004f2770,ChatBuddySet_Find,function,low,"reimplemented (src/game/core/wstringmap); thiscall (out, key), pops 8; find over the 0x7ced2c set: the lower bound unless the head or the key sorts before it (name invented)"
+0x004f4050,ChatBuddySet_LowerBoundOut,function,low,"reimplemented (src/game/core/wstringmap); thiscall on the chat's buddy set (out, key), pops 8; *out = ChatBuddySet_LowerBound(key); returns out (name invented)"
 0x004de130,Object_BackOfQueue,function,high,reimplemented (src/game/world/objectmsg); the back of a queue found by walking neighbours
 0x0041e270,Class6fda58_DtorA,function,high,"reimplemented (src/game/core/class6fd9d8); complete destructor, handle at +0x40"
 0x0041e2d0,Class6fda58_DtorB,function,high,"reimplemented (src/game/core/class6fd9d8); complete destructor, handle at +0x40"

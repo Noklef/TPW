@@ -34,4 +34,7 @@ u8 *__fastcall ChatBuddySet_LowerBound(u8 *set, void *, const u8 *key);
 u32 *__fastcall ChatIgnoreSet_Find(u8 *set, void *, u32 *out, const u8 *key);
 u32 *__fastcall ChatBuddySet_Find(u8 *set, void *, u32 *out, const u8 *key);
 
+// 0x4f4050 (thiscall on the buddy set; out, key, pops 8): *out = ChatBuddySet_LowerBound(key); returns out. Name invented, unconfirmed.
+u32 *__fastcall ChatBuddySet_LowerBoundOut(u8 *set, void *, u32 *out, const u8 *key);
+
 }  // extern "C"

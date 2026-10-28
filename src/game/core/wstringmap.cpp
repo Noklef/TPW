@@ -76,6 +76,11 @@ u32 *__fastcall ChatBuddySet_Find(u8 *set, void *, u32 *out, const u8 *key) {
     return FindI(set, out, key, ChatBuddySet_LowerBound(set, nullptr, key));
 }
 
+u32 *__fastcall ChatBuddySet_LowerBoundOut(u8 *set, void *, u32 *out, const u8 *key) {
+    *out = (u32)(uintptr_t)ChatBuddySet_LowerBound(set, nullptr, key);
+    return out;
+}
+
 u8 *__fastcall WStringMap_LowerBound(u8 *tree, void *, const u8 *key) {
     u8 *result = at<u8 *>(tree, 4);
     u8 *const sentinel = global<u8 *>(0x007ced24);
