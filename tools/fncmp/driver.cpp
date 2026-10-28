@@ -397,7 +397,7 @@ const SharedGlobalsEnv kSharedGlobalsEnv = {reinterpret_cast<s32(__cdecl *)(void
 const ReleaseListEnv kReleaseListEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const SoundCategoryEnv kSoundCategoryEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
 const SoundDeviceEnv kSoundDeviceEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50))};  // atexit: stub_cdecl_log
-// The person's calls: the cseg angle 0x6e7074 stub_cdecl_log2; agent C's unported 0x501db0 the thiscall recorder 26 of 1 argument (recorder(26, 1), defined below), as tests/fncmp/visitorleave.py hooks 0x501db0.
+// The person's calls: the cseg angle 0x6e7074 stub_cdecl_log2; 0x501db0 (Visitor_SetState, ported; its own bench is visitorstate.py) the thiscall recorder 26 of 1 argument (recorder(26, 1), defined below), as tests/fncmp/visitorleave.py hooks 0x501db0.
 const PersonEnv kPersonEnv = {reinterpret_cast<u32(__cdecl *)(s32, s32)>((uintptr_t)(kStubs + 0x80)),
                               reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)(kStubs + 0x1000 + 0x400 * 1 + 0x20 * 26))};
 const PtrListEnv kPtrListEnv = {&heap_alloc};
