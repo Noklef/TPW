@@ -3,7 +3,8 @@
 # 31 or negative), the tracked allocation failing now and then (fncmp's heap; the error then pushed onto the engine's list at 0x879ad0, as in
 # ptrarray_add.py) and the tracked table as in trackedglobal.py. And the grab's file name set (0x5617c0): none, or names of 0 to 0x90 characters
 # (the longest running past the 0x80 bytes at +0xc, over +0x8c). The next free name (0x550460): Scr%05ld.tga of the counter at 0x879084
-# opened (fileopen.py's file library and imports) until CreateFileA fails, after 0-3 opened.
+# opened (fileopen.py's file library and imports) until CreateFileA fails, after 0-3 opened. Key: its key handler (src/game/core/keyactions:
+# 0x40c470 KeyAction_ScreenGrab) over the same world, its 1 compared.
 # usage: screengrab.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -16,7 +17,7 @@ import fileopen  # noqa: E402
 from texdirs import merged  # noqa: E402
 
 B = Bench(merged([(0x561460, 0x561606), (0x5617c0, 0x5617fe), (0x579b40, 0x579c13), (0x56af20, 0x56af9c), (0x56a770, 0x56ae60), (0x67a400, 0x690000),
-                  (0x550460, 0x55050d)] + fileopen.RANGES), hooks={0x564650: _cdecl_log})
+                  (0x550460, 0x55050d), (0x40c470, 0x40c47b)] + fileopen.RANGES), hooks={0x564650: _cdecl_log})
 COUNT, TABLE = 0x8bb214, 0x87b1f8   # the tracked blocks: their count and (block, block) pairs
 GRAB, PIXELS = RAM, RAM + 0x100
 FORMATS = [(0xf800, 11, 5, 0x7e0, 5, 6, 0x1f, 0, 5), (0x7c00, 10, 5, 0x3e0, 5, 5, 0x1f, 0, 5)]
@@ -78,9 +79,13 @@ def next_name(r):
     return Call(0x550460, [], regions, ret='v')
 
 
+def key(r):
+    return Call(0x40c470, [], next_name(r).regions, ret='a')
+
+
 def case(r):
-    k = r.deal([0, 0, 0, 1, 2])
-    return name(r) if k == 0 else convert(r) if k == 1 else next_name(r)
+    k = r.deal([0, 0, 0, 1, 2, 3])
+    return name(r) if k == 0 else convert(r) if k == 1 else next_name(r) if k == 2 else key(r)
 
 if __name__ == '__main__':
     B.main(case)

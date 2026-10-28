@@ -21,6 +21,10 @@ u32 __cdecl KeyAction_ClockNormal();
 // 0x40c450 (alt '1'): 10000 credited (Money_Credit) to the world's money record (GameTable7cfb90_Get1da726_5195d0 of [0x7cf83c]).
 u32 __cdecl KeyAction_Credit10000();
 
+// 0x40c470 (F8; name invented, unconfirmed): the screen grab's next free name taken
+// (ScreenGrab_NextName); returns 1.
+u32 __cdecl KeyAction_ScreenGrab();
+
 // 0x40c480 (F8 with every modifier): the dword 0x787d1c = 1 - itself, then Global878128_Set_550510 of it.
 u32 __cdecl KeyAction_Toggle787d1c();
 

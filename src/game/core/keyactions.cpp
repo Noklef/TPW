@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../gfx/screengrab.h"
 #include "../ui/focus.h"
 #include "../ui/guimanager.h"
 #include "../world/money.h"
@@ -70,6 +71,11 @@ u32 __cdecl KeyAction_ViewFillStep() {
 
 u32 __cdecl KeyAction_ShowVersion() {
     Wrap_MsgTags_AddVersion_481b70();
+    return 1;
+}
+
+u32 __cdecl KeyAction_ScreenGrab() {
+    ScreenGrab_NextName();
     return 1;
 }
 
