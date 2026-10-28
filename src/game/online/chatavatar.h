@@ -61,6 +61,18 @@ u8 __fastcall ChatAvatar_MoveToCell(u8 *avatar, void *, u32 cell);
 // cell's low word less 1, shifted left 8; mode 0). Returns 1 when sent, else 0 (AL).
 u8 __fastcall ChatAvatar_GoToCell(u8 *avatar, void *, u32 cell);
 
+// 0x4f7c90 (thiscall on a chat player; called by 0x50b49c after Person_UpdateSpeedParticle; name invented, unconfirmed): with the walk mode
+// +0x39c 1 or 2, one step (Sprite_WalkNav, through the env): arrived (0), the mode 0, the script reference's +0x10 3 (Set4_4217f0 on +0xc)
+// and, with the byte +0x3a0 set, the online chat (OnlineChat_Instance) told the player's position (ChatAvatar_MovePlayer1 of the words +4
+// and +6; the original's high halves are other registers', not read); stuck (2), the mode 3 and +0x10 5. Other modes: nothing.
+void __fastcall ChatPlayer_StepWalk(u8 *player);
+
+// What ChatPlayer_StepWalk calls through an environment (the fncmp driver's recorder; the game's by default, the port).
+struct ChatAvatarEnv {
+    u32(__fastcall *walkNav)(u8 *sprite);   // Sprite_WalkNav 0x4fa2a0
+};
+void ChatAvatar_SetEnv(const ChatAvatarEnv *env);   // nullptr: the game's
+
 // 0x4f7d70 (thiscall on a thing of kind 0x12, a chat player; name, pops 4): whether the std::wstring's characters (null: the empty
 // string 0x6fd6c4) equal the player's name, the wide characters at +0x19c (wcscmp 0x67c290 == 0, inlined here). Returns 1 or 0 (AL).
 u8 __fastcall ChatPlayer_NameIs(const u8 *thing, void *, const u8 *name);

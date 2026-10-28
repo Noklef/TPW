@@ -6465,6 +6465,7 @@ address,name,kind,confidence,notes
 0x004ea2d0,ChatAvatar_Enter,function,low,"reimplemented (src/game/online/chatavatar); thiscall (x, y): the avatar thing script placed at (0, 0, 0) at entry point 3 (Person_PlaceScript), its register 8 set to 1.5, then the moves of ChatAvatar_MoveTo with mode 1"
 0x004ee6d0,ChatAvatar_AddName,function,low,reimplemented (src/game/online/chatavatar); a name added to the list window and the avatar name set
 0x004e5210,ChatAvatar_GotoRoomCallback,function,low,"reimplemented (src/game/online/chatavatar); cdecl, no arguments; a button callback (pushed by 0x4edb0f): ChatAvatar_GotoRoom of OnlineChat_Instance; returns 1"
+0x004f7c90,ChatPlayer_StepWalk,function,low,"reimplemented (src/game/online/chatavatar); thiscall: walk mode +0x39c 1 / 2: Sprite_WalkNav (env); arrived: mode 0, +0x10 3, MovePlayer1 when +0x3a0; stuck: mode 3, +0x10 5"
 0x005d2720,Ftp_ListLineSize,function,low,"reimplemented (src/game/online/ftp); thiscall, this unused (line; pops 4): atoi of a directory listing line's fifth field (its size), past four runs of non-spaces and spaces (isspace; a NUL is not one, sic)"
 0x004e6130,OnlineChat_Set29And2a,function,low,reimplemented (src/game/online/chat); the online chat's bytes +0x29 and +0x2a set under its lock (name unconfirmed)
 0x004e6150,OnlineChat_Get2a,function,low,reimplemented (src/game/online/chat); the online chat's byte +0x2a read under its lock (name unconfirmed)
