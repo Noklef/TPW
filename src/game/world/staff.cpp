@@ -8,6 +8,7 @@
 #include "../core/gameheap.h"
 #include "../core/idmaps.h"
 #include "../core/indexed.h"
+#include "../core/initializers.h"
 #include "../core/savegame.h"
 #include "../core/timesig.h"
 #include "../core/selectors.h"
@@ -712,6 +713,58 @@ void __fastcall Staff_LeaveRestArea(u8 *staff) {
 
 void __fastcall Staff_Detach(u8 *staff) { Person_Detach(staff); }
 
+void __fastcall Mechanic_Detach(u8 *mechanic) {
+    Things_Unlink1da73e(*reinterpret_cast<u8 **>((uintptr_t)0x0080239c), nullptr, mechanic);
+    const u16 handle = at<u16>(mechanic, 0x218);
+    if (handle) {
+        u8 *const object = *reinterpret_cast<u8 **>((uintptr_t)0x007cfb90 + handle * 20u);
+        u16 tracked;
+        Obj_GetTrackedHandle(object, nullptr, &tracked);   // (compared with the mechanic's handle only in the original's debug print)
+        Fn_4e0210(object);
+    }
+    Staff_Detach(mechanic);
+}
+
+void __fastcall Handyman_Detach(u8 *handyman) {
+    Things_Unlink1da73c(*reinterpret_cast<u8 **>((uintptr_t)0x0080239c), nullptr, handyman);
+    const u16 handle = at<u16>(handyman, 0x21a);
+    if (handle) Fn_4e0210(*reinterpret_cast<u8 **>((uintptr_t)0x007cfb90 + handle * 20u));
+    Staff_Detach(handyman);
+}
+
+void __fastcall Entertainer_Detach(u8 *entertainer) {
+    Things_Unlink1da740(*reinterpret_cast<u8 **>((uintptr_t)0x0080239c), nullptr, entertainer);
+    u8 *const map = *reinterpret_cast<u8 **>((uintptr_t)0x008023a0);
+    u16 cell;
+    Map_SpreadRemove(map, nullptr, 0, *Sprite_RecordMapId(entertainer, nullptr, &cell));
+    Staff_Detach(entertainer);
+}
+
+void __fastcall Mechanic_HandleMessage(u8 *mechanic, void *, u8 *message) {
+    if (vcall<u32>(message, 0) == 0xa && at<u16>(mechanic, 0x218) == at<u16>(message, 8)) {
+        at<u16>(mechanic, 0x218) = 0;
+        Mechanic_SetState(mechanic, nullptr, 0);
+    }
+    Staff_HandleMessage(mechanic, nullptr, message);
+}
+
+void __fastcall Handyman_HandleMessage(u8 *handyman, void *, u8 *message) {
+    if (vcall<u32>(message, 0) == 0xa && at<u16>(handyman, 0x21a) == at<u16>(message, 8)) {
+        const u32 state = at<u32>(handyman, 0x19c);
+        at<u16>(handyman, 0x21a) = 0;
+        if (state == 0xb) Set4_4217f0(handyman + 0xc, nullptr, 3);
+        Handyman_SetState(handyman, nullptr, 0);
+    }
+    Staff_HandleMessage(handyman, nullptr, message);
+}
+
+void __fastcall Guard_HandleMessage(u8 *guard, void *, u8 *message) {
+    if (vcall<u32>(message, 0) == 0x1b && at<u16>(message, 8) == at<u16>(guard, 0x212)) at<u16>(guard, 0x212) = 0;
+    Staff_HandleMessage(guard, nullptr, message);
+}
+
+void __fastcall Staff_HandleMessageDefault(u8 *staff, void *, u8 *message) { Staff_HandleMessage(staff, nullptr, message); }
+
 void __fastcall Researcher_Detach(u8 *researcher) {
     u8 **const game = reinterpret_cast<u8 **>((uintptr_t)0x0080239c);   // (reloaded for each call, as the original does)
     Things_Unlink1da742(*game, nullptr, researcher);
@@ -753,9 +806,8 @@ void __fastcall Staff_HandleMessage(u8 *staff, void *, u8 *message) {
 }
 
 namespace {
-using SumFn = s32(__fastcall *)(u8 *, void *, u32);
-s32 __fastcall game_sumA(u8 *record, void *, u32 n) { return reinterpret_cast<SumFn>((uintptr_t)0x004c8180)(record, nullptr, n); }
-s32 __fastcall game_sumB(u8 *record, void *, u32 n) { return reinterpret_cast<SumFn>((uintptr_t)0x004c8150)(record, nullptr, n); }
+s32 __fastcall game_sumA(u8 *record, void *, u32 n) { return (s32)ParkAnalyser_CountWith2c(record, nullptr, n); }
+s32 __fastcall game_sumB(u8 *record, void *, u32 n) { return (s32)ParkAnalyser_CountType1Or3Or9(record, nullptr, n); }
 void __fastcall game_sendGuard(u8 *guard, void *, u32 handle) {
     reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)0x004d6260)(guard, nullptr, handle);
 }

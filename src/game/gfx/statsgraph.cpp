@@ -3,7 +3,9 @@
 #include <cstdint>
 
 #include "../core/circbuf.h"
+#include "../ui/window.h"
 #include "../world/world.h"
+#include "gauge.h"
 
 namespace {
 
@@ -21,7 +23,12 @@ s32 shown(Scan scan) {
     return result;
 }
 
+const StatsGraphEnv kGameEnv = {reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)0x0049aa30)};
+const StatsGraphEnv *g_env = &kGameEnv;
+
 }  // namespace
+
+void StatsGraph_SetEnv(const StatsGraphEnv *env) { g_env = env ? env : &kGameEnv; }
 
 extern "C" {
 
@@ -36,5 +43,14 @@ s32 __cdecl StatsGraph7cb318_ShownMax() {
     for (u32 k = 0; k < 5; ++k)
         if (global<u8>(0x00753c48) & (1u << k)) (k == 1 ? &CircBufF32_144_MaxInWindow : &CircBufU32_144_MaxInWindow)(record + kOffsets[k], &result, global<u32>(0x007cb39c));
     return result;
+}
+
+void __cdecl StatsGraph_Redraw() {
+    u8 *const dialog = global<u8 *>(0x007ca2e8);
+    if (!dialog) return;
+    u8 *const gauge = reinterpret_cast<u8 *>((uintptr_t)0x007ca250);
+    const s32 high = StatsGraph_ShownMax();
+    Gauge_SetMarksY(gauge, nullptr, (u32)StatsGraph_ShownMin(), (u32)high, 10);
+    Gauge_DrawInWindow(Window_FindChild(dialog, nullptr, 0x12272), gauge, g_env->lines49aa30);
 }
 }

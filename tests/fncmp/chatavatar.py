@@ -5,8 +5,9 @@
 # NameIs (0x4ebf00, 0x4f7d70): a park of named chat players and others, looked up by a name of theirs, one near it or another. Move1 (0x4eace0):
 # Chat::MovePlayer with mode 1 alone. Room (0x4eeb50): the avatar's wide string +0xf00 (or none) as a std::wstring told to Chat::Goto (import
 # 0x6fd490) and released. Enter (0x4ea2d0): Move's world, the thing's script list as personscripts.py's Place's (entry point 3), a small ground.
-# AddName (0x4ee6d0): see add_name() below. EnterChat (0x4bd090, src/game/ui/window7cc8bc): see enter_chat() below.
-# usage: chatavatar.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Move,Say,Move3,Cell,CellMove,GoTo,Arrive,Find,NameIs,Move1,Room,Enter,AddName,EnterChat)
+# AddName (0x4ee6d0): see add_name() below. EnterChat (0x4bd090, src/game/ui/window7cc8bc): see enter_chat() below. LeaveChat
+# (0x4bd260, the same): see leave_chat() below.
+# usage: chatavatar.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Move,Say,Move3,Cell,CellMove,GoTo,Arrive,Find,NameIs,Move1,Room,Enter,AddName,EnterChat,LeaveChat)
 import os
 import struct
 import sys
@@ -42,11 +43,12 @@ B = Bench(movingperson.RANGES + personscripts.PLACE_RANGES + [(0x4ea2d0, 0x4ea36
            (0x4ee6d0, 0x4ee70d)] + wstringmap.RANGES   # (AddName's: window7cc8bc.py's list and the tree D insert)
           + dialog7cc5f4.merged(w7.LIST_RANGES + [(0x4beb60, 0x4bedd1), (0x481820, 0x4818b3), (0x65f538, 0x65f5b7), (0x65e59b, 0x65e60a), (0x65f66e, 0x65f6e1),
                                 (0x4bd090, 0x4bd25c), (0x658d9f, 0x658e04), (0x659710, 0x659740), (0x659d00, 0x659d53), (0x659d90, 0x659dbc),
-                                (0x65a9d0, 0x65aa00), (0x65aa20, 0x65aaa0), (0x65d42e, 0x65d4b0), (0x65f697, 0x65f6e1), (0x66bff7, 0x66c01b)]),
+                                (0x65a9d0, 0x65aa00), (0x65aa20, 0x65aaa0), (0x65d42e, 0x65d4b0), (0x65f697, 0x65f6e1), (0x66bff7, 0x66c01b),
+                                (0x4bd260, 0x4bd3f5), (0x65f11d, 0x65f150), (0x46cf10, 0x46cf7d)]),
           hooks=wstringmap.HOOKS)
 CALLS = {'Move': 0x4ea370, 'Say': 0x4ea3f0, 'Move3': 0x4ea410, 'Cell': 0x4ebfb0, 'CellMove': 0x4eab40, 'GoTo': 0x4eac30, 'Arrive': 0x4ea240,
          'Find': 0x4ebf00, 'NameIs': 0x4f7d70, 'Move1': 0x4eace0, 'Room': 0x4eeb50, 'Enter': 0x4ea2d0, 'AddName': 0x4ee6d0,
-         'EnterChat': 0x4bd090}
+         'EnterChat': 0x4bd090, 'LeaveChat': 0x4bd260}
 AVATAR, CHAT, NAME, CHARS, ROOM = RAM + 0x20000, RAM + 0x21000, RAM + 0x21100, RAM + 0x21200, RAM + 0x21300
 WIN_A, WIN_B = RAM + 0x23000, RAM + 0x23200   # (EnterChat's windows)
 GROUND = RAM + 0x22000   # (Enter's ground: the map, its grid, heights and cells)
@@ -220,6 +222,22 @@ def enter_chat(r, regions):
         regions[0x7cddec] = struct.pack('<I', AVATAR)
 
 
+def leave_chat(r, regions):
+    """LeaveChat (0x4bd260, src/game/ui/window7cc8bc): Enter's world (the caller's) with enter_chat()'s windows, chat and hook; the chosen
+    window [0x7cc8b8] the first, the second or other; [0x790ab0] bit 10 set now and then; the floats [0x790aa0] / [0x790aa8] as enter_chat's
+    [0x7a1c70] / [0x7a1c78] but mostly within the ground's 4 rows (further a fault in both, the avatar moved off it); the hovered window
+    [0xfaa5e0] none of the two (Window_SetCursor's Gui_SetCursor left out)."""
+    enter_chat(r, regions)
+    def pos():
+        return r.choice([r.uniform(0, 40), r.uniform(0, 40), r.uniform(0, 40), r.randrange(4) * 10.0, r.randrange(40) / 10, r.uniform(0, 2560),
+                         -r.uniform(0, 50), r.uniform(-1e10, 1e10), float('nan')])   # (mostly within the ground's 4 rows: the avatar moves there)
+    glob = bytearray(regions[0x7cc8ac])
+    put(glob, 0xc, 'I', r.choice([struct.unpack_from('<I', glob, 0x10)[0], WIN_B, WIN_B, 0, r.getrandbits(32)]))
+    regions[0x7cc8ac] = glob
+    regions[0x790ab0] = struct.pack('<I', r.getrandbits(32) & ~0x400 if r.random() < 0.85 else r.getrandbits(32) | 0x400)
+    regions.update({0x790aa0: struct.pack('<fIf', pos(), r.getrandbits(32), pos()), 0x790ad0: r.bytes(12), 0xfaa5e0: struct.pack('<I', r.choice([0, RAM]))})
+
+
 def case(r):
     op = r.deal(OPS)
     if op == 'AddName':
@@ -241,7 +259,7 @@ def case(r):
     pool = bytearray(regions[POOL])
     if r.random() < 0.6:
         pool[thing - POOL + 2] = 0x12
-    if op == 'Enter':   # (the thing's script as personscripts.py's Place's, at entry point 3; the ground at (0, 0))
+    if op in ('Enter', 'LeaveChat'):   # (the thing's script as personscripts.py's Place's, at entry point 3; the ground at (0, 0))
         person = bytearray(pool[thing - POOL:thing - POOL + 0x40])
         personscripts.script_list(r, regions, person, 3)
         pool[thing - POOL:thing - POOL + 0x40] = person
@@ -267,6 +285,9 @@ def case(r):
         return Call(CALLS[op], [AVATAR], regions, conv='t', ret='a')
     if op == 'EnterChat':
         enter_chat(r, regions)
+        return Call(CALLS[op], [], regions, ret='v')
+    if op == 'LeaveChat':
+        leave_chat(r, regions)
         return Call(CALLS[op], [], regions, ret='v')
     return Call(CALLS[op], [AVATAR, x, y], regions, conv='t', ret='v')
 

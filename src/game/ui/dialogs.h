@@ -82,6 +82,11 @@ u32 __cdecl Dialog7ca168_AddStaffRow(u8 *staff);
 // 2, 4, 0x10, 8, 0x20 with Dialog7ca168_AddStaffRow); any other tab adds none. The rows refreshed last (Window7059f0_RefreshRows).
 void __cdecl Dialog7ca168_FillStaffList(u32 tab, u32 clear);
 
+// 0x4960a0 (cdecl (window, message, a, b); the staff dialog [0x7ca168]'s handler; name invented): on the message 0x101 with b 1 and a one
+// of the tab buttons 0x323-0x327 (the tabs 0, 4, 2, 1, 3), Dialog7ca168_FillStaffList(tab, 1), Dialog7ca168_ShowText(tab) and
+// Dialog7ca168_ShowStaffAverage(tab) (inlined for the tabs 0 and 1); then Window_CallDefault with the four, its result returned.
+s32 __cdecl Dialog7ca168_Handler(u8 *window, u32 message, u32 a, u32 b);
+
 // 0x4a0a20 (cdecl (window, message, a, b); the handler of the dialog [0x7cb2b8]; name unconfirmed): on message 0x14 [0x7cb2b8] = 0; then
 // Window_CallDefault, its result returned (a GUI rectangle built and destroyed on the stack around it, unused, is left out).
 s32 __cdecl Dialog7cb2b8_Handler(u8 *window, u32 message, u32 a, u32 b);

@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../core/crt.h"
 #include "../core/gameheap.h"
 #include "../core/language.h"
 #include "../core/vcall.h"
@@ -10,6 +11,7 @@
 #include "../online/chat.h"
 #include "../online/chatavatar.h"
 #include "../render/textparts.h"
+#include "cursor.h"
 #include "guimanager.h"
 #include "guirect.h"
 #include "listrows.h"
@@ -107,6 +109,31 @@ void __cdecl Window7cc8bc_EnterChat() {
     GuiRect_Dtor(rect);
 }
 
+void __cdecl Window7cc8bc_LeaveChat() {
+    if (global<u32>(0x00790ab0) & 0x400) return;
+    const bool first = global<u32>(0x007cc8b8) == global<u32>(0x007cc8bc);
+    Window_SendMessage(window(0x007cc8bc), 6, first, 0);
+    Window_SendMessage(window(0x007cc8c0), 6, !first, 0);
+    global<u32>(0x007cc8b8) = 0;
+    if (window(0x007cc8bc)) Window_SetCursor(window(0x007cc8bc), nullptr, 0);
+    if (window(0x007cc8c0)) Window_SetCursor(window(0x007cc8c0), nullptr, 0);
+    u32 last = 0;   // (the last __ftol's: y's high word)
+    const auto pack = [&last](u32 from, u8 *out) {   // (as Window7cc8bc_EnterChat's)
+        const X87Reg tenths = X87Reg(global<float>(from)) * 0.100000001f;  // 0x700184
+        const s32 whole = (s32)(long long)tenths.v;  // __ftol
+        out[1] = (u8)whole;
+        last = (u32)(s32)(long long)((tenths - X87Reg((double)(whole & 0xff))) * 256.0f).v;  // 0x700188
+        out[0] = (u8)last;
+    };
+    pack(0x00790aa0, &global<u8>(0x007cc690));
+    pack(0x00790aa8, &global<u8>(0x007cc694));
+    ChatAvatar_Enter(chat(), nullptr, global<u16>(0x007cc690), (last & 0xffff0000u) | global<u16>(0x007cc694));
+    global<u8>(0x007cc8d4) = 0;
+    // (fraction / 256 + whole) * 10, exact before the store)
+    global<float>(0x00790ad0) = (float)(((double)global<u8>(0x007cc690) * 0.00390625 + global<u8>(0x007cc691)) * 10.0);
+    global<float>(0x00790ad8) = (float)(((double)global<u8>(0x007cc694) * 0.00390625 + global<u8>(0x007cc695)) * 10.0);
+}
+
 void __cdecl Window7cc8bc_ListAdd(const u16 *text, u32 data) { add(0, text, data); }
 void __cdecl Window7cc8bc_ListAdd1(const u16 *text, u32 data) { add(1, text, data); }
 void __cdecl Window7cc8bc_ListRemove(const u16 *text) { remove(0, text); }
@@ -195,3 +222,40 @@ void __cdecl Window7cc8cc_PlaceAtMouse(u32, u8 *window) {
     Window_SetFocus(global<u8 *>(0x007cc8cc), nullptr, 0);
     GuiRect_Dtor(rect);
 }
+
+void __cdecl Window7cc8bc_ChatAdd(u16 *text, u32 data) {
+    if (!global<u8 *>(0x007cc8bc)) return;
+    u8 *const list = Window_FindChild(Window_FindChild(window(0x007cc8bc), nullptr, 0xc3123), nullptr, 0xc312b);
+    u8 *const font = Language_Font(global<u32>(0x00758f04));
+    u16 first = 0, second = 0;   // (sic: the original's are the stack's leftovers when ColumnSpan fails)
+    Window7059f0_ColumnSpan(list, nullptr, 0, &first, &second);
+    const s32 width = (s32)((u32)((s32)(s16)second - (s16)first) * (u32)(s32)global<s16>(0x00faa5c4)) / 2048;
+    for (s32 start = 0;;) {
+        const s32 length = (s32)Crt().wcslen(text);
+        s32 last = -1;
+        if (start < length) {
+            s32 taken = (s16)vcall<u16>(font, 0xc, (u32)text[start]);
+            if (taken < width) {
+                for (s32 j = start; j < length;) {
+                    const u16 c = text[j + 1];
+                    last = j++;
+                    if (c) taken += (s16)vcall<u16>(font, 0xc, (u32)c);
+                    if (taken >= width) break;
+                }
+            }
+        }
+        if (last == -1) break;
+        // the line text[start..last] added as the list's one column, the text cut after it for the while
+        const u16 kept = text[last + 1];
+        text[last + 1] = 0;
+        const u32 texts[1] = {(u32)(uintptr_t)(text + start)};
+        Window7059f0_AddItem(list, nullptr, texts, data, -1, 1);
+        text[last + 1] = kept;
+        start = last + 1;
+    }
+    for (s32 count = *reinterpret_cast<const s32 *>(list + 0x150); count >= global<s32>(0x00758f0c); --count)
+        Window7059f0_RemoveItem(list, nullptr, 0);
+    Window7059f0_ScrollTo(list, nullptr, *reinterpret_cast<const s32 *>(list + 0x150) - 1);
+}
+
+void __stdcall Window7cc8bc_ChatAddStd(u16 *text, u32 data) { Window7cc8bc_ChatAdd(text, data); }

@@ -22,6 +22,24 @@ void Object_SetEnv(const ObjectEnv *env);
 // code in 0x4e0000-0x530000 does inline; the staff and the research labs share the objects' env through it.
 void Object_PostMessage(u8 *msg);
 
+// What Object_Delete calls in the game that is not yet ported (the benches point it at a recorder).
+struct ObjectDeleteEnv {
+    void(__cdecl *killScript)(s32 id, u32 mode);   // 0x559060 RSSE_KillScript (agent B's)
+};
+// Object_Delete's calls go to env (nullptr: the game's).
+void Object_SetDeleteEnv(const ObjectDeleteEnv *env);
+
+// 0x4dd0a0 (thiscall; name invented, unconfirmed; Thing_Delete's kind 3): an object deleted: its control record's count (+0x18 of
+// ObjectControls_Find of the word +0xe in the game's table, [0x80239c] + 0x1d943c) one down; out of the game object's list of objects
+// (Things_Unlink1da746); message 0a of its handle posted (Object_PostMessage); the scrap refund (Object_ScrapValue of the definition's
+// +0x1b8, the 32-bit product / 100 unsigned) credited to the game's money record (Money_Credit of GameTable7cfb90_Get1da726_5195d0); the
+// map's spread records taken back around its cell ((row +7 << 7) + column +5 + 1; Map_SpreadRemove on [0x8023a0]): 4 when bit 4 of +0x32
+// is set, 7 when bit 7 is and element 0 of its ride record (Rides_FindById of +0x24) is below 2 (signed), 6 or 1 when bit 0 is (6 when
+// the low byte of the truncated float +0x44 is below the float 0x700550, 25); its sprite script +0x54 killed (SpriteScript_Kill) when
+// set; the ride's script killed (the env's 0x559060 of +0x24 with mode 0 when the game's +0x1da738 is 2, else 4 when the dword 0x785a2c is
+// set, else 7); the object dropped as the global 0x7c2654 (Wrap_Global7c2654_Set_4815b0(0)) when it is; then Thing_Detach.
+void __fastcall Object_Delete(u8 *object);
+
 // 0x4e0450 (thiscall; name invented): the queue's head (the handle at +0x3c, a person of the table 0x7cfb90): when it is not element 0 of the
 // object's ride record (Rides_GetElement of Rides_FindById of +0x24) and its state (+0x220) is 0xe, the env's 0x500870 on it. Otherwise, unless
 // the handle is 0, it is taken off the queue (Object_QueueRemovePerson) and the env's 0x5012f0 runs on it. The debug prints are left out.
@@ -145,6 +163,11 @@ void __fastcall Object_SetCapacity(u8 *object, void *, u32 capacity);
 // word at +0x6c cleared, element 6 of the object's ride record set to 1 (Rides_SetElement of Rides_FindById of the dword at +0x24) and the strip
 // animation of the ride at 0x7a4610[+0x20] grown from frame 1 (StripAnim_StartGrow).
 void __fastcall Object_RestartRide(u8 *object);
+
+// 0x4df150 (thiscall; called from 0x5015f0 (agent A's); name invented): a closed object (+0x68 set) opened again: message 0x14 of its
+// handle (ThingMsg14_Ctor of Thing_GetHandle) posted (Object_PostMessage), then Object_RestartRide (inlined; the debug prints of the
+// handle and the word +0x6c left out). Not closed: nothing.
+void __fastcall Object_Reopen(u8 *object);
 
 // 0x52c2b0 (cdecl; the object): 1 unless the object definition's track type (+0x9c) is 1 or 2 and the cell a few steps ahead (by the angle at +0x10: 0 is (+4, +1), 0x5a (+1, -5), 0xb4
 // (-5, -2), 0x10e (-2, +4) from the cell of columns/rows at +5 and +7; any other angle stays) and the one beside it (the second offsets: 0 is (-2, +1), 0x5a (+1, +1), 0xb4 (+1, -2), 0x10e (-2, -2)) each have exactly one neighbour

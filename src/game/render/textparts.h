@@ -81,4 +81,49 @@ u8 *__fastcall TextPart6ff530_DeletingDtor(u8 *part, void *, u32 flags);
 // dword +0 set: slot 9 called with it.
 void __fastcall TextPart_SetLayout(u8 *part, void *, u32 flags, const u8 *info);
 
+// 0x48f830 (thiscall (text), pops 4; slot 9 of the classes but 0x6ff530; name invented): nothing for no text; else the layout (+0xe4)
+// aligned by +0xd8 (Language_MirrorAlign; 0 left: Obj_SetKindA4 0, 1 centred: 2, 2 right: 1) and +0xd9 (0 top: Obj_SetKindA0 4, 1: 2,
+// 2: 5), the rectangle from the size words +0x3c / +0x3e, the offset words +0xde / +0xe0 (scaled by the screen's 0xfaa5c4 / 0xfaa5c0
+// over 2048 / 1536) and +0xda (0: 0x4000 wide); the global style (0x78ba2c) given the font table's (0x78b54c) font +0xdc and, for +0xdd
+// 0, white; the part's pixels (+0xa0, +0xa8 x +0xaa, the current format) drawn on and cleared (unless +0x4c answers nonzero); the text
+// narrowed and drawn (TextLayout_Draw), its box scaled back onto +0x18 / +0x1a into the rectangle +0x24 (Fn_659dac on +0x20); +0x50
+// called with the surface; the image's (+0x9c) textures freed. An alignment past 2 leaves the original's top as its stack lies.
+void __fastcall TextPart_DrawText(u8 *part, void *, const u16 *text);
+
+// 0x491ab0 (thiscall (text), pops 4; slot 9 of vtable 0x6ff530; name invented): as 0x48f830 without the colour +0xdd, the pixels made the
+// surface first; then the text drawn in grey (0x80 each, the index 0) 2 left and 2 down, then in white (the index 0) in place.
+void __fastcall TextPart_DrawShadowed(u8 *part, void *, const u16 *text);
+
+// 0x491300 (thiscall (kind, arg), pops 8; slot 4 of vtables 0x6ff380 and 0x6ff4d0; name invented): the rectangle 0x7ca0a0 (returned)
+// set by Fn_659dac. Kind 1: the layout's position arg (Get88_6adf80 / Vector8_Count88; past them or negative +0x17c / +0x180), scaled
+// by the screen, as its corner (the far corner 0). Kind 2 with a text: laid out as 0x48f830 (an alignment past 2 the bottom the text's
+// address too), +0xdd 0 the colour +0x4a / +0x49 / +0x48 (alpha 0xff, index 0), 1 Obj_ResetC; measured (TextLayout_Measure) and its
+// box scaled by the screen; the rectangle's word +0xa lowered to +0x1e - +0x1a. Else 0.
+u8 *__fastcall TextPart_Query(u8 *part, void *, u32 kind, u32 arg);
+
+// Slot 3 of the number classes (thiscall (flags, info), pops 8; names after the vtables): without the flag 0x80 TextPart_SetLayout
+// (flags, info); with it the info's dword +0 formatted (0x6acd60 with the table [0x78ba94], a number argument 'MRAV' (n, value, minus)
+// into 0x3f characters on the stack) and that text sent by TextPart_SetLayout's flag 0x100 alone (to slot 9).
+// 0x4903e0 (vtable 0x6ff3b0): a negative value's magnitude by the text 0x1c2 (n 0x13), else the value by 0x1c1 (n 0xd).
+void __fastcall TextPart6ff3b0_SetLayout(u8 *part, void *, u32 flags, const u8 *info);
+// 0x490650 (vtable 0x6ff3e0): a magnitude over 0xeeeeeee (signed) less 0xeeeeeee as 0x4903e0's; else a negative value's magnitude by 0x1c7
+// (n 0x17), a positive one by 0x1c1 (n 0xd).
+void __fastcall TextPart6ff3e0_SetLayout(u8 *part, void *, u32 flags, const u8 *info);
+// 0x490940 (vtable 0x6ff410): 0 an empty text (not formatted), else by 0x1c1 (n 0xd).
+void __fastcall TextPart6ff410_SetLayout(u8 *part, void *, u32 flags, const u8 *info);
+// 0x490b80 (vtable 0x6ff440): by 0x1c3 (n 0x14).
+void __fastcall TextPart6ff440_SetLayout(u8 *part, void *, u32 flags, const u8 *info);
+// 0x490ff0 (vtable 0x6ff4a0): over 0x30 a 24th by 0x1bb, over 0x18 by 0x1ba (n 8; the original's minus branches there dead), else its
+// magnitude and minus flag by 0x1b9 (n 0xb).
+void __fastcall TextPart6ff4a0_SetLayout(u8 *part, void *, u32 flags, const u8 *info);
+// The next three format with the CRT's swprintf (0x67af00) into the stack, then send the text as above.
+// 0x48ff70 (vtable 0x6ff350): with the flag 0x80 the value by L"%d"; else with the flag 8 the value as a percent of a 1024th by
+// L"%.2f %%" (the value times the floats 1 / 1024 and 100); else TextPart_SetLayout(flags, info).
+void __fastcall TextPart6ff350_SetLayout(u8 *part, void *, u32 flags, const u8 *info);
+// 0x490dc0 (vtable 0x6ff470): 0 by the text 0x1c9 (no argument), else the value by L"%d".
+void __fastcall TextPart6ff470_SetLayout(u8 *part, void *, u32 flags, const u8 *info);
+// 0x4918a0 (vtable 0x6ff500): 0x7fffffff as L"-", else the value by L"%d" (into 8 characters, sic: a longer one's characters 8 and
+// 9 then the buffer's address, the record that sends it stored over them).
+void __fastcall TextPart6ff500_SetLayout(u8 *part, void *, u32 flags, const u8 *info);
+
 }

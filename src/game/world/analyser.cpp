@@ -6,6 +6,7 @@
 #include "../core/filetime.h"
 #include "../core/circbuf.h"
 #include "../core/funnytime.h"
+#include "../core/accessors.h"
 #include "../core/indexed.h"
 #include "../core/trivial.h"
 #include "../core/vcall.h"
@@ -15,7 +16,9 @@
 #include "mapcell.h"
 #include "messagecentre.h"
 #include "object.h"
+#include "objectmsg.h"
 #include "objectdefs.h"
+#include "thingmsg.h"
 #include "things.h"
 #include "thingscan.h"
 #include "world.h"
@@ -87,6 +90,31 @@ void __fastcall ParkAnalyser_Tally(u8 *analyser, void *, u32 flag) {
     ++at<u32>(analyser, 0x21bfc);
     ++at<u32>(analyser, 0x21c04);
     if (flag == 0) ++at<u32>(analyser, 0x21c00);
+}
+
+void __fastcall ParkAnalyser_Count(u8 *analyser, void *, s32 value) {
+    ++at<u32>(analyser, 0x21c08);
+    if (value > at<s32>(analyser, 0x21c40)) at<s32>(analyser, 0x21c40) = value;
+    alignas(4) u8 msg[0x14];
+    Object_PostMessage(ThingMsg1a_Ctor(msg, nullptr, 0xb, 1, 0, 0));
+}
+
+u16 *__fastcall ParkAnalyser_FindCutOff(u8 *, void *, u16 *out, u32 any) {
+    void *const world = *reinterpret_cast<void *const *>(0x0080239c);
+    u16 handle;
+    World_FirstThing(world, nullptr, &handle);
+    while (handle) {
+        u8 *const thing = *reinterpret_cast<u8 *const *>(0x007cfb90 + handle * 20u);
+        if (thing[2] == 3 && (thing[0x32] & 4) && (thing[0x32] & 8) && !Object_EntranceOnPath(thing) &&
+            ((u8)any || (uintptr_t)Global8186ac_Get() != (uintptr_t)thing)) {
+            *out = handle;
+            return out;
+        }
+        u16 next;
+        handle = *World_NextThing(world, nullptr, &next, thing);
+    }
+    *out = 0;
+    return out;
 }
 
 u32 __fastcall ParkAnalyser_Tallied(const u8 *analyser, void *, u32 flag) {

@@ -35,6 +35,16 @@ u8 __fastcall ParkAnalyser_RingAverage(const u8 *analyser, void *, u32 ring);
 // 0x4c74f0 (flag): +0x21bfc and +0x21c04 counted up, +0x21c00 too when flag is 0.
 void __fastcall ParkAnalyser_Tally(u8 *analyser, void *, u32 flag);
 
+// 0x4c7520 (thiscall (value), pops 4; called by 0x4d0686 with a thing's +0x118; name invented): the running total +0x21c08 counted up,
+// +0x21c40 raised to the value when below it (signed), then message 0x1a (a 0xb, b 1, c and d 0) posted (Object_PostMessage).
+void __fastcall ParkAnalyser_Count(u8 *analyser, void *, s32 value);
+
+// 0x4ccb00 (thiscall (&handle, any), pops 8, this unused; called from 0x519510; name invented): the first thing in the list (World_FirstThing,
+// World_NextThing) that is an object (+2 = 3) with flags 4 and 8 of +0x32 whose entrance does not meet the path (Object_EntranceOnPath 0), and
+// unless the low byte of any is set not the one Global8186ac_Get holds; its handle (0: none) to *out. Returns out. (The debug check of the
+// table on each step left out.)
+u16 *__fastcall ParkAnalyser_FindCutOff(u8 *analyser, void *, u16 *out, u32 any);
+
 // 0x4c94a0 (flag, its low byte): +0x21c00 when set, else +0x21bfc.
 u32 __fastcall ParkAnalyser_Tallied(const u8 *analyser, void *, u32 flag);
 

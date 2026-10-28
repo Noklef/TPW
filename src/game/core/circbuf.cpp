@@ -237,3 +237,12 @@ u32 __fastcall CircBufU8_Serialize(u8 *buf, void *, Stream *stream, u32 save, s3
     return SerializeRing(buf, stream, save, version, 0x34, 1);
 }
 }
+
+double CircBufU32_30_SumVia(const u8 *buf, u32 *out) {
+    const s32 held = (s32)CircBufU32_30_Count(buf);
+    const s32 n = held < 0x1e ? held : 0x1e;
+    double sum = 0;
+    for (s32 i = 0; i < n; ++i)
+        if (CircBufU32_30_Get(buf, nullptr, out, i) == 1) sum = X87_Add((double)*out, sum);
+    return sum;
+}

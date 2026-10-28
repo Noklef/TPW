@@ -1,4 +1,4 @@
-// The game panel object at 0x7cc258 (its vtable 0x6ffc68). Reimplementation of 0x4afaa0, 0x4afc10, 0x4b0640, 0x4b0950, 0x4b0ae0, 0x4b0e30. The names are unconfirmed.
+// The game panel object at 0x7cc258 (its vtable 0x6ffc68). Reimplementation of 0x4afaa0, 0x4afc10, 0x4b01d0, 0x4b0640, 0x4b0950, 0x4b0ae0, 0x4b0e30. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -41,4 +41,13 @@ u32 __cdecl Panel7cc258_ApplyToThing(u8 *thing);
 // 0x4b0e30 (thiscall (thing), pops 4; slot 10 of the vtable 0x6ffc68; name invented): the selected thing [0x7cc288] = thing, the
 // window built (WindowAt10_Create: the script 0x755908, the handler 0x4b0b30, the children 0xc06c and 0xc06f, the inner one 0xc06d), then the advisor posted 0xd1 (Advisor_PostId).
 void __fastcall Panel7cc258_Show(u8 *self, void *, u8 *thing);
+
+// 0x4b01d0 (thiscall; slot 5 of the vtable 0x6ffc68; x87; name invented): Panel7cc298_ShowStats' twin for the shown thing [0x7c2658]
+// (Object_GetDef called, its result unused). With the window +0x14 set (none of its children checked): the text 0xc070 given the text
+// 0x1cc formatted into 0x7ba058 of the CHistory sum of +0x1a8 (0x19) and the sums of +0x1a8 and +0x230 (0x1a); 0xc076's value the
+// Object_SettingsValue of the panel's +0x24 * 50 and +0x28; 0xc077 the sum of the ring +0x70; 0xc079 the history average * 1024 / 100;
+// 0xc078 the history difference; 0xc07d the scrap refund; 0xc07c the park analyser's average of the people about the thing's cell
+// (radius 1) * 1024 / 100, the cell id's upper half the stack slot's (sic: the +0x24 * 50 or the ring +0x70's last look back). Then the
+// panel's +8 set to Object_Status(thing, 2) and its slot 9 called when that changes it.
+void __fastcall Panel7cc258_ShowStats(u8 *self);
 }

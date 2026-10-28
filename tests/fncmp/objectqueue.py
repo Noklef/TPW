@@ -7,8 +7,10 @@
 # queue stands (0x4de840 Object_QueueSpot, Spot: Path's world, places in the first cells or past the end, the world's random state, now and then the one drawing 0x80000000); EntSpot (0x4dec30 Object_EntranceQueueSpot) on Spot's cases.
 # AnySpot (0x4de7e0 Object_AnyQueueSpot): Spot's cases, the object's bit 3 of +0x32 set or clear. Close (0x4df390 Object_Close, src/game/world/object): CanOpen's
 # cases with strip objects for the link ids (strips or none) and a ride record of the id +0x24 or none (element 6 there or not).
-# Flag64 (0x4dfe30 Object_SetFlag64): see flag64().
-# usage: objectqueue.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Back,BackTo,None,Open,Path,CanOpen,Close,Spot,EntSpot,AnySpot,Flag64)
+# Flag64 (0x4dfe30 Object_SetFlag64): see flag64(). CutOff (0x4ccb00 ParkAnalyser_FindCutOff, src/game/world/analyser): thingenv.py's park of
+# objects and others on Path's world, each object's flags 4 / 8 of +0x32 set or not and its back of the queue fields as Back's, the thing
+# [0x8186ac] one of them or another, the any flag 0, 1, 0x100 or random; the handle written compared.
+# usage: objectqueue.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Back,BackTo,None,Open,Path,CanOpen,Close,Spot,EntSpot,AnySpot,Flag64,CutOff)
 import os
 import struct
 import sys
@@ -18,13 +20,14 @@ sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import objectmsg  # noqa: E402
 from fncmp import Bench, Call, RAM, put  # noqa: E402
-from thingenv import park  # noqa: E402
+from thingenv import POOL, THING, WORLD_PTRS, park  # noqa: E402
 
 RANGES = ([(0x4d8300, 0x4d8340), (0x4d8c00, 0x4d8c30), (0x4d96f0, 0x4d99f0), (0x4de4a0, 0x4de5b0), (0x4df290, 0x4df310), (0x4de840, 0x4dede8), (0x516330, 0x516380),
            (0x4ddf40, 0x4de200), (0x4de040, 0x4de100), (0x4de670, 0x4de7e0), (0x4de7e0, 0x4de83e), (0x502430, 0x502470), (0x50b350, 0x50b370),
            (0x522770, 0x5227a0), (0x522850, 0x522870), (0x536300, 0x53644c), (0x5da3c0, 0x5da3c1),
            (0x4dd920, 0x4dda20), (0x412e90, 0x412eea), (0x441970, 0x4419b0), (0x436860, 0x436880),
-           (0x4df390, 0x4df450), (0x454550, 0x454800), (0x55a070, 0x55a110), (0x4e0e60, 0x4e11e4), (0x4dfe30, 0x4e004b)])
+           (0x4df390, 0x4df450), (0x454550, 0x454800), (0x55a070, 0x55a110), (0x4e0e60, 0x4e11e4), (0x4dfe30, 0x4e004b),
+           (0x4ccb00, 0x4ccbea), (0x516130, 0x5161b0), (0x527930, 0x527936)])
 B = Bench(RANGES)
 OUT = RAM + 0x7000
 RIDES, STRIPS = RAM + 0x40000, RAM + 0x41000
@@ -194,8 +197,26 @@ def flag64(r):
     return c
 
 
+def cut_off(r):
+    c = entrance(r, back(r))
+    regions = c.regions
+    del regions[RAM]
+    things, handles, addrs = park(r, count=r.choice([0, 1, 2, 3, 4, 6, 6]), kinds=(3, 3, 3, 3, 1, 2, 0), defs=False)
+    for g in WORLD_PTRS:
+        del things[g]
+    pool = things[POOL]
+    for i in range(len(addrs)):
+        t = THING * i
+        pool[t + 0x32] = r.choice([0xc, 0xc, 0xc, 0xff, 4, 8, 0xf3, 0])
+        put(pool, t + 0x3a, 'H', r.choice([0, 0, 0, 5, 0x81]))
+        put(pool, t + 0x36, 'H', r.choice([1, 2, 3, 0x81, r.randrange(1, 0x100)]))
+    regions.update(things)
+    regions[0x8186ac] = struct.pack('<I', r.choice(addrs + [0, RAM + 0x7f00]) if addrs else 0)
+    return Call(0x4ccb00, [RAM + 0x7f00, OUT, r.choice([0, 0, 1, 0x100, r.getrandbits(32)])], regions, conv='t', ret='a')
+
+
 CASES = {'Back': back, 'BackTo': back_to, 'None': none, 'Open': open_, 'Path': path, 'CanOpen': can_open, 'Close': close, 'Spot': spot, 'EntSpot': entrance_spot, 'AnySpot': any_spot,
-         'Flag64': flag64}
+         'Flag64': flag64, 'CutOff': cut_off}
 
 
 def case(r):

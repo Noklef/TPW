@@ -4,8 +4,12 @@
 
 #include "../core/filetime.h"
 #include "../core/funnytime.h"
+#include "../core/selectors.h"
+#include "../core/vcall.h"
 #include "../math/x87.h"
 #include "analyser.h"
+#include "object.h"
+#include "thingmsg.h"
 #include "world.h"
 
 namespace {
@@ -22,6 +26,13 @@ void __fastcall Money_Credit(u8 *money, void *, s32 amount) {
     u8 *thing = reinterpret_cast<u8 *>(GameTable7cfb90_Get1da720_519510(global<u8 *>(0x007cf83c)));
     at<u32>(thing, 0x1fc90) += (u32)amount;
     at<u32>(money, 0x124) += (u32)amount;
+}
+
+void __fastcall Money_CreditTakings(u8 *money) {
+    Money_Credit(money, nullptr, at<s32>(money, 0x118));   // (inlined in the original)
+    u8 *const record = reinterpret_cast<u8 *>(GameTable7cfb90_Get1da720_519510(global<u8 *>(0x007cf83c)));
+    at<u32>(record, 0x1fee0) += at<u32>(money, 0x118);
+    ParkAnalyser_Count(record, nullptr, at<s32>(money, 0x118));
 }
 
 void __fastcall Money_Debit(u8 *money, void *, s32 amount) {
@@ -88,6 +99,57 @@ FileTime *__fastcall Money_TimeInRed(const u8 *money, void *, FileTime *out) {
     }
     // (the original's debug check that the time entered is not after the world's is left out)
     return FunnyTime_SpanSince(global<const u8 *>(0x0080239c) + 0x2a0, nullptr, out, at<u32>(money, 0x120));
+}
+
+void __fastcall Money_MonthEnd(u8 *money) {
+    Money_Credit(money, nullptr, at<s32>(money, 0x10));   // (inlined in the original, its debug print as well)
+    at<u32>(money, 0x10) = 0;
+    for (u32 i = 0; i < 8; ++i) {
+        u8 *const loan = money + 0x20 + 0x20 * i;   // (+0 term, +4 rate, +8 taken, +0xc months paid)
+        if (!at<u32>(loan, 8)) continue;
+        const u32 rate = at<u32>(loan, 4);
+        Money_Debit(money, nullptr, (s32)rate);   // (inlined in the original)
+        ++at<u32>(loan, 0xc);
+        const u32 term = at<u32>(loan, 0);
+        if (term) at<u32>(money, 0x124) += at<u32>(loan, 4) - (at<u32>(loan, 4) * term - at<u32>(money, 0x18 + 0x20 * i)) / term;
+        if (at<u32>(loan, 0xc) == at<u32>(loan, 0)) at<u32>(loan, 8) = at<u32>(loan, 0xc) = 0;
+    }
+    if (at<s32>(money, 0xc) >= 0) return;
+    FileTime red;
+    Money_TimeInRed(money, nullptr, &red);   // (inlined in the original)
+    const long long months = (long long)((unsigned long long)red.high << 32 | red.low) / 0x1792f8648000LL;   // (30 days of 100 ns)
+    if ((s32)months < 6) return;   // (the quotient's low dword, signed: sic)
+    u8 msg[0xc];
+    ThingMsg13_Ctor(msg, nullptr, 2);
+    Object_PostMessage(msg);
+}
+
+namespace {
+const BankAccountEnv kGameBankEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x005168f0)};
+const BankAccountEnv *g_bank = &kGameBankEnv;
+}  // namespace
+
+void BankAccount_SetEnv(const BankAccountEnv *env) { g_bank = env ? env : &kGameBankEnv; }
+
+void __fastcall BankAccount_HandleMessage(u8 *money, void *, u8 *message) {
+    switch (vcall<u32>(message, 0)) {
+    case 0xc:
+        Money_MonthEnd(money);
+        return;
+    case 0xd:
+        at<u32>(money, 0x124) = 0;
+        return;
+    case 0x13:
+        if (at<u32>(message, 8) == 2 && at<u32>(global<u8 *>(0x007cf83c), 0x1da738) != 4 && !Word7cf4f4_NonZero()) {
+            g_bank->gameOver(global<u8 *>(0x007cf83c));
+            return;
+        }
+        if (at<u32>(message, 8) == 0xa) {
+            at<u32>(money, 0xc) = global<u32>(0x007851d8);
+            at<u32>(money, 0x10) = 0;
+        }
+        return;
+    }
 }
 
 u32 __fastcall Money_LoanOwed(const u8 *money, void *, u32 loan) {

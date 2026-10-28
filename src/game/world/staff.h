@@ -301,4 +301,27 @@ void __fastcall StaffAdvice_Tick(u8 *self);
 // [0x8023a0]) has its word +6 above 0: the free guard nearest the HQ (Guard_NearestFree), when there is one, gets 0x4d6260 (the handle;
 // the argument's high word the message pointer's, sic). Others: nothing. (The original's debug prints are left out.)
 void __fastcall StaffHQ_HandleMessage(u8 *self, void *, u8 *message);
+
+// 0x4d9fe0 (thiscall; name invented, unconfirmed; Thing_Delete's kind 4): a mechanic taken out of the world: out of the game object's
+// list of them (Things_Unlink1da73e on [0x80239c]); when it has an object (the handle +0x218, in the thing table 0x7cfb90), that object's
+// tracked handle asked (Obj_GetTrackedHandle, for the original's debug check only) and dropped (Fn_4e0210); then Staff_Detach.
+void __fastcall Mechanic_Detach(u8 *mechanic);
+// 0x4d6c90 (thiscall; name invented, unconfirmed; Thing_Delete's kind 5): a handyman: out of the list at +0x1da73c (Things_Unlink1da73c),
+// the object of its handle +0x21a (when there is one) has its tracked handle dropped (Fn_4e0210); then Staff_Detach.
+void __fastcall Handyman_Detach(u8 *handyman);
+// 0x4d4620 (thiscall; name invented, unconfirmed; Thing_Delete's kind 6): an entertainer: out of the list at +0x1da740
+// (Things_Unlink1da740), the map's spread record 0 taken back (Map_SpreadRemove on [0x8023a0]) around the map id it last recorded
+// (Sprite_RecordMapId's old +0xcc, the current one recorded); then Staff_Detach.
+void __fastcall Entertainer_Detach(u8 *entertainer);
+// 0x4da0c0 (thiscall (message), pops 4; Thing_HandleMessage's kind 4): a message of type 0xa (its vtable slot 0) for the object the
+// mechanic works on (its word +8 the handle +0x218) clears that handle and sets state 0 (Mechanic_SetState); then Staff_HandleMessage.
+void __fastcall Mechanic_HandleMessage(u8 *mechanic, void *, u8 *message);
+// 0x4d6cf0 (thiscall (message), pops 4; kind 5): as Mechanic_HandleMessage with the handle +0x21a; in state 0xb (+0x19c) the reference's
+// animation (+0xc, Set4_4217f0) 3 first; Handyman_SetState(0); then Staff_HandleMessage.
+void __fastcall Handyman_HandleMessage(u8 *handyman, void *, u8 *message);
+// 0x4d5fb0 (thiscall (message), pops 4; kind 7): a message of type 0x1b (a thing gone) naming the handle +0x212 clears it; then
+// Staff_HandleMessage.
+void __fastcall Guard_HandleMessage(u8 *guard, void *, u8 *message);
+// 0x4d4450 (thiscall (message), pops 4; kinds 6 and 8): Staff_HandleMessage.
+void __fastcall Staff_HandleMessageDefault(u8 *staff, void *, u8 *message);
 }

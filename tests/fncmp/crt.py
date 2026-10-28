@@ -12,7 +12,7 @@ B = Bench([(0x67a400, 0x6902c0)])
 
 
 def swprintf_hook(e):
-    """An emulator hook for the CRT's swprintf (0x67af00) where a bench runs an original that formats with %d, %s (wide) or %% only: the
+    """An emulator hook for the CRT's swprintf (0x67af00) where a bench runs an original that formats with %d, %s (wide), %.Nf or %% only: the
     ports' side has the driver's stand-in (the host's), whose integers the emulator cannot follow into MSVC6's code (its locale lock's
     imports); this bench checks the stand-in against the original."""
     sp = e.r['ESP'] + (4 if e.tail else 0)
@@ -40,6 +40,12 @@ def swprintf_hook(e):
                     break
                 out += chr(u)
                 k += 1
+        elif f == '.':   # %.Nf (one digit N): the double rounded as the host's CRT does (correctly, ties to even)
+            digits = int(chr(struct.unpack('<H', e.read(fmt + 2 * i, 2))[0]))
+            assert chr(struct.unpack('<H', e.read(fmt + 2 * i + 2, 2))[0]) == 'f'
+            i += 2
+            out += '%.*f' % (digits, struct.unpack('<d', e.read(arg, 8))[0])
+            arg += 8
         else:
             assert f == '%', f
             out += '%'

@@ -46,6 +46,7 @@
 #include "../../src/game/gfx/cursor.h"
 #include "../../src/game/gfx/pointer.h"
 #include "../../src/game/gfx/screen.h"
+#include "../../src/game/gfx/statsgraph.h"
 #include "../../src/game/core/fpu.h"
 #include "../../src/game/core/gameheap.h"
 #include "../../src/game/core/string.h"
@@ -93,6 +94,7 @@
 #include "../../src/game/world/mapline.h"
 #include "../../src/game/world/messagecentre.h"
 #include "../../src/game/coaster/registry.h"
+#include "../../src/game/world/money.h"
 #include "../../src/game/coaster/train.h"
 #include "../../src/game/world/mousemode.h"
 #include "../../src/game/world/person.h"
@@ -330,12 +332,16 @@ u32 text_arg_hash(const u32 *arg) {
 
 // The same with four arguments (kStubs + 0x90, tools/fncmp.py CDECL_LOG4): the entry k 0x13d. As the text formatter 0x6acd60 (fncmp.text_args()):
 // with a count of text arguments (1-3) at log + 0x7e0, that many more (pointers to them) logged as text_arg_hash()es, and the buffer (b; c its size
-// in characters, 9 or more) given the hash of the text's id and those as 8 hex digits, so that what shows the text compares it.
+// in characters, 9 or more) given the hash of the text's id and those as 8 hex digits, so that what shows the text compares it. With a range
+// of ids at log + 0x7e4 (its first and last words: text_args()'s only), any other id (d) takes none (its buffer still given the hash): so
+// the texts formatted without arguments, and other calls of the stub (a window's handler), read nothing past their four.
 u32 __cdecl stub_cdecl_log4(u32 a, u32 b, u32 c, u32 d, ...) {
-    const u32 texts = *reinterpret_cast<const u32 *>((uintptr_t)(kStubs + 0x100000 + 0x7e0));
+    const u32 given = *reinterpret_cast<const u32 *>((uintptr_t)(kStubs + 0x100000 + 0x7e0));
+    const u32 only = *reinterpret_cast<const u32 *>((uintptr_t)(kStubs + 0x100000 + 0x7e4));
+    const u32 texts = only && (d < (only & 0xffff) || d > (only >> 16)) ? 0 : given;
     u32 stack[8] = {0, a, b, c, d};
     u32 n = 4;
-    if (texts) {
+    if (given) {
         va_list rest;
         va_start(rest, d);
         u32 h = (0x811c9dc5u ^ d) * 0x01000193u;
@@ -515,9 +521,17 @@ const CellModelEnv kCellModelEnv = {reinterpret_cast<u32(__cdecl *)(s32, s32, s3
 // MessageCentre_Post's call into the unported Thing_HandleMessage 0x50b550 (agent C's): the thiscall recorder 27 of 1 argument, as
 // tests/fncmp/messagecentre.py hooks that address.
 const MessageCentreEnv kMessageCentreEnv = {reinterpret_cast<u32(__fastcall *)(u8 *, void *, u8 *)>((uintptr_t)recorder(27, 1))};
+// The statistics graph's lines 0x49aa30 (StatsGraph_Redraw's after): the cdecl recorder 22 (tests/fncmp/gauge.py hooks 0x49aa30 with it).
+const StatsGraphEnv kStatsGraphEnv = {reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)jpeg_recorder(22, 1))};
+
 const ObjectEnv kObjectEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, u8 *)>((uintptr_t)recorder(21, 1)),
                               reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(22, 0)),
                               reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(23, 0))};
+// Object_Delete's call into agent B's unported RSSE_KillScript (0x559060): cdecl recorder 20 of 2, as tests/fncmp/objectdelete.py hooks it.
+const ObjectDeleteEnv kObjectDeleteEnv = {reinterpret_cast<void(__cdecl *)(s32, u32)>((uintptr_t)jpeg_recorder(20, 2))};
+// BankAccount_HandleMessage's call into agent A's unported 0x5168f0 (the game lost): the thiscall recorder 24 of 0, as tests/fncmp/money.py
+// hooks it.
+const BankAccountEnv kBankAccountEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(24, 0))};
 
 // Optional settings in the log region: at + 0xa00 a mask per slot (k & 63): bits 0-15 the arguments that are C strings, logged and hashed as a hash of the string
 // (so that a path in a stack buffer, whose address differs between the sides, compares by its text), bits 16-31 out arguments, logged as 0 (a stack address;
@@ -959,7 +973,10 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x006fea10, 12},   // CMMOnline's base (slots 0, 9 and 11 MouseMode_Set's; 0x481a10 / 0x485b70 make it)
                                    {0x006fea70, 12},   // MMStaffDrop's (slots 9, 10 AssignDrop: MouseMode_Set's on the mode 0x5054d0 makes)
                                    {0x006feaa0, 12},   // the 0x6feaa0 mode's (slots 9, 10 the empty 0x5da3c0: MouseMode_Set's on the mode 0x497bc0 makes)
-                                   {0x006fead0, 12}};  // the 0x6fead0 mode's (slots 9, 10: MouseMode_Set's on the mode 0x481a10 makes)
+                                   {0x006fead0, 12},   // the 0x6fead0 mode's (slots 9, 10: MouseMode_Set's on the mode 0x481a10 makes)
+                                   {0x007058d8, 4},    // the GUI font's (slot 3 GuiFont_CharWidth: Window7cc8bc_ChatAdd's measure)
+                                   {0x006fe9e0, 12}};  // MouseModeTile's (slots 9 Const3_6b71c0, 10 MouseModeTile_Assign: MouseMode_Set's on the
+                                                       // mode MouseMode_EnterTile15 / 16 make)
 
 // Hooked game functions that ported code stores by their address and that are later called through it (a new window's handlers +0x114 /
 // +0x118: Window_DefaultProc). The game's code lies in g_game, read-only, so each gets a jump there to its replacement, as the hooked
@@ -1213,6 +1230,9 @@ int main(int argc, char **argv) {
     CellKind_SetEnv(&kCellKindEnv);
     CellModel_SetEnv(&kCellModelEnv);
     Object_SetEnv(&kObjectEnv);
+    StatsGraph_SetEnv(&kStatsGraphEnv);
+    Object_SetDeleteEnv(&kObjectDeleteEnv);
+    BankAccount_SetEnv(&kBankAccountEnv);
     MessageCentre_SetEnv(&kMessageCentreEnv);
     GlyphRender_SetEnv(&kGlyphRenderEnv);   // (tests/fncmp/glyphrender.py hooks 0x67a7d0 with fncmp._cdecl_log)
     PtrList_SetEnv(&kPtrListEnv);

@@ -162,6 +162,18 @@ void __cdecl Dialog7ca168_FillStaffList(u32 tab, u32 clear) {
     Window7059f0_RefreshRows(list);
 }
 
+s32 __cdecl Dialog7ca168_Handler(u8 *window, u32 message, u32 a, u32 b) {
+    if (message == 0x101 && b == 1 && a - 0x323 <= 4) {
+        // (the tabs 0 and 1 are the three calls inlined, the others the calls; the same either way)
+        static const u32 kTabs[5] = {0, 4, 2, 1, 3};
+        const u32 tab = kTabs[a - 0x323];
+        Dialog7ca168_FillStaffList(tab, 1);
+        Dialog7ca168_ShowText(tab);
+        Dialog7ca168_ShowStaffAverage(tab);
+    }
+    return Window_CallDefault(window, nullptr, message, a, b);
+}
+
 s32 __cdecl Dialog7cb2b8_Handler(u8 *window, u32 message, u32 a, u32 b) {
     if (message == 0x14) *reinterpret_cast<u32 *>(0x007cb2b8) = 0;
     return Window_CallDefault(window, nullptr, message, a, b);

@@ -91,17 +91,7 @@ def case(r):
     lang, table, codes, lead = world(r, log, regions)
     font = 0xc if op == 'Rgb' else r.choice([r.randrange(0, 13)] * 24 + [13, 0xff])
     entry_font = struct.unpack_from('<I', table, 24 * (font + 13 * lang) + 0x14)[0] if font < 13 else None
-    # the text: none, or one record (a byte, or a lead byte and the next)
-    text = bytearray(0x10)
-    kind = r.randrange(0, 4)
-    if kind:
-        text[0] = r.choice([r.randrange(1, 0x100), 0x20, 9, 10, min(lead + 1, 0xff), max(lead, 1)])
-        if text[0] - 1 >= lead:
-            text[1] = r.choice([r.randrange(1, 0x100), 0])
-            if not text[1]:
-                text[2] = 0   # (the terminator taken along: then the next byte ends it)
-    regions[BUFFER] = text
-    n = tl.text_records(text, lead)
+    n = buffer_text(r, regions, lead)
     regions[WIDE] = r.bytes(0x10)
     left, top = r.randrange(-0x40, 0x200), r.randrange(-0x40, 0x200)
     regions[RECT] = struct.pack('<4i', left, top, left + r.choice([r.randrange(0, 0x100), r.randrange(-0x10, 0x8000)]),
@@ -128,12 +118,29 @@ def case(r):
     else:
         runs = wide
         args = [wide, RECT, byte_arg(r, font)] + align + [fit, out]
-    masks = []
-    if runs and entry_font and codes and n == 1:
-        masks.append(Mask(HEAP, [0x10 + g for g in tl.GARBAGE], 'SetText (0x6ae930) never sets a record\'s bytes +5-+7 and +0xe-+0xf (the '
-                          'original\'s stack garbage); the one record (in the heap\'s first block) is read only at +0, +2, +4, +8 and +0xc, and '
-                          'no glyph is right to left, so it is never moved'))
-    return Call(CALLS[op], args, regions, masks=masks)
+    return Call(CALLS[op], args, regions, masks=heap_masks(runs and entry_font and codes and n == 1))
+
+
+def buffer_text(r, regions, lead):
+    """The global buffer's text (0x7b5378; no narrowing table): none, or one record (a byte, or a lead byte and the next). Returns its count of
+    records (tl.text_records())."""
+    text = bytearray(0x10)
+    kind = r.randrange(0, 4)
+    if kind:
+        text[0] = r.choice([r.randrange(1, 0x100), 0x20, 9, 10, min(lead + 1, 0xff), max(lead, 1)])
+        if text[0] - 1 >= lead:
+            text[1] = r.choice([r.randrange(1, 0x100), 0])
+            if not text[1]:
+                text[2] = 0   # (the terminator taken along: then the next byte ends it)
+    regions[BUFFER] = text
+    return tl.text_records(text, lead)
+
+
+def heap_masks(one):
+    """The masks for a measure or draw that made one record (one true), else none."""
+    return [Mask(HEAP, [0x10 + g for g in tl.GARBAGE], 'SetText (0x6ae930) never sets a record\'s bytes +5-+7 and +0xe-+0xf (the '
+                 'original\'s stack garbage); the one record (in the heap\'s first block) is read only at +0, +2, +4, +8 and +0xc, and '
+                 'no glyph is right to left, so it is never moved')] if one else []
 
 
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]

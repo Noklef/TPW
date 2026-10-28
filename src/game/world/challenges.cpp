@@ -3,12 +3,16 @@
 #include <cstdint>
 #include <cstring>
 
+#include "../core/accessors.h"
 #include "../core/balancefile.h"
 #include "../core/filetime.h"
 #include "../core/funnytime.h"
+#include "../core/idmaps.h"
 #include "../core/savegame.h"
 #include "messagecentre.h"
 #include "money.h"
+#include "object.h"
+#include "thingmsg.h"
 #include "things.h"
 #include "world.h"
 
@@ -93,6 +97,65 @@ u8 *__fastcall Challenges_Current(u8 *challenges) {
     const s32 index = at<s32>(challenges, 0x3cc);
     if (index < 0 || index >= 0x14) return nullptr;
     return challenges + 0xc + index * 0x30;
+}
+
+void __fastcall Challenge_Finish(u8 *challenge) {
+    at<u8>(challenge, 0x2c) = 1;
+    if (at<u32>(challenge, 0x18)) return;
+    u8 msg[0x30];   // (bytes 0x11-0x13 left as the stack had them, as the original's)
+    ThingMsg19_Ctor(msg, nullptr, Kind_ToIdC(reinterpret_cast<const u32 *>(challenge)), 0x110, 0, Get14_6bb1a0(challenge), 0, 0, 0, 0, 0, 0,
+                    0);
+    Object_PostMessage(msg);
+}
+
+void __fastcall Challenge_Attempt(u8 *challenge, void *, u32 thing) {
+    ++at<u32>(challenge, 0x24);
+    u8 msg[0x30];   // (bytes 0x11-0x13 left as the stack had them, as the original's)
+    ThingMsg19_Ctor(msg, nullptr, Kind_ToIdD(reinterpret_cast<const u32 *>(challenge)), 0x111, 0, Get14_6bb1a0(challenge),
+                    Get4_5dc650(challenge), Get8_51c050(challenge), 0, thing, 0, 0, 0);
+    Object_PostMessage(msg);
+}
+
+u8 __fastcall Challenges_Announce(u8 *, void *, u8 *challenge, u32 offer) {
+    if (!challenge) return 0;
+    u8 msg[0x30];   // (bytes 0x11-0x13 left as the stack had them, as the original's)
+    ThingMsg19_Ctor(msg, nullptr, Kind_ToIdA(reinterpret_cast<const u32 *>(challenge)), (u8)offer ? 0x158 : 0x10e, 1, at<u32>(challenge, 0x14),
+                    at<u32>(challenge, 4), at<u32>(challenge, 8), 0, 0, at<u16>(challenge, 0xc), at<u16>(challenge, 0xe), at<u32>(challenge, 0x10));
+    Object_PostMessage(msg);
+    return 1;
+}
+
+void __fastcall Challenges_OfferNext(u8 *challenges, void *, u32 offer) {
+    if (at<u8>(challenges, 0x3d9) || at<u8>(challenges, 0x3da)) return;
+    const s32 current = at<s32>(challenges, 0x3cc);
+    at<u32>(challenges, 0x3dc) = 0;
+    const s32 most = global<s32>(0x007857cc);
+    // (32-bit wrapping counts, compared signed, as the original's)
+    for (u32 i = current >= 0 ? (u32)current + 1 : 0; (s32)i <= (s32)((u32)at<s32>(challenges, 0x3cc) + 0x14); ++i) {
+        const s32 k = (s32)i % 0x14;
+        const u8 *const c = challenges + 0xc + k * 0x30;
+        if (!at<u32>(c, 0) || at<u8>(c, 0x2c) || at<s32>(c, 0x28) >= most || !at<u8>(c, 0x1d)) continue;
+        at<s32>(challenges, 0x3cc) = k;
+        if (Challenges_Announce(challenges, nullptr, Challenges_Current(challenges), offer)) at<u8>(challenges, 0x3da) = 1;
+        return;
+    }
+}
+
+u8 __fastcall Challenges_OfferFollowup(u8 *challenges) {
+    if (at<u8>(challenges, 0x3d9) || !Challenges_Current(challenges)) return 0;
+    const u32 followup = at<u32>(Challenges_Current(challenges), 0x18);
+    if (!followup) return 0;
+    for (s32 i = 0; i < 0x14; ++i) {
+        const u8 *const c = challenges + 0xc + i * 0x30;
+        if (!at<u32>(c, 0) || at<u8>(c, 0x2c) || at<s32>(c, 0x28) >= global<s32>(0x007857cc) || at<u32>(c, 0) != followup) continue;
+        at<s32>(challenges, 0x3cc) = i;
+        if (Challenges_Announce(challenges, nullptr, Challenges_Current(challenges), 0)) {
+            at<u32>(challenges, 0x3dc) = 0;
+            at<u8>(challenges, 0x3da) = 1;
+            return 1;
+        }
+    }
+    return 0;
 }
 
 void __fastcall Challenges_AcceptOffer(u8 *challenges) {
