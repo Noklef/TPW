@@ -7,6 +7,7 @@
 #include "../core/crt.h"
 #include "../core/gameheap.h"
 #include "../core/options.h"
+#include "../core/selectors.h"
 #include "../core/vcall.h"
 #include "../math/x87.h"
 #include "../model/highlight.h"
@@ -14,8 +15,11 @@
 #include "../sprite/script.h"
 #include "../ui/cursor.h"
 #include "../ui/focus.h"
+#include "../ui/window.h"
+#include "../ui/window7cc8bc.h"
 #include "../core/actionrec.h"
 #include "../online/chat.h"
+#include "focuscell.h"
 #include "mapcell.h"
 #include "objectdefs.h"
 #include "thingscan.h"
@@ -293,4 +297,40 @@ void __cdecl MouseMode_Ensure6feaa0() {
     MouseModes_EnsureHolder();
     MouseMode_Set(mode);
 }
+
+// 0x497d20 / 0x497e10: the focus cell updated, a tile mode of the kind made and set, the record 0x1e of 3.
+static void enter_tile(u32 kind) {
+    FocusCell_Update(0);
+    u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x14));
+    u8 *const mode = block ? MouseModeTile_Ctor(block, nullptr, kind) : nullptr;
+    MouseModes_EnsureHolder();
+    MouseMode_Set(mode);
+    Global81ecac_SetRecorded(3);
+}
+
+void __cdecl MouseMode_EnterTile15() { enter_tile(0x15); }
+
+void __cdecl MouseMode_EnterTile16() { enter_tile(0x16); }
+
+void __cdecl ChatButtons_Select(u32 leave) {
+    if (*reinterpret_cast<u32 *>(*reinterpret_cast<uintptr_t *>(0x007cf83c) + 0x1da738) == 4 || Word7cf4f4_NonZero()) return;
+    Window_SendMessage(*reinterpret_cast<u8 **>(0x007cb2ac), 6, leave, 0);
+    Window_SendMessage(*reinterpret_cast<u8 **>(0x007cb2b0), 6, 1 - leave, 0);
+    u8 &guard = *reinterpret_cast<u8 *>(0x00fb34c1);   // (the mode setting 0xfb3b7c: this function's own guard of it)
+    const u8 bits = guard;
+    if (!(bits & 1)) {
+        guard = bits | 1;
+        Setting_ReadMode(reinterpret_cast<u8 *>(0x00fb3b7c));
+        g_env->atExit(reinterpret_cast<void(__cdecl *)()>(0x005d1750));
+    }
+    if (*reinterpret_cast<u32 *>(0x00fb3b7c) == 1) {
+        if (leave)
+            Window7cc8bc_LeaveChat();
+        else
+            Window7cc8bc_EnterChat();
+    }
+    Focus_Restore();
+}
+
+void __stdcall ChatButtons_SetChat(u32 on) { ChatButtons_Select(on == 0); }
 }

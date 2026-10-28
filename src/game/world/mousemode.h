@@ -136,4 +136,18 @@ u8 *__cdecl OnlineChat_Instance();
 // then unless the current mode ([0x7b05d8], read after that) answers 8 through its slot 9 (none: 0), a new 0x6feaa0 mode (Mem_Alloc(8),
 // MouseMode6feaa0_Ctor; 0 when that failed) made, the holder made when missing again and the mode set (MouseMode_Set).
 void __cdecl MouseMode_Ensure6feaa0();
+
+// 0x497d20 and 0x497e10 (cdecl; names invented): the focus cell updated (FocusCell_Update(0)), a tile mode (Mem_Alloc(0x14),
+// MouseModeTile_Ctor with 0x15 or 0x16; 0 when that failed) made, the holder [0x7b05e8] made when missing (MouseModes_EnsureHolder), the
+// mode set (MouseMode_Set), then Global81ecac_SetRecorded(3).
+void __cdecl MouseMode_EnterTile15();
+void __cdecl MouseMode_EnterTile16();
+
+// 0x4a2ac0 (cdecl (leave); name invented): nothing in the game object's mode 4 ([0x7cf83c] +0x1da738) or with the word 0x7cf4f4 set
+// (Word7cf4f4_NonZero); else message 6 (leave, 0) to the window [0x7cb2ac] and (1 - leave, 0) to [0x7cb2b0] (Window_SendMessage); the
+// mode setting 0xfb3b7c read once (its guard 0xfb34c1 & 1: Setting_ReadMode, atexit(0x5d1750) through the env); when it is 1 the chat
+// left (Window7cc8bc_LeaveChat) or, leave 0, entered (Window7cc8bc_EnterChat); then the focus restored (Focus_Restore).
+void __cdecl ChatButtons_Select(u32 leave);
+// 0x481470 (stdcall (on), pops 4; name invented): ChatButtons_Select(on == 0).
+void __stdcall ChatButtons_SetChat(u32 on);
 }
