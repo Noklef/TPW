@@ -37,6 +37,10 @@ u32 __fastcall ChatAvatar_MovePlayer1(u8 *avatar, void *, u32 x, u32 y);
 // released (_Tidy inlined: its block loses a count, or is freed when owned alone or frozen).
 void __fastcall ChatAvatar_GotoRoom(u8 *avatar);
 
+// 0x4e5210 (cdecl, no arguments; a button's callback, pushed by 0x4edb0f; name invented, unconfirmed): ChatAvatar_GotoRoom of the online
+// chat (OnlineChat_Instance, made when missing). Returns 1.
+u32 __cdecl ChatAvatar_GotoRoomCallback();
+
 // 0x4ee6d0 (thiscall; name (a std::wstring), a dword not read, pops 8; name invented; called from 0x4e6d9c with the avatar's own +8): the
 // name's characters (null: the empty string at 0x6fd6c4) added to the window [0x7cc8bc]'s name list (Window7cc8bc_ListAddStd, data 0), and
 // the name inserted into the avatar's set of names at +0xe80 (tree D: StdMapD_Insert, the result not read).

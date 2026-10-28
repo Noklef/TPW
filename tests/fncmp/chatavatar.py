@@ -4,9 +4,9 @@
 # words. GoTo: movingperson.py's person sent to a cell. Arrive (0x4ea240): the thing's script slots as personscripts.py's release. Find and
 # NameIs (0x4ebf00, 0x4f7d70): a park of named chat players and others, looked up by a name of theirs, one near it or another. Move1 (0x4eace0):
 # Chat::MovePlayer with mode 1 alone. Room (0x4eeb50): the avatar's wide string +0xf00 (or none) as a std::wstring told to Chat::Goto (import
-# 0x6fd490) and released. Enter (0x4ea2d0): Move's world, the thing's script list as personscripts.py's Place's (entry point 3), a small ground.
+# 0x6fd490) and released; RoomButton (0x4e5210) the same through the online chat [0x7cddec] (the avatar). Enter (0x4ea2d0): Move's world, the thing's script list as personscripts.py's Place's (entry point 3), a small ground.
 # AddName (0x4ee6d0): see add_name() below. EnterChat (0x4bd090, src/game/ui/window7cc8bc): see enter_chat() below.
-# usage: chatavatar.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Move,Say,Move3,Cell,CellMove,GoTo,Arrive,Find,NameIs,Move1,Room,Enter,AddName,EnterChat)
+# usage: chatavatar.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Move,Say,Move3,Cell,CellMove,GoTo,Arrive,Find,NameIs,Move1,Room,Enter,AddName,EnterChat,RoomButton)
 import os
 import struct
 import sys
@@ -37,7 +37,7 @@ B = Bench(movingperson.RANGES + personscripts.PLACE_RANGES + [(0x4ea2d0, 0x4ea36
            (0x515f30, 0x516310), (0x4f9ed0, 0x4f9efc), (0x4d4170, 0x4d4186), (0x475550, 0x47558b), (0x4fe950, 0x4fe977), (0x475010, 0x476a30),
            (0x540b90, 0x540da0), (0x50c0d0, 0x50c0f2), (0x50bab0, 0x50bac4), (0x50be40, 0x50be7c), (0x4d91f0, 0x4d93c0), (0x4fa930, 0x4fa9a0), (0x50b350, 0x50b370), (0x50b6a0, 0x50b790), (0x5100e0, 0x510110), (0x510160, 0x510190),
            (0x412e90, 0x412f00), (0x516270, 0x516320), (0x516330, 0x516390), (0x541f60, 0x541fb0), (0x6ace60, 0x6aceb0), (0x5da3c0, 0x5da3c1),
-           (0x4eace0, 0x4eacfa), (0x4eeb50, 0x4eec32), (0x405280, 0x405390), (0x47bad0, 0x47bc10), (0x67acd0, 0x67ad00), (0x45b380, 0x45b5f0),
+           (0x4eace0, 0x4eacfa), (0x4eeb50, 0x4eec32), (0x4e5210, 0x4e5222), (0x46cf10, 0x46cf7d), (0x405280, 0x405390), (0x47bad0, 0x47bc10), (0x67acd0, 0x67ad00), (0x45b380, 0x45b5f0),
            (0x45b680, 0x45b9b0), (0x67bb90, 0x67bd98), (0x67d250, 0x67d2c0), (0x67d3a0, 0x67d400), (0x6918f0, 0x691a30), (0x691ba0, 0x691ce0),
            (0x4ee6d0, 0x4ee70d)] + wstringmap.RANGES   # (AddName's: window7cc8bc.py's list and the tree D insert)
           + dialog7cc5f4.merged(w7.LIST_RANGES + [(0x4beb60, 0x4bedd1), (0x481820, 0x4818b3), (0x65f538, 0x65f5b7), (0x65e59b, 0x65e60a), (0x65f66e, 0x65f6e1),
@@ -46,7 +46,7 @@ B = Bench(movingperson.RANGES + personscripts.PLACE_RANGES + [(0x4ea2d0, 0x4ea36
           hooks=wstringmap.HOOKS)
 CALLS = {'Move': 0x4ea370, 'Say': 0x4ea3f0, 'Move3': 0x4ea410, 'Cell': 0x4ebfb0, 'CellMove': 0x4eab40, 'GoTo': 0x4eac30, 'Arrive': 0x4ea240,
          'Find': 0x4ebf00, 'NameIs': 0x4f7d70, 'Move1': 0x4eace0, 'Room': 0x4eeb50, 'Enter': 0x4ea2d0, 'AddName': 0x4ee6d0,
-         'EnterChat': 0x4bd090}
+         'EnterChat': 0x4bd090, 'RoomButton': 0x4e5210}
 AVATAR, CHAT, NAME, CHARS, ROOM = RAM + 0x20000, RAM + 0x21000, RAM + 0x21100, RAM + 0x21200, RAM + 0x21300
 WIN_A, WIN_B = RAM + 0x23000, RAM + 0x23200   # (EnterChat's windows)
 GROUND = RAM + 0x22000   # (Enter's ground: the map, its grid, heights and cells)
@@ -230,6 +230,11 @@ def case(r):
         return move1(r)
     if op == 'Room':
         return room(r)
+    if op == 'RoomButton':   # (Room's avatar the online chat [0x7cddec], made already)
+        c = room(r)
+        regions = dict(c.regions)
+        regions[0x7cddec] = struct.pack('<I', AVATAR)
+        return Call(CALLS[op], [], regions, ret='a')
     if op in ('Find', 'NameIs'):
         regions, things = names(r)
         if op == 'Find' or not things:

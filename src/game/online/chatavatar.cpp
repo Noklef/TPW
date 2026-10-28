@@ -10,6 +10,7 @@
 #include "../ui/window7cc8bc.h"
 #include "../world/person.h"
 #include "../world/personscripts.h"
+#include "../world/mousemode.h"
 #include "../world/things.h"
 
 namespace {
@@ -75,6 +76,11 @@ u32 __fastcall ChatAvatar_SayPosition(u8 *avatar) {
 void __fastcall ChatAvatar_MoveTo3(u8 *avatar, void *, u32 x, u32 y) { moveTo(avatar, x, y, 3); }
 
 u32 __fastcall ChatAvatar_MovePlayer1(u8 *avatar, void *, u32 x, u32 y) { return movePlayer(avatar, (s16)x, (s16)y, 1); }
+
+u32 __cdecl ChatAvatar_GotoRoomCallback() {
+    ChatAvatar_GotoRoom(OnlineChat_Instance());
+    return 1;
+}
 
 void __fastcall ChatAvatar_GotoRoom(u8 *avatar) {
     const u16 *text = at<const u16 *>(avatar, 0xf00);
