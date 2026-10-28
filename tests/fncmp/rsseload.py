@@ -37,9 +37,10 @@ def merged(ranges):   # (overlapping ranges joined: a listing line must not come
     return out
 
 
-B = Bench(merged(vfs.RANGES + particles.RANGES + soundset.RANGES + [
+RANGES = merged(vfs.RANGES + particles.RANGES + soundset.RANGES + [
     (0x5587f0, 0x559059), (0x5c4d50, 0x5c5020), (0x5f5660, 0x5f56a0), (0x67a400, 0x690000), (0x466b70, 0x466c7f), (0x44b220, 0x44b267),
-    (0x412e90, 0x412eec)]))
+    (0x412e90, 0x412eec)])
+B = Bench(RANGES)
 BOX = RAM + 0x30000   # (ridebounds.py's world: the ride RAM + 0x30000, its holder +0x200, model +0x220, root +0x300)
 PARTS, PREV, DEFS, THINGS, CHANNEL, SMGR, OBJ = (RAM + o for o in (0x30600, 0x31000, 0x32000, 0x33000, 0x34000, 0x34100, 0x34200))
 

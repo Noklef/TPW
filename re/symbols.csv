@@ -57,7 +57,7 @@ address,name,kind,confidence,notes
 0x005428e0,TrackRides_Save,function,high,module TRAK
 0x0055e020,FlyingRides_Load,function,high,module FLYR
 0x0055de70,FlyingRides_Save,function,high,reimplemented (src/game/core/savemods); writes the flying rides module to the save game
-0x005597a0,RSSE_Load,function,high,module RSSE
+0x005597a0,RSSE_Load,function,high,"reimplemented (src/game/core/savemods); cdecl (stream): the RSSE module's save game read: the running scripts freed, the system set up again, then the globals, each script record with its blocks and object nodes read back (an occluder made again for a ride's box); 1 for a missing header or object list, else 0"
 0x00559350,RSSE_Save,function,high,reimplemented (src/game/core/savemods); writes the script contexts to the save game
 0x0042cec0,Camera_Load,function,high,"reimplemented (src/game/core/savemods); 0x42cec0 (stream): the mirror of Camera_Save, then the flags cleared, 0x7909e0 the yaw, and the yaw snapped to a quarter turn when 0x78d912 is set"
 0x0042cdc0,Camera_Save,function,high,reimplemented (src/game/core/savemods); writes the camera values to the save game
