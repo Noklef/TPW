@@ -45,7 +45,7 @@ def train(r):
         put(pieces, p, 'I', r.choice([i, i, i + 1, 0, r.randrange(8)]))
         put(pieces, p + 8, 'I', r.choice([0, 0x40, 0xc0, 0x80, 0x4000, 0x40 | 0x4000, r.getrandbits(32)]))
         put(pieces, p + 0x64, 'I', piece(i - 1) if i and r.random() < 0.9 else 0)
-        put(pieces, p + 0x68, 'I', piece(i + 1) if i < N - 1 and r.random() < 0.9 else 0)
+        put(pieces, p + 0x68, 'I', piece(i + 1) if i < N - 1 and r.random() < 0.75 else 0)
         put(pieces, p + 0xe0, 'I', value(r))
         put(pieces, p + 0x100, 'I', DEFS + 0x40 * i)
         d = 0x40 * i
@@ -79,9 +79,10 @@ def case(r):
         put(world, 0x38, 'I', value(r))
     put(world, 0xc8, 'II', value(r), value(r))
     for at, start, last in ((0x30, 0xc8, 0x68), (0x34, 0xcc, 0x18)):   # (the mouse unmoved, its last move 0, now and then)
-        if r.random() < 0.35:
+        if r.random() < 0.45:
             put(edit, at, '4s', bytes(world[start:start + 4]))
-            put(edit, last, 'f', r.choice([0.0, -0.0]))
+            if r.random() < 0.7:
+                put(edit, last, 'f', r.choice([0.0, -0.0]))
     for at in (0xec, 0xa8):   # (steps)
         put(edit, at, 'f', r.choice([1.0, 0.5, 0.01, -0.25, 4.0]))
     for lo, hi in ((0x1c, 0x5c), (0x20, 0x54), (0xe4, 0x6c), (0xe8, 0x70)):   # (the ranges about the values)
@@ -89,9 +90,11 @@ def case(r):
             a, b = sorted([r.uniform(-3, 3), r.uniform(-3, 3)])
             put(edit, lo, 'f', a)
             put(edit, hi, 'f', b)
-    for at in (0xd4, 0xd0, 0xf0, 0xf4):
+    for at, lo, hi in ((0xd4, 0xe4, 0x6c), (0xd0, 0xe8, 0x70), (0xf0, 0x1c, 0x5c), (0xf4, 0x20, 0x54)):
         if r.random() < 0.7:
             put(edit, at, 'f', r.uniform(-2, 2))
+        if r.random() < 0.2:   # (a value's base at an end of its range: an unmoved mouse lands on it)
+            put(edit, r.choice([lo, hi]), '4s', bytes(edit[at:at + 4]))
     vecs = bytearray(0x40)
     put(edit, 0xfc, 'I', VECS)
     put(edit, 0x14, 'I', VECS + 0x20)
@@ -103,7 +106,7 @@ def case(r):
     span = r.choice(ends) if r.random() < 0.97 else 0
     put(edit, 0xdc, 'I', span)
     put(edit, 0xa4, 'I', r.choice(ends) if r.random() < 0.97 else 0)
-    put(edit, 0x9c, 'i', r.choice([0, 5, -5, 100, -0x7fffffff, r.getrandbits(31)]))
+    put(edit, 0x9c, 'i', r.choice([0, 5, -5, -1, 100, -0x7fffffff, r.getrandbits(31)]))
     put(edit, 0x98, 'f', r.choice([0.0, 2.5, -1.5, 40.75, r.uniform(-100, 100)]))
     put(edit, 0x24, 'I', r.choice([0, 1, 2, 3, r.getrandbits(32)]))
     ride = r.choice([0, 1, 5, 9, r.getrandbits(32)])
