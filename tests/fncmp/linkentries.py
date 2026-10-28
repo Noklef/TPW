@@ -1,7 +1,8 @@
 # A coaster link's entries removed and freed, and the track cleared under them, against the original: TrackCell_ClearAt (0x452ca0,
 # src/game/world/trackline), CoasterLink_RemoveEntry (0x442ea0) and CoasterLink_FreeEntries (0x43eaf0, both src/game/coaster/registry).
 # trackline.py's map (trackremove.py's scene in the game's layout) with its size for the clamps ([0x7a0314] columns, [0x7a0374] rows: the
-# laid-out map's mostly, now and then smaller, 1, 0 or below), the spots on it mostly, now and then off it either way. The link: its
+# laid-out map's mostly, now and then smaller, 1, 0 or below), the spots on it mostly, now and then off it either way (TrackCell_ClearAt's
+# track cell there of a line kind now and then, owning the cells east, south and south-east mostly). The link: its
 # chain (+0x4c first, +0x50 last, +0x40 count) of up to four 0x48-byte entries (next +0x28, previous +0x2c, +0 their index, +4 flag 1
 # now and then, +0xc / +0x10 the spot, +0x18 a car with flags 4 / 8 (+0) or not, +0x30 a count of up to three cars from +0x34), now and
 # then its first and last not the chain's. The cars as carfree.py's (their rides (+0x70) to Ride_Destroy 0x463c80, a cdecl recorder 31;
@@ -18,9 +19,11 @@ from fncmp import HEAP, Bench, Call, global_heap, heap, put  # noqa: E402
 _ops = os.environ.pop('OPS', None)   # (the imported benches read OPS as their own)
 import cellapply  # noqa: E402
 import trackline  # noqa: E402
+import trackremove as tr  # noqa: E402
 if _ops is not None:
     os.environ['OPS'] = _ops
 
+ident = trackline.ident
 B = Bench(cellapply.merged(trackline.RANGES + [(0x452ca0, 0x452d24), (0x442ea0, 0x442f35), (0x43eaf0, 0x43eb6b), (0x434570, 0x43464e),
                                                 (0x433240, 0x433277), (0x4346c0, 0x434700), (0x4418d0, 0x4418f0)]),
           sines=256, hooks=trackline.HOOKS)
@@ -50,7 +53,15 @@ def case(r):
                     0x7a0374: struct.pack('<i', r.choice([hl] * 4 + [hl - 2, 1, 0, -3])), HEAP: heap(), **global_heap()})
     op = r.deal(OPS)
     if op == 'ClearAt':
-        return Call(0x452ca0, [spot(r, wl), spot(r, hl)], regions, ret='v')
+        x, y = spot(r, wl), spot(r, hl)
+        sx = min(max(x, 0), struct.unpack('<i', regions[0x7a0314])[0] - 1)
+        sy = min(max(y, 0), struct.unpack('<i', regions[0x7a0374])[0] - 1)
+        if 0 <= sx < wl - 1 and 0 <= sy < hl - 1 and r.random() < 0.6:   # (its track cell of a line kind, owning those after it)
+            trackline.put_kind(regions, sx, sy, r.choice(tr.LINES))
+            for dx, dy in ((1, 0), (0, 1), (1, 1)):
+                if r.random() < 0.8:
+                    trackline.put_owner(regions, sx + dx, sy + dy, ident(sx, sy))
+        return Call(0x452ca0, [x, y], regions, ret='v')
     definition = bytearray(r.bytes(8))
     definition[4] = r.getrandbits(8) & ~1 | r.choice([0, 1])
     other = bytearray(r.bytes(0x10))

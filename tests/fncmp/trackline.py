@@ -64,6 +64,16 @@ def line(r, x, y, w, h, lo=2):
     return cells, (x + STEP[out][0], y + STEP[out][1])
 
 
+def put_kind(regions, x, y, kind):
+    """The kind (+8) of the laid-out map's 0x28-byte cell (x, y)."""
+    put(regions[TABLE + ident(0, y) * 0x28], x * 0x28 + 8, 'i', kind)
+
+
+def put_owner(regions, x, y, owner):
+    """The owner (+0x10) of the laid-out map's 0x28-byte cell (x, y)."""
+    put(regions[TABLE + ident(0, y) * 0x28], x * 0x28 + 0x10, 'H', owner)
+
+
 def case(r):
     regions = {k: v for k, v in tr.case(r).regions.items() if not (TABLE <= k < TABLE + 0xa0000 or MAPC <= k < MAPC + 0x110000)}
     pm = pathmodel.case(r).regions
