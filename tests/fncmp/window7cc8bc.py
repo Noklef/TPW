@@ -25,8 +25,8 @@
 # 0x78b530's set +4 (0 or 1) a GuiFont (the vtable 0x7058d8: its slot 3 the original GuiFont_CharWidth 0x6583fe, which reads only the
 # character's word, as the original pushes it with ECX's upper half left over), its count word +4 0x80 mostly, the spacing +6 small,
 # the glyphs' widths small, 0, negative or any; the text 0-80 characters of a few letters and spaces (now and then past the count);
-# [0x758f0c] (the lines kept) small. Remade as stafflist.py's Fill while the emulator runs past its step limit or its stack (several
-# AddItems on add_case()'s forests), else the text empty.
+# [0x758f0c] (the lines kept) small. Remade as stafflist.py's Fill while the emulator runs past 400000 steps or its stack (several
+# AddItems on add_case()'s forests can loop for ever), else the text empty.
 # usage: window7cc8bc.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Add,Remove,...)
 import os
 import struct
@@ -307,12 +307,12 @@ def chat_once(r, op):
 
 
 def chat_case(r, op):
-    """chat_once(), made again (up to 8 times, else with an empty text: no lines) while the emulator runs it past its step limit, as
-    stafflist.py's fill_case(), or past its stack (0x10000000 down: a loop in the forest's links, Window7059f0_FreeItem's recursion,
+    """chat_once(), made again (up to 8 times, else with an empty text: no lines) while the emulator runs it past 400000 steps (a short
+    probe: as stafflist.py's fill_case(), but the full step limit makes the bench far slower), or past its stack (0x10000000 down: a loop in the forest's links, Window7059f0_FreeItem's recursion,
     natively a stack overflow, another fault): add_case()'s forests are made for one AddItem"""
     for _ in range(8):
         c = chat_once(r, op)
-        probe = Call(c.address, c.args, dict(c.regions), conv=c.conv, ret=c.ret)
+        probe = Call(c.address, c.args, dict(c.regions), conv=c.conv, ret=c.ret, steps=400_000)   # (a fit one runs far less)
         probe.regions.update({k: v for k, v in B.extra.items() if k not in probe.regions})
         got = B.original(probe)
         if got != 'step limit' and not (isinstance(got, str) and ' of 0ffe' in got):
