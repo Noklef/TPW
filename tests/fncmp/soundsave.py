@@ -13,7 +13,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 from fncmp import (HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, blob_bytes, heap, import_table, log_region, memory_stream, recorder,  # noqa: E402
-                   set_return, strings, vtable)
+                   fill, set_return, strings, vtable)
 
 CALLS = {'mapfree': 0x6c10f0, 'freemap': 0x6c0d90, 'mapload': 0x6c1050, 'namesload': 0x6c0f50, 'vsave': 0x6bccf0, 'vload': 0x6bd0a0,
          'msave': 0x6b6c30, 'mload': 0x6b6da0, 'osave': 0x6ba0c0, 'oload': 0x6ba150, 'csave': 0x6b5c10, 'cload': 0x6b5c30, 'gsave': 0x51c350,
@@ -103,21 +103,29 @@ VOICE, VVT, PARAMS, LINKED, LPARAMS, BUF = RAM + 0xb000, RAM + 0xb100, RAM + 0xb
 TYPE_K = 20   # the voices' type (slot 20)
 
 
-def voice_record(r, linked=True, bad=0.05):
+def voice_record(r, linked=True, bad=0.05, named=None):
     """A voice's saved record from its magic on (as SoundVoice_Save writes it after the type): magics bad now and then; the category
     (the names' map index) mostly 0 or past the map's count; with `linked`, a linked type now and then (7 or 9; another now and then) and its
-    type dword and record (with no linked one itself)."""
+    type dword and record (with no linked one itself). named True (vload's): the category mostly one of the map's (1-3) and the sound,
+    variation and sample small indices into the SFX.map entries; the linked one's record named False: a category past the map
+    (unnamed: its slot 4 the game's)."""
     def magic():
         return MAGIC if r.random() > bad else r.choice([0, MAGIC + 1, r.getrandbits(32)])
     out = struct.pack('<I', magic()) + r.bytes(12) + struct.pack('<I', r.choice([0, 0, r.getrandbits(32)])) + r.bytes(4)
-    out += struct.pack('<I', r.choice([0] * 6 + [1, 2, 7, 0x1000, r.getrandbits(32)])) + r.bytes(12) + struct.pack('<I', magic())
+    if named:
+        out += struct.pack('<4I', r.choice([0, 1, 2, 3, 3, 0x1000]), r.randrange(12), r.randrange(10), r.getrandbits(r.choice([3, 32])))
+        out += struct.pack('<I', magic())
+    elif named is False:
+        out += struct.pack('<I', 0x1000) + r.bytes(12) + struct.pack('<I', magic())
+    else:
+        out += struct.pack('<I', r.choice([0] * 6 + [1, 2, 7, 0x1000, r.getrandbits(32)])) + r.bytes(12) + struct.pack('<I', magic())
     flag = r.choice([0, 1, 1, r.getrandbits(32)])
     out += struct.pack('<I', flag) + (r.bytes(24) if flag else b'') + struct.pack('<I', magic())
     out += bytes([r.choice([0, 1, r.getrandbits(8)])]) + r.bytes(4)
     lt = r.choice([7, 9, 7, 9, 3]) if linked and r.random() < 0.4 else 0
     out += struct.pack('<I', lt)
     if lt:
-        out += r.bytes(4) + voice_record(r, False, bad)
+        out += r.bytes(4) + voice_record(r, False, bad, False if named else None)
     return out
 
 
@@ -153,18 +161,33 @@ def voice_case(r, name):
         left = r.choice([size] * 5 + [r.randrange(0, 0x60)])
         regions.update({VOICE: v, PARAMS: params, LINKED: lv, LPARAMS: lparams, STREAM: memory_stream(STREAM, BUF, left), BUF: r.bytes(size)})
         return Call(CALLS[name], [VOICE, OUT, STREAM, r.getrandbits(32)], regions, conv='t', ret='a')
-    # vload: the singleton's names' map (a count 0-3 over a block of indices, 0 mostly): the categories read mostly 0 or past it
-    regions[GUARD] = bytes([1])
-    cat = bytearray(r.bytes(0xd0))
-    count = r.choice([0, 1, 2, 3])
-    struct.pack_into('<II', cat, 4, count, r.choice([BLOCK, BLOCK, 0]))
+    # vload: the singleton as soundcategory.py's locate case (deque A's records, null now and then, with their SFX.map entries) and its
+    # names' map (a count 0-3 over a block of deque A indices: 0, a record's, or past deque A's count); slot 4 (SoundVoice_Init) its out
+    # (the time argument's slot) logged as 0 and a status written through it now and then
+    import soundcategory as sc
+    loc = sc.locate_case(r, 'locate').regions
+    loc.pop(sc.INFO)
+    loc.pop(sc.OUT)
+    sounds = bytearray(loc[sc.SFX_SOUNDS])   # (each record's 12 sounds from its own 0x100, their variations at SFX_VARS: the indices' places)
+    for o in [0x100 * i + 0x14 * s for i in range(len(sounds) // 0x100) for s in range(12)]:
+        struct.pack_into('<II', sounds, o + 4, r.choice([0, 1, 2, 5]), sc.SFX_VARS)
+    loc[sc.SFX_SOUNDS] = sounds
+    regions.update(loc)
+    regions[HEAP] = heap(0x800, fail=r.choice([0] * 15 + [1, 2, 3]))
+    regions[VVT] = vtable({TYPE_K: 0, 4: 5}, 24)
+    strings(log, 4, 0, out=1)
+    if r.random() < 0.6:
+        fill(log, 4, 0, struct.pack('<I', r.choice([0, 1, 0x100, 0xffffffff, r.getrandbits(32)])))
+    cat = bytearray(regions[SINGLETON])
+    count = r.choice([0, 1, 2, 3, 3])
+    struct.pack_into('<II', cat, 4, count, r.choice([BLOCK, BLOCK, BLOCK, 0]))
     regions[SINGLETON] = cat
-    regions[BLOCK] = struct.pack('<4I', *[r.choice([0, 0, 0, r.randrange(1, 4)]) for _ in range(4)])
+    regions[BLOCK] = struct.pack('<4I', *[r.choice([0, 1, 1, 2, 2, r.randrange(1, 6)]) for _ in range(4)])
     if r.random() < 0.7:
         set_return(log, TYPE_K, r.choice([4, 6, 1, 7, r.getrandbits(32)]))
     params = bytearray(r.bytes(0x20))
     struct.pack_into('<I', params, 0x1c, r.choice([VOICE, LINKED, r.getrandbits(32)]))
-    data = voice_record(r) + r.bytes(0x10)
+    data = voice_record(r, named=True) + r.bytes(0x10)
     left = len(data)   # (a short stream leaves the original's locals unset: its stack, not comparable)
     regions.update({VOICE: voice(r, VOICE, VVT, r.choice([0, PARAMS])), PARAMS: params, STREAM: memory_stream(STREAM, BUF, left), BUF: data})
     return Call(CALLS[name], [VOICE, OUT, STREAM, r.getrandbits(32)], regions, conv='t', ret='a')

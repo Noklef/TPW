@@ -1276,10 +1276,18 @@ u32 *__fastcall SoundVoice_Load(u8 *voice, void *, u32 *out, u8 *stream, u32 tim
         at<u32>(Params(voice), 0x18) = linked;
     }
     at<u32>(voice, 0x24) = 0;
-    if (Array_AtOrZero(SoundCategory_Get(), nullptr, category)) {
-        // The original pushes one argument for SoundCategory_RecordAt, which pops two: from here its frame is 4 bytes off and every path
-        // ends returning to its out pointer, a fault (sic). The port faults at once.
-        *reinterpret_cast<volatile u32 *>(static_cast<uintptr_t>(0)) = 0;
+    u8 *record = nullptr;
+    const u32 index = Array_AtOrZero(SoundCategory_Get(), nullptr, category);
+    if (index) {
+        record = SoundCategory_RecordAt(nullptr, nullptr, index, static_cast<u32>(reinterpret_cast<uintptr_t>(voice)));   // (this a local, unused)
+        if (!record || !at<u8 *>(record, 8)) {
+            *out = 0xffffffff;
+            return out;
+        }
+        // The SFX.map entry's sound (20 bytes each), that sound's variation (42) and its sample (16), as SoundCategory_LocateSample finds them
+        at<u8 *>(voice, 4) = at<u8 *>(at<u8 *>(record, 8), 4) + sound * 20;
+        at<u8 *>(voice, 8) = at<u8 *>(at<u8 *>(voice, 4), 8) + variation * 42;
+        at<u8 *>(voice, 0xc) = at<u8 *>(at<u8 *>(voice, 8), 8) + sample * 16;
     }
     if (Params(voice) && at<u32>(Params(voice), 0x18)) {
         const u32 type = at<u32>(Params(voice), 0x18);
@@ -1296,7 +1304,13 @@ u32 *__fastcall SoundVoice_Load(u8 *voice, void *, u32 *out, u8 *stream, u32 tim
         Get(stream, &dropped, 4);
         SoundVoice_Load(at<u8 *>(Params(voice), 0x18), nullptr, &time, stream, time);   // (out: the time's own slot, sic)
     }
-    at<u32>(voice, 0x30) |= 0x10;   // (the category's 0: unnamed)
+    if (!index) {
+        at<u32>(voice, 0x30) |= 0x10;   // (the category's 0: unnamed)
+    } else {
+        // Slot 4 (SoundVoice_Init): out the time argument's slot (sic), the record, the sample's place, +0x10 and +0x40
+        vcall<u32 *>(voice, 0x10, &time, record, at<u8 *>(voice, 4), reinterpret_cast<const u32 *>(voice + 0x10), at<u32>(voice, 0x40));
+        if (bit) at<u32>(voice, 0x30) |= 0x1000;
+    }
     *out = 0;
     return out;
 }

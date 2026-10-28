@@ -4838,7 +4838,7 @@ address,name,kind,confidence,notes
 0x006be880,Voice70a8d0_PickQueuedSound,function,low,reimplemented (src/game/core/soundvoice); slot 14 of 0x70a8d0: the queued sound's pick
 0x006be960,VoicePairs_Alloc,function,low,"reimplemented (src/game/core/soundvoice); thiscall (count), pops 4: *self = a game-heap block of count 8-byte pairs (null when it fails); returns self (name invented)"
 0x006bccf0,SoundVoice_Save,function,low,"reimplemented (src/game/core/soundvoice); a voice's saved record written (type, magic, position, sample indices, parameter block, flag byte, id, the linked voice)"
-0x006bd0a0,SoundVoice_Load,function,low,reimplemented (src/game/core/soundvoice); a voice's saved record read back (a named category faults: the original's frame is off by 4)
+0x006bd0a0,SoundVoice_Load,function,low,reimplemented (src/game/core/soundvoice); a voice's saved record read back (a named category: its record's sample place, then slot 4)
 0x006be7a0,Voice70a8d0_Ctor,function,low,"reimplemented (src/game/core/soundvoice); the queued voice's constructor: the voice class, vtable 0x70a8d0, the parameter block ensured, its +0x1c a new queue of the info's pairs"
 0x006be750,Voice70a8d0_Create,function,low,reimplemented (src/game/core/soundvoice); the queued voice made in the memory given and initialised (slot 4); null when there is no memory or the init answers below 0
 0x006c4760,EaxBuffer_QueryAll,function,low,"reimplemented (src/game/core/soundeax); thiscall (out, unused), pops 8: IKsPropertySet::Get of the EAX 2.0 buffer properties (id 1, 0x38 bytes) into a stack block that is also the size out, dropped; *out = 0 on success, else -1; returns out"

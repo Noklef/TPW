@@ -326,12 +326,14 @@ u32 *__fastcall SoundVoice_Save(u8 *voice, void *, u32 *out, u8 *stream, u32 tim
 // = -1 and nothing more. +0x10-+0x18 through Fn_6bb220; the zero dword and +0x2c read and dropped; with the flag, the parameter block
 // made when there is none (as SoundVoice_EnsureParams, not checked) and its six dwords read; the byte read into the stream argument's
 // slot (sic); a linked type not 0 put in the block's +0x18 (the block made as before). +0x24 = 0. The category through the singleton's
-// names' map (Array_AtOrZero on SoundCategory_Get): 0 sets flag 0x10 at the end. Not 0: the original pops 4 bytes more than it pushes
-// (SoundCategory_RecordAt pops 8 for the one argument pushed), so it runs on with its frame 4 bytes off and returns to its out pointer: a
-// fault (sic; the port faults there at once). With a linked type in the block: the block's +0x18 cleared, the parent this voice when its
+// names' map (Array_AtOrZero on SoundCategory_Get): 0 sets flag 0x10 at the end. Not 0: deque A's record there (SoundCategory_RecordAt,
+// the voice its unused argument); no record or none of its SFX.map entry (+8): *out = -1 and nothing more. Else +4, +8 and +0xc the sound,
+// variation and sample there (the entry's +4 + sound * 20, that one's +8 + variation * 42, that one's +8 + sample * 16), and at the end
+// slot 4 (out the time argument's slot, sic; the record, +4, &+0x10, +0x40) and flag 0x1000 when the byte read is not 0. With a linked
+// type in the block: the block's +0x18 cleared, the parent this voice when its
 // slot 20 answers 6 or 4 (asked again), else the block's +0x1c; type 7 / 9 a LinkedVoice / LinkedSwitchVoice (Mem_Alloc 0x50; 0 when it
 // fails) to +0x18, any other none; a dword read and dropped; then that voice's load (out the time's slot, sic; a null one faults).
-// Returns out (*out 0 after the flag).
+// Returns out (*out 0 after the flags).
 u32 *__fastcall SoundVoice_Load(u8 *voice, void *, u32 *out, u8 *stream, u32 time);
 
 }  // extern "C"
