@@ -8,6 +8,8 @@
 # handle and make WaitForSingleObject write 1 through it, with the time moving on, the cursor set and not paused, so the first Tick sets it.
 # Show / Hide (0x47ebc0 / 0x47ec30, the 0x6fefc8 class's slots 2 and 3): the object a frame (small, negative or any), a hot spot of signed
 # bytes and IMAGE's surface inline at +0x14, the pointer [0x7b4b84] P.
+# Step (0x47eca0, PointerFrames_Step): Show's object shown or not, the pointer or none, its frame count +8 (1-4, 0 or any), the last step
+# +0x10 and now 300 apart or about, any or wrapping.
 # usage: asyncpointer.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Ctor,... to pick)
 import os
 import struct
@@ -20,11 +22,11 @@ from fncmp import (COUNTER, HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, _cdecl_lo
 BEGIN_THREAD, END_THREAD = 30, 31   # (the cdecl recorders driver.cpp's AsyncPointer env points at)
 B = Bench([(0x5f5ee0, 0x5f5fd0), (0x5f9000, 0x5f92f0), (0x5fa680, 0x5fa6b0), (0x5fad40, 0x5fb8f0), (0x5fb8e0, 0x5fbdf0), (0x61b090, 0x61b0f0),
            (0x61b130, 0x61b1f0), (0x62f810, 0x62f8e0), (0x6306c0, 0x630890), (0x67a740, 0x67a800), (0x67acf0, 0x67ada0), (0x67afa0, 0x67b060),
-           (0x67fa20, 0x67fa40), (0x682460, 0x6824f0), (0x47ebc0, 0x47ec21), (0x47ec30, 0x47ec75)],
+           (0x67fa20, 0x67fa40), (0x682460, 0x6824f0), (0x47ebc0, 0x47ec21), (0x47ec30, 0x47ec75), (0x47eca0, 0x47ed32)],
           hooks={0x67a7d0: _cdecl_log, 0x67f780: _recorder(BEGIN_THREAD, 6, cdecl=True), 0x67f8b0: _recorder(END_THREAD, 1, cdecl=True)})
 CALLS = {'Ctor': 0x5fb8e0, 'DeletingDtor': 0x5fb920, 'Dtor': 0x5fb940, 'Detach': 0x5fb990, 'Stop': 0x5fb9b0, 'ThreadProc': 0x5fba00,
          'Tick': 0x5fba10, 'Run': 0x5fba70, 'Lock': 0x5fbad0, 'Unlock': 0x5fbb70, 'Attach': 0x5fbbd0, 'Start': 0x5fbc30, 'SetPaused': 0x5fbc80,
-         'SetImage': 0x5fbcf0, 'BeginFlip': 0x5fbd40, 'EndFlip': 0x5fbd90, 'Show': 0x47ebc0, 'Hide': 0x47ec30}
+         'SetImage': 0x5fbcf0, 'BeginFlip': 0x5fbd40, 'EndFlip': 0x5fbd90, 'Show': 0x47ebc0, 'Hide': 0x47ec30, 'Step': 0x47eca0}
 GUARD, C, CLOCK = 0xfa7a78, 0xfa7a80, 0xfa71e0
 P, D, DVT, OBJS, VT, TARGET, FRONT, IMAGE, OUT, POS, RECT, HOT, BOUNDS, BITS = (RAM, RAM + 0x40, RAM + 0x60, RAM + 0x100, RAM + 0x200, RAM + 0x400,
                                                                                RAM + 0x460, RAM + 0x4c0, RAM + 0x520, RAM + 0x550, RAM + 0x560,
@@ -121,11 +123,21 @@ def case(r):
     address = CALLS[op]
     if op == 'Ctor':
         return Call(address, [P, D], regions, conv='t', ret='a')
-    if op in ('Show', 'Hide'):
+    if op in ('Show', 'Hide', 'Step'):
         frames = bytearray(r.bytes(0x14)) + surface(r, IOBJ)
         put(frames, 0xc, 'i', r.choice([0, 1, 2, 5, -1, r.randrange(-0x8000000, 0x8000000)]))
         regions.update({FRAMES: frames, 0x7b4b84: struct.pack('<I', P)})
         set_return(log, CREATE, 1)   # (its recorder leaves the new surface unset: SetImage's own cases cover a success)
+        if op == 'Step':
+            frames[4] = r.choice([1, 1, 1, 0, r.getrandbits(8)])
+            put(frames, 8, 'i', r.choice([1, 2, 3, 4, 4, 0, -1, r.getrandbits(31)]))
+            put(frames, 0xc, 'i', r.choice([0, 1, 2, 3, 3, -1, r.randrange(-0x8000000, 0x8000000)]))
+            last = r.choice([0, r.getrandbits(32), 0x7fffff00])
+            put(frames, 0x10, 'I', last)
+            now = (last + r.choice([300, 301, 299, 1000, 0, -5, r.getrandbits(32)])) & 0xffffffff
+            if r.random() < 0.1:
+                regions[0x7b4b84] = struct.pack('<I', 0)
+            return Call(address, [FRAMES, now], regions, conv='t', ret='v')
         return Call(address, [FRAMES], regions, conv='t', ret='v')
     if op == 'DeletingDtor':
         regions[HEAP] = heap()

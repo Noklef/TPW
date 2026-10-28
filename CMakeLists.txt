@@ -20,6 +20,7 @@ add_library(tpw_game STATIC
     src/game/rsse/rsse_vm.cpp
     src/game/rsse/scream.cpp
     src/game/rsse/scriptfile.cpp
+    src/game/rsse/scriptkill.cpp
     src/game/core/app.cpp
     src/game/core/crt.cpp
     src/game/core/fpu.cpp
@@ -345,6 +346,7 @@ add_library(tpw_game STATIC
     src/game/world/trackline.cpp
     src/game/world/queuetrace.cpp
     src/game/world/visitorsteps.cpp
+    src/game/world/cellmessage.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp
@@ -451,6 +453,8 @@ add_library(tpw_game STATIC
     src/game/frontend/lobbyscene.cpp
     src/game/frontend/viewcontrols.cpp
     src/game/frontend/postcard.cpp
+    src/game/frontend/scenequeue.cpp
+    src/game/frontend/frame.cpp
     src/game/input/mouse.cpp
     src/game/ui/dialog7ca1c8.cpp
     src/game/ui/window.cpp

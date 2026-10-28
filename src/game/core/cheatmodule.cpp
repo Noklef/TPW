@@ -3,6 +3,8 @@
 #include <cstdint>
 
 #include "../files/file.h"
+#include "../world/messagecentre.h"
+#include "../world/thingmsg.h"
 
 namespace {
 
@@ -60,5 +62,13 @@ u8 * __fastcall CheatSystem_Construct(u8 *o) {
     at<u8>(o, 0xb) = 0;
     at<u8>(o, 0x9) = 0;
     return o;
+}
+
+void __fastcall CheatSystem_SetOn(u8 *cheats, void *, u32 on) {
+    at<u8>(cheats, 0xa) = (u8)on;
+    if (!(u8)on) return;
+    alignas(4) u8 msg[0xc];
+    ThingMsg15_Ctor(msg, nullptr, (u8)on);
+    MessageCentre_Post(MessageCentre_Instance(), nullptr, msg);   // (the centre made on the first call, inlined)
 }
 }

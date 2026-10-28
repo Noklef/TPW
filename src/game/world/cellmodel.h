@@ -66,4 +66,10 @@ void CellModel_SetEnv(const CellModelEnv *env);
 // one, plays bank 0xc's entry 0 (Animator_Play (its instance in 0x7a4610, 0xc, 0, mode 7, 1.0, layer 0)). 5 removes the ride only when
 // the 0x44-byte cell's +8 is not 0x15 and places place5's. 0 removes the ride of an index 0x37. Others leave it.
 void __fastcall MapCell_ApplyModel(u8 *cell);
+
+// 0x53b1a0 (thiscall; name invented, unconfirmed): the ride of a map cell's kept model placed again: unless the cell's 0x44-byte cell
+// (MapHandle_Cell44) has +8 0x15, the ride (+4) is set to 0 (not removed); then by the group (+0x14): 3 and 4 (unless the flags +0xe have
+// 0x10) and 5 put the env's place3 / place4 / place5 (x, y, +0x14, +0x18, +0x1c, 1) into +4 (x and y as MapCell_ApplyModel's); other
+// groups nothing more.
+void __fastcall MapCell_PlaceRide(u8 *cell);
 }

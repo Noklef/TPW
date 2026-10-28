@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../coaster/registry.h"
 #include "../model/highlight.h"
 #include "../model/holder.h"
 #include "camera.h"
@@ -13,7 +14,7 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 u8 **instances() { return reinterpret_cast<u8 **>(0x007a4610); }
 
-const RidesEnv kGameEnv = {reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x0042a190), reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)0x00436fa0)};
+const RidesEnv kGameEnv = {reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x0042a190), &CoasterLink_Destroy};
 const RidesEnv *g_env = &kGameEnv;
 
 }  // namespace

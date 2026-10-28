@@ -119,6 +119,14 @@ void __cdecl Coaster_SetMixAt(u32 index, u32 value);
 // read again) flag 0x8000 set when there is one.
 void __cdecl Coaster_SetMixAtPinned(u32 index, u32 value);
 
+// 0x43b270 (cdecl (index, which); name invented, unconfirmed): coaster index's (table 0x790bd0, read first) mode set (Coaster_SetState):
+// which 0 the mode 0x10, 1 0x40, 2 0x20; any other nothing.
+void __cdecl Coaster_SetModeAt(u32 index, u32 which);
+
+// 0x43b2f0 (cdecl (index, on); name invented, unconfirmed): coaster index's (table 0x790bd0; there must be one) state stepped by the low
+// byte of its +8: on, with bit 2 (4) set, Coaster_SetState (8); off, with bit 1 or 3 (0xa) set, Coaster_SetState (4).
+void __cdecl Coaster_StepStateAt(u32 index, u32 on);
+
 // 0x43b600 (cdecl; queue, coaster, first, count; name unconfirmed): boards riders while the coaster has some to take (+0x14) and count
 // is not 0: one is taken from the queue's ring (+0xb4 the slots, +0xb0 their number, +0xbc the count, +0xc4 the read position, moved
 // on round the ring; none when the count is 0, and then nothing more), a car of the count from first picked at random (the rand()

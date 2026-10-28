@@ -5,10 +5,12 @@
 #include "../core/accessors.h"
 #include "../core/globals.h"
 #include "../files/wrapsources.h"
+#include "../terrain/land.h"
 #include "cellmodel.h"
 #include "mapcell.h"
 #include "money.h"
 #include "object.h"
+#include "pathlink.h"
 #include "thingscan.h"
 #include "world.h"
 
@@ -289,6 +291,56 @@ void __fastcall TrackCell_ClearBlock(u8 *cell) {
         u8 *const next = Map_StepCell28(reinterpret_cast<const u16 *>(cell), nullptr, PairX(table), PairY(table), 1);
         if (next) EmptyTrackCell(next);
     }
+}
+
+void __fastcall TrackCell_Reset(u8 *cell) {
+    const u32 index = (u32)at<u16>(cell, 0) - 1;
+    MapCell_SetTrackKind(cell, nullptr, Terrain_IsParkLand(index & 0x7f, index >> 7) ? 0 : 7);
+    MapCell_RemoveNeighbours(cell, nullptr, 0xff);
+    global<u8>(0x0081b4cc) = 1;   // (the hoarding neighbours too)
+    MapCell_RemoveNeighbours(cell, nullptr, 0xff);
+    global<u8>(0x0081b4cc) = 0;
+    MapCell_SetDirection(cell, nullptr, 0);
+    at<u16>(cell, 0xe) = 0;
+    MapCell_SetParent(cell, nullptr, 0);   // (the original's slot: the low word 0 over a stale dword; the callee reads the low)
+    at<u32>(cell, 4) = 0;
+    at<u16>(cell, 0x20) = 0;
+    at<u32>(cell, 0x14) = 0;
+    at<u32>(cell, 0x18) = 0;
+    at<u32>(cell, 0x1c) = 0;
+    at<u16>(cell, 0x24) = 0xffff;
+}
+
+void __fastcall MapCell_Reset(u8 *cell, void *, u32 models) {
+    const u32 index = (u32)at<u16>(cell, 0) - 1;   // (read first)
+    MapCell_RemoveNeighbours(cell, nullptr, 0xff);
+    MapCell_SetDirection(cell, nullptr, 0);
+    MapCell_SetParent(cell, nullptr, 0);
+    const u8 attr = cell[0x26];
+    at<u16>(cell, 0xe) = 0;
+    at<u32>(cell, 0x14) = 0;
+    at<u32>(cell, 0x18) = 0;
+    at<u32>(cell, 0x1c) = 0;
+    if (Terrain_IsParkLand(index & 0x7f, index >> 7)) {
+        // (the original first stores 5 / 2 / 0x1e by the bits 1 / 2 / 0x80, always overwritten before any call)
+        if (attr & 8) {
+            at<u32>(cell, 8) = 1;
+            MapCell_LinkPath(cell, nullptr, 1, 0, 0, models);
+            at<u16>(cell, 0xe) = 0x20;
+        } else {
+            at<u32>(cell, 8) = 0;
+        }
+    } else {
+        at<u32>(cell, 8) = (attr & 2) ? 2 : (attr & 0x80) ? 0x1e : 7;
+    }
+    if (!(at<u16>(cell, 0xe) & 0x20)) {
+        at<u16>(cell, 0xe) |= 0x40;
+        if ((u8)models) MapCell_ApplyPathModel(cell);
+    }
+    if (attr & 0x10) cell[0xe] |= 0x80;
+    if (attr & 4) cell[0xf] |= 4;
+    at<u32>(cell, 4) = 0;
+    at<u16>(cell, 0x20) = 0;
 }
 
 void __fastcall TrackCell_Remove(u8 *cell, void *, s32 a, s32 b, u32 models) {

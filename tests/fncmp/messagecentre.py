@@ -7,7 +7,10 @@
 # Post (0x40fb10) hands a message (its slot 0 a recorder answering the type: 0x1b often, else 0-28) to the things of its type's slot (the
 # thing table 0x7cfb90 of things whose handles are their slots, or now and then another key) through Thing_HandleMessage 0x50b550, the
 # thiscall recorder 27 of 1 argument; type 0x1b first erases the handle of the thing its word +8 names from every map.
-# usage: messagecentre.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Slot,Slots,Remove,Save,Add,Load,Ctor,Instance,CtorSlots,Post)
+# Cheats (0x4053c0 CheatSystem_SetOn): the low byte 0 now and then; the message (ThingMsg15 on the stack, its vtable 0x6fd6c8 a recorder
+# one answering a type 0-28 but 0x1b: the message's word +8 has a stack byte the original leaves unset; the handler logs its bytes 0-8) posted as Post's, to the centre
+# there or made (an allocation now and then failing).
+# usage: messagecentre.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Slot,Slots,Remove,Save,Add,Load,Ctor,Instance,CtorSlots,Post,Cheats)
 import os
 import struct
 import sys
@@ -16,11 +19,11 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import stdtree  # noqa: E402
-from fncmp import LOG, Bench, Call, HEAP, RAM, _recorder, heap, log_region, record_stream, set_return, vtable  # noqa: E402
+from fncmp import LOG, Bench, Call, HEAP, RAM, _recorder, blob_bytes, heap, log_region, record_stream, set_return, vtable  # noqa: E402
 
 B = Bench([(0x409250, 0x409260), (0x40f970, 0x40f9e0), (0x40fa40, 0x40fb03), (0x40f950, 0x40f961), (0x410ac0, 0x410b11), (0x50b350, 0x50b35d), (0x40fc80, 0x40fd5b), (0x5f5e50, 0x5f5e80), (0x5da3c0, 0x5da3c1), (0x40ff80, 0x4104e0), (0x4104b0, 0x410610), (0x410670, 0x410720), (0x410720, 0x4107a0), (0x67acb0, 0x67acb1),
            (0x67afa0, 0x67b0d0), (0x40f9e0, 0x40fa40), (0x40fe60, 0x40ff80), (0x4107b0, 0x410ac0), (0x410b20, 0x410bf0), (0x5e7720, 0x5e7750), (0x40fd60, 0x40fe50), (0x5f5e20, 0x5f5e50),
-           (0x405460, 0x405530), (0x415e00, 0x415e80), (0x67acf0, 0x67ada0), (0x4a8bd0, 0x4a8beb), (0x40fb10, 0x40fc7f), (0x410610, 0x410670)],
+           (0x405460, 0x405530), (0x415e00, 0x415e80), (0x67acf0, 0x67ada0), (0x4a8bd0, 0x4a8beb), (0x40fb10, 0x40fc7f), (0x410610, 0x410670), (0x4053c0, 0x40545d), (0x40f6d0, 0x40f6e9)],
           hooks={0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None, 0x50b550: _recorder(27, 1)})
 SLOTS, HEADS, NIL, NODES, THING = RAM, RAM + 0x400, RAM + 0x800, RAM + 0x1000, RAM + 0x3000
 CHUNK, STREAM, SINK = RAM + 0x3100, RAM + 0x3200, RAM + 0x3400
@@ -75,7 +78,7 @@ def case(r):
     op = r.deal(OPS)
     if op in ('Ctor', 'Instance', 'CtorSlots'):
         return made(r, op)
-    count = SLOT_COUNT if op in ('Slots', 'Remove', 'Save', 'Add', 'Load', 'Post') else 1
+    count = SLOT_COUNT if op in ('Slots', 'Remove', 'Save', 'Add', 'Load', 'Post', 'Cheats') else 1
     slots, heads, nodes_blob = bytearray(0x14 * count), bytearray(0x20 * count), bytearray(r.bytes(0x20 * MAX_NODES * count))
     keys = []
     for k in range(count):
@@ -109,6 +112,18 @@ def case(r):
         regions[THING] = struct.pack('<HH', handle, r.getrandbits(16)) + r.bytes(8)
         index = r.randrange(SLOT_COUNT) if r.random() < 0.85 else r.choice([0x1d, 0x1e, 0x7fffffff, 0xffffffff, 0x80000000])
         return Call(0x40f9e0, [SLOTS, THING, index], regions, conv='t', ret='b')
+    if op == 'Cheats':
+        table, things = bytearray(r.bytes(0x14 * KEYS)), bytearray(r.bytes(0x10 * KEYS))
+        for i in range(KEYS):
+            struct.pack_into('<I', table, 0x14 * i, THINGS + 0x10 * i)
+            struct.pack_into('<H', things, 0x10 * i, i if r.random() < 0.9 else r.randrange(KEYS))
+        log = log_region()
+        set_return(log, 0, r.choice([k for k in range(SLOT_COUNT) if k != 0x1b]))
+        blob_bytes(log, 27, 0, 0x1ff)   # (the message on the stack: bytes 0-8 hashed, not its address; slot 0 logs no this)
+        regions.update({TABLE: table, THINGS: things, LOG: log, 0x6fd6c8: vtable({}, 4, com={0: 0}), THING: r.bytes(0x10),
+                        CENTRE: struct.pack('<I', SLOTS if r.random() < 0.8 else 0)})
+        regions[HEAP] = heap(0x1000, r.choice([0] * 8 + [1]))
+        return Call(0x4053c0, [THING, r.choice([1, 1, 2, 0xff, 0, 0x100, r.getrandbits(32)])], regions, conv='t', ret='v')
     if op == 'Post':
         table, things = bytearray(r.bytes(0x14 * KEYS)), bytearray(r.bytes(0x10 * KEYS))
         for i in range(KEYS):
@@ -128,7 +143,7 @@ def case(r):
     return Call(0x409250 if op == 'Slots' else 0x40f970, [SLOTS], regions, conv='t', ret='v')
 
 
-OPS = [k for k in os.environ.get('OPS', 'Slot,Slots,Remove,Save,Add,Load,Ctor,Instance,CtorSlots,Post').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Slot,Slots,Remove,Save,Add,Load,Ctor,Instance,CtorSlots,Post,Cheats').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)

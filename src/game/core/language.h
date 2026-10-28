@@ -39,4 +39,19 @@ u32 __cdecl Language_SetObjectText(u8 *object, u32 index);
 
 // 0x4925a0 (cdecl): in Hebrew, an alignment of 0 becomes 2 and 2 becomes 0.
 void __cdecl Language_MirrorAlign(u32 *align);
+
+// 0x41a5f0 (thiscall; name invented, unconfirmed): +0 = 0; the fonts of the four sets (+0x30, 0x18 apart, 13 to a set, sets 0x138
+// apart; by entry, then set) and the objects at +0x54c to +0x5a4 (+0x58c after +0x594) each released through its slot 0 (thiscall, no
+// arguments) and cleared when set; then the resource folder at +0xc closed (ResFolder_Close; its result a local).
+void __fastcall Language_FreeFonts(u8 *lang);
+
+// 0x419570 (thiscall; the object at 0x78b530's static constructor's; name invented, unconfirmed): +0 = 0, +4 = 1; the resource folder
+// (+0xc, ResFolder_Ctor), the 0x34 font entries (+0x1c, 0x18 bytes: 0x419680, Obj_CtorValue with 0; CRT_VectorCtorIterator) and
+// the text style (+0x4fc, TextStyle_Ctor) constructed; +0x54c to +0x59c cleared but +0x560 and +0x590; each set's entry (+0x2c + set *
+// 0x138 + entry * 0x18) its index, its font (+4) none. Returns the object.
+u8 *__fastcall Language_Ctor(u8 *lang);
+
+// 0x4196a0 (thiscall; name invented, unconfirmed): the text style (+0x4fc), the font entries (0x47f980: their blocks +0xc freed; the last first)
+// and the resource folder (+0xc) destroyed.
+void __fastcall Language_Dtor(u8 *lang);
 }

@@ -1,7 +1,7 @@
 // The ride instances: the table at 0x7a4610 (an instance per ride index, from 1), with its live count 0x7a4084, its holes count 0x7a3ebc
 // and its first hole 0x7aedf4 (a slot, the index - 1). Reimplementation of 0x463c80 (Ride_Destroy; agent B's hub of the 0x463060
-// closure). Its calls into the unported 0x42a190 (the camera's following stopped) and 0x436fa0 (the coaster links' entry of the ride
-// dropped, which calls Ride_Destroy back) go through an env.
+// closure). Its calls into the unported 0x42a190 (the camera's following stopped) and into 0x436fa0 (CoasterLink_Destroy, coaster/registry:
+// the ride's coaster link dropped, which calls Ride_Destroy back; in the game the port) go through an env.
 #pragma once
 
 #include "../../../re/types.h"

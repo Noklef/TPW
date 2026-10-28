@@ -109,6 +109,7 @@
 #include "../../src/game/world/endthing.h"
 #include "../../src/game/world/parkopen.h"
 #include "../../src/game/world/gamemode.h"
+#include "../../src/game/world/cellmessage.h"
 #include "../../src/game/world/cellrun.h"
 #include "../../src/game/world/staff.h"
 #include "../../src/game/world/things.h"
@@ -521,6 +522,10 @@ const CellKindEnv kCellKindEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((ui
                                   reinterpret_cast<u32(__cdecl *)(s32, s32, u32)>((uintptr_t)jpeg_recorder(27, 3))};
 // The coaster links' call into agent B's unported 0x463060: the cdecl recorder 30 of 10 arguments, as tests/fncmp/linkcars.py hooks it.
 const CoasterLinksEnv kCoasterLinksEnv = {reinterpret_cast<u32(__cdecl *)(u32, u32, const u32 *, u32, u32, u32, u32, u32, s32, u32)>((uintptr_t)jpeg_recorder(30, 10))};
+// The cell messages' calls into agent A's unported 0x527ee0 and 0x52f580: the cdecl recorders 27 of 3 and 28 of 2, as
+// tests/fncmp/cellmessage.py hooks them.
+const CellMessageEnv kCellMessageEnv = {reinterpret_cast<void(__cdecl *)(s32, s32, u32)>((uintptr_t)jpeg_recorder(27, 3)),
+                                        reinterpret_cast<void(__cdecl *)(u32, u32)>((uintptr_t)jpeg_recorder(28, 2))};
 const RidesEnv kRidesEnv = {reinterpret_cast<void(__cdecl *)()>((uintptr_t)jpeg_recorder(18, 0)), reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(19, 1))};
 // MapCell_ApplyModel's calls into agent A's unported placers 0x522b90 / 0x522d50 / 0x522f20: cdecl recorders 20, 21 and 22 of 6 arguments,
 // as tests/fncmp/cellapply.py hooks those addresses.
@@ -1259,6 +1264,7 @@ int main(int argc, char **argv) {
     CoasterLinks_SetEnv(&kCoasterLinksEnv);
     CellKind_SetEnv(&kCellKindEnv);
     CellModel_SetEnv(&kCellModelEnv);
+    CellMessage_SetEnv(&kCellMessageEnv);
     Object_SetEnv(&kObjectEnv);
     StatsGraph_SetEnv(&kStatsGraphEnv);
     Object_SetDeleteEnv(&kObjectDeleteEnv);

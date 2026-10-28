@@ -21,6 +21,10 @@ u32 __cdecl KeyAction_ClockNormal();
 // 0x40c450 (alt '1'): 10000 credited (Money_Credit) to the world's money record (GameTable7cfb90_Get1da726_5195d0 of [0x7cf83c]).
 u32 __cdecl KeyAction_Credit10000();
 
+// 0x40c470 (F8; name invented, unconfirmed): the screen grab's next free name taken
+// (ScreenGrab_NextName); returns 1.
+u32 __cdecl KeyAction_ScreenGrab();
+
 // 0x40c480 (F8 with every modifier): the dword 0x787d1c = 1 - itself, then Global878128_Set_550510 of it.
 u32 __cdecl KeyAction_Toggle787d1c();
 
@@ -40,4 +44,20 @@ u32 __cdecl KeyAction_GuiManagerSlotAndFlag();
 
 // 0x40c820: the version's message tag added and opened (the thunk 0x481b70 to MsgTags_AddVersion, ECX 0x7b51f0 not used).
 u32 __cdecl KeyAction_ShowVersion();
+
+// 0x40c6c0 / 0x40c6e0 / 0x40c700 / 0x40c720 / 0x40c740 / 0x40c760 (cheat keys: their action-table entries from 0x748504 on; names
+// invented, unconfirmed): theme 0-5 marked (GlobalSave_MarkTheme (i) on GlobalSave_Instance); return 1.
+u32 __cdecl KeyAction_MarkTheme0();
+u32 __cdecl KeyAction_MarkTheme1();
+u32 __cdecl KeyAction_MarkTheme2();
+u32 __cdecl KeyAction_MarkTheme3();
+u32 __cdecl KeyAction_MarkTheme4();
+u32 __cdecl KeyAction_MarkTheme5();
+
+// 0x40c780 / 0x40c7a0 / 0x40c7c0 / 0x40c7e0 (cheat keys, the entries after those; names invented, unconfirmed): a score of 100 on
+// theme 0-3 (GlobalSave_MarkScore (i, 100) on GlobalSave_Instance); return 1.
+u32 __cdecl KeyAction_MarkScore0();
+u32 __cdecl KeyAction_MarkScore1();
+u32 __cdecl KeyAction_MarkScore2();
+u32 __cdecl KeyAction_MarkScore3();
 }

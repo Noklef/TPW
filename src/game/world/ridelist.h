@@ -93,4 +93,9 @@ void __cdecl Ride_SetRecordId(u32 index, u32 value);
 // unrounded, x a float); then sound 0xb8 plays in the category [0x803a28] (Sound_PlayAt, owner 0) at the float x, y, z, __ftol'd.
 // Each __ftol'd z first. The original's Debug_Printf calls (no system; no things) are left out.
 void __cdecl Ride_PlayEffect(s32 id);
+
+// 0x55a470 (cdecl; name invented, unconfirmed): the EAX record (Sound_SetEaxRecord) of the first ride record (the list 0x8791b0, the system's
+// flag not looked at) of the thing the camera follows (Camera_Followed, +0xc8) with no parent (+0x10) and a reverb (+0xd8): its reverb,
+// nothing when that is negative; none followed or no such record: gBalanceLevel's reverb ([0x78578c]).
+void __cdecl RideScripts_SetReverb();
 }  // extern "C"

@@ -114,6 +114,12 @@ void __cdecl CoasterEdit_SetEditing(u8 *coaster, u32 on);
 // 0x785a2c is set, CoasterEdit_SetEditing (that coaster, 1) when on, else (none, 0).
 void __cdecl CoasterEdit_EditRide(const u8 *object, u32 on);
 
+// 0x447da0 (cdecl (id); name invented, unconfirmed): CoasterEdit_SetEditing (the coaster of the id (CoasterLink_ById), id not 0).
+void __cdecl CoasterEdit_SetEditingById(u32 id);
+
+// 0x447dd0 (cdecl (index); name invented, unconfirmed): CoasterEdit_SetEditing (coaster index of the table 0x790bd0, 1); index 0 (none, 0).
+void __cdecl CoasterEdit_SetEditingAt(u32 index);
+
 // 0x446d50 (cdecl (piece); name invented, unconfirmed): a track piece selected for editing. 0 for one whose definition (+0x100) has flag 2
 // (+4); else 0x79c69c cleared and, with a piece: it becomes the selection (0x79c6a4; 0x79c658's flag 0x100, its definition at 0x79c660, its
 // Car_TrainLength at 0x79c694), recorded (ActionRec_WriteWWW 0x3c, 0, 0, its handle +0), the game's (0x790fec) flag 0x2000 cleared; the span's

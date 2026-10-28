@@ -1,8 +1,15 @@
 #include "savemods.h"
 
 #include <cstdint>
+#include <cstring>
 
+#include "../coaster/ridebounds.h"
+#include "../math/x87.h"
+#include "../rsse/rsse.h"
+#include "../rsse/scriptkill.h"
 #include "../world/camera.h"
+#include "../world/flyingrides.h"
+#include "soundset.h"
 
 namespace {
 
@@ -24,6 +31,20 @@ void WriteValue(Stream *stream, u32 value) { Write(stream, &value, 4); }
 bool Read_Ok(Stream *stream, u32 address, u32 count) {
     s32 result;
     return *Stream_Read(&result, stream, reinterpret_cast<void *>((uintptr_t)address), (s32)count, nullptr) >= 0;
+}
+
+void Read(Stream *stream, void *buffer, u32 count) {
+    s32 result;
+    Stream_Read(&result, stream, buffer, (s32)count, nullptr);
+}
+
+// A block of size bytes (none for 0: the original prints, left out).
+void *Block(u32 size) { return size ? Mem_GlobalAlloc(size) : nullptr; }
+
+u32 bits(float f) {
+    u32 b;
+    std::memcpy(&b, &f, 4);
+    return b;
 }
 
 }  // namespace
@@ -204,6 +225,169 @@ u32 __cdecl RSSE_Save(Stream *stream) {
         WriteValue(stream, 0x1c);
         for (const u8 *object = at<const u8 *>(ctx, 0xb0); object; object = at<const u8 *>(object, 0))
             Write(stream, object, 0x1c);
+    }
+    return 0;
+}
+
+u32 __cdecl RSSE_Load(Stream *stream) {
+    if (global<u32>(0x008791a0)) {
+        for (RsseContext *ctx = global<RsseContext *>(0x008791b0); ctx; ctx = RSSE_FreeContext(ctx, 0)) {
+        }
+        global<u32>(0x008791b0) = 0;
+        global<u32>(0x008791a0) = 0;
+        // (a non-zero 0x8791b8 prints "Something malloced but not freed": Debug_Printf, left out)
+    }
+    RSSE_Init();   // (inlined in the original)
+    // The original's stack slots: a read that falls short leaves them as they were (the bench's streams hold the counts).
+    u32 value = 0, count = 0, size = 0, extra = 0, objects = 0;
+    Read(stream, &value, 4);
+    if (value != 0x45535352)
+        return 1;   // ("Load Fail - Missing header": Debug_Printf, left out)
+    Read(stream, &value, 4);
+    Read(stream, &global<u8>(0x008791a0), value);
+    global<u32>(0x008791b0) = 0;
+    for (int i = 0; i < 5; ++i)
+        Read(stream, &value, 4);
+    Read(stream, &count, 4);
+    Read(stream, &size, 4);
+    for (s32 n = 0; n < (s32)count; ++n) {
+        u8 *const rec = static_cast<u8 *>(Mem_GlobalAlloc(0xf4));
+        std::memset(rec, 0, 0xf4);
+        ++global<s32>(0x008791ac);
+        at<u8 *>(rec, 0) = global<u8 *>(0x008791b0);
+        at<u8 *>(rec, 4) = nullptr;
+        if (global<u8 *>(0x008791b0))
+            at<u8 *>(global<u8 *>(0x008791b0), 4) = rec;
+        global<u8 *>(0x008791b0) = rec;
+        u8 *const next = at<u8 *>(rec, 0), *const prev = at<u8 *>(rec, 4);
+        Read(stream, rec, size);   // (the record as saved, its links kept)
+        at<u8 *>(rec, 4) = prev;
+        at<u8 *>(rec, 0) = next;
+        // the code (+0x18, its dwords +0x50), always read (into none for 0 bytes)
+        Read(stream, &value, 4);
+        at<void *>(rec, 0x18) = Block(value);
+        Read(stream, at<void *>(rec, 0x18), value);
+        at<u32>(rec, 0x50) = value >> 2;
+        // the stack (+0x20, dwords +0x54) and the variables (+0x1c, dwords +0x8c)
+        Read(stream, &value, 4);
+        at<void *>(rec, 0x20) = nullptr;
+        if (value) {
+            at<void *>(rec, 0x20) = Mem_GlobalAlloc(value);
+            Read(stream, at<void *>(rec, 0x20), value);
+        }
+        at<u32>(rec, 0x54) = value >> 2;
+        Read(stream, &value, 4);
+        at<void *>(rec, 0x1c) = nullptr;
+        if (value) {
+            at<void *>(rec, 0x1c) = Mem_GlobalAlloc(value);
+            Read(stream, at<void *>(rec, 0x1c), value);
+        }
+        at<u32>(rec, 0x8c) = value >> 2;
+        // +0x34 (bytes +0x90), the limbo +0x24 (+0x58: bytes, then entries of 8), the riders +0x28 (+0x64: bytes, then entries of 0x10)
+        Read(stream, &at<u32>(rec, 0x90), 4);
+        at<void *>(rec, 0x34) = nullptr;
+        if (const u32 bytes = at<u32>(rec, 0x90)) {
+            at<void *>(rec, 0x34) = Mem_GlobalAlloc(bytes);
+            Read(stream, at<void *>(rec, 0x34), at<u32>(rec, 0x90));
+        }
+        Read(stream, &at<u32>(rec, 0x58), 4);
+        at<void *>(rec, 0x24) = nullptr;
+        if (const u32 bytes = at<u32>(rec, 0x58)) {
+            at<void *>(rec, 0x24) = Mem_GlobalAlloc(bytes);
+            Read(stream, at<void *>(rec, 0x24), at<u32>(rec, 0x58));
+            at<u32>(rec, 0x58) >>= 3;
+        }
+        Read(stream, &at<u32>(rec, 0x64), 4);
+        if (const u32 bytes = at<u32>(rec, 0x64)) {
+            at<void *>(rec, 0x28) = Mem_GlobalAlloc(bytes);
+            Read(stream, at<void *>(rec, 0x28), at<u32>(rec, 0x64));
+            at<u32>(rec, 0x64) >>= 4;
+        } else {
+            at<void *>(rec, 0x28) = nullptr;
+        }
+        // the walkers +0x2c (+0x7c of 0x20 bytes), the keyed parts' dwords +0x30 (+0x4c: bytes, then dwords) and the folder +0x38
+        Read(stream, &at<u32>(rec, 0x7c), 4);
+        at<void *>(rec, 0x2c) = nullptr;
+        if (at<u32>(rec, 0x7c)) {
+            at<void *>(rec, 0x2c) = Block(at<u32>(rec, 0x7c) << 5);
+            Read(stream, at<void *>(rec, 0x2c), at<u32>(rec, 0x7c) << 5);
+        }
+        Read(stream, &at<u32>(rec, 0x4c), 4);
+        at<void *>(rec, 0x30) = nullptr;
+        if (const u32 bytes = at<u32>(rec, 0x4c)) {
+            at<void *>(rec, 0x30) = Mem_GlobalAlloc(bytes);
+            Read(stream, at<void *>(rec, 0x30), at<u32>(rec, 0x4c));
+        }
+        at<u32>(rec, 0x4c) >>= 2;
+        Read(stream, &extra, 4);
+        if (extra) {   // (none: +0x38 stays as the record had it)
+            at<void *>(rec, 0x38) = Mem_GlobalAlloc(extra);
+            Read(stream, at<void *>(rec, 0x38), extra);
+        }
+        // a sound occluder (+0xd4) made again for a ride's (+0xc8) box, as RSSE_LoadScriptFile's (else +0xd4 stays as saved)
+        float box[6];
+        if (at<u32>(rec, 0xd4) && at<u32>(rec, 0xc8) && Ride_Bounds(at<s32>(rec, 0xc8), box)) {
+            const s32 owner = at<s32>(rec, 0xc8);
+            const float half = global<float>(0x00700fd0);
+            const float cx = static_cast<float>((X87Reg(box[0]) + box[3]) * half);
+            const u8 *const instance = global<u8 *>(0x007a4610 + 4 * owner);
+            const float y = X87_Through(at<float>(at<u8 *>(at<u8 *>(at<u8 *>(instance, 8), 4), 0x78), 0x44));
+            const float cz = static_cast<float>((X87Reg(box[2]) + box[5]) * half);
+            float sizes[6];
+            if (owner && Ride_Bounds(owner, sizes)) {
+                const float dx = static_cast<float>(X87Reg(sizes[3]) - sizes[0]);
+                const float dy = static_cast<float>(X87Reg(sizes[4]) - sizes[1]);
+                const float radius = static_cast<float>(((X87Reg(sizes[5]) - sizes[2]) + dx) * half);
+                at<u32>(rec, 0xd4) = Sound_AddOccluder(bits(cx), bits(y), bits(cz), bits(radius), bits(dy));
+            }
+        }
+        at<u16>(rec, 0xe6) = 0xffff;
+        at<u8 *>(rec, 0xb0) = nullptr;
+        // the object list: 'OBJ ', the count and the node size; each node (0x1c bytes) pushed at the head, its links kept
+        Read(stream, &value, 4);
+        if (value != 0x204a424f)
+            return 1;   // ("Load Fail - Object list missing": Debug_Printf, left out)
+        Read(stream, &objects, 4);
+        Read(stream, &value, 4);
+        for (s32 k = 0; k < (s32)objects; ++k) {
+            u8 *const node = static_cast<u8 *>(Mem_GlobalAlloc(0x1c));
+            at<u8 *>(node, 0) = at<u8 *>(rec, 0xb0);
+            at<u8 *>(node, 4) = nullptr;
+            if (at<u8 *>(rec, 0xb0))
+                at<u8 *>(at<u8 *>(rec, 0xb0), 4) = node;
+            at<u8 *>(rec, 0xb0) = node;
+            ++global<s32>(0x008791b4);
+            u8 *const link_prev = at<u8 *>(node, 4), *const link_next = at<u8 *>(node, 0);
+            Read(stream, node, value);
+            at<u8 *>(node, 0) = link_next;
+            at<u8 *>(node, 4) = link_prev;
+        }
+    }
+    return 0;
+}
+
+u32 __cdecl FlyingRides_Load(Stream *stream) {
+    FlyingRides_Shutdown();   // (inlined in the original)
+    // The original's stack slot: a read that falls short leaves it as it was (uninitialised before the magic).
+    u32 value = 0;
+    Read(stream, &value, 4);
+    if (value != 0x5f594c46)
+        return 1;   // ("Load Fail - Missing header": Debug_Printf, left out)
+    Read(stream, &value, 4);
+    if (!value)
+        return 0;
+    FlyingRides_Init();   // (inlined in the original: the flag is clear here)
+    Read(stream, &value, 4);
+    Read(stream, &global<u8>(0x008791f8), value);
+    for (u32 address = 0x007660b8; address <= 0x007660c4; address += 4)
+        Read(stream, &global<u32>(address), 4);
+    for (int i = 0; i < 6; ++i)   // (five pads, then the record size)
+        Read(stream, &value, 4);
+    for (u32 address = 0x008791fc; address < 0x00879388; address += 4) {
+        if (global<u32>(address)) {   // (the saved pointer: a record follows)
+            global<void *>(address) = Mem_GlobalAlloc(value);
+            Read(stream, global<void *>(address), value);
+        }
     }
     return 0;
 }

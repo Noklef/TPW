@@ -136,6 +136,24 @@ void __fastcall ObjectDef_FindMarkedCells(void *, void *, u8 **def);
 // fields +0x494, +0x498, +0x4a0, +0x4a4, +0x4b0, +0x4b4, +0x4e0-+0x4f0 and +0x4f4-+0x500 are cleared.
 u8 *__fastcall ObjectDef_Ctor(u8 *def);
 
+// 0x412cb0 (thiscall; name invented, unconfirmed): a definition's four effects (+0x4e0-+0x4ec, each set one ParticleEffect_Clear118) and
+// its sound category (+0x4f0, when set SoundCategory_Release) let go, then its balance file (+4) destroyed as ObjectDefBalance_Dtor does.
+void __fastcall ObjectDef_Dtor(u8 *def);
+
+// 0x4145f0 (thiscall; name invented, unconfirmed): from the walk index +0x72c set to 0, each definition from the first (+0) has its
+// effects and sound category let go as ObjectDef_Dtor does; the index steps on (signed, below the count +0x528 less 1) to the next
+// entry, stopping at a null one.
+void __fastcall ObjectDefs_ReleaseEffects(u8 *defs);
+
+// 0x412d50 (thiscall; name invented, unconfirmed): ObjectDefs_ReleaseEffects (inlined); then for each entry below the count +0x528 (signed,
+// re-read each step) the definition's four texts (+0x4f4) freed (Mem_GlobalFree) and cleared unless null or the shared "MISSING STRING"
+// (0x6fd880), the definition destroyed (ObjectDef_Dtor) and freed (Mem_Free) unless null, and the entry cleared; the count, the word +0x730
+// and the dword +0x734 cleared.
+void __fastcall ObjectDefs_Free(u8 *defs);
+
+// 0x412a90 (cdecl; name invented, unconfirmed): ObjectDefs_Free of the definitions table 0x7890a0 (inlined).
+void __cdecl ObjectDefs_FreeAll();
+
 // The object texts (names unconfirmed): the table 0x7488d8 .. 0x749850 of 0xc-byte rows (an object id, its name's text id, its suffix's;
 // an id 0 ends it) whose texts the text formatter (TextFormat, with the text table at 0x78bacc) writes. The object set's +0x52c holds
 // three buffers of 0x40 characters for them: a name, a suffix and the two joined.

@@ -43,9 +43,10 @@ s32 turn_of(const u8 *cell, u8 direction) {
     return MapCell_StraightNeighbours(cell) && (direction == 0x40 || direction == 0x10) ? 0xb4 : 0;
 }
 
-const CellModelEnv kGameEnv = {reinterpret_cast<u32(__cdecl *)(s32, s32, s32, s32, s32, u32)>((uintptr_t)0x00522b90),
-                               reinterpret_cast<u32(__cdecl *)(s32, s32, s32, s32, s32, u32)>((uintptr_t)0x00522d50),
-                               reinterpret_cast<u32(__cdecl *)(s32, s32, s32, s32, s32, u32)>((uintptr_t)0x00522f20)};
+// The ports of 0x522b90 / 0x522d50 / 0x522f20 (agent A's queuepieces); their unsigned arguments pass the same dwords.
+using PlaceFn = u32(__cdecl *)(s32, s32, s32, s32, s32, u32);
+const CellModelEnv kGameEnv = {reinterpret_cast<PlaceFn>(&TrackQueuePiece_Place), reinterpret_cast<PlaceFn>(&TrackQueuePiece_PlaceAnimated),
+                               reinterpret_cast<PlaceFn>(&EndPiece_Place)};
 const CellModelEnv *g_env = &kGameEnv;
 
 // The cell's ride (+4), if any, removed (QueuePiece_Remove) and the field cleared.
@@ -244,6 +245,23 @@ void __fastcall MapCell_ApplyModel(u8 *cell) {
     } else if (group == 0) {
         if (at<u32>(cell, 0x18) == 0x37) remove_ride(cell);
     }
+}
+
+void __fastcall MapCell_PlaceRide(u8 *cell) {
+    const u32 index = static_cast<u32>(at<u16>(cell, 0)) - 1;
+    const s32 x = static_cast<s32>(index & 0x7f), y = static_cast<s32>(index >> 7);
+    if (at<u32>(MapHandle_Cell44(reinterpret_cast<const u16 *>(cell)), 8) != 0x15) at<u32>(cell, 4) = 0;   // (the ride forgotten, not removed)
+    const s32 group = at<s32>(cell, 0x14);
+    PlaceFn place;
+    if (group == 3 || group == 4) {
+        if (at<u8>(cell, 0xe) & 0x10) return;
+        place = group == 3 ? g_env->place3 : g_env->place4;
+    } else if (group == 5) {
+        place = g_env->place5;
+    } else {
+        return;
+    }
+    at<u32>(cell, 4) = place(x, y, at<s32>(cell, 0x14), at<s32>(cell, 0x18), at<s32>(cell, 0x1c), 1);
 }
 
 }  // extern "C"

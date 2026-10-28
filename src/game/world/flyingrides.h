@@ -131,4 +131,13 @@ void __cdecl FlyingRides_Init();
 // (signed, the shift wrapping); 4 then steps every slot out (FlyingRide_StepOutSlot until it answers 0) and sets +0 = 1. Other modes
 // are only stored.
 void __cdecl FlyingRide_SetMode(s32 index, s32 mode);
+// 0x55d3d0 (cdecl (index); name invented, unconfirmed): flying ride index's record (table 0x8791f8, 1-99; none: nothing) freed: each of its
+// 20 slots (0xe4 bytes from +0x5c) with +0x80 set first has its parts released for the steps |+0x8c| down to 1 (as
+// FlyingRide_ReleaseSlotPart: the key (+0xd8 + step) % +0xdc + 1 among the flag-0x80 parts of the ride +0xc0, PartStates_Release; INT_MIN
+// stays as it is) and is cleared (FlyingRide_ClearSlot); then the record goes (Mem_GlobalFree) and the table entry is cleared.
+void __cdecl FlyingRide_Free(s32 index);
+
+// 0x55d4d0 (cdecl; name invented, unconfirmed): with the module on (0x8791ec), its sines block [0x8791c8] freed (Mem_GlobalFree) and
+// cleared, each record of the table (indices 1-99) freed as FlyingRide_Free frees one (inlined in the original), the flag cleared.
+void __cdecl FlyingRides_Shutdown();
 }

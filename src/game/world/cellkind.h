@@ -1,7 +1,7 @@
 // A map cell's kind (+8) changed and a cell cleared (names invented, unconfirmed): the 0x44-byte map cells (id word +0, kind +8,
 // neighbour bits +0xc, direction +0xd, flags word +0xe, owner word +0x10, count word +0x20). Reimplementation of 0x5346d0 and 0x5367a0,
-// which call each other, and of the track cells' 0x538fc0, 0x53bb20 and 0x53b280. Agent C's unported 0x4de1f0 and 0x527ee0 go through
-// the env.
+// which call each other, and of the track cells' 0x538fc0, 0x53bb20 and 0x53b280. Agent C's unported 0x4de1f0 and agent A's 0x527ee0
+// (Path_CheckDeadEnds, not ported here yet) go through the env.
 #pragma once
 
 #include "../../../re/types.h"
@@ -60,6 +60,19 @@ u32 __fastcall MapCell_SetTrackKind(u8 *cell, void *, u32 kind);
 // 0x7cdba8, 0x7cdbc8, 0x7cdbb8; missing ones skipped) emptied: all neighbour bits, direction and flags cleared, kind 0
 // (MapCell_SetTrackKind), the owner 0 (MapCell_SetParent).
 void __fastcall TrackCell_ClearBlock(u8 *cell);
+
+// 0x53af00 (fastcall; name invented, unconfirmed): a track cell reset: its kind 0 on park land (Terrain_IsParkLand of its id's x, y),
+// else 7 (MapCell_SetTrackKind); all its neighbours dropped (MapCell_RemoveNeighbours 0xff) without, then with 0x81b4cc set (the
+// hoarding neighbours; the byte cleared after); direction 0 (MapCell_SetDirection), flags (+0xe) 0, owner 0 (MapCell_SetParent); +4,
+// the count +0x20 and +0x14-+0x1f cleared, +0x24 0xffff.
+void __fastcall TrackCell_Reset(u8 *cell);
+
+// 0x536490 (thiscall (models), pops 4): a map cell reset from its attribute byte (+0x26): neighbours (MapCell_RemoveNeighbours 0xff),
+// direction and owner cleared, flags (+0xe) and the model (+0x14-+0x1f) 0. On park land (Terrain_IsParkLand of its id's x, y) the kind
+// 1 with bit 8, joined as a path (MapCell_LinkPath (1, 0, 0, models)) and the flags 0x20, else the kind 0; off it the kind 2 (bit 2),
+// 0x1e (bit 0x80) or 7. Without flag 0x20 the flag 0x40, and the path model (MapCell_ApplyPathModel) when models' low byte is set. Bit
+// 0x10 sets flag 0x80, bit 4 flag 0x400; +4 and the count +0x20 cleared.
+void __fastcall MapCell_Reset(u8 *cell, void *, u32 models);
 
 // 0x53b280 (thiscall (a, b, models), pops 0xc; name invented, unconfirmed): a line cell (the world's 0x28-byte cells, [0x7cf83c] +
 // 0x1102b0 + id * 0x28) removed. The price: 0x81aebc for kind 0xb, 0x81b43c for 0x10. A cell of kind 0xc or 0x11 removes its owner's

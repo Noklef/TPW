@@ -11,6 +11,8 @@
 #include "../files/file.h"
 #include "../files/wtext.h"
 #include "../core/savegame.h"
+#include "../core/soundset.h"
+#include "../render/particles.h"
 #include "../core/textarg.h"
 
 namespace {
@@ -72,6 +74,14 @@ bool cut_dash(u16 *text) {
         return true;
     }
     return false;
+}
+
+// A definition's effects (+0x4e0-+0x4ec, ParticleEffect_Clear118) and sound category (+0x4f0, SoundCategory_Release) let go, each that
+// is set (0x412cb0's and 0x4145f0's, inlined in both).
+void ReleaseEffects(const u8 *def) {
+    for (u32 offset = 0x4e0; offset < 0x4f0; offset += 4)
+        if (at<u32>(def, offset)) ParticleEffect_Clear118(at<u32>(def, offset));
+    if (at<u32>(def, 0x4f0)) SoundCategory_Release(at<u32>(def, 0x4f0));
 }
 
 }  // namespace
@@ -404,6 +414,24 @@ u8 *__fastcall ObjectDef_Ctor(u8 *def) {
     return def;
 }
 
+void __fastcall ObjectDef_Dtor(u8 *def) {
+    ReleaseEffects(def);
+    ObjectDefBalance_Dtor(def + 4);   // (inlined)
+}
+
+void __fastcall ObjectDefs_ReleaseEffects(u8 *defs) {
+    at<s32>(defs, 0x72c) = 0;
+    for (const u8 *def = at<const u8 *>(defs, 0); def;) {
+        ReleaseEffects(def);
+        if (at<s32>(defs, 0x72c) < (s32)(at<u32>(defs, 0x528) - 1)) {
+            const s32 next = ++at<s32>(defs, 0x72c);
+            def = at<const u8 *>(defs, (u32)next * 4);
+        } else {
+            def = nullptr;
+        }
+    }
+}
+
 void __fastcall ObjectDef_LoadText(u8 *def, void *, Stream *stream) {
     u16 **const fields = reinterpret_cast<u16 **>(def + 0x4f4);
     for (u32 i = 0; i < 4; ++i) fields[i] = reinterpret_cast<u16 *>((uintptr_t)0x006fd880);
@@ -493,5 +521,31 @@ void __fastcall ObjectDefs_GetSuffix(u8 *defs, void *, u32 id, u16 *out, u32 siz
     if (ObjectText_Suffix(defs + 0x52c, nullptr, id & 0xffff, out, size)) return;
     u8 *def = ObjectDefs_Find(defs, nullptr, (u16)id);
     Crt().wcsncpy(out, at<const u16 *>(def, 0x4fc), size);  // (no definition: a fault, sic)
+}
+
+void __fastcall ObjectDefs_Free(u8 *defs) {
+    ObjectDefs_ReleaseEffects(defs);   // (inlined)
+    for (s32 i = 0; i < at<s32>(defs, 0x528); ++i) {   // (the count re-read each step)
+        u8 **const slot = reinterpret_cast<u8 **>(defs + 4 * i);
+        u16 **const texts = reinterpret_cast<u16 **>(*slot + 0x4f4);   // (a null entry: a fault, sic)
+        for (u32 k = 0; k < 4; ++k) {
+            if (texts[k] && texts[k] != reinterpret_cast<u16 *>((uintptr_t)0x006fd880)) {   // (not the shared "MISSING STRING")
+                Mem_GlobalFree(texts[k]);
+                texts[k] = nullptr;
+            }
+        }
+        if (u8 *const def = *slot) {
+            ObjectDef_Dtor(def);
+            GameHeap_Free(def);
+        }
+        *slot = nullptr;
+    }
+    at<s32>(defs, 0x528) = 0;
+    at<u16>(defs, 0x730) = 0;
+    at<u32>(defs, 0x734) = 0;
+}
+
+void __cdecl ObjectDefs_FreeAll() {
+    ObjectDefs_Free(reinterpret_cast<u8 *>(0x007890a0));   // (inlined, the table's words read as globals)
 }
 }

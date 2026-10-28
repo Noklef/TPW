@@ -10,6 +10,7 @@
 #include "../math/x87.h"
 #include "../render/particles.h"
 #include "../core/soundset.h"
+#include "collobj.h"
 #include "queuepieces.h"
 #include "ridelist.h"
 #include "trackpools.h"
@@ -1134,5 +1135,84 @@ void __cdecl TrakCar_Move(u8 *car) {
             at<u32>(gate, 0) &= ~2u;
         }
     }
+}
+}
+
+namespace {
+
+// 0x544b50 (TrakRide_RemoveCars) past its handle check, and 0x545450's and 0x545610's start (inlined in both): the cars of the pool [0x877b68] (the used ones, as many as [0x877b6c] counts, read
+// once) on ride (+0x9c) taken off (TrakCar_Remove), then the ride closed (TrakRide_Close). (Both originals check the handle against the
+// ride a second time first, always alike.)
+void RemoveCarsAndClose(u32 handle, const u8 *ride) {
+    u8 *record = global<u8 *>(0x00877b68);
+    if (record) {
+        u32 left = global<u32>(0x00877b6c);
+        while (left) {
+            if (at<u8>(record, 0) & 1) {
+                --left;
+                if (at<const u8 *>(record, 0x9c) == ride) TrakCar_Remove(record);
+            }
+            record += 0xac;
+        }
+    }
+    TrakRide_Close(handle);
+}
+
+}  // namespace
+
+extern "C" {
+
+void __cdecl TrakRide_Strip(u32 handle) {
+    u8 *const ride = RideOf(handle);
+    if (handle != NameOf(ride)) return;
+    RemoveCarsAndClose(handle, ride);
+    Collider_KeepA8(ride, 6);   // (inlined)
+    Pool_FreeAll(ride);         // (inlined)
+}
+
+void __cdecl TrakRide_Destroy(u32 handle) {
+    u8 *const ride = RideOf(handle);
+    if (handle != NameOf(ride)) return;
+    RemoveCarsAndClose(handle, ride);
+    Collider_KeepA8(ride, 0);   // (inlined: every piece dropped)
+    Pool_FreeAll(ride);         // (inlined)
+    Collider_ReleaseC0(ride);   // (inlined)
+    at<u32>(ride, 0) = 0;
+    --global<s32>(0x00877b64);
+}
+
+void __cdecl TrakRide_RemoveCars(u32 handle) {
+    const u8 *const ride = RideOf(handle);
+    if (handle != NameOf(ride)) return;
+    RemoveCarsAndClose(handle, ride);
+}
+
+void __cdecl TrakRides_DestroyAll() {
+    if (global<u32>(0x00877b58) != 0x4a454647)
+        return;
+    u8 *ride = global<u8 *>(0x00877b60);
+    for (u32 left = global<u32>(0x00877b64); left; ride += 0xd0) {   // (the used count read once: the walk ends with it)
+        if (!at<u32>(ride, 0))
+            continue;
+        at<u32>(ride, 0x50) = 4;
+        --left;
+        TrakRide_Destroy(NameOf(ride));   // (inlined in the original)
+    }
+    // the free records (0x400 of 0x14 bytes from [0x877b88]) chained again by +0x10 from the first, the block re-read each step
+    u8 *next = nullptr;
+    for (s32 offset = 0x4fec; offset >= 0; offset -= 0x14) {
+        at<u8 *>(global<u8 *>(0x00877b88) + offset, 0x10) = next;
+        next = global<u8 *>(0x00877b88) + offset;
+    }
+    global<u8 *>(0x00877b8c) = global<u8 *>(0x00877b88);
+}
+
+void __cdecl TrakRides_Shutdown() {
+    if (global<u32>(0x00877b58) != 0x4a454647) return;   // (the module not loaded: nothing)
+    TrakRides_DestroyAll();   // (inlined in the original: the same walk, each ride's RemoveCars called, and CollPool_Reset called)
+    static const u32 kBlocks[] = {0x00877b80, 0x00877b78, 0x00877b70, 0x00877b68, 0x00877b60, 0x00877b88};
+    for (const u32 block : kBlocks)   // (the original stores each GlobalFree result back: the words cleared just below)
+        (*Files_GetEnv()->globalFree)(global<void *>(block));
+    for (u32 i = 0; i < 15; ++i) global<u32>(0x00877b58 + 4 * i) = 0;   // (the module's words 0x877b58-0x877b93)
 }
 }

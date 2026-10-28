@@ -81,6 +81,14 @@ u32 __fastcall Advisor_Serialize(u8 *self, void *, Stream *stream, u32 save, s32
 // one of the sounds 0x27f-0x281 (rand () % 3) played (Sound_PlayAt, the owner the voice re-read: 0) in the category [0x803a34] at 0, 0, 0.
 void __cdecl Advisor_StopSpeech();
 
+// 0x598960 (cdecl; called from 0x4092e1 / 0x4093b8; name invented, unconfirmed): while the advisor speaks (0xf7966c), with the byte
+// 0x78d90c and a voice (0xf79680): Sound_SendVoiceFunctor2 of the voice and 0xf797c4 = 1 (the speech held).
+void __cdecl Advisor_PauseSpeech();
+
+// 0x598990 (cdecl; called from 0x409332 / 0x40938a; name invented, unconfirmed): with the speech held (0xf797c4), the byte 0x78d90c and a
+// voice (0xf79680): Sound_VoiceFunctor3 of the voice and 0xf797c4 = 0 (as Advisor_StopSpeech does first).
+void __cdecl Advisor_ResumeSpeech();
+
 // 0x59aa70 (thiscall (id), pops 4; name invented, unconfirmed): the advisor's messages of id withdrawn. With the byte +0x16e4, it is
 // cleared when DefField8 of id is 1 (gAdvisorScoring built first) and +0x16dc is id. The queued slots of id (+0x14 + 0x18 k: the byte
 // +0x14 set, +0xc id) unset. The message spoken: +0x16ec while the game clock's real time (Clocks_RealNow (0x785970)) is below (unsigned)

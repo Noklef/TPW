@@ -556,6 +556,12 @@ void __cdecl CoasterEdit_EditRide(const u8 *object, u32 on) {
         CoasterEdit_SetEditing(nullptr, 0);
 }
 
+void __cdecl CoasterEdit_SetEditingById(u32 id) { CoasterEdit_SetEditing(CoasterLink_ById(id), id != 0); }
+
+void __cdecl CoasterEdit_SetEditingAt(u32 index) {
+    CoasterEdit_SetEditing(index ? reinterpret_cast<u8 **>(0x00790bd0)[index] : nullptr, index != 0);
+}
+
 // The pieces from the lower handle (+0) of a and b up to the other (by +0x64, the other left out): flag 0x1000000 set, or 0x1004000 cleared.
 static void mark_span(u8 *a, u8 *b, bool set) {
     u8 *from = a, *to = b;

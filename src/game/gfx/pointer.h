@@ -83,4 +83,9 @@ void __fastcall AsyncPointer_EndFlip(AsyncPointer *p);    // 0x5fbd90
 // shown = 1. 0x47ec30 (thiscall) takes it away: SetImage(no image, a zero rectangle and hot spot), shown = 0.
 void __fastcall PointerFrames_Show(u8 *self);
 void __fastcall PointerFrames_Hide(u8 *self);
+
+// 0x47eca0 (thiscall (now), pops 4; name invented, unconfirmed): while shown (+4) with the pointer [0x7b4b84] and more than 300 past the
+// last step (+0x10; the difference signed), the frame +0xc steps on (back to 0 at the count +8, signed) and is shown as PointerFrames_Show
+// shows it (the shown byte left), the last step now.
+void __fastcall PointerFrames_Step(u8 *self, void *, s32 now);
 }

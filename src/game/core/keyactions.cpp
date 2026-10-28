@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../gfx/screengrab.h"
 #include "../ui/focus.h"
 #include "../ui/guimanager.h"
 #include "../world/money.h"
@@ -10,6 +11,7 @@
 #include "actionrec.h"
 #include "gameclock.h"
 #include "globals.h"
+#include "globalsave.h"
 #include "thunks.h"
 
 namespace {
@@ -71,6 +73,23 @@ u32 __cdecl KeyAction_ShowVersion() {
     Wrap_MsgTags_AddVersion_481b70();
     return 1;
 }
+
+u32 __cdecl KeyAction_ScreenGrab() {
+    ScreenGrab_NextName();
+    return 1;
+}
+
+u32 __cdecl KeyAction_MarkTheme0() { GlobalSave_MarkTheme(GlobalSave_Instance(), nullptr, 0); return 1; }
+u32 __cdecl KeyAction_MarkTheme1() { GlobalSave_MarkTheme(GlobalSave_Instance(), nullptr, 1); return 1; }
+u32 __cdecl KeyAction_MarkTheme2() { GlobalSave_MarkTheme(GlobalSave_Instance(), nullptr, 2); return 1; }
+u32 __cdecl KeyAction_MarkTheme3() { GlobalSave_MarkTheme(GlobalSave_Instance(), nullptr, 3); return 1; }
+u32 __cdecl KeyAction_MarkTheme4() { GlobalSave_MarkTheme(GlobalSave_Instance(), nullptr, 4); return 1; }
+u32 __cdecl KeyAction_MarkTheme5() { GlobalSave_MarkTheme(GlobalSave_Instance(), nullptr, 5); return 1; }
+
+u32 __cdecl KeyAction_MarkScore0() { GlobalSave_MarkScore(GlobalSave_Instance(), nullptr, 0, 100); return 1; }
+u32 __cdecl KeyAction_MarkScore1() { GlobalSave_MarkScore(GlobalSave_Instance(), nullptr, 1, 100); return 1; }
+u32 __cdecl KeyAction_MarkScore2() { GlobalSave_MarkScore(GlobalSave_Instance(), nullptr, 2, 100); return 1; }
+u32 __cdecl KeyAction_MarkScore3() { GlobalSave_MarkScore(GlobalSave_Instance(), nullptr, 3, 100); return 1; }
 
 u32 __cdecl KeyAction_FlagResearchControls() {
     ResearchLab_FlagProjectControls(reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da722_519550(global<u8 *>(0x007cf83c))));

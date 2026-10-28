@@ -242,6 +242,14 @@ void __cdecl MouseMode_Enter6fead0() {
     MouseMode_Set(mode);
 }
 
+u32 __cdecl MouseMode_EnterTile3a() {
+    u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x14));
+    u8 *const mode = block ? MouseModeTile_Ctor(block, nullptr, 0x3a) : nullptr;
+    MouseModes_EnsureHolder();   // (inlined)
+    MouseMode_Set(mode);
+    return 1;
+}
+
 void __fastcall MouseMode6fead0_Assign(u8 *) { Obj7b51f0_SetCursor(reinterpret_cast<void *>(0x007b51f0), nullptr, 0x13); }
 
 // The sprite script of the staff being placed: started for the folder and sprite, the one at +8 before it killed.

@@ -3,21 +3,22 @@
 # counts negative, zero or up to 0x40, and the enable / reset of one map or all five (entries
 # apart from the map or over it); the modifier keys held (0x46b420 / 0x486aa0), GetKeyState / GetAsyncKeyState
 # import-slot recorders answering one value for a case (its sign in AX or only in the upper word) or a hash of the key; setting a key from a text
-# (0x40caa0; the formatter a log stub filling none, one or both of its two characters, the buffer an out argument).
+# (0x40caa0; the formatter a log stub filling none, one or both of its two characters, the buffer an out argument). Init (0x40cb80): see init().
 # usage: keymap.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import IMPORT_TABLE, LOG, Bench, Call, RAM, _cdecl_log4, fill, import_table, log_region, put, set_return, strings  # noqa: E402
+from fncmp import HEAP, IMPORT_TABLE, LOG, Bench, Call, RAM, _cdecl_log4, fill, heap, import_table, log_region, put, set_return, strings  # noqa: E402
 
 B = Bench([(0x40c870, 0x40c8b3), (0x40c8c0, 0x40c8f7), (0x40ca20, 0x40ca93), (0x40cb40, 0x40cb47),
            (0x40cb50, 0x40cb78), (0x40cf60, 0x40cf98), (0x40cfa0, 0x40d06a),
-           (0x46b420, 0x46b460), (0x486aa0, 0x486ae0), (0x40caa0, 0x40cb34), (0x4815c0, 0x4815c5)],
+           (0x46b420, 0x46b460), (0x486aa0, 0x486ae0), (0x40caa0, 0x40cb34), (0x4815c0, 0x4815c5),
+           (0x40cb80, 0x40cf5d), (0x67ae00, 0x67af00), (0x67acc0, 0x67acc1)],
           hooks={0x6acd60: _cdecl_log4})  # the text formatter: a log stub (driver: TextFormatEnv)
 GLOBALS = (0x78718c, 0x787a60, 0x787c14, 0x78733c, 0x78721c)
-CALLS = ('Key', 'Action', 'Held', 'Enable', 'Reset', 'EnableAll', 'ResetAll', 'Modifiers', 'AsyncModifiers', 'SetKey', 'AsyncJump')
+CALLS = ('Key', 'Action', 'Held', 'Enable', 'Reset', 'EnableAll', 'ResetAll', 'Modifiers', 'AsyncModifiers', 'SetKey', 'AsyncJump', 'Init')
 IMPORTS = {'GetKeyState': (40, 0x6fd324, 1, 0, 0), 'GetAsyncKeyState': (41, 0x6fd320, 1, 0, 0)}
 
 
@@ -39,8 +40,33 @@ def keymap(r, at, regs):
     return n
 
 
+# the static entry tables Init points the maps at (from 0x747f38: system, game, camera, coaster, shortcuts, cheat) and their counts
+TABLES = ((0x747f38, 0xc), (0x748028, 0xf), (0x748158, 0x19), (0x748350, 2), (0x748378, 0x11), (0x7484d0, 0xc))
+
+
+def init(r):
+    """0x40cb80: the six maps allocated (Mem_Alloc on heap(); the camera's, cheat's or coaster's now and then failing: the others'
+    failures fault in both, sic) over their tables (mostly each action at its own index, some moved or repeated), the shortcuts' keys 1-4
+    from the formatter (a log stub writing one or two characters, a record per call) and the 17 keys from texts."""
+    log = log_region()
+    strings(log, 0x3d, 0, 2)
+    size = r.choice([2, 4])
+    fill(log, 0x3d, 1, r.bytes(4 * size), records=4)
+    tables = bytearray(r.bytes(0x688))
+    for at, n in TABLES:
+        for i in range(n):
+            put(tables, at - 0x747f38 + i * 0x14, 'h', r.choice([i] * 8 + [r.randrange(n), r.randrange(0x20), -1]))
+    regs = {LOG: log, HEAP: heap(0x400, fail=r.choice([0] * 12 + [3, 4, 5])), 0x747f38: tables,
+            0x78ba84: struct.pack('<I', r.choice([0x1234, r.getrandbits(32)]))}
+    for g in GLOBALS + (0x787294,):
+        regs[g] = r.bytes(4)
+    return Call(0x40cb80, [], regs, ret='v')
+
+
 def case(r):
     op = r.choice(OPS)
+    if op == 'Init':
+        return init(r)
     regs = {}
     if op.endswith('Modifiers') or op == 'AsyncJump':   # (AsyncJump: 0x4815c0, a jump to 0x486aa0)
         log = log_region()

@@ -8,7 +8,9 @@
 # Play world (its ride records, their counts mostly 9 or more: elements 5-8; sound globals and manager; the manager's engine Mode's slot 3 recorder): the coaster's ride (+0x24) Play's
 # id, the car's position floats small, large, past the int range or NaN, its old sounds 0 unless nothing reaches them (sound off or not
 # started, or 0x785a2c set), quiet 0 mostly.
-# usage: carsound.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Mode,Stop,Scream,Start)
+# StartAll (0x439390 CoasterCars_StartAllSounds): Start's world with 0-3 links (0x790fe0, next +0x18) of 0-3 cars each (+0xf4, +0x128),
+# the cars Start's car with their position floats dealt again.
+# usage: carsound.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Mode,Stop,Scream,Start,StartAll)
 import os
 import struct
 import sys
@@ -26,11 +28,40 @@ if _ops is not None:
 
 B = Bench(sorted(set([(0x439780, 0x439812), (0x51bfc0, 0x51c048), (0x51bc40, 0x51bc70), (0x6b5b60, 0x6b5b75),
                       (0x6b5b80, 0x6b5b9a), (0x5da3c0, 0x5da3c1), (0x439670, 0x4396db), (0x551300, 0x551312),
-                      (0x4392a0, 0x439386), (0x51eeb0, 0x51eeec), (0x55a3e0, 0x55a470), (0x55a070, 0x55a0b0)]
+                      (0x4392a0, 0x439386), (0x51eeb0, 0x51eeec), (0x55a3e0, 0x55a470), (0x55a070, 0x55a0b0), (0x439390, 0x4393d7)]
                      + soundset.RANGES)))
 MANAGER, VT, ENGINE, EVT, CAR = RAM + 0x100, RAM + 0x200, RAM + 0x800, RAM + 0x900, RAM + 0x1000
 SCAR = RAM + 0x20000   # (Stop's car: past the sound benches' regions)
 COASTER = RAM + 0x21000
+
+
+LINKS, CARS = RAM + 0x21000, RAM + 0x22000
+
+
+def start_all(r):
+    """StartAll (0x439390) on Start's world: its coaster's ride in every link, its car's copies."""
+    c = start(r)
+    regions = dict(c.regions)
+    car, ride = regions.pop(SCAR), struct.unpack_from('<I', regions.pop(COASTER), 0x24)[0]
+    n = r.choice([0, 1, 1, 2, 3])
+    for i in range(n):
+        link = bytearray(r.bytes(0x130))
+        count = r.choice([0, 1, 2, 3])
+        put(link, 0x18, 'I', LINKS + 0x200 * (i + 1) if i + 1 < n else 0)
+        put(link, 0x24, 'I', ride)
+        put(link, 0xf4, 'I', count)
+        put(link, 0x128, 'I', CARS + 0x200 * i)
+        cars = bytearray()
+        for _ in range(count):
+            one = bytearray(car)
+            for at in (0x48, 0x4c, 0x50):
+                put(one, at, 'f', r.choice([0.0, 1.5, -2.75, 123.25, r.uniform(-1e5, 1e5)]))
+            cars += one
+        regions[LINKS + 0x200 * i] = link
+        if cars:
+            regions[CARS + 0x200 * i] = cars
+    regions[0x790fe0] = struct.pack('<I', LINKS if n else 0)
+    return Call(0x439390, [], regions, ret='v')
 
 
 def start(r):
@@ -81,6 +112,8 @@ def stop(r, op):
 
 def case(r):
     op = r.deal(OPS)
+    if op == 'StartAll':
+        return start_all(r)
     if op == 'Start':
         return start(r)
     if op != 'Mode':
@@ -102,7 +135,7 @@ def case(r):
     return Call(0x439780, [CAR, mode, r.getrandbits(32) if r.random() < 0.5 else r.randrange(200)], regions)
 
 
-OPS = [k for k in os.environ.get('OPS', 'Mode,Stop,Scream,Start').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Mode,Stop,Scream,Start,StartAll').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)
