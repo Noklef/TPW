@@ -521,8 +521,12 @@ const StaffAdviceEnv kStaffAdviceEnv = {reinterpret_cast<StaffSumFn>((uintptr_t)
 // arguments and the cdecl recorder 27 of 3, as tests/fncmp/cellkind.py and tests/fncmp/trackremove.py hook them.
 const CellKindEnv kCellKindEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(26, 0)),
                                   reinterpret_cast<void(__cdecl *)(s32, s32, u32)>((uintptr_t)jpeg_recorder(27, 3))};
-// The coaster links' call into agent B's unported 0x463060: the cdecl recorder 30 of 10 arguments, as tests/fncmp/linkcars.py hooks it.
-const CoasterLinksEnv kCoasterLinksEnv = {reinterpret_cast<u32(__cdecl *)(u32, u32, const u32 *, u32, u32, u32, u32, u32, s32, u32)>((uintptr_t)jpeg_recorder(30, 10))};
+// The coaster links' call into agent B's unported 0x463060: the cdecl recorder 30 of 10 arguments, as tests/fncmp/linkcars.py hooks it;
+// CoasterLink_AddFixedPieces' calls the cdecl recorders 9 of 3, 10 of 6, 11 of 9, 12 of 2, 13 of 0 and 14 of 2, as
+// tests/fncmp/linkfixed.py hooks them.
+const CoasterLinksEnv kCoasterLinksEnv = {Rec{jpeg_recorder(30, 10)}, Rec{jpeg_recorder(9, 3)},  Rec{jpeg_recorder(10, 6)},
+                                          Rec{jpeg_recorder(11, 9)},  Rec{jpeg_recorder(12, 2)}, Rec{jpeg_recorder(13, 0)},
+                                          Rec{jpeg_recorder(14, 2)}};
 // The cell messages' calls into agent A's Path_CheckDeadEnds (0x527ee0) and GameMode_SetOnly (0x52f580): the cdecl recorders 27 of 3 and 28 of 2, as
 // tests/fncmp/cellmessage.py hooks them.
 const CellMessageEnv kCellMessageEnv = {reinterpret_cast<void(__cdecl *)(s32, s32, u32)>((uintptr_t)jpeg_recorder(27, 3)),

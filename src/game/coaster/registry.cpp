@@ -9,6 +9,7 @@
 #include "../math/x87.h"
 #include "../model/highlight.h"
 #include "../model/holder.h"
+#include "../model/parts.h"
 #include "../motion/animator.h"
 #include "../terrain/land.h"
 #include "../ui/dialog7ca1c8.h"
@@ -28,7 +29,9 @@ template <typename T> T &at(const void *p, u32 offset) {
     return *reinterpret_cast<T *>((uintptr_t)p + offset);
 }
 
-const CoasterLinksEnv kGameEnv = {reinterpret_cast<u32(__cdecl *)(u32, u32, const u32 *, u32, u32, u32, u32, u32, s32, u32)>((uintptr_t)0x00463060)};
+const CoasterLinksEnv kGameEnv = {reinterpret_cast<u32(__cdecl *)(u32, u32, const u32 *, u32, u32, u32, u32, u32, s32, u32)>((uintptr_t)0x00463060),
+                                  &Model_FindPartByKey4, &CoasterLink_AddEntry, &CoasterLink_AddCar, &Car_SetChannelRates,
+                                  &CoasterEdit_SetBounds, &Coaster_FlashCar};
 const CoasterLinksEnv *g_env = &kGameEnv;
 
 const u8 *coaster_at(u32 index) { return reinterpret_cast<u8 *const *>(0x00790bd0)[index]; }
@@ -690,5 +693,52 @@ u8 *__cdecl CoasterLink_AddCar(u8 *train, u32 a, u32 b, float height, u32 flags,
         if (at<u8 *>(piece, 0x68)) at<u32>(at<u8 *>(piece, 0x68), 8) |= 0x200000;
     }
     return piece;
+}
+
+void __cdecl CoasterLink_AddFixedPieces(u8 *link, u32, u32, float, u32 flag) {
+    const CoasterLinksEnv *const env = g_env;
+    const u8 *const type = at<const u8 *>(link, 4);
+    const bool twin = at<u8>(type, 0) & 0x20;
+    const s32 count = twin ? 3 : 2, first = twin ? 1 : 2;
+    const auto holder = [link]() { return reinterpret_cast<const u8 *const *>(0x007a4610)[at<u32>(link, 0x10)]; };
+    if (!at<u32>(link, 0x40)) {
+        for (s32 i = 0; i < count; ++i) {
+            const u32 part = env->findPart(holder(), 0x400000, (u32)(first + i));
+            if (part == 0xffffffff) continue;
+            const u8 *const h = holder();
+            const u8 *const obj = at<const u8 *>(at<const u8 *>(at<const u8 *>(at<const u8 *>(h, 8), 0x28), 4), part * 0x14 + 4);
+            float pos[3];
+            if (obj) {
+                at<u32>(pos, 0) = at<u32>(obj, 0x30);
+                at<u32>(pos, 4) = at<u32>(obj, 0x34);
+                at<u32>(pos, 8) = at<u32>(obj, 0x38);
+            } else {
+                at<u32>(pos, 0) = at<u32>(pos, 4) = at<u32>(pos, 8) = 0;
+            }
+            if ((at<u8>(type, 0) & 0x20) && (i == 0 || i == 2)) {
+                const u8 *const frame = at<const u8 *>(at<const u8 *>(at<const u8 *>(h, 8), 4), 0x78);
+                pos[1] = static_cast<float>(pos[1] - X87Reg(at<float>(frame, 0x44)));   // (fld the frame's, fsubr y)
+                const s32 cz = (s32)(long long)(X87Reg(pos[2]) * 0.100000001f).v;   // 0x6fdedc, __ftol
+                const s32 cx = (s32)(long long)(X87Reg(pos[0]) * 0.100000001f).v;
+                const u8 *const desc = type + 0xa8;
+                u8 *const entry = env->addEntry(cx, cz, 0x12, 0, (u32)(uintptr_t)desc, nullptr);
+                u32 flags = i == 0 ? 0x274 : 0x28c;
+                if (flag) flags |= 1;
+                u8 *const car = env->addCar(entry, 0, 0, pos[1], flags, desc, 0, 0, 0);
+                env->setChannelRates(at<u32>(*reinterpret_cast<u8 *const *>(0x00790fec), 4), car);
+            } else {
+                u8 *const entry = env->addEntry(0, 0, 0x13, 0, 0, pos);
+                u32 flags = flag ? 1 : 0;
+                if (at<u8>(type, 0) & 0x20) flags |= 0x3c;
+                env->addCar(entry, at<u32>(entry, 0x1c), at<u32>(entry, 0x24), at<float>(entry, 0x20), flags, nullptr, 0, 0, 0);
+            }
+        }
+        float pos[3] = {0, 0, 0};
+        u8 *const entry = env->addEntry(0, 0, 7, 0, 0, pos);
+        env->addCar(entry, at<u32>(entry, 0x1c), at<u32>(entry, 0x24), at<float>(entry, 0x20), 2, nullptr, 0, 0, 0);
+    }
+    env->setBounds();
+    env->flashCar(link, 1);
+    at<u32>(link, 0) |= 0x1001;   // (after the empty Debug_Printf)
 }
 }

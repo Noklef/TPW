@@ -8,6 +8,13 @@
 // benches point it at a recorder).
 struct CoasterLinksEnv {
     u32(__cdecl *createRide)(u32 type, u32 key, const u32 *desc, u32 flag, u32, u32, u32, u32, s32, u32);   // 0x463060
+    u32(__cdecl *findPart)(const u8 *holder, u32 mask, u32 key);   // Model_FindPartByKey4 (0x44b220)
+    u8 *(__cdecl *addEntry)(s32 x, s32 y, u32 flags, u32 unused, u32 value, const float *position);   // CoasterLink_AddEntry (0x432c10)
+    u8 *(__cdecl *addCar)(u8 *train, u32 a, u32 b, float height, u32 flags, const u8 *desc, u32 half, u32 slot,
+                          u32 claim);   // CoasterLink_AddCar (0x434060)
+    void(__cdecl *setChannelRates)(u32 unused, u8 *car);   // Car_SetChannelRates (0x430ca0)
+    void(__cdecl *setBounds)();                            // CoasterEdit_SetBounds (0x434f10)
+    void(__cdecl *flashCar)(u8 *coaster, u32 which);       // Coaster_FlashCar (0x441840)
 };
 // The coaster links' calls go to env (nullptr: the game's).
 void CoasterLinks_SetEnv(const CoasterLinksEnv *env);
@@ -245,4 +252,16 @@ void __cdecl CoasterLinks_DestroyAll();
 // set and lacks 0x4000 (its +0), the link's +0x118 = height (fld / fstp); L+8 counts up and from 2 L+0xc gains 1.0 (0x6fde9c, -1,
 // subtracted). Without flags 1 +8 |= 0x200000, and +0x68's too when there is one.
 u8 *__cdecl CoasterLink_AddCar(u8 *train, u32 a, u32 b, float height, u32 flags, const u8 *desc, u32 half, u32 slot, u32 claim);
+
+// 0x436ac0 (cdecl (link, -, -, -, flag); name invented, unconfirmed; the new coaster's (0x4368f0) set-up passes its height, twice, and
+// its ride frame's +0x44, all unused): a new coaster link's fixed pieces. Unless the link's +0x40 is set: for each of the ride's
+// (+0x10, table 0x7a4610) parts keyed (Model_FindPartByKey4, mask 0x400000) 1 to 3 when the type's (+4) flags (+0) have 0x20, else 2
+// and 3, found, its object's (holder +8 -> +0x28 -> +4: 0x14-byte entries, +4) position (+0x30, three dwords; zeros without one):
+// with flag 0x20 (re-read), keys 1 and 3 a station entry (CoasterLink_AddEntry (__ftol of x and z times 0.1f, 0x12, 0, the type's
+// +0xa8)) and car (CoasterLink_AddCar (entry, 0, 0, y less the ride frame's (holder +8 -> +4 -> +0x78) +0x44, 0x274 or 0x28c, | 1
+// with flag, the type's +0xa8)) whose channel rates are set (Car_SetChannelRates (the game's +4, car)); otherwise an entry at the
+// position (CoasterLink_AddEntry (0, 0, 0x13, 0, 0, the position)) and a car on its cell and height (+0x1c, +0x24, +0x20) flagged
+// flag != 0, | 0x3c with the type's flag 0x20 (re-read). Then an entry at zeros (flags 7) and its car (flags 2). Always: CoasterEdit_SetBounds,
+// Coaster_FlashCar (link, 1), the empty Debug_Printf, and the link's flags (+0) gain 0x1001.
+void __cdecl CoasterLink_AddFixedPieces(u8 *link, u32 unused1, u32 unused2, float unused3, u32 flag);
 }
