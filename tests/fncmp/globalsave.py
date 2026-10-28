@@ -9,7 +9,9 @@
 # tree (stdtree.py's build) of 0-6 nodes, their records' six bytes likewise and their global.sam loaded already (+0x1c set), or one
 # not and the heap failing its block (ThemeRecord_LoadGlobalSam: 0, nothing read). SamField (0x5b11a0, src/game/core/balancefile): a
 # theme record's global.sam loaded already (+0x1c set: its dword +0x14 returned) or not and the heap failing (-1).
-# The marks (0x5af810, 0x5afb00, 0x5af940): count()'s info and map, every record's global.sam loaded (see mark()).
+# The marks (0x5af810, 0x5afb00, 0x5af940): count()'s info and map, every record's global.sam loaded (see mark()). The cheat keys'
+# marks (src/game/core/keyactions: KeyTheme 0x40c6c0-0x40c760, MarkTheme 0-5; KeyScore 0x40c780-0x40c7e0, MarkScore 0-3 of 100): mark()'s
+# world, the instance (0xf7c58c) its info.
 # usage: globalsave.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ThemeByte,...)
 import os
 import sys
@@ -29,7 +31,7 @@ def lock(e):  # the STL lock (0x691de0, thiscall, returns its argument; 0x691ea0
 B = Bench([(0x5af7f0, 0x5af80b), (0x5afc30, 0x5afc5a), (0x5b09a0, 0x5b09b4), (0x5b0ca0, 0x5b0cc5), (0x5b0940, 0x5b0996), (0x67b0d0, 0x67b10f),
            (0x5aef50, 0x5af0dc), (0x409410, 0x40947a), (0x5b3110, 0x5b3130), (0x5b2fd0, 0x5b2ff0), (0x5b1680, 0x5b16a6),
            (0x5af4a0, 0x5af52a), (0x5af530, 0x5af5cf), (0x5af5d0, 0x5af674), (0x5af680, 0x5af734), (0x5b11c0, 0x5b12d3), (0x5b2480, 0x5b2530), (0x5b11a0, 0x5b11b9),
-           (0x5af810, 0x5af940), (0x5afb00, 0x5afc30), (0x5af940, 0x5afb00)],
+           (0x5af810, 0x5af940), (0x5afb00, 0x5afc30), (0x5af940, 0x5afb00), (0x40c6c0, 0x40c7f6)],
           hooks={0x691de0: lock, 0x691ea0: lambda e: None})
 INFO, THEME = RAM + 0x10, RAM + 0x100
 CALLS = {'ThemeByte': (0x5af7f0, 'i', 'b'), 'Byte26': (0x5af800, 'i', 'b'), 'Inc20': (0x5afc30, '', 'v'),
@@ -42,6 +44,7 @@ COUNTS = {'Count4': 0x5af4a0, 'Count': 0x5af530, 'CountLeft': 0x5af5d0, 'CountLe
 HEAD, NIL, NODES, RECORDS = RAM + 0x800, RAM + 0x900, RAM + 0x1000, RAM + 0x2000
 GARBAGE = [0, 0xc, 0x28, 0x29, 0x38, 0x39]
 MARKS = {'MarkTheme': 0x5af810, 'MarkExtra': 0x5afb00, 'MarkScore': 0x5af940}
+KEYS = {'KeyTheme': [0x40c6c0 + 0x20 * i for i in range(6)], 'KeyScore': [0x40c780 + 0x20 * i for i in range(4)]}
 SAMS = RAM + 0x3000
 
 
@@ -130,6 +133,10 @@ def case(r):
         return count(r, op)
     if op in MARKS:
         return mark(r, op)
+    if op in KEYS:
+        regions = dict(mark(r, 'MarkTheme' if op == 'KeyTheme' else 'MarkScore').regions)
+        regions[0xf7c58c] = struct.pack('<I', INFO)
+        return Call(r.choice(KEYS[op]), [], regions, ret='a')
     if op == 'SamField':
         rec = bytearray(r.bytes(0x40))
         loaded = r.random() < 0.7
@@ -158,7 +165,7 @@ def case(r):
     return Call(fn, args, {RAM: r.bytes(0x10), INFO: info, THEME: r.bytes(0xc0)}, conv='t', ret=ret)
 
 
-OPS = [k for k in os.environ.get('OPS', ','.join(list(CALLS) + ['Construct', 'Instance'] + list(COUNTS) + ['SamField'] + list(MARKS))).split(',') if k]
+OPS = [k for k in os.environ.get('OPS', ','.join(list(CALLS) + ['Construct', 'Instance'] + list(COUNTS) + ['SamField'] + list(MARKS) + list(KEYS) * 4)).split(',') if k]   # (the keys: ten functions)
 
 
 if __name__ == '__main__':
