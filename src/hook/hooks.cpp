@@ -421,6 +421,7 @@
 #include "../game/frontend/lobbymodel.h"
 #include "../game/frontend/lobbyscene.h"
 #include "../game/frontend/postcard.h"
+#include "../game/frontend/scenequeue.h"
 #include "../game/frontend/viewcontrols.h"
 #include "../game/online/itemlist.h"
 #include "../game/online/items.h"
@@ -6310,6 +6311,8 @@ const Hook kHooks[] = {
     {"ViewCtl702e70_Message",     0x005dd530, (void *)&ViewCtl702e70_Message, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"IslandCamera_LoadSettings", 0x005e2cc0, (void *)&IslandCamera_LoadSettings, {0x6a, 0xff, 0x68, 0x8b, 0x16}},
     {"Postcard_OnSent",           0x004a7bf0, (void *)&Postcard_OnSent, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"Class702da0_Clear",         0x005d6060, (void *)&Class702da0_Clear, {0xa1, 0x6c, 0x96, 0xf7, 0x00}},
+    {"Class702da0_Push",          0x005d6110, (void *)&Class702da0_Push, {0x8b, 0x44, 0x24, 0x08, 0x53}},
     {"RSSE_Init",                 0x00551600, (void *)&RSSE_Init, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
     {"RsseScript_EventName",      0x00468600, (void *)&RsseScript_EventName, {0x53, 0x55, 0x56, 0x8b, 0x74}},
     {"RSSE_StartTimer",           0x00557160, (void *)&RSSE_StartTimer, {0xb9, 0x70, 0x59, 0x78, 0x00}},
