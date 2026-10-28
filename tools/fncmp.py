@@ -374,7 +374,10 @@ def slice_listing(ranges):
     addrs = [int(l[:8], 16) for l in lines]
     out = []
     for lo, hi in ranges:
-        out += lines[bisect.bisect_left(addrs, lo):bisect.bisect_left(addrs, hi)]
+        j = bisect.bisect_left(addrs, hi)
+        out += lines[bisect.bisect_left(addrs, lo):j]
+        if j < len(lines):   # the range's end: a fall-through past it stops there (x87emu's ;end), not in the next range's code
+            out.append('%08x  ;end' % addrs[j])
     path = os.path.join(tempfile.gettempdir(), 'fncmp_%d.asm' % os.getpid())
     open(path, 'w').write('\n'.join(out) + '\n')
     return path

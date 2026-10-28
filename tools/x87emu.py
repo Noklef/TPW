@@ -167,12 +167,15 @@ class DivFault(Exception):
 class Emu:
     def __init__(self, listings):
         self.code = {}
+        ends = set()   # (';end' lines: the address after a slice of the listing, so that falling off its last instruction is "no listing")
         for path in listings:
             for line in open(path).read().splitlines():
                 m = re.match(r'([0-9a-f]{8})\s+(\S+)\s*(.*)', line.strip())
-                if m:
+                if m and m.group(2) == ';end':
+                    ends.add(int(m.group(1), 16))
+                elif m:
                     self.code[int(m.group(1), 16)] = (m.group(2), m.group(3).strip())
-        self.order = sorted(self.code)
+        self.order = sorted(self.code.keys() | ends)
         self.next = {a: b for a, b in zip(self.order, self.order[1:])}
         self.sections = exe_sections()
         self.mem = {}
