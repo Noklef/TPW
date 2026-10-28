@@ -59,7 +59,7 @@ def case(r):
                0x785a2c: struct.pack('<I', r.choice([0] * 9 + [1])),
                0x7a1c7c: struct.pack('<I', r.choice([0, 0, 0, 1])),
                0x7a1ce0: struct.pack('<I', r.choice(rides[:4] * 3 + [0, r.getrandbits(32)]))}
-    return Call(0x446300, [r.choice([1, 1, 0, 0, r.getrandbits(32)])], regions)
+    return Call(0x446300, [r.choice([1, 1, 0, 0, r.getrandbits(32)])], regions, ret='a')
 
 
 if __name__ == '__main__':
