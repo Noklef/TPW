@@ -8,7 +8,7 @@
 # block of up to 64 x 64 at 4 bytes, or none), the callbacks +0x4c (k 22, answering 0 or 1) and +0x50 (k 23) cdecl recorders or none
 # (the surface they get logged as 0), the image's textures none; its layout (+0xe4) as textlayout.py's Draw makes one (its records
 # vector with room: the one record's garbage bytes masked). The screen's scales (0xfaa5c0 / 0xfaa5c4) usual, odd or negative; the
-# palette now and then with white and a near white planted. Query2 (kind 2): the same world measured (no surface), the rectangle 0x7ca0a0
+# palette now and then with white and a near white planted; the renderer's pen (x, y) hashed. Query2 (kind 2): the same world measured (no surface), the rectangle 0x7ca0a0
 # random; Query1 (kind 1): the layout's positions (its +0x88 vector, up to 9) and an index about them, else 2 or any kind.
 # usage: textpartdraw.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Draw,Shadow,Query1,Query2)
 import os
@@ -21,7 +21,7 @@ sys.path.insert(0, HERE)
 import gauge  # noqa: E402
 import guitext  # noqa: E402
 import textlayout as tl  # noqa: E402
-from fncmp import HEAP, LOG, RAM, Bench, Call, Mask, heap, log_region, put, recorder, set_return, strings  # noqa: E402
+from fncmp import HEAP, LOG, RAM, Bench, Call, Mask, blob, heap, log_region, put, recorder, set_return, strings  # noqa: E402
 
 B = Bench(gauge.merged(gauge.RANGES + [(0x48f830, 0x48fc33), (0x4925a0, 0x4925cb), (0x659dac, 0x659de5), (0x588c20, 0x588c9c),
                                        (0x491ab0, 0x491f07), (0x491300, 0x49170e)]),
@@ -40,6 +40,8 @@ def case(r):
     log = log_region()
     regions = {LOG: log, HEAP: heap(0x800)}
     lang, table, codes, lead = guitext.world(r, log, regions)
+    strings(log, 1, 0, out=0b1001)   # (the renderer's pen, on the stack, hashed: where each draw puts the text)
+    blob(log, 1, 1, 0b11)
     font = r.choice([r.randrange(0, 13)] * 30 + [13, 0xff])
     entry_font = struct.unpack_from('<I', table, 24 * (font + 13 * lang) + 0x14)[0] if font < 13 else None
     text = bytearray(0x10)   # (guitext.py's: none, or one record)
