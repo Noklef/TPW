@@ -1180,4 +1180,24 @@ void __cdecl TrakRide_Destroy(u32 handle) {
     at<u32>(ride, 0) = 0;
     --global<s32>(0x00877b64);
 }
+
+void __cdecl TrakRides_DestroyAll() {
+    if (global<u32>(0x00877b58) != 0x4a454647)
+        return;
+    u8 *ride = global<u8 *>(0x00877b60);
+    for (u32 left = global<u32>(0x00877b64); left; ride += 0xd0) {   // (the used count read once: the walk ends with it)
+        if (!at<u32>(ride, 0))
+            continue;
+        at<u32>(ride, 0x50) = 4;
+        --left;
+        TrakRide_Destroy(NameOf(ride));   // (inlined in the original)
+    }
+    // the free records (0x400 of 0x14 bytes from [0x877b88]) chained again by +0x10 from the first, the block re-read each step
+    u8 *next = nullptr;
+    for (s32 offset = 0x4fec; offset >= 0; offset -= 0x14) {
+        at<u8 *>(global<u8 *>(0x00877b88) + offset, 0x10) = next;
+        next = global<u8 *>(0x00877b88) + offset;
+    }
+    global<u8 *>(0x00877b8c) = global<u8 *>(0x00877b88);
+}
 }

@@ -3,7 +3,9 @@
 # or not and on other rides, or on this one unused; the used count exact or one short; the module loaded or not as it deals it), the
 # handle the ride's name mostly; TrakRide_Close's list (+0xc8, next +0x10, or none) and state (+0x50); the ride's +0xa8 pieces (0-4,
 # flags 2 / 4 either way), +0xbc chunks (0-3, each with 0-3 nodes at +0x1c) and +0xc0 nodes (0-3), all chained by +0x14 (chunks by +0x24).
-# usage: trakride_destroy.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Strip,Destroy)
+# All (0x5445d0 TrakRides_DestroyAll): the module loaded, the other rides unused (+0 clear) but for one now and then (no lists, no used
+# car on it), the used count those (or one short: the walk stops early), the free records' block [0x877b88] (0x400 of 0x14 bytes).
+# usage: trakride_destroy.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Strip,Destroy,All)
 import os
 import struct
 import sys
@@ -17,8 +19,8 @@ import trackcar_remove as tcr  # noqa: E402
 if _ops is not None:
     os.environ['OPS'] = _ops
 
-B = Bench(tcr.merged(tcr.RANGES + [(0x545450, 0x5457db), (0x544a10, 0x544b50)]), hooks=tcr.HOOKS)
-RECS, LISTS = RAM + 0x70000, RAM + 0x71000
+B = Bench(tcr.merged(tcr.RANGES + [(0x545450, 0x5457db), (0x544a10, 0x544b50), (0x5445d0, 0x54483d), (0x5457e0, 0x545809)]), hooks=tcr.HOOKS)
+RECS, LISTS, FREE = RAM + 0x70000, RAM + 0x71000, RAM + 0x72000
 
 
 def chain(r, buf, base, at, n, stride, link):
@@ -77,10 +79,28 @@ def case(r):
     put(rides, 0xd0 * index + 0xc8, 'I', chain(r, lists, LISTS, 0x340, r.choice([0, 0, 1, 2]), 0x18, 0x10))
     regions[LISTS] = lists
     handle = r.choice([name] * 6 + [name ^ 0x100, name ^ 1, r.getrandbits(32)])
-    return Call(r.choice(FUNCS), [handle], regions)
+    func = r.choice(FUNCS)
+    if func == 0x5445d0:
+        put(module, 0, 'I', 0x4a454647)
+        busy = {struct.unpack_from('<I', recs, 0xac * k + 0x9c)[0] for k in range(n) if recs[0xac * k] & 1}
+        spare = [j for j in range(4) if j != index and tcr.RIDES + 0xd0 * j not in busy]
+        for j in range(4):
+            if j != index:
+                put(rides, 0xd0 * j, 'I', 0)
+        if spare and r.random() < 0.4:
+            j = r.choice(spare)
+            put(rides, 0xd0 * j, 'I', r.choice([1, -5 & 0xffffffff, r.getrandbits(32) | 1]))
+            for o in (0xa8, 0xbc, 0xc0, 0xc8):
+                put(rides, 0xd0 * j + o, 'I', 0)
+        used = sum(1 for j in range(4) if struct.unpack_from('<I', rides, 0xd0 * j)[0])
+        put(module, 0xc, 'I', r.choice([used] * 4 + [max(used - 1, 0)]))
+        put(module, 0x30, 'I', FREE)
+        regions[FREE] = r.bytes(0x5000)
+        return Call(func, [], regions, ret='v')
+    return Call(func, [handle], regions)
 
 
-OPS_ALL = {'Strip': 0x545450, 'Destroy': 0x545610}
+OPS_ALL = {'Strip': 0x545450, 'Destroy': 0x545610, 'All': 0x5445d0}
 FUNCS = [OPS_ALL[k] for k in os.environ.get('OPS', ','.join(OPS_ALL)).split(',') if k]
 
 
