@@ -12,7 +12,7 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import (LOG, LOG_BYTES, RAM, Bench, Call, _recorder, answers, fail_mask, fill, log_region,  # noqa: E402
+from fncmp import (LOG, LOG_BYTES, RAM, Bench, Call, _recorder, answers, blob, fail_mask, fill, log_region,  # noqa: E402
                    set_return, strings)
 
 WORLD = 0x31000000
@@ -64,8 +64,10 @@ def case(r):
     set_return(log, 15, WORDS)
     set_return(log, 16, DEF)
     set_return(log, 17, MONEY)
-    strings(log, 0, 0, out=0x18)    # the lines' end pointers (stack)
-    strings(log, 1, 0, out=0x18)
+    strings(log, 0, 0, out=0x10)    # the lines' end pointers (stack): the row's
+    strings(log, 1, 0, out=0x10)
+    blob(log, 0, 3, 1)              # and the column they are given (Rect's insets; a fill's when one writes it)
+    blob(log, 1, 3, 1)
     strings(log, 15, 0, out=1)      # Cell_FirstObject's out word
     struct.pack_into('<I', log, LOG_BYTES + 4 * 9, 0x10)        # HoardingGrid_CheckArea's charge: a BYTE
     struct.pack_into('<I', log, LOG_BYTES + 4 * 14, 1 << 16)    # GlobalSave_HasKey's and ObjectDefs_Find's ids: WORDs
