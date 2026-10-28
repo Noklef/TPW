@@ -118,6 +118,7 @@
 #include "../../src/game/world/cellmodel.h"
 #include "../../src/game/world/rides.h"
 #include "../../src/game/world/camera.h"
+#include "../../src/game/sprite/loading.h"
 #include "../../src/game/world/object.h"
 #include "crt.h"
 #include "../../src/hook/hooks.h"
@@ -561,7 +562,11 @@ const CellModelEnv kCellModelEnv = {reinterpret_cast<u32(__cdecl *)(s32, s32, s3
 // tests/fncmp/messagecentre.py hooks that address.
 const MessageCentreEnv kMessageCentreEnv = {reinterpret_cast<u32(__fastcall *)(u8 *, void *, u8 *)>((uintptr_t)recorder(27, 1))};
 // The statistics graph's lines 0x49aa30 (StatsGraph_Redraw's after): the cdecl recorder 22 (tests/fncmp/gauge.py hooks 0x49aa30 with it).
-const StatsGraphEnv kStatsGraphEnv = {reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)jpeg_recorder(22, 1))};
+// The frame-set reloads' calls (NamedList_Find, SpriteFrames_Free, 0x41e740, SpriteFrames_Load 0x587db0, SpriteFrames_MarkTextures): the
+// thiscall recorders 1 of 2, 2 of none, 3 and 4 of 2 and 5 of none, as tests/fncmp/useframes.py hooks those addresses.
+const SpriteLoadingEnv kSpriteLoadingEnv = {Rec{recorder(1, 2)}, Rec{recorder(2, 0)}, Rec{recorder(3, 2)}, Rec{recorder(4, 2)},
+                                            Rec{recorder(5, 0)}};
+const StatsGraphEnv kStatsGraphEnv ={reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)jpeg_recorder(22, 1))};
 
 const ObjectEnv kObjectEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, u8 *)>((uintptr_t)recorder(21, 1)),
                               reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(22, 0)),
@@ -1291,6 +1296,7 @@ int main(int argc, char **argv) {
     CellMessage_SetEnv(&kCellMessageEnv);
     Object_SetEnv(&kObjectEnv);
     StatsGraph_SetEnv(&kStatsGraphEnv);
+    SpriteLoading_SetEnv(&kSpriteLoadingEnv);
     Object_SetDeleteEnv(&kObjectDeleteEnv);
     BankAccount_SetEnv(&kBankAccountEnv);
     MessageCentre_SetEnv(&kMessageCentreEnv);
