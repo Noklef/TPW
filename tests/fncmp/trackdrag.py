@@ -90,9 +90,10 @@ def aim(r, t, px, py, regions):
 def drag_globals(r, regions, thing, focus=None):
     """The focus block 0x818684..0x8186d8 (cellbuild.py's 0x818688 block kept when there is one), the cell word set, the floats."""
     block = bytearray(r.bytes(0x54))
-    if focus is not None:
+    if focus is not None:   # (its 0x818698 the owner MapCell_CanBuildTrack compares)
         block[4:] = focus
-    put(block, 0x14, 'H', r.choice([1, 0x81, r.getrandbits(16) | 1]))   # 0x818698
+    else:
+        put(block, 0x14, 'H', r.choice([1, 0x81, r.getrandbits(16) | 1]))   # 0x818698
     put(block, 0x28, 'I', thing)                                          # 0x8186ac
     regions[0x818684] = block
     regions[0x818c50] = r.bytes(4)
@@ -202,7 +203,8 @@ def connect_case(r):
     for a in [a for a in regions if W <= a < W + 0x1000000]:
         mem.parts[a] = bytearray(regions.pop(a))
     window3 = [cellrun.ident(ex + i, ey + j) for j in (-1, 0, 1) for i in (-1, 0, 1)]
-    owner = struct.unpack_from('<H', regions[0x818688], 0x10)[0]
+    owner = struct.unpack_from('<H', regions[0x818688], 0x10)[0] or r.choice(window3)   # (the focus cell word 0x818698: set)
+    put(regions[0x818688], 0x10, 'H', owner)
     word = r.getrandbits(16)
     words = [word, (word + 1) & 0xffff, (word - 1) & 0xffff, r.getrandbits(16)]
     track = [0xb, 0x10, 0x19, 0xd, 0x12]
@@ -237,9 +239,20 @@ def connect_case(r):
         if t in (0xc, 0x11):
             mem.put(entry(k) + 8, 'I', r.choice(track))
     mode = r.choice([0xe, 0x13, 0xe, 0x13, 0xb, 0x10, 0x19, 0xf, 0x39, 0])
-    if mode in (0xe, 0x13) and r.random() < 0.7:   # (owned track: 9 unless it spreads past two side neighbours)
+    if mode in (0xe, 0x13) and r.random() < 0.7:   # (owned track: 9 unless it spreads past two side neighbours, the cells about it clear)
         mem.put(entry(e) + 8, 'I', r.choice([0xb, 0x10]))
         mem.put(entry(e) + 0x10, 'H', owner)
+        mem.put8(entry(e) + 0xc, r.choice([0x11, 0x44, 0x01, 0x14, 0x55]))
+        mem.put8(entry(e) + 0x22, r.choice([0x11, 0x44, 0x01, 0x14]))
+        if r.random() < 0.8:
+            for i, j in ((0, 0), (-1, 1), (1, 1), (1, -1)):
+                a = cellbuild.cell44(cellrun.ident(ex + i, ey + j))
+                mem.put(a + 8, 'I', r.choice([0, 1, 3, 0xb, 0x10]))
+                mem.put(a + 0xe, 'H', struct.unpack('<H', part(mem, a + 0xe, 2))[0] & ~0x40)
+            flags = bytearray(regions[0x816d48])
+            put(flags, 8, 'I', 0)
+            put(flags, 0x10, 'I', 0)
+            regions[0x816d48] = flags
     hoarding = regions[0x81b4cc][0] != 0
     base = dict(mem.parts)
     for _ in range(20):
