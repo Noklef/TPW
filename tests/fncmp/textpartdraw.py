@@ -1,4 +1,5 @@
-# The text part's text drawing (src/game/render/textparts: TextPart_DrawText, 0x48f830, slot 9) against the original, in guitext.py's
+# The text parts' text drawing and query (src/game/render/textparts: TextPart_DrawText 0x48f830, TextPart_DrawShadowed 0x491ab0,
+# TextPart_Query 0x491300) against the originals, in guitext.py's
 # world (the draw context and its recorders, the language, the font table and fonts, the global style 0x78ba2c, no narrowing table: the
 # text the global buffer's bytes as the case writes them, at most one record) with gauge.py's InWindow surface set-up (the current format
 # 0x8bd554 a record whose bit count is 8-32 or odd, the game palette random; the display's surface left the stack's SurfaceInfo: STATE
@@ -6,8 +7,10 @@
 # original's top is the stack's; +0xd9 any), +0xda / +0xdd 0 or set, the font index (0-12 mostly, else a fault in both), its pixels (a
 # block of up to 64 x 64 at 4 bytes, or none), the callbacks +0x4c (k 22, answering 0 or 1) and +0x50 (k 23) cdecl recorders or none
 # (the surface they get logged as 0), the image's textures none; its layout (+0xe4) as textlayout.py's Draw makes one (its records
-# vector with room: the one record's garbage bytes masked). The screen's scales (0xfaa5c0 / 0xfaa5c4) usual, odd or negative.
-# usage: textpartdraw.py [CASES [SEED]] [--wild|--both] [--show N]
+# vector with room: the one record's garbage bytes masked). The screen's scales (0xfaa5c0 / 0xfaa5c4) usual, odd or negative; the
+# palette now and then with white and a near white planted. Query2 (kind 2): the same world measured (no surface), the rectangle 0x7ca0a0
+# random; Query1 (kind 1): the layout's positions (its +0x88 vector, up to 9) and an index about them, else 2 or any kind.
+# usage: textpartdraw.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Draw,Shadow,Query1,Query2)
 import os
 import struct
 import sys
@@ -20,8 +23,11 @@ import guitext  # noqa: E402
 import textlayout as tl  # noqa: E402
 from fncmp import HEAP, LOG, RAM, Bench, Call, Mask, heap, log_region, put, recorder, set_return, strings  # noqa: E402
 
-B = Bench(gauge.merged(gauge.RANGES + [(0x48f830, 0x48fc33), (0x4925a0, 0x4925cb), (0x659dac, 0x659de5), (0x588c20, 0x588c9c)]),
+B = Bench(gauge.merged(gauge.RANGES + [(0x48f830, 0x48fc33), (0x4925a0, 0x4925cb), (0x659dac, 0x659de5), (0x588c20, 0x588c9c),
+                                       (0x491ab0, 0x491f07), (0x491300, 0x49170e)]),
           hooks={0x67af00: gauge.crt.swprintf_hook})
+CALLS = {'Draw': 0x48f830, 'Shadow': 0x491ab0, 'Query1': 0x491300, 'Query2': 0x491300}
+OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 PART, PIXELS = RAM + 0x5000, RAM + 0x8000
 
 
@@ -30,6 +36,7 @@ def s16(r, usual):
 
 
 def case(r):
+    op = r.deal(OPS)
     log = log_region()
     regions = {LOG: log, HEAP: heap(0x800)}
     lang, table, codes, lead = guitext.world(r, log, regions)
@@ -81,14 +88,27 @@ def case(r):
     records = bytearray(r.bytes(32 * 4))
     put(records, 32 * index + 12, 'I', r.choice([8, 8, 16, 24, 32, 0, 1, 15]))
     regions[gauge.FORMAT] = struct.pack('<I', index) + records
-    regions[0xfa71f8] = r.bytes(0x400)
+    palette = bytearray(r.bytes(0x400))
+    if r.random() < 0.5:   # (white and a near white, each red, green, blue)
+        a, b = r.sample(range(0x100), 2)
+        put(palette, 4 * a, 'BBB', 0xff, 0xff, 0xff)
+        put(palette, 4 * b, 'BBB', *r.choice([(0xff, 0xff, 0xfe), (0xfe, 0xff, 0xff), (0xff, 0xfe, 0xff)]))
+    regions[0xfa71f8] = palette
     regions[0xfaa5c0] = struct.pack('<hxxh', r.choice([768, 600, 480, 1536, r.randrange(1, 2000), -768]),
                                     r.choice([1024, 800, 640, 2048, r.randrange(1, 3000), -1024]))
     masks = []
     if entry_font and codes and n == 1:
         masks.append(Mask(tl.VEC16, list(tl.GARBAGE), tl.GARBAGE_WHY))
-    return Call(0x48f830, [PART, r.choice([guitext.WIDE] * 9 + [0])], regions, conv='t', ret='v', masks=masks,
-                ignore=[(guitext.STATE + 0x30, 4)])
+    text = r.choice([guitext.WIDE] * 9 + [0])
+    if op in ('Draw', 'Shadow'):
+        return Call(CALLS[op], [PART, text], regions, conv='t', ret='v', masks=masks, ignore=[(guitext.STATE + 0x30, 4)])
+    regions[0x7ca0a0] = r.bytes(0x10)
+    if op == 'Query2':
+        return Call(0x491300, [PART, 2, text], regions, conv='t', ret='a', masks=masks)
+    m = (struct.unpack_from('<I', body, 0x8c)[0] - tl.VEC8) // 8 if struct.unpack_from('<I', body, 0x88)[0] else 0
+    n = r.choice([0, 1, m - 1, m, m + 1, -1, r.randrange(-3, 10), r.getrandbits(32)]) & 0xffffffff
+    kind = 1 if r.random() < 0.9 else r.choice([0, 3, r.getrandbits(32)])
+    return Call(0x491300, [PART, kind, n], regions, conv='t', ret='a')
 
 
 if __name__ == '__main__':

@@ -90,6 +90,17 @@ void __fastcall TextPart_SetLayout(u8 *part, void *, u32 flags, const u8 *info);
 // called with the surface; the image's (+0x9c) textures freed. An alignment past 2 leaves the original's top as its stack lies.
 void __fastcall TextPart_DrawText(u8 *part, void *, const u16 *text);
 
+// 0x491ab0 (thiscall (text), pops 4; slot 9 of vtable 0x6ff530; name invented): as 0x48f830 without the colour +0xdd, the pixels made the
+// surface first; then the text drawn in grey (0x80 each, the index 0) 2 left and 2 down, then in white (the index 0) in place.
+void __fastcall TextPart_DrawShadowed(u8 *part, void *, const u16 *text);
+
+// 0x491300 (thiscall (kind, arg), pops 8; slot 4 of vtables 0x6ff380 and 0x6ff4d0; name invented): the rectangle 0x7ca0a0 (returned)
+// set by Fn_659dac. Kind 1: the layout's position arg (Get88_6adf80 / Vector8_Count88; past them or negative +0x17c / +0x180), scaled
+// by the screen, as its corner (the far corner 0). Kind 2 with a text: laid out as 0x48f830 (an alignment past 2 the bottom the text's
+// address too), +0xdd 0 the colour +0x4a / +0x49 / +0x48 (alpha 0xff, index 0), 1 Obj_ResetC; measured (TextLayout_Measure) and its
+// box scaled by the screen; the rectangle's word +0xa lowered to +0x1e - +0x1a. Else 0.
+u8 *__fastcall TextPart_Query(u8 *part, void *, u32 kind, u32 arg);
+
 // Slot 3 of the number classes (thiscall (flags, info), pops 8; names after the vtables): without the flag 0x80 TextPart_SetLayout
 // (flags, info); with it the info's dword +0 formatted (0x6acd60 with the table [0x78ba94], a number argument 'MRAV' (n, value, minus)
 // into 0x3f characters on the stack) and that text sent by TextPart_SetLayout's flag 0x100 alone (to slot 9).
