@@ -160,7 +160,7 @@ def case(r):
         w = lambda us: b''.join(c.to_bytes(2, 'little') for c in us) + b'\0\0' + junk()
         a, z = (w(units), w(other)) if r.random() < 0.5 else (w(other), w(units))
         return Call(0x67c290, [A, Z], {A: a, Z: z}, ret='a')
-    if op == 'wcsicmp':   # a wide string and a copy with case flips, a changed unit or a cut
+    if op in ('wcsicmp', 'wcsnicmp'):   # a wide string and a copy with case flips, a changed unit or a cut
         units = [r.choice([r.randrange(0x20, 0x7f), r.choice(b'@AZ[`az{'), 0xc9, 0xe9, 0x141, 0x161, 0xff21, 0xff41, 0xffff, r.randrange(1, 0x10000)])
                  for _ in range(r.choice([0, 1, r.randrange(8), r.randrange(30)]))]
         other = [c ^ 0x20 if r.random() < 0.4 and (c & ~0x20) in range(0x40, 0x5c) or c > 0xff and r.random() < 0.2 else c for c in units]
@@ -170,6 +170,9 @@ def case(r):
             other = other[:r.randrange(len(other) + 1)]
         w = lambda us: b''.join(c.to_bytes(2, 'little') for c in us) + b'\0\0' + junk()
         a, z = (w(units), w(other)) if r.random() < 0.5 else (w(other), w(units))
+        if op == 'wcsnicmp':   # at most n units: n 0, below, at or past the change or the ends
+            n = r.choice([0, 1, 2, r.randrange(8), r.randrange(40), len(units), len(units) + 1, 0xffffffff])
+            return Call(0x67c8d0, [A, Z, n], {A: a, Z: z}, ret='a')
         return Call(0x67b140, [A, Z], {A: a, Z: z}, ret='a')
     if op == 'swprintf':   # wide: %s takes a wide string, %c a wide char
         fmt, args = b'', []
@@ -199,7 +202,7 @@ def case(r):
 CLASSES = {'isalpha': 0x67a530, 'isdigit': 0x67a560, 'isspace': 0x67a590, 'isalnum': 0x67a5c0}
 KINDS = ['stricmp', 'strrchr', 'strchr', 'strncmp', 'strstr', 'toupper', 'tolower', 'atoi', 'wcslen', 'sprintf', 'strncpy', 'iswspace',
          'isalpha', 'isdigit', 'isspace', 'isalnum', 'atof', 'swprintf', 'wcsncpy', 'wcsicmp', 'wcscpy', 'wcscat', 'wcscmp',
-         'strcmp']
+         'strcmp', 'wcsnicmp']
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 if __name__ == '__main__':
