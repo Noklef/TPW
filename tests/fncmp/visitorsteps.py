@@ -5,13 +5,14 @@
 # Object_AnyQueueSpot 8 of 4 (writing the cell and the spot). The park: thingenv.py's things and slots (handles 1-11, kinds 3 mostly),
 # ridelist.py's ride records (the things' +0x24 their ids, element 1 the one asked for), the world [0x80239c] (its seed, +0x1da70c / 710,
 # the handles +0x1da72a / 72c / 732, the count +0x2d0); the balance positions 0x78559c - 0x7855e8 (ticket booths, bus stop, entrances,
-# crossings) small, the visitor standing on one of them now and then; the mark word of the visitor's cell ([0x8023a0] + cell * 0x44 - 0x20)
+# crossings) small (near the map's top or bottom rows now and then), the visitor standing on one of them now and then (Arrive: the booths
+# mostly, Go / Stop: the bus stop's four cells); the mark word of the visitor's cell ([0x8023a0] + cell * 0x44 - 0x20)
 # its handle mostly.
 #   Arrive (0x4ff7f0): +0x1da710 0 mostly, the ride element 1 mostly; the countdown +0x200 and +0x204 set or not.
 #   Leave (0x500900): the walk's answer 0 mostly (or 2, 1); the pending +0x1de 0 or a handle (kind 3 mostly), the back of its queue 0 or a cell.
 #   Go (0x500ad0) and Stop (0x500bd0): Game_PollRideElement1's and Game_TakeRideElement1's worlds (ridelist.py's), the arrival handles equal
 #   or not.
-#   Queue (0x501160): the object +0x1dc any handle, its queue place -1 or small, the spot any.
+#   Queue (0x501160): the object +0x1dc any handle, its queue place -1, small or negative, the spot any.
 # usage: visitorsteps.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Arrive,Leave,Go,Stop,Queue)
 import os
 import struct
@@ -85,15 +86,16 @@ def case(r):
                 'Stop': [4, 4, 4, 1, 2, 3, 6, 0, 0xffffffff]}.get(name, [1, 6])
     rides(r, regions, handles, elements)
     # (the balance positions: small, near one another)
-    bx, by = r.randrange(2, 120), r.randrange(2, 120)
+    bx, by = r.randrange(2, 120), r.choice([r.randrange(2, 120), r.randrange(2, 120), 0, 1, 126, 127])
     pos = [(bx + r.randrange(-2, 3), by + r.randrange(-2, 3)) for _ in range(10)]
-    regions[0x78559c] = struct.pack('<20I', *[v for p in pos for v in p])
+    regions[0x78559c] = struct.pack('<20i', *[v for p in pos for v in p])
     # (the visitor: on a position now and then (the bus stop's neighbours too), its handle word one of the park's)
     v = bytearray(r.bytes(0x240))
     me = r.choice(handles) if r.random() < 0.7 else r.getrandbits(16)
     put(v, 0, 'H', me)
     stop = cell_of(*pos[2])
-    spots = [cell_of(*p) for p in pos] + [stop, stop + 1, stop - 0x100, stop - 0xff] * 2
+    spots = {'Arrive': [cell_of(*pos[0]), cell_of(*pos[1])] * 3 + [cell_of(*p) for p in pos],
+             'Go': [stop, stop + 1, stop - 0x100, stop - 0xff], 'Stop': [stop, stop + 1, stop - 0x100, stop - 0xff]}.get(name, [stop])
     if r.random() < 0.6:
         c = r.choice(spots) - 1
         v[5], v[7] = c & 0x7f, (c >> 7) & 0xff
@@ -111,7 +113,7 @@ def case(r):
     set_return(log, 1, r.choice([0, 0, 0, 2, 1, 3]))
     set_return(log, 2, r.choice([0, 1, 1]))
     set_return(log, 3, r.choice([0, 1, 1]))
-    set_return(log, 7, r.choice([0xffffffff, 0, 1, 2, 5, 0x100]))
+    set_return(log, 7, r.choice([0xffffffff, 0, 1, 2, 5, 0x100, 0xfffffffe, 0x80000000]))
     strings(log, 6, 0, out=1)
     fill(log, 6, 0, struct.pack('<H', r.choice([0, r.getrandbits(16), r.getrandbits(16)])), which=0)
     strings(log, 8, 0, out=0xe)
