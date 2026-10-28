@@ -985,6 +985,16 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x0070aba8, 19},   // the filters' slots SoundStream_SeekTime calls: SoundStream_BuildChain's; slot 5 of
                                    {0x0070a678, 19},   // 0x70abf8, 0x6c6e50, is not hooked)
                                    {0x0070ac50, 21},   // the sample stream's (slot 15 Obj_SetRateBits20: SoundStream_SetFormat's in SoundSample_Ctor)
+                                   {0x0070a6f8, 20},   // the samples the sample factory (ChannelVoices_CreateStream) makes: memory,
+                                   {0x0070ae30, 24},   // MP2 memory (slot 20 the empty 0x5da3c0),
+                                   {0x0070ae90, 24},   // MP2 streamed,
+                                   {0x0070ad60, 21},   // voice-coded memory,
+                                   {0x0070adc0, 21},   // voice-coded streamed,
+                                   {0x0070acf0, 20},   // file (slots 0-19);
+                                   {0x0070a6c8, 12},   // the streams it chains in front: 0x70a6c8 (the play's 0x800) and
+                                   {0x0070a748, 12},   // the notify stream (SoundStream_BuildChain's);
+                                   {0x0070a7a8, 13},   // the channel voice they hang off (ChannelVoice_Release's, the reads');
+                                   {0x0070aa34, 1},    // the memory samples' plain copier ([0xfb2018], SoundSample_ReadMemory's)
                                    {0x006fe980, 12},   // CMMOnline's (slot 10 Debug_Nop_46cfb0, which MouseMode_Set calls on the new mode; 11 its leave)
                                    {0x006fea10, 12},   // CMMOnline's base (slots 0, 9 and 11 MouseMode_Set's; 0x481a10 / 0x485b70 make it)
                                    {0x006fea70, 12},   // MMStaffDrop's (slots 9, 10 AssignDrop: MouseMode_Set's on the mode 0x5054d0 makes)
