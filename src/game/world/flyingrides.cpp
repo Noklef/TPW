@@ -561,3 +561,15 @@ void __cdecl FlyingRide_SetMode(s32 index, s32 mode) {
     }
 }
 }
+
+extern "C" void __cdecl FlyingRide_Free(s32 index) {
+    if (!record(index)) return;
+    for (u32 i = 0; i < 20; ++i) {
+        if (!at<u32>(slot(table()[index], i), 0x80)) continue;
+        for (u32 n = (u32)magnitude(at<s32>(slot(table()[index], i), 0x8c)); n != 0; --n)   // (the table re-read each step)
+            release(slot(table()[index], i), (s32)n);
+        FlyingRide_ClearSlot(index, i);
+    }
+    Mem_GlobalFree(table()[index]);
+    reinterpret_cast<u8 **>(0x008791f8)[index] = nullptr;
+}
