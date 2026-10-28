@@ -222,4 +222,23 @@ void __cdecl CoasterLink_SetUpCars(const u8 *train, u8 *link, u32 quiet);
 // +0x130, +0x128 (left set) and +0x12c freed, its children disposed (Owner_DisposeChildren), its entries freed (CoasterLink_FreeEntries),
 // the link taken off the list (the walk goes on past it), its two rings (+0xb0, +0xd0) freed and the link itself (GlobalMem_Free).
 void __cdecl CoasterLink_Destroy(u32 id);
+// 0x434060 (cdecl (train, a, b, height, flags, desc, half, slot, claim); name invented, unconfirmed): a new car piece (0x104 bytes,
+// GlobalMem_Alloc zeroed) for the current link (0x790fec, from its +0x3c: L), returned. Flags 2 (spare): its +8 gets 0x2000. Unless desc's
+// +0 has 0x4000 (wide) or spare, L+0x20 = it. With L's 2: put after L+0x24 (P: its +8 loses 0x50000, the piece's gains it; the piece's
+// +0x68 = P, +0x64 = P's +0x64, both linked back), else spare: L+0x30 = it, else appended to L+0x18 / +0x1c (first / last; +0x64 next,
+// +0x68 previous); L+0x24 = it but when spare without L's 2. Not spare: +0 = L+8 and +0x6c that as a float. L's 2: TrackPieces_Renumber.
+// Wide: +8 |= 0x60 (half) or 0xe0. Train's +4 with 1: +0x4c = a, +0x54 = b, +0x50 = height and a coupling of one at +0x78 (+0x7c the
+// piece's +0xc) and one 0x58-byte seat (zeroed) at +0x84 (+0x88 = +0x7c's, +0x8c the seat, +0x90 = +0x78), whose +0x10s = the piece.
+// Otherwise: +0xf8 = 0.5 (wide and half) or 0; 0x791ce8 / 0x791cec = the train's +0xc / +0x10, 0x791050 / 0x791054 = desc +0xb4 / +0xb8,
+// 0x791cf0 = 0, 0x791cf4 = 0x791050; +0x70 = flags 1 ? Ride_Claim (claim, desc+0x14, 0x3fa, 0x791ce8, 0, 0, 0, 0) : the env's 0x463060
+// (desc+0x14, 0x3fa, 0x791ce8, 0, 0, 0, 0, 0, -1, 0); that ride (0x7a4610) gets +4 |= 0x80000, +0xd4 = the piece; for i in 0..4 with desc
+// +0 having 0x20 << i and the ride's byte (bank + 2) * 0xc having 1 or 2 (bank 0x74ca70[i]), Layer_Play (ride, bank, 0x74ca88[i], its +0x10
+// + 0x38 i, 0, 1.0); +4 |= 0x1000; its holder's (+0x10) +0x20 = +0x1c times v (x87), v = +0xe8 desc+0xd8 + desc+0xdc held to desc
+// +0xd0 (below or unordered) .. desc+0xd4; Car_SetupCoupling (the piece, +0x78, desc + 0x30, desc), with desc's 8 again for +0x84 and
+// desc + 0x44; flags without 6: L |= 4. Then flags 8 / 0x10 / 0x20 / 0x40 / 0x80 / 0x100 set +8's 0x200 / 0x400 / 0x1800 / 0x80000 /
+// 0x40000 / 0x100000; flags 0x200 without 1: Map_SetRideCell (link +0x28, the train's +0xc, +0x10, +0x70, flags & 0x10). Not spare:
+// Train_InsertCar (the link, the piece, train, slot, height, 0, 0, flags & 1, 0, flags & 4); without flags 4, when the train's +0x18 is
+// set and lacks 0x4000 (its +0), the link's +0x118 = height (fld / fstp); L+8 counts up and from 2 L+0xc gains 1.0 (0x6fde9c, -1,
+// subtracted). Without flags 1 +8 |= 0x200000, and +0x68's too when there is one.
+u8 *__cdecl CoasterLink_AddCar(u8 *train, u32 a, u32 b, float height, u32 flags, const u8 *desc, u32 half, u32 slot, u32 claim);
 }
