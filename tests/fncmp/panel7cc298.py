@@ -13,8 +13,12 @@
 # the count's end, +0x68 0 or not) and for the rating (+0x4ac 2 a sideshow, else a ride without a track: never a coaster), its cell
 # (bytes +5 / +7) with analyser.py's people about it for radius 1, the game's +0x1da720 a slot of 0x7cfb90; the panel's +8 one of the
 # statuses or any, its settings +0x24 / +0x28 / +0x2c about 0-100 or any. The formatter 0x6acd60 the log stub with its two number
-# arguments hashed (text_args()).
-# usage: panel7cc298.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Update,Stats)
+# arguments hashed (text_args()). The two surviving mutants of the cell id's upper half (0, or the slot of another sum) are equivalent:
+# ParkAnalyser_AveragePersonStat19c reads the cell's low word only.
+# Stats7cc258 (0x4b01d0, slot 5 of the panel 0x7cc258's vtable 0x6ffc68, src/game/ui/panel7cc258): the same world with that panel's
+# children 0xc070 / 0xc076-0xc079 / 0xc07c / 0xc07d (always there) among its decoys, the definition's kind +0x158 for
+# Object_SettingsValue (1 / 3 negating its second setting) 0-3 or any.
+# usage: panel7cc298.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Update,Stats,Stats7cc258)
 import os
 import struct
 import sys
@@ -32,12 +36,13 @@ from language import text  # noqa: E402
 from window import RANGES as WINDOW_RANGES, shown_env  # noqa: E402
 from window705a50 import EVENT_MASK, INNER, NOTIFY_MASK, RANGES as BUTTON_RANGES, look, window as button  # noqa: E402
 
-CALLS = {'Update': 0x4b1ee0, 'Stats': 0x4b16c0}
+CALLS = {'Update': 0x4b1ee0, 'Stats': 0x4b16c0, 'Stats7cc258': 0x4b01d0}
 STATS_RANGES = [(0x412e90, 0x412f00), (0x43e0b0, 0x43e0f0), (0x441910, 0x441980), (0x485f60, 0x4861e0), (0x495cf0, 0x495d70), (0x4b16c0, 0x4b1b60),
                 (0x4cd880, 0x4cd9d0), (0x4dd4e0, 0x4dd510), (0x4de4a0, 0x4de680), (0x4e0220, 0x4e03a0), (0x4e03d0, 0x4e0400), (0x4e0440, 0x4e0460),
                 (0x4e0560, 0x4e0870), (0x4e1c70, 0x4e1e10), (0x4e1e30, 0x4e2190), (0x4e2290, 0x4e2450), (0x4e2710, 0x4e2750), (0x4f8690, 0x4f8740),
                 (0x509990, 0x5099b0), (0x519450, 0x5194a0), (0x519510, 0x519560), (0x545310, 0x545460), (0x55a4e0, 0x55a540), (0x5fc550, 0x5fc580),
-                (0x65d7bc, 0x65d832), (0x67c320, 0x67c3e0), (0x6acb70, 0x6accb0), (0x6acd60, 0x6ace70), (0x6b00e0, 0x6b0140), (0x5da3c0, 0x5da3c1)]
+                (0x65d7bc, 0x65d832), (0x67c320, 0x67c3e0), (0x6acb70, 0x6accb0), (0x6acd60, 0x6ace70), (0x6b00e0, 0x6b0140), (0x5da3c0, 0x5da3c1),
+                (0x4b01d0, 0x4b063e), (0x436860, 0x436890), (0x4e1a30, 0x4e1b50), (0x506580, 0x506660), (0x50b350, 0x50b370)]
 B = Bench(merged([(0x4b1ee0, 0x4b20a4), (0x4e0440, 0x4e0450), (0x4e21b0, 0x4e21b7), (0x4e1a00, 0x4e1a07), (0x4e1a10, 0x4e1a17), (0x4dd4e0, 0x4dd4fb),
                   (0x412e90, 0x412eea), (0x485b00, 0x485b40), (0x6adc80, 0x6add25), (0x6ace60, 0x6acea0)] + WINDOW_RANGES + BUTTON_RANGES
                  + STATS_RANGES + CLOCK_RANGES), hooks={0x6acd60: _cdecl_log4})
@@ -88,6 +93,8 @@ def texts(r, regions, first=0x33, n=2, buffer=None):
 
 STATS_IDS = [0xa09d, 0xa096, 0xa093, 0xa092, 0xa099, 0xa094, 0xa0a0, 0xa09e]
 OPTIONAL = {0xa096, 0xa093, 0xa092, 0xa099, 0xa094}
+# the panel 0x7cc258's (Stats7cc258): (its children, their decoys); none of them checked
+STATS258_IDS = ([0xc070, 0xc076, 0xc077, 0xc079, 0xc078, 0xc07d, 0xc07c], [0, 0xc071, 0xc075, 0xc07a, 0xc07b])
 GAME = 0x32000000
 
 
@@ -101,8 +108,8 @@ def ring(r, thing, at):
     put(thing, at + 0x7c, 'iiB', cursor, size, r.choice([0, 1, 1, r.getrandbits(8)]))
 
 
-def stats_case(r):
-    """Stats' world (the module comment)"""
+def stats_case(r, op='Stats'):
+    """Stats' (or Stats7cc258's) world (the module comment)"""
     thing = bytearray(r.bytes(0x400))
     regions = {}
     clock(r, regions, thing)   # (its log the case's)
@@ -112,6 +119,7 @@ def stats_case(r):
         ring(r, thing, at)
     item = defs(r, regions, thing, 0x500)
     put(thing, 0x28, 'I', 0)   # (no track: the rating's ride path without the pieces)
+    put(item, 0x158, 'i', r.choice([0, 1, 2, 3, -1, r.getrandbits(31)]))
     route = r.choice(['3', '19', 'end'])
     put(item, 0x4ac, 'i', r.choice([2, 2, 0, 1, 7]) if route != 'end' else r.choice([2, 1, 7]))
     put(item, 0x9c, 'i', {'3': r.choice([0, 1, 2, 5]), '19': r.choice([1, 2]), 'end': r.choice([0, 5])}[route])
@@ -131,12 +139,13 @@ def stats_case(r):
     regions[0x7c2658] = struct.pack('<I', THING)
     regions[0x78ba94] = struct.pack('<I', r.getrandbits(32))
     regions[0x7ba058] = bytes([0x55]) * 0x40
-    kids = [(KIDS + 0x200 * k, ident) for k, ident in enumerate(STATS_IDS) if ident not in OPTIONAL or r.random() < 0.85]
+    ids, decoys = (STATS_IDS, [0, 0xa08b, 0xa0a4, 0xa08d, 0xa091]) if op == 'Stats' else STATS258_IDS
+    kids = [(KIDS + 0x200 * k, ident) for k, ident in enumerate(ids) if ident not in OPTIONAL or r.random() < 0.85]
     for addr, _ in kids:
         window(r, regions, addr, ROOT, 0)
     regions[KVTABLE] = vtable({7: 1, 9: 1})
     window(r, regions, ROOT, 0, 0)
-    put(regions[ROOT], 0x5c, 'I', children(r, regions, kids, ROOT, DECOYS, [0, 0xa08b, 0xa0a4, 0xa08d, 0xa091]))
+    put(regions[ROOT], 0x5c, 'I', children(r, regions, kids, ROOT, DECOYS, decoys))
     panel = bytearray(r.bytes(0x40))
     put(panel, 0, 'I', PANEL + 0x40)
     put(panel, 8, 'I', r.choice([0, 1, 3, 0x19, r.getrandbits(32)]))
@@ -145,12 +154,13 @@ def stats_case(r):
         put(panel, off, 'i', r.choice([0, 50, 100, r.randrange(-20, 130), r.getrandbits(32) - (1 << 31)]))
     regions[PANEL] = panel
     regions[PANEL + 0x40] = vtable({})
-    return Call(CALLS['Stats'], [PANEL], regions, conv='t', ret='v')
+    return Call(CALLS[op], [PANEL], regions, conv='t', ret='v')
 
 
 def case(r):
-    if r.deal(OPS) == 'Stats':
-        return stats_case(r)
+    op = r.deal(OPS)
+    if op != 'Update':
+        return stats_case(r, op)
     log = log_region()
     regions = {LOG: log}
     wins = shown_env(r, regions, log)
