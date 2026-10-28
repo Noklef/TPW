@@ -1232,8 +1232,11 @@ int main(int argc, char **argv) {
     Things_SetDeleteEnv(&kThingDeleteEnv);
     Things_SetMessageEnv(&kThingMessageEnv);
     Staff_SetAdviceEnv(&kStaffAdviceEnv);
-    // Staff_WalkToRestArea's step: Sprite_WalkNav the thiscall recorder 28 of 0, as tests/fncmp/staffstate.py hooks 0x4fa2a0.
-    static const StaffWalkEnv staffWalkEnv = {reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)recorder(28, 0))};
+    // Staff_WalkToRestArea's and Staff_Dismiss's calls: Sprite_WalkNav, Sprite_SpawnParticle and Thing_Delete the thiscall recorders 28 of
+    // 0, 29 of 1 and 30 of 0, as tests/fncmp/staffstate.py hooks 0x4fa2a0, 0x4fa470 and 0x50b780.
+    static const StaffWalkEnv staffWalkEnv = {reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)recorder(28, 0)),
+                                              reinterpret_cast<void(__fastcall *)(u8 *, void *, s32)>((uintptr_t)recorder(29, 1)),
+                                              reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(30, 0))};
     Staff_SetWalkEnv(&staffWalkEnv);
     Rides_SetEnv(&kRidesEnv);
     CoasterLinks_SetEnv(&kCoasterLinksEnv);
