@@ -29,4 +29,8 @@ u32 __fastcall AdvisorScoring_Save(u8 *scoring, void *, const u32 *chunk);
 
 // 0x4053b0: sets +0xa, +0xb, +0x9; returns the object.
 u8 * __fastcall CheatSystem_Construct(u8 *o);
+
+// 0x4053c0 (thiscall (on), pops 4; name invented, unconfirmed): the byte +0xa set to on's low byte; when that is set, a message 0x15 of it
+// (ThingMsg15 on the stack) posted to the message centre (MessageCentre_Instance, inlined: made on the first call; MessageCentre_Post).
+void __fastcall CheatSystem_SetOn(u8 *cheats, void *, u32 on);
 }

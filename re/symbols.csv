@@ -72,6 +72,7 @@ address,name,kind,confidence,notes
 0x004053b0,CheatSystem_Construct,function,high,"reimplemented (src/game/core/cheatmodule); sets +0xa, +0xb, +0x9; returns the object"
 0x0059c860,AdvisorScoring_Load,function,high,reimplemented (src/game/core/cheatmodule); the advisor scoring's first dword read from a chunk's stream
 0x0059c890,AdvisorScoring_Save,function,high,reimplemented (src/game/core/cheatmodule); the advisor scoring's first dword written to a chunk's stream
+0x004053c0,CheatSystem_SetOn,function,low,"reimplemented (src/game/core/cheatmodule); the cheats switched on or off, a message 0x15 posted when on"
 0x0059bea0,AdvisorScoring_Construct,function,medium,reimplemented (src/game/core/balancefile); thiscall: gAdvisorScoring's file laid out (vtable 0x6fd958) and data/advisor/advisor.sam loaded; returns the object
 0x00481680,UI_Load,function,high,"reimplemented (src/game/ui/msgtags); stdcall (stream): message 5 to the tags' windows, then MsgTags_Load's 0"
 0x004816a0,UI_Save,function,high,"last module; original logs 'UI: loaded' here (copy-paste bug)"
