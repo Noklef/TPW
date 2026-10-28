@@ -81,6 +81,7 @@
 #include "../../src/game/sprite/draw.h"
 #include "../../src/game/sprite/script.h"
 #include "../../src/game/ui/cursor.h"
+#include "../../src/game/ui/uimessage.h"
 #include "../../src/game/world/advisorscore.h"
 #include "../../src/game/world/research.h"
 #include "../../src/game/model/holder.h"
@@ -1209,6 +1210,15 @@ int main(int argc, char **argv) {
     // The chat player's step (ChatPlayer_StepWalk): Sprite_WalkNav the thiscall recorder 5 of 0, as tests/fncmp/chatavatar.py hooks 0x4fa2a0.
     static const ChatAvatarEnv chatAvatarEnv = {reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)recorder(5, 0))};
     ChatAvatar_SetEnv(&chatAvatarEnv);
+    // The interface object's message handler (UiObject_HandleMessage): what 0x7b51f0 is told the thiscall recorders 1-6, as tests/fncmp/uimessage.py
+    // hooks 0x481af0, 0x481520, 0x481530, 0x4818c0, 0x481920 and 0x481960.
+    static const UiMessageEnv uiMessageEnv = {reinterpret_cast<void(__fastcall *)(void *, void *, u8)>((uintptr_t)recorder(1, 1)),
+                                              reinterpret_cast<void(__fastcall *)(void *, void *, u32)>((uintptr_t)recorder(2, 1)),
+                                              reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)recorder(3, 1)),
+                                              reinterpret_cast<void(__fastcall *)(void *, void *, u32)>((uintptr_t)recorder(4, 1)),
+                                              reinterpret_cast<void(__fastcall *)(void *, void *, u32)>((uintptr_t)recorder(5, 1)),
+                                              reinterpret_cast<void(__fastcall *)(void *, void *, u32, u32)>((uintptr_t)recorder(6, 2))};
+    UiMessage_SetEnv(&uiMessageEnv);
     QueuePieces_SetEnv(&kQueuePiecesEnv);
     PathDrag_SetEnv(&kPathDragEnv);
     Demolish_SetEnv(&kDemolishEnv);
