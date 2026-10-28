@@ -135,8 +135,10 @@ Only the agent assigned to them reads docs/porting-libraries.md; everyone else l
 ## Merging a branch (lead)
 In the main tree, one branch at a time:
 1. `git merge --no-ff --no-commit port/X`.
-2. Resolve conflicts in the tables: `python -I tools/merge/keepboth.py FILES` first (add/add hunks; it refuses a hunk whose sides share a
-   key), then `python -I tools/merge/unionmerge.py FILES` for the hunks left. Resolve anything else by hand. `git add` the resolved files.
+2. `python -I tools/merge/tables.py`: resolves and `git add`s the conflicts in re/symbols.csv, src/hook/hooks.cpp and CMakeLists.txt
+   (rows by key; a symbols row both sides changed keeps the "reimplemented" one), lists duplicate addresses and names, and names the
+   files left. Resolve those by hand (keepboth.py / unionmerge.py help with other tables) and `git add` them. A function both sides
+   ported shows as a hooks.cpp hunk left and a duplicate address: keep one port.
 3. `python -I tools/merge/check.py port/X`: no conflicts left, nothing either side had is lost (benches, hooks rows, symbols, CMake),
    no duplicates or lone CRs, the branch's added hooks count, then build, tpw_tests, retcheck, convcheck and every touched bench at 1000
    cases --both. It stops at the first failure. Check the agent's reported function count against its hooks count.
