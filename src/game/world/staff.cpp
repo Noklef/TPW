@@ -753,9 +753,8 @@ void __fastcall Staff_HandleMessage(u8 *staff, void *, u8 *message) {
 }
 
 namespace {
-using SumFn = s32(__fastcall *)(u8 *, void *, u32);
-s32 __fastcall game_sumA(u8 *record, void *, u32 n) { return reinterpret_cast<SumFn>((uintptr_t)0x004c8180)(record, nullptr, n); }
-s32 __fastcall game_sumB(u8 *record, void *, u32 n) { return reinterpret_cast<SumFn>((uintptr_t)0x004c8150)(record, nullptr, n); }
+s32 __fastcall game_sumA(u8 *record, void *, u32 n) { return (s32)ParkAnalyser_CountWith2c(record, nullptr, n); }
+s32 __fastcall game_sumB(u8 *record, void *, u32 n) { return (s32)ParkAnalyser_CountType1Or3Or9(record, nullptr, n); }
 const StaffAdviceEnv kGameAdviceEnv = {&game_sumA, &game_sumB};
 const StaffAdviceEnv *g_advice = &kGameAdviceEnv;
 const u32 kKindHeads[5] = {0x1da73c, 0x1da73e, 0x1da740, 0x1da744, 0x1da742};
