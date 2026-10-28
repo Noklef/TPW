@@ -660,10 +660,12 @@ def fill_arg(log, k, arg, source, which=0):
     struct.pack_into('<3I', log, at, (k & 63) | 0x80000000, arg, 0x80000000 | source)
 
 
-def blob(log, k, arg, mask):
+def blob(log, k, arg, mask, only_when=False):
     """Makes slot k's recorder log its argument `arg` (unless null) as a hash of the dwords it points to that `mask` selects (bit i: dword i), not its
-    address: a structure on the stack that the code under test only partly sets (the rest is stack garbage that differs between the sides)."""
-    struct.pack_into('<II', log, LOG_BLOBS + 8 * (k & 63), arg + 1, mask)
+    address: a structure on the stack that the code under test only partly sets (the rest is stack garbage that differs between the sides).
+    only_when: logged as 0 unless one of the slot's blob_when() entries matches the call: an optional trailing argument, stack garbage when
+    it is not passed (a format with or without its argument)."""
+    struct.pack_into('<II', log, LOG_BLOBS + 8 * (k & 63), arg + 1 | (0x40000000 if only_when else 0), mask)
 
 
 def blob_when(log, k, arg, value, mask, entry=0, deref=False):
@@ -797,13 +799,14 @@ def _log_args(e, k, raw, kk):
     earlier = logged_calls(e.read, kk)
     fills = [(_fill_at(f),) + struct.unpack('<4I', e.read(_fill_at(f), 16)) for f in range(FILLS)]
     blob_arg, blob_mask = struct.unpack('<2I', e.read(LOG + LOG_BLOBS + 8 * (k & 63), 8))
+    matched = False   # (blob(only_when=True): logged as 0 unless a blob_when() matches)
     for w in range(4):   # (blob_when(): the mask for this call's argument; blob_when_inner(): the second structure's selection)
         wk, wa, wv, wm = struct.unpack('<4I', e.read(LOG + LOG_BLOB_WHEN + 16 * w, 16))
         if wa >= 0x200 or wa & 0xff >= n:   # (the argument's bit 8: the dword it points to, blob_when()'s deref; a null one matches nothing)
             continue
         got = raw[wa & 0xff] if not wa & 0x100 else e.u32(raw[wa & 0xff]) if raw[wa & 0xff] else None
         if wk == (k & 63) | 0x80000000 and got == wv:
-            blob_mask = wm
+            blob_mask, matched = wm, True
         elif wk == (k & 63) | 0xc0000000 and got == wv:
             blob_arg = (blob_arg & 0x8000001f) | (wm & 0x7fffffe0)
     for i in range(n):
@@ -822,7 +825,9 @@ def _log_args(e, k, raw, kk):
                     skip = earlier % records * length if records > 1 else 0
                     if skip + length <= 0x70:
                         e.write(to, e.read(at + 0x10 + skip, length))
-        if (blob_arg & 0x1f) == i + 1 and args[i]:
+        if (blob_arg & 0x1f) == i + 1 and args[i] and (blob_arg & 0xc0000000) == 0x40000000 and not matched:
+            args[i] = 0
+        elif (blob_arg & 0x1f) == i + 1 and args[i]:
             args[i] = blob_bytes_hash(e.read, args[i], blob_arg, blob_mask, _blob_wide(e, k)) if blob_arg & 0x80000000 else blob_hash(e.read, args[i], blob_mask)
         if mask >> i & 1:
             args[i] = string_hash(e.read, args[i])

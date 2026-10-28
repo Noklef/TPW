@@ -79,6 +79,7 @@
 #include "../../src/game/gfx/tga.h"
 #include "../../src/game/render/engineerrors.h"
 #include "../../src/game/online/chatavatar.h"
+#include "../../src/game/online/chatcommand.h"
 #include "../../src/game/sprite/draw.h"
 #include "../../src/game/sprite/script.h"
 #include "../../src/game/ui/cursor.h"
@@ -530,6 +531,12 @@ const CellKindEnv kCellKindEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((ui
                                   reinterpret_cast<u32(__cdecl *)(s32, s32, u32)>((uintptr_t)jpeg_recorder(27, 3))};
 // The coaster links' call into agent B's unported 0x463060: the cdecl recorder 30 of 10 arguments, as tests/fncmp/linkcars.py hooks it.
 const CoasterLinksEnv kCoasterLinksEnv = {reinterpret_cast<u32(__cdecl *)(u32, u32, const u32 *, u32, u32, u32, u32, u32, s32, u32)>((uintptr_t)jpeg_recorder(30, 10))};
+// The chat commands' calls (src/game/online/chatcommand), as tests/fncmp/chatcommand.py hooks them: Charset_FormatWide the cdecl recorder
+// 25 of 5 (a 4-argument call's fifth is stack garbage, which the bench hashes away); agent B's 0x4051d0 the stand-in ChatCommand_AssignChars
+// (0x4ec030's own inlined copy of it; the bench runs B's original); B's 0x5d3230 and 0x5b50b0 the thiscall recorders 21 of 2 and 22 of 0;
+// Window7cc8bc_ChatAddStd the COM-style (stdcall) recorder 24 of 2; B's 0x47f020 the cdecl recorder 26 of 8.
+const ChatCommandEnv kChatCommandEnv = {Rec{jpeg_recorder(25, 5)}, &ChatCommand_AssignChars, Rec{recorder(21, 2)},
+                                        Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 24}, Rec{recorder(22, 0)}, Rec{jpeg_recorder(26, 8)}};
 // The cell messages' calls into agent A's unported 0x527ee0 and 0x52f580: the cdecl recorders 27 of 3 and 28 of 2, as
 // tests/fncmp/cellmessage.py hooks them.
 const CellMessageEnv kCellMessageEnv = {reinterpret_cast<void(__cdecl *)(s32, s32, u32)>((uintptr_t)jpeg_recorder(27, 3)),
@@ -670,6 +677,7 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
         if ((blob[0] & 0x1f) == i + 1 && args[i]) {
             const u8 *const p = reinterpret_cast<const u8 *>((uintptr_t)args[i]);
             u32 blob_mask = blob[1], how = blob[0];
+            bool matched = false;  // (fncmp.blob(only_when=True), bit 30 of a dword blob's first dword: logged as 0 unless a blob_when() matches)
             for (u32 w = 0; w < 4; ++w) {  // (at + 0xf80, fncmp.blob_when(): (k | 0x80000000, argument, value, mask), the mask for this call's argument;
                                            // fncmp.blob_when_inner(): k | 0xc0000000 and the second structure's selection, bits 5-30 of how)
                 const u32 *const when = log + 0x3e0 + 4 * w;
@@ -680,13 +688,15 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
                     value = *reinterpret_cast<const u32 *>((uintptr_t)value);
                 }
                 if (value != when[2]) continue;
-                if (when[0] == ((k & 63) | 0x80000000u)) blob_mask = when[3];
+                if (when[0] == ((k & 63) | 0x80000000u)) blob_mask = when[3], matched = true;
                 else if (when[0] == ((k & 63) | 0xc0000000u)) how = (how & 0x8000001fu) | (when[3] & 0x7fffffe0u);
             }
             const u32 *wide = nullptr;
             for (u32 w = 0; w < 2; ++w)
                 if (log[0x3f0 + 4 * w] == ((k & 63) | 0x80000000u)) wide = log + 0x3f0 + 4 * w;
-            args[i] = how & 0x80000000u ? blob_bytes_hash(p, how, blob_mask, wide) : blob_hash(p, blob_mask);
+            args[i] = (how & 0xc0000000u) == 0x40000000u && !matched ? 0
+                      : how & 0x80000000u                         ? blob_bytes_hash(p, how, blob_mask, wide)
+                                                                  : blob_hash(p, blob_mask);
         }
         if (mask >> i & 1) args[i] = string_hash(reinterpret_cast<const u8 *>((uintptr_t)args[i]));
         if (mask >> (16 + i) & 1) args[i] = 0;
@@ -1253,6 +1263,7 @@ int main(int argc, char **argv) {
     // The chat player's step (ChatPlayer_StepWalk): Sprite_WalkNav the thiscall recorder 5 of 0, as tests/fncmp/chatavatar.py hooks 0x4fa2a0.
     static const ChatAvatarEnv chatAvatarEnv = {reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)recorder(5, 0))};
     ChatAvatar_SetEnv(&chatAvatarEnv);
+    ChatCommand_SetEnv(&kChatCommandEnv);
     // The interface object's message handler (UiObject_HandleMessage): what 0x7b51f0 is told the thiscall recorders 1-6, as tests/fncmp/uimessage.py
     // hooks 0x481af0, 0x481520, 0x481530, 0x4818c0, 0x481920 and 0x481960.
     static const UiMessageEnv uiMessageEnv = {reinterpret_cast<void(__fastcall *)(void *, void *, u8)>((uintptr_t)recorder(1, 1)),
