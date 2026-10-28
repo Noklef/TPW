@@ -231,7 +231,7 @@ address,name,kind,confidence,notes
 0x004e2c10,CircBufU32_30_Serialize,function,high,"reimplemented (src/game/core/circbuf); ring buffer of 30 u32 (mTemp, mData[30], mCurrentEntry, mNumEntries, mWrappedAround); 6 per Object; the entries while i < mNumEntries (unbounded, sic)"
 0x00516380,World_Tick,function,medium,"increments the tick counter at +0x1da70c and calls Thing_Update for every live thing (skips things whose byte +3 is set)"
 0x0050b360,Thing_Update,function,high,per-tick dispatch on Thing.model (byte +2); most models call an Update and a PostUpdate method
-0x0050b550,Thing_HandleMessage,function,high,"dispatch on Thing.model to the model's message handler; called from the message centre (0x40fb10)"
+0x0050b550,Thing_HandleMessage,function,high,"reimplemented (src/game/world/things); thiscall (message), pops 4: the message handed to the handler of the thing's model (+2, 1 to 0x13; ThingMessageEnv), model 2 and others none"
 0x0050b6a0,Thing_SetPos,function,high,reimplemented (src/game/world/things); a thing's move between cells
 0x00501650,Visitor_Update,function,medium,Thing_Update case 1 (first call)
 0x005019f0,Visitor_PostUpdate,function,medium,Thing_Update case 1 (second call)

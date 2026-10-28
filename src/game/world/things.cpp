@@ -13,13 +13,18 @@
 #include "../files/file.h"
 #include "../sprite/script.h"
 #include "../sprite/sprite.h"
+#include "advisor.h"
+#include "analyser.h"
+#include "headquarters.h"
 #include "mapcell.h"
 #include "messagecentre.h"
 #include "nav.h"
 #include "object.h"
 #include "objectdefs.h"
+#include "objectmsg.h"
 #include "person.h"
 #include "random.h"
+#include "research.h"
 #include "rides.h"
 #include "staff.h"
 #include "thingmsg.h"
@@ -189,6 +194,27 @@ extern "C" void __fastcall ThingSlot_Release(ThingSlot *slot) {
 extern "C" u16 *__fastcall Thing_GetHandle(const u8 *thing, void *, u16 *out) {
     *out = *reinterpret_cast<const u16 *>(thing);
     return out;
+}
+
+namespace {
+using MessageHandler = void(__fastcall *)(u8 *, void *, u8 *);
+template <typename F> MessageHandler handler(F f) { return reinterpret_cast<MessageHandler>(f); }
+MessageHandler game_handler(u32 address) { return reinterpret_cast<MessageHandler>((uintptr_t)address); }
+const ThingMessageEnv kGameMessageEnv = {{handler(&Visitor_HandleMessage), nullptr, handler(&Object_HandleDayMessage), game_handler(0x004da0c0),
+                                          game_handler(0x004d6cf0), game_handler(0x004d4450), game_handler(0x004d5fb0), game_handler(0x004d4450),
+                                          handler(&StaffHQ_HandleMessage), handler(&MechanicHQ_HandleMessage), handler(&Advisor_HandleMessage),
+                                          game_handler(0x00509bf0), handler(&ParkAnalyser_HandleMessage), handler(&ResearchLab_HandleMessage),
+                                          handler(&Weather_HandleMessage), game_handler(0x004d02d0), game_handler(0x0050ca50), handler(&Stub_Ret4b),
+                                          handler(&Slots_OnEvent)}};
+const ThingMessageEnv *g_message = &kGameMessageEnv;
+}  // namespace
+
+void Things_SetMessageEnv(const ThingMessageEnv *e) { g_message = e ? e : &kGameMessageEnv; }
+
+extern "C" void __fastcall Thing_HandleMessage(u8 *thing, void *, u8 *message) {
+    const u32 model = (u32)thing[2] - 1;
+    if (model > 0x12 || model == 1) return;
+    g_message->handle[model](thing, nullptr, message);
 }
 
 extern "C" void __fastcall HandleQueue_Push(HandleQueue *q, void *, u32 handle) {
