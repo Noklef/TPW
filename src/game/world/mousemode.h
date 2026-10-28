@@ -112,6 +112,10 @@ void __stdcall MouseMode_Set(u8 *mode);
 // (MouseMode_Set).
 void __cdecl MouseMode_Enter6fead0();
 
+// 0x40c5e0 (cdecl; name invented, unconfirmed): a new tile mode (Mem_Alloc(0x14), MouseModeTile_Ctor (0x3a); 0 when that failed) made,
+// the holder [0x7b05e8] made when missing (MouseModes_EnsureHolder, inlined) and the mode set (MouseMode_Set). Returns 1.
+u32 __cdecl MouseMode_EnterTile3a();
+
 // Slot 10 of the modes (Assign, by CMMOnline's debug print; names unconfirmed). 0x46d590 (the 0x6fead0 mode): the cursor 0x13.
 void __fastcall MouseMode6fead0_Assign(u8 *self);
 // 0x46c730 (CMMPlaceStaff): the cursor 9, then for the kind +0xc 4, 5, 6, 7 or 8 a sprite script (SpriteScript_Start code 0x74ed98, folder

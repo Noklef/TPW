@@ -818,6 +818,7 @@ address,name,kind,confidence,notes
 0x0040bed0,MouseModes_EnsureHolder,function,low,"reimplemented (src/game/world/mousemode); the mode holder [0x7b05e8] made the first time: Mem_Alloc(1), MouseModeHolder_Ctor inlined; returns it"
 0x0046d5a0,MouseModeTile_Assign,function,low,"reimplemented (src/game/world/mousemode); thiscall, slot 10 (Assign) of the tile modes (0x6fe9e0): the env's 0x5234d0 on the tile [0x7b05cc] - 1 (x low 7 bits, y the rest), the env's 0x52f200 (+8, 1); with the flag +0xc the definition of the id +0x10 recorded (Global8186e0_SetRecorded, its +0x9c when +0x288 is 1), and for kinds 4 / 0x3b its +0x40 and +0x9c (0x52fa90, 0x52fad0)"
 0x0046cf10,OnlineChat_Instance,function,low,"reimplemented (src/game/world/mousemode); cdecl: the online chat [0x7cddec], made when missing (0xf0c bytes from the game's heap, OnlineChat_Ctor; 0 when that failed); returned"
+0x0040c5e0,MouseMode_EnterTile3a,function,low,"reimplemented (src/game/world/mousemode); a new tile mouse mode (0x3a) set, the holder made when missing"
 0x0040f290,ThingMsg01_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (a): +8 a; vtable set, +4 cleared; returns this"
 0x0040f240,ThingMsg02_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (c, b): +8 b, +0xc c; vtable set, +4 cleared; returns this"
 0x0040f330,ThingMsg06_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (u16 a): +8 a; vtable set, +4 cleared; returns this"
