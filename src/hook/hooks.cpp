@@ -318,6 +318,7 @@
 #include "../game/world/analysercell.h"
 #include "../game/world/bankaccount.h"
 #include "../game/world/cellbuild.h"
+#include "../game/world/cellkind.h"
 #include "../game/world/linestep.h"
 #include "../game/world/money.h"
 #include "../game/world/objectmsg.h"
@@ -335,13 +336,17 @@
 #include "../game/world/trackpools.h"
 #include "../game/world/wallfollow.h"
 #include "../game/world/cellmodel.h"
+#include "../game/world/lineends.h"
 #include "../game/world/mapclick.h"
 #include "../game/world/objectstatus.h"
 #include "../game/world/objectunlock.h"
 #include "../game/world/parkgates.h"
 #include "../game/world/pathdrag.h"
+#include "../game/world/pathlink.h"
 #include "../game/world/queuepieces.h"
+#include "../game/world/queuetrace.h"
 #include "../game/world/rides.h"
+#include "../game/world/trackline.h"
 #include "../game/world/uimsgreceiver.h"
 #include "../game/world/visitoroption.h"
 #include "../game/world/weather.h"
@@ -1793,6 +1798,9 @@ const Hook kHooks[] = {
     {"CoasterEdit_SetTool",       0x004445b0, (void *)&CoasterEdit_SetTool, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"CoasterLink_AddEntry",      0x00432c10, (void *)&CoasterLink_AddEntry, {0xa1, 0xec, 0x0f, 0x79, 0x00}},
     {"CoasterEdit_RefreshTools",  0x00444740, (void *)&CoasterEdit_RefreshTools, {0x6a, 0x00, 0xe8, 0xc9, 0x11}},
+    {"CoasterLink_RemoveEntry",   0x00442ea0, (void *)&CoasterLink_RemoveEntry, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
+    {"CoasterLink_FreeEntries",   0x0043eaf0, (void *)&CoasterLink_FreeEntries, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"CoasterLink_SetUpCars",     0x00436d10, (void *)&CoasterLink_SetUpCars, {0x83, 0xec, 0x0c, 0x53, 0x55}},
     {"Coaster_QueuePush",         0x0043b0e0, (void *)&Coaster_QueuePush, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"CoasterQueue_Add",          0x0043b130, (void *)&CoasterQueue_Add, {0x8b, 0x4c, 0x24, 0x04, 0x56}},
     {"Coaster_QueueRoom",         0x0043b1f0, (void *)&Coaster_QueueRoom, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
@@ -5536,6 +5544,17 @@ const Hook kHooks[] = {
     {"AdvisorSlot_Ctor",          0x00518e60, (void *)&AdvisorSlot_Ctor, {0x8b, 0xc1, 0xc6, 0x40, 0x14}},
     {"AdvisorRecord_Ctor",        0x00518e80, (void *)&AdvisorRecord_Ctor, {0x8b, 0xc1, 0x33, 0xc9, 0x89}},
     {"Ride_Destroy",              0x00463c80, (void *)&Ride_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"MapCell_SetKind",           0x005346d0, (void *)&MapCell_SetKind, {0x53, 0x55, 0x56, 0x57, 0x8b}},
+    {"MapCell_Clear",             0x005367a0, (void *)&MapCell_Clear, {0x83, 0xec, 0x08, 0x53, 0x55}},
+    {"MapCell_SetTrackKind",      0x00538fc0, (void *)&MapCell_SetTrackKind, {0x83, 0xec, 0x08, 0x53, 0x55}},
+    {"TrackCell_ClearBlock",      0x0053bb20, (void *)&TrackCell_ClearBlock, {0x51, 0x53, 0x56, 0x57, 0x8b}},
+    {"TrackCell_Remove",          0x0053b280, (void *)&TrackCell_Remove, {0x83, 0xec, 0x0c, 0x53, 0x55}},
+    {"TrackCell_ResetEnds",       0x00532dd0, (void *)&TrackCell_ResetEnds, {0x6a, 0xff, 0x68, 0x40, 0xea}},
+    {"LineEnd_Unlink",            0x0053bc60, (void *)&LineEnd_Unlink, {0x51, 0x8b, 0x44, 0x24, 0x0c}},
+    {"MapCell_LinkPath",          0x005348d0, (void *)&MapCell_LinkPath, {0x83, 0xec, 0x08, 0x53, 0x55}},
+    {"TrackLine_Prune",           0x005311c0, (void *)&TrackLine_Prune, {0x83, 0xec, 0x28, 0xa1, 0xf0}},
+    {"TrackCell_ClearAt",         0x00452ca0, (void *)&TrackCell_ClearAt, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
+    {"RideQueue_Trace",           0x00530120, (void *)&RideQueue_Trace, {0x83, 0xec, 0x0c, 0x8b, 0x44}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},

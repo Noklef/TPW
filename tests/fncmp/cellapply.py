@@ -34,16 +34,17 @@ def merged(ranges):   # (overlapping ranges joined: a listing line must not come
     return out
 
 
-B = Bench(merged([   # (animator.py's)
+RANGES = merged([   # (animator.py's)
     (0x46f150, 0x475010), (0x67a400, 0x690000), (0x402d70, 0x402e00), (0x402e60, 0x4030f0), (0x403150, 0x403172), (0x4031e0, 0x403202),
     (0x4033a0, 0x4033f0), (0x5f5f10, 0x5f5fc0), (0x429df0, 0x429e17)]) + [
     (0x53a540, 0x53aa88), (0x522700, 0x5228b5), (0x516330, 0x516370), (0x4d8c00, 0x4d8c1f), (0x4d0b10, 0x4d0b30), (0x522a90, 0x522a9e),
-    (0x53afa0, 0x53b19e)], sines=256,
-          hooks={0x463c80: _recorder(31, 1, cdecl=True), 0x522b90: _recorder(20, 6, cdecl=True), 0x522d50: _recorder(21, 6, cdecl=True),
-                 0x522f20: _recorder(22, 6, cdecl=True)})
+    (0x53afa0, 0x53b19e)]
+HOOKS = {0x463c80: _recorder(31, 1, cdecl=True), 0x522b90: _recorder(20, 6, cdecl=True), 0x522d50: _recorder(21, 6, cdecl=True),
+         0x522f20: _recorder(22, 6, cdecl=True)}
+B = Bench(RANGES, sines=256, hooks=HOOKS)
 
 
-def case(r):
+def case(r, log=None):
     regions, _, _ = animator.world(r)
     regions.update(cellmodel.case(r).regions)
     for table, _, most in cellmodel.TABLES:   # (the models' groups the code tells apart)
@@ -71,7 +72,7 @@ def case(r):
     instances = bytearray(r.bytes(0x40))
     for k in range(16):
         put(instances, 4 * k, 'I', animator.ANIM)
-    log = log_region()
+    log = log_region() if log is None else log
     for k in (20, 21, 22):
         set_return(log, k, r.choice([0, 1, 2, 15, r.randrange(16)]))
     regions.update({LOG: log, MAPC: mapc, 0x8023a0: struct.pack('<I', (MAPC - (handle - 1) * 0x44) & 0xffffffff), 0x7a4610: instances,

@@ -13,19 +13,26 @@ from fncmp import Bench, Call, RAM, put  # noqa: E402
 
 CALLS = {'Credit': (0x4d0190, 0x60), 'Debit': (0x4d01f0, 0x70), 'Take': (0x4d0750, 0x100), 'Repay': (0x4d0850, 0x150), 'Total': (0x4d09f0, 7), 'InRed': (0x4d0260, 0x68),
          'Smallest': (0x4d09a0, 0x46), 'Owed': (0x4d0970, 0x2d), 'TotalOwed': (0x4d0a00, 0x2d)}
-B = Bench([(a, a + n) for (a, n) in CALLS.values()] + [(0x519510, 0x519550), (0x5da3c0, 0x5da3c1), (0x4f88b0, 0x4f88f6), (0x67c320, 0x67c3ca),
-                                                             (0x67c7f0, 0x67c824)])
+RANGES = [(a, a + n) for (a, n) in CALLS.values()] + [(0x519510, 0x519550), (0x5da3c0, 0x5da3c1), (0x4f88b0, 0x4f88f6), (0x67c320, 0x67c3ca),
+                                                      (0x67c7f0, 0x67c824)]
+B = Bench(RANGES)
 GAME, THING, TIME, WORLD = RAM + 0x40000, RAM + 0x80000, RAM + 0xc0000, RAM + 0x100000   # (WORLD: the time in the red's)
 AMOUNTS = [0, 1, 5, 100, 999999, 1000000, 1000001, 0x7fffffff, -1, -100, -0x80000000, 0x40000000]
+
+
+def record(r):
+    """A money record's bytes: the balance (+0xc), the flag +0x114 and the balance copy +0x11c of the sorts the code tells apart."""
+    money = bytearray(r.bytes(0x200))
+    put(money, 0xc, 'i', r.choice([0, 1, 50, 99, 100, 101, -1, 0x7fffffff, r.getrandbits(32) - (1 << 31)]))
+    put(money, 0x114, 'I', r.choice([0, 1, 1, 1, 0x1234]))
+    put(money, 0x11c, 'i', r.choice([-1, -1, 0, 5, -0x80000000, 0x7fffffff]))
+    return money
 
 
 def case(r):
     name = r.deal(OPS)
     address, _n = CALLS[name]
-    money = bytearray(r.bytes(0x200))
-    put(money, 0xc, 'i', r.choice([0, 1, 50, 99, 100, 101, -1, 0x7fffffff, r.getrandbits(32) - (1 << 31)]))
-    put(money, 0x114, 'I', r.choice([0, 1, 1, 1, 0x1234]))
-    put(money, 0x11c, 'i', r.choice([-1, -1, 0, 5, -0x80000000, 0x7fffffff]))
+    money = record(r)
     handle = r.choice([1, 2, 3])
     slots = bytearray(r.bytes(20 * 4))
     put(slots, 20 * handle, 'I', THING)

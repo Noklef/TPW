@@ -1,6 +1,6 @@
 // A path drag's held cell: the map id's column and row at 0x763a00 / 0x763a04 (-1: none), the held flag 0x818c54 and the value taken
-// from the cell's entry +4 at 0x818c58. Reimplementation of 0x52c150 and 0x52c1c0 (cdecl). 0x5367a0 and 0x536100 are agent B's and not
-// yet ported: the env calls them.
+// from the cell's entry +4 at 0x818c58. Reimplementation of 0x52c150 and 0x52c1c0 (cdecl). They call 0x5367a0 (MapCell_Clear, ported)
+// and agent B's unported 0x536100 through the env.
 #pragma once
 
 #include "../../../re/types.h"

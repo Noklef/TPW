@@ -7,9 +7,13 @@
 #include "../core/idtable.h"
 #include "../math/x87.h"
 #include "../model/highlight.h"
+#include "../model/holder.h"
+#include "../motion/animator.h"
 #include "../terrain/land.h"
 #include "../ui/dialog7ca1c8.h"
 #include "../world/objectdefs.h"
+#include "../world/trackline.h"
+#include "train.h"
 
 namespace {
 
@@ -17,10 +21,15 @@ template <typename T> T &at(const void *p, u32 offset) {
     return *reinterpret_cast<T *>((uintptr_t)p + offset);
 }
 
+const CoasterLinksEnv kGameEnv = {reinterpret_cast<u32(__cdecl *)(u32, u32, const u32 *, u32, u32, u32, u32, u32, s32, u32)>((uintptr_t)0x00463060)};
+const CoasterLinksEnv *g_env = &kGameEnv;
+
 const u8 *coaster_at(u32 index) { return reinterpret_cast<u8 *const *>(0x00790bd0)[index]; }
 const u8 *first_link() { return *reinterpret_cast<u8 *const *>(0x00790fe0); }
 
 }  // namespace
+
+void CoasterLinks_SetEnv(const CoasterLinksEnv *env) { g_env = env ? env : &kGameEnv; }
 
 extern "C" {
 
@@ -422,5 +431,95 @@ void __cdecl CoasterEdit_RefreshTools() {
     void *const owner = reinterpret_cast<void *>(static_cast<uintptr_t>(0x007b51f0));
     Dialog7ca1c8_SetChecksIfUpThis(owner, nullptr, *reinterpret_cast<u32 *>(0x0079c6e0));
     Dialog7ca1c8_SelectButtonIfUpThis(owner, nullptr, *reinterpret_cast<u32 *>(0x0079c638));
+}
+
+void __cdecl CoasterLink_RemoveEntry(u8 *link, u8 *entry, u32 keep) {
+    if (!(entry[4] & 1) && !keep) TrackCell_ClearAt(at<s32>(entry, 0xc), at<s32>(entry, 0x10));
+    if (at<u8 *>(entry, 0x2c)) at<u8 *>(at<u8 *>(entry, 0x2c), 0x28) = at<u8 *>(entry, 0x28);
+    if (at<u8 *>(entry, 0x28)) at<u8 *>(at<u8 *>(entry, 0x28), 0x2c) = at<u8 *>(entry, 0x2c);
+    if (at<u8 *>(link, 0x4c) == entry) at<u8 *>(link, 0x4c) = at<u8 *>(entry, 0x28);
+    if (at<u8 *>(link, 0x50) == entry) at<u8 *>(link, 0x50) = at<u8 *>(entry, 0x2c);
+    --at<u32>(link, 0x40);
+    u8 *next = at<u8 *>(entry, 0x28);
+    if (next) {
+        const u8 *const before = at<u8 *>(next, 0x2c);
+        u32 index = before ? at<u32>(before, 0) + 1 : 0;
+        do {
+            at<u32>(next, 0) = index++;
+            next = at<u8 *>(next, 0x28);
+        } while (next);
+    }
+    GlobalMem_Free(entry);
+    Flags_SetChanged(reinterpret_cast<u32 *>(link), 1);
+}
+
+void __cdecl CoasterLink_FreeEntries(const u8 *link) {
+    for (u8 *entry = at<u8 *>(link, 0x4c); entry;) {
+        if (!(entry[4] & 1)) {
+            if (*at<u8 *>(entry, 0x18) & 4)
+                for (u32 i = 0; i < at<u32>(entry, 0x30); ++i) Car_Free(at<u8 *>(entry, 0x34 + i * 4), at<u8 *>(entry, 0x18));
+            TrackCell_ClearAt(at<s32>(entry, 0xc), at<s32>(entry, 0x10));
+        } else {
+            u8 *const car = at<u8 *>(entry, 0x34);
+            Car_FreeCoupling(car, reinterpret_cast<u32 *>(car + 0x78));
+        }
+        u8 *const next = at<u8 *>(entry, 0x28);
+        GlobalMem_Free(entry);
+        entry = next;
+    }
+}
+
+void __cdecl CoasterLink_SetUpCars(const u8 *train, u8 *link, u32 quiet) {
+    const u32 segments = at<u32>(train, 0x2f4);
+    const u32 total = segments * at<u32>(train, 0x2e8);
+    at<void *>(link, 0x128) = GlobalMem_Alloc(at<u32>(train, 0x2e8) << 7, 1);
+    at<void *>(link, 0x12c) = GlobalMem_Alloc(at<u32>(train, 0x2e8) << 2, 1);
+    u8 *segment = static_cast<u8 *>(GlobalMem_Alloc(total * 0x60, 1));
+    at<u8 *>(link, 0x130) = segment;
+    u8 *car = at<u8 *>(link, 0x128);
+    u8 *slots = static_cast<u8 *>(GlobalMem_Alloc(at<u32>(train, 0x318) << 3, 1));
+    at<u8 *>(link, 0x148) = slots;
+    u8 *const *const holders = reinterpret_cast<u8 *const *>(0x007a4610);
+    u8 *holder = nullptr;   // (the link argument's slot, kept from segment to segment)
+    for (u32 i = 0; i < at<u32>(train, 0x2e8); ++i, car += 0x80) {
+        at<const u8 *>(car, 4) = train + 0x2f0;
+        at<u32>(car, 0) = 0;
+        at<u32>(car, 0xc) = 0;
+        at<u8 *>(car, 0x28) = segment;
+        at<u32>(car, 0x2c) = 0;
+        at<u32>(car, 0x30) = 0;
+        at<u32>(car, 0x74) = 0;
+        at<u32>(car, 0x78) = 0;
+        for (u32 j = 0; j < segments; ++j, segment += 0x60) {
+            const u8 *const type = at<u8 *>(train, j == 0 ? 0x2fc : j == segments - 1 ? 0x304 : 0x300);
+            at<u32>(segment, 0) = 0;
+            at<u32>(segment, 8) = j;
+            at<const u8 *>(segment, 4) = type;
+            at<u32>(segment, 0x10) = 0;
+            at<u32>(segment, 0x14) = 0;
+            at<u32>(segment, 0x18) = 0;
+            at<u32>(segment, 0x1c) = 0;
+            at<u8 *>(segment, 0x20) = slots;
+            at<u8 *>(segment, 0x24) = slots += at<u32>(at<u8 *>(segment, 4), 0x30) * 4;
+            slots += at<u32>(at<u8 *>(segment, 4), 0x30) * 4;
+            at<u8 *>(segment, 0x28) = at<u8 *>(segment, 0x20);
+            at<u8 *>(segment, 0x2c) = at<u8 *>(segment, 0x24);
+            if (!quiet) {
+                const u32 kind = at<u32>(type, 0xc);
+                if (kind) {
+                    const u32 ride = g_env->createRide(kind, 0x101, nullptr, 0, 0, 0, 0, 0, -1, 0);
+                    at<u32>(segment, 0xc) = ride;
+                    u8 *const h = holders[ride];
+                    if (at<u32>(h, 4) & 0x4000) Obj_RemoveFromRect(at<u8 *>(h, 8), at<u32>(h, 0xc0), at<u32>(h, 0xc4));
+                    else Holder_Sleep(at<u8 *>(h, 8));
+                    holder = holders[at<u32>(segment, 0xc)];
+                } else {
+                    holder = nullptr;
+                }
+            }
+            if (holder) Animator_SetPlaying(holder);
+        }
+        at<u8 *>(car, 0x34) = at<u8 *>(car, 0x28) + (at<u32>(train, 0x2fc) == at<u32>(train, 0x300) ? 0 : 0x60);
+    }
 }
 }
