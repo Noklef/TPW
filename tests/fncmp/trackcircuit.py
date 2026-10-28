@@ -118,7 +118,7 @@ def lay_loop(r, cells, x0, y0, flag_rate):
             nb ^= 1 << r.randrange(8)
         cell = cells[ident(x, y)]
         cell[0xc] = cell[0x22] = nb
-        put(cell, 8, 'I', r.choice([0xb, 0x10, 0xb, 0x10, 0xd, 0x12, 0x19]))
+        put(cell, 8, 'I', r.choice([0xb, 0x10, 0xb, 0x10, 0xd, 0x12, 0x19]) if r.random() < 0.96 else 0)   # (now and then none: a junction before it fails)
         put(cell, 0xe, 'H', (cell[0xe] | cell[0xf] << 8) & ~0x10 | (0x10 if r.random() < flag_rate else 0))
         out[(x, y)] = d
     return out[(x0, y0)]
