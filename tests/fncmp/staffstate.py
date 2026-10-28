@@ -24,8 +24,10 @@
 # (a money record, +0x114 set mostly) and +0x1da720 (a record whose +0x1f5a0 and +0x1f7f0 take the wage). 0xa: the state +0x19c 3, 2 or
 # others; in state 3 LeaveRest's surroundings and the world's rest areas (head +0x1da746, next +0xc, flags +0x32 bit 2, cell +0x36): none,
 # or found with navpath.py's person as the staff member (as Head; the destination the area's cell) so that the walk there works.
+# WalkRest (0x505fe0): LeaveRest's surroundings, Sprite_WalkNav a thiscall recorder (28 of 0, driver.cpp's StaffWalkEnv) answering 0, 2
+# or another; +0x1f8 about 0-100 (or past them, a NaN, an infinity, huge), the int 0x785328 small, negative or huge.
 # usage: staffstate.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetState,Mechanic,Handyman,PickUp,Settle,Head,Researcher,LeaveRest,
-#   Message)
+#   Message,WalkRest)
 import os
 import struct
 import sys
@@ -35,7 +37,7 @@ sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import navpath  # noqa: E402
 import wctimage  # noqa: E402
-from fncmp import HEAP, LOG, Bench, Call, RAM, _recorder, blob_bytes, heap, put, recorder, set_return, vtable  # noqa: E402
+from fncmp import HEAP, LOG, Bench, Call, RAM, _recorder, blob_bytes, fb, heap, put, recorder, set_return, vtable  # noqa: E402
 from focus import MODES  # noqa: E402
 from mousemode import assign  # noqa: E402
 from movingperson import cell_xy  # noqa: E402
@@ -52,13 +54,13 @@ B = Bench(wctimage.merged(MODES + [
     (0x506300, 0x5064a0), (0x4c9130, 0x4c91d0), (0x4fa530, 0x4fa600), (0x509990, 0x5099d0), (0x516130, 0x5161c0), (0x516330, 0x516380),
     (0x519510, 0x519560), (0x51a280, 0x51a2a0), (0x4d4170, 0x4d41a0), (0x506d10, 0x506e41), (0x55a070, 0x55a100), (0x55a390, 0x55a3e0),
     (0x415e00, 0x415e80), (0x504c70, 0x504dd2), (0x40f440, 0x40f446), (0x40f490, 0x40f496), (0x40f510, 0x40f516), (0x40f920, 0x40f926),
-    (0x506490, 0x5064d4), (0x506910, 0x506a38), (0x5195d0, 0x51960d), (0x4d01f0, 0x4d0259)] + navpath.RANGES), hooks={0x40fb10: _recorder(21, 1)})
+    (0x506490, 0x5064d4), (0x506910, 0x506a38), (0x5195d0, 0x51960d), (0x4d01f0, 0x4d0259)] + navpath.RANGES + [(0x505fe0, 0x506183)]), hooks={0x40fb10: _recorder(21, 1), 0x4fa2a0: _recorder(28, 0)})
 STAFF, WORLD, MODE, MODE_VT, HOLDER = RAM + 0x20000, RAM + 0x21000, RAM + 0xc000, RAM + 0xc100, RAM + 0xc200
 RECORD, CELLS = RAM + 0x21400, RAM + 0x50000
 
 
 CALLS = {'SetState': 0x5054d0, 'Mechanic': 0x4da370, 'Handyman': 0x4d7330, 'PickUp': 0x505c50, 'Settle': 0x505f50, 'Head': 0x506300,
-         'Researcher': 0x502c20, 'LeaveRest': 0x506d10, 'Message': 0x504c70}
+         'Researcher': 0x502c20, 'LeaveRest': 0x506d10, 'Message': 0x504c70, 'WalkRest': 0x505fe0}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 TARGET, ITEMS, AREA, RIDES = RAM + 0x38000, RAM + 0x40000, RAM + 0x39000, RAM + 0x3a000
 MSG, MONEY, PAID, RESTS = RAM + 0x3c000, RAM + 0x3d000, RAM + 0x10000, RAM + 0x3e000
@@ -268,6 +270,18 @@ def case(r):
         return Call(CALLS[op], [STAFF], regions, conv='t', ret='v')
     if op == 'Message':
         return message(r, regions, staff)
+    if op == 'WalkRest':
+        h = r.randrange(16)
+        put(staff, 0x208, 'H', h)
+        table = bytearray(r.bytes(20 * 16))
+        leave_rest(r, regions, table, h)
+        regions[0x7cfb90] = table
+        blob_bytes(regions[LOG], 21, 0, 0xf3ff)
+        set_return(regions[LOG], 28, r.choice([0, 0, 2, 2, 1, 3]))
+        put(staff, 0x1f8, 'I', r.choice([fb(r.choice([0.0, 50.0, 100.0, 100.5, 101.0, 5.0, -0.0, 3e38, -3e38, r.uniform(-50, 200)])),
+                                          0x7fc00000, 0x7f800001, 0xff800000, 0x7f800000]))
+        regions[0x785328] = struct.pack('<i', r.choice([0, 1, 5, 10, 50, -5, -50, 0x7fffffff, -0x80000000, r.getrandbits(31)]))
+        return Call(CALLS[op], [STAFF], regions, conv='t', ret='v')
     if op == 'LeaveRest':
         h = r.randrange(16)
         put(staff, 0x208, 'H', h)

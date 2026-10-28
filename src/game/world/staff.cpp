@@ -717,6 +717,35 @@ void __fastcall Staff_LeaveRestArea(u8 *staff) {
     Staff_SetState(staff, nullptr, 0);
 }
 
+namespace {
+const StaffWalkEnv kGameWalkEnv = {&Sprite_WalkNav};
+const StaffWalkEnv *g_walk = &kGameWalkEnv;
+}  // namespace
+
+void Staff_SetWalkEnv(const StaffWalkEnv *env) { g_walk = env ? env : &kGameWalkEnv; }
+
+void __fastcall Staff_WalkToRestArea(u8 *staff) {
+    const u32 walked = g_walk->walkNav(staff);
+    if (walked == 0) {
+        // (Debug_Printf of whether slot 0's thing is null: empty)
+        const u16 area = *reinterpret_cast<const u16 *>(staff + 0x208);
+        const u8 *const thing = *reinterpret_cast<u8 **>((uintptr_t)0x007cfb90 + area * 20u);
+        u8 *const record = Rides_FindById(*reinterpret_cast<const s32 *>(thing + 0x24));
+        Rides_SetElement(record, 0, Rides_GetElement(record, 0) + 1);
+        Staff_SetState(staff, nullptr, 3);
+        u16 handle;
+        u32 msg[4] = {0x00700868, 0, *Thing_GetHandle(staff, nullptr, &handle), 1};   // (the original leaves the word above the handle as it was)
+        Object_PostMessage(reinterpret_cast<u8 *>(msg));
+    } else if (walked == 2) {
+        const X87Reg rest = X87Reg(-(double)*reinterpret_cast<const s32 *>((uintptr_t)0x00785328)) + *reinterpret_cast<const float *>(staff + 0x1f8);
+        float &energy = *reinterpret_cast<float *>(staff + 0x1f8);
+        if (rest.v > 100.0) energy = 100.0f;
+        else if (!(rest.v >= 0.0)) energy = 0.0f;
+        else energy = (float)rest;
+        Staff_SetState(staff, nullptr, 0);
+    }
+}
+
 void __fastcall Staff_Detach(u8 *staff) { Person_Detach(staff); }
 
 void __fastcall Researcher_Detach(u8 *researcher) {

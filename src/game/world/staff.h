@@ -259,6 +259,17 @@ void __fastcall Staff_HeadForEntrance(u8 *staff);
 // +0xc started at entry 3 with the folder +0x24 and sprite +0x20 (ScriptRef_Start); Staff_SetState 0.
 void __fastcall Staff_LeaveRestArea(u8 *staff);
 
+// 0x505fe0 (thiscall; name invented, unconfirmed; the walk to a rest area): one step (Sprite_WalkNav, through StaffWalkEnv). Arrived (0):
+// element 0 of the ride record (Rides_FindById of +0x24) of the rest area +0x208's thing (its slot of 0x7cfb90) plus 1, Staff_SetState 3,
+// a message {vtable 0x700868, +4 0, +8 the handle word, +0xc 1} posted (Object_PostMessage). Stuck (2): +0x1f8 less the int at 0x785328
+// (x87: fild, fchs, fadd), above 100.0 100.0, below 0 (or NaN) 0, else the sum; Staff_SetState 0. Otherwise nothing.
+void __fastcall Staff_WalkToRestArea(u8 *staff);
+// What Staff_WalkToRestArea's step calls through an environment (the fncmp driver's recorder; the game's by default, the port).
+struct StaffWalkEnv {
+    u32(__fastcall *walkNav)(u8 *sprite);   // Sprite_WalkNav 0x4fa2a0
+};
+void Staff_SetWalkEnv(const StaffWalkEnv *env);   // nullptr: the game's
+
 // 0x4f7c40 (thiscall; name invented, unconfirmed): a jump to Person_Detach (Thing_Delete's kind 0x12, Researcher_Detach's base).
 void __fastcall Staff_Detach(u8 *staff);
 // 0x502920 (thiscall; name invented, unconfirmed): a researcher (kind 8) taken out of the world: out of the game object's list of them
