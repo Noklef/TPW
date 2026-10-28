@@ -1,5 +1,5 @@
 // An object definition's availability against the global save (the count of set bytes left), and its unlocking: reimplementation of
-// 0x4d4b90 and 0x4d4ad0. The names are invented.
+// 0x4d4b90, 0x4d4ad0 and 0x4d5b30. The names are invented.
 #pragma once
 
 #include "../../../re/types.h"
@@ -15,4 +15,9 @@ u8 __stdcall ObjectDef_IsUnlocked(u32 id);
 // definition looked up again); then the id goes into the global save's set (Object_AddKeyed on GlobalSave_Instance, the +0xc4 its
 // amount): whether it was new. Only AL is set.
 u8 __stdcall ObjectDef_Unlock(u32 id);
+
+// 0x4d5b30 (thiscall, this unused; called from 0x4d5235, 0x4d5824 and 0x4d5b05): when the global save's count (GlobalSave_CountSet of
+// GlobalSave_Instance, inlined there) is 1, the advisor messages 0x137 and 0x13b (AdvisorMsg_Init: type 0, a 0, b -1, flag 0, scored)
+// each posted as message 05 (Obj_CtorPart8, Object_PostMessage).
+void __fastcall ObjectUnlock_FirstAdvice(u8 *self);
 }

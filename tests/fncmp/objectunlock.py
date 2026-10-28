@@ -3,8 +3,11 @@
 # the id now and then none of them: a crash in both), the definition's +0xc4 about the count or any (signed both ways).
 # Unlock (0x4d4ad0): the same, the mode setting (0xfb3b7c) 0, 1, 2 or any and its guard (0xfb34ba) set or not (then read from 0x7a1a8c's
 # bits 23-25, the atexit logged), the info's set (+0x28: a red-black tree of 0-8 16-bit keys, stdtree.py's build, its nil 0xf7c970)
-# holding the id or not (an insert: the heap's block).
-# usage: objectunlock.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=IsUnlocked,Unlock)
+# holding the id or not (an insert: the heap's block). FirstAdvice (0x4d5b30): globalsave.py's count() set-up for the count, mostly
+# cut to one set byte or none (its bytes and the records' flags cleared, then one set); advisor.py's queue() for the scoring (its
+# table, gAdvisorScoring built); thing_ctors.py's message centre, the post (0x40fb10) recorder 21 hashing message 05's bytes 0-0x1f
+# but +0xa, +0xb and +0x1f (the stack's).
+# usage: objectunlock.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=IsUnlocked,Unlock,FirstAdvice)
 import os
 import struct
 import sys
@@ -12,18 +15,33 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
+import advisor  # noqa: E402
 import globalsave  # noqa: E402
 import stdtree  # noqa: E402
-from fncmp import LOG, RAM, Bench, Call, _cdecl_log, log_region, put  # noqa: E402
+import thing_ctors  # noqa: E402
+from fncmp import LOG, RAM, Bench, Call, _cdecl_log, _recorder, blob_bytes, log_region, put  # noqa: E402
 
-CALLS = {'IsUnlocked': 0x4d4b90, 'Unlock': 0x4d4ad0}
-B = Bench([(0x5af7f0, 0x5af80b), (0x5afc30, 0x5afc5a), (0x5b09a0, 0x5b09b4), (0x5b0ca0, 0x5b0cc5), (0x5b0940, 0x5b0996), (0x67b0d0, 0x67b10f),
+CALLS = {'IsUnlocked': 0x4d4b90, 'Unlock': 0x4d4ad0, 'FirstAdvice': 0x4d5b30}
+
+
+def merged(ranges):   # (overlapping ranges joined: a listing line must not come twice)
+    out = []
+    for lo, hi in sorted(set(ranges)):
+        if out and lo <= out[-1][1]:
+            out[-1] = (out[-1][0], max(out[-1][1], hi))
+        else:
+            out.append((lo, hi))
+    return out
+
+
+B = Bench(merged([(0x5af7f0, 0x5af80b), (0x5afc30, 0x5afc5a), (0x5b09a0, 0x5b09b4), (0x5b0ca0, 0x5b0cc5), (0x5b0940, 0x5b0996), (0x67b0d0, 0x67b10f),
            (0x5aef50, 0x5af0dc), (0x409410, 0x40947a), (0x5b3110, 0x5b3130), (0x5b2fd0, 0x5b2ff0), (0x5b1680, 0x5b16a6),
            (0x5af4a0, 0x5af52a), (0x5af530, 0x5af5cf), (0x5af5d0, 0x5af674), (0x5af680, 0x5af734), (0x5b11c0, 0x5b12d3), (0x5b2480, 0x5b2530),
            (0x5b11a0, 0x5b11b9), (0x4d4b90, 0x4d4bbb), (0x412e90, 0x412eea),
            (0x4d4ad0, 0x4d4b6b), (0x550ca0, 0x550d90), (0x5d1750, 0x5d1751), (0x5da3c0, 0x5da3c1), (0x5af740, 0x5af77e), (0x5b1930, 0x5b1a30),
-           (0x5b2ba0, 0x5b2ea0), (0x5b3130, 0x5b3200), (0x5b3210, 0x5b3230)],
-          hooks={0x691de0: globalsave.lock, 0x691ea0: lambda e: None, 0x67a7d0: _cdecl_log})   # (globalsave.py's ranges and STL lock stand-ins)
+           (0x5b2ba0, 0x5b2ea0), (0x5b3130, 0x5b3200), (0x5b3210, 0x5b3230), (0x4d5b30, 0x4d5cc2), (0x40f300, 0x40f329), (0x59b550, 0x59b589)]
+          + advisor.RANGES + thing_ctors.CENTRE_RANGES),
+          hooks={0x691de0: globalsave.lock, 0x691ea0: lambda e: None, 0x67a7d0: _cdecl_log, 0x40fb10: _recorder(21, 1)})   # (globalsave.py's ranges and STL lock stand-ins)
 DEFS = RAM + 0x8000
 SET_HEAD, SET_NIL, SET_NODES = RAM + 0x3800, RAM + 0x3900, RAM + 0x4000   # (Unlock: the info's set)
 
@@ -57,8 +75,34 @@ def key_set(r, regions, key):
     regions.setdefault(LOG, log_region())
 
 
+def first_advice(r):
+    c = globalsave.count(r, 'Count')
+    regions = dict(c.regions)
+    info = bytearray(regions[globalsave.INFO])
+    if r.random() < 0.7:   # (one set byte mostly, or none)
+        for k in (0x18, 0x19, 0x1a, 0x1b, 0x26, 0x27):
+            info[k] = 0
+        if globalsave.RECORDS in regions:
+            recs = bytearray(regions[globalsave.RECORDS])
+            for at in range(0, len(recs), 0x40):
+                recs[at:at + 6] = bytes(6)
+            regions[globalsave.RECORDS] = recs
+        if r.random() < 0.85:
+            info[r.choice([0x18, 0x19, 0x1a, 0x1b, 0x26, 0x27])] = r.choice([1, 1, 0x80, 0xff])
+    regions[globalsave.INFO] = info
+    regions[0xf7c58c] = struct.pack('<I', globalsave.INFO)
+    adv = advisor.queue(r, 'MayPost')
+    regions.update({k: v for k, v in adv.regions.items() if k != advisor.ADVISOR})
+    regions[LOG] = log_region()
+    thing_ctors.centre(r, regions)
+    blob_bytes(regions[LOG], 21, 0, 0x7ffff3ff)
+    return Call(0x4d5b30, [RAM + 0x7000], regions, conv='t')
+
+
 def case(r):
     op = r.deal(OPS)
+    if op == 'FirstAdvice':
+        return first_advice(r)
     c = globalsave.count(r, 'CountLeft')
     regions = dict(c.regions)
     regions[0xf7c58c] = struct.pack('<I', globalsave.INFO)
