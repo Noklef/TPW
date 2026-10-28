@@ -271,6 +271,7 @@
 #include "../game/coaster/registry.h"
 #include "../game/coaster/contacts.h"
 #include "../game/coaster/edittools.h"
+#include "../game/coaster/editupdate.h"
 #include "../game/coaster/placecheck.h"
 #include "../game/coaster/ridebounds.h"
 #include "../game/coaster/setup.h"
@@ -4416,6 +4417,7 @@ const Hook kHooks[] = {
     {"CoasterCar_UpdateScream",   0x004393e0, (void *)&CoasterCar_UpdateScream, {0x55, 0x8b, 0xec, 0x51, 0x53}},
     {"CoasterCars_StartAllSounds", 0x00439390, (void *)&CoasterCars_StartAllSounds, {0x56, 0x8b, 0x35, 0xe0, 0x0f}},
     {"CoasterPiece_CanPlaceAt",   0x00434740, (void *)&CoasterPiece_CanPlaceAt, {0x83, 0xec, 0x30, 0xa1, 0xec}},
+    {"CoasterEdit_Update",        0x00443340, (void *)&CoasterEdit_Update, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Thing_SpriteChoice",        0x004fcac0, (void *)&Thing_SpriteChoice, {0x51, 0x56, 0x8b, 0xf1, 0x6a}},
     {"Thing_IngredientRecord",    0x004e2200, (void *)&Thing_IngredientRecord, {0x51, 0x66, 0x8b, 0x41, 0x0e}},
     {"Class701378_Ctor",          0x005667d0, (void *)&Class701378_Ctor, {0x51, 0x8b, 0x44, 0x24, 0x08}},
