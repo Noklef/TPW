@@ -113,6 +113,10 @@ struct CameraEnv {
     void(__cdecl *enterProcedural)();                          // Terrain_ProceduralEnter (0x457a00)
     void(__cdecl *addToGrid)(u8 *holder, u32 from, u32 to);    // Holder_AddToGrid (0x45bcb0)
     void(__cdecl *wake)(u8 *holder);                           // Holder_Wake (0x45bd00)
+    u32(__cdecl *findPart)(const u8 *holder, u32 mask, u32 key);  // Model_FindPartByKey4 (0x44b220)
+    void(__cdecl *partStates)(u8 *instance);                   // PartStates_Update (0x44ab30)
+    u8(__cdecl *useGround)();                                  // Sprites_UseGroundFrames (0x542420)
+    u8(__cdecl *usePark)();                                    // Sprites_UseParkFrames (0x542640)
 };
 // The camera's calls go to env (nullptr: the game's).
 void Camera_SetEnv(const CameraEnv *env);
@@ -130,4 +134,16 @@ void Camera_SetEnv(const CameraEnv *env);
 // cleared by its 0x8000000 while the flags' byte has 0x16, else cleared. With a ride and flag 4 its parts likewise by 0x10000000 /
 // 0x20000000. The flags lose 0x1000. Answers changed.
 u32 __cdecl Camera_SetMode(u32 mode, u32 toggle, u32 ride, u32 force, u32 *out, u32 fresh);
+
+// 0x42a560 (cdecl; ride, ground, force, out, key, fresh; name unconfirmed): the camera set to follow a ride. *out = 0 when given; the
+// followed part (0x790940) loses flag 4, it, 0x790ab4 and 0x790a30 cleared; with gCameraFlags bit 4 the followed instance (0x790988)
+// loses 0x2000 at +4; it is cleared. A ride with bit 18 (Ride_Bit18) is its coaster link's ride (CoasterLink_IdValue). For a ride (not
+// 0): without bit 4 and with an instance in the table, its part keyed (Model_FindPartByKey4, mask 0x1000) key, else 1 (a key of 1 is
+// not looked up twice); none (-1): only the frames below. Found: 0x790a44 = the ride, 0x790ab4 its face (Camera_PartFace), 0x790940 the
+// part's state (the object's +0x28 -> +4, 0x14 bytes each) with flag 4, 0x790a30 its +4, 0x790988 the instance. With bit 4 the followed
+// part loses flag 4 again (null by then) and 0x790a44, 0x790ab4, 0x790940 and 0x790a30 are cleared. Then Camera_SetMode (4, 1, ride,
+// force, out, fresh): changed, the ride's object's states updated (PartStates_Update, when +0x28) and the instance's +4 gets 0x2000.
+// Last, ground 1 or gCameraFlags bit 2: Sprites_UseGroundFrames, else Sprites_UseParkFrames (their byte the answer, which no caller
+// reads: void here).
+void __cdecl Camera_FollowThing(u32 ride, u32 ground, u32 force, u32 *out, u32 key, u32 fresh);
 }

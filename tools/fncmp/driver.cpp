@@ -549,8 +549,11 @@ const RidesEnv kRidesEnv = {reinterpret_cast<void(__cdecl *)()>((uintptr_t)jpeg_
                             Rec{jpeg_recorder(17, 1)}};
 // Camera_SetMode's calls: the cdecl recorders 20 of 1, 22 and 23 of none, 24 of 3 and 25 of 1 and the thiscall 21 of 1, as
 // tests/fncmp/cameramode.py hooks Highlight_Suspend, Terrain_ProceduralLeave / Enter, Holder_AddToGrid / Wake and ChatButtons_SetChat.
-const CameraEnv kCameraEnv = {Rec{jpeg_recorder(20, 1)}, Rec{recorder(21, 1)},     Rec{jpeg_recorder(22, 0)},
-                              Rec{jpeg_recorder(23, 0)}, Rec{jpeg_recorder(24, 3)}, Rec{jpeg_recorder(25, 1)}};
+// Camera_FollowThing's: the cdecl recorders 26 of 3, 27 of 1, 28 and 29 of none, as tests/fncmp/camerafollow.py hooks
+// Model_FindPartByKey4, PartStates_Update and Sprites_UseGroundFrames / UseParkFrames.
+const CameraEnv kCameraEnv = {Rec{jpeg_recorder(20, 1)}, Rec{recorder(21, 1)},     Rec{jpeg_recorder(22, 0)}, Rec{jpeg_recorder(23, 0)},
+                              Rec{jpeg_recorder(24, 3)}, Rec{jpeg_recorder(25, 1)}, Rec{jpeg_recorder(26, 3)}, Rec{jpeg_recorder(27, 1)},
+                              Rec{jpeg_recorder(28, 0)}, Rec{jpeg_recorder(29, 0)}};
 // MapCell_ApplyModel's calls into agent A's unported placers 0x522b90 / 0x522d50 / 0x522f20: cdecl recorders 20, 21 and 22 of 6 arguments,
 // as tests/fncmp/cellapply.py hooks those addresses.
 const CellModelEnv kCellModelEnv = {reinterpret_cast<u32(__cdecl *)(s32, s32, s32, s32, s32, u32)>((uintptr_t)jpeg_recorder(20, 6)),
