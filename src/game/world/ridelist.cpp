@@ -7,6 +7,8 @@
 #include "things.h"
 #include "../coaster/ridebounds.h"
 #include "../core/soundplay.h"
+#include "../core/soundset.h"
+#include "camera.h"
 #include "../math/x87.h"
 #include "../render/particles.h"
 
@@ -265,5 +267,19 @@ void __cdecl Ride_PlayEffect(s32 id) {
     const s32 sy = Ftol(X87Reg(y));
     const s32 sx = Ftol(X87Reg(x));
     Sound_PlayAt(0, global<u32>(0x00803a28), 0xb8, sx, sy, sz);
+}
+
+void __cdecl RideScripts_SetReverb() {
+    const u32 followed = (u32)(uintptr_t)Camera_Followed();
+    if (followed) {   // (the system's flag not looked at)
+        for (u8 *node = global<u8 *>(0x008791b0); node; node = at<u8 *>(node, 0)) {
+            if (at<u32>(node, 0xc8) == followed && !at<u32>(node, 0x10) && at<s32>(node, 0xd8)) {
+                if (at<s32>(node, 0xd8) >= 0)
+                    Sound_SetEaxRecord(at<u32>(node, 0xd8));
+                return;
+            }
+        }
+    }
+    Sound_SetEaxRecord(global<u32>(0x0078578c));   // (gBalanceLevel's reverb)
 }
 }  // extern "C"
