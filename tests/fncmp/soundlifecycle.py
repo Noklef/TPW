@@ -31,11 +31,10 @@ from fncmp import HEAP, LOG, RAM, Bench, Call, fill, heap, log_region, recorder,
 
 CALLS = {'make': (0x6ba610, 'a'), 'release': (0x6bb7c0, 'b'), 'close': (0x6c6230, 'v'), 'read': (0x6c74e0, 'a'), 'life': (0x6bb5e0, 'a')}
 B = Bench([(0x41a830, 0x41a850), (0x4f7c50, 0x4f7c70), (0x5d1750, 0x5d1770), (0x5d60c0, 0x5d60e0), (0x5dc650, 0x5dc670), (0x5f5f10, 0x5f5fc0),
-           (0x5f71b0, 0x5f7220), (0x618d20, 0x618d90), (0x619940, 0x619960), (0x6307c0, 0x630890), (0x6338b0, 0x633910), (0x67a740, 0x67a800),
+           (0x5f7190, 0x5f72d0), (0x4036a0, 0x4036f0), (0x639100, 0x639120), (0x618d20, 0x618d90), (0x619940, 0x619960), (0x6307c0, 0x630890), (0x6338b0, 0x633910), (0x67a740, 0x67a800),
            (0x67ad90, 0x67af10), (0x67afa0, 0x67b0d0), (0x67dcd0, 0x67ddb0), (0x67efc0, 0x67f1b0), (0x67fa20, 0x67fa50), (0x681740, 0x681970),
            (0x682720, 0x6827d0), (0x6828a0, 0x6830a0), (0x688710, 0x688740), (0x68a170, 0x68a450), (0x68efb0, 0x68f050), (0x6ba460, 0x6bb870),
-           (0x6c3fc0, 0x6c4050), (0x6c5080, 0x6c50c0), (0x6c50f0, 0x6c5140), (0x6c61e0, 0x6cbbf7), (0x6cc740, 0x6d07fe), (0x6d17b0, 0x6d1800),
-           (0x6d18e0, 0x6d1bd0), (0x6d4cf0, 0x6d6c60), (0x5da3c0, 0x5da3c1)])
+           (0x6c3fc0, 0x6c4050), (0x6c5080, 0x6c50c0), (0x6c50f0, 0x6c5140), (0x6c61e0, 0x6d1bd0), (0x6d4cf0, 0x6d6c60), (0x5da3c0, 0x5da3c1)])
 PLAY, REF, RES, RES_VT, STATUS, VOICE, STREAM, SREF, SREF_VT, CB, CB_VT, COPIER = (RAM + 0x100 * i for i in range(12))
 CHAIN = RAM + 0x1000   # (the hand-laid chain's parts: 0x80 each)
 FREE = RAM + 0x1800    # (the pools' free blocks: 0x80 each, 13 of them)
@@ -48,7 +47,9 @@ LISTS_A = [(0xfb2068, 0x10), (0xfb2074, 0x28), (0xfb2080, 0x18), (0xfb208c, 0x10
 LISTS_B = [(0xfb26d8, 0x28), (0xfb26e4, 0x58), (0xfb26f0, 0x14)]
 IMPORTS = {'EnterCriticalSection': (40, 0x6fd140, 1), 'LeaveCriticalSection': (41, 0x6fd130, 1), 'InterlockedDecrement': (42, 0x6fd12c, 1),
            'InterlockedIncrement': (43, 0x6fd0c0, 1), 'CreateSemaphoreA': (44, 0x6fd16c, 4), 'CloseHandle': (45, 0x6fd13c, 1),
-           'timeGetTime': (46, 0x6fd3ec, 0), 'InitializeCriticalSection': (47, 0x6fd144, 1), 'DeleteCriticalSection': (48, 0x6fd0d0, 1)}
+           'timeGetTime': (46, 0x6fd3ec, 0), 'InitializeCriticalSection': (47, 0x6fd144, 1), 'DeleteCriticalSection': (48, 0x6fd0d0, 1),
+           'WaitForSingleObject': (49, 0x6fd128, 2), 'ReleaseSemaphore': (50, 0x6fd170, 3)}
+SVT_READ, SVT_SEEK, SVT_TELL = 25, 26, 28   # (the streamed samples' stream: its vtable's read, seek and tell recorders)
 RATES = [44100, 48000, 32000, 22050, 24000, 16000, 11025, 12000, 8000]
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
@@ -119,6 +120,11 @@ def case(r):
     for k, slot, n in IMPORTS.values():
         regions[slot] = struct.pack('<I', recorder(k, n, True))
     set_return(log, 46, r.getrandbits(32))
+    set_return(log, 49, r.choice([0, 0, 0, 0x102]))
+    set_return(log, SVT_READ, r.choice([0, 4, 0x40, 0x400, r.randrange(0x800)]))
+    strings(log, SVT_READ, 0, out=1)   # (the MP2 stream decoder's open reads its header into a local)
+    set_return(log, SVT_SEEK, r.choice([0, r.randrange(0x100), 0xffffffff]))
+    set_return(log, SVT_TELL, r.choice([0, r.randrange(0x100)]))
     # the pools: each list empty or one free block of RAM (its next 0)
     pa, pb = bytearray(r.bytes(0x68)), bytearray(r.bytes(0x44))
     for i, (at, nxt) in enumerate(LISTS_A + LISTS_B):
@@ -141,9 +147,13 @@ def case(r):
     regions[DEC_VT] = struct.pack('<4I', recorder(DEC_DELETE, 1), recorder(24, 0), recorder(DEC_CLOSE, 0), recorder(24, 0))
     regions[CB] = struct.pack('<I', CB_VT) + r.bytes(0xc)   # (the callback: slot 0 the 0x70a6c8 stream's next source, 1 the notify's send)
     regions[CB_VT] = struct.pack('<8I', recorder(CB_READ, 2), recorder(CB_SEND, 3), *[recorder(24, 0)] * 6)
-    regions[STREAM] = struct.pack('<II', r.getrandbits(32), SREF) + r.bytes(8)
+    regions[STREAM] = struct.pack('<II', STREAM + 0x40, SREF) + r.bytes(0x38) + struct.pack(
+        '<8I', *[{2: recorder(SVT_READ, 2), 4: recorder(SVT_SEEK, 2), 6: recorder(SVT_TELL, 0)}.get(i, recorder(24, 0)) for i in range(8)])
     regions[SREF] = struct.pack('<3I', SREF_VT, 0, r.getrandbits(32))
-    regions[SREF_VT] = struct.pack('<16I', *[recorder(27, 1) if k == 0 else recorder(31, 0) for k in range(16)])
+    # (the stream's source, a RefObject: slot 0 its delete, 1 the read, 3 the seek, 5 the tell (the windows' StreamBase calls), the rest)
+    sref = {0: recorder(27, 1), 1: recorder(SVT_READ, 2), 2: recorder(31, 2), 3: recorder(SVT_SEEK, 2), 5: recorder(SVT_TELL, 0),
+            6: recorder(31, 2), 8: recorder(31, 1)}
+    regions[SREF_VT] = struct.pack('<16I', *[sref.get(k, recorder(31, 0)) for k in range(16)])
     regions[COPIER] = struct.pack('<I', 0x70aa34)
     regions[COPY_AT] = struct.pack('<I', COPIER)
     hdr = bytearray(r.bytes(0x28))
@@ -172,7 +182,7 @@ def case(r):
         struct.pack_into('<II', play, 0, r.choice([1, 2, 0x100, r.getrandbits(32), 0]) if r.random() < 0.95 else 0, REF if r.random() < 0.97 else 0)
         struct.pack_into('<I', play, 0x14, flags)
         struct.pack_into('<I', play, 0x44, r.choice([0, 1, 2, 3, r.getrandbits(32)]))
-        struct.pack_into('<II', play, 0x4c, CB, CB)   # (the 0x70a6c8 stream's callback, the notify stream's)
+        struct.pack_into('<I', play, 0x4c, CB)   # (the 0x70a6c8 stream's callback; +0x50, the notify stream's, any: the factory makes none)
         struct.pack_into('<I', play, 0x54, r.choice([0, 10, r.randrange(1000), r.getrandbits(32)]))
         struct.pack_into('<I', play, 0x58, r.choice([0, 0, 50, r.randrange(1000)]))
         regions[PLAY] = play
