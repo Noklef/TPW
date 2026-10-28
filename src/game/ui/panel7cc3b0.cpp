@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "../core/accessors.h"
+#include "../core/gameheap.h"
 #include "../core/idmaps.h"
 #include "../core/language.h"
 #include "../core/textarg.h"
@@ -9,6 +11,7 @@
 #include "../world/advisor.h"
 #include "../world/analysercell.h"
 #include "../world/camera.h"
+#include "../world/mousemode.h"
 #include "../world/ridesweep.h"
 #include "../world/staff.h"
 #include "dialogs.h"
@@ -116,5 +119,21 @@ void __fastcall Panel7cc3b0_Update(u8 *self) {
     }
     u8 *const cell = Window_FindChild(*reinterpret_cast<u8 **>(self + 0x10), nullptr, 0x50e);
     vcall<void>(cell, 0x14, AnalyserRecord_ChecksCell(staff) ? 1u : 0u);
+}
+
+u32 __fastcall Panel7cc3b0_SetPatrol(u8 *self, void *, u32 on) {
+    u8 *const staff = *reinterpret_cast<u8 **>((uintptr_t)0x007c2658);
+    if (!on) {
+        Staff_ClearPatrolRegion(staff);
+        return 0;
+    }
+    Global7c2650_Set((u32)(uintptr_t)staff);
+    u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x14));
+    u8 *const mode = block ? MouseModeTile_Ctor(block, nullptr, 0x36) : nullptr;
+    MouseModes_EnsureHolder();   // (inlined there)
+    MouseMode_Set(mode);
+    vcall<void>(self, 0x2c);
+    Advisor_PostId(0xc1);
+    return 1;
 }
 }

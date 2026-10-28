@@ -27,7 +27,12 @@
 # [0x8023a0]'s cell type +8 about 0, 1, 3, 9 and 0xa as analysercell.py's) and its patrol region, the panel's slots 5 / 6 recorders, its
 # object +0x20 one with slot 9 a recorder (the name's address), the window +0x10's children 0x510 (window705a50.py's SetState surroundings:
 # its objects, queues and masks) and 0x50e (slot 5 a recorder) among decoys; scriptchain.py's advisor_env() for 0xd4.
-# usage: panel7cc298.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Update,Stats,Stats7cc258,Stats7cc3b0,Update7cc3b0)
+# Patrol7cc3b0 (0x4b5b50, thiscall (on)): modeenter.py's mode set-up (focus.py's Enter6fead0: the holder set or not, the current mode a
+# recorder or none, the heap failing now and then, the setting 1, kept so after advisor_env() for 0xc1), the tile [0x7b05cc] for the new
+# tile mode's Assign (its flag clear: the env's recorders 30 / 24), the staff member's patrol region, the panel's slot 11 a recorder; on
+# 1 mostly, 0, or any.
+# usage: panel7cc298.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Update,Stats,Stats7cc258,Stats7cc3b0,Update7cc3b0,
+#   Patrol7cc3b0)
 import os
 import struct
 import sys
@@ -44,13 +49,20 @@ from dialog7cb398 import KVTABLE, children, window  # noqa: E402
 from language import text  # noqa: E402
 from window import RANGES as WINDOW_RANGES, shown_env  # noqa: E402
 from window705a50 import EVENT_MASK, INNER, NOTIFY_MASK, RANGES as BUTTON_RANGES, look, window as button  # noqa: E402
+import focus  # noqa: E402
+import modeenter  # noqa: E402
 import scriptchain  # noqa: E402
 import stafflist  # noqa: E402
 import window705a50  # noqa: E402
 from fncmp import _cdecl_log  # noqa: E402
 from window import queues  # noqa: E402
 
-CALLS = {'Update': 0x4b1ee0, 'Stats': 0x4b16c0, 'Stats7cc258': 0x4b01d0, 'Stats7cc3b0': 0x4b58b0, 'Update7cc3b0': 0x4b5ab0}
+CALLS = {'Update': 0x4b1ee0, 'Stats': 0x4b16c0, 'Stats7cc258': 0x4b01d0, 'Stats7cc3b0': 0x4b58b0, 'Update7cc3b0': 0x4b5ab0,
+         'Patrol7cc3b0': 0x4b5b50}
+PATROL_RANGES = modeenter.RANGES + [
+    (0x46c350, 0x46c460), (0x46c580, 0x46c5b0), (0x46c6a0, 0x46c6c0), (0x4814a0, 0x481500), (0x48c950, 0x48c970), (0x4a2aa0, 0x4a2ad0),
+    (0x4b5b50, 0x4b5c90), (0x506e90, 0x506ec0), (0x6590f7, 0x6591e4), (0x65f11d, 0x65f160), (0x66190a, 0x66192b), (0x661d96, 0x661de0),
+    (0x67dcd0, 0x67ddb0), (0x67efc0, 0x67f1b0), (0x6828a0, 0x6830a0), (0x68a170, 0x68a450)]
 UPDATE_RANGES = [
     (0x401030, 0x401260), (0x401280, 0x401710), (0x4017a0, 0x402a30), (0x405710, 0x405760), (0x409cd0, 0x409cf0), (0x41a980, 0x41a9c0),
     (0x486b00, 0x486b50), (0x4b5ab0, 0x4b5b60), (0x4fa990, 0x4faa10), (0x505bd0, 0x505c60), (0x506860, 0x506880), (0x506eb0, 0x506ee0),
@@ -71,7 +83,8 @@ STATS_RANGES = [(0x412e90, 0x412f00), (0x43e0b0, 0x43e0f0), (0x441910, 0x441980)
                 (0x4b01d0, 0x4b063e), (0x436860, 0x436890), (0x4e1a30, 0x4e1b50), (0x506580, 0x506660), (0x50b350, 0x50b370)]
 B = Bench(merged([(0x4b1ee0, 0x4b20a4), (0x4e0440, 0x4e0450), (0x4e21b0, 0x4e21b7), (0x4e1a00, 0x4e1a07), (0x4e1a10, 0x4e1a17), (0x4dd4e0, 0x4dd4fb),
                   (0x412e90, 0x412eea), (0x485b00, 0x485b40), (0x6adc80, 0x6add25), (0x6ace60, 0x6acea0)] + WINDOW_RANGES + BUTTON_RANGES
-                 + STATS_RANGES + CLOCK_RANGES + STAFF_RANGES + UPDATE_RANGES), hooks={0x6acd60: _cdecl_log4, 0x67a7d0: _cdecl_log})
+                 + STATS_RANGES + CLOCK_RANGES + STAFF_RANGES + UPDATE_RANGES + PATROL_RANGES),
+          hooks={**modeenter.HOOKS, 0x6acd60: _cdecl_log4, 0x67a7d0: _cdecl_log})
 PANEL, OBJECT, THING, ROOT, KIDS, DECOYS = 0x33100000, 0x33110000, 0x33120000, 0x33130000, 0x33140000, 0x33150000
 OBJS, DEFS, ITEMS, TEXTS = 0x33160000, 0x7890a0, 0x33170000, 0x33180000
 IDS = [0xa08e, 0xa08f, 0xa090, 0xa0a5, 0xa0a6, 0xa0a7]
@@ -260,8 +273,26 @@ def update_case(r):
     return Call(CALLS['Update7cc3b0'], [PANEL], regions, conv='t', ret='v', masks=masks)
 
 
+def patrol_case(r):
+    """Patrol7cc3b0's world (the module comment)"""
+    regions = focus.case(r, ['Enter6fead0']).regions
+    masks = scriptchain.advisor_env(r, regions, 0xc1)
+    regions[0xfb3b7c] = struct.pack('<I', 1)   # (focus.py's setting, which advisor_env() replaced)
+    regions[0x7b05cc] = struct.pack('<H', r.choice([0, 1, 0x80, 0x81, r.getrandbits(16)]))
+    staff = bytearray(r.bytes(0x220))
+    put(staff, 0x20a, 'HH', *((1, 0x4000) if r.random() < 0.3 else (r.getrandbits(16), r.getrandbits(16))))
+    regions[THING] = staff
+    regions[0x7c2658] = struct.pack('<I', THING)
+    regions[PANEL] = put(bytearray(r.bytes(0x40)), 0, 'I', PANEL + 0x40)
+    regions[PANEL + 0x40] = vtable({})
+    on = r.choice([1, 1, 1, 0, 0, 2, r.getrandbits(32)])
+    return Call(CALLS['Patrol7cc3b0'], [PANEL, on], regions, conv='t', ret='a', masks=masks)
+
+
 def case(r):
     op = r.deal(OPS)
+    if op == 'Patrol7cc3b0':
+        return patrol_case(r)
     if op == 'Update7cc3b0':
         return update_case(r)
     if op == 'Stats7cc3b0':

@@ -1,4 +1,4 @@
-// The game panel object at 0x7cc3b0 (its vtable 0x6ffe50). Reimplementation of 0x4b53c0, 0x4b5330, 0x4b5a60, 0x4b6080, 0x4b58b0 and 0x4b5ab0. The names are unconfirmed.
+// The game panel object at 0x7cc3b0 (its vtable 0x6ffe50). Reimplementation of 0x4b53c0, 0x4b5330, 0x4b5a60, 0x4b6080, 0x4b58b0, 0x4b5ab0 and 0x4b5b50. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
@@ -42,4 +42,10 @@ void __fastcall Panel7cc3b0_ShowStats(u8 *self);
 // set to state 1 with notice when it has a patrol region (Staff_HasPatrolRegion; the advisor posted 0xd4 first), else 0, and the
 // child 0x50e's slot 5 given whether its cell checks (AnalyserRecord_ChecksCell, 1 / 0). No child checked.
 void __fastcall Panel7cc3b0_Update(u8 *self);
+
+// 0x4b5b50 (thiscall (on), pops 4; called by the window handler 0x4b5cb0 with b == 1; name invented): on 0 the staff member
+// [0x7c2658]'s patrol region cleared (Staff_ClearPatrolRegion), 0 returned. Else the member stored (Global7c2650_Set), a tile mode
+// 0x36 (Mem_Alloc(0x14), MouseModeTile_Ctor; 0 when that failed) made, the holder [0x7b05e8] made when missing (MouseModes_EnsureHolder,
+// inlined) and the mode set (MouseMode_Set), this panel's slot 11 called, the advisor posted 0xc1 (Advisor_PostId); 1 returned.
+u32 __fastcall Panel7cc3b0_SetPatrol(u8 *self, void *, u32 on);
 }
