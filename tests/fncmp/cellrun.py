@@ -16,7 +16,8 @@
 # 0x19 or not, and the 0x44-byte cell its first word names, flag 0x40 or not; the start's rows then away from row 0).
 # Connect (0x52b400): draw()'s cells (ids right, +0x24 words mostly one of three) from a cell near the start (its direction a side mostly),
 # to a cell its walk (modelled by connect_model, directions set as it goes) handles, or with the walk at a cell of another type (-1) any cell
-# off it; either end now and then a cell of type 0xc or 0x11 apart naming it; link 0, 1, 0x100 or any; the side run between the junctions
+# off it; either end now and then a cell of type 0xc or 0x11 apart naming it, from now and then a cell apart of another type whose id names
+# the start (else the walk's first cell is always from, and side A with it); words two of them one apart; link 0, 1, 0x100 or any; the side run between the junctions
 # modelled too (a case either walk of which would leave the laid out cells or not end is redrawn); [0x8186ac] 0 or a thing whose +0x28 the
 # call to agent B's 0x545450 passes. Agent B's 0x5370e0 (also Map_ApplyLine's, which is emulated) recorder 20 of 3, 0x53b280 7 of 3, 0x53bc60
 # and 0x545450 cdecl recorders 27 of 3 and 28 of 1 (driver.cpp's kCellRunEnv).
@@ -281,16 +282,18 @@ def xy_of(key):
     return index & 0x7f, index >> 7
 
 
-def connect_model(cells, fkey, tkey, hoarding, link, limit=40):
+def connect_model(cells, fkey, tkey, hoarding, link, alone=None, limit=40):
     """Connect's walks modelled on copies of the cells. tkey None: the keys of the cells the walk handles as far as it goes within limit steps
-    and the laid out cells, and whether it then meets a cell of another type (-1). Else True when the walk and the side run both end."""
+    and the laid out cells, and whether it then meets a cell of another type (-1). Else True when the walk and the side run both end. alone:
+    from is that cell apart (its id fkey) instead of the laid out one."""
     cells = {k: bytearray(v) for k, v in cells.items()}
-    wf = word(cells[fkey])
+    frm = cells[fkey] if alone is None else alone
+    wf = word(frm)
     wt = word(cells[tkey]) if tkey is not None else 0
     if link and tkey is not None and s16(wt) - s16(wf) < 0:
         return True
     x, y = xy_of(fkey)
-    d = cells[fkey][0xd]
+    d = frm[0xd]
     path, a, b = [], None, None
     for _ in range(limit):
         key = ident(x, y)
@@ -330,7 +333,7 @@ def connect_model(cells, fkey, tkey, hoarding, link, limit=40):
         return False
     if link and a is not None and b is not None and a != b:
         x, y = xy_of(a)
-        d = cells[fkey][0xd] if junction(neighbours(cells[a], hoarding)) else cells[a][0xd]
+        d = frm[0xd] if junction(neighbours(cells[a], hoarding)) else cells[a][0xd]
         for _ in range(limit):
             key = ident(x, y)
             cell = cells.get(key)
@@ -354,7 +357,8 @@ def connect_model(cells, fkey, tkey, hoarding, link, limit=40):
 def connect_case(r):
     while True:
         x0, y0, hoarding, rows, cells = draw(r)
-        words = [r.getrandbits(16) for _ in range(3)]
+        w = r.getrandbits(16)
+        words = [w, (w + 1) & 0xffff, r.getrandbits(16)]   # (two a word apart: 0x53bc60's first call at most 1 apart)
         for own, cell in cells.items():
             struct.pack_into('<H', cell, 0, own)
             if r.random() < 0.7:
@@ -362,9 +366,16 @@ def connect_case(r):
         fkey = ident(x0 + r.choice([0, 0, 0, -2, 2, -1, 1]), y0 + r.choice([0, 0, 0, -2, 2, 1]))
         if fkey not in cells or not fkey:
             continue
-        cells[fkey][0xd] = r.choice([4, 4, 1, 0x10, 0x40, r.getrandbits(8)])
+        alone = None
+        if r.random() < 0.15:   # (from a cell apart whose id names the start: the walk's first cell not from)
+            alone = put(put(bytearray(r.bytes(0x28)), 8, 'I', r.choice([0x19, 0x19, 0xb, 0])), 0, 'H', fkey)
+            put(alone, 0x24, 'H', r.choice(words))
+            alone[2] = cells[fkey][2]
+            alone[0xc] = alone[0x22] = r.choice([cells[fkey][0xc], side_bits(r)])
+        start = cells[fkey] if alone is None else alone
+        start[0xd] = r.choice([4, 4, 1, 0x10, 0x40, r.getrandbits(8)])
         link = r.choice([0, 1, 1, 1, 0x100, r.getrandbits(32)])
-        path, failed = connect_model(cells, fkey, None, hoarding, link)
+        path, failed = connect_model(cells, fkey, None, hoarding, link, alone)
         if not path and not failed:
             continue
         if failed and (not path or r.random() < 0.3):
@@ -374,12 +385,16 @@ def connect_case(r):
             tkey = r.choice(off)
         else:
             tkey = r.choice([path[-1], path[-1], r.choice(path)])
-        if connect_model(cells, fkey, tkey, hoarding, link):
+        if connect_model(cells, fkey, tkey, hoarding, link, alone):
             break
     regions = dict(rows)
     args = []
+    if alone is not None:
+        regions[RAM + 0x180] = alone
     for at, key in ((RAM + 0x100, fkey), (RAM + 0x140, tkey)):
-        if r.random() < 0.15:   # (an end of type 0xc or 0x11 naming the cell)
+        if at == RAM + 0x100 and alone is not None:
+            args.append(RAM + 0x180)
+        elif r.random() < 0.15:   # (an end of type 0xc or 0x11 naming the cell)
             stand = put(put(bytearray(r.bytes(0x28)), 8, 'I', r.choice([0xc, 0x11])), 0x10, 'H', key)
             regions[at] = stand
             args.append(at)

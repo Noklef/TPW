@@ -123,7 +123,7 @@ u32 __cdecl CellRun_Lay(s32 x, s32 y, s32 endX, s32 endY, u32 direction, u32 set
 // gets agent B's 0x53b280 (-1, -1, 1), a straight, a corner or a cell with one neighbour 0x53b280 (0, 0, 1); then two on. Last, with link:
 // agent B's 0x545450 on [[0x8186ac] + 0x28] (when there is one); then, when from is a straight or a corner, agent B's 0x53bc60 on from's
 // (x, y) with 0 when the words differ by at most 1 and again when A is a junction, on to's with Nibble_Scale of from's direction when B is
-// one (the direction byte over from's pointer: a direction 0 passes the pointer's upper three bytes on, sic), and 0x53b280 (0, 0, 1) on A
-// when A is B. Returns the cells walked (0 when skipped).
+// one (the direction byte over from's pointer: a direction 0 passes the pointer's upper three bytes on, sic; never reached: the walk ends at
+// to, whose word makes it B, not a junction), and 0x53b280 (0, 0, 1) on A when A is B. A is from itself unless from's id names another cell. Returns the cells walked (0 when skipped).
 s32 __cdecl CellRun_Connect(u8 *from, u8 *to, u32 link);
 }
