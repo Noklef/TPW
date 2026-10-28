@@ -1,7 +1,7 @@
 # A visitor's arrival and its message (src/game/world/person: 0x4feb50 Visitor_Arrive, 0x4fb360 Visitor_HandleMessage) against the
 # originals. 0x501db0 (Visitor_SetState, benched by visitorstate.py) is the thiscall recorder 26 (driver.cpp's kPersonEnv), the post
 # 0x40fb10 the recorder 21 (the objects' env; the message's bytes 0-9 logged). The sounds on or off (soundplay.py's globals, the manager's
-# slot 2 a recorder of the command's 7 dwords), the sprite script list not ready.
+# slot 2 a recorder of the command's 7 dwords); personscripts.py's script list (ready mostly) for ScriptRef_Start.
 #   Arrive: navpath.py's moving person (objectblocks.py's cells and block values, the limit +0x198 about the counter), arriving at its own
 #   cell mostly (else a neighbour, or column & 0x7f for one past 127: its old cell's chain unlinked and the new one's head replaced, the
 #   handle +0 and the links +8 / +0xa among the table 0x7cfb90's 16 slots); the crossing's park side 0x7855cc (column A / row / column B)
@@ -20,6 +20,7 @@ sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import navpath  # noqa: E402
 import objectblocks  # noqa: E402
+import personscripts  # noqa: E402
 from fncmp import HEAP, LOG, RAM, Bench, Call, _recorder, blob, blob_bytes, fb, global_heap, heap, log_region, put, recorder, set_return, vtable  # noqa: E402
 from wctimage import merged  # noqa: E402
 
@@ -28,6 +29,8 @@ B = Bench(merged([
     (0x4217f0, 0x421810), (0x4d4140, 0x4d41a0), (0x4d86d0, 0x4d8710), (0x516330, 0x516390), (0x4fa530, 0x4fa600),
     (0x475480, 0x4755a0), (0x4758f0, 0x475c60), (0x4d27a0, 0x4d2850), (0x4fa470, 0x4fa540), (0x412e90, 0x412f00), (0x4033a0, 0x4033f0),
     (0x402d70, 0x403220), (0x4fa930, 0x4fa9a0), (0x50b6a0, 0x50b790), (0x5100e0, 0x510110), (0x510160, 0x510190), (0x4d91f0, 0x4d93c0),
+    # (personscripts.py's SpriteScript_Start under ScriptRef_Start)
+    (0x475010, 0x476a30), (0x540b90, 0x540da0), (0x541f60, 0x541fb0), (0x4d4100, 0x4d4134), (0x5f5e20, 0x5f5e90), (0x5f5fa0, 0x5f5fc0),
     # (visitorleave.py's: the ring, the sound, Visitor_Lower19c)
     (0x4dd4e0, 0x4dd510), (0x4ddd20, 0x4ddf50), (0x4e0a70, 0x4e0ab0), (0x4e2670, 0x4e2720), (0x4faa00, 0x4faa70), (0x4754e0, 0x475560),
     (0x4fea70, 0x4feb20), (0x50b350, 0x50b370), (0x50c0d0, 0x50c1a0), (0x519610, 0x519660), (0x51bfc0, 0x51c060), (0x55a070, 0x55a110),
@@ -40,6 +43,7 @@ CALLS = {'Arrive': 0x4feb50, 'Message': 0x4fb360}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 VISITOR, MANAGER, VT = RAM + 0x40000, RAM + 0x41000, RAM + 0x41100
 MSG, THINGS, QNODES = RAM + 0x42000, RAM + 0x43000, RAM + 0x44000
+SCRIPTS = RAM + 0x50000   # (personscripts.py's script list, clear of navpath.py's regions)
 
 
 def word(r):
@@ -114,6 +118,7 @@ def arrive(r):
     log = log_region()
     blob_bytes(log, 21, 0, 0x3ff)
     sound(r, regions, log)
+    personscripts.script_list(r, regions, v, base=SCRIPTS)
     regions[LOG] = log
     n = r.choice([0, 0, 1])
     regions[QNODES] = put(bytearray(r.bytes(0x18)), 0, 'HHII', r.randrange(16), r.getrandbits(16), 0, 0)
@@ -138,7 +143,9 @@ def message(r):
     if r.random() < 0.3:   # (the last pair the one pushed: (0xd, the handle) in state 0x10, (6, the handle) when sent away)
         put(v, 0x30 + (pos * 4 if pos else 0x80), 'HH', 0xd if state == 0x10 else 6, h)
     put(v, 0x19c, 'I', fb(r.choice([0.0, 1.0, 50.0, 100.0, r.uniform(-10, 110)])))
-    put(v, 0xc, 'I', r.choice([0, 1, 5]))
+    personscripts.script_list(r, regions, v, base=SCRIPTS)
+    if r.random() < 0.5:
+        put(v, 0xc, 'I', 0)
     said = h if r.random() < 0.8 else r.choice([0, r.getrandbits(16)])
     for off in (0x1de, 0x1e0, 0x1e2, 0x1e4, 0x1e6):
         if r.random() < 0.3:
