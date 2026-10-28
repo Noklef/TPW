@@ -1,10 +1,19 @@
 #include "textparts.h"
 
 #include <cstdint>
+#include <cstring>
 
 #include "../core/gameheap.h"
+#include "../core/initializers.h"
+#include "../core/language.h"
+#include "../core/methods.h"
+#include "../core/string.h"
 #include "../core/textarg.h"
 #include "../core/vcall.h"
+#include "../gfx/display.h"
+#include "../gfx/palette.h"
+#include "../gfx/spriteframe.h"
+#include "../gfx/surface.h"
 #include "../gfx/textlayout.h"
 #include "../math/x87.h"
 #include "renderer.h"
@@ -213,7 +222,97 @@ void set_text(u8 *part, u16 *text) {
 
 u32 magnitude(s32 value) { return value < 0 ? 0u - (u32)value : (u32)value; }
 
+u8 *const kStyle = reinterpret_cast<u8 *>(0x0078ba2c);
+
+s32 screen_width() { return *reinterpret_cast<const s16 *>(0x00faa5c4); }
+s32 screen_height() { return *reinterpret_cast<const s16 *>(0x00faa5c0); }
+
 }  // namespace
+
+void __fastcall TextPart_DrawText(u8 *part, void *, const u16 *text) {
+    SurfaceInfo info;
+    SurfaceInfo_Ctor(&info);
+    s32 box[4] = {0, 0, 0, 0};
+    if (!text) return;
+    s32 bottom = at<s16>(part, 0x3e);
+    u32 align = (u32)(s32)at<s8>(part, 0xd8);
+    s32 width = at<s16>(part, 0x3c);
+    Language_MirrorAlign(&align);
+    u8 *const layout = part + 0xe4;
+    u32 status;
+    s32 left, top, right, base = 0;
+    switch (align) {
+    case 0:
+        Obj_SetKindA4(layout, nullptr, &status, 0);
+        if (!at<u8>(part, 0xda)) width = 0x4000;
+        left = at<s16>(part, 0xde) * screen_width() / 2048;
+        right = width;
+        top = at<s16>(part, 0xe0) * screen_height() / 1536;
+        break;
+    case 1:
+        Obj_SetKindA4(layout, nullptr, &status, 2);
+        if (!at<u8>(part, 0xda)) {
+            base = (at<s16>(part, 0x3c) >> 1) - 0x2000;
+            width = 0x4000;
+        }
+        left = at<s16>(part, 0xde) * screen_width() / 2048 + base;
+        right = base + width;
+        top = at<s16>(part, 0xe0) * screen_height() / 1536;
+        break;
+    case 2:
+        Obj_SetKindA4(layout, nullptr, &status, 1);
+        if (!at<u8>(part, 0xda)) {
+            width = 0x4000;
+            base = at<s16>(part, 0x3c) - 0x4000;
+        }
+        left = base;
+        right = width - at<s16>(part, 0xde) * screen_width() / 2048 + base;
+        top = 0;
+        bottom -= at<s16>(part, 0xe0) * screen_height() / 1536;
+        break;
+    default:   // (the original: both the text's address, the top as the stack lies)
+        left = right = (s32)(uintptr_t)text;
+        top = 0;
+        break;
+    }
+    switch (at<s8>(part, 0xd9)) {
+    case 0:
+        Obj_SetKindA0(layout, nullptr, &status, 4);
+        break;
+    case 1:
+        Obj_SetKindA0(layout, nullptr, &status, 2);
+        break;
+    case 2:
+        Obj_SetKindA0(layout, nullptr, &status, 5);
+        break;
+    }
+    const u32 index = (u32)(s32)at<s8>(part, 0xdc);
+    const uintptr_t entry = index < 0xd ? 0x0078b54c + (index + *reinterpret_cast<const u32 *>(0x0078b534) * 13) * 24 : 0;  // (none: a read of 0x14)
+    s32 set;
+    TextStyle_SetFont(kStyle, nullptr, &set, *reinterpret_cast<u8 *const *>(entry + 0x14));
+    if (!at<u8>(part, 0xdd)) {   // white: blue, green, red, alpha, the palette's nearest entry (the original's last three bytes never read)
+        u8 colour[8] = {0xff, 0xff, 0xff, 0xff, 0, 0, 0, 0};
+        colour[4] = Palette_Nearest(reinterpret_cast<const u8 *>(0x00fa71f8), 0xff, 0xff, 0xff);
+        TextStyle_SetColour(kStyle, nullptr, &set, colour);
+    }
+    Format_FillInfo(at<u32>(part, 0xa0), reinterpret_cast<u32 *>(&info), at<u16>(part, 0xa8), at<u16>(part, 0xaa));
+    Display_SetSurfaceInfo(&info);
+    Obj_SetOff10(kStyle, nullptr, reinterpret_cast<u32 *>(&set));
+    u8 *const pixels = at<u8 *>(part, 0xa0);
+    u32(__cdecl *const before)(SurfaceInfo *) = at<u32(__cdecl *)(SurfaceInfo *)>(part, 0x4c);
+    if (pixels && (!before || !before(&info)))
+        memset(pixels, 0, ((info.bitCount + 7) >> 3) * at<u16>(part, 0xaa) * at<u16>(part, 0xa8));
+    const s32 rect[4] = {left, top, right, bottom};
+    const u8 *const narrow = reinterpret_cast<const u8 *>((uintptr_t)Text_NarrowToGlobalBuffer(text));
+    s32 drawn;
+    TextLayout_Draw(layout, nullptr, &drawn, rect, narrow, kStyle, box);
+    const s32 gw = screen_width(), gh = screen_height();
+    const u32 x = at<u16>(part, 0x18), y = at<u16>(part, 0x1a);   // (only the low words reach the rectangle)
+    Fn_659dac(part + 0x20, nullptr, (u32)((s32)((u32)box[0] << 11) / gw) + x, (u32)((s32)((u32)box[1] * 0x600) / gh) + y,
+              (u32)((s32)((u32)box[2] << 11) / gw) + x, (u32)((s32)((u32)box[3] * 0x600) / gh) + y);
+    if (void(__cdecl *const after)(SurfaceInfo *) = at<void(__cdecl *)(SurfaceInfo *)>(part, 0x50)) after(&info);
+    SpriteImage_FreeTexturesIfSet(part + 0x9c);
+}
 
 void __fastcall TextPart6ff3b0_SetLayout(u8 *part, void *, u32 flags, const u8 *info) {
     if (!(flags & 0x80)) return TextPart_SetLayout(part, nullptr, flags, info);

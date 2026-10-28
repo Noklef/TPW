@@ -81,6 +81,15 @@ u8 *__fastcall TextPart6ff530_DeletingDtor(u8 *part, void *, u32 flags);
 // dword +0 set: slot 9 called with it.
 void __fastcall TextPart_SetLayout(u8 *part, void *, u32 flags, const u8 *info);
 
+// 0x48f830 (thiscall (text), pops 4; slot 9 of the classes but 0x6ff530; name invented): nothing for no text; else the layout (+0xe4)
+// aligned by +0xd8 (Language_MirrorAlign; 0 left: Obj_SetKindA4 0, 1 centred: 2, 2 right: 1) and +0xd9 (0 top: Obj_SetKindA0 4, 1: 2,
+// 2: 5), the rectangle from the size words +0x3c / +0x3e, the offset words +0xde / +0xe0 (scaled by the screen's 0xfaa5c4 / 0xfaa5c0
+// over 2048 / 1536) and +0xda (0: 0x4000 wide); the global style (0x78ba2c) given the font table's (0x78b54c) font +0xdc and, for +0xdd
+// 0, white; the part's pixels (+0xa0, +0xa8 x +0xaa, the current format) drawn on and cleared (unless +0x4c answers nonzero); the text
+// narrowed and drawn (TextLayout_Draw), its box scaled back onto +0x18 / +0x1a into the rectangle +0x24 (Fn_659dac on +0x20); +0x50
+// called with the surface; the image's (+0x9c) textures freed. An alignment past 2 leaves the original's top as its stack lies.
+void __fastcall TextPart_DrawText(u8 *part, void *, const u16 *text);
+
 // Slot 3 of the number classes (thiscall (flags, info), pops 8; names after the vtables): without the flag 0x80 TextPart_SetLayout
 // (flags, info); with it the info's dword +0 formatted (0x6acd60 with the table [0x78ba94], a number argument 'MRAV' (n, value, minus)
 // into 0x3f characters on the stack) and that text sent by TextPart_SetLayout's flag 0x100 alone (to slot 9).
