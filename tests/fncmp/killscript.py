@@ -28,7 +28,7 @@ if _ops is not None:
 
 B = Bench(fc.merged(fc.RANGES + [(0x558500, 0x5587ea), (0x559060, 0x559344), (0x51e710, 0x51e730), (0x466b70, 0x466c7f), (0x412e90, 0x412eec),
                                  (0x67a830, 0x67a860), (0x5da3c0, 0x5da3c1)]), hooks=fc.HOOKS)
-CTX, ARR, OBJ = RAM + 0x30000, RAM + 0x31000, RAM + 0x32000
+CTX, ARR, OBJ, FLY = RAM + 0x30000, RAM + 0x31000, RAM + 0x32000, RAM + 0x34000
 DEFS, THINGS = RAM + 0x38000, RAM + 0x39000
 FREE, KILL = 0x558500, 0x559060
 
@@ -93,7 +93,14 @@ def world(r):
             owners = [0]
             things(r, regions, [0])
     regions.setdefault(0x802bc0, bytes(0x20))   # (the sound off outside the sound world)
-    regions.update({0x803ac8: r.bytes(0x10), 0x8791f8: bytes(0x194)})
+    # the flying rides: a record with no slot in use (flyingclear.py frees busy ones) at some of the indices the records name, and others
+    fly = bytearray(0x194)
+    for i in r.sample([1, 2, 50, 51, 99, r.randrange(1, 100)], 3):
+        put(fly, 4 * i, 'I', FLY)
+    rec = bytearray(r.bytes(0x5c + 20 * 0xe4))
+    for i in range(20):
+        put(rec, 0x5c + i * 0xe4 + 0x80, 'I', 0)
+    regions.update({0x803ac8: r.bytes(0x10), 0x8791f8: fly, FLY: rec})
     return regions, kind, fn, sarg, owners
 
 
@@ -136,7 +143,7 @@ def record(r, regions, k, ids, kind, fn, sarg, owners):
         put(ob, 0x10 * j + 8, 'II', t, sarg if kind == 'sound' and fn == 0x51c2c0 else handle(r, regions))
     put(c, 0xb0, 'I', OBJ + 0x100 * k if nodes else 0)
     regions[OBJ + 0x100 * k] = ob
-    put(c, 0x9c, 'i', r.choice([0, 1, 50, 99, 100]))
+    put(c, 0x98, 'II', r.choice([0, 1, 2, 50, 51, 99, 100]), r.choice([0, 1, 2, 50, 51, 99, 100]))
     c[0xb9] = r.choice([0, 0, 1, 0x80])
     put(c, 0xac, 'H', 0 if kind == 'parts' else r.choice([0, 1, 2, 5, 7]))
     put(c, 0xc8, 'I', owner)
