@@ -463,6 +463,8 @@ const MessageCentreEnv kMessageCentreEnv = {reinterpret_cast<u32(__fastcall *)(u
 const ObjectEnv kObjectEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, u8 *)>((uintptr_t)recorder(21, 1)),
                               reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(22, 0)),
                               reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(23, 0))};
+// Object_Delete's call into agent B's unported RSSE_KillScript (0x559060): cdecl recorder 20 of 2, as tests/fncmp/objectdelete.py hooks it.
+const ObjectDeleteEnv kObjectDeleteEnv = {reinterpret_cast<void(__cdecl *)(s32, u32)>((uintptr_t)jpeg_recorder(20, 2))};
 
 // Optional settings in the log region: at + 0xa00 a mask per slot (k & 63): bits 0-15 the arguments that are C strings, logged and hashed as a hash of the string
 // (so that a path in a stack buffer, whose address differs between the sides, compares by its text), bits 16-31 out arguments, logged as 0 (a stack address;
@@ -1149,6 +1151,7 @@ int main(int argc, char **argv) {
     Rides_SetEnv(&kRidesEnv);
     CellModel_SetEnv(&kCellModelEnv);
     Object_SetEnv(&kObjectEnv);
+    Object_SetDeleteEnv(&kObjectDeleteEnv);
     MessageCentre_SetEnv(&kMessageCentreEnv);
     GlyphRender_SetEnv(&kGlyphRenderEnv);   // (tests/fncmp/glyphrender.py hooks 0x67a7d0 with fncmp._cdecl_log)
     PtrList_SetEnv(&kPtrListEnv);
