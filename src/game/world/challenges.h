@@ -29,6 +29,19 @@ void __fastcall Challenge_Attempt(u8 *challenge, void *, u32 thing);
 // e = mTargetTime (+4), f = mTargetVal (+8), g = h = 0, i / j = mTargetObj / mTargetObj2 (+0xc, +0xe), k = mTargetStaffType (+0x10); 1.
 u8 __fastcall Challenges_Announce(u8 *challenges, void *, u8 *challenge, u32 offer);
 
+// A challenge offerable: its kind (+0) set, not won (mHaveWon +0x2c clear) and declined (+0x28) fewer times than gBalanceLevel's dword
+// 0x7857cc (signed).
+// 0x4d2a70 (thiscall (offer), pops 4; called from 0x4d1f4e and 0x4d22fd; name invented): nothing while one is on or offered (mChallengeOn
+// +0x3d9, mWaitingForReply +0x3da). Else +0x3dc = 0, and from the one after mCurrentChallenge (+0x3cc; 0 when it is negative) to it + 20
+// (32-bit counts, signed; each taken mod 20, signed) the first offerable independent one (+0x1d) becomes the current one and is
+// announced (Challenges_Announce with offer; the gBalanceLevel limit read once); announced: +0x3da = 1. (Its debug print left out.)
+void __fastcall Challenges_OfferNext(u8 *challenges, void *, u32 offer);
+
+// 0x4d2b60 (thiscall; returns AL; called from 0x4d3099; name invented): 0 while one is on (+0x3d9), without a current challenge or when
+// its mDoubleOrNothingFollowup (+0x18) is 0. Else the 20 challenges in order: each offerable one of that kind becomes the current one
+// and is announced (Challenges_Announce, offer 0); the first announced: +0x3dc = 0, +0x3da = 1 and 1. None: 0.
+u8 __fastcall Challenges_OfferFollowup(u8 *challenges);
+
 // 0x4d2df0: an offer accepted: when waiting for the reply (+0x3da) and there is a current challenge, the wait ends, the challenge is on
 // (+0x3d9 = 1) and mNextChallengeEventTime (+0x3d0, 8 bytes) = the world's funny time now (FunnyTime_Now) + its mTargetTime (+4) days.
 void __fastcall Challenges_AcceptOffer(u8 *challenges);

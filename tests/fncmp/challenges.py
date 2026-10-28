@@ -12,8 +12,11 @@
 # recorder 21 logging the message's bytes 0-0x1f but 0x11-0x13 (the stack's). A challenge attempted (0x4d1ae0): as finished, its +4, +8
 # and count +0x24 any, the thing any; recorder 21 logging the message's dwords 0-11 but 4 (c, 0, and the stack's bytes). A challenge
 # announced (0x4d2c50): as attempted, the challenge none now and then, the offer flag 0, 1, 0x100 or any (its byte tested); the same
-# dwords logged (c, always 1, is in dword 4 with the stack's bytes: not compared).
-# usage: challenges.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Drop,Current,Schema,Guard,Accept,Decline,LoadSam,Dtor,Ctor,Finish,Attempt,Announce)
+# dwords logged (c, always 1, is in dword 4 with the stack's bytes: not compared). The next offered (0x4d2a70 Next) and the follow-up
+# (0x4d2b60 Followup): the flags +0x3d9 / +0x3da mostly clear, the current index about -1, 0, 19, 20 and the signed wraps (none that
+# walks below the challenges: the original reads there), the 20 challenges' kinds, won flags, declined counts about gBalanceLevel's
+# 0x7857cc limit, independent flags and follow-ups from a few values; Announce's centre and log.
+# usage: challenges.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Drop,Current,Schema,Guard,Accept,Decline,LoadSam,Dtor,Ctor,Finish,Attempt,Announce,Next,Followup)
 import os
 import struct
 import sys
@@ -34,7 +37,7 @@ B = Bench([(0x4d1c80, 0x4d1cdc), (0x4d1e60, 0x4d1e74), (0x4d2840, 0x4d285d), (0x
            (0x519510, 0x519550), (0x5da3c0, 0x5da3c1), (0x4d1ce0, 0x4d1e5e), (0x4d1e80, 0x4d1e8c), (0x4d1bd0, 0x4d1c73), (0x4d91f0, 0x4d9290),
            (0x50afe0, 0x50b090), (0x50b350, 0x50b370), (0x516270, 0x516320), (0x67b050, 0x67b0d0), (0x4d1a00, 0x4d1add),
            (0x409cd0, 0x409cdd), (0x6bb1a0, 0x6bb1a4), (0x4d3500, 0x4d374e), (0x40f7a0, 0x40f803),
-           (0x4d1ae0, 0x4d1bc6), (0x4d2c50, 0x4d2de8), (0x4d3220, 0x4d3500), (0x5dc650, 0x5dc654), (0x51c050, 0x51c054)] + CLOCK_RANGES + FILE_RANGES + thing_ctors.CENTRE_RANGES,
+           (0x4d1ae0, 0x4d1bc6), (0x4d2a70, 0x4d2b55), (0x4d2b60, 0x4d2c4d), (0x4d2c50, 0x4d2de8), (0x4d3220, 0x4d3500), (0x5dc650, 0x5dc654), (0x51c050, 0x51c054)] + CLOCK_RANGES + FILE_RANGES + thing_ctors.CENTRE_RANGES,
           hooks={**thing_ctors.CENTRE_HOOKS, 0x40fb10: _recorder(21, 1)})
 VALUES = balanceload.VALUES
 LEVEL = 0x7857d4   # gBalanceLevel's challenge indices (20 dwords)
@@ -176,9 +179,33 @@ def attempt(r, mem, op='Attempt'):
     return Call(0x4d1ae0, [RAM + at, r.choice([0, 1, r.getrandbits(32)])], regions, conv='t')
 
 
+def offer_next(r, mem, op):
+    """Challenges_OfferNext (0x4d2a70) or Challenges_OfferFollowup (0x4d2b60) on the challenges at C."""
+    kinds = [r.randrange(1, 0x30) for _ in range(3)]
+    for i in range(0x14):
+        c = 0x100 + 0xc + 0x30 * i
+        put(mem, c, 'I', r.choice([0, 0] + kinds + [r.randrange(0x30)]))
+        put(mem, c + 0x18, 'I', r.choice([0] + kinds + [r.randrange(0x30), r.getrandbits(32)]))
+        put(mem, c + 0x28, 'i', r.choice([0, 0, 1, 2, 3, -1, r.getrandbits(32) - (1 << 31)]))
+        mem[c + 0x1d] = r.choice([0, 1, 1, 0xff])
+        mem[c + 0x2c] = r.choice([0, 0, 0, 1, 0xff])
+    mem[0x100 + 0x3d9] = r.choice([0] * 8 + [1, 0xff])
+    mem[0x100 + 0x3da] = r.choice([0] * 8 + [1, 0xff])
+    put(mem, 0x100 + 0x3cc, 'i', r.choice([-1, -1, 0, 0, 0, 1, 5, 18, 19, 20, 21, 40, -5, -20, -21, -0x80000000, 0x7fffffec, 0x7ffffff0,
+                                           r.randrange(-1, 20)]))
+    regions = {RAM: mem, HEAP: heap(), LOG: log_region(), 0x7857cc: struct.pack('<i', r.choice([0, 1, 2, 3, -1, 0x7fffffff]))}
+    thing_ctors.centre(r, regions)
+    blob(regions[LOG], 21, 0, 0xfef)
+    if op == 'Next':
+        return Call(0x4d2a70, [C, r.choice([0, 1, 1, 0x100, r.getrandbits(32)])], regions, conv='t', ret='v')
+    return Call(0x4d2b60, [C], regions, conv='t', ret='b')
+
+
 def case(r):
     mem = r.bytes(0x600)
     op = r.deal(OPS)
+    if op in ('Next', 'Followup'):
+        return offer_next(r, bytearray(mem), op)
     if op in ('Attempt', 'Announce'):
         return attempt(r, bytearray(mem), op)
     if op == 'Finish':
@@ -207,7 +234,7 @@ def case(r):
     return Call(r.choice([0x4d6330, 0x4d6350]), [C], {RAM: mem}, conv='t', ret='a')
 
 
-OPS = [k for k in os.environ.get('OPS', 'Drop,Current,Schema,Guard,Guard,Accept,Decline,LoadSam,LoadSam,Dtor,Ctor,Finish,Finish,Attempt,Attempt,Announce,Announce').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Drop,Current,Schema,Guard,Guard,Accept,Decline,LoadSam,LoadSam,Dtor,Ctor,Finish,Finish,Attempt,Attempt,Announce,Announce,Next,Next,Followup,Followup').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)

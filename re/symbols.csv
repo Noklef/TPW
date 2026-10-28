@@ -972,6 +972,8 @@ address,name,kind,confidence,notes
 0x004d1a00,Challenge_Finish,function,low,"reimplemented (src/game/world/challenges); a challenge finished: +0x2c = 1; unless it names another (+0x18), message 0x19 (Kind_ToIdC of +0, 0x110, +0x14) posted"
 0x004d1ae0,Challenge_Attempt,function,low,"reimplemented (src/game/world/challenges); thiscall (thing), pops 4; called by 0x4d3180 with the challenges' +0x3dc: the challenge's count +0x24 incremented and message 0x19 (0x111; its kind, +0x14, +4, +8 and the thing) posted"
 0x004d2c50,Challenges_Announce,function,low,"reimplemented (src/game/world/challenges); thiscall (challenge, offer), pops 8, this unused, returns AL; called by 0x4d2a50-0x4d2c40: none 0; else message 0x19 (0x158 offered, else 0x10e; the challenge's kind, prize, target time, value, objects and staff type) posted, 1"
+0x004d2a70,Challenges_OfferNext,function,low,"reimplemented (src/game/world/challenges); thiscall (offer), pops 4: none on or offered: from the one after the current, the first offerable independent challenge made current and announced"
+0x004d2b60,Challenges_OfferFollowup,function,low,"reimplemented (src/game/world/challenges); thiscall, returns AL: the current challenge's follow-up kind: the first offerable challenge of it made current and announced; 1 when announced"
 0x004e2650,Thing_MapId,function,high,reimplemented (src/game/world/person); thiscall (&out): the thing's map id ((mY >> 8) * 128 + (mX >> 8) + 1)
 0x004f9460,Sprite_RecordMapId,function,high,"reimplemented (src/game/world/person); thiscall (&out): the old mLastRecordedMapId (+0xcc) out, the current map id recorded"
 0x004fd950,Visitor_TimeInPark,function,high,reimplemented (src/game/world/person); thiscall: (gWorld tick +0x1da70c - mArrivalDate +0x1d4) >> 2
