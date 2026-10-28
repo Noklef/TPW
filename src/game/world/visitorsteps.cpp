@@ -4,6 +4,9 @@
 
 #include "../core/accessors.h"
 #include "../core/globals.h"
+#include "../sprite/script.h"
+#include "../sprite/scriptref.h"
+#include "analysercell.h"
 #include "mapcell.h"
 #include "objectmsg.h"
 #include "person.h"
@@ -45,16 +48,16 @@ void busStops(u16 stops[4]) {
     stops[3] = (u16)(*Map_BusStopPos(map(), nullptr, &p, 0) - 0xff);
 }
 
-// The walk to a random spot of the cell (two rolls for the low bytes), state 0x14. (The original builds x and y in stack dwords whose high
-// halves it never sets; Sprite_SetDestination stores and uses only the low words.)
-void walkToStop(u8 *visitor, u16 cell) {
+// The walk to a random spot of the cell (two rolls for the low bytes), then the state. (The original builds x and y in stack dwords whose
+// high halves it never sets; Sprite_SetDestination stores and uses only the low words.)
+void walkToSpot(u8 *visitor, u16 cell, u32 state) {
     const u32 rx = (u32)World_Rand(world());
     const u32 ry = (u32)World_Rand(world());
     const u32 index = (u32)cell - 1;
     const u32 x = (index & 0x7f) << 8 | (rx & 0xff);
     const u32 y = (index >> 7 & 0xff) << 8 | (ry & 0xff);
     g_env->setDestination(visitor, nullptr, (s32)x, (s32)y);
-    g_env->setState(visitor, nullptr, 0x14);
+    g_env->setState(visitor, nullptr, state);
 }
 
 }  // namespace
@@ -129,7 +132,7 @@ void __fastcall Visitor_GoToBusStop(u8 *visitor) {
     busStops(stops);
     if (Game_PollRideElement1(world()) == 0) return;
     const u16 cell = stops[World_Rand(world()) & 3];
-    walkToStop(visitor, cell);
+    walkToSpot(visitor, cell, 0x14);
 }
 
 void __fastcall Visitor_StepAtBusStop(u8 *visitor) {
@@ -148,7 +151,7 @@ void __fastcall Visitor_StepAtBusStop(u8 *visitor) {
     const u16 *const pair = World_ArrivalVehicleNotSize1(world()) ? stops + 2 : stops;
     if (ownCell(visitor) == pair[0] || ownCell(visitor) == pair[1]) return;
     const u16 cell = pair[World_Rand(world()) & 1];
-    walkToStop(visitor, cell);
+    walkToSpot(visitor, cell, 0x14);
 }
 
 u32 __fastcall Visitor_FindQueueDestination(u8 *visitor) {
@@ -167,4 +170,63 @@ u32 __fastcall Visitor_FindQueueDestination(u8 *visitor) {
     }
     // Debug_Printf(2, "QQQ - FindQueueDestination SetDe...")
     return 0;
+}
+
+void __fastcall Visitor_KillScripts(u8 *visitor) {
+    if (at<u32>(visitor, 0x210)) {
+        SpriteScript_Kill((s32)at<u32>(visitor, 0x210));
+        at<u32>(visitor, 0x210) = 0;
+    }
+    Obj_KillSlot(visitor + 0xc);
+    g_env->setState(visitor, nullptr, 0x11);
+}
+
+void __fastcall Visitor_GoToTicketBooth(u8 *visitor) {
+    if (Game_PollRideElement1(world()) == 0) return;
+    const u32 side = (u32)World_Rand(world()) & 1;
+    u16 p;
+    const u16 cell = *Map_TicketBoothPos(map(), nullptr, &p, side);
+    walkToSpot(visitor, cell, 2);
+}
+
+void __fastcall Visitor_StepWalkingIn(u8 *visitor) {
+    u16 speed;
+    if (World_ArrivalVehicleNotSize1(world()) == 0 && Game_TakeRideElement1(world()) == 3)
+        speed = global<u16>(0x0075c7f4);   // Debug_Printf(2, "The bus is coming, RUUUUUUUUUUN...")
+    else
+        speed = (handleOf(visitor) & 3) == 0 ? global<u16>(0x0075c7f2) : global<u16>(0x0075c7f0);
+    at<u16>(visitor, 0xc2) = speed;
+    if (g_env->walkNav(visitor) != 0) return;   // (2: Debug_Printf(0, "Big problem ..."))
+    g_env->setState(visitor, nullptr, Get1da710_51a280(world()) ? 3 : 4);
+}
+
+void __fastcall Visitor_StepEntering(u8 *visitor) {
+    if (Get1da710_51a280(world()) != 0 || Game_GetRideElement1(world()) != 1) {
+        const u32 side = (u32)World_Rand(world()) & 1;
+        u16 p;
+        g_env->setDestinationCell(visitor, nullptr, *Map_TicketBoothPos(map(), nullptr, &p, side));
+        g_env->setState(visitor, nullptr, 2);
+        return;
+    }
+    const u32 walked = g_env->walkNav(visitor);
+    if (walked != 0) return;   // (2: Debug_Printf(0, "Big problem ..."))
+    at<u32>(visitor, 0x1d8) = World_AddVisitorToDate(world());
+    g_env->setState(visitor, nullptr, 6);
+}
+
+void __fastcall Visitor_StepLeavingPark(u8 *visitor) {
+    if (at<s32>(visitor, 0x1bc) > 0 && (u8)(long long)at<float>(visitor, 0x19c) != 0 && Get1da710_51a280(world()) == 0 &&
+        AnalyserCell_TypePlain(visitor) != 0) {
+        // Debug_Printf(2, "Make up your mind!")
+    } else {
+        const u32 walked = g_env->walkNav(visitor);
+        if (walked == 0) {
+            g_env->setState(visitor, nullptr, 0x13);
+            return;
+        }
+        if (walked != 2) return;
+        // Debug_Printf(2, "I'm stuck in the park, even thou...")
+    }
+    at<u32>(visitor, 0x188) = 0;
+    g_env->setState(visitor, nullptr, 6);
 }

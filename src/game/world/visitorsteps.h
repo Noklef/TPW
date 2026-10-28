@@ -39,4 +39,21 @@ void __fastcall Visitor_StepAtBusStop(u8 *visitor);
 // 0x501160 (thiscall): the object +0x1dc names (the table 0x7cfb90's slot by the whole word): the visitor's place in its queue (none: 0);
 // stored at +0x1f1, the queue spot's cell and spot (Object_AnyQueueSpot), the walk there; started: state 0xc and 1, else 0.
 u32 __fastcall Visitor_FindQueueDestination(u8 *visitor);
+// 0x4feb10 (thiscall): the sprite script +0x210, when set, killed (SpriteScript_Kill) and cleared, the reference +0xc's killed
+// (Obj_KillSlot), state 0x11. Name invented, unconfirmed.
+void __fastcall Visitor_KillScripts(u8 *visitor);
+// 0x4ff520 (thiscall): unless Game_PollRideElement1 says 0, the walk to a random ticket booth at a random spot (state 2). Name invented,
+// unconfirmed.
+void __fastcall Visitor_GoToTicketBooth(u8 *visitor);
+// 0x4ff730 (thiscall): the walking speed +0xc2: [0x75c7f4] when no other arrival is due (World_ArrivalVehicleNotSize1 0) and
+// Game_TakeRideElement1 says 3 ("The bus is coming, RUUUUUUUUUUN"), else [0x75c7f2] for a handle whose low 2 bits are 0, [0x75c7f0] for
+// others; one step (Sprite_WalkNav), arrived: state 3 with the park's dword +0x1da710 set, else 4. Name invented, unconfirmed.
+void __fastcall Visitor_StepWalkingIn(u8 *visitor);
+// 0x4ffb20 (thiscall): with +0x1da710 set or the ride element 1 of +0x1da732 not 1, back to a random ticket booth (state 2); else one step,
+// arrived: +0x1d8 the visitor count to date (World_AddVisitorToDate), state 6. Name invented, unconfirmed.
+void __fastcall Visitor_StepEntering(u8 *visitor);
+// 0x500a50 (thiscall): with +0x1bc above 0, the low byte of __ftol(happiness +0x19c) set, +0x1da710 0 and a plain cell under it
+// (AnalyserCell_TypePlain) the visitor stays ("Make up your mind!"); otherwise one step: arrived, state 0x13; stuck (2), it stays too:
+// +0x188 0, state 6. Name invented, unconfirmed.
+void __fastcall Visitor_StepLeavingPark(u8 *visitor);
 }
