@@ -865,9 +865,15 @@ u32 __cdecl CoasterEdit_Click(u32 press) {
 
 namespace {
 
-// The end 0x445a70 has twice: CoasterEdit_EndTool inlined, its calls through the env; tool 0x20 is TrackSelection_End called (inline
-// false) or inlined (its flag 0x80 as read before the switch).
-void EndToolVia(bool inlineEnd) {
+// The end 0x445a70 has twice and 0x446050 once: CoasterEdit_EndTool inlined, its calls through the env. How each has tools 4 and 0x20:
+enum EndCopy {
+    kEndCalled,    // CoasterEdit_ToggleAdjust and TrackSelection_End called (0x445a70's first)
+    kEndInlined,   // CoasterEdit_ToggleAdjust called, TrackSelection_End inlined (flag 0x80 as read before the switch) calling
+                   // TrackSelection_Clear (0x445a70's second)
+    kAllInlined,   // both inlined, TrackSelection_Clear too (0x446050's)
+};
+
+void EndToolVia(EndCopy copy) {
     const EditToolsEnv *const env = g_env;
     if ((g<u8>(0x0079c624) & 1) && g<u8 *>(0x00790fec)) {
         at<u32>(g<u8 *>(0x00790fec), 0) &= ~4u;
@@ -880,18 +886,34 @@ void EndToolVia(bool inlineEnd) {
     switch (flags & 0x3f) {
     case 1: env->toggleDrag(); break;
     case 2: env->toggleAdjustE0(); break;
-    case 4: env->toggleAdjust(); break;
+    case 4: {
+        if (copy != kAllInlined) {
+            env->toggleAdjust();
+            break;
+        }
+        const u8 *const game = g<const u8 *>(0x00790fec);
+        const u8 *const piece = Piece();
+        if (!game || !at<u32>(game, 0x40) || !piece || (at<u8>(Def(piece), 4) & 2)) break;
+        if (at<u8>(piece, 8) & 0x40)
+            env->toggleAdjustF8();
+        else
+            env->toggleAdjustAngles();
+        break;
+    }
     case 8: env->moveCarBack(); break;
     case 0x10: env->moveCarForward(); break;
     case 0x20:
-        if (!inlineEnd) {
+        if (copy == kEndCalled) {
             env->selectionEnd();
             break;
         }
         if (flags & 0x80) {
             Highlight_SetShown(0);
             g<u32>(0x0079c6dc) = 0;
-            env->selectionClear();
+            if (copy == kAllInlined)
+                TrackSelection_Clear();
+            else
+                env->selectionClear();
         }
         Flags() &= ~0xa0u;
         break;
@@ -911,7 +933,7 @@ u32 __cdecl CoasterEdit_PlaceSelected(s32 x, s32 y) {
         Fn_52c2a0();
         Flags() &= ~0x100u;
         g<u8 *>(0x0079c6a4) = nullptr;
-        if (g<u32>(0x00785a2c)) EndToolVia(true);
+        if (g<u32>(0x00785a2c)) EndToolVia(kEndInlined);
         return 0;
     }
     const u8 *const placed = g<u8 *>(0x0079c6a4);
@@ -959,8 +981,24 @@ u32 __cdecl CoasterEdit_PlaceSelected(s32 x, s32 y) {
     Flags() &= ~0x100u;
     g<u8 *>(0x0079c6a4) = nullptr;
     g<u8 *>(0x0079c660) = nullptr;
-    if (g<u32>(0x00785a2c)) EndToolVia(false);
+    if (g<u32>(0x00785a2c)) EndToolVia(kEndCalled);
     return settled ? at<u32>(placed, 0x70) : 0;
+}
+
+void __cdecl CoasterEdit_CancelSelected() {
+    const EditToolsEnv *const env = g_env;
+    g<u32>(0x0079c69c) = 0;
+    if (!(Flags() & 0x100)) return;
+    Flags() &= ~0x100u;
+    TrackSelection_Clear();   // (inlined)
+    u8 *const piece = g<u8 *>(0x0079c6a4);
+    if (at<u8 *>(piece, 0x100) == g<u8 *>(0x0079c660)) g<u8 *>(0x0079c660) = nullptr;
+    env->dropCar(g<u8 *>(0x00790fec), piece, g<u8 *>(0x0079c660), g<s32>(0x0079c6d8), g<s32>(0x0079c6a0), nullptr, nullptr, 1, 0);
+    env->pathDragFinish();
+    Highlight_SetShown(0);
+    g<u8 *>(0x0079c6a4) = nullptr;
+    g<u8 *>(0x0079c660) = nullptr;
+    if (g<u32>(0x00785a2c)) EndToolVia(kAllInlined);
 }
 }
 

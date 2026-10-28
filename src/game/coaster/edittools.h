@@ -211,4 +211,11 @@ u32 __cdecl CoasterEdit_Click(u32 press);
 // 0x785a2c set, either way then ends with CoasterEdit_EndTool inlined (its tool 0x20 TrackSelection_End called on a put-down, inlined
 // otherwise; tool 4 CoasterEdit_ToggleAdjust called).
 u32 __cdecl CoasterEdit_PlaceSelected(s32 x, s32 y);
+
+// 0x446050 (cdecl; name invented, unconfirmed; agent A's world/gamemode and world/mapclick call it): the piece being moved (0x79c658's
+// flag 0x100) put back. 0x79c69c cleared; with the flag: the flag cleared, TrackSelection_Clear (inlined), 0x79c660 cleared when it is
+// the selection's (0x79c6a4) definition (+0x100); Coaster_DropCar (game, selection, 0x79c660, the old cell 0x79c6d8 / 0x79c6a0, no outs,
+// 1, 0), PathDrag_Finish, Highlight_SetShown (0), 0x79c6a4 and 0x79c660 cleared; with 0x785a2c set, CoasterEdit_EndTool's work inlined
+// (CoasterEdit_ToggleAdjust and TrackSelection_End inlined).
+void __cdecl CoasterEdit_CancelSelected();
 }
