@@ -85,6 +85,9 @@ void __cdecl Camera_CentreOnGlobalThing();
 // world [[0x7cf6ec]]'s cell) has exactly one of the bits 1 / 4 / 0x10 / 0x40 among 0x55, the yaw (0x790a38) = pi, pi / 2, 0 or 3 pi / 2.
 void __cdecl Camera_SnapToRide();
 
+// 0x42a190 (cdecl; RidesEnv's stopFollowing; name unconfirmed): with bit 2 of 0x790ab0: Camera_FollowThing ([0x790a44], 0, 0, &out, 1, 0); out not 0: Camera_SnapToRide.
+void __cdecl Camera_StopFollowing();
+
 // 0x42a990 (cdecl; name unconfirmed): the camera back to its defaults: 0x7909ec, the yaw 0x790a38 and the point 0x7908f0 from 0x6fdd40-0x6fdd50,
 // gCameraFlags 0x790ab0 cleared; the matrices 0x790990, 0x790a48 and 0x790948 the identity; 0x7909c0 a copy of the point (y and z through the
 // x87: a signalling NaN comes out quiet); [0x87afe8] assigned 0x790990 (Mat4_Assign); the field of view [0x74c9b8] [0x6fdd80] (x87, stored as
@@ -117,6 +120,8 @@ struct CameraEnv {
     void(__cdecl *partStates)(u8 *instance);                   // PartStates_Update (0x44ab30)
     u8(__cdecl *useGround)();                                  // Sprites_UseGroundFrames (0x542420)
     u8(__cdecl *usePark)();                                    // Sprites_UseParkFrames (0x542640)
+    void(__cdecl *follow)(u32 ride, u32 ground, u32 force, u32 *out, u32 key, u32 fresh);  // Camera_FollowThing (0x42a560)
+    void(__cdecl *snap)();                                     // Camera_SnapToRide (0x42a1d0)
     u32(__cdecl *setMode)(u32 mode, u32 toggle, u32 ride, u32 force, u32 *out, u32 fresh);  // Camera_SetMode (0x42ab20), for Camera_ToggleWalkMode
 };
 // The camera's calls go to env (nullptr: the game's).

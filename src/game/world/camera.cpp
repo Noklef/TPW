@@ -29,7 +29,7 @@ void __fastcall SetChat(void *, void *, u32 on) { ChatButtons_SetChat(on); }
 
 const CameraEnv kGameEnv = {&Highlight_Suspend,     &SetChat,           &Terrain_ProceduralLeave, &Terrain_ProceduralEnter,
                             &Holder_AddToGrid,      &Holder_Wake,       &Model_FindPartByKey4,    &PartStates_Update,
-                            &Sprites_UseGroundFrames, &Sprites_UseParkFrames, &Camera_SetMode};
+                            &Sprites_UseGroundFrames, &Sprites_UseParkFrames, &Camera_FollowThing, &Camera_SnapToRide, &Camera_SetMode};
 const CameraEnv *g_env = &kGameEnv;
 
 // The model parts of a ride's instance (+8 -> +4) marked by their flags: face bit 0x8000 set by set, else cleared by clear; with check
@@ -340,6 +340,13 @@ void __cdecl Camera_Input(s32 message, u32 param) {
 }
 
 void Camera_SetEnv(const CameraEnv *env) { g_env = env ? env : &kGameEnv; }
+
+void __cdecl Camera_StopFollowing() {
+    if ((*reinterpret_cast<const u8 *>((uintptr_t)0x00790ab0) & 4) == 0) return;
+    u32 out;
+    g_env->follow(*reinterpret_cast<const u32 *>((uintptr_t)0x00790a44), 0, 0, &out, 1, 0);
+    if (out != 0) g_env->snap();
+}
 
 u32 __cdecl Camera_SetMode(u32 mode, u32 toggle, u32 ride, u32 force, u32 *out, u32 fresh) {
     u32 &flags = global(0x00790ab0);
