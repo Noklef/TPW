@@ -6605,6 +6605,8 @@ address,name,kind,confidence,notes
 0x004ebee0,ChatAvatar_EarmuffsOn,function,low,reimplemented (src/game/online/chatcommand); thiscall on the chat avatar; ChatAvatar_ToggleEarmuffs when +0xeb0 is clear (name invented)
 0x004ebef0,ChatAvatar_EarmuffsOff,function,low,reimplemented (src/game/online/chatcommand); thiscall on the chat avatar; ChatAvatar_ToggleEarmuffs when +0xeb0 is set (name invented)
 0x004ee5c0,ChatAvatar_NameFlags,function,low,"reimplemented (src/game/online/chatcommand); thiscall on the chat avatar (name), pops 4; a buddy 1 (node +0x1c: 3, +0x1d: | 4), ignored | 8 (name invented)"
+0x004ee8d0,ChatAvatar_FillRoomList,function,low,"reimplemented (src/game/online/chatcommand); thiscall on the avatar; the +0xe80 tree's names in order, each with its ChatAvatar_NameFlags (of a copy of the name), to Window7cc8bc_ListAddStd"
+0x004ee9e0,ChatAvatar_FillBuddyList,function,low,"reimplemented (src/game/online/chatcommand); thiscall on the avatar; the buddy set +0xe90's names in order, each with its ChatAvatar_NameFlags, to Window7cc8bc_ListAdd1Std"
 0x005d8190,LobbyModel_SetPosition,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (v): the lobby model's (+4: 0x7a4610 index) matrix (+8 -> +4 -> +0x78, +0x10) translation = v[0..2] (x87 loads, all read first)"
 0x005d8380,LobbyModel_TurnY,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (angle): Matrix_RotateEulerFast(the lobby model's matrix, 2 ""Y"", &angle)"
 0x005d83b0,LobbyModel_SetScale,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (x, y, z): Holder_SetScale(the lobby model's entry +8, (x, y, z))"

@@ -41,9 +41,10 @@ COUNTEDPAIR = [(0x405280, 0x405390), (0x45b380, 0x45b5f0), (0x45b680, 0x45b9b0),
                (0x4f67b0, 0x4f67e1), (0x4f67f0, 0x4f6819), (0x4f7410, 0x4f7423), (0x4f6e70, 0x4f6ee9), (0x4f36c0, 0x4f36e1)]
 B = Bench([(0x4e9fa0, 0x4ea0d3), (0x4ea890, 0x4ea998), (0x4ec030, 0x4ee584), (0x4051d0, 0x405272), (0x4a77a0, 0x4a77d0), (0x5b96b0, 0x5b96b7),
            (0x5bc9c0, 0x5bc9e7), (0x5b6490, 0x5b6494), (0x41ce80, 0x41ce94), (0x4bd450, 0x4bd492), (0x4bae30, 0x4bae3f), (0x6918f0, 0x691a30),
-           (0x691ba0, 0x691ce0), (0x4ead00, 0x4ebafa), (0x4ebee0, 0x4ebf00), (0x4ee590, 0x4ee6cb), (0x4eea50, 0x4eeb49), (0x4ea740, 0x4ea7d9), (0x4f0150, 0x4f0169)]
+           (0x691ba0, 0x691ce0), (0x4ead00, 0x4ebafa), (0x4ebee0, 0x4ebf00), (0x4ee590, 0x4ee6cb), (0x4ee8d0, 0x4ee9d6), (0x4ee9e0, 0x4eea4d), (0x4f44d0, 0x4f4577),(0x4eea50, 0x4eeb49), (0x4ea740, 0x4ea7d9), (0x4f0150, 0x4f0169)]
           + wstringmap.RANGES + WSTDSTRING + GLOBALSAVE + COUNTEDPAIR,
           hooks={**wstringmap.HOOKS, 0x6acd60: _recorder(25, 5, cdecl=True), 0x5d3230: _recorder(21, 2), 0x481800: _recorder(24, 2, com=True),
+                 0x481820: _recorder(27, 2, com=True), 0x481870: _recorder(28, 2, com=True),
                  0x5b50b0: _recorder(22, 0), 0x47f020: _recorder(26, 8, cdecl=True)})
 CALLS = {'Text': 0x4e9fa0, 'Notice': 0x4ea890, 'Run': 0x4ec030}
 # The callbacks: the address, the command they run (Run's world), whether they take a name (a std::wstring *)
@@ -51,7 +52,7 @@ CALLBACKS = {'Blackmark': (0x4ead00, 0xe, True), 'Page': (0x4eae80, 0x11, True),
              'Ignore': (0x4eb450, 0xd, True), 'Vote': (0x4eb300, 0x15, False), 'Earmuffs': (0x4eb5d0, 0xc, False),
              'NoticeText': (0x4ee590, 0x40, True), 'GotoDone': (0x4eea50, 0x40, False), 'AddBuddy': (0x4eb720, 0xf, True),
              'RemoveBuddy': (0x4eb910, 0xf, True), 'EarmuffsOn': (0x4ebee0, 0xc, False), 'EarmuffsOff': (0x4ebef0, 0xc, False),
-             'NameFlags': (0x4ee5c0, 0x40, True)}
+             'NameFlags': (0x4ee5c0, 0x40, True), 'RoomList': (0x4ee8d0, 0x40, False), 'BuddyList': (0x4ee9e0, 0x40, False)}
 AVATAR, CHAT, TOKVEC, TOKENS, OUT, NAMEW = RAM, RAM + 0x1000, RAM + 0x1100, RAM + 0x1200, RAM + 0x1300, RAM + 0x1400
 POOL = RAM + 0x2000   # the strings' blocks: a count byte, then the characters
 TREES = {'D': (RAM + 0x3000, 0xe80), 'B': (RAM + 0x4000, 0xe90), 'I': (RAM + 0x5000, 0xea0)}   # nodes (+0x800 the head, +0x900 the nil), the avatar's offset
@@ -137,6 +138,8 @@ def imports(r, regions, log):
     strings(log, 23, 1)
     blob_bytes(log, 21, 0, 0xfff0, inner=(4, 0x7fff))   # the censor's text (a stack std::wstring)
     blob(log, 24, 0, 0xffff)   # ChatAddStd's text: its first 32 characters
+    blob(log, 27, 0, 0xffff)   # ListAddStd's and ListAdd1Std's names
+    blob(log, 28, 0, 0xffff)
     blob(log, 25, 4, 0, only_when=True)   # the format's string argument for the entries that take one (else stack garbage, logged as 0)
     for entry, value in enumerate((0x56, 0x57, 0x7f)):
         blob_when(log, 25, 3, value, 0b1111, entry=entry)
@@ -248,7 +251,7 @@ def run_case(r, op='Run'):
             chosen.setdefault(fold(s), s)
         sets[which] = [chosen[k] for k in sorted(chosen)]
     nil_b = tree(r, regions, avatar, 'B', sets['B'], pool)
-    if op == 'NameFlags':   # (a buddy's two bytes: NameFlags's bits; nothing here walks by colour)
+    if op in ('NameFlags', 'RoomList', 'BuddyList'):   # (a buddy's two bytes: NameFlags's bits; nothing here walks by colour)
         for i in range(len(sets['B'])):
             regions[TREES['B'][0]][0x40 * i + 0x1c:0x40 * i + 0x1e] = bytes(r.choice([0, 0, 1, 0xff]) for _ in range(2))
     nil_i = tree(r, regions, avatar, 'I', sets['I'], pool)
@@ -295,7 +298,7 @@ def run_case(r, op='Run'):
     # The tokens copied from the stack token (CountedPair_CopyCtor) take the low byte of its address as their strings' allocator bytes (sic),
     # which the two sides' stacks cannot share: the command's in the vector's first block (the heap's first), the name's in its second
     # (the next: the name's block is shared, not copied); the first token's copy in the second block takes the first block's address's.
-    ignore = [(HEAP + 0x10, 1), (HEAP + 0x20, 1)] if op not in ('NoticeText', 'GotoDone', 'NameFlags') else []
+    ignore = [(HEAP + 0x10, 1), (HEAP + 0x20, 1)] if op not in ('NoticeText', 'GotoDone', 'NameFlags', 'RoomList', 'BuddyList') else []
     returns = 'a' if op == 'NameFlags' else 'v'
     if CALLBACKS[op][2]:
         regions[at] = word

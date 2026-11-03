@@ -34,6 +34,8 @@ const ChatCommandEnv kGameEnv = {&Charset_FormatWide,
                                  game<StdWString *(__fastcall *)(StdWString *, void *, const u16 *, u32)>(0x004051d0),
                                  game<void(__fastcall *)(u8 *, void *, StdWString *, u32)>(0x005d3230),
                                  &Window7cc8bc_ChatAddStd,
+                                 &Window7cc8bc_ListAddStd,
+                                 &Window7cc8bc_ListAdd1Std,
                                  game<u8 *(__fastcall *)(u8 *)>(0x005b50b0),
                                  game<void(__cdecl *)(u8 *, u32, u32, u32, u32, u32, u32, u32)>(0x0047f020)};
 const ChatCommandEnv *g_env = &kGameEnv;
@@ -389,6 +391,32 @@ void __fastcall ChatAvatar_NoticeText(u8 *avatar, void *, const StdWString *text
 void __fastcall ChatAvatar_GotoDone(u8 *avatar) {
     notice(avatar, 0x9d, kAssignGrow);
     at<u8>(avatar, 0xef8) = 0;
+}
+
+void __fastcall ChatAvatar_FillRoomList(u8 *avatar) {
+    u8 *it = *at<u8 **>(avatar, 0xe84);
+    while (it != at<u8 *>(avatar, 0xe84)) {
+        const StdWString *const name = &at<const StdWString>(it, 0xc);
+        StdWString copy;
+        copy.allocator = *reinterpret_cast<const u8 *>(name);
+        reset(&copy, 0);
+        WStdString_AssignSub(&copy, nullptr, name, 0, global<u32>(0x00700628));
+        const u32 flags = ChatAvatar_NameFlags(avatar, nullptr, &copy);
+        reset(&copy, 1);
+        const u16 *const chars = at<const u16 *>(it, 0x10);
+        g_env->listAdd(chars ? chars : reinterpret_cast<const u16 *>(0x006fd6c4), flags);
+        StdTree_IncD(&it);
+    }
+}
+
+void __fastcall ChatAvatar_FillBuddyList(u8 *avatar) {
+    u8 *it = *at<u8 **>(avatar, 0xe94);
+    while (it != at<u8 *>(avatar, 0xe94)) {
+        const u32 flags = ChatAvatar_NameFlags(avatar, nullptr, &at<const StdWString>(it, 0xc));
+        const u16 *const chars = at<const u16 *>(it, 0x10);
+        g_env->listAdd1(chars ? chars : reinterpret_cast<const u16 *>(0x00700624), flags);
+        StdTree_IncC(&it);
+    }
 }
 
 StdWString *__fastcall ChatCommand_AssignChars(StdWString *s, void *, const u16 *chars, u32 n) {

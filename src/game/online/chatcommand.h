@@ -86,6 +86,12 @@ void __fastcall ChatAvatar_EarmuffsOff(u8 *avatar);
 // its node's byte +0x1c 3, with its byte +0x1d | 4; ignored (+0xea0, ChatIgnoreSet_Find) | 8.
 u32 __fastcall ChatAvatar_NameFlags(const u8 *avatar, void *, const StdWString *name);
 
+// 0x4ee8d0 / 0x4ee9e0 (thiscall on the avatar; names invented, unconfirmed): the tree at +0xe80 / the buddy set +0xe90 in order, each name with its
+// ChatAvatar_NameFlags (the first of a copy of the name) added to its window list: Window7cc8bc_ListAddStd / Window7cc8bc_ListAdd1Std (null
+// characters: the _Nullstr 0x6fd6c4 / 0x700624).
+void __fastcall ChatAvatar_FillRoomList(u8 *avatar);
+void __fastcall ChatAvatar_FillBuddyList(u8 *avatar);
+
 // std::wstring::assign(chars, n) as 0x4ec030 inlines it (case 0x17) and agent B's 0x4051d0 is (not hooked: the fncmp driver's stand-in
 // for 0x4051d0): n above max_size (0x7ffffffd) is std::_Xlen; a shared block (count not 0 or 0xff) with n 0 loses a count and s is
 // emptied; else n 0 empties s (the block released); a block of 31 or fewer characters with room for n is kept, else released and a new
@@ -99,6 +105,8 @@ struct ChatCommandEnv {
     StdWString *(__fastcall *assign)(StdWString *s, void *, const u16 *chars, u32 n);    // 0x4051d0 (B): assign(chars, n)
     void(__fastcall *censor)(u8 *save, void *, StdWString *text, u32 flag);              // 0x5d3230 (B)
     void(__stdcall *chatAdd)(u16 *text, u32 data);                                       // Window7cc8bc_ChatAddStd 0x481800
+    void(__stdcall *listAdd)(const u16 *text, u32 data);                                 // Window7cc8bc_ListAddStd 0x481820
+    void(__stdcall *listAdd1)(const u16 *text, u32 data);                                // Window7cc8bc_ListAdd1Std 0x481870
     u8 *(__fastcall *makeSession)(u8 *block);                                            // 0x5b50b0 (B): the online session's constructor
     void(__cdecl *dialog)(u8 *message, u32 kind, u32, u32, u32 callback, u32, u32, u32);  // 0x47f020 (B)
 };
