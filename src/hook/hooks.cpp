@@ -597,6 +597,7 @@
 #include "../game/ui/dialogtabs.h"
 #include "../game/ui/dialuplist.h"
 #include "../game/ui/gamepartdialogs.h"
+#include "../game/ui/gamepause.h"
 #include "../game/ui/gamewindowinput.h"
 #include "../game/ui/guifont.h"
 #include "../game/ui/guiframe.h"
@@ -7971,6 +7972,9 @@ const Hook kHooks[] = {
     {"Panel7c2534_BuildOnline",   0x0048c600, (void *)&Panel7c2534_BuildOnline, {0x6a, 0xff, 0x68, 0xac, 0x96}},
     {"Panel7c2534_Open",          0x0048c830, (void *)&Panel7c2534_Open, {0xa1, 0x34, 0x25, 0x7c, 0x00}},
     {"GameWindow_Input",          0x004a2840, (void *)&GameWindow_Input, {0x53, 0x55, 0x8b, 0x6c, 0x24}},
+    {"GamePause_Resume",          0x004a9180, (void *)&GamePause_Resume, {0xa0, 0xbf, 0x34, 0xfb, 0x00}},
+    {"GamePause_RemakePicture",   0x004a9280, (void *)&GamePause_RemakePicture, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"GamePause_Hide",            0x004a9380, (void *)&GamePause_Hide, {0x53, 0x68, 0x95, 0x00, 0x00}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},

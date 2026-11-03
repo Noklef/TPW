@@ -30,7 +30,7 @@ def case(r):
     set_return(log, DEFAULT, r.getrandbits(32))
     message = r.choice([0x10004, 0x10005, 0x1000a, 0x1000b, 0x1000b, 0x1000b, 0x10003, 0x10006, 0x10009, 0x1000c, r.getrandbits(32)])
     a = r.choice([1, 1, 0x1b, 0x1b, 0x10, r.randrange(0, 0x100), r.getrandbits(32)])
-    b = r.choice([0, 0, r.getrandbits(16), r.getrandbits(8) << 16, r.getrandbits(32)])
+    b = r.choice([0, 0, 0x800000, r.getrandbits(16), r.getrandbits(8) << 16, r.getrandbits(32)])
     return Call(0x4a2840, [WINDOW, message, a, b], regions, ret='a')
 
 
