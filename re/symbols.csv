@@ -5526,6 +5526,11 @@ address,name,kind,confidence,notes
 0x006ad090,NarrowWriter_DeletingDtor,function,low,reimplemented (src/game/core/narrowwriter); The narrow-text writer's deleting destructor
 0x004f5a50,LocaleRef_Ctor,function,low,"reimplemented (src/game/core/wfilebuf); thiscall; *ref = 0x699da0's answer, the counted object [0xfb1dd0] a use more (name invented)"
 0x004f5990,WFileBuf_Init,function,low,"reimplemented (src/game/core/wfilebuf); thiscall (file, which), pops 8; a stream buffer's initialiser (name unconfirmed)"
+0x006d6f70,SoundBuffer_FillFromVoice,function,low,"reimplemented (src/game/core/soundworker); thiscall (voice, offset, size), pops 0xc; a voice's mix into its locked DirectSound buffer (name invented)"
+0x006d3850,SoundWorker_RefillVoice,function,low,"reimplemented (src/game/core/soundworker); thiscall (position), pops 4; the slot's voice refilled under the section (name invented)"
+0x006d75c0,ComList_ReleaseAll,function,low,"reimplemented (src/game/core/soundworker); thiscall; each listed COM object's slots 6 and 2, the node freed (name invented)"
+0x006b6050,SoundWorker_Ctor,function,low,"reimplemented (src/game/core/soundworker); thiscall (count), pops 4; 30 voices, two blocks, the thread (name invented)"
+0x006b8380,SoundWorkerHost_Ctor,function,low,reimplemented (src/game/core/soundworker); thiscall; makes a SoundWorker of 12 (name invented)
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

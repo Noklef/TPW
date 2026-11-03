@@ -227,6 +227,7 @@
 #include "../game/core/soundsource.h"
 #include "../game/core/soundstream.h"
 #include "../game/core/soundvoice.h"
+#include "../game/core/soundworker.h"
 #include "../game/core/startcheck.h"
 #include "../game/core/streamfilter.h"
 #include "../game/core/streampool.h"
@@ -5590,6 +5591,11 @@ const Hook kHooks[] = {
     {"NarrowWriter_DeletingDtor", 0x006ad090, (void *)&NarrowWriter_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x98}},
     {"LocaleRef_Ctor",            0x004f5a50, (void *)&LocaleRef_Ctor, {0x6a, 0xff, 0x68, 0x98, 0xdb}},
     {"WFileBuf_Init",             0x004f5990, (void *)&WFileBuf_Init, {0x8b, 0x44, 0x24, 0x08, 0x56}},
+    {"SoundBuffer_FillFromVoice", 0x006d6f70, (void *)&SoundBuffer_FillFromVoice, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"SoundWorker_RefillVoice",   0x006d3850, (void *)&SoundWorker_RefillVoice, {0x6a, 0xff, 0x68, 0x98, 0x68}},
+    {"ComList_ReleaseAll",        0x006d75c0, (void *)&ComList_ReleaseAll, {0x6a, 0xff, 0x68, 0x58, 0x6a}},
+    {"SoundWorker_Ctor",          0x006b6050, (void *)&SoundWorker_Ctor, {0x6a, 0xff, 0x68, 0x91, 0x57}},
+    {"SoundWorkerHost_Ctor",      0x006b8380, (void *)&SoundWorkerHost_Ctor, {0x6a, 0xff, 0x68, 0xbb, 0x59}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
