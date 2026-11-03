@@ -4914,6 +4914,7 @@ const Hook kHooks[] = {
     {"SoundObject_Load",          0x006ba150, (void *)&SoundObject_Load, {0x83, 0xec, 0x08, 0x56, 0x8b}},
     {"SoundObject_CreateChannel", 0x006b8410, (void *)&SoundObject_CreateChannel, {0x6a, 0xff, 0x68, 0xdb, 0x59}},
     {"SoundObjectEax_CreateChannel", 0x006b9db0, (void *)&SoundObjectEax_CreateChannel, {0x6a, 0xff, 0x68, 0xbb, 0x5a}},
+    {"SoundObject_CallVoice9",    0x006b8990, (void *)&SoundObject_CallVoice9, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"SoundVoice_EnsureParams",   0x006b7150, (void *)&SoundVoice_EnsureParams, {0x53, 0x56, 0x8b, 0xf1, 0x33}},
     {"SoundVoice_SetPending",     0x006bc900, (void *)&SoundVoice_SetPending, {0x81, 0xec, 0xac, 0x00, 0x00}},
     {"SoundVoice_ApplyVariation", 0x006bbf00, (void *)&SoundVoice_ApplyVariation, {0x53, 0x56, 0x8b, 0xf1, 0x33}},
