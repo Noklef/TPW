@@ -371,6 +371,7 @@
 #include "../game/world/mappress.h"
 #include "../game/world/mappreview.h"
 #include "../game/world/mapsweep.h"
+#include "../game/world/objectctor.h"
 #include "../game/world/objectride.h"
 #include "../game/world/objectstatus.h"
 #include "../game/world/objectunlock.h"
@@ -6048,6 +6049,7 @@ const Hook kHooks[] = {
     {"ParkEntrance_LayOutline",   0x005327e0, (void *)&ParkEntrance_LayOutline, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"Ride_RestoreSkinsAndDestroy", 0x004690a0, (void *)&Ride_RestoreSkinsAndDestroy, {0x55, 0x8b, 0x6c, 0x24, 0x08}},
     {"AdvisorTable_Fill",         0x005a0a50, (void *)&AdvisorTable_Fill, {0x53, 0x33, 0xdb, 0x89, 0x1d}},
+    {"Object_Construct",          0x004db090, (void *)&Object_Construct, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
