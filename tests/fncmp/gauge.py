@@ -153,9 +153,22 @@ def plot(r):
     y0 = r.choice([0, 0, -10, 5, r.randrange(-100, 100)])
     put(gauge, 0x1c, 'i', y0)
     put(gauge, 0x24, 'i', r.choice([y0, 100, 50, y0 + 1, y0 - 1, r.randrange(-100, 200)]))
-    count = r.choice([0, -1, 1, 1, 2, 3, 4, 5, 7])
+    count = r.choice([0, -1, -0x3d380000, 1, 1, 2, 3, 4, 5, 7])   # (-0x3d380000: no sample, the bits of -100.0f, the label's right)
     columns = r.choice([0xc, 0x24, 0x8f, 0x90, 0x90, 0x91, 1, 7, 0, -3])
-    samples = [r.choice([r.randrange(0, 100), r.randrange(-200, 1000), y0]) for _ in range(9)]
+    left, right = struct.unpack_from('<i', gauge, 8)[0], struct.unpack_from('<i', gauge, 0x10)[0]
+    kind = r.random()
+    if kind < 0.2:   # left of 0: the clamps' fractions show through __ftol's truncation
+        left, right = sorted(r.randrange(-60, 0) for _ in range(2))
+        put(gauge, 8, 'i', left)
+        put(gauge, 0x10, 'i', right)
+        put(gauge, 0, 'i', right - left)
+    elif kind < 0.4:   # left and right swapped, the step often back: x + step differs from the clamped end
+        put(gauge, 8, 'i', right)
+        put(gauge, 0x10, 'i', left)
+        columns = r.choice([-3, -7, 7])
+    elif columns == 0 and r.random() < 0.5:   # no width: the step NaN
+        put(gauge, 0, 'i', 0)
+    samples =[r.choice([r.randrange(0, 100), r.randrange(-200, 1000), y0]) for _ in range(9)]
     samples[max(count, 0)] = r.randrange(100)
     regions[SAMPLES] = struct.pack('<9i', *samples)
     masks = [Mask(HEAP, [at + g for at in (0x10, 0x30) for g in tl.GARBAGE], "the one record of the measure's layout and the draw's (grid()'s mask's reason)")] if c.masks else []
