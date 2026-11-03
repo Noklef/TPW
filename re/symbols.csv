@@ -6852,6 +6852,9 @@ address,name,kind,confidence,notes
 0x004ebcf0,ChatAvatar_RemoveIgnore,function,low,"reimplemented (src/game/online/chatcommand); thiscall (name), pops 4; the command 0xd run on the name when it is in the ignore set +0xea0 (name invented)"
 0x004e6e80,ChatAvatar_HandleEvent,function,low,"reimplemented (src/game/online/chatevents); thiscall (tokens), RET 4: the event the tokens carry (name invented, unconfirmed)"
 0x004ee710,ChatAvatar_SetBuddy,function,low,"reimplemented (src/game/online/chatevents); thiscall (name, flags), RET 8: the buddy set's entry of name given the flags, told to both window lists (name invented, unconfirmed)"
+0x004eec40,ChatAvatar_ShowResult,function,low,reimplemented (src/game/online/chatevents); the result of a connection told as a notice
+0x004e6790,ChatAvatar_LobbyEvent,function,low,reimplemented (src/game/online/chatevents); an event of the tokens queue while not yet in a room
+0x004e6560,ChatAvatar_PumpEvents,function,low,reimplemented (src/game/online/chatevents); the tokens queue handed out and emptied under the lock
 0x0046c610,ChatCursor_Click,function,low,"reimplemented (src/game/online/chatcursor); a map click on the cell under the cursor with the async modifiers (name invented, unconfirmed)"
 0x0046cee0,ChatCursor_GoTo,function,low,"reimplemented (src/game/online/chatcursor); the online chat's avatar sent to the cell under the cursor (name invented, unconfirmed)"
 0x0046cf80,ChatCursor_MoveTo,function,low,"reimplemented (src/game/online/chatcursor); the online chat's avatar moved to the cell under the cursor (name invented, unconfirmed)"

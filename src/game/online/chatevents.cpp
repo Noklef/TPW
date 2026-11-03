@@ -1,6 +1,7 @@
 #include "chatevents.h"
 
 #include <cstdint>
+#include <cstring>
 
 #include "../core/accessors.h"
 #include "../core/buffers.h"
@@ -18,13 +19,20 @@
 #include "../core/wtraits.h"
 #include "../ui/dialogs.h"
 #include "../ui/window7cc8bc.h"
+#include "../core/dequeiter.h"
+#include "../core/sync.h"
 #include "../world/mapcell.h"
+#include "../world/mousemode.h"
+#include "../world/parkopen.h"
 #include "../world/person.h"
 #include "../world/personscripts.h"
 #include "../world/things.h"
 #include "../sprite/script.h"
+#include "chat.h"
 #include "chatavatar.h"
 #include "chatcommand.h"
+#include "itemlist.h"
+#include "session.h"
 
 namespace {
 
@@ -47,7 +55,14 @@ const ChatEventEnv kGameEnv = {&Window7cc8bc_ListSetDataStd,
                                &SpriteScript_SetRegF,
                                &ChatAvatar_PlaceAtCell,
                                &Charset_FormatWide,
-                               &Window7cc8bc_SetC3128};
+                               &Window7cc8bc_SetC3128,
+                               &CommandQueue_Post,
+                               &Windows7cc8bc_SelectSecond,
+                               &ChatAvatar_AddName,
+                               &Game_StartCrowd,
+                               game<void(__fastcall *)(u8 *, void *, const char *)>(0x004ef3b0),
+                               game<void(__fastcall *)(u8 *, void *, const char *)>(0x004efc10),
+                               &ChatAvatar_HandleEvent};
 const ChatEventEnv *g_env = &kGameEnv;
 
 const u16 *const kNullStr = reinterpret_cast<const u16 *>(0x006fd6c4);
@@ -611,4 +626,147 @@ u8 __fastcall ChatAvatar_SetBuddy(u8 *avatar, void *, const StdWString *name, u3
     ChatCommand_Env()->listAdd1(s, shown);
     g_env->listSetData(s, shown);
     return made;
+}
+
+void __fastcall ChatAvatar_ShowResult(u8 *avatar, void *, s32 result) {
+    switch (result) {
+    case 0:
+        format(avatar, 0x80);
+        noticeAssigned(avatar);
+        break;
+    case -5:
+    case -4:
+    case -1:
+        format(avatar, 0x81);
+        noticeAssigned(avatar);
+        break;
+    case -2:
+        format(avatar, 0x82);
+        noticeAssigned(avatar);
+        break;
+    case -0x1e:
+        format(avatar, 0x83);
+        noticeAssigned(avatar);
+        break;
+    case -0x1f:
+        format(avatar, 0xb4);
+        noticeGrown(avatar);
+        break;
+    default:
+        format(avatar, 0x81);
+        noticeGrown(avatar);
+        break;
+    }
+    at<u8>(avatar, 0xec0) = 1;
+    debugLine(0x0075c69c);
+}
+
+namespace {
+
+// The characters of a game wide string as a new std::wstring (0x4051d0).
+void assignText(StdWString *s, const u16 *chars) {
+    done(s, 0);
+    ChatCommand_Env()->assign(s, nullptr, chars, Crt().wcslen(chars));
+}
+
+const u8 *sessionObject() { return reinterpret_cast<const u8 *>((uintptr_t)Obj_Get3a4(ensureSession())); }
+
+// 0x34.
+void joinRoom(u8 *avatar) {
+    char room[32];
+    Crt().sprintf(room, reinterpret_cast<const char *>((uintptr_t)0x00759920), at<u32>(sessionObject(), 8));
+    tell(0x006fd480, avatar, Online_User5c(ensureSession()));
+    StdString name;
+    StdString_Tidy(&name, nullptr, 0);
+    StdString_AssignChars(&name, nullptr, room, (u32)strlen(room));
+    const u32 key = at<u32>(sessionObject(), 0x48);
+    const u8 *const item = Owner2c_FindByKey(at<u8 *>(ensureSession(), 0xe0), nullptr, key);
+    StdWString owner, global78a374, own;
+    assignText(&owner, at<const u16 *>(item, 0x14));
+    assignText(&global78a374, reinterpret_cast<const u16 *>((uintptr_t)0x0078a374));
+    assignText(&own, at<const u16 *>(sessionObject(), 0x14));
+    tell(0x006fd4c4, avatar, &own, &global78a374, &owner, &name, 0x100u);
+    done(&own);
+    done(&global78a374);
+    done(&owner);
+    StdString_Tidy(&name, nullptr, 1);
+}
+
+}  // namespace
+
+void __fastcall ChatAvatar_LobbyEvent(u8 *avatar, void *, const u8 *tokens) {
+    u32 said, command = 0;
+    switch (word(tokens, 0)) {
+    case 1:
+    case 7:
+    case 0x2c:
+        return;
+    case 0x34:
+        debugLine(0x0075c3e4);
+        joinRoom(avatar);
+        return;
+    case 0x31:
+        debugLine(0x0075c3b8);
+        at<u8>(avatar, 0x28) = 1;
+        g_env->selectSecond();
+        return;
+    case 0x36:
+        at<u8>(avatar, 0x28) = 1;
+        g_env->addName(avatar, nullptr, &at<StdWString>(avatar, 8), 0);
+        g_env->startCrowd(global<u8 *>(0x007cf83c));
+        debugLine(0x0075c210);
+        debugLine(0x0075c1e0);
+        g_env->readBuddies(avatar, nullptr, reinterpret_cast<const char *>((uintptr_t)0x00786de4));
+        g_env->readIgnored(avatar, nullptr, reinterpret_cast<const char *>((uintptr_t)0x00786de4));
+        return;
+    case 0x28: said = 0x0075c248, command = 0xa2; break;
+    case 0x29: said = 0x0075c27c, command = 0xa3; break;
+    case 0x2b: said = 0x0075c2f4, command = 0xa5; break;
+    case 0x2d: said = 0x0075c2c4, command = 0xa8; break;
+    case 0x30: said = 0x0075c248, command = 0xaa; break;
+    case 0x32: said = 0x0075c384, command = 0xae; break;
+    case 0x33: said = 0x0075c350, command = 0xaf; break;
+    default: said = 0x0075c198; break;
+    }
+    debugLine(said);
+    if (command) g_env->post(command, global<u32>(0x0078bac8));
+    OnlineChat_Set29And2a(OnlineChat_Instance());
+}
+
+void __fastcall ChatAvatar_PumpEvents(u8 *chat) {
+    CritSec_Enter(chat + 0x30);
+    while (at<u32>(chat, 0xef4)) {
+        const u8 *const vector = at<const u8 *>(chat, 0xed4);
+        const u8 *const first = at<const u8 *>(vector, 4);
+        const s32 tokens = first ? (s32)(at<u32>(vector, 8) - (uintptr_t)first) / 0x24 : 0;
+        if (tokens && at<u32>(first, 0x20) == 0x2711) {
+            const s32 result = at<s32>(first, 0x44);
+            ChatAvatar_ShowResult(OnlineChat_Instance(), nullptr, result);
+        } else if (at<u8>(chat, 0x28)) {
+            g_env->handleEvent(chat, nullptr, vector);
+        } else {
+            ChatAvatar_LobbyEvent(chat, nullptr, vector);
+        }
+        u8 *const entry = at<u8 *>(chat, 0xed4);
+        at<u8 *>(chat, 0xed4) = entry + 0x10;
+        u8 *const end = at<u8 *>(entry, 8);
+        for (u8 *p = at<u8 *>(entry, 4); p != end; p += 0x24) CountedPair_Destroy(p);
+        GameHeap_Free(at<void *>(entry, 4));
+        at<u32>(entry, 4) = at<u32>(entry, 8) = at<u32>(entry, 0xc) = 0;
+        const u32 count = --at<u32>(chat, 0xef4);
+        if (count && at<u32>(chat, 0xed4) != at<u32>(chat, 0xed0)) continue;
+        u8 **const node = at<u8 **>(chat, 0xed8);
+        at<u8 **>(chat, 0xed8) = node + 1;
+        GameHeap_Free(*node);
+        if (at<u32>(chat, 0xef4)) {
+            u8 **const next = at<u8 **>(chat, 0xed8);
+            at<u8 *>(chat, 0xecc) = *next;
+            at<u8 *>(chat, 0xed0) = *next + 0x1000;
+            at<u8 *>(chat, 0xed4) = *next;
+        } else {
+            for (u32 off = 0xecc; off <= 0xee8; off += 4) at<u32>(chat, off) = 0;
+            GameHeap_Free(at<void *>(chat, 0xeec));
+        }
+    }
+    CritSec_Leave(chat + 0x30);
 }

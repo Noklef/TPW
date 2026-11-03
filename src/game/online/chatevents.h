@@ -18,6 +18,24 @@ void __fastcall ChatAvatar_HandleEvent(u8 *avatar, void *, const u8 *tokens);
 // missing; its ChatAvatar_NameFlags told to both window lists. Returns whether it was made.
 u8 __fastcall ChatAvatar_SetBuddy(u8 *avatar, void *, const StdWString *name, u32 flags);
 
+// 0x4eec40 (thiscall on the avatar, pops 4; name invented, unconfirmed): the result of a connection told as a notice in colour 7: 0 entry 0x80, -1, -4
+// and -5 0x81, -2 0x82, -0x1e 0x83 (the string by 0x4051d0); -0x1f 0xb4 and any other 0x81 (the string by _Grow); then the byte +0xec0 = 1 and a line on the
+// debugger's output. The strings' allocator bytes are the result's low byte, which nothing reads.
+void __fastcall ChatAvatar_ShowResult(u8 *avatar, void *, s32 result);
+
+// 0x4e6790 (thiscall on the avatar, pops 4; name invented, unconfirmed): the event of a tokens vector while not yet in a room (+0x28 clear), the first
+// token's word +0x20 its code. 1, 7, 0x2c nothing. 0x34: the room (the session's Obj_Get3a4 +8 as %d) and the session's user (+0x5c) told to the Chat (slot
+// 0x6fd480), and to slot 0x6fd4c4 that object's +0x14 text, the text at 0x78a374, the +0x14 text of the owner's item of its key +0x48 (Owner2c_FindByKey),
+// the room's string, 0x100. 0x31: +0x28 = 1 and Windows7cc8bc_SelectSecond. 0x36: +0x28 = 1, ChatAvatar_AddName of the name +8, Game_StartCrowd on the
+// game, 0x4ef3b0 and 0x4efc10 on the path 0x786de4. 0x28, 0x29, 0x2b, 0x2d, 0x30, 0x32, 0x33: the command 0xa2, 0xa3, 0xa5, 0xa8, 0xaa, 0xae, 0xaf
+// posted with [0x78bac8]; those and any other code (not 0x34 and the rest named): the chat's OnlineChat_Set29And2a. Each says so on the debugger's output.
+void __fastcall ChatAvatar_LobbyEvent(u8 *avatar, void *, const u8 *tokens);
+
+// 0x4e6560 (thiscall on the chat; name invented, unconfirmed): under the lock +0x30 the queue of tokens vectors (the deque +0xec8: iterators +0xecc, +0xedc,
+// count +0xef4) handed out and emptied as CountedPairVectorDeque_Clear does: a vector with tokens whose first word is 0x2711 goes to ChatAvatar_ShowResult
+// (on the chat's instance; the second token's word), else to ChatAvatar_HandleEvent (+0x28 set) or ChatAvatar_LobbyEvent. The map is left in +0xeec (sic).
+void __fastcall ChatAvatar_PumpEvents(u8 *chat);
+
 }
 
 // What the events call through an environment (the fncmp driver's recorders; the game's by default: the ports, or the game's addresses for the unported).
@@ -38,5 +56,12 @@ struct ChatEventEnv {
     u8(__fastcall *placeAtCell)(u8 *self, void *, u32 handle, u32 cell);                  // ChatAvatar_PlaceAtCell 0x4ebfb0
     s32(__cdecl *format)(u8 *charset, u16 *dest, u32 size, u32 entry, ...);               // Charset_FormatWide 0x6acd60 (the driver's recorder logs all three text arguments)
     void(__cdecl *setC3128)(u8 value);                                                    // Window7cc8bc_SetC3128 0x4bd400
+    u32(__cdecl *post)(u32 code, u32 param);                                              // CommandQueue_Post 0x47f410
+    u32(__cdecl *selectSecond)();                                                         // Windows7cc8bc_SelectSecond 0x4bce80
+    void(__fastcall *addName)(u8 *avatar, void *, const StdWString *name, u32 unused);    // ChatAvatar_AddName 0x4ee6d0
+    void(__fastcall *startCrowd)(u8 *game);                                               // Game_StartCrowd 0x516700
+    void(__fastcall *readBuddies)(u8 *avatar, void *, const char *path);                  // 0x4ef3b0
+    void(__fastcall *readIgnored)(u8 *avatar, void *, const char *path);                  // 0x4efc10
+    void(__fastcall *handleEvent)(u8 *avatar, void *, const u8 *tokens);                  // ChatAvatar_HandleEvent 0x4e6e80
 };
 void ChatEvents_SetEnv(const ChatEventEnv *env);   // nullptr: the game's

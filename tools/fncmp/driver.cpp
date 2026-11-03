@@ -727,7 +727,10 @@ const ChatEventEnv kChatEventEnv = {Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 29}
                                     Rec{kStubs + 0x5000 + 0x800 * 1 + 0x20 * 31}, Rec{kStubs + 0x5000 + 0x800 * 1 + 0x20 * 32},
                                     Rec{recorder(3, 4)}, Rec{recorder(4, 0)}, Rec{recorder(5, 1)}, Rec{recorder(6, 3)}, Rec{recorder(7, 2)},
                                     Rec{recorder(8, 2)}, Rec{recorder(10, 0)}, Rec{recorder(11, 5)}, Rec{jpeg_recorder(14, 3)}, Rec{recorder(13, 2)},
-                                    Rec{jpeg_recorder(25, 7)}, Rec{jpeg_recorder(15, 1)}};
+                                    Rec{jpeg_recorder(25, 7)}, Rec{jpeg_recorder(15, 1)},
+                                    // (tests/fncmp/chatqueue.py's)
+                                    Rec{jpeg_recorder(16, 2)}, Rec{jpeg_recorder(17, 0)}, Rec{recorder(18, 2)}, Rec{recorder(19, 0)}, Rec{recorder(20, 1)},
+                                    Rec{recorder(4, 1)}, Rec{recorder(6, 1)}};
 // The cell messages' calls into agent A's Path_CheckDeadEnds (0x527ee0) and GameMode_SetOnly (0x52f580): the cdecl recorders 27 of 3 and 28 of 2, as
 // tests/fncmp/cellmessage.py hooks them.
 const CellMessageEnv kCellMessageEnv = {reinterpret_cast<void(__cdecl *)(s32, s32, u32)>((uintptr_t)jpeg_recorder(27, 3)),
