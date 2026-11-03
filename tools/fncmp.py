@@ -111,12 +111,13 @@ def record_stream(at, cursor, left):
 
 
 SEEK = STUBS + 0x70  # a memory stream's seek (driver.cpp stub_seek)
+TELL = STUBS + 0xd0  # a memory stream's tell (driver.cpp stub_tell)
 
 
 def memory_stream(at, start, size):
     """A seekable stream over size bytes at start (a region the case maps), at `at`: vtable (at + 0x20), cursor, bytes left, start, size; then the vtable:
-    +8 read and +0xc write (the record stream's), +0x10 seek (offset, origin 0 / 1 / 2): the new position, or -1 past the end (nothing moved)."""
-    return bytearray(struct.pack('<8I8I', at + 0x20, start, size, start, size, 0, 0, 0, 0, 0, STUBS, STUBS + 0x10, SEEK, 0, 0, 0))
+    +8 read and +0xc write (the record stream's), +0x10 seek (offset, origin 0 / 1 / 2): the new position, or -1 past the end (nothing moved); +0x18 tell: the position."""
+    return bytearray(struct.pack('<8I8I', at + 0x20, start, size, start, size, 0, 0, 0, 0, 0, STUBS, STUBS + 0x10, SEEK, 0, TELL, 0))
 
 
 STREAM_SIZE = STUBS + 0xc0  # a memory stream's size (driver.cpp stub_stream_size): thiscall, no arguments, its +0x10 (whatever the bytes left at +8)
@@ -124,6 +125,10 @@ STREAM_SIZE = STUBS + 0xc0  # a memory stream's size (driver.cpp stub_stream_siz
 
 def _stream_size(e):
     e.r['EAX'] = e.u32(e.r['ECX'] + 0x10)
+
+
+def _tell(e):  # thiscall, no arguments (driver.cpp stub_tell)
+    e.r['EAX'] = (e.u32(e.r['ECX'] + 4) - e.u32(e.r['ECX'] + 0xc)) & 0xffffffff
 
 
 def _seek(e):  # thiscall (offset, origin): pops its two arguments (driver.cpp stub_seek)
@@ -1113,7 +1118,7 @@ class Bench:
         self.emu.hooks.update({0x67a830: _ftol, 0x67b280: _modf, 0x67b24a: _cifmod,
                                STUBS: _record(False), STUBS + 0x10: _record(True),
                                STUBS + 0x20: _global_alloc, STUBS + 0x30: _global_free, STUBS + 0x40: _mark, CDECL_LOG: _cdecl_log, COUNTER: _counter, SEEK: _seek, CDECL_LOG2: _cdecl_log2, CDECL_LOG4: _cdecl_log4,
-                               STREAM_SIZE: _stream_size,
+                               STREAM_SIZE: _stream_size, TELL: _tell,
                                0x6351a0: _zlib_init(0x140, 7), 0x635450: _zlib_copy(1), 0x6357c0: _zlib_end(0x142), 0x636600: _zlib_init(0x143, 3),
                                0x636710: _zlib_copy(2), 0x6365b0: _zlib_end(0x145),
                                0x67acc0: _alloc, 0x67acb0: _free, 0x67bb90: _memmove, ZALLOC: _zalloc, ZFREE: _zfree, 0x67d3f0: _time, 0x67b5c0: _rand,

@@ -394,6 +394,8 @@ s32 __fastcall stub_seek(u8 *self, void *, u32 offset, u32 origin) {
 
 // A memory stream's size (kStubs + 0xc0, tools/fncmp.py STREAM_SIZE), thiscall, no arguments: its +0x10, whatever the bytes left (+8) are.
 u32 __fastcall stub_stream_size(const u8 *self) { return *reinterpret_cast<const u32 *>(self + 0x10); }
+// A memory stream's tell (kStubs + 0xd0, tools/fncmp.py TELL), thiscall, no arguments: the cursor (+4) from the start (+0xc).
+u32 __fastcall stub_tell(const u8 *self) { return *reinterpret_cast<const u32 *>(self + 4) - *reinterpret_cast<const u32 *>(self + 0xc); }
 
 // What throws in the game (std::_Xlen, _Xran): a case that gets there reports a crash.
 void __cdecl heap_throw() { RaiseException(0xe0000001, 0, 0, nullptr); }
@@ -1023,6 +1025,8 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x0070a6c8, 12},   // the streams it chains in front: 0x70a6c8 (the play's 0x800) and
                                    {0x0070a748, 12},   // the notify stream (SoundStream_BuildChain's);
                                    {0x0070a7a8, 13},   // the channel voice they hang off (ChannelVoice_Release's, the reads');
+                                   {0x0070a5d8, 15},   // the channel as the sound system (soundlifecycle.py's trip: slot 4 SoundChannel_RunSlot1)
+                                   {0x0070a2d0, 2},    // and the mixer's stop functor through it
                                    {0x0070aa34, 1},    // the memory samples' plain copier ([0xfb2018], SoundSample_ReadMemory's)
                                    {0x0070aef0, 3},    // the streamed samples' windows on their files (slots 1 the read, 2 the seek; 0 an
                                    {0x0070ae18, 3},    // adjusting thunk, not hooked): MP2 (+0x40), voice-coded (+0x40) and the file
@@ -1087,7 +1091,7 @@ void map_stubs() {
     const void *stubs[] = {(const void *)&stub_read, (const void *)&stub_write, (const void *)&stub_global_alloc,
                            (const void *)&stub_global_free, (const void *)&stub_mark, (const void *)&stub_cdecl_log, (const void *)&stub_counter,
                            (const void *)&stub_seek, (const void *)&stub_cdecl_log2, (const void *)&stub_cdecl_log4, (const void *)&stub_zalloc,
-                           (const void *)&stub_zfree, (const void *)&stub_stream_size};
+                           (const void *)&stub_zfree, (const void *)&stub_stream_size, (const void *)&stub_tell};
     for (u32 i = 0; i < sizeof stubs / sizeof stubs[0]; ++i) jump(p + 0x10 * i, stubs[i]);
     map_recorders(p);
 }
