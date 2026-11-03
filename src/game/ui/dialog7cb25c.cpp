@@ -29,15 +29,6 @@ const Dialog7cb25cOpenEnv kOpenGameEnv = {reinterpret_cast<s32(__cdecl *)(void(_
                                           &Window7059f0_BuildRows, &Dialog7cb25c_FillList, &RadioGroup_Select, &Dialog7cb25c_SetTexts};
 const Dialog7cb25cOpenEnv *g_open = &kOpenGameEnv;
 
-// The newest value of a ring (the values, +0x240 the position, +0x244 the count, +0x248 wrapped): 0 when empty, or before the start and not wrapped.
-u32 newest(const u8 *ring) {
-    const s32 count = *reinterpret_cast<const s32 *>(ring + 0x244);
-    if (count <= 0) return 0;
-    const s32 position = *reinterpret_cast<const s32 *>(ring + 0x240);
-    if (position >= 0) return *reinterpret_cast<const u32 *>(ring + position * 4);
-    return ring[0x248] ? *reinterpret_cast<const u32 *>(ring + (position + count) * 4) : 0;
-}
-
 }  // namespace
 
 void Dialog7cb25c_SetOpenEnv(const Dialog7cb25cOpenEnv *env) { g_open = env ? env : &kOpenGameEnv; }
@@ -67,7 +58,7 @@ void __cdecl Dialog7cb25c_Open() {
         panelparts::redText(figures, 0x12c4c9, 0x168);
         panelparts::redText(figures, 0x12c4c6, 0x167);
         panelparts::text(figures, 0x12c4c2, 0x169);
-        const u32 first = newest(rings + 0x1fc94);
+        const u32 first = panelparts::newestOfRing(rings + 0x1fc94);
         vcall<void>(panelparts::numberPart(figures, 0x12c4c5), 0x1c, first);
         u8 *child = Window_FindChild(figures, nullptr, 0x12c4c8);
         u32 sum = 0;
@@ -83,7 +74,7 @@ void __cdecl Dialog7cb25c_Open() {
         panelparts::font6(child);
         vcall<void>(child, 0x1c, sum);
         panelparts::red(child);
-        const u32 third = newest(rings + 0x1f5a4);
+        const u32 third = panelparts::newestOfRing(rings + 0x1f5a4);
         child = panelparts::numberPart(figures, 0x12c4c7);
         vcall<void>(child, 0x1c, third - sum);
         panelparts::red(child);
