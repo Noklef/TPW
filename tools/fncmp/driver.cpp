@@ -74,6 +74,8 @@
 #include "../../src/game/ui/dialog7cc4b4sparkle.h"
 #include "../../src/game/render/passwordpart.h"
 #include "../../src/game/render/rasterformat.h"
+#include "../../src/game/ui/dialog7cb400close.h"
+#include "../../src/game/files/userslots.h"
 #include "../../src/game/ui/quitconfirm.h"
 #include "../../src/game/world/mapsweep.h"
 #include "../../src/game/ui/imehostattach.h"
@@ -908,7 +910,10 @@ const Dialog7cc4b4SparkleEnv kDialog7cc4b4SparkleEnv = {Rec{recorder(10, 0)}, Re
 const PasswordPartEnv kPasswordPartEnv = {Rec{recorder(10, 2)}};
 const QuitConfirmEnv kQuitConfirmEnv = {Rec{recorder(10, 0)}, Rec{jpeg_recorder(11, 1)}, Rec{recorder(12, 1)}};
 const MapSweepEnv kMapSweepEnv = {Rec{recorder(10, 0)}, Rec{recorder(11, 0)}, Rec{recorder(12, 0)}};
-const RasterFormatEnv kRasterFormatEnv = {Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 1)}, Rec{jpeg_recorder(12, 0)}, Rec{jpeg_recorder(13, 2)}, Rec{jpeg_recorder(14, 2)}};
+const Dialog7cb400CloseEnv kDialog7cb400CloseEnv = {Rec{jpeg_recorder(10, 4)}, Rec{recorder(11, 1)}, Rec{recorder(12, 1)}, Rec{jpeg_recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{recorder(15, 0)}, Rec{jpeg_recorder(16, 1)}, Rec{jpeg_recorder(17, 0)},
+                                                    Rec{recorder(18, 0)}, Rec{recorder(19, 0)}, Rec{recorder(20, 2)}, Rec{recorder(21, 1)}, Rec{recorder(22, 0)}, Rec{jpeg_recorder(23, 0)}, Rec{jpeg_recorder(24, 4)}, Rec{recorder(25, 3)}, Rec{recorder(26, 1)}};
+const UserSlotsEnv kUserSlotsEnv = {Rec{recorder(27, 0)}};
+const RasterFormatEnv kRasterFormatEnv ={Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 1)}, Rec{jpeg_recorder(12, 0)}, Rec{jpeg_recorder(13, 2)}, Rec{jpeg_recorder(14, 2)}};
 const ImeHostAttachEnv kImeHostAttachEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 0)}, Rec{recorder(12, 0)}, Rec{recorder(13, 1)}, Rec{recorder(14, 1)}, Rec{jpeg_recorder(15, 4)}};
 const TextRecordPartEnv kTextRecordPartEnv = {Rec{jpeg_recorder(10, 4)}, Rec{recorder(11, 1)}, Rec{jpeg_recorder(12, 1)}, Rec{recorder(13, 2)}, Rec{recorder(14, 1)}, Rec{recorder(15, 0)}, Rec{recorder(16, 1)}};
 const MovieFrameEnv kMovieFrameEnv = {&heap_alloc, Rec{jpeg_recorder(10, 3)}};
@@ -1854,6 +1859,8 @@ int main(int argc, char **argv) {
     QuitConfirm_SetEnv(&kQuitConfirmEnv);
     MapSweep_SetEnv(&kMapSweepEnv);
     RasterFormat_SetEnv(&kRasterFormatEnv);
+    Dialog7cb400Close_SetEnv(&kDialog7cb400CloseEnv);
+    UserSlots_SetEnv(&kUserSlotsEnv);
     ImeHost_SetAttachEnv(&kImeHostAttachEnv);
     TextRecordPart_SetEnv(&kTextRecordPartEnv);
     MovieFrame_SetEnv(&kMovieFrameEnv);

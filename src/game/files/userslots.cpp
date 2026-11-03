@@ -2,13 +2,29 @@
 
 #include <cstdint>
 
+#include "../core/gameheap.h"
+
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
+const UserSlotsEnv kGameEnv = {reinterpret_cast<u8 *(__fastcall *)(u8 *)>((uintptr_t)0x005c7420)};
+const UserSlotsEnv *g_env = &kGameEnv;
+
 }  // namespace
 
+void UserSlots_SetEnv(const UserSlotsEnv *env) { g_env = env ? env : &kGameEnv; }
+
 extern "C" {
+
+u8 *__cdecl UserSlots_Instance() {
+    u8 *&slots = *reinterpret_cast<u8 **>((uintptr_t)0x00f81ebc);
+    if (!slots) {
+        u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x110));
+        slots = block ? g_env->ctor(block) : nullptr;
+    }
+    return slots;
+}
 
 u32 __fastcall Records24_CountUsed(const u8 *records) {
     u32 count = 0;

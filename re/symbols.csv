@@ -3068,6 +3068,7 @@ address,name,kind,confidence,notes
 0x005c7d20,Records24_Field14,function,high,reimplemented (src/game/files/userslots); the dword at +0x14 of a 24-byte record
 0x005c7d00,Records24_IfUsed,function,high,reimplemented (src/game/files/userslots); a 24-byte record's address when its dword at +4 is set
 0x005c7bb0,Records24_CountUsed,function,high,reimplemented (src/game/files/userslots); how many of four 24-byte records are in use
+0x0048bcd0,UserSlots_Instance,function,low,"reimplemented (src/game/files/userslots); cdecl; name invented, unconfirmed; the user slots object [0xf81ebc], made when 0"
 0x005b0d40,Table73f8a8_At,function,high,reimplemented (src/game/core/balancefile); the address of a 60-byte record of the table at 0x73f8a8
 0x005b11c0,ThemeRecord_LoadGlobalSam,function,low,reimplemented (src/game/core/balancefile); a theme's global.sam loaded
 0x005b11a0,ThemeRecord_GlobalSamField14,function,low,"reimplemented (src/game/core/balancefile); thiscall: the theme record's global.sam loaded when missing; its dword +0x14, else -1 (name unconfirmed)"
@@ -7756,6 +7757,9 @@ address,name,kind,confidence,notes
 0x0065b7db,Window705950_GetNodeText,function,low,"reimplemented (src/game/ui/window705950nodes); the text of the row n of the list window copied out: name invented, unconfirmed"
 0x004b5cb0,Panel7cc3b0_Handler,function,low,"reimplemented (src/game/ui/panel7cc3b0handler); the window handler of the panel at 0x7cc3b0: name invented, unconfirmed"
 0x004b6070,Panel7cc3b0_DismissAnswer,function,low,"reimplemented (src/game/ui/panel7cc3b0handler); the panel's box answer: Staff_Dismiss, answer 1: name invented, unconfirmed"
+0x004a6b80,Dialog7cb400_Commit,function,low,"reimplemented (src/game/ui/dialog7cb400close); cdecl (value), answer in AL; name invented, unconfirmed; the edit box's text trimmed and told to the user slots"
+0x004a6a50,Dialog7cb400_Close,function,low,"reimplemented (src/game/ui/dialog7cb400close); cdecl (cancelled); name invented, unconfirmed; the dialog's end"
+0x004a6d00,Dialog7cb400_Handler,function,low,"reimplemented (src/game/ui/dialog7cb400close); cdecl (window, message, a, b); name invented, unconfirmed; the dialog's window handler"
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"

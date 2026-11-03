@@ -548,6 +548,7 @@
 #include "../game/ui/dialog7cb2b8build.h"
 #include "../game/ui/dialog7cb2b8tabs.h"
 #include "../game/ui/dialog7cb400.h"
+#include "../game/ui/dialog7cb400close.h"
 #include "../game/ui/dialog7cc184.h"
 #include "../game/ui/dialog7cc188.h"
 #include "../game/ui/dialog7cc1f8.h"
@@ -3039,6 +3040,7 @@ const Hook kHooks[] = {
     {"Records24_Field14",         0x005c7d20, (void *)&Records24_Field14, {0x8b, 0x44, 0x24, 0x04, 0x8d}},
     {"Records24_IfUsed",          0x005c7d00, (void *)&Records24_IfUsed, {0x8b, 0x44, 0x24, 0x04, 0x33}},
     {"Records24_CountUsed",       0x005c7bb0, (void *)&Records24_CountUsed, {0x33, 0xc0, 0x83, 0xc1, 0x04}},
+    {"UserSlots_Instance",        0x0048bcd0, (void *)&UserSlots_Instance, {0x6a, 0xff, 0x68, 0x2b, 0x96}},
     {"Table73f8a8_At",            0x005b0d40, (void *)&Table73f8a8_At, {0x8b, 0x44, 0x24, 0x04, 0x8d}},
     {"Obj_Flags1cAnd",            0x005d5ee0, (void *)&Obj_Flags1cAnd, {0x8b, 0x41, 0x1c, 0x8b, 0x4c}},
     {"Span_Limited",              0x005d1440, (void *)&Span_Limited, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
@@ -7734,6 +7736,9 @@ const Hook kHooks[] = {
     {"Window705950_GetNodeText",  0x0065b7db, (void *)&Window705950_GetNodeText, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Panel7cc3b0_Handler",       0x004b5cb0, (void *)&Panel7cc3b0_Handler, {0x8b, 0x44, 0x24, 0x08, 0x83}},
     {"Panel7cc3b0_DismissAnswer", 0x004b6070, (void *)&Panel7cc3b0_DismissAnswer, {0x8b, 0x4c, 0x24, 0x04, 0xe8}},
+    {"Dialog7cb400_Commit",       0x004a6b80, (void *)&Dialog7cb400_Commit, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Dialog7cb400_Close",        0x004a6a50, (void *)&Dialog7cb400_Close, {0x8b, 0x0d, 0xf8, 0xb3, 0x7c}},
+    {"Dialog7cb400_Handler",      0x004a6d00, (void *)&Dialog7cb400_Handler, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
