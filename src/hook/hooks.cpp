@@ -520,6 +520,7 @@
 #include "../game/online/chatavatar.h"
 #include "../game/online/ftp.h"
 #include "../game/online/chat.h"
+#include "../game/online/chatclient.h"
 #include "../game/online/chatcommand.h"
 #include "../game/online/chatevents.h"
 #include "../game/online/chatcursor.h"
@@ -7086,6 +7087,9 @@ const Hook kHooks[] = {
     {"ChatLists_SaveIgnored",     0x004ef880, (void *)&ChatLists_SaveIgnored, {0x6a, 0xff, 0x68, 0x85, 0xd6}},
     {"ChatLists_LoadIgnored",     0x004efc10, (void *)&ChatLists_LoadIgnored, {0x6a, 0xff, 0x68, 0x16, 0xd7}},
     {"CRT_wcslen",                0x0067acd0, (void *)&CRT_wcslen, {0x8b, 0x4c, 0x24, 0x04, 0x66}},
+    {"ChatClient_Dtor",           0x004e5950, (void *)&ChatClient_Dtor, {0x6a, 0xff, 0x68, 0x02, 0xc6}},
+    {"ChatClient_Connect",        0x004e5be0, (void *)&ChatClient_Connect, {0x6a, 0xff, 0x68, 0x5f, 0xc6}},
+    {"ChatClient_EnterWorld",     0x004e5ef0, (void *)&ChatClient_EnterWorld, {0x6a, 0xff, 0x68, 0xa7, 0xc6}},
     {"LobbyModel_SetPosition",    0x005d8190, (void *)&LobbyModel_SetPosition, {0x8b, 0x41, 0x04, 0x8b, 0x54}},
     {"LobbyModel_TurnY",          0x005d8380, (void *)&LobbyModel_TurnY, {0x8b, 0x49, 0x04, 0x8d, 0x44}},
     {"LobbyModel_SetScale",       0x005d83b0, (void *)&LobbyModel_SetScale, {0x83, 0xec, 0x0c, 0x8b, 0x44}},

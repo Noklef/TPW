@@ -310,6 +310,7 @@
 #include "../../src/game/gfx/moviestart.h"
 #include "../../src/game/core/dsoundsource.h"
 #include "../../src/game/online/chatlists.h"
+#include "../../src/game/online/chatclient.h"
 #include "../../src/game/world/worldupdate.h"
 #include "../../src/game/core/soundobjectslots.h"
 #include "../../src/game/world/mapreset.h"
@@ -2254,6 +2255,8 @@ int main(int argc, char **argv) {
                                               Rec{recorder(2, 2)}, Rec{recorder(15, 2)}, Rec{recorder(9, 0)}, Rec{recorder(5, 0)}, Rec{recorder(6, 0)}, Rec{recorder(7, 0)}, Rec{jpeg_recorder(13, 1)}, Rec{jpeg_recorder(18, 2)}, Rec{jpeg_recorder(18, 3)}, Rec{jpeg_recorder(19, 2)},
                                               Rec{recorder(16, 1)}, Rec{jpeg_recorder(19, 3)}, Rec{recorder(17, 0)}, Rec{recorder(21, 1)}, Rec{recorder(20, 3)}, Rec{recorder(22, 2)}, Rec{recorder(23, 2)}, Rec{recorder(24, 2)}, Rec{recorder(25, 1)}};
     ChatLists_SetEnv(&chatListsEnv);
+    static const ChatClientEnv chatClientEnv = {Rec{recorder(1, 1)}, Rec{recorder(2, 1)}, Rec{recorder(3, 0)}, Rec{recorder(4, 0)}, Rec{recorder(5, 1)}, Rec{recorder(6, 0)}, Rec{recorder(7, 2)}, Rec{recorder(8, 2)}, Rec{recorder(9, 0)}, Rec{recorder(10, 0)}, Rec{recorder(11, 0)}, Rec{recorder(12, 0)}, Rec{recorder(13, 0)}, Rec{jpeg_recorder(14, 3)}, Rec{recorder(15, 2)}, Rec{recorder(16, 4)}, Rec{recorder(17, 1)}, Rec{recorder(18, 1)}, Rec{recorder(19, 2)}, Rec{recorder(20, 0)}, Rec{recorder(21, 0)}, Rec{recorder(22, 1)}};
+    ChatClient_SetEnv(&chatClientEnv);
     static const SoundObjectSlotsEnv soundObjectSlotsEnv = {Rec{recorder(20, 3)}, Rec{recorder(21, 2)}, Rec{recorder(22, 3)}, Rec{recorder(23, 2)}, Rec{recorder(24, 2)}};
     SoundObjectSlots_SetEnv(&soundObjectSlotsEnv);
     static const MapResetEnv mapResetEnv = {Rec{recorder(1, 1)}, Rec{recorder(2, 0)}};
