@@ -46,30 +46,44 @@ def array(r):
     return nodes
 
 
-def near(r, pool, n_pool, self_):
-    """The other cars just inside, on or just outside the car's reach, at the distances where the halving starts (and the farthest, 16 halvings)."""
+def near(r, pool, n_pool, self_, rides, at):
+    """A new wandering car at the ride's very place (its area's size 1) and one other used car just inside, on or just outside its reach, at the
+    distances where the halving starts or the farthest (16 halvings)."""
     p = 0xac * self_
     far = r.random() < 0.3
     x, y = (-0x3fffff00, -0x3fffff00) if far else (r.randrange(-1000, 1000), r.randrange(-1000, 1000))
-    put(pool, p + 0x34, 'ii', x, y)
+    put(rides, at + 0x74, 'ii', x, y)
     reach = r.randrange(0, 64)
     put(pool, p + 0x64, 'i', reach)
+    put(pool, p, 'I', struct.unpack_from('<I', pool, p)[0] | 0x100000)
+    dx, dy = r.choice([(0x7ffffe00, r.randrange(0x7ffffe00)), (r.randrange(0x7ffffe00), 0x7ffffe00)]) if far else \
+        r.choice([(0x8000, 0x7fff), (0x8001, 0), (0x8000, 0), (0, 0x7fff), (0, 0x8000), (0x7fff, 0x8000), (r.randrange(0x10000), r.randrange(0x10000))])
+    other = r.choice([i for i in range(n_pool) if i != self_])
     for i in range(n_pool):
-        if i == self_:
-            continue
-        dx, dy = r.choice([(0x7ffffe00, r.randrange(0x7ffffe00)), (r.randrange(0x7ffffe00), 0x7ffffe00)]) if far else \
-            r.choice([(0x8000, 0x7fff), (0x8001, 0), (0x8000, 0), (0, 0x7fff), (0, 0x8000), (0x7fff, 0x8000), (r.randrange(0x10000), r.randrange(0x10000))])
-        put(pool, 0xac * i + 0x34, 'ii', x + dx, y + dy)
-        halved = 0
-        while dx > 0x8000 or dy > 0x7fff:
-            dx, dy, halved = dx >> 1, dy >> 1, halved + 1
-        distance = int(math.sqrt(dx * dx + dy * dy)) << halved
-        put(pool, 0xac * i + 0x64, 'I', (distance - reach + r.choice([-1, 0, 0, 1, 2])) & 0xffffffff)
+        if i != self_:
+            put(pool, 0xac * i, 'I', struct.unpack_from('<I', pool, 0xac * i)[0] & ~1 | (i == other))
+    put(pool, 0xac * other + 0x34, 'ii', x + dx, y + dy)
+    halved = 0
+    while dx > 0x8000 or dy > 0x7fff:
+        dx, dy, halved = dx >> 1, dy >> 1, halved + 1
+    distance = int(math.sqrt(dx * dx + dy * dy)) << halved
+    put(pool, 0xac * other + 0x64, 'I', (distance - reach + r.choice([-1, 0, 0, 1])) & 0xffffffff)
+
+
+def last_partners(pool, self_, ride):
+    """The partner's index past 42 (the others not partners): tells the size 0xac apart, and the car free to look for one."""
+    for i in range(46):
+        flags = struct.unpack_from('<I', pool, 0xac * i)[0]
+        if i != self_:
+            put(pool, 0xac * i, 'I', flags & ~0x20 | 1 if i >= 42 else flags | 0x20)
+            put(pool, 0xac * i + 0x9c, 'I', ride)
+    put(pool, 0xac * self_, 'I', struct.unpack_from('<I', pool, 0xac * self_)[0] & ~0x40004)
 
 
 def case(r):
     log = log_region()
-    kind = r.deal(WANDER + WANDER + FOLLOW + FOLLOW + NEWFOLLOW + START + [-2, -2, 0, 1, -15, 7])
+    close = r.random() < 0.2
+    kind = r.choice(WANDER) if close else r.deal(WANDER + WANDER + FOLLOW + FOLLOW + NEWFOLLOW + START + [-2, -2, 0, 1, -15, 7])
     nodes, n = route(r)
     rides = bytearray(r.bytes(0xd0 * N_RIDES))
     index = r.randrange(N_RIDES)
@@ -85,7 +99,7 @@ def case(r):
     put(rides, at + 0xa4, 'III', ROUTE + 0x1c * r.randrange(n), ROUTE, r.randrange(1, 12))
     put(rides, at + 0xc0, 'I', AREA)
     area = bytearray(0x40)
-    put(area, 0xc, 'I', r.choice([1, 8, 100, 4096, 65536, 0x100000]))
+    put(area, 0xc, 'I', 1 if close else r.choice([1, 8, 100, 4096, 65536, 0x100000]))
     n_pool = r.choice([N_POOL, N_POOL, 46])   # (the chosen car's index past 42 tells the size 0xac apart)
     pool = bytearray(0xac * n_pool)
     self_ = r.randrange(n_pool)
@@ -110,8 +124,10 @@ def case(r):
     put(pool, p + 0x9c, 'I', ride)
     if struct.unpack_from('<i', pool, p + 0x7c)[0] not in range(N_NODES) and kind == -2 or fields & 8 and kind in WANDER:
         put(pool, p + 0x7c, 'i', r.randrange(N_NODES))
-    if r.random() < 0.3:
-        near(r, pool, n_pool, self_)
+    if close:
+        near(r, pool, n_pool, self_, rides, at)
+    elif n_pool == 46 and r.random() < 0.5:
+        last_partners(pool, self_, ride)
     pool_count = sum(struct.unpack_from('<I', pool, 0xac * i)[0] & 1 for i in range(n_pool))
     globals_ = bytearray(r.bytes(0x28))
     put(globals_, 0, 'I', 0x4a454647 if r.random() < 0.9 else r.getrandbits(32))
