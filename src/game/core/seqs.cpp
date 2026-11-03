@@ -301,4 +301,33 @@ void __fastcall Bands_CollectTextures(u8 *object, void *, u32 *ids, s32 *count, 
     }
     Bands_SortValues(object, nullptr, ids, 0, *count - 1);
 }
+
+void __fastcall Bands_SortRecords(const u8 *object, void *, u8 *records, s32 lo, s32 hi) {
+    const auto key = [records](s32 i) { return at<u32>(records, 16 * (u32)i); };
+    for (;;) {
+        const u32 pivot = key((s32)((u32)lo + (u32)hi) >> 1);
+        s32 i = lo, j = hi;
+        do {
+            while (i <= hi && key(i) < pivot)
+                ++i;
+            while (j > lo && key(j) > pivot)
+                --j;
+            if (i > j)
+                break;
+            u32 *const a = &at<u32>(records, 16 * (u32)i), *const b = &at<u32>(records, 16 * (u32)j);
+            for (u32 k = 0; k < 4; ++k) {
+                const u32 swap = a[k];
+                a[k] = b[k];
+                b[k] = swap;
+            }
+            ++i;
+            --j;
+        } while (i <= j);
+        if (lo < j)
+            Bands_SortRecords(object, nullptr, records, lo, j);
+        if (i >= hi)
+            return;
+        lo = i;
+    }
+}
 }  // extern "C"

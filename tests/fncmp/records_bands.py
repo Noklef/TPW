@@ -4,7 +4,8 @@
 # Collect (0x56f380, which ends in the sort): 0-6 rows (from -1 on) of 0-8 columns (a negative now and then) over a map 8-16 wide whose
 # cells are skipped (bit 1) or name one of 8 texture sets (some none), the override box (flag 4 of [0x8bd550]) around them or not, the
 # textures' ids few and their flag 0x1000 set or not.
-# usage: records_bands.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Copy,Bands,Perm,Sort,Collect)
+# SortRecords (0x56f570): the same over 16-byte records keyed by their first dword, the rest random.
+# usage: records_bands.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Copy,Bands,Perm,Sort,Collect,SortRecords)
 import os
 import sys
 
@@ -12,7 +13,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, RAM, put  # noqa: E402
 
 CALLS = {'Copy': (0x489350, 't', 'a', 0x70), 'Bands': (0x56ee90, 't', 'a', 0x80), 'Perm': (0x56f4f0, 's', 'v', 0x80),
-         'Sort': (0x56f2f0, 't', 'v', 0x81), 'Collect': (0x56f380, 't', 'v', 0x170)}
+         'Sort': (0x56f2f0, 't', 'v', 0x81), 'Collect': (0x56f380, 't', 'v', 0x170), 'SortRecords': (0x56f570, 't', 'v', 0xf8)}
 B = Bench([(a, a + n) for (a, _c, _r, n) in CALLS.values()] + [(0x575f90, 0x575f9d)])
 MAP, SETS, TEXSETS, ARRAYS, TEXTURES, IDS, COUNT, OUT = (RAM + k for k in (0x400, 0x600, 0x700, 0x800, 0x900, 0xc00, 0xd00, 0xe00))
 CELLS = RAM + 0x1000
@@ -88,6 +89,18 @@ def case(r):
             lo, hi = r.randrange(n), r.randrange(n)
         return Call(address, [RAM, RAM + 0x420, lo & 0xffffffff, hi & 0xffffffff], {RAM: r.bytes(0x240), RAM + 0x400: data}, conv=conv,
                     ret=ret)
+    if name == 'SortRecords':
+        n = r.choice([0, 1, 2, 3, 5, 8, 13, 20, 40])
+        pool = r.choice([[1, 2, 3], [0, 0x80000000, 0xffffffff, 7], None])
+        keys = [r.choice(pool) if pool else r.getrandbits(32) for _ in range(n)]
+        shape = r.choice(['any', 'any', 'up', 'down'])
+        if shape != 'any':
+            keys.sort(reverse=shape == 'down')
+        data = bytearray(r.bytes(0x20)) + b''.join(k.to_bytes(4, 'little') + r.bytes(12) for k in keys) + bytearray(r.bytes(0x20))
+        lo, hi = 0, n - 1
+        if n > 2 and r.random() < 0.3:
+            lo, hi = r.randrange(n), r.randrange(n)
+        return Call(address, [RAM, RAM + 0x420, lo & 0xffffffff, hi & 0xffffffff], {RAM: r.bytes(0x240), RAM + 0x400: data}, conv=conv, ret=ret)
     flags = r.choice([0, 8, 0x10, 0x20, 0x40, 0x48, 0x50, 0x60, 0x78, 0x7f, 0x37, 0xffff, r.getrandbits(16)])
     return Call(address, [SRC, SRC + 0x20], {SRC: r.bytes(8), SRC + 0x20: flags.to_bytes(2, 'little') + bytes(2)}, conv=conv, ret=ret)
 
