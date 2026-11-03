@@ -565,6 +565,7 @@ if(TPW_TEST_TOOLING)
         src/testing/trace.cpp
         src/testing/fpu_watch.cpp
         src/testing/profiler.cpp
+        src/testing/pool_watch.cpp
     )
     target_link_libraries(tpw_hook PRIVATE tpw_testing)
     target_compile_definitions(tpw_hook PRIVATE TPW_TEST_TOOLING)

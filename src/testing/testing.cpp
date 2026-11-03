@@ -2,6 +2,7 @@
 
 #include "fpu_watch.h"
 #include "log.h"
+#include "pool_watch.h"
 #include "profiler.h"
 #include "trace.h"
 
@@ -30,6 +31,7 @@ void after_hooks(const char *ini) {
     // tp.exe imports dinput.dll, so DllMain runs on the game's main thread at startup.
     start_fpu_watch();
     if (GetPrivateProfileIntA("tpw", "profile", 1, ini)) start_profiler(g_dll);
+    if (GetPrivateProfileIntA("tpw", "poolwatch", 1, ini)) start_pool_watch(g_dll);
 }
 
 void stop() {
