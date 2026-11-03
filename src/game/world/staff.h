@@ -283,6 +283,8 @@ struct StaffWalkEnv {
     void(__fastcall *idleHandyman)(u8 *staff);                     // 0x4d7100 (the same)
     void(__fastcall *idleEntertainer)(u8 *staff);                  // 0x4d46d0 (the same)
     void(__fastcall *idleGuard)(u8 *staff);                        // 0x4d63d0 (the same)
+    u8 *(__fastcall *ctorTyped)(u8 *staff, void *, u32 cell, u32 kind, u32 type, u32 unused);   // Staff_CtorTyped 0x504b10
+    s32(__cdecl *formatName)(u8 *charset, u16 *dest, u32 size, u32 entry, ...);   // Charset_FormatWide 0x6acd60
 };
 void Staff_SetWalkEnv(const StaffWalkEnv *env);   // nullptr: the game's
 

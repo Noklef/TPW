@@ -15,6 +15,7 @@
 #include "../core/textarg.h"
 #include "../core/thunks.h"
 #include "../core/vcall.h"
+#include "../files/charsets.h"
 #include "../math/x87.h"
 #include "../sprite/scriptref.h"
 #include "analyser.h"
@@ -744,7 +745,8 @@ void __fastcall Staff_LeaveRestArea(u8 *staff) {
 namespace {
 const StaffWalkEnv kGameWalkEnv = {&Sprite_WalkNav, &Sprite_SpawnParticle, &Thing_Delete, &Thoughts_Show, &Person_SetRandomDest, &Sprite_PlaySound,
                                    reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x004da5b0), reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x004d7100),
-                                   reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x004d46d0), reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x004d63d0)};
+                                   reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x004d46d0), reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x004d63d0),
+                                   &Staff_CtorTyped, &Charset_FormatWide};
 const StaffWalkEnv *g_walk = &kGameWalkEnv;
 
 // A level from an x87 sum: above 100.0 100.0, below 0 (or NaN) 0, else the sum.

@@ -74,7 +74,8 @@ B = Bench(wctimage.merged(MODES + [
     (0x505790, 0x5059e2), (0x5059e4, 0x505a0c), (0x5056e0, 0x505790), (0x506a40, 0x506d10), (0x51a290, 0x51a2f0), (0x502c70, 0x502cf0), (0x506680, 0x5066a0),
     (0x5061d0, 0x5062f4), (0x5029f0, 0x502c20), (0x5066a0, 0x506910)]),
           hooks={0x40fb10: _recorder(21, 1), 0x4fa2a0: _recorder(28, 0), 0x4fa470: _recorder(29, 1), 0x50b780: _recorder(30, 0), 0x50be80: _recorder(31, 2), 0x4f9490: _recorder(27, 0),
-                 0x4faa00: _recorder(25, 2), 0x4da5b0: _recorder(22, 0), 0x4d7100: _recorder(23, 0), 0x4d46d0: _recorder(24, 0), 0x4d63d0: _recorder(18, 0)})
+                 0x4faa00: _recorder(25, 2), 0x4da5b0: _recorder(22, 0), 0x4d7100: _recorder(23, 0), 0x4d46d0: _recorder(24, 0), 0x4d63d0: _recorder(18, 0),
+                 0x504b10: _recorder(19, 4), 0x6acd60: _recorder(17, 4, cdecl=True)})
 STAFF, WORLD, MODE, MODE_VT, HOLDER = RAM + 0x20000, RAM + 0x21000, RAM + 0xc000, RAM + 0xc100, RAM + 0xc200
 RECORD, CELLS = RAM + 0x21400, RAM + 0x50000
 
