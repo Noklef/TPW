@@ -415,6 +415,7 @@
 #include "../game/render/drawbuffer.h"
 #include "../game/render/texformat.h"
 #include "../game/render/batch.h"
+#include "../game/render/batchquad.h"
 #include "../game/render/rasteriser.h"
 #include "../game/render/dynfaces.h"
 #include "../game/render/lightsource.h"
@@ -6203,6 +6204,7 @@ const Hook kHooks[] = {
     {"Ribbon_AddPoint",           0x0057dd10, (void *)&Ribbon_AddPoint, {0x8b, 0x54, 0x24, 0x04, 0x81}},
     {"RandomSegments_Ctor",       0x005dfcd0, (void *)&RandomSegments_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"ModelGroup_AddToBatch",     0x00580530, (void *)&ModelGroup_AddToBatch, {0xb8, 0x64, 0x20, 0x00, 0x00}},
+    {"Batch_DrawQuad",            0x00565f90, (void *)&Batch_DrawQuad, {0x81, 0xec, 0xb0, 0x02, 0x00}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},

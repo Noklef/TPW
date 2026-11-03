@@ -114,6 +114,7 @@
 #include "../../src/game/world/flyingupdate.h"
 #include "../../src/game/render/ribbon.h"
 #include "../../src/game/render/batch.h"
+#include "../../src/game/render/batchquad.h"
 #include "../../src/game/terrain/water.h"
 #include "../../src/game/render/weatherfx.h"
 #include "../../src/game/render/modelgroup.h"
@@ -573,6 +574,7 @@ const EditUpdateEnv kEditUpdateEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorde
 // tests/fncmp/testrun.py hooks them.
 const RibbonEnv kRibbonEnv = {Rec{recorder(2, 5)}};
 const BatchEnv kBatchEnv = {Rec{recorder(1, 1)}, Rec{recorder(2, 2)}};
+const BatchQuadEnv kBatchQuadEnv = {Rec{recorder(11, 5)}, Rec{recorder(12, 5)}, Rec{recorder(13, 2)}, Rec{recorder(14, 0)}};
 // tests/fncmp/terrainwater.py: the transformer's slot 1 is 0x579330 in the original; here its port. ClipPoly_Vertices is stdcall (the COM-style recorder 3 of 5, recorder(k, n, True) in fncmp.py).
 u32 __fastcall water_transform(void *object, void *, u32 a, u32 b, u32 c, u32 d, u32 e, u32 f) {
     Transform_Vertices(nullptr, static_cast<const float *>(object), reinterpret_cast<float *>((uintptr_t)a), reinterpret_cast<const u8 *>((uintptr_t)b), (s32)c, (s32)d, f, (s32)e);
@@ -1395,6 +1397,7 @@ int main(int argc, char **argv) {
     FlyingUpdate_SetEnv(&kFlyingUpdateEnv);
     Ribbon_SetEnv(&kRibbonEnv);
     Batch_SetEnv(&kBatchEnv);
+    BatchQuad_SetEnv(&kBatchQuadEnv);
     TerrainWater_SetEnv(&kTerrainWaterEnv);
     WeatherFx_SetDrawEnv(&kWeatherDrawEnv);
     WeatherFx_SetDropsEnv(&kWeatherDropsEnv);
