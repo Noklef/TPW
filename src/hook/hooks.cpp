@@ -645,6 +645,7 @@
 #include "../game/ui/window7cc8bc.h"
 #include "../game/ui/window7cc8bcmenu.h"
 #include "../game/ui/window7cc8c0handler.h"
+#include "../game/ui/windowarea.h"
 #include "../game/ui/windowtimers.h"
 #include "../game/lib/jpeg6b.h"
 #include "../game/lib/jpeg6a.h"
@@ -7937,6 +7938,9 @@ const Hook kHooks[] = {
     {"Panel7c2534_Handler",       0x0048b6a0, (void *)&Panel7c2534_Handler, {0x83, 0xec, 0x10, 0x56, 0x8b}},
     {"Panel7ca228_Follow",        0x00499b90, (void *)&Panel7ca228_Follow, {0x56, 0x8b, 0xf1, 0x8b, 0x0d}},
     {"Panel7ca228_Handler",       0x00499bb0, (void *)&Panel7ca228_Handler, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"WindowArea_GetRect",        0x00661810, (void *)&WindowArea_GetRect, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"WindowArea_GetRect2c",      0x0066b438, (void *)&WindowArea_GetRect2c, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window_GetAreaRect",        0x0065d616, (void *)&Window_GetAreaRect, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
