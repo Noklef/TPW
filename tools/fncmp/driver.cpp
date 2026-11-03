@@ -2082,6 +2082,10 @@ int main(int argc, char **argv) {
     // The voices' pool's 0x67e050: the same recorder, as tests/fncmp/channelvoice.py hooks it.
     static const ChannelVoicesEnv channelVoicesEnv = {soundWorkerEnv.beginThread};
     ChannelVoices_SetEnv(&channelVoicesEnv);
+    // The things' sweeps: COM recorder 20 of 1, thiscall 21, 22, cdecl 23, 24, 25, 26 of 2, thiscall 27 of 1, as tests/fncmp/thingsrelease.py hooks them.
+    static const ThingSweepEnv thingSweepEnv = {Rec{kStubs + 0x5000 + 0x800 * 1 + 0x20 * 20}, Rec{recorder(21, 0)}, Rec{recorder(22, 0)}, Rec{jpeg_recorder(23, 0)},
+                                                Rec{jpeg_recorder(24, 0)}, Rec{jpeg_recorder(25, 0)}, Rec{jpeg_recorder(26, 2)}, Rec{recorder(27, 1)}};
+    Things_SetSweepEnv(&thingSweepEnv);
     // The channel's open: thiscall recorders 1 of 1, 2 and 3 of 2, COM recorder 4 of 4, thiscall recorders 5-9, as tests/fncmp/soundopen.py hooks them.
     static const SoundChannelOpenEnv soundChannelOpenEnv = {Rec{recorder(1, 1)}, Rec{recorder(2, 2)}, Rec{recorder(3, 2)}, Rec{kStubs + 0x5000 + 0x800 * 4 + 0x20 * 4},
                                                             Rec{recorder(5, 1)}, Rec{recorder(6, 0)}, Rec{recorder(7, 1)}, Rec{recorder(8, 0)}, Rec{recorder(9, 2)}};

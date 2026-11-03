@@ -10,6 +10,7 @@
 #include "../core/gameheap.h"
 #include "../core/methods.h"
 #include "../core/savegame.h"
+#include "../core/seqs.h"
 #include "../files/file.h"
 #include "../sprite/script.h"
 #include "../sprite/scriptref.h"
@@ -19,12 +20,15 @@
 #include "analyser.h"
 #include "headquarters.h"
 #include "mapcell.h"
+#include "mapsweep.h"
 #include "messagecentre.h"
 #include "money.h"
+#include "mousemode.h"
 #include "nav.h"
 #include "object.h"
 #include "objectdefs.h"
 #include "objectmsg.h"
+#include "objectride.h"
 #include "person.h"
 #include "queuepieces.h"
 #include "random.h"
@@ -33,6 +37,8 @@
 #include "staff.h"
 #include "thingmsg.h"
 #include "thingscan.h"
+#include "trackrides.h"
+#include "trakcarpose.h"
 #include "weather.h"
 
 namespace {
@@ -418,5 +424,63 @@ void __fastcall Things_ReleaseAll(u8 *) {
         const ThingSlot *const next = slots()[*Thing_GetHandle(thing, nullptr, &out)].next;
         handle = next ? (u16)next->id : 0;
     }
+}
+
+namespace {
+
+const ThingSweepEnv kSweepEnv = {&MouseMode_Set, &MapSweep_Reset, &Thing_Delete, &Things_ReleaseDeleted, &EntryStack_Clear, &TrakRides_Shutdown,
+                                 reinterpret_cast<void(__cdecl *)(u32, u32)>(&TrakRide_PoseCars), &Object_ClaimRide};
+const ThingSweepEnv *g_sweep = &kSweepEnv;
+
+// The first thing's handle (the walk's start; none: 0).
+u16 firstHandle() {
+    const ThingSlot *const first = used();
+    return first ? (u16)first->id : 0;
+}
+
+// The handle after the thing's slot (from the thing's own handle, Thing_GetHandle).
+u16 nextHandle(const u8 *thing) {
+    u16 out;
+    const ThingSlot *const next = slots()[*Thing_GetHandle(thing, nullptr, &out)].next;
+    return next ? (u16)next->id : 0;
+}
+
+}  // namespace
+
+void Things_SetSweepEnv(const ThingSweepEnv *env) { g_sweep = env ? env : &kSweepEnv; }
+
+void __fastcall Things_PoseRides(u8 *, void *, u32 a) {
+    for (u16 handle = firstHandle(); handle;) {
+        u8 *const thing = static_cast<u8 *>(slots()[handle].thing);
+        if (thing && !thing[3] && thing[2] == 3 && at<u32>(thing, 0x28)) g_sweep->pose(at<u32>(thing, 0x28), a);
+        handle = nextHandle(thing);
+    }
+}
+
+void __fastcall Things_ClaimRides(u8 *) {
+    for (u16 handle = firstHandle(); handle;) {
+        u8 *const thing = static_cast<u8 *>(slots()[handle].thing);
+        if (thing && !thing[3] && thing[2] == 3) g_sweep->claim(thing, nullptr, 1);
+        handle = nextHandle(thing);
+    }
+}
+
+void __fastcall World_ClearLevel(u8 *world) {
+    at<u32>(world, 0x1da738) = 2;
+    if (u8 *const mode = global<u8 *>(0x007b05e8)) {
+        g_sweep->mouseMode(nullptr);
+        GameHeap_Free(mode);
+    }
+    global<u8 *>(0x007b05e8) = nullptr;
+    g_sweep->mapReset(global<u8 *>(0x007cf83c) + 0x2d8);
+    for (u16 handle = firstHandle(); handle;) {
+        u8 *const thing = static_cast<u8 *>(slots()[handle].thing);
+        if (!thing[3]) g_sweep->destroy(thing);
+        handle = nextHandle(static_cast<const u8 *>(slots()[handle].thing));
+    }
+    g_sweep->released();
+    at<u32>(world, 0x1da738) = 1;
+    g_sweep->entriesClear();
+    g_sweep->ridesShutdown();
 }
 }  // extern "C"

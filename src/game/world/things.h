@@ -184,4 +184,26 @@ void __fastcall Thing_Delete(u8 *thing);
 // deleted (+3 0) of kind 1, 4-8 or 0x12 has its script slot +0xc killed when set (Obj_KillSlot); of kind 3 its ride +0x20 destroyed
 // (Ride_Destroy, through QueuePiece_Remove's env).
 void __fastcall Things_ReleaseAll(u8 *world);
+// 0x519060 (thiscall (a: a float's bits), pops 4; this not read; name invented, unconfirmed): the same walk: a thing not being deleted of kind 3 with +0x28 set has
+// TrakRide_PoseCars (+0x28, a).
+void __fastcall Things_PoseRides(u8 *world, void *, u32 a);
+// 0x519120 (thiscall; this not read; name invented, unconfirmed): the same walk: a thing not being deleted of kind 3 has Object_ClaimRide (1).
+void __fastcall Things_ClaimRides(u8 *world);
+// 0x515dd0 (thiscall on the world; name invented, unconfirmed): +0x1da738 = 2. The mouse mode [0x7b05e8] set to none and freed, when there is one, and cleared. MapSweep_Reset
+// on [0x7cf83c] + 0x2d8. The same walk: a thing not being deleted is deleted (Thing_Delete; its slot's thing read again for the next). Things_ReleaseDeleted, +0x1da738 = 1,
+// EntryStack_Clear, TrakRides_Shutdown.
+void __fastcall World_ClearLevel(u8 *world);
+
+// What the sweeps call, so that the bench can record it (nullptr: the game's).
+struct ThingSweepEnv {
+    void(__stdcall *mouseMode)(u8 *mode);               // MouseMode_Set 0x46c350
+    void(__fastcall *mapReset)(u8 *map);                // MapSweep_Reset 0x4d8330
+    void(__fastcall *destroy)(u8 *thing);               // Thing_Delete 0x50b780
+    void(__cdecl *released)();                          // Things_ReleaseDeleted 0x518ea0
+    void(__cdecl *entriesClear)();                      // EntryStack_Clear 0x50f240
+    void(__cdecl *ridesShutdown)();                     // TrakRides_Shutdown 0x544450
+    void(__cdecl *pose)(u32 handle, u32 a);             // TrakRide_PoseCars 0x546280 (a: a float's bits)
+    void(__fastcall *claim)(u8 *object, void *, u32 claim);   // Object_ClaimRide 0x4dd500
+};
+void Things_SetSweepEnv(const ThingSweepEnv *env);
 }  // extern "C"
