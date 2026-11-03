@@ -184,6 +184,7 @@
 #include "../../src/game/world/mapcell.h"
 #include "../../src/game/world/mapclick.h"
 #include "../../src/game/world/mapline.h"
+#include "../../src/game/world/bankaccount.h"
 #include "../../src/game/world/messagecentre.h"
 #include "../../src/game/coaster/registry.h"
 #include "../../src/game/world/money.h"
@@ -916,7 +917,8 @@ const Dialog7cb400CloseEnv kDialog7cb400CloseEnv = {Rec{jpeg_recorder(10, 4)}, R
                                                     Rec{recorder(18, 0)}, Rec{recorder(19, 0)}, Rec{recorder(20, 2)}, Rec{recorder(21, 1)}, Rec{recorder(22, 0)}, Rec{jpeg_recorder(23, 0)}, Rec{jpeg_recorder(24, 4)}, Rec{recorder(25, 3)}, Rec{recorder(26, 1)}};
 const Dialog7cc188AddressEnv kDialog7cc188AddressEnv = {Rec{recorder(10, 1)}, Rec{jpeg_recorder(11, 1)}, Rec{recorder(12, 1)}, Rec{jpeg_recorder(13, 1)}, Rec{jpeg_recorder(14, 5)}, Rec{jpeg_recorder(15, 8)}, Rec{recorder(16, 3)}};
 const UserSlotsEnv kUserSlotsEnv = {Rec{recorder(27, 0)}};
-const VersionLabelEnv kVersionLabelEnv ={Rec{jpeg_recorder(10, 7)}, Rec{recorder(11, 7)}, Rec{recorder(12, 1)}, Rec{recorder(13, 1)}, Rec{recorder(14, 1)}, Rec{recorder(15, 1)}};
+const BankAccountCtorEnv kBankAccountCtorEnv = {Rec{jpeg_recorder(10, 4)}};
+const VersionLabelEnv kVersionLabelEnv = {Rec{jpeg_recorder(10, 7)}, Rec{recorder(11, 7)}, Rec{recorder(12, 1)}, Rec{recorder(13, 1)}, Rec{recorder(14, 1)}, Rec{recorder(15, 1)}};
 const RasterFormatEnv kRasterFormatEnv ={Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 1)}, Rec{jpeg_recorder(12, 0)}, Rec{jpeg_recorder(13, 2)}, Rec{jpeg_recorder(14, 2)}};
 const ImeHostAttachEnv kImeHostAttachEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 0)}, Rec{recorder(12, 0)}, Rec{recorder(13, 1)}, Rec{recorder(14, 1)}, Rec{jpeg_recorder(15, 4)}};
 const TextRecordPartEnv kTextRecordPartEnv = {Rec{jpeg_recorder(10, 4)}, Rec{recorder(11, 1)}, Rec{jpeg_recorder(12, 1)}, Rec{recorder(13, 2)}, Rec{recorder(14, 1)}, Rec{recorder(15, 0)}, Rec{recorder(16, 1)}};
@@ -1867,6 +1869,7 @@ int main(int argc, char **argv) {
     UserSlots_SetEnv(&kUserSlotsEnv);
     Dialog7cc188Address_SetEnv(&kDialog7cc188AddressEnv);
     VersionLabel_SetEnv(&kVersionLabelEnv);
+    BankAccountCtor_SetEnv(&kBankAccountCtorEnv);
     ImeHost_SetAttachEnv(&kImeHostAttachEnv);
     TextRecordPart_SetEnv(&kTextRecordPartEnv);
     MovieFrame_SetEnv(&kMovieFrameEnv);
