@@ -5607,6 +5607,7 @@ address,name,kind,confidence,notes
 0x006bafd0,SoundGuard_DeleteArray,function,low,"reimplemented (src/game/core/soundguard); the held object's slot 0 (3), unless null"
 0x006bafe0,SoundGuard_Delete,function,low,"reimplemented (src/game/core/soundguard); the held object's slot 0 (1), unless null"
 0x006bb210,SoundGuard_Release,function,low,reimplemented (src/game/core/soundguard); with byte +4 the held object's slot 3
+0x006bb940,SoundRandom_Seed,function,low,reimplemented (src/game/core/soundseed); the random number 0xfb1f20 seeded from the time
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

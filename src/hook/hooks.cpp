@@ -233,6 +233,7 @@
 #include "../game/core/soundoccluders.h"
 #include "../game/core/soundplay.h"
 #include "../game/core/soundsample.h"
+#include "../game/core/soundseed.h"
 #include "../game/core/soundslot.h"
 #include "../game/core/soundsource.h"
 #include "../game/core/soundstream.h"
@@ -5799,6 +5800,7 @@ const Hook kHooks[] = {
     {"SoundGuard_DeleteArray",    0x006bafd0, (void *)&SoundGuard_DeleteArray, {0x8b, 0x09, 0x85, 0xc9, 0x74}},
     {"SoundGuard_Delete",         0x006bafe0, (void *)&SoundGuard_Delete, {0x8b, 0x09, 0x85, 0xc9, 0x74}},
     {"SoundGuard_Release",        0x006bb210, (void *)&SoundGuard_Release, {0x8a, 0x41, 0x04, 0x84, 0xc0}},
+    {"SoundRandom_Seed",          0x006bb940, (void *)&SoundRandom_Seed, {0xe8, 0x5b, 0xa6, 0xf3, 0xff}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
