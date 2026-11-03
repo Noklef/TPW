@@ -80,6 +80,7 @@
 #include "../../src/game/render/engineerrors.h"
 #include "../../src/game/online/chatavatar.h"
 #include "../../src/game/online/chatcommand.h"
+#include "../../src/game/online/chatevents.h"
 #include "../../src/game/sprite/draw.h"
 #include "../../src/game/sprite/script.h"
 #include "../../src/game/ui/cursor.h"
@@ -556,6 +557,11 @@ const CoasterLinksEnv kCoasterLinksEnv = {Rec{jpeg_recorder(30, 10)}, Rec{jpeg_r
 const ChatCommandEnv kChatCommandEnv = {Rec{jpeg_recorder(25, 5)}, &ChatCommand_AssignChars, Rec{recorder(21, 2)},
                                         Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 24}, Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 27},
                                         Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 28}, Rec{recorder(22, 0)}, Rec{jpeg_recorder(26, 8)}};
+const ChatEventEnv kChatEventEnv = {Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 29}, Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 30},
+                                    Rec{kStubs + 0x5000 + 0x800 * 1 + 0x20 * 31}, Rec{kStubs + 0x5000 + 0x800 * 1 + 0x20 * 32},
+                                    Rec{recorder(3, 4)}, Rec{recorder(4, 0)}, Rec{recorder(5, 1)}, Rec{recorder(6, 3)}, Rec{recorder(7, 2)},
+                                    Rec{recorder(8, 2)}, Rec{recorder(10, 0)}, Rec{recorder(11, 5)}, Rec{jpeg_recorder(14, 3)}, Rec{recorder(13, 2)},
+                                    Rec{jpeg_recorder(25, 7)}, Rec{jpeg_recorder(15, 1)}};
 // The cell messages' calls into agent A's Path_CheckDeadEnds (0x527ee0) and GameMode_SetOnly (0x52f580): the cdecl recorders 27 of 3 and 28 of 2, as
 // tests/fncmp/cellmessage.py hooks them.
 const CellMessageEnv kCellMessageEnv = {reinterpret_cast<void(__cdecl *)(s32, s32, u32)>((uintptr_t)jpeg_recorder(27, 3)),
@@ -1286,6 +1292,7 @@ int main(int argc, char **argv) {
     static const ChatAvatarEnv chatAvatarEnv = {reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)recorder(5, 0))};
     ChatAvatar_SetEnv(&chatAvatarEnv);
     ChatCommand_SetEnv(&kChatCommandEnv);
+    ChatEvents_SetEnv(&kChatEventEnv);
     // The interface object's message handler (UiObject_HandleMessage): what 0x7b51f0 is told the thiscall recorders 1-6, as tests/fncmp/uimessage.py
     // hooks 0x481af0, 0x481520, 0x481530, 0x4818c0, 0x481920 and 0x481960.
     static const UiMessageEnv uiMessageEnv = {reinterpret_cast<void(__fastcall *)(void *, void *, u8)>((uintptr_t)recorder(1, 1)),
