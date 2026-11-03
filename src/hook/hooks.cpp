@@ -343,6 +343,7 @@
 #include "../game/world/trackrides.h"
 #include "../game/world/things.h"
 #include "../game/world/analysercell.h"
+#include "../game/world/arrivalvehicle.h"
 #include "../game/world/bankaccount.h"
 #include "../game/world/cellbuild.h"
 #include "../game/world/celleffect.h"
@@ -6195,6 +6196,7 @@ const Hook kHooks[] = {
     {"Map_ResetCells",            0x0052f8d0, (void *)&Map_ResetCells, {0x51, 0x8b, 0x4c, 0x24, 0x0c}},
     {"Thing_NameA",               0x004e2860, (void *)&Thing_NameA, {0x53, 0x56, 0x57, 0x8b, 0xf9}},
     {"Thing_NameB",               0x004e2920, (void *)&Thing_NameB, {0x8b, 0x44, 0x24, 0x08, 0x81}},
+    {"Game_ArrivalVehicle",       0x0051a2f0, (void *)&Game_ArrivalVehicle, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
