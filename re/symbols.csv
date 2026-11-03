@@ -7926,6 +7926,7 @@ address,name,kind,confidence,notes
 0x004bfc70,Dialog7cc944_FillList,function,low,reimplemented (src/game/ui/dialog7cc944list); the dialog [0x7cc944]'s list filled from an online reply's records (cdecl; reply)
 0x00667833,Window705a20_TypeChar,function,low,"reimplemented (src/game/ui/window705a20char); a character typed into the edit window (thiscall; ch, pops 4)"
 0x006687e0,CharList_Find,function,low,"reimplemented (src/game/ui/window705a20char); the character's place in a zero-ended list (cdecl; list, ch)"
+0x00667a72,Window705a20_KeyDown,function,low,"reimplemented (src/game/ui/window705a20char); a key pressed in the edit window (thiscall; key, b, pops 8)"
 0x0048a580,Gui_Frame,function,low,reimplemented (src/game/ui/guiframe); the GUI's work for one frame (cdecl)
 0x00489ca0,Gui_Startup,function,low,reimplemented (src/game/ui/guistartup); the display and GUI brought up (cdecl)
 0x00489ec0,Gui_Teardown,function,low,reimplemented (src/game/ui/guistartup); the display and GUI taken down (cdecl)
