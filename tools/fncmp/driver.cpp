@@ -49,6 +49,7 @@
 #include "../../src/game/gfx/statsgraph.h"
 #include "../../src/game/ui/thingbrowser.h"
 #include "../../src/game/ui/dialog7ca150.h"
+#include "../../src/game/ui/thingsign.h"
 #include "../../src/game/gfx/dctmacroblock.h"
 #include "../../src/game/gfx/tqiframe.h"
 #include "../../src/game/ui/dialog7cc1f8preview.h"
@@ -667,6 +668,8 @@ const Dialog7cc1f8PreviewEnv kDialog7cc1f8PreviewEnv = {Rec{recorder(10, 1)}, Re
 const TqiFrameEnv kTqiFrameEnv = {Rec{jpeg_recorder(10, 3)}, Rec{jpeg_recorder(11, 3)}, Rec{jpeg_recorder(12, 3)}};
 // DctVideo_DecodeMacroblock's calls (tests/fncmp/dctmacroblock.py).
 const DctMacroblockEnv kDctMacroblockEnv = {Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 2)}, Rec{jpeg_recorder(12, 4)}};
+// The thing panels' sign slot's calls (tests/fncmp/thingsign.py).
+const ThingSignEnv kThingSignEnv = {Rec{recorder(10, 0)}, Rec{jpeg_recorder(12, 3)}};
 // Online_Instance's constructor (tests/fncmp/onlineinstance.py).
 const OnlineInstanceEnv kOnlineInstanceEnv = {Rec{recorder(10, 0)}};
 // Dialog7cdac4_Handler's calls (tests/fncmp/dialog7cdac4handler.py).
@@ -1523,6 +1526,7 @@ int main(int argc, char **argv) {
     Panel7cc218_SetShowEnv(&kPanel7cc218ShowEnv);
     Dialog7ca168_SetOpenEnv(&kDialog7ca168OpenEnv);
     Online_SetInstanceEnv(&kOnlineInstanceEnv);
+    ThingSign_SetEnv(&kThingSignEnv);
     DctMacroblock_SetEnv(&kDctMacroblockEnv);
     TqiFrame_SetEnv(&kTqiFrameEnv);
     Dialog7cc1f8_SetPreviewEnv(&kDialog7cc1f8PreviewEnv);
