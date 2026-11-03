@@ -74,28 +74,28 @@ def open_window(r):
     return Call(0x49bdd0, [kind], regions, ret='v')
 
 
-def child_list(r):
-    inner = [0xb, 2]
+def child_list(r, ident=0x248e, columns=2, group=0x248f, buttons=(0x2490, 0x2491, 0x2492, 0x2493, 0x2494)):
+    inner = [0xb, columns]
     x = r.randrange(0, 10)
-    for _ in range(2):
+    for _ in range(columns):
         width = r.randrange(5, 40)
         inner += [x, x + width]
         x += width
     left, top = r.randrange(0, 20), r.randrange(0, 30)
     inner += [0xa, left, top, left + r.randrange(20, 200), top + r.choice([r.randrange(0, 20)] * 6 + [0, 1, r.randrange(20, 170)])]
-    kids = ['0', '1'] + (['group'] if r.random() < 0.9 else []) + ['decoy'] * r.choice([0, 0, 1])
+    kids = [str(k) for k in range(columns)] + (['group'] if r.random() < 0.9 else []) + ['decoy'] * r.choice([0, 0, 1])
     r.shuffle(kids)
     for k in kids:
         if k == 'decoy':
             dialogbuild.child(r, inner, r.choice([0, 0x400, r.getrandbits(32) | 0x100]))
         elif k == 'group':
-            scriptchain.radio_group(r, inner, 0x248f, (0x2490, 0x2491, 0x2492, 0x2493, 0x2494))
+            scriptchain.radio_group(r, inner, group, buttons)
         else:
             inner += [0xc, int(k)]
             dialogbuild.small_rect(r, inner)
             inner.append(5)
     w = []
-    dialogbuild.child(r, w, 0x248e, inner + [5], 120, 7)
+    dialogbuild.child(r, w, ident, inner + [5], 120, 7)
     return w
 
 
