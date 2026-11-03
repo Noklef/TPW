@@ -942,12 +942,12 @@ TEXT_ARGS = 0x7e0  # in the log region: the count of text arguments CDECL_LOG4 t
 
 def text_args(log, n, only=None):
     """CDECL_LOG4 as the text formatter 0x6acd60 (cdecl: table, buffer, size, id, then pointers to its text arguments, src/game/core/textarg.h): the
-    n (1-3) arguments past the four logged as hashes of the text arguments they point to (their vtable, tag and number, then a string's wide text or
+    n (1-5) arguments past the four logged as hashes of the text arguments they point to (their vtable, tag and number, then a string's wide text or
     a number's dwords +0xc / +0x10; 0 for none), and the buffer (its size 9 or more) given 8 hex digits, the hash of the id and those, so that what
     shows the text (a window it is sent to: blob_inner_text()) compares it. With `only` (the first and last of a range of ids) any other id
     takes no arguments (its buffer still given the hash): for a function that formats texts with and without them, or that calls CDECL_LOG4
     otherwise too (a window's handler)."""
-    assert 1 <= n <= 3
+    assert 1 <= n <= 5
     struct.pack_into('<I', log, TEXT_ARGS, n)
     if only:
         struct.pack_into('<HH', log, TEXT_ARGS + 4, *only)
@@ -981,7 +981,7 @@ def text_arg_hash(read, p):
 def _cdecl_log4(e):  # (driver.cpp stub_cdecl_log4)
     sp = e.r['ESP'] + (4 if e.tail else 0)
     raw = [e.u32(sp + 4 * i) for i in range(4)]
-    given, only = min(e.u32(LOG + TEXT_ARGS), 3), e.u32(LOG + TEXT_ARGS + 4)
+    given, only = min(e.u32(LOG + TEXT_ARGS), 5), e.u32(LOG + TEXT_ARGS + 4)
     texts = 0 if only and not only & 0xffff <= raw[3] <= only >> 16 else given
     if given:
         h = ((0x811c9dc5 ^ raw[3]) * 0x01000193) & 0xffffffff
