@@ -3,6 +3,8 @@
 #include <cstdint>
 
 #include "../model/holder.h"
+#include "../coaster/registry.h"
+#include "../math/vec2.h"
 #include "../model/parts.h"
 #include "../model/partstate.h"
 #include "../motion/animator.h"
@@ -11,6 +13,7 @@
 #include "../render/particles.h"
 #include "../core/soundset.h"
 #include "collobj.h"
+#include "objectdefs.h"
 #include "queuepieces.h"
 #include "ridelist.h"
 #include "trackpools.h"
@@ -81,6 +84,20 @@ u16 RideObject(u32 ride) {
     return 0;
 }
 
+// The ride's current piece (+0xa4): the first piece after the first with flag 4 of the chain at +0xa8 (read round) without flag 2.
+void SeekRidePiece(u8 *ride) {
+    u8 *head = at<u8 *>(ride, 0xa8);
+    u8 *piece = head;
+    while ((at<u8>(piece, 0) & 4) == 0)
+        piece = at<u8 *>(piece, 0x14);
+    do {
+        piece = at<u8 *>(piece, 0x14);
+        if (!piece)
+            piece = head;
+    } while (at<u8>(piece, 0) & 2);
+    at<u8 *>(ride, 0xa4) = piece;
+}
+
 void PutDword(u8 *chunk, u32 value) { TrakChunk_Write(chunk, &value, 4); }
 
 // A car's chunks for TrackRides_Save: 5 its record and what it links to, then 9 for each node of its list.
@@ -143,9 +160,206 @@ void SaveRide(const u8 *ride, Stream *stream) {
     TrakChunk_End(chunk);
 }
 
+// A chunk for TrackRides_Load (none: 0) at the stream's position, its 12-byte header read (at most the 12 its count starts as).
+u8 *OpenChunk(Stream *stream) {
+    u8 *const chunk = static_cast<u8 *>(TrakMem_Alloc(0x18));
+    if (chunk) {
+        at<u32>(chunk, 0) = Stream_Tell(stream);
+        at<Stream *>(chunk, 4) = stream;
+        at<u32>(chunk, 8) = 0;
+        at<u32>(chunk, 0x10) = 0xc;
+        TrakChunk_Read(chunk, chunk + 0xc, 0xc);
+    }
+    return chunk;
+}
+
+// Chunk 3: the ride remade (TrakRide_Create) under its handle; the rest only when that gives the handle back.
+void LoadRide(u8 *chunk) {
+    const u32 handle = TrakChunk_ReadDword(chunk);
+    s32 place[2];
+    TrakChunk_Read(chunk, reinterpret_cast<u8 *>(place), 8);
+    const u32 orientation = TrakChunk_ReadDword(chunk);
+    const u32 value = TrakChunk_ReadDword(chunk);
+    if (handle != TrakRide_Create(0, place[0], place[1], orientation, handle, value))
+        return;
+    u8 *const ride = RideOf(handle);
+    TrakRide_SetPerformance(handle, (s32)TrakChunk_ReadDword(chunk));
+    const u32 field14 = TrakChunk_ReadDword(chunk);
+    const u32 field18 = TrakChunk_ReadDword(chunk);
+    if (handle == NameOf(ride)) {
+        at<u32>(ride, 0x14) = field14;
+        at<u32>(ride, 0x18) = field18;
+    }
+    const u32 field4 = TrakChunk_ReadDword(chunk);
+    if (handle == NameOf(ride))
+        at<u32>(ride, 4) = field4;
+    at<u32>(ride, 0x50) = TrakChunk_ReadDword(chunk);   // (even for a ride the handle does not name)
+}
+
+// Chunk 6: the ride's current piece found again, for the kinds with a course.
+void LoadRideEnd(u8 *chunk) {
+    const u32 handle = TrakChunk_ReadDword(chunk);
+    u8 *const ride = RideOf(handle);
+    if (handle != NameOf(ride))
+        return;
+    switch (at<s32>(ride, 0)) {
+    case -13: case -12: case -10: case -9: case -8: case -7: case -5: case -4:
+        SeekRidePiece(ride);
+        break;
+    default:
+        break;
+    }
+}
+
+// The first used collision node (as many as [0x877b74] counts) not a blocker (0x40) of the pool [0x877b70] that holds the point, or 0.
+u8 *CollNodeAt(s32 x, s32 y) {
+    u8 *node = global<u8 *>(0x00877b70);
+    if (!node)
+        return nullptr;
+    for (u32 left = global<u32>(0x00877b74); left != 0; node += 0x20) {
+        const u32 flags = at<u32>(node, 0);
+        if (flags & 1) {
+            --left;
+            if (!(flags & 0x40) && IntArea_Contains(x, y, reinterpret_cast<const s32 *>(node)))
+                return node;
+        }
+    }
+    return nullptr;
+}
+
+// Ride_Claim of a car's instance: the type the definition of the ride's id gives at the slot, key 0x101.
+u32 ClaimInstance(u32 instance, const u8 *ride, u32 slot) {
+    const u8 *const def = ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, at<u16>(ride, 0x10));
+    return Ride_Claim(instance, at<u32>(def, 0x4bc + slot * 4), 0x101, nullptr, 0, 0, 0, 0);
+}
+
+// Chunk 5: a car of the ride, from the pool's first free record (none: nothing).
+void LoadCar(u8 *chunk) {
+    const u32 handle = TrakChunk_ReadDword(chunk);
+    u8 *const ride = RideOf(handle);
+    if (handle != NameOf(ride))
+        return;
+    u8 *const car = TrakPool_FirstFree();
+    if (!car)
+        return;
+    ++global<u32>(0x00877b6c);
+    // (The original's defaults before the read; a short read leaves zeroes for the rest, whatever these are.)
+    for (u32 i = 0; i < 0xac; i += 4)
+        at<u32>(car, i) = 0;
+    at<u32>(car, 0) = 1;
+    at<s32>(car, 0x80) = at<s32>(car, 0x7c) = at<s32>(car, 0x2c) = at<s32>(car, 0x28) = at<s32>(car, 0x24) = -1;
+    TrakChunk_Read(chunk, car, 0xac);
+    at<u32>(car, 0x94) = 0;
+    at<u8 *>(car, 0x9c) = ride;
+    ++at<u32>(ride, 0x5c);
+    at<u8 *>(ride, 0xcc) = car;
+    at<u32>(car, 0x30) = 0;
+    if ((at<u32>(car, 0xa0) & 0x7fffffff) > 0x7f800000)   // (_isnan of the float as a double)
+        at<u32>(car, 0xa0) = 0;
+    at<u8 *>(car, 0x98) = CollNodeAt(at<s32>(car, 0x34), at<s32>(car, 0x38));
+    const s32 x = (s32)TrakChunk_ReadDword(chunk);
+    const s32 y = (s32)TrakChunk_ReadDword(chunk);
+    if (!at<u8 *>(car, 0x98))
+        at<u8 *>(car, 0x98) = CollNodeAt(x, y);
+    at<u32>(car, 8) = ClaimInstance(at<u32>(car, 8), ride, at<u32>(car, 4));
+    if (at<u32>(car, 0) & 0x2002000)
+        at<u32>(car, 0xc) = ClaimInstance(at<u32>(car, 0xc), ride, 0);
+    if (at<u32>(car, 0) & 0x400000)
+        at<u8 *>(ride, 0x58) = car;
+    const u32 stopRide = TrakChunk_ReadDword(chunk);
+    if (stopRide != 0) {
+        const u8 *const owner = RideOf(stopRide);
+        const u32 a = TrakChunk_ReadDword(chunk);
+        const u32 b = TrakChunk_ReadDword(chunk);
+        u32 stop = 0;
+        for (const u8 *piece = at<const u8 *>(owner, 0xa8); piece; piece = at<const u8 *>(piece, 0x14)) {
+            if (at<u32>(piece, 8) == a && at<u32>(piece, 0xc) == b) {
+                stop = at<u32>(piece, 4);
+                break;
+            }
+        }
+        at<u32>(car, 0x7c) = stop;
+    } else {
+        TrakChunk_ReadDword(chunk);
+        TrakChunk_ReadDword(chunk);
+        at<s32>(car, 0x7c) = -1;
+    }
+    if (at<u32>(car, 0) & 4)
+        at<u32>(car, 0x8c) = 0;
+}
+
+// Chunk 9: a node off the free list [0x877b8c] for the node list +0x30 of the ride's latest car (+0xcc), its part found by the key.
+void LoadCarNode(u8 *chunk) {
+    const u32 handle = TrakChunk_ReadDword(chunk);
+    const u8 *const ride = RideOf(handle);
+    if (handle != NameOf(ride))
+        return;
+    u8 *const node = global<u8 *>(0x00877b8c);
+    u8 *const car = at<u8 *>(ride, 0xcc);
+    global<u8 *>(0x00877b8c) = at<u8 *>(node, 0x10);
+    at<u8 *>(node, 0x10) = at<u8 *>(car, 0x30);
+    at<u8 *>(car, 0x30) = node;
+    at<u32>(node, 0) = TrakChunk_ReadDword(chunk);
+    at<u32>(node, 4) = handle;
+    ++at<u32>(at<u8 *>(car, 0x9c), 0x60);
+    const u32 key = TrakChunk_ReadDword(chunk);
+    at<u32>(node, 0xc) = key;
+    at<u32>(node, 8) = Model_FindPartByKey4(global<const u8 *>(0x007a4610 + at<u32>(car, 8) * 4), 0x80, key);
+}
+
 }  // namespace
 
 extern "C" {
+
+u32 __cdecl TrackRides_Load(Stream *stream) {
+    if (!loaded())
+        return 0;
+    u8 *const root = OpenChunk(stream);
+    if (root && at<u32>(root, 0xc) == 1) {
+        u32 done = 0;
+        do {
+            u8 *const chunk = OpenChunk(stream);
+            switch (chunk ? at<u32>(chunk, 0xc) : 0) {
+            case 2:
+                break;
+            case 3:
+                LoadRide(chunk);
+                break;
+            case 4: {
+                const u32 handle = TrakChunk_ReadDword(chunk);
+                const u32 piece = TrakChunk_ReadDword(chunk);
+                s32 place[2];
+                TrakChunk_Read(chunk, reinterpret_cast<u8 *>(place), 8);
+                TrakRide_AddSection(handle, place[0], place[1], piece, 0, 0, 0);
+                break;
+            }
+            case 5:
+                LoadCar(chunk);
+                break;
+            case 6:
+                LoadRideEnd(chunk);
+                break;
+            case 7: {
+                const u32 handle = TrakChunk_ReadDword(chunk);
+                TrakRide_PushNode(handle, TrakChunk_ReadDword(chunk));
+                break;
+            }
+            case 8: {
+                const u32 handle = TrakChunk_ReadDword(chunk);
+                TrakRide_AddNextCar(handle, TrakChunk_ReadDword(chunk));
+                break;
+            }
+            case 9:
+                LoadCarNode(chunk);
+                break;
+            default:
+                return 0;   // (both chunks left open, sic)
+            }
+            done += TrakChunk_Close(chunk);
+        } while (at<u32>(root, 8) + done != at<u32>(root, 0x14));
+    }
+    return TrakChunk_Close(root);
+}
 
 u32 __cdecl TrackRides_Save(Stream *stream) {
     if (!loaded())
@@ -428,16 +642,7 @@ void __cdecl TrakRide_Open(u32 handle) {
     case -10: case -9: case -7: case -4: {
         if (at<u32>(ride, 0x50) != 0)
             return;
-        u8 *head = at<u8 *>(ride, 0xa8);
-        u8 *piece = head;
-        while ((at<u8>(piece, 0) & 4) == 0)
-            piece = at<u8 *>(piece, 0x14);
-        do {
-            piece = at<u8 *>(piece, 0x14);
-            if (!piece)
-                piece = head;
-        } while (at<u8>(piece, 0) & 2);
-        at<u8 *>(ride, 0xa4) = piece;
+        SeekRidePiece(ride);
         break;
     }
     default:
