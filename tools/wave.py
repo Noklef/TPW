@@ -166,7 +166,7 @@ def cmd_list(lo, hi, unlock=False):
         m = re.match(r'(CALL|JMP) 0x([0-9a-f]+)$', ins)
         if m:
             t = int(m.group(2), 16)
-            if m.group(1) == 'CALL' or not cur <= t < end.get(cur, cur):
+            if t != cur and (m.group(1) == 'CALL' or not cur <= t < end.get(cur, cur)):  # (a self-call does not wait on anything)
                 rec['callees'].add(t)
         elif ins.startswith('CALL'):
             rec['vcall'] += 1
