@@ -46,8 +46,9 @@ def rides(r):
 def case(r):
     log = log_region()
     pool = bytearray(r.bytes(0xac * POOL_SIZE))
-    used = sorted(r.sample(range(POOL_SIZE), r.randrange(1, POOL_SIZE)))
-    count = len(used) - 1 if len(used) > 1 and r.random() < 0.3 else len(used)
+    edge = r.random() < 0.05   # (two cars meeting at a speed about 0x82: a share about the bounce's limit)
+    used = sorted(r.sample(range(POOL_SIZE), 2 if edge else r.randrange(1, POOL_SIZE)))
+    count = len(used) - 1 if len(used) > 1 and r.random() < 0.3 and not edge else len(used)
     spot = (r.randrange(-30000, 30000), r.randrange(-30000, 30000))
     ride_bytes, nodes = rides(r)
     for i in range(POOL_SIZE):
@@ -69,10 +70,24 @@ def case(r):
     for i in range(2):
         put(types, 0x40 * i, 'B', r.choice([0, 0, 0, 0x7f, 0x80, 0xff]))
         put(types, 0x40 * i + 0x1c, 'I', r.choice([0, NODES + 0x60 * r.randrange(2), NODES + 0x18]))
+    sines = [r.randrange(-0x400, 0x401) for _ in range(512)]
+    if edge:   # (every sine 0x100 and the second car's whole share: the share is the speed)
+        sines = [0x100] * 512
+        put(ride_bytes, 0, 'i', r.choice([-10, -9, -7, -4, -14, -11, -6, -3]))
+        put(ride_bytes, 0x2c, 'i', 0x400)
+        for i, at in enumerate(0xac * k for k in used):
+            flags = struct.unpack_from('<I', pool, at)[0] & ~0x200
+            put(pool, at, 'I', flags)
+            put(pool, at + 0x34, '2i', spot[0] + 8 * i, spot[1])
+            put(pool, at + 0x44, '2i', 0, 0)
+            put(pool, at + 0x64, 'i', 0x10)
+            put(pool, at + 0x98, '2I', TYPES, RIDES)
+        put(types, 0, 'B', 0)
+        put(pool, 0xac * used[0] + 0x44, 'i', r.choice([0x81, 0x82, 0x82, 0x83]) * r.choice([1, -1]))
     regions = {LOG: log, POOL: pool, TYPES: types, RIDES: ride_bytes, NODES: nodes,
                0x877b58: struct.pack('<2I', 0x4a454647 if r.random() < 0.95 else r.getrandbits(32), r.getrandbits(32)),
                0x877b68: struct.pack('<2I', POOL, count),
-               0x877358: struct.pack('<512i', *[r.randrange(-0x400, 0x401) for _ in range(512)]),
+               0x877358: struct.pack('<512i', *sines),
                0x7cf83c: struct.pack('<I', (STATE - 0x1da708) & 0xffffffff), STATE: r.bytes(4)}
     if count < len(used):   # (TrakCar_Update takes one car off: the second pass then walks on to the one past the count)
         lows = bytearray(pool[0xac * i] for i in used[:count])

@@ -58,6 +58,10 @@ def case(r):
     if r.random() < 0.04:
         handle ^= 1 << r.randrange(32)
     loaded = r.random() < 0.97
+    if not loaded and r.random() < 0.7:   # (no module and a car on no ride: only the handle check keeps the port off it)
+        for i in range(POOL_SIZE):
+            put(pool, 0xac * i + 0x9c, 'I', 0)
+        handle |= 1 << 8
     regions = {LOG: log, POOL: pool, RIDES: rides, MODELS: r.bytes(0x180), CELLS: r.bytes(0x30), ANSWERS: table,
                FIRST: struct.pack('<16I', *[w for i in range(4) for w in (0, 0, SECOND + 0x10 * i, 0)]),
                SECOND: struct.pack('<16I', *[w for i in range(4) for w in (0, THIRD + 0x80 * i, 0, 0)]),
