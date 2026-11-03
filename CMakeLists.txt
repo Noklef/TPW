@@ -527,6 +527,7 @@ add_library(tpw_game STATIC
     src/game/ui/dialog7cc444.cpp
     src/game/ui/dialog7cc5f4.cpp
     src/game/ui/dialog7cc47c.cpp
+    src/game/ui/gamepartdialogs.cpp
     src/game/ui/staffrename.cpp
     src/game/ui/window7cc8bc.cpp
     src/game/ui/dialog7cb2b8.cpp
