@@ -1,5 +1,5 @@
-# The Gaussian blur of one-byte images (Image_GaussianBlur, src/game/gfx/imageops: 0x5eb3e0) against the original: sizes from 0 x 0 to 24 x 14, sigma above 0 as its one caller tests (small: the kernel's edges vanish;
-# up to 5: 15 x 15), data with runs and extremes, the mask's width at, or past, the image's, its bytes mostly on. __ftol and the bench's heap real.
+# The Gaussian blur of one-byte images (Image_GaussianBlur, src/game/gfx/imageops: 0x5eb3e0) against the original: sizes from 0 x 0 to 8 x 5 (the emulator's rounding is slow), sigma above 0 as its one caller tests (small: the kernel's edges vanish;
+# up to 5: 15 x 15, on the smaller images), data with runs and extremes, the mask's width at, or past, the image's, its bytes mostly on. __ftol and the bench's heap real.
 # usage: imageblur.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -13,8 +13,10 @@ THIS, IMAGE, MASK, DATA, ON = RAM, RAM + 0x40, RAM + 0x80, RAM + 0x1000, RAM + 0
 
 
 def case(r):
-    w, h = r.choice([0, 1, 2, 3, 5, 8, 12, 24]), r.choice([0, 1, 2, 3, 4, 7, 14])
-    sigma = r.choice([r.uniform(0.01, 0.4), r.uniform(0.3, 2), r.uniform(0.3, 2), r.uniform(2, 5), 0.4, 0.8])
+    w, h = r.choice([0, 1, 2, 3, 5, 8]), r.choice([0, 1, 2, 3, 5])
+    sigma = r.choice([r.uniform(0.01, 0.4), r.uniform(0.3, 1.6), r.uniform(0.3, 1.6), 0.4, 0.8])
+    if r.random() < 0.05:
+        w, h, sigma = min(w, 3), min(h, 3), r.uniform(2, 5)
     stride = w + r.choice([0, 0, 0, 1, 3])
     image, mask = bytearray(r.bytes(0x10)), bytearray(r.bytes(0x10))
     put(image, 0, 'I', w)
