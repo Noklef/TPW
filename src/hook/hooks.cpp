@@ -137,6 +137,7 @@
 #include "../game/gfx/textlayout.h"
 #include "../game/gfx/tvstatic.h"
 #include "../game/gfx/aaline.h"
+#include "../game/gfx/colourramps.h"
 #include "../game/gfx/dctvlc.h"
 #include "../game/gfx/dderrors.h"
 #include "../game/gfx/glyphrender.h"
@@ -5897,6 +5898,7 @@ const Hook kHooks[] = {
     {"GuiText_Measure",           0x004929f0, (void *)&GuiText_Measure, {0x6a, 0xff, 0x68, 0x3b, 0x9c}},
     {"GuiText_DrawRgb",           0x00492c40, (void *)&GuiText_DrawRgb, {0x83, 0xec, 0x1c, 0x8b, 0x44}},
     {"MovieSound_ReleaseAll",     0x00672990, (void *)&MovieSound_ReleaseAll, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
+    {"ColourRamps_Build",         0x0046be50, (void *)&ColourRamps_Build, {0x83, 0xec, 0x30, 0x53, 0x55}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
