@@ -51,12 +51,12 @@ CALLS = {'ensure': (0x6b7150, 'v'), 'pending': (0x6bc900, 'a'), 'apply': (0x6bbf
          'ctor3e8': (0x6b71d0, 'a'), 'ctor4f0': (0x6b7210, 'a'), 'new4f0': (0x6b7040, 'a'), 'newlinked': (0x6b7250, 'a'), 'newlinksw': (0x6b72f0, 'a'),
          'dtor7e0': (0x6bb9b0, 'v'), 'ddtor7e0': (0x6bb990, 'a'), 'dtor3e8': (0x6b7230, 'v'), 'dtor338': (0x6b7240, 'v'), 'ddtor3e8': (0x6b71f0, 'a'),
          'ddtor338': (0x6b72d0, 'a'), 'vddtor4f0': (0x6b70e0, 'a'), 'dtor878': (0x6be300, 'v'), 'ddtor878': (0x6be2e0, 'a'), 'dtor8d0': (0x6be9c0, 'v'),
-         'ddtor8d0': (0x6be9a0, 'a'), 'gdtor': (0x6bd930, 'v'), 'gddtor': (0x6b72b0, 'a'), 'gcommand': (0x6bd9b0, 'a'),
+         'ddtor8d0': (0x6be9a0, 'a'), 'gdtor': (0x6bd930, 'v'), 'gddtor': (0x6b72b0, 'a'), 'g2dtor': (0x6b7370, 'v'), 'g2ddtor': (0x6b7350, 'a'), 'gcommand': (0x6bd9b0, 'a'),
          'gposition': (0x6bda20, 'a'), 'gsetparam': (0x6bda90, 'v'), 'glevels': (0x6bdac0, 'v'), 'gstart': (0x6bdae0, 'a'),
          'gfirst': (0x6bdb10, 'a'), 'gstartkids': (0x6bdb50, 'v'), 'gadd': (0x6bdbb0, 'b'), 'gprune': (0x6bdc10, 'v'),
          'create390': (0x6bdc60, 'a'), 'create2e0': (0x6bdd30, 'a'), 'create3e8': (0x6bd7b0, 'a'), 'create878': (0x6be330, 'a'), 'create8d0': (0x6be750, 'a'), 'ctor8d0': (0x6be7a0, 'a'),
          'recordbank': (0x6bc240, 'a'), 'recordbanklinked': (0x6bdf00, 'a'), 'mixeradd': (0x6b6650, 'a'), 'queued': (0x6be880, 'b')}
-GROUP_OPS = ('gdtor', 'gddtor', 'gcommand', 'gposition', 'gsetparam', 'glevels', 'gstart', 'gfirst', 'gstartkids', 'gadd', 'gprune')
+GROUP_OPS = ('gdtor', 'gddtor', 'g2dtor', 'g2ddtor', 'gcommand', 'gposition', 'gsetparam', 'glevels', 'gstart', 'gfirst', 'gstartkids', 'gadd', 'gprune')
 DTOR_OPS = ('dtor7e0', 'ddtor7e0', 'dtor3e8', 'dtor338', 'ddtor3e8', 'ddtor338', 'vddtor4f0', 'dtor878', 'ddtor878', 'dtor8d0', 'ddtor8d0')
 LINKED_OPS = ('linkinit', 'linkfollow', 'linkbranch')
 B = Bench([(0x6b7150, 0x6b7190), (0x6bb9f0, 0x6bba81), (0x6bc900, 0x6bcb56), (0x6c5130, 0x6c5150), (0x6bbf00, 0x6bbf56), (0x6bc650, 0x6bc674), (0x6bc680, 0x6bc806),
@@ -72,7 +72,7 @@ B = Bench([(0x6b7150, 0x6b7190), (0x6bb9f0, 0x6bba81), (0x6bc900, 0x6bcb56), (0x
            (0x6b71d0, 0x6b71e2), (0x6b7210, 0x6b7222), (0x6b7040, 0x6b70ae), (0x6b7250, 0x6b72ad), (0x6b72f0, 0x6b734d), (0x67acf0, 0x67ada0),
            (0x6bb9b0, 0x6bb9e2), (0x6bb990, 0x6bb9ae), (0x6b7230, 0x6b723c), (0x6b7240, 0x6b724c), (0x6b71f0, 0x6b720e), (0x6b72d0, 0x6b72ee),
            (0x6b70e0, 0x6b7130), (0x6be300, 0x6be32b), (0x6be2e0, 0x6be2fe), (0x6be9c0, 0x6be9f9), (0x6be9a0, 0x6be9be), (0x67afa0, 0x67b0d0),
-           (0x6bd930, 0x6bd9a3), (0x6b72b0, 0x6b72ce), (0x6bd9b0, 0x6bda1b), (0x6bda20, 0x6bda8d), (0x6bda90, 0x6bdabd), (0x6bdac0, 0x6bdade),
+           (0x6bd930, 0x6bd9a3), (0x6b72b0, 0x6b72ce), (0x6b7350, 0x6b736e), (0x6b7370, 0x6b737c), (0x6bd9b0, 0x6bda1b), (0x6bda20, 0x6bda8d), (0x6bda90, 0x6bdabd), (0x6bdac0, 0x6bdade),
            (0x6bdae0, 0x6bdb0b), (0x6bdb10, 0x6bdb4c), (0x6bdb50, 0x6bdbad), (0x6bdbb0, 0x6bdc0b), (0x6bdc10, 0x6bdc55),
            (0x6bdc60, 0x6bdca7), (0x6bdd30, 0x6bdd77), (0x6bd7b0, 0x6bd7f7), (0x6be330, 0x6be377),
            (0x6bc240, 0x6bc2c4), (0x6b9310, 0x6b9652), (0x6bead0, 0x6beb03), (0x632230, 0x632290), (0x6c51b0, 0x6c51c2), (0x6b6650, 0x6b66c8), (0x6bdf00, 0x6bdf49), (0x6c50f0, 0x6c5103), (0x6c5230, 0x6c5235),
@@ -392,7 +392,7 @@ def group_case(r, name, address, ret, log, voice, params, regions):
         return Call(address, [VOICE, OUT, POS], regions, conv='t', ret=ret)
     if name == 'gcommand':
         return Call(address, [VOICE, OUT, CMD], regions, conv='t', ret=ret)
-    return Call(address, [VOICE] + ([r.choice([0, 1, 2, 3, r.getrandbits(32)])] if name == 'gddtor' else []), regions, conv='t', ret=ret)
+    return Call(address, [VOICE] + ([r.choice([0, 1, 2, 3, r.getrandbits(32)])] if name in ('gddtor', 'g2ddtor') else []), regions, conv='t', ret=ret)
 
 
 def recordbank_case(r, name='recordbank'):
