@@ -6,7 +6,7 @@
 
 // Their calls (the ports by default; the bench runs them as recorders).
 struct LobbyMakeEnv {
-    // 0x4629d0 (unported): the resource's load. name, pack, 0, 0, flags, id, then the caller's three and 0, 0.
+    // The resource's load (0x4629d0, model/rideresource.h). name, pack, 0, 0, flags, id, then the caller's three and 0, 0.
     u32(__cdecl *load)(const char *name, const char *pack, u32, u32, u32 flags, s32 id, u32 a, u32 b, u32 c, u32, u32);
     u32(__cdecl *create)(u32 type, u32 flags, const u32 *desc, u32 mask, u32 d4, u32 a5, u32 a6, u32 a7, s32 ride, u32 loaded);  // Ride_Create (0x463060)
     void(__cdecl *sleep)(u8 *holder);                                  // Holder_Sleep (0x45bdd0)

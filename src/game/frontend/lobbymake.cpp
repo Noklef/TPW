@@ -1,5 +1,7 @@
 #include "lobbymake.h"
 
+#include "../model/rideresource.h"
+
 #include <cstdint>
 
 #include "../core/crt.h"
@@ -19,7 +21,7 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const LobbyMakeEnv kPorts = {reinterpret_cast<decltype(LobbyMakeEnv::load)>((uintptr_t)0x004629d0),
+const LobbyMakeEnv kPorts = {reinterpret_cast<decltype(LobbyMakeEnv::load)>(Ride_LoadResource),
                              &Ride_Create,
                              &Holder_Sleep,
                              &Obj_RemoveFromRect,
