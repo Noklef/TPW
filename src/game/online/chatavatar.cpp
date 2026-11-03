@@ -3,11 +3,15 @@
 #include <cstdint>
 
 #include "../core/accessors.h"
+#include "../core/buffers.h"
 #include "../core/crt.h"
 #include "../core/gameheap.h"
 #include "../core/stdtree.h"
 #include "../core/stdwstring.h"
 #include "../sprite/script.h"
+#include "../sprite/scriptref.h"
+#include "../sprite/sprite.h"
+#include "../world/random.h"
 #include "../ui/window7cc8bc.h"
 #include "../world/person.h"
 #include "../world/personscripts.h"
@@ -49,7 +53,7 @@ void moveTo(u8 *avatar, u32 x, u32 y, s32 mode) {
     placeThing(slotThing(got), x, y);
 }
 
-const ChatAvatarEnv kGameEnv = {&Sprite_WalkNav};
+const ChatAvatarEnv kGameEnv = {&Sprite_WalkNav, MovingPerson_Ctor, World_SetSeed, SpriteFolder_RandomSprite, SpriteFolder_Count, ScriptRef_Start, SpriteScript_SetRegF, CRT_swprintf};
 const ChatAvatarEnv *g_env = &kGameEnv;
 
 }  // namespace
@@ -57,6 +61,54 @@ const ChatAvatarEnv *g_env = &kGameEnv;
 extern "C" {
 
 void ChatAvatar_SetEnv(const ChatAvatarEnv *env) { g_env = env ? env : &kGameEnv; }
+
+u8 *__fastcall ChatPlayer_Ctor(u8 *player, void *, u32 cell, u32 sprite, const u8 *name, u32 zero) {
+    g_env->movingCtor(player, nullptr, cell, 0x12);
+    at<u8>(player, 0x3a0) = (u8)zero;
+    at<u32>(player, 0x3a4) = 0;
+    u16 handle;
+    const u32 seed = *Thing_GetHandle(player, nullptr, &handle);
+    g_env->setSeed(*reinterpret_cast<u8 **>((uintptr_t)0x0080239c), nullptr, seed);
+    at<u32>(player, 0x24) = 0;
+    at<u32>(player, 0x20) = g_env->randomSprite(0);
+    const u32 last = (u32)g_env->spriteCount(0) - 1;
+    const u32 bounded = sprite > last ? last : sprite;
+    at<u32>(player, 0x20) = bounded;
+    g_env->scriptStart(player + 0xc, nullptr, 3, at<u32>(player, 0x24), bounded);
+    g_env->setRegF(at<s32>(player, 0xc), 8, 0x40000000);   // (2.0, the double 0x700688 as a float)
+    const u16 *text = at<const u16 *>(name, 4);
+    if (!text) text = reinterpret_cast<const u16 *>((uintptr_t)0x006fd6c4);
+    g_env->swprintf(reinterpret_cast<u16 *>(player + 0x19c), reinterpret_cast<const u16 *>((uintptr_t)0x0075c0cc), text);
+    at<u16>(player, 0xc2) = *reinterpret_cast<const u16 *>((uintptr_t)0x0075c7f2);
+    at<u32>(player, 0x188) = 1;
+    return player;
+}
+
+u8 __fastcall ChatAvatar_NameEquals(u8 *avatar, void *, const u16 *text) {
+    const u32 whole = *reinterpret_cast<const u32 *>((uintptr_t)0x00700628);
+    StdWString given;
+    CountedBuf_Reset(reinterpret_cast<u8 *>(&given), nullptr, 0);
+    const u32 n = Crt().wcslen(text);
+    if (StdWString_Grow(&given, nullptr, n, 1)) {
+        for (u32 k = 0; k < n; ++k) given.ptr[k] = text[k];
+        given.len = n;
+        given.ptr[n] = 0;
+    }
+    StdWString mine;
+    CountedBuf_Reset(reinterpret_cast<u8 *>(&mine), nullptr, 0);
+    WStdString_AssignSub(&mine, nullptr, &given, 0, whole);
+    CountedBuf_Reset(reinterpret_cast<u8 *>(&given), nullptr, 1);
+    StdWString name;
+    CountedBuf_Reset(reinterpret_cast<u8 *>(&name), nullptr, 0);
+    WStdString_AssignSub(&name, nullptr, reinterpret_cast<const StdWString *>(avatar + 8), 0, whole);
+    const u16 *const other = name.ptr ? name.ptr : reinterpret_cast<const u16 *>((uintptr_t)0x00700624);
+    s32 order = Crt().wcsnicmp(mine.ptr, other, mine.len < name.len ? mine.len : name.len);
+    if (order == 0) order = mine.len < name.len ? -1 : mine.len != name.len;
+    const u8 equal = order == 0;
+    CountedBuf_Reset(reinterpret_cast<u8 *>(&name), nullptr, 1);
+    CountedBuf_Reset(reinterpret_cast<u8 *>(&mine), nullptr, 1);
+    return equal;
+}
 
 void __fastcall ChatPlayer_StepWalk(u8 *player) {
     const u32 mode = at<u32>(player, 0x39c);

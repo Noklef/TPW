@@ -1935,7 +1935,8 @@ int main(int argc, char **argv) {
     SoundDevice_SetEnv(&kSoundDeviceEnv);
     Person_SetEnv(&kPersonEnv);   // (tests/fncmp/personwalk.py hooks 0x6e7074 with fncmp._cdecl_log2)
     // The chat player's step (ChatPlayer_StepWalk): Sprite_WalkNav the thiscall recorder 5 of 0, as tests/fncmp/chatavatar.py hooks 0x4fa2a0.
-    static const ChatAvatarEnv chatAvatarEnv = {reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)recorder(5, 0))};
+    static const ChatAvatarEnv chatAvatarEnv = {reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)recorder(5, 0)), Rec{recorder(6, 2)}, Rec{recorder(7, 1)}, Rec{jpeg_recorder(8, 1)}, Rec{jpeg_recorder(9, 1)},
+                                                Rec{recorder(10, 3)}, Rec{jpeg_recorder(11, 3)}, Rec{jpeg_recorder(12, 3)}};
     ChatAvatar_SetEnv(&chatAvatarEnv);
     ChatCommand_SetEnv(&kChatCommandEnv);
     ChatEvents_SetEnv(&kChatEventEnv);
