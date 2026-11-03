@@ -668,6 +668,7 @@
 #include "../game/ui/window7cc8bcmenu.h"
 #include "../game/ui/window7cc8c0handler.h"
 #include "../game/ui/windowarea.h"
+#include "../game/ui/windowscripttext.h"
 #include "../game/ui/windowtick.h"
 #include "../game/ui/windowtimers.h"
 #include "../game/lib/jpeg6b.h"
@@ -7768,6 +7769,9 @@ const Hook kHooks[] = {
     {"GuiToken_ReadDword",        0x0066dd68, (void *)&GuiToken_ReadDword, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"GuiToken_ReadString",       0x0066ddd8, (void *)&GuiToken_ReadString, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"GuiToken_ReadKind",         0x0066dc2c, (void *)&GuiToken_ReadKind, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiToken_ReadCommand",      0x0066db20, (void *)&GuiToken_ReadCommand, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiToken_ReadRect",         0x0066ded6, (void *)&GuiToken_ReadRect, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiToken_ReadPoint",        0x0066df68, (void *)&GuiToken_ReadPoint, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"LevelMeter_SetLevel",       0x004a95b0, (void *)&LevelMeter_SetLevel, {0x8b, 0x44, 0x24, 0x08, 0x56}},
     {"LevelMeter_OnMessage",      0x004a9fc0, (void *)&LevelMeter_OnMessage, {0x53, 0x55, 0x8b, 0x6c, 0x24}},
     {"ResearchMeters_Update",     0x004a9c70, (void *)&ResearchMeters_Update, {0x83, 0xec, 0x0c, 0x8b, 0x0d}},
@@ -8054,6 +8058,9 @@ const Hook kHooks[] = {
     {"Window705a50_StateWord",    0x00668abd, (void *)&Window705a50_StateWord, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window705a50_Handler",      0x00668f9c, (void *)&Window705a50_Handler, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"GuiMessageFx_Handler",      0x00485780, (void *)&GuiMessageFx_Handler, {0x6a, 0xff, 0x68, 0x78, 0x91}},
+    {"WindowScriptText_Line",     0x0066080d, (void *)&WindowScriptText_Line, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"WindowScriptText_Lines",    0x0066149c, (void *)&WindowScriptText_Lines, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"WindowScriptText_Build",    0x006607ca, (void *)&WindowScriptText_Build, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},

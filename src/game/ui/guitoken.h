@@ -1,11 +1,26 @@
 // The GUI library's text tokens: the fields of a line that its window descriptions (the readers about 0x6608bc-0x66131e) are parsed
 // from, each one ended by a space or by the end of the text. Reimplementation of 0x66dbfa, 0x66dc2c, 0x66dcf7, 0x66dd68 and
-// 0x66ddd8. The names are unconfirmed.
+// 0x66ddd8, 0x66db20, 0x66ded6 and 0x66df68. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
 
+// The CRT's scan 0x67f620 (sscanf, not ported) as the numbers' readers call it; the bench's recorders.
+struct GuiTokenEnv {
+    s32(__cdecl *scanFour)(const char *text, const char *format, s32 *a, s32 *b, s32 *c, s32 *d);
+    s32(__cdecl *scanTwo)(const char *text, const char *format, s32 *a, s32 *b);
+};
+void GuiToken_SetEnv(const GuiTokenEnv *env);
+
 extern "C" {
+
+// 0x66db20 (cdecl (text, out); name invented, unconfirmed): the text past its blanks, its token looked up by strcmp among the first [0x77c598] (a signed word) names of the commands' table 0x77c4d0 ("CRE" 0, "DRAWOBJ" 1, ... "END" 5; 8 bytes each: the name, its word), the first
+// match's word put in out (when not 0). Returns the byte after the token's end, or 0 when no name matched.
+char *__cdecl GuiToken_ReadCommand(char *text, u16 *out);
+
+// 0x66ded6 / 0x66df68 (cdecl (text, a, b, c, d) / (text, a, b); names invented, unconfirmed): the token, terminated in place meanwhile, scanned as "%d,%d,%d,%d" / "%d,%d" when no output is 0 (whole dwords written); the byte after its end returned.
+char *__cdecl GuiToken_ReadRect(char *text, s32 *a, s32 *b, s32 *c, s32 *d);
+char *__cdecl GuiToken_ReadPoint(char *text, s32 *a, s32 *b);
 
 // 0x66dbfa (cdecl (text); name unconfirmed): the text past its spaces and tabs.
 char *__cdecl GuiToken_SkipBlanks(char *text);
