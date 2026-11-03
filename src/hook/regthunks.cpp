@@ -123,6 +123,17 @@ __declspec(naked) void RegThunk_TqiVideo_PixelRowRgb32() {
     }
 }
 
+__declspec(naked) void RegThunk_TqiVideo_PixelRowBytes32() {
+    __asm {
+        push ebp
+        push edi
+        push esi
+        call TqiVideo_PixelRowBytes32
+        add esp, 12
+        ret
+    }
+}
+
 __declspec(naked) void RegThunk_TqiVideo_DecodeBlock() {
     __asm {
         push ecx

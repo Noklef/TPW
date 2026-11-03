@@ -43,4 +43,11 @@ void __cdecl TqiVideo_DecodeMacroblockYuy2(u32 *out, s32 pitch, u8 *state);
 void __cdecl TqiVideo_DecodeMacroblockRgb16(u32 *out, s32 pitch, u8 *state);
 void __cdecl TqiVideo_DecodeMacroblockRgb32(u32 *out, s32 pitch, u8 *state);
 void __cdecl TqiVideo_DecodeMacroblockTable16(u16 *out, s32 pitch, u8 *state);
+
+// 0x677eb6 (hand-written; luma in ESI, chroma in EDI, out in EBP; ECX and EDX 0 above their low bytes, as 0x677dad leaves them; name unconfirmed): 8 out dwords, each four bytes
+// through the bytes 0xfb7f30, high to low: bytes 2 of luma[2 k], luma[2 k + 1], chroma[k] and chroma[0x40 + k].
+void __cdecl TqiVideo_PixelRowBytes32(const u32 *luma, const u32 *chroma, u32 *out);
+
+// 0x677dad (cdecl (luma, chroma, out, pitch in bytes); name unconfirmed): 16 rows of TqiVideo_PixelRowBytes32 (luma + 0x40 j, chroma + 0x20 (j / 2), out + pitch * j).
+void __cdecl TqiVideo_BlockBytes32(const u32 *luma, const u32 *chroma, u32 *out, s32 pitch);
 }

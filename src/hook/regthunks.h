@@ -18,5 +18,6 @@ void RegThunk_TgqVideo_DecodeCoefficients(); // 0x672e60: the counter left in ED
 void RegThunk_TqiVideo_PixelRowYuy2(); // 0x676290: luma in ESI, chroma in EDI, out in EBP
 void RegThunk_TqiVideo_PixelRowRgb16(); // 0x675d90: the same
 void RegThunk_TqiVideo_PixelRowRgb32(); // 0x6758c0: the same
+void RegThunk_TqiVideo_PixelRowBytes32(); // 0x677eb6: the same
 void RegThunk_TqiVideo_DecodeBlock(); // 0x674ab9: DC in EAX, dequantiser in ESI, bits in EBP, position in EDI (and out), out in EDX, pitch in ECX (ECX and EDX kept)
 }

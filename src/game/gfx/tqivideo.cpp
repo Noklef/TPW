@@ -171,4 +171,17 @@ void __cdecl TqiVideo_DecodeMacroblockRgb32(u32 *out, s32 pitch, u8 *state) { ma
 void __cdecl TqiVideo_DecodeMacroblockTable16(u16 *out, s32 pitch, u8 *state) {
     macroblock(out, pitch, state, [](const u32 *luma, const u32 *chroma, u16 *row) { TgqVideo_PixelRow16(luma, row, chroma); });
 }
+
+void __cdecl TqiVideo_PixelRowBytes32(const u32 *luma, const u32 *chroma, u32 *out) {
+    const auto mapped = [](u32 value) -> u32 { return global<u8>(0x00fb7f30 + (value >> 16 & 0xff)); };
+    for (u32 k = 0; k < 8; ++k) {
+        out[k] = mapped(luma[2 * k]) << 24 | mapped(luma[2 * k + 1]) << 16 | mapped(chroma[k]) << 8 | mapped(chroma[0x40 + k]);
+    }
+}
+
+void __cdecl TqiVideo_BlockBytes32(const u32 *luma, const u32 *chroma, u32 *out, s32 pitch) {
+    for (s32 j = 0; j < 16; ++j) {
+        TqiVideo_PixelRowBytes32(luma + 0x10 * j, chroma + 8 * (j / 2), reinterpret_cast<u32 *>(reinterpret_cast<u8 *>(out) + pitch * j));
+    }
+}
 }
