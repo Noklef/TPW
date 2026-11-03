@@ -542,6 +542,7 @@
 #include "../game/ui/panel7cc3e0.h"
 #include "../game/ui/panel7cc408.h"
 #include "../game/ui/panel7cc408info.h"
+#include "../game/ui/signnamedialog.h"
 #include "../game/ui/signrect.h"
 #include "../game/ui/staffrename.h"
 #include "../game/ui/textpanel7cc18c.h"
@@ -7522,6 +7523,8 @@ const Hook kHooks[] = {
     {"Dialog7cc47c_Handler",      0x004b86a0, (void *)&Dialog7cc47c_Handler, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
     {"Dialog7cc4b4_Handler",      0x004b8b70, (void *)&Dialog7cc4b4_Handler, {0x56, 0x8b, 0x74, 0x24, 0x10}},
     {"Dialog7cc184_Open",         0x004a8c00, (void *)&Dialog7cc184_Open, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"SignNameDialog_Open",       0x0048d370, (void *)&SignNameDialog_Open, {0x6a, 0xff, 0x68, 0x11, 0x97}},
+    {"SignNameDialog7ca214_Open", 0x004990f0, (void *)&SignNameDialog7ca214_Open, {0x6a, 0xff, 0x68, 0x51, 0xa0}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
