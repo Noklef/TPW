@@ -15,7 +15,7 @@ const PatrolCoverageEnv *g_env = &kGameEnv;
 bool inGroup(const u8 *cell, u32 group) {
     switch (group) {
     case 0:
-        return MapCell_IsType2(cell) || MapCell_IsType7Or1e(cell) || Zero_5d60c0();
+        return !(MapCell_IsType2(cell) || MapCell_IsType7Or1e(cell) || Zero_5d60c0());
     case 1:
         return MapCell_IsType1(cell) || MapCell_IsType3Or9(cell) || MapCell_IsType9(cell) || MapCell_IsTypeA(cell) || Zero_5d60c0() || MapCell_IsType4(cell) ||
                MapHandle_IsTypeBDOr10Or12Or19(reinterpret_cast<const u16 *>(cell)) || MapCell_IsType15(cell);
