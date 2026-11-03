@@ -7396,6 +7396,7 @@ address,name,kind,confidence,notes
 0x004ae430,Panel7cc218_LevelBoxHandler,function,low,"reimplemented (src/game/ui/panel7cc218); cdecl (window, message, a, b); name invented, unconfirmed: the level box's handler"
 0x004ae560,Panel7cc218_OpenLevelBox,function,low,"reimplemented (src/game/ui/panel7cc218); thiscall; name invented, unconfirmed: the level box opened on +0x10 into +0x24"
 0x004ae940,Panel7cc218_Refresh,function,low,"reimplemented (src/game/ui/panel7cc218); the name, slots 6 and 5, the ride shown, the buttons: name invented, unconfirmed"
+0x004af600,Panel7cc218_Handler,function,low,"reimplemented (src/game/ui/panel7cc218); the handler of the thing panel [0x7cc218]: name invented, unconfirmed"
 0x004afc10,Panel7cc258_Dress,function,low,"reimplemented (src/game/ui/panel7cc258); thiscall; slot 3 of the vtable 0x6ffc68 (the panel at 0x7cc258): with the window +0x14 set, its children 0xc070-0xc07d dressed (ui/panelparts: seven texts 0x20-0x26, one with none, four 0x6ff3b0 parts, a ridestatbar and a happygrad bar)"
 0x004afaa0,Panel7cc258_DressTip,function,low,"reimplemented (src/game/ui/panel7cc258); thiscall: slot 4 of the vtable 0x6ffc68: the window +0x1c dressed as panelparts::tip (raised by 0xb, hidden, a text part, font 8, no text)"
 0x004b0640,Panel7cc258_Open,function,low,"reimplemented (src/game/ui/panel7cc258); thiscall: slot 0 of the vtable 0x6ffc68, the panel's window +0x10's children set up"

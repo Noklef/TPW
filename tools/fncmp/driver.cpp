@@ -61,6 +61,20 @@
 #include "../../src/game/ui/window7cb2a4.h"
 #include "../../src/game/ui/dialog7cc984.h"
 #include "../../src/game/world/rideupkeep.h"
+#include "../../src/game/ui/mousehelp.h"
+#include "../../src/game/world/staffthink.h"
+#include "../../src/game/world/objectride.h"
+#include "../../src/game/ui/dialog7cc1f8stats.h"
+#include "../../src/game/ui/dialog7cc5f4handler.h"
+#include "../../src/game/ui/window7cb2cc.h"
+#include "../../src/game/ui/window7cc8bcmenu.h"
+#include "../../src/game/ui/dialog7cb2b8tabs.h"
+#include "../../src/game/ui/dialog7cc4b4sparkle.h"
+#include "../../src/game/render/passwordpart.h"
+#include "../../src/game/ui/quitconfirm.h"
+#include "../../src/game/world/mapsweep.h"
+#include "../../src/game/ui/imehostattach.h"
+#include "../../src/game/ui/textrecordpart.h"
 #include "../../src/game/world/objectwear.h"
 #include "../../src/game/world/celleffect.h"
 #include "../../src/game/ui/dialog7cb2b8build.h"
@@ -732,6 +746,22 @@ const Window7cb2a4Env kWindow7cb2a4Env = {Rec{recorder(10, 0)}, Rec{jpeg_recorde
 const Dialog7cc984Env kDialog7cc984Env = {Rec{jpeg_recorder(20, 4)}, Rec{recorder(21, 0)}, Rec{jpeg_recorder(22, 0)}, Rec{recorder(23, 1)}, Rec{recorder(24, 3)}, Rec{recorder(25, 1)}, Rec{jpeg_recorder(26, 0)}};
 const ObjectWearEnv kObjectWearEnv = {Rec{recorder(10, 1)}, Rec{recorder(11, 0)}, Rec{jpeg_recorder(12, 1)}, Rec{jpeg_recorder(13, 1)}, Rec{jpeg_recorder(14, 2)}, Rec{jpeg_recorder(15, 1)}, Rec{recorder(16, 4)}, Rec{jpeg_recorder(17, 3)}, Rec{recorder(18, 1)}, Rec{recorder(19, 0)}, Rec{recorder(20, 1)}};
 const CellEffectEnv kCellEffectEnv = {Rec{recorder(10, 0)}, Rec{jpeg_recorder(11, 1)}, Rec{recorder(12, 2)}, Rec{jpeg_recorder(13, 7)}, Rec{recorder(14, 1)}, Rec{recorder(15, 0)}, Rec{jpeg_recorder(16, 5)}, Rec{jpeg_recorder(17, 4)}};
+const MouseHelpEnv kMouseHelpEnv = {Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(15, 0)}, Rec{jpeg_recorder(25, 0)}, Rec{jpeg_recorder(12, 0)}, Rec{jpeg_recorder(11, 0)}, Rec{jpeg_recorder(13, 1)}, Rec{jpeg_recorder(14, 1)}, Rec{recorder(17, 2)}, Rec{recorder(16, 2)}, Rec{recorder(18, 1)}, Rec{jpeg_recorder(24, 3)}, Rec{recorder(19, 0)}, Rec{recorder(20, 1)}, Rec{recorder(21, 2)}, Rec{recorder(23, 0)}, Rec{recorder(22, 0)},
+                                    Rec{recorder(26, 0)}, Rec{recorder(27, 0)}, Rec{recorder(28, 0)}, Rec{recorder(29, 0)}, Rec{jpeg_recorder(30, 5)}, Rec{recorder(31, 1)}, Rec{recorder(8, 4)}};
+const StaffThinkEnv kStaffThinkEnv = {Rec{recorder(10, 0)}, Rec{recorder(11, 2)}, Rec{recorder(12, 0)}, Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{recorder(15, 0)}, Rec{recorder(16, 0)}, Rec{recorder(17, 0)}, Rec{recorder(18, 0)}, Rec{recorder(19, 0)}, Rec{recorder(20, 0)}, Rec{recorder(21, 0)}, Rec{recorder(22, 0)}, Rec{recorder(23, 0)}, Rec{recorder(24, 0)},
+                                      Rec{recorder(25, 0)}, Rec{recorder(26, 1)}, Rec{recorder(27, 1)}, Rec{recorder(28, 1)}, Rec{recorder(29, 0)}, Rec{recorder(30, 0)}, Rec{recorder(31, 2)}, Rec{recorder(9, 1)}, Rec{recorder(8, 0)}, Rec{jpeg_recorder(2, 5)}, Rec{jpeg_recorder(3, 6)}, Rec{recorder(7, 0)}, Rec{recorder(6, 0)}, Rec{recorder(5, 0)}};
+const ObjectRideEnv kObjectRideEnv = {Rec{recorder(10, 1)}, Rec{jpeg_recorder(11, 9)}, Rec{jpeg_recorder(12, 10)}, Rec{jpeg_recorder(13, 2)}, Rec{jpeg_recorder(14, 1)}};
+const Dialog7cc1f8StatsEnv kDialog7cc1f8StatsEnv = {Rec{recorder(10, 1)}, Rec{stdcall_recorder(11, 1)}, Rec{jpeg_recorder(12, 1)}, Rec{recorder(13, 1)}};
+const Dialog7cc5f4HandlerEnv kDialog7cc5f4HandlerEnv = {Rec{jpeg_recorder(10, 4)}, Rec{jpeg_recorder(11, 4)}, Rec{jpeg_recorder(12, 0)}, Rec{jpeg_recorder(13, 0)}, Rec{jpeg_recorder(14, 0)}, Rec{jpeg_recorder(15, 0)}, Rec{recorder(16, 2)}, Rec{recorder(17, 1)}, Rec{recorder(18, 1)}, Rec{jpeg_recorder(19, 4)}};
+const Window7cb2ccEnv kWindow7cb2ccEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 1)}, Rec{recorder(12, 2)}, Rec{recorder(13, 2)}, Rec{recorder(14, 2)}, Rec{jpeg_recorder(15, 4)}};
+const Window7cc8bcMenuEnv kWindow7cc8bcMenuEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 3)}, Rec{jpeg_recorder(12, 0)}, Rec{recorder(13, 1)}, Rec{jpeg_recorder(14, 2)}, Rec{recorder(15, 2)}, Rec{recorder(16, 2)}, Rec{recorder(17, 3)}};
+const Dialog7cb2b8TabsEnv kDialog7cb2b8TabsEnv = {Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 0)}, Rec{jpeg_recorder(12, 0)}, Rec{recorder(13, 0)}, Rec{jpeg_recorder(14, 0)}, Rec{recorder(15, 3)}};
+const Dialog7cc4b4SparkleEnv kDialog7cc4b4SparkleEnv = {Rec{recorder(10, 0)}, Rec{jpeg_recorder(11, 1)}, Rec{recorder(12, 2)}, Rec{jpeg_recorder(13, 4)}, Rec{jpeg_recorder(14, 6)}};
+const PasswordPartEnv kPasswordPartEnv = {Rec{recorder(10, 2)}};
+const QuitConfirmEnv kQuitConfirmEnv = {Rec{recorder(10, 0)}, Rec{jpeg_recorder(11, 1)}, Rec{recorder(12, 1)}};
+const MapSweepEnv kMapSweepEnv = {Rec{recorder(10, 0)}, Rec{recorder(11, 0)}, Rec{recorder(12, 0)}};
+const ImeHostAttachEnv kImeHostAttachEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 0)}, Rec{recorder(12, 0)}, Rec{recorder(13, 1)}, Rec{recorder(14, 1)}, Rec{jpeg_recorder(15, 4)}};
+const TextRecordPartEnv kTextRecordPartEnv = {Rec{jpeg_recorder(10, 4)}, Rec{recorder(11, 1)}, Rec{jpeg_recorder(12, 1)}, Rec{recorder(13, 2)}, Rec{recorder(14, 1)}, Rec{recorder(15, 0)}, Rec{recorder(16, 1)}};
 const RideUpkeepEnv kRideUpkeepEnv = {Rec{recorder(10, 1)}, Rec{recorder(11, 0)}, Rec{recorder(12, 2)}, Rec{recorder(13, 2)}, Rec{recorder(14, 2)}, Rec{recorder(15, 0)}};
 const ObjectUnlockThemesEnv kObjectUnlockThemesEnv = {Rec{recorder(10, 1)}, Rec{recorder(11, 1)}, Rec{recorder(12, 2)}, Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{jpeg_recorder(15, 0)}, Rec{recorder(16, 1)}, Rec{jpeg_recorder(17, 0)}, Rec{recorder(18, 0)}, Rec{recorder(19, 0)}, Rec{recorder(20, 1)}, Rec{recorder(21, 1)}};
 const Dialog7cb25cHandlerEnv kDialog7cb25cHandlerEnv = {Rec{jpeg_recorder(10, 4)}, Rec{jpeg_recorder(11, 1)}, Rec{recorder(12, 1)}, Rec{recorder(13, 2)}, Rec{recorder(14, 0)}, Rec{recorder(15, 2)}, Rec{recorder(16, 0)}, Rec{jpeg_recorder(17, 5)}, Rec{jpeg_recorder(18, 8)},
@@ -1609,6 +1639,20 @@ int main(int argc, char **argv) {
     SignNameDialog_SetHandlerEnv(&kSignNameDialogHandlerEnv);
     Window7cb2a4_SetEnv(&kWindow7cb2a4Env);
     Dialog7cc984_SetEnv(&kDialog7cc984Env);
+    MouseHelp_SetEnv(&kMouseHelpEnv);
+    StaffThink_SetEnv(&kStaffThinkEnv);
+    ObjectRide_SetEnv(&kObjectRideEnv);
+    Dialog7cc1f8_SetStatsEnv(&kDialog7cc1f8StatsEnv);
+    Dialog7cc5f4_SetHandlerEnv(&kDialog7cc5f4HandlerEnv);
+    Window7cb2cc_SetEnv(&kWindow7cb2ccEnv);
+    Window7cc8bc_SetMenuEnv(&kWindow7cc8bcMenuEnv);
+    Dialog7cb2b8_SetTabsEnv(&kDialog7cb2b8TabsEnv);
+    Dialog7cc4b4_SetSparkleEnv(&kDialog7cc4b4SparkleEnv);
+    PasswordPart_SetEnv(&kPasswordPartEnv);
+    QuitConfirm_SetEnv(&kQuitConfirmEnv);
+    MapSweep_SetEnv(&kMapSweepEnv);
+    ImeHost_SetAttachEnv(&kImeHostAttachEnv);
+    TextRecordPart_SetEnv(&kTextRecordPartEnv);
     RideUpkeep_SetEnv(&kRideUpkeepEnv);
     ObjectWear_SetEnv(&kObjectWearEnv);
     CellEffect_SetEnv(&kCellEffectEnv);
