@@ -4,6 +4,7 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "../core/addrcalls.h"
 #include "../core/string.h"
 
 struct WString;
@@ -54,4 +55,10 @@ WString *__stdcall GamePaths_OnlineFolder(WString *out);
 // its +0x28 String the String 0xf7eaf0 (Obj_CallSub28Slot18), its +0x3c the C string 0x747810 joined on (Strings5_JoinPath) and its +0x50
 // the String 0xf7edf8 (Strings5_JoinPathAt50), each through a temporary String. *result = 0; returns result.
 u32 *__cdecl GamePaths_SetRoots(u32 *result);
+
+// GamePaths_ShareTexFolder's call to 0x40ef40 goes by the game's address; a table of replacements (tests/fncmp/sharetexpath.py gives it a recorder).
+void GamePaths_SetCalls(const AddrCall *table, u32 count);
+
+// 0x46e650 (cdecl; out; name invented, unconfirmed): sprintf(out, "%s\\%s", 0x40ef40's text, the text at 0x7af720). Returns sprintf's result.
+s32 __cdecl GamePaths_ShareTexFolder(char *out);
 }  // extern "C"

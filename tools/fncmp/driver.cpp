@@ -196,6 +196,7 @@
 #include "../../src/game/coaster/arreplay.h"
 #include "../../src/game/coaster/arreplayaction.h"
 #include "../../src/game/coaster/coastersload.h"
+#include "../../src/game/files/gamepaths.h"
 #include "../../src/game/core/globalsave.h"
 #include "../../src/game/coaster/rebuild.h"
 #include "../../src/game/coaster/carpose.h"
@@ -1014,6 +1015,9 @@ const AddrCall kGlobalSaveCalls[] = {  // tests/fncmp/globalsaveio.py --table
     {0x5b0d70, recorder(5, 3)},
     {0x5b1620, recorder(6, 2)},
     {0x5b1650, recorder(7, 2)},
+};
+const AddrCall kShareTexCalls[] = {  // tests/fncmp/sharetexpath.py --table
+    {0x40ef40, jpeg_recorder(1, 0)},
 };
 const GameFrameCall kGameFrameCalls[] = {  // tests/fncmp/gameframe.py --table
     {0x402d70, recorder(1, 0)},
@@ -2264,6 +2268,7 @@ int main(int argc, char **argv) {
     CameraUpdate_SetEnv(&kCameraUpdateEnv);
     WeatherFx_SetReloadEnv(&kWeatherFxReloadEnv);
     ArReplay_SetEnv(&kArReplayEnv);
+    GamePaths_SetCalls(kShareTexCalls, sizeof(kShareTexCalls) / sizeof(kShareTexCalls[0]));
     GlobalSave_SetCalls(kGlobalSaveCalls, sizeof(kGlobalSaveCalls) / sizeof(kGlobalSaveCalls[0]));
     CoastersLoad_SetEnv(kCoastersLoadCalls, sizeof(kCoastersLoadCalls) / sizeof(kCoastersLoadCalls[0]));
     ArReplayAction_SetEnv(kArReplayActionCalls, sizeof(kArReplayActionCalls) / sizeof(kArReplayActionCalls[0]));

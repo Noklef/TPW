@@ -17,6 +17,8 @@
 
 namespace {
 
+AddrCalls g_calls;
+
 template <typename T>
 T at(u32 address) {
     return reinterpret_cast<T>(static_cast<std::uintptr_t>(address));
@@ -142,6 +144,13 @@ WString *__stdcall GamePaths_OnlineFolder(WString *out) {
     WString_CtorCopy(out, nullptr, &path);
     WString_Dtor(&path);
     return out;
+}
+
+void GamePaths_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
+
+s32 __cdecl GamePaths_ShareTexFolder(char *out) {
+    const u32 root = g_calls.Cd(0x0040ef40);
+    return Crt().sprintf(out, reinterpret_cast<const char *>((uintptr_t)0x007488ac), reinterpret_cast<const char *>((uintptr_t)root), reinterpret_cast<const char *>((uintptr_t)0x007af720));
 }
 
 u32 *__cdecl GamePaths_SetRoots(u32 *result) {
