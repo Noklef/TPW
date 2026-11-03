@@ -46,7 +46,8 @@ def case(r):
     regions[WINDOW] = r.bytes(8)
     regions[0xf82884] = struct.pack('<I', WINDOW)
     regions[0x7c2658] = struct.pack('<I', r.choice([THING, THING, THING, 0]))
-    regions[THING] = bytes(5) + bytes([r.getrandbits(8)]) + bytes(1) + bytes([r.choice([0, 1, 0x7f, 0x80, 0xff, r.getrandbits(8)])])
+    # (+5: + 1 a multiple of 0x80 now and then, the less 1's borrow)
+    regions[THING] = bytes(5) + bytes([r.choice([0x7f, 0xff, r.getrandbits(8), r.getrandbits(8)])]) + bytes(1) + bytes([r.choice([0, 1, 0x7f, 0x80, 0xff, r.getrandbits(8)])])
     regions[0x80239c] = r.bytes(4)
     for at in (0x7cb2fc, 0x7cc8bc, 0x7cc4c4, 0x7cc684, 0x7cc65c, 0x7cc504, 0x7ca1e0, 0x7cc984, 0x7cca50):
         regions[at] = r.bytes(4)
@@ -55,6 +56,7 @@ def case(r):
     if op == 0x48cde0:
         arguments = [THING]
     elif op == 0x48d200:
+        regions[0x7c2658] = struct.pack('<I', r.choice([THING, 0]))   # (message 0x14's slot 15 only with one)
         arguments = [WINDOW, r.choice([0x14, 0x14, 0x1000a, 0x1000a, 0x1000a, 0x1000b, r.getrandbits(32)]), r.choice([0x2600, 0x2600, 0x2800, 0x2800, 0x2700, r.getrandbits(32)]), r.getrandbits(32)]
     elif op == 0x48ce50:
         arguments = [r.choice([0, 1, 0x100, 0x12300, r.getrandbits(32)])]
