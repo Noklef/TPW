@@ -5,15 +5,19 @@
 
 #include "../math/x87.h"
 #include "gameheap.h"
+#include "initializers.h"
 #include "methods.h"
 #include "sounddevice.h"
 #include "soundslot.h"
+#include "sync.h"
 #include "vcall.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename F> F Import(u32 slot) { return *reinterpret_cast<const F *>((uintptr_t)slot); }
+
+constexpr u32 kHelper = 0x00fb1f04;
 
 }  // namespace
 
@@ -115,4 +119,30 @@ void __fastcall SoundSource_Destroy(void *, void *, u8 **slot) {
     vcall<void>(*slot, 0x1c);   // (not tested for null, sic)
     if (u8 *const source = *slot) vcall<void>(source, 0, 1u);
     *slot = nullptr;
+}
+
+u8 *__fastcall SoundSource711b08_Ctor(u8 *source, void *, u32 arg) {
+    Init_6d6c50(source);
+    for (u32 off = 0x18; off <= 0x2c; off += 4) at<u32>(source, off) = 0;
+    at<u32>(source, 0x34) = arg;
+    CritSec_Ctor(source + 0x38);
+    at<u32>(source, 0) = 0x00711b08;
+    at<u8 *>(reinterpret_cast<void *>((uintptr_t)0x00fb2724), 0) = source;
+    return source;
+}
+
+u8 *__fastcall SoundSource711920_Ctor(u8 *source) {
+    Init_6d6c50(source);
+    at<u32>(source, 0x18) = at<u32>(source, 0x1c) = at<u32>(source, 0x20) = 0;
+    at<u32>(source, 0) = 0x00711920;
+    u32 *const helper = static_cast<u32 *>(GameHeap_Alloc(4));
+    if (helper) *helper = 0x00711910;
+    SoundHelper_Set(helper);
+    return source;
+}
+
+void __cdecl SoundHelper_Set(void *helper) { at<void *>(reinterpret_cast<void *>((uintptr_t)kHelper), 0) = helper; }
+
+void __cdecl SoundHelper_Free() {
+    if (void *const helper = at<void *>(reinterpret_cast<void *>((uintptr_t)kHelper), 0)) GameHeap_Free(helper);
 }

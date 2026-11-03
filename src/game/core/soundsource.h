@@ -48,4 +48,15 @@ u32 __fastcall SoundSource711b08_HasCaps(u8 *source);
 // again, its slot 0 (1) unless null; *slot = 0. The device's source maker's failure path (0x6c4190).
 void __fastcall SoundSource_Destroy(void *, void *, u8 **slot);
 
+// 0x6d2d70 (thiscall (arg), pops 4; an SEH frame; name invented): Init_6d6c50; +0x18 - +0x2c = 0, +0x34 = arg, the critical section +0x38 initialised; vtable
+// 0x711b08; the global 0xfb2724 = the source. Returns it.
+u8 *__fastcall SoundSource711b08_Ctor(u8 *source, void *, u32 arg);
+// 0x6d1e30 (thiscall; an SEH frame; name invented): Init_6d6c50; +0x18, +0x1c, +0x20 = 0; vtable 0x711920; a new 4-byte helper (vtable 0x711910; null when the
+// heap fails) set as SoundHelper_Set does. Returns the source.
+u8 *__fastcall SoundSource711920_Ctor(u8 *source);
+// 0x6b9d70 (cdecl; name invented): the global 0xfb1f04 = helper (the old one not freed).
+void __cdecl SoundHelper_Set(void *helper);
+// 0x6b9d50 (cdecl; name invented): the global 0xfb1f04 freed unless null; it keeps its value.
+void __cdecl SoundHelper_Free();
+
 }
