@@ -224,6 +224,7 @@
 #include "../../src/game/world/tracksquare.h"
 #include "../../src/game/world/placeobject.h"
 #include "../../src/game/world/visitorsteps.h"
+#include "../../src/game/world/worldsave.h"
 #include "../../src/game/world/endthing.h"
 #include "../../src/game/world/parkopen.h"
 #include "../../src/game/world/gamemode.h"
@@ -2093,6 +2094,11 @@ int main(int argc, char **argv) {
                                                       t(15, 1), t(16, 2), t(17, 0), t(18, 1), reinterpret_cast<u32(__cdecl *)(s32, s32)>(&stub_cdecl_log2), t(19, 2),
                                                       t(20, 1), t(21, 3), t(22, 1), t(23, 0), t(24, 0), t(25, 0), t(27, 1), t(28, 0), t(29, 0)};
         VisitorSteps_SetEnv(&visitorSteps);
+        // World_Save / World_Load's calls (src/game/world/worldsave.h WorldSaveEnv), as tests/fncmp/worldsave.py hooks their addresses.
+        static const WorldSaveEnv worldSave = {c(1, 0), t(13, 4), t(14, 4), t(15, 4),
+                                               {t(16, 4), nullptr, t(17, 4), t(18, 4), t(19, 4), t(20, 4), t(21, 4), t(22, 4), t(23, 4), t(24, 4), t(25, 4),
+                                                t(26, 4), t(27, 4), t(28, 4), t(29, 4), t(30, 4), t(26, 4), nullptr, t(31, 4)}};
+        WorldSave_SetEnv(&worldSave);
         // GameMode_MapPreview's calls (src/game/world/mappreview.h MapPreviewEnv), as tests/fncmp/mappreview.py hooks their addresses.
         static const MapPreviewEnv mapPreview = {c(0, 5), c(1, 5), c(2, 6),  c(3, 2),  c(4, 3),  c(5, 4),  c(6, 2),  c(7, 0),  c(8, 3),
                                                  c(9, 5), c(10, 4), c(11, 7), c(12, 0), t(13, 3), t(14, 1), t(15, 1), t(16, 1), t(17, 0)};

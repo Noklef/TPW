@@ -402,6 +402,7 @@
 #include "../game/world/visitorsteps.h"
 #include "../game/world/weather.h"
 #include "../game/world/world.h"
+#include "../game/world/worldsave.h"
 #include "../game/model/holder.h"
 #include "../game/coaster/tracktypes.h"
 #include "../game/coaster/typemodel.h"
@@ -5996,6 +5997,8 @@ const Hook kHooks[] = {
     {"StaffPool_TopUp",           0x00508170, (void *)&StaffPool_TopUp, {0x53, 0x56, 0x8b, 0xf1, 0x32}},
     {"StaffPool_Update",          0x005084f0, (void *)&StaffPool_Update, {0x83, 0xec, 0x1c, 0x53, 0x55}},
     {"StaffPool_TakeCandidate",   0x00507bf0, (void *)&StaffPool_TakeCandidate, {0x6a, 0xff, 0x68, 0xef, 0xe1}},
+    {"World_Save",                0x00516c80, (void *)&World_Save, {0x6a, 0xff, 0x68, 0xe6, 0xe7}},
+    {"World_Load",                0x005179c0, (void *)&World_Load, {0x6a, 0xff, 0x68, 0x87, 0xe8}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
