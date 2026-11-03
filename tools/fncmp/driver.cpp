@@ -516,6 +516,8 @@ const ThingMessageEnv kThingMessageEnv = {{thing_message(0), nullptr, thing_mess
 using StaffSumFn = s32(__fastcall *)(u8 *, void *, u32);
 const StaffAdviceEnv kStaffAdviceEnv = {reinterpret_cast<StaffSumFn>((uintptr_t)recorder(16, 1)), reinterpret_cast<StaffSumFn>((uintptr_t)recorder(17, 1)),
                                         reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)recorder(18, 1))};
+// Guard_Detach's Visitor_Arrive: thiscall recorder 19 of 1, as tests/fncmp/staffdetach.py hooks 0x4feb50.
+const GuardDetachEnv kGuardDetachEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)recorder(19, 1))};
 // Ride_Destroy's calls into agent B's unported 0x42a190 and ported 0x436fa0: cdecl recorders 18 of no arguments and 19 of 1, as
 // tests/fncmp/ridedestroy.py hooks those addresses.
 // The cell kinds' calls into agent C's unported 0x4de1f0 and agent A's Path_CheckDeadEnds (0x527ee0): the thiscall recorder 26 of no
@@ -1264,6 +1266,7 @@ int main(int argc, char **argv) {
     Things_SetDeleteEnv(&kThingDeleteEnv);
     Things_SetMessageEnv(&kThingMessageEnv);
     Staff_SetAdviceEnv(&kStaffAdviceEnv);
+    Guard_SetDetachEnv(&kGuardDetachEnv);
     // Staff_WalkToRestArea's and Staff_Dismiss's calls: Sprite_WalkNav, Sprite_SpawnParticle and Thing_Delete the thiscall recorders 28 of
     // 0, 29 of 1 and 30 of 0, as tests/fncmp/staffstate.py hooks 0x4fa2a0, 0x4fa470 and 0x50b780.
     static const StaffWalkEnv staffWalkEnv = {reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)recorder(28, 0)),

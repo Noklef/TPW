@@ -5,8 +5,9 @@
 # Handyman: the object handle (+0x218 / +0x21a) 0 or one of the park's (now and then a free one, whose slot has no thing), that object's
 # tracked handle +0x5e (0, the staff member's or another's) and its stamp +0x60 about the game object's time +0x1da70c less 100. Entertainer:
 # the map id it last recorded (+0xcc) near its cell, anywhere on the map or 0; spread record 0 of [0x8023a0] (radius 0-3, five values small,
-# extreme or any) and the cells around that id. Kinds9: kinds 9-0xe, 0x10 and 0x11.
-# usage: staffdetach.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Mechanic,Handyman,Entertainer,Kinds9)
+# extreme or any) and the cells around that id. Kinds9: kinds 9-0xe, 0x10 and 0x11. Guard (0x4d5eb0 Guard_Detach): Entertainer's with spread
+# record 3 and the list +0x1da744, the state +0x19c, the visitor's handle +0x212; Visitor_Arrive a recorder of the cell's low word (k 19).
+# usage: staffdetach.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Mechanic,Handyman,Entertainer,Kinds9,Guard)
 import os
 import struct
 import sys
@@ -18,24 +19,34 @@ import thingdetach as td  # noqa: E402
 from fncmp import RAM, Bench, Call, _recorder, put  # noqa: E402
 from thingenv import SLOTS, THING  # noqa: E402
 
+_arrive = _recorder(19, 1)
+
+
+def arrive(e):
+    """Visitor_Arrive's recorder for the low word of the cell: its high half is an uninitialised stack slot in the original."""
+    e.write(e.r['ESP'] + (4 if e.tail else 0), struct.pack('<I', e.u32(e.r['ESP'] + (4 if e.tail else 0)) & 0xffff))
+    _arrive(e)
+
+
 B = Bench(td.RANGES + [(0x4d9fe0, 0x4da0b4), (0x4d6c90, 0x4d6cee), (0x4d4620, 0x4d465b), (0x4c9040, 0x4c9046), (0x519690, 0x5197d0),
                        (0x519800, 0x519940), (0x519970, 0x519ab0), (0x4e0210, 0x4e02f0), (0x506580, 0x5065e0), (0x4f9460, 0x4f9490),
-                       (0x4d8460, 0x4d8480), (0x4d8480, 0x4d8620)],
-          hooks={0x463c80: _recorder(31, 1, cdecl=True), 0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None})
+                       (0x4d8460, 0x4d8480), (0x4d8480, 0x4d8620), (0x4d5eb0, 0x4d5fa8), (0x519ae0, 0x519c50)],
+          hooks={0x463c80: _recorder(31, 1, cdecl=True), 0x4feb50: arrive, 0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None})
 # name: (address, kind, list head)
-CALLS = {'Mechanic': (0x4d9fe0, 4, 0x1da73e), 'Handyman': (0x4d6c90, 5, 0x1da73c), 'Entertainer': (0x4d4620, 6, 0x1da740), 'Kinds9': (0x4c9040, None, None)}
+CALLS = {'Mechanic': (0x4d9fe0, 4, 0x1da73e), 'Handyman': (0x4d6c90, 5, 0x1da73c), 'Entertainer': (0x4d4620, 6, 0x1da740), 'Kinds9': (0x4c9040, None, None),
+         'Guard': (0x4d5eb0, 7, 0x1da744)}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 WORLD = RAM + 0x62000   # the game object's +0x1da708..+0x1da748
 VALUES = [0, 1, -1, 100, -100, 0x7fff, -0x8000]
 
 
-def spread(r, regions, base, cell):
-    """Spread record 0 of the map at base and the cells around the map id cell."""
+def spread(r, regions, base, cell, record=0):
+    """Spread record 'record' of the map at base and the cells around the map id cell."""
     source = bytearray(r.bytes(12))
     radius = r.choice([0, 1, 2, 3, 3])
     source[0xa] = radius
     struct.pack_into('<5h', source, 0, *[r.choice(VALUES + [r.randrange(-300, 300)]) for _ in range(5)])
-    regions[base + 0x1d9104] = source
+    regions[base + 0x1d9104 + 12 * record] = source
     at = (cell - 1) & 0xffff
     cx, cy = at & 0x7f, at >> 7
     xmin, xmax = max(cx - radius, 0), min(cx + radius, 0x7f)
@@ -91,11 +102,14 @@ def case(r):
                         put(pool, things[h] + r.choice([0x218, 0x21a]), 'H', r.choice([obj, r.getrandbits(16)]))
                     pool[things[h] + 2] = r.choice([pool[things[h] + 2], 4, 5])
                 pool[t + 2] = kind
-    if op == 'Entertainer':
+    if op in ('Entertainer', 'Guard'):
         cell = r.choice([ident, ident + r.choice([1, -1, 0x80, -0x80, 0x81]), (r.randrange(120) << 7) + r.randrange(128) + 1, 0])
         cell = cell if 0 <= cell < 0x3c00 + 0x81 else ident
         put(pool, t + 0xcc, 'H', cell)
-        spread(r, regions, base, cell)
+        spread(r, regions, base, cell, 3 if op == 'Guard' else 0)
+    if op == 'Guard':   # (state 0x12 mostly; the visitor's handle 0, a thing's, or a free slot's, which keeps it)
+        put(pool, t + 0x19c, 'I', r.choice([0x12, 0x12, 0x12, 0x11, 0x13, 0, 0x112]))
+        put(pool, t + 0x212, 'H', r.choice([0, r.choice(handles), r.choice(handles), r.choice(free or handles)]))
     regions[td.POOL] = pool
     return Call(address, [thing], regions, conv='t', ret='a' if op == 'Kinds9' else 'v')
 

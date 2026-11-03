@@ -784,6 +784,30 @@ void __fastcall Entertainer_Detach(u8 *entertainer) {
     Staff_Detach(entertainer);
 }
 
+namespace {
+const GuardDetachEnv kGameGuardDetachEnv = {&Visitor_Arrive};
+const GuardDetachEnv *g_guardDetach = &kGameGuardDetachEnv;
+}  // namespace
+
+void Guard_SetDetachEnv(const GuardDetachEnv *env) { g_guardDetach = env ? env : &kGameGuardDetachEnv; }
+
+void __fastcall Guard_Detach(u8 *guard) {
+    Things_Unlink1da744(*reinterpret_cast<u8 **>((uintptr_t)0x0080239c), nullptr, guard);
+    u8 *const map = *reinterpret_cast<u8 **>((uintptr_t)0x008023a0);
+    u16 last;
+    Map_SpreadRemove(map, nullptr, 3, *Sprite_RecordMapId(guard, nullptr, &last));
+    const u16 handle = at<u16>(guard, 0x212);
+    if (at<u32>(guard, 0x19c) == 0x12 && handle) {
+        u8 *const visitor = *reinterpret_cast<u8 **>((uintptr_t)0x007cfb90 + handle * 20u);
+        if (visitor) {
+            const u32 cell = (u16)(((u32)at<u8>(guard, 7) << 7) + at<u8>(guard, 5) + 1);
+            g_guardDetach->arrive(visitor, nullptr, cell);
+            at<u16>(guard, 0x212) = 0;
+        }
+    }
+    Staff_Detach(guard);
+}
+
 void __fastcall Mechanic_HandleMessage(u8 *mechanic, void *, u8 *message) {
     if (vcall<u32>(message, 0) == 0xa && at<u16>(mechanic, 0x218) == at<u16>(message, 8)) {
         at<u16>(mechanic, 0x218) = 0;
