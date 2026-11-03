@@ -37,6 +37,9 @@ struct ThrownError {   // exception's vtable, text and owned flag, then the mess
 
 // The standard errors' common body: the text in a string, an exception of an empty text (0x786de4) with a copy of it, the vtable, the throw. (Past it only when
 // _CxxThrowException returns, which it does not: the string let go as the original's code there does.)
+// (A stream's first word is its vbtable, whose +4 is the offset of the virtual base's word.)
+void set_stream_vtable(u8 *stream, u32 vtable) { at<u32>(stream + at<s32>(at<u8 *>(stream, 0), 4), 0) = vtable; }
+
 void throw_error(const char *text, u32 vtable, u32 info) {
     StdString s;
     const u32 n = (u32)strlen(text);
@@ -187,6 +190,36 @@ void __fastcall BasicIosW_Dtor(u8 *self) {
     IosBase_Dtor(self);
 }
 
+u8 *__fastcall BasicIosW_DeletingDtor(u8 *self, void *, u32 flags) {
+    BasicIosW_Dtor(self);
+    if (flags & 1) g_env->memFree(self);
+    return self;
+}
+
+void __fastcall BasicOstreamW_VbaseDtor(u8 *stream) {
+    set_stream_vtable(stream, 0x007099ec);
+    BasicIosW_Dtor(stream + 4);
+}
+
+void __fastcall BasicIstreamW_VbaseDtor(u8 *stream) {
+    set_stream_vtable(stream, 0x007099dc);
+    BasicIosW_Dtor(stream + 8);
+}
+
+u8 *__fastcall BasicOstreamW_DeletingDtor(u8 *ios, void *, u32 flags) {
+    u8 *const stream = ios - 4;
+    BasicOstreamW_VbaseDtor(stream);
+    if (flags & 1) g_env->memFree(stream);
+    return stream;
+}
+
+u8 *__fastcall BasicIstreamW_DeletingDtor(u8 *ios, void *, u32 flags) {
+    u8 *const stream = ios - 8;
+    BasicIstreamW_VbaseDtor(stream);
+    if (flags & 1) g_env->memFree(stream);
+    return stream;
+}
+
 void __fastcall BasicIosW_SetState(u8 *self, void *, u32 state, u32 reraise) {
     if (!state) return;
     u32 now = at<u32>(self, 4) | state;
@@ -251,6 +284,12 @@ void __fastcall BadCast_Dtor(u32 *self) {
     CRT_exception_Dtor(self);
 }
 
+u32 *__fastcall BadCast_DeletingDtor(u32 *self, void *, u32 flags) {
+    BadCast_Dtor(self);
+    if (flags & 1) g_env->memFree(self);
+    return self;
+}
+
 u32 __fastcall CtypeW_Widen(void *, void *, u32 c) { return CRT_btowc((u32)(s32)(s8)c); }
 
 const char *__fastcall CtypeW_WidenRange(void *, void *, const char *first, const char *last, u16 *to) {
@@ -262,6 +301,12 @@ void __fastcall CtypeW_Dtor(u8 *self) {
     at<u32>(self, 0) = 0x00709cac;
     if (at<u32>(self, 0x14)) Crt().free(at<void *>(self, 0x10));
     at<u32>(self, 0) = 0x00709b44;
+}
+
+u8 *__fastcall CtypeW_DeletingDtor(u8 *self, void *, u32 flags) {
+    CtypeW_Dtor(self);
+    if (flags & 1) g_env->memFree(self);
+    return self;
 }
 
 void *__cdecl Std_LocaleInit() {

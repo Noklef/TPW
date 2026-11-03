@@ -59,6 +59,15 @@ u8 *__fastcall IosBase_DeletingDtor(u8 *self, void *edx, u32 flags);
 
 // 0x4f0100 (thiscall): basic_ios<wchar_t>'s destructor: its vtable 0x7099e4, then ios_base's.
 void __fastcall BasicIosW_Dtor(u8 *self);
+// 0x4f1210 (thiscall (flags), pops 4): BasicIosW_Dtor, the object freed for flags bit 0. Returns it.
+u8 *__fastcall BasicIosW_DeletingDtor(u8 *self, void *, u32 flags);
+// 0x4f12b0, 0x4f1320 (thiscall on the stream): basic_ostream<wchar_t>'s and basic_istream<wchar_t>'s complete destructors: the stream's vtable word through its vbtable (entry +4) = 0x7099ec, 0x7099dc; BasicIosW_Dtor
+// of the virtual base (stream +4, +8).
+void __fastcall BasicOstreamW_VbaseDtor(u8 *stream);
+void __fastcall BasicIstreamW_VbaseDtor(u8 *stream);
+// 0x4f11e0, 0x4f1230 (thiscall on the virtual base (flags), pops 4): the same with the stream freed for flags bit 0. Returns the stream.
+u8 *__fastcall BasicOstreamW_DeletingDtor(u8 *ios, void *, u32 flags);
+u8 *__fastcall BasicIstreamW_DeletingDtor(u8 *ios, void *, u32 flags);
 
 // 0x4f0110 (thiscall (state, reraise), pops 8): setstate: nothing for state 0; else clear(the old state +4 | state, | 4 without a stream buffer +0x28).
 void __fastcall BasicIosW_SetState(u8 *self, void *edx, u32 state, u32 reraise);
@@ -81,6 +90,8 @@ u32 *__fastcall BadCast_Copy(u32 *self, void *edx, const u32 *from);
 
 // 0x4f1820 (thiscall): bad_cast's destructor: its vtable, then exception's destructor.
 void __fastcall BadCast_Dtor(u32 *self);
+// 0x4f1850 (thiscall (flags), pops 4): BadCast_Dtor, the object freed for flags bit 0. Returns it.
+u32 *__fastcall BadCast_DeletingDtor(u32 *self, void *, u32 flags);
 
 // 0x4f1ad0 (thiscall (c), pops 4): ctype<wchar_t>::do_widen(c): btowc of the sign-extended byte.
 u32 __fastcall CtypeW_Widen(void *self, void *edx, u32 c);
@@ -90,6 +101,8 @@ const char *__fastcall CtypeW_WidenRange(void *self, void *edx, const char *firs
 
 // 0x4f1ba0 (thiscall): ctype<wchar_t>'s destructor: its vtable 0x709cac, the table +0x10 freed (CRT free) if owned (+0x14), locale::facet's vtable 0x709b44.
 void __fastcall CtypeW_Dtor(u8 *self);
+// 0x4f1b80 (thiscall (flags), pops 4): CtypeW_Dtor, the object freed for flags bit 0. Returns it.
+u8 *__fastcall CtypeW_DeletingDtor(u8 *self, void *, u32 flags);
 
 // 0x699da0: std::locale::_Init: under the lock, on the first call, the classic locale's _Locimp ([0xfb1dd0]) made, its destructor 0x699ee0 given to atexit, its categories +0x10
 // 0x3f, its name +0x18 "C"; held for [0xfb1dcc] (a use more, under the lock) and [0xfb1dc8]. Returns it.

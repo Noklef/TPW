@@ -20,11 +20,12 @@ def lock(e):
 
 B = Bench([(0x693340, 0x6934c0), (0x693830, 0x693a90), (0x6918f0, 0x691a20), (0x691ba0, 0x691cc4), (0x67d250, 0x67d340), (0x45b340, 0x45b9a0), (0x4f5a50, 0x4f5acc),
            (0x4f0100, 0x4f0138), (0x4f1620, 0x4f1640), (0x4f1820, 0x4f1830), (0x4f1870, 0x4f1890), (0x4f2180, 0x4f21a0), (0x4ef840, 0x4ef860), (0x4f1ad0, 0x4f1b30), (0x4f1ba0, 0x4f1bd0),
-           (0x4f1560, 0x4f1620), (0x4f1be0, 0x4f1ca0), (0x693dc0, 0x693e20)],
+           (0x4f1560, 0x4f1620), (0x4f1be0, 0x4f1ca0), (0x693dc0, 0x693e20), (0x4f11e0, 0x4f1260), (0x4f12b0, 0x4f12c5), (0x4f1320, 0x4f1335), (0x4f1850, 0x4f186e), (0x4f1b80, 0x4f1b9e)],
           hooks={0x67ad90: _free, 0x693bc0: _recorder(MBRTOWC, 5, cdecl=True), 0x691de0: lock, 0x691ea0: lambda e: None, 0x67d3a0: _recorder(THROW, 2, com=True), 0x67b8a0: _recorder(FOPEN, 2, cdecl=True), 0x67c100: _recorder(FSEEK, 3, cdecl=True),
                  0x67b620: _recorder(FCLOSE, 1, cdecl=True), 0x699da0: _recorder(LOCALE, 0, cdecl=True)})
 del B.emu.hooks[0x6918f0], B.emu.hooks[0x691ba0]   # (the bench's raising stand-ins: here the originals run)
 OBJ, NODES, LOC, VT = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300
+STREAM, VBT = RAM + 0x800, RAM + 0x900
 STD = 0xfb1d60
 
 
@@ -154,6 +155,31 @@ def ios_dtors(r):
     return Call(0x4ef840, [OBJ, r.choice([0, 1, 2, 3, 0x100, 0x101, r.getrandbits(32)])], regions, conv='t', ret='a')
 
 
+def deleting(r):
+    """The deleting destructors. A stream: its vbtable first, then the virtual base (dtor's object moved behind it), the vtable word stored at the vbtable's offset."""
+    regions = dtor(r).regions
+    flags = r.choice([0, 1, 2, 3, 0x100, 0x101, r.getrandbits(32)])
+    which = r.deal(['ios', 'ostream', 'istream', 'ostream_del', 'istream_del', 'bad_cast', 'ctype'])
+    if which == 'ios':
+        return Call(0x4f1210, [OBJ, flags], regions, conv='t', ret='a')
+    if which == 'bad_cast':
+        regions[OBJ] = struct.pack('<III', r.getrandbits(32), r.getrandbits(32), r.choice([0, 1, r.getrandbits(32)]))
+        return Call(0x4f1850, [OBJ, flags], regions, conv='t', ret='a')
+    if which == 'ctype':
+        obj = bytearray(r.bytes(0x18))
+        struct.pack_into('<I', obj, 0x14, r.choice([0, 1, r.getrandbits(32)]))
+        regions[OBJ] = obj
+        return Call(0x4f1b80, [OBJ, flags], regions, conv='t', ret='a')
+    base = 4 if which.startswith('ostream') else 8
+    obj = regions.pop(OBJ)
+    stream = bytearray(struct.pack('<I', VBT)) + bytearray(r.bytes(base - 4)) + bytearray(obj) + bytearray(r.bytes(0x10))
+    regions[STREAM] = stream
+    regions[VBT] = struct.pack('<II', r.getrandbits(32), base + r.choice([0, 0x40, 0x44]))   # (the word, in the game the stream's +base; elsewhere here so that it shows)
+    if which.endswith('_del'):
+        return Call(0x4f11e0 if base == 4 else 0x4f1230, [STREAM + base, flags], regions, conv='t', ret='a')
+    return Call(0x4f12b0 if base == 4 else 0x4f1320, [STREAM], regions, conv='t', ret='v')
+
+
 def widen_setup(r, log):
     strings(log, MBRTOWC, 0, out=0xb)
     fill(log, MBRTOWC, 0, r.bytes(4))
@@ -209,7 +235,7 @@ def ctype_dtor(r):
 
 
 KINDS = {'clear': clear, 'xlen': xlen, 'callfns': callfns, 'addstd': addstd, 'init': init, 'tidy': tidy, 'dtor': dtor, 'fiopen': fiopen, 'exception_ctor': exception_ctor,
-         'exception_copy': exception_copy, 'ios_clears': ios_clears, 'ios_dtors': ios_dtors, 'streams': streams, 'bad_cast': bad_cast, 'widen': widen, 'ctype_dtor': ctype_dtor}
+         'exception_copy': exception_copy, 'ios_clears': ios_clears, 'ios_dtors': ios_dtors, 'streams': streams, 'bad_cast': bad_cast, 'widen': widen, 'ctype_dtor': ctype_dtor, 'deleting': deleting}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 
