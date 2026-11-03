@@ -598,6 +598,7 @@
 #include "../game/ui/dialuplist.h"
 #include "../game/ui/gamepartdialogs.h"
 #include "../game/ui/guifont.h"
+#include "../game/ui/guiframe.h"
 #include "../game/ui/guinamed.h"
 #include "../game/ui/guisystem.h"
 #include "../game/ui/guitoken.h"
@@ -7948,6 +7949,7 @@ const Hook kHooks[] = {
     {"Dialog7cc944_FillList",     0x004bfc70, (void *)&Dialog7cc944_FillList, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Window705a20_TypeChar",     0x00667833, (void *)&Window705a20_TypeChar, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"CharList_Find",             0x006687e0, (void *)&CharList_Find, {0x55, 0x8b, 0xec, 0x66, 0x8b}},
+    {"Gui_Frame",                 0x0048a580, (void *)&Gui_Frame, {0x56, 0xe8, 0x9a, 0x50, 0xff}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
