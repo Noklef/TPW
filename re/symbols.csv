@@ -6907,6 +6907,7 @@ address,name,kind,confidence,notes
 0x0046cf80,ChatCursor_MoveTo,function,low,"reimplemented (src/game/online/chatcursor); the online chat's avatar moved to the cell under the cursor (name invented, unconfirmed)"
 0x004c4920,RoomCounts_ChatEvent,function,low,"reimplemented (src/game/online/roomcounts); stdcall (type, unused, arguments), the Chat's callback; name invented, unconfirmed; the chat rooms' counts from a room's info"
 0x004c4bb0,RoomCounts_Update,function,low,"reimplemented (src/game/online/roomcounts); cdecl; name invented, unconfirmed; a round of the chat rooms' head counts asked for, the counts shown when ready"
+0x005ca320,PostcardMail_Build,function,low,reimplemented (src/game/online/postcardmail); the virtual postcard's mail text
 0x005d8190,LobbyModel_SetPosition,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (v): the lobby model's (+4: 0x7a4610 index) matrix (+8 -> +4 -> +0x78, +0x10) translation = v[0..2] (x87 loads, all read first)"
 0x005d8380,LobbyModel_TurnY,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (angle): Matrix_RotateEulerFast(the lobby model's matrix, 2 ""Y"", &angle)"
 0x005d83b0,LobbyModel_SetScale,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (x, y, z): Holder_SetScale(the lobby model's entry +8, (x, y, z))"
