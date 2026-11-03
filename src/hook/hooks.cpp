@@ -494,6 +494,7 @@
 #include "../game/ui/dialog7ca1bc.h"
 #include "../game/ui/dialog7ca1e0.h"
 #include "../game/ui/dialog7ca210.h"
+#include "../game/ui/dialog7ca2e8.h"
 #include "../game/ui/dialog7ca308.h"
 #include "../game/ui/dialog7cb25c.h"
 #include "../game/ui/dialog7cb2b8.h"
@@ -7396,6 +7397,7 @@ const Hook kHooks[] = {
     {"ThingPanel_Show",           0x00486920, (void *)&ThingPanel_Show, {0x83, 0xec, 0x08, 0x56, 0x8b}},
     {"Dialog7ca1e0_Create",       0x00498b50, (void *)&Dialog7ca1e0_Create, {0x8b, 0x0d, 0xd8, 0xa5, 0xfa}},
     {"Dialog7ca1bc_Create",       0x00497b20, (void *)&Dialog7ca1bc_Create, {0x8b, 0x0d, 0xd8, 0xa5, 0xfa}},
+    {"Dialog7ca1bc_Handler",      0x00497a70, (void *)&Dialog7ca1bc_Handler, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
     {"Gui_Init",                  0x006584df, (void *)&Gui_Init, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Gui_Shutdown",              0x00658708, (void *)&Gui_Shutdown, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Dialog7cc654_FitText",      0x004bc100, (void *)&Dialog7cc654_FitText, {0x6a, 0xff, 0x68, 0x58, 0xb8}},
@@ -7451,6 +7453,7 @@ const Hook kHooks[] = {
     {"Dialog7ca150_AddHistoryRow", 0x00493f30, (void *)&Dialog7ca150_AddHistoryRow, {0x83, 0xec, 0x20, 0xa1, 0x4c}},
     {"Dialog7ca150_AddRatedHistoryRow", 0x00494070, (void *)&Dialog7ca150_AddRatedHistoryRow, {0x83, 0xec, 0x24, 0xa1, 0x4c}},
     {"Dialog7ca150_AddControlRow", 0x004941e0, (void *)&Dialog7ca150_AddControlRow, {0x83, 0xec, 0x08, 0x56, 0x8b}},
+    {"Dialog7ca2e8_Handler",      0x0049a0b0, (void *)&Dialog7ca2e8_Handler, {0x53, 0x56, 0x8b, 0x5c, 0x24}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
