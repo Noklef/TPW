@@ -189,6 +189,12 @@ u32 __fastcall Top_Insert(u8 *object, void *, u8 *node) {
     return key;
 }
 
+u8 *__fastcall Class70a338_Ctor(u8 *object) {
+    Class70a7e0_Ctor(object);
+    at<u32>(object, 0) = 0x0070a338;
+    return object;
+}
+
 u8 *__fastcall Class70a7e0_Ctor(u8 *object) {
     for (u32 off : {4u, 8u, 0xcu, 0x10u, 0x14u, 0x18u, 0x1cu, 0x20u, 0x24u, 0x28u, 0x30u, 0x3cu, 0x40u})
         at<u32>(object, off) = 0;
