@@ -49,6 +49,7 @@ def open_case(r):
     regions[HEAP] = heap(0x28000, r.choice([0] * 40 + [r.randrange(1, 16)]))
     regions[0x7ca210] = struct.pack('<I', r.choice([0] * 12 + [r.getrandbits(32)]))
     regions[0x7ca1e8] = r.bytes(4)
+    regions[0x7cb290] = r.bytes(4)   # (Global7cb28c_Select(3, ...)'s dword)
     regions[0x7ca208] = r.bytes(4)
     regions[0xfb34c5] = bytes([r.choice([0, 1, 1, 1, r.getrandbits(8)])])
     regions[0xfb3b7c] = struct.pack('<I', r.choice([2, 2, 0, 1, 3, r.getrandbits(32)]))

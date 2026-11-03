@@ -155,6 +155,7 @@ def new_window(r):
     regions[0x751fa8] = struct.pack('<%dH' % len(w), *w)
     log = regions[LOG]
     dialogbuild.long_open(log)
+    regions[0x7cb28c] = r.bytes(4)   # (Global7cb28c_Select(1, ...)'s dword)
     regions[HEAP] = heap(0x28000, r.choice([0] * 40 + [r.randrange(1, 16)]))
     regions[0x7ca2f0] = put(put(bytearray(r.bytes(0x20)), 0x18, 'I', window), 0x1c, 'I', state)
     if window:

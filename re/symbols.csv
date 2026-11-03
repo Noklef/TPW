@@ -7513,6 +7513,7 @@ address,name,kind,confidence,notes
 0x0048e2f0,Dialog7ca098_Handler,function,low,"reimplemented (src/game/ui/dialog7ca098); cdecl (window, message, a, b); name invented, unconfirmed: the handler of the message box [0x7ca098]"
 0x00498d80,Dialog7ca210_Open,function,low,"reimplemented (src/game/ui/dialog7ca210); cdecl; name invented, unconfirmed: the dialog [0x7ca210] opened; see the header"
 0x00486280,Thing_NameBuffer7ba058,function,low,"reimplemented (src/game/ui/dialog7ca210); cdecl (thing); name invented, unconfirmed: 0x4e2780 given the buffer 0x7ba058, 0x3fff; returns the buffer"
+0x004b2750,Dialog7cc2ec_Open,function,low,"reimplemented (src/game/ui/dialog7cc2ec); cdecl; name invented, unconfirmed: the dialog [0x7cc2ec] opened: five bars, the figures; see the header"
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"

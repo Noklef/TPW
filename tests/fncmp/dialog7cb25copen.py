@@ -58,6 +58,7 @@ def case(r):
     regions[0x7525a0] = struct.pack('<%dH' % len(w), *w)
     log = regions[LOG]
     dialogbuild.long_open(log)
+    regions[0x7cb290] = r.bytes(4)   # (Global7cb28c_Select(3, ...)'s dword)
     regions[HEAP] = heap(0x28000, r.choice([0] * 40 + [r.randrange(1, 16)]))
     regions[0x7cb25c] = struct.pack('<II', r.choice([0] * 12 + [r.getrandbits(32)]), r.choice([0, 0, 1, r.getrandbits(32)]))
     regions[0xfb34c2] = bytes([r.choice([0, 1, 1, 1, r.getrandbits(8)])])

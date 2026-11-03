@@ -100,6 +100,7 @@ def reset_dialog(r, regions):
 def new_window(r):
     regions = dialog7ca150.list_dialog(r, OP, lambda r, regions: TEXTS)
     dialogbuild.long_open(regions[LOG])
+    regions[0x7cb28c] = r.bytes(4)   # (Global7cb28c_Select(1, ...)'s dword)
     resets = r.random() < 0.2
     if resets:
         reset_dialog(r, regions)
