@@ -34,6 +34,8 @@ void Drain(u8 *object, u32 field) {
 
 }  // namespace
 
+void ObjList_Drain(u8 *object, u32 field) { Drain(object, field); }
+
 extern "C" {
 
 void __fastcall Shadow_SetByte(u8 *object, void *, s32 value) {

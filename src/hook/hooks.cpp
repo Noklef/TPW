@@ -467,6 +467,7 @@
 #include "../game/frontend/postcard.h"
 #include "../game/frontend/scenequeue.h"
 #include "../game/frontend/frame.h"
+#include "../game/frontend/sceneleave.h"
 #include "../game/frontend/viewcontrols.h"
 #include "../game/online/itemlist.h"
 #include "../game/online/items.h"
@@ -6553,6 +6554,14 @@ const Hook kHooks[] = {
     {"Class702da0_Clear",         0x005d6060, (void *)&Class702da0_Clear, {0xa1, 0x6c, 0x96, 0xf7, 0x00}},
     {"Class702da0_Push",          0x005d6110, (void *)&Class702da0_Push, {0x8b, 0x44, 0x24, 0x08, 0x53}},
     {"Class7029f0_Close",         0x005d5cf0, (void *)&Class7029f0_Close, {0x53, 0x8b, 0xd9, 0x56, 0x57}},
+    {"ViewCtl702bc8_Leave",       0x005dd220, (void *)&ViewCtl702bc8_Leave, {0x53, 0x8b, 0xd9, 0x8b, 0x03}},
+    {"ViewCtl702e70_Leave",       0x005dd690, (void *)&ViewCtl702e70_Leave, {0x53, 0x8b, 0xd9, 0x8b, 0x03}},
+    {"Class702cb0_Leave",         0x005e1450, (void *)&Class702cb0_Leave, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
+    {"Class702cb0_PlayFirst",     0x005e14a0, (void *)&Class702cb0_PlayFirst, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"Class702cb0_NextItem",      0x005e1640, (void *)&Class702cb0_NextItem, {0x56, 0x8b, 0xf1, 0x57, 0x8b}},
+    {"Class702cb0_PreviousItem",  0x005e1730, (void *)&Class702cb0_PreviousItem, {0x56, 0x8b, 0xf1, 0x57, 0x8b}},
+    {"Scene702ec0_Leave",         0x005e1bd0, (void *)&Scene702ec0_Leave, {0x53, 0x8b, 0xd9, 0x8b, 0x03}},
+    {"Scene702dd0_Leave",         0x005e2550, (void *)&Scene702dd0_Leave, {0x53, 0x8b, 0xd9, 0x8b, 0x03}},
     {"RSSE_Init",                 0x00551600, (void *)&RSSE_Init, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
     {"RsseScript_EventName",      0x00468600, (void *)&RsseScript_EventName, {0x53, 0x55, 0x56, 0x8b, 0x74}},
     {"RSSE_StartTimer",           0x00557160, (void *)&RSSE_StartTimer, {0xb9, 0x70, 0x59, 0x78, 0x00}},
