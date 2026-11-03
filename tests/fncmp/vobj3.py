@@ -6,10 +6,12 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import Bench, Call, HEAP, LOG, RAM, fill, heap, log_region, put, recorder, set_return, strings, vtable  # noqa: E402
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from fncmp import Bench, Call, HEAP, LOG, RAM, blob, fill, heap, log_region, put, recorder, set_return, strings, vtable  # noqa: E402
+import enginedebug  # noqa: E402
 
 # name: (address, convention, returns, size)
-CALLS = {'Slot80': (0x5644c0, 't', 'a', 0x20), 'VidMem': (0x5645a0, 't', 'a', 0x40), 'Crel': (0x4ef7b0, 't', 'a', 0x40), 'Cref': (0x4ef790, 't', 'v', 0x20), 'Seven': (0x5640a0, 't', 'a', 0xa0),
+CALLS = {'LockDesc': (0x564430, 't', 'a', 0x8a), 'AddAtt': (0x5644e0, 't', 'a', 0x53), 'DelAtt': (0x564540, 't', 'a', 0x5a), 'Slot80': (0x5644c0, 't', 'a', 0x20), 'VidMem': (0x5645a0, 't', 'a', 0x40), 'Crel': (0x4ef7b0, 't', 'a', 0x40), 'Cref': (0x4ef790, 't', 'v', 0x20), 'Seven': (0x5640a0, 't', 'a', 0xa0),
          'Six': (0x58d380, 't', 'a', 0x80), 'Rem': (0x421690, 't', 'a', 0x90), 'Add': (0x576270, 't', 'a', 0xa0)}
 
 
@@ -17,7 +19,8 @@ def lock(e):  # the STL lock (0x691de0, thiscall, returns its argument; 0x691ea0
     e.r['EAX'] = e.r['ECX']
 
 
-B = Bench([(a, a + n) for (a, _c, _r, n) in CALLS.values()] + [(0x590730, 0x590750)], hooks={0x691de0: lock, 0x691ea0: lambda e: None})
+B = Bench([(a, a + n) for (a, _c, _r, n) in CALLS.values()] + [(0x590730, 0x590750), (0x56a770, 0x56ae60), (0x56af20, 0x56af9c), enginedebug.RANGE],
+          hooks={0x691de0: lock, 0x691ea0: lambda e: None, **enginedebug.HOOKS})
 OBJ, LST, NODES, OBJS, VT, VTA, VTM = RAM, RAM + 0x1000, RAM + 0x1100, RAM + 0x2000, RAM + 0x3000, RAM + 0x3100, RAM + 0x3200
 
 
@@ -31,6 +34,22 @@ def case(r):
     def call(*args):
         return Call(address, [OBJ] + list(args), regions, conv=conv, ret=ret)
 
+    if name in ('LockDesc', 'AddAtt', 'DelAtt'):
+        enginedebug.texts(log)
+        put(obj, 0x14, 'I', RAM + 0x300)
+        slot, n = {'LockDesc': (25, 5), 'AddAtt': (3, 2), 'DelAtt': (8, 3)}[name]
+        regions[RAM + 0x300] = struct.pack('<I', VTM) + r.bytes(0x20)
+        regions[VTM] = vtable({}, size=48, com={slot: n})
+        errors = bytearray(r.bytes(0x204))
+        put(errors, 0x200, 'I', r.choice([0, 1, 0x3f, 0x40, r.randrange(0x40)]))
+        regions.update({0x879cd4: r.bytes(4), 0x879a2c: bytearray(struct.pack('<I', r.choice([0, 1]))), 0x879ad0: errors, 0x8bd508: bytearray(4)})
+        set_return(log, slot, r.choice([0, 0, 0, 1, 0x88760000 + r.randrange(0x300), 0x80004005, r.getrandbits(32)]))
+        if name == 'LockDesc':
+            blob(log, 25, 2, (1 << 31) - 1)
+            fill(log, 25, 2, r.bytes(0x70), offset=4)
+            regions[RAM + 0x400] = r.bytes(0x90)
+            return call(RAM + 0x400)
+        return call(r.getrandbits(32)) if name == 'AddAtt' else call()
     if name == 'Slot80':
         put(obj, 0x14, 'I', RAM + 0x300)
         regions[RAM + 0x300] = struct.pack('<I', VTM) + r.bytes(0x20)

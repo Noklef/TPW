@@ -10,6 +10,8 @@
 #include "../math/x87.h"
 #include "../render/engineerrors.h"
 #include "../render/quad.h"
+#include "../render/texformat.h"
+#include "loadscreen.h"
 #include "texcache.h"
 #include "rleimage.h"
 #include "texture.h"
@@ -123,7 +125,12 @@ u32 TextureFrom(u8 *image, u8 *source, u8 *texture) {
 
 void PushNoMemory() { EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 2, 0xb0754000); }
 
+const SpriteFramesEnv kGameFramesEnv = {&LoadScreen_Tick};
+const SpriteFramesEnv *g_framesEnv = &kGameFramesEnv;
+
 }  // namespace
+
+void SpriteFrames_SetEnv(const SpriteFramesEnv *e) { g_framesEnv = e ? e : &kGameFramesEnv; }
 
 extern "C" {
 
@@ -291,6 +298,71 @@ u32 __fastcall SpriteImage_Release(u8 *image) {
 }
 
 void __fastcall SpriteImage_Dtor(u8 *image) { SpriteImage_Release(image); }
+
+u32 __fastcall SpriteFrames_Load(u8 *set, void *, u8 *stream, u32) {
+    const auto read = [&](void *to, u32 size) { Object_CallSlot8Product((u32)(uintptr_t)to, size, 1, stream); };
+    u32 format = 0, second = 0;
+    read(&format, 2);
+    read(&second, 2);
+    read(set, 4);
+    u8 *textures = nullptr;
+    if (u8 *const block = static_cast<u8 *>(GameHeap_Alloc(at<u32>(set, 0) * 0x60 + 4))) {
+        const s32 count = at<s32>(set, 0);
+        at<s32>(block, 0) = count;
+        textures = block + 4;
+        CRT_VectorVbaseCtorIterator(textures, 0x60, count, reinterpret_cast<void(__fastcall *)(void *, void *, u32)>(&Texture_Ctor),
+                                    reinterpret_cast<void *>((uintptr_t)0x00590a70));
+    }
+    at<u8 *>(set, 8) = textures;
+    u8 *images = nullptr;
+    if (u8 *const block = static_cast<u8 *>(GameHeap_Alloc(at<u32>(set, 0) * 0x18 + 4))) {
+        const s32 count = at<s32>(set, 0);
+        at<s32>(block, 0) = count;
+        images = block + 4;
+        CRT_VectorCtorIterator(images, 0x18, count, reinterpret_cast<void(__fastcall *)(void *)>(&SpriteImage_Init), reinterpret_cast<void *>((uintptr_t)0x00588350));
+    }
+    at<u8 *>(set, 4) = images;
+    const auto failed = [&] {
+        SpriteFrames_Free(set);
+        Object_FinishAndDelete(stream);
+        PushNoMemory();
+        return 0u;
+    };
+    if (!images || !textures) return failed();
+    const u16 kind = (u16)format;
+    if (kind == 3) {
+        at<u32>(set, 0xc) = TrackedGlobal_Alloc(0x400);
+        if (!at<u32>(set, 0xc)) return failed();
+        Object_CallSlot8Product(at<u32>(set, 0xc), 0x400, 1, stream);
+        if (global<u32>(0x008bd554) == 2) {   // the palette's dwords made pixels of this format, in place
+            const u8 *const table = TexFormat_Table(reinterpret_cast<u8 *>((uintptr_t)0x008bd550));
+            u8 *const palette = at<u8 *>(set, 0xc);
+            for (u32 i = 0; i < 0x100; ++i) {
+                const u32 colour = at<u32>(palette, i * 4);
+                at<u16>(palette, i * 2) = at<u16>(table, (colour >> 24) * 0x10) | at<u16>(table, (colour & 0xff) * 0x10 + 0xc) | at<u16>(table, ((colour >> 8) & 0xff) * 0x10 + 8) |
+                                          at<u16>(table, ((colour >> 16) & 0xff) * 0x10 + 4);
+            }
+        }
+    }
+    if (kind == 3 || kind == 2) {
+        u32 image = (u32)(uintptr_t)images;
+        u8 *texture = textures;
+        for (s32 i = 0; i < at<s32>(set, 0); ++i) {
+            u8 *const current = reinterpret_cast<u8 *>((uintptr_t)image);
+            const u32 loaded = kind == 3 ? SpriteImage_LoadRle(current, nullptr, stream, at<u32>(set, 0xc), texture) : SpriteImage_LoadWct(current, nullptr, stream, texture);
+            if (!loaded) {   // (sic: an element of the array deleted, and the next image then 0x18 past null)
+                SpriteImage_Release(current);
+                GameHeap_Free(current);
+                image = 0;
+            }
+            image += 0x18;
+            texture += 0x60;
+        }
+    }
+    Object_FinishAndDelete(stream);
+    if (global<u8>(0x008bd508) & 1) g_framesEnv->tick(reinterpret_cast<u8 *>((uintptr_t)0x008c4748));
+    return 1;
+}
 
 u32 __fastcall SpriteFrames_Free(u8 *set) {
     if (u8 *const textures = at<u8 *>(set, 8)) {

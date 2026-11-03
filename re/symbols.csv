@@ -53,8 +53,8 @@ address,name,kind,confidence,notes
 0x00550520,GameSystem_Save,function,high,reimplemented (src/game/world/gamesystem); writes the game system globals
 0x004647a0,RideSystem_Load,function,high,module RSYS
 0x00464140,RideSystem_Save,function,high,module RSYS
-0x00543560,TrackRides_Load,function,high,module TRAK
-0x005428e0,TrackRides_Save,function,high,module TRAK
+0x00543560,TrackRides_Load,function,high,"reimplemented (src/game/world/trackrides); the track rides' load: chunks 2-9 rebuilding the rides, sections, cars and lists through the module's own calls"
+0x005428e0,TrackRides_Save,function,high,"reimplemented (src/game/world/trackrides); the track rides' save: chunks 1-9 of the rides, sections, cars and lists, the original's inlined chunk code folded into TrakChunk_Begin/End"
 0x0055e020,FlyingRides_Load,function,high,"reimplemented (src/game/core/savemods); cdecl (stream): the flying rides module's save game read: the module shut, then FLY_ and the flag; set: the module set up (FlyingRides_Init), the table, four dwords and each record read back; 1 for a missing header, else 0"
 0x0055de70,FlyingRides_Save,function,high,reimplemented (src/game/core/savemods); writes the flying rides module to the save game
 0x005597a0,RSSE_Load,function,high,"reimplemented (src/game/core/savemods); cdecl (stream): the RSSE module's save game read: the running scripts freed, the system set up again, then the globals, each script record with its blocks and object nodes read back (an occluder made again for a ride's box); 1 for a missing header or object list, else 0"
@@ -369,7 +369,7 @@ address,name,kind,confidence,notes
 0x00451640,HeightMap_LoadOrBuild,function,high,"loads <model>.hmp (magic 0xab1e0003, 0x00640005), rebuilds and rewrites it when missing or the footprint differs; result at model+0xcc"
 0x00451880,HeightMap_Build,function,high,"allocates header + w*h*0x1b bytes; 5x5 cells per tile, tile max heights, footprint flags"
 0x00451e20,HeightMap_Rasterize,function,medium,"reimplemented (src/game/model/heightmap); cdecl (node, unused, matrix by value, grid, hit, unused, unused, clipped): the model tree's vertices clamped into the grid and its faces rasterised as heights (y*2.55) into the grid's cells; 1 when nothing went past the grid"
-0x00550e00,Scape_LoadObjects,function,high,"reads Scape.omp OBJ_ records: type 1 point sound, 2 particle effect, 3 area sound; coords /1024"
+0x00550e00,Scape_LoadObjects,function,high,"reimplemented (src/game/world/scapeobjects); cdecl (path): reads Scape.omp's OBJ_ records: 1 a point sound, 2 a particle effect, 3 an area sound; coordinates / 1024"
 0x0051bfc0,Sound_PlayAt,function,medium,"reimplemented (src/game/core/soundplay); cdecl (owner, category, sound, x, y, z): with sound on and started and a sound, a stack play command (vtable 0x700b90, floats) posted to the manager's vtable +8; its result, else 0"
 0x0051c130,Sound_PlayAtRange,function,medium,"reimplemented (src/game/core/soundplay); cdecl (owner, category, sound, x, y, z, range): Sound_PlayAt with the range as a float at +0x18"
 0x00485aa0,SoundUi_Play,function,low,"reimplemented (src/game/core/soundplay); cdecl (sound): Sound_PlayAt(0, gSndCatUi [0x803a2c], sound, 0, 0, 0)"
@@ -442,7 +442,7 @@ address,name,kind,confidence,notes
 0x00540900,Sprites_Init,function,medium,"(ground camera, particles only); calls Sprites_LoadAll"
 0x00542420,Sprites_UseGroundFrames,function,high,"reimplemented (src/game/sprite/loading); cdecl, returns a byte: the loaded sprites' frame sets reloaded from the ground (.fpc) files of the sprite folder, unless already in use; answers 1, or 0 when nothing was done"
 0x00542640,Sprites_UseParkFrames,function,high,"reimplemented (src/game/sprite/loading); cdecl, returns a byte: the loaded sprites' frame sets reloaded from the park (.tpc) files of the sprite folder, unless already in use; answers 1, or 0 when nothing was done"
-0x00587db0,SpriteFrames_Load,function,medium,reads a .tpc/.fpc stream into a frame set
+0x00587db0,SpriteFrames_Load,function,medium,"reimplemented (src/game/gfx/spriteframe); thiscall (stream, unused; pops 8): reads a .tpc/.fpc stream into a frame set: its two arrays, the palette (kind 3) and the run-length or WCT images"
 0x0042ab20,Camera_SetMode,function,medium,"reimplemented (src/game/world/camera); cdecl (mode, toggle, ride, force, out, fresh): the camera's park view (0x40), follow (4) or walk (2) mode set or toggled in gCameraFlags 0x790ab0; entering or leaving a mode suspends the highlight, sets the chat buttons, swaps procedural terrain and wakes the camera's instance; every ride's model parts' faces marked by their flags; answers whether the mode changed"
 0x0042ae70,Camera_ToggleWalkMode,function,medium,"reimplemented (src/game/world/camera); the walk mode toggled when the cell under the point allows it, the point and yaw saved or restored"
 0x0042a560,Camera_FollowThing,function,low,"reimplemented (src/game/world/camera); cdecl (ride, ground, force, out, key, fresh): the camera's follow mode (Camera_SetMode 4) set on a ride, its keyed part flagged and remembered as the followed part, then the ground or park sprite frames chosen"
@@ -801,6 +801,7 @@ address,name,kind,confidence,notes
 0x0042a520,Camera_ToggleControl200,function,low,reimplemented (src/game/world/camera); cdecl: bit 0x200 of the camera control flags 0x790aac toggled; returns 1 (a key map action handler)
 0x00486860,Camera_CentreOnSprite,function,low,reimplemented (src/game/world/camera); cdecl (sprite): the camera point set (x and z) to the sprite position this moment: Sprite_InterpolatedPos at (clock 0x8786bc - last tick 0x878a1c) * [0x6ff16c] on the x87
 0x0042a190,Camera_StopFollowing,function,low,"reimplemented (src/game/world/camera); with bit 2 of 0x790ab0 the follow mode's thing dropped, the camera snapped when it answers so (name unconfirmed)"
+0x005d8de0,Camera_SetLookAt,function,low,"reimplemented (src/game/world/camera); thiscall; name invented, unconfirmed: the view matrix 0x7909f0 from the place +8 looking at +0x14; with the object +0x20 and +0x24, its +0x2c the unit vector to the target from the shifted place."
 0x0046c450,MouseMode_Nop4,function,high,reimplemented (src/game/world/mousemode); an empty mouse-mode method (4 arguments)
 0x0046c460,MouseMode_DeletingDtor,function,high,reimplemented (src/game/world/mousemode); the base mouse mode's deleting destructor
 0x0046c580,MouseModeTile_Ctor,function,high,reimplemented (src/game/world/mousemode); the 0x6fe9e0 tile mode's constructor
@@ -3973,6 +3974,9 @@ address,name,kind,confidence,notes
 0x00421690,ListRef_Remove,function,high,reimplemented (src/game/core/vobj3); unlinks the node of an object and deletes the object
 0x00576270,Pool_AddSorted,function,high,reimplemented (src/game/core/vobj3); links a pooled node holding an object into a list
 0x005645a0,Obj_FreeVideoMemory,function,low,"reimplemented (src/game/core/vobj3); thiscall: the free video memory of the DirectDraw object at +8 (GetAvailableVidMem, COM slot 0x5c, zeroed DDSCAPS2)"
+0x00564430,Obj_LockDesc,function,low,"reimplemented (src/game/core/vobj3); thiscall (out), pops 4: the member +0x14's COM slot 0x64 (Lock) with a description of 0x7c bytes; the result kept; out the description, all 0 on a failure; returns out. Name invented, unconfirmed."
+0x005644e0,Obj_AddAttached,function,low,"reimplemented (src/game/core/vobj3); thiscall (surface), pops 4: +0x18 = surface, the member +0x14's COM slot 0xc with it; the result kept: whether it was 0. Name invented, unconfirmed."
+0x00564540,Obj_DeleteAttached,function,low,"reimplemented (src/game/core/vobj3); thiscall: the member +0x14's COM slot 0x20 with (0, +0x18), +0x18 = 0; the result kept: whether it was 0. Name invented, unconfirmed."
 0x005b55e0,Class702880_ScalarDtor,function,high,reimplemented (src/game/core/vdel); scalar deleting destructor calling Class702880_Dtor
 0x005b58a0,Class702890_ScalarDtor,function,high,reimplemented (src/game/core/vdel); scalar deleting destructor calling Class702890_Dtor
 0x005bced0,Class7028d0_ScalarDtor,function,high,reimplemented (src/game/core/vdel); scalar deleting destructor calling Class7028d0_Dtor
@@ -4425,6 +4429,8 @@ address,name,kind,confidence,notes
 0x005eb270,Image_ErosionRamp,function,low,"reimplemented (src/game/gfx/imageops); thiscall, object unused (image a, count, image b; pops 12): a 2-byte work image of a set or not, b cleared; count Image_MinMark passes marking b with the low byte of (2t^3 - 3t^2) * 256, t = 1 - i / count; b ORed with the result"
 0x005d3ac0,Image_ShrinkSurface,function,low,reimplemented (src/game/gfx/imageops); an image made 320 x 240 x 4 from a 16- or 32-bit surface description by box averages
 0x005e80d0,Image_ShrinkToImage,function,low,"reimplemented (src/game/gfx/imageops); thiscall (dest image), pops 4: the image shrunk into the destination image's size and pixels by box averages, signed steps, all four bytes kept (name unconfirmed)"
+0x005eb3e0,Image_GaussianBlur,function,low,"reimplemented (src/game/gfx/imageops); thiscall, object unused (image, mask, sigma), pops 12; name invented, unconfirmed: a Gaussian blur of a one-byte image, in place, where the mask's byte is not 0."
+0x005ea8a0,Image_GaussianBlurLines,function,low,"reimplemented (src/game/gfx/imageops); cdecl (image, sigma: a double); name invented, unconfirmed: a Gaussian kernel's middle row along each row and each column, in place, the ends cut off unrenormalized; 0 when the work line is not to be had, else 1."
 0x005f09a0,Colour_Blend3,function,high,reimplemented (src/game/gfx/color); blends between three colour records by a position of 0 to 100
 0x00591270,Format_BuildChannelTable,function,high,reimplemented (src/game/gfx/color); Builds the 256 level table of four channel masks (name unconfirmed)
 0x00575160,Format_ConvertPixels,function,low,"reimplemented (src/game/gfx/color); cdecl (dst, src, width, height, table, step, bytes, flags): 4- or 3-byte pixels through a channel table (alpha, red, green, blue records) to dwords step apart, flag 1 bottom-up; averages packed into 0x87a25c; returns 1 for 4 bytes, 2 when enough pixels are translucent"
@@ -5674,6 +5680,7 @@ address,name,kind,confidence,notes
 0x005f3230,ParkMap_LayOut,function,low,"reimplemented (src/game/world/parkmap); thiscall: the overview backdrop framed on the view, its source rect set, the map sprites placed"
 0x005f3940,ParkMap_AddSprites,function,low,"reimplemented (src/game/world/parkmap); the park map's sprites added: one or two for each thing of kinds 1 and 4-7, one for each square of a kind, one for each flagged thing on the world's list"
 0x005f35b0,ParkMap_Scroll,function,low,"reimplemented (src/game/world/parkmap); thiscall (direction, amount), pops 8: the view origin moved by the amount (0 x less, 1 x plus, 2 y plus, 3 y less), each coordinate kept to the floor [0x703010] to width / height - 1, then the overview laid out again (name unconfirmed)"
+0x005f2380,ParkMap_Draw,function,low,"reimplemented (src/game/world/parkmap); the park map drawn on a canvas: squares by kind, their edges, the sprites' boxes"
 0x0053a540,MapCell_PickModel,function,low,"reimplemented (src/game/world/cellmodel); thiscall (cell; angle out), pops 4: the cell's model (group << 16 | index) from the table for its type by its neighbour bits (exact, else a subset), *angle the row's plus 180 for straight cells facing 0x40 / 0x10, then adjusted by flags, corners, junctions and for type 0x19 a random variant; 8 for types 4, 5, 7, 9, 0xa, 0xc, 0x11"
 0x00535dd0,MapCell_PickPathModel,function,low,"reimplemented (src/game/world/cellmodel); thiscall (angle out), pops 4: a path cell model picked from its neighbours (tables 0x7630b0 / 0x763138), toggled variants (0x820ac0, rand), group 2 sides"
 0x005365d0,MapCell_ApplyPathModel,function,low,"reimplemented (src/game/world/cellmodel); thiscall: a path cell's model (picked for a kind positive but 5, else 0x37) stored at 0x820aa8 and the cell's +0x14; a group 2 model replaces the cell's queue ride and paints the erasing tile, any other removes the ride and paints the model"
@@ -6420,6 +6427,7 @@ address,name,kind,confidence,notes
 0x0057e810,WeatherFx_BoltSubdivide,function,low,"reimplemented (src/game/render/weatherfx); One lightning segment subdivided (name invented, unconfirmed)."
 0x0057ec50,WeatherFx_DrawBolt,function,low,"reimplemented (src/game/render/weatherfx); thiscall (a, b): one lightning bolt into a batch: the texture's UV offsets and ends, Batch_Begin, WeatherFx_BoltSubdivide, Ribbon_AddPoint, Batch_TransformVertices, Batch_Close"
 0x0057f490,WeatherFx_DrawDrops,function,low,"reimplemented (src/game/render/weatherfx); thiscall (x, y, z), pops 12; name invented, unconfirmed: the falling drops' places, wrapped into [-4, 4], swirled through the curve or shaken by rand(), then a triangle for each drop in front"
+0x0057efd0,WeatherFx_DrawStreaks,function,low,"reimplemented (src/game/render/weatherfx); thiscall (x, y, z), pops 12; name invented, unconfirmed: the falling drops as streaks: wrapped places and their ends through the transformer, a quad for each in front, the near end half alpha. No check of the count, as in the original."
 0x00576260,Renderer_SetRestoreCallback,function,high,"reimplemented (src/game/render/renderer); thiscall (the renderer, [0x87a6d0]; fn): +0x78 = fn, called when the display device generation moves on (0x576c26)"
 0x005763f0,Renderer_SetStateFlags,function,high,"reimplemented (src/game/render/renderer); thiscall (flags): +0x48, the render state flags (0x1f31 by default)"
 0x00576400,Renderer_StateFlags,function,high,"reimplemented (src/game/render/renderer); thiscall: +0x48, the render state flags"
@@ -6540,6 +6548,20 @@ address,name,kind,confidence,notes
 0x00567620,D3dProbe_SetFlags,function,low,"reimplemented (src/game/render/d3dprobe); thiscall on the probe + 0x2c (flags, pops 4): the render and stage states of the flags that changed (Shadow_ setters), the flags set last at base +0x14"
 0x005686d0,D3dProbe_SetTextureStages,function,low,"reimplemented (src/game/render/d3dprobe); thiscall (mode, textures; pops 8): the texture stage states and textures of pass mode 0-2 when the probe's +0x18 is 4"
 0x00567130,D3dProbe_Draw,function,low,"reimplemented (src/game/render/d3dprobe); thiscall on the probe + 0x2c (size, diffuse, specular, u0, v0, u1, v1): one screen triangle through DrawPrimitive between the base slots 7 and 8 (name unconfirmed)"
+0x00566fa0,D3dProbe_BeginScene,function,low,"reimplemented (src/game/render/d3dprobe); thiscall on the probe + 0x2c: stage 0 state 0x13, BeginScene; the result kept and pushed (kind 3): whether it was 0"
+0x00567010,D3dProbe_EndScene,function,low,reimplemented (src/game/render/d3dprobe); thiscall on the probe + 0x2c: EndScene; the result kept and pushed (kind 3): whether it was 0
+0x00567060,D3dProbe_ReadPixel,function,low,"reimplemented (src/game/render/d3dprobe); thiscall (x, y, out), pops 0xc: a pixel of the surface at [0x879a24] + 0x14, masked by 0x8bd4dc; 0 when the lock fails"
+0x005675c0,D3dProbe_SetTexture,function,low,"reimplemented (src/game/render/d3dprobe); thiscall on the probe + 0x2c (stage, texture), pops 8: SetTexture unless the texture is the one at the probe's +0x20"
+0x00567ad0,D3dProbe_SetFog,function,low,"reimplemented (src/game/render/d3dprobe); thiscall on the probe + 0x2c (start, end, colour), pops 0xc: the fog colour, the inverse range 0x8bd498 and the fog render states"
+0x00568ac0,D3dProbe_DrawTestQuad,function,low,reimplemented (src/game/render/d3dprobe); thiscall on the probe + 0x2c: a fixed four-coloured quad between the base slots 7 and 8; slot 8's answer
+0x00568c50,D3dProbe_DrawQuad,function,low,"reimplemented (src/game/render/d3dprobe); thiscall on the probe + 0x2c (x0, y0, x1, y1, colour, texture), pops 0x18: a textured quad, its blend and z states set where they differ"
+0x00568f50,D3dProbe_DrawLines,function,low,"reimplemented (src/game/render/d3dprobe); thiscall on the probe + 0x2c (points, count, colour, scale), pops 0x10: a line strip of up to 16 points on the stack"
+0x00569040,D3dProbe_DrawFrame,function,low,reimplemented (src/game/render/d3dprobe); thiscall on the probe + 0x2c: a frame 5 wide round the screen; 1
+0x00569410,D3dProbe_DrawBox,function,low,"reimplemented (src/game/render/d3dprobe); thiscall on the probe + 0x2c (corners, unused, flags), pops 0xc: eight transformed corners as a line strip, the sides the flags select red; 1"
+0x00569720,D3dProbe_FillRate,function,low,"reimplemented (src/game/render/d3dprobe); thiscall on the probe + 0x2c: a screen quad drawn three times against the clock: pixels per tick, in st0"
+0x00567c10,D3dProbe_DrawBatchTinted,function,low,"reimplemented (src/game/render/d3dprobe); thiscall on the probe (batch), pops 4: the batch's vertices copied to the draw buffer's free ones, their colours 0xffff0000, drawn by the batch's flags; returns 1. Name invented, unconfirmed."
+0x005680b0,D3dProbe_DrawBatch,function,low,"reimplemented (src/game/render/d3dprobe); thiscall on the probe + 0x2c (batch; pops 4); name invented, unconfirmed: a batch drawn by its flags and the pass count, kept, pushed (kind 2)"
+0x00566840,D3dProbe_SetUpDevice,function,low,"reimplemented (src/game/render/d3dprobe); thiscall on the probe + 0x2c, a virtual; name invented, unconfirmed: the device's caps, states, vendor quirks, the two driver probes, the texture stages; 0 for the PowerVR1 test, else 1"
 0x0056af20,EngineErrors_Push,function,low,"reimplemented (src/game/render/engineerrors); thiscall (list; kind, code), pops 8: a (kind, code) pair added to the engine's error list (0x40 at most, the count at +0x200), a kind 3 one with the engine debug flag (0x1000000 at 0x8bd508) first written to the engine debug log (0x564650) as its result message"
 0x0056afc0,EngineErrors_DropSurfaceLost,function,low,"reimplemented (src/game/render/engineerrors); thiscall on the error list: each DDERR_SURFACELOST pair, from the last, replaced by the list's last; any: scene flag 0x10000000 and 1"
 0x00581410,Model_TexCoords,function,low,"reimplemented (src/game/render/texcoords); cdecl (out, settings, index, texture, stride, mode, two ignored): the texture coordinates of a model entry's vertices into a batch (zeros, normals by the view, or the stored ones, shifted by the light with mode bit 2), x87"
@@ -6628,6 +6650,7 @@ address,name,kind,confidence,notes
 0x00565f90,Batch_DrawQuad,function,low,"reimplemented (src/game/render/batchquad); One textured quad as a batch of its own (name invented, unconfirmed)."
 0x0057ed50,Batch_DrawScreenQuad,function,low,"reimplemented (src/game/render/batchquad); a quad over the whole clip space drawn on [0x879ab0] (name invented, unconfirmed)"
 0x00589f90,SpriteFrame_DrawQuad,function,low,"reimplemented (src/game/render/batchquad); a sprite frame's item filled and drawn as one quad on [0x879ab0] (name invented, unconfirmed)"
+0x00566220,Batch_DrawQuadInPlace,function,low,"reimplemented (src/game/render/batchquad); thiscall (spec, mask), pops 8: a quad added to the object's batch: clipped by way of DrawBatch_AddPolygon, or written straight in if there is room; fog; the transformer's float answer added to the batch's +0x30; returns 1. Name invented, unconfirmed."
 0x00577ae0,TileGrid_Draw,function,low,"reimplemented (src/game/render/tilegrid); the tiles of a rectangle of a grid of 64-unit cells, each a Batch_DrawQuad (name invented, unconfirmed)"
 0x0057c620,SpriteGroups_Draw,function,low,"reimplemented (src/game/render/spritegroups); a frame's camera-facing sprites by group, each a Batch_DrawQuad (name invented, unconfirmed)"
 0x0058a010,TiledPanel_Draw,function,low,"reimplemented (src/game/render/tiledpanel); a panel of tiles on the screen, anchored, each tile a Batch_DrawQuad (name invented, unconfirmed)"
@@ -6636,6 +6659,7 @@ address,name,kind,confidence,notes
 0x0057c2a0,GroundShadows_DrawAll,function,low,"reimplemented (src/game/render/groundshadow); a list of ground shadows drawn, the count cleared (name invented, unconfirmed)"
 0x00678e70,RasterFormat_Init,function,low,"reimplemented (src/game/render/rasterformat); cdecl (surface, z buffer out, width, height); name invented, unconfirmed; the software rasteriser's pixel format from the surface's and its buffers"
 0x00564650,EngineDebug_Log,function,low,"reimplemented (src/game/render/enginedebug); cdecl (text); name invented: enginedebug.txt opened by the C library, made anew on the first write; the text written, flushed and the file closed"
+0x005645e0,EngineDebug_LogFallback,function,low,"reimplemented (src/game/render/enginedebug); cdecl (text): as EngineDebug_Log, to the file named at 0x766334, its count 0x879a28. Name invented, unconfirmed."
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"
@@ -6881,6 +6905,7 @@ address,name,kind,confidence,notes
 0x005d9db0,Class702af0_Ctor,function,low,"reimplemented (src/game/frontend/lobbyscene); thiscall (count, name, name2, two triples by pointer, two dwords; pops 0x1c): strings +0x10/+0x24, vtable 0x702af0, a new list (0x702aec) at +0x58, +8 = count * [0x7858dc] / 100 clamped to 1..count, names assigned, triples to +0x38/+0x44, dwords to +0x50/+0x54, registered with [0xf83784] slot 6 (name unconfirmed)"
 0x005e1210,Class702cb0_StepCamera,function,low,"reimplemented (src/game/frontend/lobbyscene); thiscall: the lobby camera's eye set round the model by angle and radius, the position and look-at eased toward eye and target, both copied to the camera"
 0x005d80c0,Class702a50_Dtor,function,low,"reimplemented (src/game/frontend/lobbyscene); class 0x702a50's destructor: out of the registry, the ride destroyed, its two strings destroyed (name unconfirmed)"
+0x005e0470,Class702cb0_Step,function,low,"reimplemented (src/game/frontend/lobbyscene); the lobby's step: the camera follows or roams, the weather's drops, a model's burst and sounds"
 0x005dd310,ViewCtl_Lower48,function,low,reimplemented (src/game/frontend/viewcontrols); thiscall: the float +0x48 lowered by the float +0x14
 0x005dd320,ViewCtl_Raise48,function,low,reimplemented (src/game/frontend/viewcontrols); thiscall: the float +0x48 raised by the float +0x14
 0x005dd330,ViewCtl_Raise50,function,low,reimplemented (src/game/frontend/viewcontrols); thiscall: the float +0x50 raised by the float +0x14
@@ -6896,6 +6921,7 @@ address,name,kind,confidence,notes
 0x005dced0,ViewCtl702bc8_Message,function,low,"reimplemented (src/game/frontend/viewcontrols); thiscall (message, key, unused): message 0x1000a's arrow keys move +0x48 / +0x50 by +0x14, message 0x10006 with 2 swaps the mode and sets the dialog's child 0x16006"
 0x005dd530,ViewCtl702e70_Message,function,low,"reimplemented (src/game/frontend/viewcontrols); thiscall (message, key, unused): as 0x5dced0, then message 0x10005 with key 0 and a target at +0x70: [0xf82888] = its +0xc, the view's slot 8 and the scene's +8 object's slot 7 called"
 0x005e3dc0,Class702d78_MakeViews,function,low,"reimplemented (src/game/frontend/viewcontrols); the scene object's five objects made and its list's items told (name invented, unconfirmed)"
+0x005dc860,ViewCtl702bc8_Update,function,low,"reimplemented (src/game/frontend/viewcontrols); thiscall: a virtual slot of the view: the thing under the mouse picked and shown, the edges or a drag move +0x48 and +0x50, the angles and the distance eased, the camera's position set. Name invented, unconfirmed."
 0x005e2cc0,IslandCamera_LoadSettings,function,low,"reimplemented (src/game/frontend/islandcamera); thiscall: the lobby island camera settings read from a text file (FOV, spin, radii, ten camera positions)"
 0x004a7bf0,Postcard_OnSent,function,low,"reimplemented (src/game/frontend/postcard); cdecl (done, result): the postcard sender's callback; when done and the result is 0-4, the command of the table {0x34, 0x39, 0x3a, 0x3b, 0x3b} posted (CommandQueue_Post)"
 0x005d6060,Class702da0_Clear,function,low,reimplemented (src/game/frontend/scenequeue); the advisor stopped and every queued id freed

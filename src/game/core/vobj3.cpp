@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../gfx/animtex.h"
+#include "../render/d3dresult.h"
 #include "gameheap.h"
 #include "vcall.h"
 
@@ -27,6 +28,26 @@ extern "C" {
 u32 __fastcall Obj_StoreComSlot80(u8 *object) {
     global<u32>(0x00879cd4) = comcall<u32>(at<u8 *>(object, 0x14), 0x80, 0u);
     return 1;
+}
+
+u32 *__fastcall Obj_LockDesc(u8 *object, void *, u32 *out) {
+    u32 desc[0x1f] = {0x7c};
+    d3dresult::keep(comcall<u32>(at<u8 *>(object, 0x14), 0x64, 0u, desc, 1u, 0u));
+    const bool locked = d3dresult::pushed(3) != 0;
+    for (u32 i = 0; i < 0x1f; ++i) out[i] = locked ? desc[i] : 0;
+    return out;
+}
+
+u32 __fastcall Obj_AddAttached(u8 *object, void *, u32 surface) {
+    at<u32>(object, 0x18) = surface;
+    d3dresult::keep(comcall<u32>(at<u8 *>(object, 0x14), 0xc, surface));
+    return d3dresult::pushed(3);
+}
+
+u32 __fastcall Obj_DeleteAttached(u8 *object) {
+    d3dresult::keep(comcall<u32>(at<u8 *>(object, 0x14), 0x20, 0u, at<u32>(object, 0x18)));
+    at<u32>(object, 0x18) = 0;
+    return d3dresult::pushed(3);
 }
 
 u32 __fastcall Obj_FreeVideoMemory(u8 *object) {

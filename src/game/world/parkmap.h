@@ -16,9 +16,28 @@
 
 #include "../../../re/types.h"
 
+// ParkMap_Draw's calls (the ports by default; the bench runs them as recorders).
+struct ParkMapEnv {
+    u8(__fastcall *rating)(const u8 *object, void *, u32 baseOnly);       // Object_Rating (0x4e0860)
+    u32(__fastcall *average)(const u8 *object);                           // Object_HistoryAverage (0x4e1e30)
+    void(__fastcall *update)(u8 *sprite, void *, u32 mask, u32 a, u32 b);  // TexSprite_Update (0x5f44d0)
+    void(__fastcall *coasterLines)(const u8 *map);                        // 0x5f2fd0, unported (by address)
+};
+void ParkMap_SetEnv(const ParkMapEnv *env);
+
 extern "C" {
 // 0x5f2050 (thiscall on the map).
 void __fastcall ParkMap_Classify(u8 *map);
+
+// 0x5f2380 (thiscall on the map; the SEH frame and the debug prints left out; name unconfirmed): the map drawn on a canvas of the surface at +0x2c. Each of the
+// +0x24 x +0x28 squares (480 / wide by 425 / high, from (0xf, 0x2a)) is filled (flags 8; driver slot 8, +0x20) with its kind's colour: by the
+// mode +0x20 (kinds 1-3 and 8; 2 the rating, 3 the average, a blend of the records 0xf86bd8...), or else by the kind: 1-4 and 8 the bits of
+// +0x18, 5 to 7 the view +0x1c (1, 3, not 0), each the blend by the thing's +0x44; 9-12 fixed records. Kinds 1-8 get a line (slots 2, 3) on
+// each side whose neighbour differs in kind or thing or is off the map (the south and east lines placed by the width, also for the height). With +0x18 & 0x10
+// the coasters' lines (0x5f2fd0). Then each sprite of the list at +0x20080: TexSprite_Update(the map's +0x18, +0x1c, +0x20); those shown
+// by their kind (+0x14 2; +0x1c 1 a bit of +0x18, 2 the view, 3 the mode, the value at +0x20) get a box (flags 0xc; slot 7) on the squares of their handle's +0x20a and +0x20c,
+// in the record for the chosen sprite (+0x20060) or the other.
+void __fastcall ParkMap_Draw(const u8 *map);
 // 0x5f4180 (thiscall on the map; sprite, pops 4; name unconfirmed): a sprite (its frame at +0x28, as TexSprite's) placed on the overview
 // from its map position (+4, +8): screen x, y = (pos - the view origin (+0x54, +0x58)) * 480 / width (425 / height, rounded to a float) *
 // the zoom (+0x5c) + half the screen's width (height) (0x7a1968 / 0x7a1930), stored at +0xc / +0x10; the frame's vector in the array at

@@ -25,6 +25,11 @@ extern "C" {
 // vertices and indices is ended and flushed, Batch_Flush's answer returned; else 1. Vertices' dword +0x14 is unset in the original too.
 u32 __fastcall Batch_DrawQuad(u8 *object, void *, u8 *spec, u32 mask);
 
+// 0x566220 (thiscall on the same object; spec, mask; pops 8; name invented, unconfirmed): the same quad added to the object's batch (Batch_Begin only without one). Always returns 1.
+// A point off a side: by way of DrawBatch_AddPolygon (the port itself: a recorder could not add vertices); else four vertices and six indices written straight to the batch, if the
+// object's room at +0x28 and +0x2c takes them. Then the fog and the transformer's slot 3 on what was added, its float answer added to the batch's +0x30.
+u32 __fastcall Batch_DrawQuadInPlace(u8 *object, void *, u8 *spec, u32 mask);
+
 // 0x57ed50 (thiscall; name invented, unconfirmed): +4 = 0; a quad over the whole clip space (x, y -1 to 1, z 0.001, w 1) drawn on [0x879ab0] with mask -1: polygon flags 0, colour -1, batch flags 0x9a1, the rest 0.
 // Batch_DrawQuad's answer. The spec's +0x14 is stack garbage in the original, not read; 0 here.
 u32 __fastcall Batch_DrawScreenQuad(u8 *self);

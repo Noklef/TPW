@@ -709,6 +709,28 @@ LOG_BLOB_WIDE = 0xfc0  # two (k | 0x80000000, start, mask): a blob_bytes() secon
 BLOB_WIDE = 2
 
 
+LOG_ARRAYS = 0x13c0  # four (k | 0x80000000, argument, count argument, stride): a blob_array() each (the log region grows to reach them)
+
+
+def blob_array(log, k, arg, count_arg, stride, which=0):
+    """Makes slot k's recorder log its argument `arg` (unless null) as a hash of the records it points to: its `count_arg` argument's number of them
+    (signed; none when not above 0; at most 0x100), `stride` bytes each. An array on the stack longer than a blob()'s 32 dwords, a draw call's
+    vertices and indices (which: 0-3, an entry each: two arrays for one slot, say)."""
+    assert 0 <= which < 4 and 0 < stride <= 0x100
+    if len(log) < LOG_ARRAYS + 0x40:
+        log.extend(bytes(LOG_ARRAYS + 0x40 - len(log)))
+    struct.pack_into('<4I', log, LOG_ARRAYS + 16 * which, (k & 63) | 0x80000000, arg, count_arg, stride)
+
+
+def _array_hash(read, raw, p, count_arg, stride):
+    count = raw[count_arg] if count_arg < len(raw) else 0
+    count = 0 if count >= 0x80000000 else min(count, 0x100)
+    h = 0x811c9dc5
+    for b in read(p, count * stride) if count else b'':
+        h = ((h ^ b) * 0x01000193) & 0xffffffff
+    return h
+
+
 def blob_bytes(log, k, arg, mask, inner=None):
     """As blob(), but `mask` selects bytes 0-31 (bit i: byte i), and inner = (offset, mask[, base]) also hashes bytes base to base + 46 of the structure
     that the pointer at that offset points to (unless null; base a multiple of 4 up to 28, default 0): an event on the stack that points to a second one,
@@ -846,6 +868,10 @@ def _log_args(e, k, raw, kk):
             args[i] = 0
         elif (blob_arg & 0x1f) == i + 1 and args[i]:
             args[i] = blob_bytes_hash(e.read, args[i], blob_arg, blob_mask, _blob_wide(e, k)) if blob_arg & 0x80000000 else blob_hash(e.read, args[i], blob_mask)
+        for w in range(4):   # (blob_array())
+            ak, aa, ac, stride = struct.unpack('<4I', e.read(LOG + LOG_ARRAYS + 16 * w, 16))
+            if ak == (k & 63) | 0x80000000 and aa == i and args[i]:
+                args[i] = _array_hash(e.read, raw, args[i], ac, stride)
         if mask >> i & 1:
             args[i] = string_hash(e.read, args[i])
         if mask >> (16 + i) & 1:

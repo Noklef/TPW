@@ -78,6 +78,13 @@ u32 __fastcall SpriteImage_Release(u8 *image);
 // 0x588350 (thiscall; name unconfirmed): the same as SpriteImage_Release, returning nothing (an image array's destructor).
 void __fastcall SpriteImage_Dtor(u8 *image);
 
+// 0x587db0 (thiscall (stream, unused), pops 8): a .tpc / .fpc stream read into a frame set (+0 count, +4 its images, +8 its texture array, +0xc the palette): the word kind, a word unused, the count; both
+// arrays (count-prefixed, CRT_VectorVbaseCtorIterator with Texture_Ctor, CRT_VectorCtorIterator with SpriteImage_Init). An array not got, or the palette: SpriteFrames_Free, the stream finished and deleted,
+// the error (2, 0xb0754000) pushed, 0. Kind 3: a tracked block of 0x400 bytes (the palette), read, with [0x8bd554] 2 its dwords turned into u16 pixels in place through TexFormat_Table's four tables; then each
+// image's SpriteImage_LoadRle (stream, the palette, its texture). Kind 2: each image's SpriteImage_LoadWct. Others read no images. An image that fails is released and deleted, though it is an array's element, and
+// the next image is 0x18 past null (sic: a crash unless it was the last). Then the stream finished and deleted, with 0x8bd508 bit 0 the loading screen's step (0x8c4748), 1.
+u32 __fastcall SpriteFrames_Load(u8 *set, void *, u8 *stream, u32 unused);
+
 // 0x588230 (thiscall; name unconfirmed): a frame set's (+0 count, +4 its images, +8 its texture array, +0xc a tracked block) parts
 // freed: the textures (when set) destroyed as one array (Texture_DestroyArray) and +8 cleared; with images, the first count images'
 // +0 cleared (the count signed, re-read each time; sic: past the images' own count it writes on) and the images (when still set)
@@ -131,3 +138,9 @@ u32 __fastcall SpriteFrame_FillItem(u8 *frame, void *, u8 *item);
 // with [0x87b088] for the matrix. Returns the dword at 0x8c1808 + 4 * [0x8c181c] (read again).
 u32 __fastcall SpriteFrame_GroundQuad(u8 *frame, void *, float *quad, u32 matrix, float width, float height);
 }
+
+// What SpriteFrames_Load calls last (default LoadScreen_Tick). nullptr restores it.
+struct SpriteFramesEnv {
+    u32(__fastcall *tick)(u8 *screen);
+};
+void SpriteFrames_SetEnv(const SpriteFramesEnv *e);

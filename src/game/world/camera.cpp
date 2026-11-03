@@ -12,6 +12,7 @@
 #include "../model/holder.h"
 #include "../model/parts.h"
 #include "../model/partstate.h"
+#include "../render/state.h"
 #include "../render/viewquad.h"
 #include "../sprite/loading.h"
 #include "../terrain/procedural.h"
@@ -486,5 +487,75 @@ void __cdecl Camera_FollowThing(u32 ride, u32 ground, u32 force, u32 *out, u32 k
         g_env->useGround();
     else
         g_env->usePark();
+}
+
+namespace {
+// x / length of (x, y, z) for each, the length through a float (fst m32; fstp m32; fdiv m32).
+void Normalize(const float *in, float *out) {
+    const float length = (float)X87_Sqrt(X87Reg(in[0]) * in[0] + X87Reg(in[1]) * in[1] + X87Reg(in[2]) * in[2]);
+    for (int i = 0; i < 3; i++) out[i] = (float)(X87Reg(in[i]) / length);
+}
+// fcom's C3: equal or unordered.
+bool SameOrNan(X87Reg x, float y) { return !(x.v < y) && !(x.v > y); }
+}  // namespace
+
+void __fastcall Camera_SetLookAt(u8 *self) {
+    float *const view = reinterpret_cast<float *>((uintptr_t)0x007909f0);
+    const float *const position = reinterpret_cast<const float *>(self + 8), *const target = reinterpret_cast<const float *>(self + 0x14);
+    Camera_SetFlag80(1);
+    Matrix_Identity(view);
+
+    const X87Reg d0 = X87Reg(target[0]) - position[0], d1 = X87Reg(target[1]) - position[1], d2 = X87Reg(target[2]) - position[2];
+    const float d[3] = {(float)d0, (float)d1, (float)d2};
+    const float distance = (float)X87_Sqrt(d0 * d0 + d1 * d[1] + d2 * d[2]);
+    const float forward0 = (float)(X87Reg(d[0]) / distance), forward1 = (float)(X87Reg(d[1]) / distance);
+    const X87Reg forward2 = X87Reg(d[2]) / distance;
+
+    const float kZero = *reinterpret_cast<const float *>((uintptr_t)0x00702a38);
+    const X87Reg sideX = forward2 - 0.0f;
+    float side[3] = {(float)sideX, kZero, (float)(X87Reg(0.0f) - forward0)};
+    if (SameOrNan(sideX, kZero) && SameOrNan(X87Reg(side[1]), kZero) && SameOrNan(X87Reg(side[2]), kZero)) {
+        side[0] = 1.0f;
+        side[1] = 0.0f;
+        side[2] = 0.0f;
+    }
+    Normalize(side, side);
+    const X87Reg up0r = X87Reg(side[2]) * forward1 - X87Reg(side[1]) * forward2;
+    const X87Reg up1r = X87Reg(side[0]) * forward2 - X87Reg(side[2]) * forward0;
+    const X87Reg up2r = X87Reg(side[1]) * forward0 - X87Reg(side[0]) * forward1;
+    float up[3] = {(float)up0r, (float)up1r, (float)up2r};
+    Normalize(up, up);
+
+    view[0] = side[0];
+    view[1] = side[1];
+    view[2] = side[2];
+    view[4] = up[0];
+    view[5] = up[1];
+    view[6] = up[2];
+    view[8] = forward0;
+    view[9] = forward1;
+    view[10] = (float)forward2;
+    view[12] = X87_Through(position[0]);
+    view[13] = X87_Through(position[1]);
+    view[14] = X87_Through(position[2]);
+
+    u8 *const light = *reinterpret_cast<u8 **>(self + 0x20);
+    if (!light || *reinterpret_cast<const u32 *>(self + 0x24) == 0) return;
+    const float k = *reinterpret_cast<const float *>(self + 0x28), m = *reinterpret_cast<const float *>(self + 0x2c);
+    const bool flat = *reinterpret_cast<const u32 *>(self + 0x30) != 0;
+    const float along0 = (float)(X87Reg(k) * up[0] + position[0]), along1 = (float)(X87Reg(k) * up[1] + position[1]), along2 = (float)(X87Reg(k) * up[2] + position[2]);
+    const float place0 = (float)(X87Reg(m) * side[0] + along0), place1 = (float)(X87Reg(m) * side[1] + along1);
+    float to[3];
+    to[0] = (float)(X87Reg(target[0]) - place0);
+    if (flat) *reinterpret_cast<u32 *>(&to[1]) = 0;
+    else to[1] = (float)(X87Reg(target[1]) - place1);
+    to[2] = (float)(X87Reg(target[2]) - (X87Reg(m) * side[2] + along2));
+    Normalize(to, to);
+    if (flat) {
+        to[1] = (float)(X87Reg(to[1]) - *reinterpret_cast<const float *>((uintptr_t)0x00702a48));
+        Normalize(to, to);
+    }
+    SceneFlags_Touch(reinterpret_cast<u32 *>((uintptr_t)0x008bd508));
+    memcpy(light + 0x2c, to, sizeof to);
 }
 }

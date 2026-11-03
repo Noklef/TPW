@@ -8,6 +8,9 @@
 #include "../core/gameheap.h"
 #include "../core/ptrlist.h"
 #include "../math/x87.h"
+#include "../core/vcall.h"
+#include "../gfx/canvas.h"
+#include "../gfx/color.h"
 #include "../gfx/texsprite.h"
 #include "../render/backdrop.h"
 #include "../ui/window.h"
@@ -100,9 +103,130 @@ float clamp_scroll(float v, s32 limit) {
     return (double)v <= (double)limit ? v : (float)limit;
 }
 
+const ParkMapEnv kPorts = {&Object_Rating, &Object_HistoryAverage, &TexSprite_Update,
+                           reinterpret_cast<void(__fastcall *)(const u8 *)>((uintptr_t)0x005f2fd0)};
+const ParkMapEnv *g_env = &kPorts;
+
+s32 Ftol(double x) { return (s32)(long long)x; }
+
+// The map's square at (x, y); null off the 128 x 128 map.
+const u8 *SquareAt(const u8 *map, s32 x, s32 y) {
+    if (x < 0 || x >= 0x80 || y < 0 || y >= 0x80)
+        return nullptr;
+    return map + 0x60 + ((y << 7) + x) * 8;
+}
+
+const u8 *ThingOf(const u8 *square) { return thing(at<u16>(square, 4)); }
+
+const u32 *Record(u32 address) { return reinterpret_cast<const u32 *>((uintptr_t)address); }
+
+const u32 *Blend(u32 *out, s32 position) { return Colour_Blend3(out, position, Record(0x00f86bd8), Record(0x00f86bfc), Record(0x00f86c20)); }
+
+// The square's fill (blended into `out`, or a fixed record); null for none.
+const u32 *SquareColour(const u8 *map, const u8 *square, u32 *out) {
+    const u32 kind = at<u32>(square, 0);
+    if (kind == 1 || kind == 2 || kind == 3 || kind == 8) {
+        const u32 mode = at<u32>(map, 0x20);
+        if (mode == 2)
+            return Blend(out, g_env->rating(ThingOf(square), nullptr, 0));
+        if (mode == 3)
+            return Blend(out, (s32)g_env->average(ThingOf(square)));
+    }
+    const u32 flags = at<u32>(map, 0x18) & 0xff;   // (a byte test)
+    const u32 view = at<u32>(map, 0x1c);
+    bool shown = false;
+    switch (kind) {
+    case 1: shown = (flags & 1) != 0; break;
+    case 2: shown = (flags & 2) != 0; break;
+    case 3: shown = (flags & 4) != 0; break;
+    case 4: shown = (flags & 8) != 0; break;
+    case 5: shown = view == 1; break;
+    case 6: shown = view == 3; break;
+    case 7: shown = view != 0; break;
+    case 8: shown = (flags & 0x10) != 0; break;
+    case 9: return Record(0x00f86b48);
+    case 10: return Record(0x00f86b00);
+    case 11: return Record(0x00f86b24);
+    case 12: return Record(0x00f86b6c);
+    default: break;
+    }
+    return shown ? Blend(out, Ftol((double)at<float>(ThingOf(square), 0x44)) & 0xff) : nullptr;
+}
+
+bool Differs(const u8 *square, const u8 *other) {
+    return !other || at<u32>(square, 0) != at<u32>(other, 0) || at<u16>(square, 4) != at<u16>(other, 4);
+}
+
+// A sprite of the list shown on the map: its box, on the squares of its handle.
+void DrawSpriteBox(const u8 *map, Canvas &canvas, const u8 *sprite, s32 cellW, s32 cellH) {
+    const u32 kind = at<u32>(sprite, 0x1c), value = at<u32>(sprite, 0x20);
+    if (!(kind == 1 && (at<u32>(map, 0x18) & value) != 0) && !(kind == 2 && at<u32>(map, 0x1c) == value) && !(kind == 3 && at<u32>(map, 0x20) == value))
+        return;
+    const u8 *const handle = at<const u8 *>(sprite, 0x18);
+    const u32 first = at<u16>(handle, 0x20a) - 1u, last = at<u16>(handle, 0x20c) - 1u;
+    if ((first & 0x7f) == 0 || (s32)(first >> 7) <= 0 || (last & 0x7f) >= 0x7f || (s32)(last >> 7) >= 0x7f)
+        return;
+    const s32 rect[4] = {cellW * (s32)(first & 0x7f) + 0xf, cellH * (s32)(first >> 7) + 0x2a, ((s32)(last & 0x7f) + 1) * cellW + 0xf,
+                         ((s32)(last >> 7) + 1) * cellH + 0x2a};
+    const u32 *const record = Record(sprite == at<const u8 *>(map, 0x20060) ? 0x00f86bb4 : 0x00f86b90);
+    if (canvas.driver)   // (slot 7 for the flags' bit 4: always, at 0xc)
+        vcall<u32>(canvas.driver, 0x1c, &canvas.format, &canvas.clip, canvas.flags, rect, record);
+}
+
 }  // namespace
 
+void ParkMap_SetEnv(const ParkMapEnv *env) { g_env = env ? env : &kPorts; }
+
 extern "C" {
+
+void __fastcall ParkMap_Draw(const u8 *map) {
+    Canvas canvas;
+    Canvas_Ctor(&canvas);
+    Canvas_SetSurface(&canvas, nullptr, reinterpret_cast<const SurfaceInfo *>(map + 0x2c));
+    canvas.flags = 8;
+    const s32 cellW = Ftol((global<float>(0x00703044) / X87Reg((double)at<s32>(map, 0x24))).v);
+    const s32 cellH = Ftol((global<float>(0x00703048) / X87Reg((double)at<s32>(map, 0x28))).v);
+    s32 top = 0x2a;
+    for (s32 y = 0; y < at<s32>(map, 0x28); ++y, top += cellH) {
+        s32 left = 0xf;
+        for (s32 x = 0; x < at<s32>(map, 0x24); ++x, left += cellW) {
+            const u8 *const square = SquareAt(map, x, y);
+            u32 blended[9];
+            const u32 *const colour = SquareColour(map, square, blended);
+            if (colour && canvas.driver) {
+                const s32 rect[4] = {left, top, left + cellW, top + cellH};
+                vcall<u32>(canvas.driver, 0x20, &canvas.format, &canvas.clip, canvas.flags, rect, colour);
+            }
+            const u32 kind = at<u32>(square, 0);
+            if (kind < 1 || kind > 8)
+                continue;
+            const u32 *const line = Record(kind != 8 && Is68_Zero_4e0440(ThingOf(square)) ? 0x00f86a28 : 0x00f86a4c);
+            if (!canvas.driver)
+                continue;
+            const auto draw = [&](u32 slot, s32 lineX, s32 lineY) {
+                vcall<u32>(canvas.driver, slot, &canvas.format, &canvas.clip, canvas.flags, lineX, lineY, cellW, line);
+            };
+            if (Differs(square, SquareAt(map, x, y - 1)))
+                draw(8, left, top);
+            if (Differs(square, SquareAt(map, x, y + 1)))
+                draw(8, left, top + cellW - 1);
+            if (Differs(square, SquareAt(map, x - 1, y)))
+                draw(0xc, left, top);
+            if (Differs(square, SquareAt(map, x + 1, y)))
+                draw(0xc, left + cellW - 1, top);
+        }
+    }
+    if (at<u32>(map, 0x18) & 0x10)
+        g_env->coasterLines(map);
+    canvas.flags = 0xc;
+    for (const u8 *node = at<const u8 *>(at<const u8 *>(map, 0x20080), 4); node;) {
+        u8 *const sprite = at<u8 *>(node, 0);
+        node = at<const u8 *>(node, 4);
+        g_env->update(sprite, nullptr, at<u32>(map, 0x18), at<u32>(map, 0x1c), at<u32>(map, 0x20));
+        if (at<u32>(sprite, 0x14) == 2)
+            DrawSpriteBox(map, canvas, sprite, cellW, cellH);
+    }
+}
 
 void __fastcall ParkMap_Classify(u8 *map) {
     for (s32 y = 0; y < at<s32>(map, 0x28); ++y) {

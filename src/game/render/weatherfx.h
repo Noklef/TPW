@@ -99,4 +99,11 @@ void WeatherFx_SetDropsEnv(const WeatherDropsEnv *env);  // nullptr: the port's
 // +0x9d98 the time), and each phase stepped; without it each place is shaken by three rand() draws. No check of the count against the 0x400 places on the stack, as in the original. Returns 1 when the batch
 // does not begin, 0 when a triangle is refused, else Batch_Close's answer.
 u32 __fastcall WeatherFx_DrawDrops(u8 *fx, void *, float x, float y, float z);
+
+// 0x57efd0 (thiscall (x, y, z: floats), pops 12; name invented, unconfirmed; x87 in the original's order): the drops of +0x3318 as streaks: from each place +8 less the camera, wrapped as the drops', to that
+// plus +0x331c.. times +0x3314. All through the transformer (slot 1, the matrix +0x9d58, in place, 0xc, 0xc, twice the count, 2), then a quad for each streak in front (z > 0), a tenth of its length wide:
+// the texture at +0x3350 with an id (+8 bit 0x1000, +0x1c) gives the UVs; colours the fog's +0x2c masked by (6 - z) * 12 in each byte and, at the near end alpha 0x80, at the far end 0xff. Batch_Begin on
+// [0x879ab0] (+0x330c, 4, 0x1c4, 0x200d22 with [0x8bcbc8] bit 2, else 0x200d52, the id). The second dword of each vertex's colour left unset, sic; no check of the count against the 0x400 streaks on the
+// stack, as in the original. Returns 1 when the batch does not begin, 0 when a quad is refused, else Batch_Close's answer; the batch's +0x30 cleared before the close.
+u32 __fastcall WeatherFx_DrawStreaks(u8 *fx, void *, float x, float y, float z);
 }

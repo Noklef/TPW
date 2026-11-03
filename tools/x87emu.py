@@ -524,6 +524,20 @@ class Emu:
             x, y = self.st.pop(0), self.st[0]
             # a NaN operand comes through (Python's atan2 would give its own NaN)
             self.st[0] = farith(math.atan2, y, x)
+        elif mn == 'FRNDINT':
+            # to the nearest, ties to even, exempt from precision control; a zero's sign kept, also on a result of 0; a NaN or infinity comes through
+            v = self.st[0]
+            self.st[0] = v if not math.isfinite(v) else math.copysign(float(round(v)), v)
+        elif mn == 'F2XM1':
+            # 2^x - 1, |x| <= 1 (the inline exp's fraction); exempt from precision control (evaluated in double, as FPATAN); a NaN comes through
+            v = self.st[0]
+            self.st[0] = v if math.isnan(v) or v == 0 else math.expm1(v * math.log(2))
+        elif mn == 'FSCALE':
+            # ST0 * 2^trunc(ST1), ST1 kept. Finite operands only (the inline exp's); past a double's range an infinity or a zero, not the register's wide exponent
+            try:
+                self.st[0] = math.ldexp(self.st[0], int(self.st[1]))
+            except OverflowError:
+                self.st[0] = math.copysign(math.inf, self.st[0])
         elif mn in ('FCOM', 'FCOMP', 'FCOMPP'):
             self.compare(self.st[0], self.fload(o[0]) if o else self.st[1])
             for _ in range({'FCOM': 0, 'FCOMP': 1, 'FCOMPP': 2}[mn]):

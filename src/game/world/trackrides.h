@@ -30,6 +30,28 @@ u8 *__cdecl TrakChunk_Begin(u32 version, Stream *stream);
 // where it was; the chunk is freed (GlobalFree). Returns the total, read after the free (sic). (A Debug_Printf is left out.)
 u32 __cdecl TrakChunk_End(u8 *chunk);
 
+// 0x5428e0: with the module loaded, the rides written to the stream in chunks, all inside a chunk of version 1 (a chunk not got: nothing more, a
+// later one faults at its first write): 2 the program's build time and date; for each ride in use (+0 set, as many as [0x877b64] counts): 3 its
+// name, the 8 bytes at +0xb4, the dwords +0xb0, +0x10, +0x1c, +0x14, +0x18, +4, +0x50; 4 for each section (+0xbc, the next at +0x24): the
+// name, +4, the 8 bytes at +0x14; for each used car of the pool [0x877b68] on it (+0x9c): 5 the name, the 0xac bytes, the dwords +4 and +8 of its link
+// (+0x98), and of the table entry [0x877b78] + 0x1c * (+0x7c): the name of its ride (+0x10; 0 for an index of -1), +8, +0xc (read at -1 too, sic), then 9
+// for each node of its list (+0x30, the next at +0x10): the ride's name, +0, +0xc; 7 for the list +0xc8 and 8 for +0xc4 (the next at +0x10): the
+// name, +0; 6 the name. Returns the outer chunk's total, 0 when not loaded or without it. (The original's inlined chunk code and its Debug_Printf left out.)
+u32 __cdecl TrackRides_Save(Stream *stream);
+
+// 0x543560: with the module loaded, the rides read back from what TrackRides_Save wrote: the outer chunk's version must be 1 (else it is closed at once), then
+// chunks until the position plus their totals is its total. 2 is passed over; 3 remakes the ride (TrakRide_Create with kind 0, the place, orientation, handle and value)
+// and, if that gives the handle back, sets the performance, +0x14, +0x18, +4 (+0x14 to +4 only for a ride the handle names) and +0x50; 4 adds a section
+// (TrakRide_AddSection, the rest 0); 5 for a named ride takes the pool's first free car (none: nothing more), counts it in [0x877b6c], reads its 0xac bytes
+// (defaults before them), clears +0x94, +0x30 and a NaN +0xa0, ties it to the ride (+0x9c, the ride's +0x5c up, +0xcc), finds the collision node holding it (+0x34 / +0x38, else the point read
+// next; pool [0x877b70], used and not 0x40; +0x98), claims its instances (Ride_Claim: +8 with the type at +0x4bc + 4 * (+4) of the definition of the ride's word +0x10; +0xc with +0x4bc under
+// flags 0x2002000), for flag 0x400000 sets the ride's +0x58, takes +0x7c from the stop (the point's piece in the chain of the ride read, +4; none 0; no ride -1), for flag 4 clears +0x8c; 6
+// finds the ride's current piece again (the kinds -13, -12, -10, -9, -8, -7, -5, -4, as TrakRide_Open); 7 TrakRide_PushNode; 8 TrakRide_AddNextCar; 9 for a
+// named ride a node off the free list [0x877b8c] on the node list of its latest car (the car's record's +0x60 up), its value, handle, key and part (Model_FindPartByKey4 mask 0x80).
+// Any other version, or no chunk, returns 0 with both left open (sic). Returns the outer chunk's total, 0 when not loaded. (No outer chunk: the original closes an uninitialised
+// local; here a null chunk: either faults. Its Debug_Printf left out.)
+u32 __cdecl TrackRides_Load(Stream *stream);
+
 // 0x544290 (chunk; name unconfirmed): the stream sought to the chunk's start plus its total (origin 0), the chunk freed (GlobalFree).
 // Returns the total. (A Debug_Printf is left out.)
 u32 __cdecl TrakChunk_Close(u8 *chunk);

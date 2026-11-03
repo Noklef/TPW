@@ -10,6 +10,13 @@ struct String;
 struct LobbySceneEnv {
     void(__cdecl *destroy)(u32 ride);           // Ride_Destroy (0x463c80)
     void(__fastcall *stringDtor)(String *text);  // String_Dtor (0x5f61e0)
+    // Class702cb0_Step's calls.
+    u32(__fastcall *play)(const u8 *model, void *, u32 entry, u32 now);  // LobbyModel_Play (0x5d83f0)
+    u32(__fastcall *timeLeft)(const u8 *model);                          // LobbyModel_TimeLeft (0x5d8440)
+    u32(__cdecl *playAt)(u32 owner, u32 category, u32 sound, s32 x, s32 y, s32 z);  // Sound_PlayAt (0x51bfc0)
+    int(__cdecl *rand)();                                                // the CRT's rand (0x67b5c0, by address)
+    // 0x580320 (thiscall on the weather, unported: it reads the time stamp counter; by address): two points by value and two dwords.
+    void(__fastcall *weatherBurst)(u8 *weather, void *, float x, float y, float z, float x2, float y2, float z2, u32 life, u32 kind);
 };
 void LobbyScene_SetEnv(const LobbySceneEnv *env);
 
@@ -35,6 +42,18 @@ u32 __fastcall Class702cb0_StartPendingPlay(u8 *object);
 // z + cos * r). The position +0x28 eases toward the eye by the frame's scale ([0xf82884] + 8) times 0.1, the look-at +0x40 toward the target
 // by it times 0.2 (each a + (b - a) * k, x87 in the original's order), and both go to the camera at [0xf83778] (+8 and +0x14).
 void __fastcall Class702cb0_StepCamera(u8 *object);
+
+// 0x5e0470 (class 0x702cb0, its callers 0x5e1831 and 0x5e22d3; name unconfirmed): the lobby's step. With a list ([+8]) of a count ([+8] + 0xc) not 0, a
+// user slot chosen (UserSlots_Instance() + 0x60 not -1) and a model at +0xc, the camera follows that model by the state at +0x14:
+// 0 turning at the rate in the scene's place ([0xf82884] + 0x10) + 8, 1 turning until it faces the model's +0x14 (then LobbyModel_Play, state 2),
+// 2 closing in (at under 8 away the camera's +0x60 is 0x10000 and virtual slot 18 runs; before that +0x60 is the rest of the way, 0 to 65535);
+// then Class702cb0_StepCamera, and +0x28 and +0x40 go to +0x78 and +0xb4. Otherwise the camera roams: +0x78 and +0xb4 each steer toward their
+// targets +0x84 and +0xc0 (a new random +0x84 about +0x58 when it arrives), +0xc is the list's nearest model to +0x28 and +0xc0 its place
+// (none: +0x58 with height 10), +0xac speeding up to +0xa8 and slowing near the target. Then, with a count over 0: the drop count of the
+// weather [0x8bcbac] by the mean squared distance of the models flagged at +0x60 (1e17 over its 4th power, under 20 is 0, at most 400) and, with a
+// model at +0xc: its mask (+0x5c) may give a burst (0x580320, WeatherFx_RequestReload, a sound), 1 in 16 draws plays its sound 3 to 5, its
+// +0x64 triple goes to the camera's +0x50; a list's model with no time left plays again (rand() & 1).
+void __fastcall Class702cb0_Step(u8 *object);
 
 // 0x5d9db0 (class 0x702af0's constructor, thiscall; count, two names, two 12-byte triples by pointer, two dwords; pops 0x1c; the SEH frame left
 // out; name unconfirmed): the strings at +0x10 and +0x24 constructed (String_Ctor), the vtable 0x702af0, a new 0x10-byte list (vtable 0x702aec,

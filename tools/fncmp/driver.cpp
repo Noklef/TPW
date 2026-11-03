@@ -164,6 +164,7 @@
 #include "../../src/game/gfx/pixconv.h"
 #include "../../src/game/gfx/surfbuf.h"
 #include "../../src/game/gfx/tga.h"
+#include "../../src/game/render/d3dprobe.h"
 #include "../../src/game/render/enginedebug.h"
 #include "../../src/game/render/engineerrors.h"
 #include "../../src/game/online/chatavatar.h"
@@ -224,6 +225,8 @@
 #include "../../src/game/render/spritegroups.h"
 #include "../../src/game/render/tiledpanel.h"
 #include "../../src/game/render/groundshadow.h"
+#include "../../src/game/gfx/spriteframe.h"
+#include "../../src/game/world/scapeobjects.h"
 #include "../../src/game/gfx/spriteframelights.h"
 #include "../../src/game/model/ridebase.h"
 #include "../../src/game/world/parkentrance.h"
@@ -235,6 +238,7 @@
 #include "../../src/game/core/wscanner.h"
 #include "../../src/game/online/chatcursor.h"
 #include "../../src/game/frontend/lobbyscene.h"
+#include "../../src/game/world/parkmap.h"
 #include "../../src/game/world/rideskin.h"
 #include "../../src/game/core/advisorscoring.h"
 #include "../../src/game/frontend/sceneleave.h"
@@ -745,6 +749,7 @@ const EditUpdateEnv kEditUpdateEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorde
 // tests/fncmp/testrun.py hooks them.
 const RibbonEnv kRibbonEnv = {Rec{recorder(2, 5)}};
 const BatchEnv kBatchEnv = {Rec{recorder(1, 1)}, Rec{recorder(2, 2)}};
+const ViewCtlEnv kViewCtlEnv = {reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)jpeg_recorder(15, 1))};
 const BatchQuadEnv kBatchQuadEnv = {Rec{recorder(11, 5)}, Rec{recorder(12, 5)}, Rec{recorder(13, 2)}, Rec{recorder(14, 0)}, Rec{recorder(15, 2)}, Rec{recorder(16, 1)}};
 const LandscapeDrawEnv kLandscapeDrawEnv = {Rec{recorder(11, 5)}, Rec{recorder(15, 4)}, Rec{recorder(16, 1)}, Rec{jpeg_recorder(17, 1)}};
 // tests/fncmp/terrainwater.py: the transformer's slot 1 is 0x579330 in the original; here its port. ClipPoly_Vertices is stdcall (the COM-style recorder 3 of 5, recorder(k, n, True) in fncmp.py).
@@ -773,13 +778,24 @@ const SceneLeaveEnv kSceneLeaveEnv = {Rec{jpeg_recorder(20, 1)}, Rec{jpeg_record
 const AdvisorCriteriaEnv kAdvisorCriteriaEnv = {Rec{recorder(1, 1)}, Rec{jpeg_recorder(2, 0)}, Rec{recorder(3, 1)}, Rec{recorder(4, 0)}, Rec{recorder(5, 0)}, Rec{recorder(6, 2)}};
 const CellPaintEnv kCellPaintEnv = {Rec{jpeg_recorder(1, 6)}, Rec{jpeg_recorder(2, 3)}};
 const RideSkinEnv kRideSkinEnv = {Rec{jpeg_recorder(1, 1)}};
-const LobbySceneEnv kLobbySceneEnv = {Rec{jpeg_recorder(1, 1)}, Rec{recorder(2, 0)}};
+// (Class702cb0_Step's: thiscall 3 of 2 arguments, thiscall 4 of none, cdecl 6 of 6, cdecl 7 of none, thiscall 5 of 8, as tests/fncmp/lobbystep.py hooks those addresses.)
+// (ParkMap_Draw's: thiscall 10 of 1 argument, 11 of none, 12 of 3, 13 of none, as tests/fncmp/parkmapdraw.py hooks those addresses.)
+const ParkMapEnv kParkMapEnv = {Rec{recorder(10, 1)}, Rec{recorder(11, 0)}, Rec{recorder(12, 3)}, Rec{recorder(13, 0)}};
+const LobbySceneEnv kLobbySceneEnv = {Rec{jpeg_recorder(1, 1)}, Rec{recorder(2, 0)}, Rec{recorder(3, 2)}, Rec{recorder(4, 0)}, Rec{jpeg_recorder(6, 6)}, Rec{jpeg_recorder(7, 0)}, Rec{recorder(5, 8)}};
 const ChatCursorEnv kChatCursorEnv = {Rec{jpeg_recorder(1, 0)}, Rec{jpeg_recorder(2, 4)}, Rec{jpeg_recorder(3, 0)}, Rec{recorder(4, 1)}, Rec{recorder(5, 1)}};
+// tests/fncmp/d3dprobe.py: the clock a recorder.
+const SpriteFramesEnv kSpriteFramesEnv = {reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)(kStubs + 0x1000 + 0x20 * 20))};   // (slot 20's thiscall recorder of no arguments)
+const ScapeObjectsEnv kScapeObjectsEnv = {reinterpret_cast<s32 *(__cdecl *)(s32 *, Stream **, const char *, u32)>((uintptr_t)jpeg_recorder(21, 4)),
+                                          reinterpret_cast<u32(__cdecl *)(u32, u32, u32, s32, s32, s32)>((uintptr_t)jpeg_recorder(22, 6)),
+                                          reinterpret_cast<u32(__cdecl *)(u32, u32, u32, s32, s32, s32, s32)>((uintptr_t)jpeg_recorder(23, 7)),
+                                          reinterpret_cast<void(__cdecl *)(u32, u32, u32, u32, u32)>((uintptr_t)jpeg_recorder(24, 5)),
+                                          reinterpret_cast<s32(__cdecl *)(s32, s32, s32, s32)>((uintptr_t)jpeg_recorder(25, 4))};
+const D3dProbeEnv kD3dProbeEnv = {reinterpret_cast<u32(__cdecl *)()>((uintptr_t)jpeg_recorder(15, 0))};
 // tests/fncmp/enginedebug.py: the C library's file calls recorders.
-const EngineDebugEnv kEngineDebugEnv = {reinterpret_cast<void *(__cdecl *)(const char *, const char *)>((uintptr_t)jpeg_recorder(28, 2)),
-                                        reinterpret_cast<s32(__cdecl *)(void *, const char *, ...)>((uintptr_t)jpeg_recorder(29, 3)),
-                                        reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)jpeg_recorder(30, 1)),
-                                        reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)jpeg_recorder(31, 1))};
+const EngineDebugEnv kEngineDebugEnv = {reinterpret_cast<void *(__cdecl *)(const char *, const char *)>((uintptr_t)jpeg_recorder(11, 2)),
+                                        reinterpret_cast<s32(__cdecl *)(void *, const char *, ...)>((uintptr_t)jpeg_recorder(12, 3)),
+                                        reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)jpeg_recorder(13, 1)),
+                                        reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)jpeg_recorder(14, 1))};
 const WKeywordsEnv kWKeywordsEnv = {reinterpret_cast<s32(__cdecl *)(u8 *, u16 *, u32, u32, ...)>((uintptr_t)jpeg_recorder(12, 4))};  // tests/fncmp/wkeywords.py
 
 const KeyCancelEnv kKeyCancelEnv = {Rec{recorder(20, 0)}, Rec{jpeg_recorder(21, 2)}, Rec{jpeg_recorder(22, 6)}, Rec{jpeg_recorder(23, 4)}, Rec{jpeg_recorder(24, 2)}};
@@ -1244,6 +1260,16 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
             args[i] = (how & 0xc0000000u) == 0x40000000u && !matched ? 0
                       : how & 0x80000000u                         ? blob_bytes_hash(p, how, blob_mask, wide)
                                                                   : blob_hash(p, blob_mask);
+        }
+        for (u32 w = 0; w < 4; ++w) {  // (at + 0x13c0, fncmp.blob_array(): (k | 0x80000000, argument, count argument, stride): the argument logged as a hash of its records)
+            const u32 *const array = log + 0x4f0 + 4 * w;
+            if (array[0] != ((k & 63) | 0x80000000u) || array[1] != i || !args[i]) continue;
+            const s32 count = array[2] < n ? static_cast<s32>(stack[1 + array[2]]) : 0;
+            const u32 bytes = (count <= 0 ? 0u : count > 0x100 ? 0x100u : static_cast<u32>(count)) * array[3];
+            const u8 *const p = reinterpret_cast<const u8 *>((uintptr_t)args[i]);
+            u32 h = 0x811c9dc5u;
+            for (u32 b = 0; b < bytes; ++b) h = (h ^ p[b]) * 0x01000193u;
+            args[i] = h;
         }
         if (mask >> i & 1) args[i] = string_hash(reinterpret_cast<const u8 *>((uintptr_t)args[i]));
         if (mask >> (16 + i) & 1) args[i] = 0;
@@ -1907,6 +1933,7 @@ int main(int argc, char **argv) {
     Ribbon_SetEnv(&kRibbonEnv);
     Batch_SetEnv(&kBatchEnv);
     BatchQuad_SetEnv(&kBatchQuadEnv);
+    ViewCtl_SetEnv(&kViewCtlEnv);
     Landscape_SetDrawEnv(&kLandscapeDrawEnv);
     TerrainWater_SetEnv(&kTerrainWaterEnv);
     TerrainGround_SetEnv(&kTerrainGroundEnv);
@@ -1921,8 +1948,12 @@ int main(int argc, char **argv) {
     KeyCancel_SetEnv(&kKeyCancelEnv);
     WKeywords_SetEnv(&kWKeywordsEnv);
     EngineDebug_SetEnv(&kEngineDebugEnv);
+    D3dProbe_SetEnv(&kD3dProbeEnv);
+    SpriteFrames_SetEnv(&kSpriteFramesEnv);
+    ScapeObjects_SetEnv(&kScapeObjectsEnv);
     ChatCursor_SetEnv(&kChatCursorEnv);
     LobbyScene_SetEnv(&kLobbySceneEnv);
+    ParkMap_SetEnv(&kParkMapEnv);
     RideSkin_SetEnv(&kRideSkinEnv);
     CellPaint_SetEnv(&kCellPaintEnv);
     AdvisorCriteria_SetEnv(&kAdvisorCriteriaEnv);
