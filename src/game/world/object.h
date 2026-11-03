@@ -22,11 +22,11 @@ void Object_SetEnv(const ObjectEnv *env);
 // code in 0x4e0000-0x530000 does inline; the staff and the research labs share the objects' env through it.
 void Object_PostMessage(u8 *msg);
 
-// What Object_Delete calls in the game that is not yet ported (the benches point it at a recorder).
+// What Object_Delete calls through an environment (the benches point it at a recorder).
 struct ObjectDeleteEnv {
     void(__cdecl *killScript)(s32 id, u32 mode);   // 0x559060 RSSE_KillScript (agent B's)
 };
-// Object_Delete's calls go to env (nullptr: the game's).
+// Object_Delete's calls go to env (nullptr: the port).
 void Object_SetDeleteEnv(const ObjectDeleteEnv *env);
 
 // 0x4dd0a0 (thiscall; name invented, unconfirmed; Thing_Delete's kind 3): an object deleted: its control record's count (+0x18 of

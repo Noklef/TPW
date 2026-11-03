@@ -16,6 +16,7 @@
 #include "../core/vcall.h"
 #include "../math/x87.h"
 #include "../model/stripanim.h"
+#include "../rsse/scriptkill.h"
 #include "../sprite/script.h"
 #include "objectdefs.h"
 #include "person.h"
@@ -49,7 +50,7 @@ void Object_SetEnv(const ObjectEnv *env) { g_env = env ? env : &kGameEnv; }
 void Object_PostMessage(u8 *msg) { g_env->post40fb10(MessageCentre_Instance(), nullptr, msg); }
 
 namespace {
-const ObjectDeleteEnv kGameDeleteEnv = {reinterpret_cast<void(__cdecl *)(s32, u32)>((uintptr_t)0x00559060)};
+const ObjectDeleteEnv kGameDeleteEnv = {&RSSE_KillScript};
 const ObjectDeleteEnv *g_delete = &kGameDeleteEnv;
 }  // namespace
 

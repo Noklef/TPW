@@ -3,6 +3,7 @@
 
 #include <cstdint>
 
+#include "../coaster/edittools.h"
 #include "../core/accessors.h"
 #include "../core/actionrec.h"
 #include "../core/globals.h"
@@ -13,15 +14,23 @@
 #include "../ui/cursor.h"
 #include "advisor.h"
 #include "cellrun.h"
+#include "cellbuild.h"
+#include "cellmessage.h"
+#include "demolish.h"
 #include "dirstep.h"
 #include "focuscell.h"
+#include "gamemode.h"
 #include "hoardinggrid.h"
 #include "mapcell.h"
 #include "mapline.h"
 #include "money.h"
+#include "object.h"
 #include "objectmsg.h"
+#include "placeobject.h"
+#include "queuetrace.h"
 #include "staff.h"
 #include "thingscan.h"
+#include "trackrides.h"
 #include "world.h"
 
 namespace {
@@ -29,28 +38,29 @@ namespace {
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 template <typename T> T &at(const void *base, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)base + offset); }
 template <typename F> F raw(u32 address) { return reinterpret_cast<F>((uintptr_t)address); }
+template <typename F, typename G> F port(G *fn) { return reinterpret_cast<F>(fn); }
 
 const MapClickEnv kGameEnv = {
     raw<void(__cdecl *)(s32, s32, u32)>(0x005234d0),
-    raw<void(__cdecl *)()>(0x00446050),
-    raw<void(__cdecl *)(u32)>(0x00446300),
+    port<void(__cdecl *)()>(&CoasterEdit_CancelSelected),
+    port<void(__cdecl *)(u32)>(&CoasterEdit_Click),
     raw<void(__cdecl *)(u32)>(0x00435570),
     raw<void(__cdecl *)(s32, s32, u32, u8 *)>(0x004419b0),
-    raw<u32(__cdecl *)(s32, s32)>(0x00445a70),
-    raw<void(__cdecl *)(s32, s32, u32)>(0x00527ee0),
-    raw<u32(__cdecl *)(s32, s32, u32, u32, u32, u32)>(0x00528a70),
+    port<u32(__cdecl *)(s32, s32)>(&CoasterEdit_PlaceSelected),
+    port<void(__cdecl *)(s32, s32, u32)>(&Path_CheckDeadEnds),
+    port<u32(__cdecl *)(s32, s32, u32, u32, u32, u32)>(&PlaceObject_Footprint),
     raw<u32(__cdecl *)(u32)>(0x0052a970),
-    raw<u32(__cdecl *)(u8 *, u8 *, u32)>(0x0052b400),
-    raw<void(__cdecl *)(s32, s32, s32, s32)>(0x0052bdd0),
-    raw<u8(__cdecl *)(u8 *, u32, u32, u32)>(0x0052c6f0),
-    raw<void(__cdecl *)(u8 *, u32, u32, u32)>(0x0052ccb0),
-    raw<void(__cdecl *)(u32, u32)>(0x0052f200),
-    raw<void(__cdecl *)(u32, u32)>(0x0052f580),
-    raw<void(__cdecl *)(u32)>(0x0052fc80),
-    raw<void(__cdecl *)(u8 *)>(0x00530120),
+    port<u32(__cdecl *)(u8 *, u8 *, u32)>(&CellRun_Connect),
+    port<void(__cdecl *)(s32, s32, s32, s32)>(&Map_DemolishRect),
+    port<u8(__cdecl *)(u8 *, u32, u32, u32)>(&TrackRun_UpdateA),
+    port<void(__cdecl *)(u8 *, u32, u32, u32)>(&TrackRun_UpdateB),
+    port<void(__cdecl *)(u32, u32)>(&GameMode_Set),
+    port<void(__cdecl *)(u32, u32)>(&GameMode_SetOnly),
+    port<void(__cdecl *)(u32)>(&TrackCell_Relink),
+    port<void(__cdecl *)(u8 *)>(&RideQueue_Trace),
     raw<void(__cdecl *)(s32, s32, s32, s32)>(0x005327e0),
-    raw<u32(__cdecl *)(u32, s32, s32, s32 *, s32 *)>(0x00536100),
-    raw<void(__cdecl *)(u32)>(0x00545450),
+    port<u32(__cdecl *)(u32, s32, s32, s32 *, s32 *)>(&Map_SendLine),
+    port<void(__cdecl *)(u32)>(&TrakRide_Strip),
     &Sound_PlayAt,
     &Map_ApplyLine,
     &MapCell_PathLines,
@@ -69,8 +79,8 @@ const MapClickEnv kGameEnv = {
     &GameCursor_Set,
     &Global81d7a4_SetRecorded,
     &Advisor_PostId,
-    raw<void(__fastcall *)(u8 *)>(0x004de1f0),
-    raw<void(__fastcall *)(u8 *)>(0x004df390),
+    port<void(__fastcall *)(u8 *)>(&Object_PathChanged),
+    port<void(__fastcall *)(u8 *)>(&Object_Close),
     &Object_CanOpen,
     &MapHandle_Cell44,
     &Cell_FirstObject,
@@ -82,8 +92,8 @@ const MapClickEnv kGameEnv = {
     &MapCell_IsTypeCOr11,
     &MapCell_IsTypeDOr12ViaParent,
     &MapCell_Word24,
-    raw<u32(__fastcall *)(u8 *, void *, u32, u32, u32)>(0x00539760),
-    raw<u32(__fastcall *)(u8 *, void *, u32, u32)>(0x00535670),
+    port<u32(__fastcall *)(u8 *, void *, u32, u32, u32)>(&MapCell_CanBuildTrack),
+    port<u32(__fastcall *)(u8 *, void *, u32, u32)>(&MapCell_CanBuild),
     &ActionRec_WriteBB,
     &ActionRec_WriteBBW,
     &GameTable7cfb90_Get1da726_5195d0,
