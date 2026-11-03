@@ -13,6 +13,7 @@
 #include "cellmessage.h"
 #include "focuscell.h"
 #include "mapcell.h"
+#include "object.h"
 #include "objectdefs.h"
 #include "pathlink.h"
 #include "things.h"
@@ -85,7 +86,7 @@ template <typename F> F game(u32 address) { return reinterpret_cast<F>((uintptr_
 const PlaceFootprintEnv kFootprintEnv = {&MapCell_HandleMessage,
                                          &MapCell_Clear,
                                          game<void(__fastcall *)(u8 *)>(0x00536780),
-                                         game<void(__fastcall *)(u8 *)>(0x004de1f0),
+                                         &Object_PathChanged,
                                          &MapCell_LinkPath,
                                          &PlaceObject_Create,
                                          &FocusCell_Update,

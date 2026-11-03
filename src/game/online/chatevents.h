@@ -28,7 +28,7 @@ struct ChatEventEnv {
     void(__stdcall *listRemove1)(const u16 *text);                                        // Window7cc8bc_ListRemove1Std 0x481890
     void(__fastcall *playerCtor)(void *player, void *, u32 cell, s32 x, const StdWString *name, u32 zero);   // 0x4f7b20
     void(__fastcall *thingDelete)(u8 *thing);                                             // Thing_Delete 0x50b780
-    u8 *(__fastcall *tokenNarrow)(const u8 *token, void *, void *out);                    // 0x4c4a80 (C)
+    u8 *(__fastcall *tokenNarrow)(const u8 *token, void *, void *out);                    // StdString_CopyInto 0x4c4a80
     void(__fastcall *join)(u8 *session, void *, s32 room, u32 callback, u32 zero);        // 0x5b87e0 (B)
     u32(__fastcall *destination)(u8 *sprite, void *, s32 x, s32 y);                       // Sprite_SetDestinationMarked 0x4f7de0
     void(__fastcall *placeAt)(u8 *thing, void *, u32 x, u32 y);                           // Thing_ResetPlaceAt 0x4f7e20

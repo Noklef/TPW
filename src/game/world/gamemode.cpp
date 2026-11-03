@@ -9,7 +9,9 @@
 #include "../ui/cursor.h"
 #include "advisor.h"
 #include "cellrun.h"
+#include "mapclick.h"
 #include "mousemode.h"
+#include "object.h"
 #include "world.h"
 
 namespace {
@@ -108,8 +110,8 @@ void __cdecl GameMode_Set(u32 mode, u32 record) {
 namespace {
 
 const GameModeStepEnv kGameStepEnv = {&CoasterEdit_DeleteLastCar,
-                                      reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x004de1f0),
-                                      reinterpret_cast<void(__cdecl *)(s32, s32, u32, u32)>((uintptr_t)0x00524960),  // (hooked: GameMode_MapClick)
+                                      &Object_PathChanged,
+                                      &GameMode_MapClick,
                                       &GameMode_Set,
                                       &GameMode_SetOnly,
                                       &TrackCell_Relink,

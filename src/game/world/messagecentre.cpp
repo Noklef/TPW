@@ -11,7 +11,7 @@
 
 namespace {
 
-const MessageCentreEnv kGameEnv = {reinterpret_cast<u32(__fastcall *)(u8 *, void *, u8 *)>((uintptr_t)0x0050b550)};
+const MessageCentreEnv kGameEnv = {reinterpret_cast<u32(__fastcall *)(u8 *, void *, u8 *)>(&Thing_HandleMessage)};
 const MessageCentreEnv *g_env = &kGameEnv;
 
 u8 *thing_slot(u16 handle) { return *reinterpret_cast<u8 **>((uintptr_t)0x007cfb90 + 0x14u * handle); }

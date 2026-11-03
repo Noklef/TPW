@@ -174,8 +174,8 @@ u32 __fastcall ThingKinds9To11_Detach(u8 *thing);
 
 // 0x50b780 (thiscall): a thing deleted: message 1b of its handle posted (Object_PostMessage: agent B's unported 0x40fb10 through the objects'
 // env), then taken out of the world by its kind (+2): 1 Visitor_Detach, 8 Researcher_Detach, 0xf Weather_Detach, 0x12 Staff_Detach; 3, 4, 5,
-// 6, 7 and 9-0xe, 0x10, 0x11 agent C's unported 0x4dd0a0, 0x4d9fe0, 0x4d6c90, 0x4d4620, 0x4d5eb0 and 0x4c9040 (through ThingDeleteEnv, the
-// game's addresses in game); 2, 0x13 and others only the original's debug prints. Then +3 = 1, the handle queued for deletion
+// 6, 7 and 9-0xe, 0x10, 0x11 0x4dd0a0, 0x4d9fe0, 0x4d6c90, 0x4d4620, 0x4d5eb0 and 0x4c9040 (through ThingDeleteEnv, the
+// ports in game); 2, 0x13 and others only the original's debug prints. Then +3 = 1, the handle queued for deletion
 // (World_QueueDelete) and the kind +2 = 2.
 void __fastcall Thing_Delete(u8 *thing);
 

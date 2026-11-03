@@ -18,7 +18,9 @@
 #include "object.h"
 #include "messagecentre.h"
 #include "objectmsg.h"
+#include "celleffect.h"
 #include "person.h"
+#include "rideupkeep.h"
 #include "personscripts.h"
 #include "random.h"
 #include "ridelist.h"
@@ -40,12 +42,12 @@ const VisitorStepsEnv kGameEnv = {&Sprite_WalkNav,       &Sprite_SetDestination,
                                   &Person_PlaceSprite,   &Sprite_PlaySound,      &Visitor_FindQueueDestination,
                                   &Visitor_ChooseMinorDest, &Visitor_RatingGap,          &Visitor_WontPay,
                                   &Visitor_VisitObject,  &Thing_PlaceAt,         &Object_Reopen,
-                                  reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)0x004d93b0),
+                                  &MapCell_StartEffect,
                                   reinterpret_cast<u32(__cdecl *)(s32, s32)>((uintptr_t)0x006e7074),
                                   &Things_HeadForNearestFlag40, &Things_NearestFlag80Close,
                                   [](u8 *, void *, u32 kind, u32 cell, s32 radius) -> s32 { return Things_AnyOfKindAround(kind, cell, radius); },
                                   &Staff_NearestInList1da740, &Person_JumpScript210, &Person_SetRandomDest, &Visitor_ChooseMajorDest,
-                                  &MessageCentre_Post, reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)0x004c8240), &Money_CreditTakings};
+                                  &MessageCentre_Post, reinterpret_cast<u32(__fastcall *)(u8 *)>(&RideUpkeep_Total), &Money_CreditTakings};
 const VisitorStepsEnv *g_env = &kGameEnv;
 
 u8 *world() { return global<u8 *>(0x0080239c); }
