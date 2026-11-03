@@ -30,7 +30,7 @@ def case(r):
     thing = bytearray(r.bytes(0x20))
     thing[5], thing[7] = r.choice([0, 0x7f, 0x80, 0xff, r.getrandbits(8)]), r.choice([0, 1, 0x7f, 0xff, r.getrandbits(8)])
     regions = {LOG: log, PANEL: struct.pack('<I', VT) + r.bytes(0x3c), VT: put(vtable({}, size=0x10), 0x2c, 'I', recorder(19, 0)), THING: thing,
-               DEF: put(bytearray(r.bytes(0x100)), 0x40, 'I', r.choice([0, 0, 1, r.getrandbits(32)])), 0x7c2654: r.bytes(4) + struct.pack('<I', THING), 0x81b14c: r.bytes(4), 0x81b3ac: r.bytes(4),
+               DEF: put(bytearray(r.bytes(0x100)), 0x40, 'I', r.choice([0, 0, 1, 0x100, 0x10000, r.getrandbits(32)])), 0x7c2654: r.bytes(4) + struct.pack('<I', THING), 0x81b14c: r.bytes(4), 0x81b3ac: r.bytes(4),
                0x7b05d4: bytes(put(bytearray(r.bytes(0x18)), 0x14, 'I', r.choice([0, 0, RAM + 0xb00])))}
     return Call(0x48cfa0, [PANEL], regions, conv='t', ret='v')
 
