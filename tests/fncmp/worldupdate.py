@@ -38,6 +38,8 @@ def table(r, regions):
         put(rows, at + 8, 'I', next_slot)
         put(rows, at + 12, 'I', TABLE + 20 * used[i - 1] if i else 0)
     for h in range(ROWS):
+        if h not in used:
+            put(rows, 20 * h + 8, 'Q', 0)   # (a slot on the delete queue that was not in use: its links null)
         put(rows, 20 * h, 'I', 0 if h == null else THINGS + THING * h)
         t = THING * h
         put(things, t, 'H', h)

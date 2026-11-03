@@ -7,7 +7,7 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, LOG, LOG_BYTES, RAM, Bench, Call, _recorder, blob, heap, log_region, put, set_return, strings  # noqa: E402
+from fncmp import HEAP, LOG, LOG_BYTES, RAM, Bench, Call, _recorder, answers, blob, heap, log_region, put, set_return, strings  # noqa: E402
 
 BALANCE, OBJECT, POST, CTORS = 4, 5, 6, 10
 THINGS = [0x5089c0, 0x4da920, 0x599e70, 0x509b40, 0x4c58c0, 0x502d20, 0x511f70, 0x4cf7c0, 0x50c9b0, 0x4d1bd0]
@@ -28,7 +28,7 @@ def wide(s):
 
 def case(r):
     log = log_region()
-    regions = {HEAP: heap(0x30000, fail=r.choice([0] * 100 + list(range(1, 14)))), LOG: log, LEVEL: r.choice([b'data\\levels\\a\0', b'b\0', b'\0'])}
+    regions = {HEAP: heap(0x30000, fail=r.choice([0] * 100 + list(range(1, 14)) + [12, 13] * 8)), LOG: log, LEVEL: r.choice([b'data\\levels\\a\0', b'b\0', b'\0'])}
     regions[RAM + 0x10000] = bytearray(r.bytes(0x40))
     regions[0x7cf83c] = struct.pack('<I', r.getrandbits(32))
     regions[0x802080] = r.bytes(0x24)
@@ -46,7 +46,8 @@ def case(r):
     regions[THING0] = things
     regions[0x7cfb90] = rows
     strings(log, BALANCE, 1)
-    set_return(log, BALANCE, r.choice([1, 1, 1, 0, 2, r.getrandbits(32)]))
+    regions[TEXTS + 0x600] = struct.pack('<40I', *[r.choice([1, 1, 1, 1, 0, 2, r.getrandbits(32)]) for _ in range(40)])
+    answers(log, BALANCE, TEXTS + 0x600)   # (each load its own answer: one failing alone decides)
     set_return(log, 7, r.getrandbits(32))
     set_return(log, OBJECT, THING0 + 0x180)
     blob(log, POST, 0, 7)
