@@ -263,6 +263,7 @@
 #include "../../src/game/world/personscripts.h"
 #include "../../src/game/core/funnytime.h"
 #include "../../src/game/core/wfilebuf.h"
+#include "../../src/game/core/soundsource.h"
 #include "../../src/game/core/soundworker.h"
 #include "../../src/game/world/staff.h"
 #include "../../src/game/world/weather.h"
@@ -2076,6 +2077,9 @@ int main(int argc, char **argv) {
     // The worker's 0x67e050: the cdecl recorder 14 of 3, as tests/fncmp/soundworker.py hooks it.
     static const SoundWorkerEnv soundWorkerEnv = {reinterpret_cast<u32(__cdecl *)(u32, u32, void *)>((uintptr_t)jpeg_recorder(14, 3))};
     SoundWorker_SetEnv(&soundWorkerEnv);
+    // The source maker's two constructors: thiscall recorders 20 of 1 and 21 of none, as tests/fncmp/soundmake.py hooks them.
+    static const SoundMakeEnv soundMakeEnv = {Rec{recorder(20, 1)}, Rec{recorder(21, 0)}};
+    SoundSource_SetMakeEnv(&soundMakeEnv);
     // The weather's constructor and tick: the post the thiscall recorder 21 of 1, WeatherFx_ReloadTextures 20 of 0, agent B's 0x580320 19 of 8, Sound_SetAmbientLevel the cdecl 18 of 1, as
     // tests/fncmp/weathertick.py hooks those addresses.
     static const WeatherEnv weatherEnv = {reinterpret_cast<u32(__fastcall *)(u8 *, void *, u8 *)>((uintptr_t)recorder(21, 1)),

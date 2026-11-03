@@ -146,3 +146,33 @@ void __cdecl SoundHelper_Set(void *helper) { at<void *>(reinterpret_cast<void *>
 void __cdecl SoundHelper_Free() {
     if (void *const helper = at<void *>(reinterpret_cast<void *>((uintptr_t)kHelper), 0)) GameHeap_Free(helper);
 }
+
+namespace {
+const SoundMakeEnv kMakeEnv = {&SoundSource711b08_Ctor, &SoundSource711920_Ctor};
+const SoundMakeEnv *g_make = &kMakeEnv;
+}  // namespace
+
+void SoundSource_SetMakeEnv(const SoundMakeEnv *env) { g_make = env ? env : &kMakeEnv; }
+
+u32 *__fastcall SoundSource_Make(void *self, void *, u32 *out, u8 **slot, const u8 *info, u32 arg) {
+    uintptr_t local = arg;
+    u8 *block = static_cast<u8 *>(GameHeap_Alloc(0x50));
+    u8 *source = block ? g_make->ctorB(block, nullptr, arg) : nullptr;
+    *slot = source;
+    if (*vcall<s32 *>(source, 0x18, &local, info) >= 0) {
+        *out = 0;
+        return out;
+    }
+    SoundSource_Destroy(self, nullptr, slot);
+    block = static_cast<u8 *>(GameHeap_Alloc(0x28));
+    local = reinterpret_cast<uintptr_t>(block);
+    source = block ? g_make->ctorA(block) : nullptr;
+    *slot = source;
+    if (*vcall<s32 *>(source, 0x18, &local, info) >= 0) {
+        *out = 0;
+        return out;
+    }
+    SoundSource_Destroy(self, nullptr, slot);
+    *out = 0xffffffffu;
+    return out;
+}

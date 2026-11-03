@@ -59,4 +59,16 @@ void __cdecl SoundHelper_Set(void *helper);
 // 0x6b9d50 (cdecl; name invented): the global 0xfb1f04 freed unless null; it keeps its value.
 void __cdecl SoundHelper_Free();
 
+// 0x6c4190 (thiscall (out, slot, info, arg), pops 0x10; an SEH frame; this only handed on; name invented): *slot = a new 0x711b08 source (SoundSource711b08_Ctor (arg);
+// null when the heap fails, which faults), its slot 6 (a local out holding arg, info). Its answer's status non-negative: *out = 0. Else SoundSource_Destroy, and again
+// with a new QSound mixer source (SoundSource711920_Ctor; the out holding the block); non-negative *out = 0, else SoundSource_Destroy and *out = -1. Returns out.
+u32 *__fastcall SoundSource_Make(void *self, void *, u32 *out, u8 **slot, const u8 *info, u32 arg);
+
 }
+
+// The maker's constructors, so that the bench can answer objects of its own (nullptr: the game's).
+struct SoundMakeEnv {
+    u8 *(__fastcall *ctorB)(u8 *source, void *, u32 arg);   // SoundSource711b08_Ctor 0x6d2d70
+    u8 *(__fastcall *ctorA)(u8 *source);                    // SoundSource711920_Ctor 0x6d1e30
+};
+void SoundSource_SetMakeEnv(const SoundMakeEnv *env);
