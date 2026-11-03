@@ -49,6 +49,7 @@
 #include "../../src/game/gfx/statsgraph.h"
 #include "../../src/game/ui/thingbrowser.h"
 #include "../../src/game/ui/dialog7ca150.h"
+#include "../../src/game/ui/dialuplist.h"
 #include "../../src/game/ui/thinggoto.h"
 #include "../../src/game/ui/dialogtabhandlers.h"
 #include "../../src/game/ui/dialogtabs.h"
@@ -679,6 +680,8 @@ const DialogTabsEnv kDialogTabsEnv = {Rec{jpeg_recorder(10, 0)}, Rec{jpeg_record
 const DialogTabHandlersEnv kDialogTabHandlersEnv = {Rec{jpeg_recorder(10, 4)}, Rec{jpeg_recorder(11, 4)}, Rec{jpeg_recorder(12, 1)}, Rec{recorder(13, 0)}, Rec{recorder(14, 1)}, Rec{recorder(15, 2)}, Rec{jpeg_recorder(16, 0)}, Rec{jpeg_recorder(17, 0)}, Rec{jpeg_recorder(18, 0)}, Rec{jpeg_recorder(19, 0)}, Rec{jpeg_recorder(20, 0)}, Rec{recorder(21, 0)}};
 // The thing panels' go-to's calls (tests/fncmp/thinggoto.py).
 const ThingGotoEnv kThingGotoEnv = {Rec{jpeg_recorder(10, 8)}, Rec{jpeg_recorder(16, 1)}, Rec{jpeg_recorder(12, 1)}, Rec{jpeg_recorder(13, 1)}, Rec{jpeg_recorder(14, 2)}, Rec{jpeg_recorder(15, 4)}};
+// DialupList_Fill's calls (tests/fncmp/dialuplist.py).
+const DialupListEnv kDialupListEnv = {Rec{recorder(10, 0)}, Rec{recorder(11, 2)}, Rec{recorder(12, 0)}, Rec{recorder(13, 1)}, Rec{recorder(14, 4)}, Rec{recorder(15, 0)}, Rec{jpeg_recorder(16, 1)}, Rec{jpeg_recorder(17, 2)}};
 // Online_Instance's constructor (tests/fncmp/onlineinstance.py).
 const OnlineInstanceEnv kOnlineInstanceEnv = {Rec{recorder(10, 0)}};
 // Dialog7cdac4_Handler's calls (tests/fncmp/dialog7cdac4handler.py).
@@ -1535,6 +1538,7 @@ int main(int argc, char **argv) {
     Panel7cc218_SetShowEnv(&kPanel7cc218ShowEnv);
     Dialog7ca168_SetOpenEnv(&kDialog7ca168OpenEnv);
     Online_SetInstanceEnv(&kOnlineInstanceEnv);
+    DialupList_SetEnv(&kDialupListEnv);
     ThingGoto_SetEnv(&kThingGotoEnv);
     DialogTabHandlers_SetEnv(&kDialogTabHandlersEnv);
     DialogTabs_SetEnv(&kDialogTabsEnv);
