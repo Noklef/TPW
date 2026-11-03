@@ -6419,6 +6419,7 @@ address,name,kind,confidence,notes
 0x00580530,ModelGroup_AddToBatch,function,low,"reimplemented (src/game/render/modelgroup); thiscall (batch, group, stride): one material group of a model's mesh into the batch: UVs (plain, sphere map, a second layer), vertices with colour, faces clipped or not, fog and transform"
 0x00565f90,Batch_DrawQuad,function,low,"reimplemented (src/game/render/batchquad); One textured quad as a batch of its own (name invented, unconfirmed)."
 0x00577ae0,TileGrid_Draw,function,low,"reimplemented (src/game/render/tilegrid); the tiles of a rectangle of a grid of 64-unit cells, each a Batch_DrawQuad (name invented, unconfirmed)"
+0x0057c620,SpriteGroups_Draw,function,low,"reimplemented (src/game/render/spritegroups); a frame's camera-facing sprites by group, each a Batch_DrawQuad (name invented, unconfirmed)"
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"
