@@ -166,6 +166,7 @@
 #include "../../src/game/gfx/tga.h"
 #include "../../src/game/render/d3dprobe.h"
 #include "../../src/game/render/enginedebug.h"
+#include "../../src/game/coaster/placecar.h"
 #include "../../src/game/gfx/texcache.h"
 #include "../../src/game/frontend/lobbymake.h"
 #include "../../src/game/render/engineerrors.h"
@@ -784,6 +785,9 @@ const RideSkinEnv kRideSkinEnv = {Rec{jpeg_recorder(1, 1)}};
 // (ParkMap_Draw's: thiscall 10 of 1 argument, 11 of none, 12 of 3, 13 of none, as tests/fncmp/parkmapdraw.py hooks those addresses.)
 const ParkMapEnv kParkMapEnv = {Rec{recorder(10, 1)}, Rec{recorder(11, 0)}, Rec{recorder(12, 3)}, Rec{recorder(13, 0)}};
 const LobbyMakeEnv kLobbyMakeEnv = {Rec{jpeg_recorder(20, 11)}, Rec{jpeg_recorder(21, 10)}, Rec{jpeg_recorder(22, 1)}, Rec{jpeg_recorder(23, 3)}, Rec{recorder(24, 1)}, Rec{recorder(25, 1)}, Rec{jpeg_recorder(26, 1)}};
+const CoasterPlaceCarEnv kCoasterPlaceCarEnv = {Rec{jpeg_recorder(1, 6)}, Rec{jpeg_recorder(2, 9)}, Rec{jpeg_recorder(3, 7)}, Rec{jpeg_recorder(4, 5)}, Rec{jpeg_recorder(5, 2)}, Rec{jpeg_recorder(6, 7)},
+                                                 Rec{jpeg_recorder(7, 1)}, Rec{jpeg_recorder(8, 1)}, Rec{jpeg_recorder(9, 0)}, Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 0)}, Rec{jpeg_recorder(12, 0)},
+                                                 Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{recorder(15, 1)}};  // tests/fncmp/coasterplacecar.py
 const LobbySceneEnv kLobbySceneEnv = {Rec{jpeg_recorder(1, 1)}, Rec{recorder(2, 0)}, Rec{recorder(3, 2)}, Rec{recorder(4, 0)}, Rec{jpeg_recorder(6, 6)}, Rec{jpeg_recorder(7, 0)}, Rec{recorder(5, 8)}};
 const ChatCursorEnv kChatCursorEnv = {Rec{jpeg_recorder(1, 0)}, Rec{jpeg_recorder(2, 4)}, Rec{jpeg_recorder(3, 0)}, Rec{recorder(4, 1)}, Rec{recorder(5, 1)}};
 // tests/fncmp/d3dprobe.py: the clock a recorder.
@@ -1955,6 +1959,7 @@ int main(int argc, char **argv) {
     KeyCancel_SetEnv(&kKeyCancelEnv);
     WKeywords_SetEnv(&kWKeywordsEnv);
     EngineDebug_SetEnv(&kEngineDebugEnv);
+    CoasterPlaceCar_SetEnv(&kCoasterPlaceCarEnv);
     TexCache_SetTraceEnv(&kTexCacheTraceEnv);
     LobbyMake_SetEnv(&kLobbyMakeEnv);
     D3dProbe_SetEnv(&kD3dProbeEnv);
