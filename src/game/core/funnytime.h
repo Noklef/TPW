@@ -10,7 +10,34 @@
 struct FileTime;
 struct Stream;
 
+// What FunnyTime_Update calls outside the clock, so that it can run outside the game (the benches point it at recorders).
+struct FunnyTimeEnv {
+    u32(__fastcall *post)(u8 *centre, void *, u8 *msg);                                                        // 0x40fb10, MessageCentre_Post
+    void(__fastcall *showDate)(void *ui, void *, u32, u32, u32, u32 day, u32 month, u32 year, u32, u32, u32);  // 0x481560, Obj7b51f0_ShowDate
+    void(__cdecl *newMonth)(u32 month);                                                                        // 0x4a5e10 (agent C's, unported)
+    void(__cdecl *redrawGraph)(u32 month);                                                                     // 0x49b520, StatsGraph_Redraw
+    void(__cdecl *refreshDialog)(u32 month);                                                                   // 0x4a0770, Dialog7cb25c_Refresh
+};
+
 extern "C" {
+// FunnyTime_Update's calls go to env (nullptr: the game's).
+void FunnyTime_SetEnv(const FunnyTimeEnv *env);
+
+// 0x4f8770 (thiscall; name invented): the month of the funny time now (FunnyTime_Now's sum, FileTime_ToSystemTime) / 3 (signed, toward 0):
+// the year's quarter, 4 in December. A failed conversion leaves the month the stack's (sic).
+s32 __fastcall FunnyTime_Quarter(const u8 *clock);
+
+// 0x4f85a0 (thiscall; name invented): +0x10 = the month now - 1, +0x18 = the year now (not written when the conversion fails; +0x10 is then the
+// stack's, sic). Works the time out twice, as the original does.
+void __fastcall FunnyTime_SyncMonthYear(u8 *clock);
+
+// 0x4f8260 (thiscall; name invented): the clock's tick: the date now into the globals 0x7ced58 (second, minute, hour, day, month, year, day of the
+// week, 9 dwords in all), year less 1900, month less 1. A new day (0x7ced64 not +0x14): message 0xb posted (MessageCentre_Instance; the message on the
+// stack), Obj7b51f0_ShowDate (0x7b51f0) with the nine dwords by value. A new month (0x7ced68 not +0x10): message 0xc posted, then month + 1 to 0x4a5e10,
+// StatsGraph_Redraw and Dialog7cb25c_Refresh (cdecl; the last two ignore it). A new year (the year now, in full, not +0x18): message 0xd posted. Then
+// +0x10, +0x14 and +0x18 updated (the year the stack's when its conversion fails, sic).
+void __fastcall FunnyTime_Update(u8 *clock);
+
 // 0x4f7e80 (thiscall): mFunnyTimeStart = 2000-01-01 (FileTime_FromSystemTime; on its failure 0), mSessionStart = the local time
 // (GetLocalTime, then the same; on its failure 0), +0x10 = 0, +0x14 = -1, +0x18 = 0, mFunnySecsPerRealSec = 15000. Returns clock.
 u8 *__fastcall FunnyTime_Construct(u8 *clock);
