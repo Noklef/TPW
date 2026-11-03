@@ -22,11 +22,11 @@ from fncmp import (HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, blob_bytes, echo, 
 CALLS = {'dtor': (0x6b6170, 't', 'v'), 'deldtor': (0x6b6120, 't', 'a'), 'touch': (0x6b6260, 't', 'a'), 'retire': (0x6b6440, 't', 'v'),
          'each': (0x6b6550, 't', 'v'), 'find': (0x6b6830, 't', 'a'), 'stamp': (0x6b6990, 't', 'a'), 'page': (0x6b6ab0, 'c', 'a'),
          'clear': (0x6b6ba0, 't', 'a'), 'params': (0x6b64b0, 't', 'a'), 'pending': (0x6b6510, 't', 'a'), 'send': (0x6b65a0, 't', 'a'),
-         'update': (0x6b62b0, 't', 'v'), 'addpage': (0x6b69b0, 't', 'a'), 'voice10': (0x6b6620, 't', 'a'), 'voice9': (0x6b65e0, 't', 'a')}
+         'update': (0x6b62b0, 't', 'v'), 'addpage': (0x6b69b0, 't', 'a'), 'voice10': (0x6b6620, 't', 'a'), 'voice9': (0x6b65e0, 't', 'a'), 'pagedel': (0x6b71a0, 't', 'a')}
 B = Bench([(0x6b6120, 0x6b62a1), (0x6b6440, 0x6b65a0), (0x6b6830, 0x6b68c3), (0x6b6990, 0x6b69ab), (0x6b6a50, 0x6b6bb4), (0x6b9da0, 0x6b9db0),
            (0x6b65a0, 0x6b65e0), (0x6b7150, 0x6b7190), (0x6bc900, 0x6bca10), (0x6c5130, 0x6c5150), (0x6b62b0, 0x6b6396), (0x6bcb60, 0x6bcb7e),
            (0x6b6bc0, 0x6b6c27), (0x6bc650, 0x6bc674), (0x6bc760, 0x6bc806), (0x6bca10, 0x6bcab0), (0x6bd5f0, 0x6bd781), (0x6bb220, 0x6bb237),
-           (0x5f5f10, 0x5f5f7d), (0x5f5fa0, 0x5f5faa), (0x6b69b0, 0x6b6a4e), (0x6b6620, 0x6b664c), (0x6b65e0, 0x6b660f)])
+           (0x5f5f10, 0x5f5f7d), (0x5f5fa0, 0x5f5faa), (0x6b69b0, 0x6b6a4e), (0x6b6620, 0x6b664c), (0x6b65e0, 0x6b660f), (0x6b71a0, 0x6b71c0)])
 MIX, VVT, OBJ, OVT, LEVELS, NODE2, STATUS, OUTP = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x280, RAM + 0x300, RAM + 0x400, RAM + 0x500, RAM + 0x510
 PAGE = RAM + 0x10000
 PARAMS, SRC, SYS, SVT = RAM + 0x600, RAM + 0x640, RAM + 0x680, RAM + 0x700
@@ -133,7 +133,7 @@ def case(r):
     if name == 'addpage':   # (a whole page from the heap, failing now and then; the page list: none, one page or two)
         regions[HEAP] = heap(0x2100, fail=r.choice([0] * 6 + [1]))
         args = [STATUS]
-    elif name == 'deldtor':
+    elif name in ('deldtor', 'pagedel'):
         args = [r.choice([0, 1, r.getrandbits(32)])]
     elif name == 'retire':   # an active voice (one of the free ones when none is)
         active = [PAGE + 0xc + 0x50 * i for i in order[:k]]

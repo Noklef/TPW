@@ -73,6 +73,12 @@ u8 *__fastcall SoundMixer_DeletingDtor(u8 *mixer, void *, u32 flags) {
     return mixer;
 }
 
+u8 *__fastcall VoicePage_DeletingDtor(u8 *page, void *, u32 flags) {
+    at<u32>(page, 0) = 0x0070a2d8;
+    if (flags & 1) GameHeap_Free(page);
+    return page;
+}
+
 u32 __fastcall SoundMixer_TouchFlagged(u8 *mixer) {
     u32 count = 0;
     for (u8 *voice = at<u8 *>(mixer, 0x24); voice; voice = at<u8 *>(voice, 0x34)) {
