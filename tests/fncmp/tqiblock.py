@@ -47,7 +47,7 @@ def stream(r, kind):
     steps = {'few': r.randrange(1, 6), 'long': r.randrange(1, 12), 'escape': r.randrange(1, 12), 'full': 64}[kind]
     for _ in range(steps):
         if kind == 'escape' and r.random() < 0.7:
-            run = r.randrange(0, min(index, 8) + 1) if index else None
+            run = r.randrange(0, min(index, 8) + 1) if index > 0 else None
             if run is None:
                 break
             index -= run + 1
