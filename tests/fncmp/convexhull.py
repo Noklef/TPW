@@ -40,6 +40,8 @@ def case(r):
         x, z = math.cos(turn) * 50, math.sin(turn) * 50
     elif how == 'corner' and points:
         x, z = r.choice(points)
+        if r.random() < 0.4:  # the same x only, or the same z only
+            (x, z) = (x, z + 1.5) if r.random() < 0.5 else (x + 1.5, z)
     elif how == 'line' and len(points) >= 2:
         a, b = r.sample(points, 2) if count > 2 else points
         # On the line: a straight one, level or upright, when whole.
