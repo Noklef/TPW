@@ -107,6 +107,9 @@ def grid(r, columns=None):
     regions[GRID] = gauge
     font = r.choice([tl.FONTS, tl.FONTS + 0x40, 0, 0])
     put(table, 24 * (10 + 13 * lang) + 0x14, 'I', font)
+    # (the renderer's index from the style's +0xc and +0x10: kept near its table, as random ones fault at 0x6b02ce in both)
+    regions[guitext.STYLE] = put(bytearray(regions[guitext.STYLE]), 0xc, 'iI', r.choice([0, 1, 2, 3, -1]), r.choice([0, 1]))
+    strings(log, 1, 0, out=0b11011)   # (then the renderer runs: its style, the layout's holder + 4, is on the stack: guitext.py's Rgb)
     text = bytearray(r.bytes(0x10))
     if columns == 0x90 or r.random() < 0.2:   # no narrowing table: the buffer's bytes, at most one record
         text[0] = r.choice([0, r.randrange(1, 0x100), 0x20, min(lead + 1, 0xff), max(lead, 1)])
@@ -141,14 +144,12 @@ def grid(r, columns=None):
 def plot(r):
     """The plot (0x47fe90): grid()'s world, with its gauge's marks' y small or level and its one label of at most two digits (the sample after
     the last drawn, 0-99); the draw table's slot 7, the line, a recorder of its own (k 23; the world's k 7 is the font's) given its six
-    arguments, the colour's index logged as its byte; the renderer's index from the style's +0xc and +0x10 kept near its table."""
+    arguments, the colour's index logged as its byte."""
     c = grid(r, 0xc)
     regions, log = dict(c.regions), bytearray(c.regions[LOG])
     regions[guitext.DTABLE] = put(bytearray(regions[guitext.DTABLE]), 7 * 4, 'I', recorder(23, 6))
     struct.pack_into('<I', log, LOG_BYTES + 4 * 23, 1 << 5)
-    strings(log, 1, 0, out=0b11011)   # (the renderer's style, the layout's holder + 4, is on the stack: guitext.py's Rgb)
     regions[LOG] = log
-    regions[guitext.STYLE] = put(bytearray(regions[guitext.STYLE]), 0xc, 'iI', r.choice([0, 1, 2, 3, -1]), r.choice([0, 1]))
     if r.random() < 0.7:   # (the clip round everything: all the lines reach the recorder, those left of 0 too)
         regions[guitext.STATE] = put(bytearray(regions[guitext.STATE]), 8, '4i', -200, -200, 1000, 1000)
     gauge = regions[GRID]
