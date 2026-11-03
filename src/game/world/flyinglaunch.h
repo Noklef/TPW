@@ -1,4 +1,4 @@
-// A flying ride's new flyer in a free slot of its record. Reimplementation of 0x55a720 (name invented, unconfirmed).
+// A flying ride's record made, and a new flyer in a free slot of it. Reimplementation of 0x55a620 and 0x55a720 (names invented, unconfirmed).
 // The records are the table 0x8791f8 (flyingrides.h); their 20 slots are 0xe4 bytes each from +0x5c, free with +0x80 zero. 0x7660b8 to 0x7660c4: the
 // playfield's greatest and least x and z.
 #pragma once
@@ -11,6 +11,7 @@ struct FlyingLaunchEnv {
     u32(__cdecl *createRide)(u32 type, u32 flags, const u32 *desc, u32 mask, u32 d4, u32 a5, u32 a6, u32 a7, s32 ride, u32 loaded);   // Ride_Create (0x463060)
     u32(__cdecl *playSound)(s32 id, u32 owner, u32 category, s32 index, s32 x, s32 y, s32 z);                                         // Sound_PlayRideElement (0x51eeb0)
     void(__cdecl *playMotion)(s32 index, u32 slotIndex, u32 bank, u32 entry, u32 loop);                                               // FlyingRide_PlaySlotMotion (0x55aa80)
+    u32(__cdecl *launch)(s32 index);                                                                                                  // FlyingRide_Launch (0x55a720)
 };
 // The calls go to env (nullptr: the ports).
 void FlyingLaunch_SetEnv(const FlyingLaunchEnv *env);
@@ -24,4 +25,9 @@ extern "C" {
 // (Ride_Create of +0x4bc of the object definition with +0xe of the object (the table 0x7cfb90, 0x14 bytes each) of the record's +0x58; 0x101, -1).
 // FlyingRide_PlaySlotMotion (index, slot, 0, 0, 0); +0xdc the count of the ride's parts keyed 1 on (mask 0x80) before the first that is missing.
 u32 __cdecl FlyingRide_Launch(s32 index);
+
+// 0x55a620 (cdecl (object, sound, x, y, z, turn, quick); name invented, unconfirmed): the first empty entry 1 to 99 of the table 0x8791f8 gets a record (Mem_GlobalAlloc 0x122c; none: the entry stays 0 and the
+// read of its +0x4c faults, as the original's): +0x58 the object's low word, +0x54 the sound, +0x14 to +0x1c the place, +0x20 and +0x24 0x400, +0x40 0x400 - turn, +0x4c quick, +0 +4 +0x2c +0x38 1, +0xc
+// +0x3c +0x44 +0x48 0, +0x10 and +0x28 300, +0x50 5, the 20 slots free, FlyingRide_Launch (index); +0x34 1 and +0x30 0x9c4 (quick) or 0x1388. Returns the index; -1 with no empty entry.
+s32 __cdecl FlyingRide_Create(u32 object, u32 sound, u32 x, u32 y, u32 z, u32 turn, u32 quick);
 }
