@@ -9,6 +9,7 @@
 #include "../core/accessors.h"
 #include "../core/actionrec.h"
 #include "../core/trivial.h"
+#include "../core/vwrap.h"
 #include "../render/textparts.h"
 #include "../core/soundplay.h"
 #include "../core/textarg.h"
@@ -36,10 +37,12 @@
 #include "guirect.h"
 #include "hoverlabel.h"
 #include "panelparts.h"
+#include "windowscript.h"
 #include "window7059f0.h"
 #include "window.h"
 #include "window705a50.h"
 #include "window705b20.h"
+#include "windowreg.h"
 
 using namespace panelparts;
 
@@ -501,4 +504,68 @@ extern "C" void __fastcall Panel7cc218_RefreshFigures(u8 *self) {
         g_figures->showRide(self);
     }
     if (u8 *const window = at<u8 *>(self, 0x24)) g_figures->levels(at<u16>(object, 0xe), g_figures->child(window, nullptr, 0x1f4d), 1, object);
+}
+
+namespace {
+const Panel7cc218LevelBoxEnv kLevelBoxGameEnv = {&Window_FindChild, &Window7059f0_NthItemData, &Panel7cc218_Choose, &Window_SendMessage, &Panel7cc218_RefreshFigures, &WindowAt10_Message4, &Window_DwordA0, &Obj_CallMember20Slot14, &Window_CallDefault, &Window7059f0_BuildRows, &Panel7cc218_FillLevels};
+const Panel7cc218LevelBoxEnv *g_levelBox = &kLevelBoxGameEnv;
+}  // namespace
+
+void Panel7cc218_SetLevelBoxEnv(const Panel7cc218LevelBoxEnv *env) { g_levelBox = env ? env : &kLevelBoxGameEnv; }
+
+s32 __cdecl Panel7cc218_LevelBoxHandler(u8 *window, u32 message, u32 a, u32 b) {
+    u8 *const panel = reinterpret_cast<u8 *>((uintptr_t)0x007cc218);
+    if (message == 0x14) {
+        u8 *const owner = reinterpret_cast<u8 *>((uintptr_t)g_levelBox->dword(window, nullptr, 0));
+        *reinterpret_cast<u32 *>(owner + 0x24) = 0;
+        g_levelBox->member(owner, nullptr, 1);
+    } else if (message == 0x100) {
+        if (a == 0xfffffffe) {
+            g_levelBox->send(window, 4, 0, 0);
+            return 0;
+        }
+    } else if (message == 0x400) {
+        u8 *const list = g_levelBox->child(window, nullptr, a);
+        if (list && b != 0xffffffff) {
+            u32 data = (u32)(uintptr_t)window;
+            g_levelBox->nth(list, nullptr, static_cast<s32>(b), &data);
+            if (data != 0xffffe12e) {
+                if (data != 0xffffcd39) {
+                    if (g_levelBox->choose(panel, nullptr, static_cast<s32>(data), 0) && static_cast<s32>(data) > 0) {
+                        g_levelBox->close(panel);
+                        return 0;
+                    }
+                } else {
+                    g_levelBox->choose(panel, nullptr, 0, 1);
+                }
+                g_levelBox->send(window, 4, 0, 0);
+                g_levelBox->refresh(panel);
+                return 0;
+            }
+        }
+    }
+    return g_levelBox->fallback(window, nullptr, message, a, b);
+}
+
+void __fastcall Panel7cc218_OpenLevelBox(u8 *self) {
+    if (at<u32>(self, 0x24) || at<u32>(self, 0xc)) return;
+    at<u8 *>(self, 0x24) = WindowScript_Build(at<u8 *>(self, 0x10), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00755750), 0x004ae430);
+    Obj_CallMember20Slot14(self, nullptr, 0);
+    Window_SetDepth(at<u8 *>(self, 0x24), nullptr, (u16)(at<u16>(at<u8 *>(self, 0x10), 0xe0) + 0x11));
+    Window_SetDwordA0(at<u8 *>(self, 0x24), nullptr, 0, (u32)(uintptr_t)self);
+    u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
+    u8 *const part = memory ? TextPart6ff530_Ctor(memory, nullptr, 0) : nullptr;
+    Window_SetImpl(Window_FindChild(at<u8 *>(self, 0x24), nullptr, 0x1f4e), nullptr, part);
+    Window_Set4c(Window_FindChild(at<u8 *>(self, 0x24), nullptr, 0x1f4e), nullptr, Language_Font(5));
+    Window_NotifyC00(Window_FindChild(at<u8 *>(self, 0x24), nullptr, 0x1f4e), nullptr, 1, 1);
+    u8 *const label = Window_FindChild(at<u8 *>(self, 0x24), nullptr, 0x1f4e);
+    vcall<void>(label, 0x24, (u32)(uintptr_t)Language_WideText(0x1f));
+    HoverLabel_SetYellow(Window_FindChild(at<u8 *>(self, 0x24), nullptr, 0x1f4e));
+    u8 *const list = Window_FindChild(at<u8 *>(self, 0x24), nullptr, 0x1f4d);
+    g_levelBox->buildRows(list, nullptr, reinterpret_cast<u8 *(__cdecl *)()>((uintptr_t)0x004ae700), reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)0x004ae7d0));
+    Window7059f0_SetColumnBottom(list, nullptr, 0, 0);
+    Window7059f0_SetColumnBottom(list, nullptr, 1, 1);
+    Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>(0x0074fa84))));
+    u8 *const thing = *reinterpret_cast<u8 **>((uintptr_t)0x007c2658);
+    g_levelBox->levels(at<u16>(thing, 0xe), list, 0, thing);
 }

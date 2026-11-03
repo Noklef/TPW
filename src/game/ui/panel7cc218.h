@@ -71,7 +71,32 @@ struct Panel7cc218TileEnv {
 };
 void Panel7cc218_SetTileEnv(const Panel7cc218TileEnv *env);
 
+// Panel7cc218_LevelBoxHandler's and Panel7cc218_OpenLevelBox's calls (the ports by default; the bench's recorders: their own benches have them).
+struct Panel7cc218LevelBoxEnv {
+    u8 *(__fastcall *child)(u8 *window, void *, u32 id);                       // Window_FindChild
+    u32(__fastcall *nth)(u8 *window, void *, s32 n, u32 *out);                 // Window7059f0_NthItemData
+    u32(__fastcall *choose)(u8 *self, void *, s32 index, u8 close);            // Panel7cc218_Choose
+    s32(__cdecl *send)(u8 *window, u32 message, u32 a, u32 b);                 // Window_SendMessage
+    void(__fastcall *refresh)(u8 *self);                                       // Panel7cc218_RefreshFigures
+    s32(__fastcall *close)(u8 *object);                                        // WindowAt10_Message4
+    u32(__fastcall *dword)(u8 *window, void *, u32 index);                     // Window_DwordA0
+    u32(__fastcall *member)(u8 *object, void *, u32 a);                        // Obj_CallMember20Slot14
+    s32(__fastcall *fallback)(u8 *window, void *, u32 message, u32 a, u32 b);  // Window_CallDefault
+    void(__fastcall *buildRows)(u8 *window, void *, u8 *(__cdecl *make)(), void(__cdecl *release)(u8 *));   // Window7059f0_BuildRows
+    void(__cdecl *levels)(u32 id, u8 *list, u32 clear, u8 *object);            // Panel7cc218_FillLevels
+};
+void Panel7cc218_SetLevelBoxEnv(const Panel7cc218LevelBoxEnv *env);
+
 extern "C" {
+
+// 0x4ae430 (cdecl (window, message, a, b); name invented, unconfirmed): the level box's handler. 0x14: its owner (dword 0)'s +0x24 = 0, Obj_CallMember20Slot14 (1), then the default. 0x100 with a -2: the box sent 4 (0, 0), answer 0. 0x400 (the list a's row b chosen, the list there,
+// b not -1): the row's data (Window7059f0_NthItemData; the slot left the window when none, sic) 0xffffe12e the default; 0xffffcd39 Panel7cc218_Choose (0, close) of the panel 0x7cc218, the box sent 4, Panel7cc218_RefreshFigures, answer 0; else Choose (data, no close): that done with a
+// positive data WindowAt10_Message4 of the panel, answer 0; otherwise as for 0xffffcd39's last two. All else the default.
+s32 __cdecl Panel7cc218_LevelBoxHandler(u8 *window, u32 message, u32 a, u32 b);
+
+// 0x4ae560 (thiscall; name invented, unconfirmed): when +0x24 and +0xc are 0: the box built on +0x10 (script 0x755750, handler 0x4ae430 by address; not checked) into +0x24, Obj_CallMember20Slot14 (0), its depth +0x10's word +0xe0 + 0x11, its dword 0 this. Its child 0x1f4e: a TextPart6ff530
+// part, font 5, the bytes 1, 1, slot 9 the text 0x1f, HoverLabel_SetYellow. Its list 0x1f4d: rows (List7cc250_NewRow, InitRow by address), the columns 0 (0) and 1 (1), the highlight "hilight" (the name at 0x74fa84), Panel7cc218_FillLevels of [0x7c2658]'s word +0xe, not cleared.
+void __fastcall Panel7cc218_OpenLevelBox(u8 *self);
 
 // 0x4af200 (thiscall (flag), pops 4; called by the handler 0x4af600; name invented): the shown thing [0x7c2658] selected (Global7c2654_Set), the focus cell updated with the record 1. With flag 0 a new tile mode of the kind 0x14. Else by the
 // thing's definition's (word +0xe) track type +0x9c: 3 Dialog7ca1c8_OpenFor (the thing) and no mode; else a new tile mode of the kind 0xe for 1, 0x13 for 2, 0 otherwise, and the type given to Global81ecac_SetRecorded. A new mode made

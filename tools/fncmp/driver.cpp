@@ -624,6 +624,8 @@ const Dialog7ca210Env kDialog7ca210Env = {reinterpret_cast<s32(__cdecl *)(void(_
 const Dialog7cc2ecEnv kDialog7cc2ecEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50)), Rec{jpeg_recorder(21, 3)}, Rec{stdcall_recorder(22, 1)}};
 // ResearchPanel_Open's calls (tests/fncmp/researchopen.py).
 const ResearchOpenEnv kResearchOpenEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50)), Rec{jpeg_recorder(15, 8)}, Rec{jpeg_recorder(16, 1)}, Rec{jpeg_recorder(18, 0)}, Rec{jpeg_recorder(19, 0)}, Rec{recorder(17, 0)}, Rec{recorder(25, 0)}, Rec{jpeg_recorder(21, 1)}, Rec{jpeg_recorder(22, 1)}, Rec{jpeg_recorder(23, 1)}, Rec{recorder(24, 1)}};
+// Panel7cc218_LevelBoxHandler's and Panel7cc218_OpenLevelBox's calls (tests/fncmp/panel7cc218levelbox.py).
+const Panel7cc218LevelBoxEnv kPanel7cc218LevelBoxEnv = {Rec{recorder(10, 1)}, Rec{recorder(11, 2)}, Rec{recorder(12, 2)}, Rec{jpeg_recorder(13, 4)}, Rec{recorder(14, 0)}, Rec{recorder(15, 0)}, Rec{recorder(16, 1)}, Rec{recorder(17, 1)}, Rec{recorder(18, 3)}, Rec{recorder(27, 2)}, Rec{jpeg_recorder(19, 4)}};
 // Online_Instance's constructor (tests/fncmp/onlineinstance.py).
 const OnlineInstanceEnv kOnlineInstanceEnv = {Rec{recorder(10, 0)}};
 // Dialog7cdac4_Handler's calls (tests/fncmp/dialog7cdac4handler.py).
@@ -1480,6 +1482,7 @@ int main(int argc, char **argv) {
     Panel7cc218_SetShowEnv(&kPanel7cc218ShowEnv);
     Dialog7ca168_SetOpenEnv(&kDialog7ca168OpenEnv);
     Online_SetInstanceEnv(&kOnlineInstanceEnv);
+    Panel7cc218_SetLevelBoxEnv(&kPanel7cc218LevelBoxEnv);
     ResearchPanel_SetOpenEnv(&kResearchOpenEnv);
     Dialog7cc2ec_SetEnv(&kDialog7cc2ecEnv);
     Dialog7ca210_SetEnv(&kDialog7ca210Env);
