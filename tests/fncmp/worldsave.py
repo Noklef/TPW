@@ -29,7 +29,11 @@ MODES = [(0x40cb40, 0x40cb90), (0x46c350, 0x46c460), (0x46c6a0, 0x46c6c0), (0x46
          (0x46cfb0, 0x46cfc0), (0x40f3a0, 0x40f3a6), (0x40f440, 0x40f446), (0x5d1410, 0x5d1416), (0x46d590, 0x46d59d), (0x46c710, 0x46c72e), (0x46ced0, 0x46ced7),
          (0x5d1750, 0x5d1751), (0x67a740, 0x67a800), (0x46d550, 0x46d5a0), (0x4814a0, 0x481500)]
 CTORS = [(0x401000, 0x401040), (0x4c5d10, 0x4c5d80), (0x4cdb60, 0x4cdb90), (0x4ce9e0, 0x4cea10), (0x4d0f70, 0x4d0fa0), (0x504750, 0x504770), (0x50b080, 0x50b0a0),
-         (0x50c620, 0x50c650), (0x513290, 0x5132b0), (0x518e00, 0x518eb0), (0x51ad30, 0x51ad50), (0x51ade0, 0x51aec0), (0x5408e0, 0x540910), (0x5c5520, 0x5c5540)]
+         (0x50ba80, 0x50bac0), (0x50c620, 0x50c650), (0x50ffe0, 0x5100f0), (0x513290, 0x5132b0), (0x518e00, 0x518eb0), (0x51ad30, 0x51ad50), (0x51ade0, 0x51aec0),
+         (0x5408e0, 0x540910), (0x5c5520, 0x5c5540), (0x67acf0, 0x67ada0), (0x67b050, 0x67b0d0)]
+
+
+EXTRA = [(0x50f1f0, 0x50f210)]
 
 
 def merged(ranges):
@@ -42,7 +46,7 @@ def merged(ranges):
     return out
 
 
-B = Bench(merged([(0x516c80, 0x51796b), (0x5179c0, 0x518db2), (0x416e10, 0x416e30), (0x5f5bb0, 0x5f5bd0), (0x5f5e20, 0x5f5e90)] + MODES + CTORS),
+B = Bench(merged([(0x516c80, 0x51796b), (0x5179c0, 0x518db2), (0x416e10, 0x416e30), (0x5f5bb0, 0x5f5bd0), (0x5f5e20, 0x5f5e90)] + MODES + CTORS + EXTRA),
           hooks={0x515f30: _recorder(1, 0, cdecl=True), **{addr: _recorder(k, 4) for addr, k in SERIALIZERS.items()}})
 WORLD = RAM + 0x100000
 FIELDS = WORLD + 0x1da700
@@ -84,6 +88,9 @@ def save_case(r, regions, log):
     room = 4 + FIELDS_BYTES + 4 + 8 * n
     if r.random() < 0.2:
         room = r.randrange(room)
+    elif r.random() < 0.25:
+        k = r.choice([13, 14, 15] + [KIND_K[things[0x10 * i + 2]] for i in range(n) if things[0x10 * i + 2] in KIND_K])
+        set_return(log, k, r.choice([1, 0xffffffff, r.getrandbits(32) | 1]))
     regions[STREAM] = memory_stream(STREAM, DATA, room)
     regions[DATA] = bytearray(r.bytes(room + 0x10))
 
@@ -128,6 +135,8 @@ def case(r):
     op = r.deal(OPS)
     log = log_region()
     regions = {LOG: log, FIELDS: bytearray(r.bytes(0x50))}
+    for k in range(13, 32):   # (a recorder's answer is its own number otherwise: a serializer failing)
+        set_return(log, k, 0)
     (save_case if op == 'save' else load_case)(r, regions, log)
     return Call(CALLS[op], [WORLD, STREAM], regions, conv='t', ret='a')
 
