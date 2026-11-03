@@ -6017,6 +6017,8 @@ address,name,kind,confidence,notes
 0x00671800,TqiVideo_DecodeFrame16,function,low,"reimplemented (src/game/gfx/tqiframe); fastcall (player, value; out, unused, pitch), pops 12; name invented, unconfirmed: the second DCT video's frame at 16 bits"
 0x00671940,TqiVideo_DecodeFrameYuy2,function,low,"reimplemented (src/game/gfx/tqiframe); fastcall (player, value; out, unused, pitch), pops 12; name invented, unconfirmed: the second DCT video's frame in YUY2's layout"
 0x00676e40,DctVideo_DecodeMacroblock,function,low,"reimplemented (src/game/gfx/dctmacroblock); fastcall (reference, out; pitch), pops 4; name invented, unconfirmed: the DCT video's macroblock: six blocks decoded or copied from the last frame"
+0x006777d0,MovieFrame_Allocate,function,low,"reimplemented (src/game/gfx/movieframe); the video library's frame and table buffers made again and the first frame unpacked: name invented, unconfirmed"
+0x00677310,MovieFrame_Decode,function,low,"reimplemented (src/game/gfx/movieframe); one block frame of the video library: name invented, unconfirmed"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"

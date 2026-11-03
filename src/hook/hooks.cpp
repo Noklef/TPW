@@ -143,6 +143,7 @@
 #include "../game/gfx/glyphrender.h"
 #include "../game/gfx/guitext.h"
 #include "../game/gfx/mmxblit.h"
+#include "../game/gfx/movieframe.h"
 #include "../game/gfx/movieidct.h"
 #include "../game/gfx/moviepixels.h"
 #include "../game/gfx/movieplayer.h"
@@ -6010,6 +6011,8 @@ const Hook kHooks[] = {
     {"TqiVideo_DecodeFrame16",    0x00671800, (void *)&TqiVideo_DecodeFrame16, {0x51, 0x56, 0x57, 0x8b, 0x7c}},
     {"TqiVideo_DecodeFrameYuy2",  0x00671940, (void *)&TqiVideo_DecodeFrameYuy2, {0x51, 0x56, 0x8b, 0x74, 0x24}},
     {"DctVideo_DecodeMacroblock", 0x00676e40, (void *)&DctVideo_DecodeMacroblock, {0x51, 0xa1, 0x60, 0xac, 0xfa}},
+    {"MovieFrame_Allocate",       0x006777d0, (void *)&MovieFrame_Allocate, {0x83, 0xec, 0x08, 0x53, 0x56}},
+    {"MovieFrame_Decode",         0x00677310, (void *)&MovieFrame_Decode, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
