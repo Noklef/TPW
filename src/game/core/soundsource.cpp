@@ -147,6 +147,14 @@ void __cdecl SoundHelper_Free() {
     if (void *const helper = at<void *>(reinterpret_cast<void *>((uintptr_t)kHelper), 0)) GameHeap_Free(helper);
 }
 
+void __fastcall SoundSource711920_Dtor(u8 *source) {
+    at<u32>(source, 0) = 0x00711920;
+    if (void *const block = at<void *>(source, 0x20)) GameHeap_Free(block);
+    if (void *const block = at<void *>(source, 0x1c)) GameHeap_Free(block);
+    at<u32>(source, 0) = 0x007119b8;
+    SoundHelper_Free();
+}
+
 namespace {
 const SoundMakeEnv kMakeEnv = {&SoundSource711b08_Ctor, &SoundSource711920_Ctor};
 const SoundMakeEnv *g_make = &kMakeEnv;
