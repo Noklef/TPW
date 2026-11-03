@@ -9,10 +9,14 @@ struct Dialog7ca308Env {
     void(__fastcall *clear)(u8 *list);                                                        // Window7059f0_Clear
     s32(__fastcall *addItem)(u8 *list, void *, const u32 *texts, u32 data, s32 parent, u32 refresh);   // Window7059f0_AddItem
     void(__fastcall *refresh)(u8 *list);                                                      // Window7059f0_RefreshRows
-    void(__fastcall *format)(const u8 *entry, void *, u16 *to, u32 size);                     // StaffPoolEntry_FormatName
+    void(__fastcall *formatName)(const u8 *entry, void *, u16 *to, u32 size);                 // StaffPoolEntry_FormatName
     s32(__fastcall *wage)(const u8 *record);                                                  // Staff_WageForRecord
     s32(__fastcall *findItem)(u8 *list, void *, u32 data);                                    // Window7059f0_FindItemData
     u32(__fastcall *removeItem)(u8 *list, void *, s32 n);                                     // Window7059f0_RemoveItem
+    void(__cdecl *fillList)(u32 kind, u32 clear);                                             // Dialog7ca308_FillList (Open's)
+    s32(__cdecl *format)(u8 *charset, u16 *dest, u32 size, u32 entry, ...);                   // Charset_FormatWide (Open's)
+    u16(__fastcall *selectRadio)(u8 *group, void *, u32 id);                                  // RadioGroup_Select (Open's)
+    void(__cdecl *attachLabel)(u8 *parent, u32 id, u32 text);                                 // HoverLabel_Attach (Open's)
 };
 void Dialog7ca308_SetEnv(const Dialog7ca308Env *env);
 
@@ -33,4 +37,11 @@ void __cdecl Dialog7ca308_StaffChanged(u32 index);
 // with the folder 5, 6, 4, 7, 8 for the types 0-4 (any other type: the index itself, sic) and the sprite the byte +9, its float
 // register 8 set to 8.0 (SpriteScript_SetRegF). EAX not kept.
 void __cdecl Dialog7ca308_ShowStaff(u32 index);
+
+// 0x49bdd0 (cdecl (kind); name invented): the staff dialog opened on a kind (-1: the one it had). Window7c24c8_Close, Global7cb28c_Select (1, 2). With the window
+// [0x7ca308] already there and another kind: only the kind kept in [0x7ca30c], its radio button (the list 0x248e's child 0x248f), the label 0x2480's text (0x8b + the kind) and the list filled afresh
+// (Dialog7ca308_FillList (kind, 1)). Otherwise the window built (the script 0x751fa8, handler 0x49b650, on [0x7cb2ac]; none: nothing more) and made [0x7c24c8]; the line 0x2496 (a TextPart6ff530 as its object +0x98)
+// of the money of [0x7cf83c]'s table (Source_Field0c) formatted into 0x7ba058 by the texts 0x1ca / 0x1cb (negative, by its size); when there: the list (its rows' 0x49c870 / 0x49c880, handler 0x49bc80, the sort [0x7523e4], the buttons 0x10 / 0x11 with the font
+// [0x7523e0], the label, FillList (kind, 0), the radio button); the bar 0x2481; the figures 0x2485 (the three rings' newest values into [0x7ca2f0], [0x7ca2fc], [0x7ca2f8], the difference [0x7ca300]). Advisor_PostId (0xbd).
+void __cdecl Dialog7ca308_Open(u32 kind);
 }
