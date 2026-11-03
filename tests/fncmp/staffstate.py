@@ -31,8 +31,10 @@
 # or another; +0x1f8 about 0-100 (or past them, a NaN, an infinity, huge), the int 0x785328 small, negative or huge.
 # Dismiss (0x505790): PickUp's mode surroundings (slot 9 answering 6 mostly) and Message's pay day records; Sprite_SpawnParticle and
 # Thing_Delete thiscall recorders (29 of 1, 30 of 0: driver.cpp's StaffWalkEnv).
+# ModelState (0x5056e0): SetState's surroundings; the state 4 (Sprite_WalkNav answering 0, 2 or another; Thoughts_Show a thiscall recorder, 31 of 2:
+# driver.cpp's StaffWalkEnv), 6 (the tick less +0x200 at, either side of or away from 3 * the grade's value of 0x785330), 7 or others; 5 on Head's.
 # usage: staffstate.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetState,Mechanic,Handyman,PickUp,Settle,Head,Researcher,LeaveRest,
-#   Message,MechMsg,HandyMsg,GuardMsg,DefaultMsg,WalkRest,Dismiss)
+#   Message,MechMsg,HandyMsg,GuardMsg,DefaultMsg,WalkRest,Dismiss,ModelState)
 import os
 import struct
 import sys
@@ -42,7 +44,7 @@ sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import navpath  # noqa: E402
 import wctimage  # noqa: E402
-from fncmp import HEAP, LOG, Bench, Call, RAM, _recorder, blob_bytes, fb, heap, put, recorder, set_return, vtable  # noqa: E402
+from fncmp import HEAP, LOG, LOG_BYTES, Bench, Call, RAM, _recorder, blob_bytes, fb, heap, put, recorder, set_return, vtable  # noqa: E402
 from focus import MODES  # noqa: E402
 from mousemode import assign  # noqa: E402
 from movingperson import cell_xy  # noqa: E402
@@ -61,14 +63,14 @@ B = Bench(wctimage.merged(MODES + [
     (0x415e00, 0x415e80), (0x504c70, 0x504dd2), (0x40f440, 0x40f446), (0x40f490, 0x40f496), (0x40f510, 0x40f516), (0x40f920, 0x40f926),
     (0x506490, 0x5064d4), (0x506910, 0x506a38), (0x5195d0, 0x51960d), (0x4d01f0, 0x4d0259),
     (0x4da0c0, 0x4da10e), (0x4d6cf0, 0x4d6d53), (0x4d5fb0, 0x4d5ff5), (0x4d4450, 0x4d445d)] + navpath.RANGES + [(0x505fe0, 0x506183),
-    (0x505790, 0x5059e2), (0x5059e4, 0x505a0c)]),
-          hooks={0x40fb10: _recorder(21, 1), 0x4fa2a0: _recorder(28, 0), 0x4fa470: _recorder(29, 1), 0x50b780: _recorder(30, 0)})
+    (0x505790, 0x5059e2), (0x5059e4, 0x505a0c), (0x5056e0, 0x505790)]),
+          hooks={0x40fb10: _recorder(21, 1), 0x4fa2a0: _recorder(28, 0), 0x4fa470: _recorder(29, 1), 0x50b780: _recorder(30, 0), 0x50be80: _recorder(31, 2)})
 STAFF, WORLD, MODE, MODE_VT, HOLDER = RAM + 0x20000, RAM + 0x21000, RAM + 0xc000, RAM + 0xc100, RAM + 0xc200
 RECORD, CELLS = RAM + 0x21400, RAM + 0x50000
 
 
 CALLS = {'SetState': 0x5054d0, 'Mechanic': 0x4da370, 'Handyman': 0x4d7330, 'PickUp': 0x505c50, 'Settle': 0x505f50, 'Head': 0x506300,
-         'Researcher': 0x502c20, 'LeaveRest': 0x506d10, 'Message': 0x504c70, 'WalkRest': 0x505fe0, 'Dismiss': 0x505790,
+         'Researcher': 0x502c20, 'LeaveRest': 0x506d10, 'Message': 0x504c70, 'WalkRest': 0x505fe0, 'Dismiss': 0x505790, 'ModelState': 0x5056e0,
          'MechMsg': 0x4da0c0, 'HandyMsg': 0x4d6cf0, 'GuardMsg': 0x4d5fb0, 'DefaultMsg': 0x4d4450}
 # the kinds' handlers: (the staff member's handle word, the message type it takes)
 HANDLERS = {'MechMsg': (0x218, 0xa), 'HandyMsg': (0x21a, 0xa), 'GuardMsg': (0x212, 0x1b), 'DefaultMsg': (None, None)}
@@ -253,6 +255,10 @@ def case(r):
     op = r.deal(OPS)
     if op == 'Head':
         return head(r)
+    if op == 'ModelState' and r.random() < 0.2:   # (state 5: Head's surroundings)
+        regions = dict(head(r).regions)
+        put(regions[RAM], 0x19c, 'I', 5)
+        return Call(CALLS[op], [RAM], regions, conv='t', ret='v')
     if op == 'Mechanic' and r.random() < 0.7:
         return mechanic(r)
     if op == 'Handyman' and r.random() < 0.7:
@@ -282,6 +288,19 @@ def case(r):
     regions[0xfb3b7c] = struct.pack('<I', 1)
     state = r.choice([0, 1, 2, 3, 4, 5, 6, 7, 7, 7]) if r.random() < 0.95 else r.choice([8, 9, 0xffffffff, r.getrandbits(32)])
     assert LOG in regions
+    if op == 'ModelState':
+        put(staff, 0x19c, 'I', r.choice([4, 4, 4, 6, 6, 6, 7, 3, 8, r.getrandbits(32)]))
+        grade = r.randrange(8)
+        put(staff, 0x1e4, 'I', grade)
+        stay = r.choice([0, 1, 100, 0x55555556, r.getrandbits(32)])
+        regions[0x785330] = put(bytearray(r.bytes(0x80)), grade << 4, 'I', stay)
+        tick = struct.unpack('<I', regions[WORLD])[0]
+        wait = r.choice([stay * 3, stay * 3 + 1, stay * 3 - 1, 0, r.getrandbits(32)]) & 0xffffffff
+        put(staff, 0x200, 'I', (tick - wait) & 0xffffffff)
+        set_return(regions[LOG], 28, r.choice([0, 0, 2, 2, 1, 3]))
+        struct.pack_into('<I', regions[LOG], LOG_BYTES + 4 * 31, 2)
+        put(staff, 0x188, 'I', r.getrandbits(32))
+        return Call(CALLS[op], [STAFF], regions, conv='t', ret='v')
     if op in ('PickUp', 'Settle'):
         if op == 'Settle':
             put(staff, 0x19c, 'I', r.choice([0, 1, 2, 3, 4, 5, 6, 7, 0xd, 0x12, 8, 0x11, r.getrandbits(32)]))

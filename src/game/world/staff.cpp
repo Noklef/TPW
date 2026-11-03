@@ -770,6 +770,31 @@ void __fastcall Staff_WalkToRestArea(u8 *staff) {
     }
 }
 
+void __fastcall Staff_ModelState(u8 *staff) {
+    switch (at<u32>(staff, 0x19c)) {
+    case 4: {
+        const u32 walked = g_walk->walkNav(staff);
+        g_walk->showThought(staff + 0x30, nullptr, 0x15, 0);
+        if (walked == 0 || walked == 2) {
+            at<u32>(staff, 0x188) = 0;
+            Staff_SetState(staff, nullptr, 5);
+        }
+        return;
+    }
+    case 5:
+        Staff_HeadForEntrance(staff);
+        return;
+    case 6: {
+        const u32 tick = at<u32>(*reinterpret_cast<u8 **>((uintptr_t)0x0080239c), 0x1da70c);
+        const u32 stay = *reinterpret_cast<const u32 *>((uintptr_t)0x00785330 + (at<u32>(staff, 0x1e4) << 4));
+        if (tick - at<u32>(staff, 0x200) > stay * 3) Staff_SetState(staff, nullptr, 0);
+        return;
+    }
+    default:   // (7 nothing; the others the original's debug print, left out)
+        return;
+    }
+}
+
 void __fastcall Staff_Detach(u8 *staff) { Person_Detach(staff); }
 
 void __fastcall Mechanic_Detach(u8 *mechanic) {

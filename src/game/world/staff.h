@@ -280,6 +280,12 @@ struct StaffWalkEnv {
 };
 void Staff_SetWalkEnv(const StaffWalkEnv *env);   // nullptr: the game's
 
+// 0x5056e0 (thiscall; the name from the original's debug print "CStaff::ModelState"): the state step of a staff kind. State +0x19c 4: the walk
+// (Sprite_WalkNav), the thought 0x15 (Thoughts_Show on +0x30, no force), and when the walk answers 0 or 2 +0x188 cleared and Staff_SetState 5.
+// 5: Staff_HeadForEntrance. 6: once the world's tick less +0x200 (unsigned) is above 3 * [0x785330 + the grade +0x1e4 * 16], Staff_SetState 0.
+// Others: nothing.
+void __fastcall Staff_ModelState(u8 *staff);
+
 // 0x4f7c40 (thiscall; name invented, unconfirmed): a jump to Person_Detach (Thing_Delete's kind 0x12, Researcher_Detach's base).
 void __fastcall Staff_Detach(u8 *staff);
 // 0x502920 (thiscall; name invented, unconfirmed): a researcher (kind 8) taken out of the world: out of the game object's list of them
