@@ -166,6 +166,7 @@
 #include "../../src/game/gfx/tga.h"
 #include "../../src/game/render/d3dprobe.h"
 #include "../../src/game/render/enginedebug.h"
+#include "../../src/game/model/rideresource.h"
 #include "../../src/game/coaster/placecar.h"
 #include "../../src/game/gfx/texcache.h"
 #include "../../src/game/frontend/lobbymake.h"
@@ -788,6 +789,7 @@ const LobbyMakeEnv kLobbyMakeEnv = {Rec{jpeg_recorder(20, 11)}, Rec{jpeg_recorde
 const CoasterPlaceCarEnv kCoasterPlaceCarEnv = {Rec{jpeg_recorder(1, 6)}, Rec{jpeg_recorder(2, 9)}, Rec{jpeg_recorder(3, 7)}, Rec{jpeg_recorder(4, 5)}, Rec{jpeg_recorder(5, 2)}, Rec{jpeg_recorder(6, 7)},
                                                  Rec{jpeg_recorder(7, 1)}, Rec{jpeg_recorder(8, 1)}, Rec{jpeg_recorder(9, 0)}, Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 0)}, Rec{jpeg_recorder(12, 0)},
                                                  Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{recorder(15, 1)}};  // tests/fncmp/coasterplacecar.py
+const RideResourceEnv kRideResourceEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorder(2, 3)}, Rec{jpeg_recorder(3, 5)}, Rec{jpeg_recorder(4, 5)}, Rec{jpeg_recorder(5, 3)}, Rec{jpeg_recorder(6, 3)}, Rec{jpeg_recorder(7, 1)}, Rec{jpeg_recorder(8, 6)}, Rec{jpeg_recorder(9, 1)}, Rec{recorder(10, 1)}, Rec{jpeg_recorder(11, 6)}};
 const LobbySceneEnv kLobbySceneEnv = {Rec{jpeg_recorder(1, 1)}, Rec{recorder(2, 0)}, Rec{recorder(3, 2)}, Rec{recorder(4, 0)}, Rec{jpeg_recorder(6, 6)}, Rec{jpeg_recorder(7, 0)}, Rec{recorder(5, 8)}};
 const ChatCursorEnv kChatCursorEnv = {Rec{jpeg_recorder(1, 0)}, Rec{jpeg_recorder(2, 4)}, Rec{jpeg_recorder(3, 0)}, Rec{recorder(4, 1)}, Rec{recorder(5, 1)}};
 // tests/fncmp/d3dprobe.py: the clock a recorder.
@@ -1959,6 +1961,7 @@ int main(int argc, char **argv) {
     KeyCancel_SetEnv(&kKeyCancelEnv);
     WKeywords_SetEnv(&kWKeywordsEnv);
     EngineDebug_SetEnv(&kEngineDebugEnv);
+    RideResource_SetEnv(&kRideResourceEnv);
     CoasterPlaceCar_SetEnv(&kCoasterPlaceCarEnv);
     TexCache_SetTraceEnv(&kTexCacheTraceEnv);
     LobbyMake_SetEnv(&kLobbyMakeEnv);

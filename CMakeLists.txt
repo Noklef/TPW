@@ -443,6 +443,7 @@ add_library(tpw_game STATIC
     src/game/model/basecells.cpp
     src/game/model/hoardingmesh.cpp
     src/game/model/ridebase.cpp
+    src/game/model/rideresource.cpp
     src/game/render/mode.cpp
     src/game/render/frame.cpp
     src/game/render/screen.cpp
