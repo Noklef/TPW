@@ -47,6 +47,13 @@ def plain(r, w, ident, script=(5,), size=60):
     dialogbuild.child(r, w, ident, script, size, 1)
 
 
+def slot(r, w):
+    """the child 0x32, its rectangle now and then upside down (the centring's halves round to zero)"""
+    plain(r, w, 0x32)
+    if r.random() < 0.3:
+        w[-2] = (w[-4] - r.randrange(1, 9)) & 0xffff
+
+
 def shuffled(r, w, makers):
     r.shuffle(makers)
     for m in makers:
@@ -63,7 +70,7 @@ def script(r, mode):
     repair = []
     shuffled(r, repair, [lambda: plain(r, repair, 0x2e)] if maybe(r) else [])
     money = []
-    shuffled(r, money, [lambda: plain(r, money, 0x32)] + [lambda i=i: plain(r, money, i) for i in (0x30, 0x31) if maybe(r, 0.8)])
+    shuffled(r, money, [lambda: slot(r, money)] + [lambda i=i: plain(r, money, i) for i in (0x30, 0x31) if maybe(r, 0.8)])
     end = []
     shuffled(r, end, [lambda: plain(r, end, 0x23)] if maybe(r) else [])
     mid = []
@@ -109,7 +116,7 @@ def case(r):
     regions[0xfaa5c4] = struct.pack('<h', r.choice([2048, 1024, 0x800 + r.randrange(-3, 4)]))
     blob(log, 19, 1, 0b1111)
     strings(log, 19, 0, out=0b1000000)
-    fill(log, 19, 6, struct.pack('<4i', r.getrandbits(8), r.getrandbits(8), r.choice([r.randrange(0, 120)] * 19 + [-r.randrange(1, 20)]), r.choice([r.randrange(0, 40)] * 19 + [-r.randrange(1, 20)])))
+    fill(log, 19, 6, struct.pack('<4i', r.getrandbits(8), r.getrandbits(8), r.choice([r.randrange(0, 120)] * 19 + [-r.randrange(1, 20)]), r.choice([r.randrange(0, 40)] * 6 + [-r.randrange(1, 60)])))
     set_return(log, 20, r.getrandbits(32))
     regions[0x6ff2d8 + 0xc] = struct.pack('<I', recorder(3, 2))
     regions[0x6ff2d8 + 0x14] = struct.pack('<I', recorder(31, 1))
