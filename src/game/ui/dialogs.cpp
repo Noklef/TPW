@@ -28,6 +28,9 @@
 
 namespace {
 
+const Dialog7ca098CreateEnv kCreateEnv = {WindowScript_Build, Window_Unlink, Window_SetDwordA0, Window_SetShown, GameHeap_Alloc, TextPart_Ctor, Window_SetImpl, Language_Font, Window_Set4c, Window_Notify3000, Window_NotifyC00};
+const Dialog7ca098CreateEnv *g_createEnv = &kCreateEnv;
+
 u8 *window(u32 address) { return *reinterpret_cast<u8 **>((uintptr_t)address); }
 
 // the 0x7cc4c4 dialog's texts: a TextPart_Ctor part (0x1a4 bytes, GameHeap_Alloc; none when that fails), the bytes 1, 1 as 0xc00 and
@@ -42,6 +45,8 @@ void dressText(u8 *text, u32 font) {
     Window_NotifyImpl100(text, nullptr, 0);
 }
 }
+
+void Dialog7ca098_SetCreateEnv(const Dialog7ca098CreateEnv *env) { g_createEnv = env ? env : &kCreateEnv; }
 
 extern "C" {
 
@@ -96,6 +101,21 @@ void __cdecl Dialog7cdb0c_SetChild16006State(u32 on) {
 
 s32 __cdecl Dialog7cdb0c_Child16007Message6Off() {
     return Window_SendMessage(Window_FindChild(window(0x007cdb0c), nullptr, 0x16007), 6, 0, 0);
+}
+
+void __cdecl Dialog7ca098_Create() {
+    const Dialog7ca098CreateEnv *const env = g_createEnv;
+    *reinterpret_cast<u8 **>((uintptr_t)0x007ca098) = env->build(window(0x00faa5d8), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007501a0), 0x0048e2f0);
+    env->unlink(window(0x007ca098));
+    env->setDwordA0(window(0x007ca098), nullptr, 0, 1);
+    env->setShown(window(0x007ca098), nullptr, 0);
+    u8 *const child = Window_FindChild(window(0x007ca098), nullptr, 0x10d32);
+    if (!child) return;
+    u8 *const memory = static_cast<u8 *>(env->alloc(0x1a4));
+    env->setImpl(child, nullptr, memory ? env->textPart(memory, nullptr, 0) : nullptr);
+    env->set4c(child, nullptr, env->font(6));
+    env->notify3000(child, nullptr, 1, 1);
+    env->notifyC00(child, nullptr, 0, 0);
 }
 
 s32 __cdecl Dialog7ca098_Message4IfUp() {

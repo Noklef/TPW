@@ -6780,6 +6780,7 @@ address,name,kind,confidence,notes
 0x00496320,Dialog7ca168_AddStaffRow,function,low,"reimplemented (src/game/ui/dialogs); cdecl (staff), returns 1: a row added to the list [0x7ca164] (AddItem, parent -1): name, the mode's record text widened, wage, grade and +0x1f8 * 1024 / 100"
 0x00496400,Dialog7ca168_FillStaffList,function,low,"reimplemented (src/game/ui/dialogs); cdecl (tab, clear): [0x7ca16c] = tab; the child 0x321 of [0x7ca168] cleared with clear, kept in [0x7ca164]; tabs 0-4 a row per member of one staff list (Things_ForEachSelected 2, 4, 0x10, 8, 0x20); rows refreshed"
 0x004960a0,Dialog7ca168_Handler,function,low,"reimplemented (src/game/ui/dialogs); cdecl (window, message, a, b): the staff dialog's handler; on 0x101 with b 1 and a tab button 0x323-0x327 the tab's list filled, its text and staff average shown; then Window_CallDefault"
+0x0048d8b0,Dialog7ca098_Create,function,low,"reimplemented (src/game/ui/dialogs); the window [0x7ca098] built from the script 0x7501a0, hidden, its child 0x10d32 given a text part and font 6"
 0x00659607,GuiManager_CallSlot4,function,low,"reimplemented (src/game/ui/guimanager); cdecl: slot 4 (thiscall, no arguments) of the GUI manager [0x77c48c], its result"
 0x0065961c,GuiManager_CallSlot3,function,low,"reimplemented (src/game/ui/guimanager); cdecl: slot 3 (thiscall, no arguments) of the GUI manager [0x77c48c], its result"
 0x00659631,GuiManager_Word4Set,function,low,"reimplemented (src/game/ui/guimanager); cdecl: 1 when the GUI manager's word +4 (Fn_659790) is not 0, else 0"
