@@ -365,6 +365,7 @@
 #include "../game/world/trackmessage.h"
 #include "../game/world/trakcarroute.h"
 #include "../game/world/trakcarupdate.h"
+#include "../game/world/trakridecars.h"
 #include "../game/world/uimsgreceiver.h"
 #include "../game/world/visitoroption.h"
 #include "../game/world/visitorsteps.h"
@@ -5733,6 +5734,11 @@ const Hook kHooks[] = {
     {"FlyingRide_Launch",         0x0055a720, (void *)&FlyingRide_Launch, {0x51, 0x8b, 0x44, 0x24, 0x08}},
     {"FlyingRides_Update",        0x0055abf0, (void *)&FlyingRides_Update, {0x83, 0xec, 0x14, 0x53, 0x55}},
     {"TrakCar_Update",            0x005474b0, (void *)&TrakCar_Update, {0x83, 0xec, 0x10, 0x53, 0x55}},
+    {"TrakRide_Break",            0x00544c80, (void *)&TrakRide_Break, {0x8b, 0x0d, 0x58, 0x7b, 0x87}},
+    {"TrakRide_StartBump",        0x00544f90, (void *)&TrakRide_StartBump, {0x8b, 0x0d, 0x58, 0x7b, 0x87}},
+    {"TrakRide_LoadCar",          0x00549b80, (void *)&TrakRide_LoadCar, {0x8b, 0x0d, 0x58, 0x7b, 0x87}},
+    {"TrakRide_AddCar",           0x00549db0, (void *)&TrakRide_AddCar, {0x51, 0x8b, 0x0d, 0x58, 0x7b}},
+    {"TrakRide_RemoveCar",        0x0054ad90, (void *)&TrakRide_RemoveCar, {0x8b, 0x0d, 0x58, 0x7b, 0x87}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},

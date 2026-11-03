@@ -354,6 +354,7 @@ add_library(tpw_game STATIC
     src/game/world/flyinglaunch.cpp
     src/game/world/flyingupdate.cpp
     src/game/world/trakcarupdate.cpp
+    src/game/world/trakridecars.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp

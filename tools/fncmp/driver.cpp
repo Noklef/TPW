@@ -105,6 +105,7 @@
 #include "../../src/game/coaster/typemodel.h"
 #include "../../src/game/world/sign.h"
 #include "../../src/game/world/flyinglaunch.h"
+#include "../../src/game/world/trakridecars.h"
 #include "../../src/game/world/trakcarupdate.h"
 #include "../../src/game/world/flyingupdate.h"
 #include "../../src/game/render/ribbon.h"
@@ -566,6 +567,8 @@ const FlyingUpdateEnv kFlyingUpdateEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_rec
                                           Rec{jpeg_recorder(6, 3)}, Rec{jpeg_recorder(7, 1)}, Rec{jpeg_recorder(8, 1)}, Rec{jpeg_recorder(9, 2)}};
 const TrakCarUpdateEnv kTrakCarUpdateEnv = {Rec{jpeg_recorder(1, 3)}, Rec{jpeg_recorder(2, 2)}, Rec{jpeg_recorder(3, 4)}, Rec{jpeg_recorder(4, 2)}, Rec{jpeg_recorder(5, 1)},
     Rec{jpeg_recorder(6, 1)}, Rec{jpeg_recorder(7, 2)}, Rec{jpeg_recorder(8, 6)}};
+const TrakRideCarsEnv kTrakRideCarsEnv = {Rec{jpeg_recorder(1, 2)}, Rec{jpeg_recorder(2, 4)}, Rec{jpeg_recorder(3, 2)}, Rec{jpeg_recorder(4, 6)}, Rec{jpeg_recorder(5, 2)},
+    Rec{jpeg_recorder(6, 10)}, Rec{jpeg_recorder(7, 1)}};
 const FlyingLaunchEnv kFlyingLaunchEnv = {Rec{jpeg_recorder(1, 3)}, Rec{jpeg_recorder(2, 10)}, Rec{jpeg_recorder(3, 7)}, Rec{jpeg_recorder(4, 5)}};
 const SignEnv kSignEnv = {Rec{jpeg_recorder(1, 10)}, Rec{jpeg_recorder(2, 3)}, Rec{jpeg_recorder(3, 2)}, Rec{jpeg_recorder(4, 1)}, Rec{jpeg_recorder(5, 1)}, Rec{jpeg_recorder(6, 3)}, Rec{jpeg_recorder(7, 6)}};
 const TypeModelEnv kTypeModelEnv = {Rec{jpeg_recorder(1, 10)}, Rec{jpeg_recorder(2, 6)}, Rec{jpeg_recorder(3, 3)}, Rec{jpeg_recorder(4, 1)}};
@@ -1338,6 +1341,7 @@ int main(int argc, char **argv) {
     TypeModel_SetEnv(&kTypeModelEnv);
     Sign_SetEnv(&kSignEnv);
     FlyingLaunch_SetEnv(&kFlyingLaunchEnv);
+    TrakRideCars_SetEnv(&kTrakRideCarsEnv);
     TrakCarUpdate_SetEnv(&kTrakCarUpdateEnv);
     FlyingUpdate_SetEnv(&kFlyingUpdateEnv);
     Ribbon_SetEnv(&kRibbonEnv);
