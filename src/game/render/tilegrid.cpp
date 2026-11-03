@@ -57,12 +57,15 @@ u32 __fastcall TileGrid_Draw(u8 *object, void *) {
     const float slopeY = (float)((X87Reg(at<float>(object, 0x3c)) - at<float>(object, 0x34)) / height);
 
     // As the original's frame: the x parts, the y parts, the v places, the u places, 32 pairs each (rows over 32 run on into the next, as there).
+    // Sic, not kept: the original's last table ends at its return address. Column 33 (or row 65, through the u places) writes a float there, then the caller's frame, so its RET faults or
+    // runs from that float's bits. Here the same writes land on whatever follows this array. Real data stays far below it: the only rectangle is ParkMap_LayOut's, kept inside a 512 x 512 2dmap.tga (8 by 8).
     float tables[0x100];
     float *const partsX = tables, *const partsY = tables + 0x40, *const placesY = tables + 0x80, *const placesX = tables + 0xc0;
     Axis(object, 0x20, 0x28, 0x30, x0, x1, slopeX, partsX, placesX, false);
     Axis(object, 0x24, 0x2c, 0x34, y0, y1, slopeY, partsY, placesY, true);
 
     // The spec, its points 0x40 on as in the original's frame.
+    // Sic, not kept: the original never sets the polygon flags at +0, so they start as what its frame held, and the batch reads them. 0 here.
     u8 spec[0x80] = {};
     u8 *const points = spec + 0x40;
     at<u8 *>(spec, 4) = points;

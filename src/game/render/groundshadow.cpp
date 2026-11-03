@@ -27,6 +27,7 @@ u32 __fastcall GroundShadow_Draw(u8 *object, void *) {
         return 1;
 
     // The spec, its points 0x2c on as in the original's frame.
+    // Sic, not kept: the original never sets the polygon flags at +0, so they start as what its frame held, and the batch reads them. 0 here.
     u8 spec[0x6c] = {};
     u8 *const points = spec + 0x2c;
     const u8 *const texture = at<const u8 *>(rect, 0x18);

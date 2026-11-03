@@ -48,6 +48,7 @@ void SpriteFrameLights_SetEnv(const SpriteFrameLightsEnv *env) { g_env = env ? e
 u32 __fastcall SpriteFrame_DrawLightQuads(u8 *frame, void *) {
     if (!(at<u32>(frame, 0x10) & 0x200) || !(at<u32>(frame, 0x10) & 0x10000000))
         return 1;
+    // Sic, not kept: the original never sets the spec's +0x28, the transformer's argument, so it is what its frame held. 0 here.
     u8 spec[0x6c] = {};
     u8 *const points = spec + 0x2c;
     at<u8 *>(spec, 4) = points;
