@@ -18,6 +18,8 @@ if not "%TPW_TARGET%"=="" set TARGET=--target %TPW_TARGET%
 cmake -S "%SRC%" -B "%OUT%" -G Ninja -DCMAKE_BUILD_TYPE=%CONFIG% || exit /b 1
 rem The build runs at below-normal priority (its compilers inherit it), as benches and gates do (tools/lowprio.py), so a build gives
 rem way to the user's programs, the game among them; TPW_PRIORITY=normal leaves it alone.
+rem Each tree keeps its own PDB server: a server grown large for one tree would otherwise stop the others' links (LNK1318).
+for %%I in ("%~dp0.") do set _MSPDBSRV_ENDPOINT_=tpw_%%~nxI
 set PRIO=/belownormal
 if /i "%TPW_PRIORITY%"=="normal" set PRIO=/normal
 start "" %PRIO% /b /wait cmake --build "%OUT%" %TARGET%
