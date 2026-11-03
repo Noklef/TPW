@@ -1,7 +1,7 @@
 # The ray from the camera through the mouse against the ground and what stands on it (src/game/terrain/raypick: RayPick_World 0x45bf90) against the original: RayPick_Column (k 1, its answers in
 # turn) and Highlight_SetTarget (k 2) recorders; Matrix_TransformVector, Vec3_Distance and the CRT as they are. A camera matrix that always looks down (a ray that does not goes on for ever, sic);
 # the grid object [0x7a0854] or none, its flag 2; grid cells' heights and each cell's flag 2 (which way the cell is cut), a ray that comes down inside the grid or not, along x or z; the outs null
-# or not, the column answering at once, after some steps or never.
+# or not, the column answering at once, after some steps or never. (--wild changes little here: a ground point far down or a ray going up makes the walk endless, sic.)
 # usage: raypick.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -29,20 +29,22 @@ def case(r):
          r.uniform(-1, 1), r.uniform(-0.2, 0.2), r.uniform(-1, 1), 0,
          r.uniform(-0.4, 0.4), -1.0, r.uniform(-0.4, 0.4), 0,
          r.uniform(-500, 500), r.uniform(-500, 500), r.uniform(-500, 500), 1]
-    nx, ny = r.randrange(1, 9), r.randrange(1, 9)
-    cell_x, cell_z = r.choice([10.0, 20.0, r.uniform(2, 30)]), r.choice([10.0, 20.0, r.uniform(2, 30)])
+    nx, ny = r.randrange(1, 17), r.randrange(1, 17)
+    # (small cells, of different sizes, and high relief: the sides of the cell's tests, a plane's hit outside its cell)
+    cell_x, cell_z = r.choice([10.0, 20.0, r.uniform(2, 30), r.uniform(0.5, 3), r.uniform(0.5, 3)]), r.choice([10.0, 20.0, r.uniform(2, 30), r.uniform(0.5, 3), r.uniform(0.5, 3)])
+    relief = r.choice([3.0, 3.0, 20.0])
     x0, z0 = r.uniform(-50, 50), r.uniform(-50, 50)
     base = r.uniform(0, 20)
     # the camera over the grid mostly
-    cam = (x0 + r.uniform(-40, nx * cell_x + 40), base + r.uniform(5, 70), z0 + r.uniform(-40, ny * cell_z + 40))
-    heights = struct.pack('<%df' % ((nx + 1) * (ny + 2)), *[base + r.uniform(-3, 3) for _ in range((nx + 1) * (ny + 2))])
+    cam = (x0 + r.uniform(-20, nx * cell_x + 20), base + r.uniform(5, 70), z0 + r.uniform(-20, ny * cell_z + 20))
+    heights = struct.pack('<%df' % ((nx + 1) * (ny + 2)), *[base + r.uniform(-relief, relief) for _ in range((nx + 1) * (ny + 2))])
     flags = bytearray(r.bytes(4 * (nx + 2) * (ny + 1)))
     for k in range(0, len(flags), 4):
         flags[k] = flags[k] & ~2 | r.choice([0, 2])
     grid = bytearray(r.bytes(0x40))
     put(grid, 8, '4f', x0, z0, cell_x, cell_z)
     put(grid, 0x18, '2I', nx, ny)
-    put(grid, 0x20, '2f', base + r.uniform(-5, 0), base + r.uniform(0, 5))
+    put(grid, 0x20, '2f', base + r.uniform(-5, 0) - relief, base + r.uniform(0, 5) + relief)
     put(grid, 0x28, '2I', HEIGHTS, FLAGS)
     obj = bytearray(r.bytes(0x70))
     put(obj, 0x30, 'I', r.getrandbits(32) & ~2 | r.deal([2, 2, 2, 2, 0]))
