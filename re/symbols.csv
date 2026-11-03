@@ -7643,6 +7643,7 @@ address,name,kind,confidence,notes
 0x004c0830,QuitConfirm_Answered,function,low,"reimplemented (src/game/ui/quitconfirm); the quit question answered: name invented, unconfirmed"
 0x00480ec0,ImeHost_Attach,function,low,"reimplemented (src/game/ui/imehostattach); the IME host opened for the window: name invented, unconfirmed"
 0x00480f50,ImeHost_Detach,function,low,"reimplemented (src/game/ui/imehostattach); the IME host closed: name invented, unconfirmed"
+0x00492070,TextRecordPart_Refresh,function,low,"reimplemented (src/game/ui/textrecordpart); a text part's text fetched from its record again: name invented, unconfirmed"
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"

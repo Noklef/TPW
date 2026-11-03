@@ -559,6 +559,7 @@
 #include "../game/ui/signrect.h"
 #include "../game/ui/staffrename.h"
 #include "../game/ui/textpanel7cc18c.h"
+#include "../game/ui/textrecordpart.h"
 #include "../game/ui/thingbrowser.h"
 #include "../game/ui/thinggoto.h"
 #include "../game/ui/window705950draw.h"
@@ -7574,6 +7575,7 @@ const Hook kHooks[] = {
     {"QuitConfirm_Answered",      0x004c0830, (void *)&QuitConfirm_Answered, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"ImeHost_Attach",            0x00480ec0, (void *)&ImeHost_Attach, {0x51, 0xa1, 0x0c, 0x13, 0x7a}},
     {"ImeHost_Detach",            0x00480f50, (void *)&ImeHost_Detach, {0x56, 0x8b, 0xf1, 0x8d, 0x4e}},
+    {"TextRecordPart_Refresh",    0x00492070, (void *)&TextRecordPart_Refresh, {0x56, 0x8b, 0xf1, 0x57, 0x66}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
