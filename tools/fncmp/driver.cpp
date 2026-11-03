@@ -238,6 +238,7 @@
 #include "../../src/game/core/wscanner.h"
 #include "../../src/game/online/chatcursor.h"
 #include "../../src/game/frontend/lobbyscene.h"
+#include "../../src/game/world/parkmap.h"
 #include "../../src/game/world/rideskin.h"
 #include "../../src/game/core/advisorscoring.h"
 #include "../../src/game/frontend/sceneleave.h"
@@ -778,6 +779,8 @@ const AdvisorCriteriaEnv kAdvisorCriteriaEnv = {Rec{recorder(1, 1)}, Rec{jpeg_re
 const CellPaintEnv kCellPaintEnv = {Rec{jpeg_recorder(1, 6)}, Rec{jpeg_recorder(2, 3)}};
 const RideSkinEnv kRideSkinEnv = {Rec{jpeg_recorder(1, 1)}};
 // (Class702cb0_Step's: thiscall 3 of 2 arguments, thiscall 4 of none, cdecl 6 of 6, cdecl 7 of none, thiscall 5 of 8, as tests/fncmp/lobbystep.py hooks those addresses.)
+// (ParkMap_Draw's: thiscall 10 of 1 argument, 11 of none, 12 of 3, 13 of none, as tests/fncmp/parkmapdraw.py hooks those addresses.)
+const ParkMapEnv kParkMapEnv = {Rec{recorder(10, 1)}, Rec{recorder(11, 0)}, Rec{recorder(12, 3)}, Rec{recorder(13, 0)}};
 const LobbySceneEnv kLobbySceneEnv = {Rec{jpeg_recorder(1, 1)}, Rec{recorder(2, 0)}, Rec{recorder(3, 2)}, Rec{recorder(4, 0)}, Rec{jpeg_recorder(6, 6)}, Rec{jpeg_recorder(7, 0)}, Rec{recorder(5, 8)}};
 const ChatCursorEnv kChatCursorEnv = {Rec{jpeg_recorder(1, 0)}, Rec{jpeg_recorder(2, 4)}, Rec{jpeg_recorder(3, 0)}, Rec{recorder(4, 1)}, Rec{recorder(5, 1)}};
 // tests/fncmp/d3dprobe.py: the clock a recorder.
@@ -1950,6 +1953,7 @@ int main(int argc, char **argv) {
     ScapeObjects_SetEnv(&kScapeObjectsEnv);
     ChatCursor_SetEnv(&kChatCursorEnv);
     LobbyScene_SetEnv(&kLobbySceneEnv);
+    ParkMap_SetEnv(&kParkMapEnv);
     RideSkin_SetEnv(&kRideSkinEnv);
     CellPaint_SetEnv(&kCellPaintEnv);
     AdvisorCriteria_SetEnv(&kAdvisorCriteriaEnv);
