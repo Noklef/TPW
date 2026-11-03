@@ -139,6 +139,15 @@ u32 *__fastcall StdMapG_InsertCopy(u8 *tree, void *, u32 *out, const u16 *value)
 // 0x4f0390: the same for tree D (StdMapD_Insert).
 u32 *__fastcall StdMapD_InsertCopy(u8 *tree, void *, u32 *out, const StdWString *value);
 
+// The online chat's two sets (wstringmap.h: of the second wide string copy; names invented, unconfirmed). 0x4f41d0 / 0x4f5130: the node insert as StdTree_InsertA for trees C
+// (the buddy set: a string and a word at +0xc, WStdStringWord_Construct) and E (the ignore set: a string, WStdString_Construct), below y's when WStdString_Compare is negative.
+u8 **__fastcall StdTree_InsertC(u8 *tree, void *, u8 **out, u8 *x, u8 *y, const StdWString *value);
+u8 **__fastcall StdTree_InsertE(u8 *tree, void *, u8 **out, u8 *x, u8 *y, const StdWString *value);
+
+// 0x4f2440 / 0x4f2c00: their insert(value) as StdMapD_Insert (the key against each node by WStdString_CompareSub, the null string 0x700624), the result made by Pair_Assign. Returns it.
+u8 **__fastcall StdMapC_Insert(u8 *tree, void *, u8 **result, const StdWString *value);
+u8 **__fastcall StdMapE_Insert(u8 *tree, void *, u8 **result, const StdWString *value);
+
 // 0x5af740 (thiscall on an object whose tree is at +0x28; key (a 16-bit value passed on the stack), amount, pops 8): inserts the key; true (and +0x1c grows by the amount)
 // when it was new, else false.
 u8 __fastcall Object_AddKeyed(u8 *object, void *, u32 key, s32 amount);

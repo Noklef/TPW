@@ -475,6 +475,19 @@ void MapInsertBy(u8 *tree, u8 **result, const Value *value, KeyBelow keyBelow, N
     at<u8>(result, 4) = 0;
 }
 
+// The same over the online chat's two sets: the second wide string copy's compares.
+template <u32 SentinelAt, void(__fastcall *Dec)(u8 **), u8 **(__fastcall *Insert)(u8 *, void *, u8 **, u8 *, u8 *, const StdWString *)>
+void chat_set_insert(u8 *tree, u8 **result, const StdWString *value) {
+    MapInsertBy<StdWString, SentinelAt, Dec, Insert>(
+        tree, result, value,
+        [value](u8 *node) {
+            const u16 *chars = at<const u16 *>(node, 0x10);
+            if (!chars) chars = reinterpret_cast<const u16 *>(0x00700624);
+            return WStdString_CompareSub(value, nullptr, 0, value->len, chars, at<u32>(node, 0x14)) < 0;
+        },
+        [value](u8 *node) { return WStdString_Compare(reinterpret_cast<const StdWString *>(node + 0xc), nullptr, value) < 0; });
+}
+
 // The same over a tree whose keys are Key (the first member of the value, at +0xc of a node), compared with <.
 template <typename Key, typename Value, u32 SentinelAt, void(__fastcall *Dec)(u8 **), u8 **(__fastcall *Insert)(u8 *, void *, u8 **, u8 *, u8 *, const Value *)>
 void MapInsert(u8 *tree, u8 **result, const Value *value) {
@@ -663,6 +676,28 @@ u32 *__fastcall StdMapG_InsertCopy(u8 *tree, void *, u32 *out, const u16 *value)
     at<u32>(out, 0) = result[0];
     at<u8>(out, 4) = (u8)result[1];
     return out;
+}
+
+u8 **__fastcall StdTree_InsertC(u8 *tree, void *, u8 **out, u8 *x, u8 *y, const StdWString *value) {
+    return TreeC::Insert<StdWString>(
+        tree, out, x, y, value, [](const StdWString *v, u8 *node) { return WStdString_Compare(v, nullptr, reinterpret_cast<const StdWString *>(node + 0xc)) < 0; },
+        [](u8 *to, const StdWString *v) { WStdStringWord_Construct(to, reinterpret_cast<const u8 *>(v)); });
+}
+
+u8 **__fastcall StdTree_InsertE(u8 *tree, void *, u8 **out, u8 *x, u8 *y, const StdWString *value) {
+    return TreeE::Insert<StdWString>(
+        tree, out, x, y, value, [](const StdWString *v, u8 *node) { return WStdString_Compare(v, nullptr, reinterpret_cast<const StdWString *>(node + 0xc)) < 0; },
+        [](u8 *to, const StdWString *v) { WStdString_Construct(reinterpret_cast<StdWString *>(to), v); });
+}
+
+u8 **__fastcall StdMapC_Insert(u8 *tree, void *, u8 **result, const StdWString *value) {
+    chat_set_insert<0x007ced2c, StdTree_DecC, StdTree_InsertC>(tree, result, value);
+    return result;
+}
+
+u8 **__fastcall StdMapE_Insert(u8 *tree, void *, u8 **result, const StdWString *value) {
+    chat_set_insert<0x007ced34, StdTree_DecE, StdTree_InsertE>(tree, result, value);
+    return result;
 }
 
 u32 *__fastcall StdMapD_InsertCopy(u8 *tree, void *, u32 *out, const StdWString *value) {

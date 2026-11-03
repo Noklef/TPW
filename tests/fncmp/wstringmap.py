@@ -7,6 +7,8 @@
 # library's compare(text) / length (0x665f30, 0x665f60): CmpSub's strings, the other ended by a 0 (its count unused). The online chat's
 # ignore and buddy sets' bounds and finds (0x4f65b0 / 0x4f03c0, 0x4f6270 / 0x4f2770: case-insensitive, sentinels 0x7ced34 / 0x7ced2c):
 # the same trees, keys now and then with A / a flipped; the buddy set's bound written through an out (0x4f4050) as the finds.
+# Their node inserts and set inserts (InsertBuddy, InsertIgnore 0x4f41d0, 0x4f5130; MapBuddy, MapIgnore 0x4f2440, 0x4f2c00) as Insert and MapInsert, the buddy nodes' colour at +0x20,
+# the key's block shared or not (its capacity and count); the values' constructions (NewBuddy, NewIgnore 0x4f7290, 0x4f72b0) of those keys, into a place or null, and their copy constructors (CopyBuddy, CopyIgnore 0x4f74a0, 0x4f72d0).
 # usage: wstringmap.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Lower,Upper,Find,Erase,Insert,MapInsert,CmpSub,InsertCopy,CmpText,Length,
 #   LowerIgnore,LowerBuddy,FindIgnore,FindBuddy,LowerBuddyOut)
 import os
@@ -19,16 +21,23 @@ import stdtree  # noqa: E402
 from fncmp import Bench, Call, HEAP, RAM, heap  # noqa: E402
 
 CALLS = {'Lower': 0x4f6400, 'Upper': 0x4f6940, 'Find': 0x4f2b40, 'Erase': 0x4f2ad0, 'Insert': 0x4f4c20, 'MapInsert': 0x4f2810, 'CmpSub': 0x4f7870, 'InsertCopy': 0x4f0390,
-         'CmpText': 0x665f30, 'Length': 0x665f60, 'LowerIgnore': 0x4f65b0, 'LowerBuddy': 0x4f6270, 'FindIgnore': 0x4f03c0, 'FindBuddy': 0x4f2770, 'LowerBuddyOut': 0x4f4050}
-NOCASE = {0x4f65b0, 0x4f6270, 0x4f03c0, 0x4f2770, 0x4f4050}   # (the chat's sets of the second wide string copy: _wcsnicmp, their own sentinels)
+         'CmpText': 0x665f30, 'Length': 0x665f60, 'LowerIgnore': 0x4f65b0, 'LowerBuddy': 0x4f6270, 'FindIgnore': 0x4f03c0, 'FindBuddy': 0x4f2770, 'LowerBuddyOut': 0x4f4050,
+         'InsertBuddy': 0x4f41d0, 'InsertIgnore': 0x4f5130, 'MapBuddy': 0x4f2440, 'MapIgnore': 0x4f2c00, 'NewBuddy': 0x4f7290, 'NewIgnore': 0x4f72b0, 'CopyBuddy': 0x4f74a0, 'CopyIgnore': 0x4f72d0}
+NOCASE = {0x4f65b0, 0x4f6270, 0x4f03c0, 0x4f2770, 0x4f4050, 0x4f41d0, 0x4f5130, 0x4f2440, 0x4f2c00, 0x4f7290, 0x4f72b0, 0x4f74a0, 0x4f72d0}   # (the chat's sets of the second wide string copy: _wcsnicmp, their own sentinels)
 RANGES = [(a, a + 0x100) for a in CALLS.values() if a < 0x600000] + [(0x665f30, 0x665f60), (0x665f60, 0x665f71), (0x4f4f20, 0x4f4fd0), (0x4f4580, 0x4f4ae0), (0x4f4ac0, 0x4f4b70), (0x4f2960, 0x4f2ac8),
           (0x4f23f0, 0x4f2450), (0x67acb0, 0x67acb1), (0x4f4c20, 0x4f4f20), (0x4f76b0, 0x4f7720), (0x4f2810, 0x4f2960), (0x4f7870, 0x4f7900), (0x4f64f0, 0x4f65b0), (0x5e7720, 0x5e7738), (0x47d9d0, 0x47db00), (0x47b750, 0x47bcf0),
           (0x67acd0, 0x67ad00), (0x47ae60, 0x47b060), (0x47b600, 0x47b750), (0x479230, 0x479256), (0x47cc10, 0x47cd00),
-          (0x47b460, 0x47b5b0), (0x47d620, 0x47d780), (0x47b320, 0x47b460), (0x405280, 0x405390), (0x479150, 0x4791b0), (0x67c8d0, 0x67c9f0)]
+          (0x47b460, 0x47b5b0), (0x47d620, 0x47d780), (0x47b320, 0x47b460), (0x405280, 0x405390), (0x479150, 0x4791b0), (0x67c8d0, 0x67c9f0),
+          (0x4f41d0, 0x4f44d0), (0x4f5130, 0x4f5430), (0x4f2440, 0x4f2590), (0x4f2c00, 0x4f2d50), (0x4f6340, 0x4f6400), (0x4f6680, 0x4f67b0), (0x4f7290, 0x4f7410), (0x4f74a0, 0x4f7690),
+          (0x4f7720, 0x4f7870), (0x4f7900, 0x4f7990), (0x4f39e0, 0x4f3b10), (0x4f21d0, 0x4f23f0), (0x4f6090, 0x4f6270)]
 HOOKS = {0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None}   # (the STL lock: returns its argument; the release)
 B = Bench(RANGES, hooks=HOOKS)
 CHARS, KEY, OUT = RAM + 0x4000, RAM + 0x900, RAM + 0x7000
+PLACE = RAM + 0x7100
 ALPHA = [0x41, 0x42, 0x61, 0x100, 0x8000, 0xffff]
+
+
+COPIES = ('InsertBuddy', 'InsertIgnore', 'MapBuddy', 'MapIgnore', 'NewBuddy', 'NewIgnore', 'CopyBuddy', 'CopyIgnore')
 
 
 def case(r):
@@ -61,13 +70,14 @@ def case(r):
         strings = sorted(r.choice(strings) for _ in strings)
     addr = {k: stdtree.NODES + 0x40 * i for i, k in enumerate(keys)}
     ptr = lambda k: stdtree.NIL if k is None else addr[k]  # noqa: E731
+    colour = 0x20 if 'Buddy' in name else 0x1c
     blob = bytearray(0x40 * max(len(keys), 1))
     pool = bytearray(0x400)
     at = 2   # (each string's block: a count byte before the characters, freed 2 bytes before them by the erase)
     for i, k in enumerate(keys):
         base = addr[k] - stdtree.NODES
         struct.pack_into('<III', blob, base, ptr(nodes[k][0]), stdtree.HEAD if nodes[k][1] is None else addr[nodes[k][1]], ptr(nodes[k][2]))
-        struct.pack_into('<I', blob, base + 0x1c, nodes[k][3])
+        struct.pack_into('<I', blob, base + colour, nodes[k][3])
         s = strings[i]
         struct.pack_into('<%dH' % len(s), pool, at, *s)
         pool[at - 1] = r.choice([0, 0, 1, 2, 0xff])
@@ -75,7 +85,7 @@ def case(r):
         at += 2 * len(s) + 4
     head = struct.pack('<III', addr[keys[0]] if keys else stdtree.HEAD, addr[root] if keys else stdtree.NIL, addr[keys[-1]] if keys else stdtree.HEAD) + bytes(0x20)
     nil = bytearray(0x40)
-    struct.pack_into('<I', nil, 0x1c, 1)
+    struct.pack_into('<I', nil, colour, 1)
     tree = bytearray(0x20)
     struct.pack_into('<III', tree, 4, stdtree.HEAD, 0, n)
     if strings and r.random() < 0.5:
@@ -85,6 +95,10 @@ def case(r):
     kb = bytearray(0x10)
     struct.pack_into('<II', kb, 4, CHARS + 0x300 if s or r.random() < 0.5 else 0, len(s))
     struct.pack_into('<%dH' % len(s), pool, 0x300, *s)
+    if name in COPIES:   # (shared, its count just below or at the limit, or not; a word after it; the allocator byte)
+        kb = bytearray(r.bytes(1)) + kb[1:] + r.bytes(4)
+        struct.pack_into('<I', kb, 0xc, len(s) + r.choice([0, 0, 3]))
+        pool[0x2ff] = r.choice([0, 0, 1, 0xfd, 0xfe, 0xff])
     regions = {stdtree.TREE: tree, stdtree.HEAD: head, stdtree.NIL: nil, stdtree.NODES: blob, 0x7ced24: struct.pack('<I', stdtree.NIL), KEY: kb, CHARS: pool}
     if CALLS[name] in NOCASE:   # (the other sentinel slots hold the nil too or not, so a wrong one shows; no locale handle: the "C" path)
         regions[0x7ced2c] = struct.pack('<III', stdtree.NIL if 'Buddy' in name else stdtree.HEAD, 0,
@@ -93,10 +107,16 @@ def case(r):
         if s and r.random() < 0.5:   # the key with its case flipped about
             s = tuple(c ^ 0x20 if c in (0x41, 0x61) and r.random() < 0.6 else c for c in s)
             struct.pack_into('<%dH' % len(s), pool, 0x300, *s)
+    if name in ('NewBuddy', 'NewIgnore', 'CopyBuddy', 'CopyIgnore'):
+        regions[HEAP] = heap()
+        regions[PLACE] = r.bytes(0x20)
+        if name.startswith('Copy'):
+            return Call(CALLS[name], [PLACE, KEY], regions, conv='t', ret='a')
+        return Call(CALLS[name], [0 if r.random() < 0.1 else PLACE, KEY], regions, conv='c', ret='v')
     if name in ('Find', 'FindIgnore', 'FindBuddy', 'LowerBuddyOut'):  # the output word is given too
         regions[OUT] = r.bytes(4)
         return Call(CALLS[name], [stdtree.TREE, OUT, KEY], regions, conv='t', ret='a')
-    if name == 'Insert':  # (out, x, y, the key)
+    if name in ('Insert', 'InsertBuddy', 'InsertIgnore'):  # (out, x, y, the key)
         parent, cur = None, root
         while cur is not None:
             parent = cur
@@ -108,7 +128,7 @@ def case(r):
         regions[HEAP] = heap()
         regions[OUT] = r.bytes(4)
         return Call(CALLS[name], [stdtree.TREE, OUT, x, y, KEY], regions, conv='t', ret='a')
-    if name in ('MapInsert', 'InsertCopy'):  # (the result's 8 bytes given; the multi flag at +8 now and then set)
+    if name in ('MapInsert', 'InsertCopy', 'MapBuddy', 'MapIgnore'):  # (the result's 8 bytes given; the multi flag at +8 now and then set)
         tree[8] = r.choice([0, 0, 0, 1, 0xff])
         regions[HEAP] = heap()
         regions[OUT] = r.bytes(8)

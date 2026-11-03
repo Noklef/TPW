@@ -132,6 +132,14 @@ void __fastcall WStdString_Split(StdWString *s, void *edx);
 // (inlined, as WStdString_AssignSub). Returns s.
 StdWString *__fastcall WStdString_CtorCopy(StdWString *s, void *edx, const StdWString *x);
 
+// 0x4f72d0: the same again, as the ignore set's value (names of the four invented, unconfirmed). 0x4f72b0 (cdecl (p, x)): unless p is null, constructed there.
+StdWString *__fastcall WStdString_CtorCopyB(StdWString *s, void *edx, const StdWString *x);
+void __cdecl WStdString_Construct(StdWString *p, const StdWString *x);
+
+// 0x4f74a0 (thiscall (x), pops 4): the buddy set's value: the string at +0 as above and the word at +0x10. Returns s. 0x4f7290 (cdecl (p, x)): unless p is null, constructed there.
+u8 *__fastcall WStdStringWord_CtorCopy(u8 *s, void *edx, const u8 *x);
+void __cdecl WStdStringWord_Construct(u8 *p, const u8 *x);
+
 // This copy's traits compare without case (the online chat's names): _wcsnicmp (0x67c8d0, through Crt()).
 // 0x4f7720 (thiscall (x), pops 4): compare(x): s's characters (a null pointer passed as it is, sic) against x's (null: 0x700624) up to
 // the shorter length; equal so far, the shorter is less. The _wcsnicmp difference, or -1, 0 or 1.

@@ -559,6 +559,22 @@ StdWString *__fastcall WStdString_CtorCopy(StdWString *s, void *, const StdWStri
     return WStdString_AssignSub(s, nullptr, x, 0, *reinterpret_cast<const u32 *>(0x00700628));
 }
 
+StdWString *__fastcall WStdString_CtorCopyB(StdWString *s, void *, const StdWString *x) { return WStdString_CtorCopy(s, nullptr, x); }
+
+void __cdecl WStdString_Construct(StdWString *p, const StdWString *x) {
+    if (p) WStdString_CtorCopyB(p, nullptr, x);
+}
+
+u8 *__fastcall WStdStringWord_CtorCopy(u8 *s, void *, const u8 *x) {
+    WStdString_CtorCopy(reinterpret_cast<StdWString *>(s), nullptr, reinterpret_cast<const StdWString *>(x));
+    *reinterpret_cast<u16 *>(s + 0x10) = *reinterpret_cast<const u16 *>(x + 0x10);
+    return s;
+}
+
+void __cdecl WStdStringWord_Construct(u8 *p, const u8 *x) {
+    if (p) WStdStringWord_CtorCopy(p, nullptr, x);
+}
+
 s32 __fastcall WStdString_Compare(const StdWString *s, void *, const StdWString *x) {
     const u32 length = s->len, other = x->len;
     const s32 r = Crt().wcsnicmp(s->ptr, c_str(x), length < other ? length : other);
