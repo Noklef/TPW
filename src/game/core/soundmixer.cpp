@@ -201,6 +201,17 @@ u32 __fastcall SoundMixer_CallVoice9(u8 *mixer, void *, u32 id, u32 value) {
     return *status >= 0 ? id : 0;
 }
 
+u8 *__fastcall SoundMixer_TakeVoice(u8 *mixer, void *, u32 *out) {
+    if (u8 *const voice = at<u8 *>(mixer, 0x20)) {
+        Chain20_MoveTo24(mixer, nullptr, voice);
+        *out = SoundMixer_StampVoice(mixer, nullptr, voice);
+        return voice;
+    }
+    u32 status;
+    if (at<s32>(SoundMixer_AddPage(mixer, nullptr, &status), 0) < 0) return nullptr;
+    return SoundMixer_TakeVoice(mixer, nullptr, out);
+}
+
 u32 *__fastcall SoundMixer_AddPage(u8 *mixer, void *, u32 *out) {
     u8 *page;
     s32 status;
