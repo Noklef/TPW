@@ -19,7 +19,7 @@ RECORDS = 0xf86a28
 
 
 def case(r):
-    wide, high = r.choice([(r.randrange(1, 7), r.randrange(1, 7))] * 8 + [(0, 3), (3, 0), (0xffffffff, 2), (0x80, 1), (1, 0x80)])
+    wide, high = r.choice([(r.randrange(1, 7), r.randrange(1, 7))] * 8 + [(0, 3), (3, 0), (0xffffffff, 2), (0x80, 1), (1, 0x80), (0x80, 2)])
     m = bytearray(MAP_SIZE)
     m[:0x60] = r.bytes(0x60)
     put(m, 0x18, '3I', r.getrandbits(32), r.choice([0, 1, 2, 3, r.getrandbits(32)]), r.choice([0, 1, 2, 2, 3, 3, r.getrandbits(32)]))
@@ -47,7 +47,7 @@ def case(r):
         put(sprites, at + 0x1c, 'I', kind)
         map_value = struct.unpack_from('<I', m, 0x14 + 4 * max(1, min(kind, 3)))[0]
         put(sprites, at + 0x20, 'I', map_value if r.random() < 0.7 else r.getrandbits(32))
-        put(handles, i * 0x210 + 0x20a, '2H', *[r.choice([0, 1, r.getrandbits(16), (r.randrange(1, 4) << 7) + r.randrange(1, 0x7f) + 1, (0x7f << 7) + 2, (3 << 7) + 0x80]) for _ in range(2)])
+        put(handles, i * 0x210 + 0x20a, '2H', *[r.choice([0, 1, r.getrandbits(16), r.randrange(2, 0x80), (r.randrange(1, 4) << 7) + r.randrange(1, 0x7f) + 1, (0x7f << 7) + 2, (3 << 7) + 0x80]) for _ in range(2)])
     for i in range(count):
         put(links, i * 8, '2I', SPRITES + i * 0x30, NODES + (i + 1) * 8 if i + 1 < count else 0)
     put(m, 0x20060, 'I', SPRITES + r.randrange(3) * 0x30)
