@@ -92,6 +92,7 @@
 #include "../../src/game/core/soundcategory.h"
 #include "../../src/game/core/sounddevice.h"
 #include "../../src/game/core/mp2synth.h"
+#include "../../src/game/world/mapcell.h"
 #include "../../src/game/world/mapclick.h"
 #include "../../src/game/world/mapline.h"
 #include "../../src/game/world/messagecentre.h"
@@ -516,6 +517,23 @@ const ThingMessageEnv kThingMessageEnv = {{thing_message(0), nullptr, thing_mess
 using StaffSumFn = s32(__fastcall *)(u8 *, void *, u32);
 const StaffAdviceEnv kStaffAdviceEnv = {reinterpret_cast<StaffSumFn>((uintptr_t)recorder(16, 1)), reinterpret_cast<StaffSumFn>((uintptr_t)recorder(17, 1)),
                                         reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)recorder(18, 1))};
+// Map_Serialize's per-cell calls, 0x4000 of each, as tests/fncmp/mapserialize.py's hooks: a checksum at PROBE (RAM) of what they are given
+// (the temporary cells' id words and +0x26, not their stack addresses); a serializer answers 1 for the cell at PROBE + 4.
+u32 &map_probe(u32 index) { return reinterpret_cast<u32 *>((uintptr_t)0x30000000)[index]; }
+void map_mix(u32 value) { map_probe(0) = map_probe(0) * 31 + value; }
+void __fastcall map_reset_probe(u8 *cell, void *, u32 models) {
+    map_mix(*reinterpret_cast<u16 *>(cell) | (u32)cell[0x26] << 16 | (models & 0xff) << 24);
+}
+void __fastcall track_reset_probe(u8 *cell) { map_mix(*reinterpret_cast<u16 *>(cell)); }
+u32 __fastcall serialize_probe(u8 *cell, void *, Stream *stream, u32 save, s32 version, u32 unused) {
+    map_mix((u32)(uintptr_t)cell);
+    map_mix((u32)(uintptr_t)stream);
+    map_mix(save);
+    map_mix((u32)version);
+    map_mix(unused);
+    return (u32)(uintptr_t)cell == map_probe(1) ? 1 : 0;
+}
+const MapSerializeEnv kMapSerializeEnv = {&map_reset_probe, &track_reset_probe, &serialize_probe, &serialize_probe, &serialize_probe};
 // Guard_Detach's Visitor_Arrive: thiscall recorder 19 of 1, as tests/fncmp/staffdetach.py hooks 0x4feb50.
 const GuardDetachEnv kGuardDetachEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)recorder(19, 1))};
 // Ride_Destroy's calls into agent B's unported 0x42a190 and ported 0x436fa0: cdecl recorders 18 of no arguments and 19 of 1, as
@@ -1269,6 +1287,7 @@ int main(int argc, char **argv) {
     Things_SetMessageEnv(&kThingMessageEnv);
     Staff_SetAdviceEnv(&kStaffAdviceEnv);
     Guard_SetDetachEnv(&kGuardDetachEnv);
+    Map_SetSerializeEnv(&kMapSerializeEnv);
     // Staff_WalkToRestArea's and Staff_Dismiss's calls: Sprite_WalkNav, Sprite_SpawnParticle and Thing_Delete the thiscall recorders 28 of
     // 0, 29 of 1 and 30 of 0, as tests/fncmp/staffstate.py hooks 0x4fa2a0, 0x4fa470 and 0x50b780.
     static const StaffWalkEnv staffWalkEnv = {reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)recorder(28, 0)),

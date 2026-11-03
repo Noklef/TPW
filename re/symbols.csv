@@ -186,7 +186,7 @@ address,name,kind,confidence,notes
 0x004f88b0,FunnyTime_SpanSince,function,low,"reimplemented (src/game/core/funnytime); thiscall (out, ticks): the funny time span of the world's ticks since ticks"
 0x004cf050,ParkGates_Serialize,function,high,"reimplemented (src/game/world/parkgates); thiscall (stream, save, version, unused): mArrivalRate, the time stamp +4 (TimeSig_Serialize), mTargetVehicleCapacity, mPeopleOnBus, mOffloading, mGatesOpen saved or loaded"
 0x004d3aa0,ObjectControls_Serialize,function,high,"reimplemented (src/game/world/objectdefs); thiscall (stream, save, version, unused): the 0x96 object control records, their count and the search key saved or loaded; a full load clears the key and +0x12c8"
-0x004d7ea0,Map_Serialize,function,high,"128x128 cells; per-cell status byte: bit0 map cell, bit1 track cell, bit2 RE cell"
+0x004d7ea0,Map_Serialize,function,high,"reimplemented (src/game/world/mapcell); thiscall (stream, save, version, unused), pops 0x10: the 0x4000 map, track and RE cells saved or loaded, each with a status byte (bits: map, track, RE); loading clears the block values at +0x1b0000"
 0x004d0b30,MapCellBase_Serialize,function,high,"reimplemented (src/game/world/mapcell); 29 bytes: direction, flags, mesh instance, neighbours, overlap, parent, tile data, type, hoarding"
 0x004d8dd0,MapCell_Serialize,function,high,reimplemented (src/game/world/mapcell); base + litter fields
 0x0050c200,TrackCell_Serialize,function,high,reimplemented (src/game/world/mapcell); base + mSegmentNumber
