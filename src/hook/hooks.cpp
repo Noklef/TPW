@@ -210,6 +210,7 @@
 #include "../game/core/narrowwriter.h"
 #include "../game/core/refcounted.h"
 #include "../game/core/parkinfo.h"
+#include "../game/core/recordsort.h"
 #include "../game/core/releaselist.h"
 #include "../game/core/sfbank.h"
 #include "../game/core/sfman.h"
@@ -5779,6 +5780,8 @@ const Hook kHooks[] = {
     {"ComList_ReleaseAll",        0x006d75c0, (void *)&ComList_ReleaseAll, {0x6a, 0xff, 0x68, 0x58, 0x6a}},
     {"SoundWorker_Ctor",          0x006b6050, (void *)&SoundWorker_Ctor, {0x6a, 0xff, 0x68, 0x91, 0x57}},
     {"SoundWorkerHost_Ctor",      0x006b8380, (void *)&SoundWorkerHost_Ctor, {0x6a, 0xff, 0x68, 0xbb, 0x59}},
+    {"RecordSort_Range",          0x0057ced0, (void *)&RecordSort_Range, {0x83, 0xec, 0x0c, 0x53, 0x55}},
+    {"RecordSort_Run",            0x0057d090, (void *)&RecordSort_Run, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

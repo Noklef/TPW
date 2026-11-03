@@ -5589,6 +5589,8 @@ address,name,kind,confidence,notes
 0x006d75c0,ComList_ReleaseAll,function,low,"reimplemented (src/game/core/soundworker); thiscall; each listed COM object's slots 6 and 2, the node freed (name invented)"
 0x006b6050,SoundWorker_Ctor,function,low,"reimplemented (src/game/core/soundworker); thiscall (count), pops 4; 30 voices, two blocks, the thread (name invented)"
 0x006b8380,SoundWorkerHost_Ctor,function,low,reimplemented (src/game/core/soundworker); thiscall; makes a SoundWorker of 12 (name invented)
+0x0057ced0,RecordSort_Range,function,low,"reimplemented (src/game/core/recordsort); a quicksort of records by a dword key, the largest first, through a temporary record"
+0x0057d090,RecordSort_Run,function,low,"reimplemented (src/game/core/recordsort); the sort's fields set, then RecordSort_Range"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
