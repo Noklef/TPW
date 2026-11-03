@@ -482,6 +482,7 @@
 #include "../game/ui/windowscript.h"
 #include "../game/ui/buttontext.h"
 #include "../game/ui/dialog74fb20.h"
+#include "../game/ui/dialog7ca098.h"
 #include "../game/ui/dialog7ca13c.h"
 #include "../game/ui/dialog7ca150.h"
 #include "../game/ui/dialog7ca168.h"
@@ -7353,6 +7354,9 @@ const Hook kHooks[] = {
     {"Dialog7cdac4_Handler",      0x004c4480, (void *)&Dialog7cdac4_Handler, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
     {"Dialog7ca168_Open",         0x00496620, (void *)&Dialog7ca168_Open, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Dialog7cb400_Open",         0x004a6e40, (void *)&Dialog7cb400_Open, {0x6a, 0xff, 0x68, 0x74, 0xa7}},
+    {"Game_CancelAdvisor",        0x00486b40, (void *)&Game_CancelAdvisor, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Dialog7ca098_RunAction",    0x0048e0f0, (void *)&Dialog7ca098_RunAction, {0x8b, 0x44, 0x24, 0x04, 0x83}},
+    {"Dialog7ca098_Handler",      0x0048e2f0, (void *)&Dialog7ca098_Handler, {0x53, 0x55, 0x8b, 0x6c, 0x24}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
