@@ -154,4 +154,27 @@ s32 __fastcall TexCacheEntry_Score(u8 *entry, void *, u32);
 //      scale and +0x20 = (width' - 2f) / width * scale (the texture's, cut); +0x1c = the surface's slot 2.
 // +0xc = [0x8bcc40]. Returns 1.
 u32 __fastcall TexCache_PlaceTexture(u8 *cache, void *, u8 *entry, const s32 *place, u8 *texture);
+
+// 0x58e010 (thiscall, pops 4; name unconfirmed): the trace of a touched item: "c:\\tcache.log" appended to or, the first time (the
+// cache's flag 0x40000000 not set, then set), created with [0x8bd550]'s 0x40f0 bytes, [0x8bd508] and [0x8bcbc8] first; then a byte 1
+// and the record {item, its flags +8, words +0x10 and +0x12, float +0x30 (through the x87)}; flushed and closed. No file: nothing.
+void __fastcall TexCache_TraceItem(u8 *cache, void *, const u8 *item);
+
+// 0x58c9f0 (thiscall, pops 8; name unconfirmed): the item (null or flag 0x2000000: nothing) is used this frame. With flags 0x400 and
+// 0x1000, a +0x3c and a frame +0xc not [[0x87a248] + 4]: TexCache_UnlinkItem first. It gets flag 0x40000000 and its virtual base's
+// frame slot counted (the byte at the slot [0x879d48] up to 0xff, with +0x10) and +0x14 |= 0x8000. Not placed (no flag 0x3000): +0x30 =
+// weight, flag 0x2000, bits 4-5 of the flags = bits 6-7 (of those already set: ORed after they are cleared), +0x14 / +0x16 = the words
+// +0x10 / +0x12 rounded up by the cache's mask +0x18e4, TexCacheItem_SetKey, and it goes on the cache's list +0x18c4. Placed: +0x30
+// falls to weight; with [0x8bd508] & 0xc0000000 and flags 0x1000 and 0x4000 its entry's +0 gets TexCacheItem_SetFlag1. Flag 0x800000:
+// the same for the item at +0x60. Last, [0x8bd550] bit 7: TexCache_TraceItem.
+void __fastcall TexCache_TouchItem(u8 *cache, void *, u8 *item, float weight);
 }
+
+// The C library's file calls for TexCache_TraceItem (the bench's recorders; null: the game's).
+struct TexCacheTraceEnv {
+    void *(__cdecl *fopen)(const char *name, const char *mode);                 // 0x67b8a0
+    u32(__cdecl *fwrite)(const void *data, u32 size, u32 count, void *file);    // 0x67b6d0
+    s32(__cdecl *fflush)(void *file);                                           // 0x67d070
+    s32(__cdecl *fclose)(void *file);                                           // 0x67b620
+};
+void TexCache_SetTraceEnv(const TexCacheTraceEnv *e);

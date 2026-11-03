@@ -166,6 +166,7 @@
 #include "../../src/game/gfx/tga.h"
 #include "../../src/game/render/d3dprobe.h"
 #include "../../src/game/render/enginedebug.h"
+#include "../../src/game/gfx/texcache.h"
 #include "../../src/game/frontend/lobbymake.h"
 #include "../../src/game/render/engineerrors.h"
 #include "../../src/game/online/chatavatar.h"
@@ -798,6 +799,10 @@ const EngineDebugEnv kEngineDebugEnv = {reinterpret_cast<void *(__cdecl *)(const
                                         reinterpret_cast<s32(__cdecl *)(void *, const char *, ...)>((uintptr_t)jpeg_recorder(12, 3)),
                                         reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)jpeg_recorder(13, 1)),
                                         reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)jpeg_recorder(14, 1))};
+const TexCacheTraceEnv kTexCacheTraceEnv = {reinterpret_cast<void *(__cdecl *)(const char *, const char *)>((uintptr_t)jpeg_recorder(11, 2)),
+                                            reinterpret_cast<u32(__cdecl *)(const void *, u32, u32, void *)>((uintptr_t)jpeg_recorder(12, 4)),
+                                            reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)jpeg_recorder(13, 1)),
+                                            reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)jpeg_recorder(14, 1))};  // tests/fncmp/texcachetouch.py
 const WKeywordsEnv kWKeywordsEnv = {reinterpret_cast<s32(__cdecl *)(u8 *, u16 *, u32, u32, ...)>((uintptr_t)jpeg_recorder(12, 4))};  // tests/fncmp/wkeywords.py
 
 const KeyCancelEnv kKeyCancelEnv = {Rec{recorder(20, 0)}, Rec{jpeg_recorder(21, 2)}, Rec{jpeg_recorder(22, 6)}, Rec{jpeg_recorder(23, 4)}, Rec{jpeg_recorder(24, 2)}};
@@ -1950,6 +1955,7 @@ int main(int argc, char **argv) {
     KeyCancel_SetEnv(&kKeyCancelEnv);
     WKeywords_SetEnv(&kWKeywordsEnv);
     EngineDebug_SetEnv(&kEngineDebugEnv);
+    TexCache_SetTraceEnv(&kTexCacheTraceEnv);
     LobbyMake_SetEnv(&kLobbyMakeEnv);
     D3dProbe_SetEnv(&kD3dProbeEnv);
     SpriteFrames_SetEnv(&kSpriteFramesEnv);

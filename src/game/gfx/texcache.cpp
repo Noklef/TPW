@@ -577,3 +577,93 @@ u32 __fastcall TexCache_PlaceTexture(u8 *cache, void *, u8 *entry, const s32 *pl
     return 1;
 }
 }
+
+namespace {
+
+const TexCacheTraceEnv kGameTraceEnv = {reinterpret_cast<void *(__cdecl *)(const char *, const char *)>((uintptr_t)0x0067b8a0),
+                                        reinterpret_cast<u32(__cdecl *)(const void *, u32, u32, void *)>((uintptr_t)0x0067b6d0),
+                                        reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)0x0067d070),
+                                        reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)0x0067b620)};
+const TexCacheTraceEnv *g_traceEnv = &kGameTraceEnv;
+
+#pragma pack(push, 1)
+struct TraceRecord {
+    u8 tag;
+    const u8 *item;
+    u32 flags;
+    u16 width, height;
+    u32 weight;
+};
+#pragma pack(pop)
+
+}  // namespace
+
+void TexCache_SetTraceEnv(const TexCacheTraceEnv *e) { g_traceEnv = e ? e : &kGameTraceEnv; }
+
+extern "C" {
+
+void __fastcall TexCache_TraceItem(u8 *cache, void *, const u8 *item) {
+    void *file;
+    if (at<u32>(cache, 0x18cc) & 0x40000000) {
+        file = g_traceEnv->fopen("c:\\tcache.log", "a");
+    } else {
+        at<u32>(cache, 0x18cc) |= 0x40000000;
+        file = g_traceEnv->fopen("c:\\tcache.log", "w+b");
+        if (!file)
+            return;
+        g_traceEnv->fwrite(&global<u8>(0x008bd550), 1, 0x40f0, file);
+        g_traceEnv->fwrite(&global<u32>(0x008bd508), 1, 4, file);
+        g_traceEnv->fwrite(&global<u32>(0x008bcbc8), 1, 4, file);
+    }
+    if (!file)
+        return;
+    TraceRecord record;
+    record.tag = 1;
+    record.item = item;
+    record.flags = at<u32>(item, 8);
+    record.width = at<u16>(item, 0x10);
+    record.height = at<u16>(item, 0x12);
+    record.weight = X87_FloatThrough(at<u32>(item, 0x30));
+    g_traceEnv->fwrite(&record.tag, 1, 1, file);
+    g_traceEnv->fwrite(&record.item, 1, 0x10, file);
+    g_traceEnv->fflush(file);
+    g_traceEnv->fclose(file);
+}
+
+void __fastcall TexCache_TouchItem(u8 *cache, void *, u8 *item, float weight) {
+    if (!item || at<u32>(item, 8) & 0x2000000)
+        return;
+    const u32 before = at<u32>(item, 8);
+    if (before & 0x400 && at<u32>(item, 0x3c) && at<u32>(global<u8 *>(0x0087a248), 4) != at<u32>(item, 0xc) && before & 0x1000)
+        TexCache_UnlinkItem(cache, nullptr, item);
+    at<u32>(item, 8) |= 0x40000000;
+    u8 *const base = item + at<s32>(at<u8 *>(item, 0), 4);
+    u8 &slot = base[global<s32>(0x00879d48)];
+    if (slot < 0xff) {
+        slot++;
+        at<u32>(base, 0x10)++;
+    }
+    at<u32>(base, 0x14) |= 0x8000;
+    const u32 flags = at<u32>(item, 8);
+    if (!(flags & 0x3000)) {
+        at<float>(item, 0x30) = weight;
+        const u32 cleared = (flags | 0x2000) & ~0x30u;
+        at<u32>(item, 8) = ((u32)((s32)cleared >> 2) & 0x30) | cleared;
+        const u16 mask = (u16)at<u32>(cache, 0x18e4);
+        at<u16>(item, 0x14) = (u16)((at<u16>(item, 0x10) + mask) & ~mask);
+        at<u16>(item, 0x16) = (u16)((at<u16>(item, 0x12) + mask) & ~mask);
+        TexCacheItem_SetKey(item);
+        at<u8 *>(item, 4) = at<u8 *>(cache, 0x18c4);
+        at<u8 *>(cache, 0x18c4) = item;
+    } else {
+        if (at<float>(item, 0x30) > weight)
+            at<float>(item, 0x30) = weight;
+        if (global<u32>(0x008bd508) & 0xc0000000 && flags & 0x1000 && flags & 0x4000)
+            TexCacheItem_SetFlag1(at<u8 *>(at<u8 *>(item, 0x18), 0));
+    }
+    if (at<u32>(item, 8) & 0x800000)
+        TexCache_TouchItem(cache, nullptr, item + 0x60, weight);
+    if (global<u8>(0x008bd550) & 0x80)
+        TexCache_TraceItem(cache, nullptr, item);
+}
+}
