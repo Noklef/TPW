@@ -238,4 +238,20 @@ struct SoundChannelOpenEnv {
 };
 void SoundChannel_SetOpenEnv(const SoundChannelOpenEnv *env);
 
+// What the set-ups below call, so that the bench can record it (nullptr: the game's).
+struct SoundChannelSetupEnv {
+    u32 *(__fastcall *open)(u8 *channel, void *, u32 *out, const u8 *settings);    // SoundChannel_Open 0x6b7510
+    u32 *(__fastcall *query)(u8 *channel, void *, u32 *out, u8 *settings);         // SoundChannel_GetSettings 0x6b7d70
+    u32 *(__fastcall *reopen)(u8 *channel, void *, u32 *out, u8 *settings);        // SoundChannel_Reopen 0x6b7650
+};
+void SoundChannel_SetSetupEnv(const SoundChannelSetupEnv *env);
+
+// 0x6b8f90 (thiscall (out, a, b), pops 0xc; called from 0x6c5ca4; name invented, unconfirmed): the sub-object +0x30's slot 5 (a); a settings record (Init_6b9c50) from the channel's
+// slot 0xd (a local out, the record, b); SoundChannel_Open with it. Negative: the channel's slot 0 and *out = -1. Otherwise the record's +4 gets bits 8 and 9 and goes to
+// SoundChannel_GetSettings; not negative: +0x28 gets 0x40 for the record's +4 bit 8 and 3 for bit 9. Either way +0x48-0x54 = 1.0f, +0x5c = 4, +0x58 = &+0x48, *out = 0. Returns out.
+u32 *__fastcall SoundChannel_Setup(u8 *channel, void *, u32 *out, u32 a, u32 b);
+// 0x6b91d0 (thiscall (out, a), pops 8; name invented, unconfirmed): a settings record (Init_6b9c50) from the channel's slot 0xd (a local out, the record, a); SoundChannel_Reopen
+// (out, the record). Returns out.
+u32 *__fastcall SoundChannel_Refresh(u8 *channel, void *, u32 *out, u32 a);
+
 }  // extern "C"

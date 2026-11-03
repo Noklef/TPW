@@ -2098,6 +2098,8 @@ int main(int argc, char **argv) {
                                                     Rec{recorder(5, 2)},      Rec{recorder(6, 0)},      Rec{recorder(7, 0)},      Rec{recorder(8, 0)},
                                                     Rec{recorder(9, 0)},      Rec{recorder(10, 0)}};
     ObjectUpdate_SetEnv(&objectUpdateEnv);
+    static const SoundChannelSetupEnv soundChannelSetupEnv = {Rec{recorder(1, 2)}, Rec{recorder(2, 2)}, Rec{recorder(3, 2)}};
+    SoundChannel_SetSetupEnv(&soundChannelSetupEnv);
     static const SoundSeedEnv soundSeedEnv = {Rec{jpeg_recorder(1, 0)}};
     SoundSeed_SetEnv(&soundSeedEnv);
     static const SoundManagerEnv soundManagerEnv = {Rec{recorder(20, 0)}};

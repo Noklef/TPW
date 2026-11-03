@@ -824,4 +824,49 @@ u32 *__fastcall SoundChannel_Reopen(u8 *channel, void *, u32 *out, u8 *settings)
     return out;
 }
 
+namespace {
+
+const SoundChannelSetupEnv kSetupEnv = {&SoundChannel_Open, &SoundChannel_GetSettings, &SoundChannel_Reopen};
+const SoundChannelSetupEnv *g_setup = &kSetupEnv;
+
+}  // namespace
+
+void SoundChannel_SetSetupEnv(const SoundChannelSetupEnv *env) { g_setup = env ? env : &kSetupEnv; }
+
+u32 *__fastcall SoundChannel_Setup(u8 *channel, void *, u32 *out, u32 a, u32 b) {
+    vcall<void>(channel + 0x30, 0x14, a);
+    u8 record[0x70];
+    Init_6b9c50(record);
+    u32 status;
+    vcall<void>(channel, 0x34, &status, record, b);
+    if (at<s32>(g_setup->open(channel, nullptr, &status, record), 0) < 0) {
+        vcall<void>(channel, 0);
+        *out = 0xffffffffu;
+        return out;
+    }
+    at<u32>(record, 4) |= 0x300;
+    if (at<s32>(g_setup->query(channel, nullptr, &status, record), 0) >= 0) {
+        const u32 flags = at<u32>(record, 4);
+        if (flags & 0x100) at<u32>(channel, 0x28) |= 0x40;
+        if (flags & 0x200) at<u32>(channel, 0x28) |= 3;
+    }
+    at<u32>(channel, 0x48) = 0x3f800000;
+    at<u32>(channel, 0x4c) = 0x3f800000;
+    at<u32>(channel, 0x50) = 0x3f800000;
+    at<u32>(channel, 0x54) = 0x3f800000;
+    at<u32>(channel, 0x5c) = 4;
+    at<u8 *>(channel, 0x58) = channel + 0x48;
+    *out = 0;
+    return out;
+}
+
+u32 *__fastcall SoundChannel_Refresh(u8 *channel, void *, u32 *out, u32 a) {
+    u8 record[0x70];
+    Init_6b9c50(record);
+    u32 status;
+    vcall<void>(channel, 0x34, &status, record, a);
+    g_setup->reopen(channel, nullptr, out, record);
+    return out;
+}
+
 }  // extern "C"
