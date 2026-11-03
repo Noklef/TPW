@@ -27,9 +27,9 @@ def case(r):
     if thing == 0x7ca1cc:
         fill(log, 14, 0, bytes(4))
     set_return(log, 14, r.choice([0, 0, 1, r.getrandbits(32)]))
-    for k in (19, 21):
+    for k, which in ((19, 1), (21, 2)):
         strings(log, k, 0, 0b1)
-        fill(log, k, 0, r.bytes(4))
+        fill(log, k, 0, r.bytes(4), which=which)
     regions = {LOG: log}
     regions[0x7ca1c8] = struct.pack('<III', r.getrandbits(32), r.choice([0, 0, 0, 1, r.getrandbits(32)]), r.choice([thing, r.getrandbits(32), r.getrandbits(32)])) + bytes([r.choice([0] * 7 + [1, r.getrandbits(8)])]) + r.bytes(3)
     regions[0x785a2c] = struct.pack('<I', r.choice([0, 0, 1, r.getrandbits(32)]))
