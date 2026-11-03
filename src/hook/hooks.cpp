@@ -349,6 +349,7 @@
 #include "../game/world/gamemode.h"
 #include "../game/world/guardescort.h"
 #include "../game/world/mapclick.h"
+#include "../game/world/objectride.h"
 #include "../game/world/objectstatus.h"
 #include "../game/world/objectunlock.h"
 #include "../game/world/objectwear.h"
@@ -5793,6 +5794,7 @@ const Hook kHooks[] = {
     {"Entertainer_Step",          0x004d4810, (void *)&Entertainer_Step, {0x83, 0xec, 0x10, 0x56, 0x8b}},
     {"Mechanic_Step",             0x004da490, (void *)&Mechanic_Step, {0x56, 0x8b, 0xf1, 0x8b, 0x86}},
     {"Guard_PickWork",            0x004d63d0, (void *)&Guard_PickWork, {0x56, 0x8b, 0xf1, 0xe8, 0x68}},
+    {"Object_ClaimRide",          0x004dd500, (void *)&Object_ClaimRide, {0x83, 0xec, 0x10, 0x56, 0x8b}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
