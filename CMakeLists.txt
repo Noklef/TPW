@@ -251,6 +251,7 @@ add_library(tpw_game STATIC
     src/game/gfx/moviesound.cpp
     src/game/gfx/guitext.cpp
     src/game/gfx/colourramps.cpp
+    src/game/gfx/spriteframelights.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp
     src/game/math/rect.cpp

@@ -121,6 +121,7 @@
 #include "../../src/game/render/spritegroups.h"
 #include "../../src/game/render/tiledpanel.h"
 #include "../../src/game/render/groundshadow.h"
+#include "../../src/game/gfx/spriteframelights.h"
 #include "../../src/game/terrain/ground.h"
 #include "../../src/game/terrain/water.h"
 #include "../../src/game/render/weatherfx.h"
@@ -594,6 +595,7 @@ const TileGridEnv kTileGridEnv = {Rec{recorder(1, 2)}};
 const SpriteGroupsEnv kSpriteGroupsEnv = {Rec{recorder(1, 2)}};
 const TiledPanelEnv kTiledPanelEnv = {Rec{recorder(1, 2)}};
 const GroundShadowEnv kGroundShadowEnv = {Rec{recorder(1, 2)}};
+const SpriteFrameLightsEnv kSpriteFrameLightsEnv = {Rec{recorder(2, 0)}, Rec{recorder(3, 0)}, Rec{recorder(4, 4)}, Rec{recorder(1, 2)}};
 const TerrainGroundEnv kTerrainGroundEnv = {Rec{recorder(4, 0)}, Rec{recorder(5, 2)}, Rec{recorder(6, 0)}, Rec{recorder(7, 3)}, Rec{recorder(1, 5)}, Rec{recorder(11, 5)}, &water_transform,
                                             Rec{kStubs + 0x1000 + 0x4000 + 0x800 * 5 + 0x20 * 3}, Rec{recorder(8, 0)}, Rec{recorder(9, 1)}, Rec{jpeg_recorder(10, 3)}, Rec{recorder(2, 1)}};
 const WeatherDrawEnv kWeatherDrawEnv = {Rec{recorder(1, 5)}, Rec{recorder(2, 1)}, Rec{recorder(3, 1)}, Rec{recorder(4, 2)}, Rec{recorder(5, 2)}};
@@ -1421,6 +1423,7 @@ int main(int argc, char **argv) {
     SpriteGroups_SetEnv(&kSpriteGroupsEnv);
     TiledPanel_SetEnv(&kTiledPanelEnv);
     GroundShadow_SetEnv(&kGroundShadowEnv);
+    SpriteFrameLights_SetEnv(&kSpriteFrameLightsEnv);
     WeatherFx_SetDrawEnv(&kWeatherDrawEnv);
     WeatherFx_SetDropsEnv(&kWeatherDropsEnv);
     ModelGroup_SetEnv(&kModelGroupEnv);

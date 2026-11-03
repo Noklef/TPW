@@ -152,6 +152,7 @@
 #include "../game/gfx/moviesurface.h"
 #include "../game/gfx/refblock.h"
 #include "../game/gfx/signstyle.h"
+#include "../game/gfx/spriteframelights.h"
 #include "../game/gfx/tgqvideo.h"
 #include "../game/gfx/tqivideo.h"
 #include "../game/gfx/wctimage.h"
@@ -5933,6 +5934,7 @@ const Hook kHooks[] = {
     {"GuiText_DrawRgb",           0x00492c40, (void *)&GuiText_DrawRgb, {0x83, 0xec, 0x1c, 0x8b, 0x44}},
     {"MovieSound_ReleaseAll",     0x00672990, (void *)&MovieSound_ReleaseAll, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
     {"ColourRamps_Build",         0x0046be50, (void *)&ColourRamps_Build, {0x83, 0xec, 0x30, 0x53, 0x55}},
+    {"SpriteFrame_DrawLightQuads", 0x00589770, (void *)&SpriteFrame_DrawLightQuads, {0x83, 0xec, 0x6c, 0x53, 0x55}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
