@@ -568,6 +568,7 @@
 #include "../game/ui/thingsign.h"
 #include "../game/ui/uimessage.h"
 #include "../game/ui/viewbuttons.h"
+#include "../game/ui/window705950nodes.h"
 #include "../game/ui/window7cb2a4.h"
 #include "../game/ui/window7cb2cc.h"
 #include "../game/ui/window7cc8bc.h"
@@ -7580,6 +7581,13 @@ const Hook kHooks[] = {
     {"ImeHost_Attach",            0x00480ec0, (void *)&ImeHost_Attach, {0x51, 0xa1, 0x0c, 0x13, 0x7a}},
     {"ImeHost_Detach",            0x00480f50, (void *)&ImeHost_Detach, {0x56, 0x8b, 0xf1, 0x8d, 0x4e}},
     {"TextRecordPart_Refresh",    0x00492070, (void *)&TextRecordPart_Refresh, {0x56, 0x8b, 0xf1, 0x57, 0x66}},
+    {"Window705950_InsertSorted", 0x0065ae3e, (void *)&Window705950_InsertSorted, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window705950_InsertAt",     0x0065b20b, (void *)&Window705950_InsertAt, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window705950_RemoveNode",   0x0065b486, (void *)&Window705950_RemoveNode, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window705950_FreeNodes",    0x0065b66a, (void *)&Window705950_FreeNodes, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window705950_Clear",        0x0065b6d6, (void *)&Window705950_Clear, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window705950_SetNodeText",  0x0065b79c, (void *)&Window705950_SetNodeText, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window705950_GetNodeText",  0x0065b7db, (void *)&Window705950_GetNodeText, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},

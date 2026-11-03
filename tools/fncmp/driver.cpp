@@ -60,6 +60,8 @@
 #include "../../src/game/ui/signnamedialog.h"
 #include "../../src/game/ui/window7cb2a4.h"
 #include "../../src/game/ui/dialog7cc984.h"
+#include "../../src/game/gfx/movieframe.h"
+#include "../../src/game/ui/panel7cc3b0handler.h"
 #include "../../src/game/world/rideupkeep.h"
 #include "../../src/game/ui/mousehelp.h"
 #include "../../src/game/world/staffthink.h"
@@ -762,6 +764,9 @@ const QuitConfirmEnv kQuitConfirmEnv = {Rec{recorder(10, 0)}, Rec{jpeg_recorder(
 const MapSweepEnv kMapSweepEnv = {Rec{recorder(10, 0)}, Rec{recorder(11, 0)}, Rec{recorder(12, 0)}};
 const ImeHostAttachEnv kImeHostAttachEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 0)}, Rec{recorder(12, 0)}, Rec{recorder(13, 1)}, Rec{recorder(14, 1)}, Rec{jpeg_recorder(15, 4)}};
 const TextRecordPartEnv kTextRecordPartEnv = {Rec{jpeg_recorder(10, 4)}, Rec{recorder(11, 1)}, Rec{jpeg_recorder(12, 1)}, Rec{recorder(13, 2)}, Rec{recorder(14, 1)}, Rec{recorder(15, 0)}, Rec{recorder(16, 1)}};
+const MovieFrameEnv kMovieFrameEnv = {&heap_alloc, Rec{jpeg_recorder(10, 3)}};
+const Panel7cc3b0HandlerEnv kPanel7cc3b0HandlerEnv = {Rec{jpeg_recorder(12, 4)}, Rec{recorder(13, 0)}, Rec{jpeg_recorder(14, 1)}, Rec{recorder(15, 2)}, Rec{recorder(16, 1)}, Rec{recorder(17, 0)}, Rec{jpeg_recorder(18, 0)}, Rec{recorder(19, 0)}, Rec{recorder(20, 0)}, Rec{jpeg_recorder(21, 2)}, Rec{recorder(22, 0)}, Rec{recorder(23, 0)},
+                                                      Rec{recorder(24, 1)}, Rec{jpeg_recorder(25, 1)}, Rec{jpeg_recorder(26, 8)}, Rec{recorder(27, 0)}, Rec{jpeg_recorder(28, 1)}, Rec{recorder(29, 0)}, Rec{jpeg_recorder(30, 1)}};
 const RideUpkeepEnv kRideUpkeepEnv = {Rec{recorder(10, 1)}, Rec{recorder(11, 0)}, Rec{recorder(12, 2)}, Rec{recorder(13, 2)}, Rec{recorder(14, 2)}, Rec{recorder(15, 0)}};
 const ObjectUnlockThemesEnv kObjectUnlockThemesEnv = {Rec{recorder(10, 1)}, Rec{recorder(11, 1)}, Rec{recorder(12, 2)}, Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{jpeg_recorder(15, 0)}, Rec{recorder(16, 1)}, Rec{jpeg_recorder(17, 0)}, Rec{recorder(18, 0)}, Rec{recorder(19, 0)}, Rec{recorder(20, 1)}, Rec{recorder(21, 1)}};
 const Dialog7cb25cHandlerEnv kDialog7cb25cHandlerEnv = {Rec{jpeg_recorder(10, 4)}, Rec{jpeg_recorder(11, 1)}, Rec{recorder(12, 1)}, Rec{recorder(13, 2)}, Rec{recorder(14, 0)}, Rec{recorder(15, 2)}, Rec{recorder(16, 0)}, Rec{jpeg_recorder(17, 5)}, Rec{jpeg_recorder(18, 8)},
@@ -1653,6 +1658,8 @@ int main(int argc, char **argv) {
     MapSweep_SetEnv(&kMapSweepEnv);
     ImeHost_SetAttachEnv(&kImeHostAttachEnv);
     TextRecordPart_SetEnv(&kTextRecordPartEnv);
+    MovieFrame_SetEnv(&kMovieFrameEnv);
+    Panel7cc3b0_SetHandlerEnv(&kPanel7cc3b0HandlerEnv);
     RideUpkeep_SetEnv(&kRideUpkeepEnv);
     ObjectWear_SetEnv(&kObjectWearEnv);
     CellEffect_SetEnv(&kCellEffectEnv);
