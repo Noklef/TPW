@@ -6421,6 +6421,7 @@ address,name,kind,confidence,notes
 0x00577ae0,TileGrid_Draw,function,low,"reimplemented (src/game/render/tilegrid); the tiles of a rectangle of a grid of 64-unit cells, each a Batch_DrawQuad (name invented, unconfirmed)"
 0x0057c620,SpriteGroups_Draw,function,low,"reimplemented (src/game/render/spritegroups); a frame's camera-facing sprites by group, each a Batch_DrawQuad (name invented, unconfirmed)"
 0x0058a010,TiledPanel_Draw,function,low,"reimplemented (src/game/render/tiledpanel); a panel of tiles on the screen, anchored, each tile a Batch_DrawQuad (name invented, unconfirmed)"
+0x0057be90,GroundShadow_Draw,function,low,"reimplemented (src/game/render/groundshadow); a flat quad laid over the height grid (name invented, unconfirmed)"
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"
