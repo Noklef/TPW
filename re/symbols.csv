@@ -5633,6 +5633,9 @@ address,name,kind,confidence,notes
 0x004d6260,Guard_Send,function,low,"reimplemented (src/game/world/guardescort); thiscall (handle), pops 4; name invented, unconfirmed: a guard sent after a thing"
 0x004d6790,Guard_Chase,function,low,"reimplemented (src/game/world/guardescort); thiscall; name invented, unconfirmed: the guard's chase step"
 0x004d6a50,Guard_LeaveWithVisitor,function,low,"reimplemented (src/game/world/guardescort); thiscall; name invented, unconfirmed: the guard's step with the caught visitor"
+0x004d7100,Handyman_PickWork,function,low,"reimplemented (src/game/world/staffwork); thiscall; name invented, unconfirmed: an idle handyman's next work: the nearest cell (a point in it by the seeded generator; sent: stamped, state 8), else the next job (state 0xa), else a random destination (state 1 or 0)"
+0x004da5b0,Mechanic_PickWork,function,low,"reimplemented (src/game/world/staffwork); thiscall; name invented, unconfirmed: an idle mechanic's next work: the nearest free object (sent: stamped, the advisor message 0x46 unless +0x64 or +0x19c 2, state 0xc), else a random destination (state 1 or 0)"
+0x004d46d0,Entertainer_PickWork,function,low,"reimplemented (src/game/world/staffwork); thiscall; name invented, unconfirmed: an idle entertainer's next work: with a draw that divides by 3 and things around, an action 0xd up and state 0xe; else by the tick a random destination (state 1) or state 0"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved

@@ -70,6 +70,7 @@
 #include "../../src/game/ui/thingbrowser.h"
 #include "../../src/game/ui/msgtags.h"
 #include "../../src/game/world/guardescort.h"
+#include "../../src/game/world/staffwork.h"
 #include "../../src/game/ui/staffrename.h"
 #include "../../src/game/ui/textpanel7cc18c.h"
 #include "../../src/game/world/objectmsg.h"
@@ -646,6 +647,8 @@ const Panel7cc218LevelsEnv kPanel7cc218LevelsEnv = {Rec{recorder(10, 0)}, Rec{re
                                                     Rec{jpeg_recorder(20, 5)}, Rec{jpeg_recorder(21, 1)}, Rec{jpeg_recorder(22, 2)}, Rec{recorder(23, 0)}};
 // Panel7cc218_RefreshFigures' calls (tests/fncmp/panel7cc218figures.py).
 const Panel7cc218FiguresEnv kPanel7cc218FiguresEnv = {Rec{recorder(10, 0)}, Rec{recorder(11, 1)}, Rec{recorder(12, 0)}, Rec{jpeg_recorder(13, 5)}, Rec{recorder(14, 1)}, Rec{recorder(15, 3)}, Rec{recorder(16, 3)}, Rec{recorder(18, 0)}, Rec{jpeg_recorder(19, 2)}, Rec{recorder(20, 0)}, Rec{recorder(21, 0)}, Rec{jpeg_recorder(22, 4)}};
+// An idle handyman's and mechanic's calls (tests/fncmp/staffwork.py).
+const StaffWorkEnv kStaffWorkEnv = {Rec{recorder(10, 0)}, Rec{recorder(11, 0)}, Rec{recorder(12, 0)}, Rec{recorder(13, 4)}, Rec{recorder(14, 1)}, Rec{recorder(15, 2)}, Rec{recorder(16, 1)}, Rec{recorder(17, 1)}, Rec{recorder(18, 2)}, Rec{recorder(19, 1)}, Rec{recorder(20, 1)}, Rec{recorder(21, 1)}, Rec{recorder(22, 1)}, Rec{stdcall_recorder(23, 3)}, Rec{jpeg_recorder(24, 2)}};
 // Dialog_KeyHandler's calls (tests/fncmp/dialogkeys.py).
 const DialogKeyEnv kDialogKeyEnv = {Rec{jpeg_recorder(10, 4)}, Rec{recorder(11, 0)}, Rec{recorder(12, 0)}, Rec{recorder(13, 2)}, Rec{recorder(14, 2)}, Rec{jpeg_recorder(15, 1)}, Rec{recorder(16, 3)}};
 // Dialog7cdac4_Open's calls (tests/fncmp/dialog7cdac4.py).
@@ -1477,6 +1480,7 @@ int main(int argc, char **argv) {
     ThingBrowser_SetHandlerEnv(&kThingBrowserHandlerEnv);
     MsgTag_SetHandlerEnv(&kMsgTagHandlerEnv);
     GuardEscort_SetEnv(&kGuardEscortEnv);
+    StaffWork_SetEnv(&kStaffWorkEnv);
     Dialog7ca098_SetEnv(&kDialog7ca098Env);
     Dialog7cdac4_SetHandlerEnv(&kDialog7cdac4HandlerEnv);
     Dialog7cc1f8_SetTabEnv(&kDialog7cc1f8TabEnv);
