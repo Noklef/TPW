@@ -606,6 +606,7 @@ add_library(tpw_game STATIC
     src/game/world/advisortable.cpp
     src/game/world/worldsave.cpp
     src/game/world/scapeobjects.cpp
+    src/game/world/objectctor.cpp
     src/game/ui/staffrename.cpp
     src/game/ui/window7cc8bc.cpp
     src/game/ui/dialog7cb2b8.cpp
@@ -660,6 +661,29 @@ add_library(tpw_game STATIC
     src/game/ui/panel7cc328handler.cpp
     src/game/ui/dialog7cb3f8slots.cpp
     src/game/ui/dialog7ca150list.cpp
+    src/game/ui/window7cc8c0handler.cpp
+    src/game/ui/dialog7cca70list.cpp
+    src/game/ui/mouseclick.cpp
+    src/game/ui/dialog7cb2fcopen.cpp
+    src/game/ui/dialog7cc984open.cpp
+    src/game/ui/chatnamemenu.cpp
+    src/game/ui/panel7c2534handler.cpp
+    src/game/ui/panel7ca228handler.cpp
+    src/game/ui/windowarea.cpp
+    src/game/ui/moneydisplay.cpp
+    src/game/ui/dialog7cc944list.cpp
+    src/game/ui/window705a20char.cpp
+    src/game/ui/guiframe.cpp
+    src/game/ui/guistartup.cpp
+    src/game/ui/guisettings.cpp
+    src/game/ui/windowtick.cpp
+    src/game/ui/panel7c2534menus.cpp
+    src/game/ui/gamewindowinput.cpp
+    src/game/ui/gamepause.cpp
+    src/game/ui/window705b20thumb.cpp
+    src/game/ui/window7cb2b0handler.cpp
+    src/game/ui/window7cc8bchandler.cpp
+    src/game/ui/moneydisplayhandler.cpp
 )
 # The libraries whose functions replace the exe's copies (src/game/lib); their headers stay private to those units.
 target_link_libraries(tpw_game PRIVATE tpw_zlib tpw_jpeg6b tpw_jpeg6a)

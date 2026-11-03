@@ -15,6 +15,7 @@
 #include "../sprite/script.h"
 #include "../world/advisor.h"
 #include "../world/staff.h"
+#include "../world/staffcandidate.h"
 #include "../world/world.h"
 #include "buttontext.h"
 #include "dialog7ca098.h"
@@ -243,7 +244,7 @@ void __cdecl Dialog7ca308_Open(u32 kind) {
 
 namespace {
 const Dialog7ca308HandlerEnv kGameHandlerEnv = {Window_SendMessage, Window_FindChild, GameTable7cfb90_Get1da726_5195d0, reinterpret_cast<u32(__fastcall *)(u32)>(Source_Field0c), Charset_FormatWide, SpriteScript_Kill, Game_CancelAdvisor, Window_SetTimer, Window_StartTimer, Dialog7cc1f8_Open,
-                                                Window7059f0_NthItemData, StaffPool_ValidEntry, Staff_WageForRecord, Dialog7ca308_ShowStaff, reinterpret_cast<u32(__fastcall *)(u8 *, void *, u32)>((uintptr_t)0x00507bf0), Advisor_PostId, Dialog_KeyHandler};
+                                                Window7059f0_NthItemData, StaffPool_ValidEntry, Staff_WageForRecord, Dialog7ca308_ShowStaff, reinterpret_cast<u32(__fastcall *)(u8 *, void *, u32)>(&StaffPool_TakeCandidate), Advisor_PostId, Dialog_KeyHandler};
 const Dialog7ca308HandlerEnv *g_handler = &kGameHandlerEnv;
 
 u32 &word(u32 at) { return *reinterpret_cast<u32 *>(static_cast<uintptr_t>(at)); }

@@ -595,7 +595,7 @@ void __fastcall Panel7cc218_OpenLevelBox(u8 *self) {
 
 namespace {
 const Panel7cc218HandlerEnv kHandlerGameEnv = {&WindowAt10_Message4, &Panel7cc218_RefreshFigures, &ThingPanel_Handler_48d200, &Window_SetTimer, &Window_StartTimer, &Game_CancelAdvisor, &Sign_Swing, &Dialog7ca150_Open, &Things_StepGroup, &Things_StepGroupBack, &ThingPanel_RestartOrClose_48ccf0,
-                                               &ThingGoto_Start, &Panel7cc218_EnterMoveMode, &Object_GetDef, &Panel7cc218_ShowSettings, &Panel7cc218_EnterTileMode, &Panel7cc218_OpenLevelBox, &ThingPanel_SetFlag64_48ce50, reinterpret_cast<u32(__fastcall *)(u8 *, void *, u32)>((uintptr_t)0x004e15b0)};
+                                               &ThingGoto_Start, &Panel7cc218_EnterMoveMode, &Object_GetDef, &Panel7cc218_ShowSettings, &Panel7cc218_EnterTileMode, &Panel7cc218_OpenLevelBox, &ThingPanel_SetFlag64_48ce50, reinterpret_cast<u32(__fastcall *)(u8 *, void *, u32)>(&Object_FollowCamera)};
 const Panel7cc218HandlerEnv *g_handler = &kHandlerGameEnv;
 }  // namespace
 

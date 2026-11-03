@@ -371,6 +371,7 @@
 #include "../game/world/mappress.h"
 #include "../game/world/mappreview.h"
 #include "../game/world/mapsweep.h"
+#include "../game/world/objectctor.h"
 #include "../game/world/objectride.h"
 #include "../game/world/objectstatus.h"
 #include "../game/world/objectunlock.h"
@@ -549,6 +550,7 @@
 #include "../game/ui/windowfactory.h"
 #include "../game/ui/windowscript.h"
 #include "../game/ui/buttontext.h"
+#include "../game/ui/chatnamemenu.h"
 #include "../game/ui/dialog74fb20.h"
 #include "../game/ui/dialog7ca098.h"
 #include "../game/ui/dialog7ca13c.h"
@@ -566,6 +568,7 @@
 #include "../game/ui/dialog7cb2b8.h"
 #include "../game/ui/dialog7cb2b8build.h"
 #include "../game/ui/dialog7cb2b8tabs.h"
+#include "../game/ui/dialog7cb2fcopen.h"
 #include "../game/ui/dialog7cb3f8slots.h"
 #include "../game/ui/dialog7cb400.h"
 #include "../game/ui/dialog7cb400close.h"
@@ -586,16 +589,24 @@
 #include "../game/ui/dialog7cc5f4handler.h"
 #include "../game/ui/dialog7cc654.h"
 #include "../game/ui/dialog7cc944.h"
+#include "../game/ui/dialog7cc944list.h"
 #include "../game/ui/dialog7cc984.h"
+#include "../game/ui/dialog7cc984open.h"
 #include "../game/ui/dialog7cca70.h"
+#include "../game/ui/dialog7cca70list.h"
 #include "../game/ui/dialog7cca94.h"
 #include "../game/ui/dialog7cdac4.h"
 #include "../game/ui/dialogtabhandlers.h"
 #include "../game/ui/dialogtabs.h"
 #include "../game/ui/dialuplist.h"
 #include "../game/ui/gamepartdialogs.h"
+#include "../game/ui/gamepause.h"
+#include "../game/ui/gamewindowinput.h"
 #include "../game/ui/guifont.h"
+#include "../game/ui/guiframe.h"
 #include "../game/ui/guinamed.h"
+#include "../game/ui/guisettings.h"
+#include "../game/ui/guistartup.h"
 #include "../game/ui/guisystem.h"
 #include "../game/ui/guitoken.h"
 #include "../game/ui/hoverlabel.h"
@@ -603,11 +614,17 @@
 #include "../game/ui/imehostattach.h"
 #include "../game/ui/levelmeter.h"
 #include "../game/ui/menuactions.h"
+#include "../game/ui/moneydisplay.h"
+#include "../game/ui/moneydisplayhandler.h"
+#include "../game/ui/mouseclick.h"
 #include "../game/ui/mousehelp.h"
 #include "../game/ui/msgboxbutton.h"
 #include "../game/ui/msgtags.h"
 #include "../game/ui/panel7c2534.h"
+#include "../game/ui/panel7c2534handler.h"
+#include "../game/ui/panel7c2534menus.h"
 #include "../game/ui/panel7ca178.h"
+#include "../game/ui/panel7ca228handler.h"
 #include "../game/ui/panel7cc218.h"
 #include "../game/ui/panel7cc258.h"
 #include "../game/ui/panel7cc328handler.h"
@@ -635,10 +652,17 @@
 #include "../game/ui/viewbuttons.h"
 #include "../game/ui/window705950nodes.h"
 #include "../game/ui/window7059f0texts.h"
+#include "../game/ui/window705a20char.h"
+#include "../game/ui/window705b20thumb.h"
 #include "../game/ui/window7cb2a4.h"
+#include "../game/ui/window7cb2b0handler.h"
 #include "../game/ui/window7cb2cc.h"
 #include "../game/ui/window7cc8bc.h"
+#include "../game/ui/window7cc8bchandler.h"
 #include "../game/ui/window7cc8bcmenu.h"
+#include "../game/ui/window7cc8c0handler.h"
+#include "../game/ui/windowarea.h"
+#include "../game/ui/windowtick.h"
 #include "../game/ui/windowtimers.h"
 #include "../game/lib/jpeg6b.h"
 #include "../game/lib/jpeg6a.h"
@@ -6057,6 +6081,7 @@ const Hook kHooks[] = {
     {"World_Save",                0x00516c80, (void *)&World_Save, {0x6a, 0xff, 0x68, 0xe6, 0xe7}},
     {"World_Load",                0x005179c0, (void *)&World_Load, {0x6a, 0xff, 0x68, 0x87, 0xe8}},
     {"Scape_LoadObjects",         0x00550e00, (void *)&Scape_LoadObjects, {0x8b, 0x44, 0x24, 0x04, 0x83}},
+    {"Object_Construct",          0x004db090, (void *)&Object_Construct, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
@@ -7807,6 +7832,7 @@ const Hook kHooks[] = {
     {"Window705950_Draw",         0x0047de30, (void *)&Window705950_Draw, {0x81, 0xec, 0xcc, 0x00, 0x00}},
     {"ThingPanel_Show",           0x00486920, (void *)&ThingPanel_Show, {0x83, 0xec, 0x08, 0x56, 0x8b}},
     {"Dialog7ca1e0_Create",       0x00498b50, (void *)&Dialog7ca1e0_Create, {0x8b, 0x0d, 0xd8, 0xa5, 0xfa}},
+    {"Dialog7ca1e0_Handler",      0x00498ad0, (void *)&Dialog7ca1e0_Handler, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
     {"Dialog7ca1bc_Create",       0x00497b20, (void *)&Dialog7ca1bc_Create, {0x8b, 0x0d, 0xd8, 0xa5, 0xfa}},
     {"Dialog7ca1bc_Handler",      0x00497a70, (void *)&Dialog7ca1bc_Handler, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
     {"Gui_Init",                  0x006584df, (void *)&Gui_Init, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
@@ -7950,6 +7976,51 @@ const Hook kHooks[] = {
     {"Panel7cc328_Handler",       0x004b4fc0, (void *)&Panel7cc328_Handler, {0x83, 0xec, 0x08, 0x53, 0x8b}},
     {"Dialog7cb3f8_RefreshSlots", 0x004a62b0, (void *)&Dialog7cb3f8_RefreshSlots, {0x8b, 0x0d, 0xf8, 0xb3, 0x7c}},
     {"Dialog7ca150_ListHandler",  0x004955e0, (void *)&Dialog7ca150_ListHandler, {0x55, 0x8b, 0xec, 0x83, 0xe4}},
+    {"Window7cc8c0_Handler",      0x004bd4a0, (void *)&Window7cc8c0_Handler, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Dialog7cca70_FillList",     0x004c1e40, (void *)&Dialog7cca70_FillList, {0x6a, 0xff, 0x68, 0xb9, 0xbe}},
+    {"Dialog7cca70_ListCallback", 0x004c20c0, (void *)&Dialog7cca70_ListCallback, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"MouseClick_OnShown",        0x004879d0, (void *)&MouseClick_OnShown, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Dialog7cb2fc_OnSlider",     0x004a2e90, (void *)&Dialog7cb2fc_OnSlider, {0x81, 0xec, 0x94, 0x00, 0x00}},
+    {"Dialog7cb2fc_OnButton",     0x004a3480, (void *)&Dialog7cb2fc_OnButton, {0x81, 0xec, 0x84, 0x00, 0x00}},
+    {"Dialog7cb2fc_Handler",      0x004a2bf0, (void *)&Dialog7cb2fc_Handler, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
+    {"Dialog7cb2fc_Open",         0x004a3a30, (void *)&Dialog7cb2fc_Open, {0xa1, 0xfc, 0xb2, 0x7c, 0x00}},
+    {"Dialog7cc984_Open",         0x004c0ae0, (void *)&Dialog7cc984_Open, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"ChatNameMenu_Handler",      0x004bede0, (void *)&ChatNameMenu_Handler, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Panel7c2534_Handler",       0x0048b6a0, (void *)&Panel7c2534_Handler, {0x83, 0xec, 0x10, 0x56, 0x8b}},
+    {"Panel7ca228_Follow",        0x00499b90, (void *)&Panel7ca228_Follow, {0x56, 0x8b, 0xf1, 0x8b, 0x0d}},
+    {"Panel7ca228_Handler",       0x00499bb0, (void *)&Panel7ca228_Handler, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"WindowArea_GetRect",        0x00661810, (void *)&WindowArea_GetRect, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"WindowArea_GetRect2c",      0x0066b438, (void *)&WindowArea_GetRect2c, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window_GetAreaRect",        0x0065d616, (void *)&Window_GetAreaRect, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"MoneyDisplay_Update",       0x004a0ab0, (void *)&MoneyDisplay_Update, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Dialog7cc944_FillList",     0x004bfc70, (void *)&Dialog7cc944_FillList, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Window705a20_TypeChar",     0x00667833, (void *)&Window705a20_TypeChar, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"CharList_Find",             0x006687e0, (void *)&CharList_Find, {0x55, 0x8b, 0xec, 0x66, 0x8b}},
+    {"Window705a20_KeyDown",      0x00667a72, (void *)&Window705a20_KeyDown, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Gui_Frame",                 0x0048a580, (void *)&Gui_Frame, {0x56, 0xe8, 0x9a, 0x50, 0xff}},
+    {"Gui_Startup",               0x00489ca0, (void *)&Gui_Startup, {0x83, 0xec, 0x30, 0x8d, 0x44}},
+    {"Gui_Teardown",              0x00489ec0, (void *)&Gui_Teardown, {0xb9, 0xb0, 0x9a, 0x7b, 0x00}},
+    {"Gui_SetWords540",           0x0065889c, (void *)&Gui_SetWords540, {0x55, 0x8b, 0xec, 0x66, 0x8b}},
+    {"Gui_List5f0Count",          0x006590a5, (void *)&Gui_List5f0Count, {0x55, 0x8b, 0xec, 0x83, 0x3d}},
+    {"Gui_SetScreenSize",         0x006590d0, (void *)&Gui_SetScreenSize, {0x55, 0x8b, 0xec, 0x66, 0x8b}},
+    {"Gui_SetWord600",            0x006591d4, (void *)&Gui_SetWord600, {0x55, 0x8b, 0xec, 0x66, 0x8b}},
+    {"Gui_CursorSlot3",           0x006591e3, (void *)&Gui_CursorSlot3, {0x55, 0x8b, 0xec, 0x83, 0x3d}},
+    {"Gui_CursorSlot2",           0x00659201, (void *)&Gui_CursorSlot2, {0x55, 0x8b, 0xec, 0x83, 0x3d}},
+    {"Gui_SetPointer48c",         0x006595b3, (void *)&Gui_SetPointer48c, {0x55, 0x8b, 0xec, 0x83, 0x7d}},
+    {"Gui_SetPointer490",         0x00659674, (void *)&Gui_SetPointer490, {0x55, 0x8b, 0xec, 0x83, 0x7d}},
+    {"WindowTick_TickAll",        0x00658f6c, (void *)&WindowTick_TickAll, {0x55, 0x8b, 0xec, 0xc7, 0x05}},
+    {"WindowTick_Tick",           0x00658f97, (void *)&WindowTick_Tick, {0x55, 0x8b, 0xec, 0x6a, 0x00}},
+    {"Panel7c2534_BuildMain",     0x0048c150, (void *)&Panel7c2534_BuildMain, {0x6a, 0xff, 0x68, 0x6c, 0x96}},
+    {"Panel7c2534_BuildOnline",   0x0048c600, (void *)&Panel7c2534_BuildOnline, {0x6a, 0xff, 0x68, 0xac, 0x96}},
+    {"Panel7c2534_Open",          0x0048c830, (void *)&Panel7c2534_Open, {0xa1, 0x34, 0x25, 0x7c, 0x00}},
+    {"GameWindow_Input",          0x004a2840, (void *)&GameWindow_Input, {0x53, 0x55, 0x8b, 0x6c, 0x24}},
+    {"GamePause_Resume",          0x004a9180, (void *)&GamePause_Resume, {0xa0, 0xbf, 0x34, 0xfb, 0x00}},
+    {"GamePause_RemakePicture",   0x004a9280, (void *)&GamePause_RemakePicture, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"GamePause_Hide",            0x004a9380, (void *)&GamePause_Hide, {0x53, 0x68, 0x95, 0x00, 0x00}},
+    {"Window705b20Thumb_Proc",    0x0066bb9b, (void *)&Window705b20Thumb_Proc, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"Window7cb2b0_Handler",      0x00488a00, (void *)&Window7cb2b0_Handler, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
+    {"Window7cc8bc_Handler",      0x004be820, (void *)&Window7cc8bc_Handler, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
+    {"MoneyDisplay_Handler",      0x004a0db0, (void *)&MoneyDisplay_Handler, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},

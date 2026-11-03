@@ -5820,6 +5820,7 @@ address,name,kind,confidence,notes
 0x005327e0,ParkEntrance_LayOutline,function,low,"reimplemented (src/game/world/parkentrance); a rectangle's outline laid with map clicks and the run laid (name invented, unconfirmed)"
 0x004690a0,Ride_RestoreSkinsAndDestroy,function,low,"reimplemented (src/game/world/rideskin); a ride's skins put back in its model, then the ride destroyed (name invented, unconfirmed)"
 0x005a0a50,AdvisorTable_Fill,function,low,reimplemented (src/game/world/advisortable); the table at 0x76e300 of the advisor's message ids filled: 351 records of 0x38 bytes
+0x004db090,Object_Construct,function,low,"reimplemented (src/game/world/objectctor); the placed object's constructor: a thing of kind 3, its fields from its definition (thiscall; cell, id, angle, ride)"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved
@@ -7793,6 +7794,7 @@ address,name,kind,confidence,notes
 0x00497b20,Dialog7ca1bc_Create,function,low,"reimplemented (src/game/ui/dialog7ca1bc); cdecl: [0x7ca1bc] = WindowScript_Build on the GUI root (template 0x7514c0, handler 0x497a70), unlinked, its dword +0xa0 index 0 set to 0, hidden"
 0x00497a70,Dialog7ca1bc_Handler,function,low,"reimplemented (src/game/ui/dialog7ca1bc); cdecl (window, message, a, b); name invented, unconfirmed: the dialog [0x7ca1bc]'s handler"
 0x00498b50,Dialog7ca1e0_Create,function,low,"reimplemented (src/game/ui/dialog7ca1e0); cdecl: [0x7ca1e0] = WindowScript_Build on the GUI root (template 0x751720, handler 0x498ad0), unlinked, its dword +0xa0 index 0 set to 1, hidden"
+0x00498ad0,Dialog7ca1e0_Handler,function,low,"reimplemented (src/game/ui/dialog7ca1e0); the handler of the dialog [0x7ca1e0] (cdecl: window, message, a, b)"
 0x006584df,Gui_Init,function,low,"reimplemented (src/game/ui/guisystem); cdecl (unused, capacity, flag): the root window (Mem_Alloc 0x138, Window_Ctor: no parent, flags 0xf0000001, id -0x29a, 0x7ff x 0x5ff) into [0xfaa5d8] / [0xfaa5e0], GUI globals cleared, byte [0xfaa56c] the flag, the queues [0xfaa5f0] / [0xfaa5f4] made and given the capacity, the window timers' pool of 0x100, the timed table [0xfaa5f8] of 0x40; 1 in AX, 0 on a failure (only AX set)"
 0x00658708,Gui_Shutdown,function,low,"reimplemented (src/game/ui/guisystem); cdecl: 0 in AX without the root [0xfaa5d8]; else the root deleted (slot 2), the queues and timed table deleted and cleared, the window timers' pool, registered windows and named objects let go, [0xfaa5d8..0xfaa5e0] 0; 1 in AX (only AX set)"
 0x004bc100,Dialog7cc654_FitText,function,low,reimplemented (src/game/ui/dialog7cc654); the text window of [0x7cc654] fitted to its text: the bar 0xee3 shown with the excess as its range or hidden; the text window given the buffer when the bar answers 0
@@ -7932,6 +7934,51 @@ address,name,kind,confidence,notes
 0x004b4fc0,Panel7cc328_Handler,function,low,"reimplemented (src/game/ui/panel7cc328handler); cdecl (window, message, a, b); name invented, unconfirmed; the game panel 0x7cc328's window handler"
 0x004a62b0,Dialog7cb3f8_RefreshSlots,function,low,"reimplemented (src/game/ui/dialog7cb3f8slots); cdecl; name invented, unconfirmed; the dialog [0x7cb3f8]'s four user slots shown"
 0x004955e0,Dialog7ca150_ListHandler,function,low,"reimplemented (src/game/ui/dialog7ca150list); cdecl (window, message, a, b); name invented, unconfirmed; the dialog [0x7ca150]'s list's handler, its rows' figures kept current"
+0x004bd4a0,Window7cc8c0_Handler,function,low,"reimplemented (src/game/ui/window7cc8c0handler); cdecl (window, message, a, b); name invented, unconfirmed; the online view's windows' handler"
+0x004c1e40,Dialog7cca70_FillList,function,low,"reimplemented (src/game/ui/dialog7cca70list); cdecl (answer); name invented, unconfirmed; the list of the dialog 0x7cca70 filled from a session's answer"
+0x004c20c0,Dialog7cca70_ListCallback,function,low,"reimplemented (src/game/ui/dialog7cca70list); cdecl (error, unused, answer); name invented, unconfirmed; 0x5bcd10's callback"
+0x004879d0,MouseClick_OnShown,function,low,"reimplemented (src/game/ui/mouseclick); cdecl; name invented, unconfirmed; the click on what the help line shows ([0x7c24f4]): tile modes, panels, the object's mode"
+0x004a2e90,Dialog7cb2fc_OnSlider,function,low,"reimplemented (src/game/ui/dialog7cb2fcopen); cdecl (id, value); name invented, unconfirmed; the options dialog's slider shown"
+0x004a3480,Dialog7cb2fc_OnButton,function,low,"reimplemented (src/game/ui/dialog7cb2fcopen); cdecl (id, state); name invented, unconfirmed; the options dialog's button pressed"
+0x004a2bf0,Dialog7cb2fc_Handler,function,low,"reimplemented (src/game/ui/dialog7cb2fcopen); cdecl (window, message, a, b); name invented, unconfirmed; the options dialog's handler"
+0x004a3a30,Dialog7cb2fc_Open,function,low,"reimplemented (src/game/ui/dialog7cb2fcopen); cdecl; name invented, unconfirmed; the options dialog opened"
+0x004c0ae0,Dialog7cc984_Open,function,low,"reimplemented (src/game/ui/dialog7cc984open); the dialog [0x7cc984] opened: a park's details from its online record (cdecl; record, parent, callback, a, b)"
+0x004bede0,ChatNameMenu_Handler,function,low,"reimplemented (src/game/ui/chatnamemenu); the chat's name menus' lists' handler: the chat told the name by the row, the menu hidden (cdecl; window, message, a, b)"
+0x0048b6a0,Panel7c2534_Handler,function,low,"reimplemented (src/game/ui/panel7c2534handler); the game's menu's rows' handler: its choices, the keys that close it (cdecl; window, message, a, b)"
+0x00499b90,Panel7ca228_Follow,function,low,"reimplemented (src/game/ui/panel7ca228handler); the camera follows the thing [0x7c2658], then the panel's slot 11 (thiscall)"
+0x00499bb0,Panel7ca228_Handler,function,low,"reimplemented (src/game/ui/panel7ca228handler); the handler of the thing panel at 0x7ca228: its buttons, the 0x80080 refresh (cdecl; window, message, a, b)"
+0x00661810,WindowArea_GetRect,function,low,reimplemented (src/game/ui/windowarea); out = the area's rect +0x20 (thiscall (out))
+0x0066b438,WindowArea_GetRect2c,function,low,reimplemented (src/game/ui/windowarea); out = the object's rect +0x2c (thiscall (out))
+0x0065d616,Window_GetAreaRect,function,low,"reimplemented (src/game/ui/windowarea); out = the rect of the window's area +0x9c, zero without one (thiscall (out))"
+0x004a0ab0,MoneyDisplay_Update,function,low,"reimplemented (src/game/ui/moneydisplay); the money display's update: the money's colour and size on a window, the cost child (cdecl; window)"
+0x004bfc70,Dialog7cc944_FillList,function,low,reimplemented (src/game/ui/dialog7cc944list); the dialog [0x7cc944]'s list filled from an online reply's records (cdecl; reply)
+0x00667833,Window705a20_TypeChar,function,low,"reimplemented (src/game/ui/window705a20char); a character typed into the edit window (thiscall; ch, pops 4)"
+0x006687e0,CharList_Find,function,low,"reimplemented (src/game/ui/window705a20char); the character's place in a zero-ended list (cdecl; list, ch)"
+0x00667a72,Window705a20_KeyDown,function,low,"reimplemented (src/game/ui/window705a20char); a key pressed in the edit window (thiscall; key, b, pops 8)"
+0x0048a580,Gui_Frame,function,low,reimplemented (src/game/ui/guiframe); the GUI's work for one frame (cdecl)
+0x00489ca0,Gui_Startup,function,low,reimplemented (src/game/ui/guistartup); the display and GUI brought up (cdecl)
+0x00489ec0,Gui_Teardown,function,low,reimplemented (src/game/ui/guistartup); the display and GUI taken down (cdecl)
+0x0065889c,Gui_SetWords540,function,low,reimplemented (src/game/ui/guisettings); two words set (cdecl)
+0x006590a5,Gui_List5f0Count,function,low,reimplemented (src/game/ui/guisettings); the list 0xfaa5f0's count or -1 (cdecl)
+0x006590d0,Gui_SetScreenSize,function,low,reimplemented (src/game/ui/guisettings); the screen's size words set (cdecl)
+0x006591d4,Gui_SetWord600,function,low,reimplemented (src/game/ui/guisettings); the word 0xfaa600 set (cdecl)
+0x006591e3,Gui_CursorSlot3,function,low,reimplemented (src/game/ui/guisettings); the cursor's slot 3 (cdecl)
+0x00659201,Gui_CursorSlot2,function,low,reimplemented (src/game/ui/guisettings); the cursor's slot 2 (cdecl)
+0x006595b3,Gui_SetPointer48c,function,low,reimplemented (src/game/ui/guisettings); 0x77c48c set or defaulted (cdecl)
+0x00659674,Gui_SetPointer490,function,low,reimplemented (src/game/ui/guisettings); 0x77c490 set or defaulted (cdecl)
+0x00658f6c,WindowTick_TickAll,function,low,"reimplemented (src/game/ui/windowtick); the whole tree sent the tick, its count (cdecl)"
+0x00658f97,WindowTick_Tick,function,low,reimplemented (src/game/ui/windowtick); a window and its children sent the tick (cdecl; window)
+0x0048c150,Panel7c2534_BuildMain,function,low,reimplemented (src/game/ui/panel7c2534menus); the panel's main menu built (cdecl)
+0x0048c600,Panel7c2534_BuildOnline,function,low,reimplemented (src/game/ui/panel7c2534menus); the panel's online menu built (cdecl)
+0x0048c830,Panel7c2534_Open,function,low,reimplemented (src/game/ui/panel7c2534menus); the panel's menu chosen and shown (cdecl; flag)
+0x004a2840,GameWindow_Input,function,low,"reimplemented (src/game/ui/gamewindowinput); the game window's handler: keys and mouse buttons (cdecl; window, message, a, b)"
+0x004a9180,GamePause_Resume,function,low,reimplemented (src/game/ui/gamepause); the game brought back after the countdown (cdecl)
+0x004a9280,GamePause_RemakePicture,function,low,reimplemented (src/game/ui/gamepause); the picture 0x7cc18c remade (cdecl)
+0x004a9380,GamePause_Hide,function,low,"reimplemented (src/game/ui/gamepause); the game hidden, the countdown armed (cdecl)"
+0x0066bb9b,Window705b20Thumb_Proc,function,low,"reimplemented (src/game/ui/window705b20thumb); the scroll bar thumb's handler (cdecl: window, message, a, b)"
+0x00488a00,Window7cb2b0_Handler,function,low,"reimplemented (src/game/ui/window7cb2b0handler); the handler of the window [0x7cb2b0] (cdecl: window, message, a, b)"
+0x004be820,Window7cc8bc_Handler,function,low,"reimplemented (src/game/ui/window7cc8bchandler); the handler of the chat window [0x7cc8bc] (cdecl: window, message, a, b)"
+0x004a0db0,MoneyDisplay_Handler,function,low,"reimplemented (src/game/ui/moneydisplayhandler); the money display's handler (cdecl: window, message, a, b)"
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"
