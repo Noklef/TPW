@@ -3059,6 +3059,7 @@ address,name,kind,confidence,notes
 0x0059aa70,Advisor_Cancel,function,low,"reimplemented (src/game/world/advisor); thiscall (id), pops 4: the advisor's messages of id withdrawn (the tutorial copy's flag, the queued slots, the speech when it is id's: Advisor_StopSpeech and its history record); AL 1 when any was"
 0x00598960,Advisor_PauseSpeech,function,low,reimplemented (src/game/world/advisor); the advisor's voice held (functor 2) while speaking
 0x00598990,Advisor_ResumeSpeech,function,low,reimplemented (src/game/world/advisor); the held advisor voice let go (functor 3)
+0x00598dc0,Advisor_UpdateHighlight,function,low,"reimplemented (src/game/world/advisor); cdecl; name invented: the slot's highlighted parts flagged and selection kinds applied, particle pool 0 set by the flag bits 0x3e0000 of 0xf79660"
 0x00486610,Global7c24d8_CopyScript,function,high,reimplemented (src/game/ui/thingpreview); a sprite script slot made a copy of another
 0x00557110,Rsse_TakeFinished,function,high,"reimplemented (src/game/rsse/rsse_vm); the value of the first finished entry, which is cleared"
 0x0054dcc0,Flag54dcc0_Test,function,high,reimplemented (src/game/render/mode); a flag test on two settings
@@ -5194,6 +5195,7 @@ address,name,kind,confidence,notes
 0x0059f8d0,AdvisorScoring_CrowdAverage490,function,low,"reimplemented (src/game/core/advisorscoring); as 0x59f860 with +0x490 to +0x49c (name invented, unconfirmed)"
 0x0059e9b0,AdvisorScoring_InDebt,function,low,"reimplemented (src/game/core/advisorscoring); a table entry's +0xc below 0 with a loan on offer: +0x340 (name invented, unconfirmed)"
 0x0059ef60,AdvisorScoring_CutOffObject,function,low,"reimplemented (src/game/core/advisorscoring); an object cut off (handle kept at +4): +0x388 (name invented, unconfirmed)"
+0x0059f4f0,AdvisorScoring_RidesRatedAbove,function,low,"reimplemented (src/game/core/advisorscoring); thiscall; name invented: unflagged, at least +0x41c rides and their average rating above +0x418: the best one's handle to +4, +0x420"
 0x00418da0,ParkInfo_Serialize,function,low,"reimplemented (src/game/core/parkinfo); thiscall (stream, save, version, unused), pops 0x10: the save's park information (strings, three dwords, the author's name and e-mail, the description, the publishing date) written or read field by field (name unconfirmed)"
 0x005d55a0,AuthStamp_Text,function,low,"reimplemented (src/game/core/authstamp); cdecl: ""No Authorization Stamp"" (0x774bc0) while the phrase at 0x763f3d is the plain one at 0x774bd8; else the phrase's bytes less the key's (0x774b78) written to 0xf827f8 until they meet, and 0xf827f8"
 0x006cc7b0,Mp2Decoder_ParseHeader,function,low,"reimplemented (src/game/core/mp2frame); parses an MPEG audio frame header into the decoder's fields, rate, bitrate and frame length; -1 without sync or bitrate"
@@ -5808,6 +5810,7 @@ address,name,kind,confidence,notes
 0x005323f0,ParkEntrance_Lay,function,low,"reimplemented (src/game/world/parkentrance); the park entrance's hoardings and path laid from the two entrance places (name invented, unconfirmed)"
 0x005327e0,ParkEntrance_LayOutline,function,low,"reimplemented (src/game/world/parkentrance); a rectangle's outline laid with map clicks and the run laid (name invented, unconfirmed)"
 0x004690a0,Ride_RestoreSkinsAndDestroy,function,low,"reimplemented (src/game/world/rideskin); a ride's skins put back in its model, then the ride destroyed (name invented, unconfirmed)"
+0x005a0a50,AdvisorTable_Fill,function,low,reimplemented (src/game/world/advisortable); the table at 0x76e300 of the advisor's message ids filled: 351 records of 0x38 bytes
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved

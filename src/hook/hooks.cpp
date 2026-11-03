@@ -317,6 +317,7 @@
 #include "../game/world/advisor.h"
 #include "../game/world/advisorrecords.h"
 #include "../game/world/advisorscore.h"
+#include "../game/world/advisortable.h"
 #include "../game/world/analyser.h"
 #include "../game/world/challenges.h"
 #include "../game/world/collobj.h"
@@ -3043,6 +3044,7 @@ const Hook kHooks[] = {
     {"Advisor_Cancel",            0x0059aa70, (void *)&Advisor_Cancel, {0x53, 0x56, 0x8b, 0x74, 0x24}},
     {"Advisor_PauseSpeech",       0x00598960, (void *)&Advisor_PauseSpeech, {0xa1, 0x6c, 0x96, 0xf7, 0x00}},
     {"Advisor_ResumeSpeech",      0x00598990, (void *)&Advisor_ResumeSpeech, {0xa1, 0xc4, 0x97, 0xf7, 0x00}},
+    {"Advisor_UpdateHighlight",   0x00598dc0, (void *)&Advisor_UpdateHighlight, {0xa1, 0x74, 0x96, 0xf7, 0x00}},
     {"Flags7a1a14_Update",        0x00409260, (void *)&Flags7a1a14_Update, {0x56, 0x8b, 0x35, 0x14, 0x1a}},
     {"Obj_RemoveFromRect",        0x0045be80, (void *)&Obj_RemoveFromRect, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Global7c24d8_CopyScript",   0x00486610, (void *)&Global7c24d8_CopyScript, {0xa1, 0xd8, 0x24, 0x7c, 0x00}},
@@ -5365,6 +5367,7 @@ const Hook kHooks[] = {
     {"AdvisorScoring_CrowdAverage490", 0x0059f8d0, (void *)&AdvisorScoring_CrowdAverage490, {0xa1, 0xec, 0xf6, 0x7c, 0x00}},
     {"AdvisorScoring_InDebt",     0x0059e9b0, (void *)&AdvisorScoring_InDebt, {0xa1, 0xec, 0xf6, 0x7c, 0x00}},
     {"AdvisorScoring_CutOffObject", 0x0059ef60, (void *)&AdvisorScoring_CutOffObject, {0x51, 0x56, 0x8b, 0xf1, 0x8b}},
+    {"AdvisorScoring_RidesRatedAbove", 0x0059f4f0, (void *)&AdvisorScoring_RidesRatedAbove, {0xa1, 0xec, 0xf6, 0x7c, 0x00}},
     {"ParkInfo_Serialize",        0x00418da0, (void *)&ParkInfo_Serialize, {0x51, 0x8b, 0x44, 0x24, 0x0c}},
     {"AuthStamp_Text",           0x005d55a0, (void *)&AuthStamp_Text, {0x53, 0x56, 0x57, 0xbe, 0xd8}},
     {"Mp2Decoder_ParseHeader",   0x006cc7b0, (void *)&Mp2Decoder_ParseHeader, {0x83, 0xec, 0x0c, 0x53, 0x56}},
@@ -6022,6 +6025,7 @@ const Hook kHooks[] = {
     {"ParkEntrance_Lay",          0x005323f0, (void *)&ParkEntrance_Lay, {0x8b, 0x0d, 0x3c, 0xf8, 0x7c}},
     {"ParkEntrance_LayOutline",   0x005327e0, (void *)&ParkEntrance_LayOutline, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"Ride_RestoreSkinsAndDestroy", 0x004690a0, (void *)&Ride_RestoreSkinsAndDestroy, {0x55, 0x8b, 0x6c, 0x24, 0x08}},
+    {"AdvisorTable_Fill",         0x005a0a50, (void *)&AdvisorTable_Fill, {0x53, 0x33, 0xdb, 0x89, 0x1d}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},

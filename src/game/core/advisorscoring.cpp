@@ -607,6 +607,17 @@ s32 __fastcall AdvisorScoring_PeopleStat19cNotAbove(const u8 *scoring) {
     return (double)at<s32>(scoring, 0x43c) > average ? 0 : at<s32>(scoring, 0x440);
 }
 
+s32 __fastcall AdvisorScoring_RidesRatedAbove(u8 *scoring) {
+    if (!Game_Field1da710IsZero())
+        return 0;
+    if (Things_CountByDef4ac(0, 0) < at<s32>(scoring, 0x41c))
+        return 0;
+    if (ParkAnalyser_AverageRatingDef4ac0(world_table(), nullptr, 10) <= at<s32>(scoring, 0x418))
+        return 0;
+    Things_BestRatedDef4ac0(reinterpret_cast<u16 *>(scoring + 4));
+    return at<s32>(scoring, 0x420);
+}
+
 s32 __fastcall AdvisorScoring_StaffEntryClear(const u8 *scoring) {
     if (Things_CountStaff() <= at<s32>(scoring, 0x4d0))
         return 0;
