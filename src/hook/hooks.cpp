@@ -605,6 +605,7 @@
 #include "../game/ui/imehostattach.h"
 #include "../game/ui/levelmeter.h"
 #include "../game/ui/menuactions.h"
+#include "../game/ui/moneydisplay.h"
 #include "../game/ui/mouseclick.h"
 #include "../game/ui/mousehelp.h"
 #include "../game/ui/msgboxbutton.h"
@@ -7941,6 +7942,7 @@ const Hook kHooks[] = {
     {"WindowArea_GetRect",        0x00661810, (void *)&WindowArea_GetRect, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"WindowArea_GetRect2c",      0x0066b438, (void *)&WindowArea_GetRect2c, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window_GetAreaRect",        0x0065d616, (void *)&Window_GetAreaRect, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"MoneyDisplay_Update",       0x004a0ab0, (void *)&MoneyDisplay_Update, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
