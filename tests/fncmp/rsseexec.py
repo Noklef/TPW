@@ -22,7 +22,7 @@ CTX, CODE, VARS, STACK, LIMBO, RIDERS, ENTRIES, TEXT, PATH, NODES, BLOCK, RIDE, 
                                                                                 RAM + 0x460, RAM + 0x480, RAM + 0x490, RAM + 0x4b0, RAM + 0x4e0, RAM + 0x4f8, RAM + 0x4fc)
 OTHERS, OTHER_VARS = RAM + 0x500, RAM + 0x800
 NAMES = [0, 3, 7, 10, 14]
-OPS = list(range(0x6a))
+OPS = list(range(0x6a)) + [0x35] * 19 + [0x36] * 18 + [0x37] * 9    # (each sub-opcode as often as an opcode)
 SUB35, SUB36, SUB37 = list(range(0, 0x14)), list(range(0, 0x13)), list(range(0, 0xa))
 LABEL_OPS = (0x1d, 0x1f, 0x20, 0x21, 0x22, 0x23)
 STRING_OPS = (0x25, 0x3f, 0x40, 0x5a)
@@ -39,7 +39,7 @@ def operand(r):
 
 
 def floats(r):
-    return [r.choice([0.0, 1.5, -2.25, 300.5, r.randrange(-5000, 5000) / 8]) for _ in range(3)]
+    return [r.choice([0.0, 1.5, -2.25, 300.5, 30000.5, -70000.0, r.randrange(-5000, 5000) / 8]) for _ in range(3)]
 
 
 def script(r, at, ids):
@@ -102,6 +102,7 @@ def case(r):
     put(ctx, 0x34, '2I', TEXT if r.random() < 0.95 else 0, PATH)
     put(ctx, 0x3c, 'i', start if r.random() < 0.98 else r.choice([-1, -10000, length, length + 3]))
     put(ctx, 0x40, '2i', r.choice([-2, -1, 0, 3, 6, 7, 8, 9]), r.choice([-1, 0, 1, 3, 7, 8]))
+    put(ctx, 0x48, 'i', r.choice([0, 0, 1, -1, r.getrandbits(31)]))
     put(ctx, 0x4c, 'i', r.choice([0, 3, 3, 3]))
     put(ctx, 0x50, '2I', length, r.choice([8, 8, 8, 0]))
     put(ctx, 0x58, 'I', r.choice([0, 3, 3, 3]))
@@ -190,7 +191,7 @@ def case(r):
                BLOCK: r.bytes(0x1c), RIDE: struct.pack('<3I', 0, 0, MODEL), MODEL: struct.pack('<4I', 0, 0, 0, 0) + struct.pack('<i', r.choice([0, 90, 180, 359, r.randrange(-720, 720)])), THING: r.bytes(0x30), TM: r.bytes(0x18),
                STATE: struct.pack('<I', r.getrandbits(32)), ANY: bytes(4), OTHERS: others, OTHER_VARS: other_vars, 0x7a4610: rides, 0x7cf6ec: struct.pack('<I', ANY), 0x7cf83c: struct.pack('<I', (STATE - 0x1da708) & 0xffffffff),
                0x7cfb90: struct.pack('<I', THING).ljust(20, b'\0') * 4, 0x803a28: struct.pack('<I', r.getrandbits(32)),
-               0x87919c: struct.pack('<2I', r.choice([0, 1]), 0 if r.random() < 0.02 else 1) + bytes(8) + struct.pack('<2I', OTHERS, r.randrange(0, 50))}
+               0x87919c: struct.pack('<2I', r.choice([0, 1]), 0 if op in (0x3f, 0x42, 0x43, 0x44, 0x45) and r.random() < 0.15 else 1) + bytes(0xc) + struct.pack('<2I', OTHERS, r.randrange(0, 50))}
     return Call(0x551cb0, [CTX], regions, ret='v')
 
 
