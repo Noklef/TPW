@@ -119,6 +119,7 @@
 #include "../../src/game/model/hoardingmesh.h"
 #include "../../src/game/render/tilegrid.h"
 #include "../../src/game/render/spritegroups.h"
+#include "../../src/game/render/tiledpanel.h"
 #include "../../src/game/terrain/ground.h"
 #include "../../src/game/terrain/water.h"
 #include "../../src/game/render/weatherfx.h"
@@ -590,6 +591,7 @@ const TerrainWaterEnv kTerrainWaterEnv = {Rec{recorder(1, 5)}, Rec{recorder(2, 1
 const HoardingMeshEnv kHoardingMeshEnv = {Rec{jpeg_recorder(1, 2)}, Rec{jpeg_recorder(2, 3)}, Rec{jpeg_recorder(3, 4)}};
 const TileGridEnv kTileGridEnv = {Rec{recorder(1, 2)}};
 const SpriteGroupsEnv kSpriteGroupsEnv = {Rec{recorder(1, 2)}};
+const TiledPanelEnv kTiledPanelEnv = {Rec{recorder(1, 2)}};
 const TerrainGroundEnv kTerrainGroundEnv = {Rec{recorder(4, 0)}, Rec{recorder(5, 2)}, Rec{recorder(6, 0)}, Rec{recorder(7, 3)}, Rec{recorder(1, 5)}, Rec{recorder(11, 5)}, &water_transform,
                                             Rec{kStubs + 0x1000 + 0x4000 + 0x800 * 5 + 0x20 * 3}, Rec{recorder(8, 0)}, Rec{recorder(9, 1)}, Rec{jpeg_recorder(10, 3)}, Rec{recorder(2, 1)}};
 const WeatherDrawEnv kWeatherDrawEnv = {Rec{recorder(1, 5)}, Rec{recorder(2, 1)}, Rec{recorder(3, 1)}, Rec{recorder(4, 2)}, Rec{recorder(5, 2)}};
@@ -1415,6 +1417,7 @@ int main(int argc, char **argv) {
     HoardingMesh_SetEnv(&kHoardingMeshEnv);
     TileGrid_SetEnv(&kTileGridEnv);
     SpriteGroups_SetEnv(&kSpriteGroupsEnv);
+    TiledPanel_SetEnv(&kTiledPanelEnv);
     WeatherFx_SetDrawEnv(&kWeatherDrawEnv);
     WeatherFx_SetDropsEnv(&kWeatherDropsEnv);
     ModelGroup_SetEnv(&kModelGroupEnv);

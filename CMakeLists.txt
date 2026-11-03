@@ -465,6 +465,7 @@ add_library(tpw_game STATIC
     src/game/render/batchquad.cpp
     src/game/render/tilegrid.cpp
     src/game/render/spritegroups.cpp
+    src/game/render/tiledpanel.cpp
     src/game/online/servers.cpp
     src/game/online/session.cpp
     src/game/online/itemlist.cpp
