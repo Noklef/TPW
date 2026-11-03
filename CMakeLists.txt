@@ -600,6 +600,7 @@ add_library(tpw_game STATIC
     src/game/world/rideupkeep.cpp
     src/game/world/objectwear.cpp
     src/game/world/celleffect.cpp
+    src/game/world/advisortable.cpp
     src/game/ui/staffrename.cpp
     src/game/ui/window7cc8bc.cpp
     src/game/ui/dialog7cb2b8.cpp
