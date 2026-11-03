@@ -47,9 +47,12 @@ def case(r):
     if op != 'Nearest':  # (the first answer,the check of slot 4 (1, 0), is 0 now and then)
         put(table, 0, 'I', r.deal([PLACES, PLACES, PLACES, 0]))
         first = 1
-    same = r.deal([0, 1, 2])   # (0: places apart in both; 1: the same x, ties in y; 2: the same y)
+    same = r.deal([0, 1, 2, 3])   # (0: places apart in both; 1: the same x, ties in y; 2: the same y; 3: lines near each other, x far: y's weight against x, and half a line's height)
     for i in range(6):
-        put(places, 0x10 * i + 4, '2h', 5 if same == 1 else r.choice([0, 3, 10, 10, -10, 0x7fff, -0x8000]), 7 if same == 2 else r.choice([0, 3, 10, 10, -10, 0x7fff, -0x8000]))
+        if same == 3:
+            put(places, 0x10 * i + 4, '2h', r.choice([0, 6000, 12000, 20000]), r.choice([0, 1, 2, 8, 16, -8]))
+        else:
+            put(places, 0x10 * i + 4, '2h', 5 if same == 1 else r.choice([0, 3, 10, 10, -10, 0x7fff, -0x8000]), 7 if same == 2 else r.choice([0, 3, 10, 10, -10, 0x7fff, -0x8000]))
         put(table, 4 * (i + first), 'I', PLACES + 0x10 * i)
     regions = {LOG: log, WINDOW: window, LIST: struct.pack('<I', SLOTS), FONT: struct.pack('<I', SLOTS + 0x40), SLOTS: put(bytearray(0x80), 0x10, 'I', recorder(PLACE, 2)), TIMER: r.bytes(0x20),
                TEXT: bytes(b for _ in range(length) for b in struct.pack('<H', 0x41)) + b'\0\0', TABLE: table, PLACES: places}
