@@ -8,20 +8,35 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, LOG, RAM, Bench, Call, heap, log_region, set_return, vtable  # noqa: E402
+from fncmp import HEAP, LOG, RAM, Bench, Call, _recorder, fill, heap, log_region, set_return, strings, vtable  # noqa: E402
 
 # name: (address, stack arguments after out (None: no out), returns)
 CALLS = {'dtor': (0x6b5ab0, None, 'v'), 'release': (0x6b5af0, 0, 'a'), 'query': (0x6b5b10, 3, 'a'), 'post': (0x6b5b40, None, 'a'),
          'call3': (0x6b5b80, None, 'a'), 'call5': (0x6b5b60, None, 'a'), 'call1': (0x6b5ad0, 1, 'a'), 'deldtor': (0x6b5bf0, None, 'a'),
          'create': (0x6b5dc0, None, 'a')}
 NARGS = {'post': 2, 'call3': 3, 'call5': 2, 'deldtor': 1}
-B = Bench([(0x6b5ab0, 0x6b5ba0), (0x6b5bf0, 0x6b5c20), (0x6b5dc0, 0x6b5e14)])
+B = Bench([(0x6b5ab0, 0x6b5ba0), (0x6b5bf0, 0x6b5c20), (0x6b5dc0, 0x6b5e14), (0x6b5d00, 0x6b5db1)], hooks={0x6b8380: _recorder(20, 0)})
 MGR, OUT, ENG, MVT, EVT = RAM, RAM + 0x10, RAM + 0x100, RAM + 0x200, RAM + 0x300
-OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
+OPS = [n for n in list(CALLS) + ['make'] if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
+
+
+def make(r):
+    """The manager and its engine made (0x6b5d00): the engine's constructor a recorder (20), the two vtables recorders in the game's own places (the manager's slot 4 the real 0x6b5ad0, slot 0 logged
+    with its out a stack address), the status the engine's slot 1 writes either way. The heap fails now and then: a fault in both (a null engine called, a null manager released)."""
+    log = log_region()
+    fill(log, 1, 0, struct.pack('<I', r.choice([0, 0, 1, 0x7fffffff, 0xffffffff, 0x80000000, 0x88780078])))
+    strings(log, 1, 0, out=1)
+    strings(log, 0, 0, out=1)
+    manager_vt = vtable({0: 1}, size=6)
+    struct.pack_into('<I', manager_vt, 0x10, 0x6b5ad0)
+    regions = {LOG: log, HEAP: heap(0x100, r.choice([0] * 18 + [1, 2])), OUT: r.bytes(4), MGR: r.bytes(4), 0x70a288: manager_vt, 0x70a2a0: vtable({1: 2})}
+    return Call(0x6b5d00, [OUT, r.getrandbits(32), MGR], regions, conv='c', ret='a')
 
 
 def case(r):
     name = r.deal(OPS)
+    if name == 'make':
+        return make(r)
     address, after_out, ret = CALLS[name]
     log = log_region()
     for k in range(6):

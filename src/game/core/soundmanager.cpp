@@ -5,11 +5,15 @@
 #include "gameheap.h"
 #include "soundchannel.h"
 #include "soundobject.h"
+#include "soundworker.h"
 #include "vcall.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+
+const SoundManagerEnv kMakeEnv = {SoundWorkerHost_Ctor};
+const SoundManagerEnv *g_makeEnv = &kMakeEnv;
 
 }  // namespace
 
@@ -21,6 +25,26 @@ void __fastcall SoundManager_Dtor(u8 *manager) {
     if (!engine) return;
     vcall<void>(engine, 0, 1u);
     at<u8 *>(manager, 4) = nullptr;
+}
+
+void SoundManager_SetEnv(const SoundManagerEnv *env) { g_makeEnv = env ? env : &kMakeEnv; }
+
+u32 *__cdecl SoundManager_Make(u32 *out, u32 a, u8 **manager) {
+    u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x34));
+    if (block) {
+        g_makeEnv->engineCtor(block);
+        at<u32>(block, 0) = 0x0070a2a0;
+    }
+    u32 status;
+    SoundManager_Create(&status, manager, block, a);
+    if ((s32)status >= 0) {
+        *out = 0;
+        return out;
+    }
+    vcall<u32 *>(*manager, 0, &a);
+    *manager = nullptr;
+    *out = 0xffffffffu;
+    return out;
 }
 
 u32 *__stdcall SoundManager_Create(u32 *out, u8 **manager, u8 *engine, u32 a) {
