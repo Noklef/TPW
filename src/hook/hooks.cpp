@@ -413,6 +413,7 @@
 #include "../game/world/thingname.h"
 #include "../game/world/trackline.h"
 #include "../game/world/trackmessage.h"
+#include "../game/world/tracktextures.h"
 #include "../game/world/trakcarpose.h"
 #include "../game/world/trakcarroute.h"
 #include "../game/world/trakcarupdate.h"
@@ -6260,6 +6261,11 @@ const Hook kHooks[] = {
     {"Thing_Update",              0x0050b360, (void *)&Thing_Update, {0x53, 0x56, 0x8b, 0xf1, 0x33}},
     {"World_Update",              0x00516380, (void *)&World_Update, {0x83, 0xec, 0x08, 0x53, 0x56}},
     {"World_UpdateInMode1",       0x005166b0, (void *)&World_UpdateInMode1, {0xa0, 0xa9, 0x34, 0xfb, 0x00}},
+    {"TrackTextures_LoadQueue",   0x00522900, (void *)&TrackTextures_LoadQueue, {0x81, 0xec, 0x04, 0x01, 0x00}},
+    {"TrackTextures_LoadGoKarts", 0x00522aa0, (void *)&TrackTextures_LoadGoKarts, {0x81, 0xec, 0x04, 0x01, 0x00}},
+    {"TrackTextures_LoadWaterRide", 0x00522c60, (void *)&TrackTextures_LoadWaterRide, {0x81, 0xec, 0x04, 0x01, 0x00}},
+    {"TrackTextures_LoadHoarding", 0x00522e40, (void *)&TrackTextures_LoadHoarding, {0x81, 0xec, 0x04, 0x01, 0x00}},
+    {"Track_ResetMap",            0x0052f050, (void *)&Track_ResetMap, {0x8b, 0x4c, 0x24, 0x08, 0x55}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},

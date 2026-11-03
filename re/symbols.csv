@@ -5974,6 +5974,11 @@ address,name,kind,confidence,notes
 0x004e2920,Thing_NameB,function,low,reimplemented (src/game/world/thingname); a thing's second name as text
 0x0051a2f0,Game_ArrivalVehicle,function,low,reimplemented (src/game/world/arrivalvehicle); the vehicle that brings the visitors: found by kind or made
 0x005156a0,World_Start,function,low,"reimplemented (src/game/world/worldstart); The world's start: balance files, seed, the ten single things, gates and lights"
+0x00522900,TrackTextures_LoadQueue,function,low,reimplemented (src/game/world/tracktextures); The queue's texture table loaded
+0x00522aa0,TrackTextures_LoadGoKarts,function,low,reimplemented (src/game/world/tracktextures); The go karts' texture table loaded
+0x00522c60,TrackTextures_LoadWaterRide,function,low,reimplemented (src/game/world/tracktextures); The water ride's texture table loaded
+0x00522e40,TrackTextures_LoadHoarding,function,low,reimplemented (src/game/world/tracktextures); The hoarding's texture table loaded
+0x0052f050,Track_ResetMap,function,low,"reimplemented (src/game/world/tracktextures); The track state cleared, the cells reset, the tables loaded"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved
