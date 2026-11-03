@@ -10,6 +10,7 @@
 #include "../core/stdlist.h"
 #include "../core/trivial.h"
 #include "../core/vcall.h"
+#include "../files/userslots.h"
 #include "../online/session.h"
 #include "../render/textparts.h"
 #include "../world/advisor.h"
@@ -27,7 +28,7 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 s32 __cdecl Swprintf(u16 *to, const u16 *format, const char *text) { return Crt().swprintf(to, format, text); }
 
-const Dialog7cc188ListEnv kGameEnv = {reinterpret_cast<u8 *(__cdecl *)()>((uintptr_t)0x0048bcd0), &Swprintf, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0), &Window7059f0_Clear, &Window7059f0_AddItem, &Window7059f0_RefreshRows, &Language_WideText};
+const Dialog7cc188ListEnv kGameEnv = {&UserSlots_Instance,&Swprintf, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0), &Window7059f0_Clear, &Window7059f0_AddItem, &Window7059f0_RefreshRows, &Language_WideText};
 const Dialog7cc188ListEnv *g_env = &kGameEnv;
 
 const char *textOf(const StdString *string) {

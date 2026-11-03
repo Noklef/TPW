@@ -500,6 +500,7 @@ add_library(tpw_game STATIC
     src/game/online/chat.cpp
     src/game/online/chatevents.cpp
     src/game/online/chatcursor.cpp
+    src/game/online/roomcounts.cpp
     src/game/frontend/lobbymodel.cpp
     src/game/frontend/helpbg.cpp
     src/game/frontend/islandcamera.cpp
@@ -590,6 +591,7 @@ add_library(tpw_game STATIC
     src/game/ui/dialog7cb2b8tabs.cpp
     src/game/ui/dialog7cc4b4sparkle.cpp
     src/game/render/passwordpart.cpp
+    src/game/render/rasterformat.cpp
     src/game/ui/quitconfirm.cpp
     src/game/world/mapsweep.cpp
     src/game/ui/imehostattach.cpp
@@ -644,6 +646,17 @@ add_library(tpw_game STATIC
     src/game/ui/dialog7cc530open.cpp
     src/game/ui/viewbuttons.cpp
     src/game/ui/thingpanelhandlers.cpp
+    src/game/ui/dialog7cb400close.cpp
+    src/game/ui/dialog7cc188address.cpp
+    src/game/ui/versionlabel.cpp
+    src/game/ui/savedialog.cpp
+    src/game/ui/savedialogcreate.cpp
+    src/game/ui/window7059f0texts.cpp
+    src/game/ui/dialog7cc530handler.cpp
+    src/game/ui/dialog7ca168handler.cpp
+    src/game/ui/panel7cc328handler.cpp
+    src/game/ui/dialog7cb3f8slots.cpp
+    src/game/ui/dialog7ca150list.cpp
 )
 # The libraries whose functions replace the exe's copies (src/game/lib); their headers stay private to those units.
 target_link_libraries(tpw_game PRIVATE tpw_zlib tpw_jpeg6b tpw_jpeg6a)

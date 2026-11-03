@@ -5,10 +5,11 @@
 
 #include "../coaster/orient.h"
 #include "../sprite/screenmatrix.h"
+#include "../world/sign.h"
 
 namespace {
 
-const SignRectEnv kGameEnv = {reinterpret_cast<void(__cdecl *)(u32)>(0x004690a0), reinterpret_cast<u32(__cdecl *)(float, float, float, float, float, u32)>(0x004689f0), &RideObject_Swing};
+const SignRectEnv kGameEnv = {reinterpret_cast<void(__cdecl *)(u32)>(0x004690a0), reinterpret_cast<u32(__cdecl *)(float, float, float, float, float, u32)>(&Sign_Create), &RideObject_Swing};
 const SignRectEnv *g_env = &kGameEnv;
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }

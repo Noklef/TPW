@@ -14,11 +14,13 @@
 #include "../sprite/script.h"
 #include "../sprite/scriptref.h"
 #include "../sprite/sprite.h"
+#include "../ui/uimessage.h"
 #include "advisor.h"
 #include "analyser.h"
 #include "headquarters.h"
 #include "mapcell.h"
 #include "messagecentre.h"
+#include "money.h"
 #include "nav.h"
 #include "object.h"
 #include "objectdefs.h"
@@ -78,10 +80,9 @@ const ThingDetachEnv *g_detach = &kGameDetachEnv;
 void Things_SetDetachEnv(const ThingDetachEnv *e) { g_detach = e ? e : &kGameDetachEnv; }
 
 namespace {
-template <u32 address> void __fastcall game_kind(u8 *thing) { reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)address)(thing); }
 void __fastcall kinds9to11(u8 *thing) { ThingKinds9To11_Detach(thing); }
 const ThingDeleteEnv kGameDeleteEnv = {&Object_Delete, &Mechanic_Detach, &Handyman_Detach,
-                                       &Entertainer_Detach, &game_kind<0x004d5eb0>, &kinds9to11};
+                                       &Entertainer_Detach, &Guard_Detach, &kinds9to11};
 const ThingDeleteEnv *g_delete = &kGameDeleteEnv;
 }  // namespace
 
@@ -205,11 +206,11 @@ namespace {
 using MessageHandler = void(__fastcall *)(u8 *, void *, u8 *);
 template <typename F> MessageHandler handler(F f) { return reinterpret_cast<MessageHandler>(f); }
 MessageHandler game_handler(u32 address) { return reinterpret_cast<MessageHandler>((uintptr_t)address); }
-const ThingMessageEnv kGameMessageEnv = {{handler(&Visitor_HandleMessage), nullptr, handler(&Object_HandleDayMessage), game_handler(0x004da0c0),
-                                          game_handler(0x004d6cf0), game_handler(0x004d4450), game_handler(0x004d5fb0), game_handler(0x004d4450),
+const ThingMessageEnv kGameMessageEnv = {{handler(&Visitor_HandleMessage), nullptr, handler(&Object_HandleDayMessage), handler(&Mechanic_HandleMessage),
+                                          handler(&Handyman_HandleMessage), handler(&Staff_HandleMessageDefault), handler(&Guard_HandleMessage), handler(&Staff_HandleMessageDefault),
                                           handler(&StaffHQ_HandleMessage), handler(&MechanicHQ_HandleMessage), handler(&Advisor_HandleMessage),
                                           game_handler(0x00509bf0), handler(&ParkAnalyser_HandleMessage), handler(&ResearchLab_HandleMessage),
-                                          handler(&Weather_HandleMessage), game_handler(0x004d02d0), game_handler(0x0050ca50), handler(&Stub_Ret4b),
+                                          handler(&Weather_HandleMessage), handler(&BankAccount_HandleMessage), handler(&UiObject_HandleMessage), handler(&Stub_Ret4b),
                                           handler(&Slots_OnEvent)}};
 const ThingMessageEnv *g_message = &kGameMessageEnv;
 }  // namespace

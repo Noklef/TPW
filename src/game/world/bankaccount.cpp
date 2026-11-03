@@ -1,9 +1,28 @@
 #include "bankaccount.h"
 
+#include <cstdint>
+
 #include "../core/savegame.h"
+#include "../math/x87.h"
+#include "messagecentre.h"
 #include "things.h"
 
 namespace {
+
+__declspec(naked) double __cdecl GamePow(double, double) {
+    __asm {
+        fld qword ptr [esp + 4]
+        fld qword ptr [esp + 12]
+        mov eax, 0x0067c5d0
+        call eax
+        ret
+    }
+}
+
+const BankAccountCtorEnv kGameEnv = {&GamePow};
+const BankAccountCtorEnv *g_env = &kGameEnv;
+
+u32 &dword(u8 *object, u32 at) { return *reinterpret_cast<u32 *>(object + at); }
 
 // The head's fields as saved (Save_Field each); a load reads the first three the same way and the rest through Save_ReadU32.
 const SaveSpec kHead[] = {{0x118, 4, 0x00759df4}, {0xc, 4, 0x00759de8}, {0x10, 4, 0x00759dd8}, {0x114, 4, 0x00759dc4},
@@ -20,7 +39,41 @@ bool ReadU32s(Stream *stream, u8 *object, const SaveSpec *spec, u32 count) {
 
 }  // namespace
 
+void BankAccountCtor_SetEnv(const BankAccountCtorEnv *env) { g_env = env ? env : &kGameEnv; }
+
 extern "C" {
+
+u8 *__fastcall BankAccount_Ctor(u8 *account) {
+    Thing_Construct(account, nullptr, 1, 0x10);
+    const u32 *const head = reinterpret_cast<const u32 *>((uintptr_t)0x007851d8);
+    dword(account, 0xc) = head[0];
+    dword(account, 0x10) = 0;
+    dword(account, 0x114) = 1;
+    dword(account, 0x118) = head[1];
+    dword(account, 0x11c) = 0;
+    dword(account, 0x120) = 0;
+    dword(account, 0x124) = 0;
+    for (u32 k = 0; k < 8; ++k) {
+        u8 *const loan = account + 0x14 + k * 0x20;
+        const u32 *const row = head + 2 + k * 4;
+        const u32 amount = row[0];
+        dword(loan, 0) = amount <= 10000 ? 1 : 0;
+        dword(loan, 4) = amount;
+        dword(loan, 8) = row[1];
+        dword(loan, 0xc) = row[2];
+        dword(loan, 0x14) = 0;
+        dword(loan, 0x18) = 0;
+        dword(loan, 0x1c) = row[3];
+        const double base = (X87Reg(X87_MulUIntDouble(row[1], 0.01)) - X87Reg(-1.0)).v;
+        const double power = (X87Reg(X87_MulUIntDouble(row[2], 0.08333333333333333)) * X87Reg(0.5)).v;
+        const double growth = g_env->pow(base, power);
+        dword(loan, 0x10) = static_cast<u32>(static_cast<__int64>((X87Reg(X87_MulUIntDouble(amount, growth)) / X87Reg(static_cast<double>(row[2]))).v));
+    }
+    MessageCentre_AddThing(MessageCentre_Instance(), nullptr, account, 0xc);
+    MessageCentre_AddThing(MessageCentre_Instance(), nullptr, account, 0x13);
+    MessageCentre_AddThing(MessageCentre_Instance(), nullptr, account, 0xd);
+    return account;
+}
 
 u32 __fastcall BankAccount_Serialize(u8 *account, void *, Stream *stream, u32 save, s32 version, u32 unused) {
     if (Thing_Serialize(account, nullptr, stream, save, version, unused) != 0) return 1;

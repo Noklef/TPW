@@ -228,6 +228,7 @@ address,name,kind,confidence,notes
 0x00512f00,Weather_SetIntensity,function,low,"reimplemented (src/game/world/weather); thiscall (value), pops 4: +0xc the value cut to 1..100, the time, rain or snow by the ranges at 0x785504, the drops, the wind's strength and angle"
 0x005132a0,Forecast_Serialize,function,high,"reimplemented (src/game/world/forecast); thiscall (stream, save, version, unused): the forecast's time (8 bytes), quality and valid byte saved or loaded"
 0x004cf920,BankAccount_Serialize,function,high,"reimplemented (src/game/world/bankaccount); thiscall (stream, save, version, unused): the bank account's serializer (thing model 16: the head dwords, eight loans of eight dwords; loads past the third through Save_ReadU32)"
+0x004cf7c0,BankAccount_Ctor,function,low,reimplemented (src/game/world/bankaccount); thiscall; name unconfirmed; the bank account's constructor: the loans from the table 0x7851e0
 0x004d2320,Challenges_Serialize,function,high,"reimplemented (src/game/world/challenges); thing model 19: thing, 0x14 challenges, then 7 fields"
 0x004d0f90,Challenge_Serialize,function,high,reimplemented (src/game/world/challenges); a challenge's 15 fields
 0x006c58f0,SoundBank_OpenSdt,function,medium,"reimplemented (src/game/core/soundbank); thiscall (opener, path, hdFirst), pops 0xc, this unused: appends HD.sdt / HW.sdt to the path and opens it through the opener's slot 1; on failure the path set back and given the other suffix (not opened)"
@@ -3074,6 +3075,7 @@ address,name,kind,confidence,notes
 0x005c7d20,Records24_Field14,function,high,reimplemented (src/game/files/userslots); the dword at +0x14 of a 24-byte record
 0x005c7d00,Records24_IfUsed,function,high,reimplemented (src/game/files/userslots); a 24-byte record's address when its dword at +4 is set
 0x005c7bb0,Records24_CountUsed,function,high,reimplemented (src/game/files/userslots); how many of four 24-byte records are in use
+0x0048bcd0,UserSlots_Instance,function,low,"reimplemented (src/game/files/userslots); cdecl; name invented, unconfirmed; the user slots object [0xf81ebc], made when 0"
 0x005b0d40,Table73f8a8_At,function,high,reimplemented (src/game/core/balancefile); the address of a 60-byte record of the table at 0x73f8a8
 0x005b11c0,ThemeRecord_LoadGlobalSam,function,low,reimplemented (src/game/core/balancefile); a theme's global.sam loaded
 0x005b11a0,ThemeRecord_GlobalSamField14,function,low,"reimplemented (src/game/core/balancefile); thiscall: the theme record's global.sam loaded when missing; its dword +0x14, else -1 (name unconfirmed)"
@@ -6632,6 +6634,7 @@ address,name,kind,confidence,notes
 0x0057be90,GroundShadow_Draw,function,low,"reimplemented (src/game/render/groundshadow); a flat quad laid over the height grid (name invented, unconfirmed)"
 0x004901d0,PasswordPart_SetLayout,function,low,"reimplemented (src/game/render/passwordpart); a password text part's layout: the text as stars: name invented, unconfirmed"
 0x0057c2a0,GroundShadows_DrawAll,function,low,"reimplemented (src/game/render/groundshadow); a list of ground shadows drawn, the count cleared (name invented, unconfirmed)"
+0x00678e70,RasterFormat_Init,function,low,"reimplemented (src/game/render/rasterformat); cdecl (surface, z buffer out, width, height); name invented, unconfirmed; the software rasteriser's pixel format from the surface's and its buffers"
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"
@@ -6851,6 +6854,8 @@ address,name,kind,confidence,notes
 0x0046c610,ChatCursor_Click,function,low,"reimplemented (src/game/online/chatcursor); a map click on the cell under the cursor with the async modifiers (name invented, unconfirmed)"
 0x0046cee0,ChatCursor_GoTo,function,low,"reimplemented (src/game/online/chatcursor); the online chat's avatar sent to the cell under the cursor (name invented, unconfirmed)"
 0x0046cf80,ChatCursor_MoveTo,function,low,"reimplemented (src/game/online/chatcursor); the online chat's avatar moved to the cell under the cursor (name invented, unconfirmed)"
+0x004c4920,RoomCounts_ChatEvent,function,low,"reimplemented (src/game/online/roomcounts); stdcall (type, unused, arguments), the Chat's callback; name invented, unconfirmed; the chat rooms' counts from a room's info"
+0x004c4bb0,RoomCounts_Update,function,low,"reimplemented (src/game/online/roomcounts); cdecl; name invented, unconfirmed; a round of the chat rooms' head counts asked for, the counts shown when ready"
 0x005d8190,LobbyModel_SetPosition,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (v): the lobby model's (+4: 0x7a4610 index) matrix (+8 -> +4 -> +0x78, +0x10) translation = v[0..2] (x87 loads, all read first)"
 0x005d8380,LobbyModel_TurnY,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (angle): Matrix_RotateEulerFast(the lobby model's matrix, 2 ""Y"", &angle)"
 0x005d83b0,LobbyModel_SetScale,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (x, y, z): Holder_SetScale(the lobby model's entry +8, (x, y, z))"
@@ -7879,6 +7884,27 @@ address,name,kind,confidence,notes
 0x0065b7db,Window705950_GetNodeText,function,low,"reimplemented (src/game/ui/window705950nodes); the text of the row n of the list window copied out: name invented, unconfirmed"
 0x004b5cb0,Panel7cc3b0_Handler,function,low,"reimplemented (src/game/ui/panel7cc3b0handler); the window handler of the panel at 0x7cc3b0: name invented, unconfirmed"
 0x004b6070,Panel7cc3b0_DismissAnswer,function,low,"reimplemented (src/game/ui/panel7cc3b0handler); the panel's box answer: Staff_Dismiss, answer 1: name invented, unconfirmed"
+0x004a6b80,Dialog7cb400_Commit,function,low,"reimplemented (src/game/ui/dialog7cb400close); cdecl (value), answer in AL; name invented, unconfirmed; the edit box's text trimmed and told to the user slots"
+0x004a6a50,Dialog7cb400_Close,function,low,"reimplemented (src/game/ui/dialog7cb400close); cdecl (cancelled); name invented, unconfirmed; the dialog's end"
+0x004a6d00,Dialog7cb400_Handler,function,low,"reimplemented (src/game/ui/dialog7cb400close); cdecl (window, message, a, b); name invented, unconfirmed; the dialog's window handler"
+0x004a77f0,Dialog7cc188_AddAddress,function,low,"reimplemented (src/game/ui/dialog7cc188address); cdecl; name invented, unconfirmed; the address typed into 0x7cb8d8 checked, added to the user slots' list and to the recipients 0x7cb4d0"
+0x004a77c0,Dialog7cc188_AddressHandler,function,low,"reimplemented (src/game/ui/dialog7cc188address); cdecl (window, message, a, b); name invented, unconfirmed; the address box's handler: Enter adds the address"
+0x0048b020,VersionLabel_Create,function,low,"reimplemented (src/game/ui/versionlabel); cdecl (front); name invented, unconfirmed; the window with the version text, sized to it"
+0x0049e880,LoadDialog_Handler,function,low,"reimplemented (src/game/ui/savedialog); cdecl (window, message, a, b); name invented, unconfirmed; the load dialog [0x7cb244]'s handler"
+0x0049e9b0,SaveDialog_Save,function,low,"reimplemented (src/game/ui/savedialog); cdecl (unused); name invented, unconfirmed; saves under the typed name and closes the dialog"
+0x0049ea30,SaveDialog_Handler,function,low,"reimplemented (src/game/ui/savedialog); cdecl (window, message, a, b); name invented, unconfirmed; the save dialog [0x7cb248]'s handler"
+0x0049ec80,LoadDialog_FillList,function,low,"reimplemented (src/game/ui/savedialog); cdecl (window); name invented, unconfirmed; a row for each saved game"
+0x0049edf0,SaveDialog_FillList,function,low,"reimplemented (src/game/ui/savedialog); cdecl (window); name invented, unconfirmed; the same with an unused string"
+0x0049efb0,LoadDialog_Create,function,low,"reimplemented (src/game/ui/savedialogcreate); cdecl; name invented, unconfirmed; the load dialog [0x7cb244] made, its list filled"
+0x0049f280,SaveDialog_Create,function,low,"reimplemented (src/game/ui/savedialogcreate); cdecl; name invented, unconfirmed; the save dialog [0x7cb248] made, its edit box and list set up"
+0x00665f80,WString_AssignText,function,low,"reimplemented (src/game/ui/window7059f0texts); thiscall (text); name invented, unconfirmed; assign(text, its length) (0x4051d0)"
+0x00665f10,WString_AssignTextOf,function,low,"reimplemented (src/game/ui/window7059f0texts); thiscall (text); name invented, unconfirmed; WString_AssignText"
+0x006644ea,Window7059f0_SetItemTexts,function,low,"reimplemented (src/game/ui/window7059f0texts); thiscall (n, texts, mask, refresh, unused); name invented, unconfirmed; the n-th item's cells of the mask's columns"
+0x004ba530,Dialog7cc530_Handler,function,low,"reimplemented (src/game/ui/dialog7cc530handler); cdecl (window, message, a, b); name invented, unconfirmed; the dial-up dialog's handler"
+0x00495da0,Dialog7ca168_WindowHandler,function,low,"reimplemented (src/game/ui/dialog7ca168handler); cdecl (window, message, a, b); name invented, unconfirmed; the staff list dialog's handler"
+0x004b4fc0,Panel7cc328_Handler,function,low,"reimplemented (src/game/ui/panel7cc328handler); cdecl (window, message, a, b); name invented, unconfirmed; the game panel 0x7cc328's window handler"
+0x004a62b0,Dialog7cb3f8_RefreshSlots,function,low,"reimplemented (src/game/ui/dialog7cb3f8slots); cdecl; name invented, unconfirmed; the dialog [0x7cb3f8]'s four user slots shown"
+0x004955e0,Dialog7ca150_ListHandler,function,low,"reimplemented (src/game/ui/dialog7ca150list); cdecl (window, message, a, b); name invented, unconfirmed; the dialog [0x7ca150]'s list's handler, its rows' figures kept current"
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"

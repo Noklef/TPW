@@ -73,6 +73,11 @@
 #include "../../src/game/ui/dialog7cb2b8tabs.h"
 #include "../../src/game/ui/dialog7cc4b4sparkle.h"
 #include "../../src/game/render/passwordpart.h"
+#include "../../src/game/render/rasterformat.h"
+#include "../../src/game/ui/dialog7cb400close.h"
+#include "../../src/game/ui/dialog7cc188address.h"
+#include "../../src/game/ui/versionlabel.h"
+#include "../../src/game/files/userslots.h"
 #include "../../src/game/ui/quitconfirm.h"
 #include "../../src/game/world/mapsweep.h"
 #include "../../src/game/ui/imehostattach.h"
@@ -182,6 +187,15 @@
 #include "../../src/game/world/mappress.h"
 #include "../../src/game/world/staffcandidate.h"
 #include "../../src/game/world/mapline.h"
+#include "../../src/game/ui/dialog7ca168handler.h"
+#include "../../src/game/ui/dialog7cc530handler.h"
+#include "../../src/game/ui/dialog7ca150list.h"
+#include "../../src/game/ui/dialog7cb3f8slots.h"
+#include "../../src/game/ui/panel7cc328handler.h"
+#include "../../src/game/ui/savedialog.h"
+#include "../../src/game/ui/savedialogcreate.h"
+#include "../../src/game/ui/window7059f0texts.h"
+#include "../../src/game/world/bankaccount.h"
 #include "../../src/game/world/messagecentre.h"
 #include "../../src/game/coaster/registry.h"
 #include "../../src/game/world/money.h"
@@ -950,6 +964,24 @@ const Dialog7cc4b4SparkleEnv kDialog7cc4b4SparkleEnv = {Rec{recorder(10, 0)}, Re
 const PasswordPartEnv kPasswordPartEnv = {Rec{recorder(10, 2)}};
 const QuitConfirmEnv kQuitConfirmEnv = {Rec{recorder(10, 0)}, Rec{jpeg_recorder(11, 1)}, Rec{recorder(12, 1)}};
 const MapSweepEnv kMapSweepEnv = {Rec{recorder(10, 0)}, Rec{recorder(11, 0)}, Rec{recorder(12, 0)}};
+const Dialog7cb400CloseEnv kDialog7cb400CloseEnv = {Rec{jpeg_recorder(10, 4)}, Rec{recorder(11, 1)}, Rec{recorder(12, 1)}, Rec{jpeg_recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{recorder(15, 0)}, Rec{jpeg_recorder(16, 1)}, Rec{jpeg_recorder(17, 0)},
+                                                    Rec{recorder(18, 0)}, Rec{recorder(19, 0)}, Rec{recorder(20, 2)}, Rec{recorder(21, 1)}, Rec{recorder(22, 0)}, Rec{jpeg_recorder(23, 0)}, Rec{jpeg_recorder(24, 4)}, Rec{recorder(25, 3)}, Rec{recorder(26, 1)}};
+const Dialog7cc188AddressEnv kDialog7cc188AddressEnv = {Rec{recorder(10, 1)}, Rec{jpeg_recorder(11, 1)}, Rec{recorder(12, 1)}, Rec{jpeg_recorder(13, 1)}, Rec{jpeg_recorder(14, 5)}, Rec{jpeg_recorder(15, 8)}, Rec{recorder(16, 3)}};
+const UserSlotsEnv kUserSlotsEnv = {Rec{recorder(27, 0)}};
+const BankAccountCtorEnv kBankAccountCtorEnv = {Rec{jpeg_recorder(10, 4)}};
+const Dialog7ca150ListEnv kDialog7ca150ListEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 1)}, Rec{recorder(12, 2)}, Rec{recorder(13, 5)}, Rec{recorder(14, 1)}, Rec{recorder(15, 1)}, Rec{recorder(16, 0)}, Rec{recorder(17, 0)}, Rec{recorder(18, 0)}, Rec{recorder(19, 0)}, Rec{recorder(20, 3)}};
+const Dialog7cb3f8SlotsEnv kDialog7cb3f8SlotsEnv = {Rec{jpeg_recorder(10, 0)}, Rec{recorder(11, 1)}, Rec{recorder(12, 1)}, Rec{jpeg_recorder(13, 1)}, Rec{recorder(14, 1)}};
+const Panel7cc328HandlerEnv kPanel7cc328HandlerEnv = {Rec{recorder(10, 0)}, Rec{recorder(11, 2)}, Rec{recorder(12, 5)}, Rec{recorder(13, 2)}, Rec{recorder(14, 1)}, Rec{jpeg_recorder(15, 1)}, Rec{recorder(16, 0)}, Rec{recorder(17, 0)}, Rec{recorder(18, 0)}, Rec{jpeg_recorder(19, 2)}, Rec{jpeg_recorder(20, 2)},
+                                                      Rec{recorder(21, 0)}, Rec{recorder(22, 1)}, Rec{jpeg_recorder(23, 1)}, Rec{jpeg_recorder(24, 4)}, Rec{recorder(25, 1)}};
+const Dialog7ca168HandlerEnv kDialog7ca168HandlerEnv = {Rec{jpeg_recorder(10, 4)}, Rec{recorder(11, 2)}, Rec{recorder(12, 0)}, Rec{recorder(13, 0)}, Rec{recorder(14, 1)}, Rec{jpeg_recorder(15, 1)}, Rec{recorder(16, 0)}, Rec{recorder(17, 0)}, Rec{recorder(18, 5)}, Rec{jpeg_recorder(19, 4)},
+                                                        Rec{jpeg_recorder(20, 1)}, Rec{jpeg_recorder(21, 3)}, Rec{jpeg_recorder(22, 1)}, Rec{jpeg_recorder(23, 0)}, Rec{jpeg_recorder(24, 2)}, Rec{jpeg_recorder(25, 1)}, Rec{recorder(26, 1)}, Rec{jpeg_recorder(27, 1)}, Rec{recorder(28, 1)}};
+const Dialog7cc530HandlerEnv kDialog7cc530HandlerEnv = {Rec{jpeg_recorder(11, 4)}, Rec{jpeg_recorder(12, 0)}, Rec{jpeg_recorder(13, 4)}, Rec{recorder(14, 2)}, Rec{jpeg_recorder(15, 1)}, Rec{jpeg_recorder(16, 2)}, Rec{jpeg_recorder(17, 1)}};
+const Window7059f0TextsEnv kWindow7059f0TextsEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 1)}, Rec{recorder(12, 0)}};
+const SaveDialogCreateEnv kSaveDialogCreateEnv = {Rec{recorder(10, 2)}, Rec{jpeg_recorder(11, 0)}, Rec{jpeg_recorder(12, 3)}, Rec{recorder(13, 1)}, Rec{jpeg_recorder(14, 1)}, Rec{jpeg_recorder(15, 3)}, Rec{recorder(16, 1)}, Rec{recorder(17, 2)}, Rec{recorder(18, 2)}, Rec{jpeg_recorder(19, 1)}, Rec{recorder(20, 1)},
+                                                  Rec{jpeg_recorder(21, 1)}, Rec{jpeg_recorder(22, 1)}, Rec{recorder(23, 1)}, Rec{recorder(24, 1)}, Rec{recorder(25, 1)}, Rec{jpeg_recorder(26, 1)}, Rec{recorder(27, 2)}, Rec{recorder(28, 1)}, Rec{recorder(29, 1)}, Rec{jpeg_recorder(30, 0)}};
+const SaveDialogEnv kSaveDialogEnv = {Rec{recorder(10, 0)}, Rec{recorder(11, 1)}, Rec{recorder(12, 1)}, Rec{recorder(13, 0)}, Rec{jpeg_recorder(14, 4)}, Rec{jpeg_recorder(15, 4)}, Rec{jpeg_recorder(16, 0)}, Rec{jpeg_recorder(17, 0)}, Rec{jpeg_recorder(18, 4)}, Rec{recorder(19, 2)}, Rec{jpeg_recorder(20, 7)}, Rec{jpeg_recorder(21, 8)}, Rec{recorder(22, 4)}};
+const VersionLabelEnv kVersionLabelEnv = {Rec{jpeg_recorder(10, 7)}, Rec{recorder(11, 7)}, Rec{recorder(12, 1)}, Rec{recorder(13, 1)}, Rec{recorder(14, 1)}, Rec{recorder(15, 1)}};
+const RasterFormatEnv kRasterFormatEnv ={Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 1)}, Rec{jpeg_recorder(12, 0)}, Rec{jpeg_recorder(13, 2)}, Rec{jpeg_recorder(14, 2)}};
 const ImeHostAttachEnv kImeHostAttachEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 0)}, Rec{recorder(12, 0)}, Rec{recorder(13, 1)}, Rec{recorder(14, 1)}, Rec{jpeg_recorder(15, 4)}};
 const TextRecordPartEnv kTextRecordPartEnv = {Rec{jpeg_recorder(10, 4)}, Rec{recorder(11, 1)}, Rec{jpeg_recorder(12, 1)}, Rec{recorder(13, 2)}, Rec{recorder(14, 1)}, Rec{recorder(15, 0)}, Rec{recorder(16, 1)}};
 const MovieFrameEnv kMovieFrameEnv = {&heap_alloc, Rec{jpeg_recorder(10, 3)}};
@@ -1170,7 +1202,7 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
                 std::memcpy(&base, reinterpret_cast<const u8 *>((uintptr_t)args[i]) + through - 1, 4);
                 if (!base) continue;
             }
-            u8 *const to = reinterpret_cast<u8 *>((uintptr_t)base) + (fill[3] & 0xff);
+            u8 *const to = reinterpret_cast<u8 *>((uintptr_t)base) + (fill[3] & 0xff) + (fill[3] >> 24 << 8);
             const u32 records = fill[3] >> 8 & 0xff;
             if (fill[2] & 0x80000000u) {  // (fncmp.fill_arg(): an argument's value, as passed)
                 const u32 value = (fill[2] & 0xff) < n ? stack[1 + (fill[2] & 0xff)] : 0;
@@ -1924,6 +1956,20 @@ int main(int argc, char **argv) {
     PasswordPart_SetEnv(&kPasswordPartEnv);
     QuitConfirm_SetEnv(&kQuitConfirmEnv);
     MapSweep_SetEnv(&kMapSweepEnv);
+    RasterFormat_SetEnv(&kRasterFormatEnv);
+    Dialog7cb400Close_SetEnv(&kDialog7cb400CloseEnv);
+    UserSlots_SetEnv(&kUserSlotsEnv);
+    Dialog7cc188Address_SetEnv(&kDialog7cc188AddressEnv);
+    VersionLabel_SetEnv(&kVersionLabelEnv);
+    BankAccountCtor_SetEnv(&kBankAccountCtorEnv);
+    SaveDialog_SetEnv(&kSaveDialogEnv);
+    SaveDialogCreate_SetEnv(&kSaveDialogCreateEnv);
+    Panel7cc328Handler_SetEnv(&kPanel7cc328HandlerEnv);
+    Dialog7cb3f8Slots_SetEnv(&kDialog7cb3f8SlotsEnv);
+    Dialog7ca150List_SetEnv(&kDialog7ca150ListEnv);
+    Dialog7ca168Handler_SetEnv(&kDialog7ca168HandlerEnv);
+    Dialog7cc530Handler_SetEnv(&kDialog7cc530HandlerEnv);
+    Window7059f0Texts_SetEnv(&kWindow7059f0TextsEnv);
     ImeHost_SetAttachEnv(&kImeHostAttachEnv);
     TextRecordPart_SetEnv(&kTextRecordPartEnv);
     MovieFrame_SetEnv(&kMovieFrameEnv);

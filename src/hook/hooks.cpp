@@ -475,6 +475,7 @@
 #include "../game/render/ribbon.h"
 #include "../game/render/spritegroups.h"
 #include "../game/render/passwordpart.h"
+#include "../game/render/rasterformat.h"
 #include "../game/render/textparts.h"
 #include "../game/render/tiledpanel.h"
 #include "../game/render/tilegrid.h"
@@ -502,6 +503,7 @@
 #include "../game/online/chatcommand.h"
 #include "../game/online/chatevents.h"
 #include "../game/online/chatcursor.h"
+#include "../game/online/roomcounts.h"
 #include "../game/online/session.h"
 #include "../game/ui/dialog7ca1c8.h"
 #include "../game/ui/dialog7cb398.h"
@@ -548,8 +550,10 @@
 #include "../game/ui/dialog7ca098.h"
 #include "../game/ui/dialog7ca13c.h"
 #include "../game/ui/dialog7ca150.h"
+#include "../game/ui/dialog7ca150list.h"
 #include "../game/ui/dialog7ca150rows.h"
 #include "../game/ui/dialog7ca168.h"
+#include "../game/ui/dialog7ca168handler.h"
 #include "../game/ui/dialog7ca1bc.h"
 #include "../game/ui/dialog7ca1e0.h"
 #include "../game/ui/dialog7ca210.h"
@@ -559,9 +563,12 @@
 #include "../game/ui/dialog7cb2b8.h"
 #include "../game/ui/dialog7cb2b8build.h"
 #include "../game/ui/dialog7cb2b8tabs.h"
+#include "../game/ui/dialog7cb3f8slots.h"
 #include "../game/ui/dialog7cb400.h"
+#include "../game/ui/dialog7cb400close.h"
 #include "../game/ui/dialog7cc184.h"
 #include "../game/ui/dialog7cc188.h"
+#include "../game/ui/dialog7cc188address.h"
 #include "../game/ui/dialog7cc1f8.h"
 #include "../game/ui/dialog7cc1f8preview.h"
 #include "../game/ui/dialog7cc1f8stats.h"
@@ -570,6 +577,7 @@
 #include "../game/ui/dialog7cc47c.h"
 #include "../game/ui/dialog7cc4b4sparkle.h"
 #include "../game/ui/dialog7cc4b4update.h"
+#include "../game/ui/dialog7cc530handler.h"
 #include "../game/ui/dialog7cc530open.h"
 #include "../game/ui/dialog7cc5f4.h"
 #include "../game/ui/dialog7cc5f4handler.h"
@@ -599,12 +607,15 @@
 #include "../game/ui/panel7ca178.h"
 #include "../game/ui/panel7cc218.h"
 #include "../game/ui/panel7cc258.h"
+#include "../game/ui/panel7cc328handler.h"
 #include "../game/ui/panel7cc3b0.h"
 #include "../game/ui/panel7cc3b0handler.h"
 #include "../game/ui/panel7cc3e0.h"
 #include "../game/ui/panel7cc408.h"
 #include "../game/ui/panel7cc408info.h"
 #include "../game/ui/quitconfirm.h"
+#include "../game/ui/savedialog.h"
+#include "../game/ui/savedialogcreate.h"
 #include "../game/ui/signnamedialog.h"
 #include "../game/ui/signrect.h"
 #include "../game/ui/staffrename.h"
@@ -617,8 +628,10 @@
 #include "../game/ui/thingpanelhandlers.h"
 #include "../game/ui/thingsign.h"
 #include "../game/ui/uimessage.h"
+#include "../game/ui/versionlabel.h"
 #include "../game/ui/viewbuttons.h"
 #include "../game/ui/window705950nodes.h"
+#include "../game/ui/window7059f0texts.h"
 #include "../game/ui/window7cb2a4.h"
 #include "../game/ui/window7cb2cc.h"
 #include "../game/ui/window7cc8bc.h"
@@ -3055,6 +3068,7 @@ const Hook kHooks[] = {
     {"Records24_Field14",         0x005c7d20, (void *)&Records24_Field14, {0x8b, 0x44, 0x24, 0x04, 0x8d}},
     {"Records24_IfUsed",          0x005c7d00, (void *)&Records24_IfUsed, {0x8b, 0x44, 0x24, 0x04, 0x33}},
     {"Records24_CountUsed",       0x005c7bb0, (void *)&Records24_CountUsed, {0x33, 0xc0, 0x83, 0xc1, 0x04}},
+    {"UserSlots_Instance",        0x0048bcd0, (void *)&UserSlots_Instance, {0x6a, 0xff, 0x68, 0x2b, 0x96}},
     {"Table73f8a8_At",            0x005b0d40, (void *)&Table73f8a8_At, {0x8b, 0x44, 0x24, 0x04, 0x8d}},
     {"Obj_Flags1cAnd",            0x005d5ee0, (void *)&Obj_Flags1cAnd, {0x8b, 0x41, 0x1c, 0x8b, 0x4c}},
     {"Span_Limited",              0x005d1440, (void *)&Span_Limited, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
@@ -5885,6 +5899,7 @@ const Hook kHooks[] = {
     {"Visitor_ChooseMajorDest",   0x004fcb10, (void *)&Visitor_ChooseMajorDest, {0x83, 0xec, 0x0c, 0x53, 0x55}},
     {"Visitor_ChooseMinorDest",   0x004fd570, (void *)&Visitor_ChooseMinorDest, {0x83, 0xec, 0x38, 0x53, 0x55}},
     {"BankAccount_Serialize",     0x004cf920, (void *)&BankAccount_Serialize, {0x8b, 0x44, 0x24, 0x10, 0x83}},
+    {"BankAccount_Ctor",          0x004cf7c0, (void *)&BankAccount_Ctor, {0x55, 0x8b, 0xec, 0x83, 0xe4}},
     {"ParkGates_Serialize",       0x004cf050, (void *)&ParkGates_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
     {"MapCell_CanBuild",          0x00535670, (void *)&MapCell_CanBuild, {0x53, 0x55, 0x56, 0x57, 0x8b}},
     {"MapCell_CanBuildTrack",     0x00539760, (void *)&MapCell_CanBuildTrack, {0x83, 0xec, 0x1c, 0x53, 0x55}},
@@ -6517,6 +6532,7 @@ const Hook kHooks[] = {
     {"GroundShadow_Draw",         0x0057be90, (void *)&GroundShadow_Draw, {0x81, 0xec, 0xa8, 0x00, 0x00}},
     {"PasswordPart_SetLayout",    0x004901d0, (void *)&PasswordPart_SetLayout, {0x8b, 0x44, 0x24, 0x04, 0x83}},
     {"GroundShadows_DrawAll",     0x0057c2a0, (void *)&GroundShadows_DrawAll, {0x53, 0x56, 0x57, 0x8b, 0xf9}},
+    {"RasterFormat_Init",         0x00678e70, (void *)&RasterFormat_Init, {0x8b, 0x54, 0x24, 0x04, 0x81}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
@@ -6818,6 +6834,8 @@ const Hook kHooks[] = {
     {"ChatCursor_Click",          0x0046c610, (void *)&ChatCursor_Click, {0x51, 0x66, 0xa1, 0xcc, 0x05}},
     {"ChatCursor_GoTo",           0x0046cee0, (void *)&ChatCursor_GoTo, {0x51, 0x66, 0xa1, 0xcc, 0x05}},
     {"ChatCursor_MoveTo",         0x0046cf80, (void *)&ChatCursor_MoveTo, {0x51, 0x66, 0xa1, 0xcc, 0x05}},
+    {"RoomCounts_ChatEvent",      0x004c4920, (void *)&RoomCounts_ChatEvent, {0x8b, 0x44, 0x24, 0x04, 0x83}},
+    {"RoomCounts_Update",         0x004c4bb0, (void *)&RoomCounts_Update, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"LobbyModel_SetPosition",    0x005d8190, (void *)&LobbyModel_SetPosition, {0x8b, 0x41, 0x04, 0x8b, 0x54}},
     {"LobbyModel_TurnY",          0x005d8380, (void *)&LobbyModel_TurnY, {0x8b, 0x49, 0x04, 0x8d, 0x44}},
     {"LobbyModel_SetScale",       0x005d83b0, (void *)&LobbyModel_SetScale, {0x83, 0xec, 0x0c, 0x8b, 0x44}},
@@ -7875,6 +7893,27 @@ const Hook kHooks[] = {
     {"Window705950_GetNodeText",  0x0065b7db, (void *)&Window705950_GetNodeText, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Panel7cc3b0_Handler",       0x004b5cb0, (void *)&Panel7cc3b0_Handler, {0x8b, 0x44, 0x24, 0x08, 0x83}},
     {"Panel7cc3b0_DismissAnswer", 0x004b6070, (void *)&Panel7cc3b0_DismissAnswer, {0x8b, 0x4c, 0x24, 0x04, 0xe8}},
+    {"Dialog7cb400_Commit",       0x004a6b80, (void *)&Dialog7cb400_Commit, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Dialog7cb400_Close",        0x004a6a50, (void *)&Dialog7cb400_Close, {0x8b, 0x0d, 0xf8, 0xb3, 0x7c}},
+    {"Dialog7cb400_Handler",      0x004a6d00, (void *)&Dialog7cb400_Handler, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
+    {"Dialog7cc188_AddAddress",   0x004a77f0, (void *)&Dialog7cc188_AddAddress, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Dialog7cc188_AddressHandler", 0x004a77c0, (void *)&Dialog7cc188_AddressHandler, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
+    {"VersionLabel_Create",       0x0048b020, (void *)&VersionLabel_Create, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"LoadDialog_Handler",        0x0049e880, (void *)&LoadDialog_Handler, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
+    {"SaveDialog_Save",           0x0049e9b0, (void *)&SaveDialog_Save, {0x6a, 0xff, 0x68, 0x68, 0xa2}},
+    {"SaveDialog_Handler",        0x0049ea30, (void *)&SaveDialog_Handler, {0x81, 0xec, 0x24, 0x01, 0x00}},
+    {"LoadDialog_FillList",       0x0049ec80, (void *)&LoadDialog_FillList, {0x81, 0xec, 0xb0, 0x00, 0x00}},
+    {"SaveDialog_FillList",       0x0049edf0, (void *)&SaveDialog_FillList, {0x6a, 0xff, 0x68, 0x88, 0xa2}},
+    {"LoadDialog_Create",         0x0049efb0, (void *)&LoadDialog_Create, {0x56, 0x6a, 0x00, 0x6a, 0x00}},
+    {"SaveDialog_Create",         0x0049f280, (void *)&SaveDialog_Create, {0x6a, 0xff, 0x68, 0xeb, 0xa2}},
+    {"WString_AssignText",        0x00665f80, (void *)&WString_AssignText, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"WString_AssignTextOf",      0x00665f10, (void *)&WString_AssignTextOf, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window7059f0_SetItemTexts", 0x006644ea, (void *)&Window7059f0_SetItemTexts, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Dialog7cc530_Handler",      0x004ba530, (void *)&Dialog7cc530_Handler, {0x81, 0xec, 0x40, 0x08, 0x00}},
+    {"Dialog7ca168_WindowHandler", 0x00495da0, (void *)&Dialog7ca168_WindowHandler, {0x83, 0xec, 0x1c, 0x53, 0x55}},
+    {"Panel7cc328_Handler",       0x004b4fc0, (void *)&Panel7cc328_Handler, {0x83, 0xec, 0x08, 0x53, 0x8b}},
+    {"Dialog7cb3f8_RefreshSlots", 0x004a62b0, (void *)&Dialog7cb3f8_RefreshSlots, {0x8b, 0x0d, 0xf8, 0xb3, 0x7c}},
+    {"Dialog7ca150_ListHandler",  0x004955e0, (void *)&Dialog7ca150_ListHandler, {0x55, 0x8b, 0xec, 0x83, 0xe4}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},

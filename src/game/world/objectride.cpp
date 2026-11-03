@@ -7,6 +7,7 @@
 #include "../coaster/registry.h"
 #include "objectdefs.h"
 #include "ridelist.h"
+#include "rides.h"
 
 namespace {
 
@@ -14,7 +15,7 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
 const ObjectRideEnv kGameEnv = {ObjectDefs_Find, reinterpret_cast<u32(__cdecl *)(u32, u32, u32, const u32 *, u32, u32, u32, u32, u32)>(Ride_Claim),
-                                reinterpret_cast<u32(__cdecl *)(u32, u32, const u32 *, u32, u32, u32, u32, u32, s32, u32)>((uintptr_t)0x00463060), Ride_SetRecordId, Coaster_RequeueWaitingPeeps};
+                                Ride_Create, Ride_SetRecordId, Coaster_RequeueWaitingPeeps};
 const ObjectRideEnv *g_env = &kGameEnv;
 
 }  // namespace

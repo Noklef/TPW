@@ -3,7 +3,7 @@
 
 #include "../../../re/types.h"
 
-// Their calls (the ports by default, 0x506a40 and 0x4f9490 by address; the bench's recorders: their own benches have them).
+// Their calls (the ports by default, 0x506a40 by address; the bench's recorders: their own benches have them).
 struct StaffWorkEnv {
     u32(__fastcall *busy)(u8 *staff);                                                       // 0x506a40
     u32(__fastcall *tooTired)(const u8 *staff);                                             // Staff_IsTooTired

@@ -20,9 +20,8 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 template <typename T> T &at(u8 *p, u32 offset) { return *reinterpret_cast<T *>(p + offset); }
 
 u32(__fastcall *const kBusy)(u8 *) = reinterpret_cast<u32(__fastcall *)(u8 *)>(0x00506a40);
-u32(__fastcall *const kRandomDest)(u8 *) = reinterpret_cast<u32(__fastcall *)(u8 *)>(0x004f9490);
 
-const StaffWorkEnv kGameEnv = {kBusy, &Staff_IsTooTired, kRandomDest, &World_NearestCellWithType, &Handyman_FindJob, &Sprite_SetDestination, &Obj_StampAt30, &Handyman_SetState, &Objects_NearestFreeFor, &Sprite_SetDestinationCell, &Obj_StampAt5e, &Mechanic_SetState, &Staff_SetState, &Things_AnyOfKindAround, &Sprite_ActionCount};
+const StaffWorkEnv kGameEnv = {kBusy, &Staff_IsTooTired, &Person_SetRandomDest,&World_NearestCellWithType, &Handyman_FindJob, &Sprite_SetDestination, &Obj_StampAt30, &Handyman_SetState, &Objects_NearestFreeFor, &Sprite_SetDestinationCell, &Obj_StampAt5e, &Mechanic_SetState, &Staff_SetState, &Things_AnyOfKindAround, &Sprite_ActionCount};
 const StaffWorkEnv *g_env = &kGameEnv;
 
 u8 *pointerOf(u32 record) { return reinterpret_cast<u8 *>((uintptr_t)record); }

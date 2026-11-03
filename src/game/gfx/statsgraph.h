@@ -9,7 +9,7 @@ struct StatsGraphEnv {
     void(__cdecl *lines49aa30)(u8 *gauge);   // 0x49aa30, the graph's lines drawn over the gauge (Gauge_DrawInWindow's after)
     void(__cdecl *lines4a4750)(u8 *gauge);   // 0x4a4750, the same for the graph at 0x7cb318
     void(__cdecl *clearButtons)(u32 mode);   // Window7ca2e8_ClearButtons (its bench has the dialog's buttons)
-    void(__fastcall *plot)(u8 *gauge, void *, u32 *points, s32 last, u32 window, u32 colour, u32 colourByte);   // 0x47fe90, unported: the points drawn (the colour's 5 bytes by value)
+    void(__fastcall *plot)(u8 *gauge, void *, u32 *points, s32 last, u32 window, u32 colour, u32 colourByte);   // 0x47fe90 Gauge_DrawPlot: the points drawn (the colour's 5 bytes by value)
 };
 // StatsGraph_Redraw's pointer comes from env (nullptr: the game's).
 void StatsGraph_SetEnv(const StatsGraphEnv *env);
