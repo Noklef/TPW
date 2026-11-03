@@ -60,4 +60,11 @@ void __fastcall WeatherFx_SetWind(u8 *fx, void *, float angle, float strength);
 // last) whose d is not 0 (nor a NaN), the last one regardless. p is scaled to |d| * scale * r long; out = p + m + n * (0 / |n|), n the
 // cross product of p and d (so 0 * n, sic: a NaN when n is 0 or not finite).
 float *__cdecl WeatherFx_BoltMidpoint(float *out, const float *a, const float *b, float scale);
+
+// 0x57e810 (thiscall (a, b), pops 8; name invented, unconfirmed): one lightning segment subdivided at WeatherFx_BoltMidpoint(b, a, +0x3310), x87 in the original's
+// order, its random numbers from the seed of [0x8bcbac] (not always this renderer). A draw & 0x1ff below 9 with +0xa188 below +0xa1a0 forks: +0xa188 up by one, a side point
+// from a along (b - a) made unit length (unless 0 or a NaN) and the plane normal +0x3020 + [+0x9da0] * 0x30, its ribbon's +0x9da4 entry cleared, recursed (side, a), added to the
+// ribbon (Ribbon_AddPoint(none, side)), +0xa188 down again. Each half then ends in Ribbon_AddPoint when the midpoint is within the wobbled limit (+0xa180 + +0xa184 * a draw
+// in [-1, 1)) of its end (squared), else is recursed: (m, b), then (a, m). Returns 1, or 0 at once when a call answers 0.
+u32 __fastcall WeatherFx_BoltSubdivide(u8 *fx, void *, const float *a, const float *b);
 }

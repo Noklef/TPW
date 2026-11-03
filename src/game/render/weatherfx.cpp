@@ -9,6 +9,7 @@
 #include "../gfx/texman.h"
 #include "../math/x87.h"
 #include "../terrain/landscape.h"
+#include "ribbon.h"
 
 namespace {
 
@@ -172,6 +173,74 @@ u32 __cdecl WeatherFx_LoadTextures() {
     WeatherFx_LoadTexture(*fx, nullptr, 2, name(0x00765218));          // "Data\Generic\Weather\snow.tga"
     WeatherFx_LoadTexture(*fx, nullptr, 1, name(0x007651f4));          // "Data\Generic\Weather\raindrop.tga"
     return WeatherFx_LoadTexture(*fx, nullptr, 3, name(0x007651d0));   // "Data\Generic\Weather\lightning.tga"
+}
+
+namespace {
+
+// Whether the midpoint lies within the wobbled limit of an end point (squared lengths: a NaN is not near).
+bool BoltNear(const u8 *fx, const float *m, const float *p, float wobble) {
+    const X87Reg dx = X87Reg(m[0]) - p[0], dy = X87Reg(m[1]) - p[1], dz = X87Reg(m[2]) - p[2];
+    const X87Reg q = (dx * dx + dy * dy) + dz * dz;
+    const X87Reg limit = X87Reg(wobble) + at<float>(fx, 0xa180);
+    return limit.v > q.v;
+}
+
+}  // namespace
+
+u32 __fastcall WeatherFx_BoltSubdivide(u8 *fx, void *, const float *a, const float *b) {
+    u8 *const rng = *reinterpret_cast<u8 **>((uintptr_t)0x008bcbac);
+    float m[3];
+    WeatherFx_BoltMidpoint(m, b, a, at<float>(fx, 0x3310));
+    if ((NextRandom(rng) & 0x1ff) < 9 && at<s32>(fx, 0xa188) < at<s32>(fx, 0xa1a0)) {
+        const s32 ribbon = ++at<s32>(fx, 0xa188);
+        const float per = (float)(X87Reg(1.0f) / X87Reg((double)(s32)((u32)ribbon * 0x60)));
+        float x = (float)(X87Reg(b[0]) - a[0]), y = (float)(X87Reg(b[1]) - a[1]), z = (float)(X87Reg(b[2]) - a[2]);
+        const X87Reg length = X87_Sqrt((X87Reg(x) * x + X87Reg(y) * y) + X87Reg(z) * z);
+        if (length.v != 0.0 && length.v == length.v) {
+            const X87Reg inverse = X87Reg(1.0f) / length;
+            x = (float)(inverse * x);
+            y = (float)(inverse * y);
+            z = (float)(inverse * z);
+        }
+        const X87Reg s = X87Reg((double)(s32)((NextRandom(rng) & 0x3ff) + 0x200)) * per * 2.5f;   // 0x701ccc
+        x = (float)(s * x);
+        y = (float)(s * y);
+        z = (float)(s * z);
+        const float t = (float)(X87Reg((double)(s32)((NextRandom(rng) & 0x3ff) + 0x200)) * per);
+        const float *const n = reinterpret_cast<const float *>(fx + at<s32>(fx, 0x9da0) * 0x30 + 0x3020);
+        x = (float)(X87Reg(t) * n[0] + x);
+        y = (float)(X87Reg(t) * n[1] + y);
+        X87Reg z2 = X87Reg(t) * n[2] + z;
+        z = (float)z2;
+        const X87Reg dot = (X87Reg(n[0]) * x + X87Reg(n[1]) * y) + X87Reg(n[2]) * z2;
+        if (!(dot.v >= 0.0)) {   // (a NaN too)
+            const X87Reg half = X87Reg(t) * 0.5f;   // 0x701c84
+            x = (float)((half * n[0]) - (X87Reg(x) * -0.5f));   // 0x701cd0
+            y = (float)((half * n[1]) - (X87Reg(y) * -0.5f));
+            z2 = (half * n[2]) - (z2 * -0.5f);
+        }
+        const float side[3] = {(float)(X87Reg(a[0]) + x), (float)(X87Reg(y) + a[1]), (float)(z2 + a[2])};
+        at<u32>(fx, 0x9da4 + at<u32>(fx, 0xa188) * 4) = 0;
+        if (!WeatherFx_BoltSubdivide(fx, nullptr, side, a))
+            return 0;
+        if (!Ribbon_AddPoint(fx, nullptr, nullptr, side))
+            return 0;
+        --at<s32>(fx, 0xa188);
+    }
+    const float wobble = (float)(X87Reg((double)((s32)(NextRandom(rng) & 0xfff) - 0x800)) * at<float>(fx, 0xa184) * (1.0f / 2048.0f));   // 0x701c64
+    if (BoltNear(fx, m, b, wobble)) {
+        if (!Ribbon_AddPoint(fx, nullptr, m, b))
+            return 0;
+    } else if (!WeatherFx_BoltSubdivide(fx, nullptr, m, b)) {
+        return 0;
+    }
+    if (BoltNear(fx, m, a, wobble)) {
+        if (!Ribbon_AddPoint(fx, nullptr, a, m))
+            return 0;
+    } else if (!WeatherFx_BoltSubdivide(fx, nullptr, a, m)) {
+        return 0;
+    }
+    return 1;
 }
 
 u32 __fastcall WeatherFx_ReloadTextures(u8 *fx) {
