@@ -1,9 +1,26 @@
-// The game panel object at 0x7cc408 (its vtable 0x6fff40). Reimplementation of 0x4b6c20, 0x4b6b90 and 0x4b79b0. The names are unconfirmed.
+// The game panel object at 0x7cc408 (its vtable 0x6fff40). Reimplementation of 0x4b75a0, 0x4b6c20, 0x4b6b90 and 0x4b79b0. The names are unconfirmed.
 #pragma once
 
 #include "../../../re/types.h"
 
+// Panel7cc408_Refresh's calls (the ports by default; the bench's recorders: their own benches have them).
+struct Panel7cc408Env {
+    s32(__fastcall *countGroup)(const u8 *self, void *, u32 thing);                // Things_CountGroup
+    u8 *(__fastcall *partText)(u8 *part, void *, u32 value);                   // TextPart_Ctor
+    void(__fastcall *setImpl)(u8 *window, void *, u8 *impl);                   // Window_SetImpl
+    void(__fastcall *notifyC00)(u8 *window, void *, u32 a, u32 b);             // Window_NotifyC00
+    void(__fastcall *notify3000)(u8 *window, void *, u32 a, u32 b);            // Window_Notify3000
+    void(__fastcall *set4c)(u8 *window, void *, u8 *object);                   // Window_Set4c
+    void(__fastcall *notify40000)(u8 *window, void *, u32 a, u32 b, u32 c, u32 d);   // Window_Notify40000
+    void(__fastcall *notifyImpl100)(u8 *window, void *, u32 value);            // Window_NotifyImpl100
+};
+void Panel7cc408_SetEnv(const Panel7cc408Env *env);
+
 extern "C" {
+
+// 0x4b75a0 (thiscall; slot 0 of the vtable 0x6fff40; name invented): the group counted (Things_CountGroup of the selected thing [0x7cc430], the count dropped) and the window +0x10's child 0x3734 dressed: a TextPart_Ctor part (none when the heap has none),
+// NotifyC00 (1, 1), Notify3000 (1, 1), font 6, (0, 0, 0, 0xff), NotifyImpl100 (0).
+void __fastcall Panel7cc408_Refresh(u8 *self);
 
 // 0x4b6b90 (thiscall; slot 6 of the vtable 0x6fff40): with a thing selected ([0x7c2658]), its preview shown (ThingPreview_Show) over the
 // window +0x18's saved rectangle (a GuiRect on the stack: Window_GetSavedRect), at that window's depth +0xe0 (sign-extended) + 2,

@@ -53,6 +53,7 @@
 #include "../../src/game/ui/panel7cc218.h"
 #include "../../src/game/ui/dialog7ca168.h"
 #include "../../src/game/ui/dialog7ca308.h"
+#include "../../src/game/ui/panel7cc408.h"
 #include "../../src/game/gfx/overlayload.h"
 #include "../../src/game/ui/dialog7cb400.h"
 #include "../../src/game/ui/panel7ca178.h"
@@ -640,6 +641,7 @@ const Panel7ca178StatsEnv kPanel7ca178StatsEnv = {Rec{jpeg_recorder(23, 2)}, Rec
 // Dialog7ca308_FillList's list calls, name and wage (tests/fncmp/dialog7ca308.py).
 const Dialog7cb400Env kDialog7cb400Env = {Rec{recorder(10, 2)}, Rec{jpeg_recorder(11, 3)}, Rec{recorder(12, 2)}, Rec{recorder(13, 1)}, Rec{recorder(14, 1)}, Rec{recorder(15, 1)}, Rec{recorder(16, 1)}, Rec{recorder(17, 1)}, Rec{recorder(18, 4)}, Rec{recorder(19, 2)}, Rec{recorder(20, 2)}, Rec{recorder(21, 1)}, Rec{jpeg_recorder(22, 1)}, Rec{recorder(23, 1)}, Rec{jpeg_recorder(24, 1)}, Rec{recorder(25, 1)}, Rec{recorder(26, 0)}, Rec{recorder(27, 1)}, Rec{jpeg_recorder(28, 1)}};
 const OverlayLoadEnv kOverlayLoadEnv = {Rec{jpeg_recorder(17, 5)}, Rec{jpeg_recorder(18, 3)}, Rec{recorder(19, 1)}, Rec{recorder(20, 1)}, Rec{recorder(21, 1)}, Rec{jpeg_recorder(22, 2)}};
+const Panel7cc408Env kPanel7cc408Env = {Rec{recorder(10, 1)}, Rec{recorder(11, 1)}, Rec{recorder(12, 1)}, Rec{recorder(13, 2)}, Rec{recorder(14, 2)}, Rec{recorder(15, 1)}, Rec{recorder(16, 4)}, Rec{recorder(17, 1)}};
 const Dialog7ca308Env kDialog7ca308Env = {Rec{recorder(10, 0)}, Rec{recorder(11, 4)}, Rec{recorder(12, 0)}, Rec{recorder(13, 2)}, Rec{recorder(14, 0)}, Rec{recorder(15, 1)}, Rec{recorder(16, 1)}, Rec{jpeg_recorder(17, 2)}, Rec{jpeg_recorder(18, 5)}, Rec{recorder(19, 1)}, Rec{jpeg_recorder(21, 3)}, Rec{jpeg_recorder(22, 1)}, Rec{jpeg_recorder(23, 1)}};
 // Panel7cc218_ShowRide's range, shown and settings (tests/fncmp/panel7cc218show.py).
 const Panel7cc218ShowEnv kPanel7cc218ShowEnv = {Rec{recorder(21, 2)}, Rec{recorder(22, 1)}, Rec{recorder(23, 1)}};
@@ -1388,6 +1390,7 @@ int main(int argc, char **argv) {
     Panel7cc218_SetShowEnv(&kPanel7cc218ShowEnv);
     Dialog7ca168_SetOpenEnv(&kDialog7ca168OpenEnv);
     Dialog7ca308_SetEnv(&kDialog7ca308Env);
+    Panel7cc408_SetEnv(&kPanel7cc408Env);
     OverlayLoad_SetEnv(&kOverlayLoadEnv);
     Dialog7cb400_SetEnv(&kDialog7cb400Env);
     Panel7ca178_SetStatsEnv(&kPanel7ca178StatsEnv);
