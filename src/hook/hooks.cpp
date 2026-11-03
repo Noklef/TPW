@@ -151,6 +151,7 @@
 #include "../game/gfx/moviepixels.h"
 #include "../game/gfx/movieplayer.h"
 #include "../game/gfx/moviesound.h"
+#include "../game/gfx/moviestart.h"
 #include "../game/gfx/moviesurface.h"
 #include "../game/gfx/overlayload.h"
 #include "../game/gfx/refblock.h"
@@ -6417,6 +6418,10 @@ const Hook kHooks[] = {
     {"SpriteFrame_DrawLightQuads", 0x00589770, (void *)&SpriteFrame_DrawLightQuads, {0x83, 0xec, 0x6c, 0x53, 0x55}},
     {"MovieFrame_Allocate",       0x006777d0, (void *)&MovieFrame_Allocate, {0x83, 0xec, 0x08, 0x53, 0x56}},
     {"MovieFrame_Decode",         0x00677310, (void *)&MovieFrame_Decode, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Movie_Start",               0x0051b010, (void *)&Movie_Start, {0x83, 0xec, 0x70, 0x53, 0x55}},
+    {"Movie_Finished",            0x0051b300, (void *)&Movie_Finished, {0x8b, 0x0d, 0xbc, 0x2b, 0x80}},
+    {"Movie_Stop",                0x0051b350, (void *)&Movie_Stop, {0xa1, 0xbc, 0x2b, 0x80, 0x00}},
+    {"Movie_Forbid",              0x0051b3e0, (void *)&Movie_Forbid, {0xa1, 0xbc, 0x2b, 0x80, 0x00}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

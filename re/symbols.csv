@@ -6294,6 +6294,10 @@ address,name,kind,confidence,notes
 0x00589770,SpriteFrame_DrawLightQuads,function,low,"reimplemented (src/game/gfx/spriteframelights); a sprite frame's ground quad for each light (name invented, unconfirmed)"
 0x006777d0,MovieFrame_Allocate,function,low,"reimplemented (src/game/gfx/movieframe); the video library's frame and table buffers made again and the first frame unpacked: name invented, unconfirmed"
 0x00677310,MovieFrame_Decode,function,low,"reimplemented (src/game/gfx/movieframe); one block frame of the video library: name invented, unconfirmed"
+0x0051b010,Movie_Start,function,low,reimplemented (src/game/gfx/moviestart); A movie's start on the video library
+0x0051b300,Movie_Finished,function,low,reimplemented (src/game/gfx/moviestart); Whether the movie has finished
+0x0051b350,Movie_Stop,function,low,"reimplemented (src/game/gfx/moviestart); The movie stopped, its interfaces released"
+0x0051b3e0,Movie_Forbid,function,low,"reimplemented (src/game/gfx/moviestart); Movie_Stop's work, and movies no longer allowed"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"

@@ -604,6 +604,7 @@ add_library(tpw_game STATIC
     src/game/ui/textrecordpart.cpp
     src/game/ui/window705950nodes.cpp
     src/game/gfx/movieframe.cpp
+    src/game/gfx/moviestart.cpp
     src/game/ui/panel7cc3b0handler.cpp
     src/game/world/rideupkeep.cpp
     src/game/world/objectwear.cpp
