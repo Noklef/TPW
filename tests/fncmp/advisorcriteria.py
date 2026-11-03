@@ -5,7 +5,7 @@
 # StfE): late_case() and late2(). The objects' wear criteria 0x59e450-0x59e680 (Worn ... VWorn5s) and the ring criteria 0x59e730 / 0x59e790
 # (RingLo, RingHi): see wear_case(). 0x59ca30 (Obj0w): the things' float +0x44 as for the wear criteria; 0x59cb40 / 0x59cbb0 (MapLo,
 # MapHi): the whole map (128 x 128 cells from G's +0x2d8, over the booths' first row) of types 1, 3, 9 and others, +0x2c 0 mostly.
-# 0x59f4f0 (Rides): the rides' count, average and best rating on case()'s park.
+# 0x59f4f0 (Rides): the rides' count, average (kept about the age asked for) and best rating on case()'s park.
 # usage: advisorcriteria.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Booth,No02,...)
 import os
 import struct
@@ -87,6 +87,12 @@ def case(r):
     for off, values in bounds.items():
         if r.random() < 0.8:
             put(s, off, 'I', r.choice(values) & 0xffffffff)
+    if name == 'Rides':   # (the kept average about the age Rides asks for, 10 quarters; the bound about the kept value)
+        now = struct.unpack_from('<I', regions[parkenv.TAIL], 0x10)[0]
+        value = r.choice([-1, 0, 50, 200])
+        regions[parkenv.ANALYSER + 0x1f0f4] = struct.pack('<IiI', (now - 4 * r.choice([0, 9, 10, 10, 11, 11, 12])) & 0xffffffff, value, r.choice([1, 1, 1, 0]))
+        if r.random() < 0.7:
+            put(s, 0x418, 'i', value + r.choice([-1, 0, 1]))
     regions[SCORING] = s
     if name in LATE:
         late_case(r, regions, _info, name)
