@@ -64,6 +64,7 @@
 #include "../../src/game/ui/dialog7cb2b8.h"
 #include "../../src/game/ui/dialog7ca098.h"
 #include "../../src/game/ui/dialog7cdac4.h"
+#include "../../src/game/ui/msgtags.h"
 #include "../../src/game/world/guardescort.h"
 #include "../../src/game/ui/staffrename.h"
 #include "../../src/game/ui/textpanel7cc18c.h"
@@ -615,6 +616,9 @@ const Dialog7ca098Env kDialog7ca098Env = {Rec{jpeg_recorder(10, 1)}, Rec{jpeg_re
                                           Rec{jpeg_recorder(31, 4)}, Rec{jpeg_recorder(7, 4)}, Rec{jpeg_recorder(8, 1)}, Rec{recorder(9, 3)}};
 // The guard's escort (tests/fncmp/guardescort.py).
 const GuardEscortEnv kGuardEscortEnv = {Rec{recorder(10, 0)}, Rec{recorder(11, 0)}, Rec{recorder(12, 0)}, Rec{recorder(13, 1)}, Rec{recorder(14, 0)}, Rec{recorder(15, 1)}, Rec{recorder(16, 2)}, Rec{recorder(17, 0)}, Rec{recorder(18, 2)}, Rec{recorder(19, 2)}, Rec{recorder(20, 1)}, Rec{recorder(21, 1)}};
+// MsgTag_Handler's calls (tests/fncmp/msgtaghandler.py).
+const MsgTagHandlerEnv kMsgTagHandlerEnv = {Rec{jpeg_recorder(10, 3)}, Rec{recorder(11, 1)}, Rec{jpeg_recorder(12, 1)}, Rec{jpeg_recorder(13, 1)}, Rec{recorder(14, 1)}, Rec{recorder(15, 3)}, Rec{recorder(16, 4)}, Rec{recorder(17, 2)}, Rec{recorder(18, 2)}, Rec{recorder(19, 0)}, Rec{jpeg_recorder(20, 1)},
+                                            Rec{jpeg_recorder(21, 4)}, Rec{jpeg_recorder(22, 4)}, Rec{recorder(23, 2)}, Rec{recorder(24, 0)}, Rec{jpeg_recorder(25, 2)}, Rec{jpeg_recorder(26, 4)}, Rec{jpeg_recorder(27, 2)}, Rec{jpeg_recorder(28, 1)}, Rec{jpeg_recorder(29, 1)}, Rec{recorder(30, 3)}};
 // Dialog7cdac4_Open's calls (tests/fncmp/dialog7cdac4.py).
 const Dialog7cdac4Env kDialog7cdac4Env = {Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 3)}, Rec{recorder(12, 1)}, Rec{recorder(13, 1)}, Rec{recorder(14, 1)}, Rec{jpeg_recorder(15, 1)}, Rec{recorder(16, 1)}, Rec{recorder(17, 2)}, Rec{jpeg_recorder(18, 1)}, Rec{recorder(19, 1)},
                                           Rec{recorder(20, 2)}, Rec{recorder(21, 2)}, Rec{recorder(22, 2)}, Rec{jpeg_recorder(23, 1)}, Rec{jpeg_recorder(24, 3)}, Rec{recorder(25, 2)}};
@@ -1434,6 +1438,7 @@ int main(int argc, char **argv) {
     Obj7b51f0_SetNowEnv(&kObj7b51f0NowEnv);
     Dialog7cc1f8_SetOpenEnv(&kDialog7cc1f8OpenEnv);
     Dialog7cdac4_SetEnv(&kDialog7cdac4Env);
+    MsgTag_SetHandlerEnv(&kMsgTagHandlerEnv);
     GuardEscort_SetEnv(&kGuardEscortEnv);
     Dialog7ca098_SetEnv(&kDialog7ca098Env);
     Dialog7cdac4_SetHandlerEnv(&kDialog7cdac4HandlerEnv);
