@@ -242,8 +242,8 @@ address,name,kind,confidence,notes
 0x00501650,Visitor_Update,function,medium,"reimplemented (src/game/world/visitorsteps); thiscall; Thing_Update case 1, first call: the visitor's moods on its quarter of the clock"
 0x005019f0,Visitor_PostUpdate,function,medium,"reimplemented (src/game/world/visitorsteps); thiscall; Thing_Update case 1, second call: the step of the state +0x220"
 0x004fb360,Visitor_HandleMessage,function,high,"reimplemented (src/game/world/person); thiscall (message), pops 4; Thing_HandleMessage's case 1: the object's type 0xa message"
-0x004e0b90,Object_Update,function,medium,Thing_Update case 3 (first call)
-0x004e0e00,Object_PostUpdate,function,medium,Thing_Update case 3 (second call)
+0x004e0b90,Object_Update,function,medium,"reimplemented (src/game/world/objectupdate); an object's tick: the spread taken back, wear, the warning elements, the handle +0x3c"
+0x004e0e00,Object_PostUpdate,function,medium,"reimplemented (src/game/world/objectupdate); by the state, the cycle begun or the queue's head dismissed and the waiting arrived"
 0x004dd320,Object_HandleDayMessage,function,high,reimplemented (src/game/world/objectmsg); advances the six history rings at the end of the day
 0x004ddb90,Object_QueueAddPerson,function,high,reimplemented (src/game/world/objectmsg); appends a person to the object's queue
 0x004ddf50,Object_QueuePosition,function,high,reimplemented (src/game/world/objectmsg); a person's place in the object's queue

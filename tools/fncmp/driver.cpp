@@ -269,6 +269,7 @@
 #include "../../src/game/core/soundworker.h"
 #include "../../src/game/world/staff.h"
 #include "../../src/game/world/weather.h"
+#include "../../src/game/world/objectupdate.h"
 #include "../../src/game/world/things.h"
 #include "../../src/game/world/queuepieces.h"
 #include "../../src/game/world/cellmodel.h"
@@ -2086,6 +2087,10 @@ int main(int argc, char **argv) {
     static const ThingSweepEnv thingSweepEnv = {Rec{kStubs + 0x5000 + 0x800 * 1 + 0x20 * 20}, Rec{recorder(21, 0)}, Rec{recorder(22, 0)}, Rec{jpeg_recorder(23, 0)},
                                                 Rec{jpeg_recorder(24, 0)}, Rec{jpeg_recorder(25, 0)}, Rec{jpeg_recorder(26, 2)}, Rec{recorder(27, 1)}};
     Things_SetSweepEnv(&thingSweepEnv);
+    static const ObjectUpdateEnv objectUpdateEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorder(2, 2)}, Rec{jpeg_recorder(3, 3)}, Rec{jpeg_recorder(4, 3)},
+                                                    Rec{recorder(5, 2)},      Rec{recorder(6, 0)},      Rec{recorder(7, 0)},      Rec{recorder(8, 0)},
+                                                    Rec{recorder(9, 0)},      Rec{recorder(10, 0)}};
+    ObjectUpdate_SetEnv(&objectUpdateEnv);
     // The channel's open: thiscall recorders 1 of 1, 2 and 3 of 2, COM recorder 4 of 4, thiscall recorders 5-9, as tests/fncmp/soundopen.py hooks them.
     static const SoundChannelOpenEnv soundChannelOpenEnv = {Rec{recorder(1, 1)}, Rec{recorder(2, 2)}, Rec{recorder(3, 2)}, Rec{kStubs + 0x5000 + 0x800 * 4 + 0x20 * 4},
                                                             Rec{recorder(5, 1)}, Rec{recorder(6, 0)}, Rec{recorder(7, 1)}, Rec{recorder(8, 0)}, Rec{recorder(9, 2)}};
