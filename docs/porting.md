@@ -89,6 +89,7 @@ range, open items, known skips and the paths of the two memory files it should r
      about 8 per module.
    - None for straight-line code (accessors, stores, forwarding thunks, trivial ctors/dtors): the 1000-case comparison pins it.
    - Grep their output with `-iE "^caught|^survived|^build err"`. A survivor gets a better case, or is noted as equivalent with the reason.
+   - Make each mutant's text unique in its file. src files are CRLF, so a multi-line mutant needs \r\n.
 6. Driver/harness:
    - When a port's env calls game code by raw address, or a game vtable must point at the ports, the native driver needs a change in
      tools/fncmp/driver.cpp (envs set with hooked(addr), kResolvedVtables).
@@ -108,6 +109,8 @@ range, open items, known skips and the paths of the two memory files it should r
   never compared. When a bench reports many, see where they fault (env FNCMP_CRASHES=1 lists the original's fault PCs with counts); a
   path you ported should also run to its end.
 - **Ghidra mis-splits:** a "function" starting with a conditional jump, or in the middle of another, is not one. Skip it.
+- **Helper names:** check a helper's name against the callee's address in re/symbols.csv before you call it: a similar name can be another function.
+- **Shared bench worlds:** a bench that shares guitext's world must not reuse its recorder k numbers (k 7 is the font's).
 - **x87:** the emulator (x87emu) runs x87 code; tools/x87sym.py helps read it. Prefer the portable functions first, then take x87 ones.
 - **Shared modules:** adding a function to a module another branch also touches is fine. Never reformat or reorder existing code in it.
 - **Cross-range blockers:** if a candidate is blocked only by an unported callee in another agent's range, list it in your report (address
