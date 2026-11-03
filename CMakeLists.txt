@@ -250,6 +250,7 @@ add_library(tpw_game STATIC
     src/game/gfx/guitext.cpp
     src/game/gfx/overlayload.cpp
     src/game/gfx/tqiframe.cpp
+    src/game/gfx/dctmacroblock.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp
     src/game/math/rect.cpp
