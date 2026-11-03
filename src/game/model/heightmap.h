@@ -1,6 +1,7 @@
 // A model's height map: its floor rasterised into a byte grid of heights (HeightMap_Build 0x451880 sets the grid up).
 #pragma once
 
+#include "../core/addrcalls.h"
 #include "../../../re/types.h"
 #include "partstate.h"
 
@@ -19,4 +20,13 @@ extern "C" {
 // where higher, the heights between the ends by integer steps. Last each child (+0xc, then +8 on) the same with the new
 // matrix; 1 when no vertex of the tree went past the grid, else 0.
 u32 __cdecl HeightMap_Rasterize(u8 *node, u32 unused, Matrix44 m, u8 *grid, u8 **hit, u32 unused2, u32 unused3, u32 *clipped);
+
+// HeightMap_Build's calls that the bench replaces go by the game's addresses; a table of replacements (tests/fncmp/heightmapbuild.py gives every one a recorder).
+void HeightMap_SetCalls(const AddrCall *table, u32 count);
+
+// 0x451880 (cdecl (instance, width, height, flags, useScale); name invented, unconfirmed): an instance's height grid. A clone of the instance (Instance_Clone(instance, 0, 0x211f, &clone, 0); none: returns 0) reset, a header
+// (0x30 bytes, 0xab1e0003, 0x640005, u16 width and height) and a block of 27 bytes per grid square (+0xc 25 heights each; +0x10, +0x14 a byte each). With blocks (+0xa8) and a track on any of the clone's bank slots 2-11 (+0x1c on, 0xc apart): the bounds (+0x18) empty and every block
+// not on the slots 0 and 1 played from its start, 30 ms a step, and rasterized at each step until its time left is below 0x6fe3dc (or a NaN). Else the bounds the instance's model's +0x80 and the clone rasterized once. The clone disposed. Then each square's top height (+0x10; with
+// useScale the model's float +0x90 * 2.55 instead) and, with flags, 0 at +0x14 when flags[1 + x + 20 * y] (8 bytes each) is 0, else 1. Returns the header.
+u8 *__cdecl HeightMap_Build(u8 *instance, u32 width, u32 height, const u8 *flags, u32 useScale);
 }

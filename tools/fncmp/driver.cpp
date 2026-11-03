@@ -196,6 +196,7 @@
 #include "../../src/game/coaster/arreplay.h"
 #include "../../src/game/coaster/arreplayaction.h"
 #include "../../src/game/coaster/coastersload.h"
+#include "../../src/game/model/heightmap.h"
 #include "../../src/game/frontend/lobbyscript.h"
 #include "../../src/game/files/gamepaths.h"
 #include "../../src/game/core/globalsave.h"
@@ -1032,6 +1033,32 @@ const AddrCall kLobbyScriptCalls[] = {  // tests/fncmp/lobbyscript.py --table
     {0x5da120, recorder(11, 0)},
     {0x5dfa60, recorder(8, 12)},
     {0x5dfca0, recorder(9, 0)},
+};
+// HeightMap_Build's call of 23 arguments, on two recorders (tests/fncmp/heightmapbuild.py hooks it the same).
+struct Args23 {
+    u32 a[23];
+};
+u32 __cdecl heightmap_rasterize_recorder(Args23 s) {
+    using First = u32(__cdecl *)(u32, u32, u32, u32, u32, u32, u32, u32, u32, u32, u32, u32, u32, u32, u32);
+    using Second = u32(__cdecl *)(u32, u32, u32, u32, u32, u32, u32, u32);
+    reinterpret_cast<First>((uintptr_t)jpeg_recorder(10, 15))(s.a[0], s.a[1], s.a[2], s.a[3], s.a[4], s.a[5], s.a[6], s.a[7], s.a[8], s.a[9], s.a[10], s.a[11], s.a[12], s.a[13], s.a[14]);
+    return reinterpret_cast<Second>((uintptr_t)jpeg_recorder(11, 8))(s.a[15], s.a[16], s.a[17], s.a[18], s.a[19], s.a[20], s.a[21], s.a[22]);
+}
+const AddrCall kHeightMapCalls[] = {  // tests/fncmp/heightmapbuild.py --table
+    {0x4557c0, jpeg_recorder(1, 5)},
+    {0x455ad0, jpeg_recorder(15, 3)},
+    {0x45b9d0, jpeg_recorder(3, 2)},
+    {0x468600, jpeg_recorder(4, 5)},
+    {0x46f150, jpeg_recorder(9, 1)},
+    {0x4709d0, jpeg_recorder(5, 1)},
+    {0x4721f0, jpeg_recorder(12, 3)},
+    {0x472270, jpeg_recorder(13, 3)},
+    {0x472310, jpeg_recorder(14, 3)},
+    {0x472bc0, jpeg_recorder(6, 4)},
+    {0x472c60, jpeg_recorder(7, 3)},
+    {0x472f60, jpeg_recorder(8, 6)},
+    {0x473e30, jpeg_recorder(2, 4)},
+    {0x451e20, (u32)(uintptr_t)&heightmap_rasterize_recorder},
 };
 const GameFrameCall kGameFrameCalls[] = {  // tests/fncmp/gameframe.py --table
     {0x402d70, recorder(1, 0)},
@@ -2282,6 +2309,7 @@ int main(int argc, char **argv) {
     CameraUpdate_SetEnv(&kCameraUpdateEnv);
     WeatherFx_SetReloadEnv(&kWeatherFxReloadEnv);
     ArReplay_SetEnv(&kArReplayEnv);
+    HeightMap_SetCalls(kHeightMapCalls, sizeof(kHeightMapCalls) / sizeof(kHeightMapCalls[0]));
     LobbyScript_SetEnv(kLobbyScriptCalls, sizeof(kLobbyScriptCalls) / sizeof(kLobbyScriptCalls[0]));
     GamePaths_SetCalls(kShareTexCalls, sizeof(kShareTexCalls) / sizeof(kShareTexCalls[0]));
     GlobalSave_SetCalls(kGlobalSaveCalls, sizeof(kGlobalSaveCalls) / sizeof(kGlobalSaveCalls[0]));
