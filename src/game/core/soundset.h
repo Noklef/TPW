@@ -96,6 +96,18 @@ void __cdecl Sound_SetCameraLevel(s32 level);
 // out the id's slot. Returns the result.
 u32 __cdecl Sound_VoiceInfo(u32 id);
 
+// What Sound_Start calls, so that the bench can record it (nullptr: the game's).
+struct SoundStartEnv {
+    u32 *(__cdecl *make)(u32 *out, u32 a, u8 **manager);                    // SoundManager_Make 0x6b5d00
+    u32 *(__fastcall *apply)(u8 *manager, void *, u32 *out, u8 *functor);   // SoundManager_Apply 0x6b5bd0
+};
+void Sound_SetStartEnv(const SoundStartEnv *env);
+
+// 0x51b660 (cdecl (a, on); name invented, unconfirmed): the on flag 0x802bc8 = on. Off, or started (0x802bd4; the debug print is left out): 0. Else 0x802bd8 and the 0x34 bytes at
+// 0x803a20 and 0x54 at 0x803aa0 cleared and the manager made (SoundManager_Make: out the on's stack slot, a, 0x802bcc); negative: 0. Then the commands 0x700b34 {1.0f}, started, 0x803aa8 = 1,
+// 0x803ab4 = -1; with the on flag still set, 0x803ab4 = 0 and 0x700b30 {0}. 0x803adc, 0x803ad8 and 0x803ae0 = 1. Returns 0.
+u32 __cdecl Sound_Start(u32 a, u32 on);
+
 // 0x51b7c0 (cdecl): when on and started, the sound manager's vtable +0 (&result, not read after); then not started. The
 // warning when the allocation count 0x802bd8 is not back to 0 is compiled out.
 void __cdecl Sound_Shutdown();

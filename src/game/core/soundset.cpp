@@ -473,4 +473,38 @@ void __cdecl Sound_SetCameraLevel(s32 level) {
     cmd[0] = 0x00700b44;
     Apply(out, cmd);
 }
+
+namespace {
+
+const SoundStartEnv kStartEnv = {&SoundManager_Make, &SoundManager_Apply};
+const SoundStartEnv *g_start = &kStartEnv;
+
+}  // namespace
+
+void Sound_SetStartEnv(const SoundStartEnv *env) { g_start = env ? env : &kStartEnv; }
+
+u32 __cdecl Sound_Start(u32 a, u32 on) {
+    global<u32>(0x00802bc8) = on;
+    if (!on || global<u32>(0x00802bd4)) return 0;
+    global<u32>(0x00802bd8) = 0;
+    memset(&global<u32>(0x00803a20), 0, 0x34);
+    memset(&global<u32>(0x00803aa0), 0, 0x54);
+    if ((s32)*g_start->make(&on, a, &global<u8 *>(0x00802bcc)) < 0) return 0;
+    u32 functor[2] = {0x00700b34, 0x3f800000};
+    g_start->apply(global<u8 *>(0x00802bcc), nullptr, &on, reinterpret_cast<u8 *>(functor));
+    const u32 still = global<u32>(0x00802bc8);
+    global<u32>(0x00802bd4) = 1;
+    global<u32>(0x00803aa8) = 1;
+    global<u32>(0x00803ab4) = 0xffffffffu;
+    if (still) {
+        global<u32>(0x00803ab4) = 0;
+        functor[0] = 0x00700b30;
+        functor[1] = 0;
+        g_start->apply(global<u8 *>(0x00802bcc), nullptr, &on, reinterpret_cast<u8 *>(functor));
+    }
+    global<u32>(0x00803adc) = 1;
+    global<u32>(0x00803ad8) = 1;
+    global<u32>(0x00803ae0) = 1;
+    return 0;
+}
 }
