@@ -10,7 +10,7 @@ namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const MoneyDisplayHandlerEnv kGameEnv = {reinterpret_cast<void(__cdecl *)(u8 *)>(&MoneyDisplay_Update), &Global81af4c_Set_52fb90, &Window_CallDefault};
+const MoneyDisplayHandlerEnv kGameEnv = {&MoneyDisplay_Update, &Global81af4c_Set_52fb90, &Window_CallDefault};
 const MoneyDisplayHandlerEnv *g_env = &kGameEnv;
 
 }  // namespace
