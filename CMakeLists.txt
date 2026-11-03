@@ -350,6 +350,7 @@ add_library(tpw_game STATIC
     src/game/world/trackmessage.cpp
     src/game/world/trakcarroute.cpp
     src/game/world/sign.cpp
+    src/game/world/flyinglaunch.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp
