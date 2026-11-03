@@ -104,3 +104,29 @@ u8 __fastcall StaffPool_FillAll(u8 *pool) {
     at<u8>(pool, 0x298) = 1;
     return 1;
 }
+
+void __fastcall StaffPool_Start(u8 *pool) {
+    StaffPool_FillAll(pool);
+    Out_SetFromGame1da70c(&at<u32>(pool, 0x294));
+}
+
+void __fastcall StaffPool_TopUp(u8 *pool) {
+    // The used entries of the kind, plus the kind's dword +0x280, short of the limit [0x7852d4] (signed).
+    const auto is_short = [pool](u32 kind) {
+        u32 used = 0;
+        for (u32 i = 0; i != 0x20; ++i) {
+            if (at<u8>(pool, i * 0x14 + 0xa) && at<u32>(pool, i * 0x14) == kind) ++used;
+        }
+        return (s32)(at<u32>(pool, 0x280 + kind * 4) + used) < global<s32>(0x007852d4 + kind * 4);
+    };
+    static const u8 kOrder[5] = {1, 0, 2, 3, 4};
+    bool again;
+    do {
+        again = false;
+        for (const u8 kind : kOrder) {
+            if (!is_short(kind)) continue;
+            add_candidate(pool, kind);
+            again = true;   // (even when it could not add: so a kind short with its flag set or no entry free never ends, as the original)
+        }
+    } while (again);
+}

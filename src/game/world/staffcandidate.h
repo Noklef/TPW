@@ -26,6 +26,13 @@ u8 __fastcall StaffPool_AddCandidate(u8 *pool, void *, u32 kind);
 // is meant: 1.
 u8 __fastcall StaffPool_FillAll(u8 *pool);
 
+// 0x507bb0 (thiscall; name invented, unconfirmed): StaffPool_FillAll, then the tick into +0x294 (Out_SetFromGame1da70c).
+void __fastcall StaffPool_Start(u8 *pool);
+
+// 0x508170 (thiscall; name invented, unconfirmed): round the kinds 1, 0, 2, 3, 4 until no kind is short: a kind whose used entries plus its dword +0x280 are under its limit [0x7852d4]
+// (both signed) gets a candidate (as StaffPool_AddCandidate). A short kind asks for another round even when it was not added: with its flag set or the pool full it never ends (the original's).
+void __fastcall StaffPool_TopUp(u8 *pool);
+
 // What it calls (the fncmp driver's recorders; the game's by default).
 struct StaffCandidateEnv {
     void(__fastcall *tellDialog)(void *dialog, void *, u32 slot);   // 0x481550, agent C's, on 0x7b51f0

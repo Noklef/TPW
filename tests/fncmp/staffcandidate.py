@@ -6,7 +6,9 @@
 # any (1 and 0 divide by zero in both); 0x481550 a thiscall recorder (20 of 1: driver.cpp's StaffCandidateEnv).
 # One, All (0x508330 StaffPool_AddCandidate, 0x5087d0 StaffPool_FillAll): the flags +0x298-+0x29d mostly 0, the pool now and then full, the counts [0x7852ac] small,
 # 40 (up to full) or -1.
-# usage: staffcandidate.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Taken,Pick,Generate,One,All)
+# Start (0x507bb0): All's. TopUp (0x508170): the kinds' dwords +0x280 and limits [0x7852d4] with each kind at, short of or over its limit; kind 4 short only when the pool can
+# take all that is short (else both never end: see top_up()).
+# usage: staffcandidate.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Taken,Pick,Generate,One,All,Start,TopUp)
 import os
 import struct
 import sys
@@ -14,10 +16,10 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import LOG, RAM, Bench, Call, _cdecl_log4, _recorder, log_region, put, text_args  # noqa: E402
 
-B = Bench([(0x508330, 0x508378), (0x5087d0, 0x508978), (0x5083f0, 0x5084f0), (0x507580, 0x507600), (0x507600, 0x5077e8), (0x5074a0, 0x507560), (0x516130, 0x5161c0), (0x516330, 0x516380),
+B = Bench([(0x507bb0, 0x507bc5), (0x508170, 0x508330), (0x508330, 0x508378), (0x5087b0, 0x508978), (0x5083f0, 0x5084f0), (0x507580, 0x507600), (0x507600, 0x5077e8), (0x5074a0, 0x507560), (0x516130, 0x5161c0), (0x516330, 0x516380),
            (0x50b350, 0x50b370), (0x541f70, 0x541fa0), (0x41a960, 0x41a980), (0x506860, 0x506870), (0x67c290, 0x67c320), (0x5da3c0, 0x5da3c1)],
           hooks={0x6acd60: _cdecl_log4, 0x481550: _recorder(20, 1)})
-CALLS = {'Taken': 0x5083f0, 'Pick': 0x507580, 'Generate': 0x507600, 'One': 0x508330, 'All': 0x5087d0}
+CALLS = {'Taken': 0x5083f0, 'Pick': 0x507580, 'Generate': 0x507600, 'One': 0x508330, 'All': 0x5087d0, 'Start': 0x507bb0, 'TopUp': 0x508170}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 WORLD, ENTRY, NAME, THINGS = RAM + 0x100000, RAM, RAM + 0x100, RAM + 0x1000
 THING = 0x300
@@ -65,6 +67,26 @@ def world(r, every=False, full=False):
     return regions, used, unused, names
 
 
+def top_up(r, regions):
+    """TopUp's limits. A kind short that cannot be added goes on for ever: so a kind is short only by what the free entries still cover, with its flag clear. At the sign: a sum
+    just above it with a limit just under wraps to "not short" (kept); a sum at the bottom with a limit under it would wrap to far short (not made)."""
+    pool = regions[WORLD]
+    used = [sum(1 for i in range(0x20) if pool[0x14 * i + 0xa] and struct.unpack_from('<I', pool, 0x14 * i)[0] == k) for k in range(5)]
+    free = sum(1 for i in range(0x20) if not pool[0x14 * i + 0xa])
+    limits = bytearray(20)
+    for k in r.sample(range(5), 5):
+        base = r.choice([0, 0, 1, 2, 5, 0x7ffffffe, 0x7fffffff, r.getrandbits(32)])
+        total = struct.unpack('<i', struct.pack('<I', (base + used[k]) & 0xffffffff))[0]
+        wanted = r.choice([1, 1, 2, 3])
+        short = wanted if not pool[0x299 + k] and free >= wanted and total + wanted <= 0x7fffffff else r.choice([0, 0, -1, -5, 0x80000000 - total if total > 0 else 0])
+        if short > 0:
+            free -= wanted if short == wanted else 0
+        limit = total + short
+        put(pool, 0x280 + 4 * k, 'I', base)
+        put(limits, 4 * k, 'I', (limit if limit >= -0x80000000 else total) & 0xffffffff)
+    regions[0x7852d4] = limits
+
+
 def case(r):
     op = r.deal(OPS)
     log = log_region()
@@ -76,7 +98,7 @@ def case(r):
                 'thing': r.choice(names) if names else b'\0\0', 'empty': b'\0\0', 'other': wide(r)}[pick]
         regions.update({LOG: log, NAME: text + bytes(8)})
         return Call(CALLS[op], [WORLD, NAME], regions, conv='t', ret='b')
-    regions, _, _, _ = world(r, every=r.random() < 0.1 and op in ('Pick', 'Generate'), full=op in ('One', 'All') and r.random() < 0.2)
+    regions, _, _, _ = world(r, every=r.random() < 0.1 and op in ('Pick', 'Generate'), full=op in ('One', 'All', 'TopUp') and r.random() < 0.2)
     entry = bytearray(r.bytes(0x14))
     regions.update({LOG: log, ENTRY: entry})
     if op == 'Pick':
@@ -90,9 +112,12 @@ def case(r):
     regions[0x78530c] = struct.pack('<i', r.choice([2, 3, 100, 1000, 3000, 0x7fffffff, -2, -1000, -0x80000000] * 4 + [0, 1, r.getrandbits(31), -r.getrandbits(31) - 2]))
     if op == 'One':
         return Call(CALLS[op], [WORLD, r.randrange(5)], regions, conv='t', ret='b')
-    if op == 'All':
+    if op in ('All', 'Start'):
         regions[0x7852ac] = b''.join(struct.pack('<i', r.choice([0, 0, 1, 2, 3, 40, -1])) for _ in range(5))
-        return Call(CALLS[op], [WORLD], regions, conv='t', ret='b')
+        return Call(CALLS[op], [WORLD], regions, conv='t', ret='b' if op == 'All' else 'v')
+    if op == 'TopUp':
+        top_up(r, regions)
+        return Call(CALLS[op], [WORLD], regions, conv='t', ret='v')
     kind = r.choice([0, 1, 2, 3, 4] * 3 + [5, 0xff, 0x100, r.getrandbits(32)])
     return Call(CALLS[op], [ENTRY, kind, r.getrandbits(32)], regions, conv='t')
 
