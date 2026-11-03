@@ -82,7 +82,14 @@ def case(r):
         position = r.choice([0, 0, 1, 2, 3, r.randrange(13), -1, count, r.getrandbits(32)]) & 0xffffffff
         return Call(CALLS[op], [LIST, n, position, TEXT, r.getrandbits(32)], regions, conv='t', ret='w')
     if op == 'RemoveNode':
-        return Call(CALLS[op], [LIST, n], regions, conv='t', ret='w')
+        if count > 1 and r.random() < 0.4:   # (a row in the tree that is just past those shown or the first shown, with the post getting through)
+            rows = struct.unpack_from('<h', win, 0x156)[0]
+            n = r.randrange(1, count)
+            put(win, 0x150, 'i', r.choice([n - rows, n]))
+            put(win, 0x14c, 'i', count)
+            win[4] = 0
+            regions[0xfaa5d4] = struct.pack('<I', 1)
+        return Call(CALLS[op], [LIST, n & 0xffffffff], regions, conv='t', ret='w')
     if op == 'FreeNodes':
         return Call(CALLS[op], [NODES if count and r.random() < 0.9 else 0], regions, ret='a')
     if op == 'Clear':
