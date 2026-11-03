@@ -777,7 +777,8 @@ const SceneLeaveEnv kSceneLeaveEnv = {Rec{jpeg_recorder(20, 1)}, Rec{jpeg_record
 const AdvisorCriteriaEnv kAdvisorCriteriaEnv = {Rec{recorder(1, 1)}, Rec{jpeg_recorder(2, 0)}, Rec{recorder(3, 1)}, Rec{recorder(4, 0)}, Rec{recorder(5, 0)}, Rec{recorder(6, 2)}};
 const CellPaintEnv kCellPaintEnv = {Rec{jpeg_recorder(1, 6)}, Rec{jpeg_recorder(2, 3)}};
 const RideSkinEnv kRideSkinEnv = {Rec{jpeg_recorder(1, 1)}};
-const LobbySceneEnv kLobbySceneEnv = {Rec{jpeg_recorder(1, 1)}, Rec{recorder(2, 0)}};
+// (Class702cb0_Step's: thiscall 3 of 2 arguments, thiscall 4 of none, cdecl 6 of 6, cdecl 7 of none, thiscall 5 of 8, as tests/fncmp/lobbystep.py hooks those addresses.)
+const LobbySceneEnv kLobbySceneEnv = {Rec{jpeg_recorder(1, 1)}, Rec{recorder(2, 0)}, Rec{recorder(3, 2)}, Rec{recorder(4, 0)}, Rec{jpeg_recorder(6, 6)}, Rec{jpeg_recorder(7, 0)}, Rec{recorder(5, 8)}};
 const ChatCursorEnv kChatCursorEnv = {Rec{jpeg_recorder(1, 0)}, Rec{jpeg_recorder(2, 4)}, Rec{jpeg_recorder(3, 0)}, Rec{recorder(4, 1)}, Rec{recorder(5, 1)}};
 // tests/fncmp/d3dprobe.py: the clock a recorder.
 const SpriteFramesEnv kSpriteFramesEnv = {reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)(kStubs + 0x1000 + 0x20 * 20))};   // (slot 20's thiscall recorder of no arguments)
