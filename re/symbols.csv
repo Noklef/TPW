@@ -6632,6 +6632,7 @@ address,name,kind,confidence,notes
 0x0057be90,GroundShadow_Draw,function,low,"reimplemented (src/game/render/groundshadow); a flat quad laid over the height grid (name invented, unconfirmed)"
 0x004901d0,PasswordPart_SetLayout,function,low,"reimplemented (src/game/render/passwordpart); a password text part's layout: the text as stars: name invented, unconfirmed"
 0x0057c2a0,GroundShadows_DrawAll,function,low,"reimplemented (src/game/render/groundshadow); a list of ground shadows drawn, the count cleared (name invented, unconfirmed)"
+0x00564650,EngineDebug_Log,function,low,"reimplemented (src/game/render/enginedebug); cdecl (text); name invented: enginedebug.txt opened by the C library, made anew on the first write; the text written, flushed and the file closed"
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"
