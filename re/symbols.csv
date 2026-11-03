@@ -7587,6 +7587,7 @@ address,name,kind,confidence,notes
 0x0048cd10,ThingGoto_Start,function,low,"reimplemented (src/game/ui/thinggoto); thiscall; name invented, unconfirmed: the thing panels' go-to: the question (0x47f020) or the move, the thing forgotten, the panel's slot 0xb"
 0x004ba850,DialupList_Fill,function,low,"reimplemented (src/game/ui/dialuplist); cdecl (shown); name invented, unconfirmed: the online dialog's list of dial-up connections, or the words of the texts 0xe6, 0xe7"
 0x004b72a0,Panel7cc408_ShowVisitor,function,low,"reimplemented (src/game/ui/panel7cc408info); thiscall; slot 5 of the vtable 0x6fff40; name invented, unconfirmed: the people panel's facts about the shown visitor"
+0x004b9340,Dialog7cc4b4_Update,function,low,"reimplemented (src/game/ui/dialog7cc4b4update); cdecl; name invented, unconfirmed: the dialog [0x7cc4b4] brought up to date with the park's theme and the save's levels; see the header"
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"
