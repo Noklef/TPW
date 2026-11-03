@@ -1461,7 +1461,7 @@ int main(int argc, char **argv) {
         // (Visitor_SetState the person env's recorder 26).
         static const VisitorStepsEnv visitorSteps = {t(1, 0), t(2, 2), t(3, 1), t(4, 1), t(5, 0), t(26, 1), t(6, 1), t(7, 1), t(8, 4), t(9, 1), t(10, 2), t(11, 0), t(12, 0), t(13, 1), t(14, 1),
                                                       t(15, 1), t(16, 2), t(17, 0), t(18, 1), reinterpret_cast<u32(__cdecl *)(s32, s32)>(&stub_cdecl_log2), t(19, 2),
-                                                      t(20, 1), t(21, 3), t(22, 1), t(23, 0), t(24, 0), t(25, 0), t(27, 1)};
+                                                      t(20, 1), t(21, 3), t(22, 1), t(23, 0), t(24, 0), t(25, 0), t(27, 1), t(28, 0), t(29, 0)};
         VisitorSteps_SetEnv(&visitorSteps);
         // GameMode_MapPreview's calls (src/game/world/mappreview.h MapPreviewEnv), as tests/fncmp/mappreview.py hooks their addresses.
         static const MapPreviewEnv mapPreview = {c(0, 5), c(1, 5), c(2, 6),  c(3, 2),  c(4, 3),  c(5, 4),  c(6, 2),  c(7, 0),  c(8, 3),
