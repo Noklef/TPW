@@ -24,7 +24,7 @@ B = Bench(list(CALLS.values()) + [(0x5679b0, 0x567aca), (0x5832e0, 0x583360), (0
           hooks={**enginedebug.HOOKS, 0x57cb90: _recorder(TICKS, 0, cdecl=True)})
 PROBE, VBT, VT, DEV, DVT, CAPS = RAM, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x500, RAM + 0x600
 ARG, ERRORS, TAIL, TABLE = RAM + 0x800, 0x879ad0, 0x8bd470, RAM + 0xa00   # (ARG: a call's array, a pixel buffer ...)
-OBJ, OBJVT, OUT = RAM + 0x900, RAM + 0x940, RAM + 0x9e0
+OBJ, OBJVT, OUT, DRAWN = RAM + 0x900, RAM + 0x940, RAM + 0x9e0, RAM + 0xb00
 GONE = 0x887601c2
 SELF = PROBE + 0x2c
 
@@ -37,12 +37,12 @@ def drawing(r, name, probe, off, log, regions):
     enginedebug.texts(log)
     if r.random() < 0.3:
         set_return(log, enginedebug.FOPEN, 0)
-    list_ = bytearray(r.bytes(0x208))
+    list_ = bytearray(r.bytes(0x204))   # (the result 0x879cd4 next after it)
     put(list_, 0x200, 'I', r.choice([0, 1, 0x3f, 0x40, r.randrange(0x40)]))
     regions.update({0x879cd4: r.bytes(4), 0x879a2c: bytearray(struct.pack('<I', r.choice([0, 1]))), ERRORS: list_, 0x8bd508: bytearray(4), 0x8bcbc8: r.bytes(4)})
     shadow = r.getrandbits(32)
     if r.random() < 0.3:
-        shadow = (shadow & ~0xff) | 0x56
+        shadow = (shadow & ~0xff) | r.choice([0x56, 0x56, 0xd6])
     put(probe, off + 0x14, 'I', r.choice([shadow, shadow & 0xffff7bff, shadow | 0x108f00]))
     put(probe, 8, 'I', r.randrange(4))
     hr = hresult(r)
@@ -113,6 +113,8 @@ def drawing(r, name, probe, off, log, regions):
     begun = r.getrandbits(32)
     regions[TABLE] = bytearray(struct.pack('<2I', begun, (begun + r.choice([0, 0x10000000, 1, r.randrange(1 << 20), r.getrandbits(32)])) & 0xffffffff) + bytes(38 * 4))
     answers(log, TICKS, TABLE)
+    regions[DRAWN] = struct.pack('<3I', *r.choice([(0, 0, 0), (0, 0, 0), (0, 0, 0), (hr, 0, 0), (0, hr, 0), (0, 0, hr)])) + bytes(37 * 4)   # (drawing's answers: a failure leaves the loop)
+    answers(log, 29, DRAWN)
     return Call(CALLS[name][0], [SELF], regions, conv='t', ret='d')
 
 
