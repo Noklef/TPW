@@ -51,6 +51,7 @@
 #include "../../src/game/ui/dialog7ca150.h"
 #include "../../src/game/ui/dialog7cc1f8.h"
 #include "../../src/game/ui/panel7cc218.h"
+#include "../../src/game/ui/dialog7ca168.h"
 #include "../../src/game/ui/dialog7ca308.h"
 #include "../../src/game/ui/panel7ca178.h"
 #include "../../src/game/ui/dialog7ca1c8.h"
@@ -596,6 +597,8 @@ const StaffRenameEnv kStaffRenameEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 1
                                         Rec{jpeg_recorder(29, 0)}, Rec{recorder(30, 1)}};
 // Dialog7cc1f8_TabHandler's calls (tests/fncmp/dialog7cc1f8tab.py).
 const Dialog7cc1f8TabEnv kDialog7cc1f8TabEnv = {Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 2)}, Rec{jpeg_recorder(12, 1)}, Rec{jpeg_recorder(13, 3)}, Rec{recorder(14, 3)}};
+// Dialog7ca168_Open's calls (tests/fncmp/dialog7ca168open.py).
+const Dialog7ca168OpenEnv kDialog7ca168OpenEnv = {Rec{jpeg_recorder(22, 2)}, Rec{recorder(23, 1)}, Rec{stdcall_recorder(24, 1)}};
 // Dialog7cdac4_Open's calls (tests/fncmp/dialog7cdac4.py).
 const Dialog7cdac4Env kDialog7cdac4Env = {Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 3)}, Rec{recorder(12, 1)}, Rec{recorder(13, 1)}, Rec{recorder(14, 1)}, Rec{jpeg_recorder(15, 1)}, Rec{recorder(16, 1)}, Rec{recorder(17, 2)}, Rec{jpeg_recorder(18, 1)}, Rec{recorder(19, 1)},
                                           Rec{recorder(20, 2)}, Rec{recorder(21, 2)}, Rec{recorder(22, 2)}, Rec{jpeg_recorder(23, 1)}, Rec{jpeg_recorder(24, 3)}, Rec{recorder(25, 2)}};
@@ -1377,6 +1380,7 @@ int main(int argc, char **argv) {
     StatsGraph_SetEnv(&kStatsGraphEnv);
     ThingBrowser_SetPatrolEnv(&kThingPatrolEnv);
     Panel7cc218_SetShowEnv(&kPanel7cc218ShowEnv);
+    Dialog7ca168_SetOpenEnv(&kDialog7ca168OpenEnv);
     Dialog7ca308_SetEnv(&kDialog7ca308Env);
     Panel7ca178_SetStatsEnv(&kPanel7ca178StatsEnv);
     Dialog7ca1c8_SetOpenEnv(&kDialog7ca1c8OpenEnv);
