@@ -62,6 +62,8 @@ void __cdecl SoundHelper_Free();
 // 0x6d1ec0 (thiscall; an SEH frame; called by the deleting destructor 0x6d1ea0; name invented, unconfirmed): vtable 0x711920; the blocks +0x20 and +0x1c freed (each unless null);
 // vtable 0x7119b8; SoundHelper_Free.
 void __fastcall SoundSource711920_Dtor(u8 *source);
+// 0x6d1ea0 (thiscall (flags), pops 4; name invented, unconfirmed): SoundSource711920_Dtor, then the source freed for flags bit 0. Returns the source.
+u8 *__fastcall SoundSource711920_DeletingDtor(u8 *source, void *, u32 flags);
 
 // 0x6c4190 (thiscall (out, slot, info, arg), pops 0x10; an SEH frame; this only handed on; name invented): *slot = a new 0x711b08 source (SoundSource711b08_Ctor (arg);
 // null when the heap fails, which faults), its slot 6 (a local out holding arg, info). Its answer's status non-negative: *out = 0. Else SoundSource_Destroy, and again

@@ -155,6 +155,12 @@ void __fastcall SoundSource711920_Dtor(u8 *source) {
     SoundHelper_Free();
 }
 
+u8 *__fastcall SoundSource711920_DeletingDtor(u8 *source, void *, u32 flags) {
+    SoundSource711920_Dtor(source);
+    if (flags & 1) GameHeap_Free(source);
+    return source;
+}
+
 namespace {
 const SoundMakeEnv kMakeEnv = {&SoundSource711b08_Ctor, &SoundSource711920_Ctor};
 const SoundMakeEnv *g_make = &kMakeEnv;
