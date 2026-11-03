@@ -346,7 +346,10 @@ class Emu:
             mant, se = struct.unpack('<QH', b)
             if se & 0x7fff == 0x7fff:
                 return math.copysign(math.inf if mant << 1 == 0 else math.nan, -1 if se >> 15 else 1)
-            return math.ldexp(mant, (se & 0x7fff) - 16383 - 63) * (-1 if se >> 15 else 1)
+            try:
+                return math.ldexp(mant, (se & 0x7fff) - 16383 - 63) * (-1 if se >> 15 else 1)
+            except OverflowError:   # (past a double: the CRT's error path loads such a constant at 0x6860be only to raise a masked exception with it)
+                return math.copysign(math.inf, -1 if se >> 15 else 1)
         raise ValueError(op)
 
     def fstore(self, op, v):
@@ -698,7 +701,7 @@ class Emu:
                     break
         elif mn in ('STD', 'CLD'):
             self.df = mn == 'STD'
-        elif mn == 'NOP':   # (padding some code jumps through: 0x4417eb)
+        elif mn in ('NOP', 'WAIT'):   # (padding some code jumps through: 0x4417eb; WAIT: the CRT's error path, exceptions masked: 0x6860c7)
             pass
         elif mn == 'XCHG':
             a, b = self.get(o[0]), self.get(o[1])
