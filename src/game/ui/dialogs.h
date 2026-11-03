@@ -210,6 +210,18 @@ void __cdecl Dialog7cc4c4_Create();
 // = 0); Window_CallDefault's result.
 s32 __cdecl Dialog7cc4c4_Handler(u8 *window, u32 message, u32 a, u32 b);
 
+// 0x4b9980 (cdecl (thing); name invented): with the dialog [0x7cc4c4] there and thing not already [0x7cc4e4], thing remembered there. A thing: child 0x16c11's slot 9 given its +0x14, and the text 0x1ce with argument 0x1b its +0x40 (a number, inline) formatted
+// into 0x7ba058 for child 0x16c12's slot 9. None: both children's slot 9 given the empty text 0x78a374. (The children not checked.)
+void __cdecl Dialog7cc4c4_ShowThing(u8 *thing);
+
+// 0x4b9840 (cdecl (flag: a byte); name invented): with the dialog [0x7cc4b4] there, the byte (as a word: the original's ESI keeps its upper half) to slot 5 of the children 0x1e0f0 and 0x1e0f1 and to Window_SetShown of 0x1e0ea and 0x1e0ec. (The children not
+// checked.)
+void __cdecl Dialog7cc4b4_SetFlag(u32 flag);
+struct Dialog7cc4b4FlagEnv {
+    u32(__fastcall *setShown)(u8 *window, void *, u32 shown);   // Window_SetShown
+};
+void Dialog7cc4b4_SetFlagEnv(const Dialog7cc4b4FlagEnv *env);
+
 // 0x4c4fb0 (cdecl (flag: a byte); called by 0x5dd650 / 0x5dd910 before Dialog7cc4c4_Create; name unconfirmed): unless the dialog [0x7cdb0c]
 // is made or the frame [0xf82884] has no window +4, it is built from the window script 0x7596b0 on that window (WindowScript_Build: the
 // last child it makes) with the handler 0x4c53f0 and its dword +0xa0 0 set to the flag (Window_SetDwordA0). With a flag its child 0x16007

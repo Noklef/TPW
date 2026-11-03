@@ -7,6 +7,7 @@
 #include "../core/idmaps.h"
 #include "../core/language.h"
 #include "../core/methods.h"
+#include "../core/textarg.h"
 #include "../core/vcall.h"
 #include "../render/particles.h"
 #include "../render/textparts.h"
@@ -202,6 +203,43 @@ s32 __cdecl Dialog7cb2b8_Handler(u8 *window, u32 message, u32 a, u32 b) {
 s32 __cdecl Dialog7cc4c4_Handler(u8 *window, u32 message, u32 a, u32 b) {
     if (message == 0x14) *reinterpret_cast<u32 *>(0x007cc4c4) = 0;
     return Window_CallDefault(window, nullptr, message, a, b);
+}
+
+void __cdecl Dialog7cc4c4_ShowThing(u8 *thing) {
+    if (!window(0x007cc4c4)) return;
+    u32 &current = *reinterpret_cast<u32 *>((uintptr_t)0x007cc4e4);
+    if ((u32)(uintptr_t)thing == current) return;
+    current = (u32)(uintptr_t)thing;
+    if (!thing) {
+        vcall<void>(Window_FindChild(window(0x007cc4c4), nullptr, 0x16c11), 0x24, 0x0078a374u);
+        vcall<void>(Window_FindChild(window(0x007cc4c4), nullptr, 0x16c12), 0x24, 0x0078a374u);
+        return;
+    }
+    vcall<void>(Window_FindChild(window(0x007cc4c4), nullptr, 0x16c11), 0x24, *reinterpret_cast<u32 *>(thing + 0x14));
+    u8 arg[0x14];   // (a number argument, as TextArgInt_Ctor builds it inline)
+    *reinterpret_cast<u32 *>(arg) = 0x006ff170;
+    *reinterpret_cast<u32 *>(arg + 4) = 0x5641524d;
+    *reinterpret_cast<u32 *>(arg + 8) = 0x1b;
+    *reinterpret_cast<u32 *>(arg + 0xc) = *reinterpret_cast<u32 *>(thing + 0x40);
+    *reinterpret_cast<u32 *>(arg + 0x10) = 0;
+    TextFormat().format(*reinterpret_cast<void **>((uintptr_t)0x0078ba94), reinterpret_cast<u16 *>((uintptr_t)0x007ba058), 0x3fff, 0x1ce, arg);
+    vcall<void>(Window_FindChild(window(0x007cc4c4), nullptr, 0x16c12), 0x24, 0x007ba058u);
+}
+
+namespace {
+const Dialog7cc4b4FlagEnv kFlagEnv = {Window_SetShown};
+const Dialog7cc4b4FlagEnv *g_flagEnv = &kFlagEnv;
+}  // namespace
+
+void Dialog7cc4b4_SetFlagEnv(const Dialog7cc4b4FlagEnv *env) { g_flagEnv = env ? env : &kFlagEnv; }
+
+void __cdecl Dialog7cc4b4_SetFlag(u32 flag) {
+    if (!window(0x007cc4b4)) return;
+    flag &= 0xff;
+    vcall<void>(Window_FindChild(window(0x007cc4b4), nullptr, 0x1e0f0), 0x14, flag);
+    vcall<void>(Window_FindChild(window(0x007cc4b4), nullptr, 0x1e0f1), 0x14, flag);
+    g_flagEnv->setShown(Window_FindChild(window(0x007cc4b4), nullptr, 0x1e0ea), nullptr, flag);
+    g_flagEnv->setShown(Window_FindChild(window(0x007cc4b4), nullptr, 0x1e0ec), nullptr, flag);
 }
 
 s32 __cdecl Window_DefaultHandler(u8 *window, u32 message, u32 a, u32 b) { return Window_CallDefault(window, nullptr, message, a, b); }
