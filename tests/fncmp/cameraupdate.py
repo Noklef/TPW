@@ -50,7 +50,7 @@ def case(r):
     s(0x790ab0, 'I', r.deal(FLAGS))
     keys = r.deal(KEYS)
     s(0x790aac, 'I', keys)
-    s(0x7909d0, 'I', r.choice([keys, r.deal(KEYS)]))
+    s(0x7909d0, 'I', r.choice([keys, r.deal(KEYS + [8, 0x10, 0x18])]))
     s(0x790a30, 'I', PART)
     s(0x790a98, 'I', r.choice([0x790990, 0x7909f0]))
     # The point: on cell edges (each 10), near them, anywhere, past the map.
@@ -70,7 +70,7 @@ def case(r):
     s(0x790ac8, '2I', f(r, nan, mouse[0] + mx, mouse[0] + mx), f(r, nan, mouse[1] - my, mouse[1] - my))
     extent = bytearray(r.bytes(0x40))
     put(extent, 0x10, '2I', fb(10.0), fb(r.choice([10.0, 10.0, 5.0])))
-    put(extent, 0x18, '2I', r.choice([128, 128, 64]), r.choice([128, 128, 64]))
+    put(extent, 0x18, '2I', r.choice([128, 128, 64]), r.choice([128, 128, 64, 0x10080]))   # (the last: the high word the definition's id keeps)
     put(extent, 0x28, '2I', r.deal([0, 1, 1, 1]), r.deal([0, 1, 1, 1]))
     regions = {G: g, 0x78d910: bytes([r.deal([0, 0, 1]), 0, r.deal([0, 0, 1]), 0]), 0x7a1a14: bytes([r.deal([0, 8, 8]), 0, 0, 0]), 0x7a1c54: struct.pack('<2I', fb(mouse[0]), fb(mouse[1])),
                0x7a0854: struct.pack('<I', VIEW), 0x787c14: struct.pack('<I', MAP), 0x87afe8: struct.pack('<I', TARGET), 0x7a0314: struct.pack('<I', r.choice([128, 64])), 0x7a0374: struct.pack('<I', r.choice([128, 64])),
