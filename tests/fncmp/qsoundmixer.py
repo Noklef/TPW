@@ -103,7 +103,6 @@ def case(r):
         args[name] = [V2, V1, r.choice([0, 0, 1, r.getrandbits(32)]), r.choice([0, 1, r.getrandbits(32)])]
     elif name == 'orient':
         struct.pack_into('<I', source, 0x18, 1)
-        strings(log, ORIENT, 0, out=0b110)
         blob_array(log, ORIENT, 1, 0, 12)
         blob_array(log, ORIENT, 2, 0, 12, which=1)
         args[name] = [V1, V2]
