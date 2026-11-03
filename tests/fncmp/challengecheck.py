@@ -39,6 +39,7 @@ VALUES = [0, 1, 2, 3, 5, 10, 50, 100, -1, -5, 0x7fffffff]
 WORLDS = {**{k: 'value' for k in (1, 2, 3, 4, 5, 6, 7, 8, 0xb, 0xc, 0xd, 0x10, 0x11, 0x14, 0x16)}, 9: 'plain', 0xa: 'plain', 0xe: 'cars', 0xf: 'rides', 0x12: 'cars', 0x13: 'cars',
           0x15: 'rides', 0x18: 'value', 0x19: 'value', 0x1b: 'value', 0x1c: 'park', 0x1d: 'staff', 0x1e: 'controls', 0x1f: 'controls', 0x20: 'controls', 0x21: 'controls',
           0: 'value', 0x17: 'value', 0x1a: 'value', 0x22: 'value', 0xffffffff: 'value'}
+DECK = list(WORLDS) + [0x1d] * 5 + [0x13] * 4 + [0x12] * 2 + [0xe] * 2
 ridesearch.OPS = ['Kind11']
 
 
@@ -54,6 +55,9 @@ def world(r, name):
     if name == 'cars':
         regions, _handles, things = park(r, count=r.choice([0, 1, 2, 3, 4, 6, 6]), kinds=(3, 3, 3, 3, 3, 3, 1, 2, 0))
         c = walkaways.coasters(r, 'MostCars', regions, things)
+        links = c.regions[walkaways.LINKS]
+        for k in range(len(links) // 0x200):  # (counts about 3, kind 0x13's)
+            put(links, 0x200 * k + 0x108, 'I', r.choice([0, 1, 2, 3, 4]))
         return c.regions, c.args[1] & 0xffff
     if name == 'rides':
         c = ridesearch.case(r)
@@ -74,7 +78,7 @@ def world(r, name):
 
 
 def case(r):
-    kind = r.deal(list(WORLDS))
+    kind = r.deal(DECK)
     regions, word, *other = world(r, WORLDS[kind])
     regions = dict(regions)
     challenge = bytearray(r.bytes(0x40))
