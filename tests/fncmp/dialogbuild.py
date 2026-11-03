@@ -98,10 +98,11 @@ def chain(r, op, kids, name=None, font=None):
 
 
 def long_open(log):
-    """for an open that makes more than the log's 40 calls: the calls past them hashed, and slot 3's events the values they carry (Window_NotifyC00's bytes +4 / +5, Window_Notify40000's +0x10-+0x13)"""
+    """for an open that makes more than the log's 40 calls: the calls past them hashed, and slot 3's events the values they carry (Window_NotifyC00's bytes +4 / +5, Window_Notify40000's +0x10-+0x13, Window_NotifyImpl100's text +0)"""
     log_fold(log)
     blob_when_inner(log, 3, 0, 0xc00, (0x10, 0x30), 0)
     blob_when_inner(log, 3, 0, 0x40000, (0x10, 0xf, 0x10), 1)
+    blob_when_inner(log, 3, 0, 0x100, (0x10, 0xf), 2)
 
 
 def small_rect(r, w, size=40):
