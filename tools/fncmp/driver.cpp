@@ -166,6 +166,8 @@
 #include "../../src/game/gfx/tga.h"
 #include "../../src/game/render/d3dprobe.h"
 #include "../../src/game/render/enginedebug.h"
+#include "../../src/game/files/handles.h"
+#include "../../src/game/render/weatherfx.h"
 #include "../../src/game/coaster/arreplay.h"
 #include "../../src/game/coaster/rebuild.h"
 #include "../../src/game/coaster/carpose.h"
@@ -799,6 +801,15 @@ const CoasterRebuildEnv kCoasterRebuildEnv = {Rec{jpeg_recorder(1, 0)}, Rec{jpeg
 const ArReplayEnv kArReplayEnv = {Rec{jpeg_recorder(3, 0)}, Rec{jpeg_recorder(4, 0)}, Rec{jpeg_recorder(5, 0)}, Rec{jpeg_recorder(6, 0)}, Rec{jpeg_recorder(7, 4)}, Rec{jpeg_recorder(8, 4)},
                                   Rec{recorder(9, 2)}, Rec{recorder(10, 4)}, Rec{jpeg_recorder(11, 2)}, Rec{jpeg_recorder(12, 2)}, Rec{jpeg_recorder(13, 2)}, Rec{jpeg_recorder(14, 3)},
                                   Rec{jpeg_recorder(15, 2)}, Rec{jpeg_recorder(16, 2)}, Rec{jpeg_recorder(17, 3)}};  // tests/fncmp/arreplay.py
+// The local handle's address differs between the sides: these pass null as `this` (the bench's hooks clear ECX).
+Handle *__fastcall ReloadCtor(Handle *, void *) { return reinterpret_cast<Handle *(__fastcall *)(Handle *, void *)>((uintptr_t)recorder(5, 0))(nullptr, nullptr); }
+s32 *__fastcall ReloadOpen(Handle *, void *, s32 *r, u32 a) { return reinterpret_cast<s32 *(__fastcall *)(Handle *, void *, s32 *, u32)>((uintptr_t)recorder(6, 2))(nullptr, nullptr, r, a); }
+s32 *__fastcall ReloadFirst(Handle *, void *, s32 *r, u32 a, u32 b) { return reinterpret_cast<s32 *(__fastcall *)(Handle *, void *, s32 *, u32, u32)>((uintptr_t)recorder(7, 3))(nullptr, nullptr, r, a, b); }
+s32 *__fastcall ReloadClose(Handle *, void *, s32 *r, u32 a) { return reinterpret_cast<s32 *(__fastcall *)(Handle *, void *, s32 *, u32)>((uintptr_t)recorder(8, 2))(nullptr, nullptr, r, a); }
+void __fastcall ReloadDtor(Handle *, void *) { reinterpret_cast<void(__fastcall *)(Handle *, void *)>((uintptr_t)recorder(9, 0))(nullptr, nullptr); }
+const WeatherFxReloadEnv kWeatherFxReloadEnv = {Rec{jpeg_recorder(1, 3)}, Rec{recorder(2, 2)}, Rec{recorder(3, 1)}, Rec{recorder(4, 0)},
+                                                reinterpret_cast<Handle *(__fastcall *)(Handle *)>(&ReloadCtor), &ReloadOpen, &ReloadFirst, &ReloadClose,
+                                                reinterpret_cast<void(__fastcall *)(Handle *)>(&ReloadDtor), Rec{jpeg_recorder(10, 0)}};  // tests/fncmp/weatherreload.py
 const LobbySceneEnv kLobbySceneEnv = {Rec{jpeg_recorder(1, 1)}, Rec{recorder(2, 0)}, Rec{recorder(3, 2)}, Rec{recorder(4, 0)}, Rec{jpeg_recorder(6, 6)}, Rec{jpeg_recorder(7, 0)}, Rec{recorder(5, 8)}};
 const ChatCursorEnv kChatCursorEnv = {Rec{jpeg_recorder(1, 0)}, Rec{jpeg_recorder(2, 4)}, Rec{jpeg_recorder(3, 0)}, Rec{recorder(4, 1)}, Rec{recorder(5, 1)}};
 // tests/fncmp/d3dprobe.py: the clock a recorder.
@@ -1970,6 +1981,7 @@ int main(int argc, char **argv) {
     KeyCancel_SetEnv(&kKeyCancelEnv);
     WKeywords_SetEnv(&kWKeywordsEnv);
     EngineDebug_SetEnv(&kEngineDebugEnv);
+    WeatherFx_SetReloadEnv(&kWeatherFxReloadEnv);
     ArReplay_SetEnv(&kArReplayEnv);
     CoasterRebuild_SetEnv(&kCoasterRebuildEnv);
     CoasterPose_SetEnv(&kCoasterPoseEnv);

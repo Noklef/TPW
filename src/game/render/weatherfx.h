@@ -37,6 +37,12 @@ u32 __fastcall WeatherFx_LoadTexture(u8 *fx, void *, u32 which, const char *name
 // leaves it), or 0 without a renderer.
 u32 __cdecl WeatherFx_LoadTextures();
 
+// 0x550950 (cdecl, no arguments; name unconfirmed): the frame's effect textures again. A local folder handle (vtable 0x6fd9e8). With a renderer at [0x8bcbac], its three
+// textures loaded as WeatherFx_LoadTextures does; with the queue [0x8c47a0], SpriteQueue_LoadTexture of the name at 0x765238. The handle opened on the data folder (the
+// path at +8 of MemorySource_GetLock(0xf816c0)); on success the first file of the pattern [0x878ec0] asked for into a local entry (+0x20 -> its name at +0x24, emptied),
+// and when that fails Handle_Vfn8 of the pattern. ColourRamps_SetFromPalette, then the handle destroyed.
+void __cdecl WeatherFx_ReloadEffects();
+
 // 0x57d850 (thiscall; name unconfirmed): WeatherFx_LoadTextures on this renderer (the same three names and slots, each name through
 // Quickload_Locate whether or not its slot is set), then its +4 (the reload asked for) cleared. Returns 1.
 u32 __fastcall WeatherFx_ReloadTextures(u8 *fx);
@@ -107,3 +113,20 @@ u32 __fastcall WeatherFx_DrawDrops(u8 *fx, void *, float x, float y, float z);
 // stack, as in the original. Returns 1 when the batch does not begin, 0 when a quad is refused, else Batch_Close's answer; the batch's +0x30 cleared before the close.
 u32 __fastcall WeatherFx_DrawStreaks(u8 *fx, void *, float x, float y, float z);
 }
+
+struct Handle;
+
+// WeatherFx_ReloadEffects's calls (the bench's recorders; null: the game's).
+struct WeatherFxReloadEnv {
+    char *(__cdecl *locate)(const char *name, u32 flags, s32 *index);
+    u32(__fastcall *load)(u8 *fx, void *, u32 which, const char *name);
+    u32(__fastcall *queueLoad)(u8 *queue, void *, const char *name);
+    u8 *(__fastcall *getLock)(u8 *source);
+    Handle *(__fastcall *ctor)(Handle *h);
+    s32 *(__fastcall *open)(Handle *h, void *, s32 *result, u32 path);
+    s32 *(__fastcall *first)(Handle *h, void *, s32 *result, u32 pattern, u32 entry);
+    s32 *(__fastcall *close)(Handle *h, void *, s32 *result, u32 pattern);
+    void(__fastcall *dtor)(Handle *h);
+    void(__cdecl *setRamps)();
+};
+void WeatherFx_SetReloadEnv(const WeatherFxReloadEnv *env);
