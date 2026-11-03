@@ -7446,6 +7446,7 @@ address,name,kind,confidence,notes
 0x0048adb0,Dialog74fb20_Open,function,low,"reimplemented (src/game/ui/dialog74fb20); the dialog of the script 0x74fb20 built in the overlay, placed and the overlay focused"
 0x0048a740,Dialog74fb20_Handler,function,low,reimplemented (src/game/ui/dialog74fb20); that dialog's handler: closed and built anew by a click after 2 seconds or Escape
 0x004a84c0,TextPanel7cc18c_Show,function,low,reimplemented (src/game/ui/textpanel7cc18c); the text [0x7cbf48] drawn on the panel [0x7cc18c] and shrunk into the window's image by the mode [0x8bd554]
+0x00492f60,Panel7c2534_AddRow,function,low,"reimplemented (src/game/ui/panel7c2534); a text row: the text measured, a child centred across the parent from top down, dressed with a text part, the font, the text and the colour; returns top + height"
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"

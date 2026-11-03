@@ -56,6 +56,7 @@
 #include "../../src/game/ui/dialog7ca1c8.h"
 #include "../../src/game/ui/dialog74fb20.h"
 #include "../../src/game/ui/dialogs.h"
+#include "../../src/game/ui/panel7c2534.h"
 #include "../../src/game/ui/textpanel7cc18c.h"
 #include "../../src/game/world/objectunlock.h"
 #include "../../src/game/core/fpu.h"
@@ -585,6 +586,9 @@ const ThingPatrolEnv kThingPatrolEnv = {Rec{jpeg_recorder(20, 1)}, Rec{jpeg_reco
 constexpr u32 stdcall_recorder(u32 k, u32 n) { return kStubs + 0x1000 + 0x4000 + 0x800 * n + 0x20 * k; }
 const ObjectUnlockScoresEnv kObjectUnlockScoresEnv = {Rec{recorder(19, 0)}, Rec{stdcall_recorder(20, 2)}, Rec{stdcall_recorder(21, 1)}, Rec{stdcall_recorder(22, 2)},
                                                       Rec{jpeg_recorder(23, 0)}, Rec{recorder(24, 2)}, Rec{recorder(25, 2)}};
+// Panel7c2534_AddRow's calls (tests/fncmp/panel7c2534.py).
+const Panel7c2534Env kPanel7c2534Env = {Rec{jpeg_recorder(10, 7)}, Rec{recorder(11, 2)}, Rec{recorder(12, 7)}, Rec{recorder(13, 1)}, Rec{jpeg_recorder(14, 1)}, Rec{recorder(15, 2)}, Rec{jpeg_recorder(16, 1)},
+                                        Rec{recorder(17, 1)}, Rec{recorder(18, 1)}, Rec{jpeg_recorder(19, 1)}, Rec{recorder(20, 1)}, Rec{recorder(21, 2)}, Rec{recorder(23, 4)}};
 // Panel7cc218_EnterTileMode's calls (tests/fncmp/panel7cc218tile.py).
 const Panel7cc218TileEnv kPanel7cc218TileEnv = {Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 1)}, Rec{recorder(20, 1)}, Rec{jpeg_recorder(12, 1)}, Rec{jpeg_recorder(13, 1)},
                                                 Rec{recorder(14, 1)}, Rec{jpeg_recorder(15, 1)}, Rec{recorder(16, 0)}, Rec{stdcall_recorder(17, 1)}, Rec{jpeg_recorder(18, 4)},
@@ -1357,6 +1361,7 @@ int main(int argc, char **argv) {
     Dialog7ca098_SetCreateEnv(&kDialog7ca098CreateEnv);
     TextPanel7cc18c_SetEnv(&kTextPanel7cc18cEnv);
     Panel7cc218_SetTileEnv(&kPanel7cc218TileEnv);
+    Panel7c2534_SetEnv(&kPanel7c2534Env);
     ObjectUnlock_SetScoresEnv(&kObjectUnlockScoresEnv);
     Dialog7ca150_SetEnv(&kDialog7ca150Env);
     Dialog7cc1f8_SetEnv(&kDialog7cc1f8Env);
