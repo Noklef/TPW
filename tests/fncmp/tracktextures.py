@@ -5,7 +5,7 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import LOG, RAM, Bench, Call, _recorder, answers, fill, log_region, set_return, strings  # noqa: E402
+from fncmp import LOG, RAM, Bench, Call, _recorder, answers, fill, log_fold, log_region, set_return, strings  # noqa: E402
 
 BASE, FORMAT, OPEN, LOAD, CELL, TRACK, LIST, ENTRANCE = range(1, 9)
 CDECL = {0x40ef40: (BASE, 0), 0x67a650: (FORMAT, 3), 0x461a60: (OPEN, 3), 0x4629d0: (LOAD, 11), 0x527940: (LIST, 1), 0x5323f0: (ENTRANCE, 0)}
@@ -23,6 +23,7 @@ GLOBALS_U16 = [0x8186ec, 0x818698]
 
 def case(r):
     log = log_region()
+    log_fold(log)   # (the map's reset makes far more calls than the log keeps: its last call, the entrance, is past them)
     name = bytearray(b'-dash\0\0\0' + b'first\0\0\0' + b'second\0\0')
     table = bytearray(r.randbytes(0x763760 - TABLES))
     for slot in range(0x763388, 0x7633e8, 12):   # (the queue's: always a name)
@@ -42,6 +43,8 @@ def case(r):
         return Call(which, [], regions, conv='c', ret='v')
     columns = r.choice([0, 1, 2, 3, -1, r.randrange(1, 6)])
     rows = r.choice([0, 1, 2, -1, r.randrange(1, 6)])
+    if r.random() < 0.02:   # (a row past 0x1ff: the cell's word wraps)
+        columns, rows = 1, 0x201
     regions.update({at: r.randbytes(4) for at in GLOBALS_U32})
     regions.update({at: r.randbytes(1) for at in GLOBALS_U8})
     regions.update({at: r.randbytes(2) for at in GLOBALS_U16})
