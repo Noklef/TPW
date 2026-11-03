@@ -8,6 +8,12 @@
 #include "countedpair.h"
 #include "stdwstring.h"
 
+// What the keyword adder calls (the port by default; its bench runs it as a recorder).
+struct WKeywordsEnv {
+    s32(__cdecl *format)(u8 *charset, u16 *dest, u32 size, u32 entry, ...);   // Charset_FormatWide (0x6acd60)
+};
+void WKeywords_SetEnv(const WKeywordsEnv *env);
+
 extern "C" {
 
 // 0x5e6b30 (thiscall (text by value, context, flags), pops 0x18; name unconfirmed): +0x3d / +0x3e = the word at flags, +0x40 = context,
@@ -22,6 +28,11 @@ void __fastcall WScanner_SetText(u8 *scanner, void *, StdWString text, u32 conte
 // kept) made empty and assigned the key as WScanner_SetText assigns (not frozen), +0x10..+0x1c = the value's four dwords, the key
 // destroyed. Returns the pair.
 u8 *__fastcall WKeywordPair_Ctor(u8 *pair, void *, StdWString key, u32 v0, u32 v1, u32 v2, u32 v3);
+
+// 0x5e49f0 (thiscall (id, handler), pops 8; name invented, unconfirmed): a keyword added: the text of that id (the formatter 0x6acd60 on the table [0x78bac8], 0x80 characters at
+// most) made a wstring, the pair of it and the handler (WKeywordPair_Ctor; the value's other three dwords 0), a list node of 0x28 bytes (next +0, prev +4, the wstring copied at +8, the
+// value's four dwords at +0x18) put before the first node of the list [[+0x48]], the count +0x4c up by one, the stack pair's wstring destroyed.
+void __fastcall WKeywords_Add(u8 *self, void *, u32 id, u32 handler);
 
 // 0x5e57c0, 0x5e6070, 0x5e6540 (thiscall; names unconfirmed): a pair {"", L"", 0xc / 0x12 / 0x15} (its strings built empty, their allocator
 // bytes stack garbage) inserted once at the end of the vector of CountedPairs [+0x50] (CountedPairVector_InsertN(last, 1)), the pair

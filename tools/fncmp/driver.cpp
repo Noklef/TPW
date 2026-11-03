@@ -129,6 +129,7 @@
 #include "../../src/game/coaster/bendmesh.h"
 #include "../../src/game/coaster/carsound.h"
 #include "../../src/game/coaster/trainrun.h"
+#include "../../src/game/core/wscanner.h"
 #include "../../src/game/online/chatcursor.h"
 #include "../../src/game/frontend/lobbyscene.h"
 #include "../../src/game/world/rideskin.h"
@@ -625,6 +626,8 @@ const CellPaintEnv kCellPaintEnv = {Rec{jpeg_recorder(1, 6)}, Rec{jpeg_recorder(
 const RideSkinEnv kRideSkinEnv = {Rec{jpeg_recorder(1, 1)}};
 const LobbySceneEnv kLobbySceneEnv = {Rec{jpeg_recorder(1, 1)}, Rec{recorder(2, 0)}};
 const ChatCursorEnv kChatCursorEnv = {Rec{jpeg_recorder(1, 0)}, Rec{jpeg_recorder(2, 4)}, Rec{jpeg_recorder(3, 0)}, Rec{recorder(4, 1)}, Rec{recorder(5, 1)}};
+const WKeywordsEnv kWKeywordsEnv = {reinterpret_cast<s32(__cdecl *)(u8 *, u16 *, u32, u32, ...)>((uintptr_t)jpeg_recorder(12, 4))};  // tests/fncmp/wkeywords.py
+
 const KeyCancelEnv kKeyCancelEnv = {Rec{recorder(20, 0)}, Rec{jpeg_recorder(21, 2)}, Rec{jpeg_recorder(22, 6)}, Rec{jpeg_recorder(23, 4)}, Rec{jpeg_recorder(24, 2)}};
 const SceneViewsEnv kSceneViewsEnv = {Rec{recorder(20, 0)}, Rec{recorder(21, 0)}};
 const BendMeshEnv kBendMeshEnv = {Rec{jpeg_recorder(1, 8)}, Rec{jpeg_recorder(2, 1)}};
@@ -1461,6 +1464,7 @@ int main(int argc, char **argv) {
     RideBase_SetEnv(&kRideBaseEnv);
     ParkEntrance_SetEnv(&kParkEntranceEnv);
     KeyCancel_SetEnv(&kKeyCancelEnv);
+    WKeywords_SetEnv(&kWKeywordsEnv);
     ChatCursor_SetEnv(&kChatCursorEnv);
     LobbyScene_SetEnv(&kLobbySceneEnv);
     RideSkin_SetEnv(&kRideSkinEnv);
