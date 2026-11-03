@@ -47,6 +47,34 @@ inline void part(u8 *window, PartCtor ctor, u32 id, u32 value) { vcall<void>(dre
 // a part made by ctor and nothing more
 inline void part(u8 *window, PartCtor ctor, u32 id) { dress(window, ctor, id); }
 
+// the child `id` given a part made by ctor (no font); returns the child
+inline u8 *withPart(u8 *window, PartCtor ctor, u32 id) {
+    u8 *const child = Window_FindChild(window, nullptr, id);
+    u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
+    Window_SetImpl(child, nullptr, memory ? ctor(memory, nullptr, 0) : nullptr);
+    return child;
+}
+
+inline void font6(u8 *child) { Window_Set4c(child, nullptr, Language_Font(6)); }
+
+inline void red(u8 *child) { Window_Notify40000(child, nullptr, 0xff, 0, 0, 0xff); }
+
+// a heading in red: its colour comes first, unlike text()'s
+inline void redText(u8 *window, u32 id, u32 text) {
+    u8 *const child = withPart(window, TextPart_Ctor, id);
+    red(child);
+    font6(child);
+    Window_NotifyImpl100(child, nullptr, (u32)(uintptr_t)Language_WideText(text));
+}
+
+// a number's part, without its value
+inline u8 *numberPart(u8 *window, u32 id) {
+    u8 *const child = withPart(window, TextPart6ff3b0_Ctor, id);
+    Window_NotifyC00(child, nullptr, 2, 1);
+    font6(child);
+    return child;
+}
+
 // as dress(), when there is such a child (none allocated else); returns the child or none
 inline u8 *dressIfAny(u8 *window, PartCtor ctor, u32 id) {
     u8 *const child = Window_FindChild(window, nullptr, id);

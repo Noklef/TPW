@@ -49,6 +49,7 @@
 #include "../../src/game/gfx/statsgraph.h"
 #include "../../src/game/ui/thingbrowser.h"
 #include "../../src/game/ui/dialog7ca150.h"
+#include "../../src/game/ui/dialog7cb25c.h"
 #include "../../src/game/ui/dialog7cc1f8.h"
 #include "../../src/game/ui/panel7cc218.h"
 #include "../../src/game/ui/dialog7ca168.h"
@@ -613,6 +614,8 @@ const Dialog7cc1f8TabEnv kDialog7cc1f8TabEnv = {Rec{jpeg_recorder(10, 1)}, Rec{j
 const Dialog7ca168OpenEnv kDialog7ca168OpenEnv = {Rec{jpeg_recorder(22, 2)}, Rec{recorder(23, 1)}, Rec{stdcall_recorder(24, 1)}, Rec{recorder(25, 1)}, Rec{recorder(26, 1)}};
 // Dialog7cc1f8_Open's calls (tests/fncmp/dialog7cc1f8open.py).
 const Dialog7cc1f8OpenEnv kDialog7cc1f8OpenEnv = {Rec{jpeg_recorder(17, 2)}, Rec{jpeg_recorder(18, 5)}, Rec{recorder(19, 1)}, Rec{jpeg_recorder(21, 3)}, Rec{recorder(25, 1)}, Rec{recorder(26, 1)}, Rec{recorder(27, 2)}};
+// Dialog7cb25c_Open's calls (tests/fncmp/dialog7cb25copen.py).
+const Dialog7cb25cOpenEnv kDialog7cb25cOpenEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50)), Rec{jpeg_recorder(21, 3)}, Rec{recorder(22, 2)}, Rec{recorder(27, 2)}, Rec{jpeg_recorder(17, 1)}, Rec{recorder(19, 1)}, Rec{jpeg_recorder(20, 0)}};
 // Online_Instance's constructor (tests/fncmp/onlineinstance.py).
 const OnlineInstanceEnv kOnlineInstanceEnv = {Rec{recorder(10, 0)}};
 // Dialog7cdac4_Handler's calls (tests/fncmp/dialog7cdac4handler.py).
@@ -1469,6 +1472,7 @@ int main(int argc, char **argv) {
     Panel7cc218_SetShowEnv(&kPanel7cc218ShowEnv);
     Dialog7ca168_SetOpenEnv(&kDialog7ca168OpenEnv);
     Online_SetInstanceEnv(&kOnlineInstanceEnv);
+    Dialog7cb25c_SetOpenEnv(&kDialog7cb25cOpenEnv);
     Dialog7ca308_SetEnv(&kDialog7ca308Env);
     Panel7cc408_SetEnv(&kPanel7cc408Env);
     OverlayLoad_SetEnv(&kOverlayLoadEnv);

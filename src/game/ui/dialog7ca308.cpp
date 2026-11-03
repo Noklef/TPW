@@ -55,33 +55,9 @@ void labelKind() {
     if (kind <= 4) g_env->attachLabel(global<u8 *>(0x007ca308), 0x2480, (u32)(uintptr_t)Language_WideText(0x8b + kind));
 }
 
-// A new part (none when the allocation fails) as the child's implementation.
-u8 *withPart(u8 *window, panelparts::PartCtor ctor, u32 id) {
-    u8 *const child = Window_FindChild(window, nullptr, id);
-    u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
-    Window_SetImpl(child, nullptr, memory ? ctor(memory, nullptr, 0) : nullptr);
-    return child;
-}
-
-void font6(u8 *child) { Window_Set4c(child, nullptr, Language_Font(6)); }
-
-void red(u8 *child) { Window_Notify40000(child, nullptr, 0xff, 0, 0, 0xff); }
-
-// A heading in red: its colour comes first, unlike panelparts::text's.
-void redText(u8 *window, u32 id, u32 text) {
-    u8 *const child = withPart(window, TextPart_Ctor, id);
-    red(child);
-    font6(child);
-    Window_NotifyImpl100(child, nullptr, (u32)(uintptr_t)Language_WideText(text));
-}
-
-// A number's part, without its value.
-u8 *numberPart(u8 *window, u32 id) {
-    u8 *const child = withPart(window, TextPart6ff3b0_Ctor, id);
-    Window_NotifyC00(child, nullptr, 2, 1);
-    font6(child);
-    return child;
-}
+using panelparts::numberPart;
+using panelparts::red;
+using panelparts::redText;
 
 // The newest value of a ring (the values, +0x240 the position, +0x244 the count, +0x248 wrapped) into the dword at `address`: an empty
 // ring, or one not wrapped with the position negative, leaves it.

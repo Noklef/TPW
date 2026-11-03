@@ -4,7 +4,26 @@
 
 #include "../../../re/types.h"
 
+// Dialog7cb25c_Open's calls (the ports by default; the bench's recorders: their own benches have them).
+struct Dialog7cb25cOpenEnv {
+    s32(__cdecl *atExit)(void(__cdecl *f)());                                                            // 0x67a7d0
+    void(__cdecl *attach)(u8 *parent, u32 id, u32 text);                                                 // HoverLabel_Attach
+    u32 *(__fastcall *loanOffer)(u8 *money, void *, u32 *out, u32 index);                                // Money_LoanOffer
+    void(__fastcall *buildRows)(u8 *window, void *, u8 *(__cdecl *make)(), void(__cdecl *release)(u8 *));   // Window7059f0_BuildRows
+    void(__cdecl *fillList)(u8 *list);                                                                   // Dialog7cb25c_FillList
+    u16(__fastcall *selectRadio)(u8 *group, void *, u32 id);                                             // RadioGroup_Select
+    void(__cdecl *setTexts)();                                                                           // Dialog7cb25c_SetTexts
+};
+void Dialog7cb25c_SetOpenEnv(const Dialog7cb25cOpenEnv *env);
+
 extern "C" {
+
+// 0x49fb30 (cdecl; name invented): open already, or the mode setting (0xfb3b7c, read the first time under the guard 0xfb34c2 & 1) 2: nothing. Window7c24c8_Close, Global7cb28c_Select (3, 8), the dialog built (the script
+// 0x7525a0, handler 0x49f4e0, on [0x7cb2ac]; none: nothing more), made [0x7c24c8], its label 0x12c4ca the text 0xaa. Its figures 0x12c4c1 (when there): the headings 0x12c4c4 / 0x12c4c2 and in red 0x12c4c9 / 0x12c4c6 (texts
+// 0x165, 0x169, 0x168, 0x167); the numbers 0x12c4c5, the newest of the rings +0x1fc94 (A) of the analyser (GameTable7cfb90_Get1da720_519510); 0x12c4c8, the sum of the eight loans' rates +0x10 taken (+0x14; Money_LoanOffer) (B), red;
+// 0x12c4c7, the newest of the ring +0x1f5a4 (C) less B, red; 0x12c4c3, A less C. The list 0x12c4bd (not checked): its rows (0x4a02b0 / 0x4a03d0), six columns, handler 0x4a06b0, filled, its buttons 0x10, 0x13, 0x14 (font [0x752938], the
+// texts 0xac, 0xaf, 0xb0, values 0xde, 0xe1, 0xe2), 0x11, 0x12, 0x15 no text, -1; the group 0x12c4be given 0x12c4bf when [0x7cb260] is set, else 0x12c4c0. Dialog7cb25c_SetTexts, Advisor_PostId (0xc3).
+void __cdecl Dialog7cb25c_Open();
 
 // 0x49f860 (cdecl): with the dialog [0x7cb25c] (nothing without it), its child 0x12c4bd's children 0x11, 0x12 and 0x15 (Window_FindChild,
 // not checked) each sent a language text as 0x100 to their impl (Language_WideText; Window_NotifyImpl100) and given a value at +0x90 and
