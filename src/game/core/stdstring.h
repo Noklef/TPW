@@ -71,6 +71,8 @@ void __fastcall StdString_Copy(StdString *s, void *edx, u32 n);
 void __fastcall StdString_Split(StdString *s, void *edx);
 
 // Members emitted again outside that range:
+// 0x4f1340: append(chars, n): n of npos (0x6fe5ac) or past max_size throws as too long; a shared block is copied first, a full one grown (_Copy). Returns s.
+StdString *__fastcall StdString_AppendChars(StdString *s, void *edx, const char *chars, u32 n);
 // 0x47b1c0: assign(n, ch): n copies of ch (n of npos, 0x6fe5ac, throws as too long). Returns s.
 StdString *__fastcall StdString_AssignFill(StdString *s, void *edx, u32 n, u32 ch);
 

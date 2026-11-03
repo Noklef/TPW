@@ -8,7 +8,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, HEAP, RAM, heap, put  # noqa: E402
 
-B = Bench([(0x45b340, 0x45b9a0), (0x45aee0, 0x45b1e4), (0x47b1c0, 0x47b2f6), (0x4a9420, 0x4a953c), (0x5d2a80, 0x5d2d0f), (0x45ad90, 0x45aedc), (0x4f1400, 0x4f1510), (0x4c4a80, 0x4c4ba8)])
+B = Bench([(0x45b340, 0x45b9a0), (0x45aee0, 0x45b1e4), (0x47b1c0, 0x47b2f6), (0x4a9420, 0x4a953c), (0x5d2a80, 0x5d2d0f), (0x45ad90, 0x45aedc), (0x4f1340, 0x4f1510), (0x4c4a80, 0x4c4ba8)])
 STRS, BLOCKS, CHARS = RAM, RAM + 0x1000, RAM + 0x2000
 S, X = STRS, STRS + 0x10  # the string under test and a second one
 SLOT = 0x80  # a block per string in BLOCKS: count byte, then up to 0x7e characters + NUL
@@ -135,6 +135,14 @@ def case(r):
         pos = r.choice([0, s[1], r.randrange(s[1] + 1), r.randrange(s[1] + 1)])   # (not past the length: _Xran ends the case)
         count = r.choice([0xffffffff, 0, 1, r.randrange(50), s[1] - pos, max(0, s[1] - pos - 1), r.getrandbits(32)]) & 0xffffffff
         return Call(0x4f1400, [S, pos, count], regions, conv='t', ret='a')
+    if op == 'Append':
+        count = r.choice([0, 1, r.randrange(4, 12), r.randrange(40), r.randrange(30, 0x90), max(s[2] - s[1], 0), max(s[2] - s[1] + 1, 0)])   # (no throw: it ends the case)
+        if s[1] < 0xf and r.random() < 0.05:
+            count = 0xfffffff0
+        if s[1] >= 2 and r.random() < 0.15:   # (npos below the length: the count that wraps the total to 0 gets through)
+            regions[0x6fe5ac] = put(bytearray(4), 0, 'I', 1)
+            count = 0 - s[1] & 0xffffffff
+        return Call(0x4f1340, [S, CHARS + r.randrange(0x40), count], regions, conv='t', ret='a')
     if op == 'Split':
         return Call(0x45b8d0, [S], regions, conv='t')
     # AssignSub: from x, or from s itself
@@ -144,7 +152,7 @@ def case(r):
     return Call(0x45b380, [S, src, pos, count], regions, conv='t', ret='a')
 
 
-KINDS = ['Dtor', 'Tidy', 'AssignChars', 'Eos', 'Grow', 'MaxSize', 'Copy', 'Split', 'AssignSub', 'AssignSub', 'Online', 'Fill', 'Freeze', 'CopyCtor', 'CopyInto', 'ServersCtor', 'ServersDtor', 'Erase']
+KINDS = ['Dtor', 'Tidy', 'AssignChars', 'Eos', 'Grow', 'MaxSize', 'Copy', 'Split', 'AssignSub', 'AssignSub', 'Online', 'Fill', 'Freeze', 'CopyCtor', 'CopyInto', 'ServersCtor', 'ServersDtor', 'Erase', 'Append', 'Append']
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 if __name__ == '__main__':
