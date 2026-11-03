@@ -627,6 +627,7 @@ add_library(tpw_game STATIC
     src/game/world/worldstart.cpp
     src/game/world/worldupdate.cpp
     src/game/world/tracktextures.cpp
+    src/game/world/signtext.cpp
     src/game/ui/staffrename.cpp
     src/game/ui/window7cc8bc.cpp
     src/game/ui/dialog7cb2b8.cpp

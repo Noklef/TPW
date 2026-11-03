@@ -406,6 +406,7 @@
 #include "../game/world/sign.h"
 #include "../game/world/rideupkeep.h"
 #include "../game/world/scapeobjects.h"
+#include "../game/world/signtext.h"
 #include "../game/world/staffctors.h"
 #include "../game/world/staffheld.h"
 #include "../game/world/staffsteps.h"
@@ -6270,6 +6271,9 @@ const Hook kHooks[] = {
     {"TrackTextures_LoadWaterRide", 0x00522c60, (void *)&TrackTextures_LoadWaterRide, {0x81, 0xec, 0x04, 0x01, 0x00}},
     {"TrackTextures_LoadHoarding", 0x00522e40, (void *)&TrackTextures_LoadHoarding, {0x81, 0xec, 0x04, 0x01, 0x00}},
     {"Track_ResetMap",            0x0052f050, (void *)&Track_ResetMap, {0x8b, 0x4c, 0x24, 0x08, 0x55}},
+    {"SignText_Format",           0x004e2780, (void *)&SignText_Format, {0x53, 0x56, 0x8b, 0xf1, 0x57}},
+    {"SignText_SetFirst",         0x004e2950, (void *)&SignText_SetFirst, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
+    {"SignText_SetSecond",        0x004e2a50, (void *)&SignText_SetSecond, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},

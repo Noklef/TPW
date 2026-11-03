@@ -5982,6 +5982,9 @@ address,name,kind,confidence,notes
 0x00522c60,TrackTextures_LoadWaterRide,function,low,reimplemented (src/game/world/tracktextures); The water ride's texture table loaded
 0x00522e40,TrackTextures_LoadHoarding,function,low,reimplemented (src/game/world/tracktextures); The hoarding's texture table loaded
 0x0052f050,Track_ResetMap,function,low,"reimplemented (src/game/world/tracktextures); The track state cleared, the cells reset, the tables loaded"
+0x004e2780,SignText_Format,function,low,reimplemented (src/game/world/signtext); A sign's two lines in one string
+0x004e2950,SignText_SetFirst,function,low,"reimplemented (src/game/world/signtext); A sign's first line set, saved and sent"
+0x004e2a50,SignText_SetSecond,function,low,"reimplemented (src/game/world/signtext); A sign's second line set, saved and sent"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved
