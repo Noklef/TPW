@@ -118,7 +118,9 @@
 #include "../../src/game/world/trackcircuit.h"
 #include "../../src/game/world/mappreview.h"
 #include "../../src/game/world/personscripts.h"
+#include "../../src/game/core/funnytime.h"
 #include "../../src/game/world/staff.h"
+#include "../../src/game/world/weather.h"
 #include "../../src/game/world/things.h"
 #include "../../src/game/world/queuepieces.h"
 #include "../../src/game/world/cellmodel.h"
@@ -1331,6 +1333,21 @@ int main(int argc, char **argv) {
     Object_SetEnv(&kObjectEnv);
     StatsGraph_SetEnv(&kStatsGraphEnv);
     Object_SetDeleteEnv(&kObjectDeleteEnv);
+    // The clock's tick (FunnyTime_Update): the post the thiscall recorder 21 of 1, Obj7b51f0_ShowDate 20 of 9, 0x4a5e10 / StatsGraph_Redraw / Dialog7cb25c_Refresh
+    // the cdecl recorders 19, 18 and 17 of 1, as tests/fncmp/funnyupdate.py hooks those addresses.
+    static const FunnyTimeEnv funnyTimeEnv = {reinterpret_cast<u32(__fastcall *)(u8 *, void *, u8 *)>((uintptr_t)recorder(21, 1)),
+                                              reinterpret_cast<void(__fastcall *)(void *, void *, u32, u32, u32, u32, u32, u32, u32, u32, u32)>((uintptr_t)recorder(20, 9)),
+                                              reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(19, 1)),
+                                              reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(18, 1)),
+                                              reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(17, 1))};
+    FunnyTime_SetEnv(&funnyTimeEnv);
+    // The weather's constructor and tick: the post the thiscall recorder 21 of 1, WeatherFx_ReloadTextures 20 of 0, agent B's 0x580320 19 of 8, Sound_SetAmbientLevel the cdecl 18 of 1, as
+    // tests/fncmp/weathertick.py hooks those addresses.
+    static const WeatherEnv weatherEnv = {reinterpret_cast<u32(__fastcall *)(u8 *, void *, u8 *)>((uintptr_t)recorder(21, 1)),
+                                          reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)recorder(20, 0)),
+                                          reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32, u32, u32, u32, u32, u32, u32)>((uintptr_t)recorder(19, 8)),
+                                          reinterpret_cast<void(__cdecl *)(s32)>((uintptr_t)jpeg_recorder(18, 1))};
+    Weather_SetEnv(&weatherEnv);
     BankAccount_SetEnv(&kBankAccountEnv);
     MessageCentre_SetEnv(&kMessageCentreEnv);
     GlyphRender_SetEnv(&kGlyphRenderEnv);   // (tests/fncmp/glyphrender.py hooks 0x67a7d0 with fncmp._cdecl_log)
