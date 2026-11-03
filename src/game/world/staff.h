@@ -286,6 +286,15 @@ void Staff_SetWalkEnv(const StaffWalkEnv *env);   // nullptr: the game's
 // Others: nothing.
 void __fastcall Staff_ModelState(u8 *staff);
 
+// 0x506a40 (thiscall; name invented, unconfirmed; the original's debug prints "I'm fed up, I'm going on strike", "couldn't find a rest area"; called by the
+// kinds' steps): answers 1 when the staff member has set off. The kind's entry of the world's 0x1da718 record set and the ride element 1 (Game_GetRideElement1)
+// 1: +0x188 = 1 and Sprite_SetDestination to a point of the strike area (high bytes World_Rand % [0x7855f4 / 0x7855f8] + [0x7855ec / 0x7855f0], low bytes
+// World_Rand) and, when it can go, Staff_SetState 4, 1. Else the level +0x1fc (__ftol's byte) at or under [0x785324]: the thought 0x14, the nearest rest
+// area (Things_NearestRestArea; Sprite_SetDestinationCell to its cell +0x36) as +0x208 and Staff_SetState 2, 1; none: one roll in 16 the happiness +0x1f8
+// less [0x785328], 0. Above it: the word +0xc0 from the table 0x75c7f8 by the level / 20 (100 up its fifth), then the happiness's byte up to 10 the thought
+// 0x13, above 0x61 one roll in 16 the thought 0x12, 0.
+u32 __fastcall Staff_CheckMood(u8 *staff);
+
 // 0x4f7c40 (thiscall; name invented, unconfirmed): a jump to Person_Detach (Thing_Delete's kind 0x12, Researcher_Detach's base).
 void __fastcall Staff_Detach(u8 *staff);
 // 0x502920 (thiscall; name invented, unconfirmed): a researcher (kind 8) taken out of the world: out of the game object's list of them

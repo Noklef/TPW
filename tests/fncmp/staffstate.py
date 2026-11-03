@@ -33,8 +33,11 @@
 # Thing_Delete thiscall recorders (29 of 1, 30 of 0: driver.cpp's StaffWalkEnv).
 # ModelState (0x5056e0): SetState's surroundings; the state 4 (Sprite_WalkNav answering 0, 2 or another; Thoughts_Show a thiscall recorder, 31 of 2:
 # driver.cpp's StaffWalkEnv), 6 (the tick less +0x200 at, either side of or away from 3 * the grade's value of 0x785330), 7 or others; 5 on Head's.
+# Mood (0x506a40): Head's surroundings; the kind entry of the world's +0x1da718 record 0 or not, the ride of +0x1da732 (element 1 answering 1 mostly), the
+# strike area 0x7855ec-0x7855f8 about navpath's cell (so that the walk works with a size of 1); the levels +0x1fc and +0x1f8 at and about the tests, the
+# limit 0x785324, 0-2 rest areas on that cell; Thoughts_Show as in ModelState.
 # usage: staffstate.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetState,Mechanic,Handyman,PickUp,Settle,Head,Researcher,LeaveRest,
-#   Message,MechMsg,HandyMsg,GuardMsg,DefaultMsg,WalkRest,Dismiss,ModelState)
+#   Message,MechMsg,HandyMsg,GuardMsg,DefaultMsg,WalkRest,Dismiss,ModelState,Mood)
 import os
 import struct
 import sys
@@ -44,7 +47,7 @@ sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import navpath  # noqa: E402
 import wctimage  # noqa: E402
-from fncmp import HEAP, LOG, LOG_BYTES, Bench, Call, RAM, _recorder, blob_bytes, fb, heap, put, recorder, set_return, vtable  # noqa: E402
+from fncmp import HEAP, LOG, LOG_BYTES, Bench, Call, RAM, _recorder, blob_bytes, fb, heap, log_region, put, recorder, set_return, vtable  # noqa: E402
 from focus import MODES  # noqa: E402
 from mousemode import assign  # noqa: E402
 from movingperson import cell_xy  # noqa: E402
@@ -63,14 +66,14 @@ B = Bench(wctimage.merged(MODES + [
     (0x415e00, 0x415e80), (0x504c70, 0x504dd2), (0x40f440, 0x40f446), (0x40f490, 0x40f496), (0x40f510, 0x40f516), (0x40f920, 0x40f926),
     (0x506490, 0x5064d4), (0x506910, 0x506a38), (0x5195d0, 0x51960d), (0x4d01f0, 0x4d0259),
     (0x4da0c0, 0x4da10e), (0x4d6cf0, 0x4d6d53), (0x4d5fb0, 0x4d5ff5), (0x4d4450, 0x4d445d)] + navpath.RANGES + [(0x505fe0, 0x506183),
-    (0x505790, 0x5059e2), (0x5059e4, 0x505a0c), (0x5056e0, 0x505790)]),
+    (0x505790, 0x5059e2), (0x5059e4, 0x505a0c), (0x5056e0, 0x505790), (0x506a40, 0x506d10), (0x51a290, 0x51a2f0)]),
           hooks={0x40fb10: _recorder(21, 1), 0x4fa2a0: _recorder(28, 0), 0x4fa470: _recorder(29, 1), 0x50b780: _recorder(30, 0), 0x50be80: _recorder(31, 2)})
 STAFF, WORLD, MODE, MODE_VT, HOLDER = RAM + 0x20000, RAM + 0x21000, RAM + 0xc000, RAM + 0xc100, RAM + 0xc200
 RECORD, CELLS = RAM + 0x21400, RAM + 0x50000
 
 
 CALLS = {'SetState': 0x5054d0, 'Mechanic': 0x4da370, 'Handyman': 0x4d7330, 'PickUp': 0x505c50, 'Settle': 0x505f50, 'Head': 0x506300,
-         'Researcher': 0x502c20, 'LeaveRest': 0x506d10, 'Message': 0x504c70, 'WalkRest': 0x505fe0, 'Dismiss': 0x505790, 'ModelState': 0x5056e0,
+         'Researcher': 0x502c20, 'LeaveRest': 0x506d10, 'Message': 0x504c70, 'WalkRest': 0x505fe0, 'Dismiss': 0x505790, 'ModelState': 0x5056e0, 'Mood': 0x506a40,
          'MechMsg': 0x4da0c0, 'HandyMsg': 0x4d6cf0, 'GuardMsg': 0x4d5fb0, 'DefaultMsg': 0x4d4450}
 # the kinds' handlers: (the staff member's handle word, the message type it takes)
 HANDLERS = {'MechMsg': (0x218, 0xa), 'HandyMsg': (0x21a, 0xa), 'GuardMsg': (0x212, 0x1b), 'DefaultMsg': (None, None)}
@@ -147,6 +150,45 @@ def head(r):
     regions[0x7855bc] = struct.pack('<II', column, row)
     regions[0x75c7f0] = r.bytes(4)
     return Call(0x506300, [RAM], regions, conv='t', ret='v')
+
+
+def mood(r):
+    """Mood (0x506a40): see the header."""
+    regions = dict(head(r).regions)
+    regions.setdefault(LOG, log_region())
+    struct.pack_into('<I', regions[LOG], LOG_BYTES + 4 * 31, 2)
+    world = struct.unpack('<I', regions[0x80239c])[0] + 0x1da708
+    w = bytearray(regions[world]) + bytearray(r.bytes(0x20))
+    table = regions[0x7cfb90]
+    free = [k for k in range(1, 16) if struct.unpack_from('<I', table, 20 * k)[0] not in (REC, THING)]
+    ride, *rests = r.sample(free, 3)
+    rests = rests[:r.choice([0, 1, 1, 2])]
+    leave_rest(r, regions, table, ride)
+    regions[RIDES] = put(bytearray(regions[RIDES]), 0x8c, 'i', r.choice([2, 2, 2, 3, 1]))
+    regions[RIDES + 0x100] = put(bytearray(regions[RIDES + 0x100]), 4, 'I', r.choice([1, 1, 1, 1, 0, 2]))
+    regions[0x8791a0] = struct.pack('<I', 1)
+    put(w, 0x2a, 'H', r.choice([ride] * 7 + [0]))
+    column, row = struct.unpack('<II', regions[0x7855bc])
+    cid = (row << 7) + column + 1 & 0xffff
+    blob = bytearray(r.bytes(0x40 * 4))
+    for i, k in enumerate(rests):
+        put(table, 20 * k, 'I', RESTS + 0x40 * i)
+        put(blob, 0x40 * i + 0xc, 'H', rests[i + 1] if i + 1 < len(rests) else 0)
+        blob[0x40 * i + 0x32] = r.choice([0xff, 2, 2, 0xfd])
+        put(blob, 0x40 * i + 0x36, 'H', cid)
+    regions[RESTS] = blob
+    put(w, 0x3e, 'H', rests[0] if rests else 0)
+    regions[world] = w
+    x, y = cell_xy(cid)   # (a size of 1 rolls the cell the walk works to)
+    regions[0x7855ec] = struct.pack('<4I', x >> 8 & 0xff, y >> 8 & 0xff, r.choice([1] * 19 + [r.randrange(1, 300)]), r.choice([1] * 19 + [r.randrange(1, 300)]))
+    staff = regions[RAM]
+    levels = [0.0, 5.0, 10.0, 10.9, 11.0, 19.9, 20.0, 50.0, 97.0, 97.9, 98.0, 99.9, 100.0, 101.0, 255.9, 256.0, 3e9, -1.0]
+    put(staff, 0x1fc, 'f', r.choice(levels))
+    put(staff, 0x1f8, 'I', r.choice([fb(v) for v in levels] + [fb(r.uniform(-50, 200)), 0x7fc00000, 0x7f800000, 0xff800000]))
+    regions[0x785324] = struct.pack('<i', r.choice([0, 10, 20, 50, 99, 100, 255, -1, -0x80000000, r.getrandbits(31)]))
+    regions[0x785328] = struct.pack('<i', r.choice([0, 1, 5, 10, 50, -5, -50, 0x7fffffff, -0x80000000, r.getrandbits(31)]))
+    regions[0x75c7f8] = r.bytes(12)
+    return Call(CALLS['Mood'], [RAM], regions, conv='t', ret='a')
 
 
 def leave_rest(r, regions, table, h):
@@ -255,6 +297,8 @@ def case(r):
     op = r.deal(OPS)
     if op == 'Head':
         return head(r)
+    if op == 'Mood':
+        return mood(r)
     if op == 'ModelState' and r.random() < 0.2:   # (state 5: Head's surroundings)
         regions = dict(head(r).regions)
         put(regions[RAM], 0x19c, 'I', 5)

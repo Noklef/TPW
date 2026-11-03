@@ -744,6 +744,15 @@ void __fastcall Staff_LeaveRestArea(u8 *staff) {
 namespace {
 const StaffWalkEnv kGameWalkEnv = {&Sprite_WalkNav, &Sprite_SpawnParticle, &Thing_Delete, &Thoughts_Show};
 const StaffWalkEnv *g_walk = &kGameWalkEnv;
+
+// +0x1f8 less the int [0x785328] (x87: fild, fchs, fadd): above 100.0 100.0, below 0 (or NaN) 0, else the sum.
+void lower_happiness(u8 *staff) {
+    const X87Reg sum = X87Reg(-(double)*reinterpret_cast<const s32 *>((uintptr_t)0x00785328)) + *reinterpret_cast<const float *>(staff + 0x1f8);
+    float &happiness = *reinterpret_cast<float *>(staff + 0x1f8);
+    if (sum.v > 100.0) happiness = 100.0f;
+    else if (!(sum.v >= 0.0)) happiness = 0.0f;
+    else happiness = (float)sum;
+}
 }  // namespace
 
 void Staff_SetWalkEnv(const StaffWalkEnv *env) { g_walk = env ? env : &kGameWalkEnv; }
@@ -761,13 +770,51 @@ void __fastcall Staff_WalkToRestArea(u8 *staff) {
         u32 msg[4] = {0x00700868, 0, *Thing_GetHandle(staff, nullptr, &handle), 1};   // (the original leaves the word above the handle as it was)
         Object_PostMessage(reinterpret_cast<u8 *>(msg));
     } else if (walked == 2) {
-        const X87Reg rest = X87Reg(-(double)*reinterpret_cast<const s32 *>((uintptr_t)0x00785328)) + *reinterpret_cast<const float *>(staff + 0x1f8);
-        float &energy = *reinterpret_cast<float *>(staff + 0x1f8);
-        if (rest.v > 100.0) energy = 100.0f;
-        else if (!(rest.v >= 0.0)) energy = 0.0f;
-        else energy = (float)rest;
+        lower_happiness(staff);
         Staff_SetState(staff, nullptr, 0);
     }
+}
+
+u32 __fastcall Staff_CheckMood(u8 *staff) {
+    const u32 index = Byte2_ToIndex(staff);
+    const u32 record = GameTable7cfb90_Get1da718_519450(global<u8 *>(0x0080239c));
+    if (Obj_GetIndexed28(reinterpret_cast<u8 *>((uintptr_t)record), nullptr, index) != 0 && Game_GetRideElement1(global<u8 *>(0x0080239c)) == 1) {
+        // (Debug_Printf "Right, I'm fed up, I'm going on strike": empty)
+        at<u32>(staff, 0x188) = 1;
+        const u8 xHigh = (u8)((u32)World_Rand(global<u8 *>(0x0080239c)) % global<u32>(0x007855f4) + global<u8>(0x007855ec));
+        const u8 xLow = (u8)World_Rand(global<u8 *>(0x0080239c));
+        const u8 yHigh = (u8)((u32)World_Rand(global<u8 *>(0x0080239c)) % global<u32>(0x007855f8) + global<u8>(0x007855f0));
+        const u8 yLow = (u8)World_Rand(global<u8 *>(0x0080239c));
+        // (the original's dwords leave their upper words as the stack had them; the walk reads the words)
+        if (Sprite_SetDestination(staff, nullptr, xHigh << 8 | xLow, yHigh << 8 | yLow)) {
+            Staff_SetState(staff, nullptr, 4);
+            return 1;
+        }
+    }
+    const u32 rest = (u32)(long long)at<float>(staff, 0x1fc) & 0xff;   // __ftol
+    if ((s32)rest <= global<s32>(0x00785324)) {
+        g_walk->showThought(staff + 0x30, nullptr, 0x14, 0);
+        u16 area;
+        Things_NearestRestArea(staff, nullptr, &area);
+        if (area != 0) {
+            const u8 *const thing = global<u8 *>(0x007cfb90 + area * 20u);
+            if (Sprite_SetDestinationCell(staff, nullptr, at<u16>(thing, 0x36))) {
+                at<u16>(staff, 0x208) = area;
+                Staff_SetState(staff, nullptr, 2);
+                return 1;
+            }
+        }
+        if ((World_Rand(global<u8 *>(0x0080239c)) & 0xf) == 0) lower_happiness(staff);
+        return 0;
+    }
+    at<u16>(staff, 0xc0) = rest >= 100 ? global<u16>(0x0075c800) : global<u16>(0x0075c7f8 + rest / 20 * 2);
+    const u8 happiness = (u8)(long long)at<float>(staff, 0x1f8);   // __ftol
+    if (happiness <= 0xa) {
+        g_walk->showThought(staff + 0x30, nullptr, 0x13, 0);
+        return 0;
+    }
+    if (happiness > 0x61 && (World_Rand(global<u8 *>(0x0080239c)) & 0xf) == 0) g_walk->showThought(staff + 0x30, nullptr, 0x12, 0);
+    return 0;
 }
 
 void __fastcall Staff_ModelState(u8 *staff) {
