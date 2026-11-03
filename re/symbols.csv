@@ -5685,6 +5685,32 @@ address,name,kind,confidence,notes
 0x004f1230,BasicIstreamW_DeletingDtor,function,low,reimplemented (src/game/core/iosbase); basic_istream<wchar_t>'s deleting destructor
 0x004f1850,BadCast_DeletingDtor,function,low,reimplemented (src/game/core/iosbase); bad_cast's deleting destructor
 0x004f1b80,CtypeW_DeletingDtor,function,low,reimplemented (src/game/core/iosbase); ctype<wchar_t>'s deleting destructor
+0x006d2110,SoundSource711920_Open,function,low,reimplemented (src/game/core/qsoundmixer); The QSound session opened on the source's config
+0x006d2220,SoundSource711920_SetOptions,function,low,reimplemented (src/game/core/qsoundmixer); The library's options from the flags
+0x006d2260,SoundSource711920_GetBuffer,function,low,reimplemented (src/game/core/qsoundmixer); The channel's DirectSound buffer
+0x006d22b0,SoundSource711920_Close,function,low,reimplemented (src/game/core/qsoundmixer); The session closed
+0x006d2320,SoundSource711920_EnableChannel,function,low,reimplemented (src/game/core/qsoundmixer); A channel's pan rate and enable
+0x006d2380,SoundSource711920_PlayWave,function,low,reimplemented (src/game/core/qsoundmixer); A wave opened and played on its channel
+0x006d24c0,SoundSource711920_StopChannel,function,low,reimplemented (src/game/core/qsoundmixer); A channel stopped
+0x006d2500,SoundSource711920_PauseChannel,function,low,reimplemented (src/game/core/qsoundmixer); A channel paused
+0x006d2540,SoundSource711920_RestartChannel,function,low,reimplemented (src/game/core/qsoundmixer); A channel restarted
+0x006d2580,SoundSource711920_StopAll,function,low,reimplemented (src/game/core/qsoundmixer); All channels stopped
+0x006d25a0,SoundSource711920_PauseAll,function,low,reimplemented (src/game/core/qsoundmixer); All channels paused
+0x006d25c0,SoundSource711920_RestartAll,function,low,reimplemented (src/game/core/qsoundmixer); All channels restarted
+0x006d25e0,SoundSource711920_GetSourcePosition,function,low,"reimplemented (src/game/core/qsoundmixer); A channel's source position, y and z swapped"
+0x006d2640,SoundSource711920_SetSourcePosition,function,low,reimplemented (src/game/core/qsoundmixer); A channel's source position
+0x006d27b0,SoundSource711920_SetListenerVelocity,function,low,reimplemented (src/game/core/qsoundmixer); The listener's velocity: to minus from
+0x006d2820,SoundSource711920_SetFrequencyStep,function,low,reimplemented (src/game/core/qsoundmixer); A channel's frequency scaled by a table step
+0x006d28a0,SoundSource711920_SetFrequency,function,low,reimplemented (src/game/core/qsoundmixer); A channel's frequency
+0x006d28d0,SoundSource711920_SetSourceCone,function,low,reimplemented (src/game/core/qsoundmixer); A channel's source cone
+0x006d2930,SoundSource711920_SetDistanceMapping,function,low,reimplemented (src/game/core/qsoundmixer); A channel's distance mapping
+0x006d2980,SoundSource711920_SetVolume,function,low,reimplemented (src/game/core/qsoundmixer); A channel's volume from the word table
+0x006d29f0,SoundSourceBase_DeletingDtor,function,low,"reimplemented (src/game/core/qsoundmixer); The base destructor, the source freed for bit 0"
+0x006d2a10,SoundSource711920_SetListenerPosition,function,low,"reimplemented (src/game/core/qsoundmixer); The listener's position, its velocity first when asked"
+0x006d2b20,SoundSource711920_SetListenerOrientation,function,low,reimplemented (src/game/core/qsoundmixer); The listener's orientation
+0x006d2ca0,SoundSource711920_SetPanRateAll,function,low,reimplemented (src/game/core/qsoundmixer); All channels' pan rate
+0x006d2ce0,SoundSource711920_SetSpeedOfSound,function,low,reimplemented (src/game/core/qsoundmixer); The speed of sound
+0x006d2d20,SoundSource711920_SetSpeakerPlacement,function,low,reimplemented (src/game/core/qsoundmixer); The speaker placement from an object's answer
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

@@ -212,6 +212,7 @@
 #include "../game/core/narrowwriter.h"
 #include "../game/core/refcounted.h"
 #include "../game/core/parkinfo.h"
+#include "../game/core/qsoundmixer.h"
 #include "../game/core/releaselist.h"
 #include "../game/core/sfbank.h"
 #include "../game/core/sfman.h"
@@ -5914,6 +5915,32 @@ const Hook kHooks[] = {
     {"BasicIstreamW_DeletingDtor", 0x004f1230, (void *)&BasicIstreamW_DeletingDtor, {0x56, 0x8d, 0x71, 0xf8, 0x8b}},
     {"BadCast_DeletingDtor",      0x004f1850, (void *)&BadCast_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0xc8}},
     {"CtypeW_DeletingDtor",       0x004f1b80, (void *)&CtypeW_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"SoundSource711920_Open",    0x006d2110, (void *)&SoundSource711920_Open, {0x8b, 0x44, 0x24, 0x08, 0x83}},
+    {"SoundSource711920_SetOptions", 0x006d2220, (void *)&SoundSource711920_SetOptions, {0x8a, 0x54, 0x24, 0x08, 0x33}},
+    {"SoundSource711920_GetBuffer", 0x006d2260, (void *)&SoundSource711920_GetBuffer, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
+    {"SoundSource711920_Close",   0x006d22b0, (void *)&SoundSource711920_Close, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"SoundSource711920_EnableChannel", 0x006d2320, (void *)&SoundSource711920_EnableChannel, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
+    {"SoundSource711920_PlayWave", 0x006d2380, (void *)&SoundSource711920_PlayWave, {0x83, 0xec, 0x34, 0x53, 0x55}},
+    {"SoundSource711920_StopChannel", 0x006d24c0, (void *)&SoundSource711920_StopChannel, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
+    {"SoundSource711920_PauseChannel", 0x006d2500, (void *)&SoundSource711920_PauseChannel, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
+    {"SoundSource711920_RestartChannel", 0x006d2540, (void *)&SoundSource711920_RestartChannel, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
+    {"SoundSource711920_StopAll", 0x006d2580, (void *)&SoundSource711920_StopAll, {0x8b, 0x41, 0x18, 0x6a, 0x01}},
+    {"SoundSource711920_PauseAll", 0x006d25a0, (void *)&SoundSource711920_PauseAll, {0x8b, 0x41, 0x18, 0x6a, 0x01}},
+    {"SoundSource711920_RestartAll", 0x006d25c0, (void *)&SoundSource711920_RestartAll, {0x8b, 0x41, 0x18, 0x6a, 0x01}},
+    {"SoundSource711920_GetSourcePosition", 0x006d25e0, (void *)&SoundSource711920_GetSourcePosition, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"SoundSource711920_SetSourcePosition", 0x006d2640, (void *)&SoundSource711920_SetSourcePosition, {0x83, 0xec, 0x0c, 0x56, 0x8b}},
+    {"SoundSource711920_SetListenerVelocity", 0x006d27b0, (void *)&SoundSource711920_SetListenerVelocity, {0x83, 0xec, 0x0c, 0x8b, 0x44}},
+    {"SoundSource711920_SetFrequencyStep", 0x006d2820, (void *)&SoundSource711920_SetFrequencyStep, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"SoundSource711920_SetFrequency", 0x006d28a0, (void *)&SoundSource711920_SetFrequency, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
+    {"SoundSource711920_SetSourceCone", 0x006d28d0, (void *)&SoundSource711920_SetSourceCone, {0x83, 0xec, 0x0c, 0x8b, 0x44}},
+    {"SoundSource711920_SetDistanceMapping", 0x006d2930, (void *)&SoundSource711920_SetDistanceMapping, {0x83, 0xec, 0x10, 0x8b, 0x44}},
+    {"SoundSource711920_SetVolume", 0x006d2980, (void *)&SoundSource711920_SetVolume, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
+    {"SoundSourceBase_DeletingDtor", 0x006d29f0, (void *)&SoundSourceBase_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x68}},
+    {"SoundSource711920_SetListenerPosition", 0x006d2a10, (void *)&SoundSource711920_SetListenerPosition, {0x83, 0xec, 0x0c, 0x56, 0x8b}},
+    {"SoundSource711920_SetListenerOrientation", 0x006d2b20, (void *)&SoundSource711920_SetListenerOrientation, {0x83, 0xec, 0x28, 0x56, 0x8b}},
+    {"SoundSource711920_SetPanRateAll", 0x006d2ca0, (void *)&SoundSource711920_SetPanRateAll, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
+    {"SoundSource711920_SetSpeedOfSound", 0x006d2ce0, (void *)&SoundSource711920_SetSpeedOfSound, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
+    {"SoundSource711920_SetSpeakerPlacement", 0x006d2d20, (void *)&SoundSource711920_SetSpeakerPlacement, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
