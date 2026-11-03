@@ -147,6 +147,15 @@ u32 __cdecl Wavelet_Startup();
 // its slot 6 (+0x18; the codec pointer is kept) and 1 returned.
 u32 __cdecl Wavelet_Shutdown();
 
+// 0x593ab0 (thiscall on the codec; width, height, pixel size, the main and alpha blocks, the pixels, the Y, Cb, Cr and alpha quantisers; pops 0x28; the SEH frame left out; the name
+// from 0x592000's version test, unconfirmed): the v0x12 decoder. The side as in WaveletCodec_EncodeGrey; Buffer_Decompress of each block into the stream at 0xa067f8; a row
+// array of side floats (zeroed, freed at the end) takes each row's coefficients (WaveletCodec_ReadCoefficients, inline there) and the inverse D4 puts it into the plane at +0x3c
+// (each plane its own sums at the row's start and, for n below 6, between the pairs), then down the columns: Y into 0xeb4a48, Cb and Cr (half the side) into 0xa667f8 and
+// 0xcaf228, alpha into 0xef4a48. A pixel size of 4 writes four floats a pixel to 0xd70a38 in 2 x 2 blocks and packs them to bytes as MMX does (saturated to 0-255); any other 16-bit
+// pixel words in 2 x 2 blocks, the alpha word or the format's mask. An odd width or height writes past the image (sic).
+void __fastcall WaveletCodec_DecodeV12(u8 *codec, void *, u32 width, u32 height, u32 pixelSize, const void *src, const void *alpha, u8 *pixels,
+                                       float qY, float qCb, float qCr, float qA);
+
 // 0x595920 (thiscall on the codec, unused; width, height, pixel size, the main and alpha blocks, the pixels, the Y, Cb, Cr and alpha
 // quantisers; pops 0x28): the v0x13 decoder. The side as in WaveletCodec_EncodeGrey; the main block LZ77-unpacked (the bit reader of
 // Wavelet_ReadBits reset over it, its first bit read inline) into the stream at 0xa067f8 and read on as bytes (0x80 escaping an s16):

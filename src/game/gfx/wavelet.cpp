@@ -436,9 +436,187 @@ void OutputScaled(u32 dstWidth, u32 dstHeight, u32 pitch, u32 pixelSize, u8 *pix
     }
 }
 
+// The planes of the v0x12 decoder 0x593ab0.
+const u32 kV12Y = 0x00eb4a48, kV12Cb = 0x00a667f8, kV12Cr = 0x00caf228, kV12A = 0x00ef4a48;
+
+// The order a plane of 0x593ab0 sums its rows in. Between the pairs (n below 6: only the chroma planes of side 8 have any) the terms 0 h0 * next low, 1 h3 * next high, 2 h1 * high in
+// `pair`'s order, then h2 * low; at the row's start the terms 0 h3 * first high, 1 h1 * last high, 2 h2 * last low in `wrap`'s order, then first low * h0.
+struct V12Order {
+    u8 pair[3];
+    u8 wrap[3];
+};
+const V12Order kV12OrderY = {{0, 1, 2}, {0, 1, 2}};
+const V12Order kV12OrderCb = {{2, 0, 1}, {0, 2, 1}};
+const V12Order kV12OrderCrA = {{0, 1, 2}, {2, 1, 0}};
+
+X87Reg Sum3(const X87Reg *t, const u8 *order) { return (t[order[0]] + t[order[1]]) + t[order[2]]; }
+
+void V12Row(const float *row, float *dst, s32 n, const V12Order &o) {
+    const s32 half = n >> 1, m = half - 1;
+    const float *const low = row, *const high = row + half;
+    if (n >= 6) {
+        InverseD4Pairs(reinterpret_cast<const u8 *>(row), 4, (u32)half * 4, 4, reinterpret_cast<u8 *>(dst + 2), 4, 8, (u32)(m - 1));
+    } else {
+        for (s32 k = 0; k < m; ++k) {
+            const X87Reg t[3] = {X87Reg(H0()) * low[k + 1], X87Reg(H3()) * high[k + 1], X87Reg(H1()) * high[k]};
+            dst[2 * k + 2] = (float)(Sum3(t, o.pair) + X87Reg(H2()) * low[k]);
+            dst[2 * k + 3] = (float)(((X87Reg(H1()) * low[k + 1] + X87Reg(H3()) * low[k]) - X87Reg(H0()) * high[k]) - X87Reg(H2()) * high[k + 1]);
+        }
+    }
+    const X87Reg t[3] = {X87Reg(H3()) * high[0], X87Reg(H1()) * high[m], X87Reg(H2()) * low[m]};
+    dst[0] = (float)(Sum3(t, o.wrap) + X87Reg(low[0]) * H0());
+    dst[1] = (float)(((X87Reg(H3()) * low[m] + X87Reg(low[0]) * H1()) - X87Reg(H0()) * high[m]) - X87Reg(H2()) * high[0]);
+}
+
+// One plane: n rows of n coefficients from the cursor, each read into the row array and through the inverse step into the plane at +0x3c (rows n floats apart); then down the
+// columns into plane, its wrapped first two rows the same in every plane.
+void V12Plane(u8 *codec, float *row, const u8 *&cursor, u32 n, float q, u32 plane, const V12Order &o) {
+    float *out = at<float *>(codec, 0x3c);
+    for (u32 y = n; y != 0; --y) {
+        WaveletCodec_ReadCoefficients(codec, nullptr, &cursor, row, n, q);
+        V12Row(row, out, (s32)n, o);
+        out += n;
+    }
+    const float *const src = at<const float *>(codec, 0x3c);
+    float *const dst = reinterpret_cast<float *>(plane);
+    InverseD4RowPairs(reinterpret_cast<const u8 *>(src), reinterpret_cast<u8 *>(dst), n, n);
+    const u32 half = n >> 1, lastLow = (half - 1) * n, high = n * half, lastHigh = lastLow + high;
+    for (u32 c = 0; c < n; ++c) {
+        dst[c] = (float)(((X87Reg(H2()) * src[lastLow + c] + X87Reg(H1()) * src[lastHigh + c]) + X87Reg(H3()) * src[high + c]) + X87Reg(src[c]) * H0());
+        dst[n + c] = (float)(((X87Reg(H3()) * src[lastLow + c] + X87Reg(src[c]) * H1()) - X87Reg(H0()) * src[lastHigh + c]) - X87Reg(H2()) * src[high + c]);
+    }
+}
+
+// 0x593ab0's 32-bit output, first its floats at 0xd70a38: 2 x 2 blocks as in Output16 (an odd width or height runs on over the next row, sic), B, G, R and A of a pixel in four
+// floats, rows width pixels apart: the biased colours plus Y, the biased alpha or 0x4b4000ff (255 in its low bits). The first three of a block's Y are loaded, the fourth a memory
+// operand.
+void V12Floats(u32 width, u32 height, u32 side, bool alpha) {
+    const float *const y = reinterpret_cast<const float *>(kV12Y);
+    const float *const a = reinterpret_cast<const float *>(kV12A);
+    const float *const cb = reinterpret_cast<const float *>(kV12Cb);
+    const float *const cr = reinterpret_cast<const float *>(kV12Cr);
+    const auto last = [&](float *to, u32 index) {
+        if (alpha)
+            to[3] = Biased(a[index]);
+        else
+            at<u32>(to, 0xc) = 0x4b4000ff;
+    };
+    for (s32 row = 0; row < (s32)height; row += 2) {
+        if ((s32)width <= 0)
+            continue;
+        u32 ci = (u32)(row >> 1) * (side >> 1);
+        u32 yi = (u32)row * side;
+        float *o0 = reinterpret_cast<float *>(0x00d70a38) + (u32)row * width * 4;
+        float *o1 = o0 + width * 4;
+        for (u32 blocks = (width + 1) >> 1; blocks != 0; --blocks) {
+            const float blue = Blue16(cb[ci]);
+            const X87Reg green = Green16(cb[ci], cr[ci]);
+            const float red = Red16(cr[ci]);
+            const u32 index[3] = {yi, yi + 1, yi + side};
+            float *const to[3] = {o0, o0 + 4, o1};
+            for (u32 k = 0; k < 3; ++k) {
+                const X87Reg v(y[index[k]]);
+                to[k][0] = (float)(X87Reg(blue) + v);
+                to[k][1] = (float)(green + v);
+                to[k][2] = (float)(X87Reg(red) + v);
+                last(to[k], index[k]);
+            }
+            const float fourth = y[yi + side + 1];
+            o1[4] = (float)(X87Reg(blue) + fourth);
+            o1[5] = (float)(green + fourth);
+            o1[6] = (float)(X87Reg(red) + fourth);
+            last(o1 + 4, yi + side + 1);
+            yi += 2;
+            ++ci;
+            o0 += 8;
+            o1 += 8;
+        }
+    }
+}
+
+// Then the MMX packing (0x5950f6): (width * height * 4 + 7) / 8 runs of 8 floats to 8 bytes: each one's low 16 bits, signed, saturated to 0-255.
+void V12Pack(u32 width, u32 height, u8 *pixels) {
+    const u32 *from = reinterpret_cast<const u32 *>(0x00d70a38);
+    for (u32 runs = (height * width * 4 + 7) >> 3; runs != 0; --runs) {
+        for (u32 k = 0; k < 8; ++k) {
+            const s32 v = (s16)from[k];
+            pixels[k] = v < 0 ? 0 : v > 0xff ? 0xff : (u8)v;
+        }
+        from += 8;
+        pixels += 8;
+    }
+}
+
+// 0x593ab0's 16-bit output: Output16's blocks over its own planes, the first three of a block's Y loaded, the fourth a memory operand.
+void V12Output16(u32 width, u32 height, u32 side, u8 *pixels, bool alpha) {
+    TexFormat_Table(reinterpret_cast<u8 *>((uintptr_t)0x008bd550));
+    const u32 mask = alpha ? 0 : FormatMask();
+    const float *const y = reinterpret_cast<const float *>(kV12Y);
+    const float *const a = reinterpret_cast<const float *>(kV12A);
+    const float *const cb = reinterpret_cast<const float *>(kV12Cb);
+    const float *const cr = reinterpret_cast<const float *>(kV12Cr);
+    u16 *const out = reinterpret_cast<u16 *>(pixels);
+    for (s32 row = 0; row < (s32)height; row += 2) {
+        if ((s32)width <= 0)
+            continue;
+        u32 ci = (u32)(row >> 1) * (side >> 1);
+        u32 yi = (u32)row * side;
+        u16 *row0 = out + width * (u32)row;
+        u16 *row1 = out + width * (u32)(row + 1);
+        for (u32 blocks = (width + 1) >> 1; blocks != 0; --blocks) {
+            const float blue = Blue16(cb[ci]);
+            const X87Reg green = Green16(cb[ci], cr[ci]);
+            const float red = Red16(cr[ci]);
+            const u32 index[4] = {yi, yi + 1, yi + side, yi + side + 1};
+            u16 *const to[4] = {row0, row0 + 1, row1, row1 + 1};
+            for (u32 k = 0; k < 4; ++k) {
+                const u32 word = alpha ? Word(0x00cef328, Low16(Biased(a[index[k]]))) : mask;
+                if (k == 3) {
+                    *to[k] = Pixel16(y[index[k]], blue, green, red, word);
+                } else {
+                    const X87Reg v(y[index[k]]);
+                    const float b = (float)(X87Reg(blue) + v), g = (float)(green + v), r = (float)(X87Reg(red) + v);
+                    *to[k] = (u16)(Word(0x00ceff28, Low16(g)) | Word(0x00cef728, Low16(b)) | Word(0x00cf0328, Low16(r)) | word);
+                }
+            }
+            yi += 2;
+            ++ci;
+            row0 += 2;
+            row1 += 2;
+        }
+    }
+}
+
 }  // namespace
 
 extern "C" {
+
+void __fastcall WaveletCodec_DecodeV12(u8 *codec, void *, u32 width, u32 height, u32 pixelSize, const void *src, const void *alpha, u8 *pixels, float qY, float qCb, float qCr,
+                                       float qA) {
+    // The SEH frame is left out.
+    const u32 w = SideFor(width), h = SideFor(height);
+    const u32 side = w > h ? w : h, half = side >> 1;
+    Buffer_Decompress(src, kStream, at<void *>(codec, 0x4c));
+    float *const row = static_cast<float *>(GameHeap_Alloc(side * 4));
+    std::memset(row, 0, side * 4);
+    const u8 *cursor = kStream;
+    V12Plane(codec, row, cursor, side, qY, kV12Y, kV12OrderY);
+    V12Plane(codec, row, cursor, half, qCb, kV12Cb, kV12OrderCb);
+    V12Plane(codec, row, cursor, half, qCr, kV12Cr, kV12OrderCrA);
+    if (alpha) {
+        Buffer_Decompress(alpha, kStream, at<void *>(codec, 0x4c));
+        cursor = kStream;
+        V12Plane(codec, row, cursor, side, qA, kV12A, kV12OrderCrA);
+    }
+    if (pixelSize == 4) {
+        V12Floats(width, height, side, alpha != nullptr);
+        V12Pack(width, height, pixels);
+    } else {
+        V12Output16(width, height, side, pixels, alpha != nullptr);
+    }
+    if (row)
+        GameHeap_Free(row);
+}
 
 u32 __cdecl Wavelet_Startup() {
     if (global<u32>(0x00879a68))
