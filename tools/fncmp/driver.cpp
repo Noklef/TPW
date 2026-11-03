@@ -122,6 +122,7 @@
 #include "../../src/game/render/tiledpanel.h"
 #include "../../src/game/render/groundshadow.h"
 #include "../../src/game/gfx/spriteframelights.h"
+#include "../../src/game/model/ridebase.h"
 #include "../../src/game/terrain/ground.h"
 #include "../../src/game/terrain/water.h"
 #include "../../src/game/render/weatherfx.h"
@@ -596,6 +597,13 @@ const SpriteGroupsEnv kSpriteGroupsEnv = {Rec{recorder(1, 2)}};
 const TiledPanelEnv kTiledPanelEnv = {Rec{recorder(1, 2)}};
 const GroundShadowEnv kGroundShadowEnv = {Rec{recorder(1, 2)}};
 const SpriteFrameLightsEnv kSpriteFrameLightsEnv = {Rec{recorder(2, 0)}, Rec{recorder(3, 0)}, Rec{recorder(4, 4)}, Rec{recorder(1, 2)}};
+// RideBase_Prepare's fit has 28 stack dwords, past a recorder's 15: the cdecl recorder 1 of 13, the matrix by address (tests/fncmp/ridebase.py's hook does the same).
+void __cdecl ride_base_fit(const u8 *node, u8 *frame, u16 **cursor, GridFitMatrix matrix, const u8 *grid, u32 place, s32 *hits, float lift, u8 **best, s32 *bestCount, u32 flags,
+                           const u8 *only, u32 fine) {
+    using Fit = void(__cdecl *)(const u8 *, u8 *, u16 **, const GridFitMatrix *, const u8 *, u32, s32 *, float, u8 **, s32 *, u32, const u8 *, u32);
+    reinterpret_cast<Fit>((uintptr_t)jpeg_recorder(1, 13))(node, frame, cursor, &matrix, grid, place, hits, lift, best, bestCount, flags, only, fine);
+}
+const RideBaseEnv kRideBaseEnv = {&ride_base_fit, Rec{jpeg_recorder(2, 5)}, Rec{jpeg_recorder(3, 2)}};
 const TerrainGroundEnv kTerrainGroundEnv = {Rec{recorder(4, 0)}, Rec{recorder(5, 2)}, Rec{recorder(6, 0)}, Rec{recorder(7, 3)}, Rec{recorder(1, 5)}, Rec{recorder(11, 5)}, &water_transform,
                                             Rec{kStubs + 0x1000 + 0x4000 + 0x800 * 5 + 0x20 * 3}, Rec{recorder(8, 0)}, Rec{recorder(9, 1)}, Rec{jpeg_recorder(10, 3)}, Rec{recorder(2, 1)}};
 const WeatherDrawEnv kWeatherDrawEnv = {Rec{recorder(1, 5)}, Rec{recorder(2, 1)}, Rec{recorder(3, 1)}, Rec{recorder(4, 2)}, Rec{recorder(5, 2)}};
@@ -1424,6 +1432,7 @@ int main(int argc, char **argv) {
     TiledPanel_SetEnv(&kTiledPanelEnv);
     GroundShadow_SetEnv(&kGroundShadowEnv);
     SpriteFrameLights_SetEnv(&kSpriteFrameLightsEnv);
+    RideBase_SetEnv(&kRideBaseEnv);
     WeatherFx_SetDrawEnv(&kWeatherDrawEnv);
     WeatherFx_SetDropsEnv(&kWeatherDropsEnv);
     ModelGroup_SetEnv(&kModelGroupEnv);
