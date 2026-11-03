@@ -67,9 +67,54 @@ void settingText(u8 *self, u32 id, u32 n, u32 offset) {
     TextArgInt_Ctor(arg, nullptr, n, at<s32>(self, offset), 1);
     TextFormat().format(*reinterpret_cast<void **>((uintptr_t)0x0078ba94), reinterpret_cast<u16 *>((uintptr_t)0x007ba058), 0x3fff, id, arg);
 }
+const Panel7cc218ShowEnv kShowGameEnv = {Window705b20_SetRange, Window_SetShown, Panel7cc218_ShowSettings};
+const Panel7cc218ShowEnv *g_show = &kShowGameEnv;
+// A table's dword (the level's row in the definition) as a part of the range, 10 bits of fraction.
+s32 rangePart(const u8 *def, u32 table, u8 level, s32 from, s32 to) {
+    return (s32)((u32)at<s32>(def, ((u32)level << 6) + table) << 10) / (s32)((u32)to - (u32)from);
+}
 }  // namespace
 
+void Panel7cc218_SetShowEnv(const Panel7cc218ShowEnv *env) { g_show = env ? env : &kShowGameEnv; }
+
 extern "C" {
+
+void __fastcall Panel7cc218_ShowRide(u8 *self) {
+    const u8 *const thing = *reinterpret_cast<u8 **>((uintptr_t)0x007c2658);
+    const u8 *const def = Object_GetDef(thing);
+    if (!root(self)) return;
+    if (u8 *const child = Window_FindChild(root(self), nullptr, 0x3e30)) {
+        const s32 from = at<s32>(def, 0x134), to = at<s32>(def, 0x138);
+        g_show->setRange(child, nullptr, from, to);
+        vcall<void>(child, 0x1c, at<u32>(thing, 0x58));
+        const u8 level = at<u8>(thing, 0x50);
+        u8 *const part = Window_FindChild(child, nullptr, 0x3e2e);
+        vcall<void>(part, 0x1c, rangePart(def, 0x1ac, level, from, to));
+    }
+    if (u8 *const child = Window_FindChild(root(self), nullptr, 0x3e2f)) {
+        const u32 shown = at<u32>(def, 0x70);
+        at<u32>(self, 0x28) = shown;
+        g_show->setShown(child, nullptr, shown ? 1u : 0u);
+        g_show->setRange(child, nullptr, at<s32>(def, 0x12c), at<s32>(def, 0x130));
+        vcall<void>(child, 0x1c, (u32)at<u8>(thing, 0x5c));
+    }
+    if (u8 *const child = Window_FindChild(root(self), nullptr, 0x3e2d)) {
+        const s32 from = at<s32>(def, 0x124), to = at<s32>(def, 0x128);
+        if (from == to) {
+            g_show->setShown(child, nullptr, 0);
+            g_show->setShown(Window_FindChild(root(self), nullptr, 0x3e31), nullptr, 0);
+        } else {
+            g_show->setShown(child, nullptr, 1);
+            g_show->setShown(Window_FindChild(root(self), nullptr, 0x3e31), nullptr, 1);
+            const u8 level = at<u8>(thing, 0x50);
+            u8 *const part = Window_FindChild(child, nullptr, 0x3e2e);
+            vcall<void>(part, 0x1c, rangePart(def, 0x19c, level, from, to));
+        }
+        g_show->setRange(child, nullptr, from, to);
+        vcall<void>(child, 0x1c, (u32)at<u8>(thing, 0x5d));
+    }
+    g_show->showSettings(self, nullptr, 7);
+}
 
 void __fastcall Panel7cc218_Dress(u8 *self) {
     if (!window(self)) return;

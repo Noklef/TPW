@@ -4,7 +4,22 @@
 
 #include "../../../re/types.h"
 
+// Panel7cc218_ShowRide's calls (the ports by default; the bench's recorders: their own benches have them).
+struct Panel7cc218ShowEnv {
+    void(__fastcall *setRange)(u8 *window, void *, s32 from, s32 to);   // Window705b20_SetRange
+    u32(__fastcall *setShown)(u8 *window, void *, u32 shown);           // Window_SetShown
+    void(__fastcall *showSettings)(u8 *self, void *, u8 flags);         // Panel7cc218_ShowSettings
+};
+void Panel7cc218_SetShowEnv(const Panel7cc218ShowEnv *env);
+
 extern "C" {
+
+// 0x4af030 (thiscall; name invented): the shown thing [0x7c2658]'s definition (Object_GetDef, read first) put on the window +0x10's children (none: nothing). The child 0x3e30: the range
+// +0x134 / +0x138 (Window705b20_SetRange), slot 7 given the thing's +0x58, its child 0x3e2e's slot 7 given the level table's +0x1ac << 10 over the range (idiv; no 0x3e2e or an empty range
+// fault, sic). The child 0x3e2f: the definition's +0x70 kept in this +0x28, shown when that is not 0, the range +0x12c / +0x130, slot 7 given the thing's byte +0x5c. The child 0x3e2d: with the
+// range +0x124 / +0x128 empty hidden, 0x3e31 too (Window_SetShown, the child not checked); else both shown and its child 0x3e2e's slot 7 given the level table's +0x19c << 10 over the range;
+// either way the range, slot 7 given the thing's byte +0x5d. Finally Panel7cc218_ShowSettings (7). The level table is at the thing's byte +0x50 * 0x40 in the definition.
+void __fastcall Panel7cc218_ShowRide(u8 *self);
 
 // 0x4ad890 (thiscall; slot 3 of the vtable 0x6ffbe8): with the window +0x14 set (read again for each child), its children dressed in this
 // order (ui/panelparts; a text a TextPart_Ctor part with that language text, a part's or a bar's value given to the child's slot 7):

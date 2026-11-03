@@ -50,6 +50,7 @@
 #include "../../src/game/ui/thingbrowser.h"
 #include "../../src/game/ui/dialog7ca150.h"
 #include "../../src/game/ui/dialog7cc1f8.h"
+#include "../../src/game/ui/panel7cc218.h"
 #include "../../src/game/core/fpu.h"
 #include "../../src/game/core/gameheap.h"
 #include "../../src/game/core/string.h"
@@ -573,6 +574,8 @@ const MessageCentreEnv kMessageCentreEnv = {reinterpret_cast<u32(__fastcall *)(u
 // The statistics graph's lines 0x49aa30 (StatsGraph_Redraw's after): the cdecl recorder 22 (tests/fncmp/gauge.py hooks 0x49aa30 with it).
 // ThingBrowser_SendPatrolLines's camera and lines (tests/fncmp/thingpatrol.py).
 const ThingPatrolEnv kThingPatrolEnv = {Rec{jpeg_recorder(20, 1)}, Rec{jpeg_recorder(21, 5)}};
+// Panel7cc218_ShowRide's range, shown and settings (tests/fncmp/panel7cc218show.py).
+const Panel7cc218ShowEnv kPanel7cc218ShowEnv = {Rec{recorder(21, 2)}, Rec{recorder(22, 1)}, Rec{recorder(23, 1)}};
 // Dialog7cc1f8_FillList's list calls, full name and text (tests/fncmp/dialog7cc1f8.py).
 const Dialog7cc1f8Env kDialog7cc1f8Env = {Rec{recorder(10, 0)}, Rec{recorder(11, 4)}, Rec{recorder(12, 0)}, Rec{recorder(13, 3)}, Rec{jpeg_recorder(14, 1)}};
 // Dialog7ca150_Handler's tabs, text, label and thing panel (tests/fncmp/dialog7ca150handler.py; dialog7ca150.py calls the tabs directly: their hooks are unaffected).
@@ -1315,6 +1318,7 @@ int main(int argc, char **argv) {
     Object_SetEnv(&kObjectEnv);
     StatsGraph_SetEnv(&kStatsGraphEnv);
     ThingBrowser_SetPatrolEnv(&kThingPatrolEnv);
+    Panel7cc218_SetShowEnv(&kPanel7cc218ShowEnv);
     Dialog7ca150_SetEnv(&kDialog7ca150Env);
     Dialog7cc1f8_SetEnv(&kDialog7cc1f8Env);
     Object_SetDeleteEnv(&kObjectDeleteEnv);
