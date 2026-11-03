@@ -651,6 +651,7 @@
 #include "../game/ui/window705a20char.h"
 #include "../game/ui/window705b20thumb.h"
 #include "../game/ui/window7cb2a4.h"
+#include "../game/ui/window7cb2b0handler.h"
 #include "../game/ui/window7cb2cc.h"
 #include "../game/ui/window7cc8bc.h"
 #include "../game/ui/window7cc8bcmenu.h"
@@ -7978,6 +7979,7 @@ const Hook kHooks[] = {
     {"GamePause_RemakePicture",   0x004a9280, (void *)&GamePause_RemakePicture, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"GamePause_Hide",            0x004a9380, (void *)&GamePause_Hide, {0x53, 0x68, 0x95, 0x00, 0x00}},
     {"Window705b20Thumb_Proc",    0x0066bb9b, (void *)&Window705b20Thumb_Proc, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"Window7cb2b0_Handler",      0x00488a00, (void *)&Window7cb2b0_Handler, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
