@@ -156,7 +156,7 @@ def build(r):
             put(course, at[1] + 8, '2I', *cs)
             tail = dwords(at[0], *cs)
         elif stop == 2:
-            tail = dwords(at[0], r.getrandbits(32), r.getrandbits(32))
+            tail = dwords(at[0], struct.unpack_from('<I', course, at[1] + 8)[0], r.getrandbits(32))   # (the first of the two matches, not the second)
         else:
             tail = dwords(0, r.getrandbits(32), r.getrandbits(32))
         chunks.append(chunk(r, 5, dwords(handle) + bytes(car) + dwords(r.randrange(0, 0x3000), r.randrange(0, 0x3000)) + tail))
