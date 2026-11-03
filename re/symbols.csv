@@ -5672,6 +5672,8 @@ address,name,kind,confidence,notes
 0x005083f0,StaffPool_NameTaken,function,low,reimplemented (src/game/world/staffcandidate); Whether a used pool entry's name or a staff member's name is this name
 0x00507580,StaffPoolEntry_PickName,function,low,"reimplemented (src/game/world/staffcandidate); Up to 15 tries at a text id for the entry's name, until no one has that name"
 0x00507600,StaffPoolEntry_Generate,function,low,"reimplemented (src/game/world/staffcandidate); A new candidate of a kind: sprite, grade, name, the dialog told, tick, timeout"
+0x00508330,StaffPool_AddCandidate,function,low,reimplemented (src/game/world/staffcandidate); One more candidate of a kind in the first unused entry
+0x005087d0,StaffPool_FillAll,function,low,"reimplemented (src/game/world/staffcandidate); The pool's first candidates of each kind, once"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved

@@ -77,3 +77,30 @@ void __fastcall StaffPoolEntry_Generate(u8 *entry, void *, u32 kind, u32 slot) {
     const s32 timeout = global<s32>(0x0078530c);
     at<u32>(entry, 0x10) = draw % (u32)(timeout >> 1) + (u32)timeout;
 }
+
+namespace {
+
+// Inlined at each of StaffPool_FillAll's five kinds.
+bool add_candidate(u8 *pool, u32 kind) {
+    if (at<u8>(pool, 0x299 + kind)) return false;
+    for (u32 i = 0; i != 0x20; ++i) {
+        if (at<u8>(pool, i * 0x14 + 0xa) == 0) {
+            StaffPoolEntry_Generate(pool + i * 0x14, nullptr, kind, i);
+            return true;
+        }
+    }
+    return false;
+}
+
+}  // namespace
+
+u8 __fastcall StaffPool_AddCandidate(u8 *pool, void *, u32 kind) { return add_candidate(pool, kind) ? 1 : 0; }
+
+u8 __fastcall StaffPool_FillAll(u8 *pool) {
+    if (at<u8>(pool, 0x298)) return 0;   // (with a debug print, left out)
+    for (u32 kind = 0; kind != 5; ++kind) {
+        for (s32 n = 0; n < global<s32>(0x007852ac + kind * 4); ++n) add_candidate(pool, kind);
+    }
+    at<u8>(pool, 0x298) = 1;
+    return 1;
+}

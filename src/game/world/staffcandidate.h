@@ -19,6 +19,13 @@ void __fastcall StaffPoolEntry_PickName(u8 *entry);
 // +0x10 the timeout t = [0x78530c] plus World_Rand % (t >> 1, an arithmetic shift, the division unsigned).
 void __fastcall StaffPoolEntry_Generate(u8 *entry, void *, u32 kind, u32 slot);
 
+// 0x508330 (thiscall (kind), pops 4): unless the flag +0x299 + kind is set, the first entry unused (+0xa 0) generated for the kind: 1; else 0. Only AL is meant.
+u8 __fastcall StaffPool_AddCandidate(u8 *pool, void *, u32 kind);
+
+// 0x5087d0 (thiscall): once (the flag +0x298, then set; 0 when it was): for the kinds 0-4 the counts [0x7852ac] (dwords, signed) times the same (inlined). Only AL
+// is meant: 1.
+u8 __fastcall StaffPool_FillAll(u8 *pool);
+
 // What it calls (the fncmp driver's recorders; the game's by default).
 struct StaffCandidateEnv {
     void(__fastcall *tellDialog)(void *dialog, void *, u32 slot);   // 0x481550, agent C's, on 0x7b51f0

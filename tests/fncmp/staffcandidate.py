@@ -4,7 +4,9 @@
 # (name() here). Taken: a name that is a used entry's, an unused one's, a thing's, empty or none's. Pick: now and then every id taken, so all 15 tries
 # run. Generate: the kind 0-4 mostly, the folders' counts 1 or more, the average grades (so also 0 and 0xff, where the grade's byte wraps), the timeout
 # any (1 and 0 divide by zero in both); 0x481550 a thiscall recorder (20 of 1: driver.cpp's StaffCandidateEnv).
-# usage: staffcandidate.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Taken,Pick,Generate)
+# One, All (0x508330 StaffPool_AddCandidate, 0x5087d0 StaffPool_FillAll): the flags +0x298-+0x29d mostly 0, the pool now and then full, the counts [0x7852ac] small,
+# 40 (up to full) or -1.
+# usage: staffcandidate.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Taken,Pick,Generate,One,All)
 import os
 import struct
 import sys
@@ -12,10 +14,10 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import LOG, RAM, Bench, Call, _cdecl_log4, _recorder, log_region, put, text_args  # noqa: E402
 
-B = Bench([(0x5083f0, 0x5084f0), (0x507580, 0x507600), (0x507600, 0x5077e8), (0x5074a0, 0x507560), (0x516130, 0x5161c0), (0x516330, 0x516380),
+B = Bench([(0x508330, 0x508378), (0x5087d0, 0x508978), (0x5083f0, 0x5084f0), (0x507580, 0x507600), (0x507600, 0x5077e8), (0x5074a0, 0x507560), (0x516130, 0x5161c0), (0x516330, 0x516380),
            (0x50b350, 0x50b370), (0x541f70, 0x541fa0), (0x41a960, 0x41a980), (0x506860, 0x506870), (0x67c290, 0x67c320), (0x5da3c0, 0x5da3c1)],
           hooks={0x6acd60: _cdecl_log4, 0x481550: _recorder(20, 1)})
-CALLS = {'Taken': 0x5083f0, 'Pick': 0x507580, 'Generate': 0x507600}
+CALLS = {'Taken': 0x5083f0, 'Pick': 0x507580, 'Generate': 0x507600, 'One': 0x508330, 'All': 0x5087d0}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 WORLD, ENTRY, NAME, THINGS = RAM + 0x100000, RAM, RAM + 0x100, RAM + 0x1000
 THING = 0x300
@@ -31,14 +33,15 @@ def wide(r):
     return bytes(x for _ in range(r.randrange(1, 12)) for x in (r.randrange(0x41, 0x5b), 0)) + bytes(2)
 
 
-def world(r, every=False):
+def world(r, every=False, full=False):
     """The regions of the world, its pool and its things; returns them, the used ids, the unused ids and the things' names. every: all 35 ids taken."""
-    pool = bytearray(r.bytes(0x280))
+    pool = bytearray(r.bytes(0x2a0))
+    pool[0x298:0x29e] = bytes(r.choice([0, 0, 0, 1]) for _ in range(6))
     ids = list(range(0x20)) if every else [r.randrange(0x23) for _ in range(0x20)]
     for i in range(0x20):
         put(pool, 0x14 * i, 'I', r.randrange(5) if every or r.random() < 0.95 else r.choice([5, 0xff, r.getrandbits(32)]))
         put(pool, 0x14 * i + 4, 'I', ids[i])
-        pool[0x14 * i + 0xa] = r.choice([1, 1, 1, 0xff]) if every or r.random() < 0.8 else 0
+        pool[0x14 * i + 0xa] = r.choice([1, 1, 1, 0xff]) if every or full or r.random() < 0.8 else 0
     used = [ids[i] for i in range(0x20) if pool[0x14 * i + 0xa]]
     unused = [ids[i] for i in range(0x20) if not pool[0x14 * i + 0xa]]
     regions = {WORLD: pool, WORLD + 0x1da708: r.bytes(8), 0x80239c: struct.pack('<I', WORLD), 0x7cf83c: struct.pack('<I', WORLD), 0x78baa8: r.bytes(20),
@@ -73,7 +76,7 @@ def case(r):
                 'thing': r.choice(names) if names else b'\0\0', 'empty': b'\0\0', 'other': wide(r)}[pick]
         regions.update({LOG: log, NAME: text + bytes(8)})
         return Call(CALLS[op], [WORLD, NAME], regions, conv='t', ret='b')
-    regions, _, _, _ = world(r, every=r.random() < 0.1)
+    regions, _, _, _ = world(r, every=r.random() < 0.1 and op in ('Pick', 'Generate'), full=op in ('One', 'All') and r.random() < 0.2)
     entry = bytearray(r.bytes(0x14))
     regions.update({LOG: log, ENTRY: entry})
     if op == 'Pick':
@@ -85,6 +88,11 @@ def case(r):
     regions[0x763f8c] = folders
     regions[0x785298] = b''.join(struct.pack('<I', r.choice([0, 1, 2, 3, 4, 5, 6, 0xff, r.getrandbits(32)])) for _ in range(5))
     regions[0x78530c] = struct.pack('<i', r.choice([2, 3, 100, 1000, 3000, 0x7fffffff, -2, -1000, -0x80000000] * 4 + [0, 1, r.getrandbits(31), -r.getrandbits(31) - 2]))
+    if op == 'One':
+        return Call(CALLS[op], [WORLD, r.randrange(5)], regions, conv='t', ret='b')
+    if op == 'All':
+        regions[0x7852ac] = b''.join(struct.pack('<i', r.choice([0, 0, 1, 2, 3, 40, -1])) for _ in range(5))
+        return Call(CALLS[op], [WORLD], regions, conv='t', ret='b')
     kind = r.choice([0, 1, 2, 3, 4] * 3 + [5, 0xff, 0x100, r.getrandbits(32)])
     return Call(CALLS[op], [ENTRY, kind, r.getrandbits(32)], regions, conv='t')
 
