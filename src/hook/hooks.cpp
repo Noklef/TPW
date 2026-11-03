@@ -612,6 +612,7 @@
 #include "../game/ui/versionlabel.h"
 #include "../game/ui/viewbuttons.h"
 #include "../game/ui/window705950nodes.h"
+#include "../game/ui/window7059f0texts.h"
 #include "../game/ui/window7cb2a4.h"
 #include "../game/ui/window7cb2cc.h"
 #include "../game/ui/window7cc8bc.h"
@@ -7754,6 +7755,9 @@ const Hook kHooks[] = {
     {"SaveDialog_FillList",       0x0049edf0, (void *)&SaveDialog_FillList, {0x6a, 0xff, 0x68, 0x88, 0xa2}},
     {"LoadDialog_Create",         0x0049efb0, (void *)&LoadDialog_Create, {0x56, 0x6a, 0x00, 0x6a, 0x00}},
     {"SaveDialog_Create",         0x0049f280, (void *)&SaveDialog_Create, {0x6a, 0xff, 0x68, 0xeb, 0xa2}},
+    {"WString_AssignText",        0x00665f80, (void *)&WString_AssignText, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"WString_AssignTextOf",      0x00665f10, (void *)&WString_AssignTextOf, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window7059f0_SetItemTexts", 0x006644ea, (void *)&Window7059f0_SetItemTexts, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
