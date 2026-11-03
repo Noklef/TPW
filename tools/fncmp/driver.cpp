@@ -49,6 +49,7 @@
 #include "../../src/game/gfx/statsgraph.h"
 #include "../../src/game/ui/thingbrowser.h"
 #include "../../src/game/ui/dialog7ca150.h"
+#include "../../src/game/ui/dialog7cc1f8preview.h"
 #include "../../src/game/ui/dialog7cc188.h"
 #include "../../src/game/ui/dialog7cca70.h"
 #include "../../src/game/ui/dialog7cc944.h"
@@ -658,6 +659,8 @@ const Dialog7cc944Env kDialog7cc944Env = {Rec{recorder(11, 2)}, Rec{recorder(12,
 const Dialog7cca70Env kDialog7cca70Env = {Rec{recorder(11, 3)}, Rec{recorder(13, 1)}, Rec{recorder(27, 2)}, Rec{recorder(14, 2)}, Rec{recorder(15, 1)}, Rec{jpeg_recorder(16, 7)}, Rec{jpeg_recorder(18, 5)}, Rec{jpeg_recorder(19, 3)}, Rec{recorder(20, 2)}};
 // Dialog7cc188_FillList's calls (tests/fncmp/dialog7cc188list.py).
 const Dialog7cc188ListEnv kDialog7cc188ListEnv = {Rec{jpeg_recorder(16, 0)}, Rec{jpeg_recorder(11, 3)}, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50)), Rec{recorder(12, 0)}, Rec{recorder(14, 4)}, Rec{recorder(13, 0)}, Rec{jpeg_recorder(15, 1)}};
+// Dialog7cc1f8_ShowPreview's calls (tests/fncmp/dialog7cc1f8preview.py).
+const Dialog7cc1f8PreviewEnv kDialog7cc1f8PreviewEnv = {Rec{recorder(10, 1)}, Rec{stdcall_recorder(11, 1)}, Rec{jpeg_recorder(12, 3)}, Rec{recorder(13, 2)}, Rec{recorder(14, 0)}, Rec{jpeg_recorder(15, 4)}, Rec{jpeg_recorder(16, 1)}, Rec{jpeg_recorder(17, 3)}, Rec{jpeg_recorder(18, 1)}, Rec{recorder(19, 1)}, Rec{jpeg_recorder(20, 1)}, Rec{jpeg_recorder(21, 1)}};
 // Online_Instance's constructor (tests/fncmp/onlineinstance.py).
 const OnlineInstanceEnv kOnlineInstanceEnv = {Rec{recorder(10, 0)}};
 // Dialog7cdac4_Handler's calls (tests/fncmp/dialog7cdac4handler.py).
@@ -1514,6 +1517,7 @@ int main(int argc, char **argv) {
     Panel7cc218_SetShowEnv(&kPanel7cc218ShowEnv);
     Dialog7ca168_SetOpenEnv(&kDialog7ca168OpenEnv);
     Online_SetInstanceEnv(&kOnlineInstanceEnv);
+    Dialog7cc1f8_SetPreviewEnv(&kDialog7cc1f8PreviewEnv);
     Dialog7cc188_SetListEnv(&kDialog7cc188ListEnv);
     Dialog7cca70_SetEnv(&kDialog7cca70Env);
     Dialog7cc944_SetEnv(&kDialog7cc944Env);
