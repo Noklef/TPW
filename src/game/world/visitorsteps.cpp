@@ -7,17 +7,21 @@
 #include "../core/globals.h"
 #include "../core/indexed.h"
 #include "../core/rings.h"
+#include "../math/x87.h"
 #include "../sprite/script.h"
 #include "../sprite/scriptref.h"
 #include "../sprite/sprite.h"
 #include "analysercell.h"
 #include "mapcell.h"
 #include "object.h"
+#include "messagecentre.h"
 #include "objectmsg.h"
 #include "person.h"
 #include "personscripts.h"
 #include "random.h"
 #include "ridelist.h"
+#include "staff.h"
+#include "thingscan.h"
 #include "thingmsg.h"
 #include "things.h"
 #include "visitoroption.h"
@@ -33,7 +37,13 @@ const VisitorStepsEnv kGameEnv = {&Sprite_WalkNav,       &Sprite_SetDestination,
                                   &Object_BackOfQueueTo, &Object_QueuePosition,  &Object_AnyQueueSpot,
                                   &Person_PlaceSprite,   &Sprite_PlaySound,      &Visitor_FindQueueDestination,
                                   &Visitor_ChooseMinorDest, &Visitor_RatingGap,          &Visitor_WontPay,
-                                  &Visitor_VisitObject,  &Thing_PlaceAt,         &Object_Reopen};
+                                  &Visitor_VisitObject,  &Thing_PlaceAt,         &Object_Reopen,
+                                  reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)0x004d93b0),
+                                  reinterpret_cast<u32(__cdecl *)(s32, s32)>((uintptr_t)0x006e7074),
+                                  &Things_HeadForNearestFlag40, &Things_NearestFlag80Close,
+                                  [](u8 *, void *, u32 kind, u32 cell, s32 radius) -> s32 { return Things_AnyOfKindAround(kind, cell, radius); },
+                                  &Staff_NearestInList1da740, &Person_JumpScript210, &Person_SetRandomDest, &Visitor_ChooseMajorDest,
+                                  &MessageCentre_Post};
 const VisitorStepsEnv *g_env = &kGameEnv;
 
 u8 *world() { return global<u8 *>(0x0080239c); }
@@ -445,6 +455,151 @@ void __fastcall Visitor_StepInQueue(u8 *visitor) {
     Object_QueueRemovePerson(object, nullptr, handleOf(visitor));
     Visitor_SendAway(visitor);
     g_env->setState(visitor, nullptr, 6);
+}
+
+void __fastcall Visitor_StepIdle(u8 *visitor) {
+    u8 *const ring = visitor + 0x30;
+    const u32 own = ownCell(visitor);
+    u8 *const mapCell = global<u8 *>(0x008023a0) + own * 0x44 - 0x44;
+    const auto clock = []() -> u32 & { return at<u32>(world(), 0x1da70c); };
+    const auto table = [](u16 h) { return global<u8 *>(0x007cfb90 + (u32)h * 20); };
+    // The differences of the cells less one, column and row, from the visitor's to the other's.
+    const auto delta = [&](const u8 *other, s32 &dx, s32 &dy) {
+        const u32 cell = (u32)ownCell(other) - 1, mine = own - 1;
+        dx = (s32)(cell & 0x7f) - (s32)(mine & 0x7f);
+        dy = (s32)(cell >> 7) - (s32)(mine >> 7);
+    };
+    const u32 rnd = (u32)World_Rand(world());
+    if (clock() - at<u32>(visitor, 0x208) > 0x64 && (u8)(long long)at<float>(visitor, 0x19c) > 0x50) {
+        Visitor_StartEmote(visitor, nullptr, 5);
+        return;
+    }
+    if ((u8)(long long)at<float>(visitor, 0x1b0) == 0x64 && rnd % 3 == 0) {
+        Visitor_StartEmote(visitor, nullptr, 7);
+        g_env->cellEffect(mapCell, nullptr, 7);
+        Ring_PushUnique(ring, nullptr, 0x12, 0);
+        g_env->playSound(visitor, nullptr, global<u32>(0x00803a24), 0xcc);
+        at<u32>(visitor, 0x1b0) = 0;
+        return;
+    }
+    if ((u8)(long long)at<float>(visitor, 0x1b4) >= 0x5a) {
+        const u32 state = at<u32>(visitor, 0x220);
+        if (state == 6 || state == 7 || state == 0xa) {
+            u16 h;
+            g_env->headForNearestFlag40(visitor, nullptr, &h, 3);
+            if (h != 0) {
+                at<u16>(visitor, 0x1dc) = h;
+                g_env->setState(visitor, nullptr, 9);
+                return;
+            }
+            const u32 kind = (u32)World_Rand(world()) % (global<u32>(0x0070048c) - 1) + 1;
+            g_env->cellEffect(mapCell, nullptr, kind);
+            at<u32>(visitor, 0x1b4) = 0;
+        }
+    }
+    if ((u8)(long long)at<float>(visitor, 0x19c) == 0 || at<u32>(visitor, 0x1bc) == 0 || Get1da710_51a280(world()) != 0) {
+        Visitor_Lower19c(visitor, nullptr, 2);
+        Game_GetRideElement1(world());   // (its answer not read)
+        u16 out, cells[2];
+        cells[0] = *Map_CrossingParkSidePos(map(), nullptr, &out, 0);
+        cells[1] = *Map_CrossingParkSidePos(map(), nullptr, &out, 1);
+        if (rnd & 1) {
+            const u16 first = cells[0];
+            cells[0] = cells[1];
+            cells[1] = first;
+        }
+        for (int round = 0; round < 2; round++) {
+            for (int i = 0; i < 2; i++) {
+                if (g_env->setDestinationCell(visitor, nullptr, cells[i]) != 0) {
+                    g_env->setState(visitor, nullptr, 0x12);
+                    return;
+                }
+            }
+            at<u32>(visitor, 0x188) = 1;
+        }
+        at<u32>(visitor, 0x188) = 0;
+    }
+    s32 dx, dy;
+    {
+        u16 h;
+        g_env->nearestFlag80Close(visitor, nullptr, &h);
+        if (h != 0) {
+            delta(table(h), dx, dy);
+            if (dx + dy != 0) {
+                at<u32>(visitor, 0x1c) = g_env->angle(-dx, dy) & 0xffff;
+                return;
+            }
+        }
+    }
+    if (g_env->anyOfKindAround(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(world())), nullptr, 6, own, 1) != 0) {
+        u16 out;
+        u8 *const staff = table(*g_env->nearestStaff(visitor, nullptr, &out));
+        if (at<u32>(staff, 0x19c) == 0xe) {
+            delta(staff, dx, dy);
+            if (dx + dy != 0) {
+                Ring_PushUnique(ring, nullptr, 0xe, handleOf(staff));
+                at<u32>(visitor, 0x1c) = g_env->angle(-dx, dy) & 0xffff;
+                return;
+            }
+        }
+    }
+    const u8 chance = at<u8>(visitor, 0x1c0);
+    if ((u8)(long long)at<float>(visitor, 0x19c) < 0xf && rnd % 0x65 < chance) {
+        u8 *const cell = world() + 0x294 + own * 0x44;
+        bool done = false;
+        if (chance == 0x64) {
+            if (rnd % 100 < global<u32>(0x007850e0)) {
+                g_env->cellEffect(cell, nullptr, 8);
+                g_env->playSound(visitor, nullptr, global<u32>(0x00803a24), 0xcf);
+                done = true;
+            }
+        } else if (chance == 0x65) {
+            g_env->cellEffect(cell, nullptr, rnd % 5 + 1);
+            done = true;
+        } else if (chance == 0x66) {
+            for (u16 h = at<u16>(world(), own * 0x44 + 0x2b8); h != 0;) {
+                u8 *const thing = table(h);
+                if (h != handleOf(visitor) && at<u8>(thing, 2) == 1 && at<u32>(thing, 0x210) != 0) {
+                    g_env->jumpScript(thing);
+                    done = true;
+                    break;
+                }
+                h = at<u16>(thing, 0xa);
+            }
+        }
+        if (done) {
+            Ring_PushUnique(ring, nullptr, 0xf, 0);
+            const u16 me = handleOf(visitor);
+            alignas(4) u8 msg[0x10] = {};
+            at<u32>(msg, 0) = 0x007007a8;
+            at<u16>(msg, 8) = me;
+            at<u32>(msg, 0xc) = me % 3u;
+            g_env->post(MessageCentre_Instance(), nullptr, msg);
+            const X87Reg mood = X87Reg(at<float>(visitor, 0x19c)) - global<float>(0x00700794);
+            if (mood.v > global<float>(0x00700798)) at<u32>(visitor, 0x19c) = 0x42c80000;
+            else if (!(mood.v >= global<float>(0x0070079c))) at<u32>(visitor, 0x19c) = 0;
+            else at<float>(visitor, 0x19c) = (float)mood;
+        }
+    }
+    const u32 which = rnd % 3;
+    if (which == 1) {
+        if (g_env->setRandomDest(visitor) != 0) {
+            g_env->setState(visitor, nullptr, 7);
+            return;
+        }
+        at<u32>(visitor, 0x1fc) = clock();
+    } else if (which == 0 && clock() > at<u32>(visitor, 0x1fc) + 0x1e) {
+        g_env->chooseMajorDest(visitor);
+        if (at<u16>(visitor, 0x1dc) != 0) {
+            Ring_PushUnique(ring, nullptr, 2, at<u16>(visitor, 0x1dc));
+            g_env->setState(visitor, nullptr, 0xa);
+            return;
+        }
+        Ring_PushUnique(ring, nullptr, 1, 0);
+        Visitor_StartEmote(visitor, nullptr, 4);
+        Visitor_Lower19c(visitor, nullptr, 0);
+        at<u32>(visitor, 0x1fc) = clock();
+    }
 }
 
 void __fastcall Visitor_StepQueueWait(u8 *visitor) {

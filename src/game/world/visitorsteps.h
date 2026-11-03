@@ -26,6 +26,16 @@ struct VisitorStepsEnv {
     void(__fastcall *visitObject)(u8 *visitor, void *, u8 *object);                       // Visitor_VisitObject 0x4fd970
     void(__fastcall *placeAt)(u8 *thing, void *, u32 x, u32 y);                           // Thing_PlaceAt 0x4fa930
     void(__fastcall *reopen)(u8 *object);                                                 // Object_Reopen 0x4df150
+    void(__fastcall *cellEffect)(u8 *cell, void *, u32 kind);                             // 0x4d93b0 (not ported)
+    u32(__cdecl *angle)(s32 dx, s32 dy);                                                  // the cseg angle routine 0x6e7074
+    u16 *(__fastcall *headForNearestFlag40)(u8 *sprite, void *, u16 *out, u32 radius);    // Things_HeadForNearestFlag40 0x500dc0
+    void(__fastcall *nearestFlag80Close)(const u8 *thing, void *, u16 *out);              // Things_NearestFlag80Close 0x501020
+    s32(__fastcall *anyOfKindAround)(u8 *thing, void *, u32 kind, u32 cell, s32 radius);  // Things_AnyOfKindAround 0x4c8eb0 (ECX not read)
+    u16 *(__fastcall *nearestStaff)(const u8 *object, void *, u16 *out);                  // Staff_NearestInList1da740 0x500f00
+    void(__fastcall *jumpScript)(u8 *person);                                             // Person_JumpScript210 0x4fe950
+    u32(__fastcall *setRandomDest)(u8 *person);                                           // Person_SetRandomDest 0x4f9490
+    void(__fastcall *chooseMajorDest)(u8 *visitor);                                       // Visitor_ChooseMajorDest 0x4fcb10
+    u32(__fastcall *post)(u8 *centre, void *, u8 *msg);                                   // MessageCentre_Post 0x40fb10
 };
 void VisitorSteps_SetEnv(const VisitorStepsEnv *env);
 
@@ -103,6 +113,18 @@ void __fastcall Visitor_StepInQueue(u8 *visitor);
 // +0x1f4, within 2) or a destination (state 1 of the object or Visitor_FindQueueDestination), or away. Then the waiting: past +0x208 + 0x1e, the mood's and +0x1ac's low bytes decide
 // (Visitor_StartEmote 5 or 4; thought 0xb, thought 4 when the object has no flag 1: away); past +0x1fc + 0x64: (7, object) on the ring, thought 0xc, away; else one in ten: a turn of the heading +0x1c.
 void __fastcall Visitor_StepQueueWait(u8 *visitor);
+// 0x4fec90 (thiscall; name invented): the idle visitor, on one roll of World_Rand. Long since the last emote (+0x208, over 0x64) and +0x19c over
+// 0x50: Visitor_StartEmote 5. +0x1b0 exactly 100 on one roll in three: emote 7, the cell's effect 7, (0x12) on the ring, sound 0xcc, +0x1b0 0.
+// +0x1b4 at 0x5a or more: in states 6, 7, 0xa, a thing with flag 0x40 near: +0x1dc, state 9; else the cell's effect 1 to [0x70048c] - 1, +0x1b4 0.
+// +0x19c's low byte 0, no +0x1bc or the world's +0x1da710: Visitor_Lower19c 2 and a walk to either crossing's park side (the first of two
+// rounds with +0x188 0, the second 1; state 0x12; none: +0x188 0). A close thing with flag 0x80: face it. A kind 6 thing around and the
+// nearest staff in state 0xe: (0xe, staff) on the ring, face it. (Facing a thing whose cell's differences add to 0 falls through.) Then
+// +0x19c under 0xf on (roll % 0x65) under b[+0x1c0], for 0x64 - 0x66: the world's cell +0x294's effect 8 (roll % 100 under [0x7850e0]; sound
+// 0xcf) or 1-5, or the first other person on the cell's chain with a script +0x210 jumped; done: (0xf) on the ring, a message posted (vtable
+// 0x7007a8, the handle, handle % 3) and +0x19c down by [0x700794] (above [0x700798]: 100; under [0x70079c]: 0). Roll % 3: 1 a random walk
+// (state 7) or +0x1fc now; 0 past +0x1fc + 0x1e: Visitor_ChooseMajorDest: a destination goes (2, +0x1dc) on the ring, state 0xa; none (1) on
+// the ring, emote 4, Lower19c 0, +0x1fc now.
+void __fastcall Visitor_StepIdle(u8 *visitor);
 // 0x5014e0 (thiscall; name invented, unconfirmed): the visitor comes out at the object of +0x1dc: placed at its exit point (Object_CellStandPoint, Thing_PlaceAt).
 // The cell one step from the exit cell (+0x38) in that cell's direction (rotated by Nibble_Scale when +0x38 is +0x36): not of type 3 or 9 and a walk there starts:
 // Visitor_VisitObject, state 0xf, 1. Else Object_Reopen, 0. (Its debug prints are left out.)

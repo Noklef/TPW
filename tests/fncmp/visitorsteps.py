@@ -28,7 +28,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
-from fncmp import LOG, LOG_BYTES, RAM, Bench, Call, _recorder, fb, fill, log_region, put, set_return, strings  # noqa: E402
+from fncmp import LOG, LOG_BYTES, RAM, Bench, Call, _cdecl_log2, _recorder, blob_bytes, fb, fill, log_region, put, set_return, strings  # noqa: E402
 import personscripts  # noqa: E402
 from thingenv import POOL, THING, park  # noqa: E402
 
@@ -40,13 +40,16 @@ B = Bench([(0x4ff7f0, 0x4ff9ca), (0x500900, 0x500a4e), (0x500ad0, 0x500bc2), (0x
            (0x500a50, 0x500acc), (0x4fc890, 0x4fc89d), (0x4fc800, 0x4fc88b), (0x4217f0, 0x421800), (0x51aaf0, 0x51ab1a), (0x67a830, 0x67a860), (0x4fa990, 0x4fa9fa), (0x536300, 0x53644c),
            # (personscripts.py's script list: SpriteScript_Kill, the heap)
            (0x475010, 0x476a30), (0x540b90, 0x540da0), (0x541f60, 0x541fb0), (0x4d4100, 0x4d4134), (0x4d4170, 0x4d4186),
-           (0x5f5e20, 0x5f5e90), (0x5f5fa0, 0x5f5fc0), (0x5f5660, 0x5f56a0)],
+           (0x5f5e20, 0x5f5e90), (0x5f5fa0, 0x5f5fc0), (0x5f5660, 0x5f56a0),
+           (0x4fec90, 0x4ff4e0), (0x50c0d0, 0x50c1a0), (0x4fea70, 0x4feb10), (0x519510, 0x519560), (0x4fe980, 0x4fe9a0)],
           hooks={0x4fa2a0: _recorder(1, 0), 0x4fa5f0: _recorder(2, 2), 0x4fa530: _recorder(3, 1), 0x4fa470: _recorder(4, 1),
                  0x50b780: _recorder(5, 0), 0x501db0: _recorder(26, 1), 0x4de110: _recorder(6, 1), 0x4ddf50: _recorder(7, 1),
-                 0x4de7e0: _recorder(8, 4), 0x4faa00: _recorder(10, 2)})
+                 0x4de7e0: _recorder(8, 4), 0x4faa00: _recorder(10, 2),
+                 0x4d93b0: _recorder(18, 1), 0x6e7074: _cdecl_log2, 0x500dc0: _recorder(19, 2), 0x501020: _recorder(20, 1), 0x4c8eb0: _recorder(21, 3),
+                 0x500f00: _recorder(22, 1), 0x4fe950: _recorder(23, 0), 0x4f9490: _recorder(24, 0), 0x4fcb10: _recorder(25, 0), 0x40fb10: _recorder(27, 1)})
 CALLS = {'Arrive': 0x4ff7f0, 'Leave': 0x500900, 'Go': 0x500ad0, 'Stop': 0x500bd0, 'Queue': 0x501160, 'Kill': 0x4feb10, 'Booth': 0x4ff520,
          'WalkIn': 0x4ff730, 'Enter': 0x4ffb20, 'Out': 0x500a50, 'Again': 0x4fc890,
-         'Emote': 0x4fc800}
+         'Emote': 0x4fc800, 'Idle': 0x4fec90}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 WORLD = RAM   # (thingenv.py's world pointers)
 NODES, ARRAYS, VIS = RAM + 0x1000, RAM + 0x4000, RAM + 0x9000
@@ -78,6 +81,65 @@ def rides(r, regions, handles, elements):
 
 def cell_of(x, y):
     return ((y << 7) + x + 1) & 0xffff
+
+
+def idle(r, regions, log, v, handles, w):
+    """Idle (0x4fec90): the visitor's row 0x40 up, so that the world's cell record (RAM + cell * 0x44) is clear of the park; the clocks about their
+    limits, the moods about theirs, one recorder answer or another; the chain of the world's cell through the park's things."""
+    pool = bytearray(regions[POOL])
+    v[7] = r.randrange(0x40, 0x80)
+    own = cell_of(v[5], v[7])
+    now = r.getrandbits(32)
+    put(w, 0xc, 'I', now)
+    put(w, 0x10, 'I', r.choice([0, 0, 0, 0, 0, 0, 1]))
+    put(w, 0x20, 'H', r.choice(handles))
+    regions[WORLD + 0x1da700] = w
+    put(v, 0x208, 'I', (now - r.choice([0, 0, 0, 0x64, 0x64, 0x65])) & 0xffffffff)
+    put(v, 0x1fc, 'I', (now - r.choice([0, 0x1e, 0x1f, 0x1f, 0x1f, 1000])) & 0xffffffff)
+    put(v, 0x19c, 'I', fb(r.choice([0.0, 1.0, 14.0, 14.9, 14.9, 14.9, 15.0, 80.9, 81.0, 200.0, 256.0, r.uniform(1, 15), r.uniform(1, 15)])))
+    put(v, 0x1b0, 'I', fb(r.choice([0.0, 50.0, 80.0, 100.0, 100.5, 101.0, 356.0, r.uniform(0, 100)])))
+    put(v, 0x1b4, 'I', fb(r.choice([0.0, 50.0, 89.9, 90.0, 91.0, 255.0, 256.0, r.uniform(0, 100)])))
+    put(v, 0x1bc, 'I', r.choice([1, 1, 1, 1, 1, 1, 0, 0x100]))
+    put(v, 0x1c0, 'B', r.choice([0x64, 0x65, 0x66, 0x64, 0x65, 0x66, 0x63, 0x67, 0, 0xff]))
+    put(v, 0x1dc, 'H', r.choice([0, 1, 0x1234]))
+    put(v, 0x220, 'I', r.choice([6, 7, 0xa, 6, 7, 0xa, 5, 8, 9, 0xb]))
+    put(v, 0x30 + 0x88, 'I', r.randrange(33))
+    regions[VIS] = v
+    # (the recorders' answers and fills)
+    head = r.choice(handles + [0])
+    strings(log, 19, 0, out=1)
+    fill(log, 19, 0, struct.pack('<H', r.choice([0, 0, 0, head, r.getrandbits(16)])), which=4)
+    strings(log, 20, 0, out=1)
+    fill(log, 20, 0, struct.pack('<H', r.choice([0, 0, 0, 0, r.choice(handles)])), which=5)
+    struct.pack_into('<I', log, LOG_BYTES + 4 * 21, 0x20000)   # (the cell: a low word)
+    set_return(log, 21, r.choice([0, 0, 1, 2]))
+    staffAt = RAM + 0x8000
+    strings(log, 22, 0, out=1)
+    set_return(log, 22, staffAt)
+    regions[staffAt] = struct.pack('<H', r.choice(handles))
+    set_return(log, 24, r.choice([0, 1]))
+    set_return(log, 3, r.choice([0, 0, 0, 1]))
+    regions[0x803a24] = struct.pack('<I', r.getrandbits(32))
+    set_return(log, 10, r.getrandbits(32))
+    blob_bytes(log, 27, 0, 0xf3ff)
+    regions[0x788d3c] = struct.pack('<I', RAM + 0x8800)
+    regions[0x785058] = r.bytes(3)
+    regions[0x70048c] = struct.pack('<I', r.choice([2, 3, 5, 10, 0x20]))
+    regions[0x700794] = struct.pack('<3I', fb(r.choice([5.0, 20.0, 1.5, r.uniform(0, 20)])), fb(r.choice([100.0, 10.0, 12.0])), fb(r.choice([0.0, 0.0, 5.0, 10.0])))
+    regions[0x7850e0] = struct.pack('<I', r.choice([0, 1, 50, 99, 100]))
+    # (the chain of the world's cell, things of the park linked by +0xa)
+    chain = r.sample(handles, r.randrange(min(len(handles), 3) + 1))
+    for i, h in enumerate(chain):
+        put(pool, THING * (handles.index(h)) + 0xa, 'H', chain[i + 1] if i + 1 < len(chain) else 0)
+        put(pool, THING * (handles.index(h)) + 2, 'B', r.choice([1, 1, 3]))
+        put(pool, THING * (handles.index(h)) + 0x210, 'I', r.choice([0, 0, 1]))
+        put(pool, THING * (handles.index(h)) + 0x19c, 'I', r.choice([0xe, 0xe, 3]))
+    if r.random() < 0.3 and handles:
+        put(v, 0, 'H', r.choice(chain + handles))
+    cell = bytearray(0x44)
+    put(cell, 0x24, 'H', chain[0] if chain else 0)
+    regions[WORLD + 0x294 + own * 0x44] = cell
+    regions[POOL] = pool
 
 
 def case(r):
@@ -150,6 +212,8 @@ def case(r):
         regions[0x803a24] = struct.pack('<I', r.getrandbits(32))
         set_return(log, 10, r.getrandbits(32))
         return Call(CALLS[name], [VIS, r.choice([4, 4, 4, 5, 5, 0, r.getrandbits(32)])], regions, conv='t')
+    if name == 'Idle':
+        idle(r, regions, log, v, handles, w)
     return Call(CALLS[name], [VIS], regions, conv='t', ret='a' if name == 'Queue' else 'v')
 
 
