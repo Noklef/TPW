@@ -534,6 +534,7 @@
 #include "../game/ui/imecandidates.h"
 #include "../game/ui/levelmeter.h"
 #include "../game/ui/menuactions.h"
+#include "../game/ui/mousehelp.h"
 #include "../game/ui/msgboxbutton.h"
 #include "../game/ui/msgtags.h"
 #include "../game/ui/panel7c2534.h"
@@ -7541,6 +7542,7 @@ const Hook kHooks[] = {
     {"SignNameDialog7ca214_Handler", 0x004993e0, (void *)&SignNameDialog7ca214_Handler, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
     {"Window7cb2a4_Handler",      0x004a0fb0, (void *)&Window7cb2a4_Handler, {0x83, 0xec, 0x10, 0x56, 0x8b}},
     {"Dialog7cc984_Handler",      0x004c0880, (void *)&Dialog7cc984_Handler, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
+    {"MouseHelp_Update",          0x00486d90, (void *)&MouseHelp_Update, {0x83, 0xec, 0x34, 0xa1, 0xf4}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
