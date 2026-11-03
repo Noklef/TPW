@@ -15,6 +15,7 @@ struct ObjectEnv {
     void(__fastcall *post40fb10)(u8 *centre, void *, u8 *msg);   // 0x40fb10, MessageCentre_Post of world/messagecentre; its 1 ignored
     void(__fastcall *person500870)(u8 *person);                  // 0x500870 (agent C's; thiscall on a person)
     void(__fastcall *person5012f0)(u8 *person);                  // 0x5012f0 (agent C's; thiscall on a person)
+    void(__cdecl *camera42a560)(u32 thing, s32 sprites, u32 arg, u32 a, u32 b, u32 c);  // 0x42a560 Camera_FollowThing (agent B's)
 };
 // The objects' calls go to env (nullptr: the game's).
 void Object_SetEnv(const ObjectEnv *env);

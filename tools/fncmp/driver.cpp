@@ -570,7 +570,8 @@ const StatsGraphEnv kStatsGraphEnv = {reinterpret_cast<void(__cdecl *)(u8 *)>((u
 
 const ObjectEnv kObjectEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, u8 *)>((uintptr_t)recorder(21, 1)),
                               reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(22, 0)),
-                              reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(23, 0))};
+                              reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(23, 0)),
+                              reinterpret_cast<void(__cdecl *)(u32, s32, u32, u32, u32, u32)>((uintptr_t)jpeg_recorder(26, 6))};
 // Object_Delete's call into agent B's RSSE_KillScript (0x559060): cdecl recorder 20 of 2, as tests/fncmp/objectdelete.py hooks it.
 const ObjectDeleteEnv kObjectDeleteEnv = {reinterpret_cast<void(__cdecl *)(s32, u32)>((uintptr_t)jpeg_recorder(20, 2))};
 // BankAccount_HandleMessage's call into agent A's unported 0x5168f0 (the game lost): the thiscall recorder 24 of 0, as tests/fncmp/money.py

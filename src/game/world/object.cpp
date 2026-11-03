@@ -38,7 +38,8 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 const ObjectEnv kGameEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, u8 *)>(&MessageCentre_Post),
-                            &Visitor_QuitQueue, &Visitor_SendAway};
+                            &Visitor_QuitQueue, &Visitor_SendAway,
+                            reinterpret_cast<void(__cdecl *)(u32, s32, u32, u32, u32, u32)>((uintptr_t)0x0042a560)};
 const ObjectEnv *g_env = &kGameEnv;
 
 }  // namespace
