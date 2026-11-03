@@ -14,6 +14,7 @@
 #include "dialogbase.h"
 #include "focus.h"
 #include "hoverlabel.h"
+#include "../online/session.h"
 #include "window.h"
 #include "window705a20.h"
 #include "windowreg.h"
@@ -37,7 +38,7 @@ u8 *editChild(u32 id) {
 void setCaret(u8 *child) { g_env->setCaret(child, nullptr, reinterpret_cast<u8 *>((uintptr_t)g_env->findByName(reinterpret_cast<const char *>((uintptr_t)0x0074fa84)))); }
 
 const Dialog7cdac4HandlerEnv kGameHandlerEnv = {Window_SendMessage, Window_PostMessage, KeyMaps_EnableAllAndClearFlag, KeyMaps_ResetAllAndSetFlag, Focus_Restore, Dialog_BaseHandler, Setting_ReadMode,
-                                                reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0), reinterpret_cast<u8 *(__cdecl *)()>((uintptr_t)0x0048b390),
+                                                reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0), Online_Instance,
                                                 reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32, u32, u32, u32, u32, u32)>((uintptr_t)0x005b7ba0), Class702da0_Clear, Window_SetFocus};
 const Dialog7cdac4HandlerEnv *g_handler = &kGameHandlerEnv;
 

@@ -36,7 +36,7 @@ struct Dialog7cdac4HandlerEnv {
     s32(__cdecl *baseHandler)(u8 *window, u32 message, u32 a, u32 b);     // Dialog_BaseHandler
     u8 *(__fastcall *readMode)(u8 *setting);                              // Setting_ReadMode
     s32(__cdecl *atExit)(void(__cdecl *fn)());                            // crt_atexit
-    u8 *(__cdecl *chat)();                                                // 0x48b390, unported: the object [0xf7d88c] (made the first time)
+    u8 *(__cdecl *chat)();                                                // Online_Instance
     void(__fastcall *chatSend)(u8 *chat, void *, u32 a, u32 b, u32 first, u32 second, u32 modeTwo, u32 callback, u32 zero);   // 0x5b7ba0, unported (agent B's range)
     void(__fastcall *clearQueue)(u8 *object);                             // Class702da0_Clear
     u32(__fastcall *setFocus)(u8 *window, void *, u32 a);                 // Window_SetFocus

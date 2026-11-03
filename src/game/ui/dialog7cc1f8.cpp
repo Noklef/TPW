@@ -258,6 +258,25 @@ void __cdecl Dialog7cc1f8_ShowStats(u32 mode) {
     }
 }
 
+s32 __cdecl Dialog7cc1f8_RowHandler(u8 *window, u32 message, u32 a, u32 b) {
+    if (message == 0x403) {
+        if ((s16)b < 0) {
+            Window_Notify40000(window, nullptr, 0xe7, 0xef, 0x4b, 0xff);
+        } else {
+            u8 *const game = *reinterpret_cast<u8 **>((uintptr_t)0x007cf83c);
+            u8 *const control = ObjectControls_Find(game + 0x1d943c, nullptr, b, 0);
+            const s32 balance = (s32)Source_Field0c(reinterpret_cast<const TrackedSource *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(game)));
+            if (at<u32>(ObjectDefs_Find(reinterpret_cast<u8 *>((uintptr_t)0x007890a0), nullptr, (u16)b), 0xc4) && !(u8)GlobalSave_HasKey(b))
+                Window_Notify40000(window, nullptr, 0xff, ObjectDef_IsUnlocked(b) ? 0xe0 : 0, 0, 0xff);
+            else if (at<s32>(control, 4) > balance)
+                Window_Notify40000(window, nullptr, 0xff, 0, 0, 0xff);
+            else
+                Window_Notify40000(window, nullptr, 0xff, 0xff, 0xff, 0xff);
+        }
+    }
+    return Window_CallDefault(window, nullptr, message, a, b);
+}
+
 void __cdecl Dialog7cc1f8_ShowItemTip(const s16 *item) {
     u8 *const list = Window_FindChild(*reinterpret_cast<u8 **>((uintptr_t)0x007cc1f8), nullptr, 0x1f8);
     u8 rect[0x10];

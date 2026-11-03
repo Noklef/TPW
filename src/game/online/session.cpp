@@ -254,3 +254,18 @@ u32 __fastcall Online_UnpublishPark(u8 *session, void *, u32 park) {
     return (*reinterpret_cast<const Unpublish *>((uintptr_t)0x006fd4fc))(at<u8 *>(session, 0xd4), nullptr, 0, park, at<u32>(session, 0x34));
 }
 }
+
+namespace {
+const OnlineInstanceEnv kInstanceGameEnv = {reinterpret_cast<u8 *(__fastcall *)(u8 *)>((uintptr_t)0x005b50b0)};
+const OnlineInstanceEnv *g_instance = &kInstanceGameEnv;
+}  // namespace
+
+void Online_SetInstanceEnv(const OnlineInstanceEnv *env) { g_instance = env ? env : &kInstanceGameEnv; }
+
+u8 *__cdecl Online_Instance() {
+    u8 *&session = *reinterpret_cast<u8 **>((uintptr_t)0x00f7d88c);
+    if (session) return session;
+    u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x404));
+    session = memory ? g_instance->ctor(memory) : nullptr;
+    return session;
+}
