@@ -1190,7 +1190,11 @@ int crash_filter(EXCEPTION_POINTERS *x) {
     return EXCEPTION_EXECUTE_HANDLER;
 }
 
-// Pushes the stack arguments right to left, sets the registers (EAX EBX ECX EDX ESI EDI: ECX / EDX for thiscall
+// invoke's frame and target while EBP holds a register argument.
+void *g_invokeFn;
+u32 g_invokeFrame;
+
+// Pushes the stack arguments right to left, sets the registers (EAX EBX ECX EDX ESI EDI, EBP when nonzero: ECX / EDX for thiscall
 // and fastcall, any of them for a register convention), calls, and restores ESP whatever the convention popped. EAX, EDX and EDI
 // come back (EDI for ret 'edi').
 int invoke(void *fn, const u32 *regs, const u32 *stack, u32 count, int wantSt0, u32 *eax, u32 *edx, double *st0, u32 *edi) {
@@ -1208,14 +1212,22 @@ int invoke(void *fn, const u32 *regs, const u32 *stack, u32 count, int wantSt0, 
             push dword ptr [esi + ecx * 4]
             jmp next
         pushed:
+            mov eax, fn
+            mov g_invokeFn, eax
+            mov g_invokeFrame, ebp
             mov eax, regs
             mov ebx, [eax + 4]
             mov ecx, [eax + 8]
             mov edx, [eax + 12]
             mov esi, [eax + 16]
             mov edi, [eax + 20]
+            cmp dword ptr [eax + 24], 0
+            je frame
+            mov ebp, [eax + 24]
+        frame:
             mov eax, [eax]
-            call fn
+            call g_invokeFn
+            mov ebp, g_invokeFrame
             mov ra, eax
             mov rd, edx
             mov rdi, edi
@@ -1682,8 +1694,8 @@ int main(int argc, char **argv) {
     if (!token) fail("cannot map the token buffer", 0);
     for (;;) {
         u32 address, count;
-        char conv[16], ret[8];
-        if (std::scanf("%x %15s %7s %x", &address, conv, ret, &count) != 4) break;
+        char conv[24], ret[8];
+        if (std::scanf("%x %23s %7s %x", &address, conv, ret, &count) != 4) break;
         std::vector<u32> args(count);
         for (u32 &a : args) std::scanf("%x", &a);
         u32 regions;
@@ -1708,16 +1720,16 @@ int main(int argc, char **argv) {
             std::fflush(stdout);
             continue;
         }
-        u32 regs[6] = {}, skip = 0;  // EAX EBX ECX EDX ESI EDI
+        u32 regs[7] = {}, skip = 0;  // EAX EBX ECX EDX ESI EDI EBP
         if (conv[0] == 't' && count > 0) regs[2] = args[0], skip = 1;
         if (conv[0] == 'f') {
             if (count > 0) regs[2] = args[0], skip = 1;
             if (count > 1) regs[3] = args[1], skip = 2;
         }
         if (conv[0] == 'e') {  // a register convention (tools/fncmp.py register_args): register names, each taking the next argument
-            static const char *const kNames[6] = {"eax", "ebx", "ecx", "edx", "esi", "edi"};
+            static const char *const kNames[7] = {"eax", "ebx", "ecx", "edx", "esi", "edi", "ebp"};
             for (const char *c = conv; c[0] && c[1] && c[2] && skip < count; c += 3)
-                for (int k = 0; k < 6; ++k)
+                for (int k = 0; k < 7; ++k)
                     if (std::strncmp(c, kNames[k], 3) == 0) regs[k] = args[skip++];
         }
         u32 eax = 0, edxOut = 0, ediOut = 0;

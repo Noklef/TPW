@@ -535,6 +535,8 @@ class Emu:
             self.put(o[0], self.get(o[1]))
         elif mn == 'BSWAP':
             self.put(o[0], int.from_bytes(self.get(o[0]).to_bytes(4, 'little'), 'big'))
+        elif mn == 'BT':  # (a register's bit, the index modulo its size: 0x674ab9's)
+            self.cf = bool(self.get(o[0]) >> (self.get(o[1]) & (8 * self.size(o[0]) - 1)) & 1)
         elif mn == 'MOVSX':
             v, n = self.get(o[1]), self.size(o[1])
             self.put(o[0], v - (1 << (8 * n)) if v >> (8 * n - 1) else v)

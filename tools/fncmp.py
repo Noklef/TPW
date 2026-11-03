@@ -17,7 +17,7 @@ EAX, 'b' AL (a flag returned over whatever EAX held), 'w' AX (likewise a u16), '
 st0, 'edi' EDI (an original that leaves a result there, its port's naked thunk moving the port's EAX to it: src/hook/regthunks.h). Call(ignore=[(address, count), ...]): those bytes of the regions are left out of the comparison in both (a stack address's low byte that
 the original stores, which the two sides' stacks cannot share). A register convention (hand-written assembly taking
 its arguments in registers) names the registers, three letters each, in argument order: conv='esi' puts args[0] in ESI and the rest on the
-stack, 'esiedi' args[0] in ESI and args[1] in EDI (of EAX EBX ECX EDX ESI EDI); the hook row's replacement is then the port's naked thunk
+stack, 'esiedi' args[0] in ESI and args[1] in EDI (of EAX EBX ECX EDX ESI EDI EBP; EBP must not be 0); the hook row's replacement is then the port's naked thunk
 (src/hook/regthunks.h), which pushes the registers as the port's ordinary cdecl arguments. Call(steps=) the emulator's step limit (5 000 000: a case past it is a
 "step limit"; raise it only for a function whose smallest real input runs that long). Region addresses must be in the game's data (0x6e7000-0xfc5200) or at 0x10000000 and up (RAM, ALLOC.. are free slots); anything a case
 does not set reads as the exe image there, else zero, in both. No region may be empty (the driver reads its bytes as one hex token, so an
@@ -278,7 +278,7 @@ def off_code(buf):
     return buf
 
 
-REGISTER_ARGS = ('EAX', 'EBX', 'ECX', 'EDX', 'ESI', 'EDI')
+REGISTER_ARGS = ('EAX', 'EBX', 'ECX', 'EDX', 'ESI', 'EDI', 'EBP')
 
 
 def register_args(conv):
@@ -287,8 +287,8 @@ def register_args(conv):
     if len(conv) < 3 or conv[0] != 'e':
         return ()
     regs = tuple(conv[i:i + 3].upper() for i in range(0, len(conv), 3))
-    if len(conv) % 3 or len(conv) > 15 or not all(r in REGISTER_ARGS for r in regs):
-        raise ValueError('register convention %r: names of %s, at most five' % (conv, '/'.join(REGISTER_ARGS)))
+    if len(conv) % 3 or len(conv) > 18 or not all(r in REGISTER_ARGS for r in regs):
+        raise ValueError('register convention %r: names of %s, at most six' % (conv, '/'.join(REGISTER_ARGS)))
     return regs
 
 

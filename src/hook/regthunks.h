@@ -15,4 +15,5 @@ void RegThunk_MovieIdct_RowShift(); // 0x676965: block in ESI, out in EDI
 void RegThunk_TgqVideo_PixelRow16(); // 0x673574: luma in ESI, out in EDI, chroma in EBX
 void RegThunk_TgqVideo_PixelRow32(); // 0x6732e9: luma in ESI, out in EDI, chroma in EBX
 void RegThunk_TgqVideo_DecodeCoefficients(); // 0x672e60: the counter left in EDI
+void RegThunk_TqiVideo_DecodeBlock(); // 0x674ab9: DC in EAX, dequantiser in ESI, bits in EBP, position in EDI (and out), out in EDX, pitch in ECX (ECX and EDX kept)
 }
