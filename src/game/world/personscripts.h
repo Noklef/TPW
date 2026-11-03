@@ -1,4 +1,5 @@
-// A person's sprite script and ride timers: reimplementation of 0x4f9ed0, 0x4fdc90, 0x4fe900, 0x4fe950, 0x50be40 and 0x50c0d0.
+// A person's sprite script and ride timers: reimplementation of 0x4f9ed0, 0x4fdc90, 0x4fe900, 0x4fe950, 0x50be40, 0x50c0d0 and 0x50be80 (a thought's
+// bubble).
 #pragma once
 
 #include "../../../re/types.h"
@@ -40,4 +41,22 @@ void __fastcall Person_KillScript84Keep(u8 *person);
 // y less the ground height at (x, z) (Terrain_HeightAt; fsubr, stored as a float), z, with r15; then, unless it is at that entry point
 // (ScriptRef_IsAt), the reference's +4 = anim (Set4_4217f0). Returns 0.
 u32 __fastcall Person_PlaceScript(u8 *person, void *, u32 x, float y, u32 z, u32 r15, u32 anim);
+
+// 0x50be80 (thiscall on a person's thoughts (the person's +0x30): thought, force (a byte), pops 8; name invented, unconfirmed): the thought
+// shown. +0 = thought; nothing more with any of 0x790ab0's bits 0x16, or with the mode setting 0xfb3b7c (a function-local static, guard bit 1
+// of 0xfb34aa: Setting_ReadMode and atexit 0x5d1750 the first time) 1 and no force. The bubble script at +0x84 is killed and cleared
+// (SpriteScript_Kill); thoughts 1 to 0x16 then have a bubble (the entry points 0x74f190 - 0x74f388) and a wait of 0 to 3 times 20 ticks:
+// when the world's clock ([[0x7cf6ec]] + 0x1da70c) is at or past +0x8c + the wait (unsigned), +0x8c = the clock and +0x84 =
+// SpriteScript_Start (the entry point, folder 9, 0...). Another thought: the empty Debug_Printf only.
+void __fastcall Thoughts_Show(u8 *thoughts, void *, u32 thought, u8 force);
 }
+
+// What Thoughts_Show calls in agent B's code, so that it can run outside the game (the benches point it at recorders).
+struct ThoughtsEnv {
+    u8 *(__fastcall *readMode)(u8 *setting);                                                // Setting_ReadMode 0x550ca0
+    s32(__cdecl *atExit)(void(__cdecl *f)());                                               // atexit 0x67a7d0 (the CRT's)
+    void(__cdecl *kill)(s32 slot);                                                          // SpriteScript_Kill 0x475550
+    s32(__cdecl *start)(u32 code, u32 folder, u32 sprite, u32 anim, u32 x, u32 y, u32 z);  // SpriteScript_Start 0x475a10
+};
+// nullptr restores the game's.
+void Thoughts_SetEnv(const ThoughtsEnv *env);

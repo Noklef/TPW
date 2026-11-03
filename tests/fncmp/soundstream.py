@@ -2,7 +2,7 @@
 # NEXT, now and then null or the stream itself, +8 (upstream) PREV, null or the stream, +0xc an id the find's argument matches now and
 # then; the next and upstream recorder vtables too. The query's next answers its out (the local, the record's own stack slot: logged as
 # 0, a fill writing it now and then) or a dword in RAM; the user queries (0x6c8e80, 0x6c7460, 0x6c8e00) likewise, over a record of random
-# flags. The descriptions over the record; the notify stream's read (slot 7) and send (+0x18 a callback object, a recorder vtable, or
+# flags; the samples' query (0x6bb1b0) as the plain one. The descriptions over the record; the notify stream's read (slot 7) and send (+0x18 a callback object, a recorder vtable, or
 # null). The destructor over the heap (Mem_Free), any flags. The read's next source (0x6c75d0): the callback's slot 0 given +0xc
 # (now and then the stream's +4, which it fills with a next or 0) and +0x10; the old next's slot 2. The read (0x6c74e0): the next's
 # slot 7 filling its got (a local) from up to 8 records, answering 1 after 0-15 calls; the next source then taken in turn (the
@@ -21,13 +21,13 @@ CALLS = {'dtor': (0x6bab30, 't', 'a'), 'setnext': (0x6c61e0, 't', 'a'), 'chain':
          'rate': (0x6ba9a0, 't', 'a'), 'query': (0x6c6280, 't', 'a'), 'seektime': (0x6c6d70, 't', 'a'),
          'queryuser': (0x6c8e80, 't', 'a'), 'describeuser': (0x6c8ed0, 't', 'v'), 'query6c8': (0x6c7460, 't', 'a'),
          'describe6c8': (0x6c74b0, 't', 'v'), 'cbread': (0x6bab90, 't', 'a'), 'cbquery': (0x6c8e00, 't', 'a'), 'cbsend': (0x6c8e50, 't', 'v'), 'nextsource': (0x6c75d0, 't', 'a'),
-         'read6c8': (0x6c74e0, 't', 'a')}
+         'read6c8': (0x6c74e0, 't', 'a'), 'samplequery': (0x6bb1b0, 't', 'a')}
 RANGES = [(0x6bab30, 0x6bab50), (0x6ba9a0, 0x6ba9b0), (0x6c61e0, 0x6c632e), (0x6c6d70, 0x6c6e45), (0x6c8e00, 0x6c8eea), (0x6c7460, 0x6c74d6),
-          (0x6bab90, 0x6babb8), (0x6c5090, 0x6c50a3), (0x6c50f0, 0x6c5103), (0x6c75d0, 0x6c7605), (0x6c74e0, 0x6c75cb)]
+          (0x6bab90, 0x6babb8), (0x6c5090, 0x6c50a3), (0x6c50f0, 0x6c5103), (0x6c75d0, 0x6c7605), (0x6c74e0, 0x6c75cb), (0x6bb1b0, 0x6bb1c6)]
 B = Bench(RANGES)
 STREAM, NEXT, PREV, VT, OUT, RECORD, WORD, CALLBACK, CALLBACK_VT = (RAM + 0x100 * i for i in range(9))
 SLOTS = {0: 1, 1: 1, 4: 1, 5: 1, 7: 4, 9: 2, 11: 1, 12: 1}
-QUERIES = ('query', 'queryuser', 'query6c8', 'cbquery')
+QUERIES = ('query', 'queryuser', 'query6c8', 'cbquery', 'samplequery')
 OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 

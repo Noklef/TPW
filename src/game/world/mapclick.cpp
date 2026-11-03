@@ -12,6 +12,7 @@
 #include "../math/x87.h"
 #include "../ui/cursor.h"
 #include "advisor.h"
+#include "cellmessage.h"
 #include "cellrun.h"
 #include "dirstep.h"
 #include "focuscell.h"
@@ -22,6 +23,7 @@
 #include "objectmsg.h"
 #include "staff.h"
 #include "thingscan.h"
+#include "trackrides.h"
 #include "world.h"
 
 namespace {
@@ -49,8 +51,8 @@ const MapClickEnv kGameEnv = {
     raw<void(__cdecl *)(u32)>(0x0052fc80),
     raw<void(__cdecl *)(u8 *)>(0x00530120),
     raw<void(__cdecl *)(s32, s32, s32, s32)>(0x005327e0),
-    raw<u32(__cdecl *)(u32, s32, s32, s32 *, s32 *)>(0x00536100),
-    raw<void(__cdecl *)(u32)>(0x00545450),
+    reinterpret_cast<u32(__cdecl *)(u32, s32, s32, s32 *, s32 *)>(&Map_SendLine),
+    &TrakRide_Strip,
     &Sound_PlayAt,
     &Map_ApplyLine,
     &MapCell_PathLines,

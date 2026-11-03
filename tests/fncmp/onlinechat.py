@@ -8,12 +8,17 @@
 # blocks (0-0x2ff entries from any slot of the first, the blocks in any order in a map with 0-2 slots after the end's; the end iterator at its
 # block's end when full, or a count of 0), or none (made: the Ctor case's world, the new chat in the heap with its allocator bytes masked);
 # the pairs' allocator bytes the original's copy constructor takes from the stack temporary's address masked in the freed vector blocks.
+# Messages (0x4e61f0, stdcall: code, an unread dword, the vector): the same deque with a vector of 0-5 pairs of strings of any kind (null, shared, copied), or
+# the codes -5 / -4 with dequeiter.py's command queue. The chat is there (0x46cf10 making it: mousetile.py's bench).
 # usage: onlinechat.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Set,Get,Ctor)
 import os
 import struct
 import sys
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
+sys.path.insert(0, HERE)
+import dequeiter  # noqa: E402
 from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, RAND_SEED, Bench, Call, Mask, heap, import_table, log_region, put  # noqa: E402
 
 
@@ -31,11 +36,13 @@ B = Bench([(0x4e6130, 0x4e6150), (0x4e6150, 0x4e616f), (0x5c8b90, 0x5c8be0), (0x
            (0x4f5560, 0x4f59a0), (0x4f6080, 0x4f60a0), (0x4f6e70, 0x4f6f00), (0x4f7480, 0x4f74b0), (0x6c1940, 0x6c1aa0),
            (0x405280, 0x405390), (0x45b380, 0x45b5f0), (0x45b680, 0x45b8e0), (0x47bad0, 0x47bc10), (0x4e5260, 0x4e54d0), (0x4f0010, 0x4f0100),
            (0x4f1400, 0x4f1530), (0x4f23f0, 0x4f2450), (0x4f4120, 0x4f41e0), (0x4f4b70, 0x4f4c30), (0x4f5080, 0x4f5140),
-           (0x5ec210, 0x5ec230), (0x67a400, 0x6902c0), (0x6918f0, 0x691a30), (0x691ba0, 0x691ce0)],
+           (0x5ec210, 0x5ec230), (0x4e61f0, 0x4e640b), (0x46cf10, 0x46cf7d), (0x47f410, 0x47f61e), (0x632200, 0x632222), (0x6322e0, 0x632310), (0x4f7410, 0x4f7423), (0x4f6740, 0x4f67a4),
+           (0x67a400, 0x6902c0), (0x6918f0, 0x691a30), (0x691ba0, 0x691ce0)],
           hooks={0x687690: _mbtowc, 0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None})   # (the STL lock, as stringmapsrecord.py's)
-CALLS = {'Set': 0x4e6130, 'Get': 0x4e6150, 'Ctor': 0x4e5260, 'Queue': 0x4e4fc0}
+CALLS = {'Set': 0x4e6130, 'Get': 0x4e6150, 'Ctor': 0x4e5260, 'Queue': 0x4e4fc0, 'Messages': 0x4e61f0}
 IMPORTS = {'EnterCriticalSection': (1, 0x6fd140, 1, 0, 0), 'LeaveCriticalSection': (2, 0x6fd130, 1, 0, 0)}
 CHAT, NILS, BLOCK, MAP, BLOCKS = RAM + 0x10000, RAM + 0x400, RAM + 0x800, RAM + 0x200, RAM + 0x20000
+VEC, PAIRS, STRINGS = RAM + 0x300, RAM + 0x40000, RAM + 0x41000
 TREES = [(0x7ced24, 0x7ced28), (0x7ced2c, 0x7ced30), (0x7ced34, 0x7ced38)]   # (stringmapsrecord.py's kinds D, C, E: nil global, map counter)
 MASKED = [8, 0x18, 0xec8, 0xefc] + [0xe60 + k for k in (0, 0x10, 0x20, 0x21, 0x30, 0x31, 0x40, 0x41, 0x54)]
 
@@ -74,6 +81,12 @@ def queue(r):
         regions[0x7cddec] = struct.pack('<I', 0)
         return Call(0x4e4fc0, [code] + [r.getrandbits(32) for _ in range(3)], regions, conv='s', ret='v', masks=masks)
     regions[0x7cddec] = struct.pack('<I', CHAT)
+    deque(r, regions)
+    return Call(0x4e4fc0, [code] + [r.getrandbits(32) for _ in range(3)], regions, conv='s', ret='v', masks=masks)
+
+
+def deque(r, regions):
+    """The chat's queue: see the top."""
     count = r.choice([0, 1, 2, 0xff, 0x100, 0x101, 0x1ff, r.randrange(0x300)])
     off = r.choice([0, 1, 0xff, 0x80, r.randrange(0x100)])
     blocks = (off + count) // 0x100 + 1
@@ -96,7 +109,41 @@ def queue(r):
     chat = bytearray(regions[CHAT])
     chat[0xec8:0xef8] = deq
     regions.update({CHAT: chat, MAP: m, BLOCKS: r.bytes(0x1000 * (blocks + 1))})
-    return Call(0x4e4fc0, [code] + [r.getrandbits(32) for _ in range(3)], regions, conv='s', ret='v', masks=masks)
+
+
+def text(r, pool, off, width):
+    """A string's ptr, length, reserve; its characters in the pool at off (the count byte before them any); its next free offset."""
+    n = r.choice([0, 1, 5, 31, 40])
+    if n == 0 and r.random() < 0.6:
+        return 0, 0, r.choice([0, 31]), off
+    pool[off] = r.choice([0, 0, 1, 2, 0xfd, 0xfe, 0xff])
+    at = off + 1
+    for k in range(n):
+        pool[at + width * k:at + width * k + width] = r.randrange(1, 1 << (8 * width)).to_bytes(width, 'little')
+    pool[at + width * n:at + width * n + width] = bytes(width)
+    return STRINGS + at, n, r.choice([n, max(n, 31), n + r.randrange(40)]), at + width * (n + 1)
+
+
+def messages(r):
+    code = r.choice([-5, -5, -4, -4, -6, -3, 0, 1, r.getrandbits(31)])
+    if code in (-5, -4):
+        regions = {dequeiter.MAP: struct.pack('<5I', *(dequeiter.BLOCKS + 0x1000 * k for k in range(5))), dequeiter.BLOCKS: r.bytes(0x5000)}
+        dequeiter.queue(r, regions)
+    else:
+        log = log_region()
+        regions = {LOG: log, IMPORT_TABLE: import_table(log, IMPORTS), HEAP: heap(0x6000)}
+    regions.update({CHAT: r.bytes(0xf0c), 0x7cddec: struct.pack('<I', CHAT)})
+    deque(r, regions)
+    n = r.choice([0, 0, 1, 1, 2, 3, 5])
+    pairs, pool, off = bytearray(r.bytes(0x24 * n + 4)), bytearray(r.bytes(0x400)), 0
+    for i in range(n):
+        for field, width in ((0, 1), (0x10, 2)):
+            ptr, length, res, off = text(r, pool, off, width)
+            put(pairs, 0x24 * i + field + 4, '3I', ptr, length, res)
+    first = 0 if n == 0 and r.random() < 0.5 else PAIRS
+    vec = put(bytearray(r.bytes(0x10)), 4, '2I', first, first and PAIRS + 0x24 * n)
+    regions.update({VEC: vec, PAIRS: pairs, STRINGS: pool})
+    return Call(0x4e61f0, [code & 0xffffffff, r.getrandbits(32), VEC], regions, conv='s', ret='v')
 
 
 def case(r):
@@ -106,6 +153,8 @@ def case(r):
         return Call(0x4e5260, [CHAT], regions, conv='t', ret='a', masks=[mask])
     if op == 'Queue':
         return queue(r)
+    if op == 'Messages':
+        return messages(r)
     log = log_region()
     regions = {RAM: r.bytes(0x100), LOG: log, IMPORT_TABLE: import_table(log, IMPORTS)}
     return Call(CALLS[op], [RAM], regions, conv='t', ret='b' if op == 'Get' else 'v')

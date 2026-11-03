@@ -8,7 +8,8 @@
 # a layer I frame case of mp2layer1.py's or a layer II one of mp2layer2.py's, the layer byte (+0x2442) 1, 2, 0, 3 or any otherwise, the
 # decoder's slot 4 a recorder (0 mostly).
 # The read (0x6d1ab0): such a decoder (its frame's bytes +0x2474 small, the frame buffer's position +0x2468 at, before or past them, any
-# frame count) asked for 0 to a few frames' bytes into READ_OUT; slot 4 answers 0 (decoding) for the first call or two only, now and then never.
+# frame count) asked for 0 to a few frames' bytes into READ_OUT, also through the MP2 samples' slot 23 (0x6c8630, 0x6c8ac0: the decoder
+# at +0x34, the streamed sample's null now and then); slot 4 answers 0 (decoding) for the first call or two only, now and then never.
 # usage: mp2decoder.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -21,13 +22,16 @@ import mp2layer1  # noqa: E402
 import mp2layer2  # noqa: E402
 
 CALLS = {'clear': 0x6cc740, 'setup': 0x6ccb10, 'rewind': 0x6d1a50, 'muldiv': 0x6d1980, 'seek': 0x6cc780, 'close': 0x6d1a80,
-         'open_buffer': 0x6d18e0, 'open_stream': 0x6d1990, 'hasmmx': 0x6d1810, 'initfixed': 0x6d1800, 'decode': 0x6d17b0, 'read': 0x6d1ab0}
+         'open_buffer': 0x6d18e0, 'open_stream': 0x6d1990, 'hasmmx': 0x6d1810, 'initfixed': 0x6d1800, 'decode': 0x6d17b0, 'read': 0x6d1ab0,
+         'sampleread': 0x6c8630, 'streamsampleread': 0x6c8ac0}
 B = Bench([(0x6cc740, 0x6cc7a1), (0x6ccb10, 0x6ccc13), (0x6d18e0, 0x6d1aa4), (0x6d1800, 0x6d18dd), (0x5d60c0, 0x5d60c3), (0x5da3c0, 0x5da3c1),
            (0x6d17b0, 0x6d17f0), (0x6ce5a0, 0x6d17a4), (0x6ccc20, 0x6cd218), (0x6cd220, 0x6cde4d), (0x6cdf50, 0x6ce594), (0x6c9270, 0x6c957d),
-           (0x6c9580, 0x6ca574), (0x6ca580, 0x6cc735), (0x6d62c0, 0x6d6c4c), (0x6d1ab0, 0x6d1bb2)])
+           (0x6c9580, 0x6ca574), (0x6ca580, 0x6cc735), (0x6d62c0, 0x6d6c4c), (0x6d1ab0, 0x6d1bb2),
+           (0x6c8630, 0x6c8645), (0x6c8ac0, 0x6c8ade)])
 DECODER, VT_SELF, STREAM, VT_STREAM, BUF = RAM, RAM + 0x4000, RAM + 0x4100, RAM + 0x4200, RAM + 0x5000
 VT_FRAME = RAM + 0x9000   # (the decode's own vtable: past the layer cases' frame and output)
 READ_OUT = RAM + 0xa000   # (the read's output, past that)
+SAMPLE = RAM + 0x20000   # (the MP2 samples' reads: the sample, its decoder +0x34)
 FIXED, HALF = 0xfb2704, 0xfb2708
 RATES = [44100, 48000, 32000, 22050, 24000, 16000, 11025, 12000, 8000]
 BITRATES = [8, 32, 64, 128, 160, 256, 320, 384, 448, 44100]
@@ -59,7 +63,7 @@ def case(r):
     regions = {DECODER: decoder(r), VT_SELF: vtable({2: 0, 5: 0}), STREAM: struct.pack('<I', VT_STREAM), VT_STREAM: vtable({2: 1}),
                LOG: log, FIXED: struct.pack('<I', r.choice([0, 1, i32(r)])), HALF: struct.pack('<I', r.choice([0, 0, 1, i32(r)]))}
     addr = CALLS[name]
-    if name == 'read':
+    if name in ('read', 'sampleread', 'streamsampleread'):
         layer = r.choice([1, 2, 2, 0])
         call = mp2layer2.case_frame(r) if layer == 2 or (layer == 0 and r.random() < 0.5) else mp2layer1.case(r)
         d = bytearray(call.regions[DECODER]) + bytearray(r.bytes(0x3000 - 0x2460))
@@ -72,7 +76,11 @@ def case(r):
         n = r.choice([0, 1, size, size - 1, size + 1, 2 * size, 3 * size + 5, r.randrange(1, 4 * size), -r.randrange(1, 9)])
         fail_mask(log, 4, r.choice([0xfffffffe, 0xfffffffe, 0xfffffffc, 0xfffffffd, 0xffffffff]))
         call.regions.update({DECODER: bytes(d), VT_FRAME: vtable({4: 0}), LOG: log, READ_OUT: r.bytes(max(n, 0) + 0x1800)})
-        return Call(addr, [DECODER, READ_OUT, n & 0xffffffff], call.regions, conv='t', ret='a')
+        if name != 'read':
+            sample = bytearray(r.bytes(0x60))
+            struct.pack_into('<I', sample, 0x34, 0 if name == 'streamsampleread' and r.random() < 0.15 else DECODER)
+            call.regions[SAMPLE] = sample
+        return Call(addr, [DECODER if name == 'read' else SAMPLE, READ_OUT, n & 0xffffffff], call.regions, conv='t', ret='a')
     if name == 'decode':
         layer = r.choice([1, 1, 2, 2, 0, 3, r.getrandbits(8)])
         call = mp2layer2.case_frame(r) if layer == 2 or (layer not in (0, 1) and r.random() < 0.5) else mp2layer1.case(r)

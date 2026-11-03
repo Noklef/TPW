@@ -129,6 +129,13 @@ void __fastcall Mp2StreamSample_Restart(u8 *sample) {
     Fn_6d1a50(at<u8 *>(sample, 0x34));
 }
 
+s32 __fastcall Mp2Sample_Decode(u8 *sample, void *, u8 *out, s32 bytes) { return Mp2Decoder_Read(at<u8 *>(sample, 0x34), nullptr, out, bytes); }
+
+s32 __fastcall Mp2StreamSample_Decode(u8 *sample, void *, u8 *out, s32 bytes) {
+    u8 *const decoder = at<u8 *>(sample, 0x34);
+    return decoder ? Mp2Decoder_Read(decoder, nullptr, out, bytes) : 0;
+}
+
 void __fastcall Mp2Sample_FreeDecoder(u8 *sample) {
     if (!at<u8 *>(sample, 0x34)) return;
     vcall<void>(at<u8 *>(sample, 0x34), 8);

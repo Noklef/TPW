@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "cellkind.h"
+#include "cellmessage.h"
 #include "mapcell.h"
 
 namespace {
@@ -12,7 +13,7 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 u32 ident(s32 x, s32 y) { return ((u32)y * 128 + (u32)x + 1) & 0xffff; }
 
 const PathDragEnv kGameEnv = {MapCell_Clear,
-                              reinterpret_cast<void(__cdecl *)(u32, s32, s32, s32 *, s32 *)>((uintptr_t)0x00536100)};
+                              reinterpret_cast<void(__cdecl *)(u32, s32, s32, s32 *, s32 *)>(&Map_SendLine)};
 const PathDragEnv *g_env = &kGameEnv;
 
 }  // namespace

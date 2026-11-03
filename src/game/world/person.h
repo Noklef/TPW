@@ -158,6 +158,19 @@ void __fastcall Sprite_SetStranded(u8 *sprite, void *, u32 flag);
 // high byte of a word whose low byte is 0x80.
 u32 __fastcall Sprite_SetDestinationCell(u8 *sprite, void *, u32 cell);
 
+// 0x4f9490 (thiscall; the name from its debug strings ("SetRandomDest"), unconfirmed; SEH frame): a person's next random destination. The timer
+// +0x198 as Sprite_SetDestination's, a blocked person thinking 0x11 and answering 0. One World_Rand roll % 5, the steps less one. Staff (kinds 4-8)
+// outside the patrol region go to a random cell of it (Staff_GoToRandomPatrolCell: 1) and otherwise walk freely. On a cell with side neighbours:
+// a walk of steps + 1 cells (one more when the last is back at the start, again and again): of the neighbours (the bits 0x10, 4, 1, 0x40, each the
+// step at 0x7cdba8 / c8 / a0 / d0 from the cell, id low 16 bits) staff still inside lose those outside their region (none left: to a random
+// cell of it, its answer as 0 / 1); from a type 1 cell those of type 3 or 9 go, on a type 3 cell the one its direction (1, 0x10, 4, 0x40) names, and
+// those of type 0xa ([0x80239c]'s cells); under 2 by the count the first remaining, none: staff to a random cell, others think 0x11, the timer the
+// counter's next, 0; else from a roll & 3 the first that is not straight back (9999 at first, else (pick - 2) & 3), the roll's own when none. At the
+// end Sprite_SetDestination to a point in the cell, low bytes rolled and clamped to 5 to 0x7b; its answer, +0xd0 set to 1 when not 0. On a cell
+// without: every cell 0 to 3 off in the eight directions in order, in the map, of type 1, by Sprite_SetDestinationCell; then 5 tries within 5 (rolled
+// % 11 - 5, in the map, any type); success: +0xd0 1 and 1; else 0.
+u32 __fastcall Person_SetRandomDest(u8 *person);
+
 // 0x4f7de0 (thiscall; x, y; name unconfirmed): Sprite_SetDestination; when it answers nonzero the dword +0x39c and the dword +0x10 (+0xc's
 // second, Set4_4217f0) set to 1, and 1; else 0.
 u32 __fastcall Sprite_SetDestinationMarked(u8 *sprite, void *, s32 x, s32 y);

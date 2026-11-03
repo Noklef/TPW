@@ -1,6 +1,7 @@
 #include "channelvoice.h"
 
 #include <cstdint>
+#include <cstring>
 
 #include <emmintrin.h>
 
@@ -8,9 +9,16 @@
 
 #include "crt.h"
 #include "gameheap.h"
+#include "language.h"
+#include "mp2sample.h"
 #include "soundchannel.h"
+#include "soundindex.h"
+#include "soundsample.h"
+#include "soundstream.h"
+#include "streampool.h"
 #include "vcall.h"
 #include "voiceevents.h"
+#include "voicesample.h"
 
 namespace {
 
@@ -21,6 +29,10 @@ using OnObject = s32(__stdcall *)(void *);
 
 void Enter(u8 *voice) { Import<OnObject>(0x006fd140)(voice + 0x74); }   // EnterCriticalSection
 void Leave(u8 *voice) { Import<OnObject>(0x006fd130)(voice + 0x74); }   // LeaveCriticalSection
+
+// A sound resource reference's resource (+8: 0x41a830) and its stream (slot 11).
+u8 *Source(u8 *ref) { return reinterpret_cast<u8 *>(static_cast<uintptr_t>(Language_Id(ref))); }
+u8 *Stream(u8 *ref) { return reinterpret_cast<u8 *>(static_cast<uintptr_t>(SoundResourceRef_Slot11(ref))); }
 
 }  // namespace
 
@@ -53,6 +65,64 @@ u8 __fastcall ChannelVoice_Release(u8 *voice, void *, u32 value) {
     at<u32>(voice, 0x58) = 0;
     Leave(voice);
     return released;
+}
+
+void __fastcall ChannelVoice_Dtor(u8 *voice) {
+    at<u32>(voice, 0) = 0x0070a7a8;
+    Import<OnObject>(0x006fd0d0)(voice + 0x74);   // DeleteCriticalSection
+    Import<OnObject>(0x006fd13c)(reinterpret_cast<void *>(static_cast<uintptr_t>(at<u32>(voice, 0x6c))));   // CloseHandle
+    GameHeap_Free(at<u8 *>(voice, 0x64));
+    at<u32>(voice, 0) = 0x0070a778;
+}
+
+u8 *__fastcall ChannelVoice_DeletingDtor(u8 *voice, void *, u32 flags) {
+    if (flags & 2) {
+        CRT_VectorDtorIterator(voice, 0x8c, at<s32>(voice, static_cast<u32>(-4)), reinterpret_cast<void(__fastcall *)(void *)>(ChannelVoice_Dtor));
+        GameHeap_Free(voice - 4);   // (sic: flag 1 not tested)
+        return voice;
+    }
+    ChannelVoice_Dtor(voice);
+    if (flags & 1) GameHeap_Free(voice);
+    return voice;
+}
+
+u8 *__fastcall ChannelVoice_SetNext(u8 *voice, void *, u8 *next) {
+    Enter(voice);
+    u8 *const result = SoundStream_SetNext(voice, nullptr, next);
+    Leave(voice);
+    return result;
+}
+
+u8 *__fastcall ChannelVoice_Find(u8 *voice, void *, const u32 *id) {
+    Enter(voice);
+    u8 *const result = SoundStream_Find(voice, nullptr, *id);
+    Leave(voice);
+    return result;
+}
+
+u32 *__fastcall ChannelVoice_Query(u8 *voice, void *, u32 *out, u8 *record) {
+    Enter(voice);
+    u32 slot = static_cast<u32>(reinterpret_cast<uintptr_t>(record));   // (the record argument's own stack slot)
+    SoundStream_Query(voice, nullptr, &slot, record);
+    if (at<u32>(record, 0x14) & 0x400) at<u32>(voice, 0x58) = at<u32>(record, 0x2c);
+    *out = 0;   // (sic: the query's answer dropped)
+    Leave(voice);
+    return out;
+}
+
+u32 __fastcall ChannelVoice_Read(u8 *voice, void *, u8 *buffer, u32 bytes, u32 *out, u32) {
+    Enter(voice);
+    *out = 0;
+    u32 ended = 0;
+    if (u8 *const next = at<u8 *>(voice, 4)) {
+        if (vcall<u32>(next, 0x1c, buffer, bytes, out, 0) == 1) {
+            ChannelVoice_Release(voice, nullptr, 0);
+            ended = 1;
+        }
+    }
+    std::memset(buffer + *out, 0, bytes - *out);
+    Leave(voice);
+    return ended;
 }
 
 void __fastcall ChannelVoice_SetFlag(u8 *voice, void *, u8 on, u32 mask) {
@@ -228,6 +298,83 @@ u32 __fastcall ChannelVoices_ReleaseEach(u8 *pool) {
         } while (voice < end && voice);
     }
     return released;
+}
+
+u8 *__fastcall ChannelVoices_CreateStream(u8 *, void *, u8 *voice, u32 *play) {
+    u32 buffer[10];
+    u32 *record = buffer;   // (the record read may point it elsewhere)
+    u8 *stream = nullptr;
+    if (static_cast<u8>(SoundResourceHandle_ReadRecord(static_cast<u32>(reinterpret_cast<uintptr_t>(&record)), play)) && record[1]) {
+        if (voice) {
+            for (u32 i = 0; i < 10; ++i) at<u32>(voice, 0x3c + 4 * i) = record[i];
+            if (play[5] & 0x8000) at<u32>(voice, 0x20) = play[7];
+        }
+        u8 *const ref = reinterpret_cast<u8 *>(static_cast<uintptr_t>(play[1]));
+        const u8 kind = reinterpret_cast<const u8 *>(record)[0x1b];
+        const u8 *const header = reinterpret_cast<const u8 *>(record);
+        if (kind & 0x20) {   // MP2
+            if (SoundResourceRef_Slot13(ref)) {
+                const u32 start = SoundResourceRef_Offset(ref, nullptr, play[0]) + 0x28;
+                if (u8 *const block = static_cast<u8 *>(Mp2StreamSamplePool_New(0x5c))) {
+                    u8 *const source = Source(ref);
+                    stream = Mp2StreamSample_Ctor(block, nullptr, Stream(ref), header, start, source);
+                }
+            } else if (u8 *const block = static_cast<u8 *>(Mp2SamplePool_New(0x40))) {
+                stream = Mp2Sample_Ctor(block, nullptr, header, Source(ref));
+            }
+        } else if (kind & 0x10) {   // voice-coded
+            if (SoundResourceRef_Slot13(ref)) {
+                SoundResourceRef_Offset(ref, nullptr, play[0]);   // (the answer unused)
+                if (u8 *const block = static_cast<u8 *>(VoiceStreamPool_New(0x5c))) {
+                    u8 *const source = Source(ref);
+                    stream = VoiceStream_Ctor(block, nullptr, Stream(ref), header, source);
+                }
+            } else if (u8 *const block = static_cast<u8 *>(VoiceSamplePool_New(0x40))) {
+                stream = VoiceSample_Ctor(block, nullptr, header, Source(ref));
+            }
+        } else if (kind & 0x40) {
+            u32 slot = static_cast<u32>(reinterpret_cast<uintptr_t>(play));   // (the play argument's own stack slot)
+            SoundResourceRef_Slot15(ref, nullptr, &slot, static_cast<u32>(reinterpret_cast<uintptr_t>(play)));
+            return nullptr;   // (no voice released, sic)
+        } else if (SoundResourceRef_Slot13(ref)) {   // PCM from a file
+            const u32 start = SoundResourceRef_Offset(ref, nullptr, play[0]) + 0x28;
+            if (u8 *const block = static_cast<u8 *>(FileSamplePool_New(0x48))) {
+                u8 *const source = Source(ref);
+                stream = FileSample_Ctor(block, nullptr, Stream(ref), reinterpret_cast<u8 *>(record), start, source);
+            }
+        } else if (u8 *const block = static_cast<u8 *>(MemorySamplePool_New(0x2c))) {   // PCM in memory
+            stream = SoundSample_Ctor(block, nullptr, reinterpret_cast<u8 *>(record), Source(ref));
+            at<u32>(stream, 0) = 0x0070a6f8;
+        }
+        if (stream) stream = SoundStream_BuildChain(reinterpret_cast<u8 *>(play), header, stream);
+        if (stream) {
+            if (play[5] & 0x800) {
+                u32 *const wrap = static_cast<u32 *>(Stream70a6c8Pool_New(0x1c));
+                if (wrap) {
+                    wrap[1] = 0;
+                    wrap[2] = 0;
+                    wrap[3] = 0;
+                    wrap[4] = 0;
+                    wrap[6] = play[0x13];
+                    wrap[0] = 0x0070a6c8;
+                }
+                stream = SoundStream_Chain(stream, reinterpret_cast<u8 *>(wrap));
+                play[5] &= ~0x800u;
+            }
+            const u32 id = ++at<u32>(voice, 0x2c);   // (no voice: a fault, as in the original)
+            vcall<void>(stream, 0x28, id);
+            u32 slot = static_cast<u32>(reinterpret_cast<uintptr_t>(play));   // (the play argument's own stack slot)
+            if (static_cast<s32>(*vcall<const u32 *>(stream, 0x24, &slot, play)) >= 0) {
+                if (voice && (reinterpret_cast<const u8 *>(record)[0x1b] & 0x20)) {
+                    if (at<u16>(voice, 0x54) != vcall<u32>(stream, 0x18)) at<u16>(voice, 0x54) = static_cast<u16>(vcall<u32>(stream, 0x18));
+                }
+                return stream;
+            }
+            vcall<void>(stream, 8);
+        }
+    }
+    if (voice) ChannelVoice_Release(voice, nullptr, 0);
+    return nullptr;
 }
 
 }  // extern "C"

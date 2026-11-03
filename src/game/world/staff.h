@@ -94,6 +94,13 @@ u32 __fastcall Staff_HasPatrolRegion(const u8 *staff);
 // row past the map).
 u32 __fastcall Staff_InPatrolRegion(const u8 *staff, void *, u32 pos);
 
+// 0x506f30 (thiscall; name invented, unconfirmed; called from 0x4f95a2 and 0x4f9d90): a staff member sent to a random cell of its patrol
+// region. The spans (columns (+0x20c - 1 & 0x7f) - (+0x20a - 1 & 0x7f) + 1, rows the same of >> 7, unsigned, so an inverted region's are
+// huge; a span of 0 divides by zero, sic) once, then up to 30 tries: two World_Rand rolls ([0x80239c]) modulo the spans plus the region's
+// corner (+0x20a read again each try); when Map_InBounds, its cell of [0x8023a0] is of type 1 and Sprite_SetDestinationCell succeeds,
+// 1. After 30: thought 0x16 (Thoughts_Show on +0x30, no force), 0.
+u32 __fastcall Staff_GoToRandomPatrolCell(u8 *staff);
+
 // 0x507bd0 (index): the pool's entry when index < 0x20 (unsigned) and it is mValid, else null.
 u8 *__fastcall StaffPool_ValidEntry(u8 *pool, void *, u32 index);
 

@@ -13,6 +13,7 @@
 #include "lineends.h"
 #include "mapcell.h"
 #include "mapline.h"
+#include "trackrides.h"
 
 namespace {
 
@@ -125,7 +126,7 @@ const CellRunEnv kGameEnv = {&MapCell_ApplyModel,
                              reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>(&MapCell_SetTrackKind),   // (its EAX unread)
                              &TrackCell_Remove,
                              reinterpret_cast<void(__cdecl *)(s32, s32, u32)>(&LineEnd_Unlink),              // (its EAX unread)
-                             reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)0x00545450)};
+                             &TrakRide_Strip};
 const CellRunEnv *g_env = &kGameEnv;
 
 u32 has_low(const u8 *cell) { return MapCell_HasLowFlags(cell); }

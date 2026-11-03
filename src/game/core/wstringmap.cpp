@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "crt.h"
 #include "stdtree.h"
 
 namespace {
@@ -20,9 +21,65 @@ s32 Compare(const u16 *a, u32 aLength, const u16 *b, u32 bLength) {
     return aLength != bLength ? 1 : 0;
 }
 
+// The second wide string copy's order (case-insensitive): _wcsnicmp up to the shorter length, then the lengths.
+s32 CompareI(const u16 *a, u32 aLength, const u16 *b, u32 bLength) {
+    const s32 r = Crt().wcsnicmp(a, b, aLength < bLength ? aLength : bLength);
+    if (r)
+        return r;
+    if (aLength < bLength)
+        return -1;
+    return aLength != bLength;
+}
+
+const u16 *NullStrI(const u16 *chars) { return chars ? chars : reinterpret_cast<const u16 *>(0x00700624); }
+
+u8 *LowerBoundI(u8 *set, const u8 *key, u32 sentinel) {
+    u8 *result = at<u8 *>(set, 4);
+    u8 *node = at<u8 *>(result, 4);
+    if (node == global<u8 *>(sentinel))
+        return result;
+    do {
+        if (CompareI(at<const u16 *>(node, 0x10), at<u32>(node, 0x14), NullStrI(at<const u16 *>(key, 4)), at<u32>(key, 8)) < 0) {
+            node = at<u8 *>(node, 8);
+        } else {
+            result = node;
+            node = at<u8 *>(node, 0);
+        }
+    } while (node != global<u8 *>(sentinel));
+    return result;
+}
+
+u32 *FindI(u8 *set, u32 *out, const u8 *key, u8 *found) {
+    u8 *const head = at<u8 *>(set, 4);
+    if (found != head &&
+        CompareI(at<const u16 *>(key, 4), at<u32>(key, 8), NullStrI(at<const u16 *>(found, 0x10)), at<u32>(found, 0x14)) >= 0) {
+        *out = (u32)(uintptr_t)found;
+        return out;
+    }
+    *out = (u32)(uintptr_t)head;
+    return out;
+}
+
 }  // namespace
 
 extern "C" {
+
+u8 *__fastcall ChatIgnoreSet_LowerBound(u8 *set, void *, const u8 *key) { return LowerBoundI(set, key, 0x007ced34); }
+
+u8 *__fastcall ChatBuddySet_LowerBound(u8 *set, void *, const u8 *key) { return LowerBoundI(set, key, 0x007ced2c); }
+
+u32 *__fastcall ChatIgnoreSet_Find(u8 *set, void *, u32 *out, const u8 *key) {
+    return FindI(set, out, key, ChatIgnoreSet_LowerBound(set, nullptr, key));
+}
+
+u32 *__fastcall ChatBuddySet_Find(u8 *set, void *, u32 *out, const u8 *key) {
+    return FindI(set, out, key, ChatBuddySet_LowerBound(set, nullptr, key));
+}
+
+u32 *__fastcall ChatBuddySet_LowerBoundOut(u8 *set, void *, u32 *out, const u8 *key) {
+    *out = (u32)(uintptr_t)ChatBuddySet_LowerBound(set, nullptr, key);
+    return out;
+}
 
 u8 *__fastcall WStringMap_LowerBound(u8 *tree, void *, const u8 *key) {
     u8 *result = at<u8 *>(tree, 4);

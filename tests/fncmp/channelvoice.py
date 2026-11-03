@@ -33,7 +33,9 @@ CALLS = {'reset': (0x6c5060, 'c', 'v'), 'inc': (0x6c5070, 't', 'a'), 'dec': (0x6
          'fn2d0': (0x6b8d60, 't', 'a'), 'fn5b8': (0x6b8df0, 't', 'a'), 'fn5c0': (0x6b8e60, 't', 'a'), 'fn5b0': (0x6b8dd0, 't', 'a'),
          'fn268': (0x6b8e40, 't', 'a'), 'fn270': (0x6b8eb0, 't', 'a'), 'releaseeach': (0x6ba390, 't', 'a'), 'pooldtor': (0x6ba3e0, 't', 'v'),
          'chanrelease': (0x6b76d0, 't', 'v'), 'basedtor': (0x6b7410, 't', 'v'), 'chandtor': (0x6b9c00, 't', 'v'),
-         'eaxdtor': (0x6c5be0, 't', 'v'), 'eaxdelete': (0x6ba200, 't', 'a')}
+         'eaxdtor': (0x6c5be0, 't', 'v'), 'eaxdelete': (0x6ba200, 't', 'a'),
+         'vdtor': (0x6bb050, 't', 'v'), 'vdelete': (0x6baff0, 't', 'a'), 'vsetnext': (0x6bb730, 't', 'a'), 'vfind': (0x6bb6c0, 't', 'a'),
+         'vquery': (0x6bb470, 't', 'a'), 'vread': (0x6bb5e0, 't', 'a')}
 RANGES = [(0x6c5060, 0x6c506b), (0x6c5070, 0x6c5078), (0x6c5080, 0x6c5088), (0x6bb7a0, 0x6bb7bd), (0x6bb7c0, 0x6bb856), (0x6babc0, 0x6bac04),
           (0x6bac30, 0x6bac5c), (0x6b7e60, 0x6b7ea5), (0x6b8330, 0x6b8358),
           (0x6bb3e0, 0x6bb468), (0x6bb270, 0x6bb311), (0x6baf50, 0x6bafc9), (0x67acf0, 0x67ada0),
@@ -41,7 +43,9 @@ RANGES = [(0x6c5060, 0x6c506b), (0x6c5070, 0x6c5078), (0x6c5080, 0x6c5088), (0x6
           (0x6bb8d0, 0x6bb922), (0x6baa60, 0x6baaa2), (0x6baad0, 0x6bab18), (0x6bab50, 0x6bab86), (0x6b7eb0, 0x6b7ef6),
           (0x6b8d60, 0x6b8ec6), (0x6ba390, 0x6ba3d2), (0x6ba3e0, 0x6ba455), (0x6c6160, 0x6c6179),
           (0x6b76d0, 0x6b774e), (0x6b7410, 0x6b7469), (0x6b9c00, 0x6b9c4d), (0x5f61e0, 0x5f61f3), (0x6b7840, 0x6b7864), (0x6b78e0, 0x6b7904),
-          (0x6c4630, 0x6c4670), (0x6c4410, 0x6c4550), (0x6c47e0, 0x6c4800), (0x6c48b0, 0x6c4900), (0x6c5be0, 0x6c5c4a), (0x6ba200, 0x6ba21e)]
+          (0x6c4630, 0x6c4670), (0x6c4410, 0x6c4550), (0x6c47e0, 0x6c4800), (0x6c48b0, 0x6c4900), (0x6c5be0, 0x6c5c4a), (0x6ba200, 0x6ba21e),
+          (0x67afa0, 0x67b0d0), (0x6baff0, 0x6bb0d0), (0x6bb470, 0x6bb500), (0x6bb5e0, 0x6bb7b0), (0x6c61e0, 0x6c6220), (0x6c6280, 0x6c62d0),
+          (0x6c62e0, 0x6c6310)]
 B = Bench(RANGES)
 VOICES, VVT, SND, SVT, POOL, CHAN, SRC, SRCVT, SETS, OUT = (RAM + 0x400 * i for i in range(10))
 EVENTS, EVT, HANDLES = RAM + 0x3800, RAM + 0x3900, RAM + 0x3a00   # (the pool destructor's voice events)
@@ -153,6 +157,43 @@ def case(r):
         return Call(address, [VOICES, r.choice([0, 1, 0x80, 0x100, 0xffff7f00, r.getrandbits(32)]), r.getrandbits(32)], regions, conv=conv, ret=ret)
     if name == 'reset':
         return Call(address, [], regions, conv=conv, ret=ret)
+    if name.startswith('v'):   # (the voice's own slots: its sound at +4 (a recorder vtable) or none; the imports' recorders)
+        regions[SVT] = vtable({2: 0, 4: 1, 7: 4, 9: 2})
+        regions[IMPORT_TABLE] = import_table(log, dict(IMPORTS, DeleteCriticalSection=(48, 0x6fd0d0, 1, 0, 0), CloseHandle=(49, 0x6fd13c, 1, 0, 0)))
+        regions[HEAP] = heap(0x6000)
+        v = bytearray(regions[VOICES][:0x8c])
+        struct.pack_into('<I', v, 0x64, r.choice([0, HEAP + 0x40]))   # (the buffer block: freed by the destructor)
+        if name == 'vdelete':   # (flags bit 1: an array of 1-3 voices after its count, each one's buffer a block or none)
+            n = r.randint(1, 3)
+            arr = bytearray(struct.pack('<I', n if r.random() < 0.9 else 0))
+            for i in range(n):
+                w = bytearray(r.bytes(0x8c))
+                struct.pack_into('<I', w, 0x64, r.choice([0, HEAP + 0x40 + 0x40 * i]))
+                arr += w
+            regions[VOICES] = arr
+            return Call(address, [VOICES + 4, r.choice([0, 1, 2, 3, r.getrandbits(32)])], regions, conv=conv, ret=ret)
+        regions[VOICES] = v
+        if name == 'vdtor':
+            return Call(address, [VOICES], regions, conv=conv, ret=ret)
+        if name == 'vsetnext':   # (a next or none; the voice's old sound closed (slot 2))
+            regions[RAM + 0x3f00] = r.bytes(0x10)
+            return Call(address, [VOICES, r.choice([RAM + 0x3f00, RAM + 0x3f00, 0])], regions, conv=conv, ret=ret)
+        if name == 'vfind':   # (the id the voice's (+0xc) or not; the sound's slot 4 answering)
+            set_return(log, 4, r.getrandbits(32))
+            regions[OUT] = struct.pack('<I', r.choice([struct.unpack_from('<I', v, 0xc)[0], r.getrandbits(32)]))
+            return Call(address, [VOICES, OUT], regions, conv=conv, ret=ret)
+        if name == 'vquery':   # (the sound's slot 9 answering a pointer to a status; the record's flag 0x400 or not)
+            strings(log, 9, 0, out=1)
+            set_return(log, 9, OUT)
+            rec = bytearray(r.bytes(0x40))
+            struct.pack_into('<I', rec, 0x14, r.getrandbits(32) & ~0x400 | r.choice([0, 0x400]))
+            regions[REC] = rec
+            return Call(address, [VOICES, RAM + 0x3f00, REC], regions, conv=conv, ret=ret)
+        # vread: the sound's slot 7 (its out the caller's: fill it) answering 1 (the end) or else; bytes up to the buffer's
+        size = r.choice([0, 1, 4, 7, r.randrange(0x200)])
+        fill(log, 7, 2, struct.pack('<I', r.randint(0, size)))
+        regions[RAM + 0x3000] = r.bytes(0x200)
+        return Call(address, [VOICES, RAM + 0x3000, size, OUT, r.getrandbits(32)], regions, conv=conv, ret=ret)
     if name == 'scaled':   # (the rate any; the mask 0, bits 0-3 any way or any; the modifiers ordinary, 1.0, 0, infinities, NaNs, any bits)
         v = bytearray(regions[VOICES][:0x8c] or r.bytes(0x8c))
         struct.pack_into('<III', v, 0x18, r.choice([0, 1, 22050, 44100, 0x7fffffff, 0xffffffff, r.getrandbits(32), r.getrandbits(16)]),

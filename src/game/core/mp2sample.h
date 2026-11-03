@@ -43,6 +43,10 @@ u32 __fastcall Mp2StreamWindow_Read(u8 *window, void *, u8 *buffer, u32 count);
 u32 __fastcall Mp2StreamWindow_Seek(u8 *window, void *, u32 offset);
 // 0x6c8ae0 (thiscall; slot 22): with a decoder (+0x34), its slot 2, then (re-read, when still there) its slot 0 (1), and +0x34 0.
 void __fastcall Mp2Sample_FreeDecoder(u8 *sample);
+// 0x6c8630 (thiscall (out, bytes), pops 8; slot 23 of 0x70ae30; name invented): Mp2Decoder_Read of the decoder (+0x34) into out.
+// 0x6c8ac0 (thiscall (out, bytes), pops 8; slot 23 of 0x70ae90; name invented): the same, 0 without a decoder.
+s32 __fastcall Mp2Sample_Decode(u8 *sample, void *, u8 *out, s32 bytes);
+s32 __fastcall Mp2StreamSample_Decode(u8 *sample, void *, u8 *out, s32 bytes);
 // 0x6c82c0 (thiscall (record, source), pops 8): the MP2 memory sample's constructor: SoundSample_Ctor, the vtable 0x70ae30, +0x2c =
 // +0x34 = 0, the byte +0x3c = 1; bit 2 of the record's +0x1b: +0x2c = 1 and the length +0x30 = the record's +0x20. Returns the sample.
 // 0x6c8310 (thiscall (flags), pops 4; slot 0): SoundSample_Dtor (0x6c8330's jump), with flags bit 0 the block back to its pool

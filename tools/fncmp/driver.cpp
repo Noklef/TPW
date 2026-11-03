@@ -79,6 +79,7 @@
 #include "../../src/game/gfx/tga.h"
 #include "../../src/game/render/engineerrors.h"
 #include "../../src/game/online/chatavatar.h"
+#include "../../src/game/online/chatcommand.h"
 #include "../../src/game/sprite/draw.h"
 #include "../../src/game/sprite/script.h"
 #include "../../src/game/ui/cursor.h"
@@ -112,6 +113,9 @@
 #include "../../src/game/world/gamemode.h"
 #include "../../src/game/world/cellmessage.h"
 #include "../../src/game/world/cellrun.h"
+#include "../../src/game/world/trackcircuit.h"
+#include "../../src/game/world/mappreview.h"
+#include "../../src/game/world/personscripts.h"
 #include "../../src/game/world/staff.h"
 #include "../../src/game/world/things.h"
 #include "../../src/game/world/queuepieces.h"
@@ -479,6 +483,11 @@ const CellRunEnv kCellRunEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uint
                                 reinterpret_cast<void(__fastcall *)(u8 *, void *, s32, s32, u32)>((uintptr_t)recorder(7, 3)),
                                 reinterpret_cast<void(__cdecl *)(s32, s32, u32)>((uintptr_t)jpeg_recorder(27, 3)),
                                 reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(28, 1))};
+// The track circuit walk's calls into agent B's code: TrakRide_Strip and TrakRide_AddSection cdecl recorders 28 of 1 and 29 of 7,
+// MapCell_ApplyModel the thiscall recorder 24 of none, as tests/fncmp/trackcircuit.py hooks them.
+const TrackCircuitEnv kTrackCircuitEnv = {reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(28, 1)),
+                                          reinterpret_cast<s32(__cdecl *)(u32, s32, s32, u32, u32, u32, u32)>((uintptr_t)jpeg_recorder(29, 7)),
+                                          reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(24, 0))};
 // The track square test's call into agent B's MapCell_HandleMessage (0x532fc0): thiscall recorder 9 of 3, as tests/fncmp/tracksquare.py hooks it.
 const TrackSquareEnv kTrackSquareEnv = {reinterpret_cast<u32(__fastcall *)(u8 *, void *, u32, u32, u32)>((uintptr_t)recorder(9, 3))};
 // The placed object's constructor (agent C's unported 0x4db090): thiscall recorder 11 of 4, as tests/fncmp/placeobject.py hooks it.
@@ -532,6 +541,13 @@ const CoasterLinksEnv kCoasterLinksEnv = {Rec{jpeg_recorder(30, 10)}, Rec{jpeg_r
                                           Rec{jpeg_recorder(17, 1)},  Rec{jpeg_recorder(18, 2)}, Rec{jpeg_recorder(19, 2)},
                                           Rec{jpeg_recorder(20, 3)},  Rec{jpeg_recorder(21, 3)}, Rec{jpeg_recorder(22, 4)},
                                           Rec{jpeg_recorder(23, 5)}};
+// The chat commands' calls (src/game/online/chatcommand), as tests/fncmp/chatcommand.py hooks them: Charset_FormatWide the cdecl recorder
+// 25 of 5 (a 4-argument call's fifth is stack garbage, which the bench hashes away); agent B's 0x4051d0 the stand-in ChatCommand_AssignChars
+// (0x4ec030's own inlined copy of it; the bench runs B's original); B's 0x5d3230 and 0x5b50b0 the thiscall recorders 21 of 2 and 22 of 0;
+// Window7cc8bc_ChatAddStd, _ListAddStd and _ListAdd1Std the COM-style (stdcall) recorders 24, 27 and 28 of 2; B's 0x47f020 the cdecl recorder 26 of 8.
+const ChatCommandEnv kChatCommandEnv = {Rec{jpeg_recorder(25, 5)}, &ChatCommand_AssignChars, Rec{recorder(21, 2)},
+                                        Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 24}, Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 27},
+                                        Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 28}, Rec{recorder(22, 0)}, Rec{jpeg_recorder(26, 8)}};
 // The cell messages' calls into agent A's Path_CheckDeadEnds (0x527ee0) and GameMode_SetOnly (0x52f580): the cdecl recorders 27 of 3 and 28 of 2, as
 // tests/fncmp/cellmessage.py hooks them.
 const CellMessageEnv kCellMessageEnv = {reinterpret_cast<void(__cdecl *)(s32, s32, u32)>((uintptr_t)jpeg_recorder(27, 3)),
@@ -672,6 +688,7 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
         if ((blob[0] & 0x1f) == i + 1 && args[i]) {
             const u8 *const p = reinterpret_cast<const u8 *>((uintptr_t)args[i]);
             u32 blob_mask = blob[1], how = blob[0];
+            bool matched = false;  // (fncmp.blob(only_when=True), bit 30 of a dword blob's first dword: logged as 0 unless a blob_when() matches)
             for (u32 w = 0; w < 4; ++w) {  // (at + 0xf80, fncmp.blob_when(): (k | 0x80000000, argument, value, mask), the mask for this call's argument;
                                            // fncmp.blob_when_inner(): k | 0xc0000000 and the second structure's selection, bits 5-30 of how)
                 const u32 *const when = log + 0x3e0 + 4 * w;
@@ -682,13 +699,15 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
                     value = *reinterpret_cast<const u32 *>((uintptr_t)value);
                 }
                 if (value != when[2]) continue;
-                if (when[0] == ((k & 63) | 0x80000000u)) blob_mask = when[3];
+                if (when[0] == ((k & 63) | 0x80000000u)) blob_mask = when[3], matched = true;
                 else if (when[0] == ((k & 63) | 0xc0000000u)) how = (how & 0x8000001fu) | (when[3] & 0x7fffffe0u);
             }
             const u32 *wide = nullptr;
             for (u32 w = 0; w < 2; ++w)
                 if (log[0x3f0 + 4 * w] == ((k & 63) | 0x80000000u)) wide = log + 0x3f0 + 4 * w;
-            args[i] = how & 0x80000000u ? blob_bytes_hash(p, how, blob_mask, wide) : blob_hash(p, blob_mask);
+            args[i] = (how & 0xc0000000u) == 0x40000000u && !matched ? 0
+                      : how & 0x80000000u                         ? blob_bytes_hash(p, how, blob_mask, wide)
+                                                                  : blob_hash(p, blob_mask);
         }
         if (mask >> i & 1) args[i] = string_hash(reinterpret_cast<const u8 *>((uintptr_t)args[i]));
         if (mask >> (16 + i) & 1) args[i] = 0;
@@ -995,6 +1014,19 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x0070aba8, 19},   // the filters' slots SoundStream_SeekTime calls: SoundStream_BuildChain's; slot 5 of
                                    {0x0070a678, 19},   // 0x70abf8, 0x6c6e50, is not hooked)
                                    {0x0070ac50, 21},   // the sample stream's (slot 15 Obj_SetRateBits20: SoundStream_SetFormat's in SoundSample_Ctor)
+                                   {0x0070a6f8, 20},   // the samples the sample factory (ChannelVoices_CreateStream) makes: memory,
+                                   {0x0070ae30, 24},   // MP2 memory (slot 20 the empty 0x5da3c0),
+                                   {0x0070ae90, 24},   // MP2 streamed,
+                                   {0x0070ad60, 21},   // voice-coded memory,
+                                   {0x0070adc0, 21},   // voice-coded streamed,
+                                   {0x0070acf0, 20},   // file (slots 0-19);
+                                   {0x0070a6c8, 12},   // the streams it chains in front: 0x70a6c8 (the play's 0x800) and
+                                   {0x0070a748, 12},   // the notify stream (SoundStream_BuildChain's);
+                                   {0x0070a7a8, 13},   // the channel voice they hang off (ChannelVoice_Release's, the reads');
+                                   {0x0070aa34, 1},    // the memory samples' plain copier ([0xfb2018], SoundSample_ReadMemory's)
+                                   {0x0070aef0, 3},    // the streamed samples' windows on their files (slots 1 the read, 2 the seek; 0 an
+                                   {0x0070ae18, 3},    // adjusting thunk, not hooked): MP2 (+0x40), voice-coded (+0x40) and the file
+                                   {0x0070ad40, 3},    // sample's (+0x2c)
                                    {0x006fe980, 12},   // CMMOnline's (slot 10 Debug_Nop_46cfb0, which MouseMode_Set calls on the new mode; 11 its leave)
                                    {0x006fea10, 12},   // CMMOnline's base (slots 0, 9 and 11 MouseMode_Set's; 0x481a10 / 0x485b70 make it)
                                    {0x006fea70, 12},   // MMStaffDrop's (slots 9, 10 AssignDrop: MouseMode_Set's on the mode 0x5054d0 makes)
@@ -1242,6 +1274,7 @@ int main(int argc, char **argv) {
     // The chat player's step (ChatPlayer_StepWalk): Sprite_WalkNav the thiscall recorder 5 of 0, as tests/fncmp/chatavatar.py hooks 0x4fa2a0.
     static const ChatAvatarEnv chatAvatarEnv = {reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)recorder(5, 0))};
     ChatAvatar_SetEnv(&chatAvatarEnv);
+    ChatCommand_SetEnv(&kChatCommandEnv);
     // The interface object's message handler (UiObject_HandleMessage): what 0x7b51f0 is told the thiscall recorders 1-6, as tests/fncmp/uimessage.py
     // hooks 0x481af0, 0x481520, 0x481530, 0x4818c0, 0x481920 and 0x481960.
     static const UiMessageEnv uiMessageEnv = {reinterpret_cast<void(__fastcall *)(void *, void *, u8)>((uintptr_t)recorder(1, 1)),
@@ -1255,6 +1288,7 @@ int main(int argc, char **argv) {
     PathDrag_SetEnv(&kPathDragEnv);
     Demolish_SetEnv(&kDemolishEnv);
     CellRun_SetEnv(&kCellRunEnv);
+    TrackCircuit_SetEnv(&kTrackCircuitEnv);
     TrackSquare_SetEnv(&kTrackSquareEnv);
     PlaceObject_SetEnv(&kPlaceObjectEnv);
     EndThing_SetEnv(&kEndThingEnv);
@@ -1380,6 +1414,13 @@ int main(int argc, char **argv) {
         // (Visitor_SetState the person env's recorder 26).
         static const VisitorStepsEnv visitorSteps = {t(1, 0), t(2, 2), t(3, 1), t(4, 1), t(5, 0), t(26, 1), t(6, 1), t(7, 1), t(8, 4), t(9, 1), t(10, 2)};
         VisitorSteps_SetEnv(&visitorSteps);
+        // GameMode_MapPreview's calls (src/game/world/mappreview.h MapPreviewEnv), as tests/fncmp/mappreview.py hooks their addresses.
+        static const MapPreviewEnv mapPreview = {c(0, 5), c(1, 5), c(2, 6),  c(3, 2),  c(4, 3),  c(5, 4),  c(6, 2),  c(7, 0),  c(8, 3),
+                                                 c(9, 5), c(10, 4), c(11, 7), c(12, 0), t(13, 3), t(14, 1), t(15, 1), t(16, 1), t(17, 0)};
+        MapPreview_SetEnv(&mapPreview);
+        // Thoughts_Show's calls (src/game/world/personscripts.h ThoughtsEnv), as tests/fncmp/thoughtshow.py hooks their addresses.
+        static const ThoughtsEnv thoughts = {t(0, 0), c(1, 1), c(2, 1), c(3, 7)};
+        Thoughts_SetEnv(&thoughts);
     }
     // 0x564650 (the engine debug log, a file): stub_cdecl_log, as tests/fncmp/engineerrors.py hooks it (the text hashed: strings(log, 0x3f, 1)).
     static const EngineErrorsEnv engineErrors = {reinterpret_cast<void(__cdecl *)(const char *)>(&stub_cdecl_log)};

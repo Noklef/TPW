@@ -27,6 +27,7 @@
 #include "objectmsg.h"
 #include "personscripts.h"
 #include "random.h"
+#include "staff.h"
 #include "ridelist.h"
 #include "staff.h"
 #include "things.h"
@@ -265,6 +266,115 @@ u32 __fastcall Sprite_SetDestinationCell(u8 *sprite, void *, u32 cell) {
     const u32 x = (index & 0x7f) << 8 | 0x80;
     const u32 y = (index >> 7 & 0xff) << 8 | 0x80;
     return Sprite_SetDestination(sprite, nullptr, (s32)x, (s32)y);
+}
+
+u32 __fastcall Person_SetRandomDest(u8 *person) {
+    u8 **const world = reinterpret_cast<u8 **>(0x0080239c);
+    const auto cellOf = [](u16 id) { return global<u8 *>(0x008023a0) + id * 0x44u - 0x44; };
+    const u16 own = (u16)((at<u8>(person, 7) << 7) + at<u8>(person, 5) + 1);
+    if (Counter7cdb98_Inc() < at<u32>(person, 0x198))
+        at<u32>(person, 0x198) = 0;
+    if (at<u32>(person, 0x198) != 0 && Obj_BlockValuesBelowLimit(person)) {
+        Thoughts_Show(person + 0x30, nullptr, 0x11, 0);
+        return 0;
+    }
+    at<u32>(person, 0x198) = 0;
+    u32 left = (u32)World_Rand(*world) % 5;
+    const u8 kind = at<u8>(person, 2);
+    const bool staff = kind == 4 || kind == 5 || kind == 6 || kind == 8 || kind == 7;
+    bool outside = false;
+    if (staff && !Staff_InPatrolRegion(person, nullptr, own)) {
+        if (Staff_GoToRandomPatrolCell(person)) return 1;
+        outside = true;
+    }
+    if ((s32)MapCell_SideNeighbourCount(cellOf(own)) > 0) {
+        // A walk of up to 5 cells along the side neighbours, not straight back when there is a choice.
+        u16 here = own;
+        u32 back = 9999;
+        const auto step = [&here](u32 offsets) { return (u16)((global<u32>(offsets + 4) << 7) + global<u32>(offsets) + here); };
+        for (;;) {
+            u8 *const cell = cellOf(here);
+            const u32 bits = MapCell_Neighbours(cell) & 0x55u;
+            s32 count = (s32)MapCell_SideNeighbourCount(cell);
+            u16 next[4] = {(u16)(bits & 0x10 ? step(0x007cdba8) : 0), (u16)(bits & 4 ? step(0x007cdbc8) : 0), (u16)(bits & 1 ? step(0x007cdba0) : 0),
+                           (u16)(bits & 0x40 ? step(0x007cdbd0) : 0)};
+            if (staff && !outside)
+                for (u16 &n : next)
+                    if (n && !Staff_InPatrolRegion(person, nullptr, n)) {
+                        n = 0;
+                        if (--count == 0) return Staff_GoToRandomPatrolCell(person) ? 1 : 0;
+                    }
+            if (MapCell_IsType1(cell))
+                for (u16 &n : next)
+                    if (n && MapCell_IsType3Or9(cellOf(n))) {
+                        n = 0;
+                        count--;
+                    }
+            if (MapCell_IsType3Or9(cell) && !MapCell_IsType9(cell)) {
+                const u8 direction = MapCell_Direction(cell);
+                const int closed = direction == 1 ? 2 : direction == 0x10 ? 0 : direction == 4 ? 1 : direction == 0x40 ? 3 : -1;
+                if (closed >= 0) {
+                    next[closed] = 0;
+                    count--;
+                }
+            }
+            for (u16 &n : next)
+                if (n && MapCell_IsTypeA(*world + n * 0x44u + 0x294)) {
+                    n = 0;
+                    count--;
+                }
+            u32 pick;
+            if (count < 2) {
+                for (pick = 0; pick < 4 && !next[pick]; pick++) {}
+                if (pick == 4) {   // (nowhere to go)
+                    if (staff) return Staff_GoToRandomPatrolCell(person) ? 1 : 0;
+                    Thoughts_Show(person + 0x30, nullptr, 0x11, 0);
+                    at<u32>(person, 0x198) = Counter7cdb98_Inc();
+                    return 0;
+                }
+            } else {
+                u32 i = (u32)World_Rand(*world) & 3;
+                const u32 end = i + 4;
+                pick = i;
+                while (i < end && (!next[pick] || pick == back)) pick = ++i & 3;
+            }
+            here = next[pick];
+            back = (pick - 2) & 3;
+            if (here == own && left == 0) left = 1;   // (never ending the walk where it began)
+            if (left-- == 0) break;
+        }
+        u32 low = (u32)World_Rand(*world) & 0x7f;
+        u32 high = (u32)World_Rand(*world) & 0x7f;
+        low = low < 5 ? 5 : low > 0x7b ? 0x7b : low;
+        high = high < 5 ? 5 : high > 0x7b ? 0x7b : high;
+        const u32 index = here - 1u;
+        const u32 result = Sprite_SetDestination(person, nullptr, (s32)((index & 0x7f) << 8 | low), (s32)((index >> 7 & 0xff) << 8 | high));
+        if (result) at<u32>(person, 0xd0) = 1;
+        return result;
+    }
+    // No way on: the cells about it (the eight directions, 0 to 3 cells off) of type 1, then 5 cells within 5 of any type.
+    for (u32 direction = 0; direction < 8; direction++)
+        for (s32 far = 0; far < 4; far++) {
+            static const s8 kOffsets[8][2] = {{0, 0}, {1, 1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}};
+            const s32 x = kOffsets[direction][0] * far, y = kOffsets[direction][1] * far;
+            const u16 id = (u16)(((u32)y << 7) + (u32)x + own);
+            const u32 index = id - 1u;
+            if (Map_InBounds((s32)(index & 0x7f), (s32)(index >> 7)) && MapCell_IsType1(cellOf(id)) && Sprite_SetDestinationCell(person, nullptr, id)) {
+                at<u32>(person, 0xd0) = 1;
+                return 1;
+            }
+        }
+    for (u32 attempt = 0; attempt < 5; attempt++) {
+        const s32 dx = (s32)((u32)World_Rand(*world) % 11) - 5;
+        const s32 dy = (s32)((u32)World_Rand(*world) % 11) - 5;
+        const u32 at7 = (u32)(at<u8>(person, 7) << 7) + at<u8>(person, 5);
+        const s32 column = (s32)(at7 & 0x7f) + dx, row = (s32)(at7 >> 7) + dy;
+        if (Map_InBounds(column, row) && Sprite_SetDestinationCell(person, nullptr, (u16)(((u32)row << 7) + (u32)column + 1))) {
+            at<u32>(person, 0xd0) = 1;
+            return 1;
+        }
+    }
+    return 0;
 }
 
 u32 __fastcall Sprite_SetDestinationMarked(u8 *sprite, void *, s32 x, s32 y) {

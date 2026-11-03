@@ -347,6 +347,8 @@ add_library(tpw_game STATIC
     src/game/world/queuetrace.cpp
     src/game/world/visitorsteps.cpp
     src/game/world/cellmessage.cpp
+    src/game/world/trackcircuit.cpp
+    src/game/world/mappreview.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp
@@ -445,6 +447,7 @@ add_library(tpw_game STATIC
     src/game/online/items.cpp
     src/game/online/onlinelist.cpp
     src/game/online/chatavatar.cpp
+    src/game/online/chatcommand.cpp
     src/game/online/ftp.cpp
     src/game/online/chat.cpp
     src/game/frontend/lobbymodel.cpp

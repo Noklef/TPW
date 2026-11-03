@@ -21,4 +21,20 @@ u32 *__fastcall WStringMap_Find(u8 *map, void *, u32 *out, const u8 *key);
 // counted (StdTree_IncD) and erased (StdTree_EraseRangeD: the map's tree is stdtree's D). Returns the count.
 u32 __fastcall WStringMap_EraseKey(u8 *map, void *, const u8 *key);
 
+// Sets of the second wide string copy (its traits compare without case: stdwstring's WStdString_*), each its own instantiation with its
+// own sentinel: the online chat avatar's ignore list (+0xea0; sentinel 0x7ced34) and buddy list (+0xe90; sentinel 0x7ced2c). Names
+// invented, unconfirmed.
+// 0x4f65b0 / 0x4f6270 (thiscall on the set; key, pops 4): the lower bound: the last node passed whose string (+0x10 characters, passed as
+// they are, +0x14 length) is not below the key's (null: 0x700624) by WStdString_Compare's order; the head when there is none.
+u8 *__fastcall ChatIgnoreSet_LowerBound(u8 *set, void *, const u8 *key);
+u8 *__fastcall ChatBuddySet_LowerBound(u8 *set, void *, const u8 *key);
+
+// 0x4f03c0 / 0x4f2770 (thiscall on the set; out, key, pops 8): find: the lower bound when it is not the head and the key's characters
+// (passed as they are) do not sort before its string (null: 0x700624), else the head. *out is set and out returned.
+u32 *__fastcall ChatIgnoreSet_Find(u8 *set, void *, u32 *out, const u8 *key);
+u32 *__fastcall ChatBuddySet_Find(u8 *set, void *, u32 *out, const u8 *key);
+
+// 0x4f4050 (thiscall on the buddy set; out, key, pops 8): *out = ChatBuddySet_LowerBound(key); returns out. Name invented, unconfirmed.
+u32 *__fastcall ChatBuddySet_LowerBoundOut(u8 *set, void *, u32 *out, const u8 *key);
+
 }  // extern "C"

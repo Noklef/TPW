@@ -23,6 +23,11 @@ u8 *__fastcall OnlineChat_Ctor(u8 *chat);
 // code's low byte (the original's temporaries read code's stack slot, sic).
 void __stdcall OnlineChat_QueueCallback(u32 code, u32, u32, u32);
 
+// 0x4e61f0 (stdcall, pops 12; no direct caller, a callback; name invented, unconfirmed): the chat (OnlineChat_Instance, made when missing). Code -5 or
+// -4: the bytes +0x29 and +0x2a set as OnlineChat_Set29And2a, command 0x4c posted (CommandQueue_Post, param 0). Else the vector messages {+0 allocator
+// byte, +4 first, +8 last, +0xc end} queued on the deque as OnlineChat_QueueCallback's. The second argument is not read.
+void __stdcall OnlineChat_QueueMessages(s32 code, u32, const u8 *messages);
+
 // 0x4e6130: under the lock (+0x48, CritSec_Enter / CritSec_Leave) the bytes +0x29 and +0x2a set to 1.
 void __fastcall OnlineChat_Set29And2a(u8 *chat);
 

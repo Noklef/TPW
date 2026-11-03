@@ -40,6 +40,8 @@ struct CrtEnv {
     s32(__cdecl *rand)();                                          // 0x67b5c0: the thread's seed (_getptd +0x14) * 214013 + 2531011, bits 16-30
     // The heap (the driver's stand-in: fncmp's heap, as the emulator's hook a bench gives, fncmp._free).
     void(__cdecl *free)(void *block);                              // 0x67ad90: free (the CRT heap's, under its lock)
+    // 0x67c8d0: _wcsnicmp: up to n units, A-Z folded down (the "C" locale's path); the difference of the last units compared (0 for n 0).
+    s32(__cdecl *wcsnicmp)(const u16 *a, const u16 *b, u32 n);
 };
 
 // The CRT ports call (the game's unless swapped).

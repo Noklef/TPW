@@ -13,10 +13,24 @@
 #include "../core/stdwstring.h"
 #include "../core/stringmapsrecord.h"
 #include "../core/sync.h"
+#include "../world/mousemode.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+
+// The vector copied to the back of the chat's deque (+0xec8), under the lock at +0x30.
+void queueVector(u8 *chat, const u8 *vec) {
+    u8 *const lock = chat + 0x30;
+    CritSec_Enter(lock);
+    u8 *const deque = chat + 0xec8;
+    if (at<u32>(deque, 0x2c) == 0 || at<u32>(deque, 0x1c) == at<u32>(deque, 0x18)) Deque32_GrowBack(deque);
+    const u32 cur = at<u32>(deque, 0x1c);
+    at<u32>(deque, 0x1c) = cur + 0x10;
+    CountedPairVector_Construct(reinterpret_cast<u8 *>((uintptr_t)cur), vec);
+    ++at<u32>(deque, 0x2c);
+    CritSec_Leave(lock);
+}
 
 }  // namespace
 
@@ -103,18 +117,20 @@ void __stdcall OnlineChat_QueueCallback(u32 code, u32, u32, u32) {
         chat = block ? OnlineChat_Ctor(block) : nullptr;
         *reinterpret_cast<u8 **>((uintptr_t)0x007cddec) = chat;
     }
-    u8 *const lock = chat + 0x30;
-    CritSec_Enter(lock);
-    u8 *const deque = chat + 0xec8;
-    if (at<u32>(deque, 0x2c) == 0 || at<u32>(deque, 0x1c) == at<u32>(deque, 0x18)) Deque32_GrowBack(deque);
-    const u32 cur = at<u32>(deque, 0x1c);
-    at<u32>(deque, 0x1c) = cur + 0x10;
-    CountedPairVector_Construct(reinterpret_cast<u8 *>((uintptr_t)cur), vec);
-    ++at<u32>(deque, 0x2c);
-    CritSec_Leave(lock);
+    queueVector(chat, vec);
     const u32 first = at<u32>(vec, 4), last = at<u32>(vec, 8);
     for (u32 p = first; p != last; p += 0x24) CountedPair_Deleter(reinterpret_cast<u8 *>((uintptr_t)p), nullptr, 0);
     GameHeap_Free(reinterpret_cast<void *>((uintptr_t)first));
+}
+
+void __stdcall OnlineChat_QueueMessages(s32 code, u32, const u8 *messages) {
+    u8 *const chat = OnlineChat_Instance();
+    if (code == -5 || code == -4) {
+        OnlineChat_Set29And2a(chat);
+        CommandQueue_Post(0x4c, 0);
+        return;
+    }
+    queueVector(chat, messages);
 }
 
 void __fastcall OnlineChat_Set29And2a(u8 *chat) {

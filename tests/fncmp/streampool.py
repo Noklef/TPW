@@ -19,7 +19,8 @@ POOLS_MORE = {'filter': (0x6c6340, 0x6c6370, 0x6c63a0, 0x6c63e0), 'loop': (0x6c6
               'voice': (0x6c79c0, 0x6c79f0, 0x6c7a20, 0x6c7a60), 'voicestream': (0x6c7e10, 0x6c7e40, 0x6c7e70, 0x6c7eb0),
               'silence': (0x6c65d0, 0x6c6600, 0x6c6630, 0x6c6670),
               'file': (0x6c7620, 0x6c7650, 0x6c7680, 0x6c76c0), 'mp2stream': (0x6c8660, 0x6c8690, 0x6c86c0, 0x6c8700),
-              'mp2sample': (0x6c8160, 0x6c8190, 0x6c81c0, 0x6c8200), 'callback': (0x6c8ca0, 0x6c8cd0, 0x6c8d00, 0x6c8d40)}
+              'mp2sample': (0x6c8160, 0x6c8190, 0x6c81c0, 0x6c8200), 'callback': (0x6c8ca0, 0x6c8cd0, 0x6c8d00, 0x6c8d40),
+              'memsample': (0x6c70f0, 0x6c7120, 0x6c7150, 0x6c7190)}
 KINDS = ('delete', 'dtor', 'init', 'shutdown', 'purge', 'new', 'create')
 CREATE = {'callback': 0x6ba9b0}   # (the class's creator: thiscall, this unused (record); the record's flag 0x2000 now and then)
 RECORD = RAM + 0x400
@@ -28,7 +29,8 @@ POOLS = {'filter': (0x6c6450, 0x6bb170, 0x18, 0x10, 0xfb2068, 0xfb206c), 'loop':
          'voice': (0x6c7ad0, None, 0x40, 0x28, 0xfb20bc, 0xfb20c0), 'voicestream': (0x6c7f20, None, 0x5c, 0x58, 0xfb20c8, 0xfb20cc),
          'silence': (0x6c66e0, 0x6c67d0, 0x30, 0x28, 0xfb2074, 0xfb2078),
          'file': (0x6c7730, None, 0x48, 0x44, 0xfb20b0, 0xfb20b4), 'mp2stream': (0x6c8770, None, 0x5c, 0x58, 0xfb26e4, 0xfb26e8),
-         'mp2sample': (0x6c8270, None, 0x40, 0x28, 0xfb26d8, 0xfb26dc), 'callback': (0x6c8db0, 0x6bac10, 0x1c, 0x14, 0xfb26f0, 0xfb26f4)}
+         'mp2sample': (0x6c8270, None, 0x40, 0x28, 0xfb26d8, 0xfb26dc), 'callback': (0x6c8db0, 0x6bac10, 0x1c, 0x14, 0xfb26f0, 0xfb26f4),
+         'memsample': (0x6c7200, 0x6bb1f0, 0x2c, 0x28, 0xfb2098, 0xfb209c)}
 OPS = [(p, kind) for p in POOLS for kind in KINDS
        if POOLS[p][1] or kind != 'dtor'
        if p in CREATE or kind != 'create'
@@ -36,7 +38,8 @@ OPS = [(p, kind) for p in POOLS for kind in KINDS
 B = Bench([(0x6c6340, 0x6c6495), (0x6c68a0, 0x6c69f5), (0x6c6bd0, 0x6c6d25), (0x6c7300, 0x6c7455), (0x6c79c0, 0x6c7b15), (0x6c7e10, 0x6c7f65), (0x6bb170, 0x6bb190),
            (0x6c6a40, 0x6c6a60), (0x6c6d50, 0x6c6d70), (0x6baab0, 0x6baad0), (0x6c7090, 0x6c7097), (0x6c65d0, 0x6c65e7), (0x6c6600, 0x6c6725),
            (0x6c67d0, 0x6c67ee), (0x6c8330, 0x6c8335), (0x6c6ef0, 0x6c6f37),
-           (0x6c7620, 0x6c7775), (0x6c8660, 0x6c87b5), (0x6c8160, 0x6c82b5), (0x6c8ca0, 0x6c8df5), (0x6bac10, 0x6bac2e), (0x6ba9b0, 0x6ba9f6)])
+           (0x6c7620, 0x6c7775), (0x6c8660, 0x6c87b5), (0x6c8160, 0x6c82b5), (0x6c8ca0, 0x6c8df5), (0x6bac10, 0x6bac2e), (0x6ba9b0, 0x6ba9f6),
+           (0x6c70f0, 0x6c7107), (0x6c7120, 0x6c71fc), (0x6c7200, 0x6c7245), (0x6bb1f0, 0x6bb20e)])
 IMPORTS = {'EnterCriticalSection': (20, 0x6fd140, 1, 0, 0), 'LeaveCriticalSection': (21, 0x6fd130, 1, 0, 0),
            'InitializeCriticalSection': (22, 0x6fd144, 1, 0, 0), 'DeleteCriticalSection': (23, 0x6fd0d0, 1, 0, 0)}
 BLOCKS = 3   # RAM blocks: RAM + 0x100 * i (the last the deleted block or the stream)
@@ -68,7 +71,7 @@ def case(r):
         args = [r.choice([last, last, last, 0, r.getrandbits(32) | 0x80000000]), r.choice([size, size, 0, size + 1, other, r.getrandbits(32)])]
         return Call(delete, args, regions, conv='c', ret='v')
     if kind == 'dtor':
-        if pool == 'silence':   # (the sound samples' destructor releases the object at +0x24: none, mostly)
+        if pool in ('silence', 'memsample'):   # (the sound samples' destructor releases the object at +0x24: none, mostly)
             struct.pack_into('<I', blocks[BLOCKS - 1], 0x24, 0 if r.random() < 0.9 else r.getrandbits(32))
         return Call(dtor, [last, r.choice([0, 1, 1, 2, 3, r.getrandbits(32)])], regions, conv='t', ret='a')
     if kind == 'create':

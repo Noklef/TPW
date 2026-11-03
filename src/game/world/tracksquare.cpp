@@ -4,6 +4,7 @@
 
 #include "../core/accessors.h"
 #include "../core/globals.h"
+#include "cellmessage.h"
 #include "mapcell.h"
 
 namespace {
@@ -11,7 +12,7 @@ namespace {
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 u8 *cellAt(u32 id) { return global<u8 *>(0x007cf83c) + 0x294 + (id & 0xffff) * 0x44; }
 
-const TrackSquareEnv kGameEnv = {reinterpret_cast<u32(__fastcall *)(u8 *, void *, u32, u32, u32)>((uintptr_t)0x00532fc0)};
+const TrackSquareEnv kGameEnv = {&MapCell_HandleMessage};
 const TrackSquareEnv *g_env = &kGameEnv;
 
 }  // namespace

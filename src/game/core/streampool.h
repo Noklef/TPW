@@ -88,5 +88,12 @@ void __cdecl Mp2SamplePool_Shutdown();
 void __cdecl Mp2SamplePool_Purge();
 void *__cdecl Mp2SamplePool_New(u32 size);
 void __cdecl Mp2SamplePool_Delete(void *block, u32 size);
+// The memory sample's (0x70a6f8, core/soundsample: 0x2c, +0x28; [0xfb209c], [0xfb2098]): 0x6c70f0, 0x6c7120, 0x6c7150, 0x6c7190 and
+// 0x6c7200 (its atexit registration 0x6c7110 left out; names invented).
+void __cdecl MemorySamplePool_Init();
+void __cdecl MemorySamplePool_Shutdown();
+void __cdecl MemorySamplePool_Purge();
+void *__cdecl MemorySamplePool_New(u32 size);
+void __cdecl MemorySamplePool_Delete(void *block, u32 size);
 
 }  // extern "C"
