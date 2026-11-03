@@ -3,7 +3,7 @@
 
 #include "../../../re/types.h"
 
-// Sign_PlaceOverRect's calls (0x4690a0 and 0x4689f0, agent B's, by address by default, the port RideObject_Swing; the bench's recorders: their own benches have them).
+// Sign_PlaceOverRect's calls (0x4690a0, agent B's, by address by default, the ports Sign_Create and RideObject_Swing; the bench's recorders: their own benches have them).
 struct SignRectEnv {
     void(__cdecl *destroy)(u32 sign);                                                     // 0x4690a0
     u32(__cdecl *create)(float x, float y, float height, float width, float depth, u32 type);   // 0x4689f0 (Sign_Create in agent B's world/sign)

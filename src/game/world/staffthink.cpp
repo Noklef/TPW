@@ -22,7 +22,7 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 template <typename F> F raw(u32 address) { return reinterpret_cast<F>((uintptr_t)address); }
 using Step = void(__fastcall *)(u8 *);
 
-const StaffThinkEnv kGameEnv = {World_Rand, Sprite_PlaySound, Sprite_WalkNav, Staff_TireA, Staff_TireB, Staff_WalkToRestArea, raw<Step>(0x005061d0), raw<Step>(0x005056e0), raw<u32(__fastcall *)(u8 *)>(0x00506a40), raw<u32(__fastcall *)(u8 *)>(0x004f9490),
+const StaffThinkEnv kGameEnv = {World_Rand, Sprite_PlaySound, Sprite_WalkNav, Staff_TireA, Staff_TireB, Staff_WalkToRestArea, raw<Step>(0x005061d0), raw<Step>(0x005056e0), raw<u32(__fastcall *)(u8 *)>(0x00506a40), &Person_SetRandomDest,
                                Handyman_PickWork, Handyman_WalkToLitter, Handyman_SweepLitter, Handyman_WalkToJob, Object_ResetCondition, Object_Close, Set4_4217f0, Handyman_SetState, Guard_SetState, Guard_Chase, Guard_LeaveWithVisitor, Map_EntrancePos, Sprite_SetDestinationCell,
                                Entertainer_PickWork, SpriteScript_GetPosition, Sound_PlayAt, Mechanic_PickWork, Mechanic_WalkToObject, Mechanic_Repair};
 const StaffThinkEnv *g_env = &kGameEnv;

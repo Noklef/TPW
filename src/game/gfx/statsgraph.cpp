@@ -26,7 +26,7 @@ s32 shown(Scan scan) {
 }
 
 const StatsGraphEnv kGameEnv = {&StatsGraph_Lines, &StatsGraph7cb318_Lines, &Window7ca2e8_ClearButtons,
-                                reinterpret_cast<void(__fastcall *)(u8 *, void *, u32 *, s32, u32, u32, u32)>((uintptr_t)0x0047fe90)};
+                                reinterpret_cast<void(__fastcall *)(u8 *, void *, u32 *, s32, u32, u32, u32)>(&Gauge_DrawPlot)};
 const StatsGraphEnv *g_env = &kGameEnv;
 
 void SetMarksXOfKind(u8 *gauge, u32 kind) {

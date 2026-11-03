@@ -3,7 +3,7 @@
 
 #include "../../../re/types.h"
 
-// The calls (the ports by default; 0x5056e0, 0x5061d0, 0x506a40 and 0x4f9490 agent A's, by address until ported; the bench's recorders: their own benches have them).
+// The calls (the ports by default; 0x5056e0, 0x5061d0 and 0x506a40 agent A's, by address until ported; the bench's recorders: their own benches have them).
 struct StaffThinkEnv {
     s32(__fastcall *rand)(u8 *world);                                            // World_Rand
     u32(__fastcall *playSound)(const u8 *sprite, void *, u32 category, u32 sound);   // Sprite_PlaySound
@@ -14,7 +14,7 @@ struct StaffThinkEnv {
     void(__fastcall *atRest)(u8 *staff);                                         // 0x5061d0 (agent A's)
     void(__fastcall *other)(u8 *staff);                                          // 0x5056e0 (agent A's)
     u32(__fastcall *busy)(u8 *staff);                                            // 0x506a40 (agent A's)
-    u32(__fastcall *patrol)(u8 *staff);                                          // 0x4f9490 (agent A's)
+    u32(__fastcall *patrol)(u8 *staff);                                          // 0x4f9490 (Person_SetRandomDest)
     void(__fastcall *handymanWork)(u8 *handyman);                                // Handyman_PickWork
     void(__fastcall *toLitter)(u8 *handyman);                                    // Handyman_WalkToLitter
     void(__fastcall *sweep)(u8 *handyman);                                       // Handyman_SweepLitter

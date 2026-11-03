@@ -3,7 +3,7 @@
 
 #include "../../../re/types.h"
 
-// The calls (the ports by default; 0x463060 unported, agent B's, by address; the bench's recorders: their own benches have them).
+// The calls (the ports by default; the bench's recorders: their own benches have them).
 struct ObjectRideEnv {
     u8 *(__fastcall *find)(u8 *defs, void *, u16 id);                                                                    // ObjectDefs_Find
     u32(__cdecl *claim)(u32 index, u32 type, u32 key, const u32 *desc, u32, u32 value, u32 a, u32 b, u32 ninth);         // Ride_Claim (its ninth unread)
