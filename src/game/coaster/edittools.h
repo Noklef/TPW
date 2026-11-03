@@ -102,6 +102,10 @@ void __cdecl CoasterEdit_SetMode(u32 mode);
 // Track_PieceAt on the game's +0x3c; a game of none faults, sic) at 0x79c640 and CoasterEdit_SelectPiece (it).
 void __cdecl CoasterEdit_PickPiece(u32 unused1, u32 unused2, u32 number);
 
+// 0x447b60 (cdecl (two numbers); name invented, unconfirmed): for each number's low word in turn, the track's piece of that number (Track_PieceAt
+// on the game's +0x3c) at 0x79c640 and CoasterEdit_DeleteSpan.
+void __cdecl CoasterEdit_DeleteSpanBetween(u32 first, u32 second);
+
 // 0x444770 (cdecl; name invented, unconfirmed): CoasterEdit_Tools (0), then the editor's tool 2 ended (as CoasterEdit_EndTool; bit 2
 // of the chosen tools 0x79c638 cleared) and tool 1 started: CoasterEdit_EndTool, the mode 1, Coaster_FlashCar (game, 2), the game's
 // flag 4 set, CoasterLink_CheckEnd, recorded (ActionRec_Write 0x37), the game's flag 0x2000 cleared, CoasterLink_ClearEnd when
