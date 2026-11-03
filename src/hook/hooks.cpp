@@ -5655,6 +5655,7 @@ const Hook kHooks[] = {
     {"ChannelVoices_PlayRecord",  0x006badd0, (void *)&ChannelVoices_PlayRecord, {0x53, 0x55, 0x56, 0x8b, 0x74}},
     {"ChannelVoices_PlayNotify",  0x006bae60, (void *)&ChannelVoices_PlayNotify, {0x53, 0x55, 0x56, 0x57, 0x8b}},
     {"ChannelVoices_Start",       0x006ba2c0, (void *)&ChannelVoices_Start, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"ChannelVoiceHandle_Resume", 0x006c5b20, (void *)&ChannelVoiceHandle_Resume, {0x6a, 0xff, 0x68, 0x58, 0x64}},
     {"SoundOccluders_Occlusion",  0x006c4c80, (void *)&SoundOccluders_Occlusion, {0x83, 0xec, 0x2c, 0x53, 0x8b}},
     {"SoundOccluders_Remove",     0x006c4ba0, (void *)&SoundOccluders_Remove, {0x8b, 0x41, 0x0c, 0x56, 0x85}},
     {"SoundOccluders_Clear",      0x006c4c20, (void *)&SoundOccluders_Clear, {0x53, 0x56, 0x8b, 0xf1, 0x33}},

@@ -2218,7 +2218,7 @@ int main(int argc, char **argv) {
     static const SoundWorkerEnv soundWorkerEnv = {reinterpret_cast<u32(__cdecl *)(u32, u32, void *)>((uintptr_t)jpeg_recorder(14, 3))};
     SoundWorker_SetEnv(&soundWorkerEnv);
     // The voices' pool's 0x67e050: the same recorder, as tests/fncmp/channelvoice.py hooks it.
-    static const ChannelVoicesEnv channelVoicesEnv = {soundWorkerEnv.beginThread};
+    static const ChannelVoicesEnv channelVoicesEnv = {soundWorkerEnv.beginThread, Rec{recorder(15, 1)}};
     ChannelVoices_SetEnv(&channelVoicesEnv);
     // The things' sweeps: COM recorder 20 of 1, thiscall 21, 22, cdecl 23, 24, 25, 26 of 2, thiscall 27 of 1, as tests/fncmp/thingsrelease.py hooks them.
     static const ThingSweepEnv thingSweepEnv = {Rec{kStubs + 0x5000 + 0x800 * 1 + 0x20 * 20}, Rec{recorder(21, 0)}, Rec{recorder(22, 0)}, Rec{jpeg_recorder(23, 0)},
