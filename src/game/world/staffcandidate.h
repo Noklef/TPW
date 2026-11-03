@@ -33,6 +33,19 @@ void __fastcall StaffPool_Start(u8 *pool);
 // (both signed) gets a candidate (as StaffPool_AddCandidate). A short kind asks for another round even when it was not added: with its flag set or the pool full it never ends (the original's).
 void __fastcall StaffPool_TopUp(u8 *pool);
 
+// 0x507bf0 (thiscall (slot), pops 4; name invented, unconfirmed): the candidate at slot (under 0x20, in use: else 0) taken up: of kinds 0-4, a mouse mode made for
+// placing the staff (Mem_Alloc(0x1c); MMPlaceStaff_Ctor with 5, 4, 6, 7, 8, bytes +8, +9, dword +4; none when that failed), the holder [0x7b05e8] made when missing
+// (inlined; a failed one 0) and the mode set (MouseMode_Set). +0xb = 1, Staff_CountTypes; each candidate in use whose kind's flag (+0x299 + kind) is set and with no
+// +0xb goes out of use (the staff dialog told: 0x481550 on 0x7b51f0, slot). 1.
+u8 __fastcall StaffPool_TakeCandidate(u8 *pool, void *, u32 slot);
+
+// 0x5084f0 (thiscall; name invented, unconfirmed): each candidate in use, older than 4 * +0x10 ticks (Game1da70c_MinusAt0 of +0xc) and with no +0xb, goes out of use (dialog
+// told). Then, the clock +0x294 older than 4 * [0x785304]: up to [0x785308] new candidates (no more than the free entries; Staff_CountTypes first). Each kind 0-4 wants
+// [0x7852c0 + kind * 4] less those in use, 0 with its flag +0x299 + kind; each new one rolls World_Rand % the total wanted through the wants (signed), the kind it lands on,
+// or the one before (at first, sic, the address of +0x294 as a kind: a wild read in both) when the wants are negative enough to pass them all. A kind with its flag set, no
+// free entry or no wants left ends it; else StaffPoolEntry_Generate in the first free entry and one less wanted. Then StaffPool_TopUp and +0x294 = the tick.
+void __fastcall StaffPool_Update(u8 *pool);
+
 // What it calls (the fncmp driver's recorders; the game's by default).
 struct StaffCandidateEnv {
     void(__fastcall *tellDialog)(void *dialog, void *, u32 slot);   // 0x481550, agent C's, on 0x7b51f0

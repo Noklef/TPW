@@ -4,7 +4,9 @@
 
 #include "../core/crt.h"
 #include "../core/indexed.h"
+#include "../core/gameheap.h"
 #include "../sprite/sprite.h"
+#include "mousemode.h"
 #include "random.h"
 #include "staff.h"
 #include "things.h"
@@ -103,6 +105,80 @@ u8 __fastcall StaffPool_FillAll(u8 *pool) {
     }
     at<u8>(pool, 0x298) = 1;
     return 1;
+}
+
+u8 __fastcall StaffPool_TakeCandidate(u8 *pool, void *, u32 slot) {
+    if (slot >= 0x20) return 0;
+    u8 *const entry = pool + slot * 0x14;
+    if (!at<u8>(entry, 0xa)) return 0;
+    const u32 type = at<u32>(entry, 0);
+    if (type <= 4) {
+        static const u32 kModes[5] = {5, 4, 6, 7, 8};
+        u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x1c));
+        u8 *const mode = block ? MMPlaceStaff_Ctor(block, nullptr, kModes[type], at<u8>(entry, 8), at<u8>(entry, 9), at<u32>(entry, 4)) : nullptr;
+        MouseModes_EnsureHolder();
+        MouseMode_Set(mode);
+    }
+    at<u8>(entry, 0xb) = 1;
+    Staff_CountTypes(pool);
+    for (u32 i = 0; i < 0x20; i++) {
+        u8 *const other = pool + i * 0x14;
+        if (at<u8>(other, 0xa) && at<u8>(pool, at<u32>(other, 0) + 0x299) && !at<u8>(other, 0xb)) {
+            at<u8>(other, 0xa) = 0;
+            g_env->tellDialog(reinterpret_cast<void *>((uintptr_t)0x007b51f0), nullptr, i);
+        }
+    }
+    return 1;
+}
+
+void __fastcall StaffPool_Update(u8 *pool) {
+    for (u32 i = 0; i < 0x20; i++) {
+        u8 *const entry = pool + i * 0x14;
+        if (at<u8>(entry, 0xa) && Game1da70c_MinusAt0(reinterpret_cast<const u32 *>(entry + 0xc)) > at<u32>(entry, 0x10) * 4 && !at<u8>(entry, 0xb)) {
+            at<u8>(entry, 0xa) = 0;
+            g_env->tellDialog(reinterpret_cast<void *>((uintptr_t)0x007b51f0), nullptr, i);
+        }
+    }
+    u32 *const clock = reinterpret_cast<u32 *>(pool + 0x294);
+    if (Game1da70c_MinusAt0(clock) <= global<u32>(0x00785304) * 4) return;
+    u32 used = 0;
+    for (u32 i = 0; i < 0x20; i++) used += at<u8>(pool, i * 0x14 + 0xa) != 0;
+    const u32 count = global<u32>(0x00785308);
+    s32 left = (s32)(count < 0x20 - used ? count : 0x20 - used);
+    Staff_CountTypes(pool);
+    s32 wants[5];
+    s32 total = 0;
+    for (u32 k = 0; k < 5; k++) {
+        if (at<u8>(pool, 0x299 + k)) {
+            wants[k] = 0;
+        } else {
+            s32 ofKind = 0;
+            for (u32 i = 0; i < 0x20; i++) ofKind += at<u8>(pool, i * 0x14 + 0xa) != 0 && at<u32>(pool, i * 0x14) == k;
+            wants[k] = global<s32>(0x007852c0 + k * 4) - ofKind;
+        }
+        total += wants[k];
+    }
+    u32 kind = (u32)(uintptr_t)clock;   // (sic: what the original's register holds until a roll lands)
+    while (left > 0 && total > 0) {
+        s32 roll = (s32)((u32)World_Rand(global<u8 *>(0x0080239c)) % (u32)total);
+        for (u32 k = 0; k < 5; k++) {
+            if (roll < wants[k]) {
+                kind = k;
+                break;
+            }
+            roll -= wants[k];
+        }
+        if (at<u8>(pool, kind + 0x299)) break;
+        u32 slot = 0;
+        while (slot < 0x20 && at<u8>(pool, slot * 0x14 + 0xa)) slot++;
+        if (slot == 0x20) break;
+        StaffPoolEntry_Generate(pool + slot * 0x14, nullptr, kind, slot);
+        left--;
+        wants[kind]--;
+        total--;
+    }
+    StaffPool_TopUp(pool);
+    Out_SetFromGame1da70c(clock);
 }
 
 void __fastcall StaffPool_Start(u8 *pool) {

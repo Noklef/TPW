@@ -8,7 +8,8 @@
 # 40 (up to full) or -1.
 # Start (0x507bb0): All's. TopUp (0x508170): the kinds' dwords +0x280 and limits [0x7852d4] with each kind at, short of or over its limit; kind 4 short only when the pool can
 # take all that is short (else both never end: see top_up()).
-# usage: staffcandidate.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Taken,Pick,Generate,One,All,Start,TopUp)
+# Update (0x5084f0 StaffPool_Update): the ages about their limits, TopUp's limits so it cannot hang (see the case).
+# usage: staffcandidate.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Taken,Pick,Generate,One,All,Start,TopUp,Update)
 import os
 import struct
 import sys
@@ -17,9 +18,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import LOG, RAM, Bench, Call, _cdecl_log4, _recorder, log_region, put, text_args  # noqa: E402
 
 B = Bench([(0x507bb0, 0x507bc5), (0x508170, 0x508330), (0x508330, 0x508378), (0x5087b0, 0x508978), (0x5083f0, 0x5084f0), (0x507580, 0x507600), (0x507600, 0x5077e8), (0x5074a0, 0x507560), (0x516130, 0x5161c0), (0x516330, 0x516380),
-           (0x50b350, 0x50b370), (0x541f70, 0x541fa0), (0x41a960, 0x41a980), (0x506860, 0x506870), (0x67c290, 0x67c320), (0x5da3c0, 0x5da3c1)],
+           (0x50b350, 0x50b370), (0x541f70, 0x541fa0), (0x41a960, 0x41a980), (0x506860, 0x506870), (0x67c290, 0x67c320), (0x5da3c0, 0x5da3c1), (0x5084f0, 0x5087b0), (0x508000, 0x508170)],
           hooks={0x6acd60: _cdecl_log4, 0x481550: _recorder(20, 1)})
-CALLS = {'Taken': 0x5083f0, 'Pick': 0x507580, 'Generate': 0x507600, 'One': 0x508330, 'All': 0x5087d0, 'Start': 0x507bb0, 'TopUp': 0x508170}
+CALLS = {'Taken': 0x5083f0, 'Pick': 0x507580, 'Generate': 0x507600, 'One': 0x508330, 'All': 0x5087d0, 'Start': 0x507bb0, 'TopUp': 0x508170, 'Update': 0x5084f0}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 WORLD, ENTRY, NAME, THINGS = RAM + 0x100000, RAM, RAM + 0x100, RAM + 0x1000
 THING = 0x300
@@ -98,7 +99,7 @@ def case(r):
                 'thing': r.choice(names) if names else b'\0\0', 'empty': b'\0\0', 'other': wide(r)}[pick]
         regions.update({LOG: log, NAME: text + bytes(8)})
         return Call(CALLS[op], [WORLD, NAME], regions, conv='t', ret='b')
-    regions, _, _, _ = world(r, every=r.random() < 0.1 and op in ('Pick', 'Generate'), full=op in ('One', 'All', 'TopUp') and r.random() < 0.2)
+    regions, _, _, _ = world(r, every=r.random() < 0.1 and op in ('Pick', 'Generate'), full=op in ('One', 'All', 'TopUp', 'Update') and r.random() < 0.2)
     entry = bytearray(r.bytes(0x14))
     regions.update({LOG: log, ENTRY: entry})
     if op == 'Pick':
@@ -115,6 +116,32 @@ def case(r):
     if op in ('All', 'Start'):
         regions[0x7852ac] = b''.join(struct.pack('<i', r.choice([0, 0, 1, 2, 3, 40, -1])) for _ in range(5))
         return Call(CALLS[op], [WORLD], regions, conv='t', ret='b' if op == 'All' else 'v')
+    if op == 'Update':   # (the ages about their limits, the balance's wants, small, the clock old mostly; TopUp's limits)
+        pool = regions[WORLD]
+        now = r.getrandbits(32)
+        ticks = bytearray(regions[WORLD + 0x1da708])
+        put(ticks, 4, 'I', now)
+        regions[WORLD + 0x1da708] = ticks
+        for i in range(0x20):
+            limit = r.choice([0, 1, 5, 0x40000000, r.getrandbits(8)])
+            put(pool, 0x14 * i + 0x10, 'I', limit)
+            put(pool, 0x14 * i + 0xc, 'I', (now - limit * 4 - r.choice([0, 1, 1])) & 0xffffffff)
+            pool[0x14 * i + 0xb] = r.choice([0, 0, 0, 1])
+        pause = r.choice([0, 1, 10])
+        regions[0x785304] = struct.pack('<II', pause, r.choice([0, 1, 2, 3, 5, 40, 0xffffffff]))
+        put(pool, 0x294, 'I', (now - pause * 4 - r.choice([0, 1, 1, 1, 1])) & 0xffffffff)
+        regions[0x7852c0] = b''.join(struct.pack('<i', r.choice([0, 1, 2, 3, 5, 8, 8, -1])) for _ in range(5))
+        # (TopUp's limits: a kind short with a flag set or no entry free never ends, in both, and Update's new candidates and Staff_CountTypes change all that top_up() reckons
+        # with. So: none short, the flags' limits any; or room for all that can be short, no flags)
+        limits, counted = [-0x80000000] * 5, [r.choice([1, 2, 40]) for _ in range(5)]
+        if r.random() < 0.3:
+            for i in range(10, 0x20):
+                pool[0x14 * i + 0xa] = 0
+            regions[0x785304] = struct.pack('<II', pause, r.choice([0, 1, 2, 3, 5]))
+            limits, counted = [r.choice([-0x80000000, 0, 1, 2]) for _ in range(5)], [40] * 5
+        regions[0x7852d4] = struct.pack('<5i', *limits)
+        regions[0x7852e8] = struct.pack('<5i', *counted)
+        return Call(CALLS[op], [WORLD], regions, conv='t', ret='v', steps=400000)
     if op == 'TopUp':
         top_up(r, regions)
         return Call(CALLS[op], [WORLD], regions, conv='t', ret='v')

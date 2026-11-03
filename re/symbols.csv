@@ -5722,6 +5722,7 @@ address,name,kind,confidence,notes
 0x005087d0,StaffPool_FillAll,function,low,"reimplemented (src/game/world/staffcandidate); The pool's first candidates of each kind, once"
 0x00507bb0,StaffPool_Start,function,low,"reimplemented (src/game/world/staffcandidate); FillAll, then the tick into +0x294"
 0x00508170,StaffPool_TopUp,function,low,reimplemented (src/game/world/staffcandidate); round the kinds until each is at its limit
+0x005084f0,StaffPool_Update,function,low,"reimplemented (src/game/world/staffcandidate); thiscall; old candidates out, new ones generated on the clock, topped up (name invented)"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved
