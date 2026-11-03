@@ -107,6 +107,14 @@ def case(r):
         put(el, 4, 'H', 0)
         put(el, 4 * 7, 'I', r.choice([0, 0, 1, 0x100, r.getrandbits(32)]))
         regions[RIDES + 0x100] = el
+        if r.random() < 0.7:   # (the strip set, so that it shows which frame it grows from)
+            put(regions[STRIP], 0xb0, 'I', r.getrandbits(32) | 1)
+            put(regions[STRIP], 4, 'I', r.getrandbits(32) & ~2)
+            put(regions[STRIP], 0xb4, 'I', OWNER)
+            regions[OWNER] = put(put(bytearray(r.bytes(0x30)), 8, 'I', SHAPE), 0x24, 'I', FRAMES)
+            regions[SHAPE] = r.bytes(0x40)
+            regions[FRAMES] = put(bytearray(r.bytes(8)), 4, 'I', LIST)
+            regions[LIST] = r.bytes(0x60)
         put(obj, 0x48, 'I', r.choice([fb(0.0), fb(0.5), fb(1.0), fb(2.9), fb(255.0), fb(256.0), fb(512.5), fb(-1.0), fb(-256.0), fb(3e30), 0x7fc00000, r.getrandbits(32)]))
         return Call(0x4e14e0, [OBJ], regions, conv='t', ret='v')
     if op == 'Dismiss':
