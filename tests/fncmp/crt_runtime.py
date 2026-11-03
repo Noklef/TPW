@@ -11,7 +11,7 @@ from fncmp import HEAP, LOG, RAM, Bench, Call, _recorder, fill, heap, log_region
 
 GETPTD, LOCKEXIT, UNLOCKEXIT, MSIZE, REALLOC, LOCK, UNLOCK, FIND, FREEBLOCK, LOCKFILE, UNLOCKFILE, FCLOSE = range(2, 14)
 HEAPFREE = 20
-B = Bench([(0x67b5c0, 0x67b5f0), (0x67a740, 0x67a7f0), (0x67ad90, 0x67ae00), (0x67b620, 0x67b660), (0x67d320, 0x67d340)],
+B = Bench([(0x686a00, 0x686a10), (0x67b5c0, 0x67b5f0), (0x67a740, 0x67a7f0), (0x67ad90, 0x67ae00), (0x67b620, 0x67b660), (0x67d320, 0x67d340)],
           hooks={0x682460: _recorder(GETPTD, 0, cdecl=True), 0x67fa20: _recorder(LOCKEXIT, 0, cdecl=True), 0x67fa30: _recorder(UNLOCKEXIT, 0, cdecl=True),
                  0x6818f0: _recorder(MSIZE, 1, cdecl=True), 0x681740: _recorder(REALLOC, 2, cdecl=True), 0x682720: _recorder(LOCK, 1, cdecl=True),
                  0x6827a0: _recorder(UNLOCK, 1, cdecl=True), 0x682b40: _recorder(FIND, 3, cdecl=True), 0x682ba0: _recorder(FREEBLOCK, 3, cdecl=True),
@@ -73,7 +73,13 @@ def exception_dtor(r):
     return Call(0x67d320, [DATA], {HEAP: h, DATA: obj}, conv='t', ret='v')
 
 
-KINDS = {'rand': rand, 'onexit': onexit, 'atexit': atexit, 'free': free, 'fclose': fclose, 'exception_dtor': exception_dtor}
+def errno(r):
+    log = log_region()
+    set_return(log, GETPTD, r.getrandbits(32))
+    return Call(0x686a00, [], {LOG: log}, conv='c', ret='a')
+
+
+KINDS = {'errno': errno, 'rand': rand,'onexit': onexit, 'atexit': atexit, 'free': free, 'fclose': fclose, 'exception_dtor': exception_dtor}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 
