@@ -47,7 +47,7 @@ void __fastcall Gauge_DrawGrid(const u8 *gauge);
 // at 24 bits). From x = (float)left, step = (float)(width / columns), each sample a line (Display_Line) from (x, y1) to (x + step, y2): y1 and y2
 // bottom - (sample - mark y0 (+0x1c)) * height / (mark y1 (+0x24) - y0), of this sample and the next (32-bit, truncated; bottom when the marks
 // are level), clamped to top and bottom; both x clamped to left and right (NaN: left); under 0x90 columns also a box of four lines 1 round the
-// line's end; x += step from the clamped x. Then samples[count] ("%d" through swprintf) in font [0x74f9d4], centred (hAlign 2): the rectangle
+// line's end; x += step from the clamped x. Then samples[count] ("%d" through swprintf) in font [0x74f9d4], right aligned (hAlign 2): the rectangle
 // (left, y2 - 6, the last end's x, bottom), its top and left at least 2, widened by what GuiText_Measure's box exceeds it by; GuiText_Draw (fit
 // 0, the surface kept). No sample: the original's y2 is the columns and the end's x the count's bits as a float (sic).
 void __fastcall Gauge_DrawPlot(const u8 *gauge, void *, const s32 *samples, s32 count, s32 columns, DrawColour colour);
