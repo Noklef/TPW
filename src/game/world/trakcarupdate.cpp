@@ -201,3 +201,123 @@ void __cdecl TrakCar_Update(u8 *car) {
     }
 }
 }
+
+namespace {
+
+const TrakCarsEnv kCarsPortEnv = {&TrakCar_Update, &TrakCar_Move, &Collider_KeepInArea, &Collider_BounceOffBlockers, &TrakCar_PlaySounds};
+const TrakCarsEnv *g_carsEnv = &kCarsPortEnv;
+
+constexpr u32 kCarSize = 0xac;
+
+s32 cars_ftol(X87Reg x) { return (s32)(long long)x.v; }
+s32 times(s32 a, s32 b) { return (s32)((u32)a * (u32)b); }
+s32 sine(s32 index) { return reinterpret_cast<const s32 *>(0x00877358)[index & 0x1ff]; }
+
+// A's and B's speeds changed and the bounce's state set, c their angle, a the bearing.
+void cars_bounce(u8 *a, u8 *b, s32 c, s32 bearing, s32 vx, s32 vy) {
+    const s32 speed = cars_ftol(X87_Sqrt(X87Reg((double)(s32)((u32)times(vx, vx) + (u32)times(vy, vy)))));
+    const s32 total = (s32)((u32)times(speed, sine(c + 0x80)) << 2) / 1024;
+    const s32 share = times(at<s32>(at<u8 *>(b, 0x9c), 0x2c), total) / 1024;
+    const s32 sin4 = (s32)((u32)sine(bearing) << 2), cos4 = (s32)((u32)sine(bearing + 0x80) << 2);
+    const s32 rest = (s32)((u32)total - (u32)share);
+    at<s32>(b, 0x3c) += times(share, sin4) / 1024;
+    at<s32>(b, 0x40) += times(cos4, share) / 1024;
+    at<u32>(b, 0) |= 0x50000;
+    at<s32>(a, 0x3c) -= times(rest, sin4) / 1024;
+    at<s32>(a, 0x40) -= times(cos4, rest) / 1024;
+    s32 state = 0;
+    switch (at<s32>(at<u8 *>(a, 0x9c), 0)) {
+    case -10: case -9: case -7: case -4: state = 3; break;
+    case -14: case -11: case -6: case -3: state = 5; break;
+    default: return;
+    }
+    if (share > 0x82 && !((at<u32>(b, 0) | at<u32>(a, 0)) & 0x200000)) {
+        at<u32>(a, 0) |= 0x200000;
+        at<u32>(b, 0) |= 0x200000;
+        at<s32>(a, 0x14) = state;
+    }
+}
+
+void cars_meet(u8 *a, u8 *b) {
+    const s32 dx = (s32)(at<u32>(b, 0x34) - at<u32>(a, 0x34)), dy = (s32)(at<u32>(b, 0x38) - at<u32>(a, 0x38));
+    const s32 reach = (s32)(at<u32>(b, 0x64) + at<u32>(a, 0x64));
+    const s32 length = IntVec2_Length(dx, dy);
+    if (length == 0 || length >= reach) return;
+    const s32 vx = (s32)(at<u32>(a, 0x44) - at<u32>(b, 0x44)), vy = (s32)(at<u32>(a, 0x48) - at<u32>(b, 0x48));
+    const double scale = global<double>(0x00700eb8), half = global<double>(0x00700ec0);
+    const s32 bearing = cars_ftol(X87Reg(half) - X87Reg(X87_MulDouble(X87_MulDouble(X87_Atan2((double)dx, (double)(s32)(0u - (u32)dy)), scale), half)));
+    const s32 heading = cars_ftol(X87Reg(X87_MulDouble(X87_MulDouble(X87_Atan2((double)vx, (double)(s32)(0u - (u32)vy)), scale), half)) + X87Reg(global<double>(0x00700f18)));
+    const s32 c = (s32)((0u - (u32)bearing - (u32)heading) & 0x1ff);
+    if (c < 0x80 || c > 0x180) {
+        cars_bounce(a, b, c, bearing, vx, vy);
+        return;
+    }
+    const s32 ox = (s32)((u32)dx - (u32)(times(reach, dx) / length)), oy = (s32)((u32)dy - (u32)(times(reach, dy) / length));
+    const s32 weight = at<s32>(at<u8 *>(b, 0x9c), 0x2c);
+    const s32 bx = times(ox, weight) / 1024, by = times(oy, weight) / 1024;
+    at<s32>(b, 0x34) -= bx;
+    at<s32>(b, 0x38) -= by;
+    at<s32>(a, 0x34) += (s32)((u32)ox - (u32)bx);
+    at<s32>(a, 0x38) += (s32)((u32)oy - (u32)by);
+}
+
+void cars_timer(u8 *a) {
+    if (at<s32>(a, 0xa4) <= 0) return;
+    const s32 was = at<s32>(a, 0xa8);
+    at<s32>(a, 0xa8) = (s32)((u32)was + 1);
+    if (was < 0x20) return;
+    if (at<s32>(a, 0xa4) > 0x10) {
+        u8 *const ride = at<u8 *>(a, 0x9c);
+        u8 *node = at<u8 *>(at<u8 *>(a, 0x98), 0x1c);
+        if (node == nullptr) {
+            node = at<u8 *>(ride, 0xa8);
+            while (!(*node & 4)) node = at<u8 *>(node, 0x14);
+        }
+        do {
+            node = at<u8 *>(node, 0x14);
+            if (node == nullptr) node = at<u8 *>(ride, 0xa8);
+        } while (*node & 2);
+        at<u32>(a, 0x7c) = at<u32>(node, 4);
+        at<u32>(a, 0x78) = at<u32>(a, 0x74);
+        const u32 span = at<u32>(ride, 0x68);
+        at<s32>(a, 0x74) = (s32)((u32)((s32)span / 2) - (u32)World_Rand(global<u8 *>(0x007cf83c)) % span);
+        at<u32>(a, 0) |= 0x10000;
+    }
+    at<s32>(a, 0xa4) = 0;
+    at<s32>(a, 0xa8) = 0;
+}
+
+}  // namespace
+
+void TrakCars_SetEnv(const TrakCarsEnv *env) { g_carsEnv = env ? env : &kCarsPortEnv; }
+
+void __cdecl TrakCars_Update() {
+    if (global<u32>(0x00877b58) != 0x4a454647) return;
+    ++global<u32>(0x00877b5c);
+    u8 *car = global<u8 *>(0x00877b68);
+    for (u32 left = global<u32>(0x00877b6c); left != 0; car += kCarSize) {
+        if (!(at<u32>(car, 0) & 1)) continue;
+        --left;
+        at<u32>(car, 0) &= 0xffdfffff;
+        g_carsEnv->update(car);
+        if (at<u8>(car, 0) & 1) g_carsEnv->move(car);
+    }
+    u8 *a = global<u8 *>(0x00877b68);
+    for (u32 left = global<u32>(0x00877b6c); left != 0; a += kCarSize) {
+        if (!(at<u32>(a, 0) & 1)) continue;
+        --left;
+        if (!(*at<u8 *>(a, 0x98) & 0x80) && !(at<u32>(a, 0) & 0x200)) {
+            u8 *b = global<u8 *>(0x00877b68);
+            for (u32 others = global<u32>(0x00877b6c); others != 0; b += kCarSize) {
+                const u32 flags = at<u32>(b, 0);
+                if (!(flags & 1)) continue;
+                --others;
+                if (b != a && !(*at<u8 *>(b, 0x98) & 0x80) && !(flags & 0x200)) cars_meet(a, b);
+            }
+        }
+        cars_timer(a);
+        g_carsEnv->keepInArea(a);
+        g_carsEnv->bounce(a);
+        g_carsEnv->sounds(a);
+    }
+}
