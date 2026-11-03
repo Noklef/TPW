@@ -67,4 +67,7 @@ void __stdcall CRT_VectorVbaseCtorIterator(u8 *array, u32 size, s32 count, void(
 // 0x67afa0 (stdcall; array, size, count, dtor, pops 16): dtor (thiscall) for each of the count elements, the last first.
 void __stdcall CRT_VectorDtorIterator(u8 *array, u32 size, s32 count, void(__fastcall *dtor)(void *));
 
+// 0x6d76f0 (cdecl; called from 0x4901ff): every unit of the wide string before its terminator set to the unit. Returns the string.
+u16 *__cdecl CRT_wcsset(u16 *text, u16 unit);
+
 }  // extern "C"

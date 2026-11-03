@@ -77,4 +77,9 @@ void __stdcall CRT_VectorDtorIterator(u8 *array, u32 size, s32 count, void(__fas
     }
 }
 
+u16 *__cdecl CRT_wcsset(u16 *text, u16 unit) {
+    for (u16 *p = text; *p; ++p) *p = unit;
+    return text;
+}
+
 }  // extern "C"
