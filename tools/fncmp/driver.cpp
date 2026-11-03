@@ -114,6 +114,8 @@
 #include "../../src/game/world/flyingupdate.h"
 #include "../../src/game/render/ribbon.h"
 #include "../../src/game/render/batch.h"
+#include "../../src/game/terrain/water.h"
+#include "../../src/game/math/transform.h"
 #include "../../src/game/world/mousemode.h"
 #include "../../src/game/world/person.h"
 #include "../../src/game/world/pathdrag.h"
@@ -569,6 +571,12 @@ const EditUpdateEnv kEditUpdateEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorde
 // tests/fncmp/testrun.py hooks them.
 const RibbonEnv kRibbonEnv = {Rec{recorder(2, 5)}};
 const BatchEnv kBatchEnv = {Rec{recorder(1, 1)}, Rec{recorder(2, 2)}};
+// tests/fncmp/terrainwater.py: the transformer's slot 1 is 0x579330 in the original; here its port. ClipPoly_Vertices is stdcall (the COM-style recorder 3 of 5, recorder(k, n, True) in fncmp.py).
+u32 __fastcall water_transform(void *object, void *, u32 a, u32 b, u32 c, u32 d, u32 e, u32 f) {
+    Transform_Vertices(nullptr, static_cast<const float *>(object), reinterpret_cast<float *>((uintptr_t)a), reinterpret_cast<const u8 *>((uintptr_t)b), (s32)c, (s32)d, f, (s32)e);
+    return 0;
+}
+const TerrainWaterEnv kTerrainWaterEnv = {Rec{recorder(1, 5)}, Rec{recorder(2, 1)}, &water_transform, Rec{kStubs + 0x1000 + 0x4000 + 0x800 * 5 + 0x20 * 3}};
 const FlyingUpdateEnv kFlyingUpdateEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorder(2, 5)}, Rec{jpeg_recorder(3, 2)}, Rec{jpeg_recorder(4, 3)}, Rec{jpeg_recorder(5, 4)},
                                           Rec{jpeg_recorder(6, 3)}, Rec{jpeg_recorder(7, 1)}, Rec{jpeg_recorder(8, 1)}, Rec{jpeg_recorder(9, 2)}};
 const TrakCarUpdateEnv kTrakCarUpdateEnv = {Rec{jpeg_recorder(1, 3)}, Rec{jpeg_recorder(2, 2)}, Rec{jpeg_recorder(3, 4)}, Rec{jpeg_recorder(4, 2)}, Rec{jpeg_recorder(5, 1)},
@@ -1382,6 +1390,7 @@ int main(int argc, char **argv) {
     FlyingUpdate_SetEnv(&kFlyingUpdateEnv);
     Ribbon_SetEnv(&kRibbonEnv);
     Batch_SetEnv(&kBatchEnv);
+    TerrainWater_SetEnv(&kTerrainWaterEnv);
     Object_SetEnv(&kObjectEnv);
     StatsGraph_SetEnv(&kStatsGraphEnv);
     SpriteLoading_SetEnv(&kSpriteLoadingEnv);
