@@ -195,6 +195,7 @@
 #include "../../src/game/render/weatherfx.h"
 #include "../../src/game/coaster/arreplay.h"
 #include "../../src/game/coaster/arreplayaction.h"
+#include "../../src/game/coaster/coastersload.h"
 #include "../../src/game/coaster/rebuild.h"
 #include "../../src/game/coaster/carpose.h"
 #include "../../src/game/model/rideresource.h"
@@ -980,6 +981,32 @@ const AddrCall kArReplayActionCalls[] = {  // tests/fncmp/arreplayaction.py --ta
     {0x52fad0, jpeg_recorder(3, 1)},
     {0x5aef50, recorder(13, 0)},
     {0x5d3230, recorder(14, 2)},
+};
+const AddrCall kCoastersLoadCalls[] = {  // tests/fncmp/coastersload.py --table
+    {0x432c10, jpeg_recorder(10, 6)},
+    {0x432df0, jpeg_recorder(6, 4)},
+    {0x434060, jpeg_recorder(11, 9)},
+    {0x435020, jpeg_recorder(25, 7)},
+    {0x435710, jpeg_recorder(7, 2)},
+    {0x435730, jpeg_recorder(13, 2)},
+    {0x436ac0, jpeg_recorder(23, 5)},
+    {0x436d10, jpeg_recorder(22, 3)},
+    {0x4386d0, jpeg_recorder(9, 3)},
+    {0x43ba90, jpeg_recorder(19, 4)},
+    {0x43e520, jpeg_recorder(14, 2)},
+    {0x441840, jpeg_recorder(21, 2)},
+    {0x4426a0, jpeg_recorder(20, 0)},
+    {0x442880, jpeg_recorder(12, 1)},
+    {0x442cd0, jpeg_recorder(1, 0)},
+    {0x444150, jpeg_recorder(3, 4)},
+    {0x4441d0, jpeg_recorder(4, 4)},
+    {0x444270, jpeg_recorder(5, 5)},
+    {0x44b220, jpeg_recorder(8, 3)},
+    {0x45bdd0, jpeg_recorder(17, 1)},
+    {0x45be80, jpeg_recorder(16, 3)},
+    {0x463ab0, jpeg_recorder(15, 9)},
+    {0x468760, jpeg_recorder(24, 7)},
+    {0x472f40, jpeg_recorder(18, 1)},
 };
 const GameFrameCall kGameFrameCalls[] = {  // tests/fncmp/gameframe.py --table
     {0x402d70, recorder(1, 0)},
@@ -2230,6 +2257,7 @@ int main(int argc, char **argv) {
     CameraUpdate_SetEnv(&kCameraUpdateEnv);
     WeatherFx_SetReloadEnv(&kWeatherFxReloadEnv);
     ArReplay_SetEnv(&kArReplayEnv);
+    CoastersLoad_SetEnv(kCoastersLoadCalls, sizeof(kCoastersLoadCalls) / sizeof(kCoastersLoadCalls[0]));
     ArReplayAction_SetEnv(kArReplayActionCalls, sizeof(kArReplayActionCalls) / sizeof(kArReplayActionCalls[0]));
     CoasterRebuild_SetEnv(&kCoasterRebuildEnv);
     CoasterPose_SetEnv(&kCoasterPoseEnv);
