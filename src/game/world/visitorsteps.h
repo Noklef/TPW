@@ -36,6 +36,8 @@ struct VisitorStepsEnv {
     u32(__fastcall *setRandomDest)(u8 *person);                                           // Person_SetRandomDest 0x4f9490
     void(__fastcall *chooseMajorDest)(u8 *visitor);                                       // Visitor_ChooseMajorDest 0x4fcb10
     u32(__fastcall *post)(u8 *centre, void *, u8 *msg);                                   // MessageCentre_Post 0x40fb10
+    u32(__fastcall *analyserIncome)(u8 *analyser);                                        // 0x4c8240 (not ported)
+    void(__fastcall *creditTakings)(u8 *money);                                           // Money_CreditTakings 0x4d0600
 };
 void VisitorSteps_SetEnv(const VisitorStepsEnv *env);
 
@@ -129,4 +131,23 @@ void __fastcall Visitor_StepIdle(u8 *visitor);
 // The cell one step from the exit cell (+0x38) in that cell's direction (rotated by Nibble_Scale when +0x38 is +0x36): not of type 3 or 9 and a walk there starts:
 // Visitor_VisitObject, state 0xf, 1. Else Object_Reopen, 0. (Its debug prints are left out.)
 u32 __fastcall Visitor_ArriveAtObject(u8 *visitor);
+// 0x4fc8a0 (thiscall; names of this block invented, unconfirmed): a thought from the moods' __ftol low bytes: +0x1a8 and +0x1a4 both over 0x5a: 3; +0x1a8, +0x1a4, +0x1ac, +0x1b0 over
+// 99: 1, 2, 4, 0xe; the analyser cell's held / paths over 0.2 (rounded to 24 bits): 7; +0x19c over 99: 9, under 10: 0xb; else nothing. For 4 with the handle's low 4 bits 0, sound 0x85.
+void __fastcall Visitor_ShowMoodThought(u8 *visitor);
+// 0x501650 (thiscall): Person_UpdateSpeed. On the visitor's quarter of the clock: +0x1bc less 1; the cell's record [0x8023a0] (Map_RECell) adds its words 0, 2, 4 to +0x19c, +0x1b0,
+// +0x1a8 (each clamped to 0-100, NaN 0); every 16 ticks +0x1ac + 1, +0x1a8 + 2, +0x1a4 + 2; each of +0x1b0, +0x1a8, +0x1a4, +0x1ac at 100 takes 1 from +0x19c; the walking word +0xc2 by
+// +0x1ac over 0x50; out of states 0x10 and 0x11 on a plain cell: 1 in 10 a mood thought, the countdown +0x214 reaching 0 jumps the script; Person_KillScript84After. Outside states
+// 0xb-0xe (of +0x224 in state 8) the words +0x228, +0x22a cleared. Visitor_PreviousRideTick. (Its debug print is left out.)
+void __fastcall Visitor_Update(u8 *visitor);
+// 0x4ff5b0 (ECX not read): worth = income (0x4c8240) / (a roll of [0x78507c] to 1.5 times it) + [0x785080], against the bank's price +0x118: both no more than [0x785080]: 3; else by the
+// price against worth times [0x785088], [0x785084], [0x78508c] (24-bit products), 0-3, the matching byte [0x7850cc]... to the analyser's ring 0. (Its debug prints are left out.)
+u32 __fastcall Visitor_JudgeEntryFee();
+// 0x4ff9d0 (thiscall): the countdown +0x200; at 0 Visitor_JudgeEntryFee: 0: +0x188 = 1, a walk to a crossing's park side, thought 6, state 0x12 and +0x1bc = 0; 1: +0x200 = 50-99, thought
+// 6, Lower19c 1, with no mood left state 0x12 as 0; 2: Raise19c 1, then as 3; 3: the takings credited, +0x204 = 1, state 3.
+void __fastcall Visitor_StepAtBooth(u8 *visitor);
+// 0x4fff20 (thiscall): the walk done with an object +0x1dc: element 0 of its ride set to 1; the walk done without one, or 2: a cell effect 1 to [0x70048c] - 1 on its own cell. Either way
+// +0x1b4 = 0, state 6.
+void __fastcall Visitor_StepComingOff(u8 *visitor);
+// 0x5019f0 (thiscall): the step of the state +0x220 (0x15 at most). (Its debug prints are left out.)
+void __fastcall Visitor_PostUpdate(u8 *visitor);
 }

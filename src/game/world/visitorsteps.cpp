@@ -11,8 +11,10 @@
 #include "../sprite/script.h"
 #include "../sprite/scriptref.h"
 #include "../sprite/sprite.h"
+#include "analyser.h"
 #include "analysercell.h"
 #include "mapcell.h"
+#include "money.h"
 #include "object.h"
 #include "messagecentre.h"
 #include "objectmsg.h"
@@ -43,7 +45,7 @@ const VisitorStepsEnv kGameEnv = {&Sprite_WalkNav,       &Sprite_SetDestination,
                                   &Things_HeadForNearestFlag40, &Things_NearestFlag80Close,
                                   [](u8 *, void *, u32 kind, u32 cell, s32 radius) -> s32 { return Things_AnyOfKindAround(kind, cell, radius); },
                                   &Staff_NearestInList1da740, &Person_JumpScript210, &Person_SetRandomDest, &Visitor_ChooseMajorDest,
-                                  &MessageCentre_Post};
+                                  &MessageCentre_Post, reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)0x004c8240), &Money_CreditTakings};
 const VisitorStepsEnv *g_env = &kGameEnv;
 
 u8 *world() { return global<u8 *>(0x0080239c); }
@@ -683,4 +685,229 @@ void __fastcall Visitor_StepQueueWait(u8 *visitor) {
     if (turned < 0) turned += 0x800;
     else if (turned >= 0x800) turned -= 0x800;
     at<s32>(visitor, 0x1c) = turned;
+}
+
+void __fastcall Visitor_ShowMoodThought(u8 *visitor) {
+    const u8 hunger = (u8)(long long)at<float>(visitor, 0x1a8);
+    u32 thought;
+    if (hunger > 0x5a && (u8)(long long)at<float>(visitor, 0x1a4) > 0x5a) {
+        thought = 3;
+    } else if (hunger > 99) {
+        thought = 1;
+    } else if ((u8)(long long)at<float>(visitor, 0x1a4) > 99) {
+        thought = 2;
+    } else if ((u8)(long long)at<float>(visitor, 0x1ac) > 99) {
+        thought = 4;
+    } else if ((u8)(long long)at<float>(visitor, 0x1b0) > 99) {
+        thought = 0xe;
+    } else {
+        u8 *const analyser = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(world()));
+        u8 *const cell = ParkAnalyser_Cell(analyser, nullptr, ownCell(visitor));
+        const float held = (float)(s32)AnalyserCell_CountWith2c(cell, nullptr, 4);
+        const X87Reg share = X87Reg(held) / X87Reg((double)(s32)AnalyserCell_CountType1Or3Or9(cell, nullptr, 4));
+        if (share.v > (double)0.2f) {
+            thought = 7;
+        } else {
+            const u8 mood = (u8)(long long)at<float>(visitor, 0x19c);
+            if (mood > 99) thought = 9;
+            else if (mood < 10) thought = 0xb;
+            else return;
+        }
+    }
+    // (the original's table also has 0x7e for 0xc, 0x7f for 0xd and 0x85 for 0xf: not reached)
+    if (!(handleOf(visitor) & 0xf) && thought == 4) g_env->playSound(visitor, nullptr, global<u32>(0x00803a24), 0x85);
+    Thoughts_Show(visitor + 0x30, nullptr, thought, 0);
+}
+
+namespace {
+void addClamped(float &stat, X87Reg sum) {
+    if (sum.v > 100.0) stat = 100.0f;
+    else if (!(sum.v >= 0.0)) stat = 0.0f;
+    else stat = (float)sum;
+}
+}  // namespace
+
+void __fastcall Visitor_Update(u8 *visitor) {
+    Person_UpdateSpeed(visitor);
+    const u32 now = at<u32>(world(), 0x1da70c);
+    if (((handleOf(visitor) ^ now) & 3) == 0) {
+        at<u32>(visitor, 0x1bc)--;
+        u16 cell;
+        Cell_MakeHandle(&cell, visitor[5], visitor[7]);
+        const u8 *const effect = Map_RECell(global<u8 *>(0x008023a0), nullptr, cell);
+        float &mood = at<float>(visitor, 0x19c), &thirst = at<float>(visitor, 0x1a4), &hunger = at<float>(visitor, 0x1a8), &tired = at<float>(visitor, 0x1ac),
+              &sick = at<float>(visitor, 0x1b0);
+        addClamped(mood, X87Reg((double)at<s16>(effect, 0)) + X87Reg(mood));
+        addClamped(sick, X87Reg((double)at<s16>(effect, 2)) + X87Reg(sick));
+        addClamped(hunger, X87Reg((double)at<s16>(effect, 4)) + X87Reg(hunger));
+        if (!(at<u8>(world(), 0x1da70c) & 0xf)) {
+            addClamped(tired, X87Reg(tired) + X87Reg(1.0));
+            addClamped(hunger, X87Reg(hunger) + X87Reg(2.0));
+            addClamped(thirst, X87Reg(thirst) + X87Reg(2.0));
+        }
+        if ((u8)(long long)sick == 0x64) Stat100_Add(&mood, nullptr, -1.0f);
+        if ((u8)(long long)hunger == 0x64) Stat100_Add(&mood, nullptr, -1.0f);
+        if ((u8)(long long)thirst == 0x64) Stat100_Add(&mood, nullptr, -1.0f);
+        if ((u8)(long long)tired == 0x64) Stat100_Add(&mood, nullptr, -1.0f);
+        at<u16>(visitor, 0xc2) = global<u16>((u8)(long long)tired > 0x50 ? 0x0075c7f2 : 0x0075c7f0);
+        const u32 state = at<u32>(visitor, 0x220);
+        if (state != 0x10 && state != 0x11 && AnalyserCell_TypePlain(visitor)) {
+            if ((u32)World_Rand(world()) % 10 == 0) Visitor_ShowMoodThought(visitor);
+            const u32 left = at<u32>(visitor, 0x214);
+            if (left != 0) {
+                at<u32>(visitor, 0x214) = left - 1;
+                if (left == 1) g_env->jumpScript(visitor);
+            }
+        }
+        Person_KillScript84After(visitor + 0x30);
+    }
+    u32 doing = at<u32>(visitor, 0x220);
+    if (doing == 8) doing = at<u32>(visitor, 0x224);
+    if ((s32)doing < 0xb || (s32)doing > 0xe) {   // (and an empty debug print)
+        at<u16>(visitor, 0x228) = 0;
+        at<u16>(visitor, 0x22a) = 0;
+    }
+    Visitor_PreviousRideTick(visitor);
+}
+
+u32 __fastcall Visitor_JudgeEntryFee() {
+    u8 *const analyser = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(world()));
+    const u32 income = g_env->analyserIncome(analyser);
+    const u32 base = global<u32>(0x0078507c);
+    const u32 divisor = (u32)World_Rand(world()) % ((base >> 1) + 1) + base;
+    const u32 price = at<u32>(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(world())), 0x118);
+    const u32 least = global<u32>(0x00785080);
+    const u32 worth = income / divisor + least;
+    if (worth <= least && price <= least) return 3;
+    const X87Reg w((double)worth), p((double)price);
+    u32 answer;
+    u32 value;
+    if (!(p.v >= (X87Reg(global<float>(0x00785088)) * w).v)) {
+        answer = p.v > (X87Reg(global<float>(0x00785084)) * w).v ? 3 : 2;
+        value = global<u8>(answer == 3 ? 0x007850d8 : 0x007850d4);
+    } else {
+        answer = !(p.v >= (X87Reg(global<float>(0x0078508c)) * w).v) ? 1 : 0;
+        value = global<u8>(answer == 1 ? 0x007850d0 : 0x007850cc);
+    }
+    ParkAnalyser_Record(analyser, nullptr, 0, value);
+    return answer;
+}
+
+void __fastcall Visitor_StepAtBooth(u8 *visitor) {
+    if (at<u32>(visitor, 0x200) != 0) {
+        at<u32>(visitor, 0x200)--;
+        return;
+    }
+    const VisitorStepsEnv *const E = g_env;
+    u8 *const ring = visitor + 0x30;
+    switch (Visitor_JudgeEntryFee()) {
+    case 0: {
+        at<u32>(visitor, 0x188) = 1;
+        const u8 *const m = map();
+        u16 cell;
+        const u16 *const side = Map_CrossingParkSidePos(m, nullptr, &cell, (u32)World_Rand(world()) & 1);
+        E->setDestinationCell(visitor, nullptr, *side);
+        Thoughts_Show(ring, nullptr, 6, 0);
+        break;
+    }
+    case 1:
+        at<u32>(visitor, 0x200) = (u32)World_Rand(world()) % 0x32 + 0x32;
+        Thoughts_Show(ring, nullptr, 6, 0);
+        Visitor_Lower19c(visitor, nullptr, 1);
+        if ((u8)(long long)at<float>(visitor, 0x19c) != 0) return;
+        break;
+    case 2:
+        Visitor_Raise19c(visitor, nullptr, 1);
+        [[fallthrough]];
+    case 3:
+        E->creditTakings(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(world())));
+        at<u32>(visitor, 0x204) = 1;
+        E->setState(visitor, nullptr, 3);
+        return;
+    default:
+        return;
+    }
+    E->setState(visitor, nullptr, 0x12);
+    at<u32>(visitor, 0x1bc) = 0;
+}
+
+void __fastcall Visitor_StepComingOff(u8 *visitor) {
+    const VisitorStepsEnv *const E = g_env;
+    const u32 walk = E->walkNav(visitor);
+    const u16 object = at<u16>(visitor, 0x1dc);
+    if (walk == 0 && object != 0) {
+        Rides_SetElement(Rides_FindById(at<s32>(global<u8 *>(0x007cfb90 + 20u * object), 0x24)), 0, 1);
+    } else if (walk == 0 || walk == 2) {
+        const u32 rnd = (u32)World_Rand(world()) % (global<u32>(0x0070048c) - 1);
+        E->cellEffect(const_cast<u8 *>(map()) + ownCell(visitor) * 0x44u - 0x44u, nullptr, rnd + 1);
+    } else {
+        return;
+    }
+    at<u32>(visitor, 0x1b4) = 0;
+    E->setState(visitor, nullptr, 6);
+}
+
+void __fastcall Visitor_PostUpdate(u8 *visitor) {
+    const VisitorStepsEnv *const E = g_env;
+    switch (at<u32>(visitor, 0x220)) {
+    case 0:
+        if (E->walkNav(visitor) == 0) {   // (2: a debug print)
+            at<u32>(visitor, 0x1c) = 0x400;
+            E->setState(visitor, nullptr, 1);
+        }
+        break;
+    case 1: Visitor_GoToTicketBooth(visitor); break;
+    case 2: Visitor_StepWalkingIn(visitor); break;
+    case 3: Visitor_StepArriving(visitor); break;
+    case 4: Visitor_StepAtBooth(visitor); break;
+    case 5: Visitor_StepEntering(visitor); break;
+    case 6: Visitor_StepIdle(visitor); break;
+    case 7: {
+        const u32 walk = E->walkNav(visitor);
+        if (walk != 0 && walk != 2) break;
+        E->setState(visitor, nullptr, (World_Rand(world()) & 3) == 0 && E->setRandomDest(visitor) ? 7 : 6);
+        break;
+    }
+    case 8:
+        if (at<u32>(world(), 0x1da70c) > at<u32>(visitor, 0x208) + 0xa) Visitor_ReenterState(visitor);
+        break;
+    case 9: Visitor_StepComingOff(visitor); break;
+    case 0xa: Visitor_StepWalkToQueue(visitor); break;
+    case 0xb: Visitor_StepQueueWait(visitor); break;
+    case 0xc: {
+        const u32 walk = E->walkNav(visitor);
+        if (walk == 0 || walk == 2) E->setState(visitor, nullptr, 0xb);
+        break;
+    }
+    case 0xd: Visitor_StepInQueue(visitor); break;
+    case 0xe: {
+        u8 *const object = Thing_ByHandle(at<u16>(visitor, 0x1dc));
+        if (Obj_RideElement0Differs(object)) {
+            Object_QueueRemovePerson(object, nullptr, handleOf(visitor));
+            E->setState(visitor, nullptr, 0x10);
+        }
+        break;
+    }
+    case 0xf: Visitor_StepLeavingRide(visitor); break;
+    case 0x10: Thing_ByHandle(at<u16>(visitor, 0x1dc)); break;   // (sic: the answer dropped)
+    case 0x11: {
+        for (u16 handle = at<u16>(world(), 0x1da744); handle != 0;) {
+            u8 *const guard = global<u8 *>(0x007cfb90 + 20u * handle);
+            if (at<u16>(guard, 0x212) == handleOf(visitor) && Guard_IsState12(guard)) return;
+            handle = at<u16>(guard, 0x210);
+        }
+        E->thingDelete(visitor);
+        break;
+    }
+    case 0x12: Visitor_StepLeavingPark(visitor); break;
+    case 0x13: Visitor_GoToBusStop(visitor); break;
+    case 0x14:
+        if (E->walkNav(visitor) == 0) {   // (2: a debug print)
+            at<u32>(visitor, 0x1c) = World_ArrivalVehicleNotSize1(world()) ? 0x7ff : 0x400;
+            E->setState(visitor, nullptr, 0x15);
+        }
+        break;
+    case 0x15: Visitor_StepAtBusStop(visitor); break;
+    default: break;
+    }
 }

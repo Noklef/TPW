@@ -238,7 +238,7 @@ address,name,kind,confidence,notes
 0x0050b360,Thing_Update,function,high,per-tick dispatch on Thing.model (byte +2); most models call an Update and a PostUpdate method
 0x0050b550,Thing_HandleMessage,function,high,"reimplemented (src/game/world/things); thiscall (message), pops 4: the message handed to the handler of the thing's model (+2, 1 to 0x13; ThingMessageEnv), model 2 and others none"
 0x0050b6a0,Thing_SetPos,function,high,reimplemented (src/game/world/things); a thing's move between cells
-0x00501650,Visitor_Update,function,medium,Thing_Update case 1 (first call)
+0x00501650,Visitor_Update,function,medium,"reimplemented (src/game/world/visitorsteps); thiscall; Thing_Update case 1, first call: the visitor's moods on its quarter of the clock"
 0x005019f0,Visitor_PostUpdate,function,medium,Thing_Update case 1 (second call)
 0x004fb360,Visitor_HandleMessage,function,high,"reimplemented (src/game/world/person); thiscall (message), pops 4; Thing_HandleMessage's case 1: the object's type 0xa message"
 0x004e0b90,Object_Update,function,medium,Thing_Update case 3 (first call)
@@ -5709,6 +5709,10 @@ address,name,kind,confidence,notes
 0x005014e0,Visitor_ArriveAtObject,function,low,"reimplemented (src/game/world/visitorsteps); The visitor comes out at its object and, when the next cell can be walked to, visits it"
 0x004ffff0,Visitor_StepQueueWait,function,low,"reimplemented (src/game/world/visitorsteps); thiscall; the visitor's wait in the queue: told to come, worn object, place, patience (name invented)"
 0x004fec90,Visitor_StepIdle,function,low,"reimplemented (src/game/world/visitorsteps); thiscall; the idle visitor: emotes, the crossing walk, facing things, the mood effects, a random walk or destination (name invented)"
+0x004fc8a0,Visitor_ShowMoodThought,function,low,reimplemented (src/game/world/visitorsteps); thiscall; a thought from the moods (name invented)
+0x004ff5b0,Visitor_JudgeEntryFee,function,low,"reimplemented (src/game/world/visitorsteps); ECX not read; the park's entry fee against its worth, 0-3 (name invented)"
+0x004ff9d0,Visitor_StepAtBooth,function,low,reimplemented (src/game/world/visitorsteps); thiscall; state 4 (name invented)
+0x004fff20,Visitor_StepComingOff,function,low,reimplemented (src/game/world/visitorsteps); thiscall; state 9 (name invented)
 0x00532fc0,MapCell_HandleMessage,function,low,"reimplemented (src/game/world/cellmessage); thiscall (message, a, b), pops 12: a map cell's messages: 0x200 the build check, 0x100 the walls' faces, 0x32 cleared and its line's ends reset, 0x80-0x87 path links, models, directions, owners, end flags, track runs and dead ends; others the kind (MapCell_SetKind); agent A's 0x527ee0 / 0x52f580 through the env"
 0x00452d30,Map_SetRideCell,function,low,"reimplemented (src/game/world/cellmessage); cdecl (unused, x, y, ride, flagged): the clamped map cell made kind 0x15 (cleared, message 0x15) keeping its owner word, its entry's +4 the ride, flag 0x100 set or cleared"
 0x00536100,Map_SendLine,function,low,"reimplemented (src/game/world/cellmessage); cdecl (message, x0, y0, &x1, &y1): a message (MapCell_HandleMessage, the step as a or b) to the map cells along a line on its longer way, 0x820aa4 / 0x820ab8 marking the first and the last; 0 when a cell answers 0"

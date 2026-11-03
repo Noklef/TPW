@@ -32,7 +32,7 @@ from fncmp import LOG, LOG_BYTES, RAM, Bench, Call, _cdecl_log2, _recorder, answ
 import personscripts  # noqa: E402
 from thingenv import POOL, THING, park  # noqa: E402
 
-B = Bench([(0x4ff7f0, 0x4ff9ca), (0x500900, 0x500a4e), (0x500ad0, 0x500bc2), (0x500bd0, 0x500db5), (0x501160, 0x501282),
+RANGES = [(0x4ff7f0, 0x4ff9ca), (0x500900, 0x500a4e), (0x500ad0, 0x500bc2), (0x500bd0, 0x500db5), (0x501160, 0x501282),
            (0x51a280, 0x51a2f0), (0x51a690, 0x51a760), (0x51a760, 0x51a9c3), (0x51aad0, 0x51aaee), (0x516330, 0x516370),
            (0x4d8610, 0x4d8750), (0x4cd4e0, 0x4cd4f7), (0x50b350, 0x50b370), (0x5da3c0, 0x5da3c1), (0x55a070, 0x55a0b0),
            (0x55a0b0, 0x55a100), (0x55a390, 0x55a3e0), (0x412e90, 0x412eea), (0x4cd300, 0x4cd331), (0x4dd7f0, 0x4dd930),
@@ -41,19 +41,25 @@ B = Bench([(0x4ff7f0, 0x4ff9ca), (0x500900, 0x500a4e), (0x500ad0, 0x500bc2), (0x
            # (personscripts.py's script list: SpriteScript_Kill, the heap)
            (0x475010, 0x476a30), (0x540b90, 0x540da0), (0x541f60, 0x541fb0), (0x4d4100, 0x4d4134), (0x4d4170, 0x4d4186),
            (0x5f5e20, 0x5f5e90), (0x5f5fa0, 0x5f5fc0), (0x5f5660, 0x5f56a0),
-           (0x4fec90, 0x4ff4e0), (0x50c0d0, 0x50c1a0), (0x4fea70, 0x4feb10), (0x519510, 0x519560), (0x4fe980, 0x4fe9a0)],
-          hooks={0x4fa2a0: _recorder(1, 0), 0x4fa5f0: _recorder(2, 2), 0x4fa530: _recorder(3, 1), 0x4fa470: _recorder(4, 1),
+           (0x4fec90, 0x4ff4e0), (0x50c0d0, 0x50c1a0), (0x4fea70, 0x4feb10), (0x519510, 0x519560), (0x4fe980, 0x4fe9a0),
+           # (Mood, Tick, Judge, AtBooth, Off, State)
+           (0x5195d0, 0x519610), (0x4fc8a0, 0x4fca94), (0x501650, 0x5019e6), (0x4ff5b0, 0x4ff726), (0x4ff9d0, 0x4ffb0c), (0x4fff20, 0x4fffe5), (0x5019f0, 0x501d4c), (0x50be80, 0x50c075), (0x4c7b70, 0x4c7bab),
+           (0x4c74b0, 0x4c74e9), (0x4c8ae0, 0x4c8c3c), (0x41a960, 0x41a9c0), (0x4fa870, 0x4fa928), (0x510160, 0x5101e9), (0x4d4190, 0x4d41d0), (0x4d8410, 0x4d8434), (0x4fb4f0, 0x4fb52b),
+           (0x4fe9c0, 0x4fea70), (0x50be40, 0x50be7c), (0x4fdc60, 0x4fde45), (0x4d6350, 0x4d6360)]
+HOOKS = {0x4c8240: _recorder(28, 0), 0x4d0600: _recorder(29, 0), 0x4fa2a0: _recorder(1, 0), 0x4fa5f0: _recorder(2, 2), 0x4fa530: _recorder(3, 1), 0x4fa470: _recorder(4, 1),
                  0x50b780: _recorder(5, 0), 0x501db0: _recorder(26, 1), 0x4de110: _recorder(6, 1), 0x4ddf50: _recorder(7, 1),
                  0x4de7e0: _recorder(8, 4), 0x4faa00: _recorder(10, 2),
                  0x4d93b0: _recorder(18, 1), 0x6e7074: _cdecl_log2, 0x500dc0: _recorder(19, 2), 0x501020: _recorder(20, 1), 0x4c8eb0: _recorder(21, 3),
-                 0x500f00: _recorder(22, 1), 0x4fe950: _recorder(23, 0), 0x4f9490: _recorder(24, 0), 0x4fcb10: _recorder(25, 0), 0x40fb10: _recorder(27, 1)})
+                 0x500f00: _recorder(22, 1), 0x4fe950: _recorder(23, 0), 0x4f9490: _recorder(24, 0), 0x4fcb10: _recorder(25, 0), 0x40fb10: _recorder(27, 1)}
+B = Bench(RANGES, hooks=HOOKS)
 CALLS = {'Arrive': 0x4ff7f0, 'Leave': 0x500900, 'Go': 0x500ad0, 'Stop': 0x500bd0, 'Queue': 0x501160, 'Kill': 0x4feb10, 'Booth': 0x4ff520,
          'WalkIn': 0x4ff730, 'Enter': 0x4ffb20, 'Out': 0x500a50, 'Again': 0x4fc890,
-         'Emote': 0x4fc800, 'Idle': 0x4fec90}
-OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
+         'Emote': 0x4fc800, 'Idle': 0x4fec90, 'Mood': 0x4fc8a0, 'Tick': 0x501650, 'Judge': 0x4ff5b0, 'AtBooth': 0x4ff9d0, 'Off': 0x4fff20, 'State': 0x5019f0}
+OPS = [k for k in os.environ.get('OPS', ','.join(k for k in CALLS if k != 'State')).split(',') if k]   # (State: visitorstate.py)
 WORLD = RAM   # (thingenv.py's world pointers)
 NODES, ARRAYS, VIS = RAM + 0x1000, RAM + 0x4000, RAM + 0x9000
 MAPC = 0x31000000
+ANALYSER, BANK = 0x32000000, 0x33000000
 SCRIPTS = RAM + 0x50000   # (personscripts.py's script list)
 
 
@@ -144,6 +150,76 @@ def idle(r, regions, log, v, handles, w):
     regions[POOL] = pool
 
 
+def moods(r, regions, log, v, handles, w, name):
+    """Mood, Tick, Judge, AtBooth, Off, State (0x4fc8a0, 0x501650, 0x4ff5b0, 0x4ff9d0, 0x4fff20, 0x5019f0). Thoughts_Show stopped at its gate (bits of [0x790ab0]), so only its +0 tells: its
+    calls are the driver's recorders, which other ops here run as they are. The analyser (slot 14) with one cell, its counts cached; the bank slot 15; the moods about their limits; the
+    clock on the visitor's quarter mostly; the map's record of the cell (Map_RECell)."""
+    regions[0x790ab0] = b'\x02'
+    regions[0x7cf6ec] = struct.pack('<I', RAM + 0x8a00)
+    regions[RAM + 0x8a00] = struct.pack('<I', WORLD)
+    now = r.getrandbits(32) & ~0xf | r.choice([0, v[0] & 3, v[0] & 3, v[0] & 3, r.getrandbits(4)])
+    if r.random() < 0.7:
+        now = now & ~3 | v[0] & 3
+    put(w, 0xc, 'I', now)
+    put(w, 0x20, 'HHHH', 14, r.getrandbits(16), r.getrandbits(16), 15)
+    slots = bytearray(regions[0x7cfb90]).ljust(20 * 16, b'\0')
+    put(slots, 20 * 14, 'I', ANALYSER)
+    put(slots, 20 * 15, 'I', BANK)
+    held, paths = r.choice([(0, 0), (1, 5), (1, 4), (1, 6), (2, 10), (5, 0), (3, 7), (0, 3), (r.randrange(9), r.randrange(50))])
+    a = bytearray(0x100)
+    put(a, 0xc, 'II', 0x80, 1)
+    put(a, 0x20 + 0x4c, 'IIB', now, paths, 1)
+    put(a, 0x20 + 0x58, 'IIB', now, held, 1)
+    regions[ANALYSER] = a
+    regions[ANALYSER + 0x216fc] = put(bytearray(r.bytes(0x40)), 0x34, 'II', r.randrange(4), r.randrange(1, 6))
+    regions[0x75c7fc] = struct.pack('<I', r.choice([1, 3, 100]))
+    put(v, 0xb4, 'I', 0)
+    limits = [0.0, 50.0, 80.0, 80.9, 81.0, 90.0, 90.9, 91.0, 99.0, 99.9, 100.0, 100.5, 256.0, 356.0]
+    low = r.random() < 0.6
+    for off in (0x1a4, 0x1a8, 0x1ac, 0x1b0):
+        put(v, off, 'f', r.uniform(0, 50) if low else r.choice(limits + [r.uniform(0, 100)]))
+    put(v, 0x19c, 'f', r.choice([0.0, 0.5, 5.0, 9.0, 9.9, 10.0, 50.0, 99.0, 99.9, 100.0, 101.0, 256.0, 356.0, r.uniform(0, 100)]))
+    if name != 'Mood' and r.random() < 0.05:
+        put(v, r.choice([0x19c, 0x1a4, 0x1a8, 0x1ac, 0x1b0]), 'I', 0x7fc00000)
+    own = cell_of(v[5], v[7])
+    words = [0, 0, 1, -1, 5, -5, 100, -100, 0x7fff, -0x8000]
+    regions[MAPC + 0x1b1104 + ((own - 1) & 0xffff) * 10] = struct.pack('<3h', r.choice(words), r.choice(words), r.choice(words))
+    put(v, 0x214, 'I', r.choice([0, 0, 1, 1, 2, 0x80000000]))
+    put(v, 0x220, 'I', r.choice([0, 3, 6, 8, 0xb, 0xe, 0xf, 0x10, 0x11, 0xa, 0x20]))
+    put(v, 0x224, 'I', r.choice([0, 0xa, 0xb, 0xe, 0xf]))
+    put(v, 0x228, 'HH', r.getrandbits(16), r.getrandbits(16))
+    # (the fee)
+    regions[0x78507c] = struct.pack('<9I', r.choice([1, 2, 10, 100]), r.choice([0, 1, 5, 10]), fb(r.choice([0.5, 1.0, 1.25])), fb(r.choice([1.0, 1.5, 2.0])), fb(r.choice([2.0, 3.0, 0.75])), 0, 0, 0, 0)
+    regions[0x7850cc] = r.bytes(16)
+    set_return(log, 28, r.choice([0, 1, 10, 100, 1000, r.getrandbits(20)]))
+    regions[BANK + 0x118] = struct.pack('<I', r.choice([0, 1, 5, 10, 20, 50, 100, r.randrange(300)]))
+    regions[0x785580] = r.bytes(4)
+    put(v, 0x200, 'I', 0 if name != 'AtBooth' else r.choice([0, 0, 0, 0, 1, 5]))
+    put(v, 0x188, 'I', 0)
+    regions[0x70048c] = struct.pack('<I', r.choice([2, 3, 5, 10, 0x20]))
+    blob_bytes(log, 27, 0, 0xf3ff)
+    if name == 'State':
+        put(v, 0x220, 'I', r.choice(list(range(0x16)) * 3 + [0x16, 0x20, 0xffffffff]))
+        put(v, 0x208, 'I', (now - r.choice([0, 9, 10, 11, 12])) & 0xffffffff)
+        pool = bytearray(regions[POOL])
+        chain = r.sample(handles, r.randrange(len(handles) + 1))
+        for i, h in enumerate(handles):
+            put(pool, THING * i + 0x210, 'H', chain[chain.index(h) + 1] if h in chain and chain.index(h) + 1 < len(chain) else 0)
+            put(pool, THING * i + 0x212, 'H', r.choice([v[0] | v[1] << 8, 0, 0x1234]))
+            put(pool, THING * i + 0x3c, 'H', 0)   # (the queues empty: a random one can loop for ever, and natively nothing stops it)
+            put(pool, THING * i + 0x228, 'H', 0)
+        regions[POOL] = pool
+        w.extend(r.bytes(0x10 + len(w) - len(w)))
+        put(w, 0x44, 'H', chain[0] if chain else 0)
+        set_return(log, 24, r.choice([0, 1]))
+    regions[WORLD + 0x1da700] = w
+    regions[VIS] = v
+    regions[0x7cfb90] = slots
+    if name == 'State' and struct.unpack_from('<I', v, 0x220)[0] == 6:
+        idle(r, regions, log, v, handles, w)
+        put(v, 0x220, 'I', 6)
+
+
 def case(r):
     name = r.choice(OPS)
     log = log_region()
@@ -216,7 +292,9 @@ def case(r):
         return Call(CALLS[name], [VIS, r.choice([4, 4, 4, 5, 5, 0, r.getrandbits(32)])], regions, conv='t')
     if name == 'Idle':
         idle(r, regions, log, v, handles, w)
-    return Call(CALLS[name], [VIS], regions, conv='t', ret='a' if name == 'Queue' else 'v')
+    if name in ('Mood', 'Tick', 'Judge', 'AtBooth', 'Off', 'State'):
+        moods(r, regions, log, v, handles, w, name)
+    return Call(CALLS[name], [VIS], regions, conv='t', ret='a' if name in ('Queue', 'Judge') else 'v', steps=150000)
 
 
 if __name__ == '__main__':
