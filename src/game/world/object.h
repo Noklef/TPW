@@ -71,6 +71,10 @@ u32 __fastcall Object_SetFlag64(u8 *object, void *, u32 on);
 // whose state (+0x220) is not 0xd is forgotten (+0x6c = 0). The debug prints are left out (element 2 is still read for the first).
 void __fastcall Object_CallQueueHead(u8 *object);
 
+// 0x4e1410 (thiscall; name invented, unconfirmed): the visitor whose handle is the low word of the ride record's element 1 (Rides_FindById of +0x24), if any, comes to the object
+// (Visitor_ArriveAtObject); when that answers, the element is cleared. The debug prints and the handle reads only they use are left out.
+void __fastcall Object_ArriveWaiting(u8 *object);
+
 // 0x4dd4e0: the object's definition, ObjectDefs_Find on gObjectDefs (0x7890a0) by its id (+0xe).
 u8 *__fastcall Object_GetDef(const u8 *object);
 

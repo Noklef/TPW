@@ -3836,6 +3836,7 @@ address,name,kind,confidence,notes
 0x004df150,Object_Reopen,function,low,"reimplemented (src/game/world/object); thiscall; called from 0x5015f0: a closed object (+0x68 set) opened again: message 0x14 of its handle posted, then Object_RestartRide (inlined there)"
 0x004e15b0,Object_FollowCamera,function,low,"reimplemented (src/game/world/object); thiscall (arg), pops 4; the camera follows what rides the object (name invented)"
 0x004e16b0,Object_TakePayment,function,low,"reimplemented (src/game/world/object); A visitor's payment to an object: the money, the object's sums, the park's sums and the slots"
+0x004e1410,Object_ArriveWaiting,function,low,reimplemented (src/game/world/object); the visitor in the ride record's element 1 comes to the object
 0x005d46d0,Blocks7_Free,function,high,reimplemented (src/game/core/buffers); frees the seven blocks of an object and clears its groups
 0x00424cc0,Names_FirstAfter,function,high,"reimplemented (src/game/core/string); whether the first name is after the second, case blind"
 0x00424cf0,Names_Equal,function,high,"reimplemented (src/game/core/string); whether two names are equal, case blind"

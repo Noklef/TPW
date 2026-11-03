@@ -30,6 +30,7 @@
 #include "things.h"
 #include "thingscan.h"
 #include "trackrides.h"
+#include "visitorsteps.h"
 #include "world.h"
 
 namespace {
@@ -330,6 +331,13 @@ void __fastcall Object_SetCapacity(u8 *object, void *, u32 capacity) {
     }
     Rides_SetElement(Rides_FindById(at<s32>(object, 0x24)), 2, value);  // (the debug print of the capacity is left out)
     at<u8>(object, 0x5d) = value;
+}
+
+void __fastcall Object_ArriveWaiting(u8 *object) {
+    u8 *const record = Rides_FindById(at<s32>(object, 0x24));
+    const u16 waiting = (u16)Rides_GetElement(record, 1);
+    if (!waiting) return;
+    if (Visitor_ArriveAtObject(global<u8 *>(0x007cfb90 + 20 * (u32)waiting))) Rides_SetElement(record, 1, 0);
 }
 
 void __fastcall Object_CallQueueHead(u8 *object) {
