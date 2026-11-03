@@ -40,7 +40,7 @@ OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].s
 
 
 def floats(r):
-    return struct.pack('<3I', *[r.choice([fb(r.uniform(-8, 8)), 0, 0x80000000, 0x7fc00000, 0x7f800001, 0xffa00000, 0x7fbfffff,
+    return struct.pack('<3I', *[r.choice([fb(r.uniform(-8, 8)), 0, 0x80000000, 0x7fc00000, 0x7f800001, 0xffa00000, 0x7fbfffff, 0x7f800000, 0xff800000,
                                           r.getrandbits(32)]) for _ in range(3)])
 
 

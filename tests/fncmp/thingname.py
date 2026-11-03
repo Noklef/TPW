@@ -22,6 +22,7 @@ def case(r):
     units = [0x41 if u == 0x2d and i < length - 2 else u for i, u in enumerate(units)]
     thing = bytearray(r.bytes(0x500))
     struct.pack_into('<%dH' % (length + 1), thing, 0x3c8, *units, 0)
+    struct.pack_into('<H', thing, 0x3c6, r.choice([0x2d, r.getrandbits(16)]))   # (one unit: the word before the text must stay unread)
     regions = {LOG: log, THING: thing, TO: r.bytes(0x10), STATIC: r.bytes(0x100)}
     address = 0x4e2920 if r.random() < 0.2 else 0x4e2860
     if address == 0x4e2860 and not length:

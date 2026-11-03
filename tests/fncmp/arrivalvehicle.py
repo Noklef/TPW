@@ -52,7 +52,7 @@ def case(r):
     set_return(log, 11, r.choice([OBJECT] * 12 + [0]))
     set_return(log, 2, r.getrandbits(32))
     struct.pack_into('<I', log, LOG_BYTES + 4 * 11, 3 << 16)   # (the cell and the id: words)
-    which = r.choice([0, 0, 1, 2, 3, 1, 2, 3, 4, r.getrandbits(32)])
+    which = r.randrange(0, 4) if r.random() < 0.95 else r.choice([4, r.getrandbits(32)])
     return Call(0x51a2f0, [GAME, OUT, which], regions, conv='t', ret='a')
 
 
