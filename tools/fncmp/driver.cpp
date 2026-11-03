@@ -534,9 +534,10 @@ const CoasterLinksEnv kCoasterLinksEnv = {reinterpret_cast<u32(__cdecl *)(u32, u
 // The chat commands' calls (src/game/online/chatcommand), as tests/fncmp/chatcommand.py hooks them: Charset_FormatWide the cdecl recorder
 // 25 of 5 (a 4-argument call's fifth is stack garbage, which the bench hashes away); agent B's 0x4051d0 the stand-in ChatCommand_AssignChars
 // (0x4ec030's own inlined copy of it; the bench runs B's original); B's 0x5d3230 and 0x5b50b0 the thiscall recorders 21 of 2 and 22 of 0;
-// Window7cc8bc_ChatAddStd the COM-style (stdcall) recorder 24 of 2; B's 0x47f020 the cdecl recorder 26 of 8.
+// Window7cc8bc_ChatAddStd, _ListAddStd and _ListAdd1Std the COM-style (stdcall) recorders 24, 27 and 28 of 2; B's 0x47f020 the cdecl recorder 26 of 8.
 const ChatCommandEnv kChatCommandEnv = {Rec{jpeg_recorder(25, 5)}, &ChatCommand_AssignChars, Rec{recorder(21, 2)},
-                                        Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 24}, Rec{recorder(22, 0)}, Rec{jpeg_recorder(26, 8)}};
+                                        Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 24}, Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 27},
+                                        Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 28}, Rec{recorder(22, 0)}, Rec{jpeg_recorder(26, 8)}};
 // The cell messages' calls into agent A's unported 0x527ee0 and 0x52f580: the cdecl recorders 27 of 3 and 28 of 2, as
 // tests/fncmp/cellmessage.py hooks them.
 const CellMessageEnv kCellMessageEnv = {reinterpret_cast<void(__cdecl *)(s32, s32, u32)>((uintptr_t)jpeg_recorder(27, 3)),
