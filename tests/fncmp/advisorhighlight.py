@@ -59,7 +59,7 @@ def case(r):
     put(block, 0x14, 'I', slot)
     for off in (0x24, 0x28):   # (the kinds)
         put(block, off, 'I', r.choice([0, 1, 3, 8, 14, -1, key]) & 0xffffffff)
-    for i in range((0x70 - 0x38) // 4):   # (0xf79698 by slot, 0xf796a0 by row)
+    for i in range((0x90 - 0x38) // 4):   # (0xf79698 by slot, 0xf796a0 by row: 4 slots of 5)
         put(block, 0x38 + 4 * i, 'I', r.randrange(16))
     put(block, 0x10c, 'I', r.randrange(10, 16))   # (the time's index, past the rows)
     for i in range(10, 16):
