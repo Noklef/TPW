@@ -519,6 +519,7 @@
 #include "../game/ui/dialogtabhandlers.h"
 #include "../game/ui/dialogtabs.h"
 #include "../game/ui/dialuplist.h"
+#include "../game/ui/gamepartdialogs.h"
 #include "../game/ui/guifont.h"
 #include "../game/ui/guinamed.h"
 #include "../game/ui/guisystem.h"
@@ -7506,6 +7507,8 @@ const Hook kHooks[] = {
     {"Panel7ca178_Handler",       0x00497640, (void *)&Panel7ca178_Handler, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
     {"Panel7cc408_Handler",       0x004b7720, (void *)&Panel7cc408_Handler, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
     {"Panel7cc3e0_Handler",       0x004b67f0, (void *)&Panel7cc3e0_Handler, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"Dialog7cc47c_Handler",      0x004b86a0, (void *)&Dialog7cc47c_Handler, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
+    {"Dialog7cc4b4_Handler",      0x004b8b70, (void *)&Dialog7cc4b4_Handler, {0x56, 0x8b, 0x74, 0x24, 0x10}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
