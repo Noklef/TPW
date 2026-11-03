@@ -5022,6 +5022,7 @@ const Hook kHooks[] = {
     {"SoundCategory_ReleaseRecordAt", 0x006c0850, (void *)&SoundCategory_ReleaseRecordAt, {0x83, 0xec, 0x10, 0x83, 0xc1}},
     {"SfxSounds_Find",            0x006c5870, (void *)&SfxSounds_Find, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
     {"SoundCategory_HideFlag40Samples", 0x006c0c90, (void *)&SoundCategory_HideFlag40Samples, {0x83, 0xec, 0x24, 0x53, 0x8b}},
+    {"CategoryRecord_DeletingDtor", 0x006c1110, (void *)&CategoryRecord_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0xe8}},
     {"Class703770_AddRef",        0x006338c0, (void *)&Class703770_AddRef, {0x83, 0xc1, 0x04, 0x51, 0xff}},
     {"Class703770_Release",       0x006338d0, (void *)&Class703770_Release, {0x56, 0x8b, 0xf1, 0x57, 0x8d}},
     {"Class70a078_Ctor",          0x006af760, (void *)&Class70a078_Ctor, {0x8b, 0xc1, 0xc7, 0x00, 0x78}},

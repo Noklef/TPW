@@ -668,6 +668,12 @@ void __fastcall SoundCategory_HideFlag40Samples(u8 *self, void *, u32 hide) {
     }
 }
 
+u8 *__fastcall CategoryRecord_DeletingDtor(u8 *record, void *, u32 flags) {
+    CategoryRecord_Dtor(record);
+    if (flags & 1) GameHeap_Free(record);
+    return record;
+}
+
 void __fastcall CategoryRecord_Dtor(u8 *record) {
     Put<u32>(record, 0, 0x70a950);
     u32 status;

@@ -172,6 +172,8 @@ void __fastcall SoundCategory_HideFlag40Samples(u8 *self, void *, u32 hide);
 // singleton (the status a local), its +8 block freed (GameHeap_Free) and cleared when there is one, the bank list's nodes (+0x28) freed
 // with +0x2c / +0x28 / +0x30 = 0, then BankList_Dtor (+0x24), String_Dtor (+0xc) and the vtable 0x703770.
 void __fastcall CategoryRecord_Dtor(u8 *record);
+// 0x6c1110 (thiscall (flags), pops 4; name invented): CategoryRecord_Dtor, then the block freed when the flags' bit 0 is set. Returns it.
+u8 *__fastcall CategoryRecord_DeletingDtor(u8 *record, void *, u32 flags);
 // 0x6b9760 (stdcall (out, record), pops 8; name invented): no record: *out = -1. Else Fn_6c0200 (record, &banks) gives the count of a
 // list of deque B indices (0, and banks null: the loop never runs), each bank's resource (+8) slot 0 called and +8 = 0 (the bank and its
 // resource not tested for null); the list freed (GameHeap_Free) when not null and *out = 0. Returns out.

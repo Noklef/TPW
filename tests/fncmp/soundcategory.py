@@ -28,7 +28,7 @@ CALLS = {'count': 0x6bd7a0, 'simple': 0x6c0550, 'variation': 0x6c06e0, 'sound': 
          'addref': 0x6338c0, 'release': 0x6338d0, 'load': 0x6bf330, 'listdtor': 0x6c2f40, 'listdel': 0x6c30c0, 'findrec': 0x6c0f70,
          'dtor': 0x6bee10, 'deldtor': 0x6bed80, 'singleton': 0x6beb10, 'unload': 0x6c08b0, 'ctor': 0x6beb20, 'get': 0x6bead0,
          'locate': 0x6d1bd0, 'recordat': 0x6d1dc0, 'releaseall': 0x6b9660, 'releaserec': 0x6b9760,
-         'recdtor': 0x6bea00, 'objload': 0x6b8720, 'bankflag': 0x6b9270,
+         'recdtor': 0x6bea00, 'recdelete': 0x6c1110, 'objload': 0x6b8720, 'bankflag': 0x6b9270,
          'partition': 0x6c0bd0, 'recrelease': 0x6c0850, 'findsound': 0x6c5870, 'objrelease': 0x6b8570,
          'objrecrelease': 0x6ba090, 'hide': 0x6c0c90, 'chanhide': 0x6b92f0, 'cmdhide': 0x6b5860}
 B = Bench([(0x6bd7a0, 0x6bd7ac), (0x6bf150, 0x6bf31c), (0x6bf850, 0x6c0303), (0x6c0310, 0x6c035f), (0x6c0360, 0x6c0844), (0x4036a0, 0x4036e0), (0x639100, 0x639120),
@@ -36,7 +36,7 @@ B = Bench([(0x6bd7a0, 0x6bd7ac), (0x6bf150, 0x6bf31c), (0x6bf850, 0x6c0303), (0x
            (0x6bf330, 0x6bf850), (0x632150, 0x632380), (0x6c0860, 0x6c3200), (0x5f7980, 0x5f79cf), (0x67c250, 0x67c2a0),
            (0x6beb10, 0x6beb1a), (0x6bed80, 0x6bee0b), (0x6bee10, 0x6bf14c), (0x5ec210, 0x5ec220), (0x5f8240, 0x5f8310), (0x5f8420, 0x5f8460), (0x619800, 0x619870),
            (0x6beb20, 0x6bed76), (0x6bead0, 0x6beb03), (0x47db00, 0x47db30), (0x5f61a0, 0x5f61f0),
-           (0x6d1bd0, 0x6d1db5), (0x6d1dc0, 0x6d1e2f), (0x6b9660, 0x6b9760), (0x6b9760, 0x6b984c), (0x6c0bd0, 0x6c0c87), (0x6c0c90, 0x6c0d8a), (0x6c0850, 0x6c08ad), (0x6bea00, 0x6beac5), (0x6b8720, 0x6b87c5), (0x6b8690, 0x6b8711), (0x6b9270, 0x6b92ef), (0x6c5870, 0x6c58ce), (0x6b8570, 0x6b859f), (0x6ba090, 0x6ba0be), (0x6b92f0, 0x6b930e), (0x6b5860, 0x6b5882)]
+           (0x6d1bd0, 0x6d1db5), (0x6d1dc0, 0x6d1e2f), (0x6b9660, 0x6b9760), (0x6b9760, 0x6b984c), (0x6c0bd0, 0x6c0c87), (0x6c0c90, 0x6c0d8a), (0x6c0850, 0x6c08ad), (0x6bea00, 0x6beac5), (0x6c1110, 0x6c1130),(0x6b8720, 0x6b87c5), (0x6b8690, 0x6b8711), (0x6b9270, 0x6b92ef), (0x6c5870, 0x6c58ce), (0x6b8570, 0x6b859f), (0x6ba090, 0x6ba0be), (0x6b92f0, 0x6b930e), (0x6b5860, 0x6b5882)]
           + fileopen.RANGES,
           hooks={0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None, 0x67a7d0: _cdecl_log})   # (the STL lock the map's insert takes: the port leaves it out)
 CAT, OUT, RECS, NODES = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x400
@@ -354,13 +354,15 @@ def case_unload(r, name='unload'):
         regions[TREE_HEAD] = struct.pack('<3I', TREE_HEAD, TREE_NIL, TREE_HEAD) + bytes(0x1c)
     struct.pack_into('<IIBxxxI', cat, 0xc, r.getrandbits(32), TREE_HEAD, 0, r.choice([0, 1, 2, 3, 5]))
     regions[OUT] = r.bytes(4)
-    if name == 'recdtor':   # (the record's destructor: the category the singleton; the record's +8 a block or null, +0xc a String)
+    if name in ('recdtor', 'recdelete'):   # (the record's destructor: the category the singleton; the record's +8 a block or null, +0xc a String)
         recs = bytearray(regions[RECS])
         struct.pack_into('<I', recs, 0x40 * j + 8, r.choice([0, HEAP + 0x1000]))
         recs[0x40 * j + 0xc:0x40 * j + 0x20] = string(r, b'cat_x', NAMES)
         regions[RECS], regions[NAMES] = recs, b'cat_x\0' + r.bytes(10)
         regions[SINGLETON] = regions.pop(CAT)
         regions[0xfb1ff8] = bytes([r.choice([1, r.getrandbits(8) | 1])])
+        if name == 'recdelete':
+            return Call(CALLS[name], [RECS + 0x40 * j, r.choice([0, 1, 2, 3, r.getrandbits(32)])], regions, conv='t', ret='a')
         return Call(CALLS[name], [RECS + 0x40 * j], regions, conv='t', ret='v')
     return Call(CALLS['unload'], [CAT, OUT, RECS + 0x40 * j if r.random() < 0.95 else 0], regions, conv='t', ret='a')
 
@@ -553,7 +555,7 @@ def case(r):
         return case_hide(r, name)
     if name in ('dtor', 'deldtor', 'singleton'):
         return case_dtor(r, name)
-    if name in ('unload', 'recdtor'):
+    if name in ('unload', 'recdtor', 'recdelete'):
         return case_unload(r, name)
     if name == 'findsound':   # a table (null now and then) of 0-5 entries, its count theirs or fewer; ids small, the command's (its slot 2's answer) mostly; +4 0 now and then; slot 1 answering 0 now and then
         n = r.choice([0, 1, 2, 3, 5])

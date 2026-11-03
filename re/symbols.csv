@@ -4961,6 +4961,7 @@ address,name,kind,confidence,notes
 0x006c0850,SoundCategory_ReleaseRecordAt,function,low,"reimplemented (src/game/core/soundcategory); thiscall (out, index), pops 8: deque A's record index (no count check) released (slot 0), *out = 0; none: -1 (name invented)"
 0x006c5870,SfxSounds_Find,function,low,reimplemented (src/game/core/soundcategory); a command's entry in an SFX.map sound table
 0x006c0c90,SoundCategory_HideFlag40Samples,function,low,"reimplemented (src/game/core/soundcategory); thiscall (hide), pops 4: every variation of every sound of deque A's category records (the cells computed inline): hide's low byte set SfxVariation_MoveFlag40SamplesLast, else dword +0 >>= 16 (name invented)"
+0x006c1110,CategoryRecord_DeletingDtor,function,low,"reimplemented (src/game/core/soundcategory); CategoryRecord_Dtor, then the block freed by the flags' bit 0"
 0x006338c0,Class703770_AddRef,function,low,"reimplemented (src/game/core/refcounted); thiscall: the counted base class's AddRef, InterlockedIncrement (+4)"
 0x006338d0,Class703770_Release,function,low,"reimplemented (src/game/core/refcounted); thiscall: its Release: InterlockedDecrement (+4), at 0 deleted (vtable +8 (1)) and 0, else the count re-read"
 0x006af760,Class70a078_Ctor,function,low,"reimplemented (src/game/core/refcounted); The text library's counted base constructor: its vtable, the count 1"
