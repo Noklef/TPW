@@ -209,6 +209,7 @@ add_library(tpw_game STATIC
     src/game/core/soundworker.cpp
     src/game/core/soundobjectslots.cpp
     src/game/core/soundwait.cpp
+    src/game/core/soundguard.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp

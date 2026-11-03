@@ -5599,6 +5599,11 @@ address,name,kind,confidence,notes
 0x006d3800,SoundSource_WaitLoop,function,low,"reimplemented (src/game/core/soundwait); the source's thread: waits on the handles, refilling positions, while bit 6 of +8"
 0x006b9ec0,SoundHandshake_AtExit,function,low,reimplemented (src/game/core/soundwait); the singleton 0xfb1f10's atexit: nothing
 0x006b9ed0,SoundHandshake_Wait,function,low,"reimplemented (src/game/core/soundwait); byte +4 set, a spin until byte +5, dword +0 cleared"
+0x006b70b0,SoundGuard_DropSlot2,function,low,"reimplemented (src/game/core/soundguard); the held object's slot 2 (3), unless null"
+0x006b70c0,SoundGuard_FreeBlock,function,low,reimplemented (src/game/core/soundguard); the held block freed
+0x006bafd0,SoundGuard_DeleteArray,function,low,"reimplemented (src/game/core/soundguard); the held object's slot 0 (3), unless null"
+0x006bafe0,SoundGuard_Delete,function,low,"reimplemented (src/game/core/soundguard); the held object's slot 0 (1), unless null"
+0x006bb210,SoundGuard_Release,function,low,reimplemented (src/game/core/soundguard); with byte +4 the held object's slot 3
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

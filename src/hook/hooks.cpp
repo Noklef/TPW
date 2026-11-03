@@ -223,6 +223,7 @@
 #include "../game/core/soundcmd.h"
 #include "../game/core/sounddevice.h"
 #include "../game/core/soundeax.h"
+#include "../game/core/soundguard.h"
 #include "../game/core/soundindex.h"
 #include "../game/core/soundmanager.h"
 #include "../game/core/soundmixer.h"
@@ -5790,6 +5791,11 @@ const Hook kHooks[] = {
     {"SoundSource_WaitLoop",      0x006d3800, (void *)&SoundSource_WaitLoop, {0x53, 0x56, 0x8b, 0xf1, 0xb3}},
     {"SoundHandshake_AtExit",     0x006b9ec0, (void *)&SoundHandshake_AtExit, {0xc3, 0x90, 0x90, 0x90, 0x90}},
     {"SoundHandshake_Wait",       0x006b9ed0, (void *)&SoundHandshake_Wait, {0x8a, 0x41, 0x05, 0xc6, 0x41}},
+    {"SoundGuard_DropSlot2",      0x006b70b0, (void *)&SoundGuard_DropSlot2, {0x8b, 0x09, 0x85, 0xc9, 0x74}},
+    {"SoundGuard_FreeBlock",      0x006b70c0, (void *)&SoundGuard_FreeBlock, {0x8b, 0x01, 0x50, 0xe8, 0xe8}},
+    {"SoundGuard_DeleteArray",    0x006bafd0, (void *)&SoundGuard_DeleteArray, {0x8b, 0x09, 0x85, 0xc9, 0x74}},
+    {"SoundGuard_Delete",         0x006bafe0, (void *)&SoundGuard_Delete, {0x8b, 0x09, 0x85, 0xc9, 0x74}},
+    {"SoundGuard_Release",        0x006bb210, (void *)&SoundGuard_Release, {0x8a, 0x41, 0x04, 0x84, 0xc0}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
