@@ -22,6 +22,28 @@ struct Dialog7ca308Env {
 };
 void Dialog7ca308_SetEnv(const Dialog7ca308Env *env);
 
+// Dialog7ca308_Handler's calls (the ports by default, 0x507bf0 raw: unported, agent A's; the bench's recorders: their own benches have them).
+struct Dialog7ca308HandlerEnv {
+    s32(__cdecl *send)(u8 *window, u32 message, u32 a, u32 b);             // Window_SendMessage
+    u8 *(__fastcall *child)(u8 *window, void *, u32 id);                   // Window_FindChild
+    u32(__fastcall *table26)(u8 *game);                                    // GameTable7cfb90_Get1da726_5195d0
+    u32(__fastcall *money)(u32 source);                                    // Source_Field0c
+    s32(__cdecl *format)(u8 *charset, u16 *dest, u32 size, u32 entry, ...);   // Charset_FormatWide
+    void(__cdecl *kill)(s32 slot);                                         // SpriteScript_Kill
+    void(__cdecl *cancel)(u32 id);                                         // Game_CancelAdvisor
+    u32(__fastcall *setTimer)(u8 *window, void *, u32 id, u32 interval);   // Window_SetTimer
+    u32(__fastcall *startTimer)(u8 *window, void *, u32 id);               // Window_StartTimer
+    void(__cdecl *openList)(u32 kind, u32 selected);                       // Dialog7cc1f8_Open
+    u32(__fastcall *nth)(u8 *window, void *, s32 n, u32 *out);             // Window7059f0_NthItemData
+    u8 *(__fastcall *entry)(u8 *pool, void *, u32 index);                  // StaffPool_ValidEntry
+    s32(__fastcall *wage)(const u8 *record);                               // Staff_WageForRecord
+    void(__cdecl *show)(u32 index);                                        // Dialog7ca308_ShowStaff
+    u32(__fastcall *hire)(u8 *game, void *, u32 index);                    // 0x507bf0
+    u8(__cdecl *post)(u32 id);                                             // Advisor_PostId
+    s32(__cdecl *keys)(u8 *window, u32 message, u32 a, u32 b);             // Dialog_KeyHandler
+};
+void Dialog7ca308_SetHandlerEnv(const Dialog7ca308HandlerEnv *env);
+
 extern "C" {
 
 // 0x49b5b0 (cdecl (kind, clear); name invented): with the window [0x7ca308] and its list child 0x248e (nothing without them): the kind kept in [0x7ca30c], the list cleared when asked, a row (data the
@@ -50,4 +72,12 @@ void __cdecl Dialog7ca308_Open(u32 kind);
 // 0x49bc80 (cdecl (window, message, id, value); the kind radio buttons' handler; name invented): on the message 0x101 with value 1 from a button 0x2490-0x2494 (the jump table 0x49bdbc): the kinds 0, 4, 2, 1, 3: the list filled (Dialog7ca308_FillList (kind, 1)), the label
 // 0x2480's text (0x8b + the kind) on the window [0x7ca308], the figure's script [0x7ca310] killed when set and cleared, [0x7523e8] = [0x7523ec] = -1. Always the window's default handler (Window_CallDefault), its result returned.
 s32 __cdecl Dialog7ca308_ListHandler(u8 *window, u32 message, u32 id, u32 value);
+
+// 0x49b650 (cdecl (window, message, a, b); name invented, unconfirmed): the window's handler. 5: the window [0x7ca308] sent 4 (0, 0), answer 1. 0x100: a -2 the same, answer 0; a 0x2495 Dialog7cc1f8_Open (-1, a word 0 over the
+// caller's garbage), answer 0. 0x400 (a list a's row b chosen, b not -1, the list there): the row's data (Window7059f0_NthItemData; b when it writes none) hired by 0x507bf0 on the game, the window sent 4 (0, 0), Advisor_PostId (0x135), answer 0.
+// The rest ends in Dialog_KeyHandler, whose answer is returned, after: 0x10 with a the timer 0x80080: the child 0x2496 (not checked) told through slot 9 the money (the game's table 0x5195d0, Source_Field0c) formatted (the text 0x1ca, or 0x1cb and the
+// value's size when below 0; TextArgInt 0xd, unsigned, inline) into the wide buffer 0x7ba058. 0x14: the window 0, the script [0x7ca310] killed when set and 0, [0x7523e8] and [0x7523ec] -1, Game_CancelAdvisor (0xbd). 0x15: the timer 0x80080 of 1000 set and,
+// when that answers (AX) not 0, started. 0x401 (row b, not -1, of the list a, there, highlighted: its data as for 0x400 but the message when it writes none): the pool entry's byte +8 * 1024 / 5 through slot 7 of 0x2481's child 0x2482, both there; its
+// wage (entry looked up again) added to [0x7ca2fc] through slot 7 of 0x2485's child 0x248c and [0x7ca2f0] - wage - [0x7ca2fc] - [0x7ca300] of its child 0x2487, 0x2485 and the entry there; Dialog7ca308_ShowStaff of the data. 0x406: [0x7523e4] b.
+s32 __cdecl Dialog7ca308_Handler(u8 *window, u32 message, u32 a, u32 b);
 }

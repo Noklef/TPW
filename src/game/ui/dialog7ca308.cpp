@@ -17,6 +17,9 @@
 #include "../world/staff.h"
 #include "../world/world.h"
 #include "buttontext.h"
+#include "dialog7ca098.h"
+#include "dialog7cc1f8.h"
+#include "dialogbase.h"
 #include "focus.h"
 #include "guirect.h"
 #include "hoverlabel.h"
@@ -27,6 +30,7 @@
 #include "window7059f0.h"
 #include "windowreg.h"
 #include "windowscript.h"
+#include "windowtimers.h"
 
 namespace {
 
@@ -260,3 +264,94 @@ void __cdecl Dialog7ca308_Open(u32 kind) {
     Advisor_PostId(0xbd);
 }
 }  // extern "C"
+
+namespace {
+const Dialog7ca308HandlerEnv kGameHandlerEnv = {Window_SendMessage, Window_FindChild, GameTable7cfb90_Get1da726_5195d0, reinterpret_cast<u32(__fastcall *)(u32)>(Source_Field0c), Charset_FormatWide, SpriteScript_Kill, Game_CancelAdvisor, Window_SetTimer, Window_StartTimer, Dialog7cc1f8_Open,
+                                                Window7059f0_NthItemData, StaffPool_ValidEntry, Staff_WageForRecord, Dialog7ca308_ShowStaff, reinterpret_cast<u32(__fastcall *)(u8 *, void *, u32)>((uintptr_t)0x00507bf0), Advisor_PostId, Dialog_KeyHandler};
+const Dialog7ca308HandlerEnv *g_handler = &kGameHandlerEnv;
+
+u32 &word(u32 at) { return *reinterpret_cast<u32 *>(static_cast<uintptr_t>(at)); }
+u8 *addr(u32 at) { return reinterpret_cast<u8 *>(static_cast<uintptr_t>(word(at))); }
+
+void showMoney(u8 *window) {
+    u8 *const label = g_handler->child(window, nullptr, 0x2496);
+    const s32 money = static_cast<s32>(g_handler->money(g_handler->table26(addr(0x007cf83c))));
+    u32 arg[5] = {0x006ff170, 0x5641524d, 0xd, static_cast<u32>(money < 0 ? -money : money), 0};   // (TextArgInt_Ctor (0xd, the value, unsigned), inline)
+    g_handler->format(addr(0x0078ba94), reinterpret_cast<u16 *>(static_cast<uintptr_t>(0x007ba058)), 0x3fff, money < 0 ? 0x1cb : 0x1ca, arg);
+    vcall<void>(label, 0x24, 0x007ba058u);
+}
+
+void onRowHighlighted(u8 *window, u32 message, u32 a, u32 b) {
+    u8 *const list = g_handler->child(window, nullptr, a);
+    if (!list || b == 0xffffffffu) return;
+    u32 data = message;   // (the original's out is its message argument's slot)
+    g_handler->nth(list, nullptr, static_cast<s32>(b), &data);
+    u8 *entry = g_handler->entry(addr(0x007cf83c), nullptr, data);
+    u8 *const bar = g_handler->child(addr(0x007ca308), nullptr, 0x2481);
+    if (bar && entry) {
+        const u32 level = entry[8];
+        vcall<void>(g_handler->child(bar, nullptr, 0x2482), 0x1c, static_cast<s32>(level << 10) / 5);
+    }
+    entry = g_handler->entry(addr(0x007cf83c), nullptr, data);
+    u8 *const wages = g_handler->child(addr(0x007ca308), nullptr, 0x2485);
+    if (wages && entry) {
+        const u32 wage = static_cast<u32>(g_handler->wage(entry));
+        vcall<void>(g_handler->child(wages, nullptr, 0x248c), 0x1c, word(0x007ca2fc) + wage);
+        vcall<void>(g_handler->child(wages, nullptr, 0x2487), 0x1c, word(0x007ca2f0) - wage - word(0x007ca2fc) - word(0x007ca300));
+    }
+    g_handler->show(data);
+}
+}  // namespace
+
+void Dialog7ca308_SetHandlerEnv(const Dialog7ca308HandlerEnv *env) { g_handler = env ? env : &kGameHandlerEnv; }
+
+extern "C" s32 __cdecl Dialog7ca308_Handler(u8 *window, u32 message, u32 a, u32 b) {
+    switch (message) {
+    case 5:
+        g_handler->send(addr(0x007ca308), 4, 0, 0);
+        return 1;
+    case 0x10:
+        if (a == 0x80080) showMoney(window);
+        break;
+    case 0x14: {
+        const u32 script = word(0x007ca310);
+        word(0x007ca308) = 0;
+        if (script) g_handler->kill(static_cast<s32>(script));
+        word(0x007ca310) = 0;
+        word(0x007523e8) = 0xffffffffu;
+        word(0x007523ec) = 0xffffffffu;
+        g_handler->cancel(0xbd);
+        break;
+    }
+    case 0x15:
+        if (static_cast<u16>(g_handler->setTimer(window, nullptr, 0x80080, 0x3e8))) g_handler->startTimer(window, nullptr, 0x80080);
+        break;
+    case 0x100:
+        if (a == 0xfffffffeu) {
+            g_handler->send(addr(0x007ca308), 4, 0, 0);
+            return 0;
+        }
+        if (a == 0x2495) {
+            g_handler->openList(0xffffffffu, 0);
+            return 0;
+        }
+        break;
+    case 0x400: {
+        u8 *const list = g_handler->child(window, nullptr, a);
+        if (!list || b == 0xffffffffu) break;
+        u32 data = b;   // (the original's out is its b argument's slot)
+        g_handler->nth(list, nullptr, static_cast<s32>(b), &data);
+        g_handler->hire(addr(0x007cf83c), nullptr, data);
+        g_handler->send(addr(0x007ca308), 4, 0, 0);
+        g_handler->post(0x135);
+        return 0;
+    }
+    case 0x401:
+        onRowHighlighted(window, message, a, b);
+        break;
+    case 0x406:
+        word(0x007523e4) = b;
+        break;
+    }
+    return g_handler->keys(window, message, a, b);
+}
