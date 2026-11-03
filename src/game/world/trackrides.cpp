@@ -81,9 +81,96 @@ u16 RideObject(u32 ride) {
     return 0;
 }
 
+void PutDword(u8 *chunk, u32 value) { TrakChunk_Write(chunk, &value, 4); }
+
+// A car's chunks for TrackRides_Save: 5 its record and what it links to, then 9 for each node of its list.
+void SaveCar(u8 *car, const u8 *ride, Stream *stream) {
+    u8 *chunk = TrakChunk_Begin(5, stream);
+    PutDword(chunk, NameOf(ride));
+    TrakChunk_Write(chunk, car, 0xac);
+    PutDword(chunk, at<u32>(at<const u8 *>(car, 0x98), 4));
+    PutDword(chunk, at<u32>(at<const u8 *>(car, 0x98), 8));
+    const s32 stop = at<s32>(car, 0x7c);
+    const u8 *const entry = global<const u8 *>(0x00877b78) + stop * 0x1c;   // (read at -1 too, sic)
+    PutDword(chunk, stop == -1 ? 0 : NameOf(at<const u8 *>(entry, 0x10)));
+    PutDword(chunk, at<u32>(entry, 8));
+    PutDword(chunk, at<u32>(entry, 0xc));
+    TrakChunk_End(chunk);
+    for (const u8 *node = at<const u8 *>(car, 0x30); node; node = at<const u8 *>(node, 0x10)) {
+        chunk = TrakChunk_Begin(9, stream);
+        PutDword(chunk, NameOf(ride));
+        PutDword(chunk, at<u32>(node, 0));
+        PutDword(chunk, at<u32>(node, 0xc));
+        TrakChunk_End(chunk);
+    }
+}
+
+// A ride's chunks for TrackRides_Save: 3 the ride, 4 for each section, its cars, 7 and 8 for its two node lists, 6 the end.
+void SaveRide(const u8 *ride, Stream *stream) {
+    u8 *chunk = TrakChunk_Begin(3, stream);
+    PutDword(chunk, NameOf(ride));
+    TrakChunk_Write(chunk, ride + 0xb4, 8);
+    static const u32 kFields[] = {0xb0, 0x10, 0x1c, 0x14, 0x18, 4, 0x50};
+    for (const u32 offset : kFields)
+        PutDword(chunk, at<u32>(ride, offset));
+    TrakChunk_End(chunk);
+    for (const u8 *section = at<const u8 *>(ride, 0xbc); section; section = at<const u8 *>(section, 0x24)) {
+        chunk = TrakChunk_Begin(4, stream);
+        PutDword(chunk, NameOf(ride));
+        PutDword(chunk, at<u32>(section, 4));
+        TrakChunk_Write(chunk, section + 0x14, 8);
+        TrakChunk_End(chunk);
+    }
+    u8 *car = global<u8 *>(0x00877b68);
+    for (u32 left = global<u32>(0x00877b6c); left != 0; car += 0xac) {
+        if (car[0] & 1) {
+            --left;
+            if (at<const u8 *>(car, 0x9c) == ride)
+                SaveCar(car, ride, stream);
+        }
+    }
+    static const u32 kLists[] = {0xc8, 0xc4};
+    for (const u32 list : kLists) {
+        for (const u8 *node = at<const u8 *>(ride, list); node; node = at<const u8 *>(node, 0x10)) {
+            chunk = TrakChunk_Begin(list == 0xc8 ? 7 : 8, stream);
+            PutDword(chunk, NameOf(ride));
+            PutDword(chunk, at<u32>(node, 0));
+            TrakChunk_End(chunk);
+        }
+    }
+    chunk = TrakChunk_Begin(6, stream);
+    PutDword(chunk, NameOf(ride));
+    TrakChunk_End(chunk);
+}
+
 }  // namespace
 
 extern "C" {
+
+u32 __cdecl TrackRides_Save(Stream *stream) {
+    if (!loaded())
+        return 0;
+    u8 *const root = TrakChunk_Begin(1, stream);
+    if (!root)
+        return 0;
+    if (u8 *const stamp = TrakChunk_Begin(2, stream)) {
+        static const char kTime[] = "15:25:02", kDate[] = "Mar 17 2000";
+        TrakChunk_Write(stamp, kTime, sizeof kTime - 1);
+        TrakChunk_Write(stamp, kDate, sizeof kDate);
+        TrakChunk_End(stamp);
+        const u8 *ride = global<const u8 *>(0x00877b60);
+        u32 left = global<u32>(0x00877b64);
+        if (ride) {
+            for (; left != 0; ride += 0xd0) {
+                if (at<u32>(ride, 0)) {
+                    --left;
+                    SaveRide(ride, stream);
+                }
+            }
+        }
+    }
+    return TrakChunk_End(root);
+}
 
 s32 __cdecl TrakChunk_Write(u8 *chunk, const void *buffer, s32 count) {
     s32 result, done;
