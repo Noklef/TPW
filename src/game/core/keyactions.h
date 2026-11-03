@@ -16,10 +16,17 @@ u32 __cdecl KeyAction_Turn270();
 // from slot 0x24 (none: 0), the holder again, 0 when it answers 1. Else a new CMMOnline base (Mem_Alloc(8), MouseModeOnlineBase_Ctor; 0 when that failed) made current (the holder again;
 // MouseMode_Set), GameMode_Set (0, 1); returns 1.
 u32 __cdecl KeyAction_CancelMouseMode();
-// Its calls go to env (nullptr: the ports).
+// 0x40bda0 (name invented, unconfirmed): with game mode 0 (Global81ae2c_Equals) and the current mouse mode's kind 0 (none too) or 1: the cell under the cursor (id, the word 0x7b05cc: column (id - 1) & 0x7f,
+// row (id - 1) >> 7 of the zero-extended word; the world's cell at [0x7cf83c] + id * 0x44 + 0x294): when its type is 1, sound 0x5f in category [0x803a2c] at (column * 10, 0, row * 10), game mode 0x32, a map click
+// on it, game mode 0. Otherwise with kind 3: GameMode_StepBack (0, 1). Always returns 1.
+u32 __cdecl KeyAction_ClickCell();
+// Their calls go to env (nullptr: the ports).
 struct KeyCancelEnv {
     u32(__fastcall *reset)(void *self);        // Obj7b51f0_ResetDialogChild21 (0x4816b0)
     void(__cdecl *setMode)(u32 mode, u32 record);  // GameMode_Set (0x52f200)
+    u32(__cdecl *playAt)(u32 owner, u32 category, u32 sound, s32 x, s32 y, s32 z);  // Sound_PlayAt (0x51bfc0)
+    void(__cdecl *mapClick)(s32 x, s32 y, u32 flags, u32 useStored);  // GameMode_MapClick (0x524960)
+    u32(__cdecl *stepBack)(u8 *thing, u32 relink);  // GameMode_StepBack (0x52fe50)
 };
 void KeyCancel_SetEnv(const KeyCancelEnv *env);
 
