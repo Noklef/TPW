@@ -4512,6 +4512,7 @@ address,name,kind,confidence,notes
 0x00519060,Things_PoseRides,function,low,reimplemented (src/game/world/things); every live object's track ride posed
 0x00519120,Things_ClaimRides,function,low,reimplemented (src/game/world/things); every live object's ride claimed
 0x00515dd0,World_ClearLevel,function,low,"reimplemented (src/game/world/things); the mouse mode, the map, the things, the entry stack and the track rides of a level cleared"
+0x00516c10,Things_DeleteHeld,function,low,"reimplemented (src/game/world/things); the held thing deleted, its handle cleared, the camera's follow stopped"
 0x00565310,DrawBatch_Open,function,high,reimplemented (src/game/render/drawbuffer); a draw batch resumed and tagged
 0x0057b070,Object_ReleaseSavedPairs,function,high,reimplemented (src/game/core/vobj2); saved pairs written back and their arrays freed
 0x0057b5b0,Object_FreeBlock13c,function,low,reimplemented (src/game/core/vobj2); thiscall: the tracked block at +0x13c freed after its texture at +0x18 is released twice (sic) and freed (name unconfirmed)

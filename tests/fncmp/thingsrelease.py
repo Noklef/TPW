@@ -2,7 +2,8 @@
 # 0x12 and others, some being deleted), each thing's script slot +0xc 0 or personscripts.py's script list's slot (the list ready or not;
 # its scripts freed through the heap), its ride +0x20 any; Ride_Destroy (0x463c80) a cdecl recorder (k 31, driver.cpp's kQueuePiecesEnv).
 # The sweeps on the same park (ThingSweepEnv's recorders, Thing_GetHandle real): Pose 0x519060, Claim 0x519120, Clear 0x515dd0 (the mouse mode 0 or a heap block).
-# usage: thingsrelease.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Release,Pose,Claim,Clear)
+# Held 0x516c10: the handle at 0x7cf4f4's thing deleted (the recorder), the camera's follow 0x42a190 a recorder.
+# usage: thingsrelease.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Release,Pose,Claim,Clear,Held)
 import os
 import struct
 import sys
@@ -16,11 +17,11 @@ from thingenv import POOL, THING, park  # noqa: E402
 
 B = Bench([(0x5191e0, 0x5192c1), (0x50b350, 0x50b370), (0x5da3c0, 0x5da3c1), (0x4d4170, 0x4d4186), (0x475010, 0x476a30),
            (0x540b90, 0x540da0), (0x541f60, 0x541fb0), (0x4d4100, 0x4d4134), (0x5f5e20, 0x5f5e90), (0x5f5fa0, 0x5f5fc0), (0x5f5660, 0x5f56a0),
-           (0x519060, 0x5191d3), (0x515dd0, 0x515f22)],
+           (0x519060, 0x5191d3), (0x515dd0, 0x515f22), (0x516c10, 0x516c7a)],
           hooks={0x463c80: _recorder(31, 1, cdecl=True), 0x46c350: _recorder(20, 1, com=True), 0x4d8330: _recorder(21, 0), 0x50b780: _recorder(22, 0),
                  0x518ea0: _recorder(23, 0, cdecl=True), 0x50f240: _recorder(24, 0, cdecl=True), 0x544450: _recorder(25, 0, cdecl=True),
-                 0x546280: _recorder(26, 2, cdecl=True), 0x4dd500: _recorder(27, 1)})
-CALLS = {'Release': 0x5191e0, 'Pose': 0x519060, 'Claim': 0x519120, 'Clear': 0x515dd0}
+                 0x546280: _recorder(26, 2, cdecl=True), 0x4dd500: _recorder(27, 1), 0x42a190: _recorder(28, 0, cdecl=True)})
+CALLS = {'Release': 0x5191e0, 'Pose': 0x519060, 'Claim': 0x519120, 'Clear': 0x515dd0, 'Held': 0x516c10}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 SCRIPTS = RAM + 0x50000
 STATE, MODE = RAM + 0x60000, RAM + 0x61000
@@ -33,6 +34,9 @@ def sweep(r, name, regions):
     for i in range(len(things) // THING):
         put(things, THING * i + 0x28, 'I', r.choice([0, r.getrandbits(32), r.getrandbits(32)]))
     regions[LOG] = log_region()
+    if name == 'Held':   # (the handle 0, a thing's or a slot's, empty or not)
+        regions[0x7cf4f4] = struct.pack('<H', r.choice([0, 1, 2, 3, r.randrange(0x15f)]))
+        return Call(CALLS[name], [r.getrandbits(32)], regions, conv='t', ret='v')
     if name == 'Pose':
         return Call(CALLS[name], [r.getrandbits(32), r.getrandbits(32)], regions, conv='t')
     if name == 'Claim':

@@ -36,6 +36,7 @@
 #include "rides.h"
 #include "staff.h"
 #include "thingmsg.h"
+#include "camera.h"
 #include "thingscan.h"
 #include "trackrides.h"
 #include "trakcarpose.h"
@@ -429,7 +430,7 @@ void __fastcall Things_ReleaseAll(u8 *) {
 namespace {
 
 const ThingSweepEnv kSweepEnv = {&MouseMode_Set, &MapSweep_Reset, &Thing_Delete, &Things_ReleaseDeleted, &EntryStack_Clear, &TrakRides_Shutdown,
-                                 reinterpret_cast<void(__cdecl *)(u32, u32)>(&TrakRide_PoseCars), &Object_ClaimRide};
+                                 reinterpret_cast<void(__cdecl *)(u32, u32)>(&TrakRide_PoseCars), &Object_ClaimRide, &Camera_StopFollowing};
 const ThingSweepEnv *g_sweep = &kSweepEnv;
 
 // The first thing's handle (the walk's start; none: 0).
@@ -448,6 +449,12 @@ u16 nextHandle(const u8 *thing) {
 }  // namespace
 
 void Things_SetSweepEnv(const ThingSweepEnv *env) { g_sweep = env ? env : &kSweepEnv; }
+
+void __fastcall Things_DeleteHeld() {
+    g_sweep->destroy(global<u8 *>(0x007cfb90 + global<u16>(0x007cf4f4) * 0x14));
+    global<u16>(0x007cf4f4) = 0;
+    g_sweep->stopFollowing();
+}
 
 void __fastcall Things_PoseRides(u8 *, void *, u32 a) {
     for (u16 handle = firstHandle(); handle;) {

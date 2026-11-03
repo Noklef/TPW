@@ -2085,7 +2085,7 @@ int main(int argc, char **argv) {
     ChannelVoices_SetEnv(&channelVoicesEnv);
     // The things' sweeps: COM recorder 20 of 1, thiscall 21, 22, cdecl 23, 24, 25, 26 of 2, thiscall 27 of 1, as tests/fncmp/thingsrelease.py hooks them.
     static const ThingSweepEnv thingSweepEnv = {Rec{kStubs + 0x5000 + 0x800 * 1 + 0x20 * 20}, Rec{recorder(21, 0)}, Rec{recorder(22, 0)}, Rec{jpeg_recorder(23, 0)},
-                                                Rec{jpeg_recorder(24, 0)}, Rec{jpeg_recorder(25, 0)}, Rec{jpeg_recorder(26, 2)}, Rec{recorder(27, 1)}};
+                                                Rec{jpeg_recorder(24, 0)}, Rec{jpeg_recorder(25, 0)}, Rec{jpeg_recorder(26, 2)}, Rec{recorder(27, 1)}, Rec{jpeg_recorder(28, 0)}};
     Things_SetSweepEnv(&thingSweepEnv);
     static const ObjectUpdateEnv objectUpdateEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorder(2, 2)}, Rec{jpeg_recorder(3, 3)}, Rec{jpeg_recorder(4, 3)},
                                                     Rec{recorder(5, 2)},      Rec{recorder(6, 0)},      Rec{recorder(7, 0)},      Rec{recorder(8, 0)},

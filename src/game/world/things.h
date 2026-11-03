@@ -194,6 +194,10 @@ void __fastcall Things_ClaimRides(u8 *world);
 // EntryStack_Clear, TrakRides_Shutdown.
 void __fastcall World_ClearLevel(u8 *world);
 
+// 0x516c10 (thiscall on the world, this unused; called from 0x48a9ce, 0x48ab17; name invented, unconfirmed): the thing in the slot of the
+// handle at 0x7cf4f4 deleted (Thing_Delete, a null one too), the handle cleared, the camera's follow stopped.
+void __fastcall Things_DeleteHeld();
+
 // What the sweeps call, so that the bench can record it (nullptr: the game's).
 struct ThingSweepEnv {
     void(__stdcall *mouseMode)(u8 *mode);               // MouseMode_Set 0x46c350
@@ -204,6 +208,7 @@ struct ThingSweepEnv {
     void(__cdecl *ridesShutdown)();                     // TrakRides_Shutdown 0x544450
     void(__cdecl *pose)(u32 handle, u32 a);             // TrakRide_PoseCars 0x546280 (a: a float's bits)
     void(__fastcall *claim)(u8 *object, void *, u32 claim);   // Object_ClaimRide 0x4dd500
+    void(__cdecl *stopFollowing)();                     // Camera_StopFollowing 0x42a190
 };
 void Things_SetSweepEnv(const ThingSweepEnv *env);
 }  // extern "C"
