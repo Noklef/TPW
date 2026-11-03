@@ -3831,6 +3831,7 @@ address,name,kind,confidence,notes
 0x004dd0a0,Object_Delete,function,low,"reimplemented (src/game/world/object); Thing_Delete's kind 3: the control's count down, out of the list +0x1da746, message 0xa posted, the scrap refund credited, spread records 4/7/6-or-1 taken back, its scripts killed, the global 0x7c2654 cleared if it, Thing_Detach"
 0x004df150,Object_Reopen,function,low,"reimplemented (src/game/world/object); thiscall; called from 0x5015f0: a closed object (+0x68 set) opened again: message 0x14 of its handle posted, then Object_RestartRide (inlined there)"
 0x004de1f0,Object_PathChanged,function,low,"reimplemented (src/game/world/object); thiscall; the path at the object changed: the queue's back found anew, its block value the next count, the queue's persons but +0x6c told (env 0x501390), closed when it can be, +0x5e cleared"
+0x004df8f0,Object_MechanicDone,function,low,"reimplemented (src/game/world/object); thiscall (mechanic's handle, unused), pops 4: the object after a mechanic's visit: state 2 an upgrade (level up, script, cost and the level's capacity, price and word); else the strip shrunk; then closed and restarted for a coaster"
 0x005d46d0,Blocks7_Free,function,high,reimplemented (src/game/core/buffers); frees the seven blocks of an object and clears its groups
 0x00424cc0,Names_FirstAfter,function,high,"reimplemented (src/game/core/string); whether the first name is after the second, case blind"
 0x00424cf0,Names_Equal,function,high,"reimplemented (src/game/core/string); whether two names are equal, case blind"

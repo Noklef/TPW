@@ -577,6 +577,8 @@ const ObjectEnv kObjectEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, 
 const ObjectDeleteEnv kObjectDeleteEnv = {reinterpret_cast<void(__cdecl *)(s32, u32)>((uintptr_t)jpeg_recorder(20, 2))};
 // Object_PathChanged's call into agent A's unported 0x501390: thiscall recorder 26 of none, as tests/fncmp/objectqueue.py hooks it.
 const ObjectPathEnv kObjectPathEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(26, 0))};
+// Object_MechanicDone's script and effect calls: cdecl recorders 27 of 1, 28 of 7 and 29 of 1, as tests/fncmp/objectservice.py hooks them.
+const ObjectServiceEnv kObjectServiceEnv = {Rec{jpeg_recorder(27, 1)}, Rec{jpeg_recorder(28, 7)}, Rec{jpeg_recorder(29, 1)}};
 // BankAccount_HandleMessage's call into agent A's unported 0x5168f0 (the game lost): the thiscall recorder 24 of 0, as tests/fncmp/money.py
 // hooks it.
 const BankAccountEnv kBankAccountEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(24, 0))};
@@ -1303,6 +1305,7 @@ int main(int argc, char **argv) {
     StatsGraph_SetEnv(&kStatsGraphEnv);
     Object_SetDeleteEnv(&kObjectDeleteEnv);
     Object_SetPathEnv(&kObjectPathEnv);
+    Object_SetServiceEnv(&kObjectServiceEnv);
     BankAccount_SetEnv(&kBankAccountEnv);
     MessageCentre_SetEnv(&kMessageCentreEnv);
     GlyphRender_SetEnv(&kGlyphRenderEnv);   // (tests/fncmp/glyphrender.py hooks 0x67a7d0 with fncmp._cdecl_log)

@@ -18,6 +18,7 @@
 #include "../model/stripanim.h"
 #include "../rsse/scriptkill.h"
 #include "../sprite/script.h"
+#include "analysercell.h"
 #include "objectdefs.h"
 #include "person.h"
 #include "mapcell.h"
@@ -386,6 +387,70 @@ void __fastcall Object_Close(u8 *object) {
     StripAnim_StartShrink(reinterpret_cast<u8 *const *>(0x007a4610)[at<u32>(object, 0x20)]);
     Rides_SetElement(Rides_FindById(at<s32>(object, 0x24)), 6, 0);
     Object_SetState(object, nullptr, 0);
+}
+
+namespace {
+const ObjectServiceEnv kGameServiceEnv = {&SpriteScript_Kill, &SpriteScript_Start, &Ride_PlayEffect};
+const ObjectServiceEnv *g_service = &kGameServiceEnv;
+
+u32 FloatBits(float value) {
+    u32 bits;
+    std::memcpy(&bits, &value, 4);
+    return bits;
+}
+}  // namespace
+
+void Object_SetServiceEnv(const ObjectServiceEnv *env) { g_service = env ? env : &kGameServiceEnv; }
+
+void __fastcall Object_MechanicDone(u8 *object, void *, u32) {
+    u8 *const record = Rides_FindById(at<s32>(object, 0x24));
+    at<u32>(object, 0x44) = 0x42c80000;   // (100.0f)
+    Rides_SetElement(record, 8, 0);
+    at<u16>(object, 0x5e) = 0;
+    at<u32>(object, 0x64) = 0;
+    if (at<u32>(object, 0x19c) == 2) {
+        ++at<u8>(object, 0x50);
+        if (at<s32>(object, 0x54)) g_service->spriteKill(at<s32>(object, 0x54));
+        u16 cell;
+        Object_NeighbourCellId(object, nullptr, &cell);
+        float x = (float)(X87Reg((double)(s32)((cell - 1u) & 0x7f)) - X87Reg(-0.5f));
+        Object_NeighbourCellId(object, nullptr, &cell);
+        float y = (float)(X87Reg((double)(s32)((cell - 1u) >> 7)) - X87Reg(-0.5f));
+        const s32 angle = at<s32>(object, 0x10);
+        if (angle == 0 || angle == 0x5a || angle == 0xb4 || angle == 0x10e) {
+            x = (float)(X87Reg(x) * X87Reg(10.0f));
+            y = (float)(X87Reg(y) * X87Reg(10.0f));
+        }
+        g_service->playEffect(at<s32>(object, 0x24));
+        const u32 level = at<u8>(object, 0x50);
+        if (level == 1 || level == 2) at<s32>(object, 0x54) = g_service->spriteStart(0x0074f3a0, 0xc, 0, 0, FloatBits(x), 0, FloatBits(y));
+        const u8 *const def = Object_GetDef(object);
+        const u8 *const row = def + level * 0x40;
+        Money_Debit(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(global<u8 *>(0x0080239c))), nullptr, at<s32>(row, 0x1b8));
+        const s32 word = at<s32>(row, 0x1a8);
+        if (word > 0) {
+            Rides_SetWordC0(Rides_FindById(at<s32>(object, 0x24)), (u32)word);
+            at<s32>(object, 0x58) = word;
+        }
+        if (at<s32>(row, 0x198) > 0) Object_SetCapacity(object, nullptr, at<u8>(row, 0x198));
+        if (at<s32>(row, 0x1a0) > 0) {
+            u8 value = at<u8>(row, 0x1a0);
+            if ((s32)value < at<s32>(def, 0x12c)) {
+                value = at<u8>(def, 0x12c);
+            } else if ((s32)value > at<s32>(def, 0x130)) {
+                value = at<u8>(def, 0x130);
+            }
+            Rides_SetElement(Rides_FindById(at<s32>(object, 0x24)), 3, value);
+            at<u8>(object, 0x5c) = value;
+        }
+    } else {
+        Rides_GetElement(record, 7);
+        Rides_GetElement(record, 4);
+        Rides_SetElement(record, 4, 0);
+        StripAnim_StartShrink(reinterpret_cast<u8 *const *>(0x007a4610)[at<u32>(object, 0x20)]);
+    }
+    Object_Close(object);
+    if (at<s32>(Object_GetDef(object), 0x9c) == 3 && !Object_LinkOtherOpen(object)) Object_RestartRide(object);
 }
 
 namespace {
