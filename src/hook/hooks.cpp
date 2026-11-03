@@ -489,6 +489,7 @@
 #include "../game/ui/dialog7ca098.h"
 #include "../game/ui/dialog7ca13c.h"
 #include "../game/ui/dialog7ca150.h"
+#include "../game/ui/dialog7ca150rows.h"
 #include "../game/ui/dialog7ca168.h"
 #include "../game/ui/dialog7ca1bc.h"
 #include "../game/ui/dialog7ca1e0.h"
@@ -7444,6 +7445,12 @@ const Hook kHooks[] = {
     {"ThingPanel_Handler_48d200", 0x0048d200, (void *)&ThingPanel_Handler_48d200, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Dialog7cc984_Finish_4c07d0", 0x004c07d0, (void *)&Dialog7cc984_Finish_4c07d0, {0xa1, 0x14, 0x56, 0xf8, 0x00}},
     {"ShownThing_NameBuffer",     0x0048cf90, (void *)&ShownThing_NameBuffer, {0xa1, 0x58, 0x26, 0x7c, 0x00}},
+    {"Dialog7ca150_AddRow",       0x00493cd0, (void *)&Dialog7ca150_AddRow, {0x83, 0xec, 0x1c, 0x53, 0x55}},
+    {"Dialog7ca150_AddPlainRow",  0x00493e90, (void *)&Dialog7ca150_AddPlainRow, {0xa1, 0x4c, 0xa1, 0x7c, 0x00}},
+    {"Dialog7ca150_AddLinkedRow", 0x00493eb0, (void *)&Dialog7ca150_AddLinkedRow, {0x51, 0x56, 0x57, 0x8b, 0x7c}},
+    {"Dialog7ca150_AddHistoryRow", 0x00493f30, (void *)&Dialog7ca150_AddHistoryRow, {0x83, 0xec, 0x20, 0xa1, 0x4c}},
+    {"Dialog7ca150_AddRatedHistoryRow", 0x00494070, (void *)&Dialog7ca150_AddRatedHistoryRow, {0x83, 0xec, 0x24, 0xa1, 0x4c}},
+    {"Dialog7ca150_AddControlRow", 0x004941e0, (void *)&Dialog7ca150_AddControlRow, {0x83, 0xec, 0x08, 0x56, 0x8b}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
