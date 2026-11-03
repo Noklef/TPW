@@ -28,7 +28,7 @@ const VisitorStepsEnv kGameEnv = {&Sprite_WalkNav,       &Sprite_SetDestination,
                                   &Sprite_SpawnParticle, &Thing_Delete,          &Visitor_SetState,
                                   &Object_BackOfQueueTo, &Object_QueuePosition,  &Object_AnyQueueSpot,
                                   &Person_PlaceSprite,   &Sprite_PlaySound,      &Visitor_FindQueueDestination,
-                                  &Visitor_ChooseMinorDest};
+                                  &Visitor_ChooseMinorDest, &Visitor_RatingGap,          &Visitor_WontPay};
 const VisitorStepsEnv *g_env = &kGameEnv;
 
 u8 *world() { return global<u8 *>(0x0080239c); }

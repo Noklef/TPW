@@ -21,6 +21,8 @@ struct VisitorStepsEnv {
     u32(__fastcall *playSound)(const u8 *visitor, void *, u32 category, u32 sound);       // Sprite_PlaySound 0x4faa00
     u32(__fastcall *findQueueDestination)(u8 *visitor);                                   // Visitor_FindQueueDestination 0x501160
     void(__fastcall *chooseMinorDest)(u8 *visitor);                                       // Visitor_ChooseMinorDest 0x4fd570
+    s32(__fastcall *ratingGap)(const u8 *visitor, void *, u8 *object);                    // Visitor_RatingGap 0x4fd4e0
+    u32(__fastcall *wontPay)(const u8 *visitor, void *, u8 *object);                      // Visitor_WontPay 0x4fde50
 };
 void VisitorSteps_SetEnv(const VisitorStepsEnv *env);
 
