@@ -73,6 +73,11 @@ u32 *__fastcall SoundCmd700bb8_Run(const u8 *command, void *, u32 *out, u8 *targ
 // and the source's slot 0x10) with the functor 0x70a278 (SoundChannel_Apply).
 u32 *__fastcall SoundCmd700b4c_Run(const u8 *command, void *, u32 *out, u8 *target);
 
+// 0x6b5a70 (vtable 0x700b38): SoundChannel_QueryWord0 on the target's channel +0x24 (out, the result pointer at +4).
+u32 *__fastcall SoundCmd700b38_Run(const u8 *command, void *, u32 *out, u8 *target);
+// 0x6b5740 (vtable 0x700b40): SoundChannel_QueryWord44 on the target's channel +0x24 (the result pointer at +4), its status dropped; *out = 0.
+u32 *__fastcall SoundCmd700b40_Run(const u8 *command, void *, u32 *out, u8 *target);
+
 // 0x6b5720 (vtable 0x700b3c): the sound object's voice count set (soundobject, 0x6b84f0: out, the value).
 u32 *__fastcall SoundCmd700b3c_Run(const u8 *command, void *, u32 *out, u8 *target);
 

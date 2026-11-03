@@ -4,7 +4,9 @@
 #include <cstdint>
 
 #include "channelvoice.h"
+#include "crt.h"
 #include "soundworker.h"
+#include "vcall.h"
 
 namespace {
 
@@ -13,7 +15,7 @@ template <typename T> T &at(u8 *p, u32 offset) { return *reinterpret_cast<T *>(p
 
 using WaitForMultipleObjectsFn = u32(__stdcall *)(u32 count, const void *handles, u32 all, u32 milliseconds);
 
-const SoundWaitEnv kGameEnv = {ChannelVoice_Refill, SoundWorker_RefillVoice};
+const SoundWaitEnv kGameEnv = {ChannelVoice_Refill, SoundWorker_RefillVoice, CRT_atexit};
 const SoundWaitEnv *g_env = &kGameEnv;
 
 }  // namespace
@@ -55,4 +57,25 @@ void __fastcall SoundHandshake_Wait(u8 *handshake) {
     while (!at<volatile u8>(handshake, 5)) {
     }
     at<u32>(handshake, 0) = 0;
+}
+
+u8 *__cdecl SoundHandshake_Instance() {
+    u8 *const instance = &global<u8>(0x00fb1f10);
+    u8 &guard = global<u8>(0x00fb1f08);
+    if (!(guard & 1)) {
+        guard = guard | 1;
+        at<u32>(instance, 0) = 0;
+        at<u8>(instance, 4) = 0;
+        at<u8>(instance, 5) = 0;
+        g_env->atexit(reinterpret_cast<void *>((uintptr_t)0x006b9ec0));   // (SoundHandshake_AtExit, by its hook)
+    }
+    return instance;
+}
+
+void __fastcall SoundEngine_Dtor(u8 *engine) {
+    at<u32>(engine, 0) = 0x0070a2a0;
+    SoundHandshake_Wait(SoundHandshake_Instance());
+    at<u32>(engine, 0) = 0x0070a588;
+    if (u8 *const inner = at<u8 *>(engine, 0x24)) vcall<void>(inner, 0);
+    if (u8 *const inner = at<u8 *>(engine, 0x20)) vcall<void>(inner, 0, 1u);
 }

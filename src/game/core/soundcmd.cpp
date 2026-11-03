@@ -134,6 +134,18 @@ u32 *__fastcall SoundCmd700b4c_Run(const u8 *command, void *, u32 *out, u8 *targ
     return out;
 }
 
+u32 *__fastcall SoundCmd700b38_Run(const u8 *command, void *, u32 *out, u8 *target) {
+    SoundChannel_QueryWord0(at<u8 *>(target, 0x24), nullptr, out, at<u32 *>(command, 4));
+    return out;
+}
+
+u32 *__fastcall SoundCmd700b40_Run(const u8 *command, void *, u32 *out, u8 *target) {
+    u32 status;   // (the original's: the target's own argument slot)
+    SoundChannel_QueryWord44(at<u8 *>(target, 0x24), nullptr, &status, at<u32 *>(command, 4));
+    *out = 0;
+    return out;
+}
+
 u32 *__fastcall SoundCmd700b3c_Run(const u8 *command, void *, u32 *out, u8 *target) {
     SoundObject_SetVoices(target, nullptr, out, at<u32>(command, 4));
     return out;

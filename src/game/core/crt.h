@@ -50,7 +50,97 @@ const CrtEnv &Crt();
 // Swaps it (nullptr: the game's again).
 void Crt_SetEnv(const CrtEnv *env);
 
+// What the ported CRT routines below call: the rest of the game's CRT, by address (tools/fncmp's driver gives recorders).
+struct CrtInnerEnv {
+    u8 *(__cdecl *getptd)();                                     // 0x682460: the thread's data (+0x14 the rand seed)
+    void(__cdecl *lockExit)();                                   // 0x67fa20: lock 0xd
+    void(__cdecl *unlockExit)();                                 // 0x67fa30
+    u32(__cdecl *msize)(void *block);                            // 0x6818f0
+    void *(__cdecl *realloc)(void *block, u32 size);             // 0x681740
+    void(__cdecl *lock)(s32 which);                              // 0x682720
+    void(__cdecl *unlock)(s32 which);                            // 0x6827a0
+    void *(__cdecl *sbhFindBlock)(void *block, void **region, void **page);     // 0x682b40
+    void(__cdecl *sbhFreeBlock)(void *region, void *page, void *entry);         // 0x682ba0
+    void(__cdecl *lockFile)(void *file);                         // 0x6827c0
+    void(__cdecl *unlockFile)(void *file);                       // 0x682830
+    s32(__cdecl *fcloseLocked)(void *file);                      // 0x67b660
+    void(__cdecl *memFree)(void *block);                         // 0x67acb0
+    void *(__cdecl *memAlloc)(u32 size);                         // 0x67acc0
+    void *(__cdecl *nhMalloc)(u32 size, u32 newMode);            // 0x67dcf0
+    u16(__cdecl *towlowerLocked)(u32 unit);                      // 0x67e670: only the low 16 bits count
+    s32(__cdecl *woutput)(void *file, const u16 *format, void *args);   // 0x683090
+    s32(__cdecl *flsbuf)(s32 c, void *file);                     // 0x680ad0
+    s32(__cdecl *mbrtowc)(u32 *wc, const u32 *text, u32 n, u32 *state, void *conversion);   // 0x693bc0
+    void *(__cdecl *calloc)(u32 count, u32 size);                // 0x67fcb0
+    void(__cdecl *initptd)(void *data);                          // 0x682440
+    void(__cdecl *amsgExit)(s32 code);                           // 0x67efc0
+    void(__cdecl *dosmaperr)(u32 error);                         // 0x686980
+};
+
+void CrtInner_SetEnv(const CrtInnerEnv *env);
+
 extern "C" {
+
+// 0x67b410: _isnan, of the double's bits: all exponent bits set and any mantissa bit.
+s32 __cdecl CRT_isnan(u32 low, u32 high);
+
+// 0x67c320 (__alldiv; stdcall, pops 16): the signed 64-bit quotient (a zero divisor faults).
+long long __stdcall CRT_alldiv(u32 aLow, u32 aHigh, u32 bLow, u32 bHigh);
+
+// 0x67b5c0: rand: the thread's seed (getptd +0x14) * 214013 + 2531011 stored, bits 16-30 of it.
+s32 __cdecl CRT_rand();
+
+// 0x67a740: _onexit, under the exit lock: fn appended to the table [0xfb3cb4] up to its end [0xfb3cb0] (the block grown by 0x10 bytes when msize has
+// no room for one more). Returns fn; 0 when the growth fails.
+void *__cdecl CRT_onexit(void *fn);
+
+// 0x67a7d0: atexit: 0 when _onexit took fn, else -1.
+s32 __cdecl CRT_atexit(void *fn);
+
+// 0x67ad90: free: not null: under lock 9 the small block heap's block freed, or else (past the lock) HeapFree on the CRT's heap [0xfb3cac].
+void __cdecl CRT_free(void *block);
+
+// 0x67b620: fclose: a string stream's (flag 0x40 in +0xc) flags cleared and -1; else _fclose_lk under the file's lock.
+s32 __cdecl CRT_fclose(void *file);
+
+// 0x67d320 (thiscall): exception's destructor: the vtable 0x7089c4 set, the text +4 freed if it is owned (+8).
+void __fastcall CRT_exception_Dtor(u32 *self);
+
+// 0x67d250 (thiscall (&text), pops 4): exception(const char *const &): the vtable, a copy of the text +4 (0 if the allocation fails), owned +8. Returns self.
+u32 *__fastcall CRT_exception_Ctor(u32 *self, void *edx, const char *const *text);
+
+// 0x67d2b0 (thiscall (from), pops 4): the copy constructor: an owned text copied (0 if the allocation fails), an unowned one shared. Returns self.
+u32 *__fastcall CRT_exception_Copy(u32 *self, void *edx, const u32 *from);
+
+// 0x67dcd0: malloc: _nh_malloc with the new mode [0xfb1548].
+void *__cdecl CRT_malloc(u32 size);
+
+// 0x682460: _getptd: the thread's data in its TLS slot [0x77ecd0], or a block of 0x74 made, set and _initptd'd (+0 the thread's id, +4 -1); no block or
+// no slot: _amsg_exit(0x10), and past it (when it returns) the block as it is. GetLastError's value is kept across it.
+void *__cdecl CRT_getptd();
+
+// 0x686a00: _errno: the thread's data + 8.
+s32 *__cdecl CRT_errno();
+
+// 0x67e050: _beginthread: a block of 0x74 _initptd'd (+0x48 proc, +0x4c arg, +4 the handle) for a suspended thread at 0x67e0d0, resumed. Returns the handle. No block,
+// no thread or no resume: the block freed (a null too), the Win32 error mapped when there is one, -1.
+u32 __cdecl CRT_beginthread(void *proc, u32 stack, void *arg);
+
+// 0x67af00: swprintf: _woutput on a string file (0x7fffffff bytes), then two zero bytes put (_flsbuf where the count has run out). Returns _woutput's answer.
+s32 __cdecl CRT_swprintf(u16 *to, const u16 *format, ...);
+
+// 0x67c830: _snwprintf: the same in count * 2 bytes.
+s32 __cdecl CRT_snwprintf(u16 *to, u32 count, const u16 *format, ...);
+
+// 0x67b140: _wcsicmp: with no locale handle [0xfb1440] A-Z folded down; else _towlower_lk's fold, inside the locale's lock (the reader count 0xfb3ca8, or lock 0x13 while
+// the locale is being set, [0xfb3ca4]). The difference of the last units.
+s32 __cdecl CRT_wcsicmp(const u16 *a, const u16 *b);
+
+// 0x67c8d0: _wcsnicmp: the same up to n units (0 for n 0).
+s32 __cdecl CRT_wcsnicmp(const u16 *a, const u16 *b, u32 n);
+
+// 0x693dc0: btowc: EOF: -1 as it is (the original only sets AX). Else _Mbrtowc on the argument's low byte: its unit, 0xffff if it answers below 0.
+u32 __cdecl CRT_btowc(u32 c);
 
 // 0x67acf0 (stdcall; array, size, count, ctor, dtor, pops 20): ctor (thiscall on the element, no other arguments) for each of the count (signed) elements of
 // size bytes in turn; the dtor is only for the unwinding.

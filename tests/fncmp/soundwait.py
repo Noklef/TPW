@@ -7,11 +7,14 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import IMPORT_TABLE, LOG, RAM, Bench, Call, _recorder, answers, blob, fill, import_table, log_region, put  # noqa: E402
+from fncmp import IMPORT_TABLE, LOG, RAM, Bench, Call, _recorder, answers, blob, fill, import_table, log_region, put, vtable  # noqa: E402
 
-B = Bench([(0x6c6180, 0x6c61d6), (0x6d3800, 0x6d384c), (0x6b9ec0, 0x6b9ec1), (0x6b9ed0, 0x6b9ee9)], hooks={0x6bb590: _recorder(20, 0), 0x6d3850: _recorder(21, 1)})
-OPS = [k for k in os.environ.get('OPS', 'voices,source,handshake,atexit').split(',') if k]
+B = Bench([(0x6c6180, 0x6c61d6), (0x6d3800, 0x6d384c), (0x6b9ec0, 0x6b9ec1), (0x6b9ed0, 0x6b9ee9), (0x6b9e80, 0x6b9eba), (0x6b9fa0, 0x6ba018)],
+          hooks={0x6bb590: _recorder(20, 0), 0x6d3850: _recorder(21, 1), 0x67a7d0: _recorder(22, 1, cdecl=True)})
+OPS = [k for k in os.environ.get('OPS', 'voices,source,handshake,atexit,instance,engine').split(',') if k]
 OBJ, TABLE = RAM, RAM + 0x400
+INNER, INNER_VT, INNER2, INNER2_VT = RAM + 0x800, RAM + 0x900, RAM + 0xa00, RAM + 0xb00
+GUARD = 0xfb1f08   # (the guard byte, then at +8 the singleton 0xfb1f10)
 WAIT_K = 1
 
 
@@ -20,6 +23,18 @@ def case(r):
     log = log_region()
     obj = bytearray(r.bytes(0x40))
     regions = {LOG: log, OBJ: obj}
+    if name == 'instance':   # (the guard's bit 0 either way: the other bits kept)
+        regions[GUARD] = r.bytes(0x10)
+        return Call(0x6b9e80, [], regions, conv='c', ret='a')
+    if name == 'engine':   # (the handshake made already, +5 set: a zero would spin in both. The inner objects null or a recorder vtable)
+        guard = bytearray(r.bytes(0x10))
+        guard[0] |= 1
+        guard[0xd] = r.randrange(1, 256)
+        regions.update({GUARD: guard, INNER: struct.pack('<I', INNER_VT) + r.bytes(0xc), INNER_VT: vtable({0: 1}),
+                        INNER2: struct.pack('<I', INNER2_VT) + r.bytes(0xc), INNER2_VT: vtable({})})
+        put(obj, 0x20, 'I', r.choice([0, INNER]))
+        put(obj, 0x24, 'I', r.choice([0, INNER2]))
+        return Call(0x6b9fa0, [OBJ], regions, conv='t', ret='v')
     if name == 'atexit':
         return Call(0x6b9ec0, [], regions, conv='c', ret='v')
     if name == 'handshake':

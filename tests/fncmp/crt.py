@@ -206,4 +206,5 @@ KINDS = ['stricmp', 'strrchr', 'strchr', 'strncmp', 'strstr', 'toupper', 'tolowe
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 if __name__ == '__main__':
+    os.environ['FNCMP_STANDINS'] = '1'   # (the driver runs the stand-ins here, hooked or not: they are what this bench checks)
     B.main(case)

@@ -11,6 +11,7 @@
 #include "gameheap.h"
 #include "language.h"
 #include "mp2sample.h"
+#include "semaphore.h"
 #include "soundchannel.h"
 #include "soundindex.h"
 #include "soundsample.h"
@@ -270,7 +271,7 @@ u8 *__fastcall ChannelVoices_Ctor(u8 *pool, void *, u8 *channel, u32 count) {
 
 namespace {
 
-const ChannelVoicesEnv kVoicesEnv = {reinterpret_cast<u32(__cdecl *)(u32, u32, void *)>((uintptr_t)0x0067e050)};
+const ChannelVoicesEnv kVoicesEnv = {reinterpret_cast<u32(__cdecl *)(u32, u32, void *)>((uintptr_t)0x0067e050), ChannelVoices_Find};
 const ChannelVoicesEnv *g_voices = &kVoicesEnv;
 
 u32 createEvent() {
@@ -298,6 +299,22 @@ u32 *__fastcall ChannelVoices_Start(u8 *pool, void *, u32 *out, u32 requested) {
     using SetPriority = s32(__stdcall *)(u32, s32);
     Import<SetPriority>(0x006fd1fc)(thread, 0);   // SetThreadPriority
     *out = thread ? 0 : 0xffffffffu;
+    return out;
+}
+
+u32 *__fastcall ChannelVoiceHandle_Resume(const u8 *self, void *, u32 *out, u8 *owner) {
+    SemaphoreLock lock;
+    SemaphoreLock_Ctor(&lock, nullptr, reinterpret_cast<const Semaphore *>((uintptr_t)0x00fb205c), 0);
+    SemaphoreLock_Acquire(&lock, nullptr, 1);
+    u32 handle = at<u32>(self, 4);
+    u8 *const voice = handle ? g_voices->find(at<u8 *>(owner, 0x14), nullptr, &handle) : nullptr;
+    if (voice && Import<OnObject>(0x006fd168)(reinterpret_cast<void *>(static_cast<uintptr_t>(at<u32>(voice, 0x6c)))) &&   // ResetEvent
+        Import<OnObject>(0x006fd124)(reinterpret_cast<void *>(static_cast<uintptr_t>(*at<u32 *>(voice, 0x70))))) {          // SetEvent
+        vcall<void>(at<u8 *>(owner, 0x18), 0x24, out, voice);
+    } else {
+        *out = 0xffffffffu;
+    }
+    SemaphoreLock_Dtor(&lock);
     return out;
 }
 

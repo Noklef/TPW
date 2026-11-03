@@ -159,6 +159,7 @@
 #include "../../src/game/world/objectmsg.h"
 #include "../../src/game/world/objectunlock.h"
 #include "../../src/game/core/fpu.h"
+#include "../../src/game/core/iosbase.h"
 #include "../../src/game/core/gameheap.h"
 #include "../../src/game/core/string.h"
 #include "../../src/game/core/ptrlist.h"
@@ -313,6 +314,18 @@
 #include "../../src/game/core/soundseed.h"
 #include "../../src/game/core/soundmanager.h"
 #include "../../src/game/core/soundwait.h"
+#include "../../src/game/world/thingname.h"
+#include "../../src/game/world/arrivalvehicle.h"
+#include "../../src/game/world/worldstart.h"
+#include "../../src/game/gfx/moviestart.h"
+#include "../../src/game/core/dsoundsource.h"
+#include "../../src/game/online/chatlists.h"
+#include "../../src/game/online/chatclient.h"
+#include "../../src/game/world/tracktextures.h"
+#include "../../src/game/core/soundtrigger.h"
+#include "../../src/game/world/signtext.h"
+#include "../../src/game/core/mixerthread.h"
+#include "../../src/game/world/worldupdate.h"
 #include "../../src/game/core/soundobjectslots.h"
 #include "../../src/game/world/mapreset.h"
 #include "../../src/game/world/staffheld.h"
@@ -1284,6 +1297,7 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
     u32 *log = reinterpret_cast<u32 *>((uintptr_t)kLog);
     u32 args[16];
     const u32 mask = log[0x280 + (k & 63)];
+    if (log[0x300 + (k & 63)] >> 31) self = 0;  // (fncmp.mask_this(): a method on a local object)
     u32 earlier = 0;  // (this slot's calls in the log so far: fncmp.fail_after(), a fill's records)
     for (u32 i = 0; i < log[0] && i < 40; ++i) earlier += log[1 + 12 * i] == k;
     // Answers by name at + 0x1400 (fncmp.named()): (k | 0x80000000, the name argument | (an offset + 1) << 8, the out argument + 1 | a length (0-8)
@@ -1773,6 +1787,10 @@ void map_stubs() {
 }
 
 void *find(u32 address) {
+    static const bool standInsFirst = std::getenv("FNCMP_STANDINS") != nullptr;   // (crt.py: it checks the stand-ins, whether or not the routine is ported)
+    if (standInsFirst)
+        for (u32 i = 0; i < kCrtStandInCount; ++i)
+            if (kCrtStandIns[i].address == address) return kCrtStandIns[i].fn;
     for (std::size_t i = 0; i < tpw::hook::kHookCount; ++i)
         if (tpw::hook::kHooks[i].address == address) return tpw::hook::kHooks[i].replacement;
     for (u32 i = 0; i < kCrtStandInCount; ++i)
@@ -1964,7 +1982,8 @@ int main(int argc, char **argv) {
     SoundDevice_SetEnv(&kSoundDeviceEnv);
     Person_SetEnv(&kPersonEnv);   // (tests/fncmp/personwalk.py hooks 0x6e7074 with fncmp._cdecl_log2)
     // The chat player's step (ChatPlayer_StepWalk): Sprite_WalkNav the thiscall recorder 5 of 0, as tests/fncmp/chatavatar.py hooks 0x4fa2a0.
-    static const ChatAvatarEnv chatAvatarEnv = {reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)recorder(5, 0))};
+    static const ChatAvatarEnv chatAvatarEnv = {reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)recorder(5, 0)), Rec{recorder(6, 2)}, Rec{recorder(7, 1)}, Rec{jpeg_recorder(8, 1)}, Rec{jpeg_recorder(9, 1)},
+                                                Rec{recorder(10, 3)}, Rec{jpeg_recorder(11, 3)}, Rec{jpeg_recorder(12, 3)}};
     ChatAvatar_SetEnv(&chatAvatarEnv);
     ChatCommand_SetEnv(&kChatCommandEnv);
     ChatEvents_SetEnv(&kChatEventEnv);
@@ -2238,13 +2257,13 @@ int main(int argc, char **argv) {
                                               reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(17, 1))};
     FunnyTime_SetEnv(&funnyTimeEnv);
     // The locale reference's 0x699da0: the cdecl recorder 15 of 0, as tests/fncmp/wfilebuf.py hooks it.
-    static const WFileBufEnv wFileBufEnv = {reinterpret_cast<u32(__cdecl *)()>((uintptr_t)jpeg_recorder(15, 0))};
+    static const WFileBufEnv wFileBufEnv = {reinterpret_cast<u32(__cdecl *)()>((uintptr_t)jpeg_recorder(15, 0)), Rec{jpeg_recorder(18, 1)}};
     WFileBuf_SetEnv(&wFileBufEnv);
     // The worker's 0x67e050: the cdecl recorder 14 of 3, as tests/fncmp/soundworker.py hooks it.
     static const SoundWorkerEnv soundWorkerEnv = {reinterpret_cast<u32(__cdecl *)(u32, u32, void *)>((uintptr_t)jpeg_recorder(14, 3))};
     SoundWorker_SetEnv(&soundWorkerEnv);
     // The voices' pool's 0x67e050: the same recorder, as tests/fncmp/channelvoice.py hooks it.
-    static const ChannelVoicesEnv channelVoicesEnv = {soundWorkerEnv.beginThread};
+    static const ChannelVoicesEnv channelVoicesEnv = {soundWorkerEnv.beginThread, Rec{recorder(15, 1)}};
     ChannelVoices_SetEnv(&channelVoicesEnv);
     // The things' sweeps: COM recorder 20 of 1, thiscall 21, 22, cdecl 23, 24, 25, 26 of 2, thiscall 27 of 1, as tests/fncmp/thingsrelease.py hooks them.
     static const ThingSweepEnv thingSweepEnv = {Rec{kStubs + 0x5000 + 0x800 * 1 + 0x20 * 20}, Rec{recorder(21, 0)}, Rec{recorder(22, 0)}, Rec{jpeg_recorder(23, 0)},
@@ -2262,8 +2281,39 @@ int main(int argc, char **argv) {
     SoundSeed_SetEnv(&soundSeedEnv);
     static const SoundManagerEnv soundManagerEnv = {Rec{recorder(20, 0)}};
     SoundManager_SetEnv(&soundManagerEnv);
-    static const SoundWaitEnv soundWaitEnv = {Rec{recorder(20, 0)}, Rec{recorder(21, 1)}};
+    static const SoundWaitEnv soundWaitEnv = {Rec{recorder(20, 0)}, Rec{recorder(21, 1)}, Rec{jpeg_recorder(22, 1)}};
     SoundWait_SetEnv(&soundWaitEnv);
+    static const ThingNameEnv thingNameEnv = {Rec{jpeg_recorder(1, 4)}};
+    ThingName_SetEnv(&thingNameEnv);
+    static const ArrivalVehicleEnv arrivalVehicleEnv = {Rec{recorder(11, 4)}, Rec{jpeg_recorder(2, 1)}, Rec{jpeg_recorder(3, 3)}};
+    ArrivalVehicle_SetEnv(&arrivalVehicleEnv);
+    static const WorldStartEnv worldStartEnv = {Rec{recorder(0, 0)}, Rec{recorder(1, 0)}, Rec{recorder(2, 0)}, Rec{jpeg_recorder(3, 1)}, Rec{recorder(4, 2)}, Rec{jpeg_recorder(7, 1)}, Rec{recorder(8, 0)}, Rec{recorder(9, 0)},
+        {Rec{recorder(10, 0)}, Rec{recorder(11, 0)}, Rec{recorder(12, 0)}, Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{recorder(15, 0)}, Rec{recorder(16, 0)}, Rec{recorder(17, 0)}, Rec{recorder(18, 0)}, Rec{recorder(19, 0)}},
+        Rec{recorder(5, 4)}, Rec{recorder(20, 0)}, Rec{jpeg_recorder(21, 0)}, Rec{jpeg_recorder(22, 0)}, Rec{kStubs + 0x5000 + 0x800 * 5 + 0x20 * 23}, Rec{recorder(6, 1)}};
+    WorldStart_SetEnv(&worldStartEnv);
+    static const WorldUpdateEnv worldUpdateEnv = {{Rec{recorder(0, 0)}, Rec{recorder(1, 0)}}, {Rec{recorder(2, 0)}, Rec{recorder(3, 0)}}, {Rec{recorder(4, 0)}, Rec{recorder(5, 0)}}, {Rec{recorder(6, 0)}, Rec{recorder(7, 0)}},
+        {Rec{recorder(8, 0)}, Rec{recorder(9, 0)}}, {Rec{recorder(10, 0)}, Rec{recorder(11, 0)}}, {Rec{recorder(12, 0)}, Rec{recorder(13, 0)}}, {Rec{recorder(14, 0)}, Rec{recorder(15, 0)}},
+        Rec{recorder(16, 0)}, Rec{recorder(17, 0)}, Rec{recorder(18, 0)}, Rec{recorder(19, 0)}, Rec{jpeg_recorder(20, 1)}, Rec{jpeg_recorder(21, 1)}, Rec{jpeg_recorder(22, 2)}, Rec{jpeg_recorder(23, 3)},
+        Rec{recorder(24, 0)}, Rec{recorder(25, 0)}, Rec{recorder(26, 0)}, Rec{recorder(27, 0)}};
+    WorldUpdate_SetEnv(&worldUpdateEnv);
+    static const MovieStartEnv movieStartEnv = {Rec{jpeg_recorder(6, 0)}, Rec{jpeg_recorder(7, 0)}, Rec{recorder(8, 0)}, Rec{jpeg_recorder(9, 3)}, Rec{jpeg_recorder(10, 2)}, Rec{jpeg_recorder(11, 1)}, Rec{jpeg_recorder(12, 1)}};
+    MovieStart_SetEnv(&movieStartEnv);
+    static const DSoundSourceEnv dSoundSourceEnv = {Rec{jpeg_recorder(17, 3)}, Rec{kStubs + 0x5000 + 0x800 * 5 + 0x20 * 60}, Rec{kStubs + 0x5000 + 0x800 * 4 + 0x20 * 61}, Rec{recorder(21, 1)}, Rec{recorder(18, 0)}};
+    DSoundSource_SetEnv(&dSoundSourceEnv);
+    static const ChatListsEnv chatListsEnv = {Rec{recorder(8, 0)}, Rec{kStubs + 0x5000 + 0x800 * 1 + 0x20 * 40}, Rec{jpeg_recorder(12, 3)}, Rec{recorder(14, 4)}, Rec{recorder(14, 3)}, Rec{recorder(0, 1)}, Rec{recorder(1, 2)}, Rec{recorder(3, 2)}, Rec{recorder(26, 0)}, Rec{recorder(4, 0)},
+                                              Rec{recorder(2, 2)}, Rec{recorder(15, 2)}, Rec{recorder(9, 0)}, Rec{recorder(5, 0)}, Rec{recorder(6, 0)}, Rec{recorder(7, 0)}, Rec{jpeg_recorder(13, 1)}, Rec{jpeg_recorder(18, 2)}, Rec{jpeg_recorder(18, 3)}, Rec{jpeg_recorder(19, 2)},
+                                              Rec{recorder(16, 1)}, Rec{jpeg_recorder(19, 3)}, Rec{recorder(17, 0)}, Rec{recorder(21, 1)}, Rec{recorder(20, 3)}, Rec{recorder(22, 2)}, Rec{recorder(23, 2)}, Rec{recorder(24, 2)}, Rec{recorder(25, 1)}};
+    ChatLists_SetEnv(&chatListsEnv);
+    static const ChatClientEnv chatClientEnv = {Rec{recorder(1, 1)}, Rec{recorder(2, 1)}, Rec{recorder(3, 0)}, Rec{recorder(4, 0)}, Rec{recorder(5, 1)}, Rec{recorder(6, 0)}, Rec{recorder(7, 2)}, Rec{recorder(8, 2)}, Rec{recorder(9, 0)}, Rec{recorder(10, 0)}, Rec{recorder(11, 0)}, Rec{recorder(12, 0)}, Rec{recorder(13, 0)}, Rec{jpeg_recorder(14, 3)}, Rec{recorder(15, 2)}, Rec{recorder(16, 4)}, Rec{recorder(17, 1)}, Rec{recorder(18, 1)}, Rec{recorder(19, 2)}, Rec{recorder(20, 0)}, Rec{recorder(21, 0)}, Rec{recorder(22, 1)}};
+    ChatClient_SetEnv(&chatClientEnv);
+    static const TrackTexturesEnv trackTexturesEnv = {Rec{jpeg_recorder(1, 0)}, Rec{jpeg_recorder(2, 3)}, Rec{jpeg_recorder(3, 3)}, Rec{jpeg_recorder(4, 11)}, Rec{recorder(5, 1)}, Rec{recorder(6, 0)}, Rec{jpeg_recorder(7, 1)}, Rec{jpeg_recorder(8, 0)}};
+    TrackTextures_SetEnv(&trackTexturesEnv);
+    static const SoundTriggerEnv soundTriggerEnv = {Rec{recorder(1, 3)}, Rec{recorder(2, 1)}, Rec{jpeg_recorder(3, 4)}, Rec{jpeg_recorder(4, 4)}, Rec{jpeg_recorder(5, 4)}, Rec{jpeg_recorder(6, 4)}, Rec{jpeg_recorder(7, 4)}, Rec{jpeg_recorder(8, 4)}, Rec{jpeg_recorder(9, 4)}, Rec{jpeg_recorder(10, 4)}, Rec{jpeg_recorder(11, 0)}, Rec{recorder(12, 1)}, Rec{recorder(13, 2)}, Rec{recorder(14, 1)}};
+    SoundTrigger_SetEnv(&soundTriggerEnv);
+    static const SignTextEnv signTextEnv = {Rec{jpeg_recorder(1, 3)}, Rec{recorder(2, 0)}, Rec{jpeg_recorder(3, 1)}, Rec{recorder(4, 1)}, Rec{recorder(5, 1)}, Rec{recorder(6, 1)}, Rec{jpeg_recorder(7, 0)}, Rec{recorder(8, 4)}, Rec{jpeg_recorder(9, 4)}, Rec{jpeg_recorder(10, 5)}};
+    SignText_SetEnv(&signTextEnv);
+    static const MixerThreadEnv mixerThreadEnv = {Rec{jpeg_recorder(1, 0)}, Rec{recorder(2, 0)}};
+    MixerThread_SetEnv(&mixerThreadEnv);
     static const SoundObjectSlotsEnv soundObjectSlotsEnv = {Rec{recorder(20, 3)}, Rec{recorder(21, 2)}, Rec{recorder(22, 3)}, Rec{recorder(23, 2)}, Rec{recorder(24, 2)}};
     SoundObjectSlots_SetEnv(&soundObjectSlotsEnv);
     static const MapResetEnv mapResetEnv = {Rec{recorder(1, 1)}, Rec{recorder(2, 0)}};
@@ -2469,6 +2519,22 @@ int main(int argc, char **argv) {
     static CrtEnv crt = kDriverCrt;   // (free: the stand-in heap, as a bench's hook of 0x67ad90 gives the emulator)
     crt.free = &heap_free;
     Crt_SetEnv(&crt);
+    // The rest of the game's CRT under the ported routines (tests/fncmp/crt_runtime.py hooks the same addresses).
+    static const CrtInnerEnv crtInner = {Rec{jpeg_recorder(2, 0)},  Rec{jpeg_recorder(3, 0)},  Rec{jpeg_recorder(4, 0)},  Rec{jpeg_recorder(5, 1)},
+                                         Rec{jpeg_recorder(6, 2)},  Rec{jpeg_recorder(7, 1)},  Rec{jpeg_recorder(8, 1)},  Rec{jpeg_recorder(9, 3)},
+                                         Rec{jpeg_recorder(10, 3)}, Rec{jpeg_recorder(11, 1)}, Rec{jpeg_recorder(12, 1)}, Rec{jpeg_recorder(13, 1)},
+                                         &heap_free, &heap_alloc, Rec{jpeg_recorder(28, 2)},
+                                         [](u32 unit) -> u16 {   // (_towlower_lk's stand-in, the same in tests/fncmp/crt_wide.py: the locale's own rule is not that bench's business)
+                                             const u32 c = unit & 0xffff;
+                                             return (u16)(c >= 0x41 && c <= 0x5a || c >= 0x100 && c < 0x180 ? c ^ 0x20 : c);
+                                         },
+                                         Rec{jpeg_recorder(21, 3)}, Rec{jpeg_recorder(22, 2)}, Rec{jpeg_recorder(23, 5)}, Rec{jpeg_recorder(24, 2)},
+                                         Rec{jpeg_recorder(25, 1)}, Rec{jpeg_recorder(26, 1)}, Rec{jpeg_recorder(27, 1)}};
+    CrtInner_SetEnv(&crtInner);
+    // The C++ library's: the locks do nothing (the bench's hooks of 0x691de0 / 0x691ea0), the rest recorders (tests/fncmp/iosbase.py).
+    static const IosBaseEnv iosBase = {[](void *lock) -> void * { return lock; }, [](void *) {}, &heap_free, Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 14}, Rec{jpeg_recorder(16, 2)}, Rec{jpeg_recorder(17, 3)},
+                                       Rec{jpeg_recorder(18, 1)}, &heap_alloc, Rec{recorder(19, 1)}, Rec{jpeg_recorder(20, 1)}};
+    IosBase_SetEnv(&iosBase);
     Libc_SetEnv(&kDriverLibc);
     static FpuEnv fpu = *Fpu_GetEnv();  // (the guard's deleting destructors free with the stand-in heap)
     fpu.free = &heap_free;

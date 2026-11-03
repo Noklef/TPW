@@ -483,6 +483,14 @@ const SoundStartEnv *g_start = &kStartEnv;
 
 void Sound_SetStartEnv(const SoundStartEnv *env) { g_start = env ? env : &kStartEnv; }
 
+u32 __cdecl Sound_QueryWord0() {
+    if (!global<u32>(0x00802bc8) || !global<u32>(0x00802bd4)) return 0;
+    u32 word, status;
+    u32 functor[2] = {0x00700b38, (u32)(uintptr_t)&word};
+    if (*reinterpret_cast<s32 *>(g_start->apply(global<u8 *>(0x00802bcc), nullptr, &status, reinterpret_cast<u8 *>(functor))) < 0) return 0;
+    return word;
+}
+
 u32 __cdecl Sound_Start(u32 a, u32 on) {
     global<u32>(0x00802bc8) = on;
     if (!on || global<u32>(0x00802bd4)) return 0;

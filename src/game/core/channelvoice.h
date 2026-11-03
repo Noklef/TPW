@@ -142,7 +142,12 @@ u32 __fastcall ChannelVoices_PlayNotify(u8 *pool, void *, u32 handle, u8 *record
 // The pool's thread, so that the bench can record it (nullptr: the game's).
 struct ChannelVoicesEnv {
     u32(__cdecl *beginThread)(u32 entry, u32 stack, void *arg);   // 0x67e050 (agent B's, unported)
+    u8 *(__fastcall *find)(u8 *pool, void *, const u32 *handle);  // ChannelVoices_Find, for ChannelVoiceHandle_Resume
 };
 void ChannelVoices_SetEnv(const ChannelVoicesEnv *env);
+
+// 0x6c5b20 (thiscall; pops 8; name invented, unconfirmed; a method of the class at 0x70a61c): under the semaphore 0xfb205c: the handle +4 found in the owner's pool +0x14, the voice's events +0x6c reset and *(+0x70) set, then the owner's +0x18 object's method 0x24 (out, voice).
+// Any step failing: *out = -1. Answers out.
+u32 *__fastcall ChannelVoiceHandle_Resume(const u8 *self, void *, u32 *out, u8 *owner);
 
 }  // extern "C"

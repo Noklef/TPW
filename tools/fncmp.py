@@ -677,6 +677,12 @@ def fill_arg(log, k, arg, source, which=0):
     struct.pack_into('<3I', log, at, (k & 63) | 0x80000000, arg, 0x80000000 | source)
 
 
+def mask_this(log, k):
+    """Makes slot k's thiscall recorder log `this` as 0: a method on a local object, whose stack address differs between the sides (bit 31 of the slot's LOG_BYTES entry)."""
+    at = LOG_BYTES + 4 * (k & 63)
+    struct.pack_into('<I', log, at, struct.unpack_from('<I', log, at)[0] | 0x80000000)
+
+
 def blob(log, k, arg, mask, only_when=False):
     """Makes slot k's recorder log its argument `arg` (unless null) as a hash of the dwords it points to that `mask` selects (bit i: dword i), not its
     address: a structure on the stack that the code under test only partly sets (the rest is stack garbage that differs between the sides).
@@ -905,7 +911,7 @@ def _recorder(k, n, com=False, cdecl=False):
     def hook(e):
         sp = e.r['ESP'] + (4 if e.tail else 0)
         raw = [e.u32(sp + 4 * i) for i in range(n)]
-        this = 0 if com or cdecl else e.r['ECX']
+        this = 0 if com or cdecl or e.u32(LOG + LOG_BYTES + 4 * (k & 63)) >> 31 else e.r['ECX']
         kk = k | 0x100 if com else k | 0x200 if cdecl else k
         by_name, named_answer = _named(e, k, raw)
         args = _log_args(e, k, raw, kk)

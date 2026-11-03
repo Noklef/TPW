@@ -12,9 +12,9 @@ from fncmp import LOG, RAM, Bench, Call, _recorder, blob, echo, fill, log_region
 
 OPEN, QUERY, REOPEN, REVERB = 1, 2, 3, 4
 SLOT_RECORD, SLOT_SUB = 13, 5
-B = Bench([(0x6b8f90, 0x6b905e), (0x6b91d0, 0x6b9217), (0x6b9c50, 0x6b9cc2), (0x6c5c90, 0x6c5cd1)],
+B = Bench([(0x6b8f90, 0x6b90c8), (0x6b91d0, 0x6b9217), (0x6b9c50, 0x6b9cc2), (0x6c5c90, 0x6c5cd1), (0x6b9850, 0x6b98c5), (0x6b5740, 0x6b5762), (0x6b5a70, 0x6b5a8c)],
           hooks={0x6b7510: _recorder(OPEN, 2), 0x6b7d70: _recorder(QUERY, 2), 0x6b7650: _recorder(REOPEN, 2), 0x6c5d20: _recorder(REVERB, 0)})
-CHANNEL, OUT, VT, SUB_VT, STATUS = (RAM + 0x100 * i for i in range(5))
+CHANNEL, OUT, VT, SUB_VT, STATUS, VALUE, COMMAND, TARGET = (RAM + 0x100 * i for i in range(8))
 FIELDS = sum(1 << (off // 4) for off in (0, 4, 0x40, 0x48, 0x4c, 0x68))
 VALUES = [0, 0, 0, 1, 0x7fffffff, 0xffffffff, 0x80000000, 0x88780078]
 FLAGS = [0, 0x100, 0x200, 0x300, 0xfffffcff, 0xffffffff]
@@ -41,6 +41,19 @@ def case(r):
     blob(log, SLOT_RECORD, 1, FIELDS)
     if r.random() < 0.5:
         fill(log, SLOT_RECORD, 1, struct.pack('<I', r.choice(FLAGS)), which=0, offset=4)
+    if name in ('word44', 'word0', 'cmd44', 'cmd0'):   # (the record's asked-for word and its answer flags: what the query fills, so that nothing unset is read)
+        status(r, log, QUERY, 2)
+        blob(log, QUERY, 1, FIELDS)
+        word44 = name.endswith('44')
+        flags = r.choice([0, 0x100, 0x1, 0x101, r.getrandbits(32)])
+        fill(log, QUERY, 1, struct.pack('<I', r.getrandbits(32)), which=3, offset=0x44 if word44 else 0)
+        fill(log, QUERY, 1, struct.pack('<I', flags), which=4, offset=0x4c)
+        regions[VALUE] = r.bytes(4)
+        if name.startswith('word'):
+            return Call(0x6b9060 if word44 else 0x6b9850, [CHANNEL, OUT, VALUE], regions, conv='t', ret='a')
+        regions[COMMAND] = struct.pack('<II', r.getrandbits(32), VALUE)
+        regions[TARGET] = r.bytes(0x24) + struct.pack('<I', CHANNEL)
+        return Call(0x6b5740 if word44 else 0x6b5a70, [COMMAND, OUT, TARGET], regions, conv='t', ret='a')
     if name == 'refresh':
         blob(log, REOPEN, 1, FIELDS)
         return Call(0x6b91d0, [CHANNEL, OUT, r.getrandbits(32)], regions, conv='t', ret='a')
@@ -54,7 +67,7 @@ def case(r):
     return Call(address, [CHANNEL, OUT, r.getrandbits(32), r.getrandbits(32)], regions, conv='t', ret='a')
 
 
-OPS = [k for k in os.environ.get('OPS', 'setup,setup,refresh,reverb').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'setup,setup,refresh,reverb,word44,word0,cmd44,cmd0').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)

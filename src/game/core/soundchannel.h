@@ -254,6 +254,11 @@ u32 *__fastcall SoundChannel_Setup(u8 *channel, void *, u32 *out, u32 a, u32 b);
 // 0x6c5c90 (thiscall (out, a, b), pops 0xc; name invented, unconfirmed): SoundChannel_Setup (out: b's own stack slot). Negative: *out = -1. Otherwise SndReverb_Load and *out = 0.
 // Returns out.
 u32 *__fastcall SoundChannel_SetupWithReverb(u8 *channel, void *, u32 *out, u32 a, u32 b);
+// 0x6b9060 (thiscall (out, value), pops 8; name invented, unconfirmed): a settings record (Init_6b9c50) with +4 bit 8 to SoundChannel_GetSettings; not negative and its +0x4c bit 8: *value = its +0x44,
+// *out = 0. Else *out = -1. Returns out.
+u32 *__fastcall SoundChannel_QueryWord44(u8 *channel, void *, u32 *out, u32 *value);
+// 0x6b9850 (thiscall (out, value), pops 8; name invented, unconfirmed): *value = 0, then the same with +8 bit 0 (sic: +8 is never set, and +4 stays 0), +0x4c bit 0 and the record's +0.
+u32 *__fastcall SoundChannel_QueryWord0(u8 *channel, void *, u32 *out, u32 *value);
 // 0x6b91d0 (thiscall (out, a), pops 8; name invented, unconfirmed): a settings record (Init_6b9c50) from the channel's slot 0xd (a local out, the record, a); SoundChannel_Reopen
 // (out, the record). Returns out.
 u32 *__fastcall SoundChannel_Refresh(u8 *channel, void *, u32 *out, u32 a);

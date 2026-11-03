@@ -108,6 +108,30 @@ StdString *__fastcall StdString_Erase(StdString *s, void *, u32 pos, u32 n) {
     return s;
 }
 
+StdString *__fastcall StdString_AppendChars(StdString *s, void *, const char *chars, u32 n) {
+    if (*reinterpret_cast<u32 *>((uintptr_t)0x006fe5ac) - s->len <= n) g_env->xlen();
+    if (!n) return s;
+    const u32 total = s->len + n;
+    if (total > kMaxSize) g_env->xlen();
+    if (s->ptr && refs(s->ptr) != 0 && refs(s->ptr) != kFrozen) {
+        if (!total) {
+            --refs(s->ptr);
+            empty(s);
+            return s;
+        }
+        StdString_Copy(s, nullptr, total);
+    } else {
+        if (!total) {
+            if (s->ptr) StdString_Eos(s, nullptr, 0);
+            return s;
+        }
+        if (s->res < total) StdString_Copy(s, nullptr, total);
+    }
+    Rep_Movs(s->ptr + s->len, chars, n);
+    StdString_Eos(s, nullptr, total);
+    return s;
+}
+
 void __fastcall StdString_Tidy(StdString *s, void *, u8 built) {
     if (built && s->ptr) {
         if (refs(s->ptr) == 0 || refs(s->ptr) == kFrozen)

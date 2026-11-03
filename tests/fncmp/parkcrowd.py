@@ -29,7 +29,12 @@ def case(r):
     set_return(log, 4, n & 0xffffffff)
     size = 0x10 + 26 * 0x230 + 2 * max(n, 0) * 0x230
     fail = r.choice([0, 0, 0, 1, 2, 3, 15, r.randrange(1, 16)])
-    regions = {LOG: log, HEAP: heap(size, fail), RAM + 0x10000: bytearray(r.bytes(0x50))}
+    block = heap(size, fail)
+    if n > 0 and r.random() < 0.3:
+        # Past the countdown's 15: the next block set so that the k-th allocation's block is address 0, the answer of a failure. (The blocks before it are never touched: the constructors are recorders.)
+        block = heap(size)
+        put(block, 0, 'I', 0 - (r.randrange(26, 26 + 2 * n) - 1) * 0x230 & 0xffffffff)
+    regions = {LOG: log, HEAP: block, RAM + 0x10000: bytearray(r.bytes(0x50))}
     return Call(0x516700, [GAME], regions, conv='t', ret='v')
 
 

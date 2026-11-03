@@ -212,6 +212,11 @@ add_library(tpw_game STATIC
     src/game/core/soundguard.cpp
     src/game/core/soundseed.cpp
     src/game/core/recordsort.cpp
+    src/game/core/iosbase.cpp
+    src/game/core/qsoundmixer.cpp
+    src/game/core/dsoundsource.cpp
+    src/game/core/soundtrigger.cpp
+    src/game/core/mixerthread.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
@@ -513,6 +518,8 @@ add_library(tpw_game STATIC
     src/game/online/chatcursor.cpp
     src/game/online/roomcounts.cpp
     src/game/online/postcardmail.cpp
+    src/game/online/chatlists.cpp
+    src/game/online/chatclient.cpp
     src/game/frontend/lobbymodel.cpp
     src/game/frontend/helpbg.cpp
     src/game/frontend/islandcamera.cpp
@@ -613,6 +620,7 @@ add_library(tpw_game STATIC
     src/game/ui/textrecordpart.cpp
     src/game/ui/window705950nodes.cpp
     src/game/gfx/movieframe.cpp
+    src/game/gfx/moviestart.cpp
     src/game/ui/panel7cc3b0handler.cpp
     src/game/world/rideupkeep.cpp
     src/game/world/objectwear.cpp
@@ -626,6 +634,12 @@ add_library(tpw_game STATIC
     src/game/world/staffheld.cpp
     src/game/world/mapreset.cpp
     src/game/world/cameraupdate.cpp
+    src/game/world/thingname.cpp
+    src/game/world/arrivalvehicle.cpp
+    src/game/world/worldstart.cpp
+    src/game/world/worldupdate.cpp
+    src/game/world/tracktextures.cpp
+    src/game/world/signtext.cpp
     src/game/ui/staffrename.cpp
     src/game/ui/window7cc8bc.cpp
     src/game/ui/dialog7cb2b8.cpp

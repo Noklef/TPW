@@ -22,8 +22,8 @@ from fncmp import (HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, blob_bytes, fb, fi
                    strings, vtable)
 
 CALLS = {'setrate': 0x6d21d0, 'orient': 0x6d37b0, 'events': 0x6d3020, 'caps': 0x6d3070, 'configure': 0x6d1f40, 'flags': 0x6d20a0,
-         'sound': 0x6d2290, 'destroy': 0x6c42b0, 'ctorb': 0x6d2d70, 'ctora': 0x6d1e30, 'sethelper': 0x6b9d70, 'freehelper': 0x6b9d50, 'dtora': 0x6d1ec0, 'deldtora': 0x6d1ea0}
-B = Bench([(0x6d21d0, 0x6d2214), (0x6d6c70, 0x6d6cf0), (0x6c4390, 0x6c4410), (0x6c4500, 0x6c4541), (0x6d3a80, 0x6d3b04),
+         'sound': 0x6d2290, 'destroy': 0x6c42b0, 'ctorb': 0x6d2d70, 'ctora': 0x6d1e30, 'sethelper': 0x6b9d70, 'freehelper': 0x6b9d50, 'dtora': 0x6d1ec0, 'deldtora': 0x6d1ea0, 'vector': 0x6d3700, 'dtorbase': 0x6d2760}
+B = Bench([(0x6d3700, 0x6d37a3), (0x67b410, 0x67b440), (0x6d2760, 0x6d276e)] +[(0x6d21d0, 0x6d2214), (0x6d6c70, 0x6d6cf0), (0x6c4390, 0x6c4410), (0x6c4500, 0x6c4541), (0x6d3a80, 0x6d3b04),
            (0x6d1f40, 0x6d2093), (0x6d20a0, 0x6d2110), (0x6d2290, 0x6d22a5), (0x6c4040, 0x6c418b),
            (0x6d37b0, 0x6d37fe), (0x6d3020, 0x6d306a), (0x6d3070, 0x6d30a8), (0x6c42b0, 0x6c42d2),
            (0x6d2d70, 0x6d2ddb), (0x6d1e30, 0x6d1e9c), (0x6b9d50, 0x6b9d63), (0x6b9d70, 0x6b9d7a), (0x6d6c50, 0x6d6c70), (0x6d1ec0, 0x6d1f31), (0x6d1ea0, 0x6d1ebe)])
@@ -40,7 +40,7 @@ OPS = [n for n in CALLS if not os.environ.get('OPS') or n in os.environ['OPS'].s
 
 
 def floats(r):
-    return struct.pack('<3I', *[r.choice([fb(r.uniform(-8, 8)), 0, 0x80000000, 0x7fc00000, 0x7f800001, 0xffa00000, 0x7fbfffff,
+    return struct.pack('<3I', *[r.choice([fb(r.uniform(-8, 8)), 0, 0x80000000, 0x7fc00000, 0x7f800001, 0xffa00000, 0x7fbfffff, 0x7f800000, 0xff800000,
                                           r.getrandbits(32)]) for _ in range(3)])
 
 
@@ -92,6 +92,15 @@ def case(r):
         source = bytearray(r.bytes(0x28))
         struct.pack_into('<2I', source, 0x1c, 0, 0)
         return Call(0x6d1ea0, [SRC, r.choice([0, 1, 2, 3, r.getrandbits(32)])], {LOG: log, HEAP: heap(0x40), SRC: source, HELPER: struct.pack('<I', 0)}, conv='t', ret='a')
+    if name == 'dtorbase':
+        regions = {LOG: log, HEAP: heap(0x40), SRC: r.bytes(0x28), HELPER: struct.pack('<I', r.choice([0, HEAP + 0x10]))}
+        return Call(0x6d2760, [SRC], regions, conv='t', ret='v')
+    if name == 'vector':   # (slot 3 of the COM object: a NaN in any one float skips it)
+        src = bytearray(r.bytes(0x40))
+        struct.pack_into('<I', src, 0x1c, 0 if r.random() < 0.15 else LISTENER)
+        set_return(log, 3, r.getrandbits(32))
+        regions = {LOG: log, SRC: src, OUT: r.bytes(4), LISTENER: struct.pack('<I', LVT) + r.bytes(0xc), LVT: vtable({}, com={3: 4}), FRONT: floats(r)}
+        return Call(0x6d3700, [SRC, OUT, r.getrandbits(32), FRONT, r.getrandbits(32), r.getrandbits(32)], regions, conv='t', ret='a')
     if name == 'sethelper':
         return Call(0x6b9d70, [r.getrandbits(32)], {LOG: log, HELPER: r.bytes(4)}, conv='c', ret='v')
     if name == 'freehelper':

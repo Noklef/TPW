@@ -70,8 +70,25 @@ void __fastcall ChatPlayer_StepWalk(u8 *player);
 // What ChatPlayer_StepWalk calls through an environment (the fncmp driver's recorder; the game's by default, the port).
 struct ChatAvatarEnv {
     u32(__fastcall *walkNav)(u8 *sprite);   // Sprite_WalkNav 0x4fa2a0
+    // ChatPlayer_Ctor's:
+    u8 *(__fastcall *movingCtor)(u8 *sprite, void *, u32 cell, u32 kind);                  // MovingPerson_Ctor
+    void(__fastcall *setSeed)(u8 *world, void *, u32 seed);                                // World_SetSeed
+    u32(__cdecl *randomSprite)(u32 folder);                                                // SpriteFolder_RandomSprite
+    s32(__cdecl *spriteCount)(u32 folder);                                                 // SpriteFolder_Count
+    void(__fastcall *scriptStart)(u8 *ref, void *, u32 anim, u32 folder, u32 sprite);      // ScriptRef_Start
+    void(__cdecl *setRegF)(s32 slot, u32 index, u32 bits);                                 // SpriteScript_SetRegF
+    s32(__cdecl *swprintf)(u16 *to, const u16 *format, ...);                               // CRT_swprintf
 };
 void ChatAvatar_SetEnv(const ChatAvatarEnv *env);   // nullptr: the game's
+
+// 0x4f7b20 (thiscall (cell, sprite, name, zero), pops 0x10; an SEH frame, dropped; the chat events' playerCtor; name invented, unconfirmed): a chat player: MovingPerson_Ctor (cell, kind 0x12); byte +0x3a0 = zero's low byte,
+// +0x3a4 = 0; the world's seed [0x80239c] = its handle; folder +0x24 = 0, +0x20 = a random sprite of it, then the sprite given bounded by the folder's count - 1 (unsigned), which goes to +0x20 and the script ref +0xc (ScriptRef_Start: animation 3);
+// the script's register 8 = 2.0; the name (a std::wstring; null: the empty string 0x6fd6c4) to +0x19c by swprintf 0x75c0cc; word +0xc2 = [0x75c7f2]; +0x188 = 1. Returns the player.
+u8 *__fastcall ChatPlayer_Ctor(u8 *player, void *, u32 cell, u32 sprite, const u8 *name, u32 zero);
+
+// 0x4ea9a0 (thiscall (text), pops 4; an SEH frame, dropped; called from 0x4be2ed; name invented, unconfirmed): whether the text equals the avatar's name, the std::wstring at +8, in any case. The original makes a
+// string of the text, a copy of it, a copy of the name; the first is released at once; wcsnicmp over the shorter length (the copy of the name null: its empty string 0x700624), then the lengths. Returns 1 or 0 (AL).
+u8 __fastcall ChatAvatar_NameEquals(u8 *avatar, void *, const u16 *text);
 
 // 0x4f7d70 (thiscall on a thing of kind 0x12, a chat player; name, pops 4): whether the std::wstring's characters (null: the empty
 // string 0x6fd6c4) equal the player's name, the wide characters at +0x19c (wcscmp 0x67c290 == 0, inlined here). Returns 1 or 0 (AL).
