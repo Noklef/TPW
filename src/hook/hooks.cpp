@@ -7490,6 +7490,7 @@ const Hook kHooks[] = {
     {"Dialog7cc2ec_Open",         0x004b2750, (void *)&Dialog7cc2ec_Open, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Sign_PlaceOverRect",        0x00486410, (void *)&Sign_PlaceOverRect, {0x83, 0xec, 0x0c, 0x8b, 0x44}},
     {"Sign_Swing",                0x004864f0, (void *)&Sign_Swing, {0xa1, 0x4c, 0x9f, 0x7b, 0x00}},
+    {"Sign_Destroy",              0x00486510, (void *)&Sign_Destroy, {0xa1, 0x4c, 0x9f, 0x7b, 0x00}},
     {"Wrap_Dialog7cc1f8_Open_4816e0", 0x004816e0, (void *)&Wrap_Dialog7cc1f8_Open_4816e0, {0x51, 0x8b, 0xc4, 0x6a, 0xff}},
     {"Wrap_Dialog7ca308_Open_481700", 0x00481700, (void *)&Wrap_Dialog7ca308_Open_481700, {0x6a, 0xff, 0xe8, 0xc9, 0xa6}},
     {"Wrap_Dialog7cb398_Create_481710", 0x00481710, (void *)&Wrap_Dialog7cb398_Create_481710, {0xe9, 0x8b, 0x3b, 0x02, 0x00}},

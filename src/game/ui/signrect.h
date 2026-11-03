@@ -19,4 +19,7 @@ void __cdecl Sign_PlaceOverRect(const u8 *rect, u32 type, s32 row);
 
 // 0x4864f0 (cdecl): RideObject_Swing of the sign [0x7b9f4c], if any.
 void __cdecl Sign_Swing();
+
+// 0x486510 (cdecl): the sign [0x7b9f4c], if any, destroyed (0x4690a0) and forgotten.
+void __cdecl Sign_Destroy();
 }
