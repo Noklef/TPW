@@ -4624,6 +4624,7 @@ address,name,kind,confidence,notes
 0x005e6540,WScanner_PushToken15,function,low,"reimplemented (src/game/core/wscanner); thiscall: a pair {"""", L"""", 0x15} pushed on the vector at +0x50, then the position set to the text's end (name unconfirmed)"
 0x005e6fc0,WScanner_SpanInSet14,function,low,"reimplemented (src/game/core/wscanner); thiscall: the run of characters from the position in the set at +0x14, the position moved past it; -1 at the text's end (name unconfirmed)"
 0x005e49f0,WKeywords_Add,function,low,"reimplemented (src/game/core/wscanner); a keyword (text by id, handler) put first in the list [[+0x48]] (name invented, unconfirmed)"
+0x005e47f0,WKeywords_AddAll,function,low,"reimplemented (src/game/core/wscanner); the scanner's 18 keyword handlers added, each under two text ids (name invented, unconfirmed)"
 0x0045f640,Startup_CheckCanRun,function,low,"reimplemented (src/game/core/startcheck); cdecl u8 (): 0 with game error 0 when not installed (Registry_GameInstalled); else CreateMutexA(0, 1, [0x7a2508]) kept at 0x7a267c, and when made with GetLastError 0xb7 (already exists) game error 1, CloseHandle, 0; else 1"
 0x0040c120,KeyAction_Turn90,function,low,"reimplemented (src/game/core/keyactions); cdecl: Global81d7a4_SetRecorded((0x81d7a4 + 90) signed mod 360, 1); returns 1 (key ',')"
 0x0040c150,KeyAction_Turn270,function,low,"reimplemented (src/game/core/keyactions); cdecl: Global81d7a4_SetRecorded((0x81d7a4 + 270) signed mod 360, 1); returns 1 (key '.')"

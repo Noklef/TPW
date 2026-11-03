@@ -118,6 +118,16 @@ void __fastcall WKeywords_Add(u8 *self, void *, u32 id, u32 handler) {
     destroy(*reinterpret_cast<StdWString *>(pair));
 }
 
+void __fastcall WKeywords_AddAll(u8 *self) {
+    static const u32 kKeywords[][2] = {{0x00, 0x005e4b20}, {0x01, 0x005e4ca0}, {0x02, 0x005e4f00}, {0x03, 0x005e50a0}, {0x04, 0x005e5240}, {0x05, 0x005e53c0},
+                                       {0x06, 0x005e5540}, {0x0c, 0x005e57c0}, {0x0d, 0x005e58b0}, {0x0e, 0x005e5aa0}, {0x0f, 0x005e5c90}, {0x10, 0x005e5c90},
+                                       {0x12, 0x005e5e80}, {0x14, 0x005e6070}, {0x15, 0x005e6160}, {0x13, 0x005e6350}, {0x16, 0x005e6540}, {0x17, 0x005e6630}};
+    for (const auto &keyword : kKeywords) {
+        WKeywords_Add(self, nullptr, keyword[0], keyword[1]);
+        WKeywords_Add(self, nullptr, keyword[0] + 0x2b, keyword[1]);
+    }
+}
+
 }  // extern "C"
 
 namespace {

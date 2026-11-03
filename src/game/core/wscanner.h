@@ -34,6 +34,9 @@ u8 *__fastcall WKeywordPair_Ctor(u8 *pair, void *, StdWString key, u32 v0, u32 v
 // value's four dwords at +0x18) put before the first node of the list [[+0x48]], the count +0x4c up by one, the stack pair's wstring destroyed.
 void __fastcall WKeywords_Add(u8 *self, void *, u32 id, u32 handler);
 
+// 0x5e47f0 (thiscall; name invented, unconfirmed): the scanner's 18 keyword handlers each added under two text ids: its id and that id + 0x2b.
+void __fastcall WKeywords_AddAll(u8 *self);
+
 // 0x5e57c0, 0x5e6070, 0x5e6540 (thiscall; names unconfirmed): a pair {"", L"", 0xc / 0x12 / 0x15} (its strings built empty, their allocator
 // bytes stack garbage) inserted once at the end of the vector of CountedPairs [+0x50] (CountedPairVector_InsertN(last, 1)), the pair
 // destroyed (its strings hold no block), then Obj_CopyCToMark: the position +0x38 set to the text's length +0xc. Returns what that returns.
