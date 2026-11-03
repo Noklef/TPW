@@ -15,13 +15,13 @@ B = Bench([(0x5dc860, 0x5dced0), (0x578d20, 0x578fea + 0x10), (0x5d5ee0, 0x5d5ef
 SELF, INPUT, TARGETS, CAMERA, MATRIX, LIST, NODES, VALUES, THINGS = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x500, RAM + 0x600, RAM + 0x800, RAM + 0x1000
 
 
-def world(r, x, y, aspect, regions):
-    """the camera, the matrix and the list's things; returns the object's +0x68"""
+def world(r, x, y, aspect, regions, grazing):
+    """the camera, the matrix and the list's things; grazing: the camera just outside the sphere, the ray straight at it, so that the near meeting is under 0.001 away"""
     reach = r.choice([5, 50, 110, 200, 400])
-    p = [r.uniform(-reach, reach) for _ in range(3)]
+    p = [0, 0, -116.0005] if grazing else [r.uniform(-reach, reach) for _ in range(3)]
     camera = bytearray(r.bytes(0x40))
     put(camera, 8, '3f', *p)
-    identity = r.random() < 0.8
+    identity = grazing or r.random() < 0.8
     matrix = struct.pack('<16f', 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1) if identity else struct.pack('<16f', *[r.uniform(-2, 2) for _ in range(16)])
     regions.update({CAMERA: camera, 0x87afe8: struct.pack('<I', MATRIX), MATRIX: matrix, 0xf83778: struct.pack('<I', CAMERA)})
     nx = (x * 0.0009765625 - 1) * 0.3862
@@ -51,6 +51,9 @@ def case(r):
     log = log_region()
     x = r.choice([r.randrange(0, 40), r.randrange(0, 2048), r.randrange(2000, 2060), 1024, -5, 3000, r.getrandbits(32) - (1 << 31)])
     y = r.choice([r.randrange(0, 30), r.randrange(0, 1536), r.randrange(1500, 1560), 768, -5, 2000, r.getrandbits(32) - (1 << 31)])
+    grazing = r.random() < 0.05
+    if grazing:
+        x, y = 1024, 768
     aspect = r.uniform(0.5, 1.5)
     obj = bytearray(r.bytes(0x80))
     pick = r.choice([0, 1, 1, 1])
@@ -59,17 +62,20 @@ def case(r):
               0x44: r.f(7), 0x48: r.f(5), 0x4c: r.f(2), 0x50: r.f(5), 0x54: r.f(200)}
     for off, bits in floats.items():
         put(obj, off, 'I', bits)
-    put(obj, 0x58, 'I', r.choice([0, 1, r.getrandbits(32)]))
+    put(obj, 0x58, 'I', r.choice([0, 1, 0x100, r.getrandbits(32)]))
     put(obj, 0x68, 'II', pick, LIST)
     inp = bytearray(r.bytes(0x40))
     put(inp, 8, 'I', r.pos(1))
+    if r.random() < 0.05:  # no time passed, the angle on its limit: the speed stays
+        put(inp, 8, 'I', 0)
+        obj[0x4c:0x50] = obj[0x40:0x44]
     put(inp, 0x10, 'I', TARGETS)
     put(inp, 0x1c, 'I', r.getrandbits(32) & ~2 | r.choice([0, 2, 2]))
     put(inp, 0x20, 'ii', x, y)
     targets = bytearray(r.bytes(0x20))
     put(targets, 0x14, 'II', r.f(100), r.f(100))
     regions = {LOG: log, SELF: obj, INPUT: inp, TARGETS: targets, 0xf82884: struct.pack('<I', INPUT), 0x78d910: bytes([r.choice([0, 0, 1, r.getrandbits(8)])]), 0x8bcbcc: struct.pack('<f', aspect)}
-    world(r, x, y, aspect, regions)
+    world(r, x, y, aspect, regions, grazing)
     return Call(0x5dc860, [SELF], regions, conv='t', ret='v')
 
 
