@@ -36,4 +36,10 @@ u32 __fastcall MovieSurface_CreateFlipOverlay(u8 *draw, u8 **out, u8 **backOut, 
 // +0x18) sized +0xc, +0x10, the effects (0x38 bytes, cleared; show: +0x30 1, flags 0x84000; else flags 0x200). A failure sets the player's +0x4c to 1 for five errors (invalid or unsupported ones), restores the surface +0x1c (Restore,
 // 0x6c) on DDERR_SURFACELOST, and answers 1.
 u32 __fastcall MovieSurface_UpdateOverlay(u8 *player, u32 show);
+// 0x66f600 (thiscall on the player; name invented, unconfirmed): one frame shown, unless the flags +4 have 0x800; the settings' +0x7b4 counted. By the player's mode +0x4c. 4: after the blank (flags 0x1000), the surface +0x1c, restored when lost
+// (a failure ends all), blitted to +0x14 with the whole frame (a failed Blt: the mode 1). 2, with a surface +0x1c: with +0x54 its Flip, again while busy or drawing; else after the blank it is locked, the frame +0x648 copied in, unlocked; then with
+// +0x50, UpdateOverlay (1) into +0x50. 1, without the flag 0x400: the target +0x18 with the flag 0x8000000, else +0x14; 8 bits (+0x48): the settings' 256 RGB of +0xb4 into the palette +0x28 as 4 bytes each; the target restored when lost; blitted:
+// flag 0x20, one line for each second line; 0x10, each frame line twice; else whole. At the end, with the flag 0x8000000 and the mode 1, +0x14's Flip (0, 1); 8 bits: the palette object +0x24's SetEntries (0, 0, 0x100, the palette), else a failure's name
+// (DdErrors_Name) to OutputDebugStringA.
+void __fastcall MovieSurface_Present(u8 *player);
 }

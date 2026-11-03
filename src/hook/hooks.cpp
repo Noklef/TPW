@@ -6277,6 +6277,7 @@ const Hook kHooks[] = {
     {"MovieSurface_CreateFlipOverlay", 0x00671cb0, (void *)&MovieSurface_CreateFlipOverlay, {0x81, 0xec, 0xec, 0x00, 0x00}},
     {"MovieSurface_CreateOffscreen", 0x00671ea0, (void *)&MovieSurface_CreateOffscreen, {0x81, 0xec, 0xd8, 0x00, 0x00}},
     {"MovieSurface_UpdateOverlay", 0x0066fa70, (void *)&MovieSurface_UpdateOverlay, {0x83, 0xec, 0x58, 0x53, 0x55}},
+    {"MovieSurface_Present",      0x0066f600, (void *)&MovieSurface_Present, {0x81, 0xec, 0xa0, 0x00, 0x00}},
     {"MovieSound_BufferBytes",    0x00672950, (void *)&MovieSound_BufferBytes, {0x83, 0xec, 0x14, 0x33, 0xc0}},
     {"MovieSound_Release",        0x006729e0, (void *)&MovieSound_Release, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
     {"MovieSound_ReleaseStream",  0x00672bf0, (void *)&MovieSound_ReleaseStream, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
