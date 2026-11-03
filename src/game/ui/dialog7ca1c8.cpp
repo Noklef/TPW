@@ -4,15 +4,19 @@
 
 #include "../coaster/edittools.h"
 #include "../coaster/registry.h"
+#include "../core/keymap.h"
 #include "../core/accessors.h"
 #include "../core/gameheap.h"
 #include "../core/globals.h"
 #include "../core/vcall.h"
+#include "../world/advisor.h"
 #include "../world/focuscell.h"
 #include "../world/gamemode.h"
 #include "../world/mousemode.h"
 #include "cursor.h"
+#include "dialog7ca098.h"
 #include "dialogs.h"
+#include "focus.h"
 #include "radiogroup.h"
 #include "window.h"
 #include "windowreg.h"
@@ -76,7 +80,88 @@ void __cdecl Dialog7ca1c8_ResetMouseMode() {
     g_reset->gameMode(0, 1);
 }
 
+namespace {
+
+const Dialog7ca1c8HandlerEnv kGameHandlerEnv = {MouseMode_EnterTile15, MouseMode_EnterTile16, MouseMode_Ensure6feaa0, GameCursor_Set, CoasterEdit_ToolButton, CoasterEdit_Tools, Advisor_PostId, Actions_FireDown, Actions_FireUp, Dialog7ca1c8_ResetMouseMode, CoasterEdit_EditRide, Focus_Restore, Game_CancelAdvisor, Window_CallDefault, Dialog7cb2b8_ResetChild21};
+const Dialog7ca1c8HandlerEnv *g_handler = &kGameHandlerEnv;
+
+// The buttons 0x19 to 0x21: the tool, the cursor (0 for the tile modes), the advisor's message (0 for none, or by the tools).
+const struct {
+    u16 tool, cursor, advice;
+} kButtons[9] = {{8, 0xe, 0}, {0x10, 0xc, 0}, {4, 0, 0x121}, {0x20, 0xd, 0}, {0x100, 0xf, 0}, {0x80, 0x10, 0}, {1, 0, 0x125}, {2, 0, 0}, {0x40, 0xa, 0x124}};
+
+u32 &dialogUp() { return *reinterpret_cast<u32 *>((uintptr_t)0x007ca1cc); }
+
+void closeEdit() {
+    g_handler->toolButton(0, 4);
+    g_handler->resetMode();
+    g_handler->editRide(nullptr, 0);
+    dialogUp() = 0;
+    g_handler->focusRestore();
+}
+
+void button(u32 a, u32 b) {
+    const u32 tool = kButtons[a - 0x19].tool, cursor = kButtons[a - 0x19].cursor, advice = kButtons[a - 0x19].advice;
+    if (b != 1) {
+        g_handler->toolButton(tool, 2);
+        return;
+    }
+    if (a == 0x1b) {
+        g_handler->enterTile16();
+    } else if (!cursor) {
+        g_handler->enterTile15();
+    } else {
+        g_handler->ensureMode();
+        g_handler->cursor(cursor);
+    }
+    g_handler->toolButton(tool, 1);
+    if (a == 0x20) {
+        u32 out;
+        g_handler->tools(&out);
+        g_handler->postId(out & 0x200 ? 0x127 : 0x126);
+    } else if (advice) {
+        g_handler->postId(advice);
+    }
+}
+
+void fire(u32(__fastcall *call)(u8 *, void *, u32, u32), u32 a, u32 b) {
+    const u32 third = (b >> 16) & 0xff;
+    if (!call(*reinterpret_cast<u8 **>((uintptr_t)0x00787c14), nullptr, a, third)) call(*reinterpret_cast<u8 **>((uintptr_t)0x00787294), nullptr, a, third);
+}
+}  // namespace
+
+void Dialog7ca1c8_SetHandlerEnv(const Dialog7ca1c8HandlerEnv *env) { g_handler = env ? env : &kGameHandlerEnv; }
+
 extern "C" {
+
+s32 __cdecl Dialog7ca1c8_Handler(u8 *window, u32 message, u32 a, u32 b) {
+    switch (message) {
+    case 0x14: *reinterpret_cast<u32 *>((uintptr_t)0x007ca1c8) = 0; break;
+    case 0x1d: *reinterpret_cast<u8 *>((uintptr_t)0x007ca1d4) = a == 1; break;
+    case 0x101:
+        if (a - 0x19 <= 8) button(a, b);
+        break;
+    case 0x1000a: fire(g_handler->fireDown, a, b); break;
+    case 0x1000b: fire(g_handler->fireUp, a, b); break;
+    case 0x1001d8:
+        if (dialogUp()) closeEdit();
+        g_handler->cancelAdvisor(0x125);
+        g_handler->cancelAdvisor(0x127);
+        g_handler->cancelAdvisor(0x126);
+        g_handler->cancelAdvisor(0x121);
+        g_handler->cancelAdvisor(0x124);
+        break;
+    default: break;
+    }
+    return g_handler->callDefault(window, nullptr, message, a, b);
+}
+
+void __cdecl Dialog7ca1c8_Hide() {
+    if (!dialogUp()) return;
+    if (!*reinterpret_cast<u32 *>((uintptr_t)0x00785a2c)) g_handler->resetChild(0);
+    if (dialogUp()) closeEdit();
+    dialogUp() = 0;
+}
 
 void __cdecl Dialog7ca1c8_OpenFor(u8 *thing) {
     if (global<u32>(0x007ca1cc) && global<u8 *>(0x007ca1d0) == thing) return;

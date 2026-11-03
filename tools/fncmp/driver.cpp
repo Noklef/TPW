@@ -643,6 +643,9 @@ const Dialog7ca098CreateEnv kDialog7ca098CreateEnv = {Rec{recorder(10, 2)}, Rec{
 // Dialog74fb20's calls (tests/fncmp/dialog74fb20.py).
 const Dialog74fb20Env kDialog74fb20Env = {Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 0)}, Rec{recorder(12, 2)}, Rec{recorder(13, 2)}, Rec{recorder(14, 2)}, Rec{recorder(15, 2)},
                                           Rec{recorder(16, 1)}, Rec{jpeg_recorder(17, 0)}, Rec{jpeg_recorder(18, 4)}, Rec{jpeg_recorder(19, 0)}, Rec{jpeg_recorder(20, 0)}, Rec{recorder(21, 3)}};
+// Dialog7ca1c8_Handler's and _Hide's calls (tests/fncmp/dialog7ca1c8handler.py).
+const Dialog7ca1c8HandlerEnv kDialog7ca1c8HandlerEnv = {Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 0)}, Rec{jpeg_recorder(12, 0)}, Rec{jpeg_recorder(13, 1)}, Rec{jpeg_recorder(14, 2)}, Rec{jpeg_recorder(15, 1)}, Rec{jpeg_recorder(16, 1)}, Rec{recorder(17, 2)}, Rec{recorder(18, 2)}, Rec{jpeg_recorder(19, 0)},
+                                                        Rec{jpeg_recorder(20, 2)}, Rec{jpeg_recorder(21, 0)}, Rec{jpeg_recorder(22, 1)}, Rec{recorder(23, 3)}, Rec{jpeg_recorder(24, 1)}};
 // Dialog7ca1c8_OpenFor's calls (tests/fncmp/dialog7ca1c8open.py).
 const Dialog7ca1c8OpenEnv kDialog7ca1c8OpenEnv = {Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 1)}, Rec{jpeg_recorder(12, 1)}, Rec{recorder(13, 1)}, Rec{jpeg_recorder(14, 1)}, Rec{jpeg_recorder(15, 0)},
                                                   Rec{jpeg_recorder(16, 2)}, Rec{jpeg_recorder(17, 0)}, Rec{jpeg_recorder(18, 1)}, Rec{jpeg_recorder(19, 1)}, Rec{jpeg_recorder(20, 1)},
@@ -1418,6 +1421,7 @@ int main(int argc, char **argv) {
     Dialog7cb400_SetEnv(&kDialog7cb400Env);
     Panel7ca178_SetStatsEnv(&kPanel7ca178StatsEnv);
     Dialog7ca1c8_SetOpenEnv(&kDialog7ca1c8OpenEnv);
+    Dialog7ca1c8_SetHandlerEnv(&kDialog7ca1c8HandlerEnv);
     Dialog74fb20_SetEnv(&kDialog74fb20Env);
     Dialog7ca098_SetCreateEnv(&kDialog7ca098CreateEnv);
     TextPanel7cc18c_SetEnv(&kTextPanel7cc18cEnv);

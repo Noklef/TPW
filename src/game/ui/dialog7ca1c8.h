@@ -34,7 +34,35 @@ struct Dialog7ca1c8ResetEnv {
 };
 void Dialog7ca1c8_SetResetEnv(const Dialog7ca1c8ResetEnv *env);
 
+// Dialog7ca1c8_Handler's and Dialog7ca1c8_Hide's calls (the ports by default; the bench's recorders: their own benches have them).
+struct Dialog7ca1c8HandlerEnv {
+    void(__cdecl *enterTile15)();                                  // MouseMode_EnterTile15
+    void(__cdecl *enterTile16)();                                  // MouseMode_EnterTile16
+    void(__cdecl *ensureMode)();                                   // MouseMode_Ensure6feaa0
+    void(__cdecl *cursor)(u32 id);                                 // GameCursor_Set
+    void(__cdecl *toolButton)(u32 tool, u32 action);               // CoasterEdit_ToolButton
+    u32(__cdecl *tools)(u32 *out);                                 // CoasterEdit_Tools
+    u8(__cdecl *postId)(u32 id);                                   // Advisor_PostId
+    u32(__fastcall *fireDown)(u8 *table, void *, u32 a, u32 b);    // Actions_FireDown
+    u32(__fastcall *fireUp)(u8 *table, void *, u32 a, u32 b);      // Actions_FireUp
+    void(__cdecl *resetMode)();                                    // Dialog7ca1c8_ResetMouseMode
+    void(__cdecl *editRide)(const u8 *object, u32 on);             // CoasterEdit_EditRide
+    u32(__cdecl *focusRestore)();                                  // Focus_Restore
+    void(__cdecl *cancelAdvisor)(u32 id);                          // Game_CancelAdvisor
+    s32(__fastcall *callDefault)(u8 *window, void *, u32 message, u32 a, u32 b);   // Window_CallDefault
+    void(__cdecl *resetChild)(u32 clear27);                        // Dialog7cb2b8_ResetChild21
+};
+void Dialog7ca1c8_SetHandlerEnv(const Dialog7ca1c8HandlerEnv *env);
+
 extern "C" {
+
+// 0x4982a0 (cdecl (window, message, a, b); the handler Dialog7ca1c8_Create gives; name invented): 0x14: [0x7ca1c8] = 0. 0x1d: the byte [0x7ca1d4] = a is 1. 0x101, a 0x19 to 0x21: b not 1: CoasterEdit_ToolButton (the button's tool, 2). b 1: 0x1f, 0x20 MouseMode_EnterTile15, 0x1b _EnterTile16,
+// the others MouseMode_Ensure6feaa0 and the cursor; CoasterEdit_ToolButton (tool, 1); Advisor_PostId for 0x1f, 0x1b, 0x21 and for 0x20 by CoasterEdit_Tools' flag 0x200. 0x1000a / 0x1000b: Actions_FireDown / _FireUp (a, b's third byte) of [0x787c14], when that answers 0 also of [0x787294].
+// 0x1001d8: up [0x7ca1cc]: as Dialog7ca1c8_Hide's end; then the advisor's five messages cancelled. Every message then goes to Window_CallDefault, whose answer is returned.
+s32 __cdecl Dialog7ca1c8_Handler(u8 *window, u32 message, u32 a, u32 b);
+
+// 0x4989d0 (cdecl; name invented): up [0x7ca1cc]: unless [0x785a2c] Dialog7cb2b8_ResetChild21 (0); up still: CoasterEdit_ToolButton (0, 4), Dialog7ca1c8_ResetMouseMode, CoasterEdit_EditRide (0, 0), up cleared, Focus_Restore; up cleared.
+void __cdecl Dialog7ca1c8_Hide();
 
 // 0x4988c0 (cdecl (thing); called from 0x487eeb and 0x4af275; name invented): nothing when up [0x7ca1cc] for that thing [0x7ca1d0] already or with the byte [0x7ca1d4] set. Else the thing kept, selected
 // (Global7c2654_Set) and the focus cell updated (record 1); unless [0x785a2c] the child 21 reset (1) and posted the window [0x7ca1c8]; up set, the window focused. A thing without an open link enters the tile
