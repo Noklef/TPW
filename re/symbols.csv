@@ -245,7 +245,11 @@ address,name,kind,confidence,notes
 0x004ddf50,Object_QueuePosition,function,high,reimplemented (src/game/world/objectmsg); a person's place in the object's queue
 0x004da490,Mechanic_PostUpdate,function,medium,Thing_Update case 4 (second call; the first goes through a thunk to 0x505490)
 0x004da0c0,Mechanic_HandleMessage,function,high,"reimplemented (src/game/world/staff); kind 4's messages: type 0xa for its object clears +0x218 and sets state 0, then Staff_HandleMessage"
-0x004d7060,Handyman_Update,function,medium,Thing_Update case 5 (first call)
+0x004d7060,Handyman_Update,function,medium,"reimplemented (src/game/world/staffsteps); thiscall; name invented, unconfirmed: Person_TickSpeed; in state 0 on the table's ticks a nearby cell's Handyman_PickWork; Person_KillScript84After of +0x30"
+0x004d7580,Handyman_WalkToLitter,function,low,"reimplemented (src/game/world/staffsteps); thiscall; name invented, unconfirmed: the litter +0x218 not stamped by him, or a walk's end 2 or empty litter: Handyman_PickWork; arrived: placed, state 9"
+0x004d76a0,Handyman_SweepLitter,function,low,"reimplemented (src/game/world/staffsteps); thiscall; name invented, unconfirmed: Staff_TireB; past the time the litter removed (when his own cell's is set) and Handyman_PickWork"
+0x004da740,Mechanic_WalkToObject,function,low,"reimplemented (src/game/world/staffsteps); thiscall; name invented, unconfirmed: the object +0x218 not tracking him or a walk's end 2: Mechanic_PickWork; arrived: state 0xd when it needs work, else Mechanic_PickWork"
+0x004da830,Mechanic_Repair,function,low,"reimplemented (src/game/world/staffsteps); thiscall; name invented, unconfirmed: Staff_TireB; +0x214 counted down; then the repair's end (Object_MechanicDone) and Mechanic_PickWork"
 0x004d73c0,Handyman_PostUpdate,function,medium,Thing_Update case 5 (second call)
 0x004d6cf0,Handyman_HandleMessage,function,high,"reimplemented (src/game/world/staff); kind 5's messages: type 0xa for its object clears +0x21a (animation 3 in state 0xb), state 0, then Staff_HandleMessage"
 0x004d4660,Entertainer_Update,function,medium,"reimplemented (src/game/world/staff); thiscall; Thing_Update case 6 (first call): the cell recorded (Sprite_RecordMapId); moved, spread record 0 taken back from the last cell and spread round the new one (Map_SpreadRemove / Map_SpreadAdd on [0x8023a0]); Person_TickSpeed"

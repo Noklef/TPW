@@ -358,6 +358,7 @@
 #include "../game/world/tracksquare.h"
 #include "../game/world/rides.h"
 #include "../game/world/staffctors.h"
+#include "../game/world/staffsteps.h"
 #include "../game/world/staffwork.h"
 #include "../game/world/trackline.h"
 #include "../game/world/uimsgreceiver.h"
@@ -5742,6 +5743,11 @@ const Hook kHooks[] = {
     {"Entertainer_CtorLoad",      0x004d4250, (void *)&Entertainer_CtorLoad, {0x6a, 0xff, 0x68, 0x08, 0xc1}},
     {"Guard_Ctor",                0x004d5d40, (void *)&Guard_Ctor, {0x6a, 0xff, 0x68, 0x08, 0xc3}},
     {"Guard_Init",                0x004d5de0, (void *)&Guard_Init, {0x51, 0x56, 0x8b, 0xf1, 0x56}},
+    {"Handyman_Update",           0x004d7060, (void *)&Handyman_Update, {0x83, 0xec, 0x08, 0x53, 0x56}},
+    {"Handyman_WalkToLitter",     0x004d7580, (void *)&Handyman_WalkToLitter, {0x51, 0x56, 0x8d, 0x44, 0x24}},
+    {"Handyman_SweepLitter",      0x004d76a0, (void *)&Handyman_SweepLitter, {0x51, 0x53, 0x55, 0x56, 0x8b}},
+    {"Mechanic_WalkToObject",     0x004da740, (void *)&Mechanic_WalkToObject, {0x83, 0xec, 0x08, 0x56, 0x8d}},
+    {"Mechanic_Repair",           0x004da830, (void *)&Mechanic_Repair, {0x51, 0x56, 0x57, 0x8b, 0xf1}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
