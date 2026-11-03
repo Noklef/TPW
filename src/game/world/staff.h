@@ -89,6 +89,10 @@ void __fastcall Staff_GetPatrolRegion(const u8 *staff, void *, u16 *bl, u16 *tr)
 void __fastcall Staff_ClearPatrolRegion(u8 *staff);
 u32 __fastcall Staff_HasPatrolRegion(const u8 *staff);
 
+// 0x4cd340 (stdcall (kind), called by 0x4cd500; name invented): the dword -8 of each cell of the map [0x80239c] +0x2d8 (0x44 bytes each, by handle) cleared, then set to 1 over the patrol region of each thing of the world's list of that kind (only kinds 4-8) that has one:
+// the columns (bottom-left - 1) & 0x7f to (top-right - 1) & 0x7f by the rows (bottom-left - 1) >> 7 to (top-right - 1) >> 7.
+void __stdcall Staff_MarkPatrolCells(u32 kind);
+
 // 0x506ed0 (pos, its low 16 bits): whether the map id's column and row are within the patrol
 // region's (a map id less 1: column & 0x7f, row >> 7; an id of 0 wraps to column 0x7f, a
 // row past the map).
