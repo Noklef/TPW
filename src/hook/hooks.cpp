@@ -370,6 +370,7 @@
 #include "../game/world/mapclick.h"
 #include "../game/world/mappress.h"
 #include "../game/world/mappreview.h"
+#include "../game/world/mapreset.h"
 #include "../game/world/mapsweep.h"
 #include "../game/world/objectride.h"
 #include "../game/world/objectstatus.h"
@@ -6065,6 +6066,7 @@ const Hook kHooks[] = {
     {"Researcher_Update",         0x00502960, (void *)&Researcher_Update, {0x51, 0x56, 0x8b, 0xf1, 0xe8}},
     {"Holder_PlaceStaff",         0x00509af0, (void *)&Holder_PlaceStaff, {0x51, 0x56, 0x8b, 0xf1, 0x33}},
     {"World_ClearStaffSlots",     0x005083b0, (void *)&World_ClearStaffSlots, {0x53, 0x55, 0x8b, 0x6c, 0x24}},
+    {"Map_ResetCells",            0x0052f8d0, (void *)&Map_ResetCells, {0x51, 0x8b, 0x4c, 0x24, 0x0c}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},

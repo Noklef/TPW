@@ -5828,6 +5828,7 @@ address,name,kind,confidence,notes
 0x005a0a50,AdvisorTable_Fill,function,low,reimplemented (src/game/world/advisortable); the table at 0x76e300 of the advisor's message ids filled: 351 records of 0x38 bytes
 0x00509af0,Holder_PlaceStaff,function,low,"reimplemented (src/game/world/staffheld); the staff member the handle +0x60 names placed in a cell, the handle cleared"
 0x005083b0,World_ClearStaffSlots,function,low,"reimplemented (src/game/world/staffheld); the world's 0x20 staff slots cleared, the dialog told unless kept"
+0x0052f8d0,Map_ResetCells,function,low,"reimplemented (src/game/world/mapreset); each map cell and its track cell reset, by columns and rows"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved
