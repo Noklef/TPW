@@ -612,6 +612,7 @@
 #include "../game/ui/panel7c2534.h"
 #include "../game/ui/panel7c2534handler.h"
 #include "../game/ui/panel7ca178.h"
+#include "../game/ui/panel7ca228handler.h"
 #include "../game/ui/panel7cc218.h"
 #include "../game/ui/panel7cc258.h"
 #include "../game/ui/panel7cc328handler.h"
@@ -7934,6 +7935,8 @@ const Hook kHooks[] = {
     {"Dialog7cc984_Open",         0x004c0ae0, (void *)&Dialog7cc984_Open, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"ChatNameMenu_Handler",      0x004bede0, (void *)&ChatNameMenu_Handler, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Panel7c2534_Handler",       0x0048b6a0, (void *)&Panel7c2534_Handler, {0x83, 0xec, 0x10, 0x56, 0x8b}},
+    {"Panel7ca228_Follow",        0x00499b90, (void *)&Panel7ca228_Follow, {0x56, 0x8b, 0xf1, 0x8b, 0x0d}},
+    {"Panel7ca228_Handler",       0x00499bb0, (void *)&Panel7ca228_Handler, {0x8b, 0x44, 0x24, 0x08, 0x53}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},

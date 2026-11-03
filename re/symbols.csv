@@ -7917,6 +7917,8 @@ address,name,kind,confidence,notes
 0x004c0ae0,Dialog7cc984_Open,function,low,"reimplemented (src/game/ui/dialog7cc984open); the dialog [0x7cc984] opened: a park's details from its online record (cdecl; record, parent, callback, a, b)"
 0x004bede0,ChatNameMenu_Handler,function,low,"reimplemented (src/game/ui/chatnamemenu); the chat's name menus' lists' handler: the chat told the name by the row, the menu hidden (cdecl; window, message, a, b)"
 0x0048b6a0,Panel7c2534_Handler,function,low,"reimplemented (src/game/ui/panel7c2534handler); the game's menu's rows' handler: its choices, the keys that close it (cdecl; window, message, a, b)"
+0x00499b90,Panel7ca228_Follow,function,low,"reimplemented (src/game/ui/panel7ca228handler); the camera follows the thing [0x7c2658], then the panel's slot 11 (thiscall)"
+0x00499bb0,Panel7ca228_Handler,function,low,"reimplemented (src/game/ui/panel7ca228handler); the handler of the thing panel at 0x7ca228: its buttons, the 0x80080 refresh (cdecl; window, message, a, b)"
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"
