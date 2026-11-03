@@ -636,6 +636,7 @@
 #include "../game/ui/window7cb2cc.h"
 #include "../game/ui/window7cc8bc.h"
 #include "../game/ui/window7cc8bcmenu.h"
+#include "../game/ui/window7cc8c0handler.h"
 #include "../game/ui/windowtimers.h"
 #include "../game/lib/jpeg6b.h"
 #include "../game/lib/jpeg6a.h"
@@ -7914,6 +7915,7 @@ const Hook kHooks[] = {
     {"Panel7cc328_Handler",       0x004b4fc0, (void *)&Panel7cc328_Handler, {0x83, 0xec, 0x08, 0x53, 0x8b}},
     {"Dialog7cb3f8_RefreshSlots", 0x004a62b0, (void *)&Dialog7cb3f8_RefreshSlots, {0x8b, 0x0d, 0xf8, 0xb3, 0x7c}},
     {"Dialog7ca150_ListHandler",  0x004955e0, (void *)&Dialog7ca150_ListHandler, {0x55, 0x8b, 0xec, 0x83, 0xe4}},
+    {"Window7cc8c0_Handler",      0x004bd4a0, (void *)&Window7cc8c0_Handler, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
