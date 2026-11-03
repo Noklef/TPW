@@ -60,4 +60,43 @@ void __fastcall WeatherFx_SetWind(u8 *fx, void *, float angle, float strength);
 // last) whose d is not 0 (nor a NaN), the last one regardless. p is scaled to |d| * scale * r long; out = p + m + n * (0 / |n|), n the
 // cross product of p and d (so 0 * n, sic: a NaN when n is 0 or not finite).
 float *__cdecl WeatherFx_BoltMidpoint(float *out, const float *a, const float *b, float scale);
+
+// 0x57e810 (thiscall (a, b), pops 8; name invented, unconfirmed): one lightning segment subdivided at WeatherFx_BoltMidpoint(b, a, +0x3310), x87 in the original's
+// order, its random numbers from the seed of [0x8bcbac] (not always this renderer). A draw & 0x1ff below 9 with +0xa188 below +0xa1a0 forks: +0xa188 up by one, a side point
+// from a along (b - a) made unit length (unless 0 or a NaN) and the plane normal +0x3020 + [+0x9da0] * 0x30, its ribbon's +0x9da4 entry cleared, recursed (side, a), added to the
+// ribbon (Ribbon_AddPoint(none, side)), +0xa188 down again. Each half then ends in Ribbon_AddPoint when the midpoint is within the wobbled limit (+0xa180 + +0xa184 * a draw
+// in [-1, 1)) of its end (squared), else is recursed: (m, b), then (a, m). Returns 1, or 0 at once when a call answers 0.
+u32 __fastcall WeatherFx_BoltSubdivide(u8 *fx, void *, const float *a, const float *b);
+
+// What WeatherFx_DrawBolt calls (the port by default; its bench runs them as recorders).
+struct WeatherDrawEnv {
+    u8 *(__fastcall *begin)(u8 *object, void *, u32 mode, u32 texture, u32 kind, u32 flags, u32 extra);  // Batch_Begin
+    void(__fastcall *transform)(u8 *object, void *, u32 arg);                                            // Batch_TransformVertices
+    u32(__fastcall *close)(u8 *object, void *, float depth);                                             // Batch_Close
+    u32(__fastcall *subdivide)(u8 *fx, void *, const float *a, const float *b);                          // WeatherFx_BoltSubdivide
+    u32(__fastcall *addPoint)(u8 *object, void *, const float *from, const float *to);                   // Ribbon_AddPoint
+};
+void WeatherFx_SetDrawEnv(const WeatherDrawEnv *env);  // nullptr: the port's
+
+// 0x57ec50 (thiscall (a, b), pops 8; name invented, unconfirmed; x87 in the original's order): one lightning bolt from a to b into a batch. The texture at +0x334c with an id (+8 bit 0x1000,
+// +0x1c): +0xa170, +0xa174 its offsets +0x28, +0x2c and +0xa178, +0xa17c its scales +0x20, +0x24 plus them; else those four 0. Batch_Begin on [0x879ab0] (+0x330c, 4, 0x1c4, 0x200d52, the id):
+// none gives 1. +0xa188 and +0x9da4 cleared, WeatherFx_BoltSubdivide(a, b), Ribbon_AddPoint(none, a): either's 0 gives 0. Then Batch_TransformVertices(0) and Batch_Close(0), whose answer is returned.
+u32 __fastcall WeatherFx_DrawBolt(u8 *fx, void *, const float *a, const float *b);
+
+// What WeatherFx_DrawDrops calls (the port by default; its bench runs them as recorders).
+struct WeatherDropsEnv {
+    u8 *(__fastcall *begin)(u8 *object, void *, u32 mode, u32 texture, u32 kind, u32 flags, u32 extra);       // Batch_Begin
+    u32(__fastcall *addPolygon)(u8 *object, void *, u8 *vertices, u32 count, u32 stride, const u8 *codes, u32 flags);  // DrawBatch_AddPolygon
+    void(__fastcall *transform)(u8 *object, void *, u32 arg);                                                 // Batch_TransformVertices
+    u32(__fastcall *close)(u8 *object, void *, float depth);                                                  // Batch_Close
+};
+void WeatherFx_SetDropsEnv(const WeatherDropsEnv *env);  // nullptr: the port's
+
+// 0x57f490 (thiscall (x, y, z: floats), pops 12; name invented, unconfirmed; x87 in the original's order): the falling drops of +0x3318 at their places +8 (0xc each) less the camera (x, -y..., z),
+// each wrapped into [-4, 4] by 8, through the transformer ([0x87b1d8] slot 1: the matrix +0x9d58, in place, 0xc, 0xc, the count, 2), then a triangle for each drop in front (z > 0): the texture at +0x3348
+// with an id (+8 bit 0x1000, +0x1c) gives the UVs (+0x28, +0x2c, scales +0x20, +0x24), else 0; the size [0x8bcbcc] * +0x3354 across, +0x3354 high; the second dword of each vertex's colour left unset, sic. With
+// [0x8bcbc8] bit 0x100 the places swirl: two gusts from phases +0x3558, +0x355c and sixteen orbits from the first sixteen phases, all through the 128 cubic rows at +0x8558 (+0xa18c, +0xa190, +0xa194 their sizes,
+// +0x9d98 the time), and each phase stepped; without it each place is shaken by three rand() draws. No check of the count against the 0x400 places on the stack, as in the original. Returns 1 when the batch
+// does not begin, 0 when a triangle is refused, else Batch_Close's answer.
+u32 __fastcall WeatherFx_DrawDrops(u8 *fx, void *, float x, float y, float z);
 }

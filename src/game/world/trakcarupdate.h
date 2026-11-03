@@ -34,3 +34,27 @@ extern "C" {
 //   (+0x14; at the end the ride's +0xa8) without flag 2 is +0x7c, +0x78 = +0x74, +0x74 a random offset within +0x68, 0x10000, done. Otherwise 0x10000.
 void __cdecl TrakCar_Update(u8 *car);
 }
+
+// What the cars' tick calls (nullptr: the ports; its bench runs them as recorders).
+struct TrakCarsEnv {
+    void(__cdecl *update)(u8 *car);       // TrakCar_Update (0x5474b0)
+    void(__cdecl *move)(u8 *car);         // TrakCar_Move (0x547f50)
+    void(__cdecl *keepInArea)(u8 *car);   // Collider_KeepInArea (0x5497b0)
+    void(__cdecl *bounce)(u8 *car);       // Collider_BounceOffBlockers (0x5494d0)
+    void(__cdecl *sounds)(u8 *car);       // TrakCar_PlaySounds (0x547170)
+};
+void TrakCars_SetEnv(const TrakCarsEnv *env);
+
+extern "C" {
+// 0x546c80 (cdecl; (); name invented, unconfirmed): the track rides' cars' tick, with the module loaded ('JEFG' at 0x877b58). The counter 0x877b5c goes up by one. Each used car (bit 0) of the pool [0x877b68] (0xac bytes
+// each; as many as [0x877b6c] counts) loses its flag 0x200000 and is updated (TrakCar_Update), and moved (TrakCar_Move) when it is still used. Then each used car A in turn: unless its type's first byte (+0x98) has bit 7
+// or its flags 0x200, it meets every other used car B with neither. d = B's +0x34, +0x38 less A's, their reach s = the sum of their +0x64, the length n of d (IntVec2_Length); with n not 0 and n below s (signed) they touch.
+// The bearing a of d (256 - atan2(dx, -dy) / pi * 256, each step the x87's 24 bits, __ftol) and b of A's speed +0x44, +0x48 less B's (atan2(vx, -vy) / pi * 256 - 256, the same); their angle c = (-a - b) & 0x1ff.
+// Moving apart (c from 0x80 to 0x180): the overlap (d - s * d / n, each C's signed division) split by B's ride's (+0x9c) +0x2c, in 1024ths (C's signed division): that share leaves B's +0x34, +0x38, the rest goes on A's.
+// Else they bounce, by the sine table 0x877358 (0x200 dwords): t = (__ftol(fsqrt of the relative speed's squares, s32) * table[(c + 0x80) & 0x1ff] * 4) / 1024, B's share e = t * +0x2c / 1024 goes on B's +0x3c and +0x40 at
+// a (table[a & 0x1ff] * 4 and table[(a + 0x80) & 0x1ff] * 4, by e, / 1024), the rest (t - e) off A's the same, B's flags get 0x50000. With e above 0x82 and neither with 0x200000, by A's ride's kind (its first dword) both
+// get 0x200000 and A's +0x14 = 3 (-10, -9, -7, -4) or 5 (-14, -11, -6, -3). Then A's own timer: with +0xa4 above 0 and +0xa8 (one up) reaching 0x20 before that: past 0x10 in +0xa4, A takes the next node: from its type's +0x1c
+// (none: the first node of its ride's chain +0xa8 with bit 2 of its flags, along +0x14) along +0x14 (past the end the chain's first again) to one without bit 1: +0x7c = its +4, +0x78 = +0x74, +0x74 = the ride's +0x68 / 2
+// (signed) less World_Rand % it, the flags get 0x10000; both timers cleared. Then Collider_KeepInArea, Collider_BounceOffBlockers and TrakCar_PlaySounds.
+void __cdecl TrakCars_Update();
+}

@@ -99,7 +99,7 @@ address,name,kind,confidence,notes
 0x00591ab0,WaveletCodec_Encode,function,high,"reimplemented (src/game/gfx/wavelet); thiscall on the interface (width, height, colour, pixels, dst, size out, qY, qCb, qCr): grey or YUV 4:2:0 encode"
 0x00592060,WaveletCodec_Decode,function,high,reimplemented (src/game/gfx/wavelet); the decode dispatch on the format version 0x12 or 0x13
 0x005920f0,WaveletCodec_DecodeScaled,function,high,reimplemented (src/game/gfx/wavelet); the scaled decode dispatch for versions above 0x12
-0x00593ab0,WaveletCodec_DecodeV12,function,high,"one-level D4 like v0x13 but rows stored [all low, all high]; streams are BILZ (zlib); ported in tools/wct2png.py"
+0x00593ab0,WaveletCodec_DecodeV12,function,high,reimplemented (src/game/gfx/wavelet); The v0x12 wavelet decoder.
 0x00595920,WaveletCodec_DecodeV13,function,high,"reimplemented (src/game/gfx/wavelet); the v0x13 decoder: LZ77-unpacked planes through the inverse D4 in per-plane orders, 32-bit or 16-bit pixels"
 0x00597100,WaveletCodec_DecodeV13Scaled,function,medium,"reimplemented (src/game/gfx/wavelet); the v0x13 decoder resampled to a destination size, or forwarded to slot 2"
 0x00597090,Wavelet_ReadBits,function,high,reimplemented (src/game/gfx/wavelet); reads bits least significant first from the 16 bit word stream
@@ -120,7 +120,7 @@ address,name,kind,confidence,notes
 0x00c27210,D4_h2,data,high,(3-sqrt3)/(4 sqrt2)
 0x00c27214,D4_h3,data,high,(1-sqrt3)/(4 sqrt2)
 0x00564e20,Texture_DecodeWct,function,medium,"reimplemented (src/game/gfx/wctimage); thiscall on the WCT image's part at +0x2c (pixels; pops 4): the codec at [0x879a64] slot 2 with the kind byte, sizes, pixel size, blocks, *pixels and the quantiser steps 1+q/2, 1+q/4, 1+q/4, q+1 of the header words; returns 1"
-0x005516b0,RSSE_Tick,function,high,"scheduler: runs each script every 8th tick ((id^tick)&7==0) or every tick if TURBO; budget = header[0x10]; CRIT_LOCK instructions are free"
+0x005516b0,RSSE_Tick,function,high,"reimplemented (src/game/rsse/rssetick); cdecl (); the scripts' tick: each script's slice on its eighth tick (or every tick with +0xb8), its speed sent out, its object nodes followed, the dead killed; returns [0x8791b4]"
 0x00557a70,RSSE_FetchWord,function,high,next code word; pc=-10000 on overrun
 0x005573a0,RSSE_OperandValue,function,high,"variable value, or immediate sign-extended from 16 bits"
 0x0055a070,Rides_FindById,function,high,reimplemented (src/game/world/ridelist); the ride record with an id
@@ -529,6 +529,8 @@ address,name,kind,confidence,notes
 0x00585ce0,Landscape_SampleColours,function,low,"reimplemented (src/game/terrain/landscape); thiscall: 16 x 16 colours sampled from the texture at +0x1fd4 (Texture_Lock) into +0xf60, copied to +0x400, +0x800, +0xc00 after them"
 0x005850c0,Landscape_AddTexture,function,low,"reimplemented (src/game/terrain/landscape); thiscall (&textures, name, a, b, c, d, e, f), pops 0x20: the next of the 0x10 texture entries loaded by the texture manager (the error pushed twice when not, sic) (name unconfirmed)"
 0x005852b0,Landscape_LoadSky,function,low,"reimplemented (src/game/terrain/landscape); thiscall (folder), pops 4; name unconfirmed: the sky textures folder\sky\sky.tga, sky_rgb.tga (its colours sampled, then released) and sky_cyl.tga into +0x1fd0 / +0x1fd4 / +0x1fd8"
+0x005860d0,Landscape_DrawSprites,function,low,"reimplemented (src/game/terrain/landscape); The landscape's sprites as quads, by a mask (name invented, unconfirmed)."
+0x005863c0,Landscape_Draw,function,low,"reimplemented (src/game/terrain/landscape); The sky: its layers, reflected layers, rim and sprites (name invented, unconfirmed)."
 0x005720d0,TerrainTexCache_Ctor,function,high,"reimplemented (src/game/terrain/texcache); the tile cache cleared, 0x40 tiles"
 0x00572350,TerrainTexCache_Dtor,function,low,"reimplemented (src/game/terrain/texcache); thiscall: the tiles' texture arrays, the tiles and the landscape freed (name unconfirmed)"
 0x00572110,TerrainTexCache_Init,function,low,"reimplemented (src/game/terrain/texcache); the tile cache set up: the landscape, count tiles in a ring each with a texture of the size (capped by the video and texture memory)"
@@ -3976,6 +3978,7 @@ address,name,kind,confidence,notes
 0x00598770,Dwords_Zero,function,high,reimplemented (src/game/core/seqs); zeroes a run of dwords
 0x0056f2f0,Bands_SortValues,function,low,"reimplemented (src/game/core/seqs); thiscall on the bands object (values, lo, hi; pops 0xc): quicksort of dwords values[lo..hi] ascending unsigned; the j scan only when i > lo (sic), unbounded"
 0x0056f380,Bands_CollectTextures,function,low,"reimplemented (src/game/core/seqs); thiscall(ids, count, textures): each visible cell's texture (override box or its texture set's first) listed, its id added once; then the ids sorted"
+0x0056f570,Bands_SortRecords,function,low,"reimplemented (src/game/core/seqs); thiscall (records, lo, hi): 16-byte records quicksorted by their first dword; the downward scan stops at lo"
 0x005f4ea0,ReturnOne,function,high,"reimplemented (src/game/core/trivial); returns 1 after MOVAPS XMM0,XMM0: the SSE probe 0x579a80 guards (it faults where the OS has not enabled SSE); the port leaves the MOVAPS out"
 0x00414670,Low16_414670,function,low,reimplemented (src/game/core/trivial); the low word of a value
 0x0044e600,OutOne_44e600,function,low,"reimplemented (src/game/core/trivial); an init step's answer: *out = 1, returns 1"
@@ -4182,6 +4185,8 @@ address,name,kind,confidence,notes
 0x00579690,Transform_ProjectToScreen,function,low,"reimplemented (src/game/math/transform); cdecl: vertices divided by w and mapped to the render view's window, z by mode; returns the sum of the z's in st0"
 0x00579800,Transform_Concatenate,function,low,"reimplemented (src/game/math/transform); cdecl (self, a, b, out): out = a * b (4x4), a row at a time"
 0x00579a80,Transform_SseProbe,function,low,"reimplemented (src/game/math/transform); cdecl: whether SSE instructions run, 1: __try around 0x5f4ea0 (MOVAPS, then 1), whose __except (filter 0x579ad2: the result not 1; handler 0x579adc) returns 0; asked by 0x578224 when the CPUID SSE bit is set (name unconfirmed)"
+0x0056c5a0,Polygon_ClipToRect,function,low,"reimplemented (src/game/math/rectclip); thiscall (x0, x1, z0, z1); name invented, unconfirmed; 0x56bccb calls it: a polygon's points clipped between z0 and z1, then between x0 and x1"
+0x0056bd60,ConvexHull_AddPoint,function,low,"reimplemented (src/game/math/convexhull); a point added to a convex hull in the x-z plane (name invented, unconfirmed)"
 0x00503980,Table_ScaledBySum,function,high,reimplemented (src/game/world/staff); a table share scaled by the things' sum
 0x00505a10,Staff_Train,function,low,"reimplemented (src/game/world/staff); thiscall (amount): pay for training: debit the money, add to the park's spend, add amount / cost points of progress, raise the grade at 100"
 0x00508000,Staff_CountTypes,function,low,"reimplemented (src/game/world/staff); thiscall: count the world's staff by type, flagging the types that reached their limits"
@@ -4372,6 +4377,8 @@ address,name,kind,confidence,notes
 0x0046eeb0,Terrain_NodeCells,function,low,"reimplemented (src/game/terrain/nodecells); cdecl (node, grid, matrix by value): the node box through its matrix to the cells it covers (+0x90), flags 0x2000 / 0x4000000; then its children"
 0x0046f0c0,Terrain_ModelCells,function,low,reimplemented (src/game/terrain/nodecells); cdecl (map): Terrain_NodeCells for the map model on its grid with the identity
 0x00427620,TerrainSets_Load,function,low,"reimplemented (src/game/terrain/tct); cdecl (name, sets): a level's terrain texture sets read from its .tct file in two passes (count, then place)"
+0x00570d90,TerrainWater_Draw,function,low,"reimplemented (src/game/terrain/water); The water surface drawn into a batch (name invented, unconfirmed)."
+0x0056f670,TerrainGround_Draw,function,low,"reimplemented (src/game/terrain/ground); the landscape's ground drawn into batches, one for each run of a texture id (name invented, unconfirmed)"
 0x005ea510,Image_Dilate,function,high,reimplemented (src/game/gfx/imageops); separable maximum filter of an image
 0x005ea6d0,Image_Erode,function,high,reimplemented (src/game/gfx/imageops); separable minimum filter of an image
 0x005ea1f0,Image_MinMark,function,high,"reimplemented (src/game/gfx/imageops); 3 x 3 minimum of a two byte per pixel image, marking the changed pixels"
@@ -5671,6 +5678,7 @@ address,name,kind,confidence,notes
 0x0055a620,FlyingRide_Create,function,low,"reimplemented (src/game/world/flyinglaunch); cdecl (object, sound, x, y, z, turn, quick); name invented: the first empty table entry 1 to 99 gets a record (Mem_GlobalAlloc 0x122c) set up and a first flyer; returns the index or -1"
 0x0055abf0,FlyingRides_Update,function,low,"reimplemented (src/game/world/flyingupdate); cdecl; name invented: every flying ride record: launches one short of flyers, then each slot in use steps by its state (parked, climbing, cruising, leaving, approach, landing, going home), speed, separation, turn and height"
 0x005474b0,TrakCar_Update,function,low,"reimplemented (src/game/world/trakcarupdate); cdecl (car); name invented: a track ride's car stepping each frame: chasing another car, leaving the ride, or following its nodes, by its flags; picks a route, steers, a next node and the end of a run"
+0x00546c80,TrakCars_Update,function,low,"reimplemented (src/game/world/trakcarupdate); cdecl (); the track rides' cars' tick: each used car updated and moved, then cars that touch pushed apart or bounced, the node timer, the area, blockers and sounds"
 0x00544c80,TrakRide_Break,function,low,"reimplemented (src/game/world/trakridecars); cdecl (handle); name invented: the ride's +0x54 = 2; used cars on it with flag 0x4000, a part and no effect get Particle_Spawn at the part's place; kind -1: motion 0xc"
 0x00544f90,TrakRide_StartBump,function,low,"reimplemented (src/game/world/trakridecars); cdecl (handle); name invented: bumper kinds in state 1 go to state 2; each car loses flags 0x80040, takes the ride's +4 and a route; kind -1: motion 5"
 0x00549b80,TrakRide_LoadCar,function,low,"reimplemented (src/game/world/trakridecars); cdecl (handle); name invented: the ride's first used car with no node list takes the ride's list: flags 0x84000, TrakRide_Load (car, 1), a route; 1 or 0"
@@ -5689,6 +5697,7 @@ address,name,kind,confidence,notes
 0x004d4250,Entertainer_CtorLoad,function,low,"reimplemented (src/game/world/staffctors); thiscall (cell), pops 4; name invented, unconfirmed: Staff_Ctor of kind 6, then as Entertainer_Ctor with the sprite the byte [0x7cdb60]; that counted modulo 3"
 0x004d5d40,Guard_Ctor,function,low,"reimplemented (src/game/world/staffctors); thiscall (cell, type, sprite, name), pops 0x10; name invented, unconfirmed: Staff_CtorTyped of kind 7, the name, Guard_Init"
 0x004d5de0,Guard_Init,function,low,"reimplemented (src/game/world/staffctors); thiscall; name invented, unconfirmed: the world's list, a random sprite, the script, the spread record 3 at his cell, the message centre's slot 0x1b, the first state unless 0x506a40 answers"
+0x00546280,TrakRide_PoseCars,function,low,"reimplemented (src/game/world/trakcarpose); cdecl (handle, a); name invented, unconfirmed; 0x5190d1 calls it: a track ride's cars set on the ground: four wheels per car, the floor under each ride's wheels in turn, then each car's models given position and rotation"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved
@@ -6047,6 +6056,7 @@ address,name,kind,confidence,notes
 0x00671800,TqiVideo_DecodeFrame16,function,low,"reimplemented (src/game/gfx/tqiframe); fastcall (player, value; out, unused, pitch), pops 12; name invented, unconfirmed: the second DCT video's frame at 16 bits"
 0x00671940,TqiVideo_DecodeFrameYuy2,function,low,"reimplemented (src/game/gfx/tqiframe); fastcall (player, value; out, unused, pitch), pops 12; name invented, unconfirmed: the second DCT video's frame in YUY2's layout"
 0x00676e40,DctVideo_DecodeMacroblock,function,low,"reimplemented (src/game/gfx/dctmacroblock); fastcall (reference, out; pitch), pops 4; name invented, unconfirmed: the DCT video's macroblock: six blocks decoded or copied from the last frame"
+0x00589770,SpriteFrame_DrawLightQuads,function,low,"reimplemented (src/game/gfx/spriteframelights); a sprite frame's ground quad for each light (name invented, unconfirmed)"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"
@@ -6250,6 +6260,8 @@ address,name,kind,confidence,notes
 0x00443340,CoasterEdit_Update,function,low,"reimplemented (src/game/coaster/editupdate); the coaster editor's frame update: the adjust tools' values and vectors follow the mouse, the span and move tools the hovered car and the focus tile, the edited car and the cost"
 0x0043c450,Coaster_TestRun,function,low,"reimplemented (src/game/coaster/testrun); cdecl (coaster); name invented, unconfirmed: the coaster's test run: speeds, forces, banks and ratings along the track nodes, then the trains the run's time allows, their cars' places and average speeds"
 0x00430590,CoasterType_ReadModel,function,low,"reimplemented (src/game/coaster/typemodel); cdecl (-, block, type); name invented, unconfirmed; 0x42fcd1 and 0x42fd48 call it. The parts a coaster type's model offers (flags 0x20 to 0x2000 and the indexes in the block) and the heights of its stances (a stand-in ride played and measured, then destroyed)"
+0x00438ab0,Coaster_NodeAngles,function,low,"reimplemented (src/game/coaster/nodeangles); the turn to each coaster node near a place (name invented, unconfirmed)"
+0x00431660,TrackPiece_Handles,function,low,"reimplemented (src/game/coaster/handles); a track piece's spline handles from its neighbours (name invented, unconfirmed)"
 0x0044a590,RenderMode_Size,function,high,"reimplemented (src/game/render/mode); cdecl u32 (): first of 0x2000/0x1000/0x800 in 0x79d86c, else 0x4000 if set, else 0x1000"
 0x0044a5d0,RenderMode_Depth,function,high,"reimplemented (src/game/render/mode); cdecl u32 (): first of 8/0x10 in 0x79d86c, else 0x20 if set, else 8"
 0x0044a600,RenderMode_ResetScale,function,high,reimplemented (src/game/render/mode); cdecl (): 0x79d9e4 = 1.0f
@@ -6283,6 +6295,9 @@ address,name,kind,confidence,notes
 0x0057d7f0,WeatherFx_LoadTexture,function,low,"reimplemented (src/game/render/weatherfx); thiscall (which, name), pops 8: an empty weather texture slot (1-3, else the value as its address, sic) loaded by the texture manager (name unconfirmed)"
 0x005508c0,WeatherFx_LoadTextures,function,low,"reimplemented (src/game/render/weatherfx); cdecl: with a renderer at [0x8bcbac], snow.tga into slot 2, raindrop.tga into 1, lightning.tga into 3 (Data\Generic\Weather\), each name through Quickload_Locate(name, 1, 0) and WeatherFx_LoadTexture; returns the last load's answer, or 0 without a renderer"
 0x0057d850,WeatherFx_ReloadTextures,function,low,"reimplemented (src/game/render/weatherfx); thiscall; name invented: the three weather textures loaded (WeatherFx_LoadTexture slots 2, 1, 3), +4 cleared, 1"
+0x0057e810,WeatherFx_BoltSubdivide,function,low,"reimplemented (src/game/render/weatherfx); One lightning segment subdivided (name invented, unconfirmed)."
+0x0057ec50,WeatherFx_DrawBolt,function,low,"reimplemented (src/game/render/weatherfx); thiscall (a, b): one lightning bolt into a batch: the texture's UV offsets and ends, Batch_Begin, WeatherFx_BoltSubdivide, Ribbon_AddPoint, Batch_TransformVertices, Batch_Close"
+0x0057f490,WeatherFx_DrawDrops,function,low,"reimplemented (src/game/render/weatherfx); thiscall (x, y, z), pops 12; name invented, unconfirmed: the falling drops' places, wrapped into [-4, 4], swirled through the curve or shaken by rand(), then a triangle for each drop in front"
 0x00576260,Renderer_SetRestoreCallback,function,high,"reimplemented (src/game/render/renderer); thiscall (the renderer, [0x87a6d0]; fn): +0x78 = fn, called when the display device generation moves on (0x576c26)"
 0x005763f0,Renderer_SetStateFlags,function,high,"reimplemented (src/game/render/renderer); thiscall (flags): +0x48, the render state flags (0x1f31 by default)"
 0x00576400,Renderer_StateFlags,function,high,"reimplemented (src/game/render/renderer); thiscall: +0x48, the render state flags"
@@ -6361,6 +6376,8 @@ address,name,kind,confidence,notes
 0x00581880,Model_BeginBatch,function,low,"reimplemented (src/game/render/batch); thiscall on a model (index, &size): a draw batch for its material entry index (settings +0x6c), its set's texture, kind 0x1c4 or 0x2c4, TexLoad_DriverFlags; batch +0 and +0x34 set, *size the vertex size; returns the batch or 0"
 0x00581a00,Model_AddTriangles,function,low,"reimplemented (src/game/render/batch); thiscall (batch, matrix, vertices), pops 12, returns 1: the transformer's slot 2 on the vertices, then each material entry's vertices appended to the batch (x and z scaled by 0x8bd4ac) and its faces' corners (remapped) added as indices where the winding test passes"
 0x00565f50,Batch_TransformVertices,function,low,reimplemented (src/game/render/batch); The batch vertices put through the transformer slot 3; its float answer added to the batch +0x30
+0x00565590,Batch_Flush,function,low,"reimplemented (src/game/render/batch); A batch's steps before the draw (name invented, unconfirmed)."
+0x005658c0,Batch_Close,function,low,"reimplemented (src/game/render/batch); A batch closed and flushed (name invented, unconfirmed)."
 0x00569f60,Rasteriser_ChooseSpan,function,high,reimplemented (src/game/render/rasteriser); the span routine chosen by the render flags
 0x00569f20,Rasteriser_ClearMmx,function,high,"reimplemented (src/game/render/rasteriser); EMMS, returns 1 (name unconfirmed)"
 0x0053c8d0,DynFaces_AddSquare,function,high,reimplemented (src/game/render/dynfaces); queues a square dynamic face
@@ -6476,6 +6493,7 @@ address,name,kind,confidence,notes
 0x00562820,ClipEdge_Z0,function,low,"reimplemented (src/game/render/clipedge); cdecl (out, a, b, stride): as ClipEdge_YW for the plane z = 0 (distance z), z = 0"
 0x0056b790,ViewQuad_SetFov,function,low,"reimplemented (src/game/render/viewquad); thiscall (fov degrees): the 0x879d54 quad's corners (-w, h, 1), (w, h, 1), (w, -h, 1), (-w, -h, 1), h = tan(fov pi / 360) / 2 by fptan, w = h / the aspect at 0x8bcbcc"
 0x005653d0,DepthSort_Triangles,function,low,"reimplemented (src/game/render/depthsort); cdecl (keys, triangles, lo, hi): keys[lo..hi] quicksorted largest first (unsigned) with their 6-byte triangles; pivot at (lo + hi) >> 1, left recursed, right looped"
+0x00565490,DepthSort_TrianglesFloat,function,low,"reimplemented (src/game/render/depthsort); The float key depth sort (name invented, unconfirmed)."
 0x00562c90,ClipPoly_Indexed,function,low,"reimplemented (src/game/render/clippoly); thiscall on the block at 0x879a20, unused (flags, vertices, poly, vertexCount, stride; pops 0x14): Sutherland-Hodgman clip of an index polygon against the six view planes (bits of flags), new vertices appended through the ClipEdge table, alternating with a 12-index local polygon; returns poly's count - 2"
 0x00562ed0,ClipPoly_TriangleFan,function,low,"reimplemented (src/game/render/clippoly); stdcall (flags, end, vertices, vertexCount, stride): the triangle of the 3 indices before end clipped by ClipPoly_Indexed, then fanned out in place into count - 2 triangles, last first; returns the end of the triangles"
 0x00562a70,ClipPoly_Vertices,function,low,"reimplemented (src/game/render/clippoly); stdcall (flags, dest, source, count, stride): Sutherland-Hodgman on a polygon of vertices against the planes of the flags (as ClipPoly_Indexed), ping-ponging between dest and source; 0 when a pass leaves 2 or fewer, else 1 with the result in dest"
@@ -6484,6 +6502,12 @@ address,name,kind,confidence,notes
 0x00581cd0,MeshDraws_Add,function,low,"reimplemented (src/game/render/meshdraws); thiscall (list; matrix, b, c, mesh, flags): a mesh added to the mesh draws at [0x8bcbb8]: its vertices' room from the draw buffer, transformed by the transformer's slot 2; 0 with the engine error (1, 0xb0754008) when full, 1 otherwise (also with no vertices or no room, nothing added)"
 0x0057dd10,Ribbon_AddPoint,function,low,"reimplemented (src/game/render/ribbon); thiscall (from, to); name invented, unconfirmed; 0x57eaef, 0x57eba4, 0x57ec0e and 0x57ed1a call it: a ribbon's next point: its first through the projection, later ones through the matrix, a quad between the old edges and the new through DrawBatch_AddPolygon"
 0x005dfcd0,RandomSegments_Ctor,function,low,"reimplemented (src/game/render/randomsegments); an object of two random segments: constructor (vtable 0x702cb0; name invented, unconfirmed)"
+0x00580530,ModelGroup_AddToBatch,function,low,"reimplemented (src/game/render/modelgroup); thiscall (batch, group, stride): one material group of a model's mesh into the batch: UVs (plain, sphere map, a second layer), vertices with colour, faces clipped or not, fog and transform"
+0x00565f90,Batch_DrawQuad,function,low,"reimplemented (src/game/render/batchquad); One textured quad as a batch of its own (name invented, unconfirmed)."
+0x00577ae0,TileGrid_Draw,function,low,"reimplemented (src/game/render/tilegrid); the tiles of a rectangle of a grid of 64-unit cells, each a Batch_DrawQuad (name invented, unconfirmed)"
+0x0057c620,SpriteGroups_Draw,function,low,"reimplemented (src/game/render/spritegroups); a frame's camera-facing sprites by group, each a Batch_DrawQuad (name invented, unconfirmed)"
+0x0058a010,TiledPanel_Draw,function,low,"reimplemented (src/game/render/tiledpanel); a panel of tiles on the screen, anchored, each tile a Batch_DrawQuad (name invented, unconfirmed)"
+0x0057be90,GroundShadow_Draw,function,low,"reimplemented (src/game/render/groundshadow); a flat quad laid over the height grid (name invented, unconfirmed)"
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"
@@ -6605,6 +6629,9 @@ address,name,kind,confidence,notes
 0x004679d0,RideBase_TidyAllUVs,function,low,"reimplemented (src/game/model/baseuvs); RideBase_TidyUVs on the holder's model for the given part, or for each part not flagged 0x200; one warned flag shared"
 0x00469a80,Frame_FitToGrid,function,low,"reimplemented (src/game/model/gridfit); cdecl (node, frame, cursor, matrix by value, grid, place, hits, lift, best frame, best count, flags, only, fine): the frame's vertices placed on or tested against the height grid, then its children"
 0x00469940,Model_FitToGrid,function,low,"reimplemented (src/game/model/gridfit); cdecl (object, owner, lift, flags): the object's frames placed on the owner's grid, then each frame holding a sub-object, fine"
+0x0046aa10,RideBase_FillCells,function,low,"reimplemented (src/game/model/basecells); cdecl (object, grid, width, height, all); name invented, unconfirmed; 0x46a9db calls it: a ride base's cell table: each cell's best triangle along the axes, and its texture's corner and direction"
+0x00452e70,HoardingMesh_Build,function,low,"reimplemented (src/game/model/hoardingmesh); a hoarding's boards built as a mesh around a grid of cells (name invented, unconfirmed)"
+0x0046a5a0,RideBase_Prepare,function,low,"reimplemented (src/game/model/ridebase); a ride base's edge table, and its frames fitted to its grid (name invented, unconfirmed)"
 0x0045aee0,Online_ApplyBalance,function,high,reimplemented (src/game/online/servers); copies Online.sam (gBalanceOnline) into the servers object 0x7a14f0
 0x005d2a80,OnlineServers_Ctor,function,low,"reimplemented (src/game/online/servers); thiscall: the online servers' settings' defaults (the server names, ports and complaints address) as the static initialiser 0x45ad60 builds them at 0x7a14f0; returns the object (name unconfirmed)"
 0x0045ad90,OnlineServers_Dtor,function,low,"reimplemented (src/game/online/servers); thiscall: the servers' destructor: the complaints address, then the six server names released (_Tidy(true)) (name unconfirmed)"

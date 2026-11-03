@@ -9,4 +9,8 @@ extern "C" {
 // triangles (three u16 indices) swapped with them: the pivot is the key at (lo + hi) >> 1, the left part recursed into and the right one
 // looped on. Indices are signed, the sum wraps.
 void __cdecl DepthSort_Triangles(u32 *keys, u8 *triangles, s32 lo, s32 hi);
+
+// 0x565490 (cdecl; keys, triangles, lo, hi; name invented, unconfirmed): the same with float keys, largest first (a NaN stops neither side's walk the same way: the left one on
+// it, the right one past it). A swap moves keys[j] as its bits and keys[i] through the x87 (a signalling NaN quieted).
+void __cdecl DepthSort_TrianglesFloat(float *keys, u8 *triangles, s32 lo, s32 hi);
 }

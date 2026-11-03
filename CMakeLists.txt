@@ -22,6 +22,7 @@ add_library(tpw_game STATIC
     src/game/rsse/scriptfile.cpp
     src/game/rsse/scriptkill.cpp
     src/game/rsse/rsseexec.cpp
+    src/game/rsse/rssetick.cpp
     src/game/core/app.cpp
     src/game/core/crt.cpp
     src/game/core/fpu.cpp
@@ -253,6 +254,7 @@ add_library(tpw_game STATIC
     src/game/gfx/overlayload.cpp
     src/game/gfx/tqiframe.cpp
     src/game/gfx/dctmacroblock.cpp
+    src/game/gfx/spriteframelights.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp
     src/game/math/rect.cpp
@@ -264,6 +266,8 @@ add_library(tpw_game STATIC
     src/game/math/vec2.cpp
     src/game/math/geometry.cpp
     src/game/math/transform.cpp
+    src/game/math/rectclip.cpp
+    src/game/math/convexhull.cpp
     src/game/motion/curve.cpp
     src/game/motion/keys.cpp
     src/game/motion/quat.cpp
@@ -365,6 +369,7 @@ add_library(tpw_game STATIC
     src/game/world/staffwork.cpp
     src/game/world/staffctors.cpp
     src/game/world/staffsteps.cpp
+    src/game/world/trakcarpose.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp
@@ -390,6 +395,8 @@ add_library(tpw_game STATIC
     src/game/coaster/editupdate.cpp
     src/game/coaster/testrun.cpp
     src/game/coaster/typemodel.cpp
+    src/game/coaster/nodeangles.cpp
+    src/game/coaster/handles.cpp
     src/game/terrain/terrain_blend.cpp
     src/game/terrain/land.cpp
     src/game/terrain/procedural.cpp
@@ -399,6 +406,8 @@ add_library(tpw_game STATIC
     src/game/terrain/nodecells.cpp
     src/game/terrain/tct.cpp
     src/game/terrain/attrmap.cpp
+    src/game/terrain/water.cpp
+    src/game/terrain/ground.cpp
     src/game/model/parts.cpp
     src/game/model/holder.cpp
     src/game/model/remap.cpp
@@ -420,6 +429,9 @@ add_library(tpw_game STATIC
     src/game/model/baseuvs.cpp
     src/game/model/md2file.cpp
     src/game/model/gridfit.cpp
+    src/game/model/basecells.cpp
+    src/game/model/hoardingmesh.cpp
+    src/game/model/ridebase.cpp
     src/game/render/mode.cpp
     src/game/render/frame.cpp
     src/game/render/screen.cpp
@@ -462,6 +474,12 @@ add_library(tpw_game STATIC
     src/game/render/meshdraws.cpp
     src/game/render/ribbon.cpp
     src/game/render/randomsegments.cpp
+    src/game/render/modelgroup.cpp
+    src/game/render/batchquad.cpp
+    src/game/render/tilegrid.cpp
+    src/game/render/spritegroups.cpp
+    src/game/render/tiledpanel.cpp
+    src/game/render/groundshadow.cpp
     src/game/online/servers.cpp
     src/game/online/session.cpp
     src/game/online/itemlist.cpp

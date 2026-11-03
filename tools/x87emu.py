@@ -804,6 +804,9 @@ MMX = {'PADDW': lambda d, s: _join([a + b for a, b in zip(_lanes(d, 16), _lanes(
        'PUNPCKLDQ': lambda d, s: _join([d & 0xffffffff, s & 0xffffffff], 32),
        'PUNPCKHDQ': lambda d, s: _join([d >> 32, s >> 32], 32),
        'PADDD': lambda d, s: _join([a + b for a, b in zip(_lanes(d, 32), _lanes(s, 32))], 32),
+       'PSUBD': lambda d, s: _join([a - b for a, b in zip(_lanes(d, 32), _lanes(s, 32))], 32),
+       'PADDB': lambda d, s: _join([a + b for a, b in zip(_lanes(d, 8), _lanes(s, 8))], 8),
+       'PACKSSWB': lambda d, s: _join([min(0x7f, max(-0x80, _signed(x, 16))) for x in _lanes(d, 16) + _lanes(s, 16)], 8),
        'PSLLD': _shift(lambda x, s: x << s, 32),
        'PSRAD': lambda d, s: _join([_signed(x, 32) >> min(s, 31) for x in _lanes(d, 32)], 32),
        'PMADDWD': lambda d, s: _join([_signed(a[0], 16) * _signed(b[0], 16) + _signed(a[1], 16) * _signed(b[1], 16)

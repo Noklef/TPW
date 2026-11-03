@@ -6,8 +6,13 @@
 #include "../files/quickload.h"
 #include "../gfx/texman.h"
 #include "../gfx/texture.h"
+#include "../math/mat4.h"
 #include "../math/x87.h"
+#include "../render/batch.h"
+#include "../render/batchquad.h"
+#include "../render/drawbuffer.h"
 #include "../render/engineerrors.h"
+#include "../render/quad.h"
 
 namespace {
 
@@ -234,5 +239,229 @@ u32 __fastcall Landscape_LoadSky(u8 *landscape, void *, const char *folder) {
     }
     LoadSky(landscape, 0x1fd8, folder, reinterpret_cast<const char *>((uintptr_t)0x00768d80));   // "sky\sky_cyl.tga"
     return 1;
+}
+}
+
+namespace {
+
+template <typename T> T &G(uintptr_t address) { return *reinterpret_cast<T *>(address); }
+const float &K(uintptr_t address) { return *reinterpret_cast<const float *>(address); }
+
+const LandscapeDrawEnv kDrawPortEnv = {&Batch_Begin, &DrawBatch_AddClippedTriangles, &Batch_Close, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0)};
+const LandscapeDrawEnv *g_drawEnv = &kDrawPortEnv;
+const u32 kFarBits = 0x4cbebc20;  // (the depth of the sky's layers: 1e8)
+
+// A sprite's vertices (four of x, y, z, w): the corners turned, then x scaled and all moved to the sprite's place, with the original's register and memory operands.
+void PlaceSprite(float *v, const float *place) {
+    const float &scale = K(0x008bcbcc);
+    const X87Reg x0 = X87Reg(v[0]) * scale, x1 = X87Reg(v[4]) * scale;
+    const float x2 = (float)(X87Reg(v[8]) * scale), x3 = (float)(X87Reg(v[12]) * scale);
+    v[0] = (float)(X87Reg(place[0]) + x0);
+    v[1] = (float)(X87Reg(place[1]) + v[1]);
+    v[4] = (float)(X87Reg(place[0]) + x1);
+    v[5] = (float)(X87Reg(place[1]) + v[5]);
+    v[8] = (float)(X87Reg(place[0]) + x2);
+    v[9] = (float)(X87Reg(place[1]) + v[9]);
+    v[12] = (float)(X87Reg(place[0]) + x3);
+    v[13] = (float)(X87Reg(place[1]) + v[13]);
+    for (u32 i = 0; i < 4; i++) {
+        at<u32>(v, i * 0x10 + 8) = at<u32>(place, 8);
+        at<u32>(v, i * 0x10 + 0xc) = at<u32>(place, 0xc);
+    }
+}
+
+// The two statics' matrix (0xfb3460): the identity on the first use, then the landscape's matrix through the transformer's slot 6 with `with`, kept in the landscape.
+void JoinMatrix(u8 *landscape, u32 with) {
+    if (!(G<u32>(0x00fb3440) & 1)) {
+        std::memset(reinterpret_cast<void *>((uintptr_t)0x00fb3460), 0, 0x40);
+        G<u32>(0x00fb3440) |= 1;
+        G<u32>(0x00fb3460) = G<u32>(0x00fb3474) = G<u32>(0x00fb3488) = G<u32>(0x00fb349c) = 0x3f800000;
+        g_drawEnv->atExit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x005d1750));
+    }
+    u8 *const transformer = G<u8 *>(0x0087b1d8);
+    at<void(__cdecl *)(u8 *, u8 *, u32, u32)>(at<const u8 *>(transformer, 0), 0x18)(transformer, landscape + 0x2ecc, with, 0x00fb3460);
+    std::memcpy(landscape + 0x2ecc, reinterpret_cast<const void *>((uintptr_t)0x00fb3460), 0x40);
+}
+
+void TransformPoints(u8 *landscape, u8 *out, const void *points, u32 stride, u32 count) {
+    u8 *const transformer = G<u8 *>(0x0087b1d8);
+    at<void(__cdecl *)(u8 *, u8 *, u8 *, const void *, u32, u32, u32, u32)>(at<const u8 *>(transformer, 0), 4)(transformer, landscape + 0x2ecc, out, points, stride, 0xc, count, 0);
+}
+
+// The rotation of the sky's texture coordinates, turned a quarter at each layer and kept from one to the next.
+struct SkyTurn {
+    u32 u, offsetU, v, offsetV;
+};
+
+// One layer of the sky: 16 by 16 vertices. Returns false with the answer to end the draw with.
+bool SkyLayer(u8 *landscape, s32 i, const void *points, u32 flags, u32 id, u32 colourMask, u32 stride, SkyTurn &turn, u32 &answer) {
+    u8 *const object = G<u8 *>(0x00879ab0);
+    u8 *const batch = g_drawEnv->begin(object, nullptr, 2, 4, 0x1c4, flags, id);
+    answer = 1;
+    if (!batch) return false;
+    const u8 *const buffer = at<const u8 *>(object, 0x20);
+    const u32 indexEnd = at<u32>(buffer, 0x2c) + at<u32>(buffer, 0x24) * 2;
+    const u32 vertexEnd = at<u32>(buffer, 0x28) + at<u32>(object, 0x1c) * (at<u32>(buffer, 0x20) + 0x100);
+    if (at<u32>(object, 0x28) < vertexEnd || at<u32>(object, 0x2c) < indexEnd) return false;
+    at<u32>(batch, 0) = 0x21;
+    TransformPoints(landscape, at<u8 *>(batch, 0x28), points, stride, 0x100);
+    const SkyTurn was = turn;
+    turn.u = X87_FloatThrough(was.v) ^ 0x80000000;
+    turn.v = X87_FloatThrough(was.u);
+    turn.offsetU = X87_FloatThrough(was.offsetV) ^ 0x80000000;
+    turn.offsetV = X87_FloatThrough(was.offsetU);
+    const X87Reg offsetV = X87Reg(at<float>(&turn.offsetV, 0));
+    const u32 base = (at<u32>(landscape, 0x2f0c) - i * at<u32>(landscape, 0x2f10)) & colourMask;
+    const float &width = at<float>(landscape, 0x21ec + i * 4);
+    const u8 *const centre = landscape + 0x1fa0 + i * 0xc;
+    u8 *vertex = at<u8 *>(batch, 0x28);
+    for (s32 row = 0; row < 16; row++) {
+        for (s32 column = 0; column < 16; column++, vertex += stride) {
+            at<u32>(vertex, 0x10) = base & at<u32>(landscape, 0xf60 + (i * 0x100 + row) * 4 + column * 0x40);
+            at<float>(vertex, 0x18) = (float)((X87Reg((double)column) * X87Reg(width) + at<float>(centre, 0)) * at<float>(&turn.u, 0) + at<float>(&turn.offsetU, 0));
+            at<float>(vertex, 0x1c) = (float)((X87Reg(width) * X87Reg((double)row) + at<float>(centre, 8)) * at<float>(&turn.v, 0) + offsetV);
+        }
+    }
+    u32 count = 0x100;
+    const s32 indices = g_drawEnv->addClipped(object, nullptr, &count, reinterpret_cast<const u16 *>(landscape + 0x21fc), at<s32>(landscape, 0x1f60), 2);
+    G<u32>(0x008bcc3c) = G<u32>(0x008bcc1c);
+    at<u32>(batch, 0x20) = count;
+    at<s32>(batch, 0x24) = indices;
+    if (!g_drawEnv->close(object, nullptr, at<float>(&kFarBits, 0))) {
+        answer = 0;
+        return false;
+    }
+    return true;
+}
+
+// The sky's rim: 0x48 vertices of the second texture, their u a sixteenth at each second column, the v bands kept to the first's or (in a reflection) the second's.
+u32 SkyRim(u8 *landscape, u32 colourMask, u32 stride) {
+    const u8 *const texture = at<const u8 *>(landscape, 0x1fd8);
+    u8 *const object = G<u8 *>(0x00879ab0);
+    u8 *const batch = g_drawEnv->begin(object, nullptr, 2, 4, 0x1c4, 0x1d56, at<u32>(texture, 8) & 0x1000 ? at<u32>(texture, 0x1c) : 0);
+    if (!batch) return 1;
+    at<u32>(batch, 0) = 0x21;
+    TransformPoints(landscape, at<u8 *>(batch, 0x28), landscape, stride, 0x48);
+    const bool reflecting = G<u32>(0x008bcbc8) & 0x2000000;
+    X87Reg q = X87Reg(K(reflecting ? 0x00701f94 : 0x00701f88));
+    const u32 low = reflecting ? 0x3c23d70a : 0x3e2e147b, high = reflecting ? 0x3e428f5c : 0x3eae147b;
+    const float &e = K(0x00701f78);
+    const float a = (float)(X87Reg(at<float>(&high, 0)) - e), b = (float)(X87Reg(at<float>(&low, 0)) - e), c = (float)(q - e);
+    const float qf = (float)q;
+    u8 *vertex = at<u8 *>(batch, 0x28);
+    const auto put = [&](float u, u32 v) {
+        at<float>(vertex, 0x18) = u;
+        at<u32>(vertex, 0x1c) = v;
+        at<u32>(vertex, 0x10) = colourMask;
+        vertex += stride;
+    };
+    for (s32 k = 0; k < 0x12; k += 2) {
+        const float t = (float)(X87Reg((double)k) * K(0x00701f60));
+        put(t, 0x3f7d70a4);
+        put(t, at<u32>(&a, 0));
+        put(t, at<u32>(&b, 0));
+        put(t, at<u32>(&c, 0));
+    }
+    for (s32 k = 0; k < 0x12; k += 2) {
+        const float t = (float)(X87Reg((double)k) * K(0x00701f60));
+        put(t, 0x3efae148);
+        put(t, high);
+        put(t, low);
+        put(t, at<u32>(&qf, 0));
+    }
+    u32 count = 0x48;
+    const s32 indices = g_drawEnv->addClipped(object, nullptr, &count, reinterpret_cast<const u16 *>(landscape + 0x2c88), 0x120, 2);
+    G<u32>(0x008bcc3c) = G<u32>(0x008bcc1c);
+    at<u32>(batch, 0x20) = count;
+    at<s32>(batch, 0x24) = indices;
+    if (!g_drawEnv->close(object, nullptr, 0.0f)) return 0;
+    return Landscape_DrawSprites(landscape, nullptr, 1) ? 1 : 0;
+}
+
+}  // namespace
+
+void Landscape_SetDrawEnv(const LandscapeDrawEnv *env) { g_drawEnv = env ? env : &kDrawPortEnv; }
+
+extern "C" {
+
+u32 __fastcall Landscape_DrawSprites(u8 *landscape, void *, u32 mask) {
+    const u32 render = G<u32>(0x008bcbc8);
+    if (!(render & 0x400000) || (render & 8)) return 1;
+    G<u32>(0x008bcc3c) = 0x3f800000;
+    float vertices[16];
+    u32 spec[11] = {};  // (+0x14 is unset in the original too; Batch_DrawQuad does not read it)
+    spec[0] = 1;
+    spec[1] = (u32)(uintptr_t)vertices;
+    spec[2] = 0xffffffff;
+    spec[10] = 1;
+    for (s32 i = 0; i < at<s32>(landscape, 0x21dc); i++) {
+        const u8 *const entry = landscape + 0x1fdc + i * 0x20;
+        if (!(mask & at<u32>(entry, 8))) continue;
+        const float half = (float)(X87Reg(at<float>(entry, 0x18)) * K(0x00701f50));
+        const u8 *const texture = at<const u8 *>(entry, 0);
+        if (texture) {
+            spec[4] = at<u32>(texture, 8) & 0x1000 ? at<u32>(texture, 0x1c) : 0;
+            spec[3] = Texture_FormatBits(texture);
+            spec[6] = X87_FloatThrough(at<u32>(texture, 0x28));
+            spec[7] = X87_FloatThrough(at<u32>(texture, 0x2c));
+            at<float>(spec, 0x20) = (float)(X87Reg(at<float>(texture, 0x20)) + at<float>(spec, 0x18));
+            at<float>(spec, 0x24) = (float)(X87Reg(at<float>(texture, 0x24)) + at<float>(spec, 0x1c));
+            if (at<u32>(texture, 8) & 0x100000) spec[0] |= 4;
+        } else {
+            spec[4] = 0;
+            spec[3] = 0x1256;
+            spec[6] = spec[7] = spec[8] = spec[9] = 0;
+        }
+        u32 format = at<u32>(entry, 4);
+        if (!format) format = Texture_FormatBits(texture);
+        spec[3] = format | 0x1800;
+        float place[4];
+        Mat4_Transform(reinterpret_cast<const float *>(landscape + 0x2ecc), nullptr, place, reinterpret_cast<const float *>(entry + 0xc), 0);
+        vertices[0] = -half, vertices[1] = half;
+        vertices[4] = half, vertices[5] = half;
+        vertices[8] = half, vertices[9] = -half;
+        vertices[12] = -half, vertices[13] = -half;
+        Quad_TurnXY(vertices, G<float>(0x0087af60), nullptr);
+        PlaceSprite(vertices, place);
+        if (!Batch_DrawQuad(G<u8 *>(0x00879ab0), nullptr, reinterpret_cast<u8 *>(spec), 0xfffffffd)) return 0;
+    }
+    return 1;
+}
+
+u32 __fastcall Landscape_Draw(u8 *landscape) {
+    const u8 *const texture = at<const u8 *>(landscape, 0x1fd0);
+    if (!at<u32>(landscape, 0x2ec8) || !texture || !at<u32>(landscape, 0x1fd8) || G<u32>(0x008bd524) == 4) return 1;
+    const u32 stride = G<u32>(0x00701ed4);
+    const u32 colourMask = at<u32>(G<u8 *>(0x0087a248), 0x2c);
+    const u32 id = at<u32>(texture, 8) & 0x1000 ? at<u32>(texture, 0x1c) : 0;
+    const u32 flags = (G<u32>(0x008bcbc8) & 8 ? 0x1256 : 0x1556) | 0x400800;
+    SkyTurn turn = {};  // (without an id the original's four are unset stack: not benched)
+    if (id) {
+        turn.offsetU = at<u32>(texture, 0x28);
+        turn.offsetV = at<u32>(texture, 0x2c);
+        turn.u = at<u32>(texture, 0x20);
+        turn.v = at<u32>(texture, 0x24);
+    }
+    std::memcpy(landscape + 0x2ecc, G<const void *>(0x0087b154), 0x40);
+    at<u32>(landscape, 0x2efc) = at<u32>(landscape, 0x2f00) = at<u32>(landscape, 0x2f04) = 0;
+    JoinMatrix(landscape, 0x0087b110);
+    JoinMatrix(landscape, 0x0087b0d0);
+    if (!Landscape_DrawSprites(landscape, nullptr, 2)) return 0;
+    const s32 layers = G<u32>(0x008bcbc8) & 8 ? 1 : at<s32>(landscape, 0x2ec8);
+    u32 answer = 1;
+    for (s32 i = 0; i < layers; i++)
+        if (!SkyLayer(landscape, i, landscape + 0x360, flags, id, colourMask, stride, turn, answer)) return answer;
+    if (G<u32>(0x008bcbc8) & 0x2000000) {
+        u32 reflected[256][3];
+        for (u32 p = 0; p < 256; p++) {
+            const u32 *const point = reinterpret_cast<const u32 *>(landscape + 0x360 + p * 0xc);
+            reflected[p][0] = X87_FloatThrough(point[0]) ^ 0x80000000;
+            reflected[p][1] = X87_FloatThrough(point[1]) ^ 0x80000000;
+            reflected[p][2] = point[2];
+        }
+        for (s32 i = 0; i < layers; i++)
+            if (!SkyLayer(landscape, i, reflected, flags, id, colourMask, stride, turn, answer)) return answer;
+    }
+    return SkyRim(landscape, colourMask, stride);
 }
 }

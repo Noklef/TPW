@@ -164,10 +164,28 @@
 #include "../../src/game/world/sign.h"
 #include "../../src/game/world/flyinglaunch.h"
 #include "../../src/game/rsse/rsseexec.h"
+#include "../../src/game/rsse/rssetick.h"
 #include "../../src/game/world/trakridecars.h"
+#include "../../src/game/world/trakcarpose.h"
+#include "../../src/game/model/basecells.h"
 #include "../../src/game/world/trakcarupdate.h"
 #include "../../src/game/world/flyingupdate.h"
 #include "../../src/game/render/ribbon.h"
+#include "../../src/game/render/batch.h"
+#include "../../src/game/render/batchquad.h"
+#include "../../src/game/terrain/landscape.h"
+#include "../../src/game/model/hoardingmesh.h"
+#include "../../src/game/render/tilegrid.h"
+#include "../../src/game/render/spritegroups.h"
+#include "../../src/game/render/tiledpanel.h"
+#include "../../src/game/render/groundshadow.h"
+#include "../../src/game/gfx/spriteframelights.h"
+#include "../../src/game/model/ridebase.h"
+#include "../../src/game/terrain/ground.h"
+#include "../../src/game/terrain/water.h"
+#include "../../src/game/render/weatherfx.h"
+#include "../../src/game/render/modelgroup.h"
+#include "../../src/game/math/transform.h"
 #include "../../src/game/world/mousemode.h"
 #include "../../src/game/world/person.h"
 #include "../../src/game/world/pathdrag.h"
@@ -656,12 +674,48 @@ const EditUpdateEnv kEditUpdateEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorde
 // The coaster test run's (0x43c450) calls: the cdecl recorders 1 of 1, 2 of 7, 3 of 4, 4 and 5 of 2, 6 of 3, 7 of 1, 8 of 2 and 9 of 1, as
 // tests/fncmp/testrun.py hooks them.
 const RibbonEnv kRibbonEnv = {Rec{recorder(2, 5)}};
+const BatchEnv kBatchEnv = {Rec{recorder(1, 1)}, Rec{recorder(2, 2)}};
+const BatchQuadEnv kBatchQuadEnv = {Rec{recorder(11, 5)}, Rec{recorder(12, 5)}, Rec{recorder(13, 2)}, Rec{recorder(14, 0)}};
+const LandscapeDrawEnv kLandscapeDrawEnv = {Rec{recorder(11, 5)}, Rec{recorder(15, 4)}, Rec{recorder(16, 1)}, Rec{jpeg_recorder(17, 1)}};
+// tests/fncmp/terrainwater.py: the transformer's slot 1 is 0x579330 in the original; here its port. ClipPoly_Vertices is stdcall (the COM-style recorder 3 of 5, recorder(k, n, True) in fncmp.py).
+u32 __fastcall water_transform(void *object, void *, u32 a, u32 b, u32 c, u32 d, u32 e, u32 f) {
+    Transform_Vertices(nullptr, static_cast<const float *>(object), reinterpret_cast<float *>((uintptr_t)a), reinterpret_cast<const u8 *>((uintptr_t)b), (s32)c, (s32)d, f, (s32)e);
+    return 0;
+}
+const TerrainWaterEnv kTerrainWaterEnv = {Rec{recorder(1, 5)}, Rec{recorder(2, 1)}, &water_transform, Rec{kStubs + 0x1000 + 0x4000 + 0x800 * 5 + 0x20 * 3}};
+const HoardingMeshEnv kHoardingMeshEnv = {Rec{jpeg_recorder(1, 2)}, Rec{jpeg_recorder(2, 3)}, Rec{jpeg_recorder(3, 4)}};
+const TileGridEnv kTileGridEnv = {Rec{recorder(1, 2)}};
+const SpriteGroupsEnv kSpriteGroupsEnv = {Rec{recorder(1, 2)}};
+const TiledPanelEnv kTiledPanelEnv = {Rec{recorder(1, 2)}};
+const GroundShadowEnv kGroundShadowEnv = {Rec{recorder(1, 2)}};
+const SpriteFrameLightsEnv kSpriteFrameLightsEnv = {Rec{recorder(2, 0)}, Rec{recorder(3, 0)}, Rec{recorder(4, 4)}, Rec{recorder(1, 2)}};
+// RideBase_Prepare's fit has 28 stack dwords, past a recorder's 15: the cdecl recorder 1 of 13, the matrix by address (tests/fncmp/ridebase.py's hook does the same).
+void __cdecl ride_base_fit(const u8 *node, u8 *frame, u16 **cursor, GridFitMatrix matrix, const u8 *grid, u32 place, s32 *hits, float lift, u8 **best, s32 *bestCount, u32 flags,
+                           const u8 *only, u32 fine) {
+    using Fit = void(__cdecl *)(const u8 *, u8 *, u16 **, const GridFitMatrix *, const u8 *, u32, s32 *, float, u8 **, s32 *, u32, const u8 *, u32);
+    reinterpret_cast<Fit>((uintptr_t)jpeg_recorder(1, 13))(node, frame, cursor, &matrix, grid, place, hits, lift, best, bestCount, flags, only, fine);
+}
+const RideBaseEnv kRideBaseEnv = {&ride_base_fit, Rec{jpeg_recorder(2, 5)}, Rec{jpeg_recorder(3, 2)}};
+const TerrainGroundEnv kTerrainGroundEnv = {Rec{recorder(4, 0)}, Rec{recorder(5, 2)}, Rec{recorder(6, 0)}, Rec{recorder(7, 3)}, Rec{recorder(1, 5)}, Rec{recorder(11, 5)}, &water_transform,
+                                            Rec{kStubs + 0x1000 + 0x4000 + 0x800 * 5 + 0x20 * 3}, Rec{recorder(8, 0)}, Rec{recorder(9, 1)}, Rec{jpeg_recorder(10, 3)}, Rec{recorder(2, 1)}};
+const WeatherDrawEnv kWeatherDrawEnv = {Rec{recorder(1, 5)}, Rec{recorder(2, 1)}, Rec{recorder(3, 1)}, Rec{recorder(4, 2)}, Rec{recorder(5, 2)}};
+const WeatherDropsEnv kWeatherDropsEnv = {Rec{recorder(2, 5)}, Rec{recorder(3, 5)}, Rec{recorder(4, 1)}, Rec{recorder(5, 1)}};
+const ModelGroupEnv kModelGroupEnv = {Rec{jpeg_recorder(1, 6)}, Rec{jpeg_recorder(2, 4)}, Rec{recorder(4, 2)}, Rec{kStubs + 0x1000 + 0x4000 + 0x800 * 5 + 0x20 * 5}};
 const FlyingUpdateEnv kFlyingUpdateEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorder(2, 5)}, Rec{jpeg_recorder(3, 2)}, Rec{jpeg_recorder(4, 3)}, Rec{jpeg_recorder(5, 4)},
                                           Rec{jpeg_recorder(6, 3)}, Rec{jpeg_recorder(7, 1)}, Rec{jpeg_recorder(8, 1)}, Rec{jpeg_recorder(9, 2)}};
 const TrakCarUpdateEnv kTrakCarUpdateEnv = {Rec{jpeg_recorder(1, 3)}, Rec{jpeg_recorder(2, 2)}, Rec{jpeg_recorder(3, 4)}, Rec{jpeg_recorder(4, 2)}, Rec{jpeg_recorder(5, 1)},
     Rec{jpeg_recorder(6, 1)}, Rec{jpeg_recorder(7, 2)}, Rec{jpeg_recorder(8, 6)}};
 const TrakRideCarsEnv kTrakRideCarsEnv = {Rec{jpeg_recorder(1, 2)}, Rec{jpeg_recorder(2, 4)}, Rec{jpeg_recorder(3, 2)}, Rec{jpeg_recorder(4, 6)}, Rec{jpeg_recorder(5, 2)},
     Rec{jpeg_recorder(6, 10)}, Rec{jpeg_recorder(7, 1)}};
+// RSSE_Tick's calls: the VM as it is (or a recorder would never end its loop), the rest cdecl recorders, as tests/fncmp/rssetick.py hooks them.
+// TrakCars_Update's calls: the cdecl recorders 1-5 of 1, as tests/fncmp/trakcars.py hooks them.
+// TrakRide_PoseCars's calls: cdecl recorders, as tests/fncmp/trakcarpose.py's.
+const TrakPoseEnv kTrakPoseEnv = {Rec{jpeg_recorder(1, 2)}, Rec{jpeg_recorder(2, 1)}, Rec{jpeg_recorder(3, 3)}, Rec{jpeg_recorder(4, 4)}};
+// RideBase_FillCells's calls: cdecl recorders, as tests/fncmp/basecells.py's.
+const BaseCellsEnv kBaseCellsEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorder(2, 2)}, Rec{jpeg_recorder(3, 1)}, Rec{jpeg_recorder(4, 5)}};
+const TrakCarsEnv kTrakCarsEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorder(2, 1)}, Rec{jpeg_recorder(3, 1)}, Rec{jpeg_recorder(4, 1)}, Rec{jpeg_recorder(5, 1)}};
+const RsseTickEnv kRsseTickEnv = {&RSSE_ExecuteInstruction, Rec{jpeg_recorder(29, 2)}, Rec{jpeg_recorder(22, 2)}, Rec{jpeg_recorder(19, 2)}, Rec{jpeg_recorder(3, 2)}, Rec{jpeg_recorder(30, 2)},
+    Rec{jpeg_recorder(9, 4)}, Rec{jpeg_recorder(21, 4)}, Rec{jpeg_recorder(29, 4)}, Rec{jpeg_recorder(30, 4)}, Rec{jpeg_recorder(18, 2)}};
 const RsseExecEnv kRsseExecEnv = {Rec{jpeg_recorder(31, 0)}, Rec{jpeg_recorder(19, 1)}, Rec{jpeg_recorder(28, 1)}, Rec{jpeg_recorder(2, 5)}, Rec{jpeg_recorder(3, 5)},
     Rec{jpeg_recorder(9, 2)}, Rec{jpeg_recorder(6, 1)}, Rec{jpeg_recorder(7, 1)}, Rec{jpeg_recorder(4, 3)}, Rec{jpeg_recorder(31, 2)},
     Rec{jpeg_recorder(1, 6)}, Rec{jpeg_recorder(2, 4)}, Rec{jpeg_recorder(1, 3)}, Rec{jpeg_recorder(2, 3)}, Rec{jpeg_recorder(3, 3)},
@@ -1668,10 +1722,29 @@ int main(int argc, char **argv) {
     Sign_SetEnv(&kSignEnv);
     FlyingLaunch_SetEnv(&kFlyingLaunchEnv);
     RsseExec_SetEnv(&kRsseExecEnv);
+    RsseTick_SetEnv(&kRsseTickEnv);
+    TrakCars_SetEnv(&kTrakCarsEnv);
+    TrakPose_SetEnv(&kTrakPoseEnv);
+    BaseCells_SetEnv(&kBaseCellsEnv);
     TrakRideCars_SetEnv(&kTrakRideCarsEnv);
     TrakCarUpdate_SetEnv(&kTrakCarUpdateEnv);
     FlyingUpdate_SetEnv(&kFlyingUpdateEnv);
     Ribbon_SetEnv(&kRibbonEnv);
+    Batch_SetEnv(&kBatchEnv);
+    BatchQuad_SetEnv(&kBatchQuadEnv);
+    Landscape_SetDrawEnv(&kLandscapeDrawEnv);
+    TerrainWater_SetEnv(&kTerrainWaterEnv);
+    TerrainGround_SetEnv(&kTerrainGroundEnv);
+    HoardingMesh_SetEnv(&kHoardingMeshEnv);
+    TileGrid_SetEnv(&kTileGridEnv);
+    SpriteGroups_SetEnv(&kSpriteGroupsEnv);
+    TiledPanel_SetEnv(&kTiledPanelEnv);
+    GroundShadow_SetEnv(&kGroundShadowEnv);
+    SpriteFrameLights_SetEnv(&kSpriteFrameLightsEnv);
+    RideBase_SetEnv(&kRideBaseEnv);
+    WeatherFx_SetDrawEnv(&kWeatherDrawEnv);
+    WeatherFx_SetDropsEnv(&kWeatherDropsEnv);
+    ModelGroup_SetEnv(&kModelGroupEnv);
     Object_SetEnv(&kObjectEnv);
     StatsGraph_SetEnv(&kStatsGraphEnv);
     ThingBrowser_SetPatrolEnv(&kThingPatrolEnv);

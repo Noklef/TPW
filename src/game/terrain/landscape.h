@@ -10,7 +10,30 @@
 
 #include "../../../re/types.h"
 
+// What Landscape_Draw calls (the ports by default; the bench runs them as recorders).
+struct LandscapeDrawEnv {
+    u8 *(__fastcall *begin)(u8 *object, void *, u32 mode, u32 texture, u32 kind, u32 flags, u32 extra);  // Batch_Begin (0x565240)
+    s32(__fastcall *addClipped)(u8 *object, void *, u32 *vertexCount, const u16 *indices, s32 count, u32 mask);  // DrawBatch_AddClippedTriangles (0x565960)
+    u32(__fastcall *close)(u8 *object, void *, float depth);  // Batch_Close (0x5658c0)
+    s32(__cdecl *atExit)(void(__cdecl *)());                  // atexit (0x67a7d0)
+};
+// The calls go to env (nullptr: the ports).
+void Landscape_SetDrawEnv(const LandscapeDrawEnv *env);
+
 extern "C" {
+
+// 0x5860d0 (thiscall (mask), pops 4; name invented, unconfirmed): the sprites at +0x1fdc (0x20 bytes each, count +0x21dc: +0 texture, +4 format or 0 for the texture's, +8 mask bits, +0xc place, +0x18
+// size), only with the render flags' 0x400000 and without 8; [0x8bcc3c] = 1.0. Each meeting the mask: its place through the matrix at +0x2ecc (Mat4_Transform), a quad of half its size turned by
+// [0x87af60] (Quad_TurnXY), x scaled by [0x8bcbcc], and Batch_DrawQuad on the object at [0x879ab0] with mask -3 (0 from it: 0 is returned). Else 1.
+u32 __fastcall Landscape_DrawSprites(u8 *landscape, void *, u32 mask);
+
+// 0x5863c0 (thiscall; name invented, unconfirmed): the sky. 1 at once without a detail level (+0x2ec8), either texture (+0x1fd0, +0x1fd8) or with the driver kind (0x8bd524) 4. The matrix at +0x2ecc from
+// the one at [0x87b154] (its +0x30.. cleared), through the transformer's slot 6 with 0x87b110 and then 0x87b0d0 (the static at 0xfb3460, made the identity on its first use). The sprites of mask 2; a layer (one with
+// the render flags' 8, else the detail level) of 16 by 16 vertices each, from the grid at +0x360, their colours from +0xf60 and the fade +0x2f0c less layer * +0x2f10, the texture's four coordinates turned a
+// quarter at each layer (sic: they stay turned); with the flags' 0x2000000 the layers again with the grid's x and y negated. Last a rim of 0x48 vertices of the second texture from +0, and the sprites of
+// mask 1. A batch not begun or no room: 1; Batch_Close answering 0 or the sprites 0: 0. Without a texture id the original's coordinates are unset stack (the port's are 0; not benched).
+u32 __fastcall Landscape_Draw(u8 *landscape);
+
 
 // 0x584ef0 (thiscall; the constructor of 0x8c1828, run by the static initializer 0x584ec0; name unconfirmed): +0x2ecc an identity
 // matrix, +0x21e8 = 24000.0, the size +0x21e0 / +0x21e4 = 0x960, +0x1f68 = 300.0, the detail level +0x2ec8 = 1 when [0x8bd524] is 4,

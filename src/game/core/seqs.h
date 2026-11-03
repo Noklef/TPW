@@ -90,4 +90,8 @@ void __fastcall Bands_SortValues(const u8 *object, void *, u32 *values, s32 lo, 
 // [+4] (0 for none), goes to the next of textures; its id (+0x1c when its +8 has bit 0x1000, else 0; 0 for none) is added to ids
 // unless among the first *count (as read before the search) already. Then Bands_SortValues(ids, 0, *count - 1).
 void __fastcall Bands_CollectTextures(u8 *object, void *, u32 *ids, s32 *count, u32 *textures);
+
+// 0x56f570 (thiscall; records, lo, hi; pops 0xc; name invented, unconfirmed): the 16-byte records lo..hi quicksorted by their first dword (unsigned), the pivot the record at the middle;
+// `this` only passed on. Unlike Bands_SortValues, the downward scan stops at lo.
+void __fastcall Bands_SortRecords(const u8 *object, void *, u8 *records, s32 lo, s32 hi);
 }  // extern "C"

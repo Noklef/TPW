@@ -1,8 +1,12 @@
 #include "batch.h"
 
 #include <cstdint>
+#include <xmmintrin.h>
 
+#include "depthsort.h"
 #include "drawbuffer.h"
+#include "fixedverts.h"
+#include "../core/vcall.h"
 #include "../math/x87.h"
 #include "vertexfog.h"
 #include "texformat.h"
@@ -13,7 +17,12 @@ namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
+const BatchEnv kPortEnv = {&DrawBuffer_Begin, &DrawBuffer_End};
+const BatchEnv *g_env = &kPortEnv;
+
 }  // namespace
+
+void Batch_SetEnv(const BatchEnv *env) { g_env = env ? env : &kPortEnv; }
 
 extern "C" {
 
@@ -109,6 +118,76 @@ void __fastcall Batch_TransformVertices(u8 *object, void *, u32 arg) {
     void *const *const vtable = *static_cast<void *const *const *>(transformer);
     const float answer = reinterpret_cast<Slot>(vtable[3])(transformer, at<u8 *>(batch, 0x28), at<u32>(object, 0x1c), count, arg);
     at<float>(batch, 0x30) = (float)(X87Reg(answer) + at<float>(batch, 0x30));
+}
+
+u32 __fastcall Batch_Flush(u8 *object, void *) {
+    if (at<u32>(at<u8 *>(object, 0x20), 0) & 0x40)
+        Batch_Fog(object, nullptr);
+    const u32 flags = at<u32>(at<u8 *>(object, 0x20), 0);
+    if (flags & 0x20)
+        Batch_TransformVertices(object, nullptr, flags & 0xf);
+    u8 *batch = at<u8 *>(object, 0x20);
+    if ((at<u32>(batch, 0) & 0x400) && at<u32>(batch, 0x20)) {
+        const s32 kind = global<s32>(0x008bd524);
+        const float half = kind == 4 || (global<u32>(0x008bcbc8) & 0x8000002) ? 0.0f : 0.5f;
+        u8 *vertex = at<u8 *>(batch, 0x28);
+        for (u32 count = at<u32>(batch, 0x20); count != 0; --count) {
+            for (u32 axis = 0; axis < 8; axis += 4) {
+                const s32 n = _mm_cvtss_si32(_mm_set_ss(at<float>(vertex, axis)));
+                global<s32>(0x00fb34a4) = n;
+                at<float>(vertex, axis) = (float)(X87Reg((double)n) - half);
+            }
+            vertex += at<u32>(object, 0x1c);
+        }
+    }
+    if (global<s32>(0x008bd524) == 4 && !(at<u32>(at<u8 *>(object, 0x20), 0) & 0x100)) {
+        batch = at<u8 *>(object, 0x20);
+        FixedVerts_PackRounded(at<u8 *>(batch, 0x28), at<u32>(batch, 0x20), at<s32>(object, 0x1c));
+    }
+    batch = at<u8 *>(object, 0x20);
+    at<float>(batch, 0x30) = (float)(at<float>(batch, 0x30) / X87Reg((double)at<s32>(batch, 0x20)));
+    batch = at<u8 *>(object, 0x20);
+    const u32 wanted = at<u32>(batch, 4);
+    if ((wanted & at<u32>(object, 0xc)) || (at<u32>(batch, 0) & 0x200)) {
+        const u32 answer = vcall<u32>(object, 0x10, batch);
+        if (!answer) {
+            at<u32>(object, 0x20) = 0;
+            return 0;
+        }
+        at<u32>(at<u8 *>(object, 0x20), 0) |= 0x10;
+    } else if (wanted != 0x800 && (global<s32>(0x008bd524) == 1 || (global<s32>(0x008bd524) == 4 && !(wanted & 0x1000)))) {
+        u8 *const block = g_env->begin(global<u8 *>(0x008bcbc4), nullptr, 6);
+        const s32 triangles = at<s32>(batch, 0x24) / 3;
+        const u8 *const vertices = at<u8 *>(batch, 0x28);
+        const u16 *index = at<u16 *>(batch, 0x2c);
+        if (global<s32>(0x008bd524) == 1) {
+            float *const keys = reinterpret_cast<float *>(block + 0x28);
+            for (s32 i = 0; i < triangles; ++i, index += 3) {
+                reinterpret_cast<u32 *>(keys)[i] = at<u32>(vertices, index[0] * at<u32>(object, 0x1c) + 8);
+                keys[i] = (float)(X87Reg(at<float>(vertices, index[1] * at<u32>(object, 0x1c) + 8)) + keys[i]);
+                keys[i] = (float)(X87Reg(at<float>(vertices, index[2] * at<u32>(object, 0x1c) + 8)) + keys[i]);
+            }
+            DepthSort_TrianglesFloat(keys, at<u8 *>(batch, 0x2c), 0, triangles - 1);
+        } else {
+            u32 *const keys = reinterpret_cast<u32 *>(block + 0x28);
+            for (s32 i = 0; i < triangles; ++i, index += 3)
+                keys[i] = at<u32>(vertices, index[0] * 0x18u + 8) + at<u32>(vertices, index[1] * 0x18u + 8) + at<u32>(vertices, index[2] * 0x18u + 8);
+            DepthSort_Triangles(keys, at<u8 *>(batch, 0x2c), 0, triangles - 1);
+        }
+    }
+    at<u32>(object, 0x20) = 0;
+    return 1;
+}
+
+u32 __fastcall Batch_Close(u8 *object, void *, float depth) {
+    u8 *const batch = at<u8 *>(object, 0x20);
+    if (!batch || !at<u32>(batch, 0x20) || !at<u32>(batch, 0x24))
+        return 1;
+    if (depth != -1.0f && depth == depth)   // (0x701258; equal or unordered: kept)
+        at<u32>(batch, 0x30) = *reinterpret_cast<const u32 *>(&depth);
+    const u32 stride = at<u32>(object, 0x1c);
+    g_env->end(global<u8 *>(0x008bcbc4), nullptr, at<u32>(batch, 0x28) + stride * at<u32>(batch, 0x20), at<u32>(batch, 0x2c) + at<u32>(batch, 0x24) * 2);
+    return Batch_Flush(object, nullptr);
 }
 
 u32 __fastcall Model_AddTriangles(u8 *model, void *, u8 *batch, const void *matrix, const u8 *vertices) {

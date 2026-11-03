@@ -53,8 +53,10 @@
 #include "../game/math/intsin.h"
 #include "../game/math/mat4.h"
 #include "../game/math/bits.h"
+#include "../game/math/convexhull.h"
 #include "../game/math/geometry.h"
 #include "../game/math/rect.h"
+#include "../game/math/rectclip.h"
 #include "../game/math/sintable.h"
 #include "../game/math/transform.h"
 #include "../game/math/vec2.h"
@@ -152,6 +154,7 @@
 #include "../game/gfx/overlayload.h"
 #include "../game/gfx/refblock.h"
 #include "../game/gfx/signstyle.h"
+#include "../game/gfx/spriteframelights.h"
 #include "../game/gfx/tgqvideo.h"
 #include "../game/gfx/tqiframe.h"
 #include "../game/gfx/tqivideo.h"
@@ -254,6 +257,7 @@
 #include "../game/motion/vertexanim.h"
 #include "../game/rsse/rsse.h"
 #include "../game/rsse/rsseexec.h"
+#include "../game/rsse/rssetick.h"
 #include "../game/rsse/scream.h"
 #include "../game/rsse/scriptfile.h"
 #include "../game/rsse/scriptkill.h"
@@ -277,6 +281,8 @@
 #include "../game/coaster/contacts.h"
 #include "../game/coaster/edittools.h"
 #include "../game/coaster/editupdate.h"
+#include "../game/coaster/handles.h"
+#include "../game/coaster/nodeangles.h"
 #include "../game/coaster/placecheck.h"
 #include "../game/coaster/ridebounds.h"
 #include "../game/coaster/setup.h"
@@ -294,7 +300,9 @@
 #include "../game/terrain/tct.h"
 #include "../game/terrain/terrain_blend.h"
 #include "../game/terrain/attrmap.h"
+#include "../game/terrain/ground.h"
 #include "../game/terrain/texcache.h"
+#include "../game/terrain/water.h"
 #include "../game/world/random.h"
 #include "../game/world/camera.h"
 #include "../game/world/cellrun.h"
@@ -373,6 +381,7 @@
 #include "../game/world/staffwork.h"
 #include "../game/world/trackline.h"
 #include "../game/world/trackmessage.h"
+#include "../game/world/trakcarpose.h"
 #include "../game/world/trakcarroute.h"
 #include "../game/world/trakcarupdate.h"
 #include "../game/world/trakridecars.h"
@@ -403,6 +412,9 @@
 #include "../game/model/baseuvs.h"
 #include "../game/model/gridfit.h"
 #include "../game/model/md2file.h"
+#include "../game/model/basecells.h"
+#include "../game/model/hoardingmesh.h"
+#include "../game/model/ridebase.h"
 #include "../game/model/worldverts.h"
 #include "../game/render/frame.h"
 #include "../game/render/lightlist.h"
@@ -419,6 +431,7 @@
 #include "../game/render/drawbuffer.h"
 #include "../game/render/texformat.h"
 #include "../game/render/batch.h"
+#include "../game/render/batchquad.h"
 #include "../game/render/rasteriser.h"
 #include "../game/render/dynfaces.h"
 #include "../game/render/lightsource.h"
@@ -437,10 +450,15 @@
 #include "../game/render/fixedverts.h"
 #include "../game/render/texcoords.h"
 #include "../game/render/graphicssettings.h"
+#include "../game/render/groundshadow.h"
 #include "../game/render/meshdraws.h"
+#include "../game/render/modelgroup.h"
 #include "../game/render/randomsegments.h"
 #include "../game/render/ribbon.h"
+#include "../game/render/spritegroups.h"
 #include "../game/render/textparts.h"
+#include "../game/render/tiledpanel.h"
+#include "../game/render/tilegrid.h"
 #include "../game/render/transformer.h"
 #include "../game/render/vertexblock.h"
 #include "../game/render/viewquad.h"
@@ -3909,6 +3927,7 @@ const Hook kHooks[] = {
     {"Dwords_Zero",               0x00598770, (void *)&Dwords_Zero, {0x8b, 0x4c, 0x24, 0x08, 0x57}},
     {"Bands_SortValues",          0x0056f2f0, (void *)&Bands_SortValues, {0x51, 0x53, 0x8b, 0x5c, 0x24}},
     {"Bands_CollectTextures",     0x0056f380, (void *)&Bands_CollectTextures, {0x83, 0xec, 0x10, 0x55, 0x56}},
+    {"Bands_SortRecords",         0x0056f570, (void *)&Bands_SortRecords, {0x83, 0xec, 0x18, 0x53, 0x8b}},
     {"ReturnOne",                 0x005f4ea0, (void *)&ReturnOne, {0x33, 0xc0, 0x0f, 0x28, 0xc0}},
     {"Low16_414670",              0x00414670, (void *)&Low16_414670, {0x8b, 0x44, 0x24, 0x04, 0x25}},
     {"OutOne_44e600",             0x0044e600, (void *)&OutOne_44e600, {0x8b, 0x44, 0x24, 0x10, 0xc7}},
@@ -4126,6 +4145,8 @@ const Hook kHooks[] = {
     {"Transform_ProjectToScreen", 0x00579690, (void *)&Transform_ProjectToScreen, {0x8b, 0x44, 0x24, 0x14, 0x56}},
     {"Transform_Concatenate",     0x00579800, (void *)&Transform_Concatenate, {0x55, 0x8b, 0xec, 0x8b, 0x4d}},
     {"Transform_SseProbe",        0x00579a80, (void *)&Transform_SseProbe, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"Polygon_ClipToRect",        0x0056c5a0, (void *)&Polygon_ClipToRect, {0x55, 0x8b, 0xec, 0x81, 0xec}},
+    {"ConvexHull_AddPoint",       0x0056bd60, (void *)&ConvexHull_AddPoint, {0x55, 0x8b, 0xec, 0x81, 0xec}},
     {"Table_ScaledBySum",         0x00503980, (void *)&Table_ScaledBySum, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
     {"Staff_Train",               0x00505a10, (void *)&Staff_Train, {0x53, 0x56, 0x8b, 0xf1, 0x57}},
     {"Staff_CountTypes",          0x00508000, (void *)&Staff_CountTypes, {0x83, 0xec, 0x0c, 0x33, 0xc0}},
@@ -4210,6 +4231,7 @@ const Hook kHooks[] = {
     {"WaveletCodec_Create",       0x005985c0, (void *)&WaveletCodec_Create, {0x6a, 0xff, 0x68, 0x0b, 0xf6}},
     {"Wavelet_Startup",           0x00564b20, (void *)&Wavelet_Startup, {0xa1, 0x68, 0x9a, 0x87, 0x00}},
     {"WaveletCodec_ScalarDelete", 0x00598800, (void *)&WaveletCodec_ScalarDelete, {0x56, 0x57, 0x8d, 0x79, 0xac}},
+    {"WaveletCodec_DecodeV12",    0x00593ab0, (void *)&WaveletCodec_DecodeV12, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Record_IsActive",           0x0059c610, (void *)&Record_IsActive, {0x8b, 0x4c, 0x24, 0x04, 0x81}},
     {"ObjectDef_FindMarkedCells", 0x00413410, (void *)&ObjectDef_FindMarkedCells, {0x6a, 0xff, 0x68, 0x58, 0x7e}},
     {"ObjectDef_Ctor",            0x00412c20, (void *)&ObjectDef_Ctor, {0x56, 0x8b, 0xf1, 0x8d, 0x4e}},
@@ -4487,6 +4509,8 @@ const Hook kHooks[] = {
     {"CoasterEdit_Update",        0x00443340, (void *)&CoasterEdit_Update, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Coaster_TestRun",           0x0043c450, (void *)&Coaster_TestRun, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"CoasterType_ReadModel",     0x00430590, (void *)&CoasterType_ReadModel, {0x51, 0x8b, 0x44, 0x24, 0x10}},
+    {"Coaster_NodeAngles",        0x00438ab0, (void *)&Coaster_NodeAngles, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"TrackPiece_Handles",        0x00431660, (void *)&TrackPiece_Handles, {0x83, 0xec, 0x78, 0x53, 0x55}},
     {"Thing_SpriteChoice",        0x004fcac0, (void *)&Thing_SpriteChoice, {0x51, 0x56, 0x8b, 0xf1, 0x6a}},
     {"Thing_IngredientRecord",    0x004e2200, (void *)&Thing_IngredientRecord, {0x51, 0x66, 0x8b, 0x41, 0x0e}},
     {"Class701378_Ctor",          0x005667d0, (void *)&Class701378_Ctor, {0x51, 0x8b, 0x44, 0x24, 0x08}},
@@ -5813,6 +5837,7 @@ const Hook kHooks[] = {
     {"FlyingRide_Create",         0x0055a620, (void *)&FlyingRide_Create, {0x53, 0x55, 0x56, 0xbd, 0x01}},
     {"FlyingRides_Update",        0x0055abf0, (void *)&FlyingRides_Update, {0x83, 0xec, 0x14, 0x53, 0x55}},
     {"TrakCar_Update",            0x005474b0, (void *)&TrakCar_Update, {0x83, 0xec, 0x10, 0x53, 0x55}},
+    {"TrakCars_Update",           0x00546c80, (void *)&TrakCars_Update, {0xa1, 0x58, 0x7b, 0x87, 0x00}},
     {"TrakRide_Break",            0x00544c80, (void *)&TrakRide_Break, {0x8b, 0x0d, 0x58, 0x7b, 0x87}},
     {"TrakRide_StartBump",        0x00544f90, (void *)&TrakRide_StartBump, {0x8b, 0x0d, 0x58, 0x7b, 0x87}},
     {"TrakRide_LoadCar",          0x00549b80, (void *)&TrakRide_LoadCar, {0x8b, 0x0d, 0x58, 0x7b, 0x87}},
@@ -5836,6 +5861,7 @@ const Hook kHooks[] = {
     {"Handyman_SweepLitter",      0x004d76a0, (void *)&Handyman_SweepLitter, {0x51, 0x53, 0x55, 0x56, 0x8b}},
     {"Mechanic_WalkToObject",     0x004da740, (void *)&Mechanic_WalkToObject, {0x83, 0xec, 0x08, 0x56, 0x8d}},
     {"Mechanic_Repair",           0x004da830, (void *)&Mechanic_Repair, {0x51, 0x56, 0x57, 0x8b, 0xf1}},
+    {"TrakRide_PoseCars",         0x00546280, (void *)&TrakRide_PoseCars, {0xb8, 0x3c, 0x20, 0x00, 0x00}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
@@ -6036,6 +6062,7 @@ const Hook kHooks[] = {
     {"TqiVideo_DecodeFrame16",    0x00671800, (void *)&TqiVideo_DecodeFrame16, {0x51, 0x56, 0x57, 0x8b, 0x7c}},
     {"TqiVideo_DecodeFrameYuy2",  0x00671940, (void *)&TqiVideo_DecodeFrameYuy2, {0x51, 0x56, 0x8b, 0x74, 0x24}},
     {"DctVideo_DecodeMacroblock", 0x00676e40, (void *)&DctVideo_DecodeMacroblock, {0x51, 0xa1, 0x60, 0xac, 0xfa}},
+    {"SpriteFrame_DrawLightQuads", 0x00589770, (void *)&SpriteFrame_DrawLightQuads, {0x83, 0xec, 0x6c, 0x53, 0x55}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
@@ -6106,6 +6133,9 @@ const Hook kHooks[] = {
     {"WeatherFx_LoadTexture",     0x0057d7f0, (void *)&WeatherFx_LoadTexture, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"WeatherFx_LoadTextures",    0x005508c0, (void *)&WeatherFx_LoadTextures, {0xa1, 0xac, 0xcb, 0x8b, 0x00}},
     {"WeatherFx_ReloadTextures",  0x0057d850, (void *)&WeatherFx_ReloadTextures, {0x56, 0x6a, 0x00, 0x6a, 0x01}},
+    {"WeatherFx_BoltSubdivide",   0x0057e810, (void *)&WeatherFx_BoltSubdivide, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"WeatherFx_DrawBolt",        0x0057ec50, (void *)&WeatherFx_DrawBolt, {0x51, 0x53, 0x56, 0x8b, 0xf1}},
+    {"WeatherFx_DrawDrops",       0x0057f490, (void *)&WeatherFx_DrawDrops, {0xb8, 0xc0, 0x33, 0x00, 0x00}},
     {"Renderer_SetRestoreCallback", 0x00576260, (void *)&Renderer_SetRestoreCallback, {0x8b, 0x44, 0x24, 0x04, 0x89}},
     {"Renderer_SetStateFlags",    0x005763f0, (void *)&Renderer_SetStateFlags, {0x8b, 0x44, 0x24, 0x04, 0x89}},
     {"Renderer_StateFlags",       0x00576400, (void *)&Renderer_StateFlags, {0x8b, 0x41, 0x48, 0xc3, 0x90}},
@@ -6185,6 +6215,8 @@ const Hook kHooks[] = {
     {"Model_BeginBatch",          0x00581880, (void *)&Model_BeginBatch, {0x51, 0x53, 0x55, 0x8b, 0xe9}},
     {"Model_AddTriangles",        0x00581a00, (void *)&Model_AddTriangles, {0x83, 0xec, 0x1c, 0x53, 0x56}},
     {"Batch_TransformVertices",   0x00565f50, (void *)&Batch_TransformVertices, {0x8b, 0x41, 0x20, 0x8b, 0x50}},
+    {"Batch_Flush",               0x00565590, (void *)&Batch_Flush, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Batch_Close",               0x005658c0, (void *)&Batch_Close, {0x56, 0x8b, 0xf1, 0x8b, 0x4e}},
     {"Rasteriser_ChooseSpan",     0x00569f60, (void *)&Rasteriser_ChooseSpan, {0x8b, 0x44, 0x24, 0x04, 0xf6}},
     {"Rasteriser_ClearMmx",       0x00569f20, (void *)&Rasteriser_ClearMmx, {0x0f, 0x77, 0xb8, 0x01, 0x00}},
     {"DynFaces_AddSquare",        0x0053c8d0, (void *)&DynFaces_AddSquare, {0x56, 0x8b, 0x35, 0xe0, 0x1e}},
@@ -6300,6 +6332,7 @@ const Hook kHooks[] = {
     {"ClipEdge_Z0",               0x00562820, (void *)&ClipEdge_Z0, {0x55, 0x8b, 0xec, 0x8b, 0x55}},
     {"ViewQuad_SetFov",           0x0056b790, (void *)&ViewQuad_SetFov, {0xd9, 0x44, 0x24, 0x04, 0xd8}},
     {"DepthSort_Triangles",       0x005653d0, (void *)&DepthSort_Triangles, {0x8b, 0x54, 0x24, 0x0c, 0x53}},
+    {"DepthSort_TrianglesFloat",  0x00565490, (void *)&DepthSort_TrianglesFloat, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
     {"ClipPoly_Indexed",          0x00562c90, (void *)&ClipPoly_Indexed, {0x83, 0xec, 0x34, 0x8d, 0x44}},
     {"ClipPoly_TriangleFan",      0x00562ed0, (void *)&ClipPoly_TriangleFan, {0x83, 0xec, 0x08, 0x8b, 0x44}},
     {"ClipPoly_Vertices",         0x00562a70, (void *)&ClipPoly_Vertices, {0x83, 0xec, 0x14, 0x8b, 0x54}},
@@ -6308,6 +6341,12 @@ const Hook kHooks[] = {
     {"MeshDraws_Add",             0x00581cd0, (void *)&MeshDraws_Add, {0x53, 0x8b, 0xd9, 0x8b, 0x0b}},
     {"Ribbon_AddPoint",           0x0057dd10, (void *)&Ribbon_AddPoint, {0x8b, 0x54, 0x24, 0x04, 0x81}},
     {"RandomSegments_Ctor",       0x005dfcd0, (void *)&RandomSegments_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"ModelGroup_AddToBatch",     0x00580530, (void *)&ModelGroup_AddToBatch, {0xb8, 0x64, 0x20, 0x00, 0x00}},
+    {"Batch_DrawQuad",            0x00565f90, (void *)&Batch_DrawQuad, {0x81, 0xec, 0xb0, 0x02, 0x00}},
+    {"TileGrid_Draw",             0x00577ae0, (void *)&TileGrid_Draw, {0x81, 0xec, 0x98, 0x04, 0x00}},
+    {"SpriteGroups_Draw",         0x0057c620, (void *)&SpriteGroups_Draw, {0x81, 0xec, 0xc4, 0x00, 0x00}},
+    {"TiledPanel_Draw",           0x0058a010, (void *)&TiledPanel_Draw, {0x55, 0x8b, 0xec, 0x81, 0xec}},
+    {"GroundShadow_Draw",         0x0057be90, (void *)&GroundShadow_Draw, {0x81, 0xec, 0xa8, 0x00, 0x00}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
@@ -6433,6 +6472,9 @@ const Hook kHooks[] = {
     {"MD2_Load",                  0x0046d6d0, (void *)&MD2_Load, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"Frame_FitToGrid",           0x00469a80, (void *)&Frame_FitToGrid, {0x55, 0x8b, 0xec, 0x83, 0xe4}},
     {"Model_FitToGrid",           0x00469940, (void *)&Model_FitToGrid, {0x83, 0xec, 0x48, 0x53, 0x55}},
+    {"RideBase_FillCells",        0x0046aa10, (void *)&RideBase_FillCells, {0x55, 0x8b, 0xec, 0x83, 0xe4}},
+    {"HoardingMesh_Build",        0x00452e70, (void *)&HoardingMesh_Build, {0x55, 0x8b, 0xec, 0x83, 0xe4}},
+    {"RideBase_Prepare",          0x0046a5a0, (void *)&RideBase_Prepare, {0x81, 0xec, 0x70, 0x02, 0x00}},
     {"Terrain_IsParkLand",        0x00450420, (void *)&Terrain_IsParkLand, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
     {"Terrain_CopyAttrs",         0x00450a30, (void *)&Terrain_CopyAttrs, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Terrain_GridSize",          0x00450b00, (void *)&Terrain_GridSize, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
@@ -6485,6 +6527,8 @@ const Hook kHooks[] = {
     {"Landscape_SampleColours",   0x00585ce0, (void *)&Landscape_SampleColours, {0x83, 0xec, 0x1c, 0x55, 0x8b}},
     {"Landscape_AddTexture",      0x005850c0, (void *)&Landscape_AddTexture, {0x8b, 0x81, 0xdc, 0x21, 0x00}},
     {"Landscape_LoadSky",         0x005852b0, (void *)&Landscape_LoadSky, {0x81, 0xec, 0x68, 0x01, 0x00}},
+    {"Landscape_DrawSprites",     0x005860d0, (void *)&Landscape_DrawSprites, {0xa1, 0xc8, 0xcb, 0x8b, 0x00}},
+    {"Landscape_Draw",            0x005863c0, (void *)&Landscape_Draw, {0x81, 0xec, 0x54, 0x0c, 0x00}},
     {"TerrainTexCache_Ctor",      0x005720d0, (void *)&TerrainTexCache_Ctor, {0x8b, 0xd1, 0x57, 0xb9, 0x00}},
     {"TerrainTexCache_Dtor",      0x00572350, (void *)&TerrainTexCache_Dtor, {0x8b, 0x15, 0x50, 0xd5, 0x8b}},
     {"TerrainTexCache_Init",      0x00572110, (void *)&TerrainTexCache_Init, {0x64, 0xa1, 0x00, 0x00, 0x00}},
@@ -6504,6 +6548,8 @@ const Hook kHooks[] = {
     {"AttrMapHandler_MatchTag",   0x00519390, (void *)&AttrMapHandler_MatchTag, {0x8b, 0x54, 0x24, 0x04, 0x56}},
     {"AttrMap_ReadMapChunk",      0x004d8cf0, (void *)&AttrMap_ReadMapChunk, {0x83, 0xec, 0x10, 0x8b, 0x44}},
     {"TP2M_ReadChunks",           0x005192d0, (void *)&TP2M_ReadChunks, {0x6a, 0xff, 0x68, 0xb0, 0xe8}},
+    {"TerrainWater_Draw",         0x00570d90, (void *)&TerrainWater_Draw, {0xb8, 0x24, 0x15, 0x00, 0x00}},
+    {"TerrainGround_Draw",        0x0056f670, (void *)&TerrainGround_Draw, {0xb8, 0x1c, 0x25, 0x05, 0x00}},
     {"Online_ApplyBalance",       0x0045aee0, (void *)&Online_ApplyBalance, {0x6a, 0xff, 0x68, 0x08, 0x89}},
     {"OnlineServers_Ctor",        0x005d2a80, (void *)&OnlineServers_Ctor, {0x6a, 0xff, 0x68, 0xaf, 0x11}},
     {"OnlineServers_Dtor",        0x0045ad90, (void *)&OnlineServers_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
@@ -6653,6 +6699,7 @@ const Hook kHooks[] = {
     {"RSSE_KillScript",           0x00559060, (void *)&RSSE_KillScript, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
     {"RSSE_CheckLeaks",           0x005584b0, (void *)&RSSE_CheckLeaks, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
     {"RSSE_ExecuteInstruction",   0x00551cb0, (void *)&RSSE_ExecuteInstruction, {0x81, 0xec, 0x34, 0x01, 0x00}},
+    {"RSSE_Tick",                 0x005516b0, (void *)&RSSE_Tick, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
     {"Window_FindChild",          0x0065d7d0, (void *)&Window_FindChild, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Window_CallHandler",        0x0065f697, (void *)&Window_CallHandler, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window_SendMessage",        0x00658d9f, (void *)&Window_SendMessage, {0x55, 0x8b, 0xec, 0x83, 0x7d}},
