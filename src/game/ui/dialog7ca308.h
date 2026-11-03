@@ -17,6 +17,8 @@ struct Dialog7ca308Env {
     s32(__cdecl *format)(u8 *charset, u16 *dest, u32 size, u32 entry, ...);                   // Charset_FormatWide (Open's)
     u16(__fastcall *selectRadio)(u8 *group, void *, u32 id);                                  // RadioGroup_Select (Open's)
     void(__cdecl *attachLabel)(u8 *parent, u32 id, u32 text);                                 // HoverLabel_Attach (Open's)
+    void(__cdecl *killScript)(s32 slot);                                                      // SpriteScript_Kill (ListHandler's)
+    u16 *(__cdecl *wideText)(u32 index);                                                      // Language_WideText (ListHandler's)
 };
 void Dialog7ca308_SetEnv(const Dialog7ca308Env *env);
 
@@ -44,4 +46,8 @@ void __cdecl Dialog7ca308_ShowStaff(u32 index);
 // of the money of [0x7cf83c]'s table (Source_Field0c) formatted into 0x7ba058 by the texts 0x1ca / 0x1cb (negative, by its size); when there: the list (its rows' 0x49c870 / 0x49c880, handler 0x49bc80, the sort [0x7523e4], the buttons 0x10 / 0x11 with the font
 // [0x7523e0], the label, FillList (kind, 0), the radio button); the bar 0x2481; the figures 0x2485 (the three rings' newest values into [0x7ca2f0], [0x7ca2fc], [0x7ca2f8], the difference [0x7ca300]). Advisor_PostId (0xbd).
 void __cdecl Dialog7ca308_Open(u32 kind);
+
+// 0x49bc80 (cdecl (window, message, id, value); the kind radio buttons' handler; name invented): on the message 0x101 with value 1 from a button 0x2490-0x2494 (the jump table 0x49bdbc): the kinds 0, 4, 2, 1, 3: the list filled (Dialog7ca308_FillList (kind, 1)), the label
+// 0x2480's text (0x8b + the kind) on the window [0x7ca308], the figure's script [0x7ca310] killed when set and cleared, [0x7523e8] = [0x7523ec] = -1. Always the window's default handler (Window_CallDefault), its result returned.
+s32 __cdecl Dialog7ca308_ListHandler(u8 *window, u32 message, u32 id, u32 value);
 }

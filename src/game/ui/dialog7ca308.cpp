@@ -35,7 +35,7 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 const Dialog7ca308Env kGameEnv = {&Window7059f0_Clear, &Window7059f0_AddItem, &Window7059f0_RefreshRows, &StaffPoolEntry_FormatName, &Staff_WageForRecord, &Window7059f0_FindItemData, &Window7059f0_RemoveItem,
-                                  &Dialog7ca308_FillList, &Charset_FormatWide, &RadioGroup_Select, &HoverLabel_Attach};
+                                  &Dialog7ca308_FillList, &Charset_FormatWide, &RadioGroup_Select, &HoverLabel_Attach, &SpriteScript_Kill, &Language_WideText};
 const Dialog7ca308Env *g_env = &kGameEnv;
 
 // The kind's radio button selected (kinds past 4: none).
@@ -93,6 +93,21 @@ void newest(const u8 *ring, u32 address) {
 void Dialog7ca308_SetEnv(const Dialog7ca308Env *env) { g_env = env ? env : &kGameEnv; }
 
 extern "C" {
+
+s32 __cdecl Dialog7ca308_ListHandler(u8 *window, u32 message, u32 id, u32 value) {
+    static const u8 kKinds[5] = {0, 4, 2, 1, 3};
+    if (message == 0x101 && value == 1 && id - 0x2490 <= 4) {
+        const u32 kind = kKinds[id - 0x2490];
+        g_env->fillList(kind, 1);
+        const u32 text = (u32)(uintptr_t)g_env->wideText(0x8b + kind);
+        g_env->attachLabel(global<u8 *>(0x007ca308), 0x2480, text);
+        if (const s32 script = global<s32>(0x007ca310)) g_env->killScript(script);
+        global<u32>(0x007ca310) = 0;
+        global<u32>(0x007523e8) = 0xffffffff;
+        global<u32>(0x007523ec) = 0xffffffff;
+    }
+    return Window_CallDefault(window, nullptr, message, id, value);
+}
 
 void __cdecl Dialog7ca308_FillList(u32 kind, u32 clear) {
     u8 *const window = global<u8 *>(0x007ca308);
