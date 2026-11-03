@@ -1,7 +1,8 @@
 # Dialog7ca168_Open (src/game/ui/dialog7ca168, 0x496620) against the original. Things_ForEachSelected 22 (cdecl; the callback by address), Things_AverageStaffStat1f8 23 (its double in st0) and
 # Things_AverageStat1f8OfKind 24 (stdcall: its ECX not logged) recorders: their own benches have them, so the park need not exist. dialog7ca308open.py's new window with the script at 0x750e10: 0-2 plain
 # children, then the dialog with the list 0x321 (5 columns, its buttons, the group 0x322 among decoys; missing now and then) and the panel 0x329 (0x32a, 0x32b, 0x32c, 0x32d), the script empty now and
-# then (nothing built); dialog7cb2b8.py's timer pool; the tab 0-4, past them, -1 (the state 0-4 mostly); the selected data 0, one or any (the rows empty: never found); advisor.py's PostId for 0x11d.
+# then (nothing built); dialog7cb2b8.py's timer pool; the tab 0-4, past them, -1 (the state 0-4 mostly); the selected data 0, one or any; Window7059f0_FindItemData 25 (its answer the case's) and Window7059f0_ScrollTo 26 recorders;
+# advisor.py's PostId for 0x11d. dialogbuild.long_open(): its calls run past the log's 40.
 # usage: dialog7ca168open.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -26,8 +27,9 @@ TEXTS = list(range(0x65, 0x70)) + [0x6a]
 NODE, POOL, CLOCK = RAM + 0x70000, RAM + 0x70100, RAM + 0x70200
 B = Bench(dialog7ca150.merged(dialog7ca150.ALL_RANGES + dialog7ca150.OPEN_RANGES + [
     (0x496620, 0x496bbe), (0x496c10, 0x496d16), (0x496d20, 0x496e30), (0x65d7bc, 0x65d840), (0x519510, 0x519550), (0x67a830, 0x67a860),
-    (0x664d2a, 0x664d90), (0x665739, 0x6657a0)] + msgtags.TIMER_RANGES),
-    hooks={**panelparts.animatormesh.HOOKS, 0x67a7d0: _cdecl_log, 0x481bc0: _recorder(22, 2, cdecl=True), 0x4c7cc0: _recorder(23, 1), 0x4c9cc0: _recorder(24, 1, True)})
+    ] + msgtags.TIMER_RANGES),
+    hooks={**panelparts.animatormesh.HOOKS, 0x67a7d0: _cdecl_log, 0x481bc0: _recorder(22, 2, cdecl=True), 0x4c7cc0: _recorder(23, 1), 0x4c9cc0: _recorder(24, 1, True),
+           0x664d2a: _recorder(25, 1), 0x665739: _recorder(26, 1)})
 
 
 def script(r):
@@ -53,6 +55,8 @@ def case(r):
     w = script(r) if r.random() < 0.97 else [5] * 4
     regions[0x750e10] = struct.pack('<%dH' % len(w), *w)
     log = regions[LOG]
+    dialogbuild.long_open(log)
+    set_return(log, 25, r.choice([-1 & 0xffffffff, 0, 1, 7]))
     regions[HEAP] = heap(0x28000, r.choice([0] * 40 + [r.randrange(1, 16)]))
     state = r.choice([0, 1, 2, 3, 4, 4, r.getrandbits(32)])
     tab = r.choice([0, 1, 2, 3, 4] * 3 + [5, 0xffffffff, 0xffffffff, r.getrandbits(32)])

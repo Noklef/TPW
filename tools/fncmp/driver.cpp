@@ -609,7 +609,7 @@ const StaffRenameEnv kStaffRenameEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 1
 // Dialog7cc1f8_TabHandler's calls (tests/fncmp/dialog7cc1f8tab.py).
 const Dialog7cc1f8TabEnv kDialog7cc1f8TabEnv = {Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 2)}, Rec{jpeg_recorder(12, 1)}, Rec{jpeg_recorder(13, 3)}, Rec{recorder(14, 3)}};
 // Dialog7ca168_Open's calls (tests/fncmp/dialog7ca168open.py).
-const Dialog7ca168OpenEnv kDialog7ca168OpenEnv = {Rec{jpeg_recorder(22, 2)}, Rec{recorder(23, 1)}, Rec{stdcall_recorder(24, 1)}};
+const Dialog7ca168OpenEnv kDialog7ca168OpenEnv = {Rec{jpeg_recorder(22, 2)}, Rec{recorder(23, 1)}, Rec{stdcall_recorder(24, 1)}, Rec{recorder(25, 1)}, Rec{recorder(26, 1)}};
 // Dialog7cc1f8_Open's calls (tests/fncmp/dialog7cc1f8open.py).
 const Dialog7cc1f8OpenEnv kDialog7cc1f8OpenEnv = {Rec{jpeg_recorder(17, 2)}, Rec{jpeg_recorder(18, 5)}, Rec{recorder(19, 1)}, Rec{jpeg_recorder(21, 3)}, Rec{recorder(25, 1)}, Rec{recorder(26, 1)}, Rec{recorder(27, 2)}};
 // Dialog7cdac4_Handler's calls (tests/fncmp/dialog7cdac4handler.py).
@@ -887,6 +887,20 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
         }
         entry[11] = 0;
         ++log[0];
+    } else if (log[0x784 / 4]) {   // (fncmp.log_fold(): the calls past the room in a hash)
+        u32 t = log[0x788 / 4];
+        const auto fold = [&t](u32 word) { t = (t ^ word) * 0x01000193u; };
+        fold(k);
+        fold(n);
+        fold(self);
+        for (u32 i = 0; i < 7; ++i) fold(i < n ? args[i] : 0);
+        u32 tail = 0;
+        if (n > 7) {
+            tail = 0x811c9dc5u;
+            for (u32 i = 7; i < n; ++i) tail = (tail ^ args[i]) * 0x01000193u;
+        }
+        fold(tail);
+        log[0x788 / 4] = t;
     }
     u32 h = self * 0x9e3779b1u + (k + 1) * 0x10001u + n;
     for (u32 i = 0; i < n; ++i) h = h * 33 ^ args[i];

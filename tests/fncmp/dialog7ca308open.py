@@ -154,6 +154,7 @@ def new_window(r):
     w = script(r) if r.random() < 0.97 else [5] * 4
     regions[0x751fa8] = struct.pack('<%dH' % len(w), *w)
     log = regions[LOG]
+    dialogbuild.long_open(log)
     regions[HEAP] = heap(0x28000, r.choice([0] * 40 + [r.randrange(1, 16)]))
     regions[0x7ca2f0] = put(put(bytearray(r.bytes(0x20)), 0x18, 'I', window), 0x1c, 'I', state)
     if window:

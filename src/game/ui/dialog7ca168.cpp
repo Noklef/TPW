@@ -30,7 +30,7 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 
 s32 __cdecl forEachSelected(u32 mask, u32 callback) { return Things_ForEachSelected(mask, reinterpret_cast<ObjectCallback>((uintptr_t)callback)); }
 
-const Dialog7ca168OpenEnv kGameEnv = {&forEachSelected, &Things_AverageStaffStat1f8, &Things_AverageStat1f8OfKind};
+const Dialog7ca168OpenEnv kGameEnv = {&forEachSelected, &Things_AverageStaffStat1f8, &Things_AverageStat1f8OfKind, &Window7059f0_FindItemData, &Window7059f0_ScrollTo};
 const Dialog7ca168OpenEnv *g_env = &kGameEnv;
 
 u8 *dialog() { return global<u8 *>(0x007ca168); }
@@ -69,8 +69,8 @@ void __cdecl Dialog7ca168_Open(u32 tab, u32 selected) {
         if (kind <= 4) g_env->forEach(kMasks[kind], 0x00496320);
         Window7059f0_RefreshRows(again);
         if (selected) {
-            const s32 position = Window7059f0_FindItemData(list, nullptr, selected);
-            if (position >= 0) Window7059f0_ScrollTo(list, nullptr, position);
+            const s32 position = g_env->findItem(list, nullptr, selected);
+            if (position >= 0) g_env->scrollTo(list, nullptr, position);
         }
         if (u8 *const group = Window_FindChild(list, nullptr, 0x322)) {
             static const u32 kButtons[5] = {0x323, 0x326, 0x325, 0x327, 0x324};

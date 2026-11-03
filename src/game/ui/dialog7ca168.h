@@ -8,6 +8,8 @@ struct Dialog7ca168OpenEnv {
     s32(__cdecl *forEach)(u32 mask, u32 callback);                     // Things_ForEachSelected
     double(__fastcall *average)(void *self, void *, u32 unused);       // Things_AverageStaffStat1f8
     s32(__stdcall *averageOfKind)(u32 kind);                           // Things_AverageStat1f8OfKind
+    s32(__fastcall *findItem)(u8 *list, void *, u32 data);             // Window7059f0_FindItemData
+    void(__fastcall *scrollTo)(u8 *list, void *, s32 position);        // Window7059f0_ScrollTo
 };
 void Dialog7ca168_SetOpenEnv(const Dialog7ca168OpenEnv *env);
 

@@ -473,6 +473,14 @@ def log_region():
     return bytearray(0x1000)
 
 
+LOG_FOLD = 0x784  # log_fold(): a flag, then the hash of the recorder calls past the room
+
+
+def log_fold(log):
+    """The recorder calls past the log's 40 entries, which are otherwise dropped, go into a hash in the log region (a function that makes more calls than that)."""
+    struct.pack_into('<I', log, LOG_FOLD, 1)
+
+
 def set_return(log, k, value):
     """Makes slot k's recorder return `value` (in the log region the case hands over)."""
     struct.pack_into('<II', log, LOG_RETURNS + 8 * k, 1, value & 0xffffffff)
@@ -845,6 +853,14 @@ def tail_hash(args):
     return h
 
 
+def _fold(e, words):  # (driver.cpp record_call)
+    if e.u32(LOG + LOG_FOLD):
+        h = e.u32(LOG + LOG_FOLD + 4)
+        for word in words:
+            h = ((h ^ word) * 0x01000193) & 0xffffffff
+        e.write(LOG + LOG_FOLD + 4, struct.pack('<I', h))
+
+
 def _recorder(k, n, com=False, cdecl=False):
     def hook(e):
         sp = e.r['ESP'] + (4 if e.tail else 0)
@@ -861,6 +877,8 @@ def _recorder(k, n, com=False, cdecl=False):
             entry = LOG + 4 + 4 * LOG_ENTRY * count
             e.write(entry, struct.pack('<%dI' % LOG_ENTRY, kk, n, this, *(args + [0] * 7)[:7], tail_hash(args), 0))
             e.write(LOG, struct.pack('<I', count + 1))
+        else:
+            _fold(e, (kk, n, this, *(args + [0] * 7)[:7], tail_hash(args)))
         flag, value = struct.unpack('<2I', e.read(LOG + LOG_RETURNS + 8 * k, 8))
         e.r['EAX'] = named_answer if by_name else copied if returns_copied else cursor if seeked else answer(flag, value, raw, n, vhash(kk, n, this, args), earlier, e.read)
         if flag == 6 and not by_name and not returns_copied and not seeked:   # (fail_after(counted=True): the countdown in the override)
@@ -900,6 +918,8 @@ def _cdecl_log(e):  # (driver.cpp stub_cdecl_log)
         entry = LOG + 4 + 4 * LOG_ENTRY * count
         e.write(entry, struct.pack('<%dI' % LOG_ENTRY, 0x13f, 1, 0, arg, *([0] * 8)))
         e.write(LOG, struct.pack('<I', count + 1))
+    else:
+        _fold(e, (0x13f, 1, 0, arg, *([0] * 7)))
     e.r['EAX'] = e.u32(LOG + LOG_RETURNS + 8 * 0x3f + 4) if e.u32(LOG + LOG_RETURNS + 8 * 0x3f) else vhash(0x13f, 1, 0, [arg])
     if e.tail:
         ret = e.u32(e.r['ESP'])
@@ -916,6 +936,8 @@ def _cdecl_log2(e):  # (driver.cpp stub_cdecl_log2)
     if count < LOG_ENTRIES:
         e.write(LOG + 4 + 4 * LOG_ENTRY * count, struct.pack('<%dI' % LOG_ENTRY, 0x13e, 2, 0, *args, *([0] * 7)))
         e.write(LOG, struct.pack('<I', count + 1))
+    else:
+        _fold(e, (0x13e, 2, 0, *args, *([0] * 6)))
     e.r['EAX'] = e.u32(LOG + LOG_RETURNS + 8 * 0x3e + 4) if e.u32(LOG + LOG_RETURNS + 8 * 0x3e) else vhash(0x13e, 2, 0, args)
 
 
@@ -981,6 +1003,8 @@ def _cdecl_log4(e):  # (driver.cpp stub_cdecl_log4)
     if count < LOG_ENTRIES:
         e.write(LOG + 4 + 4 * LOG_ENTRY * count, struct.pack('<%dI' % LOG_ENTRY, 0x13d, len(raw), 0, *args, *([0] * (9 - len(raw)))))
         e.write(LOG, struct.pack('<I', count + 1))
+    else:
+        _fold(e, (0x13d, len(raw), 0, *args, *([0] * (7 - len(raw))), tail_hash(args)))
     flag, value = struct.unpack('<2I', e.read(LOG + LOG_RETURNS + 8 * 0x3d, 8))
     e.r['EAX'] = raw[value] if flag == 2 and value < 4 else value if flag else vhash(0x13d, len(raw), 0, args)
 
