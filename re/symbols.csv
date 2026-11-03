@@ -8019,6 +8019,8 @@ address,name,kind,confidence,notes
 0x004a61d0,Dialog7cb3f8_DoneHandler,function,low,"reimplemented (src/game/ui/dialog7cb3f8); the handler of the child 0x7a1c: name invented, unconfirmed"
 0x004a6290,Dialog7cb3f8_DoneConfirmed,function,low,"reimplemented (src/game/ui/dialog7cb3f8); the mode set after the question and the dialog closed: name invented, unconfirmed"
 0x004a6580,Dialog7cb3f8_Open,function,low,"reimplemented (src/game/ui/dialog7cb3f8); the slots dialog opened: name invented, unconfirmed"
+0x004a7d70,Dialog7cc184_Handler,function,low,"reimplemented (src/game/ui/dialog7cc184handler); the postcard dialog's handler: name invented, unconfirmed"
+0x004a7c50,Dialog7cc184_PictureHandler,function,low,"reimplemented (src/game/ui/dialog7cc184handler); the postcard's picture handler: name invented, unconfirmed"
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"
