@@ -617,7 +617,7 @@ const Dialog7ca1c8OpenEnv kDialog7ca1c8OpenEnv = {Rec{jpeg_recorder(10, 1)}, Rec
 // Panel7ca178_ShowStats's status, can-open, refund and state (tests/fncmp/panel7ca178stats.py).
 const Panel7ca178StatsEnv kPanel7ca178StatsEnv = {Rec{jpeg_recorder(23, 2)}, Rec{recorder(24, 0)}, Rec{recorder(25, 0)}, Rec{recorder(26, 2)}};
 // Dialog7ca308_FillList's list calls, name and wage (tests/fncmp/dialog7ca308.py).
-const Dialog7ca308Env kDialog7ca308Env = {Rec{recorder(10, 0)}, Rec{recorder(11, 4)}, Rec{recorder(12, 0)}, Rec{recorder(13, 2)}, Rec{recorder(14, 0)}};
+const Dialog7ca308Env kDialog7ca308Env = {Rec{recorder(10, 0)}, Rec{recorder(11, 4)}, Rec{recorder(12, 0)}, Rec{recorder(13, 2)}, Rec{recorder(14, 0)}, Rec{recorder(15, 1)}, Rec{recorder(16, 1)}};
 // Panel7cc218_ShowRide's range, shown and settings (tests/fncmp/panel7cc218show.py).
 const Panel7cc218ShowEnv kPanel7cc218ShowEnv = {Rec{recorder(21, 2)}, Rec{recorder(22, 1)}, Rec{recorder(23, 1)}};
 // Dialog7cc1f8_FillList's list calls, full name and text (tests/fncmp/dialog7cc1f8.py).

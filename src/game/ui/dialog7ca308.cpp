@@ -17,7 +17,7 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const Dialog7ca308Env kGameEnv = {&Window7059f0_Clear, &Window7059f0_AddItem, &Window7059f0_RefreshRows, &StaffPoolEntry_FormatName, &Staff_WageForRecord};
+const Dialog7ca308Env kGameEnv = {&Window7059f0_Clear, &Window7059f0_AddItem, &Window7059f0_RefreshRows, &StaffPoolEntry_FormatName, &Staff_WageForRecord, &Window7059f0_FindItemData, &Window7059f0_RemoveItem};
 const Dialog7ca308Env *g_env = &kGameEnv;
 
 }  // namespace
@@ -46,6 +46,32 @@ void __cdecl Dialog7ca308_FillList(u32 kind, u32 clear) {
         g_env->addItem(list, nullptr, row.texts, i, -1, 0);
     }
     g_env->refresh(list);
+}
+
+void __cdecl Dialog7ca308_StaffChanged(u32 index) {
+    u8 *const window = global<u8 *>(0x007ca308);
+    if (!window) return;
+    u8 *const list = Window_FindChild(window, nullptr, 0x248e);
+    const s32 position = g_env->findItem(list, nullptr, index);
+    const u8 *const entry = StaffPool_ValidEntry(global<u8 *>(0x007cf83c), nullptr, index);
+    struct Row {   // (the original's frame: the texts just before the name)
+        u32 texts[2];
+        u16 name[0x2c];
+    } row;
+    const auto add = [&]() {
+        const u8 *const again = StaffPool_ValidEntry(global<u8 *>(0x007cf83c), nullptr, index);
+        g_env->format(again, nullptr, row.name, 0x28);
+        row.texts[0] = (u32)(uintptr_t)row.name;
+        row.texts[1] = (u32)g_env->wage(again);
+        g_env->addItem(list, nullptr, row.texts, index, -1, 0);
+    };
+    if (position > -1) {
+        g_env->removeItem(list, nullptr, position);
+        if (entry) add();
+    } else if (entry && global<u32>(0x007ca30c) == at<u32>(entry, 0)) {
+        add();
+        g_env->refresh(list);
+    }
 }
 
 void __cdecl Dialog7ca308_ShowStaff(u32 index) {

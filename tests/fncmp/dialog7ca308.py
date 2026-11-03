@@ -6,7 +6,7 @@
 # panel7cc328.py's script_env() builds them (spritescript.py's).
 # FillList (0x49b5b0, cdecl (kind, clear)): the window [0x7ca308] (none now and then) with its list 0x248e among decoys (no children now and then), the staff pool as above; Window7059f0_Clear, AddItem, RefreshRows,
 # StaffPoolEntry_FormatName and Staff_WageForRecord thiscall recorders 10-14 (driver.cpp's kDialog7ca308Env; their own benches have them), the rows logged by their wage and the name's first bytes, the name's buffer (the stack's) as 0.
-# usage: dialog7ca308.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ShowStaff,FillList)
+# usage: dialog7ca308.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ShowStaff,FillList,StaffChanged)
 import os
 import struct
 import sys
@@ -17,9 +17,9 @@ sys.path.insert(0, HERE)
 import panel7cc328  # noqa: E402
 from fncmp import LOG, RAM, Bench, Call, _recorder, blob_bytes, fill, log_region, put, set_return, strings  # noqa: E402
 
-CALLS = {'ShowStaff': 0x49ba00, 'FillList': 0x49b5b0}
-B = Bench(sorted(set(panel7cc328.SHOW_RANGES + [(0x49ba00, 0x49bb8e), (0x507bd0, 0x507bf0), (0x49b5b0, 0x49b64d)])),
-          hooks={0x6649d5: _recorder(10, 0), 0x66403b: _recorder(11, 4), 0x663324: _recorder(12, 0), 0x5074a0: _recorder(13, 2), 0x5077f0: _recorder(14, 0)})
+CALLS = {'ShowStaff': 0x49ba00, 'FillList': 0x49b5b0, 'StaffChanged': 0x49c970}
+B = Bench(sorted(set(panel7cc328.SHOW_RANGES + [(0x49ba00, 0x49bb8e), (0x507bd0, 0x507bf0), (0x49b5b0, 0x49b64d), (0x49c970, 0x49ca6c)])),
+          hooks={0x6649d5: _recorder(10, 0), 0x66403b: _recorder(11, 4), 0x663324: _recorder(12, 0), 0x5074a0: _recorder(13, 2), 0x5077f0: _recorder(14, 0), 0x664d2a: _recorder(15, 1), 0x6647cb: _recorder(16, 1)})
 WIN, KIDS, POOL = RAM + 0x60000, RAM + 0x60200, RAM + 0x60800
 
 
@@ -50,9 +50,34 @@ def fill_list(r):
     return Call(CALLS['FillList'], [r.choice([0, 1, 2, 3, 4, 5, r.getrandbits(32)]), r.choice([0, 1, 1, r.getrandbits(32)])], regions, ret='v')
 
 
+def staff_changed(r):
+    """StaffChanged (0x49c970, cdecl (index)): the window or none, the list's row found or not (FindItemData 15, RemoveItem 16), the pool's entry valid or not, of the kind [0x7ca30c] or not"""
+    log = log_region()
+    blob_bytes(log, 11, 0, 0xf0, inner=(0, 0x7fff))
+    strings(log, 13, 0, 0b1)
+    fill(log, 13, 0, r.bytes(0x20))
+    set_return(log, 14, r.getrandbits(32))
+    set_return(log, 15, r.choice([-1, -1, -1, 0, 1, 7, -2, r.randrange(-1 << 31, 1 << 31)]) & 0xffffffff)
+    regions = {LOG: log}
+    panel7cc328.child_window(r, regions, WIN, KIDS, 0x248e)
+    pool = staff_pool(r)
+    index = r.choice([r.randrange(0x20)] * 8 + [0x20, 0xffffffff, r.getrandbits(32)])
+    kind = r.choice([0, 1, 2, 3, 4])
+    if index < 0x20 and r.random() < 0.6:
+        put(pool, 20 * index, 'I', kind)
+    shown = bytearray(r.bytes(0xc))
+    put(shown, 0, 'I', r.choice([WIN] * 15 + [0]))
+    put(shown, 4, 'I', kind)
+    regions.update({POOL: pool, 0x7cf83c: struct.pack('<I', POOL), 0x7ca308: shown})
+    return Call(CALLS['StaffChanged'], [index], regions, ret='v')
+
+
 def case(r):
-    if r.deal(OPS) == 'FillList':
+    op = r.deal(OPS)
+    if op == 'FillList':
         return fill_list(r)
+    if op == 'StaffChanged':
+        return staff_changed(r)
     regions, live = panel7cc328.script_env(r)
     panel7cc328.child_window(r, regions, WIN, KIDS, 0x2484)
     pool = staff_pool(r)
