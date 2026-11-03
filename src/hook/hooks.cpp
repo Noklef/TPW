@@ -480,6 +480,7 @@
 #include "../game/ui/windowfactory.h"
 #include "../game/ui/windowscript.h"
 #include "../game/ui/buttontext.h"
+#include "../game/ui/dialog74fb20.h"
 #include "../game/ui/dialog7ca13c.h"
 #include "../game/ui/dialog7ca150.h"
 #include "../game/ui/dialog7ca1bc.h"
@@ -7308,6 +7309,8 @@ const Hook kHooks[] = {
     {"Gui_Shutdown",              0x00658708, (void *)&Gui_Shutdown, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Dialog7cc654_FitText",      0x004bc100, (void *)&Dialog7cc654_FitText, {0x6a, 0xff, 0x68, 0x58, 0xb8}},
     {"UiObject_HandleMessage",    0x0050ca50, (void *)&UiObject_HandleMessage, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"Dialog74fb20_Open",         0x0048adb0, (void *)&Dialog74fb20_Open, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Dialog74fb20_Handler",      0x0048a740, (void *)&Dialog74fb20_Handler, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
