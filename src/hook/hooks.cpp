@@ -7525,6 +7525,8 @@ const Hook kHooks[] = {
     {"Dialog7cc184_Open",         0x004a8c00, (void *)&Dialog7cc184_Open, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"SignNameDialog_Open",       0x0048d370, (void *)&SignNameDialog_Open, {0x6a, 0xff, 0x68, 0x11, 0x97}},
     {"SignNameDialog7ca214_Open", 0x004990f0, (void *)&SignNameDialog7ca214_Open, {0x6a, 0xff, 0x68, 0x51, 0xa0}},
+    {"SignNameDialog_Handler",    0x0048d640, (void *)&SignNameDialog_Handler, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
+    {"SignNameDialog7ca214_Handler", 0x004993e0, (void *)&SignNameDialog7ca214_Handler, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
