@@ -127,6 +127,7 @@
 #include "../../src/game/core/keyactions.h"
 #include "../../src/game/frontend/viewcontrols.h"
 #include "../../src/game/coaster/bendmesh.h"
+#include "../../src/game/coaster/carsound.h"
 #include "../../src/game/coaster/trainrun.h"
 #include "../../src/game/terrain/raypick.h"
 #include "../../src/game/terrain/ground.h"
@@ -611,6 +612,7 @@ void __cdecl ride_base_fit(const u8 *node, u8 *frame, u16 **cursor, GridFitMatri
 }
 const RideBaseEnv kRideBaseEnv = {&ride_base_fit, Rec{jpeg_recorder(2, 5)}, Rec{jpeg_recorder(3, 2)}};
 const ParkEntranceEnv kParkEntranceEnv = {Rec{jpeg_recorder(1, 2)}, Rec{jpeg_recorder(2, 1)}, Rec{jpeg_recorder(3, 4)}, Rec{jpeg_recorder(4, 1)}, Rec{jpeg_recorder(5, 0)}, Rec{jpeg_recorder(6, 6)}, Rec{recorder(7, 0)}, Rec{jpeg_recorder(8, 0)}, Rec{jpeg_recorder(9, 1)}};
+const CarSoundUpdateEnv kCarSoundUpdateEnv = {Rec{jpeg_recorder(1, 0)}, Rec{jpeg_recorder(2, 3)}, Rec{jpeg_recorder(3, 4)}, Rec{jpeg_recorder(4, 5)}};
 const KeyCancelEnv kKeyCancelEnv = {Rec{recorder(20, 0)}, Rec{jpeg_recorder(21, 2)}};
 const SceneViewsEnv kSceneViewsEnv = {Rec{recorder(20, 0)}, Rec{recorder(21, 0)}};
 const BendMeshEnv kBendMeshEnv = {Rec{jpeg_recorder(1, 8)}, Rec{jpeg_recorder(2, 1)}};
@@ -1447,6 +1449,7 @@ int main(int argc, char **argv) {
     RideBase_SetEnv(&kRideBaseEnv);
     ParkEntrance_SetEnv(&kParkEntranceEnv);
     KeyCancel_SetEnv(&kKeyCancelEnv);
+    CarSoundUpdate_SetEnv(&kCarSoundUpdateEnv);
     SceneViews_SetEnv(&kSceneViewsEnv);
     BendMesh_SetEnv(&kBendMeshEnv);
     TrainRun_SetEnv(&kTrainRunEnv);
