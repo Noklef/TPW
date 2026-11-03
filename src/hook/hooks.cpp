@@ -406,6 +406,7 @@
 #include "../game/world/staffsteps.h"
 #include "../game/world/staffthink.h"
 #include "../game/world/staffwork.h"
+#include "../game/world/thingname.h"
 #include "../game/world/trackline.h"
 #include "../game/world/trackmessage.h"
 #include "../game/world/trakcarpose.h"
@@ -6192,6 +6193,8 @@ const Hook kHooks[] = {
     {"Holder_PlaceStaff",         0x00509af0, (void *)&Holder_PlaceStaff, {0x51, 0x56, 0x8b, 0xf1, 0x33}},
     {"World_ClearStaffSlots",     0x005083b0, (void *)&World_ClearStaffSlots, {0x53, 0x55, 0x8b, 0x6c, 0x24}},
     {"Map_ResetCells",            0x0052f8d0, (void *)&Map_ResetCells, {0x51, 0x8b, 0x4c, 0x24, 0x0c}},
+    {"Thing_NameA",               0x004e2860, (void *)&Thing_NameA, {0x53, 0x56, 0x57, 0x8b, 0xf9}},
+    {"Thing_NameB",               0x004e2920, (void *)&Thing_NameB, {0x8b, 0x44, 0x24, 0x08, 0x81}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},

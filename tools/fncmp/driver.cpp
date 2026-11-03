@@ -304,6 +304,7 @@
 #include "../../src/game/core/soundseed.h"
 #include "../../src/game/core/soundmanager.h"
 #include "../../src/game/core/soundwait.h"
+#include "../../src/game/world/thingname.h"
 #include "../../src/game/core/soundobjectslots.h"
 #include "../../src/game/world/mapreset.h"
 #include "../../src/game/world/staffheld.h"
@@ -2224,6 +2225,8 @@ int main(int argc, char **argv) {
     SoundManager_SetEnv(&soundManagerEnv);
     static const SoundWaitEnv soundWaitEnv = {Rec{recorder(20, 0)}, Rec{recorder(21, 1)}, Rec{jpeg_recorder(22, 1)}};
     SoundWait_SetEnv(&soundWaitEnv);
+    static const ThingNameEnv thingNameEnv = {Rec{jpeg_recorder(1, 4)}};
+    ThingName_SetEnv(&thingNameEnv);
     static const SoundObjectSlotsEnv soundObjectSlotsEnv = {Rec{recorder(20, 3)}, Rec{recorder(21, 2)}, Rec{recorder(22, 3)}, Rec{recorder(23, 2)}, Rec{recorder(24, 2)}};
     SoundObjectSlots_SetEnv(&soundObjectSlotsEnv);
     static const MapResetEnv mapResetEnv = {Rec{recorder(1, 1)}, Rec{recorder(2, 0)}};

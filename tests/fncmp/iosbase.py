@@ -195,9 +195,10 @@ def widen(r):
     widen_setup(r, log)
     set_return(log, MBRTOWC, r.choice([1, 1, 0, 0xffffffff]))
     if r.random() < 0.5:
-        return Call(0x4f1ad0, [OBJ, r.getrandbits(32)], {LOG: log}, conv='t', ret='a')
+        # (A low byte 0xff sign-extends to the end of file, which never reaches mbrtowc.)
+        return Call(0x4f1ad0, [OBJ, r.getrandbits(24) << 8 | r.choice([0xff, 0x80, r.getrandbits(8)])], {LOG: log}, conv='t', ret='a')
     n = r.choice([0, 1, 2, 9])
-    regions = {LOG: log, LOC: r.bytes(0x10), NODES: r.bytes(0x20)}
+    regions = {LOG: log, LOC: bytes(r.choice([0xff, 0x80, r.getrandbits(8)]) for _ in range(0x10)), NODES: r.bytes(0x20)}
     return Call(0x4f1af0, [OBJ, LOC, LOC + n, NODES], regions, conv='t', ret='a')
 
 
