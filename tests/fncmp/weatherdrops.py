@@ -24,12 +24,13 @@ def case(r):
     log = log_region()
     count = r.choice([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
     swirl = r.random() < 0.6
-    places = b''.join(fnum(r, -6, 6) for _ in range(3 * max(count, 1)))
+    exact = r.random() < 0.2                                             # (no sizes, no wind, no x, y, z: a place of exactly 4 or -4 meets the wrap's comparisons)
+    places = b''.join(struct.pack('<f', r.choice([4.0, -4.0])) if exact and r.random() < 0.5 else fnum(r, -6, 6, 0.05 if exact else 0.01) for _ in range(3 * max(count, 1)))
     # (+0x3300-: the fields and the phases; the rows and the sizes after them: small regions, the rest reads as zero.)
     fields = bytearray(r.bytes(0x60))
     put(fields, 0x18, 'i', count)                                        # +0x3318
     for off in (0x1c, 0x20, 0x24):
-        fields[off:off + 4] = fnum(r, -3, 3)                             # +0x331c..: the wind
+        fields[off:off + 4] = bytes(4) if exact else fnum(r, -3, 3)      # +0x331c..: the wind
     fields[0x54:0x58] = fnum(r, 0, 4)                                    # +0x3354
     kind = r.choice(['none', 'plain', 'id', 'id', 'id', 'id0'])
     put(fields, 0x48, 'I', 0 if kind == 'none' else TEX)                 # +0x3348
@@ -37,7 +38,7 @@ def case(r):
     rows = b''.join(fnum(r, -2, 2, 0.002) for _ in range(12 * 128))
     tail = bytearray(r.bytes(0x60))
     tail[0x40:0x44] = fnum(r, -3, 3)                                     # +0x9d98: the time
-    sizes = b''.join(fnum(r, -2, 2) for _ in range(3))                   # +0xa18c..
+    sizes = bytes(12) if exact else b''.join(fnum(r, -2, 2) for _ in range(3))  # +0xa18c..
     texture = bytearray(r.bytes(0x40))
     flags = r.getrandbits(32)
     put(texture, 8, 'I', flags & ~0x1000 if kind == 'plain' else flags | 0x1000)
@@ -49,7 +50,8 @@ def case(r):
     if count:
         blob(log, 1, 3, (1 << 3 * min(count, 10)) - 1)
         out = [fnum(r, -8, 8, 0.03) if r.random() < 0.85 else struct.pack('<f', r.choice([0.0, -0.0, 4.0, -4.0, 1.0])) for _ in range(3 * min(count, 9))]
-        fill(log, 1, 2, b''.join(out))
+        if r.random() < 0.5:                                             # (a fill goes in before the hash: without one the hash and the triangles show the places as made)
+            fill(log, 1, 2, b''.join(out))
     blob(log, 3, 0, TRIANGLE)
     if r.random() < 0.1:
         set_return(log, 2, 0)
@@ -61,7 +63,7 @@ def case(r):
                MASK: r.bytes(0x30), XF: struct.pack('<I', XFT), XFT: vtable({}, 8, cdecl={1: 8}), 0x87b1d8: struct.pack('<I', XF), 0x87a248: struct.pack('<I', MASK),
                0x879ab0: struct.pack('<I', r.getrandbits(32)), 0x8bcbc8: struct.pack('<I', r.getrandbits(32) & ~0x100 | (0x100 if swirl else 0)) + fnum(r, -3, 3),
                RAND_SEED: struct.pack('<I', r.getrandbits(32))}
-    args = [struct.unpack('<I', fnum(r, -6, 6))[0] for _ in range(3)]
+    args = [0 if exact else struct.unpack('<I', fnum(r, -6, 6))[0] for _ in range(3)]
     return Call(0x57f490, [FX] + args, regions, conv='t', ret='a')
 
 
