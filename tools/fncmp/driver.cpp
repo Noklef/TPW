@@ -57,6 +57,7 @@
 #include "../../src/game/ui/dialog74fb20.h"
 #include "../../src/game/ui/dialogs.h"
 #include "../../src/game/ui/panel7c2534.h"
+#include "../../src/game/ui/staffrename.h"
 #include "../../src/game/ui/textpanel7cc18c.h"
 #include "../../src/game/world/objectunlock.h"
 #include "../../src/game/core/fpu.h"
@@ -586,6 +587,10 @@ const ThingPatrolEnv kThingPatrolEnv = {Rec{jpeg_recorder(20, 1)}, Rec{jpeg_reco
 constexpr u32 stdcall_recorder(u32 k, u32 n) { return kStubs + 0x1000 + 0x4000 + 0x800 * n + 0x20 * k; }
 const ObjectUnlockScoresEnv kObjectUnlockScoresEnv = {Rec{recorder(19, 0)}, Rec{stdcall_recorder(20, 2)}, Rec{stdcall_recorder(21, 1)}, Rec{stdcall_recorder(22, 2)},
                                                       Rec{jpeg_recorder(23, 0)}, Rec{recorder(24, 2)}, Rec{recorder(25, 2)}};
+// StaffRename_Open's calls (tests/fncmp/staffrenameopen.py).
+const StaffRenameEnv kStaffRenameEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 1)}, Rec{recorder(12, 2)}, Rec{jpeg_recorder(13, 1)}, Rec{recorder(14, 1)}, Rec{recorder(22, 1)}, Rec{recorder(15, 1)}, Rec{jpeg_recorder(16, 1)}, Rec{recorder(17, 1)},
+                                        Rec{recorder(18, 2)}, Rec{jpeg_recorder(20, 1)}, Rec{jpeg_recorder(21, 1)}, Rec{recorder(23, 4)}, Rec{recorder(24, 2)}, Rec{jpeg_recorder(25, 1)}, Rec{recorder(26, 1)}, Rec{recorder(27, 0)}, Rec{recorder(28, 0)},
+                                        Rec{jpeg_recorder(29, 0)}, Rec{recorder(30, 1)}};
 // Panel7c2534_AddRow's calls (tests/fncmp/panel7c2534.py).
 const Panel7c2534Env kPanel7c2534Env = {Rec{jpeg_recorder(10, 7)}, Rec{recorder(11, 2)}, Rec{recorder(12, 7)}, Rec{recorder(13, 1)}, Rec{jpeg_recorder(14, 1)}, Rec{recorder(15, 2)}, Rec{jpeg_recorder(16, 1)},
                                         Rec{recorder(17, 1)}, Rec{recorder(18, 1)}, Rec{jpeg_recorder(19, 1)}, Rec{recorder(20, 1)}, Rec{recorder(21, 2)}, Rec{recorder(23, 4)}};
@@ -1362,6 +1367,7 @@ int main(int argc, char **argv) {
     TextPanel7cc18c_SetEnv(&kTextPanel7cc18cEnv);
     Panel7cc218_SetTileEnv(&kPanel7cc218TileEnv);
     Panel7c2534_SetEnv(&kPanel7c2534Env);
+    StaffRename_SetEnv(&kStaffRenameEnv);
     ObjectUnlock_SetScoresEnv(&kObjectUnlockScoresEnv);
     Dialog7ca150_SetEnv(&kDialog7ca150Env);
     Dialog7cc1f8_SetEnv(&kDialog7cc1f8Env);
