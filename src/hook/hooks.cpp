@@ -465,6 +465,7 @@
 #include "../game/render/d3dprobe.h"
 #include "../game/render/depthsort.h"
 #include "../game/render/device.h"
+#include "../game/render/enginedebug.h"
 #include "../game/render/engineerrors.h"
 #include "../game/render/fixedverts.h"
 #include "../game/render/texcoords.h"
@@ -6536,6 +6537,7 @@ const Hook kHooks[] = {
     {"PasswordPart_SetLayout",    0x004901d0, (void *)&PasswordPart_SetLayout, {0x8b, 0x44, 0x24, 0x04, 0x83}},
     {"GroundShadows_DrawAll",     0x0057c2a0, (void *)&GroundShadows_DrawAll, {0x53, 0x56, 0x57, 0x8b, 0xf9}},
     {"RasterFormat_Init",         0x00678e70, (void *)&RasterFormat_Init, {0x8b, 0x54, 0x24, 0x04, 0x81}},
+    {"EngineDebug_Log",           0x00564650, (void *)&EngineDebug_Log, {0xa1, 0x2c, 0x9a, 0x87, 0x00}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},

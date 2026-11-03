@@ -592,6 +592,7 @@ add_library(tpw_game STATIC
     src/game/ui/dialog7cc4b4sparkle.cpp
     src/game/render/passwordpart.cpp
     src/game/render/rasterformat.cpp
+    src/game/render/enginedebug.cpp
     src/game/ui/quitconfirm.cpp
     src/game/world/mapsweep.cpp
     src/game/ui/imehostattach.cpp

@@ -164,6 +164,7 @@
 #include "../../src/game/gfx/pixconv.h"
 #include "../../src/game/gfx/surfbuf.h"
 #include "../../src/game/gfx/tga.h"
+#include "../../src/game/render/enginedebug.h"
 #include "../../src/game/render/engineerrors.h"
 #include "../../src/game/online/chatavatar.h"
 #include "../../src/game/online/chatcommand.h"
@@ -774,6 +775,11 @@ const CellPaintEnv kCellPaintEnv = {Rec{jpeg_recorder(1, 6)}, Rec{jpeg_recorder(
 const RideSkinEnv kRideSkinEnv = {Rec{jpeg_recorder(1, 1)}};
 const LobbySceneEnv kLobbySceneEnv = {Rec{jpeg_recorder(1, 1)}, Rec{recorder(2, 0)}};
 const ChatCursorEnv kChatCursorEnv = {Rec{jpeg_recorder(1, 0)}, Rec{jpeg_recorder(2, 4)}, Rec{jpeg_recorder(3, 0)}, Rec{recorder(4, 1)}, Rec{recorder(5, 1)}};
+// tests/fncmp/enginedebug.py: the C library's file calls recorders.
+const EngineDebugEnv kEngineDebugEnv = {reinterpret_cast<void *(__cdecl *)(const char *, const char *)>((uintptr_t)jpeg_recorder(28, 2)),
+                                        reinterpret_cast<s32(__cdecl *)(void *, const char *, ...)>((uintptr_t)jpeg_recorder(29, 3)),
+                                        reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)jpeg_recorder(30, 1)),
+                                        reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)jpeg_recorder(31, 1))};
 const WKeywordsEnv kWKeywordsEnv = {reinterpret_cast<s32(__cdecl *)(u8 *, u16 *, u32, u32, ...)>((uintptr_t)jpeg_recorder(12, 4))};  // tests/fncmp/wkeywords.py
 
 const KeyCancelEnv kKeyCancelEnv = {Rec{recorder(20, 0)}, Rec{jpeg_recorder(21, 2)}, Rec{jpeg_recorder(22, 6)}, Rec{jpeg_recorder(23, 4)}, Rec{jpeg_recorder(24, 2)}};
@@ -1914,6 +1920,7 @@ int main(int argc, char **argv) {
     ParkEntrance_SetEnv(&kParkEntranceEnv);
     KeyCancel_SetEnv(&kKeyCancelEnv);
     WKeywords_SetEnv(&kWKeywordsEnv);
+    EngineDebug_SetEnv(&kEngineDebugEnv);
     ChatCursor_SetEnv(&kChatCursorEnv);
     LobbyScene_SetEnv(&kLobbySceneEnv);
     RideSkin_SetEnv(&kRideSkinEnv);
