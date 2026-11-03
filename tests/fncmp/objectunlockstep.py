@@ -18,7 +18,7 @@ SELF, GAME, INFO, THEMES_MAP = RAM + 0x100, RAM + 0x1000, RAM + 0x2000, RAM + 0x
 def case(r):
     log = log_region()
     set_return(log, STORE, r.getrandbits(32))
-    set_return(log, BYTE26, r.deal([0, 0, 0, 1, 0x100, 0x12300]))
+    set_return(log, BYTE26, r.deal([0, 0, 0, 0, 1, 2, 0x80, 0x100, 0x12300]))
     set_return(log, PERCENT, r.deal([100, 100, 100, 99, 0, 0x164]))
     set_return(log, MARK, r.deal([0, 1, 5, 0x10000, r.getrandbits(32)]))
     info = put(bytearray(r.bytes(0x60)), 0x3c, 'I', THEMES_MAP)   # (the theme map empty: its head its own first node)
