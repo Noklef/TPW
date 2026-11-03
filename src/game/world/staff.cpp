@@ -742,7 +742,7 @@ void __fastcall Staff_LeaveRestArea(u8 *staff) {
 }
 
 namespace {
-const StaffWalkEnv kGameWalkEnv = {&Sprite_WalkNav, &Sprite_SpawnParticle, &Thing_Delete};
+const StaffWalkEnv kGameWalkEnv = {&Sprite_WalkNav, &Sprite_SpawnParticle, &Thing_Delete, &Thoughts_Show};
 const StaffWalkEnv *g_walk = &kGameWalkEnv;
 }  // namespace
 
