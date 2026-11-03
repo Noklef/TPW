@@ -7987,6 +7987,8 @@ address,name,kind,confidence,notes
 0x006680b7,Window705a20_MouseDown,function,low,"reimplemented (src/game/ui/window705a20handler); button down: the caret to the place under the point: name invented, unconfirmed"
 0x00668269,Window705a20_MouseMove,function,low,"reimplemented (src/game/ui/window705a20handler); the mouse moved with the bit 0 of +0x11c held: the selection's end at the place under the point: name invented, unconfirmed"
 0x0066857d,Window705a20_Handler,function,low,"reimplemented (src/game/ui/window705a20handler); the edit window's handler: name invented, unconfirmed"
+0x00668abd,Window705a50_StateWord,function,low,"reimplemented (src/game/ui/window705a50handler); the state byte +0x138 sign-extended to AX: name invented, unconfirmed"
+0x00668f9c,Window705a50_Handler,function,low,"reimplemented (src/game/ui/window705a50handler); the button window's handler: name invented, unconfirmed"
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"

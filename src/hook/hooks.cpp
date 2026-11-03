@@ -654,6 +654,7 @@
 #include "../game/ui/window7059f0texts.h"
 #include "../game/ui/window705a20char.h"
 #include "../game/ui/window705a20handler.h"
+#include "../game/ui/window705a50handler.h"
 #include "../game/ui/window705b20thumb.h"
 #include "../game/ui/window7cb2a4.h"
 #include "../game/ui/window7cb2b0handler.h"
@@ -8030,6 +8031,8 @@ const Hook kHooks[] = {
     {"Window705a20_MouseDown",    0x006680b7, (void *)&Window705a20_MouseDown, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Window705a20_MouseMove",    0x00668269, (void *)&Window705a20_MouseMove, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Window705a20_Handler",      0x0066857d, (void *)&Window705a20_Handler, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Window705a50_StateWord",    0x00668abd, (void *)&Window705a50_StateWord, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"Window705a50_Handler",      0x00668f9c, (void *)&Window705a50_Handler, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
