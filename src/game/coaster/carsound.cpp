@@ -5,7 +5,9 @@
 
 #include "../core/soundplay.h"
 #include "../core/soundset.h"
+#include "../math/x87.h"
 #include "../rsse/scream.h"
+#include "../world/camera.h"
 #include "../world/ridelist.h"
 
 namespace {
@@ -14,9 +16,34 @@ template <typename T> T &at(u8 *p, u32 offset) { return *reinterpret_cast<T *>(p
 
 bool Silenced() { return *reinterpret_cast<const u32 *>(0x00785a2c) != 0; }
 
+const CarSoundUpdateEnv kUpdatePorts = {&Camera_Followed, &Sound_SetParam, &Sound_SetPosition, &CoasterCar_UpdateScream};
+const CarSoundUpdateEnv *g_updateEnv = &kUpdatePorts;
+
+s32 Fistp(float x) { return _mm_cvtss_si32(_mm_set_ss(x)); }
+
 }  // namespace
 
+void CarSoundUpdate_SetEnv(const CarSoundUpdateEnv *env) { g_updateEnv = env ? env : &kUpdatePorts; }
+
 extern "C" {
+
+void __cdecl CoasterCar_UpdateSounds(u8 *link, u8 *car) {
+    const void *const followed = g_updateEnv->followed();
+    const float *const place = reinterpret_cast<const float *>(car + (followed == at<const void *>(at<u8 *>(car, 0x34), 0xc) ? 0x3c : 0x48));
+    const s32 level = (s32)(long long)((X87Reg(at<float>(car, 0x78)) / at<float>(at<u8 *>(link, 4), 0x50)) * 100.0f).v;   // (0x6fdf38; fld, fdiv, fmul, __ftol)
+    // The original leaves x, y, z unset while silenced: stack garbage reaches CoasterCar_UpdateScream, which uses them for a +0x6c sound with the entry's bit 2 clear. 0 here.
+    s32 x = 0, y = 0, z = 0;
+    if (!Silenced()) {
+        at<u32>(car, 0x64) = g_updateEnv->setParam(at<u32>(car, 0x64), at<u32>(car, 0x58), (u32)level);
+        at<u32>(car, 0x68) = g_updateEnv->setParam(at<u32>(car, 0x68), at<u32>(car, 0x58), (u32)(100 - level));
+        x = Fistp(place[0]);
+        y = Fistp(place[1]);
+        z = Fistp(place[2]);
+        at<u32>(car, 0x64) = g_updateEnv->setPosition(at<u32>(car, 0x64), x, y, z);
+        at<u32>(car, 0x68) = g_updateEnv->setPosition(at<u32>(car, 0x68), x, y, z);
+    }
+    if (at<u32>(car, 0x10) != 0) g_updateEnv->scream(link, car, x, y, z);
+}
 
 void __cdecl CoasterCar_StopSounds(u8 *, u8 *car) {
     if (at<u32>(car, 0x64) && !Silenced()) Sound_Forward6(at<u32>(car, 0x64));

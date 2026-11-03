@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../files/charsets.h"
 #include "buffers.h"
 #include "gameheap.h"
 #include "stdtree.h"
@@ -81,6 +82,50 @@ u8 *__fastcall WKeywordPair_Ctor(u8 *pair, void *, StdWString key, u32 v0, u32 v
     at<u32>(pair, 0x1c) = v3;
     destroy(key);
     return pair;
+}
+
+}  // extern "C"
+
+namespace {
+const WKeywordsEnv kKeywordsPorts = {Charset_FormatWide};
+const WKeywordsEnv *g_keywords = &kKeywordsPorts;
+}  // namespace
+
+void WKeywords_SetEnv(const WKeywordsEnv *env) { g_keywords = env ? env : &kKeywordsPorts; }
+
+extern "C" {
+
+void __fastcall WKeywords_Add(u8 *self, void *, u32 id, u32 handler) {
+    u16 text[0x80];
+    g_keywords->format(*reinterpret_cast<u8 **>(0x0078bac8), text, 0x80, id);
+    // The original's allocator byte is an unset stack byte: it reaches the node's +8 (the wstring's allocator, never read). 0 here.
+    const u8 allocator = 0;
+    StdWString key;
+    StdWString_CtorChars(&key, nullptr, text, &allocator);
+    u8 pair[0x20];
+    WKeywordPair_Ctor(pair, nullptr, key, handler, 0, 0, 0);
+    u8 *const next = at<u8 *>(at<u8 *>(self, 0x48), 0);   // (null faults at the next line in both, so the node's "or itself" for it is left out)
+    u8 *const prev = at<u8 *>(next, 4);
+    u8 *const node = static_cast<u8 *>(GameHeap_Alloc(0x28));
+    at<u8 *>(node, 0) = next;
+    at<u8 *>(node, 4) = prev ? prev : node;
+    at<u8 *>(next, 4) = node;
+    at<u8 *>(at<u8 *>(node, 4), 0) = node;
+    StdWString_CtorCopy(reinterpret_cast<StdWString *>(node + 8), nullptr, reinterpret_cast<StdWString *>(pair));
+    for (u32 i = 0; i < 0x10; i += 4)
+        at<u32>(node, 0x18 + i) = at<u32>(pair, 0x10 + i);
+    ++at<u32>(self, 0x4c);
+    destroy(*reinterpret_cast<StdWString *>(pair));
+}
+
+void __fastcall WKeywords_AddAll(u8 *self) {
+    static const u32 kKeywords[][2] = {{0x00, 0x005e4b20}, {0x01, 0x005e4ca0}, {0x02, 0x005e4f00}, {0x03, 0x005e50a0}, {0x04, 0x005e5240}, {0x05, 0x005e53c0},
+                                       {0x06, 0x005e5540}, {0x0c, 0x005e57c0}, {0x0d, 0x005e58b0}, {0x0e, 0x005e5aa0}, {0x0f, 0x005e5c90}, {0x10, 0x005e5c90},
+                                       {0x12, 0x005e5e80}, {0x14, 0x005e6070}, {0x15, 0x005e6160}, {0x13, 0x005e6350}, {0x16, 0x005e6540}, {0x17, 0x005e6630}};
+    for (const auto &keyword : kKeywords) {
+        WKeywords_Add(self, nullptr, keyword[0], keyword[1]);
+        WKeywords_Add(self, nullptr, keyword[0] + 0x2b, keyword[1]);
+    }
 }
 
 }  // extern "C"

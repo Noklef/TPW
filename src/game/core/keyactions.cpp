@@ -3,16 +3,25 @@
 #include <cstdint>
 
 #include "../gfx/screengrab.h"
+#include "../math/x87.h"
+#include "../ui/dialogs.h"
 #include "../ui/focus.h"
 #include "../ui/guimanager.h"
+#include "../world/gamemode.h"
+#include "../world/mapcell.h"
+#include "../world/mapclick.h"
 #include "../world/money.h"
+#include "../world/mousemode.h"
 #include "../world/research.h"
 #include "../world/world.h"
 #include "actionrec.h"
 #include "gameclock.h"
+#include "gameheap.h"
+#include "soundplay.h"
 #include "globals.h"
 #include "globalsave.h"
 #include "thunks.h"
+#include "vcall.h"
 
 namespace {
 
@@ -25,9 +34,53 @@ u32 turn(u32 by) {
     return 1;
 }
 
+const KeyCancelEnv kCancelPorts = {&Obj7b51f0_ResetDialogChild21, &GameMode_Set, &Sound_PlayAt, &GameMode_MapClick, &GameMode_StepBack};
+const KeyCancelEnv *g_cancelEnv = &kCancelPorts;
+
+u32 currentModeKind() {
+    u8 *const current = global<u8 *>(0x007b05d8);
+    return current ? vcall<u32>(current, 0x24) : 0;
+}
+
 }  // namespace
 
+void KeyCancel_SetEnv(const KeyCancelEnv *env) { g_cancelEnv = env ? env : &kCancelPorts; }
+
 extern "C" {
+
+u32 __cdecl KeyAction_ClickCell() {
+    MouseModes_EnsureHolder();
+    const u32 kind = currentModeKind();
+    if (Global81ae2c_Equals(0) != 0 && (kind == 0 || kind == 1)) {
+        const u32 id = global<u16>(0x007b05cc);
+        const s32 column = static_cast<s32>((id - 1) & 0x7f), row = static_cast<s32>((id - 1) >> 7);
+        // (The original reads the game mode once more here, 0x52f840, the answer unused.)
+        if (MapCell_IsType1(global<u8 *>(0x007cf83c) + id * 0x44 + 0x294) == 0) return 1;
+        const s32 z = (s32)(long long)(X87Reg((double)row) * 10.0f).v;   // (0x6fd764; fild, fmul, __ftol: the row's first)
+        const s32 x = (s32)(long long)(X87Reg((double)column) * 10.0f).v;
+        g_cancelEnv->playAt(0, global<u32>(0x00803a2c), 0x5f, x, 0, z);
+        g_cancelEnv->setMode(0x32, 1);
+        g_cancelEnv->mapClick(column, row, 0, 0);
+        g_cancelEnv->setMode(0, 1);
+        return 1;
+    }
+    if (kind == 3) g_cancelEnv->stepBack(nullptr, 1);
+    return 1;
+}
+
+u32 __cdecl KeyAction_CancelMouseMode() {
+    if (g_cancelEnv->reset(reinterpret_cast<void *>((uintptr_t)0x007b51f0))) return 1;
+    MouseModes_EnsureHolder();
+    if (currentModeKind() == 0) return 0;
+    MouseModes_EnsureHolder();
+    if (currentModeKind() == 1) return 0;
+    u8 *const block = static_cast<u8 *>(GameHeap_Alloc(8));
+    u8 *const mode = block ? MouseModeOnlineBase_Ctor(block) : nullptr;
+    MouseModes_EnsureHolder();
+    MouseMode_Set(mode);
+    g_cancelEnv->setMode(0, 1);
+    return 1;
+}
 
 u32 __cdecl KeyAction_Turn90() { return turn(0x5a); }
 u32 __cdecl KeyAction_Turn270() { return turn(0x10e); }

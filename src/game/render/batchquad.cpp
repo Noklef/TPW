@@ -5,6 +5,7 @@
 #include "batch.h"
 #include "clipcodes.h"
 #include "drawbuffer.h"
+#include "../gfx/spriteframe.h"
 #include "../math/x87.h"
 
 namespace {
@@ -12,7 +13,7 @@ namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const BatchQuadEnv kPortEnv = {&Batch_Begin, &DrawBatch_AddPolygon, &DrawBuffer_End, &Batch_Flush};
+const BatchQuadEnv kPortEnv = {&Batch_Begin, &DrawBatch_AddPolygon, &DrawBuffer_End, &Batch_Flush, &Batch_DrawQuad, &SpriteFrame_FillItem};
 const BatchQuadEnv *g_env = &kPortEnv;
 
 }  // namespace
@@ -20,6 +21,25 @@ const BatchQuadEnv *g_env = &kPortEnv;
 void BatchQuad_SetEnv(const BatchQuadEnv *env) { g_env = env ? env : &kPortEnv; }
 
 extern "C" {
+
+u32 __fastcall Batch_DrawScreenQuad(u8 *self) {
+    static const u32 kPoints[16] = {0xbf800000, 0xbf800000, 0x3a83126f, 0x3f800000, 0x3f800000, 0xbf800000, 0x3a83126f, 0x3f800000,
+                                    0x3f800000, 0x3f800000, 0x3a83126f, 0x3f800000, 0xbf800000, 0x3f800000, 0x3a83126f, 0x3f800000};
+    u32 spec[27] = {0};
+    at<u32>(self, 4) = 0;
+    spec[1] = static_cast<u32>(reinterpret_cast<uintptr_t>(&spec[11]));
+    spec[2] = 0xffffffff;
+    spec[3] = 0x9a1;
+    for (u32 i = 0; i < 16; ++i) spec[11 + i] = kPoints[i];
+    return g_env->drawQuad(global<u8 *>(0x00879ab0), nullptr, reinterpret_cast<u8 *>(spec), 0xffffffff);
+}
+
+u32 __fastcall SpriteFrame_DrawQuad(u8 *frame) {
+    u32 spec[27] = {0};
+    spec[1] = static_cast<u32>(reinterpret_cast<uintptr_t>(&spec[11]));
+    if (g_env->fillItem(frame, nullptr, reinterpret_cast<u8 *>(spec)) == 0) return 0;
+    return g_env->drawQuad(global<u8 *>(0x00879ab0), nullptr, reinterpret_cast<u8 *>(spec), 0xffffffff);
+}
 
 u32 __fastcall Batch_DrawQuad(u8 *object, void *, u8 *spec, u32 mask) {
     if (global<u32>(0x008bcbc8) & 0x2000) at<u32>(spec, 0xc) |= 0x100000;

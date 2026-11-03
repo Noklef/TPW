@@ -5,6 +5,9 @@
 
 #include "../../../re/types.h"
 
+// The loop of Obj_DrainList0c / Obj_DrainList04 on the list at +field (other classes have it inline).
+void ObjList_Drain(u8 *object, u32 field);
+
 extern "C" {
 
 // 0x5679b0 (thiscall; value, pops 4): when the low byte of value differs from the shadow's, the member's slot 0x58 is called with (0x13, value >> 4 & 0xf) (an arithmetic

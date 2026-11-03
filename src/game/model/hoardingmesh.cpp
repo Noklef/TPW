@@ -87,6 +87,7 @@ extern "C" void __cdecl HoardingMesh_Build(const char *level, u8 *object, const 
     // (The frame's arrays, as big as the original's: 20 by 20 cells of four sides.)
     float angles[1600];
     s32 pointers[1600], sorted[1600], slots[1600];
+    // Sic, not kept: the original's table is this size too and nothing limits it. A mesh of over 1023 points runs off its frame, here off this one.
     float points[1023][3];
     char folder[0x104];
 
@@ -169,6 +170,7 @@ extern "C" void __cdecl HoardingMesh_Build(const char *level, u8 *object, const 
         points[i][0] = (float)(((py * at<float>(mesh, 0x20) + pz * at<float>(mesh, 0x30)) + X87Reg(at<float>(mesh, 0x10)) * kept) + at<float>(mesh, 0x40));
     }
 
+    // Sic, not kept: with under 2 points no corner finds a second one, so the original sets only the first move (to 0, 0) and uses the other six as what its frame held. 0 here.
     float moves[8] = {};
     for (s32 y = 0; y < height; ++y) {
         const float yg = (float)(X87Reg((double)y) * kTen);

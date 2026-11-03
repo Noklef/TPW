@@ -4,6 +4,7 @@
 
 #include "../coaster/registry.h"
 #include "../motion/animator.h"
+#include "../terrain/land.h"
 #include "rides.h"
 
 namespace {
@@ -39,9 +40,28 @@ void destroy_rows(u32 table, u32 count, bool dash) {
     }
 }
 
+const CellPaintEnv kCellPaintPorts = {&QueuePiece_Place, &Terrain_PaintAt};
+const CellPaintEnv *g_cellPaint = &kCellPaintPorts;
+
 }  // namespace
 
+void CellPaint_SetEnv(const CellPaintEnv *env) { g_cellPaint = env ? env : &kCellPaintPorts; }
+
 extern "C" {
+
+void __fastcall CellPaint_Apply(u8 *record) {
+    u32 *const fields = reinterpret_cast<u32 *>(record);
+    const u32 id = *reinterpret_cast<u16 *>(record);
+    fields[1] = 0;
+    const s32 column = static_cast<s32>((id - 1) & 0x7f), row = static_cast<s32>((id - 1) >> 7);
+    if (fields[5] == 2) {
+        fields[1] = g_cellPaint->place(column, row, fields[5], fields[6], fields[7], 1);
+        static const s32 kNone[3] = {0, 8, 0};
+        g_cellPaint->paint(column, row, kNone);
+    } else {
+        g_cellPaint->paint(column, row, reinterpret_cast<const s32 *>(&fields[5]));
+    }
+}
 
 void __cdecl QueuePieces_Destroy() { destroy_rows(0x00763388, 8, false); }
 void __cdecl TrackQueuePieces_Destroy() { destroy_rows(0x007633e8, 20, true); }

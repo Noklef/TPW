@@ -58,6 +58,7 @@ void __cdecl RideBase_Prepare(const u8 *object, const u8 *owner, const u8 *cells
     if (edges) MarkEdges(cells, width, height);
 
     Fit fit;
+    // Sic, not kept: the original sets the best count only in the first fit, which an owner without a +0x6c skips, so the later fits then start from what its frame held. 0 here.
     fit.bestCount = 0;
     s32 hits = 0;
     u8 *best = nullptr;

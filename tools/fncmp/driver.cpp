@@ -211,6 +211,19 @@
 #include "../../src/game/render/groundshadow.h"
 #include "../../src/game/gfx/spriteframelights.h"
 #include "../../src/game/model/ridebase.h"
+#include "../../src/game/world/parkentrance.h"
+#include "../../src/game/core/keyactions.h"
+#include "../../src/game/frontend/viewcontrols.h"
+#include "../../src/game/coaster/bendmesh.h"
+#include "../../src/game/coaster/carsound.h"
+#include "../../src/game/coaster/trainrun.h"
+#include "../../src/game/core/wscanner.h"
+#include "../../src/game/online/chatcursor.h"
+#include "../../src/game/frontend/lobbyscene.h"
+#include "../../src/game/world/rideskin.h"
+#include "../../src/game/core/advisorscoring.h"
+#include "../../src/game/frontend/sceneleave.h"
+#include "../../src/game/terrain/raypick.h"
 #include "../../src/game/terrain/ground.h"
 #include "../../src/game/terrain/water.h"
 #include "../../src/game/render/weatherfx.h"
@@ -716,7 +729,7 @@ const EditUpdateEnv kEditUpdateEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorde
 // tests/fncmp/testrun.py hooks them.
 const RibbonEnv kRibbonEnv = {Rec{recorder(2, 5)}};
 const BatchEnv kBatchEnv = {Rec{recorder(1, 1)}, Rec{recorder(2, 2)}};
-const BatchQuadEnv kBatchQuadEnv = {Rec{recorder(11, 5)}, Rec{recorder(12, 5)}, Rec{recorder(13, 2)}, Rec{recorder(14, 0)}};
+const BatchQuadEnv kBatchQuadEnv = {Rec{recorder(11, 5)}, Rec{recorder(12, 5)}, Rec{recorder(13, 2)}, Rec{recorder(14, 0)}, Rec{recorder(15, 2)}, Rec{recorder(16, 1)}};
 const LandscapeDrawEnv kLandscapeDrawEnv = {Rec{recorder(11, 5)}, Rec{recorder(15, 4)}, Rec{recorder(16, 1)}, Rec{jpeg_recorder(17, 1)}};
 // tests/fncmp/terrainwater.py: the transformer's slot 1 is 0x579330 in the original; here its port. ClipPoly_Vertices is stdcall (the COM-style recorder 3 of 5, recorder(k, n, True) in fncmp.py).
 u32 __fastcall water_transform(void *object, void *, u32 a, u32 b, u32 c, u32 d, u32 e, u32 f) {
@@ -728,7 +741,7 @@ const HoardingMeshEnv kHoardingMeshEnv = {Rec{jpeg_recorder(1, 2)}, Rec{jpeg_rec
 const TileGridEnv kTileGridEnv = {Rec{recorder(1, 2)}};
 const SpriteGroupsEnv kSpriteGroupsEnv = {Rec{recorder(1, 2)}};
 const TiledPanelEnv kTiledPanelEnv = {Rec{recorder(1, 2)}};
-const GroundShadowEnv kGroundShadowEnv = {Rec{recorder(1, 2)}};
+const GroundShadowEnv kGroundShadowEnv = {Rec{recorder(1, 2)}, Rec{recorder(2, 0)}};
 const SpriteFrameLightsEnv kSpriteFrameLightsEnv = {Rec{recorder(2, 0)}, Rec{recorder(3, 0)}, Rec{recorder(4, 4)}, Rec{recorder(1, 2)}};
 // RideBase_Prepare's fit has 28 stack dwords, past a recorder's 15: the cdecl recorder 1 of 13, the matrix by address (tests/fncmp/ridebase.py's hook does the same).
 void __cdecl ride_base_fit(const u8 *node, u8 *frame, u16 **cursor, GridFitMatrix matrix, const u8 *grid, u32 place, s32 *hits, float lift, u8 **best, s32 *bestCount, u32 flags,
@@ -737,6 +750,22 @@ void __cdecl ride_base_fit(const u8 *node, u8 *frame, u16 **cursor, GridFitMatri
     reinterpret_cast<Fit>((uintptr_t)jpeg_recorder(1, 13))(node, frame, cursor, &matrix, grid, place, hits, lift, best, bestCount, flags, only, fine);
 }
 const RideBaseEnv kRideBaseEnv = {&ride_base_fit, Rec{jpeg_recorder(2, 5)}, Rec{jpeg_recorder(3, 2)}};
+const ParkEntranceEnv kParkEntranceEnv = {Rec{jpeg_recorder(1, 2)}, Rec{jpeg_recorder(2, 1)}, Rec{jpeg_recorder(3, 4)}, Rec{jpeg_recorder(4, 1)}, Rec{jpeg_recorder(5, 0)}, Rec{jpeg_recorder(6, 6)}, Rec{recorder(7, 0)}, Rec{jpeg_recorder(8, 0)}, Rec{jpeg_recorder(9, 1)}};
+const CarSoundUpdateEnv kCarSoundUpdateEnv = {Rec{jpeg_recorder(1, 0)}, Rec{jpeg_recorder(2, 3)}, Rec{jpeg_recorder(3, 4)}, Rec{jpeg_recorder(4, 5)}};
+const SceneLeaveEnv kSceneLeaveEnv = {Rec{jpeg_recorder(20, 1)}, Rec{jpeg_recorder(21, 6)}, Rec{jpeg_recorder(22, 0)}, Rec{recorder(23, 0)}, Rec{recorder(24, 0)}, Rec{recorder(25, 0)},
+                                       Rec{jpeg_recorder(26, 0)}, Rec{jpeg_recorder(27, 0)}, Rec{jpeg_recorder(28, 0)}, Rec{jpeg_recorder(29, 0)}};
+const AdvisorCriteriaEnv kAdvisorCriteriaEnv = {Rec{recorder(1, 1)}, Rec{jpeg_recorder(2, 0)}, Rec{recorder(3, 1)}, Rec{recorder(4, 0)}, Rec{recorder(5, 0)}, Rec{recorder(6, 2)}};
+const CellPaintEnv kCellPaintEnv = {Rec{jpeg_recorder(1, 6)}, Rec{jpeg_recorder(2, 3)}};
+const RideSkinEnv kRideSkinEnv = {Rec{jpeg_recorder(1, 1)}};
+const LobbySceneEnv kLobbySceneEnv = {Rec{jpeg_recorder(1, 1)}, Rec{recorder(2, 0)}};
+const ChatCursorEnv kChatCursorEnv = {Rec{jpeg_recorder(1, 0)}, Rec{jpeg_recorder(2, 4)}, Rec{jpeg_recorder(3, 0)}, Rec{recorder(4, 1)}, Rec{recorder(5, 1)}};
+const WKeywordsEnv kWKeywordsEnv = {reinterpret_cast<s32(__cdecl *)(u8 *, u16 *, u32, u32, ...)>((uintptr_t)jpeg_recorder(12, 4))};  // tests/fncmp/wkeywords.py
+
+const KeyCancelEnv kKeyCancelEnv = {Rec{recorder(20, 0)}, Rec{jpeg_recorder(21, 2)}, Rec{jpeg_recorder(22, 6)}, Rec{jpeg_recorder(23, 4)}, Rec{jpeg_recorder(24, 2)}};
+const SceneViewsEnv kSceneViewsEnv = {Rec{recorder(20, 0)}, Rec{recorder(21, 0)}};
+const BendMeshEnv kBendMeshEnv = {Rec{jpeg_recorder(1, 8)}, Rec{jpeg_recorder(2, 1)}};
+const TrainRunEnv kTrainRunEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorder(2, 2)}, Rec{jpeg_recorder(3, 4)}, Rec{jpeg_recorder(4, 3)}, Rec{jpeg_recorder(5, 3)}, Rec{jpeg_recorder(6, 2)}, Rec{jpeg_recorder(7, 3)}};
+const RayPickEnv kRayPickEnv = {Rec{jpeg_recorder(1, 2)}, Rec{jpeg_recorder(1, 3)}, Rec{jpeg_recorder(2, 2)}, Rec{jpeg_recorder(3, 2)}, Rec{jpeg_recorder(4, 1)}, Rec{jpeg_recorder(5, 15)}, Rec{jpeg_recorder(1, 10)}, Rec{jpeg_recorder(2, 1)}};
 const TerrainGroundEnv kTerrainGroundEnv = {Rec{recorder(4, 0)}, Rec{recorder(5, 2)}, Rec{recorder(6, 0)}, Rec{recorder(7, 3)}, Rec{recorder(1, 5)}, Rec{recorder(11, 5)}, &water_transform,
                                             Rec{kStubs + 0x1000 + 0x4000 + 0x800 * 5 + 0x20 * 3}, Rec{recorder(8, 0)}, Rec{recorder(9, 1)}, Rec{jpeg_recorder(10, 3)}, Rec{recorder(2, 1)}};
 const WeatherDrawEnv kWeatherDrawEnv = {Rec{recorder(1, 5)}, Rec{recorder(2, 1)}, Rec{recorder(3, 1)}, Rec{recorder(4, 2)}, Rec{recorder(5, 2)}};
@@ -794,7 +823,7 @@ const RidesEnv kRidesEnv = {reinterpret_cast<void(__cdecl *)()>((uintptr_t)jpeg_
 // Model_FindPartByKey4, PartStates_Update and Sprites_UseGroundFrames / UseParkFrames.
 const CameraEnv kCameraEnv = {Rec{jpeg_recorder(20, 1)}, Rec{recorder(21, 1)},     Rec{jpeg_recorder(22, 0)}, Rec{jpeg_recorder(23, 0)},
                               Rec{jpeg_recorder(24, 3)}, Rec{jpeg_recorder(25, 1)}, Rec{jpeg_recorder(26, 3)}, Rec{jpeg_recorder(27, 1)},
-                              Rec{jpeg_recorder(28, 0)}, Rec{jpeg_recorder(29, 0)}};
+                              Rec{jpeg_recorder(28, 0)}, Rec{jpeg_recorder(29, 0)}, Rec{jpeg_recorder(10, 6)}, Rec{jpeg_recorder(11, 0)}, Rec{jpeg_recorder(30, 6)}};
 // MapCell_ApplyModel's calls into agent A's unported placers 0x522b90 / 0x522d50 / 0x522f20: cdecl recorders 20, 21 and 22 of 6 arguments,
 // as tests/fncmp/cellapply.py hooks those addresses.
 const CellModelEnv kCellModelEnv = {reinterpret_cast<u32(__cdecl *)(s32, s32, s32, s32, s32, u32)>((uintptr_t)jpeg_recorder(20, 6)),
@@ -1849,6 +1878,20 @@ int main(int argc, char **argv) {
     GroundShadow_SetEnv(&kGroundShadowEnv);
     SpriteFrameLights_SetEnv(&kSpriteFrameLightsEnv);
     RideBase_SetEnv(&kRideBaseEnv);
+    ParkEntrance_SetEnv(&kParkEntranceEnv);
+    KeyCancel_SetEnv(&kKeyCancelEnv);
+    WKeywords_SetEnv(&kWKeywordsEnv);
+    ChatCursor_SetEnv(&kChatCursorEnv);
+    LobbyScene_SetEnv(&kLobbySceneEnv);
+    RideSkin_SetEnv(&kRideSkinEnv);
+    CellPaint_SetEnv(&kCellPaintEnv);
+    AdvisorCriteria_SetEnv(&kAdvisorCriteriaEnv);
+    SceneLeave_SetEnv(&kSceneLeaveEnv);
+    CarSoundUpdate_SetEnv(&kCarSoundUpdateEnv);
+    SceneViews_SetEnv(&kSceneViewsEnv);
+    BendMesh_SetEnv(&kBendMeshEnv);
+    TrainRun_SetEnv(&kTrainRunEnv);
+    RayPick_SetEnv(&kRayPickEnv);
     WeatherFx_SetDrawEnv(&kWeatherDrawEnv);
     WeatherFx_SetDropsEnv(&kWeatherDropsEnv);
     ModelGroup_SetEnv(&kModelGroupEnv);

@@ -1,8 +1,17 @@
 // A coaster car's sounds (+0x54..+0x70: the two looped sounds +0x64 / +0x68, their parameters +0x5c / +0x60, the mode +0x38):
-// reimplementation of 0x4392a0, 0x4393e0, 0x439670 and 0x439780.
+// reimplementation of 0x4392a0, 0x4393e0, 0x439570, 0x439670 and 0x439780.
 #pragma once
 
 #include "../../../re/types.h"
+
+// What CoasterCar_UpdateSounds calls (the ports by default; the bench runs them as recorders).
+struct CarSoundUpdateEnv {
+    const void *(__cdecl *followed)();                                     // Camera_Followed (0x42a4e0)
+    u32(__cdecl *setParam)(u32 sound, u32 parameter, u32 value);           // Sound_SetParam (0x51bc40)
+    u32(__cdecl *setPosition)(u32 sound, s32 x, s32 y, s32 z);             // Sound_SetPosition (0x51c270)
+    void(__cdecl *scream)(u8 *link, u8 *car, s32 x, s32 y, s32 z);         // CoasterCar_UpdateScream (0x4393e0)
+};
+void CarSoundUpdate_SetEnv(const CarSoundUpdateEnv *env);
 
 extern "C" {
 
@@ -29,6 +38,11 @@ void __cdecl CoasterCar_StartSounds(u8 *coaster, u8 *car, u32 quiet);
 // 2 plays the +0x6c sound (neither flag, 0x785a2c 0); bit 4 (neither flag) starts a scream (RSSE_StartScream (0, +0x10 / 2 + 1, 0x4b,
 // 0x4b)) when +0x70 is none and 0x785a2c 0, and sets the flag 0x100.
 void __cdecl CoasterCar_UpdateScream(u8 *link, u8 *car, s32 x, s32 y, s32 z);
+
+// 0x439570 (cdecl (link, car); name invented, unconfirmed): the looped sounds kept up with the car. While 0x785a2c is 0: the level from the car's speed (__ftol of +0x78 / [[link+4]+0x50] * 100): the +0x64 sound's
+// parameter +0x58 set to it, the +0x68's to 100 less it; both moved to the car's place (fistp of +0x3c when the camera follows the car's +0x34 thing's +0xc, else of +0x48). With a car in +0x10: CoasterCar_UpdateScream
+// at that place. sic: with 0x785a2c set the three stay stack garbage in the original, passed on to CoasterCar_UpdateScream, 0 here (see the .cpp).
+void __cdecl CoasterCar_UpdateSounds(u8 *link, u8 *car);
 
 // 0x439390 (cdecl; name invented, unconfirmed): every car (+0x128, 0x80 bytes each, as many as +0xf4 counts) of every coaster link of the
 // list 0x790fe0 (next +0x18) gets its sounds started (CoasterCar_StartSounds (link, car, 0)).

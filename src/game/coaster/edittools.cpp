@@ -396,6 +396,21 @@ void __cdecl CoasterEdit_EndTool() {
     SetModeState(0);
 }
 
+void __cdecl CoasterEdit_PickPiece(u32, u32, u32 number) {
+    EndTool();
+    SetModeState(2);
+    const u32 piece = Track_PieceAt(g<u8 *>(0x00790fec) + 0x3c, number & 0xffff);
+    g<u32>(0x0079c640) = piece;
+    g_env->selectPiece(reinterpret_cast<u8 *>((uintptr_t)piece));
+}
+
+void __cdecl CoasterEdit_DeleteSpanBetween(u32 first, u32 second) {
+    g<u32>(0x0079c640) = Track_PieceAt(g<u8 *>(0x00790fec) + 0x3c, first & 0xffff);
+    g_env->deleteSpan();
+    g<u32>(0x0079c640) = Track_PieceAt(g<u8 *>(0x00790fec) + 0x3c, second & 0xffff);
+    g_env->deleteSpan();
+}
+
 void __cdecl CoasterEdit_SetMode(u32 mode) {
     EndTool();
     SetModeState(mode);

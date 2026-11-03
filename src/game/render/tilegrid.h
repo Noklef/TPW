@@ -17,6 +17,6 @@ extern "C" {
 // Each cell of the rectangle (in 64s, the outer ones cut to it) is a Batch_DrawQuad with mask -3, by the cell's +8 flags (0x1000: its +0x1c the batch's extra; 0x100000: polygon flag 4, which stays for the later
 // cells, sic), its +0x20 / +0x24 UV size and +0x28 / +0x2c UV start, trimmed by half a texel's 0.3 or, with render flag 2, 1.0 in v, when the +0x18 holder holds a texture. An answer 0 returns 0, else 1.
 // Sic: the spec and its points stay from one cell to the next, so what the call changes in them carries over. The polygon flags start as stack garbage (0 here). The original's Texture_FormatBits of each cell is
-// left out: its answer is overwritten. Its null test of the cell is left out: a null cell faults either way. Over 32 columns or 64 rows the tables run over the original's saved registers: not kept.
+// left out: its answer is overwritten. Its null test of the cell is left out: a null cell faults either way. Over 32 columns or 64 rows the tables run over the original's return address: not kept.
 u32 __fastcall TileGrid_Draw(u8 *object, void *);
 }

@@ -81,11 +81,14 @@ void Rebuild(u8 *hull, u32 x, u32 y, u32 z) {
     while (Flag(hull, k) != 0 && k >= 0)
         --k;
     ++k;
+    // Sic, kept: nothing limits the count. From 9 points the turned copies can pass point 16 and run over the flags and the count; the hull's own memory, so the same here.
     Rep_Movs(&Flag(hull, Count(hull)), &Flag(hull, 0), (u32)k);
     Rep_Movs(&Flag(hull, 0), &Flag(hull, k), (u32)Count(hull));
     Rep_Movs(Point(hull, Count(hull)), hull, (u32)k * kPoint);
     Rep_Movs(hull, Point(hull, k), (u32)Count(hull) * kPoint);
 
+    // Sic, not kept: over 16 points the original's copy runs over its locals, saved EBP and return address, so it faults or returns into point bytes. Here it runs over this frame's own.
+    // Real data stays far below it: the only caller (0x56bb00) adds 4 points to a hull of 1.
     u8 saved[0xc0];
     Rep_Movs(saved, hull, (u32)Count(hull) * kPoint);
     s32 last = Outside(hull) - 1;

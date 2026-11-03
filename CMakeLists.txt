@@ -374,6 +374,8 @@ add_library(tpw_game STATIC
     src/game/world/trakcarpose.cpp
     src/game/world/mappress.cpp
     src/game/world/staffcandidate.cpp
+    src/game/world/parkentrance.cpp
+    src/game/world/rideskin.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp
@@ -401,6 +403,8 @@ add_library(tpw_game STATIC
     src/game/coaster/typemodel.cpp
     src/game/coaster/nodeangles.cpp
     src/game/coaster/handles.cpp
+    src/game/coaster/bendmesh.cpp
+    src/game/coaster/trainrun.cpp
     src/game/terrain/terrain_blend.cpp
     src/game/terrain/land.cpp
     src/game/terrain/procedural.cpp
@@ -412,6 +416,7 @@ add_library(tpw_game STATIC
     src/game/terrain/attrmap.cpp
     src/game/terrain/water.cpp
     src/game/terrain/ground.cpp
+    src/game/terrain/raypick.cpp
     src/game/model/parts.cpp
     src/game/model/holder.cpp
     src/game/model/remap.cpp
@@ -494,6 +499,7 @@ add_library(tpw_game STATIC
     src/game/online/ftp.cpp
     src/game/online/chat.cpp
     src/game/online/chatevents.cpp
+    src/game/online/chatcursor.cpp
     src/game/frontend/lobbymodel.cpp
     src/game/frontend/helpbg.cpp
     src/game/frontend/islandcamera.cpp
@@ -502,6 +508,7 @@ add_library(tpw_game STATIC
     src/game/frontend/postcard.cpp
     src/game/frontend/scenequeue.cpp
     src/game/frontend/frame.cpp
+    src/game/frontend/sceneleave.cpp
     src/game/input/mouse.cpp
     src/game/ui/dialog7ca1c8.cpp
     src/game/ui/window.cpp

@@ -443,7 +443,7 @@ address,name,kind,confidence,notes
 0x00542640,Sprites_UseParkFrames,function,high,"reimplemented (src/game/sprite/loading); cdecl, returns a byte: the loaded sprites' frame sets reloaded from the park (.tpc) files of the sprite folder, unless already in use; answers 1, or 0 when nothing was done"
 0x00587db0,SpriteFrames_Load,function,medium,reads a .tpc/.fpc stream into a frame set
 0x0042ab20,Camera_SetMode,function,medium,"reimplemented (src/game/world/camera); cdecl (mode, toggle, ride, force, out, fresh): the camera's park view (0x40), follow (4) or walk (2) mode set or toggled in gCameraFlags 0x790ab0; entering or leaving a mode suspends the highlight, sets the chat buttons, swaps procedural terrain and wakes the camera's instance; every ride's model parts' faces marked by their flags; answers whether the mode changed"
-0x0042ae70,Camera_ToggleWalkMode,function,medium,switches sprite frame sets with the camera
+0x0042ae70,Camera_ToggleWalkMode,function,medium,"reimplemented (src/game/world/camera); the walk mode toggled when the cell under the point allows it, the point and yaw saved or restored"
 0x0042a560,Camera_FollowThing,function,low,"reimplemented (src/game/world/camera); cdecl (ride, ground, force, out, key, fresh): the camera's follow mode (Camera_SetMode 4) set on a ride, its keyed part flagged and remembered as the followed part, then the ground or park sprite frames chosen"
 0x00763f88,gSpriteFolders,data,high,"14 x (char* folder, first sprite index, count)"
 0x00764030,gAvatarSprites,data,high,"SPR_BI/KI/TA/SU.ESP"
@@ -799,6 +799,7 @@ address,name,kind,confidence,notes
 0x0042a500,Camera_SetControl100,function,low,reimplemented (src/game/world/camera); cdecl: bit 0x100 of the camera control flags 0x790aac set; returns 1 (a key map action handler)
 0x0042a520,Camera_ToggleControl200,function,low,reimplemented (src/game/world/camera); cdecl: bit 0x200 of the camera control flags 0x790aac toggled; returns 1 (a key map action handler)
 0x00486860,Camera_CentreOnSprite,function,low,reimplemented (src/game/world/camera); cdecl (sprite): the camera point set (x and z) to the sprite position this moment: Sprite_InterpolatedPos at (clock 0x8786bc - last tick 0x878a1c) * [0x6ff16c] on the x87
+0x0042a190,Camera_StopFollowing,function,low,"reimplemented (src/game/world/camera); with bit 2 of 0x790ab0 the follow mode's thing dropped, the camera snapped when it answers so (name unconfirmed)"
 0x0046c450,MouseMode_Nop4,function,high,reimplemented (src/game/world/mousemode); an empty mouse-mode method (4 arguments)
 0x0046c460,MouseMode_DeletingDtor,function,high,reimplemented (src/game/world/mousemode); the base mouse mode's deleting destructor
 0x0046c580,MouseModeTile_Ctor,function,high,reimplemented (src/game/world/mousemode); the 0x6fe9e0 tile mode's constructor
@@ -4408,6 +4409,9 @@ address,name,kind,confidence,notes
 0x00427620,TerrainSets_Load,function,low,"reimplemented (src/game/terrain/tct); cdecl (name, sets): a level's terrain texture sets read from its .tct file in two passes (count, then place)"
 0x00570d90,TerrainWater_Draw,function,low,"reimplemented (src/game/terrain/water); The water surface drawn into a batch (name invented, unconfirmed)."
 0x0056f670,TerrainGround_Draw,function,low,"reimplemented (src/game/terrain/ground); the landscape's ground drawn into batches, one for each run of a texture id (name invented, unconfirmed)"
+0x0045d090,RayPick_Node,function,low,"reimplemented (src/game/terrain/raypick); the ray against a model node's faces and those under it (name invented, unconfirmed)"
+0x0045cdc0,RayPick_Column,function,low,"reimplemented (src/game/terrain/raypick); the ray against what stands on a map cell (name invented, unconfirmed)"
+0x0045bf90,RayPick_World,function,low,"reimplemented (src/game/terrain/raypick); the ray from the camera through the mouse against the ground and what stands on it (name invented, unconfirmed)"
 0x005ea510,Image_Dilate,function,high,reimplemented (src/game/gfx/imageops); separable maximum filter of an image
 0x005ea6d0,Image_Erode,function,high,reimplemented (src/game/gfx/imageops); separable minimum filter of an image
 0x005ea1f0,Image_MinMark,function,high,"reimplemented (src/game/gfx/imageops); 3 x 3 minimum of a two byte per pixel image, marking the changed pixels"
@@ -4681,6 +4685,8 @@ address,name,kind,confidence,notes
 0x005e6070,WScanner_PushToken12,function,low,"reimplemented (src/game/core/wscanner); thiscall: a pair {"""", L"""", 0x12} pushed on the vector at +0x50, then the position set to the text's end (name unconfirmed)"
 0x005e6540,WScanner_PushToken15,function,low,"reimplemented (src/game/core/wscanner); thiscall: a pair {"""", L"""", 0x15} pushed on the vector at +0x50, then the position set to the text's end (name unconfirmed)"
 0x005e6fc0,WScanner_SpanInSet14,function,low,"reimplemented (src/game/core/wscanner); thiscall: the run of characters from the position in the set at +0x14, the position moved past it; -1 at the text's end (name unconfirmed)"
+0x005e49f0,WKeywords_Add,function,low,"reimplemented (src/game/core/wscanner); a keyword (text by id, handler) put first in the list [[+0x48]] (name invented, unconfirmed)"
+0x005e47f0,WKeywords_AddAll,function,low,"reimplemented (src/game/core/wscanner); the scanner's 18 keyword handlers added, each under two text ids (name invented, unconfirmed)"
 0x0045f640,Startup_CheckCanRun,function,low,"reimplemented (src/game/core/startcheck); cdecl u8 (): 0 with game error 0 when not installed (Registry_GameInstalled); else CreateMutexA(0, 1, [0x7a2508]) kept at 0x7a267c, and when made with GetLastError 0xb7 (already exists) game error 1, CloseHandle, 0; else 1"
 0x0040c120,KeyAction_Turn90,function,low,"reimplemented (src/game/core/keyactions); cdecl: Global81d7a4_SetRecorded((0x81d7a4 + 90) signed mod 360, 1); returns 1 (key ',')"
 0x0040c150,KeyAction_Turn270,function,low,"reimplemented (src/game/core/keyactions); cdecl: Global81d7a4_SetRecorded((0x81d7a4 + 270) signed mod 360, 1); returns 1 (key '.')"
@@ -4803,6 +4809,8 @@ address,name,kind,confidence,notes
 0x0040c7c0,KeyAction_MarkScore2,function,low,reimplemented (src/game/core/keyactions); cheat key: a score of 100 on theme 2
 0x0040c7e0,KeyAction_MarkScore3,function,low,reimplemented (src/game/core/keyactions); cheat key: a score of 100 on theme 3
 0x0040c470,KeyAction_ScreenGrab,function,low,reimplemented (src/game/core/keyactions); F8: the screen grab's next free name taken
+0x0040c180,KeyAction_CancelMouseMode,function,low,"reimplemented (src/game/core/keyactions); the cancel key's action: the dialog child reset, else the mouse mode back to CMMOnline's base and game mode 0 (name invented, unconfirmed)"
+0x0040bda0,KeyAction_ClickCell,function,low,"reimplemented (src/game/core/keyactions); the key action on the cell under the cursor: sound and map click, or a step back (name invented, unconfirmed)"
 0x00672090,XaAdpcm_DecodeMono,function,low,"reimplemented (src/game/core/xaadpcm); cdecl (count, position, last, before, data, out): (count + 27) / 28 blocks of 15 bytes (a filter / shift header, 28 4-bit samples) from data + position * 15 / 28 decoded to 16-bit pairs (both channels) through *out; returns before"
 0x00672210,XaAdpcm_DecodeStereo,function,low,"reimplemented (src/game/core/xaadpcm); cdecl (count, position, last left, before left, last right, before right, data, out): the stereo blocks of 30 bytes (two header bytes, 28 byte pairs of left / right nibbles); returns the right before as stored"
 0x00672cb3,ImaAdpcm_DecodeStereo,function,low,"reimplemented (src/game/core/imaadpcm); cdecl (data, out, count, samples, indices): count bytes of stereo 4-bit ADPCM (high nibble left) through the step table 0x77c6c0 and index moves 0x77dd00, the state kept in 0x77dd20-0x77dd2c and packed back"
@@ -5182,6 +5190,10 @@ address,name,kind,confidence,notes
 0x0059ca30,AdvisorScoring_Objects0WornNoStaff4,function,low,reimplemented (src/game/core/advisorscoring); thiscall: no staff of kind 4: Objects_CountKind0Below44OrState1(+0xc0) times +0xbc
 0x0059cb40,AdvisorScoring_MapShareAtMostNoStaff5,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: not flagged, no staff of kind 5, the map's share of cells with +0x2c at most +0xd8: it times +0xd0 less +0xd4"
 0x0059cbb0,AdvisorScoring_MapShareAtLeastNoStaff5,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: not flagged, no staff of kind 5, the map's share of cells with +0x2c at least +0xe0: it times +0xdc less +0xe0"
+0x0059f860,AdvisorScoring_CrowdAverage480,function,low,"reimplemented (src/game/core/advisorscoring); the park score and the crowd above bounds, a bound below the average: +0x48c (name invented, unconfirmed)"
+0x0059f8d0,AdvisorScoring_CrowdAverage490,function,low,"reimplemented (src/game/core/advisorscoring); as 0x59f860 with +0x490 to +0x49c (name invented, unconfirmed)"
+0x0059e9b0,AdvisorScoring_InDebt,function,low,"reimplemented (src/game/core/advisorscoring); a table entry's +0xc below 0 with a loan on offer: +0x340 (name invented, unconfirmed)"
+0x0059ef60,AdvisorScoring_CutOffObject,function,low,"reimplemented (src/game/core/advisorscoring); an object cut off (handle kept at +4): +0x388 (name invented, unconfirmed)"
 0x00418da0,ParkInfo_Serialize,function,low,"reimplemented (src/game/core/parkinfo); thiscall (stream, save, version, unused), pops 0x10: the save's park information (strings, three dwords, the author's name and e-mail, the description, the publishing date) written or read field by field (name unconfirmed)"
 0x005d55a0,AuthStamp_Text,function,low,"reimplemented (src/game/core/authstamp); cdecl: ""No Authorization Stamp"" (0x774bc0) while the phrase at 0x763f3d is the plain one at 0x774bd8; else the phrase's bytes less the key's (0x774b78) written to 0xf827f8 until they meet, and 0xf827f8"
 0x006cc7b0,Mp2Decoder_ParseHeader,function,low,"reimplemented (src/game/core/mp2frame); parses an MPEG audio frame header into the decoder's fields, rate, bitrate and frame length; -1 without sync or bitrate"
@@ -5692,6 +5704,7 @@ address,name,kind,confidence,notes
 0x00522d20,TrackQueuePiecesAnimated_Destroy,function,low,reimplemented (src/game/world/queuepieces); cdecl: as QueuePieces_Destroy over 0x7634d8 (25 rows)
 0x00522ef0,EndPieces_Destroy,function,low,reimplemented (src/game/world/queuepieces); cdecl: as QueuePieces_Destroy over 0x763608 (28 rows)
 0x0052f190,AllPieces_Destroy,function,low,reimplemented (src/game/world/queuepieces); cdecl: the four piece tables' destroy loops in turn
+0x005366e0,CellPaint_Apply,function,low,"reimplemented (src/game/world/queuepieces); a record's paint put on its cell, a queue piece placed for paint type 2 (name invented, unconfirmed)"
 0x0052c150,PathDrag_Begin,function,low,"reimplemented (src/game/world/pathdrag); the drag's cell becomes (x, y); its entry's dword +4 saved at 0x818c58 and cleared; without keep, 0x5367a0 on the cell; the held byte set"
 0x0052c1c0,PathDrag_Finish,function,low,"reimplemented (src/game/world/pathdrag); with a cell held, three 0x536100 steps (0x15, 0x83, 0x81); the stepped cell's entry gets the saved value back; the held byte cleared, the cell -1, -1"
 0x00518e60,AdvisorSlot_Ctor,function,low,reimplemented (src/game/world/advisorrecords); the element constructor of the 8 records of 0x18 at +0x14: the byte +0x14 cleared; returns the record
@@ -5792,6 +5805,9 @@ address,name,kind,confidence,notes
 0x00508170,StaffPool_TopUp,function,low,reimplemented (src/game/world/staffcandidate); round the kinds until each is at its limit
 0x005084f0,StaffPool_Update,function,low,"reimplemented (src/game/world/staffcandidate); thiscall; old candidates out, new ones generated on the clock, topped up (name invented)"
 0x00507bf0,StaffPool_TakeCandidate,function,low,"reimplemented (src/game/world/staffcandidate); thiscall (slot), pops 4; a candidate taken up: the mouse mode for placing the staff (name invented)"
+0x005323f0,ParkEntrance_Lay,function,low,"reimplemented (src/game/world/parkentrance); the park entrance's hoardings and path laid from the two entrance places (name invented, unconfirmed)"
+0x005327e0,ParkEntrance_LayOutline,function,low,"reimplemented (src/game/world/parkentrance); a rectangle's outline laid with map clicks and the run laid (name invented, unconfirmed)"
+0x004690a0,Ride_RestoreSkinsAndDestroy,function,low,"reimplemented (src/game/world/rideskin); a ride's skins put back in its model, then the ride destroyed (name invented, unconfirmed)"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved
@@ -6345,6 +6361,8 @@ address,name,kind,confidence,notes
 0x00446300,CoasterEdit_Click,function,low,"reimplemented (src/game/coaster/edittools); cdecl (press): the coaster editor's click or release by the tool in use (0x79c624): the car under the cursor found and the tool's function called; name invented, unconfirmed"
 0x00445a70,CoasterEdit_PlaceSelected,function,low,"reimplemented (src/game/coaster/edittools); cdecl (x, y): the selected piece (0x79c6a4) put down on a cell, the money settled; name invented, unconfirmed"
 0x00446050,CoasterEdit_CancelSelected,function,low,"reimplemented (src/game/coaster/edittools); cdecl: the piece being moved put back on its old cell; name invented, unconfirmed"
+0x00447bb0,CoasterEdit_PickPiece,function,low,"reimplemented (src/game/coaster/edittools); the editor's tool ended, mode 2, the track's piece number selected (name invented, unconfirmed)"
+0x00447b60,CoasterEdit_DeleteSpanBetween,function,low,"reimplemented (src/game/coaster/edittools); two track pieces each made current and its span deleted (name invented, unconfirmed)"
 0x0043f4e0,TrackMesh_EmitPiece,function,low,"reimplemented (src/game/coaster/trackmesh); cdecl (piece, next, count, positions, restart): a piece's samples turned into track mesh: cross sections placed by the spline frame, their triangles listed"
 0x004402d0,TrackMesh_PlaceSections,function,low,"reimplemented (src/game/coaster/trackmesh); cdecl: the section records placed along the track by zone, from 0x792600 (each the spline value and position, a blend and the zone)"
 0x00439780,CoasterCar_SetSoundMode,function,low,"reimplemented (src/game/coaster/carsound); cdecl (car, mode, value): a new mode sets the looped sound's first parameter to its level, then the second parameter to value"
@@ -6352,12 +6370,15 @@ address,name,kind,confidence,notes
 0x004392a0,CoasterCar_StartSounds,function,low,reimplemented (src/game/coaster/carsound); A coaster car's sounds started: its ride's linked elements and two looped sounds at its position
 0x004393e0,CoasterCar_UpdateScream,function,low,reimplemented (src/game/coaster/carsound); a coaster car's scream and kid sound kept up to its place on the track
 0x00439390,CoasterCars_StartAllSounds,function,low,reimplemented (src/game/coaster/carsound); every coaster car's sounds started
+0x00439570,CoasterCar_UpdateSounds,function,low,"reimplemented (src/game/coaster/carsound); a coaster car's looped sounds kept up with its speed and place (name invented, unconfirmed)"
 0x00434740,CoasterPiece_CanPlaceAt,function,low,"reimplemented (src/game/coaster/placecheck); cdecl (x, z, piece, px, pz, nx, nz): whether a coaster piece may go on the tile: map, taken tiles, squared distance, the angle at the piece within the rules' limits, the coaster links' nodes on the tile, and the held piece's neighbours checked again"
 0x00443340,CoasterEdit_Update,function,low,"reimplemented (src/game/coaster/editupdate); the coaster editor's frame update: the adjust tools' values and vectors follow the mouse, the span and move tools the hovered car and the focus tile, the edited car and the cost"
 0x0043c450,Coaster_TestRun,function,low,"reimplemented (src/game/coaster/testrun); cdecl (coaster); name invented, unconfirmed: the coaster's test run: speeds, forces, banks and ratings along the track nodes, then the trains the run's time allows, their cars' places and average speeds"
 0x00430590,CoasterType_ReadModel,function,low,"reimplemented (src/game/coaster/typemodel); cdecl (-, block, type); name invented, unconfirmed; 0x42fcd1 and 0x42fd48 call it. The parts a coaster type's model offers (flags 0x20 to 0x2000 and the indexes in the block) and the heights of its stances (a stand-in ride played and measured, then destroyed)"
 0x00438ab0,Coaster_NodeAngles,function,low,"reimplemented (src/game/coaster/nodeangles); the turn to each coaster node near a place (name invented, unconfirmed)"
 0x00431660,TrackPiece_Handles,function,low,"reimplemented (src/game/coaster/handles); a track piece's spline handles from its neighbours (name invented, unconfirmed)"
+0x00438800,Coaster_BendMesh,function,low,"reimplemented (src/game/coaster/bendmesh); a car's mesh bent along the track (name invented, unconfirmed)"
+0x0043ce20,Coaster_RunTrains,function,low,"reimplemented (src/game/coaster/trainrun); a coaster's trains moved on one step (name invented, unconfirmed)"
 0x0044a590,RenderMode_Size,function,high,"reimplemented (src/game/render/mode); cdecl u32 (): first of 0x2000/0x1000/0x800 in 0x79d86c, else 0x4000 if set, else 0x1000"
 0x0044a5d0,RenderMode_Depth,function,high,"reimplemented (src/game/render/mode); cdecl u32 (): first of 8/0x10 in 0x79d86c, else 0x20 if set, else 8"
 0x0044a600,RenderMode_ResetScale,function,high,reimplemented (src/game/render/mode); cdecl (): 0x79d9e4 = 1.0f
@@ -6600,11 +6621,14 @@ address,name,kind,confidence,notes
 0x005dfcd0,RandomSegments_Ctor,function,low,"reimplemented (src/game/render/randomsegments); an object of two random segments: constructor (vtable 0x702cb0; name invented, unconfirmed)"
 0x00580530,ModelGroup_AddToBatch,function,low,"reimplemented (src/game/render/modelgroup); thiscall (batch, group, stride): one material group of a model's mesh into the batch: UVs (plain, sphere map, a second layer), vertices with colour, faces clipped or not, fog and transform"
 0x00565f90,Batch_DrawQuad,function,low,"reimplemented (src/game/render/batchquad); One textured quad as a batch of its own (name invented, unconfirmed)."
+0x0057ed50,Batch_DrawScreenQuad,function,low,"reimplemented (src/game/render/batchquad); a quad over the whole clip space drawn on [0x879ab0] (name invented, unconfirmed)"
+0x00589f90,SpriteFrame_DrawQuad,function,low,"reimplemented (src/game/render/batchquad); a sprite frame's item filled and drawn as one quad on [0x879ab0] (name invented, unconfirmed)"
 0x00577ae0,TileGrid_Draw,function,low,"reimplemented (src/game/render/tilegrid); the tiles of a rectangle of a grid of 64-unit cells, each a Batch_DrawQuad (name invented, unconfirmed)"
 0x0057c620,SpriteGroups_Draw,function,low,"reimplemented (src/game/render/spritegroups); a frame's camera-facing sprites by group, each a Batch_DrawQuad (name invented, unconfirmed)"
 0x0058a010,TiledPanel_Draw,function,low,"reimplemented (src/game/render/tiledpanel); a panel of tiles on the screen, anchored, each tile a Batch_DrawQuad (name invented, unconfirmed)"
 0x0057be90,GroundShadow_Draw,function,low,"reimplemented (src/game/render/groundshadow); a flat quad laid over the height grid (name invented, unconfirmed)"
 0x004901d0,PasswordPart_SetLayout,function,low,"reimplemented (src/game/render/passwordpart); a password text part's layout: the text as stars: name invented, unconfirmed"
+0x0057c2a0,GroundShadows_DrawAll,function,low,"reimplemented (src/game/render/groundshadow); a list of ground shadows drawn, the count cleared (name invented, unconfirmed)"
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"
@@ -6821,6 +6845,9 @@ address,name,kind,confidence,notes
 0x004ebcf0,ChatAvatar_RemoveIgnore,function,low,"reimplemented (src/game/online/chatcommand); thiscall (name), pops 4; the command 0xd run on the name when it is in the ignore set +0xea0 (name invented)"
 0x004e6e80,ChatAvatar_HandleEvent,function,low,"reimplemented (src/game/online/chatevents); thiscall (tokens), RET 4: the event the tokens carry (name invented, unconfirmed)"
 0x004ee710,ChatAvatar_SetBuddy,function,low,"reimplemented (src/game/online/chatevents); thiscall (name, flags), RET 8: the buddy set's entry of name given the flags, told to both window lists (name invented, unconfirmed)"
+0x0046c610,ChatCursor_Click,function,low,"reimplemented (src/game/online/chatcursor); a map click on the cell under the cursor with the async modifiers (name invented, unconfirmed)"
+0x0046cee0,ChatCursor_GoTo,function,low,"reimplemented (src/game/online/chatcursor); the online chat's avatar sent to the cell under the cursor (name invented, unconfirmed)"
+0x0046cf80,ChatCursor_MoveTo,function,low,"reimplemented (src/game/online/chatcursor); the online chat's avatar moved to the cell under the cursor (name invented, unconfirmed)"
 0x005d8190,LobbyModel_SetPosition,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (v): the lobby model's (+4: 0x7a4610 index) matrix (+8 -> +4 -> +0x78, +0x10) translation = v[0..2] (x87 loads, all read first)"
 0x005d8380,LobbyModel_TurnY,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (angle): Matrix_RotateEulerFast(the lobby model's matrix, 2 ""Y"", &angle)"
 0x005d83b0,LobbyModel_SetScale,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (x, y, z): Holder_SetScale(the lobby model's entry +8, (x, y, z))"
@@ -6844,6 +6871,7 @@ address,name,kind,confidence,notes
 0x005e1350,Class702cb0_StartPendingPlay,function,low,"reimplemented (src/game/frontend/lobbyscene); thiscall, vtable 0x702cb0 slot 6: a pending play (state +0x14 == 2) started with LobbyModel_Play(entry 1); 0 when the state is 0, else 1 and the state cleared"
 0x005d9db0,Class702af0_Ctor,function,low,"reimplemented (src/game/frontend/lobbyscene); thiscall (count, name, name2, two triples by pointer, two dwords; pops 0x1c): strings +0x10/+0x24, vtable 0x702af0, a new list (0x702aec) at +0x58, +8 = count * [0x7858dc] / 100 clamped to 1..count, names assigned, triples to +0x38/+0x44, dwords to +0x50/+0x54, registered with [0xf83784] slot 6 (name unconfirmed)"
 0x005e1210,Class702cb0_StepCamera,function,low,"reimplemented (src/game/frontend/lobbyscene); thiscall: the lobby camera's eye set round the model by angle and radius, the position and look-at eased toward eye and target, both copied to the camera"
+0x005d80c0,Class702a50_Dtor,function,low,"reimplemented (src/game/frontend/lobbyscene); class 0x702a50's destructor: out of the registry, the ride destroyed, its two strings destroyed (name unconfirmed)"
 0x005dd310,ViewCtl_Lower48,function,low,reimplemented (src/game/frontend/viewcontrols); thiscall: the float +0x48 lowered by the float +0x14
 0x005dd320,ViewCtl_Raise48,function,low,reimplemented (src/game/frontend/viewcontrols); thiscall: the float +0x48 raised by the float +0x14
 0x005dd330,ViewCtl_Raise50,function,low,reimplemented (src/game/frontend/viewcontrols); thiscall: the float +0x50 raised by the float +0x14
@@ -6858,11 +6886,20 @@ address,name,kind,confidence,notes
 0x005e2660,Scene702dd0_DialogDone,function,low,"reimplemented (src/game/frontend/viewcontrols); cdecl (accepted, self) callback of Class702dd0 slot 17: 0 calls self slot 0x44; else state +0x14 2 plays the +0xc +8 lobby model, +0x14 = 0, Dialog7cc47c_Message6On"
 0x005dced0,ViewCtl702bc8_Message,function,low,"reimplemented (src/game/frontend/viewcontrols); thiscall (message, key, unused): message 0x1000a's arrow keys move +0x48 / +0x50 by +0x14, message 0x10006 with 2 swaps the mode and sets the dialog's child 0x16006"
 0x005dd530,ViewCtl702e70_Message,function,low,"reimplemented (src/game/frontend/viewcontrols); thiscall (message, key, unused): as 0x5dced0, then message 0x10005 with key 0 and a target at +0x70: [0xf82888] = its +0xc, the view's slot 8 and the scene's +8 object's slot 7 called"
+0x005e3dc0,Class702d78_MakeViews,function,low,"reimplemented (src/game/frontend/viewcontrols); the scene object's five objects made and its list's items told (name invented, unconfirmed)"
 0x005e2cc0,IslandCamera_LoadSettings,function,low,"reimplemented (src/game/frontend/islandcamera); thiscall: the lobby island camera settings read from a text file (FOV, spin, radii, ten camera positions)"
 0x004a7bf0,Postcard_OnSent,function,low,"reimplemented (src/game/frontend/postcard); cdecl (done, result): the postcard sender's callback; when done and the result is 0-4, the command of the table {0x34, 0x39, 0x3a, 0x3b, 0x3b} posted (CommandQueue_Post)"
 0x005d6060,Class702da0_Clear,function,low,reimplemented (src/game/frontend/scenequeue); the advisor stopped and every queued id freed
 0x005d6110,Class702da0_Push,function,low,"reimplemented (src/game/frontend/scenequeue); an id pushed at the head, the queue cleared first on request"
 0x005d5cf0,Class7029f0_Close,function,low,"reimplemented (src/game/frontend/frame); the front-end frame's objects closed and deleted, the lobby sfx released, the window told"
+0x005dd220,ViewCtl702bc8_Leave,function,low,"reimplemented (src/game/frontend/sceneleave); slot 8 of the vtable 0x702bc8: the view's dialog sent message 4, its lists drained, its two sounds stopped (name unconfirmed)"
+0x005dd690,ViewCtl702e70_Leave,function,low,"reimplemented (src/game/frontend/sceneleave); slot 8 of the vtable 0x702e70: as 0x5dd220, then the dialog [0x7cc4c4] sent message 4 (name unconfirmed)"
+0x005e1450,Class702cb0_Leave,function,low,"reimplemented (src/game/frontend/sceneleave); slot 8 of the vtable 0x702cb0: +4 cleared, the current item's sounds stopped (name unconfirmed)"
+0x005e14a0,Class702cb0_PlayFirst,function,low,"reimplemented (src/game/frontend/sceneleave); the current item's sounds stopped, the first item's played (name invented, unconfirmed)"
+0x005e1640,Class702cb0_NextItem,function,low,"reimplemented (src/game/frontend/sceneleave); slot 14 of the vtable 0x702cb0: the next item, going round, chosen and its sounds played (name invented, unconfirmed)"
+0x005e1730,Class702cb0_PreviousItem,function,low,"reimplemented (src/game/frontend/sceneleave); slot 15 of the vtable 0x702cb0: the item before, going round, chosen and its sounds played (name invented, unconfirmed)"
+0x005e1bd0,Scene702ec0_Leave,function,low,"reimplemented (src/game/frontend/sceneleave); slot 8 of the vtable 0x702ec0: the sounds stopped, the lists drained, the dialog [0x7cc4b4] sent message 4 (name unconfirmed)"
+0x005e2550,Scene702dd0_Leave,function,low,reimplemented (src/game/frontend/sceneleave); slot 8 of the vtable 0x702dd0: as 0x5e1bd0 with the dialog [0x7cc47c] (name unconfirmed)
 0x0065d7d0,Window_FindChild,function,low,"reimplemented (src/game/ui/window); thiscall (id), pops 4: the first child of the window (list +0x5c, next +0x54) whose id (+0x8c) is id, or 0"
 0x0065f697,Window_CallHandler,function,low,"reimplemented (src/game/ui/window); thiscall (message, a, b), pops 12: the cdecl handler at +0x114 called with (window, message, a, b), its result; -1 when none"
 0x00658d9f,Window_SendMessage,function,low,"reimplemented (src/game/ui/window); cdecl (window, message, a, b): -1 for no window or byte +4 set; else the hook [0xfaa5fc] (if set) then Window_CallHandler"

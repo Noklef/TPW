@@ -7,15 +7,29 @@
 #include "../core/vcall.h"
 #include "../math/x87.h"
 #include "../model/holder.h"
+#include "../world/rides.h"
 #include "lobbymodel.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
+const LobbySceneEnv kPorts = {&Ride_Destroy, &String_Dtor};
+const LobbySceneEnv *g_env = &kPorts;
+
 }  // namespace
 
+void LobbyScene_SetEnv(const LobbySceneEnv *env) { g_env = env ? env : &kPorts; }
+
 extern "C" {
+
+void __fastcall Class702a50_Dtor(u8 *object) {
+    at<u32>(object, 0) = 0x00702a50;
+    vcall<u32>(*reinterpret_cast<u8 **>((uintptr_t)0x00f83774), 0x20, object);
+    g_env->destroy(at<u32>(object, 4));
+    g_env->stringDtor(reinterpret_cast<String *>(object + 0x20));
+    g_env->stringDtor(reinterpret_cast<String *>(object + 0xc));
+}
 
 void __fastcall Class702af0_AcquireModels(u8 *object) {
     if (at<u32>(object, 4) != 0)

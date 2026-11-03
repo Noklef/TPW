@@ -4,8 +4,31 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "../files/wrapsources.h"
+
+// What the criteria 0x59e9b0, 0x59ef60, 0x59f860 and 0x59f8d0 call (the ports by default; the bench runs them as recorders).
+struct AdvisorCriteriaEnv {
+    u32(__fastcall *score)(u8 *analyser, void *, u32 limit);                  // ParkAnalyser_ParkScore (0x4c7db0)
+    s32(__cdecl *count)();                                                    // Things_CountKind1OnPlainCell (0x4c9130)
+    double(__fastcall *average)(void *self, void *, u32 unused);              // Things_AveragePersonStat19c (0x4c7bb0)
+    u32(__fastcall *field0c)(const TrackedSource *source);                    // Source_Field0c (0x6ad810)
+    u32(__fastcall *anyLoan)(u8 *money);                                      // Money_AnyLoanOffer (0x4d0810)
+    u16 *(__fastcall *findCutOff)(u8 *analyser, void *, u16 *out, u32 any);   // ParkAnalyser_FindCutOff (0x4ccb00)
+};
+void AdvisorCriteria_SetEnv(const AdvisorCriteriaEnv *env);
 
 extern "C" {
+
+// 0x59f860 / 0x59f8d0 (names invented, unconfirmed): the park score (ParkAnalyser_ParkScore (10) on the table entry of [[0x7cf6ec]]) above +0x480 / +0x490, the people on plain cells (Things_CountKind1OnPlainCell)
+// above +0x488 / +0x498, and the s32 +0x484 / +0x494 below their average (Things_AveragePersonStat19c; NaN counts as below): +0x48c / +0x49c; else 0.
+s32 __fastcall AdvisorScoring_CrowdAverage480(u8 *scoring);
+s32 __fastcall AdvisorScoring_CrowdAverage490(u8 *scoring);
+
+// 0x59e9b0 (name invented, unconfirmed): the +0xc of the entry GameTable7cfb90_Get1da726 of [[0x7cf6ec]] below 0 and a loan on offer (Money_AnyLoanOffer of the same getter's entry of [0x7cf83c]): +0x340; else 0.
+s32 __fastcall AdvisorScoring_InDebt(u8 *scoring);
+
+// 0x59ef60 (name invented, unconfirmed): the handle of ParkAnalyser_FindCutOff (any 0) on the table entry of [0x7cf83c] stored at the word +4; not 0: +0x388; else 0.
+s32 __fastcall AdvisorScoring_CutOffObject(u8 *scoring);
 
 // 0x59c9d0 / 0x59ca00 (thiscall; names unconfirmed): the park's people above a bound, weighted: Things_CountPeopleStat1a4Above /
 // Things_CountPeopleStat1a8Above (on the game table entry of the game object [[0x7cf6ec]], GameTable7cfb90_Get1da720_519510) with the
