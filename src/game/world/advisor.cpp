@@ -5,6 +5,7 @@
 #include "../core/crt.h"
 #include "../core/gameclock.h"
 #include "../core/indexed.h"
+#include "../core/keymap.h"
 #include "../core/savegame.h"
 #include "../core/soundplay.h"
 #include "../core/soundset.h"
@@ -337,5 +338,63 @@ u8 __fastcall Advisor_Cancel(u8 *self, void *, u32 id) {
         at<u32>(self, 0xdc) = 0;
     }
     return found;
+}
+
+void __cdecl Advisor_UpdateHighlight() {
+    const u8 *const holder = ModelSlot_Holder(global<u32>(0x00f79674));
+    if (holder == nullptr)
+        return;
+    const auto mark = [holder](u32 table) {
+        const u32 part = global<u32>(table);
+        const u8 *const inner = *reinterpret_cast<u8 *const *>(*reinterpret_cast<const u32 *>(holder + 8) + 4);
+        *reinterpret_cast<u32 *>(*reinterpret_cast<const u32 *>(inner + 0x70) + part * 0xa0) |= 0x10;
+    };
+    for (s32 i = 0; i < global<s32>(0x00f79770); i++)
+        mark(0x00f796a0 + ((u32)i + global<u32>(0x00f79674) * 5) * 4);
+    global<u32>(0x00f7978c) = 0xffffffff;
+    ModelSlot_ApplySelection(global<s32>(0x00f79684));
+    if (global<s32>(0x00f79688) != 0)
+        ModelSlot_ApplySelection(global<s32>(0x00f79688));
+    if (global<u32>(0x00f79660) & 0x10000)
+        mark(0x00f79698 + global<u32>(0x00f79674) * 4);
+    const u32 flags = global<u32>(0x00f79660);
+    const u32 arm = flags & 0x3e0000;
+    if (arm == 0)
+        return;
+    if (global<u32>(0x00f7966c) == 0) {
+        if (flags & 0x200000)
+            ParticlePool_Resize(0, 0, 0);
+        return;
+    }
+    const auto time = []() { return (float)global<s32>(0x00f796c8 + global<u32>(0x00f7976c) * 4); };
+    const auto bits = [](u32 value) { return *reinterpret_cast<const float *>(&value); };
+    switch (arm) {
+    case 0x20000:
+        if (ParticlePool_Resize(0, 1, 0x2c) == 0)
+            return;
+        ParticlePool_Move(0, 1, bits(0x3eae147b), bits(0x3f1eb852), time());
+        KeyRecord_Push(0, 1, 0x3c23d70a, 0x3e4ccccd, 0x3f800000);
+        break;
+    case 0x40000:
+        Sound_PlayAt(0, global<u32>(0x00803a2c), 0xc5, 0, 0, 0);
+        ParticlePool_Resize(0, 2, 0x31);
+        ParticlePool_Move(0, 0, 0.0f, 0.0f, time());
+        KeyRecord_Push(0, 0, 0x3f19999a, 0x3ecccccd, 0x40000000);
+        break;
+    case 0x80000:
+        ParticlePool_Resize(0, 3, 0x31);
+        ParticlePool_Move(0, 0, 0.0f, 0.0f, time());
+        KeyRecord_Push(0, 0, 0x3f19999a, 0x3ecccccd, 0x40400000);
+        break;
+    case 0x100000:
+        ParticlePool_Resize(0, 0, 0x2c);
+        ParticlePool_Resize(0, 2, 0x2c);
+        ParticlePool_Move(0, 0, bits(0x3f4ccccd), bits(0xbf4ccccd), time());
+        KeyRecord_Push(0, 0, 0, 0, 0x40000000);
+        break;
+    case 0x200000:
+        ParticlePool_Resize(0, 0, 0);
+        break;
+    }
 }
 }

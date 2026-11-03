@@ -3059,6 +3059,7 @@ address,name,kind,confidence,notes
 0x0059aa70,Advisor_Cancel,function,low,"reimplemented (src/game/world/advisor); thiscall (id), pops 4: the advisor's messages of id withdrawn (the tutorial copy's flag, the queued slots, the speech when it is id's: Advisor_StopSpeech and its history record); AL 1 when any was"
 0x00598960,Advisor_PauseSpeech,function,low,reimplemented (src/game/world/advisor); the advisor's voice held (functor 2) while speaking
 0x00598990,Advisor_ResumeSpeech,function,low,reimplemented (src/game/world/advisor); the held advisor voice let go (functor 3)
+0x00598dc0,Advisor_UpdateHighlight,function,low,"reimplemented (src/game/world/advisor); cdecl; name invented: the slot's highlighted parts flagged and selection kinds applied, particle pool 0 set by the flag bits 0x3e0000 of 0xf79660"
 0x00486610,Global7c24d8_CopyScript,function,high,reimplemented (src/game/ui/thingpreview); a sprite script slot made a copy of another
 0x00557110,Rsse_TakeFinished,function,high,"reimplemented (src/game/rsse/rsse_vm); the value of the first finished entry, which is cleared"
 0x0054dcc0,Flag54dcc0_Test,function,high,reimplemented (src/game/render/mode); a flag test on two settings

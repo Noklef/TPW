@@ -95,4 +95,10 @@ void __cdecl Advisor_ResumeSpeech();
 // +0xd8 + +0xdc, else 0x160; when it is id, Advisor_StopSpeech, the history record's byte +8 (+0xe0 + 0x10 id) cleared, its +0xc counted
 // up, and +0xdc cleared. AL: 1 when a slot or the speech was id's, else 0.
 u8 __fastcall Advisor_Cancel(u8 *self, void *, u32 id);
+
+// 0x598dc0 (cdecl; name invented): with a holder for the slot 0xf79674 (ModelSlot_Holder): the 0xf79770 parts of the slot's row at 0xf796a0 (5 a slot) get flag 0x10 (the faces at
+// the holder's +8 -> +4 -> +0x70, 0xa0 each); 0xf7978c = -1; ModelSlot_ApplySelection of the kinds 0xf79684 and, if set, 0xf79688; with 0xf79660's bit 0x10000 the slot's part at
+// 0xf79698 marked as well. Then its bits 0x3e0000, when 0xf7966c is on, set particle pool 0 by the one set, with the time at 0xf796c8 by 0xf7976c: 0x20000 one of effect 0x2c if one
+// started; 0x40000 sound 0xc5 and two of 0x31; 0x80000 three of 0x31; 0x100000 emptied, then two of 0x2c; 0x200000 emptied. With 0xf7966c off, only 0x200000's.
+void __cdecl Advisor_UpdateHighlight();
 }
