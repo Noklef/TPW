@@ -15,6 +15,12 @@ struct QueuePiecesEnv {
 };
 // The queue pieces' calls go to env (nullptr: the game's).
 void QueuePieces_SetEnv(const QueuePiecesEnv *env);
+// CellPaint_Apply's calls (the ports by default; the bench runs them as recorders).
+struct CellPaintEnv {
+    u32(__cdecl *place)(u32 x, u32 y, u32 unused, u32 piece, u32 angle, u32 claim);  // QueuePiece_Place (0x5229e0)
+    void(__cdecl *paint)(s32 x, s32 y, const s32 *paint);                            // Terrain_PaintAt (0x450470)
+};
+void CellPaint_SetEnv(const CellPaintEnv *env);
 
 // 0x5229e0 (cdecl (x, y, unused, piece, angle, claim); called by 0x536682 / 0x536730; name invented): a description on the stack {x, y,
 // 360 - angle (0 for an angle of 0), 0x816d68}; with claim, Ride_Claim(0, the piece's type, 0x33a, it, the piece's flag byte, 0, 0, 0),
@@ -41,4 +47,8 @@ void __cdecl TrackQueuePiecesAnimated_Destroy();
 void __cdecl EndPieces_Destroy();
 // 0x52f190 (cdecl, no arguments; called by 0x457d97; name invented, unconfirmed): the four above in that order.
 void __cdecl AllPieces_Destroy();
+
+// 0x5366e0 (thiscall, called by 0x4d83cf; name invented, unconfirmed): a record's paint put on its cell: +4 = 0; the cell from the word +0 (column (id - 1) & 0x7f, row (id - 1) >> 7). With the three dwords at +0x14 starting with 2:
+// +4 = QueuePiece_Place (column, row, 2, +0x18, +0x1c, 1), then Terrain_PaintAt (column, row, {0, 8, 0}). Otherwise Terrain_PaintAt (column, row, +0x14).
+void __fastcall CellPaint_Apply(u8 *record);
 }
