@@ -124,6 +124,10 @@
 #include "../../src/game/coaster/typemodel.h"
 #include "../../src/game/world/sign.h"
 #include "../../src/game/world/flyinglaunch.h"
+#include "../../src/game/rsse/rsseexec.h"
+#include "../../src/game/world/trakridecars.h"
+#include "../../src/game/world/trakcarupdate.h"
+#include "../../src/game/world/flyingupdate.h"
 #include "../../src/game/render/ribbon.h"
 #include "../../src/game/world/mousemode.h"
 #include "../../src/game/world/person.h"
@@ -613,7 +617,29 @@ const EditUpdateEnv kEditUpdateEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorde
 // The coaster test run's (0x43c450) calls: the cdecl recorders 1 of 1, 2 of 7, 3 of 4, 4 and 5 of 2, 6 of 3, 7 of 1, 8 of 2 and 9 of 1, as
 // tests/fncmp/testrun.py hooks them.
 const RibbonEnv kRibbonEnv = {Rec{recorder(2, 5)}};
-const FlyingLaunchEnv kFlyingLaunchEnv = {Rec{jpeg_recorder(1, 3)}, Rec{jpeg_recorder(2, 10)}, Rec{jpeg_recorder(3, 7)}, Rec{jpeg_recorder(4, 5)}};
+const FlyingUpdateEnv kFlyingUpdateEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorder(2, 5)}, Rec{jpeg_recorder(3, 2)}, Rec{jpeg_recorder(4, 3)}, Rec{jpeg_recorder(5, 4)},
+                                          Rec{jpeg_recorder(6, 3)}, Rec{jpeg_recorder(7, 1)}, Rec{jpeg_recorder(8, 1)}, Rec{jpeg_recorder(9, 2)}};
+const TrakCarUpdateEnv kTrakCarUpdateEnv = {Rec{jpeg_recorder(1, 3)}, Rec{jpeg_recorder(2, 2)}, Rec{jpeg_recorder(3, 4)}, Rec{jpeg_recorder(4, 2)}, Rec{jpeg_recorder(5, 1)},
+    Rec{jpeg_recorder(6, 1)}, Rec{jpeg_recorder(7, 2)}, Rec{jpeg_recorder(8, 6)}};
+const TrakRideCarsEnv kTrakRideCarsEnv = {Rec{jpeg_recorder(1, 2)}, Rec{jpeg_recorder(2, 4)}, Rec{jpeg_recorder(3, 2)}, Rec{jpeg_recorder(4, 6)}, Rec{jpeg_recorder(5, 2)},
+    Rec{jpeg_recorder(6, 10)}, Rec{jpeg_recorder(7, 1)}};
+const RsseExecEnv kRsseExecEnv = {Rec{jpeg_recorder(31, 0)}, Rec{jpeg_recorder(19, 1)}, Rec{jpeg_recorder(28, 1)}, Rec{jpeg_recorder(2, 5)}, Rec{jpeg_recorder(3, 5)},
+    Rec{jpeg_recorder(9, 2)}, Rec{jpeg_recorder(6, 1)}, Rec{jpeg_recorder(7, 1)}, Rec{jpeg_recorder(4, 3)}, Rec{jpeg_recorder(31, 2)},
+    Rec{jpeg_recorder(1, 6)}, Rec{jpeg_recorder(2, 4)}, Rec{jpeg_recorder(1, 3)}, Rec{jpeg_recorder(2, 3)}, Rec{jpeg_recorder(3, 3)},
+    Rec{jpeg_recorder(6, 2)}, Rec{jpeg_recorder(7, 2)}, Rec{jpeg_recorder(4, 1)}, Rec{jpeg_recorder(5, 1)}, Rec{jpeg_recorder(8, 2)},
+    Rec{jpeg_recorder(1, 4)}, Rec{jpeg_recorder(5, 4)}, Rec{jpeg_recorder(4, 4)}, Rec{jpeg_recorder(1, 7)}, Rec{jpeg_recorder(5, 3)},
+    Rec{jpeg_recorder(3, 4)}, Rec{jpeg_recorder(3, 6)}, Rec{jpeg_recorder(2, 6)}, Rec{jpeg_recorder(8, 1)}, Rec{jpeg_recorder(2, 7)},
+    Rec{jpeg_recorder(22, 1)}, Rec{jpeg_recorder(20, 2)}, Rec{jpeg_recorder(23, 1)}, Rec{jpeg_recorder(25, 2)}, Rec{jpeg_recorder(22, 2)},
+    Rec{jpeg_recorder(24, 2)}, Rec{jpeg_recorder(24, 1)}, Rec{jpeg_recorder(26, 1)}, Rec{jpeg_recorder(26, 2)}, Rec{jpeg_recorder(23, 2)},
+    Rec{jpeg_recorder(25, 1)}, Rec{jpeg_recorder(27, 2)}, Rec{jpeg_recorder(28, 2)}, Rec{jpeg_recorder(27, 1)}, Rec{jpeg_recorder(14, 2)},
+    Rec{jpeg_recorder(18, 1)}, Rec{jpeg_recorder(15, 1)}, Rec{jpeg_recorder(13, 2)}, Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(9, 1)},
+    Rec{jpeg_recorder(13, 1)}, Rec{jpeg_recorder(14, 1)}, Rec{jpeg_recorder(12, 1)}, Rec{jpeg_recorder(11, 1)}, Rec{jpeg_recorder(16, 1)},
+    Rec{jpeg_recorder(17, 1)}, Rec{jpeg_recorder(12, 2)}, Rec{jpeg_recorder(15, 2)}, Rec{jpeg_recorder(10, 2)}, Rec{jpeg_recorder(11, 2)},
+    Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorder(1, 2)}, Rec{jpeg_recorder(2, 1)}, Rec{jpeg_recorder(3, 1)}, Rec{jpeg_recorder(2, 2)},
+    Rec{jpeg_recorder(3, 2)}, Rec{jpeg_recorder(4, 2)}, Rec{jpeg_recorder(5, 2)}, Rec{jpeg_recorder(6, 3)}, Rec{jpeg_recorder(18, 2)},
+    Rec{jpeg_recorder(1, 8)}, Rec{jpeg_recorder(17, 2)}, Rec{jpeg_recorder(20, 1)}, Rec{jpeg_recorder(6, 4)}, Rec{jpeg_recorder(16, 2)},
+    Rec{jpeg_recorder(21, 1)}, Rec{jpeg_recorder(1, 5)}, Rec{jpeg_recorder(29, 1)}, Rec{jpeg_recorder(30, 1)}};
+const FlyingLaunchEnv kFlyingLaunchEnv = {Rec{jpeg_recorder(1, 3)}, Rec{jpeg_recorder(2, 10)}, Rec{jpeg_recorder(3, 7)}, Rec{jpeg_recorder(4, 5)}, Rec{jpeg_recorder(5, 1)}};
 const SignEnv kSignEnv = {Rec{jpeg_recorder(1, 10)}, Rec{jpeg_recorder(2, 3)}, Rec{jpeg_recorder(3, 2)}, Rec{jpeg_recorder(4, 1)}, Rec{jpeg_recorder(5, 1)}, Rec{jpeg_recorder(6, 3)}, Rec{jpeg_recorder(7, 6)}};
 const TypeModelEnv kTypeModelEnv = {Rec{jpeg_recorder(1, 10)}, Rec{jpeg_recorder(2, 6)}, Rec{jpeg_recorder(3, 3)}, Rec{jpeg_recorder(4, 1)}};
 const TrakCarRouteEnv kTrakCarRouteEnv = {Rec{jpeg_recorder(1, 3)}, Rec{jpeg_recorder(2, 10)}, Rec{jpeg_recorder(3, 7)}, Rec{jpeg_recorder(4, 4)}, Rec{jpeg_recorder(5, 2)}};
@@ -1469,6 +1495,10 @@ int main(int argc, char **argv) {
     TypeModel_SetEnv(&kTypeModelEnv);
     Sign_SetEnv(&kSignEnv);
     FlyingLaunch_SetEnv(&kFlyingLaunchEnv);
+    RsseExec_SetEnv(&kRsseExecEnv);
+    TrakRideCars_SetEnv(&kTrakRideCarsEnv);
+    TrakCarUpdate_SetEnv(&kTrakCarUpdateEnv);
+    FlyingUpdate_SetEnv(&kFlyingUpdateEnv);
     Ribbon_SetEnv(&kRibbonEnv);
     Object_SetEnv(&kObjectEnv);
     StatsGraph_SetEnv(&kStatsGraphEnv);

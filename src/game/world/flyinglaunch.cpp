@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/soundplay.h"
+#include "../files/file.h"
 #include "../model/parts.h"
 #include "flyingrides.h"
 #include "objectdefs.h"
@@ -14,7 +15,7 @@ namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const FlyingLaunchEnv kPortEnv = {&Model_FindPartByKey4, &Ride_Create, &Sound_PlayRideElement, &FlyingRide_PlaySlotMotion};
+const FlyingLaunchEnv kPortEnv = {&Model_FindPartByKey4, &Ride_Create, &Sound_PlayRideElement, &FlyingRide_PlaySlotMotion, &FlyingRide_Launch};
 const FlyingLaunchEnv *g_env = &kPortEnv;
 
 const u32 kSlots = 20, kSlotSize = 0xe4;
@@ -115,5 +116,40 @@ u32 __cdecl FlyingRide_Launch(s32 index) {
     while (g_env->findPart(global<const u8 *>(0x007a4610 + at<u32>(slot, 0xc0) * 4), 0x80, parts + 1) != 0xffffffff) ++parts;
     at<u32>(slot, 0xdc) = parts;
     return 1;
+}
+
+s32 __cdecl FlyingRide_Create(u32 object, u32 sound, u32 x, u32 y, u32 z, u32 turn, u32 quick) {
+    s32 index = 1;
+    while (index < 100 && global<u32>(0x008791f8 + index * 4) != 0) ++index;
+    if (index >= 100) return -1;
+    u8 *const record = static_cast<u8 *>(Mem_GlobalAlloc(0x122c));
+    global<u8 *>(0x008791f8 + index * 4) = record;
+    if (record) {
+        at<u32>(record, 0x14) = x;
+        at<u32>(record, 0x18) = y;
+        at<u32>(record, 0x1c) = z;
+        at<u32>(record, 0x20) = 0x400;
+        at<u32>(record, 0x24) = 0x400;
+        at<u32>(record, 0x40) = 0x400 - turn;
+        at<u16>(record, 0x58) = (u16)object;
+        at<u32>(record, 0x4c) = quick;
+        at<u32>(record, 0x54) = sound;
+        at<u32>(record, 0) = 1;
+        at<u32>(record, 4) = 1;
+        at<u32>(record, 0xc) = 0;
+        at<u32>(record, 0x10) = 300;
+        at<u32>(record, 0x3c) = 0;
+        at<u32>(record, 0x44) = 0;
+        at<u32>(record, 0x2c) = 1;
+        at<u32>(record, 0x38) = 1;
+        at<u32>(record, 0x48) = 0;
+        for (u32 slot = 0; slot < 20; ++slot) at<u32>(record, 0xdc + slot * 0xe4) = 0;
+        at<u32>(record, 0x28) = 300;
+        at<u32>(record, 0x50) = 5;
+        g_env->launch(index);
+    }
+    at<u32>(record, 0x30) = at<u32>(record, 0x4c) != 0 ? 0x9c4 : 0x1388;
+    at<u32>(record, 0x34) = 1;
+    return index;
 }
 }

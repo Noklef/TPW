@@ -21,6 +21,7 @@ add_library(tpw_game STATIC
     src/game/rsse/scream.cpp
     src/game/rsse/scriptfile.cpp
     src/game/rsse/scriptkill.cpp
+    src/game/rsse/rsseexec.cpp
     src/game/core/app.cpp
     src/game/core/crt.cpp
     src/game/core/fpu.cpp
@@ -354,6 +355,9 @@ add_library(tpw_game STATIC
     src/game/world/trakcarroute.cpp
     src/game/world/sign.cpp
     src/game/world/flyinglaunch.cpp
+    src/game/world/flyingupdate.cpp
+    src/game/world/trakcarupdate.cpp
+    src/game/world/trakridecars.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp

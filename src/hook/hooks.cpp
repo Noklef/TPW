@@ -250,6 +250,7 @@
 #include "../game/motion/uvanim.h"
 #include "../game/motion/vertexanim.h"
 #include "../game/rsse/rsse.h"
+#include "../game/rsse/rsseexec.h"
 #include "../game/rsse/scream.h"
 #include "../game/rsse/scriptfile.h"
 #include "../game/rsse/scriptkill.h"
@@ -346,6 +347,7 @@
 #include "../game/world/demolish.h"
 #include "../game/world/endthing.h"
 #include "../game/world/flyinglaunch.h"
+#include "../game/world/flyingupdate.h"
 #include "../game/world/gamemode.h"
 #include "../game/world/mapclick.h"
 #include "../game/world/mappreview.h"
@@ -365,6 +367,8 @@
 #include "../game/world/trackline.h"
 #include "../game/world/trackmessage.h"
 #include "../game/world/trakcarroute.h"
+#include "../game/world/trakcarupdate.h"
+#include "../game/world/trakridecars.h"
 #include "../game/world/uimsgreceiver.h"
 #include "../game/world/visitoroption.h"
 #include "../game/world/visitorsteps.h"
@@ -5774,6 +5778,14 @@ const Hook kHooks[] = {
     {"TrakCar_ChooseRoute",       0x0054a040, (void *)&TrakCar_ChooseRoute, {0x83, 0xec, 0x0c, 0x53, 0x55}},
     {"Sign_Create",               0x004689f0, (void *)&Sign_Create, {0x81, 0xec, 0x84, 0x00, 0x00}},
     {"FlyingRide_Launch",         0x0055a720, (void *)&FlyingRide_Launch, {0x51, 0x8b, 0x44, 0x24, 0x08}},
+    {"FlyingRide_Create",         0x0055a620, (void *)&FlyingRide_Create, {0x53, 0x55, 0x56, 0xbd, 0x01}},
+    {"FlyingRides_Update",        0x0055abf0, (void *)&FlyingRides_Update, {0x83, 0xec, 0x14, 0x53, 0x55}},
+    {"TrakCar_Update",            0x005474b0, (void *)&TrakCar_Update, {0x83, 0xec, 0x10, 0x53, 0x55}},
+    {"TrakRide_Break",            0x00544c80, (void *)&TrakRide_Break, {0x8b, 0x0d, 0x58, 0x7b, 0x87}},
+    {"TrakRide_StartBump",        0x00544f90, (void *)&TrakRide_StartBump, {0x8b, 0x0d, 0x58, 0x7b, 0x87}},
+    {"TrakRide_LoadCar",          0x00549b80, (void *)&TrakRide_LoadCar, {0x8b, 0x0d, 0x58, 0x7b, 0x87}},
+    {"TrakRide_AddCar",           0x00549db0, (void *)&TrakRide_AddCar, {0x51, 0x8b, 0x0d, 0x58, 0x7b}},
+    {"TrakRide_RemoveCar",        0x0054ad90, (void *)&TrakRide_RemoveCar, {0x8b, 0x0d, 0x58, 0x7b, 0x87}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
@@ -6564,6 +6576,7 @@ const Hook kHooks[] = {
     {"RSSE_FreeContext",          0x00558500, (void *)&RSSE_FreeContext, {0x55, 0x56, 0x8b, 0x74, 0x24}},
     {"RSSE_KillScript",           0x00559060, (void *)&RSSE_KillScript, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
     {"RSSE_CheckLeaks",           0x005584b0, (void *)&RSSE_CheckLeaks, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
+    {"RSSE_ExecuteInstruction",   0x00551cb0, (void *)&RSSE_ExecuteInstruction, {0x81, 0xec, 0x34, 0x01, 0x00}},
     {"Window_FindChild",          0x0065d7d0, (void *)&Window_FindChild, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Window_CallHandler",        0x0065f697, (void *)&Window_CallHandler, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window_SendMessage",        0x00658d9f, (void *)&Window_SendMessage, {0x55, 0x8b, 0xec, 0x83, 0x7d}},

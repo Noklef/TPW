@@ -57,7 +57,9 @@ def case(r):
         regions.update({base: model, base + 0x1000: pb, base + 0x2000: r.bytes(0xa0 * 12), base + 0x3000: r.bytes(0x58 * 12),
                         base + 0x4000: states, base + 0x4100: r.bytes(0x14 * 8)})
     regions[OBJS] = b''.join(struct.pack('<11I', r.getrandbits(32), MODELS[m], *[r.getrandbits(32) for _ in range(8)],
-                                         MODELS[m] + 0x4000 if r.random() < 0.8 else 0) + bytes(0x14) for m in range(3))
+                                         # (no part states: only leaving follow mode runs on past them; entering reads them unchecked)
+                                         MODELS[m] + 0x4000 if r.random() < (0.5 if flags & 4 else 0.98) else 0) + bytes(0x14)
+                           for m in range(3))
     count = r.randrange(0, 14)
     holes = r.randrange(0, 4)
     insts = bytearray(r.bytes(0x10 * 32))
