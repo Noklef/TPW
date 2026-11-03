@@ -123,6 +123,22 @@ u32 __fastcall MapCellBase_Serialize(u8 *cell, void *, Stream *stream, u32 save,
 u32 __fastcall MapCell_Serialize(u8 *cell, void *, Stream *stream, u32 save, s32 version, u32 unused);
 u32 __fastcall TrackCell_Serialize(u8 *cell, void *, Stream *stream, u32 save, s32 version, u32 unused);
 
+// 0x4d7ea0 (thiscall on the map; stream, save, version, unused, pops 0x10): the 0x4000 cells of the map (+0, 0x44 bytes), track
+// (+0x110000, 0x28) and RE (+0x1b1104, 0xa) saved or loaded (nothing for a version other than 0, 1: 0). Each has a status byte: saving,
+// bit 0 and 1 always (Const1_50c1f0 of temporary cells, reset by id, the map's with the cell's +0x26: MapCell_Reset, TrackCell_Reset,
+// whose side effects are all they do here), bit 2 when the RE cell is not empty; 1 at once when the byte's stream call fails or
+// a serializer answers not 0 (through MapSerializeEnv: the ports). Loading (saved bits as read) also clears the 0x441 block values at
+// +0x1b0000. Stream_Tell asked for the debug prints (at the start and after saving, or a save's bad version).
+u32 __fastcall Map_Serialize(u8 *map, void *, Stream *stream, u32 save, s32 version, u32 unused);
+struct MapSerializeEnv {
+    void(__fastcall *mapReset)(u8 *cell, void *, u32 models);   // MapCell_Reset 0x536490
+    void(__fastcall *trackReset)(u8 *cell);                     // TrackCell_Reset 0x53af00
+    u32(__fastcall *mapCell)(u8 *cell, void *, Stream *stream, u32 save, s32 version, u32 unused);     // MapCell_Serialize 0x4d8dd0
+    u32(__fastcall *trackCell)(u8 *cell, void *, Stream *stream, u32 save, s32 version, u32 unused);   // TrackCell_Serialize 0x50c200
+    u32(__fastcall *reCell)(u8 *cell, void *, Stream *stream, u32 save, s32 version, u32 unused);      // RECell_Serialize 0x502490
+};
+void Map_SetSerializeEnv(const MapSerializeEnv *env);   // nullptr: the ports
+
 // 0x50c1d0: a 0x28-byte track cell (serialized at 0x50c200), zeroed but for byte +2 = 2.
 // Returns it.
 u8 *__fastcall TrackCell_Ctor(u8 *cell);

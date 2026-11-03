@@ -11,6 +11,7 @@
 #include "../render/textparts.h"
 #include "../world/advisor.h"
 #include "../world/camera.h"
+#include "../world/cellmessage.h"
 #include "../world/mousemode.h"
 #include "../world/staff.h"
 #include "cursor.h"
@@ -31,7 +32,12 @@ template <typename T> T &at(void *p, u32 offset) { return *reinterpret_cast<T *>
 bool is_staff(u8 kind) { return kind == 4 || kind == 5 || kind == 6 || kind == 8 || kind == 7; }
 
 u16 *const kText = reinterpret_cast<u16 *>((uintptr_t)0x007ba058);
+
+const ThingPatrolEnv kPatrolGameEnv = {&Camera_CentreOnSprite, &Map_SendLine};
+const ThingPatrolEnv *g_patrol = &kPatrolGameEnv;
 }  // namespace
+
+void ThingBrowser_SetPatrolEnv(const ThingPatrolEnv *env) { g_patrol = env ? env : &kPatrolGameEnv; }
 
 extern "C" {
 
@@ -180,6 +186,29 @@ void __cdecl ThingBrowser_Open(u8 *thing) {
         MouseModes_EnsureHolder();
         MouseMode_Set(mode);
     }
+}
+
+void __cdecl ThingBrowser_SendPatrolLines() {
+    if (!global<u8 *>(0x007cc308) || !(global<u32>(0x00790ab0) & 0x1000)) return;
+    g_patrol->centre(global<u8 *>(0x007cc308));
+    u8 *const thing = global<u8 *>(0x007cc308);
+    if (!is_staff(at<u8>(thing, 2)) || !Staff_HasPatrolRegion(thing)) return;
+    u16 first, last;
+    Staff_GetPatrolRegion(thing, nullptr, &first, &last);
+    const u32 cell0 = (u32)first - 1, cell1 = (u32)last - 1;
+    const s32 column0 = (s32)(cell0 & 0x7f), row0 = (s32)(cell0 >> 7), column1 = (s32)(cell1 & 0x7f), row1 = (s32)(cell1 >> 7);
+    const s32 from = column0 == column1 ? column0 : column0 + 1, to = column0 == column1 ? column1 : column1 - 1;
+    s32 end[2] = {to, row0};   // (x, y adjacent as the original's: the bench logs the two through the first)
+    g_patrol->line(0x136, from, row0, &end[0], &end[1]);
+    end[0] = column1;
+    end[1] = row1;
+    g_patrol->line(0x136, column1, row0, &end[0], &end[1]);
+    end[0] = to;
+    end[1] = row1;
+    g_patrol->line(0x136, from, row1, &end[0], &end[1]);
+    end[0] = column0;
+    end[1] = row0;
+    g_patrol->line(0x136, column0, row1, &end[0], &end[1]);
 }
 
 void __cdecl ThingBrowser_OpenShown() {

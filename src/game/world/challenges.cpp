@@ -12,8 +12,11 @@
 #include "messagecentre.h"
 #include "money.h"
 #include "object.h"
+#include "objectdefs.h"
+#include "ridesearch.h"
 #include "thingmsg.h"
 #include "things.h"
+#include "thingscan.h"
 #include "world.h"
 
 namespace {
@@ -97,6 +100,70 @@ u8 *__fastcall Challenges_Current(u8 *challenges) {
     const s32 index = at<s32>(challenges, 0x3cc);
     if (index < 0 || index >= 0x14) return nullptr;
     return challenges + 0xc + index * 0x30;
+}
+
+u8 __fastcall Challenge_Met(u8 *challenge, void *, s32 *value, u32 flag) {
+    if (at<u8>(challenge, 0x1c) && !(u8)flag) return 0;
+    const s32 target = at<s32>(challenge, 8);
+    // (a word of the challenge goes to the calls in the flag's slot, its high half staying)
+    const u32 first = (flag & 0xffff0000) | at<u16>(challenge, 0xc);
+    u16 handle = (u16)flag;
+    switch (at<u32>(challenge, 0)) {
+    case 1: case 2: case 3: case 4: case 5: case 6: case 7: case 8:
+    case 0xb: case 0xc: case 0xd:
+    case 0x10: case 0x11: case 0x14: case 0x16:
+        return *value >= target;
+    case 9:
+    case 0xa: {
+        const s32 people = Things_CountKind1OnPlainCell();
+        if (people <= 0) return 0;
+        const s32 some = at<u32>(challenge, 0) == 9 ? Things_CountKind1OnPlainCellWith210() : Things_CountKind1OnPlainCellMode2();
+        *value = (s32)((u32)some * 100) / people;
+        return *value >= target;
+    }
+    case 0xe:
+        if ((s32)Things_CoasterMostFlaggedCars(&handle, 0) < target) return 0;
+        at<u16>(challenge, 0x2e) = handle;
+        return 1;
+    case 0xf:
+        if ((s32)Rides_BestKind11Count(&handle) < target) return 0;
+        at<u16>(challenge, 0x2e) = handle;
+        return 1;
+    case 0x12:
+        handle = (u16)first;
+        if ((s32)Things_CoasterMostFlaggedCars(&handle, first) < target) return 0;
+        at<u16>(challenge, 0x2e) = handle;
+        return 1;
+    case 0x13:
+        handle = (u16)first;
+        return (s32)Things_CoasterMostFlaggedCars(&handle, first) >= 3;
+    case 0x15:
+        handle = (u16)first;
+        return (s32)Rides_BestPiecesOfKinds(&handle, first) >= target;
+    case 0x18: case 0x19: case 0x1b:
+        return *value / at<s32>(challenge, 4) >= target;
+    case 0x1c:
+        return Things_MaxKind3Byte50(first) >= target;
+    case 0x1d: {
+        u32 kind;
+        switch (at<u32>(challenge, 0x10)) {
+        case 0: kind = 5; break;
+        case 1: kind = 4; break;
+        case 2: kind = 6; break;
+        case 3: kind = 7; break;
+        case 4: kind = 8; break;
+        default: kind = flag; break;
+        }
+        *value = Things_AverageOfKind(kind);
+        return *value >= target;
+    }
+    case 0x1e: case 0x1f: case 0x20:
+        return (s32)ObjectControls_GetWord18(first) > 0;
+    case 0x21:
+        return (s32)ObjectControls_GetWord18(first) > 0 && (s32)ObjectControls_GetWord18((flag & 0xffff0000) | at<u16>(challenge, 0xe)) > 0;
+    default:
+        return 0;
+    }
 }
 
 void __fastcall Challenge_Finish(u8 *challenge) {

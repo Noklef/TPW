@@ -22,11 +22,11 @@ void Object_SetEnv(const ObjectEnv *env);
 // code in 0x4e0000-0x530000 does inline; the staff and the research labs share the objects' env through it.
 void Object_PostMessage(u8 *msg);
 
-// What Object_Delete calls in the game that is not yet ported (the benches point it at a recorder).
+// What Object_Delete calls through an environment (the benches point it at a recorder).
 struct ObjectDeleteEnv {
     void(__cdecl *killScript)(s32 id, u32 mode);   // 0x559060 RSSE_KillScript (agent B's)
 };
-// Object_Delete's calls go to env (nullptr: the game's).
+// Object_Delete's calls go to env (nullptr: the port).
 void Object_SetDeleteEnv(const ObjectDeleteEnv *env);
 
 // 0x4dd0a0 (thiscall; name invented, unconfirmed; Thing_Delete's kind 3): an object deleted: its control record's count (+0x18 of
@@ -59,6 +59,33 @@ u32 __fastcall Object_SetOpen(u8 *object, void *, u32 open);
 // calls are kept), +0x68 = 1, the strip animation of 0x7a4610[+0x20] shrunk (StripAnim_StartShrink), element 6 of the ride record
 // (Rides_FindById of +0x24) = 0 and Object_SetState (0).
 void __fastcall Object_Close(u8 *object);
+// 0x4de1f0 (thiscall; name invented, unconfirmed): the path at the object changed. The queue's back forgotten (+0x3a = 0) and found anew
+// (Object_BackOfQueue); the map's block value of the back (Map_SetBlockValue on [0x7cf83c] + 0x2d8) the next count of 0x7cdb98 (the back asked
+// again after the count); each person of the queue (the head +0x3c, the next +0x228 read first) but +0x6c (read for each) gets the env's
+// 0x501390; Object_EntranceOnPath asked (only a debug print reads it; its call is kept). Then with +0x68 0, Object_CanOpen's tests by hand
+// (the same order) and for definitions of kind 1, 2 or 3 the dword +0x2c set: Object_Close (inlined there). Always the word +0x5e = 0.
+void __fastcall Object_PathChanged(u8 *object);
+// 0x4df8f0 (thiscall (mechanic's handle, unused), pops 4; 0x4da8bc calls it; name invented): the object after a mechanic's visit. +0x44 = 100.0f,
+// element 8 of the ride record = 0, the word +0x5e and +0x64 cleared. State (+0x19c) 2, an upgrade: the level byte +0x50 up by one, the script
+// +0x54 killed when set, the effect (Ride_PlayEffect of +0x24); for levels 1 and 2 a new script (SpriteScript_Start of 0x74f3a0, folder 0xc) at the
+// neighbour cell's (Object_NeighbourCellId) x (id - 1 & 0x7f) and z ((id - 1) >> 7), each less -0.5f and, for a quarter-turn angle +0x10,
+// times 10.0f. The definition's row of the level (+0x40 each from +0x198): the world's money less +0x1b8 (Money_Debit); +0x1a8 above 0 the ride
+// record's word +0xc0 and +0x58; +0x198 above 0 the capacity (its byte, Object_SetCapacity); +0x1a0 above 0 its byte, held between +0x12c and
+// +0x130 (the definition's), element 3 of the record and +0x5c. Any other state: elements 7 and 4 read, 4 = 0, the strip animation of
+// 0x7a4610[+0x20] shrunk. Then Object_Close and for a definition of kind 3 with Object_LinkOtherOpen 0, Object_RestartRide (both inlined there).
+void __fastcall Object_MechanicDone(u8 *object, void *, u32 handle);
+// What Object_MechanicDone calls whose worlds are too big for its bench (each has a bench of its own): the ports by default.
+struct ObjectServiceEnv {
+    void(__cdecl *spriteKill)(s32 slot);                                                     // 0x475550
+    s32(__cdecl *spriteStart)(u32 code, u32 folder, u32 sprite, u32 anim, u32 x, u32 y, u32 z);   // 0x475a10
+    void(__cdecl *playEffect)(s32 id);                                                       // 0x55a100
+};
+void Object_SetServiceEnv(const ObjectServiceEnv *env);   // nullptr: the ports
+// What Object_PathChanged calls in the game that is not yet ported (the benches point it at a recorder).
+struct ObjectPathEnv {
+    void(__fastcall *person501390)(u8 *person);   // 0x501390 (agent A's; thiscall on a person, no arguments)
+};
+void Object_SetPathEnv(const ObjectPathEnv *env);   // nullptr: the game's
 // 0x4dfe30 (thiscall (on), pops 4; name invented: what +0x64 means is not known): on, unless +0x64 is set already, +0x64 = 1 and the ride
 // restarted (Object_RestartRide, inline); off, when +0x64 is set, +0x64 = 0 and, when Object_CanOpen (its checks inline), Object_Close. 1.
 // The debug prints (and the Thing_GetHandle calls only they use) are left out.

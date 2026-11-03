@@ -3,7 +3,22 @@
 
 #include "../../../re/types.h"
 
+// Panel7ca178_ShowStats's calls (the ports by default; the bench's recorders: their own benches have them).
+struct Panel7ca178StatsEnv {
+    u32(__cdecl *status)(u8 *object, s32 count);                     // Object_Status
+    u32(__fastcall *canOpen)(u8 *object);                            // Object_CanOpen
+    u32(__fastcall *refund)(const u8 *object);                       // Object_ScrapRefund
+    u16(__fastcall *setState)(u8 *window, void *, u8 state, u8 notify);   // Window705a50_SetState
+};
+void Panel7ca178_SetStatsEnv(const Panel7ca178StatsEnv *env);
+
 extern "C" {
+
+// 0x4973a0 (thiscall; slot 5 of the vtable 0x6ff740; name invented): the shown thing's [0x7c2658] figures. Object_GetDef called, its answer unused (sic). With the window +0x14 set: 0x15bbd (when found) slot 7 given
+// the newest 30 of the ring +0x1ac (head +0x224, count +0x228, wrapped byte +0x22c; dwords summed as a double, __ftol); 0x15bbb (when found) the low byte of the float +0x44 (__ftol) * 1024 / 100; 0x15bc0 (not
+// checked) the scrap refund. The window +0x10 (not checked): 0x15bc4's slot 5 given 0 when the thing cannot open (Object_CanOpen), else 1 and the state 1 when +0x68 is 0 (Window705a50_SetState, notifying); 0x15bb4
+// the state 1 for an Object_Status (count 2) of 0xb-0xf; the panel's +8 set to that status and its slot 9 called when that changes it. The original's debug print is left out, and so is its find of 0x15bb4 before slot 9.
+void __fastcall Panel7ca178_ShowStats(u8 *self);
 
 // 0x497100 (thiscall; slot 3 of the vtable 0x6ff740): with the window +0x14 set (read again for each child), its children dressed in this
 // order (ui/panelparts; a text a TextPart_Ctor part with that language text, a part's or a bar's value given to the child's slot 7):

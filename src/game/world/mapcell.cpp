@@ -4,7 +4,9 @@
 
 #include "../core/accessors.h"
 #include "../core/savegame.h"
+#include "../core/trivial.h"
 #include "../files/file.h"
+#include "cellkind.h"
 #include "object.h"
 #include "ridestate.h"
 
@@ -177,6 +179,50 @@ u32 __fastcall TrackCell_Serialize(u8 *cell, void *, Stream *stream, u32 save, s
     if (version < 0 || version > 1)
         return 0;
     return Save_Field(stream, save, cell + 0x24, 2, 0x00761e3c) ? 0 : 1;
+}
+
+namespace {
+const MapSerializeEnv kGameSerializeEnv = {&MapCell_Reset, &TrackCell_Reset, &MapCell_Serialize, &TrackCell_Serialize, &RECell_Serialize};
+const MapSerializeEnv *g_serialize = &kGameSerializeEnv;
+}  // namespace
+
+void Map_SetSerializeEnv(const MapSerializeEnv *env) { g_serialize = env ? env : &kGameSerializeEnv; }
+
+u32 __fastcall Map_Serialize(u8 *map, void *, Stream *stream, u32 save, s32 version, u32 unused) {
+    const MapSerializeEnv *const E = g_serialize;
+    alignas(4) u8 mapTemp[0x44], trackTemp[0x28], reTemp[0xa];
+    MapCell_Ctor(mapTemp);
+    TrackCell_Ctor(trackTemp);
+    RECell_Ctor(reTemp);
+    Stream_Tell(stream);   // (for a debug print, as the second below)
+    u8 *cell = map, *track = map + 0x110000, *re = map + 0x1b1104;
+    if (version < 0 || version > 1) {
+        if (save) Stream_Tell(stream);
+        return 0;
+    }
+    for (u32 i = 0; i != 0x4000; ++i, cell += 0x44, track += 0x28, re += 0xa) {
+        u8 status = 0;
+        if (save) {
+            mapTemp[0x26] = cell[0x26];
+            at<u16>(mapTemp, 0) = (u16)(i + 1);
+            E->mapReset(mapTemp, nullptr, 0);
+            if (Const1_50c1f0((u32)(uintptr_t)mapTemp)) status |= 1;   // (always: every map and track cell goes)
+            at<u16>(trackTemp, 0) = (u16)(i + 1);
+            E->trackReset(trackTemp);
+            if (Const1_50c1f0((u32)(uintptr_t)trackTemp)) status |= 2;
+            if (!RECell_Equals(re, nullptr, reTemp)) status |= 4;
+        }
+        if (!Save_Field(stream, save ? 1 : 0, &status, 1, 0x0075ae20)) return 1;
+        if ((status & 1) && E->mapCell(cell, nullptr, stream, save, version, unused)) return 1;
+        if ((status & 2) && E->trackCell(track, nullptr, stream, save, version, unused)) return 1;
+        if ((status & 4) && E->reCell(re, nullptr, stream, save, version, unused)) return 1;
+    }
+    if (save) {
+        Stream_Tell(stream);
+    } else {
+        for (u32 i = 0; i != 0x441; ++i) at<u32>(map, 0x1b0000 + i * 4) = 0;
+    }
+    return 0;
 }
 
 void __fastcall MapCell_AddNeighbours(u8 *cell, void *, u32 bits) { neighbours(cell) |= (u8)bits; }

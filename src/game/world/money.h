@@ -71,8 +71,8 @@ FileTime *__fastcall Money_TimeInRed(const u8 *money, void *edx, FileTime *out);
 // three inline, and its debug prints are not reproduced.)
 void __fastcall Money_MonthEnd(u8 *money);
 
-// BankAccount_HandleMessage's call into agent A's unported 0x5168f0 (thiscall on the game object [0x7cf83c]: the game lost; mode
-// +0x1da738 = 4). The game's by default; the fncmp driver points it at a recorder.
+// BankAccount_HandleMessage's call into agent A's Game_EndPark (0x5168f0, thiscall on the game object [0x7cf83c]: the game lost; mode
+// +0x1da738 = 4). The port by default; the fncmp driver points it at a recorder.
 struct BankAccountEnv {
     void(__fastcall *gameOver)(u8 *game);
 };

@@ -47,6 +47,23 @@
 #include "../../src/game/gfx/pointer.h"
 #include "../../src/game/gfx/screen.h"
 #include "../../src/game/gfx/statsgraph.h"
+#include "../../src/game/ui/thingbrowser.h"
+#include "../../src/game/ui/dialog7ca150.h"
+#include "../../src/game/ui/dialog7cc1f8.h"
+#include "../../src/game/ui/panel7cc218.h"
+#include "../../src/game/ui/dialog7ca168.h"
+#include "../../src/game/ui/dialog7ca308.h"
+#include "../../src/game/ui/panel7ca178.h"
+#include "../../src/game/ui/dialog7ca1c8.h"
+#include "../../src/game/ui/dialog74fb20.h"
+#include "../../src/game/ui/dialogs.h"
+#include "../../src/game/ui/panel7c2534.h"
+#include "../../src/game/ui/dialog7cb2b8.h"
+#include "../../src/game/ui/dialog7cdac4.h"
+#include "../../src/game/ui/staffrename.h"
+#include "../../src/game/ui/textpanel7cc18c.h"
+#include "../../src/game/world/objectmsg.h"
+#include "../../src/game/world/objectunlock.h"
 #include "../../src/game/core/fpu.h"
 #include "../../src/game/core/gameheap.h"
 #include "../../src/game/core/string.h"
@@ -93,6 +110,7 @@
 #include "../../src/game/core/soundcategory.h"
 #include "../../src/game/core/sounddevice.h"
 #include "../../src/game/core/mp2synth.h"
+#include "../../src/game/world/mapcell.h"
 #include "../../src/game/world/mapclick.h"
 #include "../../src/game/world/mapline.h"
 #include "../../src/game/world/messagecentre.h"
@@ -525,6 +543,25 @@ const ThingMessageEnv kThingMessageEnv = {{thing_message(0), nullptr, thing_mess
 using StaffSumFn = s32(__fastcall *)(u8 *, void *, u32);
 const StaffAdviceEnv kStaffAdviceEnv = {reinterpret_cast<StaffSumFn>((uintptr_t)recorder(16, 1)), reinterpret_cast<StaffSumFn>((uintptr_t)recorder(17, 1)),
                                         reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)recorder(18, 1))};
+// Map_Serialize's per-cell calls, 0x4000 of each, as tests/fncmp/mapserialize.py's hooks: a checksum at PROBE (RAM) of what they are given
+// (the temporary cells' id words and +0x26, not their stack addresses); a serializer answers 1 for the cell at PROBE + 4.
+u32 &map_probe(u32 index) { return reinterpret_cast<u32 *>((uintptr_t)0x30000000)[index]; }
+void map_mix(u32 value) { map_probe(0) = map_probe(0) * 31 + value; }
+void __fastcall map_reset_probe(u8 *cell, void *, u32 models) {
+    map_mix(*reinterpret_cast<u16 *>(cell) | (u32)cell[0x26] << 16 | (models & 0xff) << 24);
+}
+void __fastcall track_reset_probe(u8 *cell) { map_mix(*reinterpret_cast<u16 *>(cell)); }
+u32 __fastcall serialize_probe(u8 *cell, void *, Stream *stream, u32 save, s32 version, u32 unused) {
+    map_mix((u32)(uintptr_t)cell);
+    map_mix((u32)(uintptr_t)stream);
+    map_mix(save);
+    map_mix((u32)version);
+    map_mix(unused);
+    return (u32)(uintptr_t)cell == map_probe(1) ? 1 : 0;
+}
+const MapSerializeEnv kMapSerializeEnv = {&map_reset_probe, &track_reset_probe, &serialize_probe, &serialize_probe, &serialize_probe};
+// Guard_Detach's Visitor_Arrive: thiscall recorder 19 of 1, as tests/fncmp/staffdetach.py hooks 0x4feb50.
+const GuardDetachEnv kGuardDetachEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)recorder(19, 1))};
 // Ride_Destroy's calls into agent B's unported 0x42a190 and ported 0x436fa0: cdecl recorders 18 of no arguments and 19 of 1, as
 // tests/fncmp/ridedestroy.py hooks those addresses.
 // The cell kinds' calls into agent C's unported 0x4de1f0 and agent A's Path_CheckDeadEnds (0x527ee0): the thiscall recorder 26 of no
@@ -564,13 +601,77 @@ const CellModelEnv kCellModelEnv = {reinterpret_cast<u32(__cdecl *)(s32, s32, s3
 // tests/fncmp/messagecentre.py hooks that address.
 const MessageCentreEnv kMessageCentreEnv = {reinterpret_cast<u32(__fastcall *)(u8 *, void *, u8 *)>((uintptr_t)recorder(27, 1))};
 // The statistics graph's lines 0x49aa30 (StatsGraph_Redraw's after): the cdecl recorder 22 (tests/fncmp/gauge.py hooks 0x49aa30 with it).
-const StatsGraphEnv kStatsGraphEnv = {reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)jpeg_recorder(22, 1))};
+// ThingBrowser_SendPatrolLines's camera and lines (tests/fncmp/thingpatrol.py).
+const ThingPatrolEnv kThingPatrolEnv = {Rec{jpeg_recorder(20, 1)}, Rec{jpeg_recorder(21, 5)}};
+// ObjectUnlock_CheckScores's calls: stdcall ones through the COM-style recorders (tools/fncmp.py recorder(k, n, com=True): this logged as 0; tests/fncmp/objectunlockscores.py).
+constexpr u32 stdcall_recorder(u32 k, u32 n) { return kStubs + 0x1000 + 0x4000 + 0x800 * n + 0x20 * k; }
+const ObjectUnlockScoresEnv kObjectUnlockScoresEnv = {Rec{recorder(19, 0)}, Rec{stdcall_recorder(20, 2)}, Rec{stdcall_recorder(21, 1)}, Rec{stdcall_recorder(22, 2)},
+                                                      Rec{jpeg_recorder(23, 0)}, Rec{recorder(24, 2)}, Rec{recorder(25, 2)}};
+// StaffRename_Open's calls (tests/fncmp/staffrenameopen.py).
+const StaffRenameEnv kStaffRenameEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 1)}, Rec{recorder(12, 2)}, Rec{jpeg_recorder(13, 1)}, Rec{recorder(14, 1)}, Rec{recorder(22, 1)}, Rec{recorder(15, 1)}, Rec{jpeg_recorder(16, 1)}, Rec{recorder(17, 1)},
+                                        Rec{recorder(18, 2)}, Rec{jpeg_recorder(20, 1)}, Rec{jpeg_recorder(21, 1)}, Rec{recorder(23, 4)}, Rec{recorder(24, 2)}, Rec{jpeg_recorder(25, 1)}, Rec{recorder(26, 1)}, Rec{recorder(27, 0)}, Rec{recorder(28, 0)},
+                                        Rec{jpeg_recorder(29, 0)}, Rec{recorder(30, 1)}};
+// Dialog7cc1f8_TabHandler's calls (tests/fncmp/dialog7cc1f8tab.py).
+const Dialog7cc1f8TabEnv kDialog7cc1f8TabEnv = {Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 2)}, Rec{jpeg_recorder(12, 1)}, Rec{jpeg_recorder(13, 3)}, Rec{recorder(14, 3)}};
+// Dialog7ca168_Open's calls (tests/fncmp/dialog7ca168open.py).
+const Dialog7ca168OpenEnv kDialog7ca168OpenEnv = {Rec{jpeg_recorder(22, 2)}, Rec{recorder(23, 1)}, Rec{stdcall_recorder(24, 1)}};
+// Dialog7cc1f8_Open's calls (tests/fncmp/dialog7cc1f8open.py).
+const Dialog7cc1f8OpenEnv kDialog7cc1f8OpenEnv = {Rec{jpeg_recorder(17, 2)}, Rec{jpeg_recorder(18, 5)}, Rec{recorder(19, 1)}, Rec{jpeg_recorder(21, 3)}, Rec{recorder(25, 1)}, Rec{recorder(26, 1)}, Rec{recorder(27, 2)}};
+// Dialog7cdac4_Open's calls (tests/fncmp/dialog7cdac4.py).
+const Dialog7cdac4Env kDialog7cdac4Env = {Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 3)}, Rec{recorder(12, 1)}, Rec{recorder(13, 1)}, Rec{recorder(14, 1)}, Rec{jpeg_recorder(15, 1)}, Rec{recorder(16, 1)}, Rec{recorder(17, 2)}, Rec{jpeg_recorder(18, 1)}, Rec{recorder(19, 1)},
+                                          Rec{recorder(20, 2)}, Rec{recorder(21, 2)}, Rec{recorder(22, 2)}, Rec{jpeg_recorder(23, 1)}, Rec{jpeg_recorder(24, 3)}, Rec{recorder(25, 2)}};
+// Obj7b51f0_ShowNow's calls (tests/fncmp/obj7b51f0now.py).
+const Obj7b51f0NowEnv kObj7b51f0NowEnv = {Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 0)}, Rec{jpeg_recorder(12, 0)}, Rec{recorder(13, 9)}, Rec{jpeg_recorder(14, 3)}};
+// Objects_MeanQueuePosition's Object_QueuePositionOfNone (tests/fncmp/objectsmeanqueue.py).
+const ObjectsMeanQueueEnv kObjectsMeanQueueEnv = {Rec{recorder(10, 0)}};
+// Dialog7cc4b4_SetFlag's Window_SetShown (tests/fncmp/dialog7cc4c4thing.py).
+const Dialog7cc4b4FlagEnv kDialog7cc4b4FlagEnv = {Rec{recorder(11, 1)}};
+// Dialog7ca1c8_ResetMouseMode's calls (tests/fncmp/dialog7ca1c8reset.py).
+const Dialog7ca1c8ResetEnv kDialog7ca1c8ResetEnv = {Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 1)}, Rec{recorder(12, 0)}, Rec{stdcall_recorder(13, 1)}, Rec{jpeg_recorder(14, 2)}};
+// Guard_SetState's calls (tests/fncmp/guardstate.py).
+const GuardStateEnv kGuardStateEnv = {Rec{recorder(10, 1)}, Rec{recorder(11, 1)}};
+// Panel7c2534_AddRow's calls (tests/fncmp/panel7c2534.py).
+const Panel7c2534Env kPanel7c2534Env = {Rec{jpeg_recorder(10, 7)}, Rec{recorder(11, 2)}, Rec{recorder(12, 7)}, Rec{recorder(13, 1)}, Rec{jpeg_recorder(14, 1)}, Rec{recorder(15, 2)}, Rec{jpeg_recorder(16, 1)},
+                                        Rec{recorder(17, 1)}, Rec{recorder(18, 1)}, Rec{jpeg_recorder(19, 1)}, Rec{recorder(20, 1)}, Rec{recorder(21, 2)}, Rec{recorder(23, 4)}};
+// Panel7cc218_EnterTileMode's calls (tests/fncmp/panel7cc218tile.py).
+const Panel7cc218TileEnv kPanel7cc218TileEnv = {Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 1)}, Rec{recorder(20, 1)}, Rec{jpeg_recorder(12, 1)}, Rec{jpeg_recorder(13, 1)},
+                                                Rec{recorder(14, 1)}, Rec{jpeg_recorder(15, 1)}, Rec{recorder(16, 0)}, Rec{stdcall_recorder(17, 1)}, Rec{jpeg_recorder(18, 4)},
+                                                Rec{recorder(21, 0)}, Rec{jpeg_recorder(22, 1)}, Rec{jpeg_recorder(23, 0)}, Rec{jpeg_recorder(24, 2)}, Rec{recorder(25, 2)}, Rec{jpeg_recorder(26, 2)}, Rec{jpeg_recorder(27, 2)}};
+// TextPanel7cc18c_Show's calls (tests/fncmp/textpanel7cc18c.py).
+const TextPanel7cc18cEnv kTextPanel7cc18cEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 0)}, Rec{jpeg_recorder(12, 9)}, Rec{recorder(13, 4)}, Rec{recorder(14, 0)}};
+// Dialog7ca098_Create's calls (tests/fncmp/dialog7ca098create.py).
+const Dialog7ca098CreateEnv kDialog7ca098CreateEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 0)}, Rec{recorder(12, 2)}, Rec{recorder(13, 1)}, Rec{jpeg_recorder(14, 1)}, Rec{recorder(15, 1)},
+                                                      Rec{recorder(16, 1)}, Rec{jpeg_recorder(17, 1)}, Rec{recorder(18, 1)}, Rec{recorder(19, 2)}, Rec{recorder(20, 2)}};
+// Dialog74fb20's calls (tests/fncmp/dialog74fb20.py).
+const Dialog74fb20Env kDialog74fb20Env = {Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 0)}, Rec{recorder(12, 2)}, Rec{recorder(13, 2)}, Rec{recorder(14, 2)}, Rec{recorder(15, 2)},
+                                          Rec{recorder(16, 1)}, Rec{jpeg_recorder(17, 0)}, Rec{jpeg_recorder(18, 4)}, Rec{jpeg_recorder(19, 0)}, Rec{jpeg_recorder(20, 0)}, Rec{recorder(21, 3)}};
+// Dialog7ca1c8_OpenFor's calls (tests/fncmp/dialog7ca1c8open.py).
+const Dialog7ca1c8OpenEnv kDialog7ca1c8OpenEnv = {Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 1)}, Rec{jpeg_recorder(12, 1)}, Rec{recorder(13, 1)}, Rec{jpeg_recorder(14, 1)}, Rec{jpeg_recorder(15, 0)},
+                                                  Rec{jpeg_recorder(16, 2)}, Rec{jpeg_recorder(17, 0)}, Rec{jpeg_recorder(18, 1)}, Rec{jpeg_recorder(19, 1)}, Rec{jpeg_recorder(20, 1)},
+                                                  Rec{jpeg_recorder(21, 1)}, Rec{jpeg_recorder(22, 1)}, Rec{jpeg_recorder(23, 0)}};
+// Panel7ca178_ShowStats's status, can-open, refund and state (tests/fncmp/panel7ca178stats.py).
+const Panel7ca178StatsEnv kPanel7ca178StatsEnv = {Rec{jpeg_recorder(23, 2)}, Rec{recorder(24, 0)}, Rec{recorder(25, 0)}, Rec{recorder(26, 2)}};
+// Dialog7ca308_FillList's list calls, name and wage (tests/fncmp/dialog7ca308.py).
+const Dialog7ca308Env kDialog7ca308Env = {Rec{recorder(10, 0)}, Rec{recorder(11, 4)}, Rec{recorder(12, 0)}, Rec{recorder(13, 2)}, Rec{recorder(14, 0)}, Rec{recorder(15, 1)}, Rec{recorder(16, 1)}, Rec{jpeg_recorder(17, 2)}, Rec{jpeg_recorder(18, 5)}, Rec{recorder(19, 1)}, Rec{jpeg_recorder(21, 3)}};
+// Panel7cc218_ShowRide's range, shown and settings (tests/fncmp/panel7cc218show.py).
+const Panel7cc218ShowEnv kPanel7cc218ShowEnv = {Rec{recorder(21, 2)}, Rec{recorder(22, 1)}, Rec{recorder(23, 1)}};
+// Dialog7cc1f8_FillList's list calls, full name and text (tests/fncmp/dialog7cc1f8.py).
+const Dialog7cc1f8Env kDialog7cc1f8Env = {Rec{recorder(10, 0)}, Rec{recorder(11, 4)}, Rec{recorder(12, 0)}, Rec{recorder(13, 3)}, Rec{jpeg_recorder(14, 1)}};
+// Dialog7ca150_Handler's tabs, text, label and thing panel (tests/fncmp/dialog7ca150handler.py; dialog7ca150.py calls the tabs directly: their hooks are unaffected).
+const Dialog7ca150Env kDialog7ca150Env = {{Rec{jpeg_recorder(24, 1)}, Rec{jpeg_recorder(25, 1)}, Rec{jpeg_recorder(26, 1)}, Rec{jpeg_recorder(27, 1)}}, Rec{jpeg_recorder(28, 1)},
+                                          Rec{jpeg_recorder(29, 3)}, Rec{jpeg_recorder(30, 1)}};
+// (the other graph's 0x4a4750 the same recorder, the handler's 0x49ab80 the cdecl recorder 23 of 1: tests/fncmp/statshandler.py.)
+const StatsGraphEnv kStatsGraphEnv = {Rec{jpeg_recorder(22, 1)}, Rec{jpeg_recorder(22, 1)}, Rec{jpeg_recorder(23, 1)}};
 
 const ObjectEnv kObjectEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, u8 *)>((uintptr_t)recorder(21, 1)),
                               reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(22, 0)),
                               reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(23, 0))};
 // Object_Delete's call into agent B's RSSE_KillScript (0x559060): cdecl recorder 20 of 2, as tests/fncmp/objectdelete.py hooks it.
 const ObjectDeleteEnv kObjectDeleteEnv = {reinterpret_cast<void(__cdecl *)(s32, u32)>((uintptr_t)jpeg_recorder(20, 2))};
+// Object_PathChanged's call into agent A's unported 0x501390: thiscall recorder 26 of none, as tests/fncmp/objectqueue.py hooks it.
+const ObjectPathEnv kObjectPathEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(26, 0))};
+// Object_MechanicDone's script and effect calls: cdecl recorders 27 of 1, 28 of 7 and 29 of 1, as tests/fncmp/objectservice.py hooks them.
+const ObjectServiceEnv kObjectServiceEnv = {Rec{jpeg_recorder(27, 1)}, Rec{jpeg_recorder(28, 7)}, Rec{jpeg_recorder(29, 1)}};
 // BankAccount_HandleMessage's call into agent A's unported 0x5168f0 (the game lost): the thiscall recorder 24 of 0, as tests/fncmp/money.py
 // hooks it.
 const BankAccountEnv kBankAccountEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(24, 0))};
@@ -1298,6 +1399,8 @@ int main(int argc, char **argv) {
     Things_SetDeleteEnv(&kThingDeleteEnv);
     Things_SetMessageEnv(&kThingMessageEnv);
     Staff_SetAdviceEnv(&kStaffAdviceEnv);
+    Guard_SetDetachEnv(&kGuardDetachEnv);
+    Map_SetSerializeEnv(&kMapSerializeEnv);
     // Staff_WalkToRestArea's and Staff_Dismiss's calls: Sprite_WalkNav, Sprite_SpawnParticle and Thing_Delete the thiscall recorders 28 of
     // 0, 29 of 1 and 30 of 0, as tests/fncmp/staffstate.py hooks 0x4fa2a0, 0x4fa470 and 0x50b780.
     static const StaffWalkEnv staffWalkEnv = {reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)recorder(28, 0)),
@@ -1311,7 +1414,32 @@ int main(int argc, char **argv) {
     CellMessage_SetEnv(&kCellMessageEnv);
     Object_SetEnv(&kObjectEnv);
     StatsGraph_SetEnv(&kStatsGraphEnv);
+    ThingBrowser_SetPatrolEnv(&kThingPatrolEnv);
+    Panel7cc218_SetShowEnv(&kPanel7cc218ShowEnv);
+    Dialog7ca168_SetOpenEnv(&kDialog7ca168OpenEnv);
+    Dialog7ca308_SetEnv(&kDialog7ca308Env);
+    Panel7ca178_SetStatsEnv(&kPanel7ca178StatsEnv);
+    Dialog7ca1c8_SetOpenEnv(&kDialog7ca1c8OpenEnv);
+    Dialog74fb20_SetEnv(&kDialog74fb20Env);
+    Dialog7ca098_SetCreateEnv(&kDialog7ca098CreateEnv);
+    TextPanel7cc18c_SetEnv(&kTextPanel7cc18cEnv);
+    Panel7cc218_SetTileEnv(&kPanel7cc218TileEnv);
+    Panel7c2534_SetEnv(&kPanel7c2534Env);
+    Guard_SetStateEnv(&kGuardStateEnv);
+    Dialog7ca1c8_SetResetEnv(&kDialog7ca1c8ResetEnv);
+    Dialog7cc4b4_SetFlagEnv(&kDialog7cc4b4FlagEnv);
+    Objects_SetMeanQueueEnv(&kObjectsMeanQueueEnv);
+    Obj7b51f0_SetNowEnv(&kObj7b51f0NowEnv);
+    Dialog7cc1f8_SetOpenEnv(&kDialog7cc1f8OpenEnv);
+    Dialog7cdac4_SetEnv(&kDialog7cdac4Env);
+    Dialog7cc1f8_SetTabEnv(&kDialog7cc1f8TabEnv);
+    StaffRename_SetEnv(&kStaffRenameEnv);
+    ObjectUnlock_SetScoresEnv(&kObjectUnlockScoresEnv);
+    Dialog7ca150_SetEnv(&kDialog7ca150Env);
+    Dialog7cc1f8_SetEnv(&kDialog7cc1f8Env);
     Object_SetDeleteEnv(&kObjectDeleteEnv);
+    Object_SetPathEnv(&kObjectPathEnv);
+    Object_SetServiceEnv(&kObjectServiceEnv);
     BankAccount_SetEnv(&kBankAccountEnv);
     MessageCentre_SetEnv(&kMessageCentreEnv);
     GlyphRender_SetEnv(&kGlyphRenderEnv);   // (tests/fncmp/glyphrender.py hooks 0x67a7d0 with fncmp._cdecl_log)

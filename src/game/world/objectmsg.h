@@ -3,6 +3,12 @@
 
 #include "../../../re/types.h"
 
+// Objects_MeanQueuePosition's call (the port by default; the bench's recorder: tests/fncmp/objectqueue.py has it).
+struct ObjectsMeanQueueEnv {
+    s32(__fastcall *position)(u8 *object);   // Object_QueuePositionOfNone
+};
+void Objects_SetMeanQueueEnv(const ObjectsMeanQueueEnv *env);
+
 extern "C" {
 
 // 0x4dd320 (thiscall on the object; message, pops 4): the message's number comes from its slot 0. For 0xb (the end of the day) each of the object's six history rings
@@ -35,6 +41,9 @@ u16 *__fastcall Object_BackOfQueueTo(u8 *object, void *, u16 *out);
 
 // 0x4ddf40 (thiscall on the object): Object_QueuePosition of the person whose handle word is 0 (the stack word it passes is the object's pointer with its low word cleared (sic)).
 s32 __fastcall Object_QueuePositionOfNone(u8 *object);
+
+// 0x4cca40 (cdecl; name invented, returns in st0): over the world's things the mean of Object_QueuePositionOfNone of those of kind 3 with +0x32's bit 0: the dword sum (it wraps) as fild, fidiv the count; no such thing: 0 (0x70031c).
+float __cdecl Objects_MeanQueuePosition();
 
 // 0x4dda20 (thiscall): whether the queue of persons (Object_QueuePosition for the person 0, i.e. its length) is shorter than the dword at +0x40 times 4 (unsigned).
 u32 __fastcall Object_QueueHasRoom(u8 *object);

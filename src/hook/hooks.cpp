@@ -483,8 +483,10 @@
 #include "../game/ui/windowfactory.h"
 #include "../game/ui/windowscript.h"
 #include "../game/ui/buttontext.h"
+#include "../game/ui/dialog74fb20.h"
 #include "../game/ui/dialog7ca13c.h"
 #include "../game/ui/dialog7ca150.h"
+#include "../game/ui/dialog7ca168.h"
 #include "../game/ui/dialog7ca1bc.h"
 #include "../game/ui/dialog7ca1e0.h"
 #include "../game/ui/dialog7ca308.h"
@@ -496,6 +498,7 @@
 #include "../game/ui/dialog7cc5f4.h"
 #include "../game/ui/dialog7cc654.h"
 #include "../game/ui/dialog7cca94.h"
+#include "../game/ui/dialog7cdac4.h"
 #include "../game/ui/guifont.h"
 #include "../game/ui/guinamed.h"
 #include "../game/ui/guisystem.h"
@@ -505,6 +508,7 @@
 #include "../game/ui/levelmeter.h"
 #include "../game/ui/msgboxbutton.h"
 #include "../game/ui/msgtags.h"
+#include "../game/ui/panel7c2534.h"
 #include "../game/ui/panel7ca178.h"
 #include "../game/ui/panel7cc218.h"
 #include "../game/ui/panel7cc258.h"
@@ -512,6 +516,7 @@
 #include "../game/ui/panel7cc3e0.h"
 #include "../game/ui/panel7cc408.h"
 #include "../game/ui/staffrename.h"
+#include "../game/ui/textpanel7cc18c.h"
 #include "../game/ui/thingbrowser.h"
 #include "../game/ui/window705950draw.h"
 #include "../game/ui/thingpanel.h"
@@ -972,6 +977,7 @@ const Hook kHooks[] = {
     {"Challenges_Announce",       0x004d2c50, (void *)&Challenges_Announce, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Challenges_OfferNext",      0x004d2a70, (void *)&Challenges_OfferNext, {0x53, 0x8b, 0xd9, 0x55, 0x56}},
     {"Challenges_OfferFollowup",  0x004d2b60, (void *)&Challenges_OfferFollowup, {0x53, 0x55, 0x56, 0x8b, 0xf1}},
+    {"Challenge_Met",             0x004d1660, (void *)&Challenge_Met, {0x56, 0x8b, 0xf1, 0x57, 0x8a}},
     {"Object_GetDef",             0x004dd4e0, (void *)&Object_GetDef, {0x51, 0x66, 0x8b, 0x41, 0x0e}},
     {"Object_AddWalkAway",        0x004e1670, (void *)&Object_AddWalkAway, {0x8b, 0x81, 0xa4, 0x01, 0x00}},
     {"Object_AddCustomer",        0x004e1690, (void *)&Object_AddCustomer, {0x8b, 0x81, 0xa0, 0x01, 0x00}},
@@ -3710,6 +3716,8 @@ const Hook kHooks[] = {
     {"Object_SetFlag64",          0x004dfe30, (void *)&Object_SetFlag64, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Object_Delete",             0x004dd0a0, (void *)&Object_Delete, {0x6a, 0xff, 0x68, 0xe3, 0xc3}},
     {"Object_Reopen",             0x004df150, (void *)&Object_Reopen, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Object_PathChanged",        0x004de1f0, (void *)&Object_PathChanged, {0x51, 0x56, 0x8b, 0xf1, 0x57}},
+    {"Object_MechanicDone",       0x004df8f0, (void *)&Object_MechanicDone, {0x83, 0xec, 0x08, 0x53, 0x55}},
     {"Blocks7_Free",              0x005d46d0, (void *)&Blocks7_Free, {0x56, 0x8b, 0xf1, 0x57, 0x33}},
     {"Names_FirstAfter",          0x00424cc0, (void *)&Names_FirstAfter, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"Names_Equal",               0x00424cf0, (void *)&Names_Equal, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
@@ -4118,6 +4126,8 @@ const Hook kHooks[] = {
     {"Staff_WalkToRestArea",      0x00505fe0, (void *)&Staff_WalkToRestArea, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Staff_Dismiss",             0x00505790, (void *)&Staff_Dismiss, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Staff_GoToRandomPatrolCell", 0x00506f30, (void *)&Staff_GoToRandomPatrolCell, {0x83, 0xec, 0x0c, 0x53, 0x8b}},
+    {"Guard_Detach",              0x004d5eb0, (void *)&Guard_Detach, {0x83, 0xec, 0x08, 0x56, 0x8b}},
+    {"Guard_SetState",            0x004d65d0, (void *)&Guard_SetState, {0x51, 0x56, 0x57, 0x8b, 0x7c}},
     {"FreeList_Take",             0x00520d60, (void *)&FreeList_Take, {0x56, 0x66, 0x8b, 0x35, 0x24}},
     {"FreeList_Return",           0x00521890, (void *)&FreeList_Return, {0x8b, 0x4c, 0x24, 0x04, 0x85}},
     {"Voice_ScaleLevels",         0x00521d60, (void *)&Voice_ScaleLevels, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
@@ -4387,6 +4397,7 @@ const Hook kHooks[] = {
     {"Object_EntranceQueueSpot",  0x004dec30, (void *)&Object_EntranceQueueSpot, {0x83, 0xec, 0x0c, 0x8b, 0x44}},
     {"Object_AnyQueueSpot",       0x004de7e0, (void *)&Object_AnyQueueSpot, {0x56, 0x8b, 0xf1, 0xf6, 0x46}},
     {"Object_QueueFull",          0x004ddb60, (void *)&Object_QueueFull, {0x56, 0x8b, 0xf1, 0x57, 0x51}},
+    {"Objects_MeanQueuePosition", 0x004cca40, (void *)&Objects_MeanQueuePosition, {0x83, 0xec, 0x0c, 0x8b, 0x0d}},
     {"Thing_PlaceAt",             0x004fa930, (void *)&Thing_PlaceAt, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
     {"TrackTypeSlot_ReadIntoFree",         0x0051fa20, (void *)&TrackTypeSlot_ReadIntoFree, {0xa1, 0x40, 0x6d, 0x81, 0x00}},
     {"CoasterEdit_ToggleAdjustF8", 0x00441cd0, (void *)&CoasterEdit_ToggleAdjustF8, {0x8b, 0x15, 0x58, 0xc6, 0x79}},
@@ -5566,6 +5577,7 @@ const Hook kHooks[] = {
     {"MapCell_Dword4At",          0x0053bf30, (void *)&MapCell_Dword4At, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"MapCell_Word40",            0x00536c50, (void *)&MapCell_Word40, {0x66, 0x8b, 0x41, 0x40, 0xc3}},
     {"Map_PercentWith2c",         0x004ccdf0, (void *)&Map_PercentWith2c, {0x83, 0xec, 0x08, 0xa1, 0x9c}},
+    {"Map_Serialize",             0x004d7ea0, (void *)&Map_Serialize, {0x81, 0xec, 0x9c, 0x00, 0x00}},
     {"MessageSlot_Dtor",          0x0040f970, (void *)&MessageSlot_Dtor, {0x51, 0x8b, 0x41, 0x08, 0x56}},
     {"MessageCentre_DtorSlots",   0x00409250, (void *)&MessageCentre_DtorSlots, {0x68, 0x70, 0xf9, 0x40, 0x00}},
     {"MessageCentre_RemoveThing", 0x0040fa40, (void *)&MessageCentre_RemoveThing, {0x83, 0xec, 0x18, 0x53, 0x55}},
@@ -5681,6 +5693,7 @@ const Hook kHooks[] = {
     {"ObjectUnlock_AdviseLevel",  0x004d4fa0, (void *)&ObjectUnlock_AdviseLevel, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"ObjectUnlock_AdviseExtraLevel", 0x004d5870, (void *)&ObjectUnlock_AdviseExtraLevel, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"ObjectUnlock_AdviseScore",  0x004d5270, (void *)&ObjectUnlock_AdviseScore, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"ObjectUnlock_CheckScores",  0x004d4e50, (void *)&ObjectUnlock_CheckScores, {0x51, 0x56, 0x8b, 0xf1, 0x8b}},
     {"QueuePiece_Place",          0x005229e0, (void *)&QueuePiece_Place, {0x8b, 0x54, 0x24, 0x14, 0xb8}},
     {"QueuePiece_Remove",         0x00522a90, (void *)&QueuePiece_Remove, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"TrackQueuePiece_Place",     0x00522b90, (void *)&TrackQueuePiece_Place, {0x8b, 0x54, 0x24, 0x14, 0xb8}},
@@ -5750,6 +5763,9 @@ const Hook kHooks[] = {
     {"StatsGraph_ShownMin",       0x0049a8f0, (void *)&StatsGraph_ShownMin, {0x51, 0x8b, 0x0d, 0x3c, 0xf8}},
     {"StatsGraph7cb318_ShownMax", 0x004a51d0, (void *)&StatsGraph7cb318_ShownMax, {0x51, 0x8b, 0x0d, 0x3c, 0xf8}},
     {"StatsGraph_Redraw",         0x0049b520, (void *)&StatsGraph_Redraw, {0xa1, 0xe8, 0xa2, 0x7c, 0x00}},
+    {"StatsGraph_Handler",        0x0049a2e0, (void *)&StatsGraph_Handler, {0x6a, 0xff, 0x68, 0xc8, 0xa0}},
+    {"StatsGraph7cb318_Handler",  0x004a4b90, (void *)&StatsGraph7cb318_Handler, {0x6a, 0xff, 0x68, 0xd8, 0xa5}},
+    {"StatsGraph7cb318_Redraw",   0x004a5e10, (void *)&StatsGraph7cb318_Redraw, {0x51, 0xa1, 0x98, 0xb3, 0x7c}},
     {"RleImage_DrawScaled",       0x00564790, (void *)&RleImage_DrawScaled, {0x81, 0xec, 0x2c, 0x02, 0x00}},
     {"RleImage_ReadCodes",        0x00564750, (void *)&RleImage_ReadCodes, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
     {"RleImage_DeletingDtor",     0x00564a90, (void *)&RleImage_DeletingDtor, {0x8b, 0x41, 0xe8, 0x56, 0x8d}},
@@ -6636,6 +6652,8 @@ const Hook kHooks[] = {
     {"Dialog7ca1c8_SelectButtonIfUpThis", 0x004819f0, (void *)&Dialog7ca1c8_SelectButtonIfUpThis, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"Dialog7ca1c8_UpdateLoopButton", 0x004987f0, (void *)&Dialog7ca1c8_UpdateLoopButton, {0x51, 0x8b, 0x0d, 0xc8, 0xa1}},
     {"Dialog7ca1c8_Create",       0x00498790, (void *)&Dialog7ca1c8_Create, {0x8b, 0x0d, 0xd8, 0xa5, 0xfa}},
+    {"Dialog7ca1c8_OpenFor",      0x004988c0, (void *)&Dialog7ca1c8_OpenFor, {0xa1, 0xcc, 0xa1, 0x7c, 0x00}},
+    {"Dialog7ca1c8_ResetMouseMode", 0x00497f00, (void *)&Dialog7ca1c8_ResetMouseMode, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Dialog7cc47c_Message6Off",  0x004b8830, (void *)&Dialog7cc47c_Message6Off, {0xa1, 0x7c, 0xc4, 0x7c, 0x00}},
     {"Dialog7cc47c_Message6On",   0x004b8810, (void *)&Dialog7cc47c_Message6On, {0xa1, 0x7c, 0xc4, 0x7c, 0x00}},
     {"Dialog7cc47c_Message4",     0x004b87f0, (void *)&Dialog7cc47c_Message4, {0xa1, 0x7c, 0xc4, 0x7c, 0x00}},
@@ -6682,6 +6700,9 @@ const Hook kHooks[] = {
     {"Dialog7ca168_AddStaffRow",  0x00496320, (void *)&Dialog7ca168_AddStaffRow, {0x83, 0xec, 0x14, 0x53, 0x55}},
     {"Dialog7ca168_FillStaffList", 0x00496400, (void *)&Dialog7ca168_FillStaffList, {0x8b, 0x0d, 0x68, 0xa1, 0x7c}},
     {"Dialog7ca168_Handler",      0x004960a0, (void *)&Dialog7ca168_Handler, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
+    {"Dialog7ca098_Create",       0x0048d8b0, (void *)&Dialog7ca098_Create, {0x6a, 0xff, 0x68, 0x2b, 0x97}},
+    {"Dialog7cc4c4_ShowThing",    0x004b9980, (void *)&Dialog7cc4c4_ShowThing, {0x8b, 0x0d, 0xc4, 0xc4, 0x7c}},
+    {"Dialog7cc4b4_SetFlag",      0x004b9840, (void *)&Dialog7cc4b4_SetFlag, {0x8b, 0x0d, 0xb4, 0xc4, 0x7c}},
     {"GuiManager_Word4Set",       0x00659631, (void *)&GuiManager_Word4Set, {0x55, 0x8b, 0xec, 0x8b, 0x0d}},
     {"GuiManager_CallSlot3",      0x0065961c, (void *)&GuiManager_CallSlot3, {0x55, 0x8b, 0xec, 0xa1, 0x8c}},
     {"GuiManager_CallSlot4",      0x00659607, (void *)&GuiManager_CallSlot4, {0x55, 0x8b, 0xec, 0xa1, 0x8c}},
@@ -7217,6 +7238,7 @@ const Hook kHooks[] = {
     {"ThingBrowser_PanelHandler", 0x004b3c10, (void *)&ThingBrowser_PanelHandler, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
     {"ThingBrowser_ResetIfThing", 0x004b3620, (void *)&ThingBrowser_ResetIfThing, {0xa1, 0x08, 0xc3, 0x7c, 0x00}},
     {"ThingBrowser_OpenShown",    0x00481790, (void *)&ThingBrowser_OpenShown, {0xa1, 0xc0, 0xc3, 0x7c, 0x00}},
+    {"ThingBrowser_SendPatrolLines", 0x004b3640, (void *)&ThingBrowser_SendPatrolLines, {0xa1, 0x08, 0xc3, 0x7c, 0x00}},
     {"Panel7cc218_Dress",         0x004ad890, (void *)&Panel7cc218_Dress, {0x6a, 0xff, 0x68, 0x8a, 0xac}},
     {"Panel7cc218_DressTip",      0x004ad720, (void *)&Panel7cc218_DressTip, {0x6a, 0xff, 0x68, 0xbb, 0xab}},
     {"Panel7cc218_UpdateButtons", 0x004ad4e0, (void *)&Panel7cc218_UpdateButtons, {0xa1, 0x58, 0x26, 0x7c, 0x00}},
@@ -7226,6 +7248,9 @@ const Hook kHooks[] = {
     {"Panel7cc218_ApplyToShown",  0x004af440, (void *)&Panel7cc218_ApplyToShown, {0x56, 0x8b, 0x35, 0x58, 0x26}},
     {"Panel7cc218_Choose",        0x004af480, (void *)&Panel7cc218_Choose, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Panel7cc218_ShowSettings",  0x004aec30, (void *)&Panel7cc218_ShowSettings, {0x83, 0xec, 0x6c, 0x8a, 0x44}},
+    {"Panel7cc218_ShowRide",      0x004af030, (void *)&Panel7cc218_ShowRide, {0x83, 0xec, 0x10, 0x53, 0x55}},
+    {"Panel7cc218_EnterTileMode", 0x004af200, (void *)&Panel7cc218_EnterTileMode, {0x6a, 0xff, 0x68, 0x92, 0xad}},
+    {"Panel7cc218_EnterMoveMode", 0x0048cfa0, (void *)&Panel7cc218_EnterMoveMode, {0x6a, 0xff, 0x68, 0xe1, 0x96}},
     {"Panel7cc258_Dress",         0x004afc10, (void *)&Panel7cc258_Dress, {0x6a, 0xff, 0x68, 0xaa, 0xae}},
     {"Panel7cc258_DressTip",      0x004afaa0, (void *)&Panel7cc258_DressTip, {0x6a, 0xff, 0x68, 0xdb, 0xad}},
     {"Panel7cc258_Open",          0x004b0640, (void *)&Panel7cc258_Open, {0x64, 0xa1, 0x00, 0x00, 0x00}},
@@ -7236,9 +7261,13 @@ const Hook kHooks[] = {
     {"Panel7ca178_Dress",         0x00497100, (void *)&Panel7ca178_Dress, {0x6a, 0xff, 0x68, 0x02, 0x9f}},
     {"Panel7ca178_DressTip",      0x00496f90, (void *)&Panel7ca178_DressTip, {0x6a, 0xff, 0x68, 0x8b, 0x9e}},
     {"Panel7ca178_Show",          0x00497990, (void *)&Panel7ca178_Show, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"Panel7ca178_ShowStats",     0x004973a0, (void *)&Panel7ca178_ShowStats, {0x83, 0xec, 0x10, 0x53, 0x55}},
     {"Dialog7cc1f8_DressStats",   0x004ab6b0, (void *)&Dialog7cc1f8_DressStats, {0x6a, 0xff, 0x68, 0x7e, 0xaa}},
     {"Dialog7cc1f8_ShowStats",    0x004abfb0, (void *)&Dialog7cc1f8_ShowStats, {0x8b, 0x0d, 0xf8, 0xc1, 0x7c}},
     {"Dialog7cc1f8_ShowItemTip",  0x004abc80, (void *)&Dialog7cc1f8_ShowItemTip, {0x6a, 0xff, 0x68, 0x9b, 0xaa}},
+    {"Dialog7cc1f8_FillList",     0x004aaf70, (void *)&Dialog7cc1f8_FillList, {0x81, 0xec, 0xa4, 0x00, 0x00}},
+    {"Dialog7cc1f8_TabHandler",   0x004aca60, (void *)&Dialog7cc1f8_TabHandler, {0x53, 0x8b, 0x5c, 0x24, 0x14}},
+    {"Dialog7cc1f8_Open",         0x004acc70, (void *)&Dialog7cc1f8_Open, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Panel7cc408_Dress",         0x004b6c20, (void *)&Panel7cc408_Dress, {0x6a, 0xff, 0x68, 0x90, 0xb4}},
     {"Panel7cc408_ShowPreview",   0x004b6b90, (void *)&Panel7cc408_ShowPreview, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Panel7cc408_Show",          0x004b79b0, (void *)&Panel7cc408_Show, {0x8b, 0x44, 0x24, 0x04, 0x6a}},
@@ -7295,6 +7324,7 @@ const Hook kHooks[] = {
     {"Dialog7cc5f4_Finish",       0x004bb390, (void *)&Dialog7cc5f4_Finish, {0xa1, 0xf4, 0xc5, 0x7c, 0x00}},
     {"Dialog7cc47c_Create",       0x004b8520, (void *)&Dialog7cc47c_Create, {0x6a, 0xff, 0x68, 0xa6, 0xb5}},
     {"StaffRename_Handler",       0x004b6320, (void *)&StaffRename_Handler, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
+    {"StaffRename_Open",          0x004b6110, (void *)&StaffRename_Open, {0x6a, 0xff, 0x68, 0x56, 0xb3}},
     {"Window7cc8bc_ListAdd",      0x004beb60, (void *)&Window7cc8bc_ListAdd, {0x51, 0x8b, 0x0d, 0xbc, 0xc8}},
     {"Window7cc8bc_ListRemove",   0x004bebb0, (void *)&Window7cc8bc_ListRemove, {0x8b, 0x0d, 0xbc, 0xc8, 0x7c}},
     {"Window7cc8bc_ListSetData",  0x004bec00, (void *)&Window7cc8bc_ListSetData, {0x8b, 0x0d, 0xbc, 0xc8, 0x7c}},
@@ -7319,12 +7349,17 @@ const Hook kHooks[] = {
     {"Dialog7cb2b8_BarHandler",   0x004a1cd0, (void *)&Dialog7cb2b8_BarHandler, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
     {"Dialog7cb2b8_ShowDate",     0x004a0e30, (void *)&Dialog7cb2b8_ShowDate, {0x8b, 0x0d, 0xb8, 0xb2, 0x7c}},
     {"Obj7b51f0_ShowDate",        0x00481560, (void *)&Obj7b51f0_ShowDate, {0x8b, 0x4c, 0x24, 0x14, 0x8b}},
+    {"Obj7b51f0_ShowNow",         0x004815e0, (void *)&Obj7b51f0_ShowNow, {0x83, 0xec, 0x08, 0xe8, 0x98}},
     {"Dialog7ca308_ShowStaff",    0x0049ba00, (void *)&Dialog7ca308_ShowStaff, {0x6a, 0xff, 0x68, 0x78, 0xa1}},
+    {"Dialog7ca308_FillList",     0x0049b5b0, (void *)&Dialog7ca308_FillList, {0x8b, 0x0d, 0x08, 0xa3, 0x7c}},
+    {"Dialog7ca308_StaffChanged", 0x0049c970, (void *)&Dialog7ca308_StaffChanged, {0x8b, 0x0d, 0x08, 0xa3, 0x7c}},
+    {"Dialog7ca308_Open",         0x0049bdd0, (void *)&Dialog7ca308_Open, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Dialog7ca150_ShowTab0",     0x00494ec0, (void *)&Dialog7ca150_ShowTab0, {0x8b, 0x0d, 0x50, 0xa1, 0x7c}},
     {"Dialog7ca150_ShowTab1",     0x00494c70, (void *)&Dialog7ca150_ShowTab1, {0x8b, 0x0d, 0x50, 0xa1, 0x7c}},
     {"Dialog7ca150_ShowTab2",     0x00494250, (void *)&Dialog7ca150_ShowTab2, {0x8b, 0x0d, 0x50, 0xa1, 0x7c}},
     {"Dialog7ca150_ShowTab3",     0x00495110, (void *)&Dialog7ca150_ShowTab3, {0x8b, 0x0d, 0x50, 0xa1, 0x7c}},
     {"Dialog7ca150_Open",         0x00495aa0, (void *)&Dialog7ca150_Open, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"Dialog7ca150_Handler",      0x00495360, (void *)&Dialog7ca150_Handler, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
     {"GuiNamed_Add",              0x00661a93, (void *)&GuiNamed_Add, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"GuiNamed_FreeAll",          0x00661b3c, (void *)&GuiNamed_FreeAll, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"GuiNamed_Find",             0x00661bab, (void *)&GuiNamed_Find, {0x55, 0x8b, 0xec, 0x83, 0xec}},
@@ -7344,6 +7379,12 @@ const Hook kHooks[] = {
     {"Gui_Shutdown",              0x00658708, (void *)&Gui_Shutdown, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Dialog7cc654_FitText",      0x004bc100, (void *)&Dialog7cc654_FitText, {0x6a, 0xff, 0x68, 0x58, 0xb8}},
     {"UiObject_HandleMessage",    0x0050ca50, (void *)&UiObject_HandleMessage, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"Dialog74fb20_Open",         0x0048adb0, (void *)&Dialog74fb20_Open, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Dialog74fb20_Handler",      0x0048a740, (void *)&Dialog74fb20_Handler, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"TextPanel7cc18c_Show",      0x004a84c0, (void *)&TextPanel7cc18c_Show, {0x6a, 0xff, 0x68, 0x1b, 0xa8}},
+    {"Panel7c2534_AddRow",        0x00492f60, (void *)&Panel7c2534_AddRow, {0x6a, 0xff, 0x68, 0x83, 0x9c}},
+    {"Dialog7cdac4_Open",         0x004c4670, (void *)&Dialog7cdac4_Open, {0x6a, 0xff, 0x68, 0x0e, 0xbf}},
+    {"Dialog7ca168_Open",         0x00496620, (void *)&Dialog7ca168_Open, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},

@@ -9,6 +9,7 @@
 #include "../math/x87.h"
 #include "analyser.h"
 #include "object.h"
+#include "parkopen.h"
 #include "thingmsg.h"
 #include "world.h"
 
@@ -125,7 +126,7 @@ void __fastcall Money_MonthEnd(u8 *money) {
 }
 
 namespace {
-const BankAccountEnv kGameBankEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x005168f0)};
+const BankAccountEnv kGameBankEnv = {&Game_EndPark};
 const BankAccountEnv *g_bank = &kGameBankEnv;
 }  // namespace
 

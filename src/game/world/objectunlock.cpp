@@ -5,9 +5,13 @@
 #include "../core/globalsave.h"
 #include "../core/stdtree.h"
 #include "advisorscore.h"
+#include "mapcell.h"
 #include "object.h"
 #include "objectdefs.h"
+#include "ridesearch.h"
 #include "thingmsg.h"
+#include "thingscan.h"
+#include "world.h"
 
 namespace {
 
@@ -22,9 +26,30 @@ void post_advice(u32 id, u32 b = 0xffffffffu) {
     Object_PostMessage(msg);
 }
 
+const ObjectUnlockScoresEnv kScoresGameEnv = {GameTable7cfb90_Get1da720_519510, Things_TallestCoaster, Things_BestRatedDef9c1, Rides_BestPiecesOfKind,
+                                              Map_CountSpecialCells, GlobalSave_MarkScore, ObjectUnlock_AdviseScore};
+const ObjectUnlockScoresEnv *g_scores = &kScoresGameEnv;
+
+void check_score(u8 *self, u32 group, s32 value, u32 limit) {
+    if (value <= *reinterpret_cast<const s32 *>((uintptr_t)limit)) return;
+    const u32 level = g_scores->mark(GlobalSave_Instance(), nullptr, group, value);
+    if (level) g_scores->advise(self, nullptr, group, (s32)level);
+}
+
 }  // namespace
 
+void ObjectUnlock_SetScoresEnv(const ObjectUnlockScoresEnv *env) { g_scores = env ? env : &kScoresGameEnv; }
+
 extern "C" {
+
+void __fastcall ObjectUnlock_CheckScores(u8 *self) {
+    g_scores->store(*reinterpret_cast<u8 **>((uintptr_t)0x0080239c));
+    u16 out;
+    check_score(self, 0, (s32)g_scores->tallest(&out, 0), 0x007857ac);
+    check_score(self, 1, (s32)g_scores->bestRated(&out), 0x007857b0);
+    check_score(self, 2, (s32)g_scores->bestPieces(&out, 2), 0x007857b4);
+    check_score(self, 3, g_scores->specialCells(), 0x007857bc);
+}
 
 u8 __stdcall ObjectDef_IsUnlocked(u32 id) {
     const s32 needed = at<s32>(ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, (u16)id), 0xc4);

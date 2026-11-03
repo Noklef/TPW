@@ -14,6 +14,7 @@
 #include "person.h"
 #include "random.h"
 #include "ridelist.h"
+#include "things.h"
 
 namespace {
 
@@ -37,6 +38,13 @@ void Advance(u8 *object, u32 base) {
 }
 
 }  // namespace
+
+namespace {
+const ObjectsMeanQueueEnv kMeanQueueEnv = {Object_QueuePositionOfNone};
+const ObjectsMeanQueueEnv *g_meanQueue = &kMeanQueueEnv;
+}  // namespace
+
+void Objects_SetMeanQueueEnv(const ObjectsMeanQueueEnv *env) { g_meanQueue = env ? env : &kMeanQueueEnv; }
 
 extern "C" {
 
@@ -139,6 +147,24 @@ u16 *__fastcall Object_BackOfQueueTo(u8 *object, void *, u16 *out) {
 
 s32 __fastcall Object_QueuePositionOfNone(u8 *object) {
     return Object_QueuePosition(object, nullptr, (u32)(uintptr_t)object & 0xffff0000u);
+}
+
+float __cdecl Objects_MeanQueuePosition() {
+    s32 count = 0;
+    u32 sum = 0;
+    u16 handle;
+    World_FirstThing(nullptr, nullptr, &handle);
+    while (handle) {
+        u8 *const thing = *reinterpret_cast<u8 **>((uintptr_t)(0x007cfb90 + 20 * (u32)handle));
+        if (at<u8>(thing, 2) == 3 && (at<u8>(thing, 0x32) & 1)) {
+            ++count;
+            sum += (u32)g_meanQueue->position(thing);
+        }
+        u16 next;
+        handle = *World_NextThing(nullptr, nullptr, &next, thing);
+    }
+    if (!count) return 0.0f;
+    return (float)(X87Reg((double)(s32)sum) / X87Reg((double)count)).v;
 }
 
 u32 __fastcall Object_QueueHasRoom(u8 *object) {

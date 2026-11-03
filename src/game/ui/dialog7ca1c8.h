@@ -5,7 +5,46 @@
 
 #include "../../../re/types.h"
 
+// Dialog7ca1c8_OpenFor's calls (the ports by default; the bench's recorders: their own benches have them).
+struct Dialog7ca1c8OpenEnv {
+    void(__cdecl *focusCell)(u32 record);                  // FocusCell_Update
+    void(__cdecl *resetChild)(u32 clear27);                // Dialog7cb2b8_ResetChild21
+    u32(__cdecl *childPost)(u32 value);                    // Dialog7cb2b8_Child21Post
+    u32(__fastcall *setFocus)(u8 *window, void *, u32 a);  // Window_SetFocus
+    u32(__cdecl *linkOpen)(const u8 *object);              // Object_LinkOpen
+    void(__cdecl *enterTile)();                            // MouseMode_EnterTile15
+    void(__cdecl *editRide)(const u8 *object, u32 on);     // CoasterEdit_EditRide
+    void(__cdecl *ensureMode)();                           // MouseMode_Ensure6feaa0
+    void(__cdecl *cursor)(u32 id);                         // GameCursor_Set
+    u32(__cdecl *tools)(u32 *out);                         // CoasterEdit_Tools
+    void(__cdecl *setChecks)(u32 flags);                   // Dialog7ca1c8_SetChecks
+    void(__cdecl *startTool)(u32 *out);                    // CoasterEdit_StartChosenTool
+    void(__cdecl *selectButton)(u32 flags);                // Dialog7ca1c8_SelectButton
+    void(__cdecl *updateLoop)();                           // Dialog7ca1c8_UpdateLoopButton
+};
+void Dialog7ca1c8_SetOpenEnv(const Dialog7ca1c8OpenEnv *env);
+
+// Dialog7ca1c8_ResetMouseMode's calls (the ports by default; the bench's recorders: their own benches have them).
+struct Dialog7ca1c8ResetEnv {
+    u32(__cdecl *mode)();                         // Global81ae2c_Get_52f840
+    void *(__cdecl *alloc)(u32 size);             // GameHeap_Alloc
+    u8 *(__fastcall *baseCtor)(u8 *self);         // MouseModeOnlineBase_Ctor
+    void(__stdcall *setMode)(u8 *mode);           // MouseMode_Set
+    void(__cdecl *gameMode)(u32 mode, u32 record);   // GameMode_Set
+};
+void Dialog7ca1c8_SetResetEnv(const Dialog7ca1c8ResetEnv *env);
+
 extern "C" {
+
+// 0x4988c0 (cdecl (thing); called from 0x487eeb and 0x4af275; name invented): nothing when up [0x7ca1cc] for that thing [0x7ca1d0] already or with the byte [0x7ca1d4] set. Else the thing kept, selected
+// (Global7c2654_Set) and the focus cell updated (record 1); unless [0x785a2c] the child 21 reset (1) and posted the window [0x7ca1c8]; up set, the window focused. A thing without an open link enters the tile
+// mode 0x15 (MouseMode_EnterTile15); one with: its ride edited (1, the kept thing), the mode 0x6feaa0 ensured, the cursor 0xc, selected and the focus cell updated again. Still up: the edit tools into the
+// argument's slot and the checks set from it, the tool started into it and the button selected. Then the loop button updated and up set again.
+void __cdecl Dialog7ca1c8_OpenFor(u8 *thing);
+
+// 0x497f00 (cdecl; name invented): the dialog's thing [0x7ca1d0] cleared. Unless the game mode is 3: the mouse mode holder made when missing (inline as MouseModes_EnsureHolder) and, unless the current mode [0x7b05d8] answers 1 from its slot 9 (none:
+// 0), a new base mode made current (the holder checked again) and GameMode_Set (0, 1) twice.
+void __cdecl Dialog7ca1c8_ResetMouseMode();
 
 // 0x498090 (cdecl (flags); name unconfirmed): in the child 0x18 of the window [0x7ca1c8] (Window_FindChild), slot 5 (bool) of the child
 // 0x1f gets bit 0 of flags, 0x20 bit 1 when the byte +0x50 of [0x7ca1d0] is also not 0, 0x1b bit 2, 0x19 bit 3, 0x1a bit 4, 0x1c bit 5,

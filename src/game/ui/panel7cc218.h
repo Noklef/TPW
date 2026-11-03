@@ -4,7 +4,55 @@
 
 #include "../../../re/types.h"
 
+// Panel7cc218_ShowRide's calls (the ports by default; the bench's recorders: their own benches have them).
+struct Panel7cc218ShowEnv {
+    void(__fastcall *setRange)(u8 *window, void *, s32 from, s32 to);   // Window705b20_SetRange
+    u32(__fastcall *setShown)(u8 *window, void *, u32 shown);           // Window_SetShown
+    void(__fastcall *showSettings)(u8 *self, void *, u8 flags);         // Panel7cc218_ShowSettings
+};
+void Panel7cc218_SetShowEnv(const Panel7cc218ShowEnv *env);
+
+// Panel7cc218_EnterTileMode's calls (the ports by default; the bench's recorders: their own benches have them).
+struct Panel7cc218TileEnv {
+    u32(__cdecl *select)(u32 value);                                    // Global7c2654_Set
+    void(__cdecl *focus)(u32 record);                                   // FocusCell_Update
+    u8 *(__fastcall *findDef)(u8 *defs, void *, u16 id);                // ObjectDefs_Find
+    void(__cdecl *openFor)(u8 *thing);                                  // Dialog7ca1c8_OpenFor
+    void *(__cdecl *alloc)(u32 size);                                   // GameHeap_Alloc
+    u8 *(__fastcall *tileCtor)(u8 *self, void *, u32 arg);              // MouseModeTile_Ctor
+    void(__cdecl *setRecorded)(u32 value);                              // Global81ecac_SetRecorded
+    u8 *(__fastcall *baseCtor)(u8 *self);                               // MouseModeOnlineBase_Ctor
+    void(__stdcall *setMode)(u8 *mode);                                 // MouseMode_Set
+    void(__cdecl *mapClick)(s32 x, s32 y, u32 flags, u32 useStored);    // GameMode_MapClick
+    // Panel7cc218_EnterMoveMode's others.
+    u8 *(__fastcall *getDef)(const u8 *object);                         // Object_GetDef
+    u8(__cdecl *traceQueue)(const u8 *thing);                           // RideQueue_Trace
+    s32(__cdecl *commitPairs)();                                        // PairTable_Commit
+    void(__cdecl *gameMode)(u32 mode, u32 record);                      // GameMode_Set
+    u8 *(__fastcall *tileCtorKind)(u8 *self, void *, u32 arg, u16 kind);   // MouseModeTile_CtorKind
+    void(__cdecl *setId)(const u16 *id, u32 flag);                      // Global8186e0_SetRecorded
+    void(__cdecl *setValue)(u32 value, u32 force);                      // Global81d7a4_SetRecorded
+};
+void Panel7cc218_SetTileEnv(const Panel7cc218TileEnv *env);
+
 extern "C" {
+
+// 0x4af200 (thiscall (flag), pops 4; called by the handler 0x4af600; name invented): the shown thing [0x7c2658] selected (Global7c2654_Set), the focus cell updated with the record 1. With flag 0 a new tile mode of the kind 0x14. Else by the
+// thing's definition's (word +0xe) track type +0x9c: 3 Dialog7ca1c8_OpenFor (the thing) and no mode; else a new tile mode of the kind 0xe for 1, 0x13 for 2, 0 otherwise, and the type given to Global81ecac_SetRecorded. A new mode made
+// current (the holder made first, inline as MouseModes_EnsureHolder) and GameMode_MapClick (0, 0, 0, 0). Always this's slot 0x2c last.
+void __fastcall Panel7cc218_EnterTileMode(u8 *self, void *, u32 flag);
+
+// 0x48cfa0 (thiscall; called by the handler 0x4af600; name invented): the shown thing [0x7c2658] selected, the focus cell updated with the record 1; when its definition's +0x40 is not 0 the byte [0x81b14c] its queue line (RideQueue_Trace) and
+// PairTable_Commit; GameMode_Set (0x33, 1); the map clicked at the cell before the thing's bytes +7, +5 (x = (+7 * 0x80 + +5) & 0x7f in the word, y the rest); a new tile mode (0x3b, the thing's word +0xe) current (the holder inline),
+// [0x81b3ac] the thing, GameMode_Set (0x3b, 1), the record of the id (word +0xe, 0), the record of the thing's +0x10 (1), the shown thing cleared and this's slot 0x2c.
+void __fastcall Panel7cc218_EnterMoveMode(u8 *self);
+
+// 0x4af030 (thiscall; name invented): the shown thing [0x7c2658]'s definition (Object_GetDef, read first) put on the window +0x10's children (none: nothing). The child 0x3e30: the range
+// +0x134 / +0x138 (Window705b20_SetRange), slot 7 given the thing's +0x58, its child 0x3e2e's slot 7 given the level table's +0x1ac << 10 over the range (idiv; no 0x3e2e or an empty range
+// fault, sic). The child 0x3e2f: the definition's +0x70 kept in this +0x28, shown when that is not 0, the range +0x12c / +0x130, slot 7 given the thing's byte +0x5c. The child 0x3e2d: with the
+// range +0x124 / +0x128 empty hidden, 0x3e31 too (Window_SetShown, the child not checked); else both shown and its child 0x3e2e's slot 7 given the level table's +0x19c << 10 over the range;
+// either way the range, slot 7 given the thing's byte +0x5d. Finally Panel7cc218_ShowSettings (7). The level table is at the thing's byte +0x50 * 0x40 in the definition.
+void __fastcall Panel7cc218_ShowRide(u8 *self);
 
 // 0x4ad890 (thiscall; slot 3 of the vtable 0x6ffbe8): with the window +0x14 set (read again for each child), its children dressed in this
 // order (ui/panelparts; a text a TextPart_Ctor part with that language text, a part's or a bar's value given to the child's slot 7):

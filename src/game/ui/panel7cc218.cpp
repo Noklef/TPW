@@ -7,6 +7,7 @@
 #include "../core/vcall.h"
 #include "../gfx/barmesh.h"
 #include "../core/accessors.h"
+#include "../core/actionrec.h"
 #include "../core/trivial.h"
 #include "../render/textparts.h"
 #include "../core/soundplay.h"
@@ -14,6 +15,10 @@
 #include "../files/wrapsources.h"
 #include "../world/advisor.h"
 #include "../world/focuscell.h"
+#include "../world/cellrun.h"
+#include "../world/gamemode.h"
+#include "../world/mapclick.h"
+#include "../world/queuetrace.h"
 #include "../world/mousemode.h"
 #include "../world/objectdefs.h"
 #include "../world/world.h"
@@ -21,6 +26,7 @@
 #include "../world/objectmsg.h"
 #include "../world/ridelist.h"
 #include "../world/ridesweep.h"
+#include "dialog7ca1c8.h"
 #include "dialogs.h"
 #include "guirect.h"
 #include "hoverlabel.h"
@@ -67,9 +73,135 @@ void settingText(u8 *self, u32 id, u32 n, u32 offset) {
     TextArgInt_Ctor(arg, nullptr, n, at<s32>(self, offset), 1);
     TextFormat().format(*reinterpret_cast<void **>((uintptr_t)0x0078ba94), reinterpret_cast<u16 *>((uintptr_t)0x007ba058), 0x3fff, id, arg);
 }
+const Panel7cc218ShowEnv kShowGameEnv = {Window705b20_SetRange, Window_SetShown, Panel7cc218_ShowSettings};
+const Panel7cc218ShowEnv *g_show = &kShowGameEnv;
+// A table's dword (the level's row in the definition) as a part of the range, 10 bits of fraction.
+s32 rangePart(const u8 *def, u32 table, u8 level, s32 from, s32 to) {
+    return (s32)((u32)at<s32>(def, ((u32)level << 6) + table) << 10) / (s32)((u32)to - (u32)from);
+}
 }  // namespace
 
+void Panel7cc218_SetShowEnv(const Panel7cc218ShowEnv *env) { g_show = env ? env : &kShowGameEnv; }
+
+namespace {
+
+const Panel7cc218TileEnv kTileGameEnv = {Global7c2654_Set, FocusCell_Update, ObjectDefs_Find, Dialog7ca1c8_OpenFor, GameHeap_Alloc, MouseModeTile_Ctor, Global81ecac_SetRecorded, MouseModeOnlineBase_Ctor, MouseMode_Set, GameMode_MapClick,
+                                         Object_GetDef, RideQueue_Trace, PairTable_Commit, GameMode_Set, MouseModeTile_CtorKind, Global8186e0_SetRecorded, Global81d7a4_SetRecorded};
+const Panel7cc218TileEnv *g_tile = &kTileGameEnv;
+
+// A new tile mode of the kind, or none.
+u8 *newTileMode(u32 kind) {
+    u8 *const block = static_cast<u8 *>(g_tile->alloc(0x14));
+    return block ? g_tile->tileCtor(block, nullptr, kind) : nullptr;
+}
+
+// MouseModes_EnsureHolder, inline in the original, then the mode current.
+void setMode(u8 *mode) {
+    u8 *&holder = *reinterpret_cast<u8 **>((uintptr_t)0x007b05e8);
+    if (!holder) {
+        u8 *const block = static_cast<u8 *>(g_tile->alloc(1));
+        if (block) {
+            u8 *const base = static_cast<u8 *>(g_tile->alloc(8));
+            g_tile->setMode(base ? g_tile->baseCtor(base) : nullptr);
+            *reinterpret_cast<u32 *>((uintptr_t)0x007b05e0) = 0xffffffffu;
+            *reinterpret_cast<u32 *>((uintptr_t)0x007b05d4) = 0xffffffffu;
+        }
+        holder = block;
+    }
+    g_tile->setMode(mode);
+}
+
+void setTileMode(u8 *mode) {
+    setMode(mode);
+    g_tile->mapClick(0, 0, 0, 0);
+}
+
+}  // namespace
+
+void Panel7cc218_SetTileEnv(const Panel7cc218TileEnv *env) { g_tile = env ? env : &kTileGameEnv; }
+
+extern "C" void __fastcall Panel7cc218_EnterMoveMode(u8 *self) {
+    u8 *const thing = *reinterpret_cast<u8 **>((uintptr_t)0x007c2658);
+    g_tile->select((u32)(uintptr_t)thing);
+    g_tile->focus(1);
+    const u16 cell = (u16)((thing[7] << 7) + thing[5] + 1);
+    if (*reinterpret_cast<u32 *>(g_tile->getDef(thing) + 0x40)) {
+        *reinterpret_cast<u8 *>((uintptr_t)0x0081b14c) = g_tile->traceQueue(thing);
+        g_tile->commitPairs();
+    }
+    g_tile->gameMode(0x33, 1);
+    const u32 before = (u32)cell - 1;
+    g_tile->mapClick((s32)(before & 0x7f), (s32)(before >> 7), 0, 0);
+    u8 *const block = static_cast<u8 *>(g_tile->alloc(0x14));
+    u8 *const mode = block ? g_tile->tileCtorKind(block, nullptr, 0x3b, *reinterpret_cast<u16 *>(thing + 0xe)) : nullptr;
+    setMode(mode);
+    *reinterpret_cast<u8 **>((uintptr_t)0x0081b3ac) = thing;
+    g_tile->gameMode(0x3b, 1);
+    const u16 id = *reinterpret_cast<u16 *>(thing + 0xe);
+    g_tile->setId(&id, 0);
+    g_tile->setValue(*reinterpret_cast<u32 *>(thing + 0x10), 1);
+    *reinterpret_cast<u8 **>((uintptr_t)0x007c2658) = nullptr;
+    vcall<void>(self, 0x2c);
+}
+
+extern "C" void __fastcall Panel7cc218_EnterTileMode(u8 *self, void *, u32 flag) {
+    u8 *const thing = *reinterpret_cast<u8 **>((uintptr_t)0x007c2658);
+    g_tile->select((u32)(uintptr_t)thing);
+    g_tile->focus(1);
+    if (!flag) {
+        setTileMode(newTileMode(0x14));
+    } else {
+        u8 *const def = g_tile->findDef(reinterpret_cast<u8 *>((uintptr_t)0x007890a0), nullptr, *reinterpret_cast<u16 *>(thing + 0xe));
+        const u32 type = *reinterpret_cast<u32 *>(def + 0x9c);
+        if (type == 3) {
+            g_tile->openFor(thing);
+        } else {
+            u8 *const mode = newTileMode(type == 1 ? 0xe : type == 2 ? 0x13 : 0);
+            g_tile->setRecorded(*reinterpret_cast<u32 *>(def + 0x9c));
+            setTileMode(mode);
+        }
+    }
+    vcall<void>(self, 0x2c);
+}
+
 extern "C" {
+
+void __fastcall Panel7cc218_ShowRide(u8 *self) {
+    const u8 *const thing = *reinterpret_cast<u8 **>((uintptr_t)0x007c2658);
+    const u8 *const def = Object_GetDef(thing);
+    if (!root(self)) return;
+    if (u8 *const child = Window_FindChild(root(self), nullptr, 0x3e30)) {
+        const s32 from = at<s32>(def, 0x134), to = at<s32>(def, 0x138);
+        g_show->setRange(child, nullptr, from, to);
+        vcall<void>(child, 0x1c, at<u32>(thing, 0x58));
+        const u8 level = at<u8>(thing, 0x50);
+        u8 *const part = Window_FindChild(child, nullptr, 0x3e2e);
+        vcall<void>(part, 0x1c, rangePart(def, 0x1ac, level, from, to));
+    }
+    if (u8 *const child = Window_FindChild(root(self), nullptr, 0x3e2f)) {
+        const u32 shown = at<u32>(def, 0x70);
+        at<u32>(self, 0x28) = shown;
+        g_show->setShown(child, nullptr, shown ? 1u : 0u);
+        g_show->setRange(child, nullptr, at<s32>(def, 0x12c), at<s32>(def, 0x130));
+        vcall<void>(child, 0x1c, (u32)at<u8>(thing, 0x5c));
+    }
+    if (u8 *const child = Window_FindChild(root(self), nullptr, 0x3e2d)) {
+        const s32 from = at<s32>(def, 0x124), to = at<s32>(def, 0x128);
+        if (from == to) {
+            g_show->setShown(child, nullptr, 0);
+            g_show->setShown(Window_FindChild(root(self), nullptr, 0x3e31), nullptr, 0);
+        } else {
+            g_show->setShown(child, nullptr, 1);
+            g_show->setShown(Window_FindChild(root(self), nullptr, 0x3e31), nullptr, 1);
+            const u8 level = at<u8>(thing, 0x50);
+            u8 *const part = Window_FindChild(child, nullptr, 0x3e2e);
+            vcall<void>(part, 0x1c, rangePart(def, 0x19c, level, from, to));
+        }
+        g_show->setRange(child, nullptr, from, to);
+        vcall<void>(child, 0x1c, (u32)at<u8>(thing, 0x5d));
+    }
+    g_show->showSettings(self, nullptr, 7);
+}
 
 void __fastcall Panel7cc218_Dress(u8 *self) {
     if (!window(self)) return;
