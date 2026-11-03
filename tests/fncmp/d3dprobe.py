@@ -18,19 +18,57 @@ import enginedebug  # noqa: E402
 
 CALLS = {'AlphaTest': (0x567270, 0x5673c5), 'FogTest': (0x5673d0, 0x5675b4), 'SetFlags': (0x567620, 0x5679ac), 'Stages': (0x5686d0, 0x568aaf), 'Draw': (0x567130, 0x567269),
          'Begin': (0x566fa0, 0x567010), 'End': (0x567010, 0x567060), 'ReadPixel': (0x567060, 0x567130), 'SetTexture': (0x5675c0, 0x567620), 'SetFog': (0x567ad0, 0x567c10),
-         'TestQuad': (0x568ac0, 0x568c50), 'Quad': (0x568c50, 0x568f50), 'Lines': (0x568f50, 0x569040), 'Frame': (0x569040, 0x569410), 'Box': (0x569410, 0x569720), 'FillRate': (0x569720, 0x569c70)}
+         'TestQuad': (0x568ac0, 0x568c50), 'Quad': (0x568c50, 0x568f50), 'Lines': (0x568f50, 0x569040), 'Frame': (0x569040, 0x569410), 'Box': (0x569410, 0x569720), 'FillRate': (0x569720, 0x569c70),
+         'Tinted': (0x567c10, 0x5680a8)}
 TICKS, TRANSFORM = 15, 6   # (driver.cpp's kD3dProbeEnv; the transform's slot)
-B = Bench(list(CALLS.values()) + [(0x5679b0, 0x567aca), (0x5832e0, 0x583360), (0x56a770, 0x56ae60), (0x56af20, 0x56af9c), enginedebug.RANGE],   # (the Shadow_ setters SetFlags calls, what the drawing calls)
+B = Bench(list(CALLS.values()) + [(0x5679b0, 0x567aca), (0x5832e0, 0x583360), (0x56a770, 0x56ae60), (0x56af20, 0x56af9c), (0x5826f0, 0x582704), enginedebug.RANGE],   # (the Shadow_ setters SetFlags calls, what the drawing calls)
           hooks={**enginedebug.HOOKS, 0x57cb90: _recorder(TICKS, 0, cdecl=True)})
 PROBE, VBT, VT, DEV, DVT, CAPS = RAM, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x500, RAM + 0x600
 ARG, ERRORS, TAIL, TABLE = RAM + 0x800, 0x879ad0, 0x8bd470, RAM + 0xa00   # (ARG: a call's array, a pixel buffer ...)
 OBJ, OBJVT, OUT, DRAWN = RAM + 0x900, RAM + 0x940, RAM + 0x9e0, RAM + 0xb00
+BATCH, DBUF, INDICES, SOURCE, FREE = RAM + 0xc00, RAM + 0xc80, RAM + 0xd00, RAM + 0x1010, RAM + 0x1800
 GONE = 0x887601c2
 SELF = PROBE + 0x2c
 
 
 def hresult(r):
     return r.choice([0, 0, 0, 0, 1, 0x88760000 + r.randrange(0x300), 0x80004005, 0x80070057, 0xb0754002, r.getrandbits(32), GONE])
+
+
+def tinted(r, probe, off, log, regions, hr):
+    """0x567c10, on the probe itself: a batch of 0-8 vertices, the draw buffer's free vertices elsewhere, the batch's own or overlapping them; the flags the three kinds, 0x22, 0x52 or any."""
+    fvf = r.choice([0x1c4, 0x1c4, 0xc4, 0x2c4, 0x3c4, r.getrandbits(32) & 0xfff])
+    stride = {0x1c4: 0x20, 0xc4: 0x18, 0x2c4: 0x28, 0x3c4: 0x30}.get(fvf, 0)
+    count = r.choice([0, 1, 3, 4, 8, r.randrange(9)])
+    source = SOURCE + r.choice([0, 0, 1, 2, 3])
+    free = r.choice([FREE, FREE + r.randrange(4), source, source + r.choice([4, 8, stride]), source - r.choice([4, 8])])
+    flags = r.getrandbits(32)
+    kind = r.randrange(5)
+    if kind == 0:
+        flags |= 0x556
+    elif kind == 1:
+        flags = flags & ~0x400 | 0x2356
+    elif kind == 2:
+        flags = (flags & ~0xff) | r.choice([0x22, 0x52])
+    if r.random() < 0.7:
+        flags |= 0x100
+    batch = bytearray(r.bytes(0x30))
+    put(batch, 4, 'I', flags)
+    put(batch, 0x18, 'II', r.randrange(8), fvf)
+    put(batch, 0x20, 'II', count, r.randrange(0x40))
+    put(batch, 0x28, 'II', source, INDICES)
+    stream = r.randrange(1, 4)   # (0x5826f0's: +4 the current stream, of 0x18 bytes each from -0x10: its start and what is used)
+    used = r.choice([0, 0x20, 0x100])
+    buffer = bytearray(r.bytes(0x80))
+    put(buffer, 4, 'I', stream)
+    put(buffer, 0x18 * stream - 0x10, 'II', free - used & 0xffffffff, used)
+    if r.random() < 0.4:
+        put(probe, off + 0x14, 'B', 0x91)
+    put(probe, 4, 'B', r.getrandbits(8))
+    set_return(log, 29, hr)
+    blob_array(log, 29, 3, 4, stride or 4)
+    regions.update({BATCH: batch, DBUF: buffer, 0x8bcbc4: struct.pack('<I', DBUF), SOURCE - 0x10: r.bytes(0x400), FREE: r.bytes(0x400), INDICES: r.bytes(0x80)})
+    return Call(CALLS['Tinted'][0], [PROBE, BATCH], regions, conv='t', ret='a')
 
 
 def drawing(r, name, probe, off, log, regions):
@@ -89,6 +127,8 @@ def drawing(r, name, probe, off, log, regions):
         blob_array(log, 28, 3, 4, 0x20, which=2)
         regions[ARG] = points
         return Call(CALLS[name][0], [SELF, ARG, count, r.getrandbits(32), r.f(r.choice([1, 1000]))], regions, conv='t', ret='a')
+    if name == 'Tinted':
+        return tinted(r, probe, off, log, regions, hr)
     regions[0x8bcbd0] = bytearray(struct.pack('<2I', wh(), wh()))
     if name == 'Frame':
         set_return(log, 29, hr)

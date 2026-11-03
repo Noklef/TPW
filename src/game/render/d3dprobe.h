@@ -96,6 +96,9 @@ u32 __fastcall D3dProbe_DrawBox(u8 *self, void *, const u32 *corners, u32, u32 f
 // 0x569720: pixels per tick: no texture, the base's slot 7 (0: answers 0), flags 0x9256, a screen quad drawn three times (48 indices); a non-zero result global after a draw
 // (the draws do not set it, sic) stops there: slot 8, 0. Then slot 8 (0: answers 0), else width * height * 50 / (the ticks taken * 16), in dwords that wrap, by fild and fidiv.
 float __fastcall D3dProbe_FillRate(u8 *self);
+// 0x567c10 (thiscall on the probe, pops 4; name invented): with the probe's +4 bit 0 or the batch's flags bit 0x100: the batch's vertices copied to the draw buffer's free ones (past themselves when they are those),
+// their colours 0xffff0000, then drawn by the batch's flags: 0x556 and 0x2756 blended, 0x22 and 0x52 not at all. Returns 1.
+u32 __fastcall D3dProbe_DrawBatchTinted(u8 *probe, void *, u8 *batch);
 }
 
 // The clock D3dProbe_FillRate reads (default Cpu_Ticks16). nullptr restores it.

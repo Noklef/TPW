@@ -8,6 +8,7 @@
 #include "../core/vcall.h"
 #include "../core/vregs.h"
 #include "../math/x87.h"
+#include "drawbuffer.h"
 #include "dxerrors.h"
 #include "enginedebug.h"
 #include "engineerrors.h"
@@ -431,6 +432,78 @@ u32 __fastcall D3dProbe_DrawBox(u8 *self, void *, const u32 *corners, u32, u32 f
     }
     static const u16 kIndices[16] = {0, 2, 6, 4, 0, 1, 5, 4, 6, 7, 5, 1, 3, 2, 3, 7};
     keep(drawIndexed(probe, 3, vertices, 8, kIndices, 16, 9));
+    return 1;
+}
+
+u32 __fastcall D3dProbe_DrawBatchTinted(u8 *probe, void *, u8 *batch) {
+    if (!(at<u8>(probe, 4) & 1) && !(at<u32>(batch, 4) & 0x100)) return 1;
+    u8 *vertices = reinterpret_cast<u8 *>((uintptr_t)DrawBuffer_Vertices(global<u8 *>(0x008bcbc4)));
+    const u32 fvf = at<u32>(batch, 0x1c);
+    const u32 stride = fvf == 0x1c4 ? 0x20 : fvf == 0xc4 ? 0x18 : fvf == 0x2c4 ? 0x28 : fvf == 0x3c4 ? 0x30 : 0;
+    const u8 *source = at<u8 *>(batch, 0x28);
+    if (vertices == source) vertices += at<u32>(batch, 0x20) * stride;
+    const u32 size = stride * at<u32>(batch, 0x20);
+    for (u32 i = 0; i < size >> 2; ++i) at<u32>(vertices, 4 * i) = at<u32>(source, 4 * i);   // (forward, as rep movs: the two may overlap)
+    for (u32 i = size & ~3u; i < size; ++i) vertices[i] = source[i];
+    for (s32 i = 0; i < at<s32>(batch, 0x20); ++i) at<u32>(vertices, static_cast<u32>(i) * stride + 0x10) = 0xffff0000;
+    if (!(shadow(probe) & 0x100)) {
+        renderState(probe, 0x1b, 1);
+        shadow(probe) |= 0x100;
+    }
+    const u32 flags = at<u32>(batch, 4);
+    const u32 index = at<u32>(probe, 8);
+    const auto blended = [&] {
+        if (!(shadow(probe) & 0x400)) {
+            renderState(probe, 0xf, 1);
+            shadow(probe) |= 0x400;
+        }
+        const u32 reference = global<u32>(0x007012dc + index * 4);
+        if (!(shadow(probe) & 0x200)) {
+            renderState(probe, 0x18, reference);
+            shadow(probe) |= 0x200;
+        }
+    };
+    const auto opaqueBlend = [&] {
+        if ((shadow(probe) & 0xff) != 0x91) {
+            renderState(probe, 0x13, 9);
+            renderState(probe, 0x14, 1);
+            shadow(probe) = (shadow(probe) & ~0xffu) | 0x91;
+        }
+    };
+    const auto drawn = [&] {
+        keep(comcall<u32>(device(probe), 0x74, at<u32>(batch, 0x18), fvf, vertices, at<u32>(batch, 0x20), at<u32>(batch, 0x2c), at<u32>(batch, 0x24), 0xcu));
+    };
+    if ((flags & 0x556) == 0x556) {
+        blended();
+        vcall<u32>(base(probe), 0xc, 0u, at<u32>(batch, 8));
+        opaqueBlend();
+        stageState(probe, 0, 1, 6);
+        stageState(probe, 0, 2, 0x22);
+        const s32 r = global<s32>(0x007012d8 + index * 4);
+        renderState(probe, 0x18, static_cast<u32>(((r * 2) >> 2) + r));
+        drawn();
+        stageState(probe, 0, 1, 4);
+        stageState(probe, 0, 2, 2);
+        const u32 reference = global<u32>(0x007012d8 + index * 4);
+        if (shadow(probe) & 0x200) {
+            renderState(probe, 0x18, reference);
+            shadow(probe) &= ~0x200u;
+        }
+        return 1;
+    }
+    if ((flags & 0x2756) == 0x2756) {
+        blended();
+        vcall<u32>(base(probe), 0xc, 0u, at<u32>(batch, 8));
+        opaqueBlend();
+        stageState(probe, 0, 2, 0x22);
+        drawn();
+        stageState(probe, 0, 2, 2);
+        return 1;
+    }
+    if ((flags & 0xff) == 0x22 || (flags & 0xff) == 0x52) return 1;
+    vcall<u32>(base(probe), 0xc, 0u, 0u);
+    opaqueBlend();
+    drawn();
     return 1;
 }
 
