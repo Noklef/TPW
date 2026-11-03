@@ -607,6 +607,7 @@
 #include "../game/ui/thingpanelhandlers.h"
 #include "../game/ui/thingsign.h"
 #include "../game/ui/uimessage.h"
+#include "../game/ui/versionlabel.h"
 #include "../game/ui/viewbuttons.h"
 #include "../game/ui/window705950nodes.h"
 #include "../game/ui/window7cb2a4.h"
@@ -7742,6 +7743,7 @@ const Hook kHooks[] = {
     {"Dialog7cb400_Handler",      0x004a6d00, (void *)&Dialog7cb400_Handler, {0x53, 0x8b, 0x5c, 0x24, 0x10}},
     {"Dialog7cc188_AddAddress",   0x004a77f0, (void *)&Dialog7cc188_AddAddress, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Dialog7cc188_AddressHandler", 0x004a77c0, (void *)&Dialog7cc188_AddressHandler, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
+    {"VersionLabel_Create",       0x0048b020, (void *)&VersionLabel_Create, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},

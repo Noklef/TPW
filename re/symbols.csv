@@ -7762,6 +7762,7 @@ address,name,kind,confidence,notes
 0x004a6d00,Dialog7cb400_Handler,function,low,"reimplemented (src/game/ui/dialog7cb400close); cdecl (window, message, a, b); name invented, unconfirmed; the dialog's window handler"
 0x004a77f0,Dialog7cc188_AddAddress,function,low,"reimplemented (src/game/ui/dialog7cc188address); cdecl; name invented, unconfirmed; the address typed into 0x7cb8d8 checked, added to the user slots' list and to the recipients 0x7cb4d0"
 0x004a77c0,Dialog7cc188_AddressHandler,function,low,"reimplemented (src/game/ui/dialog7cc188address); cdecl (window, message, a, b); name invented, unconfirmed; the address box's handler: Enter adds the address"
+0x0048b020,VersionLabel_Create,function,low,"reimplemented (src/game/ui/versionlabel); cdecl (front); name invented, unconfirmed; the window with the version text, sized to it"
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"
