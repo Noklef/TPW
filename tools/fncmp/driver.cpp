@@ -306,6 +306,7 @@
 #include "../../src/game/core/soundwait.h"
 #include "../../src/game/world/thingname.h"
 #include "../../src/game/world/arrivalvehicle.h"
+#include "../../src/game/world/worldstart.h"
 #include "../../src/game/core/soundobjectslots.h"
 #include "../../src/game/world/mapreset.h"
 #include "../../src/game/world/staffheld.h"
@@ -2231,6 +2232,10 @@ int main(int argc, char **argv) {
     ThingName_SetEnv(&thingNameEnv);
     static const ArrivalVehicleEnv arrivalVehicleEnv = {Rec{recorder(11, 4)}, Rec{jpeg_recorder(2, 1)}, Rec{jpeg_recorder(3, 3)}};
     ArrivalVehicle_SetEnv(&arrivalVehicleEnv);
+    static const WorldStartEnv worldStartEnv = {Rec{recorder(0, 0)}, Rec{recorder(1, 0)}, Rec{recorder(2, 0)}, Rec{jpeg_recorder(3, 1)}, Rec{recorder(4, 2)}, Rec{jpeg_recorder(7, 1)}, Rec{recorder(8, 0)}, Rec{recorder(9, 0)},
+        {Rec{recorder(10, 0)}, Rec{recorder(11, 0)}, Rec{recorder(12, 0)}, Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{recorder(15, 0)}, Rec{recorder(16, 0)}, Rec{recorder(17, 0)}, Rec{recorder(18, 0)}, Rec{recorder(19, 0)}},
+        Rec{recorder(5, 4)}, Rec{recorder(20, 0)}, Rec{jpeg_recorder(21, 0)}, Rec{jpeg_recorder(22, 0)}, Rec{kStubs + 0x5000 + 0x800 * 5 + 0x20 * 23}, Rec{recorder(6, 1)}};
+    WorldStart_SetEnv(&worldStartEnv);
     static const SoundObjectSlotsEnv soundObjectSlotsEnv = {Rec{recorder(20, 3)}, Rec{recorder(21, 2)}, Rec{recorder(22, 3)}, Rec{recorder(23, 2)}, Rec{recorder(24, 2)}};
     SoundObjectSlots_SetEnv(&soundObjectSlotsEnv);
     static const MapResetEnv mapResetEnv = {Rec{recorder(1, 1)}, Rec{recorder(2, 0)}};
