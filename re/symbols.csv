@@ -7913,6 +7913,7 @@ address,name,kind,confidence,notes
 0x004a3480,Dialog7cb2fc_OnButton,function,low,"reimplemented (src/game/ui/dialog7cb2fcopen); cdecl (id, state); name invented, unconfirmed; the options dialog's button pressed"
 0x004a2bf0,Dialog7cb2fc_Handler,function,low,"reimplemented (src/game/ui/dialog7cb2fcopen); cdecl (window, message, a, b); name invented, unconfirmed; the options dialog's handler"
 0x004a3a30,Dialog7cb2fc_Open,function,low,"reimplemented (src/game/ui/dialog7cb2fcopen); cdecl; name invented, unconfirmed; the options dialog opened"
+0x004c0ae0,Dialog7cc984_Open,function,low,"reimplemented (src/game/ui/dialog7cc984open); the dialog [0x7cc984] opened: a park's details from its online record (cdecl; record, parent, callback, a, b)"
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"
