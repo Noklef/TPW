@@ -6733,6 +6733,7 @@ address,name,kind,confidence,notes
 0x004819f0,Dialog7ca1c8_SelectButtonIfUpThis,function,low,"reimplemented (src/game/ui/dialog7ca1c8); thiscall (flags), pops 4, this unused: Dialog7ca1c8_SelectButtonIfUp(flags)"
 0x004987f0,Dialog7ca1c8_UpdateLoopButton,function,low,"reimplemented (src/game/ui/dialog7ca1c8); cdecl, no arguments: the dialog's button 0x20 (child 0x18): hidden without an object when [0x7ca1d0]+0x50 is 0; else the ""cb_trough"" (tool 0x200, +0x90/+0x94 0x134) or ""cb_loop"" (0x132) look, shown by tool 2"
 0x00498790,Dialog7ca1c8_Create,function,low,"reimplemented (src/game/ui/dialog7ca1c8); cdecl: [0x7ca1c8] = WindowScript_Build on the GUI root (template 0x751530, handler 0x4982a0), unlinked, its dword +0xa0 index 0 set to 2, hidden"
+0x004988c0,Dialog7ca1c8_OpenFor,function,low,"reimplemented (src/game/ui/dialog7ca1c8); the edit tools dialog opened for a thing: selected, focused, its ride edited or the tile mode entered, checks and tool set"
 0x004b87f0,Dialog7cc47c_Message4,function,low,"reimplemented (src/game/ui/dialogs); cdecl: Window_SendMessage([0x7cc47c], 4, 0, 0)"
 0x004b8810,Dialog7cc47c_Message6On,function,low,"reimplemented (src/game/ui/dialogs); cdecl: Window_SendMessage([0x7cc47c], 6, 1, 0)"
 0x004b8830,Dialog7cc47c_Message6Off,function,low,"reimplemented (src/game/ui/dialogs); cdecl: Window_SendMessage([0x7cc47c], 6, 0, 0)"

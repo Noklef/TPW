@@ -2,8 +2,13 @@
 
 #include <cstdint>
 
+#include "../coaster/edittools.h"
 #include "../coaster/registry.h"
+#include "../core/accessors.h"
+#include "../world/focuscell.h"
+#include "../world/mousemode.h"
 #include "cursor.h"
+#include "dialogs.h"
 #include "radiogroup.h"
 #include "window.h"
 #include "windowreg.h"
@@ -20,9 +25,48 @@ void setCheck(u8 *panel, u32 id, bool on) {
     u8 *const child = Window_FindChild(panel, nullptr, id);
     reinterpret_cast<SetCheck>(at<void **>(child, 0)[5])(child, nullptr, on);
 }
+
+const Dialog7ca1c8OpenEnv kOpenGameEnv = {FocusCell_Update, Dialog7cb2b8_ResetChild21, Dialog7cb2b8_Child21Post, Window_SetFocus, Object_LinkOpen, MouseMode_EnterTile15, CoasterEdit_EditRide,
+                                          MouseMode_Ensure6feaa0, GameCursor_Set, CoasterEdit_Tools, Dialog7ca1c8_SetChecks, CoasterEdit_StartChosenTool, Dialog7ca1c8_SelectButton,
+                                          Dialog7ca1c8_UpdateLoopButton};
+const Dialog7ca1c8OpenEnv *g_open = &kOpenGameEnv;
 }
 
+void Dialog7ca1c8_SetOpenEnv(const Dialog7ca1c8OpenEnv *env) { g_open = env ? env : &kOpenGameEnv; }
+
 extern "C" {
+
+void __cdecl Dialog7ca1c8_OpenFor(u8 *thing) {
+    if (global<u32>(0x007ca1cc) && global<u8 *>(0x007ca1d0) == thing) return;
+    if (global<u8>(0x007ca1d4)) return;
+    global<u8 *>(0x007ca1d0) = thing;
+    Global7c2654_Set((u32)(uintptr_t)thing);
+    g_open->focusCell(1);
+    if (!global<u32>(0x00785a2c)) {
+        g_open->resetChild(1);
+        g_open->childPost((u32)(uintptr_t)global<u8 *>(0x007ca1c8));
+    }
+    global<u32>(0x007ca1cc) = 1;
+    g_open->setFocus(global<u8 *>(0x007ca1c8), nullptr, 0);
+    if (!g_open->linkOpen(thing)) {
+        g_open->enterTile();
+    } else {
+        g_open->editRide(global<u8 *>(0x007ca1d0), 1);
+        g_open->ensureMode();
+        g_open->cursor(0xc);
+        Global7c2654_Set((u32)(uintptr_t)thing);
+        g_open->focusCell(1);
+    }
+    if (global<u32>(0x007ca1cc)) {
+        u32 slot = (u32)(uintptr_t)thing;   // (the argument's own stack slot in the original)
+        g_open->tools(&slot);
+        g_open->setChecks(slot);
+        g_open->startTool(&slot);
+        g_open->selectButton(slot);
+    }
+    g_open->updateLoop();
+    global<u32>(0x007ca1cc) = 1;
+}
 
 void __cdecl Dialog7ca1c8_SetChecks(u32 flags) {
     u8 *const panel = Window_FindChild(global<u8 *>(0x007ca1c8), nullptr, 0x18);
