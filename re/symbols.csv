@@ -7947,6 +7947,7 @@ address,name,kind,confidence,notes
 0x004a9180,GamePause_Resume,function,low,reimplemented (src/game/ui/gamepause); the game brought back after the countdown (cdecl)
 0x004a9280,GamePause_RemakePicture,function,low,reimplemented (src/game/ui/gamepause); the picture 0x7cc18c remade (cdecl)
 0x004a9380,GamePause_Hide,function,low,"reimplemented (src/game/ui/gamepause); the game hidden, the countdown armed (cdecl)"
+0x0066bb9b,Window705b20Thumb_Proc,function,low,"reimplemented (src/game/ui/window705b20thumb); the scroll bar thumb's handler (cdecl: window, message, a, b)"
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"
