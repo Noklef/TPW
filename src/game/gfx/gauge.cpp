@@ -120,6 +120,68 @@ void __fastcall Gauge_DrawGrid(const u8 *gauge) {
     }
 }
 
+void __fastcall Gauge_DrawPlot(const u8 *gauge, void *, const s32 *samples, s32 count, s32 columns, DrawColour colour) {
+    const float step = (float)(X87Reg(at<s32>(gauge, 0)) / X87Reg(columns));
+    const s32 range = (s32)(at<u32>(gauge, 0x24) - at<u32>(gauge, 0x1c));
+    float x = (float)at<s32>(gauge, 8);
+    float next;
+    std::memcpy(&next, &count, 4);   // (no sample: the count's slot as it is, read as a float)
+    s32 y = columns;   // (no sample: the columns' slot, the label's top comes from it)
+    for (s32 left = count; left > 0; --left, ++samples) {
+        const s32 bottom = at<s32>(gauge, 0x14), top = at<s32>(gauge, 0xc);
+        s32 y1 = bottom;
+        y = bottom;
+        if (range != 0) {
+            const u32 y0 = at<u32>(gauge, 0x1c), height = at<u32>(gauge, 4);
+            y1 = (s32)((u32)bottom - (u32)((s32)(((u32)samples[0] - y0) * height) / range));
+            y = (s32)((u32)bottom - (u32)((s32)(((u32)samples[1] - y0) * height) / range));
+        }
+        const double low = at<s32>(gauge, 8), high = at<s32>(gauge, 0x10);
+        next = (float)(X87Reg(step) + x);
+        if (!((double)x >= low))
+            x = (float)low;
+        else if ((double)x > high)
+            x = (float)high;
+        if (!((double)next >= low))
+            next = (float)low;
+        else if ((double)next > high)
+            next = (float)high;
+        if (y1 < top)
+            y1 = top;
+        else if (y1 > bottom)
+            y1 = bottom;
+        if (y < top)
+            y = top;
+        else if (y > bottom)
+            y = bottom;
+        const s32 x2 = Ftol(X87Reg(next));
+        Display_Line(Ftol(X87Reg(x)), y1, x2, y, colour);
+        if (columns < 0x90) {   // (a small box round the point)
+            const s32 a = (s32)((u32)x2 - 1), b = (s32)((u32)x2 + 1), t = (s32)((u32)y - 1), u = (s32)((u32)y + 1);
+            Display_Line(a, t, b, t, colour);
+            Display_Line(b, t, b, u, colour);
+            Display_Line(b, u, a, u, colour);
+            Display_Line(a, u, a, t, colour);
+        }
+        x = (float)(X87Reg(step) + x);
+    }
+    u16 label[12];
+    Crt().swprintf(label, reinterpret_cast<const u16 *>(0x0074f9d8), *samples);   // "%d"
+    s32 right = Ftol(X87Reg(next));
+    s32 left = at<s32>(gauge, 8), top = (s32)((u32)y - 6);
+    const s32 bottom = at<s32>(gauge, 0x14);
+    const s8 font = *reinterpret_cast<const s8 *>(0x0074f9d4);
+    const s32 measure[4] = {left, top, right, bottom};
+    s32 box[4] = {};
+    GuiText_Measure(label, measure, font, 2, 0, 0, box);
+    if (top < 2) top = 2;
+    if (left < 2) left = 2;
+    const s32 over = (s32)((u32)box[2] + (u32)left - (u32)box[0] - (u32)right);
+    if (over > 0) right = (s32)((u32)right + (u32)over);
+    const s32 rect[4] = {left, top, right, bottom};
+    GuiText_Draw(label, rect, reinterpret_cast<const u8 *>(&colour), font, 2, 0, 0, nullptr, 1);
+}
+
 void __cdecl Gauge_Setup(u8 *gauge, const u8 *window, u32 y0, u32 y1, u32 y2, u32 x0, u32 x1, u32 x2) {
     const s32 high = static_cast<s32>(static_cast<u32>(at<s16>(window, 0xa) - at<s16>(window, 6)) * static_cast<u32>(*reinterpret_cast<const s16 *>(0x00faa5c0)));
     const s32 wide = static_cast<s32>(static_cast<u32>(at<s16>(window, 8) - at<s16>(window, 4)) * static_cast<u32>(*reinterpret_cast<const s16 *>(0x00faa5c4)));

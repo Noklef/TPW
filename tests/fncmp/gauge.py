@@ -7,7 +7,7 @@
 # original's step as the stack lies), none or negative; the labels' wide text narrowed through a table of the digits (each a lead byte,
 # so a label of one or two digits is one record) or, for 144 columns (labels of three digits), the global buffer's bytes as the case
 # writes them (no table); each label's record masked as guitext.py's one (its block: every label's layout allocates three). InWindow
-# (0x480810): see in_window(). The statistics graph's redraw (0x49b520): see redraw().
+# (0x480810): see in_window(). The statistics graph's redraw (0x49b520): see redraw(). The plot (0x47fe90): see plot().
 # usage: gauge.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
@@ -40,13 +40,15 @@ RANGES = merged([(0x47faa0, 0x47fbf3),  # 0x47fbe0's ret 8 is at 0x47fbf0
                   (0x480810, 0x4808ec), (0x4925d0, 0x492660), (0x5f9a80, 0x5f9da0), (0x61af60, 0x61b040), (0x61b090, 0x61b140),
                   (0x62f890, 0x62f8e0), (0x62f940, 0x62f990), (0x65d6db, 0x65d727), (0x65d745, 0x65d783),
                   (0x49b520, 0x49b569), (0x65d7bc, 0x65d832), (0x49a7b0, 0x49a8e6), (0x49a8f0, 0x49aa26), (0x519510, 0x519550),
-                  (0x4801d0, 0x480390), (0x480380, 0x480456), (0x5da3c0, 0x5da3c1)] + guitext.RANGES)
+                  (0x4801d0, 0x480390), (0x480380, 0x480456), (0x5da3c0, 0x5da3c1),
+                  (0x47fe90, 0x480186), (0x5f97f0, 0x5f9860)] + guitext.RANGES)
 B = Bench(RANGES, hooks={0x67af00: crt.swprintf_hook, 0x49aa30: _recorder(22, 1, cdecl=True)})
 CALLS = {'Init': (0x47faa0, 0), 'MarksX': (0x47fb10, 3), 'MarksY': (0x47fb30, 3), 'Rect': (0x47fb50, 4),
          'Colour0': (0x47fb80, 2), 'Colour1': (0x47fba0, 2), 'Colour2': (0x47fbc0, 2), 'Colour3': (0x47fbe0, 2),
          'DrawBack': (0x47fc00, 0), 'DrawAxes': (0x47fc50, 0), 'Setup': (0x4806a0, 6), 'Grid': (0x47fcd0, 0), 'InWindow': (0x480810, 3),
-         'Redraw': (0x49b520, 0)}
+         'Redraw': (0x49b520, 0), 'Plot': (0x47fe90, 5)}
 WINDOW, IMPL, IMPL_VT = RAM + 0x4200, RAM + 0x4300, RAM + 0x4340   # (InWindow's window, its surface object and that one's vtable)
+SAMPLES = RAM + 0x4800   # (the plot's samples)
 FORMAT = 0x8bd554   # (the current format's index, then its records of 32 bytes)
 GRID, NARROWER, SEGMENT = RAM + 0x4000, RAM + 0x4100, RAM + 0x4140   # the grid's gauge, the narrowing table and its one segment
 LABEL_BLOCKS = 0x30   # (each label's layout: its records, positions and lines blocks)
@@ -86,9 +88,9 @@ def draw(r, at):
     return Call(at, [RAM], regions, conv='t', ret='v')
 
 
-def grid(r):
+def grid(r, columns=None):
     """The grid (0x47fcd0) in guitext.py's world: a gauge of random bytes but for its frame, sizes and counts; the labels' font (entry
-    [0x74f9d4] 10) often none, so that the lines' log entries come before the log's room runs out."""
+    [0x74f9d4] 10) often none, so that the lines' log entries come before the log's room runs out. columns: that count, not a random one."""
     log = log_region()
     regions = {LOG: log, HEAP: heap(0x800)}
     lang, table, codes, lead = guitext.world(r, log, regions)
@@ -98,8 +100,9 @@ def grid(r):
     put(gauge, 0, '2i', xs[1] - xs[0], ys[1] - ys[0])
     if r.random() < 0.2:
         put(gauge, r.choice([0, 4, 8, 0xc, 0x10, 0x14]), 'I', r.getrandbits(32))
-    columns = r.choice([0xc, 0x24, 0x90] * 3 + [0, -3, -0x90])
-    rows = r.choice([r.randrange(1, 9)] * 4 + [0, -2, r.randrange(9, 30)])
+    if columns is None:
+        columns = r.choice([0xc, 0x24, 0x90] * 3 + [0, -3, -0x90])
+    rows =r.choice([r.randrange(1, 9)] * 4 + [0, -2, r.randrange(9, 30)])
     put(gauge, 0x28, '2i', columns, rows)
     regions[GRID] = gauge
     font = r.choice([tl.FONTS, tl.FONTS + 0x40, 0, 0])
@@ -133,6 +136,30 @@ def grid(r):
                           "+5-+7 and +0xe-+0xf (the original's stack garbage); each label's one record (its layout's first block) is read "
                           "only at +0, +2, +4, +8 and +0xc, and no glyph is right to left, so it is never moved (as in guitext.py)"))
     return Call(0x47fcd0, [GRID], regions, conv='t', ret='v', masks=masks)
+
+
+def plot(r):
+    """The plot (0x47fe90): grid()'s world, with its gauge's marks' y small or level and its one label of at most two digits (the sample after
+    the last drawn, 0-99); the draw table's slot 7, the line, a recorder of its own (k 23; the world's k 7 is the font's) given its six
+    arguments, the colour's index logged as its byte; the renderer's index from the style's +0xc and +0x10 kept near its table."""
+    c = grid(r, 0xc)
+    regions, log = dict(c.regions), bytearray(c.regions[LOG])
+    regions[guitext.DTABLE] = put(bytearray(regions[guitext.DTABLE]), 7 * 4, 'I', recorder(23, 6))
+    struct.pack_into('<I', log, LOG_BYTES + 4 * 23, 1 << 5)
+    strings(log, 1, 0, out=0b11011)   # (the renderer's style, the layout's holder + 4, is on the stack: guitext.py's Rgb)
+    regions[LOG] = log
+    regions[guitext.STYLE] = put(bytearray(regions[guitext.STYLE]), 0xc, 'iI', r.choice([0, 1, 2, 3, -1]), r.choice([0, 1]))
+    gauge = regions[GRID]
+    y0 = r.choice([0, 0, -10, 5, r.randrange(-100, 100)])
+    put(gauge, 0x1c, 'i', y0)
+    put(gauge, 0x24, 'i', r.choice([y0, 100, 50, y0 + 1, y0 - 1, r.randrange(-100, 200)]))
+    count = r.choice([0, -1, 1, 1, 2, 3, 4, 5, 7])
+    columns = r.choice([0xc, 0x24, 0x8f, 0x90, 0x90, 0x91, 1, 7, 0, -3])
+    samples = [r.choice([r.randrange(0, 100), r.randrange(-200, 1000), y0]) for _ in range(9)]
+    samples[max(count, 0)] = r.randrange(100)
+    regions[SAMPLES] = struct.pack('<9i', *samples)
+    masks = [Mask(HEAP, [at + g for at in (0x10, 0x30) for g in tl.GARBAGE], "the one record of the measure's layout and the draw's (grid()'s mask's reason)")] if c.masks else []
+    return Call(0x47fe90, [GRID, SAMPLES, count, columns, r.getrandbits(32), r.getrandbits(32)], regions, conv='t', ret='v', masks=masks)
 
 
 def in_window(r):
@@ -195,6 +222,8 @@ def case(r):
         return grid(r)
     if op == 'InWindow':
         return in_window(r)
+    if op == 'Plot':
+        return plot(r)
     if op.startswith('Draw'):
         return draw(r, at)
     if op == 'Setup':   # (the window's corners mostly in order and on screen; the scales the screen's size or wild)
