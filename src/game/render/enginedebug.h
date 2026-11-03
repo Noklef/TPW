@@ -18,4 +18,6 @@ extern "C" {
 // 0x564650 (cdecl (text); name unconfirmed): enginedebug.txt opened "a", or "w+b" while the count 0x879a2c is 0 (which then goes up, opened or not); opened, "%s\n" of text
 // written and flushed and the file closed.
 void __cdecl EngineDebug_Log(const char *text);
+// 0x5645e0 (name invented): the same, to the file named at 0x766334, its count 0x879a28.
+void __cdecl EngineDebug_LogFallback(const char *text);
 }

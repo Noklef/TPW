@@ -20,6 +20,21 @@ void EngineDebug_SetEnv(const EngineDebugEnv *e) { g_env = e ? e : &kGameEnv; }
 
 extern "C" {
 
+void __cdecl EngineDebug_LogFallback(const char *text) {
+    void *file;
+    if (global<u32>(0x00879a28) != 0) {
+        file = g_env->fopen(text_at(0x00766334), text_at(0x00766344));   // "fallback...", "a"
+    } else {
+        file = g_env->fopen(text_at(0x00766334), text_at(0x00766128));   // "w+b"
+        global<u32>(0x00879a28)++;
+    }
+    if (file != nullptr) {
+        g_env->fprintf(file, text_at(0x00764ff0), text);
+        g_env->fflush(file);
+        g_env->fclose(file);
+    }
+}
+
 void __cdecl EngineDebug_Log(const char *text) {
     void *file;
     if (global<u32>(0x00879a2c) != 0) {

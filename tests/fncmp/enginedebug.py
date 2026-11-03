@@ -11,7 +11,8 @@ FOPEN, FPRINTF, FFLUSH, FCLOSE = 11, 12, 13, 14   # (driver.cpp's kEngineDebugEn
 RANGE = (0x564650, 0x5646ba)
 HOOKS = {0x67b8a0: _recorder(FOPEN, 2, cdecl=True), 0x67dad0: _recorder(FPRINTF, 3, cdecl=True), 0x67d070: _recorder(FFLUSH, 1, cdecl=True), 0x67b620: _recorder(FCLOSE, 1, cdecl=True)}
 TEXT = RAM + 0x100
-B = Bench([RANGE], hooks=HOOKS)
+FALLBACK = (0x5645e0, 0x564650)
+B = Bench([RANGE, FALLBACK], hooks=HOOKS)
 
 
 def texts(log):
@@ -25,7 +26,8 @@ def case(r):
     if r.random() < 0.3:
         set_return(log, FOPEN, 0)
     count = r.choice([0, 0, 1, 2, r.getrandbits(32)])
-    return Call(0x564650, [TEXT], {LOG: log, 0x879a2c: count.to_bytes(4, 'little'), TEXT: r.bytes(r.randrange(1, 40)) + b'\0'})
+    target, counter = r.choice([(0x564650, 0x879a2c), (0x5645e0, 0x879a28)])
+    return Call(target, [TEXT], {LOG: log, counter: count.to_bytes(4, 'little'), TEXT: r.bytes(r.randrange(1, 40)) + b'\0'})
 
 
 if __name__ == '__main__':
