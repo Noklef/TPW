@@ -52,6 +52,7 @@
 #include "../../src/game/ui/dialog7cc1f8.h"
 #include "../../src/game/ui/panel7cc218.h"
 #include "../../src/game/ui/dialog7ca308.h"
+#include "../../src/game/world/objectunlock.h"
 #include "../../src/game/core/fpu.h"
 #include "../../src/game/core/gameheap.h"
 #include "../../src/game/core/string.h"
@@ -575,6 +576,10 @@ const MessageCentreEnv kMessageCentreEnv = {reinterpret_cast<u32(__fastcall *)(u
 // The statistics graph's lines 0x49aa30 (StatsGraph_Redraw's after): the cdecl recorder 22 (tests/fncmp/gauge.py hooks 0x49aa30 with it).
 // ThingBrowser_SendPatrolLines's camera and lines (tests/fncmp/thingpatrol.py).
 const ThingPatrolEnv kThingPatrolEnv = {Rec{jpeg_recorder(20, 1)}, Rec{jpeg_recorder(21, 5)}};
+// ObjectUnlock_CheckScores's calls: stdcall ones through the COM-style recorders (tools/fncmp.py recorder(k, n, com=True): this logged as 0; tests/fncmp/objectunlockscores.py).
+constexpr u32 stdcall_recorder(u32 k, u32 n) { return kStubs + 0x1000 + 0x4000 + 0x800 * n + 0x20 * k; }
+const ObjectUnlockScoresEnv kObjectUnlockScoresEnv = {Rec{recorder(19, 0)}, Rec{stdcall_recorder(20, 2)}, Rec{stdcall_recorder(21, 1)}, Rec{stdcall_recorder(22, 2)},
+                                                      Rec{jpeg_recorder(23, 0)}, Rec{recorder(24, 2)}, Rec{recorder(25, 2)}};
 // Dialog7ca308_FillList's list calls, name and wage (tests/fncmp/dialog7ca308.py).
 const Dialog7ca308Env kDialog7ca308Env = {Rec{recorder(10, 0)}, Rec{recorder(11, 4)}, Rec{recorder(12, 0)}, Rec{recorder(13, 2)}, Rec{recorder(14, 0)}};
 // Panel7cc218_ShowRide's range, shown and settings (tests/fncmp/panel7cc218show.py).
@@ -1323,6 +1328,7 @@ int main(int argc, char **argv) {
     ThingBrowser_SetPatrolEnv(&kThingPatrolEnv);
     Panel7cc218_SetShowEnv(&kPanel7cc218ShowEnv);
     Dialog7ca308_SetEnv(&kDialog7ca308Env);
+    ObjectUnlock_SetScoresEnv(&kObjectUnlockScoresEnv);
     Dialog7ca150_SetEnv(&kDialog7ca150Env);
     Dialog7cc1f8_SetEnv(&kDialog7cc1f8Env);
     Object_SetDeleteEnv(&kObjectDeleteEnv);

@@ -4,7 +4,25 @@
 
 #include "../../../re/types.h"
 
+// ObjectUnlock_CheckScores's calls (the ports by default; the bench's recorders: their own benches have them).
+struct ObjectUnlockScoresEnv {
+    u32(__fastcall *store)(u8 *game);                              // GameTable7cfb90_Get1da720_519510
+    u32(__stdcall *tallest)(u16 *out, u32 def);                    // Things_TallestCoaster
+    u32(__stdcall *bestRated)(u16 *out);                           // Things_BestRatedDef9c1
+    u32(__stdcall *bestPieces)(u16 *out, u32 kind);                // Rides_BestPiecesOfKind
+    s32(__cdecl *specialCells)();                                  // Map_CountSpecialCells
+    u32(__fastcall *mark)(u8 *info, void *, u32 i, s32 score);     // GlobalSave_MarkScore
+    void(__fastcall *advise)(u8 *self, void *, u32 group, s32 level);   // ObjectUnlock_AdviseScore
+};
+void ObjectUnlock_SetScoresEnv(const ObjectUnlockScoresEnv *env);
+
 extern "C" {
+
+// 0x4d4e50 (thiscall; name invented): the park's four best figures against their limits: the tallest coaster (Things_TallestCoaster with the id 0; group 0, [0x7857ac]), the best rated (Things_BestRatedDef9c1;
+// 1, [0x7857b0]), the most pieces of the kind 2 (Rides_BestPiecesOfKind; 2, [0x7857b4]) and the special cells (Map_CountSpecialCells; 3, [0x7857bc]). A figure over its limit (signed) is marked in the global save
+// (GlobalSave_MarkScore) and when that answers a level advised (ObjectUnlock_AdviseScore). The store's getter is called first, its answer given only as an unused ECX (sic); the debug print after each advice
+// (0x5af4a0 of the instance into the empty 0x5da3c0) is left out.
+void __fastcall ObjectUnlock_CheckScores(u8 *self);
 
 // 0x4d4b90 (stdcall (id), pops 4; name invented): whether the definition of the id (ObjectDefs_Find on 0x7890a0, not checked) asks for
 // no more (its s32 +0xc4) than the global save's count left (GlobalSave_CountSetLeft of GlobalSave_Instance; signed). Only AL is set.
