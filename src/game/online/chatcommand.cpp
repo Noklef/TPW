@@ -326,6 +326,19 @@ void buddyCommand(u8 *avatar, const StdWString *name, bool whenBuddy) {
         runOn(avatar, 0xf, name, (u8)bound);   // (the allocator bytes the bound's low byte, sic: its slot was the name's)
 }
 
+void ignoreCommand(u8 *avatar, const StdWString *name, bool whenIgnored) {
+    StdWString copy;
+    copy.allocator = *reinterpret_cast<const u8 *>(name);
+    reset(&copy, 0);
+    WStdString_AssignSub(&copy, nullptr, name, 0, global<u32>(0x00700628));
+    const u8 *const bound = ChatIgnoreSet_LowerBound(avatar + 0xea0, nullptr, reinterpret_cast<const u8 *>(&copy));
+    const bool ignored = (uintptr_t)bound != at<u32>(avatar, 0xea4)
+        && WStdString_Compare(&copy, nullptr, reinterpret_cast<const StdWString *>(bound + 0xc)) >= 0;
+    reset(&copy, 1);
+    if (ignored == whenIgnored)
+        runOn(avatar, 0xd, name, (u8)(uintptr_t)bound);   // (the bound's low byte, sic, as buddyCommand's)
+}
+
 }  // namespace
 
 extern "C" {
@@ -358,6 +371,8 @@ void __fastcall ChatAvatar_Vote(u8 *avatar) { runOn(avatar, 0x15, nullptr); }
 void __fastcall ChatAvatar_ToggleEarmuffs(u8 *avatar) { runOn(avatar, 0xc, nullptr); }
 void __fastcall ChatAvatar_AddBuddy(u8 *avatar, void *, const StdWString *name) { buddyCommand(avatar, name, false); }
 void __fastcall ChatAvatar_RemoveBuddy(u8 *avatar, void *, const StdWString *name) { buddyCommand(avatar, name, true); }
+void __fastcall ChatAvatar_AddIgnore(u8 *avatar, void *, const StdWString *name) { ignoreCommand(avatar, name, false); }
+void __fastcall ChatAvatar_RemoveIgnore(u8 *avatar, void *, const StdWString *name) { ignoreCommand(avatar, name, true); }
 
 void __fastcall ChatAvatar_EarmuffsOn(u8 *avatar) {
     if (!at<u8>(avatar, 0xeb0)) ChatAvatar_ToggleEarmuffs(avatar);
