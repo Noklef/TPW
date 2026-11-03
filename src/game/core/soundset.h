@@ -103,6 +103,9 @@ struct SoundStartEnv {
 };
 void Sound_SetStartEnv(const SoundStartEnv *env);
 
+// 0x51b770 (cdecl; name invented, unconfirmed): on and started (0x802bc8, 0x802bd4): the word that the command 0x700b38 (SoundCmd700b38_Run) answers, 0 if its status is negative. Else 0.
+u32 __cdecl Sound_QueryWord0();
+
 // 0x51b660 (cdecl (a, on); name invented, unconfirmed): the on flag 0x802bc8 = on. Off, or started (0x802bd4; the debug print is left out): 0. Else 0x802bd8 and the 0x34 bytes at
 // 0x803a20 and 0x54 at 0x803aa0 cleared and the manager made (SoundManager_Make: out the on's stack slot, a, 0x802bcc); negative: 0. Then the commands 0x700b34 {1.0f}, started, 0x803aa8 = 1,
 // 0x803ab4 = -1; with the on flag still set, 0x803ab4 = 0 and 0x700b30 {0}. 0x803adc, 0x803ad8 and 0x803ae0 = 1. Returns 0.

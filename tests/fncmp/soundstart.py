@@ -10,14 +10,30 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import LOG, RAM, Bench, Call, _recorder, blob, echo, fill, log_region, set_return, strings  # noqa: E402
 
 MAKE, APPLY = 1, 2
-B = Bench([(0x51b660, 0x51b76c), (0x5da3c0, 0x5da3c1)], hooks={0x6b5d00: _recorder(MAKE, 3, cdecl=True), 0x6b5bd0: _recorder(APPLY, 2)})
+B = Bench([(0x51b660, 0x51b7c0), (0x5da3c0, 0x5da3c1)], hooks={0x6b5d00: _recorder(MAKE, 3, cdecl=True), 0x6b5bd0: _recorder(APPLY, 2)})
 FLAGS = 0x802bc0
 ON = 0x802bc8
 STATUS = RAM
 VALUES = [0, 0, 0, 0, 1, 0x7fffffff, 0xffffffff, 0x80000000, 0x88780078]
 
 
+def query(r):
+    """Sound_QueryWord0 0x51b770: the post answers through the functor's +4 and a status word (the word always written: nothing unset read)."""
+    log = log_region()
+    strings(log, APPLY, 0, out=1)
+    blob(log, APPLY, 1, 1)
+    echo(log, APPLY, 0)
+    fill(log, APPLY, 0, struct.pack('<I', r.choice(VALUES)), which=0)
+    fill(log, APPLY, 1, r.bytes(4), which=1, through=4)
+    flags = bytearray(r.bytes(0x20))
+    struct.pack_into('<I', flags, 8, r.choice([0, 1, 1, r.getrandbits(32)]))
+    struct.pack_into('<I', flags, 0x14, r.choice([0, 1, 1, r.getrandbits(32)]))
+    return Call(0x51b770, [], {LOG: log, FLAGS: flags}, conv='c', ret='a')
+
+
 def case(r):
+    if r.random() < 0.3:
+        return query(r)
     log = log_region()
     strings(log, MAKE, 0, out=1)
     if r.random() < 0.85:
