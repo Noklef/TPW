@@ -359,6 +359,7 @@
 #include "../game/world/rides.h"
 #include "../game/world/trackline.h"
 #include "../game/world/trackmessage.h"
+#include "../game/world/trakcarroute.h"
 #include "../game/world/uimsgreceiver.h"
 #include "../game/world/visitoroption.h"
 #include "../game/world/visitorsteps.h"
@@ -5717,6 +5718,7 @@ const Hook kHooks[] = {
     {"Map_SetRideCell",           0x00452d30, (void *)&Map_SetRideCell, {0x56, 0x8b, 0x74, 0x24, 0x10}},
     {"Map_SendLine",              0x00536100, (void *)&Map_SendLine, {0x8b, 0x54, 0x24, 0x10, 0x8b}},
     {"MapCell_HandleTrackMessage", 0x005370e0, (void *)&MapCell_HandleTrackMessage, {0x83, 0xec, 0x20, 0x53, 0x55}},
+    {"TrakCar_ChooseRoute",       0x0054a040, (void *)&TrakCar_ChooseRoute, {0x83, 0xec, 0x0c, 0x53, 0x55}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},

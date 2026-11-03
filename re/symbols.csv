@@ -5623,6 +5623,7 @@ address,name,kind,confidence,notes
 0x00452d30,Map_SetRideCell,function,low,"reimplemented (src/game/world/cellmessage); cdecl (unused, x, y, ride, flagged): the clamped map cell made kind 0x15 (cleared, message 0x15) keeping its owner word, its entry's +4 the ride, flag 0x100 set or cleared"
 0x00536100,Map_SendLine,function,low,"reimplemented (src/game/world/cellmessage); cdecl (message, x0, y0, &x1, &y1): a message (MapCell_HandleMessage, the step as a or b) to the map cells along a line on its longer way, 0x820aa4 / 0x820ab8 marking the first and the last; 0 when a cell answers 0"
 0x005370e0,MapCell_HandleTrackMessage,function,low,"reimplemented (src/game/world/trackmessage); thiscall (message, a, b) on a 0x28-byte track cell: walls drawn by the build check, removal, links, models, owners, end flags, run redraws, dead ends and the kind set"
+0x0054a040,TrakCar_ChooseRoute,function,low,"reimplemented (src/game/world/trakcarroute); cdecl (ride, car); name invented, unconfirmed: a track ride's car choosing what to do next, by the ride's kind: placed and given its parts, sound and ride when new, a partner or the next point of its route"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved

@@ -348,6 +348,7 @@ add_library(tpw_game STATIC
     src/game/world/visitorsteps.cpp
     src/game/world/cellmessage.cpp
     src/game/world/trackmessage.cpp
+    src/game/world/trakcarroute.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp
