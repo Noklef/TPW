@@ -5633,6 +5633,7 @@ address,name,kind,confidence,notes
 0x006bb940,SoundRandom_Seed,function,low,reimplemented (src/game/core/soundseed); the random number 0xfb1f20 seeded from the time
 0x0057ced0,RecordSort_Range,function,low,"reimplemented (src/game/core/recordsort); a quicksort of records by a dword key, the largest first, through a temporary record"
 0x0057d090,RecordSort_Run,function,low,"reimplemented (src/game/core/recordsort); the sort's fields set, then RecordSort_Range"
+0x0054e360,Game_RunFrame,function,low,"reimplemented (src/game/core/gameframe); The game's step each frame, a state machine over the whole session (name invented, unconfirmed)"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

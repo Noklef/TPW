@@ -197,6 +197,7 @@
 #include "../game/core/gameerror.h"
 #include "../game/core/timesig.h"
 #include "../game/core/countedpair.h"
+#include "../game/core/gameframe.h"
 #include "../game/core/imaadpcm.h"
 #include "../game/core/keyactions.h"
 #include "../game/core/loopstream.h"
@@ -5876,6 +5877,7 @@ const Hook kHooks[] = {
     {"SoundRandom_Seed",          0x006bb940, (void *)&SoundRandom_Seed, {0xe8, 0x5b, 0xa6, 0xf3, 0xff}},
     {"RecordSort_Range",          0x0057ced0, (void *)&RecordSort_Range, {0x83, 0xec, 0x0c, 0x53, 0x55}},
     {"RecordSort_Run",            0x0057d090, (void *)&RecordSort_Run, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
+    {"Game_RunFrame",             0x0054e360, (void *)&Game_RunFrame, {0x6a, 0xff, 0x68, 0x65, 0xee}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

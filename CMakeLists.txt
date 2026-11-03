@@ -212,6 +212,7 @@ add_library(tpw_game STATIC
     src/game/core/soundguard.cpp
     src/game/core/soundseed.cpp
     src/game/core/recordsort.cpp
+    src/game/core/gameframe.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
