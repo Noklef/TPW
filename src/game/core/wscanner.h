@@ -44,6 +44,19 @@ u32 __fastcall WScanner_PushToken0c(u8 *scanner);
 u32 __fastcall WScanner_PushToken12(u8 *scanner);
 u32 __fastcall WScanner_PushToken15(u8 *scanner);
 
+// 0x5e7520 (thiscall on the string (out, pos, n), pops 0xc; name invented, unconfirmed): std::wstring::substr's copy: out's allocator byte the low byte of out's address (sic), out empty
+// and assigned [pos, pos + n) of the string (as StdWString_AssignSub, inlined). Returns out.
+StdWString *__fastcall StdWString_Substr(const StdWString *s, void *, StdWString *out, u32 pos, u32 n);
+
+// 0x5e70a0 (thiscall (out), pops 4; name invented, unconfirmed): the next token: the position +0x38 moved past the characters in the set at +0x14 (Tree16b_Find, up to the length +0xc),
+// then the run up to a character in the set at +0x24 or the length. 0 when the position is past the length; else out is assigned the run (StdWString_Substr, then assign of all of it,
+// the temporary destroyed), the position moves past it and 1 is returned.
+u8 __fastcall WScanner_NextToken(u8 *scanner, void *, StdWString *out);
+
+// 0x5e7200 (thiscall (out, count), pops 8; name invented, unconfirmed): the position moved past the set at +0x14 as above, *count (when not null) the characters left, out assigned them
+// and the position set to the length. Returns 1.
+u8 __fastcall WScanner_TakeRest(u8 *scanner, void *, StdWString *out, u32 *count);
+
 // 0x5e6fc0 (thiscall; name unconfirmed): the run of characters from the position +0x38 that are in the set of characters at +0x14 (a tree
 // of word keys, its head at +0x18; std::set::find inlined: Tree16b_LowerBound, then the key compared): for each one found the position
 // moves on by one; the run's length when a character is not in the set, or -1 when the position reaches the text's length (+0xc). Each

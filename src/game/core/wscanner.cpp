@@ -49,6 +49,38 @@ void destroy(StdWString &text) {
     }
 }
 
+// The string's operator[] at the position: past the length, or with no block, _Nullstr's; else the string frozen first.
+const u16 *charAt(u8 *scanner, u32 position) {
+    StdWString *const s = reinterpret_cast<StdWString *>(scanner + 4);
+    if (s->len < position || !s->ptr) return kNullStr;
+    StdWString_Freeze(s, nullptr);
+    return s->ptr + position;
+}
+
+bool inSet(u8 *scanner, u32 set, const u16 *c) {
+    u8 *found;
+    Tree16b_Find(scanner + set, nullptr, &found, c);
+    return found != at<u8 *>(scanner, set + 4);
+}
+
+// The position moved past the characters of the set at +0x14, up to the text's length.
+void skipSet14(u8 *scanner) {
+    do {
+        u8 *const head = at<u8 *>(scanner, 0x18);
+        u8 *found;
+        Tree16b_Find(scanner + 0x14, nullptr, &found, charAt(scanner, at<u32>(scanner, 0x38)));
+        if (found == head) return;
+    } while (++at<u32>(scanner, 0x38) < at<u32>(scanner, 0xc));
+}
+
+// out assigned [position, position + n) of the text, by a temporary.
+void assignPart(u8 *scanner, StdWString *out, u32 n) {
+    StdWString part;
+    StdWString_Substr(reinterpret_cast<StdWString *>(scanner + 4), nullptr, &part, at<u32>(scanner, 0x38), n);
+    StdWString_AssignSub(out, nullptr, &part, 0, *reinterpret_cast<const u32 *>(0x006fef00));
+    destroy(part);
+}
+
 }  // namespace
 
 extern "C" {
@@ -147,6 +179,37 @@ extern "C" {
 u32 __fastcall WScanner_PushToken0c(u8 *scanner) { return pushToken(scanner, 0xc); }
 u32 __fastcall WScanner_PushToken12(u8 *scanner) { return pushToken(scanner, 0x12); }
 u32 __fastcall WScanner_PushToken15(u8 *scanner) { return pushToken(scanner, 0x15); }
+
+StdWString *__fastcall StdWString_Substr(const StdWString *s, void *, StdWString *out, u32 pos, u32 n) {
+    *reinterpret_cast<u8 *>(&out->allocator) = static_cast<u8>(reinterpret_cast<uintptr_t>(out));   // (sic: the low byte of its own address, the "allocator" argument's slot)
+    out->ptr = nullptr;
+    out->len = 0;
+    out->res = 0;
+    StdWString_AssignSub(out, nullptr, s, pos, n);
+    return out;
+}
+
+u8 __fastcall WScanner_NextToken(u8 *scanner, void *, StdWString *out) {
+    skipSet14(scanner);
+    u32 n = 0;
+    for (;;) {
+        const u32 position = at<u32>(scanner, 0x38);
+        if (inSet(scanner, 0x24, charAt(scanner, n + position)) || n + position >= at<u32>(scanner, 0xc)) break;
+        ++n;
+    }
+    if (n + at<u32>(scanner, 0x38) > at<u32>(scanner, 0xc)) return 0;
+    assignPart(scanner, out, n);
+    at<u32>(scanner, 0x38) += n;
+    return 1;
+}
+
+u8 __fastcall WScanner_TakeRest(u8 *scanner, void *, StdWString *out, u32 *count) {
+    skipSet14(scanner);
+    if (count) *count = at<u32>(scanner, 0xc) - at<u32>(scanner, 0x38);
+    assignPart(scanner, out, at<u32>(scanner, 0xc) - at<u32>(scanner, 0x38));
+    at<u32>(scanner, 0x38) = at<u32>(scanner, 0xc);
+    return 1;
+}
 
 s32 __fastcall WScanner_SpanInSet14(u8 *scanner) {
     StdWString *const s = reinterpret_cast<StdWString *>(scanner + 4);
