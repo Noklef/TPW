@@ -6643,6 +6643,7 @@ address,name,kind,confidence,notes
 0x00565f90,Batch_DrawQuad,function,low,"reimplemented (src/game/render/batchquad); One textured quad as a batch of its own (name invented, unconfirmed)."
 0x0057ed50,Batch_DrawScreenQuad,function,low,"reimplemented (src/game/render/batchquad); a quad over the whole clip space drawn on [0x879ab0] (name invented, unconfirmed)"
 0x00589f90,SpriteFrame_DrawQuad,function,low,"reimplemented (src/game/render/batchquad); a sprite frame's item filled and drawn as one quad on [0x879ab0] (name invented, unconfirmed)"
+0x00566220,Batch_DrawQuadInPlace,function,low,"reimplemented (src/game/render/batchquad); thiscall (spec, mask), pops 8: a quad added to the object's batch: clipped by way of DrawBatch_AddPolygon, or written straight in if there is room; fog; the transformer's float answer added to the batch's +0x30; returns 1. Name invented, unconfirmed."
 0x00577ae0,TileGrid_Draw,function,low,"reimplemented (src/game/render/tilegrid); the tiles of a rectangle of a grid of 64-unit cells, each a Batch_DrawQuad (name invented, unconfirmed)"
 0x0057c620,SpriteGroups_Draw,function,low,"reimplemented (src/game/render/spritegroups); a frame's camera-facing sprites by group, each a Batch_DrawQuad (name invented, unconfirmed)"
 0x0058a010,TiledPanel_Draw,function,low,"reimplemented (src/game/render/tiledpanel); a panel of tiles on the screen, anchored, each tile a Batch_DrawQuad (name invented, unconfirmed)"
