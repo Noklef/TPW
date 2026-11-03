@@ -616,6 +616,7 @@
 #include "../game/ui/msgtags.h"
 #include "../game/ui/panel7c2534.h"
 #include "../game/ui/panel7c2534handler.h"
+#include "../game/ui/panel7c2534menus.h"
 #include "../game/ui/panel7ca178.h"
 #include "../game/ui/panel7ca228handler.h"
 #include "../game/ui/panel7cc218.h"
@@ -7965,6 +7966,8 @@ const Hook kHooks[] = {
     {"Gui_SetPointer490",         0x00659674, (void *)&Gui_SetPointer490, {0x55, 0x8b, 0xec, 0x83, 0x7d}},
     {"WindowTick_TickAll",        0x00658f6c, (void *)&WindowTick_TickAll, {0x55, 0x8b, 0xec, 0xc7, 0x05}},
     {"WindowTick_Tick",           0x00658f97, (void *)&WindowTick_Tick, {0x55, 0x8b, 0xec, 0x6a, 0x00}},
+    {"Panel7c2534_BuildMain",     0x0048c150, (void *)&Panel7c2534_BuildMain, {0x6a, 0xff, 0x68, 0x6c, 0x96}},
+    {"Panel7c2534_BuildOnline",   0x0048c600, (void *)&Panel7c2534_BuildOnline, {0x6a, 0xff, 0x68, 0xac, 0x96}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},

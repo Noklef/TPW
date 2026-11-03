@@ -7939,6 +7939,8 @@ address,name,kind,confidence,notes
 0x00659674,Gui_SetPointer490,function,low,reimplemented (src/game/ui/guisettings); 0x77c490 set or defaulted (cdecl)
 0x00658f6c,WindowTick_TickAll,function,low,"reimplemented (src/game/ui/windowtick); the whole tree sent the tick, its count (cdecl)"
 0x00658f97,WindowTick_Tick,function,low,reimplemented (src/game/ui/windowtick); a window and its children sent the tick (cdecl; window)
+0x0048c150,Panel7c2534_BuildMain,function,low,reimplemented (src/game/ui/panel7c2534menus); the panel's main menu built (cdecl)
+0x0048c600,Panel7c2534_BuildOnline,function,low,reimplemented (src/game/ui/panel7c2534menus); the panel's online menu built (cdecl)
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"
