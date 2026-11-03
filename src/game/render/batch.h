@@ -4,6 +4,14 @@
 
 #include "../../../re/types.h"
 
+// What Batch_Flush and Batch_Close call (the port by default; their bench runs them as recorders).
+struct BatchEnv {
+    u8 *(__fastcall *begin)(u8 *buffer, void *, u32 mode);                     // DrawBuffer_Begin (0x582670)
+    void(__fastcall *end)(u8 *buffer, void *, u32 vertexEnd, u32 indexEnd);    // DrawBuffer_End (0x582780)
+};
+// The calls go to env (nullptr: the port).
+void Batch_SetEnv(const BatchEnv *env);
+
 extern "C" {
 
 // 0x581880 (thiscall on a model (+4 its settings, +8 its flags); index, &size; pops 8; name unconfirmed): a draw batch for the model's
@@ -36,6 +44,17 @@ void __fastcall Batch_Fog(u8 *object, void *);
 // count not 0), the transformer [0x87b1d8]'s slot 3 (cdecl: transformer, the batch's vertices +0x28, the object's stride +0x1c, the
 // count, arg) on them; the float it answers added to the batch's +0x30.
 void __fastcall Batch_TransformVertices(u8 *object, void *, u32 arg);
+
+// 0x565590 (thiscall on the same object; name invented, unconfirmed): the batch's last steps. Its flag 0x40: Batch_Fog; 0x20: Batch_TransformVertices (flags & 0xf); 0x400 with
+// vertices: each x and y rounded (fistp through 0xfb34a4), less 0.5 (0 for the driver kind 4 or the render flags 0x8000002); kind 4 without flag 0x100: FixedVerts_PackRounded. +0x30
+// is divided by the vertex count. Then the batch's +4 meeting the object's +0xc, or its flag 0x200: the object's slot 4 (batch), 0 ending it with 0, else the flag 0x10; otherwise, +4
+// not 0x800 and kind 1, or kind 4 without +4's 0x1000: a batch begun in mode 6, from its +0x28 on the keys of +0x24 / 3 triangles, and the triangles sorted by them: kind 1 the
+// sum of their z as floats (DepthSort_TrianglesFloat), kind 4 the sum of the words at +8 of the packed vertices (DepthSort_Triangles). The object's +0x20 cleared. Returns 1.
+u32 __fastcall Batch_Flush(u8 *object, void *);
+
+// 0x5658c0 (thiscall on the same object; depth, a float; pops 4; name invented, unconfirmed): with a batch holding vertices and indices: +0x30 = depth unless -1 (or a NaN), the
+// draw buffer's batch ended at the vertices' and indices' ends (DrawBuffer_End), and Batch_Flush's answer. Otherwise 1.
+u32 __fastcall Batch_Close(u8 *object, void *, float depth);
 
 // 0x581a00 (thiscall on a model (+4 its settings); batch, matrix, vertices; pops 12; returns 1; name unconfirmed): the transformer
 // ([0x87b1d8]) slot 2 (cdecl: transformer, matrix, vertices, the settings' +0x60, 0x10, 0, the vertex count +0x58) first. Then for each

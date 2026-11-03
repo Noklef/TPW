@@ -113,6 +113,7 @@
 #include "../../src/game/world/trakcarupdate.h"
 #include "../../src/game/world/flyingupdate.h"
 #include "../../src/game/render/ribbon.h"
+#include "../../src/game/render/batch.h"
 #include "../../src/game/world/mousemode.h"
 #include "../../src/game/world/person.h"
 #include "../../src/game/world/pathdrag.h"
@@ -567,6 +568,7 @@ const EditUpdateEnv kEditUpdateEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorde
 // The coaster test run's (0x43c450) calls: the cdecl recorders 1 of 1, 2 of 7, 3 of 4, 4 and 5 of 2, 6 of 3, 7 of 1, 8 of 2 and 9 of 1, as
 // tests/fncmp/testrun.py hooks them.
 const RibbonEnv kRibbonEnv = {Rec{recorder(2, 5)}};
+const BatchEnv kBatchEnv = {Rec{recorder(1, 1)}, Rec{recorder(2, 2)}};
 const FlyingUpdateEnv kFlyingUpdateEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorder(2, 5)}, Rec{jpeg_recorder(3, 2)}, Rec{jpeg_recorder(4, 3)}, Rec{jpeg_recorder(5, 4)},
                                           Rec{jpeg_recorder(6, 3)}, Rec{jpeg_recorder(7, 1)}, Rec{jpeg_recorder(8, 1)}, Rec{jpeg_recorder(9, 2)}};
 const TrakCarUpdateEnv kTrakCarUpdateEnv = {Rec{jpeg_recorder(1, 3)}, Rec{jpeg_recorder(2, 2)}, Rec{jpeg_recorder(3, 4)}, Rec{jpeg_recorder(4, 2)}, Rec{jpeg_recorder(5, 1)},
@@ -1379,6 +1381,7 @@ int main(int argc, char **argv) {
     TrakCarUpdate_SetEnv(&kTrakCarUpdateEnv);
     FlyingUpdate_SetEnv(&kFlyingUpdateEnv);
     Ribbon_SetEnv(&kRibbonEnv);
+    Batch_SetEnv(&kBatchEnv);
     Object_SetEnv(&kObjectEnv);
     StatsGraph_SetEnv(&kStatsGraphEnv);
     SpriteLoading_SetEnv(&kSpriteLoadingEnv);
