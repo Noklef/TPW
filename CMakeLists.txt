@@ -408,6 +408,7 @@ add_library(tpw_game STATIC
     src/game/coaster/trainrun.cpp
     src/game/coaster/placecar.cpp
     src/game/coaster/carprisms.cpp
+    src/game/coaster/carpose.cpp
     src/game/terrain/terrain_blend.cpp
     src/game/terrain/land.cpp
     src/game/terrain/procedural.cpp
