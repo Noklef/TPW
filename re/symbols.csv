@@ -4686,6 +4686,7 @@ address,name,kind,confidence,notes
 0x004f74a0,WStdStringWord_CtorCopy,function,low,reimplemented (src/game/core/stdwstring); the buddy set's value: a string and a word
 0x004f7290,WStdStringWord_Construct,function,low,reimplemented (src/game/core/stdwstring); construct unless null
 0x004ea0e0,WStdString_CtorCopyC,function,low,"reimplemented (src/game/core/stdwstring); thiscall (x), RET 4: copy constructor, 0x4f0250 inlined once more (name invented, unconfirmed)"
+0x004051d0,StdWString_AssignChars,function,low,"reimplemented (src/game/core/stdwstring); The game's MSVC6 std::wstring's assign(chars, n)"
 0x00405b90,GameError_IndexOfCode,function,low,reimplemented (src/game/core/gameerror); the error index of a library code
 0x00405710,GameError_Set,function,low,"reimplemented (src/game/core/gameerror); thiscall (index, arg, text), pops 12: +4 index, +8 arg, text strncpy into +0xc (0x50), +0 = 1"
 0x004ea740,CountedPair_CtorWide,function,low,"reimplemented (src/game/core/countedpair); thiscall (std::wstring by value, pops 16): the 0x24-byte pair of a narrow and a wide string and a dword: the narrow one empty, the wide one assigned the string, the dword 0; the string destroyed"

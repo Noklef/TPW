@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 from fncmp import Bench, Call, HEAP, RAM, heap, put  # noqa: E402
 
 # (with the wide string's helpers: the traits' move, the counted buffer reset, max_size and wcslen)
-B = Bench([(0x405280, 0x405390), (0x479150, 0x4791b0), (0x47b750, 0x47bcf0), (0x4f23f0, 0x4f2450), (0x4f6080, 0x4f60a0),
+B = Bench([(0x4051d0, 0x405272), (0x405280, 0x405390), (0x479150, 0x4791b0), (0x47b750, 0x47bcf0), (0x4f23f0, 0x4f2450), (0x4f6080, 0x4f60a0),
            (0x67acd0, 0x67ad00), (0x4ea740, 0x4ea7e0), (0x47ae60, 0x47b060), (0x47b600, 0x47b750), (0x479230, 0x479256),
            (0x47cc10, 0x47cd00), (0x47b460, 0x47b5b0), (0x47d9d0, 0x47db00), (0x47d620, 0x47d780), (0x47b320, 0x47b460),
            (0x4f0170, 0x4f0237)])
@@ -72,6 +72,9 @@ def case(r):
             blocks[x[0] - BLOCKS - 1] = r.choice([0, 1, 0xfd])
             put(strs, 0x18, 'I', r.choice([0x8000000, 0x7ffffffd, 0xfffffff0]))
         return Call(0x47ae60, [S, r.choice([X, X, X, S])], regions, conv='t', ret='a')
+    if op == 'AssignChars':   # 0x4051d0: the characters of slot 3, or s's own as it falls; a null source only for none (no read)
+        source = s[0] if s[0] and r.random() < 0.2 else BLOCKS + 3 * SLOT + 2
+        return Call(0x4051d0, [S, source, small], regions, conv='t', ret='a')
     if op == 'CtorChars':   # 0x4f0170: s's fields overwritten by a copy of 0-0x7e characters at the end of x's slot (or empty); the allocator's byte from anywhere
         n = r.choice([0, 0, 1, r.randrange(31), 31, 32, r.randrange(0x7e)])
         put(blocks, 2 * SLOT, '%dH' % (n + 1), *[r.randrange(1, 0x10000) for _ in range(n)], 0)
@@ -113,7 +116,7 @@ def case(r):
 
 
 KINDS = ['Grow', 'Copy', 'Split', 'Freeze', 'Fill', 'AssignSub', 'AssignSub', 'AssignSub', 'Entry', 'CtorCopy', 'CtorFill', 'UninitCopy',
-         'Append', 'Append', 'Erase', 'Construct', 'CopyRange', 'VecErase', 'CtorChars']
+         'Append', 'Append', 'Erase', 'Construct', 'CopyRange', 'VecErase', 'CtorChars', 'AssignChars']
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 if __name__ == '__main__':
