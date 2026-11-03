@@ -1,5 +1,5 @@
 # The lobby's models made (src/game/frontend/lobbymake: 0x5d7fd0, 0x5d8870, 0x5dfa60) against the originals: real strings on the heap, a resource list of 0-3 whose names differ or match (case folded)
-# in one or both, the second allocation failing now and then, the new ride's instance by flag 0x4000. Recorders (driver.cpp's kLobbyMakeEnv): load 20, Ride_Create 21, Holder_Sleep 22,
+# in one or both or all (the first match is kept), the model's allocation failing now and then, the new ride's instance by flag 0x4000. Recorders (driver.cpp's kLobbyMakeEnv): load 20, Ride_Create 21, Holder_Sleep 22,
 # Obj_RemoveFromRect 23, LobbyModel_TurnY 24, LobbyModel_SetPosition 25, Sound_RegisterLobbyCategories 26; the scene's slots 6 and 7, the owner's slot 12.
 # usage: lobbymake.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Res,Make,Ctor)
 import os
@@ -29,7 +29,11 @@ def names(r):
     return region, at
 
 
-def world(r, at):
+def folded(r, word):
+    return r.choice([w for w in WORDS if w.lower() == word.lower()])
+
+
+def world(r, at, name, pack):
     log = log_region()
     strings(log, 20, 3)
     blob(log, 25, 0, 7)
@@ -40,12 +44,13 @@ def world(r, at):
     inst = bytearray(r.bytes(0x100))
     put(inst, 4, 'I', r.getrandbits(32) | 0x4000 if r.random() < 0.5 else r.getrandbits(32) & ~0x4000)
     n = r.choice([0, 1, 2, 3])
+    match = n > 0 and r.random() < 0.5
     nodes, res = bytearray(0x20), bytearray(r.bytes(0x100))
     for k in range(n):
         put(nodes, 8 * k, 'II', RES + 0x40 * k, NODES + 8 * (k + 1) if k + 1 < n else 0)
-        put(res, 0x40 * k + 0xc, 'I', at[r.choice(WORDS)])
-        put(res, 0x40 * k + 0x20, 'I', at[r.choice(WORDS)])
-    fail = r.choice([0] * 12 + [1, 2, 3, 4])
+        put(res, 0x40 * k + 0xc, 'I', at[folded(r, name) if match else r.choice(WORDS)])
+        put(res, 0x40 * k + 0x20, 'I', at[folded(r, pack) if match else r.choice(WORDS)])
+    fail = 1 if (match and r.random() < 0.2) or r.random() < 0.01 else 0   # with no match the first is the resource's block: the original faults on it, sic
     return {SCENE: put(put(bytearray(r.bytes(0x40)), 0, 'I', VT), 8, 'I', LIST), LIST: struct.pack('<4I', 0, NODES if n else 0, 0, r.randrange(0, 0x100)),
             NODES: nodes, RES: res, VT: vtable({6: 1, 7: 1}), VTO: vtable({12: 1}), OWNER: struct.pack('<I', VTO) + r.bytes(0xc), INST: inst, TABLE: struct.pack('<8I', *[INST] * 8),
             SCENE_AT: struct.pack('<I', SCENE), LOG: log, HEAP: heap(fail=fail), RAND_SEED: r.bytes(4)}
@@ -53,10 +58,12 @@ def world(r, at):
 
 def case(r):
     region, at = names(r)
-    regions = world(r, at)
-    regions[NAMES] = region
     op = r.deal(OPS)
     name, pack, pack2 = r.choice(WORDS), r.choice(WORDS), r.choice(WORDS)
+    regions = world(r, at, name, pack)
+    if op != 'Make':
+        regions[HEAP] = heap()   # (strings fault on a failed allocation in both)
+    regions[NAMES] = region
     a, b, c = r.getrandbits(32), r.getrandbits(32), r.getrandbits(32)
     if op == 'Res':
         regions[SELF] = r.bytes(0x2c)
