@@ -149,6 +149,8 @@ def plot(r):
     strings(log, 1, 0, out=0b11011)   # (the renderer's style, the layout's holder + 4, is on the stack: guitext.py's Rgb)
     regions[LOG] = log
     regions[guitext.STYLE] = put(bytearray(regions[guitext.STYLE]), 0xc, 'iI', r.choice([0, 1, 2, 3, -1]), r.choice([0, 1]))
+    if r.random() < 0.7:   # (the clip round everything: all the lines reach the recorder, those left of 0 too)
+        regions[guitext.STATE] = put(bytearray(regions[guitext.STATE]), 8, '4i', -200, -200, 1000, 1000)
     gauge = regions[GRID]
     y0 = r.choice([0, 0, -10, 5, r.randrange(-100, 100)])
     put(gauge, 0x1c, 'i', y0)
