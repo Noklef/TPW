@@ -87,7 +87,7 @@ def record_c(r, ids):
 
 
 def format_case(r, log, regions):
-    kind = r.choice(list(range(0x25)) * 8 + [0x25, 0xffffffff, r.getrandbits(32)])
+    kind = r.choice(list(range(0x25)) * 8 + [1] * 24 + [0x25, 0xffffffff, r.getrandbits(32)])
     ids = format_regions(r, kind, log, regions)
     regions[CREC] = record_c(r, ids)
     i = r.randrange(COUNT)
@@ -95,6 +95,9 @@ def format_case(r, log, regions):
     put(regions[TABLE], 0x20 * i + 0x1c, 'I', kind)
     put(regions[TABLE], 0x20 * i + 0xc, 'I', r.randrange(0x100, 0x10000))
     a = r.choice([0, 0x10000, 1, r.randrange(1, 0x200), r.randrange(1, 0x200) | r.getrandbits(16) << 16])
+    if kind == 1 and r.random() < 0.3:   # (a's word 0 with a slot 0 that is set)
+        a = 0x10000
+        put(regions[0x7cfb90], 0, 'I', 1)
     b = r.choice([0, 0x10000, r.choice(ids), r.choice(ids) | r.getrandbits(16) << 16, r.getrandbits(32)]) if kind == 2 else r.choice([0, 1, 0xffffffff, r.getrandbits(32)])
     return Call(CALLS['Format'], [SELF, 0 if r.random() < 0.03 else rec, a, b, CREC], regions, conv='t', ret='b')
 
