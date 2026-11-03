@@ -674,7 +674,65 @@ void __fastcall Visitor_UseObject(u8 *visitor, void *, u8 *object) {
     }
 }
 
-void __fastcall Sprite_InterpolatedPos(const u8 *sprite, void *, float t, u32 unit, float *x, u32 *height, float *z, u32 *frame) {
+void __fastcall Visitor_PayObject(u8 *visitor, void *, u8 *object) {
+    const u32 price = Obj_Get194(object);
+    if (price == 0) return;
+    Object_TakePayment(object, nullptr, (s32)price);
+    Sprite_PlaySound(visitor, nullptr, global<u32>(0x00803a24), 0xd0);
+    at<u32>(visitor, 0x1a0) -= price;
+}
+
+void __fastcall Visitor_VisitObject(u8 *visitor, void *, u8 *object) {
+    u16 stored;
+    const u16 handle = *Thing_GetHandle(object, nullptr, &stored);
+    for (u32 off = 0x1e6; off != 0x1e0; off -= 2) at<u16>(visitor, off) = at<u16>(visitor, off - 2);
+    at<u16>(visitor, 0x1e0) = handle;
+    switch (at<s32>(Object_GetDef(object), 0x4ac)) {
+    case 0: ++at<s32>(visitor, 0x1c4); break;
+    case 1: ++at<s32>(visitor, 0x1c8); break;
+    case 2: ++at<s32>(visitor, 0x1cc); break;
+    }
+    Visitor_PayObject(visitor, nullptr, object);
+    Object_AddCustomer(object);
+    Stat100_Add(reinterpret_cast<float *>(visitor + 0x1b8), nullptr, (float)-(double)at<s32>(Object_GetDef(object), 0xe8));
+    u8 *const defs = reinterpret_cast<u8 *>(0x007890a0);
+    if (at<u8>(visitor, 0x1f1) == 0) {
+        set100(visitor + 0x19c, X87Reg(-(double)global<u8>(0x0078505c)) + at<float>(visitor, 0x19c));
+        if (at<s32>(ObjectDefs_Find(defs, nullptr, at<u16>(object, 0xe)), 0x4ac) != 2) return;
+        Thoughts_Show(visitor + 0x30, nullptr, 6, 0);
+        Ring_PushUnique(visitor + 0x30, nullptr, 0x19, *Thing_GetHandle(object, nullptr, &stored));
+        return;
+    }
+    Visitor_UseObject(visitor, nullptr, object);
+    const u8 before = (u8)(long long)X87Reg(at<float>(visitor, 0x20c)).v;   // __ftol's low bytes
+    const u8 after = (u8)(long long)X87Reg(at<float>(visitor, 0x19c)).v;
+    const s32 change = ((s32)after - (s32)before) * 3;
+    Object_AddHappinessChange(object, nullptr, change);
+    const auto record = [change](u32 ring) {
+        ParkAnalyser_Record(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(global<u8 *>(0x0080239c))), nullptr, ring, (u8)(change + 0x32));
+    };
+    switch (at<s32>(Object_GetDef(object), 0x4ac)) {
+    case 1:
+        switch (at<u32>(Object_GetDef(object), 0x158)) {
+        case 1: record(0xa); break;
+        case 2: record(0xb); break;
+        case 3: record(0xc); break;
+        case 4: record(0xd); break;
+        }
+        switch (at<s32>(Object_GetDef(object), 0x15c)) {
+        case 1: record(0xf); break;
+        case 2: record(0x10); break;
+        }
+        break;
+    case 2: record(0x12); break;
+    }
+    Obj_Inc2b8(object);
+    if (at<s32>(ObjectDefs_Find(defs, nullptr, at<u16>(object, 0xe)), 0x4ac) != 2) return;
+    Thoughts_Show(visitor + 0x30, nullptr, 5, 0);
+    Ring_PushUnique(visitor + 0x30, nullptr, 0x18, *Thing_GetHandle(object, nullptr, &stored));
+}
+
+void __fastcall Sprite_InterpolatedPos(const u8 *sprite, void *, float t, u32 unit, float*x, u32 *height, float *z, u32 *frame) {
     if (unit)
         t = !(t >= 0.0f) ? 0.0f : t > 1.0f ? 1.0f : t;
     else

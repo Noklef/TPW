@@ -236,6 +236,12 @@ u32 __fastcall Object_HistoryPercent(const u8 *object);
 // over the byte +0x5c, raised to 4 (a NaN too). The debug check of the float being above 0 is left out.
 u32 __fastcall Object_FillRate(const u8 *object);
 
+// 0x4e16b0 (thiscall; amount, pops 4; only 0x4fe1b9 calls it; name invented, unconfirmed): a visitor pays. Money_Credit of the game's money record (the table entry
+// GameTable7cfb90_Get1da726_5195d0 gives), amount added to the dwords +0x180 and +0x70. A definition (+0xe) of +0x4ac 1: +0x20130 of the 0x1da720 entry up,
+// Slots_AddIfMatch(0xc, amount), then one by +0x164 (1: 5; 3: 8; 5: 7; 6: 6; 2 or 4: by +0x158, 1: 2, 2: 1, 3: 3, 4: 4), amount 1. Of +0x4ac 2: +0x20380 of
+// that entry up, Slots_AddIfMatch(0xd, amount).
+void __fastcall Object_TakePayment(u8 *object, void *, s32 amount);
+
 // 0x4e1920 (thiscall; amount, pops 4; name unconfirmed): amount added to the dwords +0xf8 and +0x184 and debited (Money_Debit of the game's money record, the table
 // entry GameTable7cfb90_Get1da726_5195d0 gives); for a definition (+0xe) whose +0x4ac is 1 or 2, Slots_AddIfMatch(0xc or 0xd, -amount, 0, 0) on the entry
 // GameTable7cfb90_Get1da736_519610 gives.

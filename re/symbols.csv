@@ -3755,6 +3755,8 @@ address,name,kind,confidence,notes
 0x004feb50,Visitor_Arrive,function,low,"reimplemented (src/game/world/person); thiscall (cell), pops 4; placed at the cell, script, sound, walks to the crossing's park side or deleted"
 0x004f9490,Person_SetRandomDest,function,low,"reimplemented (src/game/world/person); thiscall on a person; its next random destination: a walk of up to 5 cells along the side neighbours (staff within their patrol region), a point in the last; no neighbours: the cells about it of type 1 and 5 tries within 5; 1 / the route's answer, else 0 (name from its debug strings)"
 0x00501390,Visitor_QueueEdited,function,low,"reimplemented (src/game/world/person); thiscall; its place in the queue at least 4 * the object's +0x40 and state not 0xe: off the queue, sent away, state 6 (name from its debug print, unconfirmed)"
+0x004fe1a0,Visitor_PayObject,function,low,"reimplemented (src/game/world/person); A visitor pays an object's price, with the sound"
+0x004fd970,Visitor_VisitObject,function,low,"reimplemented (src/game/world/person); A visitor at an object: its history, the payment, the use, the analyser's rings and the thought"
 0x00550d80,Setting_SetMode,function,high,reimplemented (src/game/core/options); stores a mode and sets its flag bits
 0x005633e0,Quad_Push,function,high,reimplemented (src/game/core/seqs); pushes four dwords into the next of four slots
 0x0059c390,Table76e300_GetObjectDword,function,high,reimplemented (src/game/world/objectdefs); a dword of the object indexed through a record of the table
@@ -3834,6 +3836,7 @@ address,name,kind,confidence,notes
 0x004dd0a0,Object_Delete,function,low,"reimplemented (src/game/world/object); Thing_Delete's kind 3: the control's count down, out of the list +0x1da746, message 0xa posted, the scrap refund credited, spread records 4/7/6-or-1 taken back, its scripts killed, the global 0x7c2654 cleared if it, Thing_Detach"
 0x004df150,Object_Reopen,function,low,"reimplemented (src/game/world/object); thiscall; called from 0x5015f0: a closed object (+0x68 set) opened again: message 0x14 of its handle posted, then Object_RestartRide (inlined there)"
 0x004e15b0,Object_FollowCamera,function,low,"reimplemented (src/game/world/object); thiscall (arg), pops 4; the camera follows what rides the object (name invented)"
+0x004e16b0,Object_TakePayment,function,low,"reimplemented (src/game/world/object); A visitor's payment to an object: the money, the object's sums, the park's sums and the slots"
 0x005d46d0,Blocks7_Free,function,high,reimplemented (src/game/core/buffers); frees the seven blocks of an object and clears its groups
 0x00424cc0,Names_FirstAfter,function,high,"reimplemented (src/game/core/string); whether the first name is after the second, case blind"
 0x00424cf0,Names_Equal,function,high,"reimplemented (src/game/core/string); whether two names are equal, case blind"

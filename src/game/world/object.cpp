@@ -671,6 +671,44 @@ u32 __fastcall Object_FillRate(const u8 *object) {
     return (u32)(long long)rate.v;  // __ftol, the low half
 }
 
+namespace {
+
+// Slots_AddIfMatch on the entry GameTable7cfb90_Get1da736_519610 gives (the kind's upper word is a stale stack word in the original; only its low word, 0, is read).
+void add_to_slots(u32 id, u32 amount) {
+    Slots_AddIfMatch(reinterpret_cast<u8 *>(GameTable7cfb90_Get1da736_519610(reinterpret_cast<u8 *>(Global80239c_Get()))), nullptr, id, amount, 0, 0);
+}
+
+}  // namespace
+
+void __fastcall Object_TakePayment(u8 *object, void *, s32 amount) {
+    Money_Credit(reinterpret_cast<u8 *>(GameTable7cfb90_Get1da726_5195d0(global<u8 *>(0x0080239c))), nullptr, amount);
+    at<s32>(object, 0x180) += amount;
+    at<s32>(object, 0x70) += amount;
+    u8 *const def = ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, at<u16>(object, 0xe));
+    if (at<s32>(def, 0x4ac) == 1) {
+        at<s32>(reinterpret_cast<u8 *>(GameTable7cfb90_Get1da720_519510(global<u8 *>(0x0080239c))), 0x20130) += amount;
+        add_to_slots(0xc, (u32)amount);
+        switch (at<s32>(def, 0x164)) {
+        case 1: add_to_slots(5, 1); break;
+        case 2:
+        case 4:
+            switch (at<s32>(def, 0x158)) {
+            case 1: add_to_slots(2, 1); break;
+            case 2: add_to_slots(1, 1); break;
+            case 3: add_to_slots(3, 1); break;
+            case 4: add_to_slots(4, 1); break;
+            }
+            break;
+        case 3: add_to_slots(8, 1); break;
+        case 5: add_to_slots(7, 1); break;
+        case 6: add_to_slots(6, 1); break;
+        }
+    } else if (at<s32>(def, 0x4ac) == 2) {
+        at<s32>(reinterpret_cast<u8 *>(GameTable7cfb90_Get1da720_519510(global<u8 *>(0x0080239c))), 0x20380) += amount;
+        add_to_slots(0xd, (u32)amount);
+    }
+}
+
 void __fastcall Object_PayRunningCost(u8 *object, void *, s32 amount) {
     at<s32>(object, 0xf8) += amount;
     at<s32>(object, 0x184) += amount;
