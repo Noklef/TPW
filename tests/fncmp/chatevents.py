@@ -33,7 +33,7 @@ ARGS = {**{c: 0 for c in (0xb, 0xc, 0xf, 0x10, 0x44, 0x47)}, **{c: 2 for c in (0
 WORLDLY = [0x22, 0x25, 0x26, 0x27, 0x4f, 0x52]
 # A new buddy's node (the first block, or the one past the strings before it): its key's allocator byte +0xc is stack garbage, copied from a local nothing sets
 NEW_BUDDY = [(HEAP + 0x1c, 1), (HEAP + 0xbc, 1)]
-CODES = sorted(ARGS) + WORLDLY * 4 + [0x23, 0x24, 0x38, 0x39, 0x3a, 0x3b] * 2 + [0, 0xa, 0xd, 0x14, 0x53, 0xffffffff]
+CODES = sorted(ARGS) + WORLDLY * 4 + [0x23, 0x24, 0x38, 0x39, 0x3a, 0x3b] * 2 + [0xf, 0x10] * 3 + [0, 0xa, 0xd, 0x14, 0x53, 0xffffffff]
 
 
 def imports(regions, log):
@@ -66,7 +66,7 @@ def buddies(r, regions, avatar, names, pool):
 
 
 def world(r):
-    """(regions, avatar, pool, log, names to pick from): the avatar and its trees, and the park."""
+    """(regions, avatar, pool, log, names to pick from, the chat players' names): the avatar and its trees, and the park."""
     pool = Pool(r)
     avatar = bytearray(r.bytes(0xf10))
     put(avatar, 0, 'I', CHAT)
@@ -89,10 +89,12 @@ def world(r):
     avatar[0xef8] = r.choice([0, 0, 0, 1, 2])
     parked, _, things = thingenv.park(r, defs=False, pool=THINGS)
     buf = bytearray(parked[THINGS])
+    players = []
     for t in things:
+        s = flip(r.choice(people), 0.2, r) if r.random() < 0.8 else name(r)
         if r.random() < 0.7:
             buf[t - THINGS + 2] = 0x12
-        s = flip(r.choice(people), 0.2, r) if r.random() < 0.8 else name(r)
+            players.append(s)
         put(buf, t - THINGS + 0x19c, '%dH' % (len(s) + 1), *s, 0)
     parked[THINGS] = buf
     regions.update(parked)
@@ -106,7 +108,7 @@ def world(r):
     imports(regions, log)
     formats(r, log)
     set_return(log, 21, r.getrandbits(32))
-    return regions, avatar, pool, log, candidates
+    return regions, avatar, pool, log, candidates, players
 
 
 def session(r, regions, log):
@@ -130,7 +132,7 @@ def session(r, regions, log):
 
 
 def event(r):
-    regions, avatar, pool, log, candidates = world(r)
+    regions, avatar, pool, log, candidates, players = world(r)
     code = r.deal(CODES)
     toks = bytearray(r.bytes(0xd8))
     for i in range(6):
@@ -139,8 +141,13 @@ def event(r):
             s = ()
         pool.string(toks, 0x24 * i + 0x10, s, null=0.5)
         put(toks, 0x24 * i + 0x20, 'I', code if i == 0 else r.choice([0, 1, 2, 3, 0xff, 0x100, 0x1234, 0xffffffff, r.getrandbits(32) | 0x80000000, r.getrandbits(16)]))
+    if code in (0x22, 0x26, 0x52) and players and r.random() < 0.7:
+        pool.string(toks, 0x24 + 0x10, r.choice(players), null=0.5)
     if code == 0x22:
         put(toks, 0x24 * 4 + 0x20, 'I', r.choice([0, 1, 2, 3, 3, 4, 0xffffffff]))
+        for i in (2, 3):   # (a negative word's divisions by 256: not a shift)
+            if r.random() < 0.4:
+                put(toks, 0x24 * i + 0x20, 'I', r.getrandbits(32) | 0x80000000)
     if code == 0x27 and r.random() < 0.3:
         put(toks, 0x24 * 5 + 0x20, 'I', 0xffffffff)
     if code in (0xf, 0x10, 0x38):   # (the words the code asks for)
@@ -176,7 +183,7 @@ def case(r):
     op = r.deal(OPS)
     if op == 'Event':
         return event(r)
-    regions, avatar, pool, log, candidates = world(r)
+    regions, avatar, pool, log, candidates, _ = world(r)
     at = named(r, regions, candidates, pool)
     if op == 'SetBuddy':
         return Call(0x4ee710, [AVATAR, at, r.getrandbits(32) if r.random() < 0.2 else r.randrange(8)], regions, conv='t', ret='b', ignore=NEW_BUDDY)
