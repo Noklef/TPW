@@ -572,6 +572,7 @@
 #include "../game/ui/dialog7cb2b8build.h"
 #include "../game/ui/dialog7cb2b8tabs.h"
 #include "../game/ui/dialog7cb2fcopen.h"
+#include "../game/ui/dialog7cb3f8.h"
 #include "../game/ui/dialog7cb3f8slots.h"
 #include "../game/ui/dialog7cb400.h"
 #include "../game/ui/dialog7cb400close.h"
@@ -8061,6 +8062,12 @@ const Hook kHooks[] = {
     {"WindowScriptText_Line",     0x0066080d, (void *)&WindowScriptText_Line, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"WindowScriptText_Lines",    0x0066149c, (void *)&WindowScriptText_Lines, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"WindowScriptText_Build",    0x006607ca, (void *)&WindowScriptText_Build, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Dialog7cb3f8_Handler",      0x004a5fc0, (void *)&Dialog7cb3f8_Handler, {0x8b, 0x44, 0x24, 0x08, 0x83}},
+    {"Dialog7cb3f8_SlotHandler",  0x004a6000, (void *)&Dialog7cb3f8_SlotHandler, {0x83, 0xec, 0x20, 0x56, 0x8b}},
+    {"Dialog7cb3f8_ClearConfirmed", 0x004a61b0, (void *)&Dialog7cb3f8_ClearConfirmed, {0x8b, 0x44, 0x24, 0x04, 0x50}},
+    {"Dialog7cb3f8_DoneHandler",  0x004a61d0, (void *)&Dialog7cb3f8_DoneHandler, {0x83, 0xec, 0x10, 0x56, 0x8b}},
+    {"Dialog7cb3f8_DoneConfirmed", 0x004a6290, (void *)&Dialog7cb3f8_DoneConfirmed, {0x8b, 0x0d, 0x84, 0x28, 0xf8}},
+    {"Dialog7cb3f8_Open",         0x004a6580, (void *)&Dialog7cb3f8_Open, {0x6a, 0xff, 0x68, 0x02, 0xa7}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
