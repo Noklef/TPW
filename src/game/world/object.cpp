@@ -340,6 +340,18 @@ void __fastcall Object_ArriveWaiting(u8 *object) {
     if (Visitor_ArriveAtObject(global<u8 *>(0x007cfb90 + 20 * (u32)waiting))) Rides_SetElement(record, 1, 0);
 }
 
+void __fastcall Object_BeginCycle(u8 *object) {
+    Object_CallQueueHead(object);
+    if (!Rides_GetElement(Rides_FindById(at<s32>(object, 0x24)), 7)) {
+        Object_ArriveWaiting(object);
+        return;
+    }
+    const u8 level = (u8)(long long)at<float>(object, 0x48);   // (__ftol, the low byte)
+    u8 *const strip = global<u8 *>(0x007a4610 + 4 * at<u32>(object, 0x20));
+    StripAnim_StartGrow(strip, level ? 2 : 4);
+    Object_SetState(object, nullptr, level ? 1 : 4);
+}
+
 void __fastcall Object_CallQueueHead(u8 *object) {
     u8 *const record = Rides_FindById(at<s32>(object, 0x24));
     if (!at<u32>(object, 0x68)) {

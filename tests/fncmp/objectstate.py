@@ -11,7 +11,7 @@
 # (signed) and 9 0 or not; the definition (ObjectDefs_Find's cache at 0x7897d0 holding the id +0xe) of kind 3, 2 or any; the flags +0x33
 # random; the rider +0x6c 0, the head or another person; the head's state 11 and queue position (+0x1f1) 0 now and then, the rider's state
 # 0xd now and then (the head mostly in state 11 at position 0; the rider 0x100 now and then: past the slots, a fault when it is looked at).
-# usage: objectstate.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Dismiss,State,Open,Call)
+# usage: objectstate.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Dismiss,State,Open,Call,Begin)
 import os
 import struct
 import sys
@@ -20,16 +20,16 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import objectmsg  # noqa: E402
-from fncmp import LOG, RAM, Bench, Call, _recorder, blob_bytes, log_region, put  # noqa: E402
+from fncmp import LOG, RAM, Bench, Call, _recorder, blob_bytes, fb, log_region, put  # noqa: E402
 from thingenv import POOL  # noqa: E402
 
 RANGES = ([(0x40f380, 0x40f3b0), (0x40f3d0, 0x40f400), (0x40f420, 0x40f450), (0x4217f0, 0x421810), (0x454550, 0x454800), (0x475a10, 0x475b90),
            (0x4d4140, 0x4d41a0), (0x4d8610, 0x4d8660), (0x4dd4e0, 0x4dd510), (0x4ddd20, 0x4ddf50), (0x4e0450, 0x4e0570), (0x4e0a70, 0x4e0ab0),
            (0x4e0e60, 0x4e11e4), (0x4e2670, 0x4e2720), (0x50b350, 0x50b370), (0x55a070, 0x55a110), (0x55a390, 0x55a3f0), (0x67acf0, 0x67ada0),
-           (0x5da3c0, 0x5da3c1), (0x4e0050, 0x4e01f0), (0x4e1220, 0x4e1406), (0x412e90, 0x412f00), (0x501290, 0x5013a0)])
+           (0x5da3c0, 0x5da3c1), (0x4e0050, 0x4e01f0), (0x4e1220, 0x4e1406), (0x412e90, 0x412f00), (0x501290, 0x5013a0), (0x4e1410, 0x4e15a2)])
 HOOKS = {0x40fb10: _recorder(21, 1), 0x500870: _recorder(22, 0), 0x5012f0: _recorder(23, 0)}
 B = Bench(RANGES, hooks=HOOKS)
-CALLS = {'Dismiss': 0x4e0450, 'State': 0x4e0e60, 'Open': 0x4e0050, 'Call': 0x4e1220}
+CALLS = {'Dismiss': 0x4e0450, 'State': 0x4e0e60, 'Open': 0x4e0050, 'Call': 0x4e1220, 'Begin': 0x4e14e0}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 OBJ, RIDES = objectmsg.OBJ, RAM + 0x20000
 STRIP, CENTRE = RAM + 0x30000, RAM + 0x31000
@@ -76,8 +76,8 @@ def case(r):
                 regions[FRAMES] = put(bytearray(r.bytes(8)), 4, 'I', LIST)
                 regions[LIST] = r.bytes(0x60)
         return Call(0x4e0050, [OBJ, opening], regions, conv='t', ret='a')
-    if op == 'Call':
-        handles = [h for h in range(1, 12) if POOL <= struct.unpack_from('<I', slots, 20 * h)[0] < POOL + 6 * 0x400]
+    if op in ('Call', 'Begin'):
+        handles =[h for h in range(1, 12) if POOL <= struct.unpack_from('<I', slots, 20 * h)[0] < POOL + 6 * 0x400]
         if r.random() < 0.15:
             put(obj, 0x68, 'I', 0)
         put(node, 0x8c, 'i', r.choice([10, 10, 10, 10, 6, 3, 0, -1]))
@@ -100,7 +100,15 @@ def case(r):
         oid = struct.unpack_from('<H', obj, 0xe)[0]
         regions[0x7897d0] = struct.pack('<HHI', oid, r.getrandbits(16), DEF)
         regions[DEF] = put(bytearray(r.bytes(0x100)), 0x9c, 'i', r.choice([3, 2, 2, 0, 1, r.getrandbits(32) - (1 << 31)]))
-        return Call(0x4e1220, [OBJ], regions, conv='t', ret='v')
+        if op == 'Call':
+            return Call(0x4e1220, [OBJ], regions, conv='t', ret='v')
+        # (0x4e14e0: the world of Call's; the ride record's element 7 0 or not, element 1's handle 0 so that no visitor is sent; +0x48 about the __ftol's low byte)
+        el = bytearray(regions[RIDES + 0x100])
+        put(el, 4, 'H', 0)
+        put(el, 4 * 7, 'I', r.choice([0, 0, 1, 0x100, r.getrandbits(32)]))
+        regions[RIDES + 0x100] = el
+        put(obj, 0x48, 'I', r.choice([fb(0.0), fb(0.5), fb(1.0), fb(2.9), fb(255.0), fb(256.0), fb(512.5), fb(-1.0), fb(-256.0), fb(3e30), 0x7fc00000, r.getrandbits(32)]))
+        return Call(0x4e14e0, [OBJ], regions, conv='t', ret='v')
     if op == 'Dismiss':
         return Call(0x4e0450, [OBJ], regions, conv='t', ret='v')
     return Call(0x4e0e60, [OBJ, r.choice([0, 1, 1, 2, 2, 3, 4, 4, 5, r.getrandbits(32)])], regions, conv='t', ret='v')

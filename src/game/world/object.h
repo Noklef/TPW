@@ -71,6 +71,10 @@ u32 __fastcall Object_SetFlag64(u8 *object, void *, u32 on);
 // whose state (+0x220) is not 0xd is forgotten (+0x6c = 0). The debug prints are left out (element 2 is still read for the first).
 void __fastcall Object_CallQueueHead(u8 *object);
 
+// 0x4e14e0 (thiscall; name invented): Object_CallQueueHead; then with the ride record's (Rides_FindById of +0x24) element 7 at 0, Object_ArriveWaiting. Else the strip animation of
+// 0x7a4610[+0x20] grown from frame 2 and state 1 when the low byte of +0x48 (__ftol) is not 0, from frame 4 and state 4 when it is. The debug prints and the handle read only they use are left out.
+void __fastcall Object_BeginCycle(u8 *object);
+
 // 0x4e1410 (thiscall; name invented, unconfirmed): the visitor whose handle is the low word of the ride record's element 1 (Rides_FindById of +0x24), if any, comes to the object
 // (Visitor_ArriveAtObject); when that answers, the element is cleared. The debug prints and the handle reads only they use are left out.
 void __fastcall Object_ArriveWaiting(u8 *object);
