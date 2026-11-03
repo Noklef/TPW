@@ -37,7 +37,7 @@ def fill_slot(r, rec, s, state, cx, cz):
     put(rec, base, '7i', r.randrange(100), x, y, z, r.randrange(-0x2000, 0x2000), r.randrange(-500, 500), r.randrange(-0x3000, 0x3000))
     k = r.random()
     tx, tz = (x + r.randrange(-4000, 4000), z + r.randrange(-4000, 4000)) if k < 0.5 else (x + r.randrange(-200000, 200000), z + r.randrange(-200000, 200000))
-    put(rec, base + 0x4c, '3I', tx & 0xffffffff, r.randrange(0, 50000), tz & 0xffffffff)
+    put(rec, base + 0x4c, '3I', tx & 0xffffffff, r.choice([y + 10000, y - 10000, y + 10001, r.randrange(0, 50000), r.randrange(0, 50000)]) & 0xffffffff, tz & 0xffffffff)
     put(rec, base + 0x70, '4i', r.randrange(-0x800, 0x800), r.randrange(-0x400, 0x400), r.randrange(-2000, 2000), r.randrange(-500, 500))
     put(rec, base + 0x80, 'I', state)
     put(rec, base + 0x84, 'i', r.choice([0, 1, 2, r.randrange(-5, 300)]))
@@ -72,7 +72,50 @@ def record(r):
     for s in slots:
         st = state if s == slots[0] else r.choice(STATES + [0, 1, 1, 0xa, r.getrandbits(32)])
         fill_slot(r, rec, s, st, cx, cz)
+    k = r.random()
+    if k < 0.1 and n > 1:
+        pair(r, rec, sorted(slots))
+    elif k < 0.2 and n == 1:
+        exact_roll(r, rec, slots[0])
     return rec, hx, hz
+
+
+def pair(r, rec, slots):
+    """Two close slots whose speeds tie (the first's eased 0x400 is 900, its goal 0)."""
+    a, b = 0x5c + SLOT * slots[0], 0x5c + SLOT * slots[1]
+    put(rec, a + 0x78, '2i', 0x400, 0)
+    put(rec, a + 0x80, 'I', r.choice([2, 4, 5, 8]))
+    put(rec, b + 0x80, 'I', r.choice([2, 3, 4, 5, 6, 8, 9]))
+    put(rec, 0x20, 'i', 0x400)
+    x, y, z = struct.unpack_from('<3i', rec, a + 4)
+    put(rec, b + 4, '3i', x + r.randrange(-3000, 3000), y + r.randrange(-1000, 1000), z + r.randrange(-3000, 3000))
+    put(rec, b + 0x78, 'i', 900)
+
+
+def truncdiv(a, b):
+    return abs(a) // b * (1 if a >= 0 else -1)
+
+
+def exact_roll(r, rec, s):
+    """A still slot on its target (bearing 0), its roll exactly 0x800 either side of the wanted: the turn and roll worked out here."""
+    base = 0x5c + SLOT * s
+    wide = struct.unpack_from('<i', rec, 0x24)[0]
+    x, z = struct.unpack_from('<i', rec, base + 4)[0], struct.unpack_from('<i', rec, base + 0xc)[0]
+    put(rec, base + 0x4c, 'i', x)
+    put(rec, base + 0x54, 'i', z)
+    put(rec, base + 0x70, '4i', 0, 0, 0, 0)
+    put(rec, base + 0x80, 'I', 9)
+    for _ in range(60):
+        h = r.randrange(0x1000)
+        turn = -h & 0xfff
+        if turn >= 0x800:
+            turn -= 0xfff
+        yaw = truncdiv(turn, 2)
+        roll = truncdiv((-truncdiv(yaw, 4) - truncdiv(yaw, 2)) * wide, 1024) & 0xfff
+        if (roll >= 0x800) == (s & 1 == 0):
+            break
+    put(rec, base + 0x10, 'i', h)
+    put(rec, base + 0x18, 'i', roll - 0x800 if roll >= 0x800 else roll + 0x800)
 
 
 def case(r):
