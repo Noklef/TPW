@@ -2424,6 +2424,12 @@ int main(int argc, char **argv) {
     static CrtEnv crt = kDriverCrt;   // (free: the stand-in heap, as a bench's hook of 0x67ad90 gives the emulator)
     crt.free = &heap_free;
     Crt_SetEnv(&crt);
+    // The rest of the game's CRT under the ported routines (tests/fncmp/crt_runtime.py hooks the same addresses).
+    static const CrtInnerEnv crtInner = {Rec{jpeg_recorder(2, 0)},  Rec{jpeg_recorder(3, 0)},  Rec{jpeg_recorder(4, 0)},  Rec{jpeg_recorder(5, 1)},
+                                         Rec{jpeg_recorder(6, 2)},  Rec{jpeg_recorder(7, 1)},  Rec{jpeg_recorder(8, 1)},  Rec{jpeg_recorder(9, 3)},
+                                         Rec{jpeg_recorder(10, 3)}, Rec{jpeg_recorder(11, 1)}, Rec{jpeg_recorder(12, 1)}, Rec{jpeg_recorder(13, 1)},
+                                         &heap_free};
+    CrtInner_SetEnv(&crtInner);
     Libc_SetEnv(&kDriverLibc);
     static FpuEnv fpu = *Fpu_GetEnv();  // (the guard's deleting destructors free with the stand-in heap)
     fpu.free = &heap_free;

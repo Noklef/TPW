@@ -113,7 +113,7 @@ void *__cdecl CRT_onexit(void *fn) {
     return fn;
 }
 
-s32 __cdecl crt_atexit(void *fn) { return CRT_onexit(fn) ? 0 : -1; }
+s32 __cdecl CRT_atexit(void *fn) { return CRT_onexit(fn) ? 0 : -1; }
 
 void __cdecl CRT_free(void *block) {
     if (!block) return;

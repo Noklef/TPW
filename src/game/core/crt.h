@@ -85,7 +85,7 @@ s32 __cdecl CRT_rand();
 void *__cdecl CRT_onexit(void *fn);
 
 // 0x67a7d0: atexit: 0 when _onexit took fn, else -1.
-s32 __cdecl crt_atexit(void *fn);
+s32 __cdecl CRT_atexit(void *fn);
 
 // 0x67ad90: free: not null: under lock 9 the small block heap's block freed, or else (past the lock) HeapFree on the CRT's heap [0xfb3cac].
 void __cdecl CRT_free(void *block);
