@@ -49,6 +49,7 @@
 #include "../../src/game/gfx/statsgraph.h"
 #include "../../src/game/ui/thingbrowser.h"
 #include "../../src/game/ui/dialog7ca150.h"
+#include "../../src/game/ui/menuactions.h"
 #include "../../src/game/ui/signrect.h"
 #include "../../src/game/ui/dialog7ca210.h"
 #include "../../src/game/ui/dialog7cc2ec.h"
@@ -636,6 +637,8 @@ const StaffCtorsEnv kStaffCtorsEnv = {Rec{recorder(10, 4)}, Rec{recorder(11, 2)}
 const StaffStepsEnv kStaffStepsEnv = {Rec{recorder(10, 0)}, Rec{recorder(11, 0)}, Rec{recorder(12, 2)}, Rec{recorder(13, 1)}, Rec{recorder(14, 0)}, Rec{recorder(15, 0)}, Rec{recorder(16, 0)}, Rec{recorder(17, 1)}, Rec{recorder(18, 0)}, Rec{recorder(19, 0)}, Rec{recorder(20, 1)}, Rec{recorder(21, 0)}, Rec{recorder(22, 0)}, Rec{recorder(23, 4)}, Rec{recorder(24, 1)}};
 // Sign_PlaceOverRect's calls (tests/fncmp/signrect.py).
 const SignRectEnv kSignRectEnv = {Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 6)}, Rec{jpeg_recorder(12, 1)}};
+// The UI's one-call entries' calls (tests/fncmp/menuactions.py).
+const MenuActionsEnv kMenuActionsEnv = {Rec{jpeg_recorder(16, 2)}, Rec{jpeg_recorder(17, 1)}, Rec{jpeg_recorder(18, 2)}, Rec{jpeg_recorder(19, 2)}, Rec{jpeg_recorder(20, 1)}, Rec{jpeg_recorder(21, 0)}, Rec{jpeg_recorder(22, 1)}, Rec{jpeg_recorder(23, 1)}, Rec{jpeg_recorder(24, 1)}, Rec{recorder(25, 1)}, Rec{recorder(26, 1)}, Rec{recorder(27, 0)}, Rec{jpeg_recorder(28, 4)}, Rec{jpeg_recorder(29, 1)}, Rec{jpeg_recorder(30, 1)}, Rec{jpeg_recorder(31, 1)}, Rec{jpeg_recorder(0, 1)}, Rec{recorder(1, 0)}, Rec{recorder(2, 0)}, Rec{recorder(3, 1)}, Rec{jpeg_recorder(4, 1)}, Rec{jpeg_recorder(5, 1)}, Rec{jpeg_recorder(6, 2)}, Rec{jpeg_recorder(7, 4)}, Rec{recorder(8, 0)}, Rec{recorder(9, 0)}, Rec{recorder(10, 0)}, Rec{jpeg_recorder(11, 4)}, Rec{recorder(12, 1)}};
 // Online_Instance's constructor (tests/fncmp/onlineinstance.py).
 const OnlineInstanceEnv kOnlineInstanceEnv = {Rec{recorder(10, 0)}};
 // Dialog7cdac4_Handler's calls (tests/fncmp/dialog7cdac4handler.py).
@@ -1492,6 +1495,7 @@ int main(int argc, char **argv) {
     Panel7cc218_SetShowEnv(&kPanel7cc218ShowEnv);
     Dialog7ca168_SetOpenEnv(&kDialog7ca168OpenEnv);
     Online_SetInstanceEnv(&kOnlineInstanceEnv);
+    MenuActions_SetEnv(&kMenuActionsEnv);
     SignRect_SetEnv(&kSignRectEnv);
     StaffSteps_SetEnv(&kStaffStepsEnv);
     StaffCtors_SetEnv(&kStaffCtorsEnv);

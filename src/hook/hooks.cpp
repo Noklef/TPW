@@ -512,6 +512,7 @@
 #include "../game/ui/hoverlabel.h"
 #include "../game/ui/imecandidates.h"
 #include "../game/ui/levelmeter.h"
+#include "../game/ui/menuactions.h"
 #include "../game/ui/msgboxbutton.h"
 #include "../game/ui/msgtags.h"
 #include "../game/ui/panel7c2534.h"
@@ -7414,6 +7415,35 @@ const Hook kHooks[] = {
     {"Dialog7cc2ec_Open",         0x004b2750, (void *)&Dialog7cc2ec_Open, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Sign_PlaceOverRect",        0x00486410, (void *)&Sign_PlaceOverRect, {0x83, 0xec, 0x0c, 0x8b, 0x44}},
     {"Sign_Swing",                0x004864f0, (void *)&Sign_Swing, {0xa1, 0x4c, 0x9f, 0x7b, 0x00}},
+    {"Wrap_Dialog7cc1f8_Open_4816e0", 0x004816e0, (void *)&Wrap_Dialog7cc1f8_Open_4816e0, {0x51, 0x8b, 0xc4, 0x6a, 0xff}},
+    {"Wrap_Dialog7ca308_Open_481700", 0x00481700, (void *)&Wrap_Dialog7ca308_Open_481700, {0x6a, 0xff, 0xe8, 0xc9, 0xa6}},
+    {"Wrap_Dialog7cb398_Create_481710", 0x00481710, (void *)&Wrap_Dialog7cb398_Create_481710, {0xe9, 0x8b, 0x3b, 0x02, 0x00}},
+    {"Wrap_Dialog7ca150_Open_481720", 0x00481720, (void *)&Wrap_Dialog7ca150_Open_481720, {0x6a, 0x00, 0x6a, 0xff, 0xe8}},
+    {"Wrap_Dialog7ca168_Open_481730", 0x00481730, (void *)&Wrap_Dialog7ca168_Open_481730, {0x6a, 0x00, 0x6a, 0xff, 0xe8}},
+    {"Wrap_Dialog7ca13c_Open_481740", 0x00481740, (void *)&Wrap_Dialog7ca13c_Open_481740, {0x6a, 0x00, 0xe8, 0xe9, 0x1d}},
+    {"Wrap_Dialog7ca308_StaffChanged_481550", 0x00481550, (void *)&Wrap_Dialog7ca308_StaffChanged_481550, {0x8b, 0x44, 0x24, 0x04, 0x50}},
+    {"Wrap_MsgTags_Save_4816a0",  0x004816a0, (void *)&Wrap_MsgTags_Save_4816a0, {0x8b, 0x44, 0x24, 0x04, 0x50}},
+    {"Wrap_Dialog7ca13c_AddRow_4937e0", 0x004937e0, (void *)&Wrap_Dialog7ca13c_AddRow_4937e0, {0x8b, 0x44, 0x24, 0x04, 0x50}},
+    {"World_StaffCountOfType_4c9e40", 0x004c9e40, (void *)&World_StaffCountOfType_4c9e40, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"ShownThing_SetName_4b60d0", 0x004b60d0, (void *)&ShownThing_SetName_4b60d0, {0x8b, 0x0d, 0x58, 0x26, 0x7c}},
+    {"ShownThing_GetName_4b60f0", 0x004b60f0, (void *)&ShownThing_GetName_4b60f0, {0x8b, 0x0d, 0x58, 0x26, 0x7c}},
+    {"Game_Part8Slot28_4b8510",   0x004b8510, (void *)&Game_Part8Slot28_4b8510, {0xa1, 0x14, 0x56, 0xf8, 0x00}},
+    {"Game_Part10Slot2c_4c4470",  0x004c4470, (void *)&Game_Part10Slot2c_4c4470, {0xa1, 0x14, 0x56, 0xf8, 0x00}},
+    {"Window7cb2fc_Close_4a4580", 0x004a4580, (void *)&Window7cb2fc_Close_4a4580, {0xa1, 0xfc, 0xb2, 0x7c, 0x00}},
+    {"Window7cc8bc_Close_4bf8e0", 0x004bf8e0, (void *)&Window7cc8bc_Close_4bf8e0, {0xa1, 0xbc, 0xc8, 0x7c, 0x00}},
+    {"Window7cc4c4_Send6_4b9c40", 0x004b9c40, (void *)&Window7cc4c4_Send6_4b9c40, {0xa1, 0xc4, 0xc4, 0x7c, 0x00}},
+    {"Globals7cc684_Set_4bc640",  0x004bc640, (void *)&Globals7cc684_Set_4bc640, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Global7cc504_Set_4b9f60",   0x004b9f60, (void *)&Global7cc504_Set_4b9f60, {0x8b, 0x44, 0x24, 0x04, 0xa3}},
+    {"Obj_Reset24_4b4650",        0x004b4650, (void *)&Obj_Reset24_4b4650, {0x83, 0xc8, 0xff, 0xc7, 0x41}},
+    {"Obj_Count28s_4d0690",       0x004d0690, (void *)&Obj_Count28s_4d0690, {0x33, 0xc0, 0x83, 0xc1, 0x28}},
+    {"Dialog7ca1e0_Post_498bb0",  0x00498bb0, (void *)&Dialog7ca1e0_Post_498bb0, {0xa1, 0xe0, 0xa1, 0x7c, 0x00}},
+    {"Dialog7ca1e0_Cancel_498bd0", 0x00498bd0, (void *)&Dialog7ca1e0_Cancel_498bd0, {0x6a, 0x00, 0xe8, 0x19, 0x9a}},
+    {"ThingPanel_RestartOrClose_48ccf0", 0x0048ccf0, (void *)&ThingPanel_RestartOrClose_48ccf0, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"ThingPanel_SetFlag64_48ce50", 0x0048ce50, (void *)&ThingPanel_SetFlag64_48ce50, {0x8a, 0x54, 0x24, 0x04, 0x33}},
+    {"Thing_GoToCell_48cde0",     0x0048cde0, (void *)&Thing_GoToCell_48cde0, {0x8b, 0x4c, 0x24, 0x04, 0x33}},
+    {"ThingPanel_Handler_48d200", 0x0048d200, (void *)&ThingPanel_Handler_48d200, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
+    {"Dialog7cc984_Finish_4c07d0", 0x004c07d0, (void *)&Dialog7cc984_Finish_4c07d0, {0xa1, 0x14, 0x56, 0xf8, 0x00}},
+    {"ShownThing_NameBuffer",     0x0048cf90, (void *)&ShownThing_NameBuffer, {0xa1, 0x58, 0x26, 0x7c, 0x00}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
