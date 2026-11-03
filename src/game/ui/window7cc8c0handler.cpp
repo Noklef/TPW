@@ -10,6 +10,7 @@
 #include "../core/vwrap.h"
 #include "../files/charsets.h"
 #include "../frontend/helpbg.h"
+#include "../input/mouse.h"
 #include "../model/highlight.h"
 #include "../online/chat.h"
 #include "../online/chatavatar.h"
@@ -60,7 +61,7 @@ const Window7cc8c0HandlerEnv kGameEnv = {
     Window_SetFocus,
     Window_KillFocus,
     reinterpret_cast<s32(__fastcall *)(const u8 *, void *, u32, u32)>(&KeyMap_FindKey),
-    reinterpret_cast<void(__cdecl *)(u32, u32, s32, s32, u32)>((uintptr_t)0x0046c210),
+    reinterpret_cast<void(__cdecl *)(u32, u32, s32, s32, u32)>(&Mouse_HandleButton),
     reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x004a9380),
     reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)0x0048c830),
     Window_CallDefault,

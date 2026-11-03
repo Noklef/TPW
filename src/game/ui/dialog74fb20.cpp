@@ -7,6 +7,8 @@
 #include "../core/language.h"
 #include "../core/options.h"
 #include "../core/vcall.h"
+#include "../world/camera.h"
+#include "../world/object.h"
 #include "focus.h"
 #include "guimanager.h"
 #include "guirect.h"
@@ -19,8 +21,8 @@ namespace {
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 const Dialog74fb20Env kGameEnv = {Global7cb2e8_Get, Overlay7cb2b4_Toggle, WindowScript_Build, Window_GetRect, Window_SetWordsE4, Window_RunScript, Window_SetFocus, GuiClock_Now, Window_SendMessage,
-                                  reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x0042a190), KeyMaps_EnableAll, Window_CallDefault, reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x0042ae70),
-                                  reinterpret_cast<u32(__fastcall *)(u8 *, void *, u32)>((uintptr_t)0x004e15b0), KeyMaps_ResetAll, Focus_Restore, Window_CreateChild, Window_SetHandler, Setting_ReadMode,
+                                  Camera_StopFollowing, KeyMaps_EnableAll, Window_CallDefault, Camera_ToggleWalkMode,
+                                  reinterpret_cast<u32(__fastcall *)(u8 *, void *, u32)>(&Object_FollowCamera), KeyMaps_ResetAll, Focus_Restore, Window_CreateChild, Window_SetHandler, Setting_ReadMode,
                                   reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0), reinterpret_cast<void(__cdecl *)(const u8 *, u32, u32, u32, u32, u32, u32, u32)>((uintptr_t)0x0047f020),
                                   reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x00516c10)};
 const Dialog74fb20Env *g_env = &kGameEnv;

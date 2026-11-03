@@ -476,7 +476,7 @@ void __fastcall Object_MechanicDone(u8 *object, void *, u32) {
 }
 
 namespace {
-const ObjectPathEnv kGamePathEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x00501390)};
+const ObjectPathEnv kGamePathEnv = {&Visitor_QueueEdited};
 const ObjectPathEnv *g_path = &kGamePathEnv;
 }  // namespace
 
