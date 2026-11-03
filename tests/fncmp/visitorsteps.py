@@ -55,7 +55,7 @@ B = Bench(RANGES, hooks=HOOKS)
 CALLS = {'Arrive': 0x4ff7f0, 'Leave': 0x500900, 'Go': 0x500ad0, 'Stop': 0x500bd0, 'Queue': 0x501160, 'Kill': 0x4feb10, 'Booth': 0x4ff520,
          'WalkIn': 0x4ff730, 'Enter': 0x4ffb20, 'Out': 0x500a50, 'Again': 0x4fc890,
          'Emote': 0x4fc800, 'Idle': 0x4fec90, 'Mood': 0x4fc8a0, 'Tick': 0x501650, 'Judge': 0x4ff5b0, 'AtBooth': 0x4ff9d0, 'Off': 0x4fff20, 'State': 0x5019f0}
-OPS = [k for k in os.environ.get('OPS', ','.join(k for k in CALLS if k != 'State')).split(',') if k]   # (State: visitorstate.py)
+OPS = [k for k in os.environ.get('OPS', ','.join(k for k in CALLS if k != 'State')).split(',') if k]   # (State: visitorpostupdate.py)
 WORLD = RAM   # (thingenv.py's world pointers)
 NODES, ARRAYS, VIS = RAM + 0x1000, RAM + 0x4000, RAM + 0x9000
 MAPC = 0x31000000
@@ -187,7 +187,7 @@ def moods(r, regions, log, v, handles, w, name):
     put(v, 0x214, 'I', r.choice([0, 0, 1, 1, 2, 0x80000000]))
     put(v, 0x220, 'I', r.choice([0, 3, 6, 8, 0xb, 0xe, 0xf, 0x10, 0x11, 0xa, 0x20]))
     put(v, 0x224, 'I', r.choice([0, 0xa, 0xb, 0xe, 0xf]))
-    put(v, 0x228, 'HH', r.getrandbits(16), r.getrandbits(16))
+    put(v, 0x228, 'HH', r.choice(handles + [0]), r.choice(handles + [0]))   # (a stray one: the emulator takes a write through a null thing, the driver faults)
     # (the fee)
     regions[0x78507c] = struct.pack('<9I', r.choice([1, 2, 10, 100]), r.choice([0, 1, 5, 10]), fb(r.choice([0.5, 1.0, 1.25])), fb(r.choice([1.0, 1.5, 2.0])), fb(r.choice([2.0, 3.0, 0.75])), 0, 0, 0, 0)
     regions[0x7850cc] = r.bytes(16)
@@ -201,15 +201,19 @@ def moods(r, regions, log, v, handles, w, name):
     if name == 'State':
         put(v, 0x220, 'I', r.choice(list(range(0x16)) * 3 + [0x16, 0x20, 0xffffffff]))
         put(v, 0x208, 'I', (now - r.choice([0, 9, 10, 11, 12])) & 0xffffffff)
+        if struct.unpack_from('<I', v, 0x220)[0] in (0xb, 0xd):
+            v[0] |= 1   # (Visitor_SendAway calls Sprite_PlaySound as it is below these states, which the recorder 10 cannot stand for)
         pool = bytearray(regions[POOL])
         chain = r.sample(handles, r.randrange(len(handles) + 1))
         for i, h in enumerate(handles):
             put(pool, THING * i + 0x210, 'H', chain[chain.index(h) + 1] if h in chain and chain.index(h) + 1 < len(chain) else 0)
             put(pool, THING * i + 0x212, 'H', r.choice([v[0] | v[1] << 8, 0, 0x1234]))
+        for i in range(len(pool) // THING):
             put(pool, THING * i + 0x3c, 'H', 0)   # (the queues empty: a random one can loop for ever, and natively nothing stops it)
-            put(pool, THING * i + 0x228, 'H', 0)
+            put(pool, THING * i + 0x228, 'HH', 0, 0)
         regions[POOL] = pool
-        w.extend(r.bytes(0x10 + len(w) - len(w)))
+        put(v, 0x30 + 0x88, 'I', r.randrange(32))   # (the ring's place: Ring_PushUnique's writes)
+        w.extend(r.bytes(0x10))
         put(w, 0x44, 'H', chain[0] if chain else 0)
         set_return(log, 24, r.choice([0, 1]))
     regions[WORLD + 0x1da700] = w
