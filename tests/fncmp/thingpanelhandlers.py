@@ -47,7 +47,7 @@ def case(r):
     put(panels, 0x10, 'I', WINDOW)
     put(panels, 0x40, 'I', VT)
     regions = {LOG: log, WINDOW: put(bytearray(r.bytes(0x100)), 0x5c, 'I', KIDS), KIDS: kids, VT: vtable({5: 0, 7: 1}), 0x7cc258: panels, 0x7c2658: r.bytes(4)}
-    return Call(op, [RAM + 0x3000, message, a, b], regions)
+    return Call(op, [RAM + 0x3000, message, a, b], regions, ret='a')
 
 
 if __name__ == '__main__':

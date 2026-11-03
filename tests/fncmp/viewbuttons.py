@@ -40,7 +40,7 @@ def case(r):
     put(game, 0x14, 'I', OBJ14)
     regions = {LOG: log, WINDOW: window, SESSION: session, PARTS: parts, GAME: game, OBJ4: struct.pack('<I', VT), OBJC: struct.pack('<I', VT), OBJ10: struct.pack('<I', VT), OBJ14: struct.pack('<I', VT),
                VT: vtable({7: 0, 8: 0, 0x12: 0}), 0xf85614: struct.pack('<I', GAME), 0x7cdb0c: r.bytes(4)}
-    return Call(0x4c53f0, [WINDOW, message, a, b], regions)
+    return Call(0x4c53f0, [WINDOW, message, a, b], regions, ret='a')
 
 
 if __name__ == '__main__':
