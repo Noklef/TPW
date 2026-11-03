@@ -264,9 +264,11 @@ address,name,kind,confidence,notes
 0x0059a550,Advisor_Update,function,medium,Thing_Update case 11 (works on a global; skipped when DAT_00fb3b7c == 1)
 0x004c7370,ParkAnalyser_HandleMessage,function,high,"reimplemented (src/game/world/analyser); thiscall (message), pops 4: the analyser message handler"
 0x00503d40,ResearchLab_HandleMessage,function,high,"reimplemented (src/game/world/research); thiscall (message), pops 4: type 0x11 only: the project after the definition of the message's id (+8) added (ResearchProject_SetNextUpgrade), ResearchLab_UpdateLevels of its category (+0xc), message 12 posted (Object_PostMessage); with every project done: the current theme's mAllResearchCompleted set, and with the mode setting (0xfb3b7c, guard 0xfb34ac) 2, or 0 with every theme's set (StdTreeF_AllFlagged), advisor message 0xa7 posted and EndThing_Create"
-0x00512880,Weather_Update,function,medium,Thing_Update case 15
+0x00512880,Weather_Tick,function,low,"reimplemented (src/game/world/weather); thiscall; the due messages, the drops stepped, the bolts and thunder (name invented)"
 0x005127a0,Weather_HandleMessage,function,high,"reimplemented (src/game/world/weather); thiscall (message), pops 4: kind 1 sets the intensity (unless +0x64), kind 2 schedules +0x20 = now + days, +0x28 the value, +0x18 now"
 0x00512000,Weather_Detach,function,low,"reimplemented (src/game/world/weather); thiscall: Thing_Detach, then the renderer's ([0x8bcbac]) textures freed (WeatherFx_FreeTextures); returns 1"
+0x00512e10,Weather_NextIntensity,function,low,"reimplemented (src/game/world/weather); thiscall, the weather unused; the next intensity from the year's quarter's row of the table 0x7854c4 (name invented)"
+0x00511f70,Weather_Construct,function,low,reimplemented (src/game/world/weather); thiscall; the weather's constructor
 0x004d02d0,BankAccount_HandleMessage,function,high,"reimplemented (src/game/world/money); the money record's messages: 0xc the month's end, 0xd the total zeroed, 0x13 (2) the game lost (BankAccountEnv) or (0xa) the balance reset"
 0x0050ca50,UiObject_HandleMessage,function,low,"reimplemented (src/game/ui/uimessage); stdcall (message): its type picks what 0x7b51f0 is told (CheckOnline, RefreshResearch, PassThing, guest removed / added, staff)"
 0x004f7c50,Stub_Ret4b,function,high,reimplemented (src/game/core/accessors); a virtual that does nothing (pops 4)
