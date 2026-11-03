@@ -35,7 +35,7 @@ def case(r):
     regions[STATEW] = node(r, 0xe059, 0)
     regions[0x7cc944] = struct.pack('<I', r.choice([DIALOG] * 15 + [0]))
     n = r.choice([0, 1, 1, 2, 3])
-    count = r.choice([n, n, n, n, n + 1 if n else 0])
+    count = r.choice([n, n, n, n, n + 1, 0])
     reply = bytearray(r.bytes(0x10))
     put(reply, 4, 'I', NODES if n else 0)
     put(reply, 0xc, 'I', count)
