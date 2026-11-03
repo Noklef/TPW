@@ -523,6 +523,7 @@
 #include "../game/online/chatcommand.h"
 #include "../game/online/chatevents.h"
 #include "../game/online/chatcursor.h"
+#include "../game/online/chatlists.h"
 #include "../game/online/roomcounts.h"
 #include "../game/online/session.h"
 #include "../game/ui/dialog7ca1c8.h"
@@ -7080,6 +7081,11 @@ const Hook kHooks[] = {
     {"ChatCursor_MoveTo",         0x0046cf80, (void *)&ChatCursor_MoveTo, {0x51, 0x66, 0xa1, 0xcc, 0x05}},
     {"RoomCounts_ChatEvent",      0x004c4920, (void *)&RoomCounts_ChatEvent, {0x8b, 0x44, 0x24, 0x04, 0x83}},
     {"RoomCounts_Update",         0x004c4bb0, (void *)&RoomCounts_Update, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"ChatLists_SaveBuddies",     0x004ef010, (void *)&ChatLists_SaveBuddies, {0x6a, 0xff, 0x68, 0x85, 0xd5}},
+    {"ChatLists_LoadBuddies",     0x004ef3b0, (void *)&ChatLists_LoadBuddies, {0x6a, 0xff, 0x68, 0x0b, 0xd6}},
+    {"ChatLists_SaveIgnored",     0x004ef880, (void *)&ChatLists_SaveIgnored, {0x6a, 0xff, 0x68, 0x85, 0xd6}},
+    {"ChatLists_LoadIgnored",     0x004efc10, (void *)&ChatLists_LoadIgnored, {0x6a, 0xff, 0x68, 0x16, 0xd7}},
+    {"CRT_wcslen",                0x0067acd0, (void *)&CRT_wcslen, {0x8b, 0x4c, 0x24, 0x04, 0x66}},
     {"LobbyModel_SetPosition",    0x005d8190, (void *)&LobbyModel_SetPosition, {0x8b, 0x41, 0x04, 0x8b, 0x54}},
     {"LobbyModel_TurnY",          0x005d8380, (void *)&LobbyModel_TurnY, {0x8b, 0x49, 0x04, 0x8d, 0x44}},
     {"LobbyModel_SetScale",       0x005d83b0, (void *)&LobbyModel_SetScale, {0x83, 0xec, 0x0c, 0x8b, 0x44}},

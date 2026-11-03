@@ -309,6 +309,7 @@
 #include "../../src/game/world/worldstart.h"
 #include "../../src/game/gfx/moviestart.h"
 #include "../../src/game/core/dsoundsource.h"
+#include "../../src/game/online/chatlists.h"
 #include "../../src/game/world/worldupdate.h"
 #include "../../src/game/core/soundobjectslots.h"
 #include "../../src/game/world/mapreset.h"
@@ -1255,6 +1256,7 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
     u32 *log = reinterpret_cast<u32 *>((uintptr_t)kLog);
     u32 args[16];
     const u32 mask = log[0x280 + (k & 63)];
+    if (log[0x300 + (k & 63)] >> 31) self = 0;  // (fncmp.mask_this(): a method on a local object)
     u32 earlier = 0;  // (this slot's calls in the log so far: fncmp.fail_after(), a fill's records)
     for (u32 i = 0; i < log[0] && i < 40; ++i) earlier += log[1 + 12 * i] == k;
     // Answers by name at + 0x1400 (fncmp.named()): (k | 0x80000000, the name argument | (an offset + 1) << 8, the out argument + 1 | a length (0-8)
@@ -2248,6 +2250,10 @@ int main(int argc, char **argv) {
     MovieStart_SetEnv(&movieStartEnv);
     static const DSoundSourceEnv dSoundSourceEnv = {Rec{jpeg_recorder(17, 3)}, Rec{kStubs + 0x5000 + 0x800 * 5 + 0x20 * 60}, Rec{kStubs + 0x5000 + 0x800 * 4 + 0x20 * 61}, Rec{recorder(21, 1)}, Rec{recorder(18, 0)}};
     DSoundSource_SetEnv(&dSoundSourceEnv);
+    static const ChatListsEnv chatListsEnv = {Rec{recorder(8, 0)}, Rec{kStubs + 0x5000 + 0x800 * 1 + 0x20 * 40}, Rec{jpeg_recorder(12, 3)}, Rec{recorder(14, 4)}, Rec{recorder(14, 3)}, Rec{recorder(0, 1)}, Rec{recorder(1, 2)}, Rec{recorder(3, 2)}, Rec{recorder(26, 0)}, Rec{recorder(4, 0)},
+                                              Rec{recorder(2, 2)}, Rec{recorder(15, 2)}, Rec{recorder(9, 0)}, Rec{recorder(5, 0)}, Rec{recorder(6, 0)}, Rec{recorder(7, 0)}, Rec{jpeg_recorder(13, 1)}, Rec{jpeg_recorder(18, 2)}, Rec{jpeg_recorder(18, 3)}, Rec{jpeg_recorder(19, 2)},
+                                              Rec{recorder(16, 1)}, Rec{jpeg_recorder(19, 3)}, Rec{recorder(17, 0)}, Rec{recorder(21, 1)}, Rec{recorder(20, 3)}, Rec{recorder(22, 2)}, Rec{recorder(23, 2)}, Rec{recorder(24, 2)}, Rec{recorder(25, 1)}};
+    ChatLists_SetEnv(&chatListsEnv);
     static const SoundObjectSlotsEnv soundObjectSlotsEnv = {Rec{recorder(20, 3)}, Rec{recorder(21, 2)}, Rec{recorder(22, 3)}, Rec{recorder(23, 2)}, Rec{recorder(24, 2)}};
     SoundObjectSlots_SetEnv(&soundObjectSlotsEnv);
     static const MapResetEnv mapResetEnv = {Rec{recorder(1, 1)}, Rec{recorder(2, 0)}};

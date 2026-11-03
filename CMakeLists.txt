@@ -508,6 +508,7 @@ add_library(tpw_game STATIC
     src/game/online/chatevents.cpp
     src/game/online/chatcursor.cpp
     src/game/online/roomcounts.cpp
+    src/game/online/chatlists.cpp
     src/game/frontend/lobbymodel.cpp
     src/game/frontend/helpbg.cpp
     src/game/frontend/islandcamera.cpp
