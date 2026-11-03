@@ -605,6 +605,7 @@
 #include "../game/ui/gamewindowinput.h"
 #include "../game/ui/guifont.h"
 #include "../game/ui/guiframe.h"
+#include "../game/ui/guimessagefx.h"
 #include "../game/ui/guinamed.h"
 #include "../game/ui/guisettings.h"
 #include "../game/ui/guistartup.h"
@@ -8038,6 +8039,7 @@ const Hook kHooks[] = {
     {"Window705a20_Handler",      0x0066857d, (void *)&Window705a20_Handler, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Window705a50_StateWord",    0x00668abd, (void *)&Window705a50_StateWord, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window705a50_Handler",      0x00668f9c, (void *)&Window705a50_Handler, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"GuiMessageFx_Handler",      0x00485780, (void *)&GuiMessageFx_Handler, {0x6a, 0xff, 0x68, 0x78, 0x91}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},

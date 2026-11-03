@@ -14,7 +14,7 @@ WORLD, HOLDER, TICKS = RAM + 0x100, RAM + 0x200, RAM + 0x300
 
 def case(r):
     log = log_region()
-    ticks = r.deal([0, 100, 200, 99, 101, 1000, 0xffffffff, 0xfffffff0, r.getrandbits(32)])
+    ticks = r.deal([0, 100, 200, 50, 99, 101, 1000, 0xffffffff, 0xffffff9c, r.getrandbits(32)])
     regions = {LOG: log, 0x7cf6ec: struct.pack('<I', HOLDER), HOLDER: struct.pack('<I', TICKS - 0x1da70c & 0xffffffff), TICKS: struct.pack('<I', ticks)}
     return Call(r.deal([0x4d7af0, 0x4d7b20, 0x4d7b20]), [WORLD], regions, conv='t', ret='v')
 
