@@ -5,7 +5,37 @@
 #include "../../../re/types.h"
 #include "../files/file.h"
 
+// What the weather's constructor and tick call outside it, so that they can run outside the game (the benches point it at recorders).
+struct WeatherEnv {
+    u32(__fastcall *post)(u8 *centre, void *, u8 *msg);   // 0x40fb10, MessageCentre_Post
+    u32(__fastcall *reloadTextures)(u8 *fx);              // 0x57d850, WeatherFx_ReloadTextures
+    // 0x580320 (agent B's, unported): a lightning bolt on the renderer: its start and end by value (the bits as the original copies them), [0x785524], 1.
+    void(__fastcall *strike)(u8 *fx, void *, u32, u32, u32, u32, u32, u32, u32, u32);
+    void(__cdecl *ambientLevel)(s32 level);               // 0x51e830, Sound_SetAmbientLevel
+};
+
 extern "C" {
+// The constructor's and tick's calls go to env (nullptr: the game's).
+void Weather_SetEnv(const WeatherEnv *env);
+
+// 0x512e10 (thiscall, the weather unused; name invented): the next intensity, from the row of the year's quarter (FunnyTime_Quarter on [0x7cf83c] + 0x2a0,
+// asked each time it is needed) in the table 0x7854c4 (base, spread, percent): with a world random number % 100 under the percent (unsigned), another % 100;
+// else with a spread above 0 a random number % (spread * 2) - spread + base; else the base.
+u32 __fastcall Weather_NextIntensity(u8 *weather);
+
+// 0x511f70 (thiscall; the constructor): the thing constructor (Thing_Construct, cell 1, kind 0xf; the cell the original pushes has this's high address bits
+// above the 1: Thing_Construct takes 16 bits), +0x10-+0x24 and the byte +0x2c 0, added to the message centre's slots 1 and 2, +0xc = Weather_NextIntensity,
+// the bytes +0x64, +0x38 and +0x30, +0x34, +0x3c, +0x40, +0x44, +0x54 0, +0x5c = 90.0, +0x60 = 0.5, the renderer's ([0x8bcbac]) textures reloaded. Returns weather.
+u8 *__fastcall Weather_Construct(u8 *weather);
+
+// 0x512880 (thiscall; name invented): the weather's tick. A due message (byte +0x2c set, the funny time now past +0x20): message 1 of +0x28 posted, +0x2c
+// cleared. With none waiting, the funny time now past +0x10 + the days [0x7854fc] - [0x7854f8] (0 when that is negative): message 2 of [0x7854f8] and
+// Weather_NextIntensity posted. The drops (+0x34 not negative): at least the step [0x785500] from it (signed), +0x30 stepped toward +0x34, the drop count
+// +0x30 cut to 0..[0x785530] (WeatherFx_SetDropCount), Sound_SetAmbientLevel(+0x30 * 100 / [0x785530], signed); else with +0x34 = 0, Weather_SetMode 2 and the
+// level 0. The bolts (byte +0x38 set, else +0x40 = 0): +0x3c less [0x78551c]; when negative, a bolt (Weather_RandomBolt, env's strike); with +0x44 not above 0,
+// +0x44 = a random number % [0x78552c] + ([0x785528] - +0x40, at least 0) and +0x48 = the bolt's end; +0x40 stepped, +0x3c = a random number % [0x785520]. +0x44
+// stepped down: at 0 the thunder at +0x48 (Sound_PlayAt(0, [0x803a20], 0x20, each __ftol'd)). The debug prints left out. Its divisors as they are.
+void __fastcall Weather_Update(u8 *weather);
 
 // 0x512010 (thiscall; stream, save, version, unused): the thing (Thing_Serialize; 1 if it fails), then saved or loaded as a serializer does
 // (Save_Field; the load path partly through the readers): +0xc (4), +0x10 (8), +0x18 (8), the forecast (Forecast_Serialize; 1 if it

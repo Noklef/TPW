@@ -184,6 +184,9 @@ address,name,kind,confidence,notes
 0x004f8730,FunnyTime_SpanOf,function,low,"reimplemented (src/game/core/funnytime); thiscall (out, ticks): the funny time span of quarter seconds at the clock's rate"
 0x004f8800,FunnyTime_Elapsed,function,low,reimplemented (src/game/core/funnytime); thiscall (out): the funny time now less its start
 0x004f88b0,FunnyTime_SpanSince,function,low,"reimplemented (src/game/core/funnytime); thiscall (out, ticks): the funny time span of the world's ticks since ticks"
+0x004f8770,FunnyTime_Quarter,function,low,reimplemented (src/game/core/funnytime); thiscall; the month of the funny time now / 3 (name invented)
+0x004f85a0,FunnyTime_SyncMonthYear,function,low,"reimplemented (src/game/core/funnytime); thiscall; +0x10 = the month now - 1, +0x18 = the year now (name invented)"
+0x004f8260,FunnyTime_Update,function,low,"reimplemented (src/game/core/funnytime); thiscall; the clock's tick: the date globals 0x7ced58, messages 0xb, 0xc, 0xd for a new day, month, year (name invented)"
 0x004cf050,ParkGates_Serialize,function,high,"reimplemented (src/game/world/parkgates); thiscall (stream, save, version, unused): mArrivalRate, the time stamp +4 (TimeSig_Serialize), mTargetVehicleCapacity, mPeopleOnBus, mOffloading, mGatesOpen saved or loaded"
 0x004d3aa0,ObjectControls_Serialize,function,high,"reimplemented (src/game/world/objectdefs); thiscall (stream, save, version, unused): the 0x96 object control records, their count and the search key saved or loaded; a full load clears the key and +0x12c8"
 0x004d7ea0,Map_Serialize,function,high,"reimplemented (src/game/world/mapcell); thiscall (stream, save, version, unused), pops 0x10: the 0x4000 map, track and RE cells saved or loaded, each with a status byte (bits: map, track, RE); loading clears the block values at +0x1b0000"
@@ -235,8 +238,8 @@ address,name,kind,confidence,notes
 0x0050b360,Thing_Update,function,high,per-tick dispatch on Thing.model (byte +2); most models call an Update and a PostUpdate method
 0x0050b550,Thing_HandleMessage,function,high,"reimplemented (src/game/world/things); thiscall (message), pops 4: the message handed to the handler of the thing's model (+2, 1 to 0x13; ThingMessageEnv), model 2 and others none"
 0x0050b6a0,Thing_SetPos,function,high,reimplemented (src/game/world/things); a thing's move between cells
-0x00501650,Visitor_Update,function,medium,Thing_Update case 1 (first call)
-0x005019f0,Visitor_PostUpdate,function,medium,Thing_Update case 1 (second call)
+0x00501650,Visitor_Update,function,medium,"reimplemented (src/game/world/visitorsteps); thiscall; Thing_Update case 1, first call: the visitor's moods on its quarter of the clock"
+0x005019f0,Visitor_PostUpdate,function,medium,"reimplemented (src/game/world/visitorsteps); thiscall; Thing_Update case 1, second call: the step of the state +0x220"
 0x004fb360,Visitor_HandleMessage,function,high,"reimplemented (src/game/world/person); thiscall (message), pops 4; Thing_HandleMessage's case 1: the object's type 0xa message"
 0x004e0b90,Object_Update,function,medium,Thing_Update case 3 (first call)
 0x004e0e00,Object_PostUpdate,function,medium,Thing_Update case 3 (second call)
@@ -260,17 +263,17 @@ address,name,kind,confidence,notes
 0x004d63d0,Guard_PickWork,function,low,"reimplemented (src/game/world/staffthink); a guard's next work, patrol or wander: name invented, unconfirmed"
 0x004d5fb0,Guard_HandleMessage,function,high,"reimplemented (src/game/world/staff); kind 7's messages: type 0x1b naming +0x212 clears it, then Staff_HandleMessage"
 0x00502960,Researcher_Update,function,medium,Thing_Update case 8 (first call)
-0x005029f0,Researcher_PostUpdate,function,medium,Thing_Update case 8 (second call)
 0x00508a30,StaffHQ_HandleMessage,function,high,"reimplemented (src/game/world/staff); thiscall (message), pops 4: the staff HQ's message by type (vtable slot 0): 0xc StaffAdvice_Tick; 0xe, when the RE cell (Map_RECell) of the cell of the message's thing (+8) has word +6 above 0, the nearest free guard (Guard_NearestFree) gets agent C's 0x4d6260 (handle, its high word the message pointer's, sic) through StaffAdviceEnv; others nothing"
 0x004dadc0,MechanicHQ_HandleMessage,function,high,"reimplemented (src/game/world/headquarters); thiscall (event): a kind-7 event's mechanic (+8) looked up along the HQs' chain from the world's +0x1da73e; the advisor message 0x44, 0x45 or 0x46 posted, or nothing"
 0x0059b060,Advisor_HandleMessage,function,high,"reimplemented (src/game/world/advisor); thiscall (event), pops 4: the event by its code (slot 0) posted as an advisor message, handed to HandleCode or PostKindEvent"
 0x0059a550,Advisor_Update,function,medium,Thing_Update case 11 (works on a global; skipped when DAT_00fb3b7c == 1)
-0x00509bf0,TagSystem_HandleMessage,function,high,Thing_HandleMessage case 12
 0x004c7370,ParkAnalyser_HandleMessage,function,high,"reimplemented (src/game/world/analyser); thiscall (message), pops 4: the analyser message handler"
 0x00503d40,ResearchLab_HandleMessage,function,high,"reimplemented (src/game/world/research); thiscall (message), pops 4: type 0x11 only: the project after the definition of the message's id (+8) added (ResearchProject_SetNextUpgrade), ResearchLab_UpdateLevels of its category (+0xc), message 12 posted (Object_PostMessage); with every project done: the current theme's mAllResearchCompleted set, and with the mode setting (0xfb3b7c, guard 0xfb34ac) 2, or 0 with every theme's set (StdTreeF_AllFlagged), advisor message 0xa7 posted and EndThing_Create"
-0x00512880,Weather_Update,function,medium,Thing_Update case 15
+0x00512880,Weather_Update,function,low,"reimplemented (src/game/world/weather); thiscall; the due messages, the drops stepped, the bolts and thunder"
 0x005127a0,Weather_HandleMessage,function,high,"reimplemented (src/game/world/weather); thiscall (message), pops 4: kind 1 sets the intensity (unless +0x64), kind 2 schedules +0x20 = now + days, +0x28 the value, +0x18 now"
 0x00512000,Weather_Detach,function,low,"reimplemented (src/game/world/weather); thiscall: Thing_Detach, then the renderer's ([0x8bcbac]) textures freed (WeatherFx_FreeTextures); returns 1"
+0x00512e10,Weather_NextIntensity,function,low,"reimplemented (src/game/world/weather); thiscall, the weather unused; the next intensity from the year's quarter's row of the table 0x7854c4 (name invented)"
+0x00511f70,Weather_Construct,function,low,reimplemented (src/game/world/weather); thiscall; the weather's constructor
 0x004d02d0,BankAccount_HandleMessage,function,high,"reimplemented (src/game/world/money); the money record's messages: 0xc the month's end, 0xd the total zeroed, 0x13 (2) the game lost (BankAccountEnv) or (0xa) the balance reset"
 0x0050ca50,UiObject_HandleMessage,function,low,"reimplemented (src/game/ui/uimessage); stdcall (message): its type picks what 0x7b51f0 is told (CheckOnline, RefreshResearch, PassThing, guest removed / added, staff)"
 0x004f7c50,Stub_Ret4b,function,high,reimplemented (src/game/core/accessors); a virtual that does nothing (pops 4)
@@ -1019,6 +1022,7 @@ address,name,kind,confidence,notes
 0x00504140,ResearchLab_FlagOff,function,low,"reimplemented (src/game/world/research); thiscall: the flag +0x1468 cleared from set, then a message 13 of 6 posted"
 0x005041f0,ResearchLab_SyncFlag,function,low,"reimplemented (src/game/world/research); thiscall: FlagOn when the game object's word +0x1da742 is set, else FlagOff"
 0x00504630,ResearchProject_AddResearch,function,low,"reimplemented (src/game/world/research); thiscall (amount float): a project not done gets amount added; done now: its control record +0x10 1, +0x14 the level; message 0x11 posted"
+0x00503430,ResearchLab_Spend,function,low,"reimplemented (src/game/world/research); thiscall (amount), pops 4; the amount shared out over the groups' current projects by their outputs (name invented)"
 0x005100e0,Nav_SetPosVel,function,high,"reimplemented (src/game/world/nav); thiscall (x, y, vx, vy): pos (+8) and vel (+0x10) set"
 0x00510160,Nav_GetPos,function,high,"reimplemented (src/game/world/nav); thiscall (&x, &y): pos (+8, +0xc) read"
 0x0051aad0,World_ArrivalVehicleNotSize1,function,high,reimplemented (src/game/world/world); thiscall: 1 when mCurrentArrivalVehicle (+0x1da72a) is set and is not mArrivalVehicle_Size1 (+0x1da72c)
@@ -3091,6 +3095,7 @@ address,name,kind,confidence,notes
 0x006d4ec0,SubStream_Rewind,function,low,reimplemented (src/game/files/substream); thiscall: the position 0 and the stream sought to the start; returns its answer
 0x00412bc0,FontFiles_Destroy,function,low,"reimplemented (src/game/files/fontfiles); atexit destructor of the added font files' vector at 0x789c1c: each 0x14-byte String told slot 0xc with 0, the block freed, begin/end/capacity cleared"
 0x006c7960,SubStream_Dtor,function,low,"reimplemented (src/game/files/substream); the window's destructor (its semaphore, then its stream)"
+0x006c7940,SubStream_DeletingDtor,function,low,"reimplemented (src/game/files/substream); SubStream_Dtor, then the block freed by the flags' bit 0"
 0x006ad130,ResFolder_Ctor,function,low,"reimplemented (src/game/files/resindex); The resource folder's constructor: the folder handle constructed, the index and open flag cleared"
 0x006ad160,ResFolder_Dtor,function,low,"reimplemented (src/game/files/resindex); The resource folder's destructor: closed, the folder handle destroyed"
 0x006ad1b0,ResFolder_Open,function,low,reimplemented (src/game/files/resindex); The resource folder opened on a path as a folder handle once (Handle_Open28)
@@ -3767,6 +3772,9 @@ address,name,kind,confidence,notes
 0x00501db0,Visitor_SetState,function,low,"reimplemented (src/game/world/person); thiscall (state), pops 4: the state stored at +0x220, then by state the reference +0xc's +4 (1 or 3) and the state's own work (see person.h)"
 0x004feb50,Visitor_Arrive,function,low,"reimplemented (src/game/world/person); thiscall (cell), pops 4; placed at the cell, script, sound, walks to the crossing's park side or deleted"
 0x004f9490,Person_SetRandomDest,function,low,"reimplemented (src/game/world/person); thiscall on a person; its next random destination: a walk of up to 5 cells along the side neighbours (staff within their patrol region), a point in the last; no neighbours: the cells about it of type 1 and 5 tries within 5; 1 / the route's answer, else 0 (name from its debug strings)"
+0x00501390,Visitor_QueueEdited,function,low,"reimplemented (src/game/world/person); thiscall; its place in the queue at least 4 * the object's +0x40 and state not 0xe: off the queue, sent away, state 6 (name from its debug print, unconfirmed)"
+0x004fe1a0,Visitor_PayObject,function,low,"reimplemented (src/game/world/person); A visitor pays an object's price, with the sound"
+0x004fd970,Visitor_VisitObject,function,low,"reimplemented (src/game/world/person); A visitor at an object: its history, the payment, the use, the analyser's rings and the thought"
 0x00550d80,Setting_SetMode,function,high,reimplemented (src/game/core/options); stores a mode and sets its flag bits
 0x005633e0,Quad_Push,function,high,reimplemented (src/game/core/seqs); pushes four dwords into the next of four slots
 0x0059c390,Table76e300_GetObjectDword,function,high,reimplemented (src/game/world/objectdefs); a dword of the object indexed through a record of the table
@@ -3848,6 +3856,10 @@ address,name,kind,confidence,notes
 0x004de1f0,Object_PathChanged,function,low,"reimplemented (src/game/world/object); thiscall; the path at the object changed: the queue's back found anew, its block value the next count, the queue's persons but +0x6c told (env 0x501390), closed when it can be, +0x5e cleared"
 0x004df8f0,Object_MechanicDone,function,low,"reimplemented (src/game/world/object); thiscall (mechanic's handle, unused), pops 4: the object after a mechanic's visit: state 2 an upgrade (level up, script, cost and the level's capacity, price and word); else the strip shrunk; then closed and restarted for a coaster"
 0x004dd6d0,Object_Field48AsInt,function,low,"reimplemented (src/game/world/object); thiscall; name invented, unconfirmed: the float at +0x48 through __ftol, the low half"
+0x004e15b0,Object_FollowCamera,function,low,"reimplemented (src/game/world/object); thiscall (arg), pops 4; the camera follows what rides the object (name invented)"
+0x004e16b0,Object_TakePayment,function,low,"reimplemented (src/game/world/object); A visitor's payment to an object: the money, the object's sums, the park's sums and the slots"
+0x004e1410,Object_ArriveWaiting,function,low,reimplemented (src/game/world/object); the visitor in the ride record's element 1 comes to the object
+0x004e14e0,Object_BeginCycle,function,low,"reimplemented (src/game/world/object); thiscall; the queue's head called, then the waiting visitor or the strip animation and state by +0x48 (name invented)"
 0x005d46d0,Blocks7_Free,function,high,reimplemented (src/game/core/buffers); frees the seven blocks of an object and clears its groups
 0x00424cc0,Names_FirstAfter,function,high,"reimplemented (src/game/core/string); whether the first name is after the second, case blind"
 0x00424cf0,Names_Equal,function,high,"reimplemented (src/game/core/string); whether two names are equal, case blind"
@@ -4230,6 +4242,13 @@ address,name,kind,confidence,notes
 0x004d5eb0,Guard_Detach,function,low,"reimplemented (src/game/world/staff); thiscall; Thing_Delete's kind 7: out of the list at +0x1da744, spread record 3 taken back, in state 0x12 the visitor of +0x212 let go on the guard's cell (Visitor_Arrive), Staff_Detach"
 0x004d65d0,Guard_SetState,function,low,"reimplemented (src/game/world/staff); the guard's state set: per state the word +0xc2, the carried visitor let go, the word +0x214"
 0x004cd340,Staff_MarkPatrolCells,function,low,"reimplemented (src/game/world/staff); stdcall (kind); name invented, unconfirmed: the map's cell flags cleared, then set over the patrol regions of the things of that kind"
+0x005056e0,Staff_ModelState,function,low,"reimplemented (src/game/world/staff); A staff kind's state step: state 4 the walk and the thought 0x15, 5 Staff_HeadForEntrance, 6 a wait of 3 * the grade's value"
+0x00506a40,Staff_CheckMood,function,low,"reimplemented (src/game/world/staff); Goes on strike, or to a rest area when tired, or thinks about its happiness; 1 when it has set off"
+0x00502c70,Researcher_Idle,function,low,"reimplemented (src/game/world/staff); A researcher with nothing on: its mood, a random walk or work"
+0x005061d0,Staff_RestInArea,function,low,"reimplemented (src/game/world/staff); one tick in a rest area: the levels gain, then leave and go idle by kind"
+0x005029f0,Researcher_PostUpdate,function,low,reimplemented (src/game/world/staff); a researcher's state step
+0x00502600,Researcher_Ctor,function,low,"reimplemented (src/game/world/staff); thiscall (cell, type, sprite, name), pops 0x10; the researcher's constructor: kind 8, its name, on the world's chain, the script started, idle, the lab's flag synced (name invented)"
+0x00505ea0,Staff_PlaceInCell,function,low,"reimplemented (src/game/world/staff); thiscall (cell), pops 4; placed at the cell's centre, then a mechanic's idle or state 0 (name invented)"
 0x00520d60,FreeList_Take,function,high,reimplemented (src/game/core/voices); takes a record off the free list into a table entry
 0x00521890,FreeList_Return,function,high,reimplemented (src/game/core/voices); puts a record back on the free list
 0x00521d60,Voice_ScaleLevels,function,high,reimplemented (src/game/core/voices); scales a voice's levels by the factor over 1024
@@ -4330,6 +4349,10 @@ address,name,kind,confidence,notes
 0x006c0ba0,StdMapH_ClearAt,function,low,"reimplemented (src/game/core/stdtree); thiscall (key), pops 4: for a key from 1 to below the size (unsigned), map[key] (inserted when missing) set to the empty text 0x786de4 through its String's vtable +0x14"
 0x006beda0,StdTree_DtorJ,function,low,"reimplemented (src/game/core/stdtree); thiscall: tree J's destructor (counter 0xfb2004, nil 0xfb2000), as StdTree_DtorH (name invented)"
 0x006c1240,StdMapH_Ctor,function,low,"reimplemented (src/game/core/stdtree); thiscall (&comp, multi, &alloc), pops 12: H's map constructor: +0 the alloc byte, +8 the multi byte, +1 the comp byte, then StdTree_CtorH; returns the map (name invented)"
+0x004f41d0,StdTree_InsertC,function,low,reimplemented (src/game/core/stdtree); the buddy set's node insert
+0x004f5130,StdTree_InsertE,function,low,reimplemented (src/game/core/stdtree); the ignore set's node insert
+0x004f2440,StdMapC_Insert,function,low,reimplemented (src/game/core/stdtree); the buddy set's insert
+0x004f2c00,StdMapE_Insert,function,low,reimplemented (src/game/core/stdtree); the ignore set's insert
 0x00617f40,Class7037b8_Dtor,function,high,reimplemented (src/game/core/vdtor); frees the list of blocks
 0x005d48d0,Panel_Reset,function,high,reimplemented (src/game/gfx/imageops); fills the panel image and blends the six parts onto it
 0x00576620,Grid_AddObject,function,high,reimplemented (src/game/render/renderer); adds an object to every list in a rectangle of the grid
@@ -4407,6 +4430,8 @@ address,name,kind,confidence,notes
 0x004f03c0,ChatIgnoreSet_Find,function,low,"reimplemented (src/game/core/wstringmap); thiscall (out, key), pops 8; find over the 0x7ced34 set: the lower bound unless the head or the key sorts before it (name invented)"
 0x004f2770,ChatBuddySet_Find,function,low,"reimplemented (src/game/core/wstringmap); thiscall (out, key), pops 8; find over the 0x7ced2c set: the lower bound unless the head or the key sorts before it (name invented)"
 0x004f4050,ChatBuddySet_LowerBoundOut,function,low,"reimplemented (src/game/core/wstringmap); thiscall on the chat's buddy set (out, key), pops 8; *out = ChatBuddySet_LowerBound(key); returns out (name invented)"
+0x004f6870,ChatBuddySet_UpperBound,function,low,"reimplemented (src/game/core/wstringmap); thiscall (key), pops 4; the buddy set's upper bound (name invented)"
+0x004f2700,ChatBuddySet_EraseKey,function,low,"reimplemented (src/game/core/wstringmap); thiscall (key), RET 4: the buddy set's entries of key erased; returns how many (name invented, unconfirmed)"
 0x004de130,Object_BackOfQueue,function,high,reimplemented (src/game/world/objectmsg); the back of a queue found by walking neighbours
 0x0041e270,Class6fda58_DtorA,function,high,"reimplemented (src/game/core/class6fd9d8); complete destructor, handle at +0x40"
 0x0041e2d0,Class6fda58_DtorB,function,high,"reimplemented (src/game/core/class6fd9d8); complete destructor, handle at +0x40"
@@ -4629,6 +4654,11 @@ address,name,kind,confidence,notes
 0x004f0250,WStdString_CtorCopy,function,low,"reimplemented (src/game/core/stdwstring); thiscall (x), pops 4; the second wide string copy's basic_string(const wstring &): allocator byte, empty, assign(x, 0, npos)"
 0x004f7720,WStdString_Compare,function,low,"reimplemented (src/game/core/stdwstring); thiscall (x), pops 4; compare(x) without case (_wcsnicmp), then the lengths"
 0x004f7900,WStdString_CompareSub,function,low,"reimplemented (src/game/core/stdwstring); thiscall (pos, n, chars, count), pops 16; compare(pos, n, chars, count) without case (_wcsnicmp), then the lengths"
+0x004f72d0,WStdString_CtorCopyB,function,low,"reimplemented (src/game/core/stdwstring); copy constructor, the ignore set's value"
+0x004f72b0,WStdString_Construct,function,low,reimplemented (src/game/core/stdwstring); construct unless null
+0x004f74a0,WStdStringWord_CtorCopy,function,low,reimplemented (src/game/core/stdwstring); the buddy set's value: a string and a word
+0x004f7290,WStdStringWord_Construct,function,low,reimplemented (src/game/core/stdwstring); construct unless null
+0x004ea0e0,WStdString_CtorCopyC,function,low,"reimplemented (src/game/core/stdwstring); thiscall (x), RET 4: copy constructor, 0x4f0250 inlined once more (name invented, unconfirmed)"
 0x00405b90,GameError_IndexOfCode,function,low,reimplemented (src/game/core/gameerror); the error index of a library code
 0x00405710,GameError_Set,function,low,"reimplemented (src/game/core/gameerror); thiscall (index, arg, text), pops 12: +4 index, +8 arg, text strncpy into +0xc (0x50), +0 = 1"
 0x004ea740,CountedPair_CtorWide,function,low,"reimplemented (src/game/core/countedpair); thiscall (std::wstring by value, pops 16): the 0x24-byte pair of a narrow and a wide string and a dword: the narrow one empty, the wide one assigned the string, the dword 0; the string destroyed"
@@ -4639,6 +4669,9 @@ address,name,kind,confidence,notes
 0x004f67f0,CountedPair_UninitFill,function,high,"reimplemented (src/game/core/countedpair); stdcall (to, n, x, pops 12): _Ufill for pairs: n copies of x constructed from to on, null slots skipped"
 0x004f7410,CountedPair_Construct,function,high,"reimplemented (src/game/core/countedpair); cdecl (p, x): construct(p, x): x copy-constructed at p unless p is null"
 0x004f6e70,CountedPairVector_Construct,function,high,"reimplemented (src/game/core/countedpair); cdecl (v, x): construct(v, x) for a vector of pairs: the allocator byte, a block of x's size, x's pairs copy-constructed, last = end past them"
+0x004f7030,CountedPair_CopyBackward,function,low,reimplemented (src/game/core/countedpair); copy_backward over pairs
+0x004f6ef0,CountedPair_FillRange,function,low,reimplemented (src/game/core/countedpair); fill over pairs
+0x004f34a0,CountedPairVector_Insert,function,low,"reimplemented (src/game/core/countedpair); insert(where, x) of a vector of pairs"
 0x004e54c0,StringMapsRecord_Dtor,function,high,"reimplemented (src/game/core/stringmapsrecord); thiscall: the string maps record's destructor: the list at +0x54 erased and its sentinel freed, the maps at +0x40 / +0x30 / +0x20 (kinds E, C, D) destroyed, the wide strings at +0x10 and +0 tidied"
 0x004f0010,StringMapsRecord_Ctor,function,low,"reimplemented (src/game/core/stringmapsrecord); thiscall: the record constructor: two empty strings, maps D, C, E, the list sentinel; the allocator bytes from uninitialised stack (sic) written 0"
 0x0040f000,CommandLine_Parse,function,low,"reimplemented (src/game/core/cmdline); cdecl (argc, argv): the switches v/version (0), flmouse, bwcursor and the skipped ones; the park file with the extension into 0x788164, else GameError_Set(2); 1 without an error"
@@ -4784,6 +4817,7 @@ address,name,kind,confidence,notes
 0x006b65e0,SoundMixer_CallVoice9,function,low,"reimplemented (src/game/core/soundmixer); thiscall (id, value), pops 8: the voice for the id (SoundMixer_FindVoice): none 0; else its slot 9 (an out that is the id's own stack slot, value): the id when the status it points to is not negative, else 0 (name invented)"
 0x006b6c30,SoundMixer_Save,function,low,"reimplemented (src/game/core/soundmixer); the mixer's saved voices (size and count patched in after the names, the pages' count and each active voice's id and record)"
 0x006b6da0,SoundMixer_Load,function,low,"reimplemented (src/game/core/soundmixer); the mixer's voices loaded back (the active ones retired; the names, pages and each record onto its free voice by id and type)"
+0x006b71a0,VoicePage_DeletingDtor,function,low,"reimplemented (src/game/core/soundmixer); thiscall (flags), pops 4; the vtable 0x70a2d8, freed for bit 0; returns it (name invented)"
 0x006b8b40,SoundChannel_Apply,function,low,"reimplemented (src/game/core/soundchannel); thiscall (out, functor), pops 8: the functor's slot 0 (out, channel); returns out"
 0x006b7d70,SoundChannel_GetSettings,function,low,"reimplemented (src/game/core/soundchannel); thiscall (out, settings), pops 8: fills a settings record from the channel per its asked-for flags (+4, +8): the info at +0x14, the source at +0x18 (slots 0x13, 3), the EAX buffer at +0x20 (EaxBuffer_QueryAll), [0xfb2058]; the filled flags at +0x4c; *out = 0; returns out"
 0x006b5e40,SoundChannelFn70a260_Run,function,low,"reimplemented (src/game/core/soundchannel); the stack functor 0x70a260's run on a channel: its source's slot 1, then the out zeroed"
@@ -4831,6 +4865,9 @@ address,name,kind,confidence,notes
 0x006b9c00,SoundChannel_Dtor,function,low,"reimplemented (src/game/core/soundchannel); thiscall: vtable 0x70a5d8, the string +0x30 destroyed (String_Dtor), SoundSample70a548_Dtor (name invented)"
 0x006c5be0,SoundChannelEax_Dtor,function,low,"reimplemented (src/game/core/soundchannel); the EAX channel's destructor: its records (+0x68) freed and cleared, then SoundChannel_Dtor"
 0x006ba200,SoundChannelEax_DeletingDtor,function,low,"reimplemented (src/game/core/soundchannel); slot 2 of 0x70a630: SoundChannelEax_Dtor, then freed with flag bit 0; returns the channel"
+0x006b7f00,SoundChannel_RunSlot1,function,low,"reimplemented (src/game/core/soundchannel); thiscall (out, functor), pops 8; slot 4 of 0x70a5d8: the functor's slot 1 (out, the channel); returns out (name invented)"
+0x006b9be0,SoundChannel_DeletingDtor,function,low,"reimplemented (src/game/core/soundchannel); SoundChannel_Dtor, then the block freed by the flags' bit 0"
+0x006c5690,SoundUpdate_Apply,function,low,"reimplemented (src/game/core/soundchannel); thiscall (out, channel, id), pops 12; a channel update's record applied to a voice by its flags (name invented)"
 0x006b85f0,SoundObject_Broadcast,function,low,"reimplemented (src/game/core/soundobject); thiscall (out), pops 4: the mixer's active voices run (ForEachActive 0), then the channel's slot 4 with a stack functor 0x70a5b0; *out = -1 without a channel; returns out"
 0x006b8640,SoundObject_BroadcastValue,function,low,"reimplemented (src/game/core/soundobject); thiscall (out, value), pops 8: with a channel flagged 0x400 the mixer's ForEachActive (value), else SoundObject_Broadcast; *out = 0; returns out"
 0x006b8b00,SoundObject_VoiceInfo,function,low,"reimplemented (src/game/core/soundobject); thiscall (out, id, result), pops 0xc: the mixer's voice for the id; its +0xc's +8 into *result and *out = 0, else *out = -1; returns out"
@@ -4855,6 +4892,7 @@ address,name,kind,confidence,notes
 0x006ba150,SoundObject_Load,function,low,"reimplemented (src/game/core/soundobject); three dwords read and dropped, then its mixer's voices (SoundMixer_Load with the restore flag)"
 0x006b8410,SoundObject_CreateChannel,function,low,"reimplemented (src/game/core/soundobject); slot 7 of 0x70a590: +0x24 = a new SoundChannel (null when the heap fails), returned"
 0x006b9db0,SoundObjectEax_CreateChannel,function,low,"reimplemented (src/game/core/soundobject); slot 7 of 0x70a2a8: +0x24 = a new EAX channel (vtable 0x70a630, records +0x68 / +0x6c 0; null when the heap fails), returned"
+0x006b8990,SoundObject_CallVoice9,function,low,"reimplemented (src/game/core/soundobject); thiscall (id, value), pops 8; 0 for no id, else SoundMixer_CallVoice9 of the mixer +0x20 (name invented)"
 0x006b7150,SoundVoice_EnsureParams,function,low,"reimplemented (src/game/core/soundvoice); thiscall: with no block at +0x4c, a 0x20-byte one (Mem_Alloc; the byte and +4-+0x18 cleared) stored there, or 0 when the allocation fails"
 0x006bc900,SoundVoice_SetPending,function,low,"reimplemented (src/game/core/soundvoice); thiscall (out, value), pops 8: with a sound at +0x24, a stack record (SetThenFlag28_14 value) handed to the sound system [0xfb1f24]'s slot 4 in a functor 0x70a850; else the value's low word at +0x48, flag 0x8000, *out = -1; returns out"
 0x006bbf00,SoundVoice_ApplyVariation,function,low,"reimplemented (src/game/core/soundvoice); copies the current variation's two parameter words' low bytes into the voice's parameter block (creating it), or clears them"
@@ -4941,6 +4979,7 @@ address,name,kind,confidence,notes
 0x006bd0a0,SoundVoice_Load,function,low,reimplemented (src/game/core/soundvoice); a voice's saved record read back (a named category: its record's sample place, then slot 4)
 0x006be7a0,Voice70a8d0_Ctor,function,low,"reimplemented (src/game/core/soundvoice); the queued voice's constructor: the voice class, vtable 0x70a8d0, the parameter block ensured, its +0x1c a new queue of the info's pairs"
 0x006be750,Voice70a8d0_Create,function,low,reimplemented (src/game/core/soundvoice); the queued voice made in the memory given and initialised (slot 4); null when there is no memory or the init answers below 0
+0x006bbe80,SoundVoice_Destroy,function,low,"reimplemented (src/game/core/soundvoice); thiscall; slot 3 of the voices' vtables: the voice's slot 2 (0), its destructor without the delete (name invented)"
 0x006c4760,EaxBuffer_QueryAll,function,low,"reimplemented (src/game/core/soundeax); thiscall (out, unused), pops 8: IKsPropertySet::Get of the EAX 2.0 buffer properties (id 1, 0x38 bytes) into a stack block that is also the size out, dropped; *out = 0 on success, else -1; returns out"
 0x006d6cf0,EaxListener_SetAll,function,low,reimplemented (src/game/core/soundeax); an object's buffer (its slot 4 for a key) asked for IKsPropertySet and handed all the EAX 2.0 listener properties
 0x006c4670,EaxBuffer_SetProperty0b,function,low,"reimplemented (src/game/core/soundeax); thiscall (out, value), pops 8: the buffer's IKsPropertySet::Set (EAX20 buffer properties, id 0xb, the value's own slot, 4 bytes), *out its result; without a set *out = -1"
@@ -4981,6 +5020,7 @@ address,name,kind,confidence,notes
 0x006c0850,SoundCategory_ReleaseRecordAt,function,low,"reimplemented (src/game/core/soundcategory); thiscall (out, index), pops 8: deque A's record index (no count check) released (slot 0), *out = 0; none: -1 (name invented)"
 0x006c5870,SfxSounds_Find,function,low,reimplemented (src/game/core/soundcategory); a command's entry in an SFX.map sound table
 0x006c0c90,SoundCategory_HideFlag40Samples,function,low,"reimplemented (src/game/core/soundcategory); thiscall (hide), pops 4: every variation of every sound of deque A's category records (the cells computed inline): hide's low byte set SfxVariation_MoveFlag40SamplesLast, else dword +0 >>= 16 (name invented)"
+0x006c1110,CategoryRecord_DeletingDtor,function,low,"reimplemented (src/game/core/soundcategory); CategoryRecord_Dtor, then the block freed by the flags' bit 0"
 0x006338c0,Class703770_AddRef,function,low,"reimplemented (src/game/core/refcounted); thiscall: the counted base class's AddRef, InterlockedIncrement (+4)"
 0x006338d0,Class703770_Release,function,low,"reimplemented (src/game/core/refcounted); thiscall: its Release: InterlockedDecrement (+4), at 0 deleted (vtable +8 (1)) and 0, else the count re-read"
 0x006af760,Class70a078_Ctor,function,low,"reimplemented (src/game/core/refcounted); The text library's counted base constructor: its vtable, the count 1"
@@ -5306,6 +5346,15 @@ address,name,kind,confidence,notes
 0x006bb470,ChannelVoice_Query,function,low,"reimplemented (src/game/core/channelvoice); thiscall (out, record), pops 8; slot 9 of 0x70a7a8: SoundStream_Query, +0x58 the record's +0x2c with its flag 0x400, *out = 0 (sic) (name invented)"
 0x006bb5e0,ChannelVoice_Read,function,low,"reimplemented (src/game/core/channelvoice); thiscall (buffer, bytes, out, flag), pops 0x10; slot 7 of 0x70a7a8: the sound's read, the voice released at its end, the rest of the buffer zeroed (name invented)"
 0x006ba610,ChannelVoices_CreateStream,function,low,"reimplemented (src/game/core/channelvoice); thiscall (voice, play), pops 8; the sample factory: the play's header read, the sample of its kind (MP2, voice-coded, PCM; streamed or in memory) from its pool, the filters chained, the stream queried; the voice released when any of it fails (name invented)"
+0x006b7380,CriticalSectionLock_Leave,function,low,reimplemented (src/game/core/channelvoice); thiscall; LeaveCriticalSection of the section at *lock; reached only from exception unwind funclets (name invented)
+0x006bb3b0,ChannelVoice_SoundAndValue,function,low,"reimplemented (src/game/core/channelvoice); thiscall (sound, value), pops 8; the voice's +4 and +0x58 inside its critical section (name invented)"
+0x006bb320,ChannelVoice_Send,function,low,"reimplemented (src/game/core/channelvoice); thiscall (out, handle, value), pops 0xc; slot 12's answer's slot 9, or *out = -1, inside the critical section (name invented)"
+0x006bb510,ChannelVoice_Mix,function,low,"reimplemented (src/game/core/channelvoice); thiscall (dest, size), pops 8; waits for the voice's event: silence on a timeout, else the copier, the events (name invented)"
+0x006baa20,ChannelVoices_Send,function,low,"reimplemented (src/game/core/channelvoice); thiscall (out, handle, value), pops 0xc; ChannelVoice_Send on the handle's voice, or *out = -1 (name invented)"
+0x006bac60,ChannelVoices_Acquire,function,low,"reimplemented (src/game/core/channelvoice); thiscall (desc), pops 4; a voice for a play record: the same sound's, an idle one, or the oldest, released (name invented)"
+0x006baee0,ChannelVoices_AcquireBy,function,low,"reimplemented (src/game/core/channelvoice); thiscall (handle, out, desc), pops 0xc; the handle's voice or an acquired one, the count stepped (name invented)"
+0x006badd0,ChannelVoices_PlayRecord,function,low,"reimplemented (src/game/core/channelvoice); thiscall (handle, record, out), pops 0xc; a voice and its stream for a play record (name invented)"
+0x006bae60,ChannelVoices_PlayNotify,function,low,"reimplemented (src/game/core/channelvoice); thiscall (handle, record), pops 8; a notify stream for a play record's voice (name invented)"
 0x006c4c80,SoundOccluders_Occlusion,function,low,"reimplemented (src/game/core/soundoccluders); thiscall on the occluders (0xfb2038) (from, to, out), pops 0xc: the largest occlusion of the path, through out; returns it is neither 0 nor NaN"
 0x006c4ba0,SoundOccluders_Remove,function,low,"reimplemented (src/game/core/soundoccluders); thiscall (out, &node), pops 8: with occluders, the node unlinked, the count lowered, the node freed; its occluder freed, *node = 0 and *out = 0 when there is one, else *out = -1 (none in the list too); returns out (name invented)"
 0x006c4c20,SoundOccluders_Clear,function,low,reimplemented (src/game/core/soundoccluders); the occluders cleared (each node and its occluder freed)
@@ -5451,6 +5500,8 @@ address,name,kind,confidence,notes
 0x006b7410,SoundSample70a548_Dtor,function,low,"reimplemented (src/game/core/soundsample); thiscall: vtable 0x70a548, SoundChannel_ReleaseAll, the shared copier (0xfb2018) freed (not cleared), vtable 0x703770 (name invented)"
 0x006bb1f0,MemorySample_DeletingDtor,function,low,"reimplemented (src/game/core/soundsample); thiscall (flags), pops 4; slot 0 of 0x70a6f8: SoundSample_Dtor (0x6c8330's jump), with flags bit 0 MemorySamplePool_Delete (0x2c); returns the sample (name invented)"
 0x006bb1b0,SoundSample_Query,function,low,"reimplemented (src/game/core/soundsample); thiscall (out, record), pops 8; slot 9 of the samples 0x70a6f8, 0x70ab58, 0x70ac50 and 0x70acf0: SoundStream_Query (out, record); returns out (name invented)"
+0x006b73f0,SoundSample70a548_DeletingDtor,function,low,"reimplemented (src/game/core/soundsample); The sound base's destructor, then the block freed by the flags' bit 0"
+0x006b8150,SampleCopier_Free,function,low,reimplemented (src/game/core/soundsample); An unwind funclet's helper: the shared copier [0xfb2018] freed
 0x006be140,ShuffleBag_Shuffle,function,low,"reimplemented (src/game/core/shufflebag); thiscall: index 0, the seed stepped, a pick k; entries k-1 and k swapped outward by alternating strides (name invented)"
 0x006be130,ShuffleBag_SetList,function,low,"reimplemented (src/game/core/shufflebag); thiscall (list), pops 4: +0 = list, then the shuffle (name invented)"
 0x006be100,ShuffleBag_Ctor,function,low,"reimplemented (src/game/core/shufflebag); thiscall (list), pops 4: strides 1 and 2, seed Time_GetMs, then SetList (name invented)"
@@ -5501,6 +5552,13 @@ address,name,kind,confidence,notes
 0x006afd90,NarrowWriter_PutWide,function,low,reimplemented (src/game/core/narrowwriter); The narrow-text writer's slot 5: 16-bit characters narrowed through the range table and written
 0x006ad030,NarrowWriter_Dtor,function,low,"reimplemented (src/game/core/narrowwriter); The narrow-text writer's destructor: finished, its range table released, the base vtable"
 0x006ad090,NarrowWriter_DeletingDtor,function,low,reimplemented (src/game/core/narrowwriter); The narrow-text writer's deleting destructor
+0x004f5a50,LocaleRef_Ctor,function,low,"reimplemented (src/game/core/wfilebuf); thiscall; *ref = 0x699da0's answer, the counted object [0xfb1dd0] a use more (name invented)"
+0x004f5990,WFileBuf_Init,function,low,"reimplemented (src/game/core/wfilebuf); thiscall (file, which), pops 8; a stream buffer's initialiser (name unconfirmed)"
+0x006d6f70,SoundBuffer_FillFromVoice,function,low,"reimplemented (src/game/core/soundworker); thiscall (voice, offset, size), pops 0xc; a voice's mix into its locked DirectSound buffer (name invented)"
+0x006d3850,SoundWorker_RefillVoice,function,low,"reimplemented (src/game/core/soundworker); thiscall (position), pops 4; the slot's voice refilled under the section (name invented)"
+0x006d75c0,ComList_ReleaseAll,function,low,"reimplemented (src/game/core/soundworker); thiscall; each listed COM object's slots 6 and 2, the node freed (name invented)"
+0x006b6050,SoundWorker_Ctor,function,low,"reimplemented (src/game/core/soundworker); thiscall (count), pops 4; 30 voices, two blocks, the thread (name invented)"
+0x006b8380,SoundWorkerHost_Ctor,function,low,reimplemented (src/game/core/soundworker); thiscall; makes a SoundWorker of 12 (name invented)
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
@@ -5562,6 +5620,8 @@ address,name,kind,confidence,notes
 0x0050ed10,SteerFollowPath_Steer,function,low,"reimplemented (src/game/world/steering); thiscall (&out, nav), follow_path slot 0: re-paths on a changed map block or a stuck history, advances the waypoints (2 radii; the target within 1.6), then seeks the waypoint or arrives at the target; -vel when done; returns out"
 0x0050af40,TagTable_Find,function,low,"reimplemented (src/game/world/tagsystem); the CTagTable lookup: 0 for ids 0x17e/0x17f, the record at 0x75eca8 + id * 0x20 when its id matches, else the first record with the id, else 0"
 0x00509b40,TagSystem_Ctor,function,low,"reimplemented (src/game/world/tagsystem); thiscall: Thing_Construct (cell 1, kind 0xc), then message centre slots 7, 0xc, 0x14, 0x18, 0x19, 0x13; returns it"
+0x00509e10,TagSystem_FormatTag,function,low,"reimplemented (src/game/world/tagsystem); thiscall (record, a, b, c), pops 16: the tag's text into this +0xc by the record's kind +0x1c (name invented)"
+0x00509bf0,TagSystem_HandleMessage,function,low,"reimplemented (src/game/world/tagsystem); thiscall (message), pops 4: the messages 0x13, 0x18, 0x19: the tag's text formatted and posted (name invented)"
 0x0042a440,Ride_IsBusy,function,low,"reimplemented (src/game/world/ridestate); cdecl (object, index): the track ride link, flying ride slot, coaster link or a key-1 0x1000 model part says the ride is busy"
 0x0043bd20,Ride_Sleep,function,low,"reimplemented (src/game/world/ridestate); cdecl (index): the ride holder's awake instance out of the renderer (rectangle or sleep), the active part states of its flag-0x80 parts released"
 0x00511c90,WallFollower_Step,function,low,"reimplemented (src/game/world/wallfollow); cdecl (walker): one step along the edge of what blocks the walk, turning towards it when open; 0x32 back on the line, 0x33 past 0xfb cells"
@@ -5636,6 +5696,7 @@ address,name,kind,confidence,notes
 0x0052c1c0,PathDrag_Finish,function,low,"reimplemented (src/game/world/pathdrag); with a cell held, three 0x536100 steps (0x15, 0x83, 0x81); the stepped cell's entry gets the saved value back; the held byte cleared, the cell -1, -1"
 0x00518e60,AdvisorSlot_Ctor,function,low,reimplemented (src/game/world/advisorrecords); the element constructor of the 8 records of 0x18 at +0x14: the byte +0x14 cleared; returns the record
 0x00518e80,AdvisorRecord_Ctor,function,low,"reimplemented (src/game/world/advisorrecords); the element constructor of the 0x15f records of 0x10 at +0xe0: +0 = 0, +4 = -1, +8 (byte) = 0, +0xc = 0; returns the record"
+0x00518e70,AdvisorEntry_Ctor,function,low,"reimplemented (src/game/world/advisorrecords); thiscall; +0, +4, +8 = 0; returns it (name invented)"
 0x0052bdd0,Map_DemolishRect,function,low,"reimplemented (src/game/world/demolish); cdecl (x0, y0, x1, y1): over the rectangle's cells, each of type 4, 9 or 10 whose same-owner line (followed right, left, down, up while on the map) has no cell flagged 0x10 and stays within one cell of the rectangle is demolished (0x527ee0 (x, y, 0), through DemolishEnv); then each type 1 cell gets 0x5367a0 (0, 0); returns 1 (AL)"
 0x005286a0,TrackSquare_Check,function,low,"reimplemented (src/game/world/tracksquare); cdecl (x, y, unused, skip, strict, direction): 1 unless the 2x2 cells from (x, y) are on the map and the track kind being built (Global81ecac_IfNoFlag) is 1 or 2; then each of the four cells gets agent B's 0x532fc0 (flags (strict ? 0x200 : 0x100) | (kind 2 ? 0x10 : 0xb), 5, Byte_ShiftLog2(direction, 0x10)), with strict a 0 answer returning 0, without strict none when skip is set; returns 1 / 0 in AL; name invented, unconfirmed"
 0x00529e10,PlaceObject_Create,function,low,"reimplemented (src/game/world/placeobject); cdecl (angle): the object being placed made: the definition of the id at 0x818c38 with a ride kind (+0xa0) gets TrakRide_Create from the cell at 0x818c3c offset by the angle's pair and step, scaled by [0x700cd0] * [0x700cd8]; a 0x450-byte block constructed by agent C's 0x4db090 (cell plus the rotated pair +0x4b0, id, angle, ride) through PlaceObjectEnv; the made object's +0x30 the handle of [0x8186ac] (flag 0x8187f8, +0x288 not 2) and 0x7c2654 set; returns it or 0; name invented, unconfirmed"
@@ -5673,6 +5734,15 @@ address,name,kind,confidence,notes
 0x004faec0,Visitor_Ctor,function,low,"reimplemented (src/game/world/visitorsteps); thiscall (cell), pops 4; the visitor constructor, name invented: the moving person (kind 1), the visitor fields cleared, exit level, type, starting cash, happiness 50, stats and prankery from gBalanceLevel and rolls, the random state set to its handle, the sprite started, then on a plain cell counted in (state 6), else walking from the crossing (state 0 / 6, placed, particle 0x13); message 0x1c posted"
 0x004fc890,Visitor_ReenterState,function,low,reimplemented (src/game/world/visitorsteps); thiscall: Visitor_SetState (env) of the visitor's own state +0x224
 0x004fc800,Visitor_StartEmote,function,low,"reimplemented (src/game/world/visitorsteps); thiscall (mode): sound 0x7e for mode 4 and handle & 0xf 0; the script reference's mode; +0x208, +0x224; state 8"
+0x004ffbc0,Visitor_StepWalkToQueue,function,low,"reimplemented (src/game/world/visitorsteps); thiscall; one step of the walk to the object +0x1dc's queue: joins it, or leaves by the ring's reason (name invented)"
+0x005006b0,Visitor_StepInQueue,function,low,"reimplemented (src/game/world/visitorsteps); thiscall; one step of the walk in the queue: leaves when too expensive, state 0xe when admitted (name invented)"
+0x005014e0,Visitor_ArriveAtObject,function,low,"reimplemented (src/game/world/visitorsteps); The visitor comes out at its object and, when the next cell can be walked to, visits it"
+0x004ffff0,Visitor_StepQueueWait,function,low,"reimplemented (src/game/world/visitorsteps); thiscall; the visitor's wait in the queue: told to come, worn object, place, patience (name invented)"
+0x004fec90,Visitor_StepIdle,function,low,"reimplemented (src/game/world/visitorsteps); thiscall; the idle visitor: emotes, the crossing walk, facing things, the mood effects, a random walk or destination (name invented)"
+0x004fc8a0,Visitor_ShowMoodThought,function,low,reimplemented (src/game/world/visitorsteps); thiscall; a thought from the moods (name invented)
+0x004ff5b0,Visitor_JudgeEntryFee,function,low,"reimplemented (src/game/world/visitorsteps); ECX not read; the park's entry fee against its worth, 0-3 (name invented)"
+0x004ff9d0,Visitor_StepAtBooth,function,low,reimplemented (src/game/world/visitorsteps); thiscall; state 4 (name invented)
+0x004fff20,Visitor_StepComingOff,function,low,reimplemented (src/game/world/visitorsteps); thiscall; state 9 (name invented)
 0x00532fc0,MapCell_HandleMessage,function,low,"reimplemented (src/game/world/cellmessage); thiscall (message, a, b), pops 12: a map cell's messages: 0x200 the build check, 0x100 the walls' faces, 0x32 cleared and its line's ends reset, 0x80-0x87 path links, models, directions, owners, end flags, track runs and dead ends; others the kind (MapCell_SetKind); agent A's 0x527ee0 / 0x52f580 through the env"
 0x00452d30,Map_SetRideCell,function,low,"reimplemented (src/game/world/cellmessage); cdecl (unused, x, y, ride, flagged): the clamped map cell made kind 0x15 (cleared, message 0x15) keeping its owner word, its entry's +4 the ride, flag 0x100 set or cleared"
 0x00536100,Map_SendLine,function,low,"reimplemented (src/game/world/cellmessage); cdecl (message, x0, y0, &x1, &y1): a message (MapCell_HandleMessage, the step as a or b) to the map cells along a line on its longer way, 0x820aa4 / 0x820ab8 marking the first and the last; 0 when a cell answers 0"
@@ -5712,6 +5782,16 @@ address,name,kind,confidence,notes
 0x004dd500,Object_ClaimRide,function,low,"reimplemented (src/game/world/objectride); the object's record of its ride taken or made again: name invented, unconfirmed"
 0x004d8330,MapSweep_Reset,function,low,"reimplemented (src/game/world/mapsweep); every tile's cell and record reset: name invented, unconfirmed"
 0x004d83a0,MapSweep_Place,function,low,"reimplemented (src/game/world/mapsweep); every tile's cell and record placed: name invented, unconfirmed"
+0x00524790,GameMode_MapPress,function,low,"reimplemented (src/game/world/mappress); cdecl (x, y, flags, useStored): the button going down on the map, the twin of GameMode_MapClick (name invented)"
+0x005083f0,StaffPool_NameTaken,function,low,reimplemented (src/game/world/staffcandidate); Whether a used pool entry's name or a staff member's name is this name
+0x00507580,StaffPoolEntry_PickName,function,low,"reimplemented (src/game/world/staffcandidate); Up to 15 tries at a text id for the entry's name, until no one has that name"
+0x00507600,StaffPoolEntry_Generate,function,low,"reimplemented (src/game/world/staffcandidate); A new candidate of a kind: sprite, grade, name, the dialog told, tick, timeout"
+0x00508330,StaffPool_AddCandidate,function,low,reimplemented (src/game/world/staffcandidate); One more candidate of a kind in the first unused entry
+0x005087d0,StaffPool_FillAll,function,low,"reimplemented (src/game/world/staffcandidate); The pool's first candidates of each kind, once"
+0x00507bb0,StaffPool_Start,function,low,"reimplemented (src/game/world/staffcandidate); FillAll, then the tick into +0x294"
+0x00508170,StaffPool_TopUp,function,low,reimplemented (src/game/world/staffcandidate); round the kinds until each is at its limit
+0x005084f0,StaffPool_Update,function,low,"reimplemented (src/game/world/staffcandidate); thiscall; old candidates out, new ones generated on the clock, topped up (name invented)"
+0x00507bf0,StaffPool_TakeCandidate,function,low,"reimplemented (src/game/world/staffcandidate); thiscall (slot), pops 4; a candidate taken up: the mouse mode for placing the staff (name invented)"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved
@@ -6737,6 +6817,10 @@ address,name,kind,confidence,notes
 0x004ee5c0,ChatAvatar_NameFlags,function,low,"reimplemented (src/game/online/chatcommand); thiscall on the chat avatar (name), pops 4; a buddy 1 (node +0x1c: 3, +0x1d: | 4), ignored | 8 (name invented)"
 0x004ee8d0,ChatAvatar_FillRoomList,function,low,"reimplemented (src/game/online/chatcommand); thiscall on the avatar; the +0xe80 tree's names in order, each with its ChatAvatar_NameFlags (of a copy of the name), to Window7cc8bc_ListAddStd"
 0x004ee9e0,ChatAvatar_FillBuddyList,function,low,"reimplemented (src/game/online/chatcommand); thiscall on the avatar; the buddy set +0xe90's names in order, each with its ChatAvatar_NameFlags, to Window7cc8bc_ListAdd1Std"
+0x004ebb00,ChatAvatar_AddIgnore,function,low,"reimplemented (src/game/online/chatcommand); thiscall (name), pops 4; the command 0xd run on the name when it is not in the ignore set +0xea0 (name invented)"
+0x004ebcf0,ChatAvatar_RemoveIgnore,function,low,"reimplemented (src/game/online/chatcommand); thiscall (name), pops 4; the command 0xd run on the name when it is in the ignore set +0xea0 (name invented)"
+0x004e6e80,ChatAvatar_HandleEvent,function,low,"reimplemented (src/game/online/chatevents); thiscall (tokens), RET 4: the event the tokens carry (name invented, unconfirmed)"
+0x004ee710,ChatAvatar_SetBuddy,function,low,"reimplemented (src/game/online/chatevents); thiscall (name, flags), RET 8: the buddy set's entry of name given the flags, told to both window lists (name invented, unconfirmed)"
 0x005d8190,LobbyModel_SetPosition,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (v): the lobby model's (+4: 0x7a4610 index) matrix (+8 -> +4 -> +0x78, +0x10) translation = v[0..2] (x87 loads, all read first)"
 0x005d8380,LobbyModel_TurnY,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (angle): Matrix_RotateEulerFast(the lobby model's matrix, 2 ""Y"", &angle)"
 0x005d83b0,LobbyModel_SetScale,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (x, y, z): Holder_SetScale(the lobby model's entry +8, (x, y, z))"

@@ -32,7 +32,7 @@ CALLS = {'reset': (0x6c5060, 'c', 'v'), 'inc': (0x6c5070, 't', 'a'), 'dec': (0x6
          'releasevoices': (0x6b7eb0, 't', 'v'), 'find': (0x6baa60, 't', 'a'), 'findout': (0x6baad0, 't', 'a'), 'holds': (0x6bab50, 't', 'a'),
          'fn2d0': (0x6b8d60, 't', 'a'), 'fn5b8': (0x6b8df0, 't', 'a'), 'fn5c0': (0x6b8e60, 't', 'a'), 'fn5b0': (0x6b8dd0, 't', 'a'),
          'fn268': (0x6b8e40, 't', 'a'), 'fn270': (0x6b8eb0, 't', 'a'), 'releaseeach': (0x6ba390, 't', 'a'), 'pooldtor': (0x6ba3e0, 't', 'v'),
-         'chanrelease': (0x6b76d0, 't', 'v'), 'basedtor': (0x6b7410, 't', 'v'), 'chandtor': (0x6b9c00, 't', 'v'),
+         'chanrelease': (0x6b76d0, 't', 'v'), 'basedtor': (0x6b7410, 't', 'v'), 'chandtor': (0x6b9c00, 't', 'v'), 'basedelete': (0x6b73f0, 't', 'a'), 'chandelete': (0x6b9be0, 't', 'a'), 'copierfree': (0x6b8150, 't', 'v'),
          'eaxdtor': (0x6c5be0, 't', 'v'), 'eaxdelete': (0x6ba200, 't', 'a'),
          'vdtor': (0x6bb050, 't', 'v'), 'vdelete': (0x6baff0, 't', 'a'), 'vsetnext': (0x6bb730, 't', 'a'), 'vfind': (0x6bb6c0, 't', 'a'),
          'vquery': (0x6bb470, 't', 'a'), 'vread': (0x6bb5e0, 't', 'a')}
@@ -42,7 +42,7 @@ RANGES = [(0x6c5060, 0x6c506b), (0x6c5070, 0x6c5078), (0x6c5080, 0x6c5088), (0x6
           (0x6ba230, 0x6ba2b5), (0x6bb590, 0x6bb5d2), (0x6c6120, 0x6c615d), (0x6bb860, 0x6bb8c9),
           (0x6bb8d0, 0x6bb922), (0x6baa60, 0x6baaa2), (0x6baad0, 0x6bab18), (0x6bab50, 0x6bab86), (0x6b7eb0, 0x6b7ef6),
           (0x6b8d60, 0x6b8ec6), (0x6ba390, 0x6ba3d2), (0x6ba3e0, 0x6ba455), (0x6c6160, 0x6c6179),
-          (0x6b76d0, 0x6b774e), (0x6b7410, 0x6b7469), (0x6b9c00, 0x6b9c4d), (0x5f61e0, 0x5f61f3), (0x6b7840, 0x6b7864), (0x6b78e0, 0x6b7904),
+          (0x6b76d0, 0x6b774e), (0x6b7410, 0x6b7469), (0x6b9c00, 0x6b9c4d), (0x6b73f0, 0x6b7410), (0x6b9be0, 0x6b9c00), (0x6b8150, 0x6b8160), (0x5f61e0, 0x5f61f3), (0x6b7840, 0x6b7864), (0x6b78e0, 0x6b7904),
           (0x6c4630, 0x6c4670), (0x6c4410, 0x6c4550), (0x6c47e0, 0x6c4800), (0x6c48b0, 0x6c4900), (0x6c5be0, 0x6c5c4a), (0x6ba200, 0x6ba21e),
           (0x67afa0, 0x67b0d0), (0x6baff0, 0x6bb0d0), (0x6bb470, 0x6bb500), (0x6bb5e0, 0x6bb7b0), (0x6c61e0, 0x6c6220), (0x6c6280, 0x6c62d0),
           (0x6c62e0, 0x6c6310)]
@@ -220,14 +220,16 @@ def case(r):
     sets = bytearray(r.bytes(0x50))
     struct.pack_into('<I', sets, 0x40, r.choice([0, 1, 2, 3, 4, 8, r.getrandbits(32)]))
     regions.update({POOL: pool, SETS: sets})
-    if name in ('pooldtor', 'chanrelease', 'basedtor', 'chandtor', 'eaxdtor', 'eaxdelete'):   # (+0x10 the voice events at EVENTS (their slot 0 a recorder of one argument, as the voices'; the stop event the handle at
+    if name == 'copierfree':   # (the shared copier any)
+        return Call(address, [], {LOG: log, 0xfb2018: r.bytes(4), HEAP: heap(0x100)}, conv=conv, ret=ret)
+    if name in ('pooldtor', 'chanrelease', 'basedtor', 'chandtor', 'eaxdtor', 'eaxdelete', 'basedelete', 'chandelete'):   # (+0x10 the voice events at EVENTS (their slot 0 a recorder of one argument, as the voices'; the stop event the handle at
         # their count; their flags' bit 1 clear: else a spin in both), the voices' slot 0 too (the array's delete, 3))
         events = bytearray(r.bytes(0x18))
         struct.pack_into('<4I', events, 0, EVT, r.getrandbits(32), r.getrandbits(32), r.randrange(4))
         struct.pack_into('<II', events, 0x10, HANDLES, r.getrandbits(32) & ~2)
         regions.update({POOL: pool + struct.pack('<I', EVENTS), EVENTS: events, EVT: vtable({0: 1}), HANDLES: r.bytes(0x10),
                         VVT: vtable({0: 1, 11: 1, 7: 4, 12: 1})})
-    if name in ('chanrelease', 'basedtor', 'chandtor', 'eaxdtor', 'eaxdelete'):   # (the EAX channel's: its records +0x68 a block or none)
+    if name in ('chanrelease', 'basedtor', 'chandtor', 'eaxdtor', 'eaxdelete', 'basedelete', 'chandelete'):   # (the EAX channel's: its records +0x68 a block or none)
         ch = bytearray(r.bytes(0x68)) + struct.pack('<I', r.choice([0, 0, RAM + 0x3f80])) + r.bytes(4)
         struct.pack_into('<5I', ch, 0x10, r.getrandbits(32), r.choice([POOL, POOL, 0]), r.choice([SRC2, SRC2, 0]), r.choice([HOST, 0]),
                          r.choice([EAXB2, 0]))
@@ -237,7 +239,7 @@ def case(r):
                         EAXB2: struct.pack('<3I', co(), co(), co()), HOST: r.bytes(4) + struct.pack('<I', 0),
                         SRC2: struct.pack('<I', SRC2VT) + r.bytes(0xc), SRC2VT: vtable({13: 1, 0: 1}), HEAP: heap(0x100),
                         0xfb2018: r.bytes(4), 0xfb2028: bytes([r.getrandbits(8) | 1]) + r.bytes(7) + struct.pack('<2I', co(), co()) + r.bytes(8)})
-        return Call(address, [CH2] + ([r.choice([0, 1, 2, 3, r.getrandbits(32)])] if name == 'eaxdelete' else []), regions, conv=conv, ret=ret)
+        return Call(address, [CH2] + ([r.choice([0, 1, 2, 3, r.getrandbits(32)])] if name in ('eaxdelete', 'basedelete', 'chandelete') else []), regions, conv=conv, ret=ret)
     return Call(address, [POOL] + ([SETS] if name == 'setcount' else []), regions, conv=conv, ret=ret)
 
 

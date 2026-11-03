@@ -111,12 +111,13 @@ def record_stream(at, cursor, left):
 
 
 SEEK = STUBS + 0x70  # a memory stream's seek (driver.cpp stub_seek)
+TELL = STUBS + 0xd0  # a memory stream's tell (driver.cpp stub_tell)
 
 
 def memory_stream(at, start, size):
     """A seekable stream over size bytes at start (a region the case maps), at `at`: vtable (at + 0x20), cursor, bytes left, start, size; then the vtable:
-    +8 read and +0xc write (the record stream's), +0x10 seek (offset, origin 0 / 1 / 2): the new position, or -1 past the end (nothing moved)."""
-    return bytearray(struct.pack('<8I8I', at + 0x20, start, size, start, size, 0, 0, 0, 0, 0, STUBS, STUBS + 0x10, SEEK, 0, 0, 0))
+    +8 read and +0xc write (the record stream's), +0x10 seek (offset, origin 0 / 1 / 2): the new position, or -1 past the end (nothing moved); +0x18 tell: the position."""
+    return bytearray(struct.pack('<8I8I', at + 0x20, start, size, start, size, 0, 0, 0, 0, 0, STUBS, STUBS + 0x10, SEEK, 0, TELL, 0))
 
 
 STREAM_SIZE = STUBS + 0xc0  # a memory stream's size (driver.cpp stub_stream_size): thiscall, no arguments, its +0x10 (whatever the bytes left at +8)
@@ -124,6 +125,10 @@ STREAM_SIZE = STUBS + 0xc0  # a memory stream's size (driver.cpp stub_stream_siz
 
 def _stream_size(e):
     e.r['EAX'] = e.u32(e.r['ECX'] + 0x10)
+
+
+def _tell(e):  # thiscall, no arguments (driver.cpp stub_tell)
+    e.r['EAX'] = (e.u32(e.r['ECX'] + 4) - e.u32(e.r['ECX'] + 0xc)) & 0xffffffff
 
 
 def _seek(e):  # thiscall (offset, origin): pops its two arguments (driver.cpp stub_seek)
@@ -292,9 +297,13 @@ def register_args(conv):
     return regs
 
 
+PREV = 0xfffffffb   # (a Call's then: this argument is the EAX the step before it left)
+
+
 class Call:
-    def __init__(self, address, args, regions, conv='c', ret='v', cw=0x7f, masks=(), ignore=(), steps=5_000_000):
+    def __init__(self, address, args, regions, conv='c', ret='v', cw=0x7f, masks=(), ignore=(), steps=5_000_000, then=()):
         self.address, self.args, self.regions, self.conv, self.ret = address, list(args), dict(regions), conv, ret
+        self.then = list(then)   # (further calls on the same memory, each (address, args, conv); ret compares the last one's; a fault in any ends the case)
         if len(register_args(conv)) > len(self.args):
             raise ValueError('register convention %r needs %d arguments' % (conv, len(register_args(conv))))
         self.cw, self.ignore = cw, list(ignore)
@@ -955,12 +964,12 @@ TEXT_ARGS = 0x7e0  # in the log region: the count of text arguments CDECL_LOG4 t
 
 def text_args(log, n, only=None):
     """CDECL_LOG4 as the text formatter 0x6acd60 (cdecl: table, buffer, size, id, then pointers to its text arguments, src/game/core/textarg.h): the
-    n (1-3) arguments past the four logged as hashes of the text arguments they point to (their vtable, tag and number, then a string's wide text or
+    n (1-5) arguments past the four logged as hashes of the text arguments they point to (their vtable, tag and number, then a string's wide text or
     a number's dwords +0xc / +0x10; 0 for none), and the buffer (its size 9 or more) given 8 hex digits, the hash of the id and those, so that what
     shows the text (a window it is sent to: blob_inner_text()) compares it. With `only` (the first and last of a range of ids) any other id
     takes no arguments (its buffer still given the hash): for a function that formats texts with and without them, or that calls CDECL_LOG4
     otherwise too (a window's handler)."""
-    assert 1 <= n <= 3
+    assert 1 <= n <= 5
     struct.pack_into('<I', log, TEXT_ARGS, n)
     if only:
         struct.pack_into('<HH', log, TEXT_ARGS + 4, *only)
@@ -994,7 +1003,7 @@ def text_arg_hash(read, p):
 def _cdecl_log4(e):  # (driver.cpp stub_cdecl_log4)
     sp = e.r['ESP'] + (4 if e.tail else 0)
     raw = [e.u32(sp + 4 * i) for i in range(4)]
-    given, only = min(e.u32(LOG + TEXT_ARGS), 3), e.u32(LOG + TEXT_ARGS + 4)
+    given, only = min(e.u32(LOG + TEXT_ARGS), 5), e.u32(LOG + TEXT_ARGS + 4)
     texts = 0 if only and not only & 0xffff <= raw[3] <= only >> 16 else given
     if given:
         h = ((0x811c9dc5 ^ raw[3]) * 0x01000193) & 0xffffffff
@@ -1006,7 +1015,7 @@ def _cdecl_log4(e):  # (driver.cpp stub_cdecl_log4)
     args = _log_args(e, 0x3d, raw, 0x13d)
     count = e.u32(LOG)
     if count < LOG_ENTRIES:
-        e.write(LOG + 4 + 4 * LOG_ENTRY * count, struct.pack('<%dI' % LOG_ENTRY, 0x13d, len(raw), 0, *args, *([0] * (9 - len(raw)))))
+        e.write(LOG + 4 + 4 * LOG_ENTRY * count, struct.pack('<%dI' % LOG_ENTRY, 0x13d, len(raw), 0, *(list(args) + [0] * 7)[:7], tail_hash(args), 0))
         e.write(LOG, struct.pack('<I', count + 1))
     else:
         _fold(e, (0x13d, len(raw), 0, *args, *([0] * (7 - len(raw))), tail_hash(args)))
@@ -1133,7 +1142,7 @@ class Bench:
         self.emu.hooks.update({0x67a830: _ftol, 0x67b280: _modf, 0x67b24a: _cifmod,
                                STUBS: _record(False), STUBS + 0x10: _record(True),
                                STUBS + 0x20: _global_alloc, STUBS + 0x30: _global_free, STUBS + 0x40: _mark, CDECL_LOG: _cdecl_log, COUNTER: _counter, SEEK: _seek, CDECL_LOG2: _cdecl_log2, CDECL_LOG4: _cdecl_log4,
-                               STREAM_SIZE: _stream_size,
+                               STREAM_SIZE: _stream_size, TELL: _tell,
                                0x6351a0: _zlib_init(0x140, 7), 0x635450: _zlib_copy(1), 0x6357c0: _zlib_end(0x142), 0x636600: _zlib_init(0x143, 3),
                                0x636710: _zlib_copy(2), 0x6365b0: _zlib_end(0x145),
                                0x67acc0: _alloc, 0x67acb0: _free, 0x67bb90: _memmove, ZALLOC: _zalloc, ZFREE: _zfree, 0x67d3f0: _time, 0x67b5c0: _rand,
@@ -1165,34 +1174,36 @@ class Bench:
         e.reset()
         if 'c' in c.ret:
             e.cw = c.cw
-        args = c.args
-        if c.conv in 'tf' and args:
-            e.r['ECX'] = args[0]
-            args = args[1:]
-            if c.conv == 'f' and args:
-                e.r['EDX'] = args[0]
-                args = args[1:]
-        for reg in register_args(c.conv):
-            e.r[reg] = args[0]
-            args = args[1:]
-        for a in reversed(args):
-            e.push(a & 0xffffffff)
-        e.push(x87emu.SENTINEL)
-        pc = c.address
         entered, hooked, stand_ins = self.entered, self.hooked, e.hooks
         entered.clear()
         if c.masks:  # (the original must never read a masked byte: Mask)
             e.rb = _watching(e, {(m.region + o) & 0xffffffff for m in c.masks for o in m.offsets})
         try:
-            for _ in range(c.steps):
-                if pc == x87emu.SENTINEL:
-                    break
-                if hooked is not None and pc in hooked and pc not in stand_ins:
-                    entered.add(pc)
-                at = pc
-                pc = e.step(pc)
-            else:
-                return 'step limit'
+            for address, args, conv in [(c.address, c.args, c.conv)] + c.then:
+                args = [e.r['EAX'] if a == PREV else a for a in args]
+                e.r.update({k: 0x10000000 if k == 'ESP' else 0 for k in e.r})   # (as the driver's invoke: each step starts on zeroed registers)
+                if conv in 'tf' and args:
+                    e.r['ECX'] = args[0]
+                    args = args[1:]
+                    if conv == 'f' and args:
+                        e.r['EDX'] = args[0]
+                        args = args[1:]
+                for reg in register_args(conv):
+                    e.r[reg] = args[0]
+                    args = args[1:]
+                for a in reversed(args):
+                    e.push(a & 0xffffffff)
+                e.push(x87emu.SENTINEL)
+                pc = address
+                for _ in range(c.steps):
+                    if pc == x87emu.SENTINEL:
+                        break
+                    if hooked is not None and pc in hooked and pc not in stand_ins:
+                        entered.add(pc)
+                    at = pc
+                    pc = e.step(pc)
+                else:
+                    return 'step limit'
         except x87emu.MemFault as f:
             return '%s (emu: %s at %08x)' % (CRASH, f, at)
         except x87emu.DivFault as f:
@@ -1220,9 +1231,11 @@ class Bench:
         return out
 
     def native(self, cases):
-        inp = ''.join('%x %s %s %x %s %x %s\n' % (
-            c.address, c.conv, c.ret + (':%x' % c.cw if 'c' in c.ret else ''), len(c.args), ' '.join('%x' % (a & 0xffffffff) for a in c.args), len(c.regions),
-            ' '.join('%x %s' % (k, bytes(v).hex()) for k, v in c.regions.items())) for c in cases)
+        inp = ''.join('%x %s %s %x %s %x %s%s\n' % (
+            c.address, c.conv, c.ret + ('+' if c.then else '') + (':%x' % c.cw if 'c' in c.ret else ''), len(c.args), ' '.join('%x' % (a & 0xffffffff) for a in c.args), len(c.regions),
+            ' '.join('%x %s' % (k, bytes(v).hex()) for k, v in c.regions.items()),
+            ' %x%s' % (len(c.then), ''.join(' %x %s %x %s' % (at, conv, len(args), ' '.join('%x' % (a & 0xffffffff) for a in args)) for at, args, conv in c.then)) if c.then else '')
+            for c in cases)
         try:  # a case that loops forever in the C++ would hang the bench
             p = subprocess.run([self.driver, EXE], input=inp, capture_output=True, text=True, timeout=600)
             if os.environ.get('FNCMP_CRASHAT'):   # (driver.cpp crash_filter)

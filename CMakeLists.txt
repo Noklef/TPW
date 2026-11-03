@@ -205,6 +205,8 @@ add_library(tpw_game STATIC
     src/game/core/soundsource.cpp
     src/game/core/widewriter.cpp
     src/game/core/narrowwriter.cpp
+    src/game/core/wfilebuf.cpp
+    src/game/core/soundworker.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
@@ -370,6 +372,8 @@ add_library(tpw_game STATIC
     src/game/world/staffctors.cpp
     src/game/world/staffsteps.cpp
     src/game/world/trakcarpose.cpp
+    src/game/world/mappress.cpp
+    src/game/world/staffcandidate.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp
@@ -489,6 +493,7 @@ add_library(tpw_game STATIC
     src/game/online/chatcommand.cpp
     src/game/online/ftp.cpp
     src/game/online/chat.cpp
+    src/game/online/chatevents.cpp
     src/game/frontend/lobbymodel.cpp
     src/game/frontend/helpbg.cpp
     src/game/frontend/islandcamera.cpp
@@ -658,6 +663,7 @@ if(TPW_TEST_TOOLING)
         src/testing/trace.cpp
         src/testing/fpu_watch.cpp
         src/testing/profiler.cpp
+        src/testing/pool_watch.cpp
     )
     target_link_libraries(tpw_hook PRIVATE tpw_testing)
     target_compile_definitions(tpw_hook PRIVATE TPW_TEST_TOOLING)

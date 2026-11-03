@@ -11,7 +11,7 @@ extern "C" {
 struct GameModeEnv {
     void(__fastcall *advisorCancel)(u8 *advisor, void *, u32 id);   // 0x59aa70 (agent B's; thiscall on the advisor (id), pops 4)
     void(__cdecl *showRun)(u32 run, u32 on);                       // 0x4474d0 (agent B's; cdecl (run, on))
-    void(__cdecl *resetTools)();                                   // 0x446050 (agent B's; cdecl)
+    void(__cdecl *resetTools)();                                   // CoasterEdit_CancelSelected (0x446050)
 };
 // The calls go to env (nullptr: the game's).
 void GameMode_SetEnv(const GameModeEnv *env);
@@ -19,7 +19,7 @@ void GameMode_SetEnv(const GameModeEnv *env);
 // What GameMode_StepBack calls (the benches point them at recorders): agent B's and agent C's unported code, and the ported ones it
 // hands the stepped point to, so its bench can run them as recorders.
 struct GameModeStepEnv {
-    void(__cdecl *endRun)();                                          // 0x444f30 (agent B's; cdecl, no arguments)
+    void(__cdecl *endRun)();                                          // CoasterEdit_DeleteLastCar (0x444f30)
     void(__fastcall *thing4de1f0)(u8 *thing);                         // 0x4de1f0 (agent C's; thiscall on a thing, no arguments)
     void(__cdecl *mapClick)(s32 x, s32 y, u32 flags, u32 useStored);  // GameMode_MapClick (0x524960)
     void(__cdecl *set)(u32 mode, u32 record);                         // GameMode_Set (0x52f200)
@@ -56,7 +56,7 @@ void __cdecl GameMode_SetOnly(u32 mode, u32 record);
 // 0x52f200 (cdecl (mode, record); name invented, unconfirmed): GameMode_SetOnly with the action 0 recorded, and 0x81ede4 and 0x81ede8 set to
 // -1 after the mode is stored. Mode 0 also resets the tools first: the words 0x818694 and 0x818684 0, 0x7639b0 and 0x7639b4 -1, the dwords
 // 0x763b00 and 0x763b04 0x80, 0x7639a0 -1 and 0x81b604 0; with [0x81b134] set the action 0xa of 0 written; [0x81b134] = [0x81d7a4] and
-// [0x81d7a4] 0; then (whatever the old mode) after the mouse mode agent B's unported 0x446050 and Global816d48_Set(0). Mode 0x35: 0x763b00
+// [0x81d7a4] 0; then (whatever the old mode) after the mouse mode CoasterEdit_CancelSelected and Global816d48_Set(0). Mode 0x35: 0x763b00
 // and 0x763b04 0x80.
 void __cdecl GameMode_Set(u32 mode, u32 record);
 }

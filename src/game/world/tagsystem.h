@@ -15,4 +15,17 @@ u32 *__fastcall TagTable_Find(void *self, void *, u32 id);
 // 0x509b40 (thiscall): the thing constructor (Thing_Construct, cell 1, kind 0xc), then the tag system added to the message centre's slots
 // 7, 0xc, 0x14, 0x18, 0x19 and 0x13 in that order. Returns it. (The cell the original pushes has this's high address bits above the 1.)
 u8 *__fastcall TagSystem_Ctor(u8 *tags);
+
+// 0x509e10 (thiscall (record, a, b, c), pops 16; returns AL; name invented, unconfirmed): the tag's text into this +0xc (0x400 characters) by the
+// record's kind +0x1c, 0-0x24 (any other: nothing, 1): the text +0xc of the table [0x78ba90] (0x6acd60) with %n arguments from a / b (a word) / the
+// globals 0x785790-0x7857a8 / the record c (+0x14 to +0x24, signed numbers; the object names of its words +0x28, +0x2a (0x412fb0, 0x40 characters);
+// the text 1, 3, 5, 7, 9 of [0x78bac0] by its kind +0x2c (above 4: the buffer as it was, sic, the original's uninitialised stack)), or a fixed L"" text
+// through swprintf. No record: the text 0x78a374, 0. The kind 1 without a's slot (0x7cfb90 + a * 20) or the kind 2 without b's word: 0 (nothing written).
+u8 __fastcall TagSystem_FormatTag(u8 *self, void *, const u8 *record, u32 a, u32 b, const u8 *c);
+
+// 0x509bf0 (thiscall (message), pops 4; name invented, unconfirmed): the tag's message: the message's type (slot 0) 0x13 its +8 7, 8 or 9 gives the tag id
+// 0x17b-0x17d (OutputDebugStringA of a line), 0x18 and 0x19 its +8; the record (0x50af40; none: nothing) formatted (a word of +0xc and b +0x14 for 0x18,
+// c the message for 0x19), then posted (0x481580: the id, the record's +4, this +0xc, +0x18 or for 0x18 the message's +0x10 when not negative, word +8,
+// +0x10, +0x14; for 0x18 the message's word +0xc and +0x14 too). Other types: slot 0 asked again (for a debug print, left out).
+void __fastcall TagSystem_HandleMessage(u8 *self, void *, u8 *msg);
 }

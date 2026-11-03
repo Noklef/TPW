@@ -78,6 +78,8 @@ u8 *__fastcall SoundObject_DeletingDtor(u8 *object, void *, u32 flags);
 // 0x6b8ad0 (thiscall (id, a, b), pops 0xc; slot 3 of 0x70a2a0 and 0x70a588; name invented): with an id (not 0) and a mixer (+0x20),
 // SoundMixer_CallVoice10 (id, a, b); else 0.
 u32 __fastcall SoundObject_CallVoice10(u8 *object, void *, u32 id, u32 a, u32 b);
+// 0x6b8990 (thiscall (id, value), pops 8; name invented, unconfirmed): 0 for no id; else SoundMixer_CallVoice9 of the mixer +0x20 (no test of it, unlike the above).
+u32 __fastcall SoundObject_CallVoice9(u8 *object, void *, u32 id, u32 value);
 
 
 // The sound object's save and load (names invented); each returns out with *out = 0.

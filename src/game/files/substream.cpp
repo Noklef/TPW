@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "../core/gameheap.h"
 #include "../core/semaphore.h"
 #include "../core/vcall.h"
 #include "handles.h"
@@ -29,6 +30,12 @@ void __fastcall SubStream_Dtor(u8 *self) {
     at<u32>(self, 0) = 0x0070ad50;
     Semaphore_Dtor(reinterpret_cast<Semaphore *>(self + 0x14));
     StreamBase_Dtor(reinterpret_cast<StreamBase *>(self + 0xc));
+}
+
+u8 *__fastcall SubStream_DeletingDtor(u8 *self, void *, u32 flags) {
+    SubStream_Dtor(self);
+    if (flags & 1) GameHeap_Free(self);
+    return self;
 }
 
 u8 *__fastcall SubStream_CtorAt(u8 *self, void *, const u8 *stream, u32 start) { return construct(self, stream, start); }

@@ -2,6 +2,11 @@
 
 #include <cstdint>
 
+#include "../gfx/statsgraph.h"
+#include "../ui/dialog7cb25c.h"
+#include "../ui/dialog7cb2b8.h"
+#include "../world/messagecentre.h"
+#include "../world/thingmsg.h"
 #include "filetime.h"
 #include "savegame.h"
 
@@ -23,9 +28,78 @@ FileTime funnySpan(const u8 *clock, u32 ticks) {
     return {(u32)span, (u32)(span >> 32)};
 }
 
+FileTime funnyNow(const u8 *clock) {
+    const FileTime span = funnySpan(clock, worldTicks());
+    FileTime now;
+    FileTime_Add(reinterpret_cast<const FileTime *>(clock), nullptr, &now, &span);
+    return now;
+}
+
+// The date FunnyTime_Update keeps (9 dwords; the last two only handed on).
+struct GameDate {
+    u32 second, minute, hour, day, month, year, dayOfWeek, rest[2];
+};
+
+const FunnyTimeEnv kGameEnv = {&MessageCentre_Post, &Obj7b51f0_ShowDate, reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)0x004a5e10),
+                               reinterpret_cast<void(__cdecl *)(u32)>(&StatsGraph_Redraw), reinterpret_cast<void(__cdecl *)(u32)>(&Dialog7cb25c_Refresh)};
+const FunnyTimeEnv *g_env = &kGameEnv;
+
 }  // namespace
 
 extern "C" {
+
+void FunnyTime_SetEnv(const FunnyTimeEnv *env) { g_env = env ? env : &kGameEnv; }
+
+s32 __fastcall FunnyTime_Quarter(const u8 *clock) {
+    const FileTime now = funnyNow(clock);
+    s32 month;  // (unset when the conversion fails, sic)
+    s32 result;
+    FileTime_ToSystemTime(&now, nullptr, &result, nullptr, reinterpret_cast<u32 *>(&month), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+    return month / 3;
+}
+
+void __fastcall FunnyTime_SyncMonthYear(u8 *clock) {
+    FileTime now = funnyNow(clock);
+    u32 month;  // (unset when the conversion fails, sic)
+    s32 result;
+    FileTime_ToSystemTime(&now, nullptr, &result, nullptr, &month, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+    at<u32>(clock, 0x10) = month - 1;
+    now = funnyNow(clock);
+    FileTime_ToSystemTime(&now, nullptr, &result, &at<u32>(clock, 0x18), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+}
+
+void __fastcall FunnyTime_Update(u8 *clock) {
+    GameDate &date = global<GameDate>(0x007ced58);
+    FileTime now = funnyNow(clock);
+    s32 result;
+    FileTime_ToSystemTime(&now, nullptr, &result, &date.year, &date.month, &date.day, &date.dayOfWeek, &date.hour, &date.minute, &date.second, nullptr);
+    date.year -= 0x76c;
+    date.month -= 1;
+    u8 msg[8];
+    if (date.day != at<u32>(clock, 0x14)) {
+        ThingMsg0b_Ctor(msg);
+        g_env->post(MessageCentre_Instance(), nullptr, msg);
+        g_env->showDate(reinterpret_cast<void *>((uintptr_t)0x007b51f0), nullptr, date.second, date.minute, date.hour, date.day, date.month, date.year,
+                        date.dayOfWeek, date.rest[0], date.rest[1]);
+    }
+    if (date.month != at<u32>(clock, 0x10)) {
+        ThingMsg0c_Ctor(msg);
+        g_env->post(MessageCentre_Instance(), nullptr, msg);
+        g_env->newMonth(date.month + 1);
+        g_env->redrawGraph(date.month + 1);
+        g_env->refreshDialog(date.month + 1);
+    }
+    now = funnyNow(clock);
+    u32 year;  // (unset when the conversion fails, sic)
+    FileTime_ToSystemTime(&now, nullptr, &result, &year, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+    if (year != at<u32>(clock, 0x18)) {
+        ThingMsg0d_Ctor(msg);
+        g_env->post(MessageCentre_Instance(), nullptr, msg);
+    }
+    at<u32>(clock, 0x10) = date.month;
+    at<u32>(clock, 0x14) = date.day;
+    at<u32>(clock, 0x18) = year;
+}
 
 u8 *__fastcall FunnyTime_Construct(u8 *clock) {
     FileTime *const start = reinterpret_cast<FileTime *>(clock);

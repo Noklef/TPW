@@ -76,6 +76,18 @@ void __fastcall Visitor_RideFeelings(u8 *visitor, void *, const u8 *object);
 // sideshow: +0x1d0 counted, the happiness up by 0x78505c * log2(prize / price), then a World_Rand. (Debug_Printf calls left out.)
 void __fastcall Visitor_UseObject(u8 *visitor, void *, u8 *object);
 
+// 0x4fe1a0 (thiscall (object), pops 4; name invented, unconfirmed): with a price (Obj_Get194) not 0: Object_TakePayment of it, the sound 0xd0 of the category
+// [0x803a24] (Sprite_PlaySound), the price off the cash +0x1a0.
+void __fastcall Visitor_PayObject(u8 *visitor, void *, u8 *object);
+
+// 0x4fd970 (thiscall (object), pops 4; x87; only 0x5015f4 calls it; name invented, unconfirmed): a visitor at an object. The object's handle first in the words
+// +0x1e0-+0x1e6 (the oldest gone); the count of its definition's +0x4ac (0-2: +0x1c4, +0x1c8, +0x1cc) up; Visitor_PayObject, Object_AddCustomer, the definition's
+// +0xe8 off the stat +0x1b8. With the byte +0x1f1 0: the happiness +0x19c less [0x78505c] (kept to 0..100), and for +0x4ac 2 thought 6 and Ring_PushUnique(0x19,
+// handle). Else Visitor_UseObject; the happiness' change (__ftol's low bytes of +0x19c less +0x20c, times 3) to Object_AddHappinessChange; for +0x4ac 1 the park
+// analyser's rings by +0x158 (1-4: 0xa-0xd), by +0x15c (1, 2: 0xf, 0x10), for 2 ring 0x12, each of the change + 0x32's low byte; Obj_Inc2b8; for 2 thought 5 and
+// Ring_PushUnique(0x18, handle). (Its debug prints are left out.)
+void __fastcall Visitor_VisitObject(u8 *visitor, void *, u8 *object);
+
 // 0x50ba80: a person's thoughts (serialized at 0x50bad0) cleared: +0, the 32 u16 pairs of
 // the action history (+4), mThoughtScript (+0x84), mActionHistIndex (+0x88) and
 // mTimeBubbleShown (+0x8c). Returns them.
@@ -100,6 +112,13 @@ void __fastcall Visitor_QuitQueue(u8 *visitor);
 // handle (Thing_GetHandle) whose low 3 bits are 0, the sound 0x80 of the category [0x803a24] (Sprite_PlaySound); Visitor_Lower19c(1); the words
 // +0x22a, +0x228 and +0x1dc, the dword +0x1f8 and the byte +0x1f1 cleared; then state 6 (the env's 0x501db0). The debug print is left out.
 void __fastcall Visitor_SendAway(u8 *visitor);
+
+// 0x501390 (thiscall; name from its debug print "Person %d: Queue edited underneath", unconfirmed): the visitor's object (the handle +0x1dc, the
+// table 0x7cfb90). When its place in the queue (Object_QueuePosition, -1 not found) is at least 4 * the object's +0x40 (unsigned, the product
+// wrapping), and its state +0x220 is not 0xe: the position of the script +0xc read (SpriteScript_GetPosition, the results unused), for a handle
+// divisible by 3 the thought 0xd (Thoughts_Show on +0x30, no force), off the queue (Object_QueueRemovePerson), Visitor_SendAway, the word +0x1dc
+// 0 and state 6 (the env's 0x501db0). The debug prints are left out.
+void __fastcall Visitor_QueueEdited(u8 *visitor);
 
 // 0x501db0 (thiscall (state), pops 4; name invented, unconfirmed; called by 0x500870, 0x5012f0 and others): the state stored at +0x220, then
 // (past 0x15 nothing more) by state, the script reference +0xc's +4 set to 1 or 3 (Set4_4217f0) in most: 0, 2, 5, 9, 10, 13, 20: 1; 1, 6, 19:

@@ -77,6 +77,11 @@ void __fastcall ChatAvatar_GotoDone(u8 *avatar);
 void __fastcall ChatAvatar_AddBuddy(u8 *avatar, void *, const StdWString *name);
 void __fastcall ChatAvatar_RemoveBuddy(u8 *avatar, void *, const StdWString *name);
 
+// 0x4ebb00 / 0x4ebcf0 (the same; names invented, unconfirmed): the command 0xd run on the name, the first only when the name is not in the
+// ignore set (+0xea0: ChatIgnoreSet_LowerBound of a copy, WStdString_Compare), the second only when it is. The same allocator bytes.
+void __fastcall ChatAvatar_AddIgnore(u8 *avatar, void *, const StdWString *name);
+void __fastcall ChatAvatar_RemoveIgnore(u8 *avatar, void *, const StdWString *name);
+
 // 0x4ebee0 / 0x4ebef0 (thiscall on the avatar; names invented, unconfirmed): ChatAvatar_ToggleEarmuffs when the earmuffs byte +0xeb0 is
 // clear / set.
 void __fastcall ChatAvatar_EarmuffsOn(u8 *avatar);
@@ -111,4 +116,5 @@ struct ChatCommandEnv {
     void(__cdecl *dialog)(u8 *message, u32 kind, u32, u32, u32 callback, u32, u32, u32);  // 0x47f020 (B)
 };
 void ChatCommand_SetEnv(const ChatCommandEnv *env);   // nullptr: the game's
+const ChatCommandEnv *ChatCommand_Env();
 }

@@ -19,6 +19,7 @@
 #include "../rsse/scriptkill.h"
 #include "../sprite/script.h"
 #include "analysercell.h"
+#include "flyingrides.h"
 #include "objectdefs.h"
 #include "person.h"
 #include "mapcell.h"
@@ -30,6 +31,7 @@
 #include "things.h"
 #include "thingscan.h"
 #include "trackrides.h"
+#include "visitorsteps.h"
 #include "world.h"
 
 namespace {
@@ -39,7 +41,8 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 const ObjectEnv kGameEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, u8 *)>(&MessageCentre_Post),
-                            &Visitor_QuitQueue, &Visitor_SendAway};
+                            &Visitor_QuitQueue, &Visitor_SendAway,
+                            reinterpret_cast<void(__cdecl *)(u32, s32, u32, u32, u32, u32)>((uintptr_t)0x0042a560)};
 const ObjectEnv *g_env = &kGameEnv;
 
 }  // namespace
@@ -329,6 +332,25 @@ void __fastcall Object_SetCapacity(u8 *object, void *, u32 capacity) {
     }
     Rides_SetElement(Rides_FindById(at<s32>(object, 0x24)), 2, value);  // (the debug print of the capacity is left out)
     at<u8>(object, 0x5d) = value;
+}
+
+void __fastcall Object_ArriveWaiting(u8 *object) {
+    u8 *const record = Rides_FindById(at<s32>(object, 0x24));
+    const u16 waiting = (u16)Rides_GetElement(record, 1);
+    if (!waiting) return;
+    if (Visitor_ArriveAtObject(global<u8 *>(0x007cfb90 + 20 * (u32)waiting))) Rides_SetElement(record, 1, 0);
+}
+
+void __fastcall Object_BeginCycle(u8 *object) {
+    Object_CallQueueHead(object);
+    if (!Rides_GetElement(Rides_FindById(at<s32>(object, 0x24)), 7)) {
+        Object_ArriveWaiting(object);
+        return;
+    }
+    const u8 level = (u8)(long long)at<float>(object, 0x48);   // (__ftol, the low byte)
+    u8 *const strip = global<u8 *>(0x007a4610 + 4 * at<u32>(object, 0x20));
+    StripAnim_StartGrow(strip, level ? 2 : 4);
+    Object_SetState(object, nullptr, level ? 1 : 4);
 }
 
 void __fastcall Object_CallQueueHead(u8 *object) {
@@ -763,6 +785,44 @@ u32 __fastcall Object_FillRate(const u8 *object) {
     return (u32)(long long)rate.v;  // __ftol, the low half
 }
 
+namespace {
+
+// Slots_AddIfMatch on the entry GameTable7cfb90_Get1da736_519610 gives (the kind's upper word is a stale stack word in the original; only its low word, 0, is read).
+void add_to_slots(u32 id, u32 amount) {
+    Slots_AddIfMatch(reinterpret_cast<u8 *>(GameTable7cfb90_Get1da736_519610(reinterpret_cast<u8 *>(Global80239c_Get()))), nullptr, id, amount, 0, 0);
+}
+
+}  // namespace
+
+void __fastcall Object_TakePayment(u8 *object, void *, s32 amount) {
+    Money_Credit(reinterpret_cast<u8 *>(GameTable7cfb90_Get1da726_5195d0(global<u8 *>(0x0080239c))), nullptr, amount);
+    at<s32>(object, 0x180) += amount;
+    at<s32>(object, 0x70) += amount;
+    u8 *const def = ObjectDefs_Find(reinterpret_cast<u8 *>(0x007890a0), nullptr, at<u16>(object, 0xe));
+    if (at<s32>(def, 0x4ac) == 1) {
+        at<s32>(reinterpret_cast<u8 *>(GameTable7cfb90_Get1da720_519510(global<u8 *>(0x0080239c))), 0x20130) += amount;
+        add_to_slots(0xc, (u32)amount);
+        switch (at<s32>(def, 0x164)) {
+        case 1: add_to_slots(5, 1); break;
+        case 2:
+        case 4:
+            switch (at<s32>(def, 0x158)) {
+            case 1: add_to_slots(2, 1); break;
+            case 2: add_to_slots(1, 1); break;
+            case 3: add_to_slots(3, 1); break;
+            case 4: add_to_slots(4, 1); break;
+            }
+            break;
+        case 3: add_to_slots(8, 1); break;
+        case 5: add_to_slots(7, 1); break;
+        case 6: add_to_slots(6, 1); break;
+        }
+    } else if (at<s32>(def, 0x4ac) == 2) {
+        at<s32>(reinterpret_cast<u8 *>(GameTable7cfb90_Get1da720_519510(global<u8 *>(0x0080239c))), 0x20380) += amount;
+        add_to_slots(0xd, (u32)amount);
+    }
+}
+
 void __fastcall Object_PayRunningCost(u8 *object, void *, s32 amount) {
     at<s32>(object, 0xf8) += amount;
     at<s32>(object, 0x184) += amount;
@@ -981,6 +1041,24 @@ void __fastcall Object_Wear(u8 *object, void *, u32 amount) {
         Map_SpreadRemove(world, nullptr, 1, id);
         Map_SpreadAdd(global<u8 *>(0x008023a0), nullptr, 6, id);
     }
+}
+
+void __fastcall Object_FollowCamera(const u8 *object, void *, u32 arg) {
+    const u8 *const def = Object_GetDef(object);
+    const s32 sprites = at<s32>(def, 0x80);
+    if (at<u32>(object, 0x28) != 0) {
+        const u32 linked = TrakRide_LinkedValue(at<u32>(object, 0x28));
+        if (linked != 0) {
+            g_env->camera42a560(linked, sprites, arg, 0, 1, 0);
+            return;
+        }
+    }
+    const u32 flying = Rides_Get9c(Rides_FindById(at<s32>(object, 0x24)));
+    if (flying != 0) {
+        g_env->camera42a560(FlyingRide_FirstSlotRide((s32)flying), sprites, arg, 0, 1, 0);
+        return;
+    }
+    g_env->camera42a560(at<u32>(object, 0x20), sprites, arg, 0, 1, at<u32>(def, 0x11c));
 }
 }
 

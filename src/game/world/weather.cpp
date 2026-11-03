@@ -12,7 +12,9 @@
 #include "../math/x87.h"
 #include "../render/weatherfx.h"
 #include "forecast.h"
+#include "messagecentre.h"
 #include "random.h"
+#include "thingmsg.h"
 #include "things.h"
 
 namespace {
@@ -26,9 +28,127 @@ u32 bits(float f) {
     return b;
 }
 
+template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
+u8 *world() { return global<u8 *>(0x007cf83c); }
+u8 *fx() { return global<u8 *>(0x008bcbac); }
+
+// The year's quarter's row of the table 0x7854c4: base, spread, percent.
+const u32 *intensityRow() { return &global<const u32>(0x007854c4) + 3 * FunnyTime_Quarter(world() + 0x2a0); }
+
+// The funny time now past t.
+bool nowPast(const FileTime *t) {
+    FileTime now;
+    FunnyTime_Now(world() + 0x2a0, nullptr, &now, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+    return FileTime_Greater(&now, nullptr, t) != 0;
+}
+
+// a - b, or 0 when that is negative (by the sign of the wrapped result).
+u32 atLeast0(u32 a, u32 b) { return (s32)(a - b) < 0 ? 0 : a - b; }
+
+const WeatherEnv kGameEnv = {&MessageCentre_Post, &WeatherFx_ReloadTextures,
+                             reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32, u32, u32, u32, u32, u32, u32)>((uintptr_t)0x00580320), &Sound_SetAmbientLevel};
+const WeatherEnv *g_env = &kGameEnv;
+
 }  // namespace
 
 extern "C" {
+
+void Weather_SetEnv(const WeatherEnv *env) { g_env = env ? env : &kGameEnv; }
+
+u32 __fastcall Weather_NextIntensity(u8 *) {
+    if ((u32)World_Rand(world()) % 100 < intensityRow()[2])
+        return (u32)World_Rand(world()) % 100;
+    if ((s32)intensityRow()[1] > 0) {
+        const u32 spread = intensityRow()[1] * 2;
+        const u32 offset = (u32)World_Rand(world()) % spread - intensityRow()[1];
+        return offset + intensityRow()[0];
+    }
+    return intensityRow()[0];
+}
+
+u8 *__fastcall Weather_Construct(u8 *weather) {
+    Thing_Construct(weather, nullptr, 1, 0xf);
+    for (u32 offset = 0x10; offset <= 0x24; offset += 4) at<u32>(weather, offset) = 0;
+    weather[0x2c] = 0;
+    MessageCentre_AddThing(MessageCentre_Instance(), nullptr, weather, 1);
+    MessageCentre_AddThing(MessageCentre_Instance(), nullptr, weather, 2);
+    at<u32>(weather, 0xc) = Weather_NextIntensity(weather);
+    weather[0x64] = 0;
+    at<u32>(weather, 0x34) = 0;
+    at<u32>(weather, 0x30) = 0;
+    weather[0x38] = 0;
+    at<u32>(weather, 0x44) = 0;
+    at<u32>(weather, 0x3c) = 0;
+    at<u32>(weather, 0x40) = 0;
+    at<u32>(weather, 0x54) = 0;
+    at<u32>(weather, 0x5c) = 0x42b40000;
+    at<u32>(weather, 0x60) = 0x3f000000;
+    g_env->reloadTextures(fx());
+    return weather;
+}
+
+void __fastcall Weather_Update(u8 *weather) {
+    u8 msg[0x10];
+    if (weather[0x2c] && nowPast(reinterpret_cast<const FileTime *>(weather + 0x20))) {
+        ThingMsg01_Ctor(msg, nullptr, at<u32>(weather, 0x28));
+        g_env->post(MessageCentre_Instance(), nullptr, msg);
+        weather[0x2c] = 0;
+    }
+    if (!weather[0x2c]) {
+        FileTime span, due;
+        s32 result;
+        FileTime_FromSpan(&span, nullptr, &result, atLeast0(global<u32>(0x007854fc), global<u32>(0x007854f8)), 0, 0, 0, 0);
+        FileTime_Add(reinterpret_cast<const FileTime *>(weather + 0x10), nullptr, &due, &span);
+        if (nowPast(&due)) {
+            const u32 value = Weather_NextIntensity(weather);
+            ThingMsg02_Ctor(msg, nullptr, global<u32>(0x007854f8), value);
+            g_env->post(MessageCentre_Instance(), nullptr, msg);
+        }
+    }
+    const s32 target = at<s32>(weather, 0x34);
+    if (target >= 0) {
+        const s32 drops = at<s32>(weather, 0x30);
+        const s32 apart = (s32)((u32)drops - (u32)target);
+        const s32 gap = apart < 0 ? (s32)(0u - (u32)apart) : apart;
+        const s32 step = global<s32>(0x00785500);
+        if (gap >= step) {
+            const s32 now = (s32)(drops < target ? (u32)drops + (u32)step : (u32)drops - (u32)step);
+            at<s32>(weather, 0x30) = now;
+            const s32 most = global<s32>(0x00785530);
+            const s32 floor = now < 0 ? 0 : now;
+            WeatherFx_SetDropCount(fx(), nullptr, floor < most ? floor : most);
+            g_env->ambientLevel((s32)((u32)now * 100) / global<s32>(0x00785530));
+        } else if (target == 0) {
+            Weather_SetMode(weather, nullptr, 2);
+            g_env->ambientLevel(0);
+        }
+    }
+    if (weather[0x38]) {
+        const s32 wait = (s32)(at<u32>(weather, 0x3c) - global<u32>(0x0078551c));
+        at<s32>(weather, 0x3c) = wait;
+        if (wait < 0) {
+            u32 start[3], end[3];
+            Weather_RandomBolt(weather, nullptr, reinterpret_cast<float *>(start), reinterpret_cast<float *>(end), at<u32>(weather, 0x44));
+            g_env->strike(fx(), nullptr, start[0], start[1], start[2], end[0], end[1], end[2], global<u32>(0x00785524), 1);
+            if (at<s32>(weather, 0x44) <= 0) {
+                const u32 keep = atLeast0(global<u32>(0x00785528), at<u32>(weather, 0x40));
+                at<u32>(weather, 0x44) = (u32)World_Rand(world()) % global<u32>(0x0078552c) + keep;
+                std::memcpy(weather + 0x48, end, 12);
+            }
+            ++at<u32>(weather, 0x40);
+            at<u32>(weather, 0x3c) = (u32)World_Rand(world()) % global<u32>(0x00785520);
+        }
+    } else {
+        at<u32>(weather, 0x40) = 0;
+    }
+    if (--at<s32>(weather, 0x44) == 0) {
+        const auto ftol = [](float f) { return (s32)(long long)f; };
+        const s32 x = ftol(at<float>(weather, 0x48)), y = ftol(at<float>(weather, 0x4c)), z = ftol(at<float>(weather, 0x50));
+        Sound_PlayAt(0, global<u32>(0x00803a20), 0x20, x, y, z);
+    }
+}
 
 u32 __fastcall Weather_Serialize(u8 *weather, void *, Stream *stream, u32 save, s32 version, u32 unused) {
     static const SaveSpec kHead[] = {{0xc, 4, 0x0076239c}, {0x10, 8, 0x0076238c}, {0x18, 8, 0x0076237c}};

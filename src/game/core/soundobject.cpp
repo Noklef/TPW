@@ -222,6 +222,10 @@ u8 *__fastcall SoundObject_DeletingDtor(u8 *object, void *, u32 flags) {
     return object;
 }
 
+u32 __fastcall SoundObject_CallVoice9(u8 *object, void *, u32 id, u32 value) {
+    return id ? SoundMixer_CallVoice9(at<u8 *>(object, 0x20), nullptr, id, value) : 0;
+}
+
 u32 __fastcall SoundObject_CallVoice10(u8 *object, void *, u32 id, u32 a, u32 b) {
     if (!id || !at<u8 *>(object, 0x20)) return 0;
     return SoundMixer_CallVoice10(at<u8 *>(object, 0x20), nullptr, id, a, b);

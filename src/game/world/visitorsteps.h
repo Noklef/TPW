@@ -19,6 +19,25 @@ struct VisitorStepsEnv {
     u32(__fastcall *anyQueueSpot)(u8 *object, void *, u32 place, u16 *cell, u8 *x, u8 *y);  // Object_AnyQueueSpot 0x4de7e0
     void(__fastcall *placeSprite)(u8 *visitor, void *, float t);                          // Person_PlaceSprite 0x4fa030
     u32(__fastcall *playSound)(const u8 *visitor, void *, u32 category, u32 sound);       // Sprite_PlaySound 0x4faa00
+    u32(__fastcall *findQueueDestination)(u8 *visitor);                                   // Visitor_FindQueueDestination 0x501160
+    void(__fastcall *chooseMinorDest)(u8 *visitor);                                       // Visitor_ChooseMinorDest 0x4fd570
+    s32(__fastcall *ratingGap)(const u8 *visitor, void *, u8 *object);                    // Visitor_RatingGap 0x4fd4e0
+    u32(__fastcall *wontPay)(const u8 *visitor, void *, u8 *object);                      // Visitor_WontPay 0x4fde50
+    void(__fastcall *visitObject)(u8 *visitor, void *, u8 *object);                       // Visitor_VisitObject 0x4fd970
+    void(__fastcall *placeAt)(u8 *thing, void *, u32 x, u32 y);                           // Thing_PlaceAt 0x4fa930
+    void(__fastcall *reopen)(u8 *object);                                                 // Object_Reopen 0x4df150
+    void(__fastcall *cellEffect)(u8 *cell, void *, u32 kind);                             // 0x4d93b0 (not ported)
+    u32(__cdecl *angle)(s32 dx, s32 dy);                                                  // the cseg angle routine 0x6e7074
+    u16 *(__fastcall *headForNearestFlag40)(u8 *sprite, void *, u16 *out, u32 radius);    // Things_HeadForNearestFlag40 0x500dc0
+    void(__fastcall *nearestFlag80Close)(const u8 *thing, void *, u16 *out);              // Things_NearestFlag80Close 0x501020
+    s32(__fastcall *anyOfKindAround)(u8 *thing, void *, u32 kind, u32 cell, s32 radius);  // Things_AnyOfKindAround 0x4c8eb0 (ECX not read)
+    u16 *(__fastcall *nearestStaff)(const u8 *object, void *, u16 *out);                  // Staff_NearestInList1da740 0x500f00
+    void(__fastcall *jumpScript)(u8 *person);                                             // Person_JumpScript210 0x4fe950
+    u32(__fastcall *setRandomDest)(u8 *person);                                           // Person_SetRandomDest 0x4f9490
+    void(__fastcall *chooseMajorDest)(u8 *visitor);                                       // Visitor_ChooseMajorDest 0x4fcb10
+    u32(__fastcall *post)(u8 *centre, void *, u8 *msg);                                   // MessageCentre_Post 0x40fb10
+    u32(__fastcall *analyserIncome)(u8 *analyser);                                        // 0x4c8240 (not ported)
+    void(__fastcall *creditTakings)(u8 *money);                                           // Money_CreditTakings 0x4d0600
 };
 void VisitorSteps_SetEnv(const VisitorStepsEnv *env);
 
@@ -75,4 +94,60 @@ void __fastcall Visitor_StartEmote(u8 *visitor, void *, u32 mode);
 // byte, y 0xc8 (state 0, or 6 when it does not start), the sprite placed (0.0) and the particle 0x13; +0x204 and the words +0x1e0-+0x1ee
 // cleared; message 0x1c of its handle posted. Returns the visitor.
 u8 *__fastcall Visitor_Ctor(u8 *visitor, void *, u32 cell);
+
+// 0x4ffbc0 (thiscall; names of this and the next invented, unconfirmed): one step of the walk to the object +0x1dc's queue (Sprite_WalkNav). 2:
+// (3, object) on the ring +0x30, Visitor_Lower19c(2), +0x1dc 0, state 6. Other non-zero: with the world's Get1da710 the same without the ring;
+// else the counter +0x2c up (past 11: 0 and Visitor_ChooseMinorDest). Arrived: no object: state 6. The back of the queue not the visitor's cell:
+// a walk to the back as it is now, when there is one and it starts; else (0x16, 0) on the ring and state 6. No room (Object_QueueHasRoom):
+// (0x15, 0), state 6. Unless the object's base rating (Object_Rating(1)) is 0, a rating gap (Visitor_RatingGap) of 45 or more: (5, object) and
+// the thought 0xc below 0, (4, object) and 0xf above, Visitor_PushPreviousRide, +0x1dc and +0x1fc 0, state 6. Queue full (Object_QueueFull):
+// (0x15, object), Visitor_PushPreviousRide, the thought 0x10, +0x1dc 0, state 6. Else +0x20c = happiness +0x19c, into the queue
+// (Object_QueueAddPerson) and Visitor_FindQueueDestination; no destination: out again (Object_QueueRemovePerson), Visitor_SendAway, state 6.
+void __fastcall Visitor_StepWalkToQueue(u8 *visitor);
+// 0x5006b0 (thiscall): one step of the walk in the queue (Sprite_WalkNav; 2 counts as arrived, other non-zero waits). Arrived: the visitor's
+// object +0x1dc. Too expensive (Visitor_WontPay): the thought 6, (0xa, the object's handle) on the ring +0x30, Visitor_Lower19c(1),
+// Object_AddWalkAway, Obj_ReleaseRideElement0, off the queue, Visitor_SendAway, +0x1dc 0, state 6. Else admitted (Obj_ClaimRideElement0):
+// state 0xe. Else Visitor_FindQueueDestination; no destination: off the queue, Visitor_SendAway, state 6.
+void __fastcall Visitor_StepInQueue(u8 *visitor);
+// 0x4ffff0 (thiscall; name invented): the visitor's wait in the queue of the object +0x1dc. At place 0 (+0x1f1) with the call +0x1f8: told to come (the object's word +0x6c its handle), +0x1f8 0, walks to
+// its stand point (state 0xd), or no way there: the claim released and off the queue, away (state 6). Told nothing: nothing. A worn object: thought 0xe, away. Not in the queue: away. At its
+// place: over the fill rate: thought 0x10, (0x15, object) on the ring, away; a closed link or a kind 1 object with nothing at +0x2c: thought 0xd, away. Not at its place: a move (the budget
+// +0x1f4, within 2) or a destination (state 1 of the object or Visitor_FindQueueDestination), or away. Then the waiting: past +0x208 + 0x1e, the mood's and +0x1ac's low bytes decide
+// (Visitor_StartEmote 5 or 4; thought 0xb, thought 4 when the object has no flag 1: away); past +0x1fc + 0x64: (7, object) on the ring, thought 0xc, away; else one in ten: a turn of the heading +0x1c.
+void __fastcall Visitor_StepQueueWait(u8 *visitor);
+// 0x4fec90 (thiscall; name invented): the idle visitor, on one roll of World_Rand. Long since the last emote (+0x208, over 0x64) and +0x19c over
+// 0x50: Visitor_StartEmote 5. +0x1b0 exactly 100 on one roll in three: emote 7, the cell's effect 7, (0x12) on the ring, sound 0xcc, +0x1b0 0.
+// +0x1b4 at 0x5a or more: in states 6, 7, 0xa, a thing with flag 0x40 near: +0x1dc, state 9; else the cell's effect 1 to [0x70048c] - 1, +0x1b4 0.
+// +0x19c's low byte 0, no +0x1bc or the world's +0x1da710: Visitor_Lower19c 2 and a walk to either crossing's park side (the first of two
+// rounds with +0x188 0, the second 1; state 0x12; none: +0x188 0). A close thing with flag 0x80: face it. A kind 6 thing around and the
+// nearest staff in state 0xe: (0xe, staff) on the ring, face it. (Facing a thing whose cell's differences add to 0 falls through.) Then
+// +0x19c under 0xf on (roll % 0x65) under b[+0x1c0], for 0x64 - 0x66: the world's cell +0x294's effect 8 (roll % 100 under [0x7850e0]; sound
+// 0xcf) or 1-5, or the first other person on the cell's chain with a script +0x210 jumped; done: (0xf) on the ring, a message posted (vtable
+// 0x7007a8, the handle, handle % 3) and +0x19c down by [0x700794] (above [0x700798]: 100; under [0x70079c]: 0). Roll % 3: 1 a random walk
+// (state 7) or +0x1fc now; 0 past +0x1fc + 0x1e: Visitor_ChooseMajorDest: a destination goes (2, +0x1dc) on the ring, state 0xa; none (1) on
+// the ring, emote 4, Lower19c 0, +0x1fc now.
+void __fastcall Visitor_StepIdle(u8 *visitor);
+// 0x5014e0 (thiscall; name invented, unconfirmed): the visitor comes out at the object of +0x1dc: placed at its exit point (Object_CellStandPoint, Thing_PlaceAt).
+// The cell one step from the exit cell (+0x38) in that cell's direction (rotated by Nibble_Scale when +0x38 is +0x36): not of type 3 or 9 and a walk there starts:
+// Visitor_VisitObject, state 0xf, 1. Else Object_Reopen, 0. (Its debug prints are left out.)
+u32 __fastcall Visitor_ArriveAtObject(u8 *visitor);
+// 0x4fc8a0 (thiscall; names of this block invented, unconfirmed): a thought from the moods' __ftol low bytes: +0x1a8 and +0x1a4 both over 0x5a: 3; +0x1a8, +0x1a4, +0x1ac, +0x1b0 over
+// 99: 1, 2, 4, 0xe; the analyser cell's held / paths over 0.2 (rounded to 24 bits): 7; +0x19c over 99: 9, under 10: 0xb; else nothing. For 4 with the handle's low 4 bits 0, sound 0x85.
+void __fastcall Visitor_ShowMoodThought(u8 *visitor);
+// 0x501650 (thiscall): Person_UpdateSpeed. On the visitor's quarter of the clock: +0x1bc less 1; the cell's record [0x8023a0] (Map_RECell) adds its words 0, 2, 4 to +0x19c, +0x1b0,
+// +0x1a8 (each clamped to 0-100, NaN 0); every 16 ticks +0x1ac + 1, +0x1a8 + 2, +0x1a4 + 2; each of +0x1b0, +0x1a8, +0x1a4, +0x1ac at 100 takes 1 from +0x19c; the walking word +0xc2 by
+// +0x1ac over 0x50; out of states 0x10 and 0x11 on a plain cell: 1 in 10 a mood thought, the countdown +0x214 reaching 0 jumps the script; Person_KillScript84After. Outside states
+// 0xb-0xe (of +0x224 in state 8) the words +0x228, +0x22a cleared. Visitor_PreviousRideTick. (Its debug print is left out.)
+void __fastcall Visitor_Update(u8 *visitor);
+// 0x4ff5b0 (ECX not read): worth = income (0x4c8240) / (a roll of [0x78507c] to 1.5 times it) + [0x785080], against the bank's price +0x118: both no more than [0x785080]: 3; else by the
+// price against worth times [0x785088], [0x785084], [0x78508c] (24-bit products), 0-3, the matching byte [0x7850cc]... to the analyser's ring 0. (Its debug prints are left out.)
+u32 __fastcall Visitor_JudgeEntryFee();
+// 0x4ff9d0 (thiscall): the countdown +0x200; at 0 Visitor_JudgeEntryFee: 0: +0x188 = 1, a walk to a crossing's park side, thought 6, state 0x12 and +0x1bc = 0; 1: +0x200 = 50-99, thought
+// 6, Lower19c 1, with no mood left state 0x12 as 0; 2: Raise19c 1, then as 3; 3: the takings credited, +0x204 = 1, state 3.
+void __fastcall Visitor_StepAtBooth(u8 *visitor);
+// 0x4fff20 (thiscall): the walk done with an object +0x1dc: element 0 of its ride set to 1; the walk done without one, or 2: a cell effect 1 to [0x70048c] - 1 on its own cell. Either way
+// +0x1b4 = 0, state 6.
+void __fastcall Visitor_StepComingOff(u8 *visitor);
+// 0x5019f0 (thiscall): the step of the state +0x220 (0x15 at most). (Its debug prints are left out.)
+void __fastcall Visitor_PostUpdate(u8 *visitor);
 }

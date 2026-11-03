@@ -438,6 +438,8 @@ void __fastcall SoundVoice_SetFlags(u8 *voice, void *, u32 scale) {
     }
 }
 
+void __fastcall SoundVoice_Destroy(u8 *voice) { vcall<void>(voice, 8, 0u); }
+
 u32 *__fastcall SoundVoice_Init(u8 *voice, void *, u32 *out, u8 *owner, u8 *definition, const u32 *position, u32 scale) {
     at<u8 *>(voice, 0x28) = owner;
     vcall<void>(owner, 4);

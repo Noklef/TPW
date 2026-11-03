@@ -31,8 +31,20 @@
 # or another; +0x1f8 about 0-100 (or past them, a NaN, an infinity, huge), the int 0x785328 small, negative or huge.
 # Dismiss (0x505790): PickUp's mode surroundings (slot 9 answering 6 mostly) and Message's pay day records; Sprite_SpawnParticle and
 # Thing_Delete thiscall recorders (29 of 1, 30 of 0: driver.cpp's StaffWalkEnv).
+# ModelState (0x5056e0): SetState's surroundings; the state 4 (Sprite_WalkNav answering 0, 2 or another; Thoughts_Show a thiscall recorder, 31 of 2:
+# driver.cpp's StaffWalkEnv), 6 (the tick less +0x200 at, either side of or away from 3 * the grade's value of 0x785330), 7 or others; 5 on Head's.
+# Mood (0x506a40): Head's surroundings; the kind entry of the world's +0x1da718 record 0 or not, the ride of +0x1da732 (element 1 answering 1 mostly), the
+# strike area 0x7855ec-0x7855f8 about navpath's cell (so that the walk works with a size of 1); the levels +0x1fc and +0x1f8 at and about the tests, the
+# limit 0x785324, 0-2 rest areas on that cell; Thoughts_Show as in ModelState.
+# Idle (0x502c70): Mood's, Person_SetRandomDest a recorder (27 of 0) answering 0 or not.
+# ResearcherCtor (0x502600): Idle's; Staff_CtorTyped a recorder (19 of 4), Charset_FormatWide a cdecl one (17 of 4); the world's researchers' head (0x1da742) any, the lab (the slot of
+# +0x1da722) with its flag +0x1468 mostly set; ResearchLab_SyncFlag's message, when the flag changes, through recorder 21 of 1.
+# RestArea (0x5061d0): Mood's, the grade +0x1e4 under 8 into 0x785334 / 0x785338 (about 0 or the distance to 100), +0x1fc about 100 mostly, the kind byte +2 4-8 mostly; the kinds'
+# idles recorders (22, 23, 24, 18 of 0: driver.cpp's StaffWalkEnv).
+# PostUpdate (0x5029f0): RestArea's, the state +0x19c 0, 1, 2, 3, 0xf or others, the tick at, either side of or away from the grade's sum (0x785330 + +0x200, 0x785458 + +0x214), a
+# wrapped sum now and then; Sprite_WalkNav and Person_SetRandomDest as above, Sprite_PlaySound a thiscall recorder (25 of 2).
 # usage: staffstate.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetState,Mechanic,Handyman,PickUp,Settle,Head,Researcher,LeaveRest,
-#   Message,MechMsg,HandyMsg,GuardMsg,DefaultMsg,WalkRest,Dismiss)
+#   Message,MechMsg,HandyMsg,GuardMsg,DefaultMsg,WalkRest,Dismiss,ModelState,Mood,Idle,ResearcherCtor,RestArea,PostUpdate)
 import os
 import struct
 import sys
@@ -41,8 +53,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import navpath  # noqa: E402
+import personscripts  # noqa: E402
 import wctimage  # noqa: E402
-from fncmp import HEAP, LOG, Bench, Call, RAM, _recorder, blob_bytes, fb, heap, put, recorder, set_return, vtable  # noqa: E402
+from fncmp import HEAP, LOG, LOG_BYTES, Bench, Call, RAM, _recorder, blob_bytes, fb, heap, log_region, put, recorder, set_return, vtable  # noqa: E402
 from focus import MODES  # noqa: E402
 from mousemode import assign  # noqa: E402
 from movingperson import cell_xy  # noqa: E402
@@ -50,7 +63,8 @@ from movingperson import cell_xy  # noqa: E402
 B = Bench(wctimage.merged(MODES + [
     (0x402d70, 0x403200), (0x40f350, 0x40f370), (0x4217f0, 0x421810), (0x46c350, 0x46c460), (0x46c6a0, 0x46c6c0), (0x46c710, 0x46c740),
     (0x46cbc0, 0x46cc50), (0x46cdc0, 0x46cef0), (0x46cfb0, 0x46cfd0), (0x475550, 0x4755a0), (0x4758f0, 0x475b90), (0x4814a0, 0x481500),
-    (0x4a2aa0, 0x4a2ad0), (0x4d4140, 0x4d41a0), (0x4da5b0, 0x4da750), (0x4dad20, 0x4dadd0), (0x4fa460, 0x4fa480), (0x4fa930, 0x4fa9a0),
+    (0x4a2aa0, 0x4a2ad0), (0x4d4140, 0x4d41a0), (0x4da5b0, 0x4da750), (0x4dad20, 0x4dadd0), (0x4fa460, 0x4fa480), (0x4fa930, 0x4fa9a0), (0x5100e0, 0x510100), (0x510160, 0x510180), (0x50b6a0, 0x50b780), (0x4d91f0, 0x4d93b0),
+    (0x475010, 0x476a30), (0x540b90, 0x540da0), (0x541f60, 0x541fb0), (0x4d4100, 0x4d4134), (0x5f5e20, 0x5f5e90), (0x5f5fa0, 0x5f5fc0), (0x402d70, 0x403220), (0x4033a0, 0x4033f0), (0x4d27a0, 0x4d2850),   # (personscripts.py's script list)
     (0x5054d0, 0x5056f0), (0x502c20, 0x502c64), (0x505ea0, 0x505f60), (0x509af0, 0x509b50), (0x50b350, 0x50b370), (0x50c0d0, 0x50c110), (0x519450, 0x5194e0),
     (0x540c60, 0x540da0), (0x550ca0, 0x550d90), (0x5f5660, 0x5f56a0), (0x6590f7, 0x6591e4), (0x65f11d, 0x65f160), (0x67a740, 0x67a800),
     (0x67fa20, 0x67fa40), (0x5d1410, 0x5d1416), (0x5d1750, 0x5d1751), (0x5da3c0, 0x5da3c1),
@@ -61,14 +75,19 @@ B = Bench(wctimage.merged(MODES + [
     (0x415e00, 0x415e80), (0x504c70, 0x504dd2), (0x40f440, 0x40f446), (0x40f490, 0x40f496), (0x40f510, 0x40f516), (0x40f920, 0x40f926),
     (0x506490, 0x5064d4), (0x506910, 0x506a38), (0x5195d0, 0x51960d), (0x4d01f0, 0x4d0259),
     (0x4da0c0, 0x4da10e), (0x4d6cf0, 0x4d6d53), (0x4d5fb0, 0x4d5ff5), (0x4d4450, 0x4d445d)] + navpath.RANGES + [(0x505fe0, 0x506183),
-    (0x505790, 0x5059e2), (0x5059e4, 0x505a0c)]),
-          hooks={0x40fb10: _recorder(21, 1), 0x4fa2a0: _recorder(28, 0), 0x4fa470: _recorder(29, 1), 0x50b780: _recorder(30, 0)})
+    (0x505790, 0x5059e2), (0x5059e4, 0x505a0c), (0x5056e0, 0x505790), (0x506a40, 0x506d10), (0x51a290, 0x51a2f0), (0x502c70, 0x502cf0), (0x506680, 0x5066a0),
+    (0x5061d0, 0x5062f4), (0x5029f0, 0x502c20), (0x5066a0, 0x506910), (0x502600, 0x50275d), (0x519c10, 0x519c50), (0x519550, 0x51958d), (0x504090, 0x504132), (0x504140, 0x5041e2),
+    (0x5041f0, 0x504209), (0x40f630, 0x40f650)]),
+          hooks={0x40fb10: _recorder(21, 1), 0x4fa2a0: _recorder(28, 0), 0x4fa470: _recorder(29, 1), 0x50b780: _recorder(30, 0), 0x50be80: _recorder(31, 2), 0x4f9490: _recorder(27, 0),
+                 0x4faa00: _recorder(25, 2), 0x4da5b0: _recorder(22, 0), 0x4d7100: _recorder(23, 0), 0x4d46d0: _recorder(24, 0), 0x4d63d0: _recorder(18, 0),
+                 0x504b10: _recorder(19, 4), 0x6acd60: _recorder(17, 4, cdecl=True)})
 STAFF, WORLD, MODE, MODE_VT, HOLDER = RAM + 0x20000, RAM + 0x21000, RAM + 0xc000, RAM + 0xc100, RAM + 0xc200
 RECORD, CELLS = RAM + 0x21400, RAM + 0x50000
 
 
 CALLS = {'SetState': 0x5054d0, 'Mechanic': 0x4da370, 'Handyman': 0x4d7330, 'PickUp': 0x505c50, 'Settle': 0x505f50, 'Head': 0x506300,
-         'Researcher': 0x502c20, 'LeaveRest': 0x506d10, 'Message': 0x504c70, 'WalkRest': 0x505fe0, 'Dismiss': 0x505790,
+         'Researcher': 0x502c20, 'LeaveRest': 0x506d10, 'Message': 0x504c70, 'WalkRest': 0x505fe0, 'Dismiss': 0x505790, 'ModelState': 0x5056e0, 'Mood': 0x506a40, 'Idle': 0x502c70,
+         'RestArea': 0x5061d0, 'PostUpdate': 0x5029f0, 'ResearcherCtor': 0x502600, 'Place': 0x505ea0,
          'MechMsg': 0x4da0c0, 'HandyMsg': 0x4d6cf0, 'GuardMsg': 0x4d5fb0, 'DefaultMsg': 0x4d4450}
 # the kinds' handlers: (the staff member's handle word, the message type it takes)
 HANDLERS = {'MechMsg': (0x218, 0xa), 'HandyMsg': (0x21a, 0xa), 'GuardMsg': (0x212, 0x1b), 'DefaultMsg': (None, None)}
@@ -145,6 +164,45 @@ def head(r):
     regions[0x7855bc] = struct.pack('<II', column, row)
     regions[0x75c7f0] = r.bytes(4)
     return Call(0x506300, [RAM], regions, conv='t', ret='v')
+
+
+def mood(r):
+    """Mood (0x506a40): see the header."""
+    regions = dict(head(r).regions)
+    regions.setdefault(LOG, log_region())
+    struct.pack_into('<I', regions[LOG], LOG_BYTES + 4 * 31, 2)
+    world = struct.unpack('<I', regions[0x80239c])[0] + 0x1da708
+    w = bytearray(regions[world]) + bytearray(r.bytes(0x20))
+    table = regions[0x7cfb90]
+    free = [k for k in range(1, 16) if struct.unpack_from('<I', table, 20 * k)[0] not in (REC, THING)]
+    ride, *rests = r.sample(free, 3)
+    rests = rests[:r.choice([0, 1, 1, 2])]
+    leave_rest(r, regions, table, ride)
+    regions[RIDES] = put(bytearray(regions[RIDES]), 0x8c, 'i', r.choice([2, 2, 2, 3, 1]))
+    regions[RIDES + 0x100] = put(bytearray(regions[RIDES + 0x100]), 4, 'I', r.choice([1, 1, 1, 1, 0, 2]))
+    regions[0x8791a0] = struct.pack('<I', 1)
+    put(w, 0x2a, 'H', r.choice([ride] * 7 + [0]))
+    column, row = struct.unpack('<II', regions[0x7855bc])
+    cid = (row << 7) + column + 1 & 0xffff
+    blob = bytearray(r.bytes(0x40 * 4))
+    for i, k in enumerate(rests):
+        put(table, 20 * k, 'I', RESTS + 0x40 * i)
+        put(blob, 0x40 * i + 0xc, 'H', rests[i + 1] if i + 1 < len(rests) else 0)
+        blob[0x40 * i + 0x32] = r.choice([0xff, 2, 2, 0xfd])
+        put(blob, 0x40 * i + 0x36, 'H', cid)
+    regions[RESTS] = blob
+    put(w, 0x3e, 'H', rests[0] if rests else 0)
+    regions[world] = w
+    x, y = cell_xy(cid)   # (a size of 1 rolls the cell the walk works to)
+    regions[0x7855ec] = struct.pack('<4I', x >> 8 & 0xff, y >> 8 & 0xff, r.choice([1] * 19 + [r.randrange(1, 300)]), r.choice([1] * 19 + [r.randrange(1, 300)]))
+    staff = regions[RAM]
+    levels = [0.0, 5.0, 10.0, 10.9, 11.0, 19.9, 20.0, 50.0, 97.0, 97.9, 98.0, 99.9, 100.0, 101.0, 255.9, 256.0, 3e9, -1.0]
+    put(staff, 0x1fc, 'f', r.choice(levels))
+    put(staff, 0x1f8, 'I', r.choice([fb(v) for v in levels] + [fb(r.uniform(-50, 200)), 0x7fc00000, 0x7f800000, 0xff800000]))
+    regions[0x785324] = struct.pack('<i', r.choice([0, 10, 20, 50, 99, 100, 255, -1, -0x80000000, r.getrandbits(31)]))
+    regions[0x785328] = struct.pack('<i', r.choice([0, 1, 5, 10, 50, -5, -50, 0x7fffffff, -0x80000000, r.getrandbits(31)]))
+    regions[0x75c7f8] = r.bytes(12)
+    return Call(CALLS['Mood'], [RAM], regions, conv='t', ret='a')
 
 
 def leave_rest(r, regions, table, h):
@@ -249,10 +307,94 @@ def kind_message(r, regions, staff, op):
     return Call(CALLS[op], c.args, c.regions, conv='t', ret='v')
 
 
+def rest_area(r):
+    """RestArea (0x5061d0): see the header."""
+    c = mood(r)
+    regions, staff = c.regions, c.regions[RAM]
+    table = regions[0x7cfb90]
+    h = next(k for k in range(1, 16) if struct.unpack_from('<I', table, 20 * k)[0] == AREA)
+    put(staff, 0x208, 'H', h)
+    put(staff, 0x20, 'I', r.choice([0, 1, 2, 3]))   # (LeaveRest's sprite: a whole dword)
+    grade = r.randrange(8)
+    put(staff, 0x1e4, 'I', grade)
+    staff[2] = r.choice([4, 5, 6, 7, 8] * 3 + [0, 1, 9, r.getrandbits(8)])
+    gains = bytearray(r.bytes(0x80))
+    put(gains, (grade << 4) + 4, 'f', r.choice([0.0, 0.0, 0.5, 1.0, 100.0, -1.0, -100.0, 3e38]))
+    put(gains, (grade << 4) + 8, 'I', fb(r.choice([0.0, 0.5, 1.0, 100.0, -1.0, -100.0, 3e38, r.uniform(-200, 200)])))
+    regions[0x785330] = gains
+    rest = r.choice([100.0, 100.0, 100.0, 99.9, 99.5, 100.5, 101.0, 50.0, 0.0, -0.5, 356.0, r.uniform(-50, 200)])
+    put(staff, 0x1fc, 'I', r.choice([fb(rest)] * 19 + [0x7fc00000]))
+    blob_bytes(regions[LOG], 21, 0, 0xf3ff)
+    for k in (22, 23, 24, 18):
+        set_return(regions[LOG], k, 0)
+    c.address = CALLS['RestArea']
+    c.ret = 'v'
+    return c
+
+
+def post_update(r):
+    """PostUpdate (0x5029f0): see the header."""
+    c = rest_area(r)
+    regions, staff = c.regions, c.regions[RAM]
+    grade = struct.unpack_from('<I', staff, 0x1e4)[0]
+    state = r.choice([0, 0, 0, 1, 1, 1, 2, 3, 0xf, 0xf, 0xf, 4, 5, 6, 7, 0x10, r.getrandbits(32)])
+    put(staff, 0x19c, 'I', state)
+    staff[2] = 8
+    world = struct.unpack('<I', regions[0x80239c])[0] + 0x1da708
+    tick = struct.unpack_from('<I', regions[world], 4)[0]
+    regions[0x803a30] = r.bytes(4)
+    stays = bytearray(r.bytes(12 * 8))
+    for off, base, table in ((0x200, grade << 4, regions[0x785330]), (0x214, grade * 12, stays)):
+        stay = r.choice([0, 1, 100, 0x10000, r.getrandbits(32)])
+        put(table, base, 'I', stay)
+        wait = r.choice([stay, stay, stay + 1, stay + 1, stay - 1, 0, -1, 0x10000, r.getrandbits(32)])
+        put(staff, off, 'I', (tick - wait) & 0xffffffff)
+    regions[0x785458] = stays
+    set_return(regions[LOG], 28, r.choice([0, 0, 2, 2, 1, 3]))
+    set_return(regions[LOG], 27, r.choice([0, 0, 1, 2, 0x100]))
+    c.address = CALLS['PostUpdate']
+    return c
+
+
 def case(r):
     op = r.deal(OPS)
     if op == 'Head':
         return head(r)
+    if op == 'Mood':
+        return mood(r)
+    if op == 'Idle':   # (0x502c70: Mood's surroundings, Person_SetRandomDest a recorder answering 0 or not, and the level about 0 for Staff_IsTooTired)
+        c = mood(r)
+        set_return(c.regions[LOG], 27, r.choice([0, 1, 1, 2, 0x100]))
+        c.address = CALLS[op]
+        c.ret = 'v'
+        return c
+    if op == 'ResearcherCtor':
+        c = mood(r)
+        regions = c.regions
+        set_return(regions[LOG], 27, r.choice([0, 1, 1, 2, 0x100]))
+        table = regions[0x7cfb90]
+        lab = r.choice([k for k in range(1, 16) if struct.unpack_from('<I', table, 20 * k)[0] == 0 or k == 15])
+        put(table, 20 * lab, 'I', RAM + 0x60000)
+        block = bytearray(r.bytes(0x1480))
+        block[0x1468] = r.choice([1, 1, 1, 0xff, 0])
+        regions[RAM + 0x60000] = block
+        world = struct.unpack('<I', regions[0x80239c])[0] + 0x1da708
+        put(regions[world], 0x1a, 'H', lab)
+        put(regions[world], 0x3a, 'H', r.choice([0, 0, 3, r.getrandbits(16)]))
+        regions[0x78bab8] = r.bytes(4)
+        regions[0x788d3c] = struct.pack('<I', RAM + 0x61600)
+        blob_bytes(regions[LOG], 21, 0, 0xfff)   # (ResearchLab_SyncFlag's message on the stack: its bytes)
+        c.address = CALLS[op]
+        c.args = [RAM, r.getrandbits(32), r.choice([0, 1, 2, r.getrandbits(32)]), r.getrandbits(32), r.randrange(0x23)]
+        return c
+    if op == 'RestArea':
+        return rest_area(r)
+    if op == 'PostUpdate':
+        return post_update(r)
+    if op == 'ModelState' and r.random() < 0.2:   # (state 5: Head's surroundings)
+        regions = dict(head(r).regions)
+        put(regions[RAM], 0x19c, 'I', 5)
+        return Call(CALLS[op], [RAM], regions, conv='t', ret='v')
     if op == 'Mechanic' and r.random() < 0.7:
         return mechanic(r)
     if op == 'Handyman' and r.random() < 0.7:
@@ -282,6 +424,19 @@ def case(r):
     regions[0xfb3b7c] = struct.pack('<I', 1)
     state = r.choice([0, 1, 2, 3, 4, 5, 6, 7, 7, 7]) if r.random() < 0.95 else r.choice([8, 9, 0xffffffff, r.getrandbits(32)])
     assert LOG in regions
+    if op == 'ModelState':
+        put(staff, 0x19c, 'I', r.choice([4, 4, 4, 6, 6, 6, 6, 6, 7, 3, 8, r.getrandbits(32)]))
+        grade = r.randrange(8)
+        put(staff, 0x1e4, 'I', grade)
+        stay = r.choice([0, 1, 100, 100, 0x55555556, r.getrandbits(32)])
+        regions[0x785330] = put(bytearray(r.bytes(0x80)), grade << 4, 'I', stay)
+        tick = struct.unpack('<I', regions[WORLD])[0]
+        wait = r.choice([stay * 3, stay * 3 + 1, stay * 3 - 1, 0, -1, -1000, -0x10000000, r.getrandbits(32)]) & 0xffffffff   # (above half: the compare is unsigned)
+        put(staff, 0x200, 'I', (tick - wait) & 0xffffffff)
+        set_return(regions[LOG], 28, r.choice([0, 0, 2, 2, 1, 3]))
+        struct.pack_into('<I', regions[LOG], LOG_BYTES + 4 * 31, 2)
+        put(staff, 0x188, 'I', r.getrandbits(32))
+        return Call(CALLS[op], [STAFF], regions, conv='t', ret='v')
     if op in ('PickUp', 'Settle'):
         if op == 'Settle':
             put(staff, 0x19c, 'I', r.choice([0, 1, 2, 3, 4, 5, 6, 7, 0xd, 0x12, 8, 0x11, r.getrandbits(32)]))
@@ -302,6 +457,22 @@ def case(r):
             put(cells, 0x44 * (staff[7] * 128 + staff[5]) + 8, 'I', r.choice([0, 1, 3, 9, 0xa, 2, 4, 0xc, 0x11, r.getrandbits(32)]))
             regions[CELLS] = cells
         return Call(CALLS[op], [STAFF], regions, conv='t', ret='v')
+    if op == 'Place':   # (0x505ea0: a mechanic mostly, the idle 0x4da5b0 a recorder; the world's list of objects empty, Objects_ReleaseTracked as it is; any cell)
+        staff[2] = r.choice([4, 4, 4, 0, 1, 7, r.getrandbits(8)])
+        regions[CELLS] = bytes(0x44 * 8 * 128)   # (no thing in any of the first 8 rows' cells: the staff alone is moved between chains, its handle in the table)
+        regions[0x8023a0] = struct.pack('<I', CELLS)
+        own = r.randrange(16, 64)
+        put(staff, 0, 'H', own)
+        put(staff, 8, 'HH', 0, 0)
+        staff[5], staff[7] = r.randrange(0x80), r.randrange(8)
+        regions[0x7cfb90 + 20 * own] = struct.pack('<I', STAFF)
+        h = r.randrange(16)
+        regions[WORLD] = put(bytearray(r.bytes(0x10)), 0xe, 'H', h)
+        regions[WORLD + 0x3a] = bytes(2)
+        regions[0x7cfb90 + 20 * h] = struct.pack('<I', RECORD)
+        regions[RECORD] = r.bytes(0x80)
+        personscripts.script_list(r, regions, staff, base=RAM + 0x70000)
+        return Call(CALLS[op], [STAFF, r.choice([1, 2, 0x80, 0x81, r.randrange(1, 0x400), r.randrange(1, 0x400), r.randrange(1, 0x400), r.getrandbits(32)])], regions, conv='t', ret='v')
     if op == 'Message':
         return message(r, regions, staff)
     if op in HANDLERS:

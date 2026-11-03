@@ -17,6 +17,7 @@
 #include "../core/textarg.h"
 #include "../core/thunks.h"
 #include "../core/vcall.h"
+#include "../files/charsets.h"
 #include "../math/x87.h"
 #include "../sprite/scriptref.h"
 #include "analyser.h"
@@ -767,11 +768,40 @@ void __fastcall Staff_LeaveRestArea(u8 *staff) {
 }
 
 namespace {
-const StaffWalkEnv kGameWalkEnv = {&Sprite_WalkNav, &Sprite_SpawnParticle, &Thing_Delete};
+const StaffWalkEnv kGameWalkEnv = {&Sprite_WalkNav, &Sprite_SpawnParticle, &Thing_Delete, &Thoughts_Show, &Person_SetRandomDest, &Sprite_PlaySound,
+                                   reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x004da5b0), reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x004d7100),
+                                   reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x004d46d0), reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x004d63d0),
+                                   &Staff_CtorTyped, &Charset_FormatWide};
 const StaffWalkEnv *g_walk = &kGameWalkEnv;
+
+// A level from an x87 sum: above 100.0 100.0, below 0 (or NaN) 0, else the sum.
+void keep_level(float &level, X87Reg sum) {
+    if (sum.v > 100.0) level = 100.0f;
+    else if (!(sum.v >= 0.0)) level = 0.0f;
+    else level = (float)sum;
+}
+
+// +0x1f8 less the int [0x785328] (x87: fild, fchs, fadd).
+void lower_happiness(u8 *staff) {
+    float &happiness = *reinterpret_cast<float *>(staff + 0x1f8);
+    keep_level(happiness, X87Reg(-(double)*reinterpret_cast<const s32 *>((uintptr_t)0x00785328)) + happiness);
+}
 }  // namespace
 
 void Staff_SetWalkEnv(const StaffWalkEnv *env) { g_walk = env ? env : &kGameWalkEnv; }
+
+void __fastcall Staff_PlaceInCell(u8 *staff, void *, u32 cell) {
+    const u32 c = cell - 1;
+    Thing_PlaceAt(staff, nullptr, (c & 0x7f) << 8 | 0x80, (c >> 7 & 0xff) << 8 | 0x80);
+    ScriptRef_Start(staff + 0xc, nullptr, 3, at<u32>(staff, 0x24), at<u32>(staff, 0x20));
+    if (at<u8>(staff, 2) == 4) {
+        Objects_ReleaseTracked(nullptr, nullptr, 0, 0);
+        g_walk->idleMechanic(staff);
+    } else {
+        Staff_SetState(staff, nullptr, 0);
+        at<u32>(staff, 0x200) = 0;
+    }
+}
 
 void __fastcall Staff_WalkToRestArea(u8 *staff) {
     const u32 walked = g_walk->walkNav(staff);
@@ -786,12 +816,156 @@ void __fastcall Staff_WalkToRestArea(u8 *staff) {
         u32 msg[4] = {0x00700868, 0, *Thing_GetHandle(staff, nullptr, &handle), 1};   // (the original leaves the word above the handle as it was)
         Object_PostMessage(reinterpret_cast<u8 *>(msg));
     } else if (walked == 2) {
-        const X87Reg rest = X87Reg(-(double)*reinterpret_cast<const s32 *>((uintptr_t)0x00785328)) + *reinterpret_cast<const float *>(staff + 0x1f8);
-        float &energy = *reinterpret_cast<float *>(staff + 0x1f8);
-        if (rest.v > 100.0) energy = 100.0f;
-        else if (!(rest.v >= 0.0)) energy = 0.0f;
-        else energy = (float)rest;
+        lower_happiness(staff);
         Staff_SetState(staff, nullptr, 0);
+    }
+}
+
+void __fastcall Researcher_Idle(u8 *researcher) {
+    if (Staff_CheckMood(researcher)) return;
+    if ((World_Rand(global<u8 *>(0x0080239c)) & 3) != 0 && g_walk->setRandomDest(researcher)) {
+        Researcher_SetState(researcher, nullptr, 1);
+        return;
+    }
+    if (Staff_IsTooTired(researcher)) return;   // (with a debug print, left out)
+    Researcher_SetState(researcher, nullptr, 0xf);
+}
+
+u8 *__fastcall Researcher_Ctor(u8 *researcher, void *, u32 cell, u32 type, u32 sprite, u32 name) {
+    g_walk->ctorTyped(researcher, nullptr, cell, 8, type, sprite);
+    g_walk->formatName(global<u8 *>(0x0078bab8), reinterpret_cast<u16 *>(researcher + 0x1a0), 0x20, name);
+    at<u16>(researcher, 0x210) = 0;
+    u8 *const world = global<u8 *>(0x0080239c);
+    World_AddResearcher(world, nullptr, researcher);
+    const u32 kind = sprite & 0xff;
+    at<u32>(researcher, 0x214) = 0;
+    at<u32>(researcher, 0x24) = 8;
+    at<u32>(researcher, 0x20) = kind;
+    ScriptRef_Start(researcher + 0xc, nullptr, 3, 8, kind);
+    Researcher_Idle(researcher);
+    ResearchLab_SyncFlag(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da722_519550(world)));
+    return researcher;
+}
+
+void __fastcall Staff_RestInArea(u8 *staff) {
+    const u32 grade = at<u32>(staff, 0x1e4) << 4;
+    keep_level(at<float>(staff, 0x1fc), X87Reg(*reinterpret_cast<const float *>((uintptr_t)0x00785334 + grade)) + at<float>(staff, 0x1fc));
+    keep_level(at<float>(staff, 0x1f8), X87Reg(*reinterpret_cast<const float *>((uintptr_t)0x00785338 + grade)) + at<float>(staff, 0x1f8));
+    if ((u8)(long long)at<float>(staff, 0x1fc) != 100) return;   // (__ftol's low byte)
+    Staff_LeaveRestArea(staff);
+    switch (staff[2]) {
+    case 4: g_walk->idleMechanic(staff); return;
+    case 5: g_walk->idleHandyman(staff); return;
+    case 6: g_walk->idleEntertainer(staff); return;
+    case 7: g_walk->idleGuard(staff); return;
+    case 8: Researcher_Idle(staff); return;
+    default: return;   // (the original's debug print, left out)
+    }
+}
+
+void __fastcall Researcher_PostUpdate(u8 *researcher) {
+    const auto tick = [] { return at<u32>(global<u8 *>(0x0080239c), 0x1da70c); };
+    const auto grumble = [researcher](u32 sound) {
+        if ((World_Rand(global<u8 *>(0x0080239c)) & 0xf) == 0) g_walk->playSound(researcher, nullptr, global<u32>(0x00803a30), sound);
+    };
+    const u32 grade = at<u32>(researcher, 0x1e4);
+    switch (at<u32>(researcher, 0x19c)) {
+    case 0:
+        grumble(0xa9);
+        if (tick() > *reinterpret_cast<const u32 *>((uintptr_t)0x00785330 + (grade << 4)) + at<u32>(researcher, 0x200)) Researcher_Idle(researcher);
+        return;
+    case 1: {
+        grumble(0xa8);
+        const u32 walked = g_walk->walkNav(researcher);
+        if (walked != 0 && walked != 2) Staff_TireA(researcher);
+        else Researcher_Idle(researcher);
+        return;
+    }
+    case 2:
+        Staff_WalkToRestArea(researcher);
+        return;
+    case 3:
+        Staff_RestInArea(researcher);
+        return;
+    case 0xf:
+        Staff_TireB(researcher);
+        if (tick() > *reinterpret_cast<const u32 *>((uintptr_t)0x00785458 + grade * 12) + at<u32>(researcher, 0x214)) {
+            if (g_walk->setRandomDest(researcher)) Researcher_SetState(researcher, nullptr, 1);
+            else at<u32>(researcher, 0x214) = tick();
+            return;
+        }
+        grumble(0x8a);
+        return;
+    default:
+        Staff_ModelState(researcher);
+        return;
+    }
+}
+
+u32 __fastcall Staff_CheckMood(u8 *staff) {
+    const u32 index = Byte2_ToIndex(staff);
+    const u32 record = GameTable7cfb90_Get1da718_519450(global<u8 *>(0x0080239c));
+    if (Obj_GetIndexed28(reinterpret_cast<u8 *>((uintptr_t)record), nullptr, index) != 0 && Game_GetRideElement1(global<u8 *>(0x0080239c)) == 1) {
+        // (Debug_Printf "Right, I'm fed up, I'm going on strike": empty)
+        at<u32>(staff, 0x188) = 1;
+        const u8 xHigh = (u8)((u32)World_Rand(global<u8 *>(0x0080239c)) % global<u32>(0x007855f4) + global<u8>(0x007855ec));
+        const u8 xLow = (u8)World_Rand(global<u8 *>(0x0080239c));
+        const u8 yHigh = (u8)((u32)World_Rand(global<u8 *>(0x0080239c)) % global<u32>(0x007855f8) + global<u8>(0x007855f0));
+        const u8 yLow = (u8)World_Rand(global<u8 *>(0x0080239c));
+        // (the original's dwords leave their upper words as the stack had them; the walk reads the words)
+        if (Sprite_SetDestination(staff, nullptr, xHigh << 8 | xLow, yHigh << 8 | yLow)) {
+            Staff_SetState(staff, nullptr, 4);
+            return 1;
+        }
+    }
+    const u32 rest = (u32)(long long)at<float>(staff, 0x1fc) & 0xff;   // __ftol
+    if ((s32)rest <= global<s32>(0x00785324)) {
+        g_walk->showThought(staff + 0x30, nullptr, 0x14, 0);
+        u16 area;
+        Things_NearestRestArea(staff, nullptr, &area);
+        if (area != 0) {
+            const u8 *const thing = global<u8 *>(0x007cfb90 + area * 20u);
+            if (Sprite_SetDestinationCell(staff, nullptr, at<u16>(thing, 0x36))) {
+                at<u16>(staff, 0x208) = area;
+                Staff_SetState(staff, nullptr, 2);
+                return 1;
+            }
+        }
+        if ((World_Rand(global<u8 *>(0x0080239c)) & 0xf) == 0) lower_happiness(staff);
+        return 0;
+    }
+    at<u16>(staff, 0xc0) = rest >= 100 ? global<u16>(0x0075c800) : global<u16>(0x0075c7f8 + rest / 20 * 2);
+    const u8 happiness = (u8)(long long)at<float>(staff, 0x1f8);   // __ftol
+    if (happiness <= 0xa) {
+        g_walk->showThought(staff + 0x30, nullptr, 0x13, 0);
+        return 0;
+    }
+    if (happiness > 0x61 && (World_Rand(global<u8 *>(0x0080239c)) & 0xf) == 0) g_walk->showThought(staff + 0x30, nullptr, 0x12, 0);
+    return 0;
+}
+
+void __fastcall Staff_ModelState(u8 *staff) {
+    switch (at<u32>(staff, 0x19c)) {
+    case 4: {
+        const u32 walked = g_walk->walkNav(staff);
+        g_walk->showThought(staff + 0x30, nullptr, 0x15, 0);
+        if (walked == 0 || walked == 2) {
+            at<u32>(staff, 0x188) = 0;
+            Staff_SetState(staff, nullptr, 5);
+        }
+        return;
+    }
+    case 5:
+        Staff_HeadForEntrance(staff);
+        return;
+    case 6: {
+        const u32 tick = at<u32>(*reinterpret_cast<u8 **>((uintptr_t)0x0080239c), 0x1da70c);
+        const u32 stay = *reinterpret_cast<const u32 *>((uintptr_t)0x00785330 + (at<u32>(staff, 0x1e4) << 4));
+        if (tick - at<u32>(staff, 0x200) > stay * 3) Staff_SetState(staff, nullptr, 0);
+        return;
+    }
+    default:   // (7 nothing; the others the original's debug print, left out)
+        return;
     }
 }
 

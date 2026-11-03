@@ -14,6 +14,7 @@ This page covers the test-only parts of the hook DLL and the sandbox used to run
 | dinput proxy | `src/hook/`: `dinput_proxy.cpp`, `dinput.def` | No; forwards `DirectInputCreateA` to the system DLL | How the DLL gets loaded (ddraw.dll is taken by dgVoodoo) |
 | **Startup trace** (test tooling) | `src/testing/trace.cpp` | No; **import-table slots** are redirected through loggers, which then call the real API. One game function is replaced: the retail build's empty debug print `Debug_Printf` (0x5da3c0, a bare `RET`) becomes a logger that preserves every register and flag | Diagnosing why the game fails to start or crashes, from the game's own error messages |
 | **FPU watcher** (test tooling) | `src/testing/fpu_watch.cpp` | No; reads the main thread's FPU control word once a second | Checking the 24-bit x87 precision our float ports assume |
+| **Pool watcher** (test tooling) | `src/testing/pool_watch.cpp` | Yes: the import slot of LeaveCriticalSection, the heap's free 0x67ad90 and operator new 0x67acc0; the game sees no change. `tpw.ini` `[tpw] poolwatch=0` turns it off | Naming the second release of a sound stream or sample block: `pool watch:` lines in `tpw.log`, only when wrong. Each names its callers: `game XXXXXX` an address in tp.exe, `dll+XXXXX` an offset for `py tools/dllsym.py XXXXX` |
 | **Log writer** (test tooling) | `src/testing/log.cpp` | No | `tpw.log` next to the exe, flushed per line so it survives a crash |
 
 **How the separation is enforced** (since 2026-10-15):

@@ -15,6 +15,7 @@ struct ObjectEnv {
     void(__fastcall *post40fb10)(u8 *centre, void *, u8 *msg);   // 0x40fb10, MessageCentre_Post of world/messagecentre; its 1 ignored
     void(__fastcall *person500870)(u8 *person);                  // 0x500870 (agent C's; thiscall on a person)
     void(__fastcall *person5012f0)(u8 *person);                  // 0x5012f0 (agent C's; thiscall on a person)
+    void(__cdecl *camera42a560)(u32 thing, s32 sprites, u32 arg, u32 a, u32 b, u32 c);  // 0x42a560 Camera_FollowThing (agent B's)
 };
 // The objects' calls go to env (nullptr: the game's).
 void Object_SetEnv(const ObjectEnv *env);
@@ -96,6 +97,14 @@ u32 __fastcall Object_SetFlag64(u8 *object, void *, u32 on);
 // head (the word +0x3c; none: nothing), when Visitor_IsState11AtQueuePos0, gets Visitor_Set1f8One and becomes the rider. Otherwise a rider
 // whose state (+0x220) is not 0xd is forgotten (+0x6c = 0). The debug prints are left out (element 2 is still read for the first).
 void __fastcall Object_CallQueueHead(u8 *object);
+
+// 0x4e14e0 (thiscall; name invented): Object_CallQueueHead; then with the ride record's (Rides_FindById of +0x24) element 7 at 0, Object_ArriveWaiting. Else the strip animation of
+// 0x7a4610[+0x20] grown from frame 2 and state 1 when the low byte of +0x48 (__ftol) is not 0, from frame 4 and state 4 when it is. The debug prints and the handle read only they use are left out.
+void __fastcall Object_BeginCycle(u8 *object);
+
+// 0x4e1410 (thiscall; name invented, unconfirmed): the visitor whose handle is the low word of the ride record's element 1 (Rides_FindById of +0x24), if any, comes to the object
+// (Visitor_ArriveAtObject); when that answers, the element is cleared. The debug prints and the handle reads only they use are left out.
+void __fastcall Object_ArriveWaiting(u8 *object);
 
 // 0x4dd4e0: the object's definition, ObjectDefs_Find on gObjectDefs (0x7890a0) by its id (+0xe).
 u8 *__fastcall Object_GetDef(const u8 *object);
@@ -265,6 +274,12 @@ u32 __fastcall Object_HistoryPercent(const u8 *object);
 // over the byte +0x5c, raised to 4 (a NaN too). The debug check of the float being above 0 is left out.
 u32 __fastcall Object_FillRate(const u8 *object);
 
+// 0x4e16b0 (thiscall; amount, pops 4; only 0x4fe1b9 calls it; name invented, unconfirmed): a visitor pays. Money_Credit of the game's money record (the table entry
+// GameTable7cfb90_Get1da726_5195d0 gives), amount added to the dwords +0x180 and +0x70. A definition (+0xe) of +0x4ac 1: +0x20130 of the 0x1da720 entry up,
+// Slots_AddIfMatch(0xc, amount), then one by +0x164 (1: 5; 3: 8; 5: 7; 6: 6; 2 or 4: by +0x158, 1: 2, 2: 1, 3: 3, 4: 4), amount 1. Of +0x4ac 2: +0x20380 of
+// that entry up, Slots_AddIfMatch(0xd, amount).
+void __fastcall Object_TakePayment(u8 *object, void *, s32 amount);
+
 // 0x4e1920 (thiscall; amount, pops 4; name unconfirmed): amount added to the dwords +0xf8 and +0x184 and debited (Money_Debit of the game's money record, the table
 // entry GameTable7cfb90_Get1da726_5195d0 gives); for a definition (+0xe) whose +0x4ac is 1 or 2, Slots_AddIfMatch(0xc or 0xd, -amount, 0, 0) on the entry
 // GameTable7cfb90_Get1da736_519610 gives.
@@ -324,4 +339,10 @@ u8 __fastcall Object_ComputeRating(const u8 *object, void *, s32 a, s32 b, s32 c
 // base of 0; else Object_ComputeRating of a kind-2 definition's object +0x188 (mCostOfGoods), +0x194 (mPricePerUse) and the byte +0x190
 // (mChanceOfWinning), of any other's +0x58 (mOperatingSpeed) and the bytes +0x5c (mOperatingDuration) and +0x5d (mOperatingCapacity).
 u8 __fastcall Object_Rating(const u8 *object, void *, u32 baseOnly);
+
+// 0x4e15b0 (thiscall (arg), pops 4; name invented, unconfirmed): the camera follows what rides the object, with the definition's sprites +0x80
+// (Object_GetDef) and arg: the track ride's linked value (the handle +0x28 set, TrakRide_LinkedValue, not 0), else the first slot's ride of the
+// flying ride its ride record names (Rides_Get9c of Rides_FindById of +0x24, not 0; FlyingRide_FirstSlotRide), both (.., 0, 1, 0); else its own
+// +0x20 (.., 0, 1, the definition's +0x11c). Through the env's 0x42a560.
+void __fastcall Object_FollowCamera(const u8 *object, void *, u32 arg);
 }

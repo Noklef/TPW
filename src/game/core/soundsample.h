@@ -72,6 +72,10 @@ u8 *__fastcall SoundSample70a548_Ctor(u8 *self);
 // 0x6b7410 (thiscall; an SEH frame; name invented): the destructor: the vtable 0x70a548, the channel's release (SoundChannel_ReleaseAll),
 // the shared copier (0xfb2018) freed (sic: not cleared), the vtable 0x703770.
 void __fastcall SoundSample70a548_Dtor(u8 *self);
+// 0x6b73f0 (thiscall (flags), pops 4; name invented): SoundSample70a548_Dtor, then the block freed when the flags' bit 0 is set. Returns it.
+u8 *__fastcall SoundSample70a548_DeletingDtor(u8 *self, void *, u32 flags);
+// 0x6b8150 (an unwind funclet's helper; name invented): the shared copier [0xfb2018] freed.
+void SampleCopier_Free();
 
 // 0x6b7470 (thiscall (settings), pops 4; the object unused; called by 0x6b7510 on its copy of a 0x70-byte settings record; name
 // invented): a caps holder queried (SoundCaps_Query); with it, at least 5 max hardware 3D streaming buffers and as many free as the

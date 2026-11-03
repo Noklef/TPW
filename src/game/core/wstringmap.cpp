@@ -68,6 +68,21 @@ u8 *__fastcall ChatIgnoreSet_LowerBound(u8 *set, void *, const u8 *key) { return
 
 u8 *__fastcall ChatBuddySet_LowerBound(u8 *set, void *, const u8 *key) { return LowerBoundI(set, key, 0x007ced2c); }
 
+u8 *__fastcall ChatBuddySet_UpperBound(u8 *set, void *, const u8 *key) {
+    u8 *result = at<u8 *>(set, 4);
+    u8 *node = at<u8 *>(result, 4);
+    const u8 *const nil = global<const u8 *>(0x007ced2c);
+    while (node != nil) {
+        if (CompareI(at<const u16 *>(key, 4), at<u32>(key, 8), NullStrI(at<const u16 *>(node, 0x10)), at<u32>(node, 0x14)) < 0) {
+            result = node;
+            node = at<u8 *>(node, 0);
+        } else {
+            node = at<u8 *>(node, 8);
+        }
+    }
+    return result;
+}
+
 u32 *__fastcall ChatIgnoreSet_Find(u8 *set, void *, u32 *out, const u8 *key) {
     return FindI(set, out, key, ChatIgnoreSet_LowerBound(set, nullptr, key));
 }
@@ -148,6 +163,17 @@ u32 __fastcall WStringMap_EraseKey(u8 *map, void *, const u8 *key) {
         ++n;
     u8 *out;
     StdTree_EraseRangeD(map, nullptr, &out, first, last);
+    return n;
+}
+
+u32 __fastcall ChatBuddySet_EraseKey(u8 *set, void *, const u8 *key) {
+    u8 *const last = ChatBuddySet_UpperBound(set, nullptr, key);
+    u8 *const first = ChatBuddySet_LowerBound(set, nullptr, key);
+    u32 n = 0;
+    for (u8 *it = first; it != last; StdTree_IncC(&it))
+        ++n;
+    u8 *out;
+    StdTree_EraseRangeC(set, nullptr, &out, first, last);
     return n;
 }
 

@@ -12,8 +12,10 @@
 #include "mapcell.h"
 #include "money.h"
 #include "object.h"
+#include "queuetrace.h"
 #include "things.h"
 #include "thingscan.h"
+#include "trackrides.h"
 #include "world.h"
 
 namespace {
@@ -23,15 +25,14 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 u8 *cellAt(u32 id) { return global<u8 *>(0x007cf83c) + 0x294 + (id & 0xffff) * 0x44; }
 bool lineType(s32 type) { return type == 4 || type == 9 || type == 10; }
 
-template <typename F> F game(u32 address) { return reinterpret_cast<F>((uintptr_t)address); }
 const DemolishEnv kGameEnv = {&Path_CheckDeadEnds,
                               &MapCell_Clear,
-                              game<void(__cdecl *)(u8 *)>(0x00530120),
+                              reinterpret_cast<void(__cdecl *)(u8 *)>(&RideQueue_Trace),   // (its answer unread)
                               &GameMode_Set,
                               &GameMode_SetOnly,
-                              game<u32(__cdecl *)(u8 *, u32)>(0x0052fe50),
+                              &GameMode_StepBack,
                               reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32, u32)>(&TrackCell_Remove),
-                              game<void(__cdecl *)(u32)>(0x00545610)};
+                              &TrakRide_Destroy};
 const DemolishEnv *g_env = &kGameEnv;
 
 s32 Ftol(double v) { return (s32)(long long)v; }   // (__ftol)

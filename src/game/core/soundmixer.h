@@ -19,6 +19,8 @@ void __fastcall SoundMixer_Dtor(u8 *mixer);
 
 // 0x6b6120 (thiscall (flags), pops 4): SoundMixer_Dtor, then the mixer freed for flags bit 0. Returns the mixer.
 u8 *__fastcall SoundMixer_DeletingDtor(u8 *mixer, void *, u32 flags);
+// 0x6b71a0 (thiscall (flags), pops 4; name invented, unconfirmed): the vtable +0 = 0x70a2d8, then freed for flags bit 0. Returns it.
+u8 *__fastcall VoicePage_DeletingDtor(u8 *page, void *, u32 flags);
 
 // 0x6b6260 (thiscall): every active voice with flag 0x400 counted (InterlockedIncrement on a local) and its slot 0xb called. Returns
 // the count.

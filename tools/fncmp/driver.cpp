@@ -163,6 +163,7 @@
 #include "../../src/game/online/chatavatar.h"
 #include "../../src/game/online/chatcommand.h"
 #include "../../src/game/online/session.h"
+#include "../../src/game/online/chatevents.h"
 #include "../../src/game/sprite/draw.h"
 #include "../../src/game/sprite/script.h"
 #include "../../src/game/ui/cursor.h"
@@ -178,6 +179,8 @@
 #include "../../src/game/core/mp2synth.h"
 #include "../../src/game/world/mapcell.h"
 #include "../../src/game/world/mapclick.h"
+#include "../../src/game/world/mappress.h"
+#include "../../src/game/world/staffcandidate.h"
 #include "../../src/game/world/mapline.h"
 #include "../../src/game/world/messagecentre.h"
 #include "../../src/game/coaster/registry.h"
@@ -230,7 +233,11 @@
 #include "../../src/game/world/trackcircuit.h"
 #include "../../src/game/world/mappreview.h"
 #include "../../src/game/world/personscripts.h"
+#include "../../src/game/core/funnytime.h"
+#include "../../src/game/core/wfilebuf.h"
+#include "../../src/game/core/soundworker.h"
 #include "../../src/game/world/staff.h"
+#include "../../src/game/world/weather.h"
 #include "../../src/game/world/things.h"
 #include "../../src/game/world/queuepieces.h"
 #include "../../src/game/world/cellmodel.h"
@@ -456,7 +463,7 @@ u32 text_arg_hash(const u32 *arg) {
 }
 
 // The same with four arguments (kStubs + 0x90, tools/fncmp.py CDECL_LOG4): the entry k 0x13d. As the text formatter 0x6acd60 (fncmp.text_args()):
-// with a count of text arguments (1-3) at log + 0x7e0, that many more (pointers to them) logged as text_arg_hash()es, and the buffer (b; c its size
+// with a count of text arguments (1-5) at log + 0x7e0, that many more (pointers to them) logged as text_arg_hash()es, and the buffer (b; c its size
 // in characters, 9 or more) given the hash of the text's id and those as 8 hex digits, so that what shows the text compares it. With a range
 // of ids at log + 0x7e4 (its first and last words: text_args()'s only), any other id (d) takes none (its buffer still given the hash): so
 // the texts formatted without arguments, and other calls of the stub (a window's handler), read nothing past their four.
@@ -464,13 +471,13 @@ u32 __cdecl stub_cdecl_log4(u32 a, u32 b, u32 c, u32 d, ...) {
     const u32 given = *reinterpret_cast<const u32 *>((uintptr_t)(kStubs + 0x100000 + 0x7e0));
     const u32 only = *reinterpret_cast<const u32 *>((uintptr_t)(kStubs + 0x100000 + 0x7e4));
     const u32 texts = only && (d < (only & 0xffff) || d > (only >> 16)) ? 0 : given;
-    u32 stack[8] = {0, a, b, c, d};
+    u32 stack[10] = {0, a, b, c, d};
     u32 n = 4;
     if (given) {
         va_list rest;
         va_start(rest, d);
         u32 h = (0x811c9dc5u ^ d) * 0x01000193u;
-        for (; n < 4 + (texts < 3 ? texts : 3); ++n) {
+        for (; n < 4 + (texts < 5 ? texts : 5); ++n) {
             stack[1 + n] = text_arg_hash(reinterpret_cast<const u32 *>((uintptr_t)va_arg(rest, u32)));
             h = (h ^ stack[1 + n]) * 0x01000193u;
         }
@@ -510,6 +517,8 @@ s32 __fastcall stub_seek(u8 *self, void *, u32 offset, u32 origin) {
 
 // A memory stream's size (kStubs + 0xc0, tools/fncmp.py STREAM_SIZE), thiscall, no arguments: its +0x10, whatever the bytes left (+8) are.
 u32 __fastcall stub_stream_size(const u8 *self) { return *reinterpret_cast<const u32 *>(self + 0x10); }
+// A memory stream's tell (kStubs + 0xd0, tools/fncmp.py TELL), thiscall, no arguments: the cursor (+4) from the start (+0xc).
+u32 __fastcall stub_tell(const u8 *self) { return *reinterpret_cast<const u32 *>(self + 4) - *reinterpret_cast<const u32 *>(self + 0xc); }
 
 // What throws in the game (std::_Xlen, _Xran): a case that gets there reports a crash.
 void __cdecl heap_throw() { RaiseException(0xe0000001, 0, 0, nullptr); }
@@ -683,6 +692,11 @@ const CoasterLinksEnv kCoasterLinksEnv = {Rec{jpeg_recorder(30, 10)}, Rec{jpeg_r
 const ChatCommandEnv kChatCommandEnv = {Rec{jpeg_recorder(25, 5)}, &ChatCommand_AssignChars, Rec{recorder(21, 2)},
                                         Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 24}, Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 27},
                                         Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 28}, Rec{recorder(22, 0)}, Rec{jpeg_recorder(26, 8)}};
+const ChatEventEnv kChatEventEnv = {Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 29}, Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 30},
+                                    Rec{kStubs + 0x5000 + 0x800 * 1 + 0x20 * 31}, Rec{kStubs + 0x5000 + 0x800 * 1 + 0x20 * 32},
+                                    Rec{recorder(3, 4)}, Rec{recorder(4, 0)}, Rec{recorder(5, 1)}, Rec{recorder(6, 3)}, Rec{recorder(7, 2)},
+                                    Rec{recorder(8, 2)}, Rec{recorder(10, 0)}, Rec{recorder(11, 5)}, Rec{jpeg_recorder(14, 3)}, Rec{recorder(13, 2)},
+                                    Rec{jpeg_recorder(25, 7)}, Rec{jpeg_recorder(15, 1)}};
 // The cell messages' calls into agent A's Path_CheckDeadEnds (0x527ee0) and GameMode_SetOnly (0x52f580): the cdecl recorders 27 of 3 and 28 of 2, as
 // tests/fncmp/cellmessage.py hooks them.
 const CellMessageEnv kCellMessageEnv = {reinterpret_cast<void(__cdecl *)(s32, s32, u32)>((uintptr_t)jpeg_recorder(27, 3)),
@@ -1017,7 +1031,8 @@ const StatsGraphEnv kStatsGraphEnv = {Rec{jpeg_recorder(22, 1)}, Rec{jpeg_record
 
 const ObjectEnv kObjectEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, u8 *)>((uintptr_t)recorder(21, 1)),
                               reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(22, 0)),
-                              reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(23, 0))};
+                              reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(23, 0)),
+                              reinterpret_cast<void(__cdecl *)(u32, s32, u32, u32, u32, u32)>((uintptr_t)jpeg_recorder(26, 6))};
 // Object_Delete's call into agent B's RSSE_KillScript (0x559060): cdecl recorder 20 of 2, as tests/fncmp/objectdelete.py hooks it.
 const ObjectDeleteEnv kObjectDeleteEnv = {reinterpret_cast<void(__cdecl *)(s32, u32)>((uintptr_t)jpeg_recorder(20, 2))};
 // Object_PathChanged's call into agent A's unported 0x501390: thiscall recorder 26 of none, as tests/fncmp/objectqueue.py hooks it.
@@ -1490,6 +1505,8 @@ const u32 kResolvedVtables[][2] = {{0x00703090, 11},  // String_vtable
                                    {0x0070a6c8, 12},   // the streams it chains in front: 0x70a6c8 (the play's 0x800) and
                                    {0x0070a748, 12},   // the notify stream (SoundStream_BuildChain's);
                                    {0x0070a7a8, 13},   // the channel voice they hang off (ChannelVoice_Release's, the reads');
+                                   {0x0070a5d8, 15},   // the channel as the sound system (soundlifecycle.py's trip: slot 4 SoundChannel_RunSlot1)
+                                   {0x0070a2d0, 2},    // and the mixer's stop functor through it
                                    {0x0070aa34, 1},    // the memory samples' plain copier ([0xfb2018], SoundSample_ReadMemory's)
                                    {0x0070aef0, 3},    // the streamed samples' windows on their files (slots 1 the read, 2 the seek; 0 an
                                    {0x0070ae18, 3},    // adjusting thunk, not hooked): MP2 (+0x40), voice-coded (+0x40) and the file
@@ -1554,7 +1571,7 @@ void map_stubs() {
     const void *stubs[] = {(const void *)&stub_read, (const void *)&stub_write, (const void *)&stub_global_alloc,
                            (const void *)&stub_global_free, (const void *)&stub_mark, (const void *)&stub_cdecl_log, (const void *)&stub_counter,
                            (const void *)&stub_seek, (const void *)&stub_cdecl_log2, (const void *)&stub_cdecl_log4, (const void *)&stub_zalloc,
-                           (const void *)&stub_zfree, (const void *)&stub_stream_size};
+                           (const void *)&stub_zfree, (const void *)&stub_stream_size, (const void *)&stub_tell};
     for (u32 i = 0; i < sizeof stubs / sizeof stubs[0]; ++i) jump(p + 0x10 * i, stubs[i]);
     map_recorders(p);
 }
@@ -1754,6 +1771,7 @@ int main(int argc, char **argv) {
     static const ChatAvatarEnv chatAvatarEnv = {reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)recorder(5, 0))};
     ChatAvatar_SetEnv(&chatAvatarEnv);
     ChatCommand_SetEnv(&kChatCommandEnv);
+    ChatEvents_SetEnv(&kChatEventEnv);
     // The interface object's message handler (UiObject_HandleMessage): what 0x7b51f0 is told the thiscall recorders 1-6, as tests/fncmp/uimessage.py
     // hooks 0x481af0, 0x481520, 0x481530, 0x4818c0, 0x481920 and 0x481960.
     static const UiMessageEnv uiMessageEnv = {reinterpret_cast<void(__fastcall *)(void *, void *, u8)>((uintptr_t)recorder(1, 1)),
@@ -1779,12 +1797,24 @@ int main(int argc, char **argv) {
     Staff_SetAdviceEnv(&kStaffAdviceEnv);
     Guard_SetDetachEnv(&kGuardDetachEnv);
     Map_SetSerializeEnv(&kMapSerializeEnv);
-    // Staff_WalkToRestArea's and Staff_Dismiss's calls: Sprite_WalkNav, Sprite_SpawnParticle and Thing_Delete the thiscall recorders 28 of
-    // 0, 29 of 1 and 30 of 0, as tests/fncmp/staffstate.py hooks 0x4fa2a0, 0x4fa470 and 0x50b780.
+    // Staff_WalkToRestArea's, Staff_Dismiss's and Staff_ModelState's calls: Sprite_WalkNav, Sprite_SpawnParticle, Thing_Delete and Thoughts_Show
+    // the thiscall recorders 28 of 0, 29 of 1, 30 of 0 and 31 of 2, as tests/fncmp/staffstate.py hooks 0x4fa2a0, 0x4fa470, 0x50b780 and 0x50be80.
     static const StaffWalkEnv staffWalkEnv = {reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)recorder(28, 0)),
                                               reinterpret_cast<void(__fastcall *)(u8 *, void *, s32)>((uintptr_t)recorder(29, 1)),
-                                              reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(30, 0))};
+                                              reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(30, 0)),
+                                              reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u8)>((uintptr_t)recorder(31, 2)),
+                                              reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)recorder(27, 0)),   // (Person_SetRandomDest, 0x4f9490)
+                                              reinterpret_cast<u32(__fastcall *)(const u8 *, void *, u32, u32)>((uintptr_t)recorder(25, 2)),   // (Sprite_PlaySound, 0x4faa00)
+                                              // (the four kinds' idles: 0x4da5b0, 0x4d7100, 0x4d46d0, 0x4d63d0)
+                                              reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(22, 0)), reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(23, 0)),
+                                              reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(24, 0)), reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(18, 0)),
+                                              // (Staff_CtorTyped, 0x504b10; Charset_FormatWide, 0x6acd60: cdecl)
+                                              reinterpret_cast<u8 *(__fastcall *)(u8 *, void *, u32, u32, u32, u32)>((uintptr_t)recorder(19, 4)),
+                                              reinterpret_cast<s32(__cdecl *)(u8 *, u16 *, u32, u32, ...)>((uintptr_t)(kStubs + 0x1000 + 0xa000 + 0x400 * 4 + 0x20 * 17))};
     Staff_SetWalkEnv(&staffWalkEnv);
+    // StaffPoolEntry_Generate's 0x481550: the thiscall recorder 20 of 1, as tests/fncmp/staffcandidate.py hooks it.
+    static const StaffCandidateEnv staffCandidateEnv = {reinterpret_cast<void(__fastcall *)(void *, void *, u32)>((uintptr_t)recorder(20, 1))};
+    StaffCandidate_SetEnv(&staffCandidateEnv);
     Rides_SetEnv(&kRidesEnv);
     Camera_SetEnv(&kCameraEnv);
     CoasterLinks_SetEnv(&kCoasterLinksEnv);
@@ -1935,6 +1965,27 @@ int main(int argc, char **argv) {
     Object_SetDeleteEnv(&kObjectDeleteEnv);
     Object_SetPathEnv(&kObjectPathEnv);
     Object_SetServiceEnv(&kObjectServiceEnv);
+    // The clock's tick (FunnyTime_Update): the post the thiscall recorder 21 of 1, Obj7b51f0_ShowDate 20 of 9, 0x4a5e10 / StatsGraph_Redraw / Dialog7cb25c_Refresh
+    // the cdecl recorders 19, 18 and 17 of 1, as tests/fncmp/funnyupdate.py hooks those addresses.
+    static const FunnyTimeEnv funnyTimeEnv = {reinterpret_cast<u32(__fastcall *)(u8 *, void *, u8 *)>((uintptr_t)recorder(21, 1)),
+                                              reinterpret_cast<void(__fastcall *)(void *, void *, u32, u32, u32, u32, u32, u32, u32, u32, u32)>((uintptr_t)recorder(20, 9)),
+                                              reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(19, 1)),
+                                              reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(18, 1)),
+                                              reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(17, 1))};
+    FunnyTime_SetEnv(&funnyTimeEnv);
+    // The locale reference's 0x699da0: the cdecl recorder 15 of 0, as tests/fncmp/wfilebuf.py hooks it.
+    static const WFileBufEnv wFileBufEnv = {reinterpret_cast<u32(__cdecl *)()>((uintptr_t)jpeg_recorder(15, 0))};
+    WFileBuf_SetEnv(&wFileBufEnv);
+    // The worker's 0x67e050: the cdecl recorder 14 of 3, as tests/fncmp/soundworker.py hooks it.
+    static const SoundWorkerEnv soundWorkerEnv = {reinterpret_cast<u32(__cdecl *)(u32, u32, void *)>((uintptr_t)jpeg_recorder(14, 3))};
+    SoundWorker_SetEnv(&soundWorkerEnv);
+    // The weather's constructor and tick: the post the thiscall recorder 21 of 1, WeatherFx_ReloadTextures 20 of 0, agent B's 0x580320 19 of 8, Sound_SetAmbientLevel the cdecl 18 of 1, as
+    // tests/fncmp/weathertick.py hooks those addresses.
+    static const WeatherEnv weatherEnv = {reinterpret_cast<u32(__fastcall *)(u8 *, void *, u8 *)>((uintptr_t)recorder(21, 1)),
+                                          reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)recorder(20, 0)),
+                                          reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32, u32, u32, u32, u32, u32, u32)>((uintptr_t)recorder(19, 8)),
+                                          reinterpret_cast<void(__cdecl *)(s32)>((uintptr_t)jpeg_recorder(18, 1))};
+    Weather_SetEnv(&weatherEnv);
     BankAccount_SetEnv(&kBankAccountEnv);
     MessageCentre_SetEnv(&kMessageCentreEnv);
     GlyphRender_SetEnv(&kGlyphRenderEnv);   // (tests/fncmp/glyphrender.py hooks 0x67a7d0 with fncmp._cdecl_log)
@@ -2026,6 +2077,9 @@ int main(int argc, char **argv) {
             t(26, 0), t(27, 0), t(16, 0), t(28, 0), t(20, 1), t(30, 2), t(22, 2), t(24, 1), t(25, 1), t(12, 0), t(13, 0), t(14, 0), t(15, 0),
             t(18, 3), t(19, 2), t(31, 3), t(31, 4), t(29, 0), t(30, 1)};
         MapClick_SetEnv(&mapClick);
+        // GameMode_MapPress's calls (src/game/world/mappress.h), as tests/fncmp/mappress.py hooks their addresses.
+        static const MapPressEnv mapPress = {c(30, 3), t(31, 3), t(31, 4), c(10, 1), c(20, 2), c(0, 5), c(23, 2), c(15, 1)};
+        MapPress_SetEnv(&mapPress);
         // GameMode_StepBack's calls (src/game/world/gamemode.h GameModeStepEnv), as tests/fncmp/gamemodestep.py hooks their addresses.
         static const GameModeStepEnv gameModeStep = {c(1, 0), t(2, 0), c(3, 4), c(4, 2), c(5, 2), c(6, 1), c(7, 4), c(8, 4)};
         GameMode_SetStepEnv(&gameModeStep);
@@ -2035,7 +2089,9 @@ int main(int argc, char **argv) {
         PlaceFootprint_SetEnv(&footprint);
         // The visitor steps' calls (src/game/world/visitorsteps.h VisitorStepsEnv), as tests/fncmp/visitorsteps.py hooks their addresses
         // (Visitor_SetState the person env's recorder 26).
-        static const VisitorStepsEnv visitorSteps = {t(1, 0), t(2, 2), t(3, 1), t(4, 1), t(5, 0), t(26, 1), t(6, 1), t(7, 1), t(8, 4), t(9, 1), t(10, 2)};
+        static const VisitorStepsEnv visitorSteps = {t(1, 0), t(2, 2), t(3, 1), t(4, 1), t(5, 0), t(26, 1), t(6, 1), t(7, 1), t(8, 4), t(9, 1), t(10, 2), t(11, 0), t(12, 0), t(13, 1), t(14, 1),
+                                                      t(15, 1), t(16, 2), t(17, 0), t(18, 1), reinterpret_cast<u32(__cdecl *)(s32, s32)>(&stub_cdecl_log2), t(19, 2),
+                                                      t(20, 1), t(21, 3), t(22, 1), t(23, 0), t(24, 0), t(25, 0), t(27, 1), t(28, 0), t(29, 0)};
         VisitorSteps_SetEnv(&visitorSteps);
         // GameMode_MapPreview's calls (src/game/world/mappreview.h MapPreviewEnv), as tests/fncmp/mappreview.py hooks their addresses.
         static const MapPreviewEnv mapPreview = {c(0, 5), c(1, 5), c(2, 6),  c(3, 2),  c(4, 3),  c(5, 4),  c(6, 2),  c(7, 0),  c(8, 3),
@@ -2229,23 +2285,33 @@ int main(int argc, char **argv) {
         }
         // No access while the case runs: a wild pointer into it faults natively, as in the emulator, which has no such memory.
         VirtualProtect(token, 1 << 24, PAGE_NOACCESS, &was);
+        // ret '+': a sequence (fncmp.Call's then): the count, then each further call's address, convention, count and arguments.
+        struct Step {
+            void *fn;
+            std::string conv;
+            std::vector<u32> args;
+        };
+        std::vector<Step> steps;
         void *fn = find(address);
+        steps.push_back({fn, conv, args});
+        if (std::strchr(ret, '+')) {
+            u32 more;
+            std::scanf("%x", &more);
+            for (u32 i = 0; i < more; ++i) {
+                u32 at, n;
+                char stepConv[16];
+                std::scanf("%x %15s %x", &at, stepConv, &n);
+                std::vector<u32> stepArgs(n);
+                for (u32 &a : stepArgs) std::scanf("%x", &a);
+                void *const stepFn = find(at);
+                if (!stepFn) fn = nullptr;
+                steps.push_back({stepFn, stepConv, stepArgs});
+            }
+        }
         if (!fn) {
             std::printf("nohook\n");
             std::fflush(stdout);
             continue;
-        }
-        u32 regs[7] = {}, skip = 0;  // EAX EBX ECX EDX ESI EDI EBP
-        if (conv[0] == 't' && count > 0) regs[2] = args[0], skip = 1;
-        if (conv[0] == 'f') {
-            if (count > 0) regs[2] = args[0], skip = 1;
-            if (count > 1) regs[3] = args[1], skip = 2;
-        }
-        if (conv[0] == 'e') {  // a register convention (tools/fncmp.py register_args): register names, each taking the next argument
-            static const char *const kNames[7] = {"eax", "ebx", "ecx", "edx", "esi", "edi", "ebp"};
-            for (const char *c = conv; c[0] && c[1] && c[2] && skip < count; c += 3)
-                for (int k = 0; k < 7; ++k)
-                    if (std::strncmp(c, kNames[k], 3) == 0) regs[k] = args[skip++];
         }
         u32 eax = 0, edxOut = 0, ediOut = 0;
         double st0 = 0;
@@ -2255,7 +2321,27 @@ int main(int argc, char **argv) {
             __asm fnclex
             __asm fldcw cw
         }
-        const int code = invoke(fn, regs, args.data() + skip, count - skip, ret[0] == 'd', &eax, &edxOut, &st0, &ediOut);
+        int code = 0;
+        for (Step &step : steps) {
+            for (u32 &a : step.args)
+                if (a == 0xfffffffb) a = eax;  // (fncmp.PREV: the step before's EAX)
+            u32 regs[7] = {}, skip = 0;  // EAX EBX ECX EDX ESI EDI EBP
+            const char *const how = step.conv.c_str();
+            const u32 n = (u32)step.args.size();
+            if (how[0] == 't' && n > 0) regs[2] = step.args[0], skip = 1;
+            if (how[0] == 'f') {
+                if (n > 0) regs[2] = step.args[0], skip = 1;
+                if (n > 1) regs[3] = step.args[1], skip = 2;
+            }
+            if (how[0] == 'e') {  // a register convention (tools/fncmp.py register_args): register names, each taking the next argument
+                static const char *const kNames[7] = {"eax", "ebx", "ecx", "edx", "esi", "edi", "ebp"};
+                for (const char *c = how; c[0] && c[1] && c[2] && skip < n; c += 3)
+                    for (int k = 0; k < 7; ++k)
+                        if (std::strncmp(c, kNames[k], 3) == 0) regs[k] = step.args[skip++];
+            }
+            code = invoke(step.fn, regs, step.args.data() + skip, n - skip, ret[0] == 'd', &eax, &edxOut, &st0, &ediOut);
+            if (code) break;
+        }
         if (std::strcmp(ret, "edi") == 0) eax = ediOut;  // (ret 'edi': EDI in EAX's place)
         if (std::strchr(ret, 'c')) {  // the control word the call left, then the driver's back
             u16 cw, ours = 0x7f;

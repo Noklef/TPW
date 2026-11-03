@@ -219,6 +219,12 @@ void __fastcall Staff_PickUp(u8 *staff);
 // (Staff_SetState).
 void __fastcall Staff_Settle(u8 *staff);
 
+// 0x505ea0 (thiscall (cell), pops 4; name invented): placed at the cell's centre (Thing_PlaceAt: column (cell - 1) & 0x7f, row the low byte of (cell - 1) >> 7, each << 8 | 0x80; the
+// words' high halves the stack's in the original: Thing_PlaceAt takes 16 bits), the script reference +0xc started (ScriptRef_Start 3, folder +0x24, sprite +0x20). A mechanic (byte +2
+// 4): Objects_ReleaseTracked (its this, from GameTable7cfb90_Get1da71a, and its arguments unused), then the mechanic's idle (env, 0x4da5b0). Others: Staff_SetState 0, +0x200 = 0.
+// The debug print and the handle read only it uses are left out.
+void __fastcall Staff_PlaceInCell(u8 *staff, void *, u32 cell);
+
 // 0x4da370 (thiscall (state), pops 4; name unconfirmed): a mechanic's state. 0xc: the reference's animation (+0xc, Set4_4217f0) 9. 0xd: the
 // animation 0x12, and the repair time +0x214 for the thing of the handle +0x218 (the game table 0x7cfb90; the original's Debug_Printf left
 // out) from the skill table 0x78542c's dword of the grade +0x1e4 (8 bytes apart): times its definition's dword +0x1fc + 0x40 * its byte
@@ -280,8 +286,51 @@ struct StaffWalkEnv {
     u32(__fastcall *walkNav)(u8 *sprite);                          // Sprite_WalkNav 0x4fa2a0
     void(__fastcall *spawnParticle)(u8 *sprite, void *, s32 effect);   // Sprite_SpawnParticle 0x4fa470
     void(__fastcall *destroy)(u8 *thing);                          // Thing_Delete 0x50b780
+    void(__fastcall *showThought)(u8 *thoughts, void *, u32 thought, u8 force);   // Thoughts_Show 0x50be80
+    u32(__fastcall *setRandomDest)(u8 *person);                    // Person_SetRandomDest 0x4f9490
+    u32(__fastcall *playSound)(const u8 *sprite, void *, u32 category, u32 sound);   // Sprite_PlaySound 0x4faa00
+    void(__fastcall *idleMechanic)(u8 *staff);                     // 0x4da5b0 (agent C's range, not yet ported)
+    void(__fastcall *idleHandyman)(u8 *staff);                     // 0x4d7100 (the same)
+    void(__fastcall *idleEntertainer)(u8 *staff);                  // 0x4d46d0 (the same)
+    void(__fastcall *idleGuard)(u8 *staff);                        // 0x4d63d0 (the same)
+    u8 *(__fastcall *ctorTyped)(u8 *staff, void *, u32 cell, u32 kind, u32 type, u32 unused);   // Staff_CtorTyped 0x504b10
+    s32(__cdecl *formatName)(u8 *charset, u16 *dest, u32 size, u32 entry, ...);   // Charset_FormatWide 0x6acd60
 };
 void Staff_SetWalkEnv(const StaffWalkEnv *env);   // nullptr: the game's
+
+// 0x5056e0 (thiscall; the name from the original's debug print "CStaff::ModelState"): the state step of a staff kind. State +0x19c 4: the walk
+// (Sprite_WalkNav), the thought 0x15 (Thoughts_Show on +0x30, no force), and when the walk answers 0 or 2 +0x188 cleared and Staff_SetState 5.
+// 5: Staff_HeadForEntrance. 6: once the world's tick less +0x200 (unsigned) is above 3 * [0x785330 + the grade +0x1e4 * 16], Staff_SetState 0.
+// Others: nothing.
+void __fastcall Staff_ModelState(u8 *staff);
+
+// 0x506a40 (thiscall; name invented, unconfirmed; the original's debug prints "I'm fed up, I'm going on strike", "couldn't find a rest area"; called by the
+// kinds' steps): answers 1 when the staff member has set off. The kind's entry of the world's 0x1da718 record set and the ride element 1 (Game_GetRideElement1)
+// 1: +0x188 = 1 and Sprite_SetDestination to a point of the strike area (high bytes World_Rand % [0x7855f4 / 0x7855f8] + [0x7855ec / 0x7855f0], low bytes
+// World_Rand) and, when it can go, Staff_SetState 4, 1. Else the level +0x1fc (__ftol's byte) at or under [0x785324]: the thought 0x14, the nearest rest
+// area (Things_NearestRestArea; Sprite_SetDestinationCell to its cell +0x36) as +0x208 and Staff_SetState 2, 1; none: one roll in 16 the happiness +0x1f8
+// less [0x785328], 0. Above it: the word +0xc0 from the table 0x75c7f8 by the level / 20 (100 up its fifth), then the happiness's byte up to 10 the thought
+// 0x13, above 0x61 one roll in 16 the thought 0x12, 0.
+u32 __fastcall Staff_CheckMood(u8 *staff);
+
+// 0x502c70 (thiscall; name invented, unconfirmed): a researcher with nothing on: Staff_CheckMood; when it did not set off, three rolls in four (World_Rand & 3) a
+// walk to a random place (Person_SetRandomDest) as state 1; else, unless too tired (Staff_IsTooTired), state 0xf. Both as Researcher_SetState (inlined there).
+void __fastcall Researcher_Idle(u8 *researcher);
+
+// 0x502600 (thiscall (cell, type, sprite, name), pops 0x10; an SEH frame; name invented, unconfirmed; MMPlaceStaff_Assign's): Staff_CtorTyped of kind 8, the name
+// (Charset_FormatWide of [0x78bab8] to +0x1a0, 0x20 characters; its debug range check left out), the chain word +0x210 clear and on the world's researchers
+// (World_AddResearcher), +0x214 0, the script started (ScriptRef_Start 3, folder +0x24 8, sprite +0x20 the low byte), Researcher_Idle, the lab's flag synced
+// (ResearchLab_SyncFlag). Answers the researcher.
+u8 *__fastcall Researcher_Ctor(u8 *researcher, void *, u32 cell, u32 type, u32 sprite, u32 name);
+
+// 0x5061d0 (thiscall; name invented, unconfirmed): one tick in a rest area: the levels +0x1fc and +0x1f8 gain the grade's values of 0x785334 and 0x785338 (each kept to 0-100);
+// a rest of 100 (__ftol's low byte) leaves the area and goes idle by kind (byte +2: 4-7 the kinds' idles, 8 Researcher_Idle; others a debug print, left out).
+void __fastcall Staff_RestInArea(u8 *staff);
+
+// 0x5029f0 (thiscall): a researcher's state step (+0x19c). 0: one roll in 16 a sound 0xa9, then idle past the grade's stay of 0x785330. 1: one in 16 a sound 0xa8, the walk: on (not 0 or 2)
+// Staff_TireA, else idle. 2: Staff_WalkToRestArea. 3: Staff_RestInArea. 0xf: Staff_TireB; past the grade's time of 0x785458 a random walk (state 1), or the time restarted; before it one in 16 a sound 0x8a.
+// Others: Staff_ModelState. The tests compare with the sum unsigned, so a wrapped sum counts as passed.
+void __fastcall Researcher_PostUpdate(u8 *researcher);
 
 // 0x4f7c40 (thiscall; name invented, unconfirmed): a jump to Person_Detach (Thing_Delete's kind 0x12, Researcher_Detach's base).
 void __fastcall Staff_Detach(u8 *staff);

@@ -298,16 +298,21 @@ def wrap(r, name, regions, data, restore):
     chan = bytearray(r.bytes(0x40))
     chan[0x28] = chan[0x28] & ~3 | r.choice([0, 1, 2])
     regions.update({OBJ: obj, CHAN: chan, CMD: struct.pack('<II', r.getrandbits(32), STREAM) + bytes([restore & 0xff]) + r.bytes(7)})
+    started = 1
+    left = None
     if data is not None:
-        left = None
         if kind in 'ocg':
             data = r.bytes(12) + data
         if kind == 'g':
+            # (A stream short of the first 12 bytes leaves the original's started and size locals unset, and one that runs dry before the mixer's
+            # part leaves SoundMixer_Load's count local unset: its stack, not comparable. So a short one holds those 12 and, with a manager, a
+            # started of 0, which stops before the mixer.)
             size = r.choice([0x54] * 6 + [0, 0x10, 0x58])
-            head = struct.pack('<II', r.getrandbits(32), r.choice([0, 1, 1, r.getrandbits(32)])) + struct.pack('<I', size) + r.bytes(size)
+            started = r.choice([0, r.getrandbits(32), r.getrandbits(32), r.getrandbits(32)])
+            head = struct.pack('<II', started, r.choice([0, 1, 1, r.getrandbits(32)])) + struct.pack('<I', size) + r.bytes(size)
             data = head + data
             if r.random() < 0.1:
-                left = r.randrange(len(head))
+                left = r.randrange(12, len(head) + 1)
         regions.update({STREAM: memory_stream(STREAM, BUF, len(data) if left is None else left), BUF: data})
     if kind == 'm':
         return Call(CALLS[name], [MIX, OUT, STREAM] + ([restore] if data is not None else []), regions, conv='t', ret='a')
@@ -316,7 +321,7 @@ def wrap(r, name, regions, data, restore):
     if kind == 'c':
         return Call(CALLS[name], [CMD, OUT, OBJ], regions, conv='t', ret='a')
     g = bytearray(r.bytes(0x20))
-    struct.pack_into('<II', g, 8, r.choice([0, 1, 1, 1, r.getrandbits(32)]), r.choice([MGRH, MGRH, 0]) if data is not None else MGRH)
+    struct.pack_into('<II', g, 8, r.choice([0, 1, 1, 1, r.getrandbits(32)]), (0 if left is not None and started else r.choice([MGRH, MGRH, 0])) if data is not None else MGRH)
     struct.pack_into('<I', g, 0x14, r.choice([0, 1, 1, 1]))
     regions.update({GLOBALS: g, SETTINGS: r.bytes(0x60), MGRH: struct.pack('<II', r.getrandbits(32), OBJ)})
     return Call(CALLS[name], [STREAM], regions, conv='c', ret='v')

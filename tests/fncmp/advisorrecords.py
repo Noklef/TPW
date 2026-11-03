@@ -1,14 +1,14 @@
-# The advisor's record arrays' element constructors (src/game/world/advisorrecords: 0x518e60, 0x518e80) against the originals: a
+# The advisor's record arrays' element constructors (src/game/world/advisorrecords: 0x518e60, 0x518e70, 0x518e80) against the originals: a
 # record of random bytes.
-# usage: advisorrecords.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Slot,Record)
+# usage: advisorrecords.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Slot,Entry,Record)
 import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import RAM, Bench, Call  # noqa: E402
 
-CALLS = {'Slot': 0x518e60, 'Record': 0x518e80}
-B = Bench([(0x518e60, 0x518e67), (0x518e80, 0x518e94)])
+CALLS = {'Slot': 0x518e60, 'Entry': 0x518e70, 'Record': 0x518e80}
+B = Bench([(0x518e60, 0x518e67), (0x518e70, 0x518e7d), (0x518e80, 0x518e94)])
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 
 

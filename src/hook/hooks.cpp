@@ -235,6 +235,7 @@
 #include "../game/core/soundsource.h"
 #include "../game/core/soundstream.h"
 #include "../game/core/soundvoice.h"
+#include "../game/core/soundworker.h"
 #include "../game/core/startcheck.h"
 #include "../game/core/streamfilter.h"
 #include "../game/core/streampool.h"
@@ -243,6 +244,7 @@
 #include "../game/core/voiceevents.h"
 #include "../game/core/voicesample.h"
 #include "../game/core/waveformat.h"
+#include "../game/core/wfilebuf.h"
 #include "../game/core/widewriter.h"
 #include "../game/core/wscanner.h"
 #include "../game/core/wtraits.h"
@@ -364,6 +366,7 @@
 #include "../game/world/gamemode.h"
 #include "../game/world/guardescort.h"
 #include "../game/world/mapclick.h"
+#include "../game/world/mappress.h"
 #include "../game/world/mappreview.h"
 #include "../game/world/mapsweep.h"
 #include "../game/world/objectride.h"
@@ -380,6 +383,7 @@
 #include "../game/world/placeobject.h"
 #include "../game/world/tracksquare.h"
 #include "../game/world/rides.h"
+#include "../game/world/staffcandidate.h"
 #include "../game/world/trackcircuit.h"
 #include "../game/world/sign.h"
 #include "../game/world/rideupkeep.h"
@@ -489,6 +493,7 @@
 #include "../game/online/ftp.h"
 #include "../game/online/chat.h"
 #include "../game/online/chatcommand.h"
+#include "../game/online/chatevents.h"
 #include "../game/online/session.h"
 #include "../game/ui/dialog7ca1c8.h"
 #include "../game/ui/dialog7cb398.h"
@@ -1116,6 +1121,7 @@ const Hook kHooks[] = {
     {"ResearchLab_SyncFlag",      0x005041f0, (void *)&ResearchLab_SyncFlag, {0xa1, 0x9c, 0x23, 0x80, 0x00}},
     {"ResearchLab_HandleMessage", 0x00503d40, (void *)&ResearchLab_HandleMessage, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"ResearchProject_AddResearch", 0x00504630, (void *)&ResearchProject_AddResearch, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"ResearchLab_Spend",         0x00503430, (void *)&ResearchLab_Spend, {0x83, 0xec, 0x24, 0xba, 0x05}},
     {"Nav_SetPosVel",             0x005100e0, (void *)&Nav_SetPosVel, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"Nav_GetPos",                0x00510160, (void *)&Nav_GetPos, {0x8b, 0x54, 0x24, 0x04, 0x8b}},
     {"World_ArrivalVehicleNotSize1", 0x0051aad0, (void *)&World_ArrivalVehicleNotSize1, {0x66, 0x8b, 0x81, 0x2a, 0xa7}},
@@ -3061,6 +3067,7 @@ const Hook kHooks[] = {
     {"SubStream_Rewind",          0x006d4ec0, (void *)&SubStream_Rewind, {0x8b, 0xc1, 0x6a, 0x00, 0x8b}},
     {"FontFiles_Destroy",         0x00412bc0, (void *)&FontFiles_Destroy, {0x56, 0x8b, 0x35, 0x1c, 0x9c}},
     {"SubStream_Dtor",            0x006c7960, (void *)&SubStream_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"SubStream_DeletingDtor",    0x006c7940, (void *)&SubStream_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"ResFolder_Ctor",            0x006ad130, (void *)&ResFolder_Ctor, {0x56, 0x8b, 0xf1, 0x57, 0x8d}},
     {"ResFolder_Dtor",            0x006ad160, (void *)&ResFolder_Dtor, {0x6a, 0xff, 0x68, 0xfb, 0x55}},
     {"ResFolder_Open",            0x006ad1b0, (void *)&ResFolder_Open, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
@@ -3751,6 +3758,9 @@ const Hook kHooks[] = {
     {"Visitor_Arrive",            0x004feb50, (void *)&Visitor_Arrive, {0x51, 0x8b, 0x44, 0x24, 0x08}},
     {"Visitor_HandleMessage",     0x004fb360, (void *)&Visitor_HandleMessage, {0x51, 0x53, 0x8b, 0x5c, 0x24}},
     {"Person_SetRandomDest",      0x004f9490, (void *)&Person_SetRandomDest, {0x6a, 0xff, 0x68, 0xe8, 0xde}},
+    {"Visitor_QueueEdited",       0x00501390, (void *)&Visitor_QueueEdited, {0x83, 0xec, 0x14, 0x53, 0x56}},
+    {"Visitor_PayObject",         0x004fe1a0, (void *)&Visitor_PayObject, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
+    {"Visitor_VisitObject",       0x004fd970, (void *)&Visitor_VisitObject, {0x83, 0xec, 0x08, 0x8d, 0x44}},
     {"Setting_SetMode",           0x00550d80, (void *)&Setting_SetMode, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Quad_Push",                 0x005633e0, (void *)&Quad_Push, {0x56, 0x8b, 0x74, 0x24, 0x14}},
     {"Table76e300_GetObjectDword", 0x0059c390, (void *)&Table76e300_GetObjectDword, {0x56, 0x8b, 0xf1, 0x8b, 0x4c}},
@@ -3817,6 +3827,10 @@ const Hook kHooks[] = {
     {"Object_PathChanged",        0x004de1f0, (void *)&Object_PathChanged, {0x51, 0x56, 0x8b, 0xf1, 0x57}},
     {"Object_MechanicDone",       0x004df8f0, (void *)&Object_MechanicDone, {0x83, 0xec, 0x08, 0x53, 0x55}},
     {"Object_Field48AsInt",       0x004dd6d0, (void *)&Object_Field48AsInt, {0xd9, 0x41, 0x48, 0xe9, 0x58}},
+    {"Object_FollowCamera",       0x004e15b0, (void *)&Object_FollowCamera, {0x51, 0x53, 0x56, 0x8b, 0xf1}},
+    {"Object_TakePayment",        0x004e16b0, (void *)&Object_TakePayment, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
+    {"Object_ArriveWaiting",      0x004e1410, (void *)&Object_ArriveWaiting, {0x83, 0xec, 0x08, 0x53, 0x56}},
+    {"Object_BeginCycle",         0x004e14e0, (void *)&Object_BeginCycle, {0x51, 0x56, 0x8b, 0xf1, 0xe8}},
     {"Blocks7_Free",              0x005d46d0, (void *)&Blocks7_Free, {0x56, 0x8b, 0xf1, 0x57, 0x33}},
     {"Names_FirstAfter",          0x00424cc0, (void *)&Names_FirstAfter, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"Names_Equal",               0x00424cf0, (void *)&Names_Equal, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
@@ -4231,6 +4245,13 @@ const Hook kHooks[] = {
     {"Guard_Detach",              0x004d5eb0, (void *)&Guard_Detach, {0x83, 0xec, 0x08, 0x56, 0x8b}},
     {"Guard_SetState",            0x004d65d0, (void *)&Guard_SetState, {0x51, 0x56, 0x57, 0x8b, 0x7c}},
     {"Staff_MarkPatrolCells",     0x004cd340, (void *)&Staff_MarkPatrolCells, {0xa1, 0x9c, 0x23, 0x80, 0x00}},
+    {"Staff_ModelState",          0x005056e0, (void *)&Staff_ModelState, {0x56, 0x8b, 0xf1, 0x57, 0x8b}},
+    {"Staff_CheckMood",           0x00506a40, (void *)&Staff_CheckMood, {0x83, 0xec, 0x08, 0x56, 0x57}},
+    {"Researcher_Idle",           0x00502c70, (void *)&Researcher_Idle, {0x56, 0x8b, 0xf1, 0xe8, 0xc8}},
+    {"Staff_RestInArea",          0x005061d0, (void *)&Staff_RestInArea, {0x56, 0x8b, 0xf1, 0x8b, 0x86}},
+    {"Researcher_PostUpdate",     0x005029f0, (void *)&Researcher_PostUpdate, {0x56, 0x8b, 0xf1, 0x8b, 0x86}},
+    {"Researcher_Ctor",           0x00502600, (void *)&Researcher_Ctor, {0x6a, 0xff, 0x68, 0x58, 0xdf}},
+    {"Staff_PlaceInCell",         0x00505ea0, (void *)&Staff_PlaceInCell, {0x51, 0x53, 0x8d, 0x44, 0x24}},
     {"FreeList_Take",             0x00520d60, (void *)&FreeList_Take, {0x56, 0x66, 0x8b, 0x35, 0x24}},
     {"FreeList_Return",           0x00521890, (void *)&FreeList_Return, {0x8b, 0x4c, 0x24, 0x04, 0x85}},
     {"Voice_ScaleLevels",         0x00521d60, (void *)&Voice_ScaleLevels, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
@@ -4379,6 +4400,10 @@ const Hook kHooks[] = {
     {"StdMapH_ClearAt",           0x006c0ba0, (void *)&StdMapH_ClearAt, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"StdTree_DtorJ",             0x006beda0, (void *)&StdTree_DtorJ, {0x51, 0x56, 0x8b, 0xf1, 0x8b}},
     {"StdMapH_Ctor",              0x006c1240, (void *)&StdMapH_Ctor, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
+    {"StdTree_InsertC",           0x004f41d0, (void *)&StdTree_InsertC, {0x6a, 0xff, 0x68, 0x38, 0xda}},
+    {"StdTree_InsertE",           0x004f5130, (void *)&StdTree_InsertE, {0x6a, 0xff, 0x68, 0x58, 0xdb}},
+    {"StdMapC_Insert",            0x004f2440, (void *)&StdMapC_Insert, {0x6a, 0xff, 0x68, 0xb8, 0xd8}},
+    {"StdMapE_Insert",            0x004f2c00, (void *)&StdMapE_Insert, {0x6a, 0xff, 0x68, 0x38, 0xd9}},
     {"Class7037b8_Dtor",          0x00617f40, (void *)&Class7037b8_Dtor, {0x53, 0x56, 0x57, 0x8b, 0xf9}},
     {"Panel_Reset",               0x005d48d0, (void *)&Panel_Reset, {0x56, 0x57, 0x8b, 0xf9, 0x33}},
     {"Grid_AddObject",            0x00576620, (void *)&Grid_AddObject, {0x51, 0x53, 0x8b, 0x5c, 0x24}},
@@ -4442,6 +4467,8 @@ const Hook kHooks[] = {
     {"ChatIgnoreSet_Find",        0x004f03c0, (void *)&ChatIgnoreSet_Find, {0x51, 0x53, 0x8b, 0x5c, 0x24}},
     {"ChatBuddySet_Find",         0x004f2770, (void *)&ChatBuddySet_Find, {0x51, 0x53, 0x8b, 0x5c, 0x24}},
     {"ChatBuddySet_LowerBoundOut", 0x004f4050, (void *)&ChatBuddySet_LowerBoundOut, {0x8b, 0x44, 0x24, 0x08, 0x50}},
+    {"ChatBuddySet_UpperBound",   0x004f6870, (void *)&ChatBuddySet_UpperBound, {0x6a, 0xff, 0x68, 0xd8, 0xdc}},
+    {"ChatBuddySet_EraseKey",     0x004f2700, (void *)&ChatBuddySet_EraseKey, {0x53, 0x55, 0x56, 0x57, 0x8b}},
     {"Thing_SetPos",              0x0050b6a0, (void *)&Thing_SetPos, {0x51, 0x56, 0x8b, 0xf1, 0x8b}},
     {"Object_BackOfQueue",        0x004de130, (void *)&Object_BackOfQueue, {0x83, 0xec, 0x08, 0x56, 0x8b}},
     {"Holder_Sleep",              0x0045bdd0, (void *)&Holder_Sleep, {0x56, 0x8b, 0x74, 0x24, 0x08}},
@@ -4731,6 +4758,9 @@ const Hook kHooks[] = {
     {"FunnyTime_SpanOf",          0x004f8730, (void *)&FunnyTime_SpanOf, {0x8b, 0x41, 0x1c, 0x8b, 0x4c}},
     {"FunnyTime_Elapsed",         0x004f8800, (void *)&FunnyTime_Elapsed, {0x83, 0xec, 0x24, 0x56, 0x8b}},
     {"FunnyTime_SpanSince",       0x004f88b0, (void *)&FunnyTime_SpanSince, {0xa1, 0x9c, 0x23, 0x80, 0x00}},
+    {"FunnyTime_Quarter",         0x004f8770, (void *)&FunnyTime_Quarter, {0x83, 0xec, 0x14, 0x56, 0x8b}},
+    {"FunnyTime_SyncMonthYear",   0x004f85a0, (void *)&FunnyTime_SyncMonthYear, {0x83, 0xec, 0x14, 0xa1, 0x9c}},
+    {"FunnyTime_Update",          0x004f8260, (void *)&FunnyTime_Update, {0x6a, 0xff, 0x68, 0x99, 0xde}},
     {"CritSec_Ctor",              0x005c8b90, (void *)&CritSec_Ctor, {0x56, 0x8b, 0xf1, 0x56, 0xff}},
     {"CritSec_Dtor",              0x005c8ba0, (void *)&CritSec_Dtor, {0x51, 0xff, 0x15, 0xd0, 0xd0}},
     {"CritSec_Enter",             0x005c8bb0, (void *)&CritSec_Enter, {0x51, 0xff, 0x15, 0x40, 0xd1}},
@@ -4765,6 +4795,11 @@ const Hook kHooks[] = {
     {"WStdString_CtorCopy",       0x004f0250, (void *)&WStdString_CtorCopy, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"WStdString_Compare",        0x004f7720, (void *)&WStdString_Compare, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"WStdString_CompareSub",     0x004f7900, (void *)&WStdString_CompareSub, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
+    {"WStdString_CtorCopyB",      0x004f72d0, (void *)&WStdString_CtorCopyB, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
+    {"WStdString_Construct",      0x004f72b0, (void *)&WStdString_Construct, {0x8b, 0x4c, 0x24, 0x04, 0x85}},
+    {"WStdStringWord_CtorCopy",   0x004f74a0, (void *)&WStdStringWord_CtorCopy, {0x53, 0x55, 0x8b, 0x6c, 0x24}},
+    {"WStdStringWord_Construct",  0x004f7290, (void *)&WStdStringWord_Construct, {0x8b, 0x4c, 0x24, 0x04, 0x85}},
+    {"WStdString_CtorCopyC",      0x004ea0e0, (void *)&WStdString_CtorCopyC, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"GameError_IndexOfCode",     0x00405b90, (void *)&GameError_IndexOfCode, {0x8b, 0x44, 0x24, 0x04, 0x3d}},
     {"GameError_Set",             0x00405710, (void *)&GameError_Set, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"CountedPair_CtorWide",      0x004ea740, (void *)&CountedPair_CtorWide,{0x6a, 0xff, 0x68, 0x40, 0xcd}},
@@ -4775,6 +4810,9 @@ const Hook kHooks[] = {
     {"CountedPair_UninitFill",    0x004f67f0, (void *)&CountedPair_UninitFill, {0x57, 0x8b, 0x7c, 0x24, 0x0c}},
     {"CountedPair_Construct",     0x004f7410, (void *)&CountedPair_Construct, {0x8b, 0x4c, 0x24, 0x04, 0x85}},
     {"CountedPairVector_Construct", 0x004f6e70, (void *)&CountedPairVector_Construct, {0x55, 0x8b, 0x6c, 0x24, 0x08}},
+    {"CountedPair_CopyBackward",  0x004f7030, (void *)&CountedPair_CopyBackward, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"CountedPair_FillRange",     0x004f6ef0, (void *)&CountedPair_FillRange, {0x8b, 0x54, 0x24, 0x04, 0x8b}},
+    {"CountedPairVector_Insert",  0x004f34a0, (void *)&CountedPairVector_Insert, {0x83, 0xec, 0x0c, 0x53, 0x55}},
     {"StringMapsRecord_Dtor",     0x004e54c0, (void *)&StringMapsRecord_Dtor, {0x6a, 0xff, 0x68, 0x64, 0xc5}},
     {"StringMapsRecord_Ctor",     0x004f0010, (void *)&StringMapsRecord_Ctor, {0x6a, 0xff, 0x68, 0x54, 0xd7}},
     {"CommandLine_Parse",         0x0040f000, (void *)&CommandLine_Parse, {0x8b, 0x44, 0x24, 0x04, 0x53}},
@@ -4934,6 +4972,7 @@ const Hook kHooks[] = {
     {"SoundMixer_CallVoice9",     0x006b65e0, (void *)&SoundMixer_CallVoice9, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"SoundMixer_Save",           0x006b6c30, (void *)&SoundMixer_Save, {0x6a, 0xff, 0x68, 0x48, 0x58}},
     {"SoundMixer_Load",           0x006b6da0, (void *)&SoundMixer_Load, {0x6a, 0xff, 0x68, 0x78, 0x58}},
+    {"VoicePage_DeletingDtor",    0x006b71a0, (void *)&VoicePage_DeletingDtor, {0x8a, 0x44, 0x24, 0x04, 0x56}},
     {"SoundChannel_Apply",        0x006b8b40, (void *)&SoundChannel_Apply, {0x8b, 0xc1, 0x56, 0x8b, 0x4c}},
     {"SoundChannel_GetSettings",  0x006b7d70, (void *)&SoundChannel_GetSettings, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
     {"SoundChannelFn70a260_Run",  0x006b5e40, (void *)&SoundChannelFn70a260_Run, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
@@ -4981,6 +5020,9 @@ const Hook kHooks[] = {
     {"SoundChannel_Dtor",         0x006b9c00, (void *)&SoundChannel_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"SoundChannelEax_Dtor",      0x006c5be0, (void *)&SoundChannelEax_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"SoundChannelEax_DeletingDtor", 0x006ba200, (void *)&SoundChannelEax_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0xd8}},
+    {"SoundChannel_RunSlot1",     0x006b7f00, (void *)&SoundChannel_RunSlot1, {0x8b, 0xc1, 0x56, 0x8b, 0x4c}},
+    {"SoundChannel_DeletingDtor", 0x006b9be0, (void *)&SoundChannel_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"SoundUpdate_Apply",         0x006c5690, (void *)&SoundUpdate_Apply, {0x51, 0x53, 0x8b, 0xd9, 0x55}},
     {"SoundObject_Broadcast",     0x006b85f0, (void *)&SoundObject_Broadcast, {0x83, 0xec, 0x08, 0x56, 0x8b}},
     {"SoundObject_BroadcastValue", 0x006b8640, (void *)&SoundObject_BroadcastValue, {0x8b, 0x41, 0x24, 0x85, 0xc0}},
     {"SoundObject_VoiceInfo",     0x006b8b00, (void *)&SoundObject_VoiceInfo, {0x8b, 0x49, 0x20, 0x85, 0xc9}},
@@ -5005,6 +5047,7 @@ const Hook kHooks[] = {
     {"SoundObject_Load",          0x006ba150, (void *)&SoundObject_Load, {0x83, 0xec, 0x08, 0x56, 0x8b}},
     {"SoundObject_CreateChannel", 0x006b8410, (void *)&SoundObject_CreateChannel, {0x6a, 0xff, 0x68, 0xdb, 0x59}},
     {"SoundObjectEax_CreateChannel", 0x006b9db0, (void *)&SoundObjectEax_CreateChannel, {0x6a, 0xff, 0x68, 0xbb, 0x5a}},
+    {"SoundObject_CallVoice9",    0x006b8990, (void *)&SoundObject_CallVoice9, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"SoundVoice_EnsureParams",   0x006b7150, (void *)&SoundVoice_EnsureParams, {0x53, 0x56, 0x8b, 0xf1, 0x33}},
     {"SoundVoice_SetPending",     0x006bc900, (void *)&SoundVoice_SetPending, {0x81, 0xec, 0xac, 0x00, 0x00}},
     {"SoundVoice_ApplyVariation", 0x006bbf00, (void *)&SoundVoice_ApplyVariation, {0x53, 0x56, 0x8b, 0xf1, 0x33}},
@@ -5091,6 +5134,7 @@ const Hook kHooks[] = {
     {"SoundVoice_Load",           0x006bd0a0, (void *)&SoundVoice_Load, {0x6a, 0xff, 0x68, 0x36, 0x5d}},
     {"Voice70a8d0_Ctor",          0x006be7a0, (void *)&Voice70a8d0_Ctor, {0x6a, 0xff, 0x68, 0xf3, 0x5d}},
     {"Voice70a8d0_Create",        0x006be750, (void *)&Voice70a8d0_Create, {0x8b, 0x4c, 0x24, 0x08, 0x56}},
+    {"SoundVoice_Destroy",        0x006bbe80, (void *)&SoundVoice_Destroy, {0x8b, 0x01, 0x6a, 0x00, 0xff}},
     {"EaxBuffer_QueryAll",        0x006c4760, (void *)&EaxBuffer_QueryAll, {0x8b, 0x41, 0x04, 0x83, 0xec}},
     {"EaxListener_SetAll",        0x006d6cf0, (void *)&EaxListener_SetAll, {0x8b, 0x01, 0x83, 0xec, 0x38}},
     {"EaxBuffer_SetProperty0b",   0x006c4670, (void *)&EaxBuffer_SetProperty0b, {0x8b, 0x41, 0x04, 0x85, 0xc0}},
@@ -5135,6 +5179,7 @@ const Hook kHooks[] = {
     {"SoundCategory_ReleaseRecordAt", 0x006c0850, (void *)&SoundCategory_ReleaseRecordAt, {0x83, 0xec, 0x10, 0x83, 0xc1}},
     {"SfxSounds_Find",            0x006c5870, (void *)&SfxSounds_Find, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
     {"SoundCategory_HideFlag40Samples", 0x006c0c90, (void *)&SoundCategory_HideFlag40Samples, {0x83, 0xec, 0x24, 0x53, 0x8b}},
+    {"CategoryRecord_DeletingDtor", 0x006c1110, (void *)&CategoryRecord_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0xe8}},
     {"Class703770_AddRef",        0x006338c0, (void *)&Class703770_AddRef, {0x83, 0xc1, 0x04, 0x51, 0xff}},
     {"Class703770_Release",       0x006338d0, (void *)&Class703770_Release, {0x56, 0x8b, 0xf1, 0x57, 0x8d}},
     {"Class70a078_Ctor",          0x006af760, (void *)&Class70a078_Ctor, {0x8b, 0xc1, 0xc7, 0x00, 0x78}},
@@ -5462,6 +5507,15 @@ const Hook kHooks[] = {
     {"ChannelVoice_Query",        0x006bb470, (void *)&ChannelVoice_Query, {0x6a, 0xff, 0x68, 0x88, 0x5c}},
     {"ChannelVoice_Read",         0x006bb5e0, (void *)&ChannelVoice_Read, {0x6a, 0xff, 0x68, 0xa8, 0x5c}},
     {"ChannelVoices_CreateStream", 0x006ba610, (void *)&ChannelVoices_CreateStream, {0x6a, 0xff, 0x68, 0xca, 0x5b}},
+    {"CriticalSectionLock_Leave", 0x006b7380, (void *)&CriticalSectionLock_Leave, {0x8b, 0x01, 0x50, 0xff, 0x15}},
+    {"ChannelVoice_SoundAndValue", 0x006bb3b0, (void *)&ChannelVoice_SoundAndValue, {0x56, 0x8b, 0xf1, 0x57, 0x8d}},
+    {"ChannelVoice_Send",         0x006bb320, (void *)&ChannelVoice_Send, {0x6a, 0xff, 0x68, 0x68, 0x5c}},
+    {"ChannelVoice_Mix",          0x006bb510, (void *)&ChannelVoice_Mix, {0x56, 0x8b, 0xf1, 0x68, 0xf4}},
+    {"ChannelVoices_Send",        0x006baa20, (void *)&ChannelVoices_Send, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
+    {"ChannelVoices_Acquire",     0x006bac60, (void *)&ChannelVoices_Acquire, {0x83, 0xec, 0x18, 0x53, 0x55}},
+    {"ChannelVoices_AcquireBy",   0x006baee0, (void *)&ChannelVoices_AcquireBy, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"ChannelVoices_PlayRecord",  0x006badd0, (void *)&ChannelVoices_PlayRecord, {0x53, 0x55, 0x56, 0x8b, 0x74}},
+    {"ChannelVoices_PlayNotify",  0x006bae60, (void *)&ChannelVoices_PlayNotify, {0x53, 0x55, 0x56, 0x57, 0x8b}},
     {"SoundOccluders_Occlusion",  0x006c4c80, (void *)&SoundOccluders_Occlusion, {0x83, 0xec, 0x2c, 0x53, 0x8b}},
     {"SoundOccluders_Remove",     0x006c4ba0, (void *)&SoundOccluders_Remove, {0x8b, 0x41, 0x0c, 0x56, 0x85}},
     {"SoundOccluders_Clear",      0x006c4c20, (void *)&SoundOccluders_Clear, {0x53, 0x56, 0x8b, 0xf1, 0x33}},
@@ -5592,6 +5646,8 @@ const Hook kHooks[] = {
     {"SoundSample70a548_Dtor",    0x006b7410, (void *)&SoundSample70a548_Dtor, {0x6a, 0xff, 0x68, 0x23, 0x59}},
     {"MemorySample_DeletingDtor", 0x006bb1f0, (void *)&MemorySample_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x38}},
     {"SoundSample_Query",         0x006bb1b0, (void *)&SoundSample_Query, {0x8b, 0x44, 0x24, 0x08, 0x56}},
+    {"SoundSample70a548_DeletingDtor", 0x006b73f0, (void *)&SoundSample70a548_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"SampleCopier_Free",         0x006b8150, (void *)&SampleCopier_Free, {0xa1, 0x18, 0x20, 0xfb, 0x00}},
     {"VoiceSample_Decode",        0x006c7cf0, (void *)&VoiceSample_Decode, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"VoiceSample_Read",          0x006c7c20, (void *)&VoiceSample_Read, {0x56, 0x8b, 0xf1, 0x57, 0x8b}},
     {"VoiceSample_Query",         0x006c7bc0, (void *)&VoiceSample_Query, {0x8b, 0x51, 0x10, 0x8b, 0x01}},
@@ -5657,6 +5713,13 @@ const Hook kHooks[] = {
     {"NarrowWriter_PutWide",      0x006afd90, (void *)&NarrowWriter_PutWide, {0x53, 0x55, 0x56, 0x8b, 0xf1}},
     {"NarrowWriter_Dtor",         0x006ad030, (void *)&NarrowWriter_Dtor, {0x6a, 0xff, 0x68, 0xc3, 0x55}},
     {"NarrowWriter_DeletingDtor", 0x006ad090, (void *)&NarrowWriter_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x98}},
+    {"LocaleRef_Ctor",            0x004f5a50, (void *)&LocaleRef_Ctor, {0x6a, 0xff, 0x68, 0x98, 0xdb}},
+    {"WFileBuf_Init",             0x004f5990, (void *)&WFileBuf_Init, {0x8b, 0x44, 0x24, 0x08, 0x56}},
+    {"SoundBuffer_FillFromVoice", 0x006d6f70, (void *)&SoundBuffer_FillFromVoice, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"SoundWorker_RefillVoice",   0x006d3850, (void *)&SoundWorker_RefillVoice, {0x6a, 0xff, 0x68, 0x98, 0x68}},
+    {"ComList_ReleaseAll",        0x006d75c0, (void *)&ComList_ReleaseAll, {0x6a, 0xff, 0x68, 0x58, 0x6a}},
+    {"SoundWorker_Ctor",          0x006b6050, (void *)&SoundWorker_Ctor, {0x6a, 0xff, 0x68, 0x91, 0x57}},
+    {"SoundWorkerHost_Ctor",      0x006b8380, (void *)&SoundWorkerHost_Ctor, {0x6a, 0xff, 0x68, 0xbb, 0x59}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
@@ -5726,6 +5789,8 @@ const Hook kHooks[] = {
     {"SteerFollowPath_Steer",     0x0050ed10, (void *)&SteerFollowPath_Steer, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"TagTable_Find",             0x0050af40, (void *)&TagTable_Find, {0x8b, 0x54, 0x24, 0x04, 0x81}},
     {"TagSystem_Ctor",            0x00509b40, (void *)&TagSystem_Ctor, {0x51, 0x66, 0xc7, 0x44, 0x24}},
+    {"TagSystem_FormatTag",       0x00509e10, (void *)&TagSystem_FormatTag, {0x81, 0xec, 0x48, 0x04, 0x00}},
+    {"TagSystem_HandleMessage",   0x00509bf0, (void *)&TagSystem_HandleMessage, {0x83, 0xec, 0x2c, 0x53, 0x55}},
     {"Ride_IsBusy",               0x0042a440, (void *)&Ride_IsBusy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Ride_Sleep",                0x0043bd20, (void *)&Ride_Sleep, {0x8b, 0x44, 0x24, 0x04, 0x57}},
     {"Forecast_Serialize",        0x005132a0, (void *)&Forecast_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
@@ -5779,6 +5844,9 @@ const Hook kHooks[] = {
     {"Weather_SetIntensity",      0x00512f00, (void *)&Weather_SetIntensity, {0x8b, 0x44, 0x24, 0x04, 0x83}},
     {"Weather_HandleMessage",     0x005127a0, (void *)&Weather_HandleMessage, {0x83, 0xec, 0x20, 0x53, 0x56}},
     {"Weather_Detach",            0x00512000, (void *)&Weather_Detach, {0xe8, 0x7b, 0x99, 0xff, 0xff}},
+    {"Weather_NextIntensity",     0x00512e10, (void *)&Weather_NextIntensity, {0xa1, 0x3c, 0xf8, 0x7c, 0x00}},
+    {"Weather_Construct",         0x00511f70, (void *)&Weather_Construct, {0x51, 0x53, 0x66, 0xc7, 0x44}},
+    {"Weather_Update",            0x00512880, (void *)&Weather_Update, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"UIMsgReceiver_Ctor",        0x0050c9b0, (void *)&UIMsgReceiver_Ctor, {0x51, 0x66, 0xc7, 0x44, 0x24}},
     {"Object_Status",             0x00485f60, (void *)&Object_Status, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"ObjectStatus_Show",         0x004861e0, (void *)&ObjectStatus_Show, {0x83, 0xec, 0x08, 0x56, 0x8b}},
@@ -5818,6 +5886,7 @@ const Hook kHooks[] = {
     {"PathDrag_Finish",           0x0052c1c0, (void *)&PathDrag_Finish, {0x83, 0xec, 0x08, 0xa1, 0x00}},
     {"AdvisorSlot_Ctor",          0x00518e60, (void *)&AdvisorSlot_Ctor, {0x8b, 0xc1, 0xc6, 0x40, 0x14}},
     {"AdvisorRecord_Ctor",        0x00518e80, (void *)&AdvisorRecord_Ctor, {0x8b, 0xc1, 0x33, 0xc9, 0x89}},
+    {"AdvisorEntry_Ctor",         0x00518e70, (void *)&AdvisorEntry_Ctor, {0x8b, 0xc1, 0x33, 0xc9, 0x89}},
     {"Map_DemolishRect",          0x0052bdd0, (void *)&Map_DemolishRect, {0x83, 0xec, 0x1c, 0x8b, 0x54}},
     {"Path_CheckDeadEnds",        0x00527ee0, (void *)&Path_CheckDeadEnds, {0x83, 0xec, 0x34, 0x53, 0x55}},
     {"TrackSquare_Check",         0x005286a0, (void *)&TrackSquare_Check, {0x53, 0x55, 0x56, 0x8b, 0x74}},
@@ -5857,6 +5926,17 @@ const Hook kHooks[] = {
     {"Visitor_Ctor",              0x004faec0, (void *)&Visitor_Ctor, {0x6a, 0xff, 0x68, 0x1b, 0xdf}},
     {"Visitor_ReenterState",      0x004fc890, (void *)&Visitor_ReenterState, {0x8b, 0x81, 0x24, 0x02, 0x00}},
     {"Visitor_StartEmote",        0x004fc800, (void *)&Visitor_StartEmote, {0x83, 0xec, 0x10, 0x8d, 0x44}},
+    {"Visitor_StepWalkToQueue",   0x004ffbc0, (void *)&Visitor_StepWalkToQueue, {0x83, 0xec, 0x0c, 0x53, 0x55}},
+    {"Visitor_StepInQueue",       0x005006b0, (void *)&Visitor_StepInQueue, {0x51, 0x53, 0x56, 0x57, 0x8b}},
+    {"Visitor_ArriveAtObject",    0x005014e0, (void *)&Visitor_ArriveAtObject, {0x83, 0xec, 0x0c, 0x53, 0x56}},
+    {"Visitor_StepQueueWait",     0x004ffff0, (void *)&Visitor_StepQueueWait, {0x83, 0xec, 0x14, 0x55, 0x56}},
+    {"Visitor_StepIdle",          0x004fec90, (void *)&Visitor_StepIdle, {0x6a, 0xff, 0x68, 0x43, 0xdf}},
+    {"Visitor_ShowMoodThought",   0x004fc8a0, (void *)&Visitor_ShowMoodThought, {0x83, 0xec, 0x08, 0x53, 0x56}},
+    {"Visitor_Update",            0x00501650, (void *)&Visitor_Update, {0x83, 0xec, 0x08, 0x53, 0x56}},
+    {"Visitor_JudgeEntryFee",     0x004ff5b0, (void *)&Visitor_JudgeEntryFee, {0x83, 0xec, 0x08, 0x53, 0x56}},
+    {"Visitor_StepAtBooth",       0x004ff9d0, (void *)&Visitor_StepAtBooth, {0x51, 0x56, 0x8b, 0xf1, 0x57}},
+    {"Visitor_StepComingOff",     0x004fff20, (void *)&Visitor_StepComingOff, {0x51, 0x56, 0x8b, 0xf1, 0xe8}},
+    {"Visitor_PostUpdate",        0x005019f0, (void *)&Visitor_PostUpdate, {0x83, 0xec, 0x08, 0x53, 0x55}},
     {"MapCell_HandleMessage",     0x00532fc0, (void *)&MapCell_HandleMessage, {0x6a, 0xff, 0x68, 0x70, 0xea}},
     {"Map_SetRideCell",           0x00452d30, (void *)&Map_SetRideCell, {0x56, 0x8b, 0x74, 0x24, 0x10}},
     {"Map_SendLine",              0x00536100, (void *)&Map_SendLine, {0x8b, 0x54, 0x24, 0x10, 0x8b}},
@@ -5906,6 +5986,16 @@ const Hook kHooks[] = {
     {"Object_ClaimRide",          0x004dd500, (void *)&Object_ClaimRide, {0x83, 0xec, 0x10, 0x56, 0x8b}},
     {"MapSweep_Reset",            0x004d8330, (void *)&MapSweep_Reset, {0x51, 0x53, 0x55, 0x56, 0x57}},
     {"MapSweep_Place",            0x004d83a0, (void *)&MapSweep_Place, {0x51, 0x53, 0x55, 0x56, 0x57}},
+    {"GameMode_MapPress",         0x00524790, (void *)&GameMode_MapPress, {0xa1, 0x2c, 0x5a, 0x78, 0x00}},
+    {"StaffPool_NameTaken",       0x005083f0, (void *)&StaffPool_NameTaken, {0x83, 0xec, 0x08, 0x53, 0x8b}},
+    {"StaffPoolEntry_PickName",   0x00507580, (void *)&StaffPoolEntry_PickName, {0x56, 0x57, 0x8b, 0xf1, 0x33}},
+    {"StaffPoolEntry_Generate",   0x00507600, (void *)&StaffPoolEntry_Generate, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"StaffPool_AddCandidate",    0x00508330, (void *)&StaffPool_AddCandidate, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"StaffPool_FillAll",         0x005087d0, (void *)&StaffPool_FillAll, {0x56, 0x8b, 0xf1, 0x8a, 0x86}},
+    {"StaffPool_Start",           0x00507bb0, (void *)&StaffPool_Start, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"StaffPool_TopUp",           0x00508170, (void *)&StaffPool_TopUp, {0x53, 0x56, 0x8b, 0xf1, 0x32}},
+    {"StaffPool_Update",          0x005084f0, (void *)&StaffPool_Update, {0x83, 0xec, 0x1c, 0x53, 0x55}},
+    {"StaffPool_TakeCandidate",   0x00507bf0, (void *)&StaffPool_TakeCandidate, {0x6a, 0xff, 0x68, 0xef, 0xe1}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
@@ -6685,6 +6775,10 @@ const Hook kHooks[] = {
     {"ChatAvatar_NameFlags",      0x004ee5c0, (void *)&ChatAvatar_NameFlags, {0x51, 0x53, 0x55, 0x56, 0x8b}},
     {"ChatAvatar_FillRoomList",   0x004ee8d0, (void *)&ChatAvatar_FillRoomList, {0x6a, 0xff, 0x68, 0x88, 0xd4}},
     {"ChatAvatar_FillBuddyList",  0x004ee9e0, (void *)&ChatAvatar_FillBuddyList, {0x51, 0x56, 0x8b, 0xf1, 0x33}},
+    {"ChatAvatar_AddIgnore",      0x004ebb00, (void *)&ChatAvatar_AddIgnore, {0x6a, 0xff, 0x68, 0x48, 0xd0}},
+    {"ChatAvatar_RemoveIgnore",   0x004ebcf0, (void *)&ChatAvatar_RemoveIgnore, {0x6a, 0xff, 0x68, 0x98, 0xd0}},
+    {"ChatAvatar_HandleEvent",    0x004e6e80, (void *)&ChatAvatar_HandleEvent, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"ChatAvatar_SetBuddy",       0x004ee710, (void *)&ChatAvatar_SetBuddy, {0x6a, 0xff, 0x68, 0x70, 0xd4}},
     {"LobbyModel_SetPosition",    0x005d8190, (void *)&LobbyModel_SetPosition, {0x8b, 0x41, 0x04, 0x8b, 0x54}},
     {"LobbyModel_TurnY",          0x005d8380, (void *)&LobbyModel_TurnY, {0x8b, 0x49, 0x04, 0x8d, 0x44}},
     {"LobbyModel_SetScale",       0x005d83b0, (void *)&LobbyModel_SetScale, {0x83, 0xec, 0x0c, 0x8b, 0x44}},

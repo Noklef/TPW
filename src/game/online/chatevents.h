@@ -1,0 +1,42 @@
+// The online chat's events and its buddy flags (names invented, unconfirmed).
+#pragma once
+
+#include "../core/stdwstring.h"
+#include "../../../re/types.h"
+
+extern "C" {
+
+// 0x4e6e80 (thiscall on the avatar): the event a tokens vector carries, the first token's word +0x20 its code (token i at +0x24 * i, its
+// word at +0x20). 0xb, 0xc connected and lost (Window7cc8bc_SetC3128); 0xf, 0x10 notices that need a word in token 1; 0x11 - 0x13, 0x16 -
+// 0x1c, 0x3f - 0x42, 0x2a, 0x2e, 0x2f, 0x44, 0x45, 0x3d, 0x1e, 0x1f, 0x3c, 0x47, 0x51 notices of one to three token texts; 0x22 a chat
+// player's move (token 4: walk to, place at, release, place with script 3); 0x23 - 0x26 a person's status and arrival or departure, kept
+// in the room list +0xe80 and the buddy set +0xe90; 0x27 a person seen; 0x38, 0x39 a buddy added or removed; 0x3a, 0x3b an ignored name
+// added or removed (+0xea0); 0x4f the buddy and ignore sets told to the Chat; 0x52 the avatar sent to a room or to a person's cell.
+void __fastcall ChatAvatar_HandleEvent(u8 *avatar, void *, const u8 *tokens);
+
+// 0x4ee710 (thiscall on the avatar): the buddy set +0xe90's entry of name given the flags (bit 1 at its +0x1c, bit 2 at its +0x1d), made when
+// missing; its ChatAvatar_NameFlags told to both window lists. Returns whether it was made.
+u8 __fastcall ChatAvatar_SetBuddy(u8 *avatar, void *, const StdWString *name, u32 flags);
+
+}
+
+// What the events call through an environment (the fncmp driver's recorders; the game's by default: the ports, or the game's addresses for the unported).
+struct ChatEventEnv {
+    void(__stdcall *listSetData)(const u16 *text, u32 data);                              // Window7cc8bc_ListSetDataStd 0x481850
+    void(__stdcall *listSetData1)(const u16 *text, u32 data);                             // Window7cc8bc_ListSetData1Std 0x4818a0
+    void(__stdcall *listRemove)(const u16 *text);                                         // Window7cc8bc_ListRemoveStd 0x481840
+    void(__stdcall *listRemove1)(const u16 *text);                                        // Window7cc8bc_ListRemove1Std 0x481890
+    void(__fastcall *playerCtor)(void *player, void *, u32 cell, s32 x, const StdWString *name, u32 zero);   // 0x4f7b20
+    void(__fastcall *thingDelete)(u8 *thing);                                             // Thing_Delete 0x50b780
+    u8 *(__fastcall *tokenNarrow)(const u8 *token, void *, void *out);                    // 0x4c4a80 (C)
+    void(__fastcall *join)(u8 *session, void *, s32 room, u32 callback, u32 zero);        // 0x5b87e0 (B)
+    u32(__fastcall *destination)(u8 *sprite, void *, s32 x, s32 y);                       // Sprite_SetDestinationMarked 0x4f7de0
+    void(__fastcall *placeAt)(u8 *thing, void *, u32 x, u32 y);                           // Thing_ResetPlaceAt 0x4f7e20
+    void(__fastcall *releaseScripts)(u8 *person);                                         // Person_ReleaseScripts 0x4f9ed0
+    u32(__fastcall *placeScript)(u8 *person, void *, u32 x, float y, u32 z, u32 r15, u32 anim);   // Person_PlaceScript 0x4f9e60
+    void(__cdecl *setRegF)(s32 slot, u32 index, u32 bits);                                // SpriteScript_SetRegF 0x4755d0
+    u8(__fastcall *placeAtCell)(u8 *self, void *, u32 handle, u32 cell);                  // ChatAvatar_PlaceAtCell 0x4ebfb0
+    s32(__cdecl *format)(u8 *charset, u16 *dest, u32 size, u32 entry, ...);               // Charset_FormatWide 0x6acd60 (the driver's recorder logs all three text arguments)
+    void(__cdecl *setC3128)(u8 value);                                                    // Window7cc8bc_SetC3128 0x4bd400
+};
+void ChatEvents_SetEnv(const ChatEventEnv *env);   // nullptr: the game's
