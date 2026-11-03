@@ -7631,6 +7631,8 @@ address,name,kind,confidence,notes
 0x004c0880,Dialog7cc984_Handler,function,low,"reimplemented (src/game/ui/dialog7cc984); the handler of the dialog [0x7cc984], a park published: name invented, unconfirmed"
 0x00486d90,MouseHelp_Update,function,low,"reimplemented (src/game/ui/mousehelp); the help line and the cursor for what is under the mouse, by the mouse mode: name invented, unconfirmed"
 0x004abb00,Dialog7cc1f8_ShowFigures,function,low,"reimplemented (src/game/ui/dialog7cc1f8stats); the figures of an object on the dialog [0x7cc1f8]: name invented, unconfirmed"
+0x004baf10,Dialog7cc5f4_Message,function,low,"reimplemented (src/game/ui/dialog7cc5f4handler); the messages of the dialog [0x7cc5f4]: name invented, unconfirmed"
+0x004bb030,Dialog7cc5f4_Handler,function,low,"reimplemented (src/game/ui/dialog7cc5f4handler); the dialog [0x7cc5f4]'s window handler: name invented, unconfirmed"
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"
