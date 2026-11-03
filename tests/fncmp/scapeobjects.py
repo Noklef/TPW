@@ -23,7 +23,7 @@ def record(r, size):
 
 def case(r):
     count = r.choice([0, 1, 1, 2, 3, 4, 0xffffffff])
-    size = r.choice([0x3c, 0x3c, 0x3c, 0x40, 0x48, 0x38, 0x20, 4, 0])
+    size = r.choice([0x3c, 0x3c, 0x3c, 0x40, 0x48, 0x3d, 0x3a, 0x38, 0x20, 4, 0])
     records = max(count if count < 100 else 0, 0)
     data = struct.pack('<3I', 0x5f4a424f if r.random() < 0.92 else r.choice([0x5f4a424e, 0x5f4a4240, r.getrandbits(32)]), count, size)
     data += b''.join(record(r, size) for _ in range(records))
