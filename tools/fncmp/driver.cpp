@@ -49,6 +49,7 @@
 #include "../../src/game/gfx/statsgraph.h"
 #include "../../src/game/ui/thingbrowser.h"
 #include "../../src/game/ui/dialog7ca150.h"
+#include "../../src/game/ui/dialogtabs.h"
 #include "../../src/game/ui/thingsign.h"
 #include "../../src/game/gfx/dctmacroblock.h"
 #include "../../src/game/gfx/tqiframe.h"
@@ -670,6 +671,8 @@ const TqiFrameEnv kTqiFrameEnv = {Rec{jpeg_recorder(10, 3)}, Rec{jpeg_recorder(1
 const DctMacroblockEnv kDctMacroblockEnv = {Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 2)}, Rec{jpeg_recorder(12, 4)}};
 // The thing panels' sign slot's calls (tests/fncmp/thingsign.py).
 const ThingSignEnv kThingSignEnv = {Rec{recorder(10, 0)}, Rec{jpeg_recorder(12, 3)}};
+// DialogTabs_Reopen's calls (tests/fncmp/dialogtabs.py).
+const DialogTabsEnv kDialogTabsEnv = {Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 2)}, Rec{jpeg_recorder(12, 1)}, Rec{jpeg_recorder(13, 0)}, Rec{jpeg_recorder(14, 2)}, Rec{jpeg_recorder(15, 2)}, Rec{jpeg_recorder(16, 1)}, Rec{jpeg_recorder(17, 0)}, Rec{jpeg_recorder(18, 0)}, Rec{jpeg_recorder(19, 0)}, Rec{jpeg_recorder(20, 0)}};
 // Online_Instance's constructor (tests/fncmp/onlineinstance.py).
 const OnlineInstanceEnv kOnlineInstanceEnv = {Rec{recorder(10, 0)}};
 // Dialog7cdac4_Handler's calls (tests/fncmp/dialog7cdac4handler.py).
@@ -1526,6 +1529,7 @@ int main(int argc, char **argv) {
     Panel7cc218_SetShowEnv(&kPanel7cc218ShowEnv);
     Dialog7ca168_SetOpenEnv(&kDialog7ca168OpenEnv);
     Online_SetInstanceEnv(&kOnlineInstanceEnv);
+    DialogTabs_SetEnv(&kDialogTabsEnv);
     ThingSign_SetEnv(&kThingSignEnv);
     DctMacroblock_SetEnv(&kDctMacroblockEnv);
     TqiFrame_SetEnv(&kTqiFrameEnv);
