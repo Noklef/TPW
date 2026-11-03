@@ -538,6 +538,7 @@
 #include "../game/ui/dialog7ca150.h"
 #include "../game/ui/dialog7ca150rows.h"
 #include "../game/ui/dialog7ca168.h"
+#include "../game/ui/dialog7ca168handler.h"
 #include "../game/ui/dialog7ca1bc.h"
 #include "../game/ui/dialog7ca1e0.h"
 #include "../game/ui/dialog7ca210.h"
@@ -7760,6 +7761,7 @@ const Hook kHooks[] = {
     {"WString_AssignTextOf",      0x00665f10, (void *)&WString_AssignTextOf, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window7059f0_SetItemTexts", 0x006644ea, (void *)&Window7059f0_SetItemTexts, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Dialog7cc530_Handler",      0x004ba530, (void *)&Dialog7cc530_Handler, {0x81, 0xec, 0x40, 0x08, 0x00}},
+    {"Dialog7ca168_WindowHandler", 0x00495da0, (void *)&Dialog7ca168_WindowHandler, {0x83, 0xec, 0x1c, 0x53, 0x55}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
