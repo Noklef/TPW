@@ -89,4 +89,9 @@ void __fastcall Image_ErosionRamp(void *object, void *, const u32 *a, u32 count,
 // whose byte in the mask image (its own width, the same rows) is not 0. The kernel is 3 + floor(2.5 sigma) wide (sigma above 0, as its caller tests), through the original's inline exp; columns past the edges use the
 // nearest column, rows above the first the first, rows below the last the last. The kernel's last rows of an even size lean down one, sic.
 void __fastcall Image_GaussianBlur(void *object, void *, const u32 *image, const u32 *mask, float sigma);
+
+// 0x5ea8a0 (cdecl (image, sigma: a double); name invented, unconfirmed; an old skip; x87 in the original's order): the same kernel's middle row along each row of the image and then along each column, in place,
+// the kernel not renormalized where a line's ends cut it off (edges darken). Rows step by width * pixel size but take width bytes, sic: at a pixel size above 1 only the first width bytes of each row and of each
+// pixel's column. Returns 0 (the kernel left allocated, sic) when the work line of the larger of width and height is not to be had, else 1.
+u8 __cdecl Image_GaussianBlurLines(const u32 *image, double sigma);
 }  // extern "C"
