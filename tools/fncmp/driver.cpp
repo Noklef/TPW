@@ -52,6 +52,7 @@
 #include "../../src/game/ui/dialog7cc1f8.h"
 #include "../../src/game/ui/panel7cc218.h"
 #include "../../src/game/ui/dialog7ca308.h"
+#include "../../src/game/ui/panel7ca178.h"
 #include "../../src/game/world/objectunlock.h"
 #include "../../src/game/core/fpu.h"
 #include "../../src/game/core/gameheap.h"
@@ -580,6 +581,8 @@ const ThingPatrolEnv kThingPatrolEnv = {Rec{jpeg_recorder(20, 1)}, Rec{jpeg_reco
 constexpr u32 stdcall_recorder(u32 k, u32 n) { return kStubs + 0x1000 + 0x4000 + 0x800 * n + 0x20 * k; }
 const ObjectUnlockScoresEnv kObjectUnlockScoresEnv = {Rec{recorder(19, 0)}, Rec{stdcall_recorder(20, 2)}, Rec{stdcall_recorder(21, 1)}, Rec{stdcall_recorder(22, 2)},
                                                       Rec{jpeg_recorder(23, 0)}, Rec{recorder(24, 2)}, Rec{recorder(25, 2)}};
+// Panel7ca178_ShowStats's status, can-open, refund and state (tests/fncmp/panel7ca178stats.py).
+const Panel7ca178StatsEnv kPanel7ca178StatsEnv = {Rec{jpeg_recorder(23, 2)}, Rec{recorder(24, 0)}, Rec{recorder(25, 0)}, Rec{recorder(26, 2)}};
 // Dialog7ca308_FillList's list calls, name and wage (tests/fncmp/dialog7ca308.py).
 const Dialog7ca308Env kDialog7ca308Env = {Rec{recorder(10, 0)}, Rec{recorder(11, 4)}, Rec{recorder(12, 0)}, Rec{recorder(13, 2)}, Rec{recorder(14, 0)}};
 // Panel7cc218_ShowRide's range, shown and settings (tests/fncmp/panel7cc218show.py).
@@ -1328,6 +1331,7 @@ int main(int argc, char **argv) {
     ThingBrowser_SetPatrolEnv(&kThingPatrolEnv);
     Panel7cc218_SetShowEnv(&kPanel7cc218ShowEnv);
     Dialog7ca308_SetEnv(&kDialog7ca308Env);
+    Panel7ca178_SetStatsEnv(&kPanel7ca178StatsEnv);
     ObjectUnlock_SetScoresEnv(&kObjectUnlockScoresEnv);
     Dialog7ca150_SetEnv(&kDialog7ca150Env);
     Dialog7cc1f8_SetEnv(&kDialog7cc1f8Env);
