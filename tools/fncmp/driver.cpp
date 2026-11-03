@@ -95,6 +95,7 @@
 #include "../../src/game/core/mp2synth.h"
 #include "../../src/game/world/mapclick.h"
 #include "../../src/game/world/mappress.h"
+#include "../../src/game/world/staffcandidate.h"
 #include "../../src/game/world/mapline.h"
 #include "../../src/game/world/messagecentre.h"
 #include "../../src/game/coaster/registry.h"
@@ -1311,6 +1312,9 @@ int main(int argc, char **argv) {
                                               reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(30, 0)),
                                               reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u8)>((uintptr_t)recorder(31, 2))};
     Staff_SetWalkEnv(&staffWalkEnv);
+    // StaffPoolEntry_Generate's 0x481550: the thiscall recorder 20 of 1, as tests/fncmp/staffcandidate.py hooks it.
+    static const StaffCandidateEnv staffCandidateEnv = {reinterpret_cast<void(__fastcall *)(void *, void *, u32)>((uintptr_t)recorder(20, 1))};
+    StaffCandidate_SetEnv(&staffCandidateEnv);
     Rides_SetEnv(&kRidesEnv);
     CoasterLinks_SetEnv(&kCoasterLinksEnv);
     CellKind_SetEnv(&kCellKindEnv);

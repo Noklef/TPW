@@ -357,6 +357,7 @@
 #include "../game/world/placeobject.h"
 #include "../game/world/tracksquare.h"
 #include "../game/world/rides.h"
+#include "../game/world/staffcandidate.h"
 #include "../game/world/trackcircuit.h"
 #include "../game/world/trackline.h"
 #include "../game/world/uimsgreceiver.h"
@@ -5754,6 +5755,9 @@ const Hook kHooks[] = {
     {"TrackCircuit_Walk",         0x0052a970, (void *)&TrackCircuit_Walk, {0x83, 0xec, 0x4c, 0xa0, 0x50}},
     {"GameMode_MapPreview",       0x005234d0, (void *)&GameMode_MapPreview, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"GameMode_MapPress",         0x00524790, (void *)&GameMode_MapPress, {0xa1, 0x2c, 0x5a, 0x78, 0x00}},
+    {"StaffPool_NameTaken",       0x005083f0, (void *)&StaffPool_NameTaken, {0x83, 0xec, 0x08, 0x53, 0x8b}},
+    {"StaffPoolEntry_PickName",   0x00507580, (void *)&StaffPoolEntry_PickName, {0x56, 0x57, 0x8b, 0xf1, 0x33}},
+    {"StaffPoolEntry_Generate",   0x00507600, (void *)&StaffPoolEntry_Generate, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},

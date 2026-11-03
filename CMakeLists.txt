@@ -350,6 +350,7 @@ add_library(tpw_game STATIC
     src/game/world/trackcircuit.cpp
     src/game/world/mappreview.cpp
     src/game/world/mappress.cpp
+    src/game/world/staffcandidate.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp
