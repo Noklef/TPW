@@ -109,6 +109,7 @@
 #include "../../src/game/rsse/rssetick.h"
 #include "../../src/game/world/trakridecars.h"
 #include "../../src/game/world/trakcarpose.h"
+#include "../../src/game/model/basecells.h"
 #include "../../src/game/world/trakcarupdate.h"
 #include "../../src/game/world/flyingupdate.h"
 #include "../../src/game/render/ribbon.h"
@@ -576,6 +577,8 @@ const TrakRideCarsEnv kTrakRideCarsEnv = {Rec{jpeg_recorder(1, 2)}, Rec{jpeg_rec
 // TrakCars_Update's calls: the cdecl recorders 1-5 of 1, as tests/fncmp/trakcars.py hooks them.
 // TrakRide_PoseCars's calls: cdecl recorders, as tests/fncmp/trakcarpose.py's.
 const TrakPoseEnv kTrakPoseEnv = {Rec{jpeg_recorder(1, 2)}, Rec{jpeg_recorder(2, 1)}, Rec{jpeg_recorder(3, 3)}, Rec{jpeg_recorder(4, 4)}};
+// RideBase_FillCells's calls: cdecl recorders, as tests/fncmp/basecells.py's.
+const BaseCellsEnv kBaseCellsEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorder(2, 2)}, Rec{jpeg_recorder(3, 1)}, Rec{jpeg_recorder(4, 5)}};
 const TrakCarsEnv kTrakCarsEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorder(2, 1)}, Rec{jpeg_recorder(3, 1)}, Rec{jpeg_recorder(4, 1)}, Rec{jpeg_recorder(5, 1)}};
 const RsseTickEnv kRsseTickEnv = {&RSSE_ExecuteInstruction, Rec{jpeg_recorder(29, 2)}, Rec{jpeg_recorder(22, 2)}, Rec{jpeg_recorder(19, 2)}, Rec{jpeg_recorder(3, 2)}, Rec{jpeg_recorder(30, 2)},
     Rec{jpeg_recorder(9, 4)}, Rec{jpeg_recorder(21, 4)}, Rec{jpeg_recorder(29, 4)}, Rec{jpeg_recorder(30, 4)}, Rec{jpeg_recorder(18, 2)}};
@@ -1371,6 +1374,7 @@ int main(int argc, char **argv) {
     RsseTick_SetEnv(&kRsseTickEnv);
     TrakCars_SetEnv(&kTrakCarsEnv);
     TrakPose_SetEnv(&kTrakPoseEnv);
+    BaseCells_SetEnv(&kBaseCellsEnv);
     TrakRideCars_SetEnv(&kTrakRideCarsEnv);
     TrakCarUpdate_SetEnv(&kTrakCarUpdateEnv);
     FlyingUpdate_SetEnv(&kFlyingUpdateEnv);
