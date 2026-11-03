@@ -490,6 +490,7 @@
 #include "../game/online/ftp.h"
 #include "../game/online/chat.h"
 #include "../game/online/chatcommand.h"
+#include "../game/online/roomcounts.h"
 #include "../game/online/session.h"
 #include "../game/ui/dialog7ca1c8.h"
 #include "../game/ui/dialog7cb398.h"
@@ -6700,6 +6701,8 @@ const Hook kHooks[] = {
     {"ChatAvatar_NameFlags",      0x004ee5c0, (void *)&ChatAvatar_NameFlags, {0x51, 0x53, 0x55, 0x56, 0x8b}},
     {"ChatAvatar_FillRoomList",   0x004ee8d0, (void *)&ChatAvatar_FillRoomList, {0x6a, 0xff, 0x68, 0x88, 0xd4}},
     {"ChatAvatar_FillBuddyList",  0x004ee9e0, (void *)&ChatAvatar_FillBuddyList, {0x51, 0x56, 0x8b, 0xf1, 0x33}},
+    {"RoomCounts_ChatEvent",      0x004c4920, (void *)&RoomCounts_ChatEvent, {0x8b, 0x44, 0x24, 0x04, 0x83}},
+    {"RoomCounts_Update",         0x004c4bb0, (void *)&RoomCounts_Update, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"LobbyModel_SetPosition",    0x005d8190, (void *)&LobbyModel_SetPosition, {0x8b, 0x41, 0x04, 0x8b, 0x54}},
     {"LobbyModel_TurnY",          0x005d8380, (void *)&LobbyModel_TurnY, {0x8b, 0x49, 0x04, 0x8d, 0x44}},
     {"LobbyModel_SetScale",       0x005d83b0, (void *)&LobbyModel_SetScale, {0x83, 0xec, 0x0c, 0x8b, 0x44}},
