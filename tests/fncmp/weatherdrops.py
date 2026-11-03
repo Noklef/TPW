@@ -1,0 +1,69 @@
+# The falling drops (WeatherFx_DrawDrops, src/game/render/weatherfx: 0x57f490) against the original: the transformer's slot 1 is a cdecl recorder (k 1) writing the transformed places back; Batch_Begin (k 2),
+# DrawBatch_AddPolygon (k 3), Batch_TransformVertices (k 4) and Batch_Close (k 5) are recorders; rand() the MSVC6 generator on a random seed (fncmp.RAND_SEED). The world: 0-9 drops, the swirl on or off, the
+# curve's rows and phases (now and then NaNs), the texture none, without an id or with one. The vertices' dwords 5, 13 and 21 are unset in the original too: the polygons' hash leaves them out.
+# usage: weatherdrops.py [CASES [SEED]] [--wild|--both] [--show N]
+import os
+import struct
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
+from fncmp import LOG, RAM, RAND_SEED, Bench, Call, _recorder, blob, fill, log_region, put, set_return, strings, vtable  # noqa: E402
+
+B = Bench([(0x57f490, 0x57ff5b), (0x67a830, 0x67a860), (0x67b110, 0x67b13f)],
+          hooks={0x565240: _recorder(2, 5), 0x565bb0: _recorder(3, 5), 0x565f50: _recorder(4, 1), 0x5658c0: _recorder(5, 1)})
+FX, TEX, MASK, XF, XFT = RAM, RAM + 0x10000, RAM + 0x10100, RAM + 0x10200, RAM + 0x10300
+TRIANGLE = 0xffffffff & 0xffffff & ~(1 << 5 | 1 << 13 | 1 << 21)
+NANS = [0x7fc12345, 0x7f812345, 0xffc00000, 0x7f800000]
+
+
+def fnum(r, lo, hi, nan=0.01):
+    return struct.pack('<I', r.choice(NANS)) if r.random() < nan else struct.pack('<f', r.uniform(lo, hi))
+
+
+def case(r):
+    log = log_region()
+    count = r.choice([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+    swirl = r.random() < 0.6
+    places = b''.join(fnum(r, -6, 6) for _ in range(3 * max(count, 1)))
+    # (+0x3300-: the fields and the phases; the rows and the sizes after them: small regions, the rest reads as zero.)
+    fields = bytearray(r.bytes(0x60))
+    put(fields, 0x18, 'i', count)                                        # +0x3318
+    for off in (0x1c, 0x20, 0x24):
+        fields[off:off + 4] = fnum(r, -3, 3)                             # +0x331c..: the wind
+    fields[0x54:0x58] = fnum(r, 0, 4)                                    # +0x3354
+    kind = r.choice(['none', 'plain', 'id', 'id', 'id', 'id0'])
+    put(fields, 0x48, 'I', 0 if kind == 'none' else TEX)                 # +0x3348
+    phases = b''.join(fnum(r, -300, 300) if r.random() < 0.9 else fnum(r, -1e9, 1e9) for _ in range(16))
+    rows = b''.join(fnum(r, -2, 2, 0.002) for _ in range(12 * 128))
+    tail = bytearray(r.bytes(0x60))
+    tail[0x40:0x44] = fnum(r, -3, 3)                                     # +0x9d98: the time
+    sizes = b''.join(fnum(r, -2, 2) for _ in range(3))                   # +0xa18c..
+    texture = bytearray(r.bytes(0x40))
+    flags = r.getrandbits(32)
+    put(texture, 8, 'I', flags & ~0x1000 if kind == 'plain' else flags | 0x1000)
+    if kind == 'id0':
+        put(texture, 0x1c, 'I', 0)
+    for off in (0x20, 0x24, 0x28, 0x2c):
+        texture[off:off + 4] = fnum(r, -2, 2, 0.05)
+    strings(log, 1, 0, out=1 << 2 if count else 3 << 2)                   # (the out and in places are one stack address)
+    if count:
+        blob(log, 1, 3, (1 << 3 * min(count, 10)) - 1)
+        out = [fnum(r, -8, 8, 0.03) if r.random() < 0.85 else struct.pack('<f', r.choice([0.0, -0.0, 4.0, -4.0, 1.0])) for _ in range(3 * min(count, 9))]
+        fill(log, 1, 2, b''.join(out))
+    blob(log, 3, 0, TRIANGLE)
+    if r.random() < 0.1:
+        set_return(log, 2, 0)
+    if r.random() < 0.1:
+        set_return(log, 3, 0)
+    if r.random() < 0.5:
+        set_return(log, 5, r.choice([0, 1, r.getrandbits(32)]))
+    regions = {LOG: log, FX + 8: places, FX + 0x3300: fields, FX + 0x3558: phases, FX + 0x8558: rows, FX + 0x9d58: tail, FX + 0xa18c: sizes, TEX: texture,
+               MASK: r.bytes(0x30), XF: struct.pack('<I', XFT), XFT: vtable({}, 8, cdecl={1: 8}), 0x87b1d8: struct.pack('<I', XF), 0x87a248: struct.pack('<I', MASK),
+               0x879ab0: struct.pack('<I', r.getrandbits(32)), 0x8bcbc8: struct.pack('<I', r.getrandbits(32) & ~0x100 | (0x100 if swirl else 0)) + fnum(r, -3, 3),
+               RAND_SEED: struct.pack('<I', r.getrandbits(32))}
+    args = [struct.unpack('<I', fnum(r, -6, 6))[0] for _ in range(3)]
+    return Call(0x57f490, [FX] + args, regions, conv='t', ret='a')
+
+
+if __name__ == '__main__':
+    B.main(case)

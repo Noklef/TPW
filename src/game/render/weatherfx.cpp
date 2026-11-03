@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cstdlib>
 
+#include "../core/crt.h"
 #include "../core/gameheap.h"
 #include "../files/quickload.h"
 #include "../gfx/texture.h"
@@ -10,6 +11,7 @@
 #include "../math/x87.h"
 #include "../terrain/landscape.h"
 #include "batch.h"
+#include "drawbuffer.h"
 #include "ribbon.h"
 
 namespace {
@@ -284,4 +286,185 @@ u32 __fastcall WeatherFx_DrawBolt(u8 *fx, void *, const float *a, const float *b
     g_drawEnv->transform(object, nullptr, 0);
     return g_drawEnv->close(object, nullptr, 0.0f);
 }
+}
+
+namespace {
+const WeatherDropsEnv kDropsPortEnv = {&Batch_Begin, &DrawBatch_AddPolygon, &Batch_TransformVertices, &Batch_Close};
+const WeatherDropsEnv *g_dropsEnv = &kDropsPortEnv;
+
+struct Place {
+    float x, y, z;
+};
+
+const float &K(uintptr_t address) { return *reinterpret_cast<const float *>(address); }
+u8 *BatchObject() { return *reinterpret_cast<u8 **>((uintptr_t)0x00879ab0); }
+
+// The curve's row for a phase (+0x8558: 128 rows of 0x30) and the fraction: p less its __ftol.
+const u8 *CurveRow(const u8 *fx, X87Reg p, float &f) {
+    const s32 n = (s32)(long long)p.v;
+    f = (float)(p - X87Reg((double)n));
+    return fx + 0x8558 + (u32)(n & 0x7f) * 0x30;
+}
+
+// A row's three cubics in the original's order of additions (first the two low terms); r0 its first coefficient's term, f3 a register or (the drops) a float.
+X87Reg CurveX(const u8 *row, float f, float f2, X87Reg r0) {
+    return X87Reg(at<float>(row, 0x18)) * f + r0 + X87Reg(at<float>(row, 0xc)) * f2 + at<float>(row, 0x24);
+}
+template <class F3> X87Reg CurveY(const u8 *row, float f, float f2, F3 f3) {
+    return X87Reg(at<float>(row, 0x1c)) * f + X87Reg(at<float>(row, 0x10)) * f2 + X87Reg(at<float>(row, 4)) * f3 + at<float>(row, 0x28);
+}
+template <class F3> X87Reg CurveZ(const u8 *row, float f, float f2, F3 f3) {
+    return X87Reg(at<float>(row, 0x20)) * f + X87Reg(at<float>(row, 0x14)) * f2 + X87Reg(at<float>(row, 8)) * f3 + at<float>(row, 0x2c);
+}
+
+// A gust: its x from the register, y and z from the stored floats (and they are multiplied by the wind, not added, sic).
+Place Gust(const u8 *fx, float phase, float time) {
+    float f;
+    const u8 *const row = CurveRow(fx, (X87Reg(phase) - time) * K(0x00701d18), f);
+    const X87Reg f2r = X87Reg(f) * f;
+    const float f2 = (float)f2r;
+    const X87Reg f3 = f2r * f;
+    const X87Reg x = CurveX(row, f, f2, f3 * at<float>(row, 0));
+    const float y = (float)CurveY(row, f, f2, f3), z = (float)CurveZ(row, f, f2, f3);
+    const float &size = at<float>(fx, 0xa194);
+    return {(float)(x * size + at<float>(fx, 0x331c)), (float)(X87Reg(y) * size * at<float>(fx, 0x3320)), (float)(X87Reg(z) * size * at<float>(fx, 0x3324))};
+}
+
+// Past 4 less 8; below -4 or a NaN less -8; above: the first comparison (of x's register, for x).
+void Wrap(float &x, bool above) {
+    if (above) x = (float)(X87Reg(x) - K(0x00701cf4));
+    else if (!(x >= K(0x00701cf8))) x = (float)(X87Reg(x) - K(0x00701cfc));
+}
+
+void WrapPlace(Place &p, X87Reg x) {
+    Wrap(p.x, x.v > K(0x00701cf0));
+    Wrap(p.y, p.y > K(0x00701cf0));
+    Wrap(p.z, p.z > K(0x00701cf0));
+}
+
+void SwirledPlaces(u8 *fx, Place *places, float x, float y, float z) {
+    const float time = (float)(X87Reg(at<float>(fx, 0x9d98)) * K(0x00701d14));
+    const Place gusts[2] = {Gust(fx, at<float>(fx, 0x3558), time), Gust(fx, at<float>(fx, 0x355c), time)};
+    Place orbits[16];
+    for (s32 i = 0; i < 16; i++) {
+        float f;
+        const u8 *const row = CurveRow(fx, (X87Reg(at<float>(fx, 0x3558 + i * 4)) - time) * K(0x00701d1c), f);
+        const X87Reg f2r = X87Reg(f) * f;
+        const float f2 = (float)f2r;
+        const X87Reg f3 = f2r * f;
+        const float px = (float)CurveX(row, f, f2, X87Reg(at<float>(row, 0)) * f3), py = (float)CurveY(row, f, f2, f3), pz = (float)CurveZ(row, f, f2, f3);
+        const float &size = at<float>(fx, 0xa190);
+        const float sx = (float)(X87Reg(px) * size), sy = (float)(X87Reg(py) * size), sz = (float)(X87Reg(pz) * size);
+        const Place &gust = gusts[i & 1];
+        orbits[i] = {(float)(X87Reg(gust.x) + sx), (float)(X87Reg(gust.y) + sy), (float)(X87Reg(gust.z) + sz)};
+    }
+    for (s32 i = 0; i < at<s32>(fx, 0x3318); i++) {
+        float &phase = at<float>(fx, 0x3558 + i * 4);
+        const X87Reg v = phase - (X87Reg(at<float>(fx, 0x9d98)) * K(0x00701d14));
+        phase = (float)v;
+        float f;
+        const u8 *const row = CurveRow(fx, v, f);
+        const X87Reg f2r = X87Reg(f) * f;
+        const float f2 = (float)f2r;
+        const float f3 = (float)(f2r * f);
+        const X87Reg cx = CurveX(row, f, f2, X87Reg(at<float>(row, 0)) * f3);
+        const X87Reg cy = CurveY(row, f, f2, f3), cz = CurveZ(row, f, f2, f3);
+        const float &size = at<float>(fx, 0xa18c);
+        const Place &orbit = orbits[i & 0xf];
+        const X87Reg px = cx * size + orbit.x + (X87Reg(at<float>(fx, 8 + i * 0xc)) - x);
+        const X87Reg py = cy * size + orbit.y + y + at<float>(fx, 0xc + i * 0xc);
+        const X87Reg pz = cz * size + orbit.z + (X87Reg(at<float>(fx, 0x10 + i * 0xc)) - z);
+        Place &p = places[i];
+        p = {(float)px, (float)py, (float)pz};
+        WrapPlace(p, px);
+    }
+}
+
+float ShakeDraw() { return (float)(X87Reg((double)(s32)((Crt().rand() & 0x1f) - 0x10)) * K(0x00701c64)); }
+
+void ShakenPlaces(const u8 *fx, Place *places, float x, float y, float z) {
+    for (s32 i = 0; i < at<s32>(fx, 0x3318); i++) {
+        const float a = ShakeDraw();
+        const float b = ShakeDraw();
+        const float c = ShakeDraw();
+        const X87Reg px = X87Reg(at<float>(fx, 8 + i * 0xc)) - x + a;
+        const X87Reg py = X87Reg(b) + y + at<float>(fx, 0xc + i * 0xc);
+        const X87Reg pz = X87Reg(at<float>(fx, 0x10 + i * 0xc)) - z + c;
+        Place &p = places[i];
+        p = {(float)px, (float)py, (float)pz};
+        WrapPlace(p, px);
+    }
+}
+}  // namespace
+
+void WeatherFx_SetDropsEnv(const WeatherDropsEnv *env) { g_dropsEnv = env ? env : &kDropsPortEnv; }
+
+u32 __fastcall WeatherFx_DrawDrops(u8 *fx, void *, float x, float y, float z) {
+    const float across = (float)(X87Reg(*reinterpret_cast<const float *>((uintptr_t)0x008bcbcc)) * at<float>(fx, 0x3354));
+    const u32 highBits = X87_FloatThrough(at<u32>(fx, 0x3354));
+    const float &high = at<float>(&highBits, 0);
+    const u32 colour = at<u32>(*reinterpret_cast<u8 **>((uintptr_t)0x0087a248), 0x2c);
+    const u8 *const texture = at<const u8 *>(fx, 0x3348);
+    const u32 id = texture && (at<u32>(texture, 8) & 0x1000) ? at<u32>(texture, 0x1c) : 0;
+    u32 u0 = 0, v0 = 0;
+    X87Reg s = 0.0, t = 0.0;
+    if (id) {
+        u0 = at<u32>(texture, 0x28);
+        v0 = at<u32>(texture, 0x2c);
+        s = X87Reg(at<float>(texture, 0x20));
+        t = X87Reg(at<float>(texture, 0x24));
+    }
+    float us[3], vs[3];
+    at<u32>(us, 0) = u0;
+    at<u32>(vs, 0) = v0;
+    us[1] = (float)(us[0] - s * K(0x00701cd0));
+    vs[1] = (float)(vs[0] - t * K(0x00701cd0));
+    us[2] = (float)(X87Reg(us[0]) + s);
+    vs[2] = (float)(X87Reg(vs[0]) + t);
+
+    Place places[0x400];
+    if (*reinterpret_cast<const u32 *>((uintptr_t)0x008bcbc8) & 0x100) SwirledPlaces(fx, places, x, y, z);
+    else ShakenPlaces(fx, places, x, y, z);
+
+    u8 *const transformer = *reinterpret_cast<u8 **>((uintptr_t)0x0087b1d8);
+    at<void(__cdecl *)(u8 *, u8 *, Place *, Place *, u32, u32, s32, u32)>(at<const u8 *>(transformer, 0), 4)(transformer, fx + 0x9d58, places, places, 0xc, 0xc, at<s32>(fx, 0x3318), 2);
+    if (!g_dropsEnv->begin(BatchObject(), nullptr, at<u32>(fx, 0x330c), 4, 0x1c4, 0x556, id)) return 1;
+
+    for (s32 i = 0; i < at<s32>(fx, 0x3318); i++) {
+        Place &p = places[i];
+        if (!(p.z > K(0x00701ca0))) continue;
+        const X87Reg w = X87Reg(p.z) * K(0x00701d20) - K(0x00701c9c);
+        p.x = (float)(X87Reg(p.x) * w);
+        p.y = (float)(X87Reg(p.y) * w);
+        const u32 uA = X87_FloatThrough(at<u32>(us, (1 + (i & 1)) * 4)), uB = X87_FloatThrough(at<u32>(us, (i & 1) * 4));
+        const u32 vA = X87_FloatThrough(at<u32>(vs, (1 + (i >> 1 & 1)) * 4)), vB = X87_FloatThrough(at<u32>(vs, (i >> 1 & 1) * 4));
+        const float nearer = (float)(X87Reg(p.z) - K(0x00701d10)), further = (float)(X87Reg(p.z) - K(0x00701d24));
+        const float lower = (float)X87Reg(-(X87Reg(p.y) - high).v);
+        // (The second dword of each vertex's colour stays unset, sic.)
+        u32 vertices[24];
+        vertices[0] = Bits(p.x);
+        vertices[1] = Bits((float)X87Reg(-(X87Reg(high) + p.y).v));
+        vertices[2] = Bits(nearer);
+        vertices[3] = Bits(further);
+        vertices[4] = colour;
+        vertices[6] = Bits((float)((X87Reg(at<float>(&uA, 0)) + at<float>(&uB, 0)) * K(0x00701c84)));
+        vertices[7] = vB;
+        vertices[8] = Bits((float)(X87Reg(across) + p.x));
+        vertices[9] = Bits(lower);
+        vertices[10] = Bits(nearer);
+        vertices[11] = Bits(further);
+        vertices[12] = colour;
+        vertices[14] = uA;
+        vertices[15] = vA;
+        vertices[16] = Bits((float)(X87Reg(p.x) - across));
+        vertices[17] = Bits(lower);
+        vertices[18] = Bits(nearer);
+        vertices[19] = Bits(further);
+        vertices[20] = colour;
+        vertices[22] = uB;
+        vertices[23] = vA;
+        if (!g_dropsEnv->addPolygon(BatchObject(), nullptr, reinterpret_cast<u8 *>(vertices), 3, 0x20, nullptr, 0)) return 0;
+    }
+    g_dropsEnv->transform(BatchObject(), nullptr, 0);
+    return g_dropsEnv->close(BatchObject(), nullptr, -1.0f);
 }
