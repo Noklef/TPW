@@ -235,6 +235,7 @@
 #include "../game/core/voiceevents.h"
 #include "../game/core/voicesample.h"
 #include "../game/core/waveformat.h"
+#include "../game/core/wfilebuf.h"
 #include "../game/core/widewriter.h"
 #include "../game/core/wscanner.h"
 #include "../game/core/wtraits.h"
@@ -5583,6 +5584,8 @@ const Hook kHooks[] = {
     {"NarrowWriter_PutWide",      0x006afd90, (void *)&NarrowWriter_PutWide, {0x53, 0x55, 0x56, 0x8b, 0xf1}},
     {"NarrowWriter_Dtor",         0x006ad030, (void *)&NarrowWriter_Dtor, {0x6a, 0xff, 0x68, 0xc3, 0x55}},
     {"NarrowWriter_DeletingDtor", 0x006ad090, (void *)&NarrowWriter_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x98}},
+    {"LocaleRef_Ctor",            0x004f5a50, (void *)&LocaleRef_Ctor, {0x6a, 0xff, 0x68, 0x98, 0xdb}},
+    {"WFileBuf_Init",             0x004f5990, (void *)&WFileBuf_Init, {0x8b, 0x44, 0x24, 0x08, 0x56}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
@@ -5708,7 +5711,7 @@ const Hook kHooks[] = {
     {"Weather_Detach",            0x00512000, (void *)&Weather_Detach, {0xe8, 0x7b, 0x99, 0xff, 0xff}},
     {"Weather_NextIntensity",     0x00512e10, (void *)&Weather_NextIntensity, {0xa1, 0x3c, 0xf8, 0x7c, 0x00}},
     {"Weather_Construct",         0x00511f70, (void *)&Weather_Construct, {0x51, 0x53, 0x66, 0xc7, 0x44}},
-    {"Weather_Tick",              0x00512880, (void *)&Weather_Tick, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Weather_Update",            0x00512880, (void *)&Weather_Update, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"UIMsgReceiver_Ctor",        0x0050c9b0, (void *)&UIMsgReceiver_Ctor, {0x51, 0x66, 0xc7, 0x44, 0x24}},
     {"Object_Status",             0x00485f60, (void *)&Object_Status, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"ObjectStatus_Show",         0x004861e0, (void *)&ObjectStatus_Show, {0x83, 0xec, 0x08, 0x56, 0x8b}},

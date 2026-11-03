@@ -264,7 +264,7 @@ address,name,kind,confidence,notes
 0x0059a550,Advisor_Update,function,medium,Thing_Update case 11 (works on a global; skipped when DAT_00fb3b7c == 1)
 0x004c7370,ParkAnalyser_HandleMessage,function,high,"reimplemented (src/game/world/analyser); thiscall (message), pops 4: the analyser message handler"
 0x00503d40,ResearchLab_HandleMessage,function,high,"reimplemented (src/game/world/research); thiscall (message), pops 4: type 0x11 only: the project after the definition of the message's id (+8) added (ResearchProject_SetNextUpgrade), ResearchLab_UpdateLevels of its category (+0xc), message 12 posted (Object_PostMessage); with every project done: the current theme's mAllResearchCompleted set, and with the mode setting (0xfb3b7c, guard 0xfb34ac) 2, or 0 with every theme's set (StdTreeF_AllFlagged), advisor message 0xa7 posted and EndThing_Create"
-0x00512880,Weather_Tick,function,low,"reimplemented (src/game/world/weather); thiscall; the due messages, the drops stepped, the bolts and thunder (name invented)"
+0x00512880,Weather_Update,function,low,"reimplemented (src/game/world/weather); thiscall; the due messages, the drops stepped, the bolts and thunder"
 0x005127a0,Weather_HandleMessage,function,high,"reimplemented (src/game/world/weather); thiscall (message), pops 4: kind 1 sets the intensity (unless +0x64), kind 2 schedules +0x20 = now + days, +0x28 the value, +0x18 now"
 0x00512000,Weather_Detach,function,low,"reimplemented (src/game/world/weather); thiscall: Thing_Detach, then the renderer's ([0x8bcbac]) textures freed (WeatherFx_FreeTextures); returns 1"
 0x00512e10,Weather_NextIntensity,function,low,"reimplemented (src/game/world/weather); thiscall, the weather unused; the next intensity from the year's quarter's row of the table 0x7854c4 (name invented)"
@@ -5520,6 +5520,8 @@ address,name,kind,confidence,notes
 0x006afd90,NarrowWriter_PutWide,function,low,reimplemented (src/game/core/narrowwriter); The narrow-text writer's slot 5: 16-bit characters narrowed through the range table and written
 0x006ad030,NarrowWriter_Dtor,function,low,"reimplemented (src/game/core/narrowwriter); The narrow-text writer's destructor: finished, its range table released, the base vtable"
 0x006ad090,NarrowWriter_DeletingDtor,function,low,reimplemented (src/game/core/narrowwriter); The narrow-text writer's deleting destructor
+0x004f5a50,LocaleRef_Ctor,function,low,"reimplemented (src/game/core/wfilebuf); thiscall; *ref = 0x699da0's answer, the counted object [0xfb1dd0] a use more (name invented)"
+0x004f5990,WFileBuf_Init,function,low,"reimplemented (src/game/core/wfilebuf); thiscall (file, which), pops 8; a stream buffer's initialiser (name unconfirmed)"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

@@ -35,7 +35,7 @@ u8 *__fastcall Weather_Construct(u8 *weather);
 // level 0. The bolts (byte +0x38 set, else +0x40 = 0): +0x3c less [0x78551c]; when negative, a bolt (Weather_RandomBolt, env's strike); with +0x44 not above 0,
 // +0x44 = a random number % [0x78552c] + ([0x785528] - +0x40, at least 0) and +0x48 = the bolt's end; +0x40 stepped, +0x3c = a random number % [0x785520]. +0x44
 // stepped down: at 0 the thunder at +0x48 (Sound_PlayAt(0, [0x803a20], 0x20, each __ftol'd)). The debug prints left out. Its divisors as they are.
-void __fastcall Weather_Tick(u8 *weather);
+void __fastcall Weather_Update(u8 *weather);
 
 // 0x512010 (thiscall; stream, save, version, unused): the thing (Thing_Serialize; 1 if it fails), then saved or loaded as a serializer does
 // (Save_Field; the load path partly through the readers): +0xc (4), +0x10 (8), +0x18 (8), the forecast (Forecast_Serialize; 1 if it

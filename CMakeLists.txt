@@ -203,6 +203,7 @@ add_library(tpw_game STATIC
     src/game/core/soundsource.cpp
     src/game/core/widewriter.cpp
     src/game/core/narrowwriter.cpp
+    src/game/core/wfilebuf.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp

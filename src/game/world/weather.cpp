@@ -89,7 +89,7 @@ u8 *__fastcall Weather_Construct(u8 *weather) {
     return weather;
 }
 
-void __fastcall Weather_Tick(u8 *weather) {
+void __fastcall Weather_Update(u8 *weather) {
     u8 msg[0x10];
     if (weather[0x2c] && nowPast(reinterpret_cast<const FileTime *>(weather + 0x20))) {
         ThingMsg01_Ctor(msg, nullptr, at<u32>(weather, 0x28));
