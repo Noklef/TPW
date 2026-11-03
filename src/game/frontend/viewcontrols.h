@@ -13,12 +13,23 @@ struct SceneViewsEnv {
 };
 void SceneViews_SetEnv(const SceneViewsEnv *env);
 
+// What ViewCtl702bc8_Update calls (the port by default; the bench records it).
+struct ViewCtlEnv {
+    void(__cdecl *showThing)(u8 *thing);  // Dialog7cc4c4_ShowThing (0x4b9980)
+};
+void ViewCtl_SetEnv(const ViewCtlEnv *env);
+
 extern "C" {
 
 // 0x5e3dc0 (thiscall; name invented, unconfirmed): the scene's five objects made, each Mem_Alloc'd (0 when that failed): +4 (0xe8 bytes; RandomSegments_Ctor, vtable 0x702ec0), +0xc and +0x10
 // (0x7c bytes each; Class702bc8_Ctor, vtables 0x702e70 and 0x702e20), +8 (0xec bytes; RandomSegments_Ctor, vtable 0x702dd0), +0x14 (0x2c bytes: vtable 0x702d48, +4 0, added to the scene
 // [0xf85614] by its slot 0x18, +0xc..+0x14 0, +8 0x702dc8, vtable 0x702da0). Then each item of the list (+0x18 -> +4: nodes of item, next) has its slot 4 called.
 void __fastcall Class702d78_MakeViews(u8 *self);
+
+// 0x5dc860 (thiscall; name invented, unconfirmed; a virtual slot of the vtable 0x702bc8): with +0x68 set, the thing under the mouse picked (+0x70, its point +0x5c) and shown. The mouse at the
+// screen's edges (byte 0x78d910 clear), or dragged (set, the input's flag 2), moves +0x48 and +0x50; these are damped by +0x18 and turn +0x44 and +0x4c, the latter held within +-(+0x40), its
+// speed +0x50 then 0. +0x54 and +0x34 ease towards their targets; the camera [0xf83778] gets its position (+8) from the angles at the distance +0x54, its +0x28, +0x2c from +0x34.
+void __fastcall ViewCtl702bc8_Update(u8 *self);
 
 // 0x5dd310 / 0x5dd320 / 0x5dd330 / 0x5dd340 (thiscall; names unconfirmed): the float +0x48 lowered / raised by the float +0x14, the float
 // +0x50 raised / lowered by it.

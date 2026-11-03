@@ -746,6 +746,7 @@ const EditUpdateEnv kEditUpdateEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorde
 // tests/fncmp/testrun.py hooks them.
 const RibbonEnv kRibbonEnv = {Rec{recorder(2, 5)}};
 const BatchEnv kBatchEnv = {Rec{recorder(1, 1)}, Rec{recorder(2, 2)}};
+const ViewCtlEnv kViewCtlEnv = {reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)jpeg_recorder(15, 1))};
 const BatchQuadEnv kBatchQuadEnv = {Rec{recorder(11, 5)}, Rec{recorder(12, 5)}, Rec{recorder(13, 2)}, Rec{recorder(14, 0)}, Rec{recorder(15, 2)}, Rec{recorder(16, 1)}};
 const LandscapeDrawEnv kLandscapeDrawEnv = {Rec{recorder(11, 5)}, Rec{recorder(15, 4)}, Rec{recorder(16, 1)}, Rec{jpeg_recorder(17, 1)}};
 // tests/fncmp/terrainwater.py: the transformer's slot 1 is 0x579330 in the original; here its port. ClipPoly_Vertices is stdcall (the COM-style recorder 3 of 5, recorder(k, n, True) in fncmp.py).
@@ -1920,6 +1921,7 @@ int main(int argc, char **argv) {
     Ribbon_SetEnv(&kRibbonEnv);
     Batch_SetEnv(&kBatchEnv);
     BatchQuad_SetEnv(&kBatchQuadEnv);
+    ViewCtl_SetEnv(&kViewCtlEnv);
     Landscape_SetDrawEnv(&kLandscapeDrawEnv);
     TerrainWater_SetEnv(&kTerrainWaterEnv);
     TerrainGround_SetEnv(&kTerrainGroundEnv);
