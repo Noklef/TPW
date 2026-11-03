@@ -35,7 +35,7 @@ def common(r, log):
     put(state, 0x48, 'I', r.choice([0, 1, 1]))                 # [0x7cdb10]
     put(state, 0x50, 'i', r.choice([0, 3, 4, 4, 5, 100, -1]))  # [0x7cdb18]
     put(state, 0x54, 'I', r.choice([0, 0, 1]))                 # [0x7cdb1c]
-    return {LOG: log, HEAP: heap(fail=r.choice([99, 99, 99, 0, 1])), IMPORT_TABLE: imports, LOCALE: bytes(4), 0xfb3ca4: bytes(8), 0x7cdac8: state}
+    return {LOG: log, HEAP: heap(), IMPORT_TABLE: imports, LOCALE: bytes(4), 0xfb3ca4: bytes(8), 0x7cdac8: state}
 
 
 def string(r, regions, record, offset, text, owners):
@@ -81,6 +81,8 @@ def update(r):
         put(nodes, 8 * k, 'II', ROOMS + 0x10 * k, NODES + 8 * (k + 1) if k + 1 < rows else 0)
         put(rooms, 0x10 * k + 8, 'i', r.choice([0, 1, 42, -7, 2147483647, r.getrandbits(31)]))
     made = r.random() < 0.15
+    if not made:
+        regions[HEAP] = heap(fail=r.choice([0] * 6 + [1, 2]))
     regions[0xf7d88c] = struct.pack('<I', 0 if made else SESSION)
     set_return(log, 10, SESSION)
     regions[SESSION] = put(bytearray(r.bytes(0x100)), 0xf4, 'I', CITY)
