@@ -365,6 +365,7 @@
 #include "../game/world/rideupkeep.h"
 #include "../game/world/staffctors.h"
 #include "../game/world/staffsteps.h"
+#include "../game/world/staffthink.h"
 #include "../game/world/staffwork.h"
 #include "../game/world/trackline.h"
 #include "../game/world/uimsgreceiver.h"
@@ -5787,6 +5788,11 @@ const Hook kHooks[] = {
     {"Object_WearTick",           0x004df670, (void *)&Object_WearTick, {0x83, 0xec, 0x24, 0x53, 0x56}},
     {"MapCell_StartEffect",       0x004d93b0, (void *)&MapCell_StartEffect, {0xa0, 0xb9, 0x34, 0xfb, 0x00}},
     {"RideUpkeep_Total",          0x004c8240, (void *)&RideUpkeep_Total, {0x83, 0xec, 0x2c, 0xa1, 0x9c}},
+    {"Guard_Step",                0x004d6410, (void *)&Guard_Step, {0x51, 0x56, 0x8b, 0xf1, 0x8b}},
+    {"Handyman_Step",             0x004d73c0, (void *)&Handyman_Step, {0x51, 0x56, 0x8b, 0xf1, 0x57}},
+    {"Entertainer_Step",          0x004d4810, (void *)&Entertainer_Step, {0x83, 0xec, 0x10, 0x56, 0x8b}},
+    {"Mechanic_Step",             0x004da490, (void *)&Mechanic_Step, {0x56, 0x8b, 0xf1, 0x8b, 0x86}},
+    {"Guard_PickWork",            0x004d63d0, (void *)&Guard_PickWork, {0x56, 0x8b, 0xf1, 0xe8, 0x68}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
