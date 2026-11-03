@@ -2101,7 +2101,7 @@ int main(int argc, char **argv) {
     ObjectUpdate_SetEnv(&objectUpdateEnv);
     static const SoundStartEnv soundStartEnv = {Rec{jpeg_recorder(1, 3)}, Rec{recorder(2, 2)}};
     Sound_SetStartEnv(&soundStartEnv);
-    static const SoundChannelSetupEnv soundChannelSetupEnv = {Rec{recorder(1, 2)}, Rec{recorder(2, 2)}, Rec{recorder(3, 2)}};
+    static const SoundChannelSetupEnv soundChannelSetupEnv = {Rec{recorder(1, 2)}, Rec{recorder(2, 2)}, Rec{recorder(3, 2)}, Rec{recorder(4, 0)}};
     SoundChannel_SetSetupEnv(&soundChannelSetupEnv);
     static const SoundSeedEnv soundSeedEnv = {Rec{jpeg_recorder(1, 0)}};
     SoundSeed_SetEnv(&soundSeedEnv);

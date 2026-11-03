@@ -5080,6 +5080,7 @@ const Hook kHooks[] = {
     {"SoundChannel_Reopen",       0x006b7650, (void *)&SoundChannel_Reopen, {0x83, 0xec, 0x0c, 0x8d, 0x54}},
     {"SoundChannel_Setup",        0x006b8f90, (void *)&SoundChannel_Setup, {0x83, 0xec, 0x74, 0x8b, 0x54}},
     {"SoundChannel_Refresh",      0x006b91d0, (void *)&SoundChannel_Refresh, {0x83, 0xec, 0x74, 0x56, 0x8b}},
+    {"SoundChannel_SetupWithReverb", 0x006c5c90, (void *)&SoundChannel_SetupWithReverb, {0x8b, 0x44, 0x24, 0x0c, 0x56}},
     {"SoundObject_Broadcast",     0x006b85f0, (void *)&SoundObject_Broadcast, {0x83, 0xec, 0x08, 0x56, 0x8b}},
     {"SoundObject_BroadcastValue", 0x006b8640, (void *)&SoundObject_BroadcastValue, {0x8b, 0x41, 0x24, 0x85, 0xc0}},
     {"SoundObject_VoiceInfo",     0x006b8b00, (void *)&SoundObject_VoiceInfo, {0x8b, 0x49, 0x20, 0x85, 0xc9}},

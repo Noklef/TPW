@@ -15,6 +15,7 @@
 #include "ptrlist.h"
 #include "refcounted.h"
 #include "selectors.h"
+#include "sndreverb.h"
 #include "sfman.h"
 #include "soundbank.h"
 #include "soundcategory.h"
@@ -826,7 +827,7 @@ u32 *__fastcall SoundChannel_Reopen(u8 *channel, void *, u32 *out, u8 *settings)
 
 namespace {
 
-const SoundChannelSetupEnv kSetupEnv = {&SoundChannel_Open, &SoundChannel_GetSettings, &SoundChannel_Reopen};
+const SoundChannelSetupEnv kSetupEnv = {&SoundChannel_Open, &SoundChannel_GetSettings, &SoundChannel_Reopen, &SndReverb_Load};
 const SoundChannelSetupEnv *g_setup = &kSetupEnv;
 
 }  // namespace
@@ -856,6 +857,16 @@ u32 *__fastcall SoundChannel_Setup(u8 *channel, void *, u32 *out, u32 a, u32 b) 
     at<u32>(channel, 0x54) = 0x3f800000;
     at<u32>(channel, 0x5c) = 4;
     at<u8 *>(channel, 0x58) = channel + 0x48;
+    *out = 0;
+    return out;
+}
+
+u32 *__fastcall SoundChannel_SetupWithReverb(u8 *channel, void *, u32 *out, u32 a, u32 b) {
+    if (at<s32>(SoundChannel_Setup(channel, nullptr, &b, a, b), 0) < 0) {
+        *out = 0xffffffffu;
+        return out;
+    }
+    g_setup->reverbLoad(channel);
     *out = 0;
     return out;
 }

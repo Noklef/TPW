@@ -1,8 +1,8 @@
-# A sound channel's set-ups (SoundChannel_Setup 0x6b8f90, SoundChannel_Refresh 0x6b91d0, src/game/core/soundchannel) against the originals. The open, the query and the reopen are
+# A sound channel's set-ups (SoundChannel_Setup 0x6b8f90, SoundChannel_SetupWithReverb 0x6c5c90, SoundChannel_Refresh 0x6b91d0, src/game/core/soundchannel) against the originals. The open, the query and the reopen are
 # recorders (SoundChannelSetupEnv), the channel's slots 0 and 0xd and its sub-object's slot 5 too. The settings record on the stack is hashed at each call at the dwords Init_6b9c50
 # sets (the rest is stack garbage). The slot 0xd and the query write the record's +4 now and then (the flags the channel takes); no write: the +4 the code left. The open and the
 # query answer a status through their out or another status word.
-# usage: soundsetup.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=setup,refresh)
+# usage: soundsetup.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=setup,refresh,reverb)
 import os
 import struct
 import sys
@@ -10,10 +10,10 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import LOG, RAM, Bench, Call, _recorder, blob, echo, fill, log_region, set_return, strings, vtable  # noqa: E402
 
-OPEN, QUERY, REOPEN = 1, 2, 3
+OPEN, QUERY, REOPEN, REVERB = 1, 2, 3, 4
 SLOT_RECORD, SLOT_SUB = 13, 5
-B = Bench([(0x6b8f90, 0x6b905e), (0x6b91d0, 0x6b9217), (0x6b9c50, 0x6b9cc2)],
-          hooks={0x6b7510: _recorder(OPEN, 2), 0x6b7d70: _recorder(QUERY, 2), 0x6b7650: _recorder(REOPEN, 2)})
+B = Bench([(0x6b8f90, 0x6b905e), (0x6b91d0, 0x6b9217), (0x6b9c50, 0x6b9cc2), (0x6c5c90, 0x6c5cd1)],
+          hooks={0x6b7510: _recorder(OPEN, 2), 0x6b7d70: _recorder(QUERY, 2), 0x6b7650: _recorder(REOPEN, 2), 0x6c5d20: _recorder(REVERB, 0)})
 CHANNEL, OUT, VT, SUB_VT, STATUS = (RAM + 0x100 * i for i in range(5))
 FIELDS = sum(1 << (off // 4) for off in (0, 4, 0x40, 0x48, 0x4c, 0x68))
 VALUES = [0, 0, 0, 1, 0x7fffffff, 0xffffffff, 0x80000000, 0x88780078]
@@ -50,10 +50,11 @@ def case(r):
     blob(log, QUERY, 1, FIELDS)
     if r.random() < 0.6:
         fill(log, QUERY, 1, struct.pack('<I', r.choice(FLAGS)), which=3, offset=4)
-    return Call(0x6b8f90, [CHANNEL, OUT, r.getrandbits(32), r.getrandbits(32)], regions, conv='t', ret='a')
+    address = 0x6c5c90 if name == 'reverb' else 0x6b8f90   # (the reverb's: the real set-up, then SndReverb_Load's recorder)
+    return Call(address, [CHANNEL, OUT, r.getrandbits(32), r.getrandbits(32)], regions, conv='t', ret='a')
 
 
-OPS = [k for k in os.environ.get('OPS', 'setup,setup,refresh').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'setup,setup,refresh,reverb').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)
