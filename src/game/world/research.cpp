@@ -98,6 +98,21 @@ void allDone() {
     EndThing_Create();
 }
 
+// fild weight; fidiv sum: the quotient of two integers, rounded once to 24 bits (neither is 0).
+double intQuotient(u32 weight, s32 sum) {
+    const u32 divisor = sum < 0 ? 0u - (u32)sum : (u32)sum;
+    unsigned long long n = weight;
+    int e = 0;
+    while (!(n >> 63)) {
+        n <<= 1;
+        --e;
+    }
+    unsigned long long q = n / divisor;   // (at least 32 bits, so that a sticky last bit is below the rounding)
+    if (n % divisor) q |= 1;
+    const double v = X87_Round24(q, e);
+    return sum < 0 ? -v : v;
+}
+
 }  // namespace
 
 extern "C" {
@@ -193,6 +208,29 @@ u8 __fastcall ResearchProject_SetNextUpgrade(u8 *project, void *, const u8 *def)
         at<s32>(controls(def), 0x14) = level;
     }
     return 0;
+}
+
+void __fastcall ResearchLab_Spend(u8 *lab, void *, s32 amount) {
+    u8 *const groups = lab + 0x140c;
+    u32 sum = 0;
+    for (u32 g = 0; g < 5; ++g) {
+        const s32 current = *reinterpret_cast<const s32 *>(groups + g * 0x10 + 8);
+        if (current < 0) continue;
+        const u8 *const project = lab + current * 20 + 0xc;
+        if (!(*reinterpret_cast<const float *>(project + 0x10) >= *reinterpret_cast<const float *>(project + 0xc)))
+            sum += *reinterpret_cast<const u32 *>(groups + g * 0x10);
+    }
+    if (!sum) return;
+    for (u32 g = 0; g < 5; ++g) {
+        const u32 weight = *reinterpret_cast<const u32 *>(groups + g * 0x10);
+        const s32 current = *reinterpret_cast<const s32 *>(groups + g * 0x10 + 8);
+        if (!weight || current < 0) continue;
+        double v = intQuotient(weight, (s32)sum);
+        v = X87_MulIntDouble(*reinterpret_cast<const s32 *>(lab + 0x1460), v);
+        v = X87_MulIntDouble(amount, v);
+        v = X87_MulFloatDouble(*reinterpret_cast<const float *>(0x007007e4), v);
+        ResearchProject_AddResearch(lab + current * 20 + 0xc, nullptr, (float)v);
+    }
 }
 
 void __fastcall ResearchProject_AddResearch(u8 *project, void *, float amount) {

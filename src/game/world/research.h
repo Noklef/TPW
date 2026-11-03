@@ -63,6 +63,11 @@ u8 __fastcall ResearchProject_SetNextUpgrade(u8 *project, void *, const u8 *def)
 // is posted (Object_PostMessage).
 void __fastcall ResearchProject_AddResearch(u8 *project, void *, float amount);
 
+// 0x503430 (thiscall (amount), pops 4; name invented): the amount shared out: of the 5 groups (+0x140c stride 0x10: +0 the output, +8 the current project's index), the outputs of
+// those with a current project (not negative) not done (a NaN either side: not done) are summed (wrapping); not 0, each group with an output and a current project, done
+// or not, gets ResearchProject_AddResearch(output / the sum (signed) * +0x1460 * amount * [0x7007e4]), in x87 single precision.
+void __fastcall ResearchLab_Spend(u8 *lab, void *, s32 amount);
+
 // 0x5031a0 (thiscall; name unconfirmed): the lab's projects from the object definitions (0x7890a0, First / Next): each definition with
 // no dword at +0x508 and +0x4ac below 4 adds the project mNumProjects: with a cost (+0x180) the definition's own (its id, mCat +0x17c,
 // mResearchGroup the byte +0x178, mUpgradeLevel 0, mCost the cost as a float, mResearchDone 0); without one its control record's byte
