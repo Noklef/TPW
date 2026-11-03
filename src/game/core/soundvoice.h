@@ -81,6 +81,8 @@ void __fastcall SoundVoice_SetFlags(u8 *voice, void *, u32 scale);
 // sets it) after SoundVoice_ApplyVariation, the owner's slot 0, +0x28 cleared and *out = -1; else +0x1c = Time_GetMs + the sample's +8
 // + 250 and *out = 0. Returns out.
 u32 *__fastcall SoundVoice_Init(u8 *voice, void *, u32 *out, u8 *owner, u8 *definition, const u32 *position, u32 scale);
+// 0x6bbe80 (thiscall; slot 3 of the voices' vtables; name invented): the voice's slot 2 (0): its destructor without the delete.
+void __fastcall SoundVoice_Destroy(u8 *voice);
 
 // The switch voice (vtable 0x70a498) and the sequence voice (0x70a440), on the voice class 0x70a7e0 (Class70a7e0_Ctor, fieldops.h); their
 // slot 14 picks the variation as SoundVoice_PickVariation does for the base. A switch voice's current node (+8): +4 a count, +0x26 that many

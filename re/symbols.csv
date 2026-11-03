@@ -4806,6 +4806,7 @@ address,name,kind,confidence,notes
 0x006b9c00,SoundChannel_Dtor,function,low,"reimplemented (src/game/core/soundchannel); thiscall: vtable 0x70a5d8, the string +0x30 destroyed (String_Dtor), SoundSample70a548_Dtor (name invented)"
 0x006c5be0,SoundChannelEax_Dtor,function,low,"reimplemented (src/game/core/soundchannel); the EAX channel's destructor: its records (+0x68) freed and cleared, then SoundChannel_Dtor"
 0x006ba200,SoundChannelEax_DeletingDtor,function,low,"reimplemented (src/game/core/soundchannel); slot 2 of 0x70a630: SoundChannelEax_Dtor, then freed with flag bit 0; returns the channel"
+0x006b7f00,SoundChannel_RunSlot1,function,low,"reimplemented (src/game/core/soundchannel); thiscall (out, functor), pops 8; slot 4 of 0x70a5d8: the functor's slot 1 (out, the channel); returns out (name invented)"
 0x006b85f0,SoundObject_Broadcast,function,low,"reimplemented (src/game/core/soundobject); thiscall (out), pops 4: the mixer's active voices run (ForEachActive 0), then the channel's slot 4 with a stack functor 0x70a5b0; *out = -1 without a channel; returns out"
 0x006b8640,SoundObject_BroadcastValue,function,low,"reimplemented (src/game/core/soundobject); thiscall (out, value), pops 8: with a channel flagged 0x400 the mixer's ForEachActive (value), else SoundObject_Broadcast; *out = 0; returns out"
 0x006b8b00,SoundObject_VoiceInfo,function,low,"reimplemented (src/game/core/soundobject); thiscall (out, id, result), pops 0xc: the mixer's voice for the id; its +0xc's +8 into *result and *out = 0, else *out = -1; returns out"
@@ -4916,6 +4917,7 @@ address,name,kind,confidence,notes
 0x006bd0a0,SoundVoice_Load,function,low,reimplemented (src/game/core/soundvoice); a voice's saved record read back (a named category: its record's sample place, then slot 4)
 0x006be7a0,Voice70a8d0_Ctor,function,low,"reimplemented (src/game/core/soundvoice); the queued voice's constructor: the voice class, vtable 0x70a8d0, the parameter block ensured, its +0x1c a new queue of the info's pairs"
 0x006be750,Voice70a8d0_Create,function,low,reimplemented (src/game/core/soundvoice); the queued voice made in the memory given and initialised (slot 4); null when there is no memory or the init answers below 0
+0x006bbe80,SoundVoice_Destroy,function,low,"reimplemented (src/game/core/soundvoice); thiscall; slot 3 of the voices' vtables: the voice's slot 2 (0), its destructor without the delete (name invented)"
 0x006c4760,EaxBuffer_QueryAll,function,low,"reimplemented (src/game/core/soundeax); thiscall (out, unused), pops 8: IKsPropertySet::Get of the EAX 2.0 buffer properties (id 1, 0x38 bytes) into a stack block that is also the size out, dropped; *out = 0 on success, else -1; returns out"
 0x006d6cf0,EaxListener_SetAll,function,low,reimplemented (src/game/core/soundeax); an object's buffer (its slot 4 for a key) asked for IKsPropertySet and handed all the EAX 2.0 listener properties
 0x006c4670,EaxBuffer_SetProperty0b,function,low,"reimplemented (src/game/core/soundeax); thiscall (out, value), pops 8: the buffer's IKsPropertySet::Set (EAX20 buffer properties, id 0xb, the value's own slot, 4 bytes), *out its result; without a set *out = -1"

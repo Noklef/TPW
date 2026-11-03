@@ -240,6 +240,11 @@ u32 *__fastcall SoundChannel_Apply(u8 *channel, void *, u32 *out, u8 *functor) {
     return out;
 }
 
+u32 *__fastcall SoundChannel_RunSlot1(u8 *channel, void *, u32 *out, u8 *functor) {
+    vcall<void>(functor, 4, out, channel);
+    return out;
+}
+
 u32 *__fastcall SoundChannel_ApplyEaxRecord(u8 *channel, void *, u32 *out, u32 index) {
     const u8 *const table = at<u8 *>(channel, 0x68);
     if (!table || index >= at<u32>(channel, 0x6c) || at<s32>(table, index * 0x34) == -1) {

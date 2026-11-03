@@ -53,6 +53,8 @@ void __fastcall SoundChannel_FreeSynth(u8 *channel);
 
 // 0x6b8b40 (thiscall (out, functor), pops 8): the functor's slot 0 (out, channel). Returns out.
 u32 *__fastcall SoundChannel_Apply(u8 *channel, void *, u32 *out, u8 *functor);
+// 0x6b7f00 (thiscall (out, functor), pops 8; slot 4 of 0x70a5d8; name invented): the functor's slot 1 (out, channel). Returns out.
+u32 *__fastcall SoundChannel_RunSlot1(u8 *channel, void *, u32 *out, u8 *functor);
 
 // 0x6c6000 (thiscall (out, index), pops 8; name invented): with the EAX records (+0x68, 13 dwords each; +0x6c their count) and index one
 // of them whose first dword is not -1: a settings record (Init_6b9c50, on the stack) given its block (SoundChannel_SetRecordBlock: flags
