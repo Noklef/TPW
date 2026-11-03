@@ -350,6 +350,7 @@ add_library(tpw_game STATIC
     src/game/world/cellmessage.cpp
     src/game/world/guardescort.cpp
     src/game/world/staffwork.cpp
+    src/game/world/staffctors.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp

@@ -357,6 +357,7 @@
 #include "../game/world/placeobject.h"
 #include "../game/world/tracksquare.h"
 #include "../game/world/rides.h"
+#include "../game/world/staffctors.h"
 #include "../game/world/staffwork.h"
 #include "../game/world/trackline.h"
 #include "../game/world/uimsgreceiver.h"
@@ -5734,6 +5735,13 @@ const Hook kHooks[] = {
     {"Handyman_PickWork",         0x004d7100, (void *)&Handyman_PickWork, {0x83, 0xec, 0x08, 0x53, 0x56}},
     {"Mechanic_PickWork",         0x004da5b0, (void *)&Mechanic_PickWork, {0x83, 0xec, 0x20, 0x53, 0x56}},
     {"Entertainer_PickWork",      0x004d46d0, (void *)&Entertainer_PickWork, {0x51, 0x56, 0x57, 0x8b, 0xf1}},
+    {"Handyman_Ctor",             0x004d6b60, (void *)&Handyman_Ctor, {0x6a, 0xff, 0x68, 0x33, 0xc3}},
+    {"Mechanic_Ctor",             0x004d9eb0, (void *)&Mechanic_Ctor, {0x6a, 0xff, 0x68, 0x93, 0xc3}},
+    {"Mechanic_CtorLoad",         0x004d9db0, (void *)&Mechanic_CtorLoad, {0x6a, 0xff, 0x68, 0x73, 0xc3}},
+    {"Entertainer_Ctor",          0x004d4340, (void *)&Entertainer_Ctor, {0x6a, 0xff, 0x68, 0x28, 0xc1}},
+    {"Entertainer_CtorLoad",      0x004d4250, (void *)&Entertainer_CtorLoad, {0x6a, 0xff, 0x68, 0x08, 0xc1}},
+    {"Guard_Ctor",                0x004d5d40, (void *)&Guard_Ctor, {0x6a, 0xff, 0x68, 0x08, 0xc3}},
+    {"Guard_Init",                0x004d5de0, (void *)&Guard_Init, {0x51, 0x56, 0x8b, 0xf1, 0x56}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
