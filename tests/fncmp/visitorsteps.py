@@ -28,7 +28,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
-from fncmp import LOG, LOG_BYTES, RAM, Bench, Call, _cdecl_log2, _recorder, blob_bytes, fb, fill, log_region, put, set_return, strings  # noqa: E402
+from fncmp import LOG, LOG_BYTES, RAM, Bench, Call, _cdecl_log2, _recorder, answers, blob_bytes, fb, fill, log_region, put, set_return, strings  # noqa: E402
 import personscripts  # noqa: E402
 from thingenv import POOL, THING, park  # noqa: E402
 
@@ -96,7 +96,7 @@ def idle(r, regions, log, v, handles, w):
     regions[WORLD + 0x1da700] = w
     put(v, 0x208, 'I', (now - r.choice([0, 0, 0, 0x64, 0x64, 0x65])) & 0xffffffff)
     put(v, 0x1fc, 'I', (now - r.choice([0, 0x1e, 0x1f, 0x1f, 0x1f, 1000])) & 0xffffffff)
-    put(v, 0x19c, 'I', fb(r.choice([0.0, 1.0, 14.0, 14.9, 14.9, 14.9, 15.0, 80.9, 81.0, 200.0, 256.0, r.uniform(1, 15), r.uniform(1, 15)])))
+    put(v, 0x19c, 'I', fb(r.choice([0.0, 1.0, 14.0, 14.0, 14.0, 14.9, 14.9, 15.0, 80.9, 81.0, 200.0, 256.0, r.uniform(1, 15), r.uniform(1, 15)])))
     put(v, 0x1b0, 'I', fb(r.choice([0.0, 50.0, 80.0, 100.0, 100.5, 101.0, 356.0, r.uniform(0, 100)])))
     put(v, 0x1b4, 'I', fb(r.choice([0.0, 50.0, 89.9, 90.0, 91.0, 255.0, 256.0, r.uniform(0, 100)])))
     put(v, 0x1bc, 'I', r.choice([1, 1, 1, 1, 1, 1, 0, 0x100]))
@@ -118,14 +118,16 @@ def idle(r, regions, log, v, handles, w):
     set_return(log, 22, staffAt)
     regions[staffAt] = struct.pack('<H', r.choice(handles))
     set_return(log, 24, r.choice([0, 1]))
-    set_return(log, 3, r.choice([0, 0, 0, 1]))
+    table = RAM + 0x8900   # (the walk to the crossings: which of its four tries starts)
+    answers(log, 3, table)
+    regions[table] = struct.pack('<40I', *r.choice([[0] * 40, [1] * 40, [0, 1] + [0] * 38, [0, 0, 1] + [0] * 37, [0, 0, 0, 1] + [0] * 36]))
     regions[0x803a24] = struct.pack('<I', r.getrandbits(32))
     set_return(log, 10, r.getrandbits(32))
     blob_bytes(log, 27, 0, 0xf3ff)
     regions[0x788d3c] = struct.pack('<I', RAM + 0x8800)
     regions[0x785058] = r.bytes(3)
     regions[0x70048c] = struct.pack('<I', r.choice([2, 3, 5, 10, 0x20]))
-    regions[0x700794] = struct.pack('<3I', fb(r.choice([5.0, 20.0, 1.5, r.uniform(0, 20)])), fb(r.choice([100.0, 10.0, 12.0])), fb(r.choice([0.0, 0.0, 5.0, 10.0])))
+    regions[0x700794] = struct.pack('<3I', fb(r.choice([4.0, 4.0, 4.0, 5.0, 20.0, r.uniform(0, 20)])), fb(r.choice([100.0, 10.0, 10.0, 12.0])), fb(r.choice([0.0, 5.0, 10.0, 10.0])))
     regions[0x7850e0] = struct.pack('<I', r.choice([0, 1, 50, 99, 100]))
     # (the chain of the world's cell, things of the park linked by +0xa)
     chain = r.sample(handles, r.randrange(min(len(handles), 3) + 1))
