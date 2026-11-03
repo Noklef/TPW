@@ -99,6 +99,12 @@ void __fastcall SoundChannel_UpdateOcclusion(u8 *channel, void *, u8 eax);
 // NaN, +0x28 = 0 and the bit cleared. Else nothing more. Then with the EAX buffer the source's slot 0x12 (the id, the twelve dwords of
 // SoundChannel_UpdateOcclusion), else its slot 0x15 (a local out, the id, 1 - the occlusion, 0.5 at least).
 void __fastcall SoundChannel_UpdateVoiceOcclusion(u8 *channel, void *, u32 id, u8 *voice, const u8 *record);
+// 0x6c5690 (thiscall (out, channel, id), pops 12): the update's record (+8, re-read each time) applied to voice id of the channel, by flags. +0xc & 0x1a: the
+// source's slot 0x68 (+0xc). +0x14: 2: voice +0x18 = +0x28, slot 0x80 (ChannelVoice_ScaledRate). 0x80000: scaled rate * +0x9c / 100 is voice +0x18,
+// slot 0x80's value and +0x9c; +0x18 |= 2. 0x400: voice +0x58 = +0x2c. 0x20000 with a pointer +0x90: slot 0x54 (what it points to). 0x20: slot 0x90 (the
+// voice's word +0x54, id, +0x24). 0x40: ChannelVoices_Send (the update's +4, the record). 0x200: slot 0x60 (the record + 0x38). 1:
+// SoundChannel_UpdateVoiceOcclusion. 0x100: slot 0x7c (+0x34). The voice's are skipped when it is null. Answers *out = 0, and out. Each slot's first argument a local out.
+u32 *__fastcall SoundUpdate_Apply(const u8 *update, void *, u32 *out, u8 *channel, u32 id);
 // 0x6b7a70 (thiscall (eax byte), pops 4): each voice with a sound and flag 1 (+0x10 bit 0): the flag cleared; with +0x28 neither 0 nor
 // NaN, +0x28 = 0 and with eax the source's slot 0x12 (the id, SoundChannel_UpdateOcclusion's twelve dwords with both levels 0), else its
 // slot 0x15 (a local out, the id, 1.0).

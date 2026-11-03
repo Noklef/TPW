@@ -14,10 +14,10 @@ from fncmp import HEAP, IMPORT_TABLE, RAM, Bench, Call, _recorder, fill, heap, i
 import channelpool as cp  # noqa: E402
 import channelvoice as cv  # noqa: E402
 
-CALLS = {'fill': (0x6d6f70, 'v'), 'refill': (0x6d3850, 'v'), 'release': (0x6d75c0, 'v'), 'worker': (0x6b6050, 'a'), 'host': (0x6b8380, 'a')}
+CALLS = {'fill': (0x6d6f70, 'v'), 'refill': (0x6d3850, 'v'), 'release': (0x6d75c0, 'v'), 'worker': (0x6b6050, 'a'), 'host': (0x6b8380, 'a'), 'update': (0x6c5690, 'a')}
 B = Bench(cv.RANGES + [(0x6b7380, 0x6b738a), (0x6baa20, 0x6baa5d), (0x6bb320, 0x6bb3dc), (0x6bb510, 0x6bb587), (0x41a830, 0x41a850), (0x6d6db0, 0x6d6dc4), (0x6d6f70, 0x6d7053),
            (0x6d3850, 0x6d38fb), (0x6d75c0, 0x6d7685), (0x6b6050, 0x6b6120), (0x6b8380, 0x6b8402), (0x6b7040, 0x6b70ae), (0x6b7210, 0x6b7222), (0x67acf0, 0x67ada0), (0x67afa0, 0x67b0d0),
-           (0x6bb9f0, 0x6bba81), (0x6bb940, 0x6bb990), (0x6b7150, 0x6b7190), (0x6b70c0, 0x6b70e0), (0x6b71a0, 0x6b71d0)],
+           (0x6bb9f0, 0x6bba81), (0x6bb940, 0x6bb990), (0x6b7150, 0x6b7190), (0x6b70c0, 0x6b70e0), (0x6b71a0, 0x6b71d0), (0x6c5690, 0x6c5870), (0x6b7fa0, 0x6b8150)],
           hooks={0x67e050: _recorder(14, 3, cdecl=True)})
 BASE = RAM + 0x10000
 STREAM, BUF, BUFVT, DEST, WORKER, WORKVT, OWNER, SLOTS, LIST, NODES, COMOBJ, COMVT, BLOCK, HOST = (BASE + 0x400 * i for i in range(14))
@@ -70,6 +70,55 @@ def nodes(r, regions):
     regions[COMVT] = vt
 
 
+def update(r, log, regions, n, address, ret):
+    """SoundUpdate_Apply: a recorder source (each slot's out a local), a record with some flags on; voice id of channelpool's, or none at id 0 with no voices."""
+    this, rec, chan, src, srcvt, value, position, out = (BASE + 0x4000 + 0x400 * i for i in range(8))
+    vt = bytearray(0xa0)
+    for slot, k, args in ((0x68, 19, 3), (0x80, 20, 3), (0x54, 21, 3), (0x90, 22, 4), (0x60, 23, 3), (0x7c, 24, 3), (0x74, 25, 4)):
+        struct.pack_into('<I', vt, slot, recorder(k, args))
+        strings(log, k, 0, out=1)
+    regions[srcvt] = vt
+    regions[src] = struct.pack('<I', srcvt)
+    regions[chan] = bytes(0x14) + struct.pack('<3I', cv.POOL, src, 0)
+    regions[value] = r.bytes(4)
+    regions[position] = r.bytes(0xc)
+    regions[out] = r.bytes(4)
+    record = bytearray(r.bytes(0xa0))
+    flags = 0
+    for bit in (2, 0x80000, 0x400, 0x20000, 0x20, 0x40, 0x200, 1, 0x100):
+        if r.random() < 0.4:
+            flags |= bit
+    struct.pack_into('<I', record, 0x14, flags | (r.getrandbits(32) & 0xfff37000))
+    struct.pack_into('<I', record, 0xc, r.choice([0, 2, 8, 0x10, 0x1a, 0x20, 0x25]))
+    struct.pack_into('<I', record, 0x30, r.choice([position, position, position, 0]))
+    struct.pack_into('<I', record, 0x90, r.choice([value, value, 0]))
+    struct.pack_into('<i', record, 0x9c, r.choice([0, 1, 50, 100, 200, -1, -100, r.randrange(-1000, 1000), r.getrandbits(31)]))
+    regions[rec] = record
+    regions[this] = struct.pack('<III', r.getrandbits(32), r.getrandbits(32) if r.random() < 0.3 else cp.handle_of(r, regions, n), rec)
+    id = r.randrange(n)
+    pool = bytearray(regions[cv.POOL])
+    struct.pack_into('<I', pool, 4, cv.VOICES)
+    if r.random() < 0.1:
+        id = 0
+        struct.pack_into('<I', pool, 4, 0)
+    regions[cv.POOL] = pool
+    factors = BASE + 0x6000
+    regions[factors] = struct.pack('<4f', 0.5, 1.25, 2.0, 0.75)
+    v = regions[cv.VOICES]
+    for i in range(n):   # (the scaled rate's factors)
+        struct.pack_into('<I', v, 0x8c * i + 0x24, r.choice([0, 0, 1, 2, 5, 0xf]))
+        struct.pack_into('<I', v, 0x8c * i + 0x34, factors)
+        struct.pack_into('<I', v, 0x8c * i + 0x18, r.choice([0, 0x100, 44100, 22050]))
+    # (ChannelVoices_Send: slot 12 answering 0 or a target, as channelpool.py's route)
+    strings(log, 12, 0, out=1)
+    set_return(log, 12, r.choice([0, cp.ANSWER, cp.ANSWER]))
+    vt9 = vtable({})
+    struct.pack_into('<I', vt9, 4 * 9, recorder(cp.ANSWER_K, 2))
+    strings(log, cp.ANSWER_K, 0, out=1)
+    regions.update({cp.ANSWER: struct.pack('<I', cp.ANSVT) + r.bytes(0xc), cp.ANSVT: vt9})
+    return Call(address, [this, out, chan, id], regions, conv='t', ret=ret)
+
+
 def case(r):
     name = r.deal(OPS)
     address, ret = CALLS[name]
@@ -77,6 +126,8 @@ def case(r):
     n = r.choice([1, 1, 2, 3, 4])
     regions = cp.pool_regions(r, log, n)
     regions[IMPORT_TABLE] = import_table(log, IMPORTS)
+    if name == 'update':
+        return update(r, log, regions, n, address, ret)
     if name == 'fill':
         buffers(r, log, regions, 1)
         regions[STREAM] = struct.pack('<I', r.choice([BUF, BUF, BUF, BUF, 0]))

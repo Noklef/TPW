@@ -544,6 +544,35 @@ void __fastcall SoundChannel_ClearOcclusion(u8 *channel, void *, u8 eax) {
     } while (voice < end);
 }
 
+u32 *__fastcall SoundUpdate_Apply(const u8 *update, void *, u32 *out, u8 *channel, u32 id) {
+    const auto record = [update]() { return at<u8 *>(update, 8); };
+    const auto source = [channel]() { return at<u8 *>(channel, 0x18); };
+    u32 local;
+    if (at<u8>(record(), 0xc) & 0x1a) vcall<void>(source(), 0x68, &local, id, at<u32>(record(), 0xc));
+    u8 *const voice = at<u8 *>(at<u8 *>(channel, 0x14), 4) + id * 0x8c;
+    if ((at<u8>(record(), 0x14) & 2) && voice) {
+        at<u32>(voice, 0x18) = at<u32>(record(), 0x28);
+        const u32 rate = ChannelVoice_ScaledRate(voice);
+        vcall<void>(source(), 0x80, &local, id, rate);
+    }
+    if ((at<u32>(record(), 0x14) & 0x80000) && voice) {
+        const s32 scaled = (s32)(ChannelVoice_ScaledRate(voice) * at<u32>(record(), 0x9c)) / 100;
+        at<s32>(voice, 0x18) = scaled;
+        vcall<void>(source(), 0x80, &local, id, scaled);
+        at<u32>(record(), 0x18) |= 2;
+        at<s32>(record(), 0x9c) = scaled;
+    }
+    if ((at<u32>(record(), 0x14) & 0x400) && voice) at<u32>(voice, 0x58) = at<u32>(record(), 0x2c);
+    if ((at<u32>(record(), 0x14) & 0x20000) && at<u32 *>(record(), 0x90)) vcall<void>(source(), 0x54, &local, id, *at<u32 *>(record(), 0x90));
+    if ((at<u8>(record(), 0x14) & 0x20) && voice) vcall<void>(source(), 0x90, &local, (u32)at<u16>(voice, 0x54), id, at<u32>(record(), 0x24));
+    if (at<u8>(record(), 0x14) & 0x40) ChannelVoices_Send(at<u8 *>(channel, 0x14), nullptr, &local, at<u32>(update, 4), (u32)(uintptr_t)record());
+    if (at<u32>(record(), 0x14) & 0x200) vcall<void>(source(), 0x60, &local, id, record() + 0x38);
+    if (at<u8>(record(), 0x14) & 1) SoundChannel_UpdateVoiceOcclusion(channel, nullptr, id, voice, record());
+    if (at<u32>(record(), 0x14) & 0x100) vcall<void>(source(), 0x7c, &local, id, at<u32>(record(), 0x34));
+    *out = 0;
+    return out;
+}
+
 void __fastcall SoundChannel_UpdateVoiceOcclusion(u8 *channel, void *, u32 id, u8 *voice, const u8 *record) {
     u8 *const source = at<u8 *>(channel, 0x18);
     if (!source) return;
