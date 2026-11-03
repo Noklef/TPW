@@ -4,13 +4,16 @@
 
 #include "../math/vector.h"
 #include "../math/x87.h"
+#include "../model/partstate.h"
 #include "helpers.h"
+#include "nodeangles.h"
 
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
-const BendMeshEnv *g_env;
+const BendMeshEnv kPortEnv = {&Coaster_NodeAngles, &PartStates_Update};
+const BendMeshEnv *g_env = &kPortEnv;
 
 const u32 kFrame = 0xa0;
 const u32 kExtraFrame = 0x58;
@@ -61,7 +64,7 @@ void BendFrame(const u8 *car, const u8 *holder, const float *out1, const float *
 
 }  // namespace
 
-void BendMesh_SetEnv(const BendMeshEnv *env) { g_env = env; }
+void BendMesh_SetEnv(const BendMeshEnv *env) { g_env = env ? env : &kPortEnv; }
 
 extern "C" void __cdecl Coaster_BendMesh(const u8 *path, const u8 *car) {
     if (!at<u32>(car, 0xc)) return;
