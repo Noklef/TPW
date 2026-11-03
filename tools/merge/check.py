@@ -42,8 +42,8 @@ TABLES = [(HOOKS, [ROW, r'^#include "(.*)"']), ('re/symbols.csv', [r'^(0x[0-9a-f
 BENCH = [r"'([A-Za-z_][A-Za-z0-9_]*)'(?=(?:,\s*'[A-Za-z_][A-Za-z0-9_]*')*\)?:)", r'(0x[0-9a-fA-F]{5,8})']
 
 
-def run(cmd):
-    return subprocess.run(cmd, capture_output=True, text=True, stdin=subprocess.DEVNULL, cwd=ROOT)
+def run(cmd):   # (below normal priority: the user's programs come first on a shared machine)
+    return subprocess.run(cmd, capture_output=True, text=True, stdin=subprocess.DEVNULL, cwd=ROOT, creationflags=subprocess.BELOW_NORMAL_PRIORITY_CLASS)
 
 
 def git(*a):
