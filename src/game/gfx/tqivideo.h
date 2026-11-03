@@ -19,4 +19,28 @@ void __cdecl TqiVideo_SetQuality(s32 *out, s32 quality);
 // run, level; level 0: the next 8 bits, 0x80: those less 0x100, above 0x80: less 0x100); under 0x20 the end, nothing consumed. No coefficient: the 8 x 8 block filled with the DC >> 17; else 8 MovieIdct_Column into 9-dword rows and 8
 // MovieIdct_RowShift to out. Returns the bit position (EDI). Its EAX and EBX are not kept by the original; the callers set them again.
 u32 __cdecl TqiVideo_DecodeBlock(s32 dc, const s32 *quant, const u32 *bits, u32 position, u8 *out, s32 pitch);
+
+// 0x676290 (hand-written; luma in ESI, chroma in EDI, out in EBP; the thunk; name unconfirmed): a row of 16 pixels as 8 YUY2 dwords: from the table of dwords 8 bytes apart 0xfb8730 by
+// luma[2k], chroma[k], luma[2k + 1], chroma[k + 0x40]: first | second << 8 | third << 16 | fourth << 24 (the whole dwords, overlapping bits or'ed).
+void __cdecl TqiVideo_PixelRowYuy2(const u32 *luma, const u32 *chroma, u32 *out);
+
+// 0x675d90 (hand-written; the same registers; name unconfirmed): a row of 16 pixels at 16 bits. For each k the chroma's sum 0xfb9b30[chroma[k]] + 0xfba330[chroma[k + 0x40]]; each of the
+// two pixels' sum 0xfb9330[luma] + that, split: its bits 23-31, 11-19 and 0-8 index 0xfba730, 0xfbabf8 and 0xfbb010, or'ed. out[k]: the first's low half, the second's high half.
+void __cdecl TqiVideo_PixelRowRgb16(const u32 *luma, const u32 *chroma, u32 *out);
+
+// 0x6758c0 (hand-written; the same registers, ESP on the luma with its own kept at [0xfb792c], ESI not kept; name unconfirmed): as TqiVideo_PixelRowRgb16 with 16 out dwords, the two pixels' whole.
+void __cdecl TqiVideo_PixelRowRgb32(const u32 *luma, const u32 *chroma, u32 *out);
+
+// 0x674faf (cdecl (out, pitch in bytes, state); hand-written, all registers but EAX kept; name unconfirmed): a macroblock. The state: 64 dwords the dequantiser, +0x100 / +0x104 / +0x108 the three DC
+// predictors, +0x200 the bit stream, +0x204 its bit position (written back). Six blocks (0x6747d0, also the other three's; it writes above its return address, and is not hooked): a DC difference
+// (four luma: the top 7 bits by the bytes 0xfbb92c; two chroma: the top 8 by 0xfbb9ac; the byte's low nibble the code's length, its high nibble n the bits that follow, whose top bit clear means
+// that value less (1 << n) - 1) added to the predictor, then TqiVideo_DecodeBlock: the luma squares +0, +0x20, +0x200, +0x220 of the stack's 0x800 bytes (pitch 0x40), the chroma +0x400 and +0x500 (0x20).
+// Then 16 rows of TqiVideo_PixelRowYuy2 (luma + 0x40 j, chroma 0x400 + 0x20 (j / 2), out + pitch * j).
+void __cdecl TqiVideo_DecodeMacroblockYuy2(u32 *out, s32 pitch, u8 *state);
+
+// 0x67519d: the same through TqiVideo_PixelRowRgb16. 0x67538b: through TqiVideo_PixelRowRgb32. 0x675579: through TgqVideo_PixelRow16. (0x675767, the fourth of these, has no stack room: 0x6747d0 writes the
+// blocks over its saved registers and return address, and it reads its rows from 0xfb7000. Not ported.)
+void __cdecl TqiVideo_DecodeMacroblockRgb16(u32 *out, s32 pitch, u8 *state);
+void __cdecl TqiVideo_DecodeMacroblockRgb32(u32 *out, s32 pitch, u8 *state);
+void __cdecl TqiVideo_DecodeMacroblockTable16(u16 *out, s32 pitch, u8 *state);
 }

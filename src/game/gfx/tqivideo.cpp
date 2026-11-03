@@ -4,6 +4,7 @@
 
 #include "../math/x87.h"
 #include "movieidct.h"
+#include "tgqvideo.h"
 
 namespace {
 
@@ -37,6 +38,48 @@ u32 coefficientEntry(u32 code) {
     if (code >= 0x40) return global<u32>(0x00fbb86c + (code >> 2) * 4);
     return global<u32>(0x00fbb8ac + (code >> 1) * 4);
 }
+
+// A DC difference: `bits` top bits of the stream index `table`'s bytes (the code's length, the number of bits that follow).
+s32 readDifference(const u32 *bits, u32 *position, u32 table, u32 indexBits) {
+    const u32 entry = global<u8>(table + (peek(bits, *position) >> (32 - indexBits)));
+    const u32 n = entry >> 4;
+    *position += entry & 0xf;
+    if (!n) return 0;
+    u32 value = peek(bits, *position) >> (32 - n);
+    *position += n;
+    if (!(value >> (n - 1) & 1)) value -= (1u << n) - 1;
+    return static_cast<s32>(value);
+}
+
+// 0x6747d0: the six blocks of a macroblock.
+void readBlocks(u8 *state, u32 *blocks) {
+    static const struct { u32 offset, predictor, table, indexBits; s32 pitch; } kBlocks[6] = {
+        {0, 0x100, 0xfbb92c, 7, 0x40}, {0x20, 0x100, 0xfbb92c, 7, 0x40}, {0x200, 0x100, 0xfbb92c, 7, 0x40}, {0x220, 0x100, 0xfbb92c, 7, 0x40},
+        {0x400, 0x104, 0xfbb9ac, 8, 0x20}, {0x500, 0x108, 0xfbb9ac, 8, 0x20}};
+    const s32 *const quant = reinterpret_cast<const s32 *>(state);
+    const u32 *const bits = *reinterpret_cast<const u32 **>(state + 0x200);
+    u32 position = *reinterpret_cast<u32 *>(state + 0x204);
+    for (const auto &block : kBlocks) {
+        s32 &predictor = *reinterpret_cast<s32 *>(state + block.predictor);
+        predictor = static_cast<s32>(static_cast<u32>(readDifference(bits, &position, block.table, block.indexBits)) + static_cast<u32>(predictor));
+        position = TqiVideo_DecodeBlock(predictor, quant, bits, position, reinterpret_cast<u8 *>(blocks) + block.offset, block.pitch);
+    }
+    *reinterpret_cast<u32 *>(state + 0x204) = position;
+}
+
+// The 16 rows of a macroblock through a row writer.
+template <typename Out, typename Row> void macroblock(Out *out, s32 pitch, u8 *state, Row row) {
+    u32 blocks[0x200];
+    readBlocks(state, blocks);
+    for (u32 j = 0; j < 16; ++j) row(blocks + 0x10 * j, blocks + 0x100 + 8 * (j / 2), reinterpret_cast<Out *>(reinterpret_cast<u8 *>(out) + static_cast<s32>(j) * pitch));
+}
+
+u32 yuy2Part(u32 index) { return global<u32>(0x00fb8730 + index * 8); }
+
+// The pixel of a sum: its bits 23-31, 11-19 and 0-8 through their tables.
+u32 rgbOf(u32 sum) { return global<u32>(0x00fba730 + (sum >> 0x17) * 4) | global<u32>(0x00fbabf8 + ((sum & 0xff800) >> 0xb) * 4) | global<u32>(0x00fbb010 + (sum & 0x1ff) * 4); }
+u32 chromaSum(const u32 *chroma, u32 k) { return global<u32>(0x00fb9b30 + chroma[k] * 4) + global<u32>(0x00fba330 + chroma[k + 0x40] * 4); }
+u32 lumaPart(u32 luma) { return global<u32>(0x00fb9330 + luma * 4); }
 
 }  // namespace
 
@@ -97,5 +140,35 @@ void __cdecl TqiVideo_SetQuality(s32 *out, s32 quality) {
         }
     }
     out[0] = fixmul(idct_scale(0), 0x80000);
+}
+}
+
+extern "C" {
+
+void __cdecl TqiVideo_PixelRowYuy2(const u32 *luma, const u32 *chroma, u32 *out) {
+    for (u32 k = 0; k < 8; ++k)
+        out[k] = (yuy2Part(chroma[k + 0x40]) << 8 | yuy2Part(luma[2 * k + 1])) << 16 | yuy2Part(chroma[k]) << 8 | yuy2Part(luma[2 * k]);
+}
+
+void __cdecl TqiVideo_PixelRowRgb16(const u32 *luma, const u32 *chroma, u32 *out) {
+    for (u32 k = 0; k < 8; ++k) {
+        const u32 sum = chromaSum(chroma, k);
+        out[k] = (rgbOf(lumaPart(luma[2 * k]) + sum) & 0xffff) | (rgbOf(lumaPart(luma[2 * k + 1]) + sum) & 0xffff0000);
+    }
+}
+
+void __cdecl TqiVideo_PixelRowRgb32(const u32 *luma, const u32 *chroma, u32 *out) {
+    for (u32 k = 0; k < 8; ++k) {
+        const u32 sum = chromaSum(chroma, k);
+        out[2 * k] = rgbOf(lumaPart(luma[2 * k]) + sum);
+        out[2 * k + 1] = rgbOf(lumaPart(luma[2 * k + 1]) + sum);
+    }
+}
+
+void __cdecl TqiVideo_DecodeMacroblockYuy2(u32 *out, s32 pitch, u8 *state) { macroblock(out, pitch, state, TqiVideo_PixelRowYuy2); }
+void __cdecl TqiVideo_DecodeMacroblockRgb16(u32 *out, s32 pitch, u8 *state) { macroblock(out, pitch, state, TqiVideo_PixelRowRgb16); }
+void __cdecl TqiVideo_DecodeMacroblockRgb32(u32 *out, s32 pitch, u8 *state) { macroblock(out, pitch, state, TqiVideo_PixelRowRgb32); }
+void __cdecl TqiVideo_DecodeMacroblockTable16(u16 *out, s32 pitch, u8 *state) {
+    macroblock(out, pitch, state, [](const u32 *luma, const u32 *chroma, u16 *row) { TgqVideo_PixelRow16(luma, row, chroma); });
 }
 }

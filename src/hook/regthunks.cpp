@@ -90,6 +90,39 @@ __declspec(naked) void RegThunk_TgqVideo_DecodeCoefficients() {
 }
 
 // ECX and EDX kept (pushed apart from the arguments, which the callee may change); the position back in EDI.
+__declspec(naked) void RegThunk_TqiVideo_PixelRowYuy2() {
+    __asm {
+        push ebp
+        push edi
+        push esi
+        call TqiVideo_PixelRowYuy2
+        add esp, 12
+        ret
+    }
+}
+
+__declspec(naked) void RegThunk_TqiVideo_PixelRowRgb16() {
+    __asm {
+        push ebp
+        push edi
+        push esi
+        call TqiVideo_PixelRowRgb16
+        add esp, 12
+        ret
+    }
+}
+
+__declspec(naked) void RegThunk_TqiVideo_PixelRowRgb32() {
+    __asm {
+        push ebp
+        push edi
+        push esi
+        call TqiVideo_PixelRowRgb32
+        add esp, 12
+        ret
+    }
+}
+
 __declspec(naked) void RegThunk_TqiVideo_DecodeBlock() {
     __asm {
         push ecx

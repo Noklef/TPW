@@ -29,6 +29,22 @@ def common(r, log):
     return staff
 
 
+def draws(seed):
+    """The generator's first two draws & 0x7f from a seed (World_Rand)."""
+    out = []
+    for _ in range(2):
+        seed = (seed * 0x19660d + 0x3c6ef35f) & 0xffffffff
+        seed = (seed >> 13 | seed << 19) & 0xffffffff
+        out.append((seed if seed < 0x80000000 else 0x100000000 - seed) & 0x7f)
+    return out
+
+
+def zero_draw(r):
+    """A cell whose seed gives a draw of 0 (the point's clamp to 1), first or second."""
+    start = r.randrange(1, 0x3fff)
+    return next(((start + k) % 0x3fff + 1 for k in range(0x3fff) if 0 in draws((start + k) % 0x3fff + 1)))
+
+
 def handyman(r):
     log = log_region()
     regions = {LOG: log}
@@ -42,7 +58,7 @@ def handyman(r):
     regions[0x80239c] = struct.pack('<I', GAME)
     regions[0x8023a0] = struct.pack('<I', MAP)
     regions[GAME + 0x1da700] = bytes(8) + r.bytes(4) + bytes(0x14) + struct.pack('<H', index) + bytes(2)
-    target = r.choice([0, 1, 0x80, 0x81, r.randrange(1, 0x3fff), r.randrange(1, 0x3fff), r.randrange(1, 0x10000)])
+    target = r.choice([0, 1, 0x80, 0x81, r.randrange(1, 0x3fff), r.randrange(1, 0x3fff), r.randrange(1, 0x10000), zero_draw(r), zero_draw(r)])
     regions[ANSWER] = struct.pack('<HH', target, r.choice([0, r.randrange(1, 0x10000)]))
     set_return(log, 13, ANSWER)
     set_return(log, 14, ANSWER + 2)
