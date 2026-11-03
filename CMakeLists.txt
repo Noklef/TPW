@@ -540,6 +540,7 @@ add_library(tpw_game STATIC
     src/game/ui/panel7c2534.cpp
     src/game/ui/dialog7cdac4.cpp
     src/game/ui/dialog7ca168.cpp
+    src/game/ui/dialog7cb400.cpp
 )
 # The libraries whose functions replace the exe's copies (src/game/lib); their headers stay private to those units.
 target_link_libraries(tpw_game PRIVATE tpw_zlib tpw_jpeg6b tpw_jpeg6a)
