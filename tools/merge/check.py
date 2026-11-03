@@ -1,6 +1,6 @@
 """Checks a resolved merge of a porting branch before it is committed, stopping at the first failure.
 
-usage: python -I tools/merge/check.py BRANCH [--cases N] [--budget S] [--both-sides] [--no-bench] [--no-build]
+usage: python -I tools/merge/check.py BRANCH [--cases N] [--budget S] [--jobs J] [--both-sides] [--no-bench] [--no-build]
 
 Run in the main tree after `git merge --no-ff --no-commit BRANCH` and resolving the conflicts (tables.py, then by hand).
 In order:
@@ -16,7 +16,7 @@ In order:
      --accept-lost PATH:ITEM (repeatable): one lost item checked by hand; printed, and to be named in the merge commit;
   3. hooks: rows the branch added (its own count, for checking an agent's report against);
   4. build, tpw_tests, retcheck, convcheck;
-  5. each bench the merge touches, at N cases (default 1000) seed 5, --both: every run must show 0 differ. Every bench importing a
+  5. each bench the merge touches, J at a time (default 4), at N cases (default 1000) seed 5, --both: every run must show 0 differ. Every bench importing a
      touched module runs too (a bench's case() reused by another, or a helper module with no main, e.g. thingenv.py, which needs one).
      A slow bench runs fewer: as many as fit S seconds (default 300) for both runs at its per-case time in the last coverage gate
      (_re/coverage.json) or, if the gate has not timed it, in a 50-case run; 50 at least. --both-sides (main merged into an agent's branch): only
@@ -24,6 +24,7 @@ In order:
      branch merges back).
 """
 import collections
+import concurrent.futures
 import glob
 import json
 import os
@@ -269,7 +270,9 @@ def main():
         timed = json.load(open(os.path.join(ROOT, '_re', 'coverage.json')))['suites']
     except (OSError, ValueError, KeyError):
         timed = {}
-    for f in sorted(set(runs)):
+    jobs = int(a[a.index('--jobs') + 1]) if '--jobs' in a else 4
+
+    def bench(f):
         t0 = time.time()
         n, g = int(cases), timed.get(os.path.basename(f))
         if g and sum(r[0] for r in g['runs']):
@@ -278,14 +281,22 @@ def main():
             run([sys.executable, '-I', f, '50', '5', '--both'])
             per_case, source = (time.time() - t0) / 100, 'a short run'
         n = min(n, max(50, int(budget / 2 / per_case)))
-        if n < int(cases):
-            print('bench %s: %d cases (%.2f s a case in %s)' % (os.path.basename(f)[:-3], n, per_case, source))
+        capped = '%d cases (%.2f s a case in %s)' % (n, per_case, source) if n < int(cases) else None
         p = run([sys.executable, '-I', f, str(n), '5', '--both'])
+        return capped, p, time.time() - t0
+
+    pool = concurrent.futures.ThreadPoolExecutor(jobs)
+    futures = {pool.submit(bench, f): os.path.basename(f)[:-3] for f in sorted(set(runs))}
+    for done in concurrent.futures.as_completed(futures):
+        name = futures[done]
+        capped, p, seconds = done.result()
+        if capped:
+            print('bench %s: %s' % (name, capped), flush=True)
         res = [l.strip() for l in p.stdout.splitlines() if 'differ' in l]
-        name = os.path.basename(f)[:-3]
         if p.returncode or not res or any(not re.search(r'\b0 differ', l) for l in res):
+            pool.shutdown(wait=False, cancel_futures=True)   # (the running benches end by themselves)
             fail('bench %s\n%s' % (name, (p.stdout + p.stderr).strip()[-3000:]))
-        print('bench %-24s %s  [%d s]' % (name, ' | '.join(res), time.time() - t0))   # (the time: a slow bench is a merge's cost)
+        print('bench %-24s %s  [%d s]' % (name, ' | '.join(res), seconds), flush=True)   # (the time: a slow bench is a merge's cost)
     print('check: all passed')
 
 
