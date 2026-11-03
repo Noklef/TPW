@@ -308,6 +308,7 @@
 #include "../../src/game/world/arrivalvehicle.h"
 #include "../../src/game/world/worldstart.h"
 #include "../../src/game/gfx/moviestart.h"
+#include "../../src/game/core/dsoundsource.h"
 #include "../../src/game/world/worldupdate.h"
 #include "../../src/game/core/soundobjectslots.h"
 #include "../../src/game/world/mapreset.h"
@@ -2245,6 +2246,8 @@ int main(int argc, char **argv) {
     WorldUpdate_SetEnv(&worldUpdateEnv);
     static const MovieStartEnv movieStartEnv = {Rec{jpeg_recorder(6, 0)}, Rec{jpeg_recorder(7, 0)}, Rec{recorder(8, 0)}, Rec{jpeg_recorder(9, 3)}, Rec{jpeg_recorder(10, 2)}, Rec{jpeg_recorder(11, 1)}, Rec{jpeg_recorder(12, 1)}};
     MovieStart_SetEnv(&movieStartEnv);
+    static const DSoundSourceEnv dSoundSourceEnv = {Rec{jpeg_recorder(17, 3)}, Rec{kStubs + 0x5000 + 0x800 * 5 + 0x20 * 60}, Rec{kStubs + 0x5000 + 0x800 * 4 + 0x20 * 61}, Rec{recorder(21, 1)}, Rec{recorder(18, 0)}};
+    DSoundSource_SetEnv(&dSoundSourceEnv);
     static const SoundObjectSlotsEnv soundObjectSlotsEnv = {Rec{recorder(20, 3)}, Rec{recorder(21, 2)}, Rec{recorder(22, 3)}, Rec{recorder(23, 2)}, Rec{recorder(24, 2)}};
     SoundObjectSlots_SetEnv(&soundObjectSlotsEnv);
     static const MapResetEnv mapResetEnv = {Rec{recorder(1, 1)}, Rec{recorder(2, 0)}};

@@ -5711,6 +5711,21 @@ address,name,kind,confidence,notes
 0x006d2ca0,SoundSource711920_SetPanRateAll,function,low,reimplemented (src/game/core/qsoundmixer); All channels' pan rate
 0x006d2ce0,SoundSource711920_SetSpeedOfSound,function,low,reimplemented (src/game/core/qsoundmixer); The speed of sound
 0x006d2d20,SoundSource711920_SetSpeakerPlacement,function,low,reimplemented (src/game/core/qsoundmixer); The speaker placement from an object's answer
+0x006d2d60,SoundSource711b08_Thread,function,low,reimplemented (src/game/core/dsoundsource); The worker's thread
+0x006d2de0,SoundSource711b08_Open,function,low,"reimplemented (src/game/core/dsoundsource); DirectSound created and set up, the slots, events and worker"
+0x006d30b0,SoundSource711b08_Close,function,low,"reimplemented (src/game/core/dsoundsource); The worker stopped, the interfaces, events and slots gone"
+0x006d3190,SoundSource711b08_SetDistances,function,low,reimplemented (src/game/core/dsoundsource); A slot's distances under the section
+0x006d3230,SoundSource711b08_IsSet,function,low,reimplemented (src/game/core/dsoundsource); Whether a slot is set
+0x006d32a0,SoundSource711b08_FreeSlot,function,low,reimplemented (src/game/core/dsoundsource); A slot freed under the section
+0x006d3310,SoundSource711b08_FreeAll,function,low,reimplemented (src/game/core/dsoundsource); Every channel's slot freed
+0x006d33c0,SoundSource711b08_Flush,function,low,"reimplemented (src/game/core/dsoundsource); The release list emptied, the object's slot 13"
+0x006d3430,SoundSource711b08_PlayWave,function,low,reimplemented (src/game/core/dsoundsource); A buffer made for the wave and started on its slot
+0x006d3600,SoundSource711b08_SetPosition,function,low,reimplemented (src/game/core/dsoundsource); A slot's position under the section
+0x006d3680,SoundSource711b08_SetPitch,function,low,reimplemented (src/game/core/dsoundsource); A slot's pitch under the section
+0x006d3900,SoundSource711b08_SetGain,function,low,reimplemented (src/game/core/dsoundsource); A slot's gain under the section
+0x006d3980,SoundSource711b08_Set48,function,low,reimplemented (src/game/core/dsoundsource); A slot's +0x48 value under the section
+0x006d3a00,SoundSource711b08_DeletingDtor,function,low,"reimplemented (src/game/core/dsoundsource); The destructor, the source freed for bit 0"
+0x006d3a20,SoundSource711b08_Dtor,function,low,"reimplemented (src/game/core/dsoundsource); The section deleted, the helper freed"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

@@ -198,6 +198,7 @@
 #include "../game/core/gameerror.h"
 #include "../game/core/timesig.h"
 #include "../game/core/countedpair.h"
+#include "../game/core/dsoundsource.h"
 #include "../game/core/imaadpcm.h"
 #include "../game/core/iosbase.h"
 #include "../game/core/keyactions.h"
@@ -5941,6 +5942,21 @@ const Hook kHooks[] = {
     {"SoundSource711920_SetPanRateAll", 0x006d2ca0, (void *)&SoundSource711920_SetPanRateAll, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
     {"SoundSource711920_SetSpeedOfSound", 0x006d2ce0, (void *)&SoundSource711920_SetSpeedOfSound, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
     {"SoundSource711920_SetSpeakerPlacement", 0x006d2d20, (void *)&SoundSource711920_SetSpeakerPlacement, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
+    {"SoundSource711b08_Thread",  0x006d2d60, (void *)&SoundSource711b08_Thread, {0x8b, 0x4c, 0x24, 0x04, 0xe9}},
+    {"SoundSource711b08_Open",    0x006d2de0, (void *)&SoundSource711b08_Open, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"SoundSource711b08_Close",   0x006d30b0, (void *)&SoundSource711b08_Close, {0x53, 0x55, 0x56, 0x8b, 0xf1}},
+    {"SoundSource711b08_SetDistances", 0x006d3190, (void *)&SoundSource711b08_SetDistances, {0x6a, 0xff, 0x68, 0x98, 0x67}},
+    {"SoundSource711b08_IsSet",   0x006d3230, (void *)&SoundSource711b08_IsSet, {0x6a, 0xff, 0x68, 0xb8, 0x67}},
+    {"SoundSource711b08_FreeSlot", 0x006d32a0, (void *)&SoundSource711b08_FreeSlot, {0x6a, 0xff, 0x68, 0xd8, 0x67}},
+    {"SoundSource711b08_FreeAll", 0x006d3310, (void *)&SoundSource711b08_FreeAll, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"SoundSource711b08_Flush",   0x006d33c0, (void *)&SoundSource711b08_Flush, {0x6a, 0xff, 0x68, 0x18, 0x68}},
+    {"SoundSource711b08_PlayWave", 0x006d3430, (void *)&SoundSource711b08_PlayWave, {0x6a, 0xff, 0x68, 0x38, 0x68}},
+    {"SoundSource711b08_SetPosition", 0x006d3600, (void *)&SoundSource711b08_SetPosition, {0x6a, 0xff, 0x68, 0x58, 0x68}},
+    {"SoundSource711b08_SetPitch", 0x006d3680, (void *)&SoundSource711b08_SetPitch, {0x6a, 0xff, 0x68, 0x78, 0x68}},
+    {"SoundSource711b08_SetGain", 0x006d3900, (void *)&SoundSource711b08_SetGain, {0x6a, 0xff, 0x68, 0xb8, 0x68}},
+    {"SoundSource711b08_Set48",   0x006d3980, (void *)&SoundSource711b08_Set48, {0x6a, 0xff, 0x68, 0xd8, 0x68}},
+    {"SoundSource711b08_DeletingDtor", 0x006d3a00, (void *)&SoundSource711b08_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
+    {"SoundSource711b08_Dtor",    0x006d3a20, (void *)&SoundSource711b08_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
