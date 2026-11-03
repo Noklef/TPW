@@ -85,14 +85,14 @@ void __cdecl Gui_Startup() {
     E->setDirectDraw(*global<void **>(0x00879a24));
     if (WindowMode()) {
         E->setWindow(global<void *>(0x007a130c));
-        E->timeOpen(local);
-        E->timeStatus(local);
+        E->fn5f55c0(local);
+        E->fn5f5600(local);
         global<u32>(0x007b9fe0) = 0;
         global<u32>(0x007b9fe4) = 0;
         global<u32>(0x007b9fe8) = 0;
         global<u32>(0x007b9fec) = 0;
         global<u32>(0x007b9ff0) = 0x00486c70;
-        E->listen();
+        E->fn47e7d0();
     }
     const s32 screenY = global<s16>(0x00faa5c0);
     const s32 b = 0x3000 / screenY;
@@ -100,8 +100,8 @@ void __cdecl Gui_Startup() {
     const s32 width = 0x4000 / global<s16>(0x00faa5c4);
     E->fontInit(object(0x00786de8), nullptr, 0xff, width, 0, height, b);
     E->guiInit(0x80, 0x800, E->isHebrew(object(0x0078b530)));
-    E->setPalette(0x007b9864);
-    E->setHandler(0x00485780);
+    E->fn659674(0x007b9864);
+    E->fn6590ea(0x00485780);
     E->poolInit(0x40, 0x80, 0x10, 0x80);
     E->outOne(0x100000, 3, 0xd, reinterpret_cast<u32 *>((uintptr_t)0x007c249c));
     global<u32(__stdcall *)(u32)>(0x006fd30c)(0);
@@ -110,11 +110,11 @@ void __cdecl Gui_Startup() {
     E->loadAni();
     E->loadTga();
     E->setTable(WindowMode() ? object(0x007b9ab0) : object(0x007b9e88));
-    E->cursorShown(0);
+    E->fn6591d4(0);
     E->setCursor(1);
-    E->cursorRefresh();
-    E->memoryInfo();
-    E->diskInfo();
+    E->fn6591e3();
+    E->fn4891d0();
+    E->fn4893c0();
     global<u16>(0x007c2128) = 1;
     u8 *const inner = local + 4;
     inner[4] = 1;
@@ -126,7 +126,7 @@ void __cdecl Gui_Startup() {
     u8 *const info = local + 0x18;
     *reinterpret_cast<u8 **>(info + 0x10) = inner;
     E->setLayout(object(0x007c2118), nullptr, 0xc00, info);
-    E->textReady();
+    E->fn492470();
     global<u32>(0x007c24d4) = global<u32(__fastcall *)(u8 *)>(0x006fd5ac)(object(0x007c24c0));
 }
 
@@ -134,8 +134,8 @@ u32 __cdecl Gui_Teardown() {
     const GuiTeardownEnv *const E = g_teardown;
     E->tableClear(object(0x007b9ab0));
     E->tableClear(object(0x007b9e88));
-    E->timeClose();
-    E->timeEnd();
+    E->fn5f5620();
+    E->fn5f55e0();
     E->screenClose();
     E->listenEnd();
     E->guiShutdown();
@@ -143,8 +143,8 @@ u32 __cdecl Gui_Teardown() {
     Delete(0x007c231c);
     Delete(0x007b9804);
     E->poolFree();
-    E->fontFree(object(0x00786de8));
-    E->stray(global<u32>(0x007c249c));
+    E->fn657dff(object(0x00786de8));
+    E->fn424ec0(global<u32>(0x007c249c));
     return global<u32(__fastcall *)(u8 *)>(0x006fd5b0)(object(0x007c24c0));
 }
 }
