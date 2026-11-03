@@ -69,9 +69,9 @@ def case(r):
     cells = bytearray(r.bytes(0x44 * TILES))
     records = bytearray(r.bytes(40 * TILES))
     for i in range(TILES):
-        put(cells, 0x44 * i + 8, 'I', r.choice([1, 3, 4, 9, 0xa, 0x15, 0x15, 0, 2, 5, 0x16, r.getrandbits(32)]))
+        put(cells, 0x44 * i + 8, 'I', r.choice([1, 3, 4, 9, 0xa, 0x15, 0x15, 0x14, 0, 2, 5, 0x16, r.getrandbits(32)]))
         put(cells, 0x44 * i + 0x10, 'H', r.randrange(TILES))
-        put(records, 40 * i + 8, 'I', r.choice([0xb, 0xc, 0x10, 0x19, 0x19, 0, 1, r.getrandbits(32)]))
+        put(records, 40 * i + 8, 'I', r.choice([0xb, 0xc, 0x10, 0x19, 0x19, 0x18, 0, 1, r.getrandbits(32)]))
         put(records, 40 * i + 0x10, 'H', r.randrange(TILES))
     regions[WORLD + 0x294] = cells
     regions[WORLD + 0x1102b0] = records

@@ -49,7 +49,7 @@ def swprintf_hook(e):
         else:
             assert f == '%', f
             out += '%'
-    e.write(to, out.encode('utf-16-le') + b'\0\0')
+    e.write(to, out.encode('utf-16-le', 'surrogatepass') + b'\0\0')
     e.r['EAX'] = len(out)
 A, Z, OUT = RAM, RAM + 0x100, RAM + 0x200  # two strings and an output buffer
 PICK = b'aAbBzZ@[`{.\\ 09-+\t\x80\xc1\xe1\xff'
