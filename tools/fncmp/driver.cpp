@@ -641,6 +641,11 @@ const Dialog7ca150PageEnv kDialog7ca150PageEnv = {Rec{jpeg_recorder(10, 4)}, Rec
 // Dialog7ca308_Handler's calls (tests/fncmp/dialog7ca308handler.py).
 const Dialog7ca308HandlerEnv kDialog7ca308HandlerEnv = {Rec{jpeg_recorder(10, 4)}, Rec{recorder(11, 1)}, Rec{recorder(12, 0)}, Rec{recorder(13, 0)}, Rec{jpeg_recorder(14, 5)}, Rec{jpeg_recorder(15, 1)}, Rec{jpeg_recorder(16, 1)}, Rec{recorder(17, 2)}, Rec{recorder(18, 1)}, Rec{jpeg_recorder(19, 2)},
                                                         Rec{recorder(20, 2)}, Rec{recorder(21, 1)}, Rec{recorder(22, 0)}, Rec{jpeg_recorder(23, 1)}, Rec{recorder(24, 1)}, Rec{jpeg_recorder(25, 1)}, Rec{jpeg_recorder(26, 4)}};
+// Panel7cc218_FillLevels' calls (tests/fncmp/panel7cc218levels.py).
+const Panel7cc218LevelsEnv kPanel7cc218LevelsEnv = {Rec{recorder(10, 0)}, Rec{recorder(11, 0)}, Rec{recorder(12, 0)}, Rec{recorder(13, 0)}, Rec{jpeg_recorder(14, 1)}, Rec{recorder(15, 2)}, Rec{recorder(16, 3)}, Rec{recorder(17, 4)}, Rec{recorder(18, 0)}, Rec{recorder(19, 0)},
+                                                    Rec{jpeg_recorder(20, 5)}, Rec{jpeg_recorder(21, 1)}, Rec{jpeg_recorder(22, 2)}, Rec{recorder(23, 0)}};
+// Panel7cc218_RefreshFigures' calls (tests/fncmp/panel7cc218figures.py).
+const Panel7cc218FiguresEnv kPanel7cc218FiguresEnv = {Rec{recorder(10, 0)}, Rec{recorder(11, 1)}, Rec{recorder(12, 0)}, Rec{jpeg_recorder(13, 5)}, Rec{recorder(14, 1)}, Rec{recorder(15, 3)}, Rec{recorder(16, 3)}, Rec{recorder(18, 0)}, Rec{jpeg_recorder(19, 2)}, Rec{recorder(20, 0)}, Rec{recorder(21, 0)}, Rec{jpeg_recorder(22, 4)}};
 // Dialog_KeyHandler's calls (tests/fncmp/dialogkeys.py).
 const DialogKeyEnv kDialogKeyEnv = {Rec{jpeg_recorder(10, 4)}, Rec{recorder(11, 0)}, Rec{recorder(12, 0)}, Rec{recorder(13, 2)}, Rec{recorder(14, 2)}, Rec{jpeg_recorder(15, 1)}, Rec{recorder(16, 3)}};
 // Dialog7cdac4_Open's calls (tests/fncmp/dialog7cdac4.py).
@@ -1463,6 +1468,8 @@ int main(int argc, char **argv) {
     Dialog7cc1f8_SetOpenEnv(&kDialog7cc1f8OpenEnv);
     Dialog7cdac4_SetEnv(&kDialog7cdac4Env);
     Dialog_SetKeyEnv(&kDialogKeyEnv);
+    Panel7cc218_SetLevelsEnv(&kPanel7cc218LevelsEnv);
+    Panel7cc218_SetFiguresEnv(&kPanel7cc218FiguresEnv);
     Dialog7ca308_SetHandlerEnv(&kDialog7ca308HandlerEnv);
     ResearchPanel_SetEnv(&kResearchPanelEnv);
     Dialog7cb398_SetEnv(&kDialog7cb398Env);

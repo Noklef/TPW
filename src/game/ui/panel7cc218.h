@@ -12,6 +12,42 @@ struct Panel7cc218ShowEnv {
 };
 void Panel7cc218_SetShowEnv(const Panel7cc218ShowEnv *env);
 
+// Panel7cc218_FillLevels' calls (the ports by default, 0x67c430 raw: unported, agent B's; the bench's recorders: their own benches have them).
+struct Panel7cc218LevelsEnv {
+    void(__fastcall *clear)(u8 *window);                                                 // Window7059f0_Clear
+    u8 *(__fastcall *first)(u8 *defs);                                                   // ObjectDefs_First
+    u8 *(__fastcall *next)(u8 *defs);                                                    // ObjectDefs_Next
+    u8 *(__fastcall *readMode)(u8 *setting);                                             // Setting_ReadMode
+    s32(__cdecl *atExit)(void(__cdecl *f)());                                            // 0x67a7d0
+    u8 *(__fastcall *find)(u8 *table, void *, u32 id, u32 quiet);                        // ObjectControls_Find
+    void(__fastcall *name)(u8 *defs, void *, u32 id, u16 *out, u32 size);                // ObjectDefs_GetFullName
+    s32(__fastcall *add)(u8 *window, void *, const u32 *texts, u32 data, s32 parent, u32 refresh);   // Window7059f0_AddItem
+    u8 *(__fastcall *def)(const u8 *object);                                             // Object_GetDef
+    u32(__fastcall *busy)(const u8 *object);                                             // Is19c_Eq2_4e03e0
+    s32(__cdecl *format)(u8 *charset, u16 *dest, u32 size, u32 entry, ...);              // Charset_FormatWide
+    u16 *(__cdecl *text)(u32 index);                                                     // Language_WideText
+    u16 *(__cdecl *token)(u16 *text, const u16 *separators);                             // 0x67c430
+    void(__fastcall *refresh)(u8 *window);                                               // Window7059f0_RefreshRows
+};
+void Panel7cc218_SetLevelsEnv(const Panel7cc218LevelsEnv *env);
+
+// Panel7cc218_RefreshFigures' calls (the ports by default; the bench's recorders: their own benches have them).
+struct Panel7cc218FiguresEnv {
+    u8 *(__fastcall *def)(const u8 *object);                                             // Object_GetDef
+    u8 *(__fastcall *child)(u8 *window, void *, u32 id);                                 // Window_FindChild
+    s32(__fastcall *age)(const u8 *object);                                              // Object_AgeDays
+    s32(__cdecl *format)(u8 *charset, u16 *dest, u32 size, u32 entry, ...);              // Charset_FormatWide
+    void(__fastcall *notify)(u8 *window, void *, u32 a);                                 // Window_NotifyImpl100
+    u8(__fastcall *rating)(const u8 *object, void *, s32 a, s32 b, s32 c);               // Object_ComputeRating
+    u8(__fastcall *percent)(const u8 *object, void *, float a, float b, u32 c);          // Object_DefRowPercent
+    u32(__fastcall *scrap)(const u8 *object);                                            // Object_ScrapRefund
+    u32(__cdecl *status)(u8 *object, s32 count);                                         // Object_Status
+    void(__fastcall *buttons)(u8 *self);                                                 // Panel7cc218_UpdateButtons
+    void(__fastcall *showRide)(u8 *self);                                                // Panel7cc218_ShowRide
+    void(__cdecl *levels)(u32 id, u8 *list, u32 clear, u8 *object);                      // Panel7cc218_FillLevels
+};
+void Panel7cc218_SetFiguresEnv(const Panel7cc218FiguresEnv *env);
+
 // Panel7cc218_EnterTileMode's calls (the ports by default; the bench's recorders: their own benches have them).
 struct Panel7cc218TileEnv {
     u32(__cdecl *select)(u32 value);                                    // Global7c2654_Set
@@ -115,4 +151,16 @@ void __fastcall Panel7cc218_UpdateButtons(u8 *self);
 // (MouseModeTile_CtorKind; none when the 0x14 bytes fail) made current (the holder made first: MouseModes_EnsureHolder, inline in the
 // original; MouseMode_Set), the thing selected (Global7c2654_Set) and the focus cell updated with the record 1 (FocusCell_Update), 1.
 u32 __fastcall Panel7cc218_Choose(u8 *self, void *, s32 index, u8 close);
+
+// 0x4ae140 (cdecl (id, list, clear, object); name invented, unconfirmed): the list (Window7059f0_Clear first when clear) of what the object can have: unless the mode setting 0xfb3b7c (read under the guard bit 0 of 0xfb34c5) is 2, a row for each definition
+// (ObjectDefs_First / _Next of 0x7890a0) with +0x508 0 and +0x284 the id whose control record (ObjectControls_Find (its word, 0) in the game + 0x1d943c) has the byte +0x10: the full name (ObjectDefs_GetFullName into 0x7ba058, 0x3fff) and the record's +4, data the word.
+// Then, with Is19c_Eq2_4e03e0: the only row (others uncounted) the text 0x1e of the object's level (byte +0x50) + 2, no second text, data -0x32c7; else below level 2, when level + 1 is at most the object's own record's +0x14: the text 0x1d of level + 2 and
+// the definition's dword +0x1b8 + (level + 1) * 0x40, data -(level + 1). With no rows: the words of the language text (0x1b for mode 2, 0x1c for level 2, else 0x1a) in 0x7ba058 split by 0x67c430 at 0x7558f0, each a row with no second text, data -0x1ed2. Window7059f0_RefreshRows.
+void __cdecl Panel7cc218_FillLevels(u32 id, u8 *list, u32 clear, u8 *object);
+
+// 0x4ade40 (thiscall; name invented, unconfirmed): the panel's figures for the thing [0x7c2658] (Object_GetDef called, its answer not used). With the window +0x14, each child (Window_FindChild) only when there, through slot 7: 0x3e21 the sum as a double of the object's
+// circular buffer +0x1a8 (30 when it holds 30 or more, CircBufU32_30_Get's that answer 1), through __ftol; 0x3e1b told (Window_NotifyImpl100) the text 0x1b1 of the age in days (0x1f characters on the stack; TextArgInt 8, its size, signed by its sign);
+// 0x3e16 Object_ComputeRating (+0x2c, +0x34, +0x30), 0x3e18 Object_DefRowPercent (those as floats, +0x2c, +0x30, +0x34), 0x3e19 the object's float +0x44 through __ftol, 0x3e17 Object_Field48AsInt, each low byte * 1024 / 100; 0x3e23 (not checked) Object_ScrapRefund.
+// Always: Object_Status (2) when it differs from +8 is kept, slot 9, Panel7cc218_UpdateButtons and _ShowRide; with the window +0x24 Panel7cc218_FillLevels (the object's word +0xe, its child 0x1f4d, 1, the object).
+void __fastcall Panel7cc218_RefreshFigures(u8 *self);
 }
