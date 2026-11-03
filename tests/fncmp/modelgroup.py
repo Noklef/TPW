@@ -36,7 +36,7 @@ def texture(r, wild):
 def case(r):
     log = log_region()
     stride = r.choice([0x20, 0x24, 0x28])
-    clip = r.choice([0, 0, 1, 0x3f, 0x15])
+    clip = r.choice([0, 0, 0, 1, 0x20, 0x3f, 0x15])
     first = r.choice([0, 0, 1, 2, 5, 20])
     count = r.choice([1, 1, 2, 3, 5, 9, 16] + ([] if clip else [0]))
     first = first or (0 if count else 1)  # (last is first - 1: for first 0 the word wraps to 0xffff, 64 KB of vertices)
@@ -54,7 +54,7 @@ def case(r):
     mesh_faces = faces + r.randrange(10)
     mesh_points = count + r.randrange(22)
     b20, b24 = r.choice([0, 0, 1, 7]), r.choice([0, 0, 3, 9])
-    open_room = r.choice([0, 0, 1])
+    open_room = r.choice([0, 0, 1, 2, 2])  # (2: an exact room's index limit falls on a face's end, 6 bytes each)
     layer = r.random() < 0.3
     settings = bytearray(r.bytes(0xa0))
     put(settings, 0, 'I', r.getrandbits(32) & ~0x2000000 | (0x2000000 if layer else 0))
