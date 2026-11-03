@@ -394,6 +394,7 @@ add_library(tpw_game STATIC
     src/game/terrain/tct.cpp
     src/game/terrain/attrmap.cpp
     src/game/terrain/water.cpp
+    src/game/terrain/ground.cpp
     src/game/model/parts.cpp
     src/game/model/holder.cpp
     src/game/model/remap.cpp

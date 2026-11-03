@@ -1130,8 +1130,8 @@ class Bench:
         e.mem.clear()
         for k, v in c.regions.items():
             e.write(k, bytes(v))
-        if self.strict:  # what the driver maps: the case's regions (in 64 KB chunks), the stack
-            e.chunks = {0x0fff, 0x1000} | {p for k, v in c.regions.items() for p in range(k >> 16, ((k + max(len(v), 1) - 1) >> 16) + 1)}
+        if self.strict:  # what the driver maps: the case's regions (in 64 KB chunks), the stack (a MB, as the exe's: 0x56f670's frame is 0x51000 bytes)
+            e.chunks = set(range(0x0ff0, 0x1001)) | {p for k, v in c.regions.items() for p in range(k >> 16, ((k + max(len(v), 1) - 1) >> 16) + 1)}
             e.ranges = self.ranges
         e.reset()
         if 'c' in c.ret:

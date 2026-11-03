@@ -293,6 +293,7 @@
 #include "../game/terrain/tct.h"
 #include "../game/terrain/terrain_blend.h"
 #include "../game/terrain/attrmap.h"
+#include "../game/terrain/ground.h"
 #include "../game/terrain/texcache.h"
 #include "../game/terrain/water.h"
 #include "../game/world/random.h"
@@ -6405,6 +6406,7 @@ const Hook kHooks[] = {
     {"AttrMap_ReadMapChunk",      0x004d8cf0, (void *)&AttrMap_ReadMapChunk, {0x83, 0xec, 0x10, 0x8b, 0x44}},
     {"TP2M_ReadChunks",           0x005192d0, (void *)&TP2M_ReadChunks, {0x6a, 0xff, 0x68, 0xb0, 0xe8}},
     {"TerrainWater_Draw",         0x00570d90, (void *)&TerrainWater_Draw, {0xb8, 0x24, 0x15, 0x00, 0x00}},
+    {"TerrainGround_Draw",        0x0056f670, (void *)&TerrainGround_Draw, {0xb8, 0x1c, 0x25, 0x05, 0x00}},
     {"Online_ApplyBalance",       0x0045aee0, (void *)&Online_ApplyBalance, {0x6a, 0xff, 0x68, 0x08, 0x89}},
     {"OnlineServers_Ctor",        0x005d2a80, (void *)&OnlineServers_Ctor, {0x6a, 0xff, 0x68, 0xaf, 0x11}},
     {"OnlineServers_Dtor",        0x0045ad90, (void *)&OnlineServers_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},

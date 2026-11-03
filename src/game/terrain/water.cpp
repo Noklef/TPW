@@ -9,7 +9,14 @@
 #include "../render/clipcodes.h"
 #include "../render/clippoly.h"
 #include "../render/transformer.h"
+#include "gridquad.h"
 #include "landscape.h"
+
+using gridquad::FacingClipped;
+using gridquad::FacingOpen;
+using gridquad::FacingOpenFirst;
+using gridquad::Fan;
+using gridquad::KeepTriangle;
 
 namespace {
 
@@ -66,53 +73,6 @@ void FillRow(u8 *self, s32 row, u8 *points, u8 *codes) {
     g_env->transform(global<void *>(0x0087b088), nullptr, (u32)(uintptr_t)start, (u32)(uintptr_t)start, kPoint, kPoint, 0, count);
     u32 result;
     ClipCodes_Run(global<u32>(0x00879a20), 0, reinterpret_cast<u8 *>(&result), codes + first, start, count, kPoint, 0xff);
-}
-
-// The side tests read their vertices from these globals (and leave them there).
-void KeepTriangle(const u8 *a, const u8 *b, const u8 *c) {
-    global<u32>(0x008c63bc) = at<u32>(a, 0);
-    global<u32>(0x008c63c8) = at<u32>(a, 4);
-    global<u32>(0x008c63b0) = at<u32>(a, 0xc);
-    global<u32>(0x008c63c0) = at<u32>(b, 0);
-    global<u32>(0x008c63cc) = at<u32>(b, 4);
-    global<u32>(0x008c63b4) = at<u32>(b, 0xc);
-    global<u32>(0x008c63c4) = at<u32>(c, 0);
-    global<u32>(0x008c63d0) = at<u32>(c, 4);
-    global<u32>(0x008c63b8) = at<u32>(c, 0xc);
-}
-
-const float &X0() { return global<float>(0x008c63bc); }
-const float &Y0() { return global<float>(0x008c63c8); }
-const float &W0() { return global<float>(0x008c63b0); }
-const float &X1() { return global<float>(0x008c63c0); }
-const float &Y1() { return global<float>(0x008c63cc); }
-const float &W1() { return global<float>(0x008c63b4); }
-const float &X2() { return global<float>(0x008c63c4); }
-const float &Y2() { return global<float>(0x008c63d0); }
-const float &W2() { return global<float>(0x008c63b8); }
-
-// A quad bound for the clipper: FCOM's less or unordered.
-bool FacingClipped() {
-    const X87Reg left = (X87Reg(W0()) * Y2() - X87Reg(Y0()) * W2()) * X1() - X87Reg(X0()) * W1() * Y2();
-    const X87Reg right = (X87Reg(W0()) * Y1() - X87Reg(Y0()) * W1()) * X2() - X87Reg(X0()) * W2() * Y1();
-    return !(right.v >= left.v);
-}
-
-// A quad with no code set: the same with its last products in another order.
-bool FacingOpen() {
-    const X87Reg left = (X87Reg(W0()) * Y2() - X87Reg(W2()) * Y0()) * X1() - X87Reg(W1()) * Y2() * X0();
-    const X87Reg right = (X87Reg(W0()) * Y1() - X87Reg(W1()) * Y0()) * X2() - X87Reg(W2()) * Y1() * X0();
-    return !(right.v >= left.v);
-}
-
-// A fan of count vertices from base, its last triangle first.
-u16 *Fan(u16 *out, s32 base, s32 count) {
-    for (s32 k = count - 3; k >= 0; --k) {
-        *out++ = (u16)base;
-        *out++ = (u16)(k + base + 1);
-        *out++ = (u16)(k + base + 2);
-    }
-    return out;
 }
 
 } // namespace
@@ -225,11 +185,7 @@ extern "C" u32 __fastcall TerrainWater_Draw(u8 *self) {
                     second = (s16)countB;
                 }
             } else {
-                KeepTriangle(v1st, v2nd, v3rd);
-                global<u32>(0x008c63c4) = X87_FloatThrough(at<u32>(v3rd, 0));
-                global<u32>(0x008c63d0) = X87_FloatThrough(at<u32>(v3rd, 4));
-                global<u32>(0x008c63b8) = X87_FloatThrough(at<u32>(v3rd, 0xc));
-                const bool front = FacingOpen();
+                const bool front = FacingOpenFirst(v1st, v2nd, v3rd);
                 KeepTriangle(v1st, v3rd, v4th);
                 const bool back = FacingOpen();
                 if (front && back) {

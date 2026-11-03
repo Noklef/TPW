@@ -116,6 +116,7 @@
 #include "../../src/game/render/batch.h"
 #include "../../src/game/render/batchquad.h"
 #include "../../src/game/terrain/landscape.h"
+#include "../../src/game/terrain/ground.h"
 #include "../../src/game/terrain/water.h"
 #include "../../src/game/render/weatherfx.h"
 #include "../../src/game/render/modelgroup.h"
@@ -583,6 +584,8 @@ u32 __fastcall water_transform(void *object, void *, u32 a, u32 b, u32 c, u32 d,
     return 0;
 }
 const TerrainWaterEnv kTerrainWaterEnv = {Rec{recorder(1, 5)}, Rec{recorder(2, 1)}, &water_transform, Rec{kStubs + 0x1000 + 0x4000 + 0x800 * 5 + 0x20 * 3}};
+const TerrainGroundEnv kTerrainGroundEnv = {Rec{recorder(4, 0)}, Rec{recorder(5, 2)}, Rec{recorder(6, 0)}, Rec{recorder(7, 3)}, Rec{recorder(1, 5)}, Rec{recorder(11, 5)}, &water_transform,
+                                            Rec{kStubs + 0x1000 + 0x4000 + 0x800 * 5 + 0x20 * 3}, Rec{recorder(8, 0)}, Rec{recorder(9, 1)}, Rec{jpeg_recorder(10, 3)}, Rec{recorder(2, 1)}};
 const WeatherDrawEnv kWeatherDrawEnv = {Rec{recorder(1, 5)}, Rec{recorder(2, 1)}, Rec{recorder(3, 1)}, Rec{recorder(4, 2)}, Rec{recorder(5, 2)}};
 const WeatherDropsEnv kWeatherDropsEnv = {Rec{recorder(2, 5)}, Rec{recorder(3, 5)}, Rec{recorder(4, 1)}, Rec{recorder(5, 1)}};
 const ModelGroupEnv kModelGroupEnv = {Rec{jpeg_recorder(1, 6)}, Rec{jpeg_recorder(2, 4)}, Rec{recorder(4, 2)}, Rec{kStubs + 0x1000 + 0x4000 + 0x800 * 5 + 0x20 * 5}};
@@ -1402,6 +1405,7 @@ int main(int argc, char **argv) {
     BatchQuad_SetEnv(&kBatchQuadEnv);
     Landscape_SetDrawEnv(&kLandscapeDrawEnv);
     TerrainWater_SetEnv(&kTerrainWaterEnv);
+    TerrainGround_SetEnv(&kTerrainGroundEnv);
     WeatherFx_SetDrawEnv(&kWeatherDrawEnv);
     WeatherFx_SetDropsEnv(&kWeatherDropsEnv);
     ModelGroup_SetEnv(&kModelGroupEnv);
