@@ -540,6 +540,7 @@
 #include "../game/ui/guitoken.h"
 #include "../game/ui/hoverlabel.h"
 #include "../game/ui/imecandidates.h"
+#include "../game/ui/imehostattach.h"
 #include "../game/ui/levelmeter.h"
 #include "../game/ui/menuactions.h"
 #include "../game/ui/mousehelp.h"
@@ -7571,6 +7572,8 @@ const Hook kHooks[] = {
     {"Dialog7cb2b8_TabsHandler",  0x004a0840, (void *)&Dialog7cb2b8_TabsHandler, {0x53, 0x8b, 0x5c, 0x24, 0x14}},
     {"Dialog7cc4b4_Sparkle",      0x004b8fd0, (void *)&Dialog7cc4b4_Sparkle, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"QuitConfirm_Answered",      0x004c0830, (void *)&QuitConfirm_Answered, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"ImeHost_Attach",            0x00480ec0, (void *)&ImeHost_Attach, {0x51, 0xa1, 0x0c, 0x13, 0x7a}},
+    {"ImeHost_Detach",            0x00480f50, (void *)&ImeHost_Detach, {0x56, 0x8b, 0xf1, 0x8d, 0x4e}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
