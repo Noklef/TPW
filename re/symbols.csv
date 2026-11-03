@@ -5635,6 +5635,7 @@ address,name,kind,confidence,notes
 0x00549b80,TrakRide_LoadCar,function,low,"reimplemented (src/game/world/trakridecars); cdecl (handle); name invented: the ride's first used car with no node list takes the ride's list: flags 0x84000, TrakRide_Load (car, 1), a route; 1 or 0"
 0x00549db0,TrakRide_AddCar,function,low,"reimplemented (src/game/world/trakridecars); cdecl (handle, flags); name invented: a free pool car on the ride with room, placed, its area, list; no flags: its type, a ride playing motion 0xc, loaded and routed; the car or 0"
 0x0054ad90,TrakRide_RemoveCar,function,low,"reimplemented (src/game/world/trakridecars); cdecl (handle, empty); name invented: the ride's first used car (with empty: with no node list) removed: 1; else, with empty, once more without the condition, 0"
+0x00546280,TrakRide_PoseCars,function,low,"reimplemented (src/game/world/trakcarpose); cdecl (handle, a); name invented, unconfirmed; 0x5190d1 calls it: a track ride's cars set on the ground: four wheels per car, the floor under each ride's wheels in turn, then each car's models given position and rotation"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved
