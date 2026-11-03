@@ -7929,6 +7929,14 @@ address,name,kind,confidence,notes
 0x0048a580,Gui_Frame,function,low,reimplemented (src/game/ui/guiframe); the GUI's work for one frame (cdecl)
 0x00489ca0,Gui_Startup,function,low,reimplemented (src/game/ui/guistartup); the display and GUI brought up (cdecl)
 0x00489ec0,Gui_Teardown,function,low,reimplemented (src/game/ui/guistartup); the display and GUI taken down (cdecl)
+0x0065889c,Gui_SetWords540,function,low,reimplemented (src/game/ui/guisettings); two words set (cdecl)
+0x006590a5,Gui_List5f0Count,function,low,reimplemented (src/game/ui/guisettings); the list 0xfaa5f0's count or -1 (cdecl)
+0x006590d0,Gui_SetScreenSize,function,low,reimplemented (src/game/ui/guisettings); the screen's size words set (cdecl)
+0x006591d4,Gui_SetWord600,function,low,reimplemented (src/game/ui/guisettings); the word 0xfaa600 set (cdecl)
+0x006591e3,Gui_CursorSlot3,function,low,reimplemented (src/game/ui/guisettings); the cursor's slot 3 (cdecl)
+0x00659201,Gui_CursorSlot2,function,low,reimplemented (src/game/ui/guisettings); the cursor's slot 2 (cdecl)
+0x006595b3,Gui_SetPointer48c,function,low,reimplemented (src/game/ui/guisettings); 0x77c48c set or defaulted (cdecl)
+0x00659674,Gui_SetPointer490,function,low,reimplemented (src/game/ui/guisettings); 0x77c490 set or defaulted (cdecl)
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"

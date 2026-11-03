@@ -600,6 +600,7 @@
 #include "../game/ui/guifont.h"
 #include "../game/ui/guiframe.h"
 #include "../game/ui/guinamed.h"
+#include "../game/ui/guisettings.h"
 #include "../game/ui/guistartup.h"
 #include "../game/ui/guisystem.h"
 #include "../game/ui/guitoken.h"
@@ -7953,6 +7954,14 @@ const Hook kHooks[] = {
     {"Gui_Frame",                 0x0048a580, (void *)&Gui_Frame, {0x56, 0xe8, 0x9a, 0x50, 0xff}},
     {"Gui_Startup",               0x00489ca0, (void *)&Gui_Startup, {0x83, 0xec, 0x30, 0x8d, 0x44}},
     {"Gui_Teardown",              0x00489ec0, (void *)&Gui_Teardown, {0xb9, 0xb0, 0x9a, 0x7b, 0x00}},
+    {"Gui_SetWords540",           0x0065889c, (void *)&Gui_SetWords540, {0x55, 0x8b, 0xec, 0x66, 0x8b}},
+    {"Gui_List5f0Count",          0x006590a5, (void *)&Gui_List5f0Count, {0x55, 0x8b, 0xec, 0x83, 0x3d}},
+    {"Gui_SetScreenSize",         0x006590d0, (void *)&Gui_SetScreenSize, {0x55, 0x8b, 0xec, 0x66, 0x8b}},
+    {"Gui_SetWord600",            0x006591d4, (void *)&Gui_SetWord600, {0x55, 0x8b, 0xec, 0x66, 0x8b}},
+    {"Gui_CursorSlot3",           0x006591e3, (void *)&Gui_CursorSlot3, {0x55, 0x8b, 0xec, 0x83, 0x3d}},
+    {"Gui_CursorSlot2",           0x00659201, (void *)&Gui_CursorSlot2, {0x55, 0x8b, 0xec, 0x83, 0x3d}},
+    {"Gui_SetPointer48c",         0x006595b3, (void *)&Gui_SetPointer48c, {0x55, 0x8b, 0xec, 0x83, 0x7d}},
+    {"Gui_SetPointer490",         0x00659674, (void *)&Gui_SetPointer490, {0x55, 0x8b, 0xec, 0x83, 0x7d}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
