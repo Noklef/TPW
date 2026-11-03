@@ -12,7 +12,7 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, blob_bytes, heap, import_table, log_region, recorder, set_return, strings, vtable  # noqa: E402
+from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, blob_bytes, echo, fill, heap, import_table, log_region, recorder, set_return, strings, vtable  # noqa: E402
 
 # name: (address, stack arguments after out)
 CALLS = {'broadcast': (0x6b85f0, 0), 'value': (0x6b8640, 1), 'info': (0x6b8b00, 2), 'send': (0x6b8930, 2), 'path': (0x6b8690, 0),
@@ -96,7 +96,11 @@ def case(r):
             set_return(log, k, r.getrandbits(32))
         regions.update({STR: struct.pack('<I', STRVT) + r.bytes(0xc), STRVT: vtable({5: 1, 6: 1, 8: 1}), PATH: path})
         return Call(address, [OBJ, PATH, STR], regions, conv='t', ret='a')
-    if name == 'callvoice9':
+    if name == 'callvoice9':   # (the voice's slot 9: its out the id's stack slot, logged as 0, returned with a status in it; a mixer most times)
+        strings(log, 9, 0, out=1)
+        echo(log, 9, 0)
+        fill(log, 9, 0, struct.pack('<I', r.choice([0, 1, 0x80000000, 0xffffffff, r.getrandbits(32)])))
+        regions[VVT] = vtable({6: 2, 9: 2, 0xc: 1})
         return Call(address, [OBJ, r.choice(ids * 3 + [0, 0, 1, 100, r.getrandbits(32)]), r.getrandbits(32)], regions, conv='t', ret='a')
     if name == 'callvoice':
         return Call(address, [OBJ, r.choice(ids * 3 + [0, 0, 1, 100, r.getrandbits(32)]), r.getrandbits(32), r.getrandbits(32)], regions, conv='t', ret='a')
