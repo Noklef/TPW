@@ -4,10 +4,11 @@
 # The world: a model of up to 12 parts with flags and kinds, its banks' flags and counts, an instance with its layers and part objects, the block.
 # usage: typemodel.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
+import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import LOG, RAM, Bench, Call, _recorder, blob, fb, log_region, put, set_return  # noqa: E402
+from fncmp import LOG, RAM, Bench, Call, _recorder, blob, blob_bytes, fb, fill, log_region, put, set_return  # noqa: E402
 
 HOOKS = {0x463060: _recorder(1, 10, cdecl=True), 0x472f60: _recorder(2, 6, cdecl=True), 0x473c70: _recorder(3, 3, cdecl=True),
          0x463c80: _recorder(4, 1, cdecl=True)}
@@ -40,6 +41,8 @@ def case(r):
     put(block, 0xd0, '4I', fb(low), fb(low + r.choice([0.0, 1.0, r.uniform(0, 5)])), fb(r.uniform(-2, 4)), fb(r.uniform(-2, 4)))
     if r.random() < 0.15:
         put(block, 0xd0 + 4 * r.randrange(4), 'I', r.f(5))
+    if r.random() < 0.1:
+        put(block, 0xd4, 'I', 0x7fc00000)   # (no greatest: the clamp's compare)
     n = r.deal([0, 1, 2, 3, 5, 8, 12])
     banks(r, holder)
     put(holder, 8, 'I', DEF)
@@ -71,6 +74,10 @@ def case(r):
         put(models, 4 * kind, 'I', HOLDER)
     blob(log, 1, 2, 0xf)
     set_return(log, 1, ride)
+    # (Animator_Update: the rate it finds in layer 0; each call moves the block's part)
+    put(instance, 0xf0, 'I', OBJECTS + 0x40 * struct.unpack_from('<I', block, 0x2c)[0] + 0x34)
+    blob_bytes(log, 3, 0, 0, inner=(0x10, 0xf0, 28))
+    fill(log, 3, 0, struct.pack('<2I', height(r), height(r)), records=2, through=0xf0)
     regions = {LOG: log, BLOCK: block, HOLDER: holder, DEF: def_, MODEL: model, PARTS: parts, INSTANCE: instance, IDEF: idef, IMODEL: imodel,
                OBJECTS: objects, LIST: plist, LAYERS: layers, 0x7a4610: table, 0x7ae6a8: models, 0x791050: bytes(8), 0x791ce8: bytes(16)}
     return Call(0x430590, [r.getrandbits(32), BLOCK, kind], regions)
