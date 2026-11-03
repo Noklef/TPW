@@ -15,6 +15,16 @@ void __fastcall Challenges_DropOrphans(u8 *challenges);
 // 0x4d2840: the current challenge (index +0x3cc, 0-19 signed), or null.
 u8 *__fastcall Challenges_Current(u8 *challenges);
 
+// 0x4d1660 (thiscall (value, flag), pops 8; returns AL; called twice by 0x4d2030's neighbours at 0x4d20ea, 0x4d2149; name invented): whether a challenge's goal
+// is met. With the byte +0x1c set and flag's byte clear, no. By the kind +0 (0-0x21; others no): 1-8, 0xb-0xd, 0x10, 0x11, 0x14, 0x16: *value >= the target +8;
+// 0x18, 0x19, 0x1b: *value / +4 >= it; 9 / 0xa: the percent of the people on plain cells (none: no) with +0x210 / in mode 2 stored in *value, >= it; 0xe, 0xf, 0x12:
+// the coaster with the most flagged cars (of any definition, or of the word +0xc for 0x12) or the track ride with the most kind 11 pieces, >= it: the handle (out
+// word starting as the flag's or +0xc) to +0x2e; 0x13: that coaster count of +0xc >= 3; 0x15: the track ride's pieces of +0xc >= it; 0x1c: the greatest level
+// +0x50 of +0xc's objects >= it; 0x1d: the staff average of a kind (+0x10 0-4: 5, 4, 6, 7, 8; else flag) stored in *value, >= it; 0x1e-0x20: the control record
+// +0xc's word 0x18 above 0; 0x21: that of +0xc and of +0xe. The word ids go with the flag's high half (the original's stack slot). The original looks up the game
+// record [[0x7cf6ec]] for each count; the callees ignore it.
+u8 __fastcall Challenge_Met(u8 *challenge, void *, s32 *value, u32 flag);
+
 // 0x4d1a00 (name unconfirmed): a challenge (0x30 bytes) finished: its byte +0x2c = 1, and when it names no other (+0x18 clear) message
 // 0x19 posted (a = Kind_ToIdC of its +0, b = 0x110, d = its +0x14, the rest 0) through the objects' post (Object_PostMessage).
 void __fastcall Challenge_Finish(u8 *challenge);
