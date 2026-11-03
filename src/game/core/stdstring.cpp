@@ -80,6 +80,8 @@ StdString *__fastcall StdString_AssignSub(StdString *s, void *, const StdString 
     return s;
 }
 
+StdString *__fastcall StdString_CopyInto(const StdString *x, void *, StdString *out) { return StdString_CopyCtor(out, nullptr, x); }
+
 StdString *__fastcall StdString_CopyCtor(StdString *s, void *, const StdString *x) {
     *reinterpret_cast<u8 *>(&s->allocator) = *reinterpret_cast<const u8 *>(&x->allocator);
     empty(s);

@@ -82,6 +82,9 @@ void __fastcall StdString_Freeze(StdString *s, void *edx);
 // read after s is emptied (so copying s into itself leaves it empty: sic). Returns s.
 StdString *__fastcall StdString_CopyCtor(StdString *s, void *edx, const StdString *x);
 
+// 0x4c4a80 (thiscall (out), pops 4; name invented, unconfirmed): the same copy constructor emitted once more, the other way round: this is x, the argument the new string. Returns out.
+StdString *__fastcall StdString_CopyInto(const StdString *x, void *edx, StdString *out);
+
 // 0x4f1400: erase(pos, n), emitted out of line apart from the others (name unconfirmed): pos past the length throws (_Xran);
 // a shared s gets its own copy (_Split inlined: of the old block's characters to their first NUL); the characters after
 // pos + n (n cut to what is left) moved down over them (memmove), then _Grow(length - n, false) and _Eos inlined. Returns s.
