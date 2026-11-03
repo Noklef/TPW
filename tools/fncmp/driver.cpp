@@ -123,6 +123,7 @@
 #include "../../src/game/render/groundshadow.h"
 #include "../../src/game/gfx/spriteframelights.h"
 #include "../../src/game/model/ridebase.h"
+#include "../../src/game/world/parkentrance.h"
 #include "../../src/game/terrain/ground.h"
 #include "../../src/game/terrain/water.h"
 #include "../../src/game/render/weatherfx.h"
@@ -604,6 +605,7 @@ void __cdecl ride_base_fit(const u8 *node, u8 *frame, u16 **cursor, GridFitMatri
     reinterpret_cast<Fit>((uintptr_t)jpeg_recorder(1, 13))(node, frame, cursor, &matrix, grid, place, hits, lift, best, bestCount, flags, only, fine);
 }
 const RideBaseEnv kRideBaseEnv = {&ride_base_fit, Rec{jpeg_recorder(2, 5)}, Rec{jpeg_recorder(3, 2)}};
+const ParkEntranceEnv kParkEntranceEnv = {Rec{jpeg_recorder(1, 2)}, Rec{jpeg_recorder(2, 1)}, Rec{jpeg_recorder(3, 4)}, Rec{jpeg_recorder(4, 1)}, Rec{jpeg_recorder(5, 0)}, Rec{jpeg_recorder(6, 6)}, Rec{recorder(7, 0)}, Rec{jpeg_recorder(8, 0)}};
 const TerrainGroundEnv kTerrainGroundEnv = {Rec{recorder(4, 0)}, Rec{recorder(5, 2)}, Rec{recorder(6, 0)}, Rec{recorder(7, 3)}, Rec{recorder(1, 5)}, Rec{recorder(11, 5)}, &water_transform,
                                             Rec{kStubs + 0x1000 + 0x4000 + 0x800 * 5 + 0x20 * 3}, Rec{recorder(8, 0)}, Rec{recorder(9, 1)}, Rec{jpeg_recorder(10, 3)}, Rec{recorder(2, 1)}};
 const WeatherDrawEnv kWeatherDrawEnv = {Rec{recorder(1, 5)}, Rec{recorder(2, 1)}, Rec{recorder(3, 1)}, Rec{recorder(4, 2)}, Rec{recorder(5, 2)}};
@@ -1433,6 +1435,7 @@ int main(int argc, char **argv) {
     GroundShadow_SetEnv(&kGroundShadowEnv);
     SpriteFrameLights_SetEnv(&kSpriteFrameLightsEnv);
     RideBase_SetEnv(&kRideBaseEnv);
+    ParkEntrance_SetEnv(&kParkEntranceEnv);
     WeatherFx_SetDrawEnv(&kWeatherDrawEnv);
     WeatherFx_SetDropsEnv(&kWeatherDropsEnv);
     ModelGroup_SetEnv(&kModelGroupEnv);

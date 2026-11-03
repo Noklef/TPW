@@ -360,6 +360,7 @@
 #include "../game/world/mapclick.h"
 #include "../game/world/objectstatus.h"
 #include "../game/world/objectunlock.h"
+#include "../game/world/parkentrance.h"
 #include "../game/world/parkgates.h"
 #include "../game/world/parkopen.h"
 #include "../game/world/pathdrag.h"
@@ -5767,6 +5768,7 @@ const Hook kHooks[] = {
     {"TrakRide_AddCar",           0x00549db0, (void *)&TrakRide_AddCar, {0x51, 0x8b, 0x0d, 0x58, 0x7b}},
     {"TrakRide_RemoveCar",        0x0054ad90, (void *)&TrakRide_RemoveCar, {0x8b, 0x0d, 0x58, 0x7b, 0x87}},
     {"TrakRide_PoseCars",         0x00546280, (void *)&TrakRide_PoseCars, {0xb8, 0x3c, 0x20, 0x00, 0x00}},
+    {"ParkEntrance_Lay",          0x005323f0, (void *)&ParkEntrance_Lay, {0x8b, 0x0d, 0x3c, 0xf8, 0x7c}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
