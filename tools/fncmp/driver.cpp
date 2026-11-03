@@ -312,6 +312,7 @@
 #include "../../src/game/online/chatlists.h"
 #include "../../src/game/online/chatclient.h"
 #include "../../src/game/world/tracktextures.h"
+#include "../../src/game/core/soundtrigger.h"
 #include "../../src/game/world/worldupdate.h"
 #include "../../src/game/core/soundobjectslots.h"
 #include "../../src/game/world/mapreset.h"
@@ -2260,6 +2261,8 @@ int main(int argc, char **argv) {
     ChatClient_SetEnv(&chatClientEnv);
     static const TrackTexturesEnv trackTexturesEnv = {Rec{jpeg_recorder(1, 0)}, Rec{jpeg_recorder(2, 3)}, Rec{jpeg_recorder(3, 3)}, Rec{jpeg_recorder(4, 11)}, Rec{recorder(5, 1)}, Rec{recorder(6, 0)}, Rec{jpeg_recorder(7, 1)}, Rec{jpeg_recorder(8, 0)}};
     TrackTextures_SetEnv(&trackTexturesEnv);
+    static const SoundTriggerEnv soundTriggerEnv = {Rec{recorder(1, 3)}, Rec{recorder(2, 1)}, Rec{jpeg_recorder(3, 4)}, Rec{jpeg_recorder(4, 4)}, Rec{jpeg_recorder(5, 4)}, Rec{jpeg_recorder(6, 4)}, Rec{jpeg_recorder(7, 4)}, Rec{jpeg_recorder(8, 4)}, Rec{jpeg_recorder(9, 4)}, Rec{jpeg_recorder(10, 4)}, Rec{jpeg_recorder(11, 0)}, Rec{recorder(12, 1)}, Rec{recorder(13, 2)}, Rec{recorder(14, 1)}};
+    SoundTrigger_SetEnv(&soundTriggerEnv);
     static const SoundObjectSlotsEnv soundObjectSlotsEnv = {Rec{recorder(20, 3)}, Rec{recorder(21, 2)}, Rec{recorder(22, 3)}, Rec{recorder(23, 2)}, Rec{recorder(24, 2)}};
     SoundObjectSlots_SetEnv(&soundObjectSlotsEnv);
     static const MapResetEnv mapResetEnv = {Rec{recorder(1, 1)}, Rec{recorder(2, 0)}};

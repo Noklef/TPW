@@ -214,6 +214,7 @@ add_library(tpw_game STATIC
     src/game/core/iosbase.cpp
     src/game/core/qsoundmixer.cpp
     src/game/core/dsoundsource.cpp
+    src/game/core/soundtrigger.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp

@@ -5726,6 +5726,9 @@ address,name,kind,confidence,notes
 0x006d3980,SoundSource711b08_Set48,function,low,reimplemented (src/game/core/dsoundsource); A slot's +0x48 value under the section
 0x006d3a00,SoundSource711b08_DeletingDtor,function,low,"reimplemented (src/game/core/dsoundsource); The destructor, the source freed for bit 0"
 0x006d3a20,SoundSource711b08_Dtor,function,low,"reimplemented (src/game/core/dsoundsource); The section deleted, the helper freed"
+0x006b66d0,SoundMixer_AddVoiceSignal,function,low,reimplemented (src/game/core/soundtrigger); A voice added to the mixer and its queue signalled
+0x006b6700,SoundMixer_Start,function,low,reimplemented (src/game/core/soundtrigger); A free voice taken and made by the sound's kind and flags
+0x006b87d0,SoundEngine_Play,function,low,reimplemented (src/game/core/soundtrigger); A sound checked against the player and started
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
