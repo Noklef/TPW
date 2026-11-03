@@ -49,6 +49,7 @@
 #include "../../src/game/gfx/statsgraph.h"
 #include "../../src/game/ui/thingbrowser.h"
 #include "../../src/game/ui/dialog7ca150.h"
+#include "../../src/game/ui/signrect.h"
 #include "../../src/game/ui/dialog7ca210.h"
 #include "../../src/game/ui/dialog7cc2ec.h"
 #include "../../src/game/ui/dialog7cb25c.h"
@@ -633,6 +634,8 @@ const StaffCtorsEnv kStaffCtorsEnv = {Rec{recorder(10, 4)}, Rec{recorder(11, 2)}
                                       Rec{recorder(22, 1)}, Rec{jpeg_recorder(23, 1)}, Rec{recorder(24, 0)}, Rec{recorder(25, 0)}, Rec{recorder(26, 1)}};
 // The staff's update and work states' calls (tests/fncmp/staffsteps.py).
 const StaffStepsEnv kStaffStepsEnv = {Rec{recorder(10, 0)}, Rec{recorder(11, 0)}, Rec{recorder(12, 2)}, Rec{recorder(13, 1)}, Rec{recorder(14, 0)}, Rec{recorder(15, 0)}, Rec{recorder(16, 0)}, Rec{recorder(17, 1)}, Rec{recorder(18, 0)}, Rec{recorder(19, 0)}, Rec{recorder(20, 1)}, Rec{recorder(21, 0)}, Rec{recorder(22, 0)}, Rec{recorder(23, 4)}, Rec{recorder(24, 1)}};
+// Sign_PlaceOverRect's calls (tests/fncmp/signrect.py).
+const SignRectEnv kSignRectEnv = {Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 6)}, Rec{jpeg_recorder(12, 1)}};
 // Online_Instance's constructor (tests/fncmp/onlineinstance.py).
 const OnlineInstanceEnv kOnlineInstanceEnv = {Rec{recorder(10, 0)}};
 // Dialog7cdac4_Handler's calls (tests/fncmp/dialog7cdac4handler.py).
@@ -1489,6 +1492,7 @@ int main(int argc, char **argv) {
     Panel7cc218_SetShowEnv(&kPanel7cc218ShowEnv);
     Dialog7ca168_SetOpenEnv(&kDialog7ca168OpenEnv);
     Online_SetInstanceEnv(&kOnlineInstanceEnv);
+    SignRect_SetEnv(&kSignRectEnv);
     StaffSteps_SetEnv(&kStaffStepsEnv);
     StaffCtors_SetEnv(&kStaffCtorsEnv);
     Panel7cc218_SetLevelBoxEnv(&kPanel7cc218LevelBoxEnv);
