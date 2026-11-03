@@ -12,11 +12,11 @@ sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 from fncmp import HEAP, LOG, RAM, Bench, Call, _recorder, heap, log_region, put, set_return, vtable  # noqa: E402
 
 FCLOSE = 18
-B = Bench([(0x4f5990, 0x4f5a4f), (0x4f5a50, 0x4f5acc), (0x4ef7b0, 0x4ef800), (0x5da3c0, 0x5da3c1), (0x4f08c0, 0x4f0a10), (0x4f0540, 0x4f0650), (0x4f10d0, 0x4f11e0), (0x45b340, 0x45b9a0), (0x4f6020, 0x4f6080)],
+B = Bench([(0x4f5990, 0x4f5a4f), (0x4f5a50, 0x4f5acc), (0x4ef7b0, 0x4ef800), (0x5da3c0, 0x5da3c1), (0x4f08c0, 0x4f0a10), (0x4f0540, 0x4f0650), (0x4f10d0, 0x4f11e0), (0x45b340, 0x45b9a0), (0x4f6020, 0x4f6080), (0x4f3720, 0x4f3920), (0x4f6820, 0x4f6890)],
           hooks={0x699da0: _recorder(15, 0, cdecl=True), 0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None, 0x67b620: _recorder(FCLOSE, 1, cdecl=True)})
 BUF, OLD, OLDVT, GLOBAL, OLD2, OLD2VT, VBT = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x500, RAM + 0x600
 STREAM = RAM + 0x800
-OPS = [n for n in ('Locale', 'Init', 'Dtor', 'Ofstream', 'Ifstream') if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
+OPS = [n for n in ('Locale', 'Init', 'Dtor', 'Ofstream', 'Ifstream', 'Ctor') if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
 def counted_regions(r, regions, at, table, slot):
@@ -65,6 +65,12 @@ def case(r):
     regions = {LOG: log, BUF: bytearray(r.bytes(0x60)), 0xfb1dd0: struct.pack('<I', GLOBAL), GLOBAL: counted, 0xfb34b4: r.bytes(4)}
     if op in ('Dtor', 'Ofstream', 'Ifstream'):
         return dtor(r, op, log, regions)
+    if op == 'Ctor':   # (the locale's answers: the global's counted object each time, at its last use or not, its slot 0 a recorder)
+        set_return(log, 15, GLOBAL)
+        put(counted, 0, 'I', OLDVT)
+        put(counted, 4, 'I', r.choice([0, 1, 2, 0xfffffffe, 0xffffffff]))
+        regions[OLDVT] = vtable({0: 1})
+        return Call(0x4f3720, [BUF, r.getrandbits(32)], regions, conv='t', ret='a')
     if op == 'Locale':
         return Call(0x4f5a50, [BUF], regions, conv='t', ret='a')
     old = bytearray(r.bytes(0x10))

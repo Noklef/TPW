@@ -5628,6 +5628,7 @@ address,name,kind,confidence,notes
 0x004f08c0,WFileBuf_Dtor,function,low,reimplemented (src/game/core/wfilebuf); basic_filebuf<wchar_t>'s destructor
 0x004f0540,WOfstream_VbaseDtor,function,low,reimplemented (src/game/core/wfilebuf); basic_ofstream<wchar_t>'s complete destructor
 0x004f10d0,WIfstream_VbaseDtor,function,low,reimplemented (src/game/core/wfilebuf); basic_ifstream<wchar_t>'s complete destructor
+0x004f3720,WFileBuf_Ctor,function,low,reimplemented (src/game/core/wfilebuf); basic_filebuf<wchar_t>'s constructor
 0x006d6f70,SoundBuffer_FillFromVoice,function,low,"reimplemented (src/game/core/soundworker); thiscall (voice, offset, size), pops 0xc; a voice's mix into its locked DirectSound buffer (name invented)"
 0x006d3850,SoundWorker_RefillVoice,function,low,"reimplemented (src/game/core/soundworker); thiscall (position), pops 4; the slot's voice refilled under the section (name invented)"
 0x006d75c0,ComList_ReleaseAll,function,low,"reimplemented (src/game/core/soundworker); thiscall; each listed COM object's slots 6 and 2, the node freed (name invented)"
