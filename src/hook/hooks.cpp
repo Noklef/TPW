@@ -236,6 +236,7 @@
 #include "../game/core/soundsource.h"
 #include "../game/core/soundstream.h"
 #include "../game/core/soundvoice.h"
+#include "../game/core/soundwait.h"
 #include "../game/core/soundworker.h"
 #include "../game/core/startcheck.h"
 #include "../game/core/streamfilter.h"
@@ -5785,6 +5786,10 @@ const Hook kHooks[] = {
     {"SoundObject_SlotOne",       0x006ba1f0, (void *)&SoundObject_SlotOne, {0xd9, 0x05, 0x70, 0xa6, 0x70}},
     {"SoundObject_SlotByFlag",    0x006b9bb0, (void *)&SoundObject_SlotByFlag, {0xf6, 0x41, 0x28, 0x40, 0x74}},
     {"SoundVoice_MixCallback",    0x006bb4f0, (void *)&SoundVoice_MixCallback, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"ChannelVoices_WaitLoop",    0x006c6180, (void *)&ChannelVoices_WaitLoop, {0x53, 0x56, 0x8b, 0xf1, 0xb3}},
+    {"SoundSource_WaitLoop",      0x006d3800, (void *)&SoundSource_WaitLoop, {0x53, 0x56, 0x8b, 0xf1, 0xb3}},
+    {"SoundHandshake_AtExit",     0x006b9ec0, (void *)&SoundHandshake_AtExit, {0xc3, 0x90, 0x90, 0x90, 0x90}},
+    {"SoundHandshake_Wait",       0x006b9ed0, (void *)&SoundHandshake_Wait, {0x8a, 0x41, 0x05, 0xc6, 0x41}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
