@@ -53,7 +53,7 @@ def case(r):
     regions = {LOG: log, HEAP: heap(0x400), WINDOW: window, BAR: bar, MOUSE: struct.pack('<I', MOUSE_SLOTS), MOUSE_SLOTS: mouse_slots, BAR_SLOTS: bar_slots, 0xfaa598: buttons,
                0x77c48c: struct.pack('<I', MOUSE)}
     message = r.choice(MESSAGES)
-    a = r.choice([0, 0, 1, 2, 3, 33]) if message in (0x10004, 0x10005) else r.getrandbits(32)
+    a = r.choice([0, 0, 1, 2, 3, 5, 17, 33]) if message in (0x10004, 0x10005) else r.getrandbits(32)
     return Call(0x66bb9b, [WINDOW, message & 0xffffffff, a, r.getrandbits(32)], regions, conv='c', ret='a')
 
 
