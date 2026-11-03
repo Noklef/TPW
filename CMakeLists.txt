@@ -362,6 +362,7 @@ add_library(tpw_game STATIC
     src/game/world/trakridecars.cpp
     src/game/world/trakcarpose.cpp
     src/game/world/parkentrance.cpp
+    src/game/world/rideskin.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp

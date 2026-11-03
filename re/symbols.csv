@@ -5656,6 +5656,7 @@ address,name,kind,confidence,notes
 0x00546280,TrakRide_PoseCars,function,low,"reimplemented (src/game/world/trakcarpose); cdecl (handle, a); name invented, unconfirmed; 0x5190d1 calls it: a track ride's cars set on the ground: four wheels per car, the floor under each ride's wheels in turn, then each car's models given position and rotation"
 0x005323f0,ParkEntrance_Lay,function,low,"reimplemented (src/game/world/parkentrance); the park entrance's hoardings and path laid from the two entrance places (name invented, unconfirmed)"
 0x005327e0,ParkEntrance_LayOutline,function,low,"reimplemented (src/game/world/parkentrance); a rectangle's outline laid with map clicks and the run laid (name invented, unconfirmed)"
+0x004690a0,Ride_RestoreSkinsAndDestroy,function,low,"reimplemented (src/game/world/rideskin); a ride's skins put back in its model, then the ride destroyed (name invented, unconfirmed)"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved

@@ -371,6 +371,7 @@
 #include "../game/world/placeobject.h"
 #include "../game/world/tracksquare.h"
 #include "../game/world/rides.h"
+#include "../game/world/rideskin.h"
 #include "../game/world/sign.h"
 #include "../game/world/trackline.h"
 #include "../game/world/trackmessage.h"
@@ -5787,6 +5788,7 @@ const Hook kHooks[] = {
     {"TrakRide_PoseCars",         0x00546280, (void *)&TrakRide_PoseCars, {0xb8, 0x3c, 0x20, 0x00, 0x00}},
     {"ParkEntrance_Lay",          0x005323f0, (void *)&ParkEntrance_Lay, {0x8b, 0x0d, 0x3c, 0xf8, 0x7c}},
     {"ParkEntrance_LayOutline",   0x005327e0, (void *)&ParkEntrance_LayOutline, {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"Ride_RestoreSkinsAndDestroy", 0x004690a0, (void *)&Ride_RestoreSkinsAndDestroy, {0x55, 0x8b, 0x6c, 0x24, 0x08}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
