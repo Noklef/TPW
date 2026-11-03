@@ -264,6 +264,7 @@
 #include "../../src/game/core/funnytime.h"
 #include "../../src/game/core/wfilebuf.h"
 #include "../../src/game/core/channelvoice.h"
+#include "../../src/game/core/soundchannel.h"
 #include "../../src/game/core/soundsource.h"
 #include "../../src/game/core/soundworker.h"
 #include "../../src/game/world/staff.h"
@@ -2081,6 +2082,10 @@ int main(int argc, char **argv) {
     // The voices' pool's 0x67e050: the same recorder, as tests/fncmp/channelvoice.py hooks it.
     static const ChannelVoicesEnv channelVoicesEnv = {soundWorkerEnv.beginThread};
     ChannelVoices_SetEnv(&channelVoicesEnv);
+    // The channel's open: thiscall recorders 1 of 1, 2 and 3 of 2, COM recorder 4 of 4, thiscall recorders 5-9, as tests/fncmp/soundopen.py hooks them.
+    static const SoundChannelOpenEnv soundChannelOpenEnv = {Rec{recorder(1, 1)}, Rec{recorder(2, 2)}, Rec{recorder(3, 2)}, Rec{kStubs + 0x5000 + 0x800 * 4 + 0x20 * 4},
+                                                            Rec{recorder(5, 1)}, Rec{recorder(6, 0)}, Rec{recorder(7, 1)}, Rec{recorder(8, 0)}, Rec{recorder(9, 2)}};
+    SoundChannel_SetOpenEnv(&soundChannelOpenEnv);
     // The source maker's two constructors: thiscall recorders 20 of 1 and 21 of none, as tests/fncmp/soundmake.py hooks them.
     static const SoundMakeEnv soundMakeEnv = {Rec{recorder(20, 1)}, Rec{recorder(21, 0)}};
     SoundSource_SetMakeEnv(&soundMakeEnv);

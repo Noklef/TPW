@@ -23,6 +23,7 @@
 #include "soundindex.h"
 #include "soundoccluders.h"
 #include "soundsample.h"
+#include "soundsource.h"
 #include "string.h"
 #include "thunks.h"
 #include "vcall.h"
@@ -774,6 +775,53 @@ u8 *__fastcall SoundChannelEax_DeletingDtor(u8 *channel, void *, u32 flags) {
     SoundChannelEax_Dtor(channel);
     if (flags & 1) GameHeap_Free(channel);
     return channel;
+}
+
+namespace {
+
+u32 *__stdcall makeSource(u32 *out, u8 **slot, const u8 *info, u32 arg) { return SoundSource_Make(nullptr, nullptr, out, slot, info, arg); }
+
+const SoundChannelOpenEnv kOpenEnv = {&SoundSample70a548_Choose3DVoices, &ChannelVoices_Ctor, &ChannelVoices_Start, &makeSource, &SoundChannel_OpenEax, &SoundChannel_FreeEax,
+                                      &SoundChannel_OpenSynth, &SoundChannel_FreeSynth, &SoundChannel_Apply};
+const SoundChannelOpenEnv *g_open = &kOpenEnv;
+
+}  // namespace
+
+void SoundChannel_SetOpenEnv(const SoundChannelOpenEnv *env) { g_open = env ? env : &kOpenEnv; }
+
+u32 *__fastcall SoundChannel_Open(u8 *channel, void *, u32 *out, const u8 *source) {
+    u8 settings[0x70];
+    memcpy(settings, source, sizeof settings);
+    g_open->choose(channel, nullptr, settings);
+    u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x14));
+    u8 *const voices = block ? g_open->voicesCtor(block, nullptr, channel, at<u32>(settings, 0x44)) : nullptr;
+    at<u8 *>(channel, 0x14) = voices;
+    u32 status;
+    if (at<s32>(g_open->start(voices, nullptr, &status, at<u32>(settings, 0x40)), 0) < 0 ||
+        at<s32>(g_open->make(&status, &at<u8 *>(channel, 0x18), settings, at<u32>(channel, 0x14)), 0) < 0) {
+        *out = 0xffffffffu;
+        return out;
+    }
+    if (!vcall<u8>(at<u8 *>(channel, 0x18), 0x4c) && at<s32>(g_open->openEax(channel, nullptr, &status), 0) < 0) {
+        g_open->freeEax(channel);
+        if (at<s32>(g_open->openSynth(channel, nullptr, &status), 0) < 0) g_open->freeSynth(channel);
+    }
+    const u32 functor[2] = {0x0070a278, (u32)(uintptr_t)settings};
+    g_open->apply(channel, nullptr, out, reinterpret_cast<u8 *>(const_cast<u32 *>(functor)));
+    return out;
+}
+
+u32 *__fastcall SoundChannel_Reopen(u8 *channel, void *, u32 *out, u8 *settings) {
+    u32 status;
+    if (at<s32>(g_open->make(&status, &at<u8 *>(channel, 0x18), settings, at<u32>(channel, 0x14)), 0) < 0) {
+        *out = 0xffffffffu;
+        return out;
+    }
+    g_open->openEax(channel, nullptr, &status);
+    const u32 functor[2] = {0x0070a278, (u32)(uintptr_t)settings};
+    g_open->apply(channel, nullptr, &status, reinterpret_cast<u8 *>(const_cast<u32 *>(functor)));
+    *out = 0;
+    return out;
 }
 
 }  // extern "C"
