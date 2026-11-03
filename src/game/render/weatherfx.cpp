@@ -468,3 +468,89 @@ u32 __fastcall WeatherFx_DrawDrops(u8 *fx, void *, float x, float y, float z) {
     g_dropsEnv->transform(BatchObject(), nullptr, 0);
     return g_dropsEnv->close(BatchObject(), nullptr, -1.0f);
 }
+
+u32 __fastcall WeatherFx_DrawStreaks(u8 *fx, void *, float x, float y, float z) {
+    struct Streak {
+        Place from, to;
+    };
+    const u8 *const texture = at<const u8 *>(fx, 0x3350);
+    const u32 id = texture && (at<u32>(texture, 8) & 0x1000) ? at<u32>(texture, 0x1c) : 0;
+    u32 sizes[4] = {0, 0, 0, 0};  // the texture's +0x20 (u's), +0x24 (v's), +0x28 (u), +0x2c (v)
+    if (id) memcpy(sizes, texture + 0x20, sizeof sizes);
+    const float &uSize = at<float>(sizes, 0), &vSize = at<float>(sizes, 4), &u = at<float>(sizes, 8), &v = at<float>(sizes, 0xc);
+
+    Streak streaks[0x400];
+    const s32 count = at<s32>(fx, 0x3318);
+    if (count > 0) {
+        const float &scale = at<float>(fx, 0x3314);
+        const X87Reg dx = X87Reg(at<float>(fx, 0x331c)) * scale, dy = X87Reg(at<float>(fx, 0x3320)) * scale, dz = X87Reg(at<float>(fx, 0x3324)) * scale;
+        for (s32 i = 0; i < count; i++) {
+            Streak &s = streaks[i];
+            s.from.x = (float)(X87Reg(at<float>(fx, 8 + i * 0xc)) - x);
+            s.from.y = (float)(X87Reg(y) + at<float>(fx, 0xc + i * 0xc));
+            s.from.z = (float)(X87Reg(at<float>(fx, 0x10 + i * 0xc)) - z);
+            WrapPlace(s.from, X87Reg(s.from.x));
+            s.to = {(float)(X87Reg(s.from.x) + dx), (float)(X87Reg(s.from.y) + dy), (float)(X87Reg(s.from.z) + dz)};
+        }
+    }
+
+    u8 *const transformer = *reinterpret_cast<u8 **>((uintptr_t)0x0087b1d8);
+    at<void(__cdecl *)(u8 *, u8 *, Streak *, Streak *, u32, u32, s32, u32)>(at<const u8 *>(transformer, 0), 4)(transformer, fx + 0x9d58, streaks, streaks, 0xc, 0xc, count * 2, 2);
+    const u32 flags = (*reinterpret_cast<const u32 *>((uintptr_t)0x008bcbc8) & 2) ? 0x200d22 : 0x200d52;
+    u8 *const batch = g_dropsEnv->begin(BatchObject(), nullptr, at<u32>(fx, 0x330c), 4, 0x1c4, flags, id);
+    if (!batch) return 1;
+
+    Streak *s = streaks;
+    for (s32 left = at<s32>(fx, 0x3318); left != 0; left--, s++) {
+        const bool front = s->from.z > K(0x00701ca0);
+        s->from.y = (float)X87Reg(-X87Reg(s->from.y).v);
+        s->to.y = (float)X87Reg(-X87Reg(s->to.y).v);
+        if (!front) continue;
+        // Across the streak on the screen, its size a tenth of its length; the nearer, the brighter (none past 6).
+        const float acrossY = (float)((X87Reg(s->to.x) - s->from.x) * K(0x00701d00));
+        const float acrossX = (float)((X87Reg(s->to.y) - s->from.y) * K(0x00701d00));
+        s32 bright = (s32)(long long)((X87Reg(K(0x00701d04)) - s->from.z) * K(0x00701d08)).v;
+        if (bright < 0) bright = 0;
+        const u32 fog = at<u32>(*reinterpret_cast<u8 **>((uintptr_t)0x0087a248), 0x2c);
+        const u32 shade = (u32)bright * 0x30303;
+        const u32 colourFrom = (shade | 0x80000000) & fog, colourTo = (shade | 0xff000000) & fog;
+        const u32 nearer = Bits((float)(X87Reg(s->from.z) - K(0x00701d0c)));
+        const u32 depthFrom = Bits((float)(X87Reg(s->from.z) - K(0x00701d10))), depthTo = Bits((float)(X87Reg(s->to.z) - K(0x00701d10)));
+        const u32 uFar = Bits((float)(X87Reg(u) + uSize)), vFar = Bits((float)(X87Reg(v) + vSize));
+        const u32 uNear = X87_FloatThrough(at<u32>(sizes, 8)), vNear = X87_FloatThrough(at<u32>(sizes, 0xc));
+        // (The second dword of each vertex's colour stays unset, sic.)
+        u32 vertices[32];
+        vertices[0] = Bits((float)(X87Reg(s->from.x) + acrossX));
+        vertices[1] = Bits((float)(X87Reg(s->from.y) - acrossY));
+        vertices[2] = nearer;
+        vertices[3] = depthFrom;
+        vertices[4] = colourFrom;
+        vertices[6] = uFar;
+        vertices[7] = vFar;
+        vertices[8] = Bits((float)(X87Reg(s->from.x) - acrossX));
+        vertices[9] = Bits((float)(X87Reg(acrossY) + s->from.y));
+        vertices[10] = nearer;
+        vertices[11] = depthFrom;
+        vertices[12] = colourFrom;
+        vertices[14] = uNear;
+        vertices[15] = vFar;
+        vertices[16] = Bits((float)(X87Reg(s->to.x) - acrossX));
+        vertices[17] = Bits((float)(X87Reg(acrossY) + s->to.y));
+        vertices[18] = nearer;
+        vertices[19] = depthTo;
+        vertices[20] = colourTo;
+        vertices[22] = uNear;
+        vertices[23] = vNear;
+        vertices[24] = Bits((float)(X87Reg(s->to.x) + acrossX));
+        vertices[25] = Bits((float)(X87Reg(s->to.y) - acrossY));
+        vertices[26] = nearer;
+        vertices[27] = depthTo;
+        vertices[28] = colourTo;
+        vertices[30] = uFar;
+        vertices[31] = vNear;
+        if (!g_dropsEnv->addPolygon(BatchObject(), nullptr, reinterpret_cast<u8 *>(vertices), 4, 0x20, nullptr, 0)) return 0;
+    }
+    g_dropsEnv->transform(BatchObject(), nullptr, 0);
+    at<u32>(batch, 0x30) = 0;
+    return g_dropsEnv->close(BatchObject(), nullptr, -1.0f);
+}
