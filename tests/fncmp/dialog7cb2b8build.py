@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import dialog7ca150  # noqa: E402
 import dialogbuild  # noqa: E402
+import listrows  # noqa: E402
 import panelparts  # noqa: E402
 import window  # noqa: E402
 from fncmp import HEAP, LOG, Bench, Call, _cdecl_log, _recorder, blob, fill, heap, recorder, set_return, strings, vtable  # noqa: E402
@@ -61,12 +62,12 @@ def shuffled(r, w, makers):
     w.append(5)
 
 
-def script(r, mode):
+def script(r, mode, guard):
     w = []
     for _ in range(r.choice([0, 0, 1, 2])):
         dialogbuild.child(r, w, r.choice([0, 1, 0x1000 | r.getrandbits(16)]))
-    bar = []
-    shuffled(r, bar, [lambda i=i: plain(r, bar, i) for i in (0x37, 0x34) + ((0x36,) if mode != 2 or maybe(r, 0.3) else ())])
+    bar = []   # (0x36 is needed unless the mode is 2, and the mode is read when the guard's bit is clear: always there then, or both fault on its absence)
+    shuffled(r, bar, [lambda i=i: plain(r, bar, i) for i in (0x37, 0x34) + ((0x36,) if mode != 2 or not guard & 1 or maybe(r, 0.3) else ())])
     repair = []
     shuffled(r, repair, [lambda: plain(r, repair, 0x2e)] if maybe(r) else [])
     money = []
@@ -107,16 +108,28 @@ def case(r):
     regions[MANAGER] = struct.pack('<I', MANAGER + 0x40)
     regions[MANAGER + 0x40] = vtable({13: 1})
     mode = r.choice([2] * 3 + [0, 1, 3, r.getrandbits(32)])
-    w = script(r, mode)
+    guard = r.choice([1, 1, 1, 0, r.getrandbits(8)])
+    w = script(r, mode, guard)
     regions[0x752940] = struct.pack('<%dH' % len(w), *w)
     regions[0x7cb2ac] = struct.pack('<I', window.WINDOW2)
-    regions[0xfb34c1] = bytes([r.choice([1, 1, 1, 0, r.getrandbits(8)])])
+    regions[0xfb34c1] = bytes([guard])
     regions[0xfb3b7c] = struct.pack('<I', mode)
+    regions[listrows.REND][0x1c:0x20] = bytes(4)   # (the renderer's list of tag 0x30 empty: a part leaving it walks the list)
     regions[0xfaa5c0] = struct.pack('<h', r.choice([1536, 768, 0x600 + r.randrange(-3, 4)]))
     regions[0xfaa5c4] = struct.pack('<h', r.choice([2048, 1024, 0x800 + r.randrange(-3, 4)]))
     blob(log, 19, 1, 0b1111)
     strings(log, 19, 0, out=0b1000000)
-    fill(log, 19, 6, struct.pack('<4i', r.getrandbits(8), r.getrandbits(8), r.choice([r.randrange(0, 120)] * 19 + [-r.randrange(1, 20)]), r.choice([r.randrange(0, 40)] * 6 + [-r.randrange(1, 60)])))
+    # The measured box. The money window's part takes that window's size for its pixels, its words unsigned: a negative height or width (0xffxx) runs only with
+    # the other side about 0, or the pixels overrun the heap in both.
+    shape = r.choice(['any'] * 5 + ['low', 'low', 'narrow'])
+    if shape == 'low':      # (a negative height, odd or even: the centring's halves)
+        width, tall = r.choice([0, 0, 0, 1]), -r.randrange(17, 60)
+    elif shape == 'narrow':   # (a negative width, the height 0)
+        width, tall = -r.randrange(1, 20), -0x10
+        regions[0xfaa5c0] = struct.pack('<h', 1536)
+    else:
+        width, tall = r.randrange(0, 120), r.randrange(0, 40)
+    fill(log, 19, 6, struct.pack('<4i', r.getrandbits(8), r.getrandbits(8), width, tall))
     set_return(log, 20, r.getrandbits(32))
     regions[0x6ff2d8 + 0xc] = struct.pack('<I', recorder(3, 2))
     regions[0x6ff2d8 + 0x14] = struct.pack('<I', recorder(31, 1))

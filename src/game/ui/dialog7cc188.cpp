@@ -4,13 +4,21 @@
 #include <cstdint>
 
 #include "../core/crt.h"
+#include "../core/gameheap.h"
 #include "../core/language.h"
 #include "../core/options.h"
 #include "../core/stdlist.h"
 #include "../core/trivial.h"
+#include "../core/vcall.h"
 #include "../online/session.h"
+#include "../render/textparts.h"
+#include "../world/advisor.h"
+#include "hoverlabel.h"
 #include "window.h"
+#include "window705a20.h"
 #include "window7059f0.h"
+#include "windowreg.h"
+#include "windowscript.h"
 
 namespace {
 
@@ -27,9 +35,47 @@ const char *textOf(const StdString *string) {
     return text ? text : reinterpret_cast<const char *>((uintptr_t)0x006fe5b0);
 }
 
+const Dialog7cc188OpenEnv kGameOpenEnv = {WindowScript_Build, GameHeap_Alloc, TextPart6ff530_Ctor, TextPart6ff4d0_Ctor, Window_SetImpl, Language_Font, Window_Set4c, Window_NotifyC00, Language_WideText, HoverLabel_SetYellow,
+                                          Window7059f0_BuildRows, Window7059f0_SetColumnBottom, GuiWindows_FindByName, Window7059f0_SetHighlight, Dialog7cc188_FillList, Window_Notify40000, Window_SetHandler,
+                                          Window705a20_SetBuffer, Window705a20_SetCaret, Advisor_PostId};
+const Dialog7cc188OpenEnv *g_open = &kGameOpenEnv;
+
 }  // namespace
 
 void Dialog7cc188_SetListEnv(const Dialog7cc188ListEnv *env) { g_env = env ? env : &kGameEnv; }
+void Dialog7cc188_SetOpenEnv(const Dialog7cc188OpenEnv *env) { g_open = env ? env : &kGameOpenEnv; }
+
+void __cdecl Dialog7cc188_Open() {
+    u8 *&window = global<u8 *>(0x007cc188);
+    if (window) return;
+    window = g_open->build(global<u8 *>(0x007cc184), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007542b8), 0x004a73d0);
+    u8 *const label = static_cast<u8 *>(g_open->alloc(0x1a4));
+    u8 *const labelPart = label ? g_open->labelPart(label, nullptr, 0) : nullptr;
+    g_open->setImpl(Window_FindChild(window, nullptr, 0x27), nullptr, labelPart);
+    u8 *const labelFont = g_open->font(5);
+    g_open->set4c(Window_FindChild(window, nullptr, 0x27), nullptr, labelFont);
+    g_open->notifyC00(Window_FindChild(window, nullptr, 0x27), nullptr, 1, 1);
+    u8 *const child = Window_FindChild(window, nullptr, 0x27);
+    vcall<void>(child, 0x24, g_open->text(0xd4));
+    g_open->hoverYellow(Window_FindChild(window, nullptr, 0x27));
+    Window_SetDepth(window, nullptr, (u16)(at<u16>(global<u8 *>(0x007cc184), 0xe0) + 0xa));
+    u8 *const list = Window_FindChild(window, nullptr, 0x26);
+    g_open->buildRows(list, nullptr, reinterpret_cast<u8 *(__cdecl *)()>((uintptr_t)0x004a8380), reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)0x004a8420));
+    g_open->columnBottom(list, nullptr, 0, 0);
+    g_open->setHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)g_open->findByName(reinterpret_cast<const char *>((uintptr_t)0x0074fa84))));
+    g_open->fillList(0);
+    u8 *const edit = Window_FindChild(window, nullptr, 0x25);
+    u8 *const memory = static_cast<u8 *>(g_open->alloc(0x1a4));
+    g_open->setImpl(edit, nullptr, memory ? g_open->editPart(memory, nullptr, 0) : nullptr);
+    g_open->set4c(edit, nullptr, g_open->font(7));
+    g_open->notify40000(edit, nullptr, 0xff, 0xff, 0xff, 0xff);
+    g_open->notifyC00(edit, nullptr, 0, 0);
+    g_open->setHandler(edit, nullptr, 0x004a77c0);
+    g_open->setBuffer(edit, nullptr, 0x007cb8d8, 0x3f);
+    g_open->setCaret(edit, nullptr, reinterpret_cast<u8 *>((uintptr_t)g_open->findByName(reinterpret_cast<const char *>((uintptr_t)0x0074fa84))));
+    vcall<void>(edit, 0x24, reinterpret_cast<const void *>((uintptr_t)0x0078a374));
+    g_open->post(0x134);
+}
 
 void __cdecl Dialog7cc188_FillList(u32 clear) {
     u8 *const strings = g_env->source() + 0x100;

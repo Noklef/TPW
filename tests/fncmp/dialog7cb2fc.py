@@ -15,22 +15,48 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 from fncmp import LOG, Bench, Call, blob_bytes, log_region, put, recorder, vtable  # noqa: E402
+from crt import swprintf_hook  # noqa: E402
 from dialog7cb398 import KVTABLE, children, window  # noqa: E402
 from language import text  # noqa: E402
 from panel7cc298 import TEXTS, texts  # noqa: E402
 from window import queues  # noqa: E402
 from window705a50 import EVENT_MASK, INNER, NOTIFY_MASK, RANGES as BUTTON_RANGES, look, window as button  # noqa: E402
 
-CALLS = {'SetToggle': 0x4a3960}
-B = Bench([(0x4a3960, 0x4a3a2b), (0x485b00, 0x485b40), (0x6adc80, 0x6add25), (0x6ace60, 0x6acea0), (0x65d7bc, 0x65d832),
-           (0x67b0d0, 0x67b140), (0x67bed0, 0x67bf0f)] + BUTTON_RANGES)
+CALLS = {'SetToggle': 0x4a3960, 'SetValueRow': 0x4a33e0}
+B = Bench([(0x4a3960, 0x4a3a2b), (0x4a33e0, 0x4a3475), (0x485b00, 0x485b40), (0x6adc80, 0x6add25), (0x6ace60, 0x6acea0), (0x65d7bc, 0x65d832),
+           (0x67b0d0, 0x67b140), (0x67bed0, 0x67bf0f)] + BUTTON_RANGES, hooks={0x67af00: swprintf_hook})
 DIALOG, ROW, ITEM, BUTTON, DECOYS, OBJS = 0x33200000, 0x33210000, 0x33220000, 0x33230000, 0x33240000, 0x33250000
 ROWS = [0x1d4cb, 0x1d4cc, 0x1d4cd]
 BUTTONS = [0x1d4d1, 0x1d4d2]
 
 
+def value_case(r):
+    """SetValueRow: as SetToggle's row (its slot 7 a recorder too); the text 0x14e a short one and the value of up to 6 digits (" %d %%"): both fit the stack's 10 units. With [0x78ba80] 0 the wide buffer stays as it was and is the text 0x14e too, so for a negative value (the " %s" of it) it holds 8 units at most: the original runs off its stack past that."""
+    log = log_region()
+    regions = {LOG: log}
+    row = r.choice(ROWS)
+    window(r, regions, ITEM, ROW, 0)
+    window(r, regions, ROW, DIALOG, 0)
+    regions[KVTABLE] = vtable({7: 1, 9: 1})
+    put(regions[ROW], 0x5c, 'I', children(r, regions, [(ITEM, 0x1d4c9)], ROW, DECOYS + 0x1000, [0, 0x1d4c8, 0x1d4ca]))
+    window(r, regions, DIALOG, 0, 0)
+    put(regions[DIALOG], 0x5c, 'I', children(r, regions, [(ROW, row)] if r.random() < 0.97 else [], DIALOG, DECOYS, [0, 0x1d4c9, 0x1d4ca, 0x1d4ce]))
+    regions[0x7cb2fc] = struct.pack('<I', DIALOG)
+    value = r.choice([-1, -1, -5, -0x80000000, 0, 1, 99, 100, r.randrange(1000000)])
+    first = b''.join(r.randrange(0x20, 0x7f).to_bytes(2, 'little') for _ in range(r.choice([0, 1, 4, r.randrange(9)] if value < 0 else [0, 1, 4, r.randrange(12), 29, 30])))
+    texts(r, regions, 0x145, 11, first + b'\0\0' + r.bytes(0x400 - len(first)))
+    put(regions[TEXTS + 0xa00], 8, 'I', 0x150)
+    pool = bytearray(regions[TEXTS + 0xc00])
+    body = bytes(r.randrange(0x20, 0x7f) for _ in range(r.randrange(8))) + b'\0'
+    pool[0x40 * 9:0x40 * 10] = struct.pack('<I', 1 | len(body) << 8) + body + bytes(0x3c - len(body))
+    regions[TEXTS + 0xc00] = bytes(pool)
+    label = r.choice([0x144, 0x145, 0x146, 0x14c, 0x150, r.getrandbits(32)])
+    return Call(CALLS['SetValueRow'], [row, label, value & 0xffffffff], regions, ret='v')
+
+
 def case(r):
-    r.deal(OPS)
+    if r.deal(OPS) == 'SetValueRow':
+        return value_case(r)
     log = log_region()
     regions = {LOG: log}
     row, btn_id = r.choice(ROWS), r.choice(BUTTONS)

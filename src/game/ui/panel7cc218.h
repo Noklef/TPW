@@ -12,6 +12,14 @@ struct Panel7cc218ShowEnv {
 };
 void Panel7cc218_SetShowEnv(const Panel7cc218ShowEnv *env);
 
+// Panel7cc218_Refresh's calls (the ports by default; the bench's recorders: their own benches have them).
+struct Panel7cc218RefreshEnv {
+    u8 *(__cdecl *name)(u8 *thing);        // Thing_NameBuffer7ba058
+    void(__fastcall *showRide)(u8 *self);  // Panel7cc218_ShowRide
+    void(__fastcall *buttons)(u8 *self);   // Panel7cc218_UpdateButtons
+};
+void Panel7cc218_SetRefreshEnv(const Panel7cc218RefreshEnv *env);
+
 // Panel7cc218_FillLevels' calls (the ports by default, 0x67c430 raw: unported, agent B's; the bench's recorders: their own benches have them).
 struct Panel7cc218LevelsEnv {
     void(__fastcall *clear)(u8 *window);                                                 // Window7059f0_Clear
@@ -87,7 +95,36 @@ struct Panel7cc218LevelBoxEnv {
 };
 void Panel7cc218_SetLevelBoxEnv(const Panel7cc218LevelBoxEnv *env);
 
+// Panel7cc218_Handler's calls (the ports by default, the unported 0x4e15b0 raw; the bench's recorders: their own benches have them).
+struct Panel7cc218HandlerEnv {
+    s32(__fastcall *close)(u8 *object);                                   // WindowAt10_Message4
+    void(__fastcall *refresh)(u8 *self);                                  // Panel7cc218_RefreshFigures
+    s32(__cdecl *base)(u8 *window, u32 message, u32 a, u32 b);            // ThingPanel_Handler_48d200
+    u32(__fastcall *setTimer)(u8 *window, void *, u32 id, u32 interval);  // Window_SetTimer
+    u32(__fastcall *startTimer)(u8 *window, void *, u32 id);              // Window_StartTimer
+    void(__cdecl *cancel)(u32 id);                                        // Game_CancelAdvisor
+    void(__cdecl *swing)();                                               // Sign_Swing
+    void(__cdecl *open)(s32 tab, u32 selected);                           // Dialog7ca150_Open
+    void(__fastcall *stepGroup)(u8 *owner);                               // Things_StepGroup
+    void(__fastcall *stepBack)(u8 *owner);                                // Things_StepGroupBack
+    void(__fastcall *restart)(u8 *panel, void *, u32 restart);            // ThingPanel_RestartOrClose_48ccf0
+    void(__fastcall *goTo)(u8 *panel);                                    // ThingGoto_Start
+    void(__fastcall *moveMode)(u8 *self);                                 // Panel7cc218_EnterMoveMode
+    u8 *(__fastcall *def)(const u8 *object);                              // Object_GetDef
+    void(__fastcall *settings)(u8 *self, void *, u8 flags);               // Panel7cc218_ShowSettings
+    void(__fastcall *tile)(u8 *self, void *, u32 flag);                   // Panel7cc218_EnterTileMode
+    void(__fastcall *levelBox)(u8 *self);                                 // Panel7cc218_OpenLevelBox
+    void(__fastcall *setFlag)(u8 *panel, void *, u8 flag);                // ThingPanel_SetFlag64_48ce50
+    u32(__fastcall *thingOp)(u8 *thing, void *, u32 a);                   // 0x4e15b0, agent A's, unported
+};
+void Panel7cc218_SetHandlerEnv(const Panel7cc218HandlerEnv *env);
+
 extern "C" {
+
+// 0x4af600 (cdecl (window, message, a, b); name invented, unconfirmed): the handler of the panel 0x7cc218. 5: closed (WindowAt10_Message4), answer 1. 0x10 with the timer 0x80080: the figures refreshed. 0x14: the advisors 0x129 and 0xcf cancelled. 0x15: the timer 0x80080 of 0xfa0 set and, when that answers (AX), started. 0x1e: Sign_Swing.
+// 0x800: Object_GetDef of [0x7c2658] (not used), the slider a's value b in +0x30 (0x3e2d), +0x34 (0x3e2f), +0x2c (0x3e30), slot 5, its setting's text (2, 4, 1). 0x100, the control a: -2, -1 closed, 0; 0x3e26 stepped back, 0x3e27 forward, then the base; 0x3e29 Dialog7ca150_Open (0, the thing), 0x3e2a tile mode (1), 0x3e2b ThingGoto_Start, 0x3e2c move mode, 0x3e34 tile mode (0), 0x3e35 the level box,
+// 0x3e36 SetFlag64 (b not 1), 0x3e37 0x4e15b0 on the thing (0) and slot 0xb, each 0; 0x3e38 RestartOrClose (b 1) and the figures refreshed, then the base. Each case not answering there ends in ThingPanel_Handler_48d200, whose answer it is.
+s32 __cdecl Panel7cc218_Handler(u8 *window, u32 message, u32 a, u32 b);
 
 // 0x4ae430 (cdecl (window, message, a, b); name invented, unconfirmed): the level box's handler. 0x14: its owner (dword 0)'s +0x24 = 0, Obj_CallMember20Slot14 (1), then the default. 0x100 with a -2: the box sent 4 (0, 0), answer 0. 0x400 (the list a's row b chosen, the list there,
 // b not -1): the row's data (Window7059f0_NthItemData; the slot left the window when none, sic) 0xffffe12e the default; 0xffffcd39 Panel7cc218_Choose (0, close) of the panel 0x7cc218, the box sent 4, Panel7cc218_RefreshFigures, answer 0; else Choose (data, no close): that done with a
@@ -114,6 +151,9 @@ void __fastcall Panel7cc218_EnterMoveMode(u8 *self);
 // range +0x124 / +0x128 empty hidden, 0x3e31 too (Window_SetShown, the child not checked); else both shown and its child 0x3e2e's slot 7 given the level table's +0x19c << 10 over the range;
 // either way the range, slot 7 given the thing's byte +0x5d. Finally Panel7cc218_ShowSettings (7). The level table is at the thing's byte +0x50 * 0x40 in the definition.
 void __fastcall Panel7cc218_ShowRide(u8 *self);
+
+// 0x4ae940 (thiscall; name invented, unconfirmed): the object +0x20's slot 9 given the shown thing [0x7c2658]'s name (Thing_NameBuffer7ba058), the panel's slots 6 and 5, Panel7cc218_ShowRide and Panel7cc218_UpdateButtons.
+void __fastcall Panel7cc218_Refresh(u8 *self);
 
 // 0x4ad890 (thiscall; slot 3 of the vtable 0x6ffbe8): with the window +0x14 set (read again for each child), its children dressed in this
 // order (ui/panelparts; a text a TextPart_Ctor part with that language text, a part's or a bar's value given to the child's slot 7):

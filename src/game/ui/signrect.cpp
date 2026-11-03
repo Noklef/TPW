@@ -31,6 +31,13 @@ void __cdecl Sign_PlaceOverRect(const u8 *rect, u32 type, s32 row) {
     sign = g_env->create(x0, y1, height, x1 - x0, y0 - y1, type);
 }
 
+void __cdecl Sign_Destroy() {
+    u32 &sign = global<u32>(0x007b9f4c);
+    if (!sign) return;
+    g_env->destroy(sign);
+    sign = 0;
+}
+
 void __cdecl Sign_Swing() {
     u8 *const sign = global<u8 *>(0x007b9f4c);
     if (sign) g_env->swing(sign);

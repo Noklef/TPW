@@ -16,7 +16,31 @@ struct ObjectUnlockScoresEnv {
 };
 void ObjectUnlock_SetScoresEnv(const ObjectUnlockScoresEnv *env);
 
+struct FileTime;
+
+// ObjectUnlock_CheckThemes's calls (the ports by default; the bench's recorders: their own benches have them).
+struct ObjectUnlockThemesEnv {
+    u8(__fastcall *themeByte)(const u8 *info, void *, u32 i);                  // GlobalSave_ThemeByte
+    u32(__fastcall *mark)(u8 *info, void *, u32 i);                            // GlobalSave_MarkTheme
+    void(__fastcall *advise)(u8 *self, void *, u32 group, s32 level);          // ObjectUnlock_AdviseLevel
+    u32(__fastcall *table)(u8 *game);                                          // GameTable7cfb90_Get1da720_519510
+    u32(__fastcall *total)(const u8 *analyser);                                // ParkAnalyser_Total
+    s32(__cdecl *people)();                                                    // Things_CountKind1OnPlainCell
+    double(__fastcall *average)(void *analyser, void *, u32 unused);           // Things_AveragePersonStat19c
+    u8(__cdecl *allDone)();                                                    // Research_AllDone
+    u32(__fastcall *table26)(u8 *game);                                        // GameTable7cfb90_Get1da726_5195d0
+    u32(__fastcall *money)(const u8 *money);                                   // Money_Total
+    u32(__fastcall *since)(const u8 *analyser, void *, s32 back);              // ParkAnalyser_TotalSince
+    FileTime *(__fastcall *elapsed)(const u8 *clock, void *, FileTime *out);   // FunnyTime_Elapsed
+};
+void ObjectUnlock_SetThemesEnv(const ObjectUnlockThemesEnv *env);
+
 extern "C" {
+
+// 0x4d4bc0 (thiscall; name invented, unconfirmed): the six themes not yet marked (GlobalSave_ThemeByte, each read anew), each marked (GlobalSave_MarkTheme) when its test holds and a level then advised (ObjectUnlock_AdviseLevel). 0: the analyser's total over [0x785790]. 1: the people over [0x785794].
+// 2: the int [0x785798] not at least the average 0x19c (NaN holds too) and the people over [0x78579c]. 3: Research_AllDone. 4: the money's total over [0x7857a0]. 5: the total of the last [0x7857a8] over [0x7857a4] and the time elapsed (the clock [0x80239c] + 0x2a0; signed, in 0x1792f8648000 units) over [0x7857a8].
+// All signed. The analyser (the table's entry for [0x80239c]) read first. The debug print after each advice (0x5af4a0 of the instance into the empty 0x5da3c0) is left out.
+void __fastcall ObjectUnlock_CheckThemes(u8 *self);
 
 // 0x4d4e50 (thiscall; name invented): the park's four best figures against their limits: the tallest coaster (Things_TallestCoaster with the id 0; group 0, [0x7857ac]), the best rated (Things_BestRatedDef9c1;
 // 1, [0x7857b0]), the most pieces of the kind 2 (Rides_BestPiecesOfKind; 2, [0x7857b4]) and the special cells (Map_CountSpecialCells; 3, [0x7857bc]). A figure over its limit (signed) is marked in the global save

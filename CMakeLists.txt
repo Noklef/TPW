@@ -562,6 +562,32 @@ add_library(tpw_game STATIC
     src/game/ui/dialog7cc444.cpp
     src/game/ui/dialog7cc5f4.cpp
     src/game/ui/dialog7cc47c.cpp
+    src/game/ui/gamepartdialogs.cpp
+    src/game/world/patrolcoverage.cpp
+    src/game/ui/dialog7cc184.cpp
+    src/game/ui/signnamedialog.cpp
+    src/game/ui/window7cb2a4.cpp
+    src/game/ui/dialog7cc984.cpp
+    src/game/ui/mousehelp.cpp
+    src/game/world/staffthink.cpp
+    src/game/world/objectride.cpp
+    src/game/ui/dialog7cc1f8stats.cpp
+    src/game/ui/dialog7cc5f4handler.cpp
+    src/game/ui/window7cb2cc.cpp
+    src/game/ui/window7cc8bcmenu.cpp
+    src/game/ui/dialog7cb2b8tabs.cpp
+    src/game/ui/dialog7cc4b4sparkle.cpp
+    src/game/render/passwordpart.cpp
+    src/game/ui/quitconfirm.cpp
+    src/game/world/mapsweep.cpp
+    src/game/ui/imehostattach.cpp
+    src/game/ui/textrecordpart.cpp
+    src/game/ui/window705950nodes.cpp
+    src/game/gfx/movieframe.cpp
+    src/game/ui/panel7cc3b0handler.cpp
+    src/game/world/rideupkeep.cpp
+    src/game/world/objectwear.cpp
+    src/game/world/celleffect.cpp
     src/game/ui/staffrename.cpp
     src/game/ui/window7cc8bc.cpp
     src/game/ui/dialog7cb2b8.cpp

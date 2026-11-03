@@ -10,7 +10,7 @@ from fncmp import Bench, Call, LOG, RAM, log_region, put, set_return, vtable  # 
 
 # name: (address, convention, returns, size)
 CALLS = {'WP': (0x4f1eb0, 't', 'a', 0x30), 'BP': (0x5d0050, 't', 'a', 0x30), 'WN': (0x4f06c0, 't', 'a', 0x50), 'BN': (0x5ceab0, 't', 'a', 0x50),
-         'Is': (0x4f18d0, 't', 'a', 0x30), 'Ref': (0x497610, 't', 'v', 0x30), 'SI': (0x4f1950, 't', 'a', 0x40), 'SN': (0x4f1990, 't', 'a', 0x40),
+         'Is': (0x4f18d0, 't', 'a', 0x30), 'Ref': (0x497610, 't', 'a', 0x30), 'SI': (0x4f1950, 't', 'a', 0x40), 'SN': (0x4f1990, 't', 'a', 0x40),
          'Map': (0x4f1900, 't', 'a', 0x50), 'WPC': (0x4f0e30, 't', 'a', 0x30), 'BPC': (0x5cf1c0, 't', 'a', 0x40)}
 B = Bench([(a, a + n) for (a, _c, _r, n) in CALLS.values()])
 OBJ, MEM, GP, CNT, BUF, VT, VTM, TBL = RAM, RAM + 0x200, RAM + 0x300, RAM + 0x340, RAM + 0x400, RAM + 0x1000, RAM + 0x1100, RAM + 0x2000

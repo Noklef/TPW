@@ -16,7 +16,29 @@ struct Dialog7cb25cOpenEnv {
 };
 void Dialog7cb25c_SetOpenEnv(const Dialog7cb25cOpenEnv *env);
 
+// Dialog7cb25c_Handler's calls (the ports by default, the unported 0x47f020 raw; the bench's recorders: their own benches have them).
+struct Dialog7cb25cHandlerEnv {
+    s32(__cdecl *send)(u8 *window, u32 message, u32 a, u32 b);                    // Window_SendMessage
+    void(__cdecl *cancel)(u32 id);                                                // Game_CancelAdvisor
+    u8 *(__fastcall *find)(u8 *window, void *, u32 id);                           // Window_FindChild
+    u32(__fastcall *nth)(u8 *window, void *, s32 n, u32 *out);                    // Window7059f0_NthItemData
+    u32(__fastcall *table26)(u8 *game);                                           // GameTable7cfb90_Get1da726_5195d0
+    u32 *(__fastcall *offer)(u8 *money, void *, u32 *out, u32 index);             // Money_LoanOffer
+    u32(__fastcall *field)(u32 source);                                           // Source_Field0c
+    s32(__cdecl *format)(u8 *charset, u16 *dest, u32 size, u32 entry, ...);       // Charset_FormatWide
+    void(__cdecl *box)(const u8 *record, u32 a, u32 b, u32 c, u32 d, u32 e, u32 f, u32 g);   // 0x47f020, agent B's, unported
+    void(__cdecl *open1)();                                                       // Dialog7ca210_Open
+    void(__cdecl *open2)();                                                       // Dialog7ca2e8_Open
+    void(__cdecl *open3)();                                                       // Dialog7cc2ec_Open
+    s32(__cdecl *keys)(u8 *window, u32 message, u32 a, u32 b);                    // Dialog_KeyHandler
+};
+void Dialog7cb25c_SetHandlerEnv(const Dialog7cb25cHandlerEnv *env);
+
 extern "C" {
+
+// 0x49f4e0 (cdecl (window, message, a, b); name invented, unconfirmed): 5: the dialog sent 4 (0, 0), answer 1. 0x14: [0x7cb25c] = 0, Game_CancelAdvisor (0xc3), then Dialog_KeyHandler. 0x100: a -2 or -1 the dialog sent 4, 0; 0x12c4ba, 0x12c4bb, 0x12c4bc open Dialog7ca210, Dialog7ca2e8, Dialog7cc2ec, 0; anything else Dialog_KeyHandler.
+// 0x400 with the list a there and b not -1: the row's data. Below 0 a loan taken, index -1 - data: owed (the term +0xc less the months paid +0x18) * the rate +0x10; the balance (Source_Field0c, signed) over that the text 0xb5 and a box of two buttons calling 0x49f460 with the index, else the text 0xb6 and a box of one. Otherwise an offer, index data - 1: the text 0xb7 of the amount +4 and a box calling 0x49f4a0. Then Dialog_KeyHandler, as for all else.
+s32 __cdecl Dialog7cb25c_Handler(u8 *window, u32 message, u32 a, u32 b);
 
 // 0x49fb30 (cdecl; name invented): open already, or the mode setting (0xfb3b7c, read the first time under the guard 0xfb34c2 & 1) 2: nothing. Window7c24c8_Close, Global7cb28c_Select (3, 8), the dialog built (the script
 // 0x7525a0, handler 0x49f4e0, on [0x7cb2ac]; none: nothing more), made [0x7c24c8], its label 0x12c4ca the text 0xaa. Its figures 0x12c4c1 (when there): the headings 0x12c4c4 / 0x12c4c2 and in red 0x12c4c9 / 0x12c4c6 (texts

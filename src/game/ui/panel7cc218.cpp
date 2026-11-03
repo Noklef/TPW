@@ -32,12 +32,19 @@
 #include "../world/objectmsg.h"
 #include "../world/ridelist.h"
 #include "../world/ridesweep.h"
+#include "dialog7ca098.h"
+#include "dialog7ca150.h"
 #include "dialog7ca1c8.h"
+#include "dialog7ca210.h"
 #include "dialogs.h"
 #include "guirect.h"
 #include "hoverlabel.h"
+#include "menuactions.h"
 #include "panelparts.h"
+#include "signrect.h"
+#include "thinggoto.h"
 #include "windowscript.h"
+#include "windowtimers.h"
 #include "window7059f0.h"
 #include "window.h"
 #include "window705a50.h"
@@ -91,6 +98,22 @@ s32 rangePart(const u8 *def, u32 table, u8 level, s32 from, s32 to) {
 }  // namespace
 
 void Panel7cc218_SetShowEnv(const Panel7cc218ShowEnv *env) { g_show = env ? env : &kShowGameEnv; }
+
+namespace {
+const Panel7cc218RefreshEnv kRefreshGameEnv = {Thing_NameBuffer7ba058, Panel7cc218_ShowRide, Panel7cc218_UpdateButtons};
+const Panel7cc218RefreshEnv *g_refresh = &kRefreshGameEnv;
+}  // namespace
+
+void Panel7cc218_SetRefreshEnv(const Panel7cc218RefreshEnv *env) { g_refresh = env ? env : &kRefreshGameEnv; }
+
+extern "C" void __fastcall Panel7cc218_Refresh(u8 *self) {
+    u8 *const name = g_refresh->name(*reinterpret_cast<u8 **>((uintptr_t)0x007c2658));
+    vcall<void>(at<u8 *>(self, 0x20), 0x24, name);
+    vcall<void>(self, 0x18);
+    vcall<void>(self, 0x14);
+    g_refresh->showRide(self);
+    g_refresh->buttons(self);
+}
 
 namespace {
 
@@ -568,4 +591,96 @@ void __fastcall Panel7cc218_OpenLevelBox(u8 *self) {
     Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>(0x0074fa84))));
     u8 *const thing = *reinterpret_cast<u8 **>((uintptr_t)0x007c2658);
     g_levelBox->levels(at<u16>(thing, 0xe), list, 0, thing);
+}
+
+namespace {
+const Panel7cc218HandlerEnv kHandlerGameEnv = {&WindowAt10_Message4, &Panel7cc218_RefreshFigures, &ThingPanel_Handler_48d200, &Window_SetTimer, &Window_StartTimer, &Game_CancelAdvisor, &Sign_Swing, &Dialog7ca150_Open, &Things_StepGroup, &Things_StepGroupBack, &ThingPanel_RestartOrClose_48ccf0,
+                                               &ThingGoto_Start, &Panel7cc218_EnterMoveMode, &Object_GetDef, &Panel7cc218_ShowSettings, &Panel7cc218_EnterTileMode, &Panel7cc218_OpenLevelBox, &ThingPanel_SetFlag64_48ce50, reinterpret_cast<u32(__fastcall *)(u8 *, void *, u32)>((uintptr_t)0x004e15b0)};
+const Panel7cc218HandlerEnv *g_handler = &kHandlerGameEnv;
+}  // namespace
+
+void Panel7cc218_SetHandlerEnv(const Panel7cc218HandlerEnv *env) { g_handler = env ? env : &kHandlerGameEnv; }
+
+s32 __cdecl Panel7cc218_Handler(u8 *window, u32 message, u32 a, u32 b) {
+    u8 *const panel = reinterpret_cast<u8 *>((uintptr_t)0x007cc218);
+    u8 *const thing = global<u8 *>(0x007c2658);
+    switch (message) {
+    case 5:
+        g_handler->close(panel);
+        return 1;
+    case 0x10:
+        if (a == 0x80080) g_handler->refresh(panel);
+        break;
+    case 0x14:
+        g_handler->cancel(0x129);
+        g_handler->cancel(0xcf);
+        break;
+    case 0x15:
+        if ((u16)g_handler->setTimer(window, nullptr, 0x80080, 0xfa0)) g_handler->startTimer(window, nullptr, 0x80080);
+        break;
+    case 0x1e:
+        g_handler->swing();
+        break;
+    case 0x800: {
+        g_handler->def(thing);
+        u32 offset = 0, flag = 0;
+        if (a == 0x3e2d) offset = 0x30, flag = 2;
+        else if (a == 0x3e2f) offset = 0x34, flag = 4;
+        else if (a == 0x3e30) offset = 0x2c, flag = 1;
+        if (flag) {
+            at<u32>(panel, offset) = b;
+            vcall<void>(panel, 0x14);
+            g_handler->settings(panel, nullptr, (u8)flag);
+        }
+        break;
+    }
+    case 0x100:
+        switch (a) {
+        case 0xfffffffe:
+        case 0xffffffff:
+            g_handler->close(panel);
+            return 0;
+        case 0x3e26:
+            g_handler->stepBack(panel);
+            break;
+        case 0x3e27:
+            g_handler->stepGroup(panel);
+            break;
+        case 0x3e29:
+            g_handler->open(0, (u32)(uintptr_t)thing);
+            return 0;
+        case 0x3e2a:
+            g_handler->tile(panel, nullptr, 1);
+            return 0;
+        case 0x3e2b:
+            g_handler->goTo(panel);
+            return 0;
+        case 0x3e2c:
+            g_handler->moveMode(panel);
+            return 0;
+        case 0x3e34:
+            g_handler->tile(panel, nullptr, 0);
+            return 0;
+        case 0x3e35:
+            g_handler->levelBox(panel);
+            return 0;
+        case 0x3e36:
+            g_handler->setFlag(panel, nullptr, b == 1 ? 0 : 1);
+            return 0;
+        case 0x3e37:
+            g_handler->thingOp(thing, nullptr, 0);
+            vcall<void>(panel, 0x2c);
+            return 0;
+        case 0x3e38:
+            g_handler->restart(panel, nullptr, b == 1 ? 1 : 0);
+            g_handler->refresh(panel);
+            break;
+        default:
+            break;
+        }
+        break;
+    default:
+        break;
+    }
+    return g_handler->base(window, message, a, b);
 }

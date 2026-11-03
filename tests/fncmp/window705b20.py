@@ -120,6 +120,7 @@ def move_inside(r):
     move = [(r.choice([r.randrange(-40, 40)] * 5 + [0x8000, 0x7fff]) & 0xffff) | (r.getrandbits(16) << 16 if r.random() < 0.3 else 0)
             for _ in range(2)]
     args = [RAM, r.getrandbits(32), bounds[0] | bounds[1] << 16, bounds[2] | bounds[3] << 16] + move + [r.choice([0, 1, 2, 0x100, r.getrandbits(32)])]
+    # (EAX is the rectangle's destructor's: a stack address, which differs between the sides)
     return Call(CALLS['MoveInside'], args, {RAM: rect}, ret='v')
 
 

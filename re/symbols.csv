@@ -243,20 +243,21 @@ address,name,kind,confidence,notes
 0x004dd320,Object_HandleDayMessage,function,high,reimplemented (src/game/world/objectmsg); advances the six history rings at the end of the day
 0x004ddb90,Object_QueueAddPerson,function,high,reimplemented (src/game/world/objectmsg); appends a person to the object's queue
 0x004ddf50,Object_QueuePosition,function,high,reimplemented (src/game/world/objectmsg); a person's place in the object's queue
-0x004da490,Mechanic_PostUpdate,function,medium,Thing_Update case 4 (second call; the first goes through a thunk to 0x505490)
+0x004da490,Mechanic_Step,function,low,"reimplemented (src/game/world/staffthink); a mechanic's state step: name invented, unconfirmed"
 0x004da0c0,Mechanic_HandleMessage,function,high,"reimplemented (src/game/world/staff); kind 4's messages: type 0xa for its object clears +0x218 and sets state 0, then Staff_HandleMessage"
 0x004d7060,Handyman_Update,function,medium,"reimplemented (src/game/world/staffsteps); thiscall; name invented, unconfirmed: Person_TickSpeed; in state 0 on the table's ticks a nearby cell's Handyman_PickWork; Person_KillScript84After of +0x30"
 0x004d7580,Handyman_WalkToLitter,function,low,"reimplemented (src/game/world/staffsteps); thiscall; name invented, unconfirmed: the litter +0x218 not stamped by him, or a walk's end 2 or empty litter: Handyman_PickWork; arrived: placed, state 9"
 0x004d76a0,Handyman_SweepLitter,function,low,"reimplemented (src/game/world/staffsteps); thiscall; name invented, unconfirmed: Staff_TireB; past the time the litter removed (when his own cell's is set) and Handyman_PickWork"
 0x004da740,Mechanic_WalkToObject,function,low,"reimplemented (src/game/world/staffsteps); thiscall; name invented, unconfirmed: the object +0x218 not tracking him or a walk's end 2: Mechanic_PickWork; arrived: state 0xd when it needs work, else Mechanic_PickWork"
 0x004da830,Mechanic_Repair,function,low,"reimplemented (src/game/world/staffsteps); thiscall; name invented, unconfirmed: Staff_TireB; +0x214 counted down; then the repair's end (Object_MechanicDone) and Mechanic_PickWork"
-0x004d73c0,Handyman_PostUpdate,function,medium,Thing_Update case 5 (second call)
+0x004d73c0,Handyman_Step,function,low,"reimplemented (src/game/world/staffthink); a handyman's state step: name invented, unconfirmed"
 0x004d6cf0,Handyman_HandleMessage,function,high,"reimplemented (src/game/world/staff); kind 5's messages: type 0xa for its object clears +0x21a (animation 3 in state 0xb), state 0, then Staff_HandleMessage"
 0x004d4660,Entertainer_Update,function,medium,"reimplemented (src/game/world/staff); thiscall; Thing_Update case 6 (first call): the cell recorded (Sprite_RecordMapId); moved, spread record 0 taken back from the last cell and spread round the new one (Map_SpreadRemove / Map_SpreadAdd on [0x8023a0]); Person_TickSpeed"
-0x004d4810,Entertainer_PostUpdate,function,medium,Thing_Update case 6 (second call)
+0x004d4810,Entertainer_Step,function,low,"reimplemented (src/game/world/staffthink); an entertainer's state step: name invented, unconfirmed"
 0x004d4450,Staff_HandleMessageDefault,function,medium,reimplemented (src/game/world/staff); kinds 6 and 8's messages: Staff_HandleMessage
 0x004d6360,Guard_Update,function,medium,"reimplemented (src/game/world/staff); thiscall; Thing_Update case 7 (first call): the cell recorded (Sprite_RecordMapId); moved, spread record 3 taken back from the last cell and spread round the new one (Map_SpreadRemove / Map_SpreadAdd on [0x8023a0]); Person_TickSpeed"
-0x004d6410,Guard_PostUpdate,function,medium,Thing_Update case 7 (second call)
+0x004d6410,Guard_Step,function,low,"reimplemented (src/game/world/staffthink); a guard's state step: name invented, unconfirmed"
+0x004d63d0,Guard_PickWork,function,low,"reimplemented (src/game/world/staffthink); a guard's next work, patrol or wander: name invented, unconfirmed"
 0x004d5fb0,Guard_HandleMessage,function,high,"reimplemented (src/game/world/staff); kind 7's messages: type 0x1b naming +0x212 clears it, then Staff_HandleMessage"
 0x00502960,Researcher_Update,function,medium,Thing_Update case 8 (first call)
 0x005029f0,Researcher_PostUpdate,function,medium,Thing_Update case 8 (second call)
@@ -898,6 +899,8 @@ address,name,kind,confidence,notes
 0x004c7720,ParkAnalyser_Sample,function,low,reimplemented (src/game/world/analyser); thiscall: the periodic sample pushed onto the analyser rings
 0x004c7520,ParkAnalyser_Count,function,low,"reimplemented (src/game/world/analyser); thiscall (value), pops 4; called by 0x4d0686: the running total +0x21c08 counted up, +0x21c40 raised to the value (signed), message 0x1a (0xb, 1) posted"
 0x004ccb00,ParkAnalyser_FindCutOff,function,low,"reimplemented (src/game/world/analyser); thiscall (&handle, any), pops 8: the first object (flags 4 and 8 of +0x32) whose entrance does not meet the path, not [0x8186ac]'s unless any; its handle to *out"
+0x004c9070,ParkAnalyser_DaysSince21c30,function,low,"reimplemented (src/game/world/analyser); the funny days since the time at +0x21c30: name invented, unconfirmed"
+0x004c90d0,ParkAnalyser_DaysSince21c38,function,low,"reimplemented (src/game/world/analyser); the funny days since the time at +0x21c38: name invented, unconfirmed"
 0x004d0af0,MapHandle_Entry28,function,high,reimplemented (src/game/world/mapcell); thiscall on a u16 handle: gMapCells + 0x10ffd8 + handle * 0x28
 0x004d0b10,MapHandle_Cell44,function,high,reimplemented (src/game/world/mapcell); thiscall on a u16 handle: gMapCells + (handle - 1) * 0x44
 0x004d0a70,MemRanges_Set,function,high,"reimplemented (src/game/world/mapcell); thiscall on 0x7cdb30 (index, a, b, name): entry index = (a, b); name unused (""World Struture"")"
@@ -984,6 +987,8 @@ address,name,kind,confidence,notes
 0x004d2a70,Challenges_OfferNext,function,low,"reimplemented (src/game/world/challenges); thiscall (offer), pops 4: none on or offered: from the one after the current, the first offerable independent challenge made current and announced"
 0x004d2b60,Challenges_OfferFollowup,function,low,"reimplemented (src/game/world/challenges); thiscall, returns AL: the current challenge's follow-up kind: the first offerable challenge of it made current and announced; 1 when announced"
 0x004d1660,Challenge_Met,function,low,"reimplemented (src/game/world/challenges); thiscall (value, flag), pops 8, returns AL: whether a challenge's goal is met, by its kind: the value given or a count of the world's against the target +8"
+0x004d2fb0,Challenges_Won,function,low,"reimplemented (src/game/world/challenges); the current challenge won: the follow-up offered or the prize credited: name invented, unconfirmed"
+0x004d3140,Challenges_Lost,function,low,"reimplemented (src/game/world/challenges); the current challenge lost: attempted again with the thing +0x3dc: name invented, unconfirmed"
 0x004e2650,Thing_MapId,function,high,reimplemented (src/game/world/person); thiscall (&out): the thing's map id ((mY >> 8) * 128 + (mX >> 8) + 1)
 0x004f9460,Sprite_RecordMapId,function,high,"reimplemented (src/game/world/person); thiscall (&out): the old mLastRecordedMapId (+0xcc) out, the current map id recorded"
 0x004fd950,Visitor_TimeInPark,function,high,reimplemented (src/game/world/person); thiscall: (gWorld tick +0x1da70c - mArrivalDate +0x1d4) >> 2
@@ -2504,6 +2509,7 @@ address,name,kind,confidence,notes
 0x0047b280,StdString_Freeze,function,low,reimplemented (src/game/core/stdstring); thiscall: _Freeze
 0x004a9420,StdString_CopyCtor,function,low,"reimplemented (src/game/core/stdstring); thiscall (x), pops 4: basic_string(const basic_string &x): the allocator byte copied, s emptied, then assign(x, 0, npos) inlined (x's length read after the emptying; no max_size check); returns s"
 0x004f1400,StdString_Erase,function,high,"reimplemented (src/game/core/stdstring); thiscall (pos, n), pops 8: std::string::erase(pos, n) out of line: _Xran past the length, _Split, the tail moved down, _Grow(length - n, false) and _Eos inlined; returns s"
+0x004c4a80,StdString_CopyInto,function,low,"reimplemented (src/game/core/stdstring); the copy constructor emitted the other way round: name invented, unconfirmed"
 0x0045b9d0,GlobalMem_Alloc,function,high,"reimplemented (src/game/core/globalmem); GlobalAlloc(GMEM_ZEROINIT or GMEM_FIXED, size) through the import slot; null for 0"
 0x0045ba00,GlobalMem_Free,function,high,reimplemented (src/game/core/globalmem); GlobalFree through the import slot; null for null
 0x0045ba70,GlobalMem_AllocCounted,function,high,reimplemented (src/game/core/globalmem); a zeroed 0x40-byte block with count at +4; null for 0
@@ -5615,6 +5621,7 @@ address,name,kind,confidence,notes
 0x004d5870,ObjectUnlock_AdviseExtraLevel,function,low,"reimplemented (src/game/world/objectunlock); thiscall (group, level), pops 8: as ObjectUnlock_AdviseLevel with the advisor messages 0xe1-0xe3; its chunk 0x4d58f0 included"
 0x004d5270,ObjectUnlock_AdviseScore,function,low,"reimplemented (src/game/world/objectunlock); thiscall (group, level), pops 8: advisor message 0xdc-0xde for the levels 1-3 (b the group), for 4 0xea + the group 0-3 (b -1), then ObjectUnlock_FirstAdvice"
 0x004d4e50,ObjectUnlock_CheckScores,function,low,"reimplemented (src/game/world/objectunlock); the park's four best figures against their limits: over one, marked in the global save and advised"
+0x004d4bc0,ObjectUnlock_CheckThemes,function,low,"reimplemented (src/game/world/objectunlock); the six theme checks: name invented, unconfirmed"
 0x005229e0,QueuePiece_Place,function,low,"reimplemented (src/game/world/queuepieces); a queue piece of the table 0x763388 claimed (Ride_Claim) or created (0x463060 through the env) at x, y with the turn 360 - angle, key 0x33a"
 0x00522a90,QueuePiece_Remove,function,low,"reimplemented (src/game/world/queuepieces); Ride_Destroy (0x463c80, through the env) of the ride"
 0x00522b90,TrackQueuePiece_Place,function,low,"reimplemented (src/game/world/queuepieces); cdecl (x, y, unused, piece, angle, claim): QueuePiece_Place over the table 0x7633e8, the description's last dword 0x8179f8, the position moved by the turn"
@@ -5698,6 +5705,13 @@ address,name,kind,confidence,notes
 0x004d5d40,Guard_Ctor,function,low,"reimplemented (src/game/world/staffctors); thiscall (cell, type, sprite, name), pops 0x10; name invented, unconfirmed: Staff_CtorTyped of kind 7, the name, Guard_Init"
 0x004d5de0,Guard_Init,function,low,"reimplemented (src/game/world/staffctors); thiscall; name invented, unconfirmed: the world's list, a random sprite, the script, the spread record 3 at his cell, the message centre's slot 0x1b, the first state unless 0x506a40 answers"
 0x00546280,TrakRide_PoseCars,function,low,"reimplemented (src/game/world/trakcarpose); cdecl (handle, a); name invented, unconfirmed; 0x5190d1 calls it: a track ride's cars set on the ground: four wheels per car, the floor under each ride's wheels in turn, then each car's models given position and rotation"
+0x004cd500,PatrolCoverage_Percent,function,low,"reimplemented (src/game/world/patrolcoverage); the percent of a class of map cells that a kind of staff patrols: name invented, unconfirmed"
+0x004df670,Object_WearTick,function,low,"reimplemented (src/game/world/objectwear); a ride or shop wearing down on every 0x40th tick: name invented, unconfirmed"
+0x004d93b0,MapCell_StartEffect,function,low,"reimplemented (src/game/world/celleffect); a map cell's sprite effect started, its script by kind: name invented, unconfirmed"
+0x004c8240,RideUpkeep_Total,function,low,"reimplemented (src/game/world/rideupkeep); what the opened rides cost to keep up: name invented, unconfirmed"
+0x004dd500,Object_ClaimRide,function,low,"reimplemented (src/game/world/objectride); the object's record of its ride taken or made again: name invented, unconfirmed"
+0x004d8330,MapSweep_Reset,function,low,"reimplemented (src/game/world/mapsweep); every tile's cell and record reset: name invented, unconfirmed"
+0x004d83a0,MapSweep_Place,function,low,"reimplemented (src/game/world/mapsweep); every tile's cell and record placed: name invented, unconfirmed"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved
@@ -6057,6 +6071,8 @@ address,name,kind,confidence,notes
 0x00671940,TqiVideo_DecodeFrameYuy2,function,low,"reimplemented (src/game/gfx/tqiframe); fastcall (player, value; out, unused, pitch), pops 12; name invented, unconfirmed: the second DCT video's frame in YUY2's layout"
 0x00676e40,DctVideo_DecodeMacroblock,function,low,"reimplemented (src/game/gfx/dctmacroblock); fastcall (reference, out; pitch), pops 4; name invented, unconfirmed: the DCT video's macroblock: six blocks decoded or copied from the last frame"
 0x00589770,SpriteFrame_DrawLightQuads,function,low,"reimplemented (src/game/gfx/spriteframelights); a sprite frame's ground quad for each light (name invented, unconfirmed)"
+0x006777d0,MovieFrame_Allocate,function,low,"reimplemented (src/game/gfx/movieframe); the video library's frame and table buffers made again and the first frame unpacked: name invented, unconfirmed"
+0x00677310,MovieFrame_Decode,function,low,"reimplemented (src/game/gfx/movieframe); one block frame of the video library: name invented, unconfirmed"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"
@@ -6508,6 +6524,7 @@ address,name,kind,confidence,notes
 0x0057c620,SpriteGroups_Draw,function,low,"reimplemented (src/game/render/spritegroups); a frame's camera-facing sprites by group, each a Batch_DrawQuad (name invented, unconfirmed)"
 0x0058a010,TiledPanel_Draw,function,low,"reimplemented (src/game/render/tiledpanel); a panel of tiles on the screen, anchored, each tile a Batch_DrawQuad (name invented, unconfirmed)"
 0x0057be90,GroundShadow_Draw,function,low,"reimplemented (src/game/render/groundshadow); a flat quad laid over the height grid (name invented, unconfirmed)"
+0x004901d0,PasswordPart_SetLayout,function,low,"reimplemented (src/game/render/passwordpart); a password text part's layout: the text as stars: name invented, unconfirmed"
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"
@@ -6994,6 +7011,8 @@ address,name,kind,confidence,notes
 0x0048a290,Panel7b9940_Close,function,low,"reimplemented (src/game/ui/panel7b9940); cdecl: message 5 to the 0x7c26b0 windows, the panel out of the renderer, the GUI manager slot 4, the front-end globals released and two windows sent message 4"
 0x0048a310,Panel7b9940_Show,function,low,"reimplemented (src/game/ui/panel7b9940); cdecl: GUI queues reset, the second base set up, the first base added to the renderer, the GUI manager slot 3 or 4"
 0x0048a6d0,Panel7b9940_SizeAtExit,function,low,"reimplemented (src/game/ui/panel7b9940); cdecl, no arguments: the atexit entry of the screen size 0x48a580 remembers at 0x7b9d00; a bare RET"
+0x0048a520,Panel7b9940_Exit,function,low,"reimplemented (src/game/ui/panel7b9940); the panel left: the menu closed, the window [0x7cb2b0] sent 4, detached: name invented, unconfirmed"
+0x00489f50,Panel7b9940_Open,function,low,"reimplemented (src/game/ui/panel7b9940); the panel opened and its windows made: name invented, unconfirmed"
 0x006588b6,Gui_HashName,function,low,"reimplemented (src/game/ui/windowreg); cdecl (text, multiplier): h = (signed char ^ h) * multiplier over the characters; returns h"
 0x00659bc9,GuiWindows_FindByName,function,low,"reimplemented (src/game/ui/windowreg); cdecl (name): the first node with the name's hash (0x2f): its window's slot 0x20, else 0"
 0x00659c42,GuiWindows_FindByHash,function,low,"reimplemented (src/game/ui/windowreg); cdecl (hash): the first node with the hash: its window's slot 0x20, else 0"
@@ -7141,6 +7160,7 @@ address,name,kind,confidence,notes
 0x004a3960,Dialog7cb2fc_SetToggle,function,low,"reimplemented (src/game/ui/dialog7cb2fc); cdecl (row, label, on, other, select, button): row's child 0x1d4c9 slot 9 the label + on/off text (wcsncpy 31 to the stack, wcscat into 0x7ba058); select: button state !on"
 0x004a43b0,Dialog7cb2fc_DressRow,function,low,"reimplemented (src/game/ui/dialog7cb2fc); cdecl (row): the dialog [0x7cb2fc]'s child row's child 0x1d4c9 given a text part, 0, 0, 0, 0xff as 0x40000, the font of [0x7537b4] and the text 0"
 0x004a4490,Dialog7cb2fc_DressSlider,function,low,"reimplemented (src/game/ui/dialog7cb2fc); cdecl (row, value): as Dialog7cb2fc_DressRow, then the row's range 0-100 (Window705b20_SetRange) and its slot 7 given the value"
+0x004a33e0,Dialog7cb2fc_SetValueRow,function,low,"reimplemented (src/game/ui/dialog7cb2fc); a row of the dialog [0x7cb2fc]: its label with the value and its slot 7: name invented, unconfirmed"
 0x0066b47d,Window705b20_SetRange,function,low,"reimplemented (src/game/ui/window705b20); thiscall (from, to): unless both are the range already, the step +0x144 turned toward to, +0x13c = from, +0x138 = to"
 0x0047ee90,Dialog_BaseHandler,function,low,"reimplemented (src/game/ui/dialogbase); cdecl (window, message, a, b): on 0x14 the parent (+0x60) posted 4 and the focus given back; then the default handler; name unconfirmed"
 0x0047ed80,Dialog_Create,function,low,"reimplemented (src/game/ui/dialogbase); cdecl (script, handler, shaded): a kind 1 frame under the GUI root [0xfaa5d8], the script built in it (WindowScript_Build); its depth the top one (shaded: of the GUI, the frame given the ""lolight"" implementation; else over the built window's inner rectangle) + 1, the handler and the focus to the built window, which is returned (0 when none)"
@@ -7327,6 +7347,9 @@ address,name,kind,confidence,notes
 0x00635c20,deflate_fast,function,high,"reimplemented (src/game/lib/zlib); zlib 1.1.3 deflate.c, the library's own (third_party/zlib-1.1.3)"
 0x00636100,deflate_slow,function,high,"reimplemented (src/game/lib/zlib); zlib 1.1.3 deflate.c, the library's own (third_party/zlib-1.1.3)"
 0x004bb690,Dialog7cc61c_Handler,function,low,"reimplemented (src/game/ui/dialog7cc61c); cdecl (window, message, a, b): 0x14 clears 0x7cc61c, sends (6, 1, 0) to [0xf82884]+4 and restores the focus; 0x15 sends (6, 0, 0); 0x100 with a = -1 sends (4, 0, 0) to [0x7cc61c] and returns 0; else Dialog_BaseHandler"
+0x004bb460,Dialog7cc61c_FitText,function,low,"reimplemented (src/game/ui/dialog7cc61c); cdecl; name invented, unconfirmed: the window [0x7cc61c]'s text fitted into its panel, the scroll bar shown or hidden; see the header"
+0x004bb800,Dialog7cc61c_Open,function,low,"reimplemented (src/game/ui/dialog7cc61c); the window [0x7cc61c] made from its script: name invented, unconfirmed"
+0x004bb720,Dialog7cc61c_PanelHandler,function,low,"reimplemented (src/game/ui/dialog7cc61c); the panel's handler of the window [0x7cc61c]: name invented, unconfirmed"
 0x0065a9f0,GuiShape_DeletingDtor,function,low,"reimplemented (src/game/ui/guishape); thiscall (flags): the GUI shape base's scalar deleting destructor (Fn_66bff7, Mem_Free on bit 0)"
 0x0066c01a,GuiCircle_Ctor,function,low,"reimplemented (src/game/ui/guishape); thiscall: the circle (vtable 0x705b50), x, y, radius 0"
 0x0066c054,GuiCircle_CtorWith,function,low,"reimplemented (src/game/ui/guishape); thiscall (x, y, radius: words): the circle (vtable 0x705b50)"
@@ -7478,6 +7501,8 @@ address,name,kind,confidence,notes
 0x004ade40,Panel7cc218_RefreshFigures,function,low,"reimplemented (src/game/ui/panel7cc218); thiscall; name invented, unconfirmed: the panel's figures for the thing [0x7c2658]: buffer sum, age, ratings, refund; the status followed and the level list filled"
 0x004ae430,Panel7cc218_LevelBoxHandler,function,low,"reimplemented (src/game/ui/panel7cc218); cdecl (window, message, a, b); name invented, unconfirmed: the level box's handler"
 0x004ae560,Panel7cc218_OpenLevelBox,function,low,"reimplemented (src/game/ui/panel7cc218); thiscall; name invented, unconfirmed: the level box opened on +0x10 into +0x24"
+0x004ae940,Panel7cc218_Refresh,function,low,"reimplemented (src/game/ui/panel7cc218); the name, slots 6 and 5, the ride shown, the buttons: name invented, unconfirmed"
+0x004af600,Panel7cc218_Handler,function,low,"reimplemented (src/game/ui/panel7cc218); the handler of the thing panel [0x7cc218]: name invented, unconfirmed"
 0x004afc10,Panel7cc258_Dress,function,low,"reimplemented (src/game/ui/panel7cc258); thiscall; slot 3 of the vtable 0x6ffc68 (the panel at 0x7cc258): with the window +0x14 set, its children 0xc070-0xc07d dressed (ui/panelparts: seven texts 0x20-0x26, one with none, four 0x6ff3b0 parts, a ridestatbar and a happygrad bar)"
 0x004afaa0,Panel7cc258_DressTip,function,low,"reimplemented (src/game/ui/panel7cc258); thiscall: slot 4 of the vtable 0x6ffc68: the window +0x1c dressed as panelparts::tip (raised by 0xb, hidden, a text part, font 8, no text)"
 0x004b0640,Panel7cc258_Open,function,low,"reimplemented (src/game/ui/panel7cc258); thiscall: slot 0 of the vtable 0x6ffc68, the panel's window +0x10's children set up"
@@ -7550,6 +7575,7 @@ address,name,kind,confidence,notes
 0x0049f460,Dialog7cb25c_PayOffLoan,function,low,"reimplemented (src/game/ui/dialog7cb25c); cdecl (index): the confirmation callback pushed at 0x49f646: Money_PayOffLoan(index) on the world's money record (the table 0x7cfb90's entry for [0x7cf83c]'s word +0x1da726), then Dialog7cb25c_FillList on the dialog [0x7cb25c]'s child 0x12c4bd; 1"
 0x0049f4a0,Dialog7cb25c_TakeLoan,function,low,"reimplemented (src/game/ui/dialog7cb25c); cdecl (index): the confirmation callback pushed at 0x49f789: Money_TakeLoan(index) on the world's money record (the table 0x7cfb90's entry for [0x7cf83c]'s word +0x1da726), then Dialog7cb25c_FillList on the dialog [0x7cb25c]'s child 0x12c4bd; 1"
 0x0049fb30,Dialog7cb25c_Open,function,low,"reimplemented (src/game/ui/dialog7cb25c); cdecl; name invented, unconfirmed: the loans dialog [0x7cb25c] opened: its figures, list, buttons and group; see the header"
+0x0049f4e0,Dialog7cb25c_Handler,function,low,"reimplemented (src/game/ui/dialog7cb25c); the loans dialog's handler: name invented, unconfirmed"
 0x004b7b00,Dialog7cc444_Create,function,low,"reimplemented (src/game/ui/dialog7cc444); the window [0x7cc444] built on [0x7cb2ac] from the script 0x7579c8 and made the [0x7c24c8] one, its hover label and panel dressed, the analyser CircBufU32s 0, 1, 2, 5, 15 newest and 12-back samples as figures"
 0x004bb070,Dialog7cc5f4_Create,function,low,"reimplemented (src/game/ui/dialog7cc5f4); the two-field entry dialog of the script 0x7585a8 (handler 0x4bb030) made [0x7cc5f4], [0x7cc5fc] = owner; fields 0x49 / 0x4b on 0x7cc590 / 0x7cc548 (0x10 bytes), labels 0xed / 0xee, 0x4d's text 0xec, yellow"
 0x004ba200,Dialog7cc5f4_CreateFrom,function,low,"reimplemented (src/game/ui/dialog7cc5f4); as Dialog7cc5f4_Create with the script 0x7583e8 (handler 0x4b9d00), not kept; the fields 0x20 bytes, their texts data + 0x234 / + 0x436, labels 0xea / 0xeb, 0x4d's 0xe9; the dialog's dword 0 +0xa0 = value, KeyMaps_ResetAllAndSetFlag"
@@ -7616,6 +7642,10 @@ address,name,kind,confidence,notes
 0x004bc100,Dialog7cc654_FitText,function,low,reimplemented (src/game/ui/dialog7cc654); the text window of [0x7cc654] fitted to its text: the bar 0xee3 shown with the excess as its range or hidden; the text window given the buffer when the bar answers 0
 0x0048adb0,Dialog74fb20_Open,function,low,"reimplemented (src/game/ui/dialog74fb20); the dialog of the script 0x74fb20 built in the overlay, placed and the overlay focused"
 0x0048a740,Dialog74fb20_Handler,function,low,reimplemented (src/game/ui/dialog74fb20); that dialog's handler: closed and built anew by a click after 2 seconds or Escape
+0x0048ac40,Dialog74fb20_OpenFor,function,low,"reimplemented (src/game/ui/dialog74fb20); the dialog 0x74fb20 for a thing, the bars hidden: name invented, unconfirmed"
+0x0048ae70,Dialog74faf0_OpenFor,function,low,"reimplemented (src/game/ui/dialog74fb20); the dialog 0x74faf0 for a thing, the bars hidden: name invented, unconfirmed"
+0x0048a970,Dialog74faf0_Handler,function,low,"reimplemented (src/game/ui/dialog74fb20); the dialog 0x74faf0's host's handler: name invented, unconfirmed"
+0x0048aff0,CameraMode_Leave,function,low,"reimplemented (src/game/ui/dialog74fb20); the walk or follow camera left: name invented, unconfirmed"
 0x004a84c0,TextPanel7cc18c_Show,function,low,reimplemented (src/game/ui/textpanel7cc18c); the text [0x7cbf48] drawn on the panel [0x7cc18c] and shrunk into the window's image by the mode [0x8bd554]
 0x00492f60,Panel7c2534_AddRow,function,low,"reimplemented (src/game/ui/panel7c2534); a text row: the text measured, a child centred across the parent from top down, dressed with a text part, the font, the text and the colour; returns top + height"
 0x004c4670,Dialog7cdac4_Open,function,low,"reimplemented (src/game/ui/dialog7cdac4); the dialog of the script 0x7595b0 opened with its two edit boxes on 0x7cd850 and 0x7cd480, the first's text the theme's label, and the scene queue given 0x250"
@@ -7630,6 +7660,7 @@ address,name,kind,confidence,notes
 0x004b2750,Dialog7cc2ec_Open,function,low,"reimplemented (src/game/ui/dialog7cc2ec); cdecl; name invented, unconfirmed: the dialog [0x7cc2ec] opened: five bars, the figures; see the header"
 0x00486410,Sign_PlaceOverRect,function,low,"reimplemented (src/game/ui/signrect); cdecl (rect, type, row); name invented, unconfirmed: the sign [0x7b9f4c] destroyed and made anew over the window rectangle (its words +4 to +0xa on a frame 0x800 by 0x600 about its centre); answers nothing"
 0x004864f0,Sign_Swing,function,low,"reimplemented (src/game/ui/signrect); cdecl; name invented, unconfirmed: RideObject_Swing of the sign [0x7b9f4c], if any"
+0x00486510,Sign_Destroy,function,low,"reimplemented (src/game/ui/signrect); the sign [0x7b9f4c] destroyed, the global cleared: name invented, unconfirmed"
 0x004816e0,Wrap_Dialog7cc1f8_Open_4816e0,function,low,"reimplemented (src/game/ui/menuactions); cdecl; Dialog7cc1f8_Open (-1, 0)"
 0x00481700,Wrap_Dialog7ca308_Open_481700,function,low,reimplemented (src/game/ui/menuactions); cdecl; Dialog7ca308_Open (-1)
 0x00481710,Wrap_Dialog7cb398_Create_481710,function,low,reimplemented (src/game/ui/menuactions); cdecl; Dialog7cb398_Create
@@ -7669,6 +7700,7 @@ address,name,kind,confidence,notes
 0x004bff70,Dialog7cc944_Open,function,low,"reimplemented (src/game/ui/dialog7cc944); cdecl (value); name invented, unconfirmed: the online game's list dialog opened; see the header"
 0x004c2110,Dialog7cca70_Open,function,low,"reimplemented (src/game/ui/dialog7cca70); cdecl (value); name invented, unconfirmed: the dialog [0x7cca70] (script 0x7593e8, handler 0x4c1a10), the list 0x14beb, 0x5bcd10 through its env, the hover label"
 0x004a7a80,Dialog7cc188_FillList,function,low,"reimplemented (src/game/ui/dialog7cc188); cdecl (clear); name invented, unconfirmed: the list child 0x26 of [0x7cc188], the strings of 0x48bcd0's object +0x100 (through its env) and, in mode 1 with the session's name set, the text 0x121"
+0x004a8140,Dialog7cc188_Open,function,low,"reimplemented (src/game/ui/dialog7cc188); cdecl; name invented, unconfirmed: the dialog [0x7cc188] built and opened"
 0x004ab1b0,Dialog7cc1f8_ShowPreview,function,low,"reimplemented (src/game/ui/dialog7cc1f8preview); cdecl (id); name invented, unconfirmed: the preview of the dialog [0x7cc1f8]: the sign, the thing's footprint boxes on the child 0x1eb, its name on 0x1ec, or the texts 0x89, 0x86, 0x87"
 0x00497060,ThingSign_Show497060,function,low,"reimplemented (src/game/ui/thingsign); thiscall; name invented, unconfirmed: the shown thing's sign over the panel's window, the row its depth + 1"
 0x004997f0,ThingSign_Show4997f0,function,low,"reimplemented (src/game/ui/thingsign); thiscall; name invented, unconfirmed: the shown thing's sign over the panel's window, the row its depth + 10"
@@ -7684,11 +7716,45 @@ address,name,kind,confidence,notes
 0x004ba850,DialupList_Fill,function,low,"reimplemented (src/game/ui/dialuplist); cdecl (shown); name invented, unconfirmed: the online dialog's list of dial-up connections, or the words of the texts 0xe6, 0xe7"
 0x004b72a0,Panel7cc408_ShowVisitor,function,low,"reimplemented (src/game/ui/panel7cc408info); thiscall; slot 5 of the vtable 0x6fff40; name invented, unconfirmed: the people panel's facts about the shown visitor"
 0x004b9340,Dialog7cc4b4_Update,function,low,"reimplemented (src/game/ui/dialog7cc4b4update); cdecl; name invented, unconfirmed: the dialog [0x7cc4b4] brought up to date with the park's theme and the save's levels; see the header"
+0x004b90f0,Dialog7cc4b4_ShowTheme,function,low,"reimplemented (src/game/ui/dialog7cc4b4update); the dialog [0x7cc4b4] shows the park's theme: name invented, unconfirmed"
 0x004a1d70,Dialog7cb2b8_Build,function,low,"reimplemented (src/game/ui/dialog7cb2b8build); cdecl; name invented, unconfirmed: the main bar's windows built once from the script at 0x752940; see the header"
 0x004ba980,Dialog7cc530_Open,function,low,"reimplemented (src/game/ui/dialog7cc530open); cdecl (value); name invented, unconfirmed: the online dialog's dial-up page built; see the header"
 0x004c53f0,ViewButtons_Handler,function,low,"reimplemented (src/game/ui/viewbuttons); cdecl (window, message, a, b); name invented, unconfirmed: the view controls dialog's handler; see the header"
 0x004b0b30,Panel7cc258_Handler,function,low,"reimplemented (src/game/ui/thingpanelhandlers); cdecl (window, message, a, b); name invented, unconfirmed: the thing panel [0x7cc258]'s handler; see the header"
 0x004b2150,Panel7cc298_Handler,function,low,"reimplemented (src/game/ui/thingpanelhandlers); cdecl (window, message, a, b); name invented, unconfirmed: the thing panel [0x7cc298]'s handler; see the header"
+0x00497640,Panel7ca178_Handler,function,low,"reimplemented (src/game/ui/thingpanelhandlers); cdecl (window, message, a, b); name invented, unconfirmed: the panel 0x7ca178's handler"
+0x004b7720,Panel7cc408_Handler,function,low,"reimplemented (src/game/ui/thingpanelhandlers); cdecl (window, message, a, b); name invented, unconfirmed: the panel 0x7cc408's handler"
+0x004b67f0,Panel7cc3e0_Handler,function,low,"reimplemented (src/game/ui/thingpanelhandlers); cdecl (window, message, a, b); name invented, unconfirmed: the panel 0x7cc3e0's handler"
+0x004b86a0,Dialog7cc47c_Handler,function,low,"reimplemented (src/game/ui/gamepartdialogs); handler of the dialog 0x7cc47c: name invented, unconfirmed"
+0x004b8b70,Dialog7cc4b4_Handler,function,low,"reimplemented (src/game/ui/gamepartdialogs); handler of the dialog 0x7cc4b4: name invented, unconfirmed"
+0x004a8c00,Dialog7cc184_Open,function,low,"reimplemented (src/game/ui/dialog7cc184); the dialog [0x7cc184] made from its script, its edits and picture dressed: name invented, unconfirmed"
+0x0048d370,SignNameDialog_Open,function,low,"reimplemented (src/game/ui/signnamedialog); the name dialog of the thing: name invented, unconfirmed"
+0x004990f0,SignNameDialog7ca214_Open,function,low,"reimplemented (src/game/ui/signnamedialog); the name dialog [0x7ca214]: name invented, unconfirmed"
+0x0048d640,SignNameDialog_Handler,function,low,"reimplemented (src/game/ui/signnamedialog); the name dialog's handler: name invented, unconfirmed"
+0x004993e0,SignNameDialog7ca214_Handler,function,low,"reimplemented (src/game/ui/signnamedialog); the name dialog [0x7ca214]'s handler: name invented, unconfirmed"
+0x004a0fb0,Window7cb2a4_Handler,function,low,"reimplemented (src/game/ui/window7cb2a4); the handler of the counts' window [0x7cb2a4]: name invented, unconfirmed"
+0x004c0880,Dialog7cc984_Handler,function,low,"reimplemented (src/game/ui/dialog7cc984); the handler of the dialog [0x7cc984], a park published: name invented, unconfirmed"
+0x00486d90,MouseHelp_Update,function,low,"reimplemented (src/game/ui/mousehelp); the help line and the cursor for what is under the mouse, by the mouse mode: name invented, unconfirmed"
+0x004abb00,Dialog7cc1f8_ShowFigures,function,low,"reimplemented (src/game/ui/dialog7cc1f8stats); the figures of an object on the dialog [0x7cc1f8]: name invented, unconfirmed"
+0x004baf10,Dialog7cc5f4_Message,function,low,"reimplemented (src/game/ui/dialog7cc5f4handler); the messages of the dialog [0x7cc5f4]: name invented, unconfirmed"
+0x004bb030,Dialog7cc5f4_Handler,function,low,"reimplemented (src/game/ui/dialog7cc5f4handler); the dialog [0x7cc5f4]'s window handler: name invented, unconfirmed"
+0x004a2680,Window7cb2cc_Handler,function,low,"reimplemented (src/game/ui/window7cb2cc); the window [0x7cb2cc]'s handler: its key map: name invented, unconfirmed"
+0x004be290,Window7cc8bc_ListHandler,function,low,"reimplemented (src/game/ui/window7cc8bcmenu); the list of the window [0x7cc8bc]: its menu placed at the mouse: name invented, unconfirmed"
+0x004a0840,Dialog7cb2b8_TabsHandler,function,low,"reimplemented (src/game/ui/dialog7cb2b8tabs); the tab buttons of the dialog [0x7cb2b8]: name invented, unconfirmed"
+0x004b8fd0,Dialog7cc4b4_Sparkle,function,low,"reimplemented (src/game/ui/dialog7cc4b4sparkle); a sparkle and a sound at the dialog's child 0x1e0ea: name invented, unconfirmed"
+0x004c0830,QuitConfirm_Answered,function,low,"reimplemented (src/game/ui/quitconfirm); the quit question answered: name invented, unconfirmed"
+0x00480ec0,ImeHost_Attach,function,low,"reimplemented (src/game/ui/imehostattach); the IME host opened for the window: name invented, unconfirmed"
+0x00480f50,ImeHost_Detach,function,low,"reimplemented (src/game/ui/imehostattach); the IME host closed: name invented, unconfirmed"
+0x00492070,TextRecordPart_Refresh,function,low,"reimplemented (src/game/ui/textrecordpart); a text part's text fetched from its record again: name invented, unconfirmed"
+0x0065ae3e,Window705950_InsertSorted,function,low,"reimplemented (src/game/ui/window705950nodes); a node put under the row n of the list window, in order by flags 0x10 and 0x20, else last: name invented, unconfirmed"
+0x0065b20b,Window705950_InsertAt,function,low,"reimplemented (src/game/ui/window705950nodes); a node put at a position under the row n of the list window: name invented, unconfirmed"
+0x0065b486,Window705950_RemoveNode,function,low,"reimplemented (src/game/ui/window705950nodes); the row n of the list window and what is under it freed: name invented, unconfirmed"
+0x0065b66a,Window705950_FreeNodes,function,low,"reimplemented (src/game/ui/window705950nodes); a chain of nodes and what is under them freed, the answer their count: name invented, unconfirmed"
+0x0065b6d6,Window705950_Clear,function,low,"reimplemented (src/game/ui/window705950nodes); all the nodes of the list window freed: name invented, unconfirmed"
+0x0065b79c,Window705950_SetNodeText,function,low,"reimplemented (src/game/ui/window705950nodes); the text of the row n of the list window: name invented, unconfirmed"
+0x0065b7db,Window705950_GetNodeText,function,low,"reimplemented (src/game/ui/window705950nodes); the text of the row n of the list window copied out: name invented, unconfirmed"
+0x004b5cb0,Panel7cc3b0_Handler,function,low,"reimplemented (src/game/ui/panel7cc3b0handler); the window handler of the panel at 0x7cc3b0: name invented, unconfirmed"
+0x004b6070,Panel7cc3b0_DismissAnswer,function,low,"reimplemented (src/game/ui/panel7cc3b0handler); the panel's box answer: Staff_Dismiss, answer 1: name invented, unconfirmed"
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"

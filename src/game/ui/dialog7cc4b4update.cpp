@@ -21,7 +21,7 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 s32 __cdecl Swprintf(u16 *to, const u16 *format, s32 value) { return Crt().swprintf(to, format, value); }
 
-const Dialog7cc4b4UpdateEnv kGameEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0), &GlobalSave_Construct, reinterpret_cast<u8 *(__fastcall *)(u8 *, void *, const String *)>((uintptr_t)0x005b09c0), &GlobalSave_Instance, &GlobalSave_CountSetLevel, &ThemeRecord_GlobalSamField14, &Window_SetShown, &Window_Notify1, &Window_GetRect, &Particle_Spawn, &ParticleSystem_End, &Swprintf, &Dialog7cc4b4_SetFlag};
+const Dialog7cc4b4UpdateEnv kGameEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0), &GlobalSave_Construct, reinterpret_cast<u8 *(__fastcall *)(u8 *, void *, const String *)>((uintptr_t)0x005b09c0), &GlobalSave_Instance, &GlobalSave_CountSetLevel, &ThemeRecord_GlobalSamField14, &Window_SetShown, &Window_Notify1, &Window_GetRect, &Particle_Spawn, &ParticleSystem_End, &Swprintf, &Dialog7cc4b4_SetFlag, reinterpret_cast<void(__fastcall *)(u8 *, void *, u16 *, u32)>((uintptr_t)0x005b12e0)};
 const Dialog7cc4b4UpdateEnv *g_env = &kGameEnv;
 
 u8 *&dialog() { return global<u8 *>(0x007cc4b4); }
@@ -54,17 +54,9 @@ void showFour(u32 shown) {
     g_env->setShown(child(0x1e0ec), nullptr, shown);
 }
 
-void themePart(u8 *theme, u8 *panel) {
-    if (mode2()) {
-        g_env->setShown(panel, nullptr, 0);
-        if (dialog()) showFour(0);
-        return;
-    }
-    g_env->setShown(panel, nullptr, 1);
-    if (dialog()) showFour(1);
-    info();
-    const s32 need = g_env->field14(theme);
-    if (g_env->countLevels(global<u8 *>(0x00f7c58c)) >= need) {
+// The panel's figures: reached the theme's level, the effect up; else the effect ended.
+void figures(u8 *theme, u8 *panel, bool reached) {
+    if (reached) {
         g_env->notify1(panel, nullptr, 0);
         const u32 value = g_env->field14(theme) - 1;
         g_env->notify1(Window_FindChild(panel, nullptr, 0x1e0eb), nullptr, value);
@@ -84,6 +76,19 @@ void themePart(u8 *theme, u8 *panel) {
             global<u32>(0x007cc4bc) = 0;
         }
     }
+}
+
+void themePart(u8 *theme, u8 *panel) {
+    if (mode2()) {
+        g_env->setShown(panel, nullptr, 0);
+        if (dialog()) showFour(0);
+        return;
+    }
+    g_env->setShown(panel, nullptr, 1);
+    if (dialog()) showFour(1);
+    info();
+    const s32 need = g_env->field14(theme);
+    figures(theme, panel, g_env->countLevels(global<u8 *>(0x00f7c58c)) >= need);
 }
 
 }  // namespace
@@ -114,4 +119,26 @@ void __cdecl Dialog7cc4b4_Update() {
         g_env->setShown(second, nullptr, 0);
     }
     global<s32>(0x007cc4b8) = g_env->countLevels(g_env->instance());
+}
+
+void __cdecl Dialog7cc4b4_ShowTheme() {
+    if (!dialog()) return;
+    const u8 *const part = at<const u8 *>(at<const u8 *>(global<const u8 *>(0x00f85614), 4), 0xc);
+    u32 text = at<u32>(part, 0x50);
+    String name;
+    String_CtorStr(&name, nullptr, at<const char *>(part, 0x30));
+    u8 *const theme = g_env->findTheme(info(), nullptr, &name);
+    String_Dtor(&name);
+    u8 *const panel = child(0x1e0ea);
+    if (theme) {
+        if (mode2()) {
+            g_env->setShown(panel, nullptr, 0);
+        } else {
+            const s32 need = g_env->field14(theme);
+            figures(theme, panel, global<s32>(0x007cc4b8) >= need);
+        }
+        g_env->copyName(theme, nullptr, reinterpret_cast<u16 *>((uintptr_t)0x007ba058), 0x3fff);
+        text = 0x007ba058;
+    }
+    vcall<void>(child(0x1e0ef), 0x24, text);
 }

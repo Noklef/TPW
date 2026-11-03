@@ -19,7 +19,7 @@ from fncmp import IMPORT_TABLE as IAT, LOG, Bench, Call, RAM, fill, import_table
 
 RANGES = [(0x4f7e80, 0x4f7f2d), (0x4f8690, 0x4f8730), (0x4f8730, 0x4f8769), (0x4f8800, 0x4f88a6), (0x4f88b0, 0x4f88f6), (0x4dd670, 0x4dd6c3), (0x505b70, 0x505bc6),
           (0x5fc530, 0x5fc550), (0x5fc550, 0x5fc570), (0x5fc5c0, 0x5fc65e), (0x5fc660, 0x5fc733), (0x67c320, 0x67c3ca), (0x67c7f0, 0x67c824),
-          (0x4c7680, 0x4c76c2), (0x4c76d0, 0x4c7712), (0x4c7600, 0x4c7675)]
+          (0x4c7680, 0x4c76c2), (0x4c76d0, 0x4c7712), (0x4c7600, 0x4c7675), (0x4c9070, 0x4c90c6), (0x4c90d0, 0x4c9126)]
 WORLD_RANGES = [(0x515540, 0x515660), (0x507800, 0x507840), (0x4cf030, 0x4cf050), (0x401000, 0x401030), (0x4d8da0, 0x4d8dd0), (0x50c1d0, 0x50c1f0),
                 (0x502460, 0x502470), (0x4d0a90, 0x4d0ac0), (0x4d0ac0, 0x4d0af0), (0x51ad30, 0x51ad40),
                 (0x67acf0, 0x67ada0), (0x507080, 0x5070a0)]
@@ -84,7 +84,7 @@ def case(r):
         put(ring, 0xcc, 'i', size)
         regions[RING] = ring
         return Call(0x4c7600, [RING - 0x21604, u32(r)], regions, conv='t')
-    if op in ('ObjectDays', 'StaffDays', 'Stamp'):   # (the world's own clock: the world at CLOCK - 0x2a0, its ticks moved to match)
+    if op in ('ObjectDays', 'StaffDays', 'AnalyserDays', 'Stamp'):   # (the world's own clock: the world at CLOCK - 0x2a0, its ticks moved to match)
         world = CLOCK - 0x2a0
         regions[0x80239c] = struct.pack('<I', world)
         regions[world + 0x1da70c] = regions.pop(TICKS)
@@ -96,10 +96,10 @@ def case(r):
         now = struct.unpack_from('<Q', clock)[0] + seconds * 10000000
         age = r.choice([0, 1, DAY - 1, DAY, DAY + 1, 30 * DAY, 31 * DAY - 1, r.randrange(1000) * DAY + r.choice([-1, 0, 1]), -DAY, -DAY - 1,
                         r.getrandbits(64), r.randrange(1 << 63), DAY << 31, (DAY << 32) + DAY])
-        address, date = (0x4dd670, 0x18) if op == 'ObjectDays' else (0x505b70, 0x1f0)   # (the object or staff member at OUT)
+        address, date = {'ObjectDays': (0x4dd670, 0x18), 'StaffDays': (0x505b70, 0x1f0), 'AnalyserDays': r.choice([(0x4c9070, 0x21c30), (0x4c90d0, 0x21c38)])}[op]   # (the object, staff member or analyser at OUT; the analyser's date at OUT itself)
         regions[OUT] = bytearray(r.bytes(0x200))
-        put(regions[OUT], date, 'Q', (now - age) % 2 ** 64)
-        return Call(address, [OUT], regions, conv='t', ret='a')
+        put(regions[OUT], 0 if op == 'AnalyserDays' else date, 'Q', (now - age) % 2 ** 64)
+        return Call(address, [OUT - date if op == 'AnalyserDays' else OUT], regions, conv='t', ret='a')
     if op == 'SpanOf':
         return Call(0x4f8730, [CLOCK, OUT + 0x20, u32(r)], regions, conv='t', ret='a')
     if op == 'Elapsed':
@@ -112,7 +112,7 @@ def case(r):
     return Call(0x4f8690, [CLOCK, OUT + 0x20] + outs, regions, conv='t', ret='a')
 
 
-KINDS = ['Init', 'Now', 'Now', 'SpanOf', 'Elapsed', 'SpanSince', 'ObjectDays', 'StaffDays', 'Stamp', 'World', 'DayRing']
+KINDS = ['Init', 'Now', 'Now', 'SpanOf', 'Elapsed', 'SpanSince', 'ObjectDays', 'StaffDays', 'AnalyserDays', 'Stamp', 'World', 'DayRing']
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 if __name__ == '__main__':

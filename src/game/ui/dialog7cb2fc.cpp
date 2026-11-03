@@ -43,6 +43,18 @@ void __cdecl Dialog7cb2fc_SetToggle(u32 row, u32 label, u8 on, u8 other, u8 sele
         Window705a50_SetState(Window_FindChild(dialog(), nullptr, button), nullptr, on ? 0 : 1, 1);
 }
 
+void __cdecl Dialog7cb2fc_SetValueRow(u32 id, u32 label, s32 value) {
+    u8 *const row = Window_FindChild(dialog(), nullptr, id);
+    u16 state[10];
+    if (value < 0) Crt().swprintf(state, reinterpret_cast<const u16 *>((uintptr_t)0x007537c8), Language_WideText(0x14e));
+    else Crt().swprintf(state, reinterpret_cast<const u16 *>((uintptr_t)0x007537b8), value);
+    Language_WideText(label);
+    u16 *const text = reinterpret_cast<u16 *>((uintptr_t)0x007ba058);
+    Crt().wcscat(text, state);
+    vcall<void>(Window_FindChild(row, nullptr, 0x1d4c9), 0x24, text);
+    if (value >= 0) vcall<void>(row, 0x1c, value);
+}
+
 void __cdecl Dialog7cb2fc_DressRow(u32 row) { dressRow(row); }
 
 void __cdecl Dialog7cb2fc_DressSlider(u32 id, u32 value) {
