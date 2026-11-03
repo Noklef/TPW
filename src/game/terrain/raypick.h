@@ -14,6 +14,8 @@ struct RayPickEnv {
     u32(__cdecl *carValue)(const u8 *train, u32 n);                 // Train_CarValue 0x4477d0
     void(__cdecl *updateNormals)(u8 *model);                        // Model_UpdateNormals 0x473c30
     u32(__cdecl *node)(u8 *node, RayPickMatrix m);                  // RayPick_Node 0x45d090
+    u8 *(__cdecl *column)(s32 x, s32 y, u32 alongX, float atX, float atY, float atZ, float drop, const float *direction, const float *origin, float step);   // RayPick_Column 0x45cdc0
+    void(__cdecl *setTarget)(u8 *holder);                           // Highlight_SetTarget 0x469340
 };
 void RayPick_SetEnv(const RayPickEnv *env);
 
@@ -35,4 +37,14 @@ u32 __cdecl RayPick_Node(u8 *node, RayPickMatrix m);
 // A hit: the point copied to 0x7a1cb8, the normal to 0x7a1ca0, that ride returned. The first ride's holder comes from the slot, each car's from the table 0x7a4610.
 // sic: atZ is only read as a place, the unused of step's sign; a ride's holder of null faults at its +8.
 u8 *__cdecl RayPick_Column(s32 x, s32 y, u32 alongX, float atX, float atY, float atZ, float drop, const float *direction, const float *origin, float step);
+
+// 0x45bf90 (cdecl (out, unused, out2, hitFlag); name invented, unconfirmed): the ray from the camera (0x790aa0) through the mouse (0x790ac8 over the half screen 0x7a0c9c, 0x7a162c; the camera's matrix
+// 0x790990, its view angle from 0x74c9b8 * 0x74d13c, the sine table 0x7b0968) against the ground and what stands on it. With a grid ([0x7a0854] with flag 2 at +0x30, its +0x6c), the cells between the
+// ray's heights at the grid's two limits (+0x24, +0x20) whose edges it crosses in plan and in height give two triangles each, cut by the cell's flag 2; the nearest one hit gives the ground point.
+// Then RayPick_Column in steps of 10 along x or z, whichever the ray is longest in, from the camera down to a step short of the ground point (or to height 0), and again where a step crosses a
+// row of cells, sideways. [0x7a1cd4] takes what it found, or 0, and Highlight_SetTarget is told. hitFlag (unless null) is whether the ground was hit; out (unless null, then out2 too) takes the point
+// on what was found when it is nearer than the ground point or there is none; else the ground's; else stays.
+// sic: without a grid no column is asked and [0x7a1cd4] stays; the cell's flags are indexed by rows of nx where the heights take nx + 1; the triangle's z limits use the cell's x size +0x10; a ray
+// not coming down with no ground hit never ends.
+void __cdecl RayPick_World(float *out, u32 unused, float *out2, u32 *hitFlag);
 }
