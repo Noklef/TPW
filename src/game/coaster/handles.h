@@ -16,3 +16,14 @@
 //     rules' bit 8 is set, flag 0x40 clear and the cross product's y is below 0 (a NaN too).
 // With an info that is not railed, and a railed info on the piece at +0x68 or +0x64 (the links, whatever the flags): a's and b's y = 0.
 void __cdecl TrackPiece_Handles(u8 *piece, const u8 *rules, const u8 *coaster);
+
+// 0x432430 (cdecl; ten arguments, the last four unused; name invented, unconfirmed): one node's handles. Its +0x28 the way (raw), +0x1c its negative, each resized: over their own
+// length by before (+0x1c) and after (+0x28), by rules +8; with a railed info (bit 0x4000) by a size from rules +8 (the node +0x10 piece's way to its neighbour, by flag 0x80, against the
+// sine table at its +0xec; then at its +0xf8 modulo 0.5) where that piece's +0x68 (flag 0x80, before) or +0x64 (else, after) has flag 0x40, else by 1.7, the other side always by the size.
+// +0x34 and +0x4c are then the place +0x40 plus a third of each.
+void __cdecl TrackNode_Handles(const u8 *rules, const float *way, u8 *node, float before, float after, const u8 *info, void *, void *, u32, u32);
+
+// 0x4321c0 (cdecl; piece, source; name invented, unconfirmed): for each node of the piece (+0x90: count, the lists at +4 and +8, 0x58 bytes a node) the handles of both lists' nodes, the way
+// normalised: with a source its +8's +0x28's +4 list's [the node's +4] (20 bytes an entry, +4 a pointer: +0x20), else straight up or down with flag 0x40 (down without 0x80), else the first
+// list node's +4's +0x28. The gaps from TrackPiece_NodeGaps, for each list. rules = [0x792218] +4, the info = the piece's +0x100's +0x18.
+void __cdecl TrackPiece_NodeHandles(const u8 *piece, const u8 *source);

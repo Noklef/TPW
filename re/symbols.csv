@@ -6403,6 +6403,8 @@ address,name,kind,confidence,notes
 0x00430590,CoasterType_ReadModel,function,low,"reimplemented (src/game/coaster/typemodel); cdecl (-, block, type); name invented, unconfirmed; 0x42fcd1 and 0x42fd48 call it. The parts a coaster type's model offers (flags 0x20 to 0x2000 and the indexes in the block) and the heights of its stances (a stand-in ride played and measured, then destroyed)"
 0x00438ab0,Coaster_NodeAngles,function,low,"reimplemented (src/game/coaster/nodeangles); the turn to each coaster node near a place (name invented, unconfirmed)"
 0x00431660,TrackPiece_Handles,function,low,"reimplemented (src/game/coaster/handles); a track piece's spline handles from its neighbours (name invented, unconfirmed)"
+0x00432430,TrackNode_Handles,function,low,"reimplemented (src/game/coaster/handles); one node's handles: the way and its negative, resized by the gaps and rules +8 or the railed size"
+0x004321c0,TrackPiece_NodeHandles,function,low,"reimplemented (src/game/coaster/handles); the handles of each node of a piece, both lists"
 0x00438800,Coaster_BendMesh,function,low,"reimplemented (src/game/coaster/bendmesh); a car's mesh bent along the track (name invented, unconfirmed)"
 0x0043ce20,Coaster_RunTrains,function,low,"reimplemented (src/game/coaster/trainrun); a coaster's trains moved on one step (name invented, unconfirmed)"
 0x00435020,CoasterEdit_PlaceCar,function,low,"reimplemented (src/game/coaster/placecar); a car placed at a map square while editing: the node found or added, height and level found, the car added, its cost debited, the tools advanced"
