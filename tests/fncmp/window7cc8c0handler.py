@@ -114,7 +114,7 @@ def case(r):
     put(mouse, 0xc, 'I', MODE if down else r.deal([MODE, MODE, MODE, 0]))     # 0x7b05d8
     put(mouse, 0x1c, 'I', HOLDER if down else r.deal([0, HOLDER, HOLDER]))    # 0x7b05e8
     thing = bytes_(0x40)
-    thing[2] = r.deal([3, 3, 3, 2])
+    thing[2] = r.deal([3, 3, 3, 2, 4])
     thing[0x32] = r.deal([0x10, 0, 0xff, 0xef])
     table = bytearray(0x50)
     for handle in range(1, 4):
