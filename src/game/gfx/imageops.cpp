@@ -1,6 +1,8 @@
 #include "imageops.h"
 
+#include <cmath>
 #include <cstdint>
+#include <cstring>
 
 #include "../core/gameheap.h"
 #include "array3d.h"
@@ -354,6 +356,95 @@ void __fastcall Image_ErosionRamp(void *, void *, const u32 *a, u32 count, const
         out[i] |= work[2 * i];
     if (work)
         GameHeap_Free(work);
+}
+
+namespace {
+// exp(x) as the original's inline code has it: fldl2e; fmulp; frndint; f2xm1; fld1; faddp; fscale, the two fmulp and faddp at the 24 bits of precision control.
+double X87_ExpInline(double x) {
+    const double y = X87_MulDouble(x, 0x1.71547652b82fep+0);  // log2(e)
+    const double whole = std::rint(y);
+    return std::ldexp(X87_Round(std::pow(2.0, y - whole)), (int)whole);
+}
+
+// The size x size kernel, its sum 1.
+double *GaussianKernel(s32 size, float sigma) {
+    double *const kernel = static_cast<double *>(GameHeap_Alloc(size * size * 8));
+    const s32 half = (size - 1) / 2;
+    const X87Reg variance = X87Reg((double)sigma) * X87Reg((double)sigma);
+    const X87Reg divisor = X87Reg(X87_MulDouble(variance.v, *reinterpret_cast<const double *>((uintptr_t)0x00702f28)));
+    X87Reg sum = X87Reg(0.0);
+    double *cell = kernel;
+    for (s32 row = 0; row < size; row++) {
+        for (s32 column = 0; column < size; column++) {
+            const s32 distance = (column - half) * (column - half) + (row - half) * (row - half);
+            const X87Reg power = X87Reg(X87_MulDouble((double)distance, -0.5)) / variance;
+            const X87Reg value = X87Reg(X87_ExpInline(power.v)) / divisor;
+            sum = sum + value;
+            *cell++ = value.v;
+        }
+    }
+    for (s32 i = 0; i < size * size; i++) kernel[i] = (X87Reg(kernel[i]) / sum).v;
+    return kernel;
+}
+
+// The first entry moved to the end (where the caller overwrites or refills it).
+void *RotateDown(void *listIn, s32 count) {
+    void **const list = static_cast<void **>(listIn);
+    void *const first = list[0];
+    for (s32 i = 0; i + 1 < count; i++) list[i] = list[i + 1];
+    list[count - 1] = first;
+    return first;
+}
+}  // namespace
+
+void __fastcall Image_GaussianBlur(void *, void *, const u32 *image, const u32 *mask, float sigma) {
+    const s32 size = 3 - (s32)(long long)X87_MulDouble((double)sigma, -2.5);
+    double *const kernel = GaussianKernel(size, sigma);
+    const s32 width = (s32)image[0];
+    u8 *const data = reinterpret_cast<u8 *>((uintptr_t)image[3]);
+
+    // The rows above and at the one worked on, unblurred (copies, all of the first row to begin with); those below, in the image still.
+    const s32 lineCount = (size + 1) / 2;
+    u8 **const lines = static_cast<u8 **>(GameHeap_Alloc(lineCount * 4));
+    for (s32 i = 0; i < lineCount; i++) {
+        lines[i] = static_cast<u8 *>(GameHeap_Alloc(width));
+        memcpy(lines[i], data, width);
+    }
+    const s32 belowCount = size - lineCount;
+    const u8 **const below = static_cast<const u8 **>(GameHeap_Alloc(belowCount * 4));
+    for (s32 i = 0; i < belowCount; i++) {
+        const s32 last = (s32)image[1] - 1;
+        below[i] = data + width * (i + 1 < last ? i + 1 : last);
+    }
+
+    const s32 half = (size - 1) / 2, end = (size + 2) / 2;
+    u8 *to = data;
+    const u8 *on = reinterpret_cast<const u8 *>((uintptr_t)mask[3]);
+    for (s32 y = 0; y < (s32)image[1]; y++, to += width, on += mask[0]) {
+        for (s32 x = 0; x < width; x++) {
+            if (!on[x]) continue;
+            X87Reg sum = X87Reg(0.0);
+            const double *cell = kernel;
+            for (s32 dy = -half; dy < end; dy++) {
+                const u8 *const row = dy <= 0 ? lines[half + dy] : below[dy - 1];
+                for (s32 dx = -half; dx < end; dx++) {
+                    const s32 from = x + dx;
+                    const s32 inside = from > width - 1 ? width - 1 : (from < 0 ? 0 : from);
+                    sum = sum + X87Reg((double)row[inside]) * X87Reg(*cell++);
+                }
+            }
+            to[x] = (u8)(s32)(long long)sum.v;  // (__ftol's low byte)
+        }
+        memcpy(RotateDown(lines, lineCount), below[0], width);
+        RotateDown(below, belowCount);
+        const s32 last = (s32)image[1] - 1, next = size / 2 + y + 1;
+        below[belowCount - 1] = data + width * (next < last ? next : last);
+    }
+
+    for (s32 i = 0; i < lineCount; i++) GameHeap_Free(lines[i]);
+    GameHeap_Free(lines);
+    GameHeap_Free(below);
+    GameHeap_Free(kernel);
 }
 
 u8 __fastcall Image_ShrinkSurface(u8 *image, void *, SurfaceDesc desc) {
