@@ -58,7 +58,9 @@ def plane(r, count):
 def case(r):
     pixel, alpha = r.deal(KINDS)
     wide = pixel == 4 and r.random() < 0.5
-    width, height = r.choice([(r.randrange(1, 9), r.randrange(1, 9)), (r.randrange(1, 17), r.randrange(1, 17)), (r.randrange(1, 17), r.randrange(1, 17)), (r.randrange(17, 33), r.randrange(1, 33))])
+    width, height = r.choice([(r.randrange(1, 9), r.randrange(1, 9)), (r.randrange(1, 17), r.randrange(1, 17))])
+    if r.random() < 0.04:   # (a side of 32 costs four times a side of 16: the bench's time)
+        width, height = r.randrange(17, 33), r.randrange(1, 33)
     if r.random() < 0.02:
         width, height = r.choice([(0, height), (width, 0)])
     n = max(side(width), side(height))
