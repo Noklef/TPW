@@ -2,8 +2,10 @@
 
 #include <cstdint>
 
+#include "../coaster/registry.h"
 #include "../core/accessors.h"
 #include "../core/globals.h"
+#include "../core/indexed.h"
 #include "../core/rings.h"
 #include "../sprite/script.h"
 #include "../sprite/scriptref.h"
@@ -443,4 +445,87 @@ void __fastcall Visitor_StepInQueue(u8 *visitor) {
     Object_QueueRemovePerson(object, nullptr, handleOf(visitor));
     Visitor_SendAway(visitor);
     g_env->setState(visitor, nullptr, 6);
+}
+
+void __fastcall Visitor_StepQueueWait(u8 *visitor) {
+    u8 *const object = global<u8 *>(0x007cfb90 + 20 * (u32)at<u16>(visitor, 0x1dc));
+    u8 *const ring = visitor + 0x30;
+    const auto leave = [visitor] {
+        Object_QueueRemovePerson(global<u8 *>(0x007cfb90 + 20 * (u32)at<u16>(visitor, 0x1dc)), nullptr, handleOf(visitor));
+        Visitor_SendAway(visitor);
+        g_env->setState(visitor, nullptr, 6);
+    };
+    const u32 place = at<u8>(visitor, 0x1f1);
+    if (!place && at<u32>(visitor, 0x1f8)) {
+        if (!Obj_Word6cEquals(object, nullptr, handleOf(visitor))) return;
+        at<u32>(visitor, 0x1f8) = 0;
+        u16 x, y;
+        Object_CellStandPoint(object, nullptr, 0, reinterpret_cast<u8 *>(&x), reinterpret_cast<u8 *>(&y));
+        if (g_env->setDestination(visitor, nullptr, x, y)) {
+            g_env->setState(visitor, nullptr, 0xd);
+            return;
+        }
+        Obj_ReleaseRideElement0(object, nullptr, handleOf(visitor));
+        leave();
+        return;
+    }
+    if (Object_InPoorCondition(object)) {
+        Thoughts_Show(ring, nullptr, 0xe, 0);
+        leave();
+        return;
+    }
+    const s32 position = Object_QueuePosition(object, nullptr, handleOf(visitor));
+    if (position == -1) {
+        leave();
+        return;
+    }
+    if (place == (u32)position) {
+        if (place > Object_FillRate(object)) {
+            Thoughts_Show(ring, nullptr, 0x10, 0);
+            Ring_PushUnique(ring, nullptr, 0x15, at<u16>(visitor, 0x1dc));
+            leave();
+            return;
+        }
+        if ((Object_DefIsKind3(object) && !Object_LinkOtherOpen(object)) || (at<u32>(Object_GetDef(object), 0x9c) == 1 && at<u32>(object, 0x2c) == 0)) {
+            Thoughts_Show(ring, nullptr, 0xd, 0);
+            leave();
+            return;
+        }
+    } else if (at<u32>(visitor, 0x1f4) && place - (u32)position <= 2) {
+        --at<u32>(visitor, 0x1f4);
+    } else if (!Is19c_Eq1_4e0370(object) && !g_env->findQueueDestination(visitor)) {
+        leave();
+        return;
+    }
+    u8 *const world = global<u8 *>(0x0080239c);
+    const u32 now = at<u32>(world, 0x1da70c);
+    if (now - at<u32>(visitor, 0x208) > 0x1e) {
+        const u8 mood = (u8)(long long)at<float>(visitor, 0x19c);   // (__ftol, the low byte)
+        if (mood > 0x50) {
+            Visitor_StartEmote(visitor, nullptr, 5);
+        } else if (mood >= 0x14) {
+            if ((u8)(long long)at<float>(visitor, 0x1ac) > 0x50) {
+                Thoughts_Show(ring, nullptr, 4, 0);
+                if (!(at<u8>(object, 0x32) & 1)) leave();
+            }
+        } else if (mood >= 0xa) {
+            Visitor_StartEmote(visitor, nullptr, 4);
+        } else {
+            Thoughts_Show(ring, nullptr, 0xb, 0);
+            leave();
+        }
+        return;
+    }
+    if (now > at<u32>(visitor, 0x1fc) + 0x64) {
+        Ring_PushUnique(ring, nullptr, 7, at<u16>(visitor, 0x1dc));
+        Thoughts_Show(ring, nullptr, 0xc, 0);
+        leave();
+        return;
+    }
+    if ((u32)World_Rand(world) % 10 != 0) return;
+    const s32 heading = at<s32>(visitor, 0x1c);
+    s32 turned = (s32)((u32)World_Rand(world) % 800) + heading - 400;
+    if (turned < 0) turned += 0x800;
+    else if (turned >= 0x800) turned -= 0x800;
+    at<s32>(visitor, 0x1c) = turned;
 }

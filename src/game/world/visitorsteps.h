@@ -97,6 +97,12 @@ void __fastcall Visitor_StepWalkToQueue(u8 *visitor);
 // Object_AddWalkAway, Obj_ReleaseRideElement0, off the queue, Visitor_SendAway, +0x1dc 0, state 6. Else admitted (Obj_ClaimRideElement0):
 // state 0xe. Else Visitor_FindQueueDestination; no destination: off the queue, Visitor_SendAway, state 6.
 void __fastcall Visitor_StepInQueue(u8 *visitor);
+// 0x4ffff0 (thiscall; name invented): the visitor's wait in the queue of the object +0x1dc. At place 0 (+0x1f1) with the call +0x1f8: told to come (the object's word +0x6c its handle), +0x1f8 0, walks to
+// its stand point (state 0xd), or no way there: the claim released and off the queue, away (state 6). Told nothing: nothing. A worn object: thought 0xe, away. Not in the queue: away. At its
+// place: over the fill rate: thought 0x10, (0x15, object) on the ring, away; a closed link or a kind 1 object with nothing at +0x2c: thought 0xd, away. Not at its place: a move (the budget
+// +0x1f4, within 2) or a destination (state 1 of the object or Visitor_FindQueueDestination), or away. Then the waiting: past +0x208 + 0x1e, the mood's and +0x1ac's low bytes decide
+// (Visitor_StartEmote 5 or 4; thought 0xb, thought 4 when the object has no flag 1: away); past +0x1fc + 0x64: (7, object) on the ring, thought 0xc, away; else one in ten: a turn of the heading +0x1c.
+void __fastcall Visitor_StepQueueWait(u8 *visitor);
 // 0x5014e0 (thiscall; name invented, unconfirmed): the visitor comes out at the object of +0x1dc: placed at its exit point (Object_CellStandPoint, Thing_PlaceAt).
 // The cell one step from the exit cell (+0x38) in that cell's direction (rotated by Nibble_Scale when +0x38 is +0x36): not of type 3 or 9 and a walk there starts:
 // Visitor_VisitObject, state 0xf, 1. Else Object_Reopen, 0. (Its debug prints are left out.)
