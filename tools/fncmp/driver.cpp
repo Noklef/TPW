@@ -587,7 +587,8 @@ const ObjectUnlockScoresEnv kObjectUnlockScoresEnv = {Rec{recorder(19, 0)}, Rec{
                                                       Rec{jpeg_recorder(23, 0)}, Rec{recorder(24, 2)}, Rec{recorder(25, 2)}};
 // Panel7cc218_EnterTileMode's calls (tests/fncmp/panel7cc218tile.py).
 const Panel7cc218TileEnv kPanel7cc218TileEnv = {Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 1)}, Rec{recorder(20, 1)}, Rec{jpeg_recorder(12, 1)}, Rec{jpeg_recorder(13, 1)},
-                                                Rec{recorder(14, 1)}, Rec{jpeg_recorder(15, 1)}, Rec{recorder(16, 0)}, Rec{stdcall_recorder(17, 1)}, Rec{jpeg_recorder(18, 4)}};
+                                                Rec{recorder(14, 1)}, Rec{jpeg_recorder(15, 1)}, Rec{recorder(16, 0)}, Rec{stdcall_recorder(17, 1)}, Rec{jpeg_recorder(18, 4)},
+                                                Rec{recorder(21, 0)}, Rec{jpeg_recorder(22, 1)}, Rec{jpeg_recorder(23, 0)}, Rec{jpeg_recorder(24, 2)}, Rec{recorder(25, 2)}, Rec{jpeg_recorder(26, 2)}, Rec{jpeg_recorder(27, 2)}};
 // TextPanel7cc18c_Show's calls (tests/fncmp/textpanel7cc18c.py).
 const TextPanel7cc18cEnv kTextPanel7cc18cEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 0)}, Rec{jpeg_recorder(12, 9)}, Rec{recorder(13, 4)}, Rec{recorder(14, 0)}};
 // Dialog7ca098_Create's calls (tests/fncmp/dialog7ca098create.py).

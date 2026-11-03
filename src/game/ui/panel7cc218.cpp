@@ -15,7 +15,10 @@
 #include "../files/wrapsources.h"
 #include "../world/advisor.h"
 #include "../world/focuscell.h"
+#include "../world/cellrun.h"
+#include "../world/gamemode.h"
 #include "../world/mapclick.h"
+#include "../world/queuetrace.h"
 #include "../world/mousemode.h"
 #include "../world/objectdefs.h"
 #include "../world/world.h"
@@ -82,7 +85,8 @@ void Panel7cc218_SetShowEnv(const Panel7cc218ShowEnv *env) { g_show = env ? env 
 
 namespace {
 
-const Panel7cc218TileEnv kTileGameEnv = {Global7c2654_Set, FocusCell_Update, ObjectDefs_Find, Dialog7ca1c8_OpenFor, GameHeap_Alloc, MouseModeTile_Ctor, Global81ecac_SetRecorded, MouseModeOnlineBase_Ctor, MouseMode_Set, GameMode_MapClick};
+const Panel7cc218TileEnv kTileGameEnv = {Global7c2654_Set, FocusCell_Update, ObjectDefs_Find, Dialog7ca1c8_OpenFor, GameHeap_Alloc, MouseModeTile_Ctor, Global81ecac_SetRecorded, MouseModeOnlineBase_Ctor, MouseMode_Set, GameMode_MapClick,
+                                         Object_GetDef, RideQueue_Trace, PairTable_Commit, GameMode_Set, MouseModeTile_CtorKind, Global8186e0_SetRecorded, Global81d7a4_SetRecorded};
 const Panel7cc218TileEnv *g_tile = &kTileGameEnv;
 
 // A new tile mode of the kind, or none.
@@ -91,8 +95,8 @@ u8 *newTileMode(u32 kind) {
     return block ? g_tile->tileCtor(block, nullptr, kind) : nullptr;
 }
 
-// MouseModes_EnsureHolder, inline in the original, then the mode current and the map clicked.
-void setTileMode(u8 *mode) {
+// MouseModes_EnsureHolder, inline in the original, then the mode current.
+void setMode(u8 *mode) {
     u8 *&holder = *reinterpret_cast<u8 **>((uintptr_t)0x007b05e8);
     if (!holder) {
         u8 *const block = static_cast<u8 *>(g_tile->alloc(1));
@@ -105,12 +109,40 @@ void setTileMode(u8 *mode) {
         holder = block;
     }
     g_tile->setMode(mode);
+}
+
+void setTileMode(u8 *mode) {
+    setMode(mode);
     g_tile->mapClick(0, 0, 0, 0);
 }
 
 }  // namespace
 
 void Panel7cc218_SetTileEnv(const Panel7cc218TileEnv *env) { g_tile = env ? env : &kTileGameEnv; }
+
+extern "C" void __fastcall Panel7cc218_EnterMoveMode(u8 *self) {
+    u8 *const thing = *reinterpret_cast<u8 **>((uintptr_t)0x007c2658);
+    g_tile->select((u32)(uintptr_t)thing);
+    g_tile->focus(1);
+    const u16 cell = (u16)((thing[7] << 7) + thing[5] + 1);
+    if (*reinterpret_cast<u32 *>(g_tile->getDef(thing) + 0x40)) {
+        *reinterpret_cast<u8 *>((uintptr_t)0x0081b14c) = g_tile->traceQueue(thing);
+        g_tile->commitPairs();
+    }
+    g_tile->gameMode(0x33, 1);
+    const u32 before = (u32)cell - 1;
+    g_tile->mapClick((s32)(before & 0x7f), (s32)(before >> 7), 0, 0);
+    u8 *const block = static_cast<u8 *>(g_tile->alloc(0x14));
+    u8 *const mode = block ? g_tile->tileCtorKind(block, nullptr, 0x3b, *reinterpret_cast<u16 *>(thing + 0xe)) : nullptr;
+    setMode(mode);
+    *reinterpret_cast<u8 **>((uintptr_t)0x0081b3ac) = thing;
+    g_tile->gameMode(0x3b, 1);
+    const u16 id = *reinterpret_cast<u16 *>(thing + 0xe);
+    g_tile->setId(&id, 0);
+    g_tile->setValue(*reinterpret_cast<u32 *>(thing + 0x10), 1);
+    *reinterpret_cast<u8 **>((uintptr_t)0x007c2658) = nullptr;
+    vcall<void>(self, 0x2c);
+}
 
 extern "C" void __fastcall Panel7cc218_EnterTileMode(u8 *self, void *, u32 flag) {
     u8 *const thing = *reinterpret_cast<u8 **>((uintptr_t)0x007c2658);
