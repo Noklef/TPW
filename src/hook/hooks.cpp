@@ -652,6 +652,7 @@
 #include "../game/ui/window7cc8bcmenu.h"
 #include "../game/ui/window7cc8c0handler.h"
 #include "../game/ui/windowarea.h"
+#include "../game/ui/windowtick.h"
 #include "../game/ui/windowtimers.h"
 #include "../game/lib/jpeg6b.h"
 #include "../game/lib/jpeg6a.h"
@@ -7962,6 +7963,8 @@ const Hook kHooks[] = {
     {"Gui_CursorSlot2",           0x00659201, (void *)&Gui_CursorSlot2, {0x55, 0x8b, 0xec, 0x83, 0x3d}},
     {"Gui_SetPointer48c",         0x006595b3, (void *)&Gui_SetPointer48c, {0x55, 0x8b, 0xec, 0x83, 0x7d}},
     {"Gui_SetPointer490",         0x00659674, (void *)&Gui_SetPointer490, {0x55, 0x8b, 0xec, 0x83, 0x7d}},
+    {"WindowTick_TickAll",        0x00658f6c, (void *)&WindowTick_TickAll, {0x55, 0x8b, 0xec, 0xc7, 0x05}},
+    {"WindowTick_Tick",           0x00658f97, (void *)&WindowTick_Tick, {0x55, 0x8b, 0xec, 0x6a, 0x00}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
