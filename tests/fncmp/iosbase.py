@@ -86,7 +86,7 @@ def heap_lists(r, obj, h):
     for off in (0x18, 0x1c):
         head = 0
         for _ in range(r.choice([0, 1, 3])):
-            struct.pack_into('<I', h, at, head)
+            struct.pack_into('<III', h, at, head, r.getrandbits(32), recorder(CALLBACK, 3, cdecl=True))   # (the callback for the list that Callfns walks)
             head, at = HEAP + at, at + 0x10
         struct.pack_into('<I', obj, off, head)
 

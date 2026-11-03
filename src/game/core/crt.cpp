@@ -62,11 +62,78 @@ const CrtInnerEnv kGameInner = {
     game<s32(__cdecl *)(void *)>(0x0067b660),
     game<void(__cdecl *)(void *)>(0x0067acb0),
     game<void *(__cdecl *)(u32)>(0x0067acc0),
+    game<void *(__cdecl *)(u32, u32)>(0x0067dcf0),
+    game<u16(__cdecl *)(u32)>(0x0067e670),
+    game<s32(__cdecl *)(void *, const u16 *, void *)>(0x00683090),
+    game<s32(__cdecl *)(s32, void *)>(0x00680ad0),
+    game<s32(__cdecl *)(u32 *, const u32 *, u32, u32 *, void *)>(0x00693bc0),
+    game<void *(__cdecl *)(u32, u32)>(0x0067fcb0),
+    game<void(__cdecl *)(void *)>(0x00682440),
+    game<void(__cdecl *)(s32)>(0x0067efc0),
+    game<void(__cdecl *)(u32)>(0x00686980),
 };
 const CrtInnerEnv *g_inner = &kGameInner;
 
 u32 &exit_table_end() { return *reinterpret_cast<u32 *>((uintptr_t)0x00fb3cb0); }
 u32 &exit_table() { return *reinterpret_cast<u32 *>((uintptr_t)0x00fb3cb4); }
+
+// The imports that a routine below reads from their slots.
+template <typename F> F import_slot(u32 slot) { return *reinterpret_cast<F *>((uintptr_t)slot); }
+u32 last_error() { return import_slot<u32(__stdcall *)()>(0x006fd138)(); }
+
+// The string file of swprintf and _snwprintf: its pointer, count, base and flags (the rest is never set).
+struct StringFile {
+    char *ptr;
+    s32 count;
+    char *base;
+    u32 flags;
+    u32 unset[4];
+};
+
+// Past _woutput: two zero bytes put.
+void put_end(StringFile &file) {
+    if (--file.count < 0) {
+        g_inner->flsbuf(0, &file);
+    } else {
+        *file.ptr = 0;
+        ++file.ptr;
+    }
+    if (--file.count < 0)
+        g_inner->flsbuf(0, &file);
+    else
+        *file.ptr = 0;
+}
+
+s32 format_wide(u16 *to, s32 size, const u16 *format, void *args) {
+    StringFile file;
+    file.ptr = file.base = reinterpret_cast<char *>(to);
+    file.count = size;
+    file.flags = 0x42;
+    const s32 written = g_inner->woutput(&file, format, args);
+    put_end(file);
+    return written;
+}
+
+u16 fold_c(u16 unit) { return unit >= 0x41 && unit <= 0x5a ? (u16)(unit + 0x20) : unit; }
+
+// The locale's lock for a reader: true when it took lock 0x13 instead of the count.
+bool locale_enter() {
+    u32 *const readers = reinterpret_cast<u32 *>((uintptr_t)0x00fb3ca8);
+    import_slot<s32(__stdcall *)(u32 *)>(0x006fd0c0)(readers);    // InterlockedIncrement
+    if (!*reinterpret_cast<u32 *>((uintptr_t)0x00fb3ca4)) return false;
+    import_slot<s32(__stdcall *)(u32 *)>(0x006fd12c)(readers);    // InterlockedDecrement
+    g_inner->lock(0x13);
+    return true;
+}
+
+void locale_leave(bool locked) {
+    if (locked)
+        g_inner->unlock(0x13);
+    else
+        import_slot<s32(__stdcall *)(u32 *)>(0x006fd12c)(reinterpret_cast<u32 *>((uintptr_t)0x00fb3ca8));
+}
+
+bool locale_set() { return *reinterpret_cast<u32 *>((uintptr_t)0x00fb1440) != 0; }
 
 }  // namespace
 
@@ -176,6 +243,95 @@ u32 *__fastcall CRT_exception_Copy(u32 *self, void *, const u32 *from) {
     self[1] = (u32)(uintptr_t)copy;
     if (copy) memcpy(copy, reinterpret_cast<const char *>((uintptr_t)from[1]), size);
     return self;
+}
+
+void *__cdecl CRT_malloc(u32 size) { return g_inner->nhMalloc(size, *reinterpret_cast<u32 *>((uintptr_t)0x00fb1548)); }
+
+void *__cdecl CRT_getptd() {
+    const u32 error = last_error();
+    const u32 slot = *reinterpret_cast<u32 *>((uintptr_t)0x0077ecd0);
+    void *data = import_slot<void *(__stdcall *)(u32)>(0x006fd1c4)(slot);    // TlsGetValue
+    if (!data) {
+        data = g_inner->calloc(1, 0x74);
+        if (data && import_slot<s32(__stdcall *)(u32, void *)>(0x006fd230)(*reinterpret_cast<u32 *>((uintptr_t)0x0077ecd0), data)) {    // TlsSetValue
+            g_inner->initptd(data);
+            u32 *const fields = static_cast<u32 *>(data);
+            fields[0] = import_slot<u32(__stdcall *)()>(0x006fd248)();    // GetCurrentThreadId
+            fields[1] = 0xffffffffu;
+        } else {
+            g_inner->amsgExit(0x10);
+        }
+    }
+    import_slot<void(__stdcall *)(u32)>(0x006fd1c8)(error);    // SetLastError
+    return data;
+}
+
+s32 *__cdecl CRT_errno() { return reinterpret_cast<s32 *>(g_inner->getptd() + 8); }
+
+u32 __cdecl CRT_beginthread(void *proc, u32 stack, void *arg) {
+    u32 error = 0;
+    u32 *const data = static_cast<u32 *>(g_inner->calloc(1, 0x74));
+    if (data) {
+        g_inner->initptd(data);
+        data[0x48 / 4] = (u32)(uintptr_t)proc;
+        data[0x4c / 4] = (u32)(uintptr_t)arg;
+        const u32 handle = import_slot<u32(__stdcall *)(void *, u32, void *, void *, u32, void *)>(0x006fd22c)(nullptr, stack, reinterpret_cast<void *>((uintptr_t)0x0067e0d0), data, 4, data);    // CreateThread
+        data[1] = handle;
+        if (handle && import_slot<u32(__stdcall *)(u32)>(0x006fd228)(handle) != 0xffffffffu) return handle;    // ResumeThread
+        error = last_error();
+    }
+    Crt().free(data);
+    if (error) g_inner->dosmaperr(error);
+    return 0xffffffffu;
+}
+
+s32 __cdecl CRT_swprintf(u16 *to, const u16 *format, ...) { return format_wide(to, 0x7fffffff, format, &format + 1); }
+
+s32 __cdecl CRT_snwprintf(u16 *to, u32 count, const u16 *format, ...) { return format_wide(to, (s32)(count * 2), format, &format + 1); }
+
+s32 __cdecl CRT_wcsicmp(const u16 *a, const u16 *b) {
+    u16 x, y;
+    if (!locale_set()) {
+        do {
+            x = fold_c(*a++);
+            y = fold_c(*b++);
+        } while (x && x == y);
+    } else {
+        const bool locked = locale_enter();
+        do {
+            x = g_inner->towlowerLocked(*a++);
+            y = g_inner->towlowerLocked(*b++);
+        } while (x && x == y);
+        locale_leave(locked);
+    }
+    return (s32)x - (s32)y;
+}
+
+s32 __cdecl CRT_wcsnicmp(const u16 *a, const u16 *b, u32 n) {
+    if (!n) return 0;
+    u16 x, y;
+    if (!locale_set()) {
+        do {
+            x = fold_c(*a++);
+            y = fold_c(*b++);
+        } while (--n && x && x == y);
+    } else {
+        const bool locked = locale_enter();
+        do {
+            x = g_inner->towlowerLocked(*a++);
+            y = g_inner->towlowerLocked(*b++);
+        } while (--n && x && x == y);
+        locale_leave(locked);
+    }
+    return (s32)x - (s32)y;
+}
+
+u32 __cdecl CRT_btowc(u32 c) {
+    if (c == 0xffffffffu) return c;
+    u32 wc;
+    u32 state = 0;
+    if (g_inner->mbrtowc(&wc, &c, 1, &state, nullptr) < 0) return 0xffff;
+    return wc & 0xffff;
 }
 
 void __stdcall CRT_VectorCtorIterator(u8 *array, u32 size, s32 count, void(__fastcall *ctor)(void *), void *) {

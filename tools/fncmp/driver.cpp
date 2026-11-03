@@ -1738,6 +1738,10 @@ void map_stubs() {
 }
 
 void *find(u32 address) {
+    static const bool standInsFirst = std::getenv("FNCMP_STANDINS") != nullptr;   // (crt.py: it checks the stand-ins, whether or not the routine is ported)
+    if (standInsFirst)
+        for (u32 i = 0; i < kCrtStandInCount; ++i)
+            if (kCrtStandIns[i].address == address) return kCrtStandIns[i].fn;
     for (std::size_t i = 0; i < tpw::hook::kHookCount; ++i)
         if (tpw::hook::kHooks[i].address == address) return tpw::hook::kHooks[i].replacement;
     for (u32 i = 0; i < kCrtStandInCount; ++i)
@@ -2429,7 +2433,13 @@ int main(int argc, char **argv) {
     static const CrtInnerEnv crtInner = {Rec{jpeg_recorder(2, 0)},  Rec{jpeg_recorder(3, 0)},  Rec{jpeg_recorder(4, 0)},  Rec{jpeg_recorder(5, 1)},
                                          Rec{jpeg_recorder(6, 2)},  Rec{jpeg_recorder(7, 1)},  Rec{jpeg_recorder(8, 1)},  Rec{jpeg_recorder(9, 3)},
                                          Rec{jpeg_recorder(10, 3)}, Rec{jpeg_recorder(11, 1)}, Rec{jpeg_recorder(12, 1)}, Rec{jpeg_recorder(13, 1)},
-                                         &heap_free, &heap_alloc};
+                                         &heap_free, &heap_alloc, Rec{jpeg_recorder(28, 2)},
+                                         [](u32 unit) -> u16 {   // (_towlower_lk's stand-in, the same in tests/fncmp/crt_wide.py: the locale's own rule is not that bench's business)
+                                             const u32 c = unit & 0xffff;
+                                             return (u16)(c >= 0x41 && c <= 0x5a || c >= 0x100 && c < 0x180 ? c ^ 0x20 : c);
+                                         },
+                                         Rec{jpeg_recorder(21, 3)}, Rec{jpeg_recorder(22, 2)}, Rec{jpeg_recorder(23, 5)}, Rec{jpeg_recorder(24, 2)},
+                                         Rec{jpeg_recorder(25, 1)}, Rec{jpeg_recorder(26, 1)}, Rec{jpeg_recorder(27, 1)}};
     CrtInner_SetEnv(&crtInner);
     // The C++ library's: the locks do nothing (the bench's hooks of 0x691de0 / 0x691ea0), the rest recorders (tests/fncmp/iosbase.py).
     static const IosBaseEnv iosBase = {[](void *lock) -> void * { return lock; }, [](void *) {}, &heap_free, Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 14}, Rec{jpeg_recorder(16, 2)}, Rec{jpeg_recorder(17, 3)},
