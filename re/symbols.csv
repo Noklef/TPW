@@ -6436,6 +6436,8 @@ address,name,kind,confidence,notes
 0x005dfcd0,RandomSegments_Ctor,function,low,"reimplemented (src/game/render/randomsegments); an object of two random segments: constructor (vtable 0x702cb0; name invented, unconfirmed)"
 0x00580530,ModelGroup_AddToBatch,function,low,"reimplemented (src/game/render/modelgroup); thiscall (batch, group, stride): one material group of a model's mesh into the batch: UVs (plain, sphere map, a second layer), vertices with colour, faces clipped or not, fog and transform"
 0x00565f90,Batch_DrawQuad,function,low,"reimplemented (src/game/render/batchquad); One textured quad as a batch of its own (name invented, unconfirmed)."
+0x0057ed50,Batch_DrawScreenQuad,function,low,"reimplemented (src/game/render/batchquad); a quad over the whole clip space drawn on [0x879ab0] (name invented, unconfirmed)"
+0x00589f90,SpriteFrame_DrawQuad,function,low,"reimplemented (src/game/render/batchquad); a sprite frame's item filled and drawn as one quad on [0x879ab0] (name invented, unconfirmed)"
 0x00577ae0,TileGrid_Draw,function,low,"reimplemented (src/game/render/tilegrid); the tiles of a rectangle of a grid of 64-unit cells, each a Batch_DrawQuad (name invented, unconfirmed)"
 0x0057c620,SpriteGroups_Draw,function,low,"reimplemented (src/game/render/spritegroups); a frame's camera-facing sprites by group, each a Batch_DrawQuad (name invented, unconfirmed)"
 0x0058a010,TiledPanel_Draw,function,low,"reimplemented (src/game/render/tiledpanel); a panel of tiles on the screen, anchored, each tile a Batch_DrawQuad (name invented, unconfirmed)"
