@@ -385,6 +385,7 @@
 #include "../game/world/queuepieces.h"
 #include "../game/world/queuetrace.h"
 #include "../game/world/placeobject.h"
+#include "../game/world/researcher.h"
 #include "../game/world/tracksquare.h"
 #include "../game/world/rides.h"
 #include "../game/world/staffcandidate.h"
@@ -6060,6 +6061,7 @@ const Hook kHooks[] = {
     {"World_Load",                0x005179c0, (void *)&World_Load, {0x6a, 0xff, 0x68, 0x87, 0xe8}},
     {"Object_Update",             0x004e0b90, (void *)&Object_Update, {0x51, 0x56, 0x8b, 0xf1, 0x57}},
     {"Object_PostUpdate",         0x004e0e00, (void *)&Object_PostUpdate, {0x56, 0x8b, 0xf1, 0x8b, 0x86}},
+    {"Researcher_Update",         0x00502960, (void *)&Researcher_Update, {0x51, 0x56, 0x8b, 0xf1, 0xe8}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
