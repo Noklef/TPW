@@ -386,6 +386,7 @@ add_library(tpw_game STATIC
     src/game/coaster/editupdate.cpp
     src/game/coaster/testrun.cpp
     src/game/coaster/typemodel.cpp
+    src/game/coaster/nodeangles.cpp
     src/game/terrain/terrain_blend.cpp
     src/game/terrain/land.cpp
     src/game/terrain/procedural.cpp

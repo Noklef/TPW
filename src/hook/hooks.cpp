@@ -278,6 +278,7 @@
 #include "../game/coaster/contacts.h"
 #include "../game/coaster/edittools.h"
 #include "../game/coaster/editupdate.h"
+#include "../game/coaster/nodeangles.h"
 #include "../game/coaster/placecheck.h"
 #include "../game/coaster/ridebounds.h"
 #include "../game/coaster/setup.h"
@@ -4452,6 +4453,7 @@ const Hook kHooks[] = {
     {"CoasterEdit_Update",        0x00443340, (void *)&CoasterEdit_Update, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Coaster_TestRun",           0x0043c450, (void *)&Coaster_TestRun, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"CoasterType_ReadModel",     0x00430590, (void *)&CoasterType_ReadModel, {0x51, 0x8b, 0x44, 0x24, 0x10}},
+    {"Coaster_NodeAngles",        0x00438ab0, (void *)&Coaster_NodeAngles, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Thing_SpriteChoice",        0x004fcac0, (void *)&Thing_SpriteChoice, {0x51, 0x56, 0x8b, 0xf1, 0x6a}},
     {"Thing_IngredientRecord",    0x004e2200, (void *)&Thing_IngredientRecord, {0x51, 0x66, 0x8b, 0x41, 0x0e}},
     {"Class701378_Ctor",          0x005667d0, (void *)&Class701378_Ctor, {0x51, 0x8b, 0x44, 0x24, 0x08}},
