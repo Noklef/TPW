@@ -2,21 +2,35 @@
 
 #include <cstdint>
 
+#include "../core/accessors.h"
+#include "../core/gameheap.h"
 #include "../core/globalsave.h"
 #include "../core/language.h"
 #include "../core/rings.h"
 #include "../core/textarg.h"
+#include "../core/vcall.h"
+#include "../files/charsets.h"
 #include "../files/wrapsources.h"
 #include "../frontend/helpbg.h"
+#include "../render/renderer.h"
+#include "../render/textparts.h"
+#include "../world/advisor.h"
 #include "../world/objectdefs.h"
 #include "../world/objectunlock.h"
 #include "../world/world.h"
+#include "buttontext.h"
+#include "dialogs.h"
+#include "focus.h"
 #include "guimanager.h"
 #include "guirect.h"
 #include "hoverlabel.h"
+#include "listrows.h"
 #include "panelparts.h"
+#include "radiogroup.h"
 #include "window.h"
 #include "window7059f0.h"
+#include "windowreg.h"
+#include "windowscript.h"
 
 using namespace panelparts;
 
@@ -35,6 +49,97 @@ const Dialog7cc1f8TabEnv *g_tab = &kTabGameEnv;
 }  // namespace
 
 void Dialog7cc1f8_SetTabEnv(const Dialog7cc1f8TabEnv *env) { g_tab = env ? env : &kTabGameEnv; }
+
+namespace {
+const Dialog7cc1f8OpenEnv kOpenGameEnv = {&Dialog7cc1f8_FillList, &Charset_FormatWide, &RadioGroup_Select, &HoverLabel_Attach, &Window7059f0_FindItemData, &Window7059f0_ScrollTo, &Window7059f0_BuildRows};
+const Dialog7cc1f8OpenEnv *g_open = &kOpenGameEnv;
+
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
+void selectKind(u8 *list, u32 kind) {
+    u8 *const group = Window_FindChild(list, nullptr, 0x1f9);
+    static const u32 kButtons[4] = {0x1fb, 0x1fd, 0x1fa, 0x1fc};
+    if (group && kind <= 3) g_open->selectRadio(group, nullptr, kButtons[kind]);
+}
+
+void scrollToSelected(u8 *list, u32 selected) {
+    if (!(u16)selected) return;
+    const s32 position = g_open->findItem(list, nullptr, selected & 0xffff);
+    if (position >= 0) g_open->scrollTo(list, nullptr, position);
+}
+
+u8 *raised(u32 id) { return Window_FindChild(Window_FindChild(global<u8 *>(0x007cc1f8), nullptr, 0x1ea), nullptr, id); }
+void raise(u8 *child) { Window_SetDepth(child, nullptr, (u16)(at<u16>(child, 0xe0) + 0xc)); }
+}  // namespace
+
+void Dialog7cc1f8_SetOpenEnv(const Dialog7cc1f8OpenEnv *env) { g_open = env ? env : &kOpenGameEnv; }
+
+void __cdecl Dialog7cc1f8_Open(u32 kind, u32 selected) {
+    Global7cb28c_Select(1, 1);
+    if (global<u8 *>(0x007cc1f8)) {
+        if (kind == 0xffffffff) kind = global<u32>(0x007cc1fc);
+        g_open->fillList(kind, 1);
+        u8 *const list = Window_FindChild(global<u8 *>(0x007cc1f8), nullptr, 0x1f8);
+        if (!list) return;
+        selectKind(list, kind);
+        scrollToSelected(list, selected);
+        return;
+    }
+    Dialog7cb2b8_ResetChild21(1);
+    Window7c24c8_Close();
+    global<u32>(0x007cc1f0) = 0;
+    global<u16>(0x007cc1e4) = 0;
+    global<u16>(0x007cc1e8) = 0;
+    global<u16>(0x007cc1e0) = 0;
+    global<u8 *>(0x007cc1f8) = WindowScript_Build(global<u8 *>(0x007cb2ac), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00754cf8), 0x004ac270);
+    if (global<u8 *>(0x007cc1f8)) {
+        Window7c24c8_Set(global<u8 *>(0x007cc1f8));
+        // the money line: a number argument 13, its size, in the text 0x1cb when negative (0x1ca else)
+        u8 *child = Window_FindChild(global<u8 *>(0x007cc1f8), nullptr, 0x200);
+        const s32 money = (s32)Source_Field0c(reinterpret_cast<const TrackedSource *>((uintptr_t)GameTable7cfb90_Get1da726_5195d0(global<u8 *>(0x007cf83c))));
+        u32 number[5] = {0x006ff170, 0x5641524d, 0xd, money < 0 ? 0u - (u32)money : (u32)money, 0};
+        g_open->format(global<u8 *>(0x0078ba94), reinterpret_cast<u16 *>((uintptr_t)0x007ba058), 0x3fff, money < 0 ? 0x1cbu : 0x1cau, number);
+        u8 *memory = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
+        Window_SetObject98(child, nullptr, memory ? TextPart6ff530_Ctor(memory, nullptr, 0) : nullptr);
+        Window_NotifyC00(child, nullptr, 2, 1);
+        Window_Set4c(child, nullptr, Language_Font(5));
+        Window_Notify40000(child, nullptr, 0xff, 0xff, 0xff, 0xff);
+        vcall<void>(child, 0x24, 0x007ba058u);
+        child = raised(0x1eb);
+        memory = static_cast<u8 *>(GameHeap_Alloc(0xd8));
+        Window_SetImpl(child, nullptr, memory ? RendererPart_Ctor(memory, nullptr, 0) : nullptr);
+        raise(child);
+        child = raised(0x1ec);
+        memory = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
+        Window_SetImpl(child, nullptr, memory ? TextPart_Ctor(memory, nullptr, 0) : nullptr);
+        Window_NotifyC00(child, nullptr, 1, 1);
+        Window_Notify3000(child, nullptr, 1, 1);
+        Window_Set4c(child, nullptr, Language_Font(6));
+        Window_Notify40000(child, nullptr, 0xff, 0xff, 0xff, 0xff);
+        Window_NotifyImpl100(child, nullptr, 0);
+        raise(child);
+        if (u8 *const list = Window_FindChild(global<u8 *>(0x007cc1f8), nullptr, 0x1f8)) {
+            Window_SetHandler(list, nullptr, 0x004aca60);
+            g_open->buildRows(list, nullptr, reinterpret_cast<u8 *(__cdecl *)()>((uintptr_t)0x004ad240), reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)0x004ad340));   // (List7cc200_NewRow, List7cc200_InitRow, by the original's addresses: the hooks)
+            Window7059f0_SetColumnBottom(list, nullptr, 0, 0);
+            Window7059f0_SetColumnBottom(list, nullptr, 1, 1);
+            Window7059f0_SetColumnBottom(list, nullptr, 2, 1);
+            Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>(0x0074fa84))));
+            Window7059f0_SortBy(list, nullptr, global<s32>(0x00755140), 0);
+            static const u32 kTexts[3] = {0x7b, 0x7c, 0x8a};
+            for (u32 i = 0; i < 3; ++i) {
+                u8 *const button = Window_FindChild(list, nullptr, 0x10 + i);
+                ButtonText_Init(button, (u32)(uintptr_t)Language_WideText(kTexts[i]), global<u32>(0x00755138), 0xff, 0xef, 0, 0x90 + i);
+            }
+            if (kind == 0xffffffff) kind = global<u32>(0x007cc1fc);
+            selectKind(list, kind);
+            g_open->fillList(kind, 0);
+            if (kind <= 3) g_open->attach(global<u8 *>(0x007cc1f8), 0x1fe, (u32)(uintptr_t)Language_WideText(0x77 + kind));
+            scrollToSelected(list, selected);
+        }
+    }
+    Advisor_PostId(0xbc);
+}
 
 u32 __cdecl Dialog7cc1f8_TabHandler(u8 *window, u32 message, u32 a, u32 b) {
     if (message == 0x101 && b == 1 && a - 0x1fa <= 3) {

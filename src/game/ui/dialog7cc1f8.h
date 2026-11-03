@@ -24,6 +24,18 @@ struct Dialog7cc1f8TabEnv {
 };
 void Dialog7cc1f8_SetTabEnv(const Dialog7cc1f8TabEnv *env);
 
+// Dialog7cc1f8_Open's calls (the ports by default; the bench's recorders: their own benches have them).
+struct Dialog7cc1f8OpenEnv {
+    void(__cdecl *fillList)(u32 kind, u32 clear);                                   // Dialog7cc1f8_FillList
+    s32(__cdecl *format)(u8 *charset, u16 *dest, u32 size, u32 entry, ...);         // Charset_FormatWide
+    u16(__fastcall *selectRadio)(u8 *group, void *, u32 id);                        // RadioGroup_Select
+    void(__cdecl *attach)(u8 *parent, u32 id, u32 text);                            // HoverLabel_Attach
+    s32(__fastcall *findItem)(u8 *list, void *, u32 data);                          // Window7059f0_FindItemData
+    void(__fastcall *scrollTo)(u8 *list, void *, s32 position);                     // Window7059f0_ScrollTo
+    void(__fastcall *buildRows)(u8 *list, void *, u8 *(__cdecl *make)(), void(__cdecl *release)(u8 *));   // Window7059f0_BuildRows
+};
+void Dialog7cc1f8_SetOpenEnv(const Dialog7cc1f8OpenEnv *env);
+
 extern "C" {
 
 // 0x4aaf70 (cdecl (kind, clear); name invented): the dialog [0x7cc1f8]'s list 0x1f8 (no dialog or list: nothing; the store GameTable7cfb90_Get1da720_519510 asked first) cleared when clear is set, the
@@ -36,6 +48,14 @@ void __cdecl Dialog7cc1f8_FillList(u32 kind, u32 clear);
 // 0x4aca60 (cdecl (window, message, a, b); the tabs' handler, name invented): message 0x101 with b 1 and a 0x1fa, 0x1fb, 0x1fc or 0x1fd picks the kind 2, 0, 3 or 1: Dialog7cc1f8_ShowStats (kind), Dialog7cc1f8_FillList (kind, 1), the dialog's
 // child 0x1fe labelled with the text 0x77 + kind. Always then the default handler, its result.
 u32 __cdecl Dialog7cc1f8_TabHandler(u8 *window, u32 message, u32 a, u32 b);
+
+// 0x4acc70 (cdecl (kind, selected: its low word); name invented): Global7cb28c_Select (1, 1), the kind -1 taken from [0x7cc1fc]. An open dialog [0x7cc1f8]: its list refilled (clear 1), then, with the child 0x1f8
+// (none: nothing more), the kind's button in its group 0x1f9 (kinds 0-3: 0x1fb, 0x1fd, 0x1fa, 0x1fc) and a non-zero selected data found scrolled to. A new one: Dialog7cb2b8_ResetChild21 (1), Window7c24c8_Close, [0x7cc1f0], the
+// words [0x7cc1e4], [0x7cc1e8], [0x7cc1e0] 0, built from the script 0x754cf8 (handler 0x4ac270 by address; none: only Advisor_PostId) as [0x7c24c8]; the money line 0x200 (a number argument 13 by its size, the texts 0x1ca / 0x1cb) on
+// an 0x6ff530 part; in the child 0x1ea: 0x1eb a RendererPart_Ctor part (0xd8 bytes), 0x1ec a TextPart_Ctor part without text, both raised by 0xc; the list 0x1f8 (none: only Advisor_PostId): handler 0x4aca60, rows
+// 0x4ad240 / 0x4ad340, three columns, the hilight, the sort [0x755140], the buttons (font [0x755138]) 0x10, 0x11, 0x12 with the texts 0x7b, 0x7c, 0x8a and values 0x90-0x92; the kind's button, the list filled (clear 0), the label
+// 0x1fe of the kinds 0-3 the text 0x77 + kind, the selected scrolled to; Advisor_PostId (0xbc).
+void __cdecl Dialog7cc1f8_Open(u32 kind, u32 selected);
 
 // 0x4ab6b0 (no arguments): the dialog's child 0x1ed (Window_FindChild; nothing when it has none) gets its children dressed in this order
 // (ui/panelparts; a text a TextPart_Ctor part with that language text, a bar's value given to the child's slot 7): 0x1f4 text 0x7d, 0x1f3
