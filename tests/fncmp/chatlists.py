@@ -22,7 +22,7 @@ hooks.update({0x5c8980: _recorder(ONLINE, 1, com=True), 0x691de0: lambda e: e.r.
 B = Bench([(0x4ef010, 0x4ef384), (0x4ef3b0, 0x4ef789), (0x4ef830, 0x4ef840), (0x4ef880, 0x4efc02), (0x4efc10, 0x4f0005), (0x4f1bd0, 0x4f1be0), (0x4f23f0, 0x4f2437), (0x4f1340, 0x4f13f8), (0x4f44d0, 0x4f4577), (0x4f5430, 0x4f54d7), (0x45b590, 0x45b8c5),
            (0x405280, 0x405390), (0x479150, 0x4791b0), (0x4f0250, 0x4f0367), (0x4f39e0, 0x4f3b06), (0x4f6080, 0x4f6086), (0x4f6090, 0x4f618e), (0x4f6190, 0x4f6266), (0x47b750, 0x47bcf0), (0x479230, 0x479256), (0x67acd0, 0x67acee)], hooks=hooks)
 OPS_TABLE = {'savebuddies': 0x4ef010, 'loadbuddies': 0x4ef3b0, 'saveignored': 0x4ef880, 'loadignored': 0x4efc10, 'wcslen': 0x67acd0}
-SELF, NAME, TREE, NIL, FOLDER_VT, FOLDER_TEXT, STREAM, STREAM_VB, FACET_OBJ, FACET_VT, ANSWERS, FILE = (RAM + 0x1000 + 0x400 * i for i in range(12))
+SELF, NAME, TREE, NIL, FOLDER_VT, FOLDER_TEXT, STREAM, STREAM_VB, FACET_OBJ, FACET_VT, ANSWERS, FILE, NIL_E, KEY_TEXT = (RAM + 0x1000 + 0x400 * i for i in range(14))
 OPS = [n for n in OPS_TABLE if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 LINES = ['one', '', 'a longer name', 'x' * 15]
 
@@ -32,14 +32,15 @@ def wide(text, size):
 
 
 def tree(r, self_at, offset, self_bytes):
-    """A right spine of nodes after a head, each node's +0x10 a text or null."""
+    """A right spine of nodes after a head, each node's +0x10 a text or null. The ignored list's nil is its own (0x7ced34), so advancing it as the buddies' tree (0x7ced2c) shows."""
+    nil = NIL_E if offset == 0xea4 else NIL
     count = r.choice([0, 0, 1, 2, 4])
     data = bytearray(0x400)
     head = TREE
     nodes = [TREE + 0x40 * (i + 1) for i in range(count)]
-    struct.pack_into('<3I', data, 0, nodes[0] if nodes else head, nodes[0] if nodes else NIL, nodes[-1] if nodes else head)
+    struct.pack_into('<3I', data, 0, nodes[0] if nodes else head, nodes[0] if nodes else nil, nodes[-1] if nodes else head)
     for i, node in enumerate(nodes):
-        struct.pack_into('<3I', data, node - TREE, NIL, nodes[i - 1] if i else head, nodes[i + 1] if i + 1 < count else NIL)
+        struct.pack_into('<3I', data, node - TREE, nil, nodes[i - 1] if i else head, nodes[i + 1] if i + 1 < count else nil)
         struct.pack_into('<I', data, node - TREE + 0x10, r.choice([0, r.getrandbits(32)]))
     struct.pack_into('<I', self_bytes, offset, head)
     return data
@@ -78,7 +79,7 @@ def case(r):
     struct.pack_into('<I', streams, 0x88 + 4, bad | r.choice([0, 1, 0x10]))
     n = r.choice([0, 1, 2, 3])
     singleton = r.choice([0, r.getrandbits(32) | 1])
-    regions = {LOG: log, IMPORT_TABLE: table, SELF: self_bytes, NAME: b'name%d\0' % r.randrange(100), TREE: tree_bytes, NIL: bytes(0x30), 0x7ced2c: struct.pack('<I', NIL), 0x7ced34: struct.pack('<I', NIL), 0xf81ebc: struct.pack('<I', singleton),
+    regions = {LOG: log, IMPORT_TABLE: table, SELF: self_bytes, NAME: b'name%d\0' % r.randrange(100), TREE: tree_bytes, NIL: bytes(0x30), NIL_E: bytes(0x30), 0x7ced2c: struct.pack('<I', NIL), 0x7ced34: struct.pack('<I', NIL_E), 0xf81ebc: struct.pack('<I', singleton),
                0x700630: struct.pack('<2I', 0, 0x58), 0x700640: struct.pack('<2I', 0, 0x5c), 0x75c6d0: b'suffixA\0', 0x75c6e8: b'suffixB\0', FOLDER_VT: struct.pack('<11I', *[recorder(WSAPPEND if i == 8 else WSASSIGN, 1) for i in range(11)]), FOLDER_TEXT: b'text\0',
                STREAM: streams, STREAM_VB: struct.pack('<2I', 0, 8), HEAP: heap(0x4000, fail=r.choice([0, 0, 1]) if not singleton else 0)}   # (a string's failed allocation only crashes both)
     if name.startswith('save'):
@@ -105,6 +106,8 @@ def case(r):
         strings(log, FIND, 0, out=0b11)
         head = struct.unpack_from('<I', self_bytes, 0xea4)[0]
         fill(log, FIND, 0, struct.pack('<2I', head, r.getrandbits(32) | 1), which=4, records=2)
+        fill(log, FIND, 1, struct.pack('<I', KEY_TEXT + 2), which=5, offset=4)   # (the key is a copy of a wide string that the assign recorder leaves empty: a text of its own, so that its release shows)
+        regions[KEY_TEXT] = bytes([0, r.choice([0, 3, 0xff])]) + b'k\0'
         strings(log, TOGGLE, 0, out=1)
     return Call(OPS_TABLE[name], [SELF, NAME], regions, conv='t', ret='b')
 
