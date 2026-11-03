@@ -18,7 +18,7 @@ extern "C" {
 
 // 0x43ce20 (cdecl (coaster); name invented, unconfirmed): the time since the last run (Motion_Time (0) less +0x120, in thousandths, into each train's +0x7c; +0x120 set first when flag 0x10 of
 // the coaster is clear). Each on car's (+0, bit 0) +0x48..+0x50 take the track node point at its place (+0x38 / +0xac + the train's +0x74, modulo the length +0xa8). Then the trains take turns by
-// the time they have left, least... each step takes the train at the head of the list +0x12c: its cars' +0x54..+0x5c the point half a node on, each car's speed from the climb to there (the type's
+// the time they have left, most first: each step takes the train at the head of the list +0x12c: its cars' +0x54..+0x5c the point half a node on, each car's speed from the climb to there (the type's
 // +0x24, +0x28 going up, +0x2c going down, at least the chain limit (type +0x44 * +0x2c, halved with train flags 0x80 and 0x20) on a chain piece, else type +0x48 * +0x2c), their mean clamped
 // to +0x34; past +0x134 (and without flag 0x40) mixed towards the limit by a fourth power, which also sets flag 0x10; a node with flag 8 scales it by type +0x54. Time to the point half a node on,
 // from the lead car's two points: the train is there (half a node on, +0x7c less the time, put back in the list by it) or stops in between (off the list). Then the speed's drag, the extent

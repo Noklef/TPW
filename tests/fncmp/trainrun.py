@@ -27,7 +27,8 @@ def case(r):
     now = r.randrange(0, 1 << 20)
     set_return(log, 1, now)
     fill(log, 3, 2, struct.pack('<3f', *[r.uniform(-500, 500) for _ in range(3)]), which=0)
-    fill(log, 4, 2, struct.pack('<3f', *[r.uniform(-5, 5) for _ in range(3)]), which=1)
+    if r.random() < 0.5:   # (no fill: the offset as it is given comes back)
+        fill(log, 4, 2, struct.pack('<3f', *[r.uniform(-5, 5) for _ in range(3)]), which=1)
     strings(log, 3, 0, out=1 << 2)
     strings(log, 4, 0, out=1 << 2)
 
@@ -72,6 +73,13 @@ def case(r):
             put(cars, c + 0x38, 'f', r.uniform(-3, 3))
             put(cars, c + 0x40, 'f', r.uniform(0, length))
             put(cars, c + 0x48, '6f', *[r.uniform(-40, 40) for _ in range(6)])
+        if t == 1 and seats == first_seats and r.random() < 0.2:   # the same train twice: their times stay equal
+            cars = bytearray(first_cars)
+            kept = trains[o + 0x28:o + 0x2c]
+            trains[o:o + 0x80] = trains[0:0x80]
+            trains[o + 0x28:o + 0x2c] = kept
+        if t == 0:
+            first_seats, first_cars = seats, cars
         regions[cars_at] = cars
         cars_at += 0x60 * 2 * seats
 
