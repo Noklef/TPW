@@ -5,7 +5,7 @@
 # copied into the new node (StdWString_Construct). The set insert (0x4f2810, and 0x4f0390 copying its result; the tree's multi flag now and then set) with keys equal to a node's or not, and the
 # wide string compare(pos, n, other, count) (0x4f7870): pos within the length (past it is std::_Xran), n and count anything. The GUI
 # library's compare(text) / length (0x665f30, 0x665f60): CmpSub's strings, the other ended by a 0 (its count unused). The online chat's
-# ignore and buddy sets' bounds and finds (0x4f65b0 / 0x4f03c0, 0x4f6270 / 0x4f2770: case-insensitive, sentinels 0x7ced34 / 0x7ced2c):
+# ignore and buddy sets' bounds and finds (0x4f65b0 / 0x4f03c0, 0x4f6270 / 0x4f2770, the buddy set's upper bound 0x4f6870: case-insensitive, sentinels 0x7ced34 / 0x7ced2c):
 # the same trees, keys now and then with A / a flipped; the buddy set's bound written through an out (0x4f4050) as the finds.
 # Their node inserts and set inserts (InsertBuddy, InsertIgnore 0x4f41d0, 0x4f5130; MapBuddy, MapIgnore 0x4f2440, 0x4f2c00) as Insert and MapInsert, the buddy nodes' colour at +0x20,
 # the key's block shared or not (its capacity and count); the values' constructions (NewBuddy, NewIgnore 0x4f7290, 0x4f72b0) of those keys, into a place or null, and their copy constructors (CopyBuddy, CopyIgnore 0x4f74a0, 0x4f72d0).
@@ -22,9 +22,9 @@ from fncmp import Bench, Call, HEAP, RAM, heap  # noqa: E402
 
 CALLS = {'Lower': 0x4f6400, 'Upper': 0x4f6940, 'Find': 0x4f2b40, 'Erase': 0x4f2ad0, 'Insert': 0x4f4c20, 'MapInsert': 0x4f2810, 'CmpSub': 0x4f7870, 'InsertCopy': 0x4f0390,
          'CmpText': 0x665f30, 'Length': 0x665f60, 'LowerIgnore': 0x4f65b0, 'LowerBuddy': 0x4f6270, 'FindIgnore': 0x4f03c0, 'FindBuddy': 0x4f2770, 'LowerBuddyOut': 0x4f4050,
-         'InsertBuddy': 0x4f41d0, 'InsertIgnore': 0x4f5130, 'MapBuddy': 0x4f2440, 'MapIgnore': 0x4f2c00, 'NewBuddy': 0x4f7290, 'NewIgnore': 0x4f72b0, 'CopyBuddy': 0x4f74a0, 'CopyIgnore': 0x4f72d0}
-NOCASE = {0x4f65b0, 0x4f6270, 0x4f03c0, 0x4f2770, 0x4f4050, 0x4f41d0, 0x4f5130, 0x4f2440, 0x4f2c00, 0x4f7290, 0x4f72b0, 0x4f74a0, 0x4f72d0}   # (the chat's sets of the second wide string copy: _wcsnicmp, their own sentinels)
-RANGES = [(a, a + 0x100) for a in CALLS.values() if a < 0x600000] + [(0x665f30, 0x665f60), (0x665f60, 0x665f71), (0x4f4f20, 0x4f4fd0), (0x4f4580, 0x4f4ae0), (0x4f4ac0, 0x4f4b70), (0x4f2960, 0x4f2ac8),
+         'UpperBuddy': 0x4f6870, 'InsertBuddy': 0x4f41d0, 'InsertIgnore': 0x4f5130, 'MapBuddy': 0x4f2440, 'MapIgnore': 0x4f2c00, 'NewBuddy': 0x4f7290, 'NewIgnore': 0x4f72b0, 'CopyBuddy': 0x4f74a0, 'CopyIgnore': 0x4f72d0}
+NOCASE = {0x4f6870, 0x4f65b0, 0x4f6270, 0x4f03c0, 0x4f2770, 0x4f4050, 0x4f41d0, 0x4f5130, 0x4f2440, 0x4f2c00, 0x4f7290, 0x4f72b0, 0x4f74a0, 0x4f72d0}   # (the chat's sets of the second wide string copy: _wcsnicmp, their own sentinels)
+RANGES = [(a, a + 0x100) for a in CALLS.values() if a < 0x600000 and a != 0x4f6870] + [(0x4f6870, 0x4f6934),(0x665f30, 0x665f60), (0x665f60, 0x665f71), (0x4f4f20, 0x4f4fd0), (0x4f4580, 0x4f4ae0), (0x4f4ac0, 0x4f4b70), (0x4f2960, 0x4f2ac8),
           (0x4f23f0, 0x4f2450), (0x67acb0, 0x67acb1), (0x4f4c20, 0x4f4f20), (0x4f76b0, 0x4f7720), (0x4f2810, 0x4f2960), (0x4f7870, 0x4f7900), (0x4f64f0, 0x4f65b0), (0x5e7720, 0x5e7738), (0x47d9d0, 0x47db00), (0x47b750, 0x47bcf0),
           (0x67acd0, 0x67ad00), (0x47ae60, 0x47b060), (0x47b600, 0x47b750), (0x479230, 0x479256), (0x47cc10, 0x47cd00),
           (0x47b460, 0x47b5b0), (0x47d620, 0x47d780), (0x47b320, 0x47b460), (0x405280, 0x405390), (0x479150, 0x4791b0), (0x67c8d0, 0x67c9f0),
