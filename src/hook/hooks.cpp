@@ -5708,6 +5708,7 @@ const Hook kHooks[] = {
     {"ObjectUnlock_AdviseExtraLevel", 0x004d5870, (void *)&ObjectUnlock_AdviseExtraLevel, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"ObjectUnlock_AdviseScore",  0x004d5270, (void *)&ObjectUnlock_AdviseScore, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"ObjectUnlock_CheckScores",  0x004d4e50, (void *)&ObjectUnlock_CheckScores, {0x51, 0x56, 0x8b, 0xf1, 0x8b}},
+    {"ObjectUnlock_CheckThemes",  0x004d4bc0, (void *)&ObjectUnlock_CheckThemes, {0x83, 0xec, 0x08, 0x56, 0x8b}},
     {"QueuePiece_Place",          0x005229e0, (void *)&QueuePiece_Place, {0x8b, 0x54, 0x24, 0x14, 0xb8}},
     {"QueuePiece_Remove",         0x00522a90, (void *)&QueuePiece_Remove, {0x8b, 0x44, 0x24, 0x04, 0x50}},
     {"TrackQueuePiece_Place",     0x00522b90, (void *)&TrackQueuePiece_Place, {0x8b, 0x54, 0x24, 0x14, 0xb8}},
