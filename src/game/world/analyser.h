@@ -166,4 +166,8 @@ void __fastcall ParkAnalyser_HandleMessage(u8 *analyser, void *, u8 *message);
 // twice when they are one), the world read again for each; the value +0x1f0d0's count +0x1f0d4 = that, +0x1f0d8 = 1, its ticks +0x1f0d0
 // the world's (Out_SetFromGame1da70c). Returns +0x1f0d4.
 u32 __fastcall ParkAnalyser_CountAtTicketBooths(u8 *analyser);
+
+// 0x4c9070, 0x4c90d0 (names invented, unconfirmed): the days since the date at +0x21c30, at +0x21c38 (FunnyTime_DaysSince).
+s32 __fastcall ParkAnalyser_DaysSince21c30(const u8 *analyser);
+s32 __fastcall ParkAnalyser_DaysSince21c38(const u8 *analyser);
 }

@@ -497,4 +497,7 @@ u32 __fastcall ParkAnalyser_CountAtTicketBooths(u8 *analyser) {
     Out_SetFromGame1da70c(reinterpret_cast<u32 *>(analyser + 0x1f0d0));
     return at<u32>(analyser, 0x1f0d4);
 }
+
+s32 __fastcall ParkAnalyser_DaysSince21c30(const u8 *analyser) { return FunnyTime_DaysSince(reinterpret_cast<const FileTime *>(analyser + 0x21c30)); }
+s32 __fastcall ParkAnalyser_DaysSince21c38(const u8 *analyser) { return FunnyTime_DaysSince(reinterpret_cast<const FileTime *>(analyser + 0x21c38)); }
 }
