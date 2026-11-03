@@ -194,6 +194,7 @@
 #include "../../src/game/files/handles.h"
 #include "../../src/game/render/weatherfx.h"
 #include "../../src/game/coaster/arreplay.h"
+#include "../../src/game/coaster/arreplayaction.h"
 #include "../../src/game/coaster/rebuild.h"
 #include "../../src/game/coaster/carpose.h"
 #include "../../src/game/model/rideresource.h"
@@ -959,6 +960,27 @@ const SpriteLoadingEnv kSpriteLoadingEnv = {Rec{recorder(1, 2)}, Rec{recorder(2,
 const ThingPatrolEnv kThingPatrolEnv = {Rec{jpeg_recorder(20, 1)}, Rec{jpeg_recorder(21, 5)}};
 // ObjectUnlock_CheckScores's calls: stdcall ones through the COM-style recorders (tools/fncmp.py recorder(k, n, com=True): this logged as 0; tests/fncmp/objectunlockscores.py).
 constexpr u32 stdcall_recorder(u32 k, u32 n) { return kStubs + 0x1000 + 0x4000 + 0x800 * n + 0x20 * k; }
+const AddrCall kArReplayActionCalls[] = {  // tests/fncmp/arreplayaction.py --table
+    {0x447ae0, jpeg_recorder(7, 1)},
+    {0x447b20, jpeg_recorder(8, 1)},
+    {0x447d60, jpeg_recorder(10, 1)},
+    {0x447da0, jpeg_recorder(9, 1)},
+    {0x447dd0, jpeg_recorder(11, 1)},
+    {0x4682b0, jpeg_recorder(12, 3)},
+    {0x4815b0, recorder(19, 1)},
+    {0x4e2860, recorder(18, 2)},
+    {0x4e2920, recorder(16, 2)},
+    {0x4e2950, recorder(15, 1)},
+    {0x4e2a50, recorder(17, 1)},
+    {0x5276d0, jpeg_recorder(6, 1)},
+    {0x52f1b0, jpeg_recorder(5, 2)},
+    {0x52f200, jpeg_recorder(1, 2)},
+    {0x52f580, jpeg_recorder(2, 2)},
+    {0x52fa90, jpeg_recorder(4, 1)},
+    {0x52fad0, jpeg_recorder(3, 1)},
+    {0x5aef50, recorder(13, 0)},
+    {0x5d3230, recorder(14, 2)},
+};
 const GameFrameCall kGameFrameCalls[] = {  // tests/fncmp/gameframe.py --table
     {0x402d70, recorder(1, 0)},
     {0x402ea0, recorder(0, 1)},
@@ -2208,6 +2230,7 @@ int main(int argc, char **argv) {
     CameraUpdate_SetEnv(&kCameraUpdateEnv);
     WeatherFx_SetReloadEnv(&kWeatherFxReloadEnv);
     ArReplay_SetEnv(&kArReplayEnv);
+    ArReplayAction_SetEnv(kArReplayActionCalls, sizeof(kArReplayActionCalls) / sizeof(kArReplayActionCalls[0]));
     CoasterRebuild_SetEnv(&kCoasterRebuildEnv);
     CoasterPose_SetEnv(&kCoasterPoseEnv);
     RideResource_SetEnv(&kRideResourceEnv);
