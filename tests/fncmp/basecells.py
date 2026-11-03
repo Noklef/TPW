@@ -22,15 +22,24 @@ def triangle(r, width, height, sx, sz):
     x, z = (cx + r.uniform(0.1, 0.4)) * sx, (cz + r.uniform(0.1, 0.4)) * sz
     w, h = r.uniform(0.1, 0.5) * sx * r.choice([1, 1, 1, 0.5]), r.uniform(0.1, 0.5) * sz * r.choice([1, 1, 1, 0.5])
     y = r.uniform(-5, 5)
-    kind = r.randrange(12)
+    kind = r.randrange(15)
     if kind < 9:
-        corners = [(x, y, z), (x + w, y, z), (x, y, z + h)]
-        if kind & 1:
-            corners = [(x + w, y, z + h), (x, y, z + h), (x + w, y, z)]
+        # the right angle at any of the four corners
+        cornerx, cornerz = r.choice([(x, x + w), (x + w, x)]), r.choice([(z, z + h), (z + h, z)])
+        corners = [(cornerx[0], y, cornerz[0]), (cornerx[1], y, cornerz[0]), (cornerx[0], y, cornerz[1])]
         if kind & 2:
             corners = [(a + r.uniform(-0.01, 0.01), b + r.uniform(-0.3, 0.3), c + r.uniform(-0.01, 0.01)) for a, b, c in corners]
     elif kind == 9:
         corners = [(x, y, z), (x, y, z), (x + w, y, z + h)]
+    elif kind == 10:   # along x: no edge along z, so the across best alone passes 0.9
+        corners = [(x, y, z), (x + w, y, z + w / 64), (x + w / 2, y, z + w / 32)]
+    elif kind in (11, 12):   # two edges tied (exact: quarters), long along x or along z
+        cx, cz = (cx + 0.25) * sx, (cz + 0.25) * sz
+        a, b = sx / 4, sz / 16
+        corners = [(cx, y, cz + b), (cx + a, y, cz), (cx + a, y, cz + 2 * b)]
+        if kind == 12:
+            a, b = sx / 16, sz / 4
+            corners = [(cx + a, y, cz), (cx, y, cz + b), (cx + 2 * a, y, cz + b)]
     else:
         corners = [(x, y, z), (x + w, y + w, z + h / 2), (x + w / 2, y - h, z + h)]
     start = r.randrange(3)
@@ -40,8 +49,9 @@ def triangle(r, width, height, sx, sz):
 
 def case(r):
     log = log_region()
-    width, height = r.randrange(1, 7), r.randrange(1, 7)
+    width, height = r.choice([(1, 1), (r.randrange(1, 7), r.randrange(1, 7)), (r.randrange(1, 7), r.randrange(1, 7))])   # (one cell: its triangles compete)
     sx, sz = r.choice([10.0, 16.0, 64.0]), r.choice([10.0, 16.0, 64.0])
+    nans = r.choice([0.03, 0.03, 0.25])
     groups = r.randrange(0, 4)
     points, tris, group_bytes, uvs = bytearray(0x600), bytearray(0x180), bytearray(0x40), bytearray(r.bytes(0x800))
     map_words = bytearray(0x200)
@@ -57,8 +67,8 @@ def case(r):
                 put(map_words, 2 * (base + i), 'H', 47 - base - i)
                 put(points, 12 * (47 - base - i), '3f', *c)
                 block, slot = (base + i) >> 2, (base + i) & 3
-                put(uvs, 0x20 * block + 4 * slot, 'I', r.choice([struct.unpack('<I', struct.pack('<f', r.uniform(-4, 4)))[0], struct.unpack('<I', struct.pack('<f', r.randrange(0, 3)))[0]]) if r.random() < 0.97 else NAN)
-                put(uvs, 0x20 * block + 0x10 + 4 * slot, 'I', r.choice([struct.unpack('<I', struct.pack('<f', r.uniform(-4, 4)))[0], struct.unpack('<I', struct.pack('<f', r.randrange(0, 3)))[0]]) if r.random() < 0.97 else NAN)
+                put(uvs, 0x20 * block + 4 * slot, 'I', r.choice([struct.unpack('<I', struct.pack('<f', r.uniform(-4, 4)))[0], struct.unpack('<I', struct.pack('<f', r.randrange(0, 3)))[0]]) if r.random() >= nans else NAN)
+                put(uvs, 0x20 * block + 0x10 + 4 * slot, 'I', r.choice([struct.unpack('<I', struct.pack('<f', r.uniform(-4, 4)))[0], struct.unpack('<I', struct.pack('<f', r.randrange(0, 3)))[0]]) if r.random() >= nans else NAN)
             used += 1
     model = bytearray(r.bytes(0x100))
     put(model, 0x5a, 'H', groups)
