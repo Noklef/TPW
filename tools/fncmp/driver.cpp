@@ -49,6 +49,7 @@
 #include "../../src/game/gfx/statsgraph.h"
 #include "../../src/game/ui/thingbrowser.h"
 #include "../../src/game/ui/dialog7ca150.h"
+#include "../../src/game/ui/thingpanelhandlers.h"
 #include "../../src/game/ui/viewbuttons.h"
 #include "../../src/game/ui/dialog7cc530open.h"
 #include "../../src/game/ui/dialog7cb2b8build.h"
@@ -697,6 +698,8 @@ const Dialog7cb2b8BuildEnv kDialog7cb2b8BuildEnv = {reinterpret_cast<s32(__cdecl
 const Dialog7cc530OpenEnv kDialog7cc530OpenEnv = {Rec{jpeg_recorder(10, 3)}, Rec{jpeg_recorder(11, 1)}, Rec{recorder(12, 1)}, Rec{recorder(27, 2)}, Rec{recorder(14, 2)}, Rec{jpeg_recorder(15, 1)}, Rec{recorder(16, 1)}, Rec{jpeg_recorder(17, 7)}, Rec{jpeg_recorder(18, 1)}, Rec{jpeg_recorder(19, 1)}};
 // ViewButtons_Handler's calls (tests/fncmp/viewbuttons.py).
 const ViewButtonsEnv kViewButtonsEnv = {Rec{recorder(10, 3)}, Rec{recorder(11, 0)}, Rec{recorder(12, 0)}, Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{recorder(15, 0)}, Rec{recorder(16, 0)}, Rec{jpeg_recorder(17, 0)}, Rec{recorder(18, 0)}, Rec{jpeg_recorder(19, 1)}, Rec{recorder(20, 2)}};
+// the thing panels' handlers' calls (tests/fncmp/thingpanelhandlers.py).
+const ThingPanelHandlerEnv kThingPanelHandlerEnv = {Rec{recorder(10, 0)}, Rec{recorder(11, 0)}, Rec{recorder(24, 0)}, Rec{jpeg_recorder(12, 4)}, Rec{recorder(13, 2)}, Rec{recorder(14, 1)}, Rec{jpeg_recorder(15, 1)}, Rec{jpeg_recorder(16, 0)}, Rec{jpeg_recorder(17, 2)}, Rec{recorder(18, 0)}, Rec{recorder(19, 0)}, Rec{recorder(20, 1)}, Rec{recorder(21, 0)}, Rec{recorder(22, 0)}, Rec{jpeg_recorder(23, 2)}};
 // Online_Instance's constructor (tests/fncmp/onlineinstance.py).
 const OnlineInstanceEnv kOnlineInstanceEnv = {Rec{recorder(10, 0)}};
 // Dialog7cdac4_Handler's calls (tests/fncmp/dialog7cdac4handler.py).
@@ -1553,6 +1556,7 @@ int main(int argc, char **argv) {
     Panel7cc218_SetShowEnv(&kPanel7cc218ShowEnv);
     Dialog7ca168_SetOpenEnv(&kDialog7ca168OpenEnv);
     Online_SetInstanceEnv(&kOnlineInstanceEnv);
+    ThingPanelHandlers_SetEnv(&kThingPanelHandlerEnv);
     ViewButtons_SetEnv(&kViewButtonsEnv);
     Dialog7cc530_SetOpenEnv(&kDialog7cc530OpenEnv);
     Dialog7cb2b8_SetBuildEnv(&kDialog7cb2b8BuildEnv);
