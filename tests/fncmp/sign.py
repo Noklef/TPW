@@ -69,7 +69,8 @@ def case(r):
     fill(log, 2, 2, struct.pack('<2I', outs[1], outs[3]), which=1, records=2)
     blob(log, 3, 1, 7)
     blob(log, 6, 1, 0xffff)
-    fill(log, 4, 0, struct.pack('<I', second), which=2)
+    if second != first:   # (else the ride's own number stands)
+        fill(log, 4, 0, struct.pack('<I', second), which=2)
     set_return(log, 1, first)
     glob = bytearray(0x90)
     for at in range(0, 0x90, 4):
