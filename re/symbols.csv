@@ -4407,6 +4407,7 @@ address,name,kind,confidence,notes
 0x004f2770,ChatBuddySet_Find,function,low,"reimplemented (src/game/core/wstringmap); thiscall (out, key), pops 8; find over the 0x7ced2c set: the lower bound unless the head or the key sorts before it (name invented)"
 0x004f4050,ChatBuddySet_LowerBoundOut,function,low,"reimplemented (src/game/core/wstringmap); thiscall on the chat's buddy set (out, key), pops 8; *out = ChatBuddySet_LowerBound(key); returns out (name invented)"
 0x004f6870,ChatBuddySet_UpperBound,function,low,"reimplemented (src/game/core/wstringmap); thiscall (key), pops 4; the buddy set's upper bound (name invented)"
+0x004f2700,ChatBuddySet_EraseKey,function,low,"reimplemented (src/game/core/wstringmap); thiscall (key), RET 4: the buddy set's entries of key erased; returns how many (name invented, unconfirmed)"
 0x004de130,Object_BackOfQueue,function,high,reimplemented (src/game/world/objectmsg); the back of a queue found by walking neighbours
 0x0041e270,Class6fda58_DtorA,function,high,"reimplemented (src/game/core/class6fd9d8); complete destructor, handle at +0x40"
 0x0041e2d0,Class6fda58_DtorB,function,high,"reimplemented (src/game/core/class6fd9d8); complete destructor, handle at +0x40"
@@ -4632,6 +4633,7 @@ address,name,kind,confidence,notes
 0x004f72b0,WStdString_Construct,function,low,reimplemented (src/game/core/stdwstring); construct unless null
 0x004f74a0,WStdStringWord_CtorCopy,function,low,reimplemented (src/game/core/stdwstring); the buddy set's value: a string and a word
 0x004f7290,WStdStringWord_Construct,function,low,reimplemented (src/game/core/stdwstring); construct unless null
+0x004ea0e0,WStdString_CtorCopyC,function,low,"reimplemented (src/game/core/stdwstring); thiscall (x), RET 4: copy constructor, 0x4f0250 inlined once more (name invented, unconfirmed)"
 0x00405b90,GameError_IndexOfCode,function,low,reimplemented (src/game/core/gameerror); the error index of a library code
 0x00405710,GameError_Set,function,low,"reimplemented (src/game/core/gameerror); thiscall (index, arg, text), pops 12: +4 index, +8 arg, text strncpy into +0xc (0x50), +0 = 1"
 0x004ea740,CountedPair_CtorWide,function,low,"reimplemented (src/game/core/countedpair); thiscall (std::wstring by value, pops 16): the 0x24-byte pair of a narrow and a wide string and a dword: the narrow one empty, the wide one assigned the string, the dword 0; the string destroyed"
@@ -6698,6 +6700,8 @@ address,name,kind,confidence,notes
 0x004ee9e0,ChatAvatar_FillBuddyList,function,low,"reimplemented (src/game/online/chatcommand); thiscall on the avatar; the buddy set +0xe90's names in order, each with its ChatAvatar_NameFlags, to Window7cc8bc_ListAdd1Std"
 0x004ebb00,ChatAvatar_AddIgnore,function,low,"reimplemented (src/game/online/chatcommand); thiscall (name), pops 4; the command 0xd run on the name when it is not in the ignore set +0xea0 (name invented)"
 0x004ebcf0,ChatAvatar_RemoveIgnore,function,low,"reimplemented (src/game/online/chatcommand); thiscall (name), pops 4; the command 0xd run on the name when it is in the ignore set +0xea0 (name invented)"
+0x004e6e80,ChatAvatar_HandleEvent,function,low,"reimplemented (src/game/online/chatevents); thiscall (tokens), RET 4: the event the tokens carry (name invented, unconfirmed)"
+0x004ee710,ChatAvatar_SetBuddy,function,low,"reimplemented (src/game/online/chatevents); thiscall (name, flags), RET 8: the buddy set's entry of name given the flags, told to both window lists (name invented, unconfirmed)"
 0x005d8190,LobbyModel_SetPosition,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (v): the lobby model's (+4: 0x7a4610 index) matrix (+8 -> +4 -> +0x78, +0x10) translation = v[0..2] (x87 loads, all read first)"
 0x005d8380,LobbyModel_TurnY,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (angle): Matrix_RotateEulerFast(the lobby model's matrix, 2 ""Y"", &angle)"
 0x005d83b0,LobbyModel_SetScale,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (x, y, z): Holder_SetScale(the lobby model's entry +8, (x, y, z))"

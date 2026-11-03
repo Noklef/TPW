@@ -166,4 +166,15 @@ u32 __fastcall WStringMap_EraseKey(u8 *map, void *, const u8 *key) {
     return n;
 }
 
+u32 __fastcall ChatBuddySet_EraseKey(u8 *set, void *, const u8 *key) {
+    u8 *const last = ChatBuddySet_UpperBound(set, nullptr, key);
+    u8 *const first = ChatBuddySet_LowerBound(set, nullptr, key);
+    u32 n = 0;
+    for (u8 *it = first; it != last; StdTree_IncC(&it))
+        ++n;
+    u8 *out;
+    StdTree_EraseRangeC(set, nullptr, &out, first, last);
+    return n;
+}
+
 }  // extern "C"

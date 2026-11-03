@@ -445,6 +445,7 @@
 #include "../game/online/ftp.h"
 #include "../game/online/chat.h"
 #include "../game/online/chatcommand.h"
+#include "../game/online/chatevents.h"
 #include "../game/online/session.h"
 #include "../game/ui/dialog7ca1c8.h"
 #include "../game/ui/dialog7cb398.h"
@@ -4353,6 +4354,7 @@ const Hook kHooks[] = {
     {"ChatBuddySet_Find",         0x004f2770, (void *)&ChatBuddySet_Find, {0x51, 0x53, 0x8b, 0x5c, 0x24}},
     {"ChatBuddySet_LowerBoundOut", 0x004f4050, (void *)&ChatBuddySet_LowerBoundOut, {0x8b, 0x44, 0x24, 0x08, 0x50}},
     {"ChatBuddySet_UpperBound",   0x004f6870, (void *)&ChatBuddySet_UpperBound, {0x6a, 0xff, 0x68, 0xd8, 0xdc}},
+    {"ChatBuddySet_EraseKey",     0x004f2700, (void *)&ChatBuddySet_EraseKey, {0x53, 0x55, 0x56, 0x57, 0x8b}},
     {"Thing_SetPos",              0x0050b6a0, (void *)&Thing_SetPos, {0x51, 0x56, 0x8b, 0xf1, 0x8b}},
     {"Object_BackOfQueue",        0x004de130, (void *)&Object_BackOfQueue, {0x83, 0xec, 0x08, 0x56, 0x8b}},
     {"Holder_Sleep",              0x0045bdd0, (void *)&Holder_Sleep, {0x56, 0x8b, 0x74, 0x24, 0x08}},
@@ -4677,6 +4679,7 @@ const Hook kHooks[] = {
     {"WStdString_Construct",      0x004f72b0, (void *)&WStdString_Construct, {0x8b, 0x4c, 0x24, 0x04, 0x85}},
     {"WStdStringWord_CtorCopy",   0x004f74a0, (void *)&WStdStringWord_CtorCopy, {0x53, 0x55, 0x8b, 0x6c, 0x24}},
     {"WStdStringWord_Construct",  0x004f7290, (void *)&WStdStringWord_Construct, {0x8b, 0x4c, 0x24, 0x04, 0x85}},
+    {"WStdString_CtorCopyC",      0x004ea0e0, (void *)&WStdString_CtorCopyC, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"GameError_IndexOfCode",     0x00405b90, (void *)&GameError_IndexOfCode, {0x8b, 0x44, 0x24, 0x04, 0x3d}},
     {"GameError_Set",             0x00405710, (void *)&GameError_Set, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"CountedPair_CtorWide",      0x004ea740, (void *)&CountedPair_CtorWide,{0x6a, 0xff, 0x68, 0x40, 0xcd}},
@@ -6551,6 +6554,8 @@ const Hook kHooks[] = {
     {"ChatAvatar_FillBuddyList",  0x004ee9e0, (void *)&ChatAvatar_FillBuddyList, {0x51, 0x56, 0x8b, 0xf1, 0x33}},
     {"ChatAvatar_AddIgnore",      0x004ebb00, (void *)&ChatAvatar_AddIgnore, {0x6a, 0xff, 0x68, 0x48, 0xd0}},
     {"ChatAvatar_RemoveIgnore",   0x004ebcf0, (void *)&ChatAvatar_RemoveIgnore, {0x6a, 0xff, 0x68, 0x98, 0xd0}},
+    {"ChatAvatar_HandleEvent",    0x004e6e80, (void *)&ChatAvatar_HandleEvent, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"ChatAvatar_SetBuddy",       0x004ee710, (void *)&ChatAvatar_SetBuddy, {0x6a, 0xff, 0x68, 0x70, 0xd4}},
     {"LobbyModel_SetPosition",    0x005d8190, (void *)&LobbyModel_SetPosition, {0x8b, 0x41, 0x04, 0x8b, 0x54}},
     {"LobbyModel_TurnY",          0x005d8380, (void *)&LobbyModel_TurnY, {0x8b, 0x49, 0x04, 0x8d, 0x44}},
     {"LobbyModel_SetScale",       0x005d83b0, (void *)&LobbyModel_SetScale, {0x83, 0xec, 0x0c, 0x8b, 0x44}},

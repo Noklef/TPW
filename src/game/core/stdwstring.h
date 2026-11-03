@@ -134,6 +134,8 @@ StdWString *__fastcall WStdString_CtorCopy(StdWString *s, void *edx, const StdWS
 
 // 0x4f72d0: the same again, as the ignore set's value (names of the four invented, unconfirmed). 0x4f72b0 (cdecl (p, x)): unless p is null, constructed there.
 StdWString *__fastcall WStdString_CtorCopyB(StdWString *s, void *edx, const StdWString *x);
+// 0x4ea0e0: the same again (0x4f0250 inlined once more; name invented, unconfirmed).
+StdWString *__fastcall WStdString_CtorCopyC(StdWString *s, void *edx, const StdWString *x);
 void __cdecl WStdString_Construct(StdWString *p, const StdWString *x);
 
 // 0x4f74a0 (thiscall (x), pops 4): the buddy set's value: the string at +0 as above and the word at +0x10. Returns s. 0x4f7290 (cdecl (p, x)): unless p is null, constructed there.

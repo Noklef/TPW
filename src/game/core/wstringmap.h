@@ -33,6 +33,9 @@ u8 *__fastcall ChatBuddySet_LowerBound(u8 *set, void *, const u8 *key);
 // the key's (+4 characters, passed as they are, +8 length) by that order; the head when there is none. The STL lock left out.
 u8 *__fastcall ChatBuddySet_UpperBound(u8 *set, void *, const u8 *key);
 
+// 0x4f2700 (thiscall on the buddy set; key, pops 4): the entries of key erased; returns how many. Name invented, unconfirmed.
+u32 __fastcall ChatBuddySet_EraseKey(u8 *set, void *, const u8 *key);
+
 // 0x4f03c0 / 0x4f2770 (thiscall on the set; out, key, pops 8): find: the lower bound when it is not the head and the key's characters
 // (passed as they are) do not sort before its string (null: 0x700624), else the head. *out is set and out returned.
 u32 *__fastcall ChatIgnoreSet_Find(u8 *set, void *, u32 *out, const u8 *key);

@@ -344,6 +344,7 @@ void ignoreCommand(u8 *avatar, const StdWString *name, bool whenIgnored) {
 extern "C" {
 
 void ChatCommand_SetEnv(const ChatCommandEnv *env) { g_env = env ? env : &kGameEnv; }
+const ChatCommandEnv *ChatCommand_Env() { return g_env; }
 
 StdWString *__fastcall ChatToken_Text(const u8 *token, void *, StdWString *out) {
     return StdWString_CtorCopy(out, nullptr, &at<const StdWString>(token, 0x10));

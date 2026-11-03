@@ -560,6 +560,7 @@ StdWString *__fastcall WStdString_CtorCopy(StdWString *s, void *, const StdWStri
 }
 
 StdWString *__fastcall WStdString_CtorCopyB(StdWString *s, void *, const StdWString *x) { return WStdString_CtorCopy(s, nullptr, x); }
+StdWString *__fastcall WStdString_CtorCopyC(StdWString *s, void *, const StdWString *x) { return WStdString_CtorCopy(s, nullptr, x); }
 
 void __cdecl WStdString_Construct(StdWString *p, const StdWString *x) {
     if (p) WStdString_CtorCopyB(p, nullptr, x);

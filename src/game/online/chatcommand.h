@@ -116,4 +116,5 @@ struct ChatCommandEnv {
     void(__cdecl *dialog)(u8 *message, u32 kind, u32, u32, u32 callback, u32, u32, u32);  // 0x47f020 (B)
 };
 void ChatCommand_SetEnv(const ChatCommandEnv *env);   // nullptr: the game's
+const ChatCommandEnv *ChatCommand_Env();
 }
