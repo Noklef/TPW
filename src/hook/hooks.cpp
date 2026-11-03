@@ -394,6 +394,7 @@
 #include "../game/world/sign.h"
 #include "../game/world/rideupkeep.h"
 #include "../game/world/staffctors.h"
+#include "../game/world/staffheld.h"
 #include "../game/world/staffsteps.h"
 #include "../game/world/staffthink.h"
 #include "../game/world/staffwork.h"
@@ -6062,6 +6063,8 @@ const Hook kHooks[] = {
     {"Object_Update",             0x004e0b90, (void *)&Object_Update, {0x51, 0x56, 0x8b, 0xf1, 0x57}},
     {"Object_PostUpdate",         0x004e0e00, (void *)&Object_PostUpdate, {0x56, 0x8b, 0xf1, 0x8b, 0x86}},
     {"Researcher_Update",         0x00502960, (void *)&Researcher_Update, {0x51, 0x56, 0x8b, 0xf1, 0xe8}},
+    {"Holder_PlaceStaff",         0x00509af0, (void *)&Holder_PlaceStaff, {0x51, 0x56, 0x8b, 0xf1, 0x33}},
+    {"World_ClearStaffSlots",     0x005083b0, (void *)&World_ClearStaffSlots, {0x53, 0x55, 0x8b, 0x6c, 0x24}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
