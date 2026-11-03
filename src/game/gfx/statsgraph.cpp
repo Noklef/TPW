@@ -25,8 +25,8 @@ s32 shown(Scan scan) {
     return result;
 }
 
-const StatsGraphEnv kGameEnv = {reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)0x0049aa30), reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)0x004a4750),
-                                &Window7ca2e8_ClearButtons};
+const StatsGraphEnv kGameEnv = {&StatsGraph_Lines, &StatsGraph7cb318_Lines, &Window7ca2e8_ClearButtons,
+                                reinterpret_cast<void(__fastcall *)(u8 *, void *, u32 *, s32, u32, u32, u32)>((uintptr_t)0x0047fe90)};
 const StatsGraphEnv *g_env = &kGameEnv;
 
 void SetMarksXOfKind(u8 *gauge, u32 kind) {
@@ -46,7 +46,54 @@ void SetMarksY1() {
     Gauge_SetMarksY(Graph1(), nullptr, (u32)StatsGraph_ShownMin(), (u32)high, 10);
 }
 
+u32 plotWindow(u32 kind) { return kind == 0 ? 0xc : kind == 1 ? 0x24 : kind == 2 ? 0x90 : 0; }
+
+// The samples into the points; sample(i) gives the point of the sample i, first the one before any.
+template <typename Sample> void plot(u8 *gauge, const u8 *line, const u8 *colour, s32 step, u32 kind, u32 first, Sample sample) {
+    const s32 head = *reinterpret_cast<const s32 *>(line + 0x244), capacity = *reinterpret_cast<const s32 *>(line + 0x248);
+    const bool wrapped = line[0x24c] != 0;
+    const s32 window = (s32)plotWindow(kind), count = wrapped ? capacity : head + 1, last = window < count ? window : count;
+    if (last < 0) return;
+    u32 *const points = reinterpret_cast<u32 *>((uintptr_t)0x007b4bf8);
+    u32 value = first;
+    s32 back = last * step;
+    for (s32 i = 0; i <= last; ++i, back -= step) {
+        if (back < capacity) {
+            if (back <= head) value = sample(head - back);
+            else if (wrapped) value = sample(head + capacity - back);
+        }
+        points[i] = value;
+    }
+    g_env->plot(gauge, nullptr, points, last, plotWindow(kind), *reinterpret_cast<const u32 *>(colour), colour[4]);
+}
+
 }  // namespace
+
+extern "C" {
+
+void __cdecl StatsGraph_PlotU32(u8 *gauge, const u8 *line, const u8 *colour, s32 step, u32 kind) {
+    plot(gauge, line, colour, step, kind, 0, [line](s32 i) { return *reinterpret_cast<const u32 *>(line + 4 + i * 4); });
+}
+
+void __cdecl StatsGraph_PlotFloat(u8 *gauge, const u8 *line, const u8 *colour, s32 step, u32 kind) {
+    const auto truncated = [](float x) { return (u32)(long long)x; };
+    plot(gauge, line, colour, step, kind, truncated(global<float>(0x006ff0a4)), [line, truncated](s32 i) { return truncated(*reinterpret_cast<const float *>(line + 4 + i * 4)); });
+}
+
+void __cdecl StatsGraph_Lines(u8 *gauge) {
+    static const u32 kColours[8] = {0x007ca2b0, 0x007ca2c0, 0x007ca2c8, 0x007ca2d8, 0x007ca2a8, 0x007ca2e0, 0x007ca298, 0x007ca2b8};
+    const u8 *const record = reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(global<u8 *>(0x007cf83c)));
+    for (u32 k = 0; k < 8; ++k)
+        if (global<u8>(0x00751fa0) & (1u << k)) StatsGraph_PlotU32(gauge, record + kLines[k], reinterpret_cast<const u8 *>((uintptr_t)kColours[k]), 1, global<u32>(0x007ca2ec));
+}
+
+void __cdecl StatsGraph7cb318_Lines(u8 *gauge) {
+    static const u32 kOffsets[5] = {0x20cc0, 0x20f10, 0x21160, 0x205d0, 0x213b0}, kColours[5] = {0x007cb368, 0x007cb380, 0x007cb308, 0x007cb390, 0x007cb370};
+    const u8 *const record = reinterpret_cast<const u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(global<u8 *>(0x007cf83c)));
+    for (u32 k = 0; k < 5; ++k)
+        if (global<u8>(0x00753c48) & (1u << k)) (k == 1 ? StatsGraph_PlotFloat : StatsGraph_PlotU32)(gauge, record + kOffsets[k], reinterpret_cast<const u8 *>((uintptr_t)kColours[k]), 1, global<u32>(0x007cb39c));
+}
+}
 
 void StatsGraph_SetEnv(const StatsGraphEnv *env) { g_env = env ? env : &kGameEnv; }
 

@@ -651,7 +651,7 @@ const Dialog7cc1f8Env kDialog7cc1f8Env = {Rec{recorder(10, 0)}, Rec{recorder(11,
 const Dialog7ca150Env kDialog7ca150Env = {{Rec{jpeg_recorder(24, 1)}, Rec{jpeg_recorder(25, 1)}, Rec{jpeg_recorder(26, 1)}, Rec{jpeg_recorder(27, 1)}}, Rec{jpeg_recorder(28, 1)},
                                           Rec{jpeg_recorder(29, 3)}, Rec{jpeg_recorder(30, 1)}};
 // (the other graph's 0x4a4750 the same recorder, the handler's 0x49ab80 the cdecl recorder 23 of 1: tests/fncmp/statshandler.py.)
-const StatsGraphEnv kStatsGraphEnv = {Rec{jpeg_recorder(22, 1)}, Rec{jpeg_recorder(22, 1)}, Rec{jpeg_recorder(23, 1)}};
+const StatsGraphEnv kStatsGraphEnv = {Rec{jpeg_recorder(22, 1)}, Rec{jpeg_recorder(22, 1)}, Rec{jpeg_recorder(23, 1)}, Rec{recorder(24, 5)}};
 
 const ObjectEnv kObjectEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, u8 *)>((uintptr_t)recorder(21, 1)),
                               reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(22, 0)),
