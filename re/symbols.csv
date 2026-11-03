@@ -7815,6 +7815,7 @@ address,name,kind,confidence,notes
 0x0048e2f0,Dialog7ca098_Handler,function,low,"reimplemented (src/game/ui/dialog7ca098); cdecl (window, message, a, b); name invented, unconfirmed: the handler of the message box [0x7ca098]"
 0x00498d80,Dialog7ca210_Open,function,low,"reimplemented (src/game/ui/dialog7ca210); cdecl; name invented, unconfirmed: the dialog [0x7ca210] opened; see the header"
 0x00486280,Thing_NameBuffer7ba058,function,low,"reimplemented (src/game/ui/dialog7ca210); cdecl (thing); name invented, unconfirmed: 0x4e2780 given the buffer 0x7ba058, 0x3fff; returns the buffer"
+0x00499060,Dialog7ca210_NameHandler,function,low,"reimplemented (src/game/ui/dialog7ca210); the handler of the dialog [0x7ca210]'s child 0x4f3af: name invented, unconfirmed"
 0x004b2750,Dialog7cc2ec_Open,function,low,"reimplemented (src/game/ui/dialog7cc2ec); cdecl; name invented, unconfirmed: the dialog [0x7cc2ec] opened: five bars, the figures; see the header"
 0x00486410,Sign_PlaceOverRect,function,low,"reimplemented (src/game/ui/signrect); cdecl (rect, type, row); name invented, unconfirmed: the sign [0x7b9f4c] destroyed and made anew over the window rectangle (its words +4 to +0xa on a frame 0x800 by 0x600 about its centre); answers nothing"
 0x004864f0,Sign_Swing,function,low,"reimplemented (src/game/ui/signrect); cdecl; name invented, unconfirmed: RideObject_Swing of the sign [0x7b9f4c], if any"

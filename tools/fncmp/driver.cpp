@@ -919,7 +919,7 @@ const Dialog7cc1f8OpenEnv kDialog7cc1f8OpenEnv = {Rec{jpeg_recorder(17, 2)}, Rec
 // Dialog7cb25c_Open's calls (tests/fncmp/dialog7cb25copen.py).
 const Dialog7cb25cOpenEnv kDialog7cb25cOpenEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50)), Rec{jpeg_recorder(21, 3)}, Rec{recorder(22, 2)}, Rec{recorder(27, 2)}, Rec{jpeg_recorder(17, 1)}, Rec{recorder(19, 1)}, Rec{jpeg_recorder(20, 0)}};
 // Dialog7ca210_Open's calls (tests/fncmp/dialog7ca210open.py).
-const Dialog7ca210Env kDialog7ca210Env = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50)), Rec{jpeg_recorder(21, 3)}, Rec{recorder(22, 2)}};
+const Dialog7ca210Env kDialog7ca210Env = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50)), Rec{jpeg_recorder(21, 3)}, Rec{recorder(22, 2)}, Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 1)}, Rec{recorder(12, 4)}, Rec{recorder(13, 3)}};
 // Dialog7cc2ec_Open's calls (tests/fncmp/dialog7cc2ecopen.py).
 const Dialog7cc2ecEnv kDialog7cc2ecEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50)), Rec{jpeg_recorder(21, 3)}, Rec{stdcall_recorder(22, 1)}};
 // ResearchPanel_Open's calls (tests/fncmp/researchopen.py).
