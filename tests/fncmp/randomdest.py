@@ -4,7 +4,8 @@
 # the person: all types, every neighbour and direction bit), the neighbours' type 0xa read from the route's cells ([0x80239c]). Kinds 4-8 (staff) or
 # not, the patrol region about the person, excluding it, narrow or wild; the timer +0x198 0, past the counter (cleared), or in force over
 # objectblocks.py's block values (then the map's type 3 cells face up or right only: the block test's walk would otherwise not end). Sides-less cells
-# take the rings' and the five tries' path. Thoughts_Show as thoughtshow.py's.
+# take the rings' and the five tries' path. Thoughts_Show as thoughtshow.py's. The block test walks [0x7cf83c]'s cells: the same map again, each cell's
+# id its own, its edge cells of type 1 (a walk of type 3 / 9 stops there). The person is at PERSON: the world's ride object (a thing of its cells) is at RAM.
 # usage: randomdest.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -27,6 +28,7 @@ B = Bench(wctimage.merged(navpath.RANGES + [
            0x475a10: _recorder(3, 7, cdecl=True)})
 WORLD, ENTRIES = cellstep.WORLD, cellstep.ENTRIES
 MARGIN = 7   # (the walk's cells about the box, as far as the walk and the tries of 5 go)
+PERSON = RAM + 0x4a000
 
 
 def poke(regions, r, at, fmt, *values):
@@ -59,6 +61,13 @@ def walk_cells(regions, r, x0, y0, x1, y1, safe):
             else:
                 row[at + 0xd] = r.choice([1, 0x10, 4, 0x40, 1, 0x10, 4, 0x40, 0, 0x80, r.getrandbits(8)])
         regions[ENTRIES + (y << 7 | lo) * 0x44] = row
+        if safe:   # (the block test's walk)
+            again = bytearray(row)
+            for k in range(hi - lo + 1):
+                put(again, 0x44 * k, 'H', (y << 7 | lo + k) + 1)
+                if k in (0, hi - lo) or y in (max(y0, 0), min(y1, 0x7f)):
+                    put(again, 0x44 * k + 8, 'I', 1)
+            regions[cellstep.PARENTS + 0x294 + ((y << 7 | lo) + 1) * 0x44] = again
 
 
 def region(r, x, y, box):
@@ -101,7 +110,7 @@ def case(r):
     person[0xb4:0xb8] = struct.pack('<I', r.choice([0, 0, r.randrange(1, 64), r.getrandbits(32)]))
     last = r.choice([0, r.randrange(100), r.getrandbits(32), 0xffffffff - r.randrange(60)])
     put(person, 0xbc, 'I', last)
-    regions[RAM] = person
+    regions[PERSON] = person
     navpath.common(regions, r, counter)
     walk_cells(regions, r, bx - MARGIN, by - MARGIN, bx + size + MARGIN, by + size + MARGIN, safe)
     if r.random() < 0.15:   # (no side neighbours here: the rings)
@@ -130,7 +139,7 @@ def case(r):
         0xfb34aa: bytes([r.choice([1, 1, 1, 0, 2, 3, r.getrandbits(8)])]),
         0xfb3b7c: struct.pack('<I', r.choice([0, 1, 1, 2, r.getrandbits(32)])),
     })
-    return Call(0x4f9490, [RAM], regions, conv='t', ret='a', steps=20_000_000)   # (up to 37 route searches, each up to 0xf8 cells or so)
+    return Call(0x4f9490, [PERSON], regions, conv='t', ret='a', steps=20_000_000)   # (up to 37 route searches, each up to 0xf8 cells or so)
 
 
 if __name__ == '__main__':
