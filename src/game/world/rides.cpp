@@ -259,4 +259,6 @@ u32 __cdecl Ride_Create(u32 type, u32 flags, const u32 *desc, u32 mask, u32 d4, 
     g_env->updateNormals(at<u8 *>(at<u8 *>(inst, 8), 4));
     return slot + 1;
 }
+
+void __cdecl RideSystem_DumpSlot(const u8 *, const u8 *) {}
 }
