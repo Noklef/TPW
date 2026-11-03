@@ -367,6 +367,7 @@
 #include "../game/world/world.h"
 #include "../game/model/holder.h"
 #include "../game/coaster/tracktypes.h"
+#include "../game/coaster/typemodel.h"
 #include "../game/model/parts.h"
 #include "../game/model/highlight.h"
 #include "../game/model/partstate.h"
@@ -4421,6 +4422,7 @@ const Hook kHooks[] = {
     {"CoasterPiece_CanPlaceAt",   0x00434740, (void *)&CoasterPiece_CanPlaceAt, {0x83, 0xec, 0x30, 0xa1, 0xec}},
     {"CoasterEdit_Update",        0x00443340, (void *)&CoasterEdit_Update, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Coaster_TestRun",           0x0043c450, (void *)&Coaster_TestRun, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"CoasterType_ReadModel",     0x00430590, (void *)&CoasterType_ReadModel, {0x51, 0x8b, 0x44, 0x24, 0x10}},
     {"Thing_SpriteChoice",        0x004fcac0, (void *)&Thing_SpriteChoice, {0x51, 0x56, 0x8b, 0xf1, 0x6a}},
     {"Thing_IngredientRecord",    0x004e2200, (void *)&Thing_IngredientRecord, {0x51, 0x66, 0x8b, 0x41, 0x0e}},
     {"Class701378_Ctor",          0x005667d0, (void *)&Class701378_Ctor, {0x51, 0x8b, 0x44, 0x24, 0x08}},
