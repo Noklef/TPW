@@ -10,7 +10,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
-from fncmp import LOG, LOG_BYTES, RAM, Bench, Call, _recorder, log_region, put, set_return, vtable  # noqa: E402
+from fncmp import LOG, LOG_BYTES, RAM, Bench, Call, _recorder, log_fold, log_region, put, set_return, vtable  # noqa: E402
 _ops = os.environ.pop('OPS', None)   # (the imported benches read OPS as their own)
 from crt import swprintf_hook  # noqa: E402
 from dialog7cb398 import KVTABLE, NODE, children, window  # noqa: E402
@@ -51,6 +51,7 @@ def value(r):
 
 def case(r):
     log = log_region()
+    log_fold(log)   # (Open makes more calls than the log's 40 entries)
     regions = {LOG: log}
     tree(r, regions)
     op = r.deal(OPS)
@@ -87,7 +88,7 @@ def case(r):
         ident = r.deal([0x1d4d5, 0x1d4d6, 0x1d4d8, 0x1d4da, 0x1d4dc, 0x1d4de, 0x1d4e0, 0x1d4d7, 0x1d4e1, 0])
         args = [ident, value(r)]
     elif op == 'Button':
-        ident = r.deal(list(range(0x1d4c1, 0x1d4c8)) + [0x1d4d2, 0x1d4d3, 0x1d4d7, 0x1d4d9, 0x1d4db, 0x1d4dd, 0x1d4c0, 0x1d4c8, 0x1d4d4, 0x1d4d8, 0x1d4de, 0x1d4e0])
+        ident = r.deal(list(range(0x1d4c1, 0x1d4c8)) + [0x1d4d2] * 6 + [0x1d4d3, 0x1d4d7, 0x1d4d9, 0x1d4db, 0x1d4dd, 0x1d4c0, 0x1d4c8, 0x1d4d4, 0x1d4d8, 0x1d4de, 0x1d4e0])
         args = [ident, r.deal([0, 1, 1, 2, r.getrandbits(32)])]
     elif op == 'Handler':
         message = r.deal([0x14, 0x100, 0x100, 0x100, 0x800, 0x801, 0x801, 0x801, 0x802, 0x13, 0xff, 0x101, 0x7ff, 0x803, r.getrandbits(32)])
@@ -101,8 +102,6 @@ def case(r):
     first = b''.join(r.randrange(0x20, 0x7f).to_bytes(2, 'little') for _ in range(r.choice([0, 1, 4, 30])))
     regions[0x7ba058] = first + b'\0\0' + r.bytes(0x1000)
     regions[0x7cb2fc] = struct.pack('<II', DIALOG if op != 'Open' or r.random() < 0.05 else 0, r.getrandbits(32))
-    if op == 'Handler' and args[1] == 0x14:
-        pass
     return Call(CALLS[op], args, regions, ret='a' if op == 'Handler' else 'v')
 
 
