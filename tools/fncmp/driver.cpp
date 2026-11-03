@@ -196,6 +196,7 @@
 #include "../../src/game/coaster/arreplay.h"
 #include "../../src/game/coaster/arreplayaction.h"
 #include "../../src/game/coaster/coastersload.h"
+#include "../../src/game/world/ridesload.h"
 #include "../../src/game/model/heightmap.h"
 #include "../../src/game/frontend/lobbyscript.h"
 #include "../../src/game/files/gamepaths.h"
@@ -1059,6 +1060,20 @@ const AddrCall kHeightMapCalls[] = {  // tests/fncmp/heightmapbuild.py --table
     {0x472f60, jpeg_recorder(8, 6)},
     {0x473e30, jpeg_recorder(2, 4)},
     {0x451e20, (u32)(uintptr_t)&heightmap_rasterize_recorder},
+};
+const AddrCall kRidesLoadCalls[] = {  // tests/fncmp/ridesload.py --table
+    {0x4547f0, jpeg_recorder(5, 1)},
+    {0x45b9d0, jpeg_recorder(1, 2)},
+    {0x45ba00, jpeg_recorder(12, 1)},
+    {0x463060, jpeg_recorder(4, 10)},
+    {0x464580, jpeg_recorder(8, 2)},
+    {0x472cb0, jpeg_recorder(7, 2)},
+    {0x472d10, jpeg_recorder(6, 3)},
+    {0x472ee0, jpeg_recorder(11, 1)},
+    {0x472f40, jpeg_recorder(10, 1)},
+    {0x473440, jpeg_recorder(3, 0)},
+    {0x473550, jpeg_recorder(9, 1)},
+    {0x412e90, recorder(13, 1)},
 };
 const GameFrameCall kGameFrameCalls[] = {  // tests/fncmp/gameframe.py --table
     {0x402d70, recorder(1, 0)},
@@ -2309,6 +2324,7 @@ int main(int argc, char **argv) {
     CameraUpdate_SetEnv(&kCameraUpdateEnv);
     WeatherFx_SetReloadEnv(&kWeatherFxReloadEnv);
     ArReplay_SetEnv(&kArReplayEnv);
+    RidesLoad_SetCalls(kRidesLoadCalls, sizeof(kRidesLoadCalls) / sizeof(kRidesLoadCalls[0]));
     HeightMap_SetCalls(kHeightMapCalls, sizeof(kHeightMapCalls) / sizeof(kHeightMapCalls[0]));
     LobbyScript_SetEnv(kLobbyScriptCalls, sizeof(kLobbyScriptCalls) / sizeof(kLobbyScriptCalls[0]));
     GamePaths_SetCalls(kShareTexCalls, sizeof(kShareTexCalls) / sizeof(kShareTexCalls[0]));

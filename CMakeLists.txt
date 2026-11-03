@@ -630,6 +630,7 @@ add_library(tpw_game STATIC
     src/game/world/staffheld.cpp
     src/game/world/mapreset.cpp
     src/game/world/cameraupdate.cpp
+    src/game/world/ridesload.cpp
     src/game/ui/staffrename.cpp
     src/game/ui/window7cc8bc.cpp
     src/game/ui/dialog7cb2b8.cpp
