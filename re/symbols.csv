@@ -7590,6 +7590,7 @@ address,name,kind,confidence,notes
 0x004b9340,Dialog7cc4b4_Update,function,low,"reimplemented (src/game/ui/dialog7cc4b4update); cdecl; name invented, unconfirmed: the dialog [0x7cc4b4] brought up to date with the park's theme and the save's levels; see the header"
 0x004a1d70,Dialog7cb2b8_Build,function,low,"reimplemented (src/game/ui/dialog7cb2b8build); cdecl; name invented, unconfirmed: the main bar's windows built once from the script at 0x752940; see the header"
 0x004ba980,Dialog7cc530_Open,function,low,"reimplemented (src/game/ui/dialog7cc530open); cdecl (value); name invented, unconfirmed: the online dialog's dial-up page built; see the header"
+0x004c53f0,ViewButtons_Handler,function,low,"reimplemented (src/game/ui/viewbuttons); cdecl (window, message, a, b); name invented, unconfirmed: the view controls dialog's handler; see the header"
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"
