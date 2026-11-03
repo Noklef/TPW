@@ -415,6 +415,7 @@
 #include "../game/coaster/carpose.h"
 #include "../game/coaster/carprisms.h"
 #include "../game/coaster/placecar.h"
+#include "../game/coaster/rebuild.h"
 #include "../game/coaster/trainrun.h"
 #include "../game/coaster/typemodel.h"
 #include "../game/model/parts.h"
@@ -4630,6 +4631,7 @@ const Hook kHooks[] = {
     {"CarPrisms_InQuad",          0x0043aa10, (void *)&CarPrisms_InQuad, {0x83, 0xec, 0x44, 0x8b, 0x44}},
     {"CarPrisms_Touch",           0x0043a2b0, (void *)&CarPrisms_Touch, {0x55, 0x8b, 0xec, 0x81, 0xec}},
     {"Coaster_PoseCars",          0x00430ed0, (void *)&Coaster_PoseCars, {0x55, 0x8b, 0xec, 0x81, 0xec}},
+    {"Coaster_Rebuild",           0x0043eb70, (void *)&Coaster_Rebuild, {0x83, 0xec, 0x14, 0xa1, 0xec}},
     {"Thing_SpriteChoice",        0x004fcac0, (void *)&Thing_SpriteChoice, {0x51, 0x56, 0x8b, 0xf1, 0x6a}},
     {"Thing_IngredientRecord",    0x004e2200, (void *)&Thing_IngredientRecord, {0x51, 0x66, 0x8b, 0x41, 0x0e}},
     {"Class701378_Ctor",          0x005667d0, (void *)&Class701378_Ctor, {0x51, 0x8b, 0x44, 0x24, 0x08}},

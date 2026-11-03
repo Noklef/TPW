@@ -6411,6 +6411,7 @@ address,name,kind,confidence,notes
 0x0043aa10,CarPrisms_InQuad,function,low,reimplemented (src/game/coaster/carprisms); a point along a way against the current quad's corners: their angles at the full turn or more
 0x0043a2b0,CarPrisms_Touch,function,low,reimplemented (src/game/coaster/carprisms); two cars' shapes placed and their edges tested against each other's quads
 0x00430ed0,Coaster_PoseCars,function,low,"reimplemented (src/game/coaster/carpose); a coaster's cars and pieces posed for the frame: heights, angles, the nodes' places from the bones"
+0x0043eb70,Coaster_Rebuild,function,low,"reimplemented (src/game/coaster/rebuild); a coaster's track rebuilt after a change: nodes numbered and linked, slopes, the build steps, the mesh's walk over the pieces"
 0x0044a590,RenderMode_Size,function,high,"reimplemented (src/game/render/mode); cdecl u32 (): first of 0x2000/0x1000/0x800 in 0x79d86c, else 0x4000 if set, else 0x1000"
 0x0044a5d0,RenderMode_Depth,function,high,"reimplemented (src/game/render/mode); cdecl u32 (): first of 8/0x10 in 0x79d86c, else 0x20 if set, else 8"
 0x0044a600,RenderMode_ResetScale,function,high,reimplemented (src/game/render/mode); cdecl (): 0x79d9e4 = 1.0f
