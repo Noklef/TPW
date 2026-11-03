@@ -49,19 +49,25 @@ def line(r):
 
 
 def case(r):
-    log = log_region()
-    lines = [line(r) for _ in range(r.choice([0, 1, 1, 2, 3, 6]))]
-    data = b''.join(x + r.choice([b'\n', b'\n', b'\n', b'\r\n', b'\n\n']) for x in lines)
+    lines = [line(r) + r.choice([b'\n', b'\n', b'\n', b'\r\n', b'\n\n']) for _ in range(r.choice([0, 1, 1, 2, 3, 6]))]
+    data = b''.join(lines)
     if lines and r.random() < 0.05:   # (no last '\n': on past the size to the NUL)
         data = data.rstrip(b'\n')
     if lines and r.random() < 0.02:   # (a missing delimiter: on to the next, or the end of the block)
         cut = r.randrange(len(data))
         data = data[:cut] + data[cut + 1:]
-    size = r.choice([len(data)] * 12 + [len(data) // 2, len(data) + r.randrange(1, 8)])
-    regions = {LOG: log, LOCALE: bytes(4), HEAP: heap(0x4000, fail=r.choice([0] * 24 + list(range(1, 16))) if r.random() < 0.2 else 0)}
+    sizes = [len(data)] * 12 + [len(data) // 2, len(data) + r.randrange(1, 8)]
+    if len(lines) > 1:   # (the size at a line's start: that line not read)
+        sizes += [len(b''.join(lines[:r.randrange(1, len(lines))]))] * 4
+    return fixture(r, data, r.choice(sizes), r.choice([b'', b'data\\', b'c:\\tpw\\lobby\\']), r.choice([0] * 400 + list(range(1, 16))))
+
+
+def fixture(r, data, size, folder, fail):
+    log = log_region()
+    regions = {LOG: log, LOCALE: bytes(4), HEAP: heap(0x4000, fail=fail)}
     regions[TEXT] = data + bytes(0x10)
     regions[NAME] = r.choice([b'lobby', b'', b'x\\y']) + bytes(4)
-    gamestring.string(r, 0, 0xf855b8, PATH, regions, r.choice([b'', b'data\\', b'c:\\tpw\\lobby\\']))
+    gamestring.string(r, 0, 0xf855b8, PATH, regions, folder)
     regions[SELF] = struct.pack('<I', 0) * 4 + struct.pack('<I', WORLD) + r.bytes(0x10)
     regions[WORLD] = bytes(r.bytes(0x3c)) + struct.pack('<3I', r.f(), r.f(), r.f()) + r.bytes(0x60)
     regions[PATHS] = struct.pack('<I', HOLDER)
@@ -73,7 +79,7 @@ def case(r):
     set_return(log, ISLAND, ISLAND_OBJECT)
     set_return(log, FLY, FLY_OBJECT)
     strings(log, OPEN, 1)
-    strings(log, ISLAND, 0x3c, out=1 << 7)
+    strings(log, ISLAND, 0x3c)
     blob(log, ISLAND, 7, 7)
     strings(log, FLY, 6, out=1 << 4)
     blob(log, FLY, 3, 0x7007)
