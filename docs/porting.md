@@ -116,6 +116,7 @@ range, open items, known skips and the paths of the two memory files it should r
   replicate the rest.
 - **Compare the answer:** `Call(...)`'s default ret='v' does not compare EAX. A function that sets EAX on purpose, a handler in particular, needs ret='a'.
 - **Hangs:** a bench that can loop in both sets a small c.steps, so a hang costs one case, not the 600 s driver timeout.
+- **New benches:** check `ls tests/fncmp` for the name first, so Write does not overwrite one. Give each `fill` in a case its own `which`, and keep regions from overlapping.
 - **x87:** the emulator (x87emu) runs x87 code; tools/x87sym.py helps read it. Prefer the portable functions first, then take x87 ones.
 - **Shared modules:** adding a function to a module another branch also touches is fine. Never reformat or reorder existing code in it.
 - **Cross-range blockers:** if a candidate is blocked only by an unported callee in another agent's range, list it in your report (address

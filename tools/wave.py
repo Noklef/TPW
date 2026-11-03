@@ -138,7 +138,8 @@ def cmd_list(lo, hi, unlock=False):
                 0x6c9a00, 0x6c9fd0,                                           # A r31: inside Mp2_Dct64 0x6c9580-0x6ca573
                 0x4d5020, 0x4d58f0,                                           # C r42: chunks of 0x4d4fa0 / 0x4d5870
                 0x5230f0, 0x523140, 0x523190, 0x5231e0, 0x520000, 0x4e1850, 0x503ca0,  # A's reports
-                0x534be0, 0x5349d0, 0x534d30, 0x534d70, 0x531510, 0x538ba0}   # B r39: not starts
+                0x534be0, 0x5349d0, 0x534d30, 0x534d70, 0x531510, 0x538ba0,   # B r39: not starts
+                0x4e7b80, 0x4e81b0, 0x4e8d30, 0x4e93f0, 0x5232d0}             # A r56: inside 0x4e6e80 and 0x523230
     hooked = hooked | missplit
     # Not port targets though unhooked: MSVC's __CxxFrameHandler 0x67a910 (every EH-framed function's handler stub jumps to it; the
     # ports' exception handling is the compiler's: A r34 saw it 'unlock' 1120), and TgqVideo_DecodeMacroblock32 / 16 0x67380f / 0x673fee
