@@ -13,7 +13,9 @@
 #include "../world/world.h"
 #include "guimanager.h"
 #include "guirect.h"
+#include "hoverlabel.h"
 #include "panelparts.h"
+#include "window.h"
 #include "window7059f0.h"
 
 using namespace panelparts;
@@ -26,6 +28,25 @@ const Dialog7cc1f8Env *g_env = &kGameEnv;
 }  // namespace
 
 void Dialog7cc1f8_SetEnv(const Dialog7cc1f8Env *env) { g_env = env ? env : &kGameEnv; }
+
+namespace {
+const Dialog7cc1f8TabEnv kTabGameEnv = {&Dialog7cc1f8_ShowStats, &Dialog7cc1f8_FillList, &Language_WideText, &HoverLabel_Attach, &Window_CallDefault};
+const Dialog7cc1f8TabEnv *g_tab = &kTabGameEnv;
+}  // namespace
+
+void Dialog7cc1f8_SetTabEnv(const Dialog7cc1f8TabEnv *env) { g_tab = env ? env : &kTabGameEnv; }
+
+u32 __cdecl Dialog7cc1f8_TabHandler(u8 *window, u32 message, u32 a, u32 b) {
+    if (message == 0x101 && b == 1 && a - 0x1fa <= 3) {
+        static const u32 kKinds[4] = {2, 0, 3, 1};
+        const u32 kind = kKinds[a - 0x1fa];
+        g_tab->showStats(kind);
+        g_tab->fillList(kind, 1);
+        const u16 *const text = g_tab->text(0x77 + kind);
+        g_tab->attach(*reinterpret_cast<u8 **>((uintptr_t)0x007cc1f8), 0x1fe, (u32)(uintptr_t)text);
+    }
+    return (u32)g_tab->callDefault(window, nullptr, message, a, b);
+}
 
 extern "C" {
 

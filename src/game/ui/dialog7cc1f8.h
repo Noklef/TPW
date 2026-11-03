@@ -14,6 +14,16 @@ struct Dialog7cc1f8Env {
 };
 void Dialog7cc1f8_SetEnv(const Dialog7cc1f8Env *env);
 
+// Dialog7cc1f8_TabHandler's calls (the ports by default; the bench's recorders: their own benches have them).
+struct Dialog7cc1f8TabEnv {
+    void(__cdecl *showStats)(u32 mode);                                     // Dialog7cc1f8_ShowStats
+    void(__cdecl *fillList)(u32 kind, u32 clear);                           // Dialog7cc1f8_FillList
+    u16 *(__cdecl *text)(u32 index);                                        // Language_WideText
+    void(__cdecl *attach)(u8 *parent, u32 id, u32 text);                    // HoverLabel_Attach
+    s32(__fastcall *callDefault)(u8 *window, void *, u32 message, u32 a, u32 b);   // Window_CallDefault
+};
+void Dialog7cc1f8_SetTabEnv(const Dialog7cc1f8TabEnv *env);
+
 extern "C" {
 
 // 0x4aaf70 (cdecl (kind, clear); name invented): the dialog [0x7cc1f8]'s list 0x1f8 (no dialog or list: nothing; the store GameTable7cfb90_Get1da720_519510 asked first) cleared when clear is set, the
@@ -22,6 +32,10 @@ extern "C" {
 // units on the stack) and the control's +4; its state 1 with ObjectControls_GetWord18 positive, else 2 when the id is one of the kind's three latest (Ring16_Get of the store), else 0. Kind 3 adds the
 // rows of data -1 (text 0x86, the dword [0x78560c], state 0) and -2 (text 0x87, 0, 0). Last Window7059f0_RefreshRows.
 void __cdecl Dialog7cc1f8_FillList(u32 kind, u32 clear);
+
+// 0x4aca60 (cdecl (window, message, a, b); the tabs' handler, name invented): message 0x101 with b 1 and a 0x1fa, 0x1fb, 0x1fc or 0x1fd picks the kind 2, 0, 3 or 1: Dialog7cc1f8_ShowStats (kind), Dialog7cc1f8_FillList (kind, 1), the dialog's
+// child 0x1fe labelled with the text 0x77 + kind. Always then the default handler, its result.
+u32 __cdecl Dialog7cc1f8_TabHandler(u8 *window, u32 message, u32 a, u32 b);
 
 // 0x4ab6b0 (no arguments): the dialog's child 0x1ed (Window_FindChild; nothing when it has none) gets its children dressed in this order
 // (ui/panelparts; a text a TextPart_Ctor part with that language text, a bar's value given to the child's slot 7): 0x1f4 text 0x7d, 0x1f3
