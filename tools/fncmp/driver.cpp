@@ -1606,23 +1606,33 @@ int main(int argc, char **argv) {
         }
         // No access while the case runs: a wild pointer into it faults natively, as in the emulator, which has no such memory.
         VirtualProtect(token, 1 << 24, PAGE_NOACCESS, &was);
+        // ret '+': a sequence (fncmp.Call's then): the count, then each further call's address, convention, count and arguments.
+        struct Step {
+            void *fn;
+            std::string conv;
+            std::vector<u32> args;
+        };
+        std::vector<Step> steps;
         void *fn = find(address);
+        steps.push_back({fn, conv, args});
+        if (std::strchr(ret, '+')) {
+            u32 more;
+            std::scanf("%x", &more);
+            for (u32 i = 0; i < more; ++i) {
+                u32 at, n;
+                char stepConv[16];
+                std::scanf("%x %15s %x", &at, stepConv, &n);
+                std::vector<u32> stepArgs(n);
+                for (u32 &a : stepArgs) std::scanf("%x", &a);
+                void *const stepFn = find(at);
+                if (!stepFn) fn = nullptr;
+                steps.push_back({stepFn, stepConv, stepArgs});
+            }
+        }
         if (!fn) {
             std::printf("nohook\n");
             std::fflush(stdout);
             continue;
-        }
-        u32 regs[6] = {}, skip = 0;  // EAX EBX ECX EDX ESI EDI
-        if (conv[0] == 't' && count > 0) regs[2] = args[0], skip = 1;
-        if (conv[0] == 'f') {
-            if (count > 0) regs[2] = args[0], skip = 1;
-            if (count > 1) regs[3] = args[1], skip = 2;
-        }
-        if (conv[0] == 'e') {  // a register convention (tools/fncmp.py register_args): register names, each taking the next argument
-            static const char *const kNames[6] = {"eax", "ebx", "ecx", "edx", "esi", "edi"};
-            for (const char *c = conv; c[0] && c[1] && c[2] && skip < count; c += 3)
-                for (int k = 0; k < 6; ++k)
-                    if (std::strncmp(c, kNames[k], 3) == 0) regs[k] = args[skip++];
         }
         u32 eax = 0, edxOut = 0, ediOut = 0;
         double st0 = 0;
@@ -1632,7 +1642,27 @@ int main(int argc, char **argv) {
             __asm fnclex
             __asm fldcw cw
         }
-        const int code = invoke(fn, regs, args.data() + skip, count - skip, ret[0] == 'd', &eax, &edxOut, &st0, &ediOut);
+        int code = 0;
+        for (Step &step : steps) {
+            for (u32 &a : step.args)
+                if (a == 0xfffffffb) a = eax;  // (fncmp.PREV: the step before's EAX)
+            u32 regs[6] = {}, skip = 0;  // EAX EBX ECX EDX ESI EDI
+            const char *const how = step.conv.c_str();
+            const u32 n = (u32)step.args.size();
+            if (how[0] == 't' && n > 0) regs[2] = step.args[0], skip = 1;
+            if (how[0] == 'f') {
+                if (n > 0) regs[2] = step.args[0], skip = 1;
+                if (n > 1) regs[3] = step.args[1], skip = 2;
+            }
+            if (how[0] == 'e') {  // a register convention (tools/fncmp.py register_args): register names, each taking the next argument
+                static const char *const kNames[6] = {"eax", "ebx", "ecx", "edx", "esi", "edi"};
+                for (const char *c = how; c[0] && c[1] && c[2] && skip < n; c += 3)
+                    for (int k = 0; k < 6; ++k)
+                        if (std::strncmp(c, kNames[k], 3) == 0) regs[k] = step.args[skip++];
+            }
+            code = invoke(step.fn, regs, step.args.data() + skip, n - skip, ret[0] == 'd', &eax, &edxOut, &st0, &ediOut);
+            if (code) break;
+        }
         if (std::strcmp(ret, "edi") == 0) eax = ediOut;  // (ret 'edi': EDI in EAX's place)
         if (std::strchr(ret, 'c')) {  // the control word the call left, then the driver's back
             u16 cw, ours = 0x7f;

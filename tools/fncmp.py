@@ -292,9 +292,13 @@ def register_args(conv):
     return regs
 
 
+PREV = 0xfffffffb   # (a Call's then: this argument is the EAX the step before it left)
+
+
 class Call:
-    def __init__(self, address, args, regions, conv='c', ret='v', cw=0x7f, masks=(), ignore=(), steps=5_000_000):
+    def __init__(self, address, args, regions, conv='c', ret='v', cw=0x7f, masks=(), ignore=(), steps=5_000_000, then=()):
         self.address, self.args, self.regions, self.conv, self.ret = address, list(args), dict(regions), conv, ret
+        self.then = list(then)   # (further calls on the same memory, each (address, args, conv); ret compares the last one's; a fault in any ends the case)
         if len(register_args(conv)) > len(self.args):
             raise ValueError('register convention %r needs %d arguments' % (conv, len(register_args(conv))))
         self.cw, self.ignore = cw, list(ignore)
@@ -1141,34 +1145,36 @@ class Bench:
         e.reset()
         if 'c' in c.ret:
             e.cw = c.cw
-        args = c.args
-        if c.conv in 'tf' and args:
-            e.r['ECX'] = args[0]
-            args = args[1:]
-            if c.conv == 'f' and args:
-                e.r['EDX'] = args[0]
-                args = args[1:]
-        for reg in register_args(c.conv):
-            e.r[reg] = args[0]
-            args = args[1:]
-        for a in reversed(args):
-            e.push(a & 0xffffffff)
-        e.push(x87emu.SENTINEL)
-        pc = c.address
         entered, hooked, stand_ins = self.entered, self.hooked, e.hooks
         entered.clear()
         if c.masks:  # (the original must never read a masked byte: Mask)
             e.rb = _watching(e, {(m.region + o) & 0xffffffff for m in c.masks for o in m.offsets})
         try:
-            for _ in range(c.steps):
-                if pc == x87emu.SENTINEL:
-                    break
-                if hooked is not None and pc in hooked and pc not in stand_ins:
-                    entered.add(pc)
-                at = pc
-                pc = e.step(pc)
-            else:
-                return 'step limit'
+            for address, args, conv in [(c.address, c.args, c.conv)] + c.then:
+                args = [e.r['EAX'] if a == PREV else a for a in args]
+                e.r.update({k: 0x10000000 if k == 'ESP' else 0 for k in e.r})   # (as the driver's invoke: each step starts on zeroed registers)
+                if conv in 'tf' and args:
+                    e.r['ECX'] = args[0]
+                    args = args[1:]
+                    if conv == 'f' and args:
+                        e.r['EDX'] = args[0]
+                        args = args[1:]
+                for reg in register_args(conv):
+                    e.r[reg] = args[0]
+                    args = args[1:]
+                for a in reversed(args):
+                    e.push(a & 0xffffffff)
+                e.push(x87emu.SENTINEL)
+                pc = address
+                for _ in range(c.steps):
+                    if pc == x87emu.SENTINEL:
+                        break
+                    if hooked is not None and pc in hooked and pc not in stand_ins:
+                        entered.add(pc)
+                    at = pc
+                    pc = e.step(pc)
+                else:
+                    return 'step limit'
         except x87emu.MemFault as f:
             return '%s (emu: %s at %08x)' % (CRASH, f, at)
         except x87emu.DivFault as f:
@@ -1196,9 +1202,11 @@ class Bench:
         return out
 
     def native(self, cases):
-        inp = ''.join('%x %s %s %x %s %x %s\n' % (
-            c.address, c.conv, c.ret + (':%x' % c.cw if 'c' in c.ret else ''), len(c.args), ' '.join('%x' % (a & 0xffffffff) for a in c.args), len(c.regions),
-            ' '.join('%x %s' % (k, bytes(v).hex()) for k, v in c.regions.items())) for c in cases)
+        inp = ''.join('%x %s %s %x %s %x %s%s\n' % (
+            c.address, c.conv, c.ret + ('+' if c.then else '') + (':%x' % c.cw if 'c' in c.ret else ''), len(c.args), ' '.join('%x' % (a & 0xffffffff) for a in c.args), len(c.regions),
+            ' '.join('%x %s' % (k, bytes(v).hex()) for k, v in c.regions.items()),
+            ' %x%s' % (len(c.then), ''.join(' %x %s %x %s' % (at, conv, len(args), ' '.join('%x' % (a & 0xffffffff) for a in args)) for at, args, conv in c.then)) if c.then else '')
+            for c in cases)
         try:  # a case that loops forever in the C++ would hang the bench
             p = subprocess.run([self.driver, EXE], input=inp, capture_output=True, text=True, timeout=600)
             if os.environ.get('FNCMP_CRASHAT'):   # (driver.cpp crash_filter)
