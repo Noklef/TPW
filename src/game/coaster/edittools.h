@@ -98,6 +98,10 @@ void __cdecl CoasterEdit_EndTool();
 // when the car at +0x58 (the game's +0x3c bit 0 clear) or at +0x60 (bits 0 and 1 set) has flag 0x80 (+8), 0x79c664 = 1 and flag 0x40.
 void __cdecl CoasterEdit_SetMode(u32 mode);
 
+// 0x447bb0 (cdecl; two unused arguments, number; name invented, unconfirmed): as CoasterEdit_EndTool (inlined), but the mode (0x79c624) becomes 2; then the track's piece number (its low word;
+// Track_PieceAt on the game's +0x3c; a game of none faults, sic) at 0x79c640 and CoasterEdit_SelectPiece (it).
+void __cdecl CoasterEdit_PickPiece(u32 unused1, u32 unused2, u32 number);
+
 // 0x444770 (cdecl; name invented, unconfirmed): CoasterEdit_Tools (0), then the editor's tool 2 ended (as CoasterEdit_EndTool; bit 2
 // of the chosen tools 0x79c638 cleared) and tool 1 started: CoasterEdit_EndTool, the mode 1, Coaster_FlashCar (game, 2), the game's
 // flag 4 set, CoasterLink_CheckEnd, recorded (ActionRec_Write 0x37), the game's flag 0x2000 cleared, CoasterLink_ClearEnd when

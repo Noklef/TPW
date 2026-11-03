@@ -1,5 +1,5 @@
 # The coaster editor's tool ended and its mode set (src/game/coaster/edittools: CoasterEdit_EndTool 0x442220, CoasterEdit_SetMode
-# 0x444360) against the originals, with every tool they turn off. The tool in use dealt: an adjuster or the drag tool (1, 2, 4) over
+# 0x444360, CoasterEdit_PickPiece 0x447bb0) against the originals, with every tool they turn off. The tool in use dealt: an adjuster or the drag tool (1, 2, 4) over
 # edittools.py's world (drag()'s for 1), a move tool (8, 0x10) over movecar.py's, the selection (0x20: a chain of pieces with rising
 # handles, both ends of the selection on it in either order, or none; flag 0x80 or not), or none / another (0, 3, 6, 0x3f). The game
 # [0x790fec] a block of its own over the world's (its first bytes copied): +0x3c bits 0 / 1, +4 a flags byte (bit 1) unless drag's,
@@ -14,17 +14,17 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from fncmp import RAM, Bench, Call, _recorder, put  # noqa: E402
+from fncmp import LOG, RAM, Bench, Call, _recorder, log_region, put  # noqa: E402
 import edittools  # noqa: E402
 import movecar  # noqa: E402
 
-RANGES = [(0x442220, 0x4423ac), (0x444360, 0x444569), (0x441840, 0x4418cb), (0x4423f0, 0x4424d8), (0x4425c0, 0x44269b), (0x4424e0, 0x4425bb),
+RANGES = [(0x447bb0, 0x447cf2), (0x43e520, 0x43e53a), (0x445f30, 0x446042),(0x442220, 0x4423ac), (0x444360, 0x444569),(0x441840, 0x4418cb), (0x4423f0, 0x4424d8), (0x4425c0, 0x44269b), (0x4424e0, 0x4425bb),
           (0x432d50, 0x432df0), (0x5da3c0, 0x5da3d0), (0x432df0, 0x433220), (0x433220, 0x433240), (0x430ca0, 0x430ee0), (0x469940, 0x46a560),
           (0x46f150, 0x46f190), (0x46fc00, 0x46fcb0), (0x46fd40, 0x470100), (0x4702d0, 0x4704d0),
           (0x441cd0, 0x441e78), (0x441e80, 0x442002), (0x442010, 0x4421d6), (0x403400, 0x403fc6), (0x45d630, 0x45d660), (0x441a00, 0x441cc8),
           (0x433280, 0x433310), (0x434650, 0x434740), (0x43e160, 0x43e1c0), (0x447830, 0x4479a0), (0x4d0190, 0x4d0270), (0x519510, 0x519560),
           (0x5195d0, 0x519620), (0x6ad810, 0x6ad830), (0x469580, 0x46964c), (0x469650, 0x46983a)]
-B = Bench(RANGES, hooks={0x473c70: _recorder(27, 3, cdecl=True)})
+B = Bench(RANGES, hooks={0x473c70: _recorder(27, 3, cdecl=True), 0x446d50: _recorder(22, 1, cdecl=True)})
 GAME, FLASH, KEPT, HOLD, TFLAGS, SEL = RAM + 0x5000, RAM + 0x5200, RAM + 0x5280, RAM + 0x5300, RAM + 0x5900, RAM + 0x6000
 H3, H4 = HOLD, HOLD + 0x100
 
@@ -133,10 +133,20 @@ def world(r):
 
 
 def case(r):
-    op = r.deal(['End', 'Mode'])
+    op = r.deal(['End', 'Mode', 'Pick', 'Pick'])
     regions, game = world(r)
     if op == 'End':
         return Call(0x442220, [], regions)
+    if op == 'Pick':
+        # CoasterEdit_PickPiece: the track's pieces FLASH -> KEPT by +0x64 under the game's +0x54 (a none faults past number 0), CoasterEdit_SelectPiece a recorder (22), the
+        # number's high word any.
+        while not game:
+            regions, game = world(r)
+        regions.setdefault(LOG, log_region())
+        regions[FLASH] = put(bytearray(regions[FLASH]), 0x64, 'I', KEPT)
+        regions[KEPT] = put(bytearray(regions[KEPT]), 0x64, 'I', 0)
+        number = r.choice([0, 1, 2]) if struct.unpack_from('<I', regions[GAME], 0x54)[0] == FLASH else 0
+        return Call(0x447bb0, [r.getrandbits(32), r.getrandbits(32), r.getrandbits(16) << 16 | number], regions)
     mode = r.choice([0, 1, 1, 1, 2, r.getrandbits(32), r.getrandbits(32) & ~0xff | 1]) if game else r.choice([0, 2])
     return Call(0x444360, [mode], regions)
 
