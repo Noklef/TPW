@@ -765,6 +765,19 @@ void lower_happiness(u8 *staff) {
 
 void Staff_SetWalkEnv(const StaffWalkEnv *env) { g_walk = env ? env : &kGameWalkEnv; }
 
+void __fastcall Staff_PlaceInCell(u8 *staff, void *, u32 cell) {
+    const u32 c = cell - 1;
+    Thing_PlaceAt(staff, nullptr, (c & 0x7f) << 8 | 0x80, (c >> 7 & 0xff) << 8 | 0x80);
+    ScriptRef_Start(staff + 0xc, nullptr, 3, at<u32>(staff, 0x24), at<u32>(staff, 0x20));
+    if (at<u8>(staff, 2) == 4) {
+        Objects_ReleaseTracked(nullptr, nullptr, 0, 0);
+        g_walk->idleMechanic(staff);
+    } else {
+        Staff_SetState(staff, nullptr, 0);
+        at<u32>(staff, 0x200) = 0;
+    }
+}
+
 void __fastcall Staff_WalkToRestArea(u8 *staff) {
     const u32 walked = g_walk->walkNav(staff);
     if (walked == 0) {

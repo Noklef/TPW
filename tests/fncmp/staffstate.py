@@ -53,6 +53,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import navpath  # noqa: E402
+import personscripts  # noqa: E402
 import wctimage  # noqa: E402
 from fncmp import HEAP, LOG, LOG_BYTES, Bench, Call, RAM, _recorder, blob_bytes, fb, heap, log_region, put, recorder, set_return, vtable  # noqa: E402
 from focus import MODES  # noqa: E402
@@ -62,7 +63,8 @@ from movingperson import cell_xy  # noqa: E402
 B = Bench(wctimage.merged(MODES + [
     (0x402d70, 0x403200), (0x40f350, 0x40f370), (0x4217f0, 0x421810), (0x46c350, 0x46c460), (0x46c6a0, 0x46c6c0), (0x46c710, 0x46c740),
     (0x46cbc0, 0x46cc50), (0x46cdc0, 0x46cef0), (0x46cfb0, 0x46cfd0), (0x475550, 0x4755a0), (0x4758f0, 0x475b90), (0x4814a0, 0x481500),
-    (0x4a2aa0, 0x4a2ad0), (0x4d4140, 0x4d41a0), (0x4da5b0, 0x4da750), (0x4dad20, 0x4dadd0), (0x4fa460, 0x4fa480), (0x4fa930, 0x4fa9a0),
+    (0x4a2aa0, 0x4a2ad0), (0x4d4140, 0x4d41a0), (0x4da5b0, 0x4da750), (0x4dad20, 0x4dadd0), (0x4fa460, 0x4fa480), (0x4fa930, 0x4fa9a0), (0x5100e0, 0x510100), (0x510160, 0x510180), (0x50b6a0, 0x50b780), (0x4d91f0, 0x4d93b0),
+    (0x475010, 0x476a30), (0x540b90, 0x540da0), (0x541f60, 0x541fb0), (0x4d4100, 0x4d4134), (0x5f5e20, 0x5f5e90), (0x5f5fa0, 0x5f5fc0), (0x402d70, 0x403220), (0x4033a0, 0x4033f0), (0x4d27a0, 0x4d2850),   # (personscripts.py's script list)
     (0x5054d0, 0x5056f0), (0x502c20, 0x502c64), (0x505ea0, 0x505f60), (0x509af0, 0x509b50), (0x50b350, 0x50b370), (0x50c0d0, 0x50c110), (0x519450, 0x5194e0),
     (0x540c60, 0x540da0), (0x550ca0, 0x550d90), (0x5f5660, 0x5f56a0), (0x6590f7, 0x6591e4), (0x65f11d, 0x65f160), (0x67a740, 0x67a800),
     (0x67fa20, 0x67fa40), (0x5d1410, 0x5d1416), (0x5d1750, 0x5d1751), (0x5da3c0, 0x5da3c1),
@@ -85,7 +87,7 @@ RECORD, CELLS = RAM + 0x21400, RAM + 0x50000
 
 CALLS = {'SetState': 0x5054d0, 'Mechanic': 0x4da370, 'Handyman': 0x4d7330, 'PickUp': 0x505c50, 'Settle': 0x505f50, 'Head': 0x506300,
          'Researcher': 0x502c20, 'LeaveRest': 0x506d10, 'Message': 0x504c70, 'WalkRest': 0x505fe0, 'Dismiss': 0x505790, 'ModelState': 0x5056e0, 'Mood': 0x506a40, 'Idle': 0x502c70,
-         'RestArea': 0x5061d0, 'PostUpdate': 0x5029f0, 'ResearcherCtor': 0x502600,
+         'RestArea': 0x5061d0, 'PostUpdate': 0x5029f0, 'ResearcherCtor': 0x502600, 'Place': 0x505ea0,
          'MechMsg': 0x4da0c0, 'HandyMsg': 0x4d6cf0, 'GuardMsg': 0x4d5fb0, 'DefaultMsg': 0x4d4450}
 # the kinds' handlers: (the staff member's handle word, the message type it takes)
 HANDLERS = {'MechMsg': (0x218, 0xa), 'HandyMsg': (0x21a, 0xa), 'GuardMsg': (0x212, 0x1b), 'DefaultMsg': (None, None)}
@@ -455,6 +457,22 @@ def case(r):
             put(cells, 0x44 * (staff[7] * 128 + staff[5]) + 8, 'I', r.choice([0, 1, 3, 9, 0xa, 2, 4, 0xc, 0x11, r.getrandbits(32)]))
             regions[CELLS] = cells
         return Call(CALLS[op], [STAFF], regions, conv='t', ret='v')
+    if op == 'Place':   # (0x505ea0: a mechanic mostly, the idle 0x4da5b0 a recorder; the world's list of objects empty, Objects_ReleaseTracked as it is; any cell)
+        staff[2] = r.choice([4, 4, 4, 0, 1, 7, r.getrandbits(8)])
+        regions[CELLS] = bytes(0x44 * 8 * 128)   # (no thing in any of the first 8 rows' cells: the staff alone is moved between chains, its handle in the table)
+        regions[0x8023a0] = struct.pack('<I', CELLS)
+        own = r.randrange(16, 64)
+        put(staff, 0, 'H', own)
+        put(staff, 8, 'HH', 0, 0)
+        staff[5], staff[7] = r.randrange(0x80), r.randrange(8)
+        regions[0x7cfb90 + 20 * own] = struct.pack('<I', STAFF)
+        h = r.randrange(16)
+        regions[WORLD] = put(bytearray(r.bytes(0x10)), 0xe, 'H', h)
+        regions[WORLD + 0x3a] = bytes(2)
+        regions[0x7cfb90 + 20 * h] = struct.pack('<I', RECORD)
+        regions[RECORD] = r.bytes(0x80)
+        personscripts.script_list(r, regions, staff, base=RAM + 0x70000)
+        return Call(CALLS[op], [STAFF, r.choice([1, 2, 0x80, 0x81, r.randrange(1, 0x400), r.randrange(1, 0x400), r.randrange(1, 0x400), r.getrandbits(32)])], regions, conv='t', ret='v')
     if op == 'Message':
         return message(r, regions, staff)
     if op in HANDLERS:

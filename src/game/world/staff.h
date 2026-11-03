@@ -215,6 +215,12 @@ void __fastcall Staff_PickUp(u8 *staff);
 // (Staff_SetState).
 void __fastcall Staff_Settle(u8 *staff);
 
+// 0x505ea0 (thiscall (cell), pops 4; name invented): placed at the cell's centre (Thing_PlaceAt: column (cell - 1) & 0x7f, row the low byte of (cell - 1) >> 7, each << 8 | 0x80; the
+// words' high halves the stack's in the original: Thing_PlaceAt takes 16 bits), the script reference +0xc started (ScriptRef_Start 3, folder +0x24, sprite +0x20). A mechanic (byte +2
+// 4): Objects_ReleaseTracked (its this, from GameTable7cfb90_Get1da71a, and its arguments unused), then the mechanic's idle (env, 0x4da5b0). Others: Staff_SetState 0, +0x200 = 0.
+// The debug print and the handle read only it uses are left out.
+void __fastcall Staff_PlaceInCell(u8 *staff, void *, u32 cell);
+
 // 0x4da370 (thiscall (state), pops 4; name unconfirmed): a mechanic's state. 0xc: the reference's animation (+0xc, Set4_4217f0) 9. 0xd: the
 // animation 0x12, and the repair time +0x214 for the thing of the handle +0x218 (the game table 0x7cfb90; the original's Debug_Printf left
 // out) from the skill table 0x78542c's dword of the grade +0x1e4 (8 bytes apart): times its definition's dword +0x1fc + 0x40 * its byte
