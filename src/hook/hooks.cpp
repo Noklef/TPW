@@ -5994,6 +5994,7 @@ const Hook kHooks[] = {
     {"WeatherFx_LoadTextures",    0x005508c0, (void *)&WeatherFx_LoadTextures, {0xa1, 0xac, 0xcb, 0x8b, 0x00}},
     {"WeatherFx_ReloadTextures",  0x0057d850, (void *)&WeatherFx_ReloadTextures, {0x56, 0x6a, 0x00, 0x6a, 0x01}},
     {"WeatherFx_BoltSubdivide",   0x0057e810, (void *)&WeatherFx_BoltSubdivide, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"WeatherFx_DrawBolt",        0x0057ec50, (void *)&WeatherFx_DrawBolt, {0x51, 0x53, 0x56, 0x8b, 0xf1}},
     {"Renderer_SetRestoreCallback", 0x00576260, (void *)&Renderer_SetRestoreCallback, {0x8b, 0x44, 0x24, 0x04, 0x89}},
     {"Renderer_SetStateFlags",    0x005763f0, (void *)&Renderer_SetStateFlags, {0x8b, 0x44, 0x24, 0x04, 0x89}},
     {"Renderer_StateFlags",       0x00576400, (void *)&Renderer_StateFlags, {0x8b, 0x41, 0x48, 0xc3, 0x90}},

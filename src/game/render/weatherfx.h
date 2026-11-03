@@ -67,4 +67,19 @@ float *__cdecl WeatherFx_BoltMidpoint(float *out, const float *a, const float *b
 // ribbon (Ribbon_AddPoint(none, side)), +0xa188 down again. Each half then ends in Ribbon_AddPoint when the midpoint is within the wobbled limit (+0xa180 + +0xa184 * a draw
 // in [-1, 1)) of its end (squared), else is recursed: (m, b), then (a, m). Returns 1, or 0 at once when a call answers 0.
 u32 __fastcall WeatherFx_BoltSubdivide(u8 *fx, void *, const float *a, const float *b);
+
+// What WeatherFx_DrawBolt calls (the port by default; its bench runs them as recorders).
+struct WeatherDrawEnv {
+    u8 *(__fastcall *begin)(u8 *object, void *, u32 mode, u32 texture, u32 kind, u32 flags, u32 extra);  // Batch_Begin
+    void(__fastcall *transform)(u8 *object, void *, u32 arg);                                            // Batch_TransformVertices
+    u32(__fastcall *close)(u8 *object, void *, float depth);                                             // Batch_Close
+    u32(__fastcall *subdivide)(u8 *fx, void *, const float *a, const float *b);                          // WeatherFx_BoltSubdivide
+    u32(__fastcall *addPoint)(u8 *object, void *, const float *from, const float *to);                   // Ribbon_AddPoint
+};
+void WeatherFx_SetDrawEnv(const WeatherDrawEnv *env);  // nullptr: the port's
+
+// 0x57ec50 (thiscall (a, b), pops 8; name invented, unconfirmed; x87 in the original's order): one lightning bolt from a to b into a batch. The texture at +0x334c with an id (+8 bit 0x1000,
+// +0x1c): +0xa170, +0xa174 its offsets +0x28, +0x2c and +0xa178, +0xa17c its scales +0x20, +0x24 plus them; else those four 0. Batch_Begin on [0x879ab0] (+0x330c, 4, 0x1c4, 0x200d52, the id):
+// none gives 1. +0xa188 and +0x9da4 cleared, WeatherFx_BoltSubdivide(a, b), Ribbon_AddPoint(none, a): either's 0 gives 0. Then Batch_TransformVertices(0) and Batch_Close(0), whose answer is returned.
+u32 __fastcall WeatherFx_DrawBolt(u8 *fx, void *, const float *a, const float *b);
 }

@@ -9,6 +9,7 @@
 #include "../gfx/texman.h"
 #include "../math/x87.h"
 #include "../terrain/landscape.h"
+#include "batch.h"
 #include "ribbon.h"
 
 namespace {
@@ -250,5 +251,37 @@ u32 __fastcall WeatherFx_ReloadTextures(u8 *fx) {
     WeatherFx_LoadTexture(fx, nullptr, 3, name(0x007651d0));
     *reinterpret_cast<u32 *>(fx + 4) = 0;
     return 1;
+}
+
+namespace {
+const WeatherDrawEnv kDrawPortEnv = {&Batch_Begin, &Batch_TransformVertices, &Batch_Close, &WeatherFx_BoltSubdivide, &Ribbon_AddPoint};
+const WeatherDrawEnv *g_drawEnv = &kDrawPortEnv;
+}  // namespace
+
+void WeatherFx_SetDrawEnv(const WeatherDrawEnv *env) { g_drawEnv = env ? env : &kDrawPortEnv; }
+
+u32 __fastcall WeatherFx_DrawBolt(u8 *fx, void *, const float *a, const float *b) {
+    const u8 *const texture = at<const u8 *>(fx, 0x334c);
+    const u32 id = texture && (at<u32>(texture, 8) & 0x1000) ? at<u32>(texture, 0x1c) : 0;
+    if (id) {
+        at<u32>(fx, 0xa170) = X87_FloatThrough(at<u32>(texture, 0x28));
+        at<u32>(fx, 0xa174) = X87_FloatThrough(at<u32>(texture, 0x2c));
+        at<float>(fx, 0xa178) = (float)(X87Reg(at<float>(texture, 0x20)) + X87Reg(at<float>(fx, 0xa170)));
+        at<float>(fx, 0xa17c) = (float)(X87Reg(at<float>(texture, 0x24)) + at<float>(fx, 0xa174));
+    } else {
+        at<u32>(fx, 0xa17c) = 0;
+        at<u32>(fx, 0xa178) = 0;
+        at<u32>(fx, 0xa174) = 0;
+        at<u32>(fx, 0xa170) = 0;
+    }
+    u8 *const object = *reinterpret_cast<u8 **>((uintptr_t)0x00879ab0);
+    if (!g_drawEnv->begin(object, nullptr, at<u32>(fx, 0x330c), 4, 0x1c4, 0x200d52, id))
+        return 1;
+    at<u32>(fx, 0xa188) = 0;
+    at<u32>(fx, 0x9da4) = 0;
+    if (!g_drawEnv->subdivide(fx, nullptr, a, b) || !g_drawEnv->addPoint(fx, nullptr, nullptr, a))
+        return 0;
+    g_drawEnv->transform(object, nullptr, 0);
+    return g_drawEnv->close(object, nullptr, 0.0f);
 }
 }

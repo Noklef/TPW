@@ -115,6 +115,7 @@
 #include "../../src/game/render/ribbon.h"
 #include "../../src/game/render/batch.h"
 #include "../../src/game/terrain/water.h"
+#include "../../src/game/render/weatherfx.h"
 #include "../../src/game/math/transform.h"
 #include "../../src/game/world/mousemode.h"
 #include "../../src/game/world/person.h"
@@ -577,6 +578,7 @@ u32 __fastcall water_transform(void *object, void *, u32 a, u32 b, u32 c, u32 d,
     return 0;
 }
 const TerrainWaterEnv kTerrainWaterEnv = {Rec{recorder(1, 5)}, Rec{recorder(2, 1)}, &water_transform, Rec{kStubs + 0x1000 + 0x4000 + 0x800 * 5 + 0x20 * 3}};
+const WeatherDrawEnv kWeatherDrawEnv = {Rec{recorder(1, 5)}, Rec{recorder(2, 1)}, Rec{recorder(3, 1)}, Rec{recorder(4, 2)}, Rec{recorder(5, 2)}};
 const FlyingUpdateEnv kFlyingUpdateEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorder(2, 5)}, Rec{jpeg_recorder(3, 2)}, Rec{jpeg_recorder(4, 3)}, Rec{jpeg_recorder(5, 4)},
                                           Rec{jpeg_recorder(6, 3)}, Rec{jpeg_recorder(7, 1)}, Rec{jpeg_recorder(8, 1)}, Rec{jpeg_recorder(9, 2)}};
 const TrakCarUpdateEnv kTrakCarUpdateEnv = {Rec{jpeg_recorder(1, 3)}, Rec{jpeg_recorder(2, 2)}, Rec{jpeg_recorder(3, 4)}, Rec{jpeg_recorder(4, 2)}, Rec{jpeg_recorder(5, 1)},
@@ -1391,6 +1393,7 @@ int main(int argc, char **argv) {
     Ribbon_SetEnv(&kRibbonEnv);
     Batch_SetEnv(&kBatchEnv);
     TerrainWater_SetEnv(&kTerrainWaterEnv);
+    WeatherFx_SetDrawEnv(&kWeatherDrawEnv);
     Object_SetEnv(&kObjectEnv);
     StatsGraph_SetEnv(&kStatsGraphEnv);
     SpriteLoading_SetEnv(&kSpriteLoadingEnv);
