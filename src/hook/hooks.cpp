@@ -563,6 +563,7 @@
 #include "../game/ui/dialog7cb2b8.h"
 #include "../game/ui/dialog7cb2b8build.h"
 #include "../game/ui/dialog7cb2b8tabs.h"
+#include "../game/ui/dialog7cb2fcopen.h"
 #include "../game/ui/dialog7cb3f8slots.h"
 #include "../game/ui/dialog7cb400.h"
 #include "../game/ui/dialog7cb400close.h"
@@ -7921,6 +7922,10 @@ const Hook kHooks[] = {
     {"Dialog7cca70_FillList",     0x004c1e40, (void *)&Dialog7cca70_FillList, {0x6a, 0xff, 0x68, 0xb9, 0xbe}},
     {"Dialog7cca70_ListCallback", 0x004c20c0, (void *)&Dialog7cca70_ListCallback, {0x8b, 0x44, 0x24, 0x04, 0x85}},
     {"MouseClick_OnShown",        0x004879d0, (void *)&MouseClick_OnShown, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Dialog7cb2fc_OnSlider",     0x004a2e90, (void *)&Dialog7cb2fc_OnSlider, {0x81, 0xec, 0x94, 0x00, 0x00}},
+    {"Dialog7cb2fc_OnButton",     0x004a3480, (void *)&Dialog7cb2fc_OnButton, {0x81, 0xec, 0x84, 0x00, 0x00}},
+    {"Dialog7cb2fc_Handler",      0x004a2bf0, (void *)&Dialog7cb2fc_Handler, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
+    {"Dialog7cb2fc_Open",         0x004a3a30, (void *)&Dialog7cb2fc_Open, {0xa1, 0xfc, 0xb2, 0x7c, 0x00}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
