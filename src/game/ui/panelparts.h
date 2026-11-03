@@ -10,6 +10,7 @@
 #include "../../../re/types.h"
 #include "../core/gameheap.h"
 #include "../core/language.h"
+#include "window705af0.h"
 #include "../core/vcall.h"
 #include "../gfx/barmesh.h"
 #include "../render/textparts.h"
@@ -46,6 +47,55 @@ inline void part(u8 *window, PartCtor ctor, u32 id, u32 value) { vcall<void>(dre
 
 // a part made by ctor and nothing more
 inline void part(u8 *window, PartCtor ctor, u32 id) { dress(window, ctor, id); }
+
+// the child `id` given a part made by ctor (no font); returns the child
+inline u8 *withPart(u8 *window, PartCtor ctor, u32 id) {
+    u8 *const child = Window_FindChild(window, nullptr, id);
+    u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
+    Window_SetImpl(child, nullptr, memory ? ctor(memory, nullptr, 0) : nullptr);
+    return child;
+}
+
+inline void font6(u8 *child) { Window_Set4c(child, nullptr, Language_Font(6)); }
+
+inline void red(u8 *child) { Window_Notify40000(child, nullptr, 0xff, 0, 0, 0xff); }
+
+// a heading in red: its colour comes first, unlike text()'s
+inline void redText(u8 *window, u32 id, u32 text) {
+    u8 *const child = withPart(window, TextPart_Ctor, id);
+    red(child);
+    font6(child);
+    Window_NotifyImpl100(child, nullptr, (u32)(uintptr_t)Language_WideText(text));
+}
+
+// a number's part, without its value
+inline u8 *numberPart(u8 *window, u32 id) {
+    u8 *const child = withPart(window, TextPart6ff3b0_Ctor, id);
+    Window_NotifyC00(child, nullptr, 2, 1);
+    font6(child);
+    return child;
+}
+
+// the window's 0x6ff3b0 number with the range 0..10000 and the step, font 6, the bytes 1, 1 and black (no value)
+inline void rangedNumber(u8 *window, s32 step) {
+    u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
+    Window_SetImpl(window, nullptr, memory ? TextPart6ff3b0_Ctor(memory, nullptr, 0) : nullptr);
+    const s32 low = 0, high = 10000;
+    Window705af0_SetRange(window, nullptr, &low, &high);
+    Window705af0_SetStep(window, nullptr, &step);
+    font6(window);
+    Window_NotifyC00(window, nullptr, 1, 1);
+    Window_Notify40000(window, nullptr, 0, 0, 0, 0xff);
+}
+
+// the newest value of one of the analyser's rings (the values, +0x240 the position, +0x244 the count, +0x248 wrapped): 0 when empty, or before the start and not wrapped
+inline u32 newestOfRing(const u8 *ring) {
+    const s32 count = *reinterpret_cast<const s32 *>(ring + 0x244);
+    if (count <= 0) return 0;
+    const s32 position = *reinterpret_cast<const s32 *>(ring + 0x240);
+    if (position >= 0) return *reinterpret_cast<const u32 *>(ring + position * 4);
+    return ring[0x248] ? *reinterpret_cast<const u32 *>(ring + (position + count) * 4) : 0;
+}
 
 // as dress(), when there is such a child (none allocated else); returns the child or none
 inline u8 *dressIfAny(u8 *window, PartCtor ctor, u32 id) {

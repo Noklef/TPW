@@ -1,5 +1,5 @@
 // The park statistics graph (a Gauge at 0x7ca250 whose marks are set from these; the lines shown by the flags byte 0x751fa0, the window by the kind at
-// 0x7ca2ec): reimplementation of 0x49a7b0, 0x49a8f0, 0x4a51d0 and 0x49b520.
+// 0x7ca2ec): reimplementation of 0x49a7b0, 0x49a8f0, 0x4a51d0, 0x49b520, 0x480460, 0x480570, 0x49aa30 and 0x4a4750.
 #pragma once
 
 #include "../../../re/types.h"
@@ -9,11 +9,22 @@ struct StatsGraphEnv {
     void(__cdecl *lines49aa30)(u8 *gauge);   // 0x49aa30, the graph's lines drawn over the gauge (Gauge_DrawInWindow's after)
     void(__cdecl *lines4a4750)(u8 *gauge);   // 0x4a4750, the same for the graph at 0x7cb318
     void(__cdecl *clearButtons)(u32 mode);   // Window7ca2e8_ClearButtons (its bench has the dialog's buttons)
+    void(__fastcall *plot)(u8 *gauge, void *, u32 *points, s32 last, u32 window, u32 colour, u32 colourByte);   // 0x47fe90, unported: the points drawn (the colour's 5 bytes by value)
 };
 // StatsGraph_Redraw's pointer comes from env (nullptr: the game's).
 void StatsGraph_SetEnv(const StatsGraphEnv *env);
 
 extern "C" {
+
+// 0x480460 (cdecl (gauge, line, colour, step, kind); name invented): a CircBufU32's samples into the points 0x7b4bf8: the window 0xc, 0x24, 0x90 for the kinds 0-2 (0 else) or the samples there are (+0x248 when wrapped, +0x24c; else the head +0x244 + 1) if fewer, as n; none under 0.
+// For the n + 1 places n * step down by step: the sample that many before the head (under the capacity +0x248; past the head only when wrapped), else the one before it (first 0). Then 0x47fe90 (points, n, the window, the colour's 5 bytes by value).
+void __cdecl StatsGraph_PlotU32(u8 *gauge, const u8 *line, const u8 *colour, s32 step, u32 kind);
+// 0x480570 (the same, the samples floats, each truncated by __ftol as it goes in; first [0x6ff0a4]).
+void __cdecl StatsGraph_PlotFloat(u8 *gauge, const u8 *line, const u8 *colour, s32 step, u32 kind);
+// 0x49aa30 (cdecl (gauge); Gauge_DrawInWindow's after; name invented): the lines the flags 0x751fa0 show (see 0x49a7b0) through StatsGraph_PlotU32, step 1, the window kind [0x7ca2ec], the colours 0x7ca2b0, 0x7ca2c0, 0x7ca2c8, 0x7ca2d8, 0x7ca2a8, 0x7ca2e0, 0x7ca298, 0x7ca2b8.
+void __cdecl StatsGraph_Lines(u8 *gauge);
+// 0x4a4750 (the same for the graph at 0x7cb318; name invented): the flags 0x753c48, the kind [0x7cb39c], the lines +0x20cc0, +0x20f10 (floats), +0x21160, +0x205d0, +0x213b0, the colours 0x7cb368, 0x7cb380, 0x7cb308, 0x7cb390, 0x7cb370.
+void __cdecl StatsGraph7cb318_Lines(u8 *gauge);
 
 // 0x49a7b0 / 0x49a8f0 (cdecl; names unconfirmed): from 0, the greatest / least sample (CircBufU32_144_MaxInWindow / MinInWindow with the kind [0x7ca2ec]) of
 // each shown line: bits 0-7 of 0x751fa0 (re-read for each) select the CircBufU32s of 144 at +0x1f100, +0x1f350, +0x1fc90, +0x1fee0, +0x20130, +0x20380,

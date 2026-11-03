@@ -2,6 +2,29 @@
 // Reimplementation of 0x4a4700, 0x4a4ab0 and 0x4a52a0. The names are unconfirmed.
 #pragma once
 #include "../../../re/types.h"
+
+// Dialog7cb398_Handler's calls (the ports by default; the bench's recorders: their own benches have them).
+struct Dialog7cb398Env {
+    s32(__cdecl *send)(u8 *window, u32 message, u32 a, u32 b);     // Window_SendMessage
+    u8 *(__fastcall *child)(u8 *window, void *, u32 id);           // Window_FindChild
+    u32(__fastcall *table)(u8 *game);                              // GameTable7cfb90_Get1da720_519510
+    s32(__cdecl *people)();                                        // Things_CountKind1OnPlainCell
+    u32(__fastcall *total)(const u8 *analyser);                    // ParkAnalyser_Total
+    s32(__fastcall *below)(void *self, void *, s32 bound);         // Things_PercentPeopleStat19cBelow
+    s32(__fastcall *above)(void *self, void *, s32 bound);         // Things_PercentPeopleStat19cAbove
+    void(__cdecl *showTop)();                                      // Dialog7cb398_ShowTopThree
+    u16 *(__cdecl *text)(u32 index);                               // Language_WideText
+    void(__cdecl *attach)(u8 *parent, u32 id, u32 text);           // HoverLabel_Attach
+    void(__cdecl *cancel)(u32 id);                                 // Game_CancelAdvisor
+    void(__cdecl *openStaff)(u32 tab, u32 selected);               // Dialog7ca168_Open
+    void(__cdecl *openObjects)(s32 tab, u32 selected);             // Dialog7ca150_Open
+    void(__cdecl *openGuests)(u32 selected);                       // Dialog7ca13c_Open
+    u32(__fastcall *table26)(u8 *game);                            // GameTable7cfb90_Get1da726_5195d0
+    void(__fastcall *set118)(u8 *object, void *, u32 value);       // Obj_Set118
+    s32(__cdecl *keys)(u8 *window, u32 message, u32 a, u32 b);     // Dialog_KeyHandler
+};
+void Dialog7cb398_SetEnv(const Dialog7cb398Env *env);
+
 extern "C" {
 // 0x4a4700 (cdecl (window, message, a, b): the handler 0x4a52a0 gives the top three's children): message 0xc (the tooltip asked for)
 // answers the record 0x7cb310 with [0x7cb314] the widened (Language_Widen) record of the table [0x78ba9c] at the window's slot 8 value
@@ -37,4 +60,10 @@ void __cdecl Dialog7cb398_ShowTopThree();
 //   0x4a68cf's (100 - the percent above 0x42 (Things_PercentPeopleStat19cAbove)) * 1024 / 100 (signed, truncated).
 // Then the advisor told 199 (Advisor_PostId).
 void __cdecl Dialog7cb398_Create();
+
+// 0x4a4830 (cdecl (window, message, a, b); name invented, unconfirmed): the handler 0x4a52a0 gives the window. 5: the window sent 4 (0, 0), answer 1. 0x100: a -1 the same, answer 0; 0x4a68c6, 0x4a68c7, 0x4a68c8 open the guests' (0),
+// staff (-1, 0) and objects' (-1, 0) lists, answer 0. The rest ends in Dialog_KeyHandler, whose answer is returned, after: 0x10 with a the timer 0x80083 and the window up: child 0x4a68c9's children 0x4a68cc and 0x4a68ca (looked up only when
+// it changed) given through slot 7 the people on plain cells and the analyser's total when they differ from [0x7cb360] / [0x7cb378], which keep them; 0x4a68d0's slot 7 the percent below 0x21 * 1024 / 100, 0x4a68cf's
+// (100 - the percent above 0x42) * 1024 / 100 (signed, truncated); Dialog7cb398_ShowTopThree. 0x14 the window 0, Game_CancelAdvisor (0xc7). 0x15 the hover label 0x4a68c5 with the text 0x96. 0x800 Obj_Set118 (b) of the game's table 0x5195d0.
+s32 __cdecl Dialog7cb398_Handler(u8 *window, u32 message, u32 a, u32 b);
 }

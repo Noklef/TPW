@@ -13,6 +13,17 @@ struct Dialog7ca150Env {
 };
 void Dialog7ca150_SetEnv(const Dialog7ca150Env *env);
 
+// Dialog7ca150_PageHandler's calls (the ports by default; the bench's recorders: their own benches have them).
+struct Dialog7ca150PageEnv {
+    s32(__cdecl *send)(u8 *window, u32 message, u32 a, u32 b);     // Window_SendMessage
+    void(__cdecl *openStats)();                                    // Dialog7cb398_Create
+    void(__cdecl *openStaff)(u32 tab, u32 selected);               // Dialog7ca168_Open
+    void(__cdecl *openGuests)(u32 selected);                       // Dialog7ca13c_Open
+    void(__cdecl *cancel)(u32 id);                                 // Game_CancelAdvisor
+    s32(__cdecl *keys)(u8 *window, u32 message, u32 a, u32 b);     // Dialog_KeyHandler
+};
+void Dialog7ca150_SetPageEnv(const Dialog7ca150PageEnv *env);
+
 extern "C" {
 
 // 0x495360 (cdecl (window, message, a, b): Dialog7ca150_Open's handler of the page's child 0x12c4b8; name invented). 0x101 with b 1 and a a radio 0x12c4ba to 0x12c4bd: the tab 0, 2, 1 or 3
@@ -45,4 +56,8 @@ void __cdecl Dialog7ca150_ShowTab3(u32 selected);
 // text 0x4e + the tab (Language_WideText, HoverLabel_Attach). Any other tab (unsigned) none of that. Then the page's child 0x12c4b8 the
 // handler 0x495360 (Window_SetHandler) and the advisor told 0xbf (Advisor_PostId). EAX not kept.
 void __cdecl Dialog7ca150_Open(s32 tab, u32 selected);
+
+// 0x495290 (cdecl (window, message, a, b); name invented, unconfirmed): the handler of the dialog [0x7ca150]. 5: it is sent 4 (0, 0), answer 1. 0x100: a -2 the same, answer 0; 0x12c4bf opens Dialog7cb398_Create, 0x12c4c0 the staff list (-1, 0),
+// 0x12c4c1 the guests' list (0), answer 0. 0x14: [0x7ca150] 0, Game_CancelAdvisor (0xbf). The rest ends in Dialog_KeyHandler, whose answer is returned.
+s32 __cdecl Dialog7ca150_PageHandler(u8 *window, u32 message, u32 a, u32 b);
 }

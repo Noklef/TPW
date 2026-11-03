@@ -9,6 +9,7 @@
 #include "../core/accessors.h"
 #include "../core/actionrec.h"
 #include "../core/trivial.h"
+#include "../core/vwrap.h"
 #include "../render/textparts.h"
 #include "../core/soundplay.h"
 #include "../core/textarg.h"
@@ -22,7 +23,12 @@
 #include "../world/mousemode.h"
 #include "../world/objectdefs.h"
 #include "../world/world.h"
+#include "../core/circbuf.h"
+#include "../core/options.h"
+#include "../files/charsets.h"
+#include "../math/x87.h"
 #include "../world/object.h"
+#include "../world/objectstatus.h"
 #include "../world/objectmsg.h"
 #include "../world/ridelist.h"
 #include "../world/ridesweep.h"
@@ -31,9 +37,12 @@
 #include "guirect.h"
 #include "hoverlabel.h"
 #include "panelparts.h"
+#include "windowscript.h"
+#include "window7059f0.h"
 #include "window.h"
 #include "window705a50.h"
 #include "window705b20.h"
+#include "windowreg.h"
 
 using namespace panelparts;
 
@@ -362,4 +371,201 @@ void __fastcall Panel7cc218_ShowSettings(u8 *self, void *, u8 flags) {
         Window_NotifyImpl100(child, nullptr, 0x007ba058u);
     }
 }
+}
+
+namespace {
+template <typename T>
+T &global(uintptr_t address) { return *reinterpret_cast<T *>(address); }
+
+const Panel7cc218LevelsEnv kGameLevelsEnv = {Window7059f0_Clear, ObjectDefs_First, ObjectDefs_Next, Setting_ReadMode, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0), ObjectControls_Find, ObjectDefs_GetFullName, Window7059f0_AddItem, Object_GetDef,
+                                             Is19c_Eq2_4e03e0, Charset_FormatWide, Language_WideText, reinterpret_cast<u16 *(__cdecl *)(u16 *, const u16 *)>((uintptr_t)0x0067c430), Window7059f0_RefreshRows};
+const Panel7cc218LevelsEnv *g_levels = &kGameLevelsEnv;
+const Panel7cc218FiguresEnv kGameFiguresEnv = {Object_GetDef, Window_FindChild, Object_AgeDays, Charset_FormatWide, Window_NotifyImpl100, Object_ComputeRating, Object_DefRowPercent, Object_ScrapRefund, Object_Status, Panel7cc218_UpdateButtons, Panel7cc218_ShowRide, Panel7cc218_FillLevels};
+const Panel7cc218FiguresEnv *g_figures = &kGameFiguresEnv;
+
+constexpr uintptr_t kWideBuffer = 0x007ba058;
+u16 *wideBuffer() { return reinterpret_cast<u16 *>(kWideBuffer); }
+
+bool modeIsTwo() {
+    u8 &guard = *reinterpret_cast<u8 *>((uintptr_t)0x00fb34c5);
+    const u8 bits = guard;
+    if (!(bits & 1)) {
+        guard = bits | 1;
+        g_levels->readMode(reinterpret_cast<u8 *>((uintptr_t)0x00fb3b7c));
+        g_levels->atExit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x005d1750));
+    }
+    return *reinterpret_cast<u32 *>((uintptr_t)0x00fb3b7c) == 2;
+}
+
+u8 *controlsTable() { return global<u8 *>(0x007cf83c) + 0x1d943c; }
+
+void addRow(u8 *list, u32 first, u32 second, u32 data) {
+    const u32 texts[2] = {first, second};
+    g_levels->add(list, nullptr, texts, data, -1, 0);
+}
+
+void formatLevel(u32 entry, u32 value) {
+    const u32 arg[5] = {0x006ff170, 0x5641524d, 0, value, 0};   // (TextArgInt_Ctor (0, the value, unsigned), inline)
+    g_levels->format(global<u8 *>(0x0078ba94), wideBuffer(), 0x3fff, entry, arg);
+}
+
+// (A percent: the low byte * 1024 / 100.)
+s32 scaled(u32 value) { return static_cast<s32>((value & 0xff) << 10) / 100; }
+
+void showBufferSum(u8 *gauge, const u8 *buffer) {
+    u32 count = 30;
+    const s32 held = buffer[0x84] ? at<s32>(buffer, 0x80) : at<s32>(buffer, 0x7c) + 1;
+    if (held < 30) count = CircBufU32_30_Count(buffer);
+    double sum = 0;
+    for (s32 i = 0; i < static_cast<s32>(count); ++i) {
+        u32 value;
+        if (CircBufU32_30_Get(buffer, nullptr, &value, i) == 1) sum = X87_Add(static_cast<double>(value), sum);   // (fild qword; fadd rounds to 24 bits)
+    }
+    vcall<void>(gauge, 0x1c, static_cast<u32>(static_cast<long long>(sum)));   // (__ftol, the low half)
+}
+
+void showAge(u8 *label, const u8 *object) {
+    const s32 age = g_figures->age(object);
+    const u32 arg[5] = {0x006ff170, 0x5641524d, 8, static_cast<u32>(age < 0 ? -age : age), age < 0 ? 1u : 0u};   // (TextArgInt_Ctor (8, the size, its sign), inline)
+    u16 text[0x20];
+    g_figures->format(global<u8 *>(0x0078ba94), text, 0x1f, 0x1b1, arg);
+    g_figures->notify(label, nullptr, static_cast<u32>(reinterpret_cast<uintptr_t>(text)));
+}
+
+void showFigures(u8 *self, u8 *window, const u8 *object) {
+    if (u8 *const gauge = g_figures->child(window, nullptr, 0x3e21)) showBufferSum(gauge, object + 0x1a8);
+    if (u8 *const label = g_figures->child(at<u8 *>(self, 0x14), nullptr, 0x3e1b)) showAge(label, object);
+    if (u8 *const c = g_figures->child(at<u8 *>(self, 0x14), nullptr, 0x3e16)) vcall<void>(c, 0x1c, scaled(g_figures->rating(object, nullptr, at<s32>(self, 0x2c), at<s32>(self, 0x34), at<s32>(self, 0x30))));
+    if (u8 *const c = g_figures->child(at<u8 *>(self, 0x14), nullptr, 0x3e18)) {
+        const float third = static_cast<float>(at<s32>(self, 0x34));
+        vcall<void>(c, 0x1c, scaled(g_figures->percent(object, nullptr, static_cast<float>(at<s32>(self, 0x2c)), static_cast<float>(at<s32>(self, 0x30)), *reinterpret_cast<const u32 *>(&third))));
+    }
+    if (u8 *const c = g_figures->child(at<u8 *>(self, 0x14), nullptr, 0x3e19)) vcall<void>(c, 0x1c, scaled(static_cast<u32>(static_cast<long long>(at<float>(object, 0x44)))));   // (__ftol)
+    if (u8 *const c = g_figures->child(at<u8 *>(self, 0x14), nullptr, 0x3e17)) vcall<void>(c, 0x1c, scaled(Object_Field48AsInt(object)));
+    u8 *const refund = g_figures->child(at<u8 *>(self, 0x14), nullptr, 0x3e23);
+    vcall<void>(refund, 0x1c, g_figures->scrap(object));
+}
+}  // namespace
+
+void Panel7cc218_SetLevelsEnv(const Panel7cc218LevelsEnv *env) { g_levels = env ? env : &kGameLevelsEnv; }
+void Panel7cc218_SetFiguresEnv(const Panel7cc218FiguresEnv *env) { g_figures = env ? env : &kGameFiguresEnv; }
+
+extern "C" void __cdecl Panel7cc218_FillLevels(u32 id, u8 *list, u32 clear, u8 *object) {
+    if (clear) g_levels->clear(list);
+    u8 *const defs = reinterpret_cast<u8 *>((uintptr_t)0x007890a0);
+    u8 *def = g_levels->first(defs);
+    const u32 level = object[0x50];
+    const u32 buffer = static_cast<u32>(kWideBuffer);
+    u32 rows = 0;
+    const bool two = modeIsTwo();
+    if (!two) {
+        for (; def; def = g_levels->next(defs)) {
+            if (at<u32>(def, 0x508) || at<u32>(def, 0x284) != id) continue;
+            const u32 which = at<u16>(def, 0);
+            const u8 *const record = g_levels->find(controlsTable(), nullptr, which, 0);
+            if (!record[0x10]) continue;
+            g_levels->name(defs, nullptr, which, wideBuffer(), 0x3fff);
+            addRow(list, buffer, at<u32>(record, 4), which);
+            ++rows;
+        }
+        const u8 *const own = g_levels->def(object);
+        if (g_levels->busy(object)) {
+            formatLevel(0x1e, level + 2);
+            addRow(list, buffer, 0, 0xffffcd39u);
+            rows = 1;
+        } else if (static_cast<s32>(level) < 2) {
+            const u8 *const record = g_levels->find(controlsTable(), nullptr, at<u16>(object, 0xe), 0);
+            const s32 next = static_cast<s32>(level) + 1;
+            if (next <= at<s32>(record, 0x14)) {
+                formatLevel(0x1d, level + 2);
+                addRow(list, buffer, at<u32>(own, (static_cast<u32>(next) << 6) + 0x1b8), static_cast<u32>(-next));
+                ++rows;
+            }
+        }
+    }
+    if (!rows) {
+        g_levels->text(modeIsTwo() ? 0x1b : level == 2 ? 0x1c : 0x1a);
+        const u16 *const separators = reinterpret_cast<const u16 *>((uintptr_t)0x007558f0);
+        for (u16 *word = g_levels->token(wideBuffer(), separators); word; word = g_levels->token(nullptr, separators))
+            addRow(list, static_cast<u32>(reinterpret_cast<uintptr_t>(word)), 0, 0xffffe12eu);
+    }
+    g_levels->refresh(list);
+}
+
+extern "C" void __fastcall Panel7cc218_RefreshFigures(u8 *self) {
+    u8 *const object = global<u8 *>(0x007c2658);
+    g_figures->def(object);
+    if (u8 *const window = at<u8 *>(self, 0x14)) showFigures(self, window, object);
+    const u32 status = g_figures->status(object, 2);
+    if (status != at<u32>(self, 8)) {
+        at<u32>(self, 8) = status;
+        vcall<void>(self, 0x24);
+        g_figures->buttons(self);
+        g_figures->showRide(self);
+    }
+    if (u8 *const window = at<u8 *>(self, 0x24)) g_figures->levels(at<u16>(object, 0xe), g_figures->child(window, nullptr, 0x1f4d), 1, object);
+}
+
+namespace {
+const Panel7cc218LevelBoxEnv kLevelBoxGameEnv = {&Window_FindChild, &Window7059f0_NthItemData, &Panel7cc218_Choose, &Window_SendMessage, &Panel7cc218_RefreshFigures, &WindowAt10_Message4, &Window_DwordA0, &Obj_CallMember20Slot14, &Window_CallDefault, &Window7059f0_BuildRows, &Panel7cc218_FillLevels};
+const Panel7cc218LevelBoxEnv *g_levelBox = &kLevelBoxGameEnv;
+}  // namespace
+
+void Panel7cc218_SetLevelBoxEnv(const Panel7cc218LevelBoxEnv *env) { g_levelBox = env ? env : &kLevelBoxGameEnv; }
+
+s32 __cdecl Panel7cc218_LevelBoxHandler(u8 *window, u32 message, u32 a, u32 b) {
+    u8 *const panel = reinterpret_cast<u8 *>((uintptr_t)0x007cc218);
+    if (message == 0x14) {
+        u8 *const owner = reinterpret_cast<u8 *>((uintptr_t)g_levelBox->dword(window, nullptr, 0));
+        *reinterpret_cast<u32 *>(owner + 0x24) = 0;
+        g_levelBox->member(owner, nullptr, 1);
+    } else if (message == 0x100) {
+        if (a == 0xfffffffe) {
+            g_levelBox->send(window, 4, 0, 0);
+            return 0;
+        }
+    } else if (message == 0x400) {
+        u8 *const list = g_levelBox->child(window, nullptr, a);
+        if (list && b != 0xffffffff) {
+            u32 data = (u32)(uintptr_t)window;
+            g_levelBox->nth(list, nullptr, static_cast<s32>(b), &data);
+            if (data != 0xffffe12e) {
+                if (data != 0xffffcd39) {
+                    if (g_levelBox->choose(panel, nullptr, static_cast<s32>(data), 0) && static_cast<s32>(data) > 0) {
+                        g_levelBox->close(panel);
+                        return 0;
+                    }
+                } else {
+                    g_levelBox->choose(panel, nullptr, 0, 1);
+                }
+                g_levelBox->send(window, 4, 0, 0);
+                g_levelBox->refresh(panel);
+                return 0;
+            }
+        }
+    }
+    return g_levelBox->fallback(window, nullptr, message, a, b);
+}
+
+void __fastcall Panel7cc218_OpenLevelBox(u8 *self) {
+    if (at<u32>(self, 0x24) || at<u32>(self, 0xc)) return;
+    at<u8 *>(self, 0x24) = WindowScript_Build(at<u8 *>(self, 0x10), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00755750), 0x004ae430);
+    Obj_CallMember20Slot14(self, nullptr, 0);
+    Window_SetDepth(at<u8 *>(self, 0x24), nullptr, (u16)(at<u16>(at<u8 *>(self, 0x10), 0xe0) + 0x11));
+    Window_SetDwordA0(at<u8 *>(self, 0x24), nullptr, 0, (u32)(uintptr_t)self);
+    u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
+    u8 *const part = memory ? TextPart6ff530_Ctor(memory, nullptr, 0) : nullptr;
+    Window_SetImpl(Window_FindChild(at<u8 *>(self, 0x24), nullptr, 0x1f4e), nullptr, part);
+    Window_Set4c(Window_FindChild(at<u8 *>(self, 0x24), nullptr, 0x1f4e), nullptr, Language_Font(5));
+    Window_NotifyC00(Window_FindChild(at<u8 *>(self, 0x24), nullptr, 0x1f4e), nullptr, 1, 1);
+    u8 *const label = Window_FindChild(at<u8 *>(self, 0x24), nullptr, 0x1f4e);
+    vcall<void>(label, 0x24, (u32)(uintptr_t)Language_WideText(0x1f));
+    HoverLabel_SetYellow(Window_FindChild(at<u8 *>(self, 0x24), nullptr, 0x1f4e));
+    u8 *const list = Window_FindChild(at<u8 *>(self, 0x24), nullptr, 0x1f4d);
+    g_levelBox->buildRows(list, nullptr, reinterpret_cast<u8 *(__cdecl *)()>((uintptr_t)0x004ae700), reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)0x004ae7d0));
+    Window7059f0_SetColumnBottom(list, nullptr, 0, 0);
+    Window7059f0_SetColumnBottom(list, nullptr, 1, 1);
+    Window7059f0_SetHighlight(list, nullptr, reinterpret_cast<u8 *>((uintptr_t)GuiWindows_FindByName(reinterpret_cast<const char *>(0x0074fa84))));
+    u8 *const thing = *reinterpret_cast<u8 **>((uintptr_t)0x007c2658);
+    g_levelBox->levels(at<u16>(thing, 0xe), list, 0, thing);
 }

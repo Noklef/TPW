@@ -3,6 +3,8 @@
 #include <cstdint>
 
 #include "../core/accessors.h"
+#include "../core/keymap.h"
+#include "../world/world.h"
 #include "focus.h"
 #include "guidepth.h"
 #include "guirect.h"
@@ -11,7 +13,32 @@
 #include "windowreg.h"
 #include "windowscript.h"
 
+namespace {
+const DialogKeyEnv kGameKeyEnv = {Window_SendMessage, reinterpret_cast<u8 *(__fastcall *)(const u8 *)>(GameTable7cfb90_Get1da71c_5194d0), reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)0x0059ab50), Actions_FireDown, Actions_FireUp, Window7c24c8_Set, Window_CallDefault};
+const DialogKeyEnv *g_keys = &kGameKeyEnv;
+
+u8 *actions() { return *reinterpret_cast<u8 **>(static_cast<uintptr_t>(0x0078721c)); }
+}  // namespace
+
+void Dialog_SetKeyEnv(const DialogKeyEnv *env) { g_keys = env ? env : &kGameKeyEnv; }
+
 extern "C" {
+
+s32 __cdecl Dialog_KeyHandler(u8 *window, u32 message, u32 a, u32 b) {
+    const u32 state = (b >> 16) & 0xff;
+    if (message == 0x1000b) {
+        if (a == 0x1b && !state) g_keys->send(window, 4, 0, 0);
+        else if (a == 0x70 && !state) g_keys->helpKey(g_keys->advisor(*reinterpret_cast<const u8 **>(static_cast<uintptr_t>(0x007cf83c))));
+        else g_keys->fireUp(actions(), nullptr, a, state);
+        return 0;
+    }
+    if (message == 0x1000a) {
+        g_keys->fireDown(actions(), nullptr, a, state);
+        return 0;
+    }
+    if (message == 0x14) g_keys->setWindow(nullptr);
+    return g_keys->callDefault(window, nullptr, message, a, b);
+}
 
 s32 __cdecl Dialog_BaseHandler(u8 *window, u32 message, u32 a, u32 b) {
     if (message == 0x14) {

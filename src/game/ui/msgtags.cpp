@@ -10,6 +10,7 @@
 #include "../files/file.h"
 #include "../render/particles.h"
 #include "../world/advisor.h"
+#include "dialog7ca098.h"
 #include "dialogs.h"
 #include "guirect.h"
 #include "window.h"
@@ -19,7 +20,99 @@
 namespace {
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 template <typename T> T at(const void *p, u32 offset) { return *reinterpret_cast<const T *>((uintptr_t)p + offset); }
+
+const MsgTagHandlerEnv kGameHandlerEnv = {Dialog7ca098_RunAction, Window_SetShown, Particle_IsAlive, ParticleSystem_End, Window_StopTimer, Window_GetSize, Window_AdjustRect, Window_Offset, Window_RunScript, Window_Unlink, Dialog7cb2b8_ResetChild21, Window_PostMessage, Particle_Spawn, Window_SetDwordA0, Window_IsShown,
+                                          ParticleSystem_Set2a, ParticleSystem_SetVectorA, Particle_SpawnAtWindow, SoundUi_Play, MsgTag_Open, Window_CallDefault};
+const MsgTagHandlerEnv *g_handler = &kGameHandlerEnv;
+
+// The first of the ten records that holds the window, or -1.
+s32 recordOf(const u8 *window) {
+    for (s32 i = 0; i < 10; ++i)
+        if (global<const u8 *>(0x007c26b0 + (u32)i * 0x208) == window) return i;
+    return -1;
+}
+
+u32 particleOf(u8 *window) { return Window_DwordA0(window, nullptr, 9); }
+bool particleLive(u32 handle) { return (s32)handle > -1 && g_handler->isAlive(handle); }
+
+// The inner rectangle's centre in the particles' units.
+void centre(u8 *window, u8 *rect, s32 &x, s32 &z) {
+    Window_GetRect(window, nullptr, rect, 1);
+    const s32 left = at<s16>(rect, 4), top = at<s16>(rect, 6), right = at<s16>(rect, 8), bottom = at<s16>(rect, 0xa);
+    const s32 cy = ((bottom - top) >> 1) + top, cx = ((right - left) >> 1) + left;
+    x = (s32)((u32)cx * 100000u) / 2048;
+    z = (s32)((u32)cy * 75000u) / 1536;
+}
+
+void resetWhenShown(u8 *window) {
+    u8 *const open = global<u8 *>(0x007ca090);
+    if (open == window && open) g_handler->resetChild(0);
+}
+
+s32 closed(u8 *window, u32 message, u32 a) {
+    if (Window_DwordA0(window, nullptr, 6) == 0x1b) g_handler->runAction(0x1b, 0, 0);
+    const s32 index = recordOf(window);
+    g_handler->setShown(window, nullptr, 0);
+    const u32 particle = particleOf(window);
+    if (particleLive(particle)) g_handler->end(particle);
+    g_handler->stopTimer(window, nullptr, 0x80080);
+    g_handler->stopTimer(window, nullptr, 0x80081);
+    u16 &used = global<u16>(0x007c26b4 + (u32)index * 0x208);
+    if (!used) return 0;
+    used = 0;
+    --global<s32>(0x007ca09c);
+    u32 height = message;
+    g_handler->getSize(window, nullptr, nullptr, reinterpret_cast<s16 *>(&height), 1);
+    height += 10;
+    g_handler->adjustRect(global<u8 *>(0x007cb2c4), nullptr, 0, height, 0, 0);
+    if (window == global<u8 *>(0x007cb2c8)) global<u32>(0x007cb2c8) = Fn_65d56b(window);
+    if (a) {
+        for (u8 *tag = reinterpret_cast<u8 *>((uintptr_t)Fn_65d56b(window)); tag; tag = reinterpret_cast<u8 *>((uintptr_t)Fn_65d56b(tag))) {
+            g_handler->offset(tag, nullptr, 0, height);
+            if (!tag[0x135]) g_handler->runScript(tag, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007502f0), 0x14);
+        }
+        if (u8 *const child = Window_FindChild(global<u8 *>(0x007cb2c4), nullptr, 0x2e)) g_handler->runScript(child, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007502f0), 0x32);
+    }
+    g_handler->unlink(window);
+    resetWhenShown(window);
+    return 1;
+}
+
+void timer(u8 *window, u32 a) {
+    if (a == 0x80080 && window[0x134]) {
+        vcall<void>(window, 0x14, 0u);
+        window[0x134] = 0;
+        g_handler->post(global<u8 *>(0x007cb2c4), 0x100002, (u32)(uintptr_t)window, 0);
+    } else if (a == 0x80081) {
+        u8 rect[12];
+        GuiRect_Ctor(rect);
+        if (particleOf(window) == 0xffffffff) {
+            s32 x, z;
+            centre(window, rect, x, z);
+            const u32 handle = (u32)g_handler->spawn(0x5b, x, 0, z);
+            g_handler->setDword(window, nullptr, 9, handle);
+            g_handler->stopTimer(window, nullptr, 0x80081);
+            if (!g_handler->isShown(window)) g_handler->set2a(handle, 1);
+        }
+        GuiRect_Dtor(rect);
+    }
+}
+
+void clicked(u8 *window, u32 a) {
+    if (a == 0) {
+        g_handler->sound(0xc0);
+        if (global<u8 *>(0x007ca090) == window) resetWhenShown(window);
+        else g_handler->open(window);
+    } else if (a == 1 && window != global<u8 *>(0x007ca094)) {
+        vcall<void>(window, 0x14, 0u);
+        window[0x134] = 0;
+        resetWhenShown(window);
+        g_handler->post(reinterpret_cast<u8 *>((uintptr_t)Fn_65d55a(window)), 0x100002, (u32)(uintptr_t)window, 0);
+    }
+}
 }  // namespace
+
+void MsgTag_SetHandlerEnv(const MsgTagHandlerEnv *env) { g_handler = env ? env : &kGameHandlerEnv; }
 
 extern "C" {
 
@@ -269,5 +362,49 @@ s32 __cdecl MsgTags_WindowHandler(u8 *window, u32 message, u8 *tag, u32 b) {
         global<u32>(0x007cb2c8) = 0;
     }
     return Window_CallDefault(window, nullptr, message, (u32)(uintptr_t)tag, b);
+}
+
+s32 __cdecl MsgTag_Handler(u8 *window, u32 message, u32 a, u32 b) {
+    switch (message) {
+    case 5: return closed(window, message, a);
+    case 6: {
+        const s32 index = recordOf(window);
+        if (index < 0 || !global<u16>(0x007c26b4 + (u32)index * 0x208)) return 0;
+        break;
+    }
+    case 0x10: timer(window, a); break;
+    case 0x11: {
+        if (a && !Window_DwordA0(window, nullptr, 10)) {
+            g_handler->spawnAtWindow(0x5a, window);
+            g_handler->setDword(window, nullptr, 10, 1);
+        }
+        const u32 particle = particleOf(window);
+        if (particleLive(particle)) g_handler->set2a(particle, a ? 0 : 1);
+        break;
+    }
+    case 0x13: {
+        const u32 particle = particleOf(window);
+        u8 rect[12];
+        GuiRect_Ctor(rect);
+        if (particleLive(particle)) {
+            s32 x, z;
+            centre(window, rect, x, z);
+            g_handler->setVector(particle, x, 0, z);
+        }
+        GuiRect_Dtor(rect);
+        break;
+    }
+    case 0x14: {
+        const s32 index = recordOf(window);
+        if (index != -1) {
+            global<u16>(0x007c26b4 + (u32)index * 0x208) = 0;
+            global<u32>(0x007c26b0 + (u32)index * 0x208) = 0;
+        }
+        break;
+    }
+    case 0x10006: clicked(window, a); break;
+    default: break;
+    }
+    return g_handler->callDefault(window, nullptr, message, a, b);
 }
 }  // extern "C"

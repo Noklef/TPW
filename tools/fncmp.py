@@ -17,7 +17,7 @@ EAX, 'b' AL (a flag returned over whatever EAX held), 'w' AX (likewise a u16), '
 st0, 'edi' EDI (an original that leaves a result there, its port's naked thunk moving the port's EAX to it: src/hook/regthunks.h). Call(ignore=[(address, count), ...]): those bytes of the regions are left out of the comparison in both (a stack address's low byte that
 the original stores, which the two sides' stacks cannot share). A register convention (hand-written assembly taking
 its arguments in registers) names the registers, three letters each, in argument order: conv='esi' puts args[0] in ESI and the rest on the
-stack, 'esiedi' args[0] in ESI and args[1] in EDI (of EAX EBX ECX EDX ESI EDI); the hook row's replacement is then the port's naked thunk
+stack, 'esiedi' args[0] in ESI and args[1] in EDI (of EAX EBX ECX EDX ESI EDI EBP; EBP must not be 0); the hook row's replacement is then the port's naked thunk
 (src/hook/regthunks.h), which pushes the registers as the port's ordinary cdecl arguments. Call(steps=) the emulator's step limit (5 000 000: a case past it is a
 "step limit"; raise it only for a function whose smallest real input runs that long). Region addresses must be in the game's data (0x6e7000-0xfc5200) or at 0x10000000 and up (RAM, ALLOC.. are free slots); anything a case
 does not set reads as the exe image there, else zero, in both. No region may be empty (the driver reads its bytes as one hex token, so an
@@ -278,7 +278,7 @@ def off_code(buf):
     return buf
 
 
-REGISTER_ARGS = ('EAX', 'EBX', 'ECX', 'EDX', 'ESI', 'EDI')
+REGISTER_ARGS = ('EAX', 'EBX', 'ECX', 'EDX', 'ESI', 'EDI', 'EBP')
 
 
 def register_args(conv):
@@ -287,8 +287,8 @@ def register_args(conv):
     if len(conv) < 3 or conv[0] != 'e':
         return ()
     regs = tuple(conv[i:i + 3].upper() for i in range(0, len(conv), 3))
-    if len(conv) % 3 or len(conv) > 15 or not all(r in REGISTER_ARGS for r in regs):
-        raise ValueError('register convention %r: names of %s, at most five' % (conv, '/'.join(REGISTER_ARGS)))
+    if len(conv) % 3 or len(conv) > 18 or not all(r in REGISTER_ARGS for r in regs):
+        raise ValueError('register convention %r: names of %s, at most six' % (conv, '/'.join(REGISTER_ARGS)))
     return regs
 
 
@@ -471,6 +471,14 @@ def vtable(slots, size=32, com=None, cdecl=None):
 
 def log_region():
     return bytearray(0x1000)
+
+
+LOG_FOLD = 0x784  # log_fold(): a flag, then the hash of the recorder calls past the room
+
+
+def log_fold(log):
+    """The recorder calls past the log's 40 entries, which are otherwise dropped, go into a hash in the log region (a function that makes more calls than that)."""
+    struct.pack_into('<I', log, LOG_FOLD, 1)
 
 
 def set_return(log, k, value):
@@ -850,6 +858,14 @@ def tail_hash(args):
     return h
 
 
+def _fold(e, words):  # (driver.cpp record_call)
+    if e.u32(LOG + LOG_FOLD):
+        h = e.u32(LOG + LOG_FOLD + 4)
+        for word in words:
+            h = ((h ^ word) * 0x01000193) & 0xffffffff
+        e.write(LOG + LOG_FOLD + 4, struct.pack('<I', h))
+
+
 def _recorder(k, n, com=False, cdecl=False):
     def hook(e):
         sp = e.r['ESP'] + (4 if e.tail else 0)
@@ -866,6 +882,8 @@ def _recorder(k, n, com=False, cdecl=False):
             entry = LOG + 4 + 4 * LOG_ENTRY * count
             e.write(entry, struct.pack('<%dI' % LOG_ENTRY, kk, n, this, *(args + [0] * 7)[:7], tail_hash(args), 0))
             e.write(LOG, struct.pack('<I', count + 1))
+        else:
+            _fold(e, (kk, n, this, *(args + [0] * 7)[:7], tail_hash(args)))
         flag, value = struct.unpack('<2I', e.read(LOG + LOG_RETURNS + 8 * k, 8))
         e.r['EAX'] = named_answer if by_name else copied if returns_copied else cursor if seeked else answer(flag, value, raw, n, vhash(kk, n, this, args), earlier, e.read)
         if flag == 6 and not by_name and not returns_copied and not seeked:   # (fail_after(counted=True): the countdown in the override)
@@ -905,6 +923,8 @@ def _cdecl_log(e):  # (driver.cpp stub_cdecl_log)
         entry = LOG + 4 + 4 * LOG_ENTRY * count
         e.write(entry, struct.pack('<%dI' % LOG_ENTRY, 0x13f, 1, 0, arg, *([0] * 8)))
         e.write(LOG, struct.pack('<I', count + 1))
+    else:
+        _fold(e, (0x13f, 1, 0, arg, *([0] * 7)))
     e.r['EAX'] = e.u32(LOG + LOG_RETURNS + 8 * 0x3f + 4) if e.u32(LOG + LOG_RETURNS + 8 * 0x3f) else vhash(0x13f, 1, 0, [arg])
     if e.tail:
         ret = e.u32(e.r['ESP'])
@@ -921,6 +941,8 @@ def _cdecl_log2(e):  # (driver.cpp stub_cdecl_log2)
     if count < LOG_ENTRIES:
         e.write(LOG + 4 + 4 * LOG_ENTRY * count, struct.pack('<%dI' % LOG_ENTRY, 0x13e, 2, 0, *args, *([0] * 7)))
         e.write(LOG, struct.pack('<I', count + 1))
+    else:
+        _fold(e, (0x13e, 2, 0, *args, *([0] * 6)))
     e.r['EAX'] = e.u32(LOG + LOG_RETURNS + 8 * 0x3e + 4) if e.u32(LOG + LOG_RETURNS + 8 * 0x3e) else vhash(0x13e, 2, 0, args)
 
 
@@ -986,6 +1008,8 @@ def _cdecl_log4(e):  # (driver.cpp stub_cdecl_log4)
     if count < LOG_ENTRIES:
         e.write(LOG + 4 + 4 * LOG_ENTRY * count, struct.pack('<%dI' % LOG_ENTRY, 0x13d, len(raw), 0, *args, *([0] * (9 - len(raw)))))
         e.write(LOG, struct.pack('<I', count + 1))
+    else:
+        _fold(e, (0x13d, len(raw), 0, *args, *([0] * (7 - len(raw))), tail_hash(args)))
     flag, value = struct.unpack('<2I', e.read(LOG + LOG_RETURNS + 8 * 0x3d, 8))
     e.r['EAX'] = raw[value] if flag == 2 and value < 4 else value if flag else vhash(0x13d, len(raw), 0, args)
 

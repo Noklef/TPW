@@ -14,7 +14,9 @@
 #include "../world/cellmessage.h"
 #include "../world/mousemode.h"
 #include "../world/staff.h"
+#include "../world/thingscan.h"
 #include "cursor.h"
+#include "dialog7ca098.h"
 #include "dialogs.h"
 #include "focus.h"
 #include "panel7cc3b0.h"
@@ -213,5 +215,81 @@ void __cdecl ThingBrowser_SendPatrolLines() {
 
 void __cdecl ThingBrowser_OpenShown() {
     ThingBrowser_Open(global<u32>(0x007cc3c0) ? global<u8 *>(0x007c2658) : nullptr);
+}
+}
+
+// The thing browser's handler (0x4b3790).
+namespace {
+
+const ThingBrowserHandlerEnv kGameHandlerEnv = {ThingBrowser_SendPatrolLines, ThingBrowser_ShowDetail, ThingBrowser_Step, ThingBrowser_ShowName, Window_SetShown, Window_Unlink, Window_AddChild, Game_CancelAdvisor, Window_CallDefault};
+const ThingBrowserHandlerEnv *g_handler = &kGameHandlerEnv;
+
+u32 &word(u32 address) { return *reinterpret_cast<u32 *>((uintptr_t)address); }
+u8 *panel() { return *reinterpret_cast<u8 **>((uintptr_t)0x007cc304); }
+
+void panelAway() {
+    g_handler->setShown(panel(), nullptr, 0);
+    g_handler->unlink(panel());
+}
+
+void panelAdded() {
+    g_handler->addChild(*reinterpret_cast<u8 **>((uintptr_t)0x007cb2b8), nullptr, panel(), 1, 1);
+    g_handler->setShown(panel(), nullptr, 1);
+}
+
+void nameShown() {
+    g_handler->showName();
+    word(0x00790ab0) |= 0x1000;
+}
+
+void modeButton(u32 mode) {
+    if (word(0x007cc30c) == 0) {
+        word(0x007cc30c) = mode;
+        g_handler->step();
+        if (!word(0x007cc308)) return;
+        panelAdded();
+        nameShown();
+        return;
+    }
+    const u32 was = word(0x007cc308);
+    if (word(0x007cc30c) != mode) word(0x007cc308) = 0;
+    word(0x007cc30c) = mode;
+    g_handler->step();
+    if (!word(0x007cc308)) {
+        panelAway();
+        word(0x00790ab0) &= ~0x1000u;
+        return;
+    }
+    if (!was) panelAdded();
+    nameShown();
+}
+}  // namespace
+
+void ThingBrowser_SetHandlerEnv(const ThingBrowserHandlerEnv *env) { g_handler = env ? env : &kGameHandlerEnv; }
+
+extern "C" {
+
+s32 __cdecl ThingBrowser_Handler(u8 *window, u32 message, u32 a, u32 b) {
+    static const u8 kModes[7] = {1, 2, 5, 4, 3, 0, 6};
+    switch (message) {
+    case 0x14: word(0x007cc2fc) = 0; break;
+    case 0x1e:
+        g_handler->sendPatrol();
+        g_handler->showDetail();
+        break;
+    case 0x101:
+        if (word(0x007cc2f0) && a - 0x95e <= 6 && b == 1 && kModes[a - 0x95e]) modeButton(kModes[a - 0x95e]);
+        break;
+    case 0x1001d8:
+        word(0x007cc308) = 0;
+        panelAway();
+        word(0x007cc2f0) = 0;
+        word(0x00790ab0) &= ~0x1000u;
+        g_handler->cancelAdvisor(0x11f);
+        g_handler->cancelAdvisor(0xc6);
+        break;
+    default: break;
+    }
+    return g_handler->callDefault(window, nullptr, message, a, b);
 }
 }

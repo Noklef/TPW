@@ -2,8 +2,12 @@
 
 #include <cstdint>
 
+#include "../core/gameheap.h"
+#include "../core/language.h"
 #include "../core/soundplay.h"
+#include "../render/textparts.h"
 #include "../world/advisor.h"
+#include "../world/ridesweep.h"
 #include "dialogs.h"
 #include "guirect.h"
 #include "panelparts.h"
@@ -13,8 +17,28 @@
 using namespace panelparts;
 
 namespace {
+
+const Panel7cc408Env kGameEnv = {&Things_CountGroup, &TextPart_Ctor, &Window_SetImpl, &Window_NotifyC00, &Window_Notify3000, &Window_Set4c, &Window_Notify40000, &Window_NotifyImpl100};
+const Panel7cc408Env *g_env = &kGameEnv;
 u8 *window(u8 *self) { return *reinterpret_cast<u8 **>(self + 0x14); }
 }  // namespace
+
+void Panel7cc408_SetEnv(const Panel7cc408Env *env) { g_env = env ? env : &kGameEnv; }
+
+extern "C" {
+
+void __fastcall Panel7cc408_Refresh(u8 *self) {
+    g_env->countGroup(self, nullptr, *reinterpret_cast<const u32 *>((uintptr_t)0x007cc430));
+    u8 *const child = Window_FindChild(*reinterpret_cast<u8 **>(self + 0x10), nullptr, 0x3734);
+    u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
+    g_env->setImpl(child, nullptr, memory ? g_env->partText(memory, nullptr, 0) : nullptr);
+    g_env->notifyC00(child, nullptr, 1, 1);
+    g_env->notify3000(child, nullptr, 1, 1);
+    g_env->set4c(child, nullptr, Language_Font(6));
+    g_env->notify40000(child, nullptr, 0, 0, 0, 0xff);
+    g_env->notifyImpl100(child, nullptr, 0);
+}
+}
 
 extern "C" {
 

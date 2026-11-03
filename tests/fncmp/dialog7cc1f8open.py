@@ -2,7 +2,8 @@
 # Window7059f0_FindItemData 25 (its answer the case's) and Window7059f0_ScrollTo 26 recorders: their own benches have them. Open on an open window as dialog7ca308open.py's: its list 0x1f8 and group 0x1f9 among decoys
 # (windows of random bytes), each missing now and then. A new one: dialog7ca308open.py's new window at the script 0x754cf8 with the children 0x200, 0x1ea (0x1eb, 0x1ec), the list 0x1f8 (3 columns, its buttons, the group
 # 0x1f9; missing now and then), the label 0x1fe (nothing built when the script is empty); the money record's balance; advisor.py's PostId for 0xbc. The kinds 0-3, past them, -1 (the state 0-3 mostly); the selected word 0 or not.
-# Window7059f0_BuildRows 27 a recorder too (the rows' handler 0x4acb70 is unported: no row is made; the row functions logged by address).
+# Window7059f0_BuildRows 27 a recorder too (the rows' handler 0x4acb70 is unported: no row is made; the row functions logged by address). The dialog [0x7cb2b8] now and then (dialogs.py's child 0x21 and 0x25's 0x27), with the
+# script mostly empty then: the build's own Dialog7cb2b8_ResetChild21 not run. dialogbuild.long_open(): its calls run past the log's 40.
 # usage: dialog7cc1f8open.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -14,6 +15,7 @@ sys.path.insert(0, HERE)
 import advisor  # noqa: E402
 import dialog7ca150  # noqa: E402
 import dialog7ca308open as base  # noqa: E402
+import dialogs  # noqa: E402
 import dialogbuild  # noqa: E402
 import panelparts  # noqa: E402
 import scriptchain  # noqa: E402
@@ -22,11 +24,12 @@ from fncmp import HEAP, LOG, RAM, Bench, Call, _cdecl_log, _recorder, blob_bytes
 OP = 'Dialog7cc1f8_Open'
 dialog7ca150.TABS[OP] = (0x754cf8, 3, 0x755140, 0x7b)
 TEXTS = [0x77, 0x78, 0x79, 0x7a, 0x7b, 0x7c, 0x8a]
-B = Bench(dialog7ca150.merged(dialog7ca150.ALL_RANGES + dialog7ca150.OPEN_RANGES + [
-    (0x4acc70, 0x4ad204), (0x65d7bc, 0x65d840), (0x5195d0, 0x519610), (0x6ad810, 0x6ad820), (0x4a25f0, 0x4a2700)]),
+B = Bench(dialog7ca150.merged(dialog7ca150.ALL_RANGES + dialog7ca150.OPEN_RANGES + dialogs.RANGES + [
+    (0x668ad3, 0x668c99), (0x65f697, 0x65f6e1), (0x65e6d5, 0x65e73d), (0x6697e3, 0x6698b4), (0x4acc70, 0x4ad204), (0x65d7bc, 0x65d840), (0x5195d0, 0x519610), (0x6ad810, 0x6ad820), (0x4a25f0, 0x4a2700)]),
     hooks={**panelparts.animatormesh.HOOKS, 0x67a7d0: _cdecl_log, 0x4aaf70: _recorder(17, 2, cdecl=True), 0x6acd60: _recorder(18, 5, cdecl=True), 0x66a295: _recorder(19, 1), 0x485d20: _recorder(21, 3, cdecl=True),
            0x664d2a: _recorder(25, 1), 0x665739: _recorder(26, 1), 0x6639cb: _recorder(27, 2)})
 WIN, KIDS, SOURCE = RAM + 0x60000, RAM + 0x60200, RAM + 0x61000
+DIALOG, DIALOG_KIDS, DIALOG_BUTTONS = RAM + 0x62000, RAM + 0x62200, RAM + 0x63000
 
 
 def kinds(r, state):
@@ -80,9 +83,28 @@ def script(r):
     return w + [5] * 4
 
 
+def reset_dialog(r, regions):
+    """the dialog [0x7cb2b8] (dialogs.py's reset_case(), its child 0x21 of the kinds that send no message)"""
+    def kid(w, ident):
+        w[0x134] = r.choice([3, 4])
+        put(w, 0xa8, 'I', r.choice([0, 1]))
+        put(w, 0x98, 'II', 0, 0)
+        if ident == 0x25:
+            put(w, 0x5c, 'I', dialogs.chain(r, regions, DIALOG_BUTTONS, 0x27, [0x26, 0x28, 1], lambda b, i: put(b, 0x98, 'II', 0, 0)))
+    w = bytearray(r.bytes(0x120))
+    put(w, 0x5c, 'I', dialogs.chain(r, regions, DIALOG_KIDS, 0x25, [0x21], kid))
+    regions[DIALOG] = w
+    put(regions[0x7cb2ac], 0xc, 'I', DIALOG)
+
+
 def new_window(r):
     regions = dialog7ca150.list_dialog(r, OP, lambda r, regions: TEXTS)
-    w = script(r) if r.random() < 0.97 else [5] * 4
+    dialogbuild.long_open(regions[LOG])
+    regions[0x7cb28c] = r.bytes(4)   # (Global7cb28c_Select(1, ...)'s dword)
+    resets = r.random() < 0.2
+    if resets:
+        reset_dialog(r, regions)
+    w = script(r) if r.random() < (0.3 if resets else 0.97) else [5] * 4
     regions[0x754cf8] = struct.pack('<%dH' % len(w), *w)
     log = regions[LOG]
     regions[HEAP] = heap(0x28000, r.choice([0] * 40 + [r.randrange(1, 16)]))

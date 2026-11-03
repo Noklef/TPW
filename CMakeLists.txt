@@ -250,6 +250,9 @@ add_library(tpw_game STATIC
     src/game/gfx/moviesound.cpp
     src/game/gfx/guitext.cpp
     src/game/gfx/colourramps.cpp
+    src/game/gfx/overlayload.cpp
+    src/game/gfx/tqiframe.cpp
+    src/game/gfx/dctmacroblock.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp
     src/game/math/rect.cpp
@@ -358,6 +361,10 @@ add_library(tpw_game STATIC
     src/game/world/flyingupdate.cpp
     src/game/world/trakcarupdate.cpp
     src/game/world/trakridecars.cpp
+    src/game/world/guardescort.cpp
+    src/game/world/staffwork.cpp
+    src/game/world/staffctors.cpp
+    src/game/world/staffsteps.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp
@@ -557,6 +564,29 @@ add_library(tpw_game STATIC
     src/game/ui/panel7c2534.cpp
     src/game/ui/dialog7cdac4.cpp
     src/game/ui/dialog7ca168.cpp
+    src/game/ui/dialog7cb400.cpp
+    src/game/ui/dialog7ca098.cpp
+    src/game/ui/dialog7ca210.cpp
+    src/game/ui/dialog7cc2ec.cpp
+    src/game/ui/signrect.cpp
+    src/game/ui/menuactions.cpp
+    src/game/ui/dialog7ca150rows.cpp
+    src/game/ui/dialog7ca2e8.cpp
+    src/game/ui/dialog7cc944.cpp
+    src/game/ui/dialog7cca70.cpp
+    src/game/ui/dialog7cc188.cpp
+    src/game/ui/dialog7cc1f8preview.cpp
+    src/game/ui/thingsign.cpp
+    src/game/ui/dialogtabs.cpp
+    src/game/ui/dialogtabhandlers.cpp
+    src/game/ui/thinggoto.cpp
+    src/game/ui/dialuplist.cpp
+    src/game/ui/panel7cc408info.cpp
+    src/game/ui/dialog7cc4b4update.cpp
+    src/game/ui/dialog7cb2b8build.cpp
+    src/game/ui/dialog7cc530open.cpp
+    src/game/ui/viewbuttons.cpp
+    src/game/ui/thingpanelhandlers.cpp
 )
 # The libraries whose functions replace the exe's copies (src/game/lib); their headers stay private to those units.
 target_link_libraries(tpw_game PRIVATE tpw_zlib tpw_jpeg6b tpw_jpeg6a)

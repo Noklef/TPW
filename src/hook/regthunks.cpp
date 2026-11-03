@@ -2,6 +2,7 @@
 
 #include "../game/gfx/movieidct.h"
 #include "../game/gfx/tgqvideo.h"
+#include "../game/gfx/tqivideo.h"
 
 extern "C" {
 
@@ -84,6 +85,70 @@ __declspec(naked) void RegThunk_TgqVideo_DecodeCoefficients() {
     __asm {
         call TgqVideo_DecodeCoefficients
         mov edi, eax
+        ret
+    }
+}
+
+// ECX and EDX kept (pushed apart from the arguments, which the callee may change); the position back in EDI.
+__declspec(naked) void RegThunk_TqiVideo_PixelRowYuy2() {
+    __asm {
+        push ebp
+        push edi
+        push esi
+        call TqiVideo_PixelRowYuy2
+        add esp, 12
+        ret
+    }
+}
+
+__declspec(naked) void RegThunk_TqiVideo_PixelRowRgb16() {
+    __asm {
+        push ebp
+        push edi
+        push esi
+        call TqiVideo_PixelRowRgb16
+        add esp, 12
+        ret
+    }
+}
+
+__declspec(naked) void RegThunk_TqiVideo_PixelRowRgb32() {
+    __asm {
+        push ebp
+        push edi
+        push esi
+        call TqiVideo_PixelRowRgb32
+        add esp, 12
+        ret
+    }
+}
+
+__declspec(naked) void RegThunk_TqiVideo_PixelRowBytes32() {
+    __asm {
+        push ebp
+        push edi
+        push esi
+        call TqiVideo_PixelRowBytes32
+        add esp, 12
+        ret
+    }
+}
+
+__declspec(naked) void RegThunk_TqiVideo_DecodeBlock() {
+    __asm {
+        push ecx
+        push edx
+        push ecx
+        push edx
+        push edi
+        push ebp
+        push esi
+        push eax
+        call TqiVideo_DecodeBlock
+        add esp, 24
+        mov edi, eax
+        pop edx
+        pop ecx
         ret
     }
 }

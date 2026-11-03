@@ -88,4 +88,37 @@ s32 __cdecl MsgTags_WindowHandler(u8 *window, u32 message, u8 *tag, u32 b);
 // 1 the tags' window [0x7cb2c4] posted 0x100003 (Window_PostMessage(0, 0): each tag shown again, see above); every message then goes to
 // the default handler (Window_CallDefault), whose answer is returned.
 s32 __cdecl MsgTags_ButtonHandler(u8 *window, u32 message, u32 a, u32 b);
+
+// 0x48dae0 (cdecl (window, message, a, b); the handler a tag's window is given; name invented). 5 (a: move the others): dword 6 0x1b: Dialog7ca098_RunAction (0x1b, a word 0 over the stack, 0). Hidden (Window_SetShown 0), the particle dword 9 (not negative, alive) ended, the timers 0x80080 / 0x80081 stopped. The record's word +4 (the record -1 for a window without one, sic) 0: answer 0. Else
+// cleared, [0x7ca09c] one less, the height (Window_GetSize, inner; into the message's slot) + 10 taken off the top of [0x7cb2c4] (Window_AdjustRect), [0x7cb2c8] moved on from the window; with a each later tag down by that (Window_Offset) and, running none, the script 0x7502f0 at 20, and the child 0x2e of [0x7cb2c4] the script at 50; Window_Unlink, Dialog7cb2b8_ResetChild21 (0) when it is the shown tag [0x7ca090]; answer 1.
+// 6: no record or its word 0: answer 0. 0x10, a 0x80080 with the byte +0x134: slot 5 (0), the byte 0, [0x7cb2c4] posted 0x100002 (window, 0). a 0x80081, dword 9 -1: the effect 0x5b at the inner rectangle's centre (Window_GetRect, as Particle_SpawnAtWindow), dword 9 its handle, that timer stopped, hidden (Window_IsShown): ParticleSystem_Set2a (1).
+// 0x11: a set: the dword 10 0: Particle_SpawnAtWindow (0x5a), dword 10 = 1; the live particle's Set2a (0); a 0: Set2a (1). 0x13: the live particle's ParticleSystem_SetVectorA to the centre. 0x14: the window's record cleared. 0x10006, a 0: SoundUi_Play (0xc0); the shown tag: ResetChild21 (0); else MsgTag_Open.
+// a 1, not the tag [0x7ca094]: slot 5 (0), the byte 0, ResetChild21 (0) when shown, the parent (Fn_65d55a) posted 0x100002. Every other way the message goes to Window_CallDefault, whose answer is returned.
+s32 __cdecl MsgTag_Handler(u8 *window, u32 message, u32 a, u32 b);
 }
+
+// MsgTag_Handler's calls (the ports by default; the bench's recorders: their own benches have them).
+struct MsgTagHandlerEnv {
+    u32(__cdecl *runAction)(u32 kind, u32 a, u32 b);                         // Dialog7ca098_RunAction
+    u32(__fastcall *setShown)(u8 *window, void *, u32 shown);                // Window_SetShown
+    u32(__cdecl *isAlive)(u32 handle);                                       // Particle_IsAlive
+    void(__cdecl *end)(u32 handle);                                          // ParticleSystem_End
+    u32(__fastcall *stopTimer)(u8 *window, void *, u32 id);                  // Window_StopTimer
+    u32(__fastcall *getSize)(u8 *window, void *, s16 *width, s16 *height, u32 inner);   // Window_GetSize
+    void(__fastcall *adjustRect)(u8 *window, void *, u32 dl, u32 dt, u32 dr, u32 db);   // Window_AdjustRect
+    u32(__fastcall *offset)(u8 *window, void *, u32 dx, u32 dy);             // Window_Offset
+    u16(__fastcall *runScript)(u8 *window, void *, u8 *script, s32 interval);   // Window_RunScript
+    u16(__fastcall *unlink)(u8 *window);                                     // Window_Unlink
+    void(__cdecl *resetChild)(u32 clear27);                                  // Dialog7cb2b8_ResetChild21
+    u32(__cdecl *post)(u8 *window, u32 message, u32 a, u32 b);               // Window_PostMessage
+    s32(__cdecl *spawn)(s32 effect, s32 x, s32 y, s32 z);                    // Particle_Spawn
+    u32(__fastcall *setDword)(u8 *window, void *, u32 index, u32 value);     // Window_SetDwordA0
+    u16(__fastcall *isShown)(u8 *window);                                    // Window_IsShown
+    void(__cdecl *set2a)(u32 handle, u32 value);                             // ParticleSystem_Set2a
+    void(__cdecl *setVector)(u32 handle, s32 x, s32 y, s32 z);               // ParticleSystem_SetVectorA
+    void(__cdecl *spawnAtWindow)(s32 effect, u8 *window);                    // Particle_SpawnAtWindow
+    u32(__cdecl *sound)(u32 sound);                                          // SoundUi_Play
+    void(__cdecl *open)(u8 *tag);                                            // MsgTag_Open
+    s32(__fastcall *callDefault)(u8 *window, void *, u32 message, u32 a, u32 b);   // Window_CallDefault
+};
+void MsgTag_SetHandlerEnv(const MsgTagHandlerEnv *env);

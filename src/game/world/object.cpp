@@ -983,3 +983,5 @@ void __fastcall Object_Wear(u8 *object, void *, u32 amount) {
     }
 }
 }
+
+extern "C" u32 __fastcall Object_Field48AsInt(const u8 *object) { return (u32)(long long)at<float>(object, 0x48); }   // __ftol, the low half

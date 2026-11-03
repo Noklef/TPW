@@ -11,7 +11,26 @@ struct ThingPatrolEnv {
 };
 void ThingBrowser_SetPatrolEnv(const ThingPatrolEnv *env);
 
+// ThingBrowser_Handler's calls (the ports by default; the bench's recorders: their own benches have them).
+struct ThingBrowserHandlerEnv {
+    void(__cdecl *sendPatrol)();                                             // ThingBrowser_SendPatrolLines
+    void(__cdecl *showDetail)();                                             // ThingBrowser_ShowDetail
+    void(__cdecl *step)();                                                   // ThingBrowser_Step
+    void(__cdecl *showName)();                                               // ThingBrowser_ShowName
+    u32(__fastcall *setShown)(u8 *window, void *, u32 shown);                // Window_SetShown
+    u16(__fastcall *unlink)(u8 *window);                                     // Window_Unlink
+    u32(__fastcall *addChild)(u8 *window, void *, u8 *child, u32 depth, u32 words);   // Window_AddChild
+    void(__cdecl *cancelAdvisor)(u32 id);                                    // Game_CancelAdvisor
+    s32(__fastcall *callDefault)(u8 *window, void *, u32 message, u32 a, u32 b);   // Window_CallDefault
+};
+void ThingBrowser_SetHandlerEnv(const ThingBrowserHandlerEnv *env);
+
 extern "C" {
+
+// 0x4b3790 (cdecl (window, message, a, b); name invented): 0x14: [0x7cc2fc] = 0. 0x1e: ThingBrowser_SendPatrolLines, _ShowDetail. 0x1001d8: [0x7cc308] = 0, [0x7cc304] hidden and unlinked, [0x7cc2f0] = 0, flag 0x1000 of [0x790ab0] cleared, the advisor's 0x11f and 0xc6 cancelled.
+// 0x101, with [0x7cc2f0] and b 1, a 0x95e to 0x964 but 0x963 (the modes 1, 2, 5, 4, 3, 6): [0x7cc30c] 0: the mode set, ThingBrowser_Step, and when that leaves [0x7cc308] set the panel added and the name shown; otherwise [0x7cc308] cleared for another mode, the mode set, the step: left clear: the panel hidden and unlinked, the flag cleared; set: added when it was not before, the name shown, the flag set.
+// Every message then goes to Window_CallDefault, whose answer is returned.
+s32 __cdecl ThingBrowser_Handler(u8 *window, u32 message, u32 a, u32 b);
 
 // 0x4b3640 (cdecl; name invented): with a thing shown [0x7cc308] and the flag 0x1000 of [0x790ab0], the camera on it (Camera_CentreOnSprite); when it (the global read again) is staff (kinds 4-8)
 // with a patrol region (Staff_HasPatrolRegion, Staff_GetPatrolRegion: cells, column the low 7 bits of the cell - 1, row the rest): the region's four sides sent to the map as lines of message

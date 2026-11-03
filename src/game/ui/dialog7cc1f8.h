@@ -49,6 +49,10 @@ void __cdecl Dialog7cc1f8_FillList(u32 kind, u32 clear);
 // child 0x1fe labelled with the text 0x77 + kind. Always then the default handler, its result.
 u32 __cdecl Dialog7cc1f8_TabHandler(u8 *window, u32 message, u32 a, u32 b);
 
+// 0x4acb70 (cdecl (window, message, a, b); name invented): a list row's handler. Message 0x403 colours the row for the item b (Window_Notify40000) before the default handler: a word below 0 (e7 ef 4b ff); an object
+// with a price +0xc4 and no key (GlobalSave_HasKey): ff, e0 or 0 by ObjectDef_IsUnlocked, 0, ff; else by its cost +4 against the balance: above it ff 0 0 ff, else white.
+s32 __cdecl Dialog7cc1f8_RowHandler(u8 *window, u32 message, u32 a, u32 b);
+
 // 0x4acc70 (cdecl (kind, selected: its low word); name invented): Global7cb28c_Select (1, 1), the kind -1 taken from [0x7cc1fc]. An open dialog [0x7cc1f8]: its list refilled (clear 1), then, with the child 0x1f8
 // (none: nothing more), the kind's button in its group 0x1f9 (kinds 0-3: 0x1fb, 0x1fd, 0x1fa, 0x1fc) and a non-zero selected data found scrolled to. A new one: Dialog7cb2b8_ResetChild21 (1), Window7c24c8_Close, [0x7cc1f0], the
 // words [0x7cc1e4], [0x7cc1e8], [0x7cc1e0] 0, built from the script 0x754cf8 (handler 0x4ac270 by address; none: only Advisor_PostId) as [0x7c24c8]; the money line 0x200 (a number argument 13 by its size, the texts 0x1ca / 0x1cb) on

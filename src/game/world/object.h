@@ -126,6 +126,9 @@ u32 __fastcall Object_ScrapValue(const u8 *object);
 // 0x4dd670: the object's age in whole days, from its date at +0x18 (FunnyTime_DaysSince).
 s32 __fastcall Object_AgeDays(const u8 *object);
 
+// 0x4dd6d0 (thiscall; name invented, unconfirmed): the float at +0x48 through __ftol, the low half.
+u32 __fastcall Object_Field48AsInt(const u8 *object);
+
 // 0x4e2400: the scrap value (Object_ScrapValue, a percentage) of the definition's dword +0x1b8 (the first level's cost): their product
 // (32-bit, wrapping) / 100, unsigned.
 u32 __fastcall Object_ScrapRefund(const u8 *object);

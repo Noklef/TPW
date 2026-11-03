@@ -1,5 +1,7 @@
 #include "staff.h"
 
+#include "guardescort.h"
+
 #include <cstdint>
 
 #include "../core/accessors.h"
@@ -20,6 +22,7 @@
 #include "analyser.h"
 #include "analysercell.h"
 #include "mapcell.h"
+#include "things.h"
 #include "messagecentre.h"
 #include "money.h"
 #include "mousemode.h"
@@ -166,6 +169,28 @@ void __fastcall Staff_GetPatrolRegion(const u8 *staff, void *, u16 *bl, u16 *tr)
 void __fastcall Staff_ClearPatrolRegion(u8 *staff) {
     at<u16>(staff, 0x20a) = 1;
     at<u16>(staff, 0x20c) = 0x4000;
+}
+
+void __stdcall Staff_MarkPatrolCells(u32 kind) {
+    u8 *const world = *reinterpret_cast<u8 **>((uintptr_t)0x0080239c);
+    u8 *const cells = world + 0x2d8;
+    const auto flag = [cells](u32 handle) -> u32 & { return at<u32>(cells, (handle & 0xffff) * 0x44 - 8); };
+    for (u32 x = 0x80; x-- > 0;)
+        for (u32 z = 0x80; z-- > 0;) flag((z << 7) + x + 1) = 0;
+    u16 handle;
+    World_FirstThing(world, nullptr, &handle);
+    while (handle) {
+        const u8 *const thing = *reinterpret_cast<const u8 **>((uintptr_t)(0x007cfb90 + handle * 20u));
+        const u8 thingKind = at<u8>(thing, 2);
+        if (thingKind >= 4 && thingKind <= 8 && thingKind == kind && Staff_HasPatrolRegion(thing)) {
+            u16 bottomLeft, topRight;
+            Staff_GetPatrolRegion(thing, nullptr, &bottomLeft, &topRight);
+            const u32 first = (u32)bottomLeft - 1, last = (u32)topRight - 1;
+            for (u32 x = first & 0x7f; x <= (last & 0x7f); ++x)
+                for (u32 z = first >> 7; (s32)z <= (s32)(last >> 7); ++z) flag((z << 7) + x + 1) = 1;
+        }
+        handle = *World_NextThing(world, nullptr, &handle, thing);
+    }
 }
 
 u32 __fastcall Staff_HasPatrolRegion(const u8 *staff) {
@@ -945,10 +970,7 @@ void __fastcall Staff_HandleMessage(u8 *staff, void *, u8 *message) {
 namespace {
 s32 __fastcall game_sumA(u8 *record, void *, u32 n) { return (s32)ParkAnalyser_CountWith2c(record, nullptr, n); }
 s32 __fastcall game_sumB(u8 *record, void *, u32 n) { return (s32)ParkAnalyser_CountType1Or3Or9(record, nullptr, n); }
-void __fastcall game_sendGuard(u8 *guard, void *, u32 handle) {
-    reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)0x004d6260)(guard, nullptr, handle);
-}
-const StaffAdviceEnv kGameAdviceEnv = {&game_sumA, &game_sumB, &game_sendGuard};
+const StaffAdviceEnv kGameAdviceEnv = {&game_sumA, &game_sumB, &Guard_Send};
 const StaffAdviceEnv *g_advice = &kGameAdviceEnv;
 const u32 kKindHeads[5] = {0x1da73c, 0x1da73e, 0x1da740, 0x1da744, 0x1da742};
 

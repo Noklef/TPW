@@ -36,7 +36,7 @@ import listrows  # noqa: E402
 import window  # noqa: E402
 import windowfactory  # noqa: E402
 import windowscript  # noqa: E402
-from fncmp import HEAP, LOG, RAM, Bench, Call, heap, put, recorder, set_return, vtable  # noqa: E402
+from fncmp import HEAP, LOG, RAM, Bench, Call, blob_when_inner, heap, log_fold, put, recorder, set_return, vtable  # noqa: E402
 
 CALLS = {'List7cc94c_InitRow': 0x4c03e0, 'List7cca90_InitRow': 0x4c1c30, 'List7cc200_InitRow': 0x4ad340, 'List7cb264_InitRow': 0x4a03d0,
          'Dialog7cc4c4_Create': 0x4b9a70, 'HelpBg_Build': 0x492180, 'WindowAt10_Create': 0x48cea0}
@@ -95,6 +95,14 @@ def chain(r, op, kids, name=None, font=None):
     if font:
         regions[font] = struct.pack('<I', r.choice([7] * 4 + list(range(13))))
     return regions
+
+
+def long_open(log):
+    """for an open that makes more than the log's 40 calls: the calls past them hashed, and slot 3's events the values they carry (Window_NotifyC00's bytes +4 / +5, Window_Notify40000's +0x10-+0x13, Window_NotifyImpl100's text +0)"""
+    log_fold(log)
+    blob_when_inner(log, 3, 0, 0xc00, (0x10, 0x30), 0)
+    blob_when_inner(log, 3, 0, 0x40000, (0x10, 0xf, 0x10), 1)
+    blob_when_inner(log, 3, 0, 0x100, (0x10, 0xf), 2)
 
 
 def small_rect(r, w, size=40):

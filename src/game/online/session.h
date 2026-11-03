@@ -9,6 +9,12 @@
 
 #include "../../../re/types.h"
 
+// Online_Instance's call: 0x5b50b0, unported (agent B's), by address; the bench's recorder.
+struct OnlineInstanceEnv {
+    u8 *(__fastcall *ctor)(u8 *memory);
+};
+void Online_SetInstanceEnv(const OnlineInstanceEnv *env);
+
 extern "C" {
 
 // 0x5b6450: +0x60, set while logged in.
@@ -74,6 +80,9 @@ void __fastcall Online_ResetCity(u8 *session);
 // Online_ResetCity does. 1: "Connected" said, +0xd8 = Time_GetMs, City::SetSessionInfo (0x6fd53c) with the language's id (0x78b530) and
 // +0x34, +0x38, +0x28; +0xdc = 1. Returns +0xd4. (The City::City call's unwind, freeing the block, is not kept.)
 u8 *__fastcall Online_OpenCity(u8 *session);
+
+// 0x48b390 (cdecl; name invented): the session [0xf7d88c], made the first time (0x404 bytes, constructed by OnlineInstanceEnv's ctor; memory refused: none, asked again next time).
+u8 *__cdecl Online_Instance();
 
 // 0x5b7960 (thiscall; park; pops 4; name unconfirmed): with the city's connection open (Online_OpenCity), City::UnpublishPark (0x6fd4fc)
 // with 0, the park and +0x34; returns its answer, else 0.
