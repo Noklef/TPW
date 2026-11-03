@@ -72,6 +72,12 @@ void __fastcall SoundChannel_FreeEax(u8 *channel) {
     at<u8 *>(channel, 0x20) = nullptr;
 }
 
+u8 *__fastcall SoundChannel_DeletingDtor(u8 *channel, void *, u32 flags) {
+    SoundChannel_Dtor(channel);
+    if (flags & 1) GameHeap_Free(channel);
+    return channel;
+}
+
 void __fastcall SoundChannel_Dtor(u8 *channel) {
     at<u32>(channel, 0) = 0x0070a5d8;
     String_Dtor(reinterpret_cast<String *>(channel + 0x30));

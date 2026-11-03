@@ -17,6 +17,8 @@ u8 *__fastcall SoundChannel_Ctor(u8 *channel);
 // 0x6b9c00 (thiscall; an SEH frame; name invented): the destructor: the vtable 0x70a5d8, the string +0x30 destroyed (String_Dtor), the
 // base's destructor (SoundSample70a548_Dtor).
 void __fastcall SoundChannel_Dtor(u8 *channel);
+// 0x6b9be0 (thiscall (flags), pops 4; name invented): SoundChannel_Dtor, then the block freed when the flags' bit 0 is set. Returns it.
+u8 *__fastcall SoundChannel_DeletingDtor(u8 *channel, void *, u32 flags);
 // 0x6b76d0 (thiscall; the base 0x70a548's destructor's; name invented): the source's (+0x18) slot 13 (a local out: the channel's own
 // pushed copy, sic) unless null; with a voice pool (+0x14), each voice released (ChannelVoices_ReleaseEach) and the pool destroyed
 // (ChannelVoices_Dtor) and freed, +0x14 = 0; the EAX buffer and the synthesiser freed (SoundChannel_FreeEax / FreeSynth); with a

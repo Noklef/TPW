@@ -154,6 +154,14 @@ void __fastcall SampleCopier_MmxCopy(void *, void *, u8 *dest, const u8 *source,
     __movsb(dest, source, count & 31);
 }
 
+u8 *__fastcall SoundSample70a548_DeletingDtor(u8 *self, void *, u32 flags) {
+    SoundSample70a548_Dtor(self);
+    if (flags & 1) GameHeap_Free(self);
+    return self;
+}
+
+void SampleCopier_Free() { GameHeap_Free(*reinterpret_cast<void **>(static_cast<uintptr_t>(0x00fb2018))); }
+
 void __fastcall SoundSample70a548_Dtor(u8 *self) {
     *reinterpret_cast<u32 *>(self) = 0x0070a548;
     SoundChannel_ReleaseAll(self);
