@@ -3077,6 +3077,7 @@ address,name,kind,confidence,notes
 0x006d4ec0,SubStream_Rewind,function,low,reimplemented (src/game/files/substream); thiscall: the position 0 and the stream sought to the start; returns its answer
 0x00412bc0,FontFiles_Destroy,function,low,"reimplemented (src/game/files/fontfiles); atexit destructor of the added font files' vector at 0x789c1c: each 0x14-byte String told slot 0xc with 0, the block freed, begin/end/capacity cleared"
 0x006c7960,SubStream_Dtor,function,low,"reimplemented (src/game/files/substream); the window's destructor (its semaphore, then its stream)"
+0x006c7940,SubStream_DeletingDtor,function,low,"reimplemented (src/game/files/substream); SubStream_Dtor, then the block freed by the flags' bit 0"
 0x006ad130,ResFolder_Ctor,function,low,"reimplemented (src/game/files/resindex); The resource folder's constructor: the folder handle constructed, the index and open flag cleared"
 0x006ad160,ResFolder_Dtor,function,low,"reimplemented (src/game/files/resindex); The resource folder's destructor: closed, the folder handle destroyed"
 0x006ad1b0,ResFolder_Open,function,low,reimplemented (src/game/files/resindex); The resource folder opened on a path as a folder handle once (Handle_Open28)

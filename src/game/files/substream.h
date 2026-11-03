@@ -24,5 +24,7 @@ u32 __fastcall SubStream_Seek(u8 *self, void *, u32 offset);
 u32 __fastcall SubStream_Rewind(u8 *self);
 // 0x6c7960 (thiscall; an SEH frame): the destructor: vtable 0x70ad50, Semaphore_Dtor (+0x14), StreamBase_Dtor (+0xc).
 void __fastcall SubStream_Dtor(u8 *self);
+// 0x6c7940 (thiscall (flags), pops 4; name invented): SubStream_Dtor, then the block freed when the flags' bit 0 is set. Returns it.
+u8 *__fastcall SubStream_DeletingDtor(u8 *self, void *, u32 flags);
 
 }  // extern "C"
