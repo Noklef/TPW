@@ -74,7 +74,7 @@ def case(r):
     regions = {LOG: log, IMPORT_TABLE: table, SRC: source, OUT: r.bytes(4), DS: struct.pack('<I', DS_VT), LIS: struct.pack('<I', LIS_VT), EXTRA: struct.pack('<I', EXTRA_VT), INNER: struct.pack('<I', INNER_VT), OBJ: struct.pack('<I', OBJ_VT) + r.bytes(0xc),
                DS_VT: com_table(24, {0: (QI, 3), 2: (RELEASE, 1), 11: (CAPS, 2), 13: (S13, 1), 15: (S15, 4), 16: (S16, 2), 17: (S17, 3), 19: (S19, 3), 23: (S23, 2)}),
                LIS_VT: com_table(4, {2: (RELEASE, 1), 3: (LS3, 4)}), EXTRA_VT: com_table(37, {2: (RELEASE, 1), 3: (X3, 2), 10: (X10, 2), 12: (X12, 2), 35: (S35, 2), 36: (S36, 2)}), INNER_VT: com_table(15, {2: (RELEASE, 1), 12: (I12, 3), 14: (I14, 3)}),
-               OBJ_VT: vtable({}, size=64, com=COM), SLOTS: slots(r), VEC: struct.pack('<4I', *[odd_float(r) for _ in range(4)]), EVENTS: struct.pack('<24I', *[r.getrandbits(32) for _ in range(24)]), FLAG: flag, LIST: lst, HEAP: heap(0x4000, fail=r.choice([0, 0, 0, 0, 1])), 0xfb1f04: struct.pack('<I', 0)}
+               OBJ_VT: vtable({}, size=64, com=COM), SLOTS: slots(r), VEC: struct.pack('<4I', *[odd_float(r) for _ in range(4)]), EVENTS: struct.pack('<24I', *[r.getrandbits(32) for _ in range(24)]), FLAG: flag, LIST: lst, HEAP: heap(0x4000, fail=r.choice([0, 0, 0, 0, 1])), 0xfb1f04: struct.pack('<I', r.choice([0, HEAP + 0x300, HEAP + 0x300]))}
     index = r.randrange(8)
     value = r.getrandbits(32)
     if name == 'open':
@@ -132,7 +132,7 @@ def open_case(r, log, regions, source):
     set_return(log, CAPS, r.choice([0, 0, 1]))
     set_return(log, BEGIN, r.getrandbits(32))
     set_return(log, WINDOW, r.getrandbits(32))
-    set_return(log, PRIORITY, r.choice([1, 1, 1, 0, 0x80000000]))
+    set_return(log, PRIORITY, r.choice([1, 0, 0x80000000, 0x80000000]))
     info = bytearray(r.bytes(0x70))
     struct.pack_into('<2I', info, 0x40, r.randrange(1, 9), r.randrange(1, 9))
     struct.pack_into('<I', info, 0x4c, r.getrandbits(32))
