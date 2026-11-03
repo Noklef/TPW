@@ -5649,6 +5649,7 @@ address,name,kind,confidence,notes
 0x004d5d40,Guard_Ctor,function,low,"reimplemented (src/game/world/staffctors); thiscall (cell, type, sprite, name), pops 0x10; name invented, unconfirmed: Staff_CtorTyped of kind 7, the name, Guard_Init"
 0x004d5de0,Guard_Init,function,low,"reimplemented (src/game/world/staffctors); thiscall; name invented, unconfirmed: the world's list, a random sprite, the script, the spread record 3 at his cell, the message centre's slot 0x1b, the first state unless 0x506a40 answers"
 0x004cd500,PatrolCoverage_Percent,function,low,"reimplemented (src/game/world/patrolcoverage); the percent of a class of map cells that a kind of staff patrols: name invented, unconfirmed"
+0x004df670,Object_WearTick,function,low,"reimplemented (src/game/world/objectwear); a ride or shop wearing down on every 0x40th tick: name invented, unconfirmed"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved

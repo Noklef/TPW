@@ -247,6 +247,30 @@ void __fastcall Challenges_DeclineOffer(u8 *challenges) {
     scheduleIn(challenges, global<s32>(0x007857c4));  // gBalanceLevel.mDaysAfterDeclinedChallenge
 }
 
+void __fastcall Challenges_Won(u8 *challenges) {
+    at<u8>(challenges, 0x3d9) = 0;
+    scheduleIn(challenges, global<s32>(0x007857c0));
+    const u8 *const current = Challenges_Current(challenges);
+    if (!current) return;
+    if (at<u32>(current, 0x18)) {
+        at<u16>(challenges, 0x3e0) = at<u16>(current, 0x2e);
+        if (Challenges_OfferFollowup(challenges)) at<u16>(Challenges_Current(challenges), 0x2e) = at<u16>(challenges, 0x3e0);
+    } else {
+        at<u16>(challenges, 0x3e0) = 0;
+        u8 *const money = reinterpret_cast<u8 *>(GameTable7cfb90_Get1da726_5195d0(global<u8 *>(0x0080239c)));
+        Money_Credit(money, nullptr, at<s32>(current, 0x14));
+    }
+    Challenge_Finish(Challenges_Current(challenges));
+}
+
+void __fastcall Challenges_Lost(u8 *challenges) {
+    at<u8>(challenges, 0x3d9) = 0;
+    scheduleIn(challenges, global<s32>(0x007857c0));
+    u8 *const current = Challenges_Current(challenges);
+    if (current) Challenge_Attempt(current, nullptr, at<u32>(challenges, 0x3dc));
+    at<u16>(challenges, 0x3e0) = 0;
+}
+
 const u8 *__fastcall BalanceChallenges_GetSchema(const u8 *, void *, u32 index) {
     return reinterpret_cast<const u8 *>(0x00739b98) + index * 0x3c;
 }

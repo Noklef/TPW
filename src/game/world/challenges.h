@@ -62,6 +62,13 @@ void __fastcall Challenges_AcceptOffer(u8 *challenges);
 // days of gBalanceLevel.mDaysAfterDeclinedChallenge (0x7857c4).
 void __fastcall Challenges_DeclineOffer(u8 *challenges);
 
+// 0x4d2fb0 (thiscall; name invented, unconfirmed): the current challenge won: the challenge off (+0x3d9), the next event gBalanceLevel's 0x7857c0 days away. With a current one (Challenges_Current; none: done): with a follow-up (+0x18), mActualThing (+0x3e0, a word) = its word +0x2e and, when one is offered (Challenges_OfferFollowup),
+// that new current's +0x2e = mActualThing (a fault with none); without, mActualThing 0 and its prize (+0x14) credited (Money_Credit). Then Challenge_Finish on the current (a fault with none).
+void __fastcall Challenges_Won(u8 *challenges);
+
+// 0x4d3140 (thiscall; name invented, unconfirmed): the current challenge lost: the challenge off, the next event as won. With a current one, Challenge_Attempt on it with the thing +0x3dc. mActualThing 0.
+void __fastcall Challenges_Lost(u8 *challenges);
+
 // 0x4d1e60 (the vtable's first slot; index): the schema of a field, 0x739b98 + index * 0x3c;
 // this is unused.
 const u8 *__fastcall BalanceChallenges_GetSchema(const u8 *file, void *, u32 index);

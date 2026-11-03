@@ -61,6 +61,8 @@
 #include "../../src/game/ui/window7cb2a4.h"
 #include "../../src/game/ui/dialog7cc984.h"
 #include "../../src/game/world/rideupkeep.h"
+#include "../../src/game/world/objectwear.h"
+#include "../../src/game/world/celleffect.h"
 #include "../../src/game/ui/dialog7cb2b8build.h"
 #include "../../src/game/ui/dialog7cc4b4update.h"
 #include "../../src/game/ui/panel7cc408info.h"
@@ -728,6 +730,8 @@ const SignNameDialogHandlerEnv kSignNameDialogHandlerEnv = {Rec{jpeg_recorder(20
                                                             Rec{recorder(29, 1)}, Rec{recorder(30, 0)}, Rec{jpeg_recorder(31, 1)}, Rec{recorder(10, 1)}, Rec{jpeg_recorder(11, 1)}, Rec{jpeg_recorder(12, 4)}, Rec{jpeg_recorder(13, 4)}, Rec{recorder(14, 1)}};
 const Window7cb2a4Env kWindow7cb2a4Env = {Rec{recorder(10, 0)}, Rec{jpeg_recorder(11, 1)}, Rec{jpeg_recorder(12, 0)}, Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{recorder(15, 1)}, Rec{jpeg_recorder(16, 3)}};
 const Dialog7cc984Env kDialog7cc984Env = {Rec{jpeg_recorder(20, 4)}, Rec{recorder(21, 0)}, Rec{jpeg_recorder(22, 0)}, Rec{recorder(23, 1)}, Rec{recorder(24, 3)}, Rec{recorder(25, 1)}, Rec{jpeg_recorder(26, 0)}};
+const ObjectWearEnv kObjectWearEnv = {Rec{recorder(10, 1)}, Rec{recorder(11, 0)}, Rec{jpeg_recorder(12, 1)}, Rec{jpeg_recorder(13, 1)}, Rec{jpeg_recorder(14, 2)}, Rec{jpeg_recorder(15, 1)}, Rec{recorder(16, 4)}, Rec{jpeg_recorder(17, 3)}, Rec{recorder(18, 1)}, Rec{recorder(19, 0)}, Rec{recorder(20, 1)}};
+const CellEffectEnv kCellEffectEnv = {Rec{recorder(10, 0)}, Rec{jpeg_recorder(11, 1)}, Rec{recorder(12, 2)}, Rec{jpeg_recorder(13, 7)}, Rec{recorder(14, 1)}, Rec{recorder(15, 0)}, Rec{jpeg_recorder(16, 5)}, Rec{jpeg_recorder(17, 4)}};
 const RideUpkeepEnv kRideUpkeepEnv = {Rec{recorder(10, 1)}, Rec{recorder(11, 0)}, Rec{recorder(12, 2)}, Rec{recorder(13, 2)}, Rec{recorder(14, 2)}, Rec{recorder(15, 0)}};
 const ObjectUnlockThemesEnv kObjectUnlockThemesEnv = {Rec{recorder(10, 1)}, Rec{recorder(11, 1)}, Rec{recorder(12, 2)}, Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{jpeg_recorder(15, 0)}, Rec{recorder(16, 1)}, Rec{jpeg_recorder(17, 0)}, Rec{recorder(18, 0)}, Rec{recorder(19, 0)}, Rec{recorder(20, 1)}, Rec{recorder(21, 1)}};
 const Dialog7cb25cHandlerEnv kDialog7cb25cHandlerEnv = {Rec{jpeg_recorder(10, 4)}, Rec{jpeg_recorder(11, 1)}, Rec{recorder(12, 1)}, Rec{recorder(13, 2)}, Rec{recorder(14, 0)}, Rec{recorder(15, 2)}, Rec{recorder(16, 0)}, Rec{jpeg_recorder(17, 5)}, Rec{jpeg_recorder(18, 8)},
@@ -1606,6 +1610,8 @@ int main(int argc, char **argv) {
     Window7cb2a4_SetEnv(&kWindow7cb2a4Env);
     Dialog7cc984_SetEnv(&kDialog7cc984Env);
     RideUpkeep_SetEnv(&kRideUpkeepEnv);
+    ObjectWear_SetEnv(&kObjectWearEnv);
+    CellEffect_SetEnv(&kCellEffectEnv);
     ObjectUnlock_SetThemesEnv(&kObjectUnlockThemesEnv);
     Dialog7cb25c_SetHandlerEnv(&kDialog7cb25cHandlerEnv);
     Panel7cc218_SetHandlerEnv(&kPanel7cc218HandlerEnv);

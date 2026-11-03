@@ -350,6 +350,7 @@
 #include "../game/world/mapclick.h"
 #include "../game/world/objectstatus.h"
 #include "../game/world/objectunlock.h"
+#include "../game/world/objectwear.h"
 #include "../game/world/parkgates.h"
 #include "../game/world/parkopen.h"
 #include "../game/world/pathdrag.h"
@@ -5773,6 +5774,7 @@ const Hook kHooks[] = {
     {"Mechanic_WalkToObject",     0x004da740, (void *)&Mechanic_WalkToObject, {0x83, 0xec, 0x08, 0x56, 0x8d}},
     {"Mechanic_Repair",           0x004da830, (void *)&Mechanic_Repair, {0x51, 0x56, 0x57, 0x8b, 0xf1}},
     {"PatrolCoverage_Percent",    0x004cd500, (void *)&PatrolCoverage_Percent, {0x51, 0x8b, 0x44, 0x24, 0x08}},
+    {"Object_WearTick",           0x004df670, (void *)&Object_WearTick, {0x83, 0xec, 0x24, 0x53, 0x56}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
