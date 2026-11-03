@@ -203,6 +203,7 @@
 #include "../game/core/iosbase.h"
 #include "../game/core/keyactions.h"
 #include "../game/core/loopstream.h"
+#include "../game/core/mixerthread.h"
 #include "../game/core/mp2decoder.h"
 #include "../game/core/mp2frame.h"
 #include "../game/core/mp2layer1.h"
@@ -5965,6 +5966,7 @@ const Hook kHooks[] = {
     {"SoundMixer_AddVoiceSignal", 0x006b66d0, (void *)&SoundMixer_AddVoiceSignal, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"SoundMixer_Start",          0x006b6700, (void *)&SoundMixer_Start, {0x6a, 0xff, 0x68, 0x08, 0x58}},
     {"SoundEngine_Play",          0x006b87d0, (void *)&SoundEngine_Play, {0x83, 0xec, 0x10, 0x53, 0x55}},
+    {"SoundMixer_ThreadLoop",     0x006b63a0, (void *)&SoundMixer_ThreadLoop, {0x83, 0xec, 0x08, 0x53, 0x55}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
