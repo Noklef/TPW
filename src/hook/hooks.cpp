@@ -147,6 +147,7 @@
 #include "../game/gfx/guitext.h"
 #include "../game/gfx/mmxblit.h"
 #include "../game/gfx/moviechunks.h"
+#include "../game/gfx/moviecontrol.h"
 #include "../game/gfx/movieframe.h"
 #include "../game/gfx/movieidct.h"
 #include "../game/gfx/moviepixels.h"
@@ -6303,6 +6304,12 @@ const Hook kHooks[] = {
     {"MovieChunks_ReadStart",     0x0066e920, (void *)&MovieChunks_ReadStart, {0xb8, 0x00, 0xc0, 0x00, 0x00}},
     {"MovieChunks_ReadSound",     0x0066e9a0, (void *)&MovieChunks_ReadSound, {0xb8, 0x08, 0xc0, 0x00, 0x00}},
     {"MovieChunks_ReadHeader",    0x0066ed60, (void *)&MovieChunks_ReadHeader, {0xb8, 0x04, 0xc0, 0x00, 0x00}},
+    {"MovieControl_ReadAhead",    0x0066f380, (void *)&MovieControl_ReadAhead, {0x56, 0x8b, 0xf1, 0x57, 0x83}},
+    {"MovieControl_Rewind",       0x0066f480, (void *)&MovieControl_Rewind, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
+    {"MovieControl_SetVolume",    0x0066f520, (void *)&MovieControl_SetVolume, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"MovieControl_Stop",         0x0066f580, (void *)&MovieControl_Stop, {0x8b, 0x4c, 0x24, 0x04, 0x56}},
+    {"MovieControl_StartThread",  0x006727c0, (void *)&MovieControl_StartThread, {0x56, 0x8b, 0xf1, 0x6a, 0x01}},
+    {"MovieControl_StopThread",   0x00672800, (void *)&MovieControl_StopThread, {0x8b, 0x81, 0xc4, 0x03, 0x00}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

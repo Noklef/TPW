@@ -6195,6 +6195,12 @@ address,name,kind,confidence,notes
 0x0066e920,MovieChunks_ReadStart,function,low,"reimplemented (src/game/gfx/moviechunks); the start chunk: name invented, unconfirmed"
 0x0066e9a0,MovieChunks_ReadSound,function,low,"reimplemented (src/game/gfx/moviechunks); a sound chunk decoded into the sound's ring: name invented, unconfirmed"
 0x0066ed60,MovieChunks_ReadHeader,function,low,"reimplemented (src/game/gfx/moviechunks); the sound's header: name invented, unconfirmed"
+0x0066f380,MovieControl_ReadAhead,function,low,"reimplemented (src/game/gfx/moviecontrol); the movie's reader kept ahead: name invented, unconfirmed"
+0x0066f480,MovieControl_Rewind,function,low,"reimplemented (src/game/gfx/moviecontrol); the movie file back to its start place: name invented, unconfirmed"
+0x0066f520,MovieControl_SetVolume,function,low,"reimplemented (src/game/gfx/moviecontrol); the movie sound's volume: name invented, unconfirmed"
+0x0066f580,MovieControl_Stop,function,low,"reimplemented (src/game/gfx/moviecontrol); the movie's state 5 and the wait: name invented, unconfirmed"
+0x006727c0,MovieControl_StartThread,function,low,"reimplemented (src/game/gfx/moviecontrol); the movie sound's thread started: name invented, unconfirmed"
+0x00672800,MovieControl_StopThread,function,low,"reimplemented (src/game/gfx/moviecontrol); the movie sound's thread stopped: name invented, unconfirmed"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"
