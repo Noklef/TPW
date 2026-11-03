@@ -39,14 +39,14 @@ def case(r):
     regions[0x78d910] = bytes([r.getrandbits(8), r.choice([0, 1, 1, 1, r.getrandbits(8)])])
     since = r.randrange(0, 1 << 31)
     regions[0x7c2508] = struct.pack('<I', since)
-    set_return(log, 17, since + r.choice([0x7d0, 0x7d1, 0x7d1, 5000, 5000, 0, -1, r.randrange(-1 << 31, 1 << 31)]))
+    set_return(log, 17, since + r.choice([0x7d0, 0x7d0, 0x7d1, 0x7d1, 5000, 5000, 0, -1, r.randrange(-1 << 31, 1 << 31)]))
     set_return(log, 21, r.getrandbits(32))
     up = bytearray(regions[0x7c24c8])
-    up[4:8] = struct.pack('<I', r.choice([1, 1, 1, 0, r.getrandbits(32)]))
+    up[4:8] = struct.pack('<I', r.choice([1, 1, 0, 0, r.getrandbits(32)]))
     regions[0x7c24c8] = up
     message = r.choice([0x14, 0x15, 0x10006, 0x10006, 0x10006, 0x1000b, 0x1000b, 0x1000b, 0x13, 0x16, 0x10005, 0x10007, 0x1000a, 0x1000c, r.getrandbits(32)])
-    a = r.choice([1, 1, 1, 0x1b, 0x1b, 0x1b, 0, 2, r.getrandbits(32)])
-    b = r.getrandbits(32) & r.choice([0xff00ffff, 0xff00ffff, 0xff00ffff, 0xffffffff])
+    a = r.choice({0x10006: [1, 1, 1, 1, 1, 1, 0, 2, 0x1b, r.getrandbits(32)], 0x1000b: [0x1b, 0x1b, 0x1b, 0x1b, 0x1b, 0x1b, 0, 1, 0x1a, r.getrandbits(32)]}.get(message, [1, 0x1b, 0, r.getrandbits(32)]))
+    b =r.getrandbits(32) & r.choice([0xff00ffff, 0xff00ffff, 0xff00ffff, 0xffffffff])
     return Call(CALLS['Handler'], [WINDOW, message, a, b], regions, ret='a')
 
 
