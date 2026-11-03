@@ -14,7 +14,13 @@
 #include "../world/analyser.h"
 #include "../world/thingscan.h"
 #include "../world/world.h"
+#include "dialog7ca098.h"
+#include "dialog7ca13c.h"
+#include "dialog7ca150.h"
+#include "dialog7ca168.h"
+#include "dialogbase.h"
 #include "focus.h"
+#include "hoverlabel.h"
 #include "radiogroup.h"
 #include "window.h"
 #include "window705a50.h"
@@ -157,4 +163,74 @@ void __cdecl Dialog7cb398_Create() {
     Advisor_PostId(199);
 }
 
+}
+
+namespace {
+const Dialog7cb398Env kGameHandlerEnv = {Window_SendMessage, Window_FindChild, GameTable7cfb90_Get1da720_519510, Things_CountKind1OnPlainCell, reinterpret_cast<u32(__fastcall *)(const u8 *)>(ParkAnalyser_Total), Things_PercentPeopleStat19cBelow,
+                                         Things_PercentPeopleStat19cAbove, Dialog7cb398_ShowTopThree, Language_WideText, HoverLabel_Attach, Game_CancelAdvisor, Dialog7ca168_Open, Dialog7ca150_Open, Dialog7ca13c_Open, GameTable7cfb90_Get1da726_5195d0, Obj_Set118, Dialog_KeyHandler};
+const Dialog7cb398Env *g_handler = &kGameHandlerEnv;
+
+u32 &cell(u32 at) { return *reinterpret_cast<u32 *>(static_cast<uintptr_t>(at)); }
+u8 *game() { return reinterpret_cast<u8 *>(static_cast<uintptr_t>(cell(0x007cf83c))); }
+u8 *gameTable() { return reinterpret_cast<u8 *>(static_cast<uintptr_t>(g_handler->table(game()))); }
+
+void showIfChanged(u8 *group, u32 id, u32 at, u32 value) {
+    if (cell(at) == value) return;
+    cell(at) = value;
+    vcall<void>(g_handler->child(group, nullptr, id), 0x1c, cell(at));
+}
+
+void onTimer() {
+    u8 *const group = g_handler->child(dialog(), nullptr, 0x4a68c9);
+    gameTable();   // (for the call's ECX, which the count ignores)
+    const u32 people = static_cast<u32>(g_handler->people());
+    const u32 total = g_handler->total(gameTable());
+    showIfChanged(group, 0x4a68cc, 0x007cb360, people);
+    showIfChanged(group, 0x4a68ca, 0x007cb378, total);
+    const s32 below = g_handler->below(gameTable(), nullptr, 0x21);
+    const s32 above = g_handler->above(gameTable(), nullptr, 0x42);
+    vcall<void>(g_handler->child(dialog(), nullptr, 0x4a68d0), 0x1c, static_cast<s32>(static_cast<u32>(below) << 10) / 100);
+    vcall<void>(g_handler->child(dialog(), nullptr, 0x4a68cf), 0x1c, static_cast<s32>((100u - static_cast<u32>(above)) << 10) / 100);
+    g_handler->showTop();
+}
+}  // namespace
+
+void Dialog7cb398_SetEnv(const Dialog7cb398Env *env) { g_handler = env ? env : &kGameHandlerEnv; }
+
+extern "C" s32 __cdecl Dialog7cb398_Handler(u8 *window, u32 message, u32 a, u32 b) {
+    switch (message) {
+    case 5:
+        g_handler->send(dialog(), 4, 0, 0);
+        return 1;
+    case 0x10:
+        if (a == 0x80083 && dialog()) onTimer();
+        break;
+    case 0x14:
+        cell(0x007cb398) = 0;
+        g_handler->cancel(0xc7);
+        break;
+    case 0x15:
+        g_handler->attach(window, 0x4a68c5, static_cast<u32>(reinterpret_cast<uintptr_t>(g_handler->text(0x96))));
+        break;
+    case 0x100:
+        switch (a) {
+        case 0xffffffffu:
+            g_handler->send(dialog(), 4, 0, 0);
+            return 0;
+        case 0x4a68c6:
+            g_handler->openGuests(0);
+            return 0;
+        case 0x4a68c7:
+            g_handler->openStaff(0xffffffffu, 0);
+            return 0;
+        case 0x4a68c8:
+            g_handler->openObjects(-1, 0);
+            return 0;
+        }
+        break;
+    case 0x800:
+        g_handler->set118(reinterpret_cast<u8 *>(static_cast<uintptr_t>(g_handler->table26(game()))), nullptr, b);
+        break;
+    }
+    return g_handler->keys(window, message, a, b);
 }

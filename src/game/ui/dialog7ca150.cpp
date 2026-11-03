@@ -1,4 +1,9 @@
 #include "dialog7ca150.h"
+#include "dialog7ca098.h"
+#include "dialog7ca13c.h"
+#include "dialog7ca168.h"
+#include "dialog7cb398.h"
+#include "dialogbase.h"
 
 #include <cstdint>
 
@@ -166,3 +171,39 @@ void __cdecl Dialog7ca150_Open(s32 tab, u32 selected) {
     Advisor_PostId(0xbf);
 }
 }  // extern "C"
+
+namespace {
+const Dialog7ca150PageEnv kGamePageEnv = {Window_SendMessage, Dialog7cb398_Create, Dialog7ca168_Open, Dialog7ca13c_Open, Game_CancelAdvisor, Dialog_KeyHandler};
+const Dialog7ca150PageEnv *g_page = &kGamePageEnv;
+
+u8 *&pageDialog() { return *reinterpret_cast<u8 **>(static_cast<uintptr_t>(0x007ca150)); }
+}  // namespace
+
+void Dialog7ca150_SetPageEnv(const Dialog7ca150PageEnv *env) { g_page = env ? env : &kGamePageEnv; }
+
+extern "C" s32 __cdecl Dialog7ca150_PageHandler(u8 *window, u32 message, u32 a, u32 b) {
+    if (message == 5) {
+        g_page->send(pageDialog(), 4, 0, 0);
+        return 1;
+    }
+    if (message == 0x14) {
+        pageDialog() = nullptr;
+        g_page->cancel(0xbf);
+    } else if (message == 0x100) {
+        switch (a) {
+        case 0xfffffffeu:
+            g_page->send(pageDialog(), 4, 0, 0);
+            return 0;
+        case 0x12c4bf:
+            g_page->openStats();
+            return 0;
+        case 0x12c4c0:
+            g_page->openStaff(0xffffffffu, 0);
+            return 0;
+        case 0x12c4c1:
+            g_page->openGuests(0);
+            return 0;
+        }
+    }
+    return g_page->keys(window, message, a, b);
+}

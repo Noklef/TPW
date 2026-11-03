@@ -5,6 +5,31 @@
 
 #include "../../../re/types.h"
 
+// ResearchPanel_Handler's calls (the ports by default; the bench's recorders: their own benches have them).
+struct ResearchPanelEnv {
+    s32(__cdecl *send)(u8 *window, u32 message, u32 a, u32 b);         // Window_SendMessage
+    void(__cdecl *showProgress)(u32 group);                            // ResearchMeters_ShowProgress
+    void(__cdecl *update)(s32 group);                                  // ResearchMeters_Update
+    u32(__fastcall *setTimer)(u8 *window, void *, u32 id, u32 interval);   // Window_SetTimer
+    u32(__fastcall *startTimer)(u8 *window, void *, u32 id);           // Window_StartTimer
+    u16 *(__cdecl *text)(u32 index);                                   // Language_WideText
+    void(__cdecl *attach)(u8 *parent, u32 id, u32 text);               // HoverLabel_Attach
+    void(__cdecl *forward6)(u32 value);                                // Sound_Forward6
+    void(__cdecl *cancel)(u32 id);                                     // Game_CancelAdvisor
+    u32(__fastcall *table)(u8 *game);                                  // GameTable7cfb90_Get1da720_519510
+    u32(__cdecl *sum)();                                               // Things_SumChain
+    u32(__fastcall *lab)(u8 *game);                                    // GameTable7cfb90_Get1da722_519550
+    u8 *(__fastcall *child)(u8 *window, void *, u32 id);               // Window_FindChild
+    u32(__fastcall *setChannel)(u8 *object, void *, u32 channel, u32 volume);   // Volumes_SetChannel
+    void(__fastcall *setMaster)(u8 *object, void *, u32 volume);       // Volumes_SetMaster
+    void(__fastcall *notify)(u8 *window, void *, u32 value);           // Window_Notify1
+    u32(__cdecl *setParam)(u32 sound, u32 parameter, u32 value);       // Sound_SetParam
+    void(__cdecl *stop)(u32 id);                                       // Sound_Stop
+    u32(__cdecl *play)(u32 sound);                                     // SoundUi_Play
+    s32(__cdecl *keys)(u8 *window, u32 message, u32 a, u32 b);         // Dialog_KeyHandler
+};
+void ResearchPanel_SetEnv(const ResearchPanelEnv *env);
+
 extern "C" {
 
 // 0x4a95b0 (cdecl (window, level); name unconfirmed): level 0 stops it: in phase 3 or 1 the phase becomes 2, the light told 0x20
@@ -56,4 +81,13 @@ s32 __cdecl ResearchMeters_ArrowProc1(u8 *window, u32 message, u32 a, u32 b);
 s32 __cdecl ResearchMeters_ArrowProc2(u8 *window, u32 message, u32 a, u32 b);
 s32 __cdecl ResearchMeters_ArrowProc3(u8 *window, u32 message, u32 a, u32 b);
 s32 __cdecl ResearchMeters_ArrowProc4(u8 *window, u32 message, u32 a, u32 b);
+
+// 0x4a96b0 (cdecl (window, message, a, b); name invented, unconfirmed): the research panel [0x7cc1d8]'s handler. 5: the panel sent 4 (0, 0), answer 1. 0x100 with a -2 or -1 the same, answer 0. The rest ends in
+// Dialog_KeyHandler, whose answer is returned, after: 0x10 ResearchMeters_ShowProgress of 0, 4, 1, 2, 3. 0x14 the panel 0, Sound_Forward6 of the sounds [0x7cc1d0], [0x7cc1cc] and [0x7cc1d4] when set, Game_CancelAdvisor (0xc8).
+// 0x15 the window's timer 0x80080 of 1000 set and, when that answers (AX) not 0, started; the hover label 0xd2d00 with the text 0xb8. 0x1e when Things_SumChain changed from [0x7cc1c8]: kept (the chain summed again), the limit [0x7cc1c0]
+// (((100 - sum) / 3 + sum) << 10) / [0x7cc1b4], the slider 0xd2d10's child 0xd2d12 given it and 0xd2d10 given (the lab's master volume +0x1460 - 0x46) * limit / 30, each through slot 7 (all signed, truncated).
+// 0x800 (a slider a moved to b): for the sliders 0xd2d0b-0xd2d0f Volumes_SetChannel 3, 2, 1, 0, 4 and, unless the byte [0x7cc1bc], ResearchMeters_Update (-1). 0xd2d10: b over the limit (signed) sets the slider back (slot 7) and is the limit; master volume
+// b * 30 / limit + 0x46, the update as before, the five ShowProgress, 0xd2d10's child 0xd2d11 told (volume * 2 - 0x8c) / 7 (Window_Notify1), and Sound_SetParam 0xc then 0xd of [0x7cc1d0], [0x7cc1cc] to b * 100 / 1024. Any slider but 0xd2d10: Sound_SetParam
+// [0x7cc1d4] 0xb then 0xa to b. 0x801, not 0xd2d10: [0x7cc1d4] the sound 0x9c (SoundUi_Play), its 0xb then 0xa to b. 0x802, not 0xd2d10: Sound_Stop of it, then 0.
+s32 __cdecl ResearchPanel_Handler(u8 *window, u32 message, u32 a, u32 b);
 }

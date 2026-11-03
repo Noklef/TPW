@@ -65,6 +65,8 @@
 #include "../../src/game/ui/dialog7ca098.h"
 #include "../../src/game/ui/dialog7cdac4.h"
 #include "../../src/game/ui/dialogbase.h"
+#include "../../src/game/ui/levelmeter.h"
+#include "../../src/game/ui/dialog7cb398.h"
 #include "../../src/game/ui/thingbrowser.h"
 #include "../../src/game/ui/msgtags.h"
 #include "../../src/game/world/guardescort.h"
@@ -628,6 +630,14 @@ void __cdecl browser_step() {
     reinterpret_cast<void(__cdecl *)()>(jpeg_recorder(12, 0))();
 }
 const ThingBrowserHandlerEnv kThingBrowserHandlerEnv = {Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 0)}, &browser_step, Rec{jpeg_recorder(13, 0)}, Rec{recorder(14, 1)}, Rec{recorder(15, 0)}, Rec{recorder(16, 3)}, Rec{jpeg_recorder(17, 1)}, Rec{recorder(18, 3)}};
+// ResearchPanel_Handler's calls (tests/fncmp/researchpanel.py).
+const ResearchPanelEnv kResearchPanelEnv = {Rec{jpeg_recorder(10, 4)}, Rec{jpeg_recorder(11, 1)}, Rec{jpeg_recorder(12, 1)}, Rec{recorder(13, 2)}, Rec{recorder(14, 1)}, Rec{jpeg_recorder(15, 1)}, Rec{jpeg_recorder(16, 3)}, Rec{jpeg_recorder(17, 1)}, Rec{jpeg_recorder(18, 1)}, Rec{recorder(19, 0)},
+                                            Rec{jpeg_recorder(20, 0)}, Rec{recorder(21, 0)}, Rec{recorder(22, 1)}, Rec{recorder(23, 2)}, Rec{recorder(24, 1)}, Rec{recorder(25, 1)}, Rec{jpeg_recorder(26, 3)}, Rec{jpeg_recorder(27, 1)}, Rec{jpeg_recorder(28, 1)}, Rec{jpeg_recorder(29, 4)}};
+// Dialog7cb398_Handler's calls (tests/fncmp/dialog7cb398handler.py).
+const Dialog7cb398Env kDialog7cb398Env = {Rec{jpeg_recorder(10, 4)}, Rec{recorder(11, 1)}, Rec{recorder(12, 0)}, Rec{jpeg_recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{recorder(15, 1)}, Rec{recorder(16, 1)}, Rec{jpeg_recorder(17, 0)}, Rec{jpeg_recorder(18, 1)}, Rec{jpeg_recorder(19, 3)},
+                                          Rec{jpeg_recorder(20, 1)}, Rec{jpeg_recorder(21, 2)}, Rec{jpeg_recorder(22, 2)}, Rec{jpeg_recorder(23, 1)}, Rec{recorder(24, 0)}, Rec{recorder(25, 1)}, Rec{jpeg_recorder(26, 4)}};
+// Dialog7ca150_PageHandler's calls (tests/fncmp/dialog7ca150page.py).
+const Dialog7ca150PageEnv kDialog7ca150PageEnv = {Rec{jpeg_recorder(10, 4)}, Rec{jpeg_recorder(11, 0)}, Rec{jpeg_recorder(12, 2)}, Rec{jpeg_recorder(13, 1)}, Rec{jpeg_recorder(14, 1)}, Rec{jpeg_recorder(15, 4)}};
 // Dialog_KeyHandler's calls (tests/fncmp/dialogkeys.py).
 const DialogKeyEnv kDialogKeyEnv = {Rec{jpeg_recorder(10, 4)}, Rec{recorder(11, 0)}, Rec{recorder(12, 0)}, Rec{recorder(13, 2)}, Rec{recorder(14, 2)}, Rec{jpeg_recorder(15, 1)}, Rec{recorder(16, 3)}};
 // Dialog7cdac4_Open's calls (tests/fncmp/dialog7cdac4.py).
@@ -1450,6 +1460,9 @@ int main(int argc, char **argv) {
     Dialog7cc1f8_SetOpenEnv(&kDialog7cc1f8OpenEnv);
     Dialog7cdac4_SetEnv(&kDialog7cdac4Env);
     Dialog_SetKeyEnv(&kDialogKeyEnv);
+    ResearchPanel_SetEnv(&kResearchPanelEnv);
+    Dialog7cb398_SetEnv(&kDialog7cb398Env);
+    Dialog7ca150_SetPageEnv(&kDialog7ca150PageEnv);
     ThingBrowser_SetHandlerEnv(&kThingBrowserHandlerEnv);
     MsgTag_SetHandlerEnv(&kMsgTagHandlerEnv);
     GuardEscort_SetEnv(&kGuardEscortEnv);
