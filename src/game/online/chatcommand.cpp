@@ -269,8 +269,7 @@ void gotoName(u8 *avatar, const u8 *tokens) {
 }
 
 // The command run alone (name null) or on a name, its tokens made as the callbacks 0x4ead00-0x4eb5d0 make them (see the header).
-void runOn(u8 *avatar, u32 command, const StdWString *name) {
-    const u8 allocator = (u8)(uintptr_t)name;   // (the name's address's low byte, sic; alone: stack garbage in the original)
+void runOn(u8 *avatar, u32 command, const StdWString *name, u8 allocator) {
     alignas(4) u8 tokens[16] = {};               // a vector of CountedPairs: the allocator byte, first, last, end
     tokens[0] = allocator;
     CountedPair t;
@@ -296,6 +295,33 @@ void runOn(u8 *avatar, u32 command, const StdWString *name) {
     for (u8 *e = at<u8 *>(tokens, 4); e != at<u8 *>(tokens, 8); e += 0x24)
         CountedPair_Clear(e);
     GameHeap_Free(at<u8 *>(tokens, 4));
+}
+
+void runOn(u8 *avatar, u32 command, const StdWString *name) {
+    runOn(avatar, command, name, (u8)(uintptr_t)name);   // (the name's address's low byte, sic; alone: stack garbage in the original)
+}
+
+// The buddy set's node of the key by its lower bound (out: that bound, a node or the head), else the head.
+u32 findBuddy(const u8 *avatar, const StdWString *key, u32 &bound) {
+    u8 *const set = const_cast<u8 *>(avatar) + 0xe90;
+    bound = 0;
+    ChatBuddySet_LowerBoundOut(set, nullptr, &bound, reinterpret_cast<const u8 *>(key));
+    const u32 head = at<u32>(set, 4);
+    if (bound == head || WStdString_Compare(key, nullptr, reinterpret_cast<const StdWString *>((uintptr_t)bound + 0xc)) < 0)
+        return head;
+    return bound;
+}
+
+void buddyCommand(u8 *avatar, const StdWString *name, bool whenBuddy) {
+    StdWString copy;
+    copy.allocator = *reinterpret_cast<const u8 *>(name);
+    reset(&copy, 0);
+    WStdString_AssignSub(&copy, nullptr, name, 0, global<u32>(0x00700628));
+    u32 bound;
+    const bool buddy = findBuddy(avatar, &copy, bound) != at<u32>(avatar, 0xe94);
+    reset(&copy, 1);
+    if (buddy == whenBuddy)
+        runOn(avatar, 0xf, name, (u8)bound);   // (the allocator bytes the bound's low byte, sic: its slot was the name's)
 }
 
 }  // namespace
@@ -328,6 +354,31 @@ void __fastcall ChatAvatar_Goto(u8 *avatar, void *, const StdWString *name) { ru
 void __fastcall ChatAvatar_ToggleIgnore(u8 *avatar, void *, const StdWString *name) { runOn(avatar, 0xd, name); }
 void __fastcall ChatAvatar_Vote(u8 *avatar) { runOn(avatar, 0x15, nullptr); }
 void __fastcall ChatAvatar_ToggleEarmuffs(u8 *avatar) { runOn(avatar, 0xc, nullptr); }
+void __fastcall ChatAvatar_AddBuddy(u8 *avatar, void *, const StdWString *name) { buddyCommand(avatar, name, false); }
+void __fastcall ChatAvatar_RemoveBuddy(u8 *avatar, void *, const StdWString *name) { buddyCommand(avatar, name, true); }
+
+void __fastcall ChatAvatar_EarmuffsOn(u8 *avatar) {
+    if (!at<u8>(avatar, 0xeb0)) ChatAvatar_ToggleEarmuffs(avatar);
+}
+
+void __fastcall ChatAvatar_EarmuffsOff(u8 *avatar) {
+    if (at<u8>(avatar, 0xeb0)) ChatAvatar_ToggleEarmuffs(avatar);
+}
+
+u32 __fastcall ChatAvatar_NameFlags(const u8 *avatar, void *, const StdWString *name) {
+    u32 flags = 0;
+    u32 bound;
+    const u32 buddy = findBuddy(avatar, name, bound);
+    if (buddy != at<u32>(avatar, 0xe94)) {
+        const u8 *const node = reinterpret_cast<const u8 *>((uintptr_t)buddy);
+        flags = at<u8>(node, 0x1c) ? 3 : 1;
+        if (at<u8>(node, 0x1d)) flags |= 4;
+    }
+    u32 ignored;
+    ChatIgnoreSet_Find(const_cast<u8 *>(avatar) + 0xea0, nullptr, &ignored, reinterpret_cast<const u8 *>(name));
+    if (ignored != at<u32>(avatar, 0xea4)) flags |= 8;
+    return flags;
+}
 
 void __fastcall ChatAvatar_NoticeText(u8 *avatar, void *, const StdWString *text) {
     StdWString copy;

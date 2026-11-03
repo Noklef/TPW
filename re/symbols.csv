@@ -6599,6 +6599,11 @@ address,name,kind,confidence,notes
 0x004eb5d0,ChatAvatar_ToggleEarmuffs,function,low,reimplemented (src/game/online/chatcommand); thiscall on the chat avatar; the command 0xc (the earmuffs toggled) run alone (name invented)
 0x004ee590,ChatAvatar_NoticeText,function,low,"reimplemented (src/game/online/chatcommand); thiscall on the chat avatar (text), pops 4; a copy of the text shown with ChatAvatar_Notice in colour 7 (name invented)"
 0x004eea50,ChatAvatar_GotoDone,function,low,reimplemented (src/game/online/chatcommand); thiscall on the chat avatar; notice 0x9d and the goto-in-progress byte +0xef8 cleared (name invented)
+0x004eb720,ChatAvatar_AddBuddy,function,low,"reimplemented (src/game/online/chatcommand); thiscall on the chat avatar (name), pops 4; the command 0xf run on the name when it is not in the buddy set (name invented)"
+0x004eb910,ChatAvatar_RemoveBuddy,function,low,"reimplemented (src/game/online/chatcommand); thiscall on the chat avatar (name), pops 4; the command 0xf run on the name when it is in the buddy set (name invented)"
+0x004ebee0,ChatAvatar_EarmuffsOn,function,low,reimplemented (src/game/online/chatcommand); thiscall on the chat avatar; ChatAvatar_ToggleEarmuffs when +0xeb0 is clear (name invented)
+0x004ebef0,ChatAvatar_EarmuffsOff,function,low,reimplemented (src/game/online/chatcommand); thiscall on the chat avatar; ChatAvatar_ToggleEarmuffs when +0xeb0 is set (name invented)
+0x004ee5c0,ChatAvatar_NameFlags,function,low,"reimplemented (src/game/online/chatcommand); thiscall on the chat avatar (name), pops 4; a buddy 1 (node +0x1c: 3, +0x1d: | 4), ignored | 8 (name invented)"
 0x005d8190,LobbyModel_SetPosition,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (v): the lobby model's (+4: 0x7a4610 index) matrix (+8 -> +4 -> +0x78, +0x10) translation = v[0..2] (x87 loads, all read first)"
 0x005d8380,LobbyModel_TurnY,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (angle): Matrix_RotateEulerFast(the lobby model's matrix, 2 ""Y"", &angle)"
 0x005d83b0,LobbyModel_SetScale,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (x, y, z): Holder_SetScale(the lobby model's entry +8, (x, y, z))"

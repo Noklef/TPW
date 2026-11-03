@@ -70,6 +70,22 @@ void __fastcall ChatAvatar_NoticeText(u8 *avatar, void *, const StdWString *text
 // goto-in-progress byte +0xef8 cleared. Name invented, unconfirmed.
 void __fastcall ChatAvatar_GotoDone(u8 *avatar);
 
+// 0x4eb720 / 0x4eb910 (thiscall on the avatar (name), pops 4; SEH frame; names invented, unconfirmed): the command 0xf run on the name
+// (RemoveBuddy for a buddy, else AddBuddy), the first only when the name is not in the buddy set (+0xe90: ChatBuddySet_LowerBoundOut of a
+// copy, WStdString_Compare), the second only when it is. The allocator bytes are the low byte of the lower bound (sic: its slot was the
+// argument's).
+void __fastcall ChatAvatar_AddBuddy(u8 *avatar, void *, const StdWString *name);
+void __fastcall ChatAvatar_RemoveBuddy(u8 *avatar, void *, const StdWString *name);
+
+// 0x4ebee0 / 0x4ebef0 (thiscall on the avatar; names invented, unconfirmed): ChatAvatar_ToggleEarmuffs when the earmuffs byte +0xeb0 is
+// clear / set.
+void __fastcall ChatAvatar_EarmuffsOn(u8 *avatar);
+void __fastcall ChatAvatar_EarmuffsOff(u8 *avatar);
+
+// 0x4ee5c0 (thiscall on the avatar (name), pops 4; name invented, unconfirmed): what the avatar knows of a name: a buddy (+0xe90) 1, with
+// its node's byte +0x1c 3, with its byte +0x1d | 4; ignored (+0xea0, ChatIgnoreSet_Find) | 8.
+u32 __fastcall ChatAvatar_NameFlags(const u8 *avatar, void *, const StdWString *name);
+
 // std::wstring::assign(chars, n) as 0x4ec030 inlines it (case 0x17) and agent B's 0x4051d0 is (not hooked: the fncmp driver's stand-in
 // for 0x4051d0): n above max_size (0x7ffffffd) is std::_Xlen; a shared block (count not 0 or 0xff) with n 0 loses a count and s is
 // emptied; else n 0 empties s (the block released); a block of 31 or fewer characters with room for n is kept, else released and a new
