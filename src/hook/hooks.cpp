@@ -562,6 +562,7 @@
 #include "../game/ui/uimessage.h"
 #include "../game/ui/viewbuttons.h"
 #include "../game/ui/window7cb2a4.h"
+#include "../game/ui/window7cb2cc.h"
 #include "../game/ui/window7cc8bc.h"
 #include "../game/ui/windowtimers.h"
 #include "../game/lib/jpeg6b.h"
@@ -7556,6 +7557,7 @@ const Hook kHooks[] = {
     {"Dialog7cc1f8_ShowFigures",  0x004abb00, (void *)&Dialog7cc1f8_ShowFigures, {0x8b, 0x0d, 0xf8, 0xc1, 0x7c}},
     {"Dialog7cc5f4_Message",      0x004baf10, (void *)&Dialog7cc5f4_Message, {0x8b, 0x44, 0x24, 0x08, 0x56}},
     {"Dialog7cc5f4_Handler",      0x004bb030, (void *)&Dialog7cc5f4_Handler, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
+    {"Window7cb2cc_Handler",      0x004a2680, (void *)&Window7cb2cc_Handler, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
