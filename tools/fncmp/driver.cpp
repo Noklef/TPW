@@ -585,6 +585,9 @@ const ThingPatrolEnv kThingPatrolEnv = {Rec{jpeg_recorder(20, 1)}, Rec{jpeg_reco
 constexpr u32 stdcall_recorder(u32 k, u32 n) { return kStubs + 0x1000 + 0x4000 + 0x800 * n + 0x20 * k; }
 const ObjectUnlockScoresEnv kObjectUnlockScoresEnv = {Rec{recorder(19, 0)}, Rec{stdcall_recorder(20, 2)}, Rec{stdcall_recorder(21, 1)}, Rec{stdcall_recorder(22, 2)},
                                                       Rec{jpeg_recorder(23, 0)}, Rec{recorder(24, 2)}, Rec{recorder(25, 2)}};
+// Panel7cc218_EnterTileMode's calls (tests/fncmp/panel7cc218tile.py).
+const Panel7cc218TileEnv kPanel7cc218TileEnv = {Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 1)}, Rec{recorder(20, 1)}, Rec{jpeg_recorder(12, 1)}, Rec{jpeg_recorder(13, 1)},
+                                                Rec{recorder(14, 1)}, Rec{jpeg_recorder(15, 1)}, Rec{recorder(16, 0)}, Rec{stdcall_recorder(17, 1)}, Rec{jpeg_recorder(18, 4)}};
 // TextPanel7cc18c_Show's calls (tests/fncmp/textpanel7cc18c.py).
 const TextPanel7cc18cEnv kTextPanel7cc18cEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 0)}, Rec{jpeg_recorder(12, 9)}, Rec{recorder(13, 4)}, Rec{recorder(14, 0)}};
 // Dialog7ca098_Create's calls (tests/fncmp/dialog7ca098create.py).
@@ -1352,6 +1355,7 @@ int main(int argc, char **argv) {
     Dialog74fb20_SetEnv(&kDialog74fb20Env);
     Dialog7ca098_SetCreateEnv(&kDialog7ca098CreateEnv);
     TextPanel7cc18c_SetEnv(&kTextPanel7cc18cEnv);
+    Panel7cc218_SetTileEnv(&kPanel7cc218TileEnv);
     ObjectUnlock_SetScoresEnv(&kObjectUnlockScoresEnv);
     Dialog7ca150_SetEnv(&kDialog7ca150Env);
     Dialog7cc1f8_SetEnv(&kDialog7cc1f8Env);

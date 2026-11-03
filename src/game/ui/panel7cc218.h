@@ -12,7 +12,27 @@ struct Panel7cc218ShowEnv {
 };
 void Panel7cc218_SetShowEnv(const Panel7cc218ShowEnv *env);
 
+// Panel7cc218_EnterTileMode's calls (the ports by default; the bench's recorders: their own benches have them).
+struct Panel7cc218TileEnv {
+    u32(__cdecl *select)(u32 value);                                    // Global7c2654_Set
+    void(__cdecl *focus)(u32 record);                                   // FocusCell_Update
+    u8 *(__fastcall *findDef)(u8 *defs, void *, u16 id);                // ObjectDefs_Find
+    void(__cdecl *openFor)(u8 *thing);                                  // Dialog7ca1c8_OpenFor
+    void *(__cdecl *alloc)(u32 size);                                   // GameHeap_Alloc
+    u8 *(__fastcall *tileCtor)(u8 *self, void *, u32 arg);              // MouseModeTile_Ctor
+    void(__cdecl *setRecorded)(u32 value);                              // Global81ecac_SetRecorded
+    u8 *(__fastcall *baseCtor)(u8 *self);                               // MouseModeOnlineBase_Ctor
+    void(__stdcall *setMode)(u8 *mode);                                 // MouseMode_Set
+    void(__cdecl *mapClick)(s32 x, s32 y, u32 flags, u32 useStored);    // GameMode_MapClick
+};
+void Panel7cc218_SetTileEnv(const Panel7cc218TileEnv *env);
+
 extern "C" {
+
+// 0x4af200 (thiscall (flag), pops 4; called by the handler 0x4af600; name invented): the shown thing [0x7c2658] selected (Global7c2654_Set), the focus cell updated with the record 1. With flag 0 a new tile mode of the kind 0x14. Else by the
+// thing's definition's (word +0xe) track type +0x9c: 3 Dialog7ca1c8_OpenFor (the thing) and no mode; else a new tile mode of the kind 0xe for 1, 0x13 for 2, 0 otherwise, and the type given to Global81ecac_SetRecorded. A new mode made
+// current (the holder made first, inline as MouseModes_EnsureHolder) and GameMode_MapClick (0, 0, 0, 0). Always this's slot 0x2c last.
+void __fastcall Panel7cc218_EnterTileMode(u8 *self, void *, u32 flag);
 
 // 0x4af030 (thiscall; name invented): the shown thing [0x7c2658]'s definition (Object_GetDef, read first) put on the window +0x10's children (none: nothing). The child 0x3e30: the range
 // +0x134 / +0x138 (Window705b20_SetRange), slot 7 given the thing's +0x58, its child 0x3e2e's slot 7 given the level table's +0x1ac << 10 over the range (idiv; no 0x3e2e or an empty range

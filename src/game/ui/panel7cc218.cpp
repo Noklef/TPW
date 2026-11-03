@@ -7,6 +7,7 @@
 #include "../core/vcall.h"
 #include "../gfx/barmesh.h"
 #include "../core/accessors.h"
+#include "../core/actionrec.h"
 #include "../core/trivial.h"
 #include "../render/textparts.h"
 #include "../core/soundplay.h"
@@ -14,6 +15,7 @@
 #include "../files/wrapsources.h"
 #include "../world/advisor.h"
 #include "../world/focuscell.h"
+#include "../world/mapclick.h"
 #include "../world/mousemode.h"
 #include "../world/objectdefs.h"
 #include "../world/world.h"
@@ -21,6 +23,7 @@
 #include "../world/objectmsg.h"
 #include "../world/ridelist.h"
 #include "../world/ridesweep.h"
+#include "dialog7ca1c8.h"
 #include "dialogs.h"
 #include "guirect.h"
 #include "hoverlabel.h"
@@ -76,6 +79,58 @@ s32 rangePart(const u8 *def, u32 table, u8 level, s32 from, s32 to) {
 }  // namespace
 
 void Panel7cc218_SetShowEnv(const Panel7cc218ShowEnv *env) { g_show = env ? env : &kShowGameEnv; }
+
+namespace {
+
+const Panel7cc218TileEnv kTileGameEnv = {Global7c2654_Set, FocusCell_Update, ObjectDefs_Find, Dialog7ca1c8_OpenFor, GameHeap_Alloc, MouseModeTile_Ctor, Global81ecac_SetRecorded, MouseModeOnlineBase_Ctor, MouseMode_Set, GameMode_MapClick};
+const Panel7cc218TileEnv *g_tile = &kTileGameEnv;
+
+// A new tile mode of the kind, or none.
+u8 *newTileMode(u32 kind) {
+    u8 *const block = static_cast<u8 *>(g_tile->alloc(0x14));
+    return block ? g_tile->tileCtor(block, nullptr, kind) : nullptr;
+}
+
+// MouseModes_EnsureHolder, inline in the original, then the mode current and the map clicked.
+void setTileMode(u8 *mode) {
+    u8 *&holder = *reinterpret_cast<u8 **>((uintptr_t)0x007b05e8);
+    if (!holder) {
+        u8 *const block = static_cast<u8 *>(g_tile->alloc(1));
+        if (block) {
+            u8 *const base = static_cast<u8 *>(g_tile->alloc(8));
+            g_tile->setMode(base ? g_tile->baseCtor(base) : nullptr);
+            *reinterpret_cast<u32 *>((uintptr_t)0x007b05e0) = 0xffffffffu;
+            *reinterpret_cast<u32 *>((uintptr_t)0x007b05d4) = 0xffffffffu;
+        }
+        holder = block;
+    }
+    g_tile->setMode(mode);
+    g_tile->mapClick(0, 0, 0, 0);
+}
+
+}  // namespace
+
+void Panel7cc218_SetTileEnv(const Panel7cc218TileEnv *env) { g_tile = env ? env : &kTileGameEnv; }
+
+extern "C" void __fastcall Panel7cc218_EnterTileMode(u8 *self, void *, u32 flag) {
+    u8 *const thing = *reinterpret_cast<u8 **>((uintptr_t)0x007c2658);
+    g_tile->select((u32)(uintptr_t)thing);
+    g_tile->focus(1);
+    if (!flag) {
+        setTileMode(newTileMode(0x14));
+    } else {
+        u8 *const def = g_tile->findDef(reinterpret_cast<u8 *>((uintptr_t)0x007890a0), nullptr, *reinterpret_cast<u16 *>(thing + 0xe));
+        const u32 type = *reinterpret_cast<u32 *>(def + 0x9c);
+        if (type == 3) {
+            g_tile->openFor(thing);
+        } else {
+            u8 *const mode = newTileMode(type == 1 ? 0xe : type == 2 ? 0x13 : 0);
+            g_tile->setRecorded(*reinterpret_cast<u32 *>(def + 0x9c));
+            setTileMode(mode);
+        }
+    }
+    vcall<void>(self, 0x2c);
+}
 
 extern "C" {
 
