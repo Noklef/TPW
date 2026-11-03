@@ -346,6 +346,7 @@
 #include "../game/world/demolish.h"
 #include "../game/world/endthing.h"
 #include "../game/world/flyinglaunch.h"
+#include "../game/world/flyingupdate.h"
 #include "../game/world/gamemode.h"
 #include "../game/world/mapclick.h"
 #include "../game/world/objectstatus.h"
@@ -5729,6 +5730,7 @@ const Hook kHooks[] = {
     {"TrakCar_ChooseRoute",       0x0054a040, (void *)&TrakCar_ChooseRoute, {0x83, 0xec, 0x0c, 0x53, 0x55}},
     {"Sign_Create",               0x004689f0, (void *)&Sign_Create, {0x81, 0xec, 0x84, 0x00, 0x00}},
     {"FlyingRide_Launch",         0x0055a720, (void *)&FlyingRide_Launch, {0x51, 0x8b, 0x44, 0x24, 0x08}},
+    {"FlyingRides_Update",        0x0055abf0, (void *)&FlyingRides_Update, {0x83, 0xec, 0x14, 0x53, 0x55}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
