@@ -5651,6 +5651,18 @@ address,name,kind,confidence,notes
 0x006939f0,Std_FiopenTable,function,low,reimplemented (src/game/core/iosbase); std::__Fiopen's table lookup
 0x00693a70,Std_Fiopen,function,high,reimplemented (src/game/core/iosbase); std::__Fiopen
 0x00699da0,Std_LocaleInit,function,high,reimplemented (src/game/core/iosbase); std::locale::_Init
+0x004ef840,IosBase_DeletingDtor,function,high,reimplemented (src/game/core/iosbase); ios_base's deleting destructor
+0x004f0100,BasicIosW_Dtor,function,high,reimplemented (src/game/core/iosbase); basic_ios<wchar_t>'s destructor
+0x004f0110,BasicIosW_SetState,function,high,reimplemented (src/game/core/iosbase); basic_ios<wchar_t>::setstate
+0x004f1620,BasicIosW_Clear,function,high,reimplemented (src/game/core/iosbase); basic_ios<wchar_t>::clear
+0x004f1560,BasicOstreamW_Ctor,function,high,reimplemented (src/game/core/iosbase); basic_ostream<wchar_t>'s constructor
+0x004f1be0,BasicIstreamW_Ctor,function,high,reimplemented (src/game/core/iosbase); basic_istream<wchar_t>'s constructor
+0x004f2180,BadCast_Ctor,function,high,reimplemented (src/game/core/iosbase); bad_cast's constructor
+0x004f1870,BadCast_Copy,function,high,reimplemented (src/game/core/iosbase); bad_cast's copy constructor
+0x004f1820,BadCast_Dtor,function,high,reimplemented (src/game/core/iosbase); bad_cast's destructor
+0x004f1ad0,CtypeW_Widen,function,high,reimplemented (src/game/core/iosbase); ctype<wchar_t>::do_widen
+0x004f1af0,CtypeW_WidenRange,function,high,reimplemented (src/game/core/iosbase); ctype<wchar_t>::do_widen of a range
+0x004f1ba0,CtypeW_Dtor,function,high,reimplemented (src/game/core/iosbase); ctype<wchar_t>'s destructor
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

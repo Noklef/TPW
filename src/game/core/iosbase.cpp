@@ -176,6 +176,94 @@ void *__cdecl Std_FiopenTable(const char *name, u32 mode) {
 
 void *__cdecl Std_Fiopen(const char *name, u32 mode) { return Std_FiopenTable(name, mode); }
 
+u8 *__fastcall IosBase_DeletingDtor(u8 *self, void *, u32 flags) {
+    IosBase_Dtor(self);
+    if (flags & 1) g_env->memFree(self);
+    return self;
+}
+
+void __fastcall BasicIosW_Dtor(u8 *self) {
+    at<u32>(self, 0) = 0x007099e4;
+    IosBase_Dtor(self);
+}
+
+void __fastcall BasicIosW_SetState(u8 *self, void *, u32 state, u32 reraise) {
+    if (!state) return;
+    u32 now = at<u32>(self, 4) | state;
+    if (!at<u32>(self, 0x28)) now |= 4;
+    IosBase_Clear(self, nullptr, now, reraise);
+}
+
+void __fastcall BasicIosW_Clear(u8 *self, void *, u32 state, u32 reraise) { IosBase_Clear(self, nullptr, at<u32>(self, 0x28) ? state : state | 4, reraise); }
+
+namespace {
+
+// basic_ostream's and basic_istream's common end: the virtual base's stream buffer, fill and init.
+void init_stream_ios(u8 *self, void *buffer, u32 isstd) {
+    u8 *const ios = self + at<u32>(at<u8 *>(self, 0), 4);
+    at<void *>(ios, 0x28) = buffer;
+    at<u32>(ios, 0x2c) = 0;
+    at<u16>(ios, 0x30) = (u16)CRT_btowc(0x20);
+    IosBase_Init(ios);
+    if (!at<u32>(ios, 0x28)) IosBase_Clear(ios, nullptr, at<u32>(ios, 4) | 4, 0);
+    if ((u8)isstd) IosBase_Addstd(ios);
+}
+
+}  // namespace
+
+u8 *__fastcall BasicOstreamW_Ctor(u8 *self, void *, void *buffer, u32 isstd, u32 init, u32 mostDerived) {
+    if (mostDerived) {
+        at<u32>(self, 0) = 0x00700648;
+        at<u32>(self, 0x28) = 0;
+        at<u32>(self, 4) = 0x007099e4;
+    }
+    at<u32>(self + at<u32>(at<u8 *>(self, 0), 4), 0) = 0x007099ec;
+    if ((u8)init) init_stream_ios(self, buffer, isstd);
+    return self;
+}
+
+u8 *__fastcall BasicIstreamW_Ctor(u8 *self, void *, void *buffer, u32 isstd, u32 mostDerived) {
+    if (mostDerived) {
+        at<u32>(self, 0) = 0x00700650;
+        at<u32>(self, 0x2c) = 0;
+        at<u32>(self, 8) = 0x007099e4;
+    }
+    at<u32>(self, 4) = 0;
+    at<u32>(self + at<u32>(at<u8 *>(self, 0), 4), 0) = 0x007099dc;
+    init_stream_ios(self, buffer, isstd);
+    return self;
+}
+
+u32 *__fastcall BadCast_Ctor(u32 *self, void *, const char *text) {
+    CRT_exception_Ctor(self, nullptr, &text);
+    self[0] = 0x00709b34;
+    return self;
+}
+
+u32 *__fastcall BadCast_Copy(u32 *self, void *, const u32 *from) {
+    CRT_exception_Copy(self, nullptr, from);
+    self[0] = 0x00709b34;
+    return self;
+}
+
+void __fastcall BadCast_Dtor(u32 *self) {
+    self[0] = 0x00709b34;
+    CRT_exception_Dtor(self);
+}
+
+u32 __fastcall CtypeW_Widen(void *, void *, u32 c) { return CRT_btowc((u32)(s32)(s8)c); }
+
+const char *__fastcall CtypeW_WidenRange(void *, void *, const char *first, const char *last, u16 *to) {
+    for (; first != last; ++first, ++to) *to = (u16)CRT_btowc((u32)(s32)(s8)*first);
+    return first;
+}
+
+void __fastcall CtypeW_Dtor(u8 *self) {
+    at<u32>(self, 0) = 0x00709cac;
+    if (at<u32>(self, 0x14)) Crt().free(at<void *>(self, 0x10));
+    at<u32>(self, 0) = 0x00709b44;
+}
+
 void *__cdecl Std_LocaleInit() {
     u32 lock;
     g_env->lockit(&lock);

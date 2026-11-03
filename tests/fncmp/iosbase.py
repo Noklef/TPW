@@ -7,18 +7,21 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, LOG, RAM, Bench, Call, _recorder, blob, heap, log_region, recorder, set_return, strings, vtable  # noqa: E402
+from fncmp import HEAP, LOG, RAM, Bench, Call, _free, _recorder, blob, fill, heap, log_region, recorder, set_return, strings, vtable  # noqa: E402
 
 THROW, FOPEN, FSEEK, FCLOSE, LOCALE = 14, 16, 17, 18, 15
 CALLBACK = 21
+MBRTOWC = 23
 
 
 def lock(e):
     e.r['EAX'] = e.r['ECX']
 
 
-B = Bench([(0x693340, 0x6934c0), (0x693830, 0x693a90), (0x6918f0, 0x691a20), (0x691ba0, 0x691cc4), (0x67d250, 0x67d320), (0x45b340, 0x45b9a0), (0x4f5a50, 0x4f5acc)],
-          hooks={0x691de0: lock, 0x691ea0: lambda e: None, 0x67d3a0: _recorder(THROW, 2, com=True), 0x67b8a0: _recorder(FOPEN, 2, cdecl=True), 0x67c100: _recorder(FSEEK, 3, cdecl=True),
+B = Bench([(0x693340, 0x6934c0), (0x693830, 0x693a90), (0x6918f0, 0x691a20), (0x691ba0, 0x691cc4), (0x67d250, 0x67d340), (0x45b340, 0x45b9a0), (0x4f5a50, 0x4f5acc),
+           (0x4f0100, 0x4f0138), (0x4f1620, 0x4f1640), (0x4f1820, 0x4f1830), (0x4f1870, 0x4f1890), (0x4f2180, 0x4f21a0), (0x4ef840, 0x4ef860), (0x4f1ad0, 0x4f1b30), (0x4f1ba0, 0x4f1bd0),
+           (0x4f1560, 0x4f1620), (0x4f1be0, 0x4f1ca0), (0x693dc0, 0x693e20)],
+          hooks={0x67ad90: _free, 0x693bc0: _recorder(MBRTOWC, 5, cdecl=True), 0x691de0: lock, 0x691ea0: lambda e: None, 0x67d3a0: _recorder(THROW, 2, com=True), 0x67b8a0: _recorder(FOPEN, 2, cdecl=True), 0x67c100: _recorder(FSEEK, 3, cdecl=True),
                  0x67b620: _recorder(FCLOSE, 1, cdecl=True), 0x699da0: _recorder(LOCALE, 0, cdecl=True)})
 del B.emu.hooks[0x6918f0], B.emu.hooks[0x691ba0]   # (the bench's raising stand-ins: here the originals run)
 OBJ, NODES, LOC, VT = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300
@@ -134,8 +137,78 @@ def exception_copy(r):
     return Call(0x67d2b0, [OBJ, NODES], regions, conv='t', ret='a')
 
 
+def ios_clears(r):
+    log = log_region()
+    throw_log(log)
+    obj = stream(r)
+    struct.pack_into('<I', obj, 8, r.choice([0, 0, 4, 7, r.getrandbits(32)]))
+    struct.pack_into('<I', obj, 0x28, r.choice([0, 1, r.getrandbits(32)]))
+    state = r.choice([0, 0, 1, 2, 4, r.getrandbits(32)])
+    return Call(r.deal([0x4f0110, 0x4f1620]), [OBJ, state, r.choice([0, 0, 1, 0x100])], {LOG: log, OBJ: obj, HEAP: heap(0x400)}, conv='t', ret='v')
+
+
+def ios_dtors(r):
+    regions = dtor(r).regions
+    if r.random() < 0.5:
+        return Call(0x4f0100, [OBJ], regions, conv='t', ret='v')
+    return Call(0x4ef840, [OBJ, r.choice([0, 1, 2, 3, 0x100, 0x101, r.getrandbits(32)])], regions, conv='t', ret='a')
+
+
+def widen_setup(r, log):
+    strings(log, MBRTOWC, 0, out=0xb)
+    fill(log, MBRTOWC, 0, r.bytes(4))
+    set_return(log, MBRTOWC, r.choice([1, 1, 1, 0, 0xffffffff]))
+
+
+def streams(r):
+    log = log_region()
+    throw_log(log)
+    widen_setup(r, log)
+    set_return(log, LOCALE, LOC)
+    obj = bytearray(r.bytes(0x60))
+    derived = r.choice([0, 1, 1, 1, r.getrandbits(32) | 1])
+    ostream = r.random() < 0.5
+    struct.pack_into('<I', obj, 0, VT)
+    regions = {LOG: log, OBJ: obj, LOC: r.bytes(8), 0xfb1dd0: struct.pack('<I', LOC), VT: struct.pack('<II', r.getrandbits(32), 4 if ostream else 8), HEAP: heap(0x400),
+               STD: r.bytes(0x28), 0xfb1d88: r.bytes(0x10)}
+    buffer = r.choice([0, 1, r.getrandbits(32)])
+    isstd = r.choice([0, 1, 0x100, 0x101])
+    if ostream:
+        return Call(0x4f1560, [OBJ, buffer, isstd, r.choice([0, 1, 0x100, 0x101]), derived], regions, conv='t', ret='a')
+    return Call(0x4f1be0, [OBJ, buffer, isstd, derived], regions, conv='t', ret='a')
+
+
+def bad_cast(r):
+    text = b'z' * r.choice([0, 1, 7, 30]) + b'\0'
+    regions = {HEAP: heap(0x200, fail=r.choice([0, 0, 0, 1])), OBJ: r.bytes(0xc), NODES: struct.pack('<III', r.getrandbits(32), LOC, r.choice([0, 1, r.getrandbits(32)])), LOC: text}
+    which = r.deal(['ctor', 'copy', 'dtor'])
+    if which == 'ctor':
+        return Call(0x4f2180, [OBJ, LOC], regions, conv='t', ret='a')
+    if which == 'copy':
+        return Call(0x4f1870, [OBJ, NODES], regions, conv='t', ret='a')
+    regions[OBJ] = struct.pack('<III', r.getrandbits(32), r.getrandbits(32), r.choice([0, 1, r.getrandbits(32)]))
+    return Call(0x4f1820, [OBJ], regions, conv='t', ret='v')
+
+
+def widen(r):
+    log = log_region()
+    widen_setup(r, log)
+    set_return(log, MBRTOWC, r.choice([1, 1, 0, 0xffffffff]))
+    if r.random() < 0.5:
+        return Call(0x4f1ad0, [OBJ, r.getrandbits(32)], {LOG: log}, conv='t', ret='a')
+    n = r.choice([0, 1, 2, 9])
+    regions = {LOG: log, LOC: r.bytes(0x10), NODES: r.bytes(0x20)}
+    return Call(0x4f1af0, [OBJ, LOC, LOC + n, NODES], regions, conv='t', ret='a')
+
+
+def ctype_dtor(r):
+    obj = bytearray(r.bytes(0x18))
+    struct.pack_into('<I', obj, 0x14, r.choice([0, 1, r.getrandbits(32)]))
+    return Call(0x4f1ba0, [OBJ], {OBJ: obj, HEAP: heap(0x40)}, conv='t', ret='v')
+
+
 KINDS = {'clear': clear, 'xlen': xlen, 'callfns': callfns, 'addstd': addstd, 'init': init, 'tidy': tidy, 'dtor': dtor, 'fiopen': fiopen, 'exception_ctor': exception_ctor,
-         'exception_copy': exception_copy}
+         'exception_copy': exception_copy, 'ios_clears': ios_clears, 'ios_dtors': ios_dtors, 'streams': streams, 'bad_cast': bad_cast, 'widen': widen, 'ctype_dtor': ctype_dtor}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 
