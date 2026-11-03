@@ -7,7 +7,7 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import IMPORT_TABLE, LOG, RAM, Bench, Call, _recorder, answers, fill, import_table, log_region, put  # noqa: E402
+from fncmp import IMPORT_TABLE, LOG, RAM, Bench, Call, _recorder, answers, blob, fill, import_table, log_region, put  # noqa: E402
 
 B = Bench([(0x6c6180, 0x6c61d6), (0x6d3800, 0x6d384c), (0x6b9ec0, 0x6b9ec1), (0x6b9ed0, 0x6b9ee9)], hooks={0x6bb590: _recorder(20, 0), 0x6d3850: _recorder(21, 1)})
 OPS = [k for k in os.environ.get('OPS', 'voices,source,handshake,atexit').split(',') if k]
@@ -33,6 +33,7 @@ def case(r):
     turns = [running(r.getrandbits(32)) for _ in range(waits - 1)] + [ended(r.getrandbits(32))]
     regions[IMPORT_TABLE] = import_table(log, {'WaitForMultipleObjects': (WAIT_K, 0x6fd160, 4, 0, 0)})
     fill(log, WAIT_K, 1, struct.pack('<%dI' % waits, *turns), records=waits)
+    blob(log, WAIT_K, 1, 1)   # (the flags as each wait finds them: the running bit)
     put(obj, at_flags, 'I', (ended if r.random() < 0.15 else running)(r.getrandbits(32)))   # (ended: the loop never entered)
     count = r.randrange(1, 8)
     if voices:
