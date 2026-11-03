@@ -289,13 +289,13 @@ def case(r):
     state = r.choice([0, 1, 2, 3, 4, 5, 6, 7, 7, 7]) if r.random() < 0.95 else r.choice([8, 9, 0xffffffff, r.getrandbits(32)])
     assert LOG in regions
     if op == 'ModelState':
-        put(staff, 0x19c, 'I', r.choice([4, 4, 4, 6, 6, 6, 7, 3, 8, r.getrandbits(32)]))
+        put(staff, 0x19c, 'I', r.choice([4, 4, 4, 6, 6, 6, 6, 6, 7, 3, 8, r.getrandbits(32)]))
         grade = r.randrange(8)
         put(staff, 0x1e4, 'I', grade)
-        stay = r.choice([0, 1, 100, 0x55555556, r.getrandbits(32)])
+        stay = r.choice([0, 1, 100, 100, 0x55555556, r.getrandbits(32)])
         regions[0x785330] = put(bytearray(r.bytes(0x80)), grade << 4, 'I', stay)
         tick = struct.unpack('<I', regions[WORLD])[0]
-        wait = r.choice([stay * 3, stay * 3 + 1, stay * 3 - 1, 0, r.getrandbits(32)]) & 0xffffffff
+        wait = r.choice([stay * 3, stay * 3 + 1, stay * 3 - 1, 0, -1, -1000, -0x10000000, r.getrandbits(32)]) & 0xffffffff   # (above half: the compare is unsigned)
         put(staff, 0x200, 'I', (tick - wait) & 0xffffffff)
         set_return(regions[LOG], 28, r.choice([0, 0, 2, 2, 1, 3]))
         struct.pack_into('<I', regions[LOG], LOG_BYTES + 4 * 31, 2)
