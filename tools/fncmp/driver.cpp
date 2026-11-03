@@ -1311,7 +1311,11 @@ int main(int argc, char **argv) {
                                               reinterpret_cast<void(__fastcall *)(u8 *, void *, s32)>((uintptr_t)recorder(29, 1)),
                                               reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(30, 0)),
                                               reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u8)>((uintptr_t)recorder(31, 2)),
-                                              reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)recorder(27, 0))};   // (Person_SetRandomDest, 0x4f9490)
+                                              reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)recorder(27, 0)),   // (Person_SetRandomDest, 0x4f9490)
+                                              reinterpret_cast<u32(__fastcall *)(const u8 *, void *, u32, u32)>((uintptr_t)recorder(25, 2)),   // (Sprite_PlaySound, 0x4faa00)
+                                              // (the four kinds' idles: 0x4da5b0, 0x4d7100, 0x4d46d0, 0x4d63d0)
+                                              reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(22, 0)), reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(23, 0)),
+                                              reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(24, 0)), reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(18, 0))};
     Staff_SetWalkEnv(&staffWalkEnv);
     // StaffPoolEntry_Generate's 0x481550: the thiscall recorder 20 of 1, as tests/fncmp/staffcandidate.py hooks it.
     static const StaffCandidateEnv staffCandidateEnv = {reinterpret_cast<void(__fastcall *)(void *, void *, u32)>((uintptr_t)recorder(20, 1))};

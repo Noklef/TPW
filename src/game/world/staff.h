@@ -278,6 +278,11 @@ struct StaffWalkEnv {
     void(__fastcall *destroy)(u8 *thing);                          // Thing_Delete 0x50b780
     void(__fastcall *showThought)(u8 *thoughts, void *, u32 thought, u8 force);   // Thoughts_Show 0x50be80
     u32(__fastcall *setRandomDest)(u8 *person);                    // Person_SetRandomDest 0x4f9490
+    u32(__fastcall *playSound)(const u8 *sprite, void *, u32 category, u32 sound);   // Sprite_PlaySound 0x4faa00
+    void(__fastcall *idleMechanic)(u8 *staff);                     // 0x4da5b0 (agent C's range, not yet ported)
+    void(__fastcall *idleHandyman)(u8 *staff);                     // 0x4d7100 (the same)
+    void(__fastcall *idleEntertainer)(u8 *staff);                  // 0x4d46d0 (the same)
+    void(__fastcall *idleGuard)(u8 *staff);                        // 0x4d63d0 (the same)
 };
 void Staff_SetWalkEnv(const StaffWalkEnv *env);   // nullptr: the game's
 
