@@ -24,7 +24,7 @@ IMPORTS = {'DirectDrawEnumerateA': (ENUM, 0x6fd014, 2, 0, 0), 'DirectDrawCreate'
 
 
 def vt(slots):
-    table = bytearray(0x80 * 4)
+    table = bytearray(0x20 * 4)   # (not past the slots used: the regions lie close together)
     for slot, (k, n) in slots.items():
         struct.pack_into('<I', table, 4 * slot, recorder(k, n, True))
     return table
@@ -53,6 +53,7 @@ def open_case(r):
     regions[SELF] = this
     fill(log, CREATE, 1, struct.pack('<I', DRAW))
     fill(log, QI, 2, struct.pack('<I', DRAW), which=6)
+    fill(log, MAKESURF, 2, struct.pack('<I', SURFACE), which=7)   # (the clipper not: no fill left, a windowed change of driver faults on it in both)
     fill(log, ENUM, 1, struct.pack('<I', n), which=1, offset=0x788)
     fill(log, CLIENT, 1, struct.pack('<4i', *[r.randrange(-50, 900) for _ in range(4)]), which=2)
     fill(log, FRAME, 1, struct.pack('<4i', *[r.randrange(-50, 900) for _ in range(4)]), which=3)
@@ -64,8 +65,8 @@ def open_case(r):
     blob(log, BLT, 5, 0x1ffffff)
     blob(log, ATTACHED, 1, 1)
     tables = bytearray(0xa0 * 32)
-    if r.random() < 0.3:   # (one call fails)
-        put(tables, 0xa0 * r.choice(KEPT) + 4 * r.choice([0, 0, 1]), 'I', r.choice([1, 0x80004005, 0x80070057]))
+    if r.random() < 0.5:   # (one call fails)
+        put(tables, 0xa0 * r.choice(KEPT + [QI, QI, MODE, MODE]) + 4 * r.choice([0, 0, 1]), 'I', r.choice([1, 0x80004005, 0x80070057]))
     for k in KEPT:
         answers(log, k, TABLES + 0xa0 * k)
     regions[TABLES] = tables
