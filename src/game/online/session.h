@@ -87,4 +87,12 @@ u8 *__cdecl Online_Instance();
 // 0x5b7960 (thiscall; park; pops 4; name unconfirmed): with the city's connection open (Online_OpenCity), City::UnpublishPark (0x6fd4fc)
 // with 0, the park and +0x34; returns its answer, else 0.
 u32 __fastcall Online_UnpublishPark(u8 *session, void *, u32 park);
+
+// 0x5b6da0 (thiscall, pops 0x10; name unconfirmed): an answer from the online city. Codes 2 to 6 bring a native list for a request: with the
+// list that asked for it (its +4 the request; code 2: +0xe0; 3: +0xe4 to +0xf4; 4: +0xfc; 5: +0xf8; 6: +0x100) its old +0x30, when set, is
+// released (the kind's Release), +0x30 = the data and +0x14 = +0x10 = 1. For no such list, the data, when set, loses a count (+0xc) and at 0
+// is destroyed (the kind's destructor) and freed. Each case says so with OutputDebugStringA. Codes -10, -6, -5, -4, -2, -1 and 7 are
+// failures (error 0x56, 0x4e, 0x4d, 0x4c, 0x4b, 0x37, 0; 7 says "CRC match", 8 "No CRC match" and ends): the first list of +0xe0 to +0x100
+// with that request gets +0x18 = the error, +0x14 = 0, +0x10 = 1. Other codes do nothing.
+void __fastcall Online_ListAnswered(u8 *session, void *, s32 code, s32 request, u32, u8 *data);
 }
