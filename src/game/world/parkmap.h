@@ -21,13 +21,18 @@ struct ParkMapEnv {
     u8(__fastcall *rating)(const u8 *object, void *, u32 baseOnly);       // Object_Rating (0x4e0860)
     u32(__fastcall *average)(const u8 *object);                           // Object_HistoryAverage (0x4e1e30)
     void(__fastcall *update)(u8 *sprite, void *, u32 mask, u32 a, u32 b);  // TexSprite_Update (0x5f44d0)
-    void(__fastcall *coasterLines)(const u8 *map);                        // 0x5f2fd0, unported (by address)
+    void(__fastcall *coasterLines)(const u8 *map);                        // ParkMap_DrawCoasterLines (0x5f2fd0)
 };
 void ParkMap_SetEnv(const ParkMapEnv *env);
 
 extern "C" {
 // 0x5f2050 (thiscall on the map).
 void __fastcall ParkMap_Classify(u8 *map);
+
+// 0x5f2fd0 (thiscall on the map; the SEH frame left out; name unconfirmed): each coaster's track drawn on a canvas of the surface at +0x2c, as antialiased lines of the depth's
+// drawer (none past 32 bits) between the spline's points, 0.1 apart over each pair of nodes, x and z scaled by 480 / (the map's width * 10) and moved to (0xf, 0x2a). The colour is
+// Colour_Blend3 of 0xf86bd8, 0xf86bfc, 0xf86c20 at __ftol of the float +0x44 of the coaster's value, low byte.
+void __fastcall ParkMap_DrawCoasterLines(const u8 *map);
 
 // 0x5f2380 (thiscall on the map; the SEH frame and the debug prints left out; name unconfirmed): the map drawn on a canvas of the surface at +0x2c. Each of the
 // +0x24 x +0x28 squares (480 / wide by 425 / high, from (0xf, 0x2a)) is filled (flags 8; driver slot 8, +0x20) with its kind's colour: by the

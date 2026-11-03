@@ -4,11 +4,14 @@
 #include <cstdint>
 #include <cstring>
 
+#include "../coaster/registry.h"
+#include "../coaster/spline.h"
 #include "../core/accessors.h"
 #include "../core/gameheap.h"
 #include "../core/ptrlist.h"
 #include "../math/x87.h"
 #include "../core/vcall.h"
+#include "../gfx/aaline.h"
 #include "../gfx/canvas.h"
 #include "../gfx/color.h"
 #include "../gfx/texsprite.h"
@@ -104,7 +107,7 @@ float clamp_scroll(float v, s32 limit) {
 }
 
 const ParkMapEnv kPorts = {&Object_Rating, &Object_HistoryAverage, &TexSprite_Update,
-                           reinterpret_cast<void(__fastcall *)(const u8 *)>((uintptr_t)0x005f2fd0)};
+                           &ParkMap_DrawCoasterLines};
 const ParkMapEnv *g_env = &kPorts;
 
 s32 Ftol(double x) { return (s32)(long long)x; }
@@ -178,6 +181,50 @@ void DrawSpriteBox(const u8 *map, Canvas &canvas, const u8 *sprite, s32 cellW, s
 void ParkMap_SetEnv(const ParkMapEnv *env) { g_env = env ? env : &kPorts; }
 
 extern "C" {
+
+void __fastcall ParkMap_DrawCoasterLines(const u8 *map) {
+    Canvas canvas;
+    Canvas_Ctor(&canvas);
+    const SurfaceInfo *const surface = reinterpret_cast<const SurfaceInfo *>(map + 0x2c);
+    Canvas_SetSurface(&canvas, nullptr, surface);
+    const float scale = (float)(global<float>(0x00703044) / (X87Reg((double)at<s32>(map, 0x24)) * global<float>(0x0070304c)));
+    const u32 count = Coaster_Count();
+    for (u32 i = 0; i < count; ++i) {
+        u32 value;
+        const u8 *node = reinterpret_cast<const u8 *>((uintptr_t)CoasterLink_Nodes(i, &value));
+        u32 colour[9];
+        Blend(colour, Ftol((double)*reinterpret_cast<const float *>((uintptr_t)value + 0x44)) & 0xff);
+        bool first = true;
+        Vec3 previous;
+        for (; node && at<const u8 *>(node, 0x18); node = at<const u8 *>(node, 0x18)) {
+            float t = 0.0f;
+            X87Reg next(0.0);
+            do {
+                Vec3 point;
+                TrackSpline_Point(node, at<const u8 *>(node, 0x18), t, &point);
+                if (first) {
+                    first = false;
+                } else {
+                    const s32 from[2] = {(s32)((u32)Ftol((X87Reg(previous.x) * scale).v) + 0xf), (s32)((u32)Ftol((X87Reg(previous.z) * scale).v) + 0x2a)};
+                    const s32 to[2] = {(s32)((u32)Ftol((X87Reg(point.x) * scale).v) + 0xf), (s32)((u32)Ftol((X87Reg(point.z) * scale).v) + 0x2a)};
+                    const Rect *const clip = Canvas_Clip(&canvas);
+                    const s32 *const box = reinterpret_cast<const s32 *>(clip);
+                    Color *const line = reinterpret_cast<Color *>(colour);
+                    switch ((surface->bitCount + 7) >> 3) {
+                    case 1: AaLine_Draw8(nullptr, surface, box, line, from, to); break;
+                    case 2: AaLine_Draw16(nullptr, surface, box, line, from, to); break;
+                    case 3: AaLine_Draw24(nullptr, surface, box, line, from, to); break;
+                    case 4: AaLine_Draw32(nullptr, surface, box, line, from, to); break;
+                    default: break;
+                    }
+                }
+                next = X87Reg(t) - global<float>(0x00703050);
+                previous = point;
+                t = (float)next;
+            } while (!(next.v > (double)global<float>(0x00703004)));
+        }
+    }
+}
 
 void __fastcall ParkMap_Draw(const u8 *map) {
     Canvas canvas;
