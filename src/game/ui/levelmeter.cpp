@@ -2,12 +2,18 @@
 
 #include <cstdint>
 
+#include "../core/gameheap.h"
 #include "../core/language.h"
+#include "../core/options.h"
+#include "../core/selectors.h"
 #include "../core/soundplay.h"
 #include "../core/soundset.h"
 #include "../core/volumes.h"
 #include "../core/textarg.h"
 #include "../core/vcall.h"
+#include "../gfx/barmesh.h"
+#include "../render/textparts.h"
+#include "../world/advisor.h"
 #include "../world/object.h"
 #include "../world/objectdefs.h"
 #include "../world/research.h"
@@ -16,9 +22,12 @@
 #include "../world/world.h"
 #include "dialog7ca098.h"
 #include "dialogbase.h"
+#include "focus.h"
 #include "guimanager.h"
 #include "hoverlabel.h"
 #include "window.h"
+#include "window705b20.h"
+#include "windowscript.h"
 #include "windowtimers.h"
 
 namespace {
@@ -267,6 +276,110 @@ void onSlider(u32 a, u32 b) {
     }
 }
 }  // namespace
+
+namespace {
+
+const ResearchOpenEnv kOpenGameEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0),
+                                      reinterpret_cast<void(__cdecl *)(const u8 *, u32, u32, u32, u32, u32, u32, u32)>((uintptr_t)0x0047f020), &SoundUi_Play, &Global7852f8_Times78548c, &Things_SumChain,
+                                      &GameTable7cfb90_Get1da720_519510, &GameTable7cfb90_Get1da722_519550, &ResearchMeters_ShowName, &ResearchMeters_ShowProgress, &ResearchMeters_Update, &ResearchLab_GroupEffort};
+const ResearchOpenEnv *g_open = &kOpenGameEnv;
+
+// The record's byte +7 is not set, as in the original.
+void refuse(u32 text) {
+    u8 record[0x10];
+    at<u16 *>(record, 0) = Language_WideText(text);
+    record[4] = record[5] = record[6] = 0xff;
+    at<u32>(record, 8) = 4;
+    at<u32>(record, 0xc) = 0;
+    g_open->messageBox(record, 2, 0, 0, 0, 0, 0, 0);
+}
+
+}  // namespace
+
+void ResearchPanel_SetOpenEnv(const ResearchOpenEnv *env) { g_open = env ? env : &kOpenGameEnv; }
+
+void __cdecl ResearchPanel_Open() {
+    if (Global7c2534_HasSource() || global<u8 *>(0x007cc1d8)) return;
+    Window7c24c8_Close();
+    u8 &guard = global<u8>(0x00fb34be);
+    if (!(guard & 1)) {
+        guard |= 1;
+        Setting_ReadMode(reinterpret_cast<u8 *>((uintptr_t)0x00fb3b7c));
+        g_open->atExit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x005d1750));
+    }
+    if (global<u32>(0x00fb3b7c) == 2) {
+        refuse(0x1d4);
+        return;
+    }
+    if (at<u16>(global<u8 *>(0x007cf83c), 0x1da742) == 0) {
+        refuse(0x1d3);
+        return;
+    }
+    u8 *const panel = WindowScript_Build(global<u8 *>(0x007cb2ac), nullptr, reinterpret_cast<u8 *>((uintptr_t)0x00754490), 0x004a96b0);
+    global<u8 *>(0x007cc1d8) = panel;
+    if (!panel) return;
+    Window7c24c8_Set(panel);
+    global<u8>(0x007cc1bc) = 1;
+    global<u32>(0x007cc1d0) = g_open->play(0x9a);
+    global<u32>(0x007cc1cc) = g_open->play(0x9b);
+    u8 *const master = Window_FindChild(panel, nullptr, 0xd2d10);
+    global<u8 *>(0x007cc1dc) = master;
+    if (master) {
+        Window_SetHandler(master, nullptr, 0x004a9f90);
+        Window705b20_SetRange(global<u8 *>(0x007cc1dc), nullptr, 0, 0x3ff);
+        u8 *const memory = static_cast<u8 *>(GameHeap_Alloc(0x124));
+        u8 *const bar = memory ? BarMesh_Construct(memory, nullptr, reinterpret_cast<const char *>(0x00754ce4)) : nullptr;
+        Window_SetImpl(Window_FindChild(global<u8 *>(0x007cc1dc), nullptr, 0xd2d12), nullptr, bar);
+        vcall<void>(Window_FindChild(global<u8 *>(0x007cc1dc), nullptr, 0xd2d12), 0x1c, 0x1f4u);
+    }
+    static const u32 kSliders[5] = {0xd2d0e, 0xd2d0f, 0xd2d0d, 0xd2d0c, 0xd2d0b};
+    for (u32 id : kSliders) {
+        if (u8 *const slider = Window_FindChild(panel, nullptr, id)) Window705b20_SetRange(slider, nullptr, 0, 100);
+    }
+    static const struct {
+        u32 id, handler;
+    } kMeters[5] = {{0xd2d01, 0x004aa0c0}, {0xd2d07, 0x004aa300}, {0xd2d08, 0x004aa360}, {0xd2d09, 0x004aa3c0}, {0xd2d0a, 0x004aa420}};
+    for (const auto &meter : kMeters) {
+        u8 *const window = Window_FindChild(panel, nullptr, meter.id);
+        if (!window) continue;
+        Window_SetHandler(window, nullptr, meter.handler);
+        Window_SetDwordA0(window, nullptr, 0, 0x30);
+        Window_SetDwordA0(window, nullptr, 3, 0);
+        Window_Notify1(Window_FindChild(window, nullptr, kLight), nullptr, 0x30);
+        u8 *const label = Window_FindChild(window, nullptr, 0xd2d05);
+        u8 *memory = static_cast<u8 *>(GameHeap_Alloc(0x124));
+        Window_SetObject98(label, nullptr, memory ? MeshOverlay_Construct(memory, nullptr, reinterpret_cast<const char *>(0x00754cd8)) : nullptr);
+        memory = static_cast<u8 *>(GameHeap_Alloc(0x1a4));
+        Window_SetImpl(label, nullptr, memory ? TextPart_Ctor(memory, nullptr, 0) : nullptr);
+        Window_NotifyC00(label, nullptr, 1, 1);
+        Window_Notify3000(label, nullptr, 1, 1);
+        Window_Set4c(label, nullptr, Language_Font(global<u32>(0x00754bc8)));
+        Window_Notify40000(label, nullptr, 0xe0, 0x56, 0x56, 0xff);
+        Window_NotifyImpl100(label, nullptr, 0);
+    }
+    g_open->table(global<u8 *>(0x007cf83c));
+    global<s32>(0x007cc1b4) = g_open->times();
+    g_open->table(global<u8 *>(0x007cf83c));
+    const s32 sum = static_cast<s32>(g_open->sum());
+    global<s32>(0x007cc1c8) = sum;
+    const u8 *lab = reinterpret_cast<const u8 *>((uintptr_t)g_open->lab(global<u8 *>(0x007cf83c)));
+    u8 *child = Window_FindChild(global<u8 *>(0x007cc1d8), nullptr, 0xd2d10);
+    const s32 limit = static_cast<s32>(static_cast<u32>((100 - sum) / 3 + sum) << 10) / global<s32>(0x007cc1b4);
+    const s32 position = static_cast<s32>(static_cast<u32>(*reinterpret_cast<const s32 *>(lab + 0x1460) - 0x46) * static_cast<u32>(limit)) / 30;
+    vcall<void>(Window_FindChild(child, nullptr, 0xd2d12), 0x1c, limit);
+    global<s32>(0x007cc1c0) = limit;
+    vcall<void>(Window_FindChild(global<u8 *>(0x007cc1d8), nullptr, 0xd2d10), 0x1c, position);
+    static const u32 kGroups[5] = {0, 4, 1, 2, 3};
+    for (u32 group : kGroups) g_open->showName(group);
+    for (u32 group : kGroups) g_open->showProgress(group);
+    lab = reinterpret_cast<const u8 *>((uintptr_t)g_open->lab(global<u8 *>(0x007cf83c)));
+    for (u32 i = 0; i < 5; ++i) {
+        if (u8 *const slider = Window_FindChild(global<u8 *>(0x007cc1d8), nullptr, kSliders[i])) vcall<void>(slider, 0x1c, g_open->effort(lab, nullptr, kGroups[i]));
+    }
+    global<u8>(0x007cc1bc) = 0;
+    g_open->update(-1);
+    Advisor_PostId(0xc8);
+}
 
 void ResearchPanel_SetEnv(const ResearchPanelEnv *env) { g_panel = env ? env : &kGamePanelEnv; }
 

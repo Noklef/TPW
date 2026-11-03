@@ -8,11 +8,15 @@
 #include "../world/challenges.h"
 #include "../world/object.h"
 #include "../world/world.h"
+#include "dialog7ca210.h"
 #include "dialog7ca308.h"
+#include "dialog7cb25c.h"
 #include "dialog7cb398.h"
 #include "dialog7cc1f8.h"
+#include "dialog7cc2ec.h"
 #include "dialog7cc444.h"
 #include "dialogs.h"
+#include "levelmeter.h"
 #include "msgboxbutton.h"
 #include "window.h"
 #include "windowreg.h"
@@ -20,9 +24,7 @@
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
-void(__cdecl *raw(u32 address))() { return reinterpret_cast<void(__cdecl *)()>((uintptr_t)address); }
-
-const Dialog7ca098Env kGameEnv = {Camera_CentreOnThing, Camera_CentreOnCell, Dialog7cc1f8_Open, Dialog7ca308_Open, raw(0x0049fb30), raw(0x004aa480), Dialog7cb398_Create, raw(0x004b2750), Dialog7cc444_Create, raw(0x00498d80), Object_SetFlag64,
+const Dialog7ca098Env kGameEnv = {Camera_CentreOnThing, Camera_CentreOnCell, Dialog7cc1f8_Open, Dialog7ca308_Open, Dialog7cb25c_Open, ResearchPanel_Open, Dialog7cb398_Create, Dialog7cc2ec_Open, Dialog7cc444_Create, Dialog7ca210_Open, Object_SetFlag64,
                                   Challenges_AcceptOffer, Challenges_DeclineOffer, Window_NotifyImpl100, MsgBox_SetButton, Window_SetObject98, GuiWindows_FindByName, Window_SetDepth, Window_RunScript, Window_StopScript, Advisor_Cancel, Window_SendMessage,
                                   Window_PostMessage, Dialog7cb2b8_ResetChild21, Window_CallDefault};
 const Dialog7ca098Env *g_env = &kGameEnv;
