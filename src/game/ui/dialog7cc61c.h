@@ -24,7 +24,20 @@ void __cdecl Dialog7cc61c_FitText();
 // group 0x5b81 selects 0x5b82. The buttons 0x5b82 and 0x5b83: a new TextPart, Window_NotifyC00 (1, 1), the font 6, the black (0, 0, 0, 0xff), Window_NotifyImpl100 (0), the text 0x10c and 0x10d in slot 9. The hover label 0x5b84 has the text 0x10b.
 // The focus (0).
 void __cdecl Dialog7cc61c_Open();
+
+// 0x4bb720 (cdecl; window, message, a, b; name invented, unconfirmed): the panel's handler. Message 0x800: the panel scrolled (Window_NotifyC000 (0, -(line height * b * 3) * 0x200 / [0xfaa5c0]), the font's
+// slot 1 a word; a scale of 0 faults, sic), its slot 9 the text as Dialog7cc61c_FitText reads it. Message 0x101 with b = 1: [0x7cc620] = (a is 0x5b82), the text fitted. Always ends in Window_CallDefault, whose answer it returns.
+s32 __cdecl Dialog7cc61c_PanelHandler(u8 *window, u32 message, u32 a, u32 b);
 }
+
+// The calls of Dialog7cc61c_PanelHandler that the bench records.
+struct Dialog7cc61cPanelEnv {
+    u8 *(__cdecl *font)(u32 index);                             // Language_Font
+    void(__fastcall *scroll)(u8 *window, void *, u32 a, u32 b); // Window_NotifyC000
+    u8 *(__cdecl *online)();                                    // Online_Instance
+    void(__cdecl *fitText)();                                   // Dialog7cc61c_FitText
+};
+void Dialog7cc61c_SetPanelEnv(const Dialog7cc61cPanelEnv *env);
 
 // The calls of Dialog7cc61c_FitText that the bench records: Mem_Alloc, the holder's constructor (0x5b50b0), GuiText_Measure (the font as dwords pushed), Language_Font,
 // Window_SetShown, Window705b20_SetRange.

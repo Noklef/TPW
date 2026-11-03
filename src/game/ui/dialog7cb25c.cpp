@@ -7,10 +7,17 @@
 #include "../core/methods.h"
 #include "../core/options.h"
 #include "../core/vcall.h"
+#include "../files/charsets.h"
+#include "../files/wrapsources.h"
 #include "../world/advisor.h"
 #include "../world/money.h"
 #include "../world/world.h"
 #include "buttontext.h"
+#include "dialog7ca098.h"
+#include "dialog7ca210.h"
+#include "dialog7ca2e8.h"
+#include "dialog7cc2ec.h"
+#include "dialogbase.h"
 #include "dialogs.h"
 #include "focus.h"
 #include "hoverlabel.h"
@@ -29,11 +36,94 @@ const Dialog7cb25cOpenEnv kOpenGameEnv = {reinterpret_cast<s32(__cdecl *)(void(_
                                           &Window7059f0_BuildRows, &Dialog7cb25c_FillList, &RadioGroup_Select, &Dialog7cb25c_SetTexts};
 const Dialog7cb25cOpenEnv *g_open = &kOpenGameEnv;
 
+const Dialog7cb25cHandlerEnv kHandlerGameEnv = {&Window_SendMessage, &Game_CancelAdvisor, &Window_FindChild, &Window7059f0_NthItemData, &GameTable7cfb90_Get1da726_5195d0, &Money_LoanOffer,
+                                                reinterpret_cast<u32(__fastcall *)(u32)>(&Source_Field0c), &Charset_FormatWide,
+                                                reinterpret_cast<void(__cdecl *)(const u8 *, u32, u32, u32, u32, u32, u32, u32)>((uintptr_t)0x0047f020), &Dialog7ca210_Open, &Dialog7ca2e8_Open, &Dialog7cc2ec_Open, &Dialog_KeyHandler};
+const Dialog7cb25cHandlerEnv *g_handler = &kHandlerGameEnv;
+
+u8 *game() { return *reinterpret_cast<u8 **>((uintptr_t)0x007cf83c); }
+
+// The text of the number formatted into text and a box of it (the white record, its last colour byte never written, sic).
+void loanBox(u16 *text, u32 entry, u32 value, u32 buttons, u32 index, u32 callback) {
+    const u32 arg[5] = {0x006ff170, 0x5641524d, 1, value, 0};   // (TextArgInt_Ctor (1, the value, unsigned), inline)
+    g_handler->format(*reinterpret_cast<u8 **>((uintptr_t)0x0078ba94), text, 0xff, entry, arg);
+    struct {
+        u16 *text;
+        u8 colour[4];
+        u32 kind, data;
+    } record;
+    record.text = text;
+    record.colour[0] = record.colour[1] = record.colour[2] = 0xff;
+    record.kind = 4;
+    record.data = index;
+    g_handler->box(reinterpret_cast<const u8 *>(&record), buttons, 0, callback ? 1 : 0, callback, 0, 0, 0);
+}
+
+void chosen(s32 data) {
+    u32 offer[8];
+    u16 text[0x100];
+    if (data < 0) {
+        const u32 index = (u32)(-1 - data);
+        g_handler->offer(reinterpret_cast<u8 *>((uintptr_t)g_handler->table26(game())), nullptr, offer, index);
+        const u32 owed = (offer[3] - offer[6]) * offer[4];
+        if ((s32)g_handler->field(g_handler->table26(game())) > (s32)owed) loanBox(text, 0xb5, owed, 2, index, 0x0049f460);
+        else loanBox(text, 0xb6, owed, 1, index, 0);
+    } else {
+        const u32 index = (u32)data - 1;
+        g_handler->offer(reinterpret_cast<u8 *>((uintptr_t)g_handler->table26(game())), nullptr, offer, index);
+        loanBox(text, 0xb7, offer[1], 2, index, 0x0049f4a0);
+    }
+}
+
 }  // namespace
 
 void Dialog7cb25c_SetOpenEnv(const Dialog7cb25cOpenEnv *env) { g_open = env ? env : &kOpenGameEnv; }
+void Dialog7cb25c_SetHandlerEnv(const Dialog7cb25cHandlerEnv *env) { g_handler = env ? env : &kHandlerGameEnv; }
 
 extern "C" {
+
+s32 __cdecl Dialog7cb25c_Handler(u8 *window, u32 message, u32 a, u32 b) {
+    switch (message) {
+    case 5:
+        g_handler->send(dialog(), 4, 0, 0);
+        return 1;
+    case 0x14:
+        *reinterpret_cast<u8 **>((uintptr_t)0x007cb25c) = nullptr;
+        g_handler->cancel(0xc3);
+        break;
+    case 0x100:
+        switch (a) {
+        case 0xfffffffe:
+        case 0xffffffff:
+            g_handler->send(dialog(), 4, 0, 0);
+            return 0;
+        case 0x12c4ba:
+            g_handler->open1();
+            return 0;
+        case 0x12c4bb:
+            g_handler->open2();
+            return 0;
+        case 0x12c4bc:
+            g_handler->open3();
+            return 0;
+        default:
+            break;
+        }
+        break;
+    case 0x400: {
+        u8 *const list = g_handler->find(window, nullptr, a);
+        if (list && b != 0xffffffff) {
+            s32 data;
+            g_handler->nth(list, nullptr, (s32)b, reinterpret_cast<u32 *>(&data));
+            chosen(data);
+        }
+        break;
+    }
+    default:
+        break;
+    }
+    return g_handler->keys(window, message, a, b);
+}
 
 void __cdecl Dialog7cb25c_Open() {
     if (dialog()) return;

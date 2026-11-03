@@ -6,6 +6,7 @@
 #include "../core/language.h"
 #include "../core/vcall.h"
 #include "../gfx/guitext.h"
+#include "../online/session.h"
 #include "../render/textparts.h"
 #include "dialogbase.h"
 #include "focus.h"
@@ -114,6 +115,26 @@ extern "C" void __cdecl Dialog7cc61c_Open() {
     dressButton(group, 0x5b83, 0x10d);
     g_open->attach(dialog, 0x5b84, (u32)(uintptr_t)g_open->text(0x10b));
     g_open->setFocus(dialog, nullptr, 0);
+}
+
+namespace {
+const Dialog7cc61cPanelEnv kGamePanelEnv = {&Language_Font, &Window_NotifyC000, &Online_Instance, &Dialog7cc61c_FitText};
+const Dialog7cc61cPanelEnv *g_panel = &kGamePanelEnv;
+}  // namespace
+
+void Dialog7cc61c_SetPanelEnv(const Dialog7cc61cPanelEnv *env) { g_panel = env ? env : &kGamePanelEnv; }
+
+extern "C" s32 __cdecl Dialog7cc61c_PanelHandler(u8 *window, u32 message, u32 a, u32 b) {
+    if (message == 0x800) {
+        const s32 line = (s16)vcall<u32>(g_panel->font(global<u32>(0x00758870)), 4);
+        g_panel->scroll(window, nullptr, 0, (u32)((s32)((0u - (u32)line * b * 3) << 9) / global<s16>(0x00faa5c0)));
+        const bool first = global<u8>(0x007cc620) != 0;
+        vcall<void>(window, 0x24, at<const u16 *>(g_panel->online(), first ? 0xa0 : 0xbc));
+    } else if (message == 0x101 && b == 1) {
+        global<u8>(0x007cc620) = a == 0x5b82;
+        g_panel->fitText();
+    }
+    return Window_CallDefault(window, nullptr, message, a, b);
 }
 
 extern "C" s32 __cdecl Dialog7cc61c_Handler(u8 *window, u32 message, u32 a, u32 b) {

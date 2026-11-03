@@ -2,12 +2,17 @@
 
 #include <cstdint>
 
+#include "../core/filetime.h"
+#include "../core/funnytime.h"
 #include "../core/globalsave.h"
 #include "../core/stdtree.h"
 #include "advisorscore.h"
+#include "analyser.h"
 #include "mapcell.h"
+#include "money.h"
 #include "object.h"
 #include "objectdefs.h"
+#include "research.h"
 #include "ridesearch.h"
 #include "thingmsg.h"
 #include "thingscan.h"
@@ -40,7 +45,44 @@ void check_score(u8 *self, u32 group, s32 value, u32 limit) {
 
 void ObjectUnlock_SetScoresEnv(const ObjectUnlockScoresEnv *env) { g_scores = env ? env : &kScoresGameEnv; }
 
+namespace {
+
+const ObjectUnlockThemesEnv kThemesGameEnv = {GlobalSave_ThemeByte, GlobalSave_MarkTheme, ObjectUnlock_AdviseLevel, GameTable7cfb90_Get1da720_519510, ParkAnalyser_Total, Things_CountKind1OnPlainCell, Things_AveragePersonStat19c,
+                                              Research_AllDone, GameTable7cfb90_Get1da726_5195d0, Money_Total, ParkAnalyser_TotalSince, FunnyTime_Elapsed};
+const ObjectUnlockThemesEnv *g_themes = &kThemesGameEnv;
+
+s32 limitAt(u32 address) { return *reinterpret_cast<const s32 *>((uintptr_t)address); }
+u8 *world() { return *reinterpret_cast<u8 **>((uintptr_t)0x0080239c); }
+bool marked(u32 i) { return g_themes->themeByte(GlobalSave_Instance(), nullptr, i) != 0; }
+
+void markAndAdvise(u8 *self, u32 i) {
+    const u32 level = g_themes->mark(GlobalSave_Instance(), nullptr, i);
+    if (level) g_themes->advise(self, nullptr, i, (s32)level);
+}
+
+}  // namespace
+
+void ObjectUnlock_SetThemesEnv(const ObjectUnlockThemesEnv *env) { g_themes = env ? env : &kThemesGameEnv; }
+
 extern "C" {
+
+void __fastcall ObjectUnlock_CheckThemes(u8 *self) {
+    const u8 *const analyser = reinterpret_cast<const u8 *>((uintptr_t)g_themes->table(world()));
+    if (!marked(0) && (s32)g_themes->total(analyser) > limitAt(0x00785790)) markAndAdvise(self, 0);
+    if (!marked(1) && g_themes->people() > limitAt(0x00785794)) markAndAdvise(self, 1);
+    if (!marked(2)) {
+        const double average = g_themes->average(const_cast<u8 *>(analyser), nullptr, 0);
+        if (!((double)limitAt(0x00785798) >= average) && g_themes->people() > limitAt(0x0078579c)) markAndAdvise(self, 2);
+    }
+    if (!marked(3) && g_themes->allDone()) markAndAdvise(self, 3);
+    if (!marked(4) && (s32)g_themes->money(reinterpret_cast<const u8 *>((uintptr_t)g_themes->table26(world()))) > limitAt(0x007857a0)) markAndAdvise(self, 4);
+    if (!marked(5) && (s32)g_themes->since(analyser, nullptr, limitAt(0x007857a8)) > limitAt(0x007857a4)) {
+        FileTime out;
+        const FileTime *const elapsed = g_themes->elapsed(world() + 0x2a0, nullptr, &out);
+        const long long time = (long long)(((unsigned long long)elapsed->high << 32) | elapsed->low);
+        if ((s32)(time / 0x1792f8648000LL) > limitAt(0x007857a8)) markAndAdvise(self, 5);
+    }
+}
 
 void __fastcall ObjectUnlock_CheckScores(u8 *self) {
     g_scores->store(*reinterpret_cast<u8 **>((uintptr_t)0x0080239c));

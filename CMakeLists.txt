@@ -529,6 +529,11 @@ add_library(tpw_game STATIC
     src/game/ui/dialog7cc47c.cpp
     src/game/ui/gamepartdialogs.cpp
     src/game/world/patrolcoverage.cpp
+    src/game/ui/dialog7cc184.cpp
+    src/game/ui/signnamedialog.cpp
+    src/game/ui/window7cb2a4.cpp
+    src/game/ui/dialog7cc984.cpp
+    src/game/world/rideupkeep.cpp
     src/game/ui/staffrename.cpp
     src/game/ui/window7cc8bc.cpp
     src/game/ui/dialog7cb2b8.cpp

@@ -19,6 +19,7 @@ struct Dialog7cc4b4UpdateEnv {
     void(__cdecl *end)(u32 handle);                                             // ParticleSystem_End
     s32(__cdecl *swprintf)(u16 *to, const u16 *format, s32 value);              // Crt().swprintf
     void(__cdecl *setFlag)(u32 flag);                                           // Dialog7cc4b4_SetFlag
+    void(__fastcall *copyName)(u8 *theme, void *, u16 *to, u32 size);           // 0x5b12e0 (Dialog7cc4b4_ShowTheme's), agent B's, unported
 };
 void Dialog7cc4b4_SetUpdateEnv(const Dialog7cc4b4UpdateEnv *env);
 
@@ -28,4 +29,8 @@ extern "C" {
 // and 0x1e0ec hidden; else all of those shown or told 1 and, with the set levels at least the theme's field 0x14, 0x1e0ea's Window_Notify1 (0) and its child 0x1e0eb's (field - 1), its rectangle's middle (y * 75000 / 0x600) a spawn of the effect 0x61 at (50000, 0, y) unless [0x7cc4bc] has one; below it Window_Notify1 (1) and (field + 4), the effect ended and forgotten.
 // Then the child 0x1e0ec: in mode 2 hidden and Dialog7cc4b4_SetFlag (0). Else with no set levels hidden; with some shown, the four again told 1, and its child 0x1e0ee's slot 9 the count formatted (0x758194, the buffer 0x7ba058). Last [0x7cc4b8] = the set levels.
 void __cdecl Dialog7cc4b4_Update();
+
+// 0x4b90f0 (cdecl; name invented, unconfirmed): nothing without the dialog. The theme of the name [+0x30] of the game's part [[[0xf85614] + 4] + 0xc] (none checked; 0x5b09c0). Found: in mode 2 the child 0x1e0ea hidden, else its figures as Update's by whether [0x7cc4b8] is at least the theme's field 0x14 (signed);
+// its name copied (0x5b12e0) to 0x7ba058, 0x3fff, which is the text; not found the part's +0x50 is. The child 0x1e0ef's slot 9 the text.
+void __cdecl Dialog7cc4b4_ShowTheme();
 }

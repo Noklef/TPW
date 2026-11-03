@@ -1,0 +1,114 @@
+// The dialog [0x7cc184]: see dialog7cc184.h.
+#include "dialog7cc184.h"
+
+#include <cstdint>
+
+#include "../core/dequeiter.h"
+#include "../core/gameheap.h"
+#include "../core/language.h"
+#include "../core/options.h"
+#include "../core/vcall.h"
+#include "../gfx/imageops.h"
+#include "../online/session.h"
+#include "../render/renderer.h"
+#include "../render/textparts.h"
+#include "../world/advisor.h"
+#include "focus.h"
+#include "guirect.h"
+#include "hoverlabel.h"
+#include "window.h"
+#include "window705a20.h"
+#include "windowreg.h"
+#include "windowscript.h"
+
+namespace {
+
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
+const Dialog7cc184OpenEnv kGameEnv = {Setting_ReadMode, reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)0x0067a7d0), GameHeap_Alloc, reinterpret_cast<u8 *(__fastcall *)(u8 *, void *)>((uintptr_t)0x005b50b0), Online_Restricted,
+                                      CommandQueue_Post, Window7c24c8_Close, Window7c24c8_Set, WindowScript_Build, Language_WideText, HoverLabel_Attach, TextPart6ff4d0_Ctor, Window705a20_SetBuffer, Window_SetImpl, Language_Font, Window_Set4c,
+                                      Window_Notify40000, Window_Notify3000, Window_NotifyC00, GuiWindows_FindByName, Window705a20_SetCaret, Window_SetHandler, RendererPart_Ctor, Window_ImplSlot7, Panel_Reset, Panel_ShrinkInto, Window_ImplSlot6, Advisor_PostId};
+const Dialog7cc184OpenEnv *g_open = &kGameEnv;
+
+bool settingIsOne() {
+    u8 &guard = global<u8>(0x00fb34bf);
+    if (!(guard & 1)) {
+        guard |= 1;
+        g_open->readMode(reinterpret_cast<u8 *>((uintptr_t)0x00fb3b7c));
+        g_open->atExit(reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x005d1750));
+    }
+    return global<u32>(0x00fb3b7c) == 1;
+}
+
+u8 *newEditPart() {
+    u8 *const memory = static_cast<u8 *>(g_open->alloc(0x1a4));
+    return memory ? g_open->editPart(memory, nullptr, 0) : nullptr;
+}
+
+void dressEdit(u8 *edit, u32 buffer, u32 dwords, u32 capacity, u32 a, u32 text, bool partFirst) {
+    u8 *part = partFirst ? newEditPart() : nullptr;
+    for (u32 i = 0; i < dwords; ++i) reinterpret_cast<u32 *>((uintptr_t)buffer)[i] = 0;
+    g_open->setBuffer(edit, nullptr, buffer, capacity);
+    if (!partFirst) part = newEditPart();
+    g_open->setImpl(edit, nullptr, part);
+    g_open->set4c(edit, nullptr, g_open->font(0xb));
+    g_open->notify40000(edit, nullptr, 0xff, 0xff, 0xff, 0xff);
+    g_open->notify3000(edit, nullptr, a, 0);
+    g_open->notifyC00(edit, nullptr, 0, 0);
+    g_open->setCaret(edit, nullptr, reinterpret_cast<u8 *>((uintptr_t)g_open->findByName(reinterpret_cast<const char *>((uintptr_t)0x0074fa84))));
+    vcall<void>(edit, 0x24, g_open->text(text));
+}
+
+void showPicture(u8 *picture) {
+    g_open->setHandler(picture, nullptr, 0x004a7c50);
+    u8 *const memory = static_cast<u8 *>(g_open->alloc(0xd8));
+    g_open->setImpl(picture, nullptr, memory ? g_open->picturePart(memory, nullptr, 0) : nullptr);
+    u8 rect[12];
+    GuiRect_Ctor(rect);
+    s32 width, height;
+    u8 *const surface = reinterpret_cast<u8 *>((uintptr_t)g_open->slot7(picture, nullptr, (u32)(uintptr_t)&width, (u32)(uintptr_t)&height));
+    if (surface && global<u8 *>(0x007cc18c)) {
+        g_open->reset(global<u8 *>(0x007cc18c));
+        const u32 mode = global<u32>(0x008bd554);
+        if (mode == 2 || mode == 3) g_open->shrink(global<u8 *>(0x007cc18c), nullptr, surface, width, height, mode == 2 ? 2 : 1);
+        g_open->slot6(picture);
+    }
+    GuiRect_Dtor(rect);
+}
+
+}  // namespace
+
+void Dialog7cc184_SetOpenEnv(const Dialog7cc184OpenEnv *env) { g_open = env ? env : &kGameEnv; }
+
+extern "C" void __cdecl Dialog7cc184_Open() {
+    u8 *&dialog = global<u8 *>(0x007cc184);
+    if (dialog) return;
+    u8 *&session = global<u8 *>(0x00f7d88c);
+    if (!session) {
+        u8 *const memory = static_cast<u8 *>(g_open->alloc(0x404));
+        session = memory ? g_open->holderCtor(memory, nullptr) : nullptr;
+    }
+    if (!g_open->restricted(session)) {
+        g_open->post(0x4e, 0);
+        return;
+    }
+    u8 *parent;
+    if (settingIsOne()) {
+        parent = global<u8 *>(0x007cc8c0);
+    } else {
+        g_open->closeModal();
+        parent = global<u8 *>(0x007cb2ac);
+    }
+    if (u8 *const window = g_open->build(parent, nullptr, reinterpret_cast<u8 *>((uintptr_t)0x007540d8), 0x004a7d70)) {
+        dialog = window;
+        if (!settingIsOne()) g_open->setModal(dialog);
+        g_open->attach(dialog, 0x5d9e, (u32)(uintptr_t)g_open->text(0xd0));
+        if (u8 *const edit = Window_FindChild(dialog, nullptr, 0x5da5)) dressEdit(edit, 0x007cb4d0, 0x100, 0x1ff, 1, 0xd3, true);
+        if (u8 *const edit = Window_FindChild(dialog, nullptr, 0x5da4)) dressEdit(edit, 0x007cb408, 0x30, 0x5f, 0, 0xd1, false);
+        if (u8 *const edit = Window_FindChild(dialog, nullptr, 0x5da3)) dressEdit(edit, 0x007cbf48, 0x80, 0xff, 1, 0xd2, false);
+        if (u8 *const picture = Window_FindChild(dialog, nullptr, 0x5d9f)) showPicture(picture);
+    }
+    global<u8>(0x007cbf40) = 0;
+    global<u8>(0x007cbf3c) = 0;
+    if (!settingIsOne()) g_open->advisor(0x133);
+}
