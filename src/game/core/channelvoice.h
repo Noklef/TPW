@@ -71,6 +71,11 @@ void __fastcall ChannelVoices_SetCount(u8 *pool, void *, const u8 *settings);
 // +8 0, +0xc the channel, +0x10 the voices' events (Mem_Alloc 0x18, VoiceEvents_Ctor (the voices, the count); null when it fails).
 // Returns the pool.
 u8 *__fastcall ChannelVoices_Ctor(u8 *pool, void *, u8 *channel, u32 count);
+// 0x6ba2c0 (thiscall (out, requested), pops 8; name invented): the count in use (+8) = requested or the capacity, the smaller (unsigned). For each voice (the index compared
+// by its low word) its id's high part (VoiceId_SetHigh of +0x2c: the index), the events' (+0x10) handle i (their +0x10) = CreateEventA (0, 1, 0, 0), its +0x70 = the
+// handle's address. The handle after them another such event. The thread (0x67e050: 0x6ba220, the proc for the channel's service loop 0x6c6180; 0; the pool) at
+// SetThreadPriority 0 whether made or not. *out = 0, or -1 without a thread. Returns out.
+u32 *__fastcall ChannelVoices_Start(u8 *pool, void *, u32 *out, u32 requested);
 // 0x6bb590 (thiscall; from the channel's service loop 0x6c6180; name invented): the voice's buffer (+0x68) refilled by its slot 7 (the
 // read: the buffer, 0x2400 bytes, a local out, 0); +0x30 = 1 unless the read answered 1 (the end); ResetEvent (*+0x70), SetEvent (+0x6c).
 // Returns +0x30.
@@ -133,5 +138,11 @@ u32 __fastcall ChannelVoices_PlayRecord(u8 *pool, void *, u32 handle, u8 *record
 // 0x6bae60 (thiscall (handle, record), pops 8; name invented): the resource's slot 12 not 0 and record flag 0x2000 (else 0): a voice (AcquireBy), a
 // notify stream handed to the answer's slot 1; what that answers (0: 0) gets slot 10 (the voice's +0x2c stepped); returns its answer.
 u32 __fastcall ChannelVoices_PlayNotify(u8 *pool, void *, u32 handle, u8 *record);
+
+// The pool's thread, so that the bench can record it (nullptr: the game's).
+struct ChannelVoicesEnv {
+    u32(__cdecl *beginThread)(u32 entry, u32 stack, void *arg);   // 0x67e050 (agent B's, unported)
+};
+void ChannelVoices_SetEnv(const ChannelVoicesEnv *env);
 
 }  // extern "C"
