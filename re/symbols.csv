@@ -7611,6 +7611,7 @@ address,name,kind,confidence,notes
 0x004b67f0,Panel7cc3e0_Handler,function,low,"reimplemented (src/game/ui/thingpanelhandlers); cdecl (window, message, a, b); name invented, unconfirmed: the panel 0x7cc3e0's handler"
 0x004b86a0,Dialog7cc47c_Handler,function,low,"reimplemented (src/game/ui/gamepartdialogs); handler of the dialog 0x7cc47c: name invented, unconfirmed"
 0x004b8b70,Dialog7cc4b4_Handler,function,low,"reimplemented (src/game/ui/gamepartdialogs); handler of the dialog 0x7cc4b4: name invented, unconfirmed"
+0x004a8c00,Dialog7cc184_Open,function,low,"reimplemented (src/game/ui/dialog7cc184); the dialog [0x7cc184] made from its script, its edits and picture dressed: name invented, unconfirmed"
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"
