@@ -5629,6 +5629,9 @@ address,name,kind,confidence,notes
 0x00532fc0,MapCell_HandleMessage,function,low,"reimplemented (src/game/world/cellmessage); thiscall (message, a, b), pops 12: a map cell's messages: 0x200 the build check, 0x100 the walls' faces, 0x32 cleared and its line's ends reset, 0x80-0x87 path links, models, directions, owners, end flags, track runs and dead ends; others the kind (MapCell_SetKind); agent A's 0x527ee0 / 0x52f580 through the env"
 0x00452d30,Map_SetRideCell,function,low,"reimplemented (src/game/world/cellmessage); cdecl (unused, x, y, ride, flagged): the clamped map cell made kind 0x15 (cleared, message 0x15) keeping its owner word, its entry's +4 the ride, flag 0x100 set or cleared"
 0x00536100,Map_SendLine,function,low,"reimplemented (src/game/world/cellmessage); cdecl (message, x0, y0, &x1, &y1): a message (MapCell_HandleMessage, the step as a or b) to the map cells along a line on its longer way, 0x820aa4 / 0x820ab8 marking the first and the last; 0 when a cell answers 0"
+0x004d6260,Guard_Send,function,low,"reimplemented (src/game/world/guardescort); thiscall (handle), pops 4; name invented, unconfirmed: a guard sent after a thing"
+0x004d6790,Guard_Chase,function,low,"reimplemented (src/game/world/guardescort); thiscall; name invented, unconfirmed: the guard's chase step"
+0x004d6a50,Guard_LeaveWithVisitor,function,low,"reimplemented (src/game/world/guardescort); thiscall; name invented, unconfirmed: the guard's step with the caught visitor"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved

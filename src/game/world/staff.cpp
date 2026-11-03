@@ -1,5 +1,7 @@
 #include "staff.h"
 
+#include "guardescort.h"
+
 #include <cstdint>
 
 #include "../core/accessors.h"
@@ -953,10 +955,7 @@ void __fastcall Staff_HandleMessage(u8 *staff, void *, u8 *message) {
 namespace {
 s32 __fastcall game_sumA(u8 *record, void *, u32 n) { return (s32)ParkAnalyser_CountWith2c(record, nullptr, n); }
 s32 __fastcall game_sumB(u8 *record, void *, u32 n) { return (s32)ParkAnalyser_CountType1Or3Or9(record, nullptr, n); }
-void __fastcall game_sendGuard(u8 *guard, void *, u32 handle) {
-    reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)0x004d6260)(guard, nullptr, handle);
-}
-const StaffAdviceEnv kGameAdviceEnv = {&game_sumA, &game_sumB, &game_sendGuard};
+const StaffAdviceEnv kGameAdviceEnv = {&game_sumA, &game_sumB, &Guard_Send};
 const StaffAdviceEnv *g_advice = &kGameAdviceEnv;
 const u32 kKindHeads[5] = {0x1da73c, 0x1da73e, 0x1da740, 0x1da744, 0x1da742};
 
