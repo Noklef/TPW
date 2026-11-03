@@ -60,4 +60,46 @@ u32 __fastcall D3dProbe_SetFlags(u8 *self, void *, u32 flags);
 // (-0.5, size - 0.5) uv (u0, v1), each at z 50, rhw 0.02, with the colours; then the base's slot 8. 1. The floats go through the x87 (a
 // signalling NaN comes out quiet) but the first vertex's x, a plain -0.5.
 u32 __fastcall D3dProbe_Draw(u8 *self, void *, u32 size, u32 diffuse, u32 specular, u32 u0, u32 v0, u32 u1, u32 v1);
+
+// The renderer's drawing on the same object, thiscall on the probe + 0x2c. All names unconfirmed. A device call's result goes to the result
+// global 0x879cd4 where noted ("kept"): a negative one's message (DxResult_Message) written to the engine debug log; "pushed": any non-zero one also on the
+// engine's error list 0x879ad0 with the kind given. Vertices are FVF 0x1c4 (xyzrhw, diffuse, specular, one uv pair), 0x20 bytes each.
+
+// 0x566fa0: stage 0's state 0x13 = [0x8bd4a8], then BeginScene (COM slot 0x24), kept, pushed (kind 3): whether it was 0.
+u32 __fastcall D3dProbe_BeginScene(u8 *self);
+// 0x567010: EndScene (COM slot 0x28), kept, pushed (kind 3): whether it was 0.
+u32 __fastcall D3dProbe_EndScene(u8 *self);
+// 0x567060 (the base's slot 0x10; x, y, out; pops 0xc; this is not used): locks the surface at [0x879a24] + 0x14 (COM slot 0x64; flags 1), kept; a non-zero result answers 0. Reads the
+// pixel at (x, y) by the desc's pitch and surface and the bits per pixel 0x8bcbe4 (16: a word, else a dword), *out = it & [0x8bd4dc], unlocks (COM slot 0x80), 1.
+u32 __fastcall D3dProbe_ReadPixel(u8 *self, void *, s32 x, s32 y, u32 *out);
+// 0x5675c0 (stage, texture; pops 8): 1 when the texture is the one at the probe's +0x20 (whatever the stage). Otherwise SetTexture (COM slot 0x98), kept: a non-zero result
+// answers 0; else the texture stored, 1.
+u32 __fastcall D3dProbe_SetTexture(u8 *self, void *, u32 stage, u32 texture);
+// 0x567ad0 (start, end (floats), colour; pops 0xc): Obj_SetColour8b4 of the render caps object 0x8bcbc8; 0x8bd498 = 1 / (end - start) when that is above 0, else 0; render
+// states 0x30 = 0, FOGCOLOR = colour; with a render caps bit 0xc000 FOGTABLEMODE 0, else FOGTABLEMODE 3, start and end. 1. The results are not looked at: the original's test of them never fires (sic).
+u32 __fastcall D3dProbe_SetFog(u8 *self, void *, u32 start, u32 end, u32 colour);
+// 0x568ac0: the base's slot 7, no texture, a fixed four-coloured quad (DrawIndexedPrimitive, COM slot 0x74, whose result is not looked at), the base's slot 8: slot 8's answer.
+u32 __fastcall D3dProbe_DrawTestQuad(u8 *self);
+// 0x568c50 (x0, y0, x1, y1 (floats), colour, texture or null (its slot 2 gives the handle); pops 0x18): a textured quad, the states it needs only where the flags set last differ:
+// alpha not 0xff blends (low byte 0x56: states 0x13 = 5, 0x14 = 6; state 0x1b on; ALPHAREF off), opaque state 0x1b off; then ZENABLE on, ALPHATESTENABLE off. Kept, pushed (kind 2): whether it was 0.
+u32 __fastcall D3dProbe_DrawQuad(u8 *self, void *, u32 x0, u32 y0, u32 x1, u32 y1, u32 colour, u8 *texture);
+// 0x568f50 (points (pairs of floats), count, colour, scale; pops 0x10): no texture; a line strip (DrawPrimitive, type 3) of the points times the scale at z 1e-6, rhw 1. Room for 16 on
+// the stack, past that an overrun (sic). Kept, pushed (kind 2): whether it was 0.
+u32 __fastcall D3dProbe_DrawLines(u8 *self, void *, const float *points, s32 count, u32 colour, float scale);
+// 0x569040: no texture, flags 0x9d56; a frame 5 wide round the screen (0x8bcbd0, 0x8bcbd4): black outer corners and transparent inner, all 0x80000000 with the render caps bit 0x8000000.
+// Kept, pushed (kind 2). 1.
+u32 __fastcall D3dProbe_DrawFrame(u8 *self);
+// 0x569410 (eight corners of four floats each, unused, flags; pops 0xc): the corners white, those on a side the flags' low six bits select red; the vertices given to the transform
+// object [0x87b1d8] (its slot 3, cdecl, (object, vertices, 0x20, 8, 0), a float answer dropped); no texture, flags 0x56; states 0x1b off, ZENABLE on, 0xe on, 0x1d and 0x1c off where the flags
+// set last differ; a line strip through 16 indices (flags 9), kept. 1.
+u32 __fastcall D3dProbe_DrawBox(u8 *self, void *, const u32 *corners, u32, u32 flags);
+// 0x569720: pixels per tick: no texture, the base's slot 7 (0: answers 0), flags 0x9256, a screen quad drawn three times (48 indices); a non-zero result global after a draw
+// (the draws do not set it, sic) stops there: slot 8, 0. Then slot 8 (0: answers 0), else width * height * 50 / (the ticks taken * 16), in dwords that wrap, by fild and fidiv.
+float __fastcall D3dProbe_FillRate(u8 *self);
 }
+
+// The clock D3dProbe_FillRate reads (default Cpu_Ticks16). nullptr restores it.
+struct D3dProbeEnv {
+    u32(__cdecl *ticks)();
+};
+void D3dProbe_SetEnv(const D3dProbeEnv *e);

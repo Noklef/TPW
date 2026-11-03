@@ -3,9 +3,14 @@
 
 #include <cstdint>
 
+#include "../core/accessors.h"
+#include "../core/cpuinfo.h"
 #include "../core/vcall.h"
 #include "../core/vregs.h"
 #include "../math/x87.h"
+#include "dxerrors.h"
+#include "enginedebug.h"
+#include "engineerrors.h"
 
 namespace {
 
@@ -41,7 +46,37 @@ void applyFlag(u8 *probe, u32 flags, u32 bit, u32 state, bool inverted) {
     s = ((flags ^ s) & bit) ^ s;
 }
 
+const D3dProbeEnv kGameEnv = {Cpu_Ticks16};
+const D3dProbeEnv *g_env = &kGameEnv;
+
+const u16 kQuad[6] = {0, 2, 1, 0, 3, 2};   // two triangles of a quad's four vertices
+
+u32 bitsOf(float f) {
+    u32 b;
+    std::memcpy(&b, &f, 4);
+    return b;
+}
+
+u32 &result() { return global<u32>(0x00879cd4); }
+
+// A device call's result kept; a failure's message written to the engine debug log.
+void keep(u32 hr) {
+    result() = hr;
+    if (static_cast<s32>(hr) < 0) EngineDebug_Log(DxResult_Message(hr));
+}
+// The kept result, unless 0, also on the engine's error list: whether it was 0.
+u32 pushed(u32 kind) {
+    if (result() != 0) EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, kind, result());
+    return result() == 0;
+}
+
+u32 drawIndexed(u8 *probe, u32 type, const u32 *vertices, u32 vertexCount, const u16 *indices, u32 indexCount, u32 flags) {
+    return comcall<u32>(device(probe), 0x74, type, 0x1c4u, vertices, vertexCount, indices, indexCount, flags);
+}
+
 }  // namespace
+
+void D3dProbe_SetEnv(const D3dProbeEnv *e) { g_env = e ? e : &kGameEnv; }
 
 extern "C" {
 
@@ -207,6 +242,228 @@ u32 __fastcall D3dProbe_Draw(u8 *self, void *, u32 size, u32 diffuse, u32 specul
     comcall<u32>(at<u8 *>(probe, 0x24), 0x70, 4u, 0x1c4u, vertices, 3u, 1u);
     vcall<u32>(base(probe), 0x20);
     return 1;
+}
+
+u32 __fastcall D3dProbe_BeginScene(u8 *self) {
+    u8 *const probe = self - 0x2c;
+    stageState(probe, 0, 0x13, global<u32>(0x008bd4a8));
+    keep(comcall<u32>(device(probe), 0x24));
+    return pushed(3);
+}
+
+u32 __fastcall D3dProbe_EndScene(u8 *self) {
+    keep(comcall<u32>(device(self - 0x2c), 0x28));
+    return pushed(3);
+}
+
+u32 __fastcall D3dProbe_ReadPixel(u8 *, void *, s32 x, s32 y, u32 *out) {
+    u8 *const surface = at<u8 *>(global<u8 *>(0x00879a24), 0x14);
+    u32 desc[31] = {0x7c};
+    keep(comcall<u32>(surface, 0x64, 0u, desc, 1u, 0u));
+    if (result() != 0) return 0;
+    const s32 bits = global<s32>(0x008bcbe4);
+    const u32 pixel = desc[9] + static_cast<u32>(bits >> 3) * static_cast<u32>(x) + desc[4] * static_cast<u32>(y);
+    *out = bits == 0x10 ? global<u16>(pixel) : global<u32>(pixel);
+    *out &= global<u32>(0x008bd4dc);
+    comcall<u32>(surface, 0x80, 0u);
+    return 1;
+}
+
+u32 __fastcall D3dProbe_SetTexture(u8 *self, void *, u32 stage, u32 texture) {
+    u8 *const probe = self - 0x2c;
+    if (at<u32>(probe, 0x20) == texture) return 1;
+    keep(comcall<u32>(device(probe), 0x98, stage, texture));
+    if (result() != 0) return 0;
+    at<u32>(probe, 0x20) = texture;
+    return 1;
+}
+
+u32 __fastcall D3dProbe_SetFog(u8 *self, void *, u32 start, u32 end, u32 colour) {
+    u8 *const probe = self - 0x2c;
+    Obj_SetColour8b4(reinterpret_cast<u8 *>((uintptr_t)0x008bcbc8), nullptr, colour);
+    float s, e;
+    std::memcpy(&s, &start, 4);
+    std::memcpy(&e, &end, 4);
+    const X87Reg range = X87Reg(e) - s;
+    if (range.v > 0)
+        global<float>(0x008bd498) = static_cast<float>(X87Reg(1.0) / range);
+    else
+        global<u32>(0x008bd498) = 0;
+    renderState(probe, 0x30, 0);
+    renderState(probe, 0x22, colour);   // FOGCOLOR
+    if (renderCaps() & 0xc000) {
+        renderState(probe, 0x23, 0);    // FOGTABLEMODE: NONE
+    } else {
+        renderState(probe, 0x23, 3);    // FOGTABLEMODE: LINEAR
+        renderState(probe, 0x24, start);
+        renderState(probe, 0x25, end);
+    }
+    return 1;
+}
+
+u32 __fastcall D3dProbe_DrawTestQuad(u8 *self) {
+    u8 *const probe = self - 0x2c;
+    const u32 half = 0x3f000000, one = 0x3f800000;
+    const u32 vertices[32] = {0x41200000, 0x41200000, half, one, 0xffffffff, 0, 0, 0, 0x441d8000, 0x43870000, half, one, 0xffff0000, 0, 0, 0,
+                              0x43f50000, 0x43eb0000, half, one, 0xff00ff00, 0, 0, 0, 0x41f00000, 0x43c80000, half, one, 0xff0000ff, 0, 0, 0};
+    vcall<u32>(base(probe), 0x1c);
+    clear(probe);
+    drawIndexed(probe, 4, vertices, 4, kQuad, 6, 0);
+    return vcall<u32>(base(probe), 0x20);
+}
+
+u32 __fastcall D3dProbe_DrawQuad(u8 *self, void *, u32 x0, u32 y0, u32 x1, u32 y1, u32 colour, u8 *texture) {
+    u8 *const probe = self - 0x2c;
+    const u32 z = 0x3a83126f, one = 0x3f800000;   // 0.001, 1.0
+    const u32 vertices[32] = {x0, y0, z, one, colour, 0, 0, 0, x1, y0, z, one, colour, 0, one, 0, x1, y1, z, one, colour, 0, one, one, x0, y1, z, one, colour, 0, 0, one};
+    if ((colour & 0xff000000) != 0xff000000) {
+        if ((shadow(probe) & 0xff) != 0x56) {
+            renderState(probe, 0x13, 5);
+            renderState(probe, 0x14, 6);
+            shadow(probe) = (shadow(probe) & ~0xffu) | 0x56;
+        }
+        if (!(shadow(probe) & 0x100)) {
+            renderState(probe, 0x1b, 1);
+            shadow(probe) |= 0x100;
+        }
+        const u32 reference = global<u32>(0x007012d8 + at<u32>(probe, 8) * 4);
+        if (shadow(probe) & 0x200) {
+            renderState(probe, 0x18, reference);   // ALPHAREF
+            shadow(probe) &= ~0x200u;
+        }
+    } else if (shadow(probe) & 0x100) {
+        renderState(probe, 0x1b, 0);
+        shadow(probe) &= ~0x100u;
+    }
+    if (shadow(probe) & 0x8000) {
+        renderState(probe, 7, 1);     // ZENABLE
+        shadow(probe) &= ~0x8000u;
+    }
+    if (shadow(probe) & 0x400) {
+        renderState(probe, 0xf, 0);   // ALPHATESTENABLE
+        shadow(probe) &= ~0x400u;
+    }
+    if (texture)
+        vcall<u32>(base(probe), 0xc, 0u, vcall<u32>(texture, 8));
+    else
+        clear(probe);
+    keep(drawIndexed(probe, 4, vertices, 4, kQuad, 6, 0));
+    return pushed(2);
+}
+
+u32 __fastcall D3dProbe_DrawLines(u8 *self, void *, const float *points, s32 count, u32 colour, float scale) {
+    u8 *const probe = self - 0x2c;
+    clear(probe);
+    u32 vertices[16 * 8];
+    u32 *v = vertices;
+    for (s32 i = 0; i < count; ++i, v += 8) {
+        const float x = static_cast<float>(X87Reg(scale) * points[2 * i]), y = static_cast<float>(X87Reg(points[2 * i + 1]) * scale);
+        std::memcpy(v, &x, 4);
+        std::memcpy(v + 1, &y, 4);
+        v[2] = 0x358637bd;   // 1e-6
+        v[3] = 0x3f800000;
+        v[4] = colour;
+        v[5] = v[6] = v[7] = 0;
+    }
+    keep(comcall<u32>(device(probe), 0x70, 3u, 0x1c4u, vertices, count, 0u));
+    return pushed(2);
+}
+
+u32 __fastcall D3dProbe_DrawFrame(u8 *self) {
+    u8 *const probe = self - 0x2c;
+    const double width = global<s32>(0x008bcbd0), height = global<s32>(0x008bcbd4);
+    const u32 w = bitsOf(static_cast<float>(width)), h = bitsOf(static_cast<float>(height));
+    const u32 innerW = bitsOf(static_cast<float>(X87Reg(width) - 5.0f)), innerH = bitsOf(static_cast<float>(X87Reg(height) - 5.0f));
+    const bool flat = (renderCaps() & 0x8000000) != 0;
+    const u32 outer = flat ? 0x80000000 : 0xff000000, inner = flat ? 0x80000000 : 0;
+    const u32 z = 0x38d1b717, one = 0x3f800000, five = 0x40a00000;   // 0.0001, 1.0, 5.0
+    const u32 vertices[64] = {0, 0, z, one, outer, 0, 0, 0,
+                              five, five, z, one, inner, 0, 0, 0,
+                              innerW, five, z, one, inner, 0, 0, 0,
+                              w, 0, z, one, outer, 0, 0, 0,
+                              0, h, z, one, outer, 0, 0, 0,
+                              five, innerH, z, one, inner, 0, 0, 0,
+                              innerW, innerH, z, one, inner, 0, 0, 0,
+                              w, h, z, one, outer, 0, 0, 0};
+    static const u16 kIndices[24] = {0, 3, 2, 0, 2, 1, 2, 3, 7, 2, 7, 6, 5, 6, 7, 5, 7, 4, 0, 1, 5, 0, 5, 4};
+    clear(probe);
+    vcall<u32>(base(probe), 8, 0x9d56u);
+    keep(drawIndexed(probe, 4, vertices, 8, kIndices, 24, 0));
+    pushed(2);
+    return 1;
+}
+
+u32 __fastcall D3dProbe_DrawBox(u8 *self, void *, const u32 *corners, u32, u32 flags) {
+    u8 *const probe = self - 0x2c;
+    u32 vertices[64] = {};
+    for (u32 i = 0; i < 8; ++i) {
+        std::memcpy(vertices + 8 * i, corners + 4 * i, 16);
+        vertices[8 * i + 4] = 0xffffffff;
+    }
+    // The corners of each of the six sides.
+    static const u8 kSides[6][4] = {{6, 4, 2, 0}, {7, 5, 3, 1}, {3, 2, 1, 0}, {7, 6, 5, 4}, {7, 6, 3, 2}, {5, 4, 1, 0}};
+    for (u32 side = 0; side < 6; ++side)
+        if (flags & 1u << side)
+            for (const u8 corner : kSides[side]) vertices[8 * corner + 4] = 0xffff0000;
+    u8 *const transform = global<u8 *>(0x0087b1d8);
+    (void)reinterpret_cast<float(__cdecl *)(u8 *, u32 *, u32, u32, u32)>(at<uintptr_t>(at<u8 *>(transform, 0), 0xc))(transform, vertices, 0x20, 8, 0);
+    clear(probe);
+    vcall<u32>(base(probe), 8, 0x56u);
+    if (shadow(probe) & 0x100) {
+        renderState(probe, 0x1b, 0);
+        shadow(probe) &= ~0x100u;
+    }
+    if (shadow(probe) & 0x8000) {
+        renderState(probe, 7, 1);      // ZENABLE
+        shadow(probe) &= ~0x8000u;
+    }
+    if (shadow(probe) & 0x800) {
+        renderState(probe, 0xe, 1);    // ZWRITEENABLE
+        shadow(probe) &= ~0x800u;
+    }
+    if (shadow(probe) & 0x80000) {
+        renderState(probe, 0x1d, 0);   // SPECULARENABLE
+        shadow(probe) &= ~0x80000u;
+    }
+    if (shadow(probe) & 0x100000) {
+        renderState(probe, 0x1c, 0);   // FOGENABLE
+        shadow(probe) &= ~0x100000u;
+    }
+    static const u16 kIndices[16] = {0, 2, 6, 4, 0, 1, 5, 4, 6, 7, 5, 1, 3, 2, 3, 7};
+    keep(drawIndexed(probe, 3, vertices, 8, kIndices, 16, 9));
+    return 1;
+}
+
+float __fastcall D3dProbe_FillRate(u8 *self) {
+    u8 *const probe = self - 0x2c;
+    const s32 width = global<s32>(0x008bcbd0), height = global<s32>(0x008bcbd4);
+    const s32 pixels = static_cast<s32>(static_cast<u32>(height) * static_cast<u32>(width) * 50);
+    const u32 w = bitsOf(static_cast<float>(width)), h = bitsOf(static_cast<float>(height));
+    const u32 z = 0x3f000000, one = 0x3f800000;   // 0.5, 1.0
+    const u32 vertices[32] = {0, 0, z, one, 0xffffffff, 0, 0, 0, w, 0, z, one, 0xffff0000, 0, 0, 0, w, h, z, one, 0xff00ff00, 0, 0, 0, 0, h, z, one, 0xff0000ff, 0, 0, 0};
+    u16 indices[48];
+    for (u32 i = 0; i < 48; ++i) indices[i] = kQuad[i % 6];   // (the original builds twice these and draws these)
+    clear(probe);
+    if (!vcall<u32>(base(probe), 0x1c)) return 0.0f;
+    vcall<u32>(base(probe), 8, 0x9256u);
+    const u32 begun = g_env->ticks();
+    for (u32 i = 0; i < 3; ++i) {
+        drawIndexed(probe, 4, vertices, 4, indices, 48, 0);
+        if (result() != 0) {
+            vcall<u32>(base(probe), 0x20);
+            return 0.0f;
+        }
+    }
+    const u32 taken = g_env->ticks() - begun;
+    if (!vcall<u32>(base(probe), 0x20)) return 0.0f;
+    const s32 scaled = static_cast<s32>(taken << 4);
+    float rate;
+    __asm {
+        fild pixels
+        fidiv scaled
+        fstp rate
+    }
+    return rate;
 }
 
 }  // extern "C"

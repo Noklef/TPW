@@ -164,6 +164,7 @@
 #include "../../src/game/gfx/pixconv.h"
 #include "../../src/game/gfx/surfbuf.h"
 #include "../../src/game/gfx/tga.h"
+#include "../../src/game/render/d3dprobe.h"
 #include "../../src/game/render/enginedebug.h"
 #include "../../src/game/render/engineerrors.h"
 #include "../../src/game/online/chatavatar.h"
@@ -775,11 +776,13 @@ const CellPaintEnv kCellPaintEnv = {Rec{jpeg_recorder(1, 6)}, Rec{jpeg_recorder(
 const RideSkinEnv kRideSkinEnv = {Rec{jpeg_recorder(1, 1)}};
 const LobbySceneEnv kLobbySceneEnv = {Rec{jpeg_recorder(1, 1)}, Rec{recorder(2, 0)}};
 const ChatCursorEnv kChatCursorEnv = {Rec{jpeg_recorder(1, 0)}, Rec{jpeg_recorder(2, 4)}, Rec{jpeg_recorder(3, 0)}, Rec{recorder(4, 1)}, Rec{recorder(5, 1)}};
+// tests/fncmp/d3dprobe.py: the clock a recorder.
+const D3dProbeEnv kD3dProbeEnv = {reinterpret_cast<u32(__cdecl *)()>((uintptr_t)jpeg_recorder(15, 0))};
 // tests/fncmp/enginedebug.py: the C library's file calls recorders.
-const EngineDebugEnv kEngineDebugEnv = {reinterpret_cast<void *(__cdecl *)(const char *, const char *)>((uintptr_t)jpeg_recorder(28, 2)),
-                                        reinterpret_cast<s32(__cdecl *)(void *, const char *, ...)>((uintptr_t)jpeg_recorder(29, 3)),
-                                        reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)jpeg_recorder(30, 1)),
-                                        reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)jpeg_recorder(31, 1))};
+const EngineDebugEnv kEngineDebugEnv = {reinterpret_cast<void *(__cdecl *)(const char *, const char *)>((uintptr_t)jpeg_recorder(11, 2)),
+                                        reinterpret_cast<s32(__cdecl *)(void *, const char *, ...)>((uintptr_t)jpeg_recorder(12, 3)),
+                                        reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)jpeg_recorder(13, 1)),
+                                        reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)jpeg_recorder(14, 1))};
 const WKeywordsEnv kWKeywordsEnv = {reinterpret_cast<s32(__cdecl *)(u8 *, u16 *, u32, u32, ...)>((uintptr_t)jpeg_recorder(12, 4))};  // tests/fncmp/wkeywords.py
 
 const KeyCancelEnv kKeyCancelEnv = {Rec{recorder(20, 0)}, Rec{jpeg_recorder(21, 2)}, Rec{jpeg_recorder(22, 6)}, Rec{jpeg_recorder(23, 4)}, Rec{jpeg_recorder(24, 2)}};
@@ -1244,6 +1247,16 @@ u32 __cdecl record_call(u32 k, u32 n, u32 self, const u32 *stack) {
             args[i] = (how & 0xc0000000u) == 0x40000000u && !matched ? 0
                       : how & 0x80000000u                         ? blob_bytes_hash(p, how, blob_mask, wide)
                                                                   : blob_hash(p, blob_mask);
+        }
+        for (u32 w = 0; w < 4; ++w) {  // (at + 0x13c0, fncmp.blob_array(): (k | 0x80000000, argument, count argument, stride): the argument logged as a hash of its records)
+            const u32 *const array = log + 0x4f0 + 4 * w;
+            if (array[0] != ((k & 63) | 0x80000000u) || array[1] != i || !args[i]) continue;
+            const s32 count = array[2] < n ? static_cast<s32>(stack[1 + array[2]]) : 0;
+            const u32 bytes = (count <= 0 ? 0u : count > 0x100 ? 0x100u : static_cast<u32>(count)) * array[3];
+            const u8 *const p = reinterpret_cast<const u8 *>((uintptr_t)args[i]);
+            u32 h = 0x811c9dc5u;
+            for (u32 b = 0; b < bytes; ++b) h = (h ^ p[b]) * 0x01000193u;
+            args[i] = h;
         }
         if (mask >> i & 1) args[i] = string_hash(reinterpret_cast<const u8 *>((uintptr_t)args[i]));
         if (mask >> (16 + i) & 1) args[i] = 0;
@@ -1921,6 +1934,7 @@ int main(int argc, char **argv) {
     KeyCancel_SetEnv(&kKeyCancelEnv);
     WKeywords_SetEnv(&kWKeywordsEnv);
     EngineDebug_SetEnv(&kEngineDebugEnv);
+    D3dProbe_SetEnv(&kD3dProbeEnv);
     ChatCursor_SetEnv(&kChatCursorEnv);
     LobbyScene_SetEnv(&kLobbySceneEnv);
     RideSkin_SetEnv(&kRideSkinEnv);

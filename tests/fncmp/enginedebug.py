@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import LOG, RAM, Bench, Call, _recorder, log_region, set_return, strings  # noqa: E402
 
-FOPEN, FPRINTF, FFLUSH, FCLOSE = 28, 29, 30, 31   # (driver.cpp's kEngineDebugEnv)
+FOPEN, FPRINTF, FFLUSH, FCLOSE = 11, 12, 13, 14   # (driver.cpp's kEngineDebugEnv; not the device's COM slots its callers' benches record: an override is per slot number)
 RANGE = (0x564650, 0x5646ba)
 HOOKS = {0x67b8a0: _recorder(FOPEN, 2, cdecl=True), 0x67dad0: _recorder(FPRINTF, 3, cdecl=True), 0x67d070: _recorder(FFLUSH, 1, cdecl=True), 0x67b620: _recorder(FCLOSE, 1, cdecl=True)}
 TEXT = RAM + 0x100
