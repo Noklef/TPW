@@ -158,7 +158,9 @@ def plot(r):
     left, right = struct.unpack_from('<i', gauge, 8)[0], struct.unpack_from('<i', gauge, 0x10)[0]
     kind = r.random()
     if kind < 0.2:   # left of 0: the clamps' fractions show through __ftol's truncation
-        left, right = sorted(r.randrange(-60, 0) for _ in range(2))
+        left = r.randrange(-60, -5)
+        right = left + r.randrange(0, 5)
+        columns = r.choice([columns, 2, 3, 5])   # (a step under 1: x and its end pass right by a fraction)
         put(gauge, 8, 'i', left)
         put(gauge, 0x10, 'i', right)
         put(gauge, 0, 'i', right - left)
