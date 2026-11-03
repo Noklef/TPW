@@ -32,8 +32,10 @@ def case(r):
     waits = r.randrange(1, 6)
     turns = [running(r.getrandbits(32)) for _ in range(waits - 1)] + [ended(r.getrandbits(32))]
     regions[IMPORT_TABLE] = import_table(log, {'WaitForMultipleObjects': (WAIT_K, 0x6fd160, 4, 0, 0)})
-    fill(log, WAIT_K, 1, struct.pack('<%dI' % waits, *turns), records=waits)
-    blob(log, WAIT_K, 1, 1)   # (the flags as each wait finds them: the running bit)
+    untouched = r.random() < 0.4   # (no fill: the stop handle ends the loop, and the hash below sees the running bit the code set)
+    if not untouched:
+        fill(log, WAIT_K, 1, struct.pack('<%dI' % waits, *turns), records=waits)
+    blob(log, WAIT_K, 1, 1)   # (the flags as each wait leaves them)
     put(obj, at_flags, 'I', (ended if r.random() < 0.15 else running)(r.getrandbits(32)))   # (ended: the loop never entered)
     count = r.randrange(1, 8)
     if voices:
@@ -45,7 +47,10 @@ def case(r):
         other = count - 1
         put(obj, 0x30, 'I', count)
         put(obj, 0x2c, 'I', OBJ + at_flags)
-    regions[TABLE] = struct.pack('<40I', *(r.choice([other, other, 0, 1, 2, r.randrange(0, 8), r.getrandbits(16)]) for _ in range(40)))
+    table = [r.choice([other, other, 0, 1, 2, r.randrange(0, 8), r.getrandbits(16)]) for _ in range(40)]
+    if untouched:
+        table[waits - 1] = other
+    regions[TABLE] = struct.pack('<40I', *table)
     answers(log, WAIT_K, TABLE)
     return Call(0x6c6180 if voices else 0x6d3800, [OBJ], regions, conv='t', ret='v')
 
