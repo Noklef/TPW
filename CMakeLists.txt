@@ -22,6 +22,7 @@ add_library(tpw_game STATIC
     src/game/rsse/scriptfile.cpp
     src/game/rsse/scriptkill.cpp
     src/game/rsse/rsseexec.cpp
+    src/game/rsse/rssetick.cpp
     src/game/core/app.cpp
     src/game/core/crt.cpp
     src/game/core/fpu.cpp
