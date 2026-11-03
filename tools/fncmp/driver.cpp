@@ -653,6 +653,9 @@ const EndThingEnv kEndThingEnv = {reinterpret_cast<u8 *(__fastcall *)(u8 *, void
 // park end's gate call (agent C's unported 0x481b50): thiscall recorder 14 of 1, as tests/fncmp/parkend.py hooks it.
 const ParkOpenEnv kParkOpenEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(13, 0)),
                                   reinterpret_cast<void(__fastcall *)(void *, void *, u8 *)>((uintptr_t)recorder(14, 1))};
+// The crowd's start: thiscall recorders 1 of 2, 2 and 3 of 2, COM recorder 4 of 2, thiscall recorders 5-7 of 1, as tests/fncmp/parkcrowd.py hooks them.
+const ParkCrowdEnv kParkCrowdEnv = {Rec{recorder(1, 2)}, Rec{recorder(2, 2)}, Rec{recorder(3, 2)}, Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 4},
+                                    Rec{recorder(5, 1)}, Rec{recorder(6, 1)}, Rec{recorder(7, 1)}};
 // The game mode change's advisor cancel, track run show and tool reset (agent B's 0x59aa70, 0x4474d0 and CoasterEdit_CancelSelected 0x446050, all ported): thiscall recorder
 // 13 of 1, cdecl recorders 14 of 2 and 15 of none, as tests/fncmp/gamemode.py hooks them.
 const GameModeEnv kGameModeEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)recorder(13, 1)),
@@ -1852,6 +1855,7 @@ int main(int argc, char **argv) {
     PlaceObject_SetEnv(&kPlaceObjectEnv);
     EndThing_SetEnv(&kEndThingEnv);
     ParkOpen_SetEnv(&kParkOpenEnv);
+    ParkCrowd_SetEnv(&kParkCrowdEnv);
     GameMode_SetEnv(&kGameModeEnv);
     Things_SetDetachEnv(&kThingDetachEnv);
     Things_SetDeleteEnv(&kThingDeleteEnv);

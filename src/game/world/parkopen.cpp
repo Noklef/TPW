@@ -2,13 +2,18 @@
 
 #include <cstdint>
 
+#include "../core/gameheap.h"
+#include "mapcell.h"
 #include "object.h"
 #include "objectmsg.h"
 #include "../sprite/draw.h"
+#include "random.h"
 #include "ridelist.h"
+#include "staffctors.h"
 #include "thingmsg.h"
 #include "things.h"
 #include "thingscan.h"
+#include "visitorsteps.h"
 
 namespace {
 
@@ -17,6 +22,9 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 const ParkOpenEnv kGameEnv = {&Object_Close,
                               reinterpret_cast<void(__fastcall *)(void *, void *, u8 *)>((uintptr_t)0x00481b50)};
 const ParkOpenEnv *g_env = &kGameEnv;
+
+const ParkCrowdEnv kCrowdGameEnv = {&Game_OpenPark, &Map_TicketBoothPos, &Map_EntrancePos, &Things_CountByDef4ac, &Visitor_Ctor, &Mechanic_CtorLoad, &Entertainer_CtorLoad};
+const ParkCrowdEnv *g_crowd = &kCrowdGameEnv;
 
 u8 *thing(u32 handle) { return reinterpret_cast<u8 *const *>((uintptr_t)0x007cfb90)[(handle & 0xffff) * 5]; }
 
@@ -88,5 +96,22 @@ void __fastcall Game_EndPark(u8 *game) {
     }
     Things_ReleaseDeleted();
     Game_OpenPark(game, nullptr, 0, 1);
+}
+
+void ParkCrowd_SetEnv(const ParkCrowdEnv *env) { g_crowd = env ? env : &kCrowdGameEnv; }
+
+void __fastcall Game_StartCrowd(u8 *game) {
+    g_crowd->openPark(game, nullptr, 1, 0);
+    u16 cell;
+    for (u32 i = 0; i < 25; ++i) {
+        u8 *const visitor = static_cast<u8 *>(GameHeap_Alloc(0x22c));
+        if (visitor) g_crowd->visitor(visitor, nullptr, *g_crowd->booth(game + 0x2d8, nullptr, &cell, World_Rand(game) & 1));
+    }
+    for (s32 n = g_crowd->rides(0, 0); n > 0; --n) {
+        u8 *const mechanic = static_cast<u8 *>(GameHeap_Alloc(0x220));
+        if (mechanic) g_crowd->mechanic(mechanic, nullptr, *g_crowd->entrance(game + 0x2d8, nullptr, &cell, World_Rand(game) & 1));
+        u8 *const entertainer = static_cast<u8 *>(GameHeap_Alloc(0x218));
+        if (entertainer) g_crowd->entertainer(entertainer, nullptr, *g_crowd->entrance(game + 0x2d8, nullptr, &cell, World_Rand(game) & 1));
+    }
 }
 }
