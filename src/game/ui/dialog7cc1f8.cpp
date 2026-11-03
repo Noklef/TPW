@@ -3,6 +3,8 @@
 #include <cstdint>
 
 #include "../core/globalsave.h"
+#include "../core/language.h"
+#include "../core/rings.h"
 #include "../core/textarg.h"
 #include "../files/wrapsources.h"
 #include "../frontend/helpbg.h"
@@ -12,10 +14,73 @@
 #include "guimanager.h"
 #include "guirect.h"
 #include "panelparts.h"
+#include "window7059f0.h"
 
 using namespace panelparts;
 
+namespace {
+template <typename T> T &at(u8 *base, u32 offset) { return *reinterpret_cast<T *>(base + offset); }
+
+const Dialog7cc1f8Env kGameEnv = {&Window7059f0_Clear, &Window7059f0_AddItem, &Window7059f0_RefreshRows, &ObjectDefs_GetFullName, &Language_WideText};
+const Dialog7cc1f8Env *g_env = &kGameEnv;
+}  // namespace
+
+void Dialog7cc1f8_SetEnv(const Dialog7cc1f8Env *env) { g_env = env ? env : &kGameEnv; }
+
 extern "C" {
+
+void __cdecl Dialog7cc1f8_FillList(u32 kind, u32 clear) {
+    u8 *const game = *reinterpret_cast<u8 **>((uintptr_t)0x007cf83c);
+    u8 *const store = reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da720_519510(game));
+    u8 *const dialog = *reinterpret_cast<u8 **>((uintptr_t)0x007cc1f8);
+    if (!dialog) return;
+    u8 *const list = Window_FindChild(dialog, nullptr, 0x1f8);
+    if (!list) return;
+    if (clear) g_env->clear(list);
+    u8 *const defs = reinterpret_cast<u8 *>((uintptr_t)0x007890a0);
+    u8 *def = ObjectDefs_First(defs);
+    *reinterpret_cast<u32 *>((uintptr_t)0x007cc1fc) = kind;
+    struct Row {
+        u32 text, value, state;
+    } row;
+    for (; def; def = ObjectDefs_Next(defs)) {
+        if (at<u32>(def, 0x508) || at<u32>(def, 0x4ac) != kind || at<u32>(def, 0x284)) continue;
+        const u16 id = at<u16>(def, 0);
+        u8 *const control = ObjectControls_Find(*reinterpret_cast<u8 **>((uintptr_t)0x007cf83c) + 0x1d943c, nullptr, id, 0);
+        if (!at<u8>(control, 0x10)) continue;
+        u16 name[0x42];
+        const s32 price = at<s32>(def, 0xc4);
+        if (price > 0 && !(u8)GlobalSave_HasKey(id)) {
+            row.text = (u32)(uintptr_t)g_env->text(0x89);
+            row.value = (u32)-price;
+        } else {
+            g_env->fullName(defs, nullptr, id, name, 0x42);
+            row.text = (u32)(uintptr_t)name;
+            row.value = at<u32>(control, 4);
+        }
+        if ((s32)ObjectControls_GetWord18(id) > 0) {
+            row.state = 1;
+        } else {
+            row.state = 0;
+            for (s32 i = 0; i < 3 && !row.state; ++i) {
+                u16 latest;
+                if (*Ring16_Get(store, nullptr, &latest, (s32)kind, i) == id) row.state = 2;
+            }
+        }
+        g_env->addItem(list, nullptr, &row.text, id, -1, 0);
+    }
+    if (kind == 3) {
+        row.text = (u32)(uintptr_t)g_env->text(0x86);
+        row.value = *reinterpret_cast<u32 *>((uintptr_t)0x0078560c);
+        row.state = 0;
+        g_env->addItem(list, nullptr, &row.text, 0xffffffff, -1, 0);
+        row.text = (u32)(uintptr_t)g_env->text(0x87);
+        row.value = 0;
+        row.state = 0;
+        g_env->addItem(list, nullptr, &row.text, 0xfffffffe, -1, 0);
+    }
+    g_env->refresh(list);
+}
 
 void __cdecl Dialog7cc1f8_DressStats() {
     u8 *const stats = Window_FindChild(*reinterpret_cast<u8 **>((uintptr_t)0x007cc1f8), nullptr, 0x1ed);

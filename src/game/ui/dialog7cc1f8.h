@@ -4,7 +4,24 @@
 
 #include "../../../re/types.h"
 
+// Dialog7cc1f8_FillList's calls (the ports by default; the bench's recorders: their own benches have them).
+struct Dialog7cc1f8Env {
+    void(__fastcall *clear)(u8 *list);                                                        // Window7059f0_Clear
+    s32(__fastcall *addItem)(u8 *list, void *, const u32 *texts, u32 data, s32 parent, u32 refresh);   // Window7059f0_AddItem
+    void(__fastcall *refresh)(u8 *list);                                                      // Window7059f0_RefreshRows
+    void(__fastcall *fullName)(u8 *defs, void *, u32 id, u16 *out, u32 size);                 // ObjectDefs_GetFullName
+    u16 *(__cdecl *text)(u32 index);                                                          // Language_WideText
+};
+void Dialog7cc1f8_SetEnv(const Dialog7cc1f8Env *env);
+
 extern "C" {
+
+// 0x4aaf70 (cdecl (kind, clear); name invented): the dialog [0x7cc1f8]'s list 0x1f8 (no dialog or list: nothing; the store GameTable7cfb90_Get1da720_519510 asked first) cleared when clear is set, the
+// kind to [0x7cc1fc]. For each object definition (ObjectDefs_First / Next of 0x7890a0) with +0x508 0, +0x4ac the kind, +0x284 0 and its control record's (ObjectControls_Find) byte +0x10 set, a row
+// (AddItem with data the id, parent -1, no refresh): a positive price +0xc4 without the key (GlobalSave_HasKey): the text 0x89 and the price negated; else the full name (ObjectDefs_GetFullName, 0x42
+// units on the stack) and the control's +4; its state 1 with ObjectControls_GetWord18 positive, else 2 when the id is one of the kind's three latest (Ring16_Get of the store), else 0. Kind 3 adds the
+// rows of data -1 (text 0x86, the dword [0x78560c], state 0) and -2 (text 0x87, 0, 0). Last Window7059f0_RefreshRows.
+void __cdecl Dialog7cc1f8_FillList(u32 kind, u32 clear);
 
 // 0x4ab6b0 (no arguments): the dialog's child 0x1ed (Window_FindChild; nothing when it has none) gets its children dressed in this order
 // (ui/panelparts; a text a TextPart_Ctor part with that language text, a bar's value given to the child's slot 7): 0x1f4 text 0x7d, 0x1f3

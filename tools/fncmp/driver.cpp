@@ -48,6 +48,7 @@
 #include "../../src/game/gfx/screen.h"
 #include "../../src/game/gfx/statsgraph.h"
 #include "../../src/game/ui/dialog7ca150.h"
+#include "../../src/game/ui/dialog7cc1f8.h"
 #include "../../src/game/core/fpu.h"
 #include "../../src/game/core/gameheap.h"
 #include "../../src/game/core/string.h"
@@ -569,6 +570,8 @@ const CellModelEnv kCellModelEnv = {reinterpret_cast<u32(__cdecl *)(s32, s32, s3
 // tests/fncmp/messagecentre.py hooks that address.
 const MessageCentreEnv kMessageCentreEnv = {reinterpret_cast<u32(__fastcall *)(u8 *, void *, u8 *)>((uintptr_t)recorder(27, 1))};
 // The statistics graph's lines 0x49aa30 (StatsGraph_Redraw's after): the cdecl recorder 22 (tests/fncmp/gauge.py hooks 0x49aa30 with it).
+// Dialog7cc1f8_FillList's list calls, full name and text (tests/fncmp/dialog7cc1f8.py).
+const Dialog7cc1f8Env kDialog7cc1f8Env = {Rec{recorder(10, 0)}, Rec{recorder(11, 4)}, Rec{recorder(12, 0)}, Rec{recorder(13, 3)}, Rec{jpeg_recorder(14, 1)}};
 // Dialog7ca150_Handler's tabs, text, label and thing panel (tests/fncmp/dialog7ca150handler.py; dialog7ca150.py calls the tabs directly: their hooks are unaffected).
 const Dialog7ca150Env kDialog7ca150Env = {{Rec{jpeg_recorder(24, 1)}, Rec{jpeg_recorder(25, 1)}, Rec{jpeg_recorder(26, 1)}, Rec{jpeg_recorder(27, 1)}}, Rec{jpeg_recorder(28, 1)},
                                           Rec{jpeg_recorder(29, 3)}, Rec{jpeg_recorder(30, 1)}};
@@ -1309,6 +1312,7 @@ int main(int argc, char **argv) {
     Object_SetEnv(&kObjectEnv);
     StatsGraph_SetEnv(&kStatsGraphEnv);
     Dialog7ca150_SetEnv(&kDialog7ca150Env);
+    Dialog7cc1f8_SetEnv(&kDialog7cc1f8Env);
     Object_SetDeleteEnv(&kObjectDeleteEnv);
     Object_SetPathEnv(&kObjectPathEnv);
     Object_SetServiceEnv(&kObjectServiceEnv);
