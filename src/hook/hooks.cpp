@@ -601,6 +601,7 @@
 #include "../game/ui/imehostattach.h"
 #include "../game/ui/levelmeter.h"
 #include "../game/ui/menuactions.h"
+#include "../game/ui/mouseclick.h"
 #include "../game/ui/mousehelp.h"
 #include "../game/ui/msgboxbutton.h"
 #include "../game/ui/msgtags.h"
@@ -7919,6 +7920,7 @@ const Hook kHooks[] = {
     {"Window7cc8c0_Handler",      0x004bd4a0, (void *)&Window7cc8c0_Handler, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Dialog7cca70_FillList",     0x004c1e40, (void *)&Dialog7cca70_FillList, {0x6a, 0xff, 0x68, 0xb9, 0xbe}},
     {"Dialog7cca70_ListCallback", 0x004c20c0, (void *)&Dialog7cca70_ListCallback, {0x8b, 0x44, 0x24, 0x04, 0x85}},
+    {"MouseClick_OnShown",        0x004879d0, (void *)&MouseClick_OnShown, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
