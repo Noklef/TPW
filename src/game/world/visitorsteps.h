@@ -97,4 +97,8 @@ void __fastcall Visitor_StepWalkToQueue(u8 *visitor);
 // Object_AddWalkAway, Obj_ReleaseRideElement0, off the queue, Visitor_SendAway, +0x1dc 0, state 6. Else admitted (Obj_ClaimRideElement0):
 // state 0xe. Else Visitor_FindQueueDestination; no destination: off the queue, Visitor_SendAway, state 6.
 void __fastcall Visitor_StepInQueue(u8 *visitor);
+// 0x5014e0 (thiscall; name invented, unconfirmed): the visitor comes out at the object of +0x1dc: placed at its exit point (Object_CellStandPoint, Thing_PlaceAt).
+// The cell one step from the exit cell (+0x38) in that cell's direction (rotated by Nibble_Scale when +0x38 is +0x36): not of type 3 or 9 and a walk there starts:
+// Visitor_VisitObject, state 0xf, 1. Else Object_Reopen, 0. (Its debug prints are left out.)
+u32 __fastcall Visitor_ArriveAtObject(u8 *visitor);
 }

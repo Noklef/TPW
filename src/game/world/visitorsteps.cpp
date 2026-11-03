@@ -400,6 +400,24 @@ void __fastcall Visitor_StepWalkToQueue(u8 *visitor) {
     g_env->setState(visitor, nullptr, 6);
 }
 
+u32 __fastcall Visitor_ArriveAtObject(u8 *visitor) {
+    u8 *const object = global<u8 *>(0x007cfb90 + 20 * (u32)at<u16>(visitor, 0x1dc));
+    u16 x, y;
+    Object_CellStandPoint(object, nullptr, 1, reinterpret_cast<u8 *>(&x), reinterpret_cast<u8 *>(&y));
+    g_env->placeAt(visitor, nullptr, x, y);
+    const u16 exit = at<u16>(object, 0x38);
+    const u8 *const cell = map() + ((u32)exit - 1) * 0x44;
+    const u32 direction = exit == at<u16>(object, 0x36) ? Nibble_Scale(MapCell_Direction(cell)) : MapCell_Direction(cell);
+    const u16 next = *reinterpret_cast<const u16 *>(Map_StepCellInDirection(reinterpret_cast<const u16 *>(cell), nullptr, direction));
+    if (!MapCell_IsType3Or9(map() + ((u32)next - 1) * 0x44) && g_env->setDestinationCell(visitor, nullptr, next)) {
+        g_env->visitObject(visitor, nullptr, object);
+        g_env->setState(visitor, nullptr, 0xf);
+        return 1;
+    }
+    g_env->reopen(object);
+    return 0;
+}
+
 void __fastcall Visitor_StepInQueue(u8 *visitor) {
     const u32 walked = g_env->walkNav(visitor);
     if (walked != 0 && walked != 2) return;
