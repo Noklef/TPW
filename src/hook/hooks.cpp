@@ -53,6 +53,7 @@
 #include "../game/math/intsin.h"
 #include "../game/math/mat4.h"
 #include "../game/math/bits.h"
+#include "../game/math/convexhull.h"
 #include "../game/math/geometry.h"
 #include "../game/math/rect.h"
 #include "../game/math/rectclip.h"
@@ -4094,6 +4095,7 @@ const Hook kHooks[] = {
     {"Transform_Concatenate",     0x00579800, (void *)&Transform_Concatenate, {0x55, 0x8b, 0xec, 0x8b, 0x4d}},
     {"Transform_SseProbe",        0x00579a80, (void *)&Transform_SseProbe, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Polygon_ClipToRect",        0x0056c5a0, (void *)&Polygon_ClipToRect, {0x55, 0x8b, 0xec, 0x81, 0xec}},
+    {"ConvexHull_AddPoint",       0x0056bd60, (void *)&ConvexHull_AddPoint, {0x55, 0x8b, 0xec, 0x81, 0xec}},
     {"Table_ScaledBySum",         0x00503980, (void *)&Table_ScaledBySum, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
     {"Staff_Train",               0x00505a10, (void *)&Staff_Train, {0x53, 0x56, 0x8b, 0xf1, 0x57}},
     {"Staff_CountTypes",          0x00508000, (void *)&Staff_CountTypes, {0x83, 0xec, 0x0c, 0x33, 0xc0}},
