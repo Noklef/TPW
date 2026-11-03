@@ -5,6 +5,7 @@
 # StfE): late_case() and late2(). The objects' wear criteria 0x59e450-0x59e680 (Worn ... VWorn5s) and the ring criteria 0x59e730 / 0x59e790
 # (RingLo, RingHi): see wear_case(). 0x59ca30 (Obj0w): the things' float +0x44 as for the wear criteria; 0x59cb40 / 0x59cbb0 (MapLo,
 # MapHi): the whole map (128 x 128 cells from G's +0x2d8, over the booths' first row) of types 1, 3, 9 and others, +0x2c 0 mostly.
+# 0x59f4f0 (Rides): the rides' count, average and best rating on case()'s park.
 # usage: advisorcriteria.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Booth,No02,...)
 import os
 import struct
@@ -34,7 +35,7 @@ CALLS = {'Booth': (0x59c8d0, {}), 'No02': (0x59c960, {}), 'Obj0': (0x59ca80, {})
          'Ppl19c': (0x59f5e0, {0x438: [0, 1, 2, 3, -1], 0x43c: [0, 10, 50, 100, -1]}), 'StfE': (0x59fb10, {0x4d0: [0, 1, 2, 3, -1]}),
          'Worn': (0x59e450, {0x2d0: WEAR, 0x2e0: WEAR}), 'Worn5s': (0x59e510, {0x2d8: WEAR, 0x2e8: WEAR}), 'VWorn': (0x59e5d0, {0x2e0: WEAR}),
          'VWorn5s': (0x59e680, {0x2e8: WEAR}), 'RingLo': (0x59e730, {0x2f0: RING}), 'RingHi': (0x59e790, {0x2f8: RING}),
-         'Obj0w': (0x59ca30, {0xc0: [0, 1, 30, 50, 100, 255, 256, -1]}), 'MapLo': (0x59cb40, {0xd8: PCT}), 'MapHi': (0x59cbb0, {0xe0: PCT})}
+         'Rides': (0x59f4f0, {0x41c: [0, 1, 2, 3, -1], 0x418: [-1, 0, 1, 10, 50, 100]}), 'Obj0w': (0x59ca30, {0xc0: [0, 1, 30, 50, 100, 255, 256, -1]}), 'MapLo': (0x59cb40, {0xd8: PCT}), 'MapHi': (0x59cbb0, {0xe0: PCT})}
 WORN = {'Worn', 'Worn5s', 'VWorn', 'VWorn5s'}
 WEAR_AT = {'Worn': (0x2d0, 0x2e0, 0x2d4), 'Worn5s': (0x2d8, 0x2e8, 0x2d4), 'VWorn': (0x2e0, 0, 0x2e4), 'VWorn5s': (0x2e8, 0, 0x2ec)}   # (low, high, weight)
 IDLE = {'Idle0': 0, 'Idle1': 1, 'Idle2': 2, 'K3F1': None, 'K3F2': None}
@@ -54,7 +55,8 @@ B = Bench([(0x412e60, 0x412f00), (0x41a960, 0x41a980), (0x41a990, 0x41a9c0), (0x
            (0x5a02f0, 0x5a0520), (0x5a05a0, 0x5a06c0), (0x5a0780, 0x5a07b7), (0x5a07d0, 0x5a0930),
            (0x4c7cc0, 0x4c7da9), (0x519450, 0x51948d), (0x59f440, 0x59f4ea), (0x59f590, 0x59f62c),
            (0x59e450, 0x59e7e5), (0x4ca160, 0x4ca214), (0x4ca220, 0x4ca30c), (0x4c9830, 0x4c9912), (0x4c9920, 0x4c9956),
-           (0x59ca30, 0x59ca74), (0x59cb40, 0x59cc16), (0x4ca3a0, 0x4ca448), (0x4ccdf0, 0x4ccea6)])
+           (0x59ca30, 0x59ca74), (0x59cb40, 0x59cc16), (0x4ca3a0, 0x4ca448), (0x4ccdf0, 0x4ccea6),
+           (0x59f4f0, 0x59f58a), (0x4ccbf0, 0x4ccdf0), (0x4e0560, 0x4e0910), (0x43e0b0, 0x43e0f0), (0x545310, 0x545460), (0x55a4e0, 0x55a540)])
 NONE = {'Obj0': (4,), 'Tal7': (7,), 'Low6': (6,), 'Share8': (8,), 'All8': (8,), 'Total': (4, 5, 6, 7, 8), 'Worn': (5,), 'VWorn': (5,),
         'Obj0w': (4,), 'MapLo': (5,), 'MapHi': (5,)}   # (the staff a criterion asks to be absent)
 NEED = {'Tal7b': 7, 'Res0': 8, 'C14': 8, 'Res1': 8, 'Res2': 8, 'Res3': 8, 'Worn5s': 5, 'VWorn5s': 5}   # (the kind a criterion asks to be present)

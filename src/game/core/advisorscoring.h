@@ -272,6 +272,9 @@ s32 __fastcall AdvisorScoring_LatestCountBusStop(u8 *scoring);
 // Things_AveragePersonStat19c) against +0x438 / +0x43c: +0x440.
 s32 __fastcall AdvisorScoring_StaffStat1f8NotAbove(const u8 *scoring);
 s32 __fastcall AdvisorScoring_PeopleStat19cNotAbove(const u8 *scoring);
+// 0x59f4f0: unflagged (Game_Field1da710IsZero), at least +0x41c rides (Things_CountByDef4ac(0, 0)) and their average rating (ParkAnalyser_AverageRatingDef4ac0, 10)
+// above +0x418: the best rated one's handle to +4 (Things_BestRatedDef4ac0), +0x420.
+s32 __fastcall AdvisorScoring_RidesRatedAbove(u8 *scoring);
 // 0x59fb10: more staff than +0x4d0 and the byte +0x20 of the game table entry for G's +0x1da718 (GameTable7cfb90_Get1da718_519450)
 // clear: +0x4d4.
 s32 __fastcall AdvisorScoring_StaffEntryClear(const u8 *scoring);
