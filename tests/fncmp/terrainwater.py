@@ -93,7 +93,7 @@ def case(r):
     r.floats(matrix, range(0, 0x40, 4), 2.0)
     density = r.choice([0, 0, 0.1, 0.5, 1])
     table = bytes(r.getrandbits(8) if r.random() < density else 0 for _ in range(0x80))
-    records = [r.choice([0, 3, 3, 4, 5, 6]) for _ in range(8)]
+    records = [r.choice([0, 1, 2, 3, 3, 4, 5, 6]) for _ in range(8)]  # 1 and 2: vertices with no triangle, so a batch can end with vertices and no indices
     set_return(log, 1, BATCH)
     set_return(log, 2, r.choice([0, 1, 1, 7]))
     mask = 0
