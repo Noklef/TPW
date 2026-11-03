@@ -2222,7 +2222,7 @@ int main(int argc, char **argv) {
     SoundSeed_SetEnv(&soundSeedEnv);
     static const SoundManagerEnv soundManagerEnv = {Rec{recorder(20, 0)}};
     SoundManager_SetEnv(&soundManagerEnv);
-    static const SoundWaitEnv soundWaitEnv = {Rec{recorder(20, 0)}, Rec{recorder(21, 1)}};
+    static const SoundWaitEnv soundWaitEnv = {Rec{recorder(20, 0)}, Rec{recorder(21, 1)}, Rec{jpeg_recorder(22, 1)}};
     SoundWait_SetEnv(&soundWaitEnv);
     static const SoundObjectSlotsEnv soundObjectSlotsEnv = {Rec{recorder(20, 3)}, Rec{recorder(21, 2)}, Rec{recorder(22, 3)}, Rec{recorder(23, 2)}, Rec{recorder(24, 2)}};
     SoundObjectSlots_SetEnv(&soundObjectSlotsEnv);
