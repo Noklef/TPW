@@ -448,6 +448,7 @@ add_library(tpw_game STATIC
     src/game/render/transformer.cpp
     src/game/render/meshdraws.cpp
     src/game/render/ribbon.cpp
+    src/game/render/randomsegments.cpp
     src/game/online/servers.cpp
     src/game/online/session.cpp
     src/game/online/itemlist.cpp
