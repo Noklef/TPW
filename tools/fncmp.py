@@ -76,6 +76,7 @@ import struct
 import subprocess
 import sys
 import tempfile
+import threading
 import json
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
@@ -90,6 +91,7 @@ DRIVER = os.environ.get('FNCMP_DRIVER') or os.path.join(ROOT, 'build', 'tpw_fncm
 # cases matched without a crash ("direct", with their counts) and the hooked originals entered inside those cases ("indirect").
 COVER = os.environ.get('FNCMP_COVER')
 CRASHES = os.environ.get('FNCMP_CRASHES') == '1'
+RUN_LIMIT = float(os.environ.get('FNCMP_RUN_LIMIT', 1800))   # (seconds a run may take: the driver's own timeout does not see a loop on the Python side)
 
 
 def hooked_addresses():
@@ -1288,7 +1290,16 @@ class Bench:
         return out
 
     def run(self, gen, n, seed, wild=False, show=3, quiet=False):
-        """Returns the number of differing cases."""
+        """Returns the number of differing cases. A run past RUN_LIMIT ends the process, as failed."""
+        timer = threading.Timer(RUN_LIMIT, _over_limit)
+        timer.daemon = True
+        timer.start()
+        try:
+            return self._run(gen, n, seed, wild, show, quiet)
+        finally:
+            timer.cancel()
+
+    def _run(self, gen, n, seed, wild, show, quiet):
         cases = self.cases(gen, n, seed, wild)
         nat = self.native(cases)
         bad = crashed = 0
@@ -1371,6 +1382,11 @@ class Bench:
             results.append(bool(bad))
         lock.close()
         return results
+
+
+def _over_limit():
+    print('FAILED: this run passed its limit of %d s (FNCMP_RUN_LIMIT): a hang, or a bench too slow' % RUN_LIMIT, flush=True)
+    os._exit(3)
 
 
 def mut_lock():

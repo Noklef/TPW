@@ -115,7 +115,7 @@ range, open items, known skips and the paths of the two memory files it should r
   by call site. A hook by address also catches internal calls, such as the window constructors' Window_SetHandler: record only the port's own calls and
   replicate the rest.
 - **Compare the answer:** `Call(...)`'s default ret='v' does not compare EAX. A function that sets EAX on purpose, a handler in particular, needs ret='a'.
-- **Hangs:** a bench that can loop in both sets a small c.steps, so a hang costs one case, not the 600 s driver timeout.
+- **Hangs:** a bench that can loop in both sets a small c.steps, so a hang costs one case, not the 600 s driver timeout. A run past 30 minutes (env FNCMP_RUN_LIMIT, in seconds) ends as failed, whatever hung. A bench silent for 10 minutes gets looked at, not waited on; never queue further ports behind a bench that has not been timed.
 - **New benches:** check `ls tests/fncmp` for the name first, so Write does not overwrite one. Give each `fill` in a case its own `which`, and keep regions from overlapping.
 - **x87:** the emulator (x87emu) runs x87 code; tools/x87sym.py helps read it. Prefer the portable functions first, then take x87 ones.
 - **Shared modules:** adding a function to a module another branch also touches is fine. Never reformat or reorder existing code in it.
