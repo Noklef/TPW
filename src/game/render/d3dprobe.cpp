@@ -9,9 +9,9 @@
 #include "../core/vregs.h"
 #include "../math/x87.h"
 #include "drawbuffer.h"
-#include "dxerrors.h"
-#include "enginedebug.h"
-#include "engineerrors.h"
+#include "d3dresult.h"
+
+using namespace d3dresult;
 
 namespace {
 
@@ -56,19 +56,6 @@ u32 bitsOf(float f) {
     u32 b;
     std::memcpy(&b, &f, 4);
     return b;
-}
-
-u32 &result() { return global<u32>(0x00879cd4); }
-
-// A device call's result kept; a failure's message written to the engine debug log.
-void keep(u32 hr) {
-    result() = hr;
-    if (static_cast<s32>(hr) < 0) EngineDebug_Log(DxResult_Message(hr));
-}
-// The kept result, unless 0, also on the engine's error list: whether it was 0.
-u32 pushed(u32 kind) {
-    if (result() != 0) EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, kind, result());
-    return result() == 0;
 }
 
 u32 drawIndexed(u8 *probe, u32 type, const u32 *vertices, u32 vertexCount, const u16 *indices, u32 indexCount, u32 flags) {
@@ -443,8 +430,7 @@ u32 __fastcall D3dProbe_DrawBatchTinted(u8 *probe, void *, u8 *batch) {
     const u8 *source = at<u8 *>(batch, 0x28);
     if (vertices == source) vertices += at<u32>(batch, 0x20) * stride;
     const u32 size = stride * at<u32>(batch, 0x20);
-    for (u32 i = 0; i < size >> 2; ++i) at<u32>(vertices, 4 * i) = at<u32>(source, 4 * i);   // (forward, as rep movs: the two may overlap)
-    for (u32 i = size & ~3u; i < size; ++i) vertices[i] = source[i];
+    for (u32 i = 0; i < size >> 2; ++i) at<u32>(vertices, 4 * i) = at<u32>(source, 4 * i);   // (forward, as rep movs: the two may overlap; the size is always whole dwords)
     for (s32 i = 0; i < at<s32>(batch, 0x20); ++i) at<u32>(vertices, static_cast<u32>(i) * stride + 0x10) = 0xffff0000;
     if (!(shadow(probe) & 0x100)) {
         renderState(probe, 0x1b, 1);
@@ -491,15 +477,7 @@ u32 __fastcall D3dProbe_DrawBatchTinted(u8 *probe, void *, u8 *batch) {
         }
         return 1;
     }
-    if ((flags & 0x2756) == 0x2756) {
-        blended();
-        vcall<u32>(base(probe), 0xc, 0u, at<u32>(batch, 8));
-        opaqueBlend();
-        stageState(probe, 0, 2, 0x22);
-        drawn();
-        stageState(probe, 0, 2, 2);
-        return 1;
-    }
+    // (the original's next test, of 0x2756, can never hold here: it includes all of 0x556)
     if ((flags & 0xff) == 0x22 || (flags & 0xff) == 0x52) return 1;
     vcall<u32>(base(probe), 0xc, 0u, 0u);
     opaqueBlend();

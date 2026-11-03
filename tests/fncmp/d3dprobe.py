@@ -45,7 +45,7 @@ def tinted(r, probe, off, log, regions, hr):
     flags = r.getrandbits(32)
     kind = r.randrange(5)
     if kind == 0:
-        flags |= 0x556
+        flags |= r.choice([0x556, 0x2756])
     elif kind == 1:
         flags = flags & ~0x400 | 0x2356
     elif kind == 2:

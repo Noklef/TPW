@@ -11,6 +11,12 @@ u32 __fastcall Obj_StoreComSlot80(u8 *object);
 
 // 0x5645a0 (thiscall): the free video memory the DirectDraw object at +8 gives (GetAvailableVidMem, COM slot 0x5c, for zeroed DDSCAPS2); what the call
 // leaves in it when it fails (sic: not set before).
+// 0x564430 (thiscall, pops 4; name invented): COM slot 0x64 (Lock) of the member at +0x14 with a description of size 0x7c, the result kept; `out` the description, all 0 when the result was not 0. Returns out.
+u32 *__fastcall Obj_LockDesc(u8 *object, void *, u32 *out);
+// 0x5644e0 (thiscall, pops 4; name invented): +0x18 = surface, COM slot 0xc of the member at +0x14 with it, the result kept: whether it was 0.
+u32 __fastcall Obj_AddAttached(u8 *object, void *, u32 surface);
+// 0x564540 (thiscall; name invented): COM slot 0x20 of the member at +0x14 with (0, +0x18), +0x18 = 0, the result kept: whether it was 0.
+u32 __fastcall Obj_DeleteAttached(u8 *object);
 u32 __fastcall Obj_FreeVideoMemory(u8 *object);
 
 // 0x4ef7b0 (thiscall on a counted object): the count at +4 is lowered unless it is 0 or -1; returns the object when the count is then 0, otherwise 0.

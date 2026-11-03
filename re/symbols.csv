@@ -3973,6 +3973,9 @@ address,name,kind,confidence,notes
 0x00421690,ListRef_Remove,function,high,reimplemented (src/game/core/vobj3); unlinks the node of an object and deletes the object
 0x00576270,Pool_AddSorted,function,high,reimplemented (src/game/core/vobj3); links a pooled node holding an object into a list
 0x005645a0,Obj_FreeVideoMemory,function,low,"reimplemented (src/game/core/vobj3); thiscall: the free video memory of the DirectDraw object at +8 (GetAvailableVidMem, COM slot 0x5c, zeroed DDSCAPS2)"
+0x00564430,Obj_LockDesc,function,low,"reimplemented (src/game/core/vobj3); thiscall (out), pops 4: the member +0x14's COM slot 0x64 (Lock) with a description of 0x7c bytes; the result kept; out the description, all 0 on a failure; returns out. Name invented, unconfirmed."
+0x005644e0,Obj_AddAttached,function,low,"reimplemented (src/game/core/vobj3); thiscall (surface), pops 4: +0x18 = surface, the member +0x14's COM slot 0xc with it; the result kept: whether it was 0. Name invented, unconfirmed."
+0x00564540,Obj_DeleteAttached,function,low,"reimplemented (src/game/core/vobj3); thiscall: the member +0x14's COM slot 0x20 with (0, +0x18), +0x18 = 0; the result kept: whether it was 0. Name invented, unconfirmed."
 0x005b55e0,Class702880_ScalarDtor,function,high,reimplemented (src/game/core/vdel); scalar deleting destructor calling Class702880_Dtor
 0x005b58a0,Class702890_ScalarDtor,function,high,reimplemented (src/game/core/vdel); scalar deleting destructor calling Class702890_Dtor
 0x005bced0,Class7028d0_ScalarDtor,function,high,reimplemented (src/game/core/vdel); scalar deleting destructor calling Class7028d0_Dtor
