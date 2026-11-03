@@ -54,6 +54,8 @@
 #include "../../src/game/ui/dialog7cc530open.h"
 #include "../../src/game/ui/dialog7cc61c.h"
 #include "../../src/game/ui/gamepartdialogs.h"
+#include "../../src/game/ui/panel7b9940.h"
+#include "../../src/game/world/patrolcoverage.h"
 #include "../../src/game/ui/dialog7cb2b8build.h"
 #include "../../src/game/ui/dialog7cc4b4update.h"
 #include "../../src/game/ui/panel7cc408info.h"
@@ -708,6 +710,12 @@ const ViewButtonsEnv kViewButtonsEnv = {Rec{recorder(10, 3)}, Rec{recorder(11, 0
 // the thing panels' handlers' calls (tests/fncmp/thingpanelhandlers.py).
 const ThingPanelHandlerEnv kThingPanelHandlerEnv = {Rec{recorder(10, 0)}, Rec{recorder(11, 0)}, Rec{recorder(24, 0)}, Rec{jpeg_recorder(12, 4)}, Rec{recorder(13, 2)}, Rec{recorder(14, 1)}, Rec{jpeg_recorder(15, 1)}, Rec{jpeg_recorder(16, 0)}, Rec{jpeg_recorder(17, 2)}, Rec{recorder(18, 0)}, Rec{recorder(19, 0)}, Rec{recorder(20, 1)}, Rec{recorder(21, 0)}, Rec{recorder(22, 0)}, Rec{jpeg_recorder(23, 2)}, Rec{recorder(25, 0)}, Rec{recorder(26, 1)}, Rec{jpeg_recorder(27, 0)}, Rec{recorder(28, 0)}, Rec{jpeg_recorder(29, 1)}, Rec{jpeg_recorder(30, 1)}, Rec{recorder(31, 0)}, Rec{recorder(2, 0)}, Rec{stdcall_recorder(3, 1)}, Rec{recorder(4, 0)}};
 const GamePartDialogEnv kGamePartDialogEnv = {Rec{jpeg_recorder(10, 1)}, Rec{recorder(11, 2)}, Rec{jpeg_recorder(12, 2)}, Rec{jpeg_recorder(13, 0)}};
+const PatrolCoverageEnv kPatrolCoverageEnv = {Rec{stdcall_recorder(10, 1)}};
+const Dialog7cc61cOpenEnv kDialog7cc61cOpenEnv = {Rec{jpeg_recorder(10, 3)}, Rec{jpeg_recorder(11, 1)}, Rec{recorder(12, 1)}, Rec{recorder(13, 1)}, Rec{jpeg_recorder(14, 1)}, Rec{recorder(15, 1)}, Rec{recorder(16, 1)}, Rec{recorder(17, 2)}, Rec{recorder(18, 2)}, Rec{jpeg_recorder(19, 0)}, Rec{recorder(20, 1)}, Rec{recorder(21, 1)}, Rec{recorder(22, 4)}, Rec{jpeg_recorder(23, 1)}, Rec{jpeg_recorder(24, 3)}, Rec{recorder(25, 1)}};
+const Panel7b9940ExitEnv kPanel7b9940ExitEnv = {Rec{jpeg_recorder(6, 0)}};
+const Panel7b9940OpenEnv kPanel7b9940OpenEnv = {Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 0)}, Rec{jpeg_recorder(12, 1)}, Rec{recorder(13, 0)}, Rec{stdcall_recorder(14, 1)}, Rec{recorder(15, 2)}, Rec{recorder(16, 7)}, Rec{recorder(17, 1)}, Rec{recorder(18, 1)}, Rec{recorder(19, 2)}, Rec{recorder(20, 1)}, Rec{recorder(21, 2)},
+                                                Rec{jpeg_recorder(22, 0)}, Rec{jpeg_recorder(23, 0)}, Rec{jpeg_recorder(24, 0)}, Rec{jpeg_recorder(25, 0)}, Rec{jpeg_recorder(26, 0)}, Rec{jpeg_recorder(27, 0)}, Rec{jpeg_recorder(28, 0)}, Rec{jpeg_recorder(29, 0)}, Rec{jpeg_recorder(30, 0)}};
+const Panel7cc218RefreshEnv kPanel7cc218RefreshEnv = {Rec{jpeg_recorder(10, 1)}, Rec{recorder(11, 0)}, Rec{recorder(12, 0)}};
 // Online_Instance's constructor (tests/fncmp/onlineinstance.py).
 const OnlineInstanceEnv kOnlineInstanceEnv = {Rec{recorder(10, 0)}};
 // Dialog7cdac4_Handler's calls (tests/fncmp/dialog7cdac4handler.py).
@@ -1566,6 +1574,11 @@ int main(int argc, char **argv) {
     Online_SetInstanceEnv(&kOnlineInstanceEnv);
     ThingPanelHandlers_SetEnv(&kThingPanelHandlerEnv);
     GamePartDialogs_SetEnv(&kGamePartDialogEnv);
+    PatrolCoverage_SetEnv(&kPatrolCoverageEnv);
+    Dialog7cc61c_SetOpenEnv(&kDialog7cc61cOpenEnv);
+    Panel7b9940_SetExitEnv(&kPanel7b9940ExitEnv);
+    Panel7b9940_SetOpenEnv(&kPanel7b9940OpenEnv);
+    Panel7cc218_SetRefreshEnv(&kPanel7cc218RefreshEnv);
     ViewButtons_SetEnv(&kViewButtonsEnv);
     Dialog7cc530_SetOpenEnv(&kDialog7cc530OpenEnv);
     Dialog7cb2b8_SetBuildEnv(&kDialog7cb2b8BuildEnv);

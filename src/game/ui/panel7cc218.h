@@ -12,6 +12,14 @@ struct Panel7cc218ShowEnv {
 };
 void Panel7cc218_SetShowEnv(const Panel7cc218ShowEnv *env);
 
+// Panel7cc218_Refresh's calls (the ports by default; the bench's recorders: their own benches have them).
+struct Panel7cc218RefreshEnv {
+    u8 *(__cdecl *name)(u8 *thing);        // Thing_NameBuffer7ba058
+    void(__fastcall *showRide)(u8 *self);  // Panel7cc218_ShowRide
+    void(__fastcall *buttons)(u8 *self);   // Panel7cc218_UpdateButtons
+};
+void Panel7cc218_SetRefreshEnv(const Panel7cc218RefreshEnv *env);
+
 // Panel7cc218_FillLevels' calls (the ports by default, 0x67c430 raw: unported, agent B's; the bench's recorders: their own benches have them).
 struct Panel7cc218LevelsEnv {
     void(__fastcall *clear)(u8 *window);                                                 // Window7059f0_Clear
@@ -114,6 +122,9 @@ void __fastcall Panel7cc218_EnterMoveMode(u8 *self);
 // range +0x124 / +0x128 empty hidden, 0x3e31 too (Window_SetShown, the child not checked); else both shown and its child 0x3e2e's slot 7 given the level table's +0x19c << 10 over the range;
 // either way the range, slot 7 given the thing's byte +0x5d. Finally Panel7cc218_ShowSettings (7). The level table is at the thing's byte +0x50 * 0x40 in the definition.
 void __fastcall Panel7cc218_ShowRide(u8 *self);
+
+// 0x4ae940 (thiscall; name invented, unconfirmed): the object +0x20's slot 9 given the shown thing [0x7c2658]'s name (Thing_NameBuffer7ba058), the panel's slots 6 and 5, Panel7cc218_ShowRide and Panel7cc218_UpdateButtons.
+void __fastcall Panel7cc218_Refresh(u8 *self);
 
 // 0x4ad890 (thiscall; slot 3 of the vtable 0x6ffbe8): with the window +0x14 set (read again for each child), its children dressed in this
 // order (ui/panelparts; a text a TextPart_Ctor part with that language text, a part's or a bar's value given to the child's slot 7):

@@ -33,6 +33,7 @@
 #include "../world/ridelist.h"
 #include "../world/ridesweep.h"
 #include "dialog7ca1c8.h"
+#include "dialog7ca210.h"
 #include "dialogs.h"
 #include "guirect.h"
 #include "hoverlabel.h"
@@ -91,6 +92,22 @@ s32 rangePart(const u8 *def, u32 table, u8 level, s32 from, s32 to) {
 }  // namespace
 
 void Panel7cc218_SetShowEnv(const Panel7cc218ShowEnv *env) { g_show = env ? env : &kShowGameEnv; }
+
+namespace {
+const Panel7cc218RefreshEnv kRefreshGameEnv = {Thing_NameBuffer7ba058, Panel7cc218_ShowRide, Panel7cc218_UpdateButtons};
+const Panel7cc218RefreshEnv *g_refresh = &kRefreshGameEnv;
+}  // namespace
+
+void Panel7cc218_SetRefreshEnv(const Panel7cc218RefreshEnv *env) { g_refresh = env ? env : &kRefreshGameEnv; }
+
+extern "C" void __fastcall Panel7cc218_Refresh(u8 *self) {
+    u8 *const name = g_refresh->name(*reinterpret_cast<u8 **>((uintptr_t)0x007c2658));
+    vcall<void>(at<u8 *>(self, 0x20), 0x24, name);
+    vcall<void>(self, 0x18);
+    vcall<void>(self, 0x14);
+    g_refresh->showRide(self);
+    g_refresh->buttons(self);
+}
 
 namespace {
 

@@ -6,9 +6,12 @@
 #include "../core/language.h"
 #include "../core/vcall.h"
 #include "../gfx/guitext.h"
+#include "../render/textparts.h"
 #include "dialogbase.h"
 #include "focus.h"
 #include "guirect.h"
+#include "hoverlabel.h"
+#include "radiogroup.h"
 #include "window.h"
 #include "window705b20.h"
 
@@ -65,6 +68,52 @@ extern "C" void __cdecl Dialog7cc61c_FitText() {
     if (!(u16)vcall<u32>(bar, 0x1c, 0u))
         vcall<void>(panel, 0x24, text);
     GuiRect_Dtor(rect);
+}
+
+namespace {
+
+const Dialog7cc61cOpenEnv kGameOpenEnv = {&Dialog_Create, &GameHeap_Alloc, &TextPart_Ctor, &Window_SetImpl, &Language_Font, &Window_Set4c, &Window_NotifyImpl100, &Window_Notify3000, &Window_NotifyC00, &Dialog7cc61c_FitText, &Window_SetHandler, &RadioGroup_Select, &Window_Notify40000, &Language_WideText, &HoverLabel_Attach, &Window_SetFocus};
+const Dialog7cc61cOpenEnv *g_open = &kGameOpenEnv;
+
+void setPart(u8 *window) {
+    u8 *const memory = static_cast<u8 *>(g_open->alloc(0x1a4));
+    g_open->setImpl(window, nullptr, memory ? g_open->part(memory, nullptr, 0) : nullptr);
+}
+
+void dressButton(u8 *group, u32 id, u32 text) {
+    u8 *const button = Window_FindChild(group, nullptr, id);
+    setPart(button);
+    g_open->notifyC00(button, nullptr, 1, 1);
+    g_open->set4c(button, nullptr, g_open->font(6));
+    g_open->notify40000(button, nullptr, 0, 0, 0, 0xff);
+    g_open->notify100(button, nullptr, 0);
+    vcall<void>(button, 0x24, g_open->text(text));
+}
+
+}  // namespace
+
+void Dialog7cc61c_SetOpenEnv(const Dialog7cc61cOpenEnv *env) { g_open = env ? env : &kGameOpenEnv; }
+
+extern "C" void __cdecl Dialog7cc61c_Open() {
+    u8 *&dialog = global<u8 *>(0x007cc61c);
+    if (dialog || !global<u8 *>(0x00f82884)) return;
+    dialog = g_open->create(reinterpret_cast<u8 *>((uintptr_t)0x007586f0), 0x004bb690, 0);
+    Window_SetDepth(dialog, nullptr, (u16)(at<u16>(dialog, 0xe0) + 4));
+    u8 *const panel = Window_FindChild(dialog, nullptr, 0x5b7f);
+    setPart(panel);
+    g_open->set4c(panel, nullptr, g_open->font(global<u32>(0x00758870)));
+    g_open->notify100(panel, nullptr, 0);
+    g_open->notify3000(panel, nullptr, 1, 0);
+    g_open->notifyC00(panel, nullptr, 0, 0);
+    global<u8>(0x007cc620) = 1;
+    g_open->fitText();
+    g_open->setHandler(panel, nullptr, 0x004bb720);
+    u8 *const group = Window_FindChild(panel, nullptr, 0x5b81);
+    g_open->select(group, nullptr, 0x5b82);
+    dressButton(group, 0x5b82, 0x10c);
+    dressButton(group, 0x5b83, 0x10d);
+    g_open->attach(dialog, 0x5b84, (u32)(uintptr_t)g_open->text(0x10b));
+    g_open->setFocus(dialog, nullptr, 0);
 }
 
 extern "C" s32 __cdecl Dialog7cc61c_Handler(u8 *window, u32 message, u32 a, u32 b) {
