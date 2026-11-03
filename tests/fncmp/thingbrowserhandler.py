@@ -36,6 +36,8 @@ def case(r):
     set_return(log, 18, r.getrandbits(32))
     message = r.deal([0x14, 0x1e, 0x1e, 0x101, 0x101, 0x101, 0x101, 0x101, 0x101, 0x101, 0x101, 0x1001d8, 0x1001d8, 0x13, 0x1f, 0x100, 0x102, 0x1001d7, r.getrandbits(32)])
     a = r.randrange(0x95d, 0x966) if r.random() < 0.9 else r.getrandbits(32)
+    if 0x95e <= a <= 0x964 and r.random() < 0.4:   # (the button of the mode already on)
+        regions[0x7cc30c] = struct.pack('<I', (1, 2, 5, 4, 3, 0, 6)[a - 0x95e])
     b = r.choice([1, 1, 1, 1, 0, 2, r.getrandbits(32)])
     return Call(0x4b3790, [RAM, message, a, b], regions, ret='a')
 
