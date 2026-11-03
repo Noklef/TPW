@@ -111,6 +111,11 @@ range, open items, known skips and the paths of the two memory files it should r
 - **Ghidra mis-splits:** a "function" starting with a conditional jump, or in the middle of another, is not one. Skip it.
 - **Helper names:** check a helper's name against the callee's address in re/symbols.csv before you call it: a similar name can be another function.
 - **Shared bench worlds:** a bench that shares guitext's world must not reuse its recorder k numbers (k 7 is the font's).
+- **Bench hooks:** a hook reached by CALL in tools/x87emu.py has no return address on the stack (ESP points at the first argument): pick by arguments, not
+  by call site. A hook by address also catches internal calls, such as the window constructors' Window_SetHandler: record only the port's own calls and
+  replicate the rest.
+- **Compare the answer:** `Call(...)`'s default ret='v' does not compare EAX. A function that sets EAX on purpose, a handler in particular, needs ret='a'.
+- **Hangs:** a bench that can loop in both sets a small c.steps, so a hang costs one case, not the 600 s driver timeout.
 - **x87:** the emulator (x87emu) runs x87 code; tools/x87sym.py helps read it. Prefer the portable functions first, then take x87 ones.
 - **Shared modules:** adding a function to a module another branch also touches is fine. Never reformat or reorder existing code in it.
 - **Cross-range blockers:** if a candidate is blocked only by an unported callee in another agent's range, list it in your report (address

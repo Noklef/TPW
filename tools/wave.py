@@ -143,7 +143,8 @@ def cmd_list(lo, hi, unlock=False):
     # Not port targets though unhooked: MSVC's __CxxFrameHandler 0x67a910 (every EH-framed function's handler stub jumps to it; the
     # ports' exception handling is the compiler's: A r34 saw it 'unlock' 1120), and TgqVideo_DecodeMacroblock32 / 16 0x67380f / 0x673fee
     # (reimplemented, but without hooks rows: they always fault, C r29).
-    hooked = hooked | {0x67a910, 0x67380f, 0x673fee}
+    # Nor is 0x67b110 __chkstk: no port calls it (B r41).
+    hooked = hooked | {0x67a910, 0x67380f, 0x673fee, 0x67b110}
     for f in glob.glob(os.path.join(ROOT, '_re', 'decomp-typed', 'decomp_*.c')):
         for m in re.finditer(r'^// ==== (\S+) @ ([0-9a-f]{8}) ====', open(f, errors='replace').read(), re.M):
             starts.add(int(m.group(2), 16))

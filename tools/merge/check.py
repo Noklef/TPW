@@ -19,7 +19,7 @@ In order:
   5. each bench the merge touches, at N cases (default 1000) seed 5, --both: every run must show 0 differ. Every bench importing a
      touched module runs too (a bench's case() reused by another, or a helper module with no main, e.g. thingenv.py, which needs one).
      A slow bench runs fewer: as many as fit S seconds (default 300) for both runs at its per-case time in the last coverage gate
-     (_re/coverage.json), 50 at least; one the gate has not timed runs all N. --both-sides (main merged into an agent's branch): only
+     (_re/coverage.json) or, if the gate has not timed it, in a 50-case run; 50 at least. --both-sides (main merged into an agent's branch): only
      the benches both sides changed since the merge base, and those importing them (the rest ran on main, and run again when the
      branch merges back).
 """
@@ -273,10 +273,13 @@ def main():
         t0 = time.time()
         n, g = int(cases), timed.get(os.path.basename(f))
         if g and sum(r[0] for r in g['runs']):
-            per_case = g['seconds'] / sum(r[0] for r in g['runs'])
-            n = min(n, max(50, int(budget / 2 / per_case)))
-            if n < int(cases):
-                print('bench %s: %d cases (%.2f s a case in the last gate)' % (os.path.basename(f)[:-3], n, per_case))
+            per_case, source = g['seconds'] / sum(r[0] for r in g['runs']), 'the last gate'
+        else:   # (no gate has timed it: 50 cases of each run do, randomdest's 1000 took 65 minutes)
+            run([sys.executable, '-I', f, '50', '5', '--both'])
+            per_case, source = (time.time() - t0) / 100, 'a short run'
+        n = min(n, max(50, int(budget / 2 / per_case)))
+        if n < int(cases):
+            print('bench %s: %d cases (%.2f s a case in %s)' % (os.path.basename(f)[:-3], n, per_case, source))
         p = run([sys.executable, '-I', f, str(n), '5', '--both'])
         res = [l.strip() for l in p.stdout.splitlines() if 'differ' in l]
         name = os.path.basename(f)[:-3]
