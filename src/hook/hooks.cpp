@@ -546,6 +546,7 @@
 #include "../game/ui/windowfactory.h"
 #include "../game/ui/windowscript.h"
 #include "../game/ui/buttontext.h"
+#include "../game/ui/chatnamemenu.h"
 #include "../game/ui/dialog74fb20.h"
 #include "../game/ui/dialog7ca098.h"
 #include "../game/ui/dialog7ca13c.h"
@@ -7928,6 +7929,7 @@ const Hook kHooks[] = {
     {"Dialog7cb2fc_Handler",      0x004a2bf0, (void *)&Dialog7cb2fc_Handler, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
     {"Dialog7cb2fc_Open",         0x004a3a30, (void *)&Dialog7cb2fc_Open, {0xa1, 0xfc, 0xb2, 0x7c, 0x00}},
     {"Dialog7cc984_Open",         0x004c0ae0, (void *)&Dialog7cc984_Open, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"ChatNameMenu_Handler",      0x004bede0, (void *)&ChatNameMenu_Handler, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
