@@ -7022,6 +7022,7 @@ address,name,kind,confidence,notes
 0x005d7fd0,LobbyResource_Ctor,function,low,"reimplemented (src/game/frontend/lobbymake); a lobby resource: its name and pack strings and its load (0x4629d0, by address), given to the scene"
 0x005d8870,LobbyScene_MakeModel,function,low,"reimplemented (src/game/frontend/lobbymake); a lobby model of a resource found by name and pack or new, its ride out of the renderer, given to the scene"
 0x005dfa60,Class702ca8_Ctor,function,low,"reimplemented (src/game/frontend/lobbymake); the object of vtable 0x702ca8: two lobby models, turned and placed, strings, colours from rand, sound categories, given to its owner"
+0x005e3210,LobbyScript_Load,function,low,"reimplemented (src/game/frontend/lobbyscript); The lobby scene's script read: islands, flying meshes, weather and sky (name invented, unconfirmed)"
 0x0065d7d0,Window_FindChild,function,low,"reimplemented (src/game/ui/window); thiscall (id), pops 4: the first child of the window (list +0x5c, next +0x54) whose id (+0x8c) is id, or 0"
 0x0065f697,Window_CallHandler,function,low,"reimplemented (src/game/ui/window); thiscall (message, a, b), pops 12: the cdecl handler at +0x114 called with (window, message, a, b), its result; -1 when none"
 0x00658d9f,Window_SendMessage,function,low,"reimplemented (src/game/ui/window); cdecl (window, message, a, b): -1 for no window or byte +4 set; else the hook [0xfaa5fc] (if set) then Window_CallHandler"
