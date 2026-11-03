@@ -4,7 +4,23 @@
 
 #include "../../../re/types.h"
 
+// Dialog7ca150_Handler's calls (the ports by default; the bench's recorders: their own benches have them).
+struct Dialog7ca150Env {
+    void(__cdecl *showTab[4])(u32 selected);
+    u16 *(__cdecl *text)(u32 index);                    // Language_WideText
+    void(__cdecl *attach)(u8 *parent, u32 id, u32 text);   // HoverLabel_Attach
+    void(__cdecl *thingPanel)(u8 *thing);               // ThingPanel_Show
+};
+void Dialog7ca150_SetEnv(const Dialog7ca150Env *env);
+
 extern "C" {
+
+// 0x495360 (cdecl (window, message, a, b): Dialog7ca150_Open's handler of the page's child 0x12c4b8; name invented). 0x101 with b 1 and a a radio 0x12c4ba to 0x12c4bd: the tab 0, 2, 1 or 3
+// shown (selected 0) and the hover label 0x12c4be of the page [0x7ca150] given the text 0x4e + the tab. 0x400: the child a (Window_FindChild) when there is one and b is not -1: its item b's
+// data (Window7059f0_NthItemData, whose slot is left the window when there is no item b, sic) given to ThingPanel_Show; answer 0 either way. 0x402 the same but the thing's handle
+// (Thing_GetHandle) to Camera_CentreOnThing and the page sent 4 (0, 0), answer 0; no child or -1 goes on. 0x406: the tab [0x7ca154] (0-3) has its sort dword (0x750d5c on) b. Otherwise, and
+// after these, the default handler's answer (Window_CallDefault).
+u32 __cdecl Dialog7ca150_Handler(u8 *window, u32 message, u32 a, u32 b);
 
 // 0x494ec0 / 0x494c70 / 0x494250 / 0x495110 (cdecl (selected); the tabs 0-3; names unconfirmed): the page (the child 0x12c4b8 of
 // [0x7ca150]) has its child 400 sent 4 (0, 0) when there is one (sic: looked for three times, the same search); then a list is built on the

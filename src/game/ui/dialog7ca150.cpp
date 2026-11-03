@@ -5,12 +5,15 @@
 #include "../core/accessors.h"
 #include "../core/language.h"
 #include "../world/advisor.h"
+#include "../world/camera.h"
 #include "../world/ridesweep.h"
+#include "../world/things.h"
 #include "buttontext.h"
 #include "focus.h"
 #include "hoverlabel.h"
 #include "listrows.h"
 #include "radiogroup.h"
+#include "thingpanel.h"
 #include "window.h"
 #include "window7059f0.h"
 #include "windowreg.h"
@@ -19,6 +22,9 @@
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
+const Dialog7ca150Env kGameEnv = {{&Dialog7ca150_ShowTab0, &Dialog7ca150_ShowTab1, &Dialog7ca150_ShowTab2, &Dialog7ca150_ShowTab3}, &Language_WideText, &HoverLabel_Attach, &ThingPanel_Show};
+const Dialog7ca150Env *g_env = &kGameEnv;
 
 // a tab of the dialog: its script, the columns (their header texts from first_text on, the buttons' values), the sort dword, the things'
 // groups and their callbacks
@@ -71,7 +77,53 @@ void show_tab(u32 selected, const Tab &tab) {
 
 }  // namespace
 
+void Dialog7ca150_SetEnv(const Dialog7ca150Env *env) { g_env = env ? env : &kGameEnv; }
+
 extern "C" {
+
+u32 __cdecl Dialog7ca150_Handler(u8 *window, u32 message, u32 a, u32 b) {
+    switch (message) {
+    case 0x101: {
+        static const u8 kTabOfRadio[] = {0, 2, 1, 3};
+        const u32 radio = a - 0x12c4ba;
+        if (b == 1 && radio <= 3) {
+            const u32 tab = kTabOfRadio[radio];
+            g_env->showTab[tab](0);
+            const u32 text = (u32)(uintptr_t)g_env->text(0x4e + tab);
+            g_env->attach(global<u8 *>(0x007ca150), 0x12c4be, text);
+        }
+        break;
+    }
+    case 0x400: {
+        u8 *const child = Window_FindChild(window, nullptr, a);
+        if (child && b != 0xffffffff) {
+            u32 slot = (u32)(uintptr_t)window;   // (0x400)
+            Window7059f0_NthItemData(child, nullptr, (s32)b, &slot);
+            g_env->thingPanel(reinterpret_cast<u8 *>((uintptr_t)slot));
+        }
+        return 0;
+    }
+    case 0x402: {
+        u8 *const child = Window_FindChild(window, nullptr, a);
+        if (child && b != 0xffffffff) {   // (0x402)
+            u32 slot = (u32)(uintptr_t)window;   // (0x402)
+            Window7059f0_NthItemData(child, nullptr, (s32)b, &slot);
+            u16 handle;
+            Thing_GetHandle(reinterpret_cast<const u8 *>((uintptr_t)slot), nullptr, &handle);
+            Camera_CentreOnThing(handle);
+            Window_SendMessage(global<u8 *>(0x007ca150), 4, 0, 0);
+            return 0;
+        }
+        break;
+    }
+    case 0x406: {
+        const u32 tab = global<u32>(0x007ca154);
+        if (tab <= 3) global<u32>(0x00750d5c + 4 * tab) = b;
+        break;
+    }
+    }
+    return (u32)Window_CallDefault(window, nullptr, message, a, b);
+}
 
 void __cdecl Dialog7ca150_ShowTab0(u32 selected) { show_tab(selected, kTabs[0]); }
 
