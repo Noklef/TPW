@@ -107,7 +107,7 @@ def case(r):
     put(words, 0, 'H', cell << 8 if r.deal([0, 1, 1]) else r.getrandbits(16))
     put(words, 4, 'H', cell << 8 if r.deal([0, 1, 1]) else r.getrandbits(16))
     words[0x10] = r.deal([0, 0, 1])                       # 0x7cc6a0
-    place = struct.pack('<ffff', cell * 10.0, 0.0, cell * 10.0, 0.0)
+    place = struct.pack('<ffff', cell * 10.0, 0.0, (cell + r.deal([0, 0, 7])) * 10.0, 0.0)   # (x and z apart now and then: the calls' order)
     mouse = bytes_(0x20)
     put(mouse, 0, 'H', r.deal([0, 1, 0x81, 0x4000]))     # 0x7b05cc
     down = op in ('Move',)
