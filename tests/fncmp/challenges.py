@@ -16,7 +16,8 @@
 # (0x4d2b60 Followup): the flags +0x3d9 / +0x3da mostly clear, the current index about -1, 0, 19, 20 and the signed wraps (none that
 # walks below the challenges: the original reads there), the 20 challenges' kinds, won flags, declined counts about gBalanceLevel's
 # 0x7857cc limit, independent flags and follow-ups from a few values; Announce's centre and log.
-# usage: challenges.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Drop,Current,Schema,Guard,Accept,Decline,LoadSam,Dtor,Ctor,Finish,Attempt,Announce,Next,Followup)
+# A challenge won or lost (0x4d2fb0, 0x4d3140): see ended().
+# usage: challenges.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Drop,Current,Schema,Guard,Accept,Decline,LoadSam,Dtor,Ctor,Finish,Attempt,Announce,Next,Followup,Won,Lost)
 import os
 import struct
 import sys
@@ -37,7 +38,7 @@ B = Bench([(0x4d1c80, 0x4d1cdc), (0x4d1e60, 0x4d1e74), (0x4d2840, 0x4d285d), (0x
            (0x519510, 0x519550), (0x5da3c0, 0x5da3c1), (0x4d1ce0, 0x4d1e5e), (0x4d1e80, 0x4d1e8c), (0x4d1bd0, 0x4d1c73), (0x4d91f0, 0x4d9290),
            (0x50afe0, 0x50b090), (0x50b350, 0x50b370), (0x516270, 0x516320), (0x67b050, 0x67b0d0), (0x4d1a00, 0x4d1add),
            (0x409cd0, 0x409cdd), (0x6bb1a0, 0x6bb1a4), (0x4d3500, 0x4d374e), (0x40f7a0, 0x40f803),
-           (0x4d1ae0, 0x4d1bc6), (0x4d2a70, 0x4d2b55), (0x4d2b60, 0x4d2c4d), (0x4d2c50, 0x4d2de8), (0x4d3220, 0x4d3500), (0x5dc650, 0x5dc654), (0x51c050, 0x51c054)] + CLOCK_RANGES + FILE_RANGES + thing_ctors.CENTRE_RANGES,
+           (0x4d1ae0, 0x4d1bc6), (0x4d2a70, 0x4d2b55), (0x4d2b60, 0x4d2c4d), (0x4d2c50, 0x4d2de8), (0x4d3220, 0x4d3500), (0x5dc650, 0x5dc654), (0x51c050, 0x51c054), (0x4d2fb0, 0x4d313c), (0x4d3140, 0x4d3214)] + CLOCK_RANGES + FILE_RANGES + thing_ctors.CENTRE_RANGES,
           hooks={**thing_ctors.CENTRE_HOOKS, 0x40fb10: _recorder(21, 1)})
 VALUES = balanceload.VALUES
 LEVEL = 0x7857d4   # gBalanceLevel's challenge indices (20 dwords)
@@ -201,9 +202,37 @@ def offer_next(r, mem, op):
     return Call(0x4d2b60, [C], regions, conv='t', ret='b')
 
 
+def ended(r, mem, op):
+    """Challenges_Won (0x4d2fb0) or Challenges_Lost (0x4d3140): the challenges as Followup, the world as the offer, 0x7857c0's days, the centre as Attempt; the message's bytes but 0x10-0x13 (Attempt's stack's and Finish's)."""
+    kinds = [r.randrange(1, 0x30) for _ in range(3)]
+    for i in range(0x14):
+        c = 0x100 + 0xc + 0x30 * i
+        put(mem, c, 'I', r.choice([0, 0] + kinds + [r.randrange(0x30)]))
+        put(mem, c + 0x14, 'i', r.choice(AMOUNTS))
+        put(mem, c + 0x18, 'I', r.choice([0, 0] + kinds + [r.randrange(0x30), r.getrandbits(32)]))
+        put(mem, c + 0x28, 'i', r.choice([0, 0, 1, 2, 3, -1, r.getrandbits(32) - (1 << 31)]))
+        mem[c + 0x1d] = r.choice([0, 1, 1, 0xff])
+        mem[c + 0x2c] = r.choice([0, 0, 0, 1, 0xff])
+    index = r.choice([0, 1, 19, r.randrange(20), r.randrange(20), r.randrange(20), -1, 20, r.getrandbits(32) - (1 << 31)])
+    put(mem, 0x100 + 0x3cc, 'i', index)
+    mem[0x100 + 0x3da] = r.choice([0] * 8 + [1])
+    c = offer(r, mem, 'Accept')
+    regions = c.regions
+    regions[HEAP] = heap()
+    regions[0x7857c0] = struct.pack('<i', r.choice(DAYS))
+    regions[0x7857cc] = struct.pack('<i', r.choice([0, 1, 2, 3, -1, 0x7fffffff]))
+    put(mem, 0x100 + 0x3cc, 'i', index)   # (offer's own draw undone)
+    mem[0x100 + 0x3da] = r.choice([0] * 8 + [1])
+    thing_ctors.centre(r, regions)
+    blob_bytes(regions[LOG], 21, 0, 0xfff0ffff)
+    return Call(0x4d2fb0 if op == 'Won' else 0x4d3140, [C], regions, conv='t', ret='v')
+
+
 def case(r):
     mem = r.bytes(0x600)
     op = r.deal(OPS)
+    if op in ('Won', 'Lost'):
+        return ended(r, bytearray(mem), op)
     if op in ('Next', 'Followup'):
         return offer_next(r, bytearray(mem), op)
     if op in ('Attempt', 'Announce'):
@@ -234,7 +263,7 @@ def case(r):
     return Call(r.choice([0x4d6330, 0x4d6350]), [C], {RAM: mem}, conv='t', ret='a')
 
 
-OPS = [k for k in os.environ.get('OPS', 'Drop,Current,Schema,Guard,Guard,Accept,Decline,LoadSam,LoadSam,Dtor,Ctor,Finish,Finish,Attempt,Attempt,Announce,Announce,Next,Next,Followup,Followup').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Drop,Current,Schema,Guard,Guard,Accept,Decline,LoadSam,LoadSam,Dtor,Ctor,Finish,Finish,Attempt,Attempt,Announce,Announce,Next,Next,Followup,Followup,Won,Won,Lost').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)
