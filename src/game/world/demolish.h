@@ -10,12 +10,12 @@ extern "C" {
 struct DemolishEnv {
     void(__cdecl *demolish)(s32 x, s32 y, u32 flag);                         // 0x527ee0 (Path_CheckDeadEnds; the game's: the port)
     void(__fastcall *cell5367a0)(u8 *cell, void *, u32 a, u32 b);            // 0x5367a0 (agent B's, thiscall on a map cell, pops 8)
-    void(__cdecl *thing530120)(u8 *thing);                                   // 0x530120 (agent B's; cdecl (thing))
+    void(__cdecl *thing530120)(u8 *thing);                                   // RideQueue_Trace (0x530120; cdecl (thing))
     void(__cdecl *f52f200)(u32 a, u32 b);                                    // 0x52f200 (cdecl (a, b))
     void(__cdecl *f52f580)(u32 a, u32 b);                                    // 0x52f580 (cdecl (a, b))
-    u32(__cdecl *step52fe50)(u8 *thing, u32 flag);                           // 0x52fe50 (cdecl (thing, flag); its answer tested)
+    u32(__cdecl *step52fe50)(u8 *thing, u32 flag);                           // GameMode_StepBack (0x52fe50; cdecl (thing, flag); its answer tested)
     void(__fastcall *entry53b280)(u8 *entry, void *, u32 a, u32 b, u32 c);   // 0x53b280 (agent B's, thiscall on a 0x28-byte entry, pops 0xc)
-    void(__cdecl *f545610)(u32 value);                                       // 0x545610 (agent B's; cdecl (the thing's dword +0x28))
+    void(__cdecl *f545610)(u32 value);                                       // TrakRide_Destroy (0x545610; cdecl (the thing's dword +0x28))
 };
 // The sweep's and the demolish's calls go to env (nullptr: the game's).
 void Demolish_SetEnv(const DemolishEnv *env);
