@@ -211,6 +211,7 @@ add_library(tpw_game STATIC
     src/game/core/soundwait.cpp
     src/game/core/soundguard.cpp
     src/game/core/soundseed.cpp
+    src/game/core/recordsort.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
@@ -409,6 +410,11 @@ add_library(tpw_game STATIC
     src/game/coaster/handles.cpp
     src/game/coaster/bendmesh.cpp
     src/game/coaster/trainrun.cpp
+    src/game/coaster/placecar.cpp
+    src/game/coaster/carprisms.cpp
+    src/game/coaster/carpose.cpp
+    src/game/coaster/rebuild.cpp
+    src/game/coaster/arreplay.cpp
     src/game/terrain/terrain_blend.cpp
     src/game/terrain/land.cpp
     src/game/terrain/procedural.cpp
@@ -445,6 +451,7 @@ add_library(tpw_game STATIC
     src/game/model/basecells.cpp
     src/game/model/hoardingmesh.cpp
     src/game/model/ridebase.cpp
+    src/game/model/rideresource.cpp
     src/game/render/mode.cpp
     src/game/render/frame.cpp
     src/game/render/screen.cpp
@@ -505,6 +512,7 @@ add_library(tpw_game STATIC
     src/game/online/chatevents.cpp
     src/game/online/chatcursor.cpp
     src/game/online/roomcounts.cpp
+    src/game/online/postcardmail.cpp
     src/game/frontend/lobbymodel.cpp
     src/game/frontend/helpbg.cpp
     src/game/frontend/islandcamera.cpp
@@ -514,6 +522,7 @@ add_library(tpw_game STATIC
     src/game/frontend/scenequeue.cpp
     src/game/frontend/frame.cpp
     src/game/frontend/sceneleave.cpp
+    src/game/frontend/lobbymake.cpp
     src/game/input/mouse.cpp
     src/game/ui/dialog7ca1c8.cpp
     src/game/ui/window.cpp
@@ -597,6 +606,7 @@ add_library(tpw_game STATIC
     src/game/render/passwordpart.cpp
     src/game/render/rasterformat.cpp
     src/game/render/enginedebug.cpp
+    src/game/render/ddopen.cpp
     src/game/ui/quitconfirm.cpp
     src/game/world/mapsweep.cpp
     src/game/ui/imehostattach.cpp
@@ -615,6 +625,7 @@ add_library(tpw_game STATIC
     src/game/world/researcher.cpp
     src/game/world/staffheld.cpp
     src/game/world/mapreset.cpp
+    src/game/world/cameraupdate.cpp
     src/game/ui/staffrename.cpp
     src/game/ui/window7cc8bc.cpp
     src/game/ui/dialog7cb2b8.cpp

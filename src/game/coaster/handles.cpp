@@ -2,8 +2,11 @@
 
 #include <cmath>
 #include <cstdint>
+#include <cstring>
+#include <emmintrin.h>
 
 #include "../math/x87.h"
+#include "cursor.h"
 #include "helpers.h"
 
 namespace {
@@ -16,6 +19,11 @@ const float kMinusThird = -0.333333343f;  // 0x6fdebc
 const float kZero = 0.0f;           // 0x6fde74
 const float kSharpFolded = -0.999f; // 0x6fdeb4
 const float kSharpStraight = 0.999f;// 0x6fdeb8
+const float kTwoPi = 6.28318548f;   // 0x6fdec0
+const float kMinusHalfPi = -1.57079637f;  // 0x6fdeb0
+const float kMinusOne = -1.0f;      // 0x6fde9c
+const float kEndHandle = 1.70000005f;  // 0x6fded4
+const float kRailFar = -2.0999999f; // 0x6fdec4
 
 struct V3 {
     float x, y, z;
@@ -67,7 +75,139 @@ void Finish(u8 *piece, const V3 &a, const V3 &b) {
     at<float>(piece, 0x60) = (float)(pz - X87Reg(b.z) * kMinusThird);
 }
 
+// fld, fchs, fstp: a signalling NaN quieted and the sign flipped.
+float Negated(float x) {
+    u32 bits;
+    std::memcpy(&bits, &x, 4);
+    bits = X87_FloatThrough(bits) ^ 0x80000000u;
+    std::memcpy(&x, &bits, 4);
+    return x;
+}
+
+X87Reg Length(float x, float y, float z) {
+    const X87Reg rx(x), ry(y), rz(z);
+    return X87_Sqrt(rx * rx + ry * ry + rz * rz);
+}
+
+// (x, y, z) by the length, itself stored as a float first.
+void Normalized(float x, float y, float z, float *out) {
+    const float length = (float)Length(x, y, z);
+    out[0] = (float)(X87Reg(x) / length);
+    out[1] = (float)(X87Reg(y) / length);
+    out[2] = (float)(X87Reg(z) / length);
+}
+
+// The sine table's entry for an angle by the table's scale, stored as a float first (fistp, rounded to nearest).
+float SineAt(X87Reg angle) {
+    const float index = (float)(angle * *reinterpret_cast<const float *>(0x007b095c));
+    return reinterpret_cast<const float *>(0x007b0968)[_mm_cvtss_si32(_mm_set_ss(index)) & *reinterpret_cast<const u32 *>(0x007b0960)];
+}
+
+// The two comparisons with 0 and 1: a NaN comes out 0.
+X87Reg Clamped01(X87Reg x) {
+    if (!(x.v > 0.0)) x = X87Reg(0.0f);
+    if (!(x.v < 1.0)) x = X87Reg(1.0f);
+    return x;
+}
+
+// (1 - t) * from - t * -2.1 (0x6fdec4).
+float TowardRail(X87Reg t, float from) {
+    return (float)((X87Reg(1.0f) - t) * from - t * kRailFar);
+}
+
+// The size of a railed piece's handles from rules +8, by the piece's way to its neighbour and its angles at +0xec and +0xf8.
+float RailedSize(const u8 *rules, const u8 *owner) {
+    const float size = at<float>(rules, 8);
+    const u8 *const other = Ptr(owner, at<u8>(owner, 8) & 0x80 ? 0x64 : 0x68);
+    X87Reg dx(kZero);
+    float dz = 1.0f;
+    if (other) {
+        dx = X87Reg(at<float>(other, 0x4c)) - at<float>(owner, 0x4c);
+        dz = (float)(X87Reg(at<float>(other, 0x54)) - at<float>(owner, 0x54));
+    }
+    const float length = (float)X87_Sqrt(dx * dx + X87Reg(dz) * dz);
+    float nx = (float)(dx / length), nz = (float)(X87Reg(dz) / length);
+    if (nx != nx) {
+        nx = 0.0f;
+        nz = 1.0f;
+    }
+    const X87Reg angle = X87Reg(at<float>(owner, 0xec)) * kTwoPi;
+    const float sine = SineAt(angle);
+    const float angleF = (float)angle;
+    const float cosine = SineAt(X87Reg(angleF) - kMinusHalfPi);
+    const X87Reg facing = X87Reg(sine) * kMinusOne * nx + X87Reg(cosine) * kMinusOne * nz;
+    const X87Reg dot = Clamped01(X87Reg(std::fabs(facing.v)));
+    const float bySlope = TowardRail(dot * dot, size);
+    const X87Reg left(std::fmod((double)at<float>(owner, 0xf8), 0.5));
+    const X87Reg phase = Clamped01(left + left);
+    const X87Reg swing = (X87Reg(SineAt(phase * kTwoPi - kMinusHalfPi)) - kMinusOne) * kHalf;
+    return TowardRail(swing, bySlope);
+}
+
 }  // namespace
+
+void __cdecl TrackNode_Handles(const u8 *rules, const float *way, u8 *node, float before, float after, const u8 *info, void *, void *, u32, u32) {
+    std::memcpy(node + 0x28, way, 12);
+    at<float>(node, 0x1c) = Negated(at<float>(node, 0x28));
+    at<float>(node, 0x20) = Negated(at<float>(node, 0x2c));
+    at<float>(node, 0x24) = Negated(at<float>(node, 0x30));
+    X87Reg sizeIn(0.0f), sizeOut(0.0f);
+    if (info && at<u32>(info, 0) & 0x4000) {
+        const u8 *const owner = Ptr(node, 0x10);
+        const float size = RailedSize(rules, owner);
+        const auto railed = [](const u8 *other) { return other && at<u8>(other, 8) & 0x40; };
+        if (at<u8>(owner, 8) & 0x80) {
+            sizeIn = railed(Ptr(owner, 0x68)) ? X87Reg(size) * before : X87Reg(before) * kEndHandle;
+            sizeOut = X87Reg(size) * after;
+        } else {
+            sizeIn = X87Reg(size) * before;
+            sizeOut = railed(Ptr(owner, 0x64)) ? X87Reg(size) * after : X87Reg(after) * kEndHandle;
+        }
+    } else {
+        sizeIn = X87Reg(before) * at<float>(rules, 8);
+        sizeOut = X87Reg(after) * at<float>(rules, 8);
+    }
+    const X87Reg in = sizeIn / Length(at<float>(node, 0x1c), at<float>(node, 0x20), at<float>(node, 0x24));
+    at<float>(node, 0x1c) = (float)(X87Reg(at<float>(node, 0x1c)) * in);
+    at<float>(node, 0x20) = (float)(in * at<float>(node, 0x20));
+    at<float>(node, 0x24) = (float)(in * at<float>(node, 0x24));
+    const X87Reg out = sizeOut / Length(at<float>(node, 0x28), at<float>(node, 0x2c), at<float>(node, 0x30));
+    at<float>(node, 0x28) = (float)(X87Reg(at<float>(node, 0x28)) * out);
+    at<float>(node, 0x2c) = (float)(out * at<float>(node, 0x2c));
+    at<float>(node, 0x30) = (float)(out * at<float>(node, 0x30));
+    for (u32 k = 0; k < 3; ++k) {
+        const float place = at<float>(node, 0x40 + 4 * k);
+        at<float>(node, 0x34 + 4 * k) = (float)(place - X87Reg(at<float>(node, 0x1c + 4 * k)) * kMinusThird);
+        at<float>(node, 0x4c + 4 * k) = (float)(place - X87Reg(at<float>(node, 0x28 + 4 * k)) * kMinusThird);
+    }
+}
+
+void __cdecl TrackPiece_NodeHandles(const u8 *piece, const u8 *source) {
+    const u8 *const rules = Ptr(*reinterpret_cast<u8 *const *>(0x00792218), 4);
+    const u8 *const info = Ptr(Ptr(piece, 0x100), 0x18);
+    u8 *first = Ptr(Ptr(piece, 0x90), 4), *second = Ptr(Ptr(piece, 0x90), 8);
+    for (u32 i = 0; i < at<u32>(Ptr(piece, 0x90), 0); ++i, first += 0x58, second += 0x58) {
+        float way[3];
+        if (source) {
+            const u8 *const list = Ptr(Ptr(Ptr(source, 8), 0x28), 4);
+            const u8 *const v = Ptr(list, at<u32>(first, 4) * 20 + 4);
+            Normalized(at<float>(v, 0x20), at<float>(v, 0x24), at<float>(v, 0x28), way);
+        } else if (at<u32>(piece, 8) & 0x40) {
+            way[0] = 0.0f;
+            way[1] = at<u32>(piece, 8) & 0x80 ? 1.0f : -1.0f;
+            way[2] = 0.0f;
+        } else {
+            const u8 *const v = Ptr(Ptr(piece, 0x90), 4);  // (the list's first node each time, sic: its handle as this loop left it)
+            Normalized(at<float>(v, 0x28), at<float>(v, 0x2c), at<float>(v, 0x30), way);
+        }
+        float before, after, before2, after2, beforeWay[3], afterWay[3];
+        TrackPiece_NodeGaps(i, piece, &before, &after, 1, beforeWay, afterWay);
+        TrackPiece_NodeGaps(i, piece, &before2, &after2, 0, nullptr, nullptr);
+        const u32 isFirst = i == 0, isLast = i == at<u32>(Ptr(piece, 0x90), 0) - 1;
+        TrackNode_Handles(rules, way, first, before, after, info, beforeWay, afterWay, isFirst, isLast);
+        TrackNode_Handles(rules, way, second, before2, after2, info, beforeWay, afterWay, isFirst, isLast);
+    }
+}
 
 void __cdecl TrackPiece_Handles(u8 *piece, const u8 *rules, const u8 *coaster) {
     const u8 *info = Info(piece);

@@ -27,7 +27,7 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 u8 **instances() { return reinterpret_cast<u8 **>(0x007a4610); }
 
-const RidesEnv kGameEnv = {reinterpret_cast<void(__cdecl *)()>((uintptr_t)0x0042a190), &CoasterLink_Destroy, &Instance_Clone, &Animator_Reset,
+const RidesEnv kGameEnv = {&Camera_StopFollowing, &CoasterLink_Destroy, &Instance_Clone, &Animator_Reset,
                            &Animator_HasMotion, &Animator_Play, &Terrain_FootprintHeight, &Animator_Place, &Model_FitToGrid,
                            &ObjModel_BlendTerrainTiles, &Model_TransformBounds, &StripAnim_FitGround, &Holder_AddToGrid, &Holder_Wake,
                            &PartStates_Update, &CoasterLink_Create, &Animator_SetPlaying, &Highlight_Flash, &Model_UpdateNormals};
@@ -259,4 +259,6 @@ u32 __cdecl Ride_Create(u32 type, u32 flags, const u32 *desc, u32 mask, u32 d4, 
     g_env->updateNormals(at<u8 *>(at<u8 *>(inst, 8), 4));
     return slot + 1;
 }
+
+void __cdecl RideSystem_DumpSlot(const u8 *, const u8 *) {}
 }

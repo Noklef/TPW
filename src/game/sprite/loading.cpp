@@ -11,7 +11,7 @@ namespace {
 
 const SpriteLoadingEnv kGameEnv = {&NamedList_Find, &SpriteFrames_Free,
                                    reinterpret_cast<u32(__fastcall *)(u8 *, void *, StreamBase *, String *)>((uintptr_t)0x0041e740),
-                                   reinterpret_cast<u32(__fastcall *)(u8 *, void *, StreamBase *, u32)>((uintptr_t)0x00587db0),
+                                   reinterpret_cast<u32(__fastcall *)(u8 *, void *, StreamBase *, u32)>(&SpriteFrames_Load),
                                    &SpriteFrames_MarkTextures};
 const SpriteLoadingEnv *g_env = &kGameEnv;
 

@@ -541,6 +541,22 @@ u8 **__fastcall StdTree_InsertG(u8 *tree, void *, u8 **out, u8 *x, u8 *y, const 
     return TreeG::Insert<u16>(tree, out, x, y, value, [](const u16 *v, u8 *node) { return *v < at<u16>(node, 0xc); });
 }
 
+u8 *__fastcall StringMapValue_CtorCopy(u8 *value, void *, const u8 *from) {
+    String_CtorCopy(reinterpret_cast<String *>(value), nullptr, reinterpret_cast<const StringView *>(from));
+    at<u32>(value, 0x14) = at<u32>(from, 0x14);
+    return value;
+}
+
+void __cdecl StringMapValue_Construct(u8 *at_, const u8 *from) {
+    if (at_) StringMapValue_CtorCopy(at_, nullptr, from);
+}
+
+u8 **__fastcall StdTree_InsertF(u8 *tree, void *, u8 **out, u8 *x, u8 *y, const u8 *value) {
+    return TreeF::Insert<u8>(
+        tree, out, x, y, value, [](const u8 *v, u8 *node) { return String_Less(reinterpret_cast<const String *>(v), nullptr, reinterpret_cast<const StringView *>(node + 0xc)); },
+        [](u8 *to, const u8 *v) { StringMapValue_Construct(to, v); });
+}
+
 u8 **__fastcall StdTree_EraseA(u8 *tree, void *, u8 **out, u8 *node) { return TreeA::Erase(tree, out, node); }
 u8 **__fastcall StdTree_EraseB(u8 *tree, void *, u8 **out, u8 *node) { return TreeB::Erase(tree, out, node); }
 u8 **__fastcall StdTree_EraseC(u8 *tree, void *, u8 **out, u8 *node) { return TreeC::Erase(tree, out, node); }
@@ -615,6 +631,21 @@ u32 __fastcall Obj_HasKey5af780(u8 *object, void *, u32 key) {
 
 void __fastcall StdMapA_Insert(u8 *tree, void *, u8 **result, const u32 *value) {
     MapInsert<u32, u32, 0x007b4a54, StdTree_DecA, StdTree_InsertA>(tree, result, value);
+}
+
+void __fastcall StdMapF_Insert(u8 *tree, void *, u8 **result, const u8 *value) {
+    const String *const key = reinterpret_cast<const String *>(value);
+    MapInsertBy<u8, 0x00f7c968, StdTree_DecF, StdTree_InsertF>(
+        tree, result, value, [key](u8 *node) { return String_Less(key, nullptr, reinterpret_cast<const StringView *>(node + 0xc)); },
+        [value](u8 *node) { return String_Less(reinterpret_cast<const String *>(node + 0xc), nullptr, reinterpret_cast<const StringView *>(value)); });
+}
+
+u32 *__fastcall StdMapF_InsertCopy(u8 *tree, void *, u32 *out, const u8 *value) {
+    u32 result[2];
+    StdMapF_Insert(tree, nullptr, reinterpret_cast<u8 **>(result), value);
+    out[0] = result[0];
+    *reinterpret_cast<u8 *>(out + 1) = static_cast<u8>(result[1]);
+    return out;
 }
 
 void __fastcall StdMapG_Insert(u8 *tree, void *, u8 **result, const u16 *value) {

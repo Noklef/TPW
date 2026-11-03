@@ -269,3 +269,104 @@ u8 *__cdecl Online_Instance() {
     session = memory ? g_instance->ctor(memory) : nullptr;
     return session;
 }
+
+namespace {
+
+// The answer's kinds of native list: 0xe0: cities, 0xe4-0xf4: parks, 0xf8: themes, 0xfc: servers, 0x100: rides; the imports' slots.
+constexpr u32 kCityRelease = 0x006fd538, kCityDtor = 0x006fd4ec, kParkRelease = 0x006fd4e8, kParkDtor = 0x006fd4f0, kThemeRelease = 0x006fd528, kThemeDtor = 0x006fd524,
+              kServerRelease = 0x006fd520, kServerDtor = 0x006fd51c, kRideRelease = 0x006fd518, kRideDtor = 0x006fd514;
+
+void HandList(u8 *list, u8 *data, u32 release) {
+    if (at<u8 *>(list, 0x30)) {
+        CallImport(release, at<u8 *>(list, 0x30));
+        at<u8 *>(list, 0x30) = nullptr;
+    }
+    at<u32>(list, 0x14) = 1;
+    at<u8 *>(list, 0x30) = data;
+    at<u32>(list, 0x10) = 1;
+}
+
+void DropData(u8 *data, u32 dtor) {
+    if (!data)
+        return;
+    if (--at<s32>(data, 0xc))
+        return;
+    CallImport(dtor, data);
+    GameHeap_Free(data);
+}
+
+// One list's answer: to the list at offset when it asked; returns whether it did.
+bool OfferList(u8 *session, u32 offset, s32 request, u8 *data, u32 text, u32 release) {
+    if (at<s32>(at<u8 *>(session, offset), 4) != request)
+        return false;
+    Say(text);
+    HandList(at<u8 *>(session, offset), data, release);
+    return true;
+}
+
+}  // namespace
+
+extern "C" void __fastcall Online_ListAnswered(u8 *session, void *, s32 code, s32 request, u32, u8 *data) {
+    bool failed = false;
+    u32 error = 0;
+    switch (code) {
+    case -10: failed = true; error = 0x56; break;
+    case -6: failed = true; error = 0x4e; break;
+    case -5: failed = true; error = 0x4d; break;
+    case -4: failed = true; error = 0x4c; break;
+    case -2: failed = true; error = 0x4b; break;
+    case -1: failed = true; error = 0x37; break;
+    case 2:
+        if (!OfferList(session, 0xe0, request, data, 0x0077382c, kCityRelease)) {
+            Say(0x007737fc);
+            DropData(data, kCityDtor);
+        }
+        break;
+    case 3:
+        if (!OfferList(session, 0xe4, request, data, 0x007737cc, kParkRelease) && !OfferList(session, 0xe8, request, data, 0x007737a0, kParkRelease) &&
+            !OfferList(session, 0xec, request, data, 0x00773770, kParkRelease) && !OfferList(session, 0xf0, request, data, 0x00773740, kParkRelease) &&
+            !OfferList(session, 0xf4, request, data, 0x00773708, kParkRelease)) {
+            Say(0x007736c8);
+            DropData(data, kParkDtor);
+        }
+        break;
+    case 4:
+        if (!OfferList(session, 0xfc, request, data, 0x00773644, kServerRelease)) {
+            Say(0x00773610);
+            DropData(data, kServerDtor);
+        }
+        break;
+    case 5:
+        if (!OfferList(session, 0xf8, request, data, 0x007736a0, kThemeRelease)) {
+            Say(0x0077366c);
+            DropData(data, kThemeDtor);
+        }
+        break;
+    case 6:
+        if (!OfferList(session, 0x100, request, data, 0x007735e8, kRideRelease)) {
+            Say(0x007735b8);
+            DropData(data, kRideDtor);
+        }
+        break;
+    case 7:
+        Say(0x007735a0);
+        failed = true;
+        break;
+    case 8:
+        Say(0x00773584);
+        break;
+    default:
+        break;
+    }
+    if (!failed)
+        return;
+    for (u32 offset = 0xe0; offset <= 0x100; offset += 4) {
+        u8 *const list = at<u8 *>(session, offset);
+        if (at<s32>(list, 4) == request) {
+            at<u32>(list, 0x18) = error;
+            at<u32>(list, 0x14) = 0;
+            at<u32>(list, 0x10) = 1;
+            return;
+        }
+    }
+}

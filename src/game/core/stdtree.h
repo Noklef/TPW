@@ -133,6 +133,15 @@ u8 __fastcall StdTreeF_AllFlagged(u8 *object);
 // 0x5b20c0 (thiscall; out, key, pops 8): *out = the lower bound; returns out.
 u8 **__fastcall StdTreeF_FindLower(u8 *tree, void *, u8 **out, const u8 *key);
 
+// Tree F's value, a String key and a dword: 0x5b3230 (thiscall (from), pops 4; name invented, unconfirmed) its copy (String_CtorCopy, then +0x14); returns value. 0x5b31f0 (cdecl; name
+// invented, unconfirmed) std::_Construct: the copy made at at_ unless it is null.
+u8 *__fastcall StringMapValue_CtorCopy(u8 *value, void *, const u8 *from);
+void __cdecl StringMapValue_Construct(u8 *at_, const u8 *from);
+// 0x5b2170 (thiscall; out, x, y, the value, pops 0x10; name invented, unconfirmed): the insert of tree F, as StdTree_InsertG's, the key compared by String_Less. 0x5b16b0 (thiscall; result, value,
+// pops 8; name invented, unconfirmed): map::insert over it, as StdMapG_Insert's. 0x5b1620 (thiscall; out, value, pops 8; name invented, unconfirmed): its result copied to out; returns out.
+u8 **__fastcall StdTree_InsertF(u8 *tree, void *, u8 **out, u8 *x, u8 *y, const u8 *value);
+void __fastcall StdMapF_Insert(u8 *tree, void *, u8 **result, const u8 *value);
+u32 *__fastcall StdMapF_InsertCopy(u8 *tree, void *, u32 *out, const u8 *value);
 // 0x5b1650 (thiscall on the tree; out, value, pops 8): StdMapG_Insert's result {iterator, inserted byte} copied to out. Returns out.
 u32 *__fastcall StdMapG_InsertCopy(u8 *tree, void *, u32 *out, const u16 *value);
 

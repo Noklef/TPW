@@ -14,11 +14,11 @@ struct Dialog74fb20Env {
     u32(__fastcall *setFocus)(u8 *window, void *, u32 a);                   // Window_SetFocus
     u32(__cdecl *clock)();                                                  // GuiClock_Now
     s32(__cdecl *send)(u8 *window, u32 message, u32 a, u32 b);              // Window_SendMessage
-    void(__cdecl *stopFollow)();                                            // 0x42a190, agent B's, unported
+    void(__cdecl *stopFollow)();                                            // Camera_StopFollowing
     void(__cdecl *enableKeys)();                                            // KeyMaps_EnableAll
     s32(__fastcall *callDefault)(u8 *window, void *, u32 message, u32 a, u32 b);   // Window_CallDefault
-    void(__cdecl *walk)();                                                  // 0x42ae70 Camera_ToggleWalkMode, agent B's, unported
-    u32(__fastcall *thingOp)(u8 *thing, void *, u32 a);                     // 0x4e15b0, agent A's, unported
+    void(__cdecl *walk)();                                                  // Camera_ToggleWalkMode
+    u32(__fastcall *thingOp)(u8 *thing, void *, u32 a);                     // Object_FollowCamera
     void(__cdecl *resetKeys)();                                             // KeyMaps_ResetAll
     u32(__cdecl *restore)();                                                // Focus_Restore
     u8 *(__fastcall *create)(u8 *parent, void *, u32 kind, u32 flags, u32 id, u32 left, u32 top, u32 right, u32 bottom);   // Window_CreateChild

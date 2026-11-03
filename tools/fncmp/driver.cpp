@@ -190,6 +190,16 @@
 #include "../../src/game/gfx/tga.h"
 #include "../../src/game/render/d3dprobe.h"
 #include "../../src/game/render/enginedebug.h"
+#include "../../src/game/world/cameraupdate.h"
+#include "../../src/game/files/handles.h"
+#include "../../src/game/render/weatherfx.h"
+#include "../../src/game/coaster/arreplay.h"
+#include "../../src/game/coaster/rebuild.h"
+#include "../../src/game/coaster/carpose.h"
+#include "../../src/game/model/rideresource.h"
+#include "../../src/game/coaster/placecar.h"
+#include "../../src/game/gfx/texcache.h"
+#include "../../src/game/frontend/lobbymake.h"
 #include "../../src/game/render/engineerrors.h"
 #include "../../src/game/online/chatavatar.h"
 #include "../../src/game/online/chatcommand.h"
@@ -823,6 +833,28 @@ const RideSkinEnv kRideSkinEnv = {Rec{jpeg_recorder(1, 1)}};
 // (Class702cb0_Step's: thiscall 3 of 2 arguments, thiscall 4 of none, cdecl 6 of 6, cdecl 7 of none, thiscall 5 of 8, as tests/fncmp/lobbystep.py hooks those addresses.)
 // (ParkMap_Draw's: thiscall 10 of 1 argument, 11 of none, 12 of 3, 13 of none, as tests/fncmp/parkmapdraw.py hooks those addresses.)
 const ParkMapEnv kParkMapEnv = {Rec{recorder(10, 1)}, Rec{recorder(11, 0)}, Rec{recorder(12, 3)}, Rec{recorder(13, 0)}};
+const LobbyMakeEnv kLobbyMakeEnv = {Rec{jpeg_recorder(20, 11)}, Rec{jpeg_recorder(21, 10)}, Rec{jpeg_recorder(22, 1)}, Rec{jpeg_recorder(23, 3)}, Rec{recorder(24, 1)}, Rec{recorder(25, 1)}, Rec{jpeg_recorder(26, 1)}};
+const CoasterPlaceCarEnv kCoasterPlaceCarEnv = {Rec{jpeg_recorder(1, 6)}, Rec{jpeg_recorder(2, 9)}, Rec{jpeg_recorder(3, 7)}, Rec{jpeg_recorder(4, 5)}, Rec{jpeg_recorder(5, 2)}, Rec{jpeg_recorder(6, 7)},
+                                                 Rec{jpeg_recorder(7, 1)}, Rec{jpeg_recorder(8, 1)}, Rec{jpeg_recorder(9, 0)}, Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 0)}, Rec{jpeg_recorder(12, 0)},
+                                                 Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{recorder(15, 1)}};  // tests/fncmp/coasterplacecar.py
+const RideResourceEnv kRideResourceEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorder(2, 3)}, Rec{jpeg_recorder(3, 5)}, Rec{jpeg_recorder(4, 5)}, Rec{jpeg_recorder(5, 3)}, Rec{jpeg_recorder(6, 3)}, Rec{jpeg_recorder(7, 1)}, Rec{jpeg_recorder(8, 6)}, Rec{jpeg_recorder(9, 1)}, Rec{recorder(10, 1)}, Rec{jpeg_recorder(11, 6)}};
+const CoasterPoseEnv kCoasterPoseEnv = {Rec{jpeg_recorder(1, 3)}, Rec{jpeg_recorder(2, 2)}, Rec{jpeg_recorder(3, 3)}, Rec{jpeg_recorder(4, 2)}};  // tests/fncmp/carpose.py
+const CoasterRebuildEnv kCoasterRebuildEnv = {Rec{jpeg_recorder(1, 0)}, Rec{jpeg_recorder(2, 0)}, Rec{jpeg_recorder(3, 1)}, Rec{jpeg_recorder(4, 1)}, Rec{jpeg_recorder(5, 1)}, Rec{jpeg_recorder(6, 1)},
+                                               Rec{jpeg_recorder(7, 1)}, Rec{jpeg_recorder(8, 0)}, Rec{jpeg_recorder(9, 3)}, Rec{jpeg_recorder(10, 5)}, Rec{jpeg_recorder(11, 5)}, Rec{jpeg_recorder(12, 1)}};  // tests/fncmp/coasterrebuild.py
+const ArReplayEnv kArReplayEnv = {Rec{jpeg_recorder(3, 0)}, Rec{jpeg_recorder(4, 0)}, Rec{jpeg_recorder(5, 0)}, Rec{jpeg_recorder(6, 0)}, Rec{jpeg_recorder(7, 4)}, Rec{jpeg_recorder(8, 4)},
+                                  Rec{recorder(9, 2)}, Rec{recorder(10, 4)}, Rec{jpeg_recorder(11, 2)}, Rec{jpeg_recorder(12, 2)}, Rec{jpeg_recorder(13, 2)}, Rec{jpeg_recorder(14, 3)},
+                                  Rec{jpeg_recorder(15, 2)}, Rec{jpeg_recorder(16, 2)}, Rec{jpeg_recorder(17, 3)}};  // tests/fncmp/arreplay.py
+// The local handle's address differs between the sides: these pass null as `this` (the bench's hooks clear ECX).
+Handle *__fastcall ReloadCtor(Handle *, void *) { return reinterpret_cast<Handle *(__fastcall *)(Handle *, void *)>((uintptr_t)recorder(5, 0))(nullptr, nullptr); }
+s32 *__fastcall ReloadOpen(Handle *, void *, s32 *r, u32 a) { return reinterpret_cast<s32 *(__fastcall *)(Handle *, void *, s32 *, u32)>((uintptr_t)recorder(6, 2))(nullptr, nullptr, r, a); }
+s32 *__fastcall ReloadFirst(Handle *, void *, s32 *r, u32 a, u32 b) { return reinterpret_cast<s32 *(__fastcall *)(Handle *, void *, s32 *, u32, u32)>((uintptr_t)recorder(7, 3))(nullptr, nullptr, r, a, b); }
+s32 *__fastcall ReloadClose(Handle *, void *, s32 *r, u32 a) { return reinterpret_cast<s32 *(__fastcall *)(Handle *, void *, s32 *, u32)>((uintptr_t)recorder(8, 2))(nullptr, nullptr, r, a); }
+void __fastcall ReloadDtor(Handle *, void *) { reinterpret_cast<void(__fastcall *)(Handle *, void *)>((uintptr_t)recorder(9, 0))(nullptr, nullptr); }
+const WeatherFxReloadEnv kWeatherFxReloadEnv = {Rec{jpeg_recorder(1, 3)}, Rec{recorder(2, 2)}, Rec{recorder(3, 1)}, Rec{recorder(4, 0)},
+                                                reinterpret_cast<Handle *(__fastcall *)(Handle *)>(&ReloadCtor), &ReloadOpen, &ReloadFirst, &ReloadClose,
+                                                reinterpret_cast<void(__fastcall *)(Handle *)>(&ReloadDtor), Rec{jpeg_recorder(10, 0)}};  // tests/fncmp/weatherreload.py
+const CameraUpdateEnv kCameraUpdateEnv = {Rec{recorder(1, 0)}, Rec{recorder(2, 1)}, Rec{jpeg_recorder(3, 4)}, Rec{jpeg_recorder(4, 2)}, Rec{recorder(5, 1)}, Rec{recorder(6, 1)},
+                                          Rec{jpeg_recorder(7, 3)}, Rec{jpeg_recorder(8, 2)}};  // tests/fncmp/cameraupdate.py
 const LobbySceneEnv kLobbySceneEnv = {Rec{jpeg_recorder(1, 1)}, Rec{recorder(2, 0)}, Rec{recorder(3, 2)}, Rec{recorder(4, 0)}, Rec{jpeg_recorder(6, 6)}, Rec{jpeg_recorder(7, 0)}, Rec{recorder(5, 8)}};
 const ChatCursorEnv kChatCursorEnv = {Rec{jpeg_recorder(1, 0)}, Rec{jpeg_recorder(2, 4)}, Rec{jpeg_recorder(3, 0)}, Rec{recorder(4, 1)}, Rec{recorder(5, 1)}};
 // tests/fncmp/d3dprobe.py: the clock a recorder.
@@ -838,6 +870,10 @@ const EngineDebugEnv kEngineDebugEnv = {reinterpret_cast<void *(__cdecl *)(const
                                         reinterpret_cast<s32(__cdecl *)(void *, const char *, ...)>((uintptr_t)jpeg_recorder(12, 3)),
                                         reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)jpeg_recorder(13, 1)),
                                         reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)jpeg_recorder(14, 1))};
+const TexCacheTraceEnv kTexCacheTraceEnv = {reinterpret_cast<void *(__cdecl *)(const char *, const char *)>((uintptr_t)jpeg_recorder(11, 2)),
+                                            reinterpret_cast<u32(__cdecl *)(const void *, u32, u32, void *)>((uintptr_t)jpeg_recorder(12, 4)),
+                                            reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)jpeg_recorder(13, 1)),
+                                            reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)jpeg_recorder(14, 1))};  // tests/fncmp/texcachetouch.py
 const WKeywordsEnv kWKeywordsEnv = {reinterpret_cast<s32(__cdecl *)(u8 *, u16 *, u32, u32, ...)>((uintptr_t)jpeg_recorder(12, 4))};  // tests/fncmp/wkeywords.py
 
 const KeyCancelEnv kKeyCancelEnv = {Rec{recorder(20, 0)}, Rec{jpeg_recorder(21, 2)}, Rec{jpeg_recorder(22, 6)}, Rec{jpeg_recorder(23, 4)}, Rec{jpeg_recorder(24, 2)}};
@@ -2015,6 +2051,15 @@ int main(int argc, char **argv) {
     KeyCancel_SetEnv(&kKeyCancelEnv);
     WKeywords_SetEnv(&kWKeywordsEnv);
     EngineDebug_SetEnv(&kEngineDebugEnv);
+    CameraUpdate_SetEnv(&kCameraUpdateEnv);
+    WeatherFx_SetReloadEnv(&kWeatherFxReloadEnv);
+    ArReplay_SetEnv(&kArReplayEnv);
+    CoasterRebuild_SetEnv(&kCoasterRebuildEnv);
+    CoasterPose_SetEnv(&kCoasterPoseEnv);
+    RideResource_SetEnv(&kRideResourceEnv);
+    CoasterPlaceCar_SetEnv(&kCoasterPlaceCarEnv);
+    TexCache_SetTraceEnv(&kTexCacheTraceEnv);
+    LobbyMake_SetEnv(&kLobbyMakeEnv);
     D3dProbe_SetEnv(&kD3dProbeEnv);
     SpriteFrames_SetEnv(&kSpriteFramesEnv);
     ScapeObjects_SetEnv(&kScapeObjectsEnv);

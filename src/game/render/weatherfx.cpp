@@ -5,14 +5,18 @@
 
 #include "../core/crt.h"
 #include "../core/gameheap.h"
+#include "../files/handles.h"
+#include "../files/memsource.h"
 #include "../files/quickload.h"
 #include "../gfx/texture.h"
 #include "../gfx/texman.h"
 #include "../math/x87.h"
 #include "../terrain/landscape.h"
+#include "../gfx/palette.h"
 #include "batch.h"
 #include "drawbuffer.h"
 #include "ribbon.h"
+#include "spritequeue.h"
 
 namespace {
 
@@ -553,4 +557,52 @@ u32 __fastcall WeatherFx_DrawStreaks(u8 *fx, void *, float x, float y, float z) 
     g_dropsEnv->transform(BatchObject(), nullptr, 0);
     at<u32>(batch, 0x30) = 0;
     return g_dropsEnv->close(BatchObject(), nullptr, -1.0f);
+}
+
+namespace {
+
+const WeatherFxReloadEnv kReloadGame = {&Quickload_Locate,
+                                        &WeatherFx_LoadTexture,
+                                        &SpriteQueue_LoadTexture,
+                                        reinterpret_cast<u8 *(__fastcall *)(u8 *)>(&MemorySource_GetLock),
+                                        &Handle_Ctor,
+                                        &Handle_Open28,
+                                        &Handle_Vfn1,
+                                        &Handle_Vfn8,
+                                        &Handle_Dtor,
+                                        &ColourRamps_SetFromPalette};
+const WeatherFxReloadEnv *g_reload = &kReloadGame;
+
+const char *TextAt(uintptr_t address) { return reinterpret_cast<const char *>(address); }
+
+}  // namespace
+
+void WeatherFx_SetReloadEnv(const WeatherFxReloadEnv *env) { g_reload = env ? env : &kReloadGame; }
+
+extern "C" void __cdecl WeatherFx_ReloadEffects() {
+    u32 handle[2];
+    Handle *const h = reinterpret_cast<Handle *>(handle);
+    g_reload->ctor(h);
+    handle[0] = 0x006fd9e8;
+    if (*reinterpret_cast<u8 **>((uintptr_t)0x008bcbac)) {
+        const char *name = g_reload->locate(TextAt(0x00765218), 1, nullptr);
+        g_reload->load(*reinterpret_cast<u8 **>((uintptr_t)0x008bcbac), nullptr, 2, name);
+        name = g_reload->locate(TextAt(0x007651f4), 1, nullptr);
+        g_reload->load(*reinterpret_cast<u8 **>((uintptr_t)0x008bcbac), nullptr, 1, name);
+        name = g_reload->locate(TextAt(0x007651d0), 1, nullptr);
+        g_reload->load(*reinterpret_cast<u8 **>((uintptr_t)0x008bcbac), nullptr, 3, name);
+    }
+    if (u8 *const queue = *reinterpret_cast<u8 **>((uintptr_t)0x008c47a0))
+        g_reload->queueLoad(queue, nullptr, TextAt(0x00765238));
+    const u8 *const lock = g_reload->getLock(reinterpret_cast<u8 *>((uintptr_t)0x00f816c0));
+    s32 status;
+    if (*g_reload->open(h, nullptr, &status, at<u32>(lock, 8)) >= 0) {
+        u8 entry[0x128];
+        at<u8 *>(entry, 0x20) = entry + 0x24;
+        entry[0x24] = 0;
+        if (*g_reload->first(h, nullptr, &status, *reinterpret_cast<u32 *>((uintptr_t)0x00878ec0), (u32)(uintptr_t)entry) < 0)
+            g_reload->close(h, nullptr, &status, *reinterpret_cast<u32 *>((uintptr_t)0x00878ec0));
+    }
+    g_reload->setRamps();
+    g_reload->dtor(h);
 }

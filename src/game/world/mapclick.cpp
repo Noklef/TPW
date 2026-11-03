@@ -33,6 +33,8 @@
 #include "trackrides.h"
 #include "world.h"
 
+#include "parkentrance.h"
+
 namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
@@ -58,7 +60,7 @@ const MapClickEnv kGameEnv = {
     port<void(__cdecl *)(u32, u32)>(&GameMode_SetOnly),
     port<void(__cdecl *)(u32)>(&TrackCell_Relink),
     port<void(__cdecl *)(u8 *)>(&RideQueue_Trace),
-    raw<void(__cdecl *)(s32, s32, s32, s32)>(0x005327e0),
+    &ParkEntrance_LayOutline,
     port<u32(__cdecl *)(u32, s32, s32, s32 *, s32 *)>(&Map_SendLine),
     port<void(__cdecl *)(u32)>(&TrakRide_Strip),
     &Sound_PlayAt,

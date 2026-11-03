@@ -210,6 +210,7 @@
 #include "../game/core/narrowwriter.h"
 #include "../game/core/refcounted.h"
 #include "../game/core/parkinfo.h"
+#include "../game/core/recordsort.h"
 #include "../game/core/releaselist.h"
 #include "../game/core/sfbank.h"
 #include "../game/core/sfman.h"
@@ -343,6 +344,7 @@
 #include "../game/world/things.h"
 #include "../game/world/analysercell.h"
 #include "../game/world/bankaccount.h"
+#include "../game/world/cameraupdate.h"
 #include "../game/world/cellbuild.h"
 #include "../game/world/celleffect.h"
 #include "../game/world/cellkind.h"
@@ -420,7 +422,12 @@
 #include "../game/model/holder.h"
 #include "../game/coaster/tracktypes.h"
 #include "../game/coaster/bendmesh.h"
+#include "../game/coaster/carpose.h"
+#include "../game/coaster/carprisms.h"
+#include "../game/coaster/placecar.h"
+#include "../game/coaster/rebuild.h"
 #include "../game/coaster/trainrun.h"
+#include "../game/coaster/arreplay.h"
 #include "../game/coaster/typemodel.h"
 #include "../game/model/parts.h"
 #include "../game/model/highlight.h"
@@ -444,6 +451,7 @@
 #include "../game/model/basecells.h"
 #include "../game/model/hoardingmesh.h"
 #include "../game/model/ridebase.h"
+#include "../game/model/rideresource.h"
 #include "../game/model/worldverts.h"
 #include "../game/render/frame.h"
 #include "../game/render/lightlist.h"
@@ -473,6 +481,7 @@
 #include "../game/render/heightgrid.h"
 #include "../game/render/vertexfog.h"
 #include "../game/render/d3dprobe.h"
+#include "../game/render/ddopen.h"
 #include "../game/render/depthsort.h"
 #include "../game/render/device.h"
 #include "../game/render/enginedebug.h"
@@ -504,6 +513,7 @@
 #include "../game/frontend/postcard.h"
 #include "../game/frontend/scenequeue.h"
 #include "../game/frontend/frame.h"
+#include "../game/frontend/lobbymake.h"
 #include "../game/frontend/sceneleave.h"
 #include "../game/frontend/viewcontrols.h"
 #include "../game/online/itemlist.h"
@@ -515,6 +525,7 @@
 #include "../game/online/chatcommand.h"
 #include "../game/online/chatevents.h"
 #include "../game/online/chatcursor.h"
+#include "../game/online/postcardmail.h"
 #include "../game/online/roomcounts.h"
 #include "../game/online/session.h"
 #include "../game/ui/dialog7ca1c8.h"
@@ -2395,6 +2406,8 @@ const Hook kHooks[] = {
     {"TexCache_RequeueItems",     0x0058e8d0, (void *)&TexCache_RequeueItems, {0x53, 0x56, 0x8b, 0x74, 0x24}},
     {"TexCache_ShrinkItems",      0x0058e1d0, (void *)&TexCache_ShrinkItems, {0x83, 0xec, 0x0c, 0x8b, 0x44}},
     {"TexCache_ReleaseItems",     0x0058dd60, (void *)&TexCache_ReleaseItems, {0x83, 0xec, 0x1c, 0x53, 0x8b}},
+    {"TexCache_TraceItem",        0x0058e010, (void *)&TexCache_TraceItem, {0x83, 0xec, 0x14, 0x8b, 0x81}},
+    {"TexCache_TouchItem",        0x0058c9f0, (void *)&TexCache_TouchItem, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"TexSet_Ctor",               0x00575bd0, (void *)&TexSet_Ctor, {0x8b, 0xc1, 0x33, 0xc9, 0x89}},
     {"TexSet_Texture",            0x00575f90, (void *)&TexSet_Texture, {0x8b, 0x41, 0x08, 0x8b, 0x4c}},
     {"TexSet_TextureSlot",        0x00575fa0, (void *)&TexSet_TextureSlot, {0x8b, 0x41, 0x08, 0x8b, 0x4c}},
@@ -4476,6 +4489,11 @@ const Hook kHooks[] = {
     {"StdTree_InsertE",           0x004f5130, (void *)&StdTree_InsertE, {0x6a, 0xff, 0x68, 0x58, 0xdb}},
     {"StdMapC_Insert",            0x004f2440, (void *)&StdMapC_Insert, {0x6a, 0xff, 0x68, 0xb8, 0xd8}},
     {"StdMapE_Insert",            0x004f2c00, (void *)&StdMapE_Insert, {0x6a, 0xff, 0x68, 0x38, 0xd9}},
+    {"StringMapValue_CtorCopy",   0x005b3230, (void *)&StringMapValue_CtorCopy, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
+    {"StringMapValue_Construct",  0x005b31f0, (void *)&StringMapValue_Construct, {0x8b, 0x4c, 0x24, 0x04, 0x85}},
+    {"StdTree_InsertF",           0x005b2170, (void *)&StdTree_InsertF, {0x6a, 0xff, 0x68, 0xf8, 0xf9}},
+    {"StdMapF_Insert",            0x005b16b0, (void *)&StdMapF_Insert, {0x6a, 0xff, 0x68, 0x58, 0xf9}},
+    {"StdMapF_InsertCopy",        0x005b1620, (void *)&StdMapF_InsertCopy, {0x8b, 0x44, 0x24, 0x08, 0x83}},
     {"Class7037b8_Dtor",          0x00617f40, (void *)&Class7037b8_Dtor, {0x53, 0x56, 0x57, 0x8b, 0xf9}},
     {"Panel_Reset",               0x005d48d0, (void *)&Panel_Reset, {0x56, 0x57, 0x8b, 0xf9, 0x33}},
     {"Grid_AddObject",            0x00576620, (void *)&Grid_AddObject, {0x51, 0x53, 0x8b, 0x5c, 0x24}},
@@ -4646,8 +4664,16 @@ const Hook kHooks[] = {
     {"CoasterType_ReadModel",     0x00430590, (void *)&CoasterType_ReadModel, {0x51, 0x8b, 0x44, 0x24, 0x10}},
     {"Coaster_NodeAngles",        0x00438ab0, (void *)&Coaster_NodeAngles, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"TrackPiece_Handles",        0x00431660, (void *)&TrackPiece_Handles, {0x83, 0xec, 0x78, 0x53, 0x55}},
+    {"TrackNode_Handles",         0x00432430, (void *)&TrackNode_Handles, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"TrackPiece_NodeHandles",    0x004321c0, (void *)&TrackPiece_NodeHandles, {0x83, 0xec, 0x44, 0xa1, 0x18}},
     {"Coaster_BendMesh",          0x00438800, (void *)&Coaster_BendMesh, {0x81, 0xec, 0x34, 0x06, 0x00}},
     {"Coaster_RunTrains",         0x0043ce20, (void *)&Coaster_RunTrains, {0x55, 0x8b, 0xec, 0x81, 0xec}},
+    {"CoasterEdit_PlaceCar",      0x00435020, (void *)&CoasterEdit_PlaceCar, {0x83, 0xec, 0x08, 0xa1, 0xec}},
+    {"CarPrisms_InQuad",          0x0043aa10, (void *)&CarPrisms_InQuad, {0x83, 0xec, 0x44, 0x8b, 0x44}},
+    {"CarPrisms_Touch",           0x0043a2b0, (void *)&CarPrisms_Touch, {0x55, 0x8b, 0xec, 0x81, 0xec}},
+    {"Coaster_PoseCars",          0x00430ed0, (void *)&Coaster_PoseCars, {0x55, 0x8b, 0xec, 0x81, 0xec}},
+    {"Coaster_Rebuild",           0x0043eb70, (void *)&Coaster_Rebuild, {0x83, 0xec, 0x14, 0xa1, 0xec}},
+    {"ArReplay_Step",             0x004045b0, (void *)&ArReplay_Step, {0x81, 0xec, 0xa8, 0x00, 0x00}},
     {"Thing_SpriteChoice",        0x004fcac0, (void *)&Thing_SpriteChoice, {0x51, 0x56, 0x8b, 0xf1, 0x6a}},
     {"Thing_IngredientRecord",    0x004e2200, (void *)&Thing_IngredientRecord, {0x51, 0x66, 0x8b, 0x41, 0x0e}},
     {"Class701378_Ctor",          0x005667d0, (void *)&Class701378_Ctor, {0x51, 0x8b, 0x44, 0x24, 0x08}},
@@ -4907,6 +4933,9 @@ const Hook kHooks[] = {
     {"WScanner_SpanInSet14",      0x005e6fc0, (void *)&WScanner_SpanInSet14, {0x83, 0xec, 0x0c, 0x53, 0x55}},
     {"WKeywords_Add",             0x005e49f0, (void *)&WKeywords_Add, {0x6a, 0xff, 0x68, 0x9b, 0x18}},
     {"WKeywords_AddAll",          0x005e47f0, (void *)&WKeywords_AddAll, {0x56, 0x68, 0x20, 0x4b, 0x5e}},
+    {"StdWString_Substr",         0x005e7520, (void *)&StdWString_Substr, {0x51, 0x53, 0x55, 0x8b, 0x6c}},
+    {"WScanner_NextToken",        0x005e70a0, (void *)&WScanner_NextToken, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"WScanner_TakeRest",         0x005e7200, (void *)&WScanner_TakeRest, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Sound_PlayAt",              0x0051bfc0, (void *)&Sound_PlayAt, {0xa1, 0xc8, 0x2b, 0x80, 0x00}},
     {"Sound_PlayAtRange",         0x0051c130, (void *)&Sound_PlayAtRange, {0xa1, 0xc8, 0x2b, 0x80, 0x00}},
     {"SoundUi_Play",              0x00485aa0, (void *)&SoundUi_Play, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
@@ -5845,6 +5874,8 @@ const Hook kHooks[] = {
     {"SoundGuard_Delete",         0x006bafe0, (void *)&SoundGuard_Delete, {0x8b, 0x09, 0x85, 0xc9, 0x74}},
     {"SoundGuard_Release",        0x006bb210, (void *)&SoundGuard_Release, {0x8a, 0x41, 0x04, 0x84, 0xc0}},
     {"SoundRandom_Seed",          0x006bb940, (void *)&SoundRandom_Seed, {0xe8, 0x5b, 0xa6, 0xf3, 0xff}},
+    {"RecordSort_Range",          0x0057ced0, (void *)&RecordSort_Range, {0x83, 0xec, 0x0c, 0x53, 0x55}},
+    {"RecordSort_Run",            0x0057d090, (void *)&RecordSort_Run, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
@@ -5959,6 +5990,7 @@ const Hook kHooks[] = {
     {"ParkMap_AddSprites",        0x005f3940, (void *)&ParkMap_AddSprites, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"ParkMap_Scroll",            0x005f35b0, (void *)&ParkMap_Scroll, {0x8b, 0x44, 0x24, 0x04, 0x83}},
     {"ParkMap_Draw",              0x005f2380, (void *)&ParkMap_Draw, {0x6a, 0xff, 0x68, 0x8b, 0x20}},
+    {"ParkMap_DrawCoasterLines",  0x005f2fd0, (void *)&ParkMap_DrawCoasterLines, {0x6a, 0xff, 0x68, 0xab, 0x20}},
     {"MapCell_PickModel",         0x0053a540, (void *)&MapCell_PickModel, {0x83, 0xec, 0x1c, 0x53, 0x55}},
     {"MapCell_PickPathModel",     0x00535dd0, (void *)&MapCell_PickPathModel, {0x83, 0xec, 0x18, 0x53, 0x55}},
     {"MapCell_ApplyPathModel",    0x005365d0, (void *)&MapCell_ApplyPathModel, {0x51, 0x53, 0x55, 0x56, 0x8b}},
@@ -6029,6 +6061,7 @@ const Hook kHooks[] = {
     {"GameMode_StepBack",         0x0052fe50, (void *)&GameMode_StepBack, {0x51, 0x53, 0x55, 0x56, 0x57}},
     {"Ride_Destroy",              0x00463c80, (void *)&Ride_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Ride_Create",               0x00463060, (void *)&Ride_Create, {0x8b, 0x44, 0x24, 0x04, 0x81}},
+    {"RideSystem_DumpSlot",       0x00464580, (void *)&RideSystem_DumpSlot, {0x81, 0xec, 0x00, 0x01, 0x00}},
     {"MapCell_SetKind",           0x005346d0, (void *)&MapCell_SetKind, {0x53, 0x55, 0x56, 0x57, 0x8b}},
     {"MapCell_Clear",             0x005367a0, (void *)&MapCell_Clear, {0x83, 0xec, 0x08, 0x53, 0x55}},
     {"MapCell_SetTrackKind",      0x00538fc0, (void *)&MapCell_SetTrackKind, {0x83, 0xec, 0x08, 0x53, 0x55}},
@@ -6139,6 +6172,7 @@ const Hook kHooks[] = {
     {"Holder_PlaceStaff",         0x00509af0, (void *)&Holder_PlaceStaff, {0x51, 0x56, 0x8b, 0xf1, 0x33}},
     {"World_ClearStaffSlots",     0x005083b0, (void *)&World_ClearStaffSlots, {0x53, 0x55, 0x8b, 0x6c, 0x24}},
     {"Map_ResetCells",            0x0052f8d0, (void *)&Map_ResetCells, {0x51, 0x8b, 0x4c, 0x24, 0x0c}},
+    {"Camera_Update",             0x0042b1c0, (void *)&Camera_Update, {0x55, 0x8b, 0xec, 0x83, 0xe4}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
@@ -6416,6 +6450,7 @@ const Hook kHooks[] = {
     {"WeatherFx_DrawBolt",        0x0057ec50, (void *)&WeatherFx_DrawBolt, {0x51, 0x53, 0x56, 0x8b, 0xf1}},
     {"WeatherFx_DrawDrops",       0x0057f490, (void *)&WeatherFx_DrawDrops, {0xb8, 0xc0, 0x33, 0x00, 0x00}},
     {"WeatherFx_DrawStreaks",     0x0057efd0, (void *)&WeatherFx_DrawStreaks, {0xb8, 0xbc, 0x62, 0x00, 0x00}},
+    {"WeatherFx_ReloadEffects",   0x00550950, (void *)&WeatherFx_ReloadEffects, {0x6a, 0xff, 0x68, 0xa6, 0xee}},
     {"Renderer_SetRestoreCallback", 0x00576260, (void *)&Renderer_SetRestoreCallback, {0x8b, 0x44, 0x24, 0x04, 0x89}},
     {"Renderer_SetStateFlags",    0x005763f0, (void *)&Renderer_SetStateFlags, {0x8b, 0x44, 0x24, 0x04, 0x89}},
     {"Renderer_StateFlags",       0x00576400, (void *)&Renderer_StateFlags, {0x8b, 0x41, 0x48, 0xc3, 0x90}},
@@ -6649,6 +6684,7 @@ const Hook kHooks[] = {
     {"RasterFormat_Init",         0x00678e70, (void *)&RasterFormat_Init, {0x8b, 0x54, 0x24, 0x04, 0x81}},
     {"EngineDebug_Log",           0x00564650, (void *)&EngineDebug_Log, {0xa1, 0x2c, 0x9a, 0x87, 0x00}},
     {"EngineDebug_LogFallback",   0x005645e0, (void *)&EngineDebug_LogFallback, {0xa1, 0x28, 0x9a, 0x87, 0x00}},
+    {"DirectDraw_Open",           0x00563460, (void *)&DirectDraw_Open, {0xa1, 0x08, 0xd5, 0x8b, 0x00}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
@@ -6777,6 +6813,7 @@ const Hook kHooks[] = {
     {"RideBase_FillCells",        0x0046aa10, (void *)&RideBase_FillCells, {0x55, 0x8b, 0xec, 0x83, 0xe4}},
     {"HoardingMesh_Build",        0x00452e70, (void *)&HoardingMesh_Build, {0x55, 0x8b, 0xec, 0x83, 0xe4}},
     {"RideBase_Prepare",          0x0046a5a0, (void *)&RideBase_Prepare, {0x81, 0xec, 0x70, 0x02, 0x00}},
+    {"Ride_LoadResource",         0x004629d0, (void *)&Ride_LoadResource, {0x81, 0xec, 0x24, 0x04, 0x00}},
     {"Terrain_IsParkLand",        0x00450420, (void *)&Terrain_IsParkLand, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
     {"Terrain_CopyAttrs",         0x00450a30, (void *)&Terrain_CopyAttrs, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Terrain_GridSize",          0x00450b00, (void *)&Terrain_GridSize, {0xa1, 0x54, 0x08, 0x7a, 0x00}},
@@ -6877,6 +6914,7 @@ const Hook kHooks[] = {
     {"Online_OpenCity",           0x005b72f0, (void *)&Online_OpenCity, {0x6a, 0xff, 0x68, 0xbb, 0xfd}},
     {"Online_UnpublishPark",      0x005b7960, (void *)&Online_UnpublishPark, {0x56, 0x8b, 0xf1, 0xe8, 0x88}},
     {"Online_Instance",           0x0048b390, (void *)&Online_Instance, {0x6a, 0xff, 0x68, 0xcb, 0x95}},
+    {"Online_ListAnswered",       0x005b6da0, (void *)&Online_ListAnswered, {0x51, 0x8b, 0x44, 0x24, 0x08}},
     {"Owner2c_FindByKey",         0x005bc9c0, (void *)&Owner2c_FindByKey, {0x8b, 0x49, 0x2c, 0x33, 0xc0}},
     {"Owner2c_At",                0x005bcb60, (void *)&Owner2c_At, {0x8b, 0x49, 0x2c, 0x56, 0x33}},
     {"Owner2c_ValueByKey",        0x005bd270, (void *)&Owner2c_ValueByKey, {0x8b, 0x49, 0x2c, 0x33, 0xc0}},
@@ -6955,6 +6993,7 @@ const Hook kHooks[] = {
     {"ChatCursor_MoveTo",         0x0046cf80, (void *)&ChatCursor_MoveTo, {0x51, 0x66, 0xa1, 0xcc, 0x05}},
     {"RoomCounts_ChatEvent",      0x004c4920, (void *)&RoomCounts_ChatEvent, {0x8b, 0x44, 0x24, 0x04, 0x83}},
     {"RoomCounts_Update",         0x004c4bb0, (void *)&RoomCounts_Update, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"PostcardMail_Build",        0x005ca320, (void *)&PostcardMail_Build, {0x81, 0xec, 0xc4, 0x00, 0x00}},
     {"LobbyModel_SetPosition",    0x005d8190, (void *)&LobbyModel_SetPosition, {0x8b, 0x41, 0x04, 0x8b, 0x54}},
     {"LobbyModel_TurnY",          0x005d8380, (void *)&LobbyModel_TurnY, {0x8b, 0x49, 0x04, 0x8d, 0x44}},
     {"LobbyModel_SetScale",       0x005d83b0, (void *)&LobbyModel_SetScale, {0x83, 0xec, 0x0c, 0x8b, 0x44}},
@@ -7009,6 +7048,9 @@ const Hook kHooks[] = {
     {"Class702cb0_PreviousItem",  0x005e1730, (void *)&Class702cb0_PreviousItem, {0x56, 0x8b, 0xf1, 0x57, 0x8b}},
     {"Scene702ec0_Leave",         0x005e1bd0, (void *)&Scene702ec0_Leave, {0x53, 0x8b, 0xd9, 0x8b, 0x03}},
     {"Scene702dd0_Leave",         0x005e2550, (void *)&Scene702dd0_Leave, {0x53, 0x8b, 0xd9, 0x8b, 0x03}},
+    {"LobbyResource_Ctor",        0x005d7fd0, (void *)&LobbyResource_Ctor, {0x6a, 0xff, 0x68, 0xd6, 0x12}},
+    {"LobbyScene_MakeModel",      0x005d8870, (void *)&LobbyScene_MakeModel, {0x6a, 0xff, 0x68, 0x7c, 0x13}},
+    {"Class702ca8_Ctor",          0x005dfa60, (void *)&Class702ca8_Ctor, {0x6a, 0xff, 0x68, 0xf6, 0x14}},
     {"RSSE_Init",                 0x00551600, (void *)&RSSE_Init, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
     {"RsseScript_EventName",      0x00468600, (void *)&RsseScript_EventName, {0x53, 0x55, 0x56, 0x8b, 0x74}},
     {"RSSE_StartTimer",           0x00557160, (void *)&RSSE_StartTimer, {0xb9, 0x70, 0x59, 0x78, 0x00}},

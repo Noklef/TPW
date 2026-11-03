@@ -69,4 +69,9 @@ u32 __cdecl Ride_Create(u32 type, u32 flags, const u32 *desc, u32 mask, u32 d4, 
 // count - 1) drops the count and the trailing empty slots from the holes count (scanning down from the new end); any other slot is one
 // hole more, the count one less, and the first hole when below it.
 void __cdecl Ride_Destroy(u32 ride);
+
+// 0x464580 (cdecl; name unconfirmed): a debug dump of a ride's slot. Unless the slot's +4 is 0xc, the original formats the slot's index in the system (by 0x38-byte records,
+// from the system's +0x10), the system's word +0xe and name, and the slot's fields into a stack buffer with sprintf and hands each line to the empty Debug_Printf:
+// nothing is kept. Left out here.
+void __cdecl RideSystem_DumpSlot(const u8 *slot, const u8 *system);
 }
