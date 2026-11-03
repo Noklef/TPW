@@ -59,6 +59,17 @@ u32 __fastcall Object_SetOpen(u8 *object, void *, u32 open);
 // calls are kept), +0x68 = 1, the strip animation of 0x7a4610[+0x20] shrunk (StripAnim_StartShrink), element 6 of the ride record
 // (Rides_FindById of +0x24) = 0 and Object_SetState (0).
 void __fastcall Object_Close(u8 *object);
+// 0x4de1f0 (thiscall; name invented, unconfirmed): the path at the object changed. The queue's back forgotten (+0x3a = 0) and found anew
+// (Object_BackOfQueue); the map's block value of the back (Map_SetBlockValue on [0x7cf83c] + 0x2d8) the next count of 0x7cdb98 (the back asked
+// again after the count); each person of the queue (the head +0x3c, the next +0x228 read first) but +0x6c (read for each) gets the env's
+// 0x501390; Object_EntranceOnPath asked (only a debug print reads it; its call is kept). Then with +0x68 0, Object_CanOpen's tests by hand
+// (the same order) and for definitions of kind 1, 2 or 3 the dword +0x2c set: Object_Close (inlined there). Always the word +0x5e = 0.
+void __fastcall Object_PathChanged(u8 *object);
+// What Object_PathChanged calls in the game that is not yet ported (the benches point it at a recorder).
+struct ObjectPathEnv {
+    void(__fastcall *person501390)(u8 *person);   // 0x501390 (agent A's; thiscall on a person, no arguments)
+};
+void Object_SetPathEnv(const ObjectPathEnv *env);   // nullptr: the game's
 // 0x4dfe30 (thiscall (on), pops 4; name invented: what +0x64 means is not known): on, unless +0x64 is set already, +0x64 = 1 and the ride
 // restarted (Object_RestartRide, inline); off, when +0x64 is set, +0x64 = 0 and, when Object_CanOpen (its checks inline), Object_Close. 1.
 // The debug prints (and the Thing_GetHandle calls only they use) are left out.

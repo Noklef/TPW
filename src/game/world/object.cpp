@@ -387,6 +387,35 @@ void __fastcall Object_Close(u8 *object) {
     Object_SetState(object, nullptr, 0);
 }
 
+namespace {
+const ObjectPathEnv kGamePathEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x00501390)};
+const ObjectPathEnv *g_path = &kGamePathEnv;
+}  // namespace
+
+void Object_SetPathEnv(const ObjectPathEnv *env) { g_path = env ? env : &kGamePathEnv; }
+
+void __fastcall Object_PathChanged(u8 *object) {
+    at<u16>(object, 0x3a) = 0;
+    u16 back;
+    Object_BackOfQueue(object, nullptr, &back);
+    const u32 count = Counter7cdb98_Inc();
+    Object_BackOfQueue(object, nullptr, &back);
+    Map_SetBlockValue(global<u8 *>(0x007cf83c) + 0x2d8, nullptr, count, back);
+    for (u16 person = at<u16>(object, 0x3c); person;) {
+        u8 *const thing = global<u8 *>(0x007cfb90 + person * 20u);
+        const u16 next = at<u16>(thing, 0x228);
+        if (person != at<u16>(object, 0x6c)) g_path->person501390(thing);
+        person = next;
+    }
+    Object_EntranceOnPath(object);   // (the original's debug print reads it)
+    if (at<u32>(object, 0x68) == 0 && Object_CanOpen(object)) {
+        u8 *const defs = reinterpret_cast<u8 *>(0x007890a0);
+        const s32 kind = at<s32>(ObjectDefs_Find(defs, nullptr, at<u16>(object, 0xe)), 0x9c);
+        if ((kind != 1 && kind != 2 && kind != 3) || at<u32>(object, 0x2c) != 0) Object_Close(object);
+    }
+    at<u16>(object, 0x5e) = 0;
+}
+
 u32 __fastcall Object_SetFlag64(u8 *object, void *, u32 on) {
     if (on) {
         if (at<u32>(object, 0x64) != 0) return 1;

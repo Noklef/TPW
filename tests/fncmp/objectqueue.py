@@ -10,7 +10,8 @@
 # Flag64 (0x4dfe30 Object_SetFlag64): see flag64(). CutOff (0x4ccb00 ParkAnalyser_FindCutOff, src/game/world/analyser): thingenv.py's park of
 # objects and others on Path's world, each object's flags 4 / 8 of +0x32 set or not and its back of the queue fields as Back's, the thing
 # [0x8186ac] one of them or another, the any flag 0, 1, 0x100 or random; the handle written compared.
-# usage: objectqueue.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Back,BackTo,None,Open,Path,CanOpen,Close,Spot,EntSpot,AnySpot,Flag64,CutOff)
+# PathChanged (0x4de1f0 Object_PathChanged, src/game/world/object): see path_changed().
+# usage: objectqueue.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Back,BackTo,None,Open,Path,CanOpen,Close,PathChanged,Spot,EntSpot,AnySpot,Flag64,CutOff)
 import os
 import struct
 import sys
@@ -19,16 +20,16 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import objectmsg  # noqa: E402
-from fncmp import Bench, Call, RAM, put  # noqa: E402
+from fncmp import Bench, Call, RAM, _recorder, put  # noqa: E402
 from thingenv import POOL, THING, WORLD_PTRS, park  # noqa: E402
 
 RANGES = ([(0x4d8300, 0x4d8340), (0x4d8c00, 0x4d8c30), (0x4d96f0, 0x4d99f0), (0x4de4a0, 0x4de5b0), (0x4df290, 0x4df310), (0x4de840, 0x4dede8), (0x516330, 0x516380),
-           (0x4ddf40, 0x4de200), (0x4de040, 0x4de100), (0x4de670, 0x4de7e0), (0x4de7e0, 0x4de83e), (0x502430, 0x502470), (0x50b350, 0x50b370),
+           (0x4ddf40, 0x4de496), (0x4d8c50, 0x4d8c93), (0x4de040, 0x4de100), (0x4de670, 0x4de7e0), (0x4de7e0, 0x4de83e), (0x502430, 0x502470), (0x50b350, 0x50b370),
            (0x522770, 0x5227a0), (0x522850, 0x522870), (0x536300, 0x53644c), (0x5da3c0, 0x5da3c1),
            (0x4dd920, 0x4dda20), (0x412e90, 0x412eea), (0x441970, 0x4419b0), (0x436860, 0x436880),
            (0x4df390, 0x4df450), (0x454550, 0x454800), (0x55a070, 0x55a110), (0x4e0e60, 0x4e11e4), (0x4dfe30, 0x4e004b),
            (0x4ccb00, 0x4ccbea), (0x516130, 0x5161b0), (0x527930, 0x527936)])
-B = Bench(RANGES)
+B = Bench(RANGES, hooks={0x501390: _recorder(26, 0)})
 OUT = RAM + 0x7000
 RIDES, STRIPS = RAM + 0x40000, RAM + 0x41000
 
@@ -148,6 +149,22 @@ def close(r):
     return c
 
 
+def path_changed(r):
+    """0x4de1f0: close()'s world with +0x68 mostly 0, the person +0x6c the head, another of the queue or none (each other person a recorder's,
+    k 26, driver.cpp's kObjectPathEnv: agent A's unported 0x501390), the counter 0x7cdb98 and the map's block values at [0x7cf83c] + 0x2d8."""
+    c = close(r)
+    obj = c.regions[RAM]
+    put(obj, 0x68, 'I', r.choice([0, 0, 0, 1, 0x80000000]))
+    head, pool = struct.unpack_from('<H', obj, 0x3c)[0], c.regions[POOL]
+    second = [struct.unpack_from('<H', pool, t + 0x228)[0] for t in range(0, len(pool), THING) if head and struct.unpack_from('<H', pool, t)[0] == head]
+    put(obj, 0x6c, 'H', r.choice([head, head, 0] + second))
+    world = RAM + 0x10000
+    c.regions[world + 0x2d8 + 0x1b0000] = r.bytes(0x40)
+    c.regions[0x7cdb98] = r.bytes(4)
+    c.address = 0x4de1f0
+    return c
+
+
 def spot(r):
     """0x4de840: back()'s world with entrance()'s cells, a place in the first cells of the queue or far beyond its end, the world's random state."""
     c = path(r)
@@ -215,7 +232,7 @@ def cut_off(r):
     return Call(0x4ccb00, [RAM + 0x7f00, OUT, r.choice([0, 0, 1, 0x100, r.getrandbits(32)])], regions, conv='t', ret='a')
 
 
-CASES = {'Back': back, 'BackTo': back_to, 'None': none, 'Open': open_, 'Path': path, 'CanOpen': can_open, 'Close': close, 'Spot': spot, 'EntSpot': entrance_spot, 'AnySpot': any_spot,
+CASES = {'Back': back, 'BackTo': back_to, 'None': none, 'Open': open_, 'Path': path, 'CanOpen': can_open, 'Close': close, 'PathChanged': path_changed, 'Spot': spot, 'EntSpot': entrance_spot, 'AnySpot': any_spot,
          'Flag64': flag64, 'CutOff': cut_off}
 
 
