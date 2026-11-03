@@ -377,4 +377,117 @@ u8 *__fastcall ChannelVoices_CreateStream(u8 *, void *, u8 *voice, u32 *play) {
     return nullptr;
 }
 
+void __fastcall CriticalSectionLock_Leave(void **lock) { Import<OnObject>(0x006fd130)(*lock); }
+
+void __fastcall ChannelVoice_SoundAndValue(u8 *voice, void *, u32 *sound, u32 *value) {
+    Enter(voice);
+    *sound = at<u32>(voice, 4);
+    *value = at<u32>(voice, 0x58);
+    Leave(voice);
+}
+
+u32 *__fastcall ChannelVoice_Send(u8 *voice, void *, u32 *out, u32 handle, u32 value) {
+    Enter(voice);
+    if (u8 *const target = vcall<u8 *>(voice, 0x30, &handle)) {
+        vcall<void>(target, 0x24, out, value);
+    } else {
+        *out = 0xffffffff;
+    }
+    Leave(voice);
+    return out;
+}
+
+u32 __fastcall ChannelVoice_Mix(u8 *voice, void *, u8 *dest, u32 size) {
+    using Wait = u32(__stdcall *)(u32, u32);
+    if (Import<Wait>(0x006fd128)(at<u32>(voice, 0x6c), 500) == 0x102) {   // (WaitForSingleObject: timed out, silence)
+        std::memset(dest, 0, size);
+        return 1;
+    }
+    u8 *const copier = *reinterpret_cast<u8 **>(static_cast<uintptr_t>(0x00fb2018));
+    vcall<void>(copier, 0, dest, at<u32>(voice, 0x68), size);
+    Import<OnObject>(0x006fd168)(reinterpret_cast<void *>(static_cast<uintptr_t>(at<u32>(voice, 0x6c))));   // ResetEvent
+    if (at<u32>(voice, 0x30)) Import<OnObject>(0x006fd124)(reinterpret_cast<void *>(static_cast<uintptr_t>(*at<u32 *>(voice, 0x70))));   // SetEvent
+    return at<u32>(voice, 0x30);
+}
+
+u32 *__fastcall ChannelVoices_Send(u8 *pool, void *, u32 *out, u32 handle, u32 value) {
+    const u32 id = handle;   // (slot 12 has the argument's own slot; the id sent is the one passed)
+    if (u8 *const voice = ChannelVoices_Find(pool, nullptr, &handle)) return ChannelVoice_Send(voice, nullptr, out, id, value);
+    *out = 0xffffffff;
+    return out;
+}
+
+u8 *__fastcall ChannelVoices_Acquire(u8 *pool, void *, u8 *desc) {
+    u8 *const first = at<u8 *>(pool, 4);
+    u8 *const end = first + at<u32>(pool, 8) * 0x8c;
+    u8 *best = nullptr;
+    u32 oldest = 0xffffffff;
+    u32 slot = static_cast<u32>(reinterpret_cast<uintptr_t>(desc));   // (the argument's slot: the releases' out)
+    for (u8 *voice = first; voice;) {
+        u32 sound, value;
+        ChannelVoice_SoundAndValue(voice, nullptr, &sound, &value);
+        if (at<u32>(desc, 0xc) & 0x200 && desc[0x14] & 4 && at<u32>(voice, 0x1c) == at<u32>(desc, 8)) {
+            SoundChannel_ReleaseVoice(at<u8 *>(pool, 0xc), nullptr, &slot, voice, 0);
+            return voice;
+        }
+        if (!sound) {
+            const u32 index = at<u32>(voice, 0x2c) >> (*reinterpret_cast<const u8 *>(static_cast<uintptr_t>(0x00782db8)) & 31);
+            if (!vcall<u32>(at<u8 *>(at<u8 *>(pool, 0xc), 0x18), 0x44, index)) return voice;
+        }
+        if (value < oldest) {
+            oldest = value;
+            best = voice;
+        }
+        voice += 0x8c;
+        if (voice >= end) voice = nullptr;
+    }
+    if (at<u32>(desc, 0x2c) <= oldest) return nullptr;
+    SoundChannel_ReleaseVoice(at<u8 *>(pool, 0xc), nullptr, &slot, best, 1);
+    at<u32>(desc, 0x10) = at<u32>(best, 0x2c);
+    at<u32>(desc, 8) = at<u32>(best, 0x1c);
+    return best;
+}
+
+u8 *__fastcall ChannelVoices_AcquireBy(u8 *pool, void *, u32 handle, u8 **out, u8 *desc) {
+    if (handle) {
+        u32 answer = 0;
+        u8 *const voice = ChannelVoices_FindOut(pool, nullptr, &handle, &answer);
+        *out = voice;
+        return voice ? reinterpret_cast<u8 *>(static_cast<uintptr_t>(answer)) : *out;
+    }
+    u8 *const voice = ChannelVoices_Acquire(pool, nullptr, desc);
+    *out = voice;
+    if (voice) {
+        at<u32>(voice, 0x58) = at<u32>(desc, 0x2c);
+        ChannelVoiceCount_Increment(reinterpret_cast<s32 *>(static_cast<uintptr_t>(0x00fb2058)));
+    }
+    return *out;
+}
+
+u32 __fastcall ChannelVoices_PlayRecord(u8 *pool, void *, u32 handle, u8 *record, u32 *out) {
+    const u32 flags = at<u32>(record, 0x14);
+    if (!(flags & 0x80) || !(flags & 8)) return 0;
+    if (!SoundResourceRef_Slot12(at<u8 *>(record, 4)))
+        return static_cast<u32>(reinterpret_cast<uintptr_t>(ChannelVoices_CreateStream(pool, nullptr, nullptr, reinterpret_cast<u32 *>(record))));
+    u8 *voice;
+    u8 *const answer = ChannelVoices_AcquireBy(pool, nullptr, handle, &voice, record);   // (the found voice's slot 12's answer, called below; sic)
+    if (!answer) return 0;
+    u8 *const stream = ChannelVoices_CreateStream(pool, nullptr, voice, reinterpret_cast<u32 *>(record));
+    if (!vcall<u32>(answer, 4, stream)) return 0;
+    return ChannelVoice_Apply(voice, nullptr, record, out);
+}
+
+u32 __fastcall ChannelVoices_PlayNotify(u8 *pool, void *, u32 handle, u8 *record) {
+    if (!SoundResourceRef_Slot12(at<u8 *>(record, 4))) return 0;
+    if (!(at<u32>(record, 0x14) & 0x2000)) return 0;
+    u8 *voice;
+    u8 *const answer = ChannelVoices_AcquireBy(pool, nullptr, handle, &voice, record);
+    if (!answer) return 0;
+    u8 *const stream = NotifyStream_Create(pool, nullptr, record);
+    u8 *const next = vcall<u8 *>(answer, 4, stream);
+    if (!next) return 0;
+    const u32 counter = ++at<u32>(voice, 0x2c);
+    return vcall<u32>(next, 0x28, counter);
+}
+
 }  // extern "C"

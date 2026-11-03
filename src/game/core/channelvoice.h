@@ -106,4 +106,32 @@ void __fastcall ChannelVoices_Dtor(u8 *pool);
 // the stream returned. Else the stream closed (slot 2). Failures release the voice (ChannelVoice_Release (0)) and return 0.
 u8 *__fastcall ChannelVoices_CreateStream(u8 *pool, void *, u8 *voice, u32 *play);
 
+// 0x6b7380 (thiscall; name invented; reached only from the exception unwind funclets 0x6e57e3...): LeaveCriticalSection of the section at *lock.
+void __fastcall CriticalSectionLock_Leave(void **lock);
+// 0x6bb3b0 (thiscall (sound, value), pops 8; name invented): the voice's sound (+4) and its +0x58, read inside its critical section.
+void __fastcall ChannelVoice_SoundAndValue(u8 *voice, void *, u32 *sound, u32 *value);
+// 0x6bb320 (thiscall (out, handle, value), pops 0xc; an SEH frame; name invented): inside the critical section: the voice's slot 12 (&handle); its
+// answer's slot 9 (out, value), or *out = -1. Returns out.
+u32 *__fastcall ChannelVoice_Send(u8 *voice, void *, u32 *out, u32 handle, u32 value);
+// 0x6bb510 (thiscall (dest, size), pops 8; name invented): waits 500 ms for the voice's event (+0x6c). Timed out: size bytes of silence, returns 1.
+// Else the copier (0xfb2018) slot 0 (dest, the buffer +0x68, size), the event reset, the second event (*+0x70) set when +0x30 is set; returns +0x30.
+u32 __fastcall ChannelVoice_Mix(u8 *voice, void *, u8 *dest, u32 size);
+// 0x6baa20 (thiscall (out, handle, value), pops 0xc; name invented): ChannelVoice_Send on the handle's voice, or *out = -1. Returns out.
+u32 *__fastcall ChannelVoices_Send(u8 *pool, void *, u32 *out, u32 handle, u32 value);
+// 0x6bac60 (thiscall (desc), pops 4; name invented): a voice for a play record. Walks the voices (a null array: none; one at least, whatever the count):
+// with the record's flags +0xc 0x200 and +0x14 bit 2 and the voice's +0x1c the record's +8: that voice, released (value 0). A voice without a sound
+// whose index the channel's source's slot 17 answers 0 for: that voice as it is. Else the lowest +0x58 (below -1), if the record's +0x2c is above it:
+// that voice, released (value 1), the record's +0x10 and +8 from its +0x2c and +0x1c. Else 0.
+u8 *__fastcall ChannelVoices_Acquire(u8 *pool, void *, u8 *desc);
+// 0x6baee0 (thiscall (handle, out, desc), pops 0xc; name invented): with a handle, ChannelVoices_FindOut: *out the voice; returns slot 12's answer (or 0).
+// Without: ChannelVoices_Acquire into *out; a voice gets the record's +0x2c at +0x58 and the voices' count a step. Returns *out.
+u8 *__fastcall ChannelVoices_AcquireBy(u8 *pool, void *, u32 handle, u8 **out, u8 *desc);
+// 0x6badd0 (thiscall (handle, record, out), pops 0xc; name invented): for record flags 0x80 and 8 (else 0). The resource's slot 12 answering 0: a stream
+// with no voice, returned. Else a voice (AcquireBy; 0 without one), its stream made, handed to the answer's slot 1 (0 when it answers 0), and
+// ChannelVoice_Apply's result.
+u32 __fastcall ChannelVoices_PlayRecord(u8 *pool, void *, u32 handle, u8 *record, u32 *out);
+// 0x6bae60 (thiscall (handle, record), pops 8; name invented): the resource's slot 12 not 0 and record flag 0x2000 (else 0): a voice (AcquireBy), a
+// notify stream handed to the answer's slot 1; what that answers (0: 0) gets slot 10 (the voice's +0x2c stepped); returns its answer.
+u32 __fastcall ChannelVoices_PlayNotify(u8 *pool, void *, u32 handle, u8 *record);
+
 }  // extern "C"
