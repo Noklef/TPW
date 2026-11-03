@@ -421,6 +421,7 @@
 #include "../game/world/world.h"
 #include "../game/world/worldsave.h"
 #include "../game/world/worldstart.h"
+#include "../game/world/worldupdate.h"
 #include "../game/model/holder.h"
 #include "../game/coaster/tracktypes.h"
 #include "../game/coaster/bendmesh.h"
@@ -6210,6 +6211,9 @@ const Hook kHooks[] = {
     {"Thing_NameB",               0x004e2920, (void *)&Thing_NameB, {0x8b, 0x44, 0x24, 0x08, 0x81}},
     {"Game_ArrivalVehicle",       0x0051a2f0, (void *)&Game_ArrivalVehicle, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"World_Start",               0x005156a0, (void *)&World_Start, {0x6a, 0xff, 0x68, 0x71, 0xe7}},
+    {"Thing_Update",              0x0050b360, (void *)&Thing_Update, {0x53, 0x56, 0x8b, 0xf1, 0x33}},
+    {"World_Update",              0x00516380, (void *)&World_Update, {0x83, 0xec, 0x08, 0x53, 0x56}},
+    {"World_UpdateInMode1",       0x005166b0, (void *)&World_UpdateInMode1, {0xa0, 0xa9, 0x34, 0xfb, 0x00}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
