@@ -53,7 +53,7 @@ extern "C" void __fastcall MapCell_StartEffect(u8 *cell, void *, u32 kind) {
     const u32 y = (at<u16>(cell, 0) - 1u) >> 7;
     const float placeY = position(y);
     g_env->setPosition(at<s32>(cell, 0x28), *reinterpret_cast<const u32 *>(&placeX), 0, *reinterpret_cast<const u32 *>(&placeY), 0);
-    at<u32>(cell, 0x30) = 0;
+    at<u16>(cell, 0x30) = 0;
     at<u32>(cell, 0x2c) = kind;
     if (kind == 8) {
         const s32 z = (s32)(long long)(X87Reg((double)placeY) * X87Reg(1024.0)).v;

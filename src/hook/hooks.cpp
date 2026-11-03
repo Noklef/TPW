@@ -323,6 +323,7 @@
 #include "../game/world/analysercell.h"
 #include "../game/world/bankaccount.h"
 #include "../game/world/cellbuild.h"
+#include "../game/world/celleffect.h"
 #include "../game/world/cellkind.h"
 #include "../game/world/cellmessage.h"
 #include "../game/world/linestep.h"
@@ -5775,6 +5776,7 @@ const Hook kHooks[] = {
     {"Mechanic_Repair",           0x004da830, (void *)&Mechanic_Repair, {0x51, 0x56, 0x57, 0x8b, 0xf1}},
     {"PatrolCoverage_Percent",    0x004cd500, (void *)&PatrolCoverage_Percent, {0x51, 0x8b, 0x44, 0x24, 0x08}},
     {"Object_WearTick",           0x004df670, (void *)&Object_WearTick, {0x83, 0xec, 0x24, 0x53, 0x56}},
+    {"MapCell_StartEffect",       0x004d93b0, (void *)&MapCell_StartEffect, {0xa0, 0xb9, 0x34, 0xfb, 0x00}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
