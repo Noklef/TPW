@@ -471,6 +471,7 @@
 #include "../game/render/heightgrid.h"
 #include "../game/render/vertexfog.h"
 #include "../game/render/d3dprobe.h"
+#include "../game/render/ddopen.h"
 #include "../game/render/depthsort.h"
 #include "../game/render/device.h"
 #include "../game/render/enginedebug.h"
@@ -6598,6 +6599,7 @@ const Hook kHooks[] = {
     {"RasterFormat_Init",         0x00678e70, (void *)&RasterFormat_Init, {0x8b, 0x54, 0x24, 0x04, 0x81}},
     {"EngineDebug_Log",           0x00564650, (void *)&EngineDebug_Log, {0xa1, 0x2c, 0x9a, 0x87, 0x00}},
     {"EngineDebug_LogFallback",   0x005645e0, (void *)&EngineDebug_LogFallback, {0xa1, 0x28, 0x9a, 0x87, 0x00}},
+    {"DirectDraw_Open",           0x00563460, (void *)&DirectDraw_Open, {0xa1, 0x08, 0xd5, 0x8b, 0x00}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},

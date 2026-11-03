@@ -601,6 +601,7 @@ add_library(tpw_game STATIC
     src/game/render/passwordpart.cpp
     src/game/render/rasterformat.cpp
     src/game/render/enginedebug.cpp
+    src/game/render/ddopen.cpp
     src/game/ui/quitconfirm.cpp
     src/game/world/mapsweep.cpp
     src/game/ui/imehostattach.cpp

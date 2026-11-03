@@ -6683,6 +6683,7 @@ address,name,kind,confidence,notes
 0x00678e70,RasterFormat_Init,function,low,"reimplemented (src/game/render/rasterformat); cdecl (surface, z buffer out, width, height); name invented, unconfirmed; the software rasteriser's pixel format from the surface's and its buffers"
 0x00564650,EngineDebug_Log,function,low,"reimplemented (src/game/render/enginedebug); cdecl (text); name invented: enginedebug.txt opened by the C library, made anew on the first write; the text written, flushed and the file closed"
 0x005645e0,EngineDebug_LogFallback,function,low,"reimplemented (src/game/render/enginedebug); cdecl (text): as EngineDebug_Log, to the file named at 0x766334, its count 0x879a28. Name invented, unconfirmed."
+0x00563460,DirectDraw_Open,function,low,"reimplemented (src/game/render/ddopen); the view's screen set and DirectDraw brought up, full screen or in a window"
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"
