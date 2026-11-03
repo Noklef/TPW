@@ -1179,8 +1179,9 @@ class Bench:
         if c.masks:  # (the original must never read a masked byte: Mask)
             e.rb = _watching(e, {(m.region + o) & 0xffffffff for m in c.masks for o in m.offsets})
         try:
-            for address, args, conv in [(c.address, c.args, c.conv)] + c.then:
-                args = [e.r['EAX'] if a == PREV else a for a in args]
+            for step, (address, args, conv) in enumerate([(c.address, c.args, c.conv)] + c.then):
+                if step:   # (a first call's arguments are its own: a -5 there is a -5)
+                    args = [e.r['EAX'] if a == PREV else a for a in args]
                 e.r.update({k: 0x10000000 if k == 'ESP' else 0 for k in e.r})   # (as the driver's invoke: each step starts on zeroed registers)
                 if conv in 'tf' and args:
                     e.r['ECX'] = args[0]

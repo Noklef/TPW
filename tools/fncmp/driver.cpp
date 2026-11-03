@@ -2366,8 +2366,9 @@ int main(int argc, char **argv) {
         }
         int code = 0;
         for (Step &step : steps) {
-            for (u32 &a : step.args)
-                if (a == 0xfffffffb) a = eax;  // (fncmp.PREV: the step before's EAX)
+            if (&step != &steps[0])  // (a first call's arguments are its own: a -5 there is a -5)
+                for (u32 &a : step.args)
+                    if (a == 0xfffffffb) a = eax;  // (fncmp.PREV: the step before's EAX)
             u32 regs[7] = {}, skip = 0;  // EAX EBX ECX EDX ESI EDI EBP
             const char *const how = step.conv.c_str();
             const u32 n = (u32)step.args.size();
