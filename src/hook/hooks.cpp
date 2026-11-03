@@ -340,6 +340,7 @@
 #include "../game/world/things.h"
 #include "../game/world/analysercell.h"
 #include "../game/world/bankaccount.h"
+#include "../game/world/cameraupdate.h"
 #include "../game/world/cellbuild.h"
 #include "../game/world/celleffect.h"
 #include "../game/world/cellkind.h"
@@ -6089,6 +6090,7 @@ const Hook kHooks[] = {
     {"World_Save",                0x00516c80, (void *)&World_Save, {0x6a, 0xff, 0x68, 0xe6, 0xe7}},
     {"World_Load",                0x005179c0, (void *)&World_Load, {0x6a, 0xff, 0x68, 0x87, 0xe8}},
     {"Scape_LoadObjects",         0x00550e00, (void *)&Scape_LoadObjects, {0x8b, 0x44, 0x24, 0x04, 0x83}},
+    {"Camera_Update",             0x0042b1c0, (void *)&Camera_Update, {0x55, 0x8b, 0xec, 0x83, 0xe4}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},

@@ -616,6 +616,7 @@ add_library(tpw_game STATIC
     src/game/world/advisortable.cpp
     src/game/world/worldsave.cpp
     src/game/world/scapeobjects.cpp
+    src/game/world/cameraupdate.cpp
     src/game/ui/staffrename.cpp
     src/game/ui/window7cc8bc.cpp
     src/game/ui/dialog7cb2b8.cpp
