@@ -14,7 +14,7 @@ import dialog7ca308open as base  # noqa: E402
 import dialogbuild  # noqa: E402
 import panelparts  # noqa: E402
 import scriptchain  # noqa: E402
-from fncmp import HEAP, LOG, LOG_BYTES, Bench, Call, _cdecl_log, _recorder, heap, recorder  # noqa: E402
+from fncmp import HEAP, LOG, LOG_BYTES, Bench, Call, _cdecl_log, _recorder, blob, heap, recorder  # noqa: E402
 
 OP = 'Dialog7ca2e8_Open'
 dialog7ca150.TABS[OP] = (0x751ca8, 6, 0x752930, 0xac)
@@ -66,6 +66,7 @@ def case(r):
     masks = scriptchain.advisor_env(r, regions, 0xc5)
     for vt in dialogbuild.KIND_VTABLES:   # (the buttons' slot 9)
         regions[vt + 0x24] = struct.pack('<I', recorder(30, 1))
+    blob(log, 30, 0, 0xff)   # (the text itself: every Language_WideText answers the one buffer)
     regions[0x6ff2d8 + 0xc] = struct.pack('<I', recorder(3, 2))   # (the graph's renderer part told: its slots 3 and 5 recorders, as the text parts')
     regions[0x6ff2d8 + 0x14] = struct.pack('<I', recorder(31, 1))
     return Call(0x49ac60, [], regions, ret='v', masks=masks)

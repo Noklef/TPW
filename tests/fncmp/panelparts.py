@@ -85,7 +85,8 @@ def texts(r, regions, indexes):
     put(lang, 0x54c, 'II', TEXTS + 0x800, r.choice([0, 1, 1, 1, r.getrandbits(32)]))
     low, high = min(indexes), max(indexes)
     table = bytearray(r.bytes(0x20))
-    put(table, 8, 'II', r.choice([high + 1] * 4 + [r.randrange(low, high + 2), 0]), TEXTS + 0xb00 - 4 * low)
+    pointers = TEXTS + (0xb00 if high + 1 - low <= 0x40 else 0x5000)   # (more of them would lie over the pool at 0xc00: its first records no texts)
+    put(table, 8, 'II', r.choice([high + 1] * 4 + [r.randrange(low, high + 2), 0]), pointers - 4 * low)
     put(lang, 0x564, 'I', TEXTS + 0xa00)
     pool = bytearray()
     for i in range(high + 1 - low):
@@ -97,7 +98,7 @@ def texts(r, regions, indexes):
         pool += rec
     regions.update({TEXTS + 0x800: conv, TEXTS + 0x4000: r.bytes(0x1000), 0x7ba058: bytes([0x55]) * 0x404, TEXTS + 0xa00: table,
                     TEXTS + 0xc00: bytes(pool),
-                    TEXTS + 0xb00: struct.pack('<%dI' % (high + 1 - low), *[TEXTS + 0xc00 + 0x40 * i for i in range(high + 1 - low)])})
+                    pointers: struct.pack('<%dI' % (high + 1 - low), *[TEXTS + 0xc00 + 0x40 * i for i in range(high + 1 - low)])})
 
 
 def kids(r, regions, items, root):
