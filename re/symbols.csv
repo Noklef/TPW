@@ -1527,6 +1527,8 @@ address,name,kind,confidence,notes
 0x0067ad90,CRT_free,function,high,reimplemented (src/game/core/crt); MSVC CRT free
 0x0067b620,CRT_fclose,function,high,reimplemented (src/game/core/crt); MSVC CRT fclose
 0x0067d320,CRT_exception_Dtor,function,high,reimplemented (src/game/core/crt); MSVC CRT exception's destructor
+0x0067d250,CRT_exception_Ctor,function,high,reimplemented (src/game/core/crt); MSVC CRT exception(const char *const &)
+0x0067d2b0,CRT_exception_Copy,function,high,reimplemented (src/game/core/crt); MSVC CRT exception's copy constructor
 0x0067f1a0,CRT_toupper,function,medium,"cdecl; the CRT toupper (locale-aware, ASCII in the C locale)"
 0x0067fa60,CRT_tolower,function,medium,"cdecl; the CRT tolower (locale-aware, ASCII in the C locale)"
 0x006fe67c,StringList2_vtable,data,high,one entry (0x61a7e0); src/game/files/waddir
@@ -5629,6 +5631,16 @@ address,name,kind,confidence,notes
 0x006bafe0,SoundGuard_Delete,function,low,"reimplemented (src/game/core/soundguard); the held object's slot 0 (1), unless null"
 0x006bb210,SoundGuard_Release,function,low,reimplemented (src/game/core/soundguard); with byte +4 the held object's slot 3
 0x006bb940,SoundRandom_Seed,function,low,reimplemented (src/game/core/soundseed); the random number 0xfb1f20 seeded from the time
+0x006918f0,Std_Xlen,function,high,reimplemented (src/game/core/iosbase); std::_Xlen: throws length_error
+0x00691ba0,Std_Xran,function,high,reimplemented (src/game/core/iosbase); std::_Xran: throws out_of_range
+0x00693340,IosBase_Clear,function,high,reimplemented (src/game/core/iosbase); std::ios_base::clear
+0x006938e0,IosBase_Callfns,function,high,reimplemented (src/game/core/iosbase); std::ios_base::_Callfns
+0x00693910,IosBase_Addstd,function,high,reimplemented (src/game/core/iosbase); std::ios_base::_Addstd
+0x00693960,IosBase_Init,function,high,reimplemented (src/game/core/iosbase); std::ios_base::_Init
+0x006939a0,IosBase_Tidy,function,high,reimplemented (src/game/core/iosbase); std::ios_base::_Tidy
+0x00693830,IosBase_Dtor,function,high,reimplemented (src/game/core/iosbase); std::ios_base::~ios_base
+0x006939f0,Std_FiopenTable,function,low,reimplemented (src/game/core/iosbase); std::__Fiopen's table lookup
+0x00693a70,Std_Fiopen,function,high,reimplemented (src/game/core/iosbase); std::__Fiopen
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

@@ -65,6 +65,7 @@ struct CrtInnerEnv {
     void(__cdecl *unlockFile)(void *file);                       // 0x682830
     s32(__cdecl *fcloseLocked)(void *file);                      // 0x67b660
     void(__cdecl *memFree)(void *block);                         // 0x67acb0
+    void *(__cdecl *memAlloc)(u32 size);                         // 0x67acc0
 };
 
 void CrtInner_SetEnv(const CrtInnerEnv *env);
@@ -95,6 +96,12 @@ s32 __cdecl CRT_fclose(void *file);
 
 // 0x67d320 (thiscall): exception's destructor: the vtable 0x7089c4 set, the text +4 freed if it is owned (+8).
 void __fastcall CRT_exception_Dtor(u32 *self);
+
+// 0x67d250 (thiscall (&text), pops 4): exception(const char *const &): the vtable, a copy of the text +4 (0 if the allocation fails), owned +8. Returns self.
+u32 *__fastcall CRT_exception_Ctor(u32 *self, void *edx, const char *const *text);
+
+// 0x67d2b0 (thiscall (from), pops 4): the copy constructor: an owned text copied (0 if the allocation fails), an unowned one shared. Returns self.
+u32 *__fastcall CRT_exception_Copy(u32 *self, void *edx, const u32 *from);
 
 // 0x67acf0 (stdcall; array, size, count, ctor, dtor, pops 20): ctor (thiscall on the element, no other arguments) for each of the count (signed) elements of
 // size bytes in turn; the dtor is only for the unwinding.

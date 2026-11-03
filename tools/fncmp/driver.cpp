@@ -159,6 +159,7 @@
 #include "../../src/game/world/objectmsg.h"
 #include "../../src/game/world/objectunlock.h"
 #include "../../src/game/core/fpu.h"
+#include "../../src/game/core/iosbase.h"
 #include "../../src/game/core/gameheap.h"
 #include "../../src/game/core/string.h"
 #include "../../src/game/core/ptrlist.h"
@@ -2428,8 +2429,12 @@ int main(int argc, char **argv) {
     static const CrtInnerEnv crtInner = {Rec{jpeg_recorder(2, 0)},  Rec{jpeg_recorder(3, 0)},  Rec{jpeg_recorder(4, 0)},  Rec{jpeg_recorder(5, 1)},
                                          Rec{jpeg_recorder(6, 2)},  Rec{jpeg_recorder(7, 1)},  Rec{jpeg_recorder(8, 1)},  Rec{jpeg_recorder(9, 3)},
                                          Rec{jpeg_recorder(10, 3)}, Rec{jpeg_recorder(11, 1)}, Rec{jpeg_recorder(12, 1)}, Rec{jpeg_recorder(13, 1)},
-                                         &heap_free};
+                                         &heap_free, &heap_alloc};
     CrtInner_SetEnv(&crtInner);
+    // The C++ library's: the locks do nothing (the bench's hooks of 0x691de0 / 0x691ea0), the rest recorders (tests/fncmp/iosbase.py).
+    static const IosBaseEnv iosBase = {[](void *lock) -> void * { return lock; }, [](void *) {}, &heap_free, Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 14}, Rec{jpeg_recorder(16, 2)}, Rec{jpeg_recorder(17, 3)},
+                                       Rec{jpeg_recorder(18, 1)}, &heap_alloc, Rec{recorder(19, 1)}, Rec{jpeg_recorder(20, 1)}};
+    IosBase_SetEnv(&iosBase);
     Libc_SetEnv(&kDriverLibc);
     static FpuEnv fpu = *Fpu_GetEnv();  // (the guard's deleting destructors free with the stand-in heap)
     fpu.free = &heap_free;

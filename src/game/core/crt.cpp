@@ -1,6 +1,7 @@
 #include "crt.h"
 
 #include <cstdint>
+#include <cstring>
 
 namespace {
 
@@ -60,6 +61,7 @@ const CrtInnerEnv kGameInner = {
     game<void(__cdecl *)(void *)>(0x00682830),
     game<s32(__cdecl *)(void *)>(0x0067b660),
     game<void(__cdecl *)(void *)>(0x0067acb0),
+    game<void *(__cdecl *)(u32)>(0x0067acc0),
 };
 const CrtInnerEnv *g_inner = &kGameInner;
 
@@ -148,6 +150,32 @@ void __fastcall CRT_exception_Dtor(u32 *self) {
     const u32 owned = self[2];
     self[0] = 0x007089c4;
     if (owned) g_inner->memFree(reinterpret_cast<void *>((uintptr_t)self[1]));
+}
+
+u32 *__fastcall CRT_exception_Ctor(u32 *self, void *, const char *const *text) {
+    self[0] = 0x007089c4;
+    const u32 size = (u32)strlen(*text) + 1;
+    char *const copy = static_cast<char *>(g_inner->memAlloc(size));
+    self[1] = (u32)(uintptr_t)copy;
+    if (copy) memcpy(copy, *text, size);
+    self[2] = 1;
+    return self;
+}
+
+u32 *__fastcall CRT_exception_Copy(u32 *self, void *, const u32 *from) {
+    self[0] = 0x007089c4;
+    const u32 owned = from[2];
+    self[2] = owned;
+    if (!owned) {
+        self[1] = from[1];
+        return self;
+    }
+    const char *const text = reinterpret_cast<const char *>((uintptr_t)from[1]);
+    const u32 size = (u32)strlen(text) + 1;
+    char *const copy = static_cast<char *>(g_inner->memAlloc(size));
+    self[1] = (u32)(uintptr_t)copy;
+    if (copy) memcpy(copy, reinterpret_cast<const char *>((uintptr_t)from[1]), size);
+    return self;
 }
 
 void __stdcall CRT_VectorCtorIterator(u8 *array, u32 size, s32 count, void(__fastcall *ctor)(void *), void *) {
