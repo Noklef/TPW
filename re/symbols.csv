@@ -435,7 +435,7 @@ address,name,kind,confidence,notes
 0x00542640,Sprites_UseParkFrames,function,high,"reimplemented (src/game/sprite/loading); cdecl, returns a byte: the loaded sprites' frame sets reloaded from the park (.tpc) files of the sprite folder, unless already in use; answers 1, or 0 when nothing was done"
 0x00587db0,SpriteFrames_Load,function,medium,reads a .tpc/.fpc stream into a frame set
 0x0042ab20,Camera_SetMode,function,medium,"reimplemented (src/game/world/camera); cdecl (mode, toggle, ride, force, out, fresh): the camera's park view (0x40), follow (4) or walk (2) mode set or toggled in gCameraFlags 0x790ab0; entering or leaving a mode suspends the highlight, sets the chat buttons, swaps procedural terrain and wakes the camera's instance; every ride's model parts' faces marked by their flags; answers whether the mode changed"
-0x0042ae70,Camera_ToggleWalkMode,function,medium,switches sprite frame sets with the camera
+0x0042ae70,Camera_ToggleWalkMode,function,medium,"reimplemented (src/game/world/camera); the walk mode toggled when the cell under the point allows it, the point and yaw saved or restored"
 0x0042a560,Camera_FollowThing,function,low,"reimplemented (src/game/world/camera); cdecl (ride, ground, force, out, key, fresh): the camera's follow mode (Camera_SetMode 4) set on a ride, its keyed part flagged and remembered as the followed part, then the ground or park sprite frames chosen"
 0x00763f88,gSpriteFolders,data,high,"14 x (char* folder, first sprite index, count)"
 0x00764030,gAvatarSprites,data,high,"SPR_BI/KI/TA/SU.ESP"

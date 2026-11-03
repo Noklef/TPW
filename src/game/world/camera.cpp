@@ -29,7 +29,7 @@ void __fastcall SetChat(void *, void *, u32 on) { ChatButtons_SetChat(on); }
 
 const CameraEnv kGameEnv = {&Highlight_Suspend,     &SetChat,           &Terrain_ProceduralLeave, &Terrain_ProceduralEnter,
                             &Holder_AddToGrid,      &Holder_Wake,       &Model_FindPartByKey4,    &PartStates_Update,
-                            &Sprites_UseGroundFrames, &Sprites_UseParkFrames};
+                            &Sprites_UseGroundFrames, &Sprites_UseParkFrames, &Camera_SetMode};
 const CameraEnv *g_env = &kGameEnv;
 
 // The model parts of a ride's instance (+8 -> +4) marked by their flags: face bit 0x8000 set by set, else cleared by clear; with check
@@ -182,6 +182,39 @@ void __cdecl Camera_CentreOnGlobalThing() {
     Thing_GetHandle(thing, nullptr, &handle);
     // (the high word what ECX held: the thing pointer's)
     Camera_CentreOnThing((static_cast<u32>(reinterpret_cast<uintptr_t>(thing)) & 0xffff0000u) | handle);
+}
+
+void __cdecl Camera_ToggleWalkMode() {
+    if (!(global<u8>(0x00790ab0) & 0x16)) {
+        s32 cx = (s32)(long long)(X87Reg(global<float>(0x007a1c70)) * 0.100000001f).v;  // 0x6fdd58, __ftol
+        s32 cz = (s32)(long long)(X87Reg(global<float>(0x007a1c78)) * 0.100000001f).v;
+        if (cx < 0) cx = 0;
+        if (cz < 0) cz = 0;
+        if (cx >= global<s32>(0x007a0314)) cx = global<s32>(0x007a0314) - 1;
+        if (cz >= global<s32>(0x007a0374)) cz = global<s32>(0x007a0374) - 1;
+        const u32 id = (((u32)cz << 7) + cx + 1) & 0xffff;
+        const u8 *const cell = *global<u8 **>(0x007cf6ec) + id * 0x44 + 0x294;
+        if (!MapCell_IsType1e(cell) && !MapCell_IsType1(cell) && !MapCell_IsType3Or9(cell) && !MapCell_IsType0(cell)) return;
+    }
+    g_env->setMode(2, 1, 0, 0, nullptr, 0);
+    u32 *const point = &global<u32>(0x007908f0);
+    u32 *const saved = &global<u32>(0x00790ad0);
+    if (global<u8>(0x00790ab0) & 0x16) {
+        saved[0] = point[0];
+        saved[1] = point[1];
+        saved[2] = point[2];
+        global<u32>(0x00790a9c) = global<u32>(0x00790a38);
+        point[0] = global<u32>(0x007a1c70);
+        point[1] = 0;
+        point[2] = global<u32>(0x007a1c78);
+        g_env->useGround();
+    } else {
+        point[0] = saved[0];
+        point[1] = saved[1];
+        point[2] = saved[2];
+        global<u32>(0x00790a38) = global<u32>(0x00790a9c);
+        g_env->usePark();
+    }
 }
 
 void __cdecl Camera_SnapToRide() {

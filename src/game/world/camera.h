@@ -117,9 +117,15 @@ struct CameraEnv {
     void(__cdecl *partStates)(u8 *instance);                   // PartStates_Update (0x44ab30)
     u8(__cdecl *useGround)();                                  // Sprites_UseGroundFrames (0x542420)
     u8(__cdecl *usePark)();                                    // Sprites_UseParkFrames (0x542640)
+    u32(__cdecl *setMode)(u32 mode, u32 toggle, u32 ride, u32 force, u32 *out, u32 fresh);  // Camera_SetMode (0x42ab20), for Camera_ToggleWalkMode
 };
 // The camera's calls go to env (nullptr: the game's).
 void Camera_SetEnv(const CameraEnv *env);
+
+// 0x42ae70 (cdecl): with no camera mode on (gCameraFlags's byte without 0x16), nothing unless the map cell under the point 0x7a1c70 / 0x7a1c78 (times 0.1 by __ftol, clamped to the map; the
+// world [0x7cf6ec]) is of kind 0x1e, 1, 3, 9 or 0. Then Camera_SetMode (2, 1, 0, 0, 0, 0). A mode on now: the point 0x7908f0 and the yaw 0x790a38 saved (0x790ad0, 0x790a9c), the point
+// moved to (0x7a1c70, 0, 0x7a1c78), Sprites_UseGroundFrames. Off: they are restored, Sprites_UseParkFrames.
+void __cdecl Camera_ToggleWalkMode();
 
 // 0x42ab20 (cdecl; mode, toggle, ride, force, out, fresh): gCameraFlags (0x790ab0) loses 0x800; was = its 0x16 (a camera mode on); *out =
 // 0 when given. Mode 0x40 (the park view): the low byte keeps only 0x41; changed, and leaving when was. Mode 4 (follow) unless the flags
