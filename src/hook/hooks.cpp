@@ -151,6 +151,7 @@
 #include "../game/gfx/refblock.h"
 #include "../game/gfx/signstyle.h"
 #include "../game/gfx/tgqvideo.h"
+#include "../game/gfx/tqiframe.h"
 #include "../game/gfx/tqivideo.h"
 #include "../game/gfx/wctimage.h"
 #include "../game/core/crt.h"
@@ -5952,6 +5953,8 @@ const Hook kHooks[] = {
     {"OverlayLoad_Button",        0x00488d20, (void *)&OverlayLoad_Button, {0x6a, 0xff, 0x68, 0xce, 0x93}},
     {"OverlayLoad_Slider",        0x00488ee0, (void *)&OverlayLoad_Slider, {0x6a, 0xff, 0x68, 0x0e, 0x94}},
     {"OverlayLoad_Plain",         0x00489060, (void *)&OverlayLoad_Plain, {0x6a, 0xff, 0x68, 0x46, 0x94}},
+    {"TqiVideo_DecodeFrame16",    0x00671800, (void *)&TqiVideo_DecodeFrame16, {0x51, 0x56, 0x57, 0x8b, 0x7c}},
+    {"TqiVideo_DecodeFrameYuy2",  0x00671940, (void *)&TqiVideo_DecodeFrameYuy2, {0x51, 0x56, 0x8b, 0x74, 0x24}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
