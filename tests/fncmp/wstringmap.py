@@ -103,6 +103,8 @@ def case(r):
     if CALLS[name] in NOCASE:   # (the other sentinel slots hold the nil too or not, so a wrong one shows; no locale handle: the "C" path)
         regions[0x7ced2c] = struct.pack('<III', stdtree.NIL if 'Buddy' in name else stdtree.HEAD, 0,
                                         stdtree.NIL if 'Ignore' in name else stdtree.HEAD)
+        if 'Buddy' in name or 'Ignore' in name:
+            regions[0x7ced24] = struct.pack('<I', stdtree.HEAD)
         regions[0xfb1440] = bytes(4)
         if s and r.random() < 0.5:   # the key with its case flipped about
             s = tuple(c ^ 0x20 if c in (0x41, 0x61) and r.random() < 0.6 else c for c in s)
