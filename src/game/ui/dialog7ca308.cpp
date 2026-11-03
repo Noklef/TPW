@@ -9,6 +9,7 @@
 #include "../world/staff.h"
 #include "guirect.h"
 #include "window.h"
+#include "window7059f0.h"
 
 namespace {
 
@@ -16,9 +17,36 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
+const Dialog7ca308Env kGameEnv = {&Window7059f0_Clear, &Window7059f0_AddItem, &Window7059f0_RefreshRows, &StaffPoolEntry_FormatName, &Staff_WageForRecord};
+const Dialog7ca308Env *g_env = &kGameEnv;
+
 }  // namespace
 
+void Dialog7ca308_SetEnv(const Dialog7ca308Env *env) { g_env = env ? env : &kGameEnv; }
+
 extern "C" {
+
+void __cdecl Dialog7ca308_FillList(u32 kind, u32 clear) {
+    u8 *const window = global<u8 *>(0x007ca308);
+    if (!window) return;
+    u8 *const list = Window_FindChild(window, nullptr, 0x248e);
+    if (!list) return;
+    global<u32>(0x007ca30c) = kind;
+    if (clear) g_env->clear(list);
+    struct Row {   // (the original's frame: the texts just before the name)
+        u32 texts[2];
+        u16 name[0x28];
+    } row;
+    for (u32 i = 0; i < 0x20; ++i) {
+        const u8 *const entry = StaffPool_ValidEntry(global<u8 *>(0x007cf83c), nullptr, i);
+        if (!entry || at<u32>(entry, 0) != kind) continue;
+        g_env->format(entry, nullptr, row.name, 0x27);
+        row.texts[0] = (u32)(uintptr_t)row.name;
+        row.texts[1] = (u32)g_env->wage(entry);
+        g_env->addItem(list, nullptr, row.texts, i, -1, 0);
+    }
+    g_env->refresh(list);
+}
 
 void __cdecl Dialog7ca308_ShowStaff(u32 index) {
     u8 rect[0xc];
