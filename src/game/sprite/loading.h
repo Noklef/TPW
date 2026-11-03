@@ -20,3 +20,32 @@ void __cdecl SpriteFiles_Sort();
 // (0x8751f0, 0x24 bytes apart) and the overlay one (0x876420) are emptied (TrackedArray_Free).
 void __cdecl Sprites_FreeAll();
 }
+
+struct String;
+struct StreamBase;
+
+// What the frame-set reloads call in the game, so that they can run outside it (the benches point these at recorders; the ports, or the
+// game's own functions for those not ported, by default).
+struct SpriteLoadingEnv {
+    u32(__fastcall *find)(u8 **ref, void *, const u8 *key, u8 **out);                // NamedList_Find (0x421770)
+    u32(__fastcall *framesFree)(u8 *set);                                             // SpriteFrames_Free (0x588230)
+    u32(__fastcall *open)(u8 *folder, void *, StreamBase *stream, String *name);      // 0x41e740 (not ported; the game's)
+    u32(__fastcall *load)(u8 *set, void *, StreamBase *stream, u32 zero);             // SpriteFrames_Load (0x587db0; not ported; the game's)
+    void(__fastcall *markTextures)(u8 *set);                                          // SpriteFrames_MarkTextures (0x5882e0)
+};
+// The reloads' calls go to env (nullptr: the game's).
+void SpriteLoading_SetEnv(const SpriteLoadingEnv *env);
+
+extern "C" {
+
+// 0x542420 / 0x542640 (cdecl; return a byte): the loaded sprites' frame sets swapped for the ground (.fpc) / park (.tpc) ones. Nothing
+// (0) when the frames in use (0x763f80) are those already (0 ground, 1 park); else they become them, and the suffix is the wide string
+// 0x875fe8 / 0x876270 when the byte at 0x763f28 is set, else 0x875598 / 0x8757a8 (String_AssignWide). The folder is looked up by the
+// key 0x876960 in the list [0x786b9c] (NamedList_Find; not found: 0). Then each of the 0x876b28 (signed, re-read) sprites (gSprites,
+// 0x876b48) with the byte +0x205: its name (+4) and the suffix make the file's name, its frame set (+0) freed (SpriteFrames_Free, also
+// a null one; then again and the block freed when set) and cleared; a new stream (8 bytes, StreamBase_Ctor; never freed, sic) opened on
+// the name in the folder (0x41e740) and, when that answers 1, a new set (0x10 bytes, +0 and +0xc cleared) at +0 loaded from it
+// (SpriteFrames_Load): +0x204 = it answered 1, +0x208 = the set's count; with +0x207 SpriteFrames_MarkTextures. Answers 1.
+u8 __cdecl Sprites_UseGroundFrames();
+u8 __cdecl Sprites_UseParkFrames();
+}

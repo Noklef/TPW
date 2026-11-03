@@ -137,6 +137,7 @@
 #include "../game/gfx/textlayout.h"
 #include "../game/gfx/tvstatic.h"
 #include "../game/gfx/aaline.h"
+#include "../game/gfx/colourramps.h"
 #include "../game/gfx/dctvlc.h"
 #include "../game/gfx/dderrors.h"
 #include "../game/gfx/glyphrender.h"
@@ -271,11 +272,13 @@
 #include "../game/coaster/registry.h"
 #include "../game/coaster/contacts.h"
 #include "../game/coaster/edittools.h"
+#include "../game/coaster/editupdate.h"
 #include "../game/coaster/placecheck.h"
 #include "../game/coaster/ridebounds.h"
 #include "../game/coaster/setup.h"
 #include "../game/coaster/save.h"
 #include "../game/coaster/spline.h"
+#include "../game/coaster/testrun.h"
 #include "../game/coaster/trackmesh.h"
 #include "../game/coaster/train.h"
 #include "../game/coaster/xsection.h"
@@ -342,6 +345,7 @@
 #include "../game/world/lineends.h"
 #include "../game/world/demolish.h"
 #include "../game/world/endthing.h"
+#include "../game/world/flyinglaunch.h"
 #include "../game/world/gamemode.h"
 #include "../game/world/mapclick.h"
 #include "../game/world/mappreview.h"
@@ -357,7 +361,10 @@
 #include "../game/world/tracksquare.h"
 #include "../game/world/rides.h"
 #include "../game/world/trackcircuit.h"
+#include "../game/world/sign.h"
 #include "../game/world/trackline.h"
+#include "../game/world/trackmessage.h"
+#include "../game/world/trakcarroute.h"
 #include "../game/world/uimsgreceiver.h"
 #include "../game/world/visitoroption.h"
 #include "../game/world/visitorsteps.h"
@@ -365,6 +372,7 @@
 #include "../game/world/world.h"
 #include "../game/model/holder.h"
 #include "../game/coaster/tracktypes.h"
+#include "../game/coaster/typemodel.h"
 #include "../game/model/parts.h"
 #include "../game/model/highlight.h"
 #include "../game/model/partstate.h"
@@ -419,6 +427,8 @@
 #include "../game/render/texcoords.h"
 #include "../game/render/graphicssettings.h"
 #include "../game/render/meshdraws.h"
+#include "../game/render/randomsegments.h"
+#include "../game/render/ribbon.h"
 #include "../game/render/textparts.h"
 #include "../game/render/transformer.h"
 #include "../game/render/vertexblock.h"
@@ -696,6 +706,8 @@ const Hook kHooks[] = {
     {"SpriteAnim_Serialize",      0x004d3ee0, (void *)&SpriteAnim_Serialize, {0x8b, 0x44, 0x24, 0x08, 0x53}},
     {"SpriteFiles_Sort",          0x00541210, (void *)&SpriteFiles_Sort, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Sprites_FreeAll",           0x00541ed0, (void *)&Sprites_FreeAll, {0xa1, 0x6c, 0x62, 0x87, 0x00}},
+    {"Sprites_UseGroundFrames",   0x00542420, (void *)&Sprites_UseGroundFrames, {0x6a, 0xff, 0x68, 0x0b, 0xec}},
+    {"Sprites_UseParkFrames",     0x00542640, (void *)&Sprites_UseParkFrames, {0x6a, 0xff, 0x68, 0x3b, 0xec}},
     {"World_Rand",               0x00516330, (void *)&World_Rand, {0x55, 0x8b, 0xec, 0x51, 0x8b}},
     {"World_SetSeed",            0x00516370, (void *)&World_SetSeed, {0x8b, 0x44, 0x24, 0x04, 0x89}},
     {"Things_InitTable",         0x00515f30, (void *)&Things_InitTable, {0x33, 0xd2, 0x56, 0x89, 0x15}},
@@ -736,6 +748,8 @@ const Hook kHooks[] = {
     {"Camera_SetControl100",      0x0042a500, (void *)&Camera_SetControl100, {0xa1, 0xac, 0x0a, 0x79, 0x00}},
     {"Camera_ToggleControl200",   0x0042a520, (void *)&Camera_ToggleControl200, {0x8b, 0x0d, 0xac, 0x0a, 0x79}},
     {"Camera_CentreOnSprite",     0x00486860, (void *)&Camera_CentreOnSprite, {0x8b, 0x4c, 0x24, 0x04, 0x83}},
+    {"Camera_SetMode",            0x0042ab20, (void *)&Camera_SetMode, {0x51, 0xa1, 0xb0, 0x0a, 0x79}},
+    {"Camera_FollowThing",        0x0042a560, (void *)&Camera_FollowThing, {0x53, 0x55, 0x56, 0x8b, 0x74}},
     {"MouseMode_Nop4",            0x0046c450, (void *)&MouseMode_Nop4, {0xc2, 0x10, 0x00, 0x90, 0x90}},
     {"MouseMode_DeletingDtor",    0x0046c460, (void *)&MouseMode_DeletingDtor, {0x8a, 0x44, 0x24, 0x04, 0x56}},
     {"MouseModeTile_Ctor",        0x0046c580, (void *)&MouseModeTile_Ctor, {0x8b, 0xc1, 0x8b, 0x4c, 0x24}},
@@ -2176,6 +2190,7 @@ const Hook kHooks[] = {
     {"Gauge_Setup",               0x004806a0, (void *)&Gauge_Setup, {0x83, 0xec, 0x08, 0x0f, 0xbf}},
     {"Gauge_DrawGrid",            0x0047fcd0, (void *)&Gauge_DrawGrid, {0x83, 0xec, 0x2c, 0x53, 0x55}},
     {"Gauge_DrawInWindow",        0x00480810, (void *)&Gauge_DrawInWindow, {0x83, 0xec, 0x48, 0x8d, 0x4c}},
+    {"Gauge_DrawPlot",            0x0047fe90, (void *)&Gauge_DrawPlot, {0x83, 0xec, 0x48, 0x53, 0x55}},
     {"BarMesh_SetVertex",         0x00477c00, (void *)&BarMesh_SetVertex, {0x8b, 0x4c, 0x24, 0x08, 0x8b}},
     {"BarMesh_SetTopVertices",    0x00477cc0, (void *)&BarMesh_SetTopVertices, {0x8b, 0x41, 0x7c, 0x33, 0xd2}},
     {"BarMesh_SetTopTexCoords",   0x00477d20, (void *)&BarMesh_SetTopTexCoords, {0xd9, 0x81, 0x20, 0x01, 0x00}},
@@ -4433,6 +4448,9 @@ const Hook kHooks[] = {
     {"CoasterCar_UpdateScream",   0x004393e0, (void *)&CoasterCar_UpdateScream, {0x55, 0x8b, 0xec, 0x51, 0x53}},
     {"CoasterCars_StartAllSounds", 0x00439390, (void *)&CoasterCars_StartAllSounds, {0x56, 0x8b, 0x35, 0xe0, 0x0f}},
     {"CoasterPiece_CanPlaceAt",   0x00434740, (void *)&CoasterPiece_CanPlaceAt, {0x83, 0xec, 0x30, 0xa1, 0xec}},
+    {"CoasterEdit_Update",        0x00443340, (void *)&CoasterEdit_Update, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Coaster_TestRun",           0x0043c450, (void *)&Coaster_TestRun, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"CoasterType_ReadModel",     0x00430590, (void *)&CoasterType_ReadModel, {0x51, 0x8b, 0x44, 0x24, 0x10}},
     {"Thing_SpriteChoice",        0x004fcac0, (void *)&Thing_SpriteChoice, {0x51, 0x56, 0x8b, 0xf1, 0x6a}},
     {"Thing_IngredientRecord",    0x004e2200, (void *)&Thing_IngredientRecord, {0x51, 0x66, 0x8b, 0x41, 0x0e}},
     {"Class701378_Ctor",          0x005667d0, (void *)&Class701378_Ctor, {0x51, 0x8b, 0x44, 0x24, 0x08}},
@@ -5720,6 +5738,7 @@ const Hook kHooks[] = {
     {"GameMode_SetOnly",          0x0052f580, (void *)&GameMode_SetOnly, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"GameMode_StepBack",         0x0052fe50, (void *)&GameMode_StepBack, {0x51, 0x53, 0x55, 0x56, 0x57}},
     {"Ride_Destroy",              0x00463c80, (void *)&Ride_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"Ride_Create",               0x00463060, (void *)&Ride_Create, {0x8b, 0x44, 0x24, 0x04, 0x81}},
     {"MapCell_SetKind",           0x005346d0, (void *)&MapCell_SetKind, {0x53, 0x55, 0x56, 0x57, 0x8b}},
     {"MapCell_Clear",             0x005367a0, (void *)&MapCell_Clear, {0x83, 0xec, 0x08, 0x53, 0x55}},
     {"MapCell_SetTrackKind",      0x00538fc0, (void *)&MapCell_SetTrackKind, {0x83, 0xec, 0x08, 0x53, 0x55}},
@@ -5751,6 +5770,10 @@ const Hook kHooks[] = {
     {"Map_SendLine",              0x00536100, (void *)&Map_SendLine, {0x8b, 0x54, 0x24, 0x10, 0x8b}},
     {"TrackCircuit_Walk",         0x0052a970, (void *)&TrackCircuit_Walk, {0x83, 0xec, 0x4c, 0xa0, 0x50}},
     {"GameMode_MapPreview",       0x005234d0, (void *)&GameMode_MapPreview, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"MapCell_HandleTrackMessage", 0x005370e0, (void *)&MapCell_HandleTrackMessage, {0x83, 0xec, 0x20, 0x53, 0x55}},
+    {"TrakCar_ChooseRoute",       0x0054a040, (void *)&TrakCar_ChooseRoute, {0x83, 0xec, 0x0c, 0x53, 0x55}},
+    {"Sign_Create",               0x004689f0, (void *)&Sign_Create, {0x81, 0xec, 0x84, 0x00, 0x00}},
+    {"FlyingRide_Launch",         0x0055a720, (void *)&FlyingRide_Launch, {0x51, 0x8b, 0x44, 0x24, 0x08}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
@@ -5925,6 +5948,7 @@ const Hook kHooks[] = {
     {"GuiText_Measure",           0x004929f0, (void *)&GuiText_Measure, {0x6a, 0xff, 0x68, 0x3b, 0x9c}},
     {"GuiText_DrawRgb",           0x00492c40, (void *)&GuiText_DrawRgb, {0x83, 0xec, 0x1c, 0x8b, 0x44}},
     {"MovieSound_ReleaseAll",     0x00672990, (void *)&MovieSound_ReleaseAll, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
+    {"ColourRamps_Build",         0x0046be50, (void *)&ColourRamps_Build, {0x83, 0xec, 0x30, 0x53, 0x55}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
@@ -6195,6 +6219,8 @@ const Hook kHooks[] = {
     {"Transformer_Transform",     0x00570d20, (void *)&Transformer_Transform, {0x56, 0x8b, 0x74, 0x24, 0x18}},
     {"Transformer_Create",        0x005781d0, (void *)&Transformer_Create, {0x51, 0xd9, 0x05, 0xcc, 0xcb}},
     {"MeshDraws_Add",             0x00581cd0, (void *)&MeshDraws_Add, {0x53, 0x8b, 0xd9, 0x8b, 0x0b}},
+    {"Ribbon_AddPoint",           0x0057dd10, (void *)&Ribbon_AddPoint, {0x8b, 0x54, 0x24, 0x04, 0x81}},
+    {"RandomSegments_Ctor",       0x005dfcd0, (void *)&RandomSegments_Ctor, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},

@@ -248,6 +248,7 @@ add_library(tpw_game STATIC
     src/game/gfx/moviesurface.cpp
     src/game/gfx/moviesound.cpp
     src/game/gfx/guitext.cpp
+    src/game/gfx/colourramps.cpp
     src/game/math/matrix.cpp
     src/game/math/vector.cpp
     src/game/math/rect.cpp
@@ -349,6 +350,10 @@ add_library(tpw_game STATIC
     src/game/world/cellmessage.cpp
     src/game/world/trackcircuit.cpp
     src/game/world/mappreview.cpp
+    src/game/world/trackmessage.cpp
+    src/game/world/trakcarroute.cpp
+    src/game/world/sign.cpp
+    src/game/world/flyinglaunch.cpp
     src/game/coaster/orient.cpp
     src/game/coaster/rating.cpp
     src/game/coaster/spline.cpp
@@ -371,6 +376,9 @@ add_library(tpw_game STATIC
     src/game/coaster/trackmesh.cpp
     src/game/coaster/carsound.cpp
     src/game/coaster/placecheck.cpp
+    src/game/coaster/editupdate.cpp
+    src/game/coaster/testrun.cpp
+    src/game/coaster/typemodel.cpp
     src/game/terrain/terrain_blend.cpp
     src/game/terrain/land.cpp
     src/game/terrain/procedural.cpp
@@ -441,6 +449,8 @@ add_library(tpw_game STATIC
     src/game/render/clippoly.cpp
     src/game/render/transformer.cpp
     src/game/render/meshdraws.cpp
+    src/game/render/ribbon.cpp
+    src/game/render/randomsegments.cpp
     src/game/online/servers.cpp
     src/game/online/session.cpp
     src/game/online/itemlist.cpp

@@ -14,6 +14,7 @@
 #include "mapcell.h"
 #include "mapline.h"
 #include "trackrides.h"
+#include "trackmessage.h"
 
 namespace {
 
@@ -122,7 +123,7 @@ u32 animate_run(s32 x, s32 y, u8 direction, u32 start) {
 }
 
 const CellRunEnv kGameEnv = {&MapCell_ApplyModel,
-                             reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32, u32)>((uintptr_t)0x005370e0),
+                             reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u32, u32)>(&MapCell_HandleTrackMessage),   // (its EAX unread)
                              reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>(&MapCell_SetTrackKind),   // (its EAX unread)
                              &TrackCell_Remove,
                              reinterpret_cast<void(__cdecl *)(s32, s32, u32)>(&LineEnd_Unlink),              // (its EAX unread)

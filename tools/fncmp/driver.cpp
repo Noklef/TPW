@@ -118,6 +118,13 @@
 #include "../../src/game/world/money.h"
 #include "../../src/game/coaster/train.h"
 #include "../../src/game/coaster/edittools.h"
+#include "../../src/game/coaster/editupdate.h"
+#include "../../src/game/coaster/testrun.h"
+#include "../../src/game/world/trakcarroute.h"
+#include "../../src/game/coaster/typemodel.h"
+#include "../../src/game/world/sign.h"
+#include "../../src/game/world/flyinglaunch.h"
+#include "../../src/game/render/ribbon.h"
 #include "../../src/game/world/mousemode.h"
 #include "../../src/game/world/person.h"
 #include "../../src/game/world/pathdrag.h"
@@ -130,6 +137,7 @@
 #include "../../src/game/world/parkopen.h"
 #include "../../src/game/world/gamemode.h"
 #include "../../src/game/world/cellmessage.h"
+#include "../../src/game/world/trackmessage.h"
 #include "../../src/game/world/cellrun.h"
 #include "../../src/game/world/trackcircuit.h"
 #include "../../src/game/world/mappreview.h"
@@ -139,6 +147,8 @@
 #include "../../src/game/world/queuepieces.h"
 #include "../../src/game/world/cellmodel.h"
 #include "../../src/game/world/rides.h"
+#include "../../src/game/world/camera.h"
+#include "../../src/game/sprite/loading.h"
 #include "../../src/game/world/object.h"
 #include "crt.h"
 #include "../../src/hook/hooks.h"
@@ -589,7 +599,42 @@ const ChatCommandEnv kChatCommandEnv = {Rec{jpeg_recorder(25, 5)}, &ChatCommand_
 // tests/fncmp/cellmessage.py hooks them.
 const CellMessageEnv kCellMessageEnv = {reinterpret_cast<void(__cdecl *)(s32, s32, u32)>((uintptr_t)jpeg_recorder(27, 3)),
                                         reinterpret_cast<void(__cdecl *)(u32, u32)>((uintptr_t)jpeg_recorder(28, 2))};
-const RidesEnv kRidesEnv = {reinterpret_cast<void(__cdecl *)()>((uintptr_t)jpeg_recorder(18, 0)), reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(19, 1))};
+// The track cell messages' (0x5370e0) calls: the thiscall recorder 1 of 3, the cdecl 2 of 11, the thiscall 3 and 4 of 3, 5 of 2, 6 and 7
+// of 0 and 8 of 1, the cdecl 9 and 10 of 4 and 11 of 3, the thiscall 12 of 2 and the cdecl 13 of 2, as tests/fncmp/trackmessage.py hooks them.
+const TrackMessageEnv kTrackMessageEnv = {Rec{recorder(1, 3)},       Rec{jpeg_recorder(2, 11)}, Rec{recorder(3, 3)},       Rec{recorder(4, 3)},
+                                          Rec{recorder(5, 2)},       Rec{recorder(6, 0)},       Rec{recorder(7, 0)},       Rec{recorder(8, 1)},
+                                          Rec{jpeg_recorder(9, 4)},  Rec{jpeg_recorder(10, 4)}, Rec{jpeg_recorder(11, 3)}, Rec{recorder(12, 2)},
+                                          Rec{jpeg_recorder(13, 2)}};
+// The coaster editor's frame update's (0x443340) calls: the cdecl recorders 1 of 1, 2 of 0, 3 and 4 of 2, 5 of 3, 6 of 9, 7 and 8 of 7, 9 of
+// 5 and 10 of 7 (its answer a float in st0), as tests/fncmp/editupdate.py hooks them.
+const EditUpdateEnv kEditUpdateEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorder(2, 0)}, Rec{jpeg_recorder(3, 2)}, Rec{jpeg_recorder(4, 2)},
+                                      Rec{jpeg_recorder(5, 3)}, Rec{jpeg_recorder(6, 9)}, Rec{jpeg_recorder(7, 7)}, Rec{jpeg_recorder(8, 7)},
+                                      Rec{jpeg_recorder(9, 5)}, Rec{jpeg_recorder(10, 7)}};
+// The coaster test run's (0x43c450) calls: the cdecl recorders 1 of 1, 2 of 7, 3 of 4, 4 and 5 of 2, 6 of 3, 7 of 1, 8 of 2 and 9 of 1, as
+// tests/fncmp/testrun.py hooks them.
+const RibbonEnv kRibbonEnv = {Rec{recorder(2, 5)}};
+const FlyingLaunchEnv kFlyingLaunchEnv = {Rec{jpeg_recorder(1, 3)}, Rec{jpeg_recorder(2, 10)}, Rec{jpeg_recorder(3, 7)}, Rec{jpeg_recorder(4, 5)}};
+const SignEnv kSignEnv = {Rec{jpeg_recorder(1, 10)}, Rec{jpeg_recorder(2, 3)}, Rec{jpeg_recorder(3, 2)}, Rec{jpeg_recorder(4, 1)}, Rec{jpeg_recorder(5, 1)}, Rec{jpeg_recorder(6, 3)}, Rec{jpeg_recorder(7, 6)}};
+const TypeModelEnv kTypeModelEnv = {Rec{jpeg_recorder(1, 10)}, Rec{jpeg_recorder(2, 6)}, Rec{jpeg_recorder(3, 3)}, Rec{jpeg_recorder(4, 1)}};
+const TrakCarRouteEnv kTrakCarRouteEnv = {Rec{jpeg_recorder(1, 3)}, Rec{jpeg_recorder(2, 10)}, Rec{jpeg_recorder(3, 7)}, Rec{jpeg_recorder(4, 4)}, Rec{jpeg_recorder(5, 2)}};
+const TestRunEnv kTestRunEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorder(2, 7)}, Rec{jpeg_recorder(3, 4)}, Rec{jpeg_recorder(4, 2)}, Rec{jpeg_recorder(5, 2)},
+                                Rec{jpeg_recorder(6, 3)}, Rec{jpeg_recorder(7, 1)}, Rec{jpeg_recorder(8, 2)}, Rec{jpeg_recorder(9, 1)}};
+// (Ride_Destroy's two above.) Ride_Create's (0x463060) calls: the cdecl recorders 1 of 5, 2 of 4, 3 of 3, 4 of 6, 5 of 7, 6 of 10, 7 of 4,
+// the thiscall 8 of 4 and the cdecl 9 of 2, 10 of 1, 11 of 3, 12 and 13 of 1, 14 of 6 and 15 to 17 of 1, as tests/fncmp/ridecreate.py
+// hooks them.
+const RidesEnv kRidesEnv = {reinterpret_cast<void(__cdecl *)()>((uintptr_t)jpeg_recorder(18, 0)), reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(19, 1)),
+                            Rec{jpeg_recorder(1, 5)},  Rec{jpeg_recorder(2, 4)},  Rec{jpeg_recorder(3, 3)},  Rec{jpeg_recorder(4, 6)},
+                            Rec{jpeg_recorder(5, 7)},  Rec{jpeg_recorder(6, 10)}, Rec{jpeg_recorder(7, 4)},  Rec{recorder(8, 4)},
+                            Rec{jpeg_recorder(9, 2)},  Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 3)}, Rec{jpeg_recorder(12, 1)},
+                            Rec{jpeg_recorder(13, 1)}, Rec{jpeg_recorder(14, 6)}, Rec{jpeg_recorder(15, 1)}, Rec{jpeg_recorder(16, 1)},
+                            Rec{jpeg_recorder(17, 1)}};
+// Camera_SetMode's calls: the cdecl recorders 20 of 1, 22 and 23 of none, 24 of 3 and 25 of 1 and the thiscall 21 of 1, as
+// tests/fncmp/cameramode.py hooks Highlight_Suspend, Terrain_ProceduralLeave / Enter, Holder_AddToGrid / Wake and ChatButtons_SetChat.
+// Camera_FollowThing's: the cdecl recorders 26 of 3, 27 of 1, 28 and 29 of none, as tests/fncmp/camerafollow.py hooks
+// Model_FindPartByKey4, PartStates_Update and Sprites_UseGroundFrames / UseParkFrames.
+const CameraEnv kCameraEnv = {Rec{jpeg_recorder(20, 1)}, Rec{recorder(21, 1)},     Rec{jpeg_recorder(22, 0)}, Rec{jpeg_recorder(23, 0)},
+                              Rec{jpeg_recorder(24, 3)}, Rec{jpeg_recorder(25, 1)}, Rec{jpeg_recorder(26, 3)}, Rec{jpeg_recorder(27, 1)},
+                              Rec{jpeg_recorder(28, 0)}, Rec{jpeg_recorder(29, 0)}};
 // MapCell_ApplyModel's calls into agent A's unported placers 0x522b90 / 0x522d50 / 0x522f20: cdecl recorders 20, 21 and 22 of 6 arguments,
 // as tests/fncmp/cellapply.py hooks those addresses.
 const CellModelEnv kCellModelEnv = {reinterpret_cast<u32(__cdecl *)(s32, s32, s32, s32, s32, u32)>((uintptr_t)jpeg_recorder(20, 6)),
@@ -601,6 +646,10 @@ const CellModelEnv kCellModelEnv = {reinterpret_cast<u32(__cdecl *)(s32, s32, s3
 // tests/fncmp/messagecentre.py hooks that address.
 const MessageCentreEnv kMessageCentreEnv = {reinterpret_cast<u32(__fastcall *)(u8 *, void *, u8 *)>((uintptr_t)recorder(27, 1))};
 // The statistics graph's lines 0x49aa30 (StatsGraph_Redraw's after): the cdecl recorder 22 (tests/fncmp/gauge.py hooks 0x49aa30 with it).
+// The frame-set reloads' calls (NamedList_Find, SpriteFrames_Free, 0x41e740, SpriteFrames_Load 0x587db0, SpriteFrames_MarkTextures): the
+// thiscall recorders 1 of 2, 2 of none, 3 and 4 of 2 and 5 of none, as tests/fncmp/useframes.py hooks those addresses.
+const SpriteLoadingEnv kSpriteLoadingEnv = {Rec{recorder(1, 2)}, Rec{recorder(2, 0)}, Rec{recorder(3, 2)}, Rec{recorder(4, 2)},
+                                            Rec{recorder(5, 0)}};
 // ThingBrowser_SendPatrolLines's camera and lines (tests/fncmp/thingpatrol.py).
 const ThingPatrolEnv kThingPatrolEnv = {Rec{jpeg_recorder(20, 1)}, Rec{jpeg_recorder(21, 5)}};
 // ObjectUnlock_CheckScores's calls: stdcall ones through the COM-style recorders (tools/fncmp.py recorder(k, n, com=True): this logged as 0; tests/fncmp/objectunlockscores.py).
@@ -1408,10 +1457,19 @@ int main(int argc, char **argv) {
                                               reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(30, 0))};
     Staff_SetWalkEnv(&staffWalkEnv);
     Rides_SetEnv(&kRidesEnv);
+    Camera_SetEnv(&kCameraEnv);
     CoasterLinks_SetEnv(&kCoasterLinksEnv);
     CellKind_SetEnv(&kCellKindEnv);
     CellModel_SetEnv(&kCellModelEnv);
     CellMessage_SetEnv(&kCellMessageEnv);
+    TrackMessage_SetEnv(&kTrackMessageEnv);
+    EditUpdate_SetEnv(&kEditUpdateEnv);
+    TestRun_SetEnv(&kTestRunEnv);
+    TrakCarRoute_SetEnv(&kTrakCarRouteEnv);
+    TypeModel_SetEnv(&kTypeModelEnv);
+    Sign_SetEnv(&kSignEnv);
+    FlyingLaunch_SetEnv(&kFlyingLaunchEnv);
+    Ribbon_SetEnv(&kRibbonEnv);
     Object_SetEnv(&kObjectEnv);
     StatsGraph_SetEnv(&kStatsGraphEnv);
     ThingBrowser_SetPatrolEnv(&kThingPatrolEnv);
@@ -1437,6 +1495,7 @@ int main(int argc, char **argv) {
     ObjectUnlock_SetScoresEnv(&kObjectUnlockScoresEnv);
     Dialog7ca150_SetEnv(&kDialog7ca150Env);
     Dialog7cc1f8_SetEnv(&kDialog7cc1f8Env);
+    SpriteLoading_SetEnv(&kSpriteLoadingEnv);
     Object_SetDeleteEnv(&kObjectDeleteEnv);
     Object_SetPathEnv(&kObjectPathEnv);
     Object_SetServiceEnv(&kObjectServiceEnv);

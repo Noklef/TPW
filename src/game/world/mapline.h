@@ -28,7 +28,7 @@
 #include "../../../re/types.h"
 
 struct MapLineEnv {
-    u32(__fastcall *cellOp)(u8 *cell, void *, u32 arg, s32 stepX, s32 stepY);  // 0x5370e0 (pops 12)
+    u32(__fastcall *cellOp)(u8 *cell, void *, u32 arg, s32 stepX, s32 stepY);  // the track cell messages (0x5370e0, trackmessage.h)
 };
 // nullptr restores the game's.
 void MapLine_SetEnv(const MapLineEnv *e);

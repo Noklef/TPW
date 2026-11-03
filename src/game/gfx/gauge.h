@@ -43,6 +43,15 @@ void __fastcall Gauge_DrawAxes(const u8 *gauge);
 // long (Display_HLine), y -= dy (float).
 void __fastcall Gauge_DrawGrid(const u8 *gauge);
 
+// 0x47fe90 (thiscall (samples, count, columns, colour); name invented, unconfirmed): a plot of count samples and its last value's label (x87
+// at 24 bits). From x = (float)left, step = (float)(width / columns), each sample a line (Display_Line) from (x, y1) to (x + step, y2): y1 and y2
+// bottom - (sample - mark y0 (+0x1c)) * height / (mark y1 (+0x24) - y0), of this sample and the next (32-bit, truncated; bottom when the marks
+// are level), clamped to top and bottom; both x clamped to left and right (NaN: left); under 0x90 columns also a box of four lines 1 round the
+// line's end; x += step from the clamped x. Then samples[count] ("%d" through swprintf) in font [0x74f9d4], right aligned (hAlign 2): the rectangle
+// (left, y2 - 6, the last end's x, bottom), its top and left at least 2, widened by what GuiText_Measure's box exceeds it by; GuiText_Draw (fit
+// 0, the surface kept). No sample: the original's y2 is the columns and the end's x the count's bits as a float (sic).
+void __fastcall Gauge_DrawPlot(const u8 *gauge, void *, const s32 *samples, s32 count, s32 columns, DrawColour colour);
+
 // 0x4806a0 (cdecl; name unconfirmed): sets a gauge up for a window whose s16 left, top, right, bottom are at +4..+0xa of `window`: the frame
 // (4, 4) to ((right - left) * s16 [0xfaa5c4] / 2048 - 20, (bottom - top) * s16 [0xfaa5c0] / 1536 - 20) (32-bit products, divisions truncated);
 // colours 0 and 1 green (0, 200, 0), 3 black, 2 dark green (0, 100, 0), each with its nearest entry of the game's palette 0xfa71f8 (Palette_Nearest),

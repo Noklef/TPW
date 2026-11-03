@@ -1,19 +1,55 @@
 #include "camera.h"
 
 #include <cmath>
+#include <cstdint>
 
 #include "../core/gameclock.h"
 #include "../math/mat4.h"
 #include "../math/matrix.h"
 #include "../math/x87.h"
+#include "../model/highlight.h"
+#include "../coaster/registry.h"
+#include "../model/holder.h"
+#include "../model/parts.h"
+#include "../model/partstate.h"
 #include "../render/viewquad.h"
+#include "../sprite/loading.h"
+#include "../terrain/procedural.h"
 #include "mapcell.h"
+#include "mousemode.h"
 #include "person.h"
 #include "things.h"
 
 namespace {
 
 template <typename T = u32> T &global(u32 address) { return *reinterpret_cast<T *>(address); }
+template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
+
+void __fastcall SetChat(void *, void *, u32 on) { ChatButtons_SetChat(on); }
+
+const CameraEnv kGameEnv = {&Highlight_Suspend,     &SetChat,           &Terrain_ProceduralLeave, &Terrain_ProceduralEnter,
+                            &Holder_AddToGrid,      &Holder_Wake,       &Model_FindPartByKey4,    &PartStates_Update,
+                            &Sprites_UseGroundFrames, &Sprites_UseParkFrames};
+const CameraEnv *g_env = &kGameEnv;
+
+// The model parts of a ride's instance (+8 -> +4) marked by their flags: face bit 0x8000 set by set, else cleared by clear; with check
+// and none of 0x16 in gCameraFlags' byte (read for each part) every face cleared.
+void mark_parts(const u8 *inst, u32 set, u32 clear, bool check) {
+    u8 *const model = at<u8 *>(at<u8 *>(inst, 8), 4);
+    const u32 *part = at<u32 *>(model, 0x7c);
+    for (u32 j = 0; j < at<u16>(model, 0x48); ++j, part += 5) {
+        const u32 k = j + at<u16>(model, 0x46);
+        const u32 n = at<u16>(model, 0x44);
+        u32 *face = k < n ? reinterpret_cast<u32 *>(at<u8 *>(model, 0x70) + k * 0xa0) : reinterpret_cast<u32 *>(at<u8 *>(model, 0x74) + (k - n) * 0x58);
+        if (check && !(global<u8>(0x00790ab0) & 0x16)) {
+            *face &= ~0x8000u;
+        } else if (*part & set) {
+            *face |= 0x8000;
+        } else if (*part & clear) {
+            *face &= ~0x8000u;
+        }
+    }
+}
 
 }  // namespace
 
@@ -268,5 +304,147 @@ void __cdecl Camera_Input(s32 message, u32 param) {
     default:
         break;
     }
+}
+
+void Camera_SetEnv(const CameraEnv *env) { g_env = env ? env : &kGameEnv; }
+
+u32 __cdecl Camera_SetMode(u32 mode, u32 toggle, u32 ride, u32 force, u32 *out, u32 fresh) {
+    u32 &flags = global(0x00790ab0);
+    flags &= ~0x800u;
+    const u32 was = flags & 0x16;
+    u32 enter = 0, leave = 0, changed = 0;
+    if (out) *out = 0;
+    if (mode == 0x40) {
+        flags = (flags & ~0xffu) | (flags & 0x41);
+        if (was) leave = 1;
+        changed = 1;
+    } else if (mode == 4) {
+        u32 f = flags;
+        if (!(f & 0x92) || force) {
+            f = (f & ~0xffu) | (f & 0x45);
+            if (toggle && (f & 4))
+                f &= ~4u;
+            else
+                f |= 4;
+            flags = f;
+            if (f & 4) {
+                if (was) {
+                    flags = f | 0x400;
+                } else {
+                    enter = 1;
+                    if (fresh) {
+                        global(0x00790ae0) = 0;
+                        flags = f | 0x800;
+                        global(0x00790adc) = 0;
+                    }
+                }
+                changed = 1;
+            } else if (was) {
+                if (f & 0x400) {
+                    flags = (f & ~0x400u) | 2;
+                    if (out) *out = 1;
+                } else {
+                    leave = 1;
+                }
+            }
+        }
+    } else if (mode == 2) {
+        u32 f = flags;
+        if (!(f & 0x84) || force) {
+            f = (f & ~0xffu) | (f & 0x43);
+            if (toggle && (f & 2))
+                f &= ~2u;
+            else
+                f |= 2;
+            flags = f;
+            if (f & 2) {
+                if (!was) enter = 1;
+                changed = 1;
+            } else if (was) {
+                leave = 1;
+            }
+        }
+    }
+    if (enter) {
+        g_env->suspendHighlight(1);
+        g_env->setChat(reinterpret_cast<void *>((uintptr_t)0x007b51f0), nullptr, 1);
+        if (Terrain_ProceduralOn()) {
+            flags |= 0x200;
+            g_env->leaveProcedural();
+        }
+        if (u8 *const inst = global<u8 *>(0x00790a34)) {
+            if (at<u32>(inst, 4) & 0x4000)
+                g_env->addToGrid(at<u8 *>(inst, 8), at<u32>(inst, 0xc0), at<u32>(inst, 0xc4));
+            else
+                g_env->wake(at<u8 *>(inst, 8));
+        }
+    } else if (leave) {
+        g_env->suspendHighlight(0);
+        g_env->setChat(reinterpret_cast<void *>((uintptr_t)0x007b51f0), nullptr, 0);
+        if (flags & 0x200) {
+            flags &= ~0x200u;
+            g_env->enterProcedural();
+        }
+    }
+    u8 *const *const rides = reinterpret_cast<u8 *const *>(0x007a4610);
+    for (u32 i = 1; i <= global(0x007a3ebc) + global(0x007a4084); ++i) {
+        if (rides[i]) mark_parts(rides[i], 0x4000000, 0x8000000, true);
+    }
+    if (ride && (global<u8>(0x00790ab0) & 4) && rides[ride]) mark_parts(rides[ride], 0x10000000, 0x20000000, false);
+    flags &= ~0x1000u;
+    return changed;
+}
+
+void __cdecl Camera_FollowThing(u32 ride, u32 ground, u32 force, u32 *out, u32 key, u32 fresh) {
+    if (out) *out = 0;
+    if (u32 *const part = global<u32 *>(0x00790940)) *part &= ~4u;
+    global(0x00790ab4) = 0;
+    global(0x00790a30) = 0;
+    global(0x00790940) = 0;
+    if (global<u8>(0x00790ab0) & 4) {
+        if (u8 *const followed = global<u8 *>(0x00790988)) at<u32>(followed, 4) &= ~0x2000u;
+    }
+    global(0x00790988) = 0;
+    if (Ride_Bit18(ride)) ride = CoasterLink_IdValue(ride);
+    u8 *const *const rides = reinterpret_cast<u8 *const *>(0x007a4610);
+    if (ride) {
+        bool follow = true;
+        if (!(global<u8>(0x00790ab0) & 4)) {
+            u8 *const inst = rides[ride];
+            if (!inst) {
+                follow = false;
+            } else {
+                u32 part = g_env->findPart(inst, 0x1000, key);
+                if (key != 1 && part == 0xffffffff) part = g_env->findPart(inst, 0x1000, 1);
+                if (part == 0xffffffff) {
+                    follow = false;
+                } else {
+                    global(0x00790a44) = ride;
+                    u8 *const *const holder = reinterpret_cast<u8 *const *>(inst + 8);
+                    global<u8 *>(0x00790ab4) = Camera_PartFace(holder, &part);
+                    u32 *const state = reinterpret_cast<u32 *>(at<u8 *>(at<u8 *>(*holder, 0x28), 4) + part * 0x14);
+                    global<u32 *>(0x00790940) = state;
+                    global(0x00790a30) = at<u32>(at<u8 *>(at<u8 *>(*holder, 0x28), 4), part * 0x14 + 4);
+                    global<u8 *>(0x00790988) = inst;
+                    *state |= 4;
+                }
+            }
+        } else {
+            if (u32 *const part = global<u32 *>(0x00790940)) *part &= ~4u;
+            global(0x00790a44) = 0;
+            global(0x00790ab4) = 0;
+            global(0x00790940) = 0;
+            global(0x00790a30) = 0;
+        }
+        if (follow && Camera_SetMode(4, 1, ride, force, out, fresh)) {
+            u8 *const object = at<u8 *>(rides[ride], 8);
+            if (at<u32>(object, 0x28)) g_env->partStates(object);
+            at<u32>(rides[ride], 4) |= 0x2000;
+        }
+    }
+    if (ground == 1 || (global<u8>(0x00790ab0) & 2))
+        g_env->useGround();
+    else
+        g_env->usePark();
 }
 }
