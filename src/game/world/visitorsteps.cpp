@@ -4,6 +4,7 @@
 
 #include "../core/accessors.h"
 #include "../core/globals.h"
+#include "../core/rings.h"
 #include "../sprite/script.h"
 #include "../sprite/scriptref.h"
 #include "../sprite/sprite.h"
@@ -12,6 +13,7 @@
 #include "object.h"
 #include "objectmsg.h"
 #include "person.h"
+#include "personscripts.h"
 #include "random.h"
 #include "ridelist.h"
 #include "thingmsg.h"
@@ -328,4 +330,98 @@ u8 *__fastcall Visitor_Ctor(u8 *visitor, void *, u32 cell) {
     u32 msg[3];
     Object_PostMessage(ThingMsg1c_Ctor(reinterpret_cast<u8 *>(msg), nullptr, handleOf(visitor)));
     return visitor;
+}
+
+void __fastcall Visitor_StepWalkToQueue(u8 *visitor) {
+    u8 *const object = global<u8 *>(0x007cfb90 + 20 * (u32)at<u16>(visitor, 0x1dc));
+    u8 *const ring = visitor + 0x30;
+    const u32 walked = g_env->walkNav(visitor);
+    if (walked != 0) {
+        if (walked == 2) {
+            Ring_PushUnique(ring, nullptr, 3, at<u16>(visitor, 0x1dc));
+        } else if (Get1da710_51a280(world()) == 0) {
+            if (++at<u8>(visitor, 0x2c) > 0xb) {
+                at<u8>(visitor, 0x2c) = 0;
+                g_env->chooseMinorDest(visitor);
+            }
+            return;
+        }
+        Visitor_Lower19c(visitor, nullptr, 2);
+        at<u16>(visitor, 0x1dc) = 0;
+        g_env->setState(visitor, nullptr, 6);
+        return;
+    }
+    if (at<u16>(visitor, 0x1dc) == 0) {
+        g_env->setState(visitor, nullptr, 6);
+        return;
+    }
+    u16 back;
+    if (*g_env->backOfQueueTo(object, nullptr, &back) != ownCell(visitor)) {
+        g_env->backOfQueueTo(object, nullptr, &back);
+        if (back != 0 && g_env->setDestinationCell(visitor, nullptr, back) != 0) return;
+        Ring_PushUnique(ring, nullptr, 0x16, 0);
+        g_env->setState(visitor, nullptr, 6);
+        return;
+    }
+    if (Object_QueueHasRoom(object) == 0) {
+        Ring_PushUnique(ring, nullptr, 0x15, 0);
+        g_env->setState(visitor, nullptr, 6);
+        return;
+    }
+    const s32 gap = g_env->ratingGap(visitor, nullptr, object);
+    if (Object_Rating(object, nullptr, 1) != 0 && (gap < 0 ? -gap : gap) >= 0x2d) {
+        if (gap < 0) {
+            Ring_PushUnique(ring, nullptr, 5, at<u16>(visitor, 0x1dc));
+            Thoughts_Show(ring, nullptr, 0xc, 0);
+        } else {
+            Ring_PushUnique(ring, nullptr, 4, at<u16>(visitor, 0x1dc));
+            Thoughts_Show(ring, nullptr, 0xf, 0);
+        }
+        Visitor_PushPreviousRide(visitor, nullptr, at<u16>(visitor, 0x1dc));
+        at<u16>(visitor, 0x1dc) = 0;
+        at<u32>(visitor, 0x1fc) = 0;
+        g_env->setState(visitor, nullptr, 6);
+        return;
+    }
+    if (Object_QueueFull(object) != 0) {
+        Ring_PushUnique(ring, nullptr, 0x15, at<u16>(visitor, 0x1dc));
+        Visitor_PushPreviousRide(visitor, nullptr, at<u16>(visitor, 0x1dc));
+        Thoughts_Show(ring, nullptr, 0x10, 0);
+        at<u16>(visitor, 0x1dc) = 0;
+        g_env->setState(visitor, nullptr, 6);
+        return;
+    }
+    at<u32>(visitor, 0x20c) = at<u32>(visitor, 0x19c);
+    Object_QueueAddPerson(object, nullptr, handleOf(visitor));
+    if (g_env->findQueueDestination(visitor) != 0) return;
+    Object_QueueRemovePerson(object, nullptr, handleOf(visitor));
+    Visitor_SendAway(visitor);
+    g_env->setState(visitor, nullptr, 6);
+}
+
+void __fastcall Visitor_StepInQueue(u8 *visitor) {
+    const u32 walked = g_env->walkNav(visitor);
+    if (walked != 0 && walked != 2) return;
+    u8 *const object = global<u8 *>(0x007cfb90 + 20 * (u32)at<u16>(visitor, 0x1dc));
+    if (g_env->wontPay(visitor, nullptr, object) != 0) {
+        u8 *const ring = visitor + 0x30;
+        Thoughts_Show(ring, nullptr, 6, 0);
+        Ring_PushUnique(ring, nullptr, 0xa, handleOf(object));
+        Visitor_Lower19c(visitor, nullptr, 1);
+        Object_AddWalkAway(object);
+        Obj_ReleaseRideElement0(object, nullptr, handleOf(visitor));
+        Object_QueueRemovePerson(object, nullptr, handleOf(visitor));
+        Visitor_SendAway(visitor);
+        at<u16>(visitor, 0x1dc) = 0;
+        g_env->setState(visitor, nullptr, 6);
+        return;
+    }
+    if (Obj_ClaimRideElement0(object, nullptr, handleOf(visitor)) != 0) {
+        g_env->setState(visitor, nullptr, 0xe);
+        return;
+    }
+    if (g_env->findQueueDestination(visitor) != 0) return;
+    Object_QueueRemovePerson(object, nullptr, handleOf(visitor));
+    Visitor_SendAway(visitor);
+    g_env->setState(visitor, nullptr, 6);
 }

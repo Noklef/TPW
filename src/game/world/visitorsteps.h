@@ -79,4 +79,19 @@ void __fastcall Visitor_StartEmote(u8 *visitor, void *, u32 mode);
 // byte, y 0xc8 (state 0, or 6 when it does not start), the sprite placed (0.0) and the particle 0x13; +0x204 and the words +0x1e0-+0x1ee
 // cleared; message 0x1c of its handle posted. Returns the visitor.
 u8 *__fastcall Visitor_Ctor(u8 *visitor, void *, u32 cell);
+
+// 0x4ffbc0 (thiscall; names of this and the next invented, unconfirmed): one step of the walk to the object +0x1dc's queue (Sprite_WalkNav). 2:
+// (3, object) on the ring +0x30, Visitor_Lower19c(2), +0x1dc 0, state 6. Other non-zero: with the world's Get1da710 the same without the ring;
+// else the counter +0x2c up (past 11: 0 and Visitor_ChooseMinorDest). Arrived: no object: state 6. The back of the queue not the visitor's cell:
+// a walk to the back as it is now, when there is one and it starts; else (0x16, 0) on the ring and state 6. No room (Object_QueueHasRoom):
+// (0x15, 0), state 6. Unless the object's base rating (Object_Rating(1)) is 0, a rating gap (Visitor_RatingGap) of 45 or more: (5, object) and
+// the thought 0xc below 0, (4, object) and 0xf above, Visitor_PushPreviousRide, +0x1dc and +0x1fc 0, state 6. Queue full (Object_QueueFull):
+// (0x15, object), Visitor_PushPreviousRide, the thought 0x10, +0x1dc 0, state 6. Else +0x20c = happiness +0x19c, into the queue
+// (Object_QueueAddPerson) and Visitor_FindQueueDestination; no destination: out again (Object_QueueRemovePerson), Visitor_SendAway, state 6.
+void __fastcall Visitor_StepWalkToQueue(u8 *visitor);
+// 0x5006b0 (thiscall): one step of the walk in the queue (Sprite_WalkNav; 2 counts as arrived, other non-zero waits). Arrived: the visitor's
+// object +0x1dc. Too expensive (Visitor_WontPay): the thought 6, (0xa, the object's handle) on the ring +0x30, Visitor_Lower19c(1),
+// Object_AddWalkAway, Obj_ReleaseRideElement0, off the queue, Visitor_SendAway, +0x1dc 0, state 6. Else admitted (Obj_ClaimRideElement0):
+// state 0xe. Else Visitor_FindQueueDestination; no destination: off the queue, Visitor_SendAway, state 6.
+void __fastcall Visitor_StepInQueue(u8 *visitor);
 }
