@@ -7237,6 +7237,7 @@ address,name,kind,confidence,notes
 0x004bb690,Dialog7cc61c_Handler,function,low,"reimplemented (src/game/ui/dialog7cc61c); cdecl (window, message, a, b): 0x14 clears 0x7cc61c, sends (6, 1, 0) to [0xf82884]+4 and restores the focus; 0x15 sends (6, 0, 0); 0x100 with a = -1 sends (4, 0, 0) to [0x7cc61c] and returns 0; else Dialog_BaseHandler"
 0x004bb460,Dialog7cc61c_FitText,function,low,"reimplemented (src/game/ui/dialog7cc61c); cdecl; name invented, unconfirmed: the window [0x7cc61c]'s text fitted into its panel, the scroll bar shown or hidden; see the header"
 0x004bb800,Dialog7cc61c_Open,function,low,"reimplemented (src/game/ui/dialog7cc61c); the window [0x7cc61c] made from its script: name invented, unconfirmed"
+0x004bb720,Dialog7cc61c_PanelHandler,function,low,"reimplemented (src/game/ui/dialog7cc61c); the panel's handler of the window [0x7cc61c]: name invented, unconfirmed"
 0x0065a9f0,GuiShape_DeletingDtor,function,low,"reimplemented (src/game/ui/guishape); thiscall (flags): the GUI shape base's scalar deleting destructor (Fn_66bff7, Mem_Free on bit 0)"
 0x0066c01a,GuiCircle_Ctor,function,low,"reimplemented (src/game/ui/guishape); thiscall: the circle (vtable 0x705b50), x, y, radius 0"
 0x0066c054,GuiCircle_CtorWith,function,low,"reimplemented (src/game/ui/guishape); thiscall (x, y, radius: words): the circle (vtable 0x705b50)"
