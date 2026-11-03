@@ -476,6 +476,7 @@
 #include "../game/online/chatavatar.h"
 #include "../game/online/ftp.h"
 #include "../game/online/chat.h"
+#include "../game/online/chatcursor.h"
 #include "../game/online/session.h"
 #include "../game/ui/dialog7ca1c8.h"
 #include "../game/ui/dialog7cb398.h"
@@ -6522,6 +6523,9 @@ const Hook kHooks[] = {
     {"OnlineChat_Get2a",          0x004e6150, (void *)&OnlineChat_Get2a, {0x53, 0x56, 0x8b, 0xf1, 0x57}},
     {"OnlineChat_Ctor",           0x004e5260, (void *)&OnlineChat_Ctor, {0x6a, 0xff, 0x68, 0x1b, 0xc5}},
     {"OnlineChat_QueueCallback",  0x004e4fc0, (void *)&OnlineChat_QueueCallback, {0x6a, 0xff, 0x68, 0xa3, 0xc4}},
+    {"ChatCursor_Click",          0x0046c610, (void *)&ChatCursor_Click, {0x51, 0x66, 0xa1, 0xcc, 0x05}},
+    {"ChatCursor_GoTo",           0x0046cee0, (void *)&ChatCursor_GoTo, {0x51, 0x66, 0xa1, 0xcc, 0x05}},
+    {"ChatCursor_MoveTo",         0x0046cf80, (void *)&ChatCursor_MoveTo, {0x51, 0x66, 0xa1, 0xcc, 0x05}},
     {"LobbyModel_SetPosition",    0x005d8190, (void *)&LobbyModel_SetPosition, {0x8b, 0x41, 0x04, 0x8b, 0x54}},
     {"LobbyModel_TurnY",          0x005d8380, (void *)&LobbyModel_TurnY, {0x8b, 0x49, 0x04, 0x8d, 0x44}},
     {"LobbyModel_SetScale",       0x005d83b0, (void *)&LobbyModel_SetScale, {0x83, 0xec, 0x0c, 0x8b, 0x44}},
