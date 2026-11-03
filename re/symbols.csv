@@ -6178,6 +6178,7 @@ address,name,kind,confidence,notes
 0x0043c450,Coaster_TestRun,function,low,"reimplemented (src/game/coaster/testrun); cdecl (coaster); name invented, unconfirmed: the coaster's test run: speeds, forces, banks and ratings along the track nodes, then the trains the run's time allows, their cars' places and average speeds"
 0x00430590,CoasterType_ReadModel,function,low,"reimplemented (src/game/coaster/typemodel); cdecl (-, block, type); name invented, unconfirmed; 0x42fcd1 and 0x42fd48 call it. The parts a coaster type's model offers (flags 0x20 to 0x2000 and the indexes in the block) and the heights of its stances (a stand-in ride played and measured, then destroyed)"
 0x00438ab0,Coaster_NodeAngles,function,low,"reimplemented (src/game/coaster/nodeangles); the turn to each coaster node near a place (name invented, unconfirmed)"
+0x00431660,TrackPiece_Handles,function,low,"reimplemented (src/game/coaster/handles); a track piece's spline handles from its neighbours (name invented, unconfirmed)"
 0x0044a590,RenderMode_Size,function,high,"reimplemented (src/game/render/mode); cdecl u32 (): first of 0x2000/0x1000/0x800 in 0x79d86c, else 0x4000 if set, else 0x1000"
 0x0044a5d0,RenderMode_Depth,function,high,"reimplemented (src/game/render/mode); cdecl u32 (): first of 8/0x10 in 0x79d86c, else 0x20 if set, else 8"
 0x0044a600,RenderMode_ResetScale,function,high,reimplemented (src/game/render/mode); cdecl (): 0x79d9e4 = 1.0f
