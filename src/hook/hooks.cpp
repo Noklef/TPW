@@ -362,6 +362,7 @@
 #include "../game/world/trackpools.h"
 #include "../game/world/wallfollow.h"
 #include "../game/world/cellmodel.h"
+#include "../game/world/challengestep.h"
 #include "../game/world/lineends.h"
 #include "../game/world/demolish.h"
 #include "../game/world/endthing.h"
@@ -6097,6 +6098,7 @@ const Hook kHooks[] = {
     {"Object_Construct",          0x004db090, (void *)&Object_Construct, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"WorldPeople_Start",         0x004d7af0, (void *)&WorldPeople_Start, {0x56, 0x8b, 0xf1, 0x8d, 0x8e}},
     {"WorldPeople_Step",          0x004d7b20, (void *)&WorldPeople_Step, {0x56, 0x8b, 0xf1, 0x8d, 0x8e}},
+    {"Challenges_Step",           0x004d1e90, (void *)&Challenges_Step, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},

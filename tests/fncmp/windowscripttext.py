@@ -86,7 +86,9 @@ def one_line(r, log, command):
         scan(r, log, max(n, 1), 2)
         text = b' '.join([b'SETCOLUMNS', b'%d' % n] + [numbers_text(r, 2) for _ in range(n)])
     elif command == 0xd:
-        scan(r, log, 1, 2)
+        strings(log, SCAN, 1 | 2, out=0b111100)
+        for i in range(2):   # (past 16 bits too: the words kept)
+            fill(log, SCAN, 2 + i, struct.pack('<i', r.deal([5, 0x12345, -0x12345, 0x7fff, -3])), which=i)
         text = b'ANG ' + numbers_text(r, 2)
     else:
         text = COMMANDS.get(command, b'NOPE') + r.choice([b'', b' 1 2'])
@@ -108,7 +110,7 @@ def registry(r, regions):
 
 def line_case(r):
     log = log_region()
-    command = r.deal(list(COMMANDS) + [0, 3, 4, 4, 4, 6, 7, 8, 9, 0xa, 0xb, 0xc, 0xd, 0xe])
+    command = r.deal(list(COMMANDS) + [0, 3, 4, 4, 4, 6, 7, 8, 9, 0xa, 0xb, 0xc, 0xd, 0xd, 0xd, 0xe])
     regions, _ = window_env(r, log, [11, 11, 3] if command == 0xd else [3, 3, 4, 7, 7, 11, 1], [0] * 30 + [1, 2, 3, 5])
     if r.deal([0, 0, 1]):   # the flag that keeps a scroll's up and down buttons out
         win = regions[WINDOW2]

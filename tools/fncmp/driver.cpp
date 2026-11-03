@@ -71,6 +71,7 @@
 #include "../../src/game/ui/window7cb2cc.h"
 #include "../../src/game/ui/window7cc8bcmenu.h"
 #include "../../src/game/ui/window7cc8c0handler.h"
+#include "../../src/game/world/challengestep.h"
 #include "../../src/game/ui/dialog7cb3f8.h"
 #include "../../src/game/ui/guitoken.h"
 #include "../../src/game/gfx/moviecontrol.h"
@@ -1048,6 +1049,7 @@ const MovieChunksEnv kMovieChunksEnv = {Rec{jpeg_recorder(10, 6)}, Rec{jpeg_reco
 const MovieControlEnv kMovieControlEnv = {Rec{recorder(10, 0)}, Rec{jpeg_recorder(11, 3)}};
 const GuiTokenEnv kGuiTokenEnv = {Rec{jpeg_recorder(10, 6)}, Rec{jpeg_recorder(10, 6)}};
 const Dialog7cb3f8Env kDialog7cb3f8Env = {Rec{jpeg_recorder(10, 0)}, Rec{recorder(11, 1)}, Rec{recorder(12, 2)}, Rec{recorder(13, 1)}, Rec{recorder(14, 1)}, Rec{jpeg_recorder(15, 1)}, Rec{recorder(16, 1)}, Rec{recorder(17, 1)}, Rec{jpeg_recorder(18, 1)}, Rec{recorder(19, 1)}, Rec{recorder(20, 2)}, Rec{jpeg_recorder(21, 1)}, Rec{recorder(22, 4)}, Rec{recorder(23, 2)}, Rec{recorder(24, 1)}, Rec{jpeg_recorder(25, 1)}, Rec{jpeg_recorder(26, 0)}, Rec{recorder(27, 0)}, Rec{recorder(28, 0)}, Rec{recorder(29, 2)}, Rec{recorder(30, 0)}, Rec{recorder(10, 3)}, Rec{recorder(11, 1)}, Rec{jpeg_recorder(12, 0)}, Rec{recorder(13, 1)}, Rec{jpeg_recorder(14, 5)}, Rec{jpeg_recorder(15, 8)}, Rec{jpeg_recorder(16, 1)}, Rec{recorder(17, 1)}, Rec{jpeg_recorder(18, 0)}, Rec{jpeg_recorder(19, 0)}, Rec{recorder(20, 1)}, Rec{jpeg_recorder(21, 0)}, Rec{jpeg_recorder(23, 1)}};
+const ChallengeStepEnv kChallengeStepEnv = {Rec{jpeg_recorder(10, 1)}, Rec{recorder(11, 2)}, Rec{recorder(12, 0)}, Rec{recorder(13, 0)}, Rec{recorder(14, 1)}, Rec{recorder(21, 1)}};
 const Window7cc8c0HandlerEnv kWindow7cc8c0HandlerEnv = {Rec{recorder(12, 2)}, Rec{jpeg_recorder(15, 2)}, Rec{jpeg_recorder(20, 4)}, Rec{jpeg_recorder(25, 4)}, Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{jpeg_recorder(28, 3)}, Rec{recorder(15, 0)}, Rec{recorder(16, 0)}, Rec{jpeg_recorder(31, 0)}, Rec{recorder(17, 2)}, Rec{recorder(18, 2)}, Rec{jpeg_recorder(29, 3)}, Rec{recorder(19, 1)}, Rec{recorder(20, 0)}, Rec{recorder(21, 1)}, Rec{jpeg_recorder(27, 1)}, Rec{jpeg_recorder(30, 5)}, Rec{jpeg_recorder(13, 1)}, Rec{jpeg_recorder(12, 0)}, Rec{jpeg_recorder(19, 0)}, Rec{jpeg_recorder(14, 0)}, Rec{recorder(23, 2)}, Rec{recorder(24, 2)}, Rec{recorder(25, 1)}, Rec{recorder(26, 1)}, Rec{recorder(27, 2)}, Rec{jpeg_recorder(16, 5)}, Rec{jpeg_recorder(17, 0)}, Rec{jpeg_recorder(18, 1)}, Rec{recorder(28, 3)}};
 const Window7cc8bcMenuEnv kWindow7cc8bcMenuEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 3)}, Rec{jpeg_recorder(12, 0)}, Rec{recorder(13, 1)}, Rec{jpeg_recorder(14, 2)}, Rec{recorder(15, 2)}, Rec{recorder(16, 2)}, Rec{recorder(17, 3)}};
 const Dialog7cb2b8TabsEnv kDialog7cb2b8TabsEnv = {Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 0)}, Rec{jpeg_recorder(12, 0)}, Rec{recorder(13, 0)}, Rec{jpeg_recorder(14, 0)}, Rec{recorder(15, 3)}};
@@ -2059,6 +2061,7 @@ int main(int argc, char **argv) {
     Window7cb2cc_SetEnv(&kWindow7cb2ccEnv);
     Window7cc8bc_SetMenuEnv(&kWindow7cc8bcMenuEnv);
     Window7cc8c0Handler_SetEnv(&kWindow7cc8c0HandlerEnv);
+    ChallengeStep_SetEnv(&kChallengeStepEnv);
     Dialog7cb3f8_SetEnv(&kDialog7cb3f8Env);
     GuiToken_SetEnv(&kGuiTokenEnv);
     MovieControl_SetEnv(&kMovieControlEnv);
