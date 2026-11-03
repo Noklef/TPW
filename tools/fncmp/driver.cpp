@@ -56,6 +56,7 @@
 #include "../../src/game/ui/dialog7ca1c8.h"
 #include "../../src/game/ui/dialog74fb20.h"
 #include "../../src/game/ui/dialogs.h"
+#include "../../src/game/ui/textpanel7cc18c.h"
 #include "../../src/game/world/objectunlock.h"
 #include "../../src/game/core/fpu.h"
 #include "../../src/game/core/gameheap.h"
@@ -584,6 +585,8 @@ const ThingPatrolEnv kThingPatrolEnv = {Rec{jpeg_recorder(20, 1)}, Rec{jpeg_reco
 constexpr u32 stdcall_recorder(u32 k, u32 n) { return kStubs + 0x1000 + 0x4000 + 0x800 * n + 0x20 * k; }
 const ObjectUnlockScoresEnv kObjectUnlockScoresEnv = {Rec{recorder(19, 0)}, Rec{stdcall_recorder(20, 2)}, Rec{stdcall_recorder(21, 1)}, Rec{stdcall_recorder(22, 2)},
                                                       Rec{jpeg_recorder(23, 0)}, Rec{recorder(24, 2)}, Rec{recorder(25, 2)}};
+// TextPanel7cc18c_Show's calls (tests/fncmp/textpanel7cc18c.py).
+const TextPanel7cc18cEnv kTextPanel7cc18cEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 0)}, Rec{jpeg_recorder(12, 9)}, Rec{recorder(13, 4)}, Rec{recorder(14, 0)}};
 // Dialog7ca098_Create's calls (tests/fncmp/dialog7ca098create.py).
 const Dialog7ca098CreateEnv kDialog7ca098CreateEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 0)}, Rec{recorder(12, 2)}, Rec{recorder(13, 1)}, Rec{jpeg_recorder(14, 1)}, Rec{recorder(15, 1)},
                                                       Rec{recorder(16, 1)}, Rec{jpeg_recorder(17, 1)}, Rec{recorder(18, 1)}, Rec{recorder(19, 2)}, Rec{recorder(20, 2)}};
@@ -1348,6 +1351,7 @@ int main(int argc, char **argv) {
     Dialog7ca1c8_SetOpenEnv(&kDialog7ca1c8OpenEnv);
     Dialog74fb20_SetEnv(&kDialog74fb20Env);
     Dialog7ca098_SetCreateEnv(&kDialog7ca098CreateEnv);
+    TextPanel7cc18c_SetEnv(&kTextPanel7cc18cEnv);
     ObjectUnlock_SetScoresEnv(&kObjectUnlockScoresEnv);
     Dialog7ca150_SetEnv(&kDialog7ca150Env);
     Dialog7cc1f8_SetEnv(&kDialog7cc1f8Env);
