@@ -4,7 +4,19 @@
 
 #include "../../../re/types.h"
 
+// ThingBrowser_SendPatrolLines's calls (the ports by default; the bench's recorders: their own benches have them).
+struct ThingPatrolEnv {
+    void(__cdecl *centre)(const u8 *sprite);                                       // Camera_CentreOnSprite
+    u32(__cdecl *line)(u32 message, s32 x0, s32 y0, const s32 *x1, const s32 *y1);   // Map_SendLine
+};
+void ThingBrowser_SetPatrolEnv(const ThingPatrolEnv *env);
+
 extern "C" {
+
+// 0x4b3640 (cdecl; name invented): with a thing shown [0x7cc308] and the flag 0x1000 of [0x790ab0], the camera on it (Camera_CentreOnSprite); when it (the global read again) is staff (kinds 4-8)
+// with a patrol region (Staff_HasPatrolRegion, Staff_GetPatrolRegion: cells, column the low 7 bits of the cell - 1, row the rest): the region's four sides sent to the map as lines of message
+// 0x136 (Map_SendLine): the first row from column 0 to column 1, the column 1 from row 0 to row 1, the second row, the column 0 back; the rows' ends a column in from each side unless both are one.
+void __cdecl ThingBrowser_SendPatrolLines();
 
 // 0x4b3490 (cdecl; name unconfirmed): with a thing shown, the panel's child 0x147 given (its slot 9) the thing's name for staff (kinds
 // 4-8: Staff_GetName), else the text 0x1c9 (a count +0x1d8 of 0) or 0x1c8 with the count as argument 0x18 (TextFormat into the buffer
