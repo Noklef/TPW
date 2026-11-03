@@ -305,6 +305,15 @@ u32 __fastcall Staff_CheckMood(u8 *staff);
 // walk to a random place (Person_SetRandomDest) as state 1; else, unless too tired (Staff_IsTooTired), state 0xf. Both as Researcher_SetState (inlined there).
 void __fastcall Researcher_Idle(u8 *researcher);
 
+// 0x5061d0 (thiscall; name invented, unconfirmed): one tick in a rest area: the levels +0x1fc and +0x1f8 gain the grade's values of 0x785334 and 0x785338 (each kept to 0-100);
+// a rest of 100 (__ftol's low byte) leaves the area and goes idle by kind (byte +2: 4-7 the kinds' idles, 8 Researcher_Idle; others a debug print, left out).
+void __fastcall Staff_RestInArea(u8 *staff);
+
+// 0x5029f0 (thiscall): a researcher's state step (+0x19c). 0: one roll in 16 a sound 0xa9, then idle past the grade's stay of 0x785330. 1: one in 16 a sound 0xa8, the walk: on (not 0 or 2)
+// Staff_TireA, else idle. 2: Staff_WalkToRestArea. 3: Staff_RestInArea. 0xf: Staff_TireB; past the grade's time of 0x785458 a random walk (state 1), or the time restarted; before it one in 16 a sound 0x8a.
+// Others: Staff_ModelState. The tests compare with the sum unsigned, so a wrapped sum counts as passed.
+void __fastcall Researcher_PostUpdate(u8 *researcher);
+
 // 0x4f7c40 (thiscall; name invented, unconfirmed): a jump to Person_Detach (Thing_Delete's kind 0x12, Researcher_Detach's base).
 void __fastcall Staff_Detach(u8 *staff);
 // 0x502920 (thiscall; name invented, unconfirmed): a researcher (kind 8) taken out of the world: out of the game object's list of them

@@ -255,7 +255,6 @@ address,name,kind,confidence,notes
 0x004d6410,Guard_PostUpdate,function,medium,Thing_Update case 7 (second call)
 0x004d5fb0,Guard_HandleMessage,function,high,"reimplemented (src/game/world/staff); kind 7's messages: type 0x1b naming +0x212 clears it, then Staff_HandleMessage"
 0x00502960,Researcher_Update,function,medium,Thing_Update case 8 (first call)
-0x005029f0,Researcher_PostUpdate,function,medium,Thing_Update case 8 (second call)
 0x00508a30,StaffHQ_HandleMessage,function,high,"reimplemented (src/game/world/staff); thiscall (message), pops 4: the staff HQ's message by type (vtable slot 0): 0xc StaffAdvice_Tick; 0xe, when the RE cell (Map_RECell) of the cell of the message's thing (+8) has word +6 above 0, the nearest free guard (Guard_NearestFree) gets agent C's 0x4d6260 (handle, its high word the message pointer's, sic) through StaffAdviceEnv; others nothing"
 0x004dadc0,MechanicHQ_HandleMessage,function,high,"reimplemented (src/game/world/headquarters); thiscall (event): a kind-7 event's mechanic (+8) looked up along the HQs' chain from the world's +0x1da73e; the advisor message 0x44, 0x45 or 0x46 posted, or nothing"
 0x0059b060,Advisor_HandleMessage,function,high,"reimplemented (src/game/world/advisor); thiscall (event), pops 4: the event by its code (slot 0) posted as an advisor message, handed to HandleCode or PostKindEvent"
@@ -4216,6 +4215,8 @@ address,name,kind,confidence,notes
 0x005056e0,Staff_ModelState,function,low,"reimplemented (src/game/world/staff); A staff kind's state step: state 4 the walk and the thought 0x15, 5 Staff_HeadForEntrance, 6 a wait of 3 * the grade's value"
 0x00506a40,Staff_CheckMood,function,low,"reimplemented (src/game/world/staff); Goes on strike, or to a rest area when tired, or thinks about its happiness; 1 when it has set off"
 0x00502c70,Researcher_Idle,function,low,"reimplemented (src/game/world/staff); A researcher with nothing on: its mood, a random walk or work"
+0x005061d0,Staff_RestInArea,function,low,"reimplemented (src/game/world/staff); one tick in a rest area: the levels gain, then leave and go idle by kind"
+0x005029f0,Researcher_PostUpdate,function,low,reimplemented (src/game/world/staff); a researcher's state step
 0x00520d60,FreeList_Take,function,high,reimplemented (src/game/core/voices); takes a record off the free list into a table entry
 0x00521890,FreeList_Return,function,high,reimplemented (src/game/core/voices); puts a record back on the free list
 0x00521d60,Voice_ScaleLevels,function,high,reimplemented (src/game/core/voices); scales a voice's levels by the factor over 1024
