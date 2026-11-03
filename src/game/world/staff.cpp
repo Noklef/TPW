@@ -172,6 +172,21 @@ u32 __fastcall Staff_HasPatrolRegion(const u8 *staff) {
     return !(at<u16>(staff, 0x20a) == 1 && at<u16>(staff, 0x20c) == 0x4000);
 }
 
+u32 __fastcall Staff_GoToRandomPatrolCell(u8 *staff) {
+    const u32 from = at<u16>(staff, 0x20a) - 1u, to = at<u16>(staff, 0x20c) - 1u;
+    const u32 columns = (to & 0x7f) - (from & 0x7f) + 1;
+    const u32 rows = (to >> 7) - (from >> 7) + 1;
+    for (u32 attempt = 0; attempt < 30; attempt++) {
+        const u32 column = static_cast<u32>(World_Rand(global<u8 *>(0x0080239c))) % columns + ((at<u16>(staff, 0x20a) - 1u) & 0x7f);
+        const u32 row = static_cast<u32>(World_Rand(global<u8 *>(0x0080239c))) % rows + ((at<u16>(staff, 0x20a) - 1u) >> 7);
+        if (!Map_InBounds(static_cast<s32>(column), static_cast<s32>(row))) continue;
+        const u16 id = static_cast<u16>((row << 7) + column + 1);
+        if (MapCell_IsType1(global<u8 *>(0x008023a0) + id * 0x44u - 0x44) && Sprite_SetDestinationCell(staff, nullptr, id)) return 1;
+    }
+    Thoughts_Show(staff + 0x30, nullptr, 0x16, 0);
+    return 0;
+}
+
 u32 __fastcall Staff_InPatrolRegion(const u8 *staff, void *, u32 pos) {
     const u32 id = (pos & 0xffff) - 1, bl = (u32)at<u16>(staff, 0x20a) - 1, tr = (u32)at<u16>(staff, 0x20c) - 1;
     // Each part is at most 0x1ffffff, so the original's signed comparisons are these.
