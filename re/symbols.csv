@@ -7566,6 +7566,7 @@ address,name,kind,confidence,notes
 0x00494070,Dialog7ca150_AddRatedHistoryRow,function,low,"reimplemented (src/game/ui/dialog7ca150rows); cdecl (thing); name invented, unconfirmed: the same with the rating, answers 1"
 0x004941e0,Dialog7ca150_AddControlRow,function,low,"reimplemented (src/game/ui/dialog7ca150rows); cdecl (thing); name invented, unconfirmed: the row with the name and the control's +0x18, answers 1"
 0x0049a0b0,Dialog7ca2e8_Handler,function,low,"reimplemented (src/game/ui/dialog7ca2e8); cdecl (window, message, a, b); name invented, unconfirmed: the dialog [0x7ca2e8]'s handler"
+0x0049ac60,Dialog7ca2e8_Open,function,low,"reimplemented (src/game/ui/dialog7ca2e8); cdecl; name invented, unconfirmed: the park statistics dialog opened; see the header"
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"

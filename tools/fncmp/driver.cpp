@@ -647,6 +647,8 @@ const Dialog7ca150RowsEnv kDialog7ca150RowsEnv = {Rec{recorder(10, 0)}, Rec{reco
 // The dialogs' handlers' calls (tests/fncmp/dialoghandlers.py).
 const Dialog7ca2e8HandlerEnv kDialog7ca2e8HandlerEnv = {Rec{jpeg_recorder(10, 4)}, Rec{jpeg_recorder(11, 1)}, Rec{jpeg_recorder(12, 1)}, Rec{jpeg_recorder(13, 3)}, Rec{jpeg_recorder(14, 4)}, Rec{jpeg_recorder(15, 0)}, Rec{jpeg_recorder(16, 0)}, Rec{jpeg_recorder(17, 0)}};
 const Dialog7ca1bcHandlerEnv kDialog7ca1bcHandlerEnv = {Rec{jpeg_recorder(18, 0)}, Rec{jpeg_recorder(15, 0)}, Rec{jpeg_recorder(16, 0)}, Rec{jpeg_recorder(19, 1)}, Rec{recorder(20, 3)}};
+// Dialog7ca2e8_Open's calls (tests/fncmp/dialog7ca2e8open.py).
+const Dialog7ca2e8OpenEnv kDialog7ca2e8OpenEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50)), Rec{recorder(19, 1)}, Rec{recorder(20, 2)}};
 // Online_Instance's constructor (tests/fncmp/onlineinstance.py).
 const OnlineInstanceEnv kOnlineInstanceEnv = {Rec{recorder(10, 0)}};
 // Dialog7cdac4_Handler's calls (tests/fncmp/dialog7cdac4handler.py).
@@ -1503,6 +1505,7 @@ int main(int argc, char **argv) {
     Panel7cc218_SetShowEnv(&kPanel7cc218ShowEnv);
     Dialog7ca168_SetOpenEnv(&kDialog7ca168OpenEnv);
     Online_SetInstanceEnv(&kOnlineInstanceEnv);
+    Dialog7ca2e8_SetOpenEnv(&kDialog7ca2e8OpenEnv);
     Dialog7ca2e8_SetHandlerEnv(&kDialog7ca2e8HandlerEnv);
     Dialog7ca1bc_SetHandlerEnv(&kDialog7ca1bcHandlerEnv);
     Dialog7ca150_SetRowsEnv(&kDialog7ca150RowsEnv);
