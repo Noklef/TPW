@@ -260,7 +260,6 @@ address,name,kind,confidence,notes
 0x004dadc0,MechanicHQ_HandleMessage,function,high,"reimplemented (src/game/world/headquarters); thiscall (event): a kind-7 event's mechanic (+8) looked up along the HQs' chain from the world's +0x1da73e; the advisor message 0x44, 0x45 or 0x46 posted, or nothing"
 0x0059b060,Advisor_HandleMessage,function,high,"reimplemented (src/game/world/advisor); thiscall (event), pops 4: the event by its code (slot 0) posted as an advisor message, handed to HandleCode or PostKindEvent"
 0x0059a550,Advisor_Update,function,medium,Thing_Update case 11 (works on a global; skipped when DAT_00fb3b7c == 1)
-0x00509bf0,TagSystem_HandleMessage,function,high,Thing_HandleMessage case 12
 0x004c7370,ParkAnalyser_HandleMessage,function,high,"reimplemented (src/game/world/analyser); thiscall (message), pops 4: the analyser message handler"
 0x00503d40,ResearchLab_HandleMessage,function,high,"reimplemented (src/game/world/research); thiscall (message), pops 4: type 0x11 only: the project after the definition of the message's id (+8) added (ResearchProject_SetNextUpgrade), ResearchLab_UpdateLevels of its category (+0xc), message 12 posted (Object_PostMessage); with every project done: the current theme's mAllResearchCompleted set, and with the mode setting (0xfb3b7c, guard 0xfb34ac) 2, or 0 with every theme's set (StdTreeF_AllFlagged), advisor message 0xa7 posted and EndThing_Create"
 0x00512880,Weather_Update,function,medium,Thing_Update case 15
@@ -5541,6 +5540,8 @@ address,name,kind,confidence,notes
 0x0050ed10,SteerFollowPath_Steer,function,low,"reimplemented (src/game/world/steering); thiscall (&out, nav), follow_path slot 0: re-paths on a changed map block or a stuck history, advances the waypoints (2 radii; the target within 1.6), then seeks the waypoint or arrives at the target; -vel when done; returns out"
 0x0050af40,TagTable_Find,function,low,"reimplemented (src/game/world/tagsystem); the CTagTable lookup: 0 for ids 0x17e/0x17f, the record at 0x75eca8 + id * 0x20 when its id matches, else the first record with the id, else 0"
 0x00509b40,TagSystem_Ctor,function,low,"reimplemented (src/game/world/tagsystem); thiscall: Thing_Construct (cell 1, kind 0xc), then message centre slots 7, 0xc, 0x14, 0x18, 0x19, 0x13; returns it"
+0x00509e10,TagSystem_FormatTag,function,low,"reimplemented (src/game/world/tagsystem); thiscall (record, a, b, c), pops 16: the tag's text into this +0xc by the record's kind +0x1c (name invented)"
+0x00509bf0,TagSystem_HandleMessage,function,low,"reimplemented (src/game/world/tagsystem); thiscall (message), pops 4: the messages 0x13, 0x18, 0x19: the tag's text formatted and posted (name invented)"
 0x0042a440,Ride_IsBusy,function,low,"reimplemented (src/game/world/ridestate); cdecl (object, index): the track ride link, flying ride slot, coaster link or a key-1 0x1000 model part says the ride is busy"
 0x0043bd20,Ride_Sleep,function,low,"reimplemented (src/game/world/ridestate); cdecl (index): the ride holder's awake instance out of the renderer (rectangle or sleep), the active part states of its flag-0x80 parts released"
 0x00511c90,WallFollower_Step,function,low,"reimplemented (src/game/world/wallfollow); cdecl (walker): one step along the edge of what blocks the walk, turning towards it when open; 0x32 back on the line, 0x33 past 0xfb cells"
