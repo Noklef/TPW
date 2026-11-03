@@ -8,7 +8,7 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import LOG, RAM, Bench, Call, _recorder, log_region, put, strings  # noqa: E402
+from fncmp import LOG, RAM, Bench, Call, _recorder, blob, log_region, put  # noqa: E402
 
 B = Bench([(0x45d090, 0x45d560), (0x4702d0, 0x4704d0), (0x46fca0, 0x46fd40), (0x67a400, 0x690000)], hooks={0x466c80: _recorder(1, 2, cdecl=True)})
 ORIGIN, DIR, VERTS, NODES = RAM, RAM + 0x20, RAM + 0x1000, RAM + 0x2000
@@ -61,10 +61,16 @@ def build(r, plain, origin, direction):
                 point = [origin[i] + direction[i] * t for i in range(3)] if hit else [r.uniform(-60, 60) for _ in range(3)]
                 # the triangle in the xz plane round the point, its normal (0, 1, 0), when the ray comes down on it
                 spin = r.uniform(0, 6.28)
-                size = r.uniform(1, 9)
+                size = r.choice([0.0, r.uniform(1, 9), r.uniform(1, 9), r.uniform(1, 9), r.uniform(1, 9), r.uniform(1, 9), r.uniform(1, 9), r.uniform(1, 9)])   # (no size: NaNs)
+                if r.random() < 0.5:   # the ray's point just inside or outside the edge opposite the first corner: the angles' sum against the limit
+                    out = 0.4976 * size * (1 + r.choice([r.uniform(-0.1, 0.1), r.uniform(0, 0.006)]))
+                    point = [point[0] - out * math.cos(spin + 3.15), point[1], point[2] - out * math.sin(spin + 3.15)]
                 for a in (0.0, 2.1, 4.2):
                     verts.append((point[0] + size * math.cos(spin + a), point[1], point[2] + size * math.sin(spin + a)))
-                normal = (0.0, 1.0, 0.0) if hit or r.random() < 0.5 else (r.uniform(-1, 1), r.uniform(-1, 1), r.uniform(0.1, 1))
+                # (not of length one; none: NaNs)
+                normal = (0.0, r.uniform(0.2, 3), 0.0) if hit or r.random() < 0.5 else (r.uniform(-1, 1), r.uniform(-1, 1), r.uniform(0.1, 1))
+                if r.random() < 0.05:
+                    normal = (0.0, 0.0, 0.0)
                 put(node, normals_at + 0xc * face, '3f', *normal)
                 # (each face its own three: the index's entries point at them)
                 put(node, index_at + 2 * (3 * face), '3H', base, base + 1, base + 2)
@@ -81,7 +87,7 @@ def build(r, plain, origin, direction):
 
 def case(r):
     log = log_region()
-    strings(log, 1, 0, out=1 << 1)
+    blob(log, 1, 1, 0xffff)   # (the matrix on the stack, as it has come to be)
     origin = [r.uniform(-30, 30), r.uniform(20, 60), r.uniform(-30, 30)]
     direction = [r.uniform(-0.5, 0.5), -1.0, r.uniform(-0.5, 0.5)]
     plain = r.random() < 0.7
