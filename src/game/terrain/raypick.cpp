@@ -5,7 +5,10 @@
 
 #include "../math/matrix.h"
 #include "../math/x87.h"
+#include "../coaster/train.h"
 #include "../model/worldverts.h"
+#include "../motion/normals.h"
+#include "land.h"
 
 namespace {
 
@@ -13,8 +16,11 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 const float kFullCircle = 6.2821855545043945f;   // 0x6fe678
+const float kOne = 1.0f;                          // 0x6fe620
+const float kZero = 0.0f;                         // 0x6fe630
+const float kTenth = 0.100000001f;                // 0x6fe664
 
-const RayPickEnv kPortEnv = {&WorldVerts_TransformNode};
+const RayPickEnv kPortEnv = {&WorldVerts_TransformNode, &Terrain_SurfaceHeight, &Ride_Train, &Train_CarValue, &Model_UpdateNormals, &RayPick_Node};
 const RayPickEnv *g_env = &kPortEnv;
 
 // The game's acos (0x67b4e0) of a register, as in motion/quat.cpp. Past 1 (a dot of rounded unit vectors) it gives a NaN, so no hit, here as there; there the CRT's math error path also sets
@@ -109,5 +115,67 @@ u32 __cdecl RayPick_Node(u8 *node, RayPickMatrix m) {
         for (u8 *child = at<u8 *>(node, 0xc); child != nullptr && result == 0; child = at<u8 *>(child, 8)) result = RayPick_Node(child, m);
     }
     return result;
+}
+
+u8 *__cdecl RayPick_Column(s32 x, s32 y, u32 alongX, float atX, float atY, float atZ, float drop, const float *direction, const float *origin, float step) {
+    if (x < 0) x = 0;
+    if (y < 0) y = 0;
+    if (x >= global<s32>(0x7a0314)) x = global<s32>(0x7a0314) - 1;
+    if (y >= global<s32>(0x7a0374)) y = global<s32>(0x7a0374) - 1;
+    u8 **const rides = reinterpret_cast<u8 **>((uintptr_t)0x7a4610);
+
+    u32 slot = 0;
+    float height = (float)g_env->surfaceHeight(x, y, &slot);
+    if (slot == 0) return nullptr;
+    u8 *ride = rides[slot];
+    u32 cars;
+    u8 *train = g_env->rideTrain(slot, &cars);
+    const u32 count = train != nullptr ? cars : 1;
+
+    for (u32 i = 0; i < count; ++i) {
+        if (train != nullptr) {
+            u32 id = g_env->carValue(train, count - i - 1);
+            ride = rides[id];
+            height = (float)g_env->surfaceHeight(x, y, &id);
+        } else {
+            u8 *model = at<u8 *>(at<u8 *>(ride, 8), 4);
+            const u32 flags = at<u32>(model, 0x30);
+            if ((flags & 0x40000) && (flags & 0x20000)) g_env->updateNormals(model);
+        }
+
+        const float along = alongX != 0 ? atX : atZ;
+        double place;
+        if (step > kZero) {
+            double whole;
+            place = std::modf((X87Reg(along) * kTenth).v, &whole);
+        } else {
+            place = X87_SubR(X87Reg(std::fmod((double)along, 10.0)) * kTenth, kOne).v;   // (fld 10.0, the double 0x6fe670; the CRT's fmod)
+        }
+        const X87Reg rest = X87Reg(kOne) - X87Reg(place);
+        const X87Reg low = atY - (X87Reg(place) * drop);
+        const float high = (float)((rest * drop) + atY);
+        const double lowest = !(low.v >= high) ? low.v : (double)high;
+        if (lowest > height) continue;
+        const double highest = low.v > high ? low.v : (double)high;
+        u8 *model = at<u8 *>(at<u8 *>(ride, 8), 4);
+        if (!(highest >= at<float>(model, 0x84))) continue;
+
+        global<const float *>(0x7a1cd8) = direction;
+        global<const float *>(0x7a1cb0) = origin;
+        RayPickMatrix m;
+        Matrix_Identity(m.m);
+        if (g_env->node(at<u8 *>(model, 0x78), m) != 0) {
+            const u32 *point = reinterpret_cast<const u32 *>((uintptr_t)0x7a1cc8);
+            const u32 *normal = reinterpret_cast<const u32 *>((uintptr_t)0x7a1c80);
+            u32 *pointOut = reinterpret_cast<u32 *>((uintptr_t)0x7a1cb8);
+            u32 *normalOut = reinterpret_cast<u32 *>((uintptr_t)0x7a1ca0);
+            for (int k = 0; k < 3; ++k) {
+                pointOut[k] = point[k];
+                normalOut[k] = normal[k];
+            }
+            return ride;
+        }
+    }
+    return nullptr;
 }
 }

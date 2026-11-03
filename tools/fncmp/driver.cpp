@@ -615,7 +615,7 @@ const KeyCancelEnv kKeyCancelEnv = {Rec{recorder(20, 0)}, Rec{jpeg_recorder(21, 
 const SceneViewsEnv kSceneViewsEnv = {Rec{recorder(20, 0)}, Rec{recorder(21, 0)}};
 const BendMeshEnv kBendMeshEnv = {Rec{jpeg_recorder(1, 8)}, Rec{jpeg_recorder(2, 1)}};
 const TrainRunEnv kTrainRunEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorder(2, 2)}, Rec{jpeg_recorder(3, 4)}, Rec{jpeg_recorder(4, 3)}, Rec{jpeg_recorder(5, 3)}, Rec{jpeg_recorder(6, 2)}, Rec{jpeg_recorder(7, 3)}};
-const RayPickEnv kRayPickEnv = {Rec{jpeg_recorder(1, 2)}};
+const RayPickEnv kRayPickEnv = {Rec{jpeg_recorder(1, 2)}, Rec{jpeg_recorder(1, 3)}, Rec{jpeg_recorder(2, 2)}, Rec{jpeg_recorder(3, 2)}, Rec{jpeg_recorder(4, 1)}, Rec{jpeg_recorder(5, 15)}};
 const TerrainGroundEnv kTerrainGroundEnv = {Rec{recorder(4, 0)}, Rec{recorder(5, 2)}, Rec{recorder(6, 0)}, Rec{recorder(7, 3)}, Rec{recorder(1, 5)}, Rec{recorder(11, 5)}, &water_transform,
                                             Rec{kStubs + 0x1000 + 0x4000 + 0x800 * 5 + 0x20 * 3}, Rec{recorder(8, 0)}, Rec{recorder(9, 1)}, Rec{jpeg_recorder(10, 3)}, Rec{recorder(2, 1)}};
 const WeatherDrawEnv kWeatherDrawEnv = {Rec{recorder(1, 5)}, Rec{recorder(2, 1)}, Rec{recorder(3, 1)}, Rec{recorder(4, 2)}, Rec{recorder(5, 2)}};
