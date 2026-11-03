@@ -157,4 +157,10 @@ u32 __cdecl Camera_SetMode(u32 mode, u32 toggle, u32 ride, u32 force, u32 *out, 
 // Last, ground 1 or gCameraFlags bit 2: Sprites_UseGroundFrames, else Sprites_UseParkFrames (their byte the answer, which no caller
 // reads: void here).
 void __cdecl Camera_FollowThing(u32 ride, u32 ground, u32 force, u32 *out, u32 key, u32 fresh);
+
+// 0x5d8de0 (thiscall; name invented, unconfirmed; x87 in the original's order; its only caller of Camera_SetFlag80): gCameraFlags bit 0x80 set; the view matrix 0x7909f0 from the place +8 looking at +0x14:
+// side (forward z, the constant 0, -forward x), or (1, 0, 0) when these are all 0 or NaN; up their cross; each made unit length; rows side, up, forward, place. With the object +0x20 and +0x24 set, its +0x2c
+// (three floats) becomes the unit vector to +0x14 from the place moved by +0x28 along up and +0x2c along side; with +0x30 set its y is taken as 0, then less 0.3 and made unit again. SceneFlags_Touch on
+// 0x8bd508 before that write.
+void __fastcall Camera_SetLookAt(u8 *self);
 }
