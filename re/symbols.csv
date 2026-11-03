@@ -1534,6 +1534,9 @@ address,name,kind,confidence,notes
 0x0067b140,CRT_wcsicmp,function,high,reimplemented (src/game/core/crt); _wcsicmp
 0x0067c8d0,CRT_wcsnicmp,function,high,reimplemented (src/game/core/crt); _wcsnicmp
 0x00693dc0,CRT_btowc,function,high,reimplemented (src/game/core/crt); btowc
+0x0067dcd0,CRT_malloc,function,high,reimplemented (src/game/core/crt); malloc
+0x00682460,CRT_getptd,function,high,reimplemented (src/game/core/crt); _getptd
+0x0067e050,CRT_beginthread,function,high,reimplemented (src/game/core/crt); _beginthread
 0x0067f1a0,CRT_toupper,function,medium,"cdecl; the CRT toupper (locale-aware, ASCII in the C locale)"
 0x0067fa60,CRT_tolower,function,medium,"cdecl; the CRT tolower (locale-aware, ASCII in the C locale)"
 0x006fe67c,StringList2_vtable,data,high,one entry (0x61a7e0); src/game/files/waddir
