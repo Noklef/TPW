@@ -430,6 +430,7 @@
 #include "../game/render/texcoords.h"
 #include "../game/render/graphicssettings.h"
 #include "../game/render/meshdraws.h"
+#include "../game/render/passwordpart.h"
 #include "../game/render/textparts.h"
 #include "../game/render/transformer.h"
 #include "../game/render/vertexblock.h"
@@ -6270,6 +6271,7 @@ const Hook kHooks[] = {
     {"Transformer_Transform",     0x00570d20, (void *)&Transformer_Transform, {0x56, 0x8b, 0x74, 0x24, 0x18}},
     {"Transformer_Create",        0x005781d0, (void *)&Transformer_Create, {0x51, 0xd9, 0x05, 0xcc, 0xcb}},
     {"MeshDraws_Add",             0x00581cd0, (void *)&MeshDraws_Add, {0x53, 0x8b, 0xd9, 0x8b, 0x0b}},
+    {"PasswordPart_SetLayout",    0x004901d0, (void *)&PasswordPart_SetLayout, {0x8b, 0x44, 0x24, 0x04, 0x83}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
