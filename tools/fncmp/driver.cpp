@@ -49,6 +49,7 @@
 #include "../../src/game/gfx/statsgraph.h"
 #include "../../src/game/ui/thingbrowser.h"
 #include "../../src/game/ui/dialog7ca150.h"
+#include "../../src/game/ui/dialog7cc530open.h"
 #include "../../src/game/ui/dialog7cb2b8build.h"
 #include "../../src/game/ui/dialog7cc4b4update.h"
 #include "../../src/game/ui/panel7cc408info.h"
@@ -691,6 +692,8 @@ const Panel7cc408InfoEnv kPanel7cc408InfoEnv = {Rec{jpeg_recorder(18, 5)}, Rec{j
 const Dialog7cc4b4UpdateEnv kDialog7cc4b4UpdateEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50)), Rec{recorder(12, 0)}, Rec{recorder(13, 1)}, Rec{jpeg_recorder(14, 0)}, Rec{recorder(15, 0)}, Rec{recorder(16, 0)}, Rec{recorder(17, 1)}, Rec{recorder(18, 1)}, Rec{recorder(23, 2)}, Rec{jpeg_recorder(19, 4)}, Rec{jpeg_recorder(20, 1)}, Rec{jpeg_recorder(21, 3)}, Rec{jpeg_recorder(22, 1)}};
 // Dialog7cb2b8_Build's calls (tests/fncmp/dialog7cb2b8build.py).
 const Dialog7cb2b8BuildEnv kDialog7cb2b8BuildEnv = {reinterpret_cast<s32(__cdecl *)(void(__cdecl *)())>((uintptr_t)(kStubs + 0x50)), Rec{jpeg_recorder(19, 7)}, Rec{recorder(20, 1)}, Rec{recorder(21, 1)}, Rec{recorder(22, 1)}};
+// Dialog7cc530_Open's calls (tests/fncmp/dialog7cc530open.py).
+const Dialog7cc530OpenEnv kDialog7cc530OpenEnv = {Rec{jpeg_recorder(10, 3)}, Rec{jpeg_recorder(11, 1)}, Rec{recorder(12, 1)}, Rec{recorder(27, 2)}, Rec{recorder(14, 2)}, Rec{jpeg_recorder(15, 1)}, Rec{recorder(16, 1)}, Rec{jpeg_recorder(17, 7)}, Rec{jpeg_recorder(18, 1)}, Rec{jpeg_recorder(19, 1)}};
 // Online_Instance's constructor (tests/fncmp/onlineinstance.py).
 const OnlineInstanceEnv kOnlineInstanceEnv = {Rec{recorder(10, 0)}};
 // Dialog7cdac4_Handler's calls (tests/fncmp/dialog7cdac4handler.py).
@@ -1547,6 +1550,7 @@ int main(int argc, char **argv) {
     Panel7cc218_SetShowEnv(&kPanel7cc218ShowEnv);
     Dialog7ca168_SetOpenEnv(&kDialog7ca168OpenEnv);
     Online_SetInstanceEnv(&kOnlineInstanceEnv);
+    Dialog7cc530_SetOpenEnv(&kDialog7cc530OpenEnv);
     Dialog7cb2b8_SetBuildEnv(&kDialog7cb2b8BuildEnv);
     Dialog7cc4b4_SetUpdateEnv(&kDialog7cc4b4UpdateEnv);
     Panel7cc408Info_SetEnv(&kPanel7cc408InfoEnv);
