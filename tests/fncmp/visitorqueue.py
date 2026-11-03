@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import thingenv  # noqa: E402
 import visitorqueueedited as edited  # noqa: E402
-from fncmp import LOG, LOG_BYTES, RAM, Bench, _recorder, fb, fill, put, set_return, strings  # noqa: E402
+from fncmp import LOG, LOG_BLOBS, LOG_BYTES, RAM, Bench, _recorder, fb, fill, put, set_return, strings  # noqa: E402
 from objectmsg import OBJ  # noqa: E402
 from thingenv import POOL  # noqa: E402
 
@@ -35,6 +35,13 @@ B = Bench([(0x4ffbc0, 0x4fff13), (0x5006b0, 0x50086a), (0x4e1670, 0x4e168b), (0x
 CALLS = {'Walk': 0x4ffbc0, 'Step': 0x5006b0, 'Wait': 0x4ffff0}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 BACK, WORLD = RAM + 0x43000, RAM + 0x44000
+
+
+def next_rand(seed):
+    """World_Rand's next answer from this seed (0x516330)."""
+    n = (seed * 0x19660d + 0x3c6ef35f) & 0xffffffff
+    n = (n >> 13 | n << 19) & 0xffffffff
+    return 0x100000000 - n if n >> 31 else n
 
 
 def outside(c):
@@ -94,6 +101,10 @@ def case(r):
         put(pool, t + 0x1dc, 'H', 0)
     if op == 'Wait':
         hs = struct.unpack_from('<H', pool, t)[0]
+        # (k 2 is Sprite_SetDestination here: visitorleave.py's blob of the sound manager's k 2 read its y as a pointer, so the told-to-come path always
+        # faulted in both. The sound stays off instead: Away covers it.)
+        struct.pack_into('<II', log, LOG_BLOBS + 8 * 2, 0, 0)
+        regions[0x802bc0] = put(bytearray(regions[0x802bc0]), 8, 'I', 0)
         struct.pack_into('<I', log, LOG_BYTES + 4 * 2, 0x30000)   # (x, y: low words)
         set_return(log, 2, r.choice([0, 1, 1]))
         h, place, slots = struct.unpack_from('<H', obj, 0x3c)[0], 0, regions[0x7cfb90]
@@ -115,7 +126,14 @@ def case(r):
         put(pool, t + 0x1fc, 'I', (now - 0x64 + r.choice([-1, -1, 0, 0, 1, 1000])) & 0xffffffff)
         put(pool, t + 0x19c, 'I', fb(r.choice([0.0, 5.0, 9.9, 10.0, 19.9, 20.0, 50.0, 80.0, 80.9, 81.0, 256.0, 300.0, r.uniform(0, 100)])))
         put(pool, t + 0x1ac, 'I', fb(r.choice([0.0, 50.0, 80.0, 81.0, 300.0, r.uniform(0, 100)])))
-        put(pool, t + 0x1c, 'i', r.randrange(0x800))
+        # (the heading near either end, so that a turn wraps both ways; the world's generator on a tenth half the time, so that it turns)
+        put(pool, t + 0x1c, 'i', r.choice([r.randrange(0x800), r.randrange(400), 0x7ff - r.randrange(400)]))
+        seed = r.getrandbits(32)
+        while r.random() < 0.9 and next_rand(seed) % 10:
+            seed = r.getrandbits(32)
+        put(regions[WORLD], 0x708, 'I', seed)
+        # (the definition's word +0x9c: 1 with the object's +0x2c set or not; 3 the linked kind)
+        put(items, item * thingenv.ITEM + 0x9c, 'I', r.choice([0, 1, 1, 3]))
     c.address = CALLS[op]
     return c
 

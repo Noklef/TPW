@@ -155,6 +155,8 @@ def moods(r, regions, log, v, handles, w, name):
     calls are the driver's recorders, which other ops here run as they are. The analyser (slot 14) with one cell, its counts cached; the bank slot 15; the moods about their limits; the
     clock on the visitor's quarter mostly; the map's record of the cell (Map_RECell)."""
     regions[0x790ab0] = b'\x02'
+    if name == 'Mood':   # (the handle's low bits: 0 plays Mood's sound, 8 tells 0xf from 7)
+        v[0] = v[0] & 0xf0 | r.choice([v[0] & 0xf, 0, 8])
     regions[0x7cf6ec] = struct.pack('<I', RAM + 0x8a00)
     regions[RAM + 0x8a00] = struct.pack('<I', WORLD)
     now = r.getrandbits(32) & ~0xf | r.choice([0, v[0] & 3, v[0] & 3, v[0] & 3, r.getrandbits(4)])
@@ -174,10 +176,15 @@ def moods(r, regions, log, v, handles, w, name):
     regions[ANALYSER + 0x216fc] = put(bytearray(r.bytes(0x40)), 0x34, 'II', r.randrange(4), r.randrange(1, 6))
     regions[0x75c7fc] = struct.pack('<I', r.choice([1, 3, 100]))
     put(v, 0xb4, 'I', 0)
+    if name == 'Tick':   # (Person_KillScript84After: the script of the list, the clock about its limit)
+        put(v, 0xb4, 'I', r.choice([0, 1, 2, 3, 4]))
+        put(v, 0xbc, 'I', (now - r.choice([0, 0xc, 0xd, 0xd, 0x100])) & 0xffffffff)
     limits = [0.0, 50.0, 80.0, 80.9, 81.0, 90.0, 90.9, 91.0, 99.0, 99.9, 100.0, 100.5, 256.0, 356.0]
     low = r.random() < 0.6
     for off in (0x1a4, 0x1a8, 0x1ac, 0x1b0):
         put(v, off, 'f', r.uniform(0, 50) if low else r.choice(limits + [r.uniform(0, 100)]))
+    if name == 'Mood' and r.random() < 0.3:   # (only the tiredness over 99: the thought 4)
+        put(v, 0x1ac, 'f', r.choice([100.0, 100.5, 200.0]))
     put(v, 0x19c, 'f', r.choice([0.0, 0.5, 5.0, 9.0, 9.9, 10.0, 50.0, 99.0, 99.9, 100.0, 101.0, 256.0, 356.0, r.uniform(0, 100)]))
     if name != 'Mood' and r.random() < 0.05:
         put(v, r.choice([0x19c, 0x1a4, 0x1a8, 0x1ac, 0x1b0]), 'I', 0x7fc00000)
