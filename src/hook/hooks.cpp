@@ -55,6 +55,7 @@
 #include "../game/math/bits.h"
 #include "../game/math/geometry.h"
 #include "../game/math/rect.h"
+#include "../game/math/rectclip.h"
 #include "../game/math/sintable.h"
 #include "../game/math/transform.h"
 #include "../game/math/vec2.h"
@@ -4084,6 +4085,7 @@ const Hook kHooks[] = {
     {"Transform_ProjectToScreen", 0x00579690, (void *)&Transform_ProjectToScreen, {0x8b, 0x44, 0x24, 0x14, 0x56}},
     {"Transform_Concatenate",     0x00579800, (void *)&Transform_Concatenate, {0x55, 0x8b, 0xec, 0x8b, 0x4d}},
     {"Transform_SseProbe",        0x00579a80, (void *)&Transform_SseProbe, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"Polygon_ClipToRect",        0x0056c5a0, (void *)&Polygon_ClipToRect, {0x55, 0x8b, 0xec, 0x81, 0xec}},
     {"Table_ScaledBySum",         0x00503980, (void *)&Table_ScaledBySum, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
     {"Staff_Train",               0x00505a10, (void *)&Staff_Train, {0x53, 0x56, 0x8b, 0xf1, 0x57}},
     {"Staff_CountTypes",          0x00508000, (void *)&Staff_CountTypes, {0x83, 0xec, 0x0c, 0x33, 0xc0}},
