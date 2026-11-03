@@ -791,6 +791,48 @@ const GuardDetachEnv *g_guardDetach = &kGameGuardDetachEnv;
 
 void Guard_SetDetachEnv(const GuardDetachEnv *env) { g_guardDetach = env ? env : &kGameGuardDetachEnv; }
 
+namespace {
+const GuardStateEnv kGameGuardStateEnv = {&Visitor_Arrive, &Staff_SetState};
+const GuardStateEnv *g_guardState = &kGameGuardStateEnv;
+}  // namespace
+
+void Guard_SetStateEnv(const GuardStateEnv *env) { g_guardState = env ? env : &kGameGuardStateEnv; }
+
+void __fastcall Guard_SetState(u8 *guard, void *, u32 state) {
+    u16 &word = *reinterpret_cast<u16 *>(guard + 0xc2);
+    u32 &current = *reinterpret_cast<u32 *>(guard + 0x19c);
+    u16 &handle = *reinterpret_cast<u16 *>(guard + 0x212);
+    switch (state) {
+    case 0:
+        handle = 0;
+        g_guardState->setState(guard, nullptr, 0);
+        break;
+    case 7:
+        if (current == 0x12 && handle) {
+            u8 *const thing = *reinterpret_cast<u8 **>((uintptr_t)0x007cfb90 + 20 * (u32)handle);
+            if (thing) {
+                const u16 cell = (u16)((guard[7] << 7) + guard[5] + 1);
+                g_guardState->arrive(thing, nullptr, cell);
+                handle = 0;
+            }
+        }
+        break;
+    case 0x10:
+        word = *reinterpret_cast<u16 *>((uintptr_t)0x0075c7f2);
+        *reinterpret_cast<u32 *>(guard + 0x214) = *reinterpret_cast<u32 *>((uintptr_t)0x00785498 + 8 * *reinterpret_cast<u32 *>(guard + 0x1e4));
+        break;
+    case 0x12:
+    case 0x13:
+        word = *reinterpret_cast<u16 *>((uintptr_t)0x0075c7f0);
+        break;
+    default:
+        word = *reinterpret_cast<u16 *>((uintptr_t)0x0075c7f0);
+        g_guardState->setState(guard, nullptr, state);
+        break;
+    }
+    current = state;
+}
+
 void __fastcall Guard_Detach(u8 *guard) {
     Things_Unlink1da744(*reinterpret_cast<u8 **>((uintptr_t)0x0080239c), nullptr, guard);
     u8 *const map = *reinterpret_cast<u8 **>((uintptr_t)0x008023a0);

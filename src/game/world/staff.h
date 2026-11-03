@@ -343,6 +343,16 @@ struct GuardDetachEnv {
     void(__fastcall *arrive)(u8 *visitor, void *, u32 cell);   // Visitor_Arrive 0x4feb50
 };
 void Guard_SetDetachEnv(const GuardDetachEnv *env);   // nullptr: the port
+
+// 0x4d65d0 (thiscall (state), pops 4; called from 0x4d5e8e, 0x4d6308, ...; name invented): the guard's state +0x19c set to state last, with: 0 the word +0x212 cleared and Staff_SetState (0); 7 when the old state is 0x12 and the word +0x212 is a
+// handle whose slot (0x7cfb90, 20 bytes each) is set, that thing's Visitor_Arrive at the guard's cell ((byte +7 << 7) + byte +5 + 1, in a word) and the word cleared; 0x10 the word +0xc2 from [0x75c7f2] and +0x214 the dword of the kind +0x1e4 in
+// the table 0x785498 (8 bytes each); 0x12 and 0x13 the word +0xc2 from [0x75c7f0]; anything else the word from [0x75c7f0] and Staff_SetState (state).
+void __fastcall Guard_SetState(u8 *guard, void *, u32 state);
+struct GuardStateEnv {
+    void(__fastcall *arrive)(u8 *visitor, void *, u32 cell);   // Visitor_Arrive
+    void(__fastcall *setState)(u8 *staff, void *, u32 state);  // Staff_SetState
+};
+void Guard_SetStateEnv(const GuardStateEnv *env);   // nullptr: the ports
 // 0x4da0c0 (thiscall (message), pops 4; Thing_HandleMessage's kind 4): a message of type 0xa (its vtable slot 0) for the object the
 // mechanic works on (its word +8 the handle +0x218) clears that handle and sets state 0 (Mechanic_SetState); then Staff_HandleMessage.
 void __fastcall Mechanic_HandleMessage(u8 *mechanic, void *, u8 *message);
