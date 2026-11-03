@@ -158,6 +158,16 @@ def path_changed(r):
     head, pool = struct.unpack_from('<H', obj, 0x3c)[0], c.regions[POOL]
     second = [struct.unpack_from('<H', pool, t + 0x228)[0] for t in range(0, len(pool), THING) if head and struct.unpack_from('<H', pool, t)[0] == head]
     put(obj, 0x6c, 'H', r.choice([head, head, 0] + second))
+    if r.random() < 0.25:  # (a definition of kind 3 whose coaster link is open, +0x2c as it falls, and states that pass)
+        items, links = c.regions[0x30008000], c.regions[RAM + 0x20000]
+        for k in range(len(items) // 0x500):
+            put(items, 0x500 * k + 0x9c, 'I', 3)
+        put(obj, 0x20, 'I', 1)
+        put(links, 0x140, 'I', 0)
+        put(links, 0x3c, 'I', 1)
+        put(obj, 0x19c, 'I', r.choice([0, 3, 5]))
+        put(obj, 0x64, 'I', 0)
+        c.regions.update({0x790fe0: struct.pack('<I', RAM + 0x20000), 0x790fec: struct.pack('<I', 0)})
     world = RAM + 0x10000
     c.regions[world + 0x2d8 + 0x1b0000] = r.bytes(0x40)
     c.regions[0x7cdb98] = r.bytes(4)
