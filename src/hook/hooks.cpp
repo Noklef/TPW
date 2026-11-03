@@ -250,6 +250,7 @@
 #include "../game/motion/uvanim.h"
 #include "../game/motion/vertexanim.h"
 #include "../game/rsse/rsse.h"
+#include "../game/rsse/rsseexec.h"
 #include "../game/rsse/scream.h"
 #include "../game/rsse/scriptfile.h"
 #include "../game/rsse/scriptkill.h"
@@ -6507,6 +6508,7 @@ const Hook kHooks[] = {
     {"RSSE_FreeContext",          0x00558500, (void *)&RSSE_FreeContext, {0x55, 0x56, 0x8b, 0x74, 0x24}},
     {"RSSE_KillScript",           0x00559060, (void *)&RSSE_KillScript, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
     {"RSSE_CheckLeaks",           0x005584b0, (void *)&RSSE_CheckLeaks, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
+    {"RSSE_ExecuteInstruction",   0x00551cb0, (void *)&RSSE_ExecuteInstruction, {0x81, 0xec, 0x34, 0x01, 0x00}},
     {"Window_FindChild",          0x0065d7d0, (void *)&Window_FindChild, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Window_CallHandler",        0x0065f697, (void *)&Window_CallHandler, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window_SendMessage",        0x00658d9f, (void *)&Window_SendMessage, {0x55, 0x8b, 0xec, 0x83, 0x7d}},
