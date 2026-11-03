@@ -5609,6 +5609,8 @@ address,name,kind,confidence,notes
 0x006c4190,SoundSource_Make,function,low,"reimplemented (src/game/core/soundsource); the device's source: the 0x711b08 one, else the QSound mixer one"
 0x006d1ec0,SoundSource711920_Dtor,function,low,"reimplemented (src/game/core/soundsource); the QSound source's destructor: its two blocks freed, the base's vtable, the helper freed"
 0x006d1ea0,SoundSource711920_DeletingDtor,function,low,reimplemented (src/game/core/soundsource); the QSound source's deleting destructor
+0x006d3700,SoundSource711b08_SetVector,function,low,reimplemented (src/game/core/soundsource); slot 34 of the 0x711b08 source: three floats to the COM object unless a NaN
+0x006d2760,SoundSourceBase_Dtor,function,low,reimplemented (src/game/core/soundsource); the sound source base's destructor
 0x006b00e0,WideWriter_Finish,function,low,"reimplemented (src/game/core/widewriter); slot 1 of 0x70a0c0, thiscall: with a cursor the full byte set at the end, a 0 cell at the cursor (or before it when full), the cursor cleared; the holder +0xc cleared and released (slot 0) (name invented)"
 0x006aff70,WideWriter_PutChar,function,low,reimplemented (src/game/core/widewriter); The wide-text writer's slot 2: a character decoded through its code table and written
 0x006afe80,WideWriter_PutNarrow,function,low,reimplemented (src/game/core/widewriter); The wide-text writer's slot 3: bytes decoded through its code table and written

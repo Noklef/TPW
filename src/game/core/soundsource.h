@@ -33,6 +33,13 @@ u32 __fastcall SoundSource711920_GetSound(u8 *source, void *, u32 *out);
 // (front's x, 0, front's z, top's x, y, z: six floats moved through the x87, a signalling NaN quieted) answered into *out. Returns out.
 u32 *__fastcall SoundSource711b08_SetOrientation(u8 *source, void *, u32 *out, const u32 *front, const u32 *top);
 
+// 0x6d3700 (slot 34 of 0x711b08, thiscall (out, unused, vector, unused, unused), pops 0x14; name invented, unconfirmed): without the COM object +0x1c, or with a NaN among the
+// vector's three floats, *out = -1; else its slot 3 (the three floats, their bits untouched) answered into *out. Returns out.
+u32 *__fastcall SoundSource711b08_SetVector(u8 *source, void *, u32 *out, u32, const u32 *vector, u32, u32);
+
+// 0x6d2760 (thiscall; name invented, unconfirmed): vtable 0x7119b8; SoundHelper_Free.
+void __fastcall SoundSourceBase_Dtor(u8 *source);
+
 // 0x6d35d0 (slot 30 of 0x711b08, thiscall (out, index, vector), pops 0xc; name invented): the slot at the index (+0x28, 0x2c bytes each;
 // not checked) asked for its position (SoundSlot_GetPosition: out, vector). Returns out.
 u32 *__fastcall SoundSource711b08_GetSlotPosition(u8 *source, void *, u32 *out, u32 index, u8 *vector);

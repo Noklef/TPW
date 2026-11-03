@@ -96,6 +96,24 @@ u32 *__fastcall SoundSource711b08_SetOrientation(u8 *source, void *, u32 *out, c
     return out;
 }
 
+u32 *__fastcall SoundSource711b08_SetVector(u8 *source, void *, u32 *out, u32, const u32 *vector, u32, u32) {
+    const auto isNan = [](u32 bits) { return (bits & 0x7fffffff) > 0x7f800000; };   // (fld; fstp double; _isnan 0x67b410)
+    if (u8 *const object = at<u8 *>(source, 0x1c)) {
+        const u32 x = vector[0], y = vector[1], z = vector[2];
+        if (!isNan(x) && !isNan(y) && !isNan(z)) {
+            *out = comcall<u32>(object, 0xc, x, y, z);
+            return out;
+        }
+    }
+    *out = 0xffffffff;
+    return out;
+}
+
+void __fastcall SoundSourceBase_Dtor(u8 *source) {
+    at<u32>(source, 0) = 0x007119b8;
+    SoundHelper_Free();
+}
+
 void __fastcall SoundSource711b08_CreateEvents(u8 *source) {
     using CreateEvent = u32(__stdcall *)(void *, u32, u32, const char *);
     const u32 count = at<u32>(source, 4) * 2 + 1;
