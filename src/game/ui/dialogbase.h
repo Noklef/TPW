@@ -4,7 +4,23 @@
 
 #include "../../../re/types.h"
 
+// Dialog_KeyHandler's calls (the ports by default, 0x59ab50 raw: unported, agent B's; the bench's recorders: their own benches have them).
+struct DialogKeyEnv {
+    s32(__cdecl *send)(u8 *window, u32 message, u32 a, u32 b);               // Window_SendMessage
+    u8 *(__fastcall *advisor)(const u8 *game);                               // GameTable7cfb90_Get1da71c_5194d0
+    u32(__fastcall *helpKey)(u8 *advisor);                                   // 0x59ab50
+    u32(__fastcall *fireDown)(u8 *table, void *, u32 a, u32 b);              // Actions_FireDown
+    u32(__fastcall *fireUp)(u8 *table, void *, u32 a, u32 b);                // Actions_FireUp
+    u32(__cdecl *setWindow)(u8 *window);                                     // Window7c24c8_Set
+    s32(__fastcall *callDefault)(u8 *window, void *, u32 message, u32 a, u32 b);   // Window_CallDefault
+};
+void Dialog_SetKeyEnv(const DialogKeyEnv *env);
+
 extern "C" {
+
+// 0x488ba0 (cdecl (window, message, a, b); name invented): the dialogs' handler for keys. 0x1000b (a key up, its code a, b's third byte the state): state 0 and code 0x1b: the window sent 4 (0, 0), answer 0; state 0 and code 0x70: 0x59ab50 on the game's advisor, 0; else Actions_FireUp (code, the state) of [0x78721c], 0.
+// 0x1000a: Actions_FireDown the same way, 0. 0x14: Window7c24c8_Set (0). The rest, and 0x14 after that, Window_CallDefault, whose answer is returned.
+s32 __cdecl Dialog_KeyHandler(u8 *window, u32 message, u32 a, u32 b);
 
 // 0x47ee90 (cdecl (window, message, a, b)): on message 0x14 the window's parent (+0x60, Fn_65d55a) is posted message 4 (0, 0)
 // (Window_PostMessage) and the focus given back (Focus_Restore); then the window's default handler (Window_CallDefault) with the

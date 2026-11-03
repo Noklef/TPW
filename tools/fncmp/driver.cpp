@@ -64,6 +64,7 @@
 #include "../../src/game/ui/dialog7cb2b8.h"
 #include "../../src/game/ui/dialog7ca098.h"
 #include "../../src/game/ui/dialog7cdac4.h"
+#include "../../src/game/ui/dialogbase.h"
 #include "../../src/game/ui/thingbrowser.h"
 #include "../../src/game/ui/msgtags.h"
 #include "../../src/game/world/guardescort.h"
@@ -622,10 +623,13 @@ const MsgTagHandlerEnv kMsgTagHandlerEnv = {Rec{jpeg_recorder(10, 3)}, Rec{recor
                                             Rec{jpeg_recorder(21, 4)}, Rec{jpeg_recorder(22, 4)}, Rec{recorder(23, 2)}, Rec{recorder(24, 0)}, Rec{jpeg_recorder(25, 2)}, Rec{jpeg_recorder(26, 4)}, Rec{jpeg_recorder(27, 2)}, Rec{jpeg_recorder(28, 1)}, Rec{jpeg_recorder(29, 1)}, Rec{recorder(30, 3)}};
 // ThingBrowser_Handler's calls (tests/fncmp/thingbrowserhandler.py): the step recorded, then [0x7cc308] from the bench's dword at RAM + 0x800 (the bench's hook does the same).
 void __cdecl browser_step() {
-    *reinterpret_cast<u32 *>((uintptr_t)0x007cc308) = *reinterpret_cast<u32 *>((uintptr_t)(0x30000000 + 0x800));
+    const u32 next = *reinterpret_cast<u32 *>((uintptr_t)(0x30000000 + 0x800));   // (-1: left as it is)
+    if (next != 0xffffffff) *reinterpret_cast<u32 *>((uintptr_t)0x007cc308) = next;
     reinterpret_cast<void(__cdecl *)()>(jpeg_recorder(12, 0))();
 }
 const ThingBrowserHandlerEnv kThingBrowserHandlerEnv = {Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 0)}, &browser_step, Rec{jpeg_recorder(13, 0)}, Rec{recorder(14, 1)}, Rec{recorder(15, 0)}, Rec{recorder(16, 3)}, Rec{jpeg_recorder(17, 1)}, Rec{recorder(18, 3)}};
+// Dialog_KeyHandler's calls (tests/fncmp/dialogkeys.py).
+const DialogKeyEnv kDialogKeyEnv = {Rec{jpeg_recorder(10, 4)}, Rec{recorder(11, 0)}, Rec{recorder(12, 0)}, Rec{recorder(13, 2)}, Rec{recorder(14, 2)}, Rec{jpeg_recorder(15, 1)}, Rec{recorder(16, 3)}};
 // Dialog7cdac4_Open's calls (tests/fncmp/dialog7cdac4.py).
 const Dialog7cdac4Env kDialog7cdac4Env = {Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 3)}, Rec{recorder(12, 1)}, Rec{recorder(13, 1)}, Rec{recorder(14, 1)}, Rec{jpeg_recorder(15, 1)}, Rec{recorder(16, 1)}, Rec{recorder(17, 2)}, Rec{jpeg_recorder(18, 1)}, Rec{recorder(19, 1)},
                                           Rec{recorder(20, 2)}, Rec{recorder(21, 2)}, Rec{recorder(22, 2)}, Rec{jpeg_recorder(23, 1)}, Rec{jpeg_recorder(24, 3)}, Rec{recorder(25, 2)}};
@@ -1445,6 +1449,7 @@ int main(int argc, char **argv) {
     Obj7b51f0_SetNowEnv(&kObj7b51f0NowEnv);
     Dialog7cc1f8_SetOpenEnv(&kDialog7cc1f8OpenEnv);
     Dialog7cdac4_SetEnv(&kDialog7cdac4Env);
+    Dialog_SetKeyEnv(&kDialogKeyEnv);
     ThingBrowser_SetHandlerEnv(&kThingBrowserHandlerEnv);
     MsgTag_SetHandlerEnv(&kMsgTagHandlerEnv);
     GuardEscort_SetEnv(&kGuardEscortEnv);

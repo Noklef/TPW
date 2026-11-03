@@ -13,7 +13,8 @@ step = _recorder(12, 0, cdecl=True)
 
 
 def step_hook(e):
-    e.write(0x7cc308, e.read(NEXT, 4))
+    if e.read(NEXT, 4) != b'\xff\xff\xff\xff':   # (-1: left as it is)
+        e.write(0x7cc308, e.read(NEXT, 4))
     step(e)
 
 
@@ -24,7 +25,7 @@ B = Bench([(0x4b3790, 0x4b3b6d), (0x4b3b70, 0x4b3b8c)],
 def case(r):
     log = log_region()
     regions = {LOG: log}
-    regions[NEXT] = struct.pack('<I', r.choice([0, 0, 1, r.getrandbits(32)]))
+    regions[NEXT] = struct.pack('<I', r.choice([0, 0, 1, 0xffffffff, 0xffffffff, r.getrandbits(32)]))
     regions[0x7cc2fc] = r.bytes(4)
     regions[0x7cc2f0] = struct.pack('<I', r.choice([0, 1, 1, 1, r.getrandbits(32)]))
     regions[0x7cc304] = struct.pack('<I', RAM + 0x100)
