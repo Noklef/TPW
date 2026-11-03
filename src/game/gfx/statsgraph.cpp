@@ -3,6 +3,8 @@
 #include <cstdint>
 
 #include "../core/circbuf.h"
+#include "../ui/dialogs.h"
+#include "../ui/guirect.h"
 #include "../ui/window.h"
 #include "../world/world.h"
 #include "gauge.h"
@@ -23,8 +25,26 @@ s32 shown(Scan scan) {
     return result;
 }
 
-const StatsGraphEnv kGameEnv = {reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)0x0049aa30)};
+const StatsGraphEnv kGameEnv = {reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)0x0049aa30), reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)0x004a4750),
+                                &Window7ca2e8_ClearButtons};
 const StatsGraphEnv *g_env = &kGameEnv;
+
+void SetMarksXOfKind(u8 *gauge, u32 kind) {
+    if (kind == 0) Gauge_SetMarksX(gauge, nullptr, 0, 0xb, 0xc);
+    else if (kind == 1) Gauge_SetMarksX(gauge, nullptr, 0, 0x23, 0x24);
+    else if (kind == 2) Gauge_SetMarksX(gauge, nullptr, 0, 0x8f, 0x90);
+}
+
+// A message 0x101's id's kind: -1 for another id.
+s32 KindOfRadio(u32 index) { return index == 0 ? 2 : index == 1 ? 0 : index == 2 ? 1 : -1; }
+
+u8 *Graph1() { return reinterpret_cast<u8 *>((uintptr_t)0x007ca250); }
+u8 *Graph2() { return reinterpret_cast<u8 *>((uintptr_t)0x007cb318); }
+
+void SetMarksY1() {
+    const s32 high = StatsGraph_ShownMax();
+    Gauge_SetMarksY(Graph1(), nullptr, (u32)StatsGraph_ShownMin(), (u32)high, 10);
+}
 
 }  // namespace
 
@@ -52,5 +72,86 @@ void __cdecl StatsGraph_Redraw() {
     const s32 high = StatsGraph_ShownMax();
     Gauge_SetMarksY(gauge, nullptr, (u32)StatsGraph_ShownMin(), (u32)high, 10);
     Gauge_DrawInWindow(Window_FindChild(dialog, nullptr, 0x12272), gauge, g_env->lines49aa30);
+}
+
+u32 __cdecl StatsGraph_Handler(u8 *window, u32 message, u32 a, u32 b) {
+    u8 rect[12];
+    GuiRect_Ctor(rect);
+    bool draw = false;
+    if (message == 0x15) {
+        Window_GetSavedRect(window, nullptr, rect);
+        const s32 high = StatsGraph_ShownMax();
+        Gauge_Setup(Graph1(), rect, (u32)StatsGraph_ShownMin(), (u32)high, 10, 0, 0xb, 0xc);
+        draw = true;
+    } else if (message == 0x100) {
+        if (a == 0xfffffffe) {
+            Window_SendMessage(global<u8 *>(0x007ca2e8), 4, 0, 0);
+            GuiRect_Dtor(rect);
+            return 0;
+        }
+        static const u8 kBits[] = {1, 8, 4, 0x40, 2, 0x10, 0x20, 0x80};
+        const u32 index = a - 0x12277;
+        if (index < 8) {
+            u32 &flags = global<u32>(0x00751fa0);
+            const u8 bit = kBits[index];
+            if (b == 1) {
+                const u8 other = bit <= 2 ? 0xfc : 3;
+                if (flags & other) {
+                    g_env->clearButtons(other);
+                    flags &= ~(u32)other;
+                }
+                flags |= bit;
+            } else {
+                flags &= ~(u32)bit;
+            }
+            SetMarksY1();
+            draw = true;
+        }
+    } else if (message == 0x101) {
+        const s32 kind = KindOfRadio(a - 0x12274);
+        if (kind >= 0) global<u32>(0x007ca2ec) = (u32)kind;
+        if (kind >= 0 && b == 1) {
+            SetMarksXOfKind(Graph1(), (u32)kind);
+            SetMarksY1();
+            draw = true;
+        }
+    }
+    if (draw) Gauge_DrawInWindow(window, Graph1(), g_env->lines49aa30);
+    const u32 answer = (u32)Window_CallDefault(window, nullptr, message, a, b);
+    GuiRect_Dtor(rect);
+    return answer;
+}
+
+u32 __cdecl StatsGraph7cb318_Handler(u8 *window, u32 message, u32 a, u32 b) {
+    u8 rect[12];
+    GuiRect_Ctor(rect);
+    bool draw = false;
+    if (message == 0x15) {
+        Window_GetSavedRect(window, nullptr, rect);
+        Gauge_Setup(Graph2(), rect, 0, (u32)StatsGraph7cb318_ShownMax(), 10, 0, 0xb, 0xc);
+        SetMarksXOfKind(Graph2(), global<u32>(0x007cb39c));
+        draw = true;
+    } else if (message == 0x100) {
+        const u32 index = a - 0x4a68bc;
+        if (index < 5) {
+            u32 &flags = global<u32>(0x00753c48);
+            if (b == 1) flags |= 1u << index;
+            else flags &= ~(1u << index);
+            Gauge_SetMarksY(Graph2(), nullptr, 0, (u32)StatsGraph7cb318_ShownMax(), 10);
+            draw = true;
+        }
+    } else if (message == 0x101) {
+        const s32 kind = KindOfRadio(a - 0x4a68c2);
+        if (kind >= 0) global<u32>(0x007cb39c) = (u32)kind;
+        if (kind >= 0 && b == 1) {
+            SetMarksXOfKind(Graph2(), (u32)kind);
+            Gauge_SetMarksY(Graph2(), nullptr, 0, (u32)StatsGraph7cb318_ShownMax(), 10);
+            draw = true;
+        }
+    }
+    if (draw) Gauge_DrawInWindow(window, Graph2(), g_env->lines4a4750);
+    const u32 answer = (u32)Window_CallDefault(window, nullptr, message, a, b);
+    GuiRect_Dtor(rect);
+    return answer;
 }
 }
