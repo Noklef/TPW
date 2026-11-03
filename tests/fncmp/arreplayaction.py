@@ -17,28 +17,31 @@ B = Bench([(0x404d80, 0x404ef4), (0x404f70, 0x4051c0), (0x4051d0, 0x405390), (0x
 OPS = os.environ.get('OPS', 'Do,Text').split(',')
 SELF, WORDS, THINGS, WORLD, SAVES, MADE = RAM, RAM + 0x100, RAM + 0x1000, RAM + 0x2000, RAM + 0x4000, RAM + 0x4100
 TABLE = 0x7cfb90
-CELLS, IDS = 8, 12
+CELLS, IDS, HIGH = 8, 12, 0x101
 ACTIONS = [0, 0xa, 0x19, 0x1e, 0x23, 0x32, 0x32, 0x32, 0x3d, 0x3e, 0x42, 0x43, 0x44, 1, 0x45, 0x31, 0xffffffff]
 TEXT_ACTIONS = [0x50, 0x50, 0x55, 0x55, 0x51, 0x54, 0, 0x150]
 
 
 def world(r, regions):
     """The cells' chains over the things of the table's ids 1-11: ending in nothing, or at a thing of the kind 3."""
-    things = bytearray(r.bytes(0x20 * IDS))
-    table = bytearray(r.bytes(20 * IDS))
+    things = bytearray(r.bytes(0x20 * (IDS + 1)))
+    table = bytearray(r.bytes(20 * (HIGH + 1)))
     for h in range(IDS):
         put(table, 20 * h, 'I', THINGS + 0x20 * h)
         put(things, 0x20 * h + 2, 'B', r.choice([3, 1, 2, 4, 0, 0x83]))
         following = h + 1 if h + 1 < IDS else 0
-        put(things, 0x20 * h + 0xa, 'H', r.choice([0, following, following, following]))
+        put(things, 0x20 * h + 0xa, 'H', r.choice([0, following, following, following, HIGH]))
+    put(table, 20 * HIGH, 'I', THINGS + 0x20 * IDS)   # (a handle past a byte: of the same low byte as handle 1)
+    put(things, 0x20 * IDS + 2, 'B', r.choice([3, 3, 1]))
+    put(things, 0x20 * IDS + 0xa, 'H', 0)
     regions[THINGS] = things
     regions[TABLE] = table
     cells = bytearray(r.bytes(0x2b8 + 0x44 * CELLS))
     for c in range(CELLS):
-        put(cells, 0x2b8 + 0x44 * c, 'H', r.choice([0, r.randrange(1, IDS), r.randrange(1, IDS)]))
+        put(cells, 0x2b8 + 0x44 * c, 'H', r.choice([0, r.randrange(1, IDS), r.randrange(1, IDS), HIGH]))
     regions[WORLD] = cells
     regions[0x7cf83c] = struct.pack('<I', WORLD)
-    regions[WORLD + 0x1da730] = struct.pack('<HH', r.getrandbits(16), r.randrange(0, IDS))
+    regions[WORLD + 0x1da730] = struct.pack('<HH', r.getrandbits(16), r.choice([r.randrange(0, IDS), r.randrange(0, IDS), HIGH]))
     return r.randrange(CELLS) | r.getrandbits(16) << 16
 
 
@@ -53,7 +56,8 @@ def case(r):
         word = 0xea60 | r.getrandbits(16) << 16
     n = r.choice([0, 1, 2, 31, 32, 40])
     regions[WORDS] = b''.join(struct.pack('<H', r.randrange(1, 0x10000)) for _ in range(40)) + bytes(2)
-    regions[0xf7c58c] = struct.pack('<I', r.choice([0, SAVES, SAVES]))
+    saves = r.choice([0, SAVES, SAVES])
+    regions[0xf7c58c] = struct.pack('<I', saves)
     set_return(log, SAVES_CTOR, MADE)
     blob(log, CHECK, 0, 0xe)   # (the string: its allocator is stack garbage)
     strings(log, TEXT_CALL, 6)
@@ -61,7 +65,8 @@ def case(r):
     strings(log, A860, 0, 1)
     fill(log, A920, 0, b'one text\x01\x01\0\0', which=0)
     fill(log, A860, 0, b'another text\x01\x01\0\0', which=1)
-    regions[HEAP] = heap(0x400, fail=1 if r.random() < 0.05 else 0)
+    # (the singleton's allocation failing, after the text's when it has one; or the text's, which faults in both)
+    regions[HEAP] = heap(0x400, fail=(1 if n == 0 else 2) if not saves and r.random() < 0.4 else 1 if r.random() < 0.02 else 0)
     return Call(0x404f70, [SELF, r.deal(TEXT_ACTIONS), word, n | r.getrandbits(24) << 8, WORDS], regions, conv='t')
 
 

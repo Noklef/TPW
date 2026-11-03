@@ -72,8 +72,8 @@ def case(r):
             blocks[x[0] - BLOCKS - 1] = r.choice([0, 1, 0xfd])
             put(strs, 0x18, 'I', r.choice([0x8000000, 0x7ffffffd, 0xfffffff0]))
         return Call(0x47ae60, [S, r.choice([X, X, X, S])], regions, conv='t', ret='a')
-    if op == 'AssignChars':   # 0x4051d0: the characters of slot 3, or s's own as it falls; a null source only for none (no read)
-        source = s[0] if s[0] and r.random() < 0.2 else BLOCKS + 3 * SLOT + 2
+    if op == 'AssignChars':   # 0x4051d0: the characters of slot 3, or s's own as it falls
+        source = s[0] + r.choice([0, 2, -2]) if s[0] and r.random() < 0.4 else BLOCKS + 3 * SLOT + 2   # (over itself: the copy's direction shows)
         return Call(0x4051d0, [S, source, small], regions, conv='t', ret='a')
     if op == 'CtorChars':   # 0x4f0170: s's fields overwritten by a copy of 0-0x7e characters at the end of x's slot (or empty); the allocator's byte from anywhere
         n = r.choice([0, 0, 1, r.randrange(31), 31, 32, r.randrange(0x7e)])
