@@ -642,6 +642,7 @@
 #include "../game/ui/viewbuttons.h"
 #include "../game/ui/window705950nodes.h"
 #include "../game/ui/window7059f0texts.h"
+#include "../game/ui/window705a20char.h"
 #include "../game/ui/window7cb2a4.h"
 #include "../game/ui/window7cb2cc.h"
 #include "../game/ui/window7cc8bc.h"
@@ -7945,6 +7946,8 @@ const Hook kHooks[] = {
     {"Window_GetAreaRect",        0x0065d616, (void *)&Window_GetAreaRect, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"MoneyDisplay_Update",       0x004a0ab0, (void *)&MoneyDisplay_Update, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Dialog7cc944_FillList",     0x004bfc70, (void *)&Dialog7cc944_FillList, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Window705a20_TypeChar",     0x00667833, (void *)&Window705a20_TypeChar, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"CharList_Find",             0x006687e0, (void *)&CharList_Find, {0x55, 0x8b, 0xec, 0x66, 0x8b}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
