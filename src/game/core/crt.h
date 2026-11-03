@@ -50,7 +50,51 @@ const CrtEnv &Crt();
 // Swaps it (nullptr: the game's again).
 void Crt_SetEnv(const CrtEnv *env);
 
+// What the ported CRT routines below call: the rest of the game's CRT, by address (tools/fncmp's driver gives recorders).
+struct CrtInnerEnv {
+    u8 *(__cdecl *getptd)();                                     // 0x682460: the thread's data (+0x14 the rand seed)
+    void(__cdecl *lockExit)();                                   // 0x67fa20: lock 0xd
+    void(__cdecl *unlockExit)();                                 // 0x67fa30
+    u32(__cdecl *msize)(void *block);                            // 0x6818f0
+    void *(__cdecl *realloc)(void *block, u32 size);             // 0x681740
+    void(__cdecl *lock)(s32 which);                              // 0x682720
+    void(__cdecl *unlock)(s32 which);                            // 0x6827a0
+    void *(__cdecl *sbhFindBlock)(void *block, void **region, void **page);     // 0x682b40
+    void(__cdecl *sbhFreeBlock)(void *region, void *page, void *entry);         // 0x682ba0
+    void(__cdecl *lockFile)(void *file);                         // 0x6827c0
+    void(__cdecl *unlockFile)(void *file);                       // 0x682830
+    s32(__cdecl *fcloseLocked)(void *file);                      // 0x67b660
+    void(__cdecl *memFree)(void *block);                         // 0x67acb0
+};
+
+void CrtInner_SetEnv(const CrtInnerEnv *env);
+
 extern "C" {
+
+// 0x67b410: _isnan, of the double's bits: all exponent bits set and any mantissa bit.
+s32 __cdecl CRT_isnan(u32 low, u32 high);
+
+// 0x67c320 (__alldiv; stdcall, pops 16): the signed 64-bit quotient (a zero divisor faults).
+long long __stdcall CRT_alldiv(u32 aLow, u32 aHigh, u32 bLow, u32 bHigh);
+
+// 0x67b5c0: rand: the thread's seed (getptd +0x14) * 214013 + 2531011 stored, bits 16-30 of it.
+s32 __cdecl CRT_rand();
+
+// 0x67a740: _onexit, under the exit lock: fn appended to the table [0xfb3cb4] up to its end [0xfb3cb0] (the block grown by 0x10 bytes when msize has
+// no room for one more). Returns fn; 0 when the growth fails.
+void *__cdecl CRT_onexit(void *fn);
+
+// 0x67a7d0: atexit: 0 when _onexit took fn, else -1.
+s32 __cdecl crt_atexit(void *fn);
+
+// 0x67ad90: free: not null: under lock 9 the small block heap's block freed, or else (past the lock) HeapFree on the CRT's heap [0xfb3cac].
+void __cdecl CRT_free(void *block);
+
+// 0x67b620: fclose: a string stream's (flag 0x40 in +0xc) flags cleared and -1; else _fclose_lk under the file's lock.
+s32 __cdecl CRT_fclose(void *file);
+
+// 0x67d320 (thiscall): exception's destructor: the vtable 0x7089c4 set, the text +4 freed if it is owned (+8).
+void __fastcall CRT_exception_Dtor(u32 *self);
 
 // 0x67acf0 (stdcall; array, size, count, ctor, dtor, pops 20): ctor (thiscall on the element, no other arguments) for each of the count (signed) elements of
 // size bytes in turn; the dtor is only for the unwinding.
