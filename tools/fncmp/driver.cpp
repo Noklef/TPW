@@ -185,6 +185,7 @@
 #include "../../src/game/world/mapclick.h"
 #include "../../src/game/world/mapline.h"
 #include "../../src/game/ui/savedialog.h"
+#include "../../src/game/ui/savedialogcreate.h"
 #include "../../src/game/world/bankaccount.h"
 #include "../../src/game/world/messagecentre.h"
 #include "../../src/game/coaster/registry.h"
@@ -919,6 +920,8 @@ const Dialog7cb400CloseEnv kDialog7cb400CloseEnv = {Rec{jpeg_recorder(10, 4)}, R
 const Dialog7cc188AddressEnv kDialog7cc188AddressEnv = {Rec{recorder(10, 1)}, Rec{jpeg_recorder(11, 1)}, Rec{recorder(12, 1)}, Rec{jpeg_recorder(13, 1)}, Rec{jpeg_recorder(14, 5)}, Rec{jpeg_recorder(15, 8)}, Rec{recorder(16, 3)}};
 const UserSlotsEnv kUserSlotsEnv = {Rec{recorder(27, 0)}};
 const BankAccountCtorEnv kBankAccountCtorEnv = {Rec{jpeg_recorder(10, 4)}};
+const SaveDialogCreateEnv kSaveDialogCreateEnv = {Rec{recorder(10, 2)}, Rec{jpeg_recorder(11, 0)}, Rec{jpeg_recorder(12, 3)}, Rec{recorder(13, 1)}, Rec{jpeg_recorder(14, 1)}, Rec{jpeg_recorder(15, 3)}, Rec{recorder(16, 1)}, Rec{recorder(17, 2)}, Rec{recorder(18, 2)}, Rec{jpeg_recorder(19, 1)}, Rec{recorder(20, 1)},
+                                                  Rec{jpeg_recorder(21, 1)}, Rec{jpeg_recorder(22, 1)}, Rec{recorder(23, 1)}, Rec{recorder(24, 1)}, Rec{recorder(25, 1)}, Rec{jpeg_recorder(26, 1)}, Rec{recorder(27, 2)}, Rec{recorder(28, 1)}, Rec{recorder(29, 1)}, Rec{jpeg_recorder(30, 0)}};
 const SaveDialogEnv kSaveDialogEnv = {Rec{recorder(10, 0)}, Rec{recorder(11, 1)}, Rec{recorder(12, 1)}, Rec{recorder(13, 0)}, Rec{jpeg_recorder(14, 4)}, Rec{jpeg_recorder(15, 4)}, Rec{jpeg_recorder(16, 0)}, Rec{jpeg_recorder(17, 0)}, Rec{jpeg_recorder(18, 4)}, Rec{recorder(19, 2)}, Rec{jpeg_recorder(20, 7)}, Rec{jpeg_recorder(21, 8)}, Rec{recorder(22, 4)}};
 const VersionLabelEnv kVersionLabelEnv = {Rec{jpeg_recorder(10, 7)}, Rec{recorder(11, 7)}, Rec{recorder(12, 1)}, Rec{recorder(13, 1)}, Rec{recorder(14, 1)}, Rec{recorder(15, 1)}};
 const RasterFormatEnv kRasterFormatEnv ={Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 1)}, Rec{jpeg_recorder(12, 0)}, Rec{jpeg_recorder(13, 2)}, Rec{jpeg_recorder(14, 2)}};
@@ -1873,6 +1876,7 @@ int main(int argc, char **argv) {
     VersionLabel_SetEnv(&kVersionLabelEnv);
     BankAccountCtor_SetEnv(&kBankAccountCtorEnv);
     SaveDialog_SetEnv(&kSaveDialogEnv);
+    SaveDialogCreate_SetEnv(&kSaveDialogCreateEnv);
     ImeHost_SetAttachEnv(&kImeHostAttachEnv);
     TextRecordPart_SetEnv(&kTextRecordPartEnv);
     MovieFrame_SetEnv(&kMovieFrameEnv);

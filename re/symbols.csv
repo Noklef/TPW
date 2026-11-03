@@ -7769,6 +7769,8 @@ address,name,kind,confidence,notes
 0x0049ea30,SaveDialog_Handler,function,low,"reimplemented (src/game/ui/savedialog); cdecl (window, message, a, b); name invented, unconfirmed; the save dialog [0x7cb248]'s handler"
 0x0049ec80,LoadDialog_FillList,function,low,"reimplemented (src/game/ui/savedialog); cdecl (window); name invented, unconfirmed; a row for each saved game"
 0x0049edf0,SaveDialog_FillList,function,low,"reimplemented (src/game/ui/savedialog); cdecl (window); name invented, unconfirmed; the same with an unused string"
+0x0049efb0,LoadDialog_Create,function,low,"reimplemented (src/game/ui/savedialogcreate); cdecl; name invented, unconfirmed; the load dialog [0x7cb244] made, its list filled"
+0x0049f280,SaveDialog_Create,function,low,"reimplemented (src/game/ui/savedialogcreate); cdecl; name invented, unconfirmed; the save dialog [0x7cb248] made, its edit box and list set up"
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"

@@ -596,6 +596,7 @@
 #include "../game/ui/panel7cc408info.h"
 #include "../game/ui/quitconfirm.h"
 #include "../game/ui/savedialog.h"
+#include "../game/ui/savedialogcreate.h"
 #include "../game/ui/signnamedialog.h"
 #include "../game/ui/signrect.h"
 #include "../game/ui/staffrename.h"
@@ -7751,6 +7752,8 @@ const Hook kHooks[] = {
     {"SaveDialog_Handler",        0x0049ea30, (void *)&SaveDialog_Handler, {0x81, 0xec, 0x24, 0x01, 0x00}},
     {"LoadDialog_FillList",       0x0049ec80, (void *)&LoadDialog_FillList, {0x81, 0xec, 0xb0, 0x00, 0x00}},
     {"SaveDialog_FillList",       0x0049edf0, (void *)&SaveDialog_FillList, {0x6a, 0xff, 0x68, 0x88, 0xa2}},
+    {"LoadDialog_Create",         0x0049efb0, (void *)&LoadDialog_Create, {0x56, 0x6a, 0x00, 0x6a, 0x00}},
+    {"SaveDialog_Create",         0x0049f280, (void *)&SaveDialog_Create, {0x6a, 0xff, 0x68, 0xeb, 0xa2}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
