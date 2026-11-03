@@ -186,6 +186,7 @@
 #include "../../src/game/world/mapline.h"
 #include "../../src/game/ui/dialog7ca168handler.h"
 #include "../../src/game/ui/dialog7cc530handler.h"
+#include "../../src/game/ui/panel7cc328handler.h"
 #include "../../src/game/ui/savedialog.h"
 #include "../../src/game/ui/savedialogcreate.h"
 #include "../../src/game/ui/window7059f0texts.h"
@@ -923,6 +924,8 @@ const Dialog7cb400CloseEnv kDialog7cb400CloseEnv = {Rec{jpeg_recorder(10, 4)}, R
 const Dialog7cc188AddressEnv kDialog7cc188AddressEnv = {Rec{recorder(10, 1)}, Rec{jpeg_recorder(11, 1)}, Rec{recorder(12, 1)}, Rec{jpeg_recorder(13, 1)}, Rec{jpeg_recorder(14, 5)}, Rec{jpeg_recorder(15, 8)}, Rec{recorder(16, 3)}};
 const UserSlotsEnv kUserSlotsEnv = {Rec{recorder(27, 0)}};
 const BankAccountCtorEnv kBankAccountCtorEnv = {Rec{jpeg_recorder(10, 4)}};
+const Panel7cc328HandlerEnv kPanel7cc328HandlerEnv = {Rec{recorder(10, 0)}, Rec{recorder(11, 2)}, Rec{recorder(12, 5)}, Rec{recorder(13, 2)}, Rec{recorder(14, 1)}, Rec{jpeg_recorder(15, 1)}, Rec{recorder(16, 0)}, Rec{recorder(17, 0)}, Rec{recorder(18, 0)}, Rec{jpeg_recorder(19, 2)}, Rec{jpeg_recorder(20, 2)},
+                                                      Rec{recorder(21, 0)}, Rec{recorder(22, 1)}, Rec{jpeg_recorder(23, 1)}, Rec{jpeg_recorder(24, 4)}, Rec{recorder(25, 1)}};
 const Dialog7ca168HandlerEnv kDialog7ca168HandlerEnv = {Rec{jpeg_recorder(10, 4)}, Rec{recorder(11, 2)}, Rec{recorder(12, 0)}, Rec{recorder(13, 0)}, Rec{recorder(14, 1)}, Rec{jpeg_recorder(15, 1)}, Rec{recorder(16, 0)}, Rec{recorder(17, 0)}, Rec{recorder(18, 5)}, Rec{jpeg_recorder(19, 4)},
                                                         Rec{jpeg_recorder(20, 1)}, Rec{jpeg_recorder(21, 3)}, Rec{jpeg_recorder(22, 1)}, Rec{jpeg_recorder(23, 0)}, Rec{jpeg_recorder(24, 2)}, Rec{jpeg_recorder(25, 1)}, Rec{recorder(26, 1)}, Rec{jpeg_recorder(27, 1)}, Rec{recorder(28, 1)}};
 const Dialog7cc530HandlerEnv kDialog7cc530HandlerEnv = {Rec{jpeg_recorder(11, 4)}, Rec{jpeg_recorder(12, 0)}, Rec{jpeg_recorder(13, 4)}, Rec{recorder(14, 2)}, Rec{jpeg_recorder(15, 1)}, Rec{jpeg_recorder(16, 2)}, Rec{jpeg_recorder(17, 1)}};
@@ -1884,6 +1887,7 @@ int main(int argc, char **argv) {
     BankAccountCtor_SetEnv(&kBankAccountCtorEnv);
     SaveDialog_SetEnv(&kSaveDialogEnv);
     SaveDialogCreate_SetEnv(&kSaveDialogCreateEnv);
+    Panel7cc328Handler_SetEnv(&kPanel7cc328HandlerEnv);
     Dialog7ca168Handler_SetEnv(&kDialog7ca168HandlerEnv);
     Dialog7cc530Handler_SetEnv(&kDialog7cc530HandlerEnv);
     Window7059f0Texts_SetEnv(&kWindow7059f0TextsEnv);
