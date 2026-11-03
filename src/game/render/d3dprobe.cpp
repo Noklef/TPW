@@ -5,6 +5,7 @@
 
 #include "../core/accessors.h"
 #include "../core/cpuinfo.h"
+#include "../core/crt.h"
 #include "../core/vcall.h"
 #include "../core/vregs.h"
 #include "../math/x87.h"
@@ -482,6 +483,190 @@ u32 __fastcall D3dProbe_DrawBatchTinted(u8 *probe, void *, u8 *batch) {
     vcall<u32>(base(probe), 0xc, 0u, 0u);
     opaqueBlend();
     drawn();
+    return 1;
+}
+
+u32 __fastcall D3dProbe_DrawBatch(u8 *self, void *, u8 *batch) {
+    u8 *const probe = self - 0x2c;
+    const auto setFlagsOf = [&](u32 flags) { vcall<u32>(base(probe), 8, flags); };
+    const auto setTexture = [&](u32 stage, u32 field) { vcall<u32>(base(probe), 0xc, stage, at<u32>(batch, field)); };
+    const auto drawn = [&] {
+        keep(comcall<u32>(device(probe), 0x74, at<u32>(batch, 0x18), at<u32>(batch, 0x1c), at<u32>(batch, 0x28), at<u32>(batch, 0x20), at<u32>(batch, 0x2c), at<u32>(batch, 0x24), 0xdu));
+    };
+    if ((renderCaps() & 0x80000000) && at<u32>(probe, 0x18) == 4) {
+        at<u32>(batch, 4) &= 0xffe7ffff;
+        setFlagsOf(at<u32>(batch, 4));
+        D3dProbe_DrawBatchTinted(probe, nullptr, batch);   // (the original looks at its answer, always 1)
+    }
+    setFlagsOf(at<u32>(batch, 4));
+    setTexture(0, 8);
+    if (at<u32>(batch, 4) & 0x4000) {
+        const u32 mode = at<u32>(probe, 4) & 3;
+        if (mode == 1) {
+            setTexture(1, 0xc);
+            drawn();
+        } else if (mode != 0) {
+            drawn();
+            setFlagsOf(mode == 2 ? 0x5156 : 0x556);
+            setTexture(0, 0xc);
+            stageState(probe, 0, 0xb, 1);
+            drawn();
+            stageState(probe, 0, 0xb, 0);
+        }
+    } else if (at<s32>(batch, 0x24) > 0) {
+        if (!(at<u8>(batch, 0) & 0x80)) {
+            drawn();
+        } else if (at<u32>(base(probe), 0x24) == 3) {
+            D3dProbe_SetTextureStages(probe, nullptr, 1, batch);
+            drawn();
+            D3dProbe_SetTextureStages(probe, nullptr, 2, batch);
+            drawn();
+            D3dProbe_SetTextureStages(probe, nullptr, 0, batch);
+        } else if (at<u32>(base(probe), 0x24) == 1) {
+            const auto blend = [&](u32 low, u32 source, u32 destination) {
+                if ((shadow(probe) & 0xff) == low) return;
+                renderState(probe, 0x13, source);
+                renderState(probe, 0x14, destination);
+                shadow(probe) = (shadow(probe) & ~0xffu) | low;
+            };
+            setTexture(0, 0x10);
+            if (shadow(probe) & 0x100) {
+                renderState(probe, 0x1b, 0);
+                shadow(probe) &= ~0x100u;
+            }
+            if (shadow(probe) & 0x400) {
+                renderState(probe, 0xf, 0);
+                shadow(probe) &= ~0x400u;
+            }
+            stageState(probe, 0, 0xb, 0);
+            stageState(probe, 0, 1, 2);
+            drawn();
+            setTexture(0, 0xc);
+            if (!(shadow(probe) & 0x100)) {
+                renderState(probe, 0x1b, 1);
+                shadow(probe) |= 0x100;
+            }
+            blend(0x22, 2, 2);
+            stageState(probe, 0, 0xb, 1);
+            stageState(probe, 0, 1, 2);
+            drawn();
+            setTexture(0, 8);
+            blend(0x93, 9, 3);
+            stageState(probe, 0, 0xb, 0);
+            stageState(probe, 0, 1, 4);
+            stageState(probe, 0, 4, 4);
+            drawn();
+        }
+    }
+    return pushed(2);
+}
+
+u32 __fastcall D3dProbe_SetUpDevice(u8 *self) {
+    u8 *const probe = self - 0x2c;
+    at<u8 *>(probe, 0x24) = at<u8 *>(caps(), 8);
+    const u8 *const adapter = global<u8 *>(0x00879a24) + 0x20;
+    const u32 &vendor = at<u32>(adapter, 0x408);
+    const u32 &chip = at<u32>(adapter, 0x40c);
+    u8 hardware[0xfc], software[0xfc];
+    at<u32>(hardware, 0) = 0xfc;
+    at<u32>(software, 0) = 0xfc;
+    const u32 hr = comcall<u32>(device(probe), 0xc, hardware, software);
+    if (static_cast<s32>(hr) < 0) EngineDebug_Log(DxResult_Message(hr));
+    const u32 sourceBlend = at<u32>(hardware, 0x74), destinationBlend = at<u32>(hardware, 0x78);
+    const u32 textureCaps = at<u8>(hardware, 0xf4);
+    if (destinationBlend == 0x20) {   // (the original's test of the source blend beside it is always true)
+        if (global<u32>(0x008bd508) & 0x2000000) EngineDebug_LogFallback(reinterpret_cast<const char *>((uintptr_t)0x0076637c));
+        return 0;
+    }
+    if (at<u16>(hardware, 0xf8) > 1) {
+        if (textureCaps & 8) at<u32>(probe, 4) = 1;
+    } else if ((destinationBlend & 4) && (sourceBlend & 1)) {
+        at<u32>(probe, 4) = 2;
+    }
+    static const u32 kStates[][2] = {{0x1d, 0}, {0x10, 1}, {0xf, 0}, {9, 2}, {0x29, 0}, {0x16, 1}, {4, 1}, {0x20, 1}, {0x1f, 1}, {0x1a, 0}, {0x23, 0}, {0x18, 0x8000}, {0x19, 7}};
+    for (const auto &state : kStates) renderState(probe, state[0], state[1]);
+    stageState(probe, 0, 0xb, 0);
+    at<u32>(probe, 0xc) = 1;
+    const u8 options = global<u8>(0x008bd550);
+    if (options & 2) {
+        const u32 deviceCaps = at<u32>(caps(), 0xb0);
+        at<u32>(probe, 0xc) = (options & 8) && (deviceCaps & 0x20) ? 3 : (deviceCaps & 8) ? 2 : 1;
+        if (vendor == 0x12d2 && chip == 0x18) at<u32>(probe, 0xc) = 1;
+        at<u32>(probe, 0x10) = (options & 0x10) && (deviceCaps & 0x4000000) ? 5 : 2;
+        at<u32>(probe, 0x14) = 1;
+    }
+    at<u32>(probe, 0x1c) = (at<u8>(caps(), 0xb4) & 8) ? 4 : 2;
+    at<u32>(probe, 0x18) = 4;
+    if (vendor == 0x3d3d && chip == 0xa) renderCaps() |= 2;
+    D3dProbe_AlphaTest(probe);
+    if (renderCaps() & 0x40) at<u32>(probe, 8) = 2;
+    D3dProbe_FogTest(probe);
+    const auto logged = [](u32 format, u32 value) {
+        if (!(global<u32>(0x008bd508) & 0x1000000)) return;
+        char text[100];
+        Crt().sprintf(text, reinterpret_cast<const char *>((uintptr_t)format), value);
+        EngineDebug_Log(text);
+    };
+    logged(0x0076636c, at<u32>(probe, 8));   // "Alpha ref %x"
+    if (vendor == 0x1002 && chip == 0x4742) {
+        renderCaps() = (renderCaps() & ~0x8000u) | 0x8004000;
+    } else if ((vendor == 0x5333 && chip == 0x8a22) || (vendor == 0x1002 && (chip == 0x5246 || chip == 0x4c42))) {
+        renderCaps() = (renderCaps() & ~0x8000u) | 0x4000;
+    } else if (vendor == 0x12d2 && chip == 0x18) {
+        renderCaps() |= 2;
+    }
+    logged(0x00766358, renderCaps() & 0xc000);   // "Fog algorithm %x"
+    if (options & 0x20) at<u32>(base(probe), 0x24) = 1;   // (the original first stores 1, 2 or 3 there by the texture stages and the vendor, then always 1)
+    if ((textureCaps & 0x10) && vendor != 0x121a) {
+        at<u32>(base(probe), 8) |= 8;
+        at<u32>(probe, 4) |= 1;
+    } else {
+        renderCaps() |= 0x20000000;
+    }
+    const auto filtering = [&](u32 stage) {
+        stageState(probe, stage, 0x12, at<u32>(probe, 0xc));
+        stageState(probe, stage, 0x10, at<u32>(probe, 0x10));
+        stageState(probe, stage, 0x11, at<u32>(probe, 0x14));
+    };
+    stageState(probe, 0, 1, at<u32>(probe, 0x18));
+    stageState(probe, 0, 4, at<u32>(probe, 0x1c));
+    stageState(probe, 0, 2, 2);
+    stageState(probe, 0, 3, 0);
+    stageState(probe, 0, 5, 2);
+    stageState(probe, 0, 6, 0);
+    filtering(0);
+    stageState(probe, 0, 0xc, 3);
+    if ((at<u32>(probe, 4) & 3) == 1) {
+        stageState(probe, 1, 0xb, 1);
+        stageState(probe, 1, 1, 1);
+        stageState(probe, 1, 4, 1);
+        stageState(probe, 1, 2, 2);
+        stageState(probe, 1, 3, 0);
+        stageState(probe, 1, 6, 2);
+        stageState(probe, 1, 6, 0);
+        filtering(1);
+        stageState(probe, 1, 0xc, 3);
+        if (at<u32>(base(probe), 0x24) == 5) {
+            stageState(probe, 1, 7, 0x3f800000);   // (1.0f, 0, 0, 1.0f: the bump matrix; 1.0f, 0: its luminance)
+            stageState(probe, 1, 8, 0);
+            stageState(probe, 1, 9, 0);
+            stageState(probe, 1, 0xa, 0x3f800000);
+            stageState(probe, 1, 0x16, 0x3f800000);
+            stageState(probe, 1, 0x17, 0);
+        }
+        stageState(probe, 2, 0xb, 1);
+        stageState(probe, 2, 1, 1);
+        stageState(probe, 2, 4, 1);
+        stageState(probe, 2, 2, 2);
+        stageState(probe, 2, 3, 1);
+        stageState(probe, 2, 5, 2);
+        stageState(probe, 2, 6, 0);
+        filtering(2);
+    }
+    stageState(probe, 1, 1, 1);
+    stageState(probe, 1, 4, 1);
+    at<u32>(base(probe), 0x14) = 0xffffffff;
+    vcall<u32>(base(probe), 8, 0u);
     return 1;
 }
 

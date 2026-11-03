@@ -13,20 +13,21 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from fncmp import LOG, RAM, Bench, Call, _recorder, answers, blob, blob_array, fill, log_region, put, recorder, set_float_return, set_return, strings, vtable  # noqa: E402
+from fncmp import LOG, RAM, Bench, Call, _recorder, answers, blob, blob_array, fill, log_fold, log_region, put, recorder, set_float_return, set_return, strings, vtable  # noqa: E402
 import enginedebug  # noqa: E402
 
 CALLS = {'AlphaTest': (0x567270, 0x5673c5), 'FogTest': (0x5673d0, 0x5675b4), 'SetFlags': (0x567620, 0x5679ac), 'Stages': (0x5686d0, 0x568aaf), 'Draw': (0x567130, 0x567269),
          'Begin': (0x566fa0, 0x567010), 'End': (0x567010, 0x567060), 'ReadPixel': (0x567060, 0x567130), 'SetTexture': (0x5675c0, 0x567620), 'SetFog': (0x567ad0, 0x567c10),
          'TestQuad': (0x568ac0, 0x568c50), 'Quad': (0x568c50, 0x568f50), 'Lines': (0x568f50, 0x569040), 'Frame': (0x569040, 0x569410), 'Box': (0x569410, 0x569720), 'FillRate': (0x569720, 0x569c70),
-         'Tinted': (0x567c10, 0x5680a8)}
+         'Tinted': (0x567c10, 0x5680a8), 'Batch': (0x5680b0, 0x5686ce), 'Setup': (0x566840, 0x566fa0)}
 TICKS, TRANSFORM = 15, 6   # (driver.cpp's kD3dProbeEnv; the transform's slot)
-B = Bench(list(CALLS.values()) + [(0x5679b0, 0x567aca), (0x5832e0, 0x583360), (0x56a770, 0x56ae60), (0x56af20, 0x56af9c), (0x5826f0, 0x582704), enginedebug.RANGE],   # (the Shadow_ setters SetFlags calls, what the drawing calls)
+B = Bench(list(CALLS.values()) + [(0x5679b0, 0x567aca), (0x5832e0, 0x583360), (0x56a770, 0x56ae60), (0x56af20, 0x56af9c), (0x5826f0, 0x582704), enginedebug.RANGE, enginedebug.FALLBACK, (0x67a400, 0x690000)],   # (the Shadow_ setters SetFlags calls, what the drawing calls, the C library's sprintf)
           hooks={**enginedebug.HOOKS, 0x57cb90: _recorder(TICKS, 0, cdecl=True)})
 PROBE, VBT, VT, DEV, DVT, CAPS = RAM, RAM + 0x200, RAM + 0x300, RAM + 0x400, RAM + 0x500, RAM + 0x600
 ARG, ERRORS, TAIL, TABLE = RAM + 0x800, 0x879ad0, 0x8bd470, RAM + 0xa00   # (ARG: a call's array, a pixel buffer ...)
 OBJ, OBJVT, OUT, DRAWN = RAM + 0x900, RAM + 0x940, RAM + 0x9e0, RAM + 0xb00
 BATCH, DBUF, INDICES, SOURCE, FREE = RAM + 0xc00, RAM + 0xc80, RAM + 0xd00, RAM + 0x1010, RAM + 0x1800
+ADAPTER, GETCAPS = RAM + 0x2000, 41
 GONE = 0x887601c2
 SELF = PROBE + 0x2c
 
@@ -71,6 +72,65 @@ def tinted(r, probe, off, log, regions, hr):
     return Call(CALLS['Tinted'][0], [PROBE, BATCH], regions, conv='t', ret='a')
 
 
+def batch_(r, probe, off, log, regions, hr):
+    """0x5680b0, on the probe + 0x2c: render caps bit 31 and the probe's +0x18 4 take the batch's tinted first (tinted()'s batch), else a batch of any bits: flags bit 0x4000 or not; index count (+0x24) 0, negative or
+    above; +4 any, base's +0x24 1 or 3 mostly; the flags set last near each state tested; the draws' answers in turn, the result before them 0 or any."""
+    caps = r.getrandbits(32) if r.random() < 0.5 else r.getrandbits(31)
+    regions[0x8bcbc8] = struct.pack('<I', caps)
+    put(probe, 0x18, 'I', r.choice([4, 4, 3, 0]))
+    put(probe, off + 0x24, 'I', r.choice([1, 1, 1, 3, 3, 3, 0, 2, 5]))
+    if caps >> 31 and struct.unpack_from('<I', probe, 0x18)[0] == 4:
+        tinted(r, probe, off, log, regions, hr)
+    else:
+        batch = bytearray(r.bytes(0x30))
+        kind = r.randrange(3)
+        flags = r.getrandbits(32)
+        put(batch, 4, 'I', flags | 0x4000 if kind == 0 else flags & ~0x4000)
+        batch[0] = batch[0] | 0x80 if kind == 1 else batch[0] & 0x7f if kind == 2 else batch[0]
+        put(batch, 0x24, 'I', r.choice([0, 0xffffffff, 1, 1, 6, 6, 0x80000000, r.getrandbits(32)]))
+        regions[BATCH] = batch
+    shadow = r.getrandbits(32)
+    shadow = (shadow & ~0xff) | r.choice([0x22, 0x93, r.getrandbits(8), 0xd2])
+    put(probe, off + 0x14, 'I', shadow)
+    regions[0x879cd4] = r.choice([bytes(4), bytes(4), r.bytes(4)])
+    answer = lambda: r.choice([0, 0, 0, hr, 1, 0x80004005])  # noqa: E731
+    regions[DRAWN] = struct.pack('<3I', answer(), answer(), answer()) + bytes(37 * 4)
+    answers(log, 29, DRAWN)
+    return Call(CALLS['Batch'][0], [SELF, BATCH], regions, conv='t', ret='a')
+
+
+def setup(r, probe, off, log, regions, hr):
+    """0x566840: GetCaps (k GETCAPS, the first structure's size logged) fills the first structure's four fields tested, or fails; the vendor and chip of each quirk or any; options 0x8bd550, the debug flags 0x8bd508 and the caps
+    0xb0 / 0xb4 of any bits, the bits tested often; the two probes as in case(). The second structure's size is not looked at (a recorder logs one blob)."""
+    caps = bytearray(r.bytes(0x100))
+    put(caps, 8, 'I', DEV)
+    if r.random() < 0.7:
+        put(caps, 0xa4, 'B', caps[0xa4] | 0x40)
+        put(caps, 0xa8, 'I', struct.unpack_from('<I', caps, 0xa8)[0] | 0x80000)
+    mask = r.choice([0xffffff, 0xffff, 0xf800, r.getrandbits(32)])
+    fill(log, 16, 2, struct.pack('<I', r.choice([0, mask, r.getrandbits(32), r.getrandbits(32) & mask, mask | 0x1000000])))
+    if r.random() < 0.1:
+        set_return(log, 16, 0)
+    put(probe, 0x24, 'I', r.getrandbits(32))
+    adapter = bytearray(r.bytes(0x430))
+    pair = r.choice([(0x12d2, 0x18), (0x3d3d, 0xa), (0x1002, 0x4742), (0x5333, 0x8a22), (0x1002, 0x5246), (0x1002, 0x4c42), (0x121a, r.getrandbits(32)), (0x12d2, 0x19), (0x3d3d, 9), (0x1002, 0x4743), (0x5333, 0x8a23),
+                     (0x5333, 0x4742), (r.getrandbits(32), 0x18), (r.getrandbits(32), 0xa), (r.getrandbits(32), 0x4742), (r.getrandbits(32), 0x5246), (r.getrandbits(32), r.getrandbits(32))])
+    put(adapter, 0x428, 'II', *pair)
+    dvt = regions[DVT]
+    put(dvt, 3 * 4, 'I', recorder(GETCAPS, 3, com=True))
+    source, destination = r.getrandbits(32), r.choice([0x20, r.getrandbits(32), r.getrandbits(32), r.getrandbits(32) | 4, 0x21, 0x24])
+    fill(log, GETCAPS, 1, struct.pack('<2I', source, destination), which=1, offset=0x74)
+    fill(log, GETCAPS, 1, struct.pack('<2I', r.getrandbits(32), r.choice([0, 1, 2, 0x10001, 0x10000, r.getrandbits(32)])), which=2, offset=0xf4)
+    blob(log, GETCAPS, 1, 1)
+    strings(log, GETCAPS, 0, out=0b100)
+    set_return(log, GETCAPS, r.choice([0, 0, 0, hr]))
+    log_fold(log)
+    put(probe, off + 0x24, 'I', r.choice([5, 5, 1, r.getrandbits(32)]))
+    regions.update({CAPS: caps, 0x879da8: bytearray(struct.pack('<I', CAPS)), 0x879a24: bytearray(struct.pack('<I', ADAPTER)), ADAPTER: adapter, 0x8bcbc8: r.bytes(4), 0x8bd4dc: bytearray(struct.pack('<I', mask)),
+                    0x8bd550: r.bytes(4), 0x8bd508: r.bytes(4), 0x879a28: bytes(4)})
+    return Call(CALLS['Setup'][0], [SELF], regions, conv='t', ret='a')
+
+
 def drawing(r, name, probe, off, log, regions):
     enginedebug.texts(log)
     if r.random() < 0.3:
@@ -84,6 +144,10 @@ def drawing(r, name, probe, off, log, regions):
     put(probe, off + 0x14, 'I', r.choice([shadow, shadow & 0xffff7bff, shadow | 0x108f00]))
     put(probe, 8, 'I', r.randrange(4))
     hr = hresult(r)
+    if name == 'Batch':
+        return batch_(r, probe, off, log, regions, hr)
+    if name == 'Setup':
+        return setup(r, probe, off, log, regions, hr)
     blob_array(log, 29, 3, 4, 0x20)
     blob_array(log, 29, 5, 6, 2, which=1)
     wh = lambda: r.choice([640, 800, 1024, 480, 600, r.randrange(1, 3000), 0x1000001, 0x7fffffff, 0x80000000, r.getrandbits(32), 0])  # noqa: E731

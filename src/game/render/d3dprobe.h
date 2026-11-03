@@ -99,6 +99,16 @@ float __fastcall D3dProbe_FillRate(u8 *self);
 // 0x567c10 (thiscall on the probe, pops 4; name invented): with the probe's +4 bit 0 or the batch's flags bit 0x100: the batch's vertices copied to the draw buffer's free ones (past themselves when they are those),
 // their colours 0xffff0000, then drawn by the batch's flags: 0x556 and 0x2756 blended, 0x22 and 0x52 not at all. Returns 1.
 u32 __fastcall D3dProbe_DrawBatchTinted(u8 *probe, void *, u8 *batch);
+// 0x5680b0 (thiscall on the probe + 0x2c, pops 4; name invented): a batch through DrawIndexedPrimitive (flags 0xd), kept each time; first, with bit 31 of the render caps and the probe's +0x18 4, the batch's flags lose bits
+// 0x180000 and go through the base's slot 2 and D3dProbe_DrawBatchTinted. Its flags go through slot 2 and +8's texture to stage 0. Flags bit 0x4000, by the probe's +4 & 3: 0 nothing, 1 +0xc's texture to stage 1 and one draw, 2 and 3
+// a draw, then flags 0x5156 / 0x556, +0xc's texture, stage 0's texture coordinate set 1, a draw, the set back. Without that bit nothing unless the index count (+0x24) is above 0: one draw, or with bit 7 of the first byte by the
+// base's +0x24: 3 D3dProbe_SetTextureStages 1, a draw, 2, a draw, 0; 1 three draws: +0x10's texture, not blended; +0xc's, low byte 0x22; +8's, low byte 0x93; others nothing. Pushed (kind 2): whether the kept result is 0.
+u32 __fastcall D3dProbe_DrawBatch(u8 *self, void *, u8 *batch);
+// 0x566840 (thiscall on the probe + 0x2c, a virtual; name invented): the device from the caps object [0x879da8] + 8 to the probe's +0x24; its GetCaps (COM slot 3; a failure logged) on two stack structures of 0xfc bytes.
+// A destination blend caps (+0x78 of the first) of exactly 0x20 logs " -- Detected PowerVR1, ..." (with 0x8bd508 bit 0x2000000; EngineDebug_LogFallback) and answers 0. Otherwise +4 from the caps (more than one stage, +0xf8, and bit 3 at +0xf4: 1; else
+// blend bits: 2), the fixed render and stage 0 states, the filters (+0xc, +0x10, +0x14) by the options 0x8bd550 and the caps at [0x879da8] + 0xb0, +0x1c by +0xb4, +0x18 = 4; quirks by vendor and chip at [0x879a24] + 0x428 / 0x42c in the render caps 0x8bcbc8; the two probes;
+// the texture stages (1 and 2 only when +4 & 3 is 1); the flags set last -1, the base's slot 2 (0). 1. Debug flag 0x1000000 of 0x8bd508: "Alpha ref %x" and "Fog algorithm %x" to the engine debug log.
+u32 __fastcall D3dProbe_SetUpDevice(u8 *self);
 }
 
 // The clock D3dProbe_FillRate reads (default Cpu_Ticks16). nullptr restores it.
