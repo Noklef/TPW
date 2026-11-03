@@ -5960,6 +5960,7 @@ address,name,kind,confidence,notes
 0x004929f0,GuiText_Measure,function,low,"reimplemented (src/game/gfx/guitext); The GUI's text measured in a rectangle through a stack text layout: alignments, the language's font; the text box out"
 0x00492c40,GuiText_DrawRgb,function,low,"reimplemented (src/game/gfx/guitext); cdecl (text, a, c, d, left, top, right, bottom, rgb): the colour rgb's bytes with alpha 0xff and the palette's nearest entry, the GUI's SurfaceInfo filled as kind 3, 0x7ca120 and the style's +0x10 on around GuiText_Draw (font 0xc, fit 1)"
 0x00672990,MovieSound_ReleaseAll,function,low,"reimplemented (src/game/gfx/moviesound); thiscall on the player, returns 0: with flag 0x800000 of the settings' +4, the primary buffer +0x58 (when +0x3d8) and the device +0x54 (when +0x3dc) released and cleared"
+0x00672a00,MovieSound_CreateStream,function,low,"reimplemented (src/game/gfx/moviesound); thiscall; returns 0; name invented, unconfirmed: the stream secondary buffer"
 0x00488d20,OverlayLoad_Button,function,low,"reimplemented (src/game/gfx/overlayload); name invented, unconfirmed: an overlay button's image load"
 0x00488ee0,OverlayLoad_Slider,function,low,"reimplemented (src/game/gfx/overlayload); name invented, unconfirmed: an overlay slider's image load"
 0x00489060,OverlayLoad_Plain,function,low,"reimplemented (src/game/gfx/overlayload); name invented, unconfirmed: a plain overlay image load"

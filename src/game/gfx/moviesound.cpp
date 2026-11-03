@@ -1,6 +1,7 @@
 #include "moviesound.h"
 
 #include <cstdint>
+#include <cstring>
 
 namespace {
 
@@ -15,9 +16,56 @@ using Method1 = s32(__stdcall *)(void *);
 using Method2 = s32(__stdcall *)(void *, void *);
 using Method3 = s32(__stdcall *)(void *, void *, void *);
 
+// Any COM method.
+template <typename... A> s32 com(void *object, u32 offset, A... args) { return method<s32(__stdcall *)(void *, A...)>(object, offset)(object, args...); }
+
 }  // namespace
 
 extern "C" {
+
+u32 __fastcall MovieSound_CreateStream(u8 *player, void *) {
+    struct Format {
+        u16 tag, channels;
+        u32 rate, bytes;
+        u16 align, bits, extra;
+    };
+    u8 *const s = settings(player);
+    bool made = false;
+    if (void *const device = at<void *>(s, 0x54)) {
+        const u32 rate = at<u32>(player, 0x5c);
+        Format format = {1, 2, rate, rate << 2, 4, 0x10, 0};
+        u32 description[5] = {0x14, 0x100e0, at<u32>(player, 0x3d4), 0, (u32)(uintptr_t)&format};
+        if (!com(device, 0xc, description, &at<void *>(s, 0x5c), 0u)) {
+            void *const buffer = at<void *>(s, 0x5c);
+            com(buffer, 0x44, at<u32>(player, 0x5c));
+            u32 caps[5] = {0x14, 0, 0, 0, 0};
+            if (at<u32>(s, 4) & 0x2000) com(buffer, 0x3c, at<u32>(s, 0x8c));
+            if (!com(buffer, 0xc, caps)) {
+                at<u32>(player, 0x36c) = caps[2];
+                at<u32>(player, 0x370) = 0;
+                at<u32>(player, 0x3cc) = 0;
+                u8 *first, *second;
+                u32 firstBytes, secondBytes;
+                if (!com(buffer, 0x2c, at<u32>(player, 0x370), at<u32>(player, 0x36c), &first, &firstBytes, &second, &secondBytes, 0u)) {
+                    std::memset(first, 0, firstBytes);
+                    if (secondBytes) std::memset(second, 0, secondBytes);
+                    com(buffer, 0x4c, first, firstBytes, second, secondBytes);
+                }
+                made = !com(buffer, 0x30, 0u, 0u, 1u);
+            }
+            if (!made) com(buffer, 8);
+        }
+    }
+    if (!made) {
+        at<void *>(s, 0x5c) = nullptr;
+        at<u32>(player, 0x3c8) = 0;
+        at<u32>(player, 0x36c) = 0x8000;
+        at<u32>(player, 0x3cc) = 1;
+        at<u32>(player, 0x370) = 0;
+    }
+    at<u32>(player, 0x368) = 1;
+    return 0;
+}
 
 u32 __fastcall MovieSound_BufferBytes(void *buffer, void *) {
     u32 caps[5] = {0x14, 0, 0, 0, 0};
