@@ -431,7 +431,7 @@ u32 __fastcall D3dProbe_DrawBatchTinted(u8 *probe, void *, u8 *batch) {
     const u8 *source = at<u8 *>(batch, 0x28);
     if (vertices == source) vertices += at<u32>(batch, 0x20) * stride;
     const u32 size = stride * at<u32>(batch, 0x20);
-    for (u32 i = 0; i < size >> 2; ++i) at<u32>(vertices, 4 * i) = at<u32>(source, 4 * i);   // (forward, as rep movs: the two may overlap; the size is always whole dwords)
+    for (u32 i = 0; i < size >> 2; ++i) at<u32>(vertices, 4 * i) = at<u32>(source, 4 * i);   // (forward, as rep movs: the two may overlap. The original then copies the size's last 2 bits as bytes: every stride here is whole dwords, so none, and it is left out)
     for (s32 i = 0; i < at<s32>(batch, 0x20); ++i) at<u32>(vertices, static_cast<u32>(i) * stride + 0x10) = 0xffff0000;
     if (!(shadow(probe) & 0x100)) {
         renderState(probe, 0x1b, 1);

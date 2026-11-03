@@ -6,9 +6,16 @@
 #include "../coaster/registry.h"
 #include "../core/accessors.h"
 #include "../core/globals.h"
+#include "../coaster/placecheck.h"
 #include "../core/trivial.h"
 #include "../files/wrapsources.h"
+#include "cellbuild.h"
+#include "cellmessage.h"
+#include "cellrun.h"
+#include "hoardinggrid.h"
 #include "mapcell.h"
+#include "mapline.h"
+#include "objectdefs.h"
 
 namespace {
 
@@ -17,23 +24,23 @@ template <typename T> T &at(const void *base, u32 offset) { return *reinterpret_
 template <typename F> F raw(u32 address) { return reinterpret_cast<F>((uintptr_t)address); }
 
 const MapPreviewEnv kGameEnv = {
-    raw<u32(__cdecl *)(u32, s32, s32, s32 *, s32 *)>(0x00536100),
-    raw<u32(__cdecl *)(u32, s32, s32, s32 *, s32 *)>(0x0053aac0),
+    reinterpret_cast<u32(__cdecl *)(u32, s32, s32, s32 *, s32 *)>(&Map_SendLine),
+    &Map_ApplyLine,
     raw<s32 *(__cdecl *)(s32, s32, u32, s32, u32, u32)>(0x00528a70),
     raw<void(__cdecl *)(u32, u32)>(0x0052f1b0),
     raw<void(__cdecl *)(s32, s32, u32)>(0x00527960),
     raw<void(__cdecl *)(s32, s32, u32, u32)>(0x00524960),
     raw<void(__cdecl *)(u32, u32)>(0x0052f580),
-    raw<void(__cdecl *)()>(0x00530e80),
+    &CellRun_Corners,
     raw<s32(__cdecl *)(u8 *, u8 *, u32)>(0x0052b400),
-    raw<s32(__cdecl *)(s32, s32, s32, s32, u8)>(0x00531a50),
-    raw<u32(__cdecl *)(s32, s32, s32, s32)>(0x00532a50),
-    raw<s32(__cdecl *)(u32, u32, u8 *, u32, u32, u32, u32)>(0x00434740),
+    &HoardingGrid_CheckArea,
+    &HoardingGrid_AreaBlocked,
+    &CoasterPiece_CanPlaceAt,
     raw<void(__cdecl *)()>(0x0052f950),
-    raw<u32(__fastcall *)(u8 *, void *, u32, u32, u32)>(0x00539760),
+    &MapCell_CanBuildTrack,
     raw<u32(__fastcall *)(u8 *, void *, u32)>(0x004d4b70),
     raw<u16 *(__fastcall *)(const u8 *, void *, u16 *)>(0x004d99e0),
-    raw<u8 *(__fastcall *)(u8 *, void *, u16)>(0x00412e90),
+    &ObjectDefs_Find,
     raw<u32(__fastcall *)(u8 *)>(0x005195d0),
 };
 const MapPreviewEnv *g_env = &kGameEnv;

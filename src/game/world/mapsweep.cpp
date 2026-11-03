@@ -4,12 +4,13 @@
 #include <cstdint>
 
 #include "cellmodel.h"
+#include "queuepieces.h"
 
 namespace {
 
 using CellFn = void(__fastcall *)(u8 *);
 
-const MapSweepEnv kGameEnv = {reinterpret_cast<CellFn>((uintptr_t)0x00536780), reinterpret_cast<CellFn>((uintptr_t)0x005366e0), reinterpret_cast<CellFn>(MapCell_PlaceRide)};
+const MapSweepEnv kGameEnv = {reinterpret_cast<CellFn>((uintptr_t)0x00536780), reinterpret_cast<CellFn>(CellPaint_Apply), reinterpret_cast<CellFn>(MapCell_PlaceRide)};
 const MapSweepEnv *g_env = &kGameEnv;
 
 void sweep(u8 *map, CellFn first, CellFn second) {

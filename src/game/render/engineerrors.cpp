@@ -5,11 +5,13 @@
 
 #include "dxerrors.h"
 
+#include "enginedebug.h"
+
 namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
-const EngineErrorsEnv kGameEnv = {reinterpret_cast<void(__cdecl *)(const char *)>((uintptr_t)0x00564650)};
+const EngineErrorsEnv kGameEnv = {&EngineDebug_Log};
 const EngineErrorsEnv *g_env = &kGameEnv;
 
 }  // namespace
