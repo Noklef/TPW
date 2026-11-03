@@ -993,7 +993,7 @@ def _cdecl_log4(e):  # (driver.cpp stub_cdecl_log4)
     args = _log_args(e, 0x3d, raw, 0x13d)
     count = e.u32(LOG)
     if count < LOG_ENTRIES:
-        e.write(LOG + 4 + 4 * LOG_ENTRY * count, struct.pack('<%dI' % LOG_ENTRY, 0x13d, len(raw), 0, *args, *([0] * (9 - len(raw)))))
+        e.write(LOG + 4 + 4 * LOG_ENTRY * count, struct.pack('<%dI' % LOG_ENTRY, 0x13d, len(raw), 0, *(list(args) + [0] * 7)[:7], tail_hash(args), 0))
         e.write(LOG, struct.pack('<I', count + 1))
     flag, value = struct.unpack('<2I', e.read(LOG + LOG_RETURNS + 8 * 0x3d, 8))
     e.r['EAX'] = raw[value] if flag == 2 and value < 4 else value if flag else vhash(0x13d, len(raw), 0, args)
