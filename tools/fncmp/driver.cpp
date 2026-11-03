@@ -225,6 +225,7 @@
 #include "../../src/game/render/spritegroups.h"
 #include "../../src/game/render/tiledpanel.h"
 #include "../../src/game/render/groundshadow.h"
+#include "../../src/game/gfx/spriteframe.h"
 #include "../../src/game/gfx/spriteframelights.h"
 #include "../../src/game/model/ridebase.h"
 #include "../../src/game/world/parkentrance.h"
@@ -778,6 +779,7 @@ const RideSkinEnv kRideSkinEnv = {Rec{jpeg_recorder(1, 1)}};
 const LobbySceneEnv kLobbySceneEnv = {Rec{jpeg_recorder(1, 1)}, Rec{recorder(2, 0)}};
 const ChatCursorEnv kChatCursorEnv = {Rec{jpeg_recorder(1, 0)}, Rec{jpeg_recorder(2, 4)}, Rec{jpeg_recorder(3, 0)}, Rec{recorder(4, 1)}, Rec{recorder(5, 1)}};
 // tests/fncmp/d3dprobe.py: the clock a recorder.
+const SpriteFramesEnv kSpriteFramesEnv = {reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)(kStubs + 0x1000 + 0x20 * 20))};   // (slot 20's thiscall recorder of no arguments)
 const D3dProbeEnv kD3dProbeEnv = {reinterpret_cast<u32(__cdecl *)()>((uintptr_t)jpeg_recorder(15, 0))};
 // tests/fncmp/enginedebug.py: the C library's file calls recorders.
 const EngineDebugEnv kEngineDebugEnv = {reinterpret_cast<void *(__cdecl *)(const char *, const char *)>((uintptr_t)jpeg_recorder(11, 2)),
@@ -1937,6 +1939,7 @@ int main(int argc, char **argv) {
     WKeywords_SetEnv(&kWKeywordsEnv);
     EngineDebug_SetEnv(&kEngineDebugEnv);
     D3dProbe_SetEnv(&kD3dProbeEnv);
+    SpriteFrames_SetEnv(&kSpriteFramesEnv);
     ChatCursor_SetEnv(&kChatCursorEnv);
     LobbyScene_SetEnv(&kLobbySceneEnv);
     RideSkin_SetEnv(&kRideSkinEnv);
