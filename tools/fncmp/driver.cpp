@@ -103,6 +103,7 @@
 #include "../../src/game/coaster/testrun.h"
 #include "../../src/game/world/trakcarroute.h"
 #include "../../src/game/coaster/typemodel.h"
+#include "../../src/game/world/sign.h"
 #include "../../src/game/world/mousemode.h"
 #include "../../src/game/world/person.h"
 #include "../../src/game/world/pathdrag.h"
@@ -556,6 +557,7 @@ const EditUpdateEnv kEditUpdateEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorde
                                       Rec{jpeg_recorder(9, 5)}, Rec{jpeg_recorder(10, 7)}};
 // The coaster test run's (0x43c450) calls: the cdecl recorders 1 of 1, 2 of 7, 3 of 4, 4 and 5 of 2, 6 of 3, 7 of 1, 8 of 2 and 9 of 1, as
 // tests/fncmp/testrun.py hooks them.
+const SignEnv kSignEnv = {Rec{jpeg_recorder(1, 10)}, Rec{jpeg_recorder(2, 3)}, Rec{jpeg_recorder(3, 2)}, Rec{jpeg_recorder(4, 1)}, Rec{jpeg_recorder(5, 1)}, Rec{jpeg_recorder(6, 3)}, Rec{jpeg_recorder(7, 6)}};
 const TypeModelEnv kTypeModelEnv = {Rec{jpeg_recorder(1, 10)}, Rec{jpeg_recorder(2, 6)}, Rec{jpeg_recorder(3, 3)}, Rec{jpeg_recorder(4, 1)}};
 const TrakCarRouteEnv kTrakCarRouteEnv = {Rec{jpeg_recorder(1, 3)}, Rec{jpeg_recorder(2, 10)}, Rec{jpeg_recorder(3, 7)}, Rec{jpeg_recorder(4, 4)}, Rec{jpeg_recorder(5, 2)}};
 const TestRunEnv kTestRunEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorder(2, 7)}, Rec{jpeg_recorder(3, 4)}, Rec{jpeg_recorder(4, 2)}, Rec{jpeg_recorder(5, 2)},
@@ -1324,6 +1326,7 @@ int main(int argc, char **argv) {
     TestRun_SetEnv(&kTestRunEnv);
     TrakCarRoute_SetEnv(&kTrakCarRouteEnv);
     TypeModel_SetEnv(&kTypeModelEnv);
+    Sign_SetEnv(&kSignEnv);
     Object_SetEnv(&kObjectEnv);
     StatsGraph_SetEnv(&kStatsGraphEnv);
     SpriteLoading_SetEnv(&kSpriteLoadingEnv);
