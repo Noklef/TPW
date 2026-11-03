@@ -4,7 +4,20 @@
 
 #include "../../../re/types.h"
 
+struct String;
+
+// Class702a50_Dtor's calls (the ports by default; the bench runs them as recorders).
+struct LobbySceneEnv {
+    void(__cdecl *destroy)(u32 ride);           // Ride_Destroy (0x463c80)
+    void(__fastcall *stringDtor)(String *text);  // String_Dtor (0x5f61e0)
+};
+void LobbyScene_SetEnv(const LobbySceneEnv *env);
+
 extern "C" {
+
+// 0x5d80c0 (class 0x702a50's destructor, thiscall; the SEH frame left out; name unconfirmed): the vtable 0x702a50, the object taken out by the registry [0xf83774] (its slot 8, +0x20, with the object), Ride_Destroy (+4), the strings at
+// +0x20 and +0xc destroyed.
+void __fastcall Class702a50_Dtor(u8 *object);
 
 // 0x5da120 (class 0x702af0; name unconfirmed): once (the flag at +4 then set to 1), each item of the list at +0x58 (head +4; nodes {item, next})
 // whose flag at +0xc is clear has its model at +8 set up (RideUser_Acquire) and the flag set to 1.
