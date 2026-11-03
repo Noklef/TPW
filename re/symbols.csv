@@ -5657,6 +5657,8 @@ address,name,kind,confidence,notes
 0x004d93b0,MapCell_StartEffect,function,low,"reimplemented (src/game/world/celleffect); a map cell's sprite effect started, its script by kind: name invented, unconfirmed"
 0x004c8240,RideUpkeep_Total,function,low,"reimplemented (src/game/world/rideupkeep); what the opened rides cost to keep up: name invented, unconfirmed"
 0x004dd500,Object_ClaimRide,function,low,"reimplemented (src/game/world/objectride); the object's record of its ride taken or made again: name invented, unconfirmed"
+0x004d8330,MapSweep_Reset,function,low,"reimplemented (src/game/world/mapsweep); every tile's cell and record reset: name invented, unconfirmed"
+0x004d83a0,MapSweep_Place,function,low,"reimplemented (src/game/world/mapsweep); every tile's cell and record placed: name invented, unconfirmed"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved
