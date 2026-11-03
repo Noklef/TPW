@@ -9,6 +9,7 @@
 #include "../core/indexed.h"
 #include "../core/selectors.h"
 #include "../core/stdstring.h"
+#include "../files/charsets.h"
 #include "../core/stdtree.h"
 #include "../core/string.h"
 #include "../core/textarg.h"
@@ -37,7 +38,7 @@ const ChatEventEnv kGameEnv = {&Window7cc8bc_ListSetDataStd,
                                &Window7cc8bc_ListRemove1Std,
                                game<void(__fastcall *)(void *, void *, u32, s32, const StdWString *, u32)>(0x004f7b20),
                                &Thing_Delete,
-                               game<u8 *(__fastcall *)(const u8 *, void *, void *)>(0x004c4a80),
+                               reinterpret_cast<u8 *(__fastcall *)(const u8 *, void *, void *)>(&StdString_CopyInto),
                                game<void(__fastcall *)(u8 *, void *, s32, u32, u32)>(0x005b87e0),
                                &Sprite_SetDestinationMarked,
                                &Thing_ResetPlaceAt,
@@ -45,7 +46,7 @@ const ChatEventEnv kGameEnv = {&Window7cc8bc_ListSetDataStd,
                                &Person_PlaceScript,
                                &SpriteScript_SetRegF,
                                &ChatAvatar_PlaceAtCell,
-                               game<s32(__cdecl *)(u8 *, u16 *, u32, u32, ...)>(0x006acd60),
+                               &Charset_FormatWide,
                                &Window7cc8bc_SetC3128};
 const ChatEventEnv *g_env = &kGameEnv;
 

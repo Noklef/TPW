@@ -1,6 +1,6 @@
 // A map cell's kind (+8) changed and a cell cleared (names invented, unconfirmed): the 0x44-byte map cells (id word +0, kind +8,
 // neighbour bits +0xc, direction +0xd, flags word +0xe, owner word +0x10, count word +0x20). Reimplementation of 0x5346d0 and 0x5367a0,
-// which call each other, and of the track cells' 0x538fc0, 0x53bb20 and 0x53b280. Agent C's unported 0x4de1f0 and agent A's 0x527ee0
+// which call each other, and of the track cells' 0x538fc0, 0x53bb20 and 0x53b280. Object_PathChanged 0x4de1f0 and agent A's 0x527ee0
 // (Path_CheckDeadEnds, not ported here yet) go through the env.
 #pragma once
 
@@ -13,7 +13,7 @@ struct CellKindEnv {
     void(__fastcall *thing4de1f0)(u8 *thing);                // 0x4de1f0 (thiscall on a thing, no arguments)
     void(__cdecl *deadEnds527ee0)(s32 x, s32 y, u32 flag);  // Path_CheckDeadEnds (0x527ee0, agent A's)
 };
-// The cell kinds' calls go to env (nullptr: the game's 0x4de1f0, the port of Path_CheckDeadEnds).
+// The cell kinds' calls go to env (nullptr: the ports of Object_PathChanged and Path_CheckDeadEnds).
 void CellKind_SetEnv(const CellKindEnv *env);
 
 // 0x5346d0 (thiscall (kind), pops 4; name invented, unconfirmed): 0 when the kind does not fit the cell (Kinds_Compatible). The cell's

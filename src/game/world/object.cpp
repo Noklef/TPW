@@ -21,6 +21,7 @@
 #include "analysercell.h"
 #include "flyingrides.h"
 #include "objectdefs.h"
+#include "camera.h"
 #include "person.h"
 #include "mapcell.h"
 #include "messagecentre.h"
@@ -42,7 +43,7 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 
 const ObjectEnv kGameEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, u8 *)>(&MessageCentre_Post),
                             &Visitor_QuitQueue, &Visitor_SendAway,
-                            reinterpret_cast<void(__cdecl *)(u32, s32, u32, u32, u32, u32)>((uintptr_t)0x0042a560)};
+                            reinterpret_cast<void(__cdecl *)(u32, s32, u32, u32, u32, u32)>(&Camera_FollowThing)};
 const ObjectEnv *g_env = &kGameEnv;
 
 }  // namespace
@@ -476,7 +477,7 @@ void __fastcall Object_MechanicDone(u8 *object, void *, u32) {
 }
 
 namespace {
-const ObjectPathEnv kGamePathEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x00501390)};
+const ObjectPathEnv kGamePathEnv = {&Visitor_QueueEdited};
 const ObjectPathEnv *g_path = &kGamePathEnv;
 }  // namespace
 

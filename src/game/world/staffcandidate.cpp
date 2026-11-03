@@ -6,6 +6,7 @@
 #include "../core/indexed.h"
 #include "../core/gameheap.h"
 #include "../sprite/sprite.h"
+#include "../ui/menuactions.h"
 #include "mousemode.h"
 #include "random.h"
 #include "staff.h"
@@ -16,7 +17,8 @@ namespace {
 template <typename T> T &at(u8 *p, u32 offset) { return *reinterpret_cast<T *>(p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const StaffCandidateEnv kGame = {reinterpret_cast<void(__fastcall *)(void *, void *, u32)>((uintptr_t)0x00481550)};
+void __fastcall tellStaffDialog(void *, void *, u32 slot) { Wrap_Dialog7ca308_StaffChanged_481550(slot); }   // (0x481550 reads no ECX)
+const StaffCandidateEnv kGame = {&tellStaffDialog};
 const StaffCandidateEnv *g_env = &kGame;
 
 u16 *const kTakenText = reinterpret_cast<u16 *>((uintptr_t)0x007cee18);

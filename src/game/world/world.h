@@ -1,6 +1,6 @@
 // The world's own small methods: reimplementation of 0x51aad0, 0x51aaf0, the built-rides
 // bitsets 0x51ab20 / 0x51ab60, and the empty and 12-byte record constructors 0x51ad30 /
-// 0x51ae10. World fields as World_Save (0x516c80) names them: +0x1da714
+// 0x51ae10. World fields as the save (0x516c80, worldsave.h) names them: +0x1da714
 // mNumberOfVisitorsToDate, +0x1da72a mCurrentArrivalVehicle, +0x1da72c mArrivalVehicle_Size1.
 // A ride's number in the ride database is its definition's +0x94 (1 on; 0 none), bit n - 1 of
 // a 32-byte bitset; its definition's +0x98 marks it to leave out of 0x51ab60's count.

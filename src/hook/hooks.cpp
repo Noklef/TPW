@@ -406,6 +406,7 @@
 #include "../game/world/visitorsteps.h"
 #include "../game/world/weather.h"
 #include "../game/world/world.h"
+#include "../game/world/worldsave.h"
 #include "../game/model/holder.h"
 #include "../game/coaster/tracktypes.h"
 #include "../game/coaster/bendmesh.h"
@@ -6041,6 +6042,8 @@ const Hook kHooks[] = {
     {"ParkEntrance_LayOutline",   0x005327e0, (void *)&ParkEntrance_LayOutline, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"Ride_RestoreSkinsAndDestroy", 0x004690a0, (void *)&Ride_RestoreSkinsAndDestroy, {0x55, 0x8b, 0x6c, 0x24, 0x08}},
     {"AdvisorTable_Fill",         0x005a0a50, (void *)&AdvisorTable_Fill, {0x53, 0x33, 0xdb, 0x89, 0x1d}},
+    {"World_Save",                0x00516c80, (void *)&World_Save, {0x6a, 0xff, 0x68, 0xe6, 0xe7}},
+    {"World_Load",                0x005179c0, (void *)&World_Load, {0x6a, 0xff, 0x68, 0x87, 0xe8}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},

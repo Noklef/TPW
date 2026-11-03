@@ -20,8 +20,7 @@ namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const CellKindEnv kGameEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x004de1f0),
-                              &Path_CheckDeadEnds};
+const CellKindEnv kGameEnv = {&Object_PathChanged, &Path_CheckDeadEnds};
 const CellKindEnv *g_env = &kGameEnv;
 
 u8 *World() { return global<u8 *>(0x007cf83c); }
