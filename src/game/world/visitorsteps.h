@@ -19,6 +19,8 @@ struct VisitorStepsEnv {
     u32(__fastcall *anyQueueSpot)(u8 *object, void *, u32 place, u16 *cell, u8 *x, u8 *y);  // Object_AnyQueueSpot 0x4de7e0
     void(__fastcall *placeSprite)(u8 *visitor, void *, float t);                          // Person_PlaceSprite 0x4fa030
     u32(__fastcall *playSound)(const u8 *visitor, void *, u32 category, u32 sound);       // Sprite_PlaySound 0x4faa00
+    u32(__fastcall *findQueueDestination)(u8 *visitor);                                   // Visitor_FindQueueDestination 0x501160
+    void(__fastcall *chooseMinorDest)(u8 *visitor);                                       // Visitor_ChooseMinorDest 0x4fd570
 };
 void VisitorSteps_SetEnv(const VisitorStepsEnv *env);
 

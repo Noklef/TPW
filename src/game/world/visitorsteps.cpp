@@ -16,6 +16,7 @@
 #include "ridelist.h"
 #include "thingmsg.h"
 #include "things.h"
+#include "visitoroption.h"
 #include "world.h"
 
 namespace {
@@ -26,7 +27,8 @@ template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((ui
 const VisitorStepsEnv kGameEnv = {&Sprite_WalkNav,       &Sprite_SetDestination, &Sprite_SetDestinationCell,
                                   &Sprite_SpawnParticle, &Thing_Delete,          &Visitor_SetState,
                                   &Object_BackOfQueueTo, &Object_QueuePosition,  &Object_AnyQueueSpot,
-                                  &Person_PlaceSprite,   &Sprite_PlaySound};
+                                  &Person_PlaceSprite,   &Sprite_PlaySound,      &Visitor_FindQueueDestination,
+                                  &Visitor_ChooseMinorDest};
 const VisitorStepsEnv *g_env = &kGameEnv;
 
 u8 *world() { return global<u8 *>(0x0080239c); }
