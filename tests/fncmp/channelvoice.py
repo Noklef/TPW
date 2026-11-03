@@ -15,13 +15,14 @@
 # synthesiser or null, +0x20 an EAX buffer (its three COM objects recorders or null) or null; the device singleton made (its two COM
 # objects recorders or null); the copier 0xfb2018 and the string's block any (freed to the heap).
 # The EAX channel's destructors (0x6c5be0, 0x6ba200: its records +0x68 a block or none; the deleting one's flags any) on the same.
+# The pool's start (0x6ba2c0): 0-4 voices, the thread's 0x67e050 a recorder, CreateEventA and SetThreadPriority recorders.
 # usage: channelvoice.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, echo, fb, fill, heap, import_table, log_region, recorder, set_return, strings, vtable  # noqa: E402
+from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, _recorder, echo, fb, fill, heap, import_table, log_region, recorder, set_return, strings, vtable  # noqa: E402
 
 # name: (address, convention, returns)
 CALLS = {'reset': (0x6c5060, 'c', 'v'), 'inc': (0x6c5070, 't', 'a'), 'dec': (0x6c5080, 't', 'a'), 'sound': (0x6bb7a0, 't', 'a'),
@@ -35,7 +36,7 @@ CALLS = {'reset': (0x6c5060, 'c', 'v'), 'inc': (0x6c5070, 't', 'a'), 'dec': (0x6
          'chanrelease': (0x6b76d0, 't', 'v'), 'basedtor': (0x6b7410, 't', 'v'), 'chandtor': (0x6b9c00, 't', 'v'), 'basedelete': (0x6b73f0, 't', 'a'), 'chandelete': (0x6b9be0, 't', 'a'), 'copierfree': (0x6b8150, 't', 'v'),
          'eaxdtor': (0x6c5be0, 't', 'v'), 'eaxdelete': (0x6ba200, 't', 'a'),
          'vdtor': (0x6bb050, 't', 'v'), 'vdelete': (0x6baff0, 't', 'a'), 'vsetnext': (0x6bb730, 't', 'a'), 'vfind': (0x6bb6c0, 't', 'a'),
-         'vquery': (0x6bb470, 't', 'a'), 'vread': (0x6bb5e0, 't', 'a')}
+         'vquery': (0x6bb470, 't', 'a'), 'vread': (0x6bb5e0, 't', 'a'), 'start': (0x6ba2c0, 't', 'a')}
 RANGES = [(0x6c5060, 0x6c506b), (0x6c5070, 0x6c5078), (0x6c5080, 0x6c5088), (0x6bb7a0, 0x6bb7bd), (0x6bb7c0, 0x6bb856), (0x6babc0, 0x6bac04),
           (0x6bac30, 0x6bac5c), (0x6b7e60, 0x6b7ea5), (0x6b8330, 0x6b8358),
           (0x6bb3e0, 0x6bb468), (0x6bb270, 0x6bb311), (0x6baf50, 0x6bafc9), (0x67acf0, 0x67ada0),
@@ -46,7 +47,7 @@ RANGES = [(0x6c5060, 0x6c506b), (0x6c5070, 0x6c5078), (0x6c5080, 0x6c5088), (0x6
           (0x6c4630, 0x6c4670), (0x6c4410, 0x6c4550), (0x6c47e0, 0x6c4800), (0x6c48b0, 0x6c4900), (0x6c5be0, 0x6c5c4a), (0x6ba200, 0x6ba21e),
           (0x67afa0, 0x67b0d0), (0x6baff0, 0x6bb0d0), (0x6bb470, 0x6bb500), (0x6bb5e0, 0x6bb7b0), (0x6c61e0, 0x6c6220), (0x6c6280, 0x6c62d0),
           (0x6c62e0, 0x6c6310)]
-B = Bench(RANGES)
+B = Bench(RANGES + [(0x6ba2c0, 0x6ba389)], hooks={0x67e050: _recorder(14, 3, cdecl=True)})
 VOICES, VVT, SND, SVT, POOL, CHAN, SRC, SRCVT, SETS, OUT = (RAM + 0x400 * i for i in range(10))
 EVENTS, EVT, HANDLES = RAM + 0x3800, RAM + 0x3900, RAM + 0x3a00   # (the pool destructor's voice events)
 CH2, CO, COVT, EAXB2, HOST, SRC2, SRC2VT = (RAM + 0x3c00 + 0x80 * i for i in range(7))   # (the channel's release and destructors)
@@ -137,6 +138,13 @@ def case(r):
         regions[HEAP] = heap(0xa000, fail=r.choice([0, 0, 0, 1, 2, count + 2, count + 3]))
         regions[POOL] = r.bytes(0x14)
         return Call(address, [POOL, CHAN, count], regions, conv=conv, ret=ret)
+    if name == 'start':   # (the pool's voices, its events' handles; the asked count below, at or above the capacity; the thread, made or not; each event's handle any)
+        regions[POOL] = struct.pack('<2I', n, VOICES) + r.bytes(8) + struct.pack('<I', EVENTS)
+        regions[EVENTS] = r.bytes(0x10) + struct.pack('<I', HANDLES) + r.bytes(4)
+        regions[HANDLES] = r.bytes(4 * (n + 1))
+        regions[IMPORT_TABLE] = import_table(log, dict(IMPORTS, SetThreadPriority=(50, 0x6fd1fc, 2, 0, 0)))
+        set_return(log, 14, r.choice([0, r.getrandbits(32), r.getrandbits(32)]))
+        return Call(address, [POOL, OUT, r.choice([0, n, n + 1, max(n - 1, 0), r.getrandbits(32)])], regions, conv=conv, ret=ret)
     if name == 'refill':   # (the buffer +0x68 and the events +0x6c / *+0x70 any; slot 7 answering 1 (the end) or not)
         struct.pack_into('<I', regions[VOICES], 0x70, OUT)
         return Call(address, [VOICES], regions, conv=conv, ret=ret)

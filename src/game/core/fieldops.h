@@ -80,6 +80,12 @@ u32 __fastcall Top_Insert(u8 *object, void *, u8 *node);
 // and +0x46 = 0xff. Returns the object.
 u8 *__fastcall Class70a7e0_Ctor(u8 *object);
 
+// 0x6be0e0 (thiscall; called from 0x6be099; name invented, unconfirmed): Class70a7e0_Ctor, then vtable 0x70a338. Returns the object.
+u8 *__fastcall Class70a338_Ctor(u8 *object);
+// 0x6be090 (cdecl (a, block, c, info); name invented, unconfirmed): Class70a338_Ctor on the block (null: 0), then the object's slot 4 (out: the block's own stack slot, a, c,
+// info + 0xc, info's +0x18). A status not negative: the object; otherwise 0 (the object left as it is).
+u8 *__cdecl Class70a338_Make(u32 a, u8 *block, u32 c, u8 *info);
+
 // 0x6b85a0 (thiscall; status, flag, pops 8): with a target at +0x24: bit 10 of its dword at +0x28 is set (flag) or cleared and,
 // when cleared with a chain owner at +0x20, that owner's chain is promoted (Chain24_Promote400To100); *status = 0. Without a
 // target *status = -1. Returns status.

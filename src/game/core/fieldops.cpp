@@ -189,6 +189,20 @@ u32 __fastcall Top_Insert(u8 *object, void *, u8 *node) {
     return key;
 }
 
+u8 *__fastcall Class70a338_Ctor(u8 *object) {
+    Class70a7e0_Ctor(object);
+    at<u32>(object, 0) = 0x0070a338;
+    return object;
+}
+
+u8 *__cdecl Class70a338_Make(u32 a, u8 *block, u32 c, u8 *info) {
+    if (!block) return nullptr;
+    u8 *const object = Class70a338_Ctor(block);
+    using Slot = s32 *(__fastcall *)(u8 *, void *, u8 **, u32, u32, u8 *, u32);
+    const Slot slot = reinterpret_cast<Slot>(at<u32 *>(object, 0)[4]);
+    return *slot(object, nullptr, &block, a, c, info + 0xc, at<u32>(info, 0x18)) < 0 ? nullptr : object;
+}
+
 u8 *__fastcall Class70a7e0_Ctor(u8 *object) {
     for (u32 off : {4u, 8u, 0xcu, 0x10u, 0x14u, 0x18u, 0x1cu, 0x20u, 0x24u, 0x28u, 0x30u, 0x3cu, 0x40u})
         at<u32>(object, off) = 0;

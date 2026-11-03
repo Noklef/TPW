@@ -268,6 +268,39 @@ u8 *__fastcall ChannelVoices_Ctor(u8 *pool, void *, u8 *channel, u32 count) {
     return pool;
 }
 
+namespace {
+
+const ChannelVoicesEnv kVoicesEnv = {reinterpret_cast<u32(__cdecl *)(u32, u32, void *)>((uintptr_t)0x0067e050)};
+const ChannelVoicesEnv *g_voices = &kVoicesEnv;
+
+u32 createEvent() {
+    using Create = u32(__stdcall *)(void *, u32, u32, const char *);
+    return Import<Create>(0x006fd0d4)(nullptr, 1, 0, nullptr);   // CreateEventA
+}
+
+}  // namespace
+
+void ChannelVoices_SetEnv(const ChannelVoicesEnv *env) { g_voices = env ? env : &kVoicesEnv; }
+
+u32 *__fastcall ChannelVoices_Start(u8 *pool, void *, u32 *out, u32 requested) {
+    const u32 count = at<u32>(pool, 0);
+    at<u32>(pool, 8) = requested < count ? requested : count;
+    if (count) {
+        for (u32 i = 0; (u16)i < at<u32>(pool, 0); ++i) {
+            VoiceId_SetHigh(reinterpret_cast<u32 *>(at<u8 *>(pool, 4) + i * 0x8c + 0x2c), nullptr, i);
+            at<u32 *>(at<u8 *>(pool, 0x10), 0x10)[i] = createEvent();
+            at<u32 *>(at<u8 *>(pool, 4) + i * 0x8c, 0x70) = at<u32 *>(at<u8 *>(pool, 0x10), 0x10) + i;
+        }
+    }
+    u32 *const stop = at<u32 *>(at<u8 *>(pool, 0x10), 0x10) + at<u32>(pool, 0);
+    *stop = createEvent();
+    const u32 thread = g_voices->beginThread(0x006ba220, 0, pool);
+    using SetPriority = s32(__stdcall *)(u32, s32);
+    Import<SetPriority>(0x006fd1fc)(thread, 0);   // SetThreadPriority
+    *out = thread ? 0 : 0xffffffffu;
+    return out;
+}
+
 u32 __fastcall ChannelVoice_Refill(u8 *voice) {
     u32 done;   // (the read's out: not read after)
     const u32 read = vcall<u32>(voice, 0x1c, at<u32>(voice, 0x68), 0x2400u, &done, 0u);

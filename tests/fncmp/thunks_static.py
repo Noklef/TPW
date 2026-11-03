@@ -29,6 +29,7 @@ FUNCS = [
     (0x5c4c50, 'global', 0xf816c0, 'v'),
     (0x5c74a0, 'self', None, 'v'),
     (0x5f5560, 'global', 0xfa6e40, 'a'),
+    (0x4fa750, 'cdecl', None, 'v'),
     (0x5fcce0, 'cdecl', None, 'v'),
     (0x5fcd30, 'cdecl', None, 'v'),
     (0x5fcd80, 'cdecl', None, 'v'),
@@ -63,6 +64,7 @@ FUNCS = [
     (0x6d8990, 'list', 0xfb34e0, 'v'),
 ]
 B = Bench([
+    (0x4fa750, 0x4fa764), (0x5d1750, 0x5d1751),
     (0x5da3c0, 0x5da3c1), (0x507080, 0x5070c0), (0x67acf0, 0x67ada0), (0x67afa0, 0x67b0d0), (0x67b050, 0x67b0d0),
     (0x5f5e80, 0x5f5f20),
     (0x618d30, 0x618d90),

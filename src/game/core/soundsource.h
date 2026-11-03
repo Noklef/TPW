@@ -48,4 +48,33 @@ u32 __fastcall SoundSource711b08_HasCaps(u8 *source);
 // again, its slot 0 (1) unless null; *slot = 0. The device's source maker's failure path (0x6c4190).
 void __fastcall SoundSource_Destroy(void *, void *, u8 **slot);
 
+// 0x6d2d70 (thiscall (arg), pops 4; an SEH frame; name invented): Init_6d6c50; +0x18 - +0x2c = 0, +0x34 = arg, the critical section +0x38 initialised; vtable
+// 0x711b08; the global 0xfb2724 = the source. Returns it.
+u8 *__fastcall SoundSource711b08_Ctor(u8 *source, void *, u32 arg);
+// 0x6d1e30 (thiscall; an SEH frame; name invented): Init_6d6c50; +0x18, +0x1c, +0x20 = 0; vtable 0x711920; a new 4-byte helper (vtable 0x711910; null when the
+// heap fails) set as SoundHelper_Set does. Returns the source.
+u8 *__fastcall SoundSource711920_Ctor(u8 *source);
+// 0x6b9d70 (cdecl; name invented): the global 0xfb1f04 = helper (the old one not freed).
+void __cdecl SoundHelper_Set(void *helper);
+// 0x6b9d50 (cdecl; name invented): the global 0xfb1f04 freed unless null; it keeps its value.
+void __cdecl SoundHelper_Free();
+
+// 0x6d1ec0 (thiscall; an SEH frame; called by the deleting destructor 0x6d1ea0; name invented, unconfirmed): vtable 0x711920; the blocks +0x20 and +0x1c freed (each unless null);
+// vtable 0x7119b8; SoundHelper_Free.
+void __fastcall SoundSource711920_Dtor(u8 *source);
+// 0x6d1ea0 (thiscall (flags), pops 4; name invented, unconfirmed): SoundSource711920_Dtor, then the source freed for flags bit 0. Returns the source.
+u8 *__fastcall SoundSource711920_DeletingDtor(u8 *source, void *, u32 flags);
+
+// 0x6c4190 (thiscall (out, slot, info, arg), pops 0x10; an SEH frame; this only handed on; name invented): *slot = a new 0x711b08 source (SoundSource711b08_Ctor (arg);
+// null when the heap fails, which faults), its slot 6 (a local out holding arg, info). Its answer's status non-negative: *out = 0. Else SoundSource_Destroy, and again
+// with a new QSound mixer source (SoundSource711920_Ctor; the out holding the block); non-negative *out = 0, else SoundSource_Destroy and *out = -1. Returns out.
+u32 *__fastcall SoundSource_Make(void *self, void *, u32 *out, u8 **slot, const u8 *info, u32 arg);
+
 }
+
+// The maker's constructors, so that the bench can answer objects of its own (nullptr: the game's).
+struct SoundMakeEnv {
+    u8 *(__fastcall *ctorB)(u8 *source, void *, u32 arg);   // SoundSource711b08_Ctor 0x6d2d70
+    u8 *(__fastcall *ctorA)(u8 *source);                    // SoundSource711920_Ctor 0x6d1e30
+};
+void SoundSource_SetMakeEnv(const SoundMakeEnv *env);

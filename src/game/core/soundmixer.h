@@ -81,6 +81,9 @@ u32 __fastcall SoundMixer_CallVoice9(u8 *mixer, void *, u32 id, u32 value);
 // +0x2c then raised), its flags +0x30 0 and pushed on the free chain (Chain20_PushFront), the pages' count +0x28 raised and *out = 0.
 // Returns out.
 u32 *__fastcall SoundMixer_AddPage(u8 *mixer, void *, u32 *out);
+// 0x6b68d0 (thiscall (out), pops 4; name invented, unconfirmed): the first free voice (+0x20) made active (Chain20_MoveTo24), *out its stamp (SoundMixer_StampVoice); returns the voice.
+// None free: a page added (SoundMixer_AddPage to a local): failing, 0 (out left); else itself again.
+u8 *__fastcall SoundMixer_TakeVoice(u8 *mixer, void *, u32 *out);
 // 0x6b6650 (thiscall (owner, definition, info), pops 0xc; name invented): the first slot (+0x40, count +0x4c) that is 0; none: 0. Else
 // the array's voice there (+0x3c + slot * 0x50) constructed (Voice70a4f0_Ctor) and its slot 4 (SoundVoice_Init: out the info argument's
 // own slot (sic), owner, definition, info + 0xc, info's +0x18): negative, 0 (the voice left constructed); else the slot = the voice, 1.

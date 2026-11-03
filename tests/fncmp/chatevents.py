@@ -17,14 +17,15 @@ from chatcommand import AVATAR, CHAT, OBJ, OUT, POOL, SESSION, TOKENS, TOKVEC, T
 import thingenv  # noqa: E402
 
 NAMEW, NARROW, DIGITS, ME, THINGS = RAM + 0x1400, RAM + 0x7000, RAM + 0x7100, RAM + 0x7200, RAM + 0x10000
-B = Bench(cc.RANGES + [(0x4e6e80, 0x4e9ec0), (0x4ee710, 0x4ee8c3), (0x4f2700, 0x4f2767), (0x4ea0e0, 0x4ea215), (0x4f0170, 0x4f0240), (0x4f2590, 0x4f2700),
+RANGES = (cc.RANGES + [(0x4e6e80, 0x4e9ec0), (0x4ee710, 0x4ee8c3), (0x4f2700, 0x4f2767), (0x4ea0e0, 0x4ea215), (0x4f0170, 0x4f0240), (0x4f2590, 0x4f2700),
                        (0x4f3b10, 0x4f4050), (0x5ce530, 0x5ce540), (0x4f0370, 0x4f0390), (0x4f5430, 0x4f54e0), (0x67a520, 0x67a610), (0x67a480, 0x67a520),
                        (0x516130, 0x5161b0), (0x4cd300, 0x4cd720), (0x5da3c0, 0x5da3d0), (0x4f7d70, 0x4f7da0), (0x67c290, 0x67d340), (0x50b350, 0x50b360),
-                       (0x4f04c0, 0x4f04d0), (0x4f0240, 0x4f0250), (0x4ea220, 0x4ea240), (0x4d8690, 0x4d86d0), (0x4ebf00, 0x4ebfb0), (0x4f2d50, 0x4f3290)],
-          hooks={**cc.HOOKS, 0x6acd60: _recorder(25, 7, cdecl=True), 0x481850: _recorder(29, 2, com=True), 0x4818a0: _recorder(30, 2, com=True),
-                 0x481840: _recorder(31, 1, com=True), 0x481890: _recorder(32, 1, com=True), 0x4f7b20: _recorder(3, 4), 0x50b780: _recorder(4, 0),
-                 0x4c4a80: _recorder(5, 1), 0x5b87e0: _recorder(6, 3), 0x4f7de0: _recorder(7, 2), 0x4f7e20: _recorder(8, 2), 0x4f9ed0: _recorder(10, 0),
-                 0x4f9e60: _recorder(11, 5), 0x4755d0: _recorder(14, 3, cdecl=True), 0x4ebfb0: _recorder(13, 2), 0x4bd400: _recorder(15, 1, cdecl=True)})
+                       (0x4f04c0, 0x4f04d0), (0x4f0240, 0x4f0250), (0x4ea220, 0x4ea240), (0x4d8690, 0x4d86d0), (0x4ebf00, 0x4ebfb0), (0x4f2d50, 0x4f3290)])
+HOOKS = {**cc.HOOKS, 0x6acd60: _recorder(25, 7, cdecl=True), 0x481850: _recorder(29, 2, com=True), 0x4818a0: _recorder(30, 2, com=True),
+         0x481840: _recorder(31, 1, com=True), 0x481890: _recorder(32, 1, com=True), 0x4f7b20: _recorder(3, 4), 0x50b780: _recorder(4, 0),
+         0x4c4a80: _recorder(5, 1), 0x5b87e0: _recorder(6, 3), 0x4f7de0: _recorder(7, 2), 0x4f7e20: _recorder(8, 2), 0x4f9ed0: _recorder(10, 0),
+         0x4f9e60: _recorder(11, 5), 0x4755d0: _recorder(14, 3, cdecl=True), 0x4ebfb0: _recorder(13, 2), 0x4bd400: _recorder(15, 1, cdecl=True)}
+B = Bench(RANGES, hooks=HOOKS)
 # The Chat's methods the events call (slot: k, stack arguments with the context)
 METHODS = {0x6fd4bc: (1, 1), 0x6fd484: (9, 2), 0x6fd488: (12, 2), 0x6fd4cc: (2, 4)}
 # The format's string arguments by code (the codes of no format: 0)

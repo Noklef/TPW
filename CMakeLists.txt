@@ -207,6 +207,10 @@ add_library(tpw_game STATIC
     src/game/core/narrowwriter.cpp
     src/game/core/wfilebuf.cpp
     src/game/core/soundworker.cpp
+    src/game/core/soundobjectslots.cpp
+    src/game/core/soundwait.cpp
+    src/game/core/soundguard.cpp
+    src/game/core/soundseed.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
@@ -607,6 +611,10 @@ add_library(tpw_game STATIC
     src/game/world/worldsave.cpp
     src/game/world/scapeobjects.cpp
     src/game/world/objectctor.cpp
+    src/game/world/objectupdate.cpp
+    src/game/world/researcher.cpp
+    src/game/world/staffheld.cpp
+    src/game/world/mapreset.cpp
     src/game/ui/staffrename.cpp
     src/game/ui/window7cc8bc.cpp
     src/game/ui/dialog7cb2b8.cpp

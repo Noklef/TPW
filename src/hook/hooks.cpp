@@ -223,18 +223,22 @@
 #include "../game/core/soundcmd.h"
 #include "../game/core/sounddevice.h"
 #include "../game/core/soundeax.h"
+#include "../game/core/soundguard.h"
 #include "../game/core/soundindex.h"
 #include "../game/core/soundmanager.h"
 #include "../game/core/soundmixer.h"
 #include "../game/core/soundnames.h"
 #include "../game/core/soundobject.h"
+#include "../game/core/soundobjectslots.h"
 #include "../game/core/soundoccluders.h"
 #include "../game/core/soundplay.h"
 #include "../game/core/soundsample.h"
+#include "../game/core/soundseed.h"
 #include "../game/core/soundslot.h"
 #include "../game/core/soundsource.h"
 #include "../game/core/soundstream.h"
 #include "../game/core/soundvoice.h"
+#include "../game/core/soundwait.h"
 #include "../game/core/soundworker.h"
 #include "../game/core/startcheck.h"
 #include "../game/core/streamfilter.h"
@@ -370,11 +374,13 @@
 #include "../game/world/mapclick.h"
 #include "../game/world/mappress.h"
 #include "../game/world/mappreview.h"
+#include "../game/world/mapreset.h"
 #include "../game/world/mapsweep.h"
 #include "../game/world/objectctor.h"
 #include "../game/world/objectride.h"
 #include "../game/world/objectstatus.h"
 #include "../game/world/objectunlock.h"
+#include "../game/world/objectupdate.h"
 #include "../game/world/objectwear.h"
 #include "../game/world/parkentrance.h"
 #include "../game/world/parkgates.h"
@@ -385,6 +391,7 @@
 #include "../game/world/queuepieces.h"
 #include "../game/world/queuetrace.h"
 #include "../game/world/placeobject.h"
+#include "../game/world/researcher.h"
 #include "../game/world/tracksquare.h"
 #include "../game/world/rides.h"
 #include "../game/world/staffcandidate.h"
@@ -394,6 +401,7 @@
 #include "../game/world/rideupkeep.h"
 #include "../game/world/scapeobjects.h"
 #include "../game/world/staffctors.h"
+#include "../game/world/staffheld.h"
 #include "../game/world/staffsteps.h"
 #include "../game/world/staffthink.h"
 #include "../game/world/staffwork.h"
@@ -2679,6 +2687,7 @@ const Hook kHooks[] = {
     {"Sound_ReleaseGlobalCategories", 0x0051eda0, (void *)&Sound_ReleaseGlobalCategories, {0xa1, 0x20, 0x3a, 0x80, 0x00}},
     {"Sound_ReleaseThemeCategories", 0x0051ee40, (void *)&Sound_ReleaseThemeCategories, {0xa1, 0x38, 0x3a, 0x80, 0x00}},
     {"Sound_SetCameraLevel",      0x0051b920, (void *)&Sound_SetCameraLevel, {0xa1, 0xc8, 0x2b, 0x80, 0x00}},
+    {"Sound_Start",               0x0051b660, (void *)&Sound_Start, {0x8b, 0x44, 0x24, 0x08, 0x83}},
     {"GlobalSave_ThemeByte",      0x005af7f0, (void *)&GlobalSave_ThemeByte, {0x8b, 0x41, 0x48, 0x8b, 0x4c}},
     {"GlobalSave_Byte26",         0x005af800, (void *)&GlobalSave_Byte26, {0x8b, 0x44, 0x24, 0x04, 0x8a}},
     {"GlobalSave_Inc20",          0x005afc30, (void *)&GlobalSave_Inc20, {0xff, 0x41, 0x20, 0xc3, 0x90}},
@@ -3374,6 +3383,8 @@ const Hook kHooks[] = {
     {"Top_Insert",                0x006b6bc0, (void *)&Top_Insert, {0x8b, 0x41, 0x48, 0x53, 0x55}},
     {"Class70a7e0_Ctor",          0x006bb950, (void *)&Class70a7e0_Ctor, {0x8b, 0xc1, 0x80, 0xca, 0xff}},
     {"Target24_SetBit400",        0x006b85a0, (void *)&Target24_SetBit400, {0x8b, 0x41, 0x24, 0x85, 0xc0}},
+    {"Class70a338_Ctor",          0x006be0e0, (void *)&Class70a338_Ctor, {0x56, 0x8b, 0xf1, 0xe8, 0x68}},
+    {"Class70a338_Make",          0x006be090, (void *)&Class70a338_Make, {0x8b, 0x4c, 0x24, 0x08, 0x56}},
     {"Obj_Get18Of14",             0x006d4b00, (void *)&Obj_Get18Of14, {0x8b, 0x41, 0x14, 0x85, 0xc0}},
     {"Obj_MarkNodeIf14",          0x006d4b10, (void *)&Obj_MarkNodeIf14, {0x8b, 0x41, 0x14, 0x85, 0xc0}},
     {"Obj_SetBit1At28",           0x006c5ce0, (void *)&Obj_SetBit1At28, {0x8b, 0x41, 0x28, 0xa8, 0x01}},
@@ -3548,6 +3559,7 @@ const Hook kHooks[] = {
     {"Wrap_TexSurfaceA_Blit_58c340", 0x0058c340, (void *)&Wrap_TexSurfaceA_Blit_58c340, {0x2b, 0x49, 0xfc, 0xe9, 0xc8}},
     {"Wrap_MsgTags_AddVersion_481b70", 0x00481b70, (void *)&Wrap_MsgTags_AddVersion_481b70, {0xe9, 0x1b, 0xd5, 0x00, 0x00}},
     {"Wrap_MsgTags_Post_481580",  0x00481580, (void *)&Wrap_MsgTags_Post_481580, {0x8b, 0x44, 0x24, 0x04, 0x50}},
+    {"Wrap_Array7ced88_Dtor_4fa750", 0x004fa750, (void *)&Wrap_Array7ced88_Dtor_4fa750, {0x68, 0x50, 0x17, 0x5d, 0x00}},
     {"Table_AddressPlus18",       0x006b0620, (void *)&Table_AddressPlus18, {0x8b, 0x51, 0x08, 0x56, 0x85}},
     {"Table_Address",             0x006b0650, (void *)&Table_Address, {0x8b, 0x51, 0x08, 0x56, 0x85}},
     {"Packed_Read",               0x006b0510, (void *)&Packed_Read, {0x56, 0x8b, 0x74, 0x24, 0x08}},
@@ -3900,6 +3912,7 @@ const Hook kHooks[] = {
     {"CRT_VectorDtorIterator",    0x0067afa0, (void *)&CRT_VectorDtorIterator, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"CRT_VectorCtorIteratorNoEh", 0x00401000, (void *)&CRT_VectorCtorIteratorNoEh, {0x8b, 0x44, 0x24, 0x0c, 0x48}},
     {"CRT_VectorVbaseCtorIterator", 0x0067d830, (void *)&CRT_VectorVbaseCtorIterator, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"CRT_wcsset",                0x006d76f0, (void *)&CRT_wcsset, {0x8b, 0x4c, 0x24, 0x04, 0x8b}},
     {"Obj_CallSlot18",            0x005c5510, (void *)&Obj_CallSlot18, {0x8b, 0x54, 0x24, 0x04, 0x8b}},
     {"Obj_PassToSlot10",          0x00617dd0, (void *)&Obj_PassToSlot10, {0x8b, 0xc1, 0x8b, 0x4c, 0x24}},
     {"Obj_RaiseIfSlot24Zero",     0x005d60d0, (void *)&Obj_RaiseIfSlot24Zero, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
@@ -4649,6 +4662,10 @@ const Hook kHooks[] = {
     {"ThingKinds9To11_Detach",    0x004c9040, (void *)&ThingKinds9To11_Detach, {0xe9, 0x3b, 0x29, 0x04, 0x00}},
     {"Thing_HandleMessage",       0x0050b550, (void *)&Thing_HandleMessage, {0x33, 0xc0, 0x8a, 0x41, 0x02}},
     {"Things_ReleaseAll",         0x005191e0, (void *)&Things_ReleaseAll, {0xa1, 0x6c, 0xf5, 0x7c, 0x00}},
+    {"Things_PoseRides",          0x00519060, (void *)&Things_PoseRides, {0x51, 0xa1, 0x6c, 0xf5, 0x7c}},
+    {"Things_ClaimRides",         0x00519120, (void *)&Things_ClaimRides, {0xa1, 0x6c, 0xf5, 0x7c, 0x00}},
+    {"World_ClearLevel",          0x00515dd0, (void *)&World_ClearLevel, {0x83, 0xec, 0x08, 0x53, 0x8b}},
+    {"Things_DeleteHeld",         0x00516c10, (void *)&Things_DeleteHeld, {0x51, 0x33, 0xc0, 0x68, 0x20}},
     {"DrawBatch_Open",            0x00565310, (void *)&DrawBatch_Open, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Object_ReleaseSavedPairs",  0x0057b070, (void *)&Object_ReleaseSavedPairs, {0x56, 0x8b, 0xf1, 0xf7, 0x46}},
     {"Object_FreeBlock13c",       0x0057b5b0, (void *)&Object_FreeBlock13c, {0x56, 0x8b, 0xf1, 0x8b, 0x86}},
@@ -4986,6 +5003,7 @@ const Hook kHooks[] = {
     {"SoundManager_Create",       0x006b5dc0, (void *)&SoundManager_Create, {0x56, 0x6a, 0x08, 0xe8, 0xf8}},
     {"SoundManager_SetPlacement", 0x006b5ba0, (void *)&SoundManager_SetPlacement, {0x8b, 0x44, 0x24, 0x10, 0x8b}},
     {"SoundManager_Apply",        0x006b5bd0, (void *)&SoundManager_Apply, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"SoundManager_Make",         0x006b5d00, (void *)&SoundManager_Make, {0x6a, 0xff, 0x68, 0x5b, 0x57}},
     {"SoundBank_OpenSdt",         0x006c58f0, (void *)&SoundBank_OpenSdt, {0x6a, 0xff, 0x68, 0x26, 0x64}},
     {"SoundBank_Open",            0x006c5a00, (void *)&SoundBank_Open, {0x6a, 0xff, 0x68, 0x46, 0x64}},
     {"SoundMixer_DeletingDtor",   0x006b6120, (void *)&SoundMixer_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x48}},
@@ -5043,6 +5061,7 @@ const Hook kHooks[] = {
     {"SoundMixer_Save",           0x006b6c30, (void *)&SoundMixer_Save, {0x6a, 0xff, 0x68, 0x48, 0x58}},
     {"SoundMixer_Load",           0x006b6da0, (void *)&SoundMixer_Load, {0x6a, 0xff, 0x68, 0x78, 0x58}},
     {"VoicePage_DeletingDtor",    0x006b71a0, (void *)&VoicePage_DeletingDtor, {0x8a, 0x44, 0x24, 0x04, 0x56}},
+    {"SoundMixer_TakeVoice",      0x006b68d0, (void *)&SoundMixer_TakeVoice, {0x51, 0x56, 0x8b, 0xf1, 0x57}},
     {"SoundChannel_Apply",        0x006b8b40, (void *)&SoundChannel_Apply, {0x8b, 0xc1, 0x56, 0x8b, 0x4c}},
     {"SoundChannel_GetSettings",  0x006b7d70, (void *)&SoundChannel_GetSettings, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
     {"SoundChannelFn70a260_Run",  0x006b5e40, (void *)&SoundChannelFn70a260_Run, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
@@ -5093,6 +5112,11 @@ const Hook kHooks[] = {
     {"SoundChannel_RunSlot1",     0x006b7f00, (void *)&SoundChannel_RunSlot1, {0x8b, 0xc1, 0x56, 0x8b, 0x4c}},
     {"SoundChannel_DeletingDtor", 0x006b9be0, (void *)&SoundChannel_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"SoundUpdate_Apply",         0x006c5690, (void *)&SoundUpdate_Apply, {0x51, 0x53, 0x8b, 0xd9, 0x55}},
+    {"SoundChannel_Open",         0x006b7510, (void *)&SoundChannel_Open, {0x6a, 0xff, 0x68, 0x5e, 0x59}},
+    {"SoundChannel_Reopen",       0x006b7650, (void *)&SoundChannel_Reopen, {0x83, 0xec, 0x0c, 0x8d, 0x54}},
+    {"SoundChannel_Setup",        0x006b8f90, (void *)&SoundChannel_Setup, {0x83, 0xec, 0x74, 0x8b, 0x54}},
+    {"SoundChannel_Refresh",      0x006b91d0, (void *)&SoundChannel_Refresh, {0x83, 0xec, 0x74, 0x56, 0x8b}},
+    {"SoundChannel_SetupWithReverb", 0x006c5c90, (void *)&SoundChannel_SetupWithReverb, {0x8b, 0x44, 0x24, 0x0c, 0x56}},
     {"SoundObject_Broadcast",     0x006b85f0, (void *)&SoundObject_Broadcast, {0x83, 0xec, 0x08, 0x56, 0x8b}},
     {"SoundObject_BroadcastValue", 0x006b8640, (void *)&SoundObject_BroadcastValue, {0x8b, 0x41, 0x24, 0x85, 0xc0}},
     {"SoundObject_VoiceInfo",     0x006b8b00, (void *)&SoundObject_VoiceInfo, {0x8b, 0x49, 0x20, 0x85, 0xc9}},
@@ -5591,6 +5615,7 @@ const Hook kHooks[] = {
     {"ChannelVoices_AcquireBy",   0x006baee0, (void *)&ChannelVoices_AcquireBy, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"ChannelVoices_PlayRecord",  0x006badd0, (void *)&ChannelVoices_PlayRecord, {0x53, 0x55, 0x56, 0x8b, 0x74}},
     {"ChannelVoices_PlayNotify",  0x006bae60, (void *)&ChannelVoices_PlayNotify, {0x53, 0x55, 0x56, 0x57, 0x8b}},
+    {"ChannelVoices_Start",       0x006ba2c0, (void *)&ChannelVoices_Start, {0x8b, 0x44, 0x24, 0x08, 0x53}},
     {"SoundOccluders_Occlusion",  0x006c4c80, (void *)&SoundOccluders_Occlusion, {0x83, 0xec, 0x2c, 0x53, 0x8b}},
     {"SoundOccluders_Remove",     0x006c4ba0, (void *)&SoundOccluders_Remove, {0x8b, 0x41, 0x0c, 0x56, 0x85}},
     {"SoundOccluders_Clear",      0x006c4c20, (void *)&SoundOccluders_Clear, {0x53, 0x56, 0x8b, 0xf1, 0x33}},
@@ -5776,6 +5801,13 @@ const Hook kHooks[] = {
     {"SoundSource711920_GetSound", 0x006d2290, (void *)&SoundSource711920_GetSound, {0xe8, 0x6b, 0x22, 0xff, 0xff}},
     {"SoundSource711b08_GetSlotPosition", 0x006d35d0, (void *)&SoundSource711b08_GetSlotPosition, {0x8b, 0x44, 0x24, 0x0c, 0x56}},
     {"SoundSource_Destroy",       0x006c42b0, (void *)&SoundSource_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"SoundSource711b08_Ctor",    0x006d2d70, (void *)&SoundSource711b08_Ctor, {0x6a, 0xff, 0x68, 0x58, 0x67}},
+    {"SoundSource711920_Ctor",    0x006d1e30, (void *)&SoundSource711920_Ctor, {0x6a, 0xff, 0x68, 0xd8, 0x66}},
+    {"SoundHelper_Set",           0x006b9d70, (void *)&SoundHelper_Set, {0x8b, 0x44, 0x24, 0x04, 0xa3}},
+    {"SoundHelper_Free",          0x006b9d50, (void *)&SoundHelper_Free, {0xa1, 0x04, 0x1f, 0xfb, 0x00}},
+    {"SoundSource_Make",          0x006c4190, (void *)&SoundSource_Make, {0x6a, 0xff, 0x68, 0xc6, 0x62}},
+    {"SoundSource711920_Dtor",    0x006d1ec0, (void *)&SoundSource711920_Dtor, {0x6a, 0xff, 0x68, 0xf8, 0x66}},
+    {"SoundSource711920_DeletingDtor", 0x006d1ea0, (void *)&SoundSource711920_DeletingDtor, {0x56, 0x8b, 0xf1, 0xe8, 0x18}},
     {"WideWriter_Finish",         0x006b00e0, (void *)&WideWriter_Finish, {0x8b, 0xc1, 0x33, 0xd2, 0x53}},
     {"WideWriter_PutChar",        0x006aff70, (void *)&WideWriter_PutChar, {0x56, 0x8b, 0x71, 0x0c, 0x33}},
     {"WideWriter_PutNarrow",      0x006afe80, (void *)&WideWriter_PutNarrow, {0x53, 0x55, 0x56, 0x57, 0x8b}},
@@ -5795,6 +5827,24 @@ const Hook kHooks[] = {
     {"ComList_ReleaseAll",        0x006d75c0, (void *)&ComList_ReleaseAll, {0x6a, 0xff, 0x68, 0x58, 0x6a}},
     {"SoundWorker_Ctor",          0x006b6050, (void *)&SoundWorker_Ctor, {0x6a, 0xff, 0x68, 0x91, 0x57}},
     {"SoundWorkerHost_Ctor",      0x006b8380, (void *)&SoundWorkerHost_Ctor, {0x6a, 0xff, 0x68, 0xbb, 0x59}},
+    {"SoundObject_PlayRecord",    0x006b7f20, (void *)&SoundObject_PlayRecord, {0x83, 0xec, 0x10, 0x8d, 0x44}},
+    {"SoundObject_PlayNotify",    0x006b7f80, (void *)&SoundObject_PlayNotify, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"SoundUpdateById_Apply",     0x006b8360, (void *)&SoundUpdateById_Apply, {0x8b, 0x41, 0x0c, 0x8b, 0x54}},
+    {"SoundUpdateByHandle_Apply", 0x006c5630, (void *)&SoundUpdateByHandle_Apply, {0x51, 0x56, 0x57, 0x8b, 0xf9}},
+    {"SoundObject_SlotZero",      0x006b9ba0, (void *)&SoundObject_SlotZero, {0xd9, 0x05, 0x20, 0xa6, 0x70}},
+    {"SoundObject_SlotOne",       0x006ba1f0, (void *)&SoundObject_SlotOne, {0xd9, 0x05, 0x70, 0xa6, 0x70}},
+    {"SoundObject_SlotByFlag",    0x006b9bb0, (void *)&SoundObject_SlotByFlag, {0xf6, 0x41, 0x28, 0x40, 0x74}},
+    {"SoundVoice_MixCallback",    0x006bb4f0, (void *)&SoundVoice_MixCallback, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"ChannelVoices_WaitLoop",    0x006c6180, (void *)&ChannelVoices_WaitLoop, {0x53, 0x56, 0x8b, 0xf1, 0xb3}},
+    {"SoundSource_WaitLoop",      0x006d3800, (void *)&SoundSource_WaitLoop, {0x53, 0x56, 0x8b, 0xf1, 0xb3}},
+    {"SoundHandshake_AtExit",     0x006b9ec0, (void *)&SoundHandshake_AtExit, {0xc3, 0x90, 0x90, 0x90, 0x90}},
+    {"SoundHandshake_Wait",       0x006b9ed0, (void *)&SoundHandshake_Wait, {0x8a, 0x41, 0x05, 0xc6, 0x41}},
+    {"SoundGuard_DropSlot2",      0x006b70b0, (void *)&SoundGuard_DropSlot2, {0x8b, 0x09, 0x85, 0xc9, 0x74}},
+    {"SoundGuard_FreeBlock",      0x006b70c0, (void *)&SoundGuard_FreeBlock, {0x8b, 0x01, 0x50, 0xe8, 0xe8}},
+    {"SoundGuard_DeleteArray",    0x006bafd0, (void *)&SoundGuard_DeleteArray, {0x8b, 0x09, 0x85, 0xc9, 0x74}},
+    {"SoundGuard_Delete",         0x006bafe0, (void *)&SoundGuard_Delete, {0x8b, 0x09, 0x85, 0xc9, 0x74}},
+    {"SoundGuard_Release",        0x006bb210, (void *)&SoundGuard_Release, {0x8a, 0x41, 0x04, 0x84, 0xc0}},
+    {"SoundRandom_Seed",          0x006bb940, (void *)&SoundRandom_Seed, {0xe8, 0x5b, 0xa6, 0xf3, 0xff}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
@@ -5973,6 +6023,7 @@ const Hook kHooks[] = {
     {"EndThing_Create",           0x00516b00, (void *)&EndThing_Create, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Game_OpenPark",             0x00519ef0, (void *)&Game_OpenPark, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Game_EndPark",              0x005168f0, (void *)&Game_EndPark, {0x83, 0xec, 0x08, 0x53, 0x56}},
+    {"Game_StartCrowd",           0x00516700, (void *)&Game_StartCrowd, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
     {"GameMode_Set",              0x0052f200, (void *)&GameMode_Set, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"GameMode_SetOnly",          0x0052f580, (void *)&GameMode_SetOnly, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"GameMode_StepBack",         0x0052fe50, (void *)&GameMode_StepBack, {0x51, 0x53, 0x55, 0x56, 0x57}},
@@ -6082,6 +6133,12 @@ const Hook kHooks[] = {
     {"World_Load",                0x005179c0, (void *)&World_Load, {0x6a, 0xff, 0x68, 0x87, 0xe8}},
     {"Scape_LoadObjects",         0x00550e00, (void *)&Scape_LoadObjects, {0x8b, 0x44, 0x24, 0x04, 0x83}},
     {"Object_Construct",          0x004db090, (void *)&Object_Construct, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Object_Update",             0x004e0b90, (void *)&Object_Update, {0x51, 0x56, 0x8b, 0xf1, 0x57}},
+    {"Object_PostUpdate",         0x004e0e00, (void *)&Object_PostUpdate, {0x56, 0x8b, 0xf1, 0x8b, 0x86}},
+    {"Researcher_Update",         0x00502960, (void *)&Researcher_Update, {0x51, 0x56, 0x8b, 0xf1, 0xe8}},
+    {"Holder_PlaceStaff",         0x00509af0, (void *)&Holder_PlaceStaff, {0x51, 0x56, 0x8b, 0xf1, 0x33}},
+    {"World_ClearStaffSlots",     0x005083b0, (void *)&World_ClearStaffSlots, {0x53, 0x55, 0x8b, 0x6c, 0x24}},
+    {"Map_ResetCells",            0x0052f8d0, (void *)&Map_ResetCells, {0x51, 0x8b, 0x4c, 0x24, 0x0c}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
@@ -6890,6 +6947,9 @@ const Hook kHooks[] = {
     {"ChatAvatar_RemoveIgnore",   0x004ebcf0, (void *)&ChatAvatar_RemoveIgnore, {0x6a, 0xff, 0x68, 0x98, 0xd0}},
     {"ChatAvatar_HandleEvent",    0x004e6e80, (void *)&ChatAvatar_HandleEvent, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"ChatAvatar_SetBuddy",       0x004ee710, (void *)&ChatAvatar_SetBuddy, {0x6a, 0xff, 0x68, 0x70, 0xd4}},
+    {"ChatAvatar_ShowResult",     0x004eec40, (void *)&ChatAvatar_ShowResult, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"ChatAvatar_LobbyEvent",     0x004e6790, (void *)&ChatAvatar_LobbyEvent, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"ChatAvatar_PumpEvents",     0x004e6560, (void *)&ChatAvatar_PumpEvents, {0x83, 0xec, 0x14, 0x56, 0x8b}},
     {"ChatCursor_Click",          0x0046c610, (void *)&ChatCursor_Click, {0x51, 0x66, 0xa1, 0xcc, 0x05}},
     {"ChatCursor_GoTo",           0x0046cee0, (void *)&ChatCursor_GoTo, {0x51, 0x66, 0xa1, 0xcc, 0x05}},
     {"ChatCursor_MoveTo",         0x0046cf80, (void *)&ChatCursor_MoveTo, {0x51, 0x66, 0xa1, 0xcc, 0x05}},

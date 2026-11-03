@@ -214,4 +214,48 @@ void __fastcall SoundChannel_SetHidden(u8 *channel, void *, u32 hide);
 void __fastcall SoundChannelEax_Dtor(u8 *channel);
 u8 *__fastcall SoundChannelEax_DeletingDtor(u8 *channel, void *, u32 flags);
 
+// 0x6b7510 (thiscall (out, settings), pops 8; an SEH frame; name invented): a copy of the settings (0x70 bytes) given its 3D voices (SoundSample70a548_Choose3DVoices);
+// +0x14 = a new pool of them (ChannelVoices_Ctor (the channel, the copy's +0x44); null when the heap fails), started (ChannelVoices_Start, the copy's +0x40, with or without
+// a pool). The source +0x18 made (SoundSource_Make: the copy, the pool). Either status negative: *out = -1. Unless the source's slot 0x4c answers AL set: the EAX buffer opened
+// (SoundChannel_OpenEax); failing, it is freed and the synthesiser opened (SoundChannel_OpenSynth), failing, freed. Then *out from SoundChannel_Apply of the stack functor
+// 0x70a278 of the copy. Returns out.
+u32 *__fastcall SoundChannel_Open(u8 *channel, void *, u32 *out, const u8 *settings);
+// 0x6b7650 (thiscall (out, settings), pops 8; name invented): the source +0x18 made again (SoundSource_Make: the settings, the pool +0x14). Negative: *out = -1. Else the EAX
+// buffer opened (its status not read), SoundChannel_Apply of the stack functor 0x70a278 of the settings to a local out, *out = 0. Returns out.
+u32 *__fastcall SoundChannel_Reopen(u8 *channel, void *, u32 *out, u8 *settings);
+
+// What the open calls, so that the bench can record it (nullptr: the game's).
+struct SoundChannelOpenEnv {
+    void(__fastcall *choose)(u8 *channel, void *, u8 *settings);                  // SoundSample70a548_Choose3DVoices 0x6b7470
+    u8 *(__fastcall *voicesCtor)(u8 *pool, void *, u8 *channel, u32 count);       // ChannelVoices_Ctor 0x6ba230
+    u32 *(__fastcall *start)(u8 *pool, void *, u32 *out, u32 requested);          // ChannelVoices_Start 0x6ba2c0
+    u32 *(__stdcall *make)(u32 *out, u8 **slot, const u8 *info, u32 arg);         // SoundSource_Make 0x6c4190 (its this only handed on)
+    u32 *(__fastcall *openEax)(u8 *channel, void *, u32 *out);                    // SoundChannel_OpenEax 0x6b7750
+    void(__fastcall *freeEax)(u8 *channel);                                       // SoundChannel_FreeEax 0x6b7840
+    u32 *(__fastcall *openSynth)(u8 *channel, void *, u32 *out);                  // SoundChannel_OpenSynth 0x6b7870
+    void(__fastcall *freeSynth)(u8 *channel);                                     // SoundChannel_FreeSynth 0x6b78e0
+    u32 *(__fastcall *apply)(u8 *channel, void *, u32 *out, u8 *functor);         // SoundChannel_Apply 0x6b8b40
+};
+void SoundChannel_SetOpenEnv(const SoundChannelOpenEnv *env);
+
+// What the set-ups below call, so that the bench can record it (nullptr: the game's).
+struct SoundChannelSetupEnv {
+    u32 *(__fastcall *open)(u8 *channel, void *, u32 *out, const u8 *settings);    // SoundChannel_Open 0x6b7510
+    u32 *(__fastcall *query)(u8 *channel, void *, u32 *out, u8 *settings);         // SoundChannel_GetSettings 0x6b7d70
+    u32 *(__fastcall *reopen)(u8 *channel, void *, u32 *out, u8 *settings);        // SoundChannel_Reopen 0x6b7650
+    void(__fastcall *reverbLoad)(u8 *channel);                                     // SndReverb_Load 0x6c5d20
+};
+void SoundChannel_SetSetupEnv(const SoundChannelSetupEnv *env);
+
+// 0x6b8f90 (thiscall (out, a, b), pops 0xc; called from 0x6c5ca4; name invented, unconfirmed): the sub-object +0x30's slot 5 (a); a settings record (Init_6b9c50) from the channel's
+// slot 0xd (a local out, the record, b); SoundChannel_Open with it. Negative: the channel's slot 0 and *out = -1. Otherwise the record's +4 gets bits 8 and 9 and goes to
+// SoundChannel_GetSettings; not negative: +0x28 gets 0x40 for the record's +4 bit 8 and 3 for bit 9. Either way +0x48-0x54 = 1.0f, +0x5c = 4, +0x58 = &+0x48, *out = 0. Returns out.
+u32 *__fastcall SoundChannel_Setup(u8 *channel, void *, u32 *out, u32 a, u32 b);
+// 0x6c5c90 (thiscall (out, a, b), pops 0xc; name invented, unconfirmed): SoundChannel_Setup (out: b's own stack slot). Negative: *out = -1. Otherwise SndReverb_Load and *out = 0.
+// Returns out.
+u32 *__fastcall SoundChannel_SetupWithReverb(u8 *channel, void *, u32 *out, u32 a, u32 b);
+// 0x6b91d0 (thiscall (out, a), pops 8; name invented, unconfirmed): a settings record (Init_6b9c50) from the channel's slot 0xd (a local out, the record, a); SoundChannel_Reopen
+// (out, the record). Returns out.
+u32 *__fastcall SoundChannel_Refresh(u8 *channel, void *, u32 *out, u32 a);
+
 }  // extern "C"

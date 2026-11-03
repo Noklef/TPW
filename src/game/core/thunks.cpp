@@ -43,6 +43,7 @@
 #include "string.h"
 #include "../terrain/texcache.h"
 #include "../ui/panel7b9940.h"
+#include "crt.h"
 #include "keymap.h"
 #include "../world/nav.h"
 
@@ -500,6 +501,10 @@ void __cdecl Wrap_Time_Init_5f5f80() {
 
 u8 *__cdecl Wrap_SystemInfo_Ctor_5f8a40() {
     return reinterpret_cast<u8 *>(SystemInfo_Ctor(reinterpret_cast<SystemInfo *>(0xfa7620)));
+}
+
+void __cdecl Wrap_Array7ced88_Dtor_4fa750() {
+    CRT_VectorDtorIterator(reinterpret_cast<u8 *>((uintptr_t)0x007ced88), 8, 9, reinterpret_cast<void(__fastcall *)(void *)>((uintptr_t)0x005d1750));
 }
 
 void __cdecl Wrap_PixelFormat_InitArgb8888Unused_5fcce0() {

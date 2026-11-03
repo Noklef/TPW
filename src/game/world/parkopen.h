@@ -34,4 +34,22 @@ void __fastcall Game_OpenPark(u8 *game, void *, u32 open, u32 gateOnly);
 // delete queue's things released (Things_ReleaseDeleted, inlined in the original with the walk's last handle, 0, as the start value);
 // then the gate's element 0 set to 2 (Game_OpenPark (0, 1)). The debug prints are left out. Called by 0x4d032a.
 void __fastcall Game_EndPark(u8 *game);
+
+// What the crowd's start calls (the bench's recorders; the ports by default).
+struct ParkCrowdEnv {
+    void(__fastcall *openPark)(u8 *game, void *, u32 open, u32 gateOnly);        // Game_OpenPark
+    u16 *(__fastcall *booth)(const u8 *map, void *, u16 *out, u32 b);            // Map_TicketBoothPos
+    u16 *(__fastcall *entrance)(const u8 *map, void *, u16 *out, u32 b);         // Map_EntrancePos
+    s32(__stdcall *rides)(s32 value, s32 least);                                 // Things_CountByDef4ac
+    u8 *(__fastcall *visitor)(u8 *visitor, void *, u32 cell);                    // Visitor_Ctor
+    u8 *(__fastcall *mechanic)(u8 *mechanic, void *, u32 cell);                  // Mechanic_CtorLoad
+    u8 *(__fastcall *entertainer)(u8 *entertainer, void *, u32 cell);            // Entertainer_CtorLoad
+};
+void ParkCrowd_SetEnv(const ParkCrowdEnv *env);   // nullptr: the game's
+
+// 0x516700 (thiscall on the game object; name invented, unconfirmed): the park opened (Game_OpenPark (1, 0)) and its first people made: 25 visitors at a
+// ticket booth (the map +0x2d8, Map_TicketBoothPos; which of the two by World_Rand's low bit) and, for each ride (Things_CountByDef4ac(0, 0), none when not
+// above 0), a mechanic and an entertainer at an entrance (Map_EntrancePos, likewise). A block that cannot be had is passed over, with no World_Rand. The debug
+// print and the thing table entry of the word +0x1da720 the original loads and leaves unused (in ECX for the stdcall count) are left out.
+void __fastcall Game_StartCrowd(u8 *game);
 }

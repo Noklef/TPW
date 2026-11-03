@@ -44,6 +44,17 @@ u32 *__fastcall SoundManager_Call1(u8 *manager, void *, u32 *out, u32 a);
 // just stored) (out, a). Returns out.
 u32 *__stdcall SoundManager_Create(u32 *out, u8 **manager, u8 *engine, u32 a);
 
+// The call SoundManager_Make makes (the port by default; the bench's recorder).
+struct SoundManagerEnv {
+    u8 *(__fastcall *engineCtor)(u8 *host);   // SoundWorkerHost_Ctor
+};
+void SoundManager_SetEnv(const SoundManagerEnv *env);
+
+// 0x6b5d00 (cdecl (out, a, &manager); an SEH frame; called from 0x51b6b1; name invented, unconfirmed): a new engine (Mem_Alloc(0x34): SoundWorkerHost_Ctor, vtable 0x70a2a0;
+// null when the block fails) and SoundManager_Create (a local status, the manager, the engine, a). A status not negative: *out = 0. Otherwise the manager's slot 0 (its out a's own
+// stack slot, sic), *manager = 0, *out = -1. Returns out.
+u32 *__cdecl SoundManager_Make(u32 *out, u32 a, u8 **manager);
+
 // 0x6b5bf0 (slot 3; thiscall (flags), pops 4): SoundManager_Dtor, then the manager freed for flags bit 0. Returns the manager.
 u8 *__fastcall SoundManager_DeletingDtor(u8 *manager, void *, u32 flags);
 

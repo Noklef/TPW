@@ -292,9 +292,21 @@
 #include "../../src/game/world/personscripts.h"
 #include "../../src/game/core/funnytime.h"
 #include "../../src/game/core/wfilebuf.h"
+#include "../../src/game/core/channelvoice.h"
+#include "../../src/game/core/soundchannel.h"
+#include "../../src/game/core/soundsource.h"
 #include "../../src/game/core/soundworker.h"
 #include "../../src/game/world/staff.h"
 #include "../../src/game/world/weather.h"
+#include "../../src/game/world/objectupdate.h"
+#include "../../src/game/core/soundset.h"
+#include "../../src/game/core/soundseed.h"
+#include "../../src/game/core/soundmanager.h"
+#include "../../src/game/core/soundwait.h"
+#include "../../src/game/core/soundobjectslots.h"
+#include "../../src/game/world/mapreset.h"
+#include "../../src/game/world/staffheld.h"
+#include "../../src/game/world/researcher.h"
 #include "../../src/game/world/things.h"
 #include "../../src/game/world/queuepieces.h"
 #include "../../src/game/world/cellmodel.h"
@@ -682,6 +694,9 @@ const EndThingEnv kEndThingEnv = {reinterpret_cast<u8 *(__fastcall *)(u8 *, void
 // park end's gate call (agent C's unported 0x481b50): thiscall recorder 14 of 1, as tests/fncmp/parkend.py hooks it.
 const ParkOpenEnv kParkOpenEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(13, 0)),
                                   reinterpret_cast<void(__fastcall *)(void *, void *, u8 *)>((uintptr_t)recorder(14, 1))};
+// The crowd's start: thiscall recorders 1 of 2, 2 and 3 of 2, COM recorder 4 of 2, thiscall recorders 5-7 of 1, as tests/fncmp/parkcrowd.py hooks them.
+const ParkCrowdEnv kParkCrowdEnv = {Rec{recorder(1, 2)}, Rec{recorder(2, 2)}, Rec{recorder(3, 2)}, Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 4},
+                                    Rec{recorder(5, 1)}, Rec{recorder(6, 1)}, Rec{recorder(7, 1)}};
 // The game mode change's advisor cancel, track run show and tool reset (agent B's 0x59aa70, 0x4474d0 and CoasterEdit_CancelSelected 0x446050, all ported): thiscall recorder
 // 13 of 1, cdecl recorders 14 of 2 and 15 of none, as tests/fncmp/gamemode.py hooks them.
 const GameModeEnv kGameModeEnv = {reinterpret_cast<void(__fastcall *)(u8 *, void *, u32)>((uintptr_t)recorder(13, 1)),
@@ -753,7 +768,10 @@ const ChatEventEnv kChatEventEnv = {Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 29}
                                     Rec{kStubs + 0x5000 + 0x800 * 1 + 0x20 * 31}, Rec{kStubs + 0x5000 + 0x800 * 1 + 0x20 * 32},
                                     Rec{recorder(3, 4)}, Rec{recorder(4, 0)}, Rec{recorder(5, 1)}, Rec{recorder(6, 3)}, Rec{recorder(7, 2)},
                                     Rec{recorder(8, 2)}, Rec{recorder(10, 0)}, Rec{recorder(11, 5)}, Rec{jpeg_recorder(14, 3)}, Rec{recorder(13, 2)},
-                                    Rec{jpeg_recorder(25, 7)}, Rec{jpeg_recorder(15, 1)}};
+                                    Rec{jpeg_recorder(25, 7)}, Rec{jpeg_recorder(15, 1)},
+                                    // (tests/fncmp/chatqueue.py's)
+                                    Rec{jpeg_recorder(16, 2)}, Rec{jpeg_recorder(17, 0)}, Rec{recorder(18, 2)}, Rec{recorder(19, 0)}, Rec{recorder(20, 1)},
+                                    Rec{recorder(4, 1)}, Rec{recorder(6, 1)}};
 // The cell messages' calls into agent A's Path_CheckDeadEnds (0x527ee0) and GameMode_SetOnly (0x52f580): the cdecl recorders 27 of 3 and 28 of 2, as
 // tests/fncmp/cellmessage.py hooks them.
 const CellMessageEnv kCellMessageEnv = {reinterpret_cast<void(__cdecl *)(s32, s32, u32)>((uintptr_t)jpeg_recorder(27, 3)),
@@ -1932,6 +1950,7 @@ int main(int argc, char **argv) {
     PlaceObject_SetEnv(&kPlaceObjectEnv);
     EndThing_SetEnv(&kEndThingEnv);
     ParkOpen_SetEnv(&kParkOpenEnv);
+    ParkCrowd_SetEnv(&kParkCrowdEnv);
     GameMode_SetEnv(&kGameModeEnv);
     Things_SetDetachEnv(&kThingDetachEnv);
     Things_SetDeleteEnv(&kThingDeleteEnv);
@@ -2179,6 +2198,42 @@ int main(int argc, char **argv) {
     // The worker's 0x67e050: the cdecl recorder 14 of 3, as tests/fncmp/soundworker.py hooks it.
     static const SoundWorkerEnv soundWorkerEnv = {reinterpret_cast<u32(__cdecl *)(u32, u32, void *)>((uintptr_t)jpeg_recorder(14, 3))};
     SoundWorker_SetEnv(&soundWorkerEnv);
+    // The voices' pool's 0x67e050: the same recorder, as tests/fncmp/channelvoice.py hooks it.
+    static const ChannelVoicesEnv channelVoicesEnv = {soundWorkerEnv.beginThread};
+    ChannelVoices_SetEnv(&channelVoicesEnv);
+    // The things' sweeps: COM recorder 20 of 1, thiscall 21, 22, cdecl 23, 24, 25, 26 of 2, thiscall 27 of 1, as tests/fncmp/thingsrelease.py hooks them.
+    static const ThingSweepEnv thingSweepEnv = {Rec{kStubs + 0x5000 + 0x800 * 1 + 0x20 * 20}, Rec{recorder(21, 0)}, Rec{recorder(22, 0)}, Rec{jpeg_recorder(23, 0)},
+                                                Rec{jpeg_recorder(24, 0)}, Rec{jpeg_recorder(25, 0)}, Rec{jpeg_recorder(26, 2)}, Rec{recorder(27, 1)}, Rec{jpeg_recorder(28, 0)}};
+    Things_SetSweepEnv(&thingSweepEnv);
+    static const ObjectUpdateEnv objectUpdateEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorder(2, 2)}, Rec{jpeg_recorder(3, 3)}, Rec{jpeg_recorder(4, 3)},
+                                                    Rec{recorder(5, 2)},      Rec{recorder(6, 0)},      Rec{recorder(7, 0)},      Rec{recorder(8, 0)},
+                                                    Rec{recorder(9, 0)},      Rec{recorder(10, 0)}};
+    ObjectUpdate_SetEnv(&objectUpdateEnv);
+    static const SoundStartEnv soundStartEnv = {Rec{jpeg_recorder(1, 3)}, Rec{recorder(2, 2)}};
+    Sound_SetStartEnv(&soundStartEnv);
+    static const SoundChannelSetupEnv soundChannelSetupEnv = {Rec{recorder(1, 2)}, Rec{recorder(2, 2)}, Rec{recorder(3, 2)}, Rec{recorder(4, 0)}};
+    SoundChannel_SetSetupEnv(&soundChannelSetupEnv);
+    static const SoundSeedEnv soundSeedEnv = {Rec{jpeg_recorder(1, 0)}};
+    SoundSeed_SetEnv(&soundSeedEnv);
+    static const SoundManagerEnv soundManagerEnv = {Rec{recorder(20, 0)}};
+    SoundManager_SetEnv(&soundManagerEnv);
+    static const SoundWaitEnv soundWaitEnv = {Rec{recorder(20, 0)}, Rec{recorder(21, 1)}};
+    SoundWait_SetEnv(&soundWaitEnv);
+    static const SoundObjectSlotsEnv soundObjectSlotsEnv = {Rec{recorder(20, 3)}, Rec{recorder(21, 2)}, Rec{recorder(22, 3)}, Rec{recorder(23, 2)}, Rec{recorder(24, 2)}};
+    SoundObjectSlots_SetEnv(&soundObjectSlotsEnv);
+    static const MapResetEnv mapResetEnv = {Rec{recorder(1, 1)}, Rec{recorder(2, 0)}};
+    MapReset_SetEnv(&mapResetEnv);
+    static const StaffHeldEnv staffHeldEnv = {Rec{recorder(1, 1)}, Rec{recorder(2, 1)}};
+    StaffHeld_SetEnv(&staffHeldEnv);
+    static const ResearcherEnv researcherEnv = {Rec{recorder(1, 0)}, Rec{recorder(2, 0)}, Rec{recorder(3, 1)}, Rec{recorder(4, 0)}};
+    Researcher_SetEnv(&researcherEnv);
+    // The channel's open: thiscall recorders 1 of 1, 2 and 3 of 2, COM recorder 4 of 4, thiscall recorders 5-9, as tests/fncmp/soundopen.py hooks them.
+    static const SoundChannelOpenEnv soundChannelOpenEnv = {Rec{recorder(1, 1)}, Rec{recorder(2, 2)}, Rec{recorder(3, 2)}, Rec{kStubs + 0x5000 + 0x800 * 4 + 0x20 * 4},
+                                                            Rec{recorder(5, 1)}, Rec{recorder(6, 0)}, Rec{recorder(7, 1)}, Rec{recorder(8, 0)}, Rec{recorder(9, 2)}};
+    SoundChannel_SetOpenEnv(&soundChannelOpenEnv);
+    // The source maker's two constructors: thiscall recorders 20 of 1 and 21 of none, as tests/fncmp/soundmake.py hooks them.
+    static const SoundMakeEnv soundMakeEnv = {Rec{recorder(20, 1)}, Rec{recorder(21, 0)}};
+    SoundSource_SetMakeEnv(&soundMakeEnv);
     // The weather's constructor and tick: the post the thiscall recorder 21 of 1, WeatherFx_ReloadTextures 20 of 0, agent B's 0x580320 19 of 8, Sound_SetAmbientLevel the cdecl 18 of 1, as
     // tests/fncmp/weathertick.py hooks those addresses.
     static const WeatherEnv weatherEnv = {reinterpret_cast<u32(__fastcall *)(u8 *, void *, u8 *)>((uintptr_t)recorder(21, 1)),
