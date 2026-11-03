@@ -39,6 +39,16 @@ CountedPair *__fastcall CountedPair_Assign(CountedPair *p, void *edx, const Coun
 // the rest shifted back (assignment) and the n slots from where assigned x. x may be one of the vector's own pairs (read after the moves, sic).
 void __fastcall CountedPairVector_InsertN(u8 *v, void *edx, u32 where, u32 n, const CountedPair *x);
 
+// 0x4f7030 (cdecl; name invented, unconfirmed): copy_backward: the pairs of [first, last) assigned from the top down to the slots under to. Returns the lowest slot.
+u32 __cdecl CountedPair_CopyBackward(u32 first, u32 last, u32 to);
+
+// 0x4f6ef0 (cdecl; name invented, unconfirmed): fill: each pair of [first, last) assigned x.
+void __cdecl CountedPair_FillRange(u32 first, u32 last, const CountedPair *x);
+
+// 0x4f34a0 (thiscall on a vector of pairs {+4 first, +8 last, +0xc end}; where, x, pops 8; name invented, unconfirmed): insert(where, x), MSVC6's: as CountedPairVector_InsertN for one copy,
+// with the moves through the two above. Returns the new pair's place: the new first + where's index (from the old first, with no check for a null one).
+u32 __fastcall CountedPairVector_Insert(u8 *v, void *edx, u32 where, const CountedPair *x);
+
 // 0x4f67b0 (stdcall, pops 12; name unconfirmed): _Ucopy: the pairs of [first, last) copy-constructed from to on, a null slot skipped (placement
 // new's check). Returns the end.
 u32 __stdcall CountedPair_UninitCopy(u32 first, u32 last, u32 to);

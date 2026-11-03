@@ -181,6 +181,49 @@ void __fastcall CountedPairVector_InsertN(u8 *v, void *, u32 p, u32 m, const Cou
     last += bytes;
 }
 
+u32 __cdecl CountedPair_CopyBackward(u32 first, u32 last, u32 to) {
+    while (last != first) {
+        last -= 0x24;
+        to -= 0x24;
+        CountedPair_Assign(pairAt(to), nullptr, pairAt(last));
+    }
+    return to;
+}
+
+void __cdecl CountedPair_FillRange(u32 first, u32 last, const CountedPair *x) {
+    for (; first != last; first += 0x24)
+        CountedPair_Assign(pairAt(first), nullptr, x);
+}
+
+u32 __fastcall CountedPairVector_Insert(u8 *v, void *, u32 p, const CountedPair *x) {
+    u32 &first = *reinterpret_cast<u32 *>(v + 4), &last = *reinterpret_cast<u32 *>(v + 8), &end = *reinterpret_cast<u32 *>(v + 0xc);
+    const s32 index = count36(p, first);
+    if ((u32)count36(end, last) < 1) {
+        const u32 size = first ? (u32)count36(last, first) : 0;
+        const s32 n = (s32)(size + (size > 1 ? size : 1));
+        const u32 s = (u32)(uintptr_t)GameHeap_Alloc((u32)(n < 0 ? 0 : n) * 0x24);
+        ucopy(p, last, ufill(ucopy(first, p, s), 1, x));
+        CountedPair_ClearRange(reinterpret_cast<u8 *>((uintptr_t)first), reinterpret_cast<u8 *>((uintptr_t)last));
+        GameHeap_Free(reinterpret_cast<void *>((uintptr_t)first));
+        end = s + (u32)n * 0x24;
+        const s32 old = Vector36_Size(v);
+        first = s;
+        last = s + (u32)(old + 1) * 0x24;
+    } else {
+        if ((u32)count36(last, p) < 1) {
+            ucopy(p, last, p + 0x24);
+            ufill(last, 1 - (u32)count36(last, p), x);
+            CountedPair_FillRange(p, last, x);
+        } else {
+            ucopy(last - 0x24, last, last);
+            CountedPair_CopyBackward(p, last - 0x24, last);
+            CountedPair_FillRange(p, p + 0x24, x);
+        }
+        last += 0x24;
+    }
+    return first + (u32)index * 0x24;
+}
+
 u32 __stdcall CountedPair_UninitCopy(u32 first, u32 last, u32 to) { return ucopy(first, last, to); }
 
 void __stdcall CountedPair_UninitFill(u32 to, u32 n, const CountedPair *x) { ufill(to, n, x); }
