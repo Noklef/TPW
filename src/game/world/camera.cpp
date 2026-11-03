@@ -505,8 +505,7 @@ void __fastcall Camera_SetLookAt(u8 *self) {
     Camera_SetFlag80(1);
     Matrix_Identity(view);
 
-    const float *const up0 = position;  // (named below: the first half only needs the difference)
-    const X87Reg d0 = X87Reg(target[0]) - up0[0], d1 = X87Reg(target[1]) - up0[1], d2 = X87Reg(target[2]) - up0[2];
+    const X87Reg d0 = X87Reg(target[0]) - position[0], d1 = X87Reg(target[1]) - position[1], d2 = X87Reg(target[2]) - position[2];
     const float d[3] = {(float)d0, (float)d1, (float)d2};
     const float distance = (float)X87_Sqrt(d0 * d0 + d1 * d[1] + d2 * d[2]);
     const float forward0 = (float)(X87Reg(d[0]) / distance), forward1 = (float)(X87Reg(d[1]) / distance);

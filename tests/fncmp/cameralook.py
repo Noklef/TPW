@@ -20,13 +20,15 @@ def fnum(r, lo, hi, nan=0.01):
 def case(r):
     log_region()
     self = bytearray(r.bytes(0x40))
-    kind = r.choice(['any', 'any', 'any', 'any', 'same', 'above', 'above'])
+    kind = r.choice(['any', 'any', 'any', 'any', 'same', 'above', 'above', 'level'])
     place = [fnum(r, -200, 200) for _ in range(3)]
     target = [fnum(r, -200, 200) for _ in range(3)]
     if kind == 'same':
         target = list(place)
     elif kind == 'above':
         target = [place[0], fnum(r, -200, 200), place[2]]
+    elif kind == 'level':  # (the side's x 0 and its z not: no fallback)
+        target = [fnum(r, -200, 200), fnum(r, -200, 200), place[2]]
     self[8:0x14] = b''.join(place)
     self[0x14:0x20] = b''.join(target)
     put(self, 0x20, 'I', LIGHT if r.random() < 0.85 else 0)
