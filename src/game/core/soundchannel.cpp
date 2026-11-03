@@ -871,6 +871,35 @@ u32 *__fastcall SoundChannel_SetupWithReverb(u8 *channel, void *, u32 *out, u32 
     return out;
 }
 
+u32 *__fastcall SoundChannel_QueryWord44(u8 *channel, void *, u32 *out, u32 *value) {
+    u8 record[0x70];
+    Init_6b9c50(record);
+    at<u32>(record, 4) |= 0x100;
+    u32 status;
+    if (at<s32>(g_setup->query(channel, nullptr, &status, record), 0) >= 0 && at<u32>(record, 0x4c) & 0x100) {
+        *value = at<u32>(record, 0x44);
+        *out = 0;
+        return out;
+    }
+    *out = 0xffffffffu;
+    return out;
+}
+
+u32 *__fastcall SoundChannel_QueryWord0(u8 *channel, void *, u32 *out, u32 *value) {
+    *value = 0;
+    u8 record[0x70];
+    Init_6b9c50(record);
+    at<u32>(record, 8) |= 1;   // (sic: +8, not the flags +4, and Init_6b9c50 leaves +8 unset: the stack's bits with bit 0 set)
+    u32 status;
+    if (at<s32>(g_setup->query(channel, nullptr, &status, record), 0) >= 0 && at<u8>(record, 0x4c) & 1) {
+        *value = at<u32>(record, 0);
+        *out = 0;
+        return out;
+    }
+    *out = 0xffffffffu;
+    return out;
+}
+
 u32 *__fastcall SoundChannel_Refresh(u8 *channel, void *, u32 *out, u32 a) {
     u8 record[0x70];
     Init_6b9c50(record);

@@ -4797,6 +4797,8 @@ address,name,kind,confidence,notes
 0x006b5c30,SoundCmd700bb4_Run,function,low,"reimplemented (src/game/core/soundcmd); slot 0 of 0x700bb4: the sound object's load (the stream at +4, the restore byte at +8)"
 0x006b5c50,SoundCmd700b9c_Run,function,low,reimplemented (src/game/core/soundcmd); slot 0 of 0x700b9c: the sound object's functor 2 send (the id at +4)
 0x006b5860,SoundCmd700b44_Run,function,low,"reimplemented (src/game/core/soundcmd); vtable 0x700b44: the target's channel hidden or shown (SoundChannel_SetHidden, the flag at +4 not 0); *out = 0"
+0x006b5a70,SoundCmd700b38_Run,function,high,reimplemented (src/game/core/soundcmd); command 0x700b38's run
+0x006b5740,SoundCmd700b40_Run,function,high,reimplemented (src/game/core/soundcmd); command 0x700b40's run
 0x006b5ab0,SoundManager_Dtor,function,low,reimplemented (src/game/core/soundmanager); thiscall: vtable reset to 0x70a288; the engine at +4 (if any) destroyed through its slot 0 (1) and +4 cleared
 0x006b5ad0,SoundManager_Call1,function,low,"reimplemented (src/game/core/soundmanager); slot 4, thiscall (out, a), pops 8: the engine's slot 1 (out, a); returns out"
 0x006b5af0,SoundManager_Release,function,low,"reimplemented (src/game/core/soundmanager); slot 0, thiscall (out), pops 4: the manager (unless null) destroyed through its slot 3 (1); *out = 0"
@@ -4920,6 +4922,8 @@ address,name,kind,confidence,notes
 0x006b8f90,SoundChannel_Setup,function,low,reimplemented (src/game/core/soundchannel); a channel's set-up from its slot 0xd's settings
 0x006b91d0,SoundChannel_Refresh,function,low,reimplemented (src/game/core/soundchannel); a channel reopened with its slot 0xd's settings
 0x006c5c90,SoundChannel_SetupWithReverb,function,low,"reimplemented (src/game/core/soundchannel); a channel's set-up, then its reverb presets loaded"
+0x006b9060,SoundChannel_QueryWord44,function,low,"reimplemented (src/game/core/soundchannel); a channel's query of the settings record's +0x44 (name invented, unconfirmed)"
+0x006b9850,SoundChannel_QueryWord0,function,low,"reimplemented (src/game/core/soundchannel); a channel's query of the settings record's +0 (name invented, unconfirmed)"
 0x006b85f0,SoundObject_Broadcast,function,low,"reimplemented (src/game/core/soundobject); thiscall (out), pops 4: the mixer's active voices run (ForEachActive 0), then the channel's slot 4 with a stack functor 0x70a5b0; *out = -1 without a channel; returns out"
 0x006b8640,SoundObject_BroadcastValue,function,low,"reimplemented (src/game/core/soundobject); thiscall (out, value), pops 8: with a channel flagged 0x400 the mixer's ForEachActive (value), else SoundObject_Broadcast; *out = 0; returns out"
 0x006b8b00,SoundObject_VoiceInfo,function,low,"reimplemented (src/game/core/soundobject); thiscall (out, id, result), pops 0xc: the mixer's voice for the id; its +0xc's +8 into *result and *out = 0, else *out = -1; returns out"
