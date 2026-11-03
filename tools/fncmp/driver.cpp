@@ -57,6 +57,7 @@
 #include "../../src/game/ui/dialog74fb20.h"
 #include "../../src/game/ui/dialogs.h"
 #include "../../src/game/ui/panel7c2534.h"
+#include "../../src/game/ui/dialog7cb2b8.h"
 #include "../../src/game/ui/staffrename.h"
 #include "../../src/game/ui/textpanel7cc18c.h"
 #include "../../src/game/world/objectmsg.h"
@@ -594,6 +595,8 @@ const StaffRenameEnv kStaffRenameEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 1
                                         Rec{jpeg_recorder(29, 0)}, Rec{recorder(30, 1)}};
 // Dialog7cc1f8_TabHandler's calls (tests/fncmp/dialog7cc1f8tab.py).
 const Dialog7cc1f8TabEnv kDialog7cc1f8TabEnv = {Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 2)}, Rec{jpeg_recorder(12, 1)}, Rec{jpeg_recorder(13, 3)}, Rec{recorder(14, 3)}};
+// Obj7b51f0_ShowNow's calls (tests/fncmp/obj7b51f0now.py).
+const Obj7b51f0NowEnv kObj7b51f0NowEnv = {Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 0)}, Rec{jpeg_recorder(12, 0)}, Rec{recorder(13, 9)}, Rec{jpeg_recorder(14, 3)}};
 // Objects_MeanQueuePosition's Object_QueuePositionOfNone (tests/fncmp/objectsmeanqueue.py).
 const ObjectsMeanQueueEnv kObjectsMeanQueueEnv = {Rec{recorder(10, 0)}};
 // Dialog7cc4b4_SetFlag's Window_SetShown (tests/fncmp/dialog7cc4c4thing.py).
@@ -1382,6 +1385,7 @@ int main(int argc, char **argv) {
     Dialog7ca1c8_SetResetEnv(&kDialog7ca1c8ResetEnv);
     Dialog7cc4b4_SetFlagEnv(&kDialog7cc4b4FlagEnv);
     Objects_SetMeanQueueEnv(&kObjectsMeanQueueEnv);
+    Obj7b51f0_SetNowEnv(&kObj7b51f0NowEnv);
     Dialog7cc1f8_SetTabEnv(&kDialog7cc1f8TabEnv);
     StaffRename_SetEnv(&kStaffRenameEnv);
     ObjectUnlock_SetScoresEnv(&kObjectUnlockScoresEnv);

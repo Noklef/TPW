@@ -4,6 +4,18 @@
 
 #include "../../../re/types.h"
 
+struct FileTime;
+
+// Obj7b51f0_ShowNow's calls (the ports by default; the bench's recorders: their own benches have them).
+struct Obj7b51f0NowEnv {
+    u32(__cdecl *clear)();             // Globals7c264c_Clear
+    void(__cdecl *open)();             // Dialog74fb20_Open
+    void(__cdecl *enableKeys)();       // KeyMaps_EnableAllAndClearFlag
+    FileTime *(__fastcall *now)(const u8 *clock, void *, FileTime *out, u32 *year, u32 *month, u32 *day, u32 *dayOfWeek, u32 *hour, u32 *minute, u32 *second, u32 *ms);   // FunnyTime_Now
+    void(__cdecl *showDate)(u32 day, u32 month, u32 year);   // Dialog7cb2b8_ShowDate
+};
+void Obj7b51f0_SetNowEnv(const Obj7b51f0NowEnv *env);
+
 extern "C" {
 
 // 0x4a1440 (cdecl (window, limit); called by itself, 0x4a16b4 and 0x4a1ad9): a window (when not 0) shown when the right edge of its inner
@@ -53,4 +65,8 @@ void __cdecl Dialog7cb2b8_ShowDate(u32 day, u32 month, u32 year);
 // 0x481560 (thiscall on the object at 0x7b51f0, this not used (nine dwords), pops 0x24; name invented): Dialog7cb2b8_ShowDate with the
 // fourth, the fifth + 1 and the sixth.
 void __fastcall Obj7b51f0_ShowDate(void *, void *, u32, u32, u32, u32 day, u32 month, u32 year, u32, u32, u32);
+
+// 0x4815e0 (cdecl; name invented): Globals7c264c_Clear; Dialog74fb20_Open in the game's mode 4; KeyMaps_EnableAllAndClearFlag; the world's clock (game +0x2a0, FunnyTime_Now) into the object's fields 0x7b51f8.. (the year and the month then less 0x76c and 1);
+// Dialog7cb2b8_ShowDate (day, the month as it came, the year less 0x76c).
+void __cdecl Obj7b51f0_ShowNow();
 }

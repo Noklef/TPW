@@ -3,6 +3,9 @@
 #include <cstdint>
 
 #include "../core/accessors.h"
+#include "../core/filetime.h"
+#include "../core/funnytime.h"
+#include "../core/keymap.h"
 #include "../core/language.h"
 #include "../core/textarg.h"
 #include "../core/soundplay.h"
@@ -10,6 +13,7 @@
 #include "../math/x87.h"
 #include "../world/thingscan.h"
 #include "../world/world.h"
+#include "dialog74fb20.h"
 #include "dialogs.h"
 #include "guirect.h"
 #include "window.h"
@@ -48,6 +52,13 @@ void show_tag(u8 *tag, u32 limit) {
 }
 
 }  // namespace
+
+namespace {
+const Obj7b51f0NowEnv kNowEnv = {Globals7c264c_Clear, Dialog74fb20_Open, KeyMaps_EnableAllAndClearFlag, FunnyTime_Now, Dialog7cb2b8_ShowDate};
+const Obj7b51f0NowEnv *g_nowEnv = &kNowEnv;
+}  // namespace
+
+void Obj7b51f0_SetNowEnv(const Obj7b51f0NowEnv *env) { g_nowEnv = env ? env : &kNowEnv; }
 
 extern "C" {
 
@@ -221,6 +232,19 @@ void __cdecl Dialog7cb2b8_ShowDate(u32 day, u32 month, u32 year) {
 
 void __fastcall Obj7b51f0_ShowDate(void *, void *, u32, u32, u32, u32 day, u32 month, u32 year, u32, u32, u32) {
     Dialog7cb2b8_ShowDate(day, month + 1, year);
+}
+
+void __cdecl Obj7b51f0_ShowNow() {
+    const auto field = [](uintptr_t address) { return reinterpret_cast<u32 *>(address); };
+    const auto game = [] { return *reinterpret_cast<u8 **>((uintptr_t)0x007cf83c); };
+    g_nowEnv->clear();
+    if (*reinterpret_cast<u32 *>(game() + 0x1da738) == 4) g_nowEnv->open();
+    g_nowEnv->enableKeys();
+    FileTime out;
+    g_nowEnv->now(game() + 0x2a0, nullptr, &out, field(0x007b520c), field(0x007b5208), field(0x007b5204), field(0x007b5210), field(0x007b5200), field(0x007b51fc), field(0x007b51f8), nullptr);
+    *field(0x007b520c) -= 0x76c;
+    const u32 month = (*field(0x007b5208))--;
+    g_nowEnv->showDate(*field(0x007b5204), month, *field(0x007b520c));
 }
 
 s32 __cdecl Dialog7cb2b8_BarHandler(u8 *window, u32 message, u32 a, u32 b) {
