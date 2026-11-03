@@ -30,7 +30,7 @@ def case(r):
     put(settings, 0x10, '5I', DRAW, PRIMARY, BACK, OFFER, 0)
     put(settings, 0x24, '2I', PALETTE_OBJECT, PALETTE)
     put(settings, 0x48, 'I', r.deal([8, 8, 16, 0]))
-    put(settings, 0x60, '2I', r.deal([0, 1, 2, 3, 4, 5]), r.deal([0, 1, 2, 3, 4, 16, 17, 32, 64, 80]))
+    put(settings, 0x60, '2I', r.deal([0, 1, 2, 3, 4, 5]), r.deal([0, 1, 2, 3, 4, 16, 17, 32, 64, 80, 0x80000000, 0x80000010]))
     player = bytearray(r.bytes(0x650))
     put(player, 0, 'I', SETTINGS)
     put(player, 0x4c, '4I', r.deal([1, 1, 1, 2, 2, 2, 4, 4, 0, 3]), r.deal([0, 0, 1]), r.deal([0, 1]), 0)

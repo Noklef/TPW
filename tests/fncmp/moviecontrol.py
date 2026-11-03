@@ -31,6 +31,8 @@ def case(r):
     put(settings, 0x9c, 'I', r.deal([1, 2, 5, 0, 6, 7]))
     turn = bytearray(0xc0)
     put(turn, 0, '6i', *[r.deal([-2, -1, 0, 1, 1, 2, 2, 2, 3, 0x100]) for _ in range(6)])
+    if r.deal([0, 0, 1]):   # a video chunk, then what follows it
+        put(turn, 0, '2i', 1, r.deal([1, 1, 2, 0]))
     answers(log, NEXT, TURNS)
     set_return(log, BEGIN, r.deal([0, r.getrandbits(32)]))
     op = r.deal(list(CALLS))

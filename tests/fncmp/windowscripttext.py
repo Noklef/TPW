@@ -9,7 +9,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
-from fncmp import LOG, RAM, Bench, Call, _recorder, fill, log_region, strings  # noqa: E402
+from fncmp import LOG, RAM, Bench, Call, _recorder, fill, log_region, put, strings  # noqa: E402
 from listrows import hash_name  # noqa: E402
 from window import VTABLE, WINDOW2  # noqa: E402
 from windowfactory import no_handlers  # noqa: E402
@@ -108,9 +108,13 @@ def registry(r, regions):
 
 def line_case(r):
     log = log_region()
-    regions, _ = window_env(r, log, [3, 3, 4, 7, 7, 11, 1], [0] * 30 + [1, 2, 3, 5])
+    command = r.deal(list(COMMANDS) + [0, 3, 4, 4, 4, 6, 7, 8, 9, 0xa, 0xb, 0xc, 0xd, 0xe])
+    regions, _ = window_env(r, log, [11, 11, 3] if command == 0xd else [3, 3, 4, 7, 7, 11, 1], [0] * 30 + [1, 2, 3, 5])
+    if r.deal([0, 0, 1]):   # the flag that keeps a scroll's up and down buttons out
+        win = regions[WINDOW2]
+        put(win, 0x48, 'I', struct.unpack_from('<I', win, 0x48)[0] | 0x40)
     registry(r, regions)
-    regions[TEXT] = block(r, one_line(r, log, r.deal(list(COMMANDS) + [0, 3, 4, 4, 4, 6, 7, 8, 9, 0xa, 0xb, 0xc, 0xd, 0xe])))
+    regions[TEXT] = block(r, one_line(r, log, command))
     regions[OUT] = r.bytes(4)
     return Call(CALLS['Line'], [WINDOW2, TEXT, r.deal([OUT, OUT, 0])], regions, conv='t', ret='w')
 
