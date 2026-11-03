@@ -23,6 +23,9 @@ struct VisitorStepsEnv {
     void(__fastcall *chooseMinorDest)(u8 *visitor);                                       // Visitor_ChooseMinorDest 0x4fd570
     s32(__fastcall *ratingGap)(const u8 *visitor, void *, u8 *object);                    // Visitor_RatingGap 0x4fd4e0
     u32(__fastcall *wontPay)(const u8 *visitor, void *, u8 *object);                      // Visitor_WontPay 0x4fde50
+    void(__fastcall *visitObject)(u8 *visitor, void *, u8 *object);                       // Visitor_VisitObject 0x4fd970
+    void(__fastcall *placeAt)(u8 *thing, void *, u32 x, u32 y);                           // Thing_PlaceAt 0x4fa930
+    void(__fastcall *reopen)(u8 *object);                                                 // Object_Reopen 0x4df150
 };
 void VisitorSteps_SetEnv(const VisitorStepsEnv *env);
 

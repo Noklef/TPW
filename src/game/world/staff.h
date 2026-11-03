@@ -277,6 +277,7 @@ struct StaffWalkEnv {
     void(__fastcall *spawnParticle)(u8 *sprite, void *, s32 effect);   // Sprite_SpawnParticle 0x4fa470
     void(__fastcall *destroy)(u8 *thing);                          // Thing_Delete 0x50b780
     void(__fastcall *showThought)(u8 *thoughts, void *, u32 thought, u8 force);   // Thoughts_Show 0x50be80
+    u32(__fastcall *setRandomDest)(u8 *person);                    // Person_SetRandomDest 0x4f9490
 };
 void Staff_SetWalkEnv(const StaffWalkEnv *env);   // nullptr: the game's
 

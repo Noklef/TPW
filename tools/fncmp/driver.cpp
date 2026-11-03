@@ -1310,7 +1310,8 @@ int main(int argc, char **argv) {
     static const StaffWalkEnv staffWalkEnv = {reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)recorder(28, 0)),
                                               reinterpret_cast<void(__fastcall *)(u8 *, void *, s32)>((uintptr_t)recorder(29, 1)),
                                               reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)recorder(30, 0)),
-                                              reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u8)>((uintptr_t)recorder(31, 2))};
+                                              reinterpret_cast<void(__fastcall *)(u8 *, void *, u32, u8)>((uintptr_t)recorder(31, 2)),
+                                              reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)recorder(27, 0))};   // (Person_SetRandomDest, 0x4f9490)
     Staff_SetWalkEnv(&staffWalkEnv);
     // StaffPoolEntry_Generate's 0x481550: the thiscall recorder 20 of 1, as tests/fncmp/staffcandidate.py hooks it.
     static const StaffCandidateEnv staffCandidateEnv = {reinterpret_cast<void(__fastcall *)(void *, void *, u32)>((uintptr_t)recorder(20, 1))};
@@ -1426,7 +1427,8 @@ int main(int argc, char **argv) {
         PlaceFootprint_SetEnv(&footprint);
         // The visitor steps' calls (src/game/world/visitorsteps.h VisitorStepsEnv), as tests/fncmp/visitorsteps.py hooks their addresses
         // (Visitor_SetState the person env's recorder 26).
-        static const VisitorStepsEnv visitorSteps = {t(1, 0), t(2, 2), t(3, 1), t(4, 1), t(5, 0), t(26, 1), t(6, 1), t(7, 1), t(8, 4), t(9, 1), t(10, 2), t(11, 0), t(12, 0), t(13, 1), t(14, 1)};
+        static const VisitorStepsEnv visitorSteps = {t(1, 0), t(2, 2), t(3, 1), t(4, 1), t(5, 0), t(26, 1), t(6, 1), t(7, 1), t(8, 4), t(9, 1), t(10, 2), t(11, 0), t(12, 0), t(13, 1), t(14, 1),
+                                                      t(15, 1), t(16, 2), t(17, 0)};
         VisitorSteps_SetEnv(&visitorSteps);
         // GameMode_MapPreview's calls (src/game/world/mappreview.h MapPreviewEnv), as tests/fncmp/mappreview.py hooks their addresses.
         static const MapPreviewEnv mapPreview = {c(0, 5), c(1, 5), c(2, 6),  c(3, 2),  c(4, 3),  c(5, 4),  c(6, 2),  c(7, 0),  c(8, 3),

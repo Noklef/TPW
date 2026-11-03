@@ -32,6 +32,17 @@ def amount_regions(r, regions):
 def takings(r):
     c = oc.pay(r, {0x4ac: [0, 1, 1, 1, 1, 2, 3], 0x164: [0, 1, 2, 3, 4, 5, 6, 7], 0x158: [0, 1, 2, 3, 4, 5]}, (0xc, 0xd, 1, 2, 3, 4, 5, 6, 7, 8))
     amount_regions(r, c.regions)
+    # mostly the selected slot the id the object's definition names, or the id's neighbour
+    regions = c.regions
+    obj, items = regions[oc.OBJ], regions[oc.ITEMS]
+    ident = struct.unpack_from('<H', obj, 0xe)[0]
+    at = next((i * oc.ITEM for i in range(oc.NITEMS) if struct.unpack_from('<H', items, i * oc.ITEM)[0] == ident), 0)
+    kind, by164, by158 = struct.unpack_from('<I', items, at + 0x4ac)[0], *struct.unpack_from('<I', items, at + 0x164), *struct.unpack_from('<I', items, at + 0x158)
+    want = {1: 5, 3: 8, 5: 7, 6: 6}.get(by164, {1: 2, 2: 1, 3: 3, 4: 4}.get(by158, 0xc)) if kind == 1 else 0xd
+    slots = regions[RAM + 0x4000]
+    index = struct.unpack_from('<i', slots, 0x3cc)[0]
+    if 0 <= index < 20 and r.random() < 0.7:
+        put(slots, 0xc + 48 * index, 'I', want if r.random() < 0.8 else want + 1)
     c.address = 0x4e16b0
     return c
 

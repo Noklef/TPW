@@ -742,7 +742,7 @@ void __fastcall Staff_LeaveRestArea(u8 *staff) {
 }
 
 namespace {
-const StaffWalkEnv kGameWalkEnv = {&Sprite_WalkNav, &Sprite_SpawnParticle, &Thing_Delete, &Thoughts_Show};
+const StaffWalkEnv kGameWalkEnv = {&Sprite_WalkNav, &Sprite_SpawnParticle, &Thing_Delete, &Thoughts_Show, &Person_SetRandomDest};
 const StaffWalkEnv *g_walk = &kGameWalkEnv;
 
 // +0x1f8 less the int [0x785328] (x87: fild, fchs, fadd): above 100.0 100.0, below 0 (or NaN) 0, else the sum.
