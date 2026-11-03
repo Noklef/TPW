@@ -46,6 +46,27 @@ def array(r):
     return nodes
 
 
+def near(r, pool, n_pool, self_):
+    """The other cars just inside, on or just outside the car's reach, at the distances where the halving starts (and the farthest, 16 halvings)."""
+    p = 0xac * self_
+    far = r.random() < 0.3
+    x, y = (-0x3fffff00, -0x3fffff00) if far else (r.randrange(-1000, 1000), r.randrange(-1000, 1000))
+    put(pool, p + 0x34, 'ii', x, y)
+    reach = r.randrange(0, 64)
+    put(pool, p + 0x64, 'i', reach)
+    for i in range(n_pool):
+        if i == self_:
+            continue
+        dx, dy = r.choice([(0x7ffffe00, r.randrange(0x7ffffe00)), (r.randrange(0x7ffffe00), 0x7ffffe00)]) if far else \
+            r.choice([(0x8000, 0x7fff), (0x8001, 0), (0x8000, 0), (0, 0x7fff), (0, 0x8000), (0x7fff, 0x8000), (r.randrange(0x10000), r.randrange(0x10000))])
+        put(pool, 0xac * i + 0x34, 'ii', x + dx, y + dy)
+        halved = 0
+        while dx > 0x8000 or dy > 0x7fff:
+            dx, dy, halved = dx >> 1, dy >> 1, halved + 1
+        distance = int(math.sqrt(dx * dx + dy * dy)) << halved
+        put(pool, 0xac * i + 0x64, 'I', (distance - reach + r.choice([-1, 0, 0, 1, 2])) & 0xffffffff)
+
+
 def case(r):
     log = log_region()
     kind = r.deal(WANDER + WANDER + FOLLOW + FOLLOW + NEWFOLLOW + START + [-2, -2, 0, 1, -15, 7])
@@ -65,10 +86,11 @@ def case(r):
     put(rides, at + 0xc0, 'I', AREA)
     area = bytearray(0x40)
     put(area, 0xc, 'I', r.choice([1, 8, 100, 4096, 65536, 0x100000]))
-    pool = bytearray(0xac * N_POOL)
-    self_ = r.randrange(N_POOL)
+    n_pool = r.choice([N_POOL, N_POOL, 46])   # (the chosen car's index past 42 tells the size 0xac apart)
+    pool = bytearray(0xac * n_pool)
+    self_ = r.randrange(n_pool)
     used = r.random()
-    for i in range(N_POOL):
+    for i in range(n_pool):
         p = 0xac * i
         put(pool, p, 'I', (r.getrandbits(32) & ~1) | (1 if r.random() < used or i == self_ else 0))
         if r.random() < 0.3:
@@ -88,7 +110,9 @@ def case(r):
     put(pool, p + 0x9c, 'I', ride)
     if struct.unpack_from('<i', pool, p + 0x7c)[0] not in range(N_NODES) and kind == -2 or fields & 8 and kind in WANDER:
         put(pool, p + 0x7c, 'i', r.randrange(N_NODES))
-    pool_count = sum(struct.unpack_from('<I', pool, 0xac * i)[0] & 1 for i in range(N_POOL))
+    if r.random() < 0.3:
+        near(r, pool, n_pool, self_)
+    pool_count = sum(struct.unpack_from('<I', pool, 0xac * i)[0] & 1 for i in range(n_pool))
     globals_ = bytearray(r.bytes(0x28))
     put(globals_, 0, 'I', 0x4a454647 if r.random() < 0.9 else r.getrandbits(32))
     put(globals_, 8, 'I', RIDES)
