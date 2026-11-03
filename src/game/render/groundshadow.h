@@ -6,6 +6,7 @@
 // What GroundShadow_Draw calls (the port by default; the bench runs it as a recorder).
 struct GroundShadowEnv {
     u32(__fastcall *drawQuad)(u8 *object, void *, u8 *spec, u32 mask);  // Batch_DrawQuad (0x565f90)
+    u32(__fastcall *draw)(u8 *object, void *);                          // GroundShadow_Draw (0x57be90)
 };
 // The call goes to env (nullptr: the port).
 void GroundShadow_SetEnv(const GroundShadowEnv *env);
@@ -17,4 +18,7 @@ extern "C" {
 // are a Batch_DrawQuad with mask -1, colour 0x80404040, batch flags 0xd56: its answer is returned. The polygon flags start as stack garbage (0 here), 4 with a texture's 0x100000.
 // Texture_FormatBits' answer is overwritten in the original: left out.
 u32 __fastcall GroundShadow_Draw(u8 *object, void *);
+
+// 0x57c2a0 (thiscall on a count and an array from +4 of objects; name invented, unconfirmed): each drawn (GroundShadow_Draw); 0 at the first that answers 0, the count left; else the count cleared, 1.
+u32 __fastcall GroundShadows_DrawAll(u8 *list);
 }

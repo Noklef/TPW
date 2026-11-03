@@ -11,12 +11,20 @@ namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const GroundShadowEnv kPortEnv = {&Batch_DrawQuad};
+const GroundShadowEnv kPortEnv = {&Batch_DrawQuad, &GroundShadow_Draw};
 const GroundShadowEnv *g_env = &kPortEnv;
 
 float Height(const u8 *grid, float x, float z) { return (float)(X87Reg(HeightGrid_HeightAt(grid, nullptr, x, z)) + global<float>(0x008bd4ec)); }
 
 }  // namespace
+
+u32 __fastcall GroundShadows_DrawAll(u8 *list) {
+    for (s32 i = 0; i < *reinterpret_cast<s32 *>(list); ++i) {
+        if (g_env->draw(*reinterpret_cast<u8 **>(list + 4 + i * 4), nullptr) == 0) return 0;
+    }
+    *reinterpret_cast<u32 *>(list) = 0;
+    return 1;
+}
 
 void GroundShadow_SetEnv(const GroundShadowEnv *env) { g_env = env ? env : &kPortEnv; }
 
