@@ -101,6 +101,13 @@ void __fastcall Visitor_QuitQueue(u8 *visitor);
 // +0x22a, +0x228 and +0x1dc, the dword +0x1f8 and the byte +0x1f1 cleared; then state 6 (the env's 0x501db0). The debug print is left out.
 void __fastcall Visitor_SendAway(u8 *visitor);
 
+// 0x501390 (thiscall; name from its debug print "Person %d: Queue edited underneath", unconfirmed): the visitor's object (the handle +0x1dc, the
+// table 0x7cfb90). When its place in the queue (Object_QueuePosition, -1 not found) is at least 4 * the object's +0x40 (unsigned, the product
+// wrapping), and its state +0x220 is not 0xe: the position of the script +0xc read (SpriteScript_GetPosition, the results unused), for a handle
+// divisible by 3 the thought 0xd (Thoughts_Show on +0x30, no force), off the queue (Object_QueueRemovePerson), Visitor_SendAway, the word +0x1dc
+// 0 and state 6 (the env's 0x501db0). The debug prints are left out.
+void __fastcall Visitor_QueueEdited(u8 *visitor);
+
 // 0x501db0 (thiscall (state), pops 4; name invented, unconfirmed; called by 0x500870, 0x5012f0 and others): the state stored at +0x220, then
 // (past 0x15 nothing more) by state, the script reference +0xc's +4 set to 1 or 3 (Set4_4217f0) in most: 0, 2, 5, 9, 10, 13, 20: 1; 1, 6, 19:
 // 3; 3: 3 and +0x200 a wait of 200 + World_Rand ([0x80239c]) % 150 (unsigned); 4: at ticket booth A (Map_TicketBoothPos 0, the visitor's

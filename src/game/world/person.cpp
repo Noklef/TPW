@@ -174,6 +174,20 @@ void __fastcall Visitor_SendAway(u8 *visitor) {
     g_env->state501db0(visitor, nullptr, 6);
 }
 
+void __fastcall Visitor_QueueEdited(u8 *visitor) {
+    u8 *const object = global<u8 *>(0x007cfb90 + 20 * (u32)at<u16>(visitor, 0x1dc));
+    const u32 limit = at<u32>(object, 0x40);
+    u16 handle;
+    if ((u32)Object_QueuePosition(object, nullptr, *Thing_GetHandle(visitor, nullptr, &handle)) < limit * 4 || at<u32>(visitor, 0x220) == 0xe) return;
+    u32 x, y, z, r;
+    SpriteScript_GetPosition(at<s32>(visitor, 0xc), &x, &y, &z, &r);
+    if (*Thing_GetHandle(visitor, nullptr, &handle) % 3 == 0) Thoughts_Show(visitor + 0x30, nullptr, 0xd, 0);
+    Object_QueueRemovePerson(object, nullptr, *Thing_GetHandle(visitor, nullptr, &handle));
+    Visitor_SendAway(visitor);
+    at<u16>(visitor, 0x1dc) = 0;
+    g_env->state501db0(visitor, nullptr, 6);
+}
+
 u32 __fastcall Person_HasWord(const u8 *object, void *, u32 word) {
     const u8 kind = at<u8>(object, 2);
     if (kind == 4)
