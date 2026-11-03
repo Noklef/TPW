@@ -311,7 +311,7 @@ def arrows_case(r, op):
     regions[WINDOW] = w
     message = r.choice([0x100] * 8 + [0x101, 0x1d, 0, r.getrandbits(32) | 0x100])
     arrow = r.choice([0xd2d03, 0xd2d03, 0xd2d02, 0xd2d04, 0x100d2d03, r.getrandbits(32)])
-    return Call(CALLS[op], [WINDOW, message, arrow, r.getrandbits(32)], regions)
+    return Call(CALLS[op], [WINDOW, message, arrow, r.getrandbits(32)], regions, ret='a')
 
 
 def case(r):
@@ -353,7 +353,7 @@ def case(r):
         level = r.choice([0] * 5 + [r.randrange(1, 101)] * 6 + [r.randrange(-40, 0), r.getrandbits(32), 0x7fff, 0x8000])
         return Call(CALLS[op], [WINDOW, level & 0xffffffff], regions, ret='v')
     message = r.choice([0x1e] * 6 + [0x1d, 0x1f, 0, r.getrandbits(32)])
-    return Call(CALLS[op], [WINDOW, message, r.getrandbits(32), r.getrandbits(32)], regions)
+    return Call(CALLS[op], [WINDOW, message, r.getrandbits(32), r.getrandbits(32)], regions, ret='a')
 
 
 if __name__ == '__main__':

@@ -106,7 +106,7 @@ def case(r):
     regions[RAM] = w
     regions[0x7cca94] = r.bytes(4)
     message = r.choice([0x14, 0x14, 0x13, 0x15, 0x17, 4, r.getrandbits(32)])
-    return Call(CALLS[op], [RAM, message, r.getrandbits(32), r.getrandbits(32)], regions)
+    return Call(CALLS[op], [RAM, message, r.getrandbits(32), r.getrandbits(32)], regions, ret='a')
 
 
 if __name__ == '__main__':
