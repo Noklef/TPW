@@ -270,6 +270,7 @@
 #include "../../src/game/world/staff.h"
 #include "../../src/game/world/weather.h"
 #include "../../src/game/world/objectupdate.h"
+#include "../../src/game/core/soundobjectslots.h"
 #include "../../src/game/world/mapreset.h"
 #include "../../src/game/world/staffheld.h"
 #include "../../src/game/world/researcher.h"
@@ -2094,6 +2095,8 @@ int main(int argc, char **argv) {
                                                     Rec{recorder(5, 2)},      Rec{recorder(6, 0)},      Rec{recorder(7, 0)},      Rec{recorder(8, 0)},
                                                     Rec{recorder(9, 0)},      Rec{recorder(10, 0)}};
     ObjectUpdate_SetEnv(&objectUpdateEnv);
+    static const SoundObjectSlotsEnv soundObjectSlotsEnv = {Rec{recorder(20, 3)}, Rec{recorder(21, 2)}, Rec{recorder(22, 3)}, Rec{recorder(23, 2)}, Rec{recorder(24, 2)}};
+    SoundObjectSlots_SetEnv(&soundObjectSlotsEnv);
     static const MapResetEnv mapResetEnv = {Rec{recorder(1, 1)}, Rec{recorder(2, 0)}};
     MapReset_SetEnv(&mapResetEnv);
     static const StaffHeldEnv staffHeldEnv = {Rec{recorder(1, 1)}, Rec{recorder(2, 1)}};

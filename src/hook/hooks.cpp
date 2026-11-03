@@ -228,6 +228,7 @@
 #include "../game/core/soundmixer.h"
 #include "../game/core/soundnames.h"
 #include "../game/core/soundobject.h"
+#include "../game/core/soundobjectslots.h"
 #include "../game/core/soundoccluders.h"
 #include "../game/core/soundplay.h"
 #include "../game/core/soundsample.h"
@@ -5776,6 +5777,14 @@ const Hook kHooks[] = {
     {"ComList_ReleaseAll",        0x006d75c0, (void *)&ComList_ReleaseAll, {0x6a, 0xff, 0x68, 0x58, 0x6a}},
     {"SoundWorker_Ctor",          0x006b6050, (void *)&SoundWorker_Ctor, {0x6a, 0xff, 0x68, 0x91, 0x57}},
     {"SoundWorkerHost_Ctor",      0x006b8380, (void *)&SoundWorkerHost_Ctor, {0x6a, 0xff, 0x68, 0xbb, 0x59}},
+    {"SoundObject_PlayRecord",    0x006b7f20, (void *)&SoundObject_PlayRecord, {0x83, 0xec, 0x10, 0x8d, 0x44}},
+    {"SoundObject_PlayNotify",    0x006b7f80, (void *)&SoundObject_PlayNotify, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"SoundUpdateById_Apply",     0x006b8360, (void *)&SoundUpdateById_Apply, {0x8b, 0x41, 0x0c, 0x8b, 0x54}},
+    {"SoundUpdateByHandle_Apply", 0x006c5630, (void *)&SoundUpdateByHandle_Apply, {0x51, 0x56, 0x57, 0x8b, 0xf9}},
+    {"SoundObject_SlotZero",      0x006b9ba0, (void *)&SoundObject_SlotZero, {0xd9, 0x05, 0x20, 0xa6, 0x70}},
+    {"SoundObject_SlotOne",       0x006ba1f0, (void *)&SoundObject_SlotOne, {0xd9, 0x05, 0x70, 0xa6, 0x70}},
+    {"SoundObject_SlotByFlag",    0x006b9bb0, (void *)&SoundObject_SlotByFlag, {0xf6, 0x41, 0x28, 0x40, 0x74}},
+    {"SoundVoice_MixCallback",    0x006bb4f0, (void *)&SoundVoice_MixCallback, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

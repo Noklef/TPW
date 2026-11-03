@@ -5587,6 +5587,14 @@ address,name,kind,confidence,notes
 0x006d75c0,ComList_ReleaseAll,function,low,"reimplemented (src/game/core/soundworker); thiscall; each listed COM object's slots 6 and 2, the node freed (name invented)"
 0x006b6050,SoundWorker_Ctor,function,low,"reimplemented (src/game/core/soundworker); thiscall (count), pops 4; 30 voices, two blocks, the thread (name invented)"
 0x006b8380,SoundWorkerHost_Ctor,function,low,reimplemented (src/game/core/soundworker); thiscall; makes a SoundWorker of 12 (name invented)
+0x006b7f20,SoundObject_PlayRecord,function,low,reimplemented (src/game/core/soundobjectslots); a record played on the pool; with an answer the object's slot 4 told through a stack functor
+0x006b7f80,SoundObject_PlayNotify,function,low,reimplemented (src/game/core/soundobjectslots); ChannelVoices_PlayNotify on the pool +0x14
+0x006b8360,SoundUpdateById_Apply,function,low,reimplemented (src/game/core/soundobjectslots); SoundUpdate_Apply on the voice id +0xc
+0x006c5630,SoundUpdateByHandle_Apply,function,low,"reimplemented (src/game/core/soundobjectslots); SoundUpdate_Apply on the voice the handle +4 names in the channel's pool, else -1"
+0x006b9ba0,SoundObject_SlotZero,function,low,reimplemented (src/game/core/soundobjectslots); answers 0
+0x006ba1f0,SoundObject_SlotOne,function,low,reimplemented (src/game/core/soundobjectslots); answers 1
+0x006b9bb0,SoundObject_SlotByFlag,function,low,reimplemented (src/game/core/soundobjectslots); answers 0.2 or 0.8 by bit 6 of +0x28
+0x006bb4f0,SoundVoice_MixCallback,function,low,reimplemented (src/game/core/soundobjectslots); the QSound source's callback: ChannelVoice_Mix on the voice
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
