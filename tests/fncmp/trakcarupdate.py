@@ -3,6 +3,7 @@
 # TrakCar_Remove 0x54ae50 (5 of 1), Sound_Stop 0x51c300 (6 of 1), Layer_ClearQueue 0x473270 (7 of 2), Animator_Play 0x4732a0 (8 of 6); IntArea_Contains and World_Rand run as they
 # are. The fixture: the car in a pool of 3, its ride of each kind and state, nodes on a chain with flags and areas, the module's areas, and the flags picking each path.
 # usage: trakcarupdate.py [CASES [SEED]] [--wild|--both] [--show N]
+import math
 import os
 import struct
 import sys
@@ -86,7 +87,16 @@ def case(r):
     put(pool, me + 0x7c, '2I', r.randrange(node_count), r.randrange(3))
     put(pool, me + 0x88, '2i', r.choice([-1, 0, 1, 1, 2, r.randrange(3, 100)]), r.choice([0, 1, 2, 2, 3, r.randrange(4, 100), -3]))
     put(pool, me + 0x9c, 'I', RIDE)
-    near = struct.pack('<4i', r.getrandbits(32) & 0xff, x + r.randrange(-5000, 5000), y + r.randrange(-5000, 5000), r.choice([0, 100, 1000, r.randrange(-500, 5000)]))
+    tight = r.random()
+    if tight < 0.3:     # (a stopped car close to the others: its speed held to 1; or a speed of exactly 0x8000, the halving's edge, odd once rooted, and the others as far off as it)
+        slow = tight < 0.15
+        b = r.randrange(0x100, 0x7fff)
+        root = math.isqrt(0x40000000 + b * b)
+        put(pool, me + 0x3c, '2i', 0, 0) if slow else put(pool, me + 0x3c, '2i', r.choice([0x8000, -0x8000]), r.choice([b, -b]))
+        for j in range(3):
+            if j != spot:
+                put(pool, 0xac * j + 0x34, '2i', *((x + r.randrange(-40, 40), y + r.randrange(-40, 40)) if slow else (x + root - 1, y)))
+    near =struct.pack('<4i', r.getrandbits(32) & 0xff, x + r.randrange(-5000, 5000), y + r.randrange(-5000, 5000), r.choice([0, 100, 1000, r.randrange(-500, 5000)]))
     instances = bytes(r.getrandbits(8) | 0x80 if i % 4 == 3 else r.getrandbits(8) for i in range(32))
     areas_ptr, count = (AREAS, r.choice([in_use, in_use, max(in_use - 1, 0)])) if r.random() < 0.9 else (0, in_use)
     node_ptr, node_n = (NODES, node_count) if r.random() < 0.95 else (0, node_count)
