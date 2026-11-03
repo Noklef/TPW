@@ -10,6 +10,7 @@
 // +0xb9 mAllResearchCompleted.
 #pragma once
 
+#include "addrcalls.h"
 #include "../../../re/types.h"
 
 struct Stream;
@@ -88,4 +89,13 @@ u8 *__cdecl GlobalSave_Instance();
 // 0x4d4b70 (stdcall (key), pops 4; name unconfirmed): Obj_HasKey5af780 on the global save info (GlobalSave_Instance) with the key.
 u32 __stdcall GlobalSave_HasKey(u32 key);
 void __fastcall GlobalSave_ClearByte4c(u8 *info);
+
+// GlobalSave_Serialize's calls that the bench replaces go by the game's addresses; a table of replacements (tests/fncmp/globalsaveio.py gives every one a recorder).
+void GlobalSave_SetCalls(const AddrCall *table, u32 count);
+
+// 0x5aff50 (thiscall (stream, save, third), pops 0xc; name invented, unconfirmed): the info written (save not 0) or read: the bytes +0x18-+0x1b, +0x26, +0x27, the dwords +0x1c, +0x20, the bytes +0x24, +0x25, +0x4c; then, written, the theme map's size (+0x44) and for each of its nodes in order
+// the length (+0x10), the name's chars one by one (from a copy on the heap, leaked when one fails) and its record (ThemeSaveRecord_Serialize); the options object 0x78d8d8's own (0x423e90); the ride ids' size (+0x34) and each one's u16 (+0xc of each node, in order).
+// Read: a count and as many names, each a new record (0xbc bytes, its string +0x20 the name, its +0x1c 0; none: on a null, sic), read and inserted in the map (0x5b1620; not inserted: 1); the options; "size" and as many "rideId"s, inserted (0x5b1650; third's slot holds each).
+// 1 at the first that fails, else 0.
+u32 __fastcall GlobalSave_Serialize(u8 *info, void *, Stream *stream, u32 save, u32 third);
 }
