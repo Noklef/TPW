@@ -14,7 +14,8 @@
 # FillList (0x4aaf70, cdecl (kind, clear)): the dialog's list among 0-1 decoys (no dialog now and then), 0-6 definitions of 0x510 bytes (the three checks mostly passed), each id's record in the
 # control table, its price 0, positive or negative, one key held (globalsave.py and objectunlock.py as for ItemTip), the kind's ring in the store of those ids or others. The list's Clear, AddItem and
 # RefreshRows, ObjectDefs_GetFullName and Language_WideText recorders 10-14 (driver.cpp's kDialog7cc1f8Env; their own benches have them), the rows logged by their value, state and text's first bytes.
-# usage: dialog7cc1f8.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ShowStats,ItemTip,FillList)
+# RowHandler (0x4acb70, cdecl (window, message, a, b)): the message 0x403 mostly, b ItemTip's item (any upper bits) or below 0, ItemTip's definitions, control and global save; the window's object +0x98 a recorder told the bytes, its default handler the logger.
+# usage: dialog7cc1f8.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=ShowStats,ItemTip,FillList,RowHandler)
 import os
 import struct
 import sys
@@ -27,13 +28,13 @@ import globalsave  # noqa: E402
 import helpbg  # noqa: E402
 import objectunlock  # noqa: E402
 import panel7cc218choose as choose  # noqa: E402
-from fncmp import LOG, LOG_BYTES, RAM, Bench, Call, _cdecl_log, _cdecl_log4, _recorder, blob_bytes, fill, log_region, put, set_return, strings, text_args, vtable  # noqa: E402
+from fncmp import CDECL_LOG4, LOG, LOG_BYTES, RAM, Bench, Call, _cdecl_log, _cdecl_log4, _recorder, blob_bytes, fill, log_region, put, set_return, strings, text_args, vtable  # noqa: E402
 from window import RANGES, VTABLE, notify_blobs, notify_env, shown_env  # noqa: E402
 
-CALLS = {'ShowStats': 0x4abfb0, 'ItemTip': 0x4abc80, 'FillList': 0x4aaf70}
+CALLS = {'ShowStats': 0x4abfb0, 'ItemTip': 0x4abc80, 'FillList': 0x4aaf70, 'RowHandler': 0x4acb70}
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 B = Bench(dialog7cc5f4.merged(RANGES + [
-    (0x4abfb0, 0x4ac25e),
+    (0x4abfb0, 0x4ac25e), (0x4acb70, 0x4acc6a), (0x65c5d5, 0x65c672), (0x65f66e, 0x65f697),
     (0x401030, 0x401290), (0x4013e0, 0x401710), (0x4017a0, 0x402730), (0x405710, 0x405760), (0x409410, 0x409490), (0x412e90, 0x412f00),
     (0x4924b0, 0x492540), (0x4abc80, 0x4abfc0), (0x4d3d10, 0x4d3d90), (0x4d4b70, 0x4d4bd0), (0x5195d0, 0x519620), (0x5aef50, 0x5af0f0),
     (0x5af5d0, 0x5af690), (0x5af780, 0x5af800), (0x5b11c0, 0x5b12f0), (0x5b1680, 0x5b16c0), (0x5b2480, 0x5b2540), (0x5b2fd0, 0x5b3000),
@@ -48,6 +49,7 @@ B = Bench(dialog7cc5f4.merged(RANGES + [
     hooks={0x6acd60: _cdecl_log4, 0x691de0: globalsave.lock, 0x691ea0: lambda e: None, 0x67a7d0: _cdecl_log,
            0x6649d5: _recorder(10, 0), 0x66403b: _recorder(11, 4), 0x663324: _recorder(12, 0), 0x412fb0: _recorder(13, 3), 0x485b00: _recorder(14, 1, cdecl=True)})
 DIALOG, DECOY = RAM + 0xb000, RAM + 0xb200
+OBJECT = RAM + 0xbf00
 LIST, ITEM, DEFS, TEXTS = RAM + 0xb400, RAM + 0xb600, RAM + 0x56000, RAM + 0xb800
 SAVE_MOVE = 0x50000   # (the global save's regions, RAM to RAM + 0x10000 in globalsave.py / objectunlock.py, moved by this)
 IDS = [0x1f3, 0x1f1, 0x1f6, 0x1f7, 0x1ee, 0x1f2, 0x1ef, 0x1f0]
@@ -108,7 +110,13 @@ def item_tip(r):
     tipped = item if kind == 'below' or r.random() < 0.4 else r.choice([-1, -2, ids[k] ^ 1, r.getrandbits(16)])
     regions[0x7cc1e0] = struct.pack('<hH', (tipped + 0x8000) % 0x10000 - 0x8000, r.getrandbits(16))
     regions[0x75513c] = struct.pack('<i', r.choice([-1, 0, 1, 2, 3, 4, 2, 3, r.getrandbits(32) - (1 << 31)]))
-    # the definitions, the control, the money
+    item_world(r, regions, log, ids, k)
+    return Call(CALLS['ItemTip'], [ITEM], regions, ret='v')
+
+
+def item_world(r, regions, log, ids, k):
+    """the definitions of ids, of which ids[k] the item's; the control, the money, the global save"""
+    n = len(ids)
     table = bytearray(r.bytes(0x740))
     for i in range(n):
         put(table, 4 * i, 'I', DEFS + 0x100 * i)
@@ -140,7 +148,24 @@ def item_tip(r):
     objectunlock.key_set(r, save, ids[k] if r.random() < 0.97 else r.getrandbits(16))
     del save[LOG]
     regions.update(moved(save, SAVE_MOVE))
-    return Call(CALLS['ItemTip'], [ITEM], regions, ret='v')
+
+
+def row_handler(r):
+    log = log_region()
+    regions = {LOG: log}
+    window = put(bytearray(r.bytes(0x120)), 0x98, 'II', OBJECT, 0)
+    put(window, 0x118, 'I', CDECL_LOG4)
+    regions[LIST] = window
+    regions[OBJECT] = bytearray(struct.pack('<I', OBJECT + 0x10) + r.bytes(12))
+    regions[OBJECT + 0x10] = vtable({3: 2}, size=8)
+    blob_bytes(log, 3, 1, 0, (0x10, 0xf, 0x10))
+    n = r.randrange(1, 4)
+    ids = r.sample(range(0x8000), n)
+    k = r.randrange(n)
+    b = r.getrandbits(16) << 16 | (ids[k] if r.random() < 0.9 else 0x8000 | r.getrandbits(15))
+    item_world(r, regions, log, ids, k)
+    message = r.choice([0x403] * 8 + [0x1e, 0x402, r.getrandbits(32)])
+    return Call(CALLS['RowHandler'], [LIST, message, r.getrandbits(32), b], regions, ret='a')
 
 
 def fill_list(r):
@@ -214,6 +239,8 @@ def case(r):
         return item_tip(r)
     if op == 'FillList':
         return fill_list(r)
+    if op == 'RowHandler':
+        return row_handler(r)
     log = log_region()
     regions = {LOG: log, VTABLE: vtable({5: 1})}
     wins = shown_env(r, regions, log)
