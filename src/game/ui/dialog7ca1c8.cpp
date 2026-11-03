@@ -5,7 +5,11 @@
 #include "../coaster/edittools.h"
 #include "../coaster/registry.h"
 #include "../core/accessors.h"
+#include "../core/gameheap.h"
+#include "../core/globals.h"
+#include "../core/vcall.h"
 #include "../world/focuscell.h"
+#include "../world/gamemode.h"
 #include "../world/mousemode.h"
 #include "cursor.h"
 #include "dialogs.h"
@@ -33,6 +37,44 @@ const Dialog7ca1c8OpenEnv *g_open = &kOpenGameEnv;
 }
 
 void Dialog7ca1c8_SetOpenEnv(const Dialog7ca1c8OpenEnv *env) { g_open = env ? env : &kOpenGameEnv; }
+
+namespace {
+const Dialog7ca1c8ResetEnv kResetGameEnv = {Global81ae2c_Get_52f840, GameHeap_Alloc, MouseModeOnlineBase_Ctor, MouseMode_Set, GameMode_Set};
+const Dialog7ca1c8ResetEnv *g_reset = &kResetGameEnv;
+
+u8 *newBaseMode() {
+    u8 *const block = static_cast<u8 *>(g_reset->alloc(8));
+    return block ? g_reset->baseCtor(block) : nullptr;
+}
+
+// MouseModes_EnsureHolder, inline in the original.
+void ensureHolder() {
+    u8 *&holder = *reinterpret_cast<u8 **>((uintptr_t)0x007b05e8);
+    if (holder) return;
+    u8 *const block = static_cast<u8 *>(g_reset->alloc(1));
+    if (block) {
+        g_reset->setMode(newBaseMode());
+        *reinterpret_cast<u32 *>((uintptr_t)0x007b05e0) = 0xffffffffu;
+        *reinterpret_cast<u32 *>((uintptr_t)0x007b05d4) = 0xffffffffu;
+    }
+    holder = block;
+}
+}  // namespace
+
+void Dialog7ca1c8_SetResetEnv(const Dialog7ca1c8ResetEnv *env) { g_reset = env ? env : &kResetGameEnv; }
+
+void __cdecl Dialog7ca1c8_ResetMouseMode() {
+    *reinterpret_cast<u32 *>((uintptr_t)0x007ca1d0) = 0;
+    if (g_reset->mode() == 3) return;
+    ensureHolder();
+    u8 *const current = *reinterpret_cast<u8 **>((uintptr_t)0x007b05d8);
+    if ((current ? vcall<u32>(current, 0x24) : 0) == 1) return;
+    u8 *const base = newBaseMode();
+    ensureHolder();
+    g_reset->setMode(base);
+    g_reset->gameMode(0, 1);
+    g_reset->gameMode(0, 1);
+}
 
 extern "C" {
 

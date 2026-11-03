@@ -593,6 +593,8 @@ const StaffRenameEnv kStaffRenameEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 1
                                         Rec{jpeg_recorder(29, 0)}, Rec{recorder(30, 1)}};
 // Dialog7cc1f8_TabHandler's calls (tests/fncmp/dialog7cc1f8tab.py).
 const Dialog7cc1f8TabEnv kDialog7cc1f8TabEnv = {Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 2)}, Rec{jpeg_recorder(12, 1)}, Rec{jpeg_recorder(13, 3)}, Rec{recorder(14, 3)}};
+// Dialog7ca1c8_ResetMouseMode's calls (tests/fncmp/dialog7ca1c8reset.py).
+const Dialog7ca1c8ResetEnv kDialog7ca1c8ResetEnv = {Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 1)}, Rec{recorder(12, 0)}, Rec{stdcall_recorder(13, 1)}, Rec{jpeg_recorder(14, 2)}};
 // Guard_SetState's calls (tests/fncmp/guardstate.py).
 const GuardStateEnv kGuardStateEnv = {Rec{recorder(10, 1)}, Rec{recorder(11, 1)}};
 // Panel7c2534_AddRow's calls (tests/fncmp/panel7c2534.py).
@@ -1372,6 +1374,7 @@ int main(int argc, char **argv) {
     Panel7cc218_SetTileEnv(&kPanel7cc218TileEnv);
     Panel7c2534_SetEnv(&kPanel7c2534Env);
     Guard_SetStateEnv(&kGuardStateEnv);
+    Dialog7ca1c8_SetResetEnv(&kDialog7ca1c8ResetEnv);
     Dialog7cc1f8_SetTabEnv(&kDialog7cc1f8TabEnv);
     StaffRename_SetEnv(&kStaffRenameEnv);
     ObjectUnlock_SetScoresEnv(&kObjectUnlockScoresEnv);
