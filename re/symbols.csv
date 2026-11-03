@@ -7534,6 +7534,10 @@ address,name,kind,confidence,notes
 0x004bc100,Dialog7cc654_FitText,function,low,reimplemented (src/game/ui/dialog7cc654); the text window of [0x7cc654] fitted to its text: the bar 0xee3 shown with the excess as its range or hidden; the text window given the buffer when the bar answers 0
 0x0048adb0,Dialog74fb20_Open,function,low,"reimplemented (src/game/ui/dialog74fb20); the dialog of the script 0x74fb20 built in the overlay, placed and the overlay focused"
 0x0048a740,Dialog74fb20_Handler,function,low,reimplemented (src/game/ui/dialog74fb20); that dialog's handler: closed and built anew by a click after 2 seconds or Escape
+0x0048ac40,Dialog74fb20_OpenFor,function,low,"reimplemented (src/game/ui/dialog74fb20); the dialog 0x74fb20 for a thing, the bars hidden: name invented, unconfirmed"
+0x0048ae70,Dialog74faf0_OpenFor,function,low,"reimplemented (src/game/ui/dialog74fb20); the dialog 0x74faf0 for a thing, the bars hidden: name invented, unconfirmed"
+0x0048a970,Dialog74faf0_Handler,function,low,"reimplemented (src/game/ui/dialog74fb20); the dialog 0x74faf0's host's handler: name invented, unconfirmed"
+0x0048aff0,CameraMode_Leave,function,low,"reimplemented (src/game/ui/dialog74fb20); the walk or follow camera left: name invented, unconfirmed"
 0x004a84c0,TextPanel7cc18c_Show,function,low,reimplemented (src/game/ui/textpanel7cc18c); the text [0x7cbf48] drawn on the panel [0x7cc18c] and shrunk into the window's image by the mode [0x8bd554]
 0x00492f60,Panel7c2534_AddRow,function,low,"reimplemented (src/game/ui/panel7c2534); a text row: the text measured, a child centred across the parent from top down, dressed with a text part, the font, the text and the colour; returns top + height"
 0x004c4670,Dialog7cdac4_Open,function,low,"reimplemented (src/game/ui/dialog7cdac4); the dialog of the script 0x7595b0 opened with its two edit boxes on 0x7cd850 and 0x7cd480, the first's text the theme's label, and the scene queue given 0x250"
