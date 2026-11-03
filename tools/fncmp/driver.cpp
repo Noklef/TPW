@@ -2236,7 +2236,7 @@ int main(int argc, char **argv) {
     SoundSeed_SetEnv(&soundSeedEnv);
     static const SoundManagerEnv soundManagerEnv = {Rec{recorder(20, 0)}};
     SoundManager_SetEnv(&soundManagerEnv);
-    static const SoundWaitEnv soundWaitEnv = {Rec{recorder(20, 0)}, Rec{recorder(21, 1)}, Rec{jpeg_recorder(22, 1)}};
+    static const SoundWaitEnv soundWaitEnv = {Rec{recorder(20, 0)}, Rec{recorder(21, 1)}, Rec{jpeg_recorder(22, 1)}, Rec{recorder(23, 2)}, Rec{jpeg_recorder(24, 3)}};
     SoundWait_SetEnv(&soundWaitEnv);
     static const ThingNameEnv thingNameEnv = {Rec{jpeg_recorder(1, 4)}};
     ThingName_SetEnv(&thingNameEnv);

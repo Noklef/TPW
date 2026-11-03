@@ -8,6 +8,8 @@ struct SoundWaitEnv {
     u32(__fastcall *refillVoice)(u8 *voice);                     // ChannelVoice_Refill
     void(__fastcall *refillPosition)(u8 *owner, void *, u32 position);   // SoundWorker_RefillVoice
     s32(__cdecl *atexit)(void *fn);                              // CRT_atexit
+    u32 *(__fastcall *open)(u8 *object, void *, u32 *out, u32 value);   // SoundObject_Open
+    u32(__cdecl *beginThread)(void *proc, u32 stack, void *arg);  // CRT_beginthread
 };
 
 void SoundWait_SetEnv(const SoundWaitEnv *env);
@@ -32,3 +34,27 @@ u8 *__cdecl SoundHandshake_Instance();
 // 0x6b9fa0 (thiscall; an SEH frame, dropped; called from 0x6b5e23; name invented, unconfirmed; the sound engine's destructor): vtable 0x70a2a0, the handshake waited for, vtable 0x70a588;
 // +0x24's slot 0 (no arguments) and +0x20's slot 0 (1), each unless null.
 void __fastcall SoundEngine_Dtor(u8 *engine);
+
+// 0x6b5e20 (thiscall (flags), pops 4; names invented, as for all below): SoundEngine_Dtor, the engine freed with flag 1. Returns the engine.
+u8 *__fastcall SoundEngine_DeletingDtor(u8 *engine, void *, u32 flags);
+
+// 0x6ba080 (thiscall): SoundMixer_TouchFlagged on the mixer +0x20.
+u32 __fastcall SoundEngine_TouchFlagged(u8 *engine);
+
+// 0x6b9e30 (thiscall; the thread 0x6b9ef0 starts, through the jump at 0x6b9d90): until the handshake's byte +4 is set, the mixer touched and Sleep (100 when it touched any, else 250). Then byte +5 = 1.
+void __fastcall SoundEngine_ThreadLoop(u8 *engine);
+
+// 0x6b9ef0 (thiscall (out, engine), pops 8): with no thread at +0, bytes +4, +5 cleared and _beginthread (0x6b9d90, 0, engine) into +0; 0 fails (*out = -1), otherwise SetThreadPriority (the thread, -1).
+// *out = 0 otherwise. Returns out.
+u32 *__fastcall SoundHandshake_Start(u8 *handshake, void *, u32 *out, u8 *engine);
+
+// 0x6b9f40 (thiscall (out, value), pops 8): SoundObject_Open with value's own slot as its out; a negative answer: *out = -1. Otherwise with a mixer +0x20: its byte +0x50 cleared, the thread started
+// (out again value's slot; its answer not read). *out = 0. Returns out.
+u32 *__fastcall SoundEngine_Open(u8 *engine, void *, u32 *out, u32 value);
+
+// 0x6ba020 (thiscall (out, on), pops 8): Target24_SetBit400 (on's own slot, on). On: the thread started (the same slot); a negative answer: Target24_SetBit400 (out, 0), and its status stands. Off: the
+// handshake waited for. Otherwise *out = 0. Returns out.
+u32 *__fastcall SoundEngine_SetThreaded(u8 *engine, void *, u32 *out, u32 on);
+
+// 0x6b7190 (thiscall): DeleteCriticalSection on this (the voices' constructors' unwinding jumps here).
+void __fastcall SoundLock_Delete(void *lock);

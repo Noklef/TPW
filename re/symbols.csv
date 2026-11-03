@@ -5650,6 +5650,13 @@ address,name,kind,confidence,notes
 0x006b9ed0,SoundHandshake_Wait,function,low,"reimplemented (src/game/core/soundwait); byte +4 set, a spin until byte +5, dword +0 cleared"
 0x006b9e80,SoundHandshake_Instance,function,low,"reimplemented (src/game/core/soundwait); the handshake singleton, made the first time"
 0x006b9fa0,SoundEngine_Dtor,function,low,"reimplemented (src/game/core/soundwait); the sound engine's destructor: the handshake waited for, its two inner objects released"
+0x006b5e20,SoundEngine_DeletingDtor,function,low,reimplemented (src/game/core/soundwait); the sound engine's deleting destructor
+0x006ba080,SoundEngine_TouchFlagged,function,low,reimplemented (src/game/core/soundwait); the engine's mixer's flagged voices touched
+0x006b9e30,SoundEngine_ThreadLoop,function,low,reimplemented (src/game/core/soundwait); the engine's thread: touches and naps until the handshake stops it
+0x006b9ef0,SoundHandshake_Start,function,low,reimplemented (src/game/core/soundwait); the engine's thread started once
+0x006b9f40,SoundEngine_Open,function,low,"reimplemented (src/game/core/soundwait); the object opened, then the thread started when there is a mixer"
+0x006ba020,SoundEngine_SetThreaded,function,low,reimplemented (src/game/core/soundwait); the object's bit 0x400 and the thread on or off
+0x006b7190,SoundLock_Delete,function,low,"reimplemented (src/game/core/soundwait); DeleteCriticalSection on this, for unwinding"
 0x006b70b0,SoundGuard_DropSlot2,function,low,"reimplemented (src/game/core/soundguard); the held object's slot 2 (3), unless null"
 0x006b70c0,SoundGuard_FreeBlock,function,low,reimplemented (src/game/core/soundguard); the held block freed
 0x006bafd0,SoundGuard_DeleteArray,function,low,"reimplemented (src/game/core/soundguard); the held object's slot 0 (3), unless null"
