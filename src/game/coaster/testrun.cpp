@@ -102,7 +102,7 @@ float speeds(u8 *coaster, float least, float &topSpeed, float &maxHeight) {
         if (at<u8>(node, 0) & 8) v = (float)(X87Reg(at<float>(type, 0x54)) * s);
         if (!(v > least)) v = least;
         if (!(v < least || v > least)) at<u32>(kind, 8) |= 0x800;
-        if (v >= cap) v = cap;   // (fcom: a NaN keeps v)
+        if ((double)v >= (double)cap) v = cap;   // (fcom: a NaN keeps v, -0 gives way to 0; as floats cl makes this a minss, which keeps -0)
         at<float>(node, 0x1c) = v;
         float *const force = &at<float>(node, 0x20);
         force[0] = fx;

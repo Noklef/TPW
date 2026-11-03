@@ -1,6 +1,6 @@
 # The coaster test run (src/game/coaster/testrun: Coaster_TestRun 0x43c450) against the original. Its calls are cdecl recorders (the
 # driver's TestRunEnv): CoasterRating_Reset 0x43dbf0 (1), CoasterRating_Step 0x43dc50 (2; its force logged as the three floats, too),
-# CoasterRating_Finish 0x43df90 (3), Coaster_SetTrainCount 0x43ba20 (4), CoasterCar_Wake 0x43be10 (5), Obj_RemoveFromRect 0x45be80 (6),
+# CoasterRating_Finish 0x43df90 (3), Coaster_SetTrainCount 0x43ba20 (4), CoasterCar_Wake 0x43be10 (5; the train's flags logged), Obj_RemoveFromRect 0x45be80 (6),
 # Holder_Sleep 0x45bdd0 (7), CoasterCar_StopSounds 0x439670 (8) and Coaster_SpaceCars 0x43c1f0 (9). Vec3_AngleZ runs as it is.
 # The world: the sine table, a coaster with a type (flags 0x100 and 8, the speed's factors, the up vector, the trains' room and gap), a
 # track of 2 to 11 nodes, each with a piece and its kind, four trains with cars (models, strip objects), the coaster's flags 0x1000,
@@ -43,6 +43,13 @@ def track(r, n):
             put(nodes, p + 0x10 + 4 * r.randrange(3), 'I', r.f())
         put(nodes, p + 0x1c, 'I', value(r))
         put(nodes, p + 0x2c, 'I', PIECES + 0x20 * (i % n))
+    if r.random() < 0.03:   # (a NaN height: fcom's unordered)
+        put(nodes, 0x38 * r.randrange(n) + 8, 'I', 0x7fc00000)
+    if r.random() < 0.15:   # (a climb of just the type's 0.01745)
+        i = r.randrange(n)
+        climb = 0.01745 / math.sqrt(1 - 0.01745 * 0.01745) * (1 + r.choice([0, 0, 1e-7, -1e-7]))
+        put(nodes, 0x38 * i + 4, '3f', 0.0, 0.0, 0.0)
+        put(nodes, 0x38 * (i + 1) + 4, '3f', 0.0, climb, 1.0)
     for i in range(n):
         put(pieces, 0x20 * i + 0x10, 'I', KINDS + 0x10 * i)
         put(kinds, 0x10 * i, 'II', r.getrandbits(32), r.getrandbits(32))
@@ -80,23 +87,29 @@ def case(r):
     type_ = bytearray(0x400)
     put(type_, 0, 'I', kind | (r.getrandbits(32) & ~0x108))
     put(type_, 0x24, '3f', r.choice([1.0, 0.5, 9.8, r.uniform(0, 12)]), r.uniform(-2, 2), r.uniform(-2, 2))
-    put(type_, 0x44, 'f', r.choice([0.0, 0.5, 1.0, r.uniform(0.01, 5)]))
+    put(type_, 0x44, 'f', r.choice([0.0, -0.0, 0.5, 1.0, r.uniform(0.01, 5)]))
     put(type_, 0x54, 'f', r.choice([1.0, 1.5, 0.5, 0.0, r.uniform(0, 4)]))
     put(type_, 0x60, '3f', *(r.choice([0.0, 1.0, r.uniform(-2, 2)]) for _ in range(3)))
     put(type_, 0x6c, 'f', r.choice([0.0, 1.0, 0.1, 0.25, r.uniform(0, 2), -0.5]))
     for at, scale in ((0x24, 12), (0x28, 2), (0x2c, 2), (0x44, 5), (0x54, 4), (0x60, 2), (0x64, 2), (0x68, 2), (0x6c, 2)):
         if r.random() < 0.05:
             put(type_, at, 'I', r.f(scale))
-    room = r.choice([0, 1, 2, 3, 4, 4])
+    for at in (0x28, 0x2c, 0x54, 0x60):   # (an infinite or NaN factor: level track, fcom's unordered)
+        if r.random() < 0.08:
+            put(type_, at, 'I', r.choice([0x7f800000, 0x7fc00000]))
+    if r.random() < 0.05:   # (past a float's range in the register)
+        put(type_, 0x24, 'f', 1e38)
+        put(type_, 0x54, 'f', 0.01)
+    room =r.choice([0, 1, 2, 3, 4, 4])
     put(type_, 0x2e8, 'II', room, r.choice([0, 1, 100, 500, 1000, 2500, 30000, r.getrandbits(32)]))
     put(coaster, 0, 'I', r.deal([0, 0x1000, 0x1800, 0x1000, 0x1800, 0x5000, 0x4000, 0x800]) | (r.getrandbits(32) & ~0x5800))
     put(coaster, 4, 'I', TYPE)
-    put(coaster, 0x34, 'f', r.choice([1e6, 2.0, 5.0, r.uniform(0, 30), 0.0]))
+    put(coaster, 0x34, 'f', r.choice([1e6, 2.0, 5.0, r.uniform(0, 30), 0.0, math.inf]))
     put(coaster, 0x58, 'I', LEADER)
     put(leader, 0xfc, 'I', r.randrange(1, n + 1))
     put(coaster, 0x9c, 'I', NODES)
     put(coaster, 0xa4, 'I', n)
-    put(coaster, 0xa8, 'f', r.choice([float(n), n + r.uniform(0, 4), r.uniform(-2, 20), 0.0]))
+    put(coaster, 0xa8, 'f', r.choice([float(n), n + r.uniform(0, 4), r.uniform(-2, 20), 0.0, math.nan]))
     put(coaster, 0xac, 'f', r.choice([1.0, 3.0, 10.0, 0.5, r.uniform(0.1, 20)]))
     if r.random() < 0.05:
         wild = r.choice([0x34, 0xa8, 0xac])
@@ -114,6 +127,7 @@ def case(r):
         put(strips, 0xd0 * s + 4, 'II', r.choice([0, 0x4000, r.getrandbits(32)]), r.getrandbits(32))
         put(strips, 0xd0 * s + 0xc0, 'II', r.getrandbits(32), r.getrandbits(32))
     blob(log, 2, 5, 7)
+    blob(log, 5, 1, 1)   # (the woken train's flags)
     set_return(log, 6, r.getrandbits(32))
     regions = {LOG: log, COASTER: coaster, TYPE: type_, LEADER: leader, NODES: nodes, PIECES: pieces, KINDS: kinds, TRAINS: block, CARS: cars,
                MODELS: models, STRIPS: strips, 0x7a4610: table, 0x7b095c: SINES}

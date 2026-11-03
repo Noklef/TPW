@@ -100,6 +100,7 @@
 #include "../../src/game/coaster/train.h"
 #include "../../src/game/coaster/edittools.h"
 #include "../../src/game/coaster/editupdate.h"
+#include "../../src/game/coaster/testrun.h"
 #include "../../src/game/world/mousemode.h"
 #include "../../src/game/world/person.h"
 #include "../../src/game/world/pathdrag.h"
@@ -551,6 +552,10 @@ const TrackMessageEnv kTrackMessageEnv = {Rec{recorder(1, 3)},       Rec{jpeg_re
 const EditUpdateEnv kEditUpdateEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorder(2, 0)}, Rec{jpeg_recorder(3, 2)}, Rec{jpeg_recorder(4, 2)},
                                       Rec{jpeg_recorder(5, 3)}, Rec{jpeg_recorder(6, 9)}, Rec{jpeg_recorder(7, 7)}, Rec{jpeg_recorder(8, 7)},
                                       Rec{jpeg_recorder(9, 5)}, Rec{jpeg_recorder(10, 7)}};
+// The coaster test run's (0x43c450) calls: the cdecl recorders 1 of 1, 2 of 7, 3 of 4, 4 and 5 of 2, 6 of 3, 7 of 1, 8 of 2 and 9 of 1, as
+// tests/fncmp/testrun.py hooks them.
+const TestRunEnv kTestRunEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorder(2, 7)}, Rec{jpeg_recorder(3, 4)}, Rec{jpeg_recorder(4, 2)}, Rec{jpeg_recorder(5, 2)},
+                                Rec{jpeg_recorder(6, 3)}, Rec{jpeg_recorder(7, 1)}, Rec{jpeg_recorder(8, 2)}, Rec{jpeg_recorder(9, 1)}};
 // (Ride_Destroy's two above.) Ride_Create's (0x463060) calls: the cdecl recorders 1 of 5, 2 of 4, 3 of 3, 4 of 6, 5 of 7, 6 of 10, 7 of 4,
 // the thiscall 8 of 4 and the cdecl 9 of 2, 10 of 1, 11 of 3, 12 and 13 of 1, 14 of 6 and 15 to 17 of 1, as tests/fncmp/ridecreate.py
 // hooks them.
@@ -1312,6 +1317,7 @@ int main(int argc, char **argv) {
     CellMessage_SetEnv(&kCellMessageEnv);
     TrackMessage_SetEnv(&kTrackMessageEnv);
     EditUpdate_SetEnv(&kEditUpdateEnv);
+    TestRun_SetEnv(&kTestRunEnv);
     Object_SetEnv(&kObjectEnv);
     StatsGraph_SetEnv(&kStatsGraphEnv);
     SpriteLoading_SetEnv(&kSpriteLoadingEnv);
