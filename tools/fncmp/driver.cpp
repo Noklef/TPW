@@ -129,6 +129,7 @@
 #include "../../src/game/coaster/bendmesh.h"
 #include "../../src/game/coaster/carsound.h"
 #include "../../src/game/coaster/trainrun.h"
+#include "../../src/game/core/advisorscoring.h"
 #include "../../src/game/frontend/sceneleave.h"
 #include "../../src/game/terrain/raypick.h"
 #include "../../src/game/terrain/ground.h"
@@ -616,6 +617,7 @@ const ParkEntranceEnv kParkEntranceEnv = {Rec{jpeg_recorder(1, 2)}, Rec{jpeg_rec
 const CarSoundUpdateEnv kCarSoundUpdateEnv = {Rec{jpeg_recorder(1, 0)}, Rec{jpeg_recorder(2, 3)}, Rec{jpeg_recorder(3, 4)}, Rec{jpeg_recorder(4, 5)}};
 const SceneLeaveEnv kSceneLeaveEnv = {Rec{jpeg_recorder(20, 1)}, Rec{jpeg_recorder(21, 6)}, Rec{jpeg_recorder(22, 0)}, Rec{recorder(23, 0)}, Rec{recorder(24, 0)}, Rec{recorder(25, 0)},
                                        Rec{jpeg_recorder(26, 0)}, Rec{jpeg_recorder(27, 0)}, Rec{jpeg_recorder(28, 0)}, Rec{jpeg_recorder(29, 0)}};
+const AdvisorCriteriaEnv kAdvisorCriteriaEnv = {Rec{recorder(1, 1)}, Rec{jpeg_recorder(2, 0)}, Rec{recorder(3, 1)}, Rec{recorder(4, 0)}, Rec{recorder(5, 0)}, Rec{recorder(6, 2)}};
 const KeyCancelEnv kKeyCancelEnv = {Rec{recorder(20, 0)}, Rec{jpeg_recorder(21, 2)}, Rec{jpeg_recorder(22, 6)}, Rec{jpeg_recorder(23, 4)}, Rec{jpeg_recorder(24, 2)}};
 const SceneViewsEnv kSceneViewsEnv = {Rec{recorder(20, 0)}, Rec{recorder(21, 0)}};
 const BendMeshEnv kBendMeshEnv = {Rec{jpeg_recorder(1, 8)}, Rec{jpeg_recorder(2, 1)}};
@@ -1452,6 +1454,7 @@ int main(int argc, char **argv) {
     RideBase_SetEnv(&kRideBaseEnv);
     ParkEntrance_SetEnv(&kParkEntranceEnv);
     KeyCancel_SetEnv(&kKeyCancelEnv);
+    AdvisorCriteria_SetEnv(&kAdvisorCriteriaEnv);
     SceneLeave_SetEnv(&kSceneLeaveEnv);
     CarSoundUpdate_SetEnv(&kCarSoundUpdateEnv);
     SceneViews_SetEnv(&kSceneViewsEnv);

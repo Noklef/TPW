@@ -57,6 +57,17 @@ s32 entry_dword(u32 offset) {
     return at<s32>(reinterpret_cast<void *>((uintptr_t)GameTable7cfb90_Get1da718_519450(**reinterpret_cast<u8 ***>((uintptr_t)0x007cf6ec))), offset);
 }
 
+const AdvisorCriteriaEnv kCriteriaPorts = {&ParkAnalyser_ParkScore, &Things_CountKind1OnPlainCell, &Things_AveragePersonStat19c, &Source_Field0c, &Money_AnyLoanOffer, &ParkAnalyser_FindCutOff};
+const AdvisorCriteriaEnv *g_criteria = &kCriteriaPorts;
+
+s32 crowdAverage(u8 *scoring, u32 bound) {
+    if ((s32)g_criteria->score(table(), nullptr, 10) <= at<s32>(scoring, bound)) return 0;
+    // (The original asks the table entry here too, a pure read, ECX for the cdecl count.)
+    if (g_criteria->count() <= at<s32>(scoring, bound + 8)) return 0;
+    const double average = g_criteria->average(table(), nullptr, 10);
+    return !((double)at<s32>(scoring, bound + 4) >= average) ? at<s32>(scoring, bound + 0xc) : 0;
+}
+
 s32 limit_of(u32 address) { return *reinterpret_cast<const s32 *>((uintptr_t)address); }
 
 s32 at_limit(const u8 *scoring, u32 limit, u32 bound, u32 kind, u32 against) {
@@ -79,6 +90,8 @@ s32 high(const u8 *scoring, u32 kind, u32 offset, u32 bound) {
     return Things_AverageOfKind(kind) > at<s32>(scoring, bound + 4) ? at<s32>(scoring, bound + 8) : 0;
 }
 }  // namespace
+
+void AdvisorCriteria_SetEnv(const AdvisorCriteriaEnv *env) { g_criteria = env ? env : &kCriteriaPorts; }
 
 extern "C" {
 
@@ -237,6 +250,24 @@ s32 __fastcall AdvisorScoring_StaffHigh8(const u8 *scoring) { return high(scorin
 s32 __fastcall AdvisorScoring_StaffHigh5(const u8 *scoring) { return high(scoring, 5, 0xc, 0x45c); }
 s32 __fastcall AdvisorScoring_StaffHigh6(const u8 *scoring) { return high(scoring, 6, 0x14, 0x468); }
 s32 __fastcall AdvisorScoring_StaffHigh4(const u8 *scoring) { return high(scoring, 4, 0x10, 0x474); }
+
+s32 __fastcall AdvisorScoring_CrowdAverage480(u8 *scoring) { return crowdAverage(scoring, 0x480); }
+s32 __fastcall AdvisorScoring_CrowdAverage490(u8 *scoring) { return crowdAverage(scoring, 0x490); }
+
+s32 __fastcall AdvisorScoring_InDebt(u8 *scoring) {
+    const u32 entry = GameTable7cfb90_Get1da726_5195d0(game());
+    if ((s32)g_criteria->field0c(reinterpret_cast<const TrackedSource *>((uintptr_t)entry)) >= 0) return 0;
+    const u32 money = GameTable7cfb90_Get1da726_5195d0(*reinterpret_cast<u8 **>((uintptr_t)0x007cf83c));
+    return g_criteria->anyLoan(reinterpret_cast<u8 *>((uintptr_t)money)) != 0 ? at<s32>(scoring, 0x340) : 0;
+}
+
+s32 __fastcall AdvisorScoring_CutOffObject(u8 *scoring) {
+    u16 handle;
+    const u32 entry = GameTable7cfb90_Get1da720_519510(*reinterpret_cast<u8 **>((uintptr_t)0x007cf83c));
+    const u16 found = *g_criteria->findCutOff(reinterpret_cast<u8 *>((uintptr_t)entry), nullptr, &handle, 0);
+    at<u16>(scoring, 4) = found;
+    return found != 0 ? at<s32>(scoring, 0x388) : 0;
+}
 
 s32 __fastcall AdvisorScoring_FewestWalkAways2(u8 *scoring) {
     u16 handle;
