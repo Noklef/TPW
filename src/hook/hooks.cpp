@@ -146,6 +146,7 @@
 #include "../game/gfx/glyphrender.h"
 #include "../game/gfx/guitext.h"
 #include "../game/gfx/mmxblit.h"
+#include "../game/gfx/moviechunks.h"
 #include "../game/gfx/movieframe.h"
 #include "../game/gfx/movieidct.h"
 #include "../game/gfx/moviepixels.h"
@@ -6297,6 +6298,11 @@ const Hook kHooks[] = {
     {"SpriteFrame_DrawLightQuads", 0x00589770, (void *)&SpriteFrame_DrawLightQuads, {0x83, 0xec, 0x6c, 0x53, 0x55}},
     {"MovieFrame_Allocate",       0x006777d0, (void *)&MovieFrame_Allocate, {0x83, 0xec, 0x08, 0x53, 0x56}},
     {"MovieFrame_Decode",         0x00677310, (void *)&MovieFrame_Decode, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"MovieChunks_Next",          0x0066e410, (void *)&MovieChunks_Next, {0x83, 0xec, 0x0c, 0x8d, 0x44}},
+    {"MovieChunks_ReadFrame",     0x0066e840, (void *)&MovieChunks_ReadFrame, {0x51, 0x53, 0x55, 0x56, 0x8b}},
+    {"MovieChunks_ReadStart",     0x0066e920, (void *)&MovieChunks_ReadStart, {0xb8, 0x00, 0xc0, 0x00, 0x00}},
+    {"MovieChunks_ReadSound",     0x0066e9a0, (void *)&MovieChunks_ReadSound, {0xb8, 0x08, 0xc0, 0x00, 0x00}},
+    {"MovieChunks_ReadHeader",    0x0066ed60, (void *)&MovieChunks_ReadHeader, {0xb8, 0x04, 0xc0, 0x00, 0x00}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
