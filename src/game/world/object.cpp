@@ -18,6 +18,7 @@
 #include "../model/stripanim.h"
 #include "../rsse/scriptkill.h"
 #include "../sprite/script.h"
+#include "flyingrides.h"
 #include "objectdefs.h"
 #include "person.h"
 #include "mapcell.h"
@@ -888,5 +889,23 @@ void __fastcall Object_Wear(u8 *object, void *, u32 amount) {
         Map_SpreadRemove(world, nullptr, 1, id);
         Map_SpreadAdd(global<u8 *>(0x008023a0), nullptr, 6, id);
     }
+}
+
+void __fastcall Object_FollowCamera(const u8 *object, void *, u32 arg) {
+    const u8 *const def = Object_GetDef(object);
+    const s32 sprites = at<s32>(def, 0x80);
+    if (at<u32>(object, 0x28) != 0) {
+        const u32 linked = TrakRide_LinkedValue(at<u32>(object, 0x28));
+        if (linked != 0) {
+            g_env->camera42a560(linked, sprites, arg, 0, 1, 0);
+            return;
+        }
+    }
+    const u32 flying = Rides_Get9c(Rides_FindById(at<s32>(object, 0x24)));
+    if (flying != 0) {
+        g_env->camera42a560(FlyingRide_FirstSlotRide((s32)flying), sprites, arg, 0, 1, 0);
+        return;
+    }
+    g_env->camera42a560(at<u32>(object, 0x20), sprites, arg, 0, 1, at<u32>(def, 0x11c));
 }
 }

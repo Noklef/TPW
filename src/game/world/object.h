@@ -295,4 +295,10 @@ u8 __fastcall Object_ComputeRating(const u8 *object, void *, s32 a, s32 b, s32 c
 // base of 0; else Object_ComputeRating of a kind-2 definition's object +0x188 (mCostOfGoods), +0x194 (mPricePerUse) and the byte +0x190
 // (mChanceOfWinning), of any other's +0x58 (mOperatingSpeed) and the bytes +0x5c (mOperatingDuration) and +0x5d (mOperatingCapacity).
 u8 __fastcall Object_Rating(const u8 *object, void *, u32 baseOnly);
+
+// 0x4e15b0 (thiscall (arg), pops 4; name invented, unconfirmed): the camera follows what rides the object, with the definition's sprites +0x80
+// (Object_GetDef) and arg: the track ride's linked value (the handle +0x28 set, TrakRide_LinkedValue, not 0), else the first slot's ride of the
+// flying ride its ride record names (Rides_Get9c of Rides_FindById of +0x24, not 0; FlyingRide_FirstSlotRide), both (.., 0, 1, 0); else its own
+// +0x20 (.., 0, 1, the definition's +0x11c). Through the env's 0x42a560.
+void __fastcall Object_FollowCamera(const u8 *object, void *, u32 arg);
 }
