@@ -71,6 +71,7 @@
 #include "../../src/game/ui/window7cb2cc.h"
 #include "../../src/game/ui/window7cc8bcmenu.h"
 #include "../../src/game/ui/window7cc8c0handler.h"
+#include "../../src/game/ui/window7cc8bchandler.h"
 #include "../../src/game/ui/window7cb2b0handler.h"
 #include "../../src/game/ui/window705b20thumb.h"
 #include "../../src/game/ui/gamepause.h"
@@ -999,6 +1000,7 @@ const GameWindowInputEnv kGameWindowInputEnv = {Rec{recorder(10, 0)}, Rec{record
 const GamePauseEnv kGamePauseEnv = {Rec{jpeg_recorder(10, 1)}, Rec{recorder(11, 0)}, Rec{jpeg_recorder(12, 1)}, Rec{recorder(13, 2)}, Rec{jpeg_recorder(14, 0)}, Rec{recorder(15, 1)}, Rec{jpeg_recorder(16, 0)}, Rec{jpeg_recorder(17, 0)}, Rec{jpeg_recorder(18, 1)}, Rec{recorder(19, 0)}, Rec{jpeg_recorder(20, 0)}, Rec{jpeg_recorder(21, 0)}, Rec{jpeg_recorder(22, 0)}, Rec{jpeg_recorder(23, 0)}, Rec{jpeg_recorder(24, 0)}, Rec{jpeg_recorder(25, 0)}, Rec{jpeg_recorder(7, 1)}, Rec{jpeg_recorder(6, 1)}, Rec{recorder(26, 0)}, Rec{recorder(27, 0)}, Rec{recorder(28, 0)}, Rec{recorder(29, 1)}, Rec{recorder(30, 1)}, Rec{recorder(31, 0)}, Rec{recorder(8, 0)}};
 const Window705b20ThumbEnv kWindow705b20ThumbEnv = {Rec{jpeg_recorder(10, 4)}, Rec{jpeg_recorder(11, 4)}, Rec{jpeg_recorder(12, 4)}, Rec{recorder(13, 0)}, Rec{recorder(14, 2)}, Rec{recorder(15, 0)}, Rec{recorder(16, 2)}, Rec{recorder(17, 2)}, Rec{recorder(18, 0)}, Rec{recorder(19, 0)}, Rec{recorder(25, 0)}, Rec{recorder(26, 0)}, Rec{jpeg_recorder(27, 7)}, Rec{recorder(28, 1)}, Rec{recorder(29, 0)}};
 const Window7cb2b0HandlerEnv kWindow7cb2b0HandlerEnv = {Rec{jpeg_recorder(10, 0)}, Rec{recorder(11, 2)}, Rec{recorder(12, 2)}, Rec{recorder(13, 2)}, Rec{recorder(14, 1)}, Rec{jpeg_recorder(15, 0)}, Rec{jpeg_recorder(16, 0)}, Rec{jpeg_recorder(17, 0)}, Rec{jpeg_recorder(18, 3)}, Rec{recorder(19, 3)}};
+const Window7cc8bcHandlerEnv kWindow7cc8bcHandlerEnv = {Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 0)}, Rec{recorder(12, 0)}, Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{recorder(15, 0)}, Rec{recorder(16, 0)}, Rec{recorder(17, 0)}, Rec{recorder(18, 3)}};
 const Window7cc8c0HandlerEnv kWindow7cc8c0HandlerEnv = {Rec{recorder(12, 2)}, Rec{jpeg_recorder(15, 2)}, Rec{jpeg_recorder(20, 4)}, Rec{jpeg_recorder(25, 4)}, Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{jpeg_recorder(28, 3)}, Rec{recorder(15, 0)}, Rec{recorder(16, 0)}, Rec{jpeg_recorder(31, 0)}, Rec{recorder(17, 2)}, Rec{recorder(18, 2)}, Rec{jpeg_recorder(29, 3)}, Rec{recorder(19, 1)}, Rec{recorder(20, 0)}, Rec{recorder(21, 1)}, Rec{jpeg_recorder(27, 1)}, Rec{jpeg_recorder(30, 5)}, Rec{jpeg_recorder(13, 1)}, Rec{jpeg_recorder(12, 0)}, Rec{jpeg_recorder(19, 0)}, Rec{jpeg_recorder(14, 0)}, Rec{recorder(23, 2)}, Rec{recorder(24, 2)}, Rec{recorder(25, 1)}, Rec{recorder(26, 1)}, Rec{recorder(27, 2)}, Rec{jpeg_recorder(16, 5)}, Rec{jpeg_recorder(17, 0)}, Rec{jpeg_recorder(18, 1)}, Rec{recorder(28, 3)}};
 const Window7cc8bcMenuEnv kWindow7cc8bcMenuEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 3)}, Rec{jpeg_recorder(12, 0)}, Rec{recorder(13, 1)}, Rec{jpeg_recorder(14, 2)}, Rec{recorder(15, 2)}, Rec{recorder(16, 2)}, Rec{recorder(17, 3)}};
 const Dialog7cb2b8TabsEnv kDialog7cb2b8TabsEnv = {Rec{jpeg_recorder(10, 1)}, Rec{jpeg_recorder(11, 0)}, Rec{jpeg_recorder(12, 0)}, Rec{recorder(13, 0)}, Rec{jpeg_recorder(14, 0)}, Rec{recorder(15, 3)}};
@@ -1994,6 +1996,7 @@ int main(int argc, char **argv) {
     Window7cb2cc_SetEnv(&kWindow7cb2ccEnv);
     Window7cc8bc_SetMenuEnv(&kWindow7cc8bcMenuEnv);
     Window7cc8c0Handler_SetEnv(&kWindow7cc8c0HandlerEnv);
+    Window7cc8bcHandler_SetEnv(&kWindow7cc8bcHandlerEnv);
     Window7cb2b0Handler_SetEnv(&kWindow7cb2b0HandlerEnv);
     Window705b20Thumb_SetEnv(&kWindow705b20ThumbEnv);
     GamePause_SetEnv(&kGamePauseEnv);
