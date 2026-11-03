@@ -5657,6 +5657,7 @@ address,name,kind,confidence,notes
 0x00536100,Map_SendLine,function,low,"reimplemented (src/game/world/cellmessage); cdecl (message, x0, y0, &x1, &y1): a message (MapCell_HandleMessage, the step as a or b) to the map cells along a line on its longer way, 0x820aa4 / 0x820ab8 marking the first and the last; 0 when a cell answers 0"
 0x0052a970,TrackCircuit_Walk,function,low,"reimplemented (src/game/world/trackcircuit); cdecl (check); the track circuit walked from the station's cell: sections added to the ride (unless check), upgrades marked, directions and walk indices set; 1 when back at the start (name invented)"
 0x005234d0,GameMode_MapPreview,function,low,"reimplemented (src/game/world/mappreview); cdecl (x, y, flags); what the current game mode shows for the map cell under the pointer: drag lines (mode | 0x100), path pieces' footprints and cost, hoarding and patrol rectangles, coaster areas, entrance drags; the cursor updated (name invented)"
+0x00524790,GameMode_MapPress,function,low,"reimplemented (src/game/world/mappress); cdecl (x, y, flags, useStored): the button going down on the map, the twin of GameMode_MapClick (name invented)"
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved

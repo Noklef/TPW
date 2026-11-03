@@ -344,6 +344,7 @@
 #include "../game/world/endthing.h"
 #include "../game/world/gamemode.h"
 #include "../game/world/mapclick.h"
+#include "../game/world/mappress.h"
 #include "../game/world/mappreview.h"
 #include "../game/world/objectstatus.h"
 #include "../game/world/objectunlock.h"
@@ -5746,6 +5747,7 @@ const Hook kHooks[] = {
     {"Map_SendLine",              0x00536100, (void *)&Map_SendLine, {0x8b, 0x54, 0x24, 0x10, 0x8b}},
     {"TrackCircuit_Walk",         0x0052a970, (void *)&TrackCircuit_Walk, {0x83, 0xec, 0x4c, 0xa0, 0x50}},
     {"GameMode_MapPreview",       0x005234d0, (void *)&GameMode_MapPreview, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"GameMode_MapPress",         0x00524790, (void *)&GameMode_MapPress, {0xa1, 0x2c, 0x5a, 0x78, 0x00}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
