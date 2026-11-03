@@ -307,6 +307,12 @@ u32 __fastcall Staff_CheckMood(u8 *staff);
 // walk to a random place (Person_SetRandomDest) as state 1; else, unless too tired (Staff_IsTooTired), state 0xf. Both as Researcher_SetState (inlined there).
 void __fastcall Researcher_Idle(u8 *researcher);
 
+// 0x502600 (thiscall (cell, type, sprite, name), pops 0x10; an SEH frame; name invented, unconfirmed; MMPlaceStaff_Assign's): Staff_CtorTyped of kind 8, the name
+// (Charset_FormatWide of [0x78bab8] to +0x1a0, 0x20 characters; its debug range check left out), the chain word +0x210 clear and on the world's researchers
+// (World_AddResearcher), +0x214 0, the script started (ScriptRef_Start 3, folder +0x24 8, sprite +0x20 the low byte), Researcher_Idle, the lab's flag synced
+// (ResearchLab_SyncFlag). Answers the researcher.
+u8 *__fastcall Researcher_Ctor(u8 *researcher, void *, u32 cell, u32 type, u32 sprite, u32 name);
+
 // 0x5061d0 (thiscall; name invented, unconfirmed): one tick in a rest area: the levels +0x1fc and +0x1f8 gain the grade's values of 0x785334 and 0x785338 (each kept to 0-100);
 // a rest of 100 (__ftol's low byte) leaves the area and goes idle by kind (byte +2: 4-7 the kinds' idles, 8 Researcher_Idle; others a debug print, left out).
 void __fastcall Staff_RestInArea(u8 *staff);

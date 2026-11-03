@@ -4218,6 +4218,7 @@ address,name,kind,confidence,notes
 0x00502c70,Researcher_Idle,function,low,"reimplemented (src/game/world/staff); A researcher with nothing on: its mood, a random walk or work"
 0x005061d0,Staff_RestInArea,function,low,"reimplemented (src/game/world/staff); one tick in a rest area: the levels gain, then leave and go idle by kind"
 0x005029f0,Researcher_PostUpdate,function,low,reimplemented (src/game/world/staff); a researcher's state step
+0x00502600,Researcher_Ctor,function,low,"reimplemented (src/game/world/staff); thiscall (cell, type, sprite, name), pops 0x10; the researcher's constructor: kind 8, its name, on the world's chain, the script started, idle, the lab's flag synced (name invented)"
 0x00520d60,FreeList_Take,function,high,reimplemented (src/game/core/voices); takes a record off the free list into a table entry
 0x00521890,FreeList_Return,function,high,reimplemented (src/game/core/voices); puts a record back on the free list
 0x00521d60,Voice_ScaleLevels,function,high,reimplemented (src/game/core/voices); scales a voice's levels by the factor over 1024

@@ -793,6 +793,22 @@ void __fastcall Researcher_Idle(u8 *researcher) {
     Researcher_SetState(researcher, nullptr, 0xf);
 }
 
+u8 *__fastcall Researcher_Ctor(u8 *researcher, void *, u32 cell, u32 type, u32 sprite, u32 name) {
+    g_walk->ctorTyped(researcher, nullptr, cell, 8, type, sprite);
+    g_walk->formatName(global<u8 *>(0x0078bab8), reinterpret_cast<u16 *>(researcher + 0x1a0), 0x20, name);
+    at<u16>(researcher, 0x210) = 0;
+    u8 *const world = global<u8 *>(0x0080239c);
+    World_AddResearcher(world, nullptr, researcher);
+    const u32 kind = sprite & 0xff;
+    at<u32>(researcher, 0x214) = 0;
+    at<u32>(researcher, 0x24) = 8;
+    at<u32>(researcher, 0x20) = kind;
+    ScriptRef_Start(researcher + 0xc, nullptr, 3, 8, kind);
+    Researcher_Idle(researcher);
+    ResearchLab_SyncFlag(reinterpret_cast<u8 *>((uintptr_t)GameTable7cfb90_Get1da722_519550(world)));
+    return researcher;
+}
+
 void __fastcall Staff_RestInArea(u8 *staff) {
     const u32 grade = at<u32>(staff, 0x1e4) << 4;
     keep_level(at<float>(staff, 0x1fc), X87Reg(*reinterpret_cast<const float *>((uintptr_t)0x00785334 + grade)) + at<float>(staff, 0x1fc));

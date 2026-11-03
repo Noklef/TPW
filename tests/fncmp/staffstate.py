@@ -37,12 +37,14 @@
 # strike area 0x7855ec-0x7855f8 about navpath's cell (so that the walk works with a size of 1); the levels +0x1fc and +0x1f8 at and about the tests, the
 # limit 0x785324, 0-2 rest areas on that cell; Thoughts_Show as in ModelState.
 # Idle (0x502c70): Mood's, Person_SetRandomDest a recorder (27 of 0) answering 0 or not.
+# ResearcherCtor (0x502600): Idle's; Staff_CtorTyped a recorder (19 of 4), Charset_FormatWide a cdecl one (17 of 4); the world's researchers' head (0x1da742) any, the lab (the slot of
+# +0x1da722) with its flag +0x1468 mostly set; ResearchLab_SyncFlag's message, when the flag changes, through recorder 21 of 1.
 # RestArea (0x5061d0): Mood's, the grade +0x1e4 under 8 into 0x785334 / 0x785338 (about 0 or the distance to 100), +0x1fc about 100 mostly, the kind byte +2 4-8 mostly; the kinds'
 # idles recorders (22, 23, 24, 18 of 0: driver.cpp's StaffWalkEnv).
 # PostUpdate (0x5029f0): RestArea's, the state +0x19c 0, 1, 2, 3, 0xf or others, the tick at, either side of or away from the grade's sum (0x785330 + +0x200, 0x785458 + +0x214), a
 # wrapped sum now and then; Sprite_WalkNav and Person_SetRandomDest as above, Sprite_PlaySound a thiscall recorder (25 of 2).
 # usage: staffstate.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=SetState,Mechanic,Handyman,PickUp,Settle,Head,Researcher,LeaveRest,
-#   Message,MechMsg,HandyMsg,GuardMsg,DefaultMsg,WalkRest,Dismiss,ModelState,Mood,Idle,RestArea,PostUpdate)
+#   Message,MechMsg,HandyMsg,GuardMsg,DefaultMsg,WalkRest,Dismiss,ModelState,Mood,Idle,ResearcherCtor,RestArea,PostUpdate)
 import os
 import struct
 import sys
@@ -72,7 +74,8 @@ B = Bench(wctimage.merged(MODES + [
     (0x506490, 0x5064d4), (0x506910, 0x506a38), (0x5195d0, 0x51960d), (0x4d01f0, 0x4d0259),
     (0x4da0c0, 0x4da10e), (0x4d6cf0, 0x4d6d53), (0x4d5fb0, 0x4d5ff5), (0x4d4450, 0x4d445d)] + navpath.RANGES + [(0x505fe0, 0x506183),
     (0x505790, 0x5059e2), (0x5059e4, 0x505a0c), (0x5056e0, 0x505790), (0x506a40, 0x506d10), (0x51a290, 0x51a2f0), (0x502c70, 0x502cf0), (0x506680, 0x5066a0),
-    (0x5061d0, 0x5062f4), (0x5029f0, 0x502c20), (0x5066a0, 0x506910)]),
+    (0x5061d0, 0x5062f4), (0x5029f0, 0x502c20), (0x5066a0, 0x506910), (0x502600, 0x50275d), (0x519c10, 0x519c50), (0x519550, 0x51958d), (0x504090, 0x504132), (0x504140, 0x5041e2),
+    (0x5041f0, 0x504209), (0x40f630, 0x40f650)]),
           hooks={0x40fb10: _recorder(21, 1), 0x4fa2a0: _recorder(28, 0), 0x4fa470: _recorder(29, 1), 0x50b780: _recorder(30, 0), 0x50be80: _recorder(31, 2), 0x4f9490: _recorder(27, 0),
                  0x4faa00: _recorder(25, 2), 0x4da5b0: _recorder(22, 0), 0x4d7100: _recorder(23, 0), 0x4d46d0: _recorder(24, 0), 0x4d63d0: _recorder(18, 0),
                  0x504b10: _recorder(19, 4), 0x6acd60: _recorder(17, 4, cdecl=True)})
@@ -82,7 +85,7 @@ RECORD, CELLS = RAM + 0x21400, RAM + 0x50000
 
 CALLS = {'SetState': 0x5054d0, 'Mechanic': 0x4da370, 'Handyman': 0x4d7330, 'PickUp': 0x505c50, 'Settle': 0x505f50, 'Head': 0x506300,
          'Researcher': 0x502c20, 'LeaveRest': 0x506d10, 'Message': 0x504c70, 'WalkRest': 0x505fe0, 'Dismiss': 0x505790, 'ModelState': 0x5056e0, 'Mood': 0x506a40, 'Idle': 0x502c70,
-         'RestArea': 0x5061d0, 'PostUpdate': 0x5029f0,
+         'RestArea': 0x5061d0, 'PostUpdate': 0x5029f0, 'ResearcherCtor': 0x502600,
          'MechMsg': 0x4da0c0, 'HandyMsg': 0x4d6cf0, 'GuardMsg': 0x4d5fb0, 'DefaultMsg': 0x4d4450}
 # the kinds' handlers: (the staff member's handle word, the message type it takes)
 HANDLERS = {'MechMsg': (0x218, 0xa), 'HandyMsg': (0x21a, 0xa), 'GuardMsg': (0x212, 0x1b), 'DefaultMsg': (None, None)}
@@ -362,6 +365,25 @@ def case(r):
         set_return(c.regions[LOG], 27, r.choice([0, 1, 1, 2, 0x100]))
         c.address = CALLS[op]
         c.ret = 'v'
+        return c
+    if op == 'ResearcherCtor':
+        c = mood(r)
+        regions = c.regions
+        set_return(regions[LOG], 27, r.choice([0, 1, 1, 2, 0x100]))
+        table = regions[0x7cfb90]
+        lab = r.choice([k for k in range(1, 16) if struct.unpack_from('<I', table, 20 * k)[0] == 0 or k == 15])
+        put(table, 20 * lab, 'I', RAM + 0x60000)
+        block = bytearray(r.bytes(0x1480))
+        block[0x1468] = r.choice([1, 1, 1, 0xff, 0])
+        regions[RAM + 0x60000] = block
+        world = struct.unpack('<I', regions[0x80239c])[0] + 0x1da708
+        put(regions[world], 0x1a, 'H', lab)
+        put(regions[world], 0x3a, 'H', r.choice([0, 0, 3, r.getrandbits(16)]))
+        regions[0x78bab8] = r.bytes(4)
+        regions[0x788d3c] = struct.pack('<I', RAM + 0x61600)
+        blob_bytes(regions[LOG], 21, 0, 0xfff)   # (ResearchLab_SyncFlag's message on the stack: its bytes)
+        c.address = CALLS[op]
+        c.args = [RAM, r.getrandbits(32), r.choice([0, 1, 2, r.getrandbits(32)]), r.getrandbits(32), r.randrange(0x23)]
         return c
     if op == 'RestArea':
         return rest_area(r)
