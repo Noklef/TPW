@@ -224,8 +224,11 @@ def ended(r, mem, op):
     put(mem, 0x100 + 0x3cc, 'i', index)   # (offer's own draw undone)
     mem[0x100 + 0x3da] = r.choice([0] * 8 + [1])
     thing_ctors.centre(r, regions)
-    blob_bytes(regions[LOG], 21, 0, 0xfff0ffff)
-    return Call(0x4d2fb0 if op == 'Won' else 0x4d3140, [C], regions, conv='t', ret='v')
+    if op == 'Won':
+        blob_bytes(regions[LOG], 21, 0, 0xfff0ffff)
+        return Call(0x4d2fb0, [C], regions, conv='t', ret='v')
+    blob(regions[LOG], 21, 0, 0xfef)   # (Attempt's, with the thing)
+    return Call(0x4d3140, [C], regions, conv='t', ret='v')
 
 
 def case(r):

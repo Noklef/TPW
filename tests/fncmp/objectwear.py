@@ -50,7 +50,7 @@ def case(r):
     put(records, 0x38 * 0x42 + 0xc, 'IIi', r.choice([0, 1, 2]), recorder(21, 0), r.choice([0, 4, 0x10]))
     set_return(log, 21, r.choice([0, 1, 5, 100]))
     world = bytearray(r.bytes(0x10))
-    put(world, 0xc, 'I', r.choice([0, 0x40, 0x80, 1, 0x3f, r.getrandbits(32)]) & r.choice([0xffffffc0, 0xffffffc0, 0xffffffff]))
+    put(world, 0xc, 'I', r.choice([0, 0x40, 0x80, 1, 0x3f, 0x20, 0x20, r.getrandbits(32)]) & r.choice([0xffffffc0, 0xffffffc0, 0xffffffff]))
     regions = {LOG: log, SELF: self, DEF: d, RIDE: r.bytes(0x20), HANDLE: r.bytes(4), ANSWERS: table, WORLD + 0x1da700: world, 0x80239c: struct.pack('<I', WORLD), 0xfb34b8: bytes([r.choice([0, 1, 1, 1, r.getrandbits(8)])]),
                0xfb3b7c: struct.pack('<I', r.choice([0, 0, 2, 1, r.getrandbits(32)])), TABLE: records, 0xfb34bc: bytes([1]), 0xfb2766: bytes([1]), 0xfb3540: r.bytes(0x63c), 0x7a1a8c: struct.pack('<I', r.getrandbits(32) & ~(7 << 23))}
     return Call(0x4df670, [SELF], regions, conv='t', ret='v')
