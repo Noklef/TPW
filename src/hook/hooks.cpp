@@ -536,6 +536,7 @@
 #include "../game/ui/staffrename.h"
 #include "../game/ui/textpanel7cc18c.h"
 #include "../game/ui/thingbrowser.h"
+#include "../game/ui/thinggoto.h"
 #include "../game/ui/window705950draw.h"
 #include "../game/ui/thingpanel.h"
 #include "../game/ui/thingsign.h"
@@ -7481,6 +7482,7 @@ const Hook kHooks[] = {
     {"Dialog7ca210_Handler",      0x00498c60, (void *)&Dialog7ca210_Handler, {0x53, 0x8b, 0x5c, 0x24, 0x14}},
     {"Dialog7cc2ec_Handler",      0x004b24b0, (void *)&Dialog7cc2ec_Handler, {0x83, 0xec, 0x08, 0x53, 0x55}},
     {"Dialog7cc444_Handler",      0x004b7a70, (void *)&Dialog7cc444_Handler, {0x8b, 0x4c, 0x24, 0x08, 0x83}},
+    {"ThingGoto_Start",           0x0048cd10, (void *)&ThingGoto_Start, {0xa0, 0x0f, 0xd9, 0x78, 0x00}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
