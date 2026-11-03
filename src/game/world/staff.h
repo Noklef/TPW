@@ -296,6 +296,10 @@ void __fastcall Staff_ModelState(u8 *staff);
 // 0x13, above 0x61 one roll in 16 the thought 0x12, 0.
 u32 __fastcall Staff_CheckMood(u8 *staff);
 
+// 0x502c70 (thiscall; name invented, unconfirmed): a researcher with nothing on: Staff_CheckMood; when it did not set off, three rolls in four (World_Rand & 3) a
+// walk to a random place (Person_SetRandomDest) as state 1; else, unless too tired (Staff_IsTooTired), state 0xf. Both as Researcher_SetState (inlined there).
+void __fastcall Researcher_Idle(u8 *researcher);
+
 // 0x4f7c40 (thiscall; name invented, unconfirmed): a jump to Person_Detach (Thing_Delete's kind 0x12, Researcher_Detach's base).
 void __fastcall Staff_Detach(u8 *staff);
 // 0x502920 (thiscall; name invented, unconfirmed): a researcher (kind 8) taken out of the world: out of the game object's list of them

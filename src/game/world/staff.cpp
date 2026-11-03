@@ -775,6 +775,16 @@ void __fastcall Staff_WalkToRestArea(u8 *staff) {
     }
 }
 
+void __fastcall Researcher_Idle(u8 *researcher) {
+    if (Staff_CheckMood(researcher)) return;
+    if ((World_Rand(global<u8 *>(0x0080239c)) & 3) != 0 && g_walk->setRandomDest(researcher)) {
+        Researcher_SetState(researcher, nullptr, 1);
+        return;
+    }
+    if (Staff_IsTooTired(researcher)) return;   // (with a debug print, left out)
+    Researcher_SetState(researcher, nullptr, 0xf);
+}
+
 u32 __fastcall Staff_CheckMood(u8 *staff) {
     const u32 index = Byte2_ToIndex(staff);
     const u32 record = GameTable7cfb90_Get1da718_519450(global<u8 *>(0x0080239c));

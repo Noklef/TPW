@@ -66,14 +66,14 @@ B = Bench(wctimage.merged(MODES + [
     (0x415e00, 0x415e80), (0x504c70, 0x504dd2), (0x40f440, 0x40f446), (0x40f490, 0x40f496), (0x40f510, 0x40f516), (0x40f920, 0x40f926),
     (0x506490, 0x5064d4), (0x506910, 0x506a38), (0x5195d0, 0x51960d), (0x4d01f0, 0x4d0259),
     (0x4da0c0, 0x4da10e), (0x4d6cf0, 0x4d6d53), (0x4d5fb0, 0x4d5ff5), (0x4d4450, 0x4d445d)] + navpath.RANGES + [(0x505fe0, 0x506183),
-    (0x505790, 0x5059e2), (0x5059e4, 0x505a0c), (0x5056e0, 0x505790), (0x506a40, 0x506d10), (0x51a290, 0x51a2f0)]),
-          hooks={0x40fb10: _recorder(21, 1), 0x4fa2a0: _recorder(28, 0), 0x4fa470: _recorder(29, 1), 0x50b780: _recorder(30, 0), 0x50be80: _recorder(31, 2)})
+    (0x505790, 0x5059e2), (0x5059e4, 0x505a0c), (0x5056e0, 0x505790), (0x506a40, 0x506d10), (0x51a290, 0x51a2f0), (0x502c70, 0x502cf0), (0x506680, 0x5066a0)]),
+          hooks={0x40fb10: _recorder(21, 1), 0x4fa2a0: _recorder(28, 0), 0x4fa470: _recorder(29, 1), 0x50b780: _recorder(30, 0), 0x50be80: _recorder(31, 2), 0x4f9490: _recorder(27, 0)})
 STAFF, WORLD, MODE, MODE_VT, HOLDER = RAM + 0x20000, RAM + 0x21000, RAM + 0xc000, RAM + 0xc100, RAM + 0xc200
 RECORD, CELLS = RAM + 0x21400, RAM + 0x50000
 
 
 CALLS = {'SetState': 0x5054d0, 'Mechanic': 0x4da370, 'Handyman': 0x4d7330, 'PickUp': 0x505c50, 'Settle': 0x505f50, 'Head': 0x506300,
-         'Researcher': 0x502c20, 'LeaveRest': 0x506d10, 'Message': 0x504c70, 'WalkRest': 0x505fe0, 'Dismiss': 0x505790, 'ModelState': 0x5056e0, 'Mood': 0x506a40,
+         'Researcher': 0x502c20, 'LeaveRest': 0x506d10, 'Message': 0x504c70, 'WalkRest': 0x505fe0, 'Dismiss': 0x505790, 'ModelState': 0x5056e0, 'Mood': 0x506a40, 'Idle': 0x502c70,
          'MechMsg': 0x4da0c0, 'HandyMsg': 0x4d6cf0, 'GuardMsg': 0x4d5fb0, 'DefaultMsg': 0x4d4450}
 # the kinds' handlers: (the staff member's handle word, the message type it takes)
 HANDLERS = {'MechMsg': (0x218, 0xa), 'HandyMsg': (0x21a, 0xa), 'GuardMsg': (0x212, 0x1b), 'DefaultMsg': (None, None)}
@@ -299,6 +299,12 @@ def case(r):
         return head(r)
     if op == 'Mood':
         return mood(r)
+    if op == 'Idle':   # (0x502c70: Mood's surroundings, Person_SetRandomDest a recorder answering 0 or not, and the level about 0 for Staff_IsTooTired)
+        c = mood(r)
+        set_return(c.regions[LOG], 27, r.choice([0, 1, 1, 2, 0x100]))
+        c.address = CALLS[op]
+        c.ret = 'v'
+        return c
     if op == 'ModelState' and r.random() < 0.2:   # (state 5: Head's surroundings)
         regions = dict(head(r).regions)
         put(regions[RAM], 0x19c, 'I', 5)
