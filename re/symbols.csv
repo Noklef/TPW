@@ -7942,6 +7942,7 @@ address,name,kind,confidence,notes
 0x0048c150,Panel7c2534_BuildMain,function,low,reimplemented (src/game/ui/panel7c2534menus); the panel's main menu built (cdecl)
 0x0048c600,Panel7c2534_BuildOnline,function,low,reimplemented (src/game/ui/panel7c2534menus); the panel's online menu built (cdecl)
 0x0048c830,Panel7c2534_Open,function,low,reimplemented (src/game/ui/panel7c2534menus); the panel's menu chosen and shown (cdecl; flag)
+0x004a2840,GameWindow_Input,function,low,"reimplemented (src/game/ui/gamewindowinput); the game window's handler: keys and mouse buttons (cdecl; window, message, a, b)"
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"
