@@ -7657,6 +7657,8 @@ address,name,kind,confidence,notes
 0x0065b6d6,Window705950_Clear,function,low,"reimplemented (src/game/ui/window705950nodes); all the nodes of the list window freed: name invented, unconfirmed"
 0x0065b79c,Window705950_SetNodeText,function,low,"reimplemented (src/game/ui/window705950nodes); the text of the row n of the list window: name invented, unconfirmed"
 0x0065b7db,Window705950_GetNodeText,function,low,"reimplemented (src/game/ui/window705950nodes); the text of the row n of the list window copied out: name invented, unconfirmed"
+0x004b5cb0,Panel7cc3b0_Handler,function,low,"reimplemented (src/game/ui/panel7cc3b0handler); the window handler of the panel at 0x7cc3b0: name invented, unconfirmed"
+0x004b6070,Panel7cc3b0_DismissAnswer,function,low,"reimplemented (src/game/ui/panel7cc3b0handler); the panel's box answer: Staff_Dismiss, answer 1: name invented, unconfirmed"
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"

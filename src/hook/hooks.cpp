@@ -552,6 +552,7 @@
 #include "../game/ui/panel7cc218.h"
 #include "../game/ui/panel7cc258.h"
 #include "../game/ui/panel7cc3b0.h"
+#include "../game/ui/panel7cc3b0handler.h"
 #include "../game/ui/panel7cc3e0.h"
 #include "../game/ui/panel7cc408.h"
 #include "../game/ui/panel7cc408info.h"
@@ -7591,6 +7592,8 @@ const Hook kHooks[] = {
     {"Window705950_Clear",        0x0065b6d6, (void *)&Window705950_Clear, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Window705950_SetNodeText",  0x0065b79c, (void *)&Window705950_SetNodeText, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Window705950_GetNodeText",  0x0065b7db, (void *)&Window705950_GetNodeText, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Panel7cc3b0_Handler",       0x004b5cb0, (void *)&Panel7cc3b0_Handler, {0x8b, 0x44, 0x24, 0x08, 0x83}},
+    {"Panel7cc3b0_DismissAnswer", 0x004b6070, (void *)&Panel7cc3b0_DismissAnswer, {0x8b, 0x4c, 0x24, 0x04, 0xe8}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
