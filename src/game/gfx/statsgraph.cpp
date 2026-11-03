@@ -74,6 +74,14 @@ void __cdecl StatsGraph_Redraw() {
     Gauge_DrawInWindow(Window_FindChild(dialog, nullptr, 0x12272), gauge, g_env->lines49aa30);
 }
 
+void __cdecl StatsGraph7cb318_Redraw() {
+    u8 *const dialog = global<u8 *>(0x007cb398);
+    if (!dialog) return;
+    u8 *const gauge = reinterpret_cast<u8 *>((uintptr_t)0x007cb318);
+    Gauge_SetMarksY(gauge, nullptr, 0, (u32)StatsGraph7cb318_ShownMax(), 10);
+    Gauge_DrawInWindow(Window_FindChild(dialog, nullptr, 0x4a68bb), gauge, g_env->lines4a4750);
+}
+
 u32 __cdecl StatsGraph_Handler(u8 *window, u32 message, u32 a, u32 b) {
     u8 rect[12];
     GuiRect_Ctor(rect);

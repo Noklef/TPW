@@ -31,6 +31,10 @@ s32 __cdecl StatsGraph7cb318_ShownMax();
 // drawn in the dialog's child 0x12272 (Window_FindChild; not checked) with the lines drawn after it by 0x49aa30 (Gauge_DrawInWindow).
 void __cdecl StatsGraph_Redraw();
 
+// 0x4a5e10 (cdecl; name invented): the same for the Gauge at 0x7cb318: when the dialog [0x7cb398] is open, its marks' y set to 0, StatsGraph7cb318_ShownMax (inlined there) and 10, then drawn in the dialog's child
+// 0x4a68bb (not checked) with the lines drawn after it by 0x4a4750.
+void __cdecl StatsGraph7cb318_Redraw();
+
 // 0x49a2e0 (cdecl (window, message, a, b): the window of the graph whose Gauge is at 0x7ca250; name invented): a GuiRect on the stack around it. Message 0x15: the
 // saved rectangle (Window_GetSavedRect) sets the gauge up (Gauge_Setup: least and greatest as 0x49b520, 10, then 0, 0xb, 0xc), drawn. 0x100: a -2: the dialog [0x7ca2e8] sent 4
 // (0, 0), answer 0 at once. The boxes a = 0x12277 to 0x1227e: bits 0, 3, 2, 6, 1, 4, 5, 7 of the flags 0x751fa0: b 1 sets it, first clearing the other group where any of it is set:
