@@ -610,7 +610,7 @@ void __cdecl ride_base_fit(const u8 *node, u8 *frame, u16 **cursor, GridFitMatri
     reinterpret_cast<Fit>((uintptr_t)jpeg_recorder(1, 13))(node, frame, cursor, &matrix, grid, place, hits, lift, best, bestCount, flags, only, fine);
 }
 const RideBaseEnv kRideBaseEnv = {&ride_base_fit, Rec{jpeg_recorder(2, 5)}, Rec{jpeg_recorder(3, 2)}};
-const ParkEntranceEnv kParkEntranceEnv = {Rec{jpeg_recorder(1, 2)}, Rec{jpeg_recorder(2, 1)}, Rec{jpeg_recorder(3, 4)}, Rec{jpeg_recorder(4, 1)}, Rec{jpeg_recorder(5, 0)}, Rec{jpeg_recorder(6, 6)}, Rec{recorder(7, 0)}, Rec{jpeg_recorder(8, 0)}};
+const ParkEntranceEnv kParkEntranceEnv = {Rec{jpeg_recorder(1, 2)}, Rec{jpeg_recorder(2, 1)}, Rec{jpeg_recorder(3, 4)}, Rec{jpeg_recorder(4, 1)}, Rec{jpeg_recorder(5, 0)}, Rec{jpeg_recorder(6, 6)}, Rec{recorder(7, 0)}, Rec{jpeg_recorder(8, 0)}, Rec{jpeg_recorder(9, 1)}};
 const KeyCancelEnv kKeyCancelEnv = {Rec{recorder(20, 0)}, Rec{jpeg_recorder(21, 2)}};
 const SceneViewsEnv kSceneViewsEnv = {Rec{recorder(20, 0)}, Rec{recorder(21, 0)}};
 const BendMeshEnv kBendMeshEnv = {Rec{jpeg_recorder(1, 8)}, Rec{jpeg_recorder(2, 1)}};

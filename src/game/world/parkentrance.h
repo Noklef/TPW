@@ -13,6 +13,7 @@ struct ParkEntranceEnv {
     u32(__cdecl *lay)(s32 x, s32 y, s32 endX, s32 endY, u32 direction, u32 setDirection);  // CellRun_Lay (0x52ba50)
     void(__fastcall *pathModel)(u8 *cell);                                       // MapCell_ApplyPathModel (0x5365d0)
     void(__cdecl *shade)();                                                      // Terrain_ShadeNormals (0x450d10)
+    void(__cdecl *cursor)(u32 id);                                               // GameCursor_Set (0x4a2aa0)
 };
 // The calls go to env (nullptr: the ports).
 void ParkEntrance_SetEnv(const ParkEntranceEnv *env);
@@ -24,4 +25,8 @@ extern "C" {
 // else at the offsets of the hoardings table from 0x784e3c (pairs of x, y; x 0x200 ends it, its 0x40 pairs all taken without one). The run marked, the track line pruned, the run unmarked; CellRun_Lay with direction 4,
 // game mode 0. Each column from 0x7639f8 + 2 up to 0x7639f0 less 1 clears flag 0x40 and applies the path model of its cell in 0x7639f4's row and the next. 0x81b4cc is cleared and the terrain shaded.
 void __cdecl ParkEntrance_Lay();
+
+// 0x5327e0 (cdecl (x1, y1, x2, y2); name invented, unconfirmed). 0x81b4cc is set for its length. Game mode 0x19 (not recorded), map clicks round the rectangle from its lowest corner (five, back to the first), game
+// mode 0, cursor 1; [0x7639c0] = CellRun_Lay of the four dwords at 0x7639f0 with direction 4; the run marked, the track line pruned, the run unmarked; the terrain shaded.
+void __cdecl ParkEntrance_LayOutline(s32 x1, s32 y1, s32 x2, s32 y2);
 }

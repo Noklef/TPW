@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../terrain/normals.h"
+#include "../ui/cursor.h"
 #include "cellmodel.h"
 #include "cellrun.h"
 #include "focuscell.h"
@@ -15,7 +16,7 @@ namespace {
 
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const ParkEntranceEnv kPortEnv = {&GameMode_Set, &FocusCell_Update, &GameMode_MapClick, &CellRun_Mark, &TrackLine_Prune, &CellRun_Lay, &MapCell_ApplyPathModel, &Terrain_ShadeNormals};
+const ParkEntranceEnv kPortEnv = {&GameMode_Set, &FocusCell_Update, &GameMode_MapClick, &CellRun_Mark, &TrackLine_Prune, &CellRun_Lay, &MapCell_ApplyPathModel, &Terrain_ShadeNormals, &GameCursor_Set};
 const ParkEntranceEnv *g_env = &kPortEnv;
 
 s32 &EndColumn() { return global<s32>(0x007639f0); }
@@ -79,4 +80,24 @@ void __cdecl ParkEntrance_Lay() {
     }
     global<u8>(0x0081b4cc) = 0;
     g_env->shade();
+}
+
+void __cdecl ParkEntrance_LayOutline(s32 x1, s32 y1, s32 x2, s32 y2) {
+    const s32 left = x1 < x2 ? x1 : x2, right = x1 > x2 ? x1 : x2;
+    const s32 top = y1 < y2 ? y1 : y2, bottom = y1 > y2 ? y1 : y2;
+    global<u8>(0x0081b4cc) = 1;
+    g_env->setMode(0x19, 0);
+    Click(left, top);
+    Click(right, top);
+    Click(right, bottom);
+    Click(left, bottom);
+    Click(left, top);
+    g_env->setMode(0, 0);
+    g_env->cursor(1);
+    global<u32>(0x007639c0) = g_env->lay(EndColumn(), EndRow(), StartColumn(), StartRow(), 4, 1);
+    g_env->mark(1);
+    g_env->prune();
+    g_env->mark(0);
+    g_env->shade();
+    global<u8>(0x0081b4cc) = 0;
 }
