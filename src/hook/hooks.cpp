@@ -505,6 +505,7 @@
 #include "../game/ui/dialog7cc47c.h"
 #include "../game/ui/dialog7cc5f4.h"
 #include "../game/ui/dialog7cc654.h"
+#include "../game/ui/dialog7cc944.h"
 #include "../game/ui/dialog7cca94.h"
 #include "../game/ui/dialog7cdac4.h"
 #include "../game/ui/guifont.h"
@@ -7455,6 +7456,7 @@ const Hook kHooks[] = {
     {"Dialog7ca150_AddControlRow", 0x004941e0, (void *)&Dialog7ca150_AddControlRow, {0x83, 0xec, 0x08, 0x56, 0x8b}},
     {"Dialog7ca2e8_Handler",      0x0049a0b0, (void *)&Dialog7ca2e8_Handler, {0x53, 0x56, 0x8b, 0x5c, 0x24}},
     {"Dialog7ca2e8_Open",         0x0049ac60, (void *)&Dialog7ca2e8_Open, {0x6a, 0xff, 0x68, 0x64, 0xa1}},
+    {"Dialog7cc944_Open",         0x004bff70, (void *)&Dialog7cc944_Open, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
