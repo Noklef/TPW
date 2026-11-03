@@ -513,6 +513,7 @@
 #include "../game/ui/dialog7cca70.h"
 #include "../game/ui/dialog7cca94.h"
 #include "../game/ui/dialog7cdac4.h"
+#include "../game/ui/dialogtabhandlers.h"
 #include "../game/ui/dialogtabs.h"
 #include "../game/ui/guifont.h"
 #include "../game/ui/guinamed.h"
@@ -7477,6 +7478,9 @@ const Hook kHooks[] = {
     {"ThingSign_Show4b0fa0",      0x004b0fa0, (void *)&ThingSign_Show4b0fa0, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"ThingSign_Show4b64a0",      0x004b64a0, (void *)&ThingSign_Show4b64a0, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"DialogTabs_Reopen",         0x004a0940, (void *)&DialogTabs_Reopen, {0xe8, 0x8b, 0xbf, 0xfe, 0xff}},
+    {"Dialog7ca210_Handler",      0x00498c60, (void *)&Dialog7ca210_Handler, {0x53, 0x8b, 0x5c, 0x24, 0x14}},
+    {"Dialog7cc2ec_Handler",      0x004b24b0, (void *)&Dialog7cc2ec_Handler, {0x83, 0xec, 0x08, 0x53, 0x55}},
+    {"Dialog7cc444_Handler",      0x004b7a70, (void *)&Dialog7cc444_Handler, {0x8b, 0x4c, 0x24, 0x08, 0x83}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},

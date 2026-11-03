@@ -49,6 +49,7 @@
 #include "../../src/game/gfx/statsgraph.h"
 #include "../../src/game/ui/thingbrowser.h"
 #include "../../src/game/ui/dialog7ca150.h"
+#include "../../src/game/ui/dialogtabhandlers.h"
 #include "../../src/game/ui/dialogtabs.h"
 #include "../../src/game/ui/thingsign.h"
 #include "../../src/game/gfx/dctmacroblock.h"
@@ -673,6 +674,8 @@ const DctMacroblockEnv kDctMacroblockEnv = {Rec{jpeg_recorder(10, 0)}, Rec{jpeg_
 const ThingSignEnv kThingSignEnv = {Rec{recorder(10, 0)}, Rec{jpeg_recorder(12, 3)}};
 // DialogTabs_Reopen's calls (tests/fncmp/dialogtabs.py).
 const DialogTabsEnv kDialogTabsEnv = {Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 2)}, Rec{jpeg_recorder(12, 1)}, Rec{jpeg_recorder(13, 0)}, Rec{jpeg_recorder(14, 2)}, Rec{jpeg_recorder(15, 2)}, Rec{jpeg_recorder(16, 1)}, Rec{jpeg_recorder(17, 0)}, Rec{jpeg_recorder(18, 0)}, Rec{jpeg_recorder(19, 0)}, Rec{jpeg_recorder(20, 0)}};
+// The tabbed dialogs' handlers' calls (tests/fncmp/dialogtabhandlers.py).
+const DialogTabHandlersEnv kDialogTabHandlersEnv = {Rec{jpeg_recorder(10, 4)}, Rec{jpeg_recorder(11, 4)}, Rec{jpeg_recorder(12, 1)}, Rec{recorder(13, 0)}, Rec{recorder(14, 1)}, Rec{recorder(15, 2)}, Rec{jpeg_recorder(16, 0)}, Rec{jpeg_recorder(17, 0)}, Rec{jpeg_recorder(18, 0)}, Rec{jpeg_recorder(19, 0)}, Rec{jpeg_recorder(20, 0)}, Rec{recorder(21, 0)}};
 // Online_Instance's constructor (tests/fncmp/onlineinstance.py).
 const OnlineInstanceEnv kOnlineInstanceEnv = {Rec{recorder(10, 0)}};
 // Dialog7cdac4_Handler's calls (tests/fncmp/dialog7cdac4handler.py).
@@ -1529,6 +1532,7 @@ int main(int argc, char **argv) {
     Panel7cc218_SetShowEnv(&kPanel7cc218ShowEnv);
     Dialog7ca168_SetOpenEnv(&kDialog7ca168OpenEnv);
     Online_SetInstanceEnv(&kOnlineInstanceEnv);
+    DialogTabHandlers_SetEnv(&kDialogTabHandlersEnv);
     DialogTabs_SetEnv(&kDialogTabsEnv);
     ThingSign_SetEnv(&kThingSignEnv);
     DctMacroblock_SetEnv(&kDctMacroblockEnv);
