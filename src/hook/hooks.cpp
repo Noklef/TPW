@@ -422,6 +422,7 @@
 #include "../game/world/objectwear.h"
 #include "../game/world/parkentrance.h"
 #include "../game/world/parkgates.h"
+#include "../game/world/parkmapwindow.h"
 #include "../game/world/parkopen.h"
 #include "../game/world/pathdrag.h"
 #include "../game/world/pathlink.h"
@@ -6663,6 +6664,7 @@ const Hook kHooks[] = {
     {"Object_LoadScript",         0x004dcf90, (void *)&Object_LoadScript, {0x81, 0xec, 0x08, 0x01, 0x00}},
     {"RideSystem_Save",           0x00464140, (void *)&RideSystem_Save, {0x55, 0x8b, 0xec, 0x83, 0xec}},
     {"Advisor_UpdateSpeech",      0x00599880, (void *)&Advisor_UpdateSpeech, {0x83, 0xec, 0x08, 0xb9, 0x70}},
+    {"ParkMap_HandleMouse",       0x005f18d0, (void *)&ParkMap_HandleMouse, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},

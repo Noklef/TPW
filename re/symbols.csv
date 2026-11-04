@@ -6242,6 +6242,7 @@ address,name,kind,confidence,notes
 0x004d7af0,WorldPeople_Start,function,low,"reimplemented (src/game/world/worldpeople); the world's people at the start: name invented, unconfirmed"
 0x004d7b20,WorldPeople_Step,function,low,"reimplemented (src/game/world/worldpeople); the world's people at each tick: name invented, unconfirmed"
 0x004dcf90,Object_LoadScript,function,low,"reimplemented (src/game/world/objectscript); an object's script loaded when it is built: name invented, unconfirmed"
+0x005f18d0,ParkMap_HandleMouse,function,low,"reimplemented (src/game/world/parkmapwindow); The park map's mouse: the item and the square under it, its name shown; dragging scrolls; a click moves the view and shows the thing."
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved
