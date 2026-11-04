@@ -9,10 +9,10 @@
 //
 // Memory is laid out as the emulator has it: the game's data sections sit at their own addresses,
 // reloaded from tp.exe before each case, and any other region is mapped on demand and released
-// after each case. The driver's image is fixed at 0x100000 (CMakeLists.txt), so the game's
+// after each case. The driver's image is fixed at 0x10000 (CMakeLists.txt), so the game's
 // whole image lies in the driver's g_game, a section of its own (.game) that the linker puts
 // right after the driver's code; that it covers the range is checked at start-up:
-//   0x100000 ..             the driver's headers and code (.text), below the game's image
+//   0x10000 ..              the driver's headers and code (.text), below the game's image
 //   .. 0x400000             g_game's head: no access (nothing of the game's)
 //   0x400000 - 0x401000     the game's headers: no access (the emulator has only its sections)
 //   0x401000 - 0x6e7000     the game's code, loaded once from tp.exe, read-only: the emulator reads
@@ -450,7 +450,7 @@ using s32 = std::int32_t;
 const u32 kGameBase = 0x00400000, kGameCode = 0x00401000;  // the game's image base, its .text
 const u32 kGameLow = 0x006e7000, kGameHigh = 0x00fc5200;  // cseg .. .rsrc
 const u32 kGameTailEnd = 0x01110000;                       // g_game reaches at least this far (see below)
-// The game's whole image, in a section of its own that the linker places right after the driver's .text (the image is fixed at 0x100000,
+// The game's whole image, in a section of its own that the linker places right after the driver's .text (the image is fixed at 0x10000,
 // so the code ends below 0x400000: load_exe checks it). It reaches from wherever the code ends to past kGameTailEnd: the driver's
 // .rdata / .data / .bss follow it, and what follows the game's data natively is g_game's own tail, which load_exe takes all access from
 // (when the CRT's statics followed the game's data, a case's wild pointer read natively what the emulator does not have:
@@ -1295,7 +1295,8 @@ const AddrCall kWindowProcCalls[] = {{0x6590d0, jpeg_recorder(1, 2)}, {0x6588ef,
 const AddrCall kLanguageLoadCalls[] = {{0x6ad1b0, recorder(1, 2)}, {0x6ad230, recorder(2, 2)}, {0x6ad4b0, recorder(3, 3)}, {0x6ad460, recorder(4, 3)}, {0x6ad510, recorder(5, 3)}, {0x6ad570, recorder(6, 3)}, {0x405710, recorder(7, 3)}, {0x6ad790, recorder(8, 1)}, {0x67a650, jpeg_recorder(9, 4)}};
 const AddrCall kMatricesUpdateCalls[] = {{0x67a7d0, jpeg_recorder(1, 1)}};
 const AddrCall kSavedPairsMakeCalls[] = {{0x575ee0, recorder(1, 1)}, {0x575f90, recorder(2, 1)}, {0x590d40, recorder(3, 0)}, {0x57b2e0, recorder(4, 0)}, {0x579b80, jpeg_recorder(5, 1)}, {0x57b610, recorder(7, 4)}, {0x57b6e0, recorder(8, 1)}, {0x58dc50, recorder(9, 1)}, {0x565240, recorder(10, 5)}, {0x582640, recorder(11, 1)}, {0x67a7d0, jpeg_recorder(12, 1)}, {0x57b490, recorder(13, 0)}};
-const AddrCall kSpriteFolderCalls[] = {{0x41a9d0, recorder(1, 0)}, {0x41aa40, recorder(2, 0)}, {0x41d570, recorder(3, 2)}, {0x41d710, recorder(4, 1)}, {0x5f8240, recorder(5, 0)}, {0x5f82b0, recorder(6, 1)}, {0x540d90, recorder(7, 2)}, {0x541310, jpeg_recorder(8, 2)}, {0x421770, recorder(9, 2)}};  // tests/fncmp/spritefolder.py
+const AddrCall kSpriteFolderCalls[] = {{0x41a9d0, recorder(1, 0)}, {0x41aa40, recorder(2, 0)}, {0x41d570, recorder(3, 2)}, {0x41d710, recorder(4, 1)}, {0x5f8240, recorder(5, 0)}, {0x5f82b0, recorder(6, 1)}, {0x540d90, recorder(7, 2)}, {0x541310, jpeg_recorder(8, 2)}, {0x421770, recorder(9, 2)},  // tests/fncmp/spritefolder.py
+    {0x541d90, jpeg_recorder(10, 1)}, {0x58a4f0, recorder(11, 1)}, {0x576620, recorder(12, 6)}, {0x576410, recorder(13, 2)}};  // tests/fncmp/spritesinit.py
 const AddrCall kThemeTextCalls[] = {{0x413020, recorder(1, 3)}, {0x4130b0, recorder(2, 3)},  // tests/fncmp/themetexts.py
     {0x40ef40, jpeg_recorder(3, 0)}, {0x44a280, jpeg_recorder(4, 3)}, {0x550e00, jpeg_recorder(5, 1)}, {0x5852b0, recorder(6, 1)}, {0x418c30, recorder(7, 0)}, {0x401650, recorder(8, 2)}};  // tests/fncmp/namedobjectsload.py
 const AddrCall kPointerMakeCalls[] = {  // tests/fncmp/pointermake.py
