@@ -5932,6 +5932,12 @@ address,name,kind,confidence,notes
 0x005d3230,SwearFilter_Apply,function,low,reimplemented (src/game/core/swearfilter); the swear filter over a wide string
 0x005cfb60,NCtype_Ctor,function,low,reimplemented (src/game/core/nstream); ctype<char>'s constructor
 0x005d0080,NIstream_Ipfx,function,low,reimplemented (src/game/core/nstream); basic_istream<char>::ipfx
+0x005cfd50,NCtype_Dtor,function,low,reimplemented (src/game/core/nstream); ctype<char>'s destructor
+0x005cfc80,NCtype_FreeTable,function,low,reimplemented (src/game/core/nstream); the kept table freed at exit
+0x005cf900,NOstream_Ctor,function,low,reimplemented (src/game/core/nstream); basic_ostream<char>'s constructor
+0x005cfd90,NIstream_Ctor,function,low,reimplemented (src/game/core/nstream); basic_istream<char>'s constructor
+0x005d1190,NOstream_Opfx,function,low,reimplemented (src/game/core/nstream); basic_ostream<char>::opfx
+0x005d1120,NOstream_Sentry,function,low,reimplemented (src/game/core/nstream); the output sentry's end
 0x005b12e0,ThemeRecord_FullName,function,low,reimplemented (src/game/core/themenames); a theme record's full name
 0x005b1410,ThemeRecord_Name,function,low,reimplemented (src/game/core/themenames); a theme record's name
 0x005b1520,ThemeRecord_Suffix,function,low,reimplemented (src/game/core/themenames); a theme record's suffix

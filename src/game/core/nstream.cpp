@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "accessors.h"
 #include "buffers.h"
 #include "crt.h"
 #include "gameheap.h"
@@ -22,7 +23,9 @@ const NStreamEnv kGameEnv = {reinterpret_cast<void(__stdcall *)(void *, const vo
                              reinterpret_cast<void *(__fastcall *)(void *, void *, const char *)>((uintptr_t)0x00698fc0),
                              reinterpret_cast<void *(__fastcall *)(void *)>((uintptr_t)0x00699100),
                              reinterpret_cast<const u32 *(__cdecl *)(u32 *)>((uintptr_t)0x00699bd0),
-                             &CRT_atexit};
+                             &CRT_atexit,
+                             &IosBase_Init,
+                             &IosBase_Addstd};
 const NStreamEnv *g_env = &kGameEnv;
 
 u32 base_of(const u8 *stream) { return at<u32>(at<u8 *>(stream, 0), 4); }
@@ -63,6 +66,26 @@ u32 take_unit(u8 *buffer) {
     return vcall<u32>(buffer, 0x14);
 }
 
+void init_ios(u8 *ios, u8 *buffer, u32 addstd) {
+    at<u8 *>(ios, 0x28) = buffer;
+    at<u32>(ios, 0x2c) = 0;
+    at<u8>(ios, 0x30) = 0x20;
+    g_env->iosInit(ios);
+    if (!at<u32>(ios, 0x28)) IosBase_Clear(ios, nullptr, at<u32>(ios, 4) | 4, 0);
+    if (static_cast<u8>(addstd)) g_env->iosAddstd(ios);
+}
+
+void flush_stream(u8 *stream) {
+    u32 state = 0;
+    u8 *const ios = ios_of(stream);
+    if (!(at<u8>(ios, 4) & 6) && vcall<s32>(at<u8 *>(ios, 0x28), 0x2c) == -1) state = 4;
+    if (!state) return;
+    u8 *const after = ios_of(stream);
+    u32 next = at<u32>(after, 4) | state;
+    if (!at<u32>(after, 0x28)) next |= 4;
+    IosBase_Clear(after, nullptr, next, 0);
+}
+
 }  // namespace
 
 void NStream_SetEnv(const NStreamEnv *env) { g_env = env ? env : &kGameEnv; }
@@ -94,6 +117,49 @@ u8 *__fastcall NCtype_Ctor(u8 *self, void *, u8 *table, u32 del, u32 refs) {
         at<u32>(self, 0x10) = global<u32>(0x00fb1dd8);
     }
     return self;
+}
+
+void __fastcall NCtype_Dtor(u8 *self) {
+    at<u32>(self, 0) = 0x00709b1c;
+    if (at<u32>(self, 0x14)) Crt().free(at<void *>(self, 0x10));
+    at<u32>(self, 0) = 0x00709b44;
+}
+
+void __cdecl NCtype_FreeTable() { Crt().free(global<void *>(0x00fb1dd8)); }
+
+u8 *__fastcall NOstream_Ctor(u8 *self, void *, u8 *buffer, u32 addstd, u32 init, u32 derived) {
+    if (derived) {
+        at<u32>(self, 0) = 0x00702980;
+        at<u32>(self, 0x28) = 0;
+        at<u32>(self, 4) = 0x00709954;
+    }
+    *reinterpret_cast<u32 *>(self + base_of(self)) = 0x0070995c;
+    if (static_cast<u8>(init)) init_ios(self + base_of(self), buffer, addstd);
+    return self;
+}
+
+u8 *__fastcall NIstream_Ctor(u8 *self, void *, u8 *buffer, u32 addstd, u32 derived) {
+    if (derived) {
+        at<u32>(self, 0) = 0x00702988;
+        at<u32>(self, 0x2c) = 0;
+        at<u32>(self, 8) = 0x00709954;
+    }
+    at<u32>(self, 4) = 0;
+    *reinterpret_cast<u32 *>(self + base_of(self)) = 0x0070994c;
+    init_ios(self + base_of(self), buffer, addstd);
+    return self;
+}
+
+u8 __fastcall NOstream_Opfx(u8 *self) {
+    u8 *const tied = at<u8 *>(ios_of(self), 0x2c);
+    if (at<u32>(ios_of(self), 4) == 0 && tied) flush_stream(tied);
+    return at<u32>(ios_of(self), 4) == 0;
+}
+
+void __fastcall NOstream_Sentry(u8 *sentry) {
+    if (Fn_6a65e0()) return;
+    u8 *const stream = at<u8 *>(sentry, 4);
+    if (at<u8>(ios_of(stream), 0xc) & 2) flush_stream(stream);
 }
 
 u8 __fastcall NIstream_Ipfx(u8 *self, void *, u32 noskip) {
