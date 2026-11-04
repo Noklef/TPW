@@ -97,7 +97,7 @@ def case(r):
         mode = r.choice([0, 1, 2, 3, 4, 4, 5, 5, r.randrange(6, 0x10000)]) | r.choice([0, r.getrandbits(16)]) << 16
         return Call(CALLS[op], [WINDOW, mode], regions, conv='t', ret='v')
     value = w[0x140] | w[0x141] << 8 | w[0x142] << 16 | w[0x143] << 24 if r.random() < 0.3 else small(r)
-    return Call(CALLS[op], [WINDOW, value], regions, conv='t', ret='w')
+    return Call(r.choice([CALLS[op], CALLS[op], 0x66a6ae]), [WINDOW, value], regions, conv='t', ret='w')
 
 
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
