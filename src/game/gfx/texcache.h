@@ -178,6 +178,21 @@ s32 __fastcall TexCacheEntry_Score(u8 *entry, void *, u32);
 // +0xc = [0x8bcc40]. Returns 1.
 u32 __fastcall TexCache_PlaceTexture(u8 *cache, void *, u8 *entry, const s32 *place, u8 *texture);
 
+// 0x58cba0 / 0x58cc30 (thiscall on the cache, not used; entries, first, last; pops 0xc; names invented, unconfirmed): the entries' pointers first to last sorted by their signed +0xc / +0x10, the smallest first. The ends walk in
+// unbounded: the middle's key the pivot, swapped when they have not crossed; the left part recursed into, the right part looped on.
+void __fastcall TexCache_SortEntriesByKept(u8 *cache, void *, u8 **entries, s32 first, s32 last);
+void __fastcall TexCache_SortEntriesByScore(u8 *cache, void *, u8 **entries, s32 first, s32 last);
+
+// 0x58e1a0 (thiscall on the cache, not used; items, first, last; pops 0xc; name invented, unconfirmed): first below last: RecordSort_RunPointersUp at 0x8bcb98 by the items' key +0x38 (stride 0x60; its temp the address of the stack's first).
+void __fastcall TexCache_SortItemsByKey(u8 *cache, void *, u8 **items, s32 first, s32 last);
+
+// 0x58e790 (thiscall on the cache; list head pointer; pops 4; name invented, unconfirmed): the first 0x1000 items of the chain (next +4) sorted by key (TexCache_SortItemsByKey) and chained again, the greatest key the head.
+// Items past those lose flags 0xf030 (+8) and drop out (sic).
+void __fastcall TexCache_SortListByKey(u8 *cache, void *, u8 **list);
+
+// 0x58e820 (thiscall on the cache, not used; list head pointer; pops 4; name invented, unconfirmed): likewise by the items' addresses (RecordSort_RunUp of the array's dwords, more than one), the lowest address the head.
+void __fastcall TexCache_SortListByAddress(u8 *cache, void *, u8 **list);
+
 // 0x58e010 (thiscall, pops 4; name unconfirmed): the trace of a touched item: "c:\\tcache.log" appended to or, the first time (the
 // cache's flag 0x40000000 not set, then set), created with [0x8bd550]'s 0x40f0 bytes, [0x8bd508] and [0x8bcbc8] first; then a byte 1
 // and the record {item, its flags +8, words +0x10 and +0x12, float +0x30 (through the x87)}; flushed and closed. No file: nothing.

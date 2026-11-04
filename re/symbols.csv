@@ -6283,6 +6283,11 @@ address,name,kind,confidence,notes
 0x0058eca0,TexCache_PackItems,function,low,"reimplemented (src/game/gfx/texcache); The cache's items packed into an area's free rectangles (name invented, unconfirmed)"
 0x0058d670,TexCache_CreateSurfaces,function,low,"reimplemented (src/game/gfx/texcache); thiscall: the surfaces of the six sides from their budgets, giving up entries once on failure: name invented, unconfirmed"
 0x0058d400,TexCache_ChooseBudget,function,low,"reimplemented (src/game/gfx/texcache); thiscall: the budgets of the six sides from the texture memory, measured when the device gives none: name invented, unconfirmed"
+0x0058cba0,TexCache_SortEntriesByKept,function,low,"reimplemented (src/game/gfx/texcache); thiscall on the cache (entries, first, last), pops 0xc: entries' pointers by their signed +0xc, the smallest first"
+0x0058cc30,TexCache_SortEntriesByScore,function,low,"reimplemented (src/game/gfx/texcache); thiscall on the cache (entries, first, last), pops 0xc: entries' pointers by their signed +0x10, the smallest first"
+0x0058e1a0,TexCache_SortItemsByKey,function,low,"reimplemented (src/game/gfx/texcache); thiscall on the cache (items, first, last), pops 0xc: first below last, items' pointers by their key +0x38"
+0x0058e790,TexCache_SortListByKey,function,low,"reimplemented (src/game/gfx/texcache); thiscall on the cache (list head pointer), pops 4: the chain's first 0x1000 items by key, the greatest the head; past those flags lost and dropped"
+0x0058e820,TexCache_SortListByAddress,function,low,"reimplemented (src/game/gfx/texcache); thiscall on the cache (list head pointer), pops 4: the chain's first 0x1000 items by address, the lowest the head"
 0x00575bd0,TexSet_Ctor,function,high,"reimplemented (src/game/gfx/texset); thiscall (a texture set, 16 bytes): all zero; returns the set"
 0x00575f90,TexSet_Texture,function,high,"reimplemented (src/game/gfx/texset); thiscall (i): texture i, [+8][i]"
 0x00575fa0,TexSet_TextureSlot,function,high,reimplemented (src/game/gfx/texset); thiscall (i): &[+8][i]

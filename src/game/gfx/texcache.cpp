@@ -907,3 +907,77 @@ void __fastcall TexCache_TouchItem(u8 *cache, void *, u8 *item, float weight) {
         TexCache_TraceItem(cache, nullptr, item);
 }
 }
+
+namespace {
+
+// The entries' pointers by a signed key at this offset, the smallest first.
+template <u32 Key>
+void sortEntries(u8 **entries, s32 first, s32 last) {
+    const auto key = [](const u8 *entry) { return *reinterpret_cast<const s32 *>((uintptr_t)entry + Key); };
+    for (;;) {
+        s32 left = first, right = last;
+        const s32 pivot = key(entries[(first + last) >> 1]);
+        do {
+            while (key(entries[left]) < pivot) ++left;
+            while (key(entries[right]) > pivot) --right;
+            if (left > right) break;
+            u8 *const moved = entries[left];
+            entries[left] = entries[right];
+            entries[right] = moved;
+            ++left;
+            --right;
+        } while (left <= right);
+        if (first < right) sortEntries<Key>(entries, first, right);
+        if (last <= left) return;
+        first = left;
+    }
+}
+
+// The chain's first 0x1000 items into the array, the rest losing flags 0xf030; their number.
+s32 listToArray(u8 *const *list, u8 **items) {
+    u8 *item = *list;
+    s32 count = 0;
+    while (item && count < 0x1000) {
+        items[count++] = item;
+        item = *reinterpret_cast<u8 **>(item + 4);
+    }
+    if (count == 0x1000) {
+        for (; item; item = *reinterpret_cast<u8 **>(item + 4)) *reinterpret_cast<u32 *>(item + 8) &= 0xffff0fcf;
+    }
+    return count;
+}
+
+}  // namespace
+
+void __fastcall TexCache_SortEntriesByKept(u8 *, void *, u8 **entries, s32 first, s32 last) { sortEntries<0xc>(entries, first, last); }
+
+void __fastcall TexCache_SortEntriesByScore(u8 *, void *, u8 **entries, s32 first, s32 last) { sortEntries<0x10>(entries, first, last); }
+
+void __fastcall TexCache_SortItemsByKey(u8 *, void *, u8 **items, s32 first, s32 last) {
+    if (first < last) RecordSort_RunPointersUp(reinterpret_cast<RecordSort *>(0x008bcb98), nullptr, items, reinterpret_cast<u8 *>(&first), 0x60, 0x38, first, last);
+}
+
+void __fastcall TexCache_SortListByKey(u8 *cache, void *, u8 **list) {
+    u8 *items[0x1000];
+    const s32 count = listToArray(list, items);
+    TexCache_SortItemsByKey(cache, nullptr, items, 0, count - 1);
+    u8 *head = nullptr;
+    for (s32 i = 0; i < count; ++i) {
+        *reinterpret_cast<u8 **>(items[i] + 4) = head;
+        head = items[i];
+    }
+    *list = head;
+}
+
+void __fastcall TexCache_SortListByAddress(u8 *, void *, u8 **list) {
+    u8 *items[0x1000];
+    u32 temp;
+    const s32 count = listToArray(list, items);
+    if (count > 1) RecordSort_RunUp(reinterpret_cast<RecordSort *>(0x008bcb98), nullptr, reinterpret_cast<u8 *>(items), reinterpret_cast<u8 *>(&temp), 4, 0, 0, count - 1);
+    u8 *head = nullptr;
+    for (s32 i = count - 1; i >= 0; --i) {
+        *reinterpret_cast<u8 **>(items[i] + 4) = head;
+        head = items[i];
+    }
+    *list = head;
+}
