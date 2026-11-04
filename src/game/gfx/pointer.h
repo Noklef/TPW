@@ -17,6 +17,7 @@
 #include "../../../re/types.h"
 #include "../core/semaphore.h"
 #include "../math/rect.h"
+#include "../core/addrcalls.h"
 #include "cursor.h"
 #include "surface.h"
 
@@ -53,6 +54,8 @@ struct AsyncPointerEnv {
 // nullptr restores the game's.
 void AsyncPointer_SetEnv(const AsyncPointerEnv *e);
 const AsyncPointerEnv *AsyncPointer_GetEnv();
+// AsyncPointer_Make's calls by address (the bench's recorders).
+void AsyncPointer_SetCalls(const AddrCall *table, u32 count);
 
 extern "C" {
 // 0x5fb8e0 (display): paused and stopped, no cursor, a 66 ms interval.
@@ -83,6 +86,10 @@ void __fastcall AsyncPointer_EndFlip(AsyncPointer *p);    // 0x5fbd90
 // shown = 1. 0x47ec30 (thiscall) takes it away: SetImage(no image, a zero rectangle and hot spot), shown = 0.
 void __fastcall PointerFrames_Show(u8 *self);
 void __fastcall PointerFrames_Hide(u8 *self);
+
+// 0x47e7d0 (cdecl; name invented, unconfirmed): the game's asynchronous pointer made: the screen's size posted twice to the event queue 0xfa7cb0 (kinds 6 and 7), the display's old surfaces released, its clipping the whole screen, the pointer
+// made at [0x7b4b84] (0 at once without one), attached at the mouse position, paused on a card of vendor 0x121a below model 5 or with [0x78826c] set, the cursor's key magenta (its nearest palette index too), the flip's two handlers set, [0x7b4b88] 1; 1.
+u32 __cdecl AsyncPointer_Make();
 
 // 0x47ec80 (thiscall (name), pops 4; name invented, unconfirmed): Surface_LoadTga into the Surface +0x14, the frame count +8; the result kept at +0x64 and returned.
 u32 __fastcall PointerFrames_LoadFile(u8 *self, void *, const char *name);

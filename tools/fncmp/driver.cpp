@@ -266,6 +266,7 @@
 #include "../../src/game/core/gameowner.h"
 #include "../../src/game/world/mousemodeclick.h"
 #include "../../src/game/world/savegamefile.h"
+#include "../../src/game/ui/windowgroup.h"
 #include "../../src/game/world/gamefile.h"
 #include "../../src/game/core/globalsave.h"
 #include "../../src/game/coaster/rebuild.h"
@@ -1177,6 +1178,10 @@ const AddrCall kGameFileCalls[] = {  // tests/fncmp/gamefile.py
     {0x403780, recorder(29, 4)}, {0x4053b0, recorder(30, 0)}, {0x59bea0, recorder(31, 0)},  // (thiscall slots below 32: those of the cdecl calls the other function makes)
     {0x5179c0, recorder(16, 1)}, {0x40fd60, recorder(17, 1)}, {0x402e30, recorder(18, 1)}, {0x403260, recorder(19, 1)}, {0x405570, recorder(20, 1)}, {0x59c860, recorder(21, 1)}, {0x481680, recorder(22, 1)},
     {0x516c80, recorder(1, 1)}, {0x40fc80, recorder(4, 1)}, {0x402e00, recorder(7, 1)}, {0x403220, recorder(8, 1)}, {0x4055d0, recorder(9, 1)}, {0x59c890, recorder(10, 1)}, {0x4816a0, recorder(11, 1)}};
+const AddrCall kWindowGroupCalls[] = {{0x65c707, recorder(1, 0)}};  // tests/fncmp/windowgroup.py
+const AddrCall kPointerMakeCalls[] = {  // tests/fncmp/pointermake.py
+    {0x5fbf80, recorder(1, 2)}, {0x47e460, recorder(2, 0)}, {0x5fb8e0, recorder(3, 1)}, {0x5fbbd0, recorder(4, 2)}, {0x5fbc80, recorder(5, 2)}, {0x5fb7b0, recorder(6, 1)},
+    {0x5f73a0, jpeg_recorder(7, 4)}, {0x5f5650, jpeg_recorder(8, 1)}, {0x5f5640, jpeg_recorder(9, 0)}, {0x67acc0, jpeg_recorder(10, 1)}};
 const AddrCall kSaveGameCalls[] = {  // tests/fncmp/savegamefile.py, savegameheader.py
     {0x41a820, recorder(1, 0)}, {0x5f60b0, recorder(2, 1)}, {0x5f7980, recorder(3, 1)}, {0x5f61e0, recorder(4, 0)}, {0x418da0, recorder(5, 4)}, {0x5f7e60, recorder(6, 1)}, {0x51ab60, recorder(7, 2)},
     {0x5f7180, recorder(4, 0)}, {0x5f71e0, recorder(5, 0)}, {0x5f71f0, recorder(6, 0)}, {0x5f7210, recorder(7, 2)}, {0x415f50, recorder(8, 2)}, {0x4164c0, recorder(9, 2)}, {0x416240, recorder(10, 3)}, {0x415270, recorder(11, 2)}, {0x639100, recorder(12, 0)}, {0x5f72c0, recorder(13, 2)},
@@ -2556,6 +2561,8 @@ int main(int argc, char **argv) {
     GameOwner_SetCalls(kGameOwnerCalls, sizeof(kGameOwnerCalls) / sizeof(kGameOwnerCalls[0]));
     MouseModeClick_SetCalls(kMouseModeClickCalls, sizeof(kMouseModeClickCalls) / sizeof(kMouseModeClickCalls[0]));
     SaveGame_SetCalls(kSaveGameCalls, sizeof(kSaveGameCalls) / sizeof(kSaveGameCalls[0]));
+    WindowGroup_SetCalls(kWindowGroupCalls, 1);
+    AsyncPointer_SetCalls(kPointerMakeCalls, sizeof(kPointerMakeCalls) / sizeof(kPointerMakeCalls[0]));
     GameFile_SetCalls(kGameFileCalls, sizeof(kGameFileCalls) / sizeof(kGameFileCalls[0]));
     Dialog_SetCalls(kDialogBoxCalls, sizeof(kDialogBoxCalls) / sizeof(kDialogBoxCalls[0]));
     ArReplay_SetCalls(kArReplayCalls, sizeof(kArReplayCalls) / sizeof(kArReplayCalls[0]));

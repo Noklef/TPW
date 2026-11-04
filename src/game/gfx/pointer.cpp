@@ -42,6 +42,16 @@ u8 flipping(void *d) { return vcall<u8>(d, 0x10); }
 void AsyncPointer_SetEnv(const AsyncPointerEnv *e) { g_env = e ? e : &kGameEnv; }
 const AsyncPointerEnv *AsyncPointer_GetEnv() { return g_env; }
 
+namespace {
+AddrCalls g_calls;
+struct ScreenEvent {   // (what the event queue is posted: the byte's upper bytes and the rest for kind 6 stale, as in the original)
+    u32 kind, a, b;
+    u8 c, pad[3];
+    u32 d;
+};
+}
+void AsyncPointer_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
+
 extern "C" {
 
 AsyncPointer *__fastcall AsyncPointer_Ctor(AsyncPointer *p, void *, void *display) {
@@ -211,6 +221,44 @@ void __fastcall PointerFrames_Hide(u8 *self) {
     s32 out = 0;
     AsyncPointer_SetImage(*at<AsyncPointer **>(0x007b4b84), nullptr, &out, nullptr, &rect, hot);
     self[4] = 0;
+}
+
+u32 __cdecl AsyncPointer_Make() {
+    u32 &pointer = *reinterpret_cast<u32 *>((uintptr_t)0x007b4b84);
+    const u32 &height = *reinterpret_cast<const u32 *>((uintptr_t)0x007a1968), &width = *reinterpret_cast<const u32 *>((uintptr_t)0x007a1930);
+    ScreenEvent event;
+    event.kind = 6;
+    event.a = 0;
+    g_calls.Th(0x005fbf80, 0x00fa7cb0u, 0u, &event);
+    event.kind = 7;
+    event.a = height;
+    event.b = width;
+    event.c = 0x10;
+    event.d = 0;
+    g_calls.Th(0x005fbf80, 0x00fa7cb0u, 0u, &event);
+    g_calls.Th(0x0047e460, 0x007b4ac0u);
+    s32 clip[4] = {0, 0, (s32)height - 1, (s32)width - 1};
+    g_calls.Cd(0x005f5650, clip);
+    pointer = 0;
+    const u32 block = g_calls.Cd(0x0067acc0, 0x24u);
+    pointer = block ? g_calls.Th(0x005fb8e0, block, 0x007b4ac0u) : 0;
+    if (!pointer) return 0;
+    const u32 position = g_calls.Cd(0x005f5640);
+    u8 reply[8];
+    g_calls.Th(0x005fbbd0, pointer, reply, position);
+    const u8 *card = *reinterpret_cast<const u8 **>((uintptr_t)0x00879a24);
+    const bool paused = (*reinterpret_cast<const u32 *>(card + 0x428) == 0x121a && *reinterpret_cast<const u32 *>(card + 0x42c) < 5) || *reinterpret_cast<const u32 *>((uintptr_t)0x0078826c);
+    g_calls.Th(0x005fbc80, pointer, reply, paused ? 1u : 0u);
+    reply[0] = 0xff;
+    reply[1] = 0;
+    reply[2] = 0xff;
+    reply[3] = 0xff;
+    reply[4] = (u8)g_calls.Cd(0x005f73a0, 0x00fa71f8u, 0xffu, 0u, 0xffu);
+    g_calls.Th(0x005fb7b0, *reinterpret_cast<u32 *>((uintptr_t)pointer + 0x1c), reply);
+    *reinterpret_cast<u32 *>((uintptr_t)0x008bd510) = 0x0047e9b0;
+    *reinterpret_cast<u32 *>((uintptr_t)0x008bd514) = 0x0047e9c0;
+    *reinterpret_cast<u32 *>((uintptr_t)0x007b4b88) = 1;
+    return 1;
 }
 
 u32 __fastcall PointerFrames_LoadFile(u8 *self, void *, const char *name) {
