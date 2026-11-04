@@ -706,6 +706,7 @@
 #include "../game/ui/signnamedialog.h"
 #include "../game/ui/signrect.h"
 #include "../game/ui/staffrename.h"
+#include "../game/ui/syscursorshow.h"
 #include "../game/ui/textbuttonwindow.h"
 #include "../game/ui/textpanel7cc18c.h"
 #include "../game/ui/textrecordpart.h"
@@ -8436,6 +8437,10 @@ const Hook kHooks[] = {
     {"Window_CallAreaSlot6",      0x0065d717, (void *)&Window_CallAreaSlot6, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window_SetName",            0x0065d40c, (void *)&Window_SetName, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"Window_GetName",            0x0065d521, (void *)&Window_GetName, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"SysCursor_SetHandle",       0x0066197a, (void *)&SysCursor_SetHandle, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"SysCursor_Show",            0x006619a6, (void *)&SysCursor_Show, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"SysCursor_Hide",            0x006619c0, (void *)&SysCursor_Hide, {0x55, 0x8b, 0xec, 0x51, 0x89}},
+    {"SysCursor_Apply",           0x006619da, (void *)&SysCursor_Apply, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
