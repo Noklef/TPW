@@ -1,6 +1,6 @@
 # The game's MSVC6 std::string members (0x45b340-0x45b998) and their users (the online
 # servers' settings 0x45aee0 their constructor 0x5d2a80 and destructor 0x45ad90) against the originals; the copy constructor 0x4a9420 and its other form 0x4c4a80 from x or s itself (npos 0x6fe5ac now and then small);
-# erase 0x4f1400 at 0, the end or within, of npos, 0, the rest or any count.
+# erase 0x4f1400 at 0, the end or within, of npos, 0, the rest or any count; append (x, pos, n) 0x5c8c30; compare (pos, n, chars, count) 0x5d1560.
 # usage: stdstring.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=name,name to pick)
 import os
 import sys
@@ -8,7 +8,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import Bench, Call, HEAP, RAM, heap, put  # noqa: E402
 
-B = Bench([(0x45b340, 0x45b9a0), (0x45aee0, 0x45b1e4), (0x47b1c0, 0x47b2f6), (0x4a9420, 0x4a953c), (0x5d2a80, 0x5d2d0f), (0x45ad90, 0x45aedc), (0x4f1340, 0x4f1510), (0x4c4a80, 0x4c4ba8)])
+B = Bench([(0x5c8c30, 0x5c8d12), (0x5d1560, 0x5d15c9), (0x45b340, 0x45b9a0), (0x45aee0, 0x45b1e4), (0x47b1c0, 0x47b2f6), (0x4a9420, 0x4a953c), (0x5d2a80, 0x5d2d0f), (0x45ad90, 0x45aedc), (0x4f1340, 0x4f1510), (0x4c4a80, 0x4c4ba8)])
 STRS, BLOCKS, CHARS = RAM, RAM + 0x1000, RAM + 0x2000
 S, X = STRS, STRS + 0x10  # the string under test and a second one
 SLOT = 0x80  # a block per string in BLOCKS: count byte, then up to 0x7e characters + NUL
@@ -145,6 +145,25 @@ def case(r):
         return Call(0x4f1340, [S, CHARS + r.randrange(0x40), count], regions, conv='t', ret='a')
     if op == 'Split':
         return Call(0x45b8d0, [S], regions, conv='t')
+    if op == 'CompareSub':   # (the text the same as the part or with a byte changed; not past the length: _Xran ends the case)
+        pos = r.choice([0, s[1], r.randrange(s[1] + 1)])
+        count = r.choice([0xffffffff, r.randrange(50), 0, s[1] - pos, max(0, s[1] - pos - 1)])
+        other = r.choice([0, s[1] - pos, max(0, s[1] - pos - 1), s[1] - pos + 1, r.randrange(0x40)])
+        chars = bytearray(regions[CHARS])
+        if s[0] and s[1] > pos:
+            chars[:s[1] - pos] = blocks[s[0] - BLOCKS + pos:s[0] - BLOCKS + s[1]]
+            if r.random() < 0.4:
+                chars[r.randrange(s[1] - pos)] ^= r.choice([1, 0x80])
+        regions[CHARS] = chars
+        return Call(0x5d1560, [S, pos, count, CHARS, other], regions, conv='t', ret='a')
+    if op == 'AppendSub':   # (from x, or from s itself; x's text null with a length reads the empty text 0x6fe5b0)
+        src, (_, n, _) = r.choice([(X, x), (X, x), (S, s)])
+        pos = r.choice([0, n, r.randrange(n + 1)])
+        count = r.choice([0xffffffff, r.randrange(50), 0, n - pos, max(0, n - pos - 1)])
+        if src == X and not together and n and r.random() < 0.1:
+            put(strs, 0x14, 'I', 0)
+            regions[0x6fe5b0] = r.bytes(0x100)
+        return Call(0x5c8c30, [S, src, pos, count], regions, conv='t', ret='a')
     # AssignSub: from x, or from s itself
     src, (_, n, _) = r.choice([(X, x), (X, x), (S, s)])
     pos = r.choice([0, n, r.randrange(n + 1)])
@@ -152,7 +171,7 @@ def case(r):
     return Call(0x45b380, [S, src, pos, count], regions, conv='t', ret='a')
 
 
-KINDS = ['Dtor', 'Tidy', 'AssignChars', 'Eos', 'Grow', 'MaxSize', 'Copy', 'Split', 'AssignSub', 'AssignSub', 'Online', 'Fill', 'Freeze', 'CopyCtor', 'CopyInto', 'ServersCtor', 'ServersDtor', 'Erase', 'Append', 'Append']
+KINDS = ['Dtor', 'Tidy', 'AssignChars', 'Eos', 'Grow', 'MaxSize', 'Copy', 'Split', 'AssignSub', 'AssignSub', 'Online', 'Fill', 'Freeze', 'CopyCtor', 'CopyInto', 'ServersCtor', 'ServersDtor', 'Erase', 'Append', 'Append', 'CompareSub', 'AppendSub', 'AppendSub']
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 if __name__ == '__main__':

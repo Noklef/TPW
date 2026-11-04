@@ -225,4 +225,32 @@ void __fastcall StdString_Freeze(StdString *s, void *) {
     }
     if (s->ptr) refs(s->ptr) = kFrozen;
 }
+
+StdString *__fastcall StdString_AppendSub(StdString *s, void *, const StdString *x, u32 pos, u32 n) {
+    if (x->len < pos) g_env->xran();
+    const u32 rest = x->len - pos;
+    if (n > rest) n = rest;
+    if (*reinterpret_cast<u32 *>((uintptr_t)0x006fe5ac) - s->len <= n) g_env->xlen();
+    if (!n) return s;
+    const u32 total = s->len + n;
+    if (StdString_Grow(s, nullptr, total, 0)) {   // (inlined)
+        std::memcpy(s->ptr + s->len, (x->ptr ? x->ptr : kNullStr) + pos, n);
+        s->len = total;
+        s->ptr[total] = 0;
+    }
+    return s;
+}
+
+s32 __fastcall StdString_CompareSub(const StdString *s, void *, u32 pos, u32 n, const char *chars, u32 count) {
+    if (s->len < pos) g_env->xran();
+    const u32 rest = s->len - pos;
+    if (n > rest) n = rest;
+    const u32 shorter = n < count ? n : count;
+    if (shorter) {
+        const int order = std::memcmp(s->ptr + pos, chars, shorter);
+        if (order) return order < 0 ? -1 : 1;
+    }
+    if (n < count) return -1;
+    return n != count;
+}
 }
