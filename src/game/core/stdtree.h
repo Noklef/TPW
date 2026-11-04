@@ -84,6 +84,10 @@ u8 **__fastcall StdTree_EraseE(u8 *tree, void *, u8 **out, u8 *node);
 u8 **__fastcall StdTree_EraseF(u8 *tree, void *, u8 **out, u8 *node);
 u8 **__fastcall StdTree_EraseG(u8 *tree, void *, u8 **out, u8 *node);
 
+// 0x5b20e0 (thiscall (node), pops 4) / 0x5b17c0 (thiscall (out, first, last), pops 12): tree F's _Erase and erase(first, last), as tree G's below.
+void __fastcall StdTree_EraseSubtreeF(u8 *tree, void *, u8 *node);
+u8 **__fastcall StdTree_EraseRangeF(u8 *tree, void *, u8 **out, u8 *first, u8 *last);
+
 // 0x5b2a60 (thiscall (node), pops 4) / 0x5b1a20 (thiscall (out, first, last), pops 12): tree G's _Erase and erase(first, last), as StdTree_EraseSubtreeH / StdTree_EraseRangeH. StdTree_DtorG: as
 // StdTree_DtorH (the game has it inline: WScanner_DestructBase; no address of its own).
 void __fastcall StdTree_EraseSubtreeG(u8 *tree, void *, u8 *node);

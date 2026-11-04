@@ -357,6 +357,8 @@ template <u32 nilAt, u32 colourAt, Value value, u32 counterAt, u32 nodeSize> str
                 at<u32>(x, 0x10) = 0;
                 at<u32>(x, 0x14) = 0;
                 at<u32>(x, 0x18) = 0;
+            } else if (value == kString) {
+                String_Dtor(reinterpret_cast<String *>(x + 0xc));
             } else if (value == kKeyString) {
                 String_Dtor(reinterpret_cast<String *>(x + 0x10));
             } else if (value == kKeyMapI) {
@@ -564,6 +566,8 @@ u8 **__fastcall StdTree_EraseD(u8 *tree, void *, u8 **out, u8 *node) { return Tr
 u8 **__fastcall StdTree_EraseE(u8 *tree, void *, u8 **out, u8 *node) { return TreeE::Erase(tree, out, node); }
 u8 **__fastcall StdTree_EraseF(u8 *tree, void *, u8 **out, u8 *node) { return TreeF::Erase(tree, out, node); }
 u8 **__fastcall StdTree_EraseG(u8 *tree, void *, u8 **out, u8 *node) { return TreeG::Erase(tree, out, node); }
+void __fastcall StdTree_EraseSubtreeF(u8 *, void *, u8 *node) { TreeF::EraseSubtree(node); }
+u8 **__fastcall StdTree_EraseRangeF(u8 *tree, void *, u8 **out, u8 *first, u8 *last) { return TreeF::EraseRange(tree, out, first, last); }
 void __fastcall StdTree_EraseSubtreeG(u8 *, void *, u8 *node) { TreeG::EraseSubtree(node); }
 u8 **__fastcall StdTree_EraseRangeG(u8 *tree, void *, u8 **out, u8 *first, u8 *last) { return TreeG::EraseRange(tree, out, first, last); }
 void __fastcall StdTree_DtorG(u8 *tree) { TreeG::Dtor(tree); }
