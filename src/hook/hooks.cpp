@@ -531,6 +531,7 @@
 #include "../game/render/ddopen.h"
 #include "../game/render/depthsort.h"
 #include "../game/render/device.h"
+#include "../game/render/devicecreate.h"
 #include "../game/render/enginedebug.h"
 #include "../game/render/engineerrors.h"
 #include "../game/render/enginestart.h"
@@ -7211,6 +7212,7 @@ const Hook kHooks[] = {
     {"UvProbe_Down",              0x00583e90, (void *)&UvProbe_Down, {0x6a, 0xff, 0x68, 0xae, 0xf3}},
     {"UvProbe_Across",            0x00584310, (void *)&UvProbe_Across, {0x6a, 0xff, 0x68, 0xce, 0xf3}},
     {"UvProbe_Detect",            0x00583cc0, (void *)&UvProbe_Detect, {0x81, 0xec, 0xf8, 0x01, 0x00}},
+    {"SoftSetup_Create",          0x00573960, (void *)&SoftSetup_Create, {0xa1, 0xac, 0x9d, 0x87, 0x00}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
