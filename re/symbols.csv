@@ -5904,6 +5904,22 @@ address,name,kind,confidence,notes
 0x004f1b40,CtypeW_NarrowRange,function,low,reimplemented (src/game/core/iosbase); ctype<wchar_t>::do_narrow over a range
 0x00692650,Ios_InitDtor,function,low,reimplemented (src/game/core/iosbase); ios_base::Init's destructor (shape; unconfirmed): the last one flushes three streams
 0x006930e0,Ios_WinitDtor,function,low,reimplemented (src/game/core/iosbase); the wide side's destructor: the same over its counter and three streams
+0x00691a40,LengthError_Copy,function,low,reimplemented (src/game/core/iosbase); length_error's copy constructor
+0x006936d0,Failure_Copy,function,low,reimplemented (src/game/core/iosbase); ios_base::failure's copy constructor
+0x006934c0,Error709a44_Copy,function,low,reimplemented (src/game/core/iosbase); the copy constructor of the error of vtable 0x709a44
+0x00691a20,LengthError_Raise,function,low,reimplemented (src/game/core/iosbase); length_error's _Doraise
+0x006936b0,Failure_Raise,function,low,reimplemented (src/game/core/iosbase); ios_base::failure's _Doraise
+0x00693620,Error709a44_Raise,function,low,reimplemented (src/game/core/iosbase); the _Doraise of the error of vtable 0x709a44
+0x00693660,Error709a44_Dtor,function,low,reimplemented (src/game/core/iosbase); the destructor of the error of vtable 0x709a44
+0x00693640,Error709a44_DeletingDtor,function,low,reimplemented (src/game/core/iosbase); its deleting destructor
+0x00692570,Streambuf_Ctor,function,low,reimplemented (src/game/core/iosbase); basic_streambuf<char>'s constructor
+0x00693000,StreambufW_Ctor,function,low,reimplemented (src/game/core/iosbase); basic_streambuf<wchar_t>'s constructor
+0x00692520,Ios_Init,function,low,reimplemented (src/game/core/iosbase); basic_ios<char>::init
+0x00692fa0,IosW_Init,function,low,reimplemented (src/game/core/iosbase); basic_ios<wchar_t>::init
+0x00691f70,Istream_CtorUninit,function,low,reimplemented (src/game/core/iosbase); basic_istream<char>'s uninitialized constructor
+0x00692040,Ostream_CtorUninit,function,low,reimplemented (src/game/core/iosbase); basic_ostream<char>'s uninitialized constructor
+0x00692a40,IstreamW_CtorUninit,function,low,reimplemented (src/game/core/iosbase); basic_istream<wchar_t>'s uninitialized constructor
+0x00692b10,OstreamW_CtorUninit,function,low,reimplemented (src/game/core/iosbase); basic_ostream<wchar_t>'s uninitialized constructor
 0x006d2110,SoundSource711920_Open,function,low,reimplemented (src/game/core/qsoundmixer); The QSound session opened on the source's config
 0x006d2220,SoundSource711920_SetOptions,function,low,reimplemented (src/game/core/qsoundmixer); The library's options from the flags
 0x006d2260,SoundSource711920_GetBuffer,function,low,reimplemented (src/game/core/qsoundmixer); The channel's DirectSound buffer

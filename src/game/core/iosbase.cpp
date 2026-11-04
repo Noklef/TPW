@@ -106,6 +106,97 @@ void __fastcall IosBase_Clear(u8 *self, void *, u32 state, u32 reraise) {
     throw_error(reinterpret_cast<const char *>((uintptr_t)text), 0x007099fc, 0x00720720);
 }
 
+static u32 *error_copy(u32 *self, const u32 *from, u32 vtable) {
+    CRT_exception_Copy(self, nullptr, from);
+    StdString_CopyCtor(reinterpret_cast<StdString *>(self + 3), nullptr, reinterpret_cast<const StdString *>(from + 3));
+    self[0] = vtable;
+    return self;
+}
+
+static void error_raise(const u32 *from, u32 vtable, u32 info) {
+    u32 copy[7];
+    error_copy(copy, from, vtable);
+    g_env->cxxThrow(copy, reinterpret_cast<const void *>((uintptr_t)info));
+}
+
+u32 *__fastcall LengthError_Copy(u32 *self, void *, const u32 *from) { return error_copy(self, from, 0x00709884); }
+u32 *__fastcall Failure_Copy(u32 *self, void *, const u32 *from) { return error_copy(self, from, 0x007099fc); }
+u32 *__fastcall Error709a44_Copy(u32 *self, void *, const u32 *from) { return error_copy(self, from, 0x00709a44); }
+
+void __fastcall LengthError_Raise(const u32 *from) { error_raise(from, 0x00709884, 0x00720468); }
+void __fastcall Failure_Raise(const u32 *from) { error_raise(from, 0x007099fc, 0x00720720); }
+void __fastcall Error709a44_Raise(const u32 *from) { error_raise(from, 0x00709a44, 0x00720798); }
+
+void __fastcall Error709a44_Dtor(u32 *self) {
+    self[0] = 0x00709a44;
+    StdString_Tidy(reinterpret_cast<StdString *>(self + 3), nullptr, 1);
+    CRT_exception_Dtor(self);
+}
+
+u32 *__fastcall Error709a44_DeletingDtor(u32 *self, void *, u32 flags) {
+    Error709a44_Dtor(self);
+    if (flags & 1) g_env->memFree(self);
+    return self;
+}
+
+static u8 *streambuf_ctor(u8 *self, u32 vtable) {
+    LocaleRef_Ctor(reinterpret_cast<u32 *>(self + 0x34));
+    at<u32>(self, 0) = vtable;
+    at<u8 *>(self, 0xc) = self + 4;
+    at<u8 *>(self, 0x10) = self + 8;
+    at<u8 *>(self, 0x1c) = self + 0x14;
+    at<u8 *>(self, 0x20) = self + 0x18;
+    at<u8 *>(self, 0x2c) = self + 0x24;
+    at<u8 *>(self, 0x30) = self + 0x28;
+    at<u32>(self, 8) = 0;
+    at<u32>(self, 0x18) = 0;
+    at<u32>(self, 0x28) = 0;
+    at<u32>(self, 4) = 0;
+    at<u32>(self, 0x14) = 0;
+    at<u32>(self, 0x24) = 0;
+    return self;
+}
+
+u8 *__fastcall Streambuf_Ctor(u8 *self) { return streambuf_ctor(self, 0x00709914); }
+u8 *__fastcall StreambufW_Ctor(u8 *self) { return streambuf_ctor(self, 0x007099a4); }
+
+static void ios_init_rest(u8 *self, u32 isstd) {
+    IosBase_Init(self);
+    if (!at<u32>(self, 0x28)) IosBase_Clear(self, nullptr, at<u32>(self, 4) | 4, 0);
+    if (static_cast<u8>(isstd)) IosBase_Addstd(self);
+}
+
+void __fastcall Ios_Init(u8 *self, void *, void *buffer, u32 isstd) {
+    at<void *>(self, 0x28) = buffer;
+    at<u32>(self, 0x2c) = 0;
+    at<u8>(self, 0x30) = 0x20;
+    ios_init_rest(self, isstd);
+}
+
+void __fastcall IosW_Init(u8 *self, void *, void *buffer, u32 isstd) {
+    at<void *>(self, 0x28) = buffer;
+    at<u32>(self, 0x2c) = 0;
+    at<u16>(self, 0x30) = static_cast<u16>(CRT_btowc(0x20));
+    ios_init_rest(self, isstd);
+}
+
+// (vbtable, the slot of the zeroed field, the slot of the buffer's vtable, its value, the ios's vtable)
+static u8 *stream_uninit(u8 *self, u32 derived, u32 vbtable, u32 zero_at, u32 slot_at, u32 slot, u32 ios_vtable) {
+    if (derived) {
+        at<u32>(self, 0) = vbtable;
+        at<u32>(self, zero_at) = 0;
+        at<u32>(self, slot_at) = slot;
+    }
+    set_stream_vtable(self, ios_vtable);
+    IosBase_Addstd(self + at<u32>(at<u8 *>(self, 0), 4));
+    return self;
+}
+
+u8 *__fastcall Istream_CtorUninit(u8 *self, void *, u32, u32 derived) { return stream_uninit(self, derived, 0x00702988, 0x2c, 8, 0x00709954, 0x0070994c); }
+u8 *__fastcall Ostream_CtorUninit(u8 *self, void *, u32, u32 derived) { return stream_uninit(self, derived, 0x00702980, 0x28, 4, 0x00709954, 0x0070995c); }
+u8 *__fastcall IstreamW_CtorUninit(u8 *self, void *, u32, u32 derived) { return stream_uninit(self, derived, 0x00700650, 0x2c, 8, 0x007099e4, 0x007099dc); }
+u8 *__fastcall OstreamW_CtorUninit(u8 *self, void *, u32, u32 derived) { return stream_uninit(self, derived, 0x00700648, 0x28, 4, 0x007099e4, 0x007099ec); }
+
 static void flush_streams(u32 counter, u32 a, u32 b, u32 c) {
     u32 lock;
     g_env->lockit(&lock);
