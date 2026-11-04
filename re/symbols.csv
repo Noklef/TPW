@@ -6313,6 +6313,7 @@ address,name,kind,confidence,notes
 0x00575ad0,TexManager_ReleaseTexture,function,low,"reimplemented (src/game/gfx/texman); thiscall (textures): the slot holding the array found from the last, its users decremented; at 0 the array released and the last slot moved over it, 1; else 0 (name unconfirmed)"
 0x005755f0,TexManager_Load,function,low,"reimplemented (src/game/gfx/texman); thiscall (path; pops 4): levels + 1 textures built (by the load flags and the device kind), the file read into them (TexFile_Load), their format from what the read found"
 0x00575870,TexManager_Acquire,function,low,"reimplemented (src/game/gfx/texman); thiscall (folder, name; pops 8): the slot with that folder and name gets a user more, else the textures loaded from [0x786de4] + folder + name into a new slot, else the fallback slot's"
+0x00574a20,TexManager_Create,function,low,reimplemented (src/game/gfx/texman); cdecl: the texture manager at [0x87a268] made with the default texture in its first slot; 0 with one there or no memory
 0x00590cb0,Texture_UpdateWrapMask,function,high,"reimplemented (src/game/gfx/texture); thiscall (a texture): +0x44 = (height - 1) << 8 | (width - 1) when both (s16 +0x14 / +0x16) are powers of two, else -1"
 0x00590cf0,Texture_Level,function,high,"reimplemented (src/game/gfx/texture); thiscall: the flags' low 3 bits when 0x30 are set, else by the width (above 128 0 ... at most 8: 5)"
 0x00590f80,Texture_ClearCacheFlags,function,high,"reimplemented (src/game/gfx/texture); thiscall: flags (+8) 0x1000, 0x2000 and 0x4000 cleared"
@@ -6965,6 +6966,7 @@ address,name,kind,confidence,notes
 0x0057b610,Model_AddTree,function,low,"reimplemented (src/game/render/batch); thiscall (self passed on; model, matrix, batch, vertices), pops 16: the model's parts along their links, each one's matrix, triangles and children; 0 when the triangles fail"
 0x00569f60,Rasteriser_ChooseSpan,function,high,reimplemented (src/game/render/rasteriser); the span routine chosen by the render flags
 0x00569f20,Rasteriser_ClearMmx,function,high,"reimplemented (src/game/render/rasteriser); EMMS, returns 1 (name unconfirmed)"
+0x0056a450,Rasteriser_SpeedTest,function,low,"reimplemented (src/game/render/rasteriser); cdecl, double in st0: the screen drawn as two triangles 50 times, pixels over ticks"
 0x0053c8d0,DynFaces_AddSquare,function,high,reimplemented (src/game/render/dynfaces); queues a square dynamic face
 0x0053c9c0,DynFaces_AddPoly,function,high,reimplemented (src/game/render/dynfaces); queues a four corner polygon dynamic face
 0x0053c1f0,DynFaces_SortTags,function,high,reimplemented (src/game/render/dynfaces); Sorts the dynamic faces' tag words by tag: quicksort with insertion runs under 7 (name unconfirmed)
