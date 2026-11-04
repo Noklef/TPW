@@ -642,6 +642,31 @@ void SpriteFrame_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table,
 
 extern "C" {
 
+u32 __fastcall SpriteImage_LoadFile(u8 *image, void *, const char *name) {
+    u32 width = 0, height = 0;
+    const u32 pixels = g_calls.Cd(0x00574bd0, name, &width, &height, 0u, 0u, 0u);   // TexFile_Load
+    if (!pixels) return 0;
+    s32 length = 0;
+    while (name[length]) ++length;
+    const char last = name[length - 1];   // (an empty name: the byte before it)
+    u32 palette = 0;
+    if (last == 'B' || last == 'b') palette = g_calls.Cd(0x00574bd0, name, &width, &height, 1u, 0u, 0u);
+    if (!g_calls.Th(0x00588410, (u32)(uintptr_t)image, pixels, palette, 0u, width, height, 0u, 0u)) {   // SpriteImage_SetTexture
+        g_calls.Cd(0x00579b80, palette);   // TrackedGlobal_Free
+        g_calls.Cd(0x00579b80, pixels);
+    }
+    u32 &flags = at<u32>(at<u8 *>(image, 0), 8);
+    flags = (flags & ~0x100u) | 0x200u;
+    at<u16>(image, 0xc) = (u16)width;
+    at<u16>(image, 0x10) = (u16)width;
+    at<u16>(image, 0xe) = (u16)height;
+    at<u16>(image, 0x12) = (u16)height;
+    at<u16>(image, 0x14) = (u16)-((s32)width / 2);
+    at<u16>(image, 0x16) = (u16)-((s32)height / 2);
+    SetAspect(image);
+    return 1;
+}
+
 u32 __fastcall SpriteFrame_Show(u8 *frame) {
     const u32 flags = at<u32>(frame, 0x10);
     if (flags & 1) {

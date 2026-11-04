@@ -29,6 +29,12 @@ u32 __fastcall SpriteImage_AllocPixels(u8 *image, void *, u32 width, u32 height)
 u32 __fastcall SpriteImage_SetTexture(u8 *image, void *, u32 pixels, u32 palette, u32 source, u32 width, u32 height, u8 *texture,
                                       u32 flags);
 
+// 0x588820 (thiscall (name), pops 4; called at 0x56b3e2; name invented, unconfirmed): the image file read for the sprite image (TexFile_Load, flags 0): not there, 0. A name ending in B or
+// b: read again with flags 1 for the palette (its answer may be 0, its sizes replace the first). SpriteImage_SetTexture(pixels, palette, 0, width, height, 0, 0); when that fails both
+// blocks freed (TrackedGlobal_Free; palette first), and the rest goes on. The texture at +0: flags +8 bit 8 cleared, bit 9 set. +0xc, +0x10 = the width, +0xe, +0x12 the height, +0x14,
+// +0x16 = minus half of each, whole (a 32-bit signed half, towards 0); +8 = the width over the height. Returns 1.
+u32 __fastcall SpriteImage_LoadFile(u8 *image, void *, const char *name);
+
 // 0x588510 (thiscall (stream, texture), pops 8; called at 0x5880c3; name unconfirmed): a WCT image read for the sprite image: a new
 // one (GameHeap_Alloc(0x30), Obj_CtorVirtual564ba0 most derived; not got: the error (2, 0xb0754000) pushed, 0) read from the stream
 // (WctImage_Read, its result not looked at); the words of the header it leaves at 0x879a3c, 0x879a3e, 0x879a40, 0x879a42, 0x879a44 and
