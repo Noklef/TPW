@@ -348,7 +348,7 @@ address,name,kind,confidence,notes
 0x004e2740,Obj_FindControls,function,high,reimplemented (src/game/world/objectdefs); the object control record of an object in the game's table
 0x004ca740,ObjectDefs_PercentWithControls,function,high,reimplemented (src/game/world/objectdefs); the percentage of counted object definitions with controls
 0x00412c20,ObjectDef_Ctor,function,high,reimplemented (src/game/world/objectdefs); thiscall: balance file at +4 (vtable 0x6fd8a8) laid out by BalanceFile_Init; runtime fields 0x494..0x500 zeroed; returns this
-0x00413c10,ObjectDefs_Load,function,medium,"allocates an ObjectDef (max 0x14a), copies the .sam path to +0x28c and parses it"
+0x00413c10,ObjectDefs_Load,function,medium,"reimplemented (src/game/world/objectdefs); thiscall (entry, opener, source), pops 0xc: a new definition from its folder's .sam files, texts and ride resource; 1 or 0"
 0x00785040,gBalanceLevel,data,high,"BalanceLevel: Standard.sam values (static instance, ctor 0x402ae0)"
 0x00785828,gBalanceOnline,data,high,"BalanceOnline: Online.sam (ctor 0x402b50)"
 0x00785868,gBalanceGraphics,data,high,"BalanceGraphics: low/med/high.sam (ctor 0x402bc0)"

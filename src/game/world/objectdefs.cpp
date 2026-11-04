@@ -661,7 +661,8 @@ u32 loadDefinition(u8 *defs, u8 *entry, u8 *opener, u8 *source, String *path, St
         g_loadCalls.Th(0x00413600, address(def), streamAt);
     }
     StreamBase_Close(stream);
-    g_loadCalls.Th(0x00412fb0, address(defs), at<u32>(def, 0x10), address(def + 0x410), 0x40u);
+    // (The id's slot: pushed as the out pointer, then its low word set, Fn_409cd0.)
+    g_loadCalls.Th(0x00412fb0, address(defs), (address(def + 0x410) & 0xffff0000u) | at<u16>(def, 0x10), address(def + 0x410), 0x40u);
     const u32 folder = address(path->data);
     const u32 sourceName = at<u32>(source, 0xc);
     if (at<u32>(def, 0x38)) {
