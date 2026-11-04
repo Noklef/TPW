@@ -148,6 +148,7 @@
 #include "../game/gfx/mmxblit.h"
 #include "../game/gfx/moviechunks.h"
 #include "../game/gfx/moviecontrol.h"
+#include "../game/gfx/moviefile.h"
 #include "../game/gfx/movieframe.h"
 #include "../game/gfx/movieidct.h"
 #include "../game/gfx/moviepixels.h"
@@ -6563,6 +6564,9 @@ const Hook kHooks[] = {
     {"MovieControl_Stop",         0x0066f580, (void *)&MovieControl_Stop, {0x8b, 0x4c, 0x24, 0x04, 0x56}},
     {"MovieControl_StartThread",  0x006727c0, (void *)&MovieControl_StartThread, {0x56, 0x8b, 0xf1, 0x6a, 0x01}},
     {"MovieControl_StopThread",   0x00672800, (void *)&MovieControl_StopThread, {0x8b, 0x81, 0xc4, 0x03, 0x00}},
+    {"MovieFile_Open",            0x0066e080, (void *)&MovieFile_Open, {0x53, 0x56, 0x8b, 0xf2, 0x33}},
+    {"MovieFile_CountHeaders",    0x0066e250, (void *)&MovieFile_CountHeaders, {0x83, 0xec, 0x0c, 0x8d, 0x54}},
+    {"MovieFile_Close",           0x0066ef50, (void *)&MovieFile_Close, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

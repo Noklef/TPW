@@ -6387,6 +6387,9 @@ address,name,kind,confidence,notes
 0x0066f580,MovieControl_Stop,function,low,"reimplemented (src/game/gfx/moviecontrol); the movie's state 5 and the wait: name invented, unconfirmed"
 0x006727c0,MovieControl_StartThread,function,low,"reimplemented (src/game/gfx/moviecontrol); the movie sound's thread started: name invented, unconfirmed"
 0x00672800,MovieControl_StopThread,function,low,"reimplemented (src/game/gfx/moviecontrol); the movie sound's thread stopped: name invented, unconfirmed"
+0x0066e080,MovieFile_Open,function,low,"reimplemented (src/game/gfx/moviefile); the movie's file opened and its first chunks read: name invented, unconfirmed"
+0x0066e250,MovieFile_CountHeaders,function,low,"reimplemented (src/game/gfx/moviefile); the movie's headers stepped over and counted: name invented, unconfirmed"
+0x0066ef50,MovieFile_Close,function,low,"reimplemented (src/game/gfx/moviefile); the movie's file closed and its rings freed: name invented, unconfirmed"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"
