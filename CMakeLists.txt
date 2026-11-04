@@ -434,6 +434,7 @@ add_library(tpw_game STATIC
     src/game/coaster/coastersload.cpp
     src/game/coaster/coastersupdate.cpp
     src/game/coaster/startcars.cpp
+    src/game/coaster/rideanimate.cpp
     src/game/terrain/terrain_blend.cpp
     src/game/terrain/land.cpp
     src/game/terrain/procedural.cpp
