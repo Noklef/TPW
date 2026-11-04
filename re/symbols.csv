@@ -7082,6 +7082,14 @@ address,name,kind,confidence,notes
 0x00581db0,ModelList_Draw,function,low,"reimplemented (src/game/render/modellist); thiscall; name unconfirmed; a list of models' material groups put in a tree by texture key, sorted by driver flags and texture, then drawn in batches"
 0x0058ac90,PointSprites_Draw,function,low,reimplemented (src/game/render/pointsprites); thiscall; name unconfirmed; points transformed and each in front of the camera drawn as a triangle in one batch
 0x00572dd0,D3dSetup_CreateViewport,function,low,"reimplemented (src/game/render/d3dviewport); thiscall: the viewport made, added, set and made current"
+0x00573080,D3dSetup_Open,function,low,"reimplemented (src/game/render/d3dsetup); thiscall (flags), pops 4: the Direct3D, depth buffer, device, viewport, formats and material made; 0 with all released"
+0x005736a0,D3dSetup_Close,function,low,reimplemented (src/game/render/d3dsetup); thiscall on the virtual base: all released; 1
+0x00573720,D3dSetup_Reopen,function,low,reimplemented (src/game/render/d3dsetup); thiscall on the virtual base: D3dSetup_Open with its depth flag
+0x00573740,D3dSetup_Clear,function,low,reimplemented (src/game/render/d3dsetup); thiscall on the virtual base: the view cleared
+0x00572d50,D3dSetup_Teardown,function,low,reimplemented (src/game/render/d3dsetup); the global setup object closed and freed
+0x00572f70,D3dSetup_PickFormat,function,low,"reimplemented (src/game/render/d3dsetup); stdcall (unused, format, unused): the format kept for each entry of the table its masks fit"
+0x00573060,D3dSetup_OnFormat,function,low,"reimplemented (src/game/render/d3dsetup); stdcall (format, context): the texture format callback"
+0x00573660,D3dSetup_OnZFormat,function,low,"reimplemented (src/game/render/d3dsetup); stdcall (format, wanted): the depth format callback"
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"

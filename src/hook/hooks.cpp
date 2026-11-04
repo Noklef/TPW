@@ -522,6 +522,7 @@
 #include "../game/render/heightgrid.h"
 #include "../game/render/vertexfog.h"
 #include "../game/render/d3dprobe.h"
+#include "../game/render/d3dsetup.h"
 #include "../game/render/d3dviewport.h"
 #include "../game/render/ddopen.h"
 #include "../game/render/depthsort.h"
@@ -7142,6 +7143,14 @@ const Hook kHooks[] = {
     {"ModelList_Draw",            0x00581db0, (void *)&ModelList_Draw, {0xb8, 0x20, 0x40, 0x0b, 0x00}},
     {"PointSprites_Draw",         0x0058ac90, (void *)&PointSprites_Draw, {0x81, 0xec, 0x3c, 0x03, 0x00}},
     {"D3dSetup_CreateViewport",   0x00572dd0, (void *)&D3dSetup_CreateViewport, {0x83, 0xec, 0x2c, 0x53, 0x8b}},
+    {"D3dSetup_Open",             0x00573080, (void *)&D3dSetup_Open, {0xa1, 0x24, 0x9a, 0x87, 0x00}},
+    {"D3dSetup_Close",            0x005736a0, (void *)&D3dSetup_Close, {0x56, 0x8b, 0xf1, 0x8b, 0x0d}},
+    {"D3dSetup_Reopen",           0x00573720, (void *)&D3dSetup_Reopen, {0x8b, 0x41, 0xf8, 0x81, 0xc1}},
+    {"D3dSetup_Clear",            0x00573740, (void *)&D3dSetup_Clear, {0x83, 0xec, 0x10, 0x53, 0x55}},
+    {"D3dSetup_Teardown",         0x00572d50, (void *)&D3dSetup_Teardown, {0x56, 0x8b, 0x35, 0xa8, 0x9d}},
+    {"D3dSetup_PickFormat",       0x00572f70, (void *)&D3dSetup_PickFormat, {0x83, 0xec, 0x6c, 0x53, 0x55}},
+    {"D3dSetup_OnFormat",         0x00573060, (void *)&D3dSetup_OnFormat, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"D3dSetup_OnZFormat",        0x00573660, (void *)&D3dSetup_OnZFormat, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
