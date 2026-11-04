@@ -367,6 +367,7 @@
 #include "../../src/game/world/mappreview.h"
 #include "../../src/game/world/personscripts.h"
 #include "../../src/game/core/funnytime.h"
+#include "../../src/game/core/narrowfilebuf.h"
 #include "../../src/game/core/wfilebuf.h"
 #include "../../src/game/core/wstream.h"
 #include "../../src/game/core/channelvoice.h"
@@ -1504,6 +1505,7 @@ const Dialog7cc188AddressEnv kDialog7cc188AddressEnv = {Rec{recorder(10, 1)}, Re
 const UserSlotsEnv kUserSlotsEnv = {Rec{recorder(27, 0)}};
 const BankAccountCtorEnv kBankAccountCtorEnv = {Rec{jpeg_recorder(10, 4)}};
 const LightShadeEnv kLightShadeEnv = {Rec{jpeg_recorder(10, 4)}};  // tests/fncmp/lightshade.py
+const NarrowFileBufEnv kNarrowFileBufEnv = {Rec{jpeg_recorder(18, 1)}, Rec{jpeg_recorder(23, 2)}, Rec{jpeg_recorder(24, 1)}};  // tests/fncmp/narrowfilebuf.py
 const ImageLoadEnv kImageLoadEnv = {Rec{recorder(16, 4)}, Rec{recorder(17, 1)}, Rec{recorder(18, 5)}, Rec{recorder(19, 0)}};  // tests/fncmp/imageload.py
 const Dialog7ca150ListEnv kDialog7ca150ListEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 1)}, Rec{recorder(12, 2)}, Rec{recorder(13, 5)}, Rec{recorder(14, 1)}, Rec{recorder(15, 1)}, Rec{recorder(16, 0)}, Rec{recorder(17, 0)}, Rec{recorder(18, 0)}, Rec{recorder(19, 0)}, Rec{recorder(20, 3)}};
 const Dialog7cb3f8SlotsEnv kDialog7cb3f8SlotsEnv = {Rec{jpeg_recorder(10, 0)}, Rec{recorder(11, 1)}, Rec{recorder(12, 1)}, Rec{jpeg_recorder(13, 1)}, Rec{recorder(14, 1)}};
@@ -2623,6 +2625,7 @@ int main(int argc, char **argv) {
     BankAccountCtor_SetEnv(&kBankAccountCtorEnv);
     LightShade_SetEnv(&kLightShadeEnv);
     ImageLoad_SetEnv(&kImageLoadEnv);
+    NarrowFileBuf_SetEnv(&kNarrowFileBufEnv);
     SaveDialog_SetEnv(&kSaveDialogEnv);
     SaveDialogCreate_SetEnv(&kSaveDialogCreateEnv);
     Panel7cc328Handler_SetEnv(&kPanel7cc328HandlerEnv);

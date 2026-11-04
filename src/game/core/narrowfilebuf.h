@@ -1,0 +1,23 @@
+// basic_filebuf<char>'s destructor, pbackfail and uflow, by their shape (vtable 0x7098dc; names unconfirmed): the narrow twins of core/wfilebuf's, thiscall. An int answer, -1 for eof.
+#pragma once
+
+#include "../../../re/types.h"
+
+struct NarrowFileBufEnv {
+    s32(__cdecl *fclose)(void *file);       // CRT_fclose (0x67b620)
+    s32(__cdecl *ungetc)(u32 c, u32 file);  // 0x67cbe0
+    s32(__cdecl *fgetc)(u32 file);          // 0x67cb90
+};
+void NarrowFileBuf_SetEnv(const NarrowFileBufEnv *env);
+
+extern "C" {
+// 0x5cec80 (an SEH frame, dropped; name invented, unconfirmed): vtable 0x7098dc. Byte +0x48 and a file +0x50 whose fclose answers 0: +0x48 = 0, Wstreambuf_InitPointers, +0x50 = 0, +0x40 and +0x3c = [0xfb2760], +0x38 = 0.
+// The string +0x44, when set, tidied and freed. The locale references +0x4c, then (after vtable 0x709914) +0x34, each when set lose a use, deleted (slot 0 with 1) at the last.
+void __fastcall NFileBuf_Dtor(u8 *buf);
+// 0x5cefe0 pbackfail (c), pops 4 (name invented, unconfirmed): a get area with something behind (+0x1c's pointer past +0xc's), and eof or the same char: the pointer back, the count +0x2c up; the answer c, or 0 for eof.
+// Otherwise no file or eof: eof. No conversion: ungetc (the low byte). Otherwise the string's bytes, last first, through ungetc: any failure or an empty string is eof; then the string emptied, +0x40 = +0x3c, the answer c.
+s32 __fastcall NFileBuf_PutBack(u8 *buf, void *, s32 c);
+// 0x5cf200 uflow (name invented, unconfirmed): a char in the get area taken. No file: eof. No conversion: fgetc. Otherwise +0x3c = +0x40, the string emptied, bytes from fgetc appended one at a time, each followed by the
+// conversion's slot 4 (the string as from, a local byte as to) from the state +0x40 = +0x3c: 0 answers the local; 1 reads on; 3 with a byte or more answers the string's first, with none reads on; others, or no byte, eof.
+s32 __fastcall NFileBuf_Uflow(u8 *buf);
+}

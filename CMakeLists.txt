@@ -226,6 +226,7 @@ add_library(tpw_game STATIC
     src/game/core/crttime.cpp
     src/game/core/moneypunct.cpp
     src/game/core/crtfloat.cpp
+    src/game/core/narrowfilebuf.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp

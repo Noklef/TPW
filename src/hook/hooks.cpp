@@ -229,6 +229,7 @@
 #include "../game/core/mp2pool.h"
 #include "../game/core/mp2sample.h"
 #include "../game/core/mp2synth.h"
+#include "../game/core/narrowfilebuf.h"
 #include "../game/core/narrowwriter.h"
 #include "../game/core/refcounted.h"
 #include "../game/core/parkinfo.h"
@@ -6240,6 +6241,9 @@ const Hook kHooks[] = {
     {"CRT_ld12cvt",               0x0068be90, (void *)&CRT_ld12cvt, {0x83, 0xec, 0x18, 0x8b, 0x4c}},
     {"CRT_ld12tod",               0x0068c060, (void *)&CRT_ld12tod, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"CRT_ld12tof",               0x0068c080, (void *)&CRT_ld12tof, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"NFileBuf_Dtor",             0x005cec80, (void *)&NFileBuf_Dtor, {0x6a, 0xff, 0x68, 0x43, 0x0e}},
+    {"NFileBuf_PutBack",          0x005cefe0, (void *)&NFileBuf_PutBack, {0x51, 0x8b, 0x41, 0x1c, 0x53}},
+    {"NFileBuf_Uflow",            0x005cf200, (void *)&NFileBuf_Uflow, {0x83, 0xec, 0x0c, 0x53, 0x55}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
