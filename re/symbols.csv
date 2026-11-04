@@ -1283,19 +1283,19 @@ address,name,kind,confidence,notes
 0x007030c0,StringView_vtable,data,high,"char view (Left/Right/Mid, AssignWide): two empty slots"
 0x007030f8,WStringView_vtable,data,high,"wide view (AssignNarrow): two empty slots"
 0x0067ae00,CRT_strncpy,function,high,"MSVC6 strncpy: a byte at a time to align the source, then a dword at a time (read before written)"
-0x0067b8c0,CRT_strncat,function,high,"MSVC6 strncat: dword-at-a-time copy like strncpy"
+0x0067b8c0,CRT_strncat,function,high,reimplemented (src/game/core/crt); strncat
 0x0067c250,CRT_strncmp,function,high,MSVC6 strncmp (unsigned)
-0x0067c080,CRT_strstr,function,high,"MSVC6 strstr; one-char needles go to strchr (0x67bfc6)"
-0x0067bfc0,CRT_strchr,function,high,MSVC6 strchr
+0x0067c080,CRT_strstr,function,high,reimplemented (src/game/core/crt); strstr
+0x0067bfc0,CRT_strchr,function,high,reimplemented (src/game/core/crt); strchr
 0x0067a520,CRT_atoi,function,high,MSVC6 atoi
 0x0067f330,CRT_iswctype,function,high,MSVC6 iswctype (wint_t is 16 bits; the upper half of the argument is ignored)
 0x0067c1e0,CRT_vsprintf,function,high,MSVC6 vsprintf
 0x0067acd0,CRT_wcslen,function,high,reimplemented (src/game/online/chatlists); wcslen
-0x0067bf10,CRT_wcscpy,function,high,MSVC6 wcscpy
-0x0067bed0,CRT_wcscat,function,high,MSVC6 wcscat
-0x0067b0d0,CRT_wcsncpy,function,high,MSVC6 wcsncpy
-0x0067f450,CRT_wcsncat,function,high,MSVC6 wcsncat
-0x0067f410,CRT_wcsncmp,function,high,MSVC6 wcsncmp
+0x0067bf10,CRT_wcscpy,function,high,reimplemented (src/game/core/crt); wcscpy
+0x0067bed0,CRT_wcscat,function,high,reimplemented (src/game/core/crt); wcscat
+0x0067b0d0,CRT_wcsncpy,function,high,reimplemented (src/game/core/crt); wcsncpy
+0x0067f450,CRT_wcsncat,function,high,reimplemented (src/game/core/crt); wcsncat
+0x0067f410,CRT_wcsncmp,function,high,reimplemented (src/game/core/crt); wcsncmp
 0x0067f4a0,CRT__wtoi,function,high,MSVC6 _wtoi
 0x0067f4d0,CRT_vswprintf,function,high,MSVC6 vswprintf
 0x005f5660,Mem_GlobalAlloc,function,high,"reimplemented (src/game/files/file); GlobalAlloc(GMEM_FIXED, size); 0 for size 0"
@@ -1329,7 +1329,7 @@ address,name,kind,confidence,notes
 0x00fa70d8,gPathBuffer,data,high,"char[0x108], Dir_Create / Dir_Remove resolve into it"
 0x00fa71e0,gClock,data,high,"Timer (0x18): enabled, ticksPerMs, baseMs, pad, s64 start"
 0x0067a650,CRT_sprintf,function,high,MSVC6 sprintf
-0x0067b5f0,CRT_strrchr,function,high,MSVC6 strrchr
+0x0067b5f0,CRT_strrchr,function,high,reimplemented (src/game/core/crt); strrchr
 0x0067f020,CRT__splitpath,function,high,MSVC6 _splitpath
 0x00618d20,RefObject_AddRef,function,high,reimplemented (src/game/files/handles); thiscall; InterlockedIncrement(+8)
 0x00618d30,RefObject_Release,function,high,"reimplemented (src/game/files/handles); thiscall; InterlockedDecrement(+8); at 0: vtbl+0x24, release the link (+4), deleting destructor (1)"
@@ -1542,7 +1542,28 @@ address,name,kind,confidence,notes
 0x00682460,CRT_getptd,function,high,reimplemented (src/game/core/crt); _getptd
 0x0067e050,CRT_beginthread,function,high,reimplemented (src/game/core/crt); _beginthread
 0x00686a00,CRT_errno,function,high,reimplemented (src/game/core/crt); _errno
-0x0067f1a0,CRT_toupper,function,medium,"cdecl; the CRT toupper (locale-aware, ASCII in the C locale)"
+0x0069a560,CRT_Getcvt,function,low,reimplemented (src/game/core/crt); _Getcvt
+0x00699bd0,CRT_Getctype,function,low,reimplemented (src/game/core/crt); _Getctype
+0x0069a4e0,CRT_WcrtombLocked,function,low,reimplemented (src/game/core/crt); _Wcrtomb's body
+0x0069a460,CRT_Wcrtomb,function,low,reimplemented (src/game/core/crt); _Wcrtomb
+0x00693c40,CRT_MbrtowcLocked,function,low,reimplemented (src/game/core/crt); _Mbrtowc's body
+0x00693bc0,CRT_Mbrtowc,function,low,reimplemented (src/game/core/crt); _Mbrtowc
+0x0067d7f0,CRT_strpbrk,function,low,reimplemented (src/game/core/crt); strpbrk
+0x0067d3a0,CRT_CxxThrowException,function,low,reimplemented (src/game/core/crt); _CxxThrowException
+0x00689180,CRT_strncnt,function,low,"reimplemented (src/game/core/crt); strncnt, the C library's helper of __crtLCMapStringA"
+0x0068a5d0,CRT_GetStringTypeA,function,low,reimplemented (src/game/core/crt); __crtGetStringTypeA
+0x00688f50,CRT_LCMapStringA,function,low,reimplemented (src/game/core/crt); __crtLCMapStringA
+0x00680430,CRT_isctype,function,low,reimplemented (src/game/core/crt); _isctype
+0x0067f230,CRT_toupperLocked,function,low,reimplemented (src/game/core/crt); _toupper_lk
+0x0067f1a0,CRT_toupper,function,medium,reimplemented (src/game/core/crt); toupper
+0x0067d540,CRT_strtoxl,function,low,reimplemented (src/game/core/crt); strtoxl
+0x0067d520,CRT_strtol,function,low,reimplemented (src/game/core/crt); strtol
+0x0067d7d0,CRT_strtoul,function,low,reimplemented (src/game/core/crt); strtoul
+0x006871b0,CRT_wctomb_lk,function,low,reimplemented (src/game/core/crt); _wctomb_lk
+0x00687140,CRT_wctomb,function,low,reimplemented (src/game/core/crt); wctomb
+0x00687710,CRT_mbtowc_lk,function,low,reimplemented (src/game/core/crt); _mbtowc_lk
+0x00687690,CRT_mbtowc,function,low,reimplemented (src/game/core/crt); mbtowc
+0x0067faf0,CRT_tolowerLocked,function,low,reimplemented (src/game/core/crt); _tolower_lk
 0x0067fa60,CRT_tolower,function,medium,"cdecl; the CRT tolower (locale-aware, ASCII in the C locale)"
 0x006fe67c,StringList2_vtable,data,high,one entry (0x61a7e0); src/game/files/waddir
 0x006fe680,StringList_vtable,data,high,one entry (0x45f8e0); src/game/files/waddir
@@ -1930,7 +1951,22 @@ address,name,kind,confidence,notes
 0x0055e470,CpuInfo_Ctor,function,high,"reimplemented (src/game/core/cpuinfo); thiscall; CPUID probe (EFLAGS.ID test, then the vendor string and features); SystemInfo's base"
 0x00591210,Cpu_Ticks,function,low,reimplemented (src/game/core/cpuinfo); cdecl: the low dword of the time-stamp counter (rdtsc)
 0x0057cb90,Cpu_Ticks16,function,low,"reimplemented (src/game/core/cpuinfo); cdecl: the time-stamp counter's bits 4..35 (rdtsc; shrd eax, edx, 4)"
-0x0067df40,CRT_stricmp,function,high,"MSVC CRT _stricmp: A-Z folded, or the locale's tolower when one is set"
+0x0067df40,CRT_stricmp,function,high,reimplemented (src/game/core/crt); _stricmp
+0x00699ab0,CRT_Tolower,function,low,reimplemented (src/game/core/crt); _Tolower
+0x0069a340,CRT_Toupper,function,low,reimplemented (src/game/core/crt); _Toupper
+0x0067bb90,CRT_memmove,function,low,reimplemented (src/game/core/crt); memmove
+0x0067c4e0,CRT_strtok,function,low,reimplemented (src/game/core/crt); strtok
+0x00688770,CRT_xtoa,function,low,reimplemented (src/game/core/crt); xtoa
+0x0067ff70,CRT_strlen,function,low,reimplemented (src/game/core/crt); strlen
+0x0067fff0,CRT_memset,function,low,reimplemented (src/game/core/crt); memset
+0x00680060,CRT_strcmp,function,low,reimplemented (src/game/core/crt); strcmp
+0x0067f570,CRT_memchr,function,low,reimplemented (src/game/core/crt); memchr
+0x0067a480,CRT_atol,function,low,reimplemented (src/game/core/crt); atol
+0x00688730,CRT_itoa,function,low,reimplemented (src/game/core/crt); _itoa
+0x0067c290,CRT_wcscmp,function,low,reimplemented (src/game/core/crt); wcscmp
+0x0067c2f0,CRT_wcschr,function,low,reimplemented (src/game/core/crt); wcschr
+0x0067c3d0,CRT_wcsstr,function,low,reimplemented (src/game/core/crt); wcsstr
+0x0067c430,CRT_wcstok,function,low,reimplemented (src/game/core/crt); wcstok
 0x00f7a7d0,gCdVolumeLabel,data,medium,"const char *: the CD's volume label, looked for on the CD-ROM drives by the CD check (0x5aa585)"
 0x005f8ae0,RegKey_Open,function,high,"reimplemented (src/game/core/regkey); thiscall (&out, subkey or null, nonzero: HKCU else HKLM); the company key (0x775748) made, then the subkey in it; a held key closed first"
 0x005f8b70,RegKey_Dtor,function,high,reimplemented (src/game/core/regkey); thiscall; RegKey_Close
@@ -3850,6 +3886,7 @@ address,name,kind,confidence,notes
 0x004145f0,ObjectDefs_ReleaseEffects,function,low,reimplemented (src/game/world/objectdefs); every object definition's effects and sound category let go
 0x00412d50,ObjectDefs_Free,function,low,"reimplemented (src/game/world/objectdefs); every definition's effects let go, texts freed, destroyed and freed, the table emptied"
 0x00412a90,ObjectDefs_FreeAll,function,low,reimplemented (src/game/world/objectdefs); ObjectDefs_Free of the table 0x7890a0
+0x0051ac20,ObjectDefs_ListBuiltNumbers,function,low,reimplemented (src/game/world/objectdefs); the numbers in the file names of the built objects; name invented
 0x0050c100,Ring_PushUnique,function,high,reimplemented (src/game/core/rings); pushes an id and value unless they repeat the last pair
 0x004e0220,Obj_GetTrackedHandle,function,high,"reimplemented (src/game/world/object); the tracked handle, dropped when the thing no longer has the object's handle"
 0x004dd7f0,Object_SetCapacity,function,high,reimplemented (src/game/world/object); the capacity clamped to the definition's limits and stored
@@ -5051,6 +5088,8 @@ address,name,kind,confidence,notes
 0x006be7a0,Voice70a8d0_Ctor,function,low,"reimplemented (src/game/core/soundvoice); the queued voice's constructor: the voice class, vtable 0x70a8d0, the parameter block ensured, its +0x1c a new queue of the info's pairs"
 0x006be750,Voice70a8d0_Create,function,low,reimplemented (src/game/core/soundvoice); the queued voice made in the memory given and initialised (slot 4); null when there is no memory or the init answers below 0
 0x006bbe80,SoundVoice_Destroy,function,low,"reimplemented (src/game/core/soundvoice); thiscall; slot 3 of the voices' vtables: the voice's slot 2 (0), its destructor without the delete (name invented)"
+0x006b7370,Voice70a2e0_Dtor,function,low,"reimplemented (src/game/core/soundvoice); the vtable 0x70a2e0, then the destructor of 0x70a390"
+0x006b7350,Voice70a2e0_DeletingDtor,function,low,"reimplemented (src/game/core/soundvoice); Voice70a2e0_Dtor, freed with flag 1"
 0x006c4760,EaxBuffer_QueryAll,function,low,"reimplemented (src/game/core/soundeax); thiscall (out, unused), pops 8: IKsPropertySet::Get of the EAX 2.0 buffer properties (id 1, 0x38 bytes) into a stack block that is also the size out, dropped; *out = 0 on success, else -1; returns out"
 0x006d6cf0,EaxListener_SetAll,function,low,reimplemented (src/game/core/soundeax); an object's buffer (its slot 4 for a key) asked for IKsPropertySet and handed all the EAX 2.0 listener properties
 0x006c4670,EaxBuffer_SetProperty0b,function,low,"reimplemented (src/game/core/soundeax); thiscall (out, value), pops 8: the buffer's IKsPropertySet::Set (EAX20 buffer properties, id 0xb, the value's own slot, 4 bytes), *out its result; without a set *out = -1"
@@ -5645,6 +5684,15 @@ address,name,kind,confidence,notes
 0x004f0540,WOfstream_VbaseDtor,function,low,reimplemented (src/game/core/wfilebuf); basic_ofstream<wchar_t>'s complete destructor
 0x004f10d0,WIfstream_VbaseDtor,function,low,reimplemented (src/game/core/wfilebuf); basic_ifstream<wchar_t>'s complete destructor
 0x004f3720,WFileBuf_Ctor,function,low,reimplemented (src/game/core/wfilebuf); basic_filebuf<wchar_t>'s constructor
+0x004f0a10,WFileBuf_Overflow,function,low,reimplemented (src/game/core/wfilebuf); basic_filebuf<wchar_t>::overflow by its shape
+0x004f0c50,WFileBuf_PutBack,function,low,reimplemented (src/game/core/wfilebuf); basic_filebuf<wchar_t>::pbackfail by its shape
+0x004f0e60,WFileBuf_Uflow,function,low,reimplemented (src/game/core/wfilebuf); basic_filebuf<wchar_t>::uflow by its shape
+0x004f5d60,CodecvtW_Ctor,function,low,"reimplemented (src/game/core/wfilebuf); codecvt<wchar_t, char, mbstate_t>'s constructor by its shape"
+0x004f7180,Locale_WithCodecvt,function,low,reimplemented (src/game/core/wfilebuf); a locale with the conversion facet added; name invented
+0x004f5ad0,WFileBuf_InitConversion,function,low,reimplemented (src/game/core/wfilebuf); basic_filebuf<wchar_t>::_Initcvt by its shape
+0x004f3920,WFileBuf_Open,function,low,reimplemented (src/game/core/wfilebuf); basic_filebuf<wchar_t>::open by its shape
+0x004f5dd0,CodecvtW_In,function,low,reimplemented (src/game/core/wfilebuf); codecvt::do_in by its shape
+0x004f5e80,CodecvtW_Out,function,low,reimplemented (src/game/core/wfilebuf); codecvt::do_out by its shape
 0x006d6f70,SoundBuffer_FillFromVoice,function,low,"reimplemented (src/game/core/soundworker); thiscall (voice, offset, size), pops 0xc; a voice's mix into its locked DirectSound buffer (name invented)"
 0x006d3850,SoundWorker_RefillVoice,function,low,"reimplemented (src/game/core/soundworker); thiscall (position), pops 4; the slot's voice refilled under the section (name invented)"
 0x006d75c0,ComList_ReleaseAll,function,low,"reimplemented (src/game/core/soundworker); thiscall; each listed COM object's slots 6 and 2, the node freed (name invented)"
@@ -5664,6 +5712,13 @@ address,name,kind,confidence,notes
 0x006b9ed0,SoundHandshake_Wait,function,low,"reimplemented (src/game/core/soundwait); byte +4 set, a spin until byte +5, dword +0 cleared"
 0x006b9e80,SoundHandshake_Instance,function,low,"reimplemented (src/game/core/soundwait); the handshake singleton, made the first time"
 0x006b9fa0,SoundEngine_Dtor,function,low,"reimplemented (src/game/core/soundwait); the sound engine's destructor: the handshake waited for, its two inner objects released"
+0x006b5e20,SoundEngine_DeletingDtor,function,low,reimplemented (src/game/core/soundwait); the sound engine's deleting destructor
+0x006ba080,SoundEngine_TouchFlagged,function,low,reimplemented (src/game/core/soundwait); the engine's mixer's flagged voices touched
+0x006b9e30,SoundEngine_ThreadLoop,function,low,reimplemented (src/game/core/soundwait); the engine's thread: touches and naps until the handshake stops it
+0x006b9ef0,SoundHandshake_Start,function,low,reimplemented (src/game/core/soundwait); the engine's thread started once
+0x006b9f40,SoundEngine_Open,function,low,"reimplemented (src/game/core/soundwait); the object opened, then the thread started when there is a mixer"
+0x006ba020,SoundEngine_SetThreaded,function,low,reimplemented (src/game/core/soundwait); the object's bit 0x400 and the thread on or off
+0x006b7190,SoundLock_Delete,function,low,"reimplemented (src/game/core/soundwait); DeleteCriticalSection on this, for unwinding"
 0x006b70b0,SoundGuard_DropSlot2,function,low,"reimplemented (src/game/core/soundguard); the held object's slot 2 (3), unless null"
 0x006b70c0,SoundGuard_FreeBlock,function,low,reimplemented (src/game/core/soundguard); the held block freed
 0x006bafd0,SoundGuard_DeleteArray,function,low,"reimplemented (src/game/core/soundguard); the held object's slot 0 (3), unless null"
@@ -5748,6 +5803,81 @@ address,name,kind,confidence,notes
 0x006b87d0,SoundEngine_Play,function,low,reimplemented (src/game/core/soundtrigger); A sound checked against the player and started
 0x006b63a0,SoundMixer_ThreadLoop,function,low,"reimplemented (src/game/core/mixerthread); The sound mixer's thread: voices updated on each signal, until the stop byte"
 0x0054e360,Game_RunFrame,function,low,"reimplemented (src/game/core/gameframe); The game's step each frame, a state machine over the whole session (name invented, unconfirmed)"
+0x00699ce0,Locale_Getfacet,function,low,reimplemented (src/game/core/stdlocale); std::locale::_Getfacet
+0x00699d50,Locale_Iscloc,function,low,reimplemented (src/game/core/stdlocale); std::locale::_Iscloc
+0x004f7620,WCtype_Ctor,function,low,reimplemented (src/game/core/wstream); ctype<wchar_t>'s constructor by its shape
+0x004f6a30,WCtype_UseFacet,function,low,reimplemented (src/game/core/wstream); use_facet<ctype<wchar_t>> by its shape
+0x004f1640,WIos_Widen,function,low,reimplemented (src/game/core/wstream); basic_ios<wchar_t>::widen by its shape
+0x004f1ed0,WIstream_Ipfx,function,low,reimplemented (src/game/core/wstream); basic_istream<wchar_t>::ipfx by its shape
+0x004f1ca0,WIstream_Getline,function,low,reimplemented (src/game/core/wstream); basic_istream<wchar_t>::getline by its shape
+0x004f6be0,WOstream_PutText,function,low,"reimplemented (src/game/core/wstream); operator<<(wostream, const wchar_t *) by its shape"
+0x00686a10,CRT_doserrno,function,low,reimplemented (src/game/core/crtfile); __doserrno
+0x00686980,CRT_dosmaperr,function,low,reimplemented (src/game/core/crtfile); _dosmaperr
+0x0068ead0,CRT_get_osfhandle,function,low,reimplemented (src/game/core/crtfile); _get_osfhandle
+0x0068eb20,CRT_lock_fhandle,function,low,reimplemented (src/game/core/crtfile); _lock_fhandle
+0x0068eb90,CRT_unlock_fhandle,function,low,reimplemented (src/game/core/crtfile); _unlock_fhandle
+0x00686aa0,CRT_lseek_lk,function,low,reimplemented (src/game/core/crtfile); _lseek_lk
+0x00686a20,CRT_lseek,function,low,reimplemented (src/game/core/crtfile); _lseek
+0x0068c320,CRT_isatty,function,low,reimplemented (src/game/core/crtfile); _isatty
+0x006864c0,CRT_write_lk,function,low,reimplemented (src/game/core/crtfile); _write_lk
+0x00686440,CRT_write,function,low,reimplemented (src/game/core/crtfile); _write
+0x00687530,CRT_getbuf,function,low,reimplemented (src/game/core/crtfile); _getbuf
+0x0067d0f0,CRT_flush,function,low,reimplemented (src/game/core/crtfile); _flush
+0x00680ad0,CRT_flsbuf,function,low,reimplemented (src/game/core/crtfile); _flsbuf
+0x0067b710,CRT_fwrite_lk,function,low,reimplemented (src/game/core/crtfile); _fwrite_lk
+0x0067b6d0,CRT_fwrite,function,low,reimplemented (src/game/core/crtfile); fwrite
+0x00686ff0,CRT_flswbuf,function,low,reimplemented (src/game/core/crtfile); _flswbuf
+0x00688ad0,CRT_read_lk,function,low,reimplemented (src/game/core/crtstream); _read_lk
+0x00688a50,CRT_read,function,low,reimplemented (src/game/core/crtstream); _read
+0x00687440,CRT_filbuf,function,low,reimplemented (src/game/core/crtstream); _filbuf
+0x00687590,CRT_filwbuf,function,low,reimplemented (src/game/core/crtstream); _filwbuf
+0x0067cb90,CRT_fgetc,function,low,reimplemented (src/game/core/crtstream); fgetc
+0x0067cc10,CRT_ungetc_lk,function,low,reimplemented (src/game/core/crtstream); _ungetc_lk
+0x0067cbe0,CRT_ungetc,function,low,reimplemented (src/game/core/crtstream); ungetc
+0x0067ce20,CRT_fgetwc_lk,function,low,reimplemented (src/game/core/crtstream); _getwc_lk
+0x0067cdf0,CRT_fgetwc,function,low,reimplemented (src/game/core/crtstream); fgetwc
+0x0067ca20,CRT_fputwc_lk,function,low,reimplemented (src/game/core/crtstream); _fputwc_lk
+0x0067c9f0,CRT_fputwc,function,low,reimplemented (src/game/core/crtstream); fputwc
+0x0067ccd0,CRT_ungetwc_lk,function,low,reimplemented (src/game/core/crtstream); _ungetwc_lk
+0x0067cca0,CRT_ungetwc,function,low,reimplemented (src/game/core/crtstream); ungetwc
+0x0067e210,CRT_fread_lk,function,low,reimplemented (src/game/core/crtstream); _fread_lk
+0x0067e1d0,CRT_fread,function,low,reimplemented (src/game/core/crtstream); fread
+0x0067e380,CRT_ftell_lk,function,low,reimplemented (src/game/core/crtstream); _ftell_lk
+0x0067e350,CRT_ftell,function,low,reimplemented (src/game/core/crtstream); ftell
+0x0067c140,CRT_fseek_lk,function,low,reimplemented (src/game/core/crtstream); _fseek_lk
+0x0067c100,CRT_fseek,function,low,reimplemented (src/game/core/crtstream); fseek
+0x00688610,CRT_stbuf,function,low,reimplemented (src/game/core/crtstream); _stbuf
+0x006886d0,CRT_ftbuf,function,low,reimplemented (src/game/core/crtstream); _ftbuf
+0x006898f0,CRT_parse_cmdline,function,low,reimplemented (src/game/core/crtstartup); parse_cmdline
+0x00690ef0,CRT_store_str,function,low,reimplemented (src/game/core/crttime); _store_str
+0x00690fc0,CRT_store_number,function,low,reimplemented (src/game/core/crttime); _store_number
+0x00690f20,CRT_store_num,function,low,reimplemented (src/game/core/crttime); _store_num
+0x00691030,CRT_store_winword,function,low,reimplemented (src/game/core/crttime); _store_winword
+0x00690950,CRT_expandtime,function,low,reimplemented (src/game/core/crttime); _expandtime
+0x00687d40,CRT_tzset_once,function,low,reimplemented (src/game/core/crttime); __tzset
+0x00690800,CRT_Strftime,function,low,reimplemented (src/game/core/crttime); _Strftime
+0x00690490,CRT_Gettnames,function,low,reimplemented (src/game/core/crttime); _Gettnames
+0x006902b0,CRT_Getdays,function,low,reimplemented (src/game/core/crttime); _Getdays
+0x006903a0,CRT_Getmonths,function,low,reimplemented (src/game/core/crttime); _Getmonths
+0x00688300,CRT_cvtdate,function,low,reimplemented (src/game/core/crttime); cvtdate
+0x006884a0,CRT_gmtime,function,low,reimplemented (src/game/core/crttime); gmtime
+0x00688090,CRT_isindst_lk,function,low,reimplemented (src/game/core/crttime); _isindst_lk
+0x006ab880,MoneypunctC_Init,function,low,reimplemented (src/game/core/moneypunct); moneypunct<char>::_Init
+0x006a4f20,MoneypunctW_Init,function,low,reimplemented (src/game/core/moneypunct); moneypunct<wchar_t>::_Init
+0x006a8830,MoneypunctC_Ctor,function,low,reimplemented (src/game/core/moneypunct); moneypunct<char>'s constructor
+0x006a18a0,MoneypunctW_Ctor,function,low,reimplemented (src/game/core/moneypunct); moneypunct<wchar_t>'s constructor
+0x0068bad0,CRT_abstract_cw,function,low,reimplemented (src/game/core/crtfloat); _abstract_cw
+0x0068bb70,CRT_hw_cw,function,low,reimplemented (src/game/core/crtfloat); _hw_cw
+0x0068f9d0,CRT_addl,function,low,reimplemented (src/game/core/crtfloat); __addl
+0x0068bc00,CRT_ZeroTail,function,low,reimplemented (src/game/core/crtfloat); _ZeroTail
+0x0068bc70,CRT_IncMan,function,low,reimplemented (src/game/core/crtfloat); _IncMan
+0x0068bce0,CRT_RoundMan,function,low,reimplemented (src/game/core/crtfloat); _RoundMan
+0x0068bd80,CRT_CopyMan,function,low,reimplemented (src/game/core/crtfloat); _CopyMan
+0x0068bdb0,CRT_IsZeroMan,function,low,reimplemented (src/game/core/crtfloat); _IsZeroMan
+0x0068bdd0,CRT_ShrMan,function,low,reimplemented (src/game/core/crtfloat); _ShrMan
+0x0068be90,CRT_ld12cvt,function,low,reimplemented (src/game/core/crtfloat); _ld12cvt
+0x0068c060,CRT_ld12tod,function,low,reimplemented (src/game/core/crtfloat); _ld12tod
+0x0068c080,CRT_ld12tof,function,low,reimplemented (src/game/core/crtfloat); _ld12tof
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

@@ -180,4 +180,8 @@ void __fastcall ObjectDefs_GetFullName(u8 *defs, void *, u32 id, u16 *out, u32 s
 // faults, sic).
 void __fastcall ObjectDefs_GetName(u8 *defs, void *, u32 id, u16 *out, u32 size);
 void __fastcall ObjectDefs_GetSuffix(u8 *defs, void *, u32 id, u16 *out, u32 size);
+
+// 0x51ac20 (stdcall, pops 4): out's 0x80 dwords zeroed; for each id 1-0x100 marked built in the bitset 0x802080 that has a definition (+0x94 the id, walked from the first each time), the number in its file name
+// (+0x28c, from the first digit after the last backslash: a name without either faults, sic) appended as a word. Returns 0. Name invented.
+s32 __stdcall ObjectDefs_ListBuiltNumbers(u16 *out);
 }

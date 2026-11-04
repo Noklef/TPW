@@ -75,9 +75,12 @@ struct CrtInnerEnv {
     void(__cdecl *initptd)(void *data);                          // 0x682440
     void(__cdecl *amsgExit)(s32 code);                           // 0x67efc0
     void(__cdecl *dosmaperr)(u32 error);                         // 0x686980
+    void(__cdecl *tzset)();                                      // 0x687d80
 };
 
 void CrtInner_SetEnv(const CrtInnerEnv *env);
+
+const CrtInnerEnv &CrtInner();
 
 extern "C" {
 
@@ -159,5 +162,123 @@ void __stdcall CRT_VectorDtorIterator(u8 *array, u32 size, s32 count, void(__fas
 
 // 0x6d76f0 (cdecl; called from 0x4901ff): every unit of the wide string before its terminator set to the unit. Returns the string.
 u16 *__cdecl CRT_wcsset(u16 *text, u16 unit);
+
+// The C++ library's conversions under the C library's locale (names are the library's own). A conversion block is { locale id, code page }; none: the current ones (0xfb1440, 0xfb1450).
+
+// 0x69a560: _Getcvt: the current block, by value in EDX:EAX, under the locale's lock.
+unsigned long long __cdecl CRT_Getcvt();
+
+// 0x699bd0 (cdecl (&result)): _Getctype: { the LC_CTYPE id (0xfb143c), the code page, a copy of the table _pctype (0x200 bytes from malloc), 1 } or, with no block, the table itself and 0. Returns &result.
+u32 *__cdecl CRT_Getctype(u32 *out);
+
+// 0x69a4e0 (cdecl (to, unit, unused, conversion)): the unit as bytes. Id 0: units to 0xff as one byte; else WideCharToMultiByte for _mb_cur_max bytes. Fails (a loss of data, or a unit too big) with errno 0x2a and -1.
+s32 __cdecl CRT_WcrtombLocked(char *to, u32 unit, void *unused, const u32 *conversion);
+
+// 0x69a460 (cdecl (to, unit, state, conversion)): _Wcrtomb: the same under the locale's lock (the state is not used).
+s32 __cdecl CRT_Wcrtomb(char *to, u32 unit, void *state, const u32 *conversion);
+
+// 0x693c40 (cdecl (&unit, text, n, state, conversion)): one character of up to n bytes as a unit: 0 for no text, no n or a zero byte (*unit 0), 1 under id 0, a lead byte kept in the state with too few bytes (-2);
+// a kept lead byte joined with this byte, else _mb_cur_max bytes for a lead byte (of the table _pctype), else one: MultiByteToWideChar's answer, _mb_cur_max or 1. Fails with errno 0x2a and -1.
+s32 __cdecl CRT_MbrtowcLocked(u16 *unit, const char *text, u32 n, u8 *state, const u32 *conversion);
+
+// 0x6871b0 / 0x687140: _wctomb_lk / wctomb: the word as the locale's bytes (no locale: as itself, up to 0xff). No buffer: 0. Not representable: errno 0x2a, -1.
+s32 __cdecl CRT_wctomb_lk(char *out, u32 c);
+s32 __cdecl CRT_wctomb(char *out, u32 c);
+
+// 0x687710 / 0x687690: _mbtowc_lk / mbtowc: one character of the text as a word, returning its bytes: 0 for no text or a null, -1 and errno 0x2a if bad. A lead byte in a bad conversion still counts as the
+// whole character when another byte follows.
+s32 __cdecl CRT_mbtowc_lk(u16 *out, const char *text, u32 size);
+s32 __cdecl CRT_mbtowc(u16 *out, const char *text, u32 size);
+
+// 0x693bc0: _Mbrtowc: the same under the locale's lock.
+s32 __cdecl CRT_Mbrtowc(u16 *unit, const char *text, u32 n, u8 *state, const u32 *conversion);
+
+// 0x67b5f0: strrchr: the last c (its low byte; 0 finds the terminator), else null.
+char *__cdecl CRT_strrchr(const char *text, s32 c);
+
+// 0x67d7f0: strpbrk: the first byte of the text in the set, else null.
+char *__cdecl CRT_strpbrk(const char *text, const char *set);
+
+// 0x67d3a0 (stdcall, pops 8): _CxxThrowException: RaiseException with the record at 0x7089e8 (3 arguments: its magic, the object, the type's info).
+void __stdcall CRT_CxxThrowException(void *object, const void *info);
+
+// 0x689180: strncnt: the bytes before a terminator within n; n when there is none (the byte at n is read too).
+u32 __cdecl CRT_strncnt(const char *text, u32 n);
+
+// 0x68a5d0: __crtGetStringTypeA: which call works is found once (0xfb1890: 1 GetStringTypeW, 2 GetStringTypeA; neither: 0). 2: GetStringTypeA under the id (or the current 0xfb1440). 1: the text
+// through MultiByteToWideChar (code page or the current 0xfb1450; a block of calloc(2, n)) to GetStringTypeW; 0 if a step fails. Any other value there is returned (sic).
+s32 __cdecl CRT_GetStringTypeA(u32 info, const char *text, s32 count, u16 *types, u32 page, u32 id, s32 strict);
+
+// 0x688f50: __crtLCMapStringA: the same choice (0xfb1554, LCMapStringW or A). 2: LCMapStringA. 1: the text widened, mapped, and with flag 0x400 (a sort key) the bytes given as they are, else
+// the units narrowed. The size written or needed; 0 if a step fails. Any other value there is returned (sic).
+s32 __cdecl CRT_LCMapStringA(u32 id, u32 flags, const char *from, s32 count, char *to, s32 size, u32 page, s32 strict);
+
+// 0x680430: _isctype: -1 to 0xff: the table _pctype; others a lead and a trail byte (one byte if the lead is no lead byte) through __crtGetStringTypeA, 0 if that fails. Anded with the mask.
+s32 __cdecl CRT_isctype(s32 c, s32 mask);
+
+// 0x67f230: _toupper_lk: no locale (0xfb1440): a-z only. Below 0x100 and not lower case (signed; negatives index before the table, sic): as it is. Else __crtLCMapStringA (LCMAP_UPPERCASE):
+// the one or two bytes it gives, or c when it fails.
+s32 __cdecl CRT_toupperLocked(s32 c);
+
+// 0x67f1a0: toupper: no locale: a-z only. Else the same under the locale's lock.
+s32 __cdecl CRT_toupper(s32 c);
+
+// 0x67d540: strtoxl: white space, a sign, the base (0: by the prefix; 0x prefix skipped for 16), digits. Flags: 1 unsigned; a number too big: errno 0x22, the limit. A bad base (below 0, 1, above 36):
+// 0 and *end the text. No digits: 0 and *end the text.
+u32 __cdecl CRT_strtoxl(const char *text, const char **end, s32 base, u32 flags);
+
+// 0x67d520 / 0x67d7d0: strtol / strtoul.
+s32 __cdecl CRT_strtol(const char *text, const char **end, s32 base);
+u32 __cdecl CRT_strtoul(const char *text, const char **end, s32 base);
+
+// 0x67faf0: _tolower_lk: the same as _toupper_lk for the upper case.
+s32 __cdecl CRT_tolowerLocked(s32 c);
+
+// 0x67df40: _stricmp: -1, 0, 1. No locale: through A-Z. Else through _tolower_lk under the locale's count (not the Interlocked imports: its own LOCK INC) or lock 0x13; two ends at once answer the last character's _tolower_lk.
+s32 __cdecl CRT_stricmp(const char *a, const char *b);
+
+// 0x699ab0 / 0x69a340: _Tolower / _Toupper of the C++ library: the character by the given (id, code page) or, for null, the current locale. A call of __crtLCMapStringA with no eighth argument: it reads the caller's EDI, as
+// `strict` here, through the shims.
+s32 __cdecl CRT_Tolower(s32 c, const u32 *locale);
+s32 __cdecl CRT_Toupper(s32 c, const u32 *locale);
+
+// 0x67bb90: memmove: returns dest.
+void *__cdecl CRT_memmove(void *dest, const void *from, u32 size);
+
+// 0x67b8c0: strncat: at most `size` characters and an end; size 0: not even the end. Returns dest.
+char *__cdecl CRT_strncat(char *dest, const char *from, u32 size);
+
+// 0x67c4e0: strtok: the thread's data + 0x18 keeps the place. An empty token: null.
+char *__cdecl CRT_strtok(char *text, const char *separators);
+
+// 0x688770: xtoa: the digits (a-z above 9) with a minus for is_negative, which also negates; the end after them.
+void __cdecl CRT_xtoa(u32 value, char *out, u32 radix, s32 is_negative);
+
+// 0x67ff70: strlen. 0x67fff0: memset. 0x680060: strcmp (-1, 0 or 1, the bytes unsigned). 0x67f570: memchr. 0x67bfc0: strchr (the end too for 0). 0x67c080: strstr (the text itself for an empty one).
+u32 __cdecl CRT_strlen(const char *text);
+void *__cdecl CRT_memset(void *dest, s32 value, u32 size);
+s32 __cdecl CRT_strcmp(const char *a, const char *b);
+void *__cdecl CRT_memchr(const void *block, s32 value, u32 size);
+char *__cdecl CRT_strchr(const char *text, s32 value);
+char *__cdecl CRT_strstr(const char *text, const char *wanted);
+
+// 0x67a480: atol: white space, a sign, digits, with no check for overflow. 0x688730: _itoa: a minus only in radix 10.
+s32 __cdecl CRT_atol(const char *text);
+char *__cdecl CRT_itoa(s32 value, char *out, s32 radix);
+
+// 0x67b0d0: wcsncpy. 0x67bf10: wcscpy. 0x67bed0: wcscat. 0x67f450: wcsncat (always an end). 0x67c290: wcscmp (-1, 0 or 1). 0x67f410: wcsncmp (the difference of the last units). 0x67c2f0: wcschr (the end too for 0).
+u16 *__cdecl CRT_wcsncpy(u16 *dest, const u16 *from, u32 count);
+u16 *__cdecl CRT_wcscpy(u16 *dest, const u16 *from);
+u16 *__cdecl CRT_wcscat(u16 *dest, const u16 *from);
+u16 *__cdecl CRT_wcsncat(u16 *dest, const u16 *from, u32 count);
+s32 __cdecl CRT_wcscmp(const u16 *a, const u16 *b);
+s32 __cdecl CRT_wcsncmp(const u16 *a, const u16 *b, u32 count);
+u16 *__cdecl CRT_wcschr(const u16 *text, u32 value);
+
+// 0x67c3d0: wcsstr: unlike strstr, an empty text gives null even for an empty one wanted.
+u16 *__cdecl CRT_wcsstr(const u16 *text, const u16 *wanted);
+
+// 0x67c430: wcstok: the thread's data + 0x1c keeps the place. An empty token: null.
+u16 *__cdecl CRT_wcstok(u16 *text, const u16 *separators);
 
 }  // extern "C"

@@ -5,6 +5,10 @@
 
 #include "channelvoice.h"
 #include "crt.h"
+#include "fieldops.h"
+#include "gameheap.h"
+#include "soundmixer.h"
+#include "soundobject.h"
 #include "soundworker.h"
 #include "vcall.h"
 
@@ -15,7 +19,7 @@ template <typename T> T &at(u8 *p, u32 offset) { return *reinterpret_cast<T *>(p
 
 using WaitForMultipleObjectsFn = u32(__stdcall *)(u32 count, const void *handles, u32 all, u32 milliseconds);
 
-const SoundWaitEnv kGameEnv = {ChannelVoice_Refill, SoundWorker_RefillVoice, CRT_atexit};
+const SoundWaitEnv kGameEnv = {ChannelVoice_Refill, SoundWorker_RefillVoice, CRT_atexit, SoundObject_Open, CRT_beginthread};
 const SoundWaitEnv *g_env = &kGameEnv;
 
 }  // namespace
@@ -79,3 +83,65 @@ void __fastcall SoundEngine_Dtor(u8 *engine) {
     if (u8 *const inner = at<u8 *>(engine, 0x24)) vcall<void>(inner, 0);
     if (u8 *const inner = at<u8 *>(engine, 0x20)) vcall<void>(inner, 0, 1u);
 }
+
+u8 *__fastcall SoundEngine_DeletingDtor(u8 *engine, void *, u32 flags) {
+    SoundEngine_Dtor(engine);
+    if (flags & 1) GameHeap_Free(engine);
+    return engine;
+}
+
+u32 __fastcall SoundEngine_TouchFlagged(u8 *engine) { return SoundMixer_TouchFlagged(at<u8 *>(engine, 0x20)); }
+
+void __fastcall SoundEngine_ThreadLoop(u8 *engine) {
+    if (!at<volatile u8>(SoundHandshake_Instance(), 4)) {
+        const auto nap = global<void(__stdcall *)(u32)>(0x006fd1d4);   // Sleep
+        do {
+            nap(SoundEngine_TouchFlagged(engine) ? 100 : 250);
+        } while (!at<volatile u8>(SoundHandshake_Instance(), 4));
+    }
+    at<volatile u8>(SoundHandshake_Instance(), 5) = 1;
+}
+
+u32 *__fastcall SoundHandshake_Start(u8 *handshake, void *, u32 *out, u8 *engine) {
+    if (!at<u32>(handshake, 0)) {
+        at<u8>(handshake, 4) = 0;
+        at<u8>(handshake, 5) = 0;
+        const u32 thread = g_env->beginThread(reinterpret_cast<void *>((uintptr_t)0x006b9d90), 0, engine);   // (a jump to 0x6b9e30)
+        at<u32>(handshake, 0) = thread;
+        if (!thread) {
+            *out = 0xffffffff;
+            return out;
+        }
+        global<u32(__stdcall *)(u32, s32)>(0x006fd1fc)(thread, -1);   // SetThreadPriority
+    }
+    *out = 0;
+    return out;
+}
+
+u32 *__fastcall SoundEngine_Open(u8 *engine, void *, u32 *out, u32 value) {
+    if (static_cast<s32>(*g_env->open(engine, nullptr, &value, value)) < 0) {
+        *out = 0xffffffff;
+        return out;
+    }
+    if (u8 *const mixer = at<u8 *>(engine, 0x20)) {
+        at<u8>(mixer, 0x50) = 0;
+        SoundHandshake_Start(SoundHandshake_Instance(), nullptr, &value, engine);
+    }
+    *out = 0;
+    return out;
+}
+
+u32 *__fastcall SoundEngine_SetThreaded(u8 *engine, void *, u32 *out, u32 on) {
+    const u32 wanted = on;
+    Target24_SetBit400(engine, nullptr, &on, wanted);
+    if (!wanted) {
+        SoundHandshake_Wait(SoundHandshake_Instance());
+    } else if (static_cast<s32>(*SoundHandshake_Start(SoundHandshake_Instance(), nullptr, &on, engine)) < 0) {
+        Target24_SetBit400(engine, nullptr, out, 0);
+        return out;
+    }
+    *out = 0;
+    return out;
+}
+
+void __fastcall SoundLock_Delete(void *lock) { global<void(__stdcall *)(void *)>(0x006fd0d0)(lock); }   // DeleteCriticalSection

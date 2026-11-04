@@ -326,6 +326,7 @@
 #include "../../src/game/world/personscripts.h"
 #include "../../src/game/core/funnytime.h"
 #include "../../src/game/core/wfilebuf.h"
+#include "../../src/game/core/wstream.h"
 #include "../../src/game/core/channelvoice.h"
 #include "../../src/game/core/soundchannel.h"
 #include "../../src/game/core/soundsource.h"
@@ -2580,8 +2581,11 @@ int main(int argc, char **argv) {
                                               reinterpret_cast<void(__cdecl *)(u32)>((uintptr_t)jpeg_recorder(17, 1))};
     FunnyTime_SetEnv(&funnyTimeEnv);
     // The locale reference's 0x699da0: the cdecl recorder 15 of 0, as tests/fncmp/wfilebuf.py hooks it.
-    static const WFileBufEnv wFileBufEnv = {reinterpret_cast<u32(__cdecl *)()>((uintptr_t)jpeg_recorder(15, 0)), Rec{jpeg_recorder(18, 1)}};
+    static const WFileBufEnv wFileBufEnv = {reinterpret_cast<u32(__cdecl *)()>((uintptr_t)jpeg_recorder(15, 0)), Rec{jpeg_recorder(18, 1)}, Rec{jpeg_recorder(20, 4)}, Rec{jpeg_recorder(21, 2)}, Rec{jpeg_recorder(22, 2)}, Rec{jpeg_recorder(23, 2)}, Rec{jpeg_recorder(24, 1)}, Rec{jpeg_recorder(25, 1)},
+                                            Rec{jpeg_recorder(19, 5)}, Rec{jpeg_recorder(29, 4)}, Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 14}, Rec{recorder(26, 1)}, Rec{recorder(27, 0)}, Rec{recorder(28, 3)}};
     WFileBuf_SetEnv(&wFileBufEnv);
+    static const WStreamEnv wStreamEnv = {Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 14}, Rec{recorder(26, 1)}, Rec{recorder(27, 0)}, Rec{jpeg_recorder(28, 1)}, Rec{recorder(29, 0)}};
+    WStream_SetEnv(&wStreamEnv);
     // The worker's 0x67e050: the cdecl recorder 14 of 3, as tests/fncmp/soundworker.py hooks it.
     static const SoundWorkerEnv soundWorkerEnv = {reinterpret_cast<u32(__cdecl *)(u32, u32, void *)>((uintptr_t)jpeg_recorder(14, 3))};
     SoundWorker_SetEnv(&soundWorkerEnv);
@@ -2604,7 +2608,7 @@ int main(int argc, char **argv) {
     SoundSeed_SetEnv(&soundSeedEnv);
     static const SoundManagerEnv soundManagerEnv = {Rec{recorder(20, 0)}};
     SoundManager_SetEnv(&soundManagerEnv);
-    static const SoundWaitEnv soundWaitEnv = {Rec{recorder(20, 0)}, Rec{recorder(21, 1)}, Rec{jpeg_recorder(22, 1)}};
+    static const SoundWaitEnv soundWaitEnv = {Rec{recorder(20, 0)}, Rec{recorder(21, 1)}, Rec{jpeg_recorder(22, 1)}, Rec{recorder(23, 2)}, Rec{jpeg_recorder(24, 3)}};
     SoundWait_SetEnv(&soundWaitEnv);
     static const ThingNameEnv thingNameEnv = {Rec{jpeg_recorder(1, 4)}};
     ThingName_SetEnv(&thingNameEnv);
@@ -2852,7 +2856,7 @@ int main(int argc, char **argv) {
                                              return (u16)(c >= 0x41 && c <= 0x5a || c >= 0x100 && c < 0x180 ? c ^ 0x20 : c);
                                          },
                                          Rec{jpeg_recorder(21, 3)}, Rec{jpeg_recorder(22, 2)}, Rec{jpeg_recorder(23, 5)}, Rec{jpeg_recorder(24, 2)},
-                                         Rec{jpeg_recorder(25, 1)}, Rec{jpeg_recorder(26, 1)}, Rec{jpeg_recorder(27, 1)}};
+                                         Rec{jpeg_recorder(25, 1)}, Rec{jpeg_recorder(26, 1)}, Rec{jpeg_recorder(27, 1)}, Rec{jpeg_recorder(29, 0)}};
     CrtInner_SetEnv(&crtInner);
     // The C++ library's: the locks do nothing (the bench's hooks of 0x691de0 / 0x691ea0), the rest recorders (tests/fncmp/iosbase.py).
     static const IosBaseEnv iosBase = {[](void *lock) -> void * { return lock; }, [](void *) {}, &heap_free, Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 14}, Rec{jpeg_recorder(16, 2)}, Rec{jpeg_recorder(17, 3)},

@@ -552,8 +552,16 @@ class Emu:
             self.put(o[0], self.get(o[1]))
         elif mn == 'BSWAP':
             self.put(o[0], int.from_bytes(self.get(o[0]).to_bytes(4, 'little'), 'big'))
-        elif mn == 'BT':  # (a register's bit, the index modulo its size: 0x674ab9's)
-            self.cf = bool(self.get(o[0]) >> (self.get(o[1]) & (8 * self.size(o[0]) - 1)) & 1)
+        elif mn in ('BT', 'BTS'):  # (a register's bit, the index modulo its size: 0x674ab9's; memory is a bit string, the signed index reaching past the dword: 0x67d7f0's)
+            op, index = o[0], self.get(o[1])
+            at = self.mem_operand(op)
+            if at:
+                op = 'dword ptr [%x]' % ((at[0] + ((index - (1 << 32) if index >> 31 else index) >> 5) * 4) & 0xffffffff)
+            index &= 8 * self.size(op) - 1
+            v = self.get(op)
+            self.cf = bool(v >> index & 1)
+            if mn == 'BTS':
+                self.put(op, v | 1 << index)
         elif mn == 'MOVSX':
             v, n = self.get(o[1]), self.size(o[1])
             self.put(o[0], v - (1 << (8 * n)) if v >> (8 * n - 1) else v)
@@ -581,10 +589,11 @@ class Emu:
             else:
                 res = ~a & ((1 << bits) - 1)  # NOT leaves the flags
             self.put(o[0], res)
-        elif mn in ('INC', 'DEC'):
+        elif mn in ('INC', 'DEC', 'INC.LOCK', 'DEC.LOCK'):
+            up = mn.startswith('INC')
             a, cf, bits = self.get(o[0]), self.cf, 8 * self.size(o[0])
-            res = self.flags(a + (1 if mn == 'INC' else -1), bits, cf,
-                             a == ((1 << (bits - 1)) - 1 if mn == 'INC' else 1 << (bits - 1)))
+            res = self.flags(a + (1 if up else -1), bits, cf,
+                             a == ((1 << (bits - 1)) - 1 if up else 1 << (bits - 1)))
             self.put(o[0], res)
         elif mn in ('AND', 'OR', 'XOR', 'TEST'):
             a, b, bits = self.get(o[0]), self.get(o[1]), 8 * self.size(o[0])

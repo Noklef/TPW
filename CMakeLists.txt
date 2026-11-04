@@ -218,6 +218,14 @@ add_library(tpw_game STATIC
     src/game/core/soundtrigger.cpp
     src/game/core/mixerthread.cpp
     src/game/core/gameframe.cpp
+    src/game/core/stdlocale.cpp
+    src/game/core/wstream.cpp
+    src/game/core/crtfile.cpp
+    src/game/core/crtstream.cpp
+    src/game/core/crtstartup.cpp
+    src/game/core/crttime.cpp
+    src/game/core/moneypunct.cpp
+    src/game/core/crtfloat.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp

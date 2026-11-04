@@ -1058,6 +1058,17 @@ u8 *__fastcall Voice70a390_DeletingDtor(u8 *voice, void *, u32 flags) {
     return voice;
 }
 
+void __fastcall Voice70a2e0_Dtor(u8 *voice) {
+    at<u32>(voice, 0) = 0x0070a2e0;
+    Voice70a390_Dtor(voice);
+}
+
+u8 *__fastcall Voice70a2e0_DeletingDtor(u8 *voice, void *, u32 flags) {
+    Voice70a2e0_Dtor(voice);
+    if (flags & 1) GameHeap_Free(voice);
+    return voice;
+}
+
 u32 *__fastcall Voice70a390_Command(u8 *voice, void *, u32 *out, u8 *command) {
     u8 *scratch = command;   // (the children's out: the command's own argument slot, sic)
     for (u8 *child = at<u8 *>(at<u8 *>(voice, 0x4c), 0x18); child;) {

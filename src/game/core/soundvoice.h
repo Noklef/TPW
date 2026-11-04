@@ -291,6 +291,9 @@ u8 __fastcall Voice70a8d0_PickQueuedSound(u8 *voice, void *, u32 unused);
 // first), the vtable 0x70a3e8, Class70a7e0_Dtor. 0x6b72b0 (thiscall (flags), pops 4; slot 2): it, the voice freed with flag 1.
 void __fastcall Voice70a390_Dtor(u8 *voice);
 u8 *__fastcall Voice70a390_DeletingDtor(u8 *voice, void *, u32 flags);
+// 0x6b7370 (thiscall; names invented): the vtable 0x70a2e0, Voice70a390_Dtor. 0x6b7350 (thiscall (flags), pops 4): it, the voice freed with flag 1.
+void __fastcall Voice70a2e0_Dtor(u8 *voice);
+u8 *__fastcall Voice70a2e0_DeletingDtor(u8 *voice, void *, u32 flags);
 // 0x6bd9b0 (thiscall (out, command), pops 8; slot 6): each child: the command's +4 its sound (+0x24), its slot 6 (out: the command's own
 // argument slot), deleted (slot 2, 1) when the command's slot 0 answers 1; the list then emptied (the kept children too, sic), and
 // SoundVoice_Command (out, command). Returns the out.
