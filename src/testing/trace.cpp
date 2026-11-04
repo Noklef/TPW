@@ -196,6 +196,20 @@ LONG CALLBACK on_exception(EXCEPTION_POINTERS *info) {
                  log_seconds(), e->ExceptionCode, (unsigned)(uintptr_t)e->ExceptionAddress, detail,
                  GetCurrentThreadId(), c->Eax, c->Ecx, c->Edx, c->Esi, c->Edi, c->Esp,
                  IsBadReadPtr((void *)(uintptr_t)c->Esp, 4) ? 0 : *(DWORD *)(uintptr_t)c->Esp);
+        // A fault's call chain, roughly: the code addresses on its stack (a DLL offset goes to tools/dllsym.py).
+        if (e->ExceptionCode == EXCEPTION_ACCESS_VIOLATION) {
+            char chain[160] = "";
+            const DWORD *stack = reinterpret_cast<const DWORD *>(static_cast<uintptr_t>(c->Esp));
+            int found = 0;
+            for (int i = 0; i < 256 && found < 16 && !IsBadReadPtr(stack + i, 4); ++i) {
+                MEMORY_BASIC_INFORMATION m;
+                if (!VirtualQuery(reinterpret_cast<void *>(static_cast<uintptr_t>(stack[i])), &m, sizeof m)) continue;
+                if (m.Type != MEM_IMAGE || !(m.Protect & 0xf0)) continue;   // (0xf0: the PAGE_EXECUTE kinds)
+                wsprintfA(chain + lstrlenA(chain), " %08X", stack[i]);
+                ++found;
+            }
+            log_line("[%6.1fs] stack:%s", log_seconds(), chain);
+        }
     }
     return EXCEPTION_CONTINUE_SEARCH;
 }
