@@ -92,6 +92,6 @@ u32 __fastcall CodecvtW_In(u8 *self, void *, u8 *state, const u8 *from, const u8
 u32 __fastcall CodecvtW_Out(u8 *self, void *, u32 *state, const u16 *from, const u16 *from_end, const u16 **from_next, u8 *to, u8 *to_end, u8 **to_next);
 
 // 0x4f5fb0 (thiscall (state, first, last, most), pops 16; codecvt::do_length, by its shape; name unconfirmed): how many units from first, up to last, fit in most bytes: _Wcrtomb on each until
-// it answers 0 or less or more than is left. Most is only tested for 0 once, before the loop.
+// it answers 0 or less or more than is left, or none are left.
 s32 __fastcall CodecvtW_Length(u8 *self, void *, void *state, const u16 *first, const u16 *last, u32 most);
 }

@@ -6,15 +6,15 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import IMPORT_TABLE, LOG, RAM, Bench, Call, _recorder, answers, blob, fill, import_table, log_region, set_return  # noqa: E402
+from fncmp import IMPORT_TABLE, LOG, RAM, Bench, Call, _recorder, answers, blob, blob_bytes, fill, import_table, log_region, set_return, strings  # noqa: E402
 
 GETPTD, LOCK, UNLOCK, NHMALLOC = 2, 7, 8, 28
 INC, DEC, M2W, W2M = 14, 15, 16, 17
-B = Bench([(0x69a460, 0x69a4d3), (0x69a4e0, 0x69a55e), (0x69a560, 0x69a5c8), (0x693bc0, 0x693c3b), (0x693c40, 0x693db7), (0x699bd0, 0x699c89), (0x686a00, 0x686a10), (0x67dcd0, 0x67dcf0)],
+B = Bench([(0x69a460, 0x69a4d3), (0x69a4e0, 0x69a55e), (0x69a560, 0x69a5c8), (0x693bc0, 0x693c3b), (0x693c40, 0x693db7), (0x699bd0, 0x699c89), (0x686a00, 0x686a10), (0x67dcd0, 0x67dcf0), (0x4f5fb0, 0x4f6006)],
           hooks={0x682720: _recorder(LOCK, 1, cdecl=True), 0x6827a0: _recorder(UNLOCK, 1, cdecl=True), 0x682460: _recorder(GETPTD, 0, cdecl=True), 0x67dcf0: _recorder(NHMALLOC, 2, cdecl=True)})
 PTD, TABLE, CONV, TEXT, STATE, UNIT, OUT, ANSWERS, PCTYPE = (RAM + 0x100 * i for i in range(9))
 COPY, RESULT = RAM + 0x1000, RAM + 0x1400
-OPS = [n for n in ('getcvt', 'getctype', 'wcrtomb', 'wcrtomb_lk', 'mbrtowc', 'mbrtowc_lk') if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
+OPS = [n for n in ('getcvt', 'getctype', 'wcrtomb', 'wcrtomb_lk', 'mbrtowc', 'mbrtowc_lk', 'length') if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 
 
 def case(r):
@@ -51,6 +51,17 @@ def case(r):
         fill(log, W2M, 7, struct.pack('<I', r.choice([0, 0, 0, 1])))
         unit = r.choice([0, 0x41, 0xff, 0x100, 0x3042, 0x10041, r.getrandbits(32), r.getrandbits(16)])
         return Call(0x69a460 if name == 'wcrtomb' else 0x69a4e0, [OUT, unit, r.getrandbits(32), conversion], regions, conv='c', ret='a')
+    if name == 'length':   # (codecvt::do_length 0x4f5fb0 on the real _Wcrtomb: the bytes go to its own stack, the unit's high half is the caller's EDX, so only the low half is seen.)
+        strings(log, W2M, 0, out=0b10010000)
+        blob_bytes(log, W2M, 2, 0b11)
+        fill(log, W2M, 7, struct.pack('<I', r.choice([0, 0, 0, 0, 1])))
+        regions[ANSWERS] = struct.pack('<40I', *[r.choice([1, 1, 1, 2, 2, 3, 0, 0xffffffff]) for _ in range(40)])
+        self_ = bytearray(r.bytes(0x10))
+        struct.pack_into('<2I', self_, 8, r.choice([0, 0x409, 0x409]), r.choice([932, 1252]))
+        regions[RESULT] = self_
+        count = r.choice([0, 1, 2, 3, 5, 8])
+        regions[TEXT] = struct.pack('<16H', *[r.choice([0x41, 0xff, 0x100, 0x3042, r.getrandbits(16)]) for _ in range(16)])
+        return Call(0x4f5fb0, [RESULT, r.getrandbits(32), TEXT, TEXT + 2 * count, r.choice([0, 1, 2, 3, 4, 5, 8, 0x100, 0xffffffff])], regions, conv='t', ret='a')
     regions[TEXT] = bytes(r.choice([0, 0x41, 0x81, 0xff, r.randrange(1, 256), r.randrange(1, 256)]) for _ in range(4)) + bytes(4)
     regions[STATE] = struct.pack('<I', r.choice([0, 0, 0, 1, r.getrandbits(32)]))
     regions[UNIT] = r.bytes(4)

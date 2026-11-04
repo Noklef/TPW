@@ -457,14 +457,12 @@ u32 __fastcall CodecvtW_Out(u8 *self, void *, u32 *state, const u16 *from, const
 s32 __fastcall CodecvtW_Length(u8 *self, void *, void *state, const u16 *first, const u16 *last, u32 most) {
     const u16 *const end = last;
     const u16 *at = first;
-    if (at != end && most) {
-        do {
-            // (The bytes go to the slot of the argument last, sic: the end was read before.)
-            const s32 written = CRT_Wcrtomb(reinterpret_cast<char *>(&last), *at, state, reinterpret_cast<const u32 *>(self + 8));
-            if (written <= 0 || most < static_cast<u32>(written)) break;
-            ++at;
-            most -= static_cast<u32>(written);
-        } while (at != end);
+    while (at != end && most) {
+        // (The bytes go to the slot of the argument last, sic: the end was read before.)
+        const s32 written = CRT_Wcrtomb(reinterpret_cast<char *>(&last), *at, state, reinterpret_cast<const u32 *>(self + 8));
+        if (written <= 0 || most < static_cast<u32>(written)) break;
+        ++at;
+        most -= static_cast<u32>(written);
     }
     return static_cast<s32>(at - first);
 }
