@@ -7132,6 +7132,7 @@ address,name,kind,confidence,notes
 0x00573660,D3dSetup_OnZFormat,function,low,"reimplemented (src/game/render/d3dsetup); stdcall (format, wanted): the depth format callback"
 0x00583e90,UvProbe_Down,function,low,reimplemented (src/game/render/uvprobe); thiscall on the settings: the offset down the screen (+0x40ec) found by drawing a texture striped in rows and reading it back
 0x00584310,UvProbe_Across,function,low,"reimplemented (src/game/render/uvprobe); thiscall on the settings: the same across (+0x40e8), the stripes in columns"
+0x00583cc0,UvProbe_Detect,function,low,"reimplemented (src/game/render/uvprobe); thiscall on the settings: the offsets cleared; with driver kind 1 set for known cards, else the two probes"
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"
