@@ -166,6 +166,7 @@
 #include "../game/gfx/overlayload.h"
 #include "../game/gfx/overlayloadall.h"
 #include "../game/gfx/refblock.h"
+#include "../game/gfx/signrender.h"
 #include "../game/gfx/signstyle.h"
 #include "../game/gfx/spriteframelights.h"
 #include "../game/gfx/tgqvideo.h"
@@ -6903,6 +6904,7 @@ const Hook kHooks[] = {
     {"BumpLight_Render",          0x005eb8a0, (void *)&BumpLight_Render, {0x6a, 0xff, 0x68, 0x08, 0x1e}},
     {"Bump_Build",                0x005eb820, (void *)&Bump_Build, {0x51, 0x56, 0x8b, 0xf1, 0x8b}},
     {"Bump_FilterInto",           0x005ebf10, (void *)&Bump_FilterInto, {0x83, 0xec, 0x08, 0x53, 0x56}},
+    {"SignRender_Text",           0x005eab70, (void *)&SignRender_Text, {0x83, 0xec, 0x38, 0x8b, 0x44}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
