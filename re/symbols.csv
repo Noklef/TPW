@@ -409,7 +409,7 @@ address,name,kind,confidence,notes
 0x00803a3c,gSndThemeRides,data,high,
 0x00803a40,gSndThemeSpeech,data,high,
 0x00803a44,gSndThemeMusic,data,high,
-0x004504c0,Terrain_Load,function,high,"loads <theme>/Terrain base.md2 (or TestBase), flags steep grid squares, then base.lnd when procedural textures are on"
+0x004504c0,Terrain_Load,function,high,"reimplemented (src/game/terrain/baseload); loads <theme>/Terrain base.md2 (or TestBase), flags steep grid squares, then base.lnd when procedural textures are on"
 0x0056dfe0,TerrainTex_InitGlobal,function,low,"reimplemented (src/game/terrain/procedural); TerrainTex_Init of the global object unless the flag is set (name invented, unconfirmed)"
 0x0056e550,TerrainTex_Init,function,medium,"reimplemented (src/game/terrain/procedural); thiscall (name, size), pops 8: the tile cache made anew, set up and the name's .lnd read"
 0x005723f0,TerrainTexCache_ReadLnd,function,medium,"reimplemented (src/game/terrain/texcache); thiscall (name), pops 4: the land's .lnd read"

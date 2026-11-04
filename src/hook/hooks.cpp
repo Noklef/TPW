@@ -334,6 +334,7 @@
 #include "../game/terrain/tct.h"
 #include "../game/terrain/terrain_blend.h"
 #include "../game/terrain/attrmap.h"
+#include "../game/terrain/baseload.h"
 #include "../game/terrain/ground.h"
 #include "../game/terrain/raypick.h"
 #include "../game/terrain/texcache.h"
@@ -7567,6 +7568,7 @@ const Hook kHooks[] = {
     {"RayPick_Node",              0x0045d090, (void *)&RayPick_Node, {0x55, 0x8b, 0xec, 0x83, 0xe4}},
     {"RayPick_Column",            0x0045cdc0, (void *)&RayPick_Column, {0x55, 0x8b, 0xec, 0x83, 0xe4}},
     {"RayPick_World",             0x0045bf90, (void *)&RayPick_World, {0x55, 0x8b, 0xec, 0x81, 0xec}},
+    {"Terrain_Load",              0x004504c0, (void *)&Terrain_Load, {0x8b, 0x44, 0x24, 0x04, 0x81}},
     {"Online_ApplyBalance",       0x0045aee0, (void *)&Online_ApplyBalance, {0x6a, 0xff, 0x68, 0x08, 0x89}},
     {"OnlineServers_Ctor",        0x005d2a80, (void *)&OnlineServers_Ctor, {0x6a, 0xff, 0x68, 0xaf, 0x11}},
     {"OnlineServers_Dtor",        0x0045ad90, (void *)&OnlineServers_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},

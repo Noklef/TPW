@@ -297,6 +297,7 @@
 #include "../../src/game/gfx/texset.h"
 #include "../../src/game/render/ddopen.h"
 #include "../../src/game/terrain/attrmap.h"
+#include "../../src/game/terrain/baseload.h"
 #include "../../src/game/terrain/tct.h"
 #include "../../src/game/world/levelfree.h"
 #include "../../src/game/gfx/texcache.h"
@@ -1318,6 +1319,7 @@ const AddrCall kDisplayRestoreCalls[] = {{0x563460, recorder(1, 6)}, {0x56a770, 
 const AddrCall kTexSetBltCalls[] = {{0x56a770, jpeg_recorder(2, 1)}, {0x564650, jpeg_recorder(3, 1)}, {0x56af20, recorder(4, 2)}};  // tests/fncmp/texsetblt.py
 const AddrCall kAccessorsFreeCalls[] = {{0x67ad90, jpeg_recorder(3, 1)}};  // tests/fncmp/objfree204.py
 const AddrCall kVtablesDtorCalls[] = {{0x67acb0, jpeg_recorder(2, 1)}};  // tests/fncmp/vtbl6fefb8del.py
+const AddrCall kTerrainBaseCalls[] = {{0x40ef40, jpeg_recorder(1, 0)}, {0x46e650, jpeg_recorder(2, 1)}, {0x461a60, jpeg_recorder(3, 3)}, {0x461f10, jpeg_recorder(4, 5)}, {0x427ad0, jpeg_recorder(5, 1)}, {0x46f0c0, jpeg_recorder(6, 1)}, {0x450950, jpeg_recorder(7, 2)}, {0x46e610, jpeg_recorder(8, 0)}, {0x56dfe0, jpeg_recorder(9, 2)}, {0x46ded0, jpeg_recorder(10, 1)}, {0x56dfd0, jpeg_recorder(11, 0)}, {0x46dd50, jpeg_recorder(12, 1)}, {0x45bbc0, jpeg_recorder(13, 1)}, {0x45bcb0, jpeg_recorder(14, 3)}, {0x45bd00, jpeg_recorder(15, 1)}};  // tests/fncmp/terrainbase.py
 const AddrCall kObjModelTreeCalls[] = {{0x56ee90, recorder(9, 1)}, {0x561a30, recorder(10, 2)}, {0x57aa10, recorder(11, 4)}, {0x581cd0, recorder(12, 5)}, {0x57a420, recorder(13, 1)}};  // tests/fncmp/objmodeltree.py
 const AddrCall kTextureTouchCalls[] = {{0x58c9f0, recorder(14, 2)}, {0x588ef0, recorder(15, 0)}};  // tests/fncmp/texturetouches.py
 const AddrCall kWeatherBoltCalls[] ={{0x58a5c0, recorder(20, 1)}, {0x58c9f0, recorder(14, 2)}, {0x57ec50, recorder(1, 2)}, {0x57ed50, jpeg_recorder(2, 0)}, {0x591210, jpeg_recorder(3, 0)}, {0x67b5c0, jpeg_recorder(4, 0)}, {0x57ee30, recorder(5, 0)}, {0x57efd0, recorder(6, 3)}, {0x57f490, recorder(7, 3)}, {0x402d70, recorder(8, 0)}};  // tests/fncmp/weatherbolts.py
@@ -2611,6 +2613,7 @@ int main(int argc, char **argv) {
     TexSet_SetBltCalls(kTexSetBltCalls, sizeof(kTexSetBltCalls) / sizeof(kTexSetBltCalls[0]));
     Accessors_SetFreeCalls(kAccessorsFreeCalls, sizeof(kAccessorsFreeCalls) / sizeof(kAccessorsFreeCalls[0]));
     Vtables_SetDtorCalls(kVtablesDtorCalls, sizeof(kVtablesDtorCalls) / sizeof(kVtablesDtorCalls[0]));
+    TerrainBase_SetCalls(kTerrainBaseCalls, sizeof(kTerrainBaseCalls) / sizeof(kTerrainBaseCalls[0]));
     TexCache_SetDestroyCalls(kTexCacheDestroyCalls, sizeof(kTexCacheDestroyCalls) / sizeof(kTexCacheDestroyCalls[0]));
     SurfacePool_SetLevelsCalls(kSurfaceLevelsCalls, sizeof(kSurfaceLevelsCalls) / sizeof(kSurfaceLevelsCalls[0]));
     DrawBuffer_SetDrawAllCalls(kDrawAllCalls, sizeof(kDrawAllCalls) / sizeof(kDrawAllCalls[0]));
