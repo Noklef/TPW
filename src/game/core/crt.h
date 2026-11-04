@@ -275,6 +275,10 @@ char *__cdecl CRT_itoa(s32 value, char *out, s32 radix);
 
 // 0x67b0d0: wcsncpy. 0x67bf10: wcscpy. 0x67bed0: wcscat. 0x67f450: wcsncat (always an end). 0x67c290: wcscmp (-1, 0 or 1). 0x67f410: wcsncmp (the difference of the last units). 0x67c2f0: wcschr (the end too for 0).
 u16 *__cdecl CRT_wcsncpy(u16 *dest, const u16 *from, u32 count);
+
+// 0x67dda0: _wsplitpath: the outputs may be null. A second character ':' makes the drive; the directory ends at the last '/' or '\\', the extension starts at the last '.'
+// (after the directory, or there is none), each output cut to 0xff characters.
+void __cdecl CRT_wsplitpath(const u16 *path, u16 *drive, u16 *dir, u16 *name, u16 *ext);
 u16 *__cdecl CRT_wcscpy(u16 *dest, const u16 *from);
 u16 *__cdecl CRT_wcscat(u16 *dest, const u16 *from);
 u16 *__cdecl CRT_wcsncat(u16 *dest, const u16 *from, u32 count);

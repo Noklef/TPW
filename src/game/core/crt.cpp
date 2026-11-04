@@ -314,6 +314,47 @@ s32 __cdecl CRT_wcsicmp(const u16 *a, const u16 *b) {
     return (s32)x - (s32)y;
 }
 
+void __cdecl CRT_wsplitpath(const u16 *path, u16 *drive, u16 *dir, u16 *name, u16 *ext) {
+    // One part, its end given: at most 0xff characters (the original's test on the bytes between).
+    const auto copy = [](u16 *to, const u16 *from, const u16 *end) {
+        const u32 bytes = static_cast<u32>(reinterpret_cast<uintptr_t>(end) - reinterpret_cast<uintptr_t>(from));
+        const u32 count = (bytes & ~1u) < 0x1fe ? bytes >> 1 : 0xff;
+        CRT_wcsncpy(to, from, count);
+        to[count] = 0;
+    };
+    if (*path && path[1] == ':') {
+        if (drive) {
+            CRT_wcsncpy(drive, path, 2);
+            drive[2] = 0;
+        }
+        path += 2;
+    } else if (drive) {
+        *drive = 0;
+    }
+    const u16 *last = nullptr;
+    const u16 *dot = nullptr;
+    const u16 *end = path;
+    for (; *end; ++end) {
+        if (*end == '/' || *end == '\\')
+            last = end + 1;
+        else if (*end == '.')
+            dot = end;
+    }
+    if (last) {
+        if (dir) copy(dir, path, last);
+        path = last;
+    } else if (dir) {
+        *dir = 0;
+    }
+    if (dot && dot >= path) {
+        if (name) copy(name, path, dot);
+        if (ext) copy(ext, dot, end);
+    } else {
+        if (name) copy(name, path, end);
+        if (ext) *ext = 0;
+    }
+}
+
 s32 __cdecl CRT_wcsnicmp(const u16 *a, const u16 *b, u32 n) {
     if (!n) return 0;
     u16 x, y;

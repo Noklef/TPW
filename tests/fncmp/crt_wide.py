@@ -20,10 +20,11 @@ def towlower(e):
     e.r['EAX'] = c ^ 0x20 if 0x41 <= c <= 0x5a or 0x100 <= c < 0x180 else c
 
 
-B = Bench([(0x67af00, 0x67afa0), (0x67c830, 0x67c8d0), (0x67b140, 0x67b240), (0x67c8d0, 0x67c9f0), (0x693dc0, 0x693e20)],
+B = Bench([(0x67af00, 0x67afa0), (0x67c830, 0x67c8d0), (0x67b140, 0x67b240), (0x67c8d0, 0x67c9f0), (0x693dc0, 0x693e20), (0x67dda0, 0x67df3e), (0x67acd0, 0x67acee), (0x67b0d0, 0x67b10f)],
           hooks={0x682720: _recorder(LOCK, 1, cdecl=True), 0x6827a0: _recorder(UNLOCK, 1, cdecl=True), 0x683090: _recorder(WOUTPUT, 3, cdecl=True), 0x680ad0: _recorder(FLSBUF, 2, cdecl=True),
                  0x693bc0: _recorder(MBRTOWC, 5, cdecl=True), 0x67e670: towlower})
 TO, FMT, A, Z = RAM, RAM + 0x100, RAM + 0x200, RAM + 0x300
+PATH = RAM + 0x1000
 UNITS = [0, 0x41, 0x5a, 0x61, 0x7a, 0x40, 0x5b, 0x60, 0x7b, 0x100, 0x130, 0xffff, 0x8041]
 
 
@@ -107,7 +108,23 @@ def btowc(r):
     return Call(0x693dc0, [r.choice([0xffffffff, 0, 0x41, 0xe9, r.getrandbits(32)])], {LOG: log}, conv='c', ret='a')
 
 
-KINDS = {'wcsicmp': wcsicmp, 'wcsnicmp': wcsnicmp, 'swprintf': swprintf, 'snwprintf': snwprintf, 'btowc': btowc}
+def splitpath(r):
+    """_wsplitpath: a path of few kinds of character, a long one now and then (past the 0xff cut); any output null."""
+    n = r.choice([0, 1, 2, 3, 5, 8, 12, 20, 0x100, 0x101, 0x180])
+    chars = [r.choice([0x61, 0x62, 0x2f, 0x5c, 0x2e, 0x3a, 0x3a, 0x100]) if n < 0x100 or r.random() < 0.02 else 0x61 for _ in range(n)]
+    if n and r.random() < 0.4:
+        chars[r.randrange(n)] = r.choice([0x2f, 0x2e])
+    if n > 1 and r.random() < 0.3:
+        chars[1] = 0x3a
+    outs = [RAM + 0x1000 * (i + 2) if r.random() < 0.8 else 0 for i in range(4)]
+    regions = {PATH: struct.pack('<%dH' % (n + 1), *chars, 0)}
+    for out in outs:
+        if out:
+            regions[out] = r.bytes(0x400)
+    return Call(0x67dda0, [PATH, *outs], regions, conv='c', ret='v')
+
+
+KINDS = {'splitpath': splitpath, 'wcsicmp': wcsicmp, 'wcsnicmp': wcsnicmp, 'swprintf': swprintf, 'snwprintf': snwprintf, 'btowc': btowc}
 OPS = [k for k in os.environ.get('OPS', ','.join(KINDS)).split(',') if k]
 
 
