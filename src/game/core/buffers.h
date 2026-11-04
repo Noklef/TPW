@@ -79,6 +79,8 @@ u8 *__fastcall Counted_CopyCtor(u8 *object, void *, const u8 *from);
 
 // 0x5b9fd0 / 0x5ba290 (thiscall): the shared record at +0x30 (when there is one) loses a use; at 0 its array (elements of 0x66 / 0x10 bytes, destroyed by the function the dword
 // at 0x6fd504 / 0x6fd50c holds) and the array's block are freed, +4 is cleared and the record freed. +0x30 is cleared.
+// Those two with any element size and destructor slot.
+void Shared_Release(u8 *object, u32 elementSize, u32 destructorAt);
 void __fastcall Shared_Release66(u8 *object);
 
 void __fastcall Shared_Release10(u8 *object);

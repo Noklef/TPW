@@ -263,6 +263,7 @@
 #include "../../src/game/render/engineerrors.h"
 #include "../../src/game/online/chatavatar.h"
 #include "../../src/game/online/chatcommand.h"
+#include "../../src/game/online/listrequest.h"
 #include "../../src/game/online/session.h"
 #include "../../src/game/online/sessionlogin.h"
 #include "../../src/game/online/chatevents.h"
@@ -1520,6 +1521,8 @@ const Panel7b9940OpenEnv kPanel7b9940OpenEnv = {Rec{jpeg_recorder(10, 0)}, Rec{j
 const Panel7cc218RefreshEnv kPanel7cc218RefreshEnv = {Rec{jpeg_recorder(10, 1)}, Rec{recorder(11, 0)}, Rec{recorder(12, 0)}};
 // Online_Instance's constructor (tests/fncmp/onlineinstance.py).
 const OnlineInstanceEnv kOnlineInstanceEnv = {Rec{recorder(10, 0)}};
+// The list requests' command queue (tests/fncmp/listrequest.py).
+const ListRequestEnv kListRequestEnv = {Rec{jpeg_recorder(25, 2)}};
 // The session's login and news calls (tests/fncmp/sessionlogin.py).
 const OnlineLoginEnv kOnlineLoginEnv = {Rec{jpeg_recorder(16, 1)}, Rec{jpeg_recorder(17, 1)}, Rec{jpeg_recorder(18, 0)}, Rec{jpeg_recorder(19, 1)}, Rec{jpeg_recorder(20, 0)}, Rec{jpeg_recorder(21, 1)},
                                         Rec{recorder(22, 2)}, Rec{jpeg_recorder(23, 0)}, Rec{jpeg_recorder(24, 0)}, Rec{jpeg_recorder(25, 2)}, Rec{jpeg_recorder(26, 1)}};
@@ -2499,6 +2502,7 @@ int main(int argc, char **argv) {
     Dialog7ca168_SetOpenEnv(&kDialog7ca168OpenEnv);
     Online_SetInstanceEnv(&kOnlineInstanceEnv);
     OnlineLogin_SetEnv(&kOnlineLoginEnv);
+    ListRequest_SetEnv(&kListRequestEnv);
     ThingPanelHandlers_SetEnv(&kThingPanelHandlerEnv);
     GamePartDialogs_SetEnv(&kGamePartDialogEnv);
     PatrolCoverage_SetEnv(&kPatrolCoverageEnv);

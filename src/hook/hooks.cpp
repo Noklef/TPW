@@ -566,6 +566,7 @@
 #include "../game/online/chatcursor.h"
 #include "../game/online/postcardmail.h"
 #include "../game/online/chatlists.h"
+#include "../game/online/listrequest.h"
 #include "../game/online/postcardsend.h"
 #include "../game/online/roomcounts.h"
 #include "../game/online/roomtexthandler.h"
@@ -7431,6 +7432,23 @@ const Hook kHooks[] = {
     {"Online_NewsResult",         0x005b67d0, (void *)&Online_NewsResult, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"Online_NewsPoll",           0x005b6a30, (void *)&Online_NewsPoll, {0x83, 0xec, 0x08, 0x53, 0x56}},
     {"Online_NewsFinish",         0x005b6b60, (void *)&Online_NewsFinish, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"ListRequest_Done30",        0x005b9b00, (void *)&ListRequest_Done30, {0x83, 0xec, 0x0c, 0x53, 0x55}},
+    {"ListRequest_Done66",        0x005b9d60, (void *)&ListRequest_Done66, {0x83, 0xec, 0x0c, 0x53, 0x55}},
+    {"ListRequest_Done10",        0x005ba030, (void *)&ListRequest_Done10, {0x83, 0xec, 0x0c, 0x53, 0x55}},
+    {"ListRequest_Done26",        0x005ba2f0, (void *)&ListRequest_Done26, {0x83, 0xec, 0x0c, 0x53, 0x55}},
+    {"ListRequest_Done34",        0x005ba560, (void *)&ListRequest_Done34, {0x83, 0xec, 0x0c, 0x53, 0x55}},
+    {"ListRequest_Start30",       0x005bc7d0, (void *)&ListRequest_Start30, {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"ListRequest_Start66",       0x005bcd10, (void *)&ListRequest_Start66, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"ListRequest_StartText66",   0x005bcbc0, (void *)&ListRequest_StartText66, {0x53, 0x8b, 0x54, 0x24, 0x08}},
+    {"ListRequest_Start10",       0x005bd070, (void *)&ListRequest_Start10, {0x53, 0x55, 0x56, 0x8b, 0xf1}},
+    {"ListRequest_Start26",       0x005bd4b0, (void *)&ListRequest_Start26, {0x53, 0x55, 0x56, 0x8b, 0xf1}},
+    {"ListRequest_Start34",       0x005bd8c0, (void *)&ListRequest_Start34, {0x53, 0x55, 0x56, 0x8b, 0xf1}},
+    {"ListRequest_Login30",       0x005bc710, (void *)&ListRequest_Login30, {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"ListRequest_Login66",       0x005bca70, (void *)&ListRequest_Login66, {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"ListRequest_Login10",       0x005bcfb0, (void *)&ListRequest_Login10, {0x53, 0x56, 0x57, 0xe8, 0xd8}},
+    {"ListRequest_Login26",       0x005bd3f0, (void *)&ListRequest_Login26, {0x53, 0x56, 0x57, 0xe8, 0x98}},
+    {"ListRequest_Login34",       0x005bd800, (void *)&ListRequest_Login34, {0x53, 0x56, 0x57, 0xe8, 0x88}},
+    {"Online_Has108NoFlag10",     0x005bc8e0, (void *)&Online_Has108NoFlag10, {0x56, 0xbe, 0x01, 0x00, 0x00}},
     {"LobbyModel_SetPosition",    0x005d8190, (void *)&LobbyModel_SetPosition, {0x8b, 0x41, 0x04, 0x8b, 0x54}},
     {"LobbyModel_TurnY",          0x005d8380, (void *)&LobbyModel_TurnY, {0x8b, 0x49, 0x04, 0x8d, 0x44}},
     {"LobbyModel_SetScale",       0x005d83b0, (void *)&LobbyModel_SetScale, {0x83, 0xec, 0x0c, 0x8b, 0x44}},

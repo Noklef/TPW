@@ -292,6 +292,8 @@ u8 *__fastcall Counted_CopyCtor(u8 *object, void *, const u8 *from) {
     return object;
 }
 
+void Shared_Release(u8 *object, u32 elementSize, u32 destructorAt) { SharedRelease(object, elementSize, destructorAt); }
+
 void __fastcall Shared_Release66(u8 *object) { SharedRelease(object, 0x66, 0x006fd504); }
 
 void __fastcall Shared_Release10(u8 *object) { SharedRelease(object, 0x10, 0x006fd50c); }
