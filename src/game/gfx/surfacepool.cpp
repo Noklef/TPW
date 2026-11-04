@@ -63,6 +63,18 @@ u32 kept(u32 result) {
 
 void SurfacePool_SetCalls(const AddrCall *table, u32 count) { g_poolCalls.Set(table, count); }
 
+extern "C" u32 __fastcall SurfacePool_ReleaseAll(u8 *pool) {
+    for (u32 i = 0; i < 32; i++) {
+        u8 *const surface = reinterpret_cast<u8 **>(pool)[i];
+        if (!surface) continue;
+        comcall<u32>(surface, 0x98, 0u);   // (its answer reaches no test, sic)
+        const s32 released = (s32)comcall<u32>(surface, 8);
+        if (released < 0) g_poolCalls.Cd(0x00564650, g_poolCalls.Cd(0x0056a770, (u32)released));
+        reinterpret_cast<u8 **>(pool)[i] = nullptr;
+    }
+    return 1;
+}
+
 extern "C" u32 __fastcall SurfacePool_MakeSurfaces(u8 *pool, void *, s32 side, u32 format) {
     u8 *const device = at<u8 *>(global32p(0x00879a24), 8);
     const s32 index = SurfacePool_SideIndex(side);

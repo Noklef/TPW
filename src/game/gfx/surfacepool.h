@@ -24,4 +24,6 @@ void SurfacePool_SetCalls(const AddrCall *table, u32 count);
 // the device's (+8 of [0x879a24]) slot 0x18, the surface's slot 0x94 with 0. Each result kept at [0x879cd4], a negative one logged; not 0 pushed on the engine's list (kind 3, 0x879ad0) and 0. Returns 1.
 extern "C" {
 u32 __fastcall SurfacePool_MakeSurfaces(u8 *pool, void *, s32 side, u32 format);
+// 0x58b280 (thiscall; name invented, unconfirmed): each of the 32 surfaces set: its slot 0x98 (0), its Release, a Release's failure logged, the pointer 0. Returns 1.
+u32 __fastcall SurfacePool_ReleaseAll(u8 *pool);
 }
