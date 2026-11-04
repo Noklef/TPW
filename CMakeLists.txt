@@ -692,6 +692,7 @@ add_library(tpw_game STATIC
     src/game/world/mousemodeclick.cpp
     src/game/world/savegamefile.cpp
     src/game/world/advisorsend.cpp
+    src/game/world/levelfree.cpp
     src/game/ui/staffrename.cpp
     src/game/ui/window7cc8bc.cpp
     src/game/ui/dialog7cb2b8.cpp

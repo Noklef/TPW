@@ -404,6 +404,7 @@
 #include "../game/world/gamefile.h"
 #include "../game/world/gamemode.h"
 #include "../game/world/guardescort.h"
+#include "../game/world/levelfree.h"
 #include "../game/world/mapclick.h"
 #include "../game/world/mappress.h"
 #include "../game/world/mappreview.h"
@@ -6714,6 +6715,7 @@ const Hook kHooks[] = {
     {"SaveGame_ReadHeader",       0x00416240, (void *)&SaveGame_ReadHeader, {0x81, 0xec, 0xe8, 0x09, 0x00}},
     {"AdvisorMsg_SendScored",     0x0059b620, (void *)&AdvisorMsg_SendScored, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"AdvisorMsg_Send",           0x0059b870, (void *)&AdvisorMsg_Send, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Level_FreeAll",             0x00457d50, (void *)&Level_FreeAll, {0x53, 0x56, 0x57, 0xe8, 0xb8}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},
