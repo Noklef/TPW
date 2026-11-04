@@ -431,4 +431,12 @@ s32 __fastcall ImeHost_OnMessage(u8 *host, void *, u8 *window, u32 message, u32 
 s32 __cdecl ImeHost_WindowProc(u8 *window, u32 message, u32 a, u32 b) {
     return ImeHost_OnMessage(reinterpret_cast<u8 *>((uintptr_t)0x007b4e38), nullptr, window, message, a, b);
 }
+
+s32 __stdcall Imm_SetCompositionStringA(u32 context, u32 index, void *comp, u32 comp_length, void *read, u32 read_length) {
+    return import<s32(__stdcall *)(u32, u32, void *, u32, void *, u32)>(0x006fd094)(context, index, comp, comp_length, read, read_length);
+}
+
+u32 __stdcall Imm_GetCandidateListA(u32 context, u32 index, void *list, u32 length) {
+    return import<u32(__stdcall *)(u32, u32, void *, u32)>(0x006fd078)(context, index, list, length);
+}
 }

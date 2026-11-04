@@ -112,4 +112,8 @@ s32 __fastcall ImeHost_OnMessage(u8 *host, void *, u8 *window, u32 message, u32 
 
 // 0x480d10 (cdecl (window, message, a, b); name unconfirmed): the candidate window's raw handler: ImeHost_OnMessage on the host 0x7b4e38.
 s32 __cdecl ImeHost_WindowProc(u8 *window, u32 message, u32 a, u32 b);
+
+// IMM32 through the exe's import thunks. 0x6b5576: ImmSetCompositionStringA; 0x6b5594: ImmGetCandidateListA.
+s32 __stdcall Imm_SetCompositionStringA(u32 context, u32 index, void *comp, u32 comp_length, void *read, u32 read_length);
+u32 __stdcall Imm_GetCandidateListA(u32 context, u32 index, void *list, u32 length);
 }
