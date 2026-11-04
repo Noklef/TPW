@@ -18,7 +18,7 @@ def case(r):
     log = log_region()
     set_return(log, OPENSOFT, 0 if op == 'fails' else r.choice([1, 2, -1]))
     regions = {LOG: log, HEAP: heap(0x200, 1 if op == 'no memory' else 0), **tables(), 0x879dac: struct.pack('<I', RAM + 0xf00 if op == 'there' else 0), 0x8bd52c: r.bytes(4)}
-    return Call(0x573960, [r.getrandbits(32)], regions)
+    return Call(0x573960, [r.getrandbits(32)], regions, ret='a')
 
 
 if __name__ == '__main__':

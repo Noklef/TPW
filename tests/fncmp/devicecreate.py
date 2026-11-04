@@ -38,10 +38,10 @@ def case(r):
                0x707550: r.bytes(0x10), 0x879a24: struct.pack('<I', DIRECT), 0x879da8: struct.pack('<I', there), 0x879dac: struct.pack('<I', there if name != 'Destroy' else 0 if op == 'Destroy none' else OBJECT), 0x8bd52c: r.bytes(4), 0x8bd4ac: struct.pack('<I', r.choice([256, 512, r.randrange(1, 1 << 16)])),
                0x8bd508: struct.pack('<I', r.getrandbits(32) & ~0x2000000 | r.choice([0, 0x2000000])), 0x8bcbd0: struct.pack('<II', r.choice([640, 800, r.randrange(1, 4096)]), r.choice([480, 600, r.randrange(1, 4096)])), 0xfbe014: r.bytes(0x24)}
     if name == 'Open':
-        return Call(CALLS[name][0], [OBJECT, r.choice([0, 0, 1, r.getrandbits(32)])], regions, conv='t')
+        return Call(CALLS[name][0], [OBJECT, r.choice([0, 0, 1, r.getrandbits(32)])], regions, conv='t', ret='a')
     if name == 'D3d':
-        return Call(CALLS[name][0], [r.choice([1, 1, 0, 2, 4, r.getrandbits(32)])], regions)
-    return Call(CALLS[name][0], [], regions)
+        return Call(CALLS[name][0], [r.choice([1, 1, 0, 2, 4, r.getrandbits(32)])], regions, ret='a')
+    return Call(CALLS[name][0], [], regions, ret='a')
 
 
 if __name__ == '__main__':

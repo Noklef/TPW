@@ -5,7 +5,7 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import LOG, RAM, Bench, Call, _recorder, fill, log_region, put, set_return, strings, vtable  # noqa: E402
+from fncmp import LOG, RAM, Bench, Call, _recorder, blob, fill, log_region, put, set_return, strings, vtable  # noqa: E402
 
 MESSAGE, LOGGED, ERROR, TABLE, LOAD, FREE, FORMAT = 1, 2, 3, 4, 5, 6, 21
 B = Bench([(0x586e40, 0x586f3e), (0x586f40, 0x58710e), (0x67a400, 0x6902c0)], hooks={0x56a770: _recorder(MESSAGE, 1, cdecl=True), 0x564650: _recorder(LOGGED, 1, cdecl=True), 0x56af20: _recorder(ERROR, 2), 0x591270: _recorder(TABLE, 9, cdecl=True), 0x574bd0: _recorder(LOAD, 6, cdecl=True), 0x579b80: _recorder(FREE, 1, cdecl=True)})
@@ -23,8 +23,8 @@ def case(r):
     fmt = bytearray(r.bytes(0x20))
     put(fmt, 0xc, 'I', bits)
     set_return(log, FORMAT, answer)
-    fill(log, FORMAT, 1, bytes(fmt))
-    strings(log, FORMAT, 0, 2)
+    fill(log, FORMAT, 1, bytes(fmt[4:]), offset=4)
+    blob(log, FORMAT, 1, 1)   # (the format's size set before the call)
     set_return(log, MESSAGE, TEXT)
     strings(log, LOGGED, 1)
     table_mask = 1 << 4 if kind == 1 else 0
@@ -51,8 +51,8 @@ def case(r):
     regions = {LOG: log, SELF: self, NAME: b'title.tga\0', DIRECT: put(bytearray(r.bytes(0x18)), 0x10, 'I', SURFACE), SURFACE: struct.pack('<I', VT), VT: vtable({}, 0x60, com={FORMAT: 2}), TEXT: b'bad\0', BLOCK: pixels, PIXELS: r.bytes(0x1000),
                0x879a24: struct.pack('<I', DIRECT), 0x879cd4: r.bytes(4), 0x8bd524: struct.pack('<I', kind)}
     if op.startswith('Load'):
-        return Call(0x586e40, [SELF, NAME], regions, conv='t')
-    return Call(0x586f40, [SELF, NAME, r.getrandbits(32), y], regions, conv='t')
+        return Call(0x586e40, [SELF, NAME], regions, conv='t', ret='a')
+    return Call(0x586f40, [SELF, NAME, r.getrandbits(32), y], regions, conv='t', ret='a')
 
 
 if __name__ == '__main__':
