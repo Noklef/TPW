@@ -227,6 +227,21 @@ add_library(tpw_game STATIC
     src/game/core/moneypunct.cpp
     src/game/core/crtfloat.cpp
     src/game/core/gameowner.cpp
+    src/game/core/crtlock.cpp
+    src/game/core/crtopen.cpp
+    src/game/core/crtmessage.cpp
+    src/game/core/crtsbh.cpp
+    src/game/core/crtenv.cpp
+    src/game/core/crtrealloc.cpp
+    src/game/core/crtlocale.cpp
+    src/game/core/locinfo.cpp
+    src/game/core/crtoutput.cpp
+    src/game/core/locimp.cpp
+    src/game/core/localefacet.cpp
+    src/game/core/crtmbstring.cpp
+    src/game/core/numput.cpp
+    src/game/core/wcollate.cpp
+    src/game/core/moneyput.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp

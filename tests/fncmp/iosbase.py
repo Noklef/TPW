@@ -20,7 +20,7 @@ def lock(e):
 
 B = Bench([(0x693340, 0x6934c0), (0x693830, 0x693a90), (0x6918f0, 0x691a20), (0x691ba0, 0x691cc4), (0x67d250, 0x67d340), (0x45b340, 0x45b9a0), (0x4f5a50, 0x4f5acc),
            (0x4f0100, 0x4f0138), (0x4f1620, 0x4f1640), (0x4f1820, 0x4f1830), (0x4f1870, 0x4f1890), (0x4f2180, 0x4f21a0), (0x4ef840, 0x4ef860), (0x4f1ad0, 0x4f1b30), (0x4f1ba0, 0x4f1bd0),
-           (0x4f1560, 0x4f1620), (0x4f1be0, 0x4f1ca0), (0x693dc0, 0x693e20), (0x4f11e0, 0x4f1260), (0x4f12b0, 0x4f12c5), (0x4f1320, 0x4f1335), (0x4f1850, 0x4f186e), (0x4f1b80, 0x4f1b9e)],
+           (0x4f1560, 0x4f1620), (0x4f1be0, 0x4f1ca0), (0x693dc0, 0x693e20), (0x4f11e0, 0x4f1260), (0x4f12b0, 0x4f12c5), (0x4f1320, 0x4f1335), (0x4f1850, 0x4f186e), (0x4f1b80, 0x4f1b9e), (0x4f1830, 0x4f1850)],
           hooks={0x67ad90: _free, 0x693bc0: _recorder(MBRTOWC, 5, cdecl=True), 0x691de0: lock, 0x691ea0: lambda e: None, 0x67d3a0: _recorder(THROW, 2, com=True), 0x67b8a0: _recorder(FOPEN, 2, cdecl=True), 0x67c100: _recorder(FSEEK, 3, cdecl=True),
                  0x67b620: _recorder(FCLOSE, 1, cdecl=True), 0x699da0: _recorder(LOCALE, 0, cdecl=True)})
 del B.emu.hooks[0x6918f0], B.emu.hooks[0x691ba0]   # (the bench's raising stand-ins: here the originals run)
@@ -207,7 +207,12 @@ def streams(r):
 def bad_cast(r):
     text = b'z' * r.choice([0, 1, 7, 30]) + b'\0'
     regions = {HEAP: heap(0x200, fail=r.choice([0, 0, 0, 1])), OBJ: r.bytes(0xc), NODES: struct.pack('<III', r.getrandbits(32), LOC, r.choice([0, 1, r.getrandbits(32)])), LOC: text}
-    which = r.deal(['ctor', 'copy', 'dtor'])
+    which = r.deal(['ctor', 'copy', 'dtor', 'throw'])
+    if which == 'throw':
+        log = log_region()
+        blob(log, THROW, 0, 0x7)   # (vtable, text, owned)
+        regions[LOG] = log
+        return Call(0x4f1830, [NODES], regions, conv='t', ret='v')
     if which == 'ctor':
         return Call(0x4f2180, [OBJ, LOC], regions, conv='t', ret='a')
     if which == 'copy':

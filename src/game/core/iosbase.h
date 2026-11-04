@@ -15,9 +15,14 @@ struct IosBaseEnv {
     void *(__cdecl *memAlloc)(u32 size);                           // Mem_Alloc 0x67acc0
     void *(__fastcall *locimpCtor)(void *self, void *edx, u32 refs);   // 0x699f70: locale::_Locimp's constructor
     s32(__cdecl *atexit)(void(__cdecl *fn)());                     // 0x67a7d0
+    void(__cdecl *makeloc)(void *info, u32 categories, void *imp, void *loc);   // 0x694120: locale::_Locimp::_Makeloc
+    void *(__fastcall *ctypeCtor)(void *self, void *edx, u32 table, u32 owned, u32 refs);   // 0x5cfb60: ctype<char>'s constructor
+    void(__cdecl *makexloc)(void *info, u32 categories, void *imp, void *loc);   // 0x6a67f0: _Locimp::_Makexloc
+    void(__cdecl *makewloc)(void *info, u32 categories, void *imp, void *loc);   // 0x69a7a0: _Locimp::_Makewloc
 };
 
 void IosBase_SetEnv(const IosBaseEnv *env);
+const IosBaseEnv &IosBase_Env();
 
 extern "C" {
 
@@ -92,12 +97,26 @@ u32 *__fastcall BadCast_Copy(u32 *self, void *edx, const u32 *from);
 void __fastcall BadCast_Dtor(u32 *self);
 // 0x4f1850 (thiscall (flags), pops 4): BadCast_Dtor, the object freed for flags bit 0. Returns it.
 u32 *__fastcall BadCast_DeletingDtor(u32 *self, void *, u32 flags);
+// 0x4f1830 (thiscall; name unconfirmed): a copy of the bad_cast at this thrown with info 0x7193a8.
+void __fastcall BadCast_Throw(const u32 *from);
 
 // 0x4f1ad0 (thiscall (c), pops 4): ctype<wchar_t>::do_widen(c): btowc of the sign-extended byte.
 u32 __fastcall CtypeW_Widen(void *self, void *edx, u32 c);
 
 // 0x4f1af0 (thiscall (first, last, to), pops 0xc): do_widen of the bytes in turn to the words at to. Returns last.
 const char *__fastcall CtypeW_WidenRange(void *self, void *edx, const char *first, const char *last, u16 *to);
+
+// 0x4f19d0, 0x4f1a50 (thiscall (c), pop 4; ctype<wchar_t>::do_tolower, do_toupper by their shape; names unconfirmed): the slot 0x30 (c, 0)'s byte, sign-extended, through _Tolower or _Toupper with the
+// locale +8; the answer's byte replaces c's low byte for the slot 0x28, whose answer is returned.
+u32 __fastcall CtypeW_ToLower(u8 *self, void *, u32 c);
+u32 __fastcall CtypeW_ToUpper(u8 *self, void *, u32 c);
+// 0x4f1a10, 0x4f1a90 (thiscall (first, last), pop 8; names unconfirmed): the same maps over the words, in place, with no slots. Return last.
+u16 *__fastcall CtypeW_ToLowerRange(u8 *self, void *, u16 *first, u16 *last);
+u16 *__fastcall CtypeW_ToUpperRange(u8 *self, void *, u16 *first, u16 *last);
+// 0x4f1b30 (thiscall (c, default), pops 8; do_narrow; name unconfirmed): _Wctob of c; the default is not used.
+s32 __fastcall CtypeW_Narrow(void *, void *, u32 c, u32);
+// 0x4f1b40 (thiscall (first, last, default, to), pops 0x10; name unconfirmed): each word's _Wctob byte to the bytes at to. Returns last.
+const u16 *__fastcall CtypeW_NarrowRange(void *, void *, const u16 *first, const u16 *last, u32, char *to);
 
 // 0x4f1ba0 (thiscall): ctype<wchar_t>'s destructor: its vtable 0x709cac, the table +0x10 freed (CRT free) if owned (+0x14), locale::facet's vtable 0x709b44.
 void __fastcall CtypeW_Dtor(u8 *self);

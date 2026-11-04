@@ -5,6 +5,7 @@
 
 #include "crt.h"
 #include "stdstring.h"
+#include "vcall.h"
 #include "wfilebuf.h"
 
 namespace {
@@ -22,6 +23,10 @@ const IosBaseEnv kGameEnv = {
     game<void *(__cdecl *)(u32)>(0x0067acc0),
     game<void *(__fastcall *)(void *, void *, u32)>(0x00699f70),
     game<s32(__cdecl *)(void(__cdecl *)())>(0x0067a7d0),
+    game<void(__cdecl *)(void *, u32, void *, void *)>(0x00694120),
+    game<void *(__fastcall *)(void *, void *, u32, u32, u32)>(0x005cfb60),
+    game<void(__cdecl *)(void *, u32, void *, void *)>(0x006a67f0),
+    game<void(__cdecl *)(void *, u32, void *, void *)>(0x0069a7a0),
 };
 const IosBaseEnv *g_env = &kGameEnv;
 
@@ -79,6 +84,8 @@ void free_list(u8 *head) {
 }  // namespace
 
 void IosBase_SetEnv(const IosBaseEnv *env) { g_env = env ? env : &kGameEnv; }
+
+const IosBaseEnv &IosBase_Env() { return *g_env; }
 
 extern "C" {
 
@@ -290,10 +297,45 @@ u32 *__fastcall BadCast_DeletingDtor(u32 *self, void *, u32 flags) {
     return self;
 }
 
+void __fastcall BadCast_Throw(const u32 *from) {
+    u32 copy[3];
+    BadCast_Copy(copy, nullptr, from);
+    g_env->cxxThrow(copy, reinterpret_cast<const void *>((uintptr_t)0x007193a8));
+}
+
 u32 __fastcall CtypeW_Widen(void *, void *, u32 c) { return CRT_btowc((u32)(s32)(s8)c); }
 
 const char *__fastcall CtypeW_WidenRange(void *, void *, const char *first, const char *last, u16 *to) {
     for (; first != last; ++first, ++to) *to = (u16)CRT_btowc((u32)(s32)(s8)*first);
+    return first;
+}
+
+u32 __fastcall CtypeW_ToLower(u8 *self, void *, u32 c) {
+    const s32 narrow = static_cast<s8>(vcall<u32>(self, 0x30, c, 0u));
+    c = (c & 0xffffff00u) | static_cast<u8>(CRT_TolowerLocking(narrow, reinterpret_cast<const u32 *>(self + 8)));
+    return vcall<u32>(self, 0x28, c);
+}
+
+u16 *__fastcall CtypeW_ToLowerRange(u8 *self, void *, u16 *first, u16 *last) {
+    for (; first != last; ++first) *first = static_cast<u16>(CRT_TolowerLocking(*first, reinterpret_cast<const u32 *>(self + 8)));
+    return first;
+}
+
+u32 __fastcall CtypeW_ToUpper(u8 *self, void *, u32 c) {
+    const s32 narrow = static_cast<s8>(vcall<u32>(self, 0x30, c, 0u));
+    c = (c & 0xffffff00u) | static_cast<u8>(CRT_ToupperLocking(narrow, reinterpret_cast<const u32 *>(self + 8)));
+    return vcall<u32>(self, 0x28, c);
+}
+
+u16 *__fastcall CtypeW_ToUpperRange(u8 *self, void *, u16 *first, u16 *last) {
+    for (; first != last; ++first) *first = static_cast<u16>(CRT_ToupperLocking(*first, reinterpret_cast<const u32 *>(self + 8)));
+    return first;
+}
+
+s32 __fastcall CtypeW_Narrow(void *, void *, u32 c, u32) { return CRT_Wctob(c); }
+
+const u16 *__fastcall CtypeW_NarrowRange(void *, void *, const u16 *first, const u16 *last, u32, char *to) {
+    for (; first != last; ++first, ++to) *to = static_cast<char>(CRT_Wctob(*first));
     return first;
 }
 

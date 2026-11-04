@@ -74,6 +74,8 @@ const CrtInnerEnv kGameInner = {
     game<void(__cdecl *)(s32)>(0x0067efc0),
     game<void(__cdecl *)(u32)>(0x00686980),
     game<void(__cdecl *)()>(0x00687d80),
+    game<void(__cdecl *)(s32, void *)>(0x00682800),
+    game<void(__cdecl *)(s32, void *)>(0x00682870),
 };
 const CrtInnerEnv *g_inner = &kGameInner;
 
@@ -438,6 +440,12 @@ s32 __cdecl CRT_Wcrtomb(char *to, u32 unit, void *, const u32 *conversion) {
     const s32 result = CRT_WcrtombLocked(to, unit, nullptr, conversion);
     locale_leave(locked);
     return result;
+}
+
+s32 __cdecl CRT_Wctob(u32 unit) {
+    if (static_cast<u16>(unit) == 0xffff) return -1;
+    if (CRT_Wcrtomb(reinterpret_cast<char *>(&unit), unit, nullptr, nullptr) != 1) return -1;   // (Into its own argument's slot, sic.)
+    return static_cast<s8>(unit);
 }
 
 s32 __cdecl CRT_MbrtowcLocked(u16 *unit, const char *text, u32 n, u8 *state, const u32 *conversion) {
@@ -821,6 +829,22 @@ static s32 __cdecl toupper_with(s32 c, const u32 *locale, u32 strict) {
     const u32 page = locale ? locale[1] : global_u32(0x00fb1450);
     if (!id) return c >= 0x61 && c <= 0x7a ? c - 0x20 : c;
     return map_case(c, 2, 0x200, id, page, static_cast<s32>(strict));
+}
+
+s32 __cdecl CRT_TolowerLocking(s32 c, const u32 *locale) {
+    if (!(locale ? locale[0] : global_u32(0x00fb1440))) return c >= 0x41 && c <= 0x5a ? c + 0x20 : c;
+    const bool locked = locale_enter();
+    const s32 result = tolower_with(c, locale, static_cast<u32>(reinterpret_cast<uintptr_t>(locale)));
+    locale_leave(locked);
+    return result;
+}
+
+s32 __cdecl CRT_ToupperLocking(s32 c, const u32 *locale) {
+    if (!(locale ? locale[0] : global_u32(0x00fb1440))) return c >= 0x61 && c <= 0x7a ? c - 0x20 : c;
+    const bool locked = locale_enter();
+    const s32 result = toupper_with(c, locale, static_cast<u32>(reinterpret_cast<uintptr_t>(locale)));
+    locale_leave(locked);
+    return result;
 }
 
 __declspec(naked) s32 __cdecl CRT_Tolower(s32, const u32 *) {

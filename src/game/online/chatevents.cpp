@@ -7,6 +7,7 @@
 #include "../core/buffers.h"
 #include "../core/crt.h"
 #include "../core/gameheap.h"
+#include "../core/globals.h"
 #include "../core/indexed.h"
 #include "../core/selectors.h"
 #include "../core/stdstring.h"
@@ -62,7 +63,8 @@ const ChatEventEnv kGameEnv = {&Window7cc8bc_ListSetDataStd,
                                &Game_StartCrowd,
                                game<void(__fastcall *)(u8 *, void *, const char *)>(0x004ef3b0),
                                game<void(__fastcall *)(u8 *, void *, const char *)>(0x004efc10),
-                               &ChatAvatar_HandleEvent};
+                               &ChatAvatar_HandleEvent,
+                               &Window7cc8bc_SetC3129};
 const ChatEventEnv *g_env = &kGameEnv;
 
 const u16 *const kNullStr = reinterpret_cast<const u16 *>(0x006fd6c4);
@@ -73,7 +75,7 @@ template <typename... A> void tell(u32 slot, u8 *avatar, A... args) {
     (*reinterpret_cast<const Method *>((uintptr_t)slot))(at<void *>(avatar, 0), nullptr, args..., avatar);
 }
 
-void debugLine(u32 text) { (*reinterpret_cast<void(__stdcall *const *)(u32)>((uintptr_t)0x006fd1e0))(text); }
+u32 debugLine(u32 text) { return (*reinterpret_cast<u32(__stdcall *const *)(u32)>((uintptr_t)0x006fd1e0))(text); }
 
 const u8 *token(const u8 *tokens, u32 i) { return at<const u8 *>(tokens, 4) + 0x24 * i; }
 s32 word(const u8 *tokens, u32 i) { return at<s32>(token(tokens, i), 0x20); }
@@ -769,4 +771,26 @@ void __fastcall ChatAvatar_PumpEvents(u8 *chat) {
         }
     }
     CritSec_Leave(chat + 0x30);
+}
+
+u32 __cdecl ChatAvatar_GotoFtpDone(s32 failed) {
+    if (!failed) return Global879088_Set_5508b0(2);
+    ChatAvatar_GotoDone(OnlineChat_Instance());
+    return debugLine(0x0075c0d4);
+}
+
+void __fastcall ChatAvatar_Update(u8 *chat) {
+    using Method = void(__fastcall *)(void *);
+    ChatAvatar_PumpEvents(chat);
+    if (!at<u32>(chat, 0xec4) || !at<u8>(chat, 0xec0)) return;
+    debugLine(0x0075c150);
+    (*reinterpret_cast<const Method *>((uintptr_t)0x006fd604))(at<void *>(chat, 0xec4));
+    if (void *const vote = at<void *>(chat, 0xec4)) {
+        (*reinterpret_cast<const Method *>((uintptr_t)0x006fd608))(vote);
+        GameHeap_Free(vote);
+    }
+    at<u32>(chat, 0xec4) = 0;
+    at<u8>(chat, 0xec0) = 0;
+    debugLine(0x0075c120);
+    g_env->setC3129(0);
 }

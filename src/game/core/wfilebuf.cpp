@@ -5,6 +5,7 @@
 
 #include "buffers.h"
 #include "crt.h"
+#include "crtopen.h"
 #include "gameheap.h"
 #include "globals.h"
 #include "iosbase.h"
@@ -191,6 +192,36 @@ void __fastcall WIfstream_VbaseDtor(u8 *ios) {
     set_stream_vtable(stream, 0x007099dc);
 }
 
+void __fastcall WOfstream_Dtor(u8 *stream) {
+    WOfstream_VbaseDtor(stream + 0x58);
+    BasicIosW_Dtor(stream + 0x58);
+}
+
+void __fastcall WIfstream_Dtor(u8 *stream) {
+    WIfstream_VbaseDtor(stream + 0x5c);
+    BasicIosW_Dtor(stream + 0x5c);
+}
+
+u8 *__fastcall WOfstream_DeletingDtor(u8 *ios, void *, u32 flags) {
+    u8 *const stream = ios - 0x58;
+    WOfstream_Dtor(stream);
+    if (flags & 1) GameHeap_Free(stream);
+    return stream;
+}
+
+u8 *__fastcall WIfstream_DeletingDtor(u8 *ios, void *, u32 flags) {
+    u8 *const stream = ios - 0x5c;
+    WIfstream_Dtor(stream);
+    if (flags & 1) GameHeap_Free(stream);
+    return stream;
+}
+
+u8 *__fastcall WFileBuf_DeletingDtor(u8 *buf, void *, u32 flags) {
+    WFileBuf_Dtor(buf);
+    if (flags & 1) GameHeap_Free(buf);
+    return buf;
+}
+
 u16 __fastcall WFileBuf_Overflow(u8 *buf, void *, u32 c) {
     if (static_cast<u16>(c) == 0xffff) return 0;
     u16 *const put = *at<u16 **>(buf, 0x20);
@@ -253,6 +284,16 @@ u16 __fastcall WFileBuf_PutBack(u8 *buf, void *, u32 c) {
     erase_all_unshared(at<StdString *>(buf, 0x44));
     at<u32>(buf, 0x40) = at<u32>(buf, 0x3c);
     return static_cast<u16>(c);
+}
+
+u8 *__fastcall WFileBuf_SetBuf(u8 *buf, void *, char *buffer, u32 count) {
+    CrtFile *const file = *reinterpret_cast<CrtFile **>(buf + 0x50);
+    return file && CRT_setvbuf(file, buffer, 0, count * 2) == 0 ? buf : nullptr;
+}
+
+s32 __fastcall WFileBuf_Sync(u8 *buf) {
+    CrtFile *const file = *reinterpret_cast<CrtFile **>(buf + 0x50);
+    return file && CRT_fflush(file) < 0 ? -1 : 0;
 }
 
 u16 __fastcall WFileBuf_Uflow(u8 *buf) {
@@ -422,5 +463,18 @@ u32 __fastcall CodecvtW_Out(u8 *self, void *, u32 *state, const u16 *from, const
         text = *from_next;
         if (text == from_end) return 0;
     }
+}
+
+s32 __fastcall CodecvtW_Length(u8 *self, void *, void *state, const u16 *first, const u16 *last, u32 most) {
+    const u16 *const end = last;
+    const u16 *at = first;
+    while (at != end && most) {
+        // (The bytes go to the slot of the argument last, sic: the end was read before.)
+        const s32 written = CRT_Wcrtomb(reinterpret_cast<char *>(&last), *at, state, reinterpret_cast<const u32 *>(self + 8));
+        if (written <= 0 || most < static_cast<u32>(written)) break;
+        ++at;
+        most -= static_cast<u32>(written);
+    }
+    return static_cast<s32>(at - first);
 }
 }
