@@ -429,6 +429,7 @@ address,name,kind,confidence,notes
 0x008798c8,gTerrainBlendScratch,data,high,"tile-sized RGBA scratch the blend writes bottom-up"
 0x005e78b0,Array3D_Read,function,high,"reimplemented (src/game/gfx/array3d); Reads width, height, depth and the pixel bytes from a stream into a new block"
 0x00467a80,Sign_Apply,function,high,"reimplemented (src/game/model/signapply); cdecl (object, folder, style, fonts, text, text2): splits the text into two lines, loads <folder>\<language>_<style>.sgn or <folder>\<style>.sgn, renders it onto the model's sign1/sign2.tga with GDI; 1 or 0"
+0x004682b0,Sign_ApplyObject,function,low,"reimplemented (src/game/model/signapply); cdecl (object, text, text2): the object's sign text applied with its definition's style and the fonts' folder; its holder flagged; name invented, unconfirmed"
 0x005ebfc0,Renderer_Construct,function,low,"reimplemented (src/game/render/renderer); the sign renderer constructor (Sign_Apply's local; Renderer_Teardown its destructor): two default GDI LOGFONTs, two array groups, the wavelet codec at +0x14"
 0x005ec220,Renderer_Teardown,function,high,reimplemented (src/game/render/renderer); releases the two array groups and two blocks after calling the sub object
 0x005ec3a0,SignStyle_Load,function,high,"reimplemented (src/game/gfx/signstyle); a sign style read from its .sgn file: version 100 or above, two line styles, the effects, two fill strips and the background"

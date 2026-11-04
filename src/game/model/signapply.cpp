@@ -176,3 +176,29 @@ u32 __cdecl Sign_Apply(u8 *object, const char *folder, const char *style, const 
     g_calls.Th(0x005ec220, address(renderer));
     return result;
 }
+
+extern "C" u32 __cdecl Sign_ApplyObject(u8 *object, const u16 *text, const u16 *text2) {
+    const u32 index = at<u32>(object, 0x20);
+    u8 *const definition = reinterpret_cast<u8 *>((uintptr_t)g_calls.Th(0x004dd4e0, address(object)));   // Object_GetDef
+    if (!definition || !index) return 0;
+    const char *const path = at<const char *>(reinterpret_cast<const void *>((uintptr_t)0x00f816c0), 8);
+    if (!path) return 0;
+    char fonts[0x104];
+    Crt().sprintf(fonts, path[std::strlen(path) - 1] == '\\' ? "%s%s" : "%s\\%s", path, "Data\\Fonts");   // (an empty path reads the byte before it, sic)
+    u8 *const holder = global<u8 *>(0x007a4610 + 4 * index);
+    u32 result = 1;
+    if (global<u32>(0x0078d8d8)) {
+        u8 wide[0x14], name[0x14];
+        g_calls.Th(0x005f6980, address(wide), address(definition + 0x390));   // WString_CtorStr
+        g_calls.Th(0x005f61a0, address(name));   // String_Ctor
+        if (g_calls.Cd(0x00424db0, name, wide))   // String_AssignFromWide
+            result = g_calls.Cd(0x00467a80, holder, definition + 0x28c, at<u32>(name, 8), fonts, text, text2);   // Sign_Apply
+        else
+            result = 0;   // (the original returns a stack slot it never set, sic)
+        g_calls.Th(0x005f61e0, address(name));   // String_Dtor
+        g_calls.Th(0x005f6a60, address(wide));   // WString_Dtor
+    }
+    if (holder && !(at<u32>(holder, 4) & 1))
+        at<u32>(holder, 4) |= 0x8000000;
+    return result;
+}

@@ -23,3 +23,9 @@ void Sign_SetApplyCalls(const AddrCall *table, u32 count);
 extern "C" {
 u32 __cdecl Sign_Apply(u8 *object, const char *folder, const char *style, const char *fonts, const u16 *text, const u16 *text2);
 }
+
+// 0x4682b0 (cdecl (object, text, text2); name invented, unconfirmed): the object's sign applied. No definition (Object_GetDef) or no index at +0x20: 0, and no folder at [0xf816c8]: 0. Fonts: the folder and "Data\Fonts" (the backslash between when the folder has none). The holder [0x7a4610 + 4 * index]. With signs on ([0x78d8d8]): the definition's
+// wide name (+0x390) in ANSI as the style, Sign_Apply(holder, the definition's +0x28c, the style, the fonts, the texts) its result; off: 1. A holder without bit 0 at +4 gets bit 0x8000000.
+extern "C" {
+u32 __cdecl Sign_ApplyObject(u8 *object, const u16 *text, const u16 *text2);
+}
