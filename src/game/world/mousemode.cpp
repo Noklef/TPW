@@ -371,4 +371,13 @@ void __stdcall ChatButtons_SetChat(u32 on) { ChatButtons_Select(on == 0); }
 
 u32 __fastcall MouseMode6feaa0_Press(void *, void *, u32, u32) { return g_calls.Cd(0x446300, 1u); }
 u32 __fastcall MouseMode6feaa0_Release(void *, void *, u32, u32) { return g_calls.Cd(0x446300, 0u); }
+
+void __fastcall MouseMode_CancelStaff(u8 *self) {
+    const u32 script = at<u32>(self, 8);
+    if (script) g_calls.Cd(0x00475550, script);   // SpriteScript_Kill
+    at<u32>(self, 8) = 0;
+    g_calls.Th(0x005083b0, *reinterpret_cast<u32 *>((uintptr_t)0x007cf83c), at<u8>(self, 0x18) ? 0u : 1u);   // World_ClearStaffSlots
+    const u32 table = g_calls.Th(0x005194d0, *reinterpret_cast<u32 *>((uintptr_t)0x007cf83c));
+    g_calls.Th(0x0059aa70, table, 0x135u);   // Advisor_Cancel
+}
 }

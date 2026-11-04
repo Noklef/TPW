@@ -164,4 +164,6 @@ void __stdcall ChatButtons_SetChat(u32 on);
 // 0x46cfd0 / 0x46cfe0 (thiscall, pops 8; names invented, unconfirmed): 0x446300 of 1 / 0; its answer.
 u32 __fastcall MouseMode6feaa0_Press(void *, void *, u32, u32);
 u32 __fastcall MouseMode6feaa0_Release(void *, void *, u32, u32);
+// 0x46c890 (thiscall; name invented, unconfirmed): the sprite script at +8 killed if any and cleared; World_ClearStaffSlots with the byte at +0x18 tested (set: 0, clear: 1); Advisor_Cancel (0x135).
+void __fastcall MouseMode_CancelStaff(u8 *self);
 }

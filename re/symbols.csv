@@ -859,6 +859,7 @@ address,name,kind,confidence,notes
 0x0046c8e0,MMPlaceStaff_Click,function,low,"reimplemented (src/game/world/mousemode); thiscall (2 unused), pops 8; name unconfirmed; the staff member placed on the tile under the pointer, then the mouse mode back to the online base"
 0x0046cfd0,MouseMode6feaa0_Press,function,low,reimplemented (src/game/world/mousemode); 0x446300 (1).
 0x0046cfe0,MouseMode6feaa0_Release,function,low,reimplemented (src/game/world/mousemode); 0x446300 (0).
+0x0046c890,MouseMode_CancelStaff,function,low,"reimplemented (src/game/world/mousemode); Sprite script killed, staff slots cleared by the byte at +0x18, advisor message 0x135 cancelled (name invented, unconfirmed)"
 0x0040f290,ThingMsg01_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (a): +8 a; vtable set, +4 cleared; returns this"
 0x0040f240,ThingMsg02_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (c, b): +8 b, +0xc c; vtable set, +4 cleared; returns this"
 0x0040f330,ThingMsg06_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (u16 a): +8 a; vtable set, +4 cleared; returns this"
