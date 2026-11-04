@@ -372,4 +372,109 @@ u16 *__cdecl CRT_wcsset(u16 *text, u16 unit) {
     return text;
 }
 
+static u32 global_u32(u32 address) { return *reinterpret_cast<const u32 *>((uintptr_t)address); }
+
+static s32 conversion_failed() {
+    *CRT_errno() = 0x2a;
+    return -1;
+}
+
+static s32 conversion_rejected(u8 *state) {
+    *reinterpret_cast<u32 *>(state) = 0;
+    return conversion_failed();
+}
+
+// MultiByteToWideChar(page, MB_PRECOMPOSED | MB_ERR_INVALID_CHARS, text, count, unit, unit given).
+static s32 multi_to_wide(u32 page, const void *text, u32 count, u16 *unit) {
+    return import_slot<s32(__stdcall *)(u32, u32, const void *, u32, u16 *, u32)>(0x006fd174)(page, 9, text, count, unit, unit ? 1 : 0);
+}
+
+unsigned long long __cdecl CRT_Getcvt() {
+    const bool locked = locale_enter();
+    const u32 hand = global_u32(0x00fb1440);
+    const u32 page = global_u32(0x00fb1450);
+    locale_leave(locked);
+    return static_cast<unsigned long long>(page) << 32 | hand;
+}
+
+u32 *__cdecl CRT_Getctype(u32 *out) {
+    const bool locked = locale_enter();
+    const u32 hand = global_u32(0x00fb143c);
+    const u32 page = global_u32(0x00fb1450);
+    u32 *const copy = static_cast<u32 *>(CRT_malloc(0x200));
+    u32 *const pctype = reinterpret_cast<u32 *>((uintptr_t)global_u32(0x0077ea90));
+    if (copy) {
+        for (u32 i = 0; i < 0x80; ++i) copy[i] = pctype[i];
+    }
+    locale_leave(locked);
+    out[0] = hand;
+    out[1] = page;
+    out[2] = static_cast<u32>(reinterpret_cast<uintptr_t>(copy ? copy : pctype));
+    out[3] = copy ? 1 : 0;
+    return out;
+}
+
+s32 __cdecl CRT_WcrtombLocked(char *to, u32 unit, void *, const u32 *conversion) {
+    const u32 hand = conversion ? conversion[0] : global_u32(0x00fb1440);
+    const u32 page = conversion ? conversion[1] : global_u32(0x00fb1450);
+    if (!hand) {
+        if (static_cast<u16>(unit) > 0xff) return conversion_failed();
+        *to = static_cast<char>(unit);
+        return 1;
+    }
+    u32 used = 0;
+    const s32 written = import_slot<s32(__stdcall *)(u32, u32, const u32 *, u32, char *, u32, const char *, u32 *)>(0x006fd1dc)(page, 0x220, &unit, 1, to, global_u32(0x0077e7dc), nullptr, &used);    // WideCharToMultiByte
+    if (written && !used) return written;
+    return conversion_failed();
+}
+
+s32 __cdecl CRT_Wcrtomb(char *to, u32 unit, void *, const u32 *conversion) {
+    const bool locked = locale_enter();
+    const s32 result = CRT_WcrtombLocked(to, unit, nullptr, conversion);
+    locale_leave(locked);
+    return result;
+}
+
+s32 __cdecl CRT_MbrtowcLocked(u16 *unit, const char *text, u32 n, u8 *state, const u32 *conversion) {
+    if (!text || !n) return 0;
+    const u8 first = static_cast<u8>(*text);
+    if (!first) {
+        if (unit) *unit = 0;
+        return 0;
+    }
+    const u32 hand = conversion ? conversion[0] : global_u32(0x00fb1440);
+    const u32 page = conversion ? conversion[1] : global_u32(0x00fb1450);
+    if (!hand) {
+        if (unit) *unit = first;
+        return 1;
+    }
+    if (*reinterpret_cast<const u32 *>(state)) {
+        state[1] = first;
+        if (static_cast<s32>(global_u32(0x0077e7dc)) <= 1) return conversion_rejected(state);
+        const s32 got = multi_to_wide(page, state, 2, unit);
+        if (!got) return conversion_rejected(state);
+        *reinterpret_cast<u32 *>(state) = 0;
+        return got;
+    }
+    if (reinterpret_cast<const u16 *>((uintptr_t)global_u32(0x0077ea90))[first] & 0x8000) {
+        const u32 most = global_u32(0x0077e7dc);
+        if (n < most) {
+            state[0] = first;
+            return -2;
+        }
+        if (static_cast<s32>(most) > 1 && multi_to_wide(page, text, most, unit)) return most;
+        if (!text[1]) return conversion_rejected(state);
+        return most;
+    }
+    if (multi_to_wide(page, text, 1, unit)) return 1;
+    return conversion_failed();
+}
+
+s32 __cdecl CRT_Mbrtowc(u16 *unit, const char *text, u32 n, u8 *state, const u32 *conversion) {
+    const bool locked = locale_enter();
+    const s32 result = CRT_MbrtowcLocked(unit, text, n, state, conversion);
+    locale_leave(locked);
+    return result;
+}
+
 }  // extern "C"

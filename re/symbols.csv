@@ -1539,6 +1539,12 @@ address,name,kind,confidence,notes
 0x00682460,CRT_getptd,function,high,reimplemented (src/game/core/crt); _getptd
 0x0067e050,CRT_beginthread,function,high,reimplemented (src/game/core/crt); _beginthread
 0x00686a00,CRT_errno,function,high,reimplemented (src/game/core/crt); _errno
+0x0069a560,CRT_Getcvt,function,low,reimplemented (src/game/core/crt); _Getcvt
+0x00699bd0,CRT_Getctype,function,low,reimplemented (src/game/core/crt); _Getctype
+0x0069a4e0,CRT_WcrtombLocked,function,low,reimplemented (src/game/core/crt); _Wcrtomb's body
+0x0069a460,CRT_Wcrtomb,function,low,reimplemented (src/game/core/crt); _Wcrtomb
+0x00693c40,CRT_MbrtowcLocked,function,low,reimplemented (src/game/core/crt); _Mbrtowc's body
+0x00693bc0,CRT_Mbrtowc,function,low,reimplemented (src/game/core/crt); _Mbrtowc
 0x0067f1a0,CRT_toupper,function,medium,"cdecl; the CRT toupper (locale-aware, ASCII in the C locale)"
 0x0067fa60,CRT_tolower,function,medium,"cdecl; the CRT tolower (locale-aware, ASCII in the C locale)"
 0x006fe67c,StringList2_vtable,data,high,one entry (0x61a7e0); src/game/files/waddir

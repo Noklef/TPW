@@ -160,4 +160,25 @@ void __stdcall CRT_VectorDtorIterator(u8 *array, u32 size, s32 count, void(__fas
 // 0x6d76f0 (cdecl; called from 0x4901ff): every unit of the wide string before its terminator set to the unit. Returns the string.
 u16 *__cdecl CRT_wcsset(u16 *text, u16 unit);
 
+// The C++ library's conversions under the C library's locale (names are the library's own). A conversion block is { locale id, code page }; none: the current ones (0xfb1440, 0xfb1450).
+
+// 0x69a560: _Getcvt: the current block, by value in EDX:EAX, under the locale's lock.
+unsigned long long __cdecl CRT_Getcvt();
+
+// 0x699bd0 (cdecl (&result)): _Getctype: { the LC_CTYPE id (0xfb143c), the code page, a copy of the table _pctype (0x200 bytes from malloc), 1 } or, with no block, the table itself and 0. Returns &result.
+u32 *__cdecl CRT_Getctype(u32 *out);
+
+// 0x69a4e0 (cdecl (to, unit, unused, conversion)): the unit as bytes. Id 0: units to 0xff as one byte; else WideCharToMultiByte for _mb_cur_max bytes. Fails (a loss of data, or a unit too big) with errno 0x2a and -1.
+s32 __cdecl CRT_WcrtombLocked(char *to, u32 unit, void *unused, const u32 *conversion);
+
+// 0x69a460 (cdecl (to, unit, state, conversion)): _Wcrtomb: the same under the locale's lock (the state is not used).
+s32 __cdecl CRT_Wcrtomb(char *to, u32 unit, void *state, const u32 *conversion);
+
+// 0x693c40 (cdecl (&unit, text, n, state, conversion)): one character of up to n bytes as a unit: 0 for no text, no n or a zero byte (*unit 0), 1 under id 0, a lead byte kept in the state with too few bytes (-2);
+// a kept lead byte joined with this byte, else _mb_cur_max bytes for a lead byte (of the table _pctype), else one: MultiByteToWideChar's answer, _mb_cur_max or 1. Fails with errno 0x2a and -1.
+s32 __cdecl CRT_MbrtowcLocked(u16 *unit, const char *text, u32 n, u8 *state, const u32 *conversion);
+
+// 0x693bc0: _Mbrtowc: the same under the locale's lock.
+s32 __cdecl CRT_Mbrtowc(u16 *unit, const char *text, u32 n, u8 *state, const u32 *conversion);
+
 }  // extern "C"
