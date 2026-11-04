@@ -76,6 +76,8 @@ struct CrtInnerEnv {
     void(__cdecl *amsgExit)(s32 code);                           // 0x67efc0
     void(__cdecl *dosmaperr)(u32 error);                         // 0x686980
     void(__cdecl *tzset)();                                      // 0x687d80
+    void(__cdecl *lockFile2)(s32 index, void *file);             // 0x682800
+    void(__cdecl *unlockFile2)(s32 index, void *file);           // 0x682870
 };
 
 void CrtInner_SetEnv(const CrtInnerEnv *env);

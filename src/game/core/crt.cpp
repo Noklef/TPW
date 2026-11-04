@@ -74,6 +74,8 @@ const CrtInnerEnv kGameInner = {
     game<void(__cdecl *)(s32)>(0x0067efc0),
     game<void(__cdecl *)(u32)>(0x00686980),
     game<void(__cdecl *)()>(0x00687d80),
+    game<void(__cdecl *)(s32, void *)>(0x00682800),
+    game<void(__cdecl *)(s32, void *)>(0x00682870),
 };
 const CrtInnerEnv *g_inner = &kGameInner;
 
