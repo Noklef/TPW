@@ -21,6 +21,8 @@
 
 namespace {
 
+AddrCalls g_calls;
+
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 
 constexpr u32 kNames[] = {0x00786b68, 0x00785e78, 0x00785f98, 0x007862c8, 0x00785f68, 0x007862f8, 0x00786d10,
@@ -39,6 +41,8 @@ u8 *node(String *object) {
 }
 
 }  // namespace
+
+void NamedObjects_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
 
 extern "C" {
 
@@ -210,6 +214,23 @@ void __fastcall NamedObjects_SetThemeLabel(u8 *, void *, const WString *theme, u
             break;
         }
     }
+    String_Dtor(&unused);
+}
+
+void __fastcall NamedObjects_SetThemeTexts(u8 *, void *, const WString *theme, u8 *first, u8 *second) {
+    String unused;   // (constructed and destroyed, never used)
+    String_Ctor(&unused);
+    u16 firstText[0x20], secondText[0x20];   // (not set when no theme matches, sic)
+    static constexpr u32 kThemes[][2] = {{0x00786478, 0x11f9}, {0x00786808, 0xa29}, {0x00786970, 0x641}, {0x007869e8, 0xe11}};
+    for (const auto &t : kThemes) {
+        if (WNames_Equal(reinterpret_cast<const u8 *>(theme), reinterpret_cast<const u8 *>((uintptr_t)t[0]))) {
+            g_calls.Th(0x00413020, 0x007890a0u, t[1], firstText, 0x20u);
+            g_calls.Th(0x004130b0, 0x007890a0u, t[1], secondText, 0x20u);
+            break;
+        }
+    }
+    vcall<void>(first, 0x14, firstText);
+    vcall<void>(second, 0x14, secondText);
     String_Dtor(&unused);
 }
 
