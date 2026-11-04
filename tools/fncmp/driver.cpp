@@ -1190,7 +1190,11 @@ const AddrCall kBumpLightCalls[] = {{0x67acc0, jpeg_recorder(10, 1)}, {0x5e80d0,
 const AddrCall kWScannerCalls[] = {{0x5e7200, recorder(1, 2)}};
 const AddrCall kMMPlaceStaffCalls[] ={{0x4d6b60, recorder(1, 4)}, {0x4d4340, recorder(2, 4)}, {0x4d5d40, recorder(3, 4)}, {0x4d9eb0, recorder(4, 4)}, {0x502600, recorder(5, 4)}};
 const AddrCall kTexSurfaceCalls[] ={{0x573820, recorder(1, 2)}, {0x56af20, recorder(2, 2)}, {0x56a770, jpeg_recorder(3, 1)}, {0x564650, jpeg_recorder(4, 1)}, {0x5645a0, recorder(5, 0)}, {0x58b1f0, recorder(6, 2)}, {0x58b890, recorder(7, 2)}, {0x57cb90, recorder(8, 0)}};
-const AddrCall kAdvisorRingCalls[] ={{0x4f8800, recorder(1, 1)}, {0x5194d0, recorder(2, 2)}, {0x59abc0, recorder(3, 0)}, {0x550ca0, recorder(4, 0)}, {0x67a7d0, jpeg_recorder(5, 1)}};
+const AddrCall kAdvisorRingCalls[] ={{0x4f8800, recorder(1, 1)}, {0x5194d0, recorder(2, 2)}, {0x59abc0, recorder(3, 0)}, {0x550ca0, recorder(4, 0)}, {0x67a7d0, jpeg_recorder(5, 1)},
+                                     {0x4c9960, recorder(6, 1)}, {0x4c81b0, recorder(7, 1)}, {0x4c9b40, recorder(8, 1)}, {0x4cd500, recorder(9, 2)}, {0x4c90d0, recorder(10, 0)}, {0x4c9070, recorder(11, 0)},
+                                     {0x4c9ed0, recorder(12, 0)}, {0x4c9e40, recorder(13, 1)}, {0x4c9e60, recorder(14, 0)}, {0x4ca8e0, recorder(15, 2)}, {0x4ca7b0, recorder(16, 2)}, {0x4ca450, recorder(17, 1)},
+                                     {0x4ca4c0, recorder(18, 1)}, {0x4ca510, recorder(19, 1)}, {0x4ca570, recorder(20, 1)}, {0x4ca5d0, recorder(21, 1)}, {0x503980, recorder(22, 1)}, {0x6ad810, recorder(23, 0)},
+                                     {0x4d0690, recorder(24, 0)}, {0x4d0810, recorder(25, 0)}, {0x4d0260, recorder(26, 1)}};
 const AddrCall kSpriteFrameShowCalls[] ={{0x588ba0, recorder(1, 0)}, {0x5889b0, recorder(2, 2)}, {0x58c9f0, recorder(3, 2)}, {0x58a6b0, recorder(4, 1)}, {0x58a6e0, recorder(5, 1)}, {0x578d20, recorder(6, 3)}, {0x574bd0, jpeg_recorder(7, 6)}, {0x588410, recorder(8, 7)}, {0x579b80, jpeg_recorder(9, 1)}};
 const AddrCall kTerrainTexUpdateCalls[] ={{0x590da0, recorder(1, 0)}, {0x590d40, recorder(2, 0)}, {0x55f780, recorder(3, 4)}, {0x562f70, jpeg_recorder(4, 3)}, {0x58dc50, recorder(5, 1)}, {0x590f90, recorder(6, 0)}, {0x58c9f0, recorder(7, 2)}, {0x55f720, recorder(8, 1)}, {0x560ff0, recorder(9, 1)}, {0x56af20, recorder(10, 2)}};
 const AddrCall kDynFacesCalls[] ={{0x53d790, recorder(1, 11)}, {0x424ec0, jpeg_recorder(2, 1)}, {0x424ed0, jpeg_recorder(3, 1)}};
@@ -2653,7 +2657,7 @@ int main(int argc, char **argv) {
     PointSprites_SetCalls(kPointSpritesCalls, sizeof(kPointSpritesCalls) / sizeof(kPointSpritesCalls[0]));
     LobbyFlight_SetCalls(kLobbyFlightCalls, sizeof(kLobbyFlightCalls) / sizeof(kLobbyFlightCalls[0]));
     TexSurface_SetCalls(kTexSurfaceCalls, sizeof(kTexSurfaceCalls) / sizeof(kTexSurfaceCalls[0]));
-    AdvisorScoring_SetCalls(kAdvisorRingCalls, 5);
+    AdvisorScoring_SetCalls(kAdvisorRingCalls, sizeof(kAdvisorRingCalls) / sizeof(kAdvisorRingCalls[0]));
     Image_SetCalls(kImageLoadCalls, sizeof(kImageLoadCalls) / sizeof(kImageLoadCalls[0]));
     SpriteFrame_SetCalls(kSpriteFrameShowCalls, 9);
     TerrainTexCache_SetCalls(kTerrainTexUpdateCalls, 10);

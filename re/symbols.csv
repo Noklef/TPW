@@ -5345,6 +5345,29 @@ address,name,kind,confidence,notes
 0x0059eb80,AdvisorScoring_RingRatio,function,low,"reimplemented (src/game/core/advisorscoring); From the park's third month, +0x35c when one ring's average of the table, scaled, is below the other's (name invented, unconfirmed)"
 0x0059c680,AdvisorScoring_PickNext,function,low,"reimplemented (src/game/core/advisorscoring); The advisor's next criteria tried; the id of the best (name invented, unconfirmed)"
 0x0059f220,AdvisorScoring_RingDrop,function,low,"reimplemented (src/game/core/advisorscoring); thiscall: the score when the table's ring's latest value fell by more than the threshold per cent, before the month limit; name invented"
+0x0059cac0,AdvisorScoring_ObjectsOverStaff4,function,low,reimplemented (src/game/core/advisorscoring); objects over what the staff of kind 4 covers
+0x0059cc20,AdvisorScoring_BusyOverStaff5,function,low,reimplemented (src/game/core/advisorscoring); busy people over what the staff of kind 5 covers
+0x0059cd90,AdvisorScoring_BusyOverStaff7,function,low,reimplemented (src/game/core/advisorscoring); busy people over what the staff of kind 7 covers
+0x0059cfe0,AdvisorScoring_ChainShareStaff8,function,low,reimplemented (src/game/core/advisorscoring); the chain's share against kind 8 staff
+0x0059d180,AdvisorScoring_PatrolCover4,function,low,reimplemented (src/game/core/advisorscoring); kind 4 patrol coverage
+0x0059d250,AdvisorScoring_PatrolShare5,function,low,reimplemented (src/game/core/advisorscoring); kind 5 share with a patrol
+0x0059d310,AdvisorScoring_PatrolCover5,function,low,reimplemented (src/game/core/advisorscoring); kind 5 patrol coverage
+0x0059d400,AdvisorScoring_PatrolShare7,function,low,reimplemented (src/game/core/advisorscoring); kind 7 share with a patrol
+0x0059d4c0,AdvisorScoring_PatrolShare6,function,low,reimplemented (src/game/core/advisorscoring); kind 6 share with a patrol
+0x0059d580,AdvisorScoring_PatrolCover6,function,low,reimplemented (src/game/core/advisorscoring); kind 6 patrol coverage
+0x0059d990,AdvisorScoring_ResearchShare0,function,low,reimplemented (src/game/core/advisorscoring); research kind 0 share with controls
+0x0059dad0,AdvisorScoring_ResearchNone0,function,low,reimplemented (src/game/core/advisorscoring); research kind 0 none yet
+0x0059db40,AdvisorScoring_ResearchIdleStaff8,function,low,reimplemented (src/game/core/advisorscoring); research idle with kind 8 staff
+0x0059dca0,AdvisorScoring_ResearchShare1,function,low,reimplemented (src/game/core/advisorscoring); research kind 1 share with controls
+0x0059dde0,AdvisorScoring_ResearchWaiting0,function,low,"reimplemented (src/game/core/advisorscoring); research kind 0 done, kind 1 waiting"
+0x0059df30,AdvisorScoring_ResearchShare2,function,low,reimplemented (src/game/core/advisorscoring); research kind 2 share with controls
+0x0059e070,AdvisorScoring_ResearchWaiting1,function,low,"reimplemented (src/game/core/advisorscoring); research kind 1 done, kind 2 waiting"
+0x0059e1c0,AdvisorScoring_ResearchShare3,function,low,reimplemented (src/game/core/advisorscoring); research kind 3 share with controls
+0x0059e2e0,AdvisorScoring_ResearchWaiting2,function,low,"reimplemented (src/game/core/advisorscoring); research kind 2 done, kind 3 waiting"
+0x0059e8d0,AdvisorScoring_MoneyOverLoanless,function,low,reimplemented (src/game/core/advisorscoring); money over a bound with no loans
+0x0059e9f0,AdvisorScoring_RedUnder3,function,low,reimplemented (src/game/core/advisorscoring); in the red under 3 months
+0x0059ea70,AdvisorScoring_Red3To4,function,low,reimplemented (src/game/core/advisorscoring); in the red 3 or 4 months
+0x0059eaf0,AdvisorScoring_Red5,function,low,reimplemented (src/game/core/advisorscoring); in the red 5 months
 0x00418da0,ParkInfo_Serialize,function,low,"reimplemented (src/game/core/parkinfo); thiscall (stream, save, version, unused), pops 0x10: the save's park information (strings, three dwords, the author's name and e-mail, the description, the publishing date) written or read field by field (name unconfirmed)"
 0x005d55a0,AuthStamp_Text,function,low,"reimplemented (src/game/core/authstamp); cdecl: ""No Authorization Stamp"" (0x774bc0) while the phrase at 0x763f3d is the plain one at 0x774bd8; else the phrase's bytes less the key's (0x774b78) written to 0xf827f8 until they meet, and 0xf827f8"
 0x006cc7b0,Mp2Decoder_ParseHeader,function,low,"reimplemented (src/game/core/mp2frame); parses an MPEG audio frame header into the decoder's fields, rate, bitrate and frame length; -1 without sync or bitrate"

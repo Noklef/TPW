@@ -304,4 +304,42 @@ s32 __fastcall AdvisorScoring_PickNext(s32 *cursor, void *, s32 steps);
 // 0x59f220 (thiscall; name invented, unconfirmed): before the month +0x3c8 (FunnyTime_Elapsed), with more than one value in the table's ring +0x216d8 (wrapped: its size + 1; else its cursor + 1): +0x3d0 when the latest value is below the one before, not 0, by more than +0x3cc per cent (100 - latest * 100 / before, wrapped in 32 bits); else 0.
 extern "C" {
 s32 __fastcall AdvisorScoring_RingDrop(const u8 *scoring);
+
+// The criteria that follow are thiscall, their names invented and unconfirmed; their callees go through AdvisorScoring_SetCalls's table.
+// 0x59cac0: with +0x630 days since the analyser's 0x21c38: the things of definition kind 0 over +0xc8 for each staff of kind 4, times +0xcc; not over, 0.
+s32 __fastcall AdvisorScoring_ObjectsOverStaff4(const u8 *scoring);
+// 0x59cc20: not flagged, with staff of kind 5, +0xec busy people: those over +0xe4 for each such staff, times +0xe8; not over, 0.
+s32 __fastcall AdvisorScoring_BusyOverStaff5(const u8 *scoring);
+// 0x59cd90: not flagged, +0x630 days since 0x21c38, +0x108 busy people: those over +0x100 for each staff of kind 7, times +0x104; not over, 0.
+s32 __fastcall AdvisorScoring_BusyOverStaff7(const u8 *scoring);
+// 0x59cfe0: not flagged, Global7852f8_Times78548c nonzero, from the month +0x120, with staff of kind 8 and World_StaffCountOfType_4c9e40 (4): +0x128 when Things_SumChain per cent of the former is under +0x124 (unsigned).
+s32 __fastcall AdvisorScoring_ChainShareStaff8(const u8 *scoring);
+// 0x59d180: from the month +0x138, +0x12c staff of kind 4, some with a patrol: (100 - PatrolCoverage_Percent(4, 2) of [0x7cf83c]'s) * +0x140, or 0 under +0x13c.
+s32 __fastcall AdvisorScoring_PatrolCover4(const u8 *scoring);
+// 0x59d250, 0x59d400, 0x59d4c0 (kinds 5, 7, 6): from the month +0x150 / 0x170 / 0x188, +0x144 / 0x164 / 0x17c staff of the kind: unless the share with a patrol (signed, per cent) is over +0x148 / 0x168 / 0x180, (100 - it) * +0x14c / 0x16c / 0x184. No staff and a bound at most 0: the division faults (sic).
+s32 __fastcall AdvisorScoring_PatrolShare5(const u8 *scoring);
+s32 __fastcall AdvisorScoring_PatrolShare7(const u8 *scoring);
+s32 __fastcall AdvisorScoring_PatrolShare6(const u8 *scoring);
+// 0x59d310, 0x59d580 (kinds 5, 6, parts 3, 1): from the month +0x150 / 0x188 with staff of the kind: (100 - PatrolCoverage_Percent of [0x7cf83c]'s) * +0x158 / 0x190, or 0 under +0x154 / 0x18c.
+s32 __fastcall AdvisorScoring_PatrolCover5(const u8 *scoring);
+s32 __fastcall AdvisorScoring_PatrolCover6(const u8 *scoring);
+// 0x59d990, 0x59dca0, 0x59df30, 0x59e1c0 (kinds 0-3): with definitions of the kind (ObjectDefs_CountKindNWithControls10), +0x634 days since 0x21c30, +0x224 / 0x25c / 0x280 / 0x2a4 things of it: +0x228 / 0x260 / 0x284 / 0x2a8 when the share with controls is under +0x220 / 0x258 / 0x27c / 0x2a0 (unsigned).
+s32 __fastcall AdvisorScoring_ResearchShare0(const u8 *scoring);
+s32 __fastcall AdvisorScoring_ResearchShare1(const u8 *scoring);
+s32 __fastcall AdvisorScoring_ResearchShare2(const u8 *scoring);
+s32 __fastcall AdvisorScoring_ResearchShare3(const u8 *scoring);
+// 0x59dad0: no kind 0 definitions in ObjectDefs_CountKindWithControls(0, 1): the park's age in days * +0x234 + +0x230.
+s32 __fastcall AdvisorScoring_ResearchNone0(const u8 *scoring);
+// 0x59db40: from the month +0x238 with staff of kind 8, no kind 0 definition with a control +0x14, Table_ScaledBySum(4) of the lab 0: +0x23c.
+s32 __fastcall AdvisorScoring_ResearchIdleStaff8(const u8 *scoring);
+// 0x59dde0, 0x59e070, 0x59e2e0 (kinds 0-2): definitions of the kind with controls, +0x634 days since 0x21c30, none of the next kind's: the park's age in days * +0x26c / 0x290 / 0x2b4 + +0x268 / 0x28c / 0x2b0.
+s32 __fastcall AdvisorScoring_ResearchWaiting0(const u8 *scoring);
+s32 __fastcall AdvisorScoring_ResearchWaiting1(const u8 *scoring);
+s32 __fastcall AdvisorScoring_ResearchWaiting2(const u8 *scoring);
+// 0x59e8d0: Source_Field0c of the money over +0x330 and Obj_Count28s_4d0690 of [0x7cf83c]'s money 0: +0x334.
+s32 __fastcall AdvisorScoring_MoneyOverLoanless(const u8 *scoring);
+// 0x59e9f0, 0x59ea70, 0x59eaf0: in the red (Source_Field0c negative), no loan offer (Money_AnyLoanOffer), the months of it (Money_TimeInRed) under 3, 3 or 4, or 5: +0x344, +0x348, +0x34c.
+s32 __fastcall AdvisorScoring_RedUnder3(const u8 *scoring);
+s32 __fastcall AdvisorScoring_Red3To4(const u8 *scoring);
+s32 __fastcall AdvisorScoring_Red5(const u8 *scoring);
 }
