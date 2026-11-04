@@ -513,6 +513,7 @@
 #include "../game/render/groundshadow.h"
 #include "../game/render/meshdraws.h"
 #include "../game/render/modelgroup.h"
+#include "../game/render/modellist.h"
 #include "../game/render/randomsegments.h"
 #include "../game/render/ribbon.h"
 #include "../game/render/spritegroups.h"
@@ -6880,6 +6881,7 @@ const Hook kHooks[] = {
     {"EngineDebug_Log",           0x00564650, (void *)&EngineDebug_Log, {0xa1, 0x2c, 0x9a, 0x87, 0x00}},
     {"EngineDebug_LogFallback",   0x005645e0, (void *)&EngineDebug_LogFallback, {0xa1, 0x28, 0x9a, 0x87, 0x00}},
     {"DirectDraw_Open",           0x00563460, (void *)&DirectDraw_Open, {0xa1, 0x08, 0xd5, 0x8b, 0x00}},
+    {"ModelList_Draw",            0x00581db0, (void *)&ModelList_Draw, {0xb8, 0x20, 0x40, 0x0b, 0x00}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},
