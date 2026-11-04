@@ -139,6 +139,7 @@
 #include "../game/gfx/textlayout.h"
 #include "../game/gfx/tvstatic.h"
 #include "../game/gfx/aaline.h"
+#include "../game/gfx/bumplight.h"
 #include "../game/gfx/colourramps.h"
 #include "../game/gfx/dctmacroblock.h"
 #include "../game/gfx/dctvlc.h"
@@ -6574,6 +6575,7 @@ const Hook kHooks[] = {
     {"MovieControl_Stop",         0x0066f580, (void *)&MovieControl_Stop, {0x8b, 0x4c, 0x24, 0x04, 0x56}},
     {"MovieControl_StartThread",  0x006727c0, (void *)&MovieControl_StartThread, {0x56, 0x8b, 0xf1, 0x6a, 0x01}},
     {"MovieControl_StopThread",   0x00672800, (void *)&MovieControl_StopThread, {0x8b, 0x81, 0xc4, 0x03, 0x00}},
+    {"BumpLight_Render",          0x005eb8a0, (void *)&BumpLight_Render, {0x6a, 0xff, 0x68, 0x08, 0x1e}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},
