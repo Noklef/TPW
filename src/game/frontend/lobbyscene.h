@@ -36,6 +36,9 @@ extern "C" {
 // +0x20 and +0xc destroyed.
 void __fastcall Class702a50_Dtor(u8 *object);
 
+// 0x5d80a0 (thiscall, pops 4; name unconfirmed): the destructor, the block freed when bit 0 of the flags is set; returns the object.
+u8 *__fastcall Class702a50_DeletingDtor(u8 *object, void *, u32 flags);
+
 // 0x5da120 (class 0x702af0; name unconfirmed): once (the flag at +4 then set to 1), each item of the list at +0x58 (head +4; nodes {item, next})
 // whose flag at +0xc is clear has its model at +8 set up (RideUser_Acquire) and the flag set to 1.
 void __fastcall Class702af0_AcquireModels(u8 *object);

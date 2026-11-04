@@ -308,6 +308,12 @@ void __fastcall Class702a50_Dtor(u8 *object) {
     g_env->stringDtor(reinterpret_cast<String *>(object + 0xc));
 }
 
+u8 *__fastcall Class702a50_DeletingDtor(u8 *object, void *, u32 flags) {
+    Class702a50_Dtor(object);
+    if (flags & 1) GameHeap_Free(object);
+    return object;
+}
+
 void __fastcall LobbyCamera_Frame(u8 *camera) {
     const u32 fov = at<u32>(camera, 4);
     g_env->perspective(reinterpret_cast<void *>((uintptr_t)0x0087b110), nullptr, 0x3dcccccd, 0x447a0000, fov);
