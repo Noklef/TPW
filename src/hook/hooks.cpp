@@ -650,6 +650,7 @@
 #include "../game/ui/dialog7cc944.h"
 #include "../game/ui/dialog7cc944handler.h"
 #include "../game/ui/dialog7cc944list.h"
+#include "../game/ui/dialog7cc944row.h"
 #include "../game/ui/dialog7cc984.h"
 #include "../game/ui/dialog7cc984open.h"
 #include "../game/ui/dialog7cca70.h"
@@ -8405,6 +8406,7 @@ const Hook kHooks[] = {
     {"Dialog7cc654_ShowPicture",  0x004bc270, (void *)&Dialog7cc654_ShowPicture, {0x6a, 0xff, 0x68, 0x86, 0xb8}},
     {"CursorFiles_LoadSystem",    0x004895b0, (void *)&CursorFiles_LoadSystem, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"CursorFiles_LoadPicture",   0x00489670, (void *)&CursorFiles_LoadPicture, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Dialog7cc944_SetWaitingRow", 0x004c0660, (void *)&Dialog7cc944_SetWaitingRow, {0x8b, 0x0d, 0x44, 0xc9, 0x7c}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},

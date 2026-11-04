@@ -8286,6 +8286,7 @@ address,name,kind,confidence,notes
 0x004bc270,Dialog7cc654_ShowPicture,function,low,"reimplemented (src/game/ui/dialog7cc654picture); the picture in the online dialog drawn: name invented, unconfirmed"
 0x004895b0,CursorFiles_LoadSystem,function,low,"reimplemented (src/game/ui/cursorfiles); a .ani or .cur cursor file loaded by the system: name invented, unconfirmed"
 0x00489670,CursorFiles_LoadPicture,function,low,"reimplemented (src/game/ui/cursorfiles); a .tga cursor file loaded as a picture: name invented, unconfirmed"
+0x004c0660,Dialog7cc944_SetWaitingRow,function,low,"reimplemented (src/game/ui/dialog7cc944row); the online game's list's waiting row: name invented, unconfirmed"
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"
