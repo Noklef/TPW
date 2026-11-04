@@ -98,6 +98,15 @@ struct OnlinePollEnv {
 };
 void Online_SetPollEnv(const OnlinePollEnv *env);
 
+// Online_DownloadNext's calls: the bench's recorders; the FTP object's not ported yet.
+struct OnlineNextEnv {
+    u8 *(__fastcall *findKind1)(u8 *owner);        // Owner2c_FindKind1 (0x5bd670)
+    u8 *(__fastcall *findByKey)(u8 *owner, void *, u32 key);  // Owner2c_FindByKey (0x5bc9c0)
+    void(__fastcall *fetch)(void *ftp, void *, const char *from, const char *to);  // 0x5d22a0
+    void(__fastcall *finish)(void *ftp);           // 0x5d2180
+};
+void Online_SetNextEnv(const OnlineNextEnv *env);
+
 extern "C" {
 
 // 0x5b6450: +0x60, set while logged in.
@@ -216,6 +225,10 @@ void __fastcall Online_UploadBegin(u8 *session, void *, const void *a, u32 b, co
 // 0x5b5bf0 (thiscall): the frame's poll. With an Auth and +0x64: the login finished, +0x64 = 0. The news, city and upload polled. A download running (+0x39c, +0x3a0 and +0x38c set): when ended (+0x390)
 // Message4, +0x38c = 0, and Online_DownloadEnd(+0x394 clear); otherwise its text (0x102) and, with a total above 0, its progress.
 void __fastcall Online_Poll(u8 *session);
+
+// 0x5b9380 (thiscall): with files queued (+0x3d4): the first taken off the list at +0x3cc, its address (the kind 1 record's +0x74, "/", the item) and its path ([0xf816c0]\[0xf7ccd8]\item) sent to
+// the FTP's fetch, the item deleted. Else with +0x3d8: the theme's own file (record +0x74, "/", the key's +0x4c, "/", +0x3a4's +0x84) to +0x3e4, +0x3d8 cleared. Else the FTP finished, +0x394 = 1.
+void __fastcall Online_DownloadNext(u8 *session);
 
 // 0x5b87e0 (thiscall (a, b, c), pops 12; name invented, unconfirmed): Online_ReleaseNews; +0x74, +0x90 and +0xac = -1; +0xc8, +0xcc, +0x78, +0x94, +0xb0, +0xd0 = 0; the strings +0x7c (0x786de4), +0x98 and +0xb4 (0x78a374)
 // assigned by slot 5; the city, upload and download reset; the dialog's message. +0x3a8 = a, +0x3c0 = b, +0x3c4 = c. Logged in (+0x60): the instance's list +0xf0 starts on its +0x3a8 with the callback 0x5b88e0. Otherwise

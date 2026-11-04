@@ -697,6 +697,85 @@ void __fastcall Online_Poll(u8 *session) {
     if (total > 0) g_poll->setProgress(static_cast<s32>(at<u32>(transfer, 0x1c) * 100u) / total);
 }
 
+namespace {
+
+const OnlineNextEnv kNextGameEnv = {&Owner2c_FindKind1, &Owner2c_FindByKey, reinterpret_cast<decltype(OnlineNextEnv::fetch)>((uintptr_t)0x005d22a0), reinterpret_cast<decltype(OnlineNextEnv::finish)>((uintptr_t)0x005d2180)};
+const OnlineNextEnv *g_next = &kNextGameEnv;
+
+// The kind 1 record's address, then "/": into a new wide string.
+void ServerFolder(u8 *session, WString *url) {
+    WString_Ctor(url);
+    vcall<void>(url, 0x14, at<u32>(g_next->findKind1(at<u8 *>(session, 0xfc)), 0x74));
+    const u32 slash = 0x2f;
+    vcall<void>(url, 0x24, &slash);
+}
+
+}  // namespace
+
+void Online_SetNextEnv(const OnlineNextEnv *env) { g_next = env ? env : &kNextGameEnv; }
+
+void __fastcall Online_DownloadNext(u8 *session) {
+    if (at<u32>(session, 0x3d4)) {
+        Say(0x00773b64);
+        u8 *item = nullptr;
+        if (u8 *const node = at<u8 *>(session, 0x3cc)) {
+            u8 *const next = at<u8 *>(node, 4);
+            at<u8 *>(session, 0x3cc) = next;
+            if (next)
+                at<u32>(next, 8) = 0;
+            else
+                at<u32>(session, 0x3d0) = 0;
+            at<u32>(session, 0x3d4) -= 1;
+            item = at<u8 *>(node, 0);
+            GameHeap_Free(node);
+        }
+        WString url;
+        ServerFolder(session, &url);
+        vcall<void>(&url, 0x28, item);
+        String from;
+        String_Ctor(&from);
+        String_AssignFromWide(&from, &url);
+        String to;
+        String_CtorCopy(&to, nullptr, reinterpret_cast<const StringView *>((uintptr_t)0x00f816c0));
+        String_EnsureTrailingBackslash(&to);
+        vcall<void>(&to, 0x28, 0x00f7ccd8u);
+        String_EnsureTrailingBackslash(&to);
+        WString wide;
+        WString_Ctor(&wide);
+        WString_AssignFromAnsi(&wide, &to);
+        vcall<void>(&wide, 0x28, item);
+        String_AssignFromWide(&to, &wide);
+        g_next->fetch(at<void *>(session, 0x3a0), nullptr, from.data, to.data);
+        if (item) vcall<void>(item, 0xc, 1u);
+        WString_Dtor(&wide);
+        String_Dtor(&to);
+        String_Dtor(&from);
+        WString_Dtor(&url);
+        return;
+    }
+    if (at<u32>(session, 0x3d8)) {
+        Say(0x00773b3c);
+        WString url;
+        ServerFolder(session, &url);
+        const u8 *const key = g_next->findByKey(at<u8 *>(session, 0xe0), nullptr, at<u32>(at<u8 *>(session, 0x3a4), 0x48));
+        vcall<void>(&url, 0x20, at<u32>(key, 0x4c));
+        const u32 slash = 0x2f;
+        vcall<void>(&url, 0x24, &slash);
+        String from;
+        String_Ctor(&from);
+        String_AssignFromWide(&from, &url);
+        vcall<void>(&from, 0x20, at<u32>(at<u8 *>(session, 0x3a4), 0x84));
+        g_next->fetch(at<void *>(session, 0x3a0), nullptr, from.data, at<const char *>(session, 0x3e4));
+        at<u32>(session, 0x3d8) = 0;
+        String_Dtor(&from);
+        WString_Dtor(&url);
+        return;
+    }
+    Say(0x00773b00);
+    g_next->finish(at<void *>(session, 0x3a0));
+    at<u32>(session, 0x394) = 1;
+}
+
 void __fastcall Online_CityPoll(u8 *session) {
     if (!at<u32>(session, 0xd4)) return;
     if (at<u32>(session, 0xdc)) {

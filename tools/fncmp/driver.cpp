@@ -960,6 +960,7 @@ const OnlineDtorEnv kOnlineDtorEnv = {Rec{recorder(8, 0)}, Rec{recorder(9, 0)}, 
 const OnlineEndEnv kOnlineEndEnv = {Rec{jpeg_recorder(8, 2)}, Rec{recorder(9, 0)}, Rec{recorder(10, 0)}, Rec{recorder(11, 0)}, Rec{recorder(12, 0)}, Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{jpeg_recorder(15, 0)}, Rec{jpeg_recorder(16, 0)}, Rec{jpeg_recorder(17, 1)}, Rec{jpeg_recorder(18, 1)}, Rec{jpeg_recorder(19, 0)}, Rec{recorder(20, 0)}, Rec{jpeg_recorder(21, 1)}};
 const SignFontsEnv kSignFontsEnv = {Rec{jpeg_recorder(8, 2)}};
 const OnlinePollEnv kOnlinePollEnv = {Rec{recorder(8, 1)}, Rec{recorder(9, 0)}, Rec{recorder(10, 0)}, Rec{recorder(11, 0)}, Rec{recorder(12, 1)}, Rec{jpeg_recorder(13, 0)}, Rec{jpeg_recorder(14, 1)}, Rec{jpeg_recorder(15, 1)}};
+const OnlineNextEnv kOnlineNextEnv = {Rec{recorder(8, 0)}, Rec{recorder(9, 1)}, Rec{recorder(10, 2)}, Rec{recorder(11, 0)}};
 const CoasterPlaceCarEnv kCoasterPlaceCarEnv = {Rec{jpeg_recorder(1, 6)}, Rec{jpeg_recorder(2, 9)}, Rec{jpeg_recorder(3, 7)}, Rec{jpeg_recorder(4, 5)}, Rec{jpeg_recorder(5, 2)}, Rec{jpeg_recorder(6, 7)},
                                                  Rec{jpeg_recorder(7, 1)}, Rec{jpeg_recorder(8, 1)}, Rec{jpeg_recorder(9, 0)}, Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 0)}, Rec{jpeg_recorder(12, 0)},
                                                  Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{recorder(15, 1)}};  // tests/fncmp/coasterplacecar.py
@@ -2709,6 +2710,7 @@ int main(int argc, char **argv) {
     VersionLabel_SetEnv(&kVersionLabelEnv);
     BankAccountCtor_SetEnv(&kBankAccountCtorEnv);
     NarrowFileBuf_SetEnv(&kNarrowFileBufEnv);
+    Online_SetNextEnv(&kOnlineNextEnv);
     Online_SetPollEnv(&kOnlinePollEnv);
     SignFonts_SetEnv(&kSignFontsEnv);
     Online_SetEndEnv(&kOnlineEndEnv);
