@@ -339,6 +339,7 @@
 #include "../../src/game/core/advisorscoring.h"
 #include "../../src/game/frontend/sceneenter.h"
 #include "../../src/game/frontend/sceneleave.h"
+#include "../../src/game/frontend/scenesteps.h"
 #include "../../src/game/terrain/raypick.h"
 #include "../../src/game/terrain/ground.h"
 #include "../../src/game/terrain/water.h"
@@ -904,6 +905,8 @@ const CarSoundUpdateEnv kCarSoundUpdateEnv = {Rec{jpeg_recorder(1, 0)}, Rec{jpeg
 const SceneEnterEnv kSceneEnterEnv = {Rec{recorder(16, 1)}, Rec{recorder(17, 0)}, Rec{recorder(18, 2)}, Rec{recorder(19, 4)}, Rec{jpeg_recorder(20, 6)}, Rec{recorder(21, 6)}, Rec{recorder(22, 0)}, Rec{recorder(23, 0)},
                                      Rec{recorder(24, 2)}, Rec{recorder(25, 0)}, Rec{jpeg_recorder(26, 0)}, Rec{recorder(27, 0)}, Rec{recorder(28, 0)}, Rec{recorder(29, 3)}, Rec{recorder(30, 3)}, Rec{jpeg_recorder(31, 0)},
                                      Rec{jpeg_recorder(14, 1)}, Rec{jpeg_recorder(15, 0)}};  // tests/fncmp/sceneenter.py
+const SceneStepsEnv kSceneStepsEnv = {Rec{recorder(16, 2)}, Rec{jpeg_recorder(17, 0)}, Rec{jpeg_recorder(18, 0)}, Rec{recorder(19, 0)}, Rec{jpeg_recorder(20, 1)}, Rec{recorder(21, 0)}, Rec{recorder(22, 0)},
+                                     Rec{recorder(23, 0)}, Rec{jpeg_recorder(24, 0)}, Rec{jpeg_recorder(25, 0)}, Rec{jpeg_recorder(26, 5)}, Rec{recorder(27, 1)}, Rec{recorder(28, 0)}, Rec{jpeg_recorder(29, 1)}, Rec{jpeg_recorder(30, 0)}, Rec{recorder(31, 2)}};  // tests/fncmp/scenesteps.py
 const SceneLeaveEnv kSceneLeaveEnv = {Rec{jpeg_recorder(20, 1)}, Rec{jpeg_recorder(21, 6)}, Rec{jpeg_recorder(22, 0)}, Rec{recorder(23, 0)}, Rec{recorder(24, 0)}, Rec{recorder(25, 0)},
                                        Rec{jpeg_recorder(26, 0)}, Rec{jpeg_recorder(27, 0)}, Rec{jpeg_recorder(28, 0)}, Rec{jpeg_recorder(29, 0)}};
 const AdvisorCriteriaEnv kAdvisorCriteriaEnv = {Rec{recorder(1, 1)}, Rec{jpeg_recorder(2, 0)}, Rec{recorder(3, 1)}, Rec{recorder(4, 0)}, Rec{recorder(5, 0)}, Rec{recorder(6, 2)}};
@@ -2494,6 +2497,7 @@ int main(int argc, char **argv) {
     AdvisorCriteria_SetEnv(&kAdvisorCriteriaEnv);
     SceneEnter_SetEnv(&kSceneEnterEnv);
     SceneLeave_SetEnv(&kSceneLeaveEnv);
+    SceneSteps_SetEnv(&kSceneStepsEnv);
     CarSoundUpdate_SetEnv(&kCarSoundUpdateEnv);
     SceneViews_SetEnv(&kSceneViewsEnv);
     BendMesh_SetEnv(&kBendMeshEnv);

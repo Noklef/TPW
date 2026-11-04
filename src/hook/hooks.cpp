@@ -554,6 +554,7 @@
 #include "../game/frontend/lobbyscript.h"
 #include "../game/frontend/sceneenter.h"
 #include "../game/frontend/sceneleave.h"
+#include "../game/frontend/scenesteps.h"
 #include "../game/frontend/viewcontrols.h"
 #include "../game/online/itemlist.h"
 #include "../game/online/items.h"
@@ -7529,6 +7530,18 @@ const Hook kHooks[] = {
     {"Scene702dd0_Enter",         0x005e23f0, (void *)&Scene702dd0_Enter, {0x51, 0x56, 0x8b, 0xf1, 0x57}},
     {"ViewCtl702e70_Enter",       0x005dd650, (void *)&ViewCtl702e70_Enter, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
     {"ViewCtl702e20_Enter",       0x005dd910, (void *)&ViewCtl702e20_Enter, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
+    {"Scene702ec0_EndState",      0x005e1890, (void *)&Scene702ec0_EndState, {0x56, 0x8b, 0xf1, 0x57, 0x33}},
+    {"Scene702ec0_Next",          0x005e1ee0, (void *)&Scene702ec0_Next, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"Scene702ec0_Previous",      0x005e1f40, (void *)&Scene702ec0_Previous, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"Scene702dd0_EndState",      0x005e2360, (void *)&Scene702dd0_EndState, {0x56, 0x8b, 0xf1, 0x33, 0xc0}},
+    {"Scene702dd0_OpenRecord",    0x005e26a0, (void *)&Scene702dd0_OpenRecord, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"Scene_SetOnlineMode",       0x005e2700, (void *)&Scene_SetOnlineMode, {0xa1, 0x84, 0x28, 0xf8, 0x00}},
+    {"Scene702dd0_Next",          0x005e2770, (void *)&Scene702dd0_Next, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"Scene702dd0_Previous",      0x005e2790, (void *)&Scene702dd0_Previous, {0x56, 0x8b, 0xf1, 0x8b, 0x46}},
+    {"Scene702dd0_Step",          0x005e22d0, (void *)&Scene702dd0_Step, {0x56, 0x8b, 0xf1, 0xe8, 0x98}},
+    {"Scene702ec0_Step",          0x005e1830, (void *)&Scene702ec0_Step, {0x51, 0xe8, 0x3a, 0xec, 0xff}},
+    {"ViewCtl702e70_Back",        0x005dd610, (void *)&ViewCtl702e70_Back, {0x56, 0x57, 0x8b, 0xf1, 0x33}},
+    {"ViewCtl702bc8_ListDone",    0x005dcfc0, (void *)&ViewCtl702bc8_ListDone, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"RSSE_Init",                 0x00551600, (void *)&RSSE_Init, {0xa1, 0xa0, 0x91, 0x87, 0x00}},
     {"RsseScript_EventName",      0x00468600, (void *)&RsseScript_EventName, {0x53, 0x55, 0x56, 0x8b, 0x74}},
     {"RSSE_StartTimer",           0x00557160, (void *)&RSSE_StartTimer, {0xb9, 0x70, 0x59, 0x78, 0x00}},
