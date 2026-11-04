@@ -27,7 +27,7 @@ def case(r):
     table = import_table(log, IMPORTS)
     struct.pack_into('<I', log, LOG_BYTES + 4 * SIZE, 3 << 16)   # (the words of the two sizes, over registers that hold other bytes above)
     blob(log, MBTOWC, 2, 1)   # (what is made wide, on the stack: one dword)
-    fill(log, MBTOWC, 4, r.choice([r.bytes(2), r.bytes(4), struct.pack('<H', r.randrange(0x1e, 0x22)), struct.pack('<I', 0x41)]))
+    fill(log, MBTOWC, 4, r.choice([r.bytes(2), r.bytes(4), struct.pack('<H', r.randrange(0x1e, 0x22)), struct.pack('<I', 0x41), struct.pack('<HH', r.randrange(0x1e, 0x22), r.getrandbits(16) | 1)]))
     set_return(log, MBTOWC, r.choice([1, 1, 1, 2, 0, 0xffffffff]))
     set_return(log, DEFAULT, r.getrandbits(32))
     set_return(log, MAP_KEY, r.choice([0, 0x41, 0x10000, 0x12345641, r.getrandbits(32)]))
@@ -39,7 +39,7 @@ def case(r):
     if message == 0x1c:
         wparam = r.choice([0, 0, 1, r.getrandbits(32)])
     lparam = r.getrandbits(32)
-    size = struct.pack('<hxxh', r.choice([600, 768, 480, 1, -3, r.randrange(1, 0x7fff)]), r.choice([800, 1024, 640, 800, 800, 1, -7, r.randrange(1, 0x7fff), 0]))
+    size = struct.pack('<hxxh', r.choice([600, 768, 480, 1, -3, r.randrange(1, 0x7fff)]), r.choice([800] * 9 + [1024, 640, 1, -7, r.randrange(1, 0x7fff), r.randrange(1, 0x7fff), 0]))
     regions = {LOG: log, IMPORT_TABLE: table, STATES: struct.pack('<40I', *(r.choice([0, 1, 0x8000, 0xffff8001, 0x10000, 0xffff0000]) for _ in range(40))), 0xfaa5c0: size,
                0x7a1968: r.bytes(4), 0x7a1930: r.bytes(4), 0x7b4b88: struct.pack('<I', r.choice([0, 0, 1, r.getrandbits(32)])), 0x8c4b44: struct.pack('<I', r.choice([0, RAM + 0x100])), 0x7a1a14: r.bytes(4),
                0xf82884: struct.pack('<I', r.choice([0, 0, 1, r.getrandbits(32)])), 0x78718c: struct.pack('<I', RAM + 0x200), 0x7a1c5c: struct.pack('<I', r.choice([0xc123, 0xc123, 0x1b, message, r.getrandbits(32)]))}
