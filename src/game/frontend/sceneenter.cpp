@@ -14,6 +14,7 @@
 #include "../render/state.h"
 #include "../render/weatherfx.h"
 #include "../ui/dialog7cc47c.h"
+#include "../ui/dialogs.h"
 #include "lobbymake.h"
 #include "scenequeue.h"
 
@@ -24,12 +25,22 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 const SceneEnterEnv kPorts = {&WeatherFx_SetDropCount, &Render_FogOff, &Render_SetAmbient, &LightSlot_Set, &Sound_PlayAt, &LobbyScene_MakeModel, &RideUser_Acquire, &Online_ResetConnections,
-                              &ListRequest_Start30, &Class702da0_Clear, &Dialog7cc47c_Create, &HolderUser_Acquire, &Render_FogOn, &Render_SetFog, &ListRequest_Start66, &Sound_ApplySettings};
+                              &ListRequest_Start30, &Class702da0_Clear, &Dialog7cc47c_Create, &HolderUser_Acquire, &Render_FogOn, &Render_SetFog, &ListRequest_Start66, &Sound_ApplySettings,
+                              &Dialog7cdb0c_Create, &Dialog7cc4c4_Create};
 const SceneEnterEnv *g_env = &kPorts;
 
 u8 *View() { return global<u8 *>(0x00f83778); }
 
 u32 Active(u8 *self) { return vcall<u32>(self, 0x24); }
+
+void EnterView(u8 *self, u32 flag) {
+    if (Active(self))
+        return;
+    g_env->createButtons(flag);
+    g_env->createThings();
+    ViewCtl702bc8_Enter(self);
+    g_env->clearQueue(at<u8 *>(global<u8 *>(0x00f85614), 0x14));
+}
 
 }  // namespace
 
@@ -82,6 +93,10 @@ void __fastcall ViewCtl702bc8_Enter(u8 *self) {
     g_env->resetConnections(Online_Instance());
     g_env->start30(at<u8 *>(Online_Instance(), 0xe0), nullptr, 0x005dcfc0, reinterpret_cast<u32>(self));
 }
+
+void __fastcall ViewCtl702e70_Enter(u8 *self) { EnterView(self, 0); }
+
+void __fastcall ViewCtl702e20_Enter(u8 *self) { EnterView(self, 1); }
 
 void __fastcall Class702cb0_Enter(u8 *self) {
     if (Active(self))

@@ -22,6 +22,8 @@ struct SceneEnterEnv {
     void(__fastcall *setFog)(void *view, void *, u32 colour, u32 start, u32 end);  // Render_SetFog (0x5d96a0)
     void(__fastcall *start66)(u8 *list, void *, u32 value, u32 callback, u32 user);  // ListRequest_Start66 (0x5bcd10)
     void(__cdecl *apply)();                                                        // Sound_ApplySettings (0x51bd70)
+    void(__cdecl *createButtons)(u32 flag);                                        // Dialog7cdb0c_Create (0x4c4fb0)
+    void(__cdecl *createThings)();                                                 // Dialog7cc4c4_Create (0x4b9a70)
 };
 void SceneEnter_SetEnv(const SceneEnterEnv *env);
 
@@ -32,6 +34,10 @@ extern "C" {
 // +0x50 to +0x58 = 0xf30000, 0xcb0000, 0xbf0000, sounds 2 and 3 of [0x803a48] at +0x74, +0x78. +0xc = a new part of 0x18 bytes (vtable 0x702bb4; +4 its model set up, +8 = this; slot 13 given it) or 0. The
 // session's connections reset (Online_Instance), its list +0xe0 asked (ListRequest_Start30 with 0x5dcfc0 and this).
 void __fastcall ViewCtl702bc8_Enter(u8 *self);
+
+// 0x5dd650 / 0x5dd910 (classes 0x702e70 / 0x702e20; names invented): unless active: Dialog7cdb0c_Create(0 / 1), Dialog7cc4c4_Create, ViewCtl702bc8_Enter, Class702da0_Clear of [[0xf85614] + 0x14].
+void __fastcall ViewCtl702e70_Enter(u8 *self);
+void __fastcall ViewCtl702e20_Enter(u8 *self);
 
 // 0x5e1380 (name invented): unless active: +4 = 1, HolderUser_Acquire of [0xf83774], ambient 0x444444, a light (1, 0xeeeeee, no direction, 1), the view's +0x28 = 2.0, +0x2c = 8.0, +0x30 = 1,
 // +4 = [[[0xf82884] + 0x10] + 4], fog on (0xff44ddff, 50.0, 250.0), +0xc, +0x10, +0x14 = 0, the connections reset.

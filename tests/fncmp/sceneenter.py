@@ -1,8 +1,8 @@
-# Scene objects entering (src/game/frontend/sceneenter: 0x5dcfe0, 0x5e1380, 0x5e23f0) against the originals. Recorders (driver.cpp's kSceneEnterEnv): WeatherFx_SetDropCount 16, Render_FogOff 17, Render_SetAmbient 18,
+# Scene objects entering (src/game/frontend/sceneenter: 0x5dcfe0, 0x5dd650, 0x5dd910, 0x5e1380, 0x5e23f0) against the originals. Recorders (driver.cpp's kSceneEnterEnv): WeatherFx_SetDropCount 16, Render_FogOff 17, Render_SetAmbient 18,
 # LightSlot_Set 19 (its colour hashed), Sound_PlayAt 20, LobbyScene_MakeModel 21, RideUser_Acquire 22, Online_ResetConnections 23, ListRequest_Start30 24, Class702da0_Clear 25, Dialog7cc47c_Create 26,
-# HolderUser_Acquire 27, Render_FogOn 28, Render_SetFog 29, ListRequest_Start66 30, Sound_ApplySettings 31; Online_Construct 10 (as session.py). The object's slot 9 answers 0 or not in turn, the part's or the
+# HolderUser_Acquire 27, Render_FogOn 28, Render_SetFog 29, ListRequest_Start66 30, Sound_ApplySettings 31, Dialog7cdb0c_Create 14, Dialog7cc4c4_Create 15; Online_Construct 10 (as session.py). The object's slot 9 answers 0 or not in turn, the part's or the
 # session's allocation failing now and then (the session then made by the second try), the session there or not, a current item or none when it stays active.
-# usage: sceneenter.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=View,Class,Scene)
+# usage: sceneenter.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=View,View2,View3,Class,Scene)
 import os
 import struct
 import sys
@@ -10,11 +10,11 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, LOG, RAM, Bench, Call, _recorder, answers, blob, heap, log_region, put, set_return, strings, vtable  # noqa: E402
 
-CALLS = {'View': 0x5dcfe0, 'Class': 0x5e1380, 'Scene': 0x5e23f0}
-B = Bench([(0x5dcfe0, 0x5dd220), (0x5e1380, 0x5e1450), (0x5e23f0, 0x5e2550), (0x48b390, 0x48b410)],
+CALLS = {'View': 0x5dcfe0, 'View2': 0x5dd650, 'View3': 0x5dd910, 'Class': 0x5e1380, 'Scene': 0x5e23f0}
+B = Bench([(0x5dcfe0, 0x5dd220), (0x5dd650, 0x5dd690), (0x5dd910, 0x5dd950), (0x5e1380, 0x5e1450), (0x5e23f0, 0x5e2550), (0x48b390, 0x48b410)],
           hooks={0x57d910: _recorder(16, 1), 0x5d9690: _recorder(17, 0), 0x5d9230: _recorder(18, 2), 0x5d92e0: _recorder(19, 4), 0x51bfc0: _recorder(20, 6, cdecl=True), 0x5d8870: _recorder(21, 6),
                  0x5d8130: _recorder(22, 0), 0x5b6070: _recorder(23, 0), 0x5bc7d0: _recorder(24, 2), 0x5d6060: _recorder(25, 0), 0x4b8520: _recorder(26, 0, cdecl=True), 0x5d87d0: _recorder(27, 0),
-                 0x5d9680: _recorder(28, 0), 0x5d96a0: _recorder(29, 3), 0x5bcd10: _recorder(30, 3), 0x51bd70: _recorder(31, 0, cdecl=True), 0x5b50b0: _recorder(10, 0)})
+                 0x5d9680: _recorder(28, 0), 0x5d96a0: _recorder(29, 3), 0x5bcd10: _recorder(30, 3), 0x51bd70: _recorder(31, 0, cdecl=True), 0x5b50b0: _recorder(10, 0), 0x4c4fb0: _recorder(14, 1, cdecl=True), 0x4b9a70: _recorder(15, 0, cdecl=True)})
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 THIS, VT, ACTIVE, VIEW, GAME, SUB, HOLDER, QUEUE, GAME2, TABLE, INST, ITEM = (RAM + 0x100 * k for k in range(12))
 MODEL = RAM + 0xc00
