@@ -635,6 +635,7 @@ add_library(tpw_game STATIC
     src/game/render/ddopen.cpp
     src/game/render/modellist.cpp
     src/game/render/pointsprites.cpp
+    src/game/render/d3dviewport.cpp
     src/game/ui/quitconfirm.cpp
     src/game/world/mapsweep.cpp
     src/game/ui/imehostattach.cpp

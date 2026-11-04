@@ -7076,6 +7076,7 @@ address,name,kind,confidence,notes
 0x00563460,DirectDraw_Open,function,low,"reimplemented (src/game/render/ddopen); the view's screen set and DirectDraw brought up, full screen or in a window"
 0x00581db0,ModelList_Draw,function,low,"reimplemented (src/game/render/modellist); thiscall; name unconfirmed; a list of models' material groups put in a tree by texture key, sorted by driver flags and texture, then drawn in batches"
 0x0058ac90,PointSprites_Draw,function,low,reimplemented (src/game/render/pointsprites); thiscall; name unconfirmed; points transformed and each in front of the camera drawn as a triangle in one batch
+0x00572dd0,D3dSetup_CreateViewport,function,low,"reimplemented (src/game/render/d3dviewport); thiscall: the viewport made, added, set and made current"
 0x0044b140,Model_MarkFacesByMask,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, mask): face flags 0x80000010 for parts whose +8 has any mask bit"
 0x0044b1b0,Model_MarkFacesNotValue,function,high,"reimplemented (src/game/model/parts); cdecl (holder**, value): face flags 0x80000010 for parts whose +8 is not value"
 0x0044b220,Model_FindPartByKey4,function,high,"reimplemented (src/game/model/parts); cdecl u32 (holder, mask, key): first part with +4 == key and flags & mask (mask defaults 0x3da1f82), or -1"
