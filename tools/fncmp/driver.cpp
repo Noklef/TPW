@@ -379,6 +379,7 @@
 #include "../../src/game/world/personscripts.h"
 #include "../../src/game/core/funnytime.h"
 #include "../../src/game/core/narrowfilebuf.h"
+#include "../../src/game/core/swearfilter.h"
 #include "../../src/game/core/wfilebuf.h"
 #include "../../src/game/core/wstream.h"
 #include "../../src/game/core/channelvoice.h"
@@ -931,6 +932,8 @@ const RideSkinEnv kRideSkinEnv = {Rec{jpeg_recorder(1, 1)}};
 const ParkMapEnv kParkMapEnv = {Rec{recorder(10, 1)}, Rec{recorder(11, 0)}, Rec{recorder(12, 3)}, Rec{recorder(13, 0)}};
 const LobbyMakeEnv kLobbyMakeEnv = {Rec{jpeg_recorder(20, 11)}, Rec{jpeg_recorder(21, 10)}, Rec{jpeg_recorder(22, 1)}, Rec{jpeg_recorder(23, 3)}, Rec{recorder(24, 1)}, Rec{recorder(25, 1)}, Rec{jpeg_recorder(26, 1)},
                                     Rec{recorder(28, 0)}, Rec{recorder(29, 1)}, Rec{recorder(30, 3)}};
+u32 __cdecl SwearLowerC(u32 c) { return (c & 0xffff) >= 0x41 && (c & 0xffff) <= 0x5a ? (c & 0xffff) + 0x20 : c & 0xffff; }   // towlower in the C locale, tests/fncmp/swearfilter.py
+const SwearFilterEnv kSwearFilterEnv = {&SwearLowerC};
 const CoasterPlaceCarEnv kCoasterPlaceCarEnv = {Rec{jpeg_recorder(1, 6)}, Rec{jpeg_recorder(2, 9)}, Rec{jpeg_recorder(3, 7)}, Rec{jpeg_recorder(4, 5)}, Rec{jpeg_recorder(5, 2)}, Rec{jpeg_recorder(6, 7)},
                                                  Rec{jpeg_recorder(7, 1)}, Rec{jpeg_recorder(8, 1)}, Rec{jpeg_recorder(9, 0)}, Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 0)}, Rec{jpeg_recorder(12, 0)},
                                                  Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{recorder(15, 1)}};  // tests/fncmp/coasterplacecar.py
@@ -2677,6 +2680,7 @@ int main(int argc, char **argv) {
     VersionLabel_SetEnv(&kVersionLabelEnv);
     BankAccountCtor_SetEnv(&kBankAccountCtorEnv);
     NarrowFileBuf_SetEnv(&kNarrowFileBufEnv);
+    SwearFilter_SetEnv(&kSwearFilterEnv);
     SaveDialog_SetEnv(&kSaveDialogEnv);
     SaveDialogCreate_SetEnv(&kSaveDialogCreateEnv);
     Panel7cc328Handler_SetEnv(&kPanel7cc328HandlerEnv);

@@ -270,6 +270,7 @@
 #include "../game/core/streamfilter.h"
 #include "../game/core/streampool.h"
 #include "../game/core/stringmapsrecord.h"
+#include "../game/core/swearfilter.h"
 #include "../game/core/voicecodec.h"
 #include "../game/core/voiceevents.h"
 #include "../game/core/voicesample.h"
@@ -6267,6 +6268,8 @@ const Hook kHooks[] = {
     {"NFileBuf_PutBack",          0x005cefe0, (void *)&NFileBuf_PutBack, {0x51, 0x8b, 0x41, 0x1c, 0x53}},
     {"NFileBuf_Uflow",            0x005cf200, (void *)&NFileBuf_Uflow, {0x83, 0xec, 0x0c, 0x53, 0x55}},
     {"NFileBuf_Ctor",             0x005d06c0, (void *)&NFileBuf_Ctor, {0x6a, 0xff, 0x68, 0xb6, 0x0f}},
+    {"SwearFilter_Find",          0x005d2d40, (void *)&SwearFilter_Find, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"SwearFilter_Apply",         0x005d3230, (void *)&SwearFilter_Apply, {0x83, 0xec, 0x10, 0x8b, 0x41}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
