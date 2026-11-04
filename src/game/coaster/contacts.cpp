@@ -6,8 +6,19 @@
 
 namespace {
 
+AddrCalls g_calls;
+
 template <typename T> T &at(const void *p, u32 offset) {
     return *reinterpret_cast<T *>((uintptr_t)p + offset);
+}
+
+template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
+// Two boxes (min xyz, max xyz) overlap; a NaN counts as overlapping.
+bool overlap(const float *a, const float *b) {
+    for (u32 k = 0; k < 3; ++k)
+        if (a[k] >= b[3 + k] || b[k] >= a[3 + k]) return false;
+    return true;
 }
 
 const u32 kOverflow = 0x400000, kLost = 0x200000;
@@ -32,9 +43,63 @@ void drop(u8 *owner, u8 *from, const u8 *node) {
     if (dropped && (at<u32>(from, 8) & kOverflow)) at<u32>(from, 8) |= kLost;
 }
 
+// other joins node's list, or node is marked when it is full.
+void addContact(u8 *owner, u8 *node, const u8 *other) {
+    if (count(node) < 8) {
+        contacts(node)[count(node)] = (u32)(uintptr_t)other;
+        ++at<u32>(owner, 0x140);
+        ++count(node);
+    } else {
+        at<u32>(node, 8) |= kOverflow;
+    }
+}
+
 }  // namespace
 
 extern "C" {
+
+void Contacts_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
+
+void __cdecl Contacts_TestPair(u8 *owner1, u8 *owner2, u8 *nodeA, const u8 *nextA, u8 *nodeB, const u8 *nextB) {
+    if (owner1 == owner2) {
+        const u8 *const typeA = at<u8 *>(nextA, 0x100);
+        if (typeA == at<u8 *>(nodeB, 0x100)) return;
+        const u8 *const typeB = at<u8 *>(nextB, 0x100);
+        if (at<u8 *>(nodeA, 0x100) == typeB) return;
+        if ((at<u8>(typeA, 4) & 1) && !at<u32>(nodeB, 0)) return;
+        if (!at<u32>(nodeA, 0) && (at<u8>(typeB, 4) & 1)) return;
+    }
+    if (at<u32>(nodeB, 8) & 0x10000) return;
+    const float *const a = &at<float>(nodeA, 0x98), *const b = &at<float>(nodeB, 0x98);
+    if (!overlap(a, b)) return;
+    const u32 pointsA = at<u32>(owner1, 0x9c), pointsB = at<u32>(owner2, 0x9c);
+    // The boxes' common part: x's limits copied raw, the others through the FPU (a signalling NaN quieted). sic: of a NaN, the sides differ.
+    float box[6];
+    reinterpret_cast<u32 &>(box[0]) = a[0] > b[0] ? at<u32>(nodeA, 0x98) : at<u32>(nodeB, 0x98);
+    reinterpret_cast<u32 &>(box[3]) = !(a[3] >= b[3]) ? at<u32>(nodeA, 0xa4) : at<u32>(nodeB, 0xa4);
+    for (u32 k = 1; k < 3; ++k) {
+        box[k] = X87_Through(!(b[k] >= a[k]) ? a[k] : b[k]);
+        box[3 + k] = X87_Through(!(b[3 + k] > a[3 + k]) ? b[3 + k] : a[3 + k]);
+    }
+    u32 count1, count2;
+    g_calls.Cd(0x0043a060, owner1, nodeA, nextA, box, global<u32>(0x00792238), &count1);
+    g_calls.Cd(0x0043a060, owner2, nodeB, nextB, box, global<u32>(0x00792230), &count2);
+    const u8 *seg1 = global<u8 *>(0x00792238);
+    for (u32 i = 0; i < count1; ++i, seg1 += 0x1c) {
+        const u8 *seg2 = global<u8 *>(0x00792230);
+        for (u32 j = count2; j; --j, seg2 += 0x1c) {
+            global<u32>(0x0079223c) = pointsA + at<u32>(seg1, 0) * 0x38;
+            global<u32>(0x00792240) = pointsB + at<u32>(seg2, 0) * 0x38;
+            global<u32>(0x007922dc) = at<u32>(owner1, 4) + 0x9c;
+            global<u32>(0x00792244) = at<u32>(owner2, 4) + 0x9c;
+            if (overlap(&at<const float>(seg1, 4), &at<const float>(seg2, 4)) && g_calls.Cd(0x0043a2b0, seg1, seg2)) {
+                addContact(owner1, nodeA, nodeB);
+                addContact(owner2, nodeB, nodeA);
+                return;
+            }
+        }
+    }
+}
 
 void __cdecl Contacts_Clear(u8 *owner, u8 *node) {
     if (at<u32>(node, 8) & kOverflow) {

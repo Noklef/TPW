@@ -220,6 +220,7 @@
 #include "../../src/game/coaster/rebuild.h"
 #include "../../src/game/coaster/setup.h"
 #include "../../src/game/coaster/carpose.h"
+#include "../../src/game/coaster/contacts.h"
 #include "../../src/game/model/rideresource.h"
 #include "../../src/game/coaster/placecar.h"
 #include "../../src/game/gfx/texcache.h"
@@ -1089,6 +1090,10 @@ const AddrCall kHeightMapCalls[] = {  // tests/fncmp/heightmapbuild.py --table
     {0x472f60, jpeg_recorder(8, 6)},
     {0x473e30, jpeg_recorder(2, 4)},
     {0x451e20, (u32)(uintptr_t)&heightmap_rasterize_recorder},
+};
+const AddrCall kContactsCalls[] = {  // tests/fncmp/contactspair.py
+    {0x43a060, jpeg_recorder(1, 6)},
+    {0x43a2b0, jpeg_recorder(2, 2)},
 };
 const AddrCall kRidesLoadCalls[] = {  // tests/fncmp/ridesload.py --table
     {0x4547f0, jpeg_recorder(5, 1)},
@@ -2375,6 +2380,7 @@ int main(int argc, char **argv) {
     WeatherFx_SetReloadEnv(&kWeatherFxReloadEnv);
     ArReplay_SetEnv(&kArReplayEnv);
     RidesLoad_SetCalls(kRidesLoadCalls, sizeof(kRidesLoadCalls) / sizeof(kRidesLoadCalls[0]));
+    Contacts_SetCalls(kContactsCalls, sizeof(kContactsCalls) / sizeof(kContactsCalls[0]));
     HeightMap_SetCalls(kHeightMapCalls, sizeof(kHeightMapCalls) / sizeof(kHeightMapCalls[0]));
     LobbyScript_SetEnv(kLobbyScriptCalls, sizeof(kLobbyScriptCalls) / sizeof(kLobbyScriptCalls[0]));
     GamePaths_SetCalls(kShareTexCalls, sizeof(kShareTexCalls) / sizeof(kShareTexCalls[0]));
