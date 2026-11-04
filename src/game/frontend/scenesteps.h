@@ -75,6 +75,8 @@ void __cdecl Scene_SetOnlineMode();
 // 0x5dd400 (class 0x702bc8 slot 10, thiscall (list), pops 4; name invented): the list's nodes in turn (+4 the first; a node's +0 an item, +4 the next): slot 16 with the item, not 0: a 0x10-byte marker for
 // it if the allocation works. Then +0x68 = 1.
 void __fastcall ViewCtl702bc8_TakeList(u8 *self, void *, const u8 *list);
+// 0x5dda90 (thiscall; list, pops 4; name invented, unconfirmed): only ViewCtl702bc8_TakeList.
+void __fastcall ViewCtl702bc8_TakeListForward(u8 *self, void *, const u8 *list);
 // 0x5dd7c0 (class 0x702e70 slot 10; name invented): ViewCtl702bc8_TakeList, then the queue at [[0xf85614] + 0x14] pushes (0x256, 1).
 void __fastcall ViewCtl702e70_TakeList(u8 *self, void *, const u8 *list);
 }

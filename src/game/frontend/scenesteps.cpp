@@ -179,6 +179,8 @@ void __fastcall ViewCtl702bc8_TakeList(u8 *self, void *, const u8 *list) {
     at<u32>(self, 0x68) = 1;
 }
 
+void __fastcall ViewCtl702bc8_TakeListForward(u8 *self, void *, const u8 *list) { ViewCtl702bc8_TakeList(self, nullptr, list); }
+
 void __fastcall ViewCtl702e70_TakeList(u8 *self, void *, const u8 *list) {
     ViewCtl702bc8_TakeList(self, nullptr, list);
     g_env->queuePush(at<u8 *>(global<u8 *>(0x00f85614), 0x14), nullptr, 0x256, 1);
