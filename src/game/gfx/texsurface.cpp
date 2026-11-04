@@ -66,6 +66,14 @@ void TexSurface_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, 
 
 extern "C" {
 
+u32 __fastcall TexSurfaceA_LockNext(u8 *sub) {
+    for (u32 i = 0; i < 0x1f; i++) global<u32>(0x008c48a8 + i * 4) = 0;
+    global<u32>(0x008c48a8) = 0x7c;
+    const u32 made = g_calls.Th(0x0058b1f0, 0x008c47d8u, at<u32>(sub, at<u32>(back<const u8 *>(sub, 0x3c), 4) - 0x34), back<u32>(sub, 0xc));
+    back<u32>(sub, 0x18) = made;
+    return LevelResult(comcall<u32>(reinterpret_cast<void *>((uintptr_t)made), 0x64, 0u, 0x008c48a8u, 1u, 0u)) == 0;
+}
+
 double __fastcall TexSurface_LockRate(u8 *sub) {
     const u32 ticks = g_calls.Th(0x0057cb90, 0x008bba80u);
     u8 *base = sub + at<s32>(at<u8 *>(sub, -0x3c), 4) - 0x3c;
