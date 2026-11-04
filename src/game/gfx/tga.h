@@ -72,6 +72,7 @@ struct TgaCodec {  // an ImageCodec (vtable 0x6fefa8, info) with a palette and t
     u32 hasPalette;     // +0x42c
     TgaHeader header;   // +0x430
 };
+static_assert(sizeof(TgaCodec) == 0x444, "TgaCodec is 0x444 bytes, as the frame of 0x47e5a0 reserves");
 
 struct TgaEnv {
     void *(__cdecl *alloc)(u32 size);  // Mem_GlobalAlloc 0x5f5660

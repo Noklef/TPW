@@ -668,7 +668,7 @@ void Image_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count
 extern "C" {
 
 u32 __cdecl Surface_LoadTga(const char *name, u8 *surface, u32 *frames) {
-    ImageCodec codec;   // (the TGA codec, on the stack)
+    TgaCodec codec;   // (on the stack: the whole object, as the reader writes up to its header at +0x430)
     SurfaceInfo_Ctor(&codec.info);
     codec.vtable = reinterpret_cast<void *const *>((uintptr_t)0x006fefa8);
     SurfaceInfo info;
@@ -689,7 +689,7 @@ u32 __cdecl Surface_LoadTga(const char *name, u8 *surface, u32 *frames) {
 }
 
 u8 __fastcall Image_LoadFile(u8 *image, void *, const char *directory, const char *name) {
-    ImageCodec codec;   // (the TGA codec, on the stack)
+    TgaCodec codec;   // (on the stack: the whole object, as the reader writes up to its header at +0x430)
     SurfaceInfo_Ctor(&codec.info);
     codec.vtable = reinterpret_cast<void *const *>((uintptr_t)0x006fefa8);
     SurfaceInfo info;
