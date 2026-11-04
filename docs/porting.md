@@ -119,6 +119,8 @@ range, open items, known skips and the paths of the two memory files it should r
 - **New benches:** check `ls tests/fncmp` for the name first, and the module's folder for a new module's, so Write does not overwrite one. Give each `fill` in a case its own `which`, and keep regions from overlapping.
 - **Recorder slots:** k is 0-31 per kind and argument count. A higher k lands on another n's stub, which pops wrongly.
 - **Bench strings:** `strings(..., out)` on an argument overrides `blob` on it, which can hide a survivor.
+- **port.py commits:** only spec files and --also paths go in; a header needs its own --also. A cdecl row on a this_first slot crashes natively.
+- **C library errno:** where a port does not set errno as the original's C library does, the bench hooks 0x686a00 in Python and ignores that dword.
 - **x87:** the emulator (x87emu) runs x87 code; tools/x87sym.py helps read it. Prefer the portable functions first, then take x87 ones.
 - **Shared modules:** adding a function to a module another branch also touches is fine. Never reformat or reorder existing code in it.
 - **Cross-range blockers:** if a candidate is blocked only by an unported callee in another agent's range, list it in your report (address
