@@ -2,15 +2,18 @@
 # for all: small, or large so that the sum wraps and the quotient rounds).
 # usage: objectsmeanqueue.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
+import struct
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
-from fncmp import LOG, Bench, Call, _recorder, log_region, set_return  # noqa: E402
+from fncmp import LOG, RAM, Bench, Call, _recorder, log_region, set_return  # noqa: E402
 from thingenv import park  # noqa: E402
 
-B = Bench([(0x4cca40, 0x4ccafe), (0x516130, 0x516160), (0x516160, 0x5161b0), (0x50b350, 0x50b360), (0x5da3c0, 0x5da3c1)], hooks={0x4ddf40: _recorder(10, 0)})
+B = Bench([(0x4cca40, 0x4ccafe), (0x516130, 0x516160), (0x516160, 0x5161b0), (0x50b350, 0x50b360), (0x5da3c0, 0x5da3c1),
+           (0x59e420, 0x59e449), (0x51a280, 0x51a287), (0x519510, 0x519590)], hooks={0x4ddf40: _recorder(10, 0)})
+POINTER, GAME = RAM + 0x70000, RAM + 0x70010
 
 
 def case(r):
@@ -18,7 +21,13 @@ def case(r):
     set_return(log, 10, r.choice([0, 1, 2, 5, 7, 100, 0xffffffff, 0x7fffffff, 0x80000000, 0x55555555, r.getrandbits(32), r.randrange(1000)]))
     regions = park(r, kinds=(3, 3, 3, 3, 1, 2, 0xff, 0x103 & 0xff), defs=False)[0]
     regions[LOG] = log
-    return Call(0x4cca40, [], regions, ret='d')
+    if r.deal(['Mean', 'Scoring']) == 'Mean':
+        return Call(0x4cca40, [], regions, ret='d')
+    # (AdvisorScoring_MeanQueueUnused 0x59e420: its flag at G's +0x1da710 clear mostly; the recorder's log shows whether the mean was taken)
+    regions[0x7cf6ec] = struct.pack('<I', POINTER)
+    regions[POINTER] = struct.pack('<I', GAME)
+    regions[GAME + 0x1da710] = struct.pack('<I', r.choice([0, 0, 0, 1, r.getrandbits(32)])) + bytes(0x10)
+    return Call(0x59e420, [RAM], regions, conv='t', ret='a')
 
 
 if __name__ == '__main__':
