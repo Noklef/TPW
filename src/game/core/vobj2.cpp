@@ -7,12 +7,15 @@
 #include "string.h"
 #include "vcall.h"
 #include "vobj3.h"
+#include "../gfx/texset.h"
 #include "../gfx/texture.h"
 #include "../render/fixedverts.h"
 #include "../render/softrender.h"
 #include "../render/engineerrors.h"
 
 namespace {
+
+AddrCalls g_calls;
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
@@ -245,6 +248,53 @@ u32 __fastcall Object_ReleaseSavedPairs(u8 *object) {
     return 1;
 }
 
+u32 __fastcall Object_MakeSavedPairs130(u8 *object, void *, u32 *textures, s32 count) {
+    u32 *const pairs = static_cast<u32 *>(GameHeap_Alloc(count * 8));
+    if (pairs)
+        for (s32 i = 0; i < count * 2; i++) pairs[i] = 0;
+    at<u32 *>(object, 0x130) = pairs;
+    u32 *const block = static_cast<u32 *>(GameHeap_Alloc(count * 0x10 + 4));
+    u8 *sets = nullptr;
+    if (block) {
+        *block = static_cast<u32>(count);
+        sets = reinterpret_cast<u8 *>(block + 1);
+        CRT_VectorCtorIterator(sets, 0x10, count, reinterpret_cast<void(__fastcall *)(void *)>(&TexSet_Ctor), reinterpret_cast<void *>((uintptr_t)0x00575bf0));
+    }
+    at<u8 *>(object, 0x134) = sets;
+    if (!pairs || !sets) {
+        if (!pairs && sets) {
+            g_calls.Cd(0x00579b80, static_cast<u32>(reinterpret_cast<uintptr_t>(sets)));
+            at<u32>(object, 0x134) = 0;
+        }
+        if (pairs) {
+            g_calls.Cd(0x00579b80, static_cast<u32>(reinterpret_cast<uintptr_t>(pairs)));
+            at<u32>(object, 0x130) = 0;
+        }
+        return 0;
+    }
+    at<s32>(object, 0x138) = count;
+    for (s32 i = 0; i < count; i++) {
+        const u32 table = at<u32>(at<u8 *>(object, 8), 0x50);
+        u32 *const slot = reinterpret_cast<u32 *>(static_cast<uintptr_t>(table + textures[i] * 8 + 4));
+        const u32 set = static_cast<u32>(reinterpret_cast<uintptr_t>(at<u8 *>(object, 0x134) + i * 0x10));
+        if (!g_calls.Th(0x00575ee0, set, *slot)) {
+            g_calls.Th(0x0057b2e0, static_cast<u32>(reinterpret_cast<uintptr_t>(object)));
+            return 0;
+        }
+        u32 *const pair = at<u32 *>(object, 0x130) + i * 2;
+        pair[1] = static_cast<u32>(reinterpret_cast<uintptr_t>(slot));
+        pair[0] = *slot;
+        *slot = static_cast<u32>(reinterpret_cast<uintptr_t>(at<u8 *>(object, 0x134) + i * 0x10));
+        u32 locked = 0;
+        if (const u8 *const model = at<u8 *>(object, 8))
+            if (const u32 now = at<u32>(reinterpret_cast<const void *>(static_cast<uintptr_t>(at<u32>(model, 0x50))), textures[i] * 8 + 4))
+                if (const u32 texture = g_calls.Th(0x00575f90, now, 0u)) locked = g_calls.Th(0x00590d40, texture);
+        textures[i] = locked;
+    }
+    at<u32>(object, 4) |= 0x40000000;
+    return 1;
+}
+
 u32 __fastcall Object_ReleaseSavedPairs130(u8 *object) {
     if (!(at<u32>(object, 4) & 0x40000000) || at<s32>(object, 0x138) <= 0)
         return 1;   // (the count left as it is)
@@ -315,3 +365,5 @@ u32 __fastcall Object_RenderToBlock13c(u8 *object, void *, u8 *mesh) {
     return 1;
 }
 }  // extern "C"
+
+void VObj2_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }

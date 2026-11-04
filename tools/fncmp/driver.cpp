@@ -416,6 +416,7 @@
 #include "../../src/game/ui/windowproc.h"
 #include "../../src/game/core/language.h"
 #include "../../src/game/math/mat4.h"
+#include "../../src/game/core/vobj2.h"
 #include "../../src/game/sprite/loading.h"
 #include "../../src/game/core/namedobjects.h"
 #include "../../src/game/world/object.h"
@@ -1186,6 +1187,7 @@ const AddrCall kWindowGroupCalls[] = {{0x65c707, recorder(1, 0)}};  // tests/fnc
 const AddrCall kWindowProcCalls[] = {{0x6590d0, jpeg_recorder(1, 2)}, {0x6588ef, jpeg_recorder(2, 2)}, {0x658af1, jpeg_recorder(3, 3)}, {0x658b5b, jpeg_recorder(4, 3)}, {0x658bcb, jpeg_recorder(5, 4)}, {0x658c38, jpeg_recorder(6, 2)}, {0x658c67, jpeg_recorder(7, 2)}, {0x658c96, jpeg_recorder(8, 2)}, {0x659333, jpeg_recorder(9, 0)}, {0x51bd30, jpeg_recorder(10, 0)}, {0x51b350, jpeg_recorder(11, 0)}, {0x6593c5, jpeg_recorder(12, 0)}, {0x51bcf0, jpeg_recorder(13, 0)}, {0x47e9d0, jpeg_recorder(14, 1)}, {0x46b460, jpeg_recorder(15, 1)}, {0x58dd60, recorder(16, 1)}, {0x40c900, recorder(17, 2)}, {0x40c990, recorder(18, 2)}, {0x4092a0, recorder(19, 2)}, {0x41a850, recorder(20, 0)}};
 const AddrCall kLanguageLoadCalls[] = {{0x6ad1b0, recorder(1, 2)}, {0x6ad230, recorder(2, 2)}, {0x6ad4b0, recorder(3, 3)}, {0x6ad460, recorder(4, 3)}, {0x6ad510, recorder(5, 3)}, {0x6ad570, recorder(6, 3)}, {0x405710, recorder(7, 3)}, {0x6ad790, recorder(8, 1)}, {0x67a650, jpeg_recorder(9, 4)}};
 const AddrCall kMatricesUpdateCalls[] = {{0x67a7d0, jpeg_recorder(1, 1)}};
+const AddrCall kSavedPairsMakeCalls[] = {{0x575ee0, recorder(1, 1)}, {0x575f90, recorder(2, 1)}, {0x590d40, recorder(3, 0)}, {0x57b2e0, recorder(4, 0)}, {0x579b80, jpeg_recorder(5, 1)}};
 const AddrCall kSpriteFolderCalls[] = {{0x41a9d0, recorder(1, 0)}, {0x41aa40, recorder(2, 0)}, {0x41d570, recorder(3, 2)}, {0x41d710, recorder(4, 1)}, {0x5f8240, recorder(5, 0)}, {0x5f82b0, recorder(6, 1)}, {0x540d90, recorder(7, 2)}};  // tests/fncmp/spritefolder.py
 const AddrCall kThemeTextCalls[] = {{0x413020, recorder(1, 3)}, {0x4130b0, recorder(2, 3)}};  // tests/fncmp/themetexts.py
 const AddrCall kPointerMakeCalls[] = {  // tests/fncmp/pointermake.py
@@ -2574,6 +2576,7 @@ int main(int argc, char **argv) {
     WindowProc_SetCalls(kWindowProcCalls, sizeof(kWindowProcCalls) / sizeof(kWindowProcCalls[0]));
     Language_SetCalls(kLanguageLoadCalls, sizeof(kLanguageLoadCalls) / sizeof(kLanguageLoadCalls[0]));
     Mat4_SetCalls(kMatricesUpdateCalls, sizeof(kMatricesUpdateCalls) / sizeof(kMatricesUpdateCalls[0]));
+    VObj2_SetCalls(kSavedPairsMakeCalls, sizeof(kSavedPairsMakeCalls) / sizeof(kSavedPairsMakeCalls[0]));
     SpriteLoading_SetCalls(kSpriteFolderCalls, sizeof(kSpriteFolderCalls) / sizeof(kSpriteFolderCalls[0]));
     NamedObjects_SetCalls(kThemeTextCalls, sizeof(kThemeTextCalls) / sizeof(kThemeTextCalls[0]));
     AsyncPointer_SetCalls(kPointerMakeCalls, sizeof(kPointerMakeCalls) / sizeof(kPointerMakeCalls[0]));
