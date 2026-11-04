@@ -1221,7 +1221,8 @@ const AddrCall kLobbyFlightCalls[] ={{0x5d8870, recorder(4, 6)}, {0x5d83f0, reco
 const AddrCall kPointSpritesCalls[] ={{0x67a7d0, jpeg_recorder(1, 1)}, {0x590c40, recorder(2, 0)}, {0x565240, recorder(3, 5)}, {0x565bb0, recorder(4, 5)}, {0x5658c0, recorder(5, 1)}};
 const AddrCall kCoastersUpdateCalls[] ={{0x435d50, jpeg_recorder(1, 1)}, {0x403d00, recorder(2, 2)}, {0x43eb70, jpeg_recorder(3, 1)}, {0x43ce20, jpeg_recorder(4, 1)}, {0x4709e0, jpeg_recorder(5, 1)}, {0x43b8b0, jpeg_recorder(6, 2)}, {0x439570, jpeg_recorder(7, 2)}};
 const AddrCall kModelListCalls[] = {{0x575f90, recorder(1, 1)}, {0x581790, recorder(2, 2)}, {0x581880, recorder(3, 2)}, {0x580530, recorder(4, 3)}, {0x5658c0, recorder(5, 1)}};
-const AddrCall kDialogBoxCalls[] = {  // tests/fncmp/dialogbox.py
+const AddrCall kDialogBoxCalls[] = {  // tests/fncmp/dialogbox.py, dialogboxclose.py
+    {0x47eed0, jpeg_recorder(3, 4)},
     {0x47ed80, jpeg_recorder(1, 3)}, {0x659d00, recorder(2, 0)}, {0x67acc0, jpeg_recorder(3, 1)}, {0x48f6a0, recorder(4, 1)}, {0x65d1c8, recorder(5, 1)}, {0x65c428, recorder(6, 2)}, {0x65c4b9, recorder(7, 2)},
     {0x485a70, jpeg_recorder(8, 1)}, {0x65c388, recorder(9, 1)}, {0x65c5d5, recorder(10, 4)}, {0x65f5b7, recorder(11, 1)}, {0x65d7d0, recorder(12, 1)}, {0x659bc9, jpeg_recorder(13, 1)}, {0x65d070, recorder(14, 1)},
     {0x65d9dd, recorder(15, 1)}, {0x65e6d5, recorder(16, 2)}, {0x486b80, jpeg_recorder(17, 0)}, {0x486b70, jpeg_recorder(18, 0)}, {0x4092a0, recorder(19, 2)}, {0x662411, jpeg_recorder(20, 0)}, {0x659d90, recorder(21, 0)},

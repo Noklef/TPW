@@ -43,6 +43,11 @@ void boxButton(u8 *window, u32 index, u32 kind, u32 callback) {
 void Dialog_SetKeyEnv(const DialogKeyEnv *env) { g_keys = env ? env : &kGameKeyEnv; }
 void Dialog_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
 
+extern "C" s32 __cdecl Dialog_BoxOuterHandler(u8 *window, u32 message, u32 a, u32 b) {
+    if (message == 0x14) *reinterpret_cast<u32 *>((uintptr_t)0x007b4ba0) = 0;
+    return (s32)g_calls.Cd(0x0047eed0, window, message, a, b);
+}
+
 extern "C" {
 
 s32 __cdecl Dialog_KeyHandler(u8 *window, u32 message, u32 a, u32 b) {
