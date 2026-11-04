@@ -75,6 +75,7 @@ struct CrtInnerEnv {
     void(__cdecl *initptd)(void *data);                          // 0x682440
     void(__cdecl *amsgExit)(s32 code);                           // 0x67efc0
     void(__cdecl *dosmaperr)(u32 error);                         // 0x686980
+    void(__cdecl *tzset)();                                      // 0x687d80
 };
 
 void CrtInner_SetEnv(const CrtInnerEnv *env);
@@ -229,5 +230,28 @@ u32 __cdecl CRT_strtoxl(const char *text, const char **end, s32 base, u32 flags)
 // 0x67d520 / 0x67d7d0: strtol / strtoul.
 s32 __cdecl CRT_strtol(const char *text, const char **end, s32 base);
 u32 __cdecl CRT_strtoul(const char *text, const char **end, s32 base);
+
+// 0x67faf0: _tolower_lk: the same as _toupper_lk for the upper case.
+s32 __cdecl CRT_tolowerLocked(s32 c);
+
+// 0x67df40: _stricmp: -1, 0, 1. No locale: through A-Z. Else through _tolower_lk under the locale's count (not the Interlocked imports: its own LOCK INC) or lock 0x13; two ends at once answer the last character's _tolower_lk.
+s32 __cdecl CRT_stricmp(const char *a, const char *b);
+
+// 0x699ab0 / 0x69a340: _Tolower / _Toupper of the C++ library: the character by the given (id, code page) or, for null, the current locale. A call of __crtLCMapStringA with no eighth argument: it reads the caller's EDI, as
+// `strict` here, through the shims.
+s32 __cdecl CRT_Tolower(s32 c, const u32 *locale);
+s32 __cdecl CRT_Toupper(s32 c, const u32 *locale);
+
+// 0x67bb90: memmove: returns dest.
+void *__cdecl CRT_memmove(void *dest, const void *from, u32 size);
+
+// 0x67b8c0: strncat: at most `size` characters and an end; size 0: not even the end. Returns dest.
+char *__cdecl CRT_strncat(char *dest, const char *from, u32 size);
+
+// 0x67c4e0: strtok: the thread's data + 0x18 keeps the place. An empty token: null.
+char *__cdecl CRT_strtok(char *text, const char *separators);
+
+// 0x688770: xtoa: the digits (a-z above 9) with a minus for is_negative, which also negates; the end after them.
+void __cdecl CRT_xtoa(u32 value, char *out, u32 radix, s32 is_negative);
 
 }  // extern "C"

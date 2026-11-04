@@ -12,12 +12,14 @@ from fncmp import HEAP, IMPORT_TABLE, LOG, RAM, Bench, Call, _free, _recorder, a
 GETPTD, LOCK, UNLOCK, CALLOC, NHMALLOC = 2, 7, 8, 24, 28
 INC, DEC, M2W, W2M, LCW, LCA, GSW, GSA, RAISE = 14, 15, 16, 17, 18, 19, 20, 29, 30
 B = Bench([(0x67b5f0, 0x67b617), (0x67d3a0, 0x67d3e7), (0x67d520, 0x67d53a), (0x67d540, 0x67d7c1), (0x67d7d0, 0x67d7ea), (0x67d7f0, 0x67d82a), (0x67dcd0, 0x67dcf0), (0x67f1a0, 0x67f222), (0x67f230, 0x67f32e),
-           (0x680430, 0x6804c5), (0x686a00, 0x686a10), (0x688f50, 0x689175), (0x689180, 0x6891af), (0x68a5d0, 0x68a708)],
+           (0x680430, 0x6804c5), (0x686a00, 0x686a10), (0x688f50, 0x689175), (0x689180, 0x6891af), (0x68a5d0, 0x68a708),
+           (0x67b8c0, 0x67b9e3), (0x67bb90, 0x67bed0),(0x67c4e0, 0x67c5c8), (0x67df40, 0x67e010), (0x67faf0, 0x67fbee), (0x688770, 0x6887d1), (0x699ab0, 0x699bc8), (0x69a340, 0x69a458)],
           hooks={0x682720: _recorder(LOCK, 1, cdecl=True), 0x6827a0: _recorder(UNLOCK, 1, cdecl=True), 0x682460: _recorder(GETPTD, 0, cdecl=True), 0x67dcf0: _recorder(NHMALLOC, 2, cdecl=True),
                  0x67fcb0: _recorder(CALLOC, 2, cdecl=True), 0x67ad90: _free})
-PTD, TEXT, SET, END, TO, OUT, ANSWERS, BLOCKS, BLOCK1, BLOCK2 = (RAM + 0x100 * i for i in range(10))
+del B.emu.hooks[0x67bb90]   # (memmove's stand-in in the emulator: here the original itself is the subject)
+PTD, TEXT, SET, END, TO, OUT, ANSWERS, BLOCKS, BLOCK1, BLOCK2 =(RAM + 0x100 * i for i in range(10))
 PCTYPE = RAM + 0x1200
-OPS = [n for n in ('strrchr', 'strpbrk', 'throw', 'strncnt', 'types', 'map', 'isctype', 'toupper', 'toupper_lk', 'strtoxl', 'strtol', 'strtoul') if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
+OPS = [n for n in ('strrchr', 'strpbrk', 'throw', 'strncnt', 'types', 'map', 'isctype', 'toupper', 'toupper_lk', 'strtoxl', 'strtol', 'strtoul', 'stricmp', 'memmove', 'xtoa', 'strncat', 'strtok', 'tolower_lk', 'tolower_ctype', 'toupper_ctype') if not os.environ.get('OPS') or n in os.environ['OPS'].split(',')]
 NUMBERS = [b'0', b'7', b'123', b'777', b'0x1aF', b'0X1g', b'0x', b'0', b'zZ', b'', b'-', b'+', b'4294967295', b'4294967296', b'2147483647', b'2147483648', b'2147483649', b'99999999999', b'FFFFFFFF', b'100000000',
            b'\xe9', b'12\xe9', b'9a', b'g', b'Z', b'08', b'1z2']
 
@@ -95,6 +97,32 @@ def case(r):
     if name == 'map':
         regions[TEXT] = text
         return Call(0x688f50, [r.choice([0, 0x409]), r.choice([0x100, 0x200, 0x400, 0x400]), TEXT, r.choice([-1, 0, 1, 2, 5]), r.choice([TO, TO, TO, 0]), r.choice([0, 0, 1, 2, 3, 8]), r.choice([0, 932]), r.randrange(2)], regions, conv='c', ret='a')
+    if name == 'stricmp':
+        words = [b'', b'a', b'A', b'am/pm', b'AM/PM', b'a/p', b'Zz', b'zZ', b'[', b'_', b'`', b'\xe9', b'\xc9', b'abc', b'abd', b'ABE']
+        regions[TEXT] = r.choice(words) + b'\0'
+        regions[SET] = r.choice(words) + b'\0'
+        return Call(0x67df40, [TEXT, SET], regions, conv='c', ret='a')
+    if name == 'memmove':
+        regions[TEXT] = r.bytes(0x100)
+        return Call(0x67bb90, [TEXT + r.randrange(0x60), TEXT + r.randrange(0x60), r.choice([0, 1, 2, 3, 4, 7, 8, 0x1f, 0x20, 0x21, 0x40, r.randrange(0x60)])], regions, conv='c', ret='a')
+    if name == 'xtoa':
+        regions[TEXT] = r.bytes(0x30)
+        return Call(0x688770, [r.choice([0, 1, 9, 10, 35, 36, 255, 0x7fffffff, 0x80000000, 0xffffffff, r.getrandbits(32)]), TEXT + 2, r.choice([2, 8, 10, 16, 36]), r.choice([0, 0, 1])], regions, conv='c')
+    if name == 'strncat':
+        regions[TEXT] = r.choice([b'', b'a', b'ab', b'abc', b'abcd', b'abcdefgh']) + b'\0' + r.bytes(0x60)
+        regions[SET] = b'\xff' * r.randrange(4) + r.choice([b'', b'x', b'xy', b'xyz', b'wxyz', b'12345678', b'12345\x80\x8112345', b'0123456789abcdef']) + b'\0' + r.bytes(0x20)
+        return Call(0x67b8c0, [TEXT + r.randrange(4), SET + r.randrange(4), r.choice([0, 1, 2, 3, 4, 5, 7, 8, 9, 0x10, 0x40])], regions, conv='c', ret='a')
+    if name == 'strtok':
+        regions[TEXT] = r.choice([b'', b' ', b'a', b' a', b'a b', b'  a  b ', b'abc,def', b',,,', b'\xe9 x']) + b'\0' + r.bytes(8)
+        regions[SET] = r.choice([b'', b' ', b', ', b'a', b'\xe9']) + b'\0'
+        regions[PTD] = bytes(0x18) + struct.pack('<I', TEXT + 1) + bytes(4)
+        return Call(0x67c4e0, [r.choice([TEXT, TEXT, TEXT, 0]), SET], regions, conv='c', ret='a')
+    if name in ('tolower_lk', 'tolower_ctype', 'toupper_ctype'):
+        c = r.choice([0x41, 0x5a, 0x40, 0x5b, 0x61, 0x7a, 0x60, 0x7b, 0x30, 0xe9, 0xff, 0x100, 0x3042, 0x8141, 0xe941, r.randrange(0x100), r.getrandbits(16)])
+        if name == 'tolower_lk':
+            return Call(0x67faf0, [c], regions, conv='c', ret='a')
+        regions[TEXT] = struct.pack('<2I', r.choice([0, 0x409, 0x411]), r.choice([0, 932, 1252]))
+        return Call(0x699ab0 if name == 'tolower_ctype' else 0x69a340, [c, r.choice([TEXT, TEXT, 0])], regions, conv='c', ret='a')
     if name in ('isctype', 'toupper', 'toupper_lk'):
         c = r.choice([0x41, 0x61, 0x7a, 0x7b, 0x60, 0x30, 0xe9, 0xff, 0x100, 0x3042, 0x8141, 0xe941, 0x10041, -1, -5, -0x100, r.randrange(0x100), r.getrandbits(16)])
         if name == 'isctype':

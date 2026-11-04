@@ -1,5 +1,7 @@
 #include "crt.h"
 
+#include <intrin.h>
+
 #include <cstdint>
 #include <cstring>
 
@@ -71,6 +73,7 @@ const CrtInnerEnv kGameInner = {
     game<void(__cdecl *)(void *)>(0x00682440),
     game<void(__cdecl *)(s32)>(0x0067efc0),
     game<void(__cdecl *)(u32)>(0x00686980),
+    game<void(__cdecl *)()>(0x00687d80),
 };
 const CrtInnerEnv *g_inner = &kGameInner;
 
@@ -675,18 +678,23 @@ s32 __cdecl CRT_isctype(s32 c, s32 mask) {
     return types & mask;
 }
 
-s32 __cdecl CRT_toupperLocked(s32 c) {
-    if (!locale_set()) return c >= 0x61 && c <= 0x7a ? c - 0x20 : c;
+// What _tolower_lk, _toupper_lk, _Tolower and _Toupper share: below 0x100 only a character of the `type` (by isctype when characters may be longer); then __crtLCMapStringA.
+static s32 map_case(s32 c, s32 type, u32 flags, u32 id, u32 page, s32 strict) {
     if (c < 0x100) {
-        const s32 lower = static_cast<s32>(global_u32(0x0077e7dc)) > 1 ? CRT_isctype(c, 2) : reinterpret_cast<const u16 *>((uintptr_t)global_u32(0x0077ea90))[c] & 2;
-        if (!lower) return c;
+        const s32 is_type = static_cast<s32>(global_u32(0x0077e7dc)) > 1 ? CRT_isctype(c, type) : reinterpret_cast<const u16 *>((uintptr_t)global_u32(0x0077ea90))[c] & type;
+        if (!is_type) return c;
     }
     char bytes[4];
     const s32 count = lead_and_trail(c, bytes) ? 2 : 1;
     u8 mapped[8];
-    const s32 got = CRT_LCMapStringA(global_u32(0x00fb1440), 0x200, bytes, count, reinterpret_cast<char *>(mapped), 3, 0, 1);
+    const s32 got = CRT_LCMapStringA(id, flags, bytes, count, reinterpret_cast<char *>(mapped), 3, page, strict);
     if (!got) return c;
     return got == 1 ? mapped[0] : mapped[1] << 8 | mapped[0];
+}
+
+s32 __cdecl CRT_toupperLocked(s32 c) {
+    if (!locale_set()) return c >= 0x61 && c <= 0x7a ? c - 0x20 : c;
+    return map_case(c, 2, 0x200, global_u32(0x00fb1440), 0, 1);
 }
 
 s32 __cdecl CRT_toupper(s32 c) {
@@ -749,6 +757,153 @@ u32 __cdecl CRT_strtoxl(const char *text, const char **end, s32 base, u32 flags)
 }
 
 s32 __cdecl CRT_strtol(const char *text, const char **end, s32 base) { return static_cast<s32>(CRT_strtoxl(text, end, base, 0)); }
+
+s32 __cdecl CRT_tolowerLocked(s32 c) {
+    if (!locale_set()) return c >= 0x41 && c <= 0x5a ? c + 0x20 : c;
+    return map_case(c, 1, 0x100, global_u32(0x00fb1440), 0, 1);
+}
+
+s32 __cdecl CRT_stricmp(const char *a, const char *b) {
+    const auto low = [](u8 c) -> u8 { return c >= 0x41 && c <= 0x5a ? c + 0x20 : c; };
+    if (!locale_set()) {
+        for (;;) {
+            const u8 x = static_cast<u8>(*b++);
+            const u8 y = static_cast<u8>(*a++);
+            if (x == y) {
+                if (!x) return 0;
+                continue;
+            }
+            const u8 lx = low(x);
+            const u8 ly = low(y);
+            if (lx != ly) return ly < lx ? -1 : 1;
+        }
+    }
+    long *const readers = reinterpret_cast<long *>((uintptr_t)0x00fb3ca8);
+    _InterlockedIncrement(readers);
+    const bool locked = *reinterpret_cast<const s32 *>((uintptr_t)0x00fb3ca4) > 0;
+    if (locked) {
+        _InterlockedDecrement(readers);
+        g_inner->lock(0x13);
+    }
+    u32 x = 0xff;
+    u32 y = 0;
+    s32 result;
+    for (;;) {
+        if (!(x & 0xff)) {
+            result = static_cast<s32>(x);
+            break;
+        }
+        x = (x & 0xffffff00u) | static_cast<u8>(*b++);
+        y = (y & 0xffffff00u) | static_cast<u8>(*a++);
+        if ((x & 0xff) == (y & 0xff)) continue;
+        y = static_cast<u32>(CRT_tolowerLocked(static_cast<s32>(y)));
+        x = static_cast<u32>(CRT_tolowerLocked(static_cast<s32>(x)));
+        if ((x & 0xff) == (y & 0xff)) continue;
+        result = (y & 0xff) < (x & 0xff) ? -1 : 1;
+        break;
+    }
+    if (locked)
+        g_inner->unlock(0x13);
+    else
+        _InterlockedDecrement(readers);
+    return result;
+}
+
+static s32 __cdecl tolower_with(s32 c, const u32 *locale, u32 strict) {
+    const u32 id = locale ? locale[0] : global_u32(0x00fb1440);
+    const u32 page = locale ? locale[1] : global_u32(0x00fb1450);
+    if (!id) return c >= 0x41 && c <= 0x5a ? c + 0x20 : c;
+    return map_case(c, 1, 0x100, id, page, static_cast<s32>(strict));
+}
+
+static s32 __cdecl toupper_with(s32 c, const u32 *locale, u32 strict) {
+    const u32 id = locale ? locale[0] : global_u32(0x00fb1440);
+    const u32 page = locale ? locale[1] : global_u32(0x00fb1450);
+    if (!id) return c >= 0x61 && c <= 0x7a ? c - 0x20 : c;
+    return map_case(c, 2, 0x200, id, page, static_cast<s32>(strict));
+}
+
+__declspec(naked) s32 __cdecl CRT_Tolower(s32, const u32 *) {
+    __asm {
+        push edi
+        push dword ptr [esp + 0xc]
+        push dword ptr [esp + 0xc]
+        call tolower_with
+        add esp, 0xc
+        ret
+    }
+}
+
+__declspec(naked) s32 __cdecl CRT_Toupper(s32, const u32 *) {
+    __asm {
+        push edi
+        push dword ptr [esp + 0xc]
+        push dword ptr [esp + 0xc]
+        call toupper_with
+        add esp, 0xc
+        ret
+    }
+}
+
+void *__cdecl CRT_memmove(void *dest, const void *from, u32 size) {
+    std::memmove(dest, from, size);
+    return dest;
+}
+
+char *__cdecl CRT_strncat(char *dest, const char *from, u32 size) {
+    if (!size) return dest;
+    char *to = dest + std::strlen(dest);
+    for (; size; --size) {
+        const char c = *from++;
+        *to++ = c;
+        if (!c) return dest;
+    }
+    *to = 0;
+    return dest;
+}
+
+char *__cdecl CRT_strtok(char *text, const char *separators) {
+    u8 *const thread = g_inner->getptd();
+    char *&place = *reinterpret_cast<char **>(thread + 0x18);
+    u8 map[0x20] = {};
+    const u8 *at = reinterpret_cast<const u8 *>(separators);
+    do {
+        map[*at >> 3] |= static_cast<u8>(1 << (*at & 7));
+    } while (*at++);
+    const auto is_separator = [&](char c) { return (map[static_cast<u8>(c) >> 3] >> (static_cast<u8>(c) & 7)) & 1; };
+    char *from = text ? text : place;
+    while (*from && is_separator(*from)) ++from;
+    char *const start = from;
+    for (; *from; ++from) {
+        if (is_separator(*from)) {
+            *from++ = 0;
+            break;
+        }
+    }
+    place = from;
+    return start != from ? start : nullptr;
+}
+
+void __cdecl CRT_xtoa(u32 value, char *out, u32 radix, s32 is_negative) {
+    if (is_negative) {
+        *out++ = '-';
+        value = 0 - value;
+    }
+    char *first = out;
+    do {
+        const u32 digit = value % radix;
+        value /= radix;
+        *out++ = static_cast<char>(digit > 9 ? digit + 0x57 : digit + 0x30);
+    } while (value);
+    *out-- = 0;
+    do {
+        const char c = *first;
+        *first = *out;
+        *out = c;
+        --out;
+        ++first;
+    } while (first < out);
+}
 
 u32 __cdecl CRT_strtoul(const char *text, const char **end, s32 base) { return CRT_strtoxl(text, end, base, 1); }
 

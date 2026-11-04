@@ -589,10 +589,11 @@ class Emu:
             else:
                 res = ~a & ((1 << bits) - 1)  # NOT leaves the flags
             self.put(o[0], res)
-        elif mn in ('INC', 'DEC'):
+        elif mn in ('INC', 'DEC', 'INC.LOCK', 'DEC.LOCK'):
+            up = mn.startswith('INC')
             a, cf, bits = self.get(o[0]), self.cf, 8 * self.size(o[0])
-            res = self.flags(a + (1 if mn == 'INC' else -1), bits, cf,
-                             a == ((1 << (bits - 1)) - 1 if mn == 'INC' else 1 << (bits - 1)))
+            res = self.flags(a + (1 if up else -1), bits, cf,
+                             a == ((1 << (bits - 1)) - 1 if up else 1 << (bits - 1)))
             self.put(o[0], res)
         elif mn in ('AND', 'OR', 'XOR', 'TEST'):
             a, b, bits = self.get(o[0]), self.get(o[1]), 8 * self.size(o[0])

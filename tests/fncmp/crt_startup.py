@@ -14,7 +14,7 @@ PIECES = [b'a', b'bc', b' ', b'  ', b'\t', b'"', b'""', b'\\', b'\\\\', b'\\\\\\
 
 def case(r):
     command = b''.join(r.choice(PIECES) for _ in range(r.randrange(14))) + r.choice([b'', b'', b'\x81'])
-    regions = {COMMAND: command + bytes(0x10), WORDS: r.bytes(0x100), TEXT: r.bytes(0x100), COUNTS: r.bytes(8)}
+    regions = {COMMAND: command + bytes(1) + r.choice([bytes(0x10), b'after end\0'.ljust(0x10, b'\0')]), WORDS: r.bytes(0x100), TEXT: r.bytes(0x100), COUNTS: r.bytes(8)}
     regions[0xfb1669] = bytes(4 if 0x81 <= i <= 0x9f else r.choice([0, 1, 2, 8]) for i in range(256))
     return Call(0x6898f0, [COMMAND, r.choice([WORDS, WORDS, 0]), r.choice([TEXT, TEXT, 0]), COUNTS, COUNTS + 4], regions, conv='c')
 
