@@ -14,6 +14,10 @@ struct LobbyMakeEnv {
     void(__fastcall *turnY)(const u8 *model, void *, float angle);     // LobbyModel_TurnY (0x5d8380)
     void(__fastcall *setPosition)(const u8 *model, void *, const float *v);  // LobbyModel_SetPosition (0x5d8190)
     s32(__cdecl *categories)(const char *name);                        // Sound_RegisterLobbyCategories (0x51e8f0)
+    u32(__fastcall *play)(const u8 *model, void *, u32 entry, u32 now);  // LobbyModel_Play (0x5d83f0)
+    void(__fastcall *acquire)(u8 *user);                               // RideUser_Acquire (0x5d8130)
+    void(__fastcall *alignTo)(const u8 *model, void *, const float *v);  // LobbyModel_AlignTo (0x5d81c0)
+    void(__fastcall *setScale)(const u8 *model, void *, float x, float y, float z);  // LobbyModel_SetScale (0x5d83b0)
 };
 void LobbyMake_SetEnv(const LobbyMakeEnv *env);
 
@@ -34,5 +38,16 @@ u8 *__fastcall LobbyScene_MakeModel(u8 *scene, void *, const char *name, const c
 // and +8 (of name2 ...), +0x24 = a1, +0x3c the point, +0x64, +0x68, +0x6c = three rand() & 0xff << 16, +0x70 = a9, +0x14 = [0x702c18] *
 // [0x702c54] * degrees, to which both models are turned, and both at the point with y 0. +0x18 = the sound categories of its title,
 // +0xc = owner, whose slot 12 takes it. Returns it.
+// 0x5d9830 (thiscall, pops 0x1c; name invented, unconfirmed): the flyer of vtable 0x702ae8 (LobbyFlyer_Step moves it): +4 = owner, +8 = a model of name and pack (animated 0, a 1, the rest 0)
+// played (entry 0, now 1), +0xc = 0, +0x10 / +0x1c the centre and extent copied, +0x28, +0x2c the two, +0x30 and +0x3c two random points in the extent about the centre (Step's random: the seed
+// at [0xf82884] + 0x34), +0x48 the unit vector from one to the other. The model put at the first, the owner's slot 1 takes it. Returns it.
+u8 *__fastcall LobbyFlyer_Ctor(u8 *self, void *, u8 *owner, const char *name, const char *pack, const u32 *centre, const u32 *extent, u32 speed, u32 reach);
+
+// 0x5dc3e0 (thiscall, pops 8; name invented, unconfirmed): the marker of vtable 0x702bb8 for a record: +0xc = record, +4 = the model data\lobby\globe with pack "bullfrog" when the record's name
+// (+0x14, wide) is "North Pole" with case folded, else "hpin" (a 1, the rest 0), set up (RideUser_Acquire), aligned to the unit vector of the record's +0x34 and put there; the record's int +0x40
+// * 0.0005 + 0.02 kept to 0.02-0.1 its scale z, 0.035 + 0.2 * that its x and y. +8 = owner, whose slot 12 takes it. Returns it.
+u8 *__fastcall Class702bb8_Ctor(u8 *self, void *, u8 *owner, const u8 *record);
+
+// 0x5dfa60 (thiscall, pops 0x30) as above.
 u8 *__fastcall Class702ca8_Ctor(u8 *self, void *, u8 *owner, u32 a1, const char *title_, const char *name, const char *pack, const char *pack2, float degrees, const u32 *point, const u16 *text, u32 a9, u32 b, u32 c);
 }
