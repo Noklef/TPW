@@ -12,6 +12,9 @@ struct ObjModelEnv {
 };
 // The atexit of the engine's static matrix (0xfb3400) goes to env (nullptr: the game's).
 void ObjModel_SetEnv(const ObjModelEnv *env);
+// (Test seam: the fncmp driver's table replaces the calls by address of ObjModel_DrawMeshTree.)
+struct AddrCall;
+void ObjModel_SetTreeCalls(const AddrCall *table, u32 count);
 
 extern "C" {
 
@@ -72,4 +75,10 @@ u32 __fastcall ObjModel_LightMesh(u8 *object, void *, u8 *mesh, const u32 *matri
 // freed, and 0; the slots already relinked stay so and +0x124 / +0x128 keep the freed blocks (sic). Otherwise the result, with the
 // flags' (+4) 0x20000000 set when it is 1.
 u32 __fastcall ObjModel_BlendTerrainTiles(u8 *object, void *, s32 x0, s32 y0, s32 x1, s32 y1);
+
+// 0x57a530 (thiscall on the engine object; mesh, two matrices: pops 0xc; name invented, unconfirmed): each mesh of the sibling list (+8), recursively its children (+0xc, not with flag 0x20): the transformer's ([0x87b1d8]) slot 6 (cdecl: transformer, the mesh's +0x10, a matrix given, out)
+// on each matrix into a local one (both locals start as the identity, and keep their last value along the list). A mesh is drawn unless its flags have 0x8210, or have no 0xc0000 with 0x8bd508's 0xc0000000 clear; with 0x2000 also the band test: with 0x4000000 the signed bytes of 0x8bd4e8..eb against +0x92,
+// +0x90 (not above), +0x93, +0x91 (not below), else Bands_AnyMatch [0x879d60] of +0x90. Drawn: ClipCodes_Box [0x879a20] of (+0x78, first local) must have 0x40; ObjModel_LightMesh(mesh, second local, object +0x98, codes | [0x8bb624]), MeshDraws_Add [0x8bcbb8] (first, second, object +0x98, mesh, object +0x14c | codes
+// | [0x8bb624]), Mesh_TouchTextures. A light, an add or a child's 0 gives 0; else 1.
+u32 __fastcall ObjModel_DrawMeshTree(u8 *object, void *, u8 *mesh, const u32 *first, const u32 *second);
 }

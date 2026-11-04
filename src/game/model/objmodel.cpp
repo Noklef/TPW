@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cstring>
 
+#include "../core/addrcalls.h"
 #include "../core/crt.h"
 #include "../core/gameheap.h"
 #include "../core/vobj2.h"
@@ -25,6 +26,22 @@ template <typename T> T &at(const void *p, u32 offset) {
 }
 u8 *ptr(const void *p, u32 offset) { return reinterpret_cast<u8 *>((uintptr_t)at<u32>(p, offset)); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
+AddrCalls g_treeCalls;
+
+// Whether a mesh of the tree goes to the clip test: its flags, the render flags, its band.
+bool tree_mesh_wanted(const u8 *mesh) {
+    const u32 flags = at<u32>(mesh, 0);
+    if (flags & 0x8210)
+        return false;
+    if (!(flags & 0xc0000) && !(global<u32>(0x008bd508) & 0xc0000000))
+        return false;
+    if (!(flags & 0x2000))
+        return true;
+    if (!(flags & 0x4000000))
+        return g_treeCalls.Th(0x0056ee90, global<u32>(0x00879d60), at<u32>(mesh, 0x90)) != 0;
+    return global<s8>(0x008bd4e8) <= at<s8>(mesh, 0x92) && global<s8>(0x008bd4e9) <= at<s8>(mesh, 0x90) && global<s8>(0x008bd4ea) >= at<s8>(mesh, 0x93) && global<s8>(0x008bd4eb) >= at<s8>(mesh, 0x91);
+}
 
 bool same(const char *a, const char *b) {
     for (; *a == *b; ++a, ++b)
@@ -68,6 +85,7 @@ void transform_into(MatrixFrame &frame, u32 *into) {
 }  // namespace
 
 void ObjModel_SetEnv(const ObjModelEnv *env) { g_env = env ? env : &kGameEnv; }
+void ObjModel_SetTreeCalls(const AddrCall *table, u32 count) { g_treeCalls.Set(table, count); }
 
 extern "C" {
 
@@ -332,5 +350,31 @@ u32 __fastcall ObjModel_BlendTerrainTiles(u8 *object, void *, s32 x0, s32 y0, s3
     if (result)
         at<u32>(object, 4) |= 0x20000000;
     return result;
+}
+
+u32 __fastcall ObjModel_DrawMeshTree(u8 *object, void *, u8 *mesh, const u32 *first, const u32 *second) {
+    u32 a[16] = {0x3f800000, 0, 0, 0, 0, 0x3f800000, 0, 0, 0, 0, 0x3f800000, 0, 0, 0, 0, 0x3f800000};
+    u32 b[16] = {0x3f800000, 0, 0, 0, 0, 0x3f800000, 0, 0, 0, 0, 0x3f800000, 0, 0, 0, 0, 0x3f800000};
+    using Transform = void(__cdecl *)(u8 *, u8 *, const u32 *, u32 *);
+    u8 *const lights = object + 0x98;
+    for (; mesh; mesh = ptr(mesh, 8)) {
+        u8 *const xf1 = global<u8 *>(0x0087b1d8);
+        reinterpret_cast<Transform>((uintptr_t)at<u32>(ptr(xf1, 0), 0x18))(xf1, mesh + 0x10, first, a);
+        u8 *const xf2 = global<u8 *>(0x0087b1d8);
+        reinterpret_cast<Transform>((uintptr_t)at<u32>(ptr(xf2, 0), 0x18))(xf2, mesh + 0x10, second, b);
+        if (tree_mesh_wanted(mesh)) {
+            const u32 codes = g_treeCalls.Th(0x00561a30, global<u32>(0x00879a20), mesh + 0x78, a);
+            if (codes & 0x40) {
+                if (!g_treeCalls.Th(0x0057aa10, (u32)(uintptr_t)object, mesh, b, lights, codes | global<u32>(0x008bb624)))
+                    return 0;
+                if (!g_treeCalls.Th(0x00581cd0, global<u32>(0x008bcbb8), a, b, lights, mesh, at<u32>(object, 0x14c) | codes | global<u32>(0x008bb624)))
+                    return 0;
+                g_treeCalls.Th(0x0057a420, (u32)(uintptr_t)object, mesh);
+            }
+        }
+        if (!(at<u8>(mesh, 0) & 0x20) && at<u32>(mesh, 0xc) && !ObjModel_DrawMeshTree(object, nullptr, ptr(mesh, 0xc), a, b))
+            return 0;
+    }
+    return 1;
 }
 }
