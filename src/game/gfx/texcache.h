@@ -135,6 +135,17 @@ void __fastcall TexCache_ShrinkItems(u8 *cache, void *, u8 **items, s32 count, s
 // 0x1800); returns made > 0.
 u32 __fastcall TexCache_AddSurfaces(u8 *cache, void *, s32 side, s32 *made, u32 format, s32 levels);
 
+// 0x58d670 (thiscall; invented name, unconfirmed): the surfaces of the six sides (0x7022e8), two passes: a side with a budget (+0x1860 + 4 * i) adds
+// surfaces; in the first pass one that adds none gives up the last entry of side index -1 or else 8 (SurfacePool_SideIndex of 0 and 1, sic) and tries
+// again: failing, all freed (the debug log told) and 0. The budget left goes to the next side's; after each pass the last's goes to the first's.
+// The debug log has the counts; +0x18ec = the first side with entries; 1.
+u32 __fastcall TexCache_CreateSurfaces(u8 *cache);
+
+// 0x58d400 (thiscall; invented name, unconfirmed): the budgets from the texture memory: the render device's slot 2 or, with none, what a run of 0x100
+// surfaces reaches ([0x8c1620] or 0x2000000 to spend; freed again), kept at 0x8c1624. Too few surfaces for it (or none added): error kind 3 and 0.
+// The mipmaps stay with flag 2 of +0x18cc, more than 0x40 surfaces and [0x8bd524] 1; else are off. Each size's budget = its share (+0x187c) of the memory; 1.
+u32 __fastcall TexCache_ChooseBudget(u8 *cache);
+
 // 0x58ea20 (thiscall on the cache; a, b, limit: two size indices; pops 0xc; name unconfirmed; 0x58f6ca asks it): each size's share
 // (+0x1818 - +0x1830, 32-bit, over its count +0x1800; fild / fidiv at 24 bits, stored as floats); slot 3 of a's first entry's
 // surface (+0x400 * a, its +0) answers a count. b when twice b's share is below a's (or unordered), b's +0x1818 + 10 is below a's

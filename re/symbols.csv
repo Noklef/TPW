@@ -6116,6 +6116,8 @@ address,name,kind,confidence,notes
 0x0058e010,TexCache_TraceItem,function,low,"reimplemented (src/game/gfx/texcache); the trace of a touched item to c:\tcache.log (a debug option), through the file calls' env"
 0x0058c9f0,TexCache_TouchItem,function,low,"reimplemented (src/game/gfx/texcache); an item used this frame: the frame's counts, placed or queued on the cache's list, its +0x60 too, the trace"
 0x0058eca0,TexCache_PackItems,function,low,"reimplemented (src/game/gfx/texcache); The cache's items packed into an area's free rectangles (name invented, unconfirmed)"
+0x0058d670,TexCache_CreateSurfaces,function,low,"reimplemented (src/game/gfx/texcache); thiscall: the surfaces of the six sides from their budgets, giving up entries once on failure: name invented, unconfirmed"
+0x0058d400,TexCache_ChooseBudget,function,low,"reimplemented (src/game/gfx/texcache); thiscall: the budgets of the six sides from the texture memory, measured when the device gives none: name invented, unconfirmed"
 0x00575bd0,TexSet_Ctor,function,high,"reimplemented (src/game/gfx/texset); thiscall (a texture set, 16 bytes): all zero; returns the set"
 0x00575f90,TexSet_Texture,function,high,"reimplemented (src/game/gfx/texset); thiscall (i): texture i, [+8][i]"
 0x00575fa0,TexSet_TextureSlot,function,high,reimplemented (src/game/gfx/texset); thiscall (i): &[+8][i]

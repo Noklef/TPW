@@ -7,10 +7,14 @@
 #include <cstdint>
 #include <initializer_list>
 
+#include "../core/crt.h"
 #include "../core/gameheap.h"
 #include "../core/globals.h"
 #include "../core/recordsort.h"
+#include "../core/vcall.h"
+#include "../core/vobj3.h"
 #include "../math/x87.h"
+#include "../render/engineerrors.h"
 
 namespace {
 
@@ -585,6 +589,115 @@ u32 __fastcall TexCache_AddSurfaces(u8 *cache, void *, s32 side, s32 *made, u32 
     *made = count;
     AnimTextures_Set(reinterpret_cast<const u32 *>(cache), reinterpret_cast<const u32 *>(cache + 0x1800));
     return count > 0;
+}
+
+}  // extern "C"
+
+namespace {
+
+// The side index's last entry given up: its record's held object deleted, its block freed, the count down. False with none.
+bool giveUpLast(u8 *cache, s32 index) {
+    s32 &count = at<s32>(cache, 0x1800 + 4 * index);
+    if (count == 0) return false;
+    u8 **const slot = &at<u8 *>(cache, 4 * ((index << 8) + count) - 4);
+    if (u8 *const held = at<u8 *>(*slot, 0)) vcall<u32>(held, 0x24, 1u);
+    GameHeap_Free(*slot);
+    --count;
+    return true;
+}
+
+// The debug log's text, with the engine debug flag.
+template <typename... A> void debugLog(const char *format, A... args) {
+    if (!(at<u32>(nullptr, 0x008bd508) & 0x1000000)) return;
+    char text[100];
+    Crt().sprintf(text, format, args...);
+    EngineErrors_GetEnv()->log(text);
+}
+
+}  // namespace
+
+extern "C" {
+
+u32 __fastcall TexCache_CreateSurfaces(u8 *cache) {
+    const s32 *const sides = reinterpret_cast<const s32 *>(0x007022e8);
+    const auto add = [&](s32 i) {
+        s32 made;
+        return TexCache_AddSurfaces(cache, nullptr, sides[i], &made, at<u32>(nullptr, 0x008bd554), at<s32>(cache, 0x18e8));
+    };
+    for (s32 pass = 0; pass < 2; ++pass) {
+        for (s32 i = 0; i < 6; ++i) {
+            s32 &budget = at<s32>(cache, 0x1860 + 4 * i);
+            if (budget == 0) continue;
+            if (!add(i) && pass == 0) {
+                const bool room = giveUpLast(cache, SurfacePool_SideIndex(0)) || giveUpLast(cache, SurfacePool_SideIndex(1));   // (indexes -1 and 8, sic)
+                if (!room || !add(i)) {
+                    debugLog("Failed to create surfaces in tcache, size %d, count %d", sides[i], i);
+                    Object_FreeSixPointerArrays(cache);
+                    return 0;
+                }
+            }
+            if (i < 5) {
+                at<s32>(cache, 0x1864 + 4 * i) += budget;
+                budget = 0;
+            }
+        }
+        at<s32>(cache, 0x1860) = at<s32>(cache, 0x1874);
+        at<s32>(cache, 0x1874) = 0;
+    }
+    for (s32 i = 0; i < 6; ++i)
+        debugLog("%d Textures created of size %d", at<s32>(cache, 0x1800 + 4 * i), sides[i]);
+    s32 first = 0;
+    while (first < 6 && at<s32>(cache, 0x1800 + 4 * first) == 0) ++first;
+    at<s32>(cache, 0x18ec) = sides[first];   // (with none, the dword after the table: sic)
+    return 1;
+}
+
+u32 __fastcall TexCache_ChooseBudget(u8 *cache) {
+    const s32 *const sizes = reinterpret_cast<const s32 *>(0x007022d8);
+    const s32 *const limits = reinterpret_cast<const s32 *>(0x00702300);
+    s32 memory = (s32)vcall<u32>(at<u8 *>(nullptr, 0x008bd52c), 8);
+    u32 added = 1;
+    s32 count;
+    if (memory == 0) {
+        const s32 budget = at<s32>(nullptr, 0x008c1620);
+        at<s32>(cache, 0x1860) = budget ? budget : 0x2000000;
+        added = TexCache_AddSurfaces(cache, nullptr, 0x100, &count, at<u32>(nullptr, 0x008bd554), 0);
+        memory = (s32)((u32)sizes[at<u32>(nullptr, 0x008bd554)] * (u32)count << 16);
+        debugLog("Amount of texture space safely allocated %x", memory);
+        Object_FreeSixPointerArrays(cache);
+    } else {
+        count = (memory >> 16) / sizes[at<u32>(nullptr, 0x008bd554)];
+        if (count > 0x2000000) count = 0x2000000;
+    }
+    at<s32>(nullptr, 0x008c1624) = memory;
+    if (const s32 fixed = at<s32>(cache, 0x1920)) {
+        at<s32>(cache, 0x18f4) = fixed;
+    } else {
+        s32 &level = at<s32>(cache, 0x18f4);
+        level = 0;
+        while (count > limits[2 * level] && ++level < 3) {
+        }
+        at<s32>(cache, 0x18f8) = limits[2 * level + 1];
+    }
+    if (!added || count < 0x40 / sizes[at<u32>(nullptr, 0x008bd554)]) {
+        EngineErrors_Push(reinterpret_cast<u8 *>((uintptr_t)0x00879ad0), nullptr, 3, 0xb075400f);
+        return 0;
+    }
+    u32 &flags = at<u32>(cache, 0x18cc);
+    if ((flags & 2) && count > 0x40 && at<u32>(nullptr, 0x008bd524) == 1) {
+        debugLog("Mipmaps per texture %d", at<u32>(cache, 0x18e8));
+        flags |= 2;   // (and a count of 3 / 4 kept, never read: sic)
+    } else {
+        if (flags & 2) debugLog("NOTICE not enough space for mipmaps, creating surfaces without");
+        flags &= ~2u;
+        at<u32>(cache, 0x18e8) = 0;
+        at<u32>(cache, 0x18e4) = 0;
+    }
+    const X87Reg total = (double)memory;
+    for (u32 i = 0; i < 6; ++i) at<u32>(cache, 0x1894 + 4 * i) = 0;
+    for (s32 i = 5; i >= 0; --i)
+        at<s32>(cache, 0x1860 + 4 * i) = (s32)(long long)(X87Reg(at<float>(cache, 0x187c + 4 * i)) * total).v;
+    return 1;
 }
 
 s32 __fastcall TexCache_ChooseSize(u8 *cache, void *, s32 a, s32 b, s32 limit) {
