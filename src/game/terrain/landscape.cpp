@@ -2,7 +2,9 @@
 
 #include <cstdint>
 #include <cstring>
+#include <initializer_list>
 
+#include "../core/crt.h"
 #include "../files/quickload.h"
 #include "../gfx/texman.h"
 #include "../gfx/texture.h"
@@ -113,6 +115,77 @@ void __fastcall Landscape_SetPoint(u8 *landscape, void *, s32 i, u32 x, u32 y, u
 }
 
 void __fastcall Landscape_SetDetail(u8 *landscape, void *, u32 level) { at<u32>(landscape, 0x2ec8) = level; }
+
+u32 __fastcall Landscape_BuildDome(u8 *landscape) {
+    const float kOverFifteen = 0.0666666701f, kHalf = 0.5f, kSag = 0.200000003f, kRim = 0.600000024f, kQuarter = 0.25f, kSixteenth = 0.0625f;   // 0x701f4c, 0x701f50, 0x701f54, 0x701f58, 0x701f5c, 0x701f60
+    const float kRing[3] = {-0.980000019f, -0.959999979f, -0.839999974f};                                                                       // 0x701f64, 0x701f68, 0x701f6c
+    const float kPi = 3.14159274f;                                                                                                               // 0x701ee0
+    float &centreX = at<float>(landscape, 0x1f64), &centreY = at<float>(landscape, 0x1f68), &centreZ = at<float>(landscape, 0x1f6c);
+    const X87Reg width((double)at<s32>(landscape, 0x21e0)), height((double)at<s32>(landscape, 0x21e4));
+    const float stepRow = (float)(height * kOverFifteen), stepColumn = (float)(width * kOverFifteen), halfColumn = (float)(width * kHalf);
+    const float halfRow = (float)(X87Reg((float)height) * kHalf);
+    for (s32 i = 0; i < 16; ++i) {
+        const X87Reg rowAt = X87Reg((double)i) * stepRow - halfRow;
+        const float row = (float)rowAt, rowSquared = (float)(rowAt * rowAt);
+        for (s32 j = 0; j < 16; ++j) {
+            float *const v = &at<float>(landscape, 0x360 + 0xc * i + 0xc0 * j);
+            v[0] = (float)(X87Reg((double)j) * stepColumn - halfColumn);
+            v[2] = row;
+            v[1] = (float)(centreY - X87_Sqrt(X87Reg(v[0]) * X87Reg(v[0]) + rowSquared) * kSag);
+            v[0] = (float)(X87Reg(v[0]) + centreX);
+            v[2] = (float)(X87Reg(v[2]) + centreZ);
+            const u32 grey = Crt().rand() & 0x7f;
+            const u32 colour = (grey | grey << 8 | grey << 16) | 0xff808080;
+            for (u32 layer = 0; layer < 4; ++layer)
+                at<u32>(landscape, 0xf60 + 0x400 * layer + 4 * i + 0x40 * j) = colour;
+        }
+    }
+    const X87Reg rim = X87Reg(halfColumn) * kRim;
+    const X87Reg top = centreY - X87_Sqrt(rim * rim) * kSag;
+    const float bottom = (float)X87Reg(-top.v);
+    const X87Reg span = top - bottom;
+    const X87Reg second = top - span * kQuarter;
+    const float third = (float)(top - span * kHalf);
+    float *ring = &at<float>(landscape, 0);
+    for (s32 n : {0, 2, 4, 6, 8, 10, 12, 14, 16, 16, 18, 20, 22, 24, 26, 28, 30, 32}) {
+        const X87Reg angle = X87Reg(kPi) * X87Reg((double)n) * kSixteenth;
+        const X87Reg cosine = X87Reg(X87_Cos(angle.v)) * rim, sine = X87Reg(X87_Sin(angle.v)) * rim;
+        ring[0] = (float)(cosine + centreX);
+        ring[1] = (float)top;
+        ring[2] = (float)(sine + centreZ);
+        ring[4] = (float)second;
+        ring[7] = third;
+        ring[10] = bottom;
+        for (u32 k = 0; k < 3; ++k) {
+            ring[3 + 3 * k] = (float)(centreX - cosine * kRing[k]);
+            ring[5 + 3 * k] = (float)(centreZ - sine * kRing[k]);
+        }
+        ring += 12;
+    }
+    u32 count = 0;
+    for (s32 row = 0; row < 15; ++row) {
+        for (s32 column = 0; column < 15; ++column) {
+            const u8 *const y = &at<const u8>(landscape, 0x364 + 0xc0 * row + 0xc * column);
+            const u16 at_ = (u16)(row * 16 + column);
+            if (at<float>(y, 0) > bottom && at<float>(y, 0xc) > bottom && at<float>(y, 0xcc) > bottom) {
+                u16 *const triangle = &at<u16>(landscape, 0x21fc + 2 * count);
+                triangle[0] = (u16)(at_ + 1);
+                triangle[1] = at_;
+                triangle[2] = (u16)(at_ + 0x11);
+                count += 3;
+            }
+            if (at<float>(y, 0) > bottom && at<float>(y, 0xc0) > bottom && at<float>(y, 0xcc) > bottom) {
+                u16 *const triangle = &at<u16>(landscape, 0x21fc + 2 * count);
+                triangle[0] = at_;
+                triangle[1] = (u16)(at_ + 0x10);
+                triangle[2] = (u16)(at_ + 0x11);
+                count += 3;
+            }
+        }
+    }
+    at<u32>(landscape, 0x1f60) = count;
+    return 1;
+}
 
 u32 __fastcall Landscape_List(const u8 *landscape) { return at<u32>(landscape, 0x1fd0); }
 
