@@ -16,4 +16,8 @@ void RidesLoad_SetCalls(const AddrCall *table, u32 count);
 // vertices' (when the counts are its model's and it has them) and its parts' flags from the file, skipped when the counts differ; then its layers: copied, a block set when its motion is there (Animator_HasMotion, Layer_SetBlock) and 0x464580; no layer without bank 0: 0x473550. A layer's bank below 12 sets +4's 0x400000; last 0x472f40 or (without 0x1000000) 0x472ee0.
 // The block freed. Returns 1.
 u32 __cdecl RideSystem_Load(Stream *stream);
+
+// 0x464140 (cdecl (stream)): the same format written. A GlobalMem_Alloc block of the size counted from the slots at 0x7a4614 (+0x36, the layers' 0x2c, the vertices' 8, the parts' 4), 0x464580 called on each layer before it is copied; a ride with no motions (the holder's +0x28) leaves its vertices'
+// room unwritten and comes up short of the size (sic). The size and the block to the stream; a write's negative result: 0, the block kept. The block freed. Returns 1.
+u32 __cdecl RideSystem_Save(Stream *stream);
 }

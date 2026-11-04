@@ -31,6 +31,67 @@ void SetBits(u32 &to, u32 from, const BitMap (&map)[N]) {
         if (from & map[i].from) to |= map[i].to;
 }
 
+// A game's bits back to the file's.
+template <u32 N>
+u32 FileBits(u32 from, const BitMap (&map)[N]) {
+    u32 bits = 0;
+    for (u32 i = 0; i < N; ++i)
+        if (from & map[i].to) bits |= map[i].from;
+    return bits;
+}
+
+// A ride's record, after its tag: past what it wrote.
+u8 *SaveRecord(u8 *cursor, u8 *ride) {
+    at<u32>(cursor, 0) = at<u32>(ride, 0xf8);
+    at<u32>(cursor, 4) = at<u32>(ride, 0xe8);
+    at<u32>(cursor, 8) = at<u32>(ride, 0xec);
+    at<u32>(cursor, 0xc) = at<u32>(ride, 0xf0);
+    at<u32>(cursor, 0x10) = at<u32>(ride, 0xf4);
+    at<u32>(cursor, 0x14) = at<u32>(ride, 0xe4);
+    at<u32>(cursor, 0x18) = at<u32>(ride, 0xd4);
+    at<u32>(cursor, 0x1c) = FileBits(at<u32>(ride, 4), kRideBits);
+    at<u16>(cursor, 0x20) = at<u16>(ride, 0xc);
+    at<u32>(cursor, 0x22) = at<u32>(ride, 0xb8);
+    cursor += 0x26;
+    u8 *const held = at<u8 *>(ride, 8);
+    u8 *const model = at<u8 *>(held, 4);
+    at<u32>(cursor, 0) = at<u32>(held, 0x10);
+    at<u16>(cursor, 4) = at<u16>(model, 0x42);
+    at<u16>(cursor, 6) = at<u16>(model, 0x48);
+    u8 *const motions = at<u8 *>(held, 0x28);
+    if (motions) {
+        at<u32>(cursor, 8) = at<u32>(motions, 0);
+        at<u32>(cursor, 0xc) = at<u32>(motions, 8);
+        cursor += 0x10;
+        const u8 *vertex = at<u8 *>(motions, 4);
+        for (u32 i = 0; i < at<u16>(model, 0x48); ++i, cursor += 8, vertex += 0x14) {
+            at<u32>(cursor, 0) = at<const u32>(vertex, 0);
+            at<u32>(cursor, 4) = at<const u32>(vertex, 0xc);
+        }
+    } else {
+        cursor += 0x10;   // sic: the size counted the vertices all the same
+    }
+    for (u32 i = 0; i < at<u16>(model, 0x42); ++i, cursor += 4) {
+        const u32 first = at<u16>(model, 0x44);
+        const u32 part = i < first ? at<u32>(at<u8 *>(model, 0x70), 0xa0 * i) : at<u32>(at<u8 *>(model, 0x74), 0x58 * (i - first));
+        at<u32>(cursor, 0) = FileBits(part, kPartBits);
+    }
+    u8 *layer = at<u8 *>(ride, 0x10);
+    for (u32 i = 0; i < at<u16>(ride, 0xe); ++i, cursor += 0x2c, layer += 0x38) {
+        g_calls.Cd(0x00464580, layer, ride);
+        at<u32>(cursor, 0) = at<u32>(layer, 0);
+        at<u32>(cursor, 4) = at<u32>(layer, 4);
+        at<u32>(cursor, 8) = at<u32>(layer, 8);
+        at<u32>(cursor, 0xc) = at<u32>(layer, 0x10);
+        at<u32>(cursor, 0x10) = at<u32>(layer, 0x14);
+        at<u32>(cursor, 0x14) = at<u32>(layer, 0x18);
+        at<u32>(cursor, 0x18) = at<u32>(layer, 0xc);
+        for (u32 k = 0; k < 4; ++k)
+            at<u32>(cursor, 0x1c + 4 * k) = at<u32>(layer, 0x24 + 4 * k);
+    }
+    return cursor;
+}
+
 bool ReadFailed(Stream *stream, void *to, u32 count) {
     s32 result;
     return *Stream_Read(&result, stream, to, (s32)count, nullptr) < 0;
@@ -148,6 +209,33 @@ u32 __cdecl RideSystem_Load(Stream *stream) {
         const u8 tag = *data++;
         if (tag == 1) data = LoadRecord(data, i + 1);
     }
+    g_calls.Cd(0x0045ba00, block);   // GlobalMem_Free
+    return 1;
+}
+
+u32 __cdecl RideSystem_Save(Stream *stream) {
+    u32 size = 0xc;
+    for (u32 i = 0; i < g<u32>(0x007a3ebc) + g<u32>(0x007a4084); ++i) {
+        const u8 *const ride = g<u8 *>(0x007a4614 + 4 * i);
+        ++size;
+        if (ride) {
+            const u8 *const model = at<u8 *>(at<u8 *>(ride, 8), 4);
+            size += 0x36 + at<u16>(ride, 0xe) * 0x2c + at<u16>(model, 0x48) * 8 + at<u16>(model, 0x42) * 4;
+        }
+    }
+    u8 *const block = reinterpret_cast<u8 *>((uintptr_t)g_calls.Cd(0x0045b9d0, size, 1u));   // GlobalMem_Alloc
+    at<u32>(block, 0) = g<u32>(0x007a4084);
+    at<u32>(block, 4) = g<u32>(0x007a3ebc);
+    at<u32>(block, 8) = g<u32>(0x007aedf4);
+    u8 *cursor = block + 0xc;
+    for (u32 i = 0; i < g<u32>(0x007a3ebc) + g<u32>(0x007a4084); ++i) {
+        u8 *const ride = g<u8 *>(0x007a4614 + 4 * i);
+        *cursor++ = ride ? 1 : 0;
+        if (ride) cursor = SaveRecord(cursor, ride);
+    }
+    s32 result;
+    if (*Stream_Write(&result, stream, &size, 4, nullptr) < 0) return 0;
+    if (*Stream_Write(&result, stream, block, (s32)size, nullptr) < 0) return 0;
     g_calls.Cd(0x0045ba00, block);   // GlobalMem_Free
     return 1;
 }
