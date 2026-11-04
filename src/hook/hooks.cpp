@@ -151,6 +151,7 @@
 #include "../game/gfx/moviefile.h"
 #include "../game/gfx/movieframe.h"
 #include "../game/gfx/movieidct.h"
+#include "../game/gfx/movielife.h"
 #include "../game/gfx/moviepixels.h"
 #include "../game/gfx/movieplayer.h"
 #include "../game/gfx/moviesound.h"
@@ -6567,6 +6568,13 @@ const Hook kHooks[] = {
     {"MovieFile_Open",            0x0066e080, (void *)&MovieFile_Open, {0x53, 0x56, 0x8b, 0xf2, 0x33}},
     {"MovieFile_CountHeaders",    0x0066e250, (void *)&MovieFile_CountHeaders, {0x83, 0xec, 0x0c, 0x8d, 0x54}},
     {"MovieFile_Close",           0x0066ef50, (void *)&MovieFile_Close, {0x56, 0x8b, 0xf1, 0x8b, 0x06}},
+    {"MovieLife_Create",          0x0066dff0, (void *)&MovieLife_Create, {0x56, 0x57, 0x68, 0x70, 0x06}},
+    {"MovieLife_Destroy",         0x0066eef0, (void *)&MovieLife_Destroy, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"MovieLife_Start",           0x0066efd0, (void *)&MovieLife_Start, {0x53, 0x56, 0x8b, 0x74, 0x24}},
+    {"MovieLife_ThreadMain",      0x0066f050, (void *)&MovieLife_ThreadMain, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
+    {"MovieLife_Run",             0x0066f090, (void *)&MovieLife_Run, {0x83, 0xec, 0x0c, 0x53, 0x55}},
+    {"MovieLife_OpenAndStart",    0x0066f4e0, (void *)&MovieLife_OpenAndStart, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
+    {"MovieLife_ReleaseSurfaces", 0x00670710, (void *)&MovieLife_ReleaseSurfaces, {0x56, 0x8b, 0xf1, 0x57, 0x33}},
     {"RenderMode_Size",           0x0044a590, (void *)&RenderMode_Size, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_Depth",          0x0044a5d0, (void *)&RenderMode_Depth, {0xa1, 0x6c, 0xd8, 0x79, 0x00}},
     {"RenderMode_ResetScale",     0x0044a600, (void *)&RenderMode_ResetScale, {0x51, 0xc7, 0x44, 0x24, 0x00}},

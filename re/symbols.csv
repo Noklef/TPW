@@ -6390,6 +6390,13 @@ address,name,kind,confidence,notes
 0x0066e080,MovieFile_Open,function,low,"reimplemented (src/game/gfx/moviefile); the movie's file opened and its first chunks read: name invented, unconfirmed"
 0x0066e250,MovieFile_CountHeaders,function,low,"reimplemented (src/game/gfx/moviefile); the movie's headers stepped over and counted: name invented, unconfirmed"
 0x0066ef50,MovieFile_Close,function,low,"reimplemented (src/game/gfx/moviefile); the movie's file closed and its rings freed: name invented, unconfirmed"
+0x0066dff0,MovieLife_Create,function,low,"reimplemented (src/game/gfx/movielife); the movie's player made: name invented, unconfirmed"
+0x0066eef0,MovieLife_Destroy,function,low,"reimplemented (src/game/gfx/movielife); the movie's player let go: name invented, unconfirmed"
+0x0066efd0,MovieLife_Start,function,low,"reimplemented (src/game/gfx/movielife); the movie started, on its own thread or here: name invented, unconfirmed"
+0x0066f050,MovieLife_ThreadMain,function,low,"reimplemented (src/game/gfx/movielife); the movie played, let go, the thread ended: name invented, unconfirmed"
+0x0066f090,MovieLife_Run,function,low,"reimplemented (src/game/gfx/movielife); the movie's loop: name invented, unconfirmed"
+0x0066f4e0,MovieLife_OpenAndStart,function,low,"reimplemented (src/game/gfx/movielife); the movie made and started: name invented, unconfirmed"
+0x00670710,MovieLife_ReleaseSurfaces,function,low,"reimplemented (src/game/gfx/movielife); the movie's tables and surfaces let go: name invented, unconfirmed"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"
