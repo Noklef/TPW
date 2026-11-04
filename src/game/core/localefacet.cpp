@@ -3,12 +3,15 @@
 #include <cstdint>
 
 #include "crt.h"
+#include "crttime.h"
 #include "globals.h"
 #include "initializers.h"
 #include "iosbase.h"
 #include "locinfo.h"
+#include "moneypunct.h"
 #include "sharedglobals.h"
 #include "stdlocale.h"
+#include "stdstring.h"
 
 namespace {
 
@@ -96,6 +99,55 @@ template <typename Fill> u32 *use_facet(u8 **loc, u32 flag, u32 id_variable, u32
     }
     IosBase_Env().unlockit(outer);
     return facet;
+}
+
+void money_fill(u32 *facet, u8 international, u32 base, u32 vtable, void(__fastcall *init)(u8 *, void *, const void *)) {
+    u32 info[0x10];
+    Locinfo_Ctor(info, nullptr, "C");
+    reinterpret_cast<u8 *>(facet)[0x28] = international;
+    facet[0] = base;
+    init(reinterpret_cast<u8 *>(facet), nullptr, info);
+    Locinfo_Dtor(info);
+    facet[0] = vtable;
+}
+
+u32 text_length(const char *text) {
+    u32 n = 0;
+    while (text[n]) ++n;
+    return n;
+}
+
+// The string's text, or the fallback when it has none (a counted but null string: _Nullstr's).
+const char *names_of(const StdString *s, u32 fallback) {
+    if (!s->len) return reinterpret_cast<const char *>((uintptr_t)fallback);
+    return s->ptr ? s->ptr : reinterpret_cast<const char *>((uintptr_t)0x006fe5b0);
+}
+
+// The strings at the _Locinfo's +0 and +0x10 given the C library's texts (each freed).
+const char *days_of(u8 *info) {
+    StdString *const s = reinterpret_cast<StdString *>(info);
+    if (char *const days = CRT_Getdays()) {
+        StdString_AssignChars(s, nullptr, days, text_length(days));
+        Crt().free(days);
+    }
+    return names_of(s, 0x00709e78);
+}
+
+const char *months_of(u8 *info) {
+    StdString *const s = reinterpret_cast<StdString *>(info + 0x10);
+    if (char *const months = CRT_Getmonths()) {
+        StdString_AssignChars(s, nullptr, months, text_length(months));   // (0x6aa200 and 0x6a3470 have it inlined, short of its length check)
+        Crt().free(months);
+    }
+    return names_of(s, 0x00709df0);
+}
+
+u16 *wide_copy(const char *text) {
+    u32 n = text_length(text) + 1;
+    u16 *const copy = static_cast<u16 *>(IosBase_Env().memAlloc(n * 2));
+    u16 *to = copy;
+    for (; n; --n) *to++ = static_cast<u16>(CRT_btowc(static_cast<u32>(static_cast<s32>(static_cast<signed char>(*text++)))));
+    return copy;
 }
 
 u32 *refs_facet(u32 *self, u32 refs, u32 vtable) {
@@ -196,6 +248,71 @@ u32 *__cdecl UseFacet_Codecvt(u8 **loc, u32, u32 flag) {
         facet[3] = static_cast<u32>(conversion >> 32);
         Locinfo_Dtor(info);
     });
+}
+
+u32 *__cdecl UseFacet_MoneypunctWIntl(u8 **loc, u32, u32 flag) {
+    return use_facet(loc, flag, 0x00fb1de8, 0x00fb1e2c, 0x00fb1e34, 0x2c, 0x006a5e40, [](u32 *facet) { money_fill(facet, 1, 0x00709d74, 0x00709da4, MoneypunctW_Init); });
+}
+
+u32 *__cdecl UseFacet_MoneypunctW(u8 **loc, u32, u32 flag) {
+    return use_facet(loc, flag, 0x00fb1e0c, 0x00fb1e28, 0x00fb1e38, 0x2c, 0x006a5f60, [](u32 *facet) { money_fill(facet, 0, 0x00709d74, 0x00709bbc, MoneypunctW_Init); });
+}
+
+u32 *__cdecl UseFacet_MoneypunctCIntl(u8 **loc, u32, u32 flag) {
+    return use_facet(loc, flag, 0x00fb1e80, 0x00fb1eb0, 0x00fb1eb4, 0x2c, 0x006ac1d0, [](u32 *facet) { money_fill(facet, 1, 0x00709fdc, 0x00709f2c, MoneypunctC_Init); });
+}
+
+u32 *__cdecl UseFacet_MoneypunctC(u8 **loc, u32, u32 flag) {
+    return use_facet(loc, flag, 0x00fb1e90, 0x00fb1eac, 0x00fb1eb8, 0x2c, 0x006ac2f0, [](u32 *facet) { money_fill(facet, 0, 0x00709fdc, 0x00709f5c, MoneypunctC_Init); });
+}
+
+u32 *__cdecl UseFacet_709bec(u8 **loc, u32, u32 flag) {
+    return use_facet(loc, flag, 0x00fb1e08, 0x00fb1e40, 0x00fb1e3c, 8, 0x006a6360, [](u32 *facet) {
+        u32 info[0x10];
+        Locinfo_Ctor(info, nullptr, "C");
+        facet[0] = 0x00709bec;
+        Locinfo_Dtor(info);
+    });
+}
+
+u32 *__cdecl UseFacet_CodecvtW(u8 **loc, u32, u32 flag) {
+    return use_facet(loc, flag, 0x00fb1e00, 0x007ced40, 0x007ced48, 0x10, 0x004f7a10, [](u32 *facet) {
+        u32 info[0x10];
+        Locinfo_Ctor(info, nullptr, "C");
+        facet[0] = 0x00709ce4;
+        const unsigned long long conversion = CRT_Getcvt();
+        facet[2] = static_cast<u32>(conversion);
+        facet[3] = static_cast<u32>(conversion >> 32);
+        Locinfo_Dtor(info);
+    });
+}
+
+u32 *__cdecl UseFacet_TimeC(u8 **loc, u32, u32 flag) {
+    return use_facet(loc, flag, 0x00fb1e84, 0x00fb1ec0, 0x00fb1ebc, 0x10, 0x006ac6f0, [](u32 *facet) {
+        u32 info[0x10];
+        facet[0] = 0x0070a024;
+        Locinfo_Ctor(info, nullptr, "C");
+        u8 *const held = reinterpret_cast<u8 *>(info);
+        facet[2] = static_cast<u32>(reinterpret_cast<uintptr_t>(Numpunct_Copy(days_of(held))));
+        facet[3] = static_cast<u32>(reinterpret_cast<uintptr_t>(Numpunct_Copy(months_of(held))));
+        Locinfo_Dtor(info);
+    });
+}
+
+u32 *__fastcall TimeC_Ctor(u32 *self, void *, u8 *info, u32 refs) {
+    self[1] = refs;
+    self[0] = 0x0070a024;
+    self[2] = static_cast<u32>(reinterpret_cast<uintptr_t>(Numpunct_Copy(days_of(info))));
+    self[3] = static_cast<u32>(reinterpret_cast<uintptr_t>(Numpunct_Copy(months_of(info))));
+    return self;
+}
+
+u32 *__fastcall TimeW_Ctor(u32 *self, void *, u8 *info, u32 refs) {
+    self[1] = refs;
+    self[0] = 0x00709ed4;
+    self[2] = static_cast<u32>(reinterpret_cast<uintptr_t>(wide_copy(days_of(info))));
+    self[3] = static_cast<u32>(reinterpret_cast<uintptr_t>(wide_copy(months_of(info))));
+    return self;
 }
 
 StdString *__fastcall Locinfo_GetName(const u8 *self, void *, StdString *out) {

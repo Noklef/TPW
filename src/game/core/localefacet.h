@@ -26,6 +26,23 @@ u32 *__fastcall Codecvt_Ctor(u32 *self, void *, const void *info, u32 refs);
 u32 *__cdecl UseFacet_Numpunct(u8 **loc, u32 unused, u32 flag);
 u32 *__cdecl UseFacet_Codecvt(u8 **loc, u32 unused, u32 flag);
 
+// The same for more facets (names invented, by their vtables' shapes, unconfirmed): 0x6a4d70 / 0x6a5180 moneypunct<wchar_t, true / false> (0x2c bytes, MoneypunctW_Init),
+// 0x6ab6d0 / 0x6aba80 moneypunct<char, true / false> (MoneypunctC_Init), each with the international byte at +0x28 and its base's vtable first; 0x6a5320 the wide facet of
+// vtable 0x709bec (8 bytes); 0x6a58d0 the wide codecvt of vtable 0x709ce4 (_Getcvt at +8); 0x6abc20 the time facet of vtable 0x70a024 (days and months of the "C" _Locinfo).
+u32 *__cdecl UseFacet_MoneypunctWIntl(u8 **loc, u32 unused, u32 flag);
+u32 *__cdecl UseFacet_MoneypunctW(u8 **loc, u32 unused, u32 flag);
+u32 *__cdecl UseFacet_MoneypunctCIntl(u8 **loc, u32 unused, u32 flag);
+u32 *__cdecl UseFacet_MoneypunctC(u8 **loc, u32 unused, u32 flag);
+u32 *__cdecl UseFacet_709bec(u8 **loc, u32 unused, u32 flag);
+u32 *__cdecl UseFacet_CodecvtW(u8 **loc, u32 unused, u32 flag);
+u32 *__cdecl UseFacet_TimeC(u8 **loc, u32 unused, u32 flag);
+
+// 0x6aa200 / 0x6a3470 (pops 8; names invented, by their tables' shape, unconfirmed): the time facet of vtable 0x70a024 / 0x709ed4 made from a _Locinfo: refs at +4; its string
+// at +0 assigned _Getdays' text (freed) when there is one, +0x10 _Getmonths', and copies of the two (empty: _Nullstr's; an unset string: the texts at 0x709e78 and 0x709df0) at
+// +8 and +0xc, new blocks of bytes / of btowc's units. A null block is written through as in the original. Returns self.
+u32 *__fastcall TimeC_Ctor(u32 *self, void *, u8 *info, u32 refs);
+u32 *__fastcall TimeW_Ctor(u32 *self, void *, u8 *info, u32 refs);
+
 // 0x693e20 (pops 4): _Locinfo::_Getname: a string at out, its first use, copied from the name at +0x30. Returns out.
 StdString *__fastcall Locinfo_GetName(const u8 *self, void *, StdString *out);
 

@@ -6120,6 +6120,15 @@ address,name,kind,confidence,notes
 0x00699440,UseFacet_Codecvt,function,low,"reimplemented (src/game/core/localefacet); use_facet of codecvt<char, char, int>"
 0x00693e20,Locinfo_GetName,function,low,reimplemented (src/game/core/localefacet); _Locinfo::_Getname
 0x00694120,Locimp_Makeloc,function,low,reimplemented (src/game/core/localefacet); locale::_Locimp::_Makeloc
+0x006a4d70,UseFacet_MoneypunctWIntl,function,low,"reimplemented (src/game/core/localefacet); use_facet of moneypunct<wchar_t, true>"
+0x006a5180,UseFacet_MoneypunctW,function,low,"reimplemented (src/game/core/localefacet); use_facet of moneypunct<wchar_t, false>"
+0x006ab6d0,UseFacet_MoneypunctCIntl,function,low,"reimplemented (src/game/core/localefacet); use_facet of moneypunct<char, true>"
+0x006aba80,UseFacet_MoneypunctC,function,low,"reimplemented (src/game/core/localefacet); use_facet of moneypunct<char, false>"
+0x006a5320,UseFacet_709bec,function,low,reimplemented (src/game/core/localefacet); use_facet of the wide facet of vtable 0x709bec
+0x006a58d0,UseFacet_CodecvtW,function,low,reimplemented (src/game/core/localefacet); use_facet of the wide codecvt
+0x006abc20,UseFacet_TimeC,function,low,reimplemented (src/game/core/localefacet); use_facet of the time facet of vtable 0x70a024
+0x006aa200,TimeC_Ctor,function,low,reimplemented (src/game/core/localefacet); the time facet's constructor of vtable 0x70a024
+0x006a3470,TimeW_Ctor,function,low,reimplemented (src/game/core/localefacet); the time facet's constructor of vtable 0x709ed4
 0x006895b0,CRT_mbctolower,function,low,reimplemented (src/game/core/crtmbstring); _mbctolower
 0x00689650,CRT_mbspbrk,function,low,reimplemented (src/game/core/crtmbstring); _mbspbrk
 0x00689400,CRT_mbsrchr,function,low,reimplemented (src/game/core/crtmbstring); _mbsrchr
