@@ -46,6 +46,11 @@ s32 __fastcall WScanner_ReadKeywords(u8 *scanner);
 // 0x5e7320 (thiscall (out), pops 4; name invented, unconfirmed): position past the length: 0. Else *out the character there (the string frozen), the position on by one, 1.
 u8 __fastcall WScanner_NextChar(u8 *scanner, void *, u16 *out);
 
+// 0x5e43f0 (thiscall (tokens, out), pops 8; name invented, unconfirmed): the scanner: its base (WScanner_ConstructBase), the byte +0x44 the tokens pointer's low byte (sic: the list's
+// allocator from the stack's argument), its list's sentinel of 0x28 bytes linked to itself at +0x48 with +0x4c = 0, +0x50 / +0x54 the two, vtable 0x702f14. The vector of tokens
+// emptied (each destroyed, the end at the start), the string assigned the text at 0x78a374 (StdWString_AssignChars), the keywords added (WKeywords_AddAll). Returns the scanner.
+u8 *__fastcall WScanner_Construct(u8 *scanner, void *, u8 *tokens, StdWString *out);
+
 // 0x5e45d0 (thiscall (text by value), pops 0x10; name invented, unconfirmed): a copy of the text set (WScanner_SetText: the list at +0x44, flags 0, 1, 1), past the set +0x14.
 // The next character a '/': WScanner_ReadKeywords, and when that called none a token of kind 0x18. Else the string [+0x54] assigned the text, a token of kind 0 and one of the
 // text. The text is destroyed.

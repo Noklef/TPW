@@ -328,6 +328,33 @@ u8 __fastcall WScanner_NextChar(u8 *scanner, void *, u16 *out) {
     return 1;
 }
 
+u8 *__fastcall WScanner_Construct(u8 *scanner, void *, u8 *tokens, StdWString *out) {
+    WScanner_ConstructBase(scanner);
+    at<u8>(scanner, 0x44) = static_cast<u8>(reinterpret_cast<uintptr_t>(tokens));
+    u8 *const sentinel = static_cast<u8 *>(GameHeap_Alloc(0x28));
+    at<u8 *>(sentinel, 0) = sentinel;
+    at<u8 *>(sentinel, 4) = sentinel;
+    at<u8 *>(scanner, 0x48) = sentinel;
+    at<u32>(scanner, 0x4c) = 0;
+    at<u8 *>(scanner, 0x50) = tokens;
+    at<StdWString *>(scanner, 0x54) = out;
+    at<u32>(scanner, 0) = 0x702f14;
+    u8 *const first = at<u8 *>(tokens, 4);
+    u8 *const last = at<u8 *>(tokens, 8);
+    for (u8 *token = first; token != last; token += 0x24) {
+        CountedBuf_Reset(token + 0x10, nullptr, 1);
+        StdString_Tidy(reinterpret_cast<StdString *>(token), nullptr, 1);
+    }
+    at<u8 *>(tokens, 8) = first;
+    const u16 *const text = reinterpret_cast<const u16 *>(0x0078a374);
+    u32 n = 0;
+    while (text[n])
+        ++n;
+    StdWString_AssignChars(out, nullptr, text, n);
+    WKeywords_AddAll(scanner);
+    return scanner;
+}
+
 void __fastcall WScanner_Parse(u8 *scanner, void *, StdWString text) {
     const u8 flags[3] = {0, 1, 1};
     StdWString copy;
