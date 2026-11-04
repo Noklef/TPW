@@ -264,6 +264,7 @@
 #include "../../src/game/online/chatavatar.h"
 #include "../../src/game/online/chatcommand.h"
 #include "../../src/game/online/session.h"
+#include "../../src/game/online/sessionlogin.h"
 #include "../../src/game/online/chatevents.h"
 #include "../../src/game/sprite/draw.h"
 #include "../../src/game/sprite/script.h"
@@ -1519,6 +1520,9 @@ const Panel7b9940OpenEnv kPanel7b9940OpenEnv = {Rec{jpeg_recorder(10, 0)}, Rec{j
 const Panel7cc218RefreshEnv kPanel7cc218RefreshEnv = {Rec{jpeg_recorder(10, 1)}, Rec{recorder(11, 0)}, Rec{recorder(12, 0)}};
 // Online_Instance's constructor (tests/fncmp/onlineinstance.py).
 const OnlineInstanceEnv kOnlineInstanceEnv = {Rec{recorder(10, 0)}};
+// The session's login and news calls (tests/fncmp/sessionlogin.py).
+const OnlineLoginEnv kOnlineLoginEnv = {Rec{jpeg_recorder(16, 1)}, Rec{jpeg_recorder(17, 1)}, Rec{jpeg_recorder(18, 0)}, Rec{jpeg_recorder(19, 1)}, Rec{jpeg_recorder(20, 0)}, Rec{jpeg_recorder(21, 1)},
+                                        Rec{recorder(22, 2)}, Rec{jpeg_recorder(23, 0)}, Rec{jpeg_recorder(24, 0)}, Rec{jpeg_recorder(25, 2)}, Rec{jpeg_recorder(26, 1)}};
 // Dialog7cdac4_Handler's calls (tests/fncmp/dialog7cdac4handler.py).
 const Dialog7cdac4HandlerEnv kDialog7cdac4HandlerEnv = {Rec{jpeg_recorder(10, 4)}, Rec{jpeg_recorder(11, 4)}, Rec{jpeg_recorder(12, 0)}, Rec{jpeg_recorder(13, 0)}, Rec{jpeg_recorder(14, 0)}, Rec{jpeg_recorder(15, 4)}, Rec{recorder(16, 0)}, Rec{jpeg_recorder(17, 1)},
                                                         Rec{jpeg_recorder(18, 0)}, Rec{recorder(19, 7)}, Rec{recorder(20, 0)}, Rec{recorder(21, 1)}};
@@ -2494,6 +2498,7 @@ int main(int argc, char **argv) {
     Panel7cc218_SetShowEnv(&kPanel7cc218ShowEnv);
     Dialog7ca168_SetOpenEnv(&kDialog7ca168OpenEnv);
     Online_SetInstanceEnv(&kOnlineInstanceEnv);
+    OnlineLogin_SetEnv(&kOnlineLoginEnv);
     ThingPanelHandlers_SetEnv(&kThingPanelHandlerEnv);
     GamePartDialogs_SetEnv(&kGamePartDialogEnv);
     PatrolCoverage_SetEnv(&kPatrolCoverageEnv);

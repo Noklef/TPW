@@ -7288,6 +7288,16 @@ address,name,kind,confidence,notes
 0x004e5ef0,ChatClient_EnterWorld,function,low,"reimplemented (src/game/online/chatclient); The chat client's player made at the entrance, the mouse mode set"
 0x004a8600,Postcard_Send,function,low,"reimplemented (src/game/online/postcardsend); the postcard sent: name invented, unconfirmed"
 0x004c56e0,RoomText_Handler,function,low,"reimplemented (src/game/online/roomtexthandler); the chat rooms' text windows' handler: name invented, unconfirmed"
+0x005b5cb0,Online_LoginDialogClosed,function,low,reimplemented (src/game/online/sessionlogin); the login dialog's callback
+0x005b5cc0,Online_OpenLoginDialog,function,low,reimplemented (src/game/online/sessionlogin); the callback kept and the login dialog opened
+0x005b5ce0,Online_LoginAnswer,function,low,reimplemented (src/game/online/sessionlogin); Auth::Connect's callback
+0x005b5d10,Online_LogIn,function,low,reimplemented (src/game/online/sessionlogin); a new Auth connected and logged in
+0x005b6510,Online_LoginFinish,function,low,reimplemented (src/game/online/sessionlogin); the login's end
+0x005b6630,Online_NewsAnswer,function,low,reimplemented (src/game/online/sessionlogin); News::Connect's callback
+0x005b6660,Online_OpenNews,function,low,"reimplemented (src/game/online/sessionlogin); a new News connected, the three requests sent"
+0x005b67d0,Online_NewsResult,function,low,reimplemented (src/game/online/sessionlogin); a news answer
+0x005b6a30,Online_NewsPoll,function,low,reimplemented (src/game/online/sessionlogin); the news' progress
+0x005b6b60,Online_NewsFinish,function,low,"reimplemented (src/game/online/sessionlogin); the balance file saved and loaded, or the error posted"
 0x005d8190,LobbyModel_SetPosition,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (v): the lobby model's (+4: 0x7a4610 index) matrix (+8 -> +4 -> +0x78, +0x10) translation = v[0..2] (x87 loads, all read first)"
 0x005d8380,LobbyModel_TurnY,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (angle): Matrix_RotateEulerFast(the lobby model's matrix, 2 ""Y"", &angle)"
 0x005d83b0,LobbyModel_SetScale,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (x, y, z): Holder_SetScale(the lobby model's entry +8, (x, y, z))"

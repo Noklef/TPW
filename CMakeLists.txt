@@ -533,6 +533,7 @@ add_library(tpw_game STATIC
     src/game/online/chatclient.cpp
     src/game/online/postcardsend.cpp
     src/game/online/roomtexthandler.cpp
+    src/game/online/sessionlogin.cpp
     src/game/frontend/lobbymodel.cpp
     src/game/frontend/helpbg.cpp
     src/game/frontend/islandcamera.cpp

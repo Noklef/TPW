@@ -570,6 +570,7 @@
 #include "../game/online/roomcounts.h"
 #include "../game/online/roomtexthandler.h"
 #include "../game/online/session.h"
+#include "../game/online/sessionlogin.h"
 #include "../game/ui/dialog7ca1c8.h"
 #include "../game/ui/dialog7cb398.h"
 #include "../game/ui/dialogs.h"
@@ -7420,6 +7421,16 @@ const Hook kHooks[] = {
     {"ChatClient_EnterWorld",     0x004e5ef0, (void *)&ChatClient_EnterWorld, {0x6a, 0xff, 0x68, 0xa7, 0xc6}},
     {"Postcard_Send",             0x004a8600, (void *)&Postcard_Send, {0x6a, 0xff, 0x68, 0xb9, 0xa8}},
     {"RoomText_Handler",          0x004c56e0, (void *)&RoomText_Handler, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"Online_LoginDialogClosed",  0x005b5cb0, (void *)&Online_LoginDialogClosed, {0xe8, 0xdb, 0x56, 0xed, 0xff}},
+    {"Online_OpenLoginDialog",    0x005b5cc0, (void *)&Online_OpenLoginDialog, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
+    {"Online_LoginAnswer",        0x005b5ce0, (void *)&Online_LoginAnswer, {0x8b, 0x44, 0x24, 0x10, 0x8b}},
+    {"Online_LogIn",              0x005b5d10, (void *)&Online_LogIn, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Online_LoginFinish",        0x005b6510, (void *)&Online_LoginFinish, {0x53, 0x56, 0x8b, 0xf1, 0x57}},
+    {"Online_NewsAnswer",         0x005b6630, (void *)&Online_NewsAnswer, {0x8b, 0x44, 0x24, 0x10, 0x8b}},
+    {"Online_OpenNews",           0x005b6660, (void *)&Online_OpenNews, {0x6a, 0xff, 0x68, 0x7b, 0xfd}},
+    {"Online_NewsResult",         0x005b67d0, (void *)&Online_NewsResult, {0x8b, 0x44, 0x24, 0x04, 0x53}},
+    {"Online_NewsPoll",           0x005b6a30, (void *)&Online_NewsPoll, {0x83, 0xec, 0x08, 0x53, 0x56}},
+    {"Online_NewsFinish",         0x005b6b60, (void *)&Online_NewsFinish, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"LobbyModel_SetPosition",    0x005d8190, (void *)&LobbyModel_SetPosition, {0x8b, 0x41, 0x04, 0x8b, 0x54}},
     {"LobbyModel_TurnY",          0x005d8380, (void *)&LobbyModel_TurnY, {0x8b, 0x49, 0x04, 0x8d, 0x44}},
     {"LobbyModel_SetScale",       0x005d83b0, (void *)&LobbyModel_SetScale, {0x83, 0xec, 0x0c, 0x8b, 0x44}},
