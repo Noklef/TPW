@@ -6894,6 +6894,8 @@ address,name,kind,confidence,notes
 0x00446050,CoasterEdit_CancelSelected,function,low,"reimplemented (src/game/coaster/edittools); cdecl: the piece being moved put back on its old cell; name invented, unconfirmed"
 0x00447bb0,CoasterEdit_PickPiece,function,low,"reimplemented (src/game/coaster/edittools); the editor's tool ended, mode 2, the track's piece number selected (name invented, unconfirmed)"
 0x00447b60,CoasterEdit_DeleteSpanBetween,function,low,"reimplemented (src/game/coaster/edittools); two track pieces each made current and its span deleted (name invented, unconfirmed)"
+0x00447d30,EditTools_RebuildCurrent,function,low,"reimplemented (src/game/coaster/edittools); Current coaster at 0x790fec rebuilt if its bit 0 is set (name invented, unconfirmed)"
+0x00447d60,EditTools_RebuildIndexed,function,low,"reimplemented (src/game/coaster/edittools); Coaster of the table 0x790bd0 rebuilt if set and its bit 0 is set (name invented, unconfirmed)"
 0x0043f4e0,TrackMesh_EmitPiece,function,low,"reimplemented (src/game/coaster/trackmesh); cdecl (piece, next, count, positions, restart): a piece's samples turned into track mesh: cross sections placed by the spline frame, their triangles listed"
 0x004402d0,TrackMesh_PlaceSections,function,low,"reimplemented (src/game/coaster/trackmesh); cdecl: the section records placed along the track by zone, from 0x792600 (each the spline value and position, a blend and the zone)"
 0x00439780,CoasterCar_SetSoundMode,function,low,"reimplemented (src/game/coaster/carsound); cdecl (car, mode, value): a new mode sets the looped sound's first parameter to its level, then the second parameter to value"

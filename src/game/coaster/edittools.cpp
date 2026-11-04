@@ -4,6 +4,7 @@
 
 #include "../core/accessors.h"
 #include "../core/actionrec.h"
+#include "../core/addrcalls.h"
 #include "../files/wrapsources.h"
 #include "../math/x87.h"
 #include "../ui/dialog7ca1c8.h"
@@ -1018,3 +1019,25 @@ void __cdecl CoasterEdit_CancelSelected() {
 }
 
 void EditTools_SetEnv(const EditToolsEnv *env) { g_env = env ? env : &kPortEnv; }
+
+namespace {
+AddrCalls g_rebuildCalls;
+
+void RebuildOne(u8 *coaster) {
+    g<u8 *>(0x00792218) = coaster;
+    g<u8 *>(0x00790fe4) = coaster + 0x3c;
+    g_rebuildCalls.Cd(0x0043eb70, (u32)(uintptr_t)coaster);   // Coaster_Rebuild
+}
+}  // namespace
+
+void EditTools_SetRebuildCalls(const AddrCall *table, u32 count) { g_rebuildCalls.Set(table, count); }
+
+extern "C" void __cdecl EditTools_RebuildCurrent() {
+    u8 *const coaster = g<u8 *>(0x00790fec);
+    if (coaster[0] & 1) RebuildOne(coaster);
+}
+
+extern "C" void __cdecl EditTools_RebuildIndexed(u32 index) {
+    u8 *const coaster = g<u8 *>(0x00790bd0 + index * 4);
+    if (coaster && (coaster[0] & 1)) RebuildOne(coaster);
+}
