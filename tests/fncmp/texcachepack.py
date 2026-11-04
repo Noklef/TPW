@@ -22,6 +22,15 @@ def item(r, sizes):
     return buf
 
 
+def halved_key(buf):
+    flags, width, height, lod = struct.unpack_from('<I', buf, 8)[0], *struct.unpack_from('<hh', buf, 0x14), struct.unpack_from('<f', buf, 0x30)[0]
+    key = ((int((1.5 - lod) * 2047.0) & 0xfff) << 8) + ((width + 1) >> 1) << 8
+    key += (height + 1) >> 1
+    key |= (0x20000000 if flags & 0x4000 else 0) | (0x40000000 if flags & 0x80000 else 0)
+    key &= 0xffffffff
+    return key - (1 << 32) if key >> 31 else key
+
+
 def case(r):
     many = r.randrange(8) == 0
     n = 140 if many else r.choice([0, 1, 2, 3, 5, 8, 12])
@@ -33,7 +42,11 @@ def case(r):
     put(cache, 0x18e8, 'I', r.choice([0, 0, 1, 0x100]))
     area = bytearray(r.bytes(0x10))
     put(area, 8, 'ii', w, h)
-    items = b''.join(bytes(item(r, sizes)) for i in range(n))
+    many_items = [item(r, sizes) for i in range(n)]
+    for before, after in zip(many_items, many_items[1:]):
+        if r.randrange(3) == 0:   # (a key tying with the one before's once halved)
+            put(after, 0x38, 'i', halved_key(before))
+    items = b''.join(bytes(i) for i in many_items)
     order = struct.pack('<%dI' % (n + 1), *([ITEMS + 0x40 * i for i in range(n)] + [0]))
     regions = {CACHE: cache, AREA: area, LIST: order + r.bytes(4), OUT: bytearray(0x14 * 0x90), 0x8c4b68: r.bytes(8),
                0x8bd520: r.bytes(4) + struct.pack('<I', r.choice([1, 1, 0, 4])), 0x702434: struct.pack('<i', r.choice([2, 8, 8, 32]))}
