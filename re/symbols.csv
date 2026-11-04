@@ -7596,6 +7596,14 @@ address,name,kind,confidence,notes
 0x004f7b20,ChatPlayer_Ctor,function,low,reimplemented (src/game/online/chatavatar); a chat player's constructor
 0x004ea9a0,ChatAvatar_NameEquals,function,low,"reimplemented (src/game/online/chatavatar); whether a text is the avatar's name, in any case"
 0x005d2720,Ftp_ListLineSize,function,low,"reimplemented (src/game/online/ftp); thiscall, this unused (line; pops 4): atoi of a directory listing line's fifth field (its size), past four runs of non-spaces and spaces (isspace; a NUL is not one, sic)"
+0x005c90a0,Ftp_Send,function,low,"reimplemented (src/game/online/ftp); thiscall (buffer, length; pops 8): send in pieces of at most 0x2000; 1 for a null buffer or a negative send"
+0x005c8de0,Ftp_SendLine,function,low,"reimplemented (src/game/online/ftp); thiscall (text; pops 4): its length added to +0x18, then Ftp_Send"
+0x005c8e20,Ftp_ReadReply,function,low,"reimplemented (src/game/online/ftp); thiscall (out, size, wanted; pops 0xc): one reply from the buffer at +0x20, recv for more; the code, or 0 when the socket ends"
+0x005c8f50,Ftp_LocalAddress,function,low,"reimplemented (src/game/online/ftp); this machine's address: gethostname's gethostbyname, else a connected UDP socket's getsockname"
+0x005d37c0,Ftp_Close,function,low,"reimplemented (src/game/online/ftp); thiscall: shutdown, recv until no more, closesocket, +4 = -1, unless +4 is -1"
+0x005d3750,FtpSocket_Dtor,function,low,"reimplemented (src/game/online/ftp); thiscall: vtable 0x702994, then Ftp_Close's body"
+0x005d36d0,FtpSocket_DeletingDtor,function,low,"reimplemented (src/game/online/ftp); thiscall (flags; pops 4): FtpSocket_Dtor's body, GameHeap_Free with bit 0"
+0x005c9090,FtpBase_Dtor,function,low,"reimplemented (src/game/online/ftp); thiscall: vtable 0x70295c, then FtpSocket_Dtor"
 0x004e6130,OnlineChat_Set29And2a,function,low,reimplemented (src/game/online/chat); the online chat's bytes +0x29 and +0x2a set under its lock (name unconfirmed)
 0x004e6150,OnlineChat_Get2a,function,low,reimplemented (src/game/online/chat); the online chat's byte +0x2a read under its lock (name unconfirmed)
 0x004e5260,OnlineChat_Ctor,function,low,"reimplemented (src/game/online/chat); thiscall: the online chat's constructor: its two counted buffers, two critical sections, string-maps record and 0x5ec210 member made; the name (+8) L""%08x"" of rand(); +0x18 assigned the global string 0x7a1500 (assign inlined: shared when whole and its count under 0xfe, else copied); returns chat (name invented)"
