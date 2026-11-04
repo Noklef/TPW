@@ -8255,6 +8255,7 @@ address,name,kind,confidence,notes
 0x00493230,Dialog7ca13c_Handler,function,low,"reimplemented (src/game/ui/dialog7ca13chandler); the guests' list's handler: name invented, unconfirmed"
 0x004b9f70,Dialog7cc534_Handler,function,low,"reimplemented (src/game/ui/dialog7cc534handler); the dial-up progress box's handler: name invented, unconfirmed"
 0x004b9d00,Dialog7cc5f4_DialHandler,function,low,"reimplemented (src/game/ui/dialog7cc5f4dial); the dial-up form's handler: name invented, unconfirmed"
+0x004b8ca0,Dialog7cc4b4_Open,function,low,"reimplemented (src/game/ui/dialog7cc4b4open); the dialog [0x7cc4b4] built: name invented, unconfirmed"
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"
