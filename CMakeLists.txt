@@ -630,6 +630,7 @@ add_library(tpw_game STATIC
     src/game/gfx/overlayloadall.cpp
     src/game/gfx/movieshow.cpp
     src/game/gfx/madvideo.cpp
+    src/game/gfx/moviedisplay.cpp
     src/game/ui/panel7cc3b0handler.cpp
     src/game/world/rideupkeep.cpp
     src/game/world/objectwear.cpp
