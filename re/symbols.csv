@@ -6916,6 +6916,7 @@ address,name,kind,confidence,notes
 0x0043eb70,Coaster_Rebuild,function,low,"reimplemented (src/game/coaster/rebuild); a coaster's track rebuilt after a change: nodes numbered and linked, slopes, the build steps, the mesh's walk over the pieces"
 0x004045b0,ArReplay_Step,function,low,reimplemented (src/game/coaster/arreplay); one recorded action of the action replay read from its stream and done
 0x004041d0,ArReplay_Update,function,low,"reimplemented (src/game/coaster/arreplay); thiscall; name unconfirmed; the replay's update: steps by mode and wait, and when it ends closes the streams"
+0x00404140,ArReplay_Begin,function,low,"reimplemented (src/game/coaster/arreplay); The replay started in a mode: the streams' slot 4 (0, 0), and the first update."
 0x00404d80,ArReplay_Action,function,low,"reimplemented (src/game/coaster/arreplayaction); The coaster's action replay: an action of the plain kinds (name invented, unconfirmed)"
 0x00404f70,ArReplay_TextAction,function,low,"reimplemented (src/game/coaster/arreplayaction); The coaster's action replay: an action with a text (name invented, unconfirmed)"
 0x00435a30,Coasters_Update,function,low,"reimplemented (src/game/coaster/coastersupdate); cdecl; name unconfirmed; down the coasters: pending pieces and rebuilds, trains run, textures scrolled, cars' station stops and sounds"

@@ -1346,7 +1346,7 @@ u32 __fastcall arreplay_step_recorder(u8 *self, void *) {   // as tests/fncmp/ar
     *reinterpret_cast<u32 *>(self + 0x30) = *reinterpret_cast<u32 *>(self + 0x2c);
     return reinterpret_cast<u32(__fastcall *)(u8 *, void *)>((uintptr_t)recorder(1, 0))(self, nullptr);
 }
-const AddrCall kArReplayCalls[] = {{0x4045b0, (u32)(uintptr_t)&arreplay_step_recorder}, {0x5195d0, recorder(2, 0)}, {0x527940, jpeg_recorder(3, 1)}, {0x5516b0, jpeg_recorder(5, 0)}, {0x439390, jpeg_recorder(6, 0)}};
+const AddrCall kArReplayCalls[] = {{0x4045b0, (u32)(uintptr_t)&arreplay_step_recorder}, {0x5195d0, recorder(2, 0)}, {0x527940, jpeg_recorder(3, 1)}, {0x5516b0, jpeg_recorder(5, 0)}, {0x439390, jpeg_recorder(6, 0)}, {0x4041d0, recorder(7, 0)}};
 const AddrCall kRidesLoadCalls[] = {  // tests/fncmp/ridesload.py --table
     {0x4547f0, jpeg_recorder(5, 1)},
     {0x45b9d0, jpeg_recorder(1, 2)},

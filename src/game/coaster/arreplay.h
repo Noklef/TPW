@@ -19,6 +19,9 @@ u32 __fastcall ArReplay_Step(u8 *self);
 // 0x4041d0 (thiscall, no arguments; name unconfirmed): nothing unless this+0x24. 0x527940 (0) first. Mode (this+0x28) 0: every action stepped, then finished: the streams at +0xc and, when +4 is 0, +0x14 and +0x1c closed (slot 4 (0, 2)), +0x24 = 0, +8 = 1,
 // eight frames of 0x5516b0, 0x439390, and 0x5195d0's object (of 0x7cf83c) +0x114 = 1. Modes 1 and 2 (others: nothing): when the wait (+0x30) is 0, stepped until it is not, or finished; then the wait counted down, and in mode 1, having stepped, cut to 2 (as unsigned).
 void __fastcall ArReplay_Update(u8 *self);
+
+// 0x404140 (thiscall (mode), pops 4; name invented, unconfirmed): nothing if +0x24 is set. Else +0x24 = 1, +0x28 = the mode, 0x5195d0's object (of 0x7cf83c) +0x114 = 0. With +4 clear and mode 1 or 2 the streams at +0x14 and +0x1c started (slot 4 (0, 0)); the stream at +0xc too; then ArReplay_Update.
+void __fastcall ArReplay_Begin(u8 *self, void *, u32 mode);
 }
 
 // Its calls by the game's addresses; a table of replacements (tests/fncmp/arreplayupdate.py).
