@@ -293,6 +293,7 @@
 #include "../../src/game/world/personscripts.h"
 #include "../../src/game/core/funnytime.h"
 #include "../../src/game/core/wfilebuf.h"
+#include "../../src/game/core/wstream.h"
 #include "../../src/game/core/channelvoice.h"
 #include "../../src/game/core/soundchannel.h"
 #include "../../src/game/core/soundsource.h"
@@ -2214,6 +2215,8 @@ int main(int argc, char **argv) {
     // The locale reference's 0x699da0: the cdecl recorder 15 of 0, as tests/fncmp/wfilebuf.py hooks it.
     static const WFileBufEnv wFileBufEnv = {reinterpret_cast<u32(__cdecl *)()>((uintptr_t)jpeg_recorder(15, 0)), Rec{jpeg_recorder(18, 1)}, Rec{jpeg_recorder(20, 4)}, Rec{jpeg_recorder(21, 2)}, Rec{jpeg_recorder(22, 2)}, Rec{jpeg_recorder(23, 2)}, Rec{jpeg_recorder(24, 1)}, Rec{jpeg_recorder(25, 1)}};
     WFileBuf_SetEnv(&wFileBufEnv);
+    static const WStreamEnv wStreamEnv = {Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 14}, Rec{recorder(26, 1)}, Rec{recorder(27, 0)}, Rec{jpeg_recorder(28, 1)}, Rec{recorder(29, 0)}};
+    WStream_SetEnv(&wStreamEnv);
     // The worker's 0x67e050: the cdecl recorder 14 of 3, as tests/fncmp/soundworker.py hooks it.
     static const SoundWorkerEnv soundWorkerEnv = {reinterpret_cast<u32(__cdecl *)(u32, u32, void *)>((uintptr_t)jpeg_recorder(14, 3))};
     SoundWorker_SetEnv(&soundWorkerEnv);

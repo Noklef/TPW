@@ -247,6 +247,7 @@
 #include "../game/core/soundwait.h"
 #include "../game/core/soundworker.h"
 #include "../game/core/startcheck.h"
+#include "../game/core/stdlocale.h"
 #include "../game/core/streamfilter.h"
 #include "../game/core/streampool.h"
 #include "../game/core/stringmapsrecord.h"
@@ -257,6 +258,7 @@
 #include "../game/core/wfilebuf.h"
 #include "../game/core/widewriter.h"
 #include "../game/core/wscanner.h"
+#include "../game/core/wstream.h"
 #include "../game/core/wtraits.h"
 #include "../game/core/xaadpcm.h"
 #include "../game/motion/animator.h"
@@ -5980,6 +5982,14 @@ const Hook kHooks[] = {
     {"SoundMixer_Start",          0x006b6700, (void *)&SoundMixer_Start, {0x6a, 0xff, 0x68, 0x08, 0x58}},
     {"SoundEngine_Play",          0x006b87d0, (void *)&SoundEngine_Play, {0x83, 0xec, 0x10, 0x53, 0x55}},
     {"SoundMixer_ThreadLoop",     0x006b63a0, (void *)&SoundMixer_ThreadLoop, {0x83, 0xec, 0x08, 0x53, 0x55}},
+    {"WCtype_Ctor",               0x004f7620, (void *)&WCtype_Ctor, {0x6a, 0xff, 0x68, 0xa8, 0xdd}},
+    {"WCtype_UseFacet",           0x004f6a30, (void *)&WCtype_UseFacet, {0x6a, 0xff, 0x68, 0x33, 0xdd}},
+    {"WIos_Widen",                0x004f1640, (void *)&WIos_Widen, {0x6a, 0xff, 0x68, 0x33, 0xd8}},
+    {"WIstream_Ipfx",             0x004f1ed0, (void *)&WIstream_Ipfx, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"WIstream_Getline",          0x004f1ca0, (void *)&WIstream_Getline, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"WOstream_PutText",          0x004f6be0, (void *)&WOstream_PutText, {0x55, 0x8b, 0xec, 0x6a, 0xff}},
+    {"Locale_Getfacet",           0x00699ce0, (void *)&Locale_Getfacet, {0x51, 0x56, 0x8b, 0xf1, 0x8d}},
+    {"Locale_Iscloc",             0x00699d50, (void *)&Locale_Iscloc, {0x51, 0x53, 0x56, 0x8b, 0xf1}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
