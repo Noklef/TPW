@@ -95,6 +95,10 @@ u32 __fastcall Class6fd9d8_Find(u8 *object, void *, u32 key);
 // vtable's +0x18: Path_StripBase), and on 1 opened: +0x38 = the object, Set4_4217f0 of [+0x30] with this object, 1. None, or no list: +0x38 = 0, 0.
 u32 __fastcall Class6fd9d8_OpenFile(u8 *object, void *, u32 stream, const StringView *path, u32 unused);
 
+// 0x41d2c0 / 0x41ee30 (thiscall (stream, path, two unused), pops 0x10; names invented, unconfirmed): the path taken relative to the root at +0x18 (an empty String assigned the root through its slot 0x18, a copy of the path: Path_StripBase), and on 1 Class6fd9d8_FindAndOpen of the relative; else 0.
+u32 __fastcall Class6fd9d8_OpenUnder(u8 *object, void *, u32 stream, const StringView *path, u32, u32);
+u32 __fastcall Class6fd9d8_OpenUnder2(u8 *object, void *, u32 stream, const StringView *path, u32, u32);
+
 // 0x41ef40 (thiscall (stream, path, unused), pops 0xc): the same over the list at +0x4c, each object's own root (+0x18) and the handle at its +0x2c opened: +0x38 = that handle, 1. None, or no list: +0x48 and
 // +0x38 = 0, 0.
 u32 __fastcall Class6fda98_OpenFile(u8 *object, void *, u32 stream, const StringView *path, u32 unused);

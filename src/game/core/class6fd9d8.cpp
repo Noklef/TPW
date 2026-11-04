@@ -429,6 +429,25 @@ u32 __fastcall Class6fd9d8_FindFile(u8 *object, void *, const StringView *path, 
     return 0;
 }
 
+static u32 open_under(u8 *object, u32 stream, const StringView *path) {
+    String relative, base, copy;
+    String_Ctor(&relative);
+    String_Ctor(&base);
+    String_CtorCopy(&copy, nullptr, path);
+    vcall<void>(&base, 0x18, object + 0x18);
+    u32 result = 0;
+    if (Path_StripBase(&copy, &base, &relative) == 1)
+        result = Class6fd9d8_FindAndOpen(object, nullptr, stream, reinterpret_cast<const StringView *>(&relative));
+    String_Dtor(&copy);
+    String_Dtor(&base);
+    String_Dtor(&relative);
+    return result;
+}
+
+u32 __fastcall Class6fd9d8_OpenUnder(u8 *object, void *, u32 stream, const StringView *path, u32, u32) { return open_under(object, stream, path); }
+
+u32 __fastcall Class6fd9d8_OpenUnder2(u8 *object, void *, u32 stream, const StringView *path, u32, u32) { return open_under(object, stream, path); }
+
 u32 __fastcall Class6fd9d8_FindAndOpen(u8 *object, void *, u32 stream, const StringView *path) {
     if (u8 *const list = at<u8 *>(object, 0x2c)) {
         FoundRecord blank;  // (its eight dwords are never set, sic)
