@@ -5894,6 +5894,12 @@ address,name,kind,confidence,notes
 0x0068be90,CRT_ld12cvt,function,low,reimplemented (src/game/core/crtfloat); _ld12cvt
 0x0068c060,CRT_ld12tod,function,low,reimplemented (src/game/core/crtfloat); _ld12tod
 0x0068c080,CRT_ld12tof,function,low,reimplemented (src/game/core/crtfloat); _ld12tof
+0x00682720,CRT_lock,function,low,reimplemented (src/game/core/crtlock); _lock
+0x006827a0,CRT_unlock,function,low,reimplemented (src/game/core/crtlock); _unlock
+0x006827c0,CRT_lock_file,function,low,reimplemented (src/game/core/crtlock); _lock_file
+0x00682800,CRT_lock_file2,function,low,reimplemented (src/game/core/crtlock); _lock_file2
+0x00682830,CRT_unlock_file,function,low,reimplemented (src/game/core/crtlock); _unlock_file
+0x00682870,CRT_unlock_file2,function,low,reimplemented (src/game/core/crtlock); _unlock_file2
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

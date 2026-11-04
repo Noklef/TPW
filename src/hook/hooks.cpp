@@ -202,6 +202,7 @@
 #include "../game/core/countedpair.h"
 #include "../game/core/crtfile.h"
 #include "../game/core/crtfloat.h"
+#include "../game/core/crtlock.h"
 #include "../game/core/crtstartup.h"
 #include "../game/core/crtstream.h"
 #include "../game/core/crttime.h"
@@ -6189,6 +6190,12 @@ const Hook kHooks[] = {
     {"CRT_ld12cvt",               0x0068be90, (void *)&CRT_ld12cvt, {0x83, 0xec, 0x18, 0x8b, 0x4c}},
     {"CRT_ld12tod",               0x0068c060, (void *)&CRT_ld12tod, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"CRT_ld12tof",               0x0068c080, (void *)&CRT_ld12tof, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"CRT_lock",                  0x00682720, (void *)&CRT_lock, {0x55, 0x8b, 0xec, 0x57, 0x8b}},
+    {"CRT_unlock",                0x006827a0, (void *)&CRT_unlock, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"CRT_lock_file",             0x006827c0, (void *)&CRT_lock_file, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"CRT_lock_file2",            0x00682800, (void *)&CRT_lock_file2, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"CRT_unlock_file",           0x00682830, (void *)&CRT_unlock_file, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
+    {"CRT_unlock_file2",          0x00682870, (void *)&CRT_unlock_file2, {0x55, 0x8b, 0xec, 0x8b, 0x45}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
