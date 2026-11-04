@@ -5935,6 +5935,8 @@ address,name,kind,confidence,notes
 0x005b12e0,ThemeRecord_FullName,function,low,reimplemented (src/game/core/themenames); a theme record's full name
 0x005b1410,ThemeRecord_Name,function,low,reimplemented (src/game/core/themenames); a theme record's name
 0x005b1520,ThemeRecord_Suffix,function,low,reimplemented (src/game/core/themenames); a theme record's suffix
+0x005d4ba0,GuardHeap_Alloc,function,low,reimplemented (src/game/core/guardheap); a block with guard words
+0x005d4c20,GuardHeap_Free,function,low,reimplemented (src/game/core/guardheap); a block with guard words checked and freed
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

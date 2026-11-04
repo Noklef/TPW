@@ -379,6 +379,7 @@
 #include "../../src/game/world/personscripts.h"
 #include "../../src/game/core/funnytime.h"
 #include "../../src/game/core/narrowfilebuf.h"
+#include "../../src/game/core/guardheap.h"
 #include "../../src/game/core/themenames.h"
 #include "../../src/game/core/nstream.h"
 #include "../../src/game/core/swearfilter.h"
@@ -938,6 +939,7 @@ u32 __cdecl SwearLowerC(u32 c) { return (c & 0xffff) >= 0x41 && (c & 0xffff) <= 
 const SwearFilterEnv kSwearFilterEnv = {&SwearLowerC};
 const NStreamEnv kNStreamEnv = {Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 14}, Rec{recorder(26, 1)}, Rec{recorder(27, 0)}, Rec{jpeg_recorder(28, 1)}, reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)(kStubs + 0x50))};
 const ThemeNamesEnv kThemeNamesEnv = {Rec{jpeg_recorder(1, 5)}, Rec{jpeg_recorder(2, 2)}, Rec{recorder(3, 3)}, Rec{recorder(4, 3)}, Rec{recorder(5, 3)}};
+const GuardHeapEnv kGuardHeapEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorder(2, 1)}};
 const CoasterPlaceCarEnv kCoasterPlaceCarEnv = {Rec{jpeg_recorder(1, 6)}, Rec{jpeg_recorder(2, 9)}, Rec{jpeg_recorder(3, 7)}, Rec{jpeg_recorder(4, 5)}, Rec{jpeg_recorder(5, 2)}, Rec{jpeg_recorder(6, 7)},
                                                  Rec{jpeg_recorder(7, 1)}, Rec{jpeg_recorder(8, 1)}, Rec{jpeg_recorder(9, 0)}, Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 0)}, Rec{jpeg_recorder(12, 0)},
                                                  Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{recorder(15, 1)}};  // tests/fncmp/coasterplacecar.py
@@ -2685,6 +2687,7 @@ int main(int argc, char **argv) {
     VersionLabel_SetEnv(&kVersionLabelEnv);
     BankAccountCtor_SetEnv(&kBankAccountCtorEnv);
     NarrowFileBuf_SetEnv(&kNarrowFileBufEnv);
+    GuardHeap_SetEnv(&kGuardHeapEnv);
     ThemeNames_SetEnv(&kThemeNamesEnv);
     NStream_SetEnv(&kNStreamEnv);
     SwearFilter_SetEnv(&kSwearFilterEnv);

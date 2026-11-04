@@ -215,6 +215,7 @@
 #include "../game/core/crttime.h"
 #include "../game/core/dsoundsource.h"
 #include "../game/core/gameframe.h"
+#include "../game/core/guardheap.h"
 #include "../game/core/imaadpcm.h"
 #include "../game/core/iosbase.h"
 #include "../game/core/keyactions.h"
@@ -6291,6 +6292,8 @@ const Hook kHooks[] = {
     {"ThemeRecord_FullName",      0x005b12e0, (void *)&ThemeRecord_FullName, {0x55, 0x56, 0x8b, 0xf1, 0x57}},
     {"ThemeRecord_Name",          0x005b1410, (void *)&ThemeRecord_Name, {0x53, 0x56, 0x57, 0x8b, 0xf9}},
     {"ThemeRecord_Suffix",        0x005b1520, (void *)&ThemeRecord_Suffix, {0x56, 0x8b, 0xf1, 0x8a, 0x86}},
+    {"GuardHeap_Alloc",           0x005d4ba0, (void *)&GuardHeap_Alloc, {0x56, 0x8b, 0x74, 0x24, 0x08}},
+    {"GuardHeap_Free",            0x005d4c20, (void *)&GuardHeap_Free, {0x51, 0x8b, 0x44, 0x24, 0x08}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

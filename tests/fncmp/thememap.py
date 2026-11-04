@@ -35,7 +35,7 @@ def case(r):
     struct.pack_into('<I', tree, 8, r.choice([0, 0, 0, 1]))
     struct.pack_into('<I', tree, 0xc, n)
     regions[stdtree.TREE] = tree
-    regions[HEAP] = heap(fail=r.choice([0] * 12 + [1, 2, 3, 4]) if op != 'Clear' else 0)
+    regions[HEAP] = heap(fail=r.choice([0] * 24 + [1, 1, 1, 1, 2, 3, 4]) if op != 'Clear' else 0)
     log = log_region()
     set_return(log, LOAD, r.choice([0, 1, 1, 0x100, 0xffffff00, r.getrandbits(32)]))
     regions[LOG] = log
