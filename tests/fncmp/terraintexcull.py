@@ -36,7 +36,7 @@ def case(r):
     strings(log, TRANSFORM, 0, 1 << 2)
     fill(log, TRANSFORM, 2, b''.join(point(r) + point(r) for _ in range(3)), records=3)
     fill(log, TRANSFORM, 2, b''.join(point(r) for _ in range(6)), which=1, offset=0x20)
-    table = r.choice([bytes(0x80), bytes(0x80), b'\xff' * 0x80, bytes(r.choice([0, 0, 1, 2, 4, 8]) for _ in range(0x80)), bytes(r.choice([0, 1]) for _ in range(0x80))])
+    table = r.choice([bytes(0x80), bytes(0x80), b'\xff' * 0x80, b'\x80' * 0x80,bytes(r.choice([0, 0, 0, 1, 2, 4, 8, 0x80]) for _ in range(0x80)), bytes(r.choice([0, 1]) for _ in range(0x80))])
     regions = {LOG: log, SELF: self, HEADER: header, OBJECT: struct.pack('<I', OBJECT_VT) + r.bytes(0xc), OBJECT_VT: vtable({}, cdecl={TRANSFORM: 8}),
                0x87b1d8: struct.pack('<I', OBJECT), 0x87b088: r.bytes(4), 0x879a20: r.bytes(4), 0x879970: table}
     return Call(0x56e7e0, [SELF, x0, y0, x1, y1], regions, conv='t', ret='v')

@@ -5,6 +5,7 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "addrcalls.h"
 #include "countedpair.h"
 #include "stdwstring.h"
 
@@ -13,6 +14,7 @@ struct WKeywordsEnv {
     s32(__cdecl *format)(u8 *charset, u16 *dest, u32 size, u32 entry, ...);   // Charset_FormatWide (0x6acd60)
 };
 void WKeywords_SetEnv(const WKeywordsEnv *env);
+void WScanner_SetCalls(const AddrCall *table, u32 count);   // (WScanner_Keyword06's TakeRest: its default word's case throws in it)
 
 extern "C" {
 
@@ -43,6 +45,28 @@ void __fastcall WKeywords_AddAll(u8 *self);
 u32 __fastcall WScanner_PushToken0c(u8 *scanner);
 u32 __fastcall WScanner_PushToken12(u8 *scanner);
 u32 __fastcall WScanner_PushToken15(u8 *scanner);
+u32 __fastcall WScanner_PushToken16(u8 *scanner);   // (0x5e6630)
+
+// The keyword handlers (thiscall; names invented, unconfirmed, by their token's value), each returning 1 or 0. A token {"", L"", value}
+// goes first at the vector's end; a token of a text is a pair of a copy of it, value 0.
+// 0x5e4b20, 0x5e5240, 0x5e53c0: the rest of the text (WScanner_TakeRest into [+0x54]) and its token.
+u8 __fastcall WScanner_Keyword00(u8 *scanner);
+u8 __fastcall WScanner_Keyword04(u8 *scanner);
+u8 __fastcall WScanner_Keyword05(u8 *scanner);
+// 0x5e4f00, 0x5e50a0: the same, with no token for an empty rest.
+u8 __fastcall WScanner_Keyword02(u8 *scanner);
+u8 __fastcall WScanner_Keyword03(u8 *scanner);
+// 0x5e58b0, 0x5e5aa0, 0x5e5c90, 0x5e5e80, 0x5e6160, 0x5e6350: the next word and its token (no word: 0), then Obj_CopyCToMark, its low byte returned.
+u8 __fastcall WScanner_Keyword0d(u8 *scanner);
+u8 __fastcall WScanner_Keyword0e(u8 *scanner);
+u8 __fastcall WScanner_Keyword0f(u8 *scanner);
+u8 __fastcall WScanner_Keyword11(u8 *scanner);
+u8 __fastcall WScanner_Keyword13(u8 *scanner);
+u8 __fastcall WScanner_Keyword14(u8 *scanner);
+// 0x5e4ca0: the next word and its token (no word: 1), then the rest and its token.
+u8 __fastcall WScanner_Keyword01(u8 *scanner);
+// 0x5e5540: the next word's token, or with no word one of the wide text at 0x78a374; then the rest and its token. Its first token by CountedPairVector_Insert.
+u8 __fastcall WScanner_Keyword06(u8 *scanner);
 
 // 0x5e7520 (thiscall on the string (out, pos, n), pops 0xc; name invented, unconfirmed): std::wstring::substr's copy: out's allocator byte the low byte of out's address (sic), out empty
 // and assigned [pos, pos + n) of the string (as StdWString_AssignSub, inlined). Returns out.
