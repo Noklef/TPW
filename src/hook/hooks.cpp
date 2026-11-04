@@ -400,6 +400,7 @@
 #include "../game/world/endthing.h"
 #include "../game/world/flyinglaunch.h"
 #include "../game/world/flyingupdate.h"
+#include "../game/world/gamefile.h"
 #include "../game/world/gamemode.h"
 #include "../game/world/guardescort.h"
 #include "../game/world/mapclick.h"
@@ -6591,6 +6592,8 @@ const Hook kHooks[] = {
     {"Advisor_QueueAnim",         0x00598bf0, (void *)&Advisor_QueueAnim, {0x8b, 0x4c, 0x24, 0x04, 0x53}},
     {"Advisor_Say",               0x00599050, (void *)&Advisor_Say, {0xa0, 0x0c, 0xd9, 0x78, 0x00}},
     {"Advisor_Load",              0x00599d00, (void *)&Advisor_Load, {0x51, 0x56, 0x8b, 0x74, 0x24}},
+    {"GameFile_Load",             0x00415270, (void *)&GameFile_Load, {0x51, 0x8b, 0x44, 0x24, 0x08}},
+    {"GameFile_Save",             0x004164c0, (void *)&GameFile_Save, {0x8b, 0x44, 0x24, 0x04, 0x53}},
     {"Holder_Destroy",            0x0045bc60, (void *)&Holder_Destroy, {0x56, 0x8b, 0x74, 0x24, 0x08}},
     {"Mouse_HandleButton",        0x0046c210, (void *)&Mouse_HandleButton, {0x8b, 0x44, 0x24, 0x04, 0x56}},
     {"Mouse_Moved",               0x0046c2a0, (void *)&Mouse_Moved, {0xa1, 0xd4, 0x05, 0x7b, 0x00}},

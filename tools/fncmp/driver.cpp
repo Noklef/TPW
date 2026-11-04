@@ -264,6 +264,7 @@
 #include "../../src/game/frontend/lobbyscript.h"
 #include "../../src/game/files/gamepaths.h"
 #include "../../src/game/core/gameowner.h"
+#include "../../src/game/world/gamefile.h"
 #include "../../src/game/core/globalsave.h"
 #include "../../src/game/coaster/rebuild.h"
 #include "../../src/game/coaster/setup.h"
@@ -1167,6 +1168,13 @@ const AddrCall kDialogBoxCalls[] = {  // tests/fncmp/dialogbox.py
     {0x65d9dd, recorder(15, 1)}, {0x65e6d5, recorder(16, 2)}, {0x486b80, jpeg_recorder(17, 0)}, {0x486b70, jpeg_recorder(18, 0)}, {0x4092a0, recorder(19, 2)}, {0x662411, jpeg_recorder(20, 0)}, {0x659d90, recorder(21, 0)},
     {0x65e705, recorder(22, 1)}, {0x658d9f, jpeg_recorder(23, 4)}, {0x486b60, jpeg_recorder(24, 0)}, {0x409300, recorder(25, 0)}, {0x662420, jpeg_recorder(26, 0)}, {0x65d55a, recorder(27, 0)}, {0x658ccc, jpeg_recorder(28, 4)},
     {0x4862a0, jpeg_recorder(29, 0)}, {0x65f66e, recorder(30, 3)}};
+const AddrCall kGameFileCalls[] = {  // tests/fncmp/gamefile.py
+    {0x475730, jpeg_recorder(1, 1)}, {0x51f7a0, jpeg_recorder(4, 1)}, {0x5200b0, jpeg_recorder(5, 0)}, {0x5506e0, jpeg_recorder(7, 1)}, {0x4647a0, jpeg_recorder(8, 1)}, {0x543560, jpeg_recorder(9, 1)}, {0x55e020, jpeg_recorder(10, 1)}, {0x5597a0, jpeg_recorder(11, 1)},
+    {0x42cec0, jpeg_recorder(12, 1)}, {0x437b60, jpeg_recorder(13, 1)}, {0x599d00, jpeg_recorder(14, 1)}, {0x51c400, jpeg_recorder(15, 1)}, {0x475650, jpeg_recorder(16, 1)}, {0x51f680, jpeg_recorder(17, 2)}, {0x550520, jpeg_recorder(18, 1)}, {0x464140, jpeg_recorder(19, 1)},
+    {0x5428e0, jpeg_recorder(20, 1)}, {0x55de70, jpeg_recorder(21, 1)}, {0x559350, jpeg_recorder(22, 1)}, {0x42cdc0, jpeg_recorder(23, 1)}, {0x437300, jpeg_recorder(24, 1)}, {0x599c30, jpeg_recorder(25, 1)}, {0x51c350, jpeg_recorder(26, 1)}, {0x67a7d0, jpeg_recorder(27, 1)}, {0x415e00, jpeg_recorder(28, 0)},
+    {0x403780, recorder(29, 4)}, {0x4053b0, recorder(30, 0)}, {0x59bea0, recorder(31, 0)},  // (thiscall slots below 32: those of the cdecl calls the other function makes)
+    {0x5179c0, recorder(16, 1)}, {0x40fd60, recorder(17, 1)}, {0x402e30, recorder(18, 1)}, {0x403260, recorder(19, 1)}, {0x405570, recorder(20, 1)}, {0x59c860, recorder(21, 1)}, {0x481680, recorder(22, 1)},
+    {0x516c80, recorder(1, 1)}, {0x40fc80, recorder(4, 1)}, {0x402e00, recorder(7, 1)}, {0x403220, recorder(8, 1)}, {0x4055d0, recorder(9, 1)}, {0x59c890, recorder(10, 1)}, {0x4816a0, recorder(11, 1)}};
 const AddrCall kGameOwnerCalls[] = {  // tests/fncmp/gameowner.py
     {0x481440, recorder(1, 0)}, {0x402d90, recorder(2, 0)}, {0x481450, recorder(3, 0)}, {0x402db0, recorder(4, 0)}, {0x481460, recorder(5, 0)}, {0x402dd0, recorder(6, 0)}, {0x515dd0, recorder(7, 0)}, {0x409240, recorder(8, 0)},
     {0x412d50, recorder(9, 0)}, {0x585e20, recorder(10, 0)}, {0x418d70, recorder(11, 0)}, {0x409250, recorder(12, 0)}, {0x408f00, recorder(13, 0)},
@@ -2528,6 +2536,7 @@ int main(int argc, char **argv) {
     MMPlaceStaff_SetCalls(kMMPlaceStaffCalls, sizeof(kMMPlaceStaffCalls) / sizeof(kMMPlaceStaffCalls[0]));
     AdvisorSpeech_SetCalls(kAdvisorSpeechCalls, sizeof(kAdvisorSpeechCalls) / sizeof(kAdvisorSpeechCalls[0]));
     GameOwner_SetCalls(kGameOwnerCalls, sizeof(kGameOwnerCalls) / sizeof(kGameOwnerCalls[0]));
+    GameFile_SetCalls(kGameFileCalls, sizeof(kGameFileCalls) / sizeof(kGameFileCalls[0]));
     Dialog_SetCalls(kDialogBoxCalls, sizeof(kDialogBoxCalls) / sizeof(kDialogBoxCalls[0]));
     ArReplay_SetCalls(kArReplayCalls, sizeof(kArReplayCalls) / sizeof(kArReplayCalls[0]));
     Contacts_SetCalls(kContactsCalls, sizeof(kContactsCalls) / sizeof(kContactsCalls[0]));

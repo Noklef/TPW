@@ -1,8 +1,8 @@
 address,name,kind,confidence,notes
 0x00414920,SaveGame_Save,function,high,"thiscall; writes header, saves modules to memory stream, compresses, writes file"
 0x00414d40,SaveGame_Load,function,medium,caller of SaveGame_LoadModules
-0x00415270,SaveGame_LoadModules,function,high,"loads 17 modules in order, verifies 4-byte tag after each (SAD)"
-0x004164c0,SaveGame_SaveModules,function,high,mirror of SaveGame_LoadModules
+0x00415270,GameFile_Load,function,low,"reimplemented (src/game/world/gamefile); thiscall (stream, mode), this unused: the saved game read part by part; 1 or 0"
+0x004164c0,GameFile_Save,function,low,"reimplemented (src/game/world/gamefile); thiscall (stream, mode), this unused: the saved game written part by part; 1 or 0"
 0x00431480,Float_Modf,function,high,"reimplemented (src/game/math/vector); (x, whole*): CRT modf of a float, whole part stored as float if not null, fraction left in st0"
 0x004314b0,Vec3_RotateYCS,function,high,"reimplemented (src/game/math/vector); (v, cos, sin): v about y in place"
 0x004314f0,Vec3_RotateX,function,high,"reimplemented (src/game/math/vector); (v, angle): v about x in place, cos/sin from gSinTable"
