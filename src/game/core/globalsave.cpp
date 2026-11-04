@@ -358,3 +358,18 @@ u32 __fastcall GlobalSave_MarkScore(u8 *info, void *, u32 i, s32 score) {
     return LevelReached(info, GlobalSave_CountSet(info));
 }
 }
+
+extern "C" u32 __fastcall GlobalSave_WriteFile(u8 *info, void *, const char *path) {
+    const auto status = [](u32 result) { return *reinterpret_cast<const s32 *>((uintptr_t)result); };
+    u32 stream = (u32)(uintptr_t)path;   // (the path's own slot, sic)
+    s32 result;
+    if (status(g_calls.Cd(0x005f5ad0, &result, &stream, path, 0x40000010u)) < 0)   // FileStream_Open
+        return 0;
+    u32 version = 0xc, done = 0;
+    const s32 wrote = status(g_calls.Cd(0x005f5e50, &result, stream, &version, 4u, &done));   // Stream_Write
+    u32 saved = 0;
+    if (wrote >= 0 && done == 4)
+        saved = g_calls.Th(0x005aff50, (u32)(uintptr_t)info, stream, 1u, version) == 0;   // GlobalSave_Serialize
+    g_calls.Cd(0x005f5b80, &result, stream);   // Stream_Close
+    return saved;
+}

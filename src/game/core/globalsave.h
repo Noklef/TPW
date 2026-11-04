@@ -99,3 +99,8 @@ void GlobalSave_SetCalls(const AddrCall *table, u32 count);
 // 1 at the first that fails, else 0.
 u32 __fastcall GlobalSave_Serialize(u8 *info, void *, Stream *stream, u32 save, u32 third);
 }
+
+// 0x5afc60 (thiscall (path), pops 4; name invented, unconfirmed): the file opened (flags 0x40000010; failing: 0), the version 0xc written (4 bytes), the info serialised to it (saving, third the version) and closed: 1 when all went well, else 0.
+extern "C" {
+u32 __fastcall GlobalSave_WriteFile(u8 *info, void *, const char *path);
+}
