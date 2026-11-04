@@ -270,6 +270,7 @@
 #include "../../src/game/world/gamefile.h"
 #include "../../src/game/world/objectdefs.h"
 #include "../../src/game/model/signapply.h"
+#include "../../src/game/render/enginestart.h"
 #include "../../src/game/core/globalsave.h"
 #include "../../src/game/coaster/rebuild.h"
 #include "../../src/game/coaster/setup.h"
@@ -1202,6 +1203,14 @@ u32 __fastcall signRenderStandIn(u32 self, u32, u32 dc, const u32 *params) {
 const AddrCall kSignApplyCalls[] = {  // tests/fncmp/signapply.py
     {0x5ebfc0, recorder(1, 0)}, {0x5ec220, recorder(2, 0)}, {0x5ec3a0, recorder(3, 1)}, {0x5ec680, recorder(4, 1)}, {0x5ecb40, (u32)(uintptr_t)&signRenderStandIn}, {0x57b120, recorder(6, 2)}, {0x41a820, recorder(7, 0)},
     {0x467310, jpeg_recorder(8, 6)}, {0x46f120, jpeg_recorder(9, 1)}, {0x45b9d0, jpeg_recorder(10, 2)}, {0x45ba00, jpeg_recorder(11, 1)}};
+const AddrCall kEngineStartCalls[] = {  // tests/fncmp/engineinit.py, enginestart.py
+    {0x5913f0, jpeg_recorder(0, 0)}, {0x56b6c0, jpeg_recorder(1, 0)}, {0x5781d0, jpeg_recorder(2, 0)}, {0x569e10, jpeg_recorder(3, 0)}, {0x5666f0, jpeg_recorder(4, 0)}, {0x573a30, jpeg_recorder(5, 0)}, {0x5821e0, jpeg_recorder(6, 0)}, {0x573fd0, jpeg_recorder(7, 0)}, {0x5804b0, jpeg_recorder(8, 0)},
+    {0x56ddf0, jpeg_recorder(9, 0)}, {0x5760a0, jpeg_recorder(10, 0)}, {0x58aff0, jpeg_recorder(11, 0)}, {0x561840, jpeg_recorder(12, 0)}, {0x58a430, jpeg_recorder(13, 0)}, {0x57c360, jpeg_recorder(14, 0)}, {0x574a20, jpeg_recorder(15, 0)}, {0x57d100, jpeg_recorder(16, 0)}, {0x564b20, jpeg_recorder(17, 0)},
+    {0x564b60, jpeg_recorder(20, 0)}, {0x57c4a0, jpeg_recorder(21, 0)}, {0x57d1a0, jpeg_recorder(22, 0)}, {0x58a490, jpeg_recorder(23, 0)}, {0x561a00, jpeg_recorder(24, 0)}, {0x58b040, jpeg_recorder(25, 0)}, {0x574b10, jpeg_recorder(26, 0)}, {0x5761b0, jpeg_recorder(27, 0)}, {0x56de90, jpeg_recorder(28, 0)},
+    {0x58d090, jpeg_recorder(29, 0)}, {0x580500, jpeg_recorder(30, 0)}, {0x5740e0, jpeg_recorder(31, 0)}, {0x582280, jpeg_recorder(6, 0)}, {0x5667a0, jpeg_recorder(4, 0)}, {0x569ef0, jpeg_recorder(3, 0)}, {0x573b30, jpeg_recorder(5, 0)}, {0x578390, jpeg_recorder(2, 0)}, {0x56b760, jpeg_recorder(1, 0)},
+    {0x5645e0, jpeg_recorder(18, 1)}, {0x58cff0, jpeg_recorder(19, 1)}, {0x5839f0, recorder(20, 0)}, {0x5839a0, recorder(21, 0)}, {0x56e550, recorder(22, 2)}, {0x585720, recorder(23, 0)}, {0x57d920, recorder(24, 2)}, {0x583cc0, recorder(25, 0)}, {0x5835c0, recorder(26, 0)},
+    {0x5833c0, recorder(27, 0)}, {0x584790, recorder(28, 0)}, {0x563460, recorder(0, 6)}, {0x5640a0, recorder(1, 0)}, {0x572c40, jpeg_recorder(20, 1)}, {0x573960, jpeg_recorder(21, 1)}, {0x572d50, jpeg_recorder(7, 0)}, {0x5632b0, jpeg_recorder(0, 6)}, {0x5836d0, jpeg_recorder(1, 1)},
+    {0x572780, jpeg_recorder(2, 3)}, {0x583700, jpeg_recorder(3, 0)}, {0x5633a0, jpeg_recorder(4, 0)}};
 const AddrCall kWindowGroupCalls[] = {{0x65c707, recorder(1, 0)}};  // tests/fncmp/windowgroup.py
 const AddrCall kWindowProcCalls[] = {{0x6590d0, jpeg_recorder(1, 2)}, {0x6588ef, jpeg_recorder(2, 2)}, {0x658af1, jpeg_recorder(3, 3)}, {0x658b5b, jpeg_recorder(4, 3)}, {0x658bcb, jpeg_recorder(5, 4)}, {0x658c38, jpeg_recorder(6, 2)}, {0x658c67, jpeg_recorder(7, 2)}, {0x658c96, jpeg_recorder(8, 2)}, {0x659333, jpeg_recorder(9, 0)}, {0x51bd30, jpeg_recorder(10, 0)}, {0x51b350, jpeg_recorder(11, 0)}, {0x6593c5, jpeg_recorder(12, 0)}, {0x51bcf0, jpeg_recorder(13, 0)}, {0x47e9d0, jpeg_recorder(14, 1)}, {0x46b460, jpeg_recorder(15, 1)}, {0x58dd60, recorder(16, 1)}, {0x40c900, recorder(17, 2)}, {0x40c990, recorder(18, 2)}, {0x4092a0, recorder(19, 2)}, {0x41a850, recorder(20, 0)}};
 const AddrCall kLanguageLoadCalls[] = {{0x6ad1b0, recorder(1, 2)}, {0x6ad230, recorder(2, 2)}, {0x6ad4b0, recorder(3, 3)}, {0x6ad460, recorder(4, 3)}, {0x6ad510, recorder(5, 3)}, {0x6ad570, recorder(6, 3)}, {0x405710, recorder(7, 3)}, {0x6ad790, recorder(8, 1)}, {0x67a650, jpeg_recorder(9, 4)}};
@@ -2602,6 +2611,7 @@ int main(int argc, char **argv) {
     GameFile_SetCalls(kGameFileCalls, sizeof(kGameFileCalls) / sizeof(kGameFileCalls[0]));
     ObjectDefs_SetLoadCalls(kObjectDefsLoadCalls, sizeof(kObjectDefsLoadCalls) / sizeof(kObjectDefsLoadCalls[0]));
     Sign_SetApplyCalls(kSignApplyCalls, sizeof(kSignApplyCalls) / sizeof(kSignApplyCalls[0]));
+    EngineStart_SetCalls(kEngineStartCalls, sizeof(kEngineStartCalls) / sizeof(kEngineStartCalls[0]));
     CoasterType_SetLoadCalls(kCoasterTypeLoadCalls, sizeof(kCoasterTypeLoadCalls) / sizeof(kCoasterTypeLoadCalls[0]));
     Dialog_SetCalls(kDialogBoxCalls, sizeof(kDialogBoxCalls) / sizeof(kDialogBoxCalls[0]));
     ArReplay_SetCalls(kArReplayCalls, sizeof(kArReplayCalls) / sizeof(kArReplayCalls[0]));

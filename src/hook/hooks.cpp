@@ -533,6 +533,7 @@
 #include "../game/render/device.h"
 #include "../game/render/enginedebug.h"
 #include "../game/render/engineerrors.h"
+#include "../game/render/enginestart.h"
 #include "../game/render/fixedverts.h"
 #include "../game/render/texcoords.h"
 #include "../game/render/graphicssettings.h"
@@ -7198,6 +7199,10 @@ const Hook kHooks[] = {
     {"D3dSetup_PickFormat",       0x00572f70, (void *)&D3dSetup_PickFormat, {0x83, 0xec, 0x6c, 0x53, 0x55}},
     {"D3dSetup_OnFormat",         0x00573060, (void *)&D3dSetup_OnFormat, {0x8b, 0x44, 0x24, 0x04, 0x8b}},
     {"D3dSetup_OnZFormat",        0x00573660, (void *)&D3dSetup_OnZFormat, {0x8b, 0x44, 0x24, 0x04, 0x56}},
+    {"Engine_Init",               0x00572780, (void *)&Engine_Init, {0xa1, 0x08, 0xd5, 0x8b, 0x00}},
+    {"Engine_OpenDirectDraw",     0x005632b0, (void *)&Engine_OpenDirectDraw, {0xa1, 0x24, 0x9a, 0x87, 0x00}},
+    {"Engine_CreateDevice",       0x005836d0, (void *)&Engine_CreateDevice, {0xa1, 0x24, 0xd5, 0x8b, 0x00}},
+    {"Engine_DestroyDevice",      0x00583700, (void *)&Engine_DestroyDevice, {0xa1, 0x24, 0xd5, 0x8b, 0x00}},
     {"Model_MarkFacesByMask",     0x0044b140, (void *)&Model_MarkFacesByMask, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_MarkFacesNotValue",    0x0044b1b0, (void *)&Model_MarkFacesNotValue, {0x53, 0x8b, 0x5c, 0x24, 0x08}},
     {"Model_FindPartByKey4",      0x0044b220, (void *)&Model_FindPartByKey4, {0x56, 0x57, 0x8b, 0x7c, 0x24}},

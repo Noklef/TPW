@@ -93,7 +93,10 @@ address,name,kind,confidence,notes
 0x005512d0,RSSE_MoveScream,function,low,"reimplemented (src/game/rsse/scream); cdecl (scream, x, y, z): the scream's position set"
 0x00551300,RSSE_StopScream,function,low,reimplemented (src/game/rsse/scream); A scream stopped (Sound_Stop) when there is one
 0x00556f40,Rsse_StartWalker,function,low,"reimplemented (src/game/rsse/rsse_vm); cdecl (vm, value, from, to, a, b, kind, last): a walker slot filled between two ride parts, its time 100 times their distance, its octant the direction between them"
-0x00572780,Engine_Init,function,high,"'Initializing engine internals'; logs a checkpoint after each renderer subsystem (… 'wavelet/printf ok')"
+0x00572780,Engine_Init,function,high,"reimplemented (src/game/render/enginestart); cdecl (a, unused, c): the engine's parts created by the driver kind; the first to fail takes all down and 0; else the wind and the settings, 1"
+0x005632b0,Engine_OpenDirectDraw,function,low,"reimplemented (src/game/render/enginestart); cdecl (x0..x5): the object at [0x879a24] made and opened; 0 and an engine error when it fails, 0 when it is there already"
+0x005836d0,Engine_CreateDevice,function,low,"reimplemented (src/game/render/enginestart); cdecl (x): the device for the driver kind (0x572c40, 0x573960), other kinds 0"
+0x00583700,Engine_DestroyDevice,function,low,reimplemented (src/game/render/enginestart); cdecl: the device for the driver kind taken down
 0x00564b20,Wavelet_Startup,function,low,"reimplemented (src/game/gfx/wavelet); cdecl: with no block at 0x879a68, a codec made and kept at 0x879a64 and the draw buffer's batch begun in mode 2, its +0x28 kept at 0x879a68"
 0x005985c0,WaveletCodec_Create,function,medium,"reimplemented (src/game/gfx/wavelet); Mem_Alloc 0x58 and WaveletCodec_Construct (most derived); null on failure, else the codec interface through the virtual base displacement"
 0x005916c0,WaveletCodec_Construct,function,high,"reimplemented (src/game/gfx/wavelet); thiscall (most derived), pops 4: the codec's fields and vtables, the decoders' clamp, pixel and YUV to RGB tables, its two blocks"
