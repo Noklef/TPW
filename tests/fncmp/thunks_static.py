@@ -10,7 +10,9 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import COUNTER, LOG, Bench, Call, HEAP, RAM, heap, counter, log_region, put, recorder, set_return, vtable  # noqa: E402
+from fncmp import COUNTER, LOG, Bench, Call, HEAP, RAM, _cdecl_log, _recorder, heap, counter, log_region, put, recorder, set_return, vtable  # noqa: E402
+
+THREAD = 7   # _beginthread's recorder
 
 # (address, form, the global object, returns)
 FUNCS = [
@@ -62,6 +64,21 @@ FUNCS = [
     (0x47e790, 'surfaces', 0x7b4ac0, 'v'),
     (0x45d810, 'list', 0xfb34e0, 'v'),
     (0x6d8990, 'list', 0xfb34e0, 'v'),
+    (0x5f06f0, 'global', 0xf86db8, 'v'),
+    (0x5f9710, 'global', 0xfa76f0, 'v'),
+    (0x5f9730, 'global', 0xfa76f8, 'v'),
+    (0x5f9750, 'global', 0xfa76fc, 'v'),
+    (0x5f9770, 'global', 0xfa7700, 'v'),
+    (0x5f9650, 'global', 0xfa76d8, 'v'),
+    (0x5f9680, 'global', 0xfa76c0, 'v'),
+    (0x5f9eb0, 'global', 0xfa7908, 'a'),
+    (0x5f9ef0, 'global', 0xfa7790, 'a'),
+    (0x5f9f30, 'global', 0xfa7740, 'a'),
+    (0x5f5570, 'atexit', None, 'a'),
+    (0x5f8ad0, 'atexit', None, 'a'),
+    (0x5fa000, 'atexit', None, 'a'),
+    (0x618cb0, 'atexit', None, 'a'),
+    (0x5c8b70, 'thread', None, 'a'),
 ]
 B = Bench([
     (0x4fa750, 0x4fa764), (0x5d1750, 0x5d1751),
@@ -138,8 +155,10 @@ B = Bench([
     (0x6bf320, 0x6bf330),
     (0x6c1230, 0x6c1240),
     (0x6c5ae0, 0x6c5af0),
-    (0x6d8990, 0x6d89a0)
-], hooks={0x55e470: lambda e: e.write(e.r['ECX'], struct.pack('<I', 0x6fd800))})   # CpuInfo_Ctor (CPUID): driver.cpp's stub_mark, which its Drives env has
+    (0x6d8990, 0x6d89a0),
+    (0x5f06f0, 0x5f0700), (0x5f9710, 0x5f9720), (0x5f9730, 0x5f9740), (0x5f9750, 0x5f9760), (0x5f9770, 0x5f9780), (0x5f9650, 0x5f9670), (0x5f9680, 0x5f96a0),
+    (0x5f9eb0, 0x5f9ee0), (0x5f9ef0, 0x5f9f20), (0x5f9f30, 0x5f9f60), (0x5f5570, 0x5f5580), (0x5f8ad0, 0x5f8ae0), (0x5fa000, 0x5fa010), (0x618cb0, 0x618cc0), (0x5c8b70, 0x5c8b90)
+], hooks={0x55e470: lambda e: e.write(e.r['ECX'], struct.pack('<I', 0x6fd800)), 0x67a7d0: _cdecl_log, 0x67e050: _recorder(THREAD, 3, cdecl=True)})   # CpuInfo_Ctor (CPUID): driver.cpp's stub_mark, which its Drives env has
 PICK = [f for f in FUNCS if not os.environ.get('ONLY') or f[0] in [int(x, 16) for x in os.environ['ONLY'].split(',')]]
 THIS, POINTEE = RAM + 0x300, RAM + 0x1000
 OBJECTS, VTABLE, COM_VTABLE = RAM + 0x2000, RAM + 0x3000, RAM + 0x3100
@@ -229,6 +248,12 @@ def case(r):
         regions[COM_VTABLE] = vtable({}, com={2: 1})
         regions[LOG] = log_region()
         return Call(address, [], regions, conv='c', ret=ret)
+    if form == 'atexit':
+        regions[LOG] = log_region()
+        return Call(address, [], regions, conv='c', ret=ret)
+    if form == 'thread':
+        regions[LOG] = log_region()
+        return Call(address, [r.getrandbits(32), r.getrandbits(32)], regions, conv='c', ret=ret)
     if form == 'timer':
         clock(r, regions, imm == 'ms')
         return Call(address, [], regions, conv='c', ret=ret)

@@ -2,6 +2,14 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "../gfx/surface.h"
+
+// The calls of the static stubs at the end of this file (nullptr: the game's atexit and the port of _beginthread).
+struct ThunksEnv {
+    s32(__cdecl *atExit)(void *fn);                         // 0x67a7d0
+    u32(__cdecl *beginThread)(void *proc, u32 stack, void *arg);  // CRT_beginthread
+};
+void Thunks_SetEnv(const ThunksEnv *env);
 
 extern "C" {
 
@@ -456,4 +464,24 @@ u32 __cdecl Wrap_KeyMap_AsyncModifiers_4815c0();
 void __cdecl Wrap_MsgTags_AddVersion_481b70();
 // 0x481580 (stdcall (message); ECX unused): calls MsgTags_Post, of ui/msgtags.
 u32 __stdcall Wrap_MsgTags_Post_481580(const u8 *message);
+// Static initialisers (names invented, unconfirmed). 0x5f06f0, 0x5f9710, 0x5f9730, 0x5f9750, 0x5f9770: a global object's vtable set.
+void __cdecl Static703078_Init();
+void __cdecl Static7034d8_Init();
+void __cdecl Static703518_Init();
+void __cdecl Static703558_Init();
+void __cdecl Static703598_Init();
+// 0x5f9650, 0x5f9680: four dwords at the global cleared.
+void __cdecl Static_ClearFa76d8();
+void __cdecl Static_ClearFa76c0();
+// 0x5f9eb0, 0x5f9ef0, 0x5f9f30: five bytes and the dwords +0x10, +0x14 of the global cleared, then SurfaceInfo_Ctor at its +0x18 (a jump).
+SurfaceInfo *__cdecl StaticSurface_Fa7908();
+SurfaceInfo *__cdecl StaticSurface_Fa7790();
+SurfaceInfo *__cdecl StaticSurface_Fa7740();
+// 0x5f5570, 0x5f8ad0, 0x5fa000, 0x618cb0: atexit of the function each name gives.
+s32 __cdecl AtExit_5f5580();
+s32 __cdecl AtExit_5d1750();
+s32 __cdecl AtExit_5fa010();
+s32 __cdecl AtExit_618cc0();
+// 0x5c8b70 (cdecl; proc, arg): CRT_beginthread(proc, 0, arg).
+u32 __cdecl Thread_Begin(void *proc, void *arg);
 }  // extern "C"

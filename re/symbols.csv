@@ -3602,6 +3602,21 @@ address,name,kind,confidence,notes
 0x00481b70,Wrap_MsgTags_AddVersion_481b70,function,low,reimplemented (src/game/core/thunks); jumps to MsgTags_AddVersion
 0x00481580,Wrap_MsgTags_Post_481580,function,low,reimplemented (src/game/core/thunks); stdcall (message): MsgTags_Post's result
 0x004fa750,Wrap_Array7ced88_Dtor_4fa750,function,low,reimplemented (src/game/core/thunks); the static array 0x7ced88's atexit: nine elements of 8 bytes through Stub_Ret
+0x005f06f0,Static703078_Init,function,low,"reimplemented (src/game/core/thunks); A global object's vtable set. Name invented, unconfirmed."
+0x005f9710,Static7034d8_Init,function,low,"reimplemented (src/game/core/thunks); A global object's vtable set. Name invented, unconfirmed."
+0x005f9730,Static703518_Init,function,low,"reimplemented (src/game/core/thunks); A global object's vtable set. Name invented, unconfirmed."
+0x005f9750,Static703558_Init,function,low,"reimplemented (src/game/core/thunks); A global object's vtable set. Name invented, unconfirmed."
+0x005f9770,Static703598_Init,function,low,"reimplemented (src/game/core/thunks); A global object's vtable set. Name invented, unconfirmed."
+0x005f9650,Static_ClearFa76d8,function,low,"reimplemented (src/game/core/thunks); Four global dwords cleared. Name invented, unconfirmed."
+0x005f9680,Static_ClearFa76c0,function,low,"reimplemented (src/game/core/thunks); Four global dwords cleared. Name invented, unconfirmed."
+0x005f9eb0,StaticSurface_Fa7908,function,low,"reimplemented (src/game/core/thunks); A static object's fields cleared, then SurfaceInfo_Ctor at its +0x18. Name invented, unconfirmed."
+0x005f9ef0,StaticSurface_Fa7790,function,low,"reimplemented (src/game/core/thunks); A static object's fields cleared, then SurfaceInfo_Ctor at its +0x18. Name invented, unconfirmed."
+0x005f9f30,StaticSurface_Fa7740,function,low,"reimplemented (src/game/core/thunks); A static object's fields cleared, then SurfaceInfo_Ctor at its +0x18. Name invented, unconfirmed."
+0x005f5570,AtExit_5f5580,function,low,"reimplemented (src/game/core/thunks); atexit of 0x5f5580. Name invented, unconfirmed."
+0x005f8ad0,AtExit_5d1750,function,low,"reimplemented (src/game/core/thunks); atexit of 0x5d1750. Name invented, unconfirmed."
+0x005fa000,AtExit_5fa010,function,low,"reimplemented (src/game/core/thunks); atexit of 0x5fa010. Name invented, unconfirmed."
+0x00618cb0,AtExit_618cc0,function,low,"reimplemented (src/game/core/thunks); atexit of 0x618cc0. Name invented, unconfirmed."
+0x005c8b70,Thread_Begin,function,low,"reimplemented (src/game/core/thunks); CRT_beginthread(proc, 0, arg). Name invented, unconfirmed."
 0x006b0620,Table_AddressPlus18,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base plus 0x18
 0x006b0650,Table_Address,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base
 0x006b0510,Packed_Read,function,high,reimplemented (src/game/core/cursors); reads a one- or two-byte packed value
