@@ -1287,6 +1287,7 @@ const AddrCall kDeviceCreateCalls[] = {{0x573080, recorder(20, 1)}, {0x573b90, r
 const AddrCall kImageBufferCalls[] = {{0x56a770, jpeg_recorder(1, 1)}, {0x564650, jpeg_recorder(2, 1)}, {0x56af20, recorder(3, 2)}, {0x591270, jpeg_recorder(4, 9)}, {0x574bd0, jpeg_recorder(5, 6)}, {0x579b80, jpeg_recorder(6, 1)}};  // tests/fncmp/imagebuffer.py
 const AddrCall kScrollLayersCalls[] = {{0x590f90, recorder(1, 0)}, {0x58c9f0, recorder(2, 2)}};  // tests/fncmp/scrolllayers.py
 const AddrCall kVWrapCalls[] = {{0x58c9f0, recorder(5, 2)}, {0x561a30, recorder(6, 2)}};  // tests/fncmp/vwrapclip.py
+const AddrCall kKeyActionCalls[] = {{0x409350, recorder(1, 1)}, {0x4819e0, recorder(2, 0)}, {0x519ef0, recorder(3, 2)}, {0x5194d0, recorder(4, 0)}, {0x59ab50, recorder(5, 0)}};  // tests/fncmp/keyactioncalls.py
 const AddrCall kRideAnimateCalls[] = {{0x473c70, jpeg_recorder(1, 3)}, {0x44b510, jpeg_recorder(2, 1)}, {0x4548f0, jpeg_recorder(3, 2)}, {0x4726d0, jpeg_recorder(4, 1)}};  // tests/fncmp/rideanimate.py
 const AddrCall kAdvisorSendCalls[] = {{0x59bea0, recorder(1, 0)}, {0x67a7d0, jpeg_recorder(2, 1)}, {0x59c0a0, recorder(3, 3)}, {0x59c2b0, recorder(4, 1)}, {0x59c240, recorder(5, 1)}, {0x599050, jpeg_recorder(6, 1)}, {0x5997b0, jpeg_recorder(7, 1)}, {0x40fb10, recorder(8, 1)}};  // tests/fncmp/advisorsend.py
 const AddrCall kObjModelTreeCalls[] = {{0x56ee90, recorder(9, 1)}, {0x561a30, recorder(10, 2)}, {0x57aa10, recorder(11, 4)}, {0x581cd0, recorder(12, 5)}, {0x57a420, recorder(13, 1)}};  // tests/fncmp/objmodeltree.py
@@ -2572,6 +2573,7 @@ int main(int argc, char **argv) {
     ObjModel_SetTreeCalls(kObjModelTreeCalls, sizeof(kObjModelTreeCalls) / sizeof(kObjModelTreeCalls[0]));
     VWrap_SetCalls(kVWrapCalls, sizeof(kVWrapCalls) / sizeof(kVWrapCalls[0]));
     RideAnimate_SetCalls(kRideAnimateCalls, sizeof(kRideAnimateCalls) / sizeof(kRideAnimateCalls[0]));
+    KeyActions_SetCalls(kKeyActionCalls, sizeof(kKeyActionCalls) / sizeof(kKeyActionCalls[0]));
     SharedGlobals_SetEnv(&kSharedGlobalsEnv);
     ReleaseList_SetEnv(&kReleaseListEnv);
     SoundCategory_SetEnv(&kSoundCategoryEnv);

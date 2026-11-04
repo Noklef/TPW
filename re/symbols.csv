@@ -4961,6 +4961,12 @@ address,name,kind,confidence,notes
 0x0040c470,KeyAction_ScreenGrab,function,low,reimplemented (src/game/core/keyactions); F8: the screen grab's next free name taken
 0x0040c180,KeyAction_CancelMouseMode,function,low,"reimplemented (src/game/core/keyactions); the cancel key's action: the dialog child reset, else the mouse mode back to CMMOnline's base and game mode 0 (name invented, unconfirmed)"
 0x0040bda0,KeyAction_ClickCell,function,low,"reimplemented (src/game/core/keyactions); the key action on the cell under the cursor: sound and map click, or a step back (name invented, unconfirmed)"
+0x0040bf70,KeyAction_TogglePause,function,low,reimplemented (src/game/core/keyactions); Pause toggled on the game owner; returns 1.
+0x0040c3a0,KeyAction_HideFrontEnd,function,low,reimplemented (src/game/core/keyactions); FrontEnd_Hide7ca1c8 on 0x7b51f0; returns 1.
+0x0040c3f0,KeyAction_OpenParkNew,function,low,"reimplemented (src/game/core/keyactions); Game_OpenPark (1, 0); returns 1."
+0x0040c410,KeyAction_OpenParkLast,function,low,"reimplemented (src/game/core/keyactions); Game_OpenPark (0, 0); returns 1."
+0x0040c800,KeyAction_AdvisorPostHeld,function,low,reimplemented (src/game/core/keyactions); Advisor_PostHeld on the world's advisor; returns 1.
+0x00424c10,KeyAction_Clear78d96c,function,low,reimplemented (src/game/core/keyactions); The dword 0x78d96c = 0; returns 1.
 0x00672090,XaAdpcm_DecodeMono,function,low,"reimplemented (src/game/core/xaadpcm); cdecl (count, position, last, before, data, out): (count + 27) / 28 blocks of 15 bytes (a filter / shift header, 28 4-bit samples) from data + position * 15 / 28 decoded to 16-bit pairs (both channels) through *out; returns before"
 0x00672210,XaAdpcm_DecodeStereo,function,low,"reimplemented (src/game/core/xaadpcm); cdecl (count, position, last left, before left, last right, before right, data, out): the stereo blocks of 30 bytes (two header bytes, 28 byte pairs of left / right nibbles); returns the right before as stored"
 0x00672cb3,ImaAdpcm_DecodeStereo,function,low,"reimplemented (src/game/core/imaadpcm); cdecl (data, out, count, samples, indices): count bytes of stereo 4-bit ADPCM (high nibble left) through the step table 0x77c6c0 and index moves 0x77dd00, the state kept in 0x77dd20-0x77dd2c and packed back"
