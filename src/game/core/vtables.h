@@ -25,6 +25,8 @@ u32 __fastcall Vtbl7099ec_SetVirtual(u8 *sub);
 
 // 0x504740 / 0x429b80 (thiscall): the vtable pointer at +0 / +0x60 = 0x6fd800 / 0x6fdce8. Undefined return.
 void __fastcall Vtbl6fd800_Set(u8 *object);
+// 0x429b90 (thiscall; name invented, unconfirmed): the vtable pointer at +0x50 = 0x6fdce8. Undefined return.
+void __fastcall Vtbl6fdce8_At50_Set(u8 *object);
 
 void __fastcall Vtbl6fdce8_At60_Set(u8 *object);
 

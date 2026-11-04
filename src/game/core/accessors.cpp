@@ -255,6 +255,7 @@ u32 __cdecl Obj_Read30_34_38(const u8 *source, u32 *a, u32 *b, u32 *c) {
 }
 
 u8 *__fastcall Obj_AddrOf4(u8 *object) { return object + 4; }
+u8 *__fastcall Obj_AddrOf1cc(u8 *object) { return object + 0x1cc; }
 
 u32 __fastcall Obj_GetCOr6fd6c4(const u8 *object) {
     const u32 value = at<u32>(object, 0xc);

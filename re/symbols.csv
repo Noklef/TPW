@@ -3661,6 +3661,7 @@ address,name,kind,confidence,notes
 0x00429b80,Vtbl6fdce8_At60_Set,function,high,reimplemented (src/game/core/vtables); sets the vtable pointer at +0x60 to 0x6fdce8
 0x0047a9a0,Obj_GetCOr6fd6c4,function,high,reimplemented (src/game/core/accessors); the dword at +0xc or 0x6fd6c4 when it is 0
 0x005cea30,VirtualBase_SetVtbl70994c,function,high,reimplemented (src/game/core/vtables); sets a virtual base's vtable pointer to 0x70994c
+0x00429b90,Vtbl6fdce8_At50_Set,function,low,"reimplemented (src/game/core/vtables); The vtable pointer at +0x50 = 0x6fdce8 (name invented, unconfirmed)"
 0x004f04c0,Array36_At,function,high,reimplemented (src/game/core/indexed); the address of an element of 36 bytes
 0x0041a990,Game1da70c_MinusAt0Quarters,function,low,"reimplemented (src/game/core/indexed); the game's dword 0x1da70c and the object's +0 in quarters, subtracted"
 0x00564a50,Const_MinusOne_564a50,function,high,reimplemented (src/game/core/trivial); returns -1
@@ -4200,6 +4201,7 @@ address,name,kind,confidence,notes
 0x004f0880,Obj_InitMinus1A,function,high,reimplemented (src/game/core/accessors); initialises an object with -1 ignoring three arguments
 0x004f08a0,Obj_InitMinus1B,function,high,reimplemented (src/game/core/accessors); initialises an object with -1 ignoring seven arguments
 0x0048c980,Globals7c264c_Clear,function,low,"reimplemented (src/game/core/accessors); cdecl static initialiser: 0x7c264c, 0x7c2650, 0x7c2654 = 0; returns 0"
+0x0056dd70,Obj_AddrOf1cc,function,low,"reimplemented (src/game/core/accessors); The address 0x1cc bytes into the object (name invented, unconfirmed)"
 0x00421680,Obj_SetAt8AndAdd,function,high,reimplemented (src/game/core/observers); records an item and adds it to the observer list
 0x005f9f80,Class7035d8_Ctor,function,high,reimplemented (src/game/core/fpu); constructor of the class with vtable pointer 0x7035d8
 0x005f9f70,Class7035d8_InitGlobal,function,high,reimplemented (src/game/core/fpu); constructs the global object at 0xfa78e8

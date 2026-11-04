@@ -13,7 +13,7 @@ CALLS = {'Addr': (0x4056f0, 't', 0, 'a', 0x8), 'V800': (0x504740, 't', 0, 'v', 0
          'C': (0x47a9a0, 't', 0, 'a', 0x10), 'Vb': (0x5cea30, 't', 0, 'a', 0x10), 'A36': (0x4f04c0, 't', 1, 'a', 0x10),
          'M1': (0x564a50, 'c', 0, 'a', 0x8), 'M2': (0x5ceaa0, 'c', 0, 'a', 0x8), 'M3': (0x5cea90, 's', 1, 'a', 0x8),
          'M4': (0x6bab20, 's', 4, 'a', 0x8), 'G786': (0x5d5db0, 'c', 0, 'a', 0x18), 'Wage': (0x5077f0, 't', 0, 'a', 0x10),
-         'Narrow': (0x486780, 'c', 1, 'a', 0x30)}
+         'Narrow': (0x486780, 'c', 1, 'a', 0x30), 'V50': (0x429b90, 't', 0, 'v', 0x8), 'A1cc': (0x56dd70, 't', 0, 'a', 0x7)}
 B = Bench([(a, a + n) for (a, _c, _s, _r, n) in CALLS.values()] + [(0x5068f0, 0x50690f), (0x6ada00, 0x6ada8c), (0x6ad8f0, 0x6ad945)])
 POOL = RAM + 0x3000
 VALUES = [0, 1, 2, 5, 0xff, 0x100, 0x7fffffff, 0x80000000, 0xffffffff]
