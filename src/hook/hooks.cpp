@@ -633,6 +633,7 @@
 #include "../game/ui/dialog7cc654lists.h"
 #include "../game/ui/dialog7cc654open.h"
 #include "../game/ui/dialog7cc944.h"
+#include "../game/ui/dialog7cc944handler.h"
 #include "../game/ui/dialog7cc944list.h"
 #include "../game/ui/dialog7cc984.h"
 #include "../game/ui/dialog7cc984open.h"
@@ -8354,6 +8355,7 @@ const Hook kHooks[] = {
     {"Dialog7cc654_SendChanges",  0x004bc500, (void *)&Dialog7cc654_SendChanges, {0x83, 0xec, 0x10, 0x53, 0x55}},
     {"Dialog7cc654_WaitHandler",  0x004bc660, (void *)&Dialog7cc654_WaitHandler, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
     {"Window7cc8bc_EditHandler",  0x004be3a0, (void *)&Window7cc8bc_EditHandler, {0x64, 0xa1, 0x00, 0x00, 0x00}},
+    {"Dialog7cc944_Handler",      0x004bf9f0, (void *)&Dialog7cc944_Handler, {0x83, 0xec, 0x18, 0x53, 0x8b}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},
