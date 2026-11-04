@@ -8,6 +8,12 @@
 struct WFileBufEnv {
     u32(__cdecl *localeInit)();   // 0x699da0
     s32(__cdecl *fclose)(void *file);   // CRT_fclose
+    u32(__cdecl *fwrite)(const void *data, u32 size, u32 count, u32 file);   // 0x67b6d0
+    u32(__cdecl *fputwc)(u32 c, u32 file);   // 0x67c9f0
+    u32(__cdecl *ungetwc)(u32 c, u32 file);   // 0x67cca0
+    s32(__cdecl *ungetc)(u32 c, u32 file);   // 0x67cbe0
+    s32(__cdecl *fgetc)(u32 file);   // 0x67cb90
+    u32(__cdecl *fgetwc)(u32 file);   // 0x67cdf0
 };
 
 extern "C" {
@@ -36,4 +42,15 @@ void __fastcall WOfstream_VbaseDtor(u8 *ios);
 
 // 0x4f10d0 (the same, the virtual base at stream +0x5c; basic_ifstream<wchar_t>'s): 0x700638, the buffer at stream +8, 0x7099dc.
 void __fastcall WIfstream_VbaseDtor(u8 *ios);
+
+// basic_filebuf<wchar_t>'s virtuals, by their shape (slots 1, 2 and 5 of the vtable 0x70996c; names unconfirmed), thiscall. A u16 answer, 0xffff for eof.
+// 0x4f0a10 overflow (c), pops 4: eof answers 0; room in the put area (+0x20's pointer, +0x30's count): stored. No file +0x50: eof. No conversion +0x38: fputwc. Otherwise the string +0x44 emptied and made 8
+// bytes, the conversion's slot 5 (state +0x40, c as from, the string as to) answers: 0, 1 with some taken: fwrite (the bytes it left, size them, count 1), whose answer must equal the size (sic); 3: fputwc; others eof.
+u16 __fastcall WFileBuf_Overflow(u8 *buf, void *, u32 c);
+// 0x4f0c50 pbackfail (c), pops 4: a get area with something behind (+0x1c's pointer past +0xc's), and eof or the same char: the pointer back, the count +0x2c up; the answer c, or 0 for eof. Otherwise no file or
+// eof: eof. No conversion: ungetwc. Otherwise the string's bytes, last first, through ungetc: any failure or an empty string is eof; then the string emptied, +0x40 = +0x3c, the answer c.
+u16 __fastcall WFileBuf_PutBack(u8 *buf, void *, u32 c);
+// 0x4f0e60 uflow: a char in the get area taken. No file: eof. No conversion: fgetwc. Otherwise +0x3c = +0x40, the string emptied, bytes from fgetc appended one at a time, each followed by the conversion's slot 4
+// (the string as from, a local as to) from the state +0x40 = +0x3c: 0 answers the local; 1 reads on; 3 with two bytes or more answers the string's first word, with fewer reads on; others, or no byte, eof.
+u16 __fastcall WFileBuf_Uflow(u8 *buf);
 }
