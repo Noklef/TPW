@@ -14,6 +14,11 @@ void UserSlots_SetEnv(const UserSlotsEnv *env);  // nullptr: the game's
 
 extern "C" {
 
+// 0x5cadf0 (thiscall; name invented, unconfirmed): the object at the slots' +0x64: empty strings at +0, +0x10, +0x20, +0x3c (StdString_Tidy(false)), a list at +0x30 (ListHead_CtorFrom), lists at
+// +0x58, +0x64, +0x70 (sentinels of 0xc bytes linked to themselves, the counts 0), +0x84, +0x88, +0x8c, +0x94, +0x98 = 0, the word +0x90 = 0x19. The allocator bytes +0, +0x10, +0x20, +0x30, +0x3c,
+// +0x58, +0x64, +0x70 and +0x80 are the stack's garbage there: left as they are. Returns it.
+u8 *__fastcall UserSlotsPart_Ctor(u8 *self);
+
 // 0x48bcd0 (cdecl; name invented, unconfirmed): [0xf81ebc], made when 0: a block of 0x110 bytes and 0x5c7420's answer, or 0 without a block.
 u8 *__cdecl UserSlots_Instance();
 

@@ -1,8 +1,11 @@
 #include "userslots.h"
 
 #include <cstdint>
+#include <initializer_list>
 
 #include "../core/gameheap.h"
+#include "../core/stdlist.h"
+#include "../core/stdstring.h"
 
 namespace {
 
@@ -16,6 +19,27 @@ const UserSlotsEnv *g_env = &kGameEnv;
 void UserSlots_SetEnv(const UserSlotsEnv *env) { g_env = env ? env : &kGameEnv; }
 
 extern "C" {
+
+u8 *__fastcall UserSlotsPart_Ctor(u8 *self) {
+    for (const u32 offset : {0u, 0x10u, 0x20u})
+        StdString_Tidy(reinterpret_cast<StdString *>(self + offset), nullptr, 0);
+    ListHead_CtorFrom(self + 0x30, nullptr, self + 0x30);
+    StdString_Tidy(reinterpret_cast<StdString *>(self + 0x3c), nullptr, 0);
+    for (const u32 offset : {0x5cu, 0x68u, 0x74u}) {
+        u8 *const sentinel = static_cast<u8 *>(GameHeap_Alloc(0xc));
+        at<u8 *>(sentinel, 0) = sentinel;
+        at<u8 *>(sentinel, 4) = sentinel;
+        at<u8 *>(self, offset) = sentinel;
+        at<u32>(self, offset + 4) = 0;
+    }
+    at<u32>(self, 0x84) = 0;
+    at<u32>(self, 0x88) = 0;
+    at<u32>(self, 0x8c) = 0;
+    at<u16>(self, 0x90) = 0x19;
+    at<u32>(self, 0x94) = 0;
+    at<u32>(self, 0x98) = 0;
+    return self;
+}
 
 u8 *__cdecl UserSlots_Instance() {
     u8 *&slots = *reinterpret_cast<u8 **>((uintptr_t)0x00f81ebc);
