@@ -8,14 +8,16 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, RAM, Bench, Call, Mask, heap, put  # noqa: E402
 
-B = Bench([(0x478720, 0x4787df), (0x47cde0, 0x47ce61)],
+B = Bench([(0x478720, 0x4787df), (0x47cde0, 0x47ce61), (0x4787f0, 0x47885b), (0x47c540, 0x47c69d)],
           hooks={0x691de0: lambda e: e.r.__setitem__('EAX', e.r['ECX']), 0x691ea0: lambda e: None})
 TREE, NIL, NODES = RAM, RAM + 0x100, RAM + 0x1000
-OPS = [k for k in os.environ.get('OPS', 'ctor,erase').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'ctor,erase,dtor').split(',') if k]
+HEAD = RAM + 0x200
 
 
 def case(r):
-    if r.deal(OPS) == 'ctor':
+    op = r.deal(OPS)
+    if op == 'ctor':
         regions = {TREE: r.bytes(0x20), NIL: bytes(0x20), 0x7b4a50: struct.pack('<II', r.getrandbits(32), r.choice([0, NIL])), HEAP: heap()}
         return Call(0x478720, [TREE], regions, conv='t', ret='a', masks=[Mask(TREE, [0, 1], 'stack garbage')])
     count = r.randrange(0, 12)
@@ -28,6 +30,12 @@ def case(r):
         j, off = r.choice(free)
         put(nodes[j], off, 'I', NODES + 0x1c * i)
     regions = {TREE: r.bytes(0x20), NIL: r.bytes(0x20), 0x7b4a50: struct.pack('<II', r.getrandbits(32), NIL), HEAP: heap(), NODES: b''.join(nodes) + bytes(0x1c)}
+    if op == 'dtor':   # the whole tree erased, the head freed; the map counter 1 frees the nil node
+        root = NODES if count else NIL
+        regions[TREE] = r.bytes(4) + struct.pack('<I', HEAD) + r.bytes(4) + struct.pack('<I', count) + r.bytes(0x10)
+        regions[HEAD] = struct.pack('<3I', NODES if count else HEAD, root, NODES if count else HEAD) + r.bytes(0x10)
+        regions[0x7b4a50] = struct.pack('<II', r.choice([1, 1, 2, 5, 0]), NIL)
+        return Call(0x4787f0, [TREE], regions, conv='t')
     return Call(0x47cde0, [TREE, NODES if count else NIL], regions, conv='t')
 
 

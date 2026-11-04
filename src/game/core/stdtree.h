@@ -69,6 +69,8 @@ void __fastcall StdTree_EraseSubtreeE(u8 *tree, void *, u8 *node);
 u8 **__fastcall StdTree_EraseRangeB(u8 *tree, void *, u8 **out, u8 *first, u8 *last);
 // 0x47c540 (name invented, unconfirmed): the same for tree A.
 u8 **__fastcall StdTree_EraseRangeA(u8 *tree, void *, u8 **out, u8 *first, u8 *last);
+// 0x4787f0 (thiscall): tree A's destructor (map counter 0x7b4a50, nil node 0x7b4a54), as StdTree_DtorC.
+void __fastcall StdTree_DtorA(u8 *tree);
 // 0x4f2590 / 0x4f2960 / 0x4f3290: the same erase(first, last) for trees C, D and E (the whole tree cleared by their _Erase, whose root loop releases each string with
 // CountedBuf_Reset; node by node with their increment and erase).
 u8 **__fastcall StdTree_EraseRangeC(u8 *tree, void *, u8 **out, u8 *first, u8 *last);
