@@ -25,6 +25,19 @@ struct ParkMapEnv {
 };
 void ParkMap_SetEnv(const ParkMapEnv *env);
 
+struct ImageCodec;
+struct SurfaceInfo;
+// ParkMap_LoadPicture's calls.
+struct ParkMapPictureEnv {
+    const char *(__cdecl *folder)();  // 0x40ef40
+    s32 *(__fastcall *infoFromFile)(ImageCodec *, void *, s32 *out, const char *name, const char *container, SurfaceInfo *info);
+    s32 *(__fastcall *alloc)(SurfaceInfo *, void *, s32 *out);
+    s32 *(__fastcall *load)(ImageCodec *, void *, s32 *out, SurfaceInfo *dst, const char *name, const char *container, SurfaceInfo *info);
+    s32 *(__fastcall *convert)(void *, void *, s32 *out, SurfaceInfo *dst, const SurfaceInfo *src, const u32 *palette);
+    void(__fastcall *free)(SurfaceInfo *);
+};
+void ParkMap_SetPictureEnv(const ParkMapPictureEnv *env);
+
 extern "C" {
 // 0x5f2050 (thiscall on the map).
 void __fastcall ParkMap_Classify(u8 *map);
@@ -79,4 +92,10 @@ void __fastcall ParkMap_Scroll(u8 *map, void *, u32 direction, float amount);
 // +0x20074 (3, 2, 1; the size 1, or the int at 0x785688 / 0x785640 for kinds 8 / 7, times 0x703030's float) / +0x2007c (5, 2, 3; 0x785670's
 // int times it), +0x18 0, placed at the square / the thing's map square (Thing_MapId) less 0x703028's float. x87 at the game's precision.
 void __fastcall ParkMap_AddSprites(u8 *map);
+// 0x5f1ea0 (thiscall on the map; keep, pops 4; name invented): the picture at folder (0x40ef40) + "\" + the global name at
+// 0xf86d20, read through a TGA codec on the stack into a bitmap of its own. Unless keep, the map's width (+0x48) and
+// height (+0x4c) become the picture's, its SurfaceInfo at +0x2c takes the format of the display mode [0x8bd554] of the
+// table at 0x8bd558 (0x20 bytes each: flags at +4, bit count at +0xc, the masks at +0x10), and gets bits. Then the
+// picture is converted into that SurfaceInfo and freed. No result is looked at (sic).
+void __fastcall ParkMap_LoadPicture(u8 *map, void *, u32 keep);
 }
