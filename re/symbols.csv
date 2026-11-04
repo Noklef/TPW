@@ -1949,6 +1949,7 @@ address,name,kind,confidence,notes
 0x005c0c10,GamePaths_SetRoots,function,low,reimplemented (src/game/files/gamepaths); The paths object strings set from the base folder and the global roots at start-up
 0x0046e650,GamePaths_ShareTexFolder,function,low,"reimplemented (src/game/files/gamepaths); The share textures' folder path (name invented, unconfirmed)"
 0x005c8190,GamePaths_MakeFoldersCopying,function,low,"reimplemented (src/game/files/gamepaths); the listed folders made, a file copied into each"
+0x005c5250,GamePaths_RemoveTree,function,low,reimplemented (src/game/files/gamepaths); a folder removed with all under it
 0x005c53c0,DirEntry_IsWad,function,low,"reimplemented (src/game/files/direntry); cdecl (entry); whether the entry's name ends in the global "".wad"" String (0xf80808, Names_Equal)"
 0x0055e470,CpuInfo_Ctor,function,high,"reimplemented (src/game/core/cpuinfo); thiscall; CPUID probe (EFLAGS.ID test, then the vendor string and features); SystemInfo's base"
 0x00591210,Cpu_Ticks,function,low,reimplemented (src/game/core/cpuinfo); cdecl: the low dword of the time-stamp counter (rdtsc)

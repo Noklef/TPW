@@ -20,6 +20,10 @@ void __fastcall GamePaths_MakeFolders(void *, void *, const WString *root);
 // With copy: the file (the third String of 0xf816c0, "\\", 0xf81980, "\\", the name, "\\", "easymode" 0x773cd0, 0xf825e0), when it exists, copied to the same name in that folder.
 void __stdcall GamePaths_MakeFoldersCopying(const WString *root, u32 copy);
 
+// 0x5c5250 (cdecl; path; name invented, unconfirmed): the folder opened (a folder handle, Handle_Open28) and, when it opens, searched for the pattern [0xf81650]: each entry not starting with
+// '.', a folder (attribute 0x10) removed the same way (the path, "\\" 0xf80be0, its name), a file by Handle_Vfn9; then the folder itself (Dir_Remove).
+void __cdecl GamePaths_RemoveTree(const String *path);
+
 // 0x5aa650 (cdecl; a String by value, destroyed at the end; name unconfirmed): a local String given the drive (vtable +0x18, assign), ":" (0x77316c,
 // +0x20, append a C string) and the String at 0xf79fe8 (+0x28, append) is assigned to the second path string of 0xf816c0 (Obj_CallSub14Slot18:
 // its +0x14's vtable +0x18); a second local String is made and destroyed unused. Its caller (in 0x5aa4xx's drive scan) passes a drive's letter.

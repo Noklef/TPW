@@ -11,6 +11,7 @@
 #include "../core/trivial.h"
 #include "../core/vcall.h"
 #include "../core/vwrap.h"
+#include "dirsource.h"
 #include "drives.h"
 #include "file.h"
 #include "handles.h"
@@ -92,6 +93,37 @@ void __stdcall GamePaths_MakeFoldersCopying(const WString *root, u32 copy) {
         String_Dtor(&folder);
     }
     String_Dtor(&base);
+}
+
+void __cdecl GamePaths_RemoveTree(const String *path) {
+    Handle folder;
+    Handle_Ctor(&folder);
+    folder.vtable = at<void *const *>(0x006fd9e8);
+    s32 status;
+    if (*Handle_Open28(&folder, nullptr, &status, reinterpret_cast<u32>(path->data)) >= 0) {
+        alignas(4) u8 buffer[0x124];
+        DirEntry *const entry = reinterpret_cast<DirEntry *>(buffer);
+        entry->path[0] = 0;
+        entry->name = entry->path;
+        if (*Handle_Vfn1(&folder, nullptr, &status, *at<const u32 *>(0x00f81650), reinterpret_cast<u32>(entry)) >= 0) {
+            do {
+                if (entry->name[0] != '.') {
+                    if (entry->attributes & 0x10) {
+                        String inner;
+                        String_CtorCopy(&inner, nullptr, reinterpret_cast<const StringView *>(path));
+                        vcall<void>(&inner, 0x28, at<const String *>(0x00f80be0));
+                        vcall<void>(&inner, 0x20, entry->name);
+                        GamePaths_RemoveTree(&inner);
+                        String_Dtor(&inner);
+                    } else {
+                        Handle_Vfn9(&folder, nullptr, &status, reinterpret_cast<u32>(entry->name));
+                    }
+                }
+            } while (*Handle_Vfn2(&folder, nullptr, &status, reinterpret_cast<u32>(entry)) >= 0);
+        }
+        Dir_Remove(&status, path->data);
+    }
+    Handle_Dtor(&folder);
 }
 
 void __cdecl GamePaths_SetSecondRoot(String drive) {
