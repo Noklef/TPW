@@ -201,6 +201,7 @@
 #include "../game/core/crtfile.h"
 #include "../game/core/crtstartup.h"
 #include "../game/core/crtstream.h"
+#include "../game/core/crttime.h"
 #include "../game/core/dsoundsource.h"
 #include "../game/core/imaadpcm.h"
 #include "../game/core/iosbase.h"
@@ -6060,6 +6061,18 @@ const Hook kHooks[] = {
     {"CRT_ungetwc",               0x0067cca0, (void *)&CRT_ungetwc, {0x56, 0x8b, 0x74, 0x24, 0x0c}},
     {"CRT_flswbuf",               0x00686ff0, (void *)&CRT_flswbuf, {0x53, 0x55, 0x56, 0x8b, 0x74}},
     {"CRT_parse_cmdline",         0x006898f0, (void *)&CRT_parse_cmdline, {0x8b, 0x44, 0x24, 0x10, 0x53}},
+    {"CRT_store_str",             0x00690ef0, (void *)&CRT_store_str, {0x56, 0x8b, 0x74, 0x24, 0x10}},
+    {"CRT_store_number",          0x00690fc0, (void *)&CRT_store_number, {0x53, 0x55, 0x8b, 0x6c, 0x24}},
+    {"CRT_store_num",             0x00690f20, (void *)&CRT_store_num, {0xa1, 0x30, 0x19, 0xfb, 0x00}},
+    {"CRT_store_winword",         0x00691030, (void *)&CRT_store_winword, {0x51, 0x53, 0x55, 0x56, 0x8b}},
+    {"CRT_expandtime",            0x00690950, (void *)&CRT_expandtime, {0x0f, 0xbe, 0x44, 0x24, 0x04}},
+    {"CRT_tzset_once",            0x00687d40, (void *)&CRT_tzset_once, {0xa1, 0x10, 0x15, 0xfb, 0x00}},
+    {"CRT_Strftime",              0x00690800, (void *)&CRT_Strftime, {0x51, 0x8b, 0x44, 0x24, 0x18}},
+    {"CRT_Gettnames",             0x00690490, (void *)&CRT_Gettnames, {0x83, 0xec, 0x14, 0x53, 0x8b}},
+    {"CRT_Getdays",               0x006902b0, (void *)&CRT_Getdays, {0x83, 0xec, 0x08, 0x8b, 0x15}},
+    {"CRT_Getmonths",             0x006903a0, (void *)&CRT_Getmonths, {0x83, 0xec, 0x08, 0x8b, 0x15}},
+    {"CRT_cvtdate",               0x00688300, (void *)&CRT_cvtdate, {0x8b, 0x44, 0x24, 0x08, 0x53}},
+    {"CRT_gmtime",                0x006884a0, (void *)&CRT_gmtime, {0x53, 0x55, 0x8b, 0x6c, 0x24}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

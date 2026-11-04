@@ -5814,6 +5814,18 @@ address,name,kind,confidence,notes
 0x0067ccd0,CRT_ungetwc_lk,function,low,reimplemented (src/game/core/crtstream); _ungetwc_lk
 0x0067cca0,CRT_ungetwc,function,low,reimplemented (src/game/core/crtstream); ungetwc
 0x006898f0,CRT_parse_cmdline,function,low,reimplemented (src/game/core/crtstartup); parse_cmdline
+0x00690ef0,CRT_store_str,function,low,reimplemented (src/game/core/crttime); _store_str
+0x00690fc0,CRT_store_number,function,low,reimplemented (src/game/core/crttime); _store_number
+0x00690f20,CRT_store_num,function,low,reimplemented (src/game/core/crttime); _store_num
+0x00691030,CRT_store_winword,function,low,reimplemented (src/game/core/crttime); _store_winword
+0x00690950,CRT_expandtime,function,low,reimplemented (src/game/core/crttime); _expandtime
+0x00687d40,CRT_tzset_once,function,low,reimplemented (src/game/core/crttime); __tzset
+0x00690800,CRT_Strftime,function,low,reimplemented (src/game/core/crttime); _Strftime
+0x00690490,CRT_Gettnames,function,low,reimplemented (src/game/core/crttime); _Gettnames
+0x006902b0,CRT_Getdays,function,low,reimplemented (src/game/core/crttime); _Getdays
+0x006903a0,CRT_Getmonths,function,low,reimplemented (src/game/core/crttime); _Getmonths
+0x00688300,CRT_cvtdate,function,low,reimplemented (src/game/core/crttime); cvtdate
+0x006884a0,CRT_gmtime,function,low,reimplemented (src/game/core/crttime); gmtime
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4

@@ -221,6 +221,7 @@ add_library(tpw_game STATIC
     src/game/core/crtfile.cpp
     src/game/core/crtstream.cpp
     src/game/core/crtstartup.cpp
+    src/game/core/crttime.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
