@@ -9,6 +9,7 @@
 
 #include "../core/gameheap.h"
 #include "../core/globals.h"
+#include "../core/recordsort.h"
 #include "../math/x87.h"
 
 namespace {
@@ -126,6 +127,132 @@ u32 __stdcall TexCache_MergeItems(u32 *out, const u8 *listB, const u8 *owner) {
     }
     *out = 0;
     return area;
+}
+
+u32 __fastcall TexCache_PackItems(u8 *cache, void *, u8 **items, u8 *out, u32 *outCount, const s32 *area, u32) {
+    struct Rect {
+        u32 x, y, w, h, key;
+    };
+    Rect rects[0x80];
+    u8 temp[0x14];
+    s32 count = 1, placed = 0;
+    u32 whole = 1;
+    rects[0].x = rects[0].y = 0;
+    rects[0].w = (u32)area[2];
+    rects[0].h = (u32)area[3];
+    rects[0].key = (rects[0].w << 16) + rects[0].h;
+    at<u32>(cache, 0x1924) = 0;
+    at<u32>(cache, 0x191c) = 0;
+    at<u32>(cache, 0x1918) = 0;
+    global<u32>(0x008c4b6c) = 0;
+    u8 *item = items[0];
+    u8 **next = items + 1;
+    if (item) {
+        while (count != 0 && placed < 0x7f) {
+            const s32 mask = at<s32>(cache, 0x18e4);
+            s32 i = count - 1;
+            for (; i >= 0; i--) {
+                s32 width = at<s16>(item, 0x14), height = at<s16>(item, 0x16);
+                if (at<u32>(cache, 0x18e8)) {
+                    width = (s32)(((u32)width + mask) & ~(u32)mask);
+                    height = (s32)(((u32)height + mask) & ~(u32)mask);
+                }
+                if (width <= (s32)rects[i].w && height <= (s32)rects[i].h)
+                    break;
+            }
+            const bool halve = placed == 0 && i == -1 && (at<u8>(cache, 0x18cc) & 1);
+            if (halve) {
+                const bool filter = Texture_UsesDriverFilter(item) != 0;
+                const bool can = (at<u8>(item, 8) & 0x30) && (!filter || at<s16>(item, 0x14) > global<s32>(0x00702434));
+                if (can) {
+                    if (!Texture_UsesDriverFilter(item) || at<s16>(item, 0x14) != global<s32>(0x00702434)) {
+                        at<u32>(item, 8) -= 0x10;
+                        const s32 height = at<s16>(item, 0x16);
+                        at<u16>(item, 0x14) = (u16)(((s32)at<s16>(item, 0x14) + 1) >> 1);
+                        at<u16>(item, 0x16) = (u16)((height + 1) >> 1);
+                        TexCacheItem_SetKey(item);
+                    }
+                    const s32 key = at<s32>(item, 0x38);
+                    u8 **end = next;
+                    while (*end && at<s32>(*end, 0x38) > key)
+                        end++;
+                    for (u8 **p = next; p != end; p++)
+                        p[-1] = *p;
+                    end[-1] = item;
+                    at<u32>(cache, 0x1924) = 1;
+                    item = next[-1];
+                    if (!item)
+                        break;
+                    continue;
+                }
+            }
+            const s32 width = at<s16>(item, 0x14), height = at<s16>(item, 0x16);
+            if (at<s32>(cache, 0x1918) < width)
+                at<s32>(cache, 0x1918) = width;
+            if (at<s32>(cache, 0x191c) < height)
+                at<s32>(cache, 0x191c) = height;
+            if (i < 0) {
+                whole = 0;
+            } else {
+                Rect &rect = rects[i];
+                u32 *const row = reinterpret_cast<u32 *>(out + placed * 0x14);
+                u32 usedW, usedH;
+                if (at<u8>(cache, 0x18cc) & 2) {
+                    const u32 padW = ((width + (u32)mask) & ~(u32)mask) - width;
+                    const u32 padH = ((height + (u32)mask) & ~(u32)mask) - height;
+                    row[0] = rect.x + (u32)((s32)padW >> 1);
+                    row[1] = rect.y + (u32)((s32)padH >> 1);
+                    usedW = padW + width;
+                    usedH = padH + height;
+                } else {
+                    row[0] = rect.x;
+                    row[1] = rect.y;
+                    usedW = (u32)width;
+                    usedH = (u32)height;
+                }
+                row[2] = usedW;
+                row[3] = usedH;
+                row[4] = (u32)(uintptr_t)item;
+                placed++;
+                const bool high = (s32)(rect.h - usedH) > 8;
+                const bool wide = (s32)(rect.w - usedW) > 8;
+                if (!wide && !high) {
+                    count--;
+                    rect = rects[count];
+                } else if (wide && !high) {
+                    rect.x += usedW;
+                    rect.w -= usedW;
+                    rect.key = (rect.w << 16) + rect.h;
+                } else if (!wide) {
+                    rect.y += usedH;
+                    rect.h -= usedH;
+                    rect.key = (rect.w << 16) + rect.h;
+                } else {
+                    Rect &top = rects[count];
+                    top = rect;
+                    top.y += usedH;
+                    top.h -= usedH;
+                    top.w = usedW;
+                    top.key = (top.w << 16) + top.h;
+                    count++;
+                    rect.x += usedW;
+                    rect.w -= usedW;
+                    rect.key = (rect.w << 16) + rect.h;
+                }
+                if (count - i > 1)
+                    RecordSort_Run(reinterpret_cast<RecordSort *>(0x008bcb98), nullptr, reinterpret_cast<u8 *>(rects), temp, 0x14, 0x10, i, count - 1);
+                global<u32>(0x008c4b6c)++;
+                global<u32>(0x008c4b68)++;
+            }
+            next++;
+            item = next[-1];
+            if (!item)
+                break;
+        }
+    }
+    at<u32>(out + placed * 0x14, 0x10) = 0;
+    *outCount = (u32)placed;
+    return whole && !item ? 1 : 0;
 }
 
 u8 *__fastcall TexCache_InitDefaults(u8 *cache) {

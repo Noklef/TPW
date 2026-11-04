@@ -6098,6 +6098,7 @@ address,name,kind,confidence,notes
 0x0058dd60,TexCache_ReleaseItems,function,low,"reimplemented (src/game/gfx/texcache); thiscall on the cache (mode; pops 4): every entry's item list taken off; mode bit 2 keeps items without flag 0x200000 (pushed back) after SetFlags(0) on the entry's +0; the others reset (flags, sizes rounded by +0x18e4, key; bit 1 zeroes the vbase's six dwords)"
 0x0058e010,TexCache_TraceItem,function,low,"reimplemented (src/game/gfx/texcache); the trace of a touched item to c:\tcache.log (a debug option), through the file calls' env"
 0x0058c9f0,TexCache_TouchItem,function,low,"reimplemented (src/game/gfx/texcache); an item used this frame: the frame's counts, placed or queued on the cache's list, its +0x60 too, the trace"
+0x0058eca0,TexCache_PackItems,function,low,"reimplemented (src/game/gfx/texcache); The cache's items packed into an area's free rectangles (name invented, unconfirmed)"
 0x00575bd0,TexSet_Ctor,function,high,"reimplemented (src/game/gfx/texset); thiscall (a texture set, 16 bytes): all zero; returns the set"
 0x00575f90,TexSet_Texture,function,high,"reimplemented (src/game/gfx/texset); thiscall (i): texture i, [+8][i]"
 0x00575fa0,TexSet_TextureSlot,function,high,reimplemented (src/game/gfx/texset); thiscall (i): &[+8][i]

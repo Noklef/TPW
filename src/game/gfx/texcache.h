@@ -30,6 +30,18 @@ void __fastcall TexCache_Halve(u8 *cache, void *, u8 *dest, const u8 *source);
 // then what remains of the owner's. Maxima of width and height are tracked but never used.
 u32 __stdcall TexCache_MergeItems(u32 *out, const u8 *listB, const u8 *owner);
 
+// 0x58eca0 (thiscall on the cache; items, out, outCount, area, a fifth never read; pops 0x14; name unconfirmed; 0x58f540 and 0x58f639 ask it):
+// a zero-ended array of items packed into the area's s32 width (+8) and height (+0xc), out getting 0x14-byte rows (x, y, width, height,
+// item), zero-ended at the row's +0x10, and *outCount their number. Free rectangles start as the whole area and stay sorted (RecordSort_Run
+// on a key of width << 16 + height, from the rectangle used up); each item (s16 sizes +0x14 / +0x16, rounded up by the mask +0x18e4 when
+// +0x18e8 is set) takes the last that holds it. With cache flag 2 (+0x18cc) the row is rounded up and the item centred in it. What is left
+// of the rectangle is split by leftovers over 8 on each side. An item with no room while nothing is placed yet, cache flag 1 set, flags & 0x30
+// (with the driver filter, also a width above [0x702434]), is halved (flags - 0x10, sizes (n + 1) >> 1, its key set) and moved down the array
+// by descending s32 +0x38, and the new one at its place tried; other items with no room clear the answer. Stops at 0x7f rows or no
+// rectangles. +0x1918 / +0x191c get the widest and highest; +0x1924 is set by a halving. 0x8c4b6c counts the rows, 0x8c4b68 likewise but is not cleared.
+// Returns 1 when every item found a place.
+u32 __fastcall TexCache_PackItems(u8 *cache, void *, u8 **items, u8 *out, u32 *outCount, const s32 *area, u32 unused);
+
 // 0x58d0f0 (thiscall on the cache, 0x1930+ bytes): its default settings: five 0x80s at
 // +0x18b0-+0x18c0, a falling series of floats (0.5, 0.25, 0.17, 0.065, 0.012, 0.0030) at
 // +0x187c-+0x1890, +0x1878 = 4, +0x18ac = 0x100, +0x18e4 = 7, +0x1900 = 1.0f, the entry
