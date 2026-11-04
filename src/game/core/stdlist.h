@@ -94,6 +94,9 @@ void __fastcall StdListString_Unique(u8 *list);
 // what is left of the other goes to the end; the size is the sum and the other's is 0. Nothing for the list itself.
 void __fastcall StdListDword_Merge(u8 *list, void *, u8 *other);
 
+// 0x5d03e0 (thiscall; other list, pops 4): the same for a list<string> (an element of the other goes before the first of this that it compares below, StdString_CompareSub).
+void __fastcall StdListString_Merge(u8 *list, void *, u8 *other);
+
 // 0x5b2fd0 (stdcall; a, b): a new block of 0x28 bytes (otherwise left as it is) with a at +4 and b at +0x24. Returns it.
 u8 *__stdcall Node28_New(u32 a, u32 b);
 

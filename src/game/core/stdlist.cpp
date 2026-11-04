@@ -336,6 +336,17 @@ void __fastcall StdListString_Unique(u8 *list) {
     } while (current != head);
 }
 
+// The nodes first up to last move to in front of the node at.
+static void SpliceBefore(u8 *to, u8 *first, u8 *last) {
+    at<u8 *>(at<u8 *>(last, 4), 0) = to;
+    at<u8 *>(at<u8 *>(first, 4), 0) = last;
+    at<u8 *>(at<u8 *>(to, 4), 0) = first;
+    u8 *const saved = at<u8 *>(to, 4);
+    at<u8 *>(to, 4) = at<u8 *>(last, 4);
+    at<u8 *>(last, 4) = at<u8 *>(first, 4);
+    at<u8 *>(first, 4) = saved;
+}
+
 void __fastcall StdListDword_Merge(u8 *list, void *, u8 *other) {
     if (other == list) return;
     u8 *const head1 = at<u8 *>(list, 4);
@@ -345,27 +356,34 @@ void __fastcall StdListDword_Merge(u8 *list, void *, u8 *other) {
     while (first1 != head1 && first2 != head2) {
         if (at<u32>(first2, 8) < at<u32>(first1, 8)) {
             u8 *const next2 = at<u8 *>(first2, 0);
-            at<u8 *>(at<u8 *>(next2, 4), 0) = first1;
-            at<u8 *>(at<u8 *>(first2, 4), 0) = next2;
-            at<u8 *>(at<u8 *>(first1, 4), 0) = first2;
-            u8 *const saved = at<u8 *>(first1, 4);
-            at<u8 *>(first1, 4) = at<u8 *>(next2, 4);
-            at<u8 *>(next2, 4) = at<u8 *>(first2, 4);
-            at<u8 *>(first2, 4) = saved;
+            SpliceBefore(first1, first2, next2);
             first2 = next2;
         } else {
             first1 = at<u8 *>(first1, 0);
         }
     }
-    if (first2 != head2) {
-        at<u8 *>(at<u8 *>(head2, 4), 0) = head1;
-        at<u8 *>(at<u8 *>(first2, 4), 0) = head2;
-        at<u8 *>(at<u8 *>(head1, 4), 0) = first2;
-        u8 *const saved = at<u8 *>(head1, 4);
-        at<u8 *>(head1, 4) = at<u8 *>(head2, 4);
-        at<u8 *>(head2, 4) = at<u8 *>(first2, 4);
-        at<u8 *>(first2, 4) = saved;
+    if (first2 != head2) SpliceBefore(head1, first2, head2);
+    at<u32>(list, 8) = at<u32>(list, 8) + at<u32>(other, 8);
+    at<u32>(other, 8) = 0;
+}
+
+void __fastcall StdListString_Merge(u8 *list, void *, u8 *other) {
+    if (other == list) return;
+    u8 *const head1 = at<u8 *>(list, 4);
+    u8 *first1 = at<u8 *>(head1, 0);
+    u8 *const head2 = at<u8 *>(other, 4);
+    u8 *first2 = at<u8 *>(head2, 0);
+    while (first1 != head1 && first2 != head2) {
+        const char *const chars = at<const char *>(first1, 0xc);
+        if (StdString_CompareSub(reinterpret_cast<const StdString *>(first2 + 8), nullptr, 0, at<u32>(first2, 0x10), chars ? chars : reinterpret_cast<const char *>(0x006fe5b0), at<u32>(first1, 0x10)) < 0) {
+            u8 *const next2 = at<u8 *>(first2, 0);
+            SpliceBefore(first1, first2, next2);
+            first2 = next2;
+        } else {
+            first1 = at<u8 *>(first1, 0);
+        }
     }
+    if (first2 != head2) SpliceBefore(head1, first2, head2);
     at<u32>(list, 8) = at<u32>(list, 8) + at<u32>(other, 8);
     at<u32>(other, 8) = 0;
 }
