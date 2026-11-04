@@ -966,4 +966,14 @@ s32 __fastcall AdvisorScoring_Red5(const u8 *scoring) {
     s32 months;
     return months_in_red(months) && months == 5 ? at<s32>(scoring, 0x34c) : 0;
 }
+
+s32 __fastcall AdvisorScoring_DaysBetween1(const u8 *scoring) {
+    const s32 days = age_in(kDay);
+    return days > at<s32>(scoring, 0x5dc) && days < at<s32>(scoring, 0x5e0) ? at<s32>(scoring, 0x5e4) : 0;
+}
+
+s32 __fastcall AdvisorScoring_DaysBetween2(const u8 *scoring) {
+    const s32 days = age_in(kDay);
+    return days > at<s32>(scoring, 0x5e8) && days < at<s32>(scoring, 0x5ec) ? at<s32>(scoring, 0x5f0) : 0;
+}
 }

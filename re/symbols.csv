@@ -5368,6 +5368,8 @@ address,name,kind,confidence,notes
 0x0059e9f0,AdvisorScoring_RedUnder3,function,low,reimplemented (src/game/core/advisorscoring); in the red under 3 months
 0x0059ea70,AdvisorScoring_Red3To4,function,low,reimplemented (src/game/core/advisorscoring); in the red 3 or 4 months
 0x0059eaf0,AdvisorScoring_Red5,function,low,reimplemented (src/game/core/advisorscoring); in the red 5 months
+0x005a06c0,AdvisorScoring_DaysBetween1,function,low,reimplemented (src/game/core/advisorscoring); days elapsed strictly between +0x5dc and +0x5e0: +0x5e4
+0x005a0720,AdvisorScoring_DaysBetween2,function,low,reimplemented (src/game/core/advisorscoring); days elapsed strictly between +0x5e8 and +0x5ec: +0x5f0
 0x00418da0,ParkInfo_Serialize,function,low,"reimplemented (src/game/core/parkinfo); thiscall (stream, save, version, unused), pops 0x10: the save's park information (strings, three dwords, the author's name and e-mail, the description, the publishing date) written or read field by field (name unconfirmed)"
 0x005d55a0,AuthStamp_Text,function,low,"reimplemented (src/game/core/authstamp); cdecl: ""No Authorization Stamp"" (0x774bc0) while the phrase at 0x763f3d is the plain one at 0x774bd8; else the phrase's bytes less the key's (0x774b78) written to 0xf827f8 until they meet, and 0xf827f8"
 0x006cc7b0,Mp2Decoder_ParseHeader,function,low,"reimplemented (src/game/core/mp2frame); parses an MPEG audio frame header into the decoder's fields, rate, bitrate and frame length; -1 without sync or bitrate"

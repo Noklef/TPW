@@ -342,4 +342,7 @@ s32 __fastcall AdvisorScoring_MoneyOverLoanless(const u8 *scoring);
 s32 __fastcall AdvisorScoring_RedUnder3(const u8 *scoring);
 s32 __fastcall AdvisorScoring_Red3To4(const u8 *scoring);
 s32 __fastcall AdvisorScoring_Red5(const u8 *scoring);
+// 0x5a06c0 / 0x5a0720 (names invented, unconfirmed): the days of G's +0x2a0's elapsed time strictly between two bounds (signed, the day's 0xc92a69c000 ticks rounding to zero): +0x5dc, +0x5e0: +0x5e4; +0x5e8, +0x5ec: +0x5f0. Else 0.
+s32 __fastcall AdvisorScoring_DaysBetween1(const u8 *scoring);
+s32 __fastcall AdvisorScoring_DaysBetween2(const u8 *scoring);
 }
