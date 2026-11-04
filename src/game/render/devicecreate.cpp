@@ -146,12 +146,12 @@ u32 __cdecl SoftSetup_Destroy() {
     return 1;
 }
 
-u32 __fastcall SoftSetup_Open(u8 *self, void *, u32) {
+u32 __fastcall SoftSetup_Open(u8 *self, void *, u32 kind) {
     if (global(0x008bd508) & 0x2000000)
         g_calls.Cd(0x005645e0, "\n\nInitializing Software renderer");
     const u32 raster = raster_interface();
     const u32 width = global(0x008bcbd0), height = global(0x008bcbd4);
-    at<u32>(self, 8) = g_calls.Cd(0x00678e70, raster, raster ? address_of(self + 4) : 0u, width, height);
+    at<u32>(self, 8) = g_calls.Cd(0x00678e70, raster, kind ? address_of(self + 4) : 0u, width, height);
     at<u32>(self, 0xc) = (global(0x008bcbd0) * global(0x008bcbd4)) << 2;
     const u32 w = global(0x008bcbd0);
     global(0x00fbe014) = 0;

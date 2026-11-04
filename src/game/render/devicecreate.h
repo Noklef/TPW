@@ -23,7 +23,7 @@ u32 __cdecl SoftSetup_CreateSquare();
 // 0x573b30 (cdecl): when [0x879dac] is set, its blocks +4 and +8 freed (when set; tracked) and cleared, the C library's 0x679270 called, the object freed, it and [0x8bd52c] cleared, 1. Else 0.
 u32 __cdecl SoftSetup_Destroy();
 
-// 0x573b90 (thiscall (kind, unused), pops 4): logged when [0x8bd508] has 0x2000000. The raster interface asked of the DirectDraw object's +0x14; the raster set up at [0x8bcbd0] by [0x8bcbd4], a Z buffer into +4 when the interface is
-// not null; +8 the raster, +0xc its bytes; the raster globals 0xfbe014-0xfbe034 set. 1.
-u32 __fastcall SoftSetup_Open(u8 *self, void *, u32 unused);
+// 0x573b90 (thiscall (kind), pops 4): logged when [0x8bd508] has 0x2000000. The raster interface asked of the DirectDraw object's +0x14; the raster set up at [0x8bcbd0] by [0x8bcbd4], a Z buffer into +4 when the kind is
+// not 0; +8 the raster, +0xc its bytes; the raster globals 0xfbe014-0xfbe034 set. 1.
+u32 __fastcall SoftSetup_Open(u8 *self, void *, u32 kind);
 }
