@@ -14,6 +14,7 @@
 #include "../ui/dialog7cc530open.h"
 #include "../ui/dialogs.h"
 #include "../ui/dialuphangup.h"
+#include "itemlist.h"
 #include "items.h"
 #include "listrequest.h"
 
@@ -278,7 +279,7 @@ void __fastcall Online_ResetConnections(u8 *session) {
 }
 
 namespace {
-const OnlineStartEnv kStartGameEnv = {&Online_ReleaseNews, &Online_ResetCity, &Online_ResetUpload, &Online_ResetDownload, &Dialog7cca94_Message4IfUp, &Online_Instance, &ListRequest_Start66, &Dialog7cc530_Open};
+const OnlineStartEnv kStartGameEnv = {&Online_ReleaseNews, &Online_ResetCity, &Online_ResetUpload, &Online_ResetDownload, &Dialog7cca94_Message4IfUp, &Online_Instance, &ListRequest_Start66, &Dialog7cc530_Open, &Owner2c_FindKind100};
 const OnlineStartEnv *g_start = &kStartGameEnv;
 }  // namespace
 
@@ -327,6 +328,39 @@ void __fastcall Online_ResetAll(u8 *session) {
     at<u32>(session, 0x50) = 0;
     Online_ResetConnections(session);
     Dialup_HangUpIfOpen();
+}
+
+u32 __fastcall Online_ConnectLobby(u8 *session) {
+    if (void *const old = at<void *>(session, 0x104)) {
+        CallImport(0x006fd5ec, old);
+        at<u32>(session, 0x104) = 0;
+    }
+    using Make = u32(__fastcall *)(void *, void *);
+    void *const block = GameHeap_Alloc(0xc);
+    at<u32>(session, 0x104) = block ? (*reinterpret_cast<const Make *>((uintptr_t)0x006fd5dc))(block, nullptr) : 0;
+    Say(0x00773a1c);
+    WString wide;
+    WString_CtorStr(&wide, nullptr, at<const u16 *>(g_start->findKind(at<u8 *>(session, 0xfc)), 0x2c));
+    String host;
+    String_Ctor(&host);
+    String_AssignFromWide(&host, &wide);
+    const u8 *const record = g_start->findKind(at<u8 *>(session, 0xfc));
+    const u32 port = (static_cast<u32>(reinterpret_cast<uintptr_t>(record)) & 0xffff0000u) | at<u16>(record, 0x3c);  // (sic)
+    using Connect = s32(__fastcall *)(void *, void *, const char *, u8 *, u32, u32);
+    const s32 answer = (*reinterpret_cast<const Connect *>((uintptr_t)0x006fd5e0))(at<void *>(session, 0x104), nullptr, host.data, Global7cc53c_Pick7cc4f0(), port, 0x005b8260);
+    u32 result = 0;
+    if (answer == 1) {
+        Say(0x007739dc);
+        using Lobby = void(__fastcall *)(void *, void *, u32, u32, u32, u32);
+        const u32 language = Language_Id(reinterpret_cast<const u8 *>((uintptr_t)0x0078b530));
+        (*reinterpret_cast<const Lobby *>((uintptr_t)0x006fd5e4))(at<void *>(session, 0x104), nullptr, language, at<u32>(session, 0x34), at<u32>(session, 0x38), at<u32>(session, 0x28));
+        result = 1;
+    } else {
+        Say(0x007739f8);
+    }
+    String_Dtor(&host);
+    WString_Dtor(&wide);
+    return result;
 }
 
 namespace {

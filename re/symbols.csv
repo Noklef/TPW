@@ -7301,6 +7301,7 @@ address,name,kind,confidence,notes
 0x005b5e40,Online_ResetAll,function,low,reimplemented (src/game/online/session); the login too and the dial-up
 0x005b50b0,Online_Construct,function,low,reimplemented (src/game/online/session); the session's constructor
 0x005b87e0,Online_Start,function,low,reimplemented (src/game/online/session); the online session started on a request
+0x005b8290,Online_ConnectLobby,function,low,reimplemented (src/game/online/session); The connection remade and connected to the record's host and port.
 0x005bc9c0,Owner2c_FindByKey,function,high,reimplemented (src/game/online/itemlist); the last item of the owner's list whose +8 is the key
 0x005bcb60,Owner2c_At,function,high,reimplemented (src/game/online/itemlist); the index'th item of the owner's list
 0x005bd270,Owner2c_ValueByKey,function,high,reimplemented (src/game/online/itemlist); the +0x14 of the last item whose +8 is the key

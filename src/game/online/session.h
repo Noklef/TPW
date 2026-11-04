@@ -25,6 +25,7 @@ struct OnlineStartEnv {
     u8 *(__cdecl *instance)();                     // Online_Instance (0x48b390)
     void(__fastcall *listStart)(u8 *list, void *, u32 value, u32 callback, u32 user);  // ListRequest_Start66 (0x5bcd10)
     void(__cdecl *openDialog)(u32 value);          // Dialog7cc530_Open (0x4ba980)
+    u8 *(__fastcall *findKind)(u8 *owner);         // Owner2c_FindKind100 (0x5bd690)
 };
 void Online_SetStartEnv(const OnlineStartEnv *env);
 
@@ -100,6 +101,11 @@ void __fastcall Online_ResetConnections(u8 *session);
 // 0x5b5e40 (thiscall; name invented): the login released, +0x64, +0x60, +0x68, +4, +8, +0x34, +0x38 and +0x50 = 0, the strings at +0xc, +0x20
 // and +0x3c assigned ""; then Online_ResetConnections and Dialup_HangUpIfOpen.
 void __fastcall Online_ResetAll(u8 *session);
+
+// 0x5b8290 (thiscall; the SEH frame left out; name invented, unconfirmed): the connection +0x104 released when set (0x6fd5ec), a new one made (0x6fd5dc; a failed block: 0); said; the record of +0xfc
+// (Owner2c_FindKind100) gives the host (+0x2c, wide, in ANSI) and port (word +0x3c, in AX: the record's high half stays above it, sic): connect 0x6fd5e0 (host, Global7cc53c_Pick7cc4f0, port, the
+// callback 0x5b8260). Answering 1: said, 0x6fd5e4 (Language_Id, +0x34, +0x38, +0x28), returns 1; else said, returns 0.
+u32 __fastcall Online_ConnectLobby(u8 *session);
 
 // 0x5b87e0 (thiscall (a, b, c), pops 12; name invented, unconfirmed): Online_ReleaseNews; +0x74, +0x90 and +0xac = -1; +0xc8, +0xcc, +0x78, +0x94, +0xb0, +0xd0 = 0; the strings +0x7c (0x786de4), +0x98 and +0xb4 (0x78a374)
 // assigned by slot 5; the city, upload and download reset; the dialog's message. +0x3a8 = a, +0x3c0 = b, +0x3c4 = c. Logged in (+0x60): the instance's list +0xf0 starts on its +0x3a8 with the callback 0x5b88e0. Otherwise
