@@ -101,6 +101,38 @@ u32 __fastcall Online_UserFlags(const u8 *session) { return at<u32>(session, 0x5
 
 u32 __fastcall Online_User5c(const u8 *session) { return at<u32>(session, 0x5c); }
 
+namespace {
+
+// The login's state cleared, its three strings assigned "" (the auth at +0 is another's).
+void ClearLogin(u8 *session) {
+    for (u32 offset : {0x64u, 0x60u, 0x68u, 4u, 8u})
+        at<u32>(session, offset) = 0;
+    vcall<void>(session + 0xc, 0x14, 0x0078a374u);
+    vcall<void>(session + 0x20, 0x14, 0x0078a374u);
+    at<u32>(session, 0x34) = 0;
+    at<u32>(session, 0x38) = 0;
+    vcall<void>(session + 0x3c, 0x14, 0x0078a374u);
+    at<u32>(session, 0x50) = 0;
+}
+
+// The News' state cleared, its three strings assigned "".
+void ClearNews(u8 *session) {
+    at<u32>(session, 0x74) = 0xffffffff;
+    at<u32>(session, 0xc8) = 0;
+    at<u32>(session, 0xcc) = 0;
+    at<u32>(session, 0x78) = 0;
+    vcall<void>(session + 0x7c, 0x14, 0x00786de4u);
+    at<u32>(session, 0x90) = 0xffffffff;
+    at<u32>(session, 0x94) = 0;
+    vcall<void>(session + 0x98, 0x14, 0x0078a374u);
+    at<u32>(session, 0xac) = 0xffffffff;
+    at<u32>(session, 0xb0) = 0;
+    vcall<void>(session + 0xb4, 0x14, 0x0078a374u);
+    at<u32>(session, 0xd0) = 0;
+}
+
+}  // namespace
+
 void __fastcall Online_ReleaseLogin(u8 *session) {
     if (!at<u8 *>(session, 0))
         return;
@@ -122,18 +154,7 @@ void __fastcall Online_ReleaseNews(u8 *session) {
 void __fastcall Online_ResetNews(u8 *session) {
     if (at<u8 *>(session, 0x6c))
         FreeNews(session);
-    at<u32>(session, 0x74) = 0xffffffff;
-    at<u32>(session, 0xc8) = 0;
-    at<u32>(session, 0xcc) = 0;
-    at<u32>(session, 0x78) = 0;
-    vcall<void>(session + 0x7c, 0x14, 0x00786de4u);
-    at<u32>(session, 0x90) = 0xffffffff;
-    at<u32>(session, 0x94) = 0;
-    vcall<void>(session + 0x98, 0x14, 0x0078a374u);
-    at<u32>(session, 0xac) = 0xffffffff;
-    at<u32>(session, 0xb0) = 0;
-    vcall<void>(session + 0xb4, 0x14, 0x0078a374u);
-    at<u32>(session, 0xd0) = 0;
+    ClearNews(session);
 }
 
 u8 *__fastcall Auth_DeletingDtor(u8 *auth, void *, u32 flags) {
@@ -301,18 +322,7 @@ void Online_SetStartEnv(const OnlineStartEnv *env) { g_start = env ? env : &kSta
 
 void __fastcall Online_Start(u8 *session, void *, u32 a, u32 b, u32 c) {
     g_start->releaseNews(session);
-    at<u32>(session, 0x74) = 0xffffffff;
-    at<u32>(session, 0xc8) = 0;
-    at<u32>(session, 0xcc) = 0;
-    at<u32>(session, 0x78) = 0;
-    vcall<void>(session + 0x7c, 0x14, 0x00786de4u);
-    at<u32>(session, 0x90) = 0xffffffff;
-    at<u32>(session, 0x94) = 0;
-    vcall<void>(session + 0x98, 0x14, 0x0078a374u);
-    at<u32>(session, 0xac) = 0xffffffff;
-    at<u32>(session, 0xb0) = 0;
-    vcall<void>(session + 0xb4, 0x14, 0x0078a374u);
-    at<u32>(session, 0xd0) = 0;
+    ClearNews(session);
     g_start->resetCity(session);
     g_start->resetUpload(session);
     g_start->resetDownload(session);
@@ -332,14 +342,7 @@ void __fastcall Online_Start(u8 *session, void *, u32 a, u32 b, u32 c) {
 
 void __fastcall Online_ResetAll(u8 *session) {
     Online_ReleaseLogin(session);
-    for (u32 offset : {0x64u, 0x60u, 0x68u, 0x4u, 0x8u})
-        at<u32>(session, offset) = 0;
-    vcall<void>(session + 0xc, 0x14, 0x0078a374u);
-    vcall<void>(session + 0x20, 0x14, 0x0078a374u);
-    at<u32>(session, 0x34) = 0;
-    at<u32>(session, 0x38) = 0;
-    vcall<void>(session + 0x3c, 0x14, 0x0078a374u);
-    at<u32>(session, 0x50) = 0;
+    ClearLogin(session);
     Online_ResetConnections(session);
     Dialup_HangUpIfOpen();
 }
@@ -496,14 +499,7 @@ void Online_SetDtorEnv(const OnlineDtorEnv *env) { g_dtor = env ? env : &kDtorGa
 
 void __fastcall Online_Dtor(u8 *session) {
     g_dtor->releaseLogin(session);
-    for (u32 offset : {0x64u, 0x60u, 0x68u, 4u, 8u})
-        at<u32>(session, offset) = 0;
-    vcall<void>(session + 0xc, 0x14, 0x0078a374u);
-    vcall<void>(session + 0x20, 0x14, 0x0078a374u);
-    at<u32>(session, 0x34) = 0;
-    at<u32>(session, 0x38) = 0;
-    vcall<void>(session + 0x3c, 0x14, 0x0078a374u);
-    at<u32>(session, 0x50) = 0;
+    ClearLogin(session);
     g_dtor->resetNews(session);
     g_dtor->resetCity(session);
     g_dtor->resetUpload(session);
@@ -538,6 +534,116 @@ void __fastcall Online_Dtor(u8 *session) {
     g_dtor->wstringDtor(session + 0x3c);
     g_dtor->wstringDtor(session + 0x20);
     g_dtor->wstringDtor(session + 0xc);
+}
+
+namespace {
+
+const OnlineEndEnv kEndGameEnv = {&CommandQueue_Post, &Online_OpenCity, &Online_ReleaseNews, &Online_ResetNews, &Online_ResetCity, &Online_ResetUpload, &Online_ResetDownload, &Dialog7cca94_Message4IfUp, &Dialup_HangUpIfOpen,
+                                  reinterpret_cast<decltype(OnlineEndEnv::showText)>(&Dialog7cca94_ShowText), reinterpret_cast<decltype(OnlineEndEnv::setProgress)>(&Dialog7cca94_SetProgress), &Online_Instance, &Online_UploadStart};
+const OnlineEndEnv *g_end = &kEndGameEnv;
+
+using TransferCallback = void(__cdecl *)(u32 result, u32 user);
+
+// The upload's posting: +0x37c and +0x380 posted and cleared when either is set; whether it did.
+bool PostUpload(u8 *session) {
+    if (!at<u32>(session, 0x37c) && !at<u32>(session, 0x380)) return false;
+    g_end->post(at<u32>(session, 0x37c), at<u32>(session, 0x380));
+    at<u32>(session, 0x37c) = 0;
+    at<u32>(session, 0x380) = 0;
+    return true;
+}
+
+}  // namespace
+
+void Online_SetEndEnv(const OnlineEndEnv *env) { g_end = env ? env : &kEndGameEnv; }
+
+void __fastcall Online_DownloadEnd(u8 *session, void *, u32 failed) {
+    bool posted = false;
+    if (at<u32>(session, 0x398)) {
+        g_end->post(at<u32>(session, 0x398), 0);
+        at<u32>(session, 0x398) = 0;
+        posted = true;
+    }
+    const TransferCallback callback = at<TransferCallback>(session, 0x3c0);
+    const u32 user = at<u32>(session, 0x3c4);
+    if (!failed && !posted) {
+        const u32 size = at<u32>(at<u8 *>(session, 0x3a4), 8);
+        if (g_end->openCity(session)) {
+            using Start = void(__fastcall *)(void *, void *, u32, u32, u32);
+            (*reinterpret_cast<const Start *>((uintptr_t)0x006fd52c))(at<void *>(session, 0xd4), nullptr, 0, size, at<u32>(session, 0x34));
+        }
+        at<u32>(session, 0x3f0) = 1;
+    } else if (at<u32>(session, 0x388)) {
+        Online_ReleaseLogin(session);
+        ClearLogin(session);
+        g_end->releaseNews(session);
+        ClearNews(session);
+        g_end->resetCity(session);
+        g_end->resetUpload(session);
+        g_end->resetDownload(session);
+        g_end->message4();
+        g_end->hangUp();
+    }
+    if (callback) callback(failed, user);
+    DropDownload(session);
+    at<u32>(session, 0x384) = 0;
+}
+
+void __fastcall Online_UploadPoll(u8 *session) {
+    if (!at<u32>(session, 0x104) || !at<u32>(session, 0x324)) return;
+    if (!at<u32>(session, 0x328)) {
+        using Current = u32(__fastcall *)(void *, void *, u32);
+        const Current current = *reinterpret_cast<const Current *>((uintptr_t)0x006fd5d4);
+        u32 id = current(at<void *>(session, 0x104), nullptr, 0);
+        if (!id) id = current(at<void *>(session, 0x104), nullptr, 1);
+        g_end->showText(0x101);
+        s32 done = 0, total = 0;
+        using Progress = void(__fastcall *)(void *, void *, u32, s32 *, s32 *);
+        (*reinterpret_cast<const Progress *>((uintptr_t)0x006fd5d8))(at<void *>(session, 0x104), nullptr, id, &done, &total);
+        if (total > 0) g_end->setProgress(static_cast<s32>(static_cast<u32>(done) * 100u) / total);
+        return;
+    }
+    g_end->message4();
+    const u32 succeeded = at<u32>(session, 0x32c) == 0;
+    at<u32>(session, 0x324) = 0;
+    const bool posted = PostUpload(session);
+    const TransferCallback callback = at<TransferCallback>(session, 0x374);
+    const u32 user = at<u32>(session, 0x378);
+    if ((succeeded || posted) && at<u32>(session, 0x320)) {
+        Online_ReleaseLogin(session);
+        ClearLogin(session);
+        g_end->resetNews(session);
+        g_end->resetCity(session);
+        g_end->resetUpload(session);
+        g_end->resetDownload(session);
+        g_end->message4();
+        g_end->hangUp();
+    }
+    if (callback) callback(succeeded, user);
+    Online_ReleaseUpload(session);
+}
+
+void __cdecl Online_UploadLoginDone(u32 failed) {
+    u8 *const session = g_end->instance();
+    if (!failed) {
+        g_end->uploadStart(g_end->instance());
+        return;
+    }
+    PostUpload(session);
+    const TransferCallback callback = at<TransferCallback>(session, 0x374);
+    const u32 user = at<u32>(session, 0x378);
+    if (at<u32>(session, 0x320)) {
+        Online_ReleaseLogin(session);
+        ClearLogin(session);
+        g_end->resetNews(session);
+        g_end->resetCity(session);
+        Online_ResetUpload(session);   // the game has it inline
+        g_end->resetDownload(session);
+        g_end->message4();
+        g_end->hangUp();
+    }
+    if (callback) callback(1, user);
+    Online_ReleaseUpload(session);
 }
 
 void __fastcall Online_CityPoll(u8 *session) {
@@ -628,14 +734,8 @@ u8 *__fastcall Online_Construct(u8 *session) {
     at<u32>(session, 0x3d4) = 0;
     at<u32>(session, 0x3c8) = 0x00702878;
     String_Ctor(reinterpret_cast<String *>(session + 0x3dc));
-    for (u32 offset : {0x0u, 0x64u, 0x60u, 0x68u, 0x4u, 0x8u})
-        at<u32>(session, offset) = 0;
-    vcall<void>(session + 0xc, 0x14, 0x0078a374u);
-    vcall<void>(session + 0x20, 0x14, 0x0078a374u);
-    at<u32>(session, 0x34) = 0;
-    at<u32>(session, 0x38) = 0;
-    vcall<void>(session + 0x3c, 0x14, 0x0078a374u);
-    at<u32>(session, 0x50) = 0;
+    at<u32>(session, 0) = 0;
+    ClearLogin(session);
     at<u32>(session, 0x6c) = 0;
     at<u32>(session, 0x70) = 0;
     Online_ResetNews(session);

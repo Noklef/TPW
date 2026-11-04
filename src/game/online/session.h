@@ -66,6 +66,24 @@ struct OnlineDtorEnv {
 };
 void Online_SetDtorEnv(const OnlineDtorEnv *env);
 
+// The transfers' ends' calls: the ports by default; the bench's recorders.
+struct OnlineEndEnv {
+    u32(__cdecl *post)(u32 code, u32 param);       // CommandQueue_Post (0x47f410)
+    u8 *(__fastcall *openCity)(u8 *session);       // Online_OpenCity (0x5b72f0)
+    void(__fastcall *releaseNews)(u8 *session);    // Online_ReleaseNews (0x5b6b20)
+    void(__fastcall *resetNews)(u8 *session);      // Online_ResetNews (0x5b6980)
+    void(__fastcall *resetCity)(u8 *session);      // Online_ResetCity (0x5b7430)
+    void(__fastcall *resetUpload)(u8 *session);    // Online_ResetUpload (0x5b8400)
+    void(__fastcall *resetDownload)(u8 *session);  // Online_ResetDownload (0x5b9040)
+    s32(__cdecl *message4)();                      // Dialog7cca94_Message4IfUp (0x4c25e0)
+    void(__cdecl *hangUp)();                       // Dialup_HangUpIfOpen (0x4bae40)
+    void(__cdecl *showText)(u32 text);             // Dialog7cca94_ShowText (0x4c25b0)
+    void(__cdecl *setProgress)(s32 percent);       // Dialog7cca94_SetProgress (0x4c2600)
+    u8 *(__cdecl *instance)();                     // Online_Instance (0x48b390)
+    void(__fastcall *uploadStart)(u8 *session);    // Online_UploadStart (0x5b7cd0)
+};
+void Online_SetEndEnv(const OnlineEndEnv *env);
+
 extern "C" {
 
 // 0x5b6450: +0x60, set while logged in.
@@ -165,6 +183,17 @@ void __fastcall Online_CityPoll(u8 *session);
 // 0x5b5920 (thiscall): the destructor. The login released, its state and strings cleared; the News, City, Upload and Download reset, Message4 and hang up. The News (still set) dropped, the lists at
 // +0xe0..+0x100 deleted (not cleared), the Upload and the Download's object and block dropped, the object at +0x3a4 deleted (not cleared). The strings destroyed, the node list at +0x3cc freed.
 void __fastcall Online_Dtor(u8 *session);
+
+// 0x5b90e0 (thiscall; failed; pops 4): +0x398 (set) posted and cleared. Not failed and nothing posted: the City opened and its 0x6fd52c(0, the block's size, +0x34), +0x3f0 = 1. Otherwise with +0x388:
+// the login dropped and everything reset. The callback +0x3c0 (failed, +0x3c4), the Download's object and block dropped, +0x384 = 0.
+void __fastcall Online_DownloadEnd(u8 *session, void *, u32 failed);
+
+// 0x5b8490 (thiscall): with an Upload and +0x324. +0x328 clear: the progress shown (text 0x101). Set: ok = +0x32c clear, +0x324 = 0, +0x37c / +0x380 posted; ok or posted, with +0x320: the login dropped
+// and everything reset. The callback +0x374 (ok, +0x378) as read before the reset; the Upload released.
+void __fastcall Online_UploadPoll(u8 *session);
+
+// 0x5b79f0 (cdecl; failed): not failed: Online_UploadStart. Failed: as Online_UploadPoll's end, the callback with 1.
+void __cdecl Online_UploadLoginDone(u32 failed);
 
 // 0x5b87e0 (thiscall (a, b, c), pops 12; name invented, unconfirmed): Online_ReleaseNews; +0x74, +0x90 and +0xac = -1; +0xc8, +0xcc, +0x78, +0x94, +0xb0, +0xd0 = 0; the strings +0x7c (0x786de4), +0x98 and +0xb4 (0x78a374)
 // assigned by slot 5; the city, upload and download reset; the dialog's message. +0x3a8 = a, +0x3c0 = b, +0x3c4 = c. Logged in (+0x60): the instance's list +0xf0 starts on its +0x3a8 with the callback 0x5b88e0. Otherwise
