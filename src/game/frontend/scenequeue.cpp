@@ -35,6 +35,12 @@ void __fastcall Class702da0_Clear(u8 *object) {
     }
 }
 
+void __fastcall Class702da0_Show(u8 *object, void *, u32 id, u32 time) {
+    at<u32>(object, 0x18) = 1;
+    at<u32>(object, 0x1c) = time;
+    at<u32>(object, 0x24) = id;
+}
+
 void __fastcall Class702da0_Push(u8 *object, void *, u32 id, u32 clear) {
     if (clear) Class702da0_Clear(object);   // (inlined)
     u32 *const item = static_cast<u32 *>(GameHeap_Alloc(4));

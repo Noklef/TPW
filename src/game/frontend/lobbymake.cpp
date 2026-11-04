@@ -27,7 +27,10 @@ const LobbyMakeEnv kPorts = {reinterpret_cast<decltype(LobbyMakeEnv::load)>(Ride
                              &Obj_RemoveFromRect,
                              &LobbyModel_TurnY,
                              &LobbyModel_SetPosition,
-                             &Sound_RegisterLobbyCategories};
+                             &Sound_RegisterLobbyCategories,
+                             &RideUser_Acquire,
+                             &LobbyModel_AlignTo,
+                             &LobbyModel_SetScale};
 const LobbyMakeEnv *g_env = &kPorts;
 
 u8 *Scene() { return global<u8 *>(0x00f83774); }
@@ -85,6 +88,36 @@ u8 *__fastcall LobbyScene_MakeModel(u8 *scene, void *, const char *name, const c
     vcall<void>(second, 0x14, pack);
     vcall<void>(Scene(), 0x18, model);
     return model;
+}
+
+u8 *__fastcall Class702bb8_Ctor(u8 *self, void *, u8 *owner, const u8 *record) {
+    at<u32>(self, 0) = 0x00702bb8;
+    at<const u8 *>(self, 0xc) = record;
+    const char *const pack = Crt().wcsicmp(at<const u16 *>(record, 0x14), reinterpret_cast<const u16 *>(0x00774ca8)) == 0 ? reinterpret_cast<const char *>(0x00774c9c) : reinterpret_cast<const char *>(0x00774c94);
+    u8 *const model = LobbyScene_MakeModel(Scene(), nullptr, reinterpret_cast<const char *>(0x00774c80), pack, 0, 1, 0, 0);
+    at<u8 *>(self, 4) = model;
+    g_env->acquire(model);
+    float raw[3];
+    for (u32 k = 0; k < 3; ++k)
+        at<u32>(raw, 4 * k) = at<u32>(record, 0x34 + 4 * k);
+    const X87Reg x = raw[0], y = raw[1], z = raw[2];
+    const float length = (float)X87_Sqrt(x * x + y * y + z * z);
+    float unit[3];
+    for (u32 k = 0; k < 3; ++k)
+        unit[k] = (float)(X87Reg(raw[k]) / length);
+    g_env->alignTo(at<const u8 *>(self, 4), nullptr, unit);
+    g_env->setPosition(at<const u8 *>(self, 4), nullptr, raw);
+    const X87Reg scaled = X87Reg((double)at<s32>(record, 0x40)) * global<float>(0x00702b64) - global<float>(0x00702b68);
+    float z_scale = (float)scaled;
+    if (scaled.v < global<float>(0x00702b6c))
+        at<u32>(&z_scale, 0) = 0x3ca3d70a;
+    else if (z_scale > global<float>(0x00702b70))
+        at<u32>(&z_scale, 0) = 0x3dcccccd;
+    const float xy = (float)(global<float>(0x00702b78) - X87Reg(z_scale) * global<float>(0x00702b74));
+    g_env->setScale(at<const u8 *>(self, 4), nullptr, xy, xy, z_scale);
+    at<u8 *>(self, 8) = owner;
+    vcall<void>(owner, 0x30, self);
+    return self;
 }
 
 u8 *__fastcall Class702ca8_Ctor(u8 *self, void *, u8 *owner, u32 a1, const char *title_, const char *name, const char *pack, const char *pack2, float degrees, const u32 *point, const u16 *text, u32 a9, u32 b, u32 c) {

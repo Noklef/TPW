@@ -3,7 +3,7 @@
 # worlds; the heap from it, larger): the object's list at +8 of 0-4 nodes {item, next, prev} (the items any pointers: freed, hashed), its
 # head +0xc and tail +0x10 theirs, the count +0x14 theirs or fewer (more would loop on a missing head, sic: Mem_Free(0) forever), the
 # nodes' back links any. Push: the id any, clear 0, 1 or any.
-# usage: scenequeue.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Clear,Push)
+# usage: scenequeue.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Clear,Push,Show)
 import os
 import sys
 
@@ -17,13 +17,15 @@ if _ops is not None:
     os.environ['OPS'] = _ops
 
 B = Bench(asp.merged(asp.soundset.RANGES + asp.advisor.RANGES + [(0x5994e0, 0x5996c9), (0x402d80, 0x403220), (0x429d60, 0x429e00),
-                                                               (0x5ed5a0, 0x5ed670), (0x51bfc0, 0x51c048), (0x5d6060, 0x5d60bf), (0x5d6110, 0x5d6191)]),
+                                                               (0x5ed5a0, 0x5ed670), (0x51bfc0, 0x51c048), (0x5d6060, 0x5d60bf), (0x5d6110, 0x5d6191), (0x5d61a0, 0x5d61b8)]),
           hooks={0x67a7d0: _cdecl_log, 0x67ad90: _free})   # (advisorspeech.py's Stop ranges and hooks)
 OBJ, NODES = RAM + 0x60000, RAM + 0x60100
 
 
 def case(r):
     op = r.deal(OPS)
+    if op == 'Show':
+        return Call(0x5d61a0, [RAM + 0x4000, r.getrandbits(32), r.getrandbits(32)], {RAM + 0x4000: r.bytes(0x30)}, conv='t', ret='v')
     regions = asp.stop_world(r)
     regions[HEAP] = heap(0x200)
     n = r.choice([0, 1, 1, 2, 3, 4])
@@ -39,7 +41,7 @@ def case(r):
     return Call(0x5d6110, [OBJ, r.getrandbits(32), r.choice([0, 1, 1, r.getrandbits(32)])], regions, conv='t', ret='v')
 
 
-OPS = [k for k in os.environ.get('OPS', 'Clear,Push').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Clear,Push,Show').split(',') if k]
 
 
 if __name__ == '__main__':

@@ -7,6 +7,7 @@
 #include "buffers.h"
 #include "crt.h"
 #include "gameheap.h"
+#include "rings.h"
 #include "string.h"
 #include "stdstring.h"
 #include "stdwstring.h"
@@ -15,6 +16,9 @@ namespace {
 
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
+
+const StdListEnv kGameEnv = {reinterpret_cast<void(__fastcall *)(u8 *)>((uintptr_t)0x00634bf0)};
+const StdListEnv *g_env = &kGameEnv;
 
 // A new node of `size` bytes linked in front of `before` (its +0 the next, +4 the previous; a null `before` or previous node is taken to be the node itself).
 u8 *LinkBefore(u8 *before, u32 size) {
@@ -50,6 +54,26 @@ void EraseMatching(u8 *object, u32 sentinelOffset, u32 countOffset) {
             at<u32>(object, countOffset) -= 1;
         } else {
             node = at<u8 *>(node, 0);
+        }
+    }
+}
+
+// The key at [+0x7c]+8 pushed on the list of dwords at the offset, the list sorted, each run of equal dwords cut to its first.
+void AddKeySorted(u8 *object, u32 listOffset) {
+    u8 *const list = object + listOffset;
+    StdListDword_PushBack(list, nullptr, reinterpret_cast<const u32 *>(at<u8 *>(object, 0x7c) + 8));
+    StdListDword_Sort(list);
+    u8 *const head = at<u8 *>(list, 4);
+    u8 *kept = at<u8 *>(head, 0);
+    if (kept == head) return;
+    for (u8 *next = at<u8 *>(kept, 0); next != head; next = at<u8 *>(kept, 0)) {
+        if (at<u32>(kept, 8) == at<u32>(next, 8)) {
+            at<u32>(at<u8 *>(next, 4), 0) = at<u32>(next, 0);
+            at<u32>(at<u8 *>(next, 0), 4) = at<u32>(next, 4);
+            GameHeap_Free(next);
+            at<u32>(list, 8) -= 1;
+        } else {
+            kept = next;
         }
     }
 }
@@ -150,6 +174,42 @@ void __fastcall StdListDword_PushBack(u8 *list, void *, const u32 *value) {
 void __fastcall List68_EraseMatching(u8 *object) { EraseMatching(object, 0x68, 0x6c); }
 
 void __fastcall List74_EraseMatching(u8 *object) { EraseMatching(object, 0x74, 0x78); }
+
+void __fastcall List64_AddKeySorted(u8 *object) { AddKeySorted(object, 0x64); }
+
+void __fastcall List70_AddKeySorted(u8 *object) { AddKeySorted(object, 0x70); }
+
+s32 __fastcall StdListString_AddSorted(u8 *list, void *, const StdString *x) {
+    u8 *inserted;
+    StdListString_Insert(list, nullptr, &inserted, at<u8 *>(list, 4), x);
+    StdListString_Sort(list);
+    u8 *const head = at<u8 *>(list, 4);
+    u8 *kept = at<u8 *>(head, 0);
+    if (kept != head) {
+        for (u8 *next = at<u8 *>(kept, 0); next != head; next = at<u8 *>(kept, 0)) {
+            if (ByteString_Compare(kept + 8, nullptr, next + 8) == 0) {
+                u32 after;
+                List_EraseNodeCounted(list, nullptr, &after, next);
+            } else {
+                kept = next;
+            }
+        }
+    }
+    u8 *node = at<u8 *>(head, 0);
+    if (node == head) return -1;
+    const u32 length = x->len;
+    const char *const raw = x->ptr;
+    const u8 *const wanted = raw ? reinterpret_cast<const u8 *>(raw) : reinterpret_cast<const u8 *>(0x006fe5b0);
+    for (s32 index = 0; node != head; node = at<u8 *>(node, 0), ++index) {
+        const u32 nodeLength = at<u32>(node, 0x10);
+        const u8 *const chars = at<const u8 *>(node, 0xc);
+        const u32 common = nodeLength < length ? nodeLength : length;
+        bool same = true;
+        for (u32 i = 0; i < common && same; ++i) same = wanted[i] == chars[i];
+        if (same && nodeLength == length) return index;
+    }
+    return -1;
+}
 
 u32 *__fastcall List_EraseNodeCounted(u8 *object, void *, u32 *out, u8 *node) {
     u8 *next = at<u8 *>(node, 0);
@@ -336,6 +396,17 @@ void __fastcall StdListString_Unique(u8 *list) {
     } while (current != head);
 }
 
+// The nodes first up to last move to in front of the node at.
+static void SpliceBefore(u8 *to, u8 *first, u8 *last) {
+    at<u8 *>(at<u8 *>(last, 4), 0) = to;
+    at<u8 *>(at<u8 *>(first, 4), 0) = last;
+    at<u8 *>(at<u8 *>(to, 4), 0) = first;
+    u8 *const saved = at<u8 *>(to, 4);
+    at<u8 *>(to, 4) = at<u8 *>(last, 4);
+    at<u8 *>(last, 4) = at<u8 *>(first, 4);
+    at<u8 *>(first, 4) = saved;
+}
+
 void __fastcall StdListDword_Merge(u8 *list, void *, u8 *other) {
     if (other == list) return;
     u8 *const head1 = at<u8 *>(list, 4);
@@ -345,27 +416,113 @@ void __fastcall StdListDword_Merge(u8 *list, void *, u8 *other) {
     while (first1 != head1 && first2 != head2) {
         if (at<u32>(first2, 8) < at<u32>(first1, 8)) {
             u8 *const next2 = at<u8 *>(first2, 0);
-            at<u8 *>(at<u8 *>(next2, 4), 0) = first1;
-            at<u8 *>(at<u8 *>(first2, 4), 0) = next2;
-            at<u8 *>(at<u8 *>(first1, 4), 0) = first2;
-            u8 *const saved = at<u8 *>(first1, 4);
-            at<u8 *>(first1, 4) = at<u8 *>(next2, 4);
-            at<u8 *>(next2, 4) = at<u8 *>(first2, 4);
-            at<u8 *>(first2, 4) = saved;
+            SpliceBefore(first1, first2, next2);
             first2 = next2;
         } else {
             first1 = at<u8 *>(first1, 0);
         }
     }
-    if (first2 != head2) {
-        at<u8 *>(at<u8 *>(head2, 4), 0) = head1;
-        at<u8 *>(at<u8 *>(first2, 4), 0) = head2;
-        at<u8 *>(at<u8 *>(head1, 4), 0) = first2;
-        u8 *const saved = at<u8 *>(head1, 4);
-        at<u8 *>(head1, 4) = at<u8 *>(head2, 4);
-        at<u8 *>(head2, 4) = at<u8 *>(first2, 4);
-        at<u8 *>(first2, 4) = saved;
+    if (first2 != head2) SpliceBefore(head1, first2, head2);
+    at<u32>(list, 8) = at<u32>(list, 8) + at<u32>(other, 8);
+    at<u32>(other, 8) = 0;
+}
+
+}  // extern "C"
+
+namespace {
+
+struct ListHeader {
+    u32 allocator;
+    u8 *head;
+    u32 count;
+};
+
+// The merge inlined in the sorts: as the list's merge, the carry's node in front of the bin's when below it.
+template <typename Below> void MergeCarry(ListHeader *bin, ListHeader *carry, Below below) {
+    u8 *const binHead = bin->head, *const carryHead = carry->head;
+    u8 *place = at<u8 *>(binHead, 0), *first = at<u8 *>(carryHead, 0);
+    while (place != binHead && first != carryHead) {
+        if (below(first, place)) {
+            u8 *const next = at<u8 *>(first, 0);
+            Ring_Splice(place, 0, first, next);
+            first = next;
+        } else {
+            place = at<u8 *>(place, 0);
+        }
     }
+    if (first != carryHead) Ring_Splice(binHead, 0, first, carryHead);
+    bin->count += carry->count;
+    carry->count = 0;
+}
+
+// MSVC6's list::sort: nodes moved one at a time through 16 bins of 2^i nodes (the last holding the rest); a carry and the 16 made and destroyed around it, each with a head of its own.
+template <typename Below> void SortList(u8 *list, u32 nodeSize, u8 *(__fastcall *init)(u8 *), void(__fastcall *merge)(u8 *, void *, u8 *), void(__fastcall *clear)(u8 *), Below below) {
+    if (at<u32>(list, 8) < 2) return;
+    ListHeader carry;
+    carry.head = static_cast<u8 *>(GameHeap_Alloc(nodeSize));
+    at<u8 *>(carry.head, 0) = carry.head;
+    at<u8 *>(carry.head, 4) = carry.head;
+    carry.count = 0;
+    ListHeader bins[16];
+    for (ListHeader &bin : bins) init(reinterpret_cast<u8 *>(&bin));
+    u32 top = 0;
+    while (at<u32>(list, 8) != 0) {
+        u8 *const first = at<u8 *>(at<u8 *>(list, 4), 0), *const position = at<u8 *>(carry.head, 0);
+        if (position != first && position != at<u8 *>(first, 0)) Ring_Splice(position, 0, first, at<u8 *>(first, 0));
+        carry.count++;
+        at<u32>(list, 8)--;
+        u32 i = 0;
+        for (; i < top && bins[i].count != 0; i++) {
+            MergeCarry(&bins[i], &carry, below);
+            u8 *const head = bins[i].head;
+            bins[i].head = carry.head;
+            carry.head = head;
+            carry.count = bins[i].count;
+            bins[i].count = 0;
+        }
+        if (i == 15) {
+            MergeCarry(&bins[15], &carry, below);
+        } else {
+            Obj_SwapPair(reinterpret_cast<u8 *>(&bins[i]), nullptr, reinterpret_cast<u8 *>(&carry));
+            if (i == top) top++;
+        }
+    }
+    for (u32 k = top; k-- != 0;) merge(list, nullptr, reinterpret_cast<u8 *>(&bins[k]));
+    for (u32 k = 16; k-- != 0;) clear(reinterpret_cast<u8 *>(&bins[k]));
+    clear(reinterpret_cast<u8 *>(&carry));
+}
+
+}  // namespace
+
+void StdList_SetEnv(const StdListEnv *env) { g_env = env ? env : &kGameEnv; }
+
+extern "C" {
+
+void __fastcall StdListString_Sort(u8 *list) {
+    SortList(list, 0x18, &ListHead_Init18, &StdListString_Merge, &StdListString_Clear, [](u8 *a, u8 *b) { return ByteString_Compare(a + 8, nullptr, b + 8) < 0; });
+}
+
+void __fastcall StdListDword_Sort(u8 *list) {
+    SortList(list, 0xc, &ListHead_Init0c, &StdListDword_Merge, g_env->dwordListClear, [](u8 *a, u8 *b) { return at<u32>(a, 8) < at<u32>(b, 8); });
+}
+
+void __fastcall StdListString_Merge(u8 *list, void *, u8 *other) {
+    if (other == list) return;
+    u8 *const head1 = at<u8 *>(list, 4);
+    u8 *first1 = at<u8 *>(head1, 0);
+    u8 *const head2 = at<u8 *>(other, 4);
+    u8 *first2 = at<u8 *>(head2, 0);
+    while (first1 != head1 && first2 != head2) {
+        const char *const chars = at<const char *>(first1, 0xc);
+        if (StdString_CompareSub(reinterpret_cast<const StdString *>(first2 + 8), nullptr, 0, at<u32>(first2, 0x10), chars ? chars : reinterpret_cast<const char *>(0x006fe5b0), at<u32>(first1, 0x10)) < 0) {
+            u8 *const next2 = at<u8 *>(first2, 0);
+            SpliceBefore(first1, first2, next2);
+            first2 = next2;
+        } else {
+            first1 = at<u8 *>(first1, 0);
+        }
+    }
+    if (first2 != head2) SpliceBefore(head1, first2, head2);
     at<u32>(list, 8) = at<u32>(list, 8) + at<u32>(other, 8);
     at<u32>(other, 8) = 0;
 }

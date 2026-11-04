@@ -170,6 +170,65 @@ void __fastcall GlobalSave_ClearByte4c(u8 *info) { info[0x4c] = 0; }
 
 void GlobalSave_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
 
+u8 *__fastcall GlobalSave_ThemeMake(u8 *info, void *, const u8 *name) {
+    u8 *const record = static_cast<u8 *>(GameHeap_Alloc(0xbc));
+    if (record) {
+        at<u32>(record, 0x1c) = 0;
+        String *const held = reinterpret_cast<String *>(record + 0x20);
+        String_Ctor(held);
+        at<u32>(record, 0) = 0;
+        at<u16>(record, 4) = 0;
+        at<u32>(record, 6) = 0;
+        vcall<void>(held, 0x18, name);
+        at<u8>(record, 0xb8) = 0;
+        at<u8>(record, 0xb9) = 0;
+        at<u16>(record, 0x34) = 0;
+        at<u16>(record, 0x76) = 0;
+    }
+    struct {
+        String key;
+        u8 *value;
+    } pair;
+    String_CtorCopy(&pair.key, nullptr, reinterpret_cast<const StringView *>(name));
+    pair.value = record;
+    u8 *result[2];
+    StdMapF_Insert(info + 0x38, nullptr, result, reinterpret_cast<const u8 *>(&pair));
+    String_Dtor(&pair.key);
+    return record;
+}
+
+static u8 *theme_record(u8 *info, const u8 *name) {
+    u8 *const tree = info + 0x38;
+    u8 *const node = StdTreeF_LowerBound(tree, nullptr, name);
+    const bool there = node != at<u8 *>(tree, 4) && !String_Less(reinterpret_cast<const String *>(name), nullptr, reinterpret_cast<const StringView *>(node + 0xc));
+    return there ? at<u8 *>(node, 0x20) : GlobalSave_ThemeMake(info, nullptr, name);
+}
+
+u8 *__fastcall GlobalSave_ThemeGet(u8 *info, void *, const u8 *name) {
+    u8 *const record = theme_record(info, name);
+    return static_cast<u8>(g_calls.Th(0x005b11c0, (u32)(uintptr_t)record)) ? record : nullptr;   // ThemeRecord_LoadGlobalSam
+}
+
+u32 __fastcall GlobalSave_ThemeSelect(u8 *info, void *, const u8 *name) {
+    u8 *const record = theme_record(info, name);
+    at<u8 *>(info, 0x48) = record;
+    return g_calls.Th(0x005b11c0, (u32)(uintptr_t)record);
+}
+
+void __fastcall GlobalSave_ClearThemes(u8 *info) {
+    u8 *it = *at<u8 **>(info, 0x3c);
+    while (it != at<u8 *>(info, 0x3c)) {
+        if (u8 *const record = at<u8 *>(it, 0x20)) {
+            ThemeRecord_Dtor(record);
+            GameHeap_Free(record);
+        }
+        StdTree_IncF(&it);
+    }
+    u8 *const head = at<u8 *>(info, 0x3c);
+    u8 *out;
+    StdTree_EraseRangeF(info + 0x38, nullptr, &out, *reinterpret_cast<u8 **>(head), head);
+}
+
 u32 __fastcall GlobalSave_Serialize(u8 *info, void *, Stream *stream, u32 saving, u32 third) {
     const bool save = saving != 0;
     const u32 streamAt = (u32)(uintptr_t)stream;

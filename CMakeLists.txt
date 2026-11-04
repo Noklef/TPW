@@ -81,6 +81,7 @@ add_library(tpw_game STATIC
     src/game/files/resindex.cpp
     src/game/files/charsets.cpp
     src/game/files/fontloaders.cpp
+    src/game/files/signfonts.cpp
     src/game/core/regkey.cpp
     src/game/core/stdstring.cpp
     src/game/core/globalmem.cpp
@@ -242,6 +243,11 @@ add_library(tpw_game STATIC
     src/game/core/numput.cpp
     src/game/core/wcollate.cpp
     src/game/core/moneyput.cpp
+    src/game/core/narrowfilebuf.cpp
+    src/game/core/swearfilter.cpp
+    src/game/core/nstream.cpp
+    src/game/core/themenames.cpp
+    src/game/core/guardheap.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
@@ -553,6 +559,8 @@ add_library(tpw_game STATIC
     src/game/online/chatclient.cpp
     src/game/online/postcardsend.cpp
     src/game/online/roomtexthandler.cpp
+    src/game/online/sessionlogin.cpp
+    src/game/online/listrequest.cpp
     src/game/frontend/lobbymodel.cpp
     src/game/frontend/helpbg.cpp
     src/game/frontend/islandcamera.cpp
@@ -565,7 +573,10 @@ add_library(tpw_game STATIC
     src/game/frontend/lobbymake.cpp
     src/game/frontend/lobbyscript.cpp
     src/game/frontend/helpbgstart.cpp
+    src/game/frontend/sceneenter.cpp
+    src/game/frontend/scenesteps.cpp
     src/game/frontend/lobbyflight.cpp
+    src/game/frontend/thememenu.cpp
     src/game/input/mouse.cpp
     src/game/ui/dialog7ca1c8.cpp
     src/game/ui/window.cpp
@@ -678,6 +689,7 @@ add_library(tpw_game STATIC
     src/game/gfx/madvideo.cpp
     src/game/gfx/moviedisplay.cpp
     src/game/gfx/bumplight.cpp
+    src/game/gfx/signrender.cpp
     src/game/ui/panel7cc3b0handler.cpp
     src/game/world/rideupkeep.cpp
     src/game/world/objectwear.cpp
@@ -706,6 +718,7 @@ add_library(tpw_game STATIC
     src/game/world/mousemodeclick.cpp
     src/game/world/savegamefile.cpp
     src/game/world/advisorsend.cpp
+    src/game/world/parkmapwindow.cpp
     src/game/ui/staffrename.cpp
     src/game/ui/window7cc8bc.cpp
     src/game/ui/dialog7cb2b8.cpp
@@ -820,6 +833,7 @@ add_library(tpw_game STATIC
     src/game/ui/dialog7cc47cinfo.cpp
     src/game/ui/windowgroup.cpp
     src/game/ui/windowproc.cpp
+    src/game/ui/panelkeys.cpp
 )
 # The libraries whose functions replace the exe's copies (src/game/lib); their headers stay private to those units.
 target_link_libraries(tpw_game PRIVATE tpw_zlib tpw_jpeg6b tpw_jpeg6a)

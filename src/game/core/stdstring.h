@@ -91,4 +91,8 @@ StdString *__fastcall StdString_CopyInto(const StdString *x, void *edx, StdStrin
 // a shared s gets its own copy (_Split inlined: of the old block's characters to their first NUL); the characters after
 // pos + n (n cut to what is left) moved down over them (memmove), then _Grow(length - n, false) and _Eos inlined. Returns s.
 StdString *__fastcall StdString_Erase(StdString *s, void *edx, u32 pos, u32 n);
+// 0x5c8c30 (x, pos, n; pops 12): append(x, pos, n): pos past x's length _Xran; n cut to what x has left; npos less the length not above n _Xlen; _Grow inlined, then x's text (read after it; null: the empty text) copied.
+StdString *__fastcall StdString_AppendSub(StdString *s, void *edx, const StdString *x, u32 pos, u32 n);
+// 0x5d1560 (pos, n, chars, count; pops 16): compare(pos, n, chars, count): pos past the length _Xran; n cut to what is left; the bytes over the shorter (unsigned), then the lengths: -1, 0 or 1.
+s32 __fastcall StdString_CompareSub(const StdString *s, void *edx, u32 pos, u32 n, const char *chars, u32 count);
 }

@@ -1,14 +1,28 @@
 #include "session.h"
 
 #include <cstdint>
+#include <cstring>
 #include <initializer_list>
 
+#include "../core/crt.h"
+#include "../core/dequeiter.h"
 #include "../core/gameheap.h"
 #include "../core/buffers.h"
 #include "../core/language.h"
 #include "../core/selectors.h"
+#include "../core/string.h"
 #include "../core/vcall.h"
+#include "../core/vdtor.h"
 #include "../files/file.h"
+#include "../ui/dialog7cc530open.h"
+#include "../ui/dialog7cc944row.h"
+#include "../ui/dialog7cca94.h"
+#include "../ui/dialogs.h"
+#include "../ui/dialuphangup.h"
+#include "itemlist.h"
+#include "items.h"
+#include "listrequest.h"
+#include "sessionlogin.h"
 
 namespace {
 
@@ -88,6 +102,38 @@ u32 __fastcall Online_UserFlags(const u8 *session) { return at<u32>(session, 0x5
 
 u32 __fastcall Online_User5c(const u8 *session) { return at<u32>(session, 0x5c); }
 
+namespace {
+
+// The login's state cleared, its three strings assigned "" (the auth at +0 is another's).
+void ClearLogin(u8 *session) {
+    for (u32 offset : {0x64u, 0x60u, 0x68u, 4u, 8u})
+        at<u32>(session, offset) = 0;
+    vcall<void>(session + 0xc, 0x14, 0x0078a374u);
+    vcall<void>(session + 0x20, 0x14, 0x0078a374u);
+    at<u32>(session, 0x34) = 0;
+    at<u32>(session, 0x38) = 0;
+    vcall<void>(session + 0x3c, 0x14, 0x0078a374u);
+    at<u32>(session, 0x50) = 0;
+}
+
+// The News' state cleared, its three strings assigned "".
+void ClearNews(u8 *session) {
+    at<u32>(session, 0x74) = 0xffffffff;
+    at<u32>(session, 0xc8) = 0;
+    at<u32>(session, 0xcc) = 0;
+    at<u32>(session, 0x78) = 0;
+    vcall<void>(session + 0x7c, 0x14, 0x00786de4u);
+    at<u32>(session, 0x90) = 0xffffffff;
+    at<u32>(session, 0x94) = 0;
+    vcall<void>(session + 0x98, 0x14, 0x0078a374u);
+    at<u32>(session, 0xac) = 0xffffffff;
+    at<u32>(session, 0xb0) = 0;
+    vcall<void>(session + 0xb4, 0x14, 0x0078a374u);
+    at<u32>(session, 0xd0) = 0;
+}
+
+}  // namespace
+
 void __fastcall Online_ReleaseLogin(u8 *session) {
     if (!at<u8 *>(session, 0))
         return;
@@ -109,18 +155,7 @@ void __fastcall Online_ReleaseNews(u8 *session) {
 void __fastcall Online_ResetNews(u8 *session) {
     if (at<u8 *>(session, 0x6c))
         FreeNews(session);
-    at<u32>(session, 0x74) = 0xffffffff;
-    at<u32>(session, 0xc8) = 0;
-    at<u32>(session, 0xcc) = 0;
-    at<u32>(session, 0x78) = 0;
-    vcall<void>(session + 0x7c, 0x14, 0x00786de4u);
-    at<u32>(session, 0x90) = 0xffffffff;
-    at<u32>(session, 0x94) = 0;
-    vcall<void>(session + 0x98, 0x14, 0x0078a374u);
-    at<u32>(session, 0xac) = 0xffffffff;
-    at<u32>(session, 0xb0) = 0;
-    vcall<void>(session + 0xb4, 0x14, 0x0078a374u);
-    at<u32>(session, 0xd0) = 0;
+    ClearNews(session);
 }
 
 u8 *__fastcall Auth_DeletingDtor(u8 *auth, void *, u32 flags) {
@@ -147,7 +182,10 @@ void __fastcall Online_ResetUpload(u8 *session) {
         at<u32>(session, offset) = 0;
 }
 
-void __fastcall Online_ResetDownload(u8 *session) {
+namespace {
+
+// "Reseting" said; the object at +0x3a0 deleted, the block at +0x39c freed, both cleared.
+void DropDownload(u8 *session) {
     Say(0x007733d0);
     if (u8 *const object = at<u8 *>(session, 0x3a0)) {
         at<u32>(session, 0x3a0) = 0;
@@ -157,6 +195,12 @@ void __fastcall Online_ResetDownload(u8 *session) {
         GameHeap_Free(block);
         at<u32>(session, 0x39c) = 0;
     }
+}
+
+}  // namespace
+
+void __fastcall Online_ResetDownload(u8 *session) {
+    DropDownload(session);
     for (u32 offset : {0x390u, 0x394u, 0x384u, 0x388u, 0x38cu, 0x398u, 0x3a8u, 0x3c0u, 0x3c4u})
         at<u32>(session, offset) = 0;
     vcall<void>(session + 0x3dc, 0x14, 0x00786de4u);
@@ -256,11 +300,613 @@ u32 __fastcall Online_UnpublishPark(u8 *session, void *, u32 park) {
 }
 
 namespace {
-const OnlineInstanceEnv kInstanceGameEnv = {reinterpret_cast<u8 *(__fastcall *)(u8 *)>((uintptr_t)0x005b50b0)};
+const OnlineInstanceEnv kInstanceGameEnv = {&Online_Construct};
 const OnlineInstanceEnv *g_instance = &kInstanceGameEnv;
 }  // namespace
 
 void Online_SetInstanceEnv(const OnlineInstanceEnv *env) { g_instance = env ? env : &kInstanceGameEnv; }
+
+void __fastcall Online_ResetConnections(u8 *session) {
+    Online_ResetNews(session);
+    Online_ResetCity(session);
+    Online_ResetUpload(session);
+    Online_ResetDownload(session);
+    Dialog7cca94_Message4IfUp();
+}
+
+namespace {
+const OnlineStartEnv kStartGameEnv = {&Online_ReleaseNews, &Online_ResetCity, &Online_ResetUpload, &Online_ResetDownload, &Dialog7cca94_Message4IfUp, &Online_Instance, &ListRequest_Start66, &Dialog7cc530_Open, &Owner2c_FindKind100, &Online_UploadConnect, &CommandQueue_Post, &Names_FindLastValue, &CRT_free};
+const OnlineStartEnv *g_start = &kStartGameEnv;
+}  // namespace
+
+void Online_SetStartEnv(const OnlineStartEnv *env) { g_start = env ? env : &kStartGameEnv; }
+
+void __fastcall Online_Start(u8 *session, void *, u32 a, u32 b, u32 c) {
+    g_start->releaseNews(session);
+    ClearNews(session);
+    g_start->resetCity(session);
+    g_start->resetUpload(session);
+    g_start->resetDownload(session);
+    g_start->message4();
+    at<u32>(session, 0x3c4) = c;
+    at<u32>(session, 0x3a8) = a;
+    at<u32>(session, 0x3c0) = b;
+    if (at<u32>(session, 0x60)) {
+        u8 *const instance = g_start->instance();
+        g_start->listStart(at<u8 *>(instance, 0xf0), nullptr, at<u32>(instance, 0x3a8), 0x005b88e0, 0);
+    } else {
+        at<u32>(session, 4) = 0x005b87a0;
+        at<u32>(session, 8) = 0;
+        g_start->openDialog(0x005b5cb0);
+    }
+}
+
+void __fastcall Online_ResetAll(u8 *session) {
+    Online_ReleaseLogin(session);
+    ClearLogin(session);
+    Online_ResetConnections(session);
+    Dialup_HangUpIfOpen();
+}
+
+u32 __fastcall Online_UploadConnect(u8 *session) {
+    if (void *const old = at<void *>(session, 0x104)) {
+        CallImport(0x006fd5ec, old);
+        at<u32>(session, 0x104) = 0;
+    }
+    using Make = u32(__fastcall *)(void *, void *);
+    void *const block = GameHeap_Alloc(0xc);
+    at<u32>(session, 0x104) = block ? (*reinterpret_cast<const Make *>((uintptr_t)0x006fd5dc))(block, nullptr) : 0;
+    Say(0x00773a1c);
+    WString wide;
+    WString_CtorStr(&wide, nullptr, at<const u16 *>(g_start->findKind(at<u8 *>(session, 0xfc)), 0x2c));
+    String host;
+    String_Ctor(&host);
+    String_AssignFromWide(&host, &wide);
+    const u8 *const record = g_start->findKind(at<u8 *>(session, 0xfc));
+    const u32 port = (static_cast<u32>(reinterpret_cast<uintptr_t>(record)) & 0xffff0000u) | at<u16>(record, 0x3c);  // (sic)
+    using Connect = s32(__fastcall *)(void *, void *, const char *, u8 *, u32, u32);
+    const s32 answer = (*reinterpret_cast<const Connect *>((uintptr_t)0x006fd5e0))(at<void *>(session, 0x104), nullptr, host.data, Global7cc53c_Pick7cc4f0(), port, 0x005b8260);
+    u32 result = 0;
+    if (answer == 1) {
+        Say(0x007739dc);
+        using Lobby = void(__fastcall *)(void *, void *, u32, u32, u32, u32);
+        const u32 language = Language_Id(reinterpret_cast<const u8 *>((uintptr_t)0x0078b530));
+        (*reinterpret_cast<const Lobby *>((uintptr_t)0x006fd5e4))(at<void *>(session, 0x104), nullptr, language, at<u32>(session, 0x34), at<u32>(session, 0x38), at<u32>(session, 0x28));
+        result = 1;
+    } else {
+        Say(0x007739f8);
+    }
+    String_Dtor(&host);
+    WString_Dtor(&wide);
+    return result;
+}
+
+namespace {
+
+// The upload given up: the code posted; with a login (+0x320) the whole session reset; the callback (+0x374) told 1; the Upload released (0x6fd5ec) when set.
+void UploadGiveUp(u8 *session, u32 code) {
+    at<u32>(session, 0x37c) = code;
+    at<u32>(session, 0x380) = 0;
+    g_start->post(code, 0);
+    at<u32>(session, 0x37c) = 0;
+    at<u32>(session, 0x380) = 0;
+    using Callback = void(__cdecl *)(u32, u32);
+    const Callback callback = at<Callback>(session, 0x374);
+    const u32 user = at<u32>(session, 0x378);
+    if (at<u32>(session, 0x320)) Online_ResetAll(session);
+    if (callback) callback(1, user);
+    if (void *const upload = at<void *>(session, 0x104)) {
+        CallImport(0x006fd5ec, upload);
+        at<u32>(session, 0x104) = 0;
+    }
+}
+
+}  // namespace
+
+void __fastcall Online_UploadStart(u8 *session) {
+    if (!(at<u8>(session, 0x58) & 0x10)) {
+        Say(0x007738d0);
+        UploadGiveUp(session, 0x4e);
+        return;
+    }
+    if (!at<u32>(session, 0x104) && !g_start->uploadConnect(session)) {
+        Say(0x00773940);
+        UploadGiveUp(session, 0x4f);
+        return;
+    }
+    Say(0x00773924);
+    at<u32>(session, 0x324) = 1;
+    u8 request[0x430];
+    request[4] = 0;
+    request[5] = 0;
+    CRT_wcscpy(reinterpret_cast<u16 *>(request + 6), at<const u16 *>(session, 0x350));
+    CRT_wcscpy(reinterpret_cast<u16 *>(request + 0x2e), at<const u16 *>(session, 0x364));
+    std::memcpy(request + 0x22e, session + 0x120, 0x200);
+    at<u32>(request, 0) = at<u32>(session, 0x344);
+    request[4] = static_cast<u8>(g_start->findLast(at<u8 *>(session, 0xf8), nullptr, at<const char *>(session, 0x114)));
+    request[5] = at<u8>(session, 0x370);
+    using Send = void(__fastcall *)(void *, void *, u32, u8 *, u32);
+    (*reinterpret_cast<const Send *>((uintptr_t)0x006fd5d0))(at<void *>(session, 0x104), nullptr, at<u32>(session, 0x338), request, 0);
+    Say(0x00773900);
+}
+
+void __fastcall Online_UploadEvent(u8 *session, void *, u32 code, u32, u32, u8 *record) {
+    u32 answer;
+    switch (code) {
+        case 0x50: {
+            if (--at<u32>(record, 8) == 0) {
+                if (void *const block = at<void *>(record, 0)) g_start->crtFree(block);
+                at<u32>(record, 0) = 0;
+                GameHeap_Free(record);
+            }
+            Say(0x007739a4);
+            using Next = void(__fastcall *)(void *, void *, u32, u32);
+            (*reinterpret_cast<const Next *>((uintptr_t)0x006fd5e8))(at<void *>(session, 0x104), nullptr, at<u32>(session, 0x338), 0);
+            return;
+        }
+        case 0:
+            Say(0x00773980);
+            at<u32>(session, 0x32c) = 1;
+            at<u32>(session, 0x328) = 1;
+            return;
+        case 0xffffffd8u:
+            at<u32>(session, 0x37c) = 0xde;
+            at<u32>(session, 0x380) = *reinterpret_cast<const u32 *>((uintptr_t)0x0078ba94);
+            at<u32>(session, 0x32c) = 0;
+            at<u32>(session, 0x328) = 1;
+            return;
+        case 0xffffffecu: answer = 0x55; break;
+        case 0xfffffffau: answer = 0x4e; break;
+        case 0xfffffffbu: answer = 0x4d; break;
+        case 0xfffffffcu: answer = 0x4c; break;
+        case 0xfffffffeu: answer = 0x4b; break;
+        case 0xffffffffu: answer = 0x37; break;
+        default: return;
+    }
+    at<u32>(session, 0x37c) = answer;
+    at<u32>(session, 0x32c) = 0;
+    at<u32>(session, 0x328) = 1;
+}
+
+void __stdcall Online_UploadCallback(u32 code, u32 a, u32 b, u8 *record) { Online_UploadEvent(g_start->instance(), nullptr, code, a, b, record); }
+
+namespace {
+
+const OnlineCityPollEnv kCityPollGameEnv = {&ListRequest_Start10, &ListRequest_Start26, &ListRequest_Start34, &ListRequest_Start66, &ListRequest_Done10, &ListRequest_Done26, &ListRequest_Done34, &ListRequest_Done66,
+                                            &ListRequest_Done30, &Time_GetMs, reinterpret_cast<decltype(OnlineCityPollEnv::showText)>(&Dialog7cca94_ShowText), &Dialog7cca94_Message4IfUp,
+                                            reinterpret_cast<decltype(OnlineCityPollEnv::setProgress)>(&Dialog7cca94_SetProgress), reinterpret_cast<decltype(OnlineCityPollEnv::waitingRow)>(&Dialog7cc944_SetWaitingRow)};
+const OnlineCityPollEnv *g_cityPoll = &kCityPollGameEnv;
+
+// A list flagged is answered; its +0xc after.
+u32 AnswerList(u8 *list, void(__fastcall *done)(u8 *, void *, u32)) {
+    if (at<u32>(list, 0xc) && at<u32>(list, 0x10)) {
+        at<u32>(list, 0xc) = 0;
+        done(list, nullptr, 0);
+    }
+    return at<u32>(list, 0xc);
+}
+
+}  // namespace
+
+void Online_SetCityPollEnv(const OnlineCityPollEnv *env) { g_cityPoll = env ? env : &kCityPollGameEnv; }
+
+namespace {
+const OnlineDtorEnv kDtorGameEnv = {&Online_ReleaseLogin, &Online_ResetNews, &Online_ResetCity, &Online_ResetUpload, &Online_ResetDownload, &Dialog7cca94_Message4IfUp, &Dialup_HangUpIfOpen,
+                                    reinterpret_cast<decltype(OnlineDtorEnv::stringDtor)>(&String_Dtor), reinterpret_cast<decltype(OnlineDtorEnv::wstringDtor)>(&WString_Dtor)};
+const OnlineDtorEnv *g_dtor = &kDtorGameEnv;
+}  // namespace
+
+void Online_SetDtorEnv(const OnlineDtorEnv *env) { g_dtor = env ? env : &kDtorGameEnv; }
+
+void __fastcall Online_Dtor(u8 *session) {
+    g_dtor->releaseLogin(session);
+    ClearLogin(session);
+    g_dtor->resetNews(session);
+    g_dtor->resetCity(session);
+    g_dtor->resetUpload(session);
+    g_dtor->resetDownload(session);
+    g_dtor->message4();
+    g_dtor->hangUp();
+    if (at<u32>(session, 0x6c)) FreeNews(session);
+    for (u32 offset = 0xe0; offset <= 0x100; offset += 4)
+        if (u8 *const list = at<u8 *>(session, offset)) vcall<void>(list, 0, 1u);
+    Online_ReleaseUpload(session);
+    DropDownload(session);
+    if (u8 *const object = at<u8 *>(session, 0x3a4)) vcall<void>(object, 0, 1u);   // sic: +0x3a4 stays
+    g_dtor->stringDtor(session + 0x3dc);
+    u8 *node = at<u8 *>(session, 0x3cc);
+    at<u32>(session, 0x3c8) = 0x007028a0;
+    at<u32>(session, 0x3d0) = 0;
+    at<u32>(session, 0x3cc) = 0;
+    while (node) {
+        u8 *const next = at<u8 *>(node, 4);
+        GameHeap_Free(node);
+        node = next;
+    }
+    at<u32>(session, 0x3d4) = 0;
+    g_dtor->stringDtor(session + 0x3ac);
+    g_dtor->wstringDtor(session + 0x35c);
+    g_dtor->wstringDtor(session + 0x348);
+    g_dtor->stringDtor(session + 0x330);
+    g_dtor->stringDtor(session + 0x10c);
+    g_dtor->wstringDtor(session + 0xb4);
+    g_dtor->wstringDtor(session + 0x98);
+    g_dtor->stringDtor(session + 0x7c);
+    g_dtor->wstringDtor(session + 0x3c);
+    g_dtor->wstringDtor(session + 0x20);
+    g_dtor->wstringDtor(session + 0xc);
+}
+
+namespace {
+
+const OnlineEndEnv kEndGameEnv = {&CommandQueue_Post, &Online_OpenCity, &Online_ReleaseNews, &Online_ResetNews, &Online_ResetCity, &Online_ResetUpload, &Online_ResetDownload, &Dialog7cca94_Message4IfUp, &Dialup_HangUpIfOpen,
+                                  reinterpret_cast<decltype(OnlineEndEnv::showText)>(&Dialog7cca94_ShowText), reinterpret_cast<decltype(OnlineEndEnv::setProgress)>(&Dialog7cca94_SetProgress), &Online_Instance, &Online_UploadStart, &Dialog7cc530_Open};
+const OnlineEndEnv *g_end = &kEndGameEnv;
+
+using TransferCallback = void(__cdecl *)(u32 result, u32 user);
+
+// The upload's posting: +0x37c and +0x380 posted and cleared when either is set; whether it did.
+bool PostUpload(u8 *session) {
+    if (!at<u32>(session, 0x37c) && !at<u32>(session, 0x380)) return false;
+    g_end->post(at<u32>(session, 0x37c), at<u32>(session, 0x380));
+    at<u32>(session, 0x37c) = 0;
+    at<u32>(session, 0x380) = 0;
+    return true;
+}
+
+}  // namespace
+
+void Online_SetEndEnv(const OnlineEndEnv *env) { g_end = env ? env : &kEndGameEnv; }
+
+void __fastcall Online_DownloadEnd(u8 *session, void *, u32 failed) {
+    bool posted = false;
+    if (at<u32>(session, 0x398)) {
+        g_end->post(at<u32>(session, 0x398), 0);
+        at<u32>(session, 0x398) = 0;
+        posted = true;
+    }
+    const TransferCallback callback = at<TransferCallback>(session, 0x3c0);
+    const u32 user = at<u32>(session, 0x3c4);
+    if (!failed && !posted) {
+        const u32 size = at<u32>(at<u8 *>(session, 0x3a4), 8);
+        if (g_end->openCity(session)) {
+            using Start = void(__fastcall *)(void *, void *, u32, u32, u32);
+            (*reinterpret_cast<const Start *>((uintptr_t)0x006fd52c))(at<void *>(session, 0xd4), nullptr, 0, size, at<u32>(session, 0x34));
+        }
+        at<u32>(session, 0x3f0) = 1;
+    } else if (at<u32>(session, 0x388)) {
+        Online_ReleaseLogin(session);
+        ClearLogin(session);
+        g_end->releaseNews(session);
+        ClearNews(session);
+        g_end->resetCity(session);
+        g_end->resetUpload(session);
+        g_end->resetDownload(session);
+        g_end->message4();
+        g_end->hangUp();
+    }
+    if (callback) callback(failed, user);
+    DropDownload(session);
+    at<u32>(session, 0x384) = 0;
+}
+
+void __fastcall Online_UploadPoll(u8 *session) {
+    if (!at<u32>(session, 0x104) || !at<u32>(session, 0x324)) return;
+    if (!at<u32>(session, 0x328)) {
+        using Current = u32(__fastcall *)(void *, void *, u32);
+        const Current current = *reinterpret_cast<const Current *>((uintptr_t)0x006fd5d4);
+        u32 id = current(at<void *>(session, 0x104), nullptr, 0);
+        if (!id) id = current(at<void *>(session, 0x104), nullptr, 1);
+        g_end->showText(0x101);
+        s32 done = 0, total = 0;
+        using Progress = void(__fastcall *)(void *, void *, u32, s32 *, s32 *);
+        (*reinterpret_cast<const Progress *>((uintptr_t)0x006fd5d8))(at<void *>(session, 0x104), nullptr, id, &done, &total);
+        if (total > 0) g_end->setProgress(static_cast<s32>(static_cast<u32>(done) * 100u) / total);
+        return;
+    }
+    g_end->message4();
+    const u32 succeeded = at<u32>(session, 0x32c) == 0;
+    at<u32>(session, 0x324) = 0;
+    const bool posted = PostUpload(session);
+    const TransferCallback callback = at<TransferCallback>(session, 0x374);
+    const u32 user = at<u32>(session, 0x378);
+    if ((succeeded || posted) && at<u32>(session, 0x320)) {
+        Online_ReleaseLogin(session);
+        ClearLogin(session);
+        g_end->resetNews(session);
+        g_end->resetCity(session);
+        g_end->resetUpload(session);
+        g_end->resetDownload(session);
+        g_end->message4();
+        g_end->hangUp();
+    }
+    if (callback) callback(succeeded, user);
+    Online_ReleaseUpload(session);
+}
+
+void __cdecl Online_UploadLoginDone(u32 failed) {
+    u8 *const session = g_end->instance();
+    if (!failed) {
+        g_end->uploadStart(g_end->instance());
+        return;
+    }
+    PostUpload(session);
+    const TransferCallback callback = at<TransferCallback>(session, 0x374);
+    const u32 user = at<u32>(session, 0x378);
+    if (at<u32>(session, 0x320)) {
+        Online_ReleaseLogin(session);
+        ClearLogin(session);
+        g_end->resetNews(session);
+        g_end->resetCity(session);
+        Online_ResetUpload(session);   // the game has it inline
+        g_end->resetDownload(session);
+        g_end->message4();
+        g_end->hangUp();
+    }
+    if (callback) callback(1, user);
+    Online_ReleaseUpload(session);
+}
+
+void __fastcall Online_UploadBegin(u8 *session, void *, const void *a, u32 b, const void *c, const void *d, u32 e, u32 f, u32 g) {
+    Online_ResetUpload(session);   // the game has it inline
+    vcall<void>(session + 0x330, 0x14, a);
+    at<u32>(session, 0x344) = b;
+    vcall<void>(session + 0x348, 0x14, c);
+    vcall<void>(session + 0x35c, 0x14, d);
+    at<u32>(session, 0x370) = e;
+    at<u32>(session, 0x374) = f;
+    at<u32>(session, 0x378) = g;
+    if (at<u32>(session, 0x60)) {
+        g_end->instance();   // sic: asked twice
+        g_end->uploadStart(g_end->instance());
+        return;
+    }
+    at<u32>(session, 0x320) = 1;
+    at<u32>(session, 4) = 0x005b79f0;
+    at<u32>(session, 8) = 0;
+    g_end->openDialog(0x005b5cb0);
+}
+
+namespace {
+const OnlinePollEnv kPollGameEnv = {&Online_LoginFinish, &Online_NewsPoll, &Online_CityPoll, &Online_UploadPoll, &Online_DownloadEnd, &Dialog7cca94_Message4IfUp,
+                                    reinterpret_cast<decltype(OnlinePollEnv::showText)>(&Dialog7cca94_ShowText), reinterpret_cast<decltype(OnlinePollEnv::setProgress)>(&Dialog7cca94_SetProgress)};
+const OnlinePollEnv *g_poll = &kPollGameEnv;
+}  // namespace
+
+void Online_SetPollEnv(const OnlinePollEnv *env) { g_poll = env ? env : &kPollGameEnv; }
+
+void __fastcall Online_Poll(u8 *session) {
+    if (at<u32>(session, 0) && at<u32>(session, 0x64)) {
+        g_poll->loginFinish(session, nullptr, 0);
+        at<u32>(session, 0x64) = 0;
+    }
+    g_poll->newsPoll(session);
+    g_poll->cityPoll(session);
+    g_poll->uploadPoll(session);
+    if (!at<u32>(session, 0x39c) || !at<u32>(session, 0x3a0) || !at<u32>(session, 0x38c)) return;
+    if (at<u32>(session, 0x390)) {
+        g_poll->message4();
+        const u32 failed = at<u32>(session, 0x394) == 0;
+        at<u32>(session, 0x38c) = 0;
+        g_poll->downloadEnd(session, nullptr, failed);
+        return;
+    }
+    g_poll->showText(0x102);
+    const u8 *const transfer = at<u8 *>(session, 0x3a0);
+    const s32 total = at<s32>(transfer, 0x18);
+    if (total > 0) g_poll->setProgress(static_cast<s32>(at<u32>(transfer, 0x1c) * 100u) / total);
+}
+
+namespace {
+
+const OnlineNextEnv kNextGameEnv = {&Owner2c_FindKind1, &Owner2c_FindByKey, reinterpret_cast<decltype(OnlineNextEnv::fetch)>((uintptr_t)0x005d22a0), reinterpret_cast<decltype(OnlineNextEnv::finish)>((uintptr_t)0x005d2180)};
+const OnlineNextEnv *g_next = &kNextGameEnv;
+
+// The kind 1 record's address, then "/": into a new wide string.
+void ServerFolder(u8 *session, WString *url) {
+    WString_Ctor(url);
+    vcall<void>(url, 0x14, at<u32>(g_next->findKind1(at<u8 *>(session, 0xfc)), 0x74));
+    const u32 slash = 0x2f;
+    vcall<void>(url, 0x24, &slash);
+}
+
+}  // namespace
+
+void Online_SetNextEnv(const OnlineNextEnv *env) { g_next = env ? env : &kNextGameEnv; }
+
+void __fastcall Online_DownloadNext(u8 *session) {
+    if (at<u32>(session, 0x3d4)) {
+        Say(0x00773b64);
+        u8 *item = nullptr;
+        if (u8 *const node = at<u8 *>(session, 0x3cc)) {
+            u8 *const next = at<u8 *>(node, 4);
+            at<u8 *>(session, 0x3cc) = next;
+            if (next)
+                at<u32>(next, 8) = 0;
+            else
+                at<u32>(session, 0x3d0) = 0;
+            at<u32>(session, 0x3d4) -= 1;
+            item = at<u8 *>(node, 0);
+            GameHeap_Free(node);
+        }
+        WString url;
+        ServerFolder(session, &url);
+        vcall<void>(&url, 0x28, item);
+        String from;
+        String_Ctor(&from);
+        String_AssignFromWide(&from, &url);
+        String to;
+        String_CtorCopy(&to, nullptr, reinterpret_cast<const StringView *>((uintptr_t)0x00f816c0));
+        String_EnsureTrailingBackslash(&to);
+        vcall<void>(&to, 0x28, 0x00f7ccd8u);
+        String_EnsureTrailingBackslash(&to);
+        WString wide;
+        WString_Ctor(&wide);
+        WString_AssignFromAnsi(&wide, &to);
+        vcall<void>(&wide, 0x28, item);
+        String_AssignFromWide(&to, &wide);
+        g_next->fetch(at<void *>(session, 0x3a0), nullptr, from.data, to.data);
+        if (item) vcall<void>(item, 0xc, 1u);
+        WString_Dtor(&wide);
+        String_Dtor(&to);
+        String_Dtor(&from);
+        WString_Dtor(&url);
+        return;
+    }
+    if (at<u32>(session, 0x3d8)) {
+        Say(0x00773b3c);
+        WString url;
+        ServerFolder(session, &url);
+        const u8 *const key = g_next->findByKey(at<u8 *>(session, 0xe0), nullptr, at<u32>(at<u8 *>(session, 0x3a4), 0x48));
+        vcall<void>(&url, 0x20, at<u32>(key, 0x4c));
+        const u32 slash = 0x2f;
+        vcall<void>(&url, 0x24, &slash);
+        String from;
+        String_Ctor(&from);
+        String_AssignFromWide(&from, &url);
+        vcall<void>(&from, 0x20, at<u32>(at<u8 *>(session, 0x3a4), 0x84));
+        g_next->fetch(at<void *>(session, 0x3a0), nullptr, from.data, at<const char *>(session, 0x3e4));
+        at<u32>(session, 0x3d8) = 0;
+        String_Dtor(&from);
+        WString_Dtor(&url);
+        return;
+    }
+    Say(0x00773b00);
+    g_next->finish(at<void *>(session, 0x3a0));
+    at<u32>(session, 0x394) = 1;
+}
+
+void __fastcall Online_CityPoll(u8 *session) {
+    if (!at<u32>(session, 0xd4)) return;
+    if (at<u32>(session, 0xdc)) {
+        g_cityPoll->start10(at<u8 *>(session, 0xf8));
+        g_cityPoll->start26(at<u8 *>(session, 0xfc));
+        g_cityPoll->start34(at<u8 *>(session, 0x100));
+        g_cityPoll->start66(at<u8 *>(session, 0xf4), nullptr, 1, 0, 0);
+        at<u32>(session, 0xdc) = 0;
+    }
+    u32 busy = AnswerList(at<u8 *>(session, 0xf8), g_cityPoll->done10);
+    busy |= AnswerList(at<u8 *>(session, 0xfc), g_cityPoll->done26);
+    busy |= AnswerList(at<u8 *>(session, 0x100), g_cityPoll->done34);
+    busy |= AnswerList(at<u8 *>(session, 0xf4), g_cityPoll->done66);
+    busy |= AnswerList(at<u8 *>(session, 0xe0), g_cityPoll->done30);
+    for (const u32 offset : {0xe4u, 0xe8u, 0xecu, 0xf0u})
+        busy |= AnswerList(at<u8 *>(session, offset), g_cityPoll->done66);
+    if (!busy) {
+        g_cityPoll->message4();
+        if (static_cast<s32>(g_cityPoll->now() - at<u32>(session, 0xd8)) <= 0x57e40) return;
+        if (!at<u32>(session, 0xd4)) return;
+        CallImport(0x006fd4f4, at<void *>(session, 0xd4));
+        if (void *const city = at<void *>(session, 0xd4)) {
+            CallImport(0x006fd540, city);
+            GameHeap_Free(city);
+        }
+        at<u32>(session, 0xd4) = 0;
+        Say(0x0077386c);
+        return;
+    }
+    at<u32>(session, 0xd8) = g_cityPoll->now();
+    using Current = u32(__fastcall *)(void *, void *, u32);
+    const Current current = *reinterpret_cast<const Current *>((uintptr_t)0x006fd4f8);
+    u32 id = current(at<void *>(session, 0xd4), nullptr, 0);
+    if (!id) id = current(at<void *>(session, 0xd4), nullptr, 1);
+    const struct { u32 offset, text; } kTexts[] = {{0xe0, 0xf9}, {0xe4, 0xfa}, {0xe8, 0xfb}, {0xec, 0xfc}, {0xf4, 0xfd}, {0xf8, 0xfe}, {0xfc, 0xff}, {0x100, 0x100}};
+    bool shown = false;
+    for (const auto &t : kTexts) {
+        if (at<u32>(at<u8 *>(session, t.offset), 4) == id) {
+            g_cityPoll->showText(t.text);
+            shown = true;
+            break;
+        }
+    }
+    if (!shown) g_cityPoll->message4();
+    s32 done, total;
+    using Progress = void(__fastcall *)(void *, void *, u32, s32 *, s32 *);
+    (*reinterpret_cast<const Progress *>((uintptr_t)0x006fd4e0))(at<void *>(session, 0xd4), nullptr, id, &done, &total);
+    if (total <= 0) return;
+    const s32 percent = static_cast<s32>(static_cast<u32>(done) * 100u) / total;
+    g_cityPoll->setProgress(percent);
+    if (at<u32>(at<u8 *>(session, 0xec), 4) == id) g_cityPoll->waitingRow(percent);
+}
+
+namespace {
+
+// A city list's block: its base (Class702890_Ctor), the vtable, +0x34 = -1; none when the block is not had.
+u8 *NewList(u32 size, u32 table) {
+    u8 *const list = static_cast<u8 *>(GameHeap_Alloc(size));
+    if (!list) return nullptr;
+    Class702890_Ctor(list);
+    at<u32>(list, 0) = table;
+    at<u32>(list, 0x34) = 0xffffffff;
+    return list;
+}
+
+template <typename Ctor> u8 *NewObject(u32 size, Ctor ctor) {
+    u8 *const object = static_cast<u8 *>(GameHeap_Alloc(size));
+    return object ? ctor(object) : nullptr;
+}
+
+}  // namespace
+
+u8 *__fastcall Online_Construct(u8 *session) {
+    for (u32 offset : {0xcu, 0x20u, 0x3cu})
+        WString_Ctor(reinterpret_cast<WString *>(session + offset));
+    String_Ctor(reinterpret_cast<String *>(session + 0x7c));
+    WString_Ctor(reinterpret_cast<WString *>(session + 0x98));
+    WString_Ctor(reinterpret_cast<WString *>(session + 0xb4));
+    String_Ctor(reinterpret_cast<String *>(session + 0x10c));
+    String_Ctor(reinterpret_cast<String *>(session + 0x330));
+    WString_Ctor(reinterpret_cast<WString *>(session + 0x348));
+    WString_Ctor(reinterpret_cast<WString *>(session + 0x35c));
+    String_Ctor(reinterpret_cast<String *>(session + 0x3ac));
+    at<u32>(session, 0x3cc) = 0;
+    at<u32>(session, 0x3d0) = 0;
+    at<u32>(session, 0x3d4) = 0;
+    at<u32>(session, 0x3c8) = 0x00702878;
+    String_Ctor(reinterpret_cast<String *>(session + 0x3dc));
+    at<u32>(session, 0) = 0;
+    ClearLogin(session);
+    at<u32>(session, 0x6c) = 0;
+    at<u32>(session, 0x70) = 0;
+    Online_ResetNews(session);
+    at<u32>(session, 0xd4) = 0;
+    u8 *cities = static_cast<u8 *>(GameHeap_Alloc(0x34));
+    if (cities) {
+        Class702880_Ctor(cities);
+        at<u32>(cities, 0) = 0x00702868;
+    }
+    at<u8 *>(session, 0xe0) = cities;
+    at<u8 *>(session, 0xe4) = NewList(0x38, 0x00702858);
+    at<u8 *>(session, 0xe8) = NewList(0x38, 0x00702848);
+    u8 *const named = static_cast<u8 *>(GameHeap_Alloc(0x48));
+    if (named) {
+        Class702890_Ctor(named);
+        at<u32>(named, 0) = 0x00702838;
+        WString_Ctor(reinterpret_cast<WString *>(named + 0x34));
+        at<u32>(named, 0) = 0x00702828;
+        vcall<void>(named + 0x34, 0x14, 0x0078a374u);
+    }
+    at<u8 *>(session, 0xec) = named;
+    at<u8 *>(session, 0xf0) = NewList(0x38, 0x00702818);
+    at<u8 *>(session, 0xf4) = NewList(0x38, 0x00702848);
+    at<u8 *>(session, 0xf8) = NewObject(0x34, [](u8 *object) { return Class7028b8_Ctor(object); });
+    at<u8 *>(session, 0xfc) = NewObject(0x34, [](u8 *object) { return Class7028e0_Ctor(object); });
+    at<u8 *>(session, 0x100) = NewObject(0x34, [](u8 *object) { return Class702908_Ctor(object); });
+    Online_ResetCity(session);
+    at<u32>(session, 0x104) = 0;
+    at<u32>(session, 0x108) = 0;
+    for (u32 offset : {0x328u, 0x320u, 0x324u, 0x32cu, 0x344u})
+        at<u32>(session, offset) = 0;
+    vcall<void>(session + 0x348, 0x14, 0x0078a374u);
+    vcall<void>(session + 0x35c, 0x14, 0x0078a374u);
+    for (u32 offset = 0x370; offset <= 0x380; offset += 4)
+        at<u32>(session, offset) = 0;
+    at<u32>(session, 0x39c) = 0;
+    at<u32>(session, 0x3a0) = 0;
+    at<u8 *>(session, 0x3a4) = NewObject(0xc0, [](u8 *object) { return Class70293c_Ctor(object); });
+    Online_ResetDownload(session);
+    return session;
+}
 
 u8 *__cdecl Online_Instance() {
     u8 *&session = *reinterpret_cast<u8 **>((uintptr_t)0x00f7d88c);

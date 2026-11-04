@@ -17,6 +17,7 @@ struct SceneLeaveEnv {
     s32(__cdecl *message7cc4c4)();                                                 // Dialog7cc4c4_Message4 (0x4b9c00)
     s32(__cdecl *message7cc4b4)();                                                 // Dialog7cc4b4_Message4 (0x4b8e80)
     s32(__cdecl *message7cc47c)();                                                 // Dialog7cc47c_Message4 (0x4b87f0)
+    void(__fastcall *setNameWords)(u8 *object, void *, u32 flag, u8 *text, const u16 *table);  // Obj_SetNameAndWords (0x5b7990)
 };
 void SceneLeave_SetEnv(const SceneLeaveEnv *env);
 
@@ -27,6 +28,8 @@ extern "C" {
 void __fastcall ViewCtl702bc8_Leave(u8 *self);
 // 0x5dd690: when active: the same when still active (slot 9 asked twice), then Dialog7cc4c4_Message4.
 void __fastcall ViewCtl702e70_Leave(u8 *self);
+// 0x5dd950 (name invented): 0x5dd690's work, then the session's (Online_Instance) name and words cleared (Obj_SetNameAndWords(0, 0, 0)).
+void __fastcall ViewCtl702e20_Leave(u8 *self);
 
 // 0x5e1450: when active: +4 = 0, the current item's sounds (when there is one) stopped and cleared.
 void __fastcall Class702cb0_Leave(u8 *self);

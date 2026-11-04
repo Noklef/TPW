@@ -16,4 +16,7 @@ void __fastcall Class702da0_Clear(u8 *object);
 // 0x5d6110 (thiscall (id, clear), pops 8; name invented, unconfirmed): with clear not 0, Class702da0_Clear's work (inlined); then a new
 // 4-byte item (Mem_Alloc) holding id pushed at the head of the list at +8 (List_PushHead). A failed allocation faults (sic).
 void __fastcall Class702da0_Push(u8 *object, void *, u32 id, u32 clear);
+
+// 0x5d61a0 (thiscall (id, time), pops 8; name invented, unconfirmed): +0x18 = 1, +0x1c = time, +0x24 = id.
+void __fastcall Class702da0_Show(u8 *object, void *, u32 id, u32 time);
 }

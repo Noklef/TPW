@@ -1,5 +1,6 @@
 #include "particles.h"
 
+#include <cmath>
 #include <cstdint>
 
 #include "../core/gameclock.h"
@@ -464,6 +465,33 @@ void __cdecl ParticlePool_Move(s32 pool, s32 jump, float x, float y, float t) {
     if (skip) return;
     field<float>(p, 0x10) = (float)(s32)Clocks_RealNowLessPauses();  // fild
     field<float>(p, 0x14) = X87_Through(t);
+}
+
+void __cdecl ParticlePools_Update() {
+    const auto ftol = [](X87Reg x) { return (s32)(long long)x.v; };
+    for (u8 *pool = reinterpret_cast<u8 *>(0x00f86900); pool < reinterpret_cast<u8 *>(0x00f869cc); pool += 0x44) {
+        if (!field<s32>(pool, 0x2c))
+            continue;
+        const s32 now = (s32)Clocks_RealNowLessPauses();
+        const float t = (float)((X87Reg((double)now) - field<float>(pool, 0x10)) / field<float>(pool, 0x14));
+        const float kept = !(1.0f >= t) ? 1.0f : t;   // fcomp, test ah 1: less, or unordered
+        const float centreX = (float)((X87Reg(field<float>(pool, 8)) - field<float>(pool, 0)) * t + field<float>(pool, 0));
+        const float centreY = (float)((X87Reg(field<float>(pool, 0xc)) - field<float>(pool, 4)) * t + field<float>(pool, 4));
+        for (s32 i = 0; i < field<s32>(pool, 0x2c); ++i) {
+            const X87Reg spin = X87Reg(t) * field<float>(pool, 0x18);
+            const X87Reg spacing = X87Reg(1.0f) / X87Reg((double)field<s32>(pool, 0x2c));
+            const double turn = (spin + spacing * X87Reg((double)i)).v;
+            double whole;
+            const u32 angle = (u32)ftol(X87Reg(std::modf(turn, &whole)) * X87Reg(512.0));
+            const float sine = (float)(X87Reg((double)IntSin(angle)) * 0.0009765625f);
+            const X87Reg cosine = X87Reg((double)IntCos(angle)) * 0.0009765625f;
+            const X87Reg radiusY = (X87Reg(field<float>(pool, 0x28)) - field<float>(pool, 0x20)) * kept + field<float>(pool, 0x20);
+            const X87Reg radiusX = (X87Reg(field<float>(pool, 0x24)) - field<float>(pool, 0x1c)) * kept + field<float>(pool, 0x1c);
+            const X87Reg y = centreY - radiusY * cosine;
+            const X87Reg x = radiusX * sine + centreX;
+            ParticleSystem_SetVectorA(field<u32>(pool, 0x30 + 4 * i), ftol((x - -1.0f) * 50000.0f), 0, ftol((y - -1.0f) * 37500.0f));
+        }
+    }
 }
 
 void __cdecl ParticlePool2_Setup(u32 x, u32 y, float width, float height) {

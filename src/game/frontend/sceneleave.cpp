@@ -6,7 +6,9 @@
 #include "../core/soundset.h"
 #include "../core/vcall.h"
 #include "../core/vregs.h"
+#include "../core/vobj2.h"
 #include "../model/holder.h"
+#include "../online/session.h"
 #include "../ui/dialogs.h"
 
 namespace {
@@ -14,7 +16,7 @@ namespace {
 template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cast<T *>((uintptr_t)p + offset); }
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
-const SceneLeaveEnv kPorts = {&Sound_Stop, &Sound_PlayAt, &Sound_ApplySettings, &Obj_DrainList0c, &Obj_DrainList04, &HolderUser_Release, &Dialog7cdb0c_Message4, &Dialog7cc4c4_Message4, &Dialog7cc4b4_Message4, &Dialog7cc47c_Message4};
+const SceneLeaveEnv kPorts = {&Sound_Stop, &Sound_PlayAt, &Sound_ApplySettings, &Obj_DrainList0c, &Obj_DrainList04, &HolderUser_Release, &Dialog7cdb0c_Message4, &Dialog7cc4c4_Message4, &Dialog7cc4b4_Message4, &Dialog7cc47c_Message4, &Obj_SetNameAndWords};
 const SceneLeaveEnv *g_env = &kPorts;
 
 bool Active(u8 *self) { return vcall<u32>(self, 0x24) != 0; }
@@ -90,6 +92,13 @@ void __fastcall ViewCtl702e70_Leave(u8 *self) {
     if (!Active(self)) return;
     if (Active(self)) LeaveView(self);
     g_env->message7cc4c4();
+}
+
+void __fastcall ViewCtl702e20_Leave(u8 *self) {
+    if (!Active(self)) return;
+    if (Active(self)) LeaveView(self);
+    g_env->message7cc4c4();
+    g_env->setNameWords(Online_Instance(), nullptr, 0, nullptr, nullptr);
 }
 
 void __fastcall Class702cb0_Leave(u8 *self) {

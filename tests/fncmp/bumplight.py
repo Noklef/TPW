@@ -1,4 +1,4 @@
-# A height map lit into a texture (src/game/gfx/bumplight: 0x5eb8a0) against the original: the alloc a recorder answering a block of the case (with room before it: rows shifted below the first wrap to negative), the shrink and the free recorders, _CIpow recorder 12 (its two doubles from the x87 stack) answering a float of the case; Vec3_Clamp and __ftol the original's.
+# A height map lit into a texture (src/game/gfx/bumplight: 0x5eb8a0) against the original: the alloc a recorder answering a block of the case (with room before it: rows shifted below the first wrap to negative; now and then 0, the texels then read through null), the shrink and the free recorders, _CIpow recorder 12 (its two doubles from the x87 stack) answering a float of the case; Vec3_Clamp and __ftol the original's.
 # usage: bumplight.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -37,18 +37,22 @@ def case(r):
     if r.randrange(20) == 0:
         put(self_, r.choice([4, 0xc, 0x10, 0x14, 0x18, 0x1c, 0x20]), 'I', r.choice([0x7fc00001, 0x7f800001, 0x7f800000, 0xff800000]))
     put(self_, 0x24, 'I', texRows)
-    put(self_, 0x28, 'i', r.choice([0, 0, 1, 2, -1, -3, 7]))
+    put(self_, 0x28, 'i', r.choice([0, 0, 1, 2, -1, -3, 7, r.randrange(-20, 20)]))
     put(self_, 0x38, 'I', MASK)
     put(self_, 0x3c, 'I', texWidth)
     put(self_, 0x68, 'I', OUT)
     heights = put(put(bytearray(r.bytes(0x10)), 0, '2i', width, rows), 0xc, 'I', DATA)
     size = width * rows
+    data = bytearray(r.bytes(size + width + 2))
+    for k in range(len(data)):   # (often level ground)
+        if r.random() < 0.3:
+            data[k] = 0x80
     regions = {LOG: log, SELF: self_, HEIGHTS: heights, MASK: bytes(r.choice([0, 1, 1, 0xff, r.getrandbits(8)]) for _ in range(max(size, 1))),
-               DATA: r.bytes(size + width + 2), OUT: r.bytes(max(size * 4, 4)), BEFORE: r.bytes(0x400)}
-    set_return(log, ALLOC, BLOCK)
+               DATA: data, OUT: r.bytes(max(size * 4, 4)), BEFORE: r.bytes(0x400)}
+    set_return(log, ALLOC, r.choice([BLOCK] * 30 + [0]))
     blob(log, SHRINK, 0, 0xf)
     mask_this(log, FREE)
-    set_float_return(log, POWK, r.choice([0.0, 0.25, 1.0, r.uniform(0, 100)]))
+    set_float_return(log, POWK, r.choice([0.0, 0.25, 1.0, r.uniform(0, 1), r.uniform(0, 100)]))
     return Call(0x5eb8a0, [SELF, HEIGHTS], regions, conv='t', ret='v')
 
 

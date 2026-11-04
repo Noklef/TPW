@@ -1,4 +1,4 @@
-# The wide text scanner's keyword handlers (src/game/core/wscanner: 0x5e4b20, 0x5e4ca0, 0x5e4f00, 0x5e50a0, 0x5e5240, 0x5e53c0, 0x5e58b0, 0x5e5aa0, 0x5e5c90, 0x5e5e80, 0x5e6160, 0x5e6350, 0x5e6630) against the originals: wscanner.py's scanner, with its word's and rest's sets and text (now and then its next word failing: the position at the end, on a character of the skipped set), the tokens a vector of 0-3 pairs with room; the new pairs' allocator bytes (the low byte of a stack address, CountedPair_CopyCtor, sic) left out. The vector's growth is countedpair.py's.
+# The wide text scanner's keyword handlers (src/game/core/wscanner: 0x5e4b20, 0x5e4ca0, 0x5e4f00, 0x5e50a0, 0x5e5240, 0x5e53c0, 0x5e58b0, 0x5e5aa0, 0x5e5c90, 0x5e5e80, 0x5e6160, 0x5e6350, 0x5e6630) against the originals: wscanner.py's scanner, with its word's and rest's sets and text (now and then its next word failing: the position at the end, on a character of the skipped set, or past the end), the tokens a vector of 0-3 pairs with room; the new pairs' allocator bytes (the low byte of a stack address, CountedPair_CopyCtor, sic) left out. The vector's growth is countedpair.py's.
 # usage: wscannerkeywords.py [CASES [SEED]] [--wild|--both] [--show N]
 import os
 import struct
@@ -64,6 +64,8 @@ def case(r):
     regions, ignored = scene(r, 'Next' if address in WORD or fails else 'Rest')   # (the rest after a next word of 'Next''s text: its skip may pass the end, _Xran)
     if fails:
         next_fails(regions)
+        if r.randrange(2):
+            put(regions[wscanner.SCANNER], 0x38, 'I', struct.unpack_from('<I', regions[wscanner.SCANNER], 0xc)[0] + r.choice([1, 9]))
     return Call(address, [wscanner.SCANNER], regions, conv='t', ret='a' if address == TOKEN else 'b', ignore=ignored)
 
 

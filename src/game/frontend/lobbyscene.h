@@ -5,6 +5,7 @@
 #include "../../../re/types.h"
 
 struct String;
+struct StringView;
 
 // Class702a50_Dtor's calls (the ports by default; the bench runs them as recorders).
 struct LobbySceneEnv {
@@ -17,6 +18,23 @@ struct LobbySceneEnv {
     int(__cdecl *rand)();                                                // the CRT's rand (0x67b5c0, by address)
     // 0x580320 (thiscall on the weather, unported: it reads the time stamp counter; by address): two points by value and two dwords.
     void(__fastcall *weatherBurst)(u8 *weather, void *, float x, float y, float z, float x2, float y2, float z2, u32 life, u32 kind);
+    // Class702af0_Step's calls.
+    u8 *(__fastcall *flightCtor)(u8 *self, void *, u8 *owner, u32 a, u32 b, const u32 *centre, const u32 *spread, u32 e, u32 f);  // LobbyFlight_Ctor (0x5d9830)
+    void(__fastcall *acquire)(u8 *user);                                 // RideUser_Acquire (0x5d8130)
+    void(__fastcall *flyerStep)(u8 *flyer);                              // LobbyFlyer_Step (0x5d9b50)
+    // LobbyCamera_Frame's calls (the floats as their bits, as the original passes them).
+    void(__fastcall *perspective)(void *matrix, void *, u32 near_, u32 far_, u32 fov);  // Mat4_Perspective (0x578be0)
+    void(__fastcall *setFov)(void *quad, void *, u32 fov);               // ViewQuad_SetFov (0x56b790)
+    void(__fastcall *lookAt)(u8 *camera);                                // Camera_SetLookAt (0x5d8de0)
+    void(__cdecl *cameraUpdate)();                                       // Camera_Update (0x42b1c0)
+    u32(__fastcall *fadeFog)(u8 *fade);                                  // Render_FadeFog (0x5d96c0)
+    // Class702a60_Ctor's calls.
+    u8 *(__fastcall *baseCtor)(u8 *object);                              // Class7029d0_Ctor (0x5d5700)
+    String *(__fastcall *stringCtor)(String *s, void *, const char *text);   // String_CtorStr (0x5f60b0)
+    void(__fastcall *joinPath)(u8 *paths, void *, const StringView *name);   // Strings5_JoinPath (0x5c5580)
+    void(__cdecl *terrainLoad)(u32 a, u32 b);                            // Terrain_Load (0x4504c0, the game's)
+    u32(__cdecl *removeFromRect)(u8 *object, u32 from, u32 to);          // Obj_RemoveFromRect (0x45be80)
+    void(__cdecl *holderSleep)(u8 *holder);                              // Holder_Sleep (0x45bdd0)
 };
 void LobbyScene_SetEnv(const LobbySceneEnv *env);
 
@@ -26,9 +44,29 @@ extern "C" {
 // +0x20 and +0xc destroyed.
 void __fastcall Class702a50_Dtor(u8 *object);
 
+// 0x5d80a0 (thiscall, pops 4; name unconfirmed): the destructor, the block freed when bit 0 of the flags is set; returns the object.
+u8 *__fastcall Class702a50_DeletingDtor(u8 *object, void *, u32 flags);
+
+// 0x5d84a0 (class 0x702a60's constructor, thiscall; the SEH frame left out; name invented, unconfirmed): the base (Class7029d0_Ctor), the vtable; the text at 0x774c64 joined
+// to the paths at 0xf816c0; Terrain_Load(1, 0); while +4 is 1 the renderer's holder ([0x79fcb4]+8) taken out (Obj_RemoveFromRect over +0xc0 / +0xc4 when its flags (+4) have
+// 0x4000, else Holder_Sleep). +8 and +0xc: blocks of 16 bytes with the vtables 0x702a58 and 0x702a54, the rest zero (null on a failed block).
+u8 *__fastcall Class702a60_Ctor(u8 *object);
+
 // 0x5da120 (class 0x702af0; name unconfirmed): once (the flag at +4 then set to 1), each item of the list at +0x58 (head +4; nodes {item, next})
 // whose flag at +0xc is clear has its model at +8 set up (RideUser_Acquire) and the flag set to 1.
 void __fastcall Class702af0_AcquireModels(u8 *object);
+
+// 0x5da020 (class 0x702af0; the SEH frame left out; name invented, unconfirmed): with the count +0xc below the limit +8 (signed), flyers made: a block of 0x60, LobbyFlight_Ctor (+0x18, +0x2c, +0x38, +0x44, +0x50, +0x54), its
+// model set up when the flag +4 is set and its +0xc clear (a failed block leaves a null flyer: a fault, sic), the count up; at the limit it stops, else the frame's seed +0x34 steps and another comes unless its bits 0-2 are 1.
+// Then each flyer of the list +0x58 steps (LobbyFlyer_Step).
+void __fastcall Class702af0_Step(u8 *object);
+
+// 0x5da3a0 (thiscall; name invented, unconfirmed): each scene of the list at [+4]+4 (nodes {scene, next}; the next read before the call) steps (Class702af0_Step).
+void __fastcall Class702af0_StepAll(u8 *all);
+
+// 0x5d8cb0 (thiscall; name invented, unconfirmed): the perspective at 0x87b110 (0.1, 1000, the angle +4), ViewQuad_SetFov on [0x879d54], Camera_SetLookAt, Camera_Update, Render_FadeFog on the camera. The fade +0x5c moves an eighth
+// (arithmetic) towards +0x60. Above 0: the render flag bit 0x80000 of 0x8bcbc8 set and 0x8bd4e4 the fade >> 8, at most 255, in its top byte. Otherwise that bit clear.
+void __fastcall LobbyCamera_Frame(u8 *camera);
 
 // 0x5dfca0 (class 0x702ca8; name unconfirmed): once (the flag at +0x10 then set to 1), the models at +4 and +8 set up (RideUser_Acquire).
 void __fastcall Class702ca8_AcquireModels(u8 *object);

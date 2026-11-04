@@ -6,6 +6,11 @@
 #include "stdstring.h"
 #include "stdwstring.h"
 
+struct StdListEnv {
+    void(__fastcall *dwordListClear)(u8 *list);   // the list of dwords' clear, 0x634bf0: unported, outside every range (by address)
+};
+void StdList_SetEnv(const StdListEnv *env);  // nullptr: the game's
+
 extern "C" {
 
 // 0x5cde80 (thiscall): every node is unlinked, its string tidied (StdString_Tidy with built) and the node freed, the count lowered; then the sentinel is freed and the sentinel
@@ -93,6 +98,21 @@ void __fastcall StdListString_Unique(u8 *list);
 // 0x5d0590 (thiscall; other list, pops 4): merges the other sorted list into this one (an element of the other goes before the first of this that it is below, unsigned);
 // what is left of the other goes to the end; the size is the sum and the other's is 0. Nothing for the list itself.
 void __fastcall StdListDword_Merge(u8 *list, void *, u8 *other);
+
+// 0x5d03e0 (thiscall; other list, pops 4): the same for a list<string> (an element of the other goes before the first of this that it compares below, StdString_CompareSub).
+void __fastcall StdListString_Merge(u8 *list, void *, u8 *other);
+
+// 0x5ce190 / 0x5ce5a0 (thiscall): list::sort, stable, of a list<string> (by ByteString_Compare) / a list of dwords (unsigned): nothing below 2 elements; bins of 2^i nodes, the last holding the rest.
+void __fastcall StdListString_Sort(u8 *list);
+
+// 0x5cc640, 0x5cc770 (thiscall; names invented, unconfirmed): the key at [+0x7c]+8 pushed on the list of dwords at +0x64, +0x70, the list sorted, each run of equal dwords cut to its first.
+void __fastcall List64_AddKeySorted(u8 *object);
+void __fastcall List70_AddKeySorted(u8 *object);
+
+// 0x5cd510 (thiscall, pops 4; name invented, unconfirmed): x pushed, the list sorted, each run of equal strings cut to its first; the index of the first string equal to x, or -1
+// (x a node's own string and erased reads empty, sic).
+s32 __fastcall StdListString_AddSorted(u8 *list, void *, const StdString *x);
+void __fastcall StdListDword_Sort(u8 *list);
 
 // 0x5b2fd0 (stdcall; a, b): a new block of 0x28 bytes (otherwise left as it is) with a at +4 and b at +0x24. Returns it.
 u8 *__stdcall Node28_New(u32 a, u32 b);

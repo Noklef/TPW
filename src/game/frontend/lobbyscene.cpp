@@ -7,12 +7,19 @@
 #include "../core/gameheap.h"
 #include "../core/soundplay.h"
 #include "../core/string.h"
+#include "../core/vdtor.h"
 #include "../core/vcall.h"
 #include "../files/userslots.h"
+#include "../math/mat4.h"
 #include "../math/x87.h"
 #include "../model/holder.h"
+#include "../render/state.h"
+#include "../render/viewquad.h"
 #include "../render/weatherfx.h"
+#include "../world/camera.h"
+#include "../world/cameraupdate.h"
 #include "../world/rides.h"
+#include "lobbyflight.h"
 #include "lobbymodel.h"
 
 namespace {
@@ -27,8 +34,33 @@ const LobbySceneEnv kPorts = {&Ride_Destroy,
                               &LobbyModel_TimeLeft,
                               &Sound_PlayAt,
                               reinterpret_cast<int(__cdecl *)()>((uintptr_t)0x0067b5c0),
-                              reinterpret_cast<decltype(LobbySceneEnv::weatherBurst)>((uintptr_t)0x00580320)};
+                              reinterpret_cast<decltype(LobbySceneEnv::weatherBurst)>((uintptr_t)0x00580320),
+                              &LobbyFlight_Ctor,
+                              &RideUser_Acquire,
+                              &LobbyFlyer_Step,
+                              reinterpret_cast<decltype(LobbySceneEnv::perspective)>(&Mat4_Perspective),
+                              reinterpret_cast<decltype(LobbySceneEnv::setFov)>(&ViewQuad_SetFov),
+                              &Camera_SetLookAt,
+                              &Camera_Update,
+                              &Render_FadeFog,
+                              &Class7029d0_Ctor,
+                              &String_CtorStr,
+                              &Strings5_JoinPath,
+                              reinterpret_cast<decltype(LobbySceneEnv::terrainLoad)>((uintptr_t)0x004504c0),
+                              &Obj_RemoveFromRect,
+                              &Holder_Sleep};
 const LobbySceneEnv *g_env = &kPorts;
+
+// A block of 16 bytes with the vtable and the rest zero; null when it fails.
+u8 *NewEmpty(u32 vtable) {
+    u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x10));
+    if (!block) return nullptr;
+    at<u32>(block, 4) = 0;
+    at<u32>(block, 8) = 0;
+    at<u32>(block, 0xc) = 0;
+    at<u32>(block, 0) = vtable;
+    return block;
+}
 
 // FCOM against a float: C0 (below, or unordered), C3 (equal, or unordered), C0 or C3 (not above).
 bool Below(X87Reg a, float b) { return !(a.v >= b); }
@@ -292,6 +324,85 @@ void __fastcall Class702a50_Dtor(u8 *object) {
     g_env->destroy(at<u32>(object, 4));
     g_env->stringDtor(reinterpret_cast<String *>(object + 0x20));
     g_env->stringDtor(reinterpret_cast<String *>(object + 0xc));
+}
+
+u8 *__fastcall Class702a50_DeletingDtor(u8 *object, void *, u32 flags) {
+    Class702a50_Dtor(object);
+    if (flags & 1) GameHeap_Free(object);
+    return object;
+}
+
+u8 *__fastcall Class702a60_Ctor(u8 *object) {
+    g_env->baseCtor(object);
+    at<u32>(object, 0) = 0x00702a60;
+    String name;
+    g_env->stringCtor(&name, nullptr, reinterpret_cast<const char *>((uintptr_t)0x00774c64));
+    g_env->joinPath(reinterpret_cast<u8 *>((uintptr_t)0x00f816c0), nullptr, reinterpret_cast<const StringView *>(&name));
+    g_env->stringDtor(&name);
+    g_env->terrainLoad(1, 0);
+    at<u32>(object, 4) = 1;
+    u8 *const renderer = global<u8 *>(0x0079fcb4);
+    if (at<u32>(renderer, 4) & 0x4000)
+        g_env->removeFromRect(at<u8 *>(renderer, 8), at<u32>(renderer, 0xc0), at<u32>(renderer, 0xc4));
+    else
+        g_env->holderSleep(at<u8 *>(renderer, 8));
+    at<u32>(object, 4) = 0;
+    at<u8 *>(object, 8) = NewEmpty(0x00702a58);
+    at<u8 *>(object, 0xc) = NewEmpty(0x00702a54);
+    return object;
+}
+
+void __fastcall LobbyCamera_Frame(u8 *camera) {
+    const u32 fov = at<u32>(camera, 4);
+    g_env->perspective(reinterpret_cast<void *>((uintptr_t)0x0087b110), nullptr, 0x3dcccccd, 0x447a0000, fov);
+    g_env->setFov(global<void *>(0x00879d54), nullptr, fov);
+    g_env->lookAt(camera);
+    g_env->cameraUpdate();
+    g_env->fadeFog(camera);
+    const u32 fade = at<u32>(camera, 0x5c);
+    const u32 gap = at<u32>(camera, 0x60) - fade;
+    if (gap) at<u32>(camera, 0x5c) = fade + static_cast<u32>(static_cast<s32>(gap) >> 3);
+    if (at<s32>(camera, 0x5c) > 0) {
+        global<u32>(0x008bcbc8) |= 0x80000;
+        const s32 alpha = at<s32>(camera, 0x5c) >> 8;
+        global<u32>(0x008bd4e4) = static_cast<u32>(alpha > 0xff ? 0xff : alpha) << 24;
+    } else {
+        global<u32>(0x008bcbc8) &= 0xfff7ffff;
+    }
+}
+
+void __fastcall Class702af0_Step(u8 *object) {
+    if (at<s32>(object, 0xc) < at<s32>(object, 8)) {
+        u32 bits;
+        do {
+            u8 *const block = static_cast<u8 *>(GameHeap_Alloc(0x60));
+            u8 *const flyer = block ? g_env->flightCtor(block, nullptr, object, at<u32>(object, 0x18), at<u32>(object, 0x2c), reinterpret_cast<const u32 *>(object + 0x38), reinterpret_cast<const u32 *>(object + 0x44),
+                                                        at<u32>(object, 0x50), at<u32>(object, 0x54))
+                                    : nullptr;
+            if (at<u32>(object, 4) && at<u32>(flyer, 0xc) == 0) {
+                g_env->acquire(at<u8 *>(flyer, 8));
+                at<u32>(flyer, 0xc) = 1;
+            }
+            if (++at<s32>(object, 0xc) >= at<s32>(object, 8)) break;
+            u8 *const frame = global<u8 *>(0x00f82884);
+            const u32 next = at<u32>(frame, 0x34) * 0x19660d + 0x3c6ef35f;
+            bits = next >> 13 | next << 19;
+            at<u32>(frame, 0x34) = bits;
+        } while ((bits & 7) != 1);
+    }
+    for (u8 *node = at<u8 *>(at<u8 *>(object, 0x58), 4); node;) {
+        u8 *const flyer = at<u8 *>(node, 0);
+        node = at<u8 *>(node, 4);
+        g_env->flyerStep(flyer);
+    }
+}
+
+void __fastcall Class702af0_StepAll(u8 *all) {
+    for (u8 *node = at<u8 *>(at<u8 *>(all, 4), 4); node;) {
+        u8 *const scene = at<u8 *>(node, 0);
+        node = at<u8 *>(node, 4);
+        Class702af0_Step(scene);
+    }
 }
 
 void __fastcall Class702af0_AcquireModels(u8 *object) {

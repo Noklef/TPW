@@ -295,7 +295,9 @@
 #include "../../src/game/render/engineerrors.h"
 #include "../../src/game/online/chatavatar.h"
 #include "../../src/game/online/chatcommand.h"
+#include "../../src/game/online/listrequest.h"
 #include "../../src/game/online/session.h"
+#include "../../src/game/online/sessionlogin.h"
 #include "../../src/game/online/chatevents.h"
 #include "../../src/game/sprite/draw.h"
 #include "../../src/game/sprite/script.h"
@@ -367,7 +369,9 @@
 #include "../../src/game/world/parkmap.h"
 #include "../../src/game/world/rideskin.h"
 #include "../../src/game/core/advisorscoring.h"
+#include "../../src/game/frontend/sceneenter.h"
 #include "../../src/game/frontend/sceneleave.h"
+#include "../../src/game/frontend/scenesteps.h"
 #include "../../src/game/terrain/raypick.h"
 #include "../../src/game/terrain/ground.h"
 #include "../../src/game/terrain/water.h"
@@ -393,6 +397,20 @@
 #include "../../src/game/world/mappreview.h"
 #include "../../src/game/world/personscripts.h"
 #include "../../src/game/core/funnytime.h"
+#include "../../src/game/core/narrowfilebuf.h"
+#include "../../src/game/world/parkmapwindow.h"
+#include "../../src/game/frontend/thememenu.h"
+#include "../../src/game/gfx/signrender.h"
+#include "../../src/game/files/signfonts.h"
+#include "../../src/game/core/stdlist.h"
+#include "../../src/game/core/thunks.h"
+#include "../../src/game/ui/panelkeys.h"
+#include "../../src/game/frontend/frame.h"
+#include "../../src/game/core/buffers.h"
+#include "../../src/game/core/guardheap.h"
+#include "../../src/game/core/themenames.h"
+#include "../../src/game/core/nstream.h"
+#include "../../src/game/core/swearfilter.h"
 #include "../../src/game/core/wfilebuf.h"
 #include "../../src/game/core/wstream.h"
 #include "../../src/game/core/channelvoice.h"
@@ -913,7 +931,7 @@ const EditUpdateEnv kEditUpdateEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorde
 // tests/fncmp/testrun.py hooks them.
 const RibbonEnv kRibbonEnv = {Rec{recorder(2, 5)}};
 const BatchEnv kBatchEnv = {Rec{recorder(1, 1)}, Rec{recorder(2, 2)}};
-const ViewCtlEnv kViewCtlEnv = {reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)jpeg_recorder(15, 1))};
+const ViewCtlEnv kViewCtlEnv = {reinterpret_cast<void(__cdecl *)(u8 *)>((uintptr_t)jpeg_recorder(15, 1)), Rec{jpeg_recorder(30, 0)}};
 const BatchQuadEnv kBatchQuadEnv = {Rec{recorder(11, 5)}, Rec{recorder(12, 5)}, Rec{recorder(13, 2)}, Rec{recorder(14, 0)}, Rec{recorder(15, 2)}, Rec{recorder(16, 1)}};
 const LandscapeDrawEnv kLandscapeDrawEnv = {Rec{recorder(11, 5)}, Rec{recorder(15, 4)}, Rec{recorder(16, 1)}, Rec{jpeg_recorder(17, 1)}};
 // tests/fncmp/terrainwater.py: the transformer's slot 1 is 0x579330 in the original; here its port. ClipPoly_Vertices is stdcall (the COM-style recorder 3 of 5, recorder(k, n, True) in fncmp.py).
@@ -937,15 +955,49 @@ void __cdecl ride_base_fit(const u8 *node, u8 *frame, u16 **cursor, GridFitMatri
 const RideBaseEnv kRideBaseEnv = {&ride_base_fit, Rec{jpeg_recorder(2, 5)}, Rec{jpeg_recorder(3, 2)}};
 const ParkEntranceEnv kParkEntranceEnv = {Rec{jpeg_recorder(1, 2)}, Rec{jpeg_recorder(2, 1)}, Rec{jpeg_recorder(3, 4)}, Rec{jpeg_recorder(4, 1)}, Rec{jpeg_recorder(5, 0)}, Rec{jpeg_recorder(6, 6)}, Rec{recorder(7, 0)}, Rec{jpeg_recorder(8, 0)}, Rec{jpeg_recorder(9, 1)}};
 const CarSoundUpdateEnv kCarSoundUpdateEnv = {Rec{jpeg_recorder(1, 0)}, Rec{jpeg_recorder(2, 3)}, Rec{jpeg_recorder(3, 4)}, Rec{jpeg_recorder(4, 5)}};
+const SceneEnterEnv kSceneEnterEnv = {Rec{recorder(16, 1)}, Rec{recorder(17, 0)}, Rec{recorder(18, 2)}, Rec{recorder(19, 4)}, Rec{jpeg_recorder(20, 6)}, Rec{recorder(21, 6)}, Rec{recorder(22, 0)}, Rec{recorder(23, 0)},
+                                     Rec{recorder(24, 2)}, Rec{recorder(25, 0)}, Rec{jpeg_recorder(26, 0)}, Rec{recorder(27, 0)}, Rec{recorder(28, 0)}, Rec{recorder(29, 3)}, Rec{recorder(30, 3)}, Rec{jpeg_recorder(31, 0)},
+                                     Rec{jpeg_recorder(14, 1)}, Rec{jpeg_recorder(15, 0)}};  // tests/fncmp/sceneenter.py
+const SceneStepsEnv kSceneStepsEnv = {Rec{recorder(16, 2)}, Rec{jpeg_recorder(17, 0)}, Rec{jpeg_recorder(18, 0)}, Rec{recorder(19, 0)}, Rec{jpeg_recorder(20, 1)}, Rec{recorder(21, 0)}, Rec{recorder(22, 0)},
+                                     Rec{recorder(23, 0)}, Rec{jpeg_recorder(24, 0)}, Rec{jpeg_recorder(25, 0)}, Rec{jpeg_recorder(26, 5)}, Rec{recorder(27, 1)}, Rec{recorder(28, 0)}, Rec{jpeg_recorder(29, 1)}, Rec{jpeg_recorder(30, 0)}, Rec{recorder(31, 2)}, Rec{recorder(12, 2)}, Rec{recorder(13, 2)},
+                                     Rec{recorder(1, 1)}, Rec{recorder(2, 1)}, Rec{recorder(3, 0)}, Rec{recorder(4, 0)}, Rec{recorder(5, 0)}, Rec{recorder(6, 0)}};  // tests/fncmp/scenesteps.py, themecheck.py
 const SceneLeaveEnv kSceneLeaveEnv = {Rec{jpeg_recorder(20, 1)}, Rec{jpeg_recorder(21, 6)}, Rec{jpeg_recorder(22, 0)}, Rec{recorder(23, 0)}, Rec{recorder(24, 0)}, Rec{recorder(25, 0)},
-                                       Rec{jpeg_recorder(26, 0)}, Rec{jpeg_recorder(27, 0)}, Rec{jpeg_recorder(28, 0)}, Rec{jpeg_recorder(29, 0)}};
+                                       Rec{jpeg_recorder(26, 0)}, Rec{jpeg_recorder(27, 0)}, Rec{jpeg_recorder(28, 0)}, Rec{jpeg_recorder(29, 0)}, Rec{recorder(30, 3)}};
 const AdvisorCriteriaEnv kAdvisorCriteriaEnv = {Rec{recorder(1, 1)}, Rec{jpeg_recorder(2, 0)}, Rec{recorder(3, 1)}, Rec{recorder(4, 0)}, Rec{recorder(5, 0)}, Rec{recorder(6, 2)}};
 const CellPaintEnv kCellPaintEnv = {Rec{jpeg_recorder(1, 6)}, Rec{jpeg_recorder(2, 3)}};
 const RideSkinEnv kRideSkinEnv = {Rec{jpeg_recorder(1, 1)}};
 // (Class702cb0_Step's: thiscall 3 of 2 arguments, thiscall 4 of none, cdecl 6 of 6, cdecl 7 of none, thiscall 5 of 8, as tests/fncmp/lobbystep.py hooks those addresses.)
 // (ParkMap_Draw's: thiscall 10 of 1 argument, 11 of none, 12 of 3, 13 of none, as tests/fncmp/parkmapdraw.py hooks those addresses.)
 const ParkMapEnv kParkMapEnv = {Rec{recorder(10, 1)}, Rec{recorder(11, 0)}, Rec{recorder(12, 3)}, Rec{recorder(13, 0)}};
-const LobbyMakeEnv kLobbyMakeEnv = {Rec{jpeg_recorder(20, 11)}, Rec{jpeg_recorder(21, 10)}, Rec{jpeg_recorder(22, 1)}, Rec{jpeg_recorder(23, 3)}, Rec{recorder(24, 1)}, Rec{recorder(25, 1)}, Rec{jpeg_recorder(26, 1)}};
+const LobbyMakeEnv kLobbyMakeEnv = {Rec{jpeg_recorder(20, 11)}, Rec{jpeg_recorder(21, 10)}, Rec{jpeg_recorder(22, 1)}, Rec{jpeg_recorder(23, 3)}, Rec{recorder(24, 1)}, Rec{recorder(25, 1)}, Rec{jpeg_recorder(26, 1)},
+                                    Rec{recorder(28, 0)}, Rec{recorder(29, 1)}, Rec{recorder(30, 3)}};
+u32 __cdecl SwearLowerC(u32 c) { return (c & 0xffff) >= 0x41 && (c & 0xffff) <= 0x5a ? (c & 0xffff) + 0x20 : c & 0xffff; }   // towlower in the C locale, tests/fncmp/swearfilter.py
+const SwearFilterEnv kSwearFilterEnv = {&SwearLowerC};
+const NStreamEnv kNStreamEnv = {Rec{kStubs + 0x5000 + 0x800 * 2 + 0x20 * 14}, Rec{recorder(26, 1)}, Rec{recorder(27, 0)}, Rec{jpeg_recorder(28, 1)}, reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)(kStubs + 0x50)), Rec{recorder(20, 0)}, Rec{recorder(21, 0)}};
+const ThemeNamesEnv kThemeNamesEnv = {Rec{jpeg_recorder(1, 5)}, Rec{jpeg_recorder(2, 2)}, Rec{recorder(3, 3)}, Rec{recorder(4, 3)}, Rec{recorder(5, 3)}};
+const GuardHeapEnv kGuardHeapEnv = {Rec{jpeg_recorder(1, 1)}, Rec{jpeg_recorder(2, 1)}};
+const Blocks7LoadEnv kBlocks7LoadEnv = {Rec{jpeg_recorder(1, 3)}, Rec{recorder(2, 2)}};
+const FrameEnv kFrameEnv = {Rec{jpeg_recorder(7, 0)}, Rec{recorder(6, 3)}};
+const PanelKeysEnv kPanelKeysEnv = {Rec{jpeg_recorder(1, 1)}};
+const OnlineCityPollEnv kOnlineCityPollEnv = {Rec{recorder(8, 0)}, Rec{recorder(9, 0)}, Rec{recorder(10, 0)}, Rec{recorder(11, 3)}, Rec{recorder(12, 1)}, Rec{recorder(13, 1)}, Rec{recorder(14, 1)}, Rec{recorder(15, 1)}, Rec{recorder(16, 1)},
+                                              Rec{jpeg_recorder(17, 0)}, Rec{jpeg_recorder(18, 1)}, Rec{jpeg_recorder(19, 0)}, Rec{jpeg_recorder(20, 1)}, Rec{jpeg_recorder(21, 1)}};
+const OnlineStartEnv kOnlineStartEnv = {Rec{recorder(21, 0)}, Rec{recorder(22, 0)}, Rec{recorder(23, 0)}, Rec{recorder(24, 0)}, Rec{jpeg_recorder(25, 0)}, Rec{jpeg_recorder(26, 0)}, Rec{recorder(27, 3)}, Rec{jpeg_recorder(28, 1)}, Rec{recorder(29, 0)}, Rec{recorder(17, 0)}, Rec{jpeg_recorder(18, 2)}, Rec{recorder(19, 1)}, Rec{jpeg_recorder(23, 1)}};
+const BumpStepsEnv kBumpStepsEnv = {Rec{recorder(1, 3)}, Rec{recorder(2, 3)}, Rec{recorder(3, 3)}, Rec{recorder(4, 1)}, Rec{jpeg_recorder(5, 4)}, Rec{jpeg_recorder(6, 2)}, Rec{jpeg_recorder(7, 2)}, Rec{jpeg_recorder(8, 3)}, Rec{recorder(9, 0)}};
+const ThunksEnv kThunksEnv = {reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)(kStubs + 0x50)), Rec{jpeg_recorder(7, 3)}};  // tests/fncmp/thunks_static.py
+const StdListEnv kStdListEnv = {Rec{recorder(3, 0)}};  // tests/fncmp/std_lists.py
+const OnlineDtorEnv kOnlineDtorEnv = {Rec{recorder(8, 0)}, Rec{recorder(9, 0)}, Rec{recorder(10, 0)}, Rec{recorder(11, 0)}, Rec{recorder(12, 0)}, Rec{jpeg_recorder(13, 0)}, Rec{jpeg_recorder(14, 0)}, Rec{recorder(15, 0)}, Rec{recorder(16, 0)}};
+const OnlineEndEnv kOnlineEndEnv = {Rec{jpeg_recorder(8, 2)}, Rec{recorder(9, 0)}, Rec{recorder(10, 0)}, Rec{recorder(11, 0)}, Rec{recorder(12, 0)}, Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{jpeg_recorder(15, 0)}, Rec{jpeg_recorder(16, 0)}, Rec{jpeg_recorder(17, 1)}, Rec{jpeg_recorder(18, 1)}, Rec{jpeg_recorder(19, 0)}, Rec{recorder(20, 0)}, Rec{jpeg_recorder(21, 1)}};
+const SignFontsEnv kSignFontsEnv = {Rec{jpeg_recorder(8, 2)}};
+const OnlinePollEnv kOnlinePollEnv = {Rec{recorder(8, 1)}, Rec{recorder(9, 0)}, Rec{recorder(10, 0)}, Rec{recorder(11, 0)}, Rec{recorder(12, 1)}, Rec{jpeg_recorder(13, 0)}, Rec{jpeg_recorder(14, 1)}, Rec{jpeg_recorder(15, 1)}};
+const OnlineNextEnv kOnlineNextEnv = {Rec{recorder(8, 0)}, Rec{recorder(9, 1)}, Rec{recorder(10, 2)}, Rec{recorder(11, 0)}};
+const SignRenderEnv kSignRenderEnv = {Rec{recorder(8, 3)}, Rec{recorder(9, 2)}, Rec{recorder(10, 0)}};
+const FrameStartEnv kFrameStartEnv = {Rec{recorder(8, 2)}, Rec{recorder(9, 1)}, Rec{recorder(10, 1)}, Rec{recorder(11, 1)}, Rec{recorder(12, 0)}, Rec{jpeg_recorder(13, 4)}, Rec{jpeg_recorder(14, 1)}, Rec{recorder(15, 0)}, Rec{jpeg_recorder(16, 0)}, Rec{recorder(17, 0)}, Rec{recorder(18, 0)}, Rec{recorder(19, 0)}, Rec{recorder(20, 0)}, Rec{recorder(21, 0)}, Rec{recorder(22, 0)}, Rec{jpeg_recorder(23, 0)}};
+const ThemeMenuEnv kThemeMenuEnv = {Rec{recorder(8, 0)}, Rec{recorder(9, 0)}, Rec{recorder(10, 1)}, Rec{recorder(11, 2)}, Rec{recorder(12, 2)}, Rec{recorder(13, 3)}, Rec{recorder(14, 2)}, Rec{jpeg_recorder(15, 2)}, Rec{recorder(16, 0)}, Rec{recorder(17, 1)}, Rec{recorder(18, 5)}};
+const ParkMapPictureEnv kParkMapPictureEnv = {Rec{jpeg_recorder(8, 0)}, Rec{recorder(9, 4)}, Rec{recorder(10, 1)}, Rec{recorder(11, 5)}, Rec{recorder(12, 4)}, Rec{recorder(13, 0)}};
+const ParkMapWindowEnv kParkMapWindowEnv = {Rec{recorder(8, 2)}, Rec{recorder(10, 1)}, Rec{recorder(11, 0)}, Rec{recorder(12, 4)}, Rec{recorder(13, 0)}, Rec{jpeg_recorder(14, 5)}, Rec{recorder(15, 2)}, Rec{recorder(16, 1)}, Rec{recorder(17, 0)}, Rec{jpeg_recorder(18, 1)}, Rec{recorder(19, 3)},
+                                            Rec{recorder(20, 0)}, Rec{recorder(21, 1)}, Rec{recorder(22, 0)}, Rec{recorder(23, 0)}, Rec{recorder(24, 0)}, Rec{recorder(25, 1)}, Rec{recorder(26, 0)},
+                                            Rec{jpeg_recorder(27, 0)}, Rec{jpeg_recorder(28, 4)}, Rec{jpeg_recorder(29, 1)}, Rec{jpeg_recorder(30, 1)}, Rec{jpeg_recorder(31, 0)}, Rec{jpeg_recorder(7, 2)}};
+const ParkMapSpritesEnv kParkMapSpritesEnv = {Rec{recorder(8, 1)}, Rec{recorder(9, 2)}, Rec{recorder(10, 2)}, Rec{recorder(11, 0)}, Rec{recorder(12, 1)}, Rec{recorder(13, 0)}};
 const CoasterPlaceCarEnv kCoasterPlaceCarEnv = {Rec{jpeg_recorder(1, 6)}, Rec{jpeg_recorder(2, 9)}, Rec{jpeg_recorder(3, 7)}, Rec{jpeg_recorder(4, 5)}, Rec{jpeg_recorder(5, 2)}, Rec{jpeg_recorder(6, 7)},
                                                  Rec{jpeg_recorder(7, 1)}, Rec{jpeg_recorder(8, 1)}, Rec{jpeg_recorder(9, 0)}, Rec{jpeg_recorder(10, 0)}, Rec{jpeg_recorder(11, 0)}, Rec{jpeg_recorder(12, 0)},
                                                  Rec{recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{recorder(15, 1)}};  // tests/fncmp/coasterplacecar.py
@@ -967,7 +1019,9 @@ const WeatherFxReloadEnv kWeatherFxReloadEnv = {Rec{jpeg_recorder(1, 3)}, Rec{re
                                                 reinterpret_cast<void(__fastcall *)(Handle *)>(&ReloadDtor), Rec{jpeg_recorder(10, 0)}};  // tests/fncmp/weatherreload.py
 const CameraUpdateEnv kCameraUpdateEnv = {Rec{recorder(1, 0)}, Rec{recorder(2, 1)}, Rec{jpeg_recorder(3, 4)}, Rec{jpeg_recorder(4, 2)}, Rec{recorder(5, 1)}, Rec{recorder(6, 1)},
                                           Rec{jpeg_recorder(7, 3)}, Rec{jpeg_recorder(8, 2)}};  // tests/fncmp/cameraupdate.py
-const LobbySceneEnv kLobbySceneEnv = {Rec{jpeg_recorder(1, 1)}, Rec{recorder(2, 0)}, Rec{recorder(3, 2)}, Rec{recorder(4, 0)}, Rec{jpeg_recorder(6, 6)}, Rec{jpeg_recorder(7, 0)}, Rec{recorder(5, 8)}};
+const LobbySceneEnv kLobbySceneEnv = {Rec{jpeg_recorder(1, 1)}, Rec{recorder(2, 0)}, Rec{recorder(3, 2)}, Rec{recorder(4, 0)}, Rec{jpeg_recorder(6, 6)}, Rec{jpeg_recorder(7, 0)}, Rec{recorder(5, 8)}, Rec{recorder(13, 7)}, Rec{recorder(14, 0)}, Rec{recorder(15, 0)},
+                                     Rec{recorder(16, 3)}, Rec{recorder(17, 1)}, Rec{recorder(18, 0)}, Rec{jpeg_recorder(19, 0)}, Rec{recorder(20, 0)},
+                                     Rec{recorder(8, 0)}, Rec{recorder(9, 1)}, Rec{recorder(10, 1)}, Rec{jpeg_recorder(11, 2)}, Rec{jpeg_recorder(12, 3)}, Rec{jpeg_recorder(21, 1)}};
 const ChatCursorEnv kChatCursorEnv = {Rec{jpeg_recorder(1, 0)}, Rec{jpeg_recorder(2, 4)}, Rec{jpeg_recorder(3, 0)}, Rec{recorder(4, 1)}, Rec{recorder(5, 1)}};
 // tests/fncmp/d3dprobe.py: the clock a recorder.
 const SpriteFramesEnv kSpriteFramesEnv = {reinterpret_cast<u32(__fastcall *)(u8 *)>((uintptr_t)(kStubs + 0x1000 + 0x20 * 20))};   // (slot 20's thiscall recorder of no arguments)
@@ -986,7 +1040,8 @@ const TexCacheTraceEnv kTexCacheTraceEnv = {reinterpret_cast<void *(__cdecl *)(c
                                             reinterpret_cast<u32(__cdecl *)(const void *, u32, u32, void *)>((uintptr_t)jpeg_recorder(12, 4)),
                                             reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)jpeg_recorder(13, 1)),
                                             reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)jpeg_recorder(14, 1))};  // tests/fncmp/texcachetouch.py
-const WKeywordsEnv kWKeywordsEnv = {reinterpret_cast<s32(__cdecl *)(u8 *, u16 *, u32, u32, ...)>((uintptr_t)jpeg_recorder(12, 4))};  // tests/fncmp/wkeywords.py
+u32 __cdecl WScannerUpperC(u32 c) { return (c & 0xffff) >= 0x61 && (c & 0xffff) <= 0x7a ? (c & 0xffff) - 0x20 : c & 0xffff; }   // towupper in the C locale, tests/fncmp/wscanner.py
+const WKeywordsEnv kWKeywordsEnv = {reinterpret_cast<s32(__cdecl *)(u8 *, u16 *, u32, u32, ...)>((uintptr_t)jpeg_recorder(12, 4)), &WScannerUpperC};  // tests/fncmp/wkeywords.py
 
 const KeyCancelEnv kKeyCancelEnv = {Rec{recorder(20, 0)}, Rec{jpeg_recorder(21, 2)}, Rec{jpeg_recorder(22, 6)}, Rec{jpeg_recorder(23, 4)}, Rec{jpeg_recorder(24, 2)}};
 const SceneViewsEnv kSceneViewsEnv = {Rec{recorder(20, 0)}, Rec{recorder(21, 0)}};
@@ -1122,6 +1177,7 @@ const AddrCall kGlobalSaveCalls[] = {  // tests/fncmp/globalsaveio.py --table
     {0x5b0d70, recorder(5, 3)},
     {0x5b1620, recorder(6, 2)},
     {0x5b1650, recorder(7, 2)}, {0x5aff50, recorder(8, 3)}, {0x5f5ad0, jpeg_recorder(1, 4)}, {0x5f5e50, jpeg_recorder(2, 5)}, {0x5f5b80, jpeg_recorder(3, 2)},  // (the last four: tests/fncmp/globalsavewrite.py)
+    {0x5b11c0, recorder(8, 0)},  // tests/fncmp/thememap.py
 };
 // GamePaths_FindDisc's recorder (tests/fncmp/gamepathscheckdisc.py's _find, the same): the copy kept first.
 u32 __fastcall findDiscStandIn(u32 self, u32) {
@@ -1674,8 +1730,9 @@ const MapSweepEnv kMapSweepEnv = {Rec{recorder(10, 0)}, Rec{recorder(11, 0)}, Re
 const Dialog7cb400CloseEnv kDialog7cb400CloseEnv = {Rec{jpeg_recorder(10, 4)}, Rec{recorder(11, 1)}, Rec{recorder(12, 1)}, Rec{jpeg_recorder(13, 0)}, Rec{recorder(14, 0)}, Rec{recorder(15, 0)}, Rec{jpeg_recorder(16, 1)}, Rec{jpeg_recorder(17, 0)},
                                                     Rec{recorder(18, 0)}, Rec{recorder(19, 0)}, Rec{recorder(20, 2)}, Rec{recorder(21, 1)}, Rec{recorder(22, 0)}, Rec{jpeg_recorder(23, 0)}, Rec{jpeg_recorder(24, 4)}, Rec{recorder(25, 3)}, Rec{recorder(26, 1)}};
 const Dialog7cc188AddressEnv kDialog7cc188AddressEnv = {Rec{recorder(10, 1)}, Rec{jpeg_recorder(11, 1)}, Rec{recorder(12, 1)}, Rec{jpeg_recorder(13, 1)}, Rec{jpeg_recorder(14, 5)}, Rec{jpeg_recorder(15, 8)}, Rec{recorder(16, 3)}};
-const UserSlotsEnv kUserSlotsEnv = {Rec{recorder(27, 0)}};
+const UserSlotsEnv kUserSlotsEnv = {Rec{recorder(27, 0)}, Rec{jpeg_recorder(28, 3)}, Rec{jpeg_recorder(30, 1)}};
 const BankAccountCtorEnv kBankAccountCtorEnv = {Rec{jpeg_recorder(10, 4)}};
+const NarrowFileBufEnv kNarrowFileBufEnv = {Rec{jpeg_recorder(18, 1)}, Rec{jpeg_recorder(23, 2)}, Rec{jpeg_recorder(24, 1)}};  // tests/fncmp/narrowfilebuf.py
 const Dialog7ca150ListEnv kDialog7ca150ListEnv = {Rec{recorder(10, 2)}, Rec{recorder(11, 1)}, Rec{recorder(12, 2)}, Rec{recorder(13, 5)}, Rec{recorder(14, 1)}, Rec{recorder(15, 1)}, Rec{recorder(16, 0)}, Rec{recorder(17, 0)}, Rec{recorder(18, 0)}, Rec{recorder(19, 0)}, Rec{recorder(20, 3)}};
 const Dialog7cb3f8SlotsEnv kDialog7cb3f8SlotsEnv = {Rec{jpeg_recorder(10, 0)}, Rec{recorder(11, 1)}, Rec{recorder(12, 1)}, Rec{jpeg_recorder(13, 1)}, Rec{recorder(14, 1)}};
 const Panel7cc328HandlerEnv kPanel7cc328HandlerEnv = {Rec{recorder(10, 0)}, Rec{recorder(11, 2)}, Rec{recorder(12, 5)}, Rec{recorder(13, 2)}, Rec{recorder(14, 1)}, Rec{jpeg_recorder(15, 1)}, Rec{recorder(16, 0)}, Rec{recorder(17, 0)}, Rec{recorder(18, 0)}, Rec{jpeg_recorder(19, 2)}, Rec{jpeg_recorder(20, 2)},
@@ -1705,6 +1762,11 @@ const Panel7b9940OpenEnv kPanel7b9940OpenEnv = {Rec{jpeg_recorder(10, 0)}, Rec{j
 const Panel7cc218RefreshEnv kPanel7cc218RefreshEnv = {Rec{jpeg_recorder(10, 1)}, Rec{recorder(11, 0)}, Rec{recorder(12, 0)}};
 // Online_Instance's constructor (tests/fncmp/onlineinstance.py).
 const OnlineInstanceEnv kOnlineInstanceEnv = {Rec{recorder(10, 0)}};
+// The list requests' command queue (tests/fncmp/listrequest.py).
+const ListRequestEnv kListRequestEnv = {Rec{jpeg_recorder(25, 2)}, Rec{jpeg_recorder(26, 5)}};
+// The session's login and news calls (tests/fncmp/sessionlogin.py).
+const OnlineLoginEnv kOnlineLoginEnv = {Rec{jpeg_recorder(16, 1)}, Rec{jpeg_recorder(17, 1)}, Rec{jpeg_recorder(18, 0)}, Rec{jpeg_recorder(19, 1)}, Rec{jpeg_recorder(20, 0)}, Rec{jpeg_recorder(21, 1)},
+                                        Rec{recorder(22, 2)}, Rec{jpeg_recorder(23, 0)}, Rec{jpeg_recorder(24, 0)}, Rec{jpeg_recorder(25, 2)}, Rec{jpeg_recorder(26, 1)}};
 // Dialog7cdac4_Handler's calls (tests/fncmp/dialog7cdac4handler.py).
 const Dialog7cdac4HandlerEnv kDialog7cdac4HandlerEnv = {Rec{jpeg_recorder(10, 4)}, Rec{jpeg_recorder(11, 4)}, Rec{jpeg_recorder(12, 0)}, Rec{jpeg_recorder(13, 0)}, Rec{jpeg_recorder(14, 0)}, Rec{jpeg_recorder(15, 4)}, Rec{recorder(16, 0)}, Rec{jpeg_recorder(17, 1)},
                                                         Rec{jpeg_recorder(18, 0)}, Rec{recorder(19, 7)}, Rec{recorder(20, 0)}, Rec{recorder(21, 1)}};
@@ -2718,7 +2780,9 @@ int main(int argc, char **argv) {
     RideSkin_SetEnv(&kRideSkinEnv);
     CellPaint_SetEnv(&kCellPaintEnv);
     AdvisorCriteria_SetEnv(&kAdvisorCriteriaEnv);
+    SceneEnter_SetEnv(&kSceneEnterEnv);
     SceneLeave_SetEnv(&kSceneLeaveEnv);
+    SceneSteps_SetEnv(&kSceneStepsEnv);
     CarSoundUpdate_SetEnv(&kCarSoundUpdateEnv);
     SceneViews_SetEnv(&kSceneViewsEnv);
     BendMesh_SetEnv(&kBendMeshEnv);
@@ -2733,6 +2797,8 @@ int main(int argc, char **argv) {
     Panel7cc218_SetShowEnv(&kPanel7cc218ShowEnv);
     Dialog7ca168_SetOpenEnv(&kDialog7ca168OpenEnv);
     Online_SetInstanceEnv(&kOnlineInstanceEnv);
+    OnlineLogin_SetEnv(&kOnlineLoginEnv);
+    ListRequest_SetEnv(&kListRequestEnv);
     ThingPanelHandlers_SetEnv(&kThingPanelHandlerEnv);
     GamePartDialogs_SetEnv(&kGamePartDialogEnv);
     PatrolCoverage_SetEnv(&kPatrolCoverageEnv);
@@ -2836,6 +2902,30 @@ int main(int argc, char **argv) {
     Dialog7cc188Address_SetEnv(&kDialog7cc188AddressEnv);
     VersionLabel_SetEnv(&kVersionLabelEnv);
     BankAccountCtor_SetEnv(&kBankAccountCtorEnv);
+    NarrowFileBuf_SetEnv(&kNarrowFileBufEnv);
+        ParkMapSprites_SetEnv(&kParkMapSpritesEnv);
+        ParkMapWindow_SetEnv(&kParkMapWindowEnv);
+        ParkMap_SetPictureEnv(&kParkMapPictureEnv);
+    ThemeMenu_SetEnv(&kThemeMenuEnv);
+    Frame_SetStartEnv(&kFrameStartEnv);
+    SignRender_SetEnv(&kSignRenderEnv);
+    Online_SetNextEnv(&kOnlineNextEnv);
+    Online_SetPollEnv(&kOnlinePollEnv);
+    SignFonts_SetEnv(&kSignFontsEnv);
+    Online_SetEndEnv(&kOnlineEndEnv);
+    Online_SetDtorEnv(&kOnlineDtorEnv);
+    StdList_SetEnv(&kStdListEnv);
+    Thunks_SetEnv(&kThunksEnv);
+    BumpSteps_SetEnv(&kBumpStepsEnv);
+    Online_SetStartEnv(&kOnlineStartEnv);
+    Online_SetCityPollEnv(&kOnlineCityPollEnv);
+    PanelKeys_SetEnv(&kPanelKeysEnv);
+    Frame_SetEnv(&kFrameEnv);
+    Blocks7_SetLoadEnv(&kBlocks7LoadEnv);
+    GuardHeap_SetEnv(&kGuardHeapEnv);
+    ThemeNames_SetEnv(&kThemeNamesEnv);
+    NStream_SetEnv(&kNStreamEnv);
+    SwearFilter_SetEnv(&kSwearFilterEnv);
     SaveDialog_SetEnv(&kSaveDialogEnv);
     SaveDialogCreate_SetEnv(&kSaveDialogCreateEnv);
     Panel7cc328Handler_SetEnv(&kPanel7cc328HandlerEnv);

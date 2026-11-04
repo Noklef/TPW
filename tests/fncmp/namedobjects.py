@@ -18,14 +18,14 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', '..', 'tools'))
 sys.path.insert(0, HERE)
 import fileopen  # noqa: E402
-from fncmp import HEAP, IMPORT_TABLE, LOG, Bench, Call, RAM, fail_mask, fill, global_heap, heap, import_table, log_region, put, recorder, set_return, strings, vtable  # noqa: E402
+from fncmp import HEAP, IMPORT_TABLE, LOG, Bench, Call, RAM, answers, fail_mask, fill, global_heap, heap, import_table, log_region, put, recorder, set_return, strings, vtable  # noqa: E402
 
 
 def lock(e):  # the STL lock (0x691de0, thiscall, returns its argument; 0x691ea0 releases): the port leaves them out
     e.r['EAX'] = e.r['ECX']
 
 
-B = Bench([(0x408f00, 0x40914f), (0x421770, 0x4217e0), (0x421690, 0x421720), (0x590730, 0x590750), (0x424cf0, 0x424d10), (0x67df40, 0x67e040),
+B = Bench([(0x5c5250, 0x5c53c0), (0x408f00, 0x40914f), (0x421770, 0x4217e0), (0x421690, 0x421720), (0x590730, 0x590750), (0x424cf0, 0x424d10), (0x67df40, 0x67e040),
            (0x67faf0, 0x67fb20), (0x682720, 0x682780), (0x5f5fc0, 0x5f7f00), (0x67a400, 0x690000),
            (0x407b80, 0x407b8a), (0x407b90, 0x407c2e), (0x407c90, 0x407d79), (0x421510, 0x421588), (0x5da3c0, 0x5da3c1),
            (0x409620, 0x40978d), (0x424cc0, 0x424ce2), (0x5e2a30, 0x5e2a7e),
@@ -292,6 +292,27 @@ SUB = RAM + 0x9000   # Subfolders: the folder String, + 0x100 the pattern, + 0x1
 FINDNEXT = 39        # FindNextFileA's recorder slot (fileopen.py's imports leave it out)
 
 
+def remove_tree(r):
+    """0x5c5250: subfolders()'s search; opening answers in turn (a table: at most 4 of the first 8 opens work, the rest not, so the walk ends: anything but -1 opens, and each level's path is longer:
+    a walk without end overruns the original's 0x104 buffer); the deletes recorders."""
+    c = subfolders(r)
+    regions = c.regions
+    log = regions[LOG]
+    opens = [r.choice([0x10, 0x10, 0x20]) for _ in range(r.choice([0, 1, 2, 3, 4]))] + [0xffffffff] * 40
+    for _ in range(r.choice([0, 0, 1, 2])):
+        opens.insert(r.randrange(1, 5), 0xffffffff)
+    regions[SUB + 0x800] = struct.pack('<40I', *opens[:40])
+    answers(log, fileopen.K['GetFileAttributesA'], SUB + 0x800)
+    table = regions[IMPORT_TABLE]
+    for k, slot in ((37, 0x6fd114), (38, 0x6fd0c4)):
+        put(table, slot - IMPORT_TABLE, 'I', recorder(k, 1, True))
+        strings(log, k, 1)
+        set_return(log, k, r.choice([0, 1, 1]))
+    regions[0xf81650] = struct.pack('<I', SUB + 0x100)
+    string(regions, 0xf80be0, r.choice([b'\\', b'\\', b'', b'/']))
+    return Call(0x5c5250, [SUB], regions, ret='v')
+
+
 def subfolders(r):
     """0x5c2ce0 (mounts()): a folder (a String, "\\"-ended or not, or empty) with the String at 0xf7f908 ("*" mostly) appended, opened as a
     folder (GetFileAttributesA a folder mostly) and searched for the pattern [0xf80768]: FindFirstFileA failing now and then, its entry and
@@ -332,6 +353,8 @@ def subfolders(r):
 
 def case(r):
     op = r.choice(OPS)
+    if op == 'RemoveTree':
+        return remove_tree(r)
     if op == 'Subfolders':
         return subfolders(r)
     if op == 'Folders':
@@ -357,7 +380,7 @@ def case(r):
     return remove(r)
 
 
-OPS = [k for k in os.environ.get('OPS', 'Remove,Ctor,Dtor,Static,Add,Flags,Theme,ThemeAnsi,Folders,Listed,Fixed,Subfolders').split(',') if k]
+OPS = [k for k in os.environ.get('OPS', 'Remove,Ctor,Dtor,Static,Add,Flags,Theme,ThemeAnsi,Folders,Listed,Fixed,Subfolders,RemoveTree').split(',') if k]
 
 if __name__ == '__main__':
     B.main(case)

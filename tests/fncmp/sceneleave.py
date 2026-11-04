@@ -1,7 +1,7 @@
 # Scene objects leaving and stepping through their items (src/game/frontend/sceneleave) against the originals: Sound_Stop (k 20), Sound_PlayAt (k 21), Sound_ApplySettings (k 22), Obj_DrainList0c (k 23), Obj_DrainList04 (k 24),
 # HolderUser_Release (k 25) and the four dialogs' Message4 (k 26-29) recorders; the object's vtable recorders (slot 9 answering 0 or 1 in turn, slot 19 changing the current item by a fill), its lists of 0 to 4 nodes, the items of a
 # leaving object now and then 0, a current item of 0, in the list or not in it (a fault in both).
-# usage: sceneleave.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=View,View2,Leave,Scene1,Scene2,First,Next,Previous)
+# usage: sceneleave.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=View,View2,View3,Leave,Scene1,Scene2,First,Next,Previous)
 import os
 import struct
 import sys
@@ -9,9 +9,9 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
 from fncmp import HEAP, LOG, RAM, Bench, Call, _recorder, answers, fill, heap, log_region, put, vtable  # noqa: E402
 
-CALLS = {'View': 0x5dd220, 'View2': 0x5dd690, 'Leave': 0x5e1450, 'Scene1': 0x5e1bd0, 'Scene2': 0x5e2550, 'First': 0x5e14a0, 'Next': 0x5e1640, 'Previous': 0x5e1730}
-B = Bench([(0x5dd220, 0x5dd30e), (0x5dd690, 0x5dd795), (0x5e1450, 0x5e1539), (0x5e1640, 0x5e1725), (0x5e1730, 0x5e1821), (0x5e1bd0, 0x5e1c93), (0x5e2550, 0x5e2613), (0x67acb0, 0x67acb1)],
-          hooks={0x51c300: _recorder(20, 1, cdecl=True), 0x51bfc0: _recorder(21, 6, cdecl=True), 0x51bd70: _recorder(22, 0, cdecl=True), 0x5d8a10: _recorder(23, 0), 0x5da3e0: _recorder(24, 0), 0x5d8820: _recorder(25, 0),
+CALLS = {'View': 0x5dd220, 'View2': 0x5dd690, 'View3': 0x5dd950, 'Leave': 0x5e1450, 'Scene1': 0x5e1bd0, 'Scene2': 0x5e2550, 'First': 0x5e14a0, 'Next': 0x5e1640, 'Previous': 0x5e1730}
+B = Bench([(0x5dd220, 0x5dd30e), (0x5dd690, 0x5dd795), (0x5dd950, 0x5dda70), (0x48b390, 0x48b410), (0x5e1450, 0x5e1539), (0x5e1640, 0x5e1725), (0x5e1730, 0x5e1821), (0x5e1bd0, 0x5e1c93), (0x5e2550, 0x5e2613), (0x67acb0, 0x67acb1)],
+          hooks={0x51c300: _recorder(20, 1, cdecl=True), 0x51bfc0: _recorder(21, 6, cdecl=True), 0x51bd70: _recorder(22, 0, cdecl=True), 0x5b7990: _recorder(30, 3), 0x5b50b0: _recorder(10, 0), 0x5d8a10: _recorder(23, 0), 0x5da3e0: _recorder(24, 0), 0x5d8820: _recorder(25, 0),
                  0x4c5780: _recorder(26, 0, cdecl=True), 0x4b9c00: _recorder(27, 0, cdecl=True), 0x4b8e80: _recorder(28, 0, cdecl=True), 0x4b87f0: _recorder(29, 0, cdecl=True)})
 ITEMS = RAM
 THIS, VT, TABLE, ACTIVE = ITEMS + 0xc0, RAM + 0x200, RAM + 0x300, RAM + 0x400
@@ -38,6 +38,7 @@ def case(r):
     log = log_region()
     answers(log, 9, ACTIVE)
     regions = {LOG: log, HEAP: heap(), VT: vtable({0: 1, 19: 1}), TABLE: r.bytes(0x40), 0x803a4c: struct.pack('<I', TABLE), 0xf83774: r.bytes(4), 0xf83784: r.bytes(4), 0x8bcbc8: r.bytes(4),
+               0xf7d88c: struct.pack('<I', RAM + 0x1000), RAM + 0x1000: r.bytes(0x10),
                ACTIVE: b''.join(struct.pack('<I', r.choice([0, 1, 1, 1, r.getrandbits(32) | 1])) for _ in range(48))}
     this = put(bytearray(r.bytes(0x80)), 0, 'I', VT)
     regions[THIS] = this
@@ -47,7 +48,7 @@ def case(r):
     stray = ITEMS + 0x90
     current = r.choice(items + items + [0, 0] + ([stray] if r.random() < 0.3 else []))
     put(this, 0xc, 'I', current)
-    if name in ('View', 'View2', 'Leave', 'Scene1', 'Scene2'):
+    if name in ('View', 'View2', 'View3', 'Leave', 'Scene1', 'Scene2'):
         held = [r.choice([0, HELD + 0x40 * k, HELD + 0x40 * k, HELD + 0x40 * k]) for k in range(r.randrange(0, 4))]
         for k in range(4):
             regions[HELD + 0x40 * k] = put(bytearray(r.bytes(0x10)), 0, 'I', VT)

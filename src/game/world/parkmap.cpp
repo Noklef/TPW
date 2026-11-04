@@ -9,11 +9,15 @@
 #include "../core/accessors.h"
 #include "../core/gameheap.h"
 #include "../core/ptrlist.h"
+#include "../core/string.h"
 #include "../math/x87.h"
 #include "../core/vcall.h"
 #include "../gfx/aaline.h"
 #include "../gfx/canvas.h"
 #include "../gfx/color.h"
+#include "../gfx/convert.h"
+#include "../gfx/imagecodec.h"
+#include "../gfx/surface.h"
 #include "../gfx/texsprite.h"
 #include "../render/backdrop.h"
 #include "../ui/window.h"
@@ -179,6 +183,14 @@ void DrawSpriteBox(const u8 *map, Canvas &canvas, const u8 *sprite, s32 cellW, s
 }  // namespace
 
 void ParkMap_SetEnv(const ParkMapEnv *env) { g_env = env ? env : &kPorts; }
+
+namespace {
+const ParkMapPictureEnv kPicturePorts = {reinterpret_cast<const char *(__cdecl *)()>((uintptr_t)0x0040ef40), &ImageCodec_InfoFromFile, &SurfaceInfo_Alloc,
+                                         &ImageCodec_LoadFromFile, &SurfaceInfo_Convert, &SurfaceInfo_Free};
+const ParkMapPictureEnv *g_picture = &kPicturePorts;
+}  // namespace
+
+void ParkMap_SetPictureEnv(const ParkMapPictureEnv *env) { g_picture = env ? env : &kPicturePorts; }
 
 extern "C" {
 
@@ -492,6 +504,41 @@ void __fastcall ParkMap_Scroll(u8 *map, void *, u32 direction, float amount) {
     x = clamp_scroll(x, (s32)(at<u32>(map, 0x24) - 1));
     y = clamp_scroll(y, (s32)(at<u32>(map, 0x28) - 1));
     ParkMap_LayOut(map);
+}
+
+void __fastcall ParkMap_LoadPicture(u8 *map, void *, u32 keep) {
+    String path;
+    String_CtorStr(&path, nullptr, g_picture->folder());
+    const char slash = 0x5c;
+    vcall<void>(&path, 0x24, &slash);
+    vcall<void>(&path, 0x28, reinterpret_cast<const void *>((uintptr_t)0x00f86d20));
+    alignas(4) u8 codecBytes[0x444];
+    ImageCodec *codec = reinterpret_cast<ImageCodec *>(codecBytes);
+    SurfaceInfo_Ctor(&codec->info);
+    codec->vtable = reinterpret_cast<void *const *>((uintptr_t)0x006fefa8);
+    SurfaceInfo info;
+    SurfaceInfo_Ctor(&info);
+    s32 out;
+    g_picture->infoFromFile(codec, nullptr, &out, path.data, nullptr, &info);
+    g_picture->alloc(&info, nullptr, &out);
+    g_picture->load(codec, nullptr, &out, &info, path.data, nullptr, nullptr);
+    SurfaceInfo *own = reinterpret_cast<SurfaceInfo *>(map + 0x2c);
+    if (!keep) {
+        at<u32>(map, 0x48) = info.width;
+        at<u32>(map, 0x4c) = info.height;
+        const u8 *mode = reinterpret_cast<const u8 *>((uintptr_t)(0x008bd558 + (global<u32>(0x008bd554) << 5)));
+        own->redMask = at<u32>(mode, 0x10);
+        own->greenMask = at<u32>(mode, 0x14);
+        own->blueMask = at<u32>(mode, 0x18);
+        own->alphaMask = at<u32>(mode, 0x1c);
+        own->bitCount = at<u32>(mode, 0xc);
+        own->paletted = at<u32>(mode, 4) & 0x20;
+        g_picture->alloc(own, nullptr, &out);
+    }
+    u8 converter;  // (the conversion's this: it uses none)
+    g_picture->convert(&converter, nullptr, &out, own, &info, nullptr);
+    g_picture->free(&info);
+    String_Dtor(&path);
 }
 
 }  // extern "C"

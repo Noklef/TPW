@@ -434,7 +434,7 @@ address,name,kind,confidence,notes
 0x005ec220,Renderer_Teardown,function,high,reimplemented (src/game/render/renderer); releases the two array groups and two blocks after calling the sub object
 0x005ec3a0,SignStyle_Load,function,high,"reimplemented (src/game/gfx/signstyle); a sign style read from its .sgn file: version 100 or above, two line styles, the effects, two fill strips and the background"
 0x005eb1a0,Eleven_Read,function,high,reimplemented (src/game/core/streambuf); reads eleven dwords from a stream
-0x005ecb40,SignStyle_Render,function,medium,"(HDC, text lines + target textures)"
+0x005ecb40,SignRender_Draw,function,low,"reimplemented (src/game/gfx/signrender); A sign's two lines drawn, filtered, lit and written out to its two pixel blocks at 32 or 16 bits."
 0x005e7990,Array3D_ReadCompressed,function,high,"reimplemented (src/game/gfx/array3d); thiscall (stream, codec; pops 8): width, height, depth read and a cleared block made; by the depth (1, 3, 4) the parts read and decoded through the codec's slot 3, the depth 4 alpha and colour interleaved; AL 0 when a part's block is not made, else 1"
 0x005987b0,WaveletCodec_DecodePlanes,function,high,"vtable slot 3: colour -> 0x592730, grey -> 0x592e60; takes float quantiser steps"
 0x00592730,WaveletCodec_DecodeColour,function,low,"reimplemented (src/game/gfx/wavelet); thiscall (width, height, packed source, BGR pixels, three quantisers), pops 0x1c: the colour decoder, Y then Cb and Cr at half the side through the row and column inverse steps, then YUV to BGR"
@@ -498,6 +498,7 @@ address,name,kind,confidence,notes
 0x0051f2f0,ParticleSystem_FreeDrawList,function,low,reimplemented (src/game/render/particles); cdecl (list): the static list marked free or the list GlobalFree'd
 0x0051f320,ParticleSines_Build,function,low,"reimplemented (src/game/render/particles); cdecl: the particles' sine table 0x803b68 (0x200 dwords, 256 sin through the x87) built; returns it"
 0x0051faa0,Particles_Init,function,low,"reimplemented (src/game/render/particles); cdecl (callback, flag, count): the particle system set up once"
+0x005ed770,ParticlePools_Update,function,low,reimplemented (src/game/render/particles); the pools' systems moved along their turning circle
 0x00804370,gParticleEffects,data,high,0x69 x 0x140-byte effect definitions from Tp2.plb
 0x0080c6b0,gParticleEffectors,data,high,20 x 0x68-byte effector definitions
 0x0080cefc,gParticleSystems,data,high,live systems: 0x140-byte copies of an effect definition
@@ -1977,6 +1978,8 @@ address,name,kind,confidence,notes
 0x0046e650,GamePaths_ShareTexFolder,function,low,"reimplemented (src/game/files/gamepaths); The share textures' folder path (name invented, unconfirmed)"
 0x0040ef40,GamePaths_Base,function,low,"reimplemented (src/game/files/gamepaths); cdecl; the static String 0x788028: root, ""\"", 0x787f50, ""\"", 0x786b68's String; its text"
 0x0045f7a0,GamePaths_CheckDisc,function,low,"reimplemented (src/game/files/gamepaths); cdecl: the disc looked for on a copy of the statics at 0xfb34e0, made the first time; the copy's list freed; true when GamePaths_FindDisc answered 1; name invented, unconfirmed"
+0x005c8190,GamePaths_MakeFoldersCopying,function,low,"reimplemented (src/game/files/gamepaths); the listed folders made, a file copied into each"
+0x005c5250,GamePaths_RemoveTree,function,low,reimplemented (src/game/files/gamepaths); a folder removed with all under it
 0x005c53c0,DirEntry_IsWad,function,low,"reimplemented (src/game/files/direntry); cdecl (entry); whether the entry's name ends in the global "".wad"" String (0xf80808, Names_Equal)"
 0x0055e470,CpuInfo_Ctor,function,high,"reimplemented (src/game/core/cpuinfo); thiscall; CPUID probe (EFLAGS.ID test, then the vendor string and features); SystemInfo's base"
 0x00591210,Cpu_Ticks,function,low,reimplemented (src/game/core/cpuinfo); cdecl: the low dword of the time-stamp counter (rdtsc)
@@ -2612,6 +2615,8 @@ address,name,kind,confidence,notes
 0x004f1400,StdString_Erase,function,high,"reimplemented (src/game/core/stdstring); thiscall (pos, n), pops 8: std::string::erase(pos, n) out of line: _Xran past the length, _Split, the tail moved down, _Grow(length - n, false) and _Eos inlined; returns s"
 0x004c4a80,StdString_CopyInto,function,low,"reimplemented (src/game/core/stdstring); the copy constructor emitted the other way round: name invented, unconfirmed"
 0x004f1340,StdString_AppendChars,function,high,"reimplemented (src/game/core/stdstring); append(chars, n)"
+0x005c8c30,StdString_AppendSub,function,low,"reimplemented (src/game/core/stdstring); std::string::append(x, pos, n)"
+0x005d1560,StdString_CompareSub,function,low,"reimplemented (src/game/core/stdstring); std::string::compare(pos, n, chars, count)"
 0x0045b9d0,GlobalMem_Alloc,function,high,"reimplemented (src/game/core/globalmem); GlobalAlloc(GMEM_ZEROINIT or GMEM_FIXED, size) through the import slot; null for 0"
 0x0045ba00,GlobalMem_Free,function,high,reimplemented (src/game/core/globalmem); GlobalFree through the import slot; null for null
 0x0045ba70,GlobalMem_AllocCounted,function,high,reimplemented (src/game/core/globalmem); a zeroed 0x40-byte block with count at +4; null for 0
@@ -2783,6 +2788,10 @@ address,name,kind,confidence,notes
 0x005af940,GlobalSave_MarkScore,function,low,"reimplemented (src/game/core/globalsave); thiscall (i, score): a score set on the current theme, or taken from a lower theme record"
 0x005aff50,GlobalSave_Serialize,function,low,"reimplemented (src/game/core/globalsave); The global save info written or read (name invented, unconfirmed)"
 0x005afc60,GlobalSave_WriteFile,function,low,"reimplemented (src/game/core/globalsave); thiscall (path), pops 4: the global save's file written, version 0xc then the info; name invented"
+0x005b0a70,GlobalSave_ThemeMake,function,low,reimplemented (src/game/core/globalsave); a new record for a theme's name in the theme map
+0x005b09c0,GlobalSave_ThemeGet,function,low,"reimplemented (src/game/core/globalsave); a theme's record, found or made, when its global.sam loads"
+0x005b0bc0,GlobalSave_ClearThemes,function,low,reimplemented (src/game/core/globalsave); the theme map's records destroyed and its nodes erased
+0x005b08a0,GlobalSave_ThemeSelect,function,low,"reimplemented (src/game/core/globalsave); a theme's record found or made, kept at +0x48"
 0x005775d0,LiveObjects_Add,function,high,"reimplemented (src/game/core/liveobjects); cdecl (object): appended to the live objects list (0x87a6d8, count 0x87aed8, room for 0x200; the rest dropped); 1 either way"
 0x00577600,LiveObjects_Remove,function,high,"reimplemented (src/game/core/liveobjects); cdecl (object): the last match is replaced by the last entry and the count drops; 1, or 0 when not there"
 0x00579cd0,LiveObject7019f8_Construct,function,low,"reimplemented (src/game/core/liveobjects); thiscall (most derived): two identity matrices, fields cleared, the virtual base's vtable 0x7019f8 set and the base added to the live objects"
@@ -3179,6 +3188,14 @@ address,name,kind,confidence,notes
 0x005c7d00,Records24_IfUsed,function,high,reimplemented (src/game/files/userslots); a 24-byte record's address when its dword at +4 is set
 0x005c7bb0,Records24_CountUsed,function,high,reimplemented (src/game/files/userslots); how many of four 24-byte records are in use
 0x0048bcd0,UserSlots_Instance,function,low,"reimplemented (src/game/files/userslots); cdecl; name invented, unconfirmed; the user slots object [0xf81ebc], made when 0"
+0x005cadf0,UserSlotsPart_Ctor,function,low,reimplemented (src/game/files/userslots); the slots' part object: strings and lists made empty
+0x005c7420,UserSlots_Ctor,function,low,reimplemented (src/game/files/userslots); the user slots object's constructor
+0x005c7d30,UserSlots_SlotName,function,low,reimplemented (src/game/files/userslots); a slot's folder name: number and name
+0x005c7de0,UserSlots_SlotFolder,function,low,reimplemented (src/game/files/userslots); a slot's folder under the users folder
+0x005c8870,UserSlots_ChosenFolder,function,low,reimplemented (src/game/files/userslots); the chosen slot's folder
+0x005c8890,UserSlots_ThemeFolder,function,low,reimplemented (src/game/files/userslots); the chosen slot's folder of the theme
+0x005b8160,UserSlots_ThemePath,function,low,reimplemented (src/game/files/userslots); the theme's path in the chosen slot's folder
+0x005c7e90,UserSlots_ClearSlot,function,low,"reimplemented (src/game/files/userslots); The slot's folder removed, its name and dword cleared."
 0x005b0d40,Table73f8a8_At,function,high,reimplemented (src/game/core/balancefile); the address of a 60-byte record of the table at 0x73f8a8
 0x005b11c0,ThemeRecord_LoadGlobalSam,function,low,reimplemented (src/game/core/balancefile); a theme's global.sam loaded
 0x005b11a0,ThemeRecord_GlobalSamField14,function,low,"reimplemented (src/game/core/balancefile); thiscall: the theme record's global.sam loaded when missing; its dword +0x14, else -1 (name unconfirmed)"
@@ -3244,6 +3261,7 @@ address,name,kind,confidence,notes
 0x006b4a10,FontBase_Ctor,function,low,"reimplemented (src/game/files/fontloaders); thiscall: the counted base, the vtable 0x70a208"
 0x006b0480,Font_Ctor,function,low,"reimplemented (src/game/files/fontloaders); thiscall (data, index), pops 8: the font's data pointers, vtable 0x70a158, the index's CodeTable (key 1)"
 0x006b0680,Font_Load,function,low,"reimplemented (src/game/files/fontloaders); kind 4's loader, the ""F4FB"" file: a block of the stream's size + 0x18, a Font on its data"
+0x005ec680,SignFonts_Add,function,low,"reimplemented (src/game/files/signfonts); A sign style's two font files extracted and added to Windows, their paths kept in the font vector."
 0x005c9040,Class70295c_Ctor,function,high,"reimplemented (src/game/core/vdtor); Init_5d36c0, vtable 0x70295c and four zeroed dwords"
 0x005d03b0,Obj_SwapPair,function,high,reimplemented (src/game/core/stdlist); the dwords at +4 and +8 swapped with another object's
 0x005dd3d0,Obj_ChooseVector,function,high,reimplemented (src/game/frontend/viewcontrols); the vector at +0x10 taken from one of two others
@@ -3622,6 +3640,21 @@ address,name,kind,confidence,notes
 0x00481b70,Wrap_MsgTags_AddVersion_481b70,function,low,reimplemented (src/game/core/thunks); jumps to MsgTags_AddVersion
 0x00481580,Wrap_MsgTags_Post_481580,function,low,reimplemented (src/game/core/thunks); stdcall (message): MsgTags_Post's result
 0x004fa750,Wrap_Array7ced88_Dtor_4fa750,function,low,reimplemented (src/game/core/thunks); the static array 0x7ced88's atexit: nine elements of 8 bytes through Stub_Ret
+0x005f06f0,Static703078_Init,function,low,"reimplemented (src/game/core/thunks); A global object's vtable set. Name invented, unconfirmed."
+0x005f9710,Static7034d8_Init,function,low,"reimplemented (src/game/core/thunks); A global object's vtable set. Name invented, unconfirmed."
+0x005f9730,Static703518_Init,function,low,"reimplemented (src/game/core/thunks); A global object's vtable set. Name invented, unconfirmed."
+0x005f9750,Static703558_Init,function,low,"reimplemented (src/game/core/thunks); A global object's vtable set. Name invented, unconfirmed."
+0x005f9770,Static703598_Init,function,low,"reimplemented (src/game/core/thunks); A global object's vtable set. Name invented, unconfirmed."
+0x005f9650,Static_ClearFa76d8,function,low,"reimplemented (src/game/core/thunks); Four global dwords cleared. Name invented, unconfirmed."
+0x005f9680,Static_ClearFa76c0,function,low,"reimplemented (src/game/core/thunks); Four global dwords cleared. Name invented, unconfirmed."
+0x005f9eb0,StaticSurface_Fa7908,function,low,"reimplemented (src/game/core/thunks); A static object's fields cleared, then SurfaceInfo_Ctor at its +0x18. Name invented, unconfirmed."
+0x005f9ef0,StaticSurface_Fa7790,function,low,"reimplemented (src/game/core/thunks); A static object's fields cleared, then SurfaceInfo_Ctor at its +0x18. Name invented, unconfirmed."
+0x005f9f30,StaticSurface_Fa7740,function,low,"reimplemented (src/game/core/thunks); A static object's fields cleared, then SurfaceInfo_Ctor at its +0x18. Name invented, unconfirmed."
+0x005f5570,AtExit_5f5580,function,low,"reimplemented (src/game/core/thunks); atexit of 0x5f5580. Name invented, unconfirmed."
+0x005f8ad0,AtExit_5d1750,function,low,"reimplemented (src/game/core/thunks); atexit of 0x5d1750. Name invented, unconfirmed."
+0x005fa000,AtExit_5fa010,function,low,"reimplemented (src/game/core/thunks); atexit of 0x5fa010. Name invented, unconfirmed."
+0x00618cb0,AtExit_618cc0,function,low,"reimplemented (src/game/core/thunks); atexit of 0x618cc0. Name invented, unconfirmed."
+0x005c8b70,Thread_Begin,function,low,"reimplemented (src/game/core/thunks); CRT_beginthread(proc, 0, arg). Name invented, unconfirmed."
 0x006b0620,Table_AddressPlus18,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base plus 0x18
 0x006b0650,Table_Address,function,high,reimplemented (src/game/core/cursors); an address from a table of offsets plus the base
 0x006b0510,Packed_Read,function,high,reimplemented (src/game/core/cursors); reads a one- or two-byte packed value
@@ -4383,6 +4416,7 @@ address,name,kind,confidence,notes
 0x0047dba0,CountedVector14_CtorCopy,function,low,"reimplemented (src/game/core/buffers); thiscall (x), pops 4: the 0x24-byte entry's copy constructor"
 0x0047bce0,CountedVector14Vector_InsertN,function,low,"reimplemented (src/game/core/buffers); thiscall (position, n, x), pops 12: insert(position, n, x) on a vector of the entries"
 0x005d48a0,Blocks7_ShrinkSurface,function,low,"reimplemented (src/game/core/buffers); thiscall (description), pops 4: the image at +0x60 made 320 x 240 from a copy of the surface description; returns 1 (name unconfirmed)"
+0x005d47a0,Blocks7_LoadAll,function,low,reimplemented (src/game/core/buffers); the seven blocks' five images loaded and the big block made
 0x005b2f40,StdTreeF_LowerBound,function,high,reimplemented (src/game/core/stdtree); lower bound of a string key in the string map
 0x005b0c40,StdTreeF_AllFlagged,function,high,reimplemented (src/game/core/stdtree); whether every mapped object has the byte at +0xb9 set
 0x005b20c0,StdTreeF_FindLower,function,high,reimplemented (src/game/core/stdtree); stores the lower bound of a string key
@@ -4397,6 +4431,12 @@ address,name,kind,confidence,notes
 0x005d3600,StdListWString_Insert,function,low,"reimplemented (src/game/core/stdlist); list<wstring>::insert: a 0x18-byte node linked before the given one holding a copy of x (allocator byte, assign(x, 0, npos)); count raised, *out = node"
 0x005cf7e0,ListHead_Init18,function,low,"reimplemented (src/game/core/stdlist); thiscall: the byte +0 the object pointer's top byte, a self-linked 0x18-byte head node at +4, the count +8 0; returns the node"
 0x005cf810,ListHead_Init0c,function,low,"reimplemented (src/game/core/stdlist); thiscall: the byte +0 the object pointer's top byte, a self-linked 0xc-byte head node at +4, the count +8 0; returns the node"
+0x005d03e0,StdListString_Merge,function,low,"reimplemented (src/game/core/stdlist); Merges the other list<string> into this one, by StdString_CompareSub."
+0x005ce190,StdListString_Sort,function,low,reimplemented (src/game/core/stdlist); list<string>'s sort.
+0x005ce5a0,StdListDword_Sort,function,low,reimplemented (src/game/core/stdlist); The list of dwords' sort.
+0x005cc640,List64_AddKeySorted,function,low,"reimplemented (src/game/core/stdlist); The key pushed on the list at +0x64, sorted, duplicates cut."
+0x005cc770,List70_AddKeySorted,function,low,"reimplemented (src/game/core/stdlist); The key pushed on the list at +0x70, sorted, duplicates cut."
+0x005cd510,StdListString_AddSorted,function,low,"reimplemented (src/game/core/stdlist); A string pushed, the list sorted, duplicates cut; its index."
 0x0041e2c0,Class6fda48_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor
 0x0041e320,Class6fda68_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor
 0x0041e4d0,Class6fdaa8_Dtor,function,high,reimplemented (src/game/core/class6fd9d8); derived destructor: vtable then the 0x6fd9d8 base destructor
@@ -4474,6 +4514,10 @@ address,name,kind,confidence,notes
 0x005b2170,StdTree_InsertF,function,low,reimplemented (src/game/core/stdtree); the string map's tree insert (String_Less)
 0x005b16b0,StdMapF_Insert,function,low,reimplemented (src/game/core/stdtree); the string map's map::insert
 0x005b1620,StdMapF_InsertCopy,function,low,"reimplemented (src/game/core/stdtree); the string map's insert, its result copied to out"
+0x005b2a60,StdTree_EraseSubtreeG,function,low,reimplemented (src/game/core/stdtree); tree G's _Erase
+0x005b1a20,StdTree_EraseRangeG,function,low,"reimplemented (src/game/core/stdtree); tree G's erase(first, last)"
+0x005b20e0,StdTree_EraseSubtreeF,function,low,reimplemented (src/game/core/stdtree); tree F's _Erase
+0x005b17c0,StdTree_EraseRangeF,function,low,"reimplemented (src/game/core/stdtree); tree F's erase(first, last)"
 0x00617f40,Class7037b8_Dtor,function,high,reimplemented (src/game/core/vdtor); frees the list of blocks
 0x005d48d0,Panel_Reset,function,high,reimplemented (src/game/gfx/imageops); fills the panel image and blends the six parts onto it
 0x00576620,Grid_AddObject,function,high,reimplemented (src/game/render/renderer); adds an object to every list in a rectangle of the grid
@@ -4833,6 +4877,7 @@ address,name,kind,confidence,notes
 0x005e50a0,WScanner_Keyword03,function,low,"reimplemented (src/game/core/wscanner); keyword handler: a token of value 3 and one of the rest when not empty: name invented, unconfirmed"
 0x005e5240,WScanner_Keyword04,function,low,"reimplemented (src/game/core/wscanner); keyword handler: a token of value 4 and one of the rest of the text: name invented, unconfirmed"
 0x005e53c0,WScanner_Keyword05,function,low,"reimplemented (src/game/core/wscanner); keyword handler: a token of value 5 and one of the rest of the text: name invented, unconfirmed"
+0x005e5540,WScanner_Keyword06,function,low,"reimplemented (src/game/core/wscanner); keyword handler: a token of value 6, one of the next word or else of a default text, one of the rest: name invented, unconfirmed"
 0x005e58b0,WScanner_Keyword0d,function,low,"reimplemented (src/game/core/wscanner); keyword handler: a token of value 0xd and one of the next word: name invented, unconfirmed"
 0x005e5aa0,WScanner_Keyword0e,function,low,"reimplemented (src/game/core/wscanner); keyword handler: a token of value 0xe and one of the next word: name invented, unconfirmed"
 0x005e5c90,WScanner_Keyword0f,function,low,"reimplemented (src/game/core/wscanner); keyword handler: a token of value 0xf and one of the next word: name invented, unconfirmed"
@@ -4840,7 +4885,14 @@ address,name,kind,confidence,notes
 0x005e6160,WScanner_Keyword13,function,low,"reimplemented (src/game/core/wscanner); keyword handler: a token of value 0x13 and one of the next word: name invented, unconfirmed"
 0x005e6350,WScanner_Keyword14,function,low,"reimplemented (src/game/core/wscanner); keyword handler: a token of value 0x14 and one of the next word: name invented, unconfirmed"
 0x005e6630,WScanner_PushToken16,function,low,"reimplemented (src/game/core/wscanner); keyword handler: a token of value 0x16, the position set to the text's end: name invented, unconfirmed"
-0x005e5540,WScanner_Keyword06,function,low,"reimplemented (src/game/core/wscanner); keyword handler: a token of value 6, one of the next word or else of a default text, one of the rest: name invented, unconfirmed"
+0x005e6820,WScanner_ConstructBase,function,low,"reimplemented (src/game/core/wscanner); the scanner's base: its vtable and two sets of 0x20, 0xa, 9, 0xd"
+0x005e6750,WString_CompareNoCase,function,low,reimplemented (src/game/core/wscanner); two wide strings compared without case
+0x005e6e50,WScanner_FindKeyword,function,low,reimplemented (src/game/core/wscanner); the keyword list searched for a word
+0x005e6c90,WScanner_ReadKeywords,function,low,reimplemented (src/game/core/wscanner); the text's words looked up and their handlers called
+0x005e7320,WScanner_NextChar,function,low,reimplemented (src/game/core/wscanner); the character at the position
+0x005e45d0,WScanner_Parse,function,low,"reimplemented (src/game/core/wscanner); a text parsed: '/' and its keywords, or a token of the text"
+0x005e43f0,WScanner_Construct,function,low,"reimplemented (src/game/core/wscanner); the scanner built, its tokens emptied and its keywords added"
+0x005e6a00,WScanner_DestructBase,function,low,reimplemented (src/game/core/wscanner); the scanner base's destructor
 0x0045f640,Startup_CheckCanRun,function,low,"reimplemented (src/game/core/startcheck); cdecl u8 (): 0 with game error 0 when not installed (Registry_GameInstalled); else CreateMutexA(0, 1, [0x7a2508]) kept at 0x7a267c, and when made with GetLastError 0xb7 (already exists) game error 1, CloseHandle, 0; else 1"
 0x0040c120,KeyAction_Turn90,function,low,"reimplemented (src/game/core/keyactions); cdecl: Global81d7a4_SetRecorded((0x81d7a4 + 90) signed mod 360, 1); returns 1 (key ',')"
 0x0040c150,KeyAction_Turn270,function,low,"reimplemented (src/game/core/keyactions); cdecl: Global81d7a4_SetRecorded((0x81d7a4 + 270) signed mod 360, 1); returns 1 (key '.')"
@@ -6074,6 +6126,32 @@ address,name,kind,confidence,notes
 0x006a9260,MoneyPut_DoPutNumber,function,low,reimplemented (src/game/core/moneyput); money_put<char>::do_put of a number
 0x006a9480,MoneyPut_DoPutString,function,low,reimplemented (src/game/core/moneyput); money_put<char>::do_put of a string
 0x006a9700,MoneyPut_Putmfld,function,low,reimplemented (src/game/core/moneyput); money_put<char>::_Putmfld
+0x005cec80,NFileBuf_Dtor,function,low,reimplemented (src/game/core/narrowfilebuf); the narrow file buffer's destructor
+0x005cefe0,NFileBuf_PutBack,function,low,reimplemented (src/game/core/narrowfilebuf); the narrow file buffer's pbackfail
+0x005cf200,NFileBuf_Uflow,function,low,reimplemented (src/game/core/narrowfilebuf); the narrow file buffer's uflow
+0x005d06c0,NFileBuf_Ctor,function,low,reimplemented (src/game/core/narrowfilebuf); the narrow file buffer's constructor
+0x005d09b0,NFileBuf_Close,function,low,reimplemented (src/game/core/narrowfilebuf); a narrow file buffer's file closed and its pointers cleared
+0x005d0a90,NFileBuf_Init,function,low,reimplemented (src/game/core/narrowfilebuf); a narrow file buffer's _Init
+0x005cf890,NFileBuf_DeletingDtor,function,low,reimplemented (src/game/core/narrowfilebuf); a narrow file buffer destroyed and freed
+0x005ce920,NIfstream_DtorOnIos,function,low,"reimplemented (src/game/core/narrowfilebuf); basic_ifstream<char>'s destructor, on its ios"
+0x005cf630,NOfstream_DtorOnIos,function,low,"reimplemented (src/game/core/narrowfilebuf); basic_ofstream<char>'s destructor, on its ios"
+0x005d2d40,SwearFilter_Find,function,low,reimplemented (src/game/core/swearfilter); wcsistr for the swear filter
+0x005d3230,SwearFilter_Apply,function,low,reimplemented (src/game/core/swearfilter); the swear filter over a wide string
+0x005cfb60,NCtype_Ctor,function,low,reimplemented (src/game/core/nstream); ctype<char>'s constructor
+0x005d0080,NIstream_Ipfx,function,low,reimplemented (src/game/core/nstream); basic_istream<char>::ipfx
+0x005cfd50,NCtype_Dtor,function,low,reimplemented (src/game/core/nstream); ctype<char>'s destructor
+0x005cfc80,NCtype_FreeTable,function,low,reimplemented (src/game/core/nstream); the kept table freed at exit
+0x005cf900,NOstream_Ctor,function,low,reimplemented (src/game/core/nstream); basic_ostream<char>'s constructor
+0x005cfd90,NIstream_Ctor,function,low,reimplemented (src/game/core/nstream); basic_istream<char>'s constructor
+0x005d1190,NOstream_Opfx,function,low,reimplemented (src/game/core/nstream); basic_ostream<char>::opfx
+0x005d1120,NOstream_Sentry,function,low,reimplemented (src/game/core/nstream); the output sentry's end
+0x005cfd30,NCtype_DeletingDtor,function,low,"reimplemented (src/game/core/nstream); ctype<char>'s destructor, then freed"
+0x005cf9c0,NIos_Widen,function,low,reimplemented (src/game/core/nstream); basic_ios<char>::widen
+0x005b12e0,ThemeRecord_FullName,function,low,reimplemented (src/game/core/themenames); a theme record's full name
+0x005b1410,ThemeRecord_Name,function,low,reimplemented (src/game/core/themenames); a theme record's name
+0x005b1520,ThemeRecord_Suffix,function,low,reimplemented (src/game/core/themenames); a theme record's suffix
+0x005d4ba0,GuardHeap_Alloc,function,low,reimplemented (src/game/core/guardheap); a block with guard words
+0x005d4c20,GuardHeap_Free,function,low,reimplemented (src/game/core/guardheap); a block with guard words checked and freed
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
@@ -6175,6 +6253,7 @@ address,name,kind,confidence,notes
 0x005f35b0,ParkMap_Scroll,function,low,"reimplemented (src/game/world/parkmap); thiscall (direction, amount), pops 8: the view origin moved by the amount (0 x less, 1 x plus, 2 y plus, 3 y less), each coordinate kept to the floor [0x703010] to width / height - 1, then the overview laid out again (name unconfirmed)"
 0x005f2380,ParkMap_Draw,function,low,"reimplemented (src/game/world/parkmap); the park map drawn on a canvas: squares by kind, their edges, the sprites' boxes"
 0x005f2fd0,ParkMap_DrawCoasterLines,function,low,"reimplemented (src/game/world/parkmap); the park map's coaster lines: each coaster's spline drawn as antialiased lines on a canvas, 0.1 apart, in the blended colour"
+0x005f1ea0,ParkMap_LoadPicture,function,low,reimplemented (src/game/world/parkmap); The park map's picture read from its file and converted into the map's own bitmap.
 0x0053a540,MapCell_PickModel,function,low,"reimplemented (src/game/world/cellmodel); thiscall (cell; angle out), pops 4: the cell's model (group << 16 | index) from the table for its type by its neighbour bits (exact, else a subset), *angle the row's plus 180 for straight cells facing 0x40 / 0x10, then adjusted by flags, corners, junctions and for type 0x19 a random variant; 8 for types 4, 5, 7, 9, 0xa, 0xc, 0x11"
 0x00535dd0,MapCell_PickPathModel,function,low,"reimplemented (src/game/world/cellmodel); thiscall (angle out), pops 4: a path cell model picked from its neighbours (tables 0x7630b0 / 0x763138), toggled variants (0x820ac0, rand), group 2 sides"
 0x005365d0,MapCell_ApplyPathModel,function,low,"reimplemented (src/game/world/cellmodel); thiscall: a path cell's model (picked for a kind positive but 5, else 0x37) stored at 0x820aa8 and the cell's +0x14; a group 2 model replaces the cell's queue ride and paints the erasing tile, any other removes the ride and paints the model"
@@ -6344,6 +6423,9 @@ address,name,kind,confidence,notes
 0x0046d0d0,MouseMode6fead0_Click,function,low,"reimplemented (src/game/world/mousemodeclick); thiscall, two arguments unread: the tile clicked in the mode"
 0x0059b620,AdvisorMsg_SendScored,function,low,"reimplemented (src/game/world/advisorsend); thiscall (out, offset), pops 8: a scored advisor message said and posted; name invented"
 0x0059b870,AdvisorMsg_Send,function,low,"reimplemented (src/game/world/advisorsend); thiscall (out, offset), pops 8: an advisor message said and posted; name invented"
+0x005f18d0,ParkMap_HandleMouse,function,low,"reimplemented (src/game/world/parkmapwindow); The park map's mouse: the item and the square under it, its name shown; dragging scrolls; a click moves the view and shows the thing."
+0x005f1130,ParkMap_HandleWindow,function,low,"reimplemented (src/game/world/parkmapwindow); The park map's window: closing, framing, edge scrolling, its keys and buttons."
+0x005f3710,ParkMap_PrepareSprites,function,low,"reimplemented (src/game/world/parkmapwindow); The park map's sprites counted and made ready: the array, the six images, the list, then the sprites added."
 0x0045bc60,Holder_Destroy,function,high,"reimplemented (src/game/model/holder); a holder's part sleeps, its owner's count drops and the part is deleted"
 0x0046c210,Mouse_HandleButton,function,high,reimplemented (src/game/input/mouse); the left and right mouse buttons go down or up
 0x0046c2a0,Mouse_Moved,function,high,reimplemented (src/game/input/mouse); the mouse moved
@@ -6769,6 +6851,9 @@ address,name,kind,confidence,notes
 0x006771a0,MadVideo_DecodeFrame,function,low,"reimplemented (src/game/gfx/madvideo); the DCT video frames of kinds 5, 6, 7: name invented, unconfirmed"
 0x006700d0,MovieDisplay_Prepare,function,low,"reimplemented (src/game/gfx/moviedisplay); a movie's display made ready: name invented, unconfirmed"
 0x005eb8a0,BumpLight_Render,function,low,"reimplemented (src/game/gfx/bumplight); thiscall (heights), pops 4; name unconfirmed; a height map lit into a texture from its image, two angles and three colours"
+0x005eb820,Bump_Build,function,low,"reimplemented (src/game/gfx/bumplight); Sizes the output arrays, runs the erosion ramp, the blur and the render. Name invented, unconfirmed."
+0x005ebf10,Bump_FilterInto,function,low,"reimplemented (src/game/gfx/bumplight); Crops a source image into an array, erodes or dilates it, blurs it. Name invented, unconfirmed."
+0x005eab70,SignRender_Text,function,low,"reimplemented (src/game/gfx/signrender); A sign's text drawn by GDI and Uniscribe into an image: the font fitted to the width, the section's bytes averaged, the text's rows found."
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"
@@ -7448,6 +7533,22 @@ address,name,kind,confidence,notes
 0x005b7960,Online_UnpublishPark,function,low,"reimplemented (src/game/online/session); thiscall (park; pops 4): with the city's connection open (Online_OpenCity), City::UnpublishPark(0, park, +0x34)'s answer, else 0"
 0x0048b390,Online_Instance,function,low,"reimplemented (src/game/online/session); cdecl; name invented, unconfirmed: the session [0xf7d88c], made the first time (0x404 bytes, 0x5b50b0 through its env)"
 0x005b6da0,Online_ListAnswered,function,low,"reimplemented (src/game/online/session); an answer from the online city: a native list handed to the list that asked for it or dropped, or a failure recorded on it"
+0x005b6070,Online_ResetConnections,function,low,"reimplemented (src/game/online/session); news, city, upload and download reset"
+0x005b5e40,Online_ResetAll,function,low,reimplemented (src/game/online/session); the login too and the dial-up
+0x005b50b0,Online_Construct,function,low,reimplemented (src/game/online/session); the session's constructor
+0x005b87e0,Online_Start,function,low,reimplemented (src/game/online/session); the online session started on a request
+0x005b8290,Online_UploadConnect,function,low,reimplemented (src/game/online/session); The connection remade and connected to the record's host and port.
+0x005b7cd0,Online_UploadStart,function,low,"reimplemented (src/game/online/session); The upload's request sent, or given up."
+0x005b7fa0,Online_UploadEvent,function,low,reimplemented (src/game/online/session); The Upload's events.
+0x005b8260,Online_UploadCallback,function,low,reimplemented (src/game/online/session); The Upload's events on the session's instance.
+0x005b75d0,Online_CityPoll,function,low,reimplemented (src/game/online/session); The city connection's poll.
+0x005b5920,Online_Dtor,function,low,"reimplemented (src/game/online/session); The session's destructor: the connections reset and dropped, the members deleted, the strings destroyed."
+0x005b90e0,Online_DownloadEnd,function,low,"reimplemented (src/game/online/session); The download's end: posted, the City opened for the next file or the login dropped, the callback."
+0x005b8490,Online_UploadPoll,function,low,"reimplemented (src/game/online/session); The upload's poll: its progress, or its end: posted, the login dropped, the callback, the upload released."
+0x005b79f0,Online_UploadLoginDone,function,low,"reimplemented (src/game/online/session); The login's answer for an upload: the upload started, or its end as a failure."
+0x005b7ba0,Online_UploadBegin,function,low,"reimplemented (src/game/online/session); The upload's start: the Upload reset, its arguments kept, started or the login dialog opened."
+0x005b5bf0,Online_Poll,function,low,"reimplemented (src/game/online/session); The session's frame poll: the login, news, city and upload polled, the download's end or progress."
+0x005b9380,Online_DownloadNext,function,low,"reimplemented (src/game/online/session); The download's next step: the next queued file, the theme's own file, or the FTP finished."
 0x005bc9c0,Owner2c_FindByKey,function,high,reimplemented (src/game/online/itemlist); the last item of the owner's list whose +8 is the key
 0x005bcb60,Owner2c_At,function,high,reimplemented (src/game/online/itemlist); the index'th item of the owner's list
 0x005bd270,Owner2c_ValueByKey,function,high,reimplemented (src/game/online/itemlist); the +0x14 of the last item whose +8 is the key
@@ -7540,6 +7641,34 @@ address,name,kind,confidence,notes
 0x004e5ef0,ChatClient_EnterWorld,function,low,"reimplemented (src/game/online/chatclient); The chat client's player made at the entrance, the mouse mode set"
 0x004a8600,Postcard_Send,function,low,"reimplemented (src/game/online/postcardsend); the postcard sent: name invented, unconfirmed"
 0x004c56e0,RoomText_Handler,function,low,"reimplemented (src/game/online/roomtexthandler); the chat rooms' text windows' handler: name invented, unconfirmed"
+0x005b5cb0,Online_LoginDialogClosed,function,low,reimplemented (src/game/online/sessionlogin); the login dialog's callback
+0x005b5cc0,Online_OpenLoginDialog,function,low,reimplemented (src/game/online/sessionlogin); the callback kept and the login dialog opened
+0x005b5ce0,Online_LoginAnswer,function,low,reimplemented (src/game/online/sessionlogin); Auth::Connect's callback
+0x005b5d10,Online_LogIn,function,low,reimplemented (src/game/online/sessionlogin); a new Auth connected and logged in
+0x005b6510,Online_LoginFinish,function,low,reimplemented (src/game/online/sessionlogin); the login's end
+0x005b6630,Online_NewsAnswer,function,low,reimplemented (src/game/online/sessionlogin); News::Connect's callback
+0x005b6660,Online_OpenNews,function,low,"reimplemented (src/game/online/sessionlogin); a new News connected, the three requests sent"
+0x005b67d0,Online_NewsResult,function,low,reimplemented (src/game/online/sessionlogin); a news answer
+0x005b6a30,Online_NewsPoll,function,low,reimplemented (src/game/online/sessionlogin); the news' progress
+0x005b6b60,Online_NewsFinish,function,low,"reimplemented (src/game/online/sessionlogin); the balance file saved and loaded, or the error posted"
+0x005b9b00,ListRequest_Done30,function,low,"reimplemented (src/game/online/listrequest); the request's end, the answer's elements 0x30 bytes"
+0x005b9d60,ListRequest_Done66,function,low,"reimplemented (src/game/online/listrequest); the same, 0x66"
+0x005ba030,ListRequest_Done10,function,low,"reimplemented (src/game/online/listrequest); the same, 0x10"
+0x005ba2f0,ListRequest_Done26,function,low,"reimplemented (src/game/online/listrequest); the same, 0x26"
+0x005ba560,ListRequest_Done34,function,low,"reimplemented (src/game/online/listrequest); the same, 0x34"
+0x005bc7d0,ListRequest_Start30,function,low,"reimplemented (src/game/online/listrequest); asked, or the login dialog first"
+0x005bcd10,ListRequest_Start66,function,low,reimplemented (src/game/online/listrequest); the same
+0x005bcbc0,ListRequest_StartText66,function,low,reimplemented (src/game/online/listrequest); the same with a text
+0x005bd070,ListRequest_Start10,function,low,"reimplemented (src/game/online/listrequest); the same, the session's +0xf8"
+0x005bd4b0,ListRequest_Start26,function,low,"reimplemented (src/game/online/listrequest); the same, the session's +0xfc"
+0x005bd8c0,ListRequest_Start34,function,low,"reimplemented (src/game/online/listrequest); the same, the session's +0x100"
+0x005bc710,ListRequest_Login30,function,low,reimplemented (src/game/online/listrequest); the login dialog's answer
+0x005bca70,ListRequest_Login66,function,low,reimplemented (src/game/online/listrequest); the same
+0x005bcfb0,ListRequest_Login10,function,low,"reimplemented (src/game/online/listrequest); the same, the session's +0xf8"
+0x005bd3f0,ListRequest_Login26,function,low,"reimplemented (src/game/online/listrequest); the same, the session's +0xfc"
+0x005bd800,ListRequest_Login34,function,low,"reimplemented (src/game/online/listrequest); the same, the session's +0x100"
+0x005bc8e0,Online_Has108NoFlag10,function,low,reimplemented (src/game/online/listrequest); +0x108 set and no flag 0x10
+0x005b7910,Online_OpenListItem,function,low,reimplemented (src/game/online/listrequest); a list item's dialog opened by index
 0x005d8190,LobbyModel_SetPosition,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (v): the lobby model's (+4: 0x7a4610 index) matrix (+8 -> +4 -> +0x78, +0x10) translation = v[0..2] (x87 loads, all read first)"
 0x005d8380,LobbyModel_TurnY,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (angle): Matrix_RotateEulerFast(the lobby model's matrix, 2 ""Y"", &angle)"
 0x005d83b0,LobbyModel_SetScale,function,high,"reimplemented (src/game/frontend/lobbymodel); thiscall (x, y, z): Holder_SetScale(the lobby model's entry +8, (x, y, z))"
@@ -7565,6 +7694,11 @@ address,name,kind,confidence,notes
 0x005e1210,Class702cb0_StepCamera,function,low,"reimplemented (src/game/frontend/lobbyscene); thiscall: the lobby camera's eye set round the model by angle and radius, the position and look-at eased toward eye and target, both copied to the camera"
 0x005d80c0,Class702a50_Dtor,function,low,"reimplemented (src/game/frontend/lobbyscene); class 0x702a50's destructor: out of the registry, the ride destroyed, its two strings destroyed (name unconfirmed)"
 0x005e0470,Class702cb0_Step,function,low,"reimplemented (src/game/frontend/lobbyscene); the lobby's step: the camera follows or roams, the weather's drops, a model's burst and sounds"
+0x005da020,Class702af0_Step,function,low,reimplemented (src/game/frontend/lobbyscene); the lobby's flyers spawned and stepped
+0x005d8cb0,LobbyCamera_Frame,function,low,reimplemented (src/game/frontend/lobbyscene); the lobby camera applied for a frame
+0x005da3a0,Class702af0_StepAll,function,low,reimplemented (src/game/frontend/lobbyscene); Each scene of the list's step.
+0x005d80a0,Class702a50_DeletingDtor,function,low,reimplemented (src/game/frontend/lobbyscene); The destructor and the block freed by bit 0.
+0x005d84a0,Class702a60_Ctor,function,low,reimplemented (src/game/frontend/lobbyscene); The lobby game's constructor.
 0x005dd310,ViewCtl_Lower48,function,low,reimplemented (src/game/frontend/viewcontrols); thiscall: the float +0x48 lowered by the float +0x14
 0x005dd320,ViewCtl_Raise48,function,low,reimplemented (src/game/frontend/viewcontrols); thiscall: the float +0x48 raised by the float +0x14
 0x005dd330,ViewCtl_Raise50,function,low,reimplemented (src/game/frontend/viewcontrols); thiscall: the float +0x50 raised by the float +0x14
@@ -7581,11 +7715,16 @@ address,name,kind,confidence,notes
 0x005dd530,ViewCtl702e70_Message,function,low,"reimplemented (src/game/frontend/viewcontrols); thiscall (message, key, unused): as 0x5dced0, then message 0x10005 with key 0 and a target at +0x70: [0xf82888] = its +0xc, the view's slot 8 and the scene's +8 object's slot 7 called"
 0x005e3dc0,Class702d78_MakeViews,function,low,"reimplemented (src/game/frontend/viewcontrols); the scene object's five objects made and its list's items told (name invented, unconfirmed)"
 0x005dc860,ViewCtl702bc8_Update,function,low,"reimplemented (src/game/frontend/viewcontrols); thiscall: a virtual slot of the view: the thing under the mouse picked and shown, the edges or a drag move +0x48 and +0x50, the angles and the distance eased, the camera's position set. Name invented, unconfirmed."
+0x005dd840,ViewCtl702e20_Message,function,low,"reimplemented (src/game/frontend/viewcontrols); the base's messages, then the rooms dialog for the target"
 0x005e2cc0,IslandCamera_LoadSettings,function,low,"reimplemented (src/game/frontend/islandcamera); thiscall: the lobby island camera settings read from a text file (FOV, spin, radii, ten camera positions)"
 0x004a7bf0,Postcard_OnSent,function,low,"reimplemented (src/game/frontend/postcard); cdecl (done, result): the postcard sender's callback; when done and the result is 0-4, the command of the table {0x34, 0x39, 0x3a, 0x3b, 0x3b} posted (CommandQueue_Post)"
 0x005d6060,Class702da0_Clear,function,low,reimplemented (src/game/frontend/scenequeue); the advisor stopped and every queued id freed
 0x005d6110,Class702da0_Push,function,low,"reimplemented (src/game/frontend/scenequeue); an id pushed at the head, the queue cleared first on request"
+0x005d61a0,Class702da0_Show,function,low,reimplemented (src/game/frontend/scenequeue); a text shown for a time
 0x005d5cf0,Class7029f0_Close,function,low,"reimplemented (src/game/frontend/frame); the front-end frame's objects closed and deleted, the lobby sfx released, the window told"
+0x005d5dd0,Frame_HandleMessage,function,low,reimplemented (src/game/frontend/frame); the front-end frame's message handler
+0x005d58b0,Frame_WindowProc,function,low,reimplemented (src/game/frontend/frame); the message handler on the frame at 0xf82884
+0x005d5970,Frame_Start,function,low,"reimplemented (src/game/frontend/frame); The front-end frame's start: its window, the singletons made and the first panels shown."
 0x005dd220,ViewCtl702bc8_Leave,function,low,"reimplemented (src/game/frontend/sceneleave); slot 8 of the vtable 0x702bc8: the view's dialog sent message 4, its lists drained, its two sounds stopped (name unconfirmed)"
 0x005dd690,ViewCtl702e70_Leave,function,low,"reimplemented (src/game/frontend/sceneleave); slot 8 of the vtable 0x702e70: as 0x5dd220, then the dialog [0x7cc4c4] sent message 4 (name unconfirmed)"
 0x005e1450,Class702cb0_Leave,function,low,"reimplemented (src/game/frontend/sceneleave); slot 8 of the vtable 0x702cb0: +4 cleared, the current item's sounds stopped (name unconfirmed)"
@@ -7594,12 +7733,37 @@ address,name,kind,confidence,notes
 0x005e1730,Class702cb0_PreviousItem,function,low,"reimplemented (src/game/frontend/sceneleave); slot 15 of the vtable 0x702cb0: the item before, going round, chosen and its sounds played (name invented, unconfirmed)"
 0x005e1bd0,Scene702ec0_Leave,function,low,"reimplemented (src/game/frontend/sceneleave); slot 8 of the vtable 0x702ec0: the sounds stopped, the lists drained, the dialog [0x7cc4b4] sent message 4 (name unconfirmed)"
 0x005e2550,Scene702dd0_Leave,function,low,reimplemented (src/game/frontend/sceneleave); slot 8 of the vtable 0x702dd0: as 0x5e1bd0 with the dialog [0x7cc47c] (name unconfirmed)
+0x005dd950,ViewCtl702e20_Leave,function,low,"reimplemented (src/game/frontend/sceneleave); the view leaving, then the session's name and words cleared"
 0x005d7fd0,LobbyResource_Ctor,function,low,"reimplemented (src/game/frontend/lobbymake); a lobby resource: its name and pack strings and its load (0x4629d0, by address), given to the scene"
 0x005d8870,LobbyScene_MakeModel,function,low,"reimplemented (src/game/frontend/lobbymake); a lobby model of a resource found by name and pack or new, its ride out of the renderer, given to the scene"
 0x005dfa60,Class702ca8_Ctor,function,low,"reimplemented (src/game/frontend/lobbymake); the object of vtable 0x702ca8: two lobby models, turned and placed, strings, colours from rand, sound categories, given to its owner"
+0x005d9830,LobbyFlight_Ctor,function,low,"reimplemented (src/game/frontend/lobbyflight); thiscall (owner, a, b, centre, spread, e, f), pops 0x1c; name unconfirmed; a lobby model set flying between two random points"
+0x005dc3e0,Class702bb8_Ctor,function,low,reimplemented (src/game/frontend/lobbymake); the lobby's globe marker made
 0x005e3210,LobbyScript_Load,function,low,"reimplemented (src/game/frontend/lobbyscript); The lobby scene's script read: islands, flying meshes, weather and sky (name invented, unconfirmed)"
 0x00492470,HelpBg_Start,function,low,"reimplemented (src/game/frontend/helpbgstart); the help background started: name invented, unconfirmed"
-0x005d9830,LobbyFlight_Ctor,function,low,"reimplemented (src/game/frontend/lobbyflight); thiscall (owner, a, b, centre, spread, e, f), pops 0x1c; name unconfirmed; a lobby model set flying between two random points"
+0x005dcfe0,ViewCtl702bc8_Enter,function,low,"reimplemented (src/game/frontend/sceneenter); the view control entering: lights, sounds, its part and the session's list"
+0x005e1380,Class702cb0_Enter,function,low,"reimplemented (src/game/frontend/sceneenter); the scene base entering: lights, fog, state cleared, connections reset"
+0x005e23f0,Scene702dd0_Enter,function,low,"reimplemented (src/game/frontend/sceneenter); the scene entering: queue cleared, dialog, base's entering, the session's list"
+0x005dd650,ViewCtl702e70_Enter,function,low,"reimplemented (src/game/frontend/sceneenter); the view entering: its dialogs, then the base's"
+0x005dd910,ViewCtl702e20_Enter,function,low,"reimplemented (src/game/frontend/sceneenter); the other view entering: its dialogs, then the base's"
+0x005e1890,Scene702ec0_EndState,function,low,"reimplemented (src/game/frontend/scenesteps); a state ended, the child and theme shown"
+0x005e1ee0,Scene702ec0_Next,function,low,reimplemented (src/game/frontend/scenesteps); the next item unless busy or in mode 2
+0x005e1f40,Scene702ec0_Previous,function,low,reimplemented (src/game/frontend/scenesteps); the previous item unless busy or in mode 2
+0x005e2360,Scene702dd0_EndState,function,low,"reimplemented (src/game/frontend/scenesteps); a state ended, connections reset, the dialog told"
+0x005e26a0,Scene702dd0_OpenRecord,function,low,reimplemented (src/game/frontend/scenesteps); the record's dialog opened when idle
+0x005e2700,Scene_SetOnlineMode,function,low,"reimplemented (src/game/frontend/scenesteps); the game's +0x14 2, the mode setting 1"
+0x005e2770,Scene702dd0_Next,function,low,"reimplemented (src/game/frontend/scenesteps); the next item when idle, the dialog told"
+0x005e2790,Scene702dd0_Previous,function,low,"reimplemented (src/game/frontend/scenesteps); the previous item when idle, the dialog told"
+0x005e22d0,Scene702dd0_Step,function,low,"reimplemented (src/game/frontend/scenesteps); the step, then the record shown"
+0x005e1830,Scene702ec0_Step,function,low,"reimplemented (src/game/frontend/scenesteps); the step, then a random text with a user slot chosen"
+0x005dd610,ViewCtl702e70_Back,function,low,"reimplemented (src/game/frontend/scenesteps); back with the session's flag: connections reset, slot 17"
+0x005dcfc0,ViewCtl702bc8_ListDone,function,low,reimplemented (src/game/frontend/scenesteps); the list request's callback to the object's slots
+0x005dd400,ViewCtl702bc8_TakeList,function,low,"reimplemented (src/game/frontend/scenesteps); the list's items to markers, +0x68 set"
+0x005dd7c0,ViewCtl702e70_TakeList,function,low,"reimplemented (src/game/frontend/scenesteps); the list taken, then the queue's push"
+0x005e1cc0,Scene_CheckThemeLevel,function,low,"reimplemented (src/game/frontend/scenesteps); A scene's check of its theme's level in the global save info: slot 0x44 when reached, or in mode 2. Name invented, unconfirmed."
+0x005dda90,ViewCtl702bc8_TakeListForward,function,low,"reimplemented (src/game/frontend/scenesteps); Only ViewCtl702bc8_TakeList. Name invented, unconfirmed."
+0x005e2010,ThemeMenu_Refresh,function,low,reimplemented (src/game/frontend/thememenu); The lobby menu's items given their theme texts; the fonts added for them removed.
+0x005e27b0,ThemeMenu_Load,function,low,reimplemented (src/game/frontend/thememenu); The lobby menu's items loaded from the session's values; the fonts added for them removed.
 0x0065d7d0,Window_FindChild,function,low,"reimplemented (src/game/ui/window); thiscall (id), pops 4: the first child of the window (list +0x5c, next +0x54) whose id (+0x8c) is id, or 0"
 0x0065f697,Window_CallHandler,function,low,"reimplemented (src/game/ui/window); thiscall (message, a, b), pops 12: the cdecl handler at +0x114 called with (window, message, a, b), its result; -1 when none"
 0x00658d9f,Window_SendMessage,function,low,"reimplemented (src/game/ui/window); cdecl (window, message, a, b): -1 for no window or byte +4 set; else the hook [0xfaa5fc] (if set) then Window_CallHandler"
@@ -8772,6 +8936,7 @@ address,name,kind,confidence,notes
 0x0047de00,WindowGroup_TellObject,function,low,reimplemented (src/game/ui/windowgroup); thiscall: the object +0x9c told; nothing names it
 0x0047e250,WindowGroup_OpenAll,function,low,reimplemented (src/game/ui/windowgroup); thiscall: Window_OpenTree on each of the array; nothing names it
 0x0046b600,GameWindow_Proc,function,low,"reimplemented (src/game/ui/windowproc); stdcall (window, message, wparam, lparam): the game window's message procedure"
+0x005e41c0,PanelKeys_HandleMessage,function,low,reimplemented (src/game/ui/panelkeys); a panel screen's message handler
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"

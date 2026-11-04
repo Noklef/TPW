@@ -98,6 +98,16 @@ void GlobalSave_SetCalls(const AddrCall *table, u32 count);
 // Read: a count and as many names, each a new record (0xbc bytes, its string +0x20 the name, its +0x1c 0; none: on a null, sic), read and inserted in the map (0x5b1620; not inserted: 1); the options; "size" and as many "rideId"s, inserted (0x5b1650; third's slot holds each).
 // 1 at the first that fails, else 0.
 u32 __fastcall GlobalSave_Serialize(u8 *info, void *, Stream *stream, u32 save, u32 third);
+
+// 0x5b0a70 (thiscall (name), pops 4; names invented, unconfirmed): a new record (0xbc bytes; none: a null goes in the map) with the name in its string +0x20 and its fields 0,
+// inserted in the theme map under the name (a name there already: not inserted, the record leaks). The game's lookup first only chooses whether Debug_Printf prints: left out.
+// 0x5b09c0 (thiscall (name), pops 4): the name's record in the map or that new one, when its global.sam loads (ThemeRecord_LoadGlobalSam, called through g_calls); else 0.
+// 0x5b0bc0 (thiscall): each record in the map destroyed (ThemeRecord_Dtor) and freed, then all the map's nodes erased.
+u8 *__fastcall GlobalSave_ThemeMake(u8 *info, void *, const u8 *name);
+u8 *__fastcall GlobalSave_ThemeGet(u8 *info, void *, const u8 *name);
+// 0x5b08a0 (thiscall (name), pops 4; name invented, unconfirmed): the same record kept at +0x48; returns what ThemeRecord_LoadGlobalSam answers (all of EAX). The Debug_Printf on a new one is left out.
+u32 __fastcall GlobalSave_ThemeSelect(u8 *info, void *, const u8 *name);
+void __fastcall GlobalSave_ClearThemes(u8 *info);
 }
 
 // 0x5afc60 (thiscall (path), pops 4; name invented, unconfirmed): the file opened (flags 0x40000010; failing: 0), the version 0xc written (4 bytes), the info serialised to it (saving, third the version) and closed: 1 when all went well, else 0.

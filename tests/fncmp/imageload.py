@@ -24,7 +24,7 @@ def case(r):
     if r.randrange(3) == 0:
         put(image, 0xc, 'I', 0)
     wide, high = r.choice([0, 1, 2, 3, 8, r.randrange(0x10)]), r.choice([0, 1, 2, 3, 8, r.randrange(0x10)])
-    paletted = r.choice([1, 1, 0, 0, 2, 0x100])
+    paletted = r.choice([1, 1, 0, 0, 2, 0x100, r.getrandbits(32)])
     first = ''.join(r.choice('abcdef/') for _ in range(r.randrange(0x20))).encode() + b'\0'
     second = ''.join(r.choice('xyz.0') for _ in range(r.randrange(0x18))).encode() + b'\0'
     for k in INFO, LOAD, ALLOC:
@@ -35,9 +35,9 @@ def case(r):
     for k in INFO, LOAD, ALLOC, FREE:
         mask_this(log, k)
     fill(log, INFO, 3, description(r, r.getrandbits(32), r.randrange(0x100), r.randrange(0x100), r.choice([0, 1])), which=0)
-    fill(log, INFO, 0, struct.pack('<i', r.choice([0, 0, 0, 0, 1, -1])), which=1)
+    fill(log, INFO, 0, struct.pack('<i', r.choice([0, 0, 0, 0, 1, -1, -0x80000000])), which=1)
     fill(log, LOAD, 1, description(r, BITS, wide, high, paletted), which=2)
-    fill(log, LOAD, 0, struct.pack('<i', r.choice([0, 0, 0, 0, 1, -1])), which=3)
+    fill(log, LOAD, 0, struct.pack('<i', r.choice([0, 0, 0, 0, 1, -1, -0x80000000])), which=3)
     fill(log, ALLOC, 0, struct.pack('<i', r.getrandbits(31)), which=4)
     regions = {LOG: log, IMAGE: image, NAMES: first.ljust(NAME, b'\0') + second, BITS: r.bytes(0x400), HEAP: heap(0x600, r.choice([0, 0, 0, 1]))}
     return Call(0x5d3890, [IMAGE, NAMES, NAMES + NAME], regions, conv='t', ret='b')

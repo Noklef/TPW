@@ -45,7 +45,8 @@ def case(r):
     fill(log, FIND, 1, struct.pack('<I', FOLDER), which=1)
     strings(log, FIND, 0, 0b10)
     set_return(log, FIRST, r.deal([1] * 12 + [0, 2]))
-    if r.random() < 0.95:   # (else the entry's empty name, as it was made)
+    named = r.random() < 0.9
+    if named:   # (else the entry's empty name, as it was made)
         fill(log, FIRST, 1, name(r, stems, tail, language).encode() + b'\0', which=0, offset=0x24)
     blob_bytes(log, FIRST, 0, 0xfffff, inner=(8, 0x7fff))
     strings(log, FIRST, 0, 0b10)
@@ -53,11 +54,16 @@ def case(r):
     fill(log, NEXT, 0, records, which=2, offset=0x24, records=4)
     strings(log, NEXT, 0, 0b1)
     more = [r.deal([1, 1, 2, 0x80000000]) for _ in range(r.deal([0, 0, 1, 2, 3]))]
+    # (Run twice for an entry not named: the first run's next file leaves its name in the entry's stack bytes, natively too, and only the
+    # second's empty name, set by hand, keeps it out: the emulator's fresh stack, and the driver's between cases, would hold 0 there anyway.)
+    twice = not named and not language
+    if twice:
+        more = more or [1]
     regions[NEXTS] = struct.pack('<40I', *(more + [0] * (40 - len(more))))
     answers(log, NEXT, NEXTS)
     set_return(log, RIDE, r.getrandbits(32))
     strings(log, RIDE, 0b11)
-    return Call(0x4893c0 if language else 0x4891d0, [], regions, ret='a')
+    return Call(0x4893c0 if language else 0x4891d0, [], regions, ret='a', then=[(0x4891d0, [], 'c')] if twice else ())
 
 
 if __name__ == '__main__':

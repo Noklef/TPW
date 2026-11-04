@@ -12,6 +12,7 @@
 // What the keyword adder calls (the port by default; its bench runs it as a recorder).
 struct WKeywordsEnv {
     s32(__cdecl *format)(u8 *charset, u16 *dest, u32 size, u32 entry, ...);   // Charset_FormatWide (0x6acd60)
+    u32(__cdecl *upper)(u32 c);   // towupper (0x67ed00, unported)
 };
 void WKeywords_SetEnv(const WKeywordsEnv *env);
 void WScanner_SetCalls(const AddrCall *table, u32 count);   // (WScanner_Keyword06's TakeRest: its default word's case throws in it)
@@ -24,6 +25,42 @@ extern "C" {
 // then frozen (when its count byte is neither 0 nor 0xff, _Grow(len, false) for its own copy; the count byte 0xff); +0x38 = 0 and +0x34
 // = its characters. The text is destroyed: its count byte down by one, or (0 or 0xff) its block freed.
 void __fastcall WScanner_SetText(u8 *scanner, void *, StdWString text, u32 context, const u8 *flags);
+
+// 0x5e6820 (thiscall; name invented, unconfirmed): the scanner's base: vtable 0x702f18, +8 to +0x10 zero, the bytes +0x1c and +0x2c zero, the sets at +0x14 and +0x24
+// constructed (StdTree_CtorG; 0x5e6820 has the second inlined) and each given 0x20, 0xa, 9, 0xd, the +0x24 set first. The allocator bytes +4, +0x14, +0x15, +0x24, +0x25 are
+// the stack's garbage there: left as they are. Returns the scanner.
+u8 *__fastcall WScanner_ConstructBase(u8 *scanner);
+
+// 0x5e6a00 (thiscall; name invented, unconfirmed): the base's destructor: vtable 0x702f18, the sets at +0x24 and +0x14 destroyed (StdTree_DtorG), the string at +4 released: its count byte down by one,
+// or (0 or 0xff) its block freed; +8 to +0x10 zero.
+void __fastcall WScanner_DestructBase(u8 *scanner);
+
+// 0x5e6750 (cdecl (a, b, flag); name invented, unconfirmed): the strings compared without case (towupper, as unsigned words): -1 or 1 at the first difference. All of the
+// shorter one the same: 0 when the flag byte is set and b has ended (a may be longer); else by the lengths, -1, 0 or 1. A null string has no characters, whatever its length.
+s32 __cdecl WString_CompareNoCase(const u8 *a, const u8 *b, u32 flag);
+
+// 0x5e6e50 (thiscall (text by value), pops 0x10; name invented, unconfirmed): the first keyword pair of the list [+0x40] whose key is the text: by flags, +0x3f: no case, the
+// text a prefix enough (WString_CompareNoCase with 1); else +0x3d: exactly (WString_CompareSub); else no case (WString_CompareNoCase with 0). Returns the pair (the node +8) or 0.
+// The text is destroyed.
+u8 *__fastcall WScanner_FindKeyword(u8 *scanner, void *, StdWString text);
+
+// 0x5e6c90 (thiscall; name invented, unconfirmed): reads the text: while the position +0x38 is before the length, past the characters in the sets +0x24 and +0x14, a word up to
+// the next in +0x14 (at least one character, the end's own if it comes to that), its keyword's handler (the pair +0x10, the member pointer's adjustment +0x14) called and counted.
+// A handler's 0: -1. +0x3e set: stops after the first word. Returns the handlers called.
+s32 __fastcall WScanner_ReadKeywords(u8 *scanner);
+
+// 0x5e7320 (thiscall (out), pops 4; name invented, unconfirmed): position past the length: 0. Else *out the character there (the string frozen), the position on by one, 1.
+u8 __fastcall WScanner_NextChar(u8 *scanner, void *, u16 *out);
+
+// 0x5e43f0 (thiscall (tokens, out), pops 8; name invented, unconfirmed): the scanner: its base (WScanner_ConstructBase), the byte +0x44 the tokens pointer's low byte (sic: the list's
+// allocator from the stack's argument), its list's sentinel of 0x28 bytes linked to itself at +0x48 with +0x4c = 0, +0x50 / +0x54 the two, vtable 0x702f14. The vector of tokens
+// emptied (each destroyed, the end at the start), the string assigned the text at 0x78a374 (StdWString_AssignChars), the keywords added (WKeywords_AddAll). Returns the scanner.
+u8 *__fastcall WScanner_Construct(u8 *scanner, void *, u8 *tokens, StdWString *out);
+
+// 0x5e45d0 (thiscall (text by value), pops 0x10; name invented, unconfirmed): a copy of the text set (WScanner_SetText: the list at +0x44, flags 0, 1, 1), past the set +0x14.
+// The next character a '/': WScanner_ReadKeywords, and when that called none a token of kind 0x18. Else the string [+0x54] assigned the text, a token of kind 0 and one of the
+// text. The text is destroyed.
+void __fastcall WScanner_Parse(u8 *scanner, void *, StdWString text);
 
 // 0x5e73f0 (thiscall (key by value, a 16-byte value by value), pops 0x20; name unconfirmed): the pair (key, value) that 0x5e49f0 builds for
 // its table at +0x48 from a string loaded by id and a handler: the wstring at +0 (its allocator byte the key's, the other three bytes

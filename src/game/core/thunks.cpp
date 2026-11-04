@@ -53,7 +53,25 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 
 template <typename T> T Adjust(T p) { return reinterpret_cast<T>(reinterpret_cast<uintptr_t>(p) - *reinterpret_cast<const u32 *>(reinterpret_cast<uintptr_t>(p) - 4)); }
 
+u32 &Global(u32 address) { return *reinterpret_cast<u32 *>((uintptr_t)address); }
+
+void ClearFour(u32 address) {
+    for (u32 i = 0; i < 4; i++) Global(address + 4 * i) = 0;
+}
+
+SurfaceInfo *StaticSurface(u32 base) {
+    for (u32 i = 0; i < 5; i++) *reinterpret_cast<u8 *>((uintptr_t)(base + i)) = 0;
+    Global(base + 0x10) = 0;
+    Global(base + 0x14) = 0;
+    return SurfaceInfo_Ctor(reinterpret_cast<SurfaceInfo *>((uintptr_t)(base + 0x18)));
+}
+
+const ThunksEnv kGameEnv = {reinterpret_cast<s32(__cdecl *)(void *)>((uintptr_t)0x0067a7d0), &CRT_beginthread};
+const ThunksEnv *g_env = &kGameEnv;
+
 }  // namespace
+
+void Thunks_SetEnv(const ThunksEnv *env) { g_env = env ? env : &kGameEnv; }
 
 extern "C" {
 
@@ -640,4 +658,19 @@ s32 __fastcall Wrap_Nav_PathProgress_510180(const u8 *nav) { return Nav_PathProg
 u32 __cdecl Wrap_KeyMap_AsyncModifiers_4815c0() { return KeyMap_AsyncModifiers(); }
 void __cdecl Wrap_MsgTags_AddVersion_481b70() { MsgTags_AddVersion(); }
 u32 __stdcall Wrap_MsgTags_Post_481580(const u8 *message) { return MsgTags_Post(message); }
+void __cdecl Static703078_Init() { Global(0x00f86db8) = 0x00703078; }
+void __cdecl Static7034d8_Init() { Global(0x00fa76f0) = 0x007034d8; }
+void __cdecl Static703518_Init() { Global(0x00fa76f8) = 0x00703518; }
+void __cdecl Static703558_Init() { Global(0x00fa76fc) = 0x00703558; }
+void __cdecl Static703598_Init() { Global(0x00fa7700) = 0x00703598; }
+void __cdecl Static_ClearFa76d8() { ClearFour(0x00fa76d8); }
+void __cdecl Static_ClearFa76c0() { ClearFour(0x00fa76c0); }
+SurfaceInfo *__cdecl StaticSurface_Fa7908() { return StaticSurface(0x00fa7908); }
+SurfaceInfo *__cdecl StaticSurface_Fa7790() { return StaticSurface(0x00fa7790); }
+SurfaceInfo *__cdecl StaticSurface_Fa7740() { return StaticSurface(0x00fa7740); }
+s32 __cdecl AtExit_5f5580() { return g_env->atExit(reinterpret_cast<void *>((uintptr_t)0x005f5580)); }
+s32 __cdecl AtExit_5d1750() { return g_env->atExit(reinterpret_cast<void *>((uintptr_t)0x005d1750)); }
+s32 __cdecl AtExit_5fa010() { return g_env->atExit(reinterpret_cast<void *>((uintptr_t)0x005fa010)); }
+s32 __cdecl AtExit_618cc0() { return g_env->atExit(reinterpret_cast<void *>((uintptr_t)0x00618cc0)); }
+u32 __cdecl Thread_Begin(void *proc, void *arg) { return g_env->beginThread(proc, 0, arg); }
 }  // extern "C"

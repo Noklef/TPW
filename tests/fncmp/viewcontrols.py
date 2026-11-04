@@ -9,22 +9,22 @@
 # +0x40. SetOrKeep (slot 19): a value of 0 or not. Msg2bc8 / Msg2e70 (the slot 5 message handlers): as UseSecond's set-up, the message
 # 0x1000a (keys 0x2500-0x2800 or others), 0x10006 (key 2 or not) or 0x10005 (key 0 or not); the dialog's child 0x16006 there with its
 # state byte (+0x138) the one the swap gives (0x668bec then returns at once: its other path is the GUI library's, unbenched), the object's
-# vtable recorders, +0x70 a target or 0, [0xf85614]'s +8 an object of recorders.
+# vtable recorders, +0x70 a target or 0, [0xf85614]'s +8 an object of recorders. Msg2e20: the same with Dialog7cdac4_Open a recorder (30).
 # usage: viewcontrols.py [CASES [SEED]] [--wild|--both] [--show N]   (env OPS=Lower48,Raise48,...)
 import os
 import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import CDECL_LOG4, LOG, Bench, Call, RAM, log_region, put, set_return, vtable  # noqa: E402
+from fncmp import CDECL_LOG4, LOG, Bench, Call, RAM, _recorder, log_region, put, set_return, vtable  # noqa: E402
 
 CALLS = {'Lower48': 0x5dd310, 'Raise48': 0x5dd320, 'Raise50': 0x5dd330, 'Lower50': 0x5dd340, 'UseSecond': 0x5dd350, 'UseFirst': 0x5dd390,
          'Show70': 0x5dd7a0, 'Show20': 0x5dda70, 'Show8': 0x5e2620, 'Hide8': 0x5e2640, 'Callback': 0x5e2650, 'Done': 0x5e2660,
-         'Choose': 0x5dd3d0, 'Positive40': 0x5dd810, 'Pending': 0x5ddac0, 'SetOrKeep': 0x5e2750, 'Msg2bc8': 0x5dced0, 'Msg2e70': 0x5dd530}
+         'Choose': 0x5dd3d0, 'Positive40': 0x5dd810, 'Pending': 0x5ddac0, 'SetOrKeep': 0x5e2750, 'Msg2bc8': 0x5dced0, 'Msg2e70': 0x5dd530, 'Msg2e20': 0x5dd840}
 B = Bench([(0x5dd310, 0x5dd3fd), (0x4c57e0, 0x4c5830), (0x658d9f, 0x658e04), (0x659710, 0x659740), (0x65d7bc, 0x65d832), (0x65f697, 0x65f6e1),
            (0x5dd7a0, 0x5dd7c0), (0x5dda70, 0x5dda90), (0x5e2620, 0x5e26a0), (0x4b8810, 0x4b8850), (0x4b9c20, 0x4b9c40), (0x4c57a0, 0x4c57c0),
            (0x5d83f0, 0x5d8431), (0x5dd810, 0x5dd822), (0x5ddac0, 0x5ddae0), (0x5e2750, 0x5e2763), (0x5dced0, 0x5dcfbb), (0x5dd530, 0x5dd60e),
-           (0x4c5830, 0x4c584b), (0x668bec, 0x668c89)])
+           (0x4c5830, 0x4c584b), (0x668bec, 0x668c89), (0x5dd840, 0x5dd910)], hooks={0x4c4670: _recorder(30, 0, cdecl=True)})
 SCENE, OTHER, OVT, TARGET = RAM + 0x2400, RAM + 0x2500, RAM + 0x2600, RAM + 0x2800
 OPS = [k for k in os.environ.get('OPS', ','.join(CALLS)).split(',') if k]
 WINDOW, KIDS, WIN2, WIN3, HOLDER, VTABLE = RAM + 0x1000, RAM + 0x1200, RAM + 0x1800, RAM + 0x1a00, RAM + 0x2000, RAM + 0x2200

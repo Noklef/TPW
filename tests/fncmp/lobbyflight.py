@@ -5,7 +5,7 @@ import struct
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools'))
-from fncmp import LOG, RAM, Bench, Call, _recorder, log_region, put, set_return, vtable  # noqa: E402
+from fncmp import LOG, RAM, Bench, Call, _recorder, fb, log_region, put, set_return, vtable  # noqa: E402
 
 NEW, SLOT, PLACE = 4, 5, 6
 B = Bench([(0x5d9830, 0x5d9b1f)], hooks={0x5d8870: _recorder(NEW, 6), 0x5d83f0: _recorder(SLOT, 2), 0x5d8190: _recorder(PLACE, 1)})
@@ -24,6 +24,9 @@ def case(r):
     spread = vector(r, r.choice([1.0, 10.0, 1000.0])) if r.randrange(8) else bytes(12)
     if r.randrange(16) == 0:
         put(r.choice([centre, spread]) if isinstance(spread, bytearray) else centre, r.choice([0, 4, 8]), 'I', r.choice([0x7fc00001, 0x7f800001, 0x7f800000]))
+    for buf in [centre] + ([spread] if isinstance(spread, bytearray) else []):   # (one coordinate 0 or any float)
+        if r.randrange(4) == 0:
+            put(buf, r.choice([0, 4, 8]), 'I', r.choice([fb(0.0), r.f()]))
     set_return(log, NEW, r.getrandbits(32))
     regions = {LOG: log, SELF: r.bytes(0x60), OWNER: struct.pack('<I', VTABLE), VTABLE: vtable({1: 1}), CENTRE: centre, SPREAD: spread, GENERATOR: r.bytes(0x38),
                0xf83774: r.bytes(4), 0xf82884: struct.pack('<I', GENERATOR)}
