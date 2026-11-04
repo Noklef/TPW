@@ -843,6 +843,7 @@ address,name,kind,confidence,notes
 0x004a2ac0,ChatButtons_Select,function,low,"reimplemented (src/game/world/mousemode); unless the game mode is 4 or 0x7cf4f4 is set: the two chat buttons sent 6 (leave / 1 - leave), the mode setting read once, with it 1 the chat left or entered, then the focus restored"
 0x00481470,ChatButtons_SetChat,function,low,reimplemented (src/game/world/mousemode); ChatButtons_Select(on == 0)
 0x0040c5e0,MouseMode_EnterTile3a,function,low,"reimplemented (src/game/world/mousemode); a new tile mouse mode (0x3a) set, the holder made when missing"
+0x0046c8e0,MMPlaceStaff_Click,function,low,"reimplemented (src/game/world/mousemode); thiscall (2 unused), pops 8; name unconfirmed; the staff member placed on the tile under the pointer, then the mouse mode back to the online base"
 0x0040f290,ThingMsg01_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (a): +8 a; vtable set, +4 cleared; returns this"
 0x0040f240,ThingMsg02_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (c, b): +8 b, +0xc c; vtable set, +4 cleared; returns this"
 0x0040f330,ThingMsg06_Ctor,function,high,"reimplemented (src/game/world/thingmsg); thiscall (u16 a): +8 a; vtable set, +4 cleared; returns this"
