@@ -4,6 +4,7 @@
 #include "log.h"
 #include "pool_watch.h"
 #include "profiler.h"
+#include "shadow.h"
 #include "trace.h"
 
 namespace tpw::testing {
@@ -32,6 +33,7 @@ void after_hooks(const char *ini) {
     start_fpu_watch();
     if (GetPrivateProfileIntA("tpw", "profile", 1, ini)) start_profiler(g_dll);
     if (GetPrivateProfileIntA("tpw", "poolwatch", 1, ini)) start_pool_watch(g_dll);
+    start_shadow(ini);
 }
 
 void stop() {
