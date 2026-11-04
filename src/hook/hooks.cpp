@@ -215,6 +215,7 @@
 #include "../game/core/crttime.h"
 #include "../game/core/dsoundsource.h"
 #include "../game/core/gameframe.h"
+#include "../game/core/gameowner.h"
 #include "../game/core/imaadpcm.h"
 #include "../game/core/iosbase.h"
 #include "../game/core/keyactions.h"
@@ -6249,6 +6250,10 @@ const Hook kHooks[] = {
     {"CRT_ld12cvt",               0x0068be90, (void *)&CRT_ld12cvt, {0x83, 0xec, 0x18, 0x8b, 0x4c}},
     {"CRT_ld12tod",               0x0068c060, (void *)&CRT_ld12tod, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
     {"CRT_ld12tof",               0x0068c080, (void *)&CRT_ld12tof, {0x8b, 0x44, 0x24, 0x08, 0x8b}},
+    {"GameOwner_Pause",           0x004092a0, (void *)&GameOwner_Pause, {0x56, 0x8b, 0xf1, 0x83, 0x7e}},
+    {"GameOwner_Resume",          0x00409300, (void *)&GameOwner_Resume, {0x56, 0x8b, 0xf1, 0x83, 0x7e}},
+    {"GameOwner_TogglePause",     0x00409350, (void *)&GameOwner_TogglePause, {0x56, 0x8b, 0xf1, 0x83, 0x7e}},
+    {"GameOwner_Shutdown",        0x00409180, (void *)&GameOwner_Shutdown, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},

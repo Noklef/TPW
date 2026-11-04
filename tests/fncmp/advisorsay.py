@@ -116,8 +116,15 @@ def case(r):
         return Call(0x599050, [id_], regions, ret='a')
     if op == 'Random':
         rand_answers(r, regions, log)
+        length = lengths(r)
+        if r.random() < 0.5:   # (the rest after the first gesture just what a row plays: the ties of the two compares)
+            rows = [r.choice([5, 50, 100]) for _ in range(11)]
+            for k, value in enumerate(rows):
+                put(b, 0xf796c8 - BLOCK + 4 * k, 'i', value)
+            put(b, 0xf796fc - BLOCK, 'i', 0)
+            length = rows[r.randrange(10)]
         regions[BLOCK] = b
-        return Call(0x598b20, [lengths(r)], regions, ret='a')
+        return Call(0x598b20, [length], regions, ret='a')
     if op == 'Anim':
         queue_rows(r, regions)
         regions[BLOCK] = b

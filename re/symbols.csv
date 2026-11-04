@@ -5902,6 +5902,10 @@ address,name,kind,confidence,notes
 0x0068be90,CRT_ld12cvt,function,low,reimplemented (src/game/core/crtfloat); _ld12cvt
 0x0068c060,CRT_ld12tod,function,low,reimplemented (src/game/core/crtfloat); _ld12tod
 0x0068c080,CRT_ld12tof,function,low,reimplemented (src/game/core/crtfloat); _ld12tof
+0x004092a0,GameOwner_Pause,function,low,"reimplemented (src/game/core/gameowner); thiscall (mode, flag), pops 8: the game held: the front end, the clocks, the sounds or the advisor's speech"
+0x00409300,GameOwner_Resume,function,low,reimplemented (src/game/core/gameowner); thiscall: the game let go
+0x00409350,GameOwner_TogglePause,function,low,"reimplemented (src/game/core/gameowner); thiscall (flag), pops 4: paused or not, by +0x1c"
+0x00409180,GameOwner_Shutdown,function,low,"reimplemented (src/game/core/gameowner); thiscall: the level, object definitions, textures, message centre and named globals let go; returns 1"
 0x0050ffe0,Nav_Ctor,function,high,reimplemented (src/game/world/nav); constants constructor with five integer pairs
 0x0050f200,Nav_Dtor,function,high,reimplemented (src/game/world/nav); thiscall: the five IntPairs at +0x64 destroyed with Stub_Ret (CRT_VectorDtorIterator); also via 0x4f7c30 (+0xd4) and 0x4f8ad0
 0x004f7c30,Nav_DtorAtD4,function,low,reimplemented (src/game/world/nav); thiscall adjustor: Nav_Dtor on this + 0xd4
