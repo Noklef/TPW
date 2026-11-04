@@ -172,6 +172,11 @@ void __fastcall ObjectDefs_ReleaseEffects(u8 *defs);
 // and the dword +0x734 cleared.
 void __fastcall ObjectDefs_Free(u8 *defs);
 
+// 0x413140 (thiscall, a stack argument unused, pops 4; name invented, unconfirmed): ObjectDefs_ReleaseEffects; each entry below the count +0x528 (signed, re-read each step): its four buffers freed (Obj_FreeFourBuffers, even null),
+// the definition destroyed and freed unless null, the entry cleared; the count, the word +0x730 and the dword +0x734 cleared. ObjectDefs_LoadFolders of the folders named 0x7898e0 and 0x788e60 in the list [0x786b9c] (NamedList_Find answering 1, else
+// that one passed over); the vector of fonts [0x789c1c] emptied (RemoveFontResourceA, File_Delete of +8; then slot 3 (0) of each); the same for 0x78a2a0, 0x789d00, 0x789910. A load's 0 gives 0; else 1.
+u32 __fastcall ObjectDefs_ReloadAll(u8 *defs, void *, u32 unused);
+
 // 0x412a90 (cdecl; name invented, unconfirmed): ObjectDefs_Free of the definitions table 0x7890a0 (inlined).
 void __cdecl ObjectDefs_FreeAll();
 

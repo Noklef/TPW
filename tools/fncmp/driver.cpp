@@ -1230,7 +1230,8 @@ const AddrCall kObjectDefsLoadCalls[] = {  // tests/fncmp/objectdefsload.py
     {0x401700, recorder(7, 3)}, {0x405710, recorder(8, 3)}, {0x412c20, recorder(9, 0)}, {0x401030, recorder(10, 0)}, {0x401250, recorder(11, 0)}, {0x41e660, recorder(26, 2)}, {0x41e720, recorder(13, 2)}, {0x41f170, recorder(14, 1)}, {0x41f190, recorder(15, 1)}, {0x41f260, recorder(16, 1)}, {0x41f330, recorder(17, 1)}, {0x41f350, recorder(18, 1)},
     {0x41f420, recorder(19, 0)}, {0x41f630, recorder(20, 0)}, {0x414420, recorder(21, 1)}, {0x413410, recorder(22, 1)}, {0x413600, recorder(23, 1)}, {0x412fb0, recorder(24, 3)}, {0x550ca0, recorder(25, 0)},
     {0x41dc80, recorder(3, 2)}, {0x41ede0, recorder(4, 1)}, {0x41eaa0, recorder(5, 1)}, {0x413c10, recorder(6, 3)},
-    {0x4629d0, jpeg_recorder(12, 11)}, {0x42fad0, jpeg_recorder(27, 3)}, {0x51b4f0, jpeg_recorder(28, 2)}, {0x67a7d0, jpeg_recorder(29, 1)}, {0x51fa20, jpeg_recorder(31, 1)}};
+    {0x4629d0, jpeg_recorder(12, 11)}, {0x42fad0, jpeg_recorder(27, 3)}, {0x51b4f0, jpeg_recorder(28, 2)}, {0x67a7d0, jpeg_recorder(29, 1)}, {0x51fa20, jpeg_recorder(31, 1)},
+    {0x4145f0, recorder(1, 0)}, {0x413340, recorder(2, 0)}, {0x412cb0, recorder(9, 0)}, {0x421770, recorder(4, 2)}, {0x413930, recorder(5, 1)}, {0x67acb0, jpeg_recorder(6, 1)}, {0x5f5d60, jpeg_recorder(7, 2)}};  // (tests/fncmp/objectdefsreload.py)
 const AddrCall kCoasterTypeLoadCalls[] = {{0x42fd90, jpeg_recorder(1, 4)}, {0x424ef0, jpeg_recorder(2, 4)}, {0x424ed0, jpeg_recorder(3, 1)}, {0x46f150, jpeg_recorder(4, 1)}, {0x430130, jpeg_recorder(5, 2)}, {0x430590, jpeg_recorder(6, 3)}};  // tests/fncmp/objectdefsload.py
 // SignStyle_Render's recorder that first copies the two wide lines off the stack (tests/fncmp/signapply.py: its _render, the same).
 u32 __fastcall signRenderStandIn(u32 self, u32, u32 dc, const u32 *params) {
