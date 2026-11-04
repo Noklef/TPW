@@ -26,7 +26,7 @@ def case(r):
         put(tables, i * 4, 'I', 0 if r.random() < fails else r.choice([1, 1, 2, 0x80000000]))
 
     count = r.choice([0, 1, 2, 3, 5, 8, 12])
-    values = [r.choice([0, 1, 2, 7, 0x80000000]) for _ in range(3)] + [0xffffffff if r.random() < 0.1 else r.getrandbits(32)]
+    values = [r.choice([0, 1, 2, 7, 0x80000000]) for _ in range(3)] + [0xffffffff if r.random() < 0.5 else r.getrandbits(32)]
     textures, cells = bytearray(r.bytes(0x100)), bytearray(0x10)
     for i in range(4):
         put(cells, i * 4, 'I', TEXTURES + i * 0x30)
