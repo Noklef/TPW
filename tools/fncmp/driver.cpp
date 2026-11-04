@@ -218,6 +218,7 @@
 #include "../../src/game/files/gamepaths.h"
 #include "../../src/game/core/globalsave.h"
 #include "../../src/game/coaster/rebuild.h"
+#include "../../src/game/coaster/setup.h"
 #include "../../src/game/coaster/carpose.h"
 #include "../../src/game/model/rideresource.h"
 #include "../../src/game/coaster/placecar.h"
@@ -2383,6 +2384,7 @@ int main(int argc, char **argv) {
     CoasterRebuild_SetEnv(&kCoasterRebuildEnv);
     CoasterPose_SetEnv(&kCoasterPoseEnv);
     RideResource_SetEnv(&kRideResourceEnv);
+    CoasterPiece_SetLoad(reinterpret_cast<CoasterPieceLoad>(jpeg_recorder(12, 11)));
     CoasterPlaceCar_SetEnv(&kCoasterPlaceCarEnv);
     TexCache_SetTraceEnv(&kTexCacheTraceEnv);
     LobbyMake_SetEnv(&kLobbyMakeEnv);
