@@ -40,6 +40,16 @@ void SoundsLetGo(u8 kept) {
 
 void GameOwner_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
 
+extern "C" void __fastcall GameOwner_ShutdownAll(u8 *self) {
+    g_calls.Th(0x00409180, (u32)(uintptr_t)self);   // GameOwner_Shutdown
+    const u32 mode = *reinterpret_cast<u32 *>((uintptr_t)0x007b05e8);
+    if (mode) {
+        g_calls.Th(0x0046c350, mode, 0u);   // MouseMode_Set
+        g_calls.Cd(0x0067acb0, mode);
+    }
+    *reinterpret_cast<u32 *>((uintptr_t)0x007b05e8) = 0;
+}
+
 extern "C" {
 
 void __fastcall GameOwner_Pause(u8 *self, void *, s32 mode, u32 flag) {

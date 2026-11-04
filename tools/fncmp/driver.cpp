@@ -1340,6 +1340,7 @@ const AddrCall kMouseModeClickCalls[] = {  // tests/fncmp/mousemodeclick.py
 const AddrCall kGameOwnerCalls[] = {  // tests/fncmp/gameowner.py
     {0x481440, recorder(1, 0)}, {0x402d90, recorder(2, 0)}, {0x481450, recorder(3, 0)}, {0x402db0, recorder(4, 0)}, {0x481460, recorder(5, 0)}, {0x402dd0, recorder(6, 0)}, {0x515dd0, recorder(7, 0)}, {0x409240, recorder(8, 0)},
     {0x412d50, recorder(9, 0)}, {0x585e20, recorder(10, 0)}, {0x418d70, recorder(11, 0)}, {0x409250, recorder(12, 0)}, {0x408f00, recorder(13, 0)},
+    {0x409180, recorder(20, 0)}, {0x46c350, recorder(21, 1)},  // tests/fncmp/gameownerall.py
     {0x51bcf0, jpeg_recorder(14, 0)}, {0x598960, jpeg_recorder(15, 0)}, {0x51c1c0, jpeg_recorder(16, 1)}, {0x51bd30, jpeg_recorder(17, 0)}, {0x598990, jpeg_recorder(18, 0)}, {0x67acb0, jpeg_recorder(19, 1)}};
 const AddrCall kAdvisorSpeechCalls[] = {{0x402d80, recorder(1, 0)}, {0x402df0, recorder(2, 0)}, {0x51c270, jpeg_recorder(3, 4)}, {0x51e6f0, jpeg_recorder(4, 1)}, {0x5ed5a0, jpeg_recorder(5, 3)}, {0x51bfc0, jpeg_recorder(6, 6)},
                                         {0x521e60, jpeg_recorder(7, 4)}, {0x4b9340, jpeg_recorder(8, 0)}, {0x429fe0, jpeg_recorder(9, 1)}, {0x473ff0, jpeg_recorder(10, 4)}, {0x4732a0, jpeg_recorder(11, 6)}, {0x67ad90, jpeg_recorder(12, 1)},
