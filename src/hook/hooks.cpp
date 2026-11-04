@@ -278,6 +278,7 @@
 #include "../game/core/voiceevents.h"
 #include "../game/core/voicesample.h"
 #include "../game/core/waveformat.h"
+#include "../game/core/wcollate.h"
 #include "../game/core/wfilebuf.h"
 #include "../game/core/widewriter.h"
 #include "../game/core/wscanner.h"
@@ -6312,6 +6313,7 @@ const Hook kHooks[] = {
     {"CRT_mbsrchr",               0x00689400, (void *)&CRT_mbsrchr, {0xa1, 0x70, 0x18, 0xfb, 0x00}},
     {"NumPut_DoPutPointer",       0x00694e60, (void *)&NumPut_DoPutPointer, {0x8b, 0x44, 0x24, 0x18, 0x83}},
     {"NumPutW_DoPutPointer",      0x0069bb70, (void *)&NumPutW_DoPutPointer, {0x83, 0xec, 0x4c, 0x8b, 0x44}},
+    {"CollateW_DoTransform",      0x0069ffe0, (void *)&CollateW_DoTransform, {0x6a, 0xff, 0x68, 0x88, 0x46}},
     {"Nav_Ctor",          0x0050ffe0, (void *)&Nav_Ctor, {0x6a, 0xff, 0x68, 0x2d, 0xe6}},
     {"Nav_Dtor",                  0x0050f200, (void *)&Nav_Dtor, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Nav_DtorAtD4",              0x004f7c30, (void *)&Nav_DtorAtD4, {0x81, 0xc1, 0xd4, 0x00, 0x00}},
