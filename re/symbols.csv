@@ -4571,6 +4571,10 @@ address,name,kind,confidence,notes
 0x0041ec30,Class6fdaa4_SetEntry,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (entry, path), pops 8: the name (+4) from the entry's name and the path (+0x18) from path, each with "".wad"" stripped, the name trimmed; a WAD or folder handle opened on path, assigned to +0x2c when it opened (name unconfirmed)"
 0x0041dc80,Class6fdaa4_Ctor,function,low,"reimplemented (src/game/core/class6fd9d8); the 0x6fdaa4 object constructed: its two Strings and handle, the vtable, then Class6fdaa4_SetEntry(entry, path)"
 0x0041f420,Class6fdaa4_HasAllParts,function,low,reimplemented (src/game/core/class6fd9d8); whether the handle at +0x2c finds the three patterns
+0x0041d3d0,Class6fd9d8_OpenFile,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (stream, path, unused), pops 0xc: the list's objects asked to open the path relative to the root"
+0x0041ef40,Class6fda98_OpenFile,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (stream, path, unused), pops 0xc: the same over the list at +0x4c, each object's root and handle"
+0x0041d570,Class6fd9d8_FindFile,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (path, record), pops 8: the first object that finds the path; the member a copy of the path"
+0x0041e740,Class6fd9d8_FindAndOpen,function,low,"reimplemented (src/game/core/class6fd9d8); thiscall (stream, path), pops 8: the first object that finds the path opens it"
 0x004254c0,Animator_Sleep,function,high,reimplemented (src/game/model/holder); the holder sleeps and flag 0x4000 clears
 0x004de110,Object_BackOfQueueTo,function,high,reimplemented (src/game/world/objectmsg); Object_BackOfQueue returning out
 0x004ddf40,Object_QueuePositionOfNone,function,high,reimplemented (src/game/world/objectmsg); the position of the person with no handle
