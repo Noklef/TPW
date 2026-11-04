@@ -154,6 +154,16 @@ void TerrainTexCache_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(ta
 
 extern "C" {
 
+u32 __fastcall TerrainTexCache_ReadLnd(u8 *cache, void *, const char *name) {
+    g_calls.Th(0x0055f720, at<u32>(cache, 0), at<u32>(cache, 4));   // Lnd_SetTileSize
+    if (!(u8)g_calls.Th(0x00560ff0, at<u32>(cache, 0), name)) {   // Lnd_Read
+        g_calls.Th(0x0056af20, 0x00879ad0u, 2u, 0xb0754001u);   // EngineErrors_Push
+        return 0;
+    }
+    *reinterpret_cast<u32 *>((uintptr_t)0x008bd550) |= 4;
+    return 1;
+}
+
 u32 __fastcall TerrainTexCache_Update(u8 *cache, void *, u32 *keys, u8 *records, s32 count) {
     u8 *mark = at<u8 *>(cache, 0x1000c);
     for (; count > 0; --count, ++keys, records += 0x14) {

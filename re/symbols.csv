@@ -407,7 +407,7 @@ address,name,kind,confidence,notes
 0x004504c0,Terrain_Load,function,high,"loads <theme>/Terrain base.md2 (or TestBase), flags steep grid squares, then base.lnd when procedural textures are on"
 0x0056dfe0,TerrainTex_Load,function,medium,"refuses when procedural textures are disabled, else TerrainTex_Init"
 0x0056e550,TerrainTex_Init,function,medium,"allocates the 0x10014-byte tile cache and reads the .lnd"
-0x005723f0,TerrainTexCache_ReadLnd,function,medium,
+0x005723f0,TerrainTexCache_ReadLnd,function,medium,"reimplemented (src/game/terrain/texcache); thiscall (name), pops 4: the land's .lnd read"
 0x00572440,TerrainTexCache_Update,function,low,"reimplemented (src/game/terrain/texcache); LRU of the terrain tiles keyed by (x, y); blends the missing tiles"
 0x00560ff0,Lnd_Read,function,high,"reimplemented (src/game/terrain/land); thiscall (name): base.lnd read: version 3, the ramp bytes and five ramps, the control map, the level byte +1 names (the others skipped)"
 0x0055f470,Lnd_ReadLevel,function,high,"reimplemented (src/game/terrain/land); Reads a level's tile size, number and thirteen arrays from a stream"
