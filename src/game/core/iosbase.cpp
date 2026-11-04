@@ -106,6 +106,27 @@ void __fastcall IosBase_Clear(u8 *self, void *, u32 state, u32 reraise) {
     throw_error(reinterpret_cast<const char *>((uintptr_t)text), 0x007099fc, 0x00720720);
 }
 
+static void flush_streams(u32 counter, u32 a, u32 b, u32 c) {
+    u32 lock;
+    g_env->lockit(&lock);
+    const bool last = --*reinterpret_cast<u32 *>((uintptr_t)counter) == 0;
+    g_env->unlockit(&lock);
+    if (!last) return;
+    const u32 streams[] = {a, b, c};
+    for (const u32 address : streams) {
+        u8 *const stream = reinterpret_cast<u8 *>((uintptr_t)address);
+        const auto ios = [stream] { return stream + at<u32>(at<u8 *>(stream, 0), 4); };
+        if (at<u8>(ios(), 4) & 6) continue;
+        u8 *const buffer = at<u8 *>(ios(), 0x28);
+        if (at<s32(__fastcall *)(u8 *)>(at<u8 *>(buffer, 0), 0x2c)(buffer) == -1)
+            IosBase_Clear(ios(), nullptr, at<u32>(ios(), 4) | 4, 0);
+    }
+}
+
+void __fastcall Ios_InitDtor(void *) { flush_streams(0x007822b0, 0x00fb1a00, 0x00fb1b28, 0x00fb1970); }
+
+void __fastcall Ios_WinitDtor(void *) { flush_streams(0x0078240c, 0x00fb1cc8, 0x00fb1b60, 0x00fb1ba0); }
+
 void __fastcall IosBase_Callfns(u8 *self, void *, u32 event) {
     for (u8 *node = at<u8 *>(self, 0x1c); node; node = at<u8 *>(node, 0))
         at<void(__cdecl *)(u32, u8 *, u32)>(node, 8)(event, self, at<u32>(node, 4));

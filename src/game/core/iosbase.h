@@ -35,6 +35,12 @@ void __cdecl Std_Xran();
 // ios_base::failure (vtable 0x7099fc, info 0x720720) naming the worst (bad, fail, eof).
 void __fastcall IosBase_Clear(u8 *self, void *edx, u32 state, u32 reraise);
 
+// 0x692650 / 0x6930e0 (thiscall, this not read; names by their shape, unconfirmed): ios_base::Init's destructors, narrow and wide: under the lock the counter 0x7822b0 / 0x78240c
+// goes down, and at 0 three streams (0xfb1a00, 0xfb1b28, 0xfb1970 / 0xfb1cc8, 0xfb1b60, 0xfb1ba0) are flushed: a good stream's rdbuf synced (vtable +0x2c), an answer of -1 the bad
+// bit by IosBase_Clear (the original's test of a null rdbuf only sets the same bit again).
+void __fastcall Ios_InitDtor(void *self);
+void __fastcall Ios_WinitDtor(void *self);
+
 // 0x6938e0 (thiscall (event), pops 4): _Callfns: each registered callback of the list +0x1c: fn +8 (event, self, its index +4).
 void __fastcall IosBase_Callfns(u8 *self, void *edx, u32 event);
 
