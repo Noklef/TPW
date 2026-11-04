@@ -5,6 +5,7 @@
 
 #include "../core/balancefile.h"
 #include "../core/string.h"
+#include "../files/direntry.h"
 #include "../files/handles.h"
 #include "../core/crt.h"
 #include "../core/defids.h"
@@ -757,5 +758,76 @@ void __fastcall ObjectDef_LoadTrackTypes(u8 *def, void *, u8 *handle) {
     } while (*vcall<s32 *>(handle, 8, &result, &found) >= 0);
     String_Dtor(&text);
     StreamBase_Dtor(&stream);
+}
+
+u32 __fastcall ObjectDefs_LoadFolders(u8 *defs, void *, u8 *folders) {
+    const u8 *const list = at<const u8 *>(folders, 0x2c);
+    if (!list)
+        return 0;
+    struct {
+        u8 head[0x20];
+        char *name;
+        char path[0x104];
+    } entry;
+    entry.name = entry.path;
+    entry.path[0] = 0;
+    StreamBase stream;
+    StreamBase_Ctor(&stream);
+    String unused;
+    String_Ctor(&unused);
+    u32 result = 1;
+    const u8 *node = at<const u8 *>(list, 4);
+    while (node && result) {
+        u8 *const source = at<u8 *>(node, 0);
+        node = at<const u8 *>(node, 4);
+        u32 status;
+        const s32 *found = vcall<const s32 *>(source, 4, &status, global<u32>(0x0078a2f0), &entry);
+        while (*found >= 0) {
+            if (DirEntry_IsRealDir(reinterpret_cast<const u8 *>(&entry)) || DirEntry_IsWad(reinterpret_cast<const DirEntry *>(&entry))) {
+                String path;
+                String_Ctor(&path);
+                vcall<void>(&path, 0x18, folders + 0x18);
+                vcall<void>(&path, 0x20, entry.name);
+                void *const block = GameHeap_Alloc(0x38);
+                u8 *const object = block ? reinterpret_cast<u8 *>((uintptr_t)g_loadCalls.Th(0x0041dc80, (u32)(uintptr_t)block, &entry, &path)) : nullptr;
+                const u32 self = (u32)(uintptr_t)object;
+                const auto add = [&] {
+                    g_loadCalls.Th(0x0041eaa0, (u32)(uintptr_t)folders, self);
+                    return g_loadCalls.Th(0x00413c10, (u32)(uintptr_t)defs, (u32)(uintptr_t)folders, (u32)(uintptr_t)source, self) != 0;
+                };
+                bool ok = object != nullptr;
+                if (ok && g_loadCalls.Th(0x0041f170, self, &stream) == 1) {
+                    StreamBase_Close(&stream);
+                    if (settingMode() == 2) {
+                        if (g_loadCalls.Th(0x0041f190, self, &stream) != 1)
+                            vcall<void>(object, 0, 1u);
+                        else {
+                            StreamBase_Close(&stream);
+                            // sic: an object whose name is there already is kept, not deleted
+                            if (!g_loadCalls.Th(0x0041ede0, (u32)(uintptr_t)folders, self + 4))
+                                ok = add();
+                        }
+                    } else if (g_loadCalls.Th(0x0041ede0, (u32)(uintptr_t)folders, self + 4)) {
+                        vcall<void>(object, 0, 1u);
+                    } else {
+                        ok = add();
+                    }
+                } else if (ok) {
+                    StreamBase_Close(&stream);
+                    vcall<void>(object, 0, 1u);
+                }
+                String_Dtor(&path);
+                if (!ok) {
+                    result = 0;
+                    break;
+                }
+            }
+            u32 next;
+            found = vcall<const s32 *>(source, 8, &next, &entry);
+        }
+    }
+    String_Dtor(&unused);
+    StreamBase_Dtor(&stream);
+    return result;
 }
 }
