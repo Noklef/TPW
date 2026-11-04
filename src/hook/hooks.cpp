@@ -450,6 +450,7 @@
 #include "../game/coaster/arreplay.h"
 #include "../game/coaster/arreplayaction.h"
 #include "../game/coaster/coastersload.h"
+#include "../game/coaster/coastersupdate.h"
 #include "../game/coaster/typemodel.h"
 #include "../game/model/parts.h"
 #include "../game/model/highlight.h"
@@ -4741,6 +4742,7 @@ const Hook kHooks[] = {
     {"ArReplay_Action",           0x00404d80, (void *)&ArReplay_Action, {0x53, 0x8b, 0x5c, 0x24, 0x0c}},
     {"ArReplay_TextAction",       0x00404f70, (void *)&ArReplay_TextAction, {0x64, 0xa1, 0x00, 0x00, 0x00}},
     {"Coasters_Load",             0x00437b60, (void *)&Coasters_Load, {0x81, 0xec, 0xcc, 0x00, 0x00}},
+    {"Coasters_Update",           0x00435a30, (void *)&Coasters_Update, {0x55, 0x8b, 0xec, 0x83, 0xe4}},
     {"Thing_SpriteChoice",        0x004fcac0, (void *)&Thing_SpriteChoice, {0x51, 0x56, 0x8b, 0xf1, 0x6a}},
     {"Thing_IngredientRecord",    0x004e2200, (void *)&Thing_IngredientRecord, {0x51, 0x66, 0x8b, 0x41, 0x0e}},
     {"Class701378_Ctor",          0x005667d0, (void *)&Class701378_Ctor, {0x51, 0x8b, 0x44, 0x24, 0x08}},

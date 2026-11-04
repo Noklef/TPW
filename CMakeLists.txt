@@ -423,6 +423,7 @@ add_library(tpw_game STATIC
     src/game/coaster/arreplay.cpp
     src/game/coaster/arreplayaction.cpp
     src/game/coaster/coastersload.cpp
+    src/game/coaster/coastersupdate.cpp
     src/game/terrain/terrain_blend.cpp
     src/game/terrain/land.cpp
     src/game/terrain/procedural.cpp
