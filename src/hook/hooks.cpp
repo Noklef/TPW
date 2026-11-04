@@ -634,6 +634,7 @@
 #include "../game/ui/dialog7cc2ec.h"
 #include "../game/ui/dialog7cc444.h"
 #include "../game/ui/dialog7cc47c.h"
+#include "../game/ui/dialog7cc47cinfo.h"
 #include "../game/ui/dialog7cc4b4open.h"
 #include "../game/ui/dialog7cc4b4sparkle.h"
 #include "../game/ui/dialog7cc4b4update.h"
@@ -8492,6 +8493,7 @@ const Hook kHooks[] = {
     {"GuiClock_Make",             0x00659665, (void *)&GuiClock_Make, {0x55, 0x8b, 0xec, 0xb9, 0x80}},
     {"GuiClock_Ctor",             0x00659750, (void *)&GuiClock_Ctor, {0x55, 0x8b, 0xec, 0x51, 0x89}},
     {"GuiToken_ReadWide",         0x0066de4c, (void *)&GuiToken_ReadWide, {0x55, 0x8b, 0xec, 0x83, 0xec}},
+    {"Dialog7cc47cInfo_Show",     0x004b8850, (void *)&Dialog7cc47cInfo_Show, {0x6a, 0xff, 0x68, 0xce, 0xb5}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},

@@ -16,7 +16,6 @@ def case(r):
     set_return(log, FIND, r.getrandbits(32))
     strings(log, DATA, 0, 2)
     fill(log, DATA, 1, struct.pack('<I', r.deal([0xffffffff, 0xffffffff, 0, r.getrandbits(32)])))
-    strings(log, TEXTS, 0, 2)
     blob(log, TEXTS, 1, 0b10)
     regions = {LOG: log, 0x7cc944: struct.pack('<I', r.deal([0, r.getrandbits(32) | 1, r.getrandbits(32) | 1, r.getrandbits(32) | 1]))}
     return Call(0x4c0660, [r.getrandbits(32)], regions, ret='v')

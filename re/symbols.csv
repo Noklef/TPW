@@ -8359,6 +8359,7 @@ address,name,kind,confidence,notes
 0x00659665,GuiClock_Make,function,low,"reimplemented (src/game/ui/guistaticobjects); the clock made: name invented, unconfirmed"
 0x00659750,GuiClock_Ctor,function,low,"reimplemented (src/game/ui/guistaticobjects); the clock's constructor: name invented, unconfirmed"
 0x0066de4c,GuiToken_ReadWide,function,low,"reimplemented (src/game/ui/guitokenwide); a token read as a wide string: name invented, unconfirmed"
+0x004b8850,Dialog7cc47cInfo_Show,function,low,"reimplemented (src/game/ui/dialog7cc47cinfo); what the window [0x7cc47c] shows of an item: name invented, unconfirmed"
 0x0063bb10,jinit_marker_reader,function,high,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c jinit_marker_reader: the marker reader allocated and set up (the library's, through the method-address shim)"
 0x0063d3a0,jdmarker_reset_marker_reader,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c reset_marker_reader (the library's, through wrap/jpeg-6b/jdmarker.c)"
 0x0063c0e0,jdmarker_read_markers,function,low,"reimplemented (src/game/lib/jpeg6b); libjpeg 6b jdmarker.c read_markers: markers up to SOS or EOI (the library's, through wrap/jpeg-6b/jdmarker.c)"
