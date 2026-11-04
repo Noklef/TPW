@@ -1180,6 +1180,7 @@ const AddrCall kGameFileCalls[] = {  // tests/fncmp/gamefile.py
     {0x5179c0, recorder(16, 1)}, {0x40fd60, recorder(17, 1)}, {0x402e30, recorder(18, 1)}, {0x403260, recorder(19, 1)}, {0x405570, recorder(20, 1)}, {0x59c860, recorder(21, 1)}, {0x481680, recorder(22, 1)},
     {0x516c80, recorder(1, 1)}, {0x40fc80, recorder(4, 1)}, {0x402e00, recorder(7, 1)}, {0x403220, recorder(8, 1)}, {0x4055d0, recorder(9, 1)}, {0x59c890, recorder(10, 1)}, {0x4816a0, recorder(11, 1)}};
 const AddrCall kWindowGroupCalls[] = {{0x65c707, recorder(1, 0)}};  // tests/fncmp/windowgroup.py
+const AddrCall kSpriteFolderCalls[] = {{0x41a9d0, recorder(1, 0)}, {0x41aa40, recorder(2, 0)}, {0x41d570, recorder(3, 2)}, {0x41d710, recorder(4, 1)}, {0x5f8240, recorder(5, 0)}, {0x5f82b0, recorder(6, 1)}, {0x540d90, recorder(7, 2)}};  // tests/fncmp/spritefolder.py
 const AddrCall kThemeTextCalls[] = {{0x413020, recorder(1, 3)}, {0x4130b0, recorder(2, 3)}};  // tests/fncmp/themetexts.py
 const AddrCall kPointerMakeCalls[] = {  // tests/fncmp/pointermake.py
     {0x5fbf80, recorder(1, 2)}, {0x47e460, recorder(2, 0)}, {0x5fb8e0, recorder(3, 1)}, {0x5fbbd0, recorder(4, 2)}, {0x5fbc80, recorder(5, 2)}, {0x5fb7b0, recorder(6, 1)},
@@ -2564,6 +2565,7 @@ int main(int argc, char **argv) {
     MouseModeClick_SetCalls(kMouseModeClickCalls, sizeof(kMouseModeClickCalls) / sizeof(kMouseModeClickCalls[0]));
     SaveGame_SetCalls(kSaveGameCalls, sizeof(kSaveGameCalls) / sizeof(kSaveGameCalls[0]));
     WindowGroup_SetCalls(kWindowGroupCalls, 1);
+    SpriteLoading_SetCalls(kSpriteFolderCalls, sizeof(kSpriteFolderCalls) / sizeof(kSpriteFolderCalls[0]));
     NamedObjects_SetCalls(kThemeTextCalls, sizeof(kThemeTextCalls) / sizeof(kThemeTextCalls[0]));
     AsyncPointer_SetCalls(kPointerMakeCalls, sizeof(kPointerMakeCalls) / sizeof(kPointerMakeCalls[0]));
     GameFile_SetCalls(kGameFileCalls, sizeof(kGameFileCalls) / sizeof(kGameFileCalls[0]));

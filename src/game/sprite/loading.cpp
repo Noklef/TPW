@@ -1,10 +1,14 @@
 #include "loading.h"
 
 #include <cstdint>
+#include <cstring>
 
+#include "sprite.h"
+#include "../core/accessors.h"
 #include "../core/gameheap.h"
 #include "../core/string.h"
 #include "../files/handles.h"
+#include "../core/vcall.h"
 #include "../gfx/spriteframe.h"
 
 namespace {
@@ -14,6 +18,7 @@ const SpriteLoadingEnv kGameEnv = {&NamedList_Find, &SpriteFrames_Free,
                                    reinterpret_cast<u32(__fastcall *)(u8 *, void *, StreamBase *, u32)>(&SpriteFrames_Load),
                                    &SpriteFrames_MarkTextures};
 const SpriteLoadingEnv *g_env = &kGameEnv;
+AddrCalls g_calls;
 
 // 0x542420 / 0x542640: the frame sets swapped for the kind (0 ground, 1 park) with its two suffixes.
 u8 use_frames(u32 kind, u32 suffixOn, u32 suffixOff) {
@@ -67,7 +72,7 @@ u8 use_frames(u32 kind, u32 suffixOn, u32 suffixOff) {
 template <typename T> T &global(u32 address) { return *reinterpret_cast<T *>((uintptr_t)address); }
 
 struct FileEntry {
-    const u8 *file;  // the name at +0x20
+    u8 *file;  // the name at +0x20
     u32 value;
     u8 flag;
     u8 pad[3];
@@ -79,9 +84,137 @@ s32 count() { return global<s32>(0x00875430); }
 
 const char *name(const FileEntry &e) { return *reinterpret_cast<const char *const *>(e.file + 0x20); }
 
+// Whether the name is the first text or (the first's String alive around them) one of the others.
+bool name_among(const String *folderName, u32 first, const u32 *others, u32 count) {
+    String s;
+    String_CtorStr(&s, nullptr, reinterpret_cast<const char *>((uintptr_t)first));
+    bool same = Names_Equal(reinterpret_cast<const u8 *>(folderName), reinterpret_cast<const u8 *>(&s)) != 0;
+    for (u32 i = 0; i < count && !same; i++) {
+        String other;
+        String_CtorStr(&other, nullptr, reinterpret_cast<const char *>((uintptr_t)others[i]));
+        same = Names_Equal(reinterpret_cast<const u8 *>(folderName), reinterpret_cast<const u8 *>(&other)) != 0;
+        String_Dtor(&other);
+    }
+    String_Dtor(&s);
+    return same;
+}
+
+// The files of the path found into the table.
+void list_files(u8 *folder, String *path, const String *folderName) {
+    String_EnsureTrailingBackslash(path);
+    vcall<void>(path, 0x28, folderName);
+    String_EnsureTrailingBackslash(path);
+    vcall<void>(path, 0x28, reinterpret_cast<const String *>((uintptr_t)0x008757f0));
+    if (g_calls.Th(0x0041d570, (u32)(uintptr_t)folder, path, 0x00875038u) != 1) return;
+    do {
+        const u32 current = Get34_41ce80(folder);
+        if (global<s32>(0x00875430) < 0x80) {
+            FileEntry &e = entries()[global<s32>(0x00875430)];
+            u8 *const file = static_cast<u8 *>(GameHeap_Alloc(0x128));
+            if (file) {
+                *reinterpret_cast<u8 **>(file + 0x20) = file + 0x24;
+                file[0x24] = 0;
+            }
+            e.file = file;
+            void *const block = GameHeap_Alloc(8);
+            e.value = block ? g_calls.Th(0x005f8240, (u32)(uintptr_t)block) : 0;
+            std::memcpy(file, reinterpret_cast<const void *>((uintptr_t)0x00875038), 0x20);
+            std::strcpy(reinterpret_cast<char *>(file + 0x24), reinterpret_cast<const char *>((uintptr_t)0x0087505c));
+            *reinterpret_cast<u32 *>(file + 0x20) = (u32)(uintptr_t)file + global<u32>(0x00875058) - 0x0087505c + 0x24;
+            g_calls.Th(0x005f82b0, e.value, current);
+            global<s32>(0x00875430)++;
+        }
+    } while (g_calls.Th(0x0041d710, (u32)(uintptr_t)folder, 0x00875038u));
+}
+
+// One entry's sprite made and loaded; when that fails the sprite in that place freed.
+bool load_sprite(const FileEntry &e) {
+    u8 **const sprites = reinterpret_cast<u8 **>((uintptr_t)0x00876b48);
+    void *const block = GameHeap_Alloc(0x260);
+    u8 *const sprite = block ? Sprite_Ctor(static_cast<u8 *>(block)) : nullptr;
+    sprites[global<s32>(0x0087626c)] = sprite;
+    if (static_cast<u8>(g_calls.Th(0x00540d90, (u32)(uintptr_t)sprite, e.file, e.value))) return true;
+    if (u8 *const now = sprites[global<s32>(0x0087626c)]) GameHeap_Free(now);
+    return false;
+}
+
 }  // namespace
 
+void SpriteLoading_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
+
 extern "C" {
+
+u32 __cdecl Sprites_LoadFolder(u8 *folder, const String *folderName) {
+    String path;
+    String_Ctor(&path);
+    s32 loaded = 0, avatarLimit = 0, staffLimit = 0;
+    bool avatars = false, staff = false;
+    global<u8>(0x00877354) = 1;
+    static constexpr u32 kKidsHeads[] = {0x00764100};
+    if (name_among(folderName, 0x0076410c, kKidsHeads, 1)) {
+        avatars = true;
+        avatarLimit = static_cast<s32>(g_calls.Th(0x0041a9d0, 0x0078baecu));
+    }
+    static constexpr u32 kStaff[] = {0x007640bc, 0x007640b4, 0x007640a8};
+    if (name_among(folderName, 0x007640c8, kStaff, 3)) {
+        staff = true;
+        staffLimit = static_cast<s32>(g_calls.Th(0x0041aa40, 0x0078baecu));
+    }
+    global<s32>(0x00875430) = 0;
+    for (u32 i = 0; i < 0x80; i++) {
+        entries()[i].file = nullptr;
+        entries()[i].value = 0;
+        entries()[i].flag = 0;
+    }
+    char *const buffer = reinterpret_cast<char *>((uintptr_t)0x00876668);
+    const char *const backslash = reinterpret_cast<const char *>((uintptr_t)0x007477fc);
+    std::strcpy(buffer, reinterpret_cast<const char *>((uintptr_t)0x00764168));
+    std::strcat(buffer, folderName->data);
+    std::strcat(buffer, backslash);
+    vcall<void>(&path, 0x14, reinterpret_cast<const char *>((uintptr_t)0x00764160));
+    list_files(folder, &path, folderName);
+    const String *const root = reinterpret_cast<const String *>((uintptr_t)0x00786b68);   // (a wide string: Obj_Self; its data read as chars, sic)
+    std::strcpy(buffer, root->data);
+    std::strcat(buffer, backslash);
+    std::strcat(buffer, folderName->data);
+    std::strcat(buffer, backslash);
+    vcall<void>(&path, 0x18, root);
+    list_files(folder, &path, folderName);
+    SpriteFiles_Sort();
+    if (avatars) {
+        for (u32 at = 0x00764030; at < 0x00764040; at += 4) {
+            for (s32 i = 0; i < global<s32>(0x00875430); i++) {
+                FileEntry &e = entries()[i];
+                String wanted, have;
+                String_CtorStr(&wanted, nullptr, *reinterpret_cast<const char *const *>((uintptr_t)at));
+                String_CtorStr(&have, nullptr, name(e));
+                const u32 same = Names_Equal(reinterpret_cast<const u8 *>(&have), reinterpret_cast<const u8 *>(&wanted));
+                String_Dtor(&have);
+                String_Dtor(&wanted);
+                if (!same || e.flag || !load_sprite(e)) continue;
+                loaded++;
+                e.flag = 1;
+                if (global<s32>(0x0087626c) >= 0x200 || loaded >= avatarLimit) goto done;
+            }
+        }
+    }
+    for (s32 i = 0; i < global<s32>(0x00875430); i++) {
+        FileEntry &e = entries()[i];
+        if (e.flag || !load_sprite(e)) continue;
+        loaded++;
+        e.flag = 1;
+        if (global<s32>(0x0087626c) >= 0x200 || (avatars && loaded >= avatarLimit) || (staff && loaded >= staffLimit)) break;
+    }
+done:
+    for (s32 i = 0; i < global<s32>(0x00875430); i++) {
+        FileEntry &e = entries()[i];
+        if (e.file) GameHeap_Free(e.file);
+        if (e.value) vcall<void>(reinterpret_cast<u8 *>((uintptr_t)e.value), 0x2c, 1u);
+        e.file = nullptr;
+    }
+    String_Dtor(&path);
+    return static_cast<u32>(loaded);
+}
 
 void __cdecl SpriteFiles_Sort() {
     u32 swaps;
