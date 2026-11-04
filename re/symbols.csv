@@ -6405,6 +6405,7 @@ address,name,kind,confidence,notes
 0x004891d0,OverlayLoad_All,function,low,"reimplemented (src/game/gfx/overlayloadall); the overlays made from a named folder's files, the three loaders in turn: name invented, unconfirmed"
 0x004893c0,OverlayLoad_Language,function,low,"reimplemented (src/game/gfx/overlayloadall); the overlays made from the language's files of a named folder: name invented, unconfirmed"
 0x00670c20,MovieShow_Frame,function,low,"reimplemented (src/game/gfx/movieshow); a movie's frame shown: the target locked, the frame decoded, the target unlocked: name invented, unconfirmed"
+0x006771a0,MadVideo_DecodeFrame,function,low,"reimplemented (src/game/gfx/madvideo); the DCT video frames of kinds 5, 6, 7: name invented, unconfirmed"
 0x00fa9f3c,gScreenOpen,data,high,Screen_Open has run (Screen_Close clears it)
 0x00fa77d0,gScreenModes,data,high,List of ScreenMode (width, height, bit count) from EnumDisplayModes
 0x006fefa8,TgaCodec_vtable,data,high,"TgaCodec (ImageCodec: vtable, SurfaceInfo): 0x47e750 deleting dtor, GetInfo, Load, IsTga; the work is done by a stack TgaReader (0x44, vtable 0x703630)"
