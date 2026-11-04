@@ -770,6 +770,7 @@
 #include "../game/ui/windowbroadcast.h"
 #include "../game/ui/windowgroup.h"
 #include "../game/ui/windowname.h"
+#include "../game/ui/windowproc.h"
 #include "../game/ui/windowscripttext.h"
 #include "../game/ui/windowtick.h"
 #include "../game/ui/windowtimers.h"
@@ -8758,6 +8759,7 @@ const Hook kHooks[] = {
     {"Dialog7cc47cInfo_Show",     0x004b8850, (void *)&Dialog7cc47cInfo_Show, {0x6a, 0xff, 0x68, 0xce, 0xb5}},
     {"WindowGroup_TellObject",    0x0047de00, (void *)&WindowGroup_TellObject, {0x8b, 0xc1, 0x8b, 0x88, 0x9c}},
     {"WindowGroup_OpenAll",       0x0047e250, (void *)&WindowGroup_OpenAll, {0x56, 0x57, 0x8b, 0xf9, 0x8b}},
+    {"GameWindow_Proc",           0x0046b600, (void *)&GameWindow_Proc, {0x66, 0x83, 0x3d, 0xc4, 0xa5}},
     {"jdmarker_examine_app14",    0x0063bf50, (void *)&jdmarker_examine_app14, {0x8b, 0x4c, 0x24, 0x0c, 0x53}},
     {"jdmarker_examine_app0",     0x0063bcc0, (void *)&jdmarker_examine_app0, {0x8b, 0x44, 0x24, 0x0c, 0x8b}},
     {"jdmarker_get_interesting_appn", 0x0063bb80, (void *)&jdmarker_get_interesting_appn, {0x8b, 0x44, 0x24, 0x04, 0x83}},

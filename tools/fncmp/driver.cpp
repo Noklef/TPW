@@ -413,6 +413,7 @@
 #include "../../src/game/world/cellmodel.h"
 #include "../../src/game/world/rides.h"
 #include "../../src/game/world/camera.h"
+#include "../../src/game/ui/windowproc.h"
 #include "../../src/game/sprite/loading.h"
 #include "../../src/game/core/namedobjects.h"
 #include "../../src/game/world/object.h"
@@ -1180,6 +1181,7 @@ const AddrCall kGameFileCalls[] = {  // tests/fncmp/gamefile.py
     {0x5179c0, recorder(16, 1)}, {0x40fd60, recorder(17, 1)}, {0x402e30, recorder(18, 1)}, {0x403260, recorder(19, 1)}, {0x405570, recorder(20, 1)}, {0x59c860, recorder(21, 1)}, {0x481680, recorder(22, 1)},
     {0x516c80, recorder(1, 1)}, {0x40fc80, recorder(4, 1)}, {0x402e00, recorder(7, 1)}, {0x403220, recorder(8, 1)}, {0x4055d0, recorder(9, 1)}, {0x59c890, recorder(10, 1)}, {0x4816a0, recorder(11, 1)}};
 const AddrCall kWindowGroupCalls[] = {{0x65c707, recorder(1, 0)}};  // tests/fncmp/windowgroup.py
+const AddrCall kWindowProcCalls[] = {{0x6590d0, jpeg_recorder(1, 2)}, {0x6588ef, jpeg_recorder(2, 2)}, {0x658af1, jpeg_recorder(3, 3)}, {0x658b5b, jpeg_recorder(4, 3)}, {0x658bcb, jpeg_recorder(5, 4)}, {0x658c38, jpeg_recorder(6, 2)}, {0x658c67, jpeg_recorder(7, 2)}, {0x658c96, jpeg_recorder(8, 2)}, {0x659333, jpeg_recorder(9, 0)}, {0x51bd30, jpeg_recorder(10, 0)}, {0x51b350, jpeg_recorder(11, 0)}, {0x6593c5, jpeg_recorder(12, 0)}, {0x51bcf0, jpeg_recorder(13, 0)}, {0x47e9d0, jpeg_recorder(14, 1)}, {0x46b460, jpeg_recorder(15, 1)}, {0x58dd60, recorder(16, 1)}, {0x40c900, recorder(17, 2)}, {0x40c990, recorder(18, 2)}, {0x4092a0, recorder(19, 2)}, {0x41a850, recorder(20, 0)}};
 const AddrCall kSpriteFolderCalls[] = {{0x41a9d0, recorder(1, 0)}, {0x41aa40, recorder(2, 0)}, {0x41d570, recorder(3, 2)}, {0x41d710, recorder(4, 1)}, {0x5f8240, recorder(5, 0)}, {0x5f82b0, recorder(6, 1)}, {0x540d90, recorder(7, 2)}};  // tests/fncmp/spritefolder.py
 const AddrCall kThemeTextCalls[] = {{0x413020, recorder(1, 3)}, {0x4130b0, recorder(2, 3)}};  // tests/fncmp/themetexts.py
 const AddrCall kPointerMakeCalls[] = {  // tests/fncmp/pointermake.py
@@ -2565,6 +2567,7 @@ int main(int argc, char **argv) {
     MouseModeClick_SetCalls(kMouseModeClickCalls, sizeof(kMouseModeClickCalls) / sizeof(kMouseModeClickCalls[0]));
     SaveGame_SetCalls(kSaveGameCalls, sizeof(kSaveGameCalls) / sizeof(kSaveGameCalls[0]));
     WindowGroup_SetCalls(kWindowGroupCalls, 1);
+    WindowProc_SetCalls(kWindowProcCalls, sizeof(kWindowProcCalls) / sizeof(kWindowProcCalls[0]));
     SpriteLoading_SetCalls(kSpriteFolderCalls, sizeof(kSpriteFolderCalls) / sizeof(kSpriteFolderCalls[0]));
     NamedObjects_SetCalls(kThemeTextCalls, sizeof(kThemeTextCalls) / sizeof(kThemeTextCalls[0]));
     AsyncPointer_SetCalls(kPointerMakeCalls, sizeof(kPointerMakeCalls) / sizeof(kPointerMakeCalls[0]));
