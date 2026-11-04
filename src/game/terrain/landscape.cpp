@@ -4,7 +4,10 @@
 #include <cstring>
 #include <initializer_list>
 
+#include "../core/addrcalls.h"
 #include "../core/crt.h"
+#include "../core/string.h"
+#include "../core/vcall.h"
 #include "../files/quickload.h"
 #include "../gfx/texman.h"
 #include "../gfx/texture.h"
@@ -453,9 +456,31 @@ u32 SkyRim(u8 *landscape, u32 colourMask, u32 stride) {
 
 }  // namespace
 
+namespace {
+AddrCalls g_calls;
+}
+void Landscape_SetCalls(const AddrCall *table, u32 count) { g_calls.Set(table, count); }
+
 void Landscape_SetDrawEnv(const LandscapeDrawEnv *env) { g_drawEnv = env ? env : &kDrawPortEnv; }
 
 extern "C" {
+
+void __fastcall Landscape_AddTextureList(u8 **list) {
+    String path;
+    String_Ctor(&path);
+    const s32 &count = *reinterpret_cast<const s32 *>((uintptr_t)0x00785724);
+    u8 *got = nullptr;
+    const u32 *row = reinterpret_cast<const u32 *>((uintptr_t)0x00785728);
+    for (s32 i = 0; i < count; ++i, row += 6) {
+        vcall<void>(&path, 0x14, reinterpret_cast<const char *>((uintptr_t)g_calls.Cd(0x0040ef40)));
+        String_EnsureTrailingBackslash(&path);
+        vcall<void>(&path, 0x28, reinterpret_cast<const StringView *>((uintptr_t)0x0078aa30));
+        String_EnsureTrailingBackslash(&path);
+        vcall<void>(&path, 0x20, reinterpret_cast<const char *>((uintptr_t)row[5]));
+        if (g_calls.Th(0x005850c0, 0x008c1828u, &got, path.data, row[0], row[1], row[2], row[3], 0u, row[4] ? 1u : 2u)) list[i] = got;
+    }
+    String_Dtor(&path);
+}
 
 u32 __fastcall Landscape_DrawSprites(u8 *landscape, void *, u32 mask) {
     const u32 render = G<u32>(0x008bcbc8);

@@ -1193,6 +1193,7 @@ const AddrCall kBumpLightCalls[] = {{0x67acc0, jpeg_recorder(10, 1)}, {0x5e80d0,
 const AddrCall kWScannerCalls[] = {{0x5e7200, recorder(1, 2)}};
 const AddrCall kMMPlaceStaffCalls[] ={{0x4d6b60, recorder(1, 4)}, {0x4d4340, recorder(2, 4)}, {0x4d5d40, recorder(3, 4)}, {0x4d9eb0, recorder(4, 4)}, {0x502600, recorder(5, 4)}};
 const AddrCall kCommandQueueCalls[] = {{0x659409, jpeg_recorder(3, 2)}, {0x47f020, jpeg_recorder(4, 8)}, {0x65e526, recorder(5, 1)}};  // tests/fncmp/dequeiter.py
+const AddrCall kLandscapeCalls[] = {{0x40ef40, jpeg_recorder(3, 0)}, {0x5850c0, recorder(4, 8)}};  // tests/fncmp/landscapetexlist.py
 const AddrCall kAdvisorCalls[] = {{0x59c680, recorder(1, 1)}, {0x59bf20, recorder(2, 1)}, {0x59b590, recorder(3, 6)}, {0x59a940, recorder(4, 1)}, {0x402d80, recorder(5, 0)}, {0x59c2b0, recorder(6, 1)},
                                   {0x59c490, recorder(7, 1)}, {0x516330, recorder(8, 0)}, {0x59b870, recorder(9, 2)}, {0x59b620, recorder(10, 2)}, {0x41a960, recorder(11, 0)}, {0x41a990, recorder(12, 0)}};  // tests/fncmp/advisorupdate.py
 const AddrCall kTexSurfaceCalls[] ={{0x573820, recorder(1, 2)}, {0x56af20, recorder(2, 2)}, {0x56a770, jpeg_recorder(3, 1)}, {0x564650, jpeg_recorder(4, 1)}, {0x5645a0, recorder(5, 0)}, {0x58b1f0, recorder(6, 2)}, {0x58b890, recorder(7, 2)}, {0x57cb90, recorder(8, 0)}};
@@ -2666,6 +2667,7 @@ int main(int argc, char **argv) {
     TexSurface_SetCalls(kTexSurfaceCalls, sizeof(kTexSurfaceCalls) / sizeof(kTexSurfaceCalls[0]));
     AdvisorScoring_SetCalls(kAdvisorRingCalls, sizeof(kAdvisorRingCalls) / sizeof(kAdvisorRingCalls[0]));
     Advisor_SetCalls(kAdvisorCalls, sizeof(kAdvisorCalls) / sizeof(kAdvisorCalls[0]));
+    Landscape_SetCalls(kLandscapeCalls, sizeof(kLandscapeCalls) / sizeof(kLandscapeCalls[0]));
     CommandQueue_SetCalls(kCommandQueueCalls, sizeof(kCommandQueueCalls) / sizeof(kCommandQueueCalls[0]));
     Image_SetCalls(kImageLoadCalls, sizeof(kImageLoadCalls) / sizeof(kImageLoadCalls[0]));
     SpriteFrame_SetCalls(kSpriteFrameShowCalls, 9);
