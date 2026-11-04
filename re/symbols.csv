@@ -5813,6 +5813,10 @@ address,name,kind,confidence,notes
 0x0067c9f0,CRT_fputwc,function,low,reimplemented (src/game/core/crtstream); fputwc
 0x0067ccd0,CRT_ungetwc_lk,function,low,reimplemented (src/game/core/crtstream); _ungetwc_lk
 0x0067cca0,CRT_ungetwc,function,low,reimplemented (src/game/core/crtstream); ungetwc
+0x0067e210,CRT_fread_lk,function,low,reimplemented (src/game/core/crtstream); _fread_lk
+0x0067e1d0,CRT_fread,function,low,reimplemented (src/game/core/crtstream); fread
+0x0067e380,CRT_ftell_lk,function,low,reimplemented (src/game/core/crtstream); _ftell_lk
+0x0067e350,CRT_ftell,function,low,reimplemented (src/game/core/crtstream); ftell
 0x006898f0,CRT_parse_cmdline,function,low,reimplemented (src/game/core/crtstartup); parse_cmdline
 0x00690ef0,CRT_store_str,function,low,reimplemented (src/game/core/crttime); _store_str
 0x00690fc0,CRT_store_number,function,low,reimplemented (src/game/core/crttime); _store_number

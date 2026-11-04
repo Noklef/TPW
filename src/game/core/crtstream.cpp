@@ -1,6 +1,7 @@
 #include "crtstream.h"
 
 #include <cstdint>
+#include <cstring>
 
 #include "crt.h"
 
@@ -155,6 +156,98 @@ s32 __cdecl CRT_fgetc(CrtFile *file) {
     const s32 c = next_byte(file);
     CrtInner().unlockFile(file);
     return c;
+}
+
+u32 __cdecl CRT_fread_lk(char *data, u32 size, u32 count, CrtFile *file) {
+    u32 left = count * size;
+    const u32 total = left;
+    if (!left) return 0;
+    u32 chunk = file->flags & 0x10c ? static_cast<u32>(file->size) : 0x1000;
+    do {
+        if (file->flags & 0x10c && file->count) {
+            const u32 take = left < static_cast<u32>(file->count) ? left : static_cast<u32>(file->count);
+            std::memcpy(data, file->ptr, take);
+            left -= take;
+            file->count -= static_cast<s32>(take);
+            file->ptr += take;
+            data += take;
+        } else if (left >= chunk) {
+            const s32 got = CRT_read(static_cast<u32>(file->fd), data, chunk ? left - left % chunk : left);
+            if (!got) {
+                file->flags |= 0x10;
+                return (total - left) / size;
+            }
+            if (got == -1) {
+                file->flags |= 0x20;
+                return (total - left) / size;
+            }
+            left -= static_cast<u32>(got);
+            data += got;
+        } else {
+            const s32 c = CRT_filbuf(file);
+            if (c == -1) return (total - left) / size;
+            *data++ = static_cast<char>(c);
+            --left;
+            chunk = static_cast<u32>(file->size);
+        }
+    } while (left);
+    return count;
+}
+
+u32 __cdecl CRT_fread(char *data, u32 size, u32 count, CrtFile *file) {
+    CrtInner().lockFile(file);
+    const u32 result = CRT_fread_lk(data, size, count, file);
+    CrtInner().unlockFile(file);
+    return result;
+}
+
+s32 __cdecl CRT_ftell_lk(CrtFile *file) {
+    const s32 fd = file->fd;
+    if (file->count < 0) file->count = 0;
+    s32 place = CRT_lseek(static_cast<u32>(fd), 0, 1);
+    if (place < 0) return -1;
+    const u32 flags = file->flags;
+    if (!(flags & 0x108)) return place - file->count;
+    char *const ptr = file->ptr;
+    char *const base = file->base;
+    s32 offset = static_cast<s32>(ptr - base);
+    if (flags & 3) {
+        if (crt_handle(fd)[4] & 0x80) {
+            for (const char *at = base; at < ptr; ++at)
+                if (*at == '\n') ++offset;
+        }
+    } else if (!(flags & 0x80)) {
+        *CRT_errno() = 0x16;
+        return -1;
+    }
+    if (!place) return offset;
+    if (!(file->flags & 1)) return place + offset;
+    if (!file->count) return place;
+    u32 read = static_cast<u32>(ptr - base) + static_cast<u32>(file->count);
+    if (crt_handle(fd)[4] & 0x80) {
+        if (CRT_lseek(static_cast<u32>(fd), 0, 2) == place) {
+            const char *const start = file->base;
+            const char *const end = start + read;
+            for (const char *at = start; at < end; ++at)
+                if (*at == '\n') ++read;
+            if (file->flags & 0x2000) ++read;
+        } else {
+            CRT_lseek(static_cast<u32>(fd), place, 0);
+            if (read <= 0x200 && file->flags & 8 && !(file->flags & 0x400))
+                read = 0x200;
+            else
+                read = static_cast<u32>(file->size);
+            if (crt_handle(fd)[4] & 4) ++read;
+        }
+    }
+    return place - static_cast<s32>(read) + offset;
+}
+
+s32 __cdecl CRT_ftell(CrtFile *file) {
+    CrtInner().lockFile(file);
+    const s32 result = CRT_ftell_lk(file);
+    CrtInner().unlockFile(file);
+    return result;
 }
 
 s32 __cdecl CRT_ungetc_lk(s32 c, CrtFile *file) {

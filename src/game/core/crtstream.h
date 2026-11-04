@@ -35,4 +35,12 @@ u16 __cdecl CRT_fputwc(u32 c, CrtFile *file);
 u16 __cdecl CRT_ungetwc_lk(u32 c, CrtFile *file);
 u16 __cdecl CRT_ungetwc(u32 c, CrtFile *file);
 
+// 0x67e210 / 0x67e1d0: _fread_lk / fread: from the buffer, whole chunks directly through _read, a part through _filbuf; end of file sets flag 0x10, a read's failure 0x20. Returns the whole items.
+u32 __cdecl CRT_fread_lk(char *data, u32 size, u32 count, CrtFile *file);
+u32 __cdecl CRT_fread(char *data, u32 size, u32 count, CrtFile *file);
+
+// 0x67e380 / 0x67e350: _ftell_lk / ftell: the handle's place corrected by what is in the buffer, a text file's line ends counted twice. A negative count is first set to 0.
+s32 __cdecl CRT_ftell_lk(CrtFile *file);
+s32 __cdecl CRT_ftell(CrtFile *file);
+
 }  // extern "C"
