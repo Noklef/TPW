@@ -127,6 +127,11 @@ u32 __fastcall Class6fdaa4_OpenLanguageTxt(u8 *object, void *, u32 stream);
 // empty); 1 when the result is not negative.
 u32 __fastcall Class6fdaa4_HasEmt(u8 *object);
 
+// 0x41f420 (thiscall; name unconfirmed): the same find of the three patterns the texts 0x78c440, 0x78c248 and 0x78c4e8 point to, in that order;
+// 0 at the first negative result, else 1. Before the second and third finds the record is reset: its name empty and pointing to its own text, its
+// 0x20 bytes copied from a local record never written (sic; not written here).
+u32 __fastcall Class6fdaa4_HasAllParts(u8 *object);
+
 // 0x41eb90 (thiscall, the object unused; s, pops 4): when s has exactly two "_" (0x74c77c; the first found (String_Find from 0) is not the last
 // (String_ReverseFind from -1) and the next after it is the last), s = its chars before the last (String_Left, the vtable's +0x1c Assign); then when
 // its first char is "p" (0x74c778, String_EqualsStr) it is dropped (String_Right of length - 1). Otherwise s is left as it is.
