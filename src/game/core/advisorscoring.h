@@ -345,4 +345,8 @@ s32 __fastcall AdvisorScoring_Red5(const u8 *scoring);
 // 0x5a06c0 / 0x5a0720 (names invented, unconfirmed): the days of G's +0x2a0's elapsed time strictly between two bounds (signed, the day's 0xc92a69c000 ticks rounding to zero): +0x5dc, +0x5e0: +0x5e4; +0x5e8, +0x5ec: +0x5f0. Else 0.
 s32 __fastcall AdvisorScoring_DaysBetween1(const u8 *scoring);
 s32 __fastcall AdvisorScoring_DaysBetween2(const u8 *scoring);
+// 0x5a0530 (name invented, unconfirmed): 0 when ObjectUnlock_ExtraCount is above 0; else the analyser's total above __ftol([0x785790] * float +0x5b8): +0x5bc, else 0.
+s32 __fastcall AdvisorScoring_TotalNoExtra(const u8 *scoring);
+// 0x59e420 (name invented, unconfirmed): always 0. With G's flag +0x1da710 clear it still fetches the table entry and takes Objects_MeanQueuePosition, its result dropped (the original's FSTP ST0).
+s32 __fastcall AdvisorScoring_MeanQueueUnused(const u8 *scoring);
 }

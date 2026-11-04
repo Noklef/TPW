@@ -5749,6 +5749,7 @@ const Hook kHooks[] = {
     {"AdvisorScoring_Red5",       0x0059eaf0, (void *)&AdvisorScoring_Red5, {0xa1, 0xec, 0xf6, 0x7c, 0x00}},
     {"AdvisorScoring_DaysBetween1", 0x005a06c0, (void *)&AdvisorScoring_DaysBetween1, {0x83, 0xec, 0x08, 0x8d, 0x44}},
     {"AdvisorScoring_DaysBetween2", 0x005a0720, (void *)&AdvisorScoring_DaysBetween2, {0x83, 0xec, 0x08, 0x8d, 0x44}},
+    {"AdvisorScoring_TotalNoExtra", 0x005a0530, (void *)&AdvisorScoring_TotalNoExtra, {0xa1, 0x3c, 0xf8, 0x7c, 0x00}},
     {"ParkInfo_Serialize",        0x00418da0, (void *)&ParkInfo_Serialize, {0x51, 0x8b, 0x44, 0x24, 0x0c}},
     {"AuthStamp_Text",           0x005d55a0, (void *)&AuthStamp_Text, {0x53, 0x56, 0x57, 0xbe, 0xd8}},
     {"Mp2Decoder_ParseHeader",   0x006cc7b0, (void *)&Mp2Decoder_ParseHeader, {0x83, 0xec, 0x0c, 0x53, 0x56}},

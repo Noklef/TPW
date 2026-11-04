@@ -9,6 +9,8 @@
 #include "../world/money.h"
 #include "../world/object.h"
 #include "../world/objectdefs.h"
+#include "../world/objectmsg.h"
+#include "../world/objectunlock.h"
 #include "../world/research.h"
 #include "../world/staff.h"
 #include "../world/thingscan.h"
@@ -975,5 +977,19 @@ s32 __fastcall AdvisorScoring_DaysBetween1(const u8 *scoring) {
 s32 __fastcall AdvisorScoring_DaysBetween2(const u8 *scoring) {
     const s32 days = age_in(kDay);
     return days > at<s32>(scoring, 0x5e8) && days < at<s32>(scoring, 0x5ec) ? at<s32>(scoring, 0x5f0) : 0;
+}
+
+s32 __fastcall AdvisorScoring_TotalNoExtra(const u8 *scoring) {
+    if (ObjectUnlock_ExtraCount() > 0) return 0;
+    const s32 total = (s32)ParkAnalyser_Total(table());
+    return total > scaled(0x00785790, at<float>(scoring, 0x5b8)) ? at<s32>(scoring, 0x5bc) : 0;
+}
+
+s32 __fastcall AdvisorScoring_MeanQueueUnused(const u8 *) {
+    if (!flagged()) {
+        (void)table();
+        (void)Objects_MeanQueuePosition();
+    }
+    return 0;
 }
 }
