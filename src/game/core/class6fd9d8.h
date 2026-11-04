@@ -90,6 +90,24 @@ void __fastcall Class6fd9d8_AddFolderAndWadBoth(u8 *object, void *, const String
 // is one, +0x3c and +0x34 cleared, 0.
 u32 __fastcall Class6fd9d8_Find(u8 *object, void *, u32 key);
 
+// The list (+0x2c -> +4, nodes {object, next}) asked for a file. All names invented, unconfirmed. "Opened": the object's slot 3 (&result, stream, the text, 0x80000001, 0), done when the result is >= 0.
+// 0x41d3d0 (thiscall (stream, path, unused), pops 0xc): for each object the path taken relative to the root at +0x18 (an empty String made a copy of the global String 0x78be50, assigned the root through the
+// vtable's +0x18: Path_StripBase), and on 1 opened: +0x38 = the object, Set4_4217f0 of [+0x30] with this object, 1. None, or no list: +0x38 = 0, 0.
+u32 __fastcall Class6fd9d8_OpenFile(u8 *object, void *, u32 stream, const StringView *path, u32 unused);
+
+// 0x41ef40 (thiscall (stream, path, unused), pops 0xc): the same over the list at +0x4c, each object's own root (+0x18) and the handle at its +0x2c opened: +0x38 = that handle, 1. None, or no list: +0x48 and
+// +0x38 = 0, 0.
+u32 __fastcall Class6fda98_OpenFile(u8 *object, void *, u32 stream, const StringView *path, u32 unused);
+
+// 0x41d570 (thiscall (path, record), pops 8): each object's slot 1 (&result, the path's text, record), the record first blanked: its eight dwords the stack's (sic), a cursor at +0x20 to its empty text at +0x24.
+// The first with a result >= 0 becomes +0x34 and +0x38; the member +0x3c deleted (its slot 3, 1) when set and cleared, then a new copy of the path (0x14 bytes; not got: 0) in it: 1. None, or no list: the member
+// deleted, +0x3c and +0x34 = 0, 0 (+0x38 stays).
+u32 __fastcall Class6fd9d8_FindFile(u8 *object, void *, const StringView *path, u8 *record);
+
+// 0x41e740 (thiscall (stream, path), pops 8): each object's slot 1 with a record of its own, blanked as in Class6fd9d8_FindFile; the first with a result >= 0 becomes +0x38 and the path's text is opened in it:
+// whether that was done. None, or no list: +0x38 = 0, 0.
+u32 __fastcall Class6fd9d8_FindAndOpen(u8 *object, void *, u32 stream, const StringView *path);
+
 // 0x41e8e0 (thiscall; base, arg, pops 8; name unconfirmed): the pattern base + "*" (a copy of base, the global String 0x78c948 appended through the vtable's +0x28).
 // With a list (+0x2c -> +4, nodes {object, next}) each node's object is tried through its slot 1 (&result, the pattern's text, a 0x128-byte record: eight dwords,
 // a cursor at +0x20 and a text from +0x24, copied before each call from a blank one whose cursor points at its empty text and whose eight dwords are never set, sic);

@@ -38,6 +38,10 @@ u32 __fastcall TerrainTexCache_Init(u8 *cache, void *, s32 count, u32 size);
 // (signed; re-read each turn) then byte-reversed. Returns 1.
 u32 __fastcall TerrainTexCache_BlendTile(u8 *cache, void *, u8 *texture, u32 x, u32 y, const TerrainOverlay *overlay);
 
+// 0x5723f0 (thiscall (name), pops 4): the land at +0 told its tile size (+4; Lnd_SetTileSize) and read (Lnd_Read; its low byte the answer). Not read: the error (2, 0xb0754001)
+// pushed (EngineErrors_Push), 0. Read: bit 4 of the options 0x8bd550 set, 1.
+u32 __fastcall TerrainTexCache_ReadLnd(u8 *cache, void *, const char *name);
+
 // 0x572440 (thiscall (keys, records, count), pops 0xc): for each dword key (x low byte, y above it; replaced by the tile's texture) the table +8 (y << 7) + x names its tile in the ring: moved just
 // before the mark ([+0x1000c] on entry; that one itself only moves the mark on); not there, the tile before +0x1000c takes the key over, its old slot cleared, +0x1000c that tile. A taken over tile,
 // or one with the record's (0x14 bytes) flag 0x100, is blended again as TerrainTexCache_BlendTile does (the record's first dword, set, first Texture_LockFlipped's) and unlinked from the texture cache

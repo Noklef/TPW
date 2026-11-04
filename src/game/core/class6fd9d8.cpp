@@ -5,10 +5,12 @@
 
 #include "gameheap.h"
 #include "language.h"
+#include "accessors.h"
 #include "string.h"
 #include "vcall.h"
 #include "../files/direntry.h"
 #include "../files/handles.h"
+#include "../files/vfs.h"
 
 namespace {
 
@@ -17,6 +19,38 @@ template <typename T> T &at(const void *p, u32 offset) { return *reinterpret_cas
 }  // namespace
 
 namespace {
+
+struct FoundRecord {
+    u32 head[8];
+    char *cursor;
+    char text[0x104];
+};
+
+// A blank record's copy: the head as it is, the cursor at the empty text.
+void Blank(FoundRecord *record, const FoundRecord &blank) {
+    for (u32 k = 0; k < 8; ++k)
+        record->head[k] = blank.head[k];
+    record->text[0] = 0;
+    record->cursor = record->text;
+}
+
+// The path taken relative to the root (a String made from the global 0x78be50, assigned the root), and on 1 opened in the object: whether it was.
+bool OpenedUnder(u8 *opener, u8 *rootFrom, u32 stream, const StringView *path) {
+    String relative, root, name;
+    String_Ctor(&relative);
+    String_CtorCopy(&root, nullptr, reinterpret_cast<const StringView *>((uintptr_t)0x0078be50));
+    String_CtorCopy(&name, nullptr, path);
+    vcall<void>(&root, 0x18, rootFrom);
+    bool opened = false;
+    if (Path_StripBase(&name, &root, &relative) == 1) {
+        s32 result;
+        opened = *vcall<s32 *>(opener, 0xc, &result, stream, relative.data, 0x80000001u, 0u) >= 0;
+    }
+    String_Dtor(&name);
+    String_Dtor(&root);
+    String_Dtor(&relative);
+    return opened;
+}
 
 u8 *Finish(u8 *object, u32 flags) {
     if (flags & 1) GameHeap_Free(object);
@@ -333,6 +367,84 @@ u32 __fastcall Class6fd9d8_Find(u8 *object, void *, u32 key) {
         vcall<u32>(member, 0xc, 1u);
     at<u32>(object, 0x3c) = 0;
     at<u32>(object, 0x34) = 0;
+    return 0;
+}
+
+u32 __fastcall Class6fd9d8_OpenFile(u8 *object, void *, u32 stream, const StringView *path, u32) {
+    if (u8 *const list = at<u8 *>(object, 0x2c)) {
+        for (u8 *node = at<u8 *>(list, 4); node;) {
+            u8 *const held = at<u8 *>(node, 0);
+            node = at<u8 *>(node, 4);
+            if (OpenedUnder(held, object + 0x18, stream, path)) {
+                at<u8 *>(object, 0x38) = held;
+                Set4_4217f0(at<u8 *>(object, 0x30), nullptr, (u32)(uintptr_t)object);
+                return 1;
+            }
+        }
+    }
+    at<u32>(object, 0x38) = 0;
+    return 0;
+}
+
+u32 __fastcall Class6fda98_OpenFile(u8 *object, void *, u32 stream, const StringView *path, u32) {
+    if (u8 *const list = at<u8 *>(object, 0x4c)) {
+        for (u8 *node = at<u8 *>(list, 4); node;) {
+            u8 *const held = at<u8 *>(node, 0);
+            node = at<u8 *>(node, 4);
+            if (OpenedUnder(held + 0x2c, held + 0x18, stream, path)) {
+                at<u8 *>(object, 0x38) = held + 0x2c;
+                return 1;
+            }
+        }
+    }
+    at<u32>(object, 0x48) = 0;
+    at<u32>(object, 0x38) = 0;
+    return 0;
+}
+
+u32 __fastcall Class6fd9d8_FindFile(u8 *object, void *, const StringView *path, u8 *record) {
+    if (u8 *const list = at<u8 *>(object, 0x2c)) {
+        FoundRecord blank;  // (its eight dwords are never set, sic)
+        for (u8 *node = at<u8 *>(list, 4); node;) {
+            u8 *const held = at<u8 *>(node, 0);
+            node = at<u8 *>(node, 4);
+            Blank(reinterpret_cast<FoundRecord *>(record), blank);
+            s32 result;
+            if (*vcall<s32 *>(held, 4, &result, static_cast<const char *>(path->data), record) >= 0) {
+                at<u8 *>(object, 0x34) = held;
+                at<u8 *>(object, 0x38) = held;
+                if (u8 *const member = at<u8 *>(object, 0x3c)) {
+                    vcall<void>(member, 0xc, 1u);
+                    at<u32>(object, 0x3c) = 0;
+                }
+                void *const block = GameHeap_Alloc(0x14);
+                at<void *>(object, 0x3c) = block ? String_CtorCopy(static_cast<String *>(block), nullptr, path) : nullptr;
+                return 1;
+            }
+        }
+    }
+    if (u8 *const member = at<u8 *>(object, 0x3c)) vcall<void>(member, 0xc, 1u);
+    at<u32>(object, 0x3c) = 0;
+    at<u32>(object, 0x34) = 0;
+    return 0;
+}
+
+u32 __fastcall Class6fd9d8_FindAndOpen(u8 *object, void *, u32 stream, const StringView *path) {
+    if (u8 *const list = at<u8 *>(object, 0x2c)) {
+        FoundRecord blank;  // (its eight dwords are never set, sic)
+        FoundRecord record;
+        for (u8 *node = at<u8 *>(list, 4); node;) {
+            u8 *const held = at<u8 *>(node, 0);
+            node = at<u8 *>(node, 4);
+            Blank(&record, blank);
+            s32 result;
+            if (*vcall<s32 *>(held, 4, &result, static_cast<const char *>(path->data), &record) >= 0) {
+                at<u8 *>(object, 0x38) = held;
+                return *vcall<s32 *>(held, 0xc, &result, stream, static_cast<const char *>(path->data), 0x80000001u, 0u) >= 0;
+            }
+        }
+    }
+    at<u32>(object, 0x38) = 0;
     return 0;
 }
 

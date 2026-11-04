@@ -671,6 +671,16 @@ def fill(log, k, arg, data, which=0, offset=0, records=1, through=None):
     log[at + 0x10:at + 0x10 + len(data)] = data
 
 
+def fill_this(log, k, data, offset=0, which=0):
+    """Makes slot k's thiscall recorder write `data` (at most 0x70 bytes) at `this` + offset, as a local object's open method sets its handle (the fill's argument 0x1f)."""
+    assert 0 <= which < FILLS and len(data) <= 0x70
+    at = _fill_at(which) - LOG
+    if len(log) < at + 0x80:
+        log.extend(bytearray(at + 0x80 - len(log)))
+    struct.pack_into('<4I', log, at, (k & 63) | 0x80000000, 0x1f, len(data), offset)
+    log[at + 0x10:at + 0x10 + len(data)] = data
+
+
 def fill_arg(log, k, arg, source, which=0):
     """Makes slot k's recorder write its argument `source` (a dword, as passed) through its argument `arg`: ReadFile's bytes read, all it was asked for."""
     at = _fill_at(which) - LOG
@@ -683,6 +693,12 @@ def mask_this(log, k):
     """Makes slot k's thiscall recorder log `this` as 0: a method on a local object, whose stack address differs between the sides (bit 31 of the slot's LOG_BYTES entry)."""
     at = LOG_BYTES + 4 * (k & 63)
     struct.pack_into('<I', log, at, struct.unpack_from('<I', log, at)[0] | 0x80000000)
+
+
+def this_first(log, k):
+    """Makes slot k's thiscall recorder log `this` as the dword it points to: a method on a local object whose vtable the code under test set (bit 30 of the slot's LOG_BYTES entry)."""
+    at = LOG_BYTES + 4 * (k & 63)
+    struct.pack_into('<I', log, at, struct.unpack_from('<I', log, at)[0] | 0x40000000)
 
 
 def blob(log, k, arg, mask, only_when=False):
@@ -849,7 +865,7 @@ def _log_args(e, k, raw, kk):
     matched = False   # (blob(only_when=True): logged as 0 unless a blob_when() matches)
     for w in range(4):   # (blob_when(): the mask for this call's argument; blob_when_inner(): the second structure's selection)
         wk, wa, wv, wm = struct.unpack('<4I', e.read(LOG + LOG_BLOB_WHEN + 16 * w, 16))
-        if wa >= 0x200 or wa & 0xff >= n:   # (the argument's bit 8: the dword it points to, blob_when()'s deref; a null one matches nothing)
+        if wk & 63 != k & 63 or wa >= 0x200 or wa & 0xff >= n:   # (only this slot's: another slot's argument may be no pointer. The argument's bit 8: the dword it points to, blob_when()'s deref; a null one matches nothing)
             continue
         got = raw[wa & 0xff] if not wa & 0x100 else e.u32(raw[wa & 0xff]) if raw[wa & 0xff] else None
         if wk == (k & 63) | 0x80000000 and got == wv:
@@ -912,8 +928,13 @@ def _fold(e, words):  # (driver.cpp record_call)
 def _recorder(k, n, com=False, cdecl=False):
     def hook(e):
         sp = e.r['ESP'] + (4 if e.tail else 0)
+        if not com and not cdecl:   # (fill_this())
+            for f in range(FILLS):
+                fk, fa, fn, offset = struct.unpack('<4I', e.read(_fill_at(f), 16))
+                if fk == (k & 63) | 0x80000000 and fa == 0x1f and e.r['ECX']:
+                    e.write(e.r['ECX'] + offset, e.read(_fill_at(f) + 0x10, fn))
         raw = [e.u32(sp + 4 * i) for i in range(n)]
-        this = 0 if com or cdecl or e.u32(LOG + LOG_BYTES + 4 * (k & 63)) >> 31 else e.r['ECX']
+        this = 0 if com or cdecl or e.u32(LOG + LOG_BYTES + 4 * (k & 63)) >> 31 else e.u32(e.r['ECX']) if e.u32(LOG + LOG_BYTES + 4 * (k & 63)) >> 30 & 1 else e.r['ECX']
         kk = k | 0x100 if com else k | 0x200 if cdecl else k
         by_name, named_answer = _named(e, k, raw)
         args = _log_args(e, k, raw, kk)

@@ -5,6 +5,10 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "addrcalls.h"
+
+// The calls of NamedObjects_SetThemeTexts go to these (the game's own by default; the bench points them at recorders).
+void NamedObjects_SetCalls(const AddrCall *table, u32 count);
 
 extern "C" {
 
@@ -52,6 +56,12 @@ u32 __fastcall Flags7a1a14_Update(const u8 *object);
 // label's vtable +0x14. No match: nothing. An unused String is constructed and destroyed around it.
 struct WString;
 void __fastcall NamedObjects_SetThemeLabel(u8 *self, void *, const WString *theme, u8 *label);
+
+// 0x409b10 (thiscall, the object unused; theme, first, second; pops 12; name unconfirmed): for the first of the same four themes that the name
+// equals, the definitions' (0x7890a0) name (ObjectDefs_GetName 0x413020) and suffix (ObjectDefs_GetSuffix 0x4130b0) of the code 0x11f9, 0xa29,
+// 0x641 or 0xe11 go into two local buffers of 0x20 units. Then, always, each buffer goes to its label's vtable +0x14: never written (sic)
+// when no theme matches. An unused String is constructed and destroyed around it.
+void __fastcall NamedObjects_SetThemeTexts(u8 *self, void *, const WString *theme, u8 *first, u8 *second);
 
 // 0x4099b0 (thiscall; theme, a String, label; pops 8; name unconfirmed): the theme name widened into a local WString
 // (WString_AssignFromAnsi); when that converts anything, NamedObjects_SetThemeLabel with it.

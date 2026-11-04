@@ -5,6 +5,7 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "addrcalls.h"
 
 extern "C" {
 
@@ -60,6 +61,13 @@ u32 __fastcall Object_ReleaseSavedPairs(u8 *object);
 // positive count the count stays. Returns 1.
 u32 __fastcall Object_ReleaseSavedPairs130(u8 *object);
 
+// 0x57b120 (thiscall (textures, count), pops 8; an SEH frame; the name is unconfirmed): count saved pairs (Mem_Alloc, zeroed) at +0x130 and texture sets
+// (a counted array, TexSet_Ctor) at +0x134. Neither got: what there is freed and cleared, the sets by TrackedGlobal_Free (sic: not their block), and 0.
+// Else +0x138 = count, and for each index in `textures` its set slot in the model's (+8) table (+0x50, entry +4): the new set takes the slot's
+// old set (TexSet_InitFromPair; 0: Object_ReleaseSavedPairs130 and 0), the pair (+0 the old set, +4 the slot), the slot the new set, and the index
+// replaced by that set's texture 0 locked (TexSet_Texture, Texture_Lock; none: 0). Then the flag 0x40000000 at +4 and 1.
+u32 __fastcall Object_MakeSavedPairs130(u8 *object, void *, u32 *textures, s32 count);
+
 // 0x57b490 (thiscall on the object; name unconfirmed): with a block at +0x13c already, 0 (sic). Else a tracked block of 0x38
 // (TrackedGlobal_Alloc) goes there and its +0x18 gets a new texture (0x60 bytes, GameHeap_Alloc, Texture_Ctor; none got: 0) whose pixels
 // are allocated (Texture_Alloc, the size [0x8bd4b0], flags 0): 1. On a failure the texture (when set) is released (through 0x590a70) and
@@ -81,3 +89,6 @@ u32 __fastcall Obj_ReleaseSevenIfMode1(u8 *object);
 // top four bits; from 0xf0 | 0xff00 shifted and ORed as the original does). The width and count are read again after each block. Returns 1.
 u32 __fastcall Object_RenderToBlock13c(u8 *object, void *, u8 *mesh);
 }  // extern "C"
+
+// Test seam: fncmp's driver sends Object_MakeSavedPairs130's calls to recorders.
+void VObj2_SetCalls(const AddrCall *table, u32 count);

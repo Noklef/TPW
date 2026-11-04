@@ -1,5 +1,5 @@
 // The advisor's responses: reimplementation of the lookup 0x5997b0 in the response table at 0x768fb8 (entries of 0x20 bytes, ended by
-// the id 0x270f), which Advisor_Say (0x599050, "Advisor says ResponseID %d") also walks.
+// the id 0x270f), which 0x599050 (advisorspeech.h; "Advisor says ResponseID %d") also walks.
 #pragma once
 
 #include "../../../re/types.h"

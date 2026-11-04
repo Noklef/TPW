@@ -4,6 +4,7 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "addrcalls.h"
 
 extern "C" {
 
@@ -54,4 +55,16 @@ u8 *__fastcall Language_Ctor(u8 *lang);
 // 0x4196a0 (thiscall; name invented, unconfirmed): the text style (+0x4fc), the font entries (0x47f980: their blocks +0xc freed; the last first)
 // and the resource folder (+0xc) destroyed.
 void __fastcall Language_Dtor(u8 *lang);
+
+// 0x419710 (thiscall; name unconfirmed): the language's resources from its folder (+0xc), each callee's answer a pointer to a status that
+// fails below 0. The folder "Data\\Language\\" opened (0x6ad1b0) and the file at 0xf7f230 loaded (0x6ad230): a failure is
+// GameError_Set(0x785de8, 3, 0, the name) and 0. The range table (0x6ad4b0: +0x550, key 2) and code table (0x6ad460: +0x54c, key 1): a
+// failure is -1. 21 charsets (0x6ad510: +0x554 on, 4 apart): a failure formats its two names (sprintf, 0x74c67c) for OutputDebugStringA,
+// that error with the name, 0. One font set of 13 (0x6ad570: 0x18 apart, 0x138 from set to set, from +0x30), set by [0x7858ec] when above 0
+// (1 to 4 and up: sets 0 to 3), else by [0x78d8dc] (0, 1, 2, other: sets 0 to 3): a failure is that error with 0x74c390, 0. Then +0x4fc's
+// status (0x6ad790), +0 = 1, 1.
+s32 __fastcall Language_Load(u8 *lang);
 }
+
+// Test seam: fncmp's driver sends Language_Load's calls to recorders.
+void Language_SetCalls(const AddrCall *table, u32 count);

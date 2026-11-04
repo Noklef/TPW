@@ -6,8 +6,25 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "../core/addrcalls.h"
+
+struct String;
 
 extern "C" {
+
+// 0x541310 (cdecl; folder, name; name from the table in symbols.csv): the sprites of a folder loaded. The byte 0x877354 set. A name "kids" or
+// "kidsheads" (case blind) takes the graphics level (Graphics_Level on 0x78baec) as a limit for the avatars, one of "handymen", "mechanics",
+// "guards", "researchers" the graphics tier (Graphics_Tier) as another. The 0x80 entries of the file table cleared. Twice, the buffer 0x876668
+// and a local String told the path: "generic\<name>\" then the wide string 0x786b68's data read as chars, "\", the name, "\". The String gets
+// the String 0x8757f0 appended and its files are listed (Class6fd9d8_FindFile == 1, Class6fd9d8_Find into 0x875038): under 0x80 entries each gets
+// a block (0x128 bytes: 0x20 of the found record, its name at +0x24 and +0x20 the name's pointer moved with it; it dies with a null block) and a new
+// Handle (null when the allocation fails) told the folder's current object (Get34_41ce80, Handle_Assign). Sorted (SpriteFiles_Sort). With the
+// avatar limit, each of the names gAvatarSprites 0x764030 in turn: the entries of that name not loaded yet. Then every other entry. Each loaded
+// is a new sprite (0x260 bytes, Sprite_Ctor) in gSprites[[0x87626c]] with Sprite_LoadEsp(file, handle): its low byte set counts it and marks
+// the entry, and the 0x200 sprites (the index as it now stands) or a limit (the avatars: only theirs; afterwards either that is on) ends the
+// loading; else the sprite in that place is freed. In the end every entry's block is freed, its handle deleted (vtable +0x2c, 1), +0 cleared.
+// Answers the count loaded.
+u32 __cdecl Sprites_LoadFolder(u8 *folder, const String *name);
 
 // 0x541210 (cdecl): bubble-sorts the table by name (Names_FirstAfter on String copies of the
 // names: case blind), passes until one makes no swap. A swap exchanges the two dwords and the
@@ -21,8 +38,10 @@ void __cdecl SpriteFiles_Sort();
 void __cdecl Sprites_FreeAll();
 }
 
-struct String;
 struct StreamBase;
+
+// The calls of Sprites_LoadFolder go to these (the game's own by default; the bench points them at recorders).
+void SpriteLoading_SetCalls(const AddrCall *table, u32 count);
 
 // What the frame-set reloads call in the game, so that they can run outside it (the benches point these at recorders; the ports, or the
 // game's own functions for those not ported, by default).

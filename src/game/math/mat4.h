@@ -6,6 +6,7 @@
 #pragma once
 
 #include "../../../re/types.h"
+#include "../core/addrcalls.h"
 
 extern "C" {
 
@@ -41,6 +42,15 @@ void __cdecl Mat4_LuDecompose(float *a, s32 *index, float *sign);
 // (Mat4_LuDecompose), then each column of the identity solved against it (Mat4_LuBackSubstitute) as the inverse's column.
 void __fastcall Mat4_Invert(u32 *m);
 
+// 0x5783b0 (x87; the name is unconfirmed): the matrices made from the two inputs, 1. 0x87aff0 copied to 0x87af68 and inverted; through the
+// transformer ([0x87b1d8] slot 6, cdecl (self, in, by, out)) with 0x87b110 into the static 0xfb3400, which goes to 0x87b158, and that with
+// 0x87b0d0 into the static 0xfb3460, which goes to 0x87b158 too. (Each static made identity and given to atexit (0x5d1750) on first use, guards
+// 0xfb33e0 and 0xfb3440, bit 0.) 0x87b078 = the unit vector of ([0x87af70], [0x87af90]). With the flag 0x20000000 of 0x8bd508 the same from
+// 0x87b030 by 0x87afa8 and 0x87b198, and 0x87b080 = the unit vector (Vec2_Normalize) of ([0x87afb0], [0x87afd0]). 0x87b090 made identity. From the
+// matrix at [0x87afe8] its (x, y) = (+4, +0x14) as a unit vector (zero length or a NaN: c = y = 1): [0x87af60] = acos(c * y) / (2 pi), negative
+// when asin(-c * x) as a float is not above 0.
+u32 __cdecl Matrices_Update();
+
 // 0x578be0 (thiscall; near, far, field of view in degrees; pops 0xc; x87): the perspective matrix scaled by the sine of half the
 // angle: zeroed, then m[0] = m[5] = cos, m[10] = q = sin / (1 - near / far), m[14] = -q * near and m[11] = sin, or m[15] = 1 with the
 // render flag 0x200 (0x8bcbc8) set. The three arguments are kept at 0x87b1dc, 0x768acc and 0x87af58 (the name is unconfirmed).
@@ -57,3 +67,6 @@ void __fastcall Mat4_SetFar(float *m, void *, u32 far_);
 // nothing (the name is unconfirmed).
 void __fastcall Mat4_Transform(const float *m, void *, float *out, const float *in, u32 mode);
 }
+
+// Test seam: fncmp's driver sends Matrices_Update's atexit to a recorder.
+void Mat4_SetCalls(const AddrCall *table, u32 count);

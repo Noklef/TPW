@@ -59,6 +59,12 @@ u32 *__cdecl GamePaths_SetRoots(u32 *result);
 // GamePaths_ShareTexFolder's call to 0x40ef40 goes by the game's address; a table of replacements (tests/fncmp/sharetexpath.py gives it a recorder).
 void GamePaths_SetCalls(const AddrCall *table, u32 count);
 
+extern "C" {
+// 0x40ef40 (cdecl; name unconfirmed): the static String at 0x788028 (made at the first call, guard bit 0 of 0x7887e4, its destructor 0x40eff0 registered with
+// atexit) given the String at 0xf816e8, a "\" (asked twice, sic), the String at 0x787f50, a "\" and the String of 0x786b68: its text is returned.
+const char *__cdecl GamePaths_Base();
+}
+
 // 0x46e650 (cdecl; out; name invented, unconfirmed): sprintf(out, "%s\\%s", 0x40ef40's text, the text at 0x7af720). Returns sprintf's result.
 s32 __cdecl GamePaths_ShareTexFolder(char *out);
 }  // extern "C"

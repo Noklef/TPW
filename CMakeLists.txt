@@ -226,6 +226,7 @@ add_library(tpw_game STATIC
     src/game/core/crttime.cpp
     src/game/core/moneypunct.cpp
     src/game/core/crtfloat.cpp
+    src/game/core/gameowner.cpp
     src/game/gfx/text.cpp
     src/game/gfx/canvas.cpp
     src/game/gfx/canvasdraw.cpp
@@ -634,6 +635,8 @@ add_library(tpw_game STATIC
     src/game/render/ddopen.cpp
     src/game/render/modellist.cpp
     src/game/render/pointsprites.cpp
+    src/game/render/d3dviewport.cpp
+    src/game/render/d3dsetup.cpp
     src/game/ui/quitconfirm.cpp
     src/game/world/mapsweep.cpp
     src/game/ui/imehostattach.cpp
@@ -675,6 +678,9 @@ add_library(tpw_game STATIC
     src/game/world/ridesload.cpp
     src/game/world/objectscript.cpp
     src/game/world/advisorspeech.cpp
+    src/game/world/gamefile.cpp
+    src/game/world/mousemodeclick.cpp
+    src/game/world/savegamefile.cpp
     src/game/ui/staffrename.cpp
     src/game/ui/window7cc8bc.cpp
     src/game/ui/dialog7cb2b8.cpp
@@ -787,6 +793,8 @@ add_library(tpw_game STATIC
     src/game/ui/guistaticobjects.cpp
     src/game/ui/guitokenwide.cpp
     src/game/ui/dialog7cc47cinfo.cpp
+    src/game/ui/windowgroup.cpp
+    src/game/ui/windowproc.cpp
 )
 # The libraries whose functions replace the exe's copies (src/game/lib); their headers stay private to those units.
 target_link_libraries(tpw_game PRIVATE tpw_zlib tpw_jpeg6b tpw_jpeg6a)
